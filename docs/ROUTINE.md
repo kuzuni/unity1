@@ -310,7 +310,7 @@
 - 판정: `dotnet build`·`dotnet test` 초록(스텁에 쓰는 서명이 있는가) + CI 유니티 잡이 돈 뒤 `screens` 브랜치에 `playmode-red.txt` 가 서고 그 안에 런 46 류의 실패 이유가 적혀 있다.
 - 범위: `Assets/Tests/PlayMode/RedLog.cs` · `tools/dotnet/Stubs`(필요한 스텁 서명만).
 
-### T47 — 게이트: PlayMode 테스트도 dotnet 하니스로 컴파일한다 (검증 · 뒤 순서 없음 · 워커 L 등재)
+### T48 — 게이트: PlayMode 테스트도 dotnet 하니스로 컴파일한다 (검증 · 뒤 순서 없음 · 워커 L 등재)
 - 지금 `tools/dotnet` 는 `Assets/Tests/EditMode/**` 만 컴파일한다 — **PlayMode 테스트의 오타·잘못된 서명은 §3 게이트를 전부 초록으로 통과하고 유니티 CI 에서야 터진다**(§1 «컴파일 파손을 남기지 않는다» 가 가장 잘 뚫리는 자리 · 워커마다 PlayMode 파일을 쓴다).
 - 할 일: `tools/dotnet/TestsPlay/Forge.TestsPlay.csproj`(`Assets/Tests/PlayMode/**/*.cs` + `Forge.Game` 프로젝트 참조 + NUnit 3.6.1 · **테스트를 돌리지 않는다 · 컴파일만**) · `tools/dotnet/Stubs/TestTools.cs`(`UnityTestAttribute` · `LogAssert.ignoreFailingMessages`·`Expect(LogType,string)`·`Expect(LogType,Regex)`·`NoUnexpectedReceived`) · `Forge.sln` 에 추가 · §3 게이트 목록에 한 줄.
 - ⚠ 스텁이 실물 `UnityEngine.TestTools` 와 다르면 «로컬만 초록» 이 또 생긴다 — 새 API 를 쓰면 스텁에도 같은 서명을 더한다(§1 패키지 규칙과 같은 갈래).
