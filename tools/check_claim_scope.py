@@ -41,6 +41,9 @@
   · 얕은 클론(`--depth 1`)이면 이력이 없어 ⓐ 가 **빈손**이다. 그때는 «못 봤다» 고 말한다(조용히 초록이 되면 안 된다).
   · 범위 칸을 **글자로** 견준다(`Game/GearUi` 는 `GearUi.cs` 를 덮는다) — «그리는 18곳» 같은
     **뭉뚱그린 범위는 아무 파일도 안 덮는다**. 그것이 이 자의 뜻이다(뭉뚱그린 범위는 남에게 안 보인다).
+  · **폴더(`…/`)·글로브(`…*`) 토큰은 접두로 덮는다**(T42 · 2026-09-12): `Core/Battle/` 은 그 폴더 아래 전부,
+    `Ui/Pet*` 는 `…/Ui/Pet` 로 시작하는 파일 전부. 상대 접두는 경로 마디 경계에서 찾는다(`Core/Battle/` 이
+    `Core/BattleUi/` 를 덮지 않는다). §2 «범위» 가 폴더로 적히는 규약이라 이것이 없으면 폴더 lock 마다 오탐이 난다.
 
 쓰기: python3 tools/check_claim_scope.py [--selftest]
   늘 rc=0 이다.
@@ -160,13 +163,51 @@ def scope_of(task_id, scope):
     return (scope.get(task_id, "") + " · " + scope.get(head, "")).strip(" ·")
 
 
+# 범위 칸의 «폴더/» 토큰과 «글로브*» 토큰(백틱 안) — 접두로 덮는다(T42).
+#   `Assets/Scripts/Core/Battle/` · `Core/Battle/` → 그 폴더 아래 전부 · `Ui/Pet*` → `…/Ui/Pet` 로 시작하는 파일.
+#   §2 «범위» 는 폴더로 적는 것이 규약이라, 글자(줄기)로만 견주던 옛 눈은 폴더 범위 lock 마다 «안 적힌 채 쥔 파일» 을
+#   회차마다 18개씩 오탐했고(T7 7 · T20 11 · 검수 Q 2026-09-12 20:00 실측) 그 소음에 진짜 «밖 파일» 이 묻혔다.
+BACKTICK_TOKEN = re.compile(r"`([A-Za-z0-9_\-./*]+)`")
+
+
+def scope_prefixes(cell):
+    """범위 칸에서 경로 접두 목록 — 백틱 토큰이 «…/» 로 끝나면 폴더, «*» 가 있으면 글로브(별표 앞까지). 확장자 붙은 파일 이름·확장자 없는 줄기는 여기 안 든다."""
+    out = []
+    for m in BACKTICK_TOKEN.finditer(cell or ""):
+        t = m.group(1)
+        if t.endswith("/"):
+            pre = t
+        elif "*" in t:
+            pre = t.split("*", 1)[0]
+        else:
+            continue
+        if pre and pre != "/":
+            out.append(pre)
+    return out
+
+
+def covered_by_prefix(path, prefixes):
+    """`Assets/…` 로 시작하는 접두는 그대로 · 상대 접두(`Core/Battle/` · `Ui/Pet`)는 경로 마디 경계에서 찾는다."""
+    for pre in prefixes:
+        if pre.startswith("Assets/"):
+            if path.startswith(pre):
+                return True
+        elif ("/" + path).find("/" + pre) >= 0:
+            return True
+    return False
+
+
 def undeclared(files, scope_cell):
-    """범위 칸이 «글자로» 안 덮는 파일들. `Game/GearUi` 는 `Game/GearUi.cs` 를 덮는다."""
+    """범위 칸이 안 덮는 파일들. `Game/GearUi` 는 `Game/GearUi.cs` 를(글자로) · `Core/Battle/`·`Ui/Pet*` 는 그 아래 전부를(접두로) 덮는다(T42)."""
+    prefixes = scope_prefixes(scope_cell)
     out = []
     for p in sorted(files):
         stem = os.path.basename(p)[:-3]
-        if stem and stem not in scope_cell:
-            out.append(p)
+        if not stem:
+            continue
+        if stem in scope_cell or covered_by_prefix(p, prefixes):
+            continue
+        out.append(p)
     return out
 
 
@@ -342,6 +383,21 @@ def selftest():
                      "`Game/LobbyPopups.cs` · Tests/EditMode")
     if got != ["Assets/Scripts/Game/Overlay.cs"]:
         print("✗ 자기검사 ⓐ: " + repr(got)); ok = False
+
+    # ⓐ² T42 — «폴더/» 범위는 그 아래 전부를 덮는다(절대·상대 둘 다) · 밖 파일은 여전히 잡는다 · `Core/Battle/` 은 `Core/BattleUi/` 를 안 덮는다.
+    got = undeclared({"Assets/Scripts/Core/Battle/Battle.cs", "Assets/Scripts/Core/Battle/Enemy.cs",
+                      "Assets/Scripts/Core/BattleUi/Panel.cs", "Assets/Scripts/Game/Battle/BattleScene.cs", "Assets/Scripts/Core/Save/Offline.cs"},
+                     "`Assets/Scripts/Core/Battle/`(Battle.cs · Enemy.cs) · `Game/Battle/` · `tools/sim/`")
+    if got != ["Assets/Scripts/Core/BattleUi/Panel.cs", "Assets/Scripts/Core/Save/Offline.cs"]:
+        print("✗ 자기검사 ⓐ²(폴더 범위): " + repr(got)); ok = False
+
+    # ⓐ³ T42 — «글로브*» 범위(`Ui/Pet*`)는 그 접두로 시작하는 파일을 덮는다 · 다른 접두는 잡는다.
+    got = undeclared({"Assets/Scripts/Game/Ui/PetSheet.cs", "Assets/Scripts/Game/Ui/PetCard.cs", "Assets/Scripts/Game/Ui/SkillSheet.cs", "Assets/Scripts/Game/Ui/ShopSheet.cs"},
+                     "`Assets/Scripts/Game/Ui/Pet*` · `Ui/Skill*` · `Assets/Tests/PlayMode/PetUiTests.cs`")
+    if got != ["Assets/Scripts/Game/Ui/ShopSheet.cs"]:
+        print("✗ 자기검사 ⓐ³(글로브 범위): " + repr(got)); ok = False
+    if scope_prefixes("`Core/Battle/`(x) · `Ui/Pet*` · `Game/GearUi.cs` · `tools/x.py` · 그리는 18곳") != ["Core/Battle/", "Ui/Pet"]:
+        print("✗ 자기검사 ⓐ⁴(접두 뽑기): " + repr(scope_prefixes("`Core/Battle/`(x) · `Ui/Pet*` · `Game/GearUi.cs` · `tools/x.py` · 그리는 18곳"))); ok = False
 
     # ⓑ 확장자 없이 적은 범위(`Game/GearUi`)도 덮는 것으로 본다.
     if undeclared({"Assets/Scripts/Game/GearUi.cs"}, "`Game/GearUi`·`Palette`"):

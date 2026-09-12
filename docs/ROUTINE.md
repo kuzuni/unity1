@@ -273,7 +273,7 @@
 - 방법: `json.load(..., object_pairs_hook=…)` 로 최상위(그리고 각 항목) 키 중복을 잡아 `✗` + rc 1 · `--self-test` 에 «중복 키 JSON 이면 rc 1» 한 칸 · `.github/workflows/ci.yml` dotnet 잡에 `python3 tools/gen_ui_catalog.py --check` 한 줄(§3 게이트 목록에도).
 - 범위: `tools/gen_ui_catalog.py` · `.github/workflows/ci.yml`(dotnet 잡 한 줄) · `docs/ROUTINE.md` §3 한 줄.
 
-### T42 — 자 수리: `check_claim_scope.undeclared()` 가 «폴더/» 로 적은 범위(`Assets/Scripts/Core/Battle/`)를 못 덮어 살아 있는 lock 마다 «범위에 안 적힌 채 쥔 파일» 오탐을 낸다(T7 폴더 7개 + T20 `Ui/Pet*` 글로브 11개 = 회차마다 18개 · 전부 오탐) — 폴더·글로브 토큰은 접두 매칭 (검증 · 뒤 순서 없음 · 검수 Q 등재)
+### T42 ✅ — 자 수리: `check_claim_scope.undeclared()` 가 «폴더/» 로 적은 범위(`Assets/Scripts/Core/Battle/`)를 못 덮어 살아 있는 lock 마다 «범위에 안 적힌 채 쥔 파일» 오탐을 낸다(T7 폴더 7개 + T20 `Ui/Pet*` 글로브 11개 = 회차마다 18개 · 전부 오탐) — 폴더·글로브 토큰은 접두 매칭 (검증 · 뒤 순서 없음 · 검수 Q 등재)
 - 왜: `undeclared()` 는 파일 줄기(`BattleContext`)가 범위 칸에 **글자로** 있는지만 본다. §2 «범위» 는 폴더로 적는 것이 규약이라 폴더 범위 lock 은 전부 오탐이고, 그 소음에 진짜 «밖 파일» 이 묻힌다(자 스스로 «그것을 매 회차 다시 한다» 고 적어 둔 자리).
 - 방법: 범위 칸의 `…/` 로 끝나는 토큰과 `…*` 글로브 토큰(백틱 안)은 경로 접두로 보고(`Ui/Pet*` 는 `Assets/Scripts/Game/Ui/Pet` 접두) `p.startswith(prefix)` 면 덮은 것으로 · `--selftest` 에 «폴더·글로브 범위는 덮는다 · 밖 파일은 여전히 잡는다» 두 칸.
 - 범위: `tools/check_claim_scope.py`.
