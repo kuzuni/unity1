@@ -21,7 +21,7 @@
 | T4 | `VoxelMob` 박스 모델 조립기 (Voxel.build + Mobs.build 규약) | 🔄 진행 | sess-1830-26696 / 워커 S | `Assets/Scripts/Core/Voxel/` · `Assets/Scripts/Game/Voxel/` · `Assets/Tests/EditMode/VoxelTests.cs` | T2·T3 뒤 |
 | T5 | 몹 도감 씬 + 시트 촬영 (전 종 예외 0 · 치수 단언) | ⬜ 대기 | — | `Assets/Scripts/Game/Gallery/` · `Assets/Tests/PlayMode/MobGalleryTests.cs` | T4 뒤 |
 | T6 | 영웅 박스 모델 + 무기 파지 + 대기/걷기/스윙 클립 | ⬜ 대기 | — | `Assets/Scripts/Game/Hero/` · `Assets/Tests/PlayMode/HeroTests.cs` | T4 뒤 |
-| T7 | Core 전투 엔진 (100ms 틱 · 웨이브 4+보스 · sim 대조) | ⬜ 대기 | — | `Assets/Scripts/Core/Battle/` · `tools/sim/` · `Assets/Tests/EditMode/BattleTests.cs` | T3 뒤 |
+| T7 | Core 전투 엔진 (100ms 틱 · 웨이브 4+보스 · sim 대조) | 🔄 진행 | sess-1836-5595 / 워커 C | `Assets/Scripts/Core/Battle/` · `tools/sim/` · `Assets/Tests/EditMode/BattleTests.cs` | T3 뒤 |
 | T8 | 전투 씬 (적 스폰·애니 계약·데미지 숫자·셰이크·파티클) | ⬜ 대기 | — | `Assets/Scripts/Game/Battle/` · `Assets/Tests/PlayMode/BattleSceneTests.cs` | T6·T7 뒤 |
 | T9 | 맵·바이옴 (테마 10 · 소품 배치 · 지면·안개·광원) | ⬜ 대기 | — | `Assets/Scripts/Game/World/` · `Assets/Tests/PlayMode/WorldTests.cs` | T4 뒤 |
 | T10 | 펫 출전 3마리 (대형 · 따라오기 · 관절 드라이버) | ⬜ 대기 | — | `Assets/Scripts/Game/Pets/` · `Assets/Tests/PlayMode/PetSceneTests.cs` | T8 뒤 |
