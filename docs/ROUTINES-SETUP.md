@@ -10,7 +10,7 @@
    - (간단) 같은 GitHub 계정(kuzuni)을 그 클로드 계정에도 연결. 그리고 **Claude GitHub App 의 저장소 접근에 `kuzuni/unity1` 을 켠다**(꺼져 있으면 세션이 «push access 없음» — 2026-09-12 실측).
    - (별도 GitHub 계정) `kuzuni/unity1` Settings → Collaborators → **Write** 로 초대·수락 → 그 계정으로 클로드 연결.
 2. **환경(environment)** — 그 계정으로 claude.ai/code 에서 `github.com/kuzuni/unity1` 을 연결해 세션을 한 번 띄우면 계정 전용 `environment_id`(`env_…`)가 생긴다. **계정마다 다르다** — 아래 틀의 `environment_id` 를 그 값으로.
-3. **모델 정책** — `claude-fable-5-1`, 한도 소진 시 `claude-opus-5`. **소넷 금지.**
+3. **모델 정책** — **`claude-opus-5`**(주인 지시 2026-09-12 «루틴들 오퍼스로»). **소넷 금지.** persistent 세션 바인딩 루틴은 세션의 모델이 실행 모델이다 — 바꾸려면 `create_session(model=claude-opus-5)` 4개 → `create_trigger(persistent_session_id=…)` 4개 → 옛 루틴 `delete_trigger` → §6 ③ 표 갱신(계정 2 실측 2026-09-12 20:14 UTC).
 
 ## 1. 슬롯 표 (다섯 계정 · 20 워커 + 검수 Q)
 
@@ -50,7 +50,7 @@
         } } }
       ],
       "session_context": {
-        "model": "claude-fable-5-1",
+        "model": "claude-opus-5",
         "allowed_tools": ["Bash","Read","Write","Edit","Glob","Grep","WebFetch","Task"],
         "sources": [ { "git_repository": { "url": "https://github.com/kuzuni/unity1" } } ]
       }
