@@ -17,8 +17,25 @@ namespace Forge.Tests.PlayMode
     /// </summary>
     public class ShopUiTests
     {
+        /// <summary>세이브 파일을 지운다 — 이 테스트들은 이름·재화·리그·채팅을 바꾸고 저장하므로, 남기면 뒤 테스트 클래스(UiSmokeTests 의 «부팅 닉네임 = 원작 defaultState» 등)가 빨개진다(CI 런 35 실측). 앞 클래스가 남긴 세이브도 같은 이유로 지우고 시작한다.</summary>
+        private static void DeleteSave()
+        {
+            try
+            {
+                string p = System.IO.Path.Combine(Application.persistentDataPath, (SaveIo.Defs != null ? SaveIo.Defs.SaveKey : "forgeclone_save_v1") + ".json");
+                if (System.IO.File.Exists(p)) System.IO.File.Delete(p);
+                if (SaveIo.Defs == null)
+                    foreach (string f in System.IO.Directory.GetFiles(Application.persistentDataPath, "forgeclone_save*.json")) System.IO.File.Delete(f);
+            }
+            catch (System.Exception) { /* 저장소 접근 실패는 무시 */ }
+        }
+
+        [TearDown]
+        public void CleanSave() { DeleteSave(); }
+
         private static IEnumerator Boot()
         {
+            DeleteSave();
             SceneManager.LoadScene("SampleScene");
             yield return null;
             yield return null;
