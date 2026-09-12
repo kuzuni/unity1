@@ -340,7 +340,7 @@
 - 범위: `Assets/Scripts/Game/Battle/DamageNumbers.cs`·`CubeParticles.cs`·`TrailFx.cs`·`HitFlashFx.cs` · `Assets/Scripts/Core/Battle/Battle.cs`(버퍼 재사용만) · `Assets/Tests/PlayMode/PerfBudgetTests.cs`(상한 두 수).
 
 
-### T51 — CI 구멍 셋: 부르지 않는 자기 검사 둘(`ui_score --self-test` · `export_data --self-test`) · PNG 0장인 런이 진단 로그를 버린다 (게이트 · 뒤 순서 없음 · `ci.yml` 한 파일)
+### T51 ✅ — CI 구멍 셋: 부르지 않는 자기 검사 둘(`ui_score --self-test` · `export_data --self-test`) · PNG 0장인 런이 진단 로그를 버린다 (게이트 · 뒤 순서 없음 · `ci.yml` 한 파일)
 - 왜 ⓐ: `tools/ui_score.py`(T28 · 1,000줄 · 자기 검사 15칸)를 **CI 가 안 부른다**. 이 레포의 검사 자는 전부 `--self-test` 가 dotnet 잡에 걸려 있는데(`gen_ui_catalog`·`check_docs_intact`·`task_state`·`check_decisions`·`check_task_rows`·`check_final_table`·`check_claim_scope` 7개) `ui_score` 만 빠졌다 — T28 이 «`ci.yml` 은 내 범위 밖» 이라 남긴 한 줄이다(T28 진행 기록 끝).
 - 왜 ⓑ: §3 게이트 목록에 있는 `node tools/export_data.js --self-test`(펫 25 · 탈것 29 · 적 7 이 나오는가)도 CI 에 없다. datasync 잡은 `check_data_sync.sh`(정본과 바이트 대조)만 부른다 — 그것은 «정본과 같은가» 이지 «추출기가 제 수를 내는가» 가 아니다.
 - 왜 ⓒ: `screens` 배포 조건이 `steps.shots.outputs.count != '0'`(= **PNG 개수**)이라 촬영 픽스처까지 죽은 런에서는 T46 의 `playmode-red.txt` 가 **안 올라간다** — 진단 로그가 가장 필요한 런에서 정확히 사라진다(T46 완료 기록이 «다음 사람 몫» 으로 남긴 한 줄). 다만 배포는 `force_orphan: true` 라 «아무 파일이나 있으면 올린다» 로 넓히면 PNG 0장인 런이 **지난 PNG 를 통째로 지운다** — 그래서 PNG 가 0장이면 지난 `screens` 의 PNG 를 먼저 받아 담고(이어붙임) 올린다.
