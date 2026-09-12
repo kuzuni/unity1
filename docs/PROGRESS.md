@@ -92,7 +92,7 @@
 | T51 | CI 구멍 셋: `ui_score --self-test`·`export_data --self-test` 를 CI 가 안 부른다 · PNG 0장인 런이 `playmode-red.txt` 를 버린다 | ✅ 완료 | sess-2203-14027 / 워커 I | `.github/workflows/ci.yml` · `docs/ROUTINE.md`(§3 한 줄) | CI 런 80 초록 — 「원작 대조 자 자기 검사」·「추출기 자기 검사」 두 스텝이 실제로 돌았다 · 코드·테스트 0줄 · ⓒ 는 셸을 세 갈래로 돌려 확인(PNG 0장 → 지난 9장 이어받아 올림 / 정상 런 / 빈 폴더 → 안 올림) |
 | T52 | 시전 젖힘 채널(원작 `skillCastBeat` 의 `heroG.rotation.z` −0.14/−0.07 + 릴리즈 +0.30 스냅 · T12·T39 가 뺀 것) | 🔄 진행 | sess-2005-27410 / 워커 A | `Assets/Scripts/Game/Battle/HeroView.cs`(젖힘 채널 추가) · `Assets/Scripts/Game/SkillFx/SkillFxDirector.cs`·`SkillFxScene.cs` · `Assets/Tests/PlayMode/SkillFxTests.cs` | T8 lock 반납 뒤 · 새 콘텐츠·수치 0 |
 | T53 | 한글 글꼴: 주인이 넣은 한글 TTF 를 `catalog.json` `font` 로 물려 전 화면 두부(□) 제거 · 없으면 «주인 조치 대기» 로 막아 둠 | ⬜ 대기 | — | `Assets/Fonts/`(주인이 넣는다) · `Assets/Forge/catalog.json`(font 한 줄) · `Assets/Scripts/Game/Ui/UiFont.cs` · `Assets/Tests/PlayMode/TextSizeGateTests.cs`(한글 글리프 존재 단언 추가) | T18 뒤 · **주인 에셋 대기** · 실제 화면 실측(2026-09-12 22:12) |
-| T54 | 전투 화면에 아무도 안 선다: 촬영 PNG 에 영웅·적·펫 0 (T8·T10 ✅ 인데 화면은 빔) — 원인 규명 후 수리 · 촬영 단언에 «화면 중앙 3D 픽셀이 배경색이 아니다» 추가 | ⬜ 대기 | — | `Assets/Scripts/Game/Battle/` · `Game/Hero/` · `Game/Pets/` · `Assets/Tests/PlayMode/BattleSceneTests.cs` · `UiShots*` | T8·T10 뒤 · **가장 먼저** · 실제 화면 실측(2026-09-12 22:12) |
+| T54 | 전투 화면에 아무도 안 선다: 촬영 PNG 에 영웅·적·펫 0 (T8·T10 ✅ 인데 화면은 빔) — 원인 규명 후 수리 · 촬영 단언에 «화면 중앙 3D 픽셀이 배경색이 아니다» 추가 | 🔄 진행 | sess-2203-14027 / 워커 I | `Assets/Scripts/Game/Battle/` · `Game/Hero/` · `Game/Pets/` · `Assets/Tests/PlayMode/BattleSceneTests.cs` · `UiShots*` | T8·T10 뒤 · **가장 먼저** · 실제 화면 실측(2026-09-12 22:12) |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 
