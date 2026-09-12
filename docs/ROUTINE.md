@@ -67,7 +67,7 @@
 - 판정: JSON 7개 + 자기 검사(`node tools/export_data.js --self-test` · 펫 25 · 탈것 29 · 적 7 이 나오는가) + CI 초록.
 - 범위: `tools/export_data.js` · `tools/check_data_sync.sh` · `Assets/StreamingAssets/data/`.
 
-### T3 — Core: `MiniJson` · `GameData`(JSON 로더 · 표 접근자) · `Rng`(원작과 같은 mulberry32/시드) (Core · T2 뒤)
+### T3 ✅ — Core: `MiniJson` · `GameData`(JSON 로더 · 표 접근자) · `Rng`(원작과 같은 mulberry32/시드) (Core · T2 뒤)
 - 정본: `web/js/util.js`·`bignum.js`(큰 수 표기 — K/M/B/T… 원작 표기 그대로) · `state.js` 의 난수 사용처.
 - `GameData.Load(json 문자열들)` → 강타입 표(`ForgeTable`·`PetTable`·`SkillTable`·`MobModel`…). 어느 수치도 코드 상수로 두지 않는다. `BigNum` 표기 함수는 원작 `bignum.js` 와 **같은 입력 → 같은 문자열**(EditMode 표 테스트 30개 이상).
 - 범위: `Assets/Scripts/Core/Data/` · `Assets/Scripts/Core/BigNum.cs` · `Assets/Tests/EditMode/DataTests.cs`.
