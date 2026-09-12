@@ -483,35 +483,87 @@ namespace Forge.Tests.PlayMode
             return bad.Count == 0 ? null : string.Join(" · ", bad.ToArray());
         }
 
-        /// <summary>앱 상자(9:16)만 잘라 `ui-screens/screen_&lt;이름&gt;.png` 로. 그래픽 장치가 없으면 null.</summary>
+        /// <summary>
+        /// 앱 상자(9:16)만 잘라 `ui-screens/screen_&lt;이름&gt;.png` 로. 그래픽 장치가 없으면 null.
+        /// ⚠ `ScreenCapture.CaptureScreenshotAsTexture()` 는 프레임 끝에서만 옳은데, 그 자리를 잡는 코루틴 대기는
+        /// **배치모드에서 아예 안 불린다**(CI 런 60 실측 — `UnityTest yielded WaitForEndOfFrame, which is not evoked in batchmode`
+        /// 예외로 PlayMode 런이 통째로 죽었다). 그래서 T5 `GallerySheet` 와 같은 길로 **카메라를 직접 RenderTexture 에 그린다**:
+        /// ① 본 카메라(3D 세계 · 레터박스 rect 그대로) → ② 오버레이 캔버스를 잠깐 ScreenSpaceCamera 로 돌려 전용 정사영 카메라로 그 위에 → ③ 앱 상자만 ReadPixels.
+        /// 실패하면 경고 한 줄(빨강 아님)만 남기고 그림을 건너뛴다 — 이 테스트의 판정은 «열렸는가·글자·빨강 0» 이지 그림이 아니다.
+        /// </summary>
         private static string Capture(string name)
         {
-            Texture2D full = null;
-            try { full = ScreenCapture.CaptureScreenshotAsTexture(); }
-            catch (Exception e) { Debug.LogWarning("[UiShots] " + name + " 화면 캡처 실패: " + e.Message); return null; }
-            if (full == null || full.width <= 0 || full.height <= 0) return null;
+            UiRoot root = UiRoot.Instance;
+            if (root == null || root.Canvas == null) return null;
+            Canvas canvas = root.Canvas;
+            Rect app = root.AppScreenRect;
+            int sw = Screen.width, sh = Screen.height;
+            if (sw <= 0 || sh <= 0) return null;
+            int x = Mathf.Clamp(Mathf.RoundToInt(app.x), 0, sw - 1);
+            int y = Mathf.Clamp(Mathf.RoundToInt(app.y), 0, sh - 1);
+            int w = Mathf.Clamp(Mathf.RoundToInt(app.width), 1, sw - x);
+            int h = Mathf.Clamp(Mathf.RoundToInt(app.height), 1, sh - y);
+
+            RenderMode prevMode = canvas.renderMode;
+            Camera prevWorld = canvas.worldCamera;
+            float prevPlane = canvas.planeDistance;
+            RenderTexture prevActive = RenderTexture.active;
+            Camera main = Camera.main;
+            RenderTexture prevMainTarget = main != null ? main.targetTexture : null;
+            RenderTexture rt = new RenderTexture(sw, sh, 24, RenderTextureFormat.ARGB32);
+            GameObject camGo = null;
             Texture2D shot = null;
             try
             {
-                Rect app = UiRoot.Instance.AppScreenRect;
-                int x = Mathf.Clamp(Mathf.RoundToInt(app.x), 0, full.width - 1);
-                int y = Mathf.Clamp(Mathf.RoundToInt(app.y), 0, full.height - 1);
-                int w = Mathf.Clamp(Mathf.RoundToInt(app.width), 1, full.width - x);
-                int h = Mathf.Clamp(Mathf.RoundToInt(app.height), 1, full.height - y);
+                bool drewWorld = false;
+                if (main != null)
+                {
+                    main.targetTexture = rt;
+                    main.Render();
+                    main.targetTexture = prevMainTarget;
+                    drewWorld = true;
+                }
+                camGo = new GameObject("UiShot Camera");
+                Camera cam = camGo.AddComponent<Camera>();
+                cam.enabled = false;
+                cam.orthographic = true;
+                cam.orthographicSize = sh * 0.5f;
+                cam.nearClipPlane = 0.01f;
+                cam.farClipPlane = 100f;
+                cam.clearFlags = drewWorld ? CameraClearFlags.Depth : CameraClearFlags.SolidColor;
+                cam.backgroundColor = Color.black;
+                cam.targetTexture = rt;
+                camGo.transform.position = new Vector3(0f, 0f, -10f);
+
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                canvas.planeDistance = 1f;
+                Canvas.ForceUpdateCanvases();
+                cam.Render();
+
+                RenderTexture.active = rt;
                 shot = new Texture2D(w, h, TextureFormat.RGB24, false);
-                shot.SetPixels(full.GetPixels(x, y, w, h));
+                shot.ReadPixels(new Rect(x, y, w, h), 0, 0);
                 shot.Apply(false);
                 return GallerySheet.Save(shot, OutPrefix + name);
             }
             catch (Exception e)
             {
-                Debug.LogWarning("[UiShots] " + name + " 저장 실패: " + e.Message);
+                Debug.LogWarning("[UiShots] " + name + " 촬영 실패(그림만 건너뛴다): " + e.Message);
                 return null;
             }
             finally
             {
+                canvas.renderMode = prevMode;
+                canvas.worldCamera = prevWorld;
+                canvas.planeDistance = prevPlane;
+                if (main != null) main.targetTexture = prevMainTarget;
+                RenderTexture.active = prevActive;
+                Canvas.ForceUpdateCanvases();
+                if (camGo != null) UnityEngine.Object.Destroy(camGo);
                 if (shot != null) UnityEngine.Object.Destroy(shot);
-                UnityEngine.Object.Destroy(full);
+                rt.Release();
+                UnityEngine.Object.Destroy(rt);
             }
         }
 
@@ -592,7 +644,6 @@ namespace Forge.Tests.PlayMode
                 if (gate != null) failed.Add(gate);
 
                 if (!GallerySheet.GraphicsAvailable) continue;
-                yield return new WaitForEndOfFrame();
                 string file = Capture(s.Name);
                 if (file != null) files[s.Name] = file;
             }
