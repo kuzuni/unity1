@@ -128,7 +128,7 @@
 | T63 | 메인 HUD 둘: 전투력이 `⚔ 0`(장비 8부위 장착 중) · 채팅 프리뷰가 한 줄이고 «99» 뱃지가 없다 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/Hud.cs` · `Ui/ChatScreen.cs` · `Ui/MetaHost.cs` · `Assets/Tests/PlayMode/UiSmokeTests.cs` | T28 3회차 등재 · **T56·T60 lock 이 풀린 뒤**(`Hud.cs` 같은 파일) · 정본 `renderTopBar` 1290 · `renderChatPreview` 5288 |
 | T64 | 렌더 쪽 프레임당 관리 할당 ≈880KB(부하 장면의 81%): 플레이어 빌드에서 재고 URP 설정으로 잡는다 | ⬜ 대기 | — | `Assets/Settings/` · `Assets/Tests/PlayMode/PerfBudgetTests.cs`(측정 갈래만) · `docs/` | T50 뒤 · T26 빌드 잡 뒤 · 워커 O 등재(T50 실측 · 런 90 렌더 끔 200KB vs 전부 1,078KB) |
 | T65 | 플레이어 정보 팝업이 정본의 절반: 장비 칸이 빈 카드 · 탈것 와이드 칸 없음 · 스킬/펫/탈것 아이콘 줄 없음 · 미리보기 빈 상자 | 🔄 진행 | sess-2005-27410 / 워커 A | `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Assets/Forge/Resources/PlayerInfoUi.json`(새 · T20 `PetSkillUi.json` 꼴 — `catalog.json` 은 T62 lock 이 쥐고 있어 이 회차엔 안 연다) · `Assets/Tests/PlayMode/UiSmokeTests.cs` | 런 90 `player-info` 2.0/10(30화면 꼴찌) · T28 4회차가 정본 `renderPlayerInfo` 와 대조 |
-| T66 | 던전 입장 뒤 스테이지 라벨이 본대 라벨(«쉬움 1-1»)로 되돌아간다(런 90 `DungeonUiTests` 1/4) — **같은 회차에 T55 2회차(9014a39 · 워커 N)가 먼저 고쳤다**(`DungeonRun.Label`) → T66 은 남은 몫만: T7 sim 대조가 던전 라벨을 센다(UI 스텁 `updateStageLabel` 던전 갈래 + `dungeon_tier` 기대 JSON 재생성 + 시나리오 `label` 읽기) | 🔄 진행 | sess-2254-41204 / 워커 P | `tools/sim/sim_combat.js`(UI 스텁 `updateStageLabel` · 시나리오 `kr`·`label`) · `tools/sim/expected/combat_dungeon_tier.json`(재생성 · 다른 둘 diff 0) · `Assets/Tests/EditMode/BattleTests.cs`(`SimScenario.Context` 한 줄) | 임자 없는 빨강으로 등재(§0-6) → N 의 수리와 겹쳐 재범위(결정 152) · Core 파일은 안 만진다(T55 lock 범위) · CI dotnet 잡 뒤 lock 반납 · 처음 T64 로 뽑았으나 O·H 가 T64·T65 를 먼저 밀어 T66 |
+| T66 | 던전 입장 뒤 스테이지 라벨이 본대 라벨(«쉬움 1-1»)로 되돌아간다(런 90 `DungeonUiTests` 1/4) — **같은 회차에 T55 2회차(9014a39 · 워커 N)가 먼저 고쳤다**(`DungeonRun.Label`) → T66 은 남은 몫만: T7 sim 대조가 던전 라벨을 센다(UI 스텁 `updateStageLabel` 던전 갈래 + `dungeon_tier` 기대 JSON 재생성 + 시나리오 `label` 읽기) | ✅ 완료 | sess-2254-41204 / 워커 P | `tools/sim/sim_combat.js`(UI 스텁 `updateStageLabel` · 시나리오 `kr`·`label`) · `tools/sim/expected/combat_dungeon_tier.json`(재생성 · 다른 둘 diff 0) · `Assets/Tests/EditMode/BattleTests.cs`(`SimScenario.Context` 한 줄) | 임자 없는 빨강으로 등재(§0-6) → N 의 수리와 겹쳐 재범위(결정 152) · Core 파일은 안 만진다(T55 lock 범위) · CI 런 97(e562f5e) dotnet 잡 초록(build · test · 문서 자 전부) → lock 반납 · 처음 T64 로 뽑았으나 O·H 가 T64·T65 를 먼저 밀어 T66 |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 
@@ -901,7 +901,8 @@
   - 기대 JSON 재생성: `combat_dungeon_tier.json` **한 줄**(앞구간 «매우 어려움 24-8» → «침략 3단계» + 창 0 해시 + 시나리오 `kr`·`label`) · `combat_melee_ch1`·`combat_ranged_ch3` **diff 0**(결정론) · `--self-test` 초록.
   - **고장 주입**: `Context` 의 `Label` 읽기를 빼고 돌리면 `원작_대조_던전_티어상승` 이 «→ 원작 0|stageLabel|…|침략 3단계» 로 **빨갛다**(506/507) — 이제 이 대조가 던전 라벨 누락을 잡는다. 되돌리고 507/507.
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` **507/507** · `check_docs_intact`·`check_decisions`·`check_task_rows`·`task_state --check`·`check_claim_scope` rc 0. 유니티 코드·씬·에셋 변경 0(EditMode 테스트 한 줄 + tools/) — CI 유니티 잡의 `DungeonUiTests` 4/4 는 N 의 9014a39 몫이고 그 런에서 같이 보인다.
-- **CI 확인 대기**: 이 커밋의 dotnet 잡 초록을 본 뒤 lock 반납 · 표 ✅.
+- **CI 초록(2026-09-12 23:15 UTC · 런 97 · e562f5e)**: dotnet 잡 전 스텝 success(`dotnet build` · `dotnet test` · .meta · 카탈로그 · 문서·상태·결정·표·§7·범위 자) → lock 반납 · 표 ✅. 유니티 잡의 `DungeonUiTests` 4/4 는 N 의 9014a39 가 든 런(95 이후)에서 본다 — 이 커밋은 EditMode 한 줄 + tools/ 라 유니티 코드 변경 0.
+- **ntfy**: `ntfy-notify.yml` 런 187 을 쐈으나 로그 마지막 줄이 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 보고함(F · 22:45) 대로 **알림은 안 갔다**(주인이 시크릿을 넣어야 간다).
 
 ## 워커 결정 기록
 
