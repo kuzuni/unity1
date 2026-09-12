@@ -114,7 +114,7 @@
 - PlayMode: 테마 10종 순회 · 드로우콜(`UnityStats.drawCalls`) ≤ 원작 한도 · 콘솔 빨강 0.
 - 범위: `Assets/Scripts/Game/World/` · `Assets/Tests/PlayMode/WorldTests.cs`.
 
-### T10 — 펫 출전 3마리: 대형(`PET_ROW0`·`PET_ARC`) · 따라오기 · 공격 참여 · 제너릭 관절 드라이버 (Game · T8 뒤)
+### T10 ✅ — 펫 출전 3마리: 대형(`PET_ROW0`·`PET_ARC`) · 따라오기 · 공격 참여 · 제너릭 관절 드라이버 (Game · T8 뒤)
 - 정본: `scene3d.js` 의 `makePetMesh` 어댑터 · 펫 대형 상수 · 펫 관절 드라이버(`joints` 서술 · axis/amp/f/ph/gain/abs/spin) · `pets.js` 의 출전·스탯 기여.
 - 범위: `Assets/Scripts/Game/Pets/` · `Assets/Tests/PlayMode/PetSceneTests.cs`.
 - ✅ 2026-09-12 워커 I — 대열·자세·관절은 Core(`PetFormation`·`PetSceneRules`·`PetPose` · 정본 `formationSpot` 실행 벡터 + 펫 블록 식 대조) · 씬은 `PetParty`/`PetView`(관절 = `VoxelJoint.Set`) · 스탯 접착은 T43 · 승천 데코는 T37.

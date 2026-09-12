@@ -351,6 +351,7 @@
 - **주인이 확인할 것**: Play → 소환 탭 → [스킬] 표창 난무 오브 1 · [펫] 알 1 + 부화장 3칸 → 소환(시작 티켓 40 → x1 1회) 결과 연출 → 화면 탭으로 스킵 → [확인] · 스킬 오브 탭 → 상세 [장착/해제] · [펫] → 알 탭 → [부화] → 부화장 타이머 · 💎 스킵 → 펫 타일·토스트 · 타일 탭 → 상세 → [업그레이드] 팝업 · 콘솔 빨강 0. 소환 연출의 광채·광선·소환진은 원작보다 단순하다(결정 71ⓐ · 눈으로 견줄 것).
 - **플레이 콘솔 에러 0 확인 수단**: PlayMode `PetUiTests` 4개(부팅·서브탭 셋 · 스킬 소환 x1/x25 결과 연출·스킵·닫기 · 상세 장착 토글·확률 팝업 ◀▶ · 펫 소환·알 상세 부화·젬 스킵·상세·업그레이드 팝업·재료 흡수·출전 토글·시트 닫힘 = 모달 0) + 각 화면에서 T18 글자 하한 게이트 재적용. CI 유니티 잡 결과는 lock 갱신 커밋에 적는다.
 - **2회차(20:20 · 같은 lock) — `renderSkillBar`·`updateSkillBar`·`toggleAuto`**: `Ui/SkillBar.cs`(HUD 층 우하단 · [자동] 알약 + 검정 원 3슬롯 고정 · 장착 슬롯 = 등급색 오브+아이콘+Lv · 쿨타임 검은 막 · 준비 광채 · 탭 = `Battle.TryCast(id, true)`) · T8 전투 문맥에 스킬 훅이 비어 있어 `SkillBar.Wire` 가 `Context.Skill = Skills.Spec` · `EquippedSkills` · `AutoCast` 를 꽂는다(결정 91) · PlayMode `PetUiTests` 5번째(슬롯 3 · 자동 토글 = S.autoCast · 장착 해제/재장착 추적 · OnCast 예외 0 · 글자 하한).
+- **워커 결정 기록(2회차 rebase)**: origin/main 이 T10 ✅(워커 I) 뒤 `task_state --check` 가 «선점 덫 T10»(ROUTINE §2 제목에 ✅ 없음)으로 빨갛다 — 게이트를 초록으로 두려고 제목 줄에 ✅ 한 글자만 붙였다(T10 범위 파일은 안 만졌다 · [skip ci] 문서 커밋).
 - **남긴 것(다음 회차 · 같은 lock)**: 탈것 화면(`openMounts`·`openMountDetail`·`openMountUpgrade`·`renderMountUpgrade` · 확률 팝업 mount 갈래) → **T40** 뒤 · 모달·토스트를 T22 `PopupLayer` 로 통합 · 승천 버튼(`openAscension`)은 T21.
 
 ### T19 완료 기록 (2026-09-12 · 워커 G · sess-1943-16550)
