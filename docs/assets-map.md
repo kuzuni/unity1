@@ -23,6 +23,14 @@
 | `chat` | `Demo/Demo_Icon_ItemIcons(Original)/Icon_ImageIcon_Chat.Png` | `0fbc8cc851081b34d95122218868977b` | 채팅 미리보기 말풍선 |
 | `xmark` | `Demo/Demo_Icon/Icon_PictoIcon_Close01.png` | `70f78e062098c4496b852abefff63acf` | 탭바 빨간 ✕ 안 표시(원작 IconGen `xmark`) |
 
+## 원작 아이콘 아틀라스 (T31 · 정본에서 기계로 뽑은 그림 · 손으로 안 고친다)
+
+| 용도 | 경로 | GUID(.meta) | 비고 |
+|---|---|---|---|
+| 원작 `IconGen` 아이콘 136 + 아바타 24 + tint 변형 10 = 키 170 | `Assets/Forge/Icons/Resources/Icons/atlas-0.png`(2048×1948) · `atlas-1.png`(2048×652) · `atlas.json` | `564cffe9da4542b55a4fe95928364c6c` · `a6853e53073f689676d96f91847713b6` · `568bf8d1ccc0cfb2586adf4fc6ecc12d` | `tools/export_icons.js` 가 정본 `web/js/icongen.js`+`avatars.js` 를 headless Chromium 으로 그려 낸다 · `tools/check_icons_sync.sh` 가 CI 에서 정본과 대조 · 런타임 `UiIcons.Get(키)` → `Sprite`(§1 캡처 PNG 금지의 예외) |
+
+- `UiKit.Icon` 은 이 아틀라스를 먼저 보고 없는 키만 위 GUI PRO Kit 표로 폴백한다(결정 38) — 표의 `coin`·`gem`·`power`·`xmark`·`tab_*` 줄은 **원작 그림으로 대체됐다**(줄은 폴백용으로 남긴다).
+
 ## 코드 생성 도형 (그림 파일 아님 · `UiShapes`)
 
 - `UiShapes.Circle` · `UiShapes.Rounded`(9-슬라이스 둥근 사각) — 알약 · 프로필 카드 · 아바타 타일 · 웨이브 노드 · 탭 ✕ 원. 원작 IconGen 이 캔버스로 그리던 원시 도형과 같은 길이라 새 그림을 들이지 않는다.

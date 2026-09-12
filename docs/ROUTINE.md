@@ -41,7 +41,7 @@
 - **판단이 필요하면 기다리지 않고 스스로 정해 적용**하고 PROGRESS «워커 결정 기록» 에 «무엇을 · 왜 · 되돌리려면 어디» 한 줄을 남긴다. 번호는 커밋 «직전» 에 `python3 tools/check_decisions.py --next` 로 뽑는다. 겹치면 **늦게 push 한 쪽이 옮긴다**.
 - **새 콘텐츠·새 시스템·밸런스 변경 금지.** 원작에 없는 것을 넣지 않는다. 원작 `web/TODO.md` 의 **미완(`[ ]`) 항목 7개도 «원작에 없는 것»** 이다 — 옮기지 않는다(그것은 wwwww 쪽 일). 옮기는 것은 원작이 **지금 하는 것** 전부다(§7 표).
 - **에셋은 주인 에셋만**: UI `GUI PRO Kit - Casual Game` · 이펙트 `JMO Assets/Cartoon FX Remaster` · `DOTween` · `AllIn1SpriteShader` · 글꼴 `Assets/Fonts/NotoSans-Regular.ttf`. 3D 조형은 **코드 생성 복셀 메시**(T4)뿐이다 — 외부 모델·임시 그림 금지. 새 에셋을 쓰면 `docs/assets-map.md` 에 «용도 · 경로 · GUID» 한 줄.
-- 승인 프롬프트가 뜨는 명령·대화형 편집기(`git rebase -i`) 금지. 캡처 PNG·대용량 바이너리 커밋 금지(예외: `screens` 브랜치는 CI 가 올린다 · **T31 의 아이콘 아틀라스**는 정본 `icongen.js` 에서 도구가 결정론으로 뽑은 것이라 `Assets/Forge/Icons/` 에 둔다 · 총 3MB 상한).
+- 승인 프롬프트가 뜨는 명령·대화형 편집기(`git rebase -i`) 금지. 캡처 PNG·대용량 바이너리 커밋 금지(예외: `screens` 브랜치는 CI 가 올린다 · **T31 의 아이콘 아틀라스**는 정본 `icongen.js` 에서 도구가 결정론으로 뽑은 것이라 `Assets/Forge/Icons/` 에 둔다 · 총 3MB 상한 · 손으로 안 고친다 · `tools/check_icons_sync.sh` 가 CI 에서 정본과 대조).
 - **lock 은 «CI 가 그 커밋을 한 번은 돈 뒤» 반납한다.** 로컬 게이트는 PlayMode 를 못 돌리므로 «초록» 의 절반만 본 것이다.
   - **내 런이 `cancelled` 면**(실측 2026-09-12 18:49~19:05 런 9~15 전부 — ci.yml 의 `concurrency` 가 대기 중인 옛 런을 새 push 로 갈아치운다 · 빌드 잡 30분 때문) 그것은 실패가 아니다: main 은 선형이므로 **내 커밋 이후의 main 런이 초록이면 그것이 내 CI 확인**이다(그 런은 내 변경을 포함한다). 아무 런도 안 끝났으면 기다리지 말고 lock 을 쥔 채 종료하고 다음 회차에 본다. 그 뒤 런이 빨강이면 빨간 잡의 파일이 내 범위인지 본다 — 내 것이면 내 일, 아니면 그 임자 몫(«남의 lock 이 없는 빨강» 은 §0-6).
   - **유니티 잡이 라이선스로 빨강이면**(`no available seats` · `Unable to activate license` · 좌석 반납 실패 경고 뒤) 코드 탓이 아니다 — 재실행 1회(권한이 없으면 다음 push 를 기다린다) · 계속되면 «주인 콘솔 에러 보고함» 에 «유니티 라이선스 좌석» 한 줄 · lock 은 쥔 채 종료.
@@ -202,11 +202,11 @@
 - 판정: EditMode DSP 테스트(효과음 29종 · 모드 4종 각 8박 렌더 → 길이·피크 ≤ 1.0·RMS > 0·같은 시드면 같은 샘플) + PlayMode(효과음 29종 전부 `Play` · 모드 4종 전환 · 콘솔 빨강 0) + CI 초록 + PROGRESS 행 + «주인이 확인할 것: 에디터 Play → 망치 소리·전투 타격음·상점 음악 전환이 원작(web 에서 재생)과 같은 인상인가».
 - 범위: `Assets/Scripts/Core/Audio/` · `Assets/Scripts/Game/Audio/` · `Assets/StreamingAssets/data/sfx.json` · `tools/export_data.js`(sfx 갈래만) · `tools/check_data_sync.sh`(FILES 에 sfx.json 한 단어) · `tools/sfx_vectors.js`(정본 sfx.js 를 vm 에 올려 합성 호출 벡터를 찍는 도구) · `Assets/Tests/EditMode/Vectors/t30-sfx.json` · `Assets/Tests/EditMode/AudioTests.cs` · `Assets/Tests/PlayMode/AudioSmokeTests.cs`.
 
-### T31 — 아이콘·아바타 이식: `icongen.js` 523종 + `avatars.js` 24종 — 정본을 **래스터로 뽑아** 유니티가 받는다 (도구+Game · T2·T18 뒤 · T19~T22 는 이것을 쓴다)
+### T31 ✅ — 아이콘·아바타 이식: `icongen.js` 아이콘 136종 + `avatars.js` 아바타 24종(= `IconGen.draw` 키 160 · «523» 은 그리기 도우미까지 센 수 · 실측 2026-09-12) — 정본을 **래스터로 뽑아** 유니티가 받는다 (도구+Game · T2·T18 뒤 · T19~T22 는 이것을 쓴다)
 - 정본: `web/js/icongen.js`(6,704줄 · 캔버스 2D 벡터 그리기 · 장비·펫·스킬·재화·탭·등급 왕관·성별 등 523 그리기 함수 · 표면 `IconGen.img(key)`·`url`·`skill`·`tab`·`cls`)· `web/js/avatars.js`(831줄 · 도트 초상 24종 · `IconGen.avatar`). `ui.js` 가 `IconGen.img` 를 146곳에서 부른다 — 원작 화면의 «그림» 은 전부 여기서 나온다.
 - 7,500줄 캔버스 코드를 C# 으로 다시 그리지 않는다. **T2 와 같은 원칙**(정본이 단독으로 쥔다 · 유니티는 받아 세운다): `tools/export_icons.js` 가 Playwright Chromium(컨테이너·CI 에 있다 · T26 `webgl_smoke.js` 가 쓴다) 으로 `icongen.js`·`avatars.js` 를 진짜 캔버스에 올려 키 전부를 그리고 → `Assets/Forge/Icons/atlas-N.png`(2048² 이하 · 아틀라스 몇 장) + `atlas.json`(키 → 장·rect·원본 px) 로 낸다. 결정론(같은 정본 → 같은 바이트)이어야 `tools/check_icons_sync.sh` 가 T2 `check_data_sync.sh` 처럼 CI 에서 «정본과 같은가» 를 볼 수 있다(그 잡 한 줄 추가). PNG 총량 상한 3MB(넘으면 해상도 단을 낮춘다 · 캡처 PNG 금지 규칙의 예외로 «정본에서 기계로 뽑은 아틀라스» 를 §1 에 한 줄 적는다).
 - Game: `UiIcons.Get(key)` → `Sprite`(아틀라스 슬라이스 · Resources 또는 카탈로그 GUID 참조 · T18 `UiCatalog` 와 같은 길) · `UiKit.Icon(key)` 이 이것을 쓰도록. 키 이름은 원작 문자열 그대로. 아바타 24종은 채팅·리그(T22)가 쓴다.
-- 판정: `node tools/export_icons.js --self-test`(키 523+24 전부 그려짐 · 빈 캔버스 0) + 동기화 검사 초록 + PlayMode(키 전부 `Get` → null 0 · 콘솔 빨강 0) + CI 초록 + PROGRESS 행 + «주인이 확인할 것: 에디터에서 아틀라스를 열어 원작 아이콘 그대로인가».
+- 판정: `node tools/export_icons.js --self-test`(키 160(아이콘 136+아바타 24)+tint 변형 전부 그려짐 · 빈 캔버스 0) + 동기화 검사 초록 + PlayMode(키 전부 `Get` → null 0 · 콘솔 빨강 0) + CI 초록 + PROGRESS 행 + «주인이 확인할 것: 에디터에서 아틀라스를 열어 원작 아이콘 그대로인가».
 - 범위: `tools/export_icons.js` · `tools/check_icons_sync.sh` · `Assets/Forge/Icons/` · `Assets/Scripts/Game/Ui/UiIcons.cs` · `Assets/Scripts/Game/Ui/UiKit.cs`(Icon 한 갈래만) · `.github/workflows/ci.yml`(datasync 잡의 아이콘 검사 한 줄만) · `Assets/Tests/PlayMode/UiIconsTests.cs`.
 
 ### T32 ✅ — CI concurrency: 긴 런이 도는 동안 뒤 push 의 CI 가 «대기 런 교체» 로 취소돼 워커 커밋이 검증 없이 지나간다 (배포·검증 · 뒤 순서 없음)
@@ -355,7 +355,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | T25 ✅ · T22 🔄 |
 | `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 | T18 ✅ |
 | `js/sfx.js`(618) | 효과음 29종 · 음악 4모드 (코드 합성) | T30 | 🔄 |
-| `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 523종 · 아바타 24종 | T31 | 🔄 |
+| `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | ⬜ |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |

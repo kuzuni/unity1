@@ -121,12 +121,13 @@ namespace Forge.Game.Ui
             return img;
         }
 
-        /// <summary>카탈로그 스프라이트(GUI PRO Kit 조각). 비율 유지.</summary>
-        public static Image Icon(Transform parent, string name, string spriteKey)
+        /// <summary>아이콘. 원작 IconGen 키면 아틀라스(T31 <see cref="UiIcons"/> · tint 는 정본 <c>{ tint }</c> 옵션)에서, 아니면 카탈로그 스프라이트(GUI PRO Kit 조각)에서. 비율 유지.</summary>
+        public static Image Icon(Transform parent, string name, string spriteKey, string tint = null)
         {
             RectTransform rt = Box(parent, name);
             Image img = rt.gameObject.AddComponent<Image>();
-            img.sprite = Cat.SpriteOf(spriteKey);
+            Sprite original = UiIcons.Get(spriteKey, tint);
+            img.sprite = original != null ? original : Cat.SpriteOf(spriteKey);
             img.type = Image.Type.Simple;
             img.preserveAspect = true;
             img.raycastTarget = false;
