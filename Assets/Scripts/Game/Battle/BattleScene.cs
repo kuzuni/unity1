@@ -11,6 +11,7 @@ using Forge.Core.Battle;
 using Forge.Core.BattleFx;
 using Forge.Core.Data;
 using Forge.Core.Save;
+using Forge.Game.Audio;
 using Forge.Game.Map;
 using Forge.Game.Ui;
 using Forge.Game.Voxel;
@@ -43,6 +44,13 @@ namespace Forge.Game.Battle
         public bool ManualStep;
 
         public CubeParticles Fx { get; private set; }
+        /// <summary>T39 일회성 연출 시계(원작 addAnim).</summary>
+        public FxAnims Anims { get; private set; }
+        /// <summary>T39 임팩트 프리미티브(플레어·스파이크·링·점광·그을음·스우시·기둥).</summary>
+        public ImpactFx Impact { get; private set; }
+        /// <summary>원작 `camPush` — 보스 워닝이 소유하는 카메라 돌리 인(three z 를 이만큼 당긴다).</summary>
+        public double CamPush;
+        public BossEntrance LastEntrance { get; private set; }
         public DamageNumbers Numbers { get; private set; }
         public HeroView Hero { get; private set; }
         public readonly Dictionary<int, EnemyView> Enemies = new Dictionary<int, EnemyView>();
@@ -117,6 +125,8 @@ namespace Forge.Game.Battle
             fx.transform.SetParent(transform, false);
             Fx = fx.AddComponent<CubeParticles>();
             Numbers = new DamageNumbers();
+            Anims = new FxAnims();
+            Impact = new ImpactFx(stage, Anims, Camera.main);
         }
 
         void OnDestroy() { if (Instance == this) { Instance = null; HeroStatsGlue.Uninstall(); } }
@@ -179,6 +189,7 @@ namespace Forge.Game.Battle
             if (Data == null) throw new InvalidOperationException("BattleScene.Attach: GameData 가 없다(적 표를 세울 수 없다)");
             cam = Camera.main;
             if (cam != null) { camBase = cam.transform.localPosition; fov0 = cam.fieldOfView; }
+            Impact.Cam = cam;
             WeaponType wt = null;
             string wid = battle.Context.WeaponType ?? "sword";
             if (Data.Defs != null && Data.Defs.WeaponTypes != null) wt = Data.Defs.WeaponTypes.Get(wid, null);
@@ -226,13 +237,16 @@ namespace Forge.Game.Battle
             Fx.Step(dt);
             Numbers.Step(dt);
             if (Stepped != null) Stepped(dt);
+            Anims.Step(dt);
+            var overlay = BattleOverlay.Instance;
+            if (overlay != null) overlay.Tick(dt);
             StepCamera(dt);
         }
 
         void StepCamera(float dt)
         {
             if (cam == null) return;
-            Vector3 p = camBase + new Vector3((float)WorldX, 0, 0);
+            Vector3 p = camBase + new Vector3((float)WorldX, 0, (float)CamPush);
             if (ShakeMag > HitRules.ShakeEps)
             {
                 p.x += (UnityEngine.Random.value * 2 - 1) * (float)ShakeMag;
@@ -341,10 +355,22 @@ namespace Forge.Game.Battle
                 case BattleEventKind.Loot:
                     Numbers.Spawn(new Vector3((float)(Hero.X + HitRules.DmgX), (float)(Hero.Y + HitRules.HpBar.HeroY), 0), e.Tag, "loot", HitRules.DmgDxMin, -HitRules.DmgRiseDefault, 1);
                     break;
-                // bossEntrance(워닝 배너·사이렌·착지 링) · music(T30) · skill*(T12) · toast/deathFade/sceneCut(T22/T27) · save · dungeon*(T21) — 이 작업 밖.
+                case BattleEventKind.BossEntrance: StartBossEntrance(); break;
+                case BattleEventKind.Music: if (Music.Instance != null) Music.Instance.SetMusicMode(e.Tag); break;
+                case BattleEventKind.DeathFade: { var ov = BattleOverlay.Ensure(); if (ov != null) ov.DeathFade(e.Tag); break; }
+                case BattleEventKind.SceneCut: { var ov = BattleOverlay.Ensure(); if (ov != null) ov.SceneCut(FxRules.SceneCutMs); break; }
+                // skill*(T12) · toast(T22/T27) · save · dungeon*(T21) — 이 작업 밖.
                 default: break;
             }
             if (EventHandled != null) EventHandled(e);
+        }
+
+        /// <summary>`bossEntrance()` — 워닝 배너·사이렌·경고 기둥·박 3회·돌리 인·착지 임팩트(T39 <see cref="BossEntrance"/>).</summary>
+        public BossEntrance StartBossEntrance()
+        {
+            LastEntrance = new BossEntrance(this);
+            LastEntrance.Start();
+            return LastEntrance;
         }
 
         void SetChapterTheme(int chapter)

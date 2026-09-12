@@ -29,6 +29,10 @@ namespace Forge.Game.Battle
         public readonly double TopY, BaseScale, BarY, Cell;
         public readonly int ShardC;
         public double HalfW { get; private set; }
+        /// <summary>T39 몸 재질(림·플래시·디졸브).</summary>
+        public EnemyBodyFx Body { get; private set; }
+        /// <summary>T39 보스 레갈리아 파츠 수(관 링 + 가시 6 + 보석 + 등가시 ≤4 + 견갑뿔 ≤2).</summary>
+        public int RegaliaParts { get; private set; }
         public bool Dead { get; private set; }
         public bool Removed { get; private set; }
         public bool Landed = true;
@@ -87,8 +91,19 @@ namespace Forge.Game.Battle
             Wire(model);
             double maxY = 0;
             foreach (var p in model.Parts) { double t = p.At[1] + p.Box[1] / 2.0; if (t > maxY) maxY = t; }
-            TopY = maxY * Cell + EnemyGait.TopYPad + (Fly ? EnemyGait.Table(Kind).Hover : 0);
+            double topY = maxY * Cell + EnemyGait.TopYPad + (Fly ? EnemyGait.Table(Kind).Hover : 0);
             ShardC = HitRules.VolumeWeightedColor(model.Parts);
+            // T39: 몸 재질을 림·플래시·디졸브 셰이더로(applyRimLight(ENEMY_RIM) → installDissolve) · 보스는 배율 전에 재질 ×0.68 + 레갈리아(bossMaterialTell → bossRegalia)
+            Body = new EnemyBodyFx(scene.Anims);
+            Body.Install(new List<MeshRenderer>(Rig.Renderers));
+            if (IsBoss)
+            {
+                int kc, made;
+                if (!EnemyGait.KindColor.TryGetValue(Kind, out kc)) kc = 0xffffff;
+                topY = BossLook.Apply(G, Rig.Meshes, Body, kc, topY, barm.Count > 0, Cell, Rig.Renderers, out made);
+                RegaliaParts = made;
+            }
+            TopY = topY;
             BaseScale = IsBoss ? EnemyGait.BossScale : 1;
             G.localScale = Vector3.one * (float)BaseScale;
             BarY = TopY + (IsBoss ? EnemyGait.BarGapBoss : EnemyGait.BarGap) / BaseScale;
@@ -104,7 +119,6 @@ namespace Forge.Game.Battle
                 G.localScale = Vector3.one * (spawnTarget * 0.42f);
                 scaleLocked = true; spawnT = 0;
                 scene.Fx.Sparks(new Vector3((float)px, 0.3f, (float)pz), 18, 0xd7ccc8, 1.6);
-                FxCatalog.Play(BattleScene.FxBossLand, ThreeSpace.Pos(px, 0, pz), (float)(1.8 / 1.0));
             }
             Bar.SetPosition(ThreeSpace.Pos(px, py, pz));
         }
@@ -242,7 +256,16 @@ namespace Forge.Game.Battle
             if (Removed) return;
             double eh = TopY * BaseScale;
             Vector3 hitPt = new Vector3((float)(px + HitRules.HitPtX * BaseScale), (float)(py + eh * HitRules.HitPtY), (float)(pz + HitRules.HitPtZ));
-            FxCatalog.Play(crit ? BattleScene.FxCrit : BattleScene.FxHit, ThreeSpace.Pos(hitPt.x, hitPt.y, hitPt.z), (float)(eh * 0.55 / 0.6));
+            // ① 몸 플래시(emissive · 일반 0.2/0.1s · 크리 0.28/0.14s · 적은 순백) + 무기 궤적 티어 · 림 셸(rimFlash)은 정본이 아웃라인 복원 뒤 비활성이라 옮기지 않는다
+            Body.Flash(FxRules.FlashPeak(crit), FxRules.FlashDur(crit), 0xffffff, 0);
+            if (scene.Hero != null) scene.Hero.TrailImpact(crit ? "crit" : "normal");
+            // ② 접점 — 플레어 3층(코어 순백 · 중간 살구 · 크리만 외곽 잔광) + 방사 스파이크 + 접점 링 · 크기는 적 실높이 비례
+            double fmax = eh * FxRules.HitFlareMax;
+            scene.Impact.Flare(hitPt, FxRules.FlareCore, FxRules.FlareCoreSize(crit, fmax), FxRules.FlareCoreDur(crit), FxRules.FlareCoreSpin, FxRules.FlareCorePeak);
+            scene.Impact.Flare(hitPt, FxRules.FlareMid, FxRules.FlareMidSize(crit, fmax), FxRules.FlareMidDur(crit), FxRules.FlareMidSpin, FxRules.FlareMidPeak(crit));
+            if (crit) scene.Impact.Flare(hitPt, FxRules.FlareOuter, Math.Min(FxRules.FlareOuterSizeCap, fmax * FxRules.FlareOuterSizeK), FxRules.FlareOuterDur, FxRules.FlareOuterSpin, FxRules.FlareOuterPeak);
+            scene.Impact.Spikes(hitPt, FxRules.SpikeCount(crit), FxRules.SpikeColor(crit), FxRules.SpikeSize(crit, fmax), FxRules.SpikeDur(crit), crit);
+            scene.Impact.Ring(hitPt, FxRules.RingColor(crit), FxRules.SpikeSize(crit, fmax), FxRules.RingDur(crit), crit);
             scene.Fx.Shards(hitPt, HitRules.HitShards(sev, crit), crit ? HitRules.CritShardColor : HitRules.HitShardColor, HitRules.HitShardDir, HitRules.HitShardSpread, crit ? 1.35 : 1, crit ? 1.25 : 1);
             scene.Fx.Sparks(hitPt, HitRules.HitSparks(sev, crit), crit ? HitRules.CritSparkColor : HitRules.HitSparkColor, crit ? 1.9 : 1.4);
             // ③ 넉백 + 움찔 — 임팩트 프레임에 이미 밀려 있어야 한다
@@ -269,7 +292,16 @@ namespace Forge.Game.Battle
             UndoFlinch(); flinchT = 0;
             double eh = TopY * BaseScale;
             var burst = new Vector3((float)px, (float)(py + eh * HitRules.BurstY), (float)pz);
-            FxCatalog.Play(IsBoss ? BattleScene.FxBossKill : BattleScene.FxKill, ThreeSpace.Pos(burst.x, burst.y, burst.z), (float)(IsBoss ? 1.6 : 1));
+            if (scene.Hero != null) scene.Hero.TrailImpact("kill");
+            // 처치 버스트 3층 플레어(코어 → 살구 → 외곽 잔광) · 점광 · 지면 충격 링 · 그을음(시체 착지점 +0.18) · 몸 플래시(금백 · shapeK 1)
+            double fmax = eh * FxRules.KillFlareMax(IsBoss);
+            scene.Impact.Flare(burst, FxRules.FlareCore, fmax * FxRules.KillFlareCoreSize, FxRules.KillFlareCoreDur, FxRules.KillFlareCoreSpin, FxRules.KillFlareCorePeak);
+            scene.Impact.Flare(burst, FxRules.KillFlareMid, fmax, FxRules.KillFlareMidDur, FxRules.KillFlareMidSpin, FxRules.KillFlareMidPeak);
+            scene.Impact.Flare(burst, FxRules.FlareOuter, fmax * FxRules.KillFlareOuterSize, FxRules.KillFlareOuterDur, FxRules.KillFlareOuterSpin, FxRules.KillFlareOuterPeak);
+            scene.Impact.FlashLight(burst, FxRules.KillLightColor(IsBoss), FxRules.KillLightDur(IsBoss));
+            scene.Impact.ExpandRing(new Vector3((float)px, 0, (float)pz), FxRules.KillRingColor, FxRules.KillRingR(IsBoss));
+            scene.Impact.Scorch(new Vector3((float)(px + FxRules.ScorchDx), 0, (float)pz), FxRules.ScorchRadius(IsBoss, BaseScale), FxRules.ScorchDur(IsBoss));
+            Body.Flash(FxRules.KillFlashPeak, FxRules.KillFlashDur, FxRules.KillFlashColor, FxRules.KillFlashShapeK);
             scene.Fx.Shards(burst, HitRules.KillShards(IsBoss), HitRules.ShardColor(ShardC), 0, Math.PI, HitRules.KillShardSpeed(IsBoss), HitRules.KillShardScale(IsBoss));
             scene.Fx.Sparks(burst, IsBoss ? 30 : 14, HitRules.KillSparkColor, 2.3);
             scene.Fx.Sparks(burst, IsBoss ? 14 : 6, HitRules.WhiteSpark, 1.7, 1.35);
@@ -578,8 +610,9 @@ namespace Forge.Game.Battle
                 px = dieOx + HitRules.KillRestDx;
                 double kHold = kDown + HitRules.KillHoldS / dieDur;
                 double f = k < kHold ? 0 : Col_Clamp((k - kHold) * dieDur / HitRules.KillDissolveS, 0, 1);
-                // 사망 디졸브(노이즈 알파 클립 셰이더)는 없다 — 같은 구간에 시체를 줄여 보내고 블롭도 같이 줄인다(결정 기록).
-                G.localScale = Vector3.one * (float)(dieSy0 * (1 - f));
+                // 사망 디졸브(T39 `setDissolve` · 노이즈 알파 클립 + 잔불) — 셰이더가 없는 환경이면 T8 의 «시체를 줄여 보내기» 로 물러난다
+                if (EnemyBodyFx.Available) Body.SetDissolve(f);
+                else G.localScale = Vector3.one * (float)(dieSy0 * (1 - f));
                 if (blob != null) blob.transform.localScale = Vector3.one * (float)(blobBase * 0.95 * (1 - f));
             }
             ApplyGroup();
@@ -592,6 +625,7 @@ namespace Forge.Game.Battle
         {
             if (Removed) return;
             Removed = true;
+            if (Body != null) Body.Dispose();
             Rig.Destroy();
             Bar.Destroy();
             if (blob != null) { UnityEngine.Object.Destroy(blob.gameObject); UnityEngine.Object.Destroy(blobMat); }

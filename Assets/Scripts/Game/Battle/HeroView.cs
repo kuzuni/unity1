@@ -21,6 +21,11 @@ namespace Forge.Game.Battle
         public double ReviveT { get; private set; }
         public double X { get { return hx; } }
         public double Y { get { return hy; } }
+        /// <summary>T39 무기 궤적 리본.</summary>
+        public WeaponTrail Trail { get; private set; }
+        /// <summary>T39 영웅 접지 블롭 + 시체 블롭 3.</summary>
+        public HeroBlobs Blobs { get; private set; }
+        double reviveBlobT = -1;
 
         double hx, hy, hz;
         readonly double[] gRot = { 0, EnemyGait.HeroYaw, 0 };
@@ -42,7 +47,27 @@ namespace Forge.Game.Battle
             Apply();
             Bar = new HpBar(parent, "HeroHpBar", false, 0, 1);
             Bar.SetPosition(ThreeSpace.Pos(hx, hy + HitRules.HpBar.HeroY, hz));
+            Trail = new WeaponTrail(parent, scene.Anims);
+            Blobs = new HeroBlobs(Rig, scene.Anims);
         }
+
+        /// <summary>무기 재질 색(정본 `trailStart(colorHex)` 의 무기 시대색 자리) — 없으면 일반 티어 청백.</summary>
+        int WeaponColor()
+        {
+            if (Rig.WeaponMount != null)
+            {
+                var mr = Rig.WeaponMount.GetComponentInChildren<MeshRenderer>();
+                if (mr != null && mr.sharedMaterial != null)
+                {
+                    Color c = mr.sharedMaterial.HasProperty("_BaseColor") ? mr.sharedMaterial.GetColor("_BaseColor") : mr.sharedMaterial.color;
+                    return ((int)Math.Round(Mathf.Clamp01(c.r) * 255) << 16) | ((int)Math.Round(Mathf.Clamp01(c.g) * 255) << 8) | (int)Math.Round(Mathf.Clamp01(c.b) * 255);
+                }
+            }
+            return FxRules.TrailTierOf("normal").Color;
+        }
+
+        /// <summary>`trailImpact(tier)` — 접촉 순간 남은 리본을 티어 색·세기로.</summary>
+        public void TrailImpact(string tier) { if (Trail != null) Trail.Impact(tier); }
 
         void Apply()
         {
@@ -57,10 +82,14 @@ namespace Forge.Game.Battle
             double W = scene.WorldX;
             dashTo = Math.Min(targetX.HasValue ? targetX.Value - HitRules.DashStop : BattleRules.MeleeX + W, HitRules.DashMaxX + W);
             dashFrom = BattleRules.HeroX + W;
+            int wc = WeaponColor();
+            Trail.Start(wc);
+            scene.Impact.Swoosh(wc, hx);
             Rig.Attack(() =>
             {
                 hx = BattleRules.HeroX + scene.WorldX; hy = 0;
                 gRot[1] = EnemyGait.HeroYaw; gRot[2] = 0;
+                Trail.Stop();
             });
         }
 
@@ -98,6 +127,7 @@ namespace Forge.Game.Battle
             Dead = false;
             ReviveT = BattleRules.DeathRiseMs / 1000;
             Rig.Play("Revive", true);
+            reviveBlobT = 0;
             Vector3 p = BoneThree("pelvis"); p.y = (float)hy;
             scene.Fx.Sparks(p + new Vector3(0, 0.35f, 0), 12, HitRules.ReviveSpark, 1.4);
             FxCatalog.Play(BattleScene.FxRevive, ThreeSpace.Pos(p.x, p.y + 0.3, p.z), 1f);
@@ -152,9 +182,12 @@ namespace Forge.Game.Battle
                     scene.Fx.Sparks(sh + new Vector3(0, 0.1f, 0), 11, HitRules.DustColor, 1.25);
                     scene.Fx.Sparks(pv + new Vector3(0, 0.1f, 0), 9, HitRules.DustColor, 1.05);
                     scene.Shake(HitRules.HeroBodyShake);
+                    Blobs.Corpse(true);
                     downT = -1;
                 }
             }
+            if (reviveBlobT >= 0) { reviveBlobT += dt; if (reviveBlobT >= FxRules.CorpseRevivePause) { reviveBlobT = -1; Blobs.Corpse(false); } }
+            Trail.Update(dt, Rig.WeaponMount, Rig.Grip != null ? Rig.Grip.Shape : null, Rig.transform);
             Apply();
             Bar.SetVisible(!Dead);
             Bar.Drive(hpRatio, dt);
