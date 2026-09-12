@@ -6,6 +6,7 @@
 
 ## ⚑ 신규 주인 지시 (위 항목이 최신 · 닫힌 것은 ✅ 를 단다)
 
+- **(2026-09-12 · 주인 · 화면 셋)** «SafeArea 로 모바일 상단 카메라 안 가리게 · 60fps 로 돌아야 · **실제 게임 화면을 찍어서 봐라**» → §1 «실제 화면을 본다»·«SafeArea»·«60fps» 세 규칙 + T27(가장 먼저 · 노치 모의 촬영) · T44(60fps 게이트) · T45(SafeArea 노치 모의 검증). 테스트 초록만으로 ✅ 금지 — 워커가 PNG 를 열어 본 뒤 ✅.
 - **(2026-09-12 · 주인 · 모델)** «루틴들 오퍼스로 해» → 워커·검수 루틴 모델 = **`claude-opus-5`**(§6 ②). 계정 2(E~H)는 20:14 UTC 에 · 계정 3(I~L·Q)은 20:40 UTC 에 바꿨다 · 계정 1·4·5 의 다음 대화 세션이 같은 방법으로 바꾼다(③ 표에 기록).
 - **(2026-09-12 · 주인 · 완주)** «내가 더 말을 안 해도 루틴들이 원작을 유니티로 전체 빠짐없이 옮기게» → §7 «완결 정의 · 원작 ↔ 작업 대조표» 가 기준이다. 워커는 매 회차 §7 표에서 «없음» 인 줄을 보면 **작업으로 먼저 등재**하고, 검수 Q 는 ⑤ⓔ 로 원작 목록을 다시 훑는다. 마지막은 T33 완주 대조 — §7 전 줄 ✅ 가 «다 옮겨졌다» 의 뜻이다.
 - **(2026-09-12 · 주인 · 범위)** «다 되게 해야 하는데 왜 빼노» — 28개로 끝이 아니다. **원작 `web/` 전부**를 옮긴다: 소리(`sfx.js` · 지시서에 없었다)·아이콘·아바타(`icongen.js`·`avatars.js` · 없었다)까지 → T30·T31 등재(2026-09-12 계정 2 대화 세션). 앞으로도 원작 모듈 중 §2 어느 절에도 안 잡힌 것을 보면 **먼저 등재**한다(«주인 콘솔 에러 보고함» 이 아니라 §2 끝 + PROGRESS 표).
@@ -36,6 +37,9 @@
   - 탑승 자세 = **탈것 위에 서기**(원작 `RIDE_STAND_POSE` · 발이 안장 칸에 · 등자·고삐 정렬 끔). 비행 탈것 hover = 지면에서 0.04(바닥 0.20~0.39 세계 단위) · 평지 0.10.
   - 무기 파지 = 마크 handheld: 어깨 뼈에 붙이고 `MC_CARRY_X = -1.05 + π` · `MC_GRIP_PULL 0.10`(손 쪽으로) · 칼날은 세워서(`rot[1] = -π/2`) — 원작 `scene3d.js` 의 `applyWeaponGrip` 이 정본.
 - **플레이 콘솔 에러 0.** 화면·전투·팝업 코드를 바꾼 커밋은 PlayMode 스모크(T27 `UiSmokeTests` · `PlayLog.AssertNoRed`)가 그 화면을 열어 빨간 줄 0 을 검증해야 한다. `LogAssert.NoUnexpectedReceived()` 는 쓰지 않는다.
+- **실제 화면을 본다(주인 지시 2026-09-12).** 화면·전투·연출·조형을 바꾼 작업은 판정에 **실제 게임 화면 PNG** 가 들어간다: PlayMode 촬영(`UiShots` · 540×1170 세로 · **노치 모의** = `safeArea` 위 120px·아래 60px 깎은 상태)이 CI `ui-screens/` → `screens` 브랜치에 올리고, 워커는 **그 PNG 를 `Read` 로 열어 눈으로 본 뒤**(글자 겹침 · 빈 칸 · 잘림 · 분홍 머티리얼 · 검은 화면 · 원작과 다른 배치) 완료 기록에 파일 이름과 «본 것» 한 줄을 적고 ✅ 한다. 테스트 초록만으로 ✅ 하면 검수 Q 가 되돌린다. `screens` 가 아직 안 올라오는 환경이면 `Assets/Tests/PlayMode` 촬영 테스트를 만들고 CI 런 뒤 다음 회차에 본다(lock 은 쥔 채).
+- **SafeArea.** 모든 UI(HUD 상단바 · 탭바 · 팝업 닫기 ✕ · 채팅줄 · 토스트)는 `Screen.safeArea` **안**에 놓인다 — 폰 상단 카메라·노치·하단 홈바가 아무것도 가리지 않는다. 3D 세계는 화면 전체를 쓰되 «눌러야 하는 것» 은 safeArea 안. PlayMode 에 노치 모의 단언(T45)이 있고, 촬영도 노치 모의로 찍는다.
+- **60fps.** `Application.targetFrameRate = 60` · `vSyncCount = 0`(WebGL 은 브라우저 rAF) · 전투 최대 부하(웨이브 4+보스 · 펫 3 · 스킬 오브젝트 · 히트 파티클 · 데미지 숫자)에서 **프레임당 GC 할당 0** · 복셀 메시는 몹당 하나로 병합(파츠마다 드로우콜 금지) · `Update` 에서 `Find`·`GetComponent`·문자열 연결 금지 · 프레임 예산 테스트(T44)가 CI 에서 메인스레드 시간을 잰다. 화면·전투 코드를 바꾼 작업은 완료 기록에 «부하 장면 평균 프레임 ms» 한 줄.
 - **컴파일 파손을 남긴 채 다음 작업으로 넘어가지 않는다.** push 한 워커는 다음 회차에 «내 커밋을 담은 CI 유니티 잡이 컴파일을 지나 테스트를 실제로 돌렸는가» 를 먼저 본다 — «테스트 0개» 는 빨간 테스트보다 나쁘다. 컴파일이 깨져 있으면 그것이 그 회차의 첫 일이다(자기 lock 이든 남의 lock 이든).
 - **유니티 «패키지» 타입을 새로 쓰면** 그 타입이 어느 어셈블리인지 확인해 `*.asmdef` 의 `references` 에 넣는다 — `tools/dotnet` 하니스는 URP·TMP 를 스텁으로 물어 **로컬에서 절대 안 걸린다**. 스텁(`tools/dotnet/Stubs`)에도 같은 서명을 더한다(추측 금지 — 실제 API 서명을 확인하고).
 - `Assets/Scripts/Core` 에는 `UnityEngine` 을 참조하지 않는다(asmdef `noEngineReferences: true` · dotnet 이 강제). 엔진(전투 틱·대장간·펫·스킬 계산)은 전부 Core 다 — 유니티 없이 `dotnet test` 로 원작 JS 와 대조한다.
@@ -193,6 +197,8 @@
 
 ### T27 — PlayMode 스모크·플레이 봇: 모든 화면 열기 · 한 판 플레이(전투→제작→장착→펫→스킬→던전) · 콘솔 빨강 0 · 촬영(`ui-screens/*.png`) (검증 · T19~T22 뒤)
 - 정본 각본: wwwww `web/ROUTINES-SETUP.md` §4-C(QA 시나리오). `PlayLog.AssertNoRed` 도우미 · `UiShotsTests`(540×1170 PNG 전 화면) → CI `screens` 브랜치.
+- **(주인 지시 2026-09-12 · 가장 먼저)** 촬영은 **실제 게임 화면**이다 — 조형 시트가 아니라 부팅 직후 전투 화면(적·펫·영웅·HUD 가 한 프레임에), 웨이브 진행·보스 등장·스킬 발동 순간, 그리고 패널 전부(대장간·장비·펫·스킬·소환 결과·탈것·던전·기술트리·승천·상점·패스·퀘스트·리그·채팅·프로필·설정). 파일 이름은 원작 샷과 짝이 되게(`shot-042120` ↔ `ui-042120-battle.png` 꼴 · `docs/ref-layout.md` 가 짝 표를 쥔다). 해상도 셋: 540×1170(기본 · 노치 모의) · 360×800 · 430×932(원작 `ref/lvout-*` 과 같은 셋). 노치 모의는 `safeArea` 를 위 120px·아래 60px 깎아 넣고 그 경계선을 반투명 빨강으로 PNG 에 그려 «가림» 이 눈에 보이게. 각 PNG 는 만든 워커가 `Read` 로 열어 본다(§1).
+- 판정에 «주인이 볼 것: `screens` 브랜치의 `ui-*-battle.png` 를 폰 화면과 나란히» 한 줄.
 - 범위: `Assets/Tests/PlayMode/PlaythroughTests.cs` · `UiShotsTests.cs` · `PlayLog.cs`.
 
 ### T28 — 원작 대조 회차: `screens` PNG ↔ `web/ref/screens/shot-*.png` 비율 대조표(`docs/ref-layout.md`) + `tools/ui_score.py` (검증 · T27 뒤)
@@ -284,6 +290,18 @@
 - 유니티: `BattleScene.Boot` 의 `BareHeroStats.Make`(T8 결정 69ⓓ 자리표)를 `SaveIo.State` 위에 세운 `GearSystem`(T15 · `IGearHost` = 세이브 상태 + `PetSystem.ActiveBonus`(T16) + 탈것(T11) + 스킬 패시브(T12) + 기술트리(T24))의 `HeroStats()` 로 바꾼다. 세이브가 없으면 맨몸.
 - 판정: EditMode 로 같은 세이브 → 정본 `heroStats` 실행 벡터와 atk/hp/치명/공속 일치 · PlayMode 로 펫 출전 뒤 `Battle.Hero.Atk` 이 오르는가 · 콘솔 빨강 0.
 - 범위: `Assets/Scripts/Game/Battle/BattleScene.cs`(Boot 의 stats 인자) · `Assets/Scripts/Game/Battle/HeroStatsGlue.cs` · `Assets/Tests/PlayMode/HeroStatsGlueTests.cs`.
+
+### T44 — 60fps 게이트: `targetFrameRate 60` · vSync 0 · 전투 최대 부하 프레임 예산 테스트 · 프레임당 GC 0 · 드로우콜 상한 (Game·검증 · T8·T10·T12 뒤 · **T27 다음으로 먼저**)
+- 주인 지시 2026-09-12 «60fps 로 프레임 돌아야». 지금 `Application.targetFrameRate` 설정이 어디에도 없다(실측 grep 0건).
+- 할 것: ⓐ `Bootstrap` 에서 `Application.targetFrameRate = 60` · `QualitySettings.vSyncCount = 0`(WebGL 은 rAF 를 따르므로 그대로) · 모바일 `Screen.sleepTimeout` 원작대로 ⓑ PlayMode `PerfBudgetTests`: 전투 최대 부하 장면(웨이브 보스 + 적 4 + 펫 3 + 스킬 오브젝트 2 + 히트 파티클·데미지 숫자 연속 3초)을 200프레임 돌려 **메인스레드 프레임 시간 평균·p95** 를 `Time.unscaledDeltaTime` 과 `UnityEngine.Profiling.Recorder`(`PlayerLoop`) 로 재고, CI 러너(GPU 없음 · 소프트웨어 렌더)에서는 «CPU 메인스레드 ≤ 8ms 평균 · p95 ≤ 12ms» 를 통과선으로(폰에선 그 2배 여유가 16.6ms 안) · `GC.GetTotalMemory` 차이로 **프레임당 관리 힙 증가 0** 단언 · `UnityStats.drawCalls` 상한(부하 장면 ≤ 150) ⓒ 넘으면 이 작업이 고친다: 복셀 몹 파츠 → 몹당 메시 하나 병합(`VoxelMob.ToMesh` 가 이미 하면 확인만) · 데미지 숫자·파티클 풀링 · `Update` 의 `Find`·`GetComponent`·`string+` 제거 · 머티리얼 공유(색은 정점색) ⓓ 완료 기록에 부하 장면 평균·p95·드로우콜·GC 수치.
+- 판정: `PerfBudgetTests` 초록 + 수치 기록 + 「주인이 볼 것: 폰에서 전투 60fps(설정 탭에 FPS 표시 토글 — 원작 디버그 탭에 있으면 그것 · 없으면 넣지 않는다)」.
+- 범위: `Assets/Scripts/Game/Bootstrap.cs`(targetFrameRate 두 줄) · `Assets/Tests/PlayMode/PerfBudgetTests.cs` · 넘길 때만 `Assets/Scripts/Game/Battle/`·`Game/Voxel/`·`Game/Ui/Hud.cs`(풀링·병합 갈래).
+
+### T45 — SafeArea 노치 모의 검증: HUD·탭바·팝업 ✕·채팅줄·토스트가 `Screen.safeArea` 안에 있는가 (Game·검증 · T18 뒤 · **T27 다음으로 먼저**)
+- 주인 지시 2026-09-12 «SafeArea 해서 모바일 상단 카메라 안 가리게». `UiRoot` 가 `Screen.safeArea` 를 읽어 앱 상자를 놓지만(T18) **노치가 있을 때 정말 안 가리는지 단언하는 테스트가 없다**(에디터·CI 는 safeArea = 전체 화면이라 조용히 초록).
+- 할 것: ⓐ `UiRoot` 에 테스트용 safeArea 주입 지점(`UiRoot.OverrideSafeArea(Rect?)` · 게임 코드는 안 쓴다) ⓑ PlayMode `SafeAreaTests`: 위 120px·아래 60px·좌우 0 을 깎은 safeArea 를 주입하고 부팅 → HUD 상단바·스테이지 표시·탭바·시트 ✕·채팅줄·토스트의 **월드 코너 4점이 전부 safeArea 안** · 세 해상도(540×1170 · 360×800 · 430×932) · 가로로 뒤집어도(`Screen.orientation` 은 세로 고정이니 해상도만) ⓒ 3D 카메라는 전체 화면 그대로(레터박스 계산이 safeArea 를 이중으로 깎지 않는지 = T1 `Viewport.Letterbox` 와 T18 앱 상자의 관계를 한 줄로 결정 기록) ⓓ 촬영(T27)의 노치 모의 경계선과 같은 값을 쓴다(상수 하나 · `UiCatalog` 또는 테스트 공용 상수).
+- 판정: `SafeAreaTests` 초록 + 노치 모의 PNG 를 열어 상단바가 빨간 선 아래에 있는 것을 본 기록 + 「주인이 볼 것: 노치 폰에서 상단바·✕ 가 카메라에 안 가림」.
+- 범위: `Assets/Scripts/Game/Ui/UiRoot.cs`(주입 지점만) · `Assets/Tests/PlayMode/SafeAreaTests.cs` · `Assets/Forge/catalog.json`(노치 상수 한 줄 · 있으면).
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -422,5 +440,6 @@ node tools/export_data.js --self-test                                         # 
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | ⬜ |
+| (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 | ⬜ |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
