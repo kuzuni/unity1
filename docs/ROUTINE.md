@@ -318,6 +318,13 @@
 - 범위: `tools/dotnet/TestsPlay/` · `tools/dotnet/Stubs/TestTools.cs` · `tools/dotnet/Forge.sln` · `docs/ROUTINE.md`(§3 한 줄).
 
 
+### T47 — 카탈로그 색 44키가 `layout` 배열에 빠져 있다: `DungeonUiTests` 4/4 빨강(«색 «white»·«pill_potion»·«muted2» 이 없다») (검증·UI · 뒤 순서 없음 · 임자 없는 빨강)
+- 무엇: `79dc03d`(T21) 가 «복제된 블록 병합» 으로 푼 자리에서 **색 항목 79개가 `colors` 가 아니라 `layout` 배열 안으로 들어갔다**. 그중 35개는 `colors` 에 이미 있는 것과 같은 값(무해)이고 **44개는 `colors` 어디에도 없다** — `white`·`muted2`·`silver`·`dgd_*`·`dg_*`·`x_btn*`·`info_btn`·`tech_*`·`tb_*`·`pill_*`·`dgclear_*`·`asc_*`·`tn_bronze*`·`idet_icon_*`·`pp_sheet`·`btn_disabled_ink`. 유니티는 그것을 `LayoutEntry`(값 0)로 읽고 `UiKit.C` 는 `KeyNotFoundException` 을 던져 던전·기술트리·승천 화면이 통째로 안 선다(런 46·54 `DungeonUiTests` 0/4 · T21 은 ✅ 이고 lock 이 없어 **임자 없는 빨강** · ROUTINE §0-6).
+- 왜 자들이 못 잡았나: T41 이 막는 것은 ⓐ 한 객체 안의 JSON 키 중복 ⓑ 한 배열 안의 항목 키 중복 둘뿐이다. 여기는 병합이 **항목을 다른 절로 옮겨** 둘 다 아니다 — 절의 «모양»(색은 `hex` · 배치는 `value`)을 아무도 안 봤다.
+- 무엇을 한다: ⑴ `layout` 의 색 항목 79개를 빼고 그중 `colors` 에 없는 44개를 `colors` 절에 잇는다(값은 그대로 · 새 색 0) ⑵ `gen_ui_catalog.py` 에 **절 모양 게이트** ⓒ 를 더한다 — `colors` 항목에 `value` 나 `hex` 없음, `layout` 항목에 `hex` 나 `value` 없음이면 rc 1(자기 검사 칸 포함) ⑶ `UiCatalog.asset` 재생성.
+- 판정: `gen_ui_catalog --check`·`--self-test` rc 0 · 「색 키 ↔ 코드 참조」 훑기에 빠진 색 0 · CI 유니티 잡에서 `DungeonUiTests` 4/4 초록.
+- 범위: `Assets/Forge/catalog.json`(항목 자리만 옮긴다 · 값 변경 0) · `Assets/Forge/Resources/UiCatalog.asset`(자가 다시 만든다) · `tools/gen_ui_catalog.py`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
