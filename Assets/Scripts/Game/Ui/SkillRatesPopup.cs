@@ -24,8 +24,8 @@ namespace Forge.Game.Ui
 
         static PetSkillHost H { get { return sheet.Host; } }
         static GameDefs Defs { get { return H.Data.Defs; } }
-        static int Max { get { return H.Data.Balance.Skills.MaxLevel; } }
-        static int CurLevel { get { return kind == "pet" ? H.Pets.SummonLevel() : H.Skills.SummonLevel(); } }
+        static int Max { get { return kind == "mount" ? H.Mounts.Rules.MaxLevel : H.Data.Balance.Skills.MaxLevel; } }
+        static int CurLevel { get { return kind == "pet" ? H.Pets.SummonLevel() : kind == "mount" ? H.Mounts.Level() : H.Skills.SummonLevel(); } }
 
         public static void Open(SkillPetSheet s, string k)
         {
@@ -46,11 +46,21 @@ namespace Forge.Game.Ui
         {
             int lvl = level.HasValue ? level.Value : CurLevel;
             LevelNow = lvl;
-            OrderedMap<double> rates = kind == "pet" ? H.Pets.Rates(lvl) : H.Skills.Rates(lvl);
-            string line = kind == "pet" ? "pet" : "skill";
+            // 탈것 확률표는 분수(0~1) + needed 필드 — 원작 renderSummonRates 의 isMount 갈래(레벨 상한 MAX_LEVEL 50 · 게이지 = (오픈 − prev)/(need − prev))
+            OrderedMap<double> rates = kind == "pet" ? H.Pets.Rates(lvl) : kind == "mount" ? H.Data.Balance.Mounts.SummonAt(Mathf.Clamp(lvl, 1, Max)).Rates : H.Skills.Rates(lvl);
+            string line = kind == "pet" ? "pet" : kind == "mount" ? "mount" : "skill";
             int ascN = H.AscendCount(line);
-            int cnt = kind == "pet" ? H.Pets.State.PetSummonCount : H.Skills.State.SummonCount;
+            int cnt = kind == "pet" ? H.Pets.State.PetSummonCount : kind == "mount" ? H.Mounts.State.MountOpens : H.Skills.State.SummonCount;
             bool capped = CurLevel >= Max;
+            float gRatio = capped ? 1f : (cnt % 5) / 5f;
+            string gText = capped ? PetSkillStyle.T("gauge_max") : PetSkillStyle.T("gauge", cnt % 5, 5);
+            if (kind == "mount")
+            {
+                double? need = H.Mounts.NextNeeded();
+                double prev = H.Mounts.PrevNeeded();
+                gRatio = need.HasValue ? Mathf.Clamp01((float)((cnt - prev) / (need.Value - prev))) : 1f;
+                gText = need.HasValue ? PetSkillStyle.T("gauge", JsNum.ToString(cnt - prev), JsNum.ToString(need.Value - prev)) : PetSkillStyle.T("gauge_max");
+            }
 
             float wf = PetSkillStyle.L("rates_w_f");
             float w = wf * UiKit.RefW;
@@ -125,7 +135,7 @@ namespace Forge.Game.Ui
             UiKit.Place(tip.rectTransform, padX, y, inner, tipH);
             y += tipH + tipMy;
             float pmx = PetSkillStyle.Px("rates_prog_mx_rem");
-            RectTransform prog = PetSkillKit.Gauge(c, "rates-prog", inner - pmx * 2f, progH, capped ? 1f : (cnt % 5) / 5f, capped ? PetSkillStyle.T("gauge_max") : PetSkillStyle.T("gauge", cnt % 5, 5), PetSkillStyle.C("shard_bg"), PetSkillStyle.Px("rates_prog_r_rem"), PetSkillKit.Line3, TextKind.Sub);
+            RectTransform prog = PetSkillKit.Gauge(c, "rates-prog", inner - pmx * 2f, progH, gRatio, gText, PetSkillStyle.C("shard_bg"), PetSkillStyle.Px("rates_prog_r_rem"), PetSkillKit.Line3, TextKind.Sub);
             UiKit.Place(prog, padX + pmx, y, inner - pmx * 2f, progH);
         }
 

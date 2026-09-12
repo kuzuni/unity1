@@ -8,12 +8,14 @@ using Forge.Core;
 using Forge.Core.Ascend;
 using Forge.Core.Data;
 using Forge.Core.Forging;
+using Forge.Core.Mounts;
 using Forge.Core.PetSave;
 using Forge.Core.Pets;
 using Forge.Core.Save;
 using Forge.Core.Skills;
 using Forge.Core.Tech;
 using Forge.Game.Audio;
+using Forge.Game.Mounts;
 
 namespace Forge.Game.Ui
 {
@@ -25,7 +27,7 @@ namespace Forge.Game.Ui
     /// 부화 완료(원작 `Pets.tick` · 메인 루프)는 1초마다 여기서 돈다. 효과음은 T30 <see cref="Sfx"/> 를 훅(<see cref="SfxGacha"/> 등)에 꽂는다.
     /// </summary>
     [DefaultExecutionOrder(-800)]
-    public sealed class PetSkillHost : MonoBehaviour, IPetHost, ISkillHost
+    public sealed class PetSkillHost : MonoBehaviour, IPetHost, ISkillHost, IMountHost
     {
         public static PetSkillHost Instance { get; private set; }
         /// <summary>지금 살아 있는 호스트가 부팅을 마쳤는가 — 인스턴스에서 파생한다(정적 플래그면 씬을 다시 여는 PlayMode 테스트에서 앞 씬 호스트의 코루틴이 새 씬 위에서 참으로 올린다 · T19 결정 112 와 같은 경쟁).</summary>
@@ -43,6 +45,8 @@ namespace Forge.Game.Ui
         public GameData Data { get; private set; }
         public PetSystem Pets { get; private set; }
         public SkillSystem Skills { get; private set; }
+        /// <summary>T40 Core 탈것(원작 `Mounts`) — 탈것 화면(<see cref="MountSheet"/>)이 쓴다.</summary>
+        public MountSystem Mounts { get; private set; }
         public TechTree Tech { get; private set; }
         public Ascension Ascension { get; private set; }
         public AscensionState AscState { get; private set; }
@@ -120,6 +124,9 @@ namespace Forge.Game.Ui
             Rng = Rng.Mulberry(Seed != 0 ? Seed : (uint)(Environment.TickCount ^ (int)(SaveIo.NowMs() % int.MaxValue)));
             Pets = new PetSystem(Data, PetRules.Original(), this, Rng, PetSkillSave.ReadPets(S.Root));
             Skills = new SkillSystem(Data, SkillRules.Original(), this, Rng, PetSkillSave.ReadSkills(S.Root));
+            MountRules mr = MountRules.Original();
+            Mounts = new MountSystem(Data, mr, this, Rng, MountSave.ReadMounts(S.Root, Data.Defs, Rng, mr));
+            Mounts.Ensure();
             lastRecalc = Skills.RecalcRequests;
             // 효과음(T30 Sfx · 원작 SFX.gacha/summonCharge/summonReveal) — 다른 것이 먼저 꽂았으면 그대로 둔다
             if (SfxGacha == null) SfxGacha = Sfx.Gacha;
@@ -190,10 +197,19 @@ namespace Forge.Game.Ui
         {
             PetSkillSave.WritePets(S.Root, Pets.State);
             PetSkillSave.WriteSkills(S.Root, Skills.State);
+            if (Mounts != null) MountSave.WriteMounts(S.Root, Mounts.State);
             if (Skills.RecalcRequests != lastRecalc) { lastRecalc = Skills.RecalcRequests; RequestRecalc(); }
             RefreshTopBar();
             var h = Changed;
             if (h != null) h();
+        }
+
+        /// <summary>탈것이 바뀌었다(소환·장착·타기·흡수) — 세이브 되쓰기 + T11 <see cref="MountRider"/> 가 3D 를 다시 세운다(원작 `Scene3D.refreshMount`) + 재계산.</summary>
+        public void MountsChanged()
+        {
+            RequestRecalc();
+            Sync();
+            if (MountRider.Instance != null && MountRider.Instance.Ready) MountRider.Instance.RefreshFromSave();
         }
 
         /// <summary>원작 `Combat.recalcHero()` 자리 — 출전 펫 토글도 이것을 부른다.</summary>
@@ -219,7 +235,7 @@ namespace Forge.Game.Ui
         // ===== 승천 =====
         public AscensionLevels Levels()
         {
-            return new AscensionLevels { ForgeLevel = S.ForgeLevel, SkillSummonLevel = Skills.SummonLevel(), PetSummonLevel = Pets.SummonLevel(), MountLevel = 1 };
+            return new AscensionLevels { ForgeLevel = S.ForgeLevel, SkillSummonLevel = Skills.SummonLevel(), PetSummonLevel = Pets.SummonLevel(), MountLevel = Mounts != null ? Mounts.Level() : 1 };
         }
         public bool AscendReady(string line) { return Ascension.Ready(line, Levels()); }
         public int AscendCount(string line) { return Ascension.Count(AscState, line); }
@@ -244,5 +260,13 @@ namespace Forge.Game.Ui
         public double SkillPassiveDmgMult() { return Tech.SkillPassiveDmgMult(); }
         public double SkillPassiveHpMult() { return Tech.SkillPassiveHpMult(); }
         public int SkillAscendCount() { return Ascension.Count(AscState, "skill"); }
+
+        // ===== IMountHost =====
+        public double Winders { get { return S.Winders; } set { S.Winders = value; } }
+        public int MountAscendCount() { return Ascension.Count(AscState, "mount"); }
+        public double MountDmgMult() { return Tech.MountDmgMult(); }
+        public double MountHpMult() { return Tech.MountHpMult(); }
+        public double MountCostMult() { return Tech.MountCostMult(); }
+        public double ExtraMountChance() { return Tech.ExtraMountChance(); }
     }
 }

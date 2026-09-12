@@ -21,13 +21,17 @@ namespace Forge.Game.Ui
 
         public static bool Available { get { return GallerySheet.GraphicsAvailable && PetSkillHost.Instance != null && PetSkillHost.Instance.Data != null; } }
 
-        public static Sprite Get(string name)
+        public static Sprite Get(string name) { return Get(name, GalleryKind.Pets); }
+
+        /// <summary>종 얼굴 — 펫은 `Pets` · 탈것은 `Mounts`(원작 `mountFace` = 같은 썸네일 파이프라인 · T20 탈것 화면).</summary>
+        public static Sprite Get(string name, GalleryKind kind)
         {
             if (string.IsNullOrEmpty(name)) return null;
+            string key = kind + ":" + name;
             Sprite sp;
-            if (cache.TryGetValue(name, out sp)) return sp;
-            sp = Available ? Bake(name) : null;
-            cache[name] = sp;
+            if (cache.TryGetValue(key, out sp)) return sp;
+            sp = Available ? Bake(name, kind) : null;
+            cache[key] = sp;
             return sp;
         }
 
@@ -38,11 +42,11 @@ namespace Forge.Game.Ui
             if (stage != null) { Object.Destroy(stage); stage = null; }
         }
 
-        static Sprite Bake(string name)
+        static Sprite Bake(string name, GalleryKind kind)
         {
             GameData data = PetSkillHost.Instance.Data;
             GallerySpecies species = null;
-            foreach (GallerySpecies s in MobGallery.SpeciesOf(data, GalleryKind.Pets)) if (s.Name == name) { species = s; break; }
+            foreach (GallerySpecies s in MobGallery.SpeciesOf(data, kind)) if (s.Name == name) { species = s; break; }
             if (species == null) return null;
             // 씬이 다시 실리면(테스트 · 재시작) 리그·무대는 유니티 쪽에서 이미 죽어 있다 — C# 참조만 남았으면 새로 만든다.
             if (stage == null)
@@ -77,12 +81,12 @@ namespace Forge.Game.Ui
                 RenderSettings.ambientEquatorColor = (RenderSettings.ambientSkyColor + RenderSettings.ambientGroundColor) * 0.5f;
                 rig.Key.enabled = true;
                 rig.Camera.enabled = false;
-                GallerySheet.RenderInto(rig.Camera, e.Root, GallerySheet.YawA, GallerySheet.Pad(GalleryKind.Pets), rt);
+                GallerySheet.RenderInto(rig.Camera, e.Root, GallerySheet.YawA, GallerySheet.Pad(kind), rt);
                 RenderTexture.active = rt;
                 tex = new Texture2D(px, px, TextureFormat.RGBA32, false);
                 tex.ReadPixels(new Rect(0, 0, px, px), 0, 0);
                 tex.Apply();
-                tex.name = "petface:" + name;
+                tex.name = "petface:" + kind + ":" + name;
             }
             catch (System.Exception ex)
             {
@@ -102,7 +106,7 @@ namespace Forge.Game.Ui
                 if (e != null && e.Root != null) Object.Destroy(e.Root);
             }
             Sprite sp = Sprite.Create(tex, new Rect(0, 0, px, px), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
-            sp.name = "petface:" + name;
+            sp.name = "petface:" + kind + ":" + name;
             return sp;
         }
     }

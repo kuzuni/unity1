@@ -300,5 +300,106 @@ namespace Forge.Tests.PlayMode
             }
             AssertTextGate("스킬 바");
         }
+
+        [UnityTest]
+        public IEnumerator 탈것_시트_소환_상세_장착_타기_업그레이드_확률_팝업()
+        {
+            yield return Boot();
+            Assert.IsNotNull(Host.Mounts, "T40 Core 탈것이 호스트에 섰다");
+            while (Host.SummonMult("mount") != 1) Host.CycleSummonMult("mount");
+            Host.Winders = 100000;
+            Host.Sync();
+            yield return null;
+            // 원작 openMounts 는 어느 탭에서든 전체 모달 — 장비 시트의 탈것 칸이 부른다
+            MountSheet.Open();
+            yield return null;
+            Assert.IsTrue(MountSheet.IsOpen, "탈것 시트(전체 모달)");
+            Assert.IsNotNull(MountSheet.SummonButton);
+            Assert.IsNotNull(MountSheet.RatesButton);
+            Assert.IsNotNull(MountSheet.BackButton);
+            AssertTextGate("탈것 시트");
+
+            // 소환 x1 → 개체 +1(기술트리 보너스 마리는 더 될 수 있다) · 결과 연출 → 탭 두 번에 닫힘
+            int n = Host.Mounts.Count();
+            MountSheet.SummonButton.onClick.Invoke();
+            yield return null;
+            Assert.GreaterOrEqual(Host.Mounts.Count(), n + 1, "탈것 +1");
+            Assert.IsTrue(Sheet.Modal.IsOpen(SkillSummonResultView.ModalName), "소환 결과 연출(탈것 갈래)");
+            SkillSummonResultView.Current.OnTap();
+            yield return null;
+            SkillSummonResultView.Current.OnTap();
+            yield return null;
+            Assert.IsFalse(Sheet.Modal.IsOpen(SkillSummonResultView.ModalName));
+            Assert.AreEqual(Host.Mounts.Count(), MountSheet.GridCells, "타일 = 보유 개체 수");
+            MountSheet.SummonButton.onClick.Invoke();
+            yield return null;
+            SkillSummonResultView.Current.OnTap(); yield return null;
+            SkillSummonResultView.Current.OnTap(); yield return null;
+            Assert.GreaterOrEqual(Host.Mounts.Count(), 2, "재료·교체 검사를 하려면 둘 이상");
+
+            // 상세 → 장착 토글(1마리 슬롯: 다른 것을 장착하면 이전 것은 자동 해제)
+            MountSheet.OpenDetail(0);
+            yield return null;
+            Assert.IsTrue(Sheet.Modal.IsOpen(MountSheet.DetailModal), "탈것 상세");
+            AssertTextGate("탈것 상세");
+            Assert.IsTrue(Host.Mounts.IsActive(0), "첫 소환은 자동 장착(원작 Mounts.summon)");
+            MountSheet.OnEquip(1);
+            yield return null;
+            Assert.IsTrue(Host.Mounts.IsActive(1) && !Host.Mounts.IsActive(0), "장착은 1마리 — 교체");
+            Assert.AreEqual(1, Host.Mounts.RiddenIdx(), "탄 것 = 장착 1번");
+            MountSheet.OnEquip(1);
+            yield return null;
+            Assert.IsFalse(Host.Mounts.IsActive(1), "해제");
+            MountSheet.OnRide(0);
+            yield return null;
+            Assert.AreEqual(0, Host.Mounts.RiddenIdx(), "타기 = 그 개체로 교체");
+            Assert.IsTrue(Sheet.Modal.IsOpen(MountSheet.ModalName), "시트는 재렌더 뒤에도 열려 있다");
+
+            // 업그레이드 팝업: 재료 = 다른 개체(인덱스) · 확인 → 재료 소모 · 경험치/레벨 상승 · 대상 인덱스 보정
+            MountSheet.OpenDetail(1);
+            yield return null;
+            Sheet.Modal.Find(MountSheet.DetailModal).Content.Find("btn-upgrade").GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+            yield return null;
+            Assert.IsTrue(Sheet.Modal.IsOpen(MountUpgradePopup.ModalName), "업그레이드 팝업");
+            Assert.AreEqual(1, MountUpgradePopup.Target);
+            AssertTextGate("탈것 업그레이드");
+            Assert.IsNotNull(MountUpgradePopup.Chip(0), "재료 칩 = 다른 개체");
+            Assert.IsNull(MountUpgradePopup.Chip(1), "대상 자신은 재료가 아니다");
+            MountUpgradePopup.ToggleMat(0);
+            yield return null;
+            Assert.AreEqual(1, MountUpgradePopup.SelectedCount);
+            int before = Host.Mounts.Count();
+            string tname = Host.Mounts.Inst(1).Name;
+            int lv = Host.Mounts.Inst(1).Level;
+            double xp = Host.Mounts.Inst(1).Xp;
+            MountUpgradePopup.Confirm();
+            yield return null;
+            Assert.AreEqual(before - 1, Host.Mounts.Count(), "재료 흡수");
+            Assert.AreEqual(0, MountUpgradePopup.Target, "재료(앞 인덱스)가 사라져 대상 인덱스가 당겨진다");
+            Assert.AreEqual(tname, Host.Mounts.Inst(0).Name);
+            Assert.IsTrue(Host.Mounts.Inst(0).Xp > xp || Host.Mounts.Inst(0).Level > lv, "경험치 흡수");
+            MountUpgradePopup.Close();
+            yield return null;
+            Assert.IsFalse(Sheet.Modal.IsOpen(MountUpgradePopup.ModalName));
+
+            // 확률 팝업(탈것 갈래: 레벨 상한 50 · 게이지 = 오픈 수)
+            SkillRatesPopup.Open(Sheet, "mount");
+            yield return null;
+            Assert.IsTrue(Sheet.Modal.IsOpen(SkillRatesPopup.ModalName));
+            Assert.AreEqual("mount", SkillRatesPopup.KindNow);
+            Assert.AreEqual(Host.Mounts.Level(), SkillRatesPopup.LevelNow);
+            SkillRatesPopup.Step(1);
+            yield return null;
+            Assert.AreEqual(Host.Mounts.Level() + 1, SkillRatesPopup.LevelNow);
+            AssertTextGate("탈것 확률");
+            Sheet.Modal.Close(SkillRatesPopup.ModalName);
+            yield return null;
+
+            // ◀ = closeMounts
+            MountSheet.BackButton.onClick.Invoke();
+            yield return null;
+            Assert.IsFalse(MountSheet.IsOpen, "◀ 로 닫힌다");
+            Assert.IsFalse(Sheet.Modal.IsOpen(MountSheet.DetailModal));
+        }
     }
 }

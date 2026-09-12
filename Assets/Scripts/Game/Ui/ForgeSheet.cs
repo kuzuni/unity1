@@ -163,7 +163,7 @@ namespace Forge.Game.Ui
             UiKit.Anchor(nm.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, hgt * 0.06f), w, nm.fontSize * 1.2f);
             Button b = rt.gameObject.AddComponent<Button>();
             b.targetGraphic = f;
-            b.onClick.AddListener(() => UiRoot.Instance.TabBar.OnTab("summon"));
+            b.onClick.AddListener(() => MountSheet.Open());   // 원작 `UI.openMounts()` — T20 탈것 시트(전체 모달)
             return rt;
         }
 

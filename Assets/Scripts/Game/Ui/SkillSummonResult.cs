@@ -4,7 +4,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Forge.Core.Data;
+using Forge.Core.Mounts;
 using Forge.Core.Pets;
+using Forge.Game.Gallery;
 using Forge.Core.Skills;
 
 namespace Forge.Game.Ui
@@ -26,6 +28,7 @@ namespace Forge.Game.Ui
             public bool IsNew, Bonus;
             public int Qty = 1, NewQty;
             public string FaceName;
+            public GalleryKind FaceKind = GalleryKind.Pets;
         }
 
         sealed class Cell
@@ -95,6 +98,15 @@ namespace Forge.Game.Ui
             return Open(sheet, kind, list, r.BestRarity, repeat);
         }
 
+        /// <summary>원작 summonEntries('mount') — 키 `mt:이름` · 3D 얼굴(`mountFace`) · MOUNT_KR 이름 · 신규/중복.</summary>
+        public static SkillSummonResultView Open(SkillPetSheet sheet, string kind, MountSummonResult r, Action repeat)
+        {
+            var list = new List<Entry>();
+            foreach (MountSummonResult.Item it in r.Results)
+                list.Add(new Entry { Key = "mt:" + it.Name, IconKey = "winder", Rarity = it.Rarity, Name = Defs.MountKr.Get(it.Name, it.Name), IsNew = it.IsNew, FaceName = it.Name, FaceKind = GalleryKind.Mounts });
+            return Open(sheet, kind, list, r.BestRarity, repeat);
+        }
+
         public static SkillSummonResultView Open(SkillPetSheet sheet, string kind, List<Entry> rollsList, string bestRarity, Action repeat)
         {
             if (rollsList == null || rollsList.Count == 0) return null;
@@ -124,7 +136,7 @@ namespace Forge.Game.Ui
                     if (map.TryGetValue(e.Key, out g)) { g.Qty++; if (e.IsNew) g.NewQty++; }
                     else
                     {
-                        g = new Entry { Key = e.Key, IconKey = e.IconKey, IconTint = e.IconTint, Rarity = e.Rarity, Name = e.Name, Bonus = e.Bonus, Qty = 1, NewQty = e.IsNew ? 1 : 0, FaceName = e.FaceName };
+                        g = new Entry { Key = e.Key, IconKey = e.IconKey, IconTint = e.IconTint, Rarity = e.Rarity, Name = e.Name, Bonus = e.Bonus, Qty = 1, NewQty = e.IsNew ? 1 : 0, FaceName = e.FaceName, FaceKind = e.FaceKind };
                         map[e.Key] = g;
                         list.Add(g);
                     }
@@ -132,7 +144,7 @@ namespace Forge.Game.Ui
             }
             else
                 foreach (Entry e in rollsList)
-                    list.Add(new Entry { Key = e.Key, IconKey = e.IconKey, IconTint = e.IconTint, Rarity = e.Rarity, Name = e.Name, Bonus = e.Bonus, Qty = 1, NewQty = e.IsNew ? 1 : 0, FaceName = e.FaceName });
+                    list.Add(new Entry { Key = e.Key, IconKey = e.IconKey, IconTint = e.IconTint, Rarity = e.Rarity, Name = e.Name, Bonus = e.Bonus, Qty = 1, NewQty = e.IsNew ? 1 : 0, FaceName = e.FaceName, FaceKind = e.FaceKind });
             foreach (Entry g in list)
             {
                 g.IsNew = g.NewQty > 0;
@@ -368,7 +380,7 @@ namespace Forge.Game.Ui
             float isz = cw * (one ? 0.62f : 0.6f);
             if (!string.IsNullOrEmpty(e.FaceName))
             {
-                RectTransform pf = PetSkillKit.PetFace(wrap, Defs, e.FaceName, isz);
+                RectTransform pf = PetSkillKit.PetFace(wrap, Defs, e.FaceName, isz, e.FaceKind);
                 UiKit.Anchor(pf, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, isz, isz);
             }
             else

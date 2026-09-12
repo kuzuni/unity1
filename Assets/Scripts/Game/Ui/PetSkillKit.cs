@@ -6,6 +6,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using Forge.Core;
 using Forge.Core.Data;
+using Forge.Game.Gallery;
 
 namespace Forge.Game.Ui
 {
@@ -303,11 +304,14 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>펫 얼굴 — 3D 썸네일(원작 Scene3D.petThumb 파이프라인 · <see cref="PetFaces"/>)이 있으면 그것, 없으면 정본 PET_ICONS 이모지 글자(원작 폴백).</summary>
-        public static RectTransform PetFace(Transform parent, GameDefs defs, string name, float size)
+        public static RectTransform PetFace(Transform parent, GameDefs defs, string name, float size) { return PetFace(parent, defs, name, size, GalleryKind.Pets); }
+
+        /// <summary>종 얼굴(펫·탈것) — 3D 썸네일이 없으면(헤드리스) 정본 PET_ICONS/MOUNT_ICONS 이모지.</summary>
+        public static RectTransform PetFace(Transform parent, GameDefs defs, string name, float size, GalleryKind kind)
         {
             RectTransform box = UiKit.Box(parent, "face");
             box.sizeDelta = new Vector2(size, size);
-            Sprite sp = PetFaces.Get(name);
+            Sprite sp = PetFaces.Get(name, kind);
             if (sp != null)
             {
                 Image img = box.gameObject.AddComponent<Image>();
@@ -317,7 +321,7 @@ namespace Forge.Game.Ui
             }
             else
             {
-                string emoji = defs.PetIcons.Get(name, "🐾");
+                string emoji = kind == GalleryKind.Mounts ? defs.MountIcons.Get(name, "🐴") : defs.PetIcons.Get(name, "🐾");
                 TextMeshProUGUI t = Text(box, "emoji", TextKind.Title, emoji, PetSkillStyle.C("ink"));
                 UiKit.Fill(t.rectTransform);
             }

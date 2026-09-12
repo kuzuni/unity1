@@ -223,17 +223,20 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>펫 타일 얼굴 — 상세·업그레이드 팝업도 같은 그림(원작 `.petd-tile` · `.petup-icon`).</summary>
-        public RectTransform TileFace(Transform parent, string name, string rarity, float size, bool active, int level, bool ribbonSmall)
+        public RectTransform TileFace(Transform parent, string name, string rarity, float size, bool active, int level, bool ribbonSmall) { return TileFace(parent, name, rarity, size, active, level, ribbonSmall, null, Forge.Game.Gallery.GalleryKind.Pets); }
+
+        /// <summary>탈것 화면(<see cref="MountSheet"/>)도 같은 타일 — 리본 글(«탑승 중»/«장착됨»)과 종 갈래만 다르다.</summary>
+        public RectTransform TileFace(Transform parent, string name, string rarity, float size, bool active, int level, bool ribbonSmall, string ribbonText, Forge.Game.Gallery.GalleryKind kind)
         {
             Color rc = PetSkillStyle.Rarity(Defs, rarity);
             RectTransform face = PetSkillKit.Framed(parent, "tile-face", PetSkillStyle.Mix(rc, PetSkillStyle.C("white"), PetSkillStyle.L("tile_face_mix_f")), PetSkillStyle.Px("tile_r_rem"), PetSkillKit.Line3);
             face.sizeDelta = new Vector2(size, size);
-            RectTransform pf = PetSkillKit.PetFace(face, Defs, name, size * 0.86f);
+            RectTransform pf = PetSkillKit.PetFace(face, Defs, name, size * 0.86f, kind);
             UiKit.Anchor(pf, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, size * 0.86f, size * 0.86f);
             float lvH = UiCatalog.Instance.Kind(TextKind.Sub).size * 1.15f;
             if (active)
             {
-                string rb = PetSkillStyle.T("equipped");
+                string rb = ribbonText ?? PetSkillStyle.T("equipped");
                 float rw = PetSkillKit.TextWidth(TextKind.Sub, rb) + PetSkillStyle.Rem(0.5f);
                 RectTransform ribbon = PetSkillKit.LvBadge(face, rb, rw, lvH);
                 ribbon.name = "sk-ribbon";

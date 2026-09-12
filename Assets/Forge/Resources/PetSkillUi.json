@@ -13,7 +13,8 @@
     "toast_bg": "#1c2128f2", "toast_line": "#444c56", "toast_ink": "#eceff1",
     "sr_bg_a": "#24306a", "sr_bg_b": "#101740", "sr_bg_c": "#070b20", "sr_bg_d": "#03040c", "sr_title_band": "#0c1434d9", "sr_name_bg": "#060a1ad6",
     "sr_ok": "#ffc93c", "sr_ok_ink": "#2a1c04", "sr_hint": "#d2e1ffbf", "sr_new": "#e02114", "sr_badge_bg": "#020510e6", "sr_orb_deep": "#05070f", "sr_solo_own": "#0a1028b3", "sr_again": "#2c3a70e6", "sr_again_ink": "#dfe7ff", "sr_charge": "#ffffff", "sr_hilite": "#ffffff80",
-    "sb_bg": "#11151a", "sb_ink": "#eceff1", "sb_auto_bg": "#2f3a33", "sb_auto_line": "#546e7a", "sb_auto_ink": "#90a4ae", "sb_auto_on_bg": "#2e7d32", "sb_auto_on_line": "#69f0ae", "sb_empty_bg": "#0a0a0ebf", "sb_empty_line": "#ffffff2e", "sb_cd": "#000000a6"
+    "sb_bg": "#11151a", "sb_ink": "#eceff1", "sb_auto_bg": "#2f3a33", "sb_auto_line": "#546e7a", "sb_auto_ink": "#90a4ae", "sb_auto_on_bg": "#2e7d32", "sb_auto_on_line": "#69f0ae", "sb_empty_bg": "#0a0a0ebf", "sb_empty_line": "#ffffff2e", "sb_cd": "#000000a6",
+    "mtup_chip_bg": "#ffffff", "mtup_chip_on": "#253326", "mtup_chip_on_ring": "#69f0ae", "mtup_chip_active_line": "#ffd54f", "mtup_chip_on_ink": "#eceff1", "mount_pill": "#2b2b2b"
   },
   "layout": {
     "rem_h": 0.018957, "pad_rem": 0.8, "gap_rem": 0.45, "line3_px": 6, "line2_px": 4, "line1_px": 2,
@@ -52,7 +53,8 @@
     "sr_sz_0": 1.0, "sr_sz_1": 0.99, "sr_sz_2": 1.03, "sr_sz_3": 1.08, "sr_sz_4": 1.16, "sr_sz_5": 1.26, "sr_peer_sz": 1.13, "sr_pop_0": 0.32, "sr_pop_1": 0.34, "sr_pop_2": 0.38, "sr_pop_3": 0.44, "sr_pop_4": 0.48, "sr_pop_5": 0.52,
     "sr_charge_ms": 240, "sr_slow_step_ms": 125, "sr_row_ms": 300, "sr_row_stag_ms": 40, "sr_tier_pause_ms": 200, "sr_holdback_ms": 150, "sr_tail_ms": 150, "sr_merge_from": 11, "sr_flash_sec": 0.55, "sr_charge_out_sec": 0.21,
     "face_thumb_px": 128,
-    "sb_right_rem": 0.5, "sb_bottom_rem": 0.6, "sb_gap_rem": 0.4, "sb_btn_rem": 2.9, "sb_auto_h_rem": 1.9, "sb_auto_pad_rem": 0.6, "sb_auto_r_rem": 1.0, "sb_lv_bottom_rem": 0.1, "sb_glow_f": 1.18
+    "sb_right_rem": 0.5, "sb_bottom_rem": 0.6, "sb_gap_rem": 0.4, "sb_btn_rem": 2.9, "sb_auto_h_rem": 1.9, "sb_auto_pad_rem": 0.6, "sb_auto_r_rem": 1.0, "sb_lv_bottom_rem": 0.1, "sb_glow_f": 1.18,
+    "mounts_bottom_rem": 0.9, "mount_pill_row_h_rem": 1.6, "mtup_w_f": 0.74, "mtup_pad_rem": 0.9, "mtup_face_rem": 2.4, "mtup_grid_cols": 5, "mtup_grid_gap_rem": 0.3, "mtup_grid_max_f": 0.4, "mtup_grid_my_rem": 0.4, "mtup_chip_pad_rem": 0.3, "mtup_chip_r_rem": 0.5, "mtup_row_gap_rem": 0.45, "mtup_row_my_rem": 0.3, "mtup_btn_h_rem": 1.9, "mtup_btn_gap_rem": 0.3, "mtup_mat_max": 5
   },
   "text": {
     "sub_skills": "스킬", "sub_pets": "펫", "sub_tech": "기술 트리",
@@ -78,6 +80,7 @@
     "sr_hint": "화면을 탭하면 건너뜁니다", "sr_ok": "확인", "sr_again": "다시 소환",
     "sr_solo_skill_new": "✨ 신규 스킬 획득!", "sr_solo_skill_dup": "이미 보유한 스킬 — 조각으로 적립됩니다", "sr_solo_skill_own": "보유 Lv.{0} · 조각 {1}", "sr_solo_egg": "부화장에 넣어 부화시킬 수 있습니다", "sr_solo_egg_own": "보유 {0} 알 {1}개",
     "sb_auto": "자동",
-    "time_d": "{0}일 {1}시", "time_h": "{0}시 {1}분", "time_m": "{0}분 {1}초", "time_s": "{0}초"
+    "time_d": "{0}일 {1}시", "time_h": "{0}시 {1}분", "time_m": "{0}분 {1}초", "time_s": "{0}초",
+    "mounts_title": "탈것 {0}/{1}", "mounts_empty": "보유 탈것 없음 — 소환해보세요!", "mount_name": "[{0}] {1}", "ridden": "탑승 중", "ride": "타기", "same_kind": "같은 종류 보유 {0}개", "mtup_title": "{0} 업그레이드", "mtup_select": "합칠 다른 탈것 선택 (최대 5개, 재료는 흡수되어 사라집니다)", "mtup_empty": "재료로 쓸 다른 탈것이 없습니다", "mtup_xp": "경험치 {0}/{1}", "mtup_xp_preview": " (+{0} 예정)", "close": "닫기", "toast_mount_full": "🐴 탈것 보관함이 가득 찼습니다 ({0}/{1})", "toast_winders_short": "⚙️ 태엽이 부족합니다 (스테이지 클리어로 획득)", "toast_no_upgrade_mount": "업그레이드할 탈것이 없습니다", "toast_mount_lv": "✨ {0} Lv.{1}!"
   }
 }

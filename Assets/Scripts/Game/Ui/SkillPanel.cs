@@ -295,10 +295,11 @@ namespace Forge.Game.Ui
             }
         }
 
-        public static Button BackButtonAt(RectTransform bar, float x, float yTop)
+        public static Button BackButtonAt(RectTransform bar, float x, float yTop, UnityEngine.Events.UnityAction onBack = null)
         {
             float w = PetSkillStyle.Px("back_w"), h = PetSkillStyle.Px("back_h");
-            Button b = PetSkillKit.PaperButton(bar, "back-btn", PetSkillKit.BtnKind.Danger, string.Empty, null, false, () => { if (UiRoot.Instance != null) UiRoot.Instance.TabBar.Switch(null); }, PetSkillStyle.Px("back_r_w"));
+            if (onBack == null) onBack = () => { if (UiRoot.Instance != null) UiRoot.Instance.TabBar.Switch(null); };
+            Button b = PetSkillKit.PaperButton(bar, "back-btn", PetSkillKit.BtnKind.Danger, string.Empty, null, false, onBack, PetSkillStyle.Px("back_r_w"));
             RectTransform br = b.GetComponent<RectTransform>();
             UiKit.Place(br, x, yTop, w, h);
             Image ico = UiKit.Icon(br, "ico", "tri_left");
