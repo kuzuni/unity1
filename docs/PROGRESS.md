@@ -15,7 +15,7 @@
 
 | ID | 작업 | 상태 | SID / 워커 | 범위 | 핵심 |
 |---|---|---|---|---|---|
-| T1 | 프로젝트 뼈대: 3D URP 렌더러 · 9:16 카메라 · Bootstrap · asmdef · dotnet 하니스 초록 | 🔄 진행 | sess-1754-10989 / 워커 D | `Assets/Settings` · `Assets/Scenes` · `Assets/Scripts/Game/Bootstrap.cs` · `Assets/Tests` · `ProjectSettings/ProjectSettings.asset` · `tools/dotnet` | 2D 템플릿 → 3D Forward 렌더러 |
+| T1 | 프로젝트 뼈대: 3D URP 렌더러 · 9:16 카메라 · Bootstrap · asmdef · dotnet 하니스 초록 | ✅ 완료 | sess-1754-10989 / 워커 D | `Assets/Settings`(UniversalRenderer.asset · ForgeVolume.asset · UniversalRP.asset) · `Assets/Scenes/SampleScene.unity` · `Assets/Scripts/Game/Bootstrap.cs`(GameInfo.cs 삭제) · `Assets/Scripts/Core/Viewport.cs` · `Assets/Tests`(EditMode/ViewportTests.cs · PlayMode/Forge.Tests.PlayMode.asmdef · PlayMode/BootstrapTests.cs) · `ProjectSettings/ProjectSettings.asset`(productName · 세로 고정) · `tools/dotnet`(변경 0줄) | 2D 템플릿 → 3D Forward 렌더러 · 원근 FOV 62 · 9:16 레터박스 · 테마 0 안개·광원 · ACES · EditMode 4 + PlayMode 1 |
 | T2 | 정본 데이터 추출기 `tools/export_data.js` → `data/*.json` + `check_data_sync.sh` | ⬜ 대기 | — | `tools/export_data.js` · `tools/check_data_sync.sh` · `Assets/StreamingAssets/data/` | 펫 25 · 탈것 29 · 적 7 · 밸런스 표 |
 | T3 | Core `MiniJson` · `GameData` · `Rng` · `BigNum` | ⬜ 대기 | — | `Assets/Scripts/Core/Data/` · `Core/BigNum.cs` · `Assets/Tests/EditMode/DataTests.cs` | T2 뒤 |
 | T4 | `VoxelMob` 박스 모델 조립기 (Voxel.build + Mobs.build 규약) | ⬜ 대기 | — | `Assets/Scripts/Core/Voxel/` · `Assets/Scripts/Game/Voxel/` · `Assets/Tests/EditMode/VoxelTests.cs` | T2·T3 뒤 |
@@ -44,6 +44,16 @@
 | T27 | PlayMode 스모크·플레이 봇·촬영 | ⬜ 대기 | — | `Assets/Tests/PlayMode/PlaythroughTests.cs` · `UiShotsTests.cs` · `PlayLog.cs` | T19~T22 뒤 |
 | T28 | 원작 대조 회차 (`docs/ref-layout.md` · `tools/ui_score.py`) | ⬜ 대기 | — | `docs/ref-layout.md` · `tools/ui_score.py` | T27 뒤 |
 
+### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
+
+- **렌더러**: `Assets/Settings/UniversalRenderer.asset`(UniversalRendererData · Forward · postProcessData 연결)을 새로 만들고 `UniversalRP.asset` 의 `m_RendererDataList[0]` 을 그것으로 바꿨다(`Renderer2D.asset` 은 남김 — 주인 에셋). 소프트 그림자 켬 · 그림자 거리 50→30(원작 `sun.shadow.camera.far`).
+- **씬** `SampleScene.unity`(원작 `scene3d.js` init + `setTheme(CHAPTER_THEMES[0])` 낮 갈래를 그대로): Main Camera 원근 FOV 62 · near 0.1 · far 100 · 위치 (0.15, 3.7, −8.2) 에서 (0.15, 2.2, 0) 을 본다(`CAM_POS`·`CAM_LOOK_Y`·`CAM_FOV` · z 부호 반전 = 결정 4) · Sun = `SUN_DAY` 방향 · 색 0xffedc4→하늘 15% lerp(#ede8c9) · 1.0 · 소프트 그림자 · Rim = 태양 반대편 (−x·1.014, 6, −z·1.014) · 0xcfe4ff · 0.18 · 그림자 없음 · 안개 선형 13~35 · 안개색 = fog→sky 30% lerp + HSL(0, +0.09, +0.01) = **#ade2c8**(three r128 Color 로 계산) · 카메라 배경 = 같은 색(`SIMPLE_BG`) · 앰비언트 트라이라이트 = hemi(sky 0x87ceeb · ground = gC(#4a662c)−0.1L = #30421d) × 0.15 · `ForgeVolume.asset`(ACES 톤맵 · 노출 1.02 = +0.0286 EV) 을 Bootstrap 의 전역 Volume 이 문다 · «Letterbox Backdrop» 카메라(depth −2 · cullingMask 0 · #161b22 = 원작 `#app` 바깥색)가 레터박스 밖을 채운다 · Global Light 2D 제거 · EventSystem(Input System UI) 유지.
+- **코드**: Core `Viewport.Letterbox(w, h, aspect)`(순수 · 엔진 참조 0) · Game `Bootstrap.cs`(Camera.rect 로 9:16 · 화면 크기 바뀌면 재적용 · 모바일은 세로 고정 · `GameInfo.cs` 자리표 삭제) · EditMode `ViewportTests` 4개(dotnet 도 돈다) · PlayMode asmdef 신설 + `BootstrapTests` 1개(SampleScene 로드 → Bootstrap 존재 · 원근 · FOV 62 · near/far · 9:16 · 선형 안개).
+- **ProjectSettings**: productName «포지 클론»(원작 `<title>`) · 세로 고정(`defaultScreenOrientation` 0 · 가로/거꾸로 회전 끔) · 기본 해상도 1080×1920 · Web 540×960.
+- **게이트**: 컨테이너에 `dotnet` 없음 → `dotnet build/test` 두 줄은 CI `dotnet` 잡으로 확인(런 번호는 lock 반납 커밋에 적는다). `gen_meta --check` · `check_docs_intact` · `check_decisions` · `check_task_rows` · `task_state --check` · `check_claim_scope` 초록. 유니티 잡은 시크릿이 없어 안 돈다.
+- **주인이 확인할 것**: 에디터에서 Play → 세로 9:16 빈 씬(연둣빛 안개색 #ade2c8 배경 · 가로 창이면 좌우 검은 필러박스) · 콘솔 빨강 0. URP·Volume 에셋은 에디터 없이 YAML 로 썼다(결정 5) — 에디터가 처음 열 때 재직렬화한 diff 는 그대로 커밋해도 된다.
+- **플레이 콘솔 에러 0 확인 수단**: PlayMode `BootstrapTests.부팅_씬이_세로_9대16_원근_카메라로_선다`(빨간 로그가 나면 러너가 실패시킨다). CI 유니티 잡이 시크릿 없이 안 돌므로 **주인 에디터 확인 요청**.
+
 ## 주인 결정
 
 - **(2026-09-12 · 착수)** 유니티 이식은 `kuzuni/unity1` 에서 · 원작 `kuzuni/wwwww` 는 그대로 둔다(웹판과 유니티판을 한 레포에 섞으면 헷갈린다는 주인 판단). 운영은 aaawunity 방식(루틴 워커 · 여러 계정).
@@ -53,3 +63,7 @@
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
 
 2. **계정 5 합류(2026-09-12 · 착수 세션 · 계정 5 `rudwpwjrwkdb2007@gmail.com`)** — 주인이 «이건 계정 5» 라 해서 §6 ⓪ 식별표가 네 줄뿐이던 것을 **다섯 줄로 늘리고** 워커 글자를 Q 다음인 **R·S·T·U**, 슬롯을 기존 분 나열의 5분 빈 칸 한가운데인 **:14 :29 :44 :59** 로 잡았다(어느 슬롯과도 2분 이상 뜬다 · 계정 2~4 줄은 다른 세션이 동시에 채우고 있어 건드리지 않았다). §4 프롬프트의 `<이 계정의 이메일>` 자리는 이 계정 이메일로 채웠고(placeholder 는 X 와 같은 채움 자리다) 머리줄의 워커·분 나열을 «A~P·R~U · 다섯 계정» 으로 고쳤다 — 가드 프로토콜 1~7 은 글자 그대로다. 워커 세션은 `outcome_branch: main` 으로 만들었다(안 주면 하니스가 세션별 `claude/*` 브랜치를 물려 워커가 main 대신 제 브랜치로 밀고, lock 직렬화가 통째로 무너진다). 되돌리려면 이 커밋과 루틴 `trig_019JzVy5…`·`trig_01Ah2XwY…`·`trig_018q9B6x…`·`trig_01DrEPHt…` 삭제.
+
+3. **9:16 레터박스(2026-09-12 · T1 · 워커 D)** — 원작 CSS 는 `#app{100vw×100vh}` 로 폰 화면비를 그대로 쓰지만 ROUTINE T1·T18 이 «세로 9:16 · 레터박스 캔버스» 를 지정한다 → 지시서를 따라 `Camera.rect` 로 레터박스(Core `Viewport.Letterbox` · Game `Bootstrap.Apply`) · 바깥은 «Letterbox Backdrop» 카메라가 #161b22 로 채운다. 되돌리려면 `Bootstrap.Apply` 와 씬의 Backdrop 카메라.
+4. **좌표계·색 매핑(2026-09-12 · T1 · 워커 D)** — three(오른손 · 카메라가 +z 에서 −z 를 봄) → 유니티(왼손)는 **z 부호만 뒤집는다**(x·y 그대로 · 이후 몹 좌표 JSON(T2·T4)도 같은 규칙으로). three r128 은 색 관리 없이 hex 를 그대로 쓰므로 hex 를 유니티 sRGB 색 칸에 그대로 적고 광량은 `Light.intensity` 로(hemi 0.15 는 앰비언트 색에 곱했다). 되돌리려면 `SampleScene.unity` 의 RenderSettings·Light·Transform 칸.
+5. **URP·Volume 에셋을 YAML 로 직접 씀(2026-09-12 · T1 · 워커 D)** — 에디터가 없어 UniversalRendererData(`de640fe3…`)·PostProcessData(`41439944…`)·Volume(`172515602…`)·Tonemapping·ColorAdjustments 의 스크립트 GUID 를 Unity-Technologies/Graphics 저장소의 `.meta` 로 확인해 손으로 만들었다(`m_AssetVersion` 2 · 필드는 17.3 소스 기준). 에디터가 처음 열 때 필드를 보태 재직렬화하면 그 diff 는 받아들인다. 되돌리려면 `UniversalRP.asset` 의 `m_RendererDataList[0]` 을 `424799608f…`(Renderer2D)로.

@@ -52,12 +52,12 @@
 > 정본 경로는 전부 `.wwwww-src/web/` 기준. «범위» = 이 작업이 만지는 폴더/파일(PROGRESS 표의 «범위» 칸과 같아야 한다 · 여기 없는 파일을 열게 되면 표를 먼저 고친다).
 > 이식 순서의 뼈대: **기반(T1~T5) → 전투 세계(T6~T12) → 시스템(T13~T17·T23~T25) → UI(T18~T22) → 배포·검증(T26~T28)**. 앞 번호가 열려 있어도 «뒤 순서» 가 만족되면 잡을 수 있다.
 
-### T1 — 프로젝트 뼈대: 3D URP 렌더러 · 9:16 세로 카메라 · Bootstrap 씬 · asmdef 셋 · dotnet 하니스 초록 (기반 · 뒤 순서 없음)
+### T1 ✅ — 프로젝트 뼈대: 3D URP 렌더러 · 9:16 세로 카메라 · Bootstrap 씬 · asmdef 셋 · dotnet 하니스 초록 (기반 · 뒤 순서 없음)
 - 지금 프로젝트는 2D 템플릿(`Assets/Settings/Renderer2D.asset` · `UniversalRP.asset` 이 2D 렌더러를 가리킨다)이다. 원작은 **3D**(Three.js · 반구광 + 방향광 · ACES 톤맵 · 플랫 셰이딩)라 **Universal Renderer(Forward) 에셋을 새로 만들어** `UniversalRP.asset` 의 `m_RendererDataList[0]` 을 그것으로 바꾼다(2D 렌더러 에셋은 지우지 않는다 — 주인 에셋).
 - `Assets/Scenes/SampleScene.unity` 에 `Bootstrap` 하나(빈 GameObject + `Bootstrap.cs`) · 카메라 세로 9:16(원작 `scene3d.js` 의 카메라 FOV·거리·`camLock` 값을 그대로) · 배경색·안개·광원 = 원작 `setTheme` 의 0번 테마.
 - `Assets/Scripts/Core`(`noEngineReferences`) · `Game` · `Tests/EditMode`·`PlayMode` asmdef — 이미 자리표가 있다(`Forge.Core`·`Forge.Game`·`Forge.Tests.EditMode`). PlayMode asmdef 를 더한다.
 - 판정: CI `dotnet` 잡 초록 + (시크릿이 있으면) 유니티 잡이 테스트를 **실제로** 돌린 것(0개 아님) + PROGRESS 행 + «주인이 확인할 것: 에디터에서 Play → 빈 세로 씬 · 콘솔 빨강 0».
-- 범위: `Assets/Settings` · `Assets/Scenes` · `Assets/Scripts/Game/Bootstrap.cs` · `Assets/Tests` · `ProjectSettings/ProjectSettings.asset`(productName · 세로 고정) · `tools/dotnet`.
+- 범위: `Assets/Settings` · `Assets/Scenes` · `Assets/Scripts/Game/Bootstrap.cs`(GameInfo.cs 자리표 삭제) · `Assets/Scripts/Core/Viewport.cs`(레터박스 순수 계산) · `Assets/Tests`(EditMode/ViewportTests.cs · PlayMode/Forge.Tests.PlayMode.asmdef · PlayMode/BootstrapTests.cs) · `ProjectSettings/ProjectSettings.asset`(productName · 세로 고정) · `tools/dotnet`.
 
 ### T2 — 정본 데이터 추출기: 원작 JS 표 → `Assets/StreamingAssets/data/*.json` + 동기화 검사 (기반 · 뒤 순서 없음)
 - 정본: `web/js/balance-data.js`(대장간 확률·비용·시간 · 펫 알 드랍·부화 · 소환 확률 · 오프라인) · `gamedata.js`(시대·등급·장비명·스킬·펫 정의) · `mobdata.js`+`mobs-pets.js`·`mobs-mounts.js`·`mobs-enemies.js`·`mobs-props.js`·`mobs-skillfx.js`(조형 표) · `data/raw/*`.
