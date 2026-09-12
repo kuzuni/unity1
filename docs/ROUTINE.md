@@ -413,7 +413,7 @@ node tools/export_data.js --self-test                                         # 
 | 장비 8부위 · 페이퍼돌(`prochar.js`·`ui.js` 장비 · `scene3d.js` makeWeapon/makeHelmet/dressMcRig) | 등급·서브스탯·판매가·외형 | T15(규칙·표값) · T37(3D 외형 캡처) · T19 | ✅ (T15 · T37 · T19) |
 | `js/pets.js` | 알·부화·합성·출전 규칙 · 출전 스탯 기여 | T16 · T20 · T10(출전 조형) · T43(스탯 접착) | T16 ✅ · T10 ✅ · T20 🔄 · T43 ⬜ |
 | `js/skills.js` | 소환·18종·3슬롯(정본 `MAX_ACTIVE`) | T17 · T20 | T17 ✅ · T20 🔄 |
-| `js/mounts.js` | 탈것 규칙 · 탑승 | T40(Core 규칙 · 결정 72) · T11(탑승 3D) · T20(탈것 화면) | T40 🔄 · T11 ⬜ · T20 🔄 |
+| `js/mounts.js` | 탈것 규칙 · 탑승 | T40(Core 규칙 · 결정 72) · T11(탑승 3D) · T20(탈것 화면) | T40 ✅ · T11 ⬜ · T20 🔄 |
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
