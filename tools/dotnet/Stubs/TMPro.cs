@@ -110,5 +110,11 @@ namespace TMPro
         public class OnChangeEvent : UnityEngine.Events.UnityEvent<string> { }
         public OnChangeEvent onValueChanged { get; } = new OnChangeEvent();
         public void ActivateInputField() { }
+        // T22 — 채팅 입력칸(원작 #chat-input · Enter 로 보냄). 진짜 TMP_InputField 의 공개 서명: SubmitEvent onSubmit/onEndEdit(UnityEvent<string>) · textViewport(RectTransform) · DeactivateInputField()
+        public class SubmitEvent : UnityEngine.Events.UnityEvent<string> { }
+        public SubmitEvent onSubmit { get; set; } = new SubmitEvent();
+        public SubmitEvent onEndEdit { get; set; } = new SubmitEvent();
+        public RectTransform textViewport { get; set; }
+        public void DeactivateInputField() { }
     }
 }

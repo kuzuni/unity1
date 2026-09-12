@@ -132,10 +132,20 @@ namespace Forge.Game.Ui
             Switch(ActiveTab == key ? null : key);
         }
 
+        /// <summary>popup 탭이 연 팝업이 살아 있는 동안 그 탭을 빨간 ✕ 로(원작 MODAL_TAB · refreshTabX). null 이면 지운다 — T22 가 팝업을 열고 닫을 때 부른다.</summary>
+        public void SetPopupX(string key)
+        {
+            popupX = key;
+            RefreshTabX();
+        }
+
+        private string popupX;
+
         /// <summary>시트 탭 전환(원작 switchTab). null 이면 홈.</summary>
         public void Switch(string tab)
         {
             ActiveTab = tab;
+            popupX = null;
             foreach (KeyValuePair<string, RectTransform> kv in panels) kv.Value.gameObject.SetActive(kv.Key == tab);
             RefreshTabX();
             Action<string> h = Switched;
@@ -147,7 +157,7 @@ namespace Forge.Game.Ui
 
         private void RefreshTabX()
         {
-            XTab = ActiveTab;
+            XTab = ActiveTab ?? popupX;
             foreach (KeyValuePair<string, Tab> kv in tabs)
             {
                 bool isX = XTab == kv.Key;

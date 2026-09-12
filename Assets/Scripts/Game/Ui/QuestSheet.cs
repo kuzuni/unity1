@@ -1,0 +1,131 @@
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Forge.Core.Meta;
+
+namespace Forge.Game.Ui
+{
+    /// <summary>
+    /// 반복 퀘스트 시트(ROUTINE T22 · 원작 ui.js openQuests/onClaimQuest/onClaimAllQuests · 주인 지시 2026-08-18 quest-tab · quest-claim-all).
+    /// 흰 전체화면 + 제목 «퀘스트» + 부제 + [일괄수령] + 세로 목록(아이콘 · 이름+요구치 · 진행 바 · 보상 · [수령]). 날짜·일차 표기는 넣지 않는다(사양).
+    /// </summary>
+    public static class QuestSheet
+    {
+        public const string Name = "quest";
+
+        public static void Open(MetaHost h)
+        {
+            h.Popups.Show(Name, "quest");
+            Render(h);
+        }
+
+        public static void Close(MetaHost h) { h.Popups.Hide(Name); }
+
+        public static void Render(MetaHost h)
+        {
+            Popup p = h.Popups.Find(Name);
+            if (p == null) return;
+            RectTransform root = PopupLayer.Clear(p);
+            RectTransform sheet = PopupKit.Sheet(root, "sheet", "pp_paper");
+            float rem = PopupKit.Rem;
+            float w = UiKit.RefW;
+
+            RectTransform box = UiKit.Box(sheet, "scroll");
+            UiKit.Band(box, 0f, UiKit.L("tabbar_top"));
+            RectTransform content = PopupKit.ScrollList(box, "list", UiKit.H("quest_row_gap"), 0f, UiKit.H("sheet_pad_top"));
+
+            TextMeshProUGUI title = PopupKit.Label(content, "title", TextKind.Title, "퀘스트", "stage_ink");
+            PopupKit.Ring(title, "pp_line", 0.2f);
+            PopupKit.Label(content, "sub", TextKind.Sub, "모든 퀘스트는 수령해도 같은 내용으로 반복됩니다", "quest_sub", TextAlignmentOptions.Center, true);
+            PopupKit.Spacer(content, rem * 0.45f);
+
+            List<Quest> list = h.Quests.List(h.QuestState);
+            int ready = h.Quests.ReadyCount(h.QuestState);
+            float rowW = UiKit.L("quest_row_w") * w;
+            float btnW = UiKit.H("quest_btn_w") * 1.6f, btnH = UiKit.H("quest_btn_h") * 1.3f;
+
+            RectTransform allBar = PopupKit.Item(content, "allbar", -1f, btnH);
+            Button all = PopupKit.Btn(allBar, "claim-all", "일괄수령" + (ready > 0 ? " (" + ready + ")" : ""), "pp_green", "pp_green_dk", () => OnClaimAll(h), btnW * 1.6f, btnH, "stage_ink", TextKind.Sub, ready == 0);
+            UiKit.Anchor(all.GetComponent<RectTransform>(), new Vector2(0.5f, 0.5f), new Vector2(1f, 0.5f), new Vector2(rowW * 0.5f, 0f), btnW * 1.6f, btnH);
+
+            if (list.Count == 0) PopupKit.Label(content, "empty", TextKind.Body, "퀘스트를 불러오지 못했습니다", "pp_muted");
+
+            float icon = UiKit.H("quest_icon");
+            float barH = UiKit.H("quest_bar_h") * 1.6f;
+            float rowH = rem * 0.55f * 2f + PopupKit.FontSize(TextKind.Sub) * 1.3f + barH + rem * 0.28f;
+            for (int i = 0; i < list.Count; i++)
+            {
+                Quest q = list[i];
+                QuestDef def = h.Quests.Def(q.Id);
+                bool done = h.Quests.IsDone(q);
+                double pct = Mathf.Clamp01((float)(q.Prog / q.Need));
+                string unit = def.Unit == null ? "회" : def.Unit;
+
+                RectTransform slot = PopupKit.Item(content, "q-" + q.Id, -1f, rowH);
+                RectTransform row = UiKit.Box(slot, "row");
+                UiKit.Anchor(row, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, rowW, rowH);
+                PopupKit.Outlined(row, "face", done ? "quest_done_bg" : "pp_paper", rem * 0.8f, PopupKit.Line3, done ? "pp_green" : "pp_line");
+
+                float padX = rem * 0.7f, padY = rem * 0.55f;
+                RectTransform icoBox = UiKit.Box(row, "icon");
+                UiKit.Place(icoBox, padX, (rowH - icon) * 0.5f, icon, icon);
+                PopupKit.IconOr(icoBox, "img", def.Icon);
+
+                float bodyX = padX + icon + rem * 0.6f;
+                float rightW = btnW + rem * 0.4f;
+                float bodyW = rowW - bodyX - rightW - padX;
+                TextMeshProUGUI name = UiKit.Text(row, "name", TextKind.Sub, def.Text + " " + PopupKit.Fmt(q.Need) + unit, "pp_ink", TextAlignmentOptions.Left);
+                name.fontStyle = FontStyles.Bold;
+                UiKit.Place(name.rectTransform, bodyX, padY, bodyW, PopupKit.FontSize(TextKind.Sub) * 1.3f);
+
+                RectTransform bar = UiKit.Box(row, "bar");
+                UiKit.Place(bar, bodyX, padY + PopupKit.FontSize(TextKind.Sub) * 1.3f + rem * 0.28f, bodyW, barH);
+                UiKit.Rounded(bar, "bg", "quest_bar_bg", barH * 0.5f);
+                Image fill = UiKit.Rounded(bar, "fill", done ? "quest_bar_done" : "quest_bar", barH * 0.5f);
+                fill.rectTransform.anchorMin = Vector2.zero;
+                fill.rectTransform.anchorMax = new Vector2((float)pct, 1f);
+                fill.rectTransform.offsetMin = fill.rectTransform.offsetMax = Vector2.zero;
+                TextMeshProUGUI progT = UiKit.Text(bar, "prog", TextKind.Sub, PopupKit.Fmt(System.Math.Min(q.Prog, q.Need)) + "/" + PopupKit.Fmt(q.Need), "pp_ink");
+                progT.fontStyle = FontStyles.Bold;
+
+                RectTransform right = UiKit.Box(row, "right");
+                UiKit.Place(right, rowW - padX - btnW, 0f, btnW, rowH);
+                RectTransform rw = UiKit.Box(right, "reward");
+                UiKit.Place(rw, 0f, padY * 0.6f, btnW, icon * 0.6f);
+                Image rwIco = PopupKit.IconOr(rw, "ico", ShopSheet.CurIcon(q.Rw.Cur));
+                UiKit.Place(rwIco.rectTransform, 0f, 0f, icon * 0.6f, icon * 0.6f);
+                TextMeshProUGUI rwT = UiKit.Text(rw, "amt", TextKind.Sub, PopupKit.Fmt(q.Rw.Amt), "pp_ink", TextAlignmentOptions.Left);
+                rwT.fontStyle = FontStyles.Bold;
+                rwT.rectTransform.offsetMin = new Vector2(icon * 0.65f, 0f);
+                int idx = i;
+                Button claim = PopupKit.Btn(right, "claim", "수령", done ? "pp_green" : "pp_gray", done ? "pp_green_dk" : "pp_gray_dk", () => OnClaim(h, idx), btnW, btnH, "stage_ink", TextKind.Sub, !done);
+                UiKit.Place(claim.GetComponent<RectTransform>(), 0f, rowH - padY * 0.6f - btnH, btnW, btnH);
+            }
+            PopupKit.Spacer(content, UiKit.RefH - PopupKit.TabTop + rem * 0.9f);
+
+            PopupKit.SheetBack(sheet, () => Close(h));
+        }
+
+        private static void OnClaim(MetaHost h, int i)
+        {
+            QuestClaim got = h.Quests.Claim(h.QuestState, h.Wallet, i);
+            if (got == null) return;
+            h.Touch();
+        }
+
+        private static void OnClaimAll(MetaHost h)
+        {
+            QuestClaimAll r = h.Quests.ClaimAll(h.QuestState, h.Wallet);
+            if (r.N == 0) { h.Toast("📜 수령할 수 있는 퀘스트가 없습니다"); return; }
+            var parts = new List<string>();
+            for (int i = 0; i < r.Gains.Count; i++)
+            {
+                string cur = r.Gains.KeyAt(i);
+                parts.Add(h.Meta.Quests.CurKr.Get(cur, cur) + " +" + PopupKit.Fmt(r.Gains.ValueAt(i)));
+            }
+            h.Touch();
+            h.Toast("📜 " + r.N + "개 수령! " + string.Join(" · ", parts.ToArray()));
+        }
+    }
+}

@@ -35,3 +35,43 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 0fbc8cc851081b34d95122218868977b, type: 3}
   - key: xmark
     sprite: {fileID: 21300000, guid: 70f78e062098c4496b852abefff63acf, type: 3}
+  - key: hammer
+    sprite: {fileID: 21300000, guid: 0968a0d7a9f22aa43ad8f2b408c48fd6, type: 3}
+  - key: ticket
+    sprite: {fileID: 21300000, guid: af02429ef7a5a354394b1bf1e86338d1, type: 3}
+  - key: egg
+    sprite: {fileID: 21300000, guid: d354704121c2a92498712bd8af2ca79e, type: 3}
+  - key: potion
+    sprite: {fileID: 21300000, guid: 0e2f4307e2b46440d8b1018c7ed04849, type: 3}
+  - key: winder
+    sprite: {fileID: 21300000, guid: 3bd72ca3c2cd14673a655c6511fc9f12, type: 3}
+  - key: gift
+    sprite: {fileID: 21300000, guid: 7a98ff7d7ad404cedae9f5276e123d12, type: 3}
+  - key: crown
+    sprite: {fileID: 21300000, guid: f906e57fb43bb4c48b8705c36ff4bafa, type: 3}
+  - key: ranking
+    sprite: {fileID: 21300000, guid: f51a90149e1314fec94565a904e11a20, type: 3}
+  - key: chest
+    sprite: {fileID: 21300000, guid: dc95423dead15bd44852d1d6e14db7ca, type: 3}
+  - key: settings
+    sprite: {fileID: 21300000, guid: c9103d07bbdc18f4a86dba5f3f77b7bb, type: 3}
+  - key: badge
+    sprite: {fileID: 21300000, guid: 7f175768cbda8ef45a52bbc40a264df2, type: 3}
+  - key: clanbadge
+    sprite: {fileID: 21300000, guid: 8c35201ab90e548489bbcec22209ceaf, type: 3}
+  - key: info
+    sprite: {fileID: 21300000, guid: 6be115246fe9b40b8b37ad9f4e2be66a, type: 3}
+  - key: shop_gems1
+    sprite: {fileID: 21300000, guid: d26dfb6e166ea49938deb2366511908d, type: 3}
+  - key: shop_gems2
+    sprite: {fileID: 21300000, guid: c1ada327db13247518d5a0bda29ed999, type: 3}
+  - key: shop_gems3
+    sprite: {fileID: 21300000, guid: a4eba34d54cfb432dae7ec118f7d6d2e, type: 3}
+  - key: shop_gems4
+    sprite: {fileID: 21300000, guid: 9cbb2b1c3f0254c4782ee97f093b8a3d, type: 3}
+  - key: shop_tech
+    sprite: {fileID: 21300000, guid: d74df393288c94e0e8791c98c247f31e, type: 3}
+  - key: shop_pet
+    sprite: {fileID: 21300000, guid: d354704121c2a92498712bd8af2ca79e, type: 3}
+  - key: shop_mount
+    sprite: {fileID: 21300000, guid: c1e3f83fb7eb942ee8baa3d7c3723eb1, type: 3}

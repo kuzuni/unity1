@@ -1,0 +1,305 @@
+using System;
+using System.Collections;
+using System.IO;
+using UnityEngine;
+using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
+using Forge.Core;
+using Forge.Core.Data;
+using Forge.Core.Meta;
+using Forge.Core.Save;
+
+namespace Forge.Game.Ui
+{
+    /// <summary>
+    /// T25 Core(상점·패스·퀘스트·리그·채팅)를 세이브(T13)·HUD(T18)·탭바에 잇는 접착(ROUTINE T22 · 원작 main.js 의 부팅·1초 틱 + ui.js 의 탭 라우팅).
+    /// 규칙은 전부 Core 가 계산한다 — 여기는 상태를 세이브 트리와 주고받고(<see cref="MetaSave"/>) 화면을 열고 닫는다.
+    /// 부팅: <see cref="SaveIo"/> 가 준비되면 `meta.json` 을 읽어 표를 세우고, 세이브의 `shop`·`passClaimed`·`quests`·`league`·`chat` 칸을 상태로 읽는다.
+    /// 다른 시스템(T14·T16·T17·T23·T24)은 행동 지점에서 <see cref="Bump"/> 를 부른다(원작 `Quests.bump`). 전투력은 T8 이 <see cref="CombatPower"/> 를 꽂는다.
+    /// </summary>
+    [DefaultExecutionOrder(-800)]
+    public sealed class MetaHost : MonoBehaviour
+    {
+        public static MetaHost Instance { get; private set; }
+        public static bool Ready { get; private set; }
+        /// <summary>표·상태가 준비된 뒤 한 번.</summary>
+        public static event Action OnReady;
+
+        public MetaTable Meta { get; private set; }
+        public Shop Shop { get; private set; }
+        public Pass Pass { get; private set; }
+        public Quests Quests { get; private set; }
+        public League League { get; private set; }
+        public Chat Chat { get; private set; }
+
+        public ShopState ShopState { get; private set; }
+        public PassState PassState { get; private set; }
+        public QuestState QuestState { get; private set; }
+        public LeagueState LeagueState { get; private set; }
+        public ChatState ChatState { get; private set; }
+
+        public IRewardWallet Wallet { get; private set; }
+        public Rng Rng { get; private set; }
+
+        /// <summary>원작 `Combat.combatPower()` — T8 전투 씬이 꽂는다. 그 전엔 0.</summary>
+        public Func<Big> CombatPower = () => Big.Zero;
+        /// <summary>원작 `!!Forge.upgradeInfo()` — T19 대장간 UI 가 꽂는다. null = «모르면 막지 않는다».</summary>
+        public Func<bool> ForgeUpgradable;
+        /// <summary>원작 `SFX.musicEnabled`·`SFX.toggleMusic()` 자리 — T30 이 꽂는다. 그 전엔 세이브 `musicOn` 칸만 뒤집는다.</summary>
+        public Func<bool> MusicEnabled;
+        public Action ToggleMusic;
+        public Action SfxResumeAndCraft;
+
+        /// <summary>상태·재화가 바뀌었다 — 열린 화면이 다시 그린다.</summary>
+        public event Action Changed;
+
+        public SaveState S { get { return SaveIo.State; } }
+        public double NowMs { get { return SaveIo.NowMs(); } }
+        public string TodayKey { get { return DailyReset.ResetDateKey(DateTime.Now); } }
+        public Big MyCp { get { Func<Big> f = CombatPower; return f != null ? f() : Big.Zero; } }
+
+        private float tickAcc;
+        private Screens screens;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Hook()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (Instance != null) return;
+            foreach (Bootstrap b in Resources.FindObjectsOfTypeAll<Bootstrap>())
+            {
+                if (!b.gameObject.scene.isLoaded) continue;
+                Create(b.transform);
+                return;
+            }
+        }
+
+        public static MetaHost Create(Transform parent)
+        {
+            if (Instance != null) return Instance;
+            GameObject go = new GameObject("MetaHost");
+            go.transform.SetParent(parent, false);
+            return go.AddComponent<MetaHost>();
+        }
+
+        private void Awake()
+        {
+            Instance = this;
+            Ready = false;
+            StartCoroutine(Boot());
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this) { Instance = null; Ready = false; }
+        }
+
+        private IEnumerator Boot()
+        {
+            while (!SaveIo.Ready || UiRoot.Instance == null || SaveIo.State == null) yield return null;
+            string metaJson = null;
+            IEnumerator read = ReadStreaming(MetaTable.File, t => metaJson = t);
+            while (read.MoveNext()) yield return read.Current;
+            if (metaJson == null) { Debug.LogError("[MetaHost] StreamingAssets/data/" + MetaTable.File + " 를 못 읽었다 — 상점·패스·퀘스트·리그·채팅을 세우지 않는다"); yield break; }
+            Meta = MetaTable.Load(metaJson);
+            Wallet = new SaveStateWallet(S);
+            Rng = Rng.Mulberry((uint)(NowMs % uint.MaxValue));
+            Shop = new Shop(Meta.Shop);
+            Pass = new Pass(Meta.Pass, Meta.State);
+            Quests = new Quests(Meta.Quests, () => { Func<bool> f = ForgeUpgradable; return f == null || f(); });
+            League = new League(Meta.League, Meta.Avatars, Rng);
+            Chat = new Chat(Meta.Chat, Meta.Avatars, Rng);
+            ReadStates();
+            Chat.Ensure(ChatState, NowMs);
+            WriteStates();
+
+            screens = new Screens(this, UiRoot.Instance, PopupLayer.Create(UiRoot.Instance));
+            SyncHud();
+            Ready = true;
+            Action h = OnReady;
+            if (h != null) h();
+
+            // 원작 main.js boot: 1분 이상 누적된 오프라인 보상은 팝업으로
+            OfflineReward pending = SaveIo.Instance != null ? SaveIo.Instance.PendingOffline() : null;
+            if (pending != null && pending.Elapsed >= 60) OfflinePopup.Show(this, pending);
+        }
+
+        private static IEnumerator ReadStreaming(string name, Action<string> done)
+        {
+            string p = Path.Combine(Application.streamingAssetsPath, "data", name);
+            if (File.Exists(p)) { done(File.ReadAllText(p)); yield break; }
+            using (UnityWebRequest req = UnityWebRequest.Get(p))
+            {
+                yield return req.SendWebRequest();
+                if (req.result == UnityWebRequest.Result.Success) done(req.downloadHandler.text);
+                else { Debug.LogError("[MetaHost] " + p + ": " + req.error); done(null); }
+            }
+        }
+
+        // ---- 세이브 트리 ↔ 상태 ----
+
+        private void ReadStates()
+        {
+            JsonObject root = S.Root;
+            ShopState = MetaSave.ReadShop(root);
+            PassState = MetaSave.ReadPass(root);
+            QuestState = MetaSave.ReadQuests(root);
+            LeagueState = MetaSave.ReadLeague(root) ?? new LeagueState();
+            ChatState = MetaSave.ReadChat(root);
+        }
+
+        /// <summary>상태를 세이브 트리에 되쓴다 — 자동 저장(30초·백그라운드·종료)이 언제 돌아도 최신이게 매 변경마다 부른다.</summary>
+        public void WriteStates()
+        {
+            JsonObject root = S.Root;
+            MetaSave.WriteShop(root, ShopState);
+            MetaSave.WritePass(root, PassState);
+            MetaSave.WriteQuests(root, QuestState);
+            MetaSave.WriteLeague(root, LeagueState);
+            MetaSave.WriteChat(root, ChatState);
+        }
+
+        /// <summary>원작 `saveGame()` 자리 — 상태 되쓰기 + 파일 저장.</summary>
+        public void Save()
+        {
+            WriteStates();
+            if (SaveIo.Instance != null) SaveIo.Instance.Save();
+        }
+
+        /// <summary>무엇이 바뀐 뒤 — 되쓰기 · HUD · 열린 화면 갱신.</summary>
+        public void Touch(bool save = true)
+        {
+            if (save) Save(); else WriteStates();
+            SyncHud();
+            Action h = Changed;
+            if (h != null) h();
+        }
+
+        /// <summary>원작 renderTopBar — 닉네임·전투력·코인·젬.</summary>
+        public void SyncHud()
+        {
+            Hud hud = Hud.Instance;
+            if (hud == null || S == null) return;
+            hud.SetProfile(Nickname, PopupKit.Fmt(MyCp));
+            hud.SetCurrency(PopupKit.Fmt(S.Coins), PopupKit.Fmt(S.Gems));
+        }
+
+        // ---- 프로필 칸(원작 S.nickname · S.avatarEmoji · S.gender · S.settingsDummy) ----
+
+        public string Nickname { get { string n = S.Nickname; return string.IsNullOrEmpty(n) ? "용사" : n; } }
+        public string AvatarEmoji { get { string a = S.Str("avatarEmoji"); return string.IsNullOrEmpty(a) ? Meta.Avatars.DefaultAvatar : a; } }
+        public string Gender { get { string g = S.Str("gender"); return g == Chat.GenderFemale ? Chat.GenderFemale : Chat.GenderMale; } }
+
+        public int AvatarIndex(string emoji)
+        {
+            if (Meta == null || emoji == null) return -1;
+            return Array.IndexOf(Meta.Avatars.Pool, emoji);
+        }
+
+        public JsonObject SettingsDummy
+        {
+            get
+            {
+                JsonObject d = S.Obj("settingsDummy");
+                if (d == null)
+                {
+                    d = new JsonObject();
+                    d["vibration"] = true; d["chatShow"] = true; d["chatDark"] = false; d["clanChatPreview"] = true;
+                    S["settingsDummy"] = d;
+                }
+                return d;
+            }
+        }
+
+        // ---- 행동 훅 ----
+
+        /// <summary>원작 `Quests.bump(action, n)` — 각 시스템의 행동 지점에서 부른다.</summary>
+        public void Bump(string action, double n = 1)
+        {
+            if (!Ready) return;
+            if (Quests.Bump(QuestState, action, n)) Touch(false);
+        }
+
+        /// <summary>1초 틱(원작 main.js) — 봇 채팅 · HUD.</summary>
+        private void Update()
+        {
+            if (!Ready) return;
+            tickAcc += Time.unscaledDeltaTime;
+            if (tickAcc < 1f) return;
+            tickAcc = 0f;
+            if (Chat.Tick(ChatState, NowMs)) Touch(false);
+            SyncHud();
+            OfflinePopup.Tick(this);
+        }
+
+        // ---- 화면 열기 ----
+        public void OpenShop() { screens.OpenShop(); }
+        public void OpenQuests() { screens.OpenQuests(); }
+        public void OpenLeague() { screens.OpenLeague(); }
+        public void OpenPass() { screens.OpenPass(); }
+        public void OpenProfile() { screens.OpenProfile(); }
+        public void OpenPlayerInfo() { screens.OpenPlayerInfo(); }
+        public void OpenChat() { screens.OpenChat(); }
+        public void OpenDebug() { screens.OpenDebug(); }
+        public void OpenStub(string title, string desc) { PopupLayer.Instance.ShowStub(title, desc); }
+        public void Toast(string msg) { PopupLayer.Instance.Toast(msg); }
+        public PopupLayer Popups { get { return PopupLayer.Instance; } }
+
+        /// <summary>탭·HUD 버튼 라우팅(원작 onTabClick · #topbar onclick · #chat-preview onclick).</summary>
+        private sealed class Screens
+        {
+            private readonly MetaHost host;
+            private readonly UiRoot root;
+            private readonly PopupLayer popups;
+
+            public Screens(MetaHost host, UiRoot root, PopupLayer popups)
+            {
+                this.host = host;
+                this.root = root;
+                this.popups = popups;
+                root.TabBar.OpenRequested += OnTab;
+                root.TabBar.Switched += OnSwitched;
+                popups.TabXChanged += root.TabBar.SetPopupX;
+                root.Hud.ProfileButton.onClick.AddListener(OpenProfile);
+                root.Hud.ChatButton.onClick.AddListener(OpenChat);
+                host.Changed += Rerender;
+            }
+
+            private void OnTab(string key)
+            {
+                if (key == "shop") OpenShop();
+                else if (key == "quest") OpenQuests();
+                else if (key == "pvp") OpenLeague();
+            }
+
+            /// <summary>탭이 바뀌면(홈 포함) 열린 팝업을 전부 접는다(원작 closeAllTabSurfaces · closeOpened).</summary>
+            private void OnSwitched(string tab) { popups.HideAll(); }
+
+            private void Rerender()
+            {
+                if (popups.IsOpen(ShopSheet.Name)) ShopSheet.Render(host);
+                if (popups.IsOpen(QuestSheet.Name)) QuestSheet.Render(host);
+                if (popups.IsOpen(LeagueSheet.Name)) LeagueSheet.Render(host);
+                if (popups.IsOpen(PassPopup.Name)) PassPopup.Render(host);
+                if (popups.IsOpen(ProfilePopup.Name)) ProfilePopup.Render(host);
+                if (popups.IsOpen(PlayerInfoPopup.Name)) PlayerInfoPopup.Render(host);
+                if (popups.IsOpen(DebugPanel.Name)) DebugPanel.Render(host);
+                ChatScreen.OnChanged(host);
+            }
+
+            public void OpenShop() { ShopSheet.Open(host); }
+            public void OpenQuests() { QuestSheet.Open(host); }
+            public void OpenLeague() { LeagueSheet.Open(host); }
+            public void OpenPass() { PassPopup.Open(host); }
+            public void OpenProfile() { ProfilePopup.Open(host); }
+            public void OpenPlayerInfo() { PlayerInfoPopup.Open(host); }
+            public void OpenChat() { ChatScreen.Open(host); }
+            public void OpenDebug() { DebugPanel.Open(host); }
+        }
+    }
+}
