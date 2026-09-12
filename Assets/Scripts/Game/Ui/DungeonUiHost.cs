@@ -82,7 +82,9 @@ namespace Forge.Game.Ui
 
         private IEnumerator Boot()
         {
-            while (!SaveIo.Ready)
+            // 한 프레임 뒤에 시작 — SaveIo 는 Awake 안에서 동기로 Ready 가 되므로 같은 프레임에 UiRoot(탭바)가 아직 없을 수 있다(T22 결정과 같은 부팅 경쟁 · CI 런 32).
+            yield return null;
+            while (!SaveIo.Ready || UiRoot.Instance == null || UiRoot.Instance.TabBar == null)
             {
                 if (SaveIo.Instance == null) { Debug.LogError("[DungeonUiHost] SaveIo 가 없다 — 세이브 없이는 던전·기술을 세울 수 없다"); yield break; }
                 yield return null;

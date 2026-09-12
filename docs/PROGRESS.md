@@ -10,6 +10,8 @@
 
 - **(2026-09-12 19:55 UTC · 워커 D · 주인 대신 등재) CI 런 27·29 유니티 잡 빨강 = T22 `ShopUiTests` 3건 전부 `NullReferenceException`**(`ShopSheet.Open(MetaHost h)` ShopSheet.cs:21 · ShopUiTests.cs:60·116·143 — h 또는 h.Shop 이 null) · 그 밖 PlayMode 23·EditMode 418 은 전부 초록(`MobGalleryTests` 6/6 포함). T22 lock(워커 E · sess-1912-13164) 살아 있음 → 임자 몫 · 90분이 지나면 다음 워커가 잡는다.
 
+- **(2026-09-12 20:10 UTC · 워커 N · CI 런 32 유니티 잡)** `GroundTextures.ToTexture` → `LoadRawTextureData: not enough data provided` 예외가 **부팅마다**(World.Boot → BuildGround → AttachCobble) 터져 ShopUiTests 3 · UiSmokeTests 3 · WorldTests 2 가 «Unhandled log message» 로 빨갛다. `CobbleDecal` 이 돌려주는 바이트 길이 < `CobbleWidth×CobbleHeight×4`(1024×256×4) 로 보인다 — T34(워커 K · lock 19:36 살아 있음) 몫. T21 의 빨강 2(카탈로그 블록 복제 · 부팅 경쟁)는 이 줄을 적은 커밋에서 고쳤다.
+
 ### 검수 Q 보고
 - (비어 있음)
 
@@ -471,3 +473,5 @@
 80. **T38 값 계산은 Core · 범위 확장(2026-09-12 · T38 · 워커 P)** — 리프트 명도·틴트·강도(정본 `setTheme` 17817~17829 의 6줄 · 코드 상수 −0.38/−0.46/0.5/0.12/0.40/0.10/0.7)를 `Core/World/TerrainShade.cs` 에 두고 dotnet 으로 잰다(WorldRules 와 같은 «정본 코드 상수» 갈래 · T9 파일은 안 만졌다). 그래서 표 «범위» 칸에 `Core/World/TerrainShade.cs`·`Tests/EditMode/TerrainShadeTests.cs`·`Resources/Terrain.mat` 을 먼저 더했다. `tools/dotnet/Stubs/URP.cs` 는 새 C# API 를 안 써서 0줄. T9 지면 메시에 접선이 없는 것은 T9 파일 대신 셰이더 정점 단계에서 (1,0,0,1) 로 대신했다(평면 +y · u = +x) — 노멀맵 방향이 한 축 뒤집힐 수 있으나 범프 인상만 바뀐다(T28 대조에서 보면 그때 T9 가 `RecalculateTangents`). 되돌리려면 이 커밋.
 
 81. **T37 캡처 방식 다섯(2026-09-12 · T37 · 워커 T · sess-1944-8995)** — ⓐ 손 이식이 아니라 **정본 실행 캡처**(결정 54 의 지시대로): `scene3d.js` 전체를 vm 에 올려 가짜 this 로 조형 함수를 부른다 — 슬라이스보다 튼튼하다(내부 도우미 40여 개를 따로 안 잘라도 된다 · T9 가 먼저 쓴 길). ⓑ `Voxel.build` 를 가로채 **메시 대신 칸 목록**을 낸다 — 파일이 16.7MB → 3.1MB 로 줄고, 유니티는 T4 `VoxelGeometry`(정본 `Voxel.build` 이식)로 굽는다 → 정점 수 대조가 곧 T4 빌더 검증이다. 상자·룬 링도 인자만. ⓒ 등급이 지오메트리(젬·트림·오브)를 바꿔 «등급 = 재질만» 가정을 버리고 **지오메트리 변형을 서명으로 묶어**(`geoms[]` + `byRarity`) 담았다(club 6변형 · 전체 421). 승천 데코는 경계 상자에서 나와 변형마다 따로. ⓓ `makeArmorExtras` 는 정본이 박스 리그(`heroRig`)에서 안 부른다(레거시 몸통 갈래) → 캡처하지 않았다(지시서 제목에는 있었다 · «화면에 있는 것» 이 기준). ⓔ 무기 렌더러 재질: `Paperdoll.WeaponMeshProvider` 가 Mesh 만 넘기는 T15 훅을 안 고치고 `OnDressed` 에서 같은 메시를 든 렌더러에 `sharedMaterials` 를 얹는다(HeroRig 무수정). 재질은 T4 셰이더(Particles/Lit·Unlit) 그대로 — 가죽 텍스처 `map`·`envMapIntensity` 는 색으로 접는다(복셀 화풍 규약). 되돌리려면 이 커밋.
+
+82. **충돌 «둘 다 살리기» 가 JSON 머리까지 복제한다(2026-09-12 · T21 · 워커 N)** — `catalog.json` 의 충돌 구간이 `colors` 끝~`layout` 머리를 걸쳐 있어 양쪽을 다 남기니 `"layout": [` 가 두 번 생겼다. 파이썬 `json.loads` 는 뒤 키를 취해 게이트(`gen_ui_catalog --check`)는 초록이었지만 유니티 `JsonUtility` 는 앞 블록만 읽어 런타임에 내 키가 전부 없었다(CI 런 32 KeyNotFound). 고침: 최상위 키별로 항목을 한 블록에 병합(앞 키 우선 중복 제거). 규칙: **카탈로그 충돌은 항목 단위로 병합하고 `"colors": [`·`"layout": [` 가 한 번씩인지 grep 으로 본다**. 접착층은 한 프레임 뒤 + UiRoot 대기로 부팅(SaveIo 는 Awake 안에서 동기 Ready · T22 와 같은 경쟁). 되돌리려면 이 커밋.
