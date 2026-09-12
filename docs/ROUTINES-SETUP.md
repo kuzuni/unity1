@@ -59,6 +59,7 @@
 
 - `persist_session: true` — 실행마다 새 대화창을 만들지 않는다(주인 지시 · aaawunity 2026-09-07).
 - Q 루틴은 `allowed_tools` 에서 `Task` 를 빼도 된다(코드 수정 안 함).
+- ⚠ **cron 분 0 + `*/N` 시는 서버가 «생성 분» 으로 앵커한다** — `0 */2 * * *`(Q) 로 create 하면 `55 */2 * * *` 처럼 저장된다(2026-09-12 계정 3 실측). 짝수시 :00 을 그대로 쓰려면 시를 나열한다: `0 0,2,4,6,8,10,12,14,16,18,20,22 * * *`. 워커 A~P 는 분이 0 이 아니라 그대로 저장된다.
 - ⚠ **부분 업데이트(model 만) 금지** — `400 (environment_id 요구)`. 바꿀 땐 `job_config` **전체**(events 포함) 재전송.
 - 생성 방법 택1: (a) 그 계정에서 세션을 띄워 `create_trigger`(claude-code-remote MCP · `create_new_session_on_fire` 대신 위 틀의 `persist_session`) / RemoteTrigger 로 create, (b) claude.ai/code/routines UI 에서 수동, (c) `/schedule` 스킬.
 

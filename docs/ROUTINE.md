@@ -224,7 +224,7 @@ node tools/export_data.js --self-test                                         # 
 |---|---|---|---|---|---|
 | **계정 1** | `kimmoon2007@gmail.com` (표시명 «김문») | `b7a233c8-…` | `env_014bNYWJnnxgzqfDN9JPBD6p` | A · B · C · D | :05 :20 :35 :50 |
 | 계정 2 | (미정 — 붙일 때 적는다) | — | — | E · F · G · H | :12 :27 :42 :57 |
-| 계정 3 | (미정) | — | — | I · J · K · L · Q | :02 :17 :32 :47 · Q 짝수시 :00 |
+| **계정 3** | `rudwpwjrwkdb95@gmail.com` (표시명 «김문») | `7029fe80-2b87-422e-98e6-9d6aafaf5c7f` | `env_01XKJDdWmKFxSg4FuR8yethb` | I · J · K · L · Q | :02 :17 :32 :47 · Q 짝수시 :00 |
 | 계정 4 | (미정) | — | — | M · N · O · P | :09 :24 :39 :54 |
 
 - 새 계정을 붙이는 세션은 **이 표의 빈 줄을 먼저 채우고**(이메일·uuid·env) 그 줄의 워커 글자·슬롯을 쓴다. 같은 이메일이 이미 있으면 그 계정이다 — 새 줄을 만들지 않는다.
@@ -261,11 +261,11 @@ node tools/export_data.js --self-test                                         # 
 | F | :27 | — | 계정 2 | — | 미등록 |
 | G | :42 | — | 계정 2 | — | 미등록 |
 | H | :57 | — | 계정 2 | — | 미등록 |
-| I | :02 | — | 계정 3 | — | 미등록 |
-| J | :17 | — | 계정 3 | — | 미등록 |
-| K | :32 | — | 계정 3 | — | 미등록 |
-| L | :47 | — | 계정 3 | — | 미등록 |
-| Q | 짝수시 :00 | — | 계정 3 | — | 검수 · 미등록 |
+| I | :02 | `trig_018vJFGNoopJV5U8DcKLdRMd` | 계정 3 | 2026-09-12 18:02 UTC 예정 · 세션 https://claude.ai/code/session_01VuP4po4zaU2S1g3qXxvHcL · 루틴 https://claude.ai/code/routines/trig_018vJFGNoopJV5U8DcKLdRMd | 2026-09-12 17:55 UTC 생성(계정 3 착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01XKJDdWmKFxSg4FuR8yethb` · enabled |
+| J | :17 | `trig_01Wi4tU6pNfw88Yg7CjXpPCp` | 계정 3 | 2026-09-12 18:17 UTC 예정 · 세션 https://claude.ai/code/session_017YU8zAmyrBGAgAXAsUf5yB · 루틴 https://claude.ai/code/routines/trig_01Wi4tU6pNfw88Yg7CjXpPCp | 2026-09-12 17:55 UTC 생성(계정 3 착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01XKJDdWmKFxSg4FuR8yethb` · enabled |
+| K | :32 | `trig_0148B63LsU2pRov9y1yfivaj` | 계정 3 | 2026-09-12 18:32 UTC 예정 · 세션 https://claude.ai/code/session_0132fa6K2bvevQ9Jr63rRW9h · 루틴 https://claude.ai/code/routines/trig_0148B63LsU2pRov9y1yfivaj | 2026-09-12 17:55 UTC 생성(계정 3 착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01XKJDdWmKFxSg4FuR8yethb` · enabled |
+| L | :47 | `trig_012SuRjsZCV7QtkeSNF5L9Vk` | 계정 3 | 2026-09-12 18:47 UTC 예정 · 세션 https://claude.ai/code/session_017oQ6VCPffLFvz9NThbxyGh · 루틴 https://claude.ai/code/routines/trig_012SuRjsZCV7QtkeSNF5L9Vk | 2026-09-12 17:55 UTC 생성(계정 3 착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01XKJDdWmKFxSg4FuR8yethb` · enabled |
+| Q | 짝수시 :00 | `trig_01AkHocLEtxx7oBfcSo9eXFS` | 계정 3 | 2026-09-12 18:06 UTC 예정(서버가 최초로 잡은 시각) · 세션 https://claude.ai/code/session_011dnU6KpzeQdFqwGfdBSVAS · 루틴 https://claude.ai/code/routines/trig_01AkHocLEtxx7oBfcSo9eXFS | 검수 · 2026-09-12 17:55 UTC 생성(계정 3 착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01XKJDdWmKFxSg4FuR8yethb` · enabled · cron 은 `0 0,2,4,6,8,10,12,14,16,18,20,22 * * *`(⚠ `0 */2 * * *` 로 만들면 서버가 «생성 분» 으로 앵커해 `55 */2 * * *` 가 된다 — 짝수시 :00 을 그대로 쓰려면 시(hour)를 나열한다 · 2026-09-12 실측) |
 | M | :09 | — | 계정 4 | — | 미등록 |
 | N | :24 | — | 계정 4 | — | 미등록 |
 | O | :39 | — | 계정 4 | — | 미등록 |
