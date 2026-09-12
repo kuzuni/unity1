@@ -170,7 +170,7 @@
 
 ### T26 — WebGL 빌드 · gh-pages 배포 · 배포 스모크(headless 로 열어 콘솔 에러 0 · 전투 진입) · Android APK (배포 · T18 뒤)
 - `ci.yml` 의 `build-webgl` 은 이미 있다(UNITY_LICENSE 가 있어야 굽는다 — README «주인이 할 일»). 여기서 하는 것: WebGL 템플릿(캔버스가 창을 채우는 세로 껍데기 · 로딩 완료 표식) · `tools/webgl_smoke.js`(Playwright · 컨테이너에서는 `kuzuni.github.io` 가 프록시에 막히므로 CI 러너에서 돈다) · Android 잡.
-- 범위: `Assets/WebGLTemplates/` · `tools/webgl_smoke.js` · `.github/workflows/ci.yml`(빌드 잡 부분만).
+- 범위: `Assets/WebGLTemplates/` · `tools/webgl_smoke.js` · `.github/workflows/ci.yml`(빌드 잡 부분만) · `ProjectSettings/ProjectSettings.asset`(webGLTemplate · 압축 폴백 · Android 식별자 칸만 — 템플릿을 «쓰게» 하는 칸이 거기 있다).
 
 ### T27 — PlayMode 스모크·플레이 봇: 모든 화면 열기 · 한 판 플레이(전투→제작→장착→펫→스킬→던전) · 콘솔 빨강 0 · 촬영(`ui-screens/*.png`) (검증 · T19~T22 뒤)
 - 정본 각본: wwwww `web/ROUTINES-SETUP.md` §4-C(QA 시나리오). `PlayLog.AssertNoRed` 도우미 · `UiShotsTests`(540×1170 PNG 전 화면) → CI `screens` 브랜치.

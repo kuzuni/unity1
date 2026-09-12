@@ -40,7 +40,7 @@
 | T23 | Core 던전 4종 | ⬜ 대기 | — | `Assets/Scripts/Core/Dungeons/` · `Assets/Tests/EditMode/DungeonTests.cs` | T7 뒤 |
 | T24 | Core 기술트리 · 승천 | ⬜ 대기 | — | `Assets/Scripts/Core/Tech/` · `Core/Ascension/` · `Assets/Tests/EditMode/TechTests.cs` | T3 뒤 |
 | T25 | Core 상점 · 패스 · 퀘스트 · 리그 | ⬜ 대기 | — | `Assets/Scripts/Core/Meta/` · `Assets/Tests/EditMode/MetaTests.cs` | T3 뒤 |
-| T26 | WebGL 템플릿 · 배포 스모크 · Android 잡 | ⬜ 대기 | — | `Assets/WebGLTemplates/` · `tools/webgl_smoke.js` · `.github/workflows/ci.yml` | T18 뒤 |
+| T26 | WebGL 템플릿 · 배포 스모크 · Android 잡 | 🔄 진행 | sess-1824-31207 / 워커 N | `Assets/WebGLTemplates/` · `tools/webgl_smoke.js` · `.github/workflows/ci.yml`(빌드 잡 부분만) · `ProjectSettings/ProjectSettings.asset`(webGLTemplate · 압축 폴백 · Android 식별자 칸만) | T18 뒤 |
 | T27 | PlayMode 스모크·플레이 봇·촬영 | ⬜ 대기 | — | `Assets/Tests/PlayMode/PlaythroughTests.cs` · `UiShotsTests.cs` · `PlayLog.cs` | T19~T22 뒤 |
 | T28 | 원작 대조 회차 (`docs/ref-layout.md` · `tools/ui_score.py`) | ⬜ 대기 | — | `docs/ref-layout.md` · `tools/ui_score.py` | T27 뒤 |
 
