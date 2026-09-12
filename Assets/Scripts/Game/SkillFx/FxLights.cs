@@ -14,7 +14,7 @@ namespace Forge.Game.SkillFx
         {
             readonly FxLights owner; readonly Light l; readonly long token;
             internal Lease(FxLights owner, Light l, long token) { this.owner = owner; this.l = l; this.token = token; }
-            bool Mine { get { long t; return owner.lease.TryGetValue(l, out t) && t == token; } }
+            bool Mine { get { long t; return l != null && owner.lease.TryGetValue(l, out t) && t == token; } }
             public void Set(double intensity) { if (Mine) l.intensity = (float)intensity; }
             public double Get() { return Mine ? l.intensity : 0; }
             public void Pos(double x, double y, double z) { if (Mine) l.transform.localPosition = ThreeSpace.Pos(x, y, z); }
@@ -54,6 +54,7 @@ namespace Forge.Game.SkillFx
             return new Lease(this, pick, token);
         }
 
-        public void ReleaseAll() { foreach (var l in lights) l.intensity = 0; lease.Clear(); }
+        /// <summary>전부 반납 — 씬이 내려가는 중이면 라이트가 먼저 파괴돼 있을 수 있어 «살아 있는 것만» 만진다.</summary>
+        public void ReleaseAll() { foreach (var l in lights) if (l != null) l.intensity = 0; lease.Clear(); }
     }
 }

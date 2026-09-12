@@ -44,8 +44,10 @@ namespace Forge.Tests.PlayMode
         static IEnumerator Boot()
         {
             BattleScene.AutoBoot = false; SkillFxScene.AutoBoot = false;
-            if (SkillFxScene.Instance != null) UnityEngine.Object.Destroy(SkillFxScene.Instance.gameObject);
+            // 앞 테스트의 것을 «먼저» 걷고 한 프레임 쉰 뒤 씬을 바꾼다 — 같은 프레임에 씬 언로드까지 겹치면 파괴 순서가 정해져 있지 않다.
+            if (SkillFxScene.Instance != null) { SkillFxScene.Instance.Detach(); UnityEngine.Object.Destroy(SkillFxScene.Instance.gameObject); }
             if (BattleScene.Instance != null) UnityEngine.Object.Destroy(BattleScene.Instance.gameObject);
+            yield return null;
             SceneManager.LoadScene("SampleScene");
             yield return null;
             yield return null;

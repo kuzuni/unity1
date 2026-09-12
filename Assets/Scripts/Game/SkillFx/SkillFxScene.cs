@@ -101,7 +101,9 @@ namespace Forge.Game.SkillFx
         void Awake() { Instance = this; }
         void OnDestroy()
         {
-            Detach();
+            // 파괴 중에는 유니티 오브젝트를 만지지 않는다 — 무대·액터·큐브·라이트는 씬과 함께 내려가고, 파괴 순서는 정해져 있지 않다
+            // (여기서 그것들의 필드를 건드리면 MissingReferenceException 이 «다음 테스트» 의 부팅 중에 빨간 로그로 터진다).
+            Detach(true);
             if (Instance == this) Instance = null;
         }
 
@@ -129,15 +131,20 @@ namespace Forge.Game.SkillFx
             return Director;
         }
 
-        public void Detach()
+        public void Detach() { Detach(false); }
+
+        /// <param name="destroying">true 면 구독만 풀고 오브젝트는 안 만진다(OnDestroy · 씬 언로드).</param>
+        void Detach(bool destroying)
         {
-            if (Scene != null)
-            {
-                Scene.EventHandled -= OnEvent;
-                Scene.Stepped -= OnStep;
-            }
-            if (Director != null) Director.Clear();
+            BattleScene s = Scene;
             Scene = null;
+            if (!ReferenceEquals(s, null))
+            {
+                try { s.EventHandled -= OnEvent; s.Stepped -= OnStep; } catch (Exception) { }
+            }
+            SkillFxDirector d = Director;
+            if (destroying) { Director = null; return; }
+            if (d != null) d.Clear();
         }
 
         void OnEvent(BattleEvent e)

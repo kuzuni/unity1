@@ -168,7 +168,7 @@ namespace Forge.Game.SkillFx
             if (a == null || a.Freed) return;
             a.MarkFreed();
             live.Remove(a);
-            if (a.G != null) UnityEngine.Object.Destroy(a.G);
+            if (a.G != null) UnityEngine.Object.Destroy(a.G);   // 이미 파괴된 것(유니티 null)은 건너뛴다
         }
 
         public void FreeAll()
