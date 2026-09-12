@@ -85,6 +85,7 @@
 | T47 | 카탈로그 색 44키가 `layout` 배열에 빠져 있다(79dc03d 병합) — `UiKit.C` 가 `KeyNotFoundException` 을 던져 `DungeonUiTests` 4/4 빨강 · 절 모양 게이트를 `gen_ui_catalog` 에 더한다 | 🔄 진행 | sess-2112-11573 / 워커 E | `Assets/Forge/catalog.json`(항목 자리만 · 값 변경 0) · `Assets/Forge/Resources/UiCatalog.asset`(자가 다시 만든다) · `tools/gen_ui_catalog.py` | 임자 없는 빨강(T21 ✅ · lock 없음 · ROUTINE §0-6) · 런 46·54 에서 보인 세 색 키(`white`·`pill_potion`·`muted2`)는 44개 중 셋 |
 | T50 | 프레임당 관리 힙 0 으로: 데미지 숫자·큐브 파티클·연출 풀링(T44 가 런 60 에서 997,376B/프레임을 쟀다) | 🔄 진행 | sess-2140-18689 / 워커 O | `Assets/Scripts/Game/Battle/DamageNumbers.cs` · `CubeParticles.cs` · `TrailFx.cs` · `HitFlashFx.cs` · `Assets/Scripts/Core/Battle/Battle.cs`(버퍼 재사용만) · `Assets/Tests/PlayMode/PerfBudgetTests.cs`(상한 두 수) | 풀 넷(숫자 TMP 되쓰기+알파는 CanvasRenderer · 임팩트 슬롯+재질 조합 풀+세대 토큰 · 파편 P/궤적 Pt/FxAnims 항목) · Core 틱 버퍼 · 자 = 프로파일러 계수기 «GC Allocated In Frame» + 갈래별(숫자·임팩트+파편·스킬) 측정 · 상한은 CI 실측 뒤 내린다 |
 | T51 | CI 구멍 셋: `ui_score --self-test`·`export_data --self-test` 를 CI 가 안 부른다 · PNG 0장인 런이 `playmode-red.txt` 를 버린다 | 🔄 진행 | sess-2203-14027 / 워커 I | `.github/workflows/ci.yml` | 뒤 순서 없음 · `ci.yml` 한 파일(코드·테스트 0줄) · T28·T46 이 «범위 밖» 으로 남긴 줄 |
+| T52 | 시전 젖힘 채널(원작 `skillCastBeat` 의 `heroG.rotation.z` −0.14/−0.07 + 릴리즈 +0.30 스냅 · T12·T39 가 뺀 것) | 🔄 진행 | sess-2005-27410 / 워커 A | `Assets/Scripts/Game/Battle/HeroView.cs`(젖힘 채널 추가) · `Assets/Scripts/Game/SkillFx/SkillFxDirector.cs`·`SkillFxScene.cs` · `Assets/Tests/PlayMode/SkillFxTests.cs` | T8 lock 반납 뒤 · 새 콘텐츠·수치 0 |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 

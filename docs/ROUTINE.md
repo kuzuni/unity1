@@ -348,6 +348,12 @@
 - 범위: `.github/workflows/ci.yml`.
 
 
+### T52 — 시전 젖힘 채널: 원작 `skillCastBeat` 의 `heroG.rotation.z` 시전 포즈(−0.14 · 지원계 −0.07 · 릴리즈 +0.30 스냅) (Game · T12·T39 가 뺀 것 · T8 lock 반납 뒤)
+- 왜: 정본 `scene3d.js` `skillCastBeat`(13,701~13,730행)는 시전 1박 동안 영웅 몸을 `heroG.rotation.z` 로 젖히고(평타 `_attacking` 중엔 양보 · 지원계는 절반) 2박 발화 시각에 +0.30 으로 «휙» 내지른 뒤 0.14초에 제자리로 — 몸과 이펙트가 같은 프레임에서 만난다(원작 주석 «3차 채점 A 치명 지적»). T12 는 T8 `HeroView` 가 리그 회전을 매 프레임 덮어써 T39 로 넘겼고(결정 90ⓒ) T39 는 그 채널 없이 ✅ 됐다 — §7 «원작에 있는데 없는 것» 이라 등재.
+- 방법: `HeroView` 에 젖힘 채널 하나(`SetLean(z)` · 돌진·넉백이 z 를 쥐고 있으면 양보 · 원작과 같은 우선순위) · `ISkillFxStage.HeroAttacking`/`HeroLean(z)` · `SkillFxDirector.SkillCastBeat` 의 프레임 함수와 onDone 에 원작 수치 그대로. 새 콘텐츠·수치 0.
+- 판정: PlayMode `SkillFxTests` 에 «시전 1박 끝 젖힘 −0.14(지원계 −0.07) → 릴리즈 → 0.14초 뒤 0» 단언 · 콘솔 빨강 0 · CI 유니티 잡.
+- 범위: `Assets/Scripts/Game/Battle/HeroView.cs`(젖힘 채널 추가) · `Assets/Scripts/Game/SkillFx/SkillFxDirector.cs`·`SkillFxScene.cs` · `Assets/Tests/PlayMode/SkillFxTests.cs`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -472,7 +478,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/voxel.js` · `mobs.js` · `mobs-pets.js` · `mobs-mounts.js` · `mobs-enemies.js` · `mobs-props.js` · `mobs-skillfx.js` | 박스 몹 조립 · 종 표 | T2 · T4 · T5(전 종 세워 보기) | ✅ (T4 · T5) |
 | `js/prochar.js`(2,526) | 영웅 박스 모델 · 무기 파지 · 애니 | T6 | ✅ |
 | `js/combat.js` · `state.js`(전투 부분) | 전투 틱 · 웨이브 · 보스 | T7 · T8 | ✅ (T7 · T8) |
-| `js/scene3d.js`(18,887) · `scene3d-skillfx.js`(1,088) | 3D 세계 전부: 카메라·광원·테마·적 스폰·애니 계약·데미지 숫자·셰이크·파티클·맵·소품·펫 대형·탈것 탑승·스킬 오브젝트·사망 연출·히트 이펙트 | T1(카메라·테마0) · T8 · T9 · T10 · T11 · T12 · T39 | T1 ✅ · T8 ✅(적 스폰·보행·공격·피격·사망·숫자·셰이크·파티클 · 뺀 연출은 T39 ✅) · T9 ✅(SIMPLE_BG 의 보이는 것 · 소재 T34 · 배경 복원 T35) · T34 ✅ · T38 ✅ · T10 ✅(펫 대형·따라오기·관절 드라이버) · T39 ✅(레갈리아·보스 재질·등장 워닝·디졸브·림·플래시·플레어/스파이크/링/점광/그을음·궤적·블롭·암전) · T11 ✅ · T35 ⬜(SIMPLE_BG 복원 전엔 안 잡는다) · T12 ✅(`scene3d-skillfx.js` 전부 + 스킬 디스패처 · 시전 젖힘은 T39) |
+| `js/scene3d.js`(18,887) · `scene3d-skillfx.js`(1,088) | 3D 세계 전부: 카메라·광원·테마·적 스폰·애니 계약·데미지 숫자·셰이크·파티클·맵·소품·펫 대형·탈것 탑승·스킬 오브젝트·사망 연출·히트 이펙트 | T1(카메라·테마0) · T8 · T9 · T10 · T11 · T12 · T39 · T52 | T1 ✅ · T8 ✅(적 스폰·보행·공격·피격·사망·숫자·셰이크·파티클 · 뺀 연출은 T39 ✅) · T9 ✅(SIMPLE_BG 의 보이는 것 · 소재 T34 · 배경 복원 T35) · T34 ✅ · T38 ✅ · T10 ✅(펫 대형·따라오기·관절 드라이버) · T39 ✅(레갈리아·보스 재질·등장 워닝·디졸브·림·플래시·플레어/스파이크/링/점광/그을음·궤적·블롭·암전) · T11 ✅ · T35 ⬜(SIMPLE_BG 복원 전엔 안 잡는다) · T12 ✅(`scene3d-skillfx.js` 전부 + 스킬 디스패처) · T52 🔄(시전 젖힘 `heroG.rotation.z` — T12·T39 가 뺀 것) |
 | `js/state.js` · `main.js`(저장 시점·부팅) | 세이브 · 마이그레이션 · 오프라인 보상 | T13 | ✅ |
 | `js/forge.js` | 대장간 규칙 · 오토 포지 | T14 · T19 | ✅ (T14 · T19) |
 | 장비 8부위 · 페이퍼돌(`prochar.js`·`ui.js` 장비 · `scene3d.js` makeWeapon/makeHelmet/dressMcRig) | 등급·서브스탯·판매가·외형 | T15(규칙·표값) · T37(3D 외형 캡처) · T19 | ✅ (T15 · T37 · T19) |
