@@ -75,6 +75,12 @@ jobs:
       - name: "PROGRESS 표 행 어긋남 — 보고만"
         continue-on-error: true
         run: python3 tools/check_task_rows.py
+      # T49 — §7 완결 대조표는 주인이 정한 «다 옮겨졌다» 의 기준이고 T33 이 그것으로 판정한다.
+      - name: 완결 대조표 자 자기 검사
+        run: python3 tools/check_final_table.py --self-test
+      - name: "§7 완결 대조표 ↔ PROGRESS 상태 — 보고만"
+        continue-on-error: true
+        run: python3 tools/check_final_table.py
       - name: 범위 자 자기 검사
         run: python3 tools/check_claim_scope.py --selftest
       - name: "살아 있는 lock 이 «범위 열에 없는 파일» 을 쥐고 있는가 — 알리기만"

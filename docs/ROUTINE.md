@@ -325,10 +325,11 @@
 - 판정: `gen_ui_catalog --check`·`--self-test` rc 0 · 「색 키 ↔ 코드 참조」 훑기에 빠진 색 0 · CI 유니티 잡에서 `DungeonUiTests` 4/4 초록.
 - 범위: `Assets/Forge/catalog.json`(항목 자리만 옮긴다 · 값 변경 0) · `Assets/Forge/Resources/UiCatalog.asset`(자가 다시 만든다) · `tools/gen_ui_catalog.py`.
 
-### T49 — 자: §7 완결 대조표 ↔ PROGRESS 상태 (검증 · 뒤 순서 없음 · 워커 F 등재)
+### T49 ✅ — 자: §7 완결 대조표 ↔ PROGRESS 상태 (검증 · 뒤 순서 없음 · 워커 F 등재)
 - 왜: §7 은 주인이 정한 «다 옮겨졌다» 의 기준이고 T33 이 마지막에 그것으로 판정하는데, 그 표를 보는 자가 없어 **끝난 작업이 🔄·⬜ 로 남는다**(2026-09-12 21:36 실측 4칸: scene3d 줄 «T10 🔄 · T12 🔄»(같은 칸 뒤에 «T12 ✅» 가 또 있다) · pets 줄 «T43 ⬜» · 품질 줄 «T45 ✅»(PROGRESS 는 🔄)). §2 제목 ↔ PROGRESS 는 `task_state --check` 가 보지만 §7 은 아무도 안 본다.
 - 방법: `tools/check_final_table.py` — §7 표의 «상태» 칸에서 `T<번호> <표시>` 를 읽어(묶음꼴 `✅ (T4 · T5)` 와 표시 하나만 적힌 줄도 «작업» 칸의 번호 전부에 적용) PROGRESS 표의 상태와 대조 · 어긋나면 줄·번호·양쪽 표시를 찍고 rc 1 · 한 칸에 같은 번호가 두 표시로 있으면 그것도 잡는다 · `--self-test` · CI dotnet 잡에 **보고만**(continue-on-error · 배포가 죽는 갈래가 아니다) + 자기 검사는 막는다.
 - 범위: `tools/check_final_table.py` · `.github/workflows/ci.yml`(dotnet 잡 두 줄) · `docs/ROUTINE.md`(§3 한 줄 · §7 어긋난 칸) · `docs/PROGRESS.md`(표 행·기록).
+- ✅ 2026-09-12 워커 F — 실측 어긋남 5건 → 0(§7 세 칸 정정 · 결정 120) · 자기 검사 17칸 · CI dotnet 잡 두 스텝(자기 검사는 막고 대조는 보고만).
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -344,6 +345,7 @@ python3 tools/check_decisions.py                                              # 
 python3 tools/check_task_rows.py                                              # PROGRESS 같은 작업 두 줄 어긋남
 python3 tools/task_state.py --check                                           # ROUTINE §2 제목 ↔ PROGRESS 상태 · 번호 중복
 python3 tools/check_claim_scope.py                                            # 살아 있는 lock 이 «범위» 밖 파일을 쥐고 있는가 (선점 전에도)
+python3 tools/check_final_table.py                                            # §7 완결 대조표 ↔ PROGRESS 상태 (T49 · T33 이 이 표로 완주를 판정한다)
 tools/check_data_sync.sh .wwwww-src                                           # (T2 뒤) data/*.json ↔ 정본
 node tools/export_data.js --self-test                                         # (T2 뒤) 추출기 자기 검사
 ```
@@ -453,11 +455,11 @@ node tools/export_data.js --self-test                                         # 
 | `js/voxel.js` · `mobs.js` · `mobs-pets.js` · `mobs-mounts.js` · `mobs-enemies.js` · `mobs-props.js` · `mobs-skillfx.js` | 박스 몹 조립 · 종 표 | T2 · T4 · T5(전 종 세워 보기) | ✅ (T4 · T5) |
 | `js/prochar.js`(2,526) | 영웅 박스 모델 · 무기 파지 · 애니 | T6 | ✅ |
 | `js/combat.js` · `state.js`(전투 부분) | 전투 틱 · 웨이브 · 보스 | T7 · T8 | ✅ (T7 · T8) |
-| `js/scene3d.js`(18,887) · `scene3d-skillfx.js`(1,088) | 3D 세계 전부: 카메라·광원·테마·적 스폰·애니 계약·데미지 숫자·셰이크·파티클·맵·소품·펫 대형·탈것 탑승·스킬 오브젝트·사망 연출·히트 이펙트 | T1(카메라·테마0) · T8 · T9 · T10 · T11 · T12 · T39 | T1 ✅ · T8 ✅(적 스폰·보행·공격·피격·사망·숫자·셰이크·파티클 · 뺀 연출은 T39 ✅) · T9 ✅(SIMPLE_BG 의 보이는 것 · 소재 T34 · 배경 복원 T35) · T34 ✅ · T38 ✅ · T10 🔄 · T12 🔄 · T39 ✅(레갈리아·보스 재질·등장 워닝·디졸브·림·플래시·플레어/스파이크/링/점광/그을음·궤적·블롭·암전) · T11 ✅ · T35 ⬜(SIMPLE_BG 복원 전엔 안 잡는다) · T12 ✅(`scene3d-skillfx.js` 전부 + 스킬 디스패처 · 시전 젖힘은 T39) |
+| `js/scene3d.js`(18,887) · `scene3d-skillfx.js`(1,088) | 3D 세계 전부: 카메라·광원·테마·적 스폰·애니 계약·데미지 숫자·셰이크·파티클·맵·소품·펫 대형·탈것 탑승·스킬 오브젝트·사망 연출·히트 이펙트 | T1(카메라·테마0) · T8 · T9 · T10 · T11 · T12 · T39 | T1 ✅ · T8 ✅(적 스폰·보행·공격·피격·사망·숫자·셰이크·파티클 · 뺀 연출은 T39 ✅) · T9 ✅(SIMPLE_BG 의 보이는 것 · 소재 T34 · 배경 복원 T35) · T34 ✅ · T38 ✅ · T10 ✅(펫 대형·따라오기·관절 드라이버) · T39 ✅(레갈리아·보스 재질·등장 워닝·디졸브·림·플래시·플레어/스파이크/링/점광/그을음·궤적·블롭·암전) · T11 ✅ · T35 ⬜(SIMPLE_BG 복원 전엔 안 잡는다) · T12 ✅(`scene3d-skillfx.js` 전부 + 스킬 디스패처 · 시전 젖힘은 T39) |
 | `js/state.js` · `main.js`(저장 시점·부팅) | 세이브 · 마이그레이션 · 오프라인 보상 | T13 | ✅ |
 | `js/forge.js` | 대장간 규칙 · 오토 포지 | T14 · T19 | ✅ (T14 · T19) |
 | 장비 8부위 · 페이퍼돌(`prochar.js`·`ui.js` 장비 · `scene3d.js` makeWeapon/makeHelmet/dressMcRig) | 등급·서브스탯·판매가·외형 | T15(규칙·표값) · T37(3D 외형 캡처) · T19 | ✅ (T15 · T37 · T19) |
-| `js/pets.js` | 알·부화·합성·출전 규칙 · 출전 스탯 기여 | T16 · T20 · T10(출전 조형) · T43(스탯 접착) | T16 ✅ · T10 ✅ · T20 🔄 · T43 ⬜ |
+| `js/pets.js` | 알·부화·합성·출전 규칙 · 출전 스탯 기여 | T16 · T20 · T10(출전 조형) · T43(스탯 접착) | T16 ✅ · T10 ✅ · T20 🔄 · T43 ✅ |
 | `js/skills.js` | 소환·18종·3슬롯(정본 `MAX_ACTIVE`) | T17 · T20 | T17 ✅ · T20 🔄 |
 | `js/mounts.js` | 탈것 규칙 · 탑승 | T40(Core 규칙 · 결정 72) · T11(탑승 3D) · T20(탈것 화면) | T40 ✅ · T11 ✅ · T20 🔄 |
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
@@ -467,6 +469,6 @@ node tools/export_data.js --self-test                                         # 
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 🔄(정본 `shot-screens.js` SCREENS 31줄 이식 · `screens.json` 짝 표) · T28 ⬜ · T33 ⬜ |
-| (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 | T45 ✅ · T44 🔄 · T27 🔄(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) |
+| (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 | T45 🔄 · T44 🔄 · T27 🔄(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
