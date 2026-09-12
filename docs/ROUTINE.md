@@ -10,7 +10,7 @@
 - **(상시 · wwwww 에서 이어받은 조형 지시)** 펫·탈것·적·소품·스킬 오브젝트는 전부 **마인크래프트 몹 문법**(축정렬 직육면체 + 칸 색 칠하기 · 곡면 근사 금지 · 종 자연색). 탑승 = **탈것 위에 서 있기**. 무기 = 마크 handheld 파지각(§1 «조형 계약»). wwwww `web/TODO.md` 상단 규약 블록이 원문이다.
 - **(상시)** 작업 한 덩어리를 끝내고 push 한 직후 **ntfy 로 알린다**(`CLAUDE.md`). 앱 푸시·Routine 완료 알림은 도착하지 않는다 — 알림 경로는 ntfy 하나.
 
-## 0. 세션 시작 절차 (모든 워커 공통 · 계정 1 = A~D · 계정 2 = E~H · 계정 3 = I~L·Q(검수) · 계정 4 = M~P · §6)
+## 0. 세션 시작 절차 (모든 워커 공통 · 계정 1 = A~D · 계정 2 = E~H · 계정 3 = I~L·Q(검수) · 계정 4 = M~P · 계정 5 = R~U · §6)
 
 1. `git fetch && git checkout -B main origin/main` (pull --rebase 금지 · 로컬 잔재 위에서 작업 금지). detached HEAD 환경이면 이어서 `git branch --set-upstream-to=origin/main main`.
 2. SID 발급: `sess-HHMM-$RANDOM` (예: `sess-0512-23481`). 커밋 제목 끝에 `(sess-… · 워커 X)` 를 붙인다.
@@ -214,7 +214,7 @@ node tools/export_data.js --self-test                                         # 
 - 워커는 `git fetch origin screens && git show origin/screens:<파일>.png > /tmp/x.png` 로 받아 **Read 로 직접 본다**. 원작 시트는 `.wwwww-src/web/ref/` 와 `web/tools/shot-*.js` 가 만드는 것(원작을 node+Playwright 로 직접 찍어도 된다 — 컨테이너에 Chromium 이 있다: `/opt/pw-browsers/chromium`).
 - ✅ 조건(UI 작업): T28 의 점수 8.0 이상. 조형 작업: 시트에서 원작과 실루엣·색이 같다(주인 눈).
 
-## 6. 다른 계정의 워커 합류 (계정 1 = A~D · 계정 2 = E~H · 계정 3 = I~L·Q(검수) · 계정 4 = M~P)
+## 6. 다른 계정의 워커 합류 (계정 1 = A~D · 계정 2 = E~H · 계정 3 = I~L·Q(검수) · 계정 4 = M~P · 계정 5 = R~U)
 
 > 주인 지시: «계정도 여러 개 쓸 수 있게». 계정마다 **그 계정의 Claude Code 세션**이 이 절만 읽고 루틴 4개(계정 3 은 +Q)를 만든다. 자세한 복붙용 런북은 **`docs/ROUTINES-SETUP.md`**.
 
@@ -226,9 +226,11 @@ node tools/export_data.js --self-test                                         # 
 | 계정 2 | (미정 — 붙일 때 적는다) | — | — | E · F · G · H | :12 :27 :42 :57 |
 | **계정 3** | `rudwpwjrwkdb95@gmail.com` (표시명 «김문») | `7029fe80-2b87-422e-98e6-9d6aafaf5c7f` | `env_01XKJDdWmKFxSg4FuR8yethb` | I · J · K · L · Q | :02 :17 :32 :47 · Q 짝수시 :00 |
 | 계정 4 | (미정) | — | — | M · N · O · P | :09 :24 :39 :54 |
+| **계정 5** | `rudwpwjrwkdb2007@gmail.com` (표시명 «김문») | `2968d241-39ae-47a7-aa6a-cb96fa1ea1b4` | `env_01Pzd5v3t1DrfBQqJkzqcXqC` | R · S · T · U | :14 :29 :44 :59 |
 
 - 새 계정을 붙이는 세션은 **이 표의 빈 줄을 먼저 채우고**(이메일·uuid·env) 그 줄의 워커 글자·슬롯을 쓴다. 같은 이메일이 이미 있으면 그 계정이다 — 새 줄을 만들지 않는다.
-- 이메일이 표에 없고 빈 줄도 없으면 루틴을 만들지 않고 «계정 표가 찼다» 로 보고한다.
+- 이메일이 표에 없고 빈 줄도 없으면 **주인이 계정 번호를 준 경우에만** 표 끝에 새 줄을 만든다(워커 글자는 Q 다음인 R 부터 · 슬롯은 §6 ② 분 나열에서 2분 이상 떨어진 빈 칸). 번호를 못 받았으면 루틴을 만들지 않고 «계정 표가 찼다» 로 보고한다.
+- ⚠ 표시명이 같아도(«김문» 이 계정 1·5 둘 다) **이메일·`account uuid`·`environment_id` 가 다르면 다른 계정이다** — 그 셋으로 대조한다.
 
 ### ① 주인이 먼저 할 것 (계정마다 · 한 번만)
 1. 그 계정의 claude.ai → **GitHub 연결**에 `kuzuni/unity1` 이 보이고 **push 가 되어야** 한다. 같은 GitHub 사용자(kuzuni)를 연결하면 끝. 다른 GitHub 사용자면 레포 Settings → Collaborators 에 **Write** 로 추가. **Claude GitHub App 의 저장소 접근에 `kuzuni/unity1` 을 켠다**(안 켜면 그 계정의 세션이 `add_repo` 에서 «push access 없음» 으로 막힌다 — 2026-09-12 계정 1 실측).
@@ -244,6 +246,7 @@ node tools/export_data.js --self-test                                         # 
 | 2 | E `12 * * * *` · F `27 * * * *` · G `42 * * * *` · H `57 * * * *` | :12 :27 :42 :57 |
 | 3 | I `2 * * * *` · J `17 * * * *` · K `32 * * * *` · L `47 * * * *` · **Q `0 */2 * * *`**(검수 · 코드 수정 안 함) | :02 :17 :32 :47 · Q 짝수시 :00 |
 | 4 | M `9 * * * *` · N `24 * * * *` · O `39 * * * *` · P `54 * * * *` | :09 :24 :39 :54 |
+| 5 | R `14 * * * *` · S `29 * * * *` · T `44 * * * *` · U `59 * * * *` | :14 :29 :44 :59 |
 
 - **이름**: `unity1 포지 이식 워커 X (:MM)` · **레포**: `https://github.com/kuzuni/unity1` · **모델**: `claude-fable-5-1`(한도 소진 시 `claude-opus-5` · **소넷 금지**) · **도구**: Bash, Read, Write, Edit, Glob, Grep, Task, WebFetch · **환경**: 그 계정의 Default · **`persist_session: true`**(실행마다 대화창을 새로 만들지 않는다 · 주인 지시).
 - **프롬프트**: `docs/ROUTINES-SETUP.md` §4 의 블록을 그대로(`X` 만 바꾼다 · 네 계정의 프롬프트는 글자까지 같다).
@@ -270,6 +273,10 @@ node tools/export_data.js --self-test                                         # 
 | N | :24 | — | 계정 4 | — | 미등록 |
 | O | :39 | — | 계정 4 | — | 미등록 |
 | P | :54 | — | 계정 4 | — | 미등록 |
+| R | :14 | `trig_019JzVy5HrTCsMchZCqjPa6w` | 계정 5 | 2026-09-12 18:14 UTC 예정 · 세션 https://claude.ai/code/session_01PSGgjquRnHUgzjoqrfkQp7 · 루틴 https://claude.ai/code/routines/trig_019JzVy5HrTCsMchZCqjPa6w | 2026-09-12 17:58 UTC 생성(착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01Pzd5v3t1DrfBQqJkzqcXqC` · outcome 브랜치 main · enabled |
+| S | :29 | `trig_01Ah2XwYKo3rf9ipLBzjS4vB` | 계정 5 | 2026-09-12 18:29 UTC 예정 · 세션 https://claude.ai/code/session_018Z11XwYJkkw28yddDbJGfR · 루틴 https://claude.ai/code/routines/trig_01Ah2XwYKo3rf9ipLBzjS4vB | 2026-09-12 17:58 UTC 생성(착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01Pzd5v3t1DrfBQqJkzqcXqC` · outcome 브랜치 main · enabled |
+| T | :44 | `trig_018q9B6xpEpjnNRVNPQkCEQd` | 계정 5 | 2026-09-12 18:44 UTC 예정 · 세션 https://claude.ai/code/session_01RyT7Zs5oTFQuLtfQAZydQF · 루틴 https://claude.ai/code/routines/trig_018q9B6xpEpjnNRVNPQkCEQd | 2026-09-12 17:58 UTC 생성(착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01Pzd5v3t1DrfBQqJkzqcXqC` · outcome 브랜치 main · enabled |
+| U | :59 | `trig_01DrEPHtF99HsLKH1C9wsKpJ` | 계정 5 | 2026-09-12 17:59 UTC 예정 · 세션 https://claude.ai/code/session_01DULNSnnTyRZfXtKSozLXv6 · 루틴 https://claude.ai/code/routines/trig_01DrEPHtF99HsLKH1C9wsKpJ | 2026-09-12 17:58 UTC 생성(착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01Pzd5v3t1DrfBQqJkzqcXqC` · outcome 브랜치 main · enabled |
 
 > ⚠ 이 루틴들은 MCP 커넥터 없이 뜬다(create_trigger 가 커넥터를 못 싣는다). 그래서 워커 세션에는 **GitHub MCP 가 없다** — `actions_run_trigger` 로 ntfy 를 못 쏜다. 알림은 Secret `NTFY_TOPIC` 을 넣어 **CI 완료 자동 알림**(`ntfy-notify.yml` workflow_run)으로 받는다. git push 는 프록시가 unity1 을 소스로 쥐고 있어 된다.
 

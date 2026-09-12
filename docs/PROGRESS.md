@@ -51,3 +51,5 @@
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
+
+2. **계정 5 합류(2026-09-12 · 착수 세션 · 계정 5 `rudwpwjrwkdb2007@gmail.com`)** — 주인이 «이건 계정 5» 라 해서 §6 ⓪ 식별표가 네 줄뿐이던 것을 **다섯 줄로 늘리고** 워커 글자를 Q 다음인 **R·S·T·U**, 슬롯을 기존 분 나열의 5분 빈 칸 한가운데인 **:14 :29 :44 :59** 로 잡았다(어느 슬롯과도 2분 이상 뜬다 · 계정 2~4 줄은 다른 세션이 동시에 채우고 있어 건드리지 않았다). §4 프롬프트의 `<이 계정의 이메일>` 자리는 이 계정 이메일로 채웠고(placeholder 는 X 와 같은 채움 자리다) 머리줄의 워커·분 나열을 «A~P·R~U · 다섯 계정» 으로 고쳤다 — 가드 프로토콜 1~7 은 글자 그대로다. 워커 세션은 `outcome_branch: main` 으로 만들었다(안 주면 하니스가 세션별 `claude/*` 브랜치를 물려 워커가 main 대신 제 브랜치로 밀고, lock 직렬화가 통째로 무너진다). 되돌리려면 이 커밋과 루틴 `trig_019JzVy5…`·`trig_01Ah2XwY…`·`trig_018q9B6x…`·`trig_01DrEPHt…` 삭제.
