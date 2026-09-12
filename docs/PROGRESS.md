@@ -6,6 +6,9 @@
 
 > 주인이 에디터·폰에서 본 빨간 줄·이상을 여기 적는다. 워커는 매 회차 이것을 읽고 «가장 큰 번호 +1» 로 등재한다(UI 작업보다 우선).
 
+- **(2026-09-12 23:20 UTC · 워커 E · sess-2313-30821 · CI 런 94 유니티 잡을 로그까지 캐서 · 아직 «계속» 은 아니다)** **런 94(acff94a)는 PlayMode 를 한 개도 안 돌렸다.** 증거 셋: ⓐ `screens:playmode-red.txt` 에 `Forge.Tests.PlayMode.*` 줄이 **0** — 505줄 전부 EditMode 고 끝 줄이 «초록 505 · 빨강 0» 이다 ⓑ `screens:meta.json` = `{"run":94,"tests":"failure","shots":0,"carried":40}` — **PNG 0장** ⓒ 유니티 잡이 4분 29초 만에 끝났다(보통 9분). 잡 로그 꼬리에는 EditMode 배치가 «Run succeeded, no failures occurred» 로 끝난 뒤 곧바로 `Returning personal license seat` → «An error occured while trying to return the ULF license … (1404)» → «Failed to return the Personal license seat after 4 attempts … otherwise later runs on this account will fail with 'no available seats'» → `Failure / exit code 1` 이 찍혀 있다(그 앞 PlayMode 구간은 로그 꼬리 5000줄 밖이라 못 봤다). ROUTINE §1 의 «유니티 잡이 라이선스로 빨강이면 코드 탓이 아니다» 갈래로 보인다 — 런 95·96·97 이 도는 중이라 **한 번 더 같은 꼴이면 그때 «유니티 라이선스 좌석» 으로 주인에게 올린다**(§1).
+  - ⚠ **함정 하나**: `meta.json` 의 `carried: 40` 은 «PNG 가 0장이라 지난 런 것을 그대로 이어받았다» 는 뜻이다(T51 이 넣은 갈래). `screens` 의 `screen_*.png` 는 지금 **런 90 의 그림**이다 — T28 채점·눈 확인은 `meta.json` 의 `run`·`shots` 를 먼저 보고 «이 PNG 가 어느 런 것인가» 를 적어야 한다(안 그러면 런 90 을 런 94 로 착각해 같은 화면을 두 번 채점한다).
+
 - **(2026-09-12 22:45 UTC · 워커 F · sess-2228-28277 · 주인 조치 필요)** 🔔 **ntfy 알림이 지금까지 한 번도 안 나갔다 — 초록불이 «보냈다» 가 아니었다.** `ntfy-notify.yml` 잡 로그를 실제로 열어 보니(런 173 · 워커 N 의 T55 발사) `TOPIC:` 이 **빈 값**이고 마지막 줄이 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다(README 참조)» 다. 이 워크플로는 그 경우 **일부러 exit 0** 이라 실행 기록은 `success` 로 남는다 — 워커들이 «ntfy 쐈다» 고 적은 회차(자동 `workflow_run` 갈래 포함)는 전부 **아무것도 안 보낸 것**이다(wwwww `CLAUDE.md` 가 같은 함정을 20회 실측해 경고해 둔 것과 같은 자리다).
   - **주인만 고칠 수 있다**: 저장소 Settings → Secrets and variables → Actions → `NTFY_TOPIC` 에 구독 중인 토픽 이름을 넣으면 그 순간부터 손 발사·자동 갈래 둘 다 살아난다. (공개 저장소라 토픽은 파일에 적지 않는다 — 그래서 워커가 못 채운다.)
   - 그때까지 워커는 «무엇을 끝냈는지» 를 **커밋 제목과 이 문서**로만 남긴다. 발사 자체는 계속 해도 되지만(비용 0) **«알림이 갔다» 고 적지 말 것** — 로그의 마지막 줄을 보고 «보냄: …» 이 찍혔을 때만 갔다.
