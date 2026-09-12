@@ -171,6 +171,7 @@
 - 정본: `ui.js` + `index.html` 의 `panel-pets`·`panel-skills`·`panel-summon` + 해당 샷. 옮길 것: 펫 `renderPets`·`openPetDetail`·`openEggDetail`·`openPetUpgrade`·`renderPetUpgrade` · 스킬 `renderSkills`·`renderSkillBar`·`openSkillDetail` · 소환 `openSummonRates`·`renderSummonRates`·`openSummonResult`·`buildSummonReflection`(원작 소환 연출 그대로 · `Sfx` gacha·summonCharge·summonReveal) · 탈것 `openMounts`·`openMountDetail`·`openMountUpgrade`·`renderMountUpgrade`.
 - 진행(2026-09-12 · 워커 B): 스킬·펫 서브탭 · 소환 결과 연출 · 확률 팝업 · 펫 상세/알 상세/업그레이드 · 세이브 코덱 ✅ — `renderSkillBar`(전투 HUD 스킬 바 · 2회차) ✅ — 탈것 화면(`openMounts`·상세·업그레이드·확률 팝업 탈것 갈래 · 5회차 · T40 위 · 전체 모달 · 결정 137) ✅ — 남은 것: CI 유니티 잡 + 탈것 화면 PNG(T27 촬영 목록) 확인 뒤 ✅ · 내 모달/토스트를 T22 `PopupLayer` 로 합치기.
 - 범위: `Assets/Scripts/Game/Ui/Pet*` · `Ui/Skill*` · `Ui/Mount*` · `Assets/Scripts/Core/PetSave/PetSkillSave.cs` · `Assets/Forge/Resources/PetSkillUi.json`(T20 색·배치·문구표 · 결정 70) · `Assets/Tests/EditMode/PetSkillSaveTests.cs` · `Assets/Tests/PlayMode/PetUiTests.cs`.
+- T28 5회차 실측(2026-09-12 · 워커 N · 런 95 `screen_pets.png` ↔ `shot-042356`): 부화 칸의 **빛기둥(`.hatch-cone`)이 화면에 안 보인다**(램프 3개는 보인다). `PetPanel.cs` 369 가 `PetHatchCone` 을 만들긴 하니 색 키 `cone_top/bottom` 의 알파 · `cone_h` · 그리기 순서(램프·알 뒤에 깔렸는가)를 PNG 로 확인할 것 — 정본은 전구에서 시작해 셀 하단 77%H 까지 내려오는 초록 사다리꼴(`style.css` 4501~4515 · 빈 칸은 `dim`).
 
 ### T21 ✅ — UI 패널: 던전 4종 · 기술트리 · 승천 (Game · T23·T24·T18 뒤)
 - 정본: `ui.js` + `index.html` 의 `panel-tech` + 해당 샷. 옮길 것: 던전 `openDungeons`·`openDungeonDetail`·`renderDungeonDetail`·`showDungeonClear`(실패 화면 포함 · `shot-dungeon-fail`) · 기술트리 `openTechTree`·`renderTechTree`·`openTechOverview`·`openTechBranch`·`renderTechBranchView`·`openTechNode`·`renderTechNodeModal`·`openTechBonuses`·`drawTechLinks`(가지 선 그리기) · 승천 `openAscension`·`closeAscension`.
@@ -212,6 +213,9 @@
   - **장비 아이콘의 노란 별(★)**: 정본 `ui.js` 3105 는 `it.stars ?` — **승천 횟수가 있을 때만** 별을 얹는다. 승천이 0인 클론 세이브에 별이 없는 것은 맞다(4회차).
   - **`gear-detail` 의 빨간 ✕**(원작 샷에 없다): 정본이 2026-08-18 에 **더한** 것이고(`renderGearDetail` 주석 «이 팝업만 ✕ 가 없어서 닫는 길이 하나도 없었다»), `style.css .x-btn` 의 `margin-top:-1.7rem` + 주석 «플레이어 정보 ✕도 공용 규칙대로 **카드에 반걸침이 맞다**» 대로 카드에 반쯤 걸치는 것이 정본이다 — 클론이 맞다(4회차).
   - 반대로 **탭바 아이콘 아래 라벨**은 클론이 맞다 — 정본 `index.html` 157~164 가 `<span>PVP</span>` 를 두고 `style.css` 1707 이 `.62rem` 로 그린다(작고 어두워 원작 샷에서 안 보인다).
+  - **`tech-branch` 맨 위 행이 노드 1개(모래시계 = `techTimer`)**: 정본 `techtree.js` `rows()` 주석 «트리의 맨 위 행과 맨 아래 행은 언제나 노드 1개»(사용자 지시 2026-08-17) — 원작 샷 042546 은 첫 행이 2노드인 그 이전 캡처다. 클론 `TechTree.Rows` 가 같은 규칙이니 클론이 맞다(5회차).
+  - **`pets` 상단 «□ 8/250»**: 정본 `renderPets` 제목이 `펫 ${S.pets.length}/${INV_CAP}` — 한글 두부(T53)일 뿐 맞는 글자다. **부화 칸 1 vs 3** 은 `pets.js` `maxHatchSlots = min(CAP, BASE + S.hatchSlotBonus)` 라 세이브 차이. **`pass` 의 체크 표시** 도 수령 여부 세이브 차이(5회차).
+  - **`profile` 오른쪽 위 «▼ 745»**: 정본 `style.css` `.dmg-hero::before { content:'▼' }` + `scene3d.js` 13358 의 **영웅 피해 숫자**다 — 촬영 순간 전투가 돌고 있어 찍혔다(원작 샷은 그 순간이 아니었을 뿐). 결함 아님 · 자리 문제는 T54 절 메모(5회차).
 
 ### T29 ✅ — `task_state.py` «코드 자취» 오탐: 주석의 미래 참조(`T7 이 쓴다`)를 자취로 세어 T7·T13·T14·T25 선점을 막는다 (도구 · 뒤 순서 없음)
 - 실측(2026-09-12 워커 K · 워커 M 결정 11ⓔ 도 같은 것): `Rng.cs`·`Hud.cs` 의 `///` 주석이 «T7 전투 · T13 세이브» 를 앞으로 가리키고, `check_claim_scope.py`·`task_state.py` 의 자기 검사 픽스처 문자열이 T14·T25 를 담아 `task_state.py T7` 등이 rc 1 을 낸다 → 규약대로면 아무도 못 잡는다.
@@ -374,6 +378,7 @@
 - 고침 뒤 **촬영 단언**을 넣는다: 전투 컷의 화면 중앙 60% 영역 픽셀이 배경·지면 색만이 아니어야 한다(영웅 실루엣이 있어야 한다) · 적 스폰 뒤 컷은 적 색 픽셀이 N개 이상. 이 단언이 «비었는데 초록» 을 앞으로 막는다.
 - 판정: 전투 단독 PNG 에 영웅·적·펫이 보이고(워커가 열어 본 기록) · 위 단언 초록 · CI 초록.
 - 범위: `Assets/Scripts/Game/Battle/` · `Game/Hero/` · `Game/Pets/` · `Assets/Tests/PlayMode/BattleSceneTests.cs` · `UiShots*`.
+- T28 5회차 메모(2026-09-12 · 워커 N · 런 95 `screen_profile.png`): 영웅 피해 숫자 «▼ 745» 가 **화면 오른쪽 위(x≈91%W · y≈19%H)** 에 찍혔다 — `HeroView.cs` 121 은 영웅 x + HP 바 위에 띄우므로 영웅이 그 자리에 있다는 뜻이다(메인 컷의 초록 HP 바는 왼쪽 아래 y≈50%H). 영웅 자리를 잡을 때 이 숫자 자리도 같이 본다.
 
 ### T55 ✅ — 전투 ↔ 세이브 접착의 나머지: 처치·재화·보스 클리어·진행·장착 스킬·자동시전·무기 종 (Game · T8·T13·T43 뒤 · 워커 L 등재)
 - 실측(2026-09-12 · T27 플레이 봇 · CI 런 78): `BattleScene.MakeBattle` 은 `new BattleContext(defs, save) { HeroStats = stats, WeaponType = "sword" }` 로 **빈 문맥**을 세운다. 그래서 원작이 전투 중에 `S` 에 직접 쓰던 것이 유니티에서는 어디에도 안 남는다 — 한 판을 돌려 적을 잡아도 `SaveIo.State.Kills` 가 0 이다(정본 `combat.js:445` `S.kills++`).
@@ -473,6 +478,16 @@
 - 무엇을 한다(전부 `.github/workflows/ci.yml`): ⓐ 요약 스텝에 **모드별 존재 검사** — `editmode-results.xml`·`playmode-results.xml` 중 없는 것이 있으면 `::error::` 로 «그 모드가 한 개도 안 돌았다» 를 이름으로 찍는다(있는 쪽 총계는 그대로) ⓑ 잡 로그의 좌석 문구(`Failed to return the Personal license seat` · `no available seats` · `Unable to activate license`)를 러너 출력에서 잡아 «라이선스 좌석» 을 따로 한 줄 ⓒ `ui-screens/playmode-red.txt` **머리**에 «이 런에 PlayMode 결과 없음(모드 XML 부재)» 한 줄을 덧붙여 `screens` 로 읽는 워커가 꼬리만 보고 속지 않게 한다 ⓓ 좌석 실패가 다음 런에도 이어지면 §1 대로 «주인 콘솔 에러 보고함» 에 «유니티 라이선스 좌석» 한 줄.
 - 판정: `ci.yml` 만 바뀐다(코드·테스트 0줄) · 다음 main 런에서 dotnet·datasync 잡 초록 · 모드 XML 이 둘 다 있는 런에서는 새 줄이 조용하고, 한쪽이 없는 런에서는 `::error::` 와 `playmode-red.txt` 머리줄이 보인다.
 - 범위: `.github/workflows/ci.yml`.
+
+### T68 — 오프라인 보상 팝업 머리가 정본의 어두운 판이 아니다: 밝은 회색 판 + 검정 글자 · 요율이 아이콘 옆 · 수집 버튼 빨간 점 없음 (Game·UI · T13·T22 뒤 · T28 5회차가 눈으로 잡음)
+- 실측(2026-09-12 · T28 5회차 · 워커 N · 런 95 `screen_offline.png` **3.7/10** ↔ 정본 `ref/screens/shot-042110.png` + `style.css`·`ui.js`):
+  - 정본 `.offline-top`(`style.css` 260)은 **평면 `#0e111b` 어두운 판 · 흰 글자 · 카드 높이의 42.8%** 이고 `«수집 시간:»` 은 `#ccc`, 경과 시간·요율은 `--pp-green`. 클론 `OfflinePopup.cs` 29 는 `UiKit.Panel(top, "bg", "pp_panel")`(#efefef) + `pp_ink` 검정 글자 + 제목만 `stage_ink` 흰색(밝은 판 위 흰 글자라 링에 기대 읽힌다).
+  - 정본 `.offline-rate` 는 `flex-direction: column`(원형 아이콘 2.6rem **위** · `1.13/초` 글자 **아래** · 두 칸 사이 2.4rem). 클론 `Rate()` 는 원형 아이콘과 글자를 **옆으로** 붙였다.
+  - 정본 수집 버튼 우상단에 `.offline-collect-dot`(`.7rem` 빨간 원 · 흰 테두리 · `style.css` 309)이 있다. 클론엔 없다.
+  - 걷어낸 것: 원작 샷의 **파란** 수집 버튼은 옛것 — 정본 `.btn.primary` 가 초록(`#1f4a2c`/`#2ea043`)이라 클론의 초록이 맞다. 합계줄 `8.87k`·`149.05` 는 정본 주석대로 **흰 칠 + 검정 링**(클론은 검정 칠 · 링 규칙은 T25 갈래).
+- 무엇을 한다: 머리 판을 어두운 색으로(카탈로그에 `#0e111b` 에 가까운 키가 없으면 키 하나 추가 — `catalog.json` 은 **T62 lock 이 풀린 뒤** · 그 전엔 `pp_ink`(#17181a)로 먼저) + 글자 색을 정본대로(흰 · #ccc · 초록) · 요율 칸을 세로 배치로 · 수집 버튼에 빨간 점. 수치는 `catalog.json`/`PopupKit` 에서(§1).
+- 판정: `ui_score --score` 의 `offline` 점수가 오르고(3.7 → 8.0 목표) + PNG 눈 확인(위 절반이 어둡다 · 요율이 아이콘 아래) + PlayMode 빨강 0.
+- 범위: `Assets/Scripts/Game/Ui/OfflinePopup.cs` · `Assets/Forge/catalog.json`(색 키 하나 · T62 뒤) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
