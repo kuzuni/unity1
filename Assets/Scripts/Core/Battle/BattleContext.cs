@@ -16,6 +16,8 @@ namespace Forge.Core.Battle
         public double MonsterHp;
         /// <summary>`Dungeons.def(id).theme` — 장면 테마 키.</summary>
         public string Theme;
+        /// <summary>원작 `updateStageLabel()` 의 던전 갈래 «망치 도둑 1단계»(`def.kr` + 단계) — 판 안에서는 진행 좌표 대신 이것이 상단 라벨이다(T55). null 이면 진행 좌표.</summary>
+        public string Label;
     }
 
     /// <summary>

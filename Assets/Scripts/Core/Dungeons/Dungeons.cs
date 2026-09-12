@@ -71,7 +71,8 @@ namespace Forge.Core.Dungeon
             JsonObject r = Run;
             if (r == null) return null;
             string id = J.Str(r["id"]); int stage = (int)Num(r["stage"]); int waves = (int)Num(r["waves"]);
-            return new DungeonRun { Id = id, Stage = stage, Waves = waves, MonsterHp = MonsterHp(id, stage), Theme = "dungeon_" + id };
+            DungeonDef def = id != null ? DungeonDefs.Find(id) : null;
+            return new DungeonRun { Id = id, Stage = stage, Waves = waves, MonsterHp = MonsterHp(id, stage), Theme = "dungeon_" + id, Label = def != null ? def.Kr + " " + stage + "단계" : null };
         }
 
         // ── 표 · 순수 계산 ──

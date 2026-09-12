@@ -36,11 +36,9 @@ namespace Forge.Game.Battle
             ctx = c;
             c.Save = SaveNow;
             if (SaveIo.Ready && SaveIo.State != null) { sync = new BattleSaveSync(c, SaveIo.State); sync.Fill(); }
-            else
-            {
-                onSaveReady = () => { if (ctx == c && sync == null && SaveIo.State != null) { sync = new BattleSaveSync(c, SaveIo.State); sync.Sync(); } };
-                SaveIo.OnReady += onSaveReady;
-            }
+            // 세이브가 아직 없거나 **나중에 갈아끼워지면**(씬 재로드 뒤 새 SaveIo 가 서면 정적 `State` 가 새 객체가 된다 — 옛 객체에 계속 쓰면 세이브에 아무것도 안 남는다 · CI 런 90 실측) 그때 다시 잇는다
+            onSaveReady = () => { if (ctx == c) Rebind(); };
+            SaveIo.OnReady += onSaveReady;
             if (BattleScene.Instance != null) Install(BattleScene.Instance);
         }
 
@@ -77,9 +75,21 @@ namespace Forge.Game.Battle
             }
         }
 
+        /// <summary>지금 세이브 객체와 어긋나 있으면 다시 잇는다 — 처음이면 delta 를 살리고(<see cref="BattleSaveSync.Fill"/>), 세이브가 통째로 바뀌었으면 그대로 싣는다(<see cref="BattleSaveSync.Load"/> · 옛 세이브 값을 새 세이브에 더하면 재화가 두 배).</summary>
+        static void Rebind()
+        {
+            BattleContext c = ctx;
+            if (c == null || !SaveIo.Ready || SaveIo.State == null) return;
+            if (sync != null && ReferenceEquals(sync.Save, SaveIo.State)) return;
+            bool first = sync == null;
+            sync = new BattleSaveSync(c, SaveIo.State);
+            if (first) sync.Fill(); else sync.Load();
+        }
+
         /// <summary>양방향 동기화 한 번(프레임 뒤 · 저장 직전 · 테스트). 세이브에 던전 판이 없는데 문맥에 남았으면 걷는다.</summary>
         public static void Sync()
         {
+            Rebind();
             if (sync == null) return;
             sync.Sync();
             BattleScene sc = scene;

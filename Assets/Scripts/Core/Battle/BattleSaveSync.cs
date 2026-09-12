@@ -43,6 +43,31 @@ namespace Forge.Core.Battle
         public void Fill() { Sync(); }
 
         /// <summary>
+        /// 세이브를 **그대로** 문맥에 싣는다 — delta 없이(문맥에 남은 값은 버린다). 세이브 객체가 통째로 바뀌었을 때(씬 재로드 · 초기화 · 다른 세이브)의 갈아타기용:
+        /// 옛 세이브에서 온 문맥 값을 새 세이브에 delta 로 더하면 재화가 두 배가 된다.
+        /// </summary>
+        public void Load()
+        {
+            SaveState s = Save; BattleContext c = Ctx;
+            c.Kills = s.Kills; c.Coins = s.Coins; c.Hammers = s.Hammers;
+            kills = c.Kills; coins = c.Coins; hammers = c.Hammers;
+            Progress p = c.Progress;
+            if (p != null)
+            {
+                p.Difficulty = s.Difficulty; p.Chapter = s.Chapter; p.Stage = s.Stage;
+                p.BestDifficulty = s.BestDifficulty; p.BestChapter = s.BestChapter; p.BestStage = s.BestStage;
+                difficulty = p.Difficulty; chapter = p.Chapter; stage = p.Stage;
+                bestDifficulty = p.BestDifficulty; bestChapter = p.BestChapter; bestStage = p.BestStage;
+            }
+            c.ClearedBosses.Clear();
+            JsonObject cleared = s.ClearedBosses;
+            if (cleared == null) { cleared = new JsonObject(); s["clearedBosses"] = cleared; }
+            for (int i = 0; i < cleared.Keys.Count; i++) { string key = cleared.Keys[i]; if (JsonTree.Truthy(cleared[key])) c.ClearedBosses.Add(key); }
+            c.WeaponType = WeaponTypeOf(s);
+            filled = true;
+        }
+
+        /// <summary>
         /// 양방향 동기화 한 번(프레임 뒤·저장 직전·부팅). 언제 몇 번 불러도 같은 결과(멱등) — 같은 프레임에 두 번 불리면 두 번째는 delta 0 이다.
         /// </summary>
         public void Sync()

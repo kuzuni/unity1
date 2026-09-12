@@ -141,7 +141,8 @@ namespace Forge.Core.Battle
             Emit(BattleEventKind.ClearEnemies);
             if (_c.Dungeon != null) Emit(BattleEventKind.Theme, tag: _c.Dungeon.Theme);
             else Emit(BattleEventKind.Theme, tag: "ch:" + _c.Progress.Chapter);
-            Emit(BattleEventKind.StageLabel, tag: _c.Progress.StageName());
+            // 원작 `UI.updateStageLabel()` — 던전 판 안에서는 «던전 이름 N단계», 아니면 진행 좌표(T55 · DungeonRun.Label)
+            Emit(BattleEventKind.StageLabel, tag: _c.Dungeon != null && !string.IsNullOrEmpty(_c.Dungeon.Label) ? _c.Dungeon.Label : _c.Progress.StageName());
             NextWave();
         }
 

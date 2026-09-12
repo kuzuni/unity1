@@ -1,5 +1,6 @@
 using System.IO;
 using NUnit.Framework;
+using Forge.Core;
 using Forge.Core.Battle;
 using Forge.Core.Data;
 using Forge.Core.Save;
@@ -133,6 +134,55 @@ namespace Forge.Tests.EditMode
             var run = new JsonObject(); run["id"] = "hammer"; run["stage"] = 1.0; run["waves"] = 2.0;
             s["dungeonRun"] = run;
             Assert.IsFalse(BattleSaveSync.DungeonStale(c, s));
+        }
+        [Test]
+        public void Load는_delta_없이_세이브를_그대로_싣는다_세이브_갈아타기()
+        {
+            SaveState a = NewSave(); a.Coins = 500; a.Kills = 3;
+            BattleContext c = NewCtx();
+            var syncA = new BattleSaveSync(c, a);
+            syncA.Fill();
+            c.Kills += 2; c.Coins += 30;
+            syncA.Sync();
+            Assert.AreEqual(5, a.Kills); Assert.AreEqual(530, a.Coins);
+            // 씬 재로드 — 새 세이브 객체(처음부터 · 코인 500 · 처치 0). 문맥에 남은 530/5 를 delta 로 더하면 두 배가 된다 → Load 는 그대로 싣는다
+            SaveState b = NewSave(); b.Coins = 500; b.Kills = 0; b.Stage = 4; b.ClearedBosses["1-1"] = true;
+            c.ClearedBosses.Add("9-9");
+            var syncB = new BattleSaveSync(c, b);
+            syncB.Load();
+            Assert.AreEqual(0, c.Kills); Assert.AreEqual(500, c.Coins); Assert.AreEqual(500, b.Coins, "새 세이브는 안 바뀐다");
+            Assert.AreEqual(4, c.Progress.Stage);
+            Assert.IsTrue(c.ClearedBosses.Contains("1-1")); Assert.IsFalse(c.ClearedBosses.Contains("9-9"), "옛 문맥의 첫 클리어는 버린다");
+            Assert.IsTrue(syncB.Filled);
+            // 그 뒤 delta 는 새 세이브로
+            c.Kills += 1; syncB.Sync();
+            Assert.AreEqual(1, b.Kills); Assert.AreEqual(5, a.Kills, "옛 세이브는 더 안 건드린다");
+        }
+
+        [Test]
+        public void 던전_판_안에서는_스테이지_라벨이_던전_이름이다()
+        {
+            BattleContext c = NewCtx();
+            c.HeroStats = () => new HeroStats { Atk = Big.Of(10), Hp = Big.Of(100), CritDmg = 1.5, AttacksPerSec = 1 };
+            var b = new Battle(c, Rng.Mulberry(1));
+            b.Start(0);
+            string last = LastLabel(b);
+            Assert.AreEqual(c.Progress.StageName(), last, "본대: 진행 좌표");
+            b.Events.Clear();
+            c.Dungeon = new DungeonRun { Id = "hammer", Stage = 2, Waves = 2, MonsterHp = 100, Theme = "dungeon_hammer", Label = "망치 도둑 2단계" };
+            b.SetupStage();
+            Assert.AreEqual("망치 도둑 2단계", LastLabel(b), "던전 판: 원작 updateStageLabel 의 던전 갈래");
+            b.Events.Clear();
+            c.Dungeon = null;
+            b.LeaveDungeon();
+            Assert.AreEqual(c.Progress.StageName(), LastLabel(b), "본대 복귀: 진행 좌표");
+        }
+
+        static string LastLabel(Battle b)
+        {
+            string tag = null;
+            for (int i = 0; i < b.Events.Count; i++) if (b.Events[i].Kind == BattleEventKind.StageLabel) tag = b.Events[i].Tag;
+            return tag;
         }
     }
 }
