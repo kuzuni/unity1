@@ -266,6 +266,18 @@ namespace Forge.Tests.PlayMode
 
         static string Bytes(long b) { return b < 0 ? "?" : b + "B"; }
 
+        /// <summary>측정 줄을 `ui-screens/perf-t50.txt` 에도 남긴다 — CI 잡 로그 꼬리(5000줄)와 결과 아티팩트가 컨테이너에서 안 닿아(T27 실측) screens 브랜치로 읽는다.</summary>
+        static void Trace(string line)
+        {
+            try
+            {
+                string dir = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "ui-screens");
+                System.IO.Directory.CreateDirectory(dir);
+                System.IO.File.AppendAllText(System.IO.Path.Combine(dir, "perf-t50.txt"), line + "\n");
+            }
+            catch (Exception) { /* 자취는 보험 — 못 써도 판정은 그대로 */ }
+        }
+
         [UnityTest]
         public IEnumerator 전투_최대_부하_200프레임_메인스레드_예산_과_프레임당_GC()
         {
@@ -291,6 +303,7 @@ namespace Forge.Tests.PlayMode
                           "ms · 최대 " + full.Max.ToString("F3") + "ms · 프레임당 관리 할당 " + Bytes(full.AllocPerFrame) + "(계수기) · GetTotalMemory 차 " + full.TotalDeltaPerFrame +
                           "B · GC 회수 " + full.Collections + " · 벽시계 평균 " + full.WallAvg.ToString("F2") + "ms(소프트웨어 렌더 포함 · 판정 밖) · " + num;
             Debug.Log(line);
+            Trace(line);
 
             // T50 갈래별 — 숫자만 끄고 · 임팩트+파편만 끄고 · 스킬 재시전만 끄고 200프레임씩 더 잰다(같은 장면 · 큰 것부터 고치기 위한 자).
             var noNum = new Sample(); r.S.Numbers.Enabled = false;
@@ -301,11 +314,14 @@ namespace Forge.Tests.PlayMode
             r.S.Fx.Enabled = true; r.S.Impact.Enabled = true;
             var noSkill = new Sample();
             yield return Measure(r, dt, false, noSkill);
-            Debug.Log("[T50] 프레임당 관리 할당 갈래(계수기 · 없으면 GetTotalMemory 차): 전부 " + Bytes(full.Judged) +
+            string branches = "[T50] 프레임당 관리 할당 갈래(계수기 · 없으면 GetTotalMemory 차): 전부 " + Bytes(full.Judged) +
                       " · 숫자 끔 " + Bytes(noNum.Judged) + "(숫자 몫 ≈ " + Bytes(full.Judged - noNum.Judged) + ")" +
                       " · 임팩트+파편 끔 " + Bytes(noFx.Judged) + "(몫 ≈ " + Bytes(full.Judged - noFx.Judged) + ")" +
                       " · 스킬 재시전 끔 " + Bytes(noSkill.Judged) + "(몫 ≈ " + Bytes(full.Judged - noSkill.Judged) + ")" +
-                      " · GC 회수 " + full.Collections + "/" + noNum.Collections + "/" + noFx.Collections + "/" + noSkill.Collections);
+                      " · GC 회수 " + full.Collections + "/" + noNum.Collections + "/" + noFx.Collections + "/" + noSkill.Collections +
+                      " · 계수기 " + (full.AllocPerFrame >= 0 ? "살아 있음" : "없음(폴백)");
+            Debug.Log(branches);
+            Trace(branches);
 
             Assert.Greater(r.S.Numbers.SpawnedTotal, 0, "부하 장면에 데미지 숫자가 없다 — 부하가 아니다");
             Assert.LessOrEqual(full.Avg, AvgBudgetMs, "메인스레드 게임 시간 평균이 예산을 넘었다 — " + line);
@@ -338,6 +354,7 @@ namespace Forge.Tests.PlayMode
 #endif
             string line = "[T44] 부하 장면 렌더러 " + renderers + " · 공유 재질 " + seen.Count + stats;
             Debug.Log(line);
+            Trace(line);
 
             Assert.Greater(renderers, 0, "부하 장면에 복셀 렌더러가 없다");
             Assert.LessOrEqual(renderers, RendererCap, "복셀 렌더러가 상한을 넘었다 — " + line);
