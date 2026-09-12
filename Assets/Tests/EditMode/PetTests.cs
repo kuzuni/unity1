@@ -357,7 +357,7 @@ namespace Forge.Tests
             {
                 Assert.AreSame(_sys.State.Pets[i], r[i].Pet, "결과 순서 = 개체 순서");
                 Assert.AreEqual(G.Defs.PetKr[r[i].Name], ToastName(toasts[i]), "토스트 종 이름 #" + i);
-                Assert.AreEqual(toasts[i].StartsWith("🥚"), r[i].Already, "하나 더 #" + i);
+                Assert.AreEqual(toasts[i].StartsWith("🥚", StringComparison.Ordinal), r[i].Already, "하나 더 #" + i);
                 Assert.AreEqual(i < 3, r[i].AutoActivated, "자동 출전 3 #" + i);
                 Assert.IsFalse(r[i].ReturnedAsEgg || r[i].Dropped);
             }
@@ -369,11 +369,13 @@ namespace Forge.Tests
             AssertSnap(J.Obj(c1["after"]), "tick#2");
         }
 
+        // ⚠ 이모지(보조평면) 앞머리 비교는 반드시 Ordinal — 문화권 비교(`StartsWith(string)`)는 유니티 Mono 에서 보조평면 문자를
+        //    무시 가능 문자로 봐 `"🎉 …".StartsWith("🥚")` 가 true 가 된다(CI 런 17·19 유니티 EditMode 빨강 · dotnet(ICU)은 false).
         static string ToastName(string toast)
         {
             // '🎉 새 펫: 서펀트 (전설)' · '🥚 생쥐 하나 더 획득 (일반)'
             string s = toast.Substring(2).Trim();
-            if (s.StartsWith("새 펫: ")) s = s.Substring(5);
+            if (s.StartsWith("새 펫: ", StringComparison.Ordinal)) s = s.Substring(5);
             int cut = s.IndexOf(" 하나 더", StringComparison.Ordinal);
             if (cut < 0) cut = s.IndexOf(" (", StringComparison.Ordinal);
             return s.Substring(0, cut);
@@ -408,7 +410,7 @@ namespace Forge.Tests
             List<HatchResult> r = _sys.Tick();
             AssertSnap(J.Obj(c["after"]), "dup");
             string toast = Strs(c["toasts"])[0];
-            Assert.AreEqual(toast.StartsWith("🥚"), r[0].Already);
+            Assert.AreEqual(toast.StartsWith("🥚", StringComparison.Ordinal), r[0].Already);
             Assert.AreEqual(r[0].Name == "Dog", r[0].Already);
         }
 
