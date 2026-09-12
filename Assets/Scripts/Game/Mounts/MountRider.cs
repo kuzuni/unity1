@@ -29,7 +29,7 @@ namespace Forge.Game.Mounts
     [DefaultExecutionOrder(-500)]
     public sealed class MountRider : MonoBehaviour
     {
-        /// <summary>false 면 부팅 씬에서 스스로 서지 않는다.</summary>
+        /// <summary>false 면 **바로 다음 씬 로드 한 번** 은 스스로 서지 않는다(읽는 즉시 true 로 돌아온다 · T54).</summary>
         public static bool AutoBoot = true;
         public static MountRider Instance { get; private set; }
 
@@ -71,7 +71,12 @@ namespace Forge.Game.Mounts
 
         static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (!AutoBoot || Instance != null) return;
+            // T54 — 이 플래그는 «이번 씬 로드 하나» 만 끈다: 읽는 즉시 기본값으로 되돌린다.
+            // 그러지 않으면 정적 필드라 PlayMode 런 내내 누워 있어, 눕힌 픽스처가 끝난 뒤에 도는 **남의 픽스처**까지
+            // 전투 없는 앱을 부팅한다(CI 런 78 실측: SkillFxTests 가 눕힌 채 UiShotsTests 가 찍어 화면 30장이 전부 영웅·적·펫 0).
+            bool auto = AutoBoot;
+            AutoBoot = true;
+            if (!auto || Instance != null) return;
             foreach (Bootstrap b in Resources.FindObjectsOfTypeAll<Bootstrap>())
             {
                 if (!b.gameObject.scene.isLoaded) continue;

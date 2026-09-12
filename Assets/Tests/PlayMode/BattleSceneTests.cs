@@ -147,5 +147,32 @@ namespace Forge.Tests.PlayMode
             UnityEngine.Object.Destroy(s.gameObject);
             yield return null;
         }
+
+        /// <summary>
+        /// T54 — «비었는데 초록» 막이. 앞 픽스처가 자동 부팅을 눕힌 **다음** 부팅에는 전투·펫·스킬 연출·탈것이 스스로 서야 한다.
+        /// 이것이 깨져 있던 동안 원작 대조용 화면 30장이 전부 영웅·적·펫 0 으로 찍혔다(CI 런 78 · `screen_main.png`).
+        /// 「오브젝트가 만들어졌는가」가 아니라 「**앱을 부팅하면** 만들어지는가」를 본다 — 그것이 화면에 사람이 서는 조건이다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 자동_부팅을_눕힌_다음_부팅에는_전투와_펫이_스스로_선다()
+        {
+            // ① 눕히고 한 번 싣는다 — 이 로드만 조용해야 한다(픽스처들이 제 전투를 세우는 길).
+            yield return Boot();
+            Assert.IsNull(BattleScene.Instance, "눕힌 그 로드에서는 스스로 서지 않는다");
+
+            // ② 아무것도 안 건드리고 다시 싣는다 = 남의 픽스처(UiShotsTests 처럼)가 부팅하는 모습.
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+            Assert.IsTrue(BattleScene.AutoBoot, "플래그는 읽히는 즉시 기본값으로 돌아온다");
+            Assert.IsNotNull(BattleScene.Instance, "다음 부팅에는 전투 씬이 스스로 선다(이게 없으면 화면에 영웅·적이 없다)");
+            Assert.IsNotNull(Forge.Game.Pets.PetParty.Instance, "펫 무리도 스스로 선다");
+            Assert.IsNotNull(Forge.Game.SkillFx.SkillFxScene.Instance, "스킬 연출도 스스로 선다");
+            Assert.IsNotNull(Forge.Game.Mounts.MountRider.Instance, "탈것도 스스로 선다");
+
+            // 뒤 테스트에 전투 씬을 남기지 않는다(픽스처들이 제 것을 세운다).
+            UnityEngine.Object.Destroy(BattleScene.Instance.gameObject);
+            yield return null;
+        }
     }
 }
