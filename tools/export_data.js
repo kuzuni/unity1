@@ -99,6 +99,41 @@ const PROP_SAMPLES = [
 // Props 안의 조립 도우미 — 생성기가 아니다(kinds 에서 뺀다).
 const PROP_HELPERS = new Set(['bx', 'cbx', 'octa', 'capLayer', 'sub']);
 
+// T9 — scene3d.js(`const Scene3D = {…}`)의 **상수표**만 뽑는다(메서드·런타임 캐시 제외). 순서 = 원문 순서.
+//   SIMPLE_BG(배경 제거 모드 · 정본은 true) · VALUE(전역 값 그레이드) · SUN_DAY/SUN_NIGHT(광원 방향) · CAM_*(카메라 리그) ·
+//   RIDGE_*(능선 3겹) · VOXG(지면 격자 셀·단) · SHADE(암부 리프트) · TERRAIN(지면 셰이더) · SOIL(흙 보정) · LEAF_OFF(잎 파생) ·
+//   VOX_AMBIENT · CRACK_W/CRACK_A(용암 균열 위계) · BIOMES(신설 바이옴 15종 덮어쓰기 표).
+// setTheme 안의 인라인 리터럴(안개 13/35·11/30 · 광량 1.00/0.15/0.18 …)은 표가 아니라 규칙이라 C# `WorldRules`(Core/World)가 그대로 옮긴다.
+const SCENE_FIELDS = ['SIMPLE_BG', 'VALUE', 'SUN_DAY', 'SUN_NIGHT', 'CAM_POS', 'CAM_LOOK_Y', 'CAM_FOV', 'RIDGE_MIX', 'RIDGE_LAYERS',
+    'VOXG', 'SHADE', 'TERRAIN', 'SOIL', 'LEAF_OFF', 'VOX_AMBIENT', 'CRACK_W', 'CRACK_A', 'BIOMES'];
+// scene3d.js 는 로드 시점에 THREE·Voxel·Mobs·ProChar 를 참조하지 않지만 three.min.js 의 UMD 머리가 `self` 를 찾는다 —
+// 별도 컨텍스트(self = 자기 자신)에 실물 three r128 을 먼저 올린다(T4 voxel_vectors.js 와 같은 길).
+const SCENE_LOAD_ORDER = ['bignum.js', 'util.js', 'balance-data.js', 'gamedata.js', 'voxel.js', 'mobs.js', 'mobdata.js',
+    'mobs-pets.js', 'mobs-mounts.js', 'mobs-enemies.js', 'mobs-skillfx.js', 'mobs-props.js', 'prochar.js', 'scene3d.js'];
+
+function loadScene(src) {
+    const web = path.join(src, 'web');
+    const sandbox = { console };
+    sandbox.self = sandbox;
+    vm.createContext(sandbox);
+    vm.runInContext(fs.readFileSync(path.join(web, 'lib', 'three.min.js'), 'utf8'), sandbox, { filename: 'three.min.js' });
+    for (const f of SCENE_LOAD_ORDER) vm.runInContext(fs.readFileSync(path.join(web, 'js', f), 'utf8'), sandbox, { filename: f });
+    // `const Scene3D` 는 컨텍스트의 렉시컬 바인딩이라 sandbox 프로퍼티로는 안 보인다 — 식으로 꺼낸다(state.js 의 `let S` 와 같은 함정).
+    const Scene3D = vm.runInContext("typeof Scene3D !== 'undefined' ? Scene3D : null", sandbox);
+    if (!Scene3D || typeof Scene3D !== 'object') throw new Error('Scene3D 가 없다 — scene3d.js 의 등록 이름이 바뀌었다');
+    return { sandbox, Scene3D };
+}
+
+function extractScene(src) {
+    const S = loadScene(src).Scene3D;
+    const out = {};
+    for (const k of SCENE_FIELDS) {
+        if (!(k in S)) throw new Error(`Scene3D.${k} 이 없다 — 정본이 바뀌었다 (SCENE_FIELDS 를 맞출 것)`);
+        out[k] = clean(S[k], `scene.${k}`);
+    }
+    return out;
+}
+
 // ── 로드 ────────────────────────────────────────────────────────────────────
 function makeContext() {
     const sandbox = { console };
@@ -368,6 +403,7 @@ function extract(src) {
         'state.json': extractState(src),
         'tech.json': pickFields(ctx, TECH_FIELDS),
         'meta.json': extractMeta(src),
+        'scene.json': extractScene(src),
     };
     const text = {};
     for (const k of Object.keys(files)) text[k] = serialize(files[k]);
@@ -476,6 +512,14 @@ function selfTest(src) {
     ok('meta.state 가 state.json(T13) 의 같은 칸과 일치', ['CHAPTERS_PER_CYCLE', 'STAGES_PER_CHAPTER', 'MAX_DIFFICULTY'].every(k => m.state[k] === st[k]) && JSON.stringify(m.state.DIFFICULTY_NAMES) === JSON.stringify(st.DIFFICULTY_NAMES));
     ok('state CHAPTERS_PER_CYCLE = CHAPTER_THEMES 수 · DIFFICULTY_NAMES = MAX+1', m.state.CHAPTERS_PER_CYCLE === g.CHAPTER_THEMES.length && m.state.DIFFICULTY_NAMES.length === m.state.MAX_DIFFICULTY + 1, m.state.CHAPTERS_PER_CYCLE);
 
+    console.log('[씬 상수 (T9)]');
+    const sc = files['scene.json'];
+    ok('SIMPLE_BG 는 정본 배포값(true — 소품·능선·구름 없음)', sc.SIMPLE_BG === true, sc.SIMPLE_BG);
+    ok('BIOMES 신설 15종 · 전부 kin 이 원본 6종 중 하나', cnt(sc.BIOMES) === 15 && Object.values(sc.BIOMES).every(b => ['forest', 'desert', 'rock', 'snow', 'magic', 'lava'].includes(b.kin)), cnt(sc.BIOMES));
+    ok('CHAPTER_THEMES 의 biome 이 원본 6종 또는 BIOMES 키', g.CHAPTER_THEMES.every(t => ['forest', 'desert', 'rock', 'snow', 'magic', 'lava'].includes(t.biome) || t.biome in sc.BIOMES));
+    ok('VOXG 셀 0.75 · 단 0.375 · VALUE 8칸 · SOIL 3칸', sc.VOXG.cell === 0.75 && sc.VOXG.step === 0.375 && cnt(sc.VALUE) === 8 && cnt(sc.SOIL) === 3, `${sc.VOXG.cell}/${sc.VOXG.step}`);
+    ok('SUN_DAY·SUN_NIGHT·CAM_POS 3벡터 · CAM_FOV 수', [sc.SUN_DAY, sc.SUN_NIGHT, sc.CAM_POS].every(v => Array.isArray(v) && v.length === 3) && typeof sc.CAM_FOV === 'number', sc.SUN_DAY.join(','));
+    ok('LEAF_OFF foliage 3 · RIDGE_LAYERS 3 · CRACK_W/A 3', sc.LEAF_OFF.foliage.length === 3 && sc.RIDGE_LAYERS.length === 3 && sc.CRACK_W.length === 3 && sc.CRACK_A.length === 3);
     console.log('[결정론]');
     const again = extract(src).text;
     ok('두 번 뽑아도 바이트 동일', Object.keys(text).every(k => text[k] === again[k]));

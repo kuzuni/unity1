@@ -104,7 +104,8 @@
 - PlayMode: 30초 자동 전투 · 콘솔 빨강 0 · 적 7종 전부 한 번씩 스폰·사망.
 - 범위: `Assets/Scripts/Game/Battle/` · `Assets/Tests/PlayMode/BattleSceneTests.cs`.
 
-### T9 — 맵·바이옴: 챕터 테마 10종 · 소품 배치(근경/중경 점유) · 지면·안개·광원 (Game · T4 뒤)
+### T9 ✅ — 맵·바이옴: 챕터 테마 10종 · 소품 배치(근경/중경 점유) · 지면·안개·광원 (Game · T4 뒤)
+- ⚠ **정본 실측(2026-09-12 워커 I)**: `scene3d.js` 67행 `SIMPLE_BG: true`(주인 지시 2026-08-21 «배경 아예 단순하면 어떤 느낌인지») 가 배포값이라 **소품·스캐터·능선 3겹·구름·안개 블롭·하늘 돔이 전부 꺼져 있고 `heightAt` 은 0**(`buildProps` 조기 return · `buildTerrain`/`buildSky`/`heightAt` 분기). 화면에 있는 것은 «복셀 지면 타일(정점색: 포석·연석·흙 결) + 안개·단색 배경 + 광원 3 + 테마 25 파생색» 뿐이다. 이 작업은 그 보이는 것을 옮겼고(T9 완료 기록), 지면 소재(캔버스 텍스처·노멀·균열 발광맵·포석 줄눈 데칼·지면 셰이더)는 **T34**, `SIMPLE_BG=false` 로 되살아나는 경로(소품 17종 생성기·배치·스캐터·능선·구름·하늘)는 **T35** 로 갈랐다 — 테마는 «10종» 이 아니라 `CHAPTER_THEMES` 25종(gamedata.json)이다.
 - 정본: `scene3d.js` 의 `setTheme`(테마 10종 색표 · 잎 색은 테마가 쥔다) · 소품 어댑터(`makePine`·`makeRoundTree`·`makeBoulder`… → `Props` 표) · 배치 규칙(`probe-nearfield-mass`·`probe-midground-depth` 게이트 값) · «역할 하나 = 메시 하나 = 드로우콜 하나».
 - 소품 `Props.fitU(칸, 목표높이, 목표폭)` 치수 역산을 그대로. 자작나무 흰 기둥만 재질을 따로.
 - PlayMode: 테마 10종 순회 · 드로우콜(`UnityStats.drawCalls`) ≤ 원작 한도 · 콘솔 빨강 0.
@@ -220,6 +221,15 @@
 - 방법: ⓐ §7 표를 위에서 아래로 — 줄마다 «유니티의 어느 파일·테스트가 그것인가» 를 적는다(없으면 «가장 큰 번호 +1» 로 등재하고 그 줄을 그 번호로 바꾼다) ⓑ `web/ref/screens/shot-*.png` 30장 각각에 유니티 `ui-screens/*.png` 짝이 있는가(T28 대조표) ⓒ `grep -o "^\s*\(open\|render\|show\|toggle\|close\|build\)[A-Z][A-Za-z]*" .wwwww-src/web/js/ui.js` 의 함수 하나하나에 유니티 대응(같은 이름의 메서드·화면)이 있는가 ⓓ `SFX.*` 29종 · `IconGen.img/avatar/skill/tab` 키가 `Sfx.Play`·`UiIcons.Get` 로 다 불리는가 ⓔ 원작을 한 판(전투→제작→장착→펫→스킬→던전→상점→리그→채팅) 하고 유니티(T27 봇 + WebGL 배포본)로 같은 판을 해 **다른 곳을 전부 적는다**.
 - 판정: 빠진 것 0 이 될 때까지 이 작업은 ✅ 가 아니다 — 빠진 것을 등재하고 «그 번호들 뒤» 로 자기 순서를 고쳐 lock 을 반납한다(다음 회차가 다시 잡는다). 전부 ✅ 면 §7 표 머리에 «완주 YYYY-MM-DD · 커밋» 을 적고 ✅.
 - 범위: `docs/ROUTINE.md`(§7 표) · `docs/PROGRESS.md` · `docs/parity.md`(대조 결과).
+### T34 — 지면 소재 굽기: `makeGroundTexture`/`makeGroundNormalMap`(kin 6 × 512 캔버스 레시피 + BIOMES tint) · 용암 균열 발광맵(`crackNetwork`·`makeCrackTexture`) · 포석 줄눈 데칼 · 지면 셰이더(`terrainShade` macro/LOD/눈 수광면 탈색/noise · `applyShadeLift` 암부 리프트) (Game · T9 뒤)
+- 정본: `scene3d.js` `makeGroundTexture`(2135~) · `makeGroundNormalMap`(2443~) · `crackNetwork`/`strokeCrackNet`/`makeCrackTexture`(2600~2731) · `buildTerrain` 의 포석 줄눈 캔버스 블록(2905~2985) · `terrainShade`(3650~3735) · `applyShadeLift`(1323~) · `setTheme` 의 `uRoad`/`uSnow`/`emissiveMap` 줄. T9 는 재질색·정점색(노면 회랑은 `uRoad` 배율을 정점색에 곱함)·발광 색표까지만 옮겼고 텍스처·셰이더는 여기다.
+- 캔버스 그리기는 `Math.random` 을 쓰므로 T2 표본과 같은 xorshift32 시드로 node(캔버스 대신 순수 픽셀 버퍼)에서 뽑은 PNG 와 C# 베이크가 ±1/255 로 같아야 한다. 셰이더는 URP 커스텀(Particles/Lit 위에 macro·LOD·snow·road·shadeLift 4항).
+- 판정: EditMode(텍스처 6×2 + 균열맵 픽셀 대조) + PlayMode(테마 25 순회 · 콘솔 빨강 0) + CI 초록 + PROGRESS 행 + «주인이 확인할 것: 에디터 Play → 초원 흙 결·사막 리플·용암 균열 발광이 원작(web)과 같은 인상인가».
+- 범위: `Assets/Scripts/Core/World/GroundTex*.cs` · `Assets/Scripts/Game/World/GroundTexture*.cs` · `Assets/Shaders/Terrain*.shader` · `Assets/Tests/EditMode/GroundTexTests.cs` · `Assets/Tests/EditMode/Vectors/t32-*.json` · `tools/ground_vectors.js`.
+
+### T35 — 배경 복원 경로(`SIMPLE_BG=false`): 소품 생성기 17종 C# 이식(`mobs-props.js` → T2 표본 23개와 같은 시드 대조) · `buildProps` 배치(큰 소품 16자리 + 랜드마크 + 중경 8 + 덤불 7·잔돌 7/11·꽃 2 + 근경 앵커 6 + 중경 앵커 7 + 원거리 11/14) · 스캐터 InstancedMesh 3층(`scatterSpots` 깊이 가중·군집) · 능선 3겹(`makeRidgeGeo`) · 구름·안개 블롭·하늘 돔·천체·오로라 · 잎/덤불/이끼/블롭/결정 파생색(`leafSet`·`stoneFrom` 나머지) · 지형 높이(`heightSmooth` 양자화 벽) (Game · T9·T4 뒤 · **주인이 SIMPLE_BG 를 끌 때만**)
+- 정본은 지금 `SIMPLE_BG: true` 라 이 경로가 **화면에 없다**(T9 메모). 주인이 «배경 아예 단순» 실험(2026-08-21)을 되돌리면 그때 켠다 — 그 전에는 뒤 순서가 안 열린 것으로 본다(선점하지 않는다). `GroundGrid`(T9)는 `SimpleBg=false` 면 이미 높이·벽을 낸다.
+- 범위: `Assets/Scripts/Core/World/Props*.cs`·`Scatter*.cs`·`Ridge*.cs` · `Assets/Scripts/Game/World/Props*.cs`·`Scatter*.cs`·`Ridges*.cs`·`Sky*.cs` · `Assets/Tests/EditMode/PropsTests.cs` · `Assets/Tests/PlayMode/PropsSceneTests.cs`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

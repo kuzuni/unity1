@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering
     public class MinFloatParameter : VolumeParameter<float> { }
     public class ClampedFloatParameter : VolumeParameter<float> { }
     public class BoolParameter : VolumeParameter<bool> { }
+    public class FloatParameter : VolumeParameter<float> { }   // T9 — ColorAdjustments.postExposure 의 형(진짜 UnityEngine.Rendering.FloatParameter)
 
     public class VolumeComponent : ScriptableObject { public bool active { get; set; } }
 
@@ -51,6 +52,11 @@ namespace UnityEngine.Rendering
 
 namespace UnityEngine.Rendering.Universal
 {
+    // T9 — 톤맵 노출(정본 renderer.toneMappingExposure → postExposure EV). 진짜 URP `ColorAdjustments : VolumeComponent` 의 공개 필드 이름 그대로.
+    public class ColorAdjustments : VolumeComponent
+    {
+        public FloatParameter postExposure = new FloatParameter();
+    }
     public class Bloom : VolumeComponent
     {
         public MinFloatParameter threshold = new MinFloatParameter();
