@@ -198,11 +198,11 @@
 - 고침: 자취 검사에서 **주석 줄(`//` · `///` · `#` · 문자열 리터럴)과 `tools/` 의 자기 검사 픽스처를 제외**하고 코드 식별자·파일명·폴더명만 센다. 자기 검사(`--self-test`)에 «주석만 가리키는 번호는 깨끗하다» 케이스를 더한다.
 - 범위: `tools/task_state.py`.
 
-### T30 — 사운드 이식: 효과음 29종 + 음악 4모드·레이어 6종 — 원작 `sfx.js` 의 **코드 합성**을 그대로 (Core+Game · T3 뒤)
+### T30 ✅ — 사운드 이식: 효과음 24종(+합성 프리미티브 6 · 원문 «29종» 은 셈 차이 · 결정 57ⓖ) + 음악 4모드·레이어 6종 — 원작 `sfx.js` 의 **코드 합성**을 그대로 (Core+Game · T3 뒤)
 - 정본: `web/js/sfx.js`(618줄 · 전부 · 외부 파일 0 — WebAudio 프로시저럴). 효과음: `anvilHit arrowShot auraRise bossSiren craft craftReveal equipDrop equipSnap equipToss gacha healDescend hit levelUp mawBite mawRoar slashArc stormCrackle stormRumble stormStrike summonCharge summonReveal voidPierce voidSnap voidTear`(호출마다 피치 랜덤화 · 레이어드 합성 = 어택 트랜지언트+바디+저역 텀프+테일). 음악: 모드 4종(`normal/boss/dungeon/shop`) · 레이어 6종(서브베이스·베이스·디튠 패드·아르페지오·멜로디·퍼커션) · 스윙·박 위계 다이내믹 · 템포 동기 딜레이/합성 리버브. 버스: master(SFX)·musicGain(BGM) → 소프트 리미터 → 출력 · 합성 IR 리버브 센드 공용. 공개 표면: `startMusic setMusicMode toggleMusic musicEnabled resume`.
 - 원작이 «외부 파일 금지 · 전부 코드 합성» 이니 유니티도 **오디오 파일을 들이지 않는다**: `Assets/Scripts/Core/Audio/`(순수 C# DSP · 오실레이터·엔벨로프·노이즈·IR 합성·시퀀서 → `float[]` 샘플 · `dotnet test` 로 길이·피크·무음 아님·결정론(시드) 검증) + `Assets/Scripts/Game/Audio/`(`AudioClip.Create` 로 클립화 · 캐시 · `AudioSource` 버스 2개 + 리미터는 유니티 `AudioMixer` 없이 Core 리미터를 샘플에 미리 적용 · `Sfx.Play(name)`·`Music.SetMode(mode)` 표면 이름을 원작과 같게). 주파수·엔벨로프·BPM·음계·모드별 곡 데이터 같은 **수치는 코드에 박지 않고** `Assets/StreamingAssets/data/sfx.json` 으로(T2 추출기에 `sfx.js` 갈래를 더한다 · 표로 못 뽑는 함수 안 상수는 결정 기록에 사유를 적고 Core 상수 파일 하나에 모은다).
 - 호출 지점(전투 타격·대장간 망치·소환·장비 장착·보스 사이렌·모드 전환)은 그 화면·전투 작업(T8·T19·T20·T21)이 붙인다 — 이 작업은 **모듈 + 전 효과음 재생 PlayMode 스모크** 까지. 이미 끝난 작업의 호출 지점은 이 작업이 붙인다.
-- 판정: EditMode DSP 테스트(효과음 29종 · 모드 4종 각 8박 렌더 → 길이·피크 ≤ 1.0·RMS > 0·같은 시드면 같은 샘플) + PlayMode(효과음 29종 전부 `Play` · 모드 4종 전환 · 콘솔 빨강 0) + CI 초록 + PROGRESS 행 + «주인이 확인할 것: 에디터 Play → 망치 소리·전투 타격음·상점 음악 전환이 원작(web 에서 재생)과 같은 인상인가».
+- 판정: EditMode DSP 테스트(효과음 24종 · 모드 4종 각 8박 렌더 → 길이·피크 ≤ 1.0·RMS > 0·같은 시드면 같은 샘플 · 정본 합성 그래프 벡터 대조) + PlayMode(효과음 24종 전부 `Play` · 모드 4종 전환 · 콘솔 빨강 0) + CI 초록 + PROGRESS 행 + «주인이 확인할 것: 에디터 Play → 망치 소리·전투 타격음·상점 음악 전환이 원작(web 에서 재생)과 같은 인상인가».
 - 범위: `Assets/Scripts/Core/Audio/` · `Assets/Scripts/Game/Audio/` · `Assets/StreamingAssets/data/sfx.json` · `tools/export_data.js`(sfx 갈래만) · `tools/check_data_sync.sh`(FILES 에 sfx.json 한 단어) · `tools/sfx_vectors.js`(정본 sfx.js 를 vm 에 올려 합성 호출 벡터를 찍는 도구) · `Assets/Tests/EditMode/Vectors/t30-sfx.json` · `Assets/Tests/EditMode/AudioTests.cs` · `Assets/Tests/PlayMode/AudioSmokeTests.cs`.
 
 ### T31 ✅ — 아이콘·아바타 이식: `icongen.js` 아이콘 136종 + `avatars.js` 아바타 24종(= `IconGen.draw` 키 160 · «523» 은 그리기 도우미까지 센 수 · 실측 2026-09-12) — 정본을 **래스터로 뽑아** 유니티가 받는다 (도구+Game · T2·T18 뒤 · T19~T22 는 이것을 쓴다)
@@ -219,8 +219,8 @@
 - 범위: `.github/workflows/ci.yml`(concurrency · 잡별 그룹) · `.github/workflows/ntfy-notify.yml`(cancelled 필터).
 - (2026-09-12 계정 2 대화 세션 · 주인 «가장 먼저» 로 올림) 실측: 런 9~15 전부 cancelled · 원인은 굽기 잡(WebGL·Android 20~40분)이 push 마다 도는 것. 가장 싼 고침: `build-webgl`·`build-android` 의 `if` 를 `github.event_name == 'schedule' || inputs.build == true` 로 두고 `on.schedule: cron '0 */3 * * *'`(main 최신을 굽는다) · 굽기 잡은 별도 `concurrency` 그룹(`build-main`) · `unity-test` 는 push 마다 그대로(7분). 취소가 남는 동안의 lock 반납은 §1 «내 뒤 런이 초록이면 내 확인» 규칙으로.
 
-### T33 — 완주 대조: §7 표의 모든 줄이 ✅ 이고 원작 화면 30장·`ui.js` 공개 함수 97개·`SFX` 29종·`IconGen` 키가 유니티에 다 있는가 (검증 · T27·T28·T30·T31 뒤 · **마지막**)
-- 방법: ⓐ §7 표를 위에서 아래로 — 줄마다 «유니티의 어느 파일·테스트가 그것인가» 를 적는다(없으면 «가장 큰 번호 +1» 로 등재하고 그 줄을 그 번호로 바꾼다) ⓑ `web/ref/screens/shot-*.png` 30장 각각에 유니티 `ui-screens/*.png` 짝이 있는가(T28 대조표) ⓒ `grep -o "^\s*\(open\|render\|show\|toggle\|close\|build\)[A-Z][A-Za-z]*" .wwwww-src/web/js/ui.js` 의 함수 하나하나에 유니티 대응(같은 이름의 메서드·화면)이 있는가 ⓓ `SFX.*` 29종 · `IconGen.img/avatar/skill/tab` 키가 `Sfx.Play`·`UiIcons.Get` 로 다 불리는가 ⓔ 원작을 한 판(전투→제작→장착→펫→스킬→던전→상점→리그→채팅) 하고 유니티(T27 봇 + WebGL 배포본)로 같은 판을 해 **다른 곳을 전부 적는다**.
+### T33 — 완주 대조: §7 표의 모든 줄이 ✅ 이고 원작 화면 30장·`ui.js` 공개 함수 97개·`SFX` 24종(`SfxRecipes.Names`)·`IconGen` 키가 유니티에 다 있는가 (검증 · T27·T28·T30·T31 뒤 · **마지막**)
+- 방법: ⓐ §7 표를 위에서 아래로 — 줄마다 «유니티의 어느 파일·테스트가 그것인가» 를 적는다(없으면 «가장 큰 번호 +1» 로 등재하고 그 줄을 그 번호로 바꾼다) ⓑ `web/ref/screens/shot-*.png` 30장 각각에 유니티 `ui-screens/*.png` 짝이 있는가(T28 대조표) ⓒ `grep -o "^\s*\(open\|render\|show\|toggle\|close\|build\)[A-Z][A-Za-z]*" .wwwww-src/web/js/ui.js` 의 함수 하나하나에 유니티 대응(같은 이름의 메서드·화면)이 있는가 ⓓ `SFX.*` 24종 · `IconGen.img/avatar/skill/tab` 키가 `Sfx.Play`·`UiIcons.Get` 로 다 불리는가 ⓔ 원작을 한 판(전투→제작→장착→펫→스킬→던전→상점→리그→채팅) 하고 유니티(T27 봇 + WebGL 배포본)로 같은 판을 해 **다른 곳을 전부 적는다**.
 - 판정: 빠진 것 0 이 될 때까지 이 작업은 ✅ 가 아니다 — 빠진 것을 등재하고 «그 번호들 뒤» 로 자기 순서를 고쳐 lock 을 반납한다(다음 회차가 다시 잡는다). 전부 ✅ 면 §7 표 머리에 «완주 YYYY-MM-DD · 커밋» 을 적고 ✅.
 - 범위: `docs/ROUTINE.md`(§7 표) · `docs/PROGRESS.md` · `docs/parity.md`(대조 결과).
 ### T34 — 지면 소재 굽기: `makeGroundTexture`/`makeGroundNormalMap`(kin 6 × 512 캔버스 레시피 + BIOMES tint) · 용암 균열 발광맵(`crackNetwork`·`makeCrackTexture`) · 포석 줄눈 데칼 · 지면 셰이더(`terrainShade` macro/LOD/눈 수광면 탈색/noise · `applyShadeLift` 암부 리프트) (Game · T9 뒤)
@@ -379,7 +379,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ⬜ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | T25 ✅ · T22 🔄 |
 | `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 | T18 ✅ |
-| `js/sfx.js`(618) | 효과음 29종 · 음악 4모드 (코드 합성) | T30 | 🔄 |
+| `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | ⬜ |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |

@@ -20,6 +20,10 @@
 //                     + icongen.js 의 AVATAR_POOL. 이 다섯 파일은 표가 객체 리터럴이고 상태 `S` 는 메서드 안에서만 만지므로
 //                     로드만 하면 값이 선다(T25). state.js 가 `window` 에 접근자를 걸어 이 묶음만 `window = sandbox` 인
 //                     둘째 컨텍스트에서 뽑는다 — 조형 컨텍스트에는 window 를 두지 않는다(아래 makeContext 주석).
+//   sfx.json          sfx.js 의 최상위 const — MUSIC_MODES(모드 4종 bpm·스윙·코드 진행·멜로디 A/B·층별 패턴 플래그) ·
+//                     MUSIC_STEPS_PER_BAR · MUSIC_BARS_PER_CHORD · MUSIC_LOOP_STEPS (T30). `SFX` 객체는 메서드 묶음(효과음 레시피 ·
+//                     합성 프리미티브)이라 표가 아니다 — C# `SfxRecipes`(Core/Audio)가 함수 단위로 옮긴다. 셋째 컨텍스트(sfx.js 홀로 ·
+//                     최상위는 다른 모듈을 안 읽는다)에서 뽑는다.
 //   mobs-props.json   Props          — 소품은 표가 아니라 **생성 함수**(`Props.pine(s,o)` … · Math.random)라
 //                     함수 이름 목록(kinds) + 결정론 시드로 뽑은 **표본**(samples) 을 낸다. T9 가 생성기를
 //                     C# 으로 옮길 때 같은 시드·같은 인자로 같은 칸 목록이 나오는지 대조하는 고정 표본이다.
@@ -264,6 +268,20 @@ function clean(v, where) {
     throw new Error(`${where}: 다룰 수 없는 형 ${t}`);
 }
 
+// ── 소리 표 (T30 · sfx.js 최상위 const) ─────────────────────────────────────────
+// sfx.js 의 최상위는 MUSIC_MODES·MUSIC_STEPS_PER_BAR·MUSIC_BARS_PER_CHORD·MUSIC_LOOP_STEPS·SFX 뿐이고 다른 모듈(S·RARITIES·UI)은
+// 메서드 안에서만 읽는다 — 홀로 로드해도 선다. `SFX` 는 메서드 객체라 뺀다(레시피는 C# 이 함수 단위로 옮긴다 · T30).
+function extractSfx(src) {
+    const webjs = path.join(src, 'web', 'js');
+    const sandbox = { console };
+    vm.createContext(sandbox);
+    const code = fs.readFileSync(path.join(webjs, 'sfx.js'), 'utf8');
+    vm.runInContext(code, sandbox, { filename: 'sfx.js' });
+    const out = pickTopLevel(sandbox, code, 'sfx.js');
+    delete out.SFX;
+    return clean(out, 'sfx');
+}
+
 // ── 메타 표 (T25 · shop/pass/quests/league/chat + state 진행 상수 + 아바타) ──────────────
 // index.html 순서 중 이 묶음이 로드 시점에 기대는 것만: util(U) · bignum(Big) · balance/gamedata(CHAPTER_THEMES → CHAPTERS_PER_CYCLE) ·
 // icongen(AVATAR_POOL · DEFAULT_AVATAR) · state(진행 상수). `League.rewardForRank`·`rewardMult` 는 함수라 1~21위(REWARD_TIERS 마지막 rank)
@@ -404,6 +422,7 @@ function extract(src) {
         'tech.json': pickFields(ctx, TECH_FIELDS),
         'meta.json': extractMeta(src),
         'scene.json': extractScene(src),
+        'sfx.json': extractSfx(src),
     };
     const text = {};
     for (const k of Object.keys(files)) text[k] = serialize(files[k]);
@@ -520,6 +539,21 @@ function selfTest(src) {
     ok('VOXG 셀 0.75 · 단 0.375 · VALUE 8칸 · SOIL 3칸', sc.VOXG.cell === 0.75 && sc.VOXG.step === 0.375 && cnt(sc.VALUE) === 8 && cnt(sc.SOIL) === 3, `${sc.VOXG.cell}/${sc.VOXG.step}`);
     ok('SUN_DAY·SUN_NIGHT·CAM_POS 3벡터 · CAM_FOV 수', [sc.SUN_DAY, sc.SUN_NIGHT, sc.CAM_POS].every(v => Array.isArray(v) && v.length === 3) && typeof sc.CAM_FOV === 'number', sc.SUN_DAY.join(','));
     ok('LEAF_OFF foliage 3 · RIDGE_LAYERS 3 · CRACK_W/A 3', sc.LEAF_OFF.foliage.length === 3 && sc.RIDGE_LAYERS.length === 3 && sc.CRACK_W.length === 3 && sc.CRACK_A.length === 3);
+    console.log('[소리 표 · T30]');
+    const sx = files['sfx.json'];
+    const modes = sx.MUSIC_MODES || {};
+    ok('MUSIC_MODES 4종 normal/boss/dungeon/shop', Object.keys(modes).join(',') === 'normal,boss,dungeon,shop', Object.keys(modes).join(','));
+    ok('모드마다 bpm>0 · swing 0~1 · prog 4코드(bass·pad·arp) · mel/melB 비어 있지 않음', Object.values(modes).every(m =>
+        m.bpm > 0 && m.swing >= 0 && m.swing < 1 && Array.isArray(m.prog) && m.prog.length === 4 &&
+        m.prog.every(c => typeof c.bass === 'number' && c.pad.length >= 3 && c.arp.length >= 2) &&
+        Object.keys(m.mel).length > 0 && Object.keys(m.melB).length > 0));
+    ok('모드마다 bassSteps·arpEvery·padType(triangle|sawtooth)·padLp·hatEvery·hatOff·kick(false|true|soft)·shaker', Object.values(modes).every(m =>
+        Array.isArray(m.bassSteps) && typeof m.arpEvery === 'number' && (m.padType === 'triangle' || m.padType === 'sawtooth') && m.padLp > 0 &&
+        typeof m.hatEvery === 'number' && typeof m.hatOff === 'number' && (m.kick === false || m.kick === true || m.kick === 'soft') && typeof m.shaker === 'boolean'));
+    ok('멜로디 스텝 키 0~31 · 음 MIDI 정수', Object.values(modes).every(m => [m.mel, m.melB].every(h => Object.entries(h).every(([k, v]) => +k >= 0 && +k < 32 && Number.isInteger(v)))));
+    ok('MUSIC_LOOP_STEPS = 4 × BARS_PER_CHORD × STEPS_PER_BAR', sx.MUSIC_LOOP_STEPS === 4 * sx.MUSIC_BARS_PER_CHORD * sx.MUSIC_STEPS_PER_BAR, sx.MUSIC_LOOP_STEPS);
+    ok('SFX 메서드 객체는 안 들어감', !('SFX' in sx));
+
     console.log('[결정론]');
     const again = extract(src).text;
     ok('두 번 뽑아도 바이트 동일', Object.keys(text).every(k => text[k] === again[k]));
@@ -552,4 +586,4 @@ function main(argv) {
 }
 
 if (require.main === module) process.exit(main(process.argv.slice(2)));
-module.exports = { extract, extractMeta, serialize, selfTest, LOAD_ORDER, STATE_LOAD_ORDER, META_LOAD_ORDER, SEED };
+module.exports = { extract, extractMeta, extractSfx, serialize, selfTest, LOAD_ORDER, STATE_LOAD_ORDER, META_LOAD_ORDER, SEED };
