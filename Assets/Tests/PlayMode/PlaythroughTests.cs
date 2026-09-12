@@ -58,6 +58,9 @@ namespace Forge.Tests.PlayMode
 
         private static IEnumerator Boot()
         {
+            // 자취는 부팅보다 먼저 연다 — 부팅이 못 서면 그 자리에서 단언이 터져 그 뒤 줄이 안 남는다(CI 런 68 실측).
+            Trace("# T27 PlaythroughTests 자취 — 한 판을 어디까지 몰았는지", true);
+            Trace("boot 시작 · 배치=" + Application.isBatchMode + " · 화면=" + Screen.width + "x" + Screen.height);
             try { if (File.Exists(SaveIo.SavePath)) File.Delete(SaveIo.SavePath); }
             catch (Exception) { /* 없으면 그만 */ }
             BattleScene.AutoBoot = true;
@@ -71,12 +74,16 @@ namespace Forge.Tests.PlayMode
                 t += Time.unscaledDeltaTime;
                 yield return null;
             }
-            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 30초 안에 서지 않았다");
-            Assert.IsTrue(ForgeHost.Ready, "ForgeHost 가 30초 안에 서지 않았다");
-            Assert.IsTrue(PetSkillHost.Ready, "PetSkillHost 가 30초 안에 서지 않았다");
-            Assert.IsTrue(DungeonUiHost.Ready, "DungeonUiHost 가 30초 안에 서지 않았다");
-            Assert.IsNotNull(BattleScene.Instance, "전투 씬이 서지 않았다");
-            Assert.IsTrue(BattleScene.Instance.Ready, "전투 씬이 30초 안에 준비되지 않았다");
+            string hosts = "meta=" + MetaHost.Ready + " forge=" + ForgeHost.Ready + " petskill=" + PetSkillHost.Ready
+                           + " dungeon=" + DungeonUiHost.Ready + " sheet=" + (SkillPetSheet.Instance != null)
+                           + " battle=" + (BattleScene.Instance != null && BattleScene.Instance.Ready) + " · " + t.ToString("0.0") + "초";
+            Trace("boot 호스트 · " + hosts);
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 30초 안에 서지 않았다 — " + hosts);
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost 가 30초 안에 서지 않았다 — " + hosts);
+            Assert.IsTrue(PetSkillHost.Ready, "PetSkillHost 가 30초 안에 서지 않았다 — " + hosts);
+            Assert.IsTrue(DungeonUiHost.Ready, "DungeonUiHost 가 30초 안에 서지 않았다 — " + hosts);
+            Assert.IsNotNull(BattleScene.Instance, "전투 씬이 서지 않았다 — " + hosts);
+            Assert.IsTrue(BattleScene.Instance.Ready, "전투 씬이 30초 안에 준비되지 않았다 — " + hosts);
             yield return null;
         }
 
@@ -119,7 +126,6 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 한_판_전투_제작_장착_펫_스킬_던전을_끝까지_몰아도_콘솔_빨강_0()
         {
             yield return Boot();
-            Trace("# T27 PlaythroughTests 자취 — 한 판을 어디까지 몰았는지", true);
             PlayLog log = PlayLog.Start("playthrough");
             TabBar tb = UiRoot.Instance.TabBar;
 

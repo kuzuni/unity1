@@ -72,6 +72,11 @@ namespace Forge.Tests.PlayMode
 
         private static IEnumerator Boot()
         {
+            // 자취는 **부팅보다 먼저** 연다 — 부팅이 못 서면(호스트 30초 대기 초과) 그 자리에서 단언이 터져
+            // 그 뒤 줄이 하나도 안 남기 때문이다(CI 런 68 이 그 꼴이었다: 파일 자체가 없어 «어디서 멈췄나» 를 못 봤다).
+            Trace("# T27 UiShotsTests 자취 — 어디까지 갔는지 한 줄씩(런이 죽어도 남는다)", true);
+            Trace("boot 시작 · 유니티=" + Application.unityVersion + " · 배치=" + Application.isBatchMode
+                  + " · 그래픽=" + GallerySheet.GraphicsAvailable + " · 화면=" + Screen.width + "x" + Screen.height);
             try { if (File.Exists(SaveIo.SavePath)) File.Delete(SaveIo.SavePath); }
             catch (Exception) { /* 없으면 그만 */ }
             PetSkillHost.Seed = 20260912;
@@ -84,11 +89,15 @@ namespace Forge.Tests.PlayMode
                 t += Time.unscaledDeltaTime;
                 yield return null;
             }
-            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 30초 안에 서지 않았다");
-            Assert.IsTrue(ForgeHost.Ready, "ForgeHost 가 30초 안에 서지 않았다");
-            Assert.IsTrue(PetSkillHost.Ready, "PetSkillHost 가 30초 안에 서지 않았다");
-            Assert.IsTrue(DungeonUiHost.Ready, "DungeonUiHost 가 30초 안에 서지 않았다");
-            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            string hosts = "meta=" + MetaHost.Ready + " forge=" + ForgeHost.Ready + " petskill=" + PetSkillHost.Ready
+                           + " dungeon=" + DungeonUiHost.Ready + " sheet=" + (SkillPetSheet.Instance != null)
+                           + " popups=" + (PopupLayer.Instance != null) + " · " + t.ToString("0.0") + "초";
+            Trace("boot 호스트 · " + hosts);
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 30초 안에 서지 않았다 — " + hosts);
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost 가 30초 안에 서지 않았다 — " + hosts);
+            Assert.IsTrue(PetSkillHost.Ready, "PetSkillHost 가 30초 안에 서지 않았다 — " + hosts);
+            Assert.IsTrue(DungeonUiHost.Ready, "DungeonUiHost 가 30초 안에 서지 않았다 — " + hosts);
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다 — " + hosts);
             yield return null;
         }
 
@@ -544,8 +553,20 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>한 줄씩 바로 덧붙인다(런이 중간에 죽어도 «어디까지 갔는지» 는 남는다).</summary>
+        private static readonly List<string> traceLines = new List<string>();
+
+        /// <summary>자취 꼬리 — 실패 메시지에 붙여 결과 XML(그리고 T46 `playmode-red.txt`)로도 나가게 한다. `screens` 브랜치는 뒤 런이 덮어써 놓칠 수 있다.</summary>
+        private static string TraceTail(int n)
+        {
+            int from = traceLines.Count - n;
+            if (from < 0) from = 0;
+            return string.Join(" | ", traceLines.GetRange(from, traceLines.Count - from).ToArray());
+        }
+
         private static void Trace(string line, bool reset = false)
         {
+            if (reset) traceLines.Clear();
+            traceLines.Add(line);
             try
             {
                 string dir = Path.Combine(Directory.GetCurrentDirectory(), GallerySheet.OutDir);
@@ -587,9 +608,7 @@ namespace Forge.Tests.PlayMode
             var failed = new List<string>();
             List<Shot> shots = null;
             string bootErr = null;
-            Trace("# T27 UiShotsTests 자취 — 어디까지 갔는지 한 줄씩(런이 죽어도 남는다)", true);
-            Trace("boot ok · 그래픽=" + GallerySheet.GraphicsAvailable + " · 화면=" + Screen.width + "x" + Screen.height
-                  + " · 촬영=" + ShotW + "x" + ShotH + " · 배치=" + Application.isBatchMode);
+            Trace("boot ok · 촬영=" + ShotW + "x" + ShotH);
             try
             {
                 Seed();
@@ -668,7 +687,7 @@ namespace Forge.Tests.PlayMode
             Trace("done · 필수 " + required + "장 · 어긋남 " + failed.Count + " · PNG " + files.Count + " · 빨강 " + log.RedCount);
             log.Dispose();
 
-            if (failed.Count > 0) Assert.Fail("원작 화면 " + required + "장 중 " + failed.Count + "건이 어긋났다:\n  · " + string.Join("\n  · ", failed.ToArray()));
+            if (failed.Count > 0) Assert.Fail("원작 화면 " + required + "장 중 " + failed.Count + "건이 어긋났다:\n  · " + string.Join("\n  · ", failed.ToArray()) + "\n자취 꼬리: " + TraceTail(10));
             log.AssertNoRed();
             Debug.Log("[UiShots] 화면 " + required + "장 열림 · PNG " + files.Count + "장(" + (GallerySheet.GraphicsAvailable ? "그래픽 있음" : "-nographics") + ")");
         }
