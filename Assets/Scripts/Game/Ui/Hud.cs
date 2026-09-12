@@ -29,6 +29,8 @@ namespace Forge.Game.Ui
         private TextMeshProUGUI chat;
         private RectTransform pipsRow;
         private RectTransform track;
+        private RectTransform avatarTile;
+        private Image avatarPortrait;
         private readonly List<Pip> pips = new List<Pip>();
 
         /// <summary>프로필 카드를 눌렀을 때(프로필 팝업 · 뒤 작업).</summary>
@@ -76,6 +78,7 @@ namespace Forge.Game.Ui
             float avR = UiKit.H("avatar_radius");
             Image avRing = UiKit.Rounded(card, "avatar", "pp_line", avR);
             UiKit.Place(avRing.rectTransform, 0f, (cardH - av) * 0.5f, av, av);
+            avatarTile = avRing.rectTransform;
             Image avFace = UiKit.Rounded(avRing.transform, "face", "avatar_bg", avR - line);
             Inset(avFace.rectTransform, line);
 
@@ -159,6 +162,34 @@ namespace Forge.Game.Ui
             nickname.text = nick ?? string.Empty;
             cp.text = combatPower ?? string.Empty;
         }
+
+        /// <summary>
+        /// 원작 <c>renderTopBar</c> 의 <c>IconGen.avatar(S.avatarEmoji)</c> — 프로필 카드의 도트 초상(T31 아틀라스).
+        /// 원작은 아바타를 고치면 상단바를 다시 그리므로(<c>onPickAvatar</c>) 다시 불러 갈아끼울 수 있다.
+        /// 아틀라스에 없는 이모지면 초상을 감춘다(지금까지의 빈 흰 타일 그대로 · 원작은 이모지 글자로 폰트 폴백한다).
+        /// </summary>
+        public void SetAvatar(string emoji)
+        {
+            if (avatarTile == null) return;
+            Sprite portrait = UiIcons.Avatar(emoji);
+            if (portrait == null)
+            {
+                if (avatarPortrait != null) avatarPortrait.enabled = false;
+                return;
+            }
+            if (avatarPortrait == null)
+            {
+                avatarPortrait = UiKit.Panel(avatarTile, "portrait", "avatar_bg");
+                avatarPortrait.type = Image.Type.Simple;
+                avatarPortrait.preserveAspect = true;
+                Inset(avatarPortrait.rectTransform, UiKit.L("line_px") * 2f);
+            }
+            avatarPortrait.enabled = true;
+            avatarPortrait.sprite = portrait;
+        }
+
+        /// <summary>지금 상단바에 걸린 초상(없으면 null) — 테스트·검증용.</summary>
+        public Sprite AvatarPortrait { get { return avatarPortrait != null && avatarPortrait.enabled ? avatarPortrait.sprite : null; } }
 
         public void SetCurrency(string coinText, string gemText)
         {
