@@ -59,7 +59,7 @@
 - 판정: CI `dotnet` 잡 초록 + (시크릿이 있으면) 유니티 잡이 테스트를 **실제로** 돌린 것(0개 아님) + PROGRESS 행 + «주인이 확인할 것: 에디터에서 Play → 빈 세로 씬 · 콘솔 빨강 0».
 - 범위: `Assets/Settings` · `Assets/Scenes` · `Assets/Scripts/Game/Bootstrap.cs`(GameInfo.cs 자리표 삭제) · `Assets/Scripts/Core/Viewport.cs`(레터박스 순수 계산) · `Assets/Tests`(EditMode/ViewportTests.cs · PlayMode/Forge.Tests.PlayMode.asmdef · PlayMode/BootstrapTests.cs) · `ProjectSettings/ProjectSettings.asset`(productName · 세로 고정) · `tools/dotnet`.
 
-### T2 — 정본 데이터 추출기: 원작 JS 표 → `Assets/StreamingAssets/data/*.json` + 동기화 검사 (기반 · 뒤 순서 없음)
+### T2 ✅ — 정본 데이터 추출기: 원작 JS 표 → `Assets/StreamingAssets/data/*.json` + 동기화 검사 (기반 · 뒤 순서 없음)
 - 정본: `web/js/balance-data.js`(대장간 확률·비용·시간 · 펫 알 드랍·부화 · 소환 확률 · 오프라인) · `gamedata.js`(시대·등급·장비명·스킬·펫 정의) · `mobdata.js`+`mobs-pets.js`·`mobs-mounts.js`·`mobs-enemies.js`·`mobs-props.js`·`mobs-skillfx.js`(조형 표) · `data/raw/*`.
 - `tools/export_data.js`(node 22 · 의존성 0): 원작 파일을 `globalThis` 루트로 `vm` 에 로드해 **평가된 값**을 JSON 으로 쓴다. 조형 표는 종마다 `{cell, parts:[{id, box, at, c, paint, mat, parent, pivot, rot, joint, tag, s, gait, head}]}` 를 **함수를 다 푼 뒤** 내보낸다(`quad()`·`eyes()` 같은 도우미는 원작 안에서 이미 배열을 만든다 · `THREE` 는 표 정의 시점에 필요 없다 — 필요하면 그 종을 «정본에서 고칠 것» 으로 보고). 색은 `0xRRGGBB` 정수 그대로.
 - 출력: `balance.json` · `gamedata.json` · `mobs-pets.json` · `mobs-mounts.json` · `mobs-enemies.json` · `mobs-props.json` · `mobs-skillfx.json` (+ `.meta` 는 `gen_meta.py`).
@@ -223,7 +223,7 @@ node tools/export_data.js --self-test                                         # 
 | 계정 | 로그인 이메일 | account uuid | environment_id | 워커 | 슬롯(UTC) |
 |---|---|---|---|---|---|
 | **계정 1** | `kimmoon2007@gmail.com` (표시명 «김문») | `b7a233c8-…` | `env_014bNYWJnnxgzqfDN9JPBD6p` | A · B · C · D | :05 :20 :35 :50 |
-| 계정 2 | (미정 — 붙일 때 적는다) | — | — | E · F · G · H | :12 :27 :42 :57 |
+| **계정 2** | `rudwpwjrwkdb1995@gmail.com` | (미확인 — 워커 H 세션의 `get_session` 에 uuid 가 안 실린다) | `env_01JWPF8hM8XqtGYWuFnAsN93` | E · F · G · H | :12 :27 :42 :57 |
 | **계정 3** | `rudwpwjrwkdb95@gmail.com` (표시명 «김문») | `7029fe80-2b87-422e-98e6-9d6aafaf5c7f` | `env_01XKJDdWmKFxSg4FuR8yethb` | I · J · K · L · Q | :02 :17 :32 :47 · Q 짝수시 :00 |
 | 계정 4 | (미정) | — | — | M · N · O · P | :09 :24 :39 :54 |
 | **계정 5** | `rudwpwjrwkdb2007@gmail.com` (표시명 «김문») | `2968d241-39ae-47a7-aa6a-cb96fa1ea1b4` | `env_01Pzd5v3t1DrfBQqJkzqcXqC` | R · S · T · U | :14 :29 :44 :59 |
@@ -263,7 +263,7 @@ node tools/export_data.js --self-test                                         # 
 | E | :12 | — | 계정 2 | — | 미등록 |
 | F | :27 | — | 계정 2 | — | 미등록 |
 | G | :42 | — | 계정 2 | — | 미등록 |
-| H | :57 | — | 계정 2 | — | 미등록 |
+| H | :57 | (ID 미확인 — 루틴을 만든 세션이 채운다) | 계정 2 | 2026-09-12 17:52 UTC 첫 런 · 세션 https://claude.ai/code/session_015KtwTwgC1Tt7CWrca3633j | 워커 H 첫 회차(T2)가 세션 제목 «unity1 포지 이식 워커 H (:57)» · env `env_01JWPF8hM8XqtGYWuFnAsN93` 로 확인해 적음 |
 | I | :02 | `trig_018vJFGNoopJV5U8DcKLdRMd` | 계정 3 | 2026-09-12 18:02 UTC 예정 · 세션 https://claude.ai/code/session_01VuP4po4zaU2S1g3qXxvHcL · 루틴 https://claude.ai/code/routines/trig_018vJFGNoopJV5U8DcKLdRMd | 2026-09-12 17:55 UTC 생성(계정 3 착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01XKJDdWmKFxSg4FuR8yethb` · enabled |
 | J | :17 | `trig_01Wi4tU6pNfw88Yg7CjXpPCp` | 계정 3 | 2026-09-12 18:17 UTC 예정 · 세션 https://claude.ai/code/session_017YU8zAmyrBGAgAXAsUf5yB · 루틴 https://claude.ai/code/routines/trig_01Wi4tU6pNfw88Yg7CjXpPCp | 2026-09-12 17:55 UTC 생성(계정 3 착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01XKJDdWmKFxSg4FuR8yethb` · enabled |
 | K | :32 | `trig_0148B63LsU2pRov9y1yfivaj` | 계정 3 | 2026-09-12 18:32 UTC 예정 · 세션 https://claude.ai/code/session_0132fa6K2bvevQ9Jr63rRW9h · 루틴 https://claude.ai/code/routines/trig_0148B63LsU2pRov9y1yfivaj | 2026-09-12 17:55 UTC 생성(계정 3 착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01XKJDdWmKFxSg4FuR8yethb` · enabled |
