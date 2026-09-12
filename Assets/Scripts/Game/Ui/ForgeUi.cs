@@ -171,7 +171,10 @@ namespace Forge.Game.Ui
                 return card;
             }
             Color ac = AgeColor(d, item.Age);
-            if (!isNew) PopupKit.Outlined(card, "face", "pp_paper", rem * 0.8f, PopupKit.Line3);
+            // 카드 자체는 판이 없다 — 원작 `.cmp-card-wrap.cur .cmp-card{border:none}` 와
+            // `.cmp-lower .cmp-card-wrap.new .cmp-card{background:transparent}`. 흰 판은 이것을 품은
+            // 팝업 카드(cur)와 회색 하부 패널(new)이 쥔다. (T57: 여기서 흰 테를 한 겹 더 그려
+            // 원작에 없는 상자가 생기고, 반대로 새 장비 카드는 판 없이 3D 배경 위에 떠 보였다.)
             RectTransform tileRt = ItemTile(card, "tile", tile, d, item.Age, ItemIconKey(d, item));
             UiKit.Place(tileRt, rem * 0.7f, rem * 0.6f, tile, tile);
             LvBadge(tileRt, item.Level, tile);

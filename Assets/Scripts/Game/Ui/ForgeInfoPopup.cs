@@ -284,7 +284,9 @@ namespace Forge.Game.Ui
                 SubstatDef s = d.Substats[i];
                 TextMeshProUGUI row = PopupKit.Label(subs, "substat-" + s.Key, TextKind.Sub, ForgeUi.SubRangeText(d, s.Key, s.Max) + " " + s.Label, "pp_ink", TextAlignmentOptions.Left, false, false);
             }
-            PopupKit.XButton(card, () => CloseItemDetail(h));
+            // ✕ 는 화면당 하나다(T57): 이 팝업은 목록 팝업 **위에** 서므로 제 ✕ 를 또 달면 둘이 겹쳐 보인다
+            // (원작 shot-042931 에는 밝은 ✕ 가 0개 · 딤 아래 목록의 ✕ 하나뿐이다 · 결정 기록 참조).
+            // 닫는 길은 딤 탭(위 dim.onClick = CloseItemDetail)과 목록 팝업의 ✕ 다.
         }
     }
 }

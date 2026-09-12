@@ -212,8 +212,28 @@ namespace Forge.Game.Ui
             return rt;
         }
 
+        /// <summary>
+        /// 레이아웃 그룹을 달기 **전에** 이미 들어 있던 자식은 «내용» 이 아니라 **배경**이다(테·면·bg·마스크) —
+        /// 이 레포의 모든 호출자가 «칸을 만들고 → 배경을 깔고 → Column/Row 를 단다» 순서로 쓴다.
+        /// 그것을 레이아웃 칸으로 세면 <see cref="Image"/> 가 `ILayoutElement`(스프라이트 크기)라
+        /// **판이 늘어난 배경이 아니라 빈 막대 한 줄**이 되고, 카드에는 판이 없어져 글자가 뒷화면 위에 뜬다
+        /// (T28 2회차 실측: forge-detail 1.8 · craft-compare 3.1 · gear-detail 2.7 · autoforge-filter 3.7 — T57).
+        /// 그래서 그 자식들은 레이아웃에서 빼 원래대로 «부모를 채우는 배경» 으로 남긴다.
+        /// </summary>
+        private static void MarkBackgrounds(RectTransform rt)
+        {
+            for (int i = 0; i < rt.childCount; i++)
+            {
+                GameObject go = rt.GetChild(i).gameObject;
+                LayoutElement le = go.GetComponent<LayoutElement>();
+                if (le == null) le = go.AddComponent<LayoutElement>();
+                le.ignoreLayout = true;
+            }
+        }
+
         public static VerticalLayoutGroup Column(RectTransform rt, float pad, float gap, TextAnchor align = TextAnchor.UpperCenter, bool controlHeight = true)
         {
+            MarkBackgrounds(rt);
             VerticalLayoutGroup g = rt.gameObject.AddComponent<VerticalLayoutGroup>();
             int p = Mathf.RoundToInt(pad);
             g.padding = new RectOffset(p, p, p, p);
@@ -228,6 +248,7 @@ namespace Forge.Game.Ui
 
         public static HorizontalLayoutGroup Row(RectTransform rt, float pad, float gap, TextAnchor align = TextAnchor.MiddleLeft)
         {
+            MarkBackgrounds(rt);
             HorizontalLayoutGroup g = rt.gameObject.AddComponent<HorizontalLayoutGroup>();
             int p = Mathf.RoundToInt(pad);
             g.padding = new RectOffset(p, p, p, p);

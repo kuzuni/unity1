@@ -88,6 +88,8 @@ namespace Forge.Tests.PlayMode
             yield return WaitCraftPopup(h);
             Assert.IsFalse(h.AnvilBusy);
             AssertTextGate();
+            // T57 — 비교 카드 둘 다 판 위에 있다(새 장비 카드가 3D 배경 위에 떠 있던 자리).
+            AssertDressed(h.Meta.Popups.Find(ForgeCraftPopup.Name).Root, "craft-compare");
             ForgeItem item = h.Pending;
             double price = h.GearSys.SellPrice(item);
             h.ResolveCraft("sell");
@@ -135,6 +137,9 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsTrue(h.Meta.Popups.IsOpen(GearDetailPopup.Name), "장비 세부정보 팝업");
             AssertTextGate();
+            // T57 — 흰 카드 한 장 위에 아이템 한 줄(원작 shot-043244) · 카드 위 빈 막대 0.
+            AssertDressed(h.Meta.Popups.Find(GearDetailPopup.Name).Root, "gear-detail");
+            Assert.IsNull(FindIn(h.Meta.Popups.Find(GearDetailPopup.Name).Root, "cur").Find("face"), "장착 카드는 제 상자를 다시 그리지 않는다(원작 .cmp-card-wrap.cur .cmp-card{border:none})");
             GearDetailPopup.Close(h);
             yield return null;
             Assert.IsFalse(h.Meta.Popups.IsOpen(GearDetailPopup.Name));
@@ -201,6 +206,9 @@ namespace Forge.Tests.PlayMode
             foreach (Transform t in h.Meta.Popups.Find(ForgeInfoPopup.ItemName).Root.GetComponentsInChildren<Transform>(true)) if (t.name.StartsWith("substat-")) subs++;
             Assert.AreEqual(h.Defs.Substats.Count, subs, "옵션 13종 범위");
             AssertTextGate();
+            // T57 — 상세는 제 판 위에 그려지고(목록 격자에 겹치지 않는다) ✕ 는 화면에 하나다(목록 것).
+            AssertDressed(h.Meta.Popups.Find(ForgeInfoPopup.ItemName).Root, "forge-detail");
+            Assert.AreEqual(1, XButtons(), "상세가 열려도 ✕ 는 하나(원작 shot-042931)");
             ForgeInfoPopup.CloseItemDetail(h);
             yield return null;
             Assert.IsFalse(h.Meta.Popups.IsOpen(ForgeInfoPopup.ItemName));
@@ -261,6 +269,7 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsTrue(h.Engine.AutoForgeConfig().FilterOn);
             Assert.IsNotNull(FindIn(h.Meta.Popups.Find(ForgeAutoPopup.Name).Root, "af-sub-critCh"), "필터가 켜지면 옵션 행 13");
+            AssertDressed(h.Meta.Popups.Find(ForgeAutoPopup.Name).Root, "autoforge-filter");   // T57
             h.PickHammers(3);
             yield return null;
             Assert.AreEqual(3, h.Engine.AutoForgeConfig().HammersPerBatch);
@@ -289,6 +298,42 @@ namespace Forge.Tests.PlayMode
             h.ResolvePendingCraft();
             yield return null;
             Assert.IsNull(h.Pending, "탭 전환 규칙으로 남은 제작품은 자동 판정된다");
+        }
+
+        /// <summary>
+        /// T57 — «카드가 제 판을 입었는가». 컨테이너의 배경(line·face·bg)은 레이아웃 칸이 아니라
+        /// 부모를 채워야 한다: 레이아웃 칸이 되면 <see cref="Image"/> 가 스프라이트 크기만큼의 **빈 막대**로
+        /// 한 줄 차지하고(원작에 없는 검은·흰 막대) 카드에는 판이 없어져 글자가 뒷화면 위에 겹쳐 보였다.
+        /// </summary>
+        private static void AssertDressed(Transform root, string what)
+        {
+            Canvas.ForceUpdateCanvases();
+            int checkedBg = 0;
+            foreach (Transform box in root.GetComponentsInChildren<Transform>(true))
+            {
+                if (box.GetComponent<LayoutGroup>() == null) continue;
+                RectTransform brt = (RectTransform)box;
+                foreach (Transform ch in box)
+                {
+                    if (ch.name != "line" && ch.name != "face" && ch.name != "bg") continue;
+                    RectTransform crt = (RectTransform)ch;
+                    LayoutElement le = ch.GetComponent<LayoutElement>();
+                    Assert.IsTrue(le != null && le.ignoreLayout, what + ": " + box.name + "/" + ch.name + " 이 레이아웃 칸이다 — 배경이 빈 막대가 된다");
+                    Assert.GreaterOrEqual(crt.rect.height, brt.rect.height - 8f, what + ": " + box.name + "/" + ch.name + " 이 부모를 안 채운다(판 없음)");
+                    Assert.GreaterOrEqual(crt.rect.width, brt.rect.width - 8f, what + ": " + box.name + "/" + ch.name + " 폭이 부모보다 좁다");
+                    checkedBg++;
+                }
+            }
+            Assert.Greater(checkedBg, 0, what + ": 레이아웃 칸 안의 배경을 하나도 못 찾았다 — 자가 헛돈다");
+        }
+
+        /// <summary>화면에 보이는 ✕ 개수(원작은 화면당 하나 · T57).</summary>
+        private static int XButtons()
+        {
+            int n = 0;
+            foreach (Transform t in UiRoot.Instance.App.GetComponentsInChildren<Transform>(false))
+                if (t.name == "x-btn") n++;
+            return n;
         }
 
         private static Transform FindIn(Transform root, string name)
