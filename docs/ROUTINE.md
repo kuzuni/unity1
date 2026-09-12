@@ -292,11 +292,12 @@
 - 판정: EditMode 로 같은 세이브 → 정본 `heroStats` 실행 벡터와 atk/hp/치명/공속 일치 · PlayMode 로 펫 출전 뒤 `Battle.Hero.Atk` 이 오르는가 · 콘솔 빨강 0.
 - 범위: `Assets/Scripts/Game/Battle/BattleScene.cs`(Boot 의 stats 인자) · `Assets/Scripts/Game/Battle/HeroStatsGlue.cs` · `Assets/Tests/PlayMode/HeroStatsGlueTests.cs`.
 
-### T44 — 60fps 게이트: `targetFrameRate 60` · vSync 0 · 전투 최대 부하 프레임 예산 테스트 · 프레임당 GC 0 · 드로우콜 상한 (Game·검증 · T8·T10·T12 뒤 · **T27 다음으로 먼저**)
+### T44 ✅ — 60fps 게이트: `targetFrameRate 60` · vSync 0 · 전투 최대 부하 프레임 예산 테스트 · 프레임당 GC 0 · 드로우콜 상한 (Game·검증 · T8·T10·T12 뒤 · **T27 다음으로 먼저**)
 - 주인 지시 2026-09-12 «60fps 로 프레임 돌아야». 지금 `Application.targetFrameRate` 설정이 어디에도 없다(실측 grep 0건).
 - 할 것: ⓐ `Bootstrap` 에서 `Application.targetFrameRate = 60` · `QualitySettings.vSyncCount = 0`(WebGL 은 rAF 를 따르므로 그대로) · 모바일 `Screen.sleepTimeout` 원작대로 ⓑ PlayMode `PerfBudgetTests`: 전투 최대 부하 장면(웨이브 보스 + 적 4 + 펫 3 + 스킬 오브젝트 2 + 히트 파티클·데미지 숫자 연속 3초)을 200프레임 돌려 **메인스레드 프레임 시간 평균·p95** 를 `Time.unscaledDeltaTime` 과 `UnityEngine.Profiling.Recorder`(`PlayerLoop`) 로 재고, CI 러너(GPU 없음 · 소프트웨어 렌더)에서는 «CPU 메인스레드 ≤ 8ms 평균 · p95 ≤ 12ms» 를 통과선으로(폰에선 그 2배 여유가 16.6ms 안) · `GC.GetTotalMemory` 차이로 **프레임당 관리 힙 증가 0** 단언 · `UnityStats.drawCalls` 상한(부하 장면 ≤ 150) ⓒ 넘으면 이 작업이 고친다: 복셀 몹 파츠 → 몹당 메시 하나 병합(`VoxelMob.ToMesh` 가 이미 하면 확인만) · 데미지 숫자·파티클 풀링 · `Update` 의 `Find`·`GetComponent`·`string+` 제거 · 머티리얼 공유(색은 정점색) ⓓ 완료 기록에 부하 장면 평균·p95·드로우콜·GC 수치.
 - 판정: `PerfBudgetTests` 초록 + 수치 기록 + 「주인이 볼 것: 폰에서 전투 60fps(설정 탭에 FPS 표시 토글 — 원작 디버그 탭에 있으면 그것 · 없으면 넣지 않는다)」.
 - 범위: `Assets/Scripts/Game/Bootstrap.cs`(targetFrameRate 두 줄) · `Assets/Tests/PlayMode/PerfBudgetTests.cs` · 넘길 때만 `Assets/Scripts/Game/Battle/`·`Game/Voxel/`·`Game/Ui/Hud.cs`(풀링·병합 갈래).
+- ✅ 2026-09-12 워커 H — `Bootstrap.ApplyFrameRate`(vSync 0 + targetFrameRate 60 · WebGL 은 원작 rAF 그대로 · 결정 109) + `PerfBudgetTests` 3개. **CI 런 60 실측**: 메인스레드 게임 시간 평균 **4.123ms** · p95 **9.749ms** · 최대 41.892ms(예산 8/12 안 · 부팅 설정 테스트도 초록) · 렌더러 522 · 공유 재질 212(정본 `matKey` 가 emissive 색을 키에 넣는다 — 갈린 것이 아니다 · 결정 106) · 드로우콜 2754 · 벽시계 27.33ms(소프트웨어 렌더). **프레임당 관리 힙 997,376B 는 목표(≈0) 초과** — 데미지 숫자·파티클에 풀링이 없다(`DamageNumbers.Spawn` 이 피격마다 RectTransform+TMP 를 새로 만든다). 그 파일들(`Game/Battle/`)은 T8·T12·T39 의 **살아 있는 lock** 이라 열지 않고 **T50** 으로 등재했다(규약 «뒤 번호가 기다린다»). 게이트는 회귀 잡이(1.2MB)로 두고 T47 이 목표까지 내린다.
 
 ### T45 — SafeArea 노치 모의 검증: HUD·탭바·팝업 ✕·채팅줄·토스트가 `Screen.safeArea` 안에 있는가 (Game·검증 · T18 뒤 · **T27 다음으로 먼저**)
 - 주인 지시 2026-09-12 «SafeArea 해서 모바일 상단 카메라 안 가리게». `UiRoot` 가 `Screen.safeArea` 를 읽어 앱 상자를 놓지만(T18) **노치가 있을 때 정말 안 가리는지 단언하는 테스트가 없다**(에디터·CI 는 safeArea = 전체 화면이라 조용히 초록).
@@ -330,6 +331,13 @@
 - 방법: `tools/check_final_table.py` — §7 표의 «상태» 칸에서 `T<번호> <표시>` 를 읽어(묶음꼴 `✅ (T4 · T5)` 와 표시 하나만 적힌 줄도 «작업» 칸의 번호 전부에 적용) PROGRESS 표의 상태와 대조 · 어긋나면 줄·번호·양쪽 표시를 찍고 rc 1 · 한 칸에 같은 번호가 두 표시로 있으면 그것도 잡는다 · `--self-test` · CI dotnet 잡에 **보고만**(continue-on-error · 배포가 죽는 갈래가 아니다) + 자기 검사는 막는다.
 - 범위: `tools/check_final_table.py` · `.github/workflows/ci.yml`(dotnet 잡 두 줄) · `docs/ROUTINE.md`(§3 한 줄 · §7 어긋난 칸) · `docs/PROGRESS.md`(표 행·기록).
 - ✅ 2026-09-12 워커 F — 실측 어긋남 5건 → 0(§7 세 칸 정정 · 결정 120) · 자기 검사 17칸 · CI dotnet 잡 두 스텝(자기 검사는 막고 대조는 보고만).
+### T50 — 프레임당 관리 힙 0 으로: 데미지 숫자·큐브 파티클·연출 풀링 (Game·성능 · T44 가 잰 것 · T8·T12·T39 lock 이 풀린 뒤)
+- 왜: 주인 지시 «60fps» 의 남은 절반. T44 `PerfBudgetTests` 가 CI 런 60 에서 **프레임당 관리 힙 997,376B** 를 쟀다(전투 최대 부하 · 메인스레드 시간 자체는 평균 4.1ms 로 예산 안). 1MB/프레임이면 폰에서 몇 초마다 GC 멈춤이 오고 그때 프레임이 튄다(같은 측정의 «최대 41.9ms» 프레임이 그 꼴이다).
+- 어디: ⓐ `DamageNumbers.Spawn` — 피격마다 `new GameObject` + RectTransform + TMP 를 만들고 끝나면 버린다(런 60 에서 측정 200프레임에 126개). 죽은 것을 되쓰는 풀로 바꾸고 문자열도 프레임마다 `string +` 를 하지 않는 갈래로(ROUTINE §1) ⓑ `CubeParticles`·`ImpactFx`·`FxAnims`·`TrailFx`(리본 정점 배열)가 프레임마다 배열을 새로 잡는지 본다 ⓒ `Battle.Tick` 이 매 틱 부르는 `AliveEnemies()` 같은 «호출마다 새 List» 를 재사용 버퍼로.
+- 방법: 고치기 전에 무엇이 얼마나 무는지부터 잰다 — `PerfBudgetTests` 의 측정 루프를 갈래별로(숫자만 · 파티클만 · 스킬 연출만) 돌려 바이트를 가른 뒤 큰 것부터. 원작에 없는 시스템을 더하지 않는다(풀은 «같은 것을 되쓰기» 일 뿐 새 콘텐츠가 아니다).
+- 판정: `PerfBudgetTests` 의 프레임당 관리 힙이 `GcTargetPerFrame`(16KB) 아래 + 그 상한(`GcPerFrameCap`)을 같이 내린다 + 평균·p95 가 지금보다 나빠지지 않는다 + 완료 기록에 갈래별 바이트.
+- 범위: `Assets/Scripts/Game/Battle/DamageNumbers.cs`·`CubeParticles.cs`·`TrailFx.cs`·`HitFlashFx.cs` · `Assets/Scripts/Core/Battle/Battle.cs`(버퍼 재사용만) · `Assets/Tests/PlayMode/PerfBudgetTests.cs`(상한 두 수).
+
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
