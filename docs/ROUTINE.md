@@ -205,6 +205,11 @@
 ### T28 — 원작 대조 회차: `screens` PNG ↔ `web/ref/screens/shot-*.png` 비율 대조표(`docs/ref-layout.md`) + `tools/ui_score.py` (검증 · T27 뒤)
 - aaawunity §5 방식: 화면마다 «요소 · x% · y% · w% · h%» 표를 원작 샷에서 5% 격자로 판독 → 우리 PNG 와 ±3%p 대조 → 점수. **8.0 미만이면 그 화면의 UI 작업을 «다음 고칠 것» 으로 재등재**.
 - 범위: `docs/ref-layout.md` · `tools/ui_score.py`.
+- ⚠ **원작 샷 30장은 배포 정본보다 낡았다**(2026-09-12 · 3회차 · 워커 K 실측 3건). 낮은 점수를 보면 **먼저 정본 코드를 읽어** «클론이 틀린 것인가 원작 샷이 옛것인가» 를 가른다 — 3회차에 «결함» 으로 보였다가 정본을 읽고 걷어낸 자리 셋:
+  - `shot-042632`(상점) 특가 카드의 **젬 보상 pill 3번째 줄** — 정본 `shop.js` 4~8행이 «젬 보급 전면 제거» 로 그 필드를 **일부러 뺐다**. 클론의 2줄이 맞다.
+  - `shot-042304`(던전 상세) 보상 «🔨302 · 🪙27.1k» — 정본 `dungeons.js` `rewards()` 는 `n × TechTree.thiefHammerMult/thiefCoinMult` 이고 두 배율의 기본값이 **1**(`techtree.js` 440~441)이다. 기술트리가 빈 클론이 «496 · 496» 으로 **같은 값**을 내는 것이 맞다 — 원작 샷은 `thiefCoin` 에 투자한 세이브의 캡처다.
+  - 세계 밴드(나무·흙길·능선)는 결정 131 이 이미 같은 갈래로 적었다(`SIMPLE_BG`).
+  - 반대로 **탭바 아이콘 아래 라벨**은 클론이 맞다 — 정본 `index.html` 157~164 가 `<span>PVP</span>` 를 두고 `style.css` 1707 이 `.62rem` 로 그린다(작고 어두워 원작 샷에서 안 보인다).
 
 ### T29 ✅ — `task_state.py` «코드 자취» 오탐: 주석의 미래 참조(`T7 이 쓴다`)를 자취로 세어 T7·T13·T14·T25 선점을 막는다 (도구 · 뒤 순서 없음)
 - 실측(2026-09-12 워커 K · 워커 M 결정 11ⓔ 도 같은 것): `Rng.cs`·`Hud.cs` 의 `///` 주석이 «T7 전투 · T13 세이브» 를 앞으로 가리키고, `check_claim_scope.py`·`task_state.py` 의 자기 검사 픽스처 문자열이 T14·T25 를 담아 `task_state.py T7` 등이 rc 1 을 낸다 → 규약대로면 아무도 못 잡는다.
@@ -417,6 +422,22 @@
 - **T57 뒤인 이유**: T57 의 범위 `Assets/Scripts/Game/Ui/Forge*` 글로브가 `ForgeSheet.cs` 를 덮는다 — 규약 «두 작업이 같은 파일을 만져야 하면 뒤 번호가 기다린다»(`docs/claims/README.md`).
 - 판정: 촬영 PNG 를 열어 «🔨 <수>» 가 어두운 받침 위에서 읽힌다 + 대비 단언(글자 픽셀과 그 뒤 배경의 밝기 차 ≥ 문턱) 한 줄 + `ui_score.py --score` 의 `main` 점수가 안 내려간다.
 - 범위: `Assets/Scripts/Game/Ui/ForgeSheet.cs`(모루 자리) · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/ForgeUiTests.cs`.
+
+### T62 — 상점 시트: 특가 카드가 원작보다 높아 «보석» 절(젬 상품 3종)이 화면 밖으로 밀린다 (Game·UI · T22·T25 뒤 · T28 3회차가 눈으로 잡음)
+- 실측(2026-09-12 · T28 3회차 · 워커 K · 런 83 PNG): `screen_shop.png` **5.3/10**. 원작(`shot-042632`)의 특가 카드는 `min-height: app-h × .1528` · 카드 사이 `gap: app-h × .0091`(정본 `style.css` 2912~2921)인데 클론 카드는 그보다 한참 높고 간격도 넓어, 원작에서 66%H 자리에 있던 «보석» 배너와 젬 카드 3장(`shop-gems`)이 **화면 밖으로 밀려 아예 안 보인다**.
+- 무엇을 한다: 특가 카드 높이·간격·안쪽 여백을 정본 `.shop-deal-card`/`.shop-deals` 비율 그대로.
+- ⚠ **건드리지 않는 것 둘**: ⓐ 특가 카드의 «젬 보상 pill 3번째 줄» — 정본 `shop.js` 4~8행이 «젬 보급 전면 제거» 로 일부러 뺐다(원작 샷이 옛것 · T28 절 메모) ⓑ 재화 알약의 초록 «+» 배지 — **T60** 몫이다.
+- 판정: `ui_score --score` 로 `shop` **8.0 이상** + PNG 눈 확인(«보석» 배너와 젬 카드가 화면 안에 있다) + PlayMode 빨강 0.
+- 범위: `Assets/Scripts/Game/Ui/ShopSheet.cs` · `Assets/Forge/catalog.json`(배치 값) · `Assets/Tests/PlayMode/ShopUiTests.cs`.
+
+### T63 — 메인 HUD 둘: 전투력이 `⚔ 0` · 채팅 프리뷰가 한 줄이고 «99» 뱃지가 없다 (Game·UI · T18·T22 뒤 · **T56·T60 lock 이 풀린 뒤**)
+- 실측(2026-09-12 · T28 3회차 · 워커 K · 런 83 `screen_main.png`):
+  - ⓐ 프로필 카드의 전투력이 **`⚔ 0`** 이다 — 같은 화면의 장비 그리드에는 Lv.26~28 이 8부위 장착돼 있다. 정본 `renderTopBar`(`ui.js` 1290~1303)는 `Combat.combatPower()` 를 찍는다.
+  - ⓑ 채팅줄이 «Zephyr: anyone want to trade tickets?» **한 줄**이고 말풍선에 뱃지가 없다. 정본 `renderChatPreview`(`ui.js` 5288~5299)는 말풍선 + **«99» 뱃지** + 이름 줄 / 메시지 줄 **두 줄**이다.
+- 무엇을 한다: ⓐ 는 HUD 가 전투력을 T43·T55 가 세운 접착(`GearSystem.HeroStats` 갈래)에서 끌어오게 한다 — 수치를 코드에 박지 않는다(§1). ⓑ 는 정본 두 줄 + 뱃지.
+- ⚠ `Ui/Hud.cs` 가 **T56**(아바타)·**T60**(재화 «+» 배지)와 같은 파일이다 — 규약 «두 작업이 같은 파일을 만져야 하면 뒤 번호가 기다린다». 모루 망치 수가 안 읽히는 것은 **T61** 몫이다(중복 등재 아님).
+- 판정: `ui_score --score` 로 `main` 점수가 오르고 + PNG 눈 확인(전투력이 0 이 아니다 · 채팅 두 줄) + PlayMode 빨강 0.
+- 범위: `Assets/Scripts/Game/Ui/Hud.cs` · `Ui/ChatScreen.cs`(프리뷰 갈래) · `Ui/MetaHost.cs`(전투력 밀기) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
