@@ -163,9 +163,10 @@
 - 정본: `ui.js` + `index.html` 의 `panel-pets`·`panel-skills`·`panel-summon` + 해당 샷. 옮길 것: 펫 `renderPets`·`openPetDetail`·`openEggDetail`·`openPetUpgrade`·`renderPetUpgrade` · 스킬 `renderSkills`·`renderSkillBar`·`openSkillDetail` · 소환 `openSummonRates`·`renderSummonRates`·`openSummonResult`·`buildSummonReflection`(원작 소환 연출 그대로 · `Sfx` gacha·summonCharge·summonReveal) · 탈것 `openMounts`·`openMountDetail`·`openMountUpgrade`·`renderMountUpgrade`.
 - 범위: `Assets/Scripts/Game/Ui/Pet*` · `Ui/Skill*` · `Ui/Mount*` · `Assets/Tests/PlayMode/PetUiTests.cs`.
 
-### T21 — UI 패널: 던전 4종 · 기술트리 · 승천 (Game · T23·T24·T18 뒤)
+### T21 ✅ — UI 패널: 던전 4종 · 기술트리 · 승천 (Game · T23·T24·T18 뒤)
 - 정본: `ui.js` + `index.html` 의 `panel-tech` + 해당 샷. 옮길 것: 던전 `openDungeons`·`openDungeonDetail`·`renderDungeonDetail`·`showDungeonClear`(실패 화면 포함 · `shot-dungeon-fail`) · 기술트리 `openTechTree`·`renderTechTree`·`openTechOverview`·`openTechBranch`·`renderTechBranchView`·`openTechNode`·`renderTechNodeModal`·`openTechBonuses`·`drawTechLinks`(가지 선 그리기) · 승천 `openAscension`·`closeAscension`.
-- 범위: `Assets/Scripts/Game/Ui/Dungeon*` · `Ui/Tech*` · `Ui/Ascend*` · `Assets/Tests/PlayMode/DungeonUiTests.cs`.
+- 범위: `Assets/Scripts/Game/Ui/Dungeon*` · `Ui/Tech*` · `Ui/Ascend*` · `Assets/Tests/PlayMode/DungeonUiTests.cs` · `Assets/Forge/catalog.json`+`Resources/UiCatalog.asset`(색·배치 키 추가).
+- 실측 메모(워커 N): 실패 «화면» 은 원작에 없다 — onFail 토스트 + 전투 사망 암전(T8). 서브탭 줄(스킬·펫·기술 트리)은 T20 이 세우고 `TechPanel.Show/Hide` 를 부른다.
 
 ### T22 ✅ — UI 패널: 상점 · 패스 · 퀘스트 · 리그 · 채팅 · 메뉴·프로필·설정·디버그 (Game · T25·T18 뒤)
 - 정본: `ui.js` + 해당 샷(`shot-shop`·`shot-pass`·`shot-league`·`shot-chatcam`·`shot-pinfo`·`shot-avatars`). 옮길 것: 상점 `openShop`·`renderShop` · 패스 `openPass`·`renderPass` · 퀘스트 `openQuests` · 리그 `openLeague`·`renderLeagueBoard`·`openLeagueChallenge`·`renderLeagueChallenge`·`openLeagueRewards`·`openNextAutoMatch` · 채팅 `openChat`·`renderChatList`·`renderChatFull`·`renderChatPreview`(아바타 = T31 `IconGen.avatar` 24종) · 메뉴 `renderMenu` · 프로필 `openProfile`·`renderProfile`·`renderProfileView`·`openPlayerInfo`·`renderPlayerInfo`(아바타 선택 · 성별 `S.gender` · 이름) · 설정 `renderSettingsView`(음악·효과음 토글 = T30 `toggleMusic`) · 디버그 `renderDebug`(panel-debug · 재화·스테이지 치트 그대로 · T27 봇이 쓴다) · 공용 `showModal`·`openStub`·`closeOpened`·`closeAllTabSurfaces`. 오프라인 모달 `showOffline` 은 T13 과 짝(여기서 화면만).
@@ -380,8 +381,8 @@ node tools/export_data.js --self-test                                         # 
 | `js/pets.js` | 알·부화·합성·출전 규칙 | T16 · T20 | T16 ✅ · T20 ⬜ |
 | `js/skills.js` | 소환·18종·3슬롯(정본 `MAX_ACTIVE`) | T17 · T20 | T17 ✅ · T20 ⬜ |
 | `js/mounts.js` | 탈것 규칙 · 탑승 | T11 · T20 | ⬜ |
-| `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ⬜ |
-| `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ⬜ |
+| `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
+| `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | T25 ✅ · T22 🔄 |
 | `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 | T18 ✅ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |

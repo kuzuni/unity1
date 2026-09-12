@@ -1,0 +1,172 @@
+using System;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Forge.Core;
+using Forge.Core.Ascend;
+
+namespace Forge.Game.Ui
+{
+    /// <summary>
+    /// 승천 팝업(ROUTINE T21 · 원작 ui.js openAscension/onAscendLine/closeAscension).
+    /// 제목(⭐ 승천 · 보유 별 합계) → 안내 → 라인 4행(장비·스킬·펫·탈것 · 조건을 채운 행은 초록 · 탭하면 그 라인 확인) → [라인 선택 시] 확인 상자(초기화·소멸 경고·이후 획득물 ⭐n) + [⭐ 승천][취소] / [닫기] → 아래 ✕.
+    /// </summary>
+    public static class AscendPopup
+    {
+        static RectTransform overlay;
+        static string curLine;
+
+        public static bool IsOpen { get { return overlay != null; } }
+        public static string Line { get { return curLine; } }
+        public static int RowCount { get; private set; }
+        public static Button AscendButton { get; private set; }
+        public static Button CloseButton { get; private set; }
+        public static string TitleText { get; private set; }
+        /// <summary>승천이 일어났다(라인) — 장비·스킬·펫·탈것 화면(T19·T20)과 전투 재계산(T8)이 듣는다.</summary>
+        public static event Action<string> Ascended;
+
+        static readonly Dictionary<string, string> LineIcon = new Dictionary<string, string> { { "forge", "hammer" }, { "skill", "ticket" }, { "pet", "egg" }, { "mount", "winder" } };
+
+        static DungeonUiHost Host { get { return DungeonUiHost.Instance; } }
+
+        public static void Open(string line = null)
+        {
+            if (!DungeonUiHost.Ready) return;
+            Close();
+            Ascension asc = Host.Asc;
+            AscensionState st = Host.AscState;
+            asc.Ensure(st);
+            curLine = line;
+            AscensionLevels lv = Host.Levels();
+            StarBreakdown b = Host.Stars();
+
+            float W = UiKit.RefW;
+            overlay = DungeonPopups.Overlay("modal-ascend");
+            float cw = W * UiKit.L("card_w");
+            float pad = DungeonPopups.RemL("card_pad_rem");
+            float inner = cw - pad * 2f;
+            float gap = DungeonPopups.RemL("card_gap_rem");
+            float titleH = DungeonPopups.LineH(TextKind.Button);
+            float subH = DungeonPopups.LineH(TextKind.Sub);
+            float rowH = subH + DungeonPopups.RemL("asc_row_pad_y_rem") * 2f;
+            float rowMy = DungeonPopups.RemL("asc_row_my_rem");
+            string[] lines = asc.Table.Lines;
+            float rowsH = lines.Length * (rowH + rowMy * 2f);
+            float btnH = DungeonPopups.RemL("asc_btn_h_rem");
+            float focusPad = DungeonPopups.RemL("asc_focus_pad_rem");
+            float focusH = line != null ? DungeonPopups.RemL("asc_focus_mt_rem") + focusPad * 2f + DungeonPopups.RemL("asc_icon_rem") + DungeonPopups.LineH(TextKind.Body) + subH + subH * 4f : 0f;
+            float ch = pad * 2f + titleH + gap + subH * 2f + gap + rowsH + focusH + DungeonPopups.RemL("asc_focus_mt_rem") + btnH;
+            RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_radius_rem"));
+
+            float y = pad;
+            TitleText = "승천 · 보유 별 합계 " + b.Total;
+            float sd = titleH * 0.8f;
+            Image star = UiKit.Icon(card, "star", "star");
+            UiKit.Place(star.rectTransform, pad, y + (titleH - sd) * 0.5f, sd, sd);
+            TextMeshProUGUI title = DungeonPopups.Bold(card, "title", TextKind.Button, TitleText, "pp_ink", TextAlignmentOptions.Left);
+            UiKit.Place(title.rectTransform, pad + sd * 1.2f, y, inner - sd * 1.2f, titleH);
+            y += titleH + gap;
+            TextMeshProUGUI guide = DungeonPopups.Para(card, "guide", TextKind.Sub, "라인마다 조건을 채우면 그 라인을 승천시킵니다 — 승천 횟수만큼 이후 획득물에 별이 붙습니다.", "muted2", TextAlignmentOptions.Center);
+            UiKit.Place(guide.rectTransform, pad, y, inner, subH * 2f);
+            y += subH * 2f + gap;
+
+            RowCount = 0;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string l = lines[i];
+                AscensionProgress p = asc.Progress(l, lv);
+                bool rdy = asc.Ready(l, lv);
+                int cnt = asc.Count(st, l);
+                RectTransform row = UiKit.Box(card, "row-" + l);
+                UiKit.Place(row, pad, y + rowMy, inner, rowH);
+                UiKit.Rounded(row, "bg", rdy ? "asc_ready" : "pp_panel", DungeonPopups.RemL("asc_row_radius_rem"));
+                string ink = rdy ? "white" : "pp_ink";
+                float px = DungeonPopups.RemL("asc_row_pad_x_rem");
+                float ico = subH * 0.9f;
+                string ik; LineIcon.TryGetValue(l, out ik);
+                Image im = UiKit.Icon(row, "ico", ik ?? "star");
+                UiKit.Place(im.rectTransform, px, (rowH - ico) * 0.5f, ico, ico);
+                float nameW = DungeonPopups.RemL("asc_name_w_rem");
+                TextMeshProUGUI name = DungeonPopups.Bold(row, "name", TextKind.Sub, asc.Table.LineKr[l], ink, TextAlignmentOptions.Left);
+                UiKit.Place(name.rectTransform, px + ico * 1.2f, 0f, nameW, rowH);
+                string label = l == "forge" ? "대장간 Lv." + p.Cur + "/" + p.Max : "소환 Lv." + p.Cur + "/" + p.Max;
+                float cntW = DungeonPopups.RemL("asc_cnt_w_rem");
+                TextMeshProUGUI prog = UiKit.Text(row, "prog", TextKind.Sub, label, ink, TextAlignmentOptions.Left);
+                UiKit.Place(prog.rectTransform, px + ico * 1.2f + nameW, 0f, inner - px * 2f - ico * 1.2f - nameW - cntW, rowH);
+                TextMeshProUGUI c = DungeonPopups.Bold(row, "cnt", TextKind.Sub, cnt > 0 ? "★" + cnt + (rdy ? " ▶" : "") : (rdy ? "— ▶" : "—"), ink, TextAlignmentOptions.Right);
+                UiKit.Place(c.rectTransform, inner - px - cntW, 0f, cntW, rowH);
+                if (rdy) UiKit.Button(row, "hit", () => Open(l));
+                RowCount++;
+                y += rowH + rowMy * 2f;
+            }
+
+            AscendButton = null;
+            if (line != null)
+            {
+                y += DungeonPopups.RemL("asc_focus_mt_rem");
+                RectTransform focus = UiKit.Box(card, "focus");
+                UiKit.Place(focus, pad, y, inner, focusH - DungeonPopups.RemL("asc_focus_mt_rem"));
+                DungeonPopups.Bordered(focus, "bg", "pp_sheet", DungeonPopups.RemL("asc_focus_radius_rem"), DungeonPopups.Line3);
+                float fy = focusPad;
+                float fi = DungeonPopups.RemL("asc_icon_rem");
+                string ik; LineIcon.TryGetValue(line, out ik);
+                Image big = UiKit.Icon(focus, "ico", ik ?? "star");
+                UiKit.Place(big.rectTransform, (inner - fi) * 0.5f, fy, fi, fi);
+                fy += fi;
+                string kr = asc.Table.LineKr[line];
+                int next = asc.Count(st, line) + 1;
+                TextMeshProUGUI ft = DungeonPopups.Bold(focus, "title", TextKind.Body, kr + " 승천", "pp_ink");
+                UiKit.Place(ft.rectTransform, 0f, fy, inner, DungeonPopups.LineH(TextKind.Body));
+                fy += DungeonPopups.LineH(TextKind.Body);
+                TextMeshProUGUI fc = UiKit.Text(focus, "cnt", TextKind.Sub, "현재 승천 " + asc.Count(st, line) + "회 → " + next + "회", "pp_ink");
+                UiKit.Place(fc.rectTransform, 0f, fy, inner, subH);
+                fy += subH;
+                string resetKr = line == "forge" ? "대장간 레벨이 1로 초기화" : "소환 레벨이 1로 초기화";
+                string wipe = line == "forge" ? "(착용 장비 전부)" : line == "pet" ? "(출전 포함, 알은 유지)" : "(장착 포함)";
+                string eff = "· " + resetKr + "됩니다\n· ⚠ 보유 중인 기존 " + kr + wipe + DungeonUiHost.Josa(kr, "이", "가") + " 전부 사라집니다\n· 이후 새로 "
+                    + (line == "forge" ? "제작되는 장비" : "소환되는 " + kr) + DungeonUiHost.Josa(line == "forge" ? "장비" : kr, "이", "가") + " ★" + next + "로 나옵니다";
+                TextMeshProUGUI fe = DungeonPopups.Para(focus, "eff", TextKind.Sub, eff, "pp_ink", TextAlignmentOptions.Left);
+                UiKit.Place(fe.rectTransform, focusPad, fy, inner - focusPad * 2f, subH * 4f);
+                y += focusH - DungeonPopups.RemL("asc_focus_mt_rem");
+
+                y += DungeonPopups.RemL("asc_focus_mt_rem");
+                float bgap = DungeonPopups.RemL("asc_btns_gap_rem");
+                float bw = (inner - bgap) * 0.5f;
+                bool ready = asc.Ready(line, lv);
+                string ln = line;
+                AscendButton = DungeonPopups.Pill(card, "ascend", "★ 승천", ready ? DungeonPopups.Skin.Blue : DungeonPopups.Skin.Gray, TextKind.Button, () => OnAscend(ln), -1f, ready);
+                UiKit.Place(DungeonPopups.Root(AscendButton), pad, y, bw, btnH);
+                CloseButton = DungeonPopups.Pill(card, "cancel", "취소", DungeonPopups.Skin.Silver, TextKind.Button, Close);
+                UiKit.Place(DungeonPopups.Root(CloseButton), pad + bw + bgap, y, bw, btnH);
+            }
+            else
+            {
+                y += DungeonPopups.RemL("asc_focus_mt_rem");
+                CloseButton = DungeonPopups.Pill(card, "close", "닫기", DungeonPopups.Skin.Silver, TextKind.Button, Close);
+                UiKit.Place(DungeonPopups.Root(CloseButton), pad, y, inner, btnH);
+            }
+            DungeonPopups.XButton(card, Close);
+        }
+
+        public static void OnAscend(string line)
+        {
+            Ascension asc = Host.Asc;
+            if (!asc.Ready(line, Host.Levels())) { DungeonPopups.Toast("⭐ 아직 승천 조건을 채우지 못했습니다"); return; }
+            if (!Host.Ascend(line)) { DungeonPopups.Toast("⭐ 승천에 실패했습니다"); return; }
+            string kr = asc.Table.LineKr[line];
+            DungeonPopups.Toast("⭐ " + kr + " 승천! 이후 획득물이 ⭐" + asc.Count(Host.AscState, line) + "로 나옵니다");
+            Close();
+            Host.RenderTopBar();
+            var h = Ascended;
+            if (h != null) h(line);
+        }
+
+        public static void Close()
+        {
+            if (overlay == null) return;
+            UnityEngine.Object.Destroy(overlay.gameObject);
+            overlay = null; curLine = null; AscendButton = null; CloseButton = null;
+        }
+    }
+}
