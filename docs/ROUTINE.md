@@ -168,7 +168,7 @@
 - 정본: `ui.js` + 해당 샷(`shot-shop`·`shot-pass`·`shot-league`·`shot-chatcam`·`shot-pinfo`·`shot-avatars`). 옮길 것: 상점 `openShop`·`renderShop` · 패스 `openPass`·`renderPass` · 퀘스트 `openQuests` · 리그 `openLeague`·`renderLeagueBoard`·`openLeagueChallenge`·`renderLeagueChallenge`·`openLeagueRewards`·`openNextAutoMatch` · 채팅 `openChat`·`renderChatList`·`renderChatFull`·`renderChatPreview`(아바타 = T31 `IconGen.avatar` 24종) · 메뉴 `renderMenu` · 프로필 `openProfile`·`renderProfile`·`renderProfileView`·`openPlayerInfo`·`renderPlayerInfo`(아바타 선택 · 성별 `S.gender` · 이름) · 설정 `renderSettingsView`(음악·효과음 토글 = T30 `toggleMusic`) · 디버그 `renderDebug`(panel-debug · 재화·스테이지 치트 그대로 · T27 봇이 쓴다) · 공용 `showModal`·`openStub`·`closeOpened`·`closeAllTabSurfaces`. 오프라인 모달 `showOffline` 은 T13 과 짝(여기서 화면만).
 - 범위: `Assets/Scripts/Game/Ui/Shop*` · `Ui/Pass*` · `Ui/Quest*` · `Ui/League*` · `Ui/Chat*` · `Ui/Settings*` · `Ui/Profile*` · `Ui/PlayerInfo*` · `Ui/Debug*` · `Ui/Offline*` · `Ui/Popups.cs`(공용 모달 층·스텁·토스트) · `Ui/MetaHost.cs`(T25 Core ↔ 세이브·HUD·탭 접착) · `Ui/TabBar.cs`(팝업 탭 ✕ 표시 한 줄) · `Assets/Forge/catalog.json`+`Assets/Forge/Resources/UiCatalog.asset`(색·배치·스프라이트 키 추가) · `Assets/Scripts/Core/MetaSave/MetaSave.cs`(T25 상태 ↔ 세이브 트리 코덱 · 순수) · `Assets/Tests/EditMode/MetaSaveTests.cs` · `Assets/Tests/PlayMode/ShopUiTests.cs` · `tools/dotnet/Stubs/TMPro.cs`(TMP_InputField 서명).
 
-### T23 — Core 던전 4종: 입장·소탕·보상 (Core · T7 뒤)
+### T23 ✅ — Core 던전 4종: 입장·소탕·보상 (Core · T7 뒤)
 - 정본: `dungeons.js`. 범위: `Assets/Scripts/Core/Dungeons/` · `Assets/Tests/EditMode/DungeonTests.cs` · `Assets/Tests/EditMode/Vectors/t23-dungeons.json`(정본 실행 벡터) · `tools/dungeon_vectors.js`(벡터 생성기 · 정본을 node vm 에 올린다).
 
 ### T24 ✅ — Core 기술트리 · 승천 (Core · T3 뒤)
@@ -350,7 +350,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/pets.js` | 알·부화·합성·출전 규칙 | T16 · T20 | T16 ✅ · T20 ⬜ |
 | `js/skills.js` | 소환·18종·3슬롯(정본 `MAX_ACTIVE`) | T17 · T20 | T17 ✅ · T20 ⬜ |
 | `js/mounts.js` | 탈것 규칙 · 탑승 | T11 · T20 | ⬜ |
-| `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 🔄 · T21 ⬜ |
+| `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ⬜ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ⬜ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | T25 ✅ · T22 🔄 |
 | `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 | T18 ✅ |
