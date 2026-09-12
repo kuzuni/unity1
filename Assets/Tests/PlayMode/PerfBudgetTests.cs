@@ -45,13 +45,19 @@ namespace Forge.Tests.PlayMode
 
         /// <summary>
         /// 프레임당 관리 힙 증가의 **목표**(주인 지시 «60fps» · ROUTINE §1 «프레임당 GC 할당 0»). 에디터 플레이모드에서 «정확히 0» 은 잴 수 없어 16KB 를 0 의 자리로 둔다.
-        /// 🚩 지금은 못 지킨다 — CI 런 60 실측 **997,376B/프레임**(데미지 숫자·파티클에 풀링이 없다 · <c>DamageNumbers.Spawn</c> 이 피격마다 RectTransform + TMP 를 새로 만든다).
-        /// 그것을 내리는 일은 **T50**(범위가 T8·T12·T39 의 살아 있는 lock 과 겹쳐 이 작업이 열 수 없다) — 여기서는 재는 자와 회귀 잡이만 둔다.
+        /// T50 실측(런 78~90): 풀링 뒤 «전부» 943KB~1,184KB 중 **렌더 몫 878KB(81%)** · 렌더를 끄면 200KB 인데 그 안의 러너·에디터 바닥이 107~361KB 로 회차마다 흔들려
+        /// 이 자로는 16KB 를 가를 수 없다 — 우리 코드 몫의 실제 상한은 <see cref="GcNoRenderCap"/> 로, 렌더 몫은 T64 가 플레이어 빌드에서 다시 잰다.
         /// </summary>
         public const long GcTargetPerFrame = 16 * 1024;
 
-        /// <summary>회귀 잡이 상한 — 실측(런 60 997,376B · 런 71 1,161,543B)에 회차 소음 여유를 둔 선. T50 이 목표까지 내리면 이 수도 같이 내린다.</summary>
+        /// <summary>회귀 잡이 상한(프레임 전부 · 렌더 포함) — 실측 943KB(런 78)·994KB(79)·1,184KB(83)·470KB(85)·1,078KB(90) · 소음 30% 여유. «더 나빠지면» 빨강.</summary>
         public const long GcPerFrameCap = 1600 * 1024;
+
+        /// <summary>
+        /// T50 판정 자: **렌더를 끈 채(카메라·캔버스 비활성) 같은 일감을 민 프레임의 관리 할당** — 우리 코드(전투 틱·애니·연출·숫자·펫) + 러너·에디터 바닥만 남는다.
+        /// CI 런 90 실측 200KB(바닥 107~361KB 포함). «되쓰기가 새면»(피격마다 GameObject+TMP · 임팩트마다 Material) 여기서 빨강이 된다.
+        /// </summary>
+        public const long GcNoRenderCap = 640 * 1024;
 
         /// <summary>부하 장면의 복셀 렌더러 상한(회귀 잡이용 · 파츠마다 하나인 구조의 실측 여유 · 런 60 실측 522).</summary>
         public const int RendererCap = 900;
@@ -363,7 +369,11 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(r.S.Numbers.SpawnedTotal, 0, "부하 장면에 데미지 숫자가 없다 — 부하가 아니다");
             Assert.LessOrEqual(full.Avg, AvgBudgetMs, "메인스레드 게임 시간 평균이 예산을 넘었다 — " + line);
             Assert.LessOrEqual(full.P95, P95BudgetMs, "메인스레드 게임 시간 p95 가 예산을 넘었다 — " + line);
-            Assert.LessOrEqual(full.Judged, GcPerFrameCap, "프레임당 관리 할당이 회귀 상한을 넘었다(풀링이 샌다) — 목표는 " + GcTargetPerFrame + "B(T50) · " + line);
+            Assert.LessOrEqual(full.Judged, GcPerFrameCap, "프레임당 관리 할당(렌더 포함)이 회귀 상한을 넘었다 — " + line);
+            Assert.LessOrEqual(noRender.Judged, GcNoRenderCap, "렌더를 뺀 프레임당 관리 할당(우리 코드 + 러너 바닥)이 상한을 넘었다 — 되쓰기가 샌다(T50) · 목표 " + GcTargetPerFrame + "B · " + branches);
+            // 풀이 도는가 — 피격 126회에 글자 오브젝트를 126개 만들면 되쓰기가 죽은 것(런 78~90 실측 24개 · 임팩트 슬롯 68).
+            Assert.Less(r.S.Numbers.Created, r.S.Numbers.SpawnedTotal / 2, "데미지 숫자 풀이 안 돈다 — 만든 글자 오브젝트 " + r.S.Numbers.Created + " / 띄운 수 " + r.S.Numbers.SpawnedTotal);
+            Assert.Less(r.S.Impact.Created, 200, "임팩트 슬롯 풀이 안 돈다 — 만든 슬롯 " + r.S.Impact.Created);
         }
 
         [UnityTest]

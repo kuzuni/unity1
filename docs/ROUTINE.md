@@ -337,7 +337,7 @@
 - 방법: `tools/check_final_table.py` — §7 표의 «상태» 칸에서 `T<번호> <표시>` 를 읽어(묶음꼴 `✅ (T4 · T5)` 와 표시 하나만 적힌 줄도 «작업» 칸의 번호 전부에 적용) PROGRESS 표의 상태와 대조 · 어긋나면 줄·번호·양쪽 표시를 찍고 rc 1 · 한 칸에 같은 번호가 두 표시로 있으면 그것도 잡는다 · `--self-test` · CI dotnet 잡에 **보고만**(continue-on-error · 배포가 죽는 갈래가 아니다) + 자기 검사는 막는다.
 - 범위: `tools/check_final_table.py` · `.github/workflows/ci.yml`(dotnet 잡 두 줄) · `docs/ROUTINE.md`(§3 한 줄 · §7 어긋난 칸) · `docs/PROGRESS.md`(표 행·기록).
 - ✅ 2026-09-12 워커 F — 실측 어긋남 5건 → 0(§7 세 칸 정정 · 결정 120) · 자기 검사 17칸 · CI dotnet 잡 두 스텝(자기 검사는 막고 대조는 보고만).
-### T50 — 프레임당 관리 힙 0 으로: 데미지 숫자·큐브 파티클·연출 풀링 (Game·성능 · T44 가 잰 것 · T8·T12·T39 lock 이 풀린 뒤)
+### T50 ✅ — 프레임당 관리 힙 0 으로: 데미지 숫자·큐브 파티클·연출 풀링 (Game·성능 · T44 가 잰 것 · T8·T12·T39 lock 이 풀린 뒤)
 - 왜: 주인 지시 «60fps» 의 남은 절반. T44 `PerfBudgetTests` 가 CI 런 60 에서 **프레임당 관리 힙 997,376B** 를 쟀다(전투 최대 부하 · 메인스레드 시간 자체는 평균 4.1ms 로 예산 안). 1MB/프레임이면 폰에서 몇 초마다 GC 멈춤이 오고 그때 프레임이 튄다(같은 측정의 «최대 41.9ms» 프레임이 그 꼴이다).
 - 어디: ⓐ `DamageNumbers.Spawn` — 피격마다 `new GameObject` + RectTransform + TMP 를 만들고 끝나면 버린다(런 60 에서 측정 200프레임에 126개). 죽은 것을 되쓰는 풀로 바꾸고 문자열도 프레임마다 `string +` 를 하지 않는 갈래로(ROUTINE §1) ⓑ `CubeParticles`·`ImpactFx`·`FxAnims`·`TrailFx`(리본 정점 배열)가 프레임마다 배열을 새로 잡는지 본다 ⓒ `Battle.Tick` 이 매 틱 부르는 `AliveEnemies()` 같은 «호출마다 새 List» 를 재사용 버퍼로.
 - 방법: 고치기 전에 무엇이 얼마나 무는지부터 잰다 — `PerfBudgetTests` 의 측정 루프를 갈래별로(숫자만 · 파티클만 · 스킬 연출만) 돌려 바이트를 가른 뒤 큰 것부터. 원작에 없는 시스템을 더하지 않는다(풀은 «같은 것을 되쓰기» 일 뿐 새 콘텐츠가 아니다).
@@ -439,6 +439,13 @@
 - 판정: `ui_score --score` 로 `main` 점수가 오르고 + PNG 눈 확인(전투력이 0 이 아니다 · 채팅 두 줄) + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/Hud.cs` · `Ui/ChatScreen.cs`(프리뷰 갈래) · `Ui/MetaHost.cs`(전투력 밀기) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
 
+### T64 — 렌더 쪽 프레임당 관리 할당 ≈880KB(전투 부하 장면의 81%): 플레이어 빌드에서 재고, 있으면 URP 설정으로 잡는다 (Game·성능 · T50 뒤 · T26 빌드 잡 뒤)
+- 실측(2026-09-12 · T50 · CI 런 90 · 에디터 배치모드 소프트웨어 렌더): `PerfBudgetTests` 부하 장면 프레임당 관리 할당 1,078KB 중 **카메라·캔버스를 끄면 200KB** — 878KB 가 렌더(URP C# 렌더 루프 · 캔버스 리빌드 · 에디터) 몫이고, 임팩트/파편/스킬을 끄면 각각 300~700KB 가 «비가산» 으로 줄어든다 = 살아 있는 렌더러·재질·광원 수에 비례하는 공통 비용(우리 스텝 코드가 아니다 · `ui-screens/perf-t50.txt` 의 `[T50]` 줄).
+- 무엇을 한다: ⓐ 그 할당이 **플레이어 빌드(IL2CPP·Mono)** 에도 있는지 잰다(에디터 전용 경로면 폰과 무관) — T26 의 Android/WebGL 잡 산출물에 개발 빌드 프로파일러(`ProfilerRecorder` 는 개발 빌드에서도 산다)로 같은 부하 장면을 1회 ⓑ 있으면 원인을 URP 쪽에서 가른다: Render Graph 디버그·SRP Batcher·추가 광원(`FxLights`·`FlashLight` 점광 4+4) 갈래·투명 정렬·캔버스 매 프레임 리빌드(TMP 글자 40개) 등 설정으로 잡는다(코드 콘텐츠를 바꾸지 않는다).
+- 판정: 플레이어 빌드 측정 기록(있음/없음 · 바이트) + 있으면 설정 변경 뒤 PerfBudgetTests 의 «전부» 수가 «렌더 끔» 수에 가까워지는 것 + 콘솔 빨강 0.
+- 범위: `Assets/Settings/`(URP 에셋 · 렌더러 데이터) · `Assets/Tests/PlayMode/PerfBudgetTests.cs`(측정 갈래만) · `docs/`.
+
+- ✅ 2026-09-12 워커 O(sess-2140-18689): 풀 넷(숫자 TMP 되쓰기 + 알파는 CanvasRenderer · 임팩트 슬롯+재질 조합 풀+세대 토큰 · 파편 P/궤적 Pt/FxAnims 항목) · Core 틱 버퍼 · 자를 계수기 «GC Allocated In Frame» 으로. 실측(런 78~90): 풀은 돈다(숫자 126→글자 오브젝트 24 · 임팩트 슬롯 68) · 전부 ≈1MB 중 **렌더 몫 878KB(81%)** · 렌더 끔 200KB(러너 바닥 107~361KB 포함) → 판정은 `GcNoRenderCap`(640KB) · 렌더 몫은 **T64** 로.
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
