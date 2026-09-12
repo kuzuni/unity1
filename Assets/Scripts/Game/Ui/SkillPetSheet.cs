@@ -8,7 +8,7 @@ namespace Forge.Game.Ui
     /// <summary>
     /// 소환 시트(원작 index.html `#panel-summon` + ui.js switchSummonSub · UI-SPEC 8~16): T18 탭바의 «summon» 흰 시트 안에
     /// 서브탭 3개(스킬 | 펫 | 기술 트리 · 실버 통짜 바 · 활성 = 파랑) 를 **아래**에 두고 그 위를 서브 패널이 채운다.
-    /// 스킬 = <see cref="SkillPanel"/> · 펫 = <see cref="PetPanel"/> · 기술 트리 = 빈 자리(T21 이 채운다). 시트가 닫히면 모달을 전부 닫는다.
+    /// 스킬 = <see cref="SkillPanel"/> · 펫 = <see cref="PetPanel"/> · 기술 트리 = T21 <see cref="TechPanel"/>(Ensure/Show/Hide · 완료 기록 «다음 작업이 알아둘 것 ⓐ»). 시트가 닫히면 모달을 전부 닫는다.
     /// </summary>
     public sealed class SkillPetSheet : MonoBehaviour
     {
@@ -32,6 +32,8 @@ namespace Forge.Game.Ui
         readonly RectTransform[] subSkins = new RectTransform[3];
         readonly TextMeshProUGUI[] subLabels = new TextMeshProUGUI[3];
         RectTransform pill;
+        RectTransform strip;
+        float stripH;
 
         public static SkillPetSheet Attach(UiRoot root, PetSkillHost host)
         {
@@ -58,12 +60,12 @@ namespace Forge.Game.Ui
         void Build(RectTransform p)
         {
             panel = p;
-            float stripH = PetSkillStyle.Px("subtab_h");
+            stripH = PetSkillStyle.Px("subtab_h");
             float pad = PetSkillStyle.Px("pad_rem");
             float panelH = p.rect.height > 0f ? p.rect.height : UiKit.L("tabbar_top") * UiKit.RefH;
 
             // ---- 서브탭 통짜 바(아래) ----
-            RectTransform strip = UiKit.Box(p, "summon-subtabs");
+            strip = UiKit.Box(p, "summon-subtabs");
             strip.anchorMin = new Vector2(0f, 0f);
             strip.anchorMax = new Vector2(1f, 0f);
             strip.pivot = new Vector2(0.5f, 0f);
@@ -131,6 +133,20 @@ namespace Forge.Game.Ui
                 if (on) UiKit.Outline(subLabels[i], "pp_line", 0.25f);
                 else subLabels[i].outlineWidth = 0f;
             }
+            // 기술 트리 서브탭 = T21 `TechPanel`(소환 시트 안 자기 상자 · Show 가 맨 위로 올린다) — 서브탭 줄 위까지만 차지하게 아래를 비우고 줄을 다시 맨 위로.
+            if (sub == SubTech)
+            {
+                TechPanel tp = TechPanel.Ensure();
+                if (tp != null)
+                {
+                    RectTransform tr = (RectTransform)tp.transform;
+                    tr.offsetMin = new Vector2(0f, stripH);
+                    tr.offsetMax = Vector2.zero;
+                    if (render) tp.Show(); else tp.gameObject.SetActive(true);
+                    strip.SetAsLastSibling();
+                }
+            }
+            else if (TechPanel.Instance != null) TechPanel.Instance.Hide();
             if (!render) return;
             Render();
         }
