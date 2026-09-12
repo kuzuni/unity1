@@ -30,7 +30,7 @@
 | T13 | 세이브·오프라인 보상 | ⬜ 대기 | — | `Assets/Scripts/Core/Save/` · `Assets/Scripts/Game/SaveIo.cs` · `Assets/Tests/EditMode/SaveTests.cs` | T3 뒤 |
 | T14 | Core 대장간 (비용·시간·시대 확률·오토) | ⬜ 대기 | — | `Assets/Scripts/Core/Forge/` · `Assets/Tests/EditMode/ForgeTests.cs` | T3 뒤 |
 | T15 | 장비 8부위 + 페이퍼돌 | ⬜ 대기 | — | `Assets/Scripts/Core/Gear/` · `Assets/Scripts/Game/Hero/Paperdoll.cs` · `Assets/Tests/EditMode/GearTests.cs` | T6·T14 뒤 |
-| T16 | Core 펫 시스템 (알·부화·스탯·합성) | ⬜ 대기 | — | `Assets/Scripts/Core/Pets/` · `Assets/Tests/EditMode/PetTests.cs` | T3 뒤 |
+| T16 | Core 펫 시스템 (알·부화·스탯·합성) | 🔄 진행 | sess-1833-25530 / 워커 K | `Assets/Scripts/Core/Pets/` · `Assets/Tests/EditMode/PetTests.cs` | T3 뒤 |
 | T17 | Core 스킬 시스템 (소환·18종·4슬롯) | ⬜ 대기 | — | `Assets/Scripts/Core/Skills/` · `Assets/Tests/EditMode/SkillTests.cs` | T7 뒤 |
 | T18 | UI 껍데기 (레터박스 · UiKit · HUD · 탭 · 카탈로그) | ✅ 완료 | sess-1803-29892 / 워커 I | `Assets/Scripts/Game/Ui/`(UiRoot·UiKit·UiCatalog·UiShapes·UiTextKindTag·Hud·TabBar) · `Assets/Forge/catalog.json` · `Assets/Forge/Resources/UiCatalog.asset` · `docs/assets-map.md` · `Assets/Tests/PlayMode/UiSmokeTests.cs` · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `tools/gen_ui_catalog.py` · `tools/gen_meta.py`(.asset 한 갈래) · `tools/dotnet/Stubs/TMPro.cs`(TMP 서명 4개) · `Assets/Scripts/Game/Forge.Game.asmdef`·`Assets/Tests/PlayMode/Forge.Tests.PlayMode.asmdef`(UnityEngine.UI·TMP 참조) | 오버레이 캔버스 + 1080×1920 앱 상자(세이프에어리어 안 9:16 · 높이 비례 스케일) · 카탈로그 1개(스프라이트 10·색 27·배치 40·TextKind 4) · HUD/탭 5/시트·채팅 자리 · PlayMode 6 · dotnet 없음 → CI 초록 확인 뒤 lock 반납 |
 | T19 | UI 패널: 대장간 · 장비 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/Forge*` · `Ui/Gear*` · `Assets/Tests/PlayMode/ForgeUiTests.cs` | T14·T15·T18 뒤 |
