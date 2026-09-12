@@ -354,6 +354,19 @@
 - 판정: PlayMode `SkillFxTests` 에 «시전 1박 끝 젖힘 −0.14(지원계 −0.07) → 릴리즈 → 0.14초 뒤 0» 단언 · 콘솔 빨강 0 · CI 유니티 잡.
 - 범위: `Assets/Scripts/Game/Battle/HeroView.cs`(젖힘 채널 추가) · `Assets/Scripts/Game/SkillFx/SkillFxDirector.cs`·`SkillFxScene.cs` · `Assets/Tests/PlayMode/SkillFxTests.cs`.
 
+### T53 — 한글 글꼴: 화면 글자가 전부 네모(□)다 (Game · T18 뒤 · **주인 에셋 대기**)
+- 실측(2026-09-12 22:12 · `screens/ui_safearea_notch.png`): 스테이지·탭·버튼·토스트 등 **모든 한국어 라벨이 두부**. 원인은 결정 8 — 주인 글꼴 `NotoSans-Regular.ttf` 에 U+AC00 한글 구간 cmap 이 없고, 리눅스 CI·WebGL 에는 폴백할 OS 한글 글꼴도 없다.
+- 워커가 할 수 없는 것: 글꼴 파일을 새로 들이는 것(§1 «에셋은 주인 에셋만»). **주인이 `Assets/Fonts/` 에 한글 TTF 를 넣어 주면** 이 작업은 `catalog.json` 의 `font` 한 줄 + `UiFont.Build` 폴백 정리 + PlayMode 단언(라벨 문자열의 글리프가 폰트에 **있는가** · 없으면 실패)으로 끝난다.
+- 주인 조치 전에는 이 작업을 잡지 마라 — 잡으면 «주인 에셋 대기» 로 즉시 반납한다. 그동안 T27·T28 의 화면 대조는 **글자를 빼고 배치만** 본다.
+- 범위: `Assets/Fonts/`(주인) · `Assets/Forge/catalog.json`(font) · `Assets/Scripts/Game/Ui/UiFont.cs` · `Assets/Tests/PlayMode/TextSizeGateTests.cs`.
+
+### T54 — 전투 화면에 영웅·적·펫이 하나도 안 선다 (Game·검증 · T8·T10 뒤 · **가장 먼저**)
+- 실측(2026-09-12 22:12 · 같은 PNG): 3D 자리에 초록 HP 바 한 줄과 지면 그라디언트뿐 — **영웅도 적도 펫도 화면에 없다**. T8(전투 씬)·T10(펫 출전)은 ✅ 이고 `BattleSceneTests` 도 초록이다: 테스트가 «오브젝트가 만들어졌는가» 만 보고 **화면에 그려지는가** 를 안 봤다(§1 «실제 화면을 본다» 가 잡으라던 바로 그 종류).
+- 규명 순서: ⓐ 촬영 시점에 전투가 시작됐는가(부팅 → 웨이브 스폰까지 몇 초 기다렸는가 · `UiShots` 가 너무 일찍 찍었을 수 있다) ⓑ 영웅·적 GameObject 가 씬에 있는데 안 보이는가(카메라 절두체 밖 · z 부호 · 스케일 0 · 머티리얼 null · 레이어 컬링 · UI 캔버스가 3D 를 덮는가 — 이 PNG 는 장비 시트가 열린 상태라 **시트가 덮었을 가능성이 가장 크다**) ⓒ 그렇다면 시트를 닫은 전투 단독 컷을 먼저 찍어 다시 본다(T27 과 짝).
+- 고침 뒤 **촬영 단언**을 넣는다: 전투 컷의 화면 중앙 60% 영역 픽셀이 배경·지면 색만이 아니어야 한다(영웅 실루엣이 있어야 한다) · 적 스폰 뒤 컷은 적 색 픽셀이 N개 이상. 이 단언이 «비었는데 초록» 을 앞으로 막는다.
+- 판정: 전투 단독 PNG 에 영웅·적·펫이 보이고(워커가 열어 본 기록) · 위 단언 초록 · CI 초록.
+- 범위: `Assets/Scripts/Game/Battle/` · `Game/Hero/` · `Game/Pets/` · `Assets/Tests/PlayMode/BattleSceneTests.cs` · `UiShots*`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
