@@ -1,5 +1,6 @@
 using UnityEngine;
 using Forge.Core;
+using Forge.Game.Ui;
 
 namespace Forge.Game
 {
@@ -58,15 +59,37 @@ namespace Forge.Game
             if (Screen.width != lastW || Screen.height != lastH) Apply();
         }
 
-        /// <summary>현재 화면 크기로 레터박스를 다시 계산해 카메라 뷰포트에 적용한다.</summary>
+        /// <summary>
+        /// 현재 화면 크기로 레터박스를 다시 계산해 카메라 뷰포트에 적용한다.
+        /// 카메라가 쓰는 것은 앱 상자 전체가 아니라 원작의 3D 캔버스 상자(`#game-area` = 상단바 밑 ~ 장비 시트 위)다 — T54.
+        /// </summary>
         public void Apply()
         {
             lastW = Screen.width;
             lastH = Screen.height;
             Camera cam = TargetCamera;
             if (cam == null) return;
-            ViewportRect r = Viewport.Letterbox(lastW, lastH, PortraitAspect);
+            ViewportRect app = Viewport.Letterbox(lastW, lastH, PortraitAspect);
+            ViewportRect r = Viewport.GameArea(app, GameAreaTop, GameAreaBottom);
             cam.rect = new Rect(r.X, r.Y, r.W, r.H);
+        }
+
+        /// <summary>원작 `#game-area` 의 위·아래 자리(앱 높이 비). 수치는 UI 카탈로그(정본 판독표)가 쥔다 — 코드에 박지 않는다(§1).</summary>
+        public static float GameAreaTop { get { return LayoutOr("topbar_h", 0f); } }
+        public static float GameAreaBottom { get { return LayoutOr("sheet_top", 1f); } }
+
+        /// <summary>카탈로그가 아직 없거나 키가 비면 «앱 상자 전체» 로 물러난다 — 부팅이 이것 때문에 죽지 않는다.</summary>
+        static float LayoutOr(string key, float fallback)
+        {
+            try
+            {
+                UiCatalog c = UiCatalog.Instance;
+                return c == null ? fallback : c.Layout(key);
+            }
+            catch (System.Exception)
+            {
+                return fallback;
+            }
         }
     }
 }

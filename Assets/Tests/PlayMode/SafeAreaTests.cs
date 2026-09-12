@@ -119,7 +119,7 @@ namespace Forge.Tests.PlayMode
                 Assert.AreEqual(UiRoot.NotchBottomPx, sa.yMin, 1e-4f);
                 Assert.AreEqual(r[1] - UiRoot.NotchTopPx, sa.yMax, 1e-4f);
                 yield return CheckAll(sa, r[0] + "x" + r[1]);
-                // ⓒ 3D 카메라는 전체 화면 레터박스 그대로 — safeArea 를 이중으로 깎지 않는다
+                // ⓒ 3D 카메라 rect 는 safeArea 를 이중으로 깎지 않는다(띠 자체는 원작 `#game-area` · T54)
                 Assert.AreEqual(camRect, cam.pixelRect, r[0] + "x" + r[1] + " 3D 카메라 rect 는 safeArea 와 무관");
             }
             UiRoot.OverrideSafeArea(null);
@@ -158,7 +158,9 @@ namespace Forge.Tests.PlayMode
             try
             {
                 cam.CopyFrom(Camera.main);
-                cam.rect = new Rect(0f, 0f, 1f, 1f);
+                // T54 — 촬영은 레터박스만 걷고 3D 띠(원작 `#game-area`)는 그대로 둔다(UiShotsTests.Capture 와 같은 값).
+                Forge.Core.ViewportRect band = Forge.Core.Viewport.GameArea(new Forge.Core.ViewportRect(0f, 0f, 1f, 1f), Bootstrap.GameAreaTop, Bootstrap.GameAreaBottom);
+                cam.rect = new Rect(band.X, band.Y, band.W, band.H);
                 cam.targetTexture = rt;
                 canvas.renderMode = RenderMode.ScreenSpaceCamera;
                 canvas.worldCamera = cam;

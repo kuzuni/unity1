@@ -16,6 +16,7 @@ using Forge.Core.Save;
 using Forge.Core.Skills;
 using Forge.Core.Tech;
 using CoreRng = Forge.Core.Data.Rng;
+using Forge.Core;
 using Forge.Game;
 using Forge.Game.Gallery;
 using Forge.Game.Ui;
@@ -518,7 +519,10 @@ namespace Forge.Tests.PlayMode
             try
             {
                 if (Camera.main != null) cam.CopyFrom(Camera.main);
-                cam.rect = new Rect(0f, 0f, 1f, 1f);
+                // T54 — 찍는 대상은 «앱 상자» 라 레터박스는 걷되, 3D 가 차지하는 띠(원작 `#game-area`)는 그대로 둔다.
+                // 여기서 전체 화면으로 되돌리면 카메라가 화면 한가운데를 비춰 영웅이 장비 시트 뒤로 숨는다(그 상태로 30장이 찍혔다).
+                ViewportRect band = Viewport.GameArea(new ViewportRect(0f, 0f, 1f, 1f), Bootstrap.GameAreaTop, Bootstrap.GameAreaBottom);
+                cam.rect = new Rect(band.X, band.Y, band.W, band.H);
                 cam.targetTexture = rt;
                 canvas.renderMode = RenderMode.ScreenSpaceCamera;
                 canvas.worldCamera = cam;
