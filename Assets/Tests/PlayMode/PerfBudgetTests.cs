@@ -234,6 +234,16 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>200프레임을 밀며 잰다. <paramref name="castSkills"/> 가 false 면 스킬을 다시 시전하지 않는다 · <paramref name="step"/> 이 false 면 게임 일감을 안 민다(정지 바닥 = 렌더·러너 몫).</summary>
+        /// <summary>렌더를 끈 채 잰다(카메라·캔버스 전부 비활성 → 게임 일감만 남는다). 되돌리기는 호출자가 <see cref="RenderOn"/>.</summary>
+        static List<Behaviour> RenderOff()
+        {
+            var off = new List<Behaviour>();
+            foreach (Camera c in UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsSortMode.None)) if (c.enabled) { c.enabled = false; off.Add(c); }
+            foreach (Canvas c in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None)) if (c.enabled) { c.enabled = false; off.Add(c); }
+            return off;
+        }
+        static void RenderOn(List<Behaviour> off) { foreach (Behaviour b in off) if (b != null) b.enabled = true; }
+
         static IEnumerator Measure(Rig r, float dt, bool castSkills, Sample o, bool step = true)
         {
             var ms = new double[MeasureFrames];
@@ -333,13 +343,19 @@ namespace Forge.Tests.PlayMode
             r.S.Numbers.Enabled = true; r.S.Impact.Enabled = true; r.S.Fx.Enabled = true;
             var still = new Sample();
             yield return Measure(r, dt, false, still, false);
+            // 렌더 끔: 같은 일감(전부 켬)을 카메라·캔버스 없이 — 남는 것이 «우리 코드» 의 관리 할당이다(사라지면 렌더·에디터 몫).
+            var noRender = new Sample();
+            List<Behaviour> offList = RenderOff();
+            yield return Measure(r, dt, true, noRender);
+            RenderOn(offList);
             string branches = "[T50] 프레임당 관리 할당(계수기=프레임 전부 · 스텝=StepFrame 안 우리 일감): 전부 " + Bytes(full.Judged) + "/" + Bytes(full.StepAllocPerFrame) +
                       " · 임팩트 끔 " + Bytes(noImpact.Judged) + "/" + Bytes(noImpact.StepAllocPerFrame) + "(임팩트 몫 ≈ " + Bytes(full.Judged - noImpact.Judged) + ")" +
                       " · 파편 끔 " + Bytes(noFx.Judged) + "/" + Bytes(noFx.StepAllocPerFrame) + "(파편 몫 ≈ " + Bytes(full.Judged - noFx.Judged) + ")" +
                       " · 스킬 재시전 끔 " + Bytes(noSkill.Judged) + "/" + Bytes(noSkill.StepAllocPerFrame) + "(스킬 몫 ≈ " + Bytes(full.Judged - noSkill.Judged) + ")" +
                       " · 전부 끔 " + Bytes(allOff.Judged) + "/" + Bytes(allOff.StepAllocPerFrame) +
                       " · 정지 바닥(스텝 없음) " + Bytes(still.Judged) + "/" + Bytes(still.StepAllocPerFrame) +
-                      " · GC 회수 " + full.Collections + "/" + noImpact.Collections + "/" + noFx.Collections + "/" + noSkill.Collections + "/" + allOff.Collections + "/" + still.Collections +
+                      " · 렌더 끔(전부 켬 · 카메라·캔버스 없음) " + Bytes(noRender.Judged) + "(렌더 몫 ≈ " + Bytes(full.Judged - noRender.Judged) + ")" +
+                      " · GC 회수 " + full.Collections + "/" + noImpact.Collections + "/" + noFx.Collections + "/" + noSkill.Collections + "/" + allOff.Collections + "/" + still.Collections + "/" + noRender.Collections +
                       " · 계수기 " + (full.AllocPerFrame >= 0 ? "살아 있음" : "없음(폴백)") + " · 스레드 자 " + (full.StepAllocPerFrame >= 0 ? "살아 있음" : "없음");
             Debug.Log(branches);
             Trace(branches);
