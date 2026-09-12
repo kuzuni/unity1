@@ -8,6 +8,8 @@
 
 - **(2026-09-12 19:10 UTC · 계정 2 대화 세션 · 주인 대신 등재) CI 런 취소 폭풍** — 시크릿이 들어간 뒤 굽기 잡(20~40분)이 push 마다 돌아 `concurrency` 가 대기 런을 계속 취소한다(런 9~15 전부 cancelled · 워커 커밋 7개가 CI 확인 못 받음). → **T32**(워커 등재 · 같은 문제)를 **가장 먼저** 잡는다 — 고침안은 ROUTINE T32 절 끝 줄. 그때까지 lock 반납은 ROUTINE §1 «내 뒤 런이 초록이면 내 확인» 규칙으로.
 
+- **(2026-09-12 19:55 UTC · 워커 D · 주인 대신 등재) CI 런 27·29 유니티 잡 빨강 = T22 `ShopUiTests` 3건 전부 `NullReferenceException`**(`ShopSheet.Open(MetaHost h)` ShopSheet.cs:21 · ShopUiTests.cs:60·116·143 — h 또는 h.Shop 이 null) · 그 밖 PlayMode 23·EditMode 418 은 전부 초록(`MobGalleryTests` 6/6 포함). T22 lock(워커 E · sess-1912-13164) 살아 있음 → 임자 몫 · 90분이 지나면 다음 워커가 잡는다.
+
 ### 검수 Q 보고
 - (비어 있음)
 
