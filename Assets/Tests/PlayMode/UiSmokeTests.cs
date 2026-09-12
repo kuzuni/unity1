@@ -219,5 +219,48 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.AreEqual(5, hud.WaveCount);
         }
+
+        [UnityTest]
+        public IEnumerator T63_상단바_전투력이_0_이_아니고_채팅줄이_두_줄에_뱃지를_단다()
+        {
+            yield return Boot();
+
+            // ⓐ 전투력 — 실측(런 83 screen_main.png)은 장비 8부위를 낀 채로도 «⚔ 0» 이었다.
+            // 원인은 MetaHost.CombatPower 의 기본 대리자가 () => Big.Zero 인데 **아무도 안 꽂은 것**.
+            // 맨몸(BareHeroStats Atk 15 · Hp 150)이라도 정본 식이면 0 이 아니다.
+            float t = 0f;
+            while (!(MetaHost.Ready && Forge.Game.Battle.BattleScene.Instance != null
+                     && Forge.Game.Battle.BattleScene.Instance.Ready) && t < 20f)
+            { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 준비되지 않았다");
+            Forge.Game.Battle.BattleScene bs = Forge.Game.Battle.BattleScene.Instance;
+            Assert.IsNotNull(bs, "전투 씬이 서지 않았다 — 전투력을 읽을 곳이 없다");
+
+            MetaHost h = MetaHost.Instance;
+            Assert.IsTrue(h.MyCp.Cmp(Forge.Core.Big.Zero) > 0,
+                "상단바 전투력이 0 이다 — MetaHost.CombatPower 가 살아 있는 전투에 안 꽂혔다 (정본 Combat.combatPower)");
+            Assert.AreEqual(0, h.MyCp.Cmp(bs.Battle.CombatPower()),
+                "상단바 전투력은 Core Battle.CombatPower() 와 같은 값이어야 한다 — 식을 두 군데서 세지 않는다");
+
+            // ⓑ 채팅 프리뷰 — 정본 renderChatPreview 는 말풍선 + «99» 뱃지 + 이름/메시지 두 줄이다.
+            Hud hud = Hud.Instance;
+            Assert.IsNotNull(hud, "HUD 가 없다");
+            Transform badge = FindDeep(UiRoot.Instance.transform, "chat-preview-badge");
+            Assert.IsNotNull(badge, "채팅줄에 «99» 뱃지가 없다 (정본 .chat-preview-badge)");
+            TMPro.TextMeshProUGUI badgeText = badge.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+            Assert.IsNotNull(badgeText, "뱃지에 글자가 없다");
+            Assert.AreEqual(Hud.ChatBadgeText, badgeText.text);
+
+            hud.SetChatPreview("Zephyr", "anyone want to trade tickets?");
+            Assert.AreEqual("Zephyr", hud.ChatName, "이름 줄이 따로 서야 한다");
+            Assert.AreEqual("anyone want to trade tickets?", hud.ChatMessage, "메시지 줄이 따로 서야 한다");
+            Assert.IsFalse(hud.ChatMessage.Contains(":"), "한 줄로 이어 붙이던 «이름: 메시지» 꼴이 남아 있다");
+        }
+
+        private static Transform FindDeep(Transform root, string name)
+        {
+            foreach (Transform t in root.GetComponentsInChildren<Transform>(true)) if (t.name == name) return t;
+            return null;
+        }
     }
 }

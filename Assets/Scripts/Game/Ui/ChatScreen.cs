@@ -115,7 +115,7 @@ namespace Forge.Game.Ui
             if (last == null) return;
             string name = last.Type == ChatMessage.TypeShare ? last.MyName : last.Name;
             string msg = last.Type == ChatMessage.TypeShare ? "전투 결과를 공유했습니다" : last.Text;
-            hud.SetChatPreview(name + ": " + msg);
+            hud.SetChatPreview(name, msg);   // 정본 renderChatPreview 는 이름 줄 / 메시지 줄 두 줄이다
         }
 
         private static void RenderList(MetaHost h)

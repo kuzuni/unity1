@@ -43,8 +43,21 @@ namespace Forge.Game.Ui
         public IRewardWallet Wallet { get; private set; }
         public Rng Rng { get; private set; }
 
-        /// <summary>원작 `Combat.combatPower()` — T8 전투 씬이 꽂는다. 그 전엔 0.</summary>
-        public Func<Big> CombatPower = () => Big.Zero;
+        /// <summary>
+        /// 원작 `Combat.combatPower()`. 기본값이 살아 있는 전투(<see cref="Forge.Game.Battle.BattleScene"/>)의 <c>Battle.CombatPower()</c> 를 읽는다 —
+        /// T7 이 정본 식(`atk × 공속 × (1+치명) + hp/8`)을 Core 에 이미 옮겼으므로 여기서 수를 다시 세지 않는다(§1).
+        /// 전투가 아직 안 섰으면 0. 다른 것을 꽂고 싶으면 이 대리자를 덮어쓰면 된다(테스트·PvP).
+        /// T63 실측: 예전 기본값이 `() => Big.Zero` 라 **아무도 안 꽂아** 상단바 전투력이 장비 8부위를 낀 채로도 `⚔ 0` 이었다.
+        /// </summary>
+        public Func<Big> CombatPower = LiveCombatPower;
+
+        /// <summary>살아 있는 전투에서 읽는 전투력(없으면 0) — <see cref="CombatPower"/> 의 기본 대리자.</summary>
+        private static Big LiveCombatPower()
+        {
+            Forge.Game.Battle.BattleScene bs = Forge.Game.Battle.BattleScene.Instance;
+            if (bs == null || !bs.Ready || bs.Battle == null) return Big.Zero;
+            return bs.Battle.CombatPower();
+        }
         /// <summary>원작 `!!Forge.upgradeInfo()` — T19 대장간 UI 가 꽂는다. null = «모르면 막지 않는다».</summary>
         public Func<bool> ForgeUpgradable;
         /// <summary>원작 `SFX.musicEnabled`·`SFX.toggleMusic()` 자리 — T30 이 꽂는다. 그 전엔 세이브 `musicOn` 칸만 뒤집는다.</summary>

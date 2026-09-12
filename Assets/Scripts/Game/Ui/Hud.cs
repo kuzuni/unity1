@@ -7,7 +7,7 @@ namespace Forge.Game.Ui
 {
     /// <summary>
     /// 전투 HUD(ROUTINE T18 · 원작 ui.js renderTopBar · updateStageLabel · updateWavePips · #chat-preview).
-    /// 상단바(프로필 카드 + 코인·젬 알약) · 스테이지 라벨 · 웨이브 노드 · 채팅 미리보기 한 줄.
+    /// 상단바(프로필 카드 + 코인·젬 알약) · 스테이지 라벨 · 웨이브 노드 · 채팅 미리보기(말풍선 + «99» 뱃지 + 이름/메시지 두 줄).
     /// 규칙을 계산하지 않는다 — 뒤 작업(T7 전투 · T13 세이브 · T22 채팅)이 <c>Set*</c> 로 글자를 준다. 부팅 첫 프레임은 카탈로그 boot 값.
     /// </summary>
     public sealed class Hud : MonoBehaviour
@@ -27,6 +27,7 @@ namespace Forge.Game.Ui
         private TextMeshProUGUI gems;
         private TextMeshProUGUI stage;
         private TextMeshProUGUI chat;
+        private TextMeshProUGUI chatName;
         private RectTransform pipsRow;
         private RectTransform track;
         private RectTransform avatarTile;
@@ -150,9 +151,30 @@ namespace Forge.Game.Ui
             ChatButton = UiKit.Button(band, "hit", null);
             Image ico = UiKit.Icon(band, "chat-preview-avatar", "chat");
             UiKit.Place(ico.rectTransform, padX, (bandH - av) * 0.5f, av, av);
+
+            // 말풍선 오른쪽 위 «99» 뱃지 — 정본 `.chat-preview-badge`(top/right −.42rem · 빨강 판 + 흰 글자 + 테).
+            float badgeH = rem * 0.72f;
+            float badgeW = rem * 1.02f;
+            Image badgeLine = UiKit.Rounded(band, "chat-preview-badge", "pp_line", badgeH * 0.5f);
+            UiKit.Place(badgeLine.rectTransform,
+                padX + av + rem * 0.42f - badgeW,
+                (bandH - av) * 0.5f - rem * 0.42f, badgeW, badgeH);
+            Image badgeBg = UiKit.Rounded(badgeLine.transform, "bg", "pp_red", badgeH * 0.5f - UiKit.L("line_px"));
+            Inset(badgeBg.rectTransform, UiKit.L("line_px"));
+            TextMeshProUGUI badge = UiKit.Text(badgeLine.transform, "n", TextKind.Sub, ChatBadgeText, "white", TextAlignmentOptions.Center);
+            badge.fontStyle = FontStyles.Bold;
+            UiKit.Place(badge.rectTransform, 0f, 0f, badgeW, badgeH);
+
+            // 이름 줄 / 메시지 줄 두 줄 — 정본 `.chat-preview-lines`(세로 쌓기 · 이름은 굵게).
             float tx = padX + av + rem * 0.4f;
+            float tw = UiKit.RefW - tx - padX;
+            chatName = UiKit.Text(band, "chat-preview-name", TextKind.Sub, string.Empty, "chat_name", TextAlignmentOptions.Left);
+            chatName.fontStyle = FontStyles.Bold;
+            chatName.overflowMode = TextOverflowModes.Ellipsis;
+            UiKit.Place(chatName.rectTransform, tx, 0f, tw, bandH * 0.5f);
             chat = UiKit.Text(band, "chat-preview-msg", TextKind.Sub, string.Empty, "chat_ink", TextAlignmentOptions.Left);
-            UiKit.Place(chat.rectTransform, tx, 0f, UiKit.RefW - tx - padX, bandH);
+            chat.overflowMode = TextOverflowModes.Ellipsis;
+            UiKit.Place(chat.rectTransform, tx, bandH * 0.5f, tw, bandH * 0.5f);
         }
 
         // ---- 뒤 작업이 부르는 표면 ----
@@ -199,7 +221,21 @@ namespace Forge.Game.Ui
 
         public void SetStage(string label) { stage.text = label ?? string.Empty; }
 
-        public void SetChatPreview(string line) { chat.text = line ?? string.Empty; }
+        /// <summary>정본 `.chat-preview-badge` 의 «99» — 원작이 HTML 에 그대로 박아 둔 자리표다(읽지 않은 수를 세지 않는다).</summary>
+        public const string ChatBadgeText = "99";
+
+        /// <summary>이름 줄 / 메시지 줄 두 줄(정본 `renderChatPreview`).</summary>
+        public void SetChatPreview(string name, string message)
+        {
+            if (chatName != null) chatName.text = name ?? string.Empty;
+            chat.text = message ?? string.Empty;
+        }
+
+        /// <summary>한 줄만 아는 자리(옛 표면) — 메시지 줄에만 쓴다.</summary>
+        public void SetChatPreview(string line) { SetChatPreview(chatName != null ? chatName.text : null, line); }
+
+        public string ChatName { get { return chatName != null ? chatName.text : null; } }
+        public string ChatMessage { get { return chat.text; } }
 
         /// <summary>웨이브 노드. <paramref name="total"/> 개(메인 5 · 던전 1~3) · <paramref name="now"/> = 진행 중 웨이브(1부터) · <paramref name="bossWave"/> = 보스 웨이브 번호(없으면 -1).</summary>
         public void SetWaves(int total, int now, int bossWave)
