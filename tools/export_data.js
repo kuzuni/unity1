@@ -111,7 +111,9 @@ const PROP_HELPERS = new Set(['bx', 'cbx', 'octa', 'capLayer', 'sub']);
 const SCENE_FIELDS = ['SIMPLE_BG', 'VALUE', 'SUN_DAY', 'SUN_NIGHT', 'CAM_POS', 'CAM_LOOK_Y', 'CAM_FOV', 'RIDGE_MIX', 'RIDGE_LAYERS',
     'VOXG', 'SHADE', 'TERRAIN', 'SOIL', 'LEAF_OFF', 'VOX_AMBIENT', 'CRACK_W', 'CRACK_A', 'BIOMES',
     // T10 — 크리처 공통 3/4 facing · 펫 대열(앞 3자리 · 후방 격자) · 탈것 무리 호
-    'CREATURE_YAW', 'PET_ROW0', 'PET_ARC', 'MOUNT_ARC'];
+    'CREATURE_YAW', 'PET_ROW0', 'PET_ARC', 'MOUNT_ARC',
+    // T11 — 탑승: 계열 표(saddle·hover·stand·bulk·seatByLeg·noNarrow·pose·barReach/reinReach) · 종→계열 · 종별 안장 · 서서 타기 자세/배수 · 안장 비례 · 폭 비례 · 걸음 각속도
+    'MOUNT_FORMS', 'MOUNT_FORM_OF', 'MOUNT_SADDLE_OF', 'RIDE_STAND_POSE', 'RIDE_STAND_BULK', 'RIDE_SEAT_RATIO', 'RIDE_WIDTH_RATIO', 'MOUNT_GAIT', 'MOUNT_IDLE_GAIT'];
 // scene3d.js 는 로드 시점에 THREE·Voxel·Mobs·ProChar 를 참조하지 않지만 three.min.js 의 UMD 머리가 `self` 를 찾는다 —
 // 별도 컨텍스트(self = 자기 자신)에 실물 three r128 을 먼저 올린다(T4 voxel_vectors.js 와 같은 길).
 const SCENE_LOAD_ORDER = ['bignum.js', 'util.js', 'balance-data.js', 'gamedata.js', 'voxel.js', 'mobs.js', 'mobdata.js',
@@ -542,6 +544,7 @@ function selfTest(src) {
     ok('SUN_DAY·SUN_NIGHT·CAM_POS 3벡터 · CAM_FOV 수', [sc.SUN_DAY, sc.SUN_NIGHT, sc.CAM_POS].every(v => Array.isArray(v) && v.length === 3) && typeof sc.CAM_FOV === 'number', sc.SUN_DAY.join(','));
     ok('LEAF_OFF foliage 3 · RIDGE_LAYERS 3 · CRACK_W/A 3', sc.LEAF_OFF.foliage.length === 3 && sc.RIDGE_LAYERS.length === 3 && sc.CRACK_W.length === 3 && sc.CRACK_A.length === 3);
     ok('T10: CREATURE_YAW 수 · PET_ROW0 mounted/unmounted 3자리 · PET_ARC rear 격자 cols 4 · MOUNT_ARC 호', typeof sc.CREATURE_YAW === 'number' && sc.PET_ROW0.mounted.length === 3 && sc.PET_ROW0.unmounted.length === 3 && sc.PET_ARC.rear === true && sc.PET_ARC.cols === 4 && typeof sc.MOUNT_ARC.hmin === 'number', `${sc.CREATURE_YAW}/${sc.PET_ARC.rx0}`);
+    ok('T11: MOUNT_FORMS 5계열(flat stand · fly bulk · wheeled seatByLeg · biped noNarrow) · MOUNT_FORM_OF 종→계열 · MOUNT_SADDLE_OF 14종 · RIDE_STAND_POSE 5본 · 배수/비례/각속도 수', sc.MOUNT_FORMS && sc.MOUNT_FORMS.flat.stand === true && typeof sc.MOUNT_FORMS.fly.bulk === 'number' && sc.MOUNT_FORMS.wheeled.seatByLeg === true && sc.MOUNT_FORMS.biped.noNarrow === true && typeof sc.MOUNT_FORMS.quad.saddle === 'number' && sc.MOUNT_FORM_OF['Hover Board'] === 'flat' && Object.keys(sc.MOUNT_SADDLE_OF).length === 14 && Object.keys(sc.RIDE_STAND_POSE).length === 5 && [sc.RIDE_STAND_BULK, sc.RIDE_SEAT_RATIO, sc.RIDE_WIDTH_RATIO, sc.MOUNT_GAIT, sc.MOUNT_IDLE_GAIT].every(x => typeof x === 'number'), `${Object.keys(sc.MOUNT_FORMS)}/${sc.RIDE_STAND_BULK}`);
     console.log('[소리 표 · T30]');
     const sx = files['sfx.json'];
     const modes = sx.MUSIC_MODES || {};

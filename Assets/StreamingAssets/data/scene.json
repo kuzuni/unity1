@@ -352,5 +352,111 @@
     ]
   },
   "PET_ARC": { "rear": true, "rx0": 2.72, "rxStep": 0.9, "rz0": 0.35, "rzStep": 0.62, "cols": 4, "mountedRx": 0.25, "mountedRz": 0.06 },
-  "MOUNT_ARC": { "rx0": 2.5, "rxStep": 1.5, "rz0": 1.7, "rzStep": 0.85, "zBase": -0.35, "hmin": 0.32, "hmax": 1.2, "gap": 1.4 }
+  "MOUNT_ARC": { "rx0": 2.5, "rxStep": 1.5, "rz0": 1.7, "rzStep": 0.85, "zBase": -0.35, "hmin": 0.32, "hmax": 1.2, "gap": 1.4 },
+  "MOUNT_FORMS": {
+    "flat": {
+      "saddle": 0.193,
+      "hover": 0.1,
+      "stand": true,
+      "pose": {
+        "hipL": { "rx": 0.5, "ry": 1.34, "rz": -0.1 },
+        "hipR": { "rx": -0.5, "ry": 1.34, "rz": 0.1 },
+        "kneeL": { "rx": -0.34 },
+        "kneeR": { "rx": -0.34 },
+        "spine": { "rx": 0.1, "ry": -0.62 }
+      }
+    },
+    "wheeled": {
+      "saddle": 0.36,
+      "hover": 0,
+      "seatByLeg": true,
+      "barReach": { "shoulder": -1.2, "shoulderZ": 0.1, "elbow": -0.2 },
+      "pose": {
+        "hipL": { "rx": 1.02, "rz": -0.26 },
+        "hipR": { "rx": 0.64, "rz": 0.24 },
+        "kneeL": { "rx": -1.72 },
+        "kneeR": { "rx": -0.86 },
+        "spine": { "rx": 0.2 }
+      }
+    },
+    "fly": {
+      "saddle": 0.38,
+      "hover": 0.04,
+      "bulk": 1.28,
+      "reinReach": { "shoulder": -0.92, "shoulderZ": 0.14, "elbow": -0.62 },
+      "pose": {
+        "hipL": { "rx": 0.86, "ry": -0.14, "rz": -0.66 },
+        "hipR": { "rx": 0.86, "ry": 0.14, "rz": 0.66 },
+        "kneeL": { "rx": -1.78, "rz": -0.42 },
+        "kneeR": { "rx": -1.78, "rz": 0.42 },
+        "spine": { "rx": 0.12 }
+      }
+    },
+    "quad": {
+      "saddle": 0.44,
+      "hover": 0,
+      "reinReach": { "shoulder": -0.92, "shoulderZ": 0.14, "elbow": -0.62 },
+      "pose": {
+        "hipL": { "rx": 0.8, "ry": -0.15, "rz": -0.74 },
+        "hipR": { "rx": 0.8, "ry": 0.15, "rz": 0.74 },
+        "kneeL": { "rx": -1.76, "rz": -0.3 },
+        "kneeR": { "rx": -1.76, "rz": 0.3 },
+        "spine": { "rx": 0.1 }
+      }
+    },
+    "biped": {
+      "saddle": 0.72,
+      "hover": 0,
+      "noNarrow": true,
+      "barReach": { "shoulder": -1, "shoulderZ": 0.12, "elbow": -0.34 },
+      "pose": {
+        "hipL": { "rx": 0.86, "ry": -0.14, "rz": -0.66 },
+        "hipR": { "rx": 0.86, "ry": 0.14, "rz": 0.66 },
+        "kneeL": { "rx": -1.78, "rz": -0.42 },
+        "kneeR": { "rx": -1.78, "rz": 0.42 },
+        "spine": { "rx": 0.12 }
+      }
+    }
+  },
+  "MOUNT_FORM_OF": {
+    "Hover Board": "flat",
+    "Hover Disk": "flat",
+    "Bike": "wheeled",
+    "One-Wheel Droid": "wheeled",
+    "Dump Truck": "wheeled",
+    "Cleaning Robot": "wheeled",
+    "Pterosaur": "fly",
+    "Bipedal Mech": "biped",
+    "Giant Bee": "fly",
+    "Mini Dragon": "fly",
+    "Star Whale": "fly"
+  },
+  "MOUNT_SADDLE_OF": {
+    "Pig": 0.4,
+    "Clockwork Beetle": 0.41,
+    "Armored Rhino": 0.415,
+    "Clockwork Mouse": 0.42,
+    "Pony": 0.425,
+    "Panther": 0.425,
+    "Boar": 0.435,
+    "Donkey": 0.44,
+    "Sheep": 0.445,
+    "Goat": 0.455,
+    "Dino": 0.475,
+    "Alpaca": 0.485,
+    "Brown Horse": 0.495,
+    "Camel": 0.515
+  },
+  "RIDE_STAND_POSE": {
+    "hipL": { "rx": 0.04, "rz": -0.1 },
+    "hipR": { "rx": 0.04, "rz": 0.1 },
+    "kneeL": { "rx": -0.16 },
+    "kneeR": { "rx": -0.16 },
+    "spine": { "rx": 0.04 }
+  },
+  "RIDE_STAND_BULK": 1.45,
+  "RIDE_SEAT_RATIO": 1.45,
+  "RIDE_WIDTH_RATIO": 0.74,
+  "MOUNT_GAIT": 5.4,
+  "MOUNT_IDLE_GAIT": 1.7
 }
