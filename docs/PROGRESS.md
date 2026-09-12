@@ -913,6 +913,7 @@
 - **주인이 확인할 것**: 상단바 «i» → 플레이어 정보: 장비 8칸에 그림이 있고 2행 오른쪽에 파란 탈것 칸 · 그 아래 동그란 오브 줄(스킬·펫·탈것) · 위 상자에 🛡️ 라벨 + 핍. 원작 shot-043313 과 나란히.
 - **플레이 콘솔 에러 0 확인 수단**: 위 PlayMode 테스트(빨간 로그 = 실패) · CI 유니티 잡 · T27 UiShotsTests 가 이 화면을 연다.
 - **다음 작업용**: 미니 씬은 `PlayerInfoPopup.PreviewStart`(RectTransform → bool)에 꽂는다(T54 뒤 · 원작 `Scene3D.previewStart`) — true 를 돌려주면 폴백을 안 그린다. `Waves` 훅은 던전 러너가 다른 총계를 쓰면 바꿔 끼운다.
+- **곁다리(사고)**: 1회차 push 의 재시도 루프(`reset --soft origin/main` 로 index 를 유지)가 그 사이 워커가 반납한 `docs/claims/T66.lock`(39351da)을 **되살렸다** — 다음 커밋에서 바로 지웠다(T66 은 반납된 상태가 맞다). 교훈: 재시도는 index 를 들고 가지 말고 «origin/main 위에 내 파일만 다시 얹기» 로.
 
 ## 워커 결정 기록
 
