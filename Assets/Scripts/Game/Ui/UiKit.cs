@@ -1,0 +1,239 @@
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
+
+namespace Forge.Game.Ui
+{
+    /// <summary>글자 종류 — 크기·하한은 카탈로그(<c>Assets/Forge/catalog.json</c> textKinds)가 쥔다. 하한: 본문 40 · 버튼 44 · 보조 36 · 제목 60(ROUTINE §1).</summary>
+    public enum TextKind { Title, Button, Body, Sub }
+
+    /// <summary>
+    /// UI 조각 공장(ROUTINE T18). 글자는 반드시 여기서(<see cref="Text"/>) 만든다 — fontSize·색을 직접 주지 않는다.
+    /// 좌표는 «기준 캔버스»(카탈로그 reference 1080×1920 · 원작 rem 스케일과 같은 뜻) 단위이고, 앱 상자(<see cref="UiRoot"/>)가 통째로 스케일된다.
+    /// </summary>
+    public static class UiKit
+    {
+        private static UiCatalog Cat { get { return UiCatalog.Instance; } }
+
+        public static float RefW { get { return Cat.RefW; } }
+        public static float RefH { get { return Cat.RefH; } }
+
+        /// <summary>배치 값(분수). 폭 기준이면 <see cref="W"/>, 높이 기준이면 <see cref="H"/> 로 기준 px 를 얻는다.</summary>
+        public static float L(string key) { return Cat.Layout(key); }
+        public static float W(string key) { return Cat.Layout(key) * RefW; }
+        public static float H(string key) { return Cat.Layout(key) * RefH; }
+        public static Color C(string key) { return Cat.ColorOf(key); }
+
+        // ---- 사각형 ----
+
+        public static RectTransform Box(Transform parent, string name)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            go.layer = parent.gameObject.layer;
+            RectTransform rt = go.GetComponent<RectTransform>();
+            rt.SetParent(parent, false);
+            Fill(rt);
+            return rt;
+        }
+
+        /// <summary>부모를 꽉 채운다.</summary>
+        public static void Fill(RectTransform rt)
+        {
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+        }
+
+        /// <summary>부모 높이의 <paramref name="topFrac"/>~<paramref name="bottomFrac"/>(위에서부터 분수) 가로 띠.</summary>
+        public static void Band(RectTransform rt, float topFrac, float bottomFrac)
+        {
+            rt.anchorMin = new Vector2(0f, 1f - bottomFrac);
+            rt.anchorMax = new Vector2(1f, 1f - topFrac);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+        }
+
+        /// <summary>부모 왼쪽 위를 원점으로 (x, yTop) 에 w×h 상자(기준 px).</summary>
+        public static void Place(RectTransform rt, float x, float yTop, float w, float h)
+        {
+            rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = new Vector2(x, -yTop);
+            rt.sizeDelta = new Vector2(w, h);
+        }
+
+        /// <summary>부모의 (ax, ay) 앵커에 피벗을 맞춰 w×h 상자(기준 px) — 가운데·오른쪽 정렬용.</summary>
+        public static void Anchor(RectTransform rt, Vector2 anchor, Vector2 pivot, Vector2 offset, float w, float h)
+        {
+            rt.anchorMin = rt.anchorMax = anchor;
+            rt.pivot = pivot;
+            rt.anchoredPosition = offset;
+            rt.sizeDelta = new Vector2(w, h);
+        }
+
+        // ---- 면 ----
+
+        /// <summary>단색 면(부모 꽉 채움 · 입력 안 받음).</summary>
+        public static Image Panel(Transform parent, string name, string colorKey)
+        {
+            RectTransform rt = Box(parent, name);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.color = C(colorKey);
+            img.raycastTarget = false;
+            return img;
+        }
+
+        /// <summary>둥근 단색 면(알약·카드). 반지름은 기준 px.</summary>
+        public static Image Rounded(Transform parent, string name, string colorKey, float radiusPx)
+        {
+            Image img = Panel(parent, name, colorKey);
+            img.sprite = UiShapes.Rounded;
+            img.type = Image.Type.Sliced;
+            img.pixelsPerUnitMultiplier = UiShapes.RoundedMultiplier(radiusPx);
+            return img;
+        }
+
+        /// <summary>원판.</summary>
+        public static Image Circle(Transform parent, string name, string colorKey)
+        {
+            Image img = Panel(parent, name, colorKey);
+            img.sprite = UiShapes.Circle;
+            img.type = Image.Type.Simple;
+            img.preserveAspect = true;
+            return img;
+        }
+
+        /// <summary>부모 위(또는 아래) 가장자리에 붙는 가로 키라인. 두께는 기준 px.</summary>
+        public static Image Line(Transform parent, string name, string colorKey, float px, bool atTop)
+        {
+            Image img = Panel(parent, name, colorKey);
+            RectTransform rt = img.rectTransform;
+            rt.anchorMin = new Vector2(0f, atTop ? 1f : 0f);
+            rt.anchorMax = new Vector2(1f, atTop ? 1f : 0f);
+            rt.pivot = new Vector2(0.5f, atTop ? 1f : 0f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(0f, px);
+            return img;
+        }
+
+        /// <summary>카탈로그 스프라이트(GUI PRO Kit 조각). 비율 유지.</summary>
+        public static Image Icon(Transform parent, string name, string spriteKey)
+        {
+            RectTransform rt = Box(parent, name);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.sprite = Cat.SpriteOf(spriteKey);
+            img.type = Image.Type.Simple;
+            img.preserveAspect = true;
+            img.raycastTarget = false;
+            return img;
+        }
+
+        // ---- 글자 ----
+
+        /// <summary>글자. 크기는 종류에서 · 색은 카탈로그 키에서(비우면 «ink»). 줄바꿈 없음 · 넘쳐도 자르지 않는다(원작 nowrap 알약과 같다).</summary>
+        public static TextMeshProUGUI Text(Transform parent, string name, TextKind kind, string text, string colorKey = null, TextAlignmentOptions align = TextAlignmentOptions.Center)
+        {
+            RectTransform rt = Box(parent, name);
+            TextMeshProUGUI t = rt.gameObject.AddComponent<TextMeshProUGUI>();
+            t.font = UiFont.Primary;
+            t.fontSize = Cat.Kind(kind).size;
+            t.color = C(colorKey ?? "ink");
+            t.alignment = align;
+            t.textWrappingMode = TextWrappingModes.NoWrap;
+            t.overflowMode = TextOverflowModes.Overflow;
+            t.richText = false;
+            t.raycastTarget = false;
+            t.text = text ?? string.Empty;
+            rt.gameObject.AddComponent<UiTextKindTag>().Kind = kind;
+            return t;
+        }
+
+        /// <summary>글자 외곽선(원작 stage-label 의 검정 text-shadow 테). 재질 인스턴스에 OUTLINE_ON 을 켠다.</summary>
+        public static void Outline(TextMeshProUGUI t, string colorKey, float width01)
+        {
+            Material m = t.fontMaterial;
+            m.EnableKeyword("OUTLINE_ON");
+            t.outlineColor = C(colorKey);
+            t.outlineWidth = width01;
+        }
+
+        // ---- 버튼 ----
+
+        /// <summary>투명 히트 영역 + Button. 겉모습(아이콘·글자)은 호출자가 자식으로 넣는다.</summary>
+        public static Button Button(Transform parent, string name, UnityAction onClick)
+        {
+            RectTransform rt = Box(parent, name);
+            Image hit = rt.gameObject.AddComponent<Image>();
+            hit.color = new Color(0f, 0f, 0f, 0f);
+            hit.raycastTarget = true;
+            Button b = rt.gameObject.AddComponent<Button>();
+            b.transition = Selectable.Transition.None;
+            b.targetGraphic = hit;
+            if (onClick != null) b.onClick.AddListener(onClick);
+            return b;
+        }
+    }
+
+    /// <summary>
+    /// TMP 글꼴 — 주인 글꼴 <c>Assets/Fonts/NotoSans-Regular.ttf</c> 를 런타임 폰트 애셋으로 만들고(에디터 없이 굽는 길),
+    /// 그 파일에 한글 cmap 이 없어(실측 2026-09-12 · U+AC00 구간 0) 원작 CSS font-family 순서(Malgun Gothic · Apple SD Gothic Neo …)대로
+    /// OS 글꼴을 폴백 표에 붙인다. OS 에 한글 글꼴이 없으면(리눅스 CI · WebGL) 한글은 네모로 나온다 — 그것은 경고 한 줄로 알린다.
+    /// </summary>
+    public static class UiFont
+    {
+        private static TMP_FontAsset primary;
+
+        /// <summary>붙은 OS 폴백 글꼴 이름(없으면 null).</summary>
+        public static string HangulFallback { get; private set; }
+
+        public static TMP_FontAsset Primary
+        {
+            get
+            {
+                if (primary == null) primary = Build();
+                return primary;
+            }
+        }
+
+        private static TMP_FontAsset Build()
+        {
+            UiCatalog cat = UiCatalog.Instance;
+            if (cat.font == null) throw new System.InvalidOperationException("UiCatalog.font 이 비었다 — Assets/Fonts/NotoSans-Regular.ttf 참조 (gen_ui_catalog.py)");
+            TMP_FontAsset fa = TMP_FontAsset.CreateFontAsset(cat.font);
+            if (fa == null) throw new System.InvalidOperationException("NotoSans-Regular 로 TMP 폰트 애셋을 못 만들었다");
+            fa.name = cat.font.name + " (runtime)";
+            Shader shader = ShipShader();
+            if (shader != null && fa.material != null) fa.material.shader = shader;
+            if (fa.fallbackFontAssetTable == null) fa.fallbackFontAssetTable = new List<TMP_FontAsset>();
+
+            HashSet<string> installed = new HashSet<string>(Font.GetOSInstalledFontNames());
+            foreach (string family in cat.FallbackOsFonts)
+            {
+                if (!installed.Contains(family)) continue;
+                TMP_FontAsset fb = TMP_FontAsset.CreateFontAsset(family, "Regular");
+                if (fb == null) continue;
+                fb.name = family + " (OS fallback)";
+                if (shader != null && fb.material != null) fb.material.shader = shader;
+                fa.fallbackFontAssetTable.Add(fb);
+                HangulFallback = family;
+                break;
+            }
+            if (HangulFallback == null)
+                Debug.LogWarning("[UiFont] OS 한글 글꼴을 못 찾았다 — 한글 라벨이 네모로 보인다. 주인 에셋에 한글 글꼴(NotoSansKR 등)을 넣으면 카탈로그 font 로 바꾼다 (T18)");
+            return fa;
+        }
+
+        /// <summary>빌드에 실리는 것이 확실한 TMP 셰이더 — 기본 폰트 애셋(Resources 의 LiberationSans SDF)이 문 것. 런타임 애셋의 Shader.Find 결과는 빌드에 안 실릴 수 있다.</summary>
+        private static Shader ShipShader()
+        {
+            TMP_FontAsset def = TMP_Settings.defaultFontAsset;
+            if (def != null && def.material != null) return def.material.shader;
+            return null;
+        }
+    }
+}

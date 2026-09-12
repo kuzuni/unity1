@@ -140,7 +140,7 @@
 - 정본: `skills.js` · `combat.js` 의 스킬 판정 · `balance-data.js`.
 - 범위: `Assets/Scripts/Core/Skills/` · `Assets/Tests/EditMode/SkillTests.cs`.
 
-### T18 — UI 껍데기: 9:16 레터박스 캔버스 · SafeArea · `UiKit`(GUI PRO Kit 조각 스폰 · TMP NotoSans · TextKind 하한) · HUD · 하단 탭 (Game · T1 뒤)
+### T18 ✅ — UI 껍데기: 9:16 레터박스 캔버스 · SafeArea · `UiKit`(GUI PRO Kit 조각 스폰 · TMP NotoSans · TextKind 하한) · HUD · 하단 탭 (Game · T1 뒤)
 - 정본: `web/index.html` · `css/style.css`(rem 스케일 · 레터박스) · `ui.js` 의 HUD/탭 구조 · 원작 스크린샷 `web/ref/screens/shot-*.png`(**Read 로 직접 본다**).
 - 글자는 `UiKit.Text/Label/Button` 으로만 · `fontSize` 직접 금지(§1). 카탈로그(`Assets/Forge/catalog.json` → 용도 키 → GUI PRO Kit 경로)를 세우고 `docs/assets-map.md` 를 만든다.
 - PlayMode: 부팅 → HUD · 콘솔 빨강 0 · `TextSizeGateTests`(모든 활성 Text 가 하한 이상).

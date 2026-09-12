@@ -1,5 +1,6 @@
 // dotnet 검사 빌드 전용 스텁 — Unity 의 Unity.TextMeshPro(com.unity.ugui 2.0) 중 이 레포가 쓰는 표면만 서명을 맞춘다.
 // Assets 에는 들어가지 않는다(유니티에서는 진짜 TMP 가 잡힌다). 새 API 를 쓰면 여기에도 같은 서명을 더한다.
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,6 +22,9 @@ namespace TMPro
         // ⚠ 긴 오버로드(padding·아틀라스 크기를 직접 주는 것)는 아직 안 쓴다 — 스텁에 없는 서명을 쓰면
         //   dotnet 은 초록인데 유니티에서만 죽는다(결정 465 가 남긴 자리). 두께가 잘리면 그때 같이 넓힌다.
         public static TMP_FontAsset CreateFontAsset(Font font) { return font != null ? CreateInstance<TMP_FontAsset>() : null; }
+        // T18 (워커 I) — OS 글꼴로 만드는 오버로드(한글 폴백 · ugui 2.0 = TMP 3.2 의 공개 서명: CreateFontAsset(string familyName, string styleName, int pointSize = 90)) 와 폴백 표(List<TMP_FontAsset> fallbackFontAssetTable { get; set; }).
+        public static TMP_FontAsset CreateFontAsset(string familyName, string styleName, int pointSize = 90) { return string.IsNullOrEmpty(familyName) ? null : CreateInstance<TMP_FontAsset>(); }
+        public List<TMP_FontAsset> fallbackFontAssetTable { get; set; }
         public bool HasCharacter(char c) { return false; }
         public bool TryAddCharacters(string chars) { return false; }
     }
@@ -58,6 +62,7 @@ namespace TMPro
         public FontStyles fontStyle { get; set; }
         public bool richText { get; set; }
         public Material fontSharedMaterial { get; set; }
+        public Material fontMaterial { get; set; }                 // T18 — 글자별 재질 인스턴스(외곽선 키워드를 켠다) · 진짜 TMP_Text 의 공개 프로퍼티
         public TMP_FontAsset font { get; set; }
         public TextOverflowModes overflowMode { get; set; }
         public TextWrappingModes textWrappingMode { get; set; }
@@ -80,6 +85,11 @@ namespace TMPro
         public Vector2 GetPreferredValues(float width, float height) { return Vector2.zero; }
     }
     public class TextMeshProUGUI : TMP_Text { }
+    // T18 — 기본 폰트 애셋(Resources 의 TMP Settings 가 문 LiberationSans SDF). 런타임 폰트 애셋의 셰이더를 이것에서 빌린다(빌드에 실리는 셰이더).
+    public class TMP_Settings : ScriptableObject
+    {
+        public static TMP_FontAsset defaultFontAsset { get { return null; } }
+    }
     // T502 — 월드 공간 글자(데미지 팝 · 발밑 숫자). MeshRenderer 로 그리므로 스프라이트와 같은 정렬 층·순서를 갖는다 — 진짜 TextMeshPro 의 공개 프로퍼티 둘만 옮겼다.
     public class TextMeshPro : TMP_Text
     {

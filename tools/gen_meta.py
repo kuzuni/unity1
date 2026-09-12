@@ -29,6 +29,9 @@ def body(rel, is_dir):
         # 셰이더는 ShaderImporter 다 (T225 — 이 레포의 첫 자작 셰이더). DefaultImporter 로 두면 유니티가 처음 열 때
         # 임포터를 갈아 끼우며 .meta 를 다시 쓴다 — guid 는 살아남지만 그 전까지는 «임포터가 안 맞는 에셋» 이라 경고가 난다.
         return "ShaderImporter:\n  externalObjects: {}\n  defaultTextures: []\n  nonModifiableTextures: []\n" + TAIL
+    if ext == '.asset':
+        # ScriptableObject·URP 에셋 등 유니티 네이티브 YAML — NativeFormatImporter + 주 오브젝트 11400000 (T1 의 URP 에셋 .meta 와 같은 꼴 · T18).
+        return "NativeFormatImporter:\n  externalObjects: {}\n  mainObjectFileID: 11400000\n" + TAIL
     if ext == '.asmdef':
         return "AssemblyDefinitionImporter:\n  externalObjects: {}\n" + TAIL
     if ext in ('.json', '.txt', '.md', '.csv'):
