@@ -738,7 +738,7 @@ namespace Forge.Game.Ui
 
         void PlayAnvilStrike(Action done)
         {
-            CancelAnvilStrike();
+            ForgeCraftPopup.DismissReveal();   // 앞 타격의 카드만 걷는다 — CancelAnvilStrike 는 AnvilBusy 까지 끄므로 여기서 부르면 방금 잠근 모루가 풀린다(CI 런 64)
             Striking = true;
             PlaySfx("anvilHit");
             ForgeSheet.SetStriking(this, true);
