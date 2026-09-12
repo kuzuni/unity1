@@ -59,6 +59,10 @@ namespace Forge.Game.Battle
         public readonly HashSet<string> KindsKilled = new HashSet<string>();
         public string LastStageLabel { get; private set; }
         public int LastWave { get; private set; }
+        /// <summary>이벤트를 그린 뒤 바깥 층(T12 스킬 오브젝트 · T21 던전 팝업 …)에 같은 이벤트를 넘긴다 — 이 씬은 skill*/dungeon*/toast 를 안 그린다.</summary>
+        public event Action<BattleEvent> EventHandled;
+        /// <summary>한 프레임 스텝 끝(파티클·숫자 뒤 · 카메라 전) — 바깥 층의 게임 시간이 이 박자를 따른다.</summary>
+        public event Action<float> Stepped;
 
         Camera cam; Vector3 camBase; float fov0 = -1; double fovT = -1, fovDur, fovAmt;
         double acc;
@@ -219,6 +223,7 @@ namespace Forge.Game.Battle
             foreach (int id in gone) Enemies.Remove(id);
             Fx.Step(dt);
             Numbers.Step(dt);
+            if (Stepped != null) Stepped(dt);
             StepCamera(dt);
         }
 
@@ -337,6 +342,7 @@ namespace Forge.Game.Battle
                 // bossEntrance(워닝 배너·사이렌·착지 링) · music(T30) · skill*(T12) · toast/deathFade/sceneCut(T22/T27) · save · dungeon*(T21) — 이 작업 밖.
                 default: break;
             }
+            if (EventHandled != null) EventHandled(e);
         }
 
         void SetChapterTheme(int chapter)
