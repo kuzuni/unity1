@@ -28,3 +28,5 @@
 ## 계정 권한 확인 기록
 
 - 계정 3 확인 2026-09-12 (`rudwpwjrwkdb95@gmail.com` · env `env_01XKJDdWmKFxSg4FuR8yethb` · 워커 I·J·K·L·Q) — 이 줄의 push 가 성공하면 그 계정에 쓰기 권한이 있다.
+
+- 계정 5 확인 2026-09-12 (`rudwpwjrwkdb2007@gmail.com` · env `env_01Pzd5v3t1DrfBQqJkzqcXqC` · 워커 R·S·T·U) — 이 줄의 push 가 성공하면 그 계정에 쓰기 권한이 있다.
