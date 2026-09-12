@@ -37,6 +37,13 @@ def body(rel, is_dir):
         return "NativeFormatImporter:\n  externalObjects: {}\n  mainObjectFileID: 2100000\n" + TAIL
     if ext == '.asmdef':
         return "AssemblyDefinitionImporter:\n  externalObjects: {}\n" + TAIL
+    if ext == '.jslib':
+        # WebGL 자바스크립트 플러그인(T8 ForgeSignal.jslib) — PluginImporter · WebGL 플랫폼만 켠다(유니티 기본과 같다).
+        return ("PluginImporter:\n  externalObjects: {}\n  serializedVersion: 2\n  iconMap: {}\n  executionOrder: {}\n  defineConstraints: []\n"
+                "  isPreloaded: 0\n  isOverridable: 0\n  isExplicitlyReferenced: 0\n  validateReferences: 1\n  platformData:\n"
+                "  - first:\n      Any: \n    second:\n      enabled: 0\n      settings: {}\n"
+                "  - first:\n      Editor: Editor\n    second:\n      enabled: 0\n      settings:\n        DefaultValueInitialized: true\n"
+                "  - first:\n      WebGL: WebGL\n    second:\n      enabled: 1\n      settings: {}\n" + TAIL)
     if ext in ('.json', '.txt', '.md', '.csv'):
         return "TextScriptImporter:\n  externalObjects: {}\n" + TAIL
     if ext in ('.ttf', '.otf'):

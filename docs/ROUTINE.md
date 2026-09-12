@@ -99,11 +99,12 @@
 - `Battle`(순수 C#): 입력 = 영웅 스탯·장비·펫 3·스킬 4·스테이지 → 틱마다 이벤트(공격·피격·처치·웨이브·보스·드랍). **원작 JS 와 판 단위 일치**: `tools/sim/`(node) 로 원작 `combat.js` 를 같은 시드로 돌려 처치 시각·드랍 목록을 JSON 으로 뽑고 EditMode 가 그것과 대조한다(시드 3개 × 100판).
 - 범위: `Assets/Scripts/Core/Battle/` · `tools/sim/` · `Assets/Tests/EditMode/BattleTests.cs`.
 
-### T8 — 전투 씬: 적 스폰·보행·공격·플린치·사망 · 데미지 숫자 · 카메라 셰이크 · 히트 파티클 (Game · T6·T7 뒤)
+### T8 ✅ — 전투 씬: 적 스폰·보행·공격·플린치·사망 · 데미지 숫자 · 카메라 셰이크 · 히트 파티클 (Game · T6·T7 뒤)
 - 정본: `scene3d.js` 의 `monsterMesh`(어댑터 · 관절 계약) · `killEnemy`(파편색 = `shardC` 부피 가중 평균) · `spawnEnemy` 자리·간격 · 데미지 숫자 스타일 · 셰이크 진폭/감쇠 · `heroAttack` 타이밍(T6 클립과 같은 시각에 판정).
 - 파티클은 `Cartoon FX Remaster` 프리팹만(카탈로그 키로 · `docs/assets-map.md`). Core `Battle` 이벤트를 구독해 그린다 — 씬이 규칙을 계산하지 않는다.
 - PlayMode: 30초 자동 전투 · 콘솔 빨강 0 · 적 7종 전부 한 번씩 스폰·사망.
-- 범위: `Assets/Scripts/Game/Battle/` · `Assets/Tests/PlayMode/BattleSceneTests.cs`.
+- 범위: `Assets/Scripts/Core/BattleFx/`(EnemyGait.cs · HitRules.cs) · `Assets/Scripts/Game/Battle/`(BattleScene · EnemyView · HeroView · HpBar · DamageNumbers · CubeParticles · BlobShadow · FxCatalog · FxMaterials · BareHeroStats) · `Assets/Forge/Resources/FxCatalog.asset` · `Assets/Plugins/WebGL/ForgeSignal.jslib` · `tools/battlefx_vectors.js` · `tools/gen_meta.py`(.jslib 갈래) · `Assets/Tests/EditMode/Vectors/t8-battlefx.json` · `Assets/Tests/EditMode/BattleFxTests.cs` · `Assets/Tests/PlayMode/BattleSceneTests.cs` · `docs/assets-map.md`(Cartoon FX 절).
+- ✅ 2026-09-12 워커 F — 규칙은 Core `BattleFx`(정본 실행 벡터 대조) · 씬은 `Battle` 이벤트 구독 · 뺀 연출은 T39(보스 레갈리아·워닝·디졸브·림·플래시·트레일·블롭·암전).
 
 ### T9 ✅ — 맵·바이옴: 챕터 테마 10종 · 소품 배치(근경/중경 점유) · 지면·안개·광원 (Game · T4 뒤)
 - ⚠ **정본 실측(2026-09-12 워커 I)**: `scene3d.js` 67행 `SIMPLE_BG: true`(주인 지시 2026-08-21 «배경 아예 단순하면 어떤 느낌인지») 가 배포값이라 **소품·스캐터·능선 3겹·구름·안개 블롭·하늘 돔이 전부 꺼져 있고 `heightAt` 은 0**(`buildProps` 조기 return · `buildTerrain`/`buildSky`/`heightAt` 분기). 화면에 있는 것은 «복셀 지면 타일(정점색: 포석·연석·흙 결) + 안개·단색 배경 + 광원 3 + 테마 25 파생색» 뿐이다. 이 작업은 그 보이는 것을 옮겼고(T9 완료 기록), 지면 소재(캔버스 텍스처·노멀·균열 발광맵·포석 줄눈 데칼·지면 셰이더)는 **T34**, `SIMPLE_BG=false` 로 되살아나는 경로(소품 17종 생성기·배치·스캐터·능선·구름·하늘)는 **T35** 로 갈랐다 — 테마는 «10종» 이 아니라 `CHAPTER_THEMES` 25종(gamedata.json)이다.
@@ -252,6 +253,12 @@
 - 판정: 유니티 잡에서 셰이더 컴파일 에러 0(콘솔 빨강 0 · `Shader.isSupported`) + PlayMode 테마 25 순회 + «주인이 확인할 것: 사막 리플이 근경~원경에서 같은 벽지로 안 보이고 · 설원 수광면이 백색으로 빠지는가».
 - 범위: `Assets/Shaders/Terrain.shader`(+.meta) · `Assets/Scripts/Game/World/GroundTextures.cs`(셰이더 갈아끼우기) · `tools/dotnet/Stubs/URP.cs`(필요 시) · `Assets/Tests/PlayMode/WorldTests.cs`(셰이더 단언).
 
+### T39 — 전투 씬 후속: T8 이 뺀 원작 연출 전부 (Game · T8 뒤)
+- 정본: `scene3d.js` `bossRegalia`(관·가시 · 11744 근처 호출) · `bossMaterialTell`(11360~) · `bossEntrance`(13480~ · BOSS_WARN_DUR 2.0 · BOSS_BEAT 0.42 · 배너 `#boss-warning` · 링 · 돌리 인 `camPush`) · `installDissolve`/`setDissolve`(12470~ · 노이즈 알파 클립 + 잔불) · `applyRimLight`(1376 · ENEMY_RIM darkStrength 0.98/darkPower 0.85) · `flashMesh`/`flashTargets`/`rimFlash`(12760~) · `impactFlare`(12544)·`impactSpikes`·`impactRing`·`expandRing`(16892)·`flashLight`(16844)·`scorchDecal`(16873) · `swoosh`·`trailImpact`·`updateTrail`(무기 궤적) · `corpseBlob`(13400) · 영웅 블롭 · `deathFade`(17402)·`sceneCut`(17361).
+- T8 의 자리: `EnemyView`(보스 분기 · `StepDying` 의 소멸 줄 · `Hit` 의 플레어 줄) · `HeroView` · `BattleScene.Handle` 의 bossEntrance/deathFade/sceneCut 갈래. 디졸브·림은 URP 커스텀 셰이더(`Assets/Shaders/`) — 파티클 셰이더 위에 `_Dissolve`·림 항.
+- 판정: 보스 웨이브 캡처에서 관·가시·발광 · 워닝 배너 3박 · 시체가 가장자리부터 부스러짐 · 피격 프레임에 청백/주황 림 · PlayMode 콘솔 빨강 0.
+- 범위: `Assets/Scripts/Game/Battle/Boss*.cs` · `Assets/Scripts/Game/Battle/HitFlash*.cs` · `Assets/Scripts/Game/Battle/Trail*.cs` · `Assets/Scripts/Game/Ui/Battle*.cs`(워닝 배너·암전 커버) · `Assets/Shaders/Dissolve*.shader` · `Assets/Tests/PlayMode/BattleFxSceneTests.cs`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -373,8 +380,8 @@ node tools/export_data.js --self-test                                         # 
 | `js/bignum.js` · `util.js` | 큰 수 · 표기 · 난수 | T3 | ✅ |
 | `js/voxel.js` · `mobs.js` · `mobs-pets.js` · `mobs-mounts.js` · `mobs-enemies.js` · `mobs-props.js` · `mobs-skillfx.js` | 박스 몹 조립 · 종 표 | T2 · T4 · T5(전 종 세워 보기) | ✅ (T4 · T5) |
 | `js/prochar.js`(2,526) | 영웅 박스 모델 · 무기 파지 · 애니 | T6 | ✅ |
-| `js/combat.js` · `state.js`(전투 부분) | 전투 틱 · 웨이브 · 보스 | T7 · T8 | T7 ✅ · T8 ⬜ |
-| `js/scene3d.js`(18,887) · `scene3d-skillfx.js`(1,088) | 3D 세계 전부: 카메라·광원·테마·적 스폰·애니 계약·데미지 숫자·셰이크·파티클·맵·소품·펫 대형·탈것 탑승·스킬 오브젝트·사망 연출·히트 이펙트 | T1(카메라·테마0) · T8 · T9 · T10 · T11 · T12 | T1 ✅ · T9 ✅(SIMPLE_BG 의 보이는 것 · 소재 T34 · 배경 복원 T35) · 나머지 ⬜ (쪼개 등재 예상) |
+| `js/combat.js` · `state.js`(전투 부분) | 전투 틱 · 웨이브 · 보스 | T7 · T8 | ✅ (T7 · T8) |
+| `js/scene3d.js`(18,887) · `scene3d-skillfx.js`(1,088) | 3D 세계 전부: 카메라·광원·테마·적 스폰·애니 계약·데미지 숫자·셰이크·파티클·맵·소품·펫 대형·탈것 탑승·스킬 오브젝트·사망 연출·히트 이펙트 | T1(카메라·테마0) · T8 · T9 · T10 · T11 · T12 · T39 | T1 ✅ · T8 ✅(적 스폰·보행·공격·피격·사망·숫자·셰이크·파티클 · 뺀 연출은 T39) · T9 ✅(SIMPLE_BG 의 보이는 것 · 소재 T34 · 배경 복원 T35) · 나머지 ⬜ |
 | `js/state.js` · `main.js`(저장 시점·부팅) | 세이브 · 마이그레이션 · 오프라인 보상 | T13 | ✅ |
 | `js/forge.js` | 대장간 규칙 · 오토 포지 | T14 · T19 | T14 ✅ · T19 ⬜ |
 | 장비 8부위 · 페이퍼돌(`prochar.js`·`ui.js` 장비 · `scene3d.js` makeWeapon/makeHelmet/dressMcRig) | 등급·서브스탯·판매가·외형 | T15(규칙·표값) · T37(3D 외형 캡처) · T19 | T15 ✅ · T37 ⬜ · T19 ⬜ |

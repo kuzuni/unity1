@@ -37,8 +37,22 @@
 
 ## 아직 안 쓴 주인 에셋 (뒤 작업이 쓸 때 여기 옮긴다)
 
-- `JMO Assets/Cartoon FX Remaster` — 히트 파티클(T8) · `Plugins/Demigiant/DOTween` — UI 트윈 · `Plugins/AllIn1SpriteShader`.
+- `Plugins/Demigiant/DOTween` — UI 트윈 · `Plugins/AllIn1SpriteShader`.
 - 킷 `Component/Popup/Popup_Frame01_White.png`·`Popup_Frame01_Navy.png`·`Button/Btn_MainButton_White.Png`·`Slider02_*` — 팝업·버튼·진행바(T19~T22). `.meta` 의 `spriteBorder` 가 0 이라 9-슬라이스로 쓰려면 주인 에디터에서 border 를 잡아야 한다(코드에서 텍스처를 손대지 않는다).
+
+## 히트 파티클 (T8 · Cartoon FX Remaster · `Assets/Forge/Resources/FxCatalog.asset` → `FxCatalog.Play(키)`)
+
+> 원작이 캔버스 텍스처로 그리던 플레어·링·점광의 자리(결정 68). 파편·불티는 큐브 파티클 코드(`CubeParticles`)라 에셋이 아니다. 경로는 `Assets/JMO Assets/Cartoon FX Remaster/CFXR Prefabs/` 아래. GUID 는 `.meta` · 카탈로그 YAML 은 프리팹 루트 GameObject fileID 를 가리킨다.
+
+| 용도 키 | 프리팹 | GUID | 원작 자리 |
+|---|---|---|---|
+| `hit` | `Impacts/CFXR Hit D 3D (Yellow).prefab` | `265d3a5ba69981a4698ceabcedf368b0` | `hitEnemy` 일반 접촉 플레어(청백·노랑 불티) |
+| `crit` | `Impacts/CFXR Hit A (Red).prefab` | `5c755f9bc5253ea418e919994537dcc7` | `hitEnemy` 크리 플레어(주황) |
+| `kill` | `Eerie/CFXR2 WW Enemy Explosion.prefab` | `7ec363c8df426644ea85f8d6d570561c` | `killEnemy` 버스트(코어·중간·외곽 플레어 + 점광 + 링) |
+| `bossKill` | `Explosions/CFXR Explosion 1.prefab` | `3ef3ae421f71c5c4e97fe12dc2fc6312` | `killEnemy` 보스 확대판 |
+| `bossLand` | `Impacts/CFXR2 Ground Hit.prefab` | `87ee7299dd44ed747af24dbb91bcd33b` | `spawnEnemy` 보스 착지 먼지 파동(expandRing 0xbcaaa4 1.8) |
+| `heroHit` | `Impacts/CFXR Hit A (Red).prefab` | `5c755f9bc5253ea418e919994537dcc7` | `heroHit` 붉은 틴트·림 자리 |
+| `revive` | `Misc/CFXR Magic Poof.prefab` | `c4f829cb7dd4b864caf8832ec5b1ee55` | `heroRevive` 초록 링(0x9be7a0 1.3) |
 
 ## 복셀 재질 (T4 · 코드 생성 메시의 정점 색 셰이더)
 
