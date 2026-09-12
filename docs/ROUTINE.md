@@ -402,6 +402,20 @@
 - 판정: EditMode 표 테스트(정본 값 ↔ 표기 문자열) + PNG 눈 확인(«+7.7%» · 확률이 0 이 아님) + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Assets/Scripts/Game/Ui/ForgeInfoPopup.cs` · `Assets/Scripts/Core/BigNum.cs`(필요하면 표기 함수만) · `Assets/Tests/EditMode/`.
 
+### T60 — 재화 알약의 초록 «+»(상점 열기) 배지가 없다 (Game·UI · T18·T31 뒤 · 검수 Q 등재)
+- 실측(2026-09-12 22:1x · 검수 Q · 런 79 `screen_main.png`·`ui_safearea_notch.png` ↔ 정본 `ref/screens/shot-042120.png`·`shot-042356.png`): 정본 상단바의 코인·젬 알약은 아이콘 오른쪽 아래에 **초록 원 «+» 배지**를 달고 있고 그것이 상점으로 가는 버튼이다. 클론 상단바에는 그 자리 자체가 없다 — 알약이 «아이콘 + 숫자» 뿐이다(숫자 색 코인 `#ffd54f`·젬 `#ff8a80` 은 정본 CSS 와 맞다 · 색은 문제 아님).
+- 정본: `js/ui.js:1285` `curIcoPlus(kind)` = `<span class="pill-ico">{아이콘}<button class="pill-plus" onclick="UI.openShop()" aria-label="상점 열기">{IconGen.img('plus')}</button></span>` · `renderTopBar`(1300~1302행)가 코인·젬 둘 다에 쓴다. 치수는 `css/style.css:131` `.pill-plus`(`right:-.38rem` · `bottom:-.11rem` · `.74rem` 정사각)이고 그 CSS 주석이 **원본 실측 역산**을 적어 두었다 — 십자 폭 = 원판 지름의 **0.49배**, 중심은 원판 중심에서 `(+0.51, +0.33)×지름`.
+- 할 일: `Hud` 의 코인·젬 알약 아이콘에 «+» 배지 버튼을 위 비율로 얹고 누르면 상점을 연다(`ShopSheet` 는 `ShopSheet.cs:140` 에 이미 같은 조각을 «원작 curIcoPlus» 로 갖고 있다 — 그 자리를 공용으로 빼 쓰면 두 번 안 짠다). 아이콘 키는 T31 아틀라스의 `plus`. **치수·색은 `catalog.json` 으로**(§1 — 코드에 숫자 금지 · `gen_ui_catalog` 로 갱신).
+- 판정: PlayMode 단언(코인·젬 알약에 «+» 자식이 있고 누르면 상점 팝업이 열린다 · safeArea 안) + 다음 회차에 `screen_main.png` 를 열어 배지가 보이는 것을 본 기록 + 콘솔 빨강 0.
+- 범위: `Assets/Scripts/Game/Ui/Hud.cs` · `Assets/Scripts/Game/Ui/ShopSheet.cs`(공용 조각으로 빼는 갈래만) · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
+
+### T61 — 모루의 망치 수가 안 읽힌다: 밝은 시트 위 흰 글자 · 모루에 받침이 없다 (Game·UI · T19·**T57 뒤** · 검수 Q 등재)
+- 실측(2026-09-12 22:1x · 검수 Q · 런 79 `screen_main.png` 확대): 장비 시트 바닥(밝은 회색)에 «🔨 302k» 가 **거의 흰색**으로 찍혀 배경과 구별이 안 되고 모루 그림에 글자 왼쪽이 반쯤 물린다. 정본 `ref/screens/shot-042120.png` 은 같은 글자(«🔨 41307»)를 **모루의 어두운 몸통 위**에 얹어 흰 글자가 읽힌다 — 정본 모루는 붉은 상판 + 어두운 몸 + **회색 돌 받침** + 검은 외곽선이고, 클론 모루는 갈색 두 덩이뿐이라 글자가 시트 바닥으로 흘러내렸다.
+- 할 일: 모루 조형(상판·몸·돌 받침·외곽선)과 망치 수 자리를 정본 실측(`ref/screens/shot-042120.png` · `web/tools/anvil-*.png` · `probe-anvil-ref.js`)대로 맞춘다. 색·치수는 `catalog.json`(§1).
+- **T57 뒤인 이유**: T57 의 범위 `Assets/Scripts/Game/Ui/Forge*` 글로브가 `ForgeSheet.cs` 를 덮는다 — 규약 «두 작업이 같은 파일을 만져야 하면 뒤 번호가 기다린다»(`docs/claims/README.md`).
+- 판정: 촬영 PNG 를 열어 «🔨 <수>» 가 어두운 받침 위에서 읽힌다 + 대비 단언(글자 픽셀과 그 뒤 배경의 밝기 차 ≥ 문턱) 한 줄 + `ui_score.py --score` 의 `main` 점수가 안 내려간다.
+- 범위: `Assets/Scripts/Game/Ui/ForgeSheet.cs`(모루 자리) · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/ForgeUiTests.cs`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -537,7 +551,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 🔄 · T53 ⬜ · T56 🔄 · T57 ⬜ · T58 ⬜ · T59 🔄 |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 🔄 · T53 ⬜ · T56 🔄 · T57 ⬜ · T58 ⬜ · T59 🔄 · T60 ⬜ · T61 ⬜ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 ⬜ · T33 ⬜ |
