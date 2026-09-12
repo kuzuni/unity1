@@ -69,6 +69,19 @@ namespace Forge.Game.Battle
         /// <summary>`trailImpact(tier)` — 접촉 순간 남은 리본을 티어 색·세기로.</summary>
         public void TrailImpact(string tier) { if (Trail != null) Trail.Impact(tier); }
 
+        // ── T52 시전 젖힘: 원작 `heroG.rotation.z` 는 채널 하나를 돌진 기울임·피격 반동·스킬 젖힘이 나눠 쓴다(scene3d.js 12146 주석) ──
+        /// <summary>지금 z 채널 값(three 라디안 · 돌진 −DashLean·sin · 넉백 +롤 · 스킬 젖힘).</summary>
+        public double LeanZ { get { return gRot[2]; } }
+        /// <summary>돌진(평타)·넉백이 z 를 쥐고 있는가 — 원작 `skillCastBeat` 의 «`_attacking` 중엔 양보» 와 같은 자리(넉백도 매 프레임 z 를 덮으므로 같이 양보).</summary>
+        public bool LeanBusy { get { return Rig.Attacking || knockT >= 0; } }
+        /// <summary>스킬 젖힘 채널 쓰기(원작 `this.heroG.rotation.z = …`). 돌진·넉백 중이면 버린다. 값은 다음 스텝까지 남는다(원작도 릴리즈 애니가 0 으로 되돌린다).</summary>
+        public void SetLean(double z)
+        {
+            if (LeanBusy) return;
+            gRot[2] = z;
+            Apply();
+        }
+
         void Apply()
         {
             Rig.transform.localPosition = ThreeSpace.Pos(hx, hy, hz);

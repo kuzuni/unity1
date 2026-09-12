@@ -257,6 +257,38 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0, r.D.Pool.Active);
         }
 
+        /// <summary>T52 — 원작 `skillCastBeat` 시전 포즈: 1박 동안 `heroG.rotation.z` 가 −0.14·k²(지원계 −0.07)로 젖고, 2박 발화 시각에 +0.30 내질렀다가 0.14초에 0.</summary>
+        [UnityTest]
+        public IEnumerator 시전_젖힘_1박_동안_기울고_릴리즈에_내질러_제자리()
+        {
+            yield return Boot();
+            Rig r = Make(52);
+            yield return Run(r.Scene, 2.0);
+            Manual(r.Scene);
+            r.D.Clear();
+            HeroView h = r.Scene.Hero;
+            // 평타·넉백이 z 를 쥐고 있지 않은 순간을 잡는다(원작 `_attacking` 양보) — 그 뒤로는 디렉터만 밀므로 영웅 상태가 안 바뀐다
+            for (int i = 0; i < 200 && h.LeanBusy; i++) { Manual(r.Scene); r.Scene.Step(0.05f); if (i % 6 == 5) yield return null; }
+            Assert.IsFalse(h.LeanBusy, "10초 안에 평타·넉백이 없는 순간이 있어야 한다");
+            r.D.Clear();
+            Assert.AreEqual(0, h.LeanZ, 1e-9, "시작은 0");
+            foreach (var c in new[] { new { Fx = "slash", Z = SkillFxDirector.CastLeanZ }, new { Fx = "heal", Z = SkillFxDirector.CastLeanSupportZ } })
+            {
+                double dur = SkillFxDirector.CastBeatMs(5) / 1000.0;   // mythic 1박 220ms
+                r.D.SkillCastBeat(0xffffff, c.Fx, 5);
+                StepD(r.D, 0.21);
+                double k = 0.21 / dur;
+                Assert.AreEqual(-c.Z * k * k, h.LeanZ, 1e-3, c.Fx + " 1박 중 젖힘 = −z·k²");
+                StepD(r.D, 0.01);   // 1박 끝 → 릴리즈 애니 등록(다음 프레임부터)
+                StepD(r.D, 0.04);   // 릴리즈 30% 부근: z0 + 0.30 → 앞으로 내지른다
+                Assert.Greater(h.LeanZ, 0.05, c.Fx + " 릴리즈 스냅(앞으로)");
+                StepD(r.D, 0.12);   // 0.14초 지나면 0
+                Assert.AreEqual(0, h.LeanZ, 1e-9, c.Fx + " 릴리즈 뒤 제자리");
+                Assert.IsTrue(r.D.Timeline.Idle, c.Fx + " 애니 남은 것 0");
+            }
+            Assert.AreEqual(0, r.D.CubeCount); Assert.AreEqual(0, r.D.Lights.Busy);
+        }
+
         [UnityTest]
         public IEnumerator 구형_fx_참격_회오리_응급처치_안무도_있다()
         {

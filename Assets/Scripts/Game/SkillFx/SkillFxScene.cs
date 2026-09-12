@@ -54,6 +54,9 @@ namespace Forge.Game.SkillFx
         public void Shake(double mag) { s.Shake(mag); }
         public void FovPunch(double amount, double dur) { s.FovPunch(amount, dur); }
         public int ParticleCount { get { return s.Fx != null ? s.Fx.Count : 0; } }
+        public bool HeroLeanBusy { get { return s.Hero == null || s.Hero.LeanBusy; } }
+        public double HeroLeanZ { get { return s.Hero != null ? s.Hero.LeanZ : 0; } }
+        public void HeroLean(double z) { if (s.Hero != null) s.Hero.SetLean(z); }
     }
 
     /// <summary>

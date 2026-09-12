@@ -24,6 +24,10 @@ namespace Forge.Game.SkillFx
         void FovPunch(double amount, double dur);
         /// <summary>살아 있는 파편 수(원작 `particles.length` — 붐비면 모트 수를 줄인다).</summary>
         int ParticleCount { get; }
+        /// <summary>T52 영웅 젖힘 채널(원작 `heroG.rotation.z`) — 평타·넉백이 쥐고 있으면 <see cref="HeroLeanBusy"/>(원작 `_attacking` 양보).</summary>
+        bool HeroLeanBusy { get; }
+        double HeroLeanZ { get; }
+        void HeroLean(double z);
     }
 
     public enum FxLogKind { Cast, Payload, Actor, Hit, Weight, Free }
@@ -56,6 +60,8 @@ namespace Forge.Game.SkillFx
         public const int CastMs = 130, CastMsMeteor = 0, StormGatherMinMs = 190;
         public const int DragonfireImpactMs = 820, GodspearImpactMs = 500, NovaImpactMs = 560, GuillotineImpactMs = 430, VoidriftImpactMs = 540;
         public const double ThunderTellMaxAge = 2.6;
+        /// <summary>T52 시전 포즈(`skillCastBeat` 13,706·13,722~13,728행): 1박 동안 z = −0.14·k²(지원계 −0.07) · 릴리즈는 0.14초 동안 앞 30% 에 +0.30 내지르고 나머지 70% 로 0 까지 감쇠.</summary>
+        public const double CastLeanZ = 0.14, CastLeanSupportZ = 0.07, CastReleaseSnap = 0.30, CastReleaseDur = 0.14, CastReleaseRise = 0.3;
         public static readonly string[] Rarities = { "common", "rare", "epic", "legendary", "ultimate", "mythic" };
         /// <summary>`ASCEND_MOTIF` — 티어 1 불 · 2 얼음 · 3 뇌전 · 4 신성 · 5 심연(0 은 없음).</summary>
         public static readonly int[] AscendMotif = { -1, 0xff7a2a, 0x9fd8ff, 0xc9a0ff, 0xffe9a8, 0x8a4dff };
@@ -155,6 +161,7 @@ namespace Forge.Game.SkillFx
             foreach (var c in new List<FxCube>(cubes)) FxCubes.Kill(c);
             cubes.Clear();
             Lights.ReleaseAll();
+            if (!stage.HeroLeanBusy) stage.HeroLean(0);   // 릴리즈 애니를 버렸으니 젖힘도 되돌린다
         }
 
         // ── 등급 · 시각 ──
@@ -417,7 +424,7 @@ namespace Forge.Game.SkillFx
         }
 
         // ── 1박: 시전(skillCastBeat) — 큐브 모트가 가슴으로 빨려들고 차지 코어가 부풀다 터진다 · 광원은 올라간다 ──
-        // (수렴 룬 링은 원작이 2026-08-21 에 뺐다 · 시전 포즈(heroG.rotation.z)는 T8 HeroView 가 리그 회전을 쥐고 있어 여기서 안 건드린다 — 결정 기록)
+        // (수렴 룬 링은 원작이 2026-08-21 에 뺐다 · 시전 포즈(heroG.rotation.z)는 T52 가 HeroView 의 젖힘 채널로 — 평타·넉백 중엔 양보)
         public static bool IsSupportFx(string fx)
         {
             return fx == "heal" || fx == "aura" || fx == "firstaid" || fx == "wardshield" || fx == "warcry" || fx == "timewarp";
@@ -466,11 +473,25 @@ namespace Forge.Game.SkillFx
                 core.SetRot(k * 2.1, k * 2.7, k * 1.3);
                 core.SetOpacity(k < 0.82 ? 0.35 + k * 0.75 : 1 - (k - 0.82) / 0.18);
                 light.Set((1.5 + pw * 1.9) * ease);
+                // 🧍 시전 포즈 — 리그 관절을 안 건드리고 젖힘 채널만 · 평타 중엔 양보 · 지원계는 위로 모으는 문법이라 절반
+                if (!stage.HeroLeanBusy) stage.HeroLean(-(support ? CastLeanSupportZ : CastLeanZ) * ease);
             }, () =>
             {
                 foreach (var m in motes) KillCube(m);
                 KillCube(core);
                 light.Release();
+                // 시전 포즈 릴리즈 — 젖힘(−0.14)에서 앞으로 «휙» 내지르고(+0.16 부근) 제자리로. 릴리즈 시각 = 2박 발화 시각이라 몸의 스냅과 이펙트가 같은 프레임에서 만난다.
+                if (!stage.HeroLeanBusy)
+                {
+                    double z0 = stage.HeroLeanZ;
+                    Timeline.Add(CastReleaseDur, k2 =>
+                    {
+                        if (stage.HeroLeanBusy) return;   // 평타가 끼어들면 양보
+                        double s = k2 < CastReleaseRise ? k2 / CastReleaseRise : 1;
+                        double decay = k2 < CastReleaseRise ? 1 : 1 - (k2 - CastReleaseRise) / (1 - CastReleaseRise);
+                        stage.HeroLean((z0 + CastReleaseSnap * s) * decay);
+                    }, () => { if (!stage.HeroLeanBusy) stage.HeroLean(0); });
+                }
             });
         }
 
