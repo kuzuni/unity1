@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -11,6 +13,35 @@ namespace Forge.Tests.PlayMode
     /// <summary>T18 — 부팅 씬을 열면 UI 껍데기(앱 상자 9:16 · HUD · 장비 시트 자리 · 채팅 줄 · 탭 5개)가 서고 콘솔 빨강이 0 인가. 빨간 로그는 러너가 실패시킨다.</summary>
     public class UiSmokeTests
     {
+        // 앞서 돈 다른 PlayMode 테스트(예: ShopUiTests 의 닉네임 변경)가 persistentDataPath 에 남긴 세이브를 SaveIo 가 부팅 때 읽으면
+        // «부팅 닉네임 = 원작 defaultState» 가 깨진다(CI 런 27·38 실측). 부팅 스모크는 새 게임에서 시작해야 하므로 세이브를 비켜 두고 끝나면 되돌린다.
+        private static readonly List<string> aside = new List<string>();
+
+        [SetUp]
+        public void SaveAside()
+        {
+            aside.Clear();
+            string dir = Application.persistentDataPath;
+            if (!Directory.Exists(dir)) return;
+            foreach (string f in Directory.GetFiles(dir, "*.json"))
+            {
+                try { File.Copy(f, f + ".uismoke-bak", true); File.Delete(f); aside.Add(f); }
+                catch (System.Exception e) { Debug.LogWarning("[UiSmokeTests] 세이브를 비켜 두지 못했다: " + f + " — " + e.Message); }
+            }
+        }
+
+        [TearDown]
+        public void SaveRestore()
+        {
+            foreach (string f in aside)
+            {
+                string bak = f + ".uismoke-bak";
+                try { if (File.Exists(bak)) { File.Copy(bak, f, true); File.Delete(bak); } }
+                catch (System.Exception e) { Debug.LogWarning("[UiSmokeTests] 세이브를 되돌리지 못했다: " + f + " — " + e.Message); }
+            }
+            aside.Clear();
+        }
+
         private static IEnumerator Boot()
         {
             SceneManager.LoadScene("SampleScene");
