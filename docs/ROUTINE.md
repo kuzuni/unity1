@@ -162,7 +162,8 @@
 
 ### T20 — UI 패널: 펫(알·부화·합성·출전) · 스킬(소환·장착) · 탈것 (Game · T16·T17·T18 뒤)
 - 정본: `ui.js` + `index.html` 의 `panel-pets`·`panel-skills`·`panel-summon` + 해당 샷. 옮길 것: 펫 `renderPets`·`openPetDetail`·`openEggDetail`·`openPetUpgrade`·`renderPetUpgrade` · 스킬 `renderSkills`·`renderSkillBar`·`openSkillDetail` · 소환 `openSummonRates`·`renderSummonRates`·`openSummonResult`·`buildSummonReflection`(원작 소환 연출 그대로 · `Sfx` gacha·summonCharge·summonReveal) · 탈것 `openMounts`·`openMountDetail`·`openMountUpgrade`·`renderMountUpgrade`.
-- 범위: `Assets/Scripts/Game/Ui/Pet*` · `Ui/Skill*` · `Ui/Mount*` · `Assets/Tests/PlayMode/PetUiTests.cs`.
+- 진행(2026-09-12 · 워커 B): 스킬·펫 서브탭 · 소환 결과 연출 · 확률 팝업 · 펫 상세/알 상세/업그레이드 · 세이브 코덱 ✅ — 탈것 화면은 Core 규칙(**T40**)이 서면 같은 lock 으로 잇는다 · `renderSkillBar` 는 T8 전투 씬과 짝.
+- 범위: `Assets/Scripts/Game/Ui/Pet*` · `Ui/Skill*` · `Ui/Mount*` · `Assets/Scripts/Core/PetSave/PetSkillSave.cs` · `Assets/Forge/Resources/PetSkillUi.json`(T20 색·배치·문구표 · 결정 70) · `Assets/Tests/EditMode/PetSkillSaveTests.cs` · `Assets/Tests/PlayMode/PetUiTests.cs`.
 
 ### T21 ✅ — UI 패널: 던전 4종 · 기술트리 · 승천 (Game · T23·T24·T18 뒤)
 - 정본: `ui.js` + `index.html` 의 `panel-tech` + 해당 샷. 옮길 것: 던전 `openDungeons`·`openDungeonDetail`·`renderDungeonDetail`·`showDungeonClear`(실패 화면 포함 · `shot-dungeon-fail`) · 기술트리 `openTechTree`·`renderTechTree`·`openTechOverview`·`openTechBranch`·`renderTechBranchView`·`openTechNode`·`renderTechNodeModal`·`openTechBonuses`·`drawTechLinks`(가지 선 그리기) · 승천 `openAscension`·`closeAscension`.
@@ -258,6 +259,11 @@
 - T8 의 자리: `EnemyView`(보스 분기 · `StepDying` 의 소멸 줄 · `Hit` 의 플레어 줄) · `HeroView` · `BattleScene.Handle` 의 bossEntrance/deathFade/sceneCut 갈래. 디졸브·림은 URP 커스텀 셰이더(`Assets/Shaders/`) — 파티클 셰이더 위에 `_Dissolve`·림 항.
 - 판정: 보스 웨이브 캡처에서 관·가시·발광 · 워닝 배너 3박 · 시체가 가장자리부터 부스러짐 · 피격 프레임에 청백/주황 림 · PlayMode 콘솔 빨강 0.
 - 범위: `Assets/Scripts/Game/Battle/Boss*.cs` · `Assets/Scripts/Game/Battle/HitFlash*.cs` · `Assets/Scripts/Game/Battle/Trail*.cs` · `Assets/Scripts/Game/Ui/Battle*.cs`(워닝 배너·암전 커버) · `Assets/Shaders/Dissolve*.shader` · `Assets/Tests/PlayMode/BattleFxSceneTests.cs`.
+
+### T40 — Core 탈것 시스템: `mounts.js` 규칙 이식 — 소환 레벨(`mountSummonRates` needed 표 · MAX 50) · 태엽 비용(`WINDERS_PER_SUMMON` × 기술트리 `mountCostMult`) · 보관 250 · 장착 **1마리**(`equip`/`setRidden`/`isActive`/`riddenIdx`/`ridden`) · 경험치 흡수(`absorbMaterials` 내림차순 · 인덱스 보정) · 기여(`mountPower` = 같은 등급 장비 8부위 합 × 레벨 × 승천 × 기술트리 · `activeBonus`) · 구세이브 이관(`migrateInventory`·`migrateSpecies`) (Core · T3·T14·T24 뒤 · T20 탈것 화면·T11 탑승이 쓴다)
+- 정본: `web/js/mounts.js`(284줄 전부) · `balance-data.js` 의 `mountSummonRates`·`mountNames`·`WINDERS_PER_SUMMON`(T2 `balance.json` → T3 `MountTable`). 원작이 밖에서 받는 것은 T16 `IPetHost` 꼴의 `IMountHost`(지갑 winders·젬 · `Forge.levelMult/gearSumAtkAt/gearSumHpAt` · `Ascension.starMult/count('mount')` · `TechTree.mountDmgMult/mountHpMult/mountCostMult/extraMountChance`). 코드 상수(`MAX_LEVEL 50`·`INDIV_MAX_LEVEL 100`·`INV_CAP 250`·`MAX_ACTIVE_MOUNTS 1`·xp 커브·`LEGACY_SPECIES`)는 T16 `PetRules` 처럼 `MountRules` 로.
+- 대조: `tools/mount_vectors.js`(T16 `pet_vectors.js` 방식 — 정본을 vm 으로 실제 실행 · mulberry32) → `Assets/Tests/EditMode/Vectors/mount_vectors.json` · EditMode `MountTests`(레벨/needed/prevNeeded 51행 · 태엽 비용 · 소환 배치(보너스 확률·보관 상한·자동 장착은 빈 슬롯일 때만) · 장착 1마리 교체·해제 · 흡수 인덱스 보정 · 기여 Big · 이관 3꼴). T13 세이브 코덱(`mounts`·`activeMounts`·`mountOpens`·`winders`)은 T20 `PetSkillSave` 꼴로 여기서.
+- 범위: `Assets/Scripts/Core/Mounts/` · `Assets/Tests/EditMode/MountTests.cs` · `Assets/Tests/EditMode/Vectors/mount_vectors.json` · `tools/mount_vectors.js`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -387,7 +393,7 @@ node tools/export_data.js --self-test                                         # 
 | 장비 8부위 · 페이퍼돌(`prochar.js`·`ui.js` 장비 · `scene3d.js` makeWeapon/makeHelmet/dressMcRig) | 등급·서브스탯·판매가·외형 | T15(규칙·표값) · T37(3D 외형 캡처) · T19 | T15 ✅ · T37 ⬜ · T19 ⬜ |
 | `js/pets.js` | 알·부화·합성·출전 규칙 | T16 · T20 | T16 ✅ · T20 ⬜ |
 | `js/skills.js` | 소환·18종·3슬롯(정본 `MAX_ACTIVE`) | T17 · T20 | T17 ✅ · T20 ⬜ |
-| `js/mounts.js` | 탈것 규칙 · 탑승 | T11 · T20 | ⬜ |
+| `js/mounts.js` | 탈것 규칙 · 탑승 | T40(Core 규칙 · 결정 72) · T11(탑승 3D) · T20(탈것 화면) | ⬜ |
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | T25 ✅ · T22 🔄 |
