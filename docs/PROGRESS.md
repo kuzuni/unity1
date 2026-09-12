@@ -45,7 +45,7 @@
 | T28 | 원작 대조 회차 (`docs/ref-layout.md` · `tools/ui_score.py`) | ⬜ 대기 | — | `docs/ref-layout.md` · `tools/ui_score.py` | T27 뒤 |
 | T29 | `task_state.py` «코드 자취» 오탐(주석 미래 참조·도구 픽스처) 제외 | ⬜ 대기 | — | `tools/task_state.py` | 뒤 순서 없음 · 워커 K 등재(2026-09-12) |
 | T30 | 사운드 이식: 효과음 29종 + 음악 4모드·레이어 6종 (`sfx.js` 코드 합성 그대로 · 오디오 파일 0) | ⬜ 대기 | — | `Assets/Scripts/Core/Audio/` · `Assets/Scripts/Game/Audio/` · `Assets/StreamingAssets/data/sfx.json` · `tools/export_data.js`(sfx 갈래만) · `Assets/Tests/EditMode/AudioTests.cs` · `Assets/Tests/PlayMode/AudioSmokeTests.cs` | T3 뒤 · 주인 지시 «원작 전부» 로 등재(2026-09-12 계정 2 대화 세션) |
-| T31 | 아이콘·아바타 이식: `icongen.js` 523종 + `avatars.js` 24종 → Playwright 래스터 아틀라스 + `UiIcons.Get` | ⬜ 대기 | — | `tools/export_icons.js` · `tools/check_icons_sync.sh` · `Assets/Forge/Icons/` · `Assets/Scripts/Game/Ui/UiIcons.cs` · `Assets/Scripts/Game/Ui/UiKit.cs`(Icon 한 갈래만) · `.github/workflows/ci.yml`(아이콘 검사 한 줄만) · `Assets/Tests/PlayMode/UiIconsTests.cs` | T2·T18 뒤 · T19~T22 가 쓴다 · 주인 지시 «원작 전부» 로 등재(2026-09-12 계정 2 대화 세션) |
+| T31 | 아이콘·아바타 이식: `icongen.js` 523종 + `avatars.js` 24종 → Playwright 래스터 아틀라스 + `UiIcons.Get` | 🔄 진행 | sess-1900-14706 / 워커 U | `tools/export_icons.js` · `tools/check_icons_sync.sh` · `Assets/Forge/Icons/` · `Assets/Scripts/Game/Ui/UiIcons.cs` · `Assets/Scripts/Game/Ui/UiKit.cs`(Icon 한 갈래만) · `.github/workflows/ci.yml`(아이콘 검사 한 줄만) · `Assets/Tests/PlayMode/UiIconsTests.cs` | T2·T18 뒤 · T19~T22 가 쓴다 · 주인 지시 «원작 전부» 로 등재(2026-09-12 계정 2 대화 세션) |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 
