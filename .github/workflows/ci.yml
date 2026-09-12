@@ -47,6 +47,12 @@ jobs:
         run: dotnet test tools/dotnet/Tests/Forge.Tests.csproj -c Release --no-build --nologo --logger "trx;LogFileName=results.trx"
       - name: .meta 누락/고아 검사
         run: python3 tools/gen_meta.py --check
+      # T41 — 카탈로그 키 중복(«둘 다 살리기» rebase)은 파이썬과 유니티가 **다른 블록**을 읽어
+      #       로컬·dotnet 전부 초록인 채 PlayMode 만 KeyNotFoundException 으로 빨갰다(런 32). 여기서 막는다.
+      - name: UI 카탈로그 자 자기 검사
+        run: python3 tools/gen_ui_catalog.py --self-test
+      - name: "UI 카탈로그 ↔ UiCatalog.asset 동기화 · 키 중복 — 막는다"
+        run: python3 tools/gen_ui_catalog.py --check
       # 문서가 «통째로 깨졌는가»(충돌 표식 · 결정 기록 소실 · 표 행 0개) — 되돌릴 자리가 묻히기 전에 **막는다**.
       - name: 문서 손상 자 자기 검사
         run: python3 tools/check_docs_intact.py --self-test

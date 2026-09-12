@@ -115,3 +115,7 @@ tools/dotnet/**/TestResults/
 # dotnet 검사 하니스는 유니티 생성물이 아니다 — 위의 *.sln/*.csproj 무시에서 제외 (첫 CI 런이 «Project file does not exist» 로 죽었다)
 !tools/dotnet/**/*.csproj
 !tools/dotnet/*.sln
+
+# 파이썬 자를 모듈로 불러 시험하면 생긴다(T41 실측) — 커밋 금지
+__pycache__/
+*.pyc

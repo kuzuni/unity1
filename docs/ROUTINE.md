@@ -268,10 +268,11 @@
 - 대조: `tools/mount_vectors.js`(T16 `pet_vectors.js` 방식 — 정본을 vm 으로 실제 실행 · mulberry32) → `Assets/Tests/EditMode/Vectors/mount_vectors.json` · EditMode `MountTests`(레벨/needed/prevNeeded 51행 · 태엽 비용 · 소환 배치(보너스 확률·보관 상한·자동 장착은 빈 슬롯일 때만) · 장착 1마리 교체·해제 · 흡수 인덱스 보정 · 기여 Big · 이관 3꼴). T13 세이브 코덱(`mounts`·`activeMounts`·`mountOpens`·`winders`)은 T20 `PetSkillSave` 꼴로 여기서.
 - 범위: `Assets/Scripts/Core/Mounts/` · `Assets/Tests/EditMode/MountTests.cs` · `Assets/Tests/EditMode/Vectors/mount_vectors.json` · `tools/mount_vectors.js`.
 
-### T41 — 게이트: `catalog.json` 최상위 키 중복 검사 — `gen_ui_catalog --check` 가 같은 최상위 키(`layout`·`colors`…)가 두 번이면 rc 1 · CI dotnet 잡이 그 `--check` 를 부른다(지금은 안 부른다) (검증 · 뒤 순서 없음 · 검수 Q 등재)
+### T41 ✅ — 게이트: `catalog.json` 최상위 키 중복 검사 — `gen_ui_catalog --check` 가 같은 최상위 키(`layout`·`colors`…)가 두 번이면 rc 1 · CI dotnet 잡이 그 `--check` 를 부른다(지금은 안 부른다) (검증 · 뒤 순서 없음 · 검수 Q 등재)
 - 왜: CI 런 32 — rebase 충돌 «둘 다 살리기» 로 `"layout": [` 가 둘이 됐는데 파이썬 `json.load` 는 **뒤** 블록을, 유니티 `JsonUtility` 는 **앞** 블록을 읽어 로컬 게이트·dotnet 잡 전부 초록인 채 PlayMode 만 `KeyNotFoundException`(결정 82 는 «grep 으로 본다» 는 손 규칙만 남겼다 — 자로 막는다).
 - 방법: `json.load(..., object_pairs_hook=…)` 로 최상위(그리고 각 항목) 키 중복을 잡아 `✗` + rc 1 · `--self-test` 에 «중복 키 JSON 이면 rc 1» 한 칸 · `.github/workflows/ci.yml` dotnet 잡에 `python3 tools/gen_ui_catalog.py --check` 한 줄(§3 게이트 목록에도).
 - 범위: `tools/gen_ui_catalog.py` · `.github/workflows/ci.yml`(dotnet 잡 한 줄) · `docs/ROUTINE.md` §3 한 줄.
+- ✅ 2026-09-12 워커 F — `read_catalog` 가 두 가지를 막는다: ⓐ 한 객체 안의 JSON 키 중복(`object_pairs_hook` · 깊이 무관) · ⓑ 배열 항목 키(`key`) 중복(유니티는 `map[e.key] = e.value` 로 **뒤** 것을 쥔다 · 결정 89). `--self-test` 11칸 + CI dotnet 잡 두 줄(자기 검사 · `--check`) 은 **막는 갈래**(continue-on-error 아님).
 
 ### T42 ✅ — 자 수리: `check_claim_scope.undeclared()` 가 «폴더/» 로 적은 범위(`Assets/Scripts/Core/Battle/`)를 못 덮어 살아 있는 lock 마다 «범위에 안 적힌 채 쥔 파일» 오탐을 낸다(T7 폴더 7개 + T20 `Ui/Pet*` 글로브 11개 = 회차마다 18개 · 전부 오탐) — 폴더·글로브 토큰은 접두 매칭 (검증 · 뒤 순서 없음 · 검수 Q 등재)
 - 왜: `undeclared()` 는 파일 줄기(`BattleContext`)가 범위 칸에 **글자로** 있는지만 본다. §2 «범위» 는 폴더로 적는 것이 규약이라 폴더 범위 lock 은 전부 오탐이고, 그 소음에 진짜 «밖 파일» 이 묻힌다(자 스스로 «그것을 매 회차 다시 한다» 고 적어 둔 자리).
@@ -291,6 +292,7 @@
 dotnet build tools/dotnet/Forge.sln -c Release --nologo                       # 컴파일 (Core · Game(스텁) · Tests)
 dotnet test tools/dotnet/Tests/Forge.Tests.csproj -c Release --no-build       # 순수 C# 테스트 (NUnit 3.6.1 API 면만)
 python3 tools/gen_meta.py --check                                             # .meta 누락/고아 (새 에셋을 만들면 --check 없이 돌려 생성)
+python3 tools/gen_ui_catalog.py --check                                       # catalog.json ↔ UiCatalog.asset · 키 중복(T41 · CI dotnet 잡이 막는다)
 python3 tools/check_docs_intact.py                                            # 문서가 통째로 깨졌는가 (충돌 표식 · 결정 기록 소실 · 표 0행) — CI 에서 막는다
 python3 tools/check_decisions.py                                              # 결정 번호 겹침 · `--next` 로 다음 번호
 python3 tools/check_task_rows.py                                              # PROGRESS 같은 작업 두 줄 어긋남
