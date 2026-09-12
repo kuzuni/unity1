@@ -80,6 +80,20 @@ namespace Forge.Tests.PlayMode
                 Assert.IsTrue(gm.IsKeywordEnabled("_NORMALMAP"), what + "_NORMALMAP");
                 Assert.AreEqual(L.CrackMap, gm.IsKeywordEnabled("_EMISSION"), what + "발광 균열 = 용암 kin 뿐");
                 if (L.CrackMap) Assert.IsNotNull(gm.GetTexture("_EmissionMap"), what + "발광맵");
+                // T38 지면 셰이더: Forge/Terrain 으로 갈아끼워졌고(컴파일 에러면 콘솔 빨강 → 러너 실패) 테마 값이 유니폼에 실린다
+                Assert.IsNotNull(GroundTextures.TerrainShader, what + "Forge/Terrain 셰이더(Resources/Terrain.mat)");
+                Assert.AreEqual(GroundTextures.TerrainShaderName, gm.shader.name, what + "지면 재질 셰이더");
+                Assert.IsTrue(gm.shader.isSupported, what + "셰이더 지원(컴파일 실패면 false)");
+                TerrainShadeParams sp = TerrainShade.Compute(w.Defs, L);
+                Assert.AreEqual((float)sp.Macro, gm.GetFloat("_Macro"), 1e-6f, what + "_Macro");
+                Assert.AreEqual((float)sp.MacroScale, gm.GetFloat("_MacroScale"), 1e-6f, what + "_MacroScale 1/6");
+                Assert.AreEqual((float)sp.Lod, gm.GetFloat("_Lod"), 1e-6f, what + "_Lod");
+                Assert.AreEqual((float)sp.LodNear, gm.GetFloat("_LodNear"), 1e-6f, what + "_LodNear");
+                Assert.AreEqual((float)sp.LodFar, gm.GetFloat("_LodFar"), 1e-6f, what + "_LodFar");
+                Assert.AreEqual(L.Biome == "snow" ? 0.7f : 0f, gm.GetFloat("_Snow"), 1e-6f, what + "_Snow 는 눈 바이옴만");
+                Assert.AreEqual((float)sp.ShadeStr, gm.GetFloat("_ShadeStr"), 1e-6f, what + "_ShadeStr(밤 0.7배)");
+                AssertColor(what + "_ShadeTint", C(sp.ShadeTint), gm.GetColor("_ShadeTint"), 1e-3f);
+                Assert.AreEqual((float)GroundTextures.NormalScale, gm.GetFloat("_BumpScale"), 1e-6f, what + "_BumpScale 0.7 은 셰이더 교체 뒤에도 산다");
             }
             w.SetTheme(0);
             yield return null;

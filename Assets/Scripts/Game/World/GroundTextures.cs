@@ -12,7 +12,8 @@ namespace Forge.Game.Map
     /// (정본 실행 벡터와 바이트 해시까지 같다) · 여기는 Texture2D 로 옮기고 재질 칸에 꽂는 것뿐. 바이옴마다 한 번 굽고 캐시(정본 `_gtex`).
     /// 시드는 T2 표본과 같은 xorshift32 `LibSeed` 라 게임 안 텍스처 = 벡터의 그림이다(정본은 Math.random 이라 매번 다르다 — 결정 기록).
     /// 재질은 T9 가 세운 `Particles/Lit`: `_BaseMap`(12×6 반복) · `_BumpMap`(정본 normalScale 0.7) · 용암은 `_EmissionMap` = 발광 균열.
-    /// 정본 `terrainShade`(매크로·거리 LOD·눈 탈색·uRoad)는 커스텀 셰이더 몫이라 다음 갈래(T34 완료 기록)로 남긴다.
+    /// 정본 `terrainShade`(매크로·거리 LOD·눈 탈색)+`applyShadeLift`(암부 리프트)는 T38 커스텀 셰이더 `Forge/Terrain`(`Assets/Shaders/Terrain.shader` · 원형 재질 `Resources/Terrain.mat` 이 빌드에 싣는다) —
+    /// <see cref="Apply"/> 가 지면 재질의 셰이더를 그것으로 갈아끼우고 값(Core <see cref="TerrainShade"/>)을 넣는다. uRoad 는 T9 가 정점색 배율로 낸다.
     /// </summary>
     public static class GroundTextures
     {
@@ -37,6 +38,58 @@ namespace Forge.Game.Map
         static readonly int SrcBlendId = Shader.PropertyToID("_SrcBlend");
         static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
         static readonly int ZWriteId = Shader.PropertyToID("_ZWrite");
+        static readonly int MacroId = Shader.PropertyToID("_Macro");
+        static readonly int MacroScaleId = Shader.PropertyToID("_MacroScale");
+        static readonly int LodId = Shader.PropertyToID("_Lod");
+        static readonly int LodNearId = Shader.PropertyToID("_LodNear");
+        static readonly int LodFarId = Shader.PropertyToID("_LodFar");
+        static readonly int SnowId = Shader.PropertyToID("_Snow");
+        static readonly int ShadeTintId = Shader.PropertyToID("_ShadeTint");
+        static readonly int ShadeStrId = Shader.PropertyToID("_ShadeStr");
+
+        /// <summary>T38 지면 셰이더 이름 · 원형 재질(Resources · 빌드에 셰이더를 싣는 자리).</summary>
+        public const string TerrainShaderName = "Forge/Terrain";
+        public const string TerrainResource = "Terrain";
+        static Shader terrainShader;
+        static bool terrainShaderLooked;
+
+        /// <summary>`Forge/Terrain` 셰이더(원형 재질 → Shader.Find 순 · 없거나 이 기기에서 못 쓰면 null → 지면은 T9 의 Particles/Lit 그대로).</summary>
+        public static Shader TerrainShader
+        {
+            get
+            {
+                if (terrainShaderLooked) return terrainShader;
+                terrainShaderLooked = true;
+                var res = Resources.Load<Material>(TerrainResource);
+                Shader sh = res != null ? res.shader : null;
+                if (sh == null) sh = Shader.Find(TerrainShaderName);
+                if (sh != null && !sh.isSupported)
+                {
+                    Debug.LogWarning("GroundTextures: " + TerrainShaderName + " 을 이 기기가 지원하지 않는다 — 지면은 Particles/Lit 로 남는다");
+                    sh = null;
+                }
+                terrainShader = sh;
+                return sh;
+            }
+        }
+
+        /// <summary>정본 `terrainShade(mat)` + `applyShadeLift([terrainMat])` + `setTheme` 의 유니폼 갱신 — 셰이더를 갈아끼우고(한 번) 테마 값을 넣는다. 셰이더가 없으면 아무것도 안 한다.</summary>
+        public static bool ApplyShade(Material terrainMat, SceneDefs defs, ThemeLook L)
+        {
+            Shader sh = TerrainShader;
+            if (sh == null || terrainMat == null) return false;
+            if (terrainMat.shader != sh) terrainMat.shader = sh;   // 속성값(_BaseMap·_BaseColor…)은 이름으로 살아남는다
+            TerrainShadeParams p = TerrainShade.Compute(defs, L);
+            terrainMat.SetFloat(MacroId, (float)p.Macro);
+            terrainMat.SetFloat(MacroScaleId, (float)p.MacroScale);
+            terrainMat.SetFloat(LodId, (float)p.Lod);
+            terrainMat.SetFloat(LodNearId, (float)p.LodNear);
+            terrainMat.SetFloat(LodFarId, (float)p.LodFar);
+            terrainMat.SetFloat(SnowId, (float)p.Snow);
+            terrainMat.SetColor(ShadeTintId, new Color((float)p.ShadeTint.R, (float)p.ShadeTint.G, (float)p.ShadeTint.B, 1f));
+            terrainMat.SetFloat(ShadeStrId, (float)p.ShadeStr);
+            return true;
+        }
 
         static Rng Seeded() { return Rng.Xorshift(Xorshift32.LibSeed); }
 
@@ -86,6 +139,7 @@ namespace Forge.Game.Map
         public static void Apply(Material terrainMat, SceneDefs defs, ThemeLook L)
         {
             if (terrainMat == null || defs == null || L == null) return;
+            ApplyShade(terrainMat, defs, L);   // T38 — 키워드(_NORMALMAP·_EMISSION)는 아래에서 다시 켠다(셰이더 교체가 키워드를 지울 수 있다)
             Set gt = For(defs, L.Biome);
             var repeat = new Vector2((float)GroundTexBake.RepeatX, (float)GroundTexBake.RepeatY);
             if (terrainMat.HasProperty(BaseMapId)) { terrainMat.SetTexture(BaseMapId, gt.Map); terrainMat.SetTextureScale(BaseMapId, repeat); }
