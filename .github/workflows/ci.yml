@@ -1,5 +1,12 @@
 # CI — 시크릿(UNITY_EMAIL·UNITY_PASSWORD)이 없으면 dotnet 검사만 돌고 초록이어야 한다.
-# 시크릿이 있으면: push 마다 EditMode/PlayMode 테스트. main 에 push 되고 UNITY_LICENSE(.ulf) 까지 있으면 WebGL 빌드 → gh-pages.
+# 시크릿이 있으면: push 마다 EditMode/PlayMode 테스트. UNITY_LICENSE(.ulf) 까지 있으면 **3시간마다(schedule) 또는 수동(build 입력)** main 최신을 WebGL·Android 로 굽는다.
+#
+# T32 — concurrency 는 잡별로 나눈다. 워크플로 전체를 한 그룹에 넣으면 GitHub 이 «대기 중 런을 하나만» 두고 새 push 가 올 때마다
+# 옛 대기 런을 취소해(런 9~16 전부 cancelled · 2026-09-12 실측) 워커 커밋이 dotnet 검사조차 못 받고 지나갔다.
+#   · 빠른 잡(dotnet · datasync · gate): 그룹 없음 — push 마다 반드시 돈다(1분).
+#   · unity-test: 잡 그룹 `unity-test-<ref>` 직렬(라이선스 활성화 겹침 방지 · 7분). 대기 중인 것은 뒤 push 가 갈아치울 수 있다 —
+#     main 은 선형이라 뒤 런이 앞 커밋을 포함하므로 «내 뒤 런이 초록이면 내 확인» (ROUTINE §1).
+#   · build-webgl · build-android: push 마다 돌지 않는다(30~40분이 위 대기 사슬의 원인). schedule/수동만 · 그룹 `build-main` 직렬.
 # (aaawunity 의 ci.yml 을 뼈대만 남기고 옮겼다 — 검사 자(tools/check_*.py)는 이 레포에서 필요해질 때 하나씩 더한다.)
 name: CI
 
@@ -10,13 +17,12 @@ on:
   workflow_dispatch:
     inputs:
       build:
-        description: "WebGL 을 실제로 굽는다 (기본 꺼짐 — 켜면 런이 20~40분 길어진다)"
+        description: "WebGL·Android 를 지금 굽는다 (기본 꺼짐 — 켜면 런이 20~40분 길어진다)"
         type: boolean
         default: false
-
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: false   # 워커 여럿이 15분마다 푸시하면 취소가 이어져 배포가 영영 안 끝난다 → 직렬 대기
+  # T32 — 굽기는 push 가 아니라 시계로: 3시간마다 main 최신을 굽는다(schedule 은 기본 브랜치에서만 돈다).
+  schedule:
+    - cron: '0 */3 * * *'
 
 permissions:
   contents: write   # gh-pages 배포
@@ -144,6 +150,10 @@ jobs:
     if: needs.gate.outputs.has_license == 'true' && needs.gate.outputs.has_code != 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # T32 — 이 잡만 ref 별 직렬(계정 라이선스 활성화가 겹치지 않게). 빠른 잡은 이 그룹 밖이라 취소돼도 dotnet 검사는 이미 끝나 있다.
+    concurrency:
+      group: unity-test-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -194,9 +204,13 @@ jobs:
   build-webgl:
     name: WebGL 빌드 → GitHub Pages (gh-pages)
     needs: [unity-test, gate]
-    if: needs.gate.outputs.has_ulf == 'true' && (github.ref == 'refs/heads/main' || inputs.build == true)
+    # T32 — push 마다 굽지 않는다: 3시간 schedule(main) 또는 수동 build 입력만. 둘 다 별도 그룹에서 직렬.
+    if: needs.gate.outputs.has_ulf == 'true' && (github.event_name == 'schedule' || inputs.build == true)
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    concurrency:
+      group: build-main
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -247,14 +261,18 @@ jobs:
           publish_dir: build/WebGL/web
           force_orphan: true
 
-  # T26 — Android APK. WebGL 과 같은 조건(UNITY_LICENSE · main 또는 수동 build 입력). 서명은 unity-builder 의 디버그 키(주인 키스토어 없음).
+  # T26 — Android APK. WebGL 과 같은 조건(UNITY_LICENSE · 3시간 schedule 또는 수동 build 입력 · T32). 서명은 unity-builder 의 디버그 키(주인 키스토어 없음).
   # 결과는 Artifact «forge-android-apk» 로 받는다(gh-pages 처럼 브랜치에 올리지 않는다 — APK 는 수십 MB 바이너리).
   build-android:
     name: Android APK 빌드 → Artifact
     needs: [unity-test, gate]
-    if: needs.gate.outputs.has_ulf == 'true' && (github.ref == 'refs/heads/main' || inputs.build == true)
+    # T32 — WebGL 과 같은 조건(schedule 또는 수동 build 입력) · 같은 직렬 그룹.
+    if: needs.gate.outputs.has_ulf == 'true' && (github.event_name == 'schedule' || inputs.build == true)
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    concurrency:
+      group: build-main
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:

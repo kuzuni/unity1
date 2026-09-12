@@ -25,7 +25,8 @@ on:
 jobs:
   notify:
     # 자동 갈래는 main 의 CI 만 알린다 — 다른 브랜치·워커 lock 커밋의 CI 까지 쏘면 알림이 소음이 된다.
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.head_branch == 'main'
+    # T32 — `cancelled` 는 쏘지 않는다: 대기 런이 뒤 push 로 갈아치워진 것이지 빨강이 아니다(뒤 런이 그 커밋을 포함해 다시 검사한다).
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.conclusion != 'cancelled')
     runs-on: ubuntu-latest
     steps:
       - name: 알림 내용 만들기
