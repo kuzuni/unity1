@@ -62,11 +62,37 @@ namespace Forge.Tests.PlayMode
             s.ManualStep = true;
             var battle = BattleScene.MakeBattle(Data, Defs, SoftHero, seed);
             battle.Context.AutoCast = false;
-            battle.Context.Skill = id => { SkillDef d = Data.Defs.Skill(id); return d == null ? null : SkillSpec.From(d, Big.Of(1), Big.Of(100), Big.Of(10)); };
+            battle.Context.Skill = Spec;
             s.Attach(battle, Data, Defs);
             var fx = SkillFxScene.Create(s.transform.parent, false);
             var d = fx.Attach(s, seed);
             return new Rig { Scene = s, Fx = fx, D = d };
+        }
+
+        /// <summary>T20 `SkillBar.Wire` 가 전투가 새로 서면 세이브의 장착 스킬(기본 powerStrike)·autoCast·Spec 을 문맥에 덮어쓴다 — 이 테스트는 스킬을 «손으로» 시전하므로
+        /// 시전 직전마다 자동 시전을 끄고 제공자·쿨타임을 되돌린다(자동 시전이 끼어들면 쿨타임 때문에 TryCast 가 false 가 되고 액터 수가 어긋난다 · CI 런 54·58).</summary>
+        static void Manual(BattleScene s, string id = null)
+        {
+            BattleContext c = s.Battle.Context;
+            c.AutoCast = false;
+            c.EquippedSkills = new List<string>();
+            c.Skill = Spec;
+            if (id != null) s.Battle.Cooldowns.Remove(id);
+            if (SaveIo.State != null) SaveIo.State.AutoCast = false;
+        }
+        static SkillSpec Spec(string id) { SkillDef d = Data.Defs.Skill(id); return d == null ? null : SkillSpec.From(d, Big.Of(1), Big.Of(100), Big.Of(10)); }
+
+        /// <summary>사거리(x &lt; 3.2) 안에 산 적이 설 때까지 민다(원작 `Combat.tryCast` 의 표적 조건).</summary>
+        static IEnumerator EnsureTarget(BattleScene s)
+        {
+            for (int i = 0; i < 300; i++)
+            {
+                foreach (Enemy e in s.Battle.Enemies) if (e.Alive && e.X < BattleRules.SkillRange) yield break;
+                Manual(s);
+                s.Step(0.1f);
+                if (i % 6 == 5) yield return null;
+            }
+            Assert.Fail("30초 안에 사거리 안 적이 없다");
         }
 
         static IEnumerator Run(BattleScene s, double seconds, float dt = 0.05f, int stepsPerFrame = 6)
@@ -90,6 +116,8 @@ namespace Forge.Tests.PlayMode
             int casts = 0;
             foreach (SkillDef d in Data.Defs.SkillDefs)
             {
+                yield return EnsureTarget(r.Scene);
+                Manual(r.Scene, d.Id);
                 int before = r.D.Casts.Count;
                 Assert.IsTrue(r.Scene.Battle.TryCast(d.Id, true), d.Id + " 시전(사거리 안 적 필요)");
                 r.Scene.Step(0.1f);   // 한 틱(100ms) — 전투 씬이 이벤트를 배수해 SkillFx 로 넘긴다
@@ -112,7 +140,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(r.D.Timeline.Idle, "애니·예약 남은 것 0");
             Assert.AreEqual(0, r.D.Lights.Busy, "광원 리스 전부 반납");
             Assert.GreaterOrEqual(r.D.Pool.ProtoCount, 17, "프로토타입은 종당 1회");
-            Assert.AreEqual(36, r.Fx.Handled, "SkillCutin 18 + SkillEffect 18");
+            Assert.GreaterOrEqual(r.Fx.Handled, 36, "SkillCutin 18 + SkillEffect 18(자동 시전이 끼면 그 이상)");
         }
 
         static SkillDef Def(string id, string fx, string type, string rarity, string color, double? impactAt = null)
@@ -129,6 +157,9 @@ namespace Forge.Tests.PlayMode
             yield return Boot();
             Rig r = Make(4242);
             yield return Run(r.Scene, 2.0);
+            yield return EnsureTarget(r.Scene);
+            Manual(r.Scene);
+            r.D.Clear();
             List<int> targets = new BattleSceneStage(r.Scene).Targets("single");
             Assert.AreEqual(1, targets.Count, "우선 표적 하나");
             // ⓐ 시전 박자 = castMsFor(fx, tier): 등급 90+26t · 메테오·용 0 · 낙뢰 하한 190
@@ -208,6 +239,9 @@ namespace Forge.Tests.PlayMode
             yield return Boot();
             Rig r = Make(31);
             yield return Run(r.Scene, 2.0);
+            Manual(r.Scene);
+            r.D.Clear();   // 자동 시전(T20 SkillBar 가 켠 powerStrike)이 남긴 액터를 걷는다 — 여기서부터는 디렉터만 민다
+            Assert.AreEqual(0, r.D.Pool.Active);
             List<int> targets = new BattleSceneStage(r.Scene).Targets("single");
             SkillFxDirector.ThunderHandle h = r.D.McThunderTell(targets, 0xfff176, 2);
             Assert.IsNotNull(h); Assert.AreEqual(1, r.D.Pool.Active);
@@ -229,6 +263,9 @@ namespace Forge.Tests.PlayMode
             yield return Boot();
             Rig r = Make(5);
             yield return Run(r.Scene, 2.0);
+            yield return EnsureTarget(r.Scene);
+            Manual(r.Scene);
+            r.D.Clear();
             List<int> targets = new BattleSceneStage(r.Scene).Targets("aoe");
             CastRecord s1 = r.D.Cast(Def("x1", "slash", "aoe", "mythic", "#cfd8dc"), targets); StepD(r.D, 2.5);
             Assert.IsTrue(s1.Actors.Contains("swordbot")); Assert.AreEqual(3, s1.Hits, "미식 참격 = 검사 로봇 3기");
