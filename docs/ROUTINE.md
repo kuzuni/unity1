@@ -218,6 +218,18 @@ node tools/export_data.js --self-test                                         # 
 
 > 주인 지시: «계정도 여러 개 쓸 수 있게». 계정마다 **그 계정의 Claude Code 세션**이 이 절만 읽고 루틴 4개(계정 3 은 +Q)를 만든다. 자세한 복붙용 런북은 **`docs/ROUTINES-SETUP.md`**.
 
+### ⓪ 계정 식별표 — «내가 몇 번째 계정인가» 는 여기서 본다 (세션 시작 시 `get_session` 의 이메일/env 로 대조)
+
+| 계정 | 로그인 이메일 | account uuid | environment_id | 워커 | 슬롯(UTC) |
+|---|---|---|---|---|---|
+| **계정 1** | `kimmoon2007@gmail.com` (표시명 «김문») | `b7a233c8-…` | `env_014bNYWJnnxgzqfDN9JPBD6p` | A · B · C · D | :05 :20 :35 :50 |
+| 계정 2 | (미정 — 붙일 때 적는다) | — | — | E · F · G · H | :12 :27 :42 :57 |
+| 계정 3 | (미정) | — | — | I · J · K · L · Q | :02 :17 :32 :47 · Q 짝수시 :00 |
+| 계정 4 | (미정) | — | — | M · N · O · P | :09 :24 :39 :54 |
+
+- 새 계정을 붙이는 세션은 **이 표의 빈 줄을 먼저 채우고**(이메일·uuid·env) 그 줄의 워커 글자·슬롯을 쓴다. 같은 이메일이 이미 있으면 그 계정이다 — 새 줄을 만들지 않는다.
+- 이메일이 표에 없고 빈 줄도 없으면 루틴을 만들지 않고 «계정 표가 찼다» 로 보고한다.
+
 ### ① 주인이 먼저 할 것 (계정마다 · 한 번만)
 1. 그 계정의 claude.ai → **GitHub 연결**에 `kuzuni/unity1` 이 보이고 **push 가 되어야** 한다. 같은 GitHub 사용자(kuzuni)를 연결하면 끝. 다른 GitHub 사용자면 레포 Settings → Collaborators 에 **Write** 로 추가. **Claude GitHub App 의 저장소 접근에 `kuzuni/unity1` 을 켠다**(안 켜면 그 계정의 세션이 `add_repo` 에서 «push access 없음» 으로 막힌다 — 2026-09-12 계정 1 실측).
 2. 그 계정에 **환경(Environment)** 이 하나 있어야 한다(기본 «Default» 면 된다). `environment_id` 는 **계정마다 다르다** — 루틴을 만들 때 그 계정 값을 쓴다.
