@@ -2,7 +2,7 @@
   <!-- T48 — Assets/Tests/PlayMode 를 유니티 없이 «컴파일만» 한다(테스트를 돌리지 않는다 · Microsoft.NET.Test.Sdk 없음).
        왜: Tests(EditMode) 만 컴파일하던 하니스는 PlayMode 파일의 오타·잘못된 서명을 §3 게이트 전부 초록으로 통과시키고
            유니티 CI(30분 뒤)에서야 터뜨렸다(결정 110 실측: Forge.Core.Rng ↔ Forge.Core.Data.Rng).
-       ⚠ UnityEngine.TestTools 는 스텁(../Stubs/TestTools.cs)이다 — 새 TestTools API 를 쓰면 스텁에 같은 서명을 더한다(ROUTINE §1 패키지 규칙).
+       ⚠ UnityEngine.TestTools·UnityEngine.TestRunner 는 스텁(../Stubs/TestTools.cs · TestRunner.cs)이다 — 새 API 를 쓰면 스텁에 같은 서명을 더한다(ROUTINE §1 패키지 규칙).
        ⚠ Forge.Game 과 같은 참조 어셈블리(UnityEngine.Modules NuGet · URP/TMP 스텁)라 여기서 초록이어도 유니티가 죽을 수 있다 — 판정은 여전히 CI 유니티 잡. -->
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -16,6 +16,7 @@
   <ItemGroup>
     <Compile Include="$(RepoRoot)Assets/Tests/PlayMode/**/*.cs" />
     <Compile Include="../Stubs/TestTools.cs" />
+    <Compile Include="../Stubs/TestRunner.cs" />
     <ProjectReference Include="../Core/Forge.Core.csproj" />
     <ProjectReference Include="../Game/Forge.Game.csproj" />
     <PackageReference Include="NUnit" Version="3.6.1" />

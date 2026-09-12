@@ -2,12 +2,14 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 using UnityEngine;
+using UnityEngine.TestRunner;
 
-// 어셈블리 단위로 붙인다 — PlayMode 의 모든 테스트가 이 행동(ITestAction)을 지난다.
-[assembly: Forge.Tests.PlayMode.RedLog]
+// 유니티가 주는 정식 길 — 어셈블리에 한 번 붙이면 러너가 테스트마다 TestStarted/TestFinished 를 부른다.
+// (NUnit 의 어셈블리 단위 `ITestAction` 은 유니티에서 **절대 안 불린다**: UTF 의 `TestActionCommand` 는
+//  `BeforeAfterTestCommandBase.GetTestActions(methodInfo)` 로 **테스트 메서드에 붙은 것만** 모은다 — 정본 패키지 실측 1.4.6.)
+[assembly: TestRunCallback(typeof(Forge.Tests.PlayMode.RedLogCallbacks))]
 
 namespace Forge.Tests.PlayMode
 {
@@ -31,7 +33,6 @@ namespace Forge.Tests.PlayMode
         private const int RedPerTestCap = 40;
 
         private static bool installed;
-        private static bool headerWritten;
         private static string currentTest = "(테스트 바깥)";
         private static int redInTest;
         private static readonly object Gate = new object();
@@ -48,7 +49,7 @@ namespace Forge.Tests.PlayMode
             Header();
         }
 
-        /// <summary>플레이 모드에 들어가면 러너가 첫 테스트를 세우기 전에 붙는다 — ITestAction 이 안 먹는 판에도 콘솔 빨강은 남는다.</summary>
+        /// <summary>플레이 모드에 들어가면 러너가 첫 테스트를 세우기 전에 붙는다 — 테스트 바깥에서 터진 빨강도 남는다.</summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Hook()
         {
@@ -71,7 +72,7 @@ namespace Forge.Tests.PlayMode
         {
             bool passed = string.Equals(status, "Passed", StringComparison.Ordinal);
             string head = (passed ? "PASS " : "FAIL ") + fullName + (passed ? "" : " · " + status);
-            if (passed)
+            if (passed && string.IsNullOrEmpty(message))
             {
                 Append(head);
                 return;
@@ -79,8 +80,18 @@ namespace Forge.Tests.PlayMode
             StringBuilder sb = new StringBuilder();
             sb.Append(head);
             if (!string.IsNullOrEmpty(message)) sb.Append('\n').Append(Indent("  msg  ", Clamp(message, MessageCap)));
-            if (!string.IsNullOrEmpty(stack)) sb.Append('\n').Append(Indent("  at   ", Head(stack, StackLineCap)));
+            if (!passed && !string.IsNullOrEmpty(stack)) sb.Append('\n').Append(Indent("  at   ", Head(stack, StackLineCap)));
             Append(sb.ToString());
+        }
+
+        /// <summary>런 전체가 끝날 때 총계 한 줄.</summary>
+        public static void EndRun(string status, int passCount, int failCount, int skipCount, double seconds)
+        {
+            Append("== 런 끝: " + status
+                   + " · 초록 " + passCount.ToString(CultureInfo.InvariantCulture)
+                   + " · 빨강 " + failCount.ToString(CultureInfo.InvariantCulture)
+                   + " · 건너뜀 " + skipCount.ToString(CultureInfo.InvariantCulture)
+                   + " · " + seconds.ToString("0.0", CultureInfo.InvariantCulture) + "초");
         }
 
         private static void OnLog(string condition, string stackTrace, LogType type)
@@ -102,8 +113,6 @@ namespace Forge.Tests.PlayMode
 
         private static void Header()
         {
-            if (headerWritten) return;
-            headerWritten = true;
             StringBuilder sb = new StringBuilder();
             sb.Append("# PlayMode 진단 로그 (T46) — 실행 순서대로 붙는다. RED = 콘솔 빨강 · FAIL = 실패한 테스트");
             sb.Append('\n').Append("# ").Append(DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
@@ -165,39 +174,56 @@ namespace Forge.Tests.PlayMode
     }
 
     /// <summary>
-    /// 모든 PlayMode 테스트에 붙는 NUnit 행동 — 테스트 이름과 결과(메시지·스택)를 <see cref="RedLogFile"/> 에 넘긴다.
-    /// 어셈블리 단위 붙임이 안 먹는 판에서도 `RedLogFile` 의 콘솔 갈래는 살아 있다(둘이 겹쳐도 줄만 는다).
+    /// 러너가 부르는 갈래 — 테스트마다 이름과 결과(상태·메시지·스택)를 <see cref="RedLogFile"/> 에 넘긴다.
+    /// ⚠ 여기서 예외를 던지면 러너가 그것을 다시 던진다(`TestRunCallbackListener.InvokeAllCallbacks`) — 전부 `try/catch` 다.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
-    public sealed class RedLogAttribute : Attribute, ITestAction
+    public sealed class RedLogCallbacks : ITestRunCallback
     {
-        /// <summary>테스트 하나하나에 붙는다(스위트에는 안 붙인다).</summary>
-        public ActionTargets Targets
-        {
-            get { return ActionTargets.Test; }
-        }
-
-        /// <summary>테스트 시작.</summary>
-        public void BeforeTest(ITest test)
+        /// <summary>런 시작.</summary>
+        public void RunStarted(ITest testsToRun)
         {
             try
             {
                 RedLogFile.Install();
-                RedLogFile.BeginTest(test == null ? null : test.FullName);
             }
             catch (Exception)
             {
             }
         }
 
-        /// <summary>테스트 끝 — 결과를 적는다.</summary>
-        public void AfterTest(ITest test)
+        /// <summary>런 끝 — 총계.</summary>
+        public void RunFinished(ITestResult testResults)
         {
             try
             {
-                TestContext.ResultAdapter r = TestContext.CurrentContext.Result;
-                string name = test == null ? TestContext.CurrentContext.Test.FullName : test.FullName;
-                RedLogFile.EndTest(name, r.Outcome.Status.ToString(), r.Message, r.StackTrace);
+                if (testResults == null) return;
+                RedLogFile.EndRun(testResults.ResultState.Status.ToString(), testResults.PassCount, testResults.FailCount, testResults.SkipCount, testResults.Duration);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        /// <summary>테스트 하나 시작(스위트 노드는 건너뛴다).</summary>
+        public void TestStarted(ITest test)
+        {
+            try
+            {
+                if (test == null || test.IsSuite) return;
+                RedLogFile.BeginTest(test.FullName);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        /// <summary>테스트 하나 끝(스위트 노드는 건너뛴다).</summary>
+        public void TestFinished(ITestResult result)
+        {
+            try
+            {
+                if (result == null || result.Test == null || result.Test.IsSuite) return;
+                RedLogFile.EndTest(result.Test.FullName, result.ResultState.Status.ToString(), result.Message, result.StackTrace);
             }
             catch (Exception)
             {

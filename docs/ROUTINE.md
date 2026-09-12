@@ -309,7 +309,8 @@
 - 무엇: PlayMode 어셈블리에 어셈블리 단위 `ITestAction`(NUnit) 하나를 두어 테스트마다 ⓐ 결과(Outcome·Message·StackTrace) ⓑ 그 테스트가 도는 동안 온 **콘솔 빨강**(`Application.logMessageReceived` 의 Error/Exception/Assert · condition + stackTrace)을 `ui-screens/playmode-red.txt` 에 **줄마다 바로 덧붙인다**(런이 중간에 죽어도 남는다). CI 가 `ui-screens/` 를 `screens` 브랜치로 올리므로(§5) 다음 워커는 `git show origin/screens:playmode-red.txt` 로 이유를 읽는다 — **ci.yml 은 건드리지 않는다**(그 «요약 스텝» 은 T8 범위다).
 - 통과한 테스트는 한 줄(`PASS <이름>`)만 남긴다 — 파일이 붙는 순서가 곧 실행 순서라 «어느 테스트가 세이브를 오염시켰나» 를 뒤에서 읽을 수 있다.
 - 판정: `dotnet build`·`dotnet test` 초록(스텁에 쓰는 서명이 있는가) + CI 유니티 잡이 돈 뒤 `screens` 브랜치에 `playmode-red.txt` 가 서고 그 안에 런 46 류의 실패 이유가 적혀 있다.
-- 범위: `Assets/Tests/PlayMode/RedLog.cs` · `tools/dotnet/Stubs`(필요한 스텁 서명만).
+- 유니티 갈래는 **NUnit 어셈블리 특성이 아니라** `[assembly: TestRunCallback(typeof(RedLogCallbacks))]`(`UnityEngine.TestRunner.ITestRunCallback`)다 — UTF 의 `TestActionCommand` 는 `ITestAction` 을 **테스트 메서드에서만** 모아(정본 패키지 실측) 어셈블리 단위는 한 번도 안 불린다(런 64 실측 · 결정 124).
+- 범위: `Assets/Tests/PlayMode/RedLog.cs` · `tools/dotnet/Stubs/TestRunner.cs` · `tools/dotnet/TestsPlay/Forge.TestsPlay.csproj`(스텁 Compile 한 줄).
 
 ### T48 ✅ — 게이트: PlayMode 테스트도 dotnet 하니스로 컴파일한다 (검증 · 뒤 순서 없음 · 워커 L 등재)
 - 지금 `tools/dotnet` 는 `Assets/Tests/EditMode/**` 만 컴파일한다 — **PlayMode 테스트의 오타·잘못된 서명은 §3 게이트를 전부 초록으로 통과하고 유니티 CI 에서야 터진다**(§1 «컴파일 파손을 남기지 않는다» 가 가장 잘 뚫리는 자리 · 워커마다 PlayMode 파일을 쓴다).
