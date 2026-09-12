@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Text;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,6 +10,7 @@ using Forge.Core.Dungeon;
 using Forge.Core.Forging;
 using Forge.Game;
 using Forge.Game.Battle;
+using Forge.Game.Gallery;
 using Forge.Game.Ui;
 
 namespace Forge.Tests.PlayMode
@@ -38,6 +40,20 @@ namespace Forge.Tests.PlayMode
             if (BattleScene.Instance != null) BattleScene.Instance.ManualStep = false;
             try { if (File.Exists(SaveIo.SavePath)) File.Delete(SaveIo.SavePath); }
             catch (Exception) { /* 저장소 접근 실패는 무시 */ }
+        }
+
+        /// <summary>어디까지 갔는지 `ui-screens/playthrough.txt` 에 한 줄씩(런이 중간에 죽어도 남는다 · CI 잡 로그는 꼬리 5000줄로 잘리고 아티팩트는 프록시가 막는다 — T46 과 같은 사정).</summary>
+        private static void Trace(string line, bool reset = false)
+        {
+            try
+            {
+                string dir = Path.Combine(Directory.GetCurrentDirectory(), GallerySheet.OutDir);
+                Directory.CreateDirectory(dir);
+                string file = Path.Combine(dir, "playthrough.txt");
+                if (reset) File.WriteAllText(file, line + "\n", new UTF8Encoding(false));
+                else File.AppendAllText(file, line + "\n", new UTF8Encoding(false));
+            }
+            catch (Exception) { /* 자취가 테스트를 죽이지 않는다 */ }
         }
 
         private static IEnumerator Boot()
@@ -103,11 +119,13 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 한_판_전투_제작_장착_펫_스킬_던전을_끝까지_몰아도_콘솔_빨강_0()
         {
             yield return Boot();
+            Trace("# T27 PlaythroughTests 자취 — 한 판을 어디까지 몰았는지", true);
             PlayLog log = PlayLog.Start("playthrough");
             TabBar tb = UiRoot.Instance.TabBar;
 
             // ── ① 전투 — 새 세이브 1-1 에서 적이 서고 죽는가(규칙은 T7 Core · 여기선 «판이 굴러가는가»)
             log.Mark("전투");
+            Trace("→ 전투");
             BattleScene bs = BattleScene.Instance;
             bs.ManualStep = true;
             yield return Run(bs, 60);
@@ -118,6 +136,7 @@ namespace Forge.Tests.PlayMode
 
             // ── ② 제작 — 모루를 두드려 비교 팝업까지
             log.Mark("제작");
+            Trace("→ 제작");
             bs.ManualStep = false;
             F.S.Hammers = 200;
             F.Pull();
@@ -128,6 +147,7 @@ namespace Forge.Tests.PlayMode
 
             // ── ③ 장착 — 빈 부위면 팝업이 닫히고, 옛 장비가 있으면 맞바뀐 채 남는다(그때는 옛 장비를 판다)
             log.Mark("장착");
+            Trace("→ 장착");
             ForgeItem item = F.Pending;
             Assert.IsNotNull(item, "대기품이 없다");
             string slot = item.Slot;
@@ -145,6 +165,7 @@ namespace Forge.Tests.PlayMode
 
             // ── ④ 펫 — 소환 → 부화 시작 → 젬 스킵 → 출전
             log.Mark("펫");
+            Trace("→ 펫");
             tb.OnTab("summon");
             yield return null;
             Sheet.Switch(SkillPetSheet.SubPets);
@@ -176,6 +197,7 @@ namespace Forge.Tests.PlayMode
 
             // ── ⑤ 스킬 — 소환 → 결과 닫기 → 일괄 장착
             log.Mark("스킬");
+            Trace("→ 스킬");
             Sheet.Switch(SkillPetSheet.SubSkills);
             yield return null;
             while (P.SummonMult("skill") != 1) P.CycleSummonMult("skill");
@@ -194,6 +216,7 @@ namespace Forge.Tests.PlayMode
 
             // ── ⑥ 던전 — 목록 → 상세 → 입장 → 클리어 → 보상 수령
             log.Mark("던전");
+            Trace("→ 던전");
             tb.CloseOpened();
             yield return null;
             SaveIo.State.BestChapter = 5;
@@ -218,6 +241,7 @@ namespace Forge.Tests.PlayMode
 
             // ── 마무리 — 전투 씬으로 돌아와 한 번 더 돌려도 성한가
             log.Mark("복귀 전투");
+            Trace("→ 복귀 전투");
             tb.CloseOpened();
             yield return null;
             bs = BattleScene.Instance;
@@ -226,6 +250,7 @@ namespace Forge.Tests.PlayMode
             yield return Run(bs, 10);
             bs.ManualStep = false;
 
+            Trace("done · 스폰 " + bs.SpawnCount + " · 처치 " + bs.KillCount + " · 펫 " + P.Pets.State.Pets.Count + " · 스킬 " + P.Skills.State.Skills.Count + " · 빨강 " + log.RedCount);
             log.Dispose();
             log.AssertNoRed();
             Debug.Log("[Playthrough] 전투 " + bs.SpawnCount + "스폰 · " + bs.KillCount + "처치 · 펫 " + P.Pets.State.Pets.Count

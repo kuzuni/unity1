@@ -41,9 +41,15 @@ namespace Forge.Tests.PlayMode
             public Action Open;
             public Func<bool> Opened;
             public bool Optional;
+            /// <summary>노치 모의(T45 `UiRoot.NotchSafeArea`)로 찍는 줄인가.</summary>
+            public bool Notch;
         }
 
         private const string OutPrefix = "screen_";
+        /// <summary>촬영 크기 — 정확히 9:16 이라 앱 상자가 RenderTexture 를 꽉 채운다(원작 캡처 499×892 와 같은 비율 · T45 `SafeAreaTests` 540×1170 과 같은 폭).</summary>
+        public const int ShotW = 540, ShotH = 960;
+        /// <summary>어디까지 갔는지 남기는 자취 — CI 유니티 잡 로그는 꼬리 5000줄로 잘리고 아티팩트는 프록시가 막는다(T46 과 같은 사정). `screens` 브랜치에서 읽는다.</summary>
+        private const string TraceFile = "uishots.txt";
 
         private static MetaHost M { get { return MetaHost.Instance; } }
         private static ForgeHost F { get { return ForgeHost.Instance; } }
@@ -425,13 +431,9 @@ namespace Forge.Tests.PlayMode
             // 앱 상자만 잘라 내므로 잘린 그림의 9:16 비율은 그대로다 — T28 비율 채점에는 영향이 없다.
             list.Add(new Shot
             {
-                Name = "main-notch", Ref = null, Optional = true,
-                Open = delegate
-                {
-                    CloseAll();
-                    UiRoot.OverrideSafeArea(UiRoot.NotchSafeArea(Screen.width, Screen.height));
-                },
-                Opened = delegate { return Popups.OpenCount == 0 && UiRoot.SafeAreaOverride.HasValue; }
+                Name = "main-notch", Ref = null, Optional = true, Notch = true,
+                Open = delegate { CloseAll(); },
+                Opened = delegate { return Popups.OpenCount == 0; }
             });
             return list;
         }
@@ -484,11 +486,11 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>
-        /// 앱 상자(9:16)만 잘라 `ui-screens/screen_&lt;이름&gt;.png` 로. 그래픽 장치가 없으면 null.
-        /// ⚠ `ScreenCapture.CaptureScreenshotAsTexture()` 는 프레임 끝에서만 옳은데, 그 자리를 잡는 코루틴 대기는
-        /// **배치모드에서 아예 안 불린다**(CI 런 60 실측 — `UnityTest yielded WaitForEndOfFrame, which is not evoked in batchmode`
-        /// 예외로 PlayMode 런이 통째로 죽었다). 그래서 T5 `GallerySheet` 와 같은 길로 **카메라를 직접 RenderTexture 에 그린다**:
-        /// ① 본 카메라(3D 세계 · 레터박스 rect 그대로) → ② 오버레이 캔버스를 잠깐 ScreenSpaceCamera 로 돌려 전용 정사영 카메라로 그 위에 → ③ 앱 상자만 ReadPixels.
+        /// 앱 상자(9:16)를 `ui-screens/screen_&lt;이름&gt;.png`(<see cref="ShotW"/>×<see cref="ShotH"/>) 로 남긴다. 그래픽 장치가 없으면 null.
+        /// ⚠ `ScreenCapture.CaptureScreenshotAsTexture()` 는 프레임 끝에서만 옳은데 그 자리를 잡는 코루틴 대기가 **배치모드에서 안 불려**
+        /// 예외로 PlayMode 런이 통째로 죽는다(CI 런 60 실측). 그래서 T45 `SafeAreaTests` 가 CI 런 64 에서 검증한 길을 그대로 쓴다 —
+        /// 본 카메라 사본을 RenderTexture 에 그리고, 오버레이 캔버스를 잠깐 그 카메라의 `ScreenSpaceCamera` 로 옮겨 같은 그림에 얹는다.
+        /// safeArea 는 호출자가 이미 <see cref="ShotW"/>×<see cref="ShotH"/> 로 꽂아 두었으므로 앱 상자가 RT 를 꽉 채운다.
         /// 실패하면 경고 한 줄(빨강 아님)만 남기고 그림을 건너뛴다 — 이 테스트의 판정은 «열렸는가·글자·빨강 0» 이지 그림이 아니다.
         /// </summary>
         private static string Capture(string name)
@@ -496,54 +498,28 @@ namespace Forge.Tests.PlayMode
             UiRoot root = UiRoot.Instance;
             if (root == null || root.Canvas == null) return null;
             Canvas canvas = root.Canvas;
-            Rect app = root.AppScreenRect;
-            int sw = Screen.width, sh = Screen.height;
-            if (sw <= 0 || sh <= 0) return null;
-            int x = Mathf.Clamp(Mathf.RoundToInt(app.x), 0, sw - 1);
-            int y = Mathf.Clamp(Mathf.RoundToInt(app.y), 0, sh - 1);
-            int w = Mathf.Clamp(Mathf.RoundToInt(app.width), 1, sw - x);
-            int h = Mathf.Clamp(Mathf.RoundToInt(app.height), 1, sh - y);
-
             RenderMode prevMode = canvas.renderMode;
-            Camera prevWorld = canvas.worldCamera;
+            Camera prevCam = canvas.worldCamera;
             float prevPlane = canvas.planeDistance;
             RenderTexture prevActive = RenderTexture.active;
-            Camera main = Camera.main;
-            RenderTexture prevMainTarget = main != null ? main.targetTexture : null;
-            RenderTexture rt = new RenderTexture(sw, sh, 24, RenderTextureFormat.ARGB32);
-            GameObject camGo = null;
+            RenderTexture rt = new RenderTexture(ShotW, ShotH, 24, RenderTextureFormat.ARGB32);
+            GameObject camGo = new GameObject("t27-shot-cam");
+            Camera cam = camGo.AddComponent<Camera>();
             Texture2D shot = null;
             try
             {
-                bool drewWorld = false;
-                if (main != null)
-                {
-                    main.targetTexture = rt;
-                    main.Render();
-                    main.targetTexture = prevMainTarget;
-                    drewWorld = true;
-                }
-                camGo = new GameObject("UiShot Camera");
-                Camera cam = camGo.AddComponent<Camera>();
-                cam.enabled = false;
-                cam.orthographic = true;
-                cam.orthographicSize = sh * 0.5f;
-                cam.nearClipPlane = 0.01f;
-                cam.farClipPlane = 100f;
-                cam.clearFlags = drewWorld ? CameraClearFlags.Depth : CameraClearFlags.SolidColor;
-                cam.backgroundColor = Color.black;
+                if (Camera.main != null) cam.CopyFrom(Camera.main);
+                cam.rect = new Rect(0f, 0f, 1f, 1f);
                 cam.targetTexture = rt;
-                camGo.transform.position = new Vector3(0f, 0f, -10f);
-
                 canvas.renderMode = RenderMode.ScreenSpaceCamera;
                 canvas.worldCamera = cam;
                 canvas.planeDistance = 1f;
+                root.Layout();
                 Canvas.ForceUpdateCanvases();
                 cam.Render();
-
                 RenderTexture.active = rt;
-                shot = new Texture2D(w, h, TextureFormat.RGB24, false);
-                shot.ReadPixels(new Rect(x, y, w, h), 0, 0);
+                shot = new Texture2D(ShotW, ShotH, TextureFormat.RGB24, false);
+                shot.ReadPixels(new Rect(0, 0, ShotW, ShotH), 0, 0);
                 shot.Apply(false);
                 return GallerySheet.Save(shot, OutPrefix + name);
             }
@@ -554,17 +530,31 @@ namespace Forge.Tests.PlayMode
             }
             finally
             {
-                canvas.renderMode = prevMode;
-                canvas.worldCamera = prevWorld;
-                canvas.planeDistance = prevPlane;
-                if (main != null) main.targetTexture = prevMainTarget;
                 RenderTexture.active = prevActive;
+                canvas.renderMode = prevMode;
+                canvas.worldCamera = prevCam;
+                canvas.planeDistance = prevPlane;
+                if (root != null) root.Layout();
                 Canvas.ForceUpdateCanvases();
-                if (camGo != null) UnityEngine.Object.Destroy(camGo);
                 if (shot != null) UnityEngine.Object.Destroy(shot);
+                UnityEngine.Object.Destroy(camGo);
                 rt.Release();
                 UnityEngine.Object.Destroy(rt);
             }
+        }
+
+        /// <summary>한 줄씩 바로 덧붙인다(런이 중간에 죽어도 «어디까지 갔는지» 는 남는다).</summary>
+        private static void Trace(string line, bool reset = false)
+        {
+            try
+            {
+                string dir = Path.Combine(Directory.GetCurrentDirectory(), GallerySheet.OutDir);
+                Directory.CreateDirectory(dir);
+                string file = Path.Combine(dir, TraceFile);
+                if (reset) File.WriteAllText(file, line + "\n", new UTF8Encoding(false));
+                else File.AppendAllText(file, line + "\n", new UTF8Encoding(false));
+            }
+            catch (Exception) { /* 자취가 테스트를 죽이지 않는다 */ }
         }
 
         /// <summary>T28 이 읽는 짝 표 — 클론 PNG ↔ 원작 `ref/screens/shot-&lt;번호&gt;.png`.</summary>
@@ -597,14 +587,20 @@ namespace Forge.Tests.PlayMode
             var failed = new List<string>();
             List<Shot> shots = null;
             string bootErr = null;
+            Trace("# T27 UiShotsTests 자취 — 어디까지 갔는지 한 줄씩(런이 죽어도 남는다)", true);
+            Trace("boot ok · 그래픽=" + GallerySheet.GraphicsAvailable + " · 화면=" + Screen.width + "x" + Screen.height
+                  + " · 촬영=" + ShotW + "x" + ShotH + " · 배치=" + Application.isBatchMode);
             try
             {
                 Seed();
+                Trace("seed ok");
                 shots = Screens();
+                Trace("목록 " + shots.Count + "줄");
             }
             catch (Exception e)
             {
                 bootErr = "캡처용 시드/목록을 세우다 터졌다: " + e;
+                Trace("BOOTFAIL " + bootErr);
             }
             if (bootErr != null)
             {
@@ -618,14 +614,21 @@ namespace Forge.Tests.PlayMode
             {
                 Shot s = shots[i];
                 log.Mark(s.Name);
+                Trace("→ " + s.Name);
                 bool threw = false;
-                try { CloseAll(); }
-                catch (Exception e) { failed.Add(s.Name + ": 앞 화면을 닫다 터졌다 — " + e.Message); threw = true; }
+                // 촬영 크기의 safeArea 를 꽂아 둔다 — 앱 상자가 RT 를 꽉 채우고(9:16 정확) 러너 창 크기와 무관하게 같은 그림이 나온다.
+                try { UiRoot.OverrideSafeArea(s.Notch ? UiRoot.NotchSafeArea(ShotW, ShotH) : new Rect(0f, 0f, ShotW, ShotH)); }
+                catch (Exception e) { failed.Add(s.Name + ": safeArea 를 꽂다 터졌다 — " + e.Message); threw = true; }
+                if (!threw)
+                {
+                    try { CloseAll(); }
+                    catch (Exception e) { failed.Add(s.Name + ": 앞 화면을 닫다 터졌다 — " + e.Message); threw = true; }
+                }
                 yield return null;
                 if (!threw)
                 {
                     try { s.Open(); }
-                    catch (Exception e) { failed.Add(s.Name + ": 여는 중 터졌다 — " + e.Message); threw = true; }
+                    catch (Exception e) { failed.Add(s.Name + ": 여는 중 터졌다 — " + e.Message); Trace("  OPENFAIL " + e.Message); threw = true; }
                 }
                 yield return null;
                 yield return null;
@@ -633,19 +636,23 @@ namespace Forge.Tests.PlayMode
 
                 bool opened = false;
                 try { opened = s.Opened(); }
-                catch (Exception e) { failed.Add(s.Name + ": 열림 확인이 터졌다 — " + e.Message); continue; }
+                catch (Exception e) { failed.Add(s.Name + ": 열림 확인이 터졌다 — " + e.Message); Trace("  PREDFAIL " + e.Message); continue; }
+                Trace("  열림=" + opened);
                 if (!opened)
                 {
                     if (!s.Optional) failed.Add(s.Name + ": 화면이 안 열렸다" + (s.Ref != null ? " (원작 shot-" + s.Ref + ".png)" : ""));
                     continue;
                 }
 
-                string gate = TextGate(s.Name);
-                if (gate != null) failed.Add(gate);
+                string gate = null;
+                try { gate = TextGate(s.Name); }
+                catch (Exception e) { gate = s.Name + ": 글자 게이트가 터졌다 — " + e.Message; }
+                if (gate != null) { failed.Add(gate); Trace("  GATE " + gate); }
 
                 if (!GallerySheet.GraphicsAvailable) continue;
                 string file = Capture(s.Name);
                 if (file != null) files[s.Name] = file;
+                Trace("  그림=" + (file != null ? "ok" : "없음"));
             }
 
             log.Mark("ui-shots");
@@ -658,6 +665,7 @@ namespace Forge.Tests.PlayMode
 
             int required = 0;
             for (int i = 0; i < shots.Count; i++) if (!shots[i].Optional) required++;
+            Trace("done · 필수 " + required + "장 · 어긋남 " + failed.Count + " · PNG " + files.Count + " · 빨강 " + log.RedCount);
             log.Dispose();
 
             if (failed.Count > 0) Assert.Fail("원작 화면 " + required + "장 중 " + failed.Count + "건이 어긋났다:\n  · " + string.Join("\n  · ", failed.ToArray()));
