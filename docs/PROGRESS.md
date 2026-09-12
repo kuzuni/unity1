@@ -32,7 +32,7 @@
 | T15 | 장비 8부위 + 페이퍼돌 | ⬜ 대기 | — | `Assets/Scripts/Core/Gear/` · `Assets/Scripts/Game/Hero/Paperdoll.cs` · `Assets/Tests/EditMode/GearTests.cs` | T6·T14 뒤 |
 | T16 | Core 펫 시스템 (알·부화·스탯·합성) | ⬜ 대기 | — | `Assets/Scripts/Core/Pets/` · `Assets/Tests/EditMode/PetTests.cs` | T3 뒤 |
 | T17 | Core 스킬 시스템 (소환·18종·4슬롯) | ⬜ 대기 | — | `Assets/Scripts/Core/Skills/` · `Assets/Tests/EditMode/SkillTests.cs` | T7 뒤 |
-| T18 | UI 껍데기 (레터박스 · UiKit · HUD · 탭 · 카탈로그) | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/` · `Assets/Forge/catalog.json` · `docs/assets-map.md` · `Assets/Tests/PlayMode/UiSmokeTests.cs` | T1 뒤 |
+| T18 | UI 껍데기 (레터박스 · UiKit · HUD · 탭 · 카탈로그) | 🔄 진행 | sess-1803-29892 / 워커 I | `Assets/Scripts/Game/Ui/` · `Assets/Forge/catalog.json` · `docs/assets-map.md` · `Assets/Tests/PlayMode/UiSmokeTests.cs` | T1 뒤 |
 | T19 | UI 패널: 대장간 · 장비 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/Forge*` · `Ui/Gear*` · `Assets/Tests/PlayMode/ForgeUiTests.cs` | T14·T15·T18 뒤 |
 | T20 | UI 패널: 펫 · 스킬 · 탈것 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/Pet*` · `Ui/Skill*` · `Ui/Mount*` · `Assets/Tests/PlayMode/PetUiTests.cs` | T16·T17·T18 뒤 |
 | T21 | UI 패널: 던전 · 기술트리 · 승천 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/Dungeon*` · `Ui/Tech*` · `Ui/Ascend*` · `Assets/Tests/PlayMode/DungeonUiTests.cs` | T23·T24·T18 뒤 |
