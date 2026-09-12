@@ -69,6 +69,8 @@ namespace Forge.Tests.PlayMode
         public const int MaterialCap = 300;
 
         const int WarmFrames = 60, MeasureFrames = 200;
+        /// <summary>T64 — 편집기 프로파일러 원시 프레임 걷기(샘플 수만 개/프레임)는 무거워 60프레임만.</summary>
+        const int ProfileFrames = 60;
 
         static GameData _data; static SaveDefs _defs;
         static GameData Data { get { return _data ?? (_data = GameData.LoadDirectory(System.IO.Path.Combine(Application.streamingAssetsPath, "data"))); } }
@@ -250,6 +252,108 @@ namespace Forge.Tests.PlayMode
         }
         static void RenderOn(List<Behaviour> off) { foreach (Behaviour b in off) if (b != null) b.enabled = true; }
 
+        /// <summary>T64 갈래 — 한 종류만 끈다(카메라만 = URP 렌더 루프 · 캔버스만 = UGUI·TMP 리빌드). 되돌리기는 <see cref="RenderOn"/>.</summary>
+        static List<Behaviour> OffAll<T>() where T : Behaviour
+        {
+            var off = new List<Behaviour>();
+            foreach (T c in UnityEngine.Object.FindObjectsByType<T>(FindObjectsSortMode.None)) if (c.enabled) { c.enabled = false; off.Add(c); }
+            return off;
+        }
+
+        /// <summary>T64 갈래 — 추가 광원(점광 · `FxLights`·`FlashLight`)만 끈다 · 방향광은 둔다. 측정 중 새로 생기는 점광은 못 끈다(개수를 같이 적는다).</summary>
+        static List<Behaviour> OffPointLights()
+        {
+            var off = new List<Behaviour>();
+            foreach (Light l in UnityEngine.Object.FindObjectsByType<Light>(FindObjectsSortMode.None)) if (l.enabled && l.type != LightType.Directional) { l.enabled = false; off.Add(l); }
+            return off;
+        }
+
+        static int LivePointLights()
+        {
+            int n = 0;
+            foreach (Light l in UnityEngine.Object.FindObjectsByType<Light>(FindObjectsSortMode.None)) if (l.enabled && l.type != LightType.Directional) n++;
+            return n;
+        }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// T64 — 편집기 프로파일러의 원시 프레임(<c>RawFrameDataView</c>)에서 «GC.Alloc» 샘플을 모아 **부모 마커별**로 합친다 — «렌더 몫 878KB» 가 어느 경로(URP 렌더 루프 · 캔버스 리빌드 · 편집기 루프)인지 가르는 자.
+        /// 계수기(«GC Allocated In Frame»)는 합만 주고 자리는 안 준다. 편집기에서만 산다(플레이어 빌드는 T64 ⓐ 의 몫).
+        /// </summary>
+        sealed class AllocBuckets
+        {
+            /// <summary>경로 버킷 = 루트 아래 1·2단 마커(예: PlayerLoop/PostLateUpdate.FinishFrameRendering) — «편집기 루프인가 플레이어 루프인가 · 어느 단계인가».</summary>
+            public readonly Dictionary<string, long> Path = new Dictionary<string, long>();
+            /// <summary>직접 부모 마커(예: UniversalRenderPipeline.RenderSingleCamera · Canvas.SendWillRenderCanvases).</summary>
+            public readonly Dictionary<string, long> Parent = new Dictionary<string, long>();
+            public int Frames, Samples; public long Total; public string Why = "";
+        }
+
+        static void Bump(Dictionary<string, long> d, string k, long v) { long cur; d.TryGetValue(k, out cur); d[k] = cur + v; }
+
+        /// <summary>깊이 우선으로 놓인 샘플을 «남은 자식 수» 스택으로 걷는다 — 샘플 i 를 볼 때 스택이 곧 조상 경로다.</summary>
+        static void WalkFrames(int first, int last, AllocBuckets o)
+        {
+            try
+            {
+                var remain = new List<int>(); var names = new List<string>();
+                for (int fi = first; fi <= last; fi++)
+                {
+                    using (UnityEditor.Profiling.RawFrameDataView fd = UnityEditorInternal.ProfilerDriver.GetRawFrameDataView(fi, 0))
+                    {
+                        if (fd == null || !fd.valid) continue;
+                        int gcId = fd.GetMarkerId("GC.Alloc");
+                        if (gcId == UnityEditor.Profiling.FrameDataView.invalidMarkerId) { o.Why = "GC.Alloc 마커 없음"; continue; }
+                        o.Frames++;
+                        remain.Clear(); names.Clear();
+                        int n = fd.sampleCount;
+                        for (int i = 0; i < n; i++)
+                        {
+                            while (remain.Count > 0 && remain[remain.Count - 1] == 0) { remain.RemoveAt(remain.Count - 1); names.RemoveAt(names.Count - 1); }
+                            if (remain.Count > 0) remain[remain.Count - 1]--;
+                            if (fd.GetSampleMarkerId(i) == gcId && fd.GetSampleMetadataCount(i) > 0)
+                            {
+                                long sz = fd.GetSampleMetadataAsLong(i, 0);
+                                o.Total += sz; o.Samples++;
+                                string path = names.Count > 2 ? names[1] + "/" + names[2] : names.Count > 1 ? names[1] : "(루트)";
+                                Bump(o.Path, path, sz);
+                                Bump(o.Parent, names.Count > 0 ? names[names.Count - 1] : "(루트)", sz);
+                            }
+                            remain.Add(fd.GetSampleChildrenCount(i)); names.Add(fd.GetSampleName(i));
+                        }
+                    }
+                }
+            }
+            catch (Exception e) { o.Why = e.GetType().Name + ": " + e.Message; }
+        }
+
+        /// <summary>프로파일러를 켜고 부하 장면을 <paramref name="frames"/>프레임 민 뒤 그 프레임들의 GC.Alloc 을 버킷에 모은다. 프로파일러가 안 살면(배치모드 제약 등) <c>Frames</c> 0 + 이유.</summary>
+        static IEnumerator ProfileAllocs(Rig r, float dt, int frames, AllocBuckets o)
+        {
+            UnityEditorInternal.ProfilerDriver.ClearAllFrames();
+            UnityEditorInternal.ProfilerDriver.profileEditor = false;
+            UnityEditorInternal.ProfilerDriver.deepProfiling = false;
+            UnityEditorInternal.ProfilerDriver.enabled = true;
+            yield return null;
+            yield return null;
+            int first = UnityEditorInternal.ProfilerDriver.lastFrameIndex + 1;
+            for (int f = 0; f < frames; f++) { StepFrame(r, dt); if (f % 30 == 0) CastSkills(r); yield return null; }
+            int last = UnityEditorInternal.ProfilerDriver.lastFrameIndex;
+            UnityEditorInternal.ProfilerDriver.enabled = false;
+            if (last < first) { o.Why = "프로파일러 프레임 없음(first " + first + " · last " + last + " · enabled 가 안 붙었다)"; yield break; }
+            WalkFrames(first, last, o);
+        }
+
+        static string TopN(Dictionary<string, long> d, int frames, int n)
+        {
+            var l = new List<KeyValuePair<string, long>>(d);
+            l.Sort((a, b) => b.Value.CompareTo(a.Value));
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < l.Count && i < n; i++) { if (i > 0) sb.Append(" · "); sb.Append(l[i].Key).Append(' ').Append(l[i].Value / Math.Max(1, frames)).Append('B'); }
+            return sb.Length == 0 ? "(없음)" : sb.ToString();
+        }
+#endif
+
         static IEnumerator Measure(Rig r, float dt, bool castSkills, Sample o, bool step = true)
         {
             var ms = new double[MeasureFrames];
@@ -297,13 +401,13 @@ namespace Forge.Tests.PlayMode
         static string Bytes(long b) { return b < 0 ? "?" : b + "B"; }
 
         /// <summary>측정 줄을 `ui-screens/perf-t50.txt` 에도 남긴다 — CI 잡 로그 꼬리(5000줄)와 결과 아티팩트가 컨테이너에서 안 닿아(T27 실측) screens 브랜치로 읽는다.</summary>
-        static void Trace(string line)
+        static void Trace(string line, string file = "perf-t50.txt")
         {
             try
             {
                 string dir = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "ui-screens");
                 System.IO.Directory.CreateDirectory(dir);
-                System.IO.File.AppendAllText(System.IO.Path.Combine(dir, "perf-t50.txt"), line + "\n");
+                System.IO.File.AppendAllText(System.IO.Path.Combine(dir, file), line + "\n");
             }
             catch (Exception) { /* 자취는 보험 — 못 써도 판정은 그대로 */ }
         }
@@ -365,6 +469,34 @@ namespace Forge.Tests.PlayMode
                       " · 계수기 " + (full.AllocPerFrame >= 0 ? "살아 있음" : "없음(폴백)") + " · 스레드 자 " + (full.StepAllocPerFrame >= 0 ? "살아 있음" : "없음");
             Debug.Log(branches);
             Trace(branches);
+
+            // T64 — 렌더 몫(전부 − 렌더 끔 ≈ 830~880KB)이 어느 경로인가: 카메라만 끔(URP 렌더 루프) · 캔버스만 끔(UGUI·TMP 리빌드) · 추가 광원만 끔(점광 4+4 갈래 · 설정으로 잡을 수 있는 후보).
+            var camOff = new Sample(); List<Behaviour> camList = OffAll<Camera>();
+            yield return Measure(r, dt, true, camOff);
+            RenderOn(camList);
+            var canvasOff = new Sample(); List<Behaviour> canvasList = OffAll<Canvas>();
+            yield return Measure(r, dt, true, canvasOff);
+            RenderOn(canvasList);
+            var lightsOff = new Sample(); List<Behaviour> lightList = OffPointLights();
+            yield return Measure(r, dt, true, lightsOff);
+            int lightsNow = LivePointLights();
+            RenderOn(lightList);
+            string t64 = "[T64] 렌더 몫 가르기(프레임당 관리 할당 · 전부 " + Bytes(full.Judged) + " · 렌더 끔 " + Bytes(noRender.Judged) + "): 카메라만 끔(" + camList.Count + "대) " + Bytes(camOff.Judged) + "(카메라 몫 ≈ " + Bytes(full.Judged - camOff.Judged) + ")" +
+                         " · 캔버스만 끔(" + canvasList.Count + "장) " + Bytes(canvasOff.Judged) + "(캔버스 몫 ≈ " + Bytes(full.Judged - canvasOff.Judged) + ")" +
+                         " · 추가 광원만 끔(" + lightList.Count + "개 · 측정 중 새로 켜진 점광 " + lightsNow + ") " + Bytes(lightsOff.Judged) + "(광원 몫 ≈ " + Bytes(full.Judged - lightsOff.Judged) + ")" +
+                         " · GC 회수 " + camOff.Collections + "/" + canvasOff.Collections + "/" + lightsOff.Collections;
+            Debug.Log(t64);
+            Trace(t64, "perf-t64.txt");
+#if UNITY_EDITOR
+            var buckets = new AllocBuckets();
+            yield return ProfileAllocs(r, dt, ProfileFrames, buckets);
+            string prof = buckets.Frames > 0
+                ? "[T64] 프로파일러 GC.Alloc 버킷(" + buckets.Frames + "프레임 평균 · 샘플 " + (buckets.Samples / buckets.Frames) + "/프레임 · 합 " + (buckets.Total / buckets.Frames) + "B/프레임): 경로 ⟨" + TopN(buckets.Path, buckets.Frames, 10) +
+                  "⟩ · 직접 부모 ⟨" + TopN(buckets.Parent, buckets.Frames, 12) + "⟩" + (buckets.Why.Length > 0 ? " · ⚠ " + buckets.Why : "")
+                : "[T64] 프로파일러 GC.Alloc 버킷: 자 없음 — " + buckets.Why;
+            Debug.Log(prof);
+            Trace(prof, "perf-t64.txt");
+#endif
 
             Assert.Greater(r.S.Numbers.SpawnedTotal, 0, "부하 장면에 데미지 숫자가 없다 — 부하가 아니다");
             Assert.LessOrEqual(full.Avg, AvgBudgetMs, "메인스레드 게임 시간 평균이 예산을 넘었다 — " + line);
