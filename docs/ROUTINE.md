@@ -241,10 +241,10 @@ node tools/export_data.js --self-test                                         # 
 
 | 워커 | 슬롯 | routine ID | 계정 | 첫 런 | 비고 |
 |---|---|---|---|---|---|
-| A | :05 | — | 계정 1 | — | 미등록 |
-| B | :20 | — | 계정 1 | — | 미등록 |
-| C | :35 | — | 계정 1 | — | 미등록 |
-| D | :50 | — | 계정 1 | — | 미등록 |
+| A | :05 | `trig_012jgYLoCrxjx93g81HEtfB6` | 계정 1 | 2026-09-12 18:05 UTC 예정 · 세션 https://claude.ai/code/session_015weaVBkodx5PzrfyHo1XEr · 루틴 https://claude.ai/code/routines/trig_012jgYLoCrxjx93g81HEtfB6 | 2026-09-12 17:44 UTC 생성(착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_014bNYWJnnxgzqfDN9JPBD6p` · enabled |
+| B | :20 | `trig_01VgDxyoE699SFJH3dvNK8Mh` | 계정 1 | 2026-09-12 18:20 UTC 예정 · 세션 https://claude.ai/code/session_01Cw7XN9dSWNGb9USXPGiNN5 · 루틴 https://claude.ai/code/routines/trig_01VgDxyoE699SFJH3dvNK8Mh | 2026-09-12 17:44 UTC 생성(착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_014bNYWJnnxgzqfDN9JPBD6p` · enabled |
+| C | :35 | `trig_01DRx8vYMXjWymP3ofAHDawL` | 계정 1 | 2026-09-12 18:35 UTC 예정 · 세션 https://claude.ai/code/session_01YaXyrwumgLb7Qh4dUDGojn · 루틴 https://claude.ai/code/routines/trig_01DRx8vYMXjWymP3ofAHDawL | 2026-09-12 17:44 UTC 생성(착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_014bNYWJnnxgzqfDN9JPBD6p` · enabled |
+| D | :50 | `trig_014rJnPQ4DbKdorQWd2Xcn5o` | 계정 1 | 2026-09-12 17:50 UTC 예정 · 세션 https://claude.ai/code/session_01Pa7cTGCgeF1dfRiBWNi8Qt · 루틴 https://claude.ai/code/routines/trig_014rJnPQ4DbKdorQWd2Xcn5o | 2026-09-12 17:44 UTC 생성(착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_014bNYWJnnxgzqfDN9JPBD6p` · enabled |
 | E | :12 | — | 계정 2 | — | 미등록 |
 | F | :27 | — | 계정 2 | — | 미등록 |
 | G | :42 | — | 계정 2 | — | 미등록 |
@@ -258,6 +258,8 @@ node tools/export_data.js --self-test                                         # 
 | N | :24 | — | 계정 4 | — | 미등록 |
 | O | :39 | — | 계정 4 | — | 미등록 |
 | P | :54 | — | 계정 4 | — | 미등록 |
+
+> ⚠ 이 루틴들은 MCP 커넥터 없이 뜬다(create_trigger 가 커넥터를 못 싣는다). 그래서 워커 세션에는 **GitHub MCP 가 없다** — `actions_run_trigger` 로 ntfy 를 못 쏜다. 알림은 Secret `NTFY_TOPIC` 을 넣어 **CI 완료 자동 알림**(`ntfy-notify.yml` workflow_run)으로 받는다. git push 는 프록시가 unity1 을 소스로 쥐고 있어 된다.
 
 ### ④ 규약은 계정과 무관하게 같다
 - lock·SID·90분 규약은 그대로 — **다른 계정의 lock 도 남의 lock** 이다. SID 는 `sess-HHMM-$RANDOM` 이라 계정이 달라도 안 겹친다.
