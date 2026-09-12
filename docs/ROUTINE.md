@@ -223,7 +223,7 @@ node tools/export_data.js --self-test                                         # 
 | 계정 | 로그인 이메일 | account uuid | environment_id | 워커 | 슬롯(UTC) |
 |---|---|---|---|---|---|
 | **계정 1** | `kimmoon2007@gmail.com` (표시명 «김문») | `b7a233c8-…` | `env_014bNYWJnnxgzqfDN9JPBD6p` | A · B · C · D | :05 :20 :35 :50 |
-| 계정 2 | (미정 — 붙일 때 적는다) | — | — | E · F · G · H | :12 :27 :42 :57 |
+| **계정 2** | `rudwpwjrwkdb1995@gmail.com` (표시명 «김문») | `0af101b9-…` | `env_01JWPF8hM8XqtGYWuFnAsN93` | E · F · G · H | :12 :27 :42 :57 |
 | 계정 3 | (미정) | — | — | I · J · K · L · Q | :02 :17 :32 :47 · Q 짝수시 :00 |
 | 계정 4 | (미정) | — | — | M · N · O · P | :09 :24 :39 :54 |
 
@@ -257,10 +257,10 @@ node tools/export_data.js --self-test                                         # 
 | B | :20 | `trig_01VgDxyoE699SFJH3dvNK8Mh` | 계정 1 | 2026-09-12 18:20 UTC 예정 · 세션 https://claude.ai/code/session_01Cw7XN9dSWNGb9USXPGiNN5 · 루틴 https://claude.ai/code/routines/trig_01VgDxyoE699SFJH3dvNK8Mh | 2026-09-12 17:44 UTC 생성(착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_014bNYWJnnxgzqfDN9JPBD6p` · enabled |
 | C | :35 | `trig_01DRx8vYMXjWymP3ofAHDawL` | 계정 1 | 2026-09-12 18:35 UTC 예정 · 세션 https://claude.ai/code/session_01YaXyrwumgLb7Qh4dUDGojn · 루틴 https://claude.ai/code/routines/trig_01DRx8vYMXjWymP3ofAHDawL | 2026-09-12 17:44 UTC 생성(착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_014bNYWJnnxgzqfDN9JPBD6p` · enabled |
 | D | :50 | `trig_014rJnPQ4DbKdorQWd2Xcn5o` | 계정 1 | 2026-09-12 17:50 UTC 예정 · 세션 https://claude.ai/code/session_01Pa7cTGCgeF1dfRiBWNi8Qt · 루틴 https://claude.ai/code/routines/trig_014rJnPQ4DbKdorQWd2Xcn5o | 2026-09-12 17:44 UTC 생성(착수 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_014bNYWJnnxgzqfDN9JPBD6p` · enabled |
-| E | :12 | — | 계정 2 | — | 미등록 |
-| F | :27 | — | 계정 2 | — | 미등록 |
-| G | :42 | — | 계정 2 | — | 미등록 |
-| H | :57 | — | 계정 2 | — | 미등록 |
+| E | :12 | `trig_01TpK2L8uMb8kYNKe34gyPWu` | 계정 2 | 2026-09-12 18:12 UTC 예정 · 세션 https://claude.ai/code/session_01PgrXU84C5zXp1g6bCR7utx · 루틴 https://claude.ai/code/routines/trig_01TpK2L8uMb8kYNKe34gyPWu | 2026-09-12 17:53 UTC 생성(계정 2 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01JWPF8hM8XqtGYWuFnAsN93` · enabled |
+| F | :27 | `trig_01CXHFxMGv75VubqVr32USRH` | 계정 2 | 2026-09-12 18:27 UTC 예정 · 세션 https://claude.ai/code/session_01TKwVJkVng2hyTUwYcpCKob · 루틴 https://claude.ai/code/routines/trig_01CXHFxMGv75VubqVr32USRH | 2026-09-12 17:53 UTC 생성(계정 2 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01JWPF8hM8XqtGYWuFnAsN93` · enabled |
+| G | :42 | `trig_01RRyATu6xhqWBcYV1hJ36LJ` | 계정 2 | 2026-09-12 18:42 UTC 예정 · 세션 https://claude.ai/code/session_017szbKpgWAcM1YCrn27KyaH · 루틴 https://claude.ai/code/routines/trig_01RRyATu6xhqWBcYV1hJ36LJ | 2026-09-12 17:53 UTC 생성(계정 2 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01JWPF8hM8XqtGYWuFnAsN93` · enabled |
+| H | :57 | `trig_018TPgh9cbG7GjRX7SWJUzBK` | 계정 2 | 2026-09-12 17:57 UTC 예정 · 세션 https://claude.ai/code/session_015KtwTwgC1Tt7CWrca3633j · 루틴 https://claude.ai/code/routines/trig_018TPgh9cbG7GjRX7SWJUzBK | 2026-09-12 17:53 UTC 생성(계정 2 세션 · create_trigger · persistent_session 바인딩 = 대화창 하나) · `claude-fable-5-1` · env `env_01JWPF8hM8XqtGYWuFnAsN93` · enabled |
 | I | :02 | — | 계정 3 | — | 미등록 |
 | J | :17 | — | 계정 3 | — | 미등록 |
 | K | :32 | — | 계정 3 | — | 미등록 |
