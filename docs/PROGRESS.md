@@ -23,7 +23,7 @@
 | T6 | 영웅 박스 모델 + 무기 파지 + 대기/걷기/스윙 클립 | ⬜ 대기 | — | `Assets/Scripts/Game/Hero/` · `Assets/Tests/PlayMode/HeroTests.cs` | T4 뒤 |
 | T7 | Core 전투 엔진 (100ms 틱 · 웨이브 4+보스 · sim 대조) | ✅ 완료 | sess-1836-5595 / 워커 C | `Assets/Scripts/Core/Battle/` · `tools/sim/` · `Assets/Tests/EditMode/BattleTests.cs` | `Battle`(combat.js 함수 단위 이식 · 이벤트 34종 · 훅 8) · `BattleRules`·`Progress` · `sim_combat.js`(정본 vm · 시드 3 × 100판 → expected JSON 3) · EditMode 21(판 단위 대조 4 + 규칙 17) · dotnet 268 · 이벤트 48,920개 전부 일치 |
 | T8 | 전투 씬 (적 스폰·애니 계약·데미지 숫자·셰이크·파티클) | ⬜ 대기 | — | `Assets/Scripts/Game/Battle/` · `Assets/Tests/PlayMode/BattleSceneTests.cs` | T6·T7 뒤 |
-| T9 | 맵·바이옴 (테마 10 · 소품 배치 · 지면·안개·광원) | ⬜ 대기 | — | `Assets/Scripts/Game/World/` · `Assets/Tests/PlayMode/WorldTests.cs` | T4 뒤 |
+| T9 | 맵·바이옴 (테마 10 · 소품 배치 · 지면·안개·광원) | 🔄 진행 | sess-1903-22599 / 워커 I | `Assets/Scripts/Game/World/` · `Assets/Tests/PlayMode/WorldTests.cs` | T4 뒤 |
 | T10 | 펫 출전 3마리 (대형 · 따라오기 · 관절 드라이버) | ⬜ 대기 | — | `Assets/Scripts/Game/Pets/` · `Assets/Tests/PlayMode/PetSceneTests.cs` | T8 뒤 |
 | T11 | 탈것 (서서 타기 · hover · 드라이버) | ⬜ 대기 | — | `Assets/Scripts/Game/Mounts/` · `Assets/Tests/PlayMode/MountSceneTests.cs` | T6·T10 뒤 |
 | T12 | 스킬 오브젝트 (로봇·표창×10·드래곤) | ⬜ 대기 | — | `Assets/Scripts/Game/SkillFx/` · `Assets/Tests/PlayMode/SkillFxTests.cs` | T8 뒤 |
