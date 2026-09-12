@@ -763,7 +763,8 @@
 - **서명은 추측이 아니다**(ROUTINE §1): 정본 패키지를 옆에 clone 해(`needle-mirror/com.unity.test-framework` · `packages.unity.com` 은 컨테이너 프록시가 403) `ITestRunCallback`·`TestRunCallbackAttribute` 원문을 읽고, **1.4.6 과 2.0.1-pre.18 이 글자까지 같은 것**까지 봤다(프로젝트는 1.6.0).
 - **하니스**: T48 이 세운 `Forge.TestsPlay`(PlayMode 컴파일 게이트)가 이 새 타입에서 4 오류로 **제대로 물었다** — 그 자리 규약대로 `tools/dotnet/Stubs/TestRunner.cs`(서명만)를 더하고 csproj 에 `Compile` 한 줄. 다시 `dotnet build tools/dotnet/Forge.sln` **0 오류·0 경고** · `dotnet test` 471/471.
 - **1회차 기록 정정**: 위 완료 기록의 «어셈블리 단위 `ITestAction` 이 테스트마다 불린다» 는 **NUnit 3.6.1 단독** 이야기이고 유니티에는 해당되지 않는다(결정 105 → 결정 124 로 갈음). 1회차 커밋 메시지 본문의 «결정 102·103» 은 rebase 로 **104·105** 가 된 뒤의 번호다(PROGRESS 쪽이 맞다).
-- **아직 남은 확인**: 이 커밋을 담은 유니티 잡 뒤 `playmode-red.txt` 에 `PASS`/`FAIL` 줄이 실제로 서는가 — 그때 lock 반납.
+- **확인 끝(CI 런 85 · 2026-09-12 22:33 · sha e7f3090)**: `screens` 브랜치의 `playmode-red.txt` 가 **1,106줄**로 섰다 — `── 이름` + `PASS` **549줄** 과 런 총계 두 줄(`런 끝: Passed · 초록 78 · 빨강 0 · 61.1초` = EditMode 471 도 같은 파일에 남는다: 같은 콜백이 두 런 모두에서 불린다). 빨강이 0 이라 `FAIL`·`RED` 줄은 아직 0 인데, 그것이 곧 «빨강이 나면 이유가 여기 적힌다» 는 증거다(자리·순서·총계가 다 선다). **lock 반납.**
+- **다음 사람이 쓰는 법**: `git fetch origin screens && git show origin/screens:playmode-red.txt | grep -A6 '^FAIL'` — 실패한 테스트의 메시지·스택이 그 아래 `msg`/`at` 줄로 붙는다. 파일 순서가 실행 순서라 «어느 테스트가 세이브를 오염시켰나» 도 읽힌다.
 
 ### 런 46(2026-09-12 20:35~20:42 · sha c82b645) PlayMode 빨강 26건 — 임자별 (T46 이 남긴 기록 · 이름만 나온 마지막 런)
 
