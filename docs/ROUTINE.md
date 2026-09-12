@@ -164,8 +164,9 @@
 ### T23 — Core 던전 4종: 입장·소탕·보상 (Core · T7 뒤)
 - 정본: `dungeons.js`. 범위: `Assets/Scripts/Core/Dungeons/` · `Assets/Tests/EditMode/DungeonTests.cs`.
 
-### T24 — Core 기술트리 · 승천 (Core · T3 뒤)
-- 정본: `techtree.js` · `ascension.js`. 범위: `Assets/Scripts/Core/Tech/` · `Core/Ascension/` · `Assets/Tests/EditMode/TechTests.cs`.
+### T24 ✅ — Core 기술트리 · 승천 (Core · T3 뒤)
+- 정본: `techtree.js` · `ascension.js`. 범위: `Assets/Scripts/Core/Tech/` · `Core/Ascension/` · `Assets/Tests/EditMode/TechTests.cs` · `tools/export_data.js`(표 칸 추출 갈래 `TECH_FIELDS`) · `tools/check_data_sync.sh` · `Assets/StreamingAssets/data/tech.json`.
+- 표(분기·노드·보너스·배수·승천 라인·별 배율)는 `tech.json`(추출기 파일 · `TechData.Load`)에서 온다 — `GameData` 의 7파일과 별도. 규칙은 `TechTree`·`Ascension`(Core) 이 원작 함수 이름 그대로 든다.
 
 ### T25 — Core 상점 · 패스 · 퀘스트 · 리그 (Core · T3 뒤)
 - 정본: `shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js`(채팅은 표시용 문자열 표만). 범위: `Assets/Scripts/Core/Meta/` · `Assets/Tests/EditMode/MetaTests.cs`.

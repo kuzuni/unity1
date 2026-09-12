@@ -14,6 +14,7 @@
 //   mobs-mounts.json  MOUNT_MODELS   — (탈것 29)
 //   mobs-enemies.json ENEMY_MODELS   — (적 7)
 //   mobs-skillfx.json SKILLFX_MODELS — (스킬 오브젝트)
+//   tech.json         TechTree·Ascension 의 표 칸(TECH_FIELDS · T24) — 분기·노드·보너스·비용 배수 · 승천 라인·별 배율
 //   mobs-props.json   Props          — 소품은 표가 아니라 **생성 함수**(`Props.pine(s,o)` … · Math.random)라
 //                     함수 이름 목록(kinds) + 결정론 시드로 뽑은 **표본**(samples) 을 낸다. T9 가 생성기를
 //                     C# 으로 옮길 때 같은 시드·같은 인자로 같은 칸 목록이 나오는지 대조하는 고정 표본이다.
@@ -48,7 +49,17 @@ const LOAD_ORDER = [
     'balance-data.js', 'gamedata.js',
     'voxel.js', 'mobs.js', 'mobdata.js',
     'mobs-pets.js', 'mobs-mounts.js', 'mobs-enemies.js', 'mobs-skillfx.js', 'mobs-props.js',
+    // T24: 기술 트리·승천은 객체 리터럴(`const TechTree = {…}`) 안에 표와 메서드가 섞여 있다 — 표 칸만 뽑는다(TECH_FIELDS).
+    'techtree.js', 'ascension.js',
 ];
+
+// T24 — techtree.js / ascension.js 에서 «표» 인 칸만(메서드·캐시 제외). 순서 = 원문 순서.
+// 여기 없는 칸(rows·parentsOf·cost·time·*Mult …)은 규칙(코드)이라 C# `TechTree`(Core/Tech)가 그대로 옮긴다.
+const TECH_FIELDS = {
+    TechTree: ['TIERS', 'MAX_LEVEL', 'BRANCHES', 'NODES', 'BONUS', 'LEGACY_MAP',
+        'LV_MULT', 'TIER_MULT', 'TIME_BASE', 'TIME_LV_MULT', 'TIME_TIER_MULT', 'ROMAN'],
+    Ascension: ['STAR_MULT', 'LINES', 'LINE_KR', 'LINE_ICON', 'FORGE_LEVEL'],
+};
 
 // 원작 tools/lib-seed.js 와 같은 xorshift32 · 같은 시드 — 소품 표본은 이 스트림에서 나온다.
 const SEED = 0x2f6e2b1;
@@ -162,6 +173,24 @@ function pickTopLevel(ctx, code, filename) {
     const bag = vm.runInContext(expr, ctx, { filename: filename + '#pick' });
     const out = {};
     for (const n of names) if (bag[n] !== undefined) out[n] = bag[n];
+    return out;
+}
+
+// 객체 리터럴(`const NAME = {…}`)에서 이름 붙은 칸만 — 없는 칸은 정본이 바뀐 것이라 실패.
+function pickFields(ctx, spec) {
+    const out = {};
+    for (const objName of Object.keys(spec)) {
+        // 최상위 `const` 는 컨텍스트 객체가 아니라 스크립트 스코프에 산다 — 이름으로 평가해 꺼낸다(pickTopLevel 과 같은 길).
+        let obj = null;
+        try { obj = vm.runInContext(`(typeof ${objName} === 'object' ? ${objName} : null)`, ctx, { filename: objName + '#pick' }); } catch (e) { obj = null; }
+        if (!obj) throw new Error(`${objName} 이 없다 — 정본의 등록 이름이 바뀌었다`);
+        const bag = {};
+        for (const f of spec[objName]) {
+            if (!(f in obj)) throw new Error(`${objName}.${f} 이 없다 — 정본의 표 칸 이름이 바뀌었다`);
+            bag[f] = clean(obj[f], `${objName}.${f}`);
+        }
+        out[objName] = bag;
+    }
     return out;
 }
 
@@ -285,6 +314,7 @@ function extract(src) {
         'mobs-skillfx.json': clean(need('SKILLFX_MODELS'), 'SKILLFX_MODELS'),
         'mobs-props.json': sampleProps(ctx),
         'state.json': extractState(src),
+        'tech.json': pickFields(ctx, TECH_FIELDS),
     };
     const text = {};
     for (const k of Object.keys(files)) text[k] = serialize(files[k]);
@@ -371,6 +401,13 @@ function selfTest(src) {
     ok('DEFAULT_STATE 시각 칸 0 · version 1 · 시작 알 1개 · 시작 스킬 강타', st.DEFAULT_STATE.createdAt === 0 && st.DEFAULT_STATE.lastSeen === 0 && st.DEFAULT_STATE.lastOfflineClaim === 0 && st.DEFAULT_STATE.version === 1 && st.DEFAULT_STATE.eggs.length === 1 && st.DEFAULT_STATE.equippedSkills[0] === 'powerStrike', cnt(st.DEFAULT_STATE) + '키');
     ok('DEFAULT_STATE 에 activeMount 접근자가 안 실림(세이브와 같은 규약)', !('activeMount' in st.DEFAULT_STATE));
     ok('MODULE_CAPS 4개 수 · Forge.MAX_LEVEL = forgeProbabilities 행 수', MODULE_CAPS.every(k => typeof st.MODULE_CAPS[k] === 'number') && st.MODULE_CAPS['Forge.MAX_LEVEL'] === cnt(b.forgeProbabilities), JSON.stringify(st.MODULE_CAPS));
+    console.log('[기술 트리 · 승천 (T24)]');
+    const t = files['tech.json'].TechTree, a = files['tech.json'].Ascension;
+    ok('TechTree 분기 3 · 타입 7+10+12 = 29 = NODES 29', t.BRANCHES.length === 3 && t.BRANCHES.map(b => b.types.length).join('+') === '7+10+12' && cnt(t.NODES) === 29, cnt(t.NODES));
+    ok('분기 타입이 전부 NODES·BONUS 에 있음', t.BRANCHES.every(b => b.types.every(ty => t.NODES[ty] && t.BONUS[ty])));
+    ok('TIERS 5 · MAX_LEVEL 5 · ROMAN 5 · 배수 5개 수', t.TIERS === 5 && t.MAX_LEVEL === 5 && t.ROMAN.length === 5 && [t.LV_MULT, t.TIER_MULT, t.TIME_BASE, t.TIME_LV_MULT, t.TIME_TIER_MULT].every(x => typeof x === 'number'));
+    ok('NODES 전부 per·base 수', Object.values(t.NODES).every(n => typeof n.per === 'number' && typeof n.base === 'number'));
+    ok('Ascension LINES 4 · LINE_KR/ICON 4 · STAR_MULT·FORGE_LEVEL 수', a.LINES.length === 4 && cnt(a.LINE_KR) === 4 && cnt(a.LINE_ICON) === 4 && typeof a.STAR_MULT === 'number' && typeof a.FORGE_LEVEL === 'number', a.LINES.join(','));
 
     console.log('[결정론]');
     const again = extract(src).text;
