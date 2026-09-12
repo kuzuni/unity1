@@ -244,7 +244,7 @@
 - ⛔ 흡수: 워커 H 가 34ad307(T16 수리)로 먼저 고쳤다 — 이 절이 남긴 것은 §1 규칙 한 줄.
 - 범위: `Assets/Tests/EditMode/PetTests.cs` · `docs/ROUTINE.md`(§1 한 줄).
 
-### T37 — 장비 3D 외형 캡처 이식: `makeWeapon`(무기 52종 · 시대·등급 재질) · `makeHelmet`(스타일별) · `makeArmorExtras`+`dressMcRig`(옷 한 벌 · 관절 본 부착) · `gradeHeroGearValue` · `applyAscendDecor` — 정본을 **실물 three 로 돌려** 메시(정점·색·재질)를 JSON 으로 뽑고 `Paperdoll.WeaponMeshProvider`/`OnDressed` 훅에 꽂는다 (Game · T15·T6 뒤)
+### T37 ✅ — 장비 3D 외형 캡처 이식: `makeWeapon`(무기 52종 · 시대·등급 재질) · `makeHelmet`(스타일별) · `makeArmorExtras`+`dressMcRig`(옷 한 벌 · 관절 본 부착) · `gradeHeroGearValue` · `applyAscendDecor` — 정본을 **실물 three 로 돌려** 메시(정점·색·재질)를 JSON 으로 뽑고 `Paperdoll.WeaponMeshProvider`/`OnDressed` 훅에 꽂는다 (Game · T15·T6 뒤)
 - 정본: `scene3d.js` 4768~5490(`makeWeapon` · `weaponMatKind` 재질 계열 · `WEAPON_HAFT_SHAPES`) · 6358~6600(`ageGearMats`/`ageGearMatsBase`) · 7236~7430(`makeHelmet`) · 7583~8136(`makeArmorExtras` · `MC_ERA_SHAPE` · `mcClothMat` · `dressMcRig`) · 521(`gradeHeroGearValue` · `HERO_VALUE_GRADE`) · `prochar.js` `leatherTex`(캔버스 텍스처 — 캡처 때 평균색으로 접거나 픽셀을 같이 뽑는다 · T31 이 캔버스를 Chromium 으로 뽑은 방식도 된다).
 - 방법: T6 `hero_vectors.js`·T4 `voxel_vectors.js` 처럼 `three.min.js`(r128 실물) 위에서 정본 절만 잘라 실행 → 모델(무기 종 × 등장 시대 × 등급 · 투구 스타일 × 시대 · 갑옷 스타일 × 시대)마다 메시 목록 `{parts:[{pos,nor,col|color,mat:{color,emissive,emissiveIntensity,metalness,roughness,opacity,flatShading,map?},matrix}]}` 를 JSON 으로. 유니티 `GearMeshes` 가 그것을 Mesh/Material 로 세우고 `Paperdoll` 훅에 준다(무기 원점 = 파지점 · 자루 = 로컬 +y 규약 유지).
 - 판정: 무기 52종 × 등장 시대 · 투구/갑옷 스타일 전부 예외 0 · PlayMode 로 영웅에 입혀 콘솔 빨강 0 · `screens` 시트로 원작 썸네일(`ui.js` 장비 카드)과 나란히.
@@ -265,6 +265,7 @@
 - 대조: `tools/mount_vectors.js`(T16 `pet_vectors.js` 방식 — 정본을 vm 으로 실제 실행 · mulberry32) → `Assets/Tests/EditMode/Vectors/mount_vectors.json` · EditMode `MountTests`(레벨/needed/prevNeeded 51행 · 태엽 비용 · 소환 배치(보너스 확률·보관 상한·자동 장착은 빈 슬롯일 때만) · 장착 1마리 교체·해제 · 흡수 인덱스 보정 · 기여 Big · 이관 3꼴). T13 세이브 코덱(`mounts`·`activeMounts`·`mountOpens`·`winders`)은 T20 `PetSkillSave` 꼴로 여기서.
 - 범위: `Assets/Scripts/Core/Mounts/` · `Assets/Tests/EditMode/MountTests.cs` · `Assets/Tests/EditMode/Vectors/mount_vectors.json` · `tools/mount_vectors.js`.
 
+- 실측(2026-09-12 워커 T): `makeArmorExtras` 는 정본이 `if (!this.heroRig)`(레거시 몸통) 갈래에서만 부른다 — 박스 리그가 켜진 지금 화면에는 없어 캡처하지 않았다(옷 = `dressMcRig`→`mcArmorParts`). 투구는 ITEM_NAMES 이름 수대로 53(modern 7 · interstellar 6). 캡처는 `gear-meshes.json`(3.1MB · 재질 235 · 칸 목록 103 전역 표 · 지오메트리 변형 421).
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -390,7 +391,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/scene3d.js`(18,887) · `scene3d-skillfx.js`(1,088) | 3D 세계 전부: 카메라·광원·테마·적 스폰·애니 계약·데미지 숫자·셰이크·파티클·맵·소품·펫 대형·탈것 탑승·스킬 오브젝트·사망 연출·히트 이펙트 | T1(카메라·테마0) · T8 · T9 · T10 · T11 · T12 · T39 | T1 ✅ · T8 ✅(적 스폰·보행·공격·피격·사망·숫자·셰이크·파티클 · 뺀 연출은 T39) · T9 ✅(SIMPLE_BG 의 보이는 것 · 소재 T34 · 배경 복원 T35) · 나머지 ⬜ |
 | `js/state.js` · `main.js`(저장 시점·부팅) | 세이브 · 마이그레이션 · 오프라인 보상 | T13 | ✅ |
 | `js/forge.js` | 대장간 규칙 · 오토 포지 | T14 · T19 | T14 ✅ · T19 ⬜ |
-| 장비 8부위 · 페이퍼돌(`prochar.js`·`ui.js` 장비 · `scene3d.js` makeWeapon/makeHelmet/dressMcRig) | 등급·서브스탯·판매가·외형 | T15(규칙·표값) · T37(3D 외형 캡처) · T19 | T15 ✅ · T37 ⬜ · T19 ⬜ |
+| 장비 8부위 · 페이퍼돌(`prochar.js`·`ui.js` 장비 · `scene3d.js` makeWeapon/makeHelmet/dressMcRig) | 등급·서브스탯·판매가·외형 | T15(규칙·표값) · T37(3D 외형 캡처) · T19 | T15 ✅ · T37 ✅ · T19 ⬜ |
 | `js/pets.js` | 알·부화·합성·출전 규칙 | T16 · T20 | T16 ✅ · T20 ⬜ |
 | `js/skills.js` | 소환·18종·3슬롯(정본 `MAX_ACTIVE`) | T17 · T20 | T17 ✅ · T20 ⬜ |
 | `js/mounts.js` | 탈것 규칙 · 탑승 | T40(Core 규칙 · 결정 72) · T11(탑승 3D) · T20(탈것 화면) | ⬜ |

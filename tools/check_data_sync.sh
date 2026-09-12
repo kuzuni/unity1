@@ -33,6 +33,14 @@ if ! node "$HERE/tools/export_data.js" --src "$SRC" --out "$TMP" >/dev/null; the
   exit 1
 fi
 
+# T37 — 장비 3D 외형 캡처(gear-meshes.json)는 별도 추출기(실물 three · 10초)로 뽑는다. 같은 규약: 다르면 rc 1 · --sync 로 복사.
+GEAR="gear-meshes.json"
+if ! node "$HERE/tools/export_gear_meshes.js" --src "$SRC" --out "$TMP/$GEAR" >/dev/null; then
+  echo "✗ check_data_sync: 장비 외형 추출기가 실패했다 — node tools/export_gear_meshes.js --src $SRC 를 직접 돌려 보라"
+  exit 1
+fi
+FILES="$FILES $GEAR"
+
 rc=0; diffs=""
 for f in $FILES; do
   if [ ! -f "$DATA/$f" ]; then diffs="$diffs $f(없음)"; rc=1
@@ -51,5 +59,5 @@ if [ "$SYNC" = 1 ]; then
   exit 0
 fi
 echo "✗ check_data_sync: 정본과 다른 파일:$diffs"
-echo "  고치는 법: tools/check_data_sync.sh $SRC --sync  (또는 node tools/export_data.js) 뒤 커밋 — 손으로 고치지 말 것"
+echo "  고치는 법: tools/check_data_sync.sh $SRC --sync  (또는 node tools/export_data.js · node tools/export_gear_meshes.js) 뒤 커밋 — 손으로 고치지 말 것"
 exit 1
