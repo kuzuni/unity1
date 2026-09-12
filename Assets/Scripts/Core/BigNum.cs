@@ -416,6 +416,19 @@ namespace Forge.Core
             return (n < 0 ? "-" : "") + body + UnitFor(tier);
         }
 
+        /// <summary>JS `+x.toFixed(digits)` — 소수 `digits` 자리로 반올림한 **수**(꼬리 0 은 수가 되며 사라진다 · NaN 은 NaN). 원작 `ui.js` 5182 `+stats.subs[key].toFixed(1)`(T59).</summary>
+        public static double RoundFixed(double x, int digits)
+        {
+            if (double.IsNaN(x) || double.IsInfinity(x)) return x;
+            return JsNum.ParseFloat(JsNum.ToFixed(x, digits));
+        }
+
+        /// <summary>`String(+x.toFixed(digits))` — 7.699999999999999 → "7.7" · 6 → "6" · 0.04 → "0".</summary>
+        public static string Fixed(double x, int digits)
+        {
+            return JsNum.ToString(RoundFixed(x, digits));
+        }
+
         /// <summary>원작 `U.pctTrim`: 소수 둘째 자리 반올림 · 꼬리 0 제거 · "12.5%" / "0%".</summary>
         public static string PctTrim(double p)
         {

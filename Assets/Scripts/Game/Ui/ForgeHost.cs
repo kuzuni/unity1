@@ -307,15 +307,17 @@ namespace Forge.Game.Ui
         /// <summary>보류 더미 두께(원작 heldDeckDepth): 2→2 · 3~5→3 · 6~14→4 · 15+→5 · 한 장은 0.</summary>
         public static int HeldDeckDepth(int n) { return n >= 15 ? 5 : n >= 6 ? 4 : n >= 3 ? 3 : n >= 2 ? 2 : 0; }
 
+        /// <summary>원작 `renderPlayerInfo` 의 subsHtml(ui.js 5181~5185): SUBSTATS 순서로 `value: +stats.subs[key].toFixed(1)` → `value > 0` 만 → `U.subText`. 합계는 double 이라 반올림 없이 찍으면 «+7.699999999999999%» 가 된다(T59).</summary>
         List<string> SubLines()
         {
             var lines = new List<string>();
             SubsBag bag = GearSys.AllSubsBag();
-            foreach (string key in bag.Keys)
+            for (int i = 0; i < Defs.Substats.Count; i++)
             {
-                double v = bag[key];
-                if (v == 0) continue;
-                lines.Add((key == "skillCd" ? "-" : "+") + JsNum.ToString(v) + "% " + (Defs.Substat(key) != null ? Defs.Substat(key).Label : key));
+                SubstatDef def = Defs.Substats[i];
+                double v = NumFmt.RoundFixed(bag[def.Key], 1);
+                if (!(v > 0)) continue;
+                lines.Add((def.Key == "skillCd" ? "-" : "+") + JsNum.ToString(v) + "% " + def.Label);
             }
             return lines;
         }
