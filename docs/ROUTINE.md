@@ -325,6 +325,11 @@
 - 판정: `gen_ui_catalog --check`·`--self-test` rc 0 · 「색 키 ↔ 코드 참조」 훑기에 빠진 색 0 · CI 유니티 잡에서 `DungeonUiTests` 4/4 초록.
 - 범위: `Assets/Forge/catalog.json`(항목 자리만 옮긴다 · 값 변경 0) · `Assets/Forge/Resources/UiCatalog.asset`(자가 다시 만든다) · `tools/gen_ui_catalog.py`.
 
+### T49 — 자: §7 완결 대조표 ↔ PROGRESS 상태 (검증 · 뒤 순서 없음 · 워커 F 등재)
+- 왜: §7 은 주인이 정한 «다 옮겨졌다» 의 기준이고 T33 이 마지막에 그것으로 판정하는데, 그 표를 보는 자가 없어 **끝난 작업이 🔄·⬜ 로 남는다**(2026-09-12 21:36 실측 4칸: scene3d 줄 «T10 🔄 · T12 🔄»(같은 칸 뒤에 «T12 ✅» 가 또 있다) · pets 줄 «T43 ⬜» · 품질 줄 «T45 ✅»(PROGRESS 는 🔄)). §2 제목 ↔ PROGRESS 는 `task_state --check` 가 보지만 §7 은 아무도 안 본다.
+- 방법: `tools/check_final_table.py` — §7 표의 «상태» 칸에서 `T<번호> <표시>` 를 읽어(묶음꼴 `✅ (T4 · T5)` 와 표시 하나만 적힌 줄도 «작업» 칸의 번호 전부에 적용) PROGRESS 표의 상태와 대조 · 어긋나면 줄·번호·양쪽 표시를 찍고 rc 1 · 한 칸에 같은 번호가 두 표시로 있으면 그것도 잡는다 · `--self-test` · CI dotnet 잡에 **보고만**(continue-on-error · 배포가 죽는 갈래가 아니다) + 자기 검사는 막는다.
+- 범위: `tools/check_final_table.py` · `.github/workflows/ci.yml`(dotnet 잡 두 줄) · `docs/ROUTINE.md`(§3 한 줄 · §7 어긋난 칸) · `docs/PROGRESS.md`(표 행·기록).
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
