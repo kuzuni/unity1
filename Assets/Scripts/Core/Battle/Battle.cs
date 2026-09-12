@@ -229,6 +229,23 @@ namespace Forge.Core.Battle
             return r;
         }
 
+        /// <summary>살아 있는 적 수 — 틱마다 목록을 새로 만들지 않는다(T50).</summary>
+        public int AliveCount()
+        {
+            int n = 0;
+            for (int i = 0; i < Enemies.Count; i++) if (Enemies[i].Alive) n++;
+            return n;
+        }
+
+        /// <summary>틱 안에서 되쓰는 «살아 있는 적» 버퍼(T50) — 틱 밖으로 내주지 않는다.</summary>
+        readonly List<Enemy> _aliveBuf = new List<Enemy>();
+        List<Enemy> FillAlive()
+        {
+            _aliveBuf.Clear();
+            for (int i = 0; i < Enemies.Count; i++) if (Enemies[i].Alive) _aliveBuf.Add(Enemies[i]);
+            return _aliveBuf;
+        }
+
         public Enemy FrontEnemy()
         {
             Enemy best = null;
@@ -253,7 +270,7 @@ namespace Forge.Core.Battle
         {
             _tick++;
             _nowMs = nowMs;
-            Walking = Phase != BattlePhase.BossWarn && Phase != BattlePhase.DungeonClear && (Phase != BattlePhase.Fight || AliveEnemies().Count == 0);
+            Walking = Phase != BattlePhase.BossWarn && Phase != BattlePhase.DungeonClear && (Phase != BattlePhase.Fight || AliveCount() == 0);
 
             // 지연 큐 — 콜백이 큐를 통째로 비울 수 있다(사망·던전 이탈) → 엔트리를 매번 다시 집어 없으면 그대로 끝낸다.
             for (int i = _pending.Count - 1; i >= 0; i--)
@@ -328,8 +345,8 @@ namespace Forge.Core.Battle
             }
             if (Phase != BattlePhase.Fight) return;
 
-            // 적 이동/공격
-            List<Enemy> aliveNow = AliveEnemies();
+            // 적 이동/공격(버퍼 재사용 · 이 루프는 Emit·_pending 만 건드린다)
+            List<Enemy> aliveNow = FillAlive();
             for (int i = 0; i < aliveNow.Count; i++)
             {
                 Enemy e = aliveNow[i];
@@ -486,7 +503,7 @@ namespace Forge.Core.Battle
                 Emit(BattleEventKind.Kill, e.Id, flag: e.IsBoss);
                 RestackMelee();
                 if (e.IsBoss) { Emit(BattleEventKind.Shake, num: BattleRules.BossKillShake); Emit(BattleEventKind.Music, tag: _c.Dungeon != null ? "dungeon" : "normal"); }
-                if (AliveEnemies().Count == 0)
+                if (AliveCount() == 0)
                 {
                     if (Wave >= TotalWaves()) StageClear();
                     else { Phase = BattlePhase.WaveDelay; PhaseTimer = BattleRules.WaveDelay; }

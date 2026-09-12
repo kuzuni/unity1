@@ -26,11 +26,18 @@ namespace Forge.Game.Battle
 
         sealed class Num
         {
-            public RectTransform Rt; public TextMeshProUGUI T; public Frame[] Anim; public Vector2 Origin; public double Dx, Rise, Pop, Age; public Color Color;
+            public RectTransform Rt; public TextMeshProUGUI T; public UiTextKindTag Tag; public Frame[] Anim; public Vector2 Origin; public double Dx, Rise, Pop, Age; public Color Color;
         }
 
         readonly List<Num> live = new List<Num>();
+        /// <summary>죽은 숫자의 글자 오브젝트(T50 풀) — 피격마다 GameObject+RectTransform+TMP 를 새로 만들지 않는다(원작 DOM 은 브라우저가 되쓴다 · 같은 «되쓰기»).</summary>
+        readonly Stack<Num> pool = new Stack<Num>();
         public int Count { get { return live.Count; } }
+        public int Pooled { get { return pool.Count; } }
+        /// <summary>글자 오브젝트를 실제로 만든 수(풀이 도는지 재는 자 · T50).</summary>
+        public int Created { get; private set; }
+        /// <summary>false 면 세기만 하고 글자를 안 띄운다(T50 갈래별 측정용).</summary>
+        public bool Enabled = true;
         public int SpawnedTotal { get; private set; }
         public string LastText { get; private set; }
         public string LastClass { get; private set; }
@@ -75,6 +82,7 @@ namespace Forge.Game.Battle
         {
             SpawnedTotal++; LastText = text; LastClass = cls;
             if (cls != null && cls.StartsWith("dmg", StringComparison.Ordinal)) DmgSpawned++;
+            if (!Enabled) return;
             var root = UiRoot.Instance;
             var cam = Camera.main;
             if (root == null || root.App == null || cam == null) return;
@@ -96,20 +104,53 @@ namespace Forge.Game.Battle
             lp.y = (float)Math.Min(lp.y, topFloor);
             TextKind kind; string colorKey, outlineKey, prefix; Frame[] anim;
             Style(cls, out kind, out colorKey, out outlineKey, out anim, out prefix);
-            var t = UiKit.Text(root.App, "dmg " + cls, kind, prefix + text, colorKey);
+            Num n = Take(root.App, kind, colorKey, prefix.Length == 0 ? (text ?? string.Empty) : prefix + text);
+            TextMeshProUGUI t = n.T;
             t.fontSharedMaterial = OutlineMaterial(t, outlineKey);
-            var rt = t.rectTransform;
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(UiKit.RefW * 0.5f, UiKit.RefH * 0.08f);
+            RectTransform rt = n.Rt;
             // 가로 화면 클램프(아크가 다 흐른 뒤에도 앱 상자 안)
             float half = rt.sizeDelta.x * 0.5f * (float)pop * 0.5f;
             float pad = (float)(HitRules.DmgSidePad * k);
             float minX = root.App.rect.xMin + pad + half - (float)Math.Min(0, dx * k), maxX = root.App.rect.xMax - pad - half - (float)Math.Max(0, dx * k);
             if (minX <= maxX) lp.x = Mathf.Clamp(lp.x, minX, maxX);
-            var n = new Num { Rt = rt, T = t, Anim = anim, Origin = lp, Dx = dx * k, Rise = rise * k, Pop = pop, Age = 0, Color = t.color };
+            n.Anim = anim; n.Origin = lp; n.Dx = dx * k; n.Rise = rise * k; n.Pop = pop; n.Age = 0; n.Color = t.color;
             live.Add(n);
             Place(n, 0);
+        }
+
+        /// <summary>풀에서 꺼내(없으면 <see cref="UiKit.Text"/> 로 한 번 만들고) 종류·색·글자를 다시 입힌다 — 종류 표식(<see cref="UiTextKindTag"/>)·글자 크기는 §1 하한 게이트가 보므로 같이 갱신한다.</summary>
+        Num Take(RectTransform app, TextKind kind, string colorKey, string text)
+        {
+            Num n = null;
+            while (pool.Count > 0) { n = pool.Pop(); if (n.Rt != null) break; n = null; }
+            if (n == null)
+            {
+                var t0 = UiKit.Text(app, "dmg", kind, text, colorKey);
+                var rt0 = t0.rectTransform;
+                rt0.anchorMin = rt0.anchorMax = new Vector2(0.5f, 0.5f);
+                rt0.pivot = new Vector2(0.5f, 0.5f);
+                rt0.sizeDelta = new Vector2(UiKit.RefW * 0.5f, UiKit.RefH * 0.08f);
+                n = new Num { Rt = rt0, T = t0, Tag = t0.GetComponent<UiTextKindTag>() };
+                Created++;
+                return n;
+            }
+            TextMeshProUGUI t = n.T;
+            t.fontSize = UiCatalog.Instance.Kind(kind).size;
+            t.color = UiKit.C(colorKey);
+            t.text = text;
+            if (n.Tag != null) n.Tag.Kind = kind;
+            n.Rt.SetAsLastSibling();
+            n.Rt.gameObject.SetActive(true);
+            return n;
+        }
+
+        /// <summary>글자를 끄고 풀에 돌려놓는다(파괴하지 않는다).</summary>
+        void Release(Num n)
+        {
+            if (n.Rt == null) return;
+            n.T.canvasRenderer.SetAlpha(1f);
+            n.Rt.gameObject.SetActive(false);
+            pool.Push(n);
         }
 
         static void Place(Num n, double u)
@@ -123,7 +164,8 @@ namespace Forge.Game.Battle
             n.Rt.anchoredPosition = new Vector2((float)(n.Origin.x + n.Dx * dx), (float)(n.Origin.y - n.Rise * rise));
             n.Rt.localScale = Vector3.one * (float)(n.Pop * sc);
             n.Rt.localRotation = Quaternion.Euler(0, 0, (float)-rot);
-            var c = n.Color; c.a = (float)al; n.T.color = c;
+            // 알파는 정점색(TMP 메시 재생성 · 프레임마다 관리 할당)이 아니라 CanvasRenderer 에 — 글자 메시는 띄울 때 한 번만 만든다(T50).
+            n.T.canvasRenderer.SetAlpha((float)al);
         }
 
         public void Step(float dt)
@@ -135,7 +177,7 @@ namespace Forge.Game.Battle
                 n.Age += dt;
                 if (n.Age >= life || n.Rt == null)
                 {
-                    if (n.Rt != null) UnityEngine.Object.Destroy(n.Rt.gameObject);
+                    Release(n);
                     live.RemoveAt(i);
                     continue;
                 }
@@ -147,6 +189,7 @@ namespace Forge.Game.Battle
         {
             foreach (var n in live) if (n.Rt != null) UnityEngine.Object.Destroy(n.Rt.gameObject);
             live.Clear();
+            while (pool.Count > 0) { var n = pool.Pop(); if (n.Rt != null) UnityEngine.Object.Destroy(n.Rt.gameObject); }
         }
     }
 }

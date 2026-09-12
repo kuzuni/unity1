@@ -14,11 +14,14 @@ namespace Forge.Game.Battle
     {
         sealed class A { public double Dur, T; public Action<double> Tick; public Action Done; }
         readonly List<A> live = new List<A>();
+        /// <summary>끝난 항목을 되쓴다(T50) — 연출 하나마다 레코드를 새로 만들지 않는다(클로저는 호출자 몫).</summary>
+        readonly Stack<A> pool = new Stack<A>();
         public int Count { get { return live.Count; } }
 
         public void Add(double dur, Action<double> tick, Action done = null)
         {
-            var a = new A { Dur = Math.Max(1e-6, dur), Tick = tick, Done = done };
+            A a = pool.Count > 0 ? pool.Pop() : new A();
+            a.Dur = Math.Max(1e-6, dur); a.T = 0; a.Tick = tick; a.Done = done;
             live.Add(a);
             if (tick != null) tick(0);
         }
@@ -35,12 +38,15 @@ namespace Forge.Game.Battle
                 if (k >= 1)
                 {
                     live.RemoveAt(i);
-                    if (a.Done != null) a.Done();
+                    Action done = a.Done;
+                    a.Tick = null; a.Done = null;
+                    pool.Push(a);
+                    if (done != null) done();
                 }
             }
         }
 
-        public void Clear() { live.Clear(); }
+        public void Clear() { for (int i = 0; i < live.Count; i++) { live[i].Tick = null; live[i].Done = null; pool.Push(live[i]); } live.Clear(); }
     }
 
     /// <summary>`Forge/FxUnlit` 재질 공장 — 정본 `MeshBasicMaterial` 의 (color · map · transparent · blending · depthTest · side) 조합.</summary>
@@ -70,6 +76,35 @@ namespace Forge.Game.Battle
             if (tex != null) m.mainTexture = tex;
             m.renderQueue = (int)RenderQueue.Transparent + (depthTest ? 0 : 10);
             return m;
+        }
+
+        /// <summary>재질 풀(T50) — 조합(가산·깊이·양면·텍스처)별로 되쓴다. 색·불투명도는 꺼낼 때 다시 칠한다(정본은 임팩트마다 MeshBasicMaterial 을 새로 만들었다 — 되쓰기는 새 시스템이 아니다).</summary>
+        static readonly Dictionary<int, Stack<Material>> pool = new Dictionary<int, Stack<Material>>();
+        public static int Pooled { get { int n = 0; foreach (var kv in pool) n += kv.Value.Count; return n; } }
+        public static int Made { get; private set; }
+
+        public static int RecipeKey(bool additive, bool depthTest, Texture tex, bool doubleSide)
+        {
+            return (additive ? 1 : 0) | (depthTest ? 2 : 0) | (doubleSide ? 4 : 0) | ((tex != null ? tex.GetInstanceID() : 0) << 3);
+        }
+
+        /// <summary><see cref="Make"/> 와 같은 결과를 풀에서 — 돌려줄 때는 <see cref="Release"/>(같은 키).</summary>
+        public static Material Take(int hex, double opacity, bool additive, bool depthTest, Texture tex, bool doubleSide, out int key)
+        {
+            key = RecipeKey(additive, depthTest, tex, doubleSide);
+            Stack<Material> st;
+            if (pool.TryGetValue(key, out st))
+                while (st.Count > 0) { Material m = st.Pop(); if (m != null) { SetColor(m, hex, opacity); return m; } }
+            Made++;
+            return Make(hex, opacity, additive, depthTest, tex, doubleSide);
+        }
+
+        public static void Release(Material m, int key)
+        {
+            if (m == null) return;
+            Stack<Material> st;
+            if (!pool.TryGetValue(key, out st)) pool[key] = st = new Stack<Material>();
+            st.Push(m);
         }
 
         public static void SetOpacity(Material m, double a)
@@ -106,7 +141,22 @@ namespace Forge.Game.Battle
         readonly List<int> lightLease = new List<int>();
         int lightSeq;
 
+        /// <summary>
+        /// 임팩트 오브젝트 슬롯(T50 풀) — GameObject·MeshFilter·MeshRenderer 를 되쓰고 재질은 <see cref="FxUnlitMaterials.Take"/> 조합 풀에서.
+        /// <see cref="Seq"/> 는 세대 토큰: 죽은 뒤(또는 되쓴 뒤) 낡은 연출 클로저가 남의 슬롯을 만지지 못하게 한다.
+        /// </summary>
+        sealed class Slot { public GameObject Go; public MeshFilter Mf; public MeshRenderer Mr; public Material Mat; public int MatKey; public int Seq; public bool Live; }
+        readonly Dictionary<MeshRenderer, Slot> slotOf = new Dictionary<MeshRenderer, Slot>();
+        readonly Stack<Slot> free = new Stack<Slot>();
+        /// <summary>false 면 임팩트를 안 만든다(T50 갈래별 측정용).</summary>
+        public bool Enabled = true;
+        public int Pooled { get { return free.Count; } }
+        /// <summary>슬롯을 실제로 만든 수(풀이 도는지 재는 자).</summary>
+        public int Created { get; private set; }
+
         public ImpactFx(Transform parent, FxAnims anims, Camera cam) { Parent = parent; Anims = anims; Cam = cam; }
+
+        static bool Alive(Slot s, int seq) { return s.Live && s.Seq == seq && s.Go != null; }
 
         static Mesh Quad { get { return quad ?? (quad = HeroMeshes.Quad(1, 1, 0xffffff)); } }
 
@@ -208,26 +258,47 @@ namespace Forge.Game.Battle
             }
         }
 
-        MeshRenderer Spawn(string name, Mesh mesh, Material mat, Vector3 threePos)
+        /// <summary>슬롯을 꺼내 메시·재질·자리를 입힌다 — 위치·회전·크기는 매번 처음값으로(되쓴 슬롯의 잔상을 안 남긴다).</summary>
+        Slot Spawn(Mesh mesh, int hex, double opacity, bool additive, bool depthTest, Texture tex, bool doubleSide, Vector3 threePos)
         {
-            var go = new GameObject(name);
-            go.transform.SetParent(Parent, false);
-            go.transform.position = ThreeSpace.Pos(threePos.x, threePos.y, threePos.z);
-            go.AddComponent<MeshFilter>().sharedMesh = mesh;
-            var mr = go.AddComponent<MeshRenderer>();
-            mr.sharedMaterial = mat;
-            mr.shadowCastingMode = ShadowCastingMode.Off;
-            mr.receiveShadows = false;
+            Slot s = null;
+            while (free.Count > 0) { s = free.Pop(); if (s.Go != null) break; s = null; }
+            if (s == null)
+            {
+                var go = new GameObject("impact");
+                go.transform.SetParent(Parent, false);
+                s = new Slot { Go = go, Mf = go.AddComponent<MeshFilter>(), Mr = go.AddComponent<MeshRenderer>() };
+                s.Mr.shadowCastingMode = ShadowCastingMode.Off;
+                s.Mr.receiveShadows = false;
+                slotOf[s.Mr] = s;
+                Created++;
+            }
+            int key;
+            s.Mat = FxUnlitMaterials.Take(hex, opacity, additive, depthTest, tex, doubleSide, out key);
+            s.MatKey = key;
+            s.Mf.sharedMesh = mesh;
+            s.Mr.sharedMaterial = s.Mat;
+            Transform t = s.Go.transform;
+            t.localRotation = Quaternion.identity;
+            t.localScale = Vector3.one;
+            t.position = ThreeSpace.Pos(threePos.x, threePos.y, threePos.z);
+            s.Seq++;
+            s.Live = true;
+            s.Go.SetActive(true);
             Live++;
-            return mr;
+            return s;
         }
 
-        void Kill(MeshRenderer mr)
+        void Kill(Slot s, int seq)
         {
-            if (mr == null) return;
+            if (s == null || !s.Live || s.Seq != seq) return;
+            s.Live = false;
+            s.Seq++;
             Live--;
-            UnityEngine.Object.Destroy(mr.sharedMaterial);
-            UnityEngine.Object.Destroy(mr.gameObject);
+            if (s.Go != null) s.Go.SetActive(false);
+            FxUnlitMaterials.Release(s.Mat, s.MatKey);
+            s.Mat = null;
+            free.Push(s);
         }
 
         void FaceCamera(Transform t)
@@ -238,18 +309,19 @@ namespace Forge.Game.Battle
         /// <summary>`impactFlare(pos, colorHex, size, dur, spin, peak)` — 카메라를 향한 가산 쿼드 · 첫 프레임부터 0.9 → 1.35 배.</summary>
         public void Flare(Vector3 pos, int hex, double size, double dur, double spin, double peak = FxRules.FlareDefaultPeak)
         {
-            var mr = Spawn("flare", Quad, FxUnlitMaterials.Make(hex, peak, true, false, FlareTex), pos);
-            Transform t = mr.transform;
+            if (!Enabled) return;
+            Slot s = Spawn(Quad, hex, peak, true, false, FlareTex, true, pos);
+            int seq = s.Seq;
+            Transform t = s.Go.transform;
             FaceCamera(t);
             t.Rotate(0, 0, (float)(spin * Mathf.Rad2Deg), Space.Self);
             t.localScale = Vector3.one * (float)(size * FxRules.FlareStart);
-            Material m = mr.sharedMaterial;
             Anims.Add(dur, k =>
             {
-                if (t == null) return;
+                if (!Alive(s, seq)) return;
                 t.localScale = Vector3.one * (float)(size * (FxRules.FlareStart + FxRules.FlareGrow * k));
-                FxUnlitMaterials.SetOpacity(m, peak * FxRules.FadeSq(k));
-            }, () => Kill(mr));
+                FxUnlitMaterials.SetOpacity(s.Mat, peak * FxRules.FadeSq(k));
+            }, () => Kill(s, seq));
         }
 
         /// <summary>`impactSpikes(pos, count, colorHex, size, dur, crit)` — 방사형 스파이크(뻗었다가 뿌리부터 사라진다).</summary>
@@ -259,67 +331,70 @@ namespace Forge.Game.Battle
             double baseA = UnityEngine.Random.value * Math.PI;
             double op = FxRules.SpikeOpacity(crit);
             double w = FxRules.SpikeWidth(crit, size);
+            if (!Enabled) return;
             for (int i = 0; i < n; i++)
             {
                 double ang = baseA + (double)i / n * Math.PI * 2 + (UnityEngine.Random.value * 2 - 1) * FxRules.SpikeJitter;
                 double len = size * (FxRules.SpikeLenMin + UnityEngine.Random.value * (FxRules.SpikeLenMax - FxRules.SpikeLenMin));
-                var mr = Spawn("spike", Quad, FxUnlitMaterials.Make(hex, op, true, false, FlareTex), pos);
-                Transform t = mr.transform;
+                Slot s = Spawn(Quad, hex, op, true, false, FlareTex, true, pos);
+                int seq = s.Seq;
+                Transform t = s.Go.transform;
                 FaceCamera(t);
                 t.Rotate(0, 0, (float)(ang * Mathf.Rad2Deg), Space.Self);
                 Vector3 origin = t.position;
                 Vector3 up = t.up;
                 t.localScale = new Vector3((float)w, (float)(len * FxRules.SpikeStartLen), 1);
-                Material m = mr.sharedMaterial;
                 Anims.Add(dur, k =>
                 {
-                    if (t == null) return;
+                    if (!Alive(s, seq)) return;
                     double g = 1 - Math.Pow(1 - k, FxRules.SpikeGrowPow);
                     t.localScale = new Vector3((float)(w * (1 - FxRules.SpikeShrinkW * k)), (float)(len * (FxRules.SpikeStartLen + FxRules.SpikeGrowLen * g)), 1);
                     t.position = origin + up * (float)(len * (FxRules.SpikeOffset0 + FxRules.SpikeOffsetK * g));
-                    FxUnlitMaterials.SetOpacity(m, op * FxRules.FadeSq(k));
-                }, () => Kill(mr));
+                    FxUnlitMaterials.SetOpacity(s.Mat, op * FxRules.FadeSq(k));
+                }, () => Kill(s, seq));
             }
         }
 
         /// <summary>`impactRing(pos, colorHex, size, dur, crit)` — 카메라를 향한 픽셀 계단 링(끝까지 퍼진다).</summary>
         public void Ring(Vector3 pos, int hex, double size, double dur, bool crit)
         {
+            if (!Enabled) return;
             double op = FxRules.RingOpacity(crit);
-            var mr = Spawn("impactRing", PixelRing(crit), FxUnlitMaterials.Make(hex, op, true, false), pos);
-            Transform t = mr.transform;
+            Slot s = Spawn(PixelRing(crit), hex, op, true, false, null, true, pos);
+            int seq = s.Seq;
+            Transform t = s.Go.transform;
             FaceCamera(t);
             t.Rotate(0, 0, UnityEngine.Random.value * 90f, Space.Self);
             double F = FxRules.PxRingF, grow = FxRules.RingGrow(crit);
             t.localScale = Vector3.one * (float)(size * FxRules.RingStart * F);
-            Material m = mr.sharedMaterial;
             Anims.Add(dur, k =>
             {
-                if (t == null) return;
+                if (!Alive(s, seq)) return;
                 double g = 1 - Math.Pow(1 - k, FxRules.RingGrowPow);
                 t.localScale = Vector3.one * (float)(size * (FxRules.RingStart + g * grow) * F);
-                FxUnlitMaterials.SetOpacity(m, op * FxRules.FadeSq(k));
-            }, () => Kill(mr));
+                FxUnlitMaterials.SetOpacity(s.Mat, op * FxRules.FadeSq(k));
+            }, () => Kill(s, seq));
         }
 
         /// <summary>`expandRing(pos, color, maxR)` — 지면에 눕는 충격파(어두운 밑링 + 색 링 · 0.17초).</summary>
         public void ExpandRing(Vector3 pos, int hex, double maxR)
         {
-            var under = Spawn("shockUnder", PixelRing(false), FxUnlitMaterials.Make(FxRules.ExpandUnderColor, 0.5, false, true), new Vector3(pos.x, (float)FxRules.ExpandUnderY, pos.z));
-            var ring = Spawn("shockRing", PixelRing(false), FxUnlitMaterials.Make(hex, 0.9, false, true), new Vector3(pos.x, (float)FxRules.ExpandRingY, pos.z));
-            foreach (var r in new[] { under, ring }) r.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            Material mu = under.sharedMaterial, mr2 = ring.sharedMaterial;
-            Transform tu = under.transform, tr = ring.transform;
+            if (!Enabled) return;
+            Slot under = Spawn(PixelRing(false), FxRules.ExpandUnderColor, 0.5, false, true, null, true, new Vector3(pos.x, (float)FxRules.ExpandUnderY, pos.z));
+            int sequ = under.Seq;
+            Slot ring = Spawn(PixelRing(false), hex, 0.9, false, true, null, true, new Vector3(pos.x, (float)FxRules.ExpandRingY, pos.z));
+            int seqr = ring.Seq;
+            Transform tu = under.Go.transform, tr = ring.Go.transform;
+            tu.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            tr.localRotation = Quaternion.Euler(90f, 0f, 0f);
             Anims.Add(FxRules.ExpandDur, k =>
             {
-                if (tr == null || tu == null) return;
-                double s = FxRules.ExpandScale(k, maxR);
-                tr.localScale = Vector3.one * (float)s;
-                tu.localScale = Vector3.one * (float)(s * FxRules.ExpandUnderScale);
+                bool ru = Alive(under, sequ), rr = Alive(ring, seqr);
+                double sc = FxRules.ExpandScale(k, maxR);
                 double a = FxRules.FadeSq(k);
-                FxUnlitMaterials.SetOpacity(mr2, FxRules.ExpandRingOpacity * a);
-                FxUnlitMaterials.SetOpacity(mu, FxRules.ExpandUnderOpacity * a);
-            }, () => { Kill(under); Kill(ring); });
+                if (rr) { tr.localScale = Vector3.one * (float)sc; FxUnlitMaterials.SetOpacity(ring.Mat, FxRules.ExpandRingOpacity * a); }
+                if (ru) { tu.localScale = Vector3.one * (float)(sc * FxRules.ExpandUnderScale); FxUnlitMaterials.SetOpacity(under.Mat, FxRules.ExpandUnderOpacity * a); }
+            }, () => { Kill(under, sequ); Kill(ring, seqr); });
         }
 
         /// <summary>`fxLight` 풀 — 4개 · 임차 토큰으로 겹침을 가른다.</summary>
@@ -360,34 +435,36 @@ namespace Forge.Game.Battle
         /// <summary>`scorchDecal(pos, radius, dur)` — 지면 그을음(유일한 어두운 값 · 밝은 파편이 꺼진 뒤에도 남는다).</summary>
         public void Scorch(Vector3 pos, double radius, double dur)
         {
-            var mr = Spawn("scorch", Quad, FxUnlitMaterials.Make(FxRules.ScorchColor, 0, false, true, ScorchTex), new Vector3(pos.x, (float)FxRules.ScorchY, pos.z));
-            Transform t = mr.transform;
+            if (!Enabled) return;
+            Slot s = Spawn(Quad, FxRules.ScorchColor, 0, false, true, ScorchTex, true, new Vector3(pos.x, (float)FxRules.ScorchY, pos.z));
+            int seq = s.Seq;
+            Transform t = s.Go.transform;
             t.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            Material m = mr.sharedMaterial;
             Anims.Add(dur, k =>
             {
-                if (t == null) return;
-                FxUnlitMaterials.SetOpacity(m, FxRules.ScorchOpacity(k));
+                if (!Alive(s, seq)) return;
+                FxUnlitMaterials.SetOpacity(s.Mat, FxRules.ScorchOpacity(k));
                 t.localScale = Vector3.one * (float)(radius * 2 * FxRules.ScorchScale(k));
-            }, () => Kill(mr));
+            }, () => Kill(s, seq));
         }
 
         /// <summary>`swoosh(colorHex)` — 영웅 쪽 반투명 호(토러스 0.55π) · 0.1초 동안 커지며 휘둘러진다.</summary>
         public void Swoosh(int hex, double heroX)
         {
-            var mr = Spawn("swoosh", ArcMesh, FxUnlitMaterials.Make(hex, FxRules.SwooshOpacity, false, true), new Vector3((float)(heroX + FxRules.SwooshDx), (float)FxRules.SwooshY, (float)FxRules.SwooshZ));
-            Transform t = mr.transform;
+            if (!Enabled) return;
+            Slot s = Spawn(ArcMesh, hex, FxRules.SwooshOpacity, false, true, null, true, new Vector3((float)(heroX + FxRules.SwooshDx), (float)FxRules.SwooshY, (float)FxRules.SwooshZ));
+            int seq = s.Seq;
+            Transform t = s.Go.transform;
             double[] rot = { 0, FxRules.SwooshRotY, FxRules.SwooshRotZ };
             ThreeSpace.Apply(t, rot);
-            Material m = mr.sharedMaterial;
             Anims.Add(FxRules.SwooshDur, k =>
             {
-                if (t == null) return;
+                if (!Alive(s, seq)) return;
                 t.localScale = Vector3.one * (float)(1 + k * FxRules.SwooshGrow);
                 rot[2] = FxRules.SwooshRotZ - k * FxRules.SwooshSweep;
                 ThreeSpace.Apply(t, rot);
-                FxUnlitMaterials.SetOpacity(m, FxRules.SwooshPeak * (1 - k));
-            }, () => Kill(mr));
+                FxUnlitMaterials.SetOpacity(s.Mat, FxRules.SwooshPeak * (1 - k));
+            }, () => Kill(s, seq));
         }
 
         static Mesh arcMesh;
@@ -428,12 +505,17 @@ namespace Forge.Game.Battle
         /// <summary>`bossWarnPillar(px)` — 붉은 가산 복셀 기둥(opacity 0 에서 시작 · 호출부가 박에 맞춰 밝힌다).</summary>
         public MeshRenderer Pillar(double px)
         {
-            var mr = Spawn("bossWarnPillar", PillarMesh, FxUnlitMaterials.Make(FxRules.BossPillarColor, 0, true, true, null, false), new Vector3((float)px, 0, 0));
-            mr.transform.localScale = new Vector3(1, (float)FxRules.PillarScale0, 1);
-            return mr;
+            Slot s = Spawn(PillarMesh, FxRules.BossPillarColor, 0, true, true, null, false, new Vector3((float)px, 0, 0));
+            s.Go.transform.localScale = new Vector3(1, (float)FxRules.PillarScale0, 1);
+            return s.Mr;
         }
 
-        public void Remove(MeshRenderer mr) { Kill(mr); }
+        /// <summary>바깥이 쥔 렌더러(기둥)를 거둔다 — 이미 거둔 것은 무시.</summary>
+        public void Remove(MeshRenderer mr)
+        {
+            Slot s;
+            if (mr != null && slotOf.TryGetValue(mr, out s)) Kill(s, s.Seq);
+        }
     }
 
     /// <summary>

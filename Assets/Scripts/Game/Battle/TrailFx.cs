@@ -16,6 +16,8 @@ namespace Forge.Game.Battle
     {
         sealed class Pt { public Vector3 B, T; public double Age; public Vector3? Dir; public bool Brk; }
         readonly List<Pt> pts = new List<Pt>();
+        /// <summary>점 레코드 풀(T50) — 스윙마다 12개까지 새로 만들던 것.</summary>
+        readonly Stack<Pt> ptPool = new Stack<Pt>();
         readonly Mesh mesh;
         readonly MeshRenderer mr;
         readonly Material mat;
@@ -62,6 +64,15 @@ namespace Forge.Game.Battle
 
         public void Stop() { On = false; }
 
+        Pt NewPt(Vector3 b, Vector3 t, double age, Vector3? dir)
+        {
+            Pt p = ptPool.Count > 0 ? ptPool.Pop() : new Pt();
+            p.B = b; p.T = t; p.Age = age; p.Dir = dir; p.Brk = false;
+            return p;
+        }
+
+        void DropFirst() { ptPool.Push(pts[0]); pts.RemoveAt(0); }
+
         /// <summary>`trailImpact(tier)` — normal/crit/kill.</summary>
         public void Impact(string tier)
         {
@@ -80,7 +91,7 @@ namespace Forge.Game.Battle
         public void Update(float dt, Transform weaponMount, string shape, Transform heroRoot)
         {
             foreach (var p in pts) p.Age += dt;
-            while (pts.Count > 0 && pts[0].Age >= FxRules.TrailLife) pts.RemoveAt(0);
+            while (pts.Count > 0 && pts[0].Age >= FxRules.TrailLife) DropFirst();
             if (On && weaponMount != null && weaponMount.gameObject.activeInHierarchy)
             {
                 double tipLen = FxRules.TrailTip(shape);
@@ -103,11 +114,11 @@ namespace Forge.Game.Battle
                         for (int j = 1; j <= n; j++)
                         {
                             float k = (float)j / (n + 1);
-                            pts.Add(new Pt { B = Vector3.Lerp(last.B, b, k), T = Vector3.Lerp(last.T, t, k), Age = last.Age * (1 - k) });
+                            pts.Add(NewPt(Vector3.Lerp(last.B, b, k), Vector3.Lerp(last.T, t, k), last.Age * (1 - k), null));
                         }
                     }
-                    pts.Add(new Pt { B = b, T = t, Age = 0, Dir = last != null ? (Vector3?)(t - last.T) : null });
-                    while (pts.Count > FxRules.TrailSegments - 1) pts.RemoveAt(0);
+                    pts.Add(NewPt(b, t, 0, last != null ? (Vector3?)(t - last.T) : null));
+                    while (pts.Count > FxRules.TrailSegments - 1) DropFirst();
                 }
             }
             if (pts.Count < 2) { mr.enabled = false; return; }

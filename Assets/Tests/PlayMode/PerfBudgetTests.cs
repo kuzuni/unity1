@@ -5,6 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Unity.Profiling;
 using Forge.Core;
 using Forge.Core.Battle;
 using Forge.Core.Data;
@@ -29,6 +30,8 @@ namespace Forge.Tests.PlayMode
     /// 📏 CI 런 60(2026-09-12 · Unity 6000.3.8f1 LinuxEditor 배치모드) 실측: 메인스레드 게임 시간 **평균 4.123ms · p95 9.749ms · 최대 41.892ms**(예산 안) ·
     /// 프레임당 관리 힙 **997,376B**(목표 초과 → T50) · 렌더러 522 · 공유 재질 212 · UnityStats 드로우콜 2754 · 배치 2754 · SetPass 250 ·
     /// 벽시계 평균 27.33ms(소프트웨어 렌더) · 부하 = 적 6(보스 포함) · 펫 3 · 스킬 시전 21 · 데미지 숫자 126 · 파티클 275.
+    /// 🧹 T50: 관리 할당의 자를 프로파일러 계수기 «GC Allocated In Frame»(실제 할당)으로 바꾸고 T44 자(GetTotalMemory 차 = 힙 증가)는 참고로 남긴다 ·
+    /// 같은 장면을 «숫자 끔 · 임팩트+파편 끔 · 스킬 재시전 끔» 으로 200프레임씩 더 재 갈래별 몫을 로그에 찍는다(고치기 전에 잰다 · ROUTINE T50).
     /// </summary>
     public class PerfBudgetTests
     {
@@ -205,16 +208,65 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0, QualitySettings.vSyncCount, "vSyncCount 0 이어야 targetFrameRate 가 산다");
         }
 
+        /// <summary>한 번의 200프레임 측정(T44 자 + T50 «GC Allocated In Frame» 계수기).</summary>
+        sealed class Sample
+        {
+            public double Avg, P95, Max, WallAvg;
+            /// <summary>T44 자: <c>GC.GetTotalMemory(false)</c> 차 ÷ 프레임(회수가 끼면 작아지고 힙이 자라면 커진다 — 참고값).</summary>
+            public long TotalDeltaPerFrame;
+            /// <summary>T50 자: 프로파일러 계수기 «GC Allocated In Frame» 합 ÷ 프레임 — 실제 관리 할당. 계수기가 안 살면 −1.</summary>
+            public long AllocPerFrame = -1;
+            public int Collections;
+            /// <summary>판정에 쓰는 값 — 계수기가 살아 있으면 <see cref="AllocPerFrame"/>, 아니면 <see cref="TotalDeltaPerFrame"/>.</summary>
+            public long Judged { get { return AllocPerFrame >= 0 ? AllocPerFrame : TotalDeltaPerFrame; } }
+        }
+
+        /// <summary>200프레임을 밀며 잰다. <paramref name="castSkills"/> 가 false 면 스킬을 다시 시전하지 않는다(갈래별 측정).</summary>
+        static IEnumerator Measure(Rig r, float dt, bool castSkills, Sample o)
+        {
+            var ms = new double[MeasureFrames];
+            var wall = new double[MeasureFrames];
+            var sw = new System.Diagnostics.Stopwatch();
+            GC.Collect();
+            yield return null;
+            ProfilerRecorder rec = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame");
+            yield return null;
+            long gc0 = GC.GetTotalMemory(false);
+            int col0 = GC.CollectionCount(0);
+            long allocSum = 0; bool recOk = rec.Valid;
+            for (int f = 0; f < MeasureFrames; f++)
+            {
+                sw.Restart();
+                StepFrame(r, dt);
+                if (castSkills && f % 30 == 0) CastSkills(r);
+                sw.Stop();
+                ms[f] = sw.Elapsed.TotalMilliseconds;
+                wall[f] = Time.unscaledDeltaTime * 1000.0;
+                yield return null;
+                if (recOk) allocSum += rec.LastValue;
+            }
+            long gc1 = GC.GetTotalMemory(false);
+            o.Collections = GC.CollectionCount(0) - col0;
+            rec.Dispose();
+            double sum = 0, wsum = 0, max = 0;
+            for (int i = 0; i < MeasureFrames; i++) { sum += ms[i]; wsum += wall[i]; if (ms[i] > max) max = ms[i]; }
+            o.Avg = sum / MeasureFrames; o.WallAvg = wsum / MeasureFrames; o.Max = max;
+            var sorted = new double[MeasureFrames];
+            Array.Copy(ms, sorted, MeasureFrames);
+            Array.Sort(sorted);
+            o.P95 = sorted[(int)(MeasureFrames * 0.95)];
+            o.TotalDeltaPerFrame = Math.Max(0, (gc1 - gc0)) / MeasureFrames;
+            o.AllocPerFrame = recOk && allocSum > 0 ? allocSum / MeasureFrames : -1;
+        }
+
+        static string Bytes(long b) { return b < 0 ? "?" : b + "B"; }
+
         [UnityTest]
         public IEnumerator 전투_최대_부하_200프레임_메인스레드_예산_과_프레임당_GC()
         {
             yield return MakeLoadScene(4400);
             Rig r = rig;
             float dt = 1f / Bootstrap.TargetFps;
-
-            var ms = new double[MeasureFrames];
-            var wall = new double[MeasureFrames];
-            var sw = new System.Diagnostics.Stopwatch();
 
             // 예열 — 첫 프레임의 지연 생성(메시·재질·풀)이 측정에 섞이지 않게
             for (int f = 0; f < WarmFrames; f++)
@@ -224,42 +276,36 @@ namespace Forge.Tests.PlayMode
                 yield return null;
             }
 
-            GC.Collect();
-            yield return null;
-            long gc0 = GC.GetTotalMemory(false);
+            var full = new Sample();
+            yield return Measure(r, dt, true, full);
 
-            for (int f = 0; f < MeasureFrames; f++)
-            {
-                sw.Restart();
-                StepFrame(r, dt);
-                if (f % 30 == 0) CastSkills(r);
-                sw.Stop();
-                ms[f] = sw.Elapsed.TotalMilliseconds;
-                wall[f] = Time.unscaledDeltaTime * 1000.0;
-                yield return null;
-            }
-            long gc1 = GC.GetTotalMemory(false);
-
-            double sum = 0, wsum = 0, max = 0;
-            for (int i = 0; i < MeasureFrames; i++) { sum += ms[i]; wsum += wall[i]; if (ms[i] > max) max = ms[i]; }
-            double avg = sum / MeasureFrames, wallAvg = wsum / MeasureFrames;
-            var sorted = new double[MeasureFrames];
-            Array.Copy(ms, sorted, MeasureFrames);
-            Array.Sort(sorted);
-            double p95 = sorted[(int)(MeasureFrames * 0.95)];
-            long gcPerFrame = Math.Max(0, (gc1 - gc0)) / MeasureFrames;
-
-            string num = "데미지 숫자 " + r.S.Numbers.SpawnedTotal + " · 파티클 " + (r.S.Fx != null ? r.S.Fx.Count : 0) +
+            string num = "데미지 숫자 " + r.S.Numbers.SpawnedTotal + "(글자 오브젝트 " + r.S.Numbers.Created + " · 풀 " + r.S.Numbers.Pooled + ") · 파티클 " + (r.S.Fx != null ? r.S.Fx.Count : 0) +
+                         " · 임팩트 " + r.S.Impact.Live + "(슬롯 " + r.S.Impact.Created + " · 풀 " + r.S.Impact.Pooled + " · 재질 " + FxUnlitMaterials.Made + "/" + FxUnlitMaterials.Pooled + ")" +
                          " · 적 " + r.S.Battle.AliveEnemies().Count + " · 펫 " + r.P.Pets.Count + " · 스킬 시전 " + r.D.Casts.Count;
-            string line = "[T44] 부하 장면 메인스레드 게임 시간 평균 " + avg.ToString("F3") + "ms · p95 " + p95.ToString("F3") +
-                          "ms · 최대 " + max.ToString("F3") + "ms · 프레임당 관리 힙 " + gcPerFrame + "B · 벽시계 평균 " +
-                          wallAvg.ToString("F2") + "ms(소프트웨어 렌더 포함 · 판정 밖) · " + num;
+            string line = "[T44] 부하 장면 메인스레드 게임 시간 평균 " + full.Avg.ToString("F3") + "ms · p95 " + full.P95.ToString("F3") +
+                          "ms · 최대 " + full.Max.ToString("F3") + "ms · 프레임당 관리 할당 " + Bytes(full.AllocPerFrame) + "(계수기) · GetTotalMemory 차 " + full.TotalDeltaPerFrame +
+                          "B · GC 회수 " + full.Collections + " · 벽시계 평균 " + full.WallAvg.ToString("F2") + "ms(소프트웨어 렌더 포함 · 판정 밖) · " + num;
             Debug.Log(line);
 
+            // T50 갈래별 — 숫자만 끄고 · 임팩트+파편만 끄고 · 스킬 재시전만 끄고 200프레임씩 더 잰다(같은 장면 · 큰 것부터 고치기 위한 자).
+            var noNum = new Sample(); r.S.Numbers.Enabled = false;
+            yield return Measure(r, dt, true, noNum);
+            r.S.Numbers.Enabled = true;
+            var noFx = new Sample(); r.S.Fx.Enabled = false; r.S.Impact.Enabled = false;
+            yield return Measure(r, dt, true, noFx);
+            r.S.Fx.Enabled = true; r.S.Impact.Enabled = true;
+            var noSkill = new Sample();
+            yield return Measure(r, dt, false, noSkill);
+            Debug.Log("[T50] 프레임당 관리 할당 갈래(계수기 · 없으면 GetTotalMemory 차): 전부 " + Bytes(full.Judged) +
+                      " · 숫자 끔 " + Bytes(noNum.Judged) + "(숫자 몫 ≈ " + Bytes(full.Judged - noNum.Judged) + ")" +
+                      " · 임팩트+파편 끔 " + Bytes(noFx.Judged) + "(몫 ≈ " + Bytes(full.Judged - noFx.Judged) + ")" +
+                      " · 스킬 재시전 끔 " + Bytes(noSkill.Judged) + "(몫 ≈ " + Bytes(full.Judged - noSkill.Judged) + ")" +
+                      " · GC 회수 " + full.Collections + "/" + noNum.Collections + "/" + noFx.Collections + "/" + noSkill.Collections);
+
             Assert.Greater(r.S.Numbers.SpawnedTotal, 0, "부하 장면에 데미지 숫자가 없다 — 부하가 아니다");
-            Assert.LessOrEqual(avg, AvgBudgetMs, "메인스레드 게임 시간 평균이 예산을 넘었다 — " + line);
-            Assert.LessOrEqual(p95, P95BudgetMs, "메인스레드 게임 시간 p95 가 예산을 넘었다 — " + line);
-            Assert.LessOrEqual(gcPerFrame, GcPerFrameCap, "프레임당 관리 힙 증가가 회귀 상한을 넘었다(풀링이 더 샌다) — 목표는 " + GcTargetPerFrame + "B(T50) · " + line);
+            Assert.LessOrEqual(full.Avg, AvgBudgetMs, "메인스레드 게임 시간 평균이 예산을 넘었다 — " + line);
+            Assert.LessOrEqual(full.P95, P95BudgetMs, "메인스레드 게임 시간 p95 가 예산을 넘었다 — " + line);
+            Assert.LessOrEqual(full.Judged, GcPerFrameCap, "프레임당 관리 할당이 회귀 상한을 넘었다(풀링이 샌다) — 목표는 " + GcTargetPerFrame + "B(T50) · " + line);
         }
 
         [UnityTest]

@@ -31,9 +31,13 @@ namespace Forge.Game.Battle
 
         readonly List<P> live = new List<P>();
         readonly Stack<GameObject> pool = new Stack<GameObject>();
+        /// <summary>파티클 레코드도 되쓴다(T50) — 큐브 오브젝트만 풀이고 P 를 매번 새로 만들던 것.</summary>
+        readonly Stack<P> pPool = new Stack<P>();
         Mesh cube;
 
         public int Count { get { return live.Count; } }
+        /// <summary>false 면 파편·불티를 안 만든다(T50 갈래별 측정용).</summary>
+        public bool Enabled = true;
 
         static float R(double a, double b) { return (float)(a + UnityEngine.Random.value * (b - a)); }
 
@@ -71,13 +75,22 @@ namespace Forge.Game.Battle
             go.transform.position = pos;
             go.transform.localScale = scale;
             go.transform.localRotation = ThreeSpace.Rot(rot.x, rot.y, rot.z);
-            live.Add(new P { T = go.transform, R = mr, Mat = mat, Vel = vel, Tumble = tumble, Life = life, Age = 0, BaseScale = baseScale });
+            P p = pPool.Count > 0 ? pPool.Pop() : new P();
+            p.T = go.transform; p.R = mr; p.Mat = mat; p.Vel = vel; p.Tumble = tumble; p.Life = life; p.Age = 0; p.BaseScale = baseScale; p.NoGravity = false;
+            live.Add(p);
+        }
+
+        void Free(P p)
+        {
+            if (p.T != null) { p.T.gameObject.SetActive(false); pool.Push(p.T.gameObject); }
+            p.T = null; p.R = null; p.Mat = null;
+            pPool.Push(p);
         }
 
         /// <summary>파편 — three 좌표 pos · 색 hex · dir/spread(라디안) · speed/scale 배율.</summary>
         public void Shards(Vector3 threePos, int count, int hex, double dir, double spread, double speed, double scale)
         {
-            if (live.Count > ShardCap) return;
+            if (!Enabled || live.Count > ShardCap) return;
             for (int i = 0; i < count; i++)
             {
                 float w = R(0.13, 0.21) * (float)scale, h = R(0.055, 0.1) * (float)scale;
@@ -97,7 +110,7 @@ namespace Forge.Game.Battle
         public void Sparks(Vector3 threePos, int count, int hex, double speed = 1, double scale = 1)
         {
             int n = live.Count;
-            if (n > SparkCap) return;
+            if (!Enabled || n > SparkCap) return;
             if (n > SparkCrowd) count = Math.Max(1, (int)Math.Round(count * 0.45));
             for (int i = 0; i < count; i++)
             {
@@ -119,7 +132,7 @@ namespace Forge.Game.Battle
                 p.Age += dt;
                 if (p.Age >= p.Life || p.T == null)
                 {
-                    if (p.T != null) { p.T.gameObject.SetActive(false); pool.Push(p.T.gameObject); }
+                    Free(p);
                     live.RemoveAt(i);
                     continue;
                 }
@@ -134,7 +147,7 @@ namespace Forge.Game.Battle
 
         public void Clear()
         {
-            for (int i = 0; i < live.Count; i++) if (live[i].T != null) { live[i].T.gameObject.SetActive(false); pool.Push(live[i].T.gameObject); }
+            for (int i = 0; i < live.Count; i++) Free(live[i]);
             live.Clear();
         }
     }
