@@ -50,6 +50,7 @@ namespace Forge.Game.Ui
             RectTransform layer = UiKit.Box(root.App, "modals");
             layer.SetAsLastSibling();
             PetSkillModal m = layer.gameObject.AddComponent<PetSkillModal>();
+            Instance = m;   // 층이 비활성이어도 Awake 를 기다리지 않는다(SkillPetSheet 와 같은 이유)
             m.layer = layer;
             m.toasts = UiKit.Box(root.App, "toasts");
             m.toasts.SetAsLastSibling();

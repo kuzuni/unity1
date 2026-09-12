@@ -45,6 +45,7 @@ namespace Forge.Game.Ui
             if (Instance != null && Instance.gameObject.scene == root.gameObject.scene) return Instance;
             RectTransform rt = UiKit.Box(root.HudLayer, "skill-bar");
             SkillBar sb = rt.gameObject.AddComponent<SkillBar>();
+            Instance = sb;   // HUD 층이 비활성일 때도 Awake 를 기다리지 않는다(SkillPetSheet 와 같은 이유)
             sb.host = h;
             sb.bar = rt;
             h.Changed += sb.Render;

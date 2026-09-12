@@ -41,6 +41,8 @@ namespace Forge.Game.Ui
             RectTransform panel = root.TabBar.Panel("summon");
             if (panel == null) throw new InvalidOperationException("탭바에 summon 시트가 없다 (T18)");
             SkillPetSheet s = panel.gameObject.AddComponent<SkillPetSheet>();
+            // 탭바 시트는 활성 탭이 아니면 비활성(TabBar 112행) — 비활성 오브젝트에 AddComponent 하면 Awake 가 탭이 열릴 때까지 미뤄져 Instance 가 비어 있다(CI 런 46~68 «소환 시트가 서지 않았다» 의 실제 원인). 여기서 바로 잡는다.
+            Instance = s;
             s.Host = host;
             s.Modal = PetSkillModal.Attach(root);
             s.Build(panel);
