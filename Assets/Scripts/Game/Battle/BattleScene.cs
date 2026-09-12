@@ -119,7 +119,7 @@ namespace Forge.Game.Battle
             Numbers = new DamageNumbers();
         }
 
-        void OnDestroy() { if (Instance == this) Instance = null; }
+        void OnDestroy() { if (Instance == this) { Instance = null; HeroStatsGlue.Uninstall(); } }
 
         static IEnumerator ReadText(string name, Action<string> done)
         {
@@ -157,7 +157,9 @@ namespace Forge.Game.Battle
             }
             // 세계(T9)가 서기를 잠깐 기다린다(없어도 전투는 돈다)
             for (int i = 0; i < 120 && World.Instance != null && !World.Instance.Ready; i++) yield return null;
-            Attach(MakeBattle(data, defs, BareHeroStats.Make, (uint)(DateTime.UtcNow.Ticks & 0xffffffff)));
+            // T43 — 영웅 스탯은 세이브 위의 GearSystem.HeroStats(장비+펫+스킬 패시브+기술트리) · 호스트가 아직 없으면 맨몸 → 서는 순간 재계산
+            Attach(MakeBattle(data, defs, HeroStatsGlue.Make, (uint)(DateTime.UtcNow.Ticks & 0xffffffff)));
+            HeroStatsGlue.Install(this);
         }
 
         /// <summary>맨몸 영웅·검 하나의 본대 전투(원작 `Combat.start()` 의 최소 문맥). 반폭 훅은 <see cref="Instance"/> 의 실측.</summary>

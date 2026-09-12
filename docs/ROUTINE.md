@@ -278,7 +278,7 @@
 - 왜: `undeclared()` 는 파일 줄기(`BattleContext`)가 범위 칸에 **글자로** 있는지만 본다. §2 «범위» 는 폴더로 적는 것이 규약이라 폴더 범위 lock 은 전부 오탐이고, 그 소음에 진짜 «밖 파일» 이 묻힌다(자 스스로 «그것을 매 회차 다시 한다» 고 적어 둔 자리).
 - 방법: 범위 칸의 `…/` 로 끝나는 토큰과 `…*` 글로브 토큰(백틱 안)은 경로 접두로 보고(`Ui/Pet*` 는 `Assets/Scripts/Game/Ui/Pet` 접두) `p.startswith(prefix)` 면 덮은 것으로 · `--selftest` 에 «폴더·글로브 범위는 덮는다 · 밖 파일은 여전히 잡는다» 두 칸.
 - 범위: `tools/check_claim_scope.py`.
-### T43 — 전투 스탯 접착: 세이브 상태 → `GearSystem.HeroStats` → `BattleContext.HeroStats` (Game · T8·T13·T15·T16 뒤)
+### T43 ✅ — 전투 스탯 접착: 세이브 상태 → `GearSystem.HeroStats` → `BattleContext.HeroStats` (Game · T8·T13·T15·T16 뒤)
 - 정본: `forge.js heroStats()`(329~369 · 장비 8부위 + `Pets.activeBonus()` + `Mounts.activeBonus()` + `Skills.ownedPassive()` + `TechTree.gearAtkMult/gearHpMult` …) · `combat.js` 가 공격·재계산 때 `Forge.heroStats()` 를 부르는 자리 · 출전/장착 변경 → 재계산.
 - 유니티: `BattleScene.Boot` 의 `BareHeroStats.Make`(T8 결정 69ⓓ 자리표)를 `SaveIo.State` 위에 세운 `GearSystem`(T15 · `IGearHost` = 세이브 상태 + `PetSystem.ActiveBonus`(T16) + 탈것(T11) + 스킬 패시브(T12) + 기술트리(T24))의 `HeroStats()` 로 바꾼다. 세이브가 없으면 맨몸.
 - 판정: EditMode 로 같은 세이브 → 정본 `heroStats` 실행 벡터와 atk/hp/치명/공속 일치 · PlayMode 로 펫 출전 뒤 `Battle.Hero.Atk` 이 오르는가 · 콘솔 빨강 0.
