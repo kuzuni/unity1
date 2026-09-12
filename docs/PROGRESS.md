@@ -15,7 +15,7 @@
 
 | ID | 작업 | 상태 | SID / 워커 | 범위 | 핵심 |
 |---|---|---|---|---|---|
-| T1 | 프로젝트 뼈대: 3D URP 렌더러 · 9:16 카메라 · Bootstrap · asmdef · dotnet 하니스 초록 | ⬜ 대기 | — | `Assets/Settings` · `Assets/Scenes` · `Assets/Scripts/Game/Bootstrap.cs` · `Assets/Tests` · `ProjectSettings/ProjectSettings.asset` · `tools/dotnet` | 2D 템플릿 → 3D Forward 렌더러 |
+| T1 | 프로젝트 뼈대: 3D URP 렌더러 · 9:16 카메라 · Bootstrap · asmdef · dotnet 하니스 초록 | 🔄 진행 | sess-1754-10989 / 워커 D | `Assets/Settings` · `Assets/Scenes` · `Assets/Scripts/Game/Bootstrap.cs` · `Assets/Tests` · `ProjectSettings/ProjectSettings.asset` · `tools/dotnet` | 2D 템플릿 → 3D Forward 렌더러 |
 | T2 | 정본 데이터 추출기 `tools/export_data.js` → `data/*.json` + `check_data_sync.sh` | ⬜ 대기 | — | `tools/export_data.js` · `tools/check_data_sync.sh` · `Assets/StreamingAssets/data/` | 펫 25 · 탈것 29 · 적 7 · 밸런스 표 |
 | T3 | Core `MiniJson` · `GameData` · `Rng` · `BigNum` | ⬜ 대기 | — | `Assets/Scripts/Core/Data/` · `Core/BigNum.cs` · `Assets/Tests/EditMode/DataTests.cs` | T2 뒤 |
 | T4 | `VoxelMob` 박스 모델 조립기 (Voxel.build + Mobs.build 규약) | ⬜ 대기 | — | `Assets/Scripts/Core/Voxel/` · `Assets/Scripts/Game/Voxel/` · `Assets/Tests/EditMode/VoxelTests.cs` | T2·T3 뒤 |
