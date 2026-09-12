@@ -358,6 +358,7 @@
 - 실측(2026-09-12 22:12 · `screens/ui_safearea_notch.png`): 스테이지·탭·버튼·토스트 등 **모든 한국어 라벨이 두부**. 원인은 결정 8 — 주인 글꼴 `NotoSans-Regular.ttf` 에 U+AC00 한글 구간 cmap 이 없고, 리눅스 CI·WebGL 에는 폴백할 OS 한글 글꼴도 없다.
 - 워커가 할 수 없는 것: 글꼴 파일을 새로 들이는 것(§1 «에셋은 주인 에셋만»). **주인이 `Assets/Fonts/` 에 한글 TTF 를 넣어 주면** 이 작업은 `catalog.json` 의 `font` 한 줄 + `UiFont.Build` 폴백 정리 + PlayMode 단언(라벨 문자열의 글리프가 폰트에 **있는가** · 없으면 실패)으로 끝난다.
 - 주인 조치 전에는 이 작업을 잡지 마라 — 잡으면 «주인 에셋 대기» 로 즉시 반납한다. 그동안 T27·T28 의 화면 대조는 **글자를 빼고 배치만** 본다.
+- 실측 보탬(2026-09-12 · T28 2회차 · 워커 M): 촬영 30장 **전부** 같다(`screen_main.png` «□□ 1-1» ↔ 원작 «어려움 4-1» · 탭 5개 · `settings` 토글 8줄 · `shop` 상품 제목). 원인 자리는 `UiKit.Font.Build`(`Ui/UiKit.cs` 204~228)의 **OS 글꼴 폴백** — 리눅스 러너에 한글 글꼴이 없어 경고 한 줄로 지나가고, **WebGL 배포본에는 OS 글꼴 자체가 없어 주인 폰에서도 같은 그림**이다. 주인 글꼴이 들어오기 전에도 «폴백이 비면 경고가 아니라 빨강» 한 줄은 이 작업이 먼저 넣을 수 있다.
 - 범위: `Assets/Fonts/`(주인) · `Assets/Forge/catalog.json`(font) · `Assets/Scripts/Game/Ui/UiFont.cs` · `Assets/Tests/PlayMode/TextSizeGateTests.cs`.
 
 ### T54 — 전투 화면에 영웅·적·펫이 하나도 안 선다 (Game·검증 · T8·T10 뒤 · **가장 먼저**)
@@ -380,6 +381,26 @@
 - 할 일: ⓐ `Hud` 에 `SetAvatar(string emoji)` — 기존 아바타 타일 안에 `UiIcons.Avatar(emoji)` 초상을 넣고(없으면 지금처럼 빈 타일) 다시 부르면 갈아끼운다 ⓑ `MetaHost.Sync` 가 닉네임·전투력과 같은 자리에서 `AvatarEmoji` 도 밀어 준다(바뀔 때만 · 아바타 고르기 뒤 상단바가 따라 바뀌는 정본 행동) ⓒ PlayMode 단언: 부팅 뒤 HUD 아바타 타일에 초상 `Image` 가 서고 그 스프라이트가 `UiIcons.Avatar(기본 아바타)` 와 같다 · 아바타를 바꿔 `Sync` 하면 스프라이트가 따라 바뀐다.
 - 판정: 위 단언 초록 + 다음 회차에 `screen_main.png` 를 열어 상단바에 초상이 보이는 것을 본 기록 + 콘솔 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/Hud.cs`(아바타 타일·`SetAvatar`) · `Assets/Scripts/Game/Ui/MetaHost.cs`(Sync 한 줄) · `Assets/Tests/PlayMode/HudAvatarTests.cs`(새).
+
+### T57 — 대장간·장비 팝업이 제 판(카드) 없이 배경 위에 글자를 겹쳐 그린다 + 빈 검은·흰 막대 둘 + ✕ 가 둘 (Game·UI · T19 뒤 · T28 2회차가 눈으로 잡음)
+- 실측(2026-09-12 · T28 2회차 · 워커 M · 런 78 PNG): `screen_forge-detail.png` **1.8/10** — 원작(`shot-042931`)은 딤 위 **흰 카드 한 장**에 아이템 + 서브옵션 12줄인데, 클론은 목록 격자와 상세 글자가 **같은 자리에 겹쳐** 읽을 수 없고 ✕ 가 위아래로 둘이다. `screen_craft-compare.png` **3.1/10** — 비교 카드 둘 중 **두 번째 카드에 판이 없어** «35.6m …»·«+30% …» 가 3D 배경과 장비 격자 위에 떠 있다. `screen_gear-detail.png` **2.7/10** · `screen_autoforge-filter.png` **3.7/10** — 카드 위에 **속 빈 검은 막대 + 흰 막대**가 하나씩 떠 있다(원작에 없는 자리).
+- 참고(오판 방지): 장비 상세가 **딤 없이** 격자 위에 뜨는 것 자체는 원작 그대로다(`shot-043244` 실측) — 문제는 «판이 없다 · 글자가 겹친다 · 빈 막대가 뜬다 · ✕ 가 둘» 이다.
+- 무엇을 한다: 원작 `ui.js` 의 해당 팝업(`openGearDetail`·`showCraftCompare`·`openForgeDetail`·자동 제련 필터)이 **카드 한 장**을 먼저 세우고 그 안에 줄을 놓는 순서를 그대로 옮긴다. 빈 막대의 정체(폭 0 배치·라벨 없는 pill)를 찾아 없앤다. ✕ 는 화면당 하나.
+- 판정: `ui_score.py --score` 에서 네 화면이 **8.0 이상** + 워커가 PNG 를 `Read` 로 열어 «글자 겹침 0 · 빈 막대 0 · ✕ 하나» 를 확인 + PlayMode 빨강 0.
+- 범위: `Assets/Scripts/Game/Ui/Forge*`(ForgeInfoPopup · ForgeCraftPopup · ForgeAutoPopup · ForgeUi) · `Ui/Gear*` · `Assets/Tests/PlayMode/ForgeUiTests.cs`.
+
+### T58 — 리그 도전·펫 업그레이드 팝업이 판 없이 부모 목록 위에 겹친다 (Game·UI · T20 lock 이 풀린 뒤 · T22 뒤 · T28 2회차가 눈으로 잡음)
+- 실측(2026-09-12 · T28 2회차 · 워커 M · 런 78 PNG): `screen_league-challenge.png` **1.9/10** — 원작(`shot-042228`)은 **흰 카드**에 «상대 선택» + 티켓 pill + 상대 5줄인데, 클론은 카드도 제목도 없이 상대 5줄만 리그 순위표 위에 얹혀 두 목록이 서로 겹친다. `screen_pet-upgrade.png` **1.7/10** — 카드는 있으나 ✕ 가 **위아래로 둘**(하나는 탭바 위)이고 원작(`shot-042503`)과 머리 구성이 다르다.
+- 무엇을 한다: 원작 `ui.js` `openLeagueChallenge`·`openPetUpgrade`·`renderPetUpgrade` 의 카드·제목·티켓 줄을 그대로. ✕ 는 화면당 하나.
+- 판정: 두 화면 `ui_score` **8.0 이상** + PNG 눈 확인 + PlayMode 빨강 0.
+- 범위: `Assets/Scripts/Game/Ui/League*` · `Ui/PetUpgrade*`(T20 이 쥔 `Ui/Pet*` 와 겹친다 — **T20 lock 이 풀린 뒤에 잡는다**) · `Assets/Tests/PlayMode/PetUiTests.cs`.
+
+### T59 — 수 표기 둘: 서브스탯이 `+7.699999999999999%` · 확률이 전부 `0.0000%` (Game·UI · T15·T19 뒤 · T28 2회차가 눈으로 잡음)
+- 실측(2026-09-12 · T28 2회차 · 워커 M · 런 78 PNG): `screen_player-info.png` 에 «+7.699999999999999% …» 줄이 그대로 찍힌다. 정본 `ui.js` 5182행은 `value: +stats.subs[key].toFixed(1)` 로 **소수 한 자리**를 만든 뒤 찍는다 — 클론은 double 을 그대로 이어 붙인다. 같은 화면의 `+15.4%`·`+46.8%` 는 우연히 짧게 떨어진 값이다.
+- 둘째: `screen_forge-detail.png`·`screen_forge-info.png` 의 확률이 **전부 `0.0000%`** 다(`ForgeInfoPopup.cs` 215·276행의 `"0.0000"` 서식은 원작과 같은 자리수지만 값이 0 이다) — 표에서 확률을 못 읽어 오는 갈래인지 시대·등급 인자가 비어 있는지 본다.
+- 무엇을 한다: 서브스탯 줄은 정본과 같은 반올림(`toFixed(1)` 상당 · `NumFmt` 갈래)을 쓰고, 확률 0 의 원인을 잡는다. 수치는 코드에 박지 않는다(§1).
+- 판정: EditMode 표 테스트(정본 값 ↔ 표기 문자열) + PNG 눈 확인(«+7.7%» · 확률이 0 이 아님) + PlayMode 빨강 0.
+- 범위: `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Assets/Scripts/Game/Ui/ForgeInfoPopup.cs` · `Assets/Scripts/Core/BigNum.cs`(필요하면 표기 함수만) · `Assets/Tests/EditMode/`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -516,7 +537,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 🔄 |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 🔄 · T53 ⬜ · T56 🔄 · T57 ⬜ · T58 ⬜ · T59 ⬜ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 🔄(정본 `shot-screens.js` SCREENS 31줄 이식 · `screens.json` 짝 표) · T28 ⬜ · T33 ⬜ |
