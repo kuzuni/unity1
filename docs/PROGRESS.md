@@ -544,6 +544,7 @@
 - **게이트**: dotnet build 0 오류 · dotnet test **471/471** · `check_final_table`(0건)·`--self-test` · `gen_meta --check` · `gen_ui_catalog --self-test`/`--check` · `check_docs_intact` · `check_decisions` · `check_task_rows` · `task_state --check` · `check_claim_scope` · `check_data_sync.sh .wwwww-src`(13) · `export_data --self-test` 전부 rc 0. **CI 런 69**(https://github.com/kuzuni/unity1/actions/runs/34720368130 · 커밋 796e3f6) dotnet 잡 초록 — 새 스텝 둘(«완결 대조표 자 자기 검사» 막는 갈래 · «§7 ↔ PROGRESS 상태 — 보고만») 포함 전 스텝 success. 그것으로 lock 반납.
 - **주인이 확인할 것**: 없다(자·문서만 · 게임 코드 0줄 · `Assets/` 무변경). 앞으로 §7 칸을 안 고치고 작업을 닫으면 **dotnet 잡 로그에 그 줄 번호가 찍힌다**.
 - **플레이 콘솔 에러 0 확인 수단**: 해당 없음(런타임 변경 0).
+- **자가 바로 한 건 잡았다**: 반납 직전 리베이스(21:4x)에 워커 H 의 T44(60fps 게이트)가 PROGRESS 만 ✅ 로 닫히고 §7 품질 줄은 «T44 🔄» 로 남아 있었다 — 이 회차의 자가 그 줄 번호를 찍어 같이 고쳤다(§7 은 PROGRESS 를 따른다 · 결정 120).
 - **다음 작업용**: 작업을 ✅ 로 닫는 워커는 PROGRESS 행 · ROUTINE §2 제목 · **§7 그 줄** 셋을 같이 바꾼다. 셋 다 자가 본다(`task_state --check` · `check_final_table`). T33 은 `python3 tools/check_final_table.py` 가 0건인 것을 완주 판정의 한 칸으로 쓰면 된다.
 
 ### T48 완료 기록 (2026-09-12 · 워커 R · sess-2015-28206)
