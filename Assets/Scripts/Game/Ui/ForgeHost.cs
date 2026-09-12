@@ -41,7 +41,9 @@ namespace Forge.Game.Ui
     public sealed class ForgeHost : MonoBehaviour
     {
         public static ForgeHost Instance { get; private set; }
-        public static bool Ready { get; private set; }
+        /// <summary>지금 살아 있는 ForgeHost 가 부팅을 마쳤는가 — 인스턴스에서 파생한다(정적 플래그로 두면 씬을 다시 여는 PlayMode 테스트에서 앞 씬 호스트의 코루틴이 새 씬이 선 뒤에 참으로 올려 새 호스트가 부팅되기 전에 참이 된다 · T22 결정 · CI 런 49·58 ForgeUiTests 7개 NRE).</summary>
+        public static bool Ready { get { return Instance != null && Instance.booted; } }
+        private bool booted;
         public static event Action OnReady;
 
         /// <summary>원작 연출 시각(ms): 모루 3타 0.72초 · 리빌 카드 0.56초 · 탈락 카드 0.62초 · 배치 카드판 1.6초.</summary>
@@ -104,10 +106,10 @@ namespace Forge.Game.Ui
 
         private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (Instance != null) return;
+            if (Instance != null && Instance.gameObject.scene == scene) return;
             foreach (Bootstrap b in Resources.FindObjectsOfTypeAll<Bootstrap>())
             {
-                if (!b.gameObject.scene.isLoaded) continue;
+                if (b.gameObject.scene != scene) continue;   // 방금 열린 씬의 Bootstrap 아래에만 — 내려가는 앞 씬 것에 붙으면 같이 지워진다
                 Create(b.transform);
                 return;
             }
@@ -115,7 +117,7 @@ namespace Forge.Game.Ui
 
         public static ForgeHost Create(Transform parent)
         {
-            if (Instance != null) return Instance;
+            if (Instance != null && Instance.gameObject.scene == parent.gameObject.scene) return Instance;
             GameObject go = new GameObject("ForgeHost");
             go.transform.SetParent(parent, false);
             return go.AddComponent<ForgeHost>();
@@ -124,25 +126,32 @@ namespace Forge.Game.Ui
         private void Awake()
         {
             Instance = this;
-            Ready = false;
             StartCoroutine(Boot());
         }
 
         private void OnDestroy()
         {
             if (heroChangedHook != null) DebugPanel.HeroChanged -= heroChangedHook;
-            if (Instance == this) { Instance = null; Ready = false; }
+            if (Meta != null) Meta.Changed -= OnMetaChanged;
+            if (Instance == this) Instance = null;
         }
+
+        /// <summary>이 호스트가 아직 제 씬의 현역인가 — 앞 씬 호스트의 코루틴이 새 씬 위에서 이어 돌며 정적 상태를 만지지 않게 매 대기 뒤 본다.</summary>
+        bool Alive { get { return this != null && Instance == this && gameObject.scene.isLoaded; } }
 
         private IEnumerator Boot()
         {
-            while (!MetaHost.Ready || PopupLayer.Instance == null || SaveIo.Data == null || UiRoot.Instance == null) yield return null;
+            // 한 프레임 뒤에 시작한다 — 같은 sceneLoaded 에서 서는 SaveIo·UiRoot·MetaHost 가 먼저 제 자리를 잡게(T22 결정과 같은 부팅 경쟁).
+            yield return null;
+            while (Alive && (!MetaHost.Ready || MetaHost.Instance.gameObject.scene != gameObject.scene || PopupLayer.Instance == null || SaveIo.Data == null || SaveIo.State == null || UiRoot.Instance == null || UiRoot.Instance.TabBar == null)) yield return null;
+            if (!Alive) yield break;
             Meta = MetaHost.Instance;
             Data = SaveIo.Data;
 
             string techJson = null;
             IEnumerator read = ReadStreaming(TechData.File, t => techJson = t);
             while (read.MoveNext()) yield return read.Current;
+            if (!Alive) yield break;
             if (techJson != null)
             {
                 TechData td = TechData.Load(techJson);
@@ -183,7 +192,7 @@ namespace Forge.Game.Ui
 
             DoRefreshHeroEquip(false);
             ForgeSheet.Render(this);
-            Ready = true;
+            booted = true;
             Action r = OnReady;
             if (r != null) r();
 
@@ -267,7 +276,7 @@ namespace Forge.Game.Ui
 
         private void Update()
         {
-            if (!Ready) return;
+            if (!booted || Instance != this) return;
             tickAcc += Time.unscaledDeltaTime;
             if (tickAcc < 1f) return;
             tickAcc = 0f;

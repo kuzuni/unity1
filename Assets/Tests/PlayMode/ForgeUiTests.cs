@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Forge.Core.Forging;
+using Forge.Game;
 using Forge.Game.Ui;
 
 namespace Forge.Tests.PlayMode
@@ -19,10 +20,14 @@ namespace Forge.Tests.PlayMode
     {
         private static IEnumerator Boot()
         {
+            try { if (System.IO.File.Exists(SaveIo.SavePath)) System.IO.File.Delete(SaveIo.SavePath); } catch (System.Exception) { }
             SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
             float t = 0f;
-            while (!ForgeHost.Ready && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            while (!(ForgeHost.Ready && MetaHost.Ready && PopupLayer.Instance != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
             Assert.IsTrue(ForgeHost.Ready, "ForgeHost 가 20초 안에 준비되지 않았다 (MetaHost → tech.json)");
+            Assert.IsNotNull(ForgeHost.Instance.Engine, "ForgeHost 가 Ready 인데 엔진이 없다 — 앞 씬 호스트의 정적 상태가 남았다");
             yield return null;
         }
 

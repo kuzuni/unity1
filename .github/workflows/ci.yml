@@ -206,6 +206,10 @@ jobs:
                   mm = re.search(r'<message><!\[CDATA\[(.*?)\]\]></message>', body, re.S)
                   if mm:
                       for line in mm.group(1).strip().split('\n')[:6]: print('      | ' + line[:300])
+                  # 스택 첫 3줄 — NullReferenceException 처럼 메시지가 자리를 안 말하는 예외용(T19)
+                  st = re.search(r'<stack-trace><!\[CDATA\[(.*?)\]\]></stack-trace>', body, re.S)
+                  if st:
+                      for line in st.group(1).strip().split('\n')[:3]: print('      @ ' + line[:300])
           PY
       - uses: actions/upload-artifact@v4
         if: always()
