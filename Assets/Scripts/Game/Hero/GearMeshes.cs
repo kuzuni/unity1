@@ -311,14 +311,23 @@ namespace Forge.Game.Hero
             return outList;
         }
 
-        /// <summary>정점 수 기대값(캡처 `verts` 합) — 테스트가 T4 빌더와 대조한다.</summary>
+        /// <summary>
+        /// 정점 수 기대값 — 테스트가 T4 빌더와 대조한다. 캡처 `verts` 는 정본 three 메시의 정점 수인데 정본 `Voxel.build` 는 면마다 삼각형 2개를
+        /// **정점 6개**로 풀어 내고(pos = faces × 18) T4 <see cref="VoxelGeometry"/> 는 같은 면을 **정점 4개 + 인덱스**로 낸다(pos = faces × 12) — 면 수는 같으니 vox 파츠는 verts/6×4.
+        /// 상자(24)·링(2×(seg+1))은 그대로.
+        /// </summary>
         public static int ExpectedVerts(GearGeom geom, int tier)
         {
             int n = 0;
-            if (geom.Parts != null) foreach (var p in geom.Parts) n += p.Verts;
-            if (tier > 0 && geom.Decor != null) foreach (var p in geom.Decor) if (p.Layer <= tier) n += p.Verts;
-            if (geom.Pieces != null) foreach (var pc in geom.Pieces) foreach (var p in pc.Parts) n += p.Verts;
+            if (geom.Parts != null) foreach (var p in geom.Parts) n += ExpectedVerts(p);
+            if (tier > 0 && geom.Decor != null) foreach (var p in geom.Decor) if (p.Layer <= tier) n += ExpectedVerts(p);
+            if (geom.Pieces != null) foreach (var pc in geom.Pieces) foreach (var p in pc.Parts) n += ExpectedVerts(p);
             return n;
+        }
+
+        public static int ExpectedVerts(GearPart p)
+        {
+            return p.K == "vox" ? p.Verts / 6 * 4 : p.Verts;
         }
 
         // ── 메시 조립: 파츠를 three 공간에서 행렬로 굽고 z 를 뒤집는다(감김도 뒤집는다) · 재질마다 서브메시 ──
