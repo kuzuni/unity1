@@ -1,0 +1,4242 @@
+{
+ "note": "정본 skills.js 를 mulberry32 시드로 돌린 대조 벡터 — tools/skill_vectors.js 가 만든다 · 손으로 고치지 않는다",
+ "consts": {
+  "SUMMON_TICKET_COST": 32,
+  "SUMMON_GEM_COST": 200,
+  "MAX_LEVEL": 100,
+  "MAX_ACTIVE": 3,
+  "STAR_MULT": 1000000000,
+  "skillIds": [
+   "powerStrike",
+   "whirlwind",
+   "firstAid",
+   "fireball",
+   "pierceShot",
+   "warCry",
+   "meteor",
+   "lightning",
+   "blessing",
+   "dragonBreath",
+   "execution",
+   "sanctuary",
+   "supernova",
+   "voidLance",
+   "timeWarp",
+   "apocalypse",
+   "godspear",
+   "divineShield"
+  ]
+ },
+ "ticketCost": [
+  {
+   "count": 1,
+   "pct": 0,
+   "cost": 32
+  },
+  {
+   "count": 5,
+   "pct": 0,
+   "cost": 160
+  },
+  {
+   "count": 25,
+   "pct": 0,
+   "cost": 800
+  },
+  {
+   "count": 75,
+   "pct": 0,
+   "cost": 2400
+  },
+  {
+   "count": 1,
+   "pct": 1,
+   "cost": 32
+  },
+  {
+   "count": 5,
+   "pct": 1,
+   "cost": 159
+  },
+  {
+   "count": 25,
+   "pct": 1,
+   "cost": 792
+  },
+  {
+   "count": 75,
+   "pct": 1,
+   "cost": 2376
+  },
+  {
+   "count": 1,
+   "pct": 37,
+   "cost": 21
+  },
+  {
+   "count": 5,
+   "pct": 37,
+   "cost": 101
+  },
+  {
+   "count": 25,
+   "pct": 37,
+   "cost": 504
+  },
+  {
+   "count": 75,
+   "pct": 37,
+   "cost": 1512
+  },
+  {
+   "count": 1,
+   "pct": 99,
+   "cost": 4
+  },
+  {
+   "count": 5,
+   "pct": 99,
+   "cost": 16
+  },
+  {
+   "count": 25,
+   "pct": 99,
+   "cost": 80
+  },
+  {
+   "count": 75,
+   "pct": 99,
+   "cost": 240
+  },
+  {
+   "count": 1,
+   "pct": 200,
+   "cost": 4
+  },
+  {
+   "count": 5,
+   "pct": 200,
+   "cost": 16
+  },
+  {
+   "count": 25,
+   "pct": 200,
+   "cost": 80
+  },
+  {
+   "count": 75,
+   "pct": 200,
+   "cost": 240
+  }
+ ],
+ "ticketCostDefault": 32,
+ "summonLevel": [
+  {
+   "summonCount": 0,
+   "level": 1
+  },
+  {
+   "summonCount": 1,
+   "level": 1
+  },
+  {
+   "summonCount": 4,
+   "level": 1
+  },
+  {
+   "summonCount": 5,
+   "level": 2
+  },
+  {
+   "summonCount": 9,
+   "level": 2
+  },
+  {
+   "summonCount": 10,
+   "level": 3
+  },
+  {
+   "summonCount": 49,
+   "level": 10
+  },
+  {
+   "summonCount": 50,
+   "level": 11
+  },
+  {
+   "summonCount": 494,
+   "level": 99
+  },
+  {
+   "summonCount": 495,
+   "level": 100
+  },
+  {
+   "summonCount": 499,
+   "level": 100
+  },
+  {
+   "summonCount": 500,
+   "level": 100
+  },
+  {
+   "summonCount": 1000,
+   "level": 100
+  }
+ ],
+ "rates": [
+  {
+   "level": 1,
+   "rates": [
+    100,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 2,
+   "rates": [
+    100,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 3,
+   "rates": [
+    100,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 4,
+   "rates": [
+    89.95,
+    10,
+    0.05,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 20,
+   "rates": [
+    17.5,
+    80.9,
+    1.6,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 21,
+   "rates": [
+    17.5,
+    80.49,
+    2,
+    0.01,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 44,
+   "rates": [
+    17.5,
+    16.5,
+    64.17,
+    1.82,
+    0.01,
+    0
+   ]
+  },
+  {
+   "level": 50,
+   "rates": [
+    17.5,
+    16.5,
+    59.93,
+    5.99,
+    0.08,
+    0
+   ]
+  },
+  {
+   "level": 61,
+   "rates": [
+    17.5,
+    16.5,
+    16.5,
+    48.5,
+    1,
+    0
+   ]
+  },
+  {
+   "level": 80,
+   "rates": [
+    17.5,
+    16.5,
+    16.5,
+    21.46,
+    27.25,
+    0.8
+   ]
+  },
+  {
+   "level": 81,
+   "rates": [
+    17.5,
+    16.5,
+    16.5,
+    16.5,
+    32,
+    1
+   ]
+  },
+  {
+   "level": 99,
+   "rates": [
+    17.5,
+    16.5,
+    16.5,
+    16.5,
+    18.54,
+    14.46
+   ]
+  },
+  {
+   "level": 100,
+   "rates": [
+    17.5,
+    16.5,
+    16.5,
+    16.5,
+    16.5,
+    16.5
+   ]
+  },
+  {
+   "level": 0,
+   "rates": [
+    100,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 150,
+   "rates": [
+    17.5,
+    16.5,
+    16.5,
+    16.5,
+    16.5,
+    16.5
+   ]
+  }
+ ],
+ "ratesDefault": {
+  "summonCount": 123,
+  "rates": [
+   17.5,
+   78.34,
+   4.13,
+   0.03,
+   0,
+   0
+  ]
+ },
+ "canSummon": [
+  {
+   "gems": 199,
+   "tickets": 31,
+   "useGems": true,
+   "count": 1,
+   "pct": 0,
+   "can": false
+  },
+  {
+   "gems": 200,
+   "tickets": 0,
+   "useGems": true,
+   "count": 1,
+   "pct": 0,
+   "can": true
+  },
+  {
+   "gems": 999,
+   "tickets": 0,
+   "useGems": true,
+   "count": 5,
+   "pct": 0,
+   "can": false
+  },
+  {
+   "gems": 1000,
+   "tickets": 0,
+   "useGems": true,
+   "count": 5,
+   "pct": 0,
+   "can": true
+  },
+  {
+   "gems": 0,
+   "tickets": 31,
+   "useGems": false,
+   "count": 1,
+   "pct": 0,
+   "can": false
+  },
+  {
+   "gems": 0,
+   "tickets": 32,
+   "useGems": false,
+   "count": 1,
+   "pct": 0,
+   "can": true
+  },
+  {
+   "gems": 0,
+   "tickets": 159,
+   "useGems": false,
+   "count": 5,
+   "pct": 1,
+   "can": true
+  },
+  {
+   "gems": 0,
+   "tickets": 158,
+   "useGems": false,
+   "count": 5,
+   "pct": 1,
+   "can": false
+  }
+ ],
+ "summon": [
+  {
+   "name": "x5_tickets_fresh",
+   "seed": 14,
+   "useGems": false,
+   "count": 5,
+   "tickets": 1000,
+   "gems": 0,
+   "summonCount": 0,
+   "skills": [],
+   "equipped": [],
+   "ascendSkill": 0,
+   "pct": 0,
+   "pre": {
+    "level": 1,
+    "can": true,
+    "cost": 160
+   },
+   "result": {
+    "results": [
+     {
+      "id": "whirlwind",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "whirlwind",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "whirlwind",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "powerStrike",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "firstAid",
+      "isNew": true,
+      "level": 1
+     }
+    ],
+    "count": 5
+   },
+   "after": {
+    "skills": [
+     [
+      "whirlwind",
+      {
+       "level": 1,
+       "dupes": 2,
+       "stars": 0
+      }
+     ],
+     [
+      "powerStrike",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 0
+      }
+     ],
+     [
+      "firstAid",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 0
+      }
+     ]
+    ],
+    "equipped": [
+     "whirlwind",
+     "powerStrike",
+     "firstAid"
+    ],
+    "summonCount": 5,
+    "gems": 0,
+    "tickets": 840
+   },
+   "gacha": [
+    "common"
+   ],
+   "quests": [
+    [
+     "skillSummon",
+     5
+    ]
+   ],
+   "saves": 1,
+   "recalc": 3
+  },
+  {
+   "name": "x25_gems_lv100_stars2",
+   "seed": 3,
+   "useGems": true,
+   "count": 25,
+   "tickets": 0,
+   "gems": 100000,
+   "summonCount": 495,
+   "skills": [],
+   "equipped": [],
+   "ascendSkill": 2,
+   "pct": 0,
+   "pre": {
+    "level": 100,
+    "can": true,
+    "cost": 5000
+   },
+   "result": {
+    "results": [
+     {
+      "id": "supernova",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "voidLance",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "pierceShot",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "fireball",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "voidLance",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "timeWarp",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "warCry",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "warCry",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "sanctuary",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "dragonBreath",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "apocalypse",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "divineShield",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "whirlwind",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "supernova",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "whirlwind",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "godspear",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "timeWarp",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "execution",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "whirlwind",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "sanctuary",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     }
+    ],
+    "count": 25
+   },
+   "after": {
+    "skills": [
+     [
+      "supernova",
+      {
+       "level": 1,
+       "dupes": 1,
+       "stars": 2
+      }
+     ],
+     [
+      "meteor",
+      {
+       "level": 1,
+       "dupes": 1,
+       "stars": 2
+      }
+     ],
+     [
+      "voidLance",
+      {
+       "level": 1,
+       "dupes": 1,
+       "stars": 2
+      }
+     ],
+     [
+      "pierceShot",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 2
+      }
+     ],
+     [
+      "fireball",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 2
+      }
+     ],
+     [
+      "timeWarp",
+      {
+       "level": 1,
+       "dupes": 1,
+       "stars": 2
+      }
+     ],
+     [
+      "warCry",
+      {
+       "level": 1,
+       "dupes": 1,
+       "stars": 2
+      }
+     ],
+     [
+      "sanctuary",
+      {
+       "level": 1,
+       "dupes": 1,
+       "stars": 2
+      }
+     ],
+     [
+      "dragonBreath",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 2
+      }
+     ],
+     [
+      "apocalypse",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 2
+      }
+     ],
+     [
+      "divineShield",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 2
+      }
+     ],
+     [
+      "blessing",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 2
+      }
+     ],
+     [
+      "whirlwind",
+      {
+       "level": 1,
+       "dupes": 2,
+       "stars": 2
+      }
+     ],
+     [
+      "godspear",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 2
+      }
+     ],
+     [
+      "execution",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 2
+      }
+     ],
+     [
+      "lightning",
+      {
+       "level": 1,
+       "dupes": 1,
+       "stars": 2
+      }
+     ]
+    ],
+    "equipped": [
+     "supernova",
+     "meteor",
+     "voidLance"
+    ],
+    "summonCount": 520,
+    "gems": 95000,
+    "tickets": 0
+   },
+   "gacha": [
+    "mythic"
+   ],
+   "quests": [
+    [
+     "skillSummon",
+     25
+    ]
+   ],
+   "saves": 1,
+   "recalc": 16
+  },
+  {
+   "name": "x5_with_owned_and_full_slots",
+   "seed": 9,
+   "useGems": false,
+   "count": 5,
+   "tickets": 10000,
+   "gems": 0,
+   "summonCount": 100,
+   "skills": [
+    [
+     "fireball",
+     3,
+     1,
+     0
+    ],
+    [
+     "powerStrike",
+     1,
+     0,
+     0
+    ],
+    [
+     "meteor",
+     7,
+     2,
+     1
+    ]
+   ],
+   "equipped": [
+    "fireball",
+    "powerStrike",
+    "meteor"
+   ],
+   "ascendSkill": 1,
+   "pct": 0,
+   "pre": {
+    "level": 21,
+    "can": true,
+    "cost": 160
+   },
+   "result": {
+    "results": [
+     {
+      "id": "warCry",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "firstAid",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "warCry",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "warCry",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "whirlwind",
+      "isNew": true,
+      "level": 1
+     }
+    ],
+    "count": 5
+   },
+   "after": {
+    "skills": [
+     [
+      "fireball",
+      {
+       "level": 3,
+       "dupes": 1,
+       "stars": 0
+      }
+     ],
+     [
+      "powerStrike",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 0
+      }
+     ],
+     [
+      "meteor",
+      {
+       "level": 7,
+       "dupes": 2,
+       "stars": 1
+      }
+     ],
+     [
+      "warCry",
+      {
+       "level": 1,
+       "dupes": 2,
+       "stars": 1
+      }
+     ],
+     [
+      "firstAid",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 1
+      }
+     ],
+     [
+      "whirlwind",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 1
+      }
+     ]
+    ],
+    "equipped": [
+     "fireball",
+     "powerStrike",
+     "meteor"
+    ],
+    "summonCount": 105,
+    "gems": 0,
+    "tickets": 9840
+   },
+   "gacha": [
+    "rare"
+   ],
+   "quests": [
+    [
+     "skillSummon",
+     5
+    ]
+   ],
+   "saves": 1,
+   "recalc": 3
+  },
+  {
+   "name": "x1_ticket_short",
+   "seed": 5,
+   "useGems": false,
+   "count": 1,
+   "tickets": 31,
+   "gems": 0,
+   "summonCount": 0,
+   "skills": [],
+   "equipped": [],
+   "ascendSkill": 0,
+   "pct": 0,
+   "pre": {
+    "level": 1,
+    "can": false,
+    "cost": 32
+   },
+   "result": null,
+   "after": {
+    "skills": [],
+    "equipped": [],
+    "summonCount": 0,
+    "gems": 0,
+    "tickets": 31
+   },
+   "gacha": [],
+   "quests": [],
+   "saves": 0,
+   "recalc": 0
+  },
+  {
+   "name": "x5_gems_short",
+   "seed": 6,
+   "useGems": true,
+   "count": 5,
+   "tickets": 0,
+   "gems": 999,
+   "summonCount": 0,
+   "skills": [],
+   "equipped": [],
+   "ascendSkill": 0,
+   "pct": 0,
+   "pre": {
+    "level": 1,
+    "can": false,
+    "cost": 1000
+   },
+   "result": null,
+   "after": {
+    "skills": [],
+    "equipped": [],
+    "summonCount": 0,
+    "gems": 999,
+    "tickets": 0
+   },
+   "gacha": [],
+   "quests": [],
+   "saves": 0,
+   "recalc": 0
+  },
+  {
+   "name": "x75_tickets_pct37",
+   "seed": 21,
+   "useGems": false,
+   "count": 75,
+   "tickets": 100000,
+   "gems": 0,
+   "summonCount": 200,
+   "skills": [
+    [
+     "warCry",
+     2,
+     0,
+     0
+    ]
+   ],
+   "equipped": [
+    "warCry"
+   ],
+   "ascendSkill": 0,
+   "pct": 37,
+   "pre": {
+    "level": 41,
+    "can": true,
+    "cost": 1512
+   },
+   "result": {
+    "results": [
+     {
+      "id": "lightning",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "pierceShot",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "pierceShot",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "firstAid",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "pierceShot",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "firstAid",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "fireball",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "warCry",
+      "isNew": false,
+      "level": 2
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "firstAid",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "fireball",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "powerStrike",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "powerStrike",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "warCry",
+      "isNew": false,
+      "level": 2
+     },
+     {
+      "id": "warCry",
+      "isNew": false,
+      "level": 2
+     },
+     {
+      "id": "dragonBreath",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "fireball",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "firstAid",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "pierceShot",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "whirlwind",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "fireball",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "pierceShot",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "dragonBreath",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "blessing",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "fireball",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "dragonBreath",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "lightning",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "powerStrike",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "warCry",
+      "isNew": false,
+      "level": 2
+     },
+     {
+      "id": "execution",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "execution",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "meteor",
+      "isNew": false,
+      "level": 1
+     }
+    ],
+    "count": 75
+   },
+   "after": {
+    "skills": [
+     [
+      "warCry",
+      {
+       "level": 2,
+       "dupes": 4,
+       "stars": 0
+      }
+     ],
+     [
+      "lightning",
+      {
+       "level": 1,
+       "dupes": 15,
+       "stars": 0
+      }
+     ],
+     [
+      "pierceShot",
+      {
+       "level": 1,
+       "dupes": 4,
+       "stars": 0
+      }
+     ],
+     [
+      "blessing",
+      {
+       "level": 1,
+       "dupes": 14,
+       "stars": 0
+      }
+     ],
+     [
+      "firstAid",
+      {
+       "level": 1,
+       "dupes": 3,
+       "stars": 0
+      }
+     ],
+     [
+      "meteor",
+      {
+       "level": 1,
+       "dupes": 16,
+       "stars": 0
+      }
+     ],
+     [
+      "fireball",
+      {
+       "level": 1,
+       "dupes": 4,
+       "stars": 0
+      }
+     ],
+     [
+      "powerStrike",
+      {
+       "level": 1,
+       "dupes": 2,
+       "stars": 0
+      }
+     ],
+     [
+      "dragonBreath",
+      {
+       "level": 1,
+       "dupes": 2,
+       "stars": 0
+      }
+     ],
+     [
+      "whirlwind",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 0
+      }
+     ],
+     [
+      "execution",
+      {
+       "level": 1,
+       "dupes": 1,
+       "stars": 0
+      }
+     ]
+    ],
+    "equipped": [
+     "warCry",
+     "lightning",
+     "pierceShot"
+    ],
+    "summonCount": 275,
+    "gems": 0,
+    "tickets": 98488
+   },
+   "gacha": [
+    "legendary"
+   ],
+   "quests": [
+    [
+     "skillSummon",
+     75
+    ]
+   ],
+   "saves": 1,
+   "recalc": 10
+  },
+  {
+   "name": "x1_exact_ticket",
+   "seed": 22,
+   "useGems": false,
+   "count": 1,
+   "tickets": 32,
+   "gems": 0,
+   "summonCount": 4,
+   "skills": [],
+   "equipped": [],
+   "ascendSkill": 0,
+   "pct": 0,
+   "pre": {
+    "level": 1,
+    "can": true,
+    "cost": 32
+   },
+   "result": {
+    "results": [
+     {
+      "id": "powerStrike",
+      "isNew": true,
+      "level": 1
+     }
+    ],
+    "count": 1
+   },
+   "after": {
+    "skills": [
+     [
+      "powerStrike",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 0
+      }
+     ]
+    ],
+    "equipped": [
+     "powerStrike"
+    ],
+    "summonCount": 5,
+    "gems": 0,
+    "tickets": 0
+   },
+   "gacha": [
+    "common"
+   ],
+   "quests": [
+    [
+     "skillSummon",
+     1
+    ]
+   ],
+   "saves": 1,
+   "recalc": 1
+  },
+  {
+   "name": "x5_two_equipped_one_slot_left",
+   "seed": 23,
+   "useGems": false,
+   "count": 5,
+   "tickets": 500,
+   "gems": 5,
+   "summonCount": 40,
+   "skills": [
+    [
+     "blessing",
+     1,
+     0,
+     0
+    ],
+    [
+     "bolt_unknown_ignored",
+     1,
+     0,
+     0
+    ]
+   ],
+   "equipped": [
+    "blessing"
+   ],
+   "ascendSkill": 0,
+   "pct": 0,
+   "pre": {
+    "level": 9,
+    "can": true,
+    "cost": 160
+   },
+   "result": {
+    "results": [
+     {
+      "id": "powerStrike",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "powerStrike",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "powerStrike",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "id": "firstAid",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "id": "fireball",
+      "isNew": true,
+      "level": 1
+     }
+    ],
+    "count": 5
+   },
+   "after": {
+    "skills": [
+     [
+      "blessing",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 0
+      }
+     ],
+     [
+      "bolt_unknown_ignored",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 0
+      }
+     ],
+     [
+      "powerStrike",
+      {
+       "level": 1,
+       "dupes": 2,
+       "stars": 0
+      }
+     ],
+     [
+      "firstAid",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 0
+      }
+     ],
+     [
+      "fireball",
+      {
+       "level": 1,
+       "dupes": 0,
+       "stars": 0
+      }
+     ]
+    ],
+    "equipped": [
+     "blessing",
+     "powerStrike",
+     "firstAid"
+    ],
+    "summonCount": 45,
+    "gems": 5,
+    "tickets": 340
+   },
+   "gacha": [
+    "rare"
+   ],
+   "quests": [
+    [
+     "skillSummon",
+     5
+    ]
+   ],
+   "saves": 1,
+   "recalc": 3
+  }
+ ],
+ "values": [
+  {
+   "id": "powerStrike",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 1.2,
+    "e": 2
+   },
+   "heal": {
+    "m": 3.6,
+    "e": 2
+   },
+   "buff": {
+    "m": 6,
+    "e": 1
+   }
+  },
+  {
+   "id": "powerStrike",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 1.38,
+    "e": 2
+   },
+   "heal": {
+    "m": 4.14,
+    "e": 2
+   },
+   "buff": {
+    "m": 6.9,
+    "e": 1
+   }
+  },
+  {
+   "id": "powerStrike",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 1.002,
+    "e": 3
+   },
+   "heal": {
+    "m": 3.006,
+    "e": 3
+   },
+   "buff": {
+    "m": 5.01,
+    "e": 2
+   }
+  },
+  {
+   "id": "powerStrike",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 1.902,
+    "e": 3
+   },
+   "heal": {
+    "m": 5.706,
+    "e": 3
+   },
+   "buff": {
+    "m": 9.51,
+    "e": 2
+   }
+  },
+  {
+   "id": "powerStrike",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 1.2,
+    "e": 11
+   },
+   "heal": {
+    "m": 3.6,
+    "e": 11
+   },
+   "buff": {
+    "m": 6,
+    "e": 10
+   }
+  },
+  {
+   "id": "powerStrike",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 7.68,
+    "e": 29
+   },
+   "heal": {
+    "m": 2.304,
+    "e": 30
+   },
+   "buff": {
+    "m": 3.84,
+    "e": 29
+   }
+  },
+  {
+   "id": "powerStrike",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 1.902,
+    "e": 363
+   },
+   "heal": {
+    "m": 5.706,
+    "e": 363
+   },
+   "buff": {
+    "m": 9.51,
+    "e": 362
+   }
+  },
+  {
+   "id": "whirlwind",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 6.4,
+    "e": 1
+   },
+   "heal": {
+    "m": 1.92,
+    "e": 2
+   },
+   "buff": {
+    "m": 3.2,
+    "e": 1
+   }
+  },
+  {
+   "id": "whirlwind",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 7.36,
+    "e": 1
+   },
+   "heal": {
+    "m": 2.208,
+    "e": 2
+   },
+   "buff": {
+    "m": 3.68,
+    "e": 1
+   }
+  },
+  {
+   "id": "whirlwind",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 5.344,
+    "e": 2
+   },
+   "heal": {
+    "m": 1.6032,
+    "e": 3
+   },
+   "buff": {
+    "m": 2.672,
+    "e": 2
+   }
+  },
+  {
+   "id": "whirlwind",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 1.0144,
+    "e": 3
+   },
+   "heal": {
+    "m": 3.0432,
+    "e": 3
+   },
+   "buff": {
+    "m": 5.072,
+    "e": 2
+   }
+  },
+  {
+   "id": "whirlwind",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 6.4,
+    "e": 10
+   },
+   "heal": {
+    "m": 1.92,
+    "e": 11
+   },
+   "buff": {
+    "m": 3.2,
+    "e": 10
+   }
+  },
+  {
+   "id": "whirlwind",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 4.096,
+    "e": 29
+   },
+   "heal": {
+    "m": 1.2288,
+    "e": 30
+   },
+   "buff": {
+    "m": 2.048,
+    "e": 29
+   }
+  },
+  {
+   "id": "whirlwind",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 1.0144,
+    "e": 363
+   },
+   "heal": {
+    "m": 3.0432,
+    "e": 363
+   },
+   "buff": {
+    "m": 5.072,
+    "e": 362
+   }
+  },
+  {
+   "id": "fireball",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 4.8,
+    "e": 2
+   },
+   "heal": {
+    "m": 1.44,
+    "e": 3
+   },
+   "buff": {
+    "m": 1.92,
+    "e": 2
+   }
+  },
+  {
+   "id": "fireball",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 5.52,
+    "e": 2
+   },
+   "heal": {
+    "m": 1.656,
+    "e": 3
+   },
+   "buff": {
+    "m": 2.208,
+    "e": 2
+   }
+  },
+  {
+   "id": "fireball",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 4.008,
+    "e": 3
+   },
+   "heal": {
+    "m": 1.2024,
+    "e": 4
+   },
+   "buff": {
+    "m": 1.6032,
+    "e": 3
+   }
+  },
+  {
+   "id": "fireball",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 7.608,
+    "e": 3
+   },
+   "heal": {
+    "m": 2.2824,
+    "e": 4
+   },
+   "buff": {
+    "m": 3.0432,
+    "e": 3
+   }
+  },
+  {
+   "id": "fireball",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 4.8,
+    "e": 11
+   },
+   "heal": {
+    "m": 1.44,
+    "e": 12
+   },
+   "buff": {
+    "m": 1.92,
+    "e": 11
+   }
+  },
+  {
+   "id": "fireball",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 3.072,
+    "e": 30
+   },
+   "heal": {
+    "m": 9.216,
+    "e": 30
+   },
+   "buff": {
+    "m": 1.2288,
+    "e": 30
+   }
+  },
+  {
+   "id": "fireball",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 7.608,
+    "e": 363
+   },
+   "heal": {
+    "m": 2.2824,
+    "e": 364
+   },
+   "buff": {
+    "m": 3.0432,
+    "e": 363
+   }
+  },
+  {
+   "id": "warCry",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 3,
+    "e": 2
+   },
+   "heal": {
+    "m": 9,
+    "e": 2
+   },
+   "buff": {
+    "m": 1.2,
+    "e": 2
+   }
+  },
+  {
+   "id": "warCry",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 3.45,
+    "e": 2
+   },
+   "heal": {
+    "m": 1.035,
+    "e": 3
+   },
+   "buff": {
+    "m": 1.38,
+    "e": 2
+   }
+  },
+  {
+   "id": "warCry",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 2.505,
+    "e": 3
+   },
+   "heal": {
+    "m": 7.515,
+    "e": 3
+   },
+   "buff": {
+    "m": 1.002,
+    "e": 3
+   }
+  },
+  {
+   "id": "warCry",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 4.755,
+    "e": 3
+   },
+   "heal": {
+    "m": 1.4265,
+    "e": 4
+   },
+   "buff": {
+    "m": 1.902,
+    "e": 3
+   }
+  },
+  {
+   "id": "warCry",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 3,
+    "e": 11
+   },
+   "heal": {
+    "m": 9,
+    "e": 11
+   },
+   "buff": {
+    "m": 1.2,
+    "e": 11
+   }
+  },
+  {
+   "id": "warCry",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 1.92,
+    "e": 30
+   },
+   "heal": {
+    "m": 5.76,
+    "e": 30
+   },
+   "buff": {
+    "m": 7.68,
+    "e": 29
+   }
+  },
+  {
+   "id": "warCry",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 4.755,
+    "e": 363
+   },
+   "heal": {
+    "m": 1.4265,
+    "e": 364
+   },
+   "buff": {
+    "m": 1.902,
+    "e": 363
+   }
+  },
+  {
+   "id": "meteor",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 4,
+    "e": 3
+   },
+   "heal": {
+    "m": 1.12,
+    "e": 4
+   },
+   "buff": {
+    "m": 1.28,
+    "e": 3
+   }
+  },
+  {
+   "id": "meteor",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 4.6,
+    "e": 3
+   },
+   "heal": {
+    "m": 1.288,
+    "e": 4
+   },
+   "buff": {
+    "m": 1.472,
+    "e": 3
+   }
+  },
+  {
+   "id": "meteor",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 3.34,
+    "e": 4
+   },
+   "heal": {
+    "m": 9.352,
+    "e": 4
+   },
+   "buff": {
+    "m": 1.0688,
+    "e": 4
+   }
+  },
+  {
+   "id": "meteor",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 6.34,
+    "e": 4
+   },
+   "heal": {
+    "m": 1.7752,
+    "e": 5
+   },
+   "buff": {
+    "m": 2.0288,
+    "e": 4
+   }
+  },
+  {
+   "id": "meteor",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 4,
+    "e": 12
+   },
+   "heal": {
+    "m": 1.12,
+    "e": 13
+   },
+   "buff": {
+    "m": 1.28,
+    "e": 12
+   }
+  },
+  {
+   "id": "meteor",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 2.56,
+    "e": 31
+   },
+   "heal": {
+    "m": 7.168,
+    "e": 31
+   },
+   "buff": {
+    "m": 8.192,
+    "e": 30
+   }
+  },
+  {
+   "id": "meteor",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 6.34,
+    "e": 364
+   },
+   "heal": {
+    "m": 1.7752,
+    "e": 365
+   },
+   "buff": {
+    "m": 2.0288,
+    "e": 364
+   }
+  },
+  {
+   "id": "blessing",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 3.5,
+    "e": 3
+   },
+   "heal": {
+    "m": 9.8,
+    "e": 3
+   },
+   "buff": {
+    "m": 1.12,
+    "e": 3
+   }
+  },
+  {
+   "id": "blessing",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 4.025,
+    "e": 3
+   },
+   "heal": {
+    "m": 1.127,
+    "e": 4
+   },
+   "buff": {
+    "m": 1.288,
+    "e": 3
+   }
+  },
+  {
+   "id": "blessing",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 2.9225,
+    "e": 4
+   },
+   "heal": {
+    "m": 8.183,
+    "e": 4
+   },
+   "buff": {
+    "m": 9.352,
+    "e": 3
+   }
+  },
+  {
+   "id": "blessing",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 5.5475,
+    "e": 4
+   },
+   "heal": {
+    "m": 1.5533,
+    "e": 5
+   },
+   "buff": {
+    "m": 1.7752,
+    "e": 4
+   }
+  },
+  {
+   "id": "blessing",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 3.5,
+    "e": 12
+   },
+   "heal": {
+    "m": 9.8,
+    "e": 12
+   },
+   "buff": {
+    "m": 1.12,
+    "e": 12
+   }
+  },
+  {
+   "id": "blessing",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 2.24,
+    "e": 31
+   },
+   "heal": {
+    "m": 6.272,
+    "e": 31
+   },
+   "buff": {
+    "m": 7.168,
+    "e": 30
+   }
+  },
+  {
+   "id": "blessing",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 5.5475,
+    "e": 364
+   },
+   "heal": {
+    "m": 1.5533,
+    "e": 365
+   },
+   "buff": {
+    "m": 1.7752,
+    "e": 364
+   }
+  },
+  {
+   "id": "dragonBreath",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 3.25,
+    "e": 4
+   },
+   "heal": {
+    "m": 7.8,
+    "e": 4
+   },
+   "buff": {
+    "m": 9.1,
+    "e": 3
+   }
+  },
+  {
+   "id": "dragonBreath",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 3.7375,
+    "e": 4
+   },
+   "heal": {
+    "m": 8.97,
+    "e": 4
+   },
+   "buff": {
+    "m": 1.0465,
+    "e": 4
+   }
+  },
+  {
+   "id": "dragonBreath",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 2.71375,
+    "e": 5
+   },
+   "heal": {
+    "m": 6.513,
+    "e": 5
+   },
+   "buff": {
+    "m": 7.5985,
+    "e": 4
+   }
+  },
+  {
+   "id": "dragonBreath",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 5.15125,
+    "e": 5
+   },
+   "heal": {
+    "m": 1.2363,
+    "e": 6
+   },
+   "buff": {
+    "m": 1.44235,
+    "e": 5
+   }
+  },
+  {
+   "id": "dragonBreath",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 3.25,
+    "e": 13
+   },
+   "heal": {
+    "m": 7.8,
+    "e": 13
+   },
+   "buff": {
+    "m": 9.1,
+    "e": 12
+   }
+  },
+  {
+   "id": "dragonBreath",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 2.08,
+    "e": 32
+   },
+   "heal": {
+    "m": 4.992,
+    "e": 32
+   },
+   "buff": {
+    "m": 5.824,
+    "e": 31
+   }
+  },
+  {
+   "id": "dragonBreath",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 5.15125,
+    "e": 365
+   },
+   "heal": {
+    "m": 1.2363,
+    "e": 366
+   },
+   "buff": {
+    "m": 1.44235,
+    "e": 365
+   }
+  },
+  {
+   "id": "execution",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 5.5,
+    "e": 4
+   },
+   "heal": {
+    "m": 1.32,
+    "e": 5
+   },
+   "buff": {
+    "m": 1.54,
+    "e": 4
+   }
+  },
+  {
+   "id": "execution",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 6.325,
+    "e": 4
+   },
+   "heal": {
+    "m": 1.518,
+    "e": 5
+   },
+   "buff": {
+    "m": 1.771,
+    "e": 4
+   }
+  },
+  {
+   "id": "execution",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 4.5925,
+    "e": 5
+   },
+   "heal": {
+    "m": 1.1022,
+    "e": 6
+   },
+   "buff": {
+    "m": 1.2859,
+    "e": 5
+   }
+  },
+  {
+   "id": "execution",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 8.7175,
+    "e": 5
+   },
+   "heal": {
+    "m": 2.0922,
+    "e": 6
+   },
+   "buff": {
+    "m": 2.4409,
+    "e": 5
+   }
+  },
+  {
+   "id": "execution",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 5.5,
+    "e": 13
+   },
+   "heal": {
+    "m": 1.32,
+    "e": 14
+   },
+   "buff": {
+    "m": 1.54,
+    "e": 13
+   }
+  },
+  {
+   "id": "execution",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 3.52,
+    "e": 32
+   },
+   "heal": {
+    "m": 8.448,
+    "e": 32
+   },
+   "buff": {
+    "m": 9.856,
+    "e": 31
+   }
+  },
+  {
+   "id": "execution",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 8.7175,
+    "e": 365
+   },
+   "heal": {
+    "m": 2.0922,
+    "e": 366
+   },
+   "buff": {
+    "m": 2.4409,
+    "e": 365
+   }
+  },
+  {
+   "id": "sanctuary",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 2,
+    "e": 4
+   },
+   "heal": {
+    "m": 4.8,
+    "e": 4
+   },
+   "buff": {
+    "m": 5.6,
+    "e": 3
+   }
+  },
+  {
+   "id": "sanctuary",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 2.3,
+    "e": 4
+   },
+   "heal": {
+    "m": 5.52,
+    "e": 4
+   },
+   "buff": {
+    "m": 6.44,
+    "e": 3
+   }
+  },
+  {
+   "id": "sanctuary",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 1.67,
+    "e": 5
+   },
+   "heal": {
+    "m": 4.008,
+    "e": 5
+   },
+   "buff": {
+    "m": 4.676,
+    "e": 4
+   }
+  },
+  {
+   "id": "sanctuary",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 3.17,
+    "e": 5
+   },
+   "heal": {
+    "m": 7.608,
+    "e": 5
+   },
+   "buff": {
+    "m": 8.876,
+    "e": 4
+   }
+  },
+  {
+   "id": "sanctuary",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 2,
+    "e": 13
+   },
+   "heal": {
+    "m": 4.8,
+    "e": 13
+   },
+   "buff": {
+    "m": 5.6,
+    "e": 12
+   }
+  },
+  {
+   "id": "sanctuary",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 1.28,
+    "e": 32
+   },
+   "heal": {
+    "m": 3.072,
+    "e": 32
+   },
+   "buff": {
+    "m": 3.584,
+    "e": 31
+   }
+  },
+  {
+   "id": "sanctuary",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 3.17,
+    "e": 365
+   },
+   "heal": {
+    "m": 7.608,
+    "e": 365
+   },
+   "buff": {
+    "m": 8.876,
+    "e": 364
+   }
+  },
+  {
+   "id": "supernova",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 2.5,
+    "e": 5
+   },
+   "heal": {
+    "m": 6,
+    "e": 5
+   },
+   "buff": {
+    "m": 6,
+    "e": 4
+   }
+  },
+  {
+   "id": "supernova",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 2.875,
+    "e": 5
+   },
+   "heal": {
+    "m": 6.9,
+    "e": 5
+   },
+   "buff": {
+    "m": 6.9,
+    "e": 4
+   }
+  },
+  {
+   "id": "supernova",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 2.0875,
+    "e": 6
+   },
+   "heal": {
+    "m": 5.01,
+    "e": 6
+   },
+   "buff": {
+    "m": 5.01,
+    "e": 5
+   }
+  },
+  {
+   "id": "supernova",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 3.9625,
+    "e": 6
+   },
+   "heal": {
+    "m": 9.51,
+    "e": 6
+   },
+   "buff": {
+    "m": 9.51,
+    "e": 5
+   }
+  },
+  {
+   "id": "supernova",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 2.5,
+    "e": 14
+   },
+   "heal": {
+    "m": 6,
+    "e": 14
+   },
+   "buff": {
+    "m": 6,
+    "e": 13
+   }
+  },
+  {
+   "id": "supernova",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 1.6,
+    "e": 33
+   },
+   "heal": {
+    "m": 3.84,
+    "e": 33
+   },
+   "buff": {
+    "m": 3.84,
+    "e": 32
+   }
+  },
+  {
+   "id": "supernova",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 3.9625,
+    "e": 366
+   },
+   "heal": {
+    "m": 9.51,
+    "e": 366
+   },
+   "buff": {
+    "m": 9.51,
+    "e": 365
+   }
+  },
+  {
+   "id": "voidLance",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 4.5,
+    "e": 5
+   },
+   "heal": {
+    "m": 1.08,
+    "e": 6
+   },
+   "buff": {
+    "m": 1.08,
+    "e": 5
+   }
+  },
+  {
+   "id": "voidLance",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 5.175,
+    "e": 5
+   },
+   "heal": {
+    "m": 1.242,
+    "e": 6
+   },
+   "buff": {
+    "m": 1.242,
+    "e": 5
+   }
+  },
+  {
+   "id": "voidLance",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 3.7575,
+    "e": 6
+   },
+   "heal": {
+    "m": 9.018,
+    "e": 6
+   },
+   "buff": {
+    "m": 9.018,
+    "e": 5
+   }
+  },
+  {
+   "id": "voidLance",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 7.1325,
+    "e": 6
+   },
+   "heal": {
+    "m": 1.7118,
+    "e": 7
+   },
+   "buff": {
+    "m": 1.7118,
+    "e": 6
+   }
+  },
+  {
+   "id": "voidLance",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 4.5,
+    "e": 14
+   },
+   "heal": {
+    "m": 1.08,
+    "e": 15
+   },
+   "buff": {
+    "m": 1.08,
+    "e": 14
+   }
+  },
+  {
+   "id": "voidLance",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 2.88,
+    "e": 33
+   },
+   "heal": {
+    "m": 6.912,
+    "e": 33
+   },
+   "buff": {
+    "m": 6.912,
+    "e": 32
+   }
+  },
+  {
+   "id": "voidLance",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 7.1325,
+    "e": 366
+   },
+   "heal": {
+    "m": 1.7118,
+    "e": 367
+   },
+   "buff": {
+    "m": 1.7118,
+    "e": 366
+   }
+  },
+  {
+   "id": "timeWarp",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 5,
+    "e": 4
+   },
+   "heal": {
+    "m": 1.2,
+    "e": 5
+   },
+   "buff": {
+    "m": 1.2,
+    "e": 4
+   }
+  },
+  {
+   "id": "timeWarp",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 5.75,
+    "e": 4
+   },
+   "heal": {
+    "m": 1.38,
+    "e": 5
+   },
+   "buff": {
+    "m": 1.38,
+    "e": 4
+   }
+  },
+  {
+   "id": "timeWarp",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 4.175,
+    "e": 5
+   },
+   "heal": {
+    "m": 1.002,
+    "e": 6
+   },
+   "buff": {
+    "m": 1.002,
+    "e": 5
+   }
+  },
+  {
+   "id": "timeWarp",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 7.925,
+    "e": 5
+   },
+   "heal": {
+    "m": 1.902,
+    "e": 6
+   },
+   "buff": {
+    "m": 1.902,
+    "e": 5
+   }
+  },
+  {
+   "id": "timeWarp",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 5,
+    "e": 13
+   },
+   "heal": {
+    "m": 1.2,
+    "e": 14
+   },
+   "buff": {
+    "m": 1.2,
+    "e": 13
+   }
+  },
+  {
+   "id": "timeWarp",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 3.2,
+    "e": 32
+   },
+   "heal": {
+    "m": 7.68,
+    "e": 32
+   },
+   "buff": {
+    "m": 7.68,
+    "e": 31
+   }
+  },
+  {
+   "id": "timeWarp",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 7.925,
+    "e": 365
+   },
+   "heal": {
+    "m": 1.902,
+    "e": 366
+   },
+   "buff": {
+    "m": 1.902,
+    "e": 365
+   }
+  },
+  {
+   "id": "apocalypse",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 2.25,
+    "e": 6
+   },
+   "heal": {
+    "m": 5.04,
+    "e": 6
+   },
+   "buff": {
+    "m": 5.04,
+    "e": 5
+   }
+  },
+  {
+   "id": "apocalypse",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 2.5875,
+    "e": 6
+   },
+   "heal": {
+    "m": 5.796,
+    "e": 6
+   },
+   "buff": {
+    "m": 5.796,
+    "e": 5
+   }
+  },
+  {
+   "id": "apocalypse",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 1.87875,
+    "e": 7
+   },
+   "heal": {
+    "m": 4.2084,
+    "e": 7
+   },
+   "buff": {
+    "m": 4.2084,
+    "e": 6
+   }
+  },
+  {
+   "id": "apocalypse",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 3.56625,
+    "e": 7
+   },
+   "heal": {
+    "m": 7.9884,
+    "e": 7
+   },
+   "buff": {
+    "m": 7.9884,
+    "e": 6
+   }
+  },
+  {
+   "id": "apocalypse",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 2.25,
+    "e": 15
+   },
+   "heal": {
+    "m": 5.04,
+    "e": 15
+   },
+   "buff": {
+    "m": 5.04,
+    "e": 14
+   }
+  },
+  {
+   "id": "apocalypse",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 1.44,
+    "e": 34
+   },
+   "heal": {
+    "m": 3.2256,
+    "e": 34
+   },
+   "buff": {
+    "m": 3.2256,
+    "e": 33
+   }
+  },
+  {
+   "id": "apocalypse",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 3.56625,
+    "e": 367
+   },
+   "heal": {
+    "m": 7.9884,
+    "e": 367
+   },
+   "buff": {
+    "m": 7.9884,
+    "e": 366
+   }
+  },
+  {
+   "id": "godspear",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 4,
+    "e": 6
+   },
+   "heal": {
+    "m": 8.96,
+    "e": 6
+   },
+   "buff": {
+    "m": 8.96,
+    "e": 5
+   }
+  },
+  {
+   "id": "godspear",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 4.6,
+    "e": 6
+   },
+   "heal": {
+    "m": 1.0304,
+    "e": 7
+   },
+   "buff": {
+    "m": 1.0304,
+    "e": 6
+   }
+  },
+  {
+   "id": "godspear",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 3.34,
+    "e": 7
+   },
+   "heal": {
+    "m": 7.4816,
+    "e": 7
+   },
+   "buff": {
+    "m": 7.4816,
+    "e": 6
+   }
+  },
+  {
+   "id": "godspear",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 6.34,
+    "e": 7
+   },
+   "heal": {
+    "m": 1.42016,
+    "e": 8
+   },
+   "buff": {
+    "m": 1.42016,
+    "e": 7
+   }
+  },
+  {
+   "id": "godspear",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 4,
+    "e": 15
+   },
+   "heal": {
+    "m": 8.96,
+    "e": 15
+   },
+   "buff": {
+    "m": 8.96,
+    "e": 14
+   }
+  },
+  {
+   "id": "godspear",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 2.56,
+    "e": 34
+   },
+   "heal": {
+    "m": 5.7344,
+    "e": 34
+   },
+   "buff": {
+    "m": 5.7344,
+    "e": 33
+   }
+  },
+  {
+   "id": "godspear",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 6.34,
+    "e": 367
+   },
+   "heal": {
+    "m": 1.42016,
+    "e": 368
+   },
+   "buff": {
+    "m": 1.42016,
+    "e": 367
+   }
+  },
+  {
+   "id": "divineShield",
+   "level": 1,
+   "stars": 0,
+   "levelMult": 1,
+   "dmg": {
+    "m": 8.75,
+    "e": 5
+   },
+   "heal": {
+    "m": 1.96,
+    "e": 6
+   },
+   "buff": {
+    "m": 1.96,
+    "e": 5
+   }
+  },
+  {
+   "id": "divineShield",
+   "level": 2,
+   "stars": 0,
+   "levelMult": 1.15,
+   "dmg": {
+    "m": 1.00625,
+    "e": 6
+   },
+   "heal": {
+    "m": 2.254,
+    "e": 6
+   },
+   "buff": {
+    "m": 2.254,
+    "e": 5
+   }
+  },
+  {
+   "id": "divineShield",
+   "level": 50,
+   "stars": 0,
+   "levelMult": 8.35,
+   "dmg": {
+    "m": 7.30625,
+    "e": 6
+   },
+   "heal": {
+    "m": 1.6366,
+    "e": 7
+   },
+   "buff": {
+    "m": 1.6366,
+    "e": 6
+   }
+  },
+  {
+   "id": "divineShield",
+   "level": 100,
+   "stars": 0,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 1.386875,
+    "e": 7
+   },
+   "heal": {
+    "m": 3.1066,
+    "e": 7
+   },
+   "buff": {
+    "m": 3.1066,
+    "e": 6
+   }
+  },
+  {
+   "id": "divineShield",
+   "level": 1,
+   "stars": 1,
+   "levelMult": 1,
+   "dmg": {
+    "m": 8.75,
+    "e": 14
+   },
+   "heal": {
+    "m": 1.96,
+    "e": 15
+   },
+   "buff": {
+    "m": 1.96,
+    "e": 14
+   }
+  },
+  {
+   "id": "divineShield",
+   "level": 37,
+   "stars": 3,
+   "levelMult": 6.3999999999999995,
+   "dmg": {
+    "m": 5.6,
+    "e": 33
+   },
+   "heal": {
+    "m": 1.2544,
+    "e": 34
+   },
+   "buff": {
+    "m": 1.2544,
+    "e": 33
+   }
+  },
+  {
+   "id": "divineShield",
+   "level": 100,
+   "stars": 40,
+   "levelMult": 15.85,
+   "dmg": {
+    "m": 1.386875,
+    "e": 367
+   },
+   "heal": {
+    "m": 3.1066,
+    "e": 367
+   },
+   "buff": {
+    "m": 3.1066,
+    "e": 366
+   }
+  }
+ ],
+ "valuesUnowned": {
+  "id": "lightning",
+  "levelMult": 0.85,
+  "dmg": {
+   "m": 5.95,
+   "e": 3
+  },
+  "heal": {
+   "m": 1.666,
+   "e": 4
+  },
+  "buff": {
+   "m": 1.904,
+   "e": 3
+  },
+  "level": 0,
+  "defNull": true
+ },
+ "shards": [
+  {
+   "level": 1,
+   "n": 2
+  },
+  {
+   "level": 2,
+   "n": 2
+  },
+  {
+   "level": 9,
+   "n": 2
+  },
+  {
+   "level": 10,
+   "n": 3
+  },
+  {
+   "level": 11,
+   "n": 3
+  },
+  {
+   "level": 29,
+   "n": 3
+  },
+  {
+   "level": 30,
+   "n": 6
+  },
+  {
+   "level": 31,
+   "n": 6
+  },
+  {
+   "level": 59,
+   "n": 6
+  },
+  {
+   "level": 60,
+   "n": 8
+  },
+  {
+   "level": 61,
+   "n": 8
+  },
+  {
+   "level": 99,
+   "n": 8
+  },
+  {
+   "level": 100,
+   "n": 8
+  }
+ ],
+ "upgrade": [
+  {
+   "name": "lv1_dupes20_twelve_tries",
+   "start": [
+    "fireball",
+    1,
+    20,
+    0
+   ],
+   "tries": 12,
+   "id": "fireball",
+   "steps": [
+    {
+     "can": true,
+     "ok": true,
+     "level": 2,
+     "dupes": 18
+    },
+    {
+     "can": true,
+     "ok": true,
+     "level": 3,
+     "dupes": 16
+    },
+    {
+     "can": true,
+     "ok": true,
+     "level": 4,
+     "dupes": 14
+    },
+    {
+     "can": true,
+     "ok": true,
+     "level": 5,
+     "dupes": 12
+    },
+    {
+     "can": true,
+     "ok": true,
+     "level": 6,
+     "dupes": 10
+    },
+    {
+     "can": true,
+     "ok": true,
+     "level": 7,
+     "dupes": 8
+    },
+    {
+     "can": true,
+     "ok": true,
+     "level": 8,
+     "dupes": 6
+    },
+    {
+     "can": true,
+     "ok": true,
+     "level": 9,
+     "dupes": 4
+    },
+    {
+     "can": true,
+     "ok": true,
+     "level": 10,
+     "dupes": 2
+    },
+    {
+     "can": false,
+     "ok": false,
+     "level": 10,
+     "dupes": 2
+    },
+    {
+     "can": false,
+     "ok": false,
+     "level": 10,
+     "dupes": 2
+    },
+    {
+     "can": false,
+     "ok": false,
+     "level": 10,
+     "dupes": 2
+    }
+   ],
+   "saves": 9,
+   "recalc": 9
+  },
+  {
+   "name": "lv99_caps_at_100",
+   "start": [
+    "godspear",
+    99,
+    100,
+    5
+   ],
+   "tries": 3,
+   "id": "godspear",
+   "steps": [
+    {
+     "can": true,
+     "ok": true,
+     "level": 100,
+     "dupes": 92
+    },
+    {
+     "can": false,
+     "ok": false,
+     "level": 100,
+     "dupes": 92
+    },
+    {
+     "can": false,
+     "ok": false,
+     "level": 100,
+     "dupes": 92
+    }
+   ],
+   "saves": 1,
+   "recalc": 1
+  },
+  {
+   "name": "lv29_needs3_has2",
+   "start": [
+    "meteor",
+    29,
+    2,
+    0
+   ],
+   "tries": 2,
+   "id": "meteor",
+   "steps": [
+    {
+     "can": false,
+     "ok": false,
+     "level": 29,
+     "dupes": 2
+    },
+    {
+     "can": false,
+     "ok": false,
+     "level": 29,
+     "dupes": 2
+    }
+   ],
+   "saves": 0,
+   "recalc": 0
+  }
+ ],
+ "upgradeUnknown": {
+  "can": false,
+  "ok": false
+ },
+ "upgradeAll": {
+  "before": [
+   [
+    "fireball",
+    1,
+    7,
+    0
+   ],
+   [
+    "meteor",
+    9,
+    5,
+    0
+   ],
+   [
+    "whirlwind",
+    30,
+    13,
+    1
+   ],
+   [
+    "godspear",
+    100,
+    50,
+    0
+   ],
+   [
+    "warCry",
+    59,
+    8,
+    0
+   ]
+  ],
+  "count": 8,
+  "after": [
+   [
+    "fireball",
+    {
+     "level": 4,
+     "dupes": 1,
+     "stars": 0
+    }
+   ],
+   [
+    "meteor",
+    {
+     "level": 11,
+     "dupes": 0,
+     "stars": 0
+    }
+   ],
+   [
+    "whirlwind",
+    {
+     "level": 32,
+     "dupes": 1,
+     "stars": 1
+    }
+   ],
+   [
+    "godspear",
+    {
+     "level": 100,
+     "dupes": 50,
+     "stars": 0
+    }
+   ],
+   [
+    "warCry",
+    {
+     "level": 60,
+     "dupes": 2,
+     "stars": 0
+    }
+   ]
+  ],
+  "saves": 8,
+  "recalc": 8
+ },
+ "quickEquip": {
+  "skills": [
+   [
+    "powerStrike",
+    40,
+    0,
+    0
+   ],
+   [
+    "blessing",
+    2,
+    0,
+    0
+   ],
+   [
+    "fireball",
+    9,
+    0,
+    0
+   ],
+   [
+    "godspear",
+    1,
+    0,
+    0
+   ],
+   [
+    "meteor",
+    2,
+    0,
+    0
+   ],
+   [
+    "pierceShot",
+    9,
+    0,
+    0
+   ],
+   [
+    "apocalypse",
+    1,
+    0,
+    0
+   ],
+   [
+    "warCry",
+    9,
+    0,
+    0
+   ]
+  ],
+  "before": [
+   "powerStrike"
+  ],
+  "after": [
+   "godspear",
+   "apocalypse",
+   "blessing"
+  ],
+  "renders": 1,
+  "recalc": 1,
+  "saves": 1
+ },
+ "quickEquipOne": {
+  "after": [
+   "fireball"
+  ]
+ },
+ "toggle": {
+  "skills": [
+   [
+    "powerStrike",
+    1,
+    0,
+    0
+   ],
+   [
+    "fireball",
+    1,
+    0,
+    0
+   ],
+   [
+    "meteor",
+    1,
+    0,
+    0
+   ],
+   [
+    "godspear",
+    1,
+    0,
+    0
+   ]
+  ],
+  "steps": [
+   {
+    "id": "powerStrike",
+    "ok": true,
+    "equipped": [
+     "powerStrike"
+    ]
+   },
+   {
+    "id": "fireball",
+    "ok": true,
+    "equipped": [
+     "powerStrike",
+     "fireball"
+    ]
+   },
+   {
+    "id": "meteor",
+    "ok": true,
+    "equipped": [
+     "powerStrike",
+     "fireball",
+     "meteor"
+    ]
+   },
+   {
+    "id": "godspear",
+    "ok": false,
+    "equipped": [
+     "powerStrike",
+     "fireball",
+     "meteor"
+    ]
+   },
+   {
+    "id": "fireball",
+    "ok": true,
+    "equipped": [
+     "powerStrike",
+     "meteor"
+    ]
+   },
+   {
+    "id": "godspear",
+    "ok": true,
+    "equipped": [
+     "powerStrike",
+     "meteor",
+     "godspear"
+    ]
+   },
+   {
+    "id": "powerStrike",
+    "ok": true,
+    "equipped": [
+     "meteor",
+     "godspear"
+    ]
+   },
+   {
+    "id": "meteor",
+    "ok": true,
+    "equipped": [
+     "godspear"
+    ]
+   }
+  ],
+  "renders": 7,
+  "recalc": 7,
+  "saves": 7
+ },
+ "passive": [
+  {
+   "id": "powerStrike",
+   "level": 1,
+   "stars": 0,
+   "dmgPct": 0,
+   "hpPct": 0,
+   "atk": {
+    "m": 5,
+    "e": 0
+   },
+   "hp": {
+    "m": 3,
+    "e": 1
+   }
+  },
+  {
+   "id": "fireball",
+   "level": 17,
+   "stars": 0,
+   "dmgPct": 0,
+   "hpPct": 0,
+   "atk": {
+    "m": 6.8,
+    "e": 1
+   },
+   "hp": {
+    "m": 5.1,
+    "e": 2
+   }
+  },
+  {
+   "id": "meteor",
+   "level": 100,
+   "stars": 0,
+   "dmgPct": 25,
+   "hpPct": 10,
+   "atk": {
+    "m": 1.585,
+    "e": 3
+   },
+   "hp": {
+    "m": 1.22045,
+    "e": 4
+   }
+  },
+  {
+   "id": "godspear",
+   "level": 1,
+   "stars": 1,
+   "dmgPct": 0,
+   "hpPct": 0,
+   "atk": {
+    "m": 7,
+    "e": 12
+   },
+   "hp": {
+    "m": 7,
+    "e": 13
+   }
+  },
+  {
+   "id": "apocalypse",
+   "level": 50,
+   "stars": 3,
+   "dmgPct": 100,
+   "hpPct": 33,
+   "atk": {
+    "m": 1.169,
+    "e": 32
+   },
+   "hp": {
+    "m": 7.77385,
+    "e": 32
+   }
+  },
+  {
+   "id": "voidLance",
+   "level": 2,
+   "stars": 40,
+   "dmgPct": 0,
+   "hpPct": 0,
+   "atk": {
+    "m": 1.725,
+    "e": 363
+   },
+   "hp": {
+    "m": 1.725,
+    "e": 364
+   }
+  }
+ ],
+ "passiveUnknown": {
+  "atk": {
+   "m": 0,
+   "e": 0
+  },
+  "hp": {
+   "m": 0,
+   "e": 0
+  }
+ },
+ "ownedPassive": {
+  "skills": [
+   [
+    "powerStrike",
+    3,
+    0,
+    0
+   ],
+   [
+    "godspear",
+    1,
+    1,
+    0
+   ],
+   [
+    "fireball",
+    20,
+    0,
+    0
+   ],
+   [
+    "blessing",
+    5,
+    0,
+    2
+   ]
+  ],
+  "dmgPct": 12,
+  "hpPct": 7,
+  "atk": {
+   "m": 1.4336,
+   "e": 20
+  },
+  "hp": {
+   "m": 1.1984,
+   "e": 21
+  }
+ },
+ "ownedPassiveEmpty": {
+  "atk": {
+   "m": 0,
+   "e": 0
+  },
+  "hp": {
+   "m": 0,
+   "e": 0
+  }
+ }
+}
