@@ -72,7 +72,7 @@
 - `GameData.Load(json 문자열들)` → 강타입 표(`ForgeTable`·`PetTable`·`SkillTable`·`MobModel`…). 어느 수치도 코드 상수로 두지 않는다. `BigNum` 표기 함수는 원작 `bignum.js` 와 **같은 입력 → 같은 문자열**(EditMode 표 테스트 30개 이상).
 - 범위: `Assets/Scripts/Core/Data/` · `Assets/Scripts/Core/BigNum.cs` · `Assets/Tests/EditMode/DataTests.cs`.
 
-### T4 — `VoxelMob`: 마인크래프트 박스 모델 조립기 (Game · T2·T3 뒤)
+### T4 ✅ — `VoxelMob`: 마인크래프트 박스 모델 조립기 (Game · T2·T3 뒤)
 - 정본: `web/js/voxel.js`(`Voxel.box`·`Voxel.build` — 칸 → 면 병합 메시 · 정점 색 · AO 0.85 · jitter 0.022) · `web/js/mobs.js`(`Mobs.build` — paint/expand(mx 거울) · matKey 재질 공유 · pivot Group · parent 연결 · tag/joint 수집).
 - C# 로 **같은 규약**: `VoxelMob.Build(MobModel, cell, vivid)` → `GameObject` 트리. 파츠 = 정점 색 `Mesh` 하나 · 성질(basic/opacity/emissive/rough)이 같은 파츠끼리 `Material` 하나(URP Lit · 정점 색 · 플랫 셰이딩은 노멀을 면마다 따로 둔다). `pivot` 이 있으면 빈 `Transform` 아래에 · `parent` 는 그 pivot 아래에. 반환: `parts[id]` · `legs`(gait) · `wings`(s) · `head` · `tail` · `wheels` · `spinners` · `glow` · `claws` · `joints`(axis/amp/f/ph/gain/abs/spin).
 - EditMode(순수 계산은 Core 로 뺀다: `VoxelGeometry` — 칸 목록 → 정점/색/인덱스 배열): 6면 박스 1칸 = 24정점 · paint 의 음수 인덱스·mx 거울 · 재질 키 병합.

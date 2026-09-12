@@ -31,3 +31,10 @@
 
 - `JMO Assets/Cartoon FX Remaster` — 히트 파티클(T8) · `Plugins/Demigiant/DOTween` — UI 트윈 · `Plugins/AllIn1SpriteShader`.
 - 킷 `Component/Popup/Popup_Frame01_White.png`·`Popup_Frame01_Navy.png`·`Button/Btn_MainButton_White.Png`·`Slider02_*` — 팝업·버튼·진행바(T19~T22). `.meta` 의 `spriteBorder` 가 0 이라 9-슬라이스로 쓰려면 주인 에디터에서 border 를 잡아야 한다(코드에서 텍스처를 손대지 않는다).
+
+## 복셀 재질 (T4 · 코드 생성 메시의 정점 색 셰이더)
+
+| 용도 | 경로 | GUID(.meta) | 셰이더 | 비고 |
+|---|---|---|---|---|
+| 몹 파츠 재질 원형(조명) | `Assets/Forge/Resources/VoxelLit.mat` | `c2b614c31ac2a9874396c1e389a78bc1` | `Universal Render Pipeline/Particles/Lit`(GUID `b7839dad95683814aa64166edc107ae2`) | `VoxelMaterials` 가 matKey 마다 복제해 opacity·emissive·rough 를 준다 · 정점 색 × 흰색(결정 13) |
+| 몹 파츠 재질 원형(무조명 `mat.basic`) | `Assets/Forge/Resources/VoxelUnlit.mat` | `bdfce4d75d7fdd9d1d89e9c14f356029` | `Universal Render Pipeline/Particles/Unlit`(GUID `0406db5a14f94604a8c57ccfbc9f3b46`) | 표에 basic 파츠는 아직 없다(정본 `matKey` 가 갈래를 갖고 있어 같이 둔다) |

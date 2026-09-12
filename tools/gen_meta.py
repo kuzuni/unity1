@@ -32,6 +32,9 @@ def body(rel, is_dir):
     if ext == '.asset':
         # ScriptableObject·URP 에셋 등 유니티 네이티브 YAML — NativeFormatImporter + 주 오브젝트 11400000 (T1 의 URP 에셋 .meta 와 같은 꼴 · T18).
         return "NativeFormatImporter:\n  externalObjects: {}\n  mainObjectFileID: 11400000\n" + TAIL
+    if ext == '.mat':
+        # 재질 에셋(T4 VoxelLit/VoxelUnlit) — NativeFormatImporter + 주 오브젝트 2100000(Material 의 fileID).
+        return "NativeFormatImporter:\n  externalObjects: {}\n  mainObjectFileID: 2100000\n" + TAIL
     if ext == '.asmdef':
         return "AssemblyDefinitionImporter:\n  externalObjects: {}\n" + TAIL
     if ext in ('.json', '.txt', '.md', '.csv'):
