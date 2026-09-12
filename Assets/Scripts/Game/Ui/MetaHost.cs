@@ -122,7 +122,7 @@ namespace Forge.Game.Ui
             WriteStates();
 
             screens = new Screens(this, UiRoot.Instance, PopupLayer.Create(UiRoot.Instance));
-            SyncHud();
+            SyncHud(true);
             booted = true;
             Action h = OnReady;
             if (h != null) h();
@@ -183,13 +183,16 @@ namespace Forge.Game.Ui
             if (h != null) h();
         }
 
-        /// <summary>원작 renderTopBar — 닉네임·전투력·코인·젬.</summary>
-        public void SyncHud()
+        private string hudNick, hudCp, hudCoins, hudGems;
+
+        /// <summary>원작 renderTopBar — 닉네임·전투력·코인·젬. **원천 값이 바뀌었을 때만** HUD 에 쓴다 — 매초 무조건 덮으면 HUD 표면을 직접 쓰는 다른 코드·테스트(T18 `HUD_Set`)의 글자를 되돌린다(CI 런 40 실측).</summary>
+        public void SyncHud(bool force = false)
         {
             Hud hud = Hud.Instance;
             if (hud == null || S == null) return;
-            hud.SetProfile(Nickname, PopupKit.Fmt(MyCp));
-            hud.SetCurrency(PopupKit.Fmt(S.Coins), PopupKit.Fmt(S.Gems));
+            string nick = Nickname, cp = PopupKit.Fmt(MyCp), coins = PopupKit.Fmt(S.Coins), gems = PopupKit.Fmt(S.Gems);
+            if (force || nick != hudNick || cp != hudCp) { hud.SetProfile(nick, cp); hudNick = nick; hudCp = cp; }
+            if (force || coins != hudCoins || gems != hudGems) { hud.SetCurrency(coins, gems); hudCoins = coins; hudGems = gems; }
         }
 
         // ---- 프로필 칸(원작 S.nickname · S.avatarEmoji · S.gender · S.settingsDummy) ----
