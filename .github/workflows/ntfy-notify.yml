@@ -1,0 +1,76 @@
+# ntfy 알림 — main 의 CI 가 끝난 순간(= 작업이 실제로 실린 순간)을 폰으로 알린다.
+# 클라우드 세션 컨테이너는 egress 프록시가 ntfy.sh 를 403 으로 막으므로(wwwww 실측 2026-08-21) GitHub 러너에서 쏜다.
+#
+# 설정(한 번만): Settings → Secrets and variables → Actions
+#   · NTFY_TOPIC  (필수) 구독 중인 토픽. ⚠ 공개 저장소 — 파일에 적지 말고 Secret 으로만.
+#   · NTFY_SERVER (선택) 자체 호스팅 주소 · NTFY_TOKEN (선택) 보호된 토픽 토큰
+# 수동 시험: Actions → 이 워크플로 → Run workflow (topic 입력으로 secret 없이도 쏠 수 있다 · 입력은 마스킹된다)
+name: ntfy notify
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: "이번 발사에만 쓸 토픽(비우면 NTFY_TOPIC secret)"
+        required: false
+        default: ""
+      text:
+        description: "보낼 문구(무엇을 끝냈는지 한 줄)"
+        required: false
+        default: "수동 발사 — 이 알림이 보이면 배선 완료다."
+
+jobs:
+  notify:
+    # 자동 갈래는 main 의 CI 만 알린다 — 다른 브랜치·워커 lock 커밋의 CI 까지 쏘면 알림이 소음이 된다.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 알림 내용 만들기
+        id: build
+        env:
+          EVENT: ${{ github.event_name }}
+          STATUS: ${{ github.event.workflow_run.conclusion }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          SUBJECT_RAW: ${{ github.event.workflow_run.head_commit.message }}
+          TEXT: ${{ inputs.text }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            echo "title=unity1 작업 완료" >> "$GITHUB_OUTPUT"
+            echo "body=$TEXT" >> "$GITHUB_OUTPUT"
+            echo "tags=white_check_mark" >> "$GITHUB_OUTPUT"
+            echo "prio=default" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          SUBJECT=$(printf '%s' "$SUBJECT_RAW" | head -1)
+          SHORT=$(echo "$SHA" | cut -c1-7)
+          if [ "$STATUS" = "success" ]; then
+            echo "title=unity1 CI 초록 · $SHORT" >> "$GITHUB_OUTPUT"; echo "tags=rocket" >> "$GITHUB_OUTPUT"; echo "prio=default" >> "$GITHUB_OUTPUT"
+          else
+            echo "title=unity1 CI 빨강 · $SHORT ($STATUS)" >> "$GITHUB_OUTPUT"; echo "tags=rotating_light" >> "$GITHUB_OUTPUT"; echo "prio=high" >> "$GITHUB_OUTPUT"
+          fi
+          echo "body=$SUBJECT" >> "$GITHUB_OUTPUT"
+      - name: ntfy 로 보내기
+        env:
+          TOPIC: ${{ inputs.topic != '' && inputs.topic || secrets.NTFY_TOPIC }}
+          SERVER: ${{ secrets.NTFY_SERVER }}
+          TOKEN: ${{ secrets.NTFY_TOKEN }}
+          TITLE: ${{ steps.build.outputs.title }}
+          BODY: ${{ steps.build.outputs.body }}
+          TAGS: ${{ steps.build.outputs.tags }}
+          PRIO: ${{ steps.build.outputs.prio }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TOPIC:-}" ]; then echo "NTFY_TOPIC 이 없다 — 알림을 건너뛴다(README 참조)."; exit 0; fi
+          echo "::add-mask::${TOPIC}"
+          BASE="${SERVER:-https://ntfy.sh}"
+          AUTH=()
+          [ -n "${TOKEN:-}" ] && AUTH=(-H "Authorization: Bearer ${TOKEN}")
+          curl -sS --fail-with-body --max-time 20 "${AUTH[@]}" \
+            -H "Title: ${TITLE}" -H "Tags: ${TAGS}" -H "Priority: ${PRIO}" \
+            -H "Click: https://github.com/kuzuni/unity1/actions" \
+            -d "${BODY}" "${BASE}/${TOPIC}"
+          echo "보냄: ${TITLE}"

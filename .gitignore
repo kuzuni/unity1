@@ -104,3 +104,10 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# 정본(kuzuni/wwwww) 읽기용 옆 체크아웃 — 커밋 금지 (ROUTINE §0)
+/.wwwww-src/
+# dotnet 하니스 산출물
+tools/dotnet/**/bin/
+tools/dotnet/**/obj/
+tools/dotnet/**/TestResults/

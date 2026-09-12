@@ -1,0 +1,227 @@
+# CI — 시크릿(UNITY_EMAIL·UNITY_PASSWORD)이 없으면 dotnet 검사만 돌고 초록이어야 한다.
+# 시크릿이 있으면: push 마다 EditMode/PlayMode 테스트. main 에 push 되고 UNITY_LICENSE(.ulf) 까지 있으면 WebGL 빌드 → gh-pages.
+# (aaawunity 의 ci.yml 을 뼈대만 남기고 옮겼다 — 검사 자(tools/check_*.py)는 이 레포에서 필요해질 때 하나씩 더한다.)
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      build:
+        description: "WebGL 을 실제로 굽는다 (기본 꺼짐 — 켜면 런이 20~40분 길어진다)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false   # 워커 여럿이 15분마다 푸시하면 취소가 이어져 배포가 영영 안 끝난다 → 직렬 대기
+
+permissions:
+  contents: write   # gh-pages 배포
+  checks: write     # unity-test-runner 가 «Test Results» 체크 런을 만들 때(githubToken 빈 값과 한 벌)
+
+jobs:
+  dotnet:
+    name: dotnet 컴파일 · 순수 C# 테스트 · 문서·.meta 검사
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # check_claim_scope 가 «그 작업의 커밋이 실제로 만진 파일» 을 이력에서 읽는다. 얕은 클론이면 조용히 초록이 된다.
+          fetch-depth: 300
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: dotnet build (UnityEngine 참조 어셈블리 · NuGet)
+        run: dotnet build tools/dotnet/Forge.sln -c Release --nologo
+      - name: dotnet test (EditMode 의 순수 C# 테스트)
+        run: dotnet test tools/dotnet/Tests/Forge.Tests.csproj -c Release --no-build --nologo --logger "trx;LogFileName=results.trx"
+      - name: .meta 누락/고아 검사
+        run: python3 tools/gen_meta.py --check
+      # 문서가 «통째로 깨졌는가»(충돌 표식 · 결정 기록 소실 · 표 행 0개) — 되돌릴 자리가 묻히기 전에 **막는다**.
+      - name: 문서 손상 자 자기 검사
+        run: python3 tools/check_docs_intact.py --self-test
+      - name: 문서가 통째로 깨졌는가 — 막는다
+        run: python3 tools/check_docs_intact.py
+      # 아래는 «조율 결함» — 배포된 게임이 못 쓰게 되는 종류가 아니라 **보고만** 한다(빨개도 안 막는다).
+      # 자기 검사(순수 함수)는 막는다 — 자가 조용히 고장 나면 «누락 0건» 만 찍는다.
+      - name: 작업 상태 자 자기 검사
+        run: python3 tools/task_state.py --self-test
+      - name: "작업 상태 대조 (ROUTINE §2 제목 ↔ PROGRESS 상태 · 번호 중복) — 보고만"
+        continue-on-error: true
+        run: python3 tools/task_state.py --check
+      - name: 결정 번호 자 자기 검사
+        run: python3 tools/check_decisions.py --self-test
+      - name: "결정 번호 겹침 — 보고만"
+        continue-on-error: true
+        run: python3 tools/check_decisions.py
+      - name: 표 행 자 자기 검사
+        run: python3 tools/check_task_rows.py --self-test
+      - name: "PROGRESS 표 행 어긋남 — 보고만"
+        continue-on-error: true
+        run: python3 tools/check_task_rows.py
+      - name: 범위 자 자기 검사
+        run: python3 tools/check_claim_scope.py --selftest
+      - name: "살아 있는 lock 이 «범위 열에 없는 파일» 을 쥐고 있는가 — 알리기만"
+        continue-on-error: true
+        run: python3 tools/check_claim_scope.py
+      - name: 테스트 결과 Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-test-results
+          path: tools/dotnet/Tests/TestResults/*.trx
+          if-no-files-found: ignore
+
+  # 정본(kuzuni/wwwww web/)과 이 레포의 data/*.json 이 같은가 — T2 가 tools/export_data.js·check_data_sync.sh 를 만들면 켠다.
+  datasync:
+    name: data/*.json ↔ wwwww main 동기화 검사
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: wwwww main 체크아웃 (정본)
+        uses: actions/checkout@v4
+        with:
+          repository: kuzuni/wwwww
+          ref: main
+          path: .wwwww-src
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: data/*.json 동기화 검사 (스크립트가 아직 없으면 건너뛴다 · T2)
+        run: |
+          if [ -x tools/check_data_sync.sh ]; then tools/check_data_sync.sh .wwwww-src; else echo "::notice::tools/check_data_sync.sh 가 아직 없다 (T2) — 건너뛴다"; fi
+
+  gate:
+    name: 유니티 시크릿 확인
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      has_license: ${{ steps.check.outputs.has }}
+      has_ulf: ${{ steps.ulf.outputs.has }}
+      has_code: ${{ steps.code.outputs.has }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 30
+      # 이 push 가 «유니티가 읽는 나무»(Assets/ · Packages/ · ProjectSettings/)를 건드렸는가. 문서만 바뀐 push 는 유니티 잡을 건너뛴다.
+      # 판정은 fail-safe — «전부 문서» 라고 증명될 때만 false.
+      - id: code
+        env:
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+          EV: ${{ github.event_name }}
+        run: |
+          has=true
+          if [ "$EV" = "push" ] && [ -n "$BEFORE" ] && ! echo "$BEFORE" | grep -q '^0*$' && git cat-file -e "$BEFORE" 2>/dev/null; then
+            files=$(git diff --name-only "$BEFORE" "$SHA" || true)
+            if [ -n "$files" ] && ! echo "$files" | grep -Eq '^(Assets/|Packages/|ProjectSettings/)'; then has=false; fi
+          fi
+          echo "has=$has" >> "$GITHUB_OUTPUT"
+          echo "::notice::unity-test $( [ $has = true ] && echo 돈다 || echo '건너뛴다 — 유니티가 읽는 나무가 안 바뀌었다')"
+      - id: check
+        env:
+          EM: ${{ secrets.UNITY_EMAIL }}
+          PW: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if [ -n "$EM" ] && [ -n "$PW" ]; then echo "has=true" >> "$GITHUB_OUTPUT";
+          else echo "has=false" >> "$GITHUB_OUTPUT"; echo "::notice::UNITY_EMAIL/UNITY_PASSWORD 시크릿이 없어 유니티 단계를 건너뛴다 (README «주인이 할 일»)"; fi
+      # 굽기(unity-builder)는 계정 방식을 안 받는다 — .ulf(UNITY_LICENSE)나 시리얼이 있어야 굽는다(aaawunity T499 실측).
+      - id: ulf
+        env:
+          LIC: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          if [ -n "$LIC" ]; then echo "has=true" >> "$GITHUB_OUTPUT";
+          else echo "has=false" >> "$GITHUB_OUTPUT"; echo "::notice::UNITY_LICENSE 시크릿이 없어 굽기 잡(WebGL)을 건너뛴다"; fi
+
+  unity-test:
+    name: Unity EditMode·PlayMode 테스트
+    needs: [dotnet, gate]
+    if: needs.gate.outputs.has_license == 'true' && needs.gate.outputs.has_code != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-test-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-test-
+            Library-
+      - uses: game-ci/unity-test-runner@v4
+        id: tests
+        env:
+          # UNITY_LICENSE(.ulf) 를 일부러 안 준다 — 주면 game-ci 가 file 방식을 골라 «TimeStamp validation failed» 로 죽는다(aaawunity T283).
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .
+          testMode: all
+          artifactsPath: unity-test-results
+          # 빈 값으로 «명시» 해야 체크 런을 안 만든다(안 적으면 러너가 제 토큰을 채워 checks:write 없이 죽는다 · aaawunity T295).
+          githubToken: ''
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unity-test-results
+          path: ${{ steps.tests.outputs.artifactsPath }}
+      # T27 — PlayMode 촬영 테스트가 남기는 PNG 를 «screens» 브랜치로(main push · 빨간 런이어도 · 0장이면 안 올린다).
+      - name: screens 브랜치용 meta.json
+        id: shots
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
+        run: |
+          sudo chown -R "$(id -u):$(id -g)" ui-screens 2>/dev/null || true
+          mkdir -p ui-screens
+          n=$(ls ui-screens/*.png 2>/dev/null | wc -l)
+          echo "count=$n" >> "$GITHUB_OUTPUT"
+          printf '{"sha":"%s","run":%s,"tests":"%s","shots":%s}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$n" > ui-screens/meta.json
+      - name: screens 브랜치 배포
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && steps.shots.outputs.count != '0' }}
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: screens
+          publish_dir: ui-screens
+          force_orphan: true
+
+  build-webgl:
+    name: WebGL 빌드 → GitHub Pages (gh-pages)
+    needs: [unity-test, gate]
+    if: needs.gate.outputs.has_ulf == 'true' && (github.ref == 'refs/heads/main' || inputs.build == true)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-webgl-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-webgl-
+            Library-
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .
+          targetPlatform: WebGL
+          buildName: web
+          allowDirtyBuild: true
+      - name: "gh-pages 로 배포 (Settings → Pages → Source: gh-pages, (root))"
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: build/WebGL/web
+          force_orphan: true

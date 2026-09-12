@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <!-- Unity 6000.3 = C# 9 로 잡는다(유니티 6 은 C# 9 이상을 받지만 검사 빌드는 보수적으로 9) · .NET Standard 2.1 API. 유니티 에디터 없이 컴파일을 확인하는 «검사용» 빌드다. -->
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>$(NoWarn);CS1591;NU1701;NU1603</NoWarn>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <RepoRoot>$(MSBuildThisFileDirectory)../../</RepoRoot>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+</Project>
