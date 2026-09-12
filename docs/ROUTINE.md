@@ -496,6 +496,12 @@
 - 판정: `check_final_table.py` rc 0(채운 뒤) · `--self-test` 초록 · 빠진 번호 0.
 - 범위: `tools/check_final_table.py` · `docs/ROUTINE.md`(§7 표) · `docs/PROGRESS.md`.
 
+### T70 — `BootstrapTests` 를 T54 의 새 카메라 계약에 맞춘다: «앱 상자 9:16» + «카메라 rect = `#game-area` 띠» (검증 · T54 가 바꾼 계약 · 뒤 순서 없음)
+- 왜: T54 2회차(`b9c5fd9`)가 3D 카메라를 앱 상자 전체에서 원작 `#game-area` 띠(상단바 밑 ~ 장비 시트 위)로 좁혔다. 그 회차는 `SafeAreaTests`·`UiShotsTests`·`UiSmokeTests` 를 함께 고쳤지만 **T1 의 `BootstrapTests` 는 아직 «카메라 화면비 = 9:16» 을 단언**해 CI 런 103 에서 빨갛다(`Expected 0.5625 · But was 1.1538`). 그 파일은 T54 의 «범위» 칸에 없어 어느 살아 있는 lock 도 쥐고 있지 않다 — ROUTINE §0-6 «남의 lock 이 없는 빨강».
+- 무엇을 한다: 단언을 **계약대로** 옮긴다 — ⓐ 앱 상자(`Viewport.Letterbox`)가 9:16 ⓑ 카메라 `rect` 가 `Viewport.GameArea(앱 상자, Bootstrap.GameAreaTop, GameAreaBottom)` 와 같다 ⓒ 카탈로그가 비면 띠가 앱 상자로 물러난다는 것까지(그 갈래에서만 카메라 화면비가 9:16). T54 의 판단을 되돌리지 않는다 — 테스트가 옛 계약을 쥐고 있던 것이다.
+- 판정: `BootstrapTests` 초록(CI 유니티 잡) + 다른 테스트 영향 0.
+- 범위: `Assets/Tests/PlayMode/BootstrapTests.cs`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
