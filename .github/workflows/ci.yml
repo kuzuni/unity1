@@ -86,6 +86,9 @@ jobs:
       - name: "살아 있는 lock 이 «범위 열에 없는 파일» 을 쥐고 있는가 — 알리기만"
         continue-on-error: true
         run: python3 tools/check_claim_scope.py
+      # T51 — 이 레포의 검사 자는 전부 «자기 검사» 가 여기 걸려 있다. T28 의 자만 빠져 있었다(T28 은 ci.yml 이 제 범위 밖이었다).
+      - name: 원작 대조 자 자기 검사 (T28 `ui_score.py` · 15칸)
+        run: python3 tools/ui_score.py --self-test
       - name: 테스트 결과 Artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -113,6 +116,10 @@ jobs:
       - name: data/*.json 동기화 검사 (스크립트가 아직 없으면 건너뛴다 · T2)
         run: |
           if [ -x tools/check_data_sync.sh ]; then tools/check_data_sync.sh .wwwww-src; else echo "::notice::tools/check_data_sync.sh 가 아직 없다 (T2) — 건너뛴다"; fi
+      # T51 — §3 게이트에 적힌 줄인데 CI 에 없었다. check_data_sync 는 «정본과 같은 바이트인가» 이고
+      #       이것은 «추출기가 제 수(펫 25 · 탈것 29 · 적 7 …)를 내는가» 다 — 둘은 다른 것을 본다.
+      - name: 추출기 자기 검사 (T2 `export_data.js --self-test`)
+        run: node tools/export_data.js --self-test
       - name: 아이콘 아틀라스 동기화 검사 (T31 · 러너의 google-chrome 으로 정본을 다시 그려 대조)
         run: tools/check_icons_sync.sh .wwwww-src
 
@@ -222,7 +229,11 @@ jobs:
         with:
           name: unity-test-results
           path: ${{ steps.tests.outputs.artifactsPath }}
-      # T27 — PlayMode 촬영 테스트가 남기는 PNG 를 «screens» 브랜치로(main push · 빨간 런이어도 · 0장이면 안 올린다).
+      # T27 — PlayMode 촬영 테스트가 남기는 PNG 를 «screens» 브랜치로(main push · 빨간 런이어도).
+      # T51 — 올릴 조건이 «PNG 개수» 였다: 촬영 픽스처까지 죽은 런에서는 T46 의 playmode-red.txt 가 안 올라가
+      #       «왜 죽었나» 를 읽을 길이 정확히 그때 사라졌다. 이제 meta.json 말고 무엇이든 있으면 올린다.
+      #       배포가 force_orphan(브랜치를 통째로 갈아치움)이라 PNG 0장인 런이 지난 그림을 지워 버리므로,
+      #       0장이면 지난 screens 의 PNG 를 먼저 받아 담는다 — 로그를 얻자고 그림을 잃지 않는다.
       - name: screens 브랜치용 meta.json
         id: shots
         if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
@@ -230,10 +241,19 @@ jobs:
           sudo chown -R "$(id -u):$(id -g)" ui-screens 2>/dev/null || true
           mkdir -p ui-screens
           n=$(ls ui-screens/*.png 2>/dev/null | wc -l)
+          carried=0
+          if [ "$n" = "0" ] && git fetch --depth 1 origin screens 2>/dev/null; then
+            for f in $(git ls-tree --name-only FETCH_HEAD | grep -E '[.]png$' || true); do
+              git show "FETCH_HEAD:$f" > "ui-screens/$f" && carried=$((carried+1)) || true
+            done
+          fi
+          any=$(ls -A ui-screens 2>/dev/null | grep -cv '^meta[.]json$' || true)
           echo "count=$n" >> "$GITHUB_OUTPUT"
-          printf '{"sha":"%s","run":%s,"tests":"%s","shots":%s}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$n" > ui-screens/meta.json
+          echo "any=$any" >> "$GITHUB_OUTPUT"
+          printf '{"sha":"%s","run":%s,"tests":"%s","shots":%s,"carried":%s}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$n" "$carried" > ui-screens/meta.json
+          echo "::notice::screens — 이 런의 PNG ${n}장 · 이어받은 PNG ${carried}장 · 올릴 파일 ${any}개"
       - name: screens 브랜치 배포
-        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && steps.shots.outputs.count != '0' }}
+        if: ${{ !cancelled() && github.ref == 'refs/heads/main' && steps.shots.outputs.any != '0' }}
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
