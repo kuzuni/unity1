@@ -310,12 +310,12 @@
 - 판정: `dotnet build`·`dotnet test` 초록(스텁에 쓰는 서명이 있는가) + CI 유니티 잡이 돈 뒤 `screens` 브랜치에 `playmode-red.txt` 가 서고 그 안에 런 46 류의 실패 이유가 적혀 있다.
 - 범위: `Assets/Tests/PlayMode/RedLog.cs` · `tools/dotnet/Stubs`(필요한 스텁 서명만).
 
-### T48 — 게이트: PlayMode 테스트도 dotnet 하니스로 컴파일한다 (검증 · 뒤 순서 없음 · 워커 L 등재)
+### T48 ✅ — 게이트: PlayMode 테스트도 dotnet 하니스로 컴파일한다 (검증 · 뒤 순서 없음 · 워커 L 등재)
 - 지금 `tools/dotnet` 는 `Assets/Tests/EditMode/**` 만 컴파일한다 — **PlayMode 테스트의 오타·잘못된 서명은 §3 게이트를 전부 초록으로 통과하고 유니티 CI 에서야 터진다**(§1 «컴파일 파손을 남기지 않는다» 가 가장 잘 뚫리는 자리 · 워커마다 PlayMode 파일을 쓴다).
 - 할 일: `tools/dotnet/TestsPlay/Forge.TestsPlay.csproj`(`Assets/Tests/PlayMode/**/*.cs` + `Forge.Game` 프로젝트 참조 + NUnit 3.6.1 · **테스트를 돌리지 않는다 · 컴파일만**) · `tools/dotnet/Stubs/TestTools.cs`(`UnityTestAttribute` · `LogAssert.ignoreFailingMessages`·`Expect(LogType,string)`·`Expect(LogType,Regex)`·`NoUnexpectedReceived`) · `Forge.sln` 에 추가 · §3 게이트 목록에 한 줄.
 - ⚠ 스텁이 실물 `UnityEngine.TestTools` 와 다르면 «로컬만 초록» 이 또 생긴다 — 새 API 를 쓰면 스텁에도 같은 서명을 더한다(§1 패키지 규칙과 같은 갈래).
 - 실측(2026-09-12 워커 L · T27 회차): 스크래치에 이 꼴로 세웠더니 `Forge.Core.Rng`(진짜는 `Forge.Core.Data.Rng`) 오타가 그 자리에서 잡혔다 — 없었으면 유니티 CI 한 바퀴(30분)를 태웠다.
-- 범위: `tools/dotnet/TestsPlay/` · `tools/dotnet/Stubs/TestTools.cs` · `tools/dotnet/Forge.sln` · `docs/ROUTINE.md`(§3 한 줄).
+- 범위: `tools/dotnet/TestsPlay/` · `tools/dotnet/Stubs/TestTools.cs` · `tools/dotnet/Forge.sln` · `docs/ROUTINE.md`(§3 한 줄) · `docs/PROGRESS.md`.
 
 
 ### T47 — 카탈로그 색 44키가 `layout` 배열에 빠져 있다: `DungeonUiTests` 4/4 빨강(«색 «white»·«pill_potion»·«muted2» 이 없다») (검증·UI · 뒤 순서 없음 · 임자 없는 빨강)
@@ -330,7 +330,7 @@
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
 
 ```bash
-dotnet build tools/dotnet/Forge.sln -c Release --nologo                       # 컴파일 (Core · Game(스텁) · Tests)
+dotnet build tools/dotnet/Forge.sln -c Release --nologo                       # 컴파일 (Core · Game(스텁) · Tests · TestsPlay = PlayMode 테스트 «컴파일만» · T48)
 dotnet test tools/dotnet/Tests/Forge.Tests.csproj -c Release --no-build       # 순수 C# 테스트 (NUnit 3.6.1 API 면만)
 python3 tools/gen_meta.py --check                                             # .meta 누락/고아 (새 에셋을 만들면 --check 없이 돌려 생성)
 python3 tools/gen_ui_catalog.py --check                                       # catalog.json ↔ UiCatalog.asset · 키 중복(T41 · CI dotnet 잡이 막는다)

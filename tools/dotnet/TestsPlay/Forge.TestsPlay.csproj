@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- T48 — Assets/Tests/PlayMode 를 유니티 없이 «컴파일만» 한다(테스트를 돌리지 않는다 · Microsoft.NET.Test.Sdk 없음).
+       왜: Tests(EditMode) 만 컴파일하던 하니스는 PlayMode 파일의 오타·잘못된 서명을 §3 게이트 전부 초록으로 통과시키고
+           유니티 CI(30분 뒤)에서야 터뜨렸다(결정 110 실측: Forge.Core.Rng ↔ Forge.Core.Data.Rng).
+       ⚠ UnityEngine.TestTools 는 스텁(../Stubs/TestTools.cs)이다 — 새 TestTools API 를 쓰면 스텁에 같은 서명을 더한다(ROUTINE §1 패키지 규칙).
+       ⚠ Forge.Game 과 같은 참조 어셈블리(UnityEngine.Modules NuGet · URP/TMP 스텁)라 여기서 초록이어도 유니티가 죽을 수 있다 — 판정은 여전히 CI 유니티 잡. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Forge.TestsPlay</AssemblyName>
+    <RootNamespace>Forge.Tests.PlayMode</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+    <DefineConstants>$(DefineConstants);DOTNET_HARNESS;UNITY_2022_3_OR_NEWER;UNITY_2022_3;UNITY_5_3_OR_NEWER;UNITY_6000_0_OR_NEWER;UNITY_INCLUDE_TESTS</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)Assets/Tests/PlayMode/**/*.cs" />
+    <Compile Include="../Stubs/TestTools.cs" />
+    <ProjectReference Include="../Core/Forge.Core.csproj" />
+    <ProjectReference Include="../Game/Forge.Game.csproj" />
+    <PackageReference Include="NUnit" Version="3.6.1" />
+    <PackageReference Include="UnityEngine.Modules" Version="2021.3.33" />
+    <PackageReference Include="Unity3D.UnityEngine.UI" Version="2020.3.21" />
+    <PackageReference Include="Unity3D.UnityEngine" Version="2020.3.21" ExcludeAssets="all" />
+  </ItemGroup>
+</Project>
