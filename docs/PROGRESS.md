@@ -94,6 +94,7 @@
 | T53 | 한글 글꼴: 주인이 넣은 한글 TTF 를 `catalog.json` `font` 로 물려 전 화면 두부(□) 제거 · 없으면 «주인 조치 대기» 로 막아 둠 | ⬜ 대기 | — | `Assets/Fonts/`(주인이 넣는다) · `Assets/Forge/catalog.json`(font 한 줄) · `Assets/Scripts/Game/Ui/UiFont.cs` · `Assets/Tests/PlayMode/TextSizeGateTests.cs`(한글 글리프 존재 단언 추가) | T18 뒤 · **주인 에셋 대기** · 실제 화면 실측(2026-09-12 22:12) |
 | T54 | 전투 화면에 아무도 안 선다: 촬영 PNG 에 영웅·적·펫 0 (T8·T10 ✅ 인데 화면은 빔) — 원인 규명 후 수리 · 촬영 단언에 «화면 중앙 3D 픽셀이 배경색이 아니다» 추가 | 🔄 진행 | sess-2203-14027 / 워커 I | `Assets/Scripts/Game/Battle/` · `Game/Hero/` · `Game/Pets/` · `Assets/Tests/PlayMode/BattleSceneTests.cs` · `UiShots*` | T8·T10 뒤 · **가장 먼저** · 실제 화면 실측(2026-09-12 22:12) |
 | T55 | 전투 ↔ 세이브 접착의 나머지 (처치·재화·보스 클리어·진행·장착 스킬·자동시전·무기 종) | ⬜ 대기 | — | `Assets/Scripts/Game/Battle/BattleSaveGlue.cs` · `Assets/Scripts/Game/Battle/BattleScene.cs`(MakeBattle 갈래) · `Assets/Tests/PlayMode/BattleSaveGlueTests.cs` · `Assets/Tests/PlayMode/PlaythroughTests.cs`(단언 한 줄) | T8·T13·T43 뒤 · 워커 L 등재(2026-09-12 · T27 플레이 봇 실측 CI 런 78 · 결정 131) |
+| T56 | HUD 상단바 프로필 카드 아바타 누락 (프로필 팝업·리그·채팅은 그려지는데 HUD 만 빈 흰 타일 · 정본 `renderTopBar` 는 닉네임·전투력과 같이 그린다) | 🔄 진행 | sess-2218-12806 / 워커 J | `Assets/Scripts/Game/Ui/Hud.cs` · `Assets/Scripts/Game/Ui/MetaHost.cs`(Sync 한 줄) · `Assets/Tests/PlayMode/HudAvatarTests.cs`(새) | T18·T31 뒤 · 워커 J 등재(2026-09-12 22:20 · `screens/screen_main.png` 실측) |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 

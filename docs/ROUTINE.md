@@ -374,6 +374,13 @@
 - 판정: PlayMode — 한 판 돌려 `S.kills`·`S.coins`·`S.hammers` 가 오르고, 보스 첫 클리어가 `S.clearedBosses` 에 남고, 장착 무기를 바꾸면 전투 문맥의 무기 종이 따라 바뀐다. T27 `PlaythroughTests` 의 «세이브 kills» 단언을 되살린다.
 - 범위: `Assets/Scripts/Game/Battle/BattleSaveGlue.cs`(새) · `Assets/Scripts/Game/Battle/BattleScene.cs`(`MakeBattle` 문맥 채우기 갈래만) · `Assets/Tests/PlayMode/BattleSaveGlueTests.cs` · `Assets/Tests/PlayMode/PlaythroughTests.cs`(단언 한 줄 되살리기).
 
+### T56 — HUD 상단바 프로필 카드에 아바타가 안 그려진다 (Game·UI · T18·T31 뒤 · 실제 화면 실측)
+- 실측(2026-09-12 22:20 · 워커 J · `screens/screen_main.png`·`screen_profile.png` 를 열어 본 것): 상단바 왼쪽 프로필 카드의 아바타 자리가 **빈 흰 사각형**이다. 같은 PNG 의 프로필 팝업·리그 순위표·채팅에는 도트 초상이 제대로 그려진다 — T31 아틀라스는 멀쩡하고 **HUD 만 안 그린다**.
+- 원인: `Hud.Build` 가 아바타 타일을 손으로 짠다(`UiKit.Rounded` 테 + `avatar_bg` 면 두 줄) — 남들이 쓰는 `PopupKit.Avatar(... , emoji, ...)` 의 초상 스프라이트 갈래가 없다. 정본 `ui.js:1290 renderTopBar` 는 `<span class="avatar">${IconGen.avatar(S.avatarEmoji)}</span>` 로 닉네임·전투력과 **같이** 그리고, `onPickAvatar`(`ui.js:5063`)가 아바타를 바꾸면 `renderTopBar()` 를 다시 불러 상단바도 따라 바뀐다.
+- 할 일: ⓐ `Hud` 에 `SetAvatar(string emoji)` — 기존 아바타 타일 안에 `UiIcons.Avatar(emoji)` 초상을 넣고(없으면 지금처럼 빈 타일) 다시 부르면 갈아끼운다 ⓑ `MetaHost.Sync` 가 닉네임·전투력과 같은 자리에서 `AvatarEmoji` 도 밀어 준다(바뀔 때만 · 아바타 고르기 뒤 상단바가 따라 바뀌는 정본 행동) ⓒ PlayMode 단언: 부팅 뒤 HUD 아바타 타일에 초상 `Image` 가 서고 그 스프라이트가 `UiIcons.Avatar(기본 아바타)` 와 같다 · 아바타를 바꿔 `Sync` 하면 스프라이트가 따라 바뀐다.
+- 판정: 위 단언 초록 + 다음 회차에 `screen_main.png` 를 열어 상단바에 초상이 보이는 것을 본 기록 + 콘솔 빨강 0.
+- 범위: `Assets/Scripts/Game/Ui/Hud.cs`(아바타 타일·`SetAvatar`) · `Assets/Scripts/Game/Ui/MetaHost.cs`(Sync 한 줄) · `Assets/Tests/PlayMode/HudAvatarTests.cs`(새).
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
