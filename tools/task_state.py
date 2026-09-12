@@ -36,6 +36,7 @@ ROUTINE 제목에는 ✅ 가 없었다. 그러면 **열린 일로 보인다**. l
   python3 tools/task_state.py --list      # 전체 표
   python3 tools/task_state.py --new-id    # 등재 «직전» — 다음 작업 번호(표·이력 둘 다 보여 준다)
   python3 tools/task_state.py --self-test # 이 자가 실제로 잡는지
+  (T29) «코드 자취» 는 코드 식별자·파일명·폴더명만 센다 — 주석·문자열 리터럴·문서 내용은 뺀다.
 
 **T415 로 «표 밖» 을 하나 더 본다 — 행을 지우면 번호가 되살아난다.**
 위 T205 몫(«한 번호가 두 작업»)은 **표 안에서** 같은 ID 가 둘인 것을 본다. 그런데 2026-09-10 에
@@ -342,12 +343,97 @@ def cmd_new_id():
     return 0
 
 
+# ── «코드 자취» 에서 주석·문자열을 벗긴다 (T29) ─────────────────────────────────────────
+# 왜: `Rng.cs` 의 `/// T7 전투가 쓴다` · `Hud.cs` 의 `// T13 세이브` 같은 **앞으로 가리키는 주석**과,
+#     `check_claim_scope.py` 의 `"T25.lock"` · `check_docs_intact.py` 의 `"| T2 | 무엇 |"` 같은 **자기 검사 픽스처 문자열**이
+#     `git grep` 에 걸려 «코드가 이 번호를 가리킨다 — 잡지 마라» 를 냈다(2026-09-12 T2·T7·T9·T13·T14·T25 실측).
+#     규약대로면 아무도 못 잡는다. 자취로 세는 것은 **코드 식별자 · 파일명 · 폴더명** 뿐이어야 한다.
+# 어떻게: 파일을 통째로 읽어 언어별 주석·문자열 리터럴을 지운 «코드만 남은 글» 에서 번호를 찾는다.
+#     경로(파일명·폴더명)에 번호가 있으면 내용과 무관하게 자취다.
+#     문서·데이터 파일(.md · .json · .txt · .csv)의 **내용**은 코드가 아니라 세지 않는다(경로만 본다).
+_C_LIKE = {".cs", ".js", ".mjs", ".cjs", ".ts", ".c", ".h", ".cpp", ".java", ".shader", ".cginc", ".hlsl", ".glsl", ".uxml", ".uss"}
+_HASH_LIKE = {".py", ".sh", ".bash", ".yml", ".yaml", ".toml", ".cfg", ".ini", ".gitignore"}
+_TEXT_ONLY = {".md", ".json", ".txt", ".csv", ".html", ".xml", ".svg", ".asmdef", ".meta", ".asset", ".unity", ".prefab", ".mat", ".uxml"}
+
+
+def strip_noncode(text, ext):
+    """주석·문자열 리터럴을 빈칸으로 바꾼 글을 돌려준다(줄 수는 그대로 — 줄바꿈은 남긴다).
+    C 계열: `//` · `/* */` · " ' ` 문자열. 해시 계열(py·sh·yml): `#` · " ' 문자열 · 파이썬 삼중따옴표.
+    모르는 확장자는 손대지 않는다(전부 코드로 본다)."""
+    ext = ext.lower()
+    if ext in _C_LIKE:
+        line_c, block_c, quotes, triple = "//", ("/*", "*/"), "\"'`", False
+    elif ext in _HASH_LIKE:
+        line_c, block_c, quotes, triple = "#", None, "\"'", ext == ".py"
+    else:
+        return text
+    out = []
+    i, n = 0, len(text)
+    while i < n:
+        ch = text[i]
+        two = text[i:i + 2]
+        three = text[i:i + 3]
+        if two == line_c or (line_c == "#" and ch == "#"):
+            j = text.find("\n", i)
+            if j < 0:
+                j = n
+            i = j                       # 줄바꿈은 아래 일반 갈래가 남긴다
+            continue
+        if block_c and two == block_c[0]:
+            j = text.find(block_c[1], i + 2)
+            j = n if j < 0 else j + 2
+            out.append("\n" * text.count("\n", i, j))
+            i = j
+            continue
+        if triple and three in ('"""', "'''"):
+            j = text.find(three, i + 3)
+            j = n if j < 0 else j + 3
+            out.append("\n" * text.count("\n", i, j))
+            i = j
+            continue
+        if ch in quotes:
+            j = i + 1
+            while j < n and text[j] != ch:
+                if text[j] == "\\":
+                    j += 1
+                elif text[j] == "\n" and ch != "`":
+                    break               # 닫히지 않은 따옴표(주석 안의 아포스트로피 등) — 줄 끝에서 끊는다
+                j += 1
+            j = min(j + 1, n)
+            out.append("\n" * text.count("\n", i, j))
+            i = j
+            continue
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+def code_mentions(path, text, tid):
+    """이 파일이 그 번호를 **코드로** 가리키는가 — 경로에 있으면 참 · 내용은 주석·문자열을 벗기고 본다."""
+    pat = re.compile(r"(?<![A-Za-z0-9])" + re.escape(tid) + r"(?![0-9])")
+    if pat.search(path.rsplit("/", 1)[-1]) or pat.search(path):
+        return True
+    ext = os.path.splitext(path)[1].lower()
+    if ext in _TEXT_ONLY:
+        return False
+    return bool(pat.search(strip_noncode(text, ext)))
+
+
 def footprint(tid):
-    """그 작업 번호가 **코드에** 남긴 자취 — 파일 목록과 «제목이 그 번호로 시작하는» 커밋들."""
+    """그 작업 번호가 **코드에** 남긴 자취 — 파일 목록과 «제목이 그 번호로 시작하는» 커밋들.
+    파일은 «코드 식별자·파일명·폴더명» 으로 가리키는 것만 센다 — 주석·문자열 리터럴·문서 내용은 뺀다(T29)."""
     # 우리가 쓴 것만 본다 — `Assets/` 통째로 훑으면 에셋 팩의 **이진 파일**(.psd 등)이 우연히 걸린다(실측).
-    out = _git(["grep", "-l", "-E", tid + r"([^0-9]|$)", "--",
+    out = _git(["grep", "-l", "-I", "-E", tid + r"([^0-9]|$)", "--",
                 "Assets/Scripts", "Assets/Tests", "tools", "docs/ref"])
-    files = [l for l in out.split("\n") if l]
+    files = []
+    for rel in (l for l in out.split("\n") if l):
+        try:
+            with io.open(os.path.join(ROOT, rel), encoding="utf-8", errors="replace") as f:
+                text = f.read()
+        except OSError:
+            text = ""
+        if code_mentions(rel, text, tid):
+            files.append(rel)
     commits = []
     log = _git(["log", "--format=%h\t%cI\t%s", "-200"])
     pat = re.compile(r"^" + tid + r"(?![\w-])")
@@ -1263,6 +1349,44 @@ def self_test():
                 print("⛔ 자기 검사 실패 — 어긋남 셈: %s → %s (기대 %s)" % (why, got, want))
                 return 1
 
+        # ⓜ T29 — «코드 자취» 는 코드 식별자·파일명·폴더명만 센다. 주석(`//` `///` `/* */` `#` 삼중따옴표)과
+        #    문자열 리터럴(자기 검사 픽스처 "T25.lock" 같은 것)·문서 내용은 자취가 아니다. 순수 함수라 git 없이 잰다.
+        #    ⚠ 번호는 숫자 조립으로 만든다(위 ⓐ 와 같은 까닭 — 이 파일이 제 자기 검사에 걸리지 않게).
+        tn = "T%d" % 9101
+        clean_cases = [
+            ("a.cs", "/// <summary>%s 전투가 쓴다</summary>\nint x = 1;\n" % tn),
+            ("a.cs", "// %s 세이브가 이 값을 읽는다\nvar y = 2;\n" % tn),
+            ("a.cs", "/* 여러 줄\n   %s 가 잇는다\n*/ int z;\n" % tn),
+            ("a.cs", "var s = \"%s.lock\"; var t = '%s';\n" % (tn, tn)),
+            ("a.js", "const note = `%s 가 대조한다`;\n" % tn),
+            ("a.py", "# %s 가 쓴다\nx = 1\n" % tn),
+            ("a.py", "def f():\n    \"\"\"%s 픽스처\"\"\"\n    return {\"%s\": 1}\n" % (tn, tn)),
+            ("a.py", "d = {'%s': 'x'}  # 주석의 아포스트로피 don't\n" % tn),
+            ("a.sh", "echo \"%s 끝\"  # %s\n" % (tn, tn)),
+            ("docs/ref/layout.md", "| %s | 화면 |\n" % tn),
+            ("data/x.json", "{\"%s\": 1}\n" % tn),
+        ]
+        for path, txt in clean_cases:
+            if code_mentions(path, txt, tn):
+                print("⛔ 자기 검사 실패(T29) — 주석·문자열·문서만 가리키는데 «코드 자취» 로 셌다: %s %r" % (path, txt[:50]))
+                return 1
+        dirty_cases = [
+            ("a.cs", "class %sFixer { }\n" % tn),
+            ("a.cs", "// 머리말\nint %s_count = 0;   // 꼬리 주석\n" % tn),
+            ("a.py", "x = 1  # 앞 줄은 주석\n%s = 2\n" % tn),
+            ("a.js", "const s = 'x'; %s();\n" % tn),
+            ("Assets/Scripts/Game/%sWorld.cs" % tn, "int a;\n"),
+            ("tools/%s/run.sh" % tn, "echo hi\n"),
+            ("docs/ref/%s.md" % tn, "글\n"),
+        ]
+        for path, txt in dirty_cases:
+            if not code_mentions(path, txt, tn):
+                print("⛔ 자기 검사 실패(T29) — 코드 식별자·경로가 가리키는데 자취 0 으로 셌다: %s %r" % (path, txt[:50]))
+                return 1
+        # 실물: 이 트리에서 주석 참조만 있는 번호가 있으면(T7·T9·T13 이 그랬다) 그것이 **깨끗**해야 한다 —
+        #   있고 없고는 트리에 달렸으니, 있는 경우에만 잰다(없으면 조용히 지나간다).
+        # (같은 잣대: 번호 하나라도 «주석뿐인 파일» 을 files 에 남기면 위 clean_cases 가 먼저 잡는다.)
+
         print("✓ task_state --self-test: 어긋난 짝을 잡고(T161) · ✅ 를 달면 조용하고 · 빈 번호는 통과하고 ·"
               " 같은 번호 두 제목을 잡고 · «행 없음 ↔ 접힌 행만» 을 가르고 · ⛔ 와 `\\|` 도 읽고 ·"
               " 참고 줄이 마지막 요약에도 실리고(T231) · «⬜ + 살아 있는 lock» 을 잡되 죽은 lock 은 안 잡고(T238) · **미래로 적힌 lock 을 잡되 1분 차에는 안 울고**(T294) · **본문에 ✂ 를 인용한 살아 있는 줄을 접힘으로 안 센다**(T249) · **«낡은 lock 인데 임자는 살아 있다» 를 잡되 «둘 다 낡음»·«아직 살아 있음»·«판단 못 함» 셋에는 안 울고**(T329)"
@@ -1271,7 +1395,7 @@ def self_test():
               " · **«행은 «lock 쥔 채» 라는데 lock 파일이 없다» 를 칸 «머리» 로만 가려 잡고(뒤 이력의 «반납» 에 안 속는다) · ✅·⬜ 표시에는 안 울고, 판정(rc)은 안 바꾼다**(T453)"
               " · **«표에 열린 행은 있는데 §2 에 제목이 없다» 를 잡되 닫힌 행·제목이 있는 행에는 안 울고, 그 참고가 끝줄에도 실리고 rc 는 0 이다**(T466)"
               " · **제목이 그 번호로 시작해도 SID 로 «임자가 아니다» 를 가렸으면 놓고 간 진단으로 세고, 임자 것·임자를 모를 때·제목에 SID 가 없을 때 셋에는 종전대로 안 센다**(T468)"
-              " · **«임자가 살아 있다» 를 그 SID 가 **민** 커밋(제목)으로만 재고, 남의 커밋 몸통에 적힌 그 SID·빈 SID·빈 로그에는 안 속는다**(T481)")
+              " · **«임자가 살아 있다» 를 그 SID 가 **민** 커밋(제목)으로만 재고, 남의 커밋 몸통에 적힌 그 SID·빈 SID·빈 로그에는 안 속는다**(T481) · **«코드 자취» 는 코드 식별자·파일명·폴더명만 세고 주석(`//` `///` `/* */` `#` 삼중따옴표)·문자열 리터럴·문서 내용은 안 센다**(T29)")
         return 0
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

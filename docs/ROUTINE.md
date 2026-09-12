@@ -183,7 +183,7 @@
 - aaawunity §5 방식: 화면마다 «요소 · x% · y% · w% · h%» 표를 원작 샷에서 5% 격자로 판독 → 우리 PNG 와 ±3%p 대조 → 점수. **8.0 미만이면 그 화면의 UI 작업을 «다음 고칠 것» 으로 재등재**.
 - 범위: `docs/ref-layout.md` · `tools/ui_score.py`.
 
-### T29 — `task_state.py` «코드 자취» 오탐: 주석의 미래 참조(`T7 이 쓴다`)를 자취로 세어 T7·T13·T14·T25 선점을 막는다 (도구 · 뒤 순서 없음)
+### T29 ✅ — `task_state.py` «코드 자취» 오탐: 주석의 미래 참조(`T7 이 쓴다`)를 자취로 세어 T7·T13·T14·T25 선점을 막는다 (도구 · 뒤 순서 없음)
 - 실측(2026-09-12 워커 K · 워커 M 결정 11ⓔ 도 같은 것): `Rng.cs`·`Hud.cs` 의 `///` 주석이 «T7 전투 · T13 세이브» 를 앞으로 가리키고, `check_claim_scope.py`·`task_state.py` 의 자기 검사 픽스처 문자열이 T14·T25 를 담아 `task_state.py T7` 등이 rc 1 을 낸다 → 규약대로면 아무도 못 잡는다.
 - 고침: 자취 검사에서 **주석 줄(`//` · `///` · `#` · 문자열 리터럴)과 `tools/` 의 자기 검사 픽스처를 제외**하고 코드 식별자·파일명·폴더명만 센다. 자기 검사(`--self-test`)에 «주석만 가리키는 번호는 깨끗하다» 케이스를 더한다.
 - 범위: `tools/task_state.py`.
@@ -201,6 +201,12 @@
 - Game: `UiIcons.Get(key)` → `Sprite`(아틀라스 슬라이스 · Resources 또는 카탈로그 GUID 참조 · T18 `UiCatalog` 와 같은 길) · `UiKit.Icon(key)` 이 이것을 쓰도록. 키 이름은 원작 문자열 그대로. 아바타 24종은 채팅·리그(T22)가 쓴다.
 - 판정: `node tools/export_icons.js --self-test`(키 523+24 전부 그려짐 · 빈 캔버스 0) + 동기화 검사 초록 + PlayMode(키 전부 `Get` → null 0 · 콘솔 빨강 0) + CI 초록 + PROGRESS 행 + «주인이 확인할 것: 에디터에서 아틀라스를 열어 원작 아이콘 그대로인가».
 - 범위: `tools/export_icons.js` · `tools/check_icons_sync.sh` · `Assets/Forge/Icons/` · `Assets/Scripts/Game/Ui/UiIcons.cs` · `Assets/Scripts/Game/Ui/UiKit.cs`(Icon 한 갈래만) · `.github/workflows/ci.yml`(datasync 잡의 아이콘 검사 한 줄만) · `Assets/Tests/PlayMode/UiIconsTests.cs`.
+
+### T32 — CI concurrency: 긴 런이 도는 동안 뒤 push 의 CI 가 «대기 런 교체» 로 취소돼 워커 커밋이 검증 없이 지나간다 (배포·검증 · 뒤 순서 없음)
+- 실측(2026-09-12 워커 H): 런 8(18:42 시작 · 긴 런)이 도는 동안 런 9(T4)·10(T16)·11(T14) 이 «cancelled». `concurrency.group: ci-${{ github.ref }}` 에 `cancel-in-progress: false` 여도 GitHub 은 같은 그룹의 **대기 중 런을 하나만** 두고 새 런이 오면 옛 대기 런을 취소한다. 그래서 «lock 은 CI 가 그 커밋을 한 번 돈 뒤 반납»(§1) 을 지킬 수 없고, `ntfy-notify.yml` 은 «CI 빨강(cancelled)» 을 쏜다.
+- 고침: ⓐ 빠른 잡(dotnet · datasync · gate)은 push 마다 반드시 돌게 concurrency 를 잡별로 나눈다(예: 빠른 잡은 `ci-fast-${{ github.sha }}` · 긴 잡 unity-test·build-webgl·android 만 `ci-heavy-${{ github.ref }}` 직렬) ⓑ ntfy 자동 갈래는 `conclusion == cancelled` 를 쏘지 않는다.
+- 판정: 연속 push 3개가 전부 dotnet 잡을 실제로 돌린 런 번호를 남긴다 · PROGRESS 행.
+- 범위: `.github/workflows/ci.yml`(concurrency · 잡별 그룹) · `.github/workflows/ntfy-notify.yml`(cancelled 필터).
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
