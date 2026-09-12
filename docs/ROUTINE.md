@@ -250,6 +250,7 @@
 - 방법: T6 `hero_vectors.js`·T4 `voxel_vectors.js` 처럼 `three.min.js`(r128 실물) 위에서 정본 절만 잘라 실행 → 모델(무기 종 × 등장 시대 × 등급 · 투구 스타일 × 시대 · 갑옷 스타일 × 시대)마다 메시 목록 `{parts:[{pos,nor,col|color,mat:{color,emissive,emissiveIntensity,metalness,roughness,opacity,flatShading,map?},matrix}]}` 를 JSON 으로. 유니티 `GearMeshes` 가 그것을 Mesh/Material 로 세우고 `Paperdoll` 훅에 준다(무기 원점 = 파지점 · 자루 = 로컬 +y 규약 유지).
 - 판정: 무기 52종 × 등장 시대 · 투구/갑옷 스타일 전부 예외 0 · PlayMode 로 영웅에 입혀 콘솔 빨강 0 · `screens` 시트로 원작 썸네일(`ui.js` 장비 카드)과 나란히.
 - 범위: `tools/export_gear_meshes.js` · `Assets/StreamingAssets/data/gear-meshes.json`(추출기가 `check_data_sync` 에 들어간다) 또는 `Assets/Forge/Gear/` · `Assets/Scripts/Game/Hero/GearMeshes.cs` · `Assets/Scripts/Game/Hero/Paperdoll.cs`(훅 연결만) · `Assets/Tests/PlayMode/PaperdollTests.cs`.
+- 실측(2026-09-12 워커 T): `makeArmorExtras` 는 정본이 `if (!this.heroRig)`(레거시 몸통) 갈래에서만 부른다 — 박스 리그가 켜진 지금 화면에는 없어 캡처하지 않았다(옷 = `dressMcRig`→`mcArmorParts`). 투구는 ITEM_NAMES 이름 수대로 53(modern 7 · interstellar 6). 캡처는 `gear-meshes.json`(3.1MB · 재질 235 · 칸 목록 103 전역 표 · 지오메트리 변형 421).
 ### T38 ✅ — 지면 셰이더: 정본 `terrainShade`(매크로 변조 uv 6 = 월드 30 · 거리 LOD 14~34 · 눈 수광면 탈색 uSnow · 노면 회랑 uRoad) + `applyShadeLift`(암부 리프트) 를 URP 커스텀 셰이더로 (Game · T34 뒤)
 - 정본: `scene3d.js` `TERRAIN`(scene.json 에 있다 · macro 0.30 · lod 0.45 · lodNear 14 · lodFar 34 · snow 0) · `terrainShade`(3650~3735 · `onBeforeCompile` 의 map_fragment/envmap_fragment 치환) · `applyShadeLift`(1323~) · `setTheme` 의 `uRoad`/`uSnow` 줄. T34 가 알베도·노멀·발광맵을 `Particles/Lit` 에 붙였고 노면 회랑은 T9 가 정점색 배율로 이미 낸다 — 여기서는 매크로·LOD·눈 탈색·암부 리프트 4항을 `Assets/Shaders/Terrain.shader`(URP HLSL · 정점색 · 노멀맵 · 발광맵 · 안개) 에 넣고 `GroundTextures.Apply` 가 그 셰이더로 갈아끼운다.
 - 판정: 유니티 잡에서 셰이더 컴파일 에러 0(콘솔 빨강 0 · `Shader.isSupported`) + PlayMode 테마 25 순회 + «주인이 확인할 것: 사막 리플이 근경~원경에서 같은 벽지로 안 보이고 · 설원 수광면이 백색으로 빠지는가».
@@ -266,7 +267,16 @@
 - 대조: `tools/mount_vectors.js`(T16 `pet_vectors.js` 방식 — 정본을 vm 으로 실제 실행 · mulberry32) → `Assets/Tests/EditMode/Vectors/mount_vectors.json` · EditMode `MountTests`(레벨/needed/prevNeeded 51행 · 태엽 비용 · 소환 배치(보너스 확률·보관 상한·자동 장착은 빈 슬롯일 때만) · 장착 1마리 교체·해제 · 흡수 인덱스 보정 · 기여 Big · 이관 3꼴). T13 세이브 코덱(`mounts`·`activeMounts`·`mountOpens`·`winders`)은 T20 `PetSkillSave` 꼴로 여기서.
 - 범위: `Assets/Scripts/Core/Mounts/` · `Assets/Tests/EditMode/MountTests.cs` · `Assets/Tests/EditMode/Vectors/mount_vectors.json` · `tools/mount_vectors.js`.
 
-- 실측(2026-09-12 워커 T): `makeArmorExtras` 는 정본이 `if (!this.heroRig)`(레거시 몸통) 갈래에서만 부른다 — 박스 리그가 켜진 지금 화면에는 없어 캡처하지 않았다(옷 = `dressMcRig`→`mcArmorParts`). 투구는 ITEM_NAMES 이름 수대로 53(modern 7 · interstellar 6). 캡처는 `gear-meshes.json`(3.1MB · 재질 235 · 칸 목록 103 전역 표 · 지오메트리 변형 421).
+### T41 — 게이트: `catalog.json` 최상위 키 중복 검사 — `gen_ui_catalog --check` 가 같은 최상위 키(`layout`·`colors`…)가 두 번이면 rc 1 · CI dotnet 잡이 그 `--check` 를 부른다(지금은 안 부른다) (검증 · 뒤 순서 없음 · 검수 Q 등재)
+- 왜: CI 런 32 — rebase 충돌 «둘 다 살리기» 로 `"layout": [` 가 둘이 됐는데 파이썬 `json.load` 는 **뒤** 블록을, 유니티 `JsonUtility` 는 **앞** 블록을 읽어 로컬 게이트·dotnet 잡 전부 초록인 채 PlayMode 만 `KeyNotFoundException`(결정 82 는 «grep 으로 본다» 는 손 규칙만 남겼다 — 자로 막는다).
+- 방법: `json.load(..., object_pairs_hook=…)` 로 최상위(그리고 각 항목) 키 중복을 잡아 `✗` + rc 1 · `--self-test` 에 «중복 키 JSON 이면 rc 1» 한 칸 · `.github/workflows/ci.yml` dotnet 잡에 `python3 tools/gen_ui_catalog.py --check` 한 줄(§3 게이트 목록에도).
+- 범위: `tools/gen_ui_catalog.py` · `.github/workflows/ci.yml`(dotnet 잡 한 줄) · `docs/ROUTINE.md` §3 한 줄.
+
+### T42 — 자 수리: `check_claim_scope.undeclared()` 가 «폴더/» 로 적은 범위(`Assets/Scripts/Core/Battle/`)를 못 덮어 살아 있는 lock 마다 «범위에 안 적힌 채 쥔 파일» 오탐을 낸다(T7 폴더 7개 + T20 `Ui/Pet*` 글로브 11개 = 회차마다 18개 · 전부 오탐) — 폴더·글로브 토큰은 접두 매칭 (검증 · 뒤 순서 없음 · 검수 Q 등재)
+- 왜: `undeclared()` 는 파일 줄기(`BattleContext`)가 범위 칸에 **글자로** 있는지만 본다. §2 «범위» 는 폴더로 적는 것이 규약이라 폴더 범위 lock 은 전부 오탐이고, 그 소음에 진짜 «밖 파일» 이 묻힌다(자 스스로 «그것을 매 회차 다시 한다» 고 적어 둔 자리).
+- 방법: 범위 칸의 `…/` 로 끝나는 토큰과 `…*` 글로브 토큰(백틱 안)은 경로 접두로 보고(`Ui/Pet*` 는 `Assets/Scripts/Game/Ui/Pet` 접두) `p.startswith(prefix)` 면 덮은 것으로 · `--selftest` 에 «폴더·글로브 범위는 덮는다 · 밖 파일은 여전히 잡는다» 두 칸.
+- 범위: `tools/check_claim_scope.py`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
