@@ -281,9 +281,12 @@ namespace Forge.Tests.PlayMode
             Assert.GreaterOrEqual(banner.yMin, view.yMin - 0.51f, "«보석» 배너가 보이는 칸 아래로 밀렸다 (배너 " + banner + " · 칸 " + view + ")");
             Assert.LessOrEqual(banner.yMax, view.yMax + 0.51f, "«보석» 배너가 칸 위로 넘쳤다");
 
+            // 정본 표는 젬 상품 4개인데 격자가 3열이라 넷째는 **둘째 줄**이다 — 원작 샷(042632)에서도 그 줄은 탭바 아래라 안 보인다.
+            // 화면 안이어야 하는 것은 첫 줄 셋이다(그것이 T62 가 잡은 «아예 안 보인다» 의 반대말).
             int gems = h.Meta.Shop.GemPacks.Count;
             Assert.Greater(gems, 0, "정본 표에 젬 상품이 없다");
-            for (int i = 0; i < gems; i++)
+            int firstRow = gems < 3 ? gems : 3;
+            for (int i = 0; i < firstRow; i++)
             {
                 Rect card = WorldRect(Find(ShopSheet.Name, "gem-" + i));
                 Assert.Less(card.yMax, view.yMax + 0.51f, "젬 카드 " + i + " 가 칸 위로 넘쳤다");
