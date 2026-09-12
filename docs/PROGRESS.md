@@ -134,6 +134,7 @@
 | T66 | 던전 입장 뒤 스테이지 라벨이 본대 라벨(«쉬움 1-1»)로 되돌아간다(런 90 `DungeonUiTests` 1/4) — **같은 회차에 T55 2회차(9014a39 · 워커 N)가 먼저 고쳤다**(`DungeonRun.Label`) → T66 은 남은 몫만: T7 sim 대조가 던전 라벨을 센다(UI 스텁 `updateStageLabel` 던전 갈래 + `dungeon_tier` 기대 JSON 재생성 + 시나리오 `label` 읽기) | ✅ 완료 | sess-2254-41204 / 워커 P | `tools/sim/sim_combat.js`(UI 스텁 `updateStageLabel` · 시나리오 `kr`·`label`) · `tools/sim/expected/combat_dungeon_tier.json`(재생성 · 다른 둘 diff 0) · `Assets/Tests/EditMode/BattleTests.cs`(`SimScenario.Context` 한 줄) | 임자 없는 빨강으로 등재(§0-6) → N 의 수리와 겹쳐 재범위(결정 152) · Core 파일은 안 만진다(T55 lock 범위) · CI 런 97(e562f5e) dotnet 잡 초록(build · test · 문서 자 전부) → lock 반납 · 처음 T64 로 뽑았으나 O·H 가 T64·T65 를 먼저 밀어 T66 |
 | T67 | 유니티 잡이 모드 하나를 통째로 안 돌린 채 빨강인 것을 아무 자도 말하지 않는다(런 94: EditMode 505 초록 · `playmode-results.xml` 없음 · PNG 0장 · 원인은 라이선스 좌석 반납 실패) | 🔄 진행 | sess-2310-4367 / 워커 M | `.github/workflows/ci.yml` | 뒤 순서 없음 · 워커 M 등재 · 코드·테스트 0줄 |
 | T68 | 오프라인 보상 팝업 머리가 정본의 어두운 판(`#0e111b` · 흰 글자)이 아니라 밝은 회색 판(`pp_panel`)에 검정 글자 · 요율 두 칸이 아이콘 **아래**가 아니라 옆 · 수집 버튼 우상단의 빨간 점 없음 | 🔄 진행 | sess-2336-18715 / 워커 C | `Assets/Scripts/Game/Ui/OfflinePopup.cs` · `Assets/Forge/catalog.json`(어두운 판 색 키 하나 · **T62 lock 이 풀린 뒤**) · `Assets/Tests/PlayMode/UiSmokeTests.cs` | T28 5회차 등재 · 런 95 `offline` 3.7/10 · 정본 `style.css` `.offline-top` 260(평면 `#0e111b` · 헤더 42.8%) · `.offline-rate`(column) · `.offline-collect-dot` 309 · `ui.js` `showOffline` 5890 |
+| T69 | 자: §7 표에 이름이 없는 작업을 잡는다(등재 당시 19개 · T33 완주 판정이 그 위를 지나간다) | ✅ 완료 | sess-2332-30952 / 워커 K | `tools/check_final_table.py` · `docs/ROUTINE.md`(§7 표·머리줄) · `docs/PROGRESS.md` | `unlisted()` 갈래 + §7 «(원작 밖 · 도구·게이트·CI)» 줄 신설 · 빠진 19개를 제 줄에 채움 → 이름이 빠진 작업 **0** · §7 상태 표시 63 → **82** |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 
@@ -642,6 +643,18 @@
 - **플레이 콘솔 에러 0 은 무엇으로 확인했나**: 워크플로 한 파일만 바뀐다(PlayMode 영향 0). 런 94 의 EditMode 는 505/505 초록이었고 PlayMode 는 이 런에서 돌지 않았다 — 그것을 말하게 만든 것이 이 작업이다.
 - **같은 lock 으로 하나 더(런 95 실측)**: 런 95 는 PlayMode 가 정상으로 돌았고(PlayMode 171줄 · PNG 40장) **PlayMode 5 빨강**(`ForgeUiTests` 4 = T57 lock · `ShopUiTests` 1 = T62 lock)이었는데, `playmode-red.txt` 의 **마지막** «== 런 끝» 줄은 나중에 끝난 EditMode 것(«초록 507 · 빨강 0»)이라 꼬리만 읽으면 «빨강 0» 으로 보인다. 그래서 요약 스텝이 **모드별 총계 줄**(`modes-summary.txt`)을 쓰고 배포 스텝이 그것을 `playmode-red.txt` **머리에 항상** 박는다 — 모드 XML 이 없을 때만이 아니라 **매 런**(결정 156).
 - **주인이 확인할 것**: 다음 main 런의 유니티 잡 로그 맨 끝에 «없는 모드 XML «없음»» 알림 한 줄이 보이면 자가 도는 것이다. 좌석 실패가 이어지면(런마다 «Failed to return the Personal license seat») 그것은 코드가 아니라 **유니티 계정 좌석**이 물린 것이다 — id.unity.com 에서 좌석을 풀거나 `game-ci return-license` 를 한 번 돌려야 한다.
+
+### T69 완료 기록 (2026-09-12 · 워커 K · sess-2332-30952)
+
+- **무엇이 문제였나**: `check_final_table.py`(T49)는 §7 «상태» 칸에 **적혀 있는** 번호의 표시만 PROGRESS 와 맞춰 본다 — «PROGRESS 에 있는 작업이 §7 어딘가에 적혀 있는가» 는 아무도 안 봤다. 실측(2026-09-12 23:33): 작업 69개 중 **19개가 §7 에 이름조차 없었다**. §7 은 주인이 정한 «다 옮겨졌다» 의 기준이고 T33 이 «§7 전 줄 ✅» 로 완주를 선언하므로, 빠진 작업은 **열린 채로 완주 선언을 통과한다**(T54 전투 화면·T62 상점·T63 HUD·T65 플레이어 정보·T64 렌더 할당이 그랬다).
+- **자**: `unlisted(routine, progress)` — §7 절 본문(다음 `## ` 앞까지 · 표 밖 메모 줄 포함)에서 `T<번호>` 를 전부 모아, PROGRESS 표의 번호 중 거기 없는 것을 찍고 **rc 1**. `main()` 이 «어긋남» 과 «미등재» 를 따로 보고하고 둘 중 하나라도 있으면 rc 1.
+- **왜 코드 안 예외 목록을 안 만들었나**: 도구·게이트·CI 작업(T29·T41·T42·T46~T49·T51·T67·T69)은 원작 모듈에 안 붙는다. 예외를 코드에 두면 그 목록이 낡아 **같은 구멍이 다시 난다** — 대신 §7 에 «(원작 밖 · 도구·게이트·CI)» 줄을 하나 세워 문서 안에서 이름을 받게 했다(주인 지시 «원작 밖 품질 조건» 줄이 이미 같은 꼴이다 · 결정 160).
+- **채운 자리**: `scene3d.js` 줄 ← T54 · `ui.js` 줄 ← T62·T63·T65·T66·T68 · 품질 줄 ← T50·T64 · 새 도구 줄 ← T29·T36·T41·T42·T46·T47·T48·T49·T51·T67·T69. §7 머리줄에 «반대 방향도 자가 본다» 규약 한 줄.
+- **판정**: `check_final_table.py` **rc 0**(§7 줄 23 · 상태 표시 63 → **82** · 이름이 빠진 작업 **0**) · `--self-test` 초록(미등재 갈래 3칸 추가: 없는 번호 둘을 집는가 · 표 밖 메모 줄도 «적힌 것» 으로 보는가 · §7 절이 통째로 없으면 전부 잡는가).
+- **게이트**: `dotnet build` 0에러 · `dotnet test` **510/510** · `check_final_table`·`--self-test` · `check_docs_intact` · `task_state --check` · `check_task_rows` · `check_decisions` · `gen_meta --check` · `gen_ui_catalog --check` · `check_claim_scope` · `ui_score --self-test` · `check_data_sync.sh`(13파일) · `export_data --self-test` — 전부 rc 0.
+- **플레이 콘솔 에러 0 은 무엇으로 확인했나**: 이 작업은 `tools/`·`docs/` 만 만진다 — 유니티 코드·씬·에셋 변경 0(PlayMode 영향 0).
+- **주인이 확인할 것**: `docs/ROUTINE.md` §7 표 맨 아래 «(원작 밖 · 도구·게이트·CI)» 줄 — 원작에 없는 운영용 작업 11개가 거기 모여 있고, 이제 **§7 에 이름이 없는 작업이 하나라도 생기면 CI 가 말한다**.
+- **다음 사람에게**: 새 작업을 등재하면 §2·PROGRESS 뿐 아니라 **§7 제 줄에도 적는다** — 안 적으면 이 자가 rc 1 을 낸다(CI dotnet 잡은 이 자를 «보고만» 하므로 배포는 안 죽지만, 다음 워커가 그 줄을 먼저 고치게 된다).
 
 ### T44 완료 기록 (2026-09-12 · 워커 H · sess-2058-16344)
 
@@ -1155,3 +1168,4 @@
 157. **`MetaHost.CombatPower` 의 «기본값» 을 살아 있는 전투에서 읽게 바꿨다 — 꽂아 주기를 기다리지 않는다(2026-09-12 · T63 · 워커 J)** — 원래 설계는 «T8 이 훅을 꽂는다» 였는데 T8~T55 를 지나도록 아무도 안 꽂아 상단바·리그·플레이어 정보가 다 `0` 을 보고 있었다(T63 ⓐ). 꽂는 쪽(`BattleScene`)은 지금 **T54·T55 두 lock 이 쥔 파일**이라 건드릴 수도 없다 — 그래서 «꽂히지 않았을 때의 기본값» 자체를 `BattleScene.Instance.Battle.CombatPower()` 로 바꿨다(읽기만 · `MountRider`·`SkillFxScene` 가 이미 쓰는 길). 식은 Core(T7)에 그대로 두고 Game 은 부르기만 한다. 되돌리려면 `MetaHost.LiveCombatPower` 를 지우고 기본값을 `() => Big.Zero` 로 되돌리면 된다.
 158. **채팅 뱃지·두 줄의 치수를 `catalog.json` 이 아니라 기존 `rem` 비율로 냈다(2026-09-12 · T63 · 워커 J)** — §1 은 치수를 카탈로그에 두라 하지만 `Assets/Forge/catalog.json` 은 **T62 의 살아 있는 lock** 이 쥐고 있어 새 키를 넣으면 남의 자리를 밟는다(T65 도 같은 이유로 이 회차에 `catalog.json` 을 피했다 — 선례). 색은 이미 있는 키만 썼고(`pp_red`·`white`·`chat_name`·`chat_ink`·`pp_line`) 치수는 정본 CSS 의 rem 값을 그대로 `rem` 배수로 썼다(`badge .72/1.02 rem` · 오프셋 `.42rem`). T62 가 반납하면 그 네 수를 `layout` 키로 옮기는 것이 다음 회차 몫이다.
 159. **T57 의 «ui_score 8.0» 판정을 눈 확인 + PlayMode 빨강 0 으로 고쳐 적었다(2026-09-12 · T57 · 워커 F)** — 팝업 결함 넷(판 없음·빈 막대·겹침·✕ 둘)을 전부 없앤 런 95 PNG 로 다시 재도 네 화면 평균이 2.88 → 2.96 밖에 안 움직인다. 채점 자는 화면 **전체**(3D 세계·글자 잉크)를 재는데 원작 샷은 `SIMPLE_BG` 이전 캡처라 나무·흙길이 가득하고(클론 배경은 T35 · **주인이 `SIMPLE_BG` 를 끌 때만**) 한글은 T53(주인이 글꼴을 넣어야) 전까지 두부라, **T57 의 범위로는 8.0 에 닿을 수 없다**. 닿을 수 없는 문턱을 판정으로 두면 이 작업이 영원히 안 닫히고 lock 이 남는다 → 판정을 «PNG 눈 확인 + `ForgeUiTests` 빨강 0» 으로 고치고 화면 점수는 T28 이 세계·글꼴과 함께 보게 남겼다(ROUTINE §2 T57 판정 줄). 되돌리려면 그 줄.
+160. **§7 의 «예외» 는 코드가 아니라 문서에 둔다 — 도구 줄을 하나 세웠다(2026-09-12 · T69 · 워커 K)** — «§7 에 이름이 없는 작업» 을 잡으려니 도구·게이트·CI 작업 11개는 원작 모듈에 붙일 줄이 없었다. 코드 안에 «이 번호들은 봐 준다» 목록을 두면 그 목록이 낡아 같은 구멍이 다시 난다(T49 가 막은 것을 T69 가 다시 막게 된 것과 같은 꼴) — 그래서 §7 에 «(원작 밖 · 도구·게이트·CI)» 줄을 세워 **문서 안에서 이름을 받게** 했다. 주인 지시로 이미 «(주인 지시 · 원작 밖 품질 조건)» 줄이 있어 꼴도 같다. 되돌리려면 이 커밋의 §7 새 줄과 `unlisted()`.

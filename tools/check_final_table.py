@@ -87,6 +87,29 @@ def row_claims(work_cell, state_cell):
     return [('T' + n, g) for n, g in RE_PAIR.findall(state)]   # ⓓ — 번호마다 제 표시
 
 
+def final_section(text):
+    """§7 절 본문(다음 `## ` 앞까지) — 표 밖의 머리글·메모 줄도 포함한다."""
+    lines = text.splitlines()
+    start = next((i for i, l in enumerate(lines) if l.startswith('## 7')), None)
+    if start is None:
+        return ''
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith('## ')), len(lines))
+    return '\n'.join(lines[start:end])
+
+
+def unlisted(routine_text, progress_text):
+    """PROGRESS 에는 있는데 §7 절 **어디에도 이름이 없는** 작업 번호 [(번호, 표시)].
+
+    왜 이것이 필요한가: `check()` 는 §7 에 **적혀 있는** 번호만 본다 — 새 작업을 §7 에 안 적으면
+    그 작업은 열린 채로 T33 의 «§7 전 줄 ✅ = 다 옮겨졌다» 판정을 **통과한다**(2026-09-12 실측 17개).
+    원작 모듈에 안 붙는 도구·게이트·CI 작업도 §7 의 «원작 밖» 줄에 적는다 — 코드 안 예외 목록은
+    낡아서 또 같은 구멍을 낸다."""
+    sec = final_section(routine_text)
+    named = set('T' + n for n in RE_TID.findall(sec))
+    out = [(tid, g) for tid, g in progress_states(progress_text).items() if tid not in named]
+    return sorted(out, key=lambda t: int(t[0][1:]))
+
+
 def check(routine_text, progress_text):
     """→ (어긋난 것 목록, 본 칸 수). 어긋남 = (줄번호, 번호, §7 표시, PROGRESS 표시 또는 사유)."""
     states = progress_states(progress_text)
@@ -112,7 +135,14 @@ def main():
     routine = io.open(os.path.join(ROOT, ROUTINE), encoding='utf-8').read()
     progress = io.open(os.path.join(ROOT, PROGRESS), encoding='utf-8').read()
     bad, seen = check(routine, progress)
+    miss = unlisted(routine, progress)
     rows = len(final_rows(routine))
+    if miss:
+        print('✗ check_final_table: §7 표에 **이름이 없는** 작업 %d개 — T33 은 §7 로 «다 옮겨졌다» 를 판정한다(그 위를 지나간다)' % len(miss))
+        for tid, glyph in miss:
+            print('  · %s %s — §7 어느 줄에도 안 적혔다' % (tid, glyph))
+        print('  고침: 그 작업을 §7 의 제 원작 줄(«작업»·«상태» 칸)에 적는다. 원작 모듈에 안 붙는')
+        print('        도구·게이트·CI 작업이면 §7 의 «(원작 밖 · 도구·게이트·CI)» 줄에 적는다.')
     if bad:
         print('✗ check_final_table: §7 대조표가 PROGRESS 와 어긋난다 %d건 — T33 은 이 표로 «다 옮겨졌다» 를 판정한다' % len(bad))
         for lineno, tid, glyph, want in bad:
@@ -121,8 +151,9 @@ def main():
             else:
                 print('  · %s:%d  %s  §7 «%s» — %s' % (ROUTINE, lineno, tid, glyph, want))
         print('  고침: 끝낸 워커가 §7 의 그 칸도 같이 바꾼다(§7 머리줄 규약). 지금 고치려면 PROGRESS 상태에 맞춰 그 글자만.')
+    if bad or miss:
         return 1
-    print('✓ check_final_table: §7 줄 %d · 상태 표시 %d개가 PROGRESS 와 같다' % (rows, seen))
+    print('✓ check_final_table: §7 줄 %d · 상태 표시 %d개가 PROGRESS 와 같다 · 이름이 빠진 작업 0' % (rows, seen))
     return 0
 
 
@@ -173,13 +204,27 @@ def self_test():
         if not any(b[3] == want_reason for b in bad):   # 한 줄이 두 가지로 어긋날 수 있다(«두 표시» 줄이 그렇다)
             print('✗ %s: %r' % (note, bad)); ok = False
 
+    # 미등재 갈래 — §7 에 이름조차 없는 번호를 잡는가
+    R2 = ('## 7. 완결\n\n| 원작 | 무엇 | 작업 | 상태 |\n|---|---|---|---|\n'
+          '| a.js | 전투 | T7 · T8 | ✅ (T7 · T8) |\n'
+          '| b.js | UI | T20 | T20 🔄 |\n')
+    miss = unlisted(R2, P)
+    if [t for t, _ in miss] != ['T35', 'T36']:
+        print('✗ 미등재 갈래: %r (기대 T35 · T36 — §7 에 이름이 없는 둘)' % (miss,)); ok = False
+    if unlisted(R2 + '\n> 도구·게이트: T35 ⬜ · T36 ⛔\n', P):
+        print('✗ 미등재 갈래: 표 밖 메모 줄에 적힌 번호도 «적힌 것»으로 봐야 한다'); ok = False
+    if unlisted(R2.replace('## 7.', '## 6.'), P) == []:
+        print('✗ 미등재 갈래: §7 절이 없으면 전부 미등재로 잡아야 한다'); ok = False
+
     # 진짜 문서로도 한 번 돌려 본다 — 다만 **여기서는 판정하지 않는다**: 남이 §7 을 어긋나게 두면
     # 그것은 «조율 결함»(보고만 하는 main() 의 몫)이지 이 자가 고장 난 것이 아니다. CI 에서
     # 자기 검사 스텝은 막고 대조 스텝은 보고만 하므로, 이 줄이 판정하면 남의 드리프트가 CI 를 막는다.
     routine = io.open(os.path.join(ROOT, ROUTINE), encoding='utf-8').read()
     progress = io.open(os.path.join(ROOT, PROGRESS), encoding='utf-8').read()
     real, seen = check(routine, progress)
-    print('· 지금 §7: 상태 표시 %d개 · 어긋남 %d건%s' % (seen, len(real), '' if not real else ' (자리는 --self-test 없이 돌려 본다)'))
+    real_miss = unlisted(routine, progress)
+    print('· 지금 §7: 상태 표시 %d개 · 어긋남 %d건 · 이름이 빠진 작업 %d개%s'
+          % (seen, len(real), len(real_miss), '' if not (real or real_miss) else ' (자리는 --self-test 없이 돌려 본다)'))
 
     print('✓ check_final_table 자기 검사 통과' if ok else '✗ check_final_table 자기 검사 실패')
     return 0 if ok else 1
