@@ -455,7 +455,7 @@
   - 미리보기 상자가 «□ □□□□ 4-1» 만 있는 빈 회색 상자다. 정본은 `Scene3D.previewStart` 미니 전투 씬(`.pinfo-preview.scene`)이 기본이고, WebGL 이 없을 때만 폴백(🛡️ + 스테이지 라벨 + **웨이브 핍**)이다 — 클론은 폴백조차 핍·🛡️ 가 빠졌다.
 - 무엇을 한다: `PlayerInfoPopup` 이 장비 칸을 **장비 시트와 같은 조각**으로 그리게 하고(수치·색은 카탈로그/데이터에서 · §1) 탈것 와이드 칸 + 세 아이콘 줄을 정본 순서대로 더한다. 미니 씬은 T54(전투 화면에 아무도 안 선다)가 풀린 뒤에 붙이고, 그 전에는 정본 폴백(🛡️ + 라벨 + 핍)을 정확히 낸다.
 - 판정: `ui_score --score` 의 `player-info` 점수가 오르고(2.0 → 8.0 목표) + PNG 눈 확인(장비 칸에 그림이 있다 · 아이콘 줄이 보인다) + PlayMode 빨강 0.
-- 범위: `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
+- 범위: `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Assets/Forge/Resources/PlayerInfoUi.json`(새 · T20 `PetSkillUi.json` 꼴 · `catalog.json` 은 T62 lock 이 쥐고 있어 이 회차엔 안 연다 — T33 이 합칠 수 있다) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
 
 - ✅ 2026-09-12 워커 O(sess-2140-18689): 풀 넷(숫자 TMP 되쓰기 + 알파는 CanvasRenderer · 임팩트 슬롯+재질 조합 풀+세대 토큰 · 파편 P/궤적 Pt/FxAnims 항목) · Core 틱 버퍼 · 자를 계수기 «GC Allocated In Frame» 으로. 실측(런 78~90): 풀은 돈다(숫자 126→글자 오브젝트 24 · 임팩트 슬롯 68) · 전부 ≈1MB 중 **렌더 몫 878KB(81%)** · 렌더 끔 200KB(러너 바닥 107~361KB 포함) → 판정은 `GcNoRenderCap`(640KB) · 렌더 몫은 **T64** 로.
 ### T66 — 던전 입장 뒤 스테이지 라벨이 한 프레임 만에 본대 라벨(«쉬움 1-1»)로 되돌아간다: `DungeonUiTests` 1/4 빨강 (검증·Core · 뒤 순서 없음 · 임자 없는 빨강)
