@@ -12,8 +12,14 @@ T41 — **같은 키가 두 번이면 여기서 막는다.** CI 런 32 가 그 �
   ⓑ 한 배열 안의 **항목 키(`key`) 중복**(`colors`·`layout`·`sprites`…) — 유니티는 `map[e.key] = e.value` 로 **뒤** 것을,
      사람은 대개 **앞** 것을 읽어 조용히 엇갈린다.
 
+T47 — **절의 «모양»** 도 본다(ⓒ). 런 46·54 가 그 자리다: T21 의 «복제 블록 병합» 이 색 항목 79개를 `colors` 가 아니라
+`layout` 배열 안으로 넣어 44개 색(`white`·`muted2`·`pill_potion`…)이 사라졌는데, ⓐ·ⓑ 는 둘 다 안 걸렸다(키가 겹친 것이
+아니라 **다른 절로 옮겨진** 것이다). 유니티는 그것을 `LayoutEntry`(값 0)로 읽고 `UiKit.C` 는 `KeyNotFoundException` —
+로컬 게이트·dotnet 전부 초록인 채 던전·기술트리·승천 화면이 통째로 안 섰다.
+  ⓒ 절마다 항목이 제 칸을 쥐는가: `colors` 는 `hex`(그리고 `value` 를 가지면 안 된다) · `layout` 은 `value` · `sprites` 는 `path`.
+
 사용:  python3 tools/gen_ui_catalog.py [--check|--self-test]
-       (--check: 지금 파일과 같은가 · 다르면 exit 1 · 키 중복도 exit 1)
+       (--check: 지금 파일과 같은가 · 다르면 exit 1 · 키 중복·절 모양 어긋남도 exit 1)
 """
 import json, os, sys, collections
 
@@ -66,6 +72,35 @@ def entry_dups(cat):
     return out
 
 
+# ⓒ 절 이름 → (있어야 하는 칸, 있으면 안 되는 칸들). 여기 없는 절(textKinds·tabs…)은 안 본다.
+SECTION_SHAPE = {
+    'colors': ('hex', ('value', 'path')),
+    'layout': ('value', ('hex', 'path')),
+    'sprites': ('path', ('hex', 'value')),
+}
+
+
+def shape_errors(cat):
+    """ⓒ 항목이 제 절의 칸을 쥐는가 → [(절, 키, 왜)] (순수 함수).
+
+    «색 항목이 layout 절에 들어갔다» 같은 **절 뒤바뀜**을 잡는다 — 키 중복이 아니라서 ⓐ·ⓑ 는 못 본다(T47)."""
+    out = []
+    for sec, (need, forbid) in SECTION_SHAPE.items():
+        val = cat.get(sec)
+        if not isinstance(val, list):
+            continue
+        for e in val:
+            if not isinstance(e, dict) or 'key' not in e:
+                continue
+            wrong = [f for f in forbid if f in e]
+            if wrong:
+                out.append((sec, e['key'], '«%s» 절 항목인데 «%s» 칸을 쥐었다 — 다른 절 것이 섞였다' % (sec, wrong[0])))
+            elif need not in e:
+                out.append((sec, e['key'], '«%s» 절 항목에 «%s» 칸이 없다' % (sec, need)))
+    out.sort()
+    return out
+
+
 def read_catalog(path):
     """catalog.json 을 읽는다 — 키가 겹치면 ✗ 를 찍고 `SystemExit(1)`(rc 1)."""
     rel = os.path.relpath(path, ROOT)
@@ -83,6 +118,15 @@ def read_catalog(path):
         for sec, key, n in dups:
             print('✗ gen_ui_catalog: %s 의 «%s» 절 — 항목 키 «%s» 가 %d 번' % (rel, sec, key, n))
         print('  유니티는 map[e.key] = e.value 로 **뒤** 것을 쥔다 — 겹친 항목을 지워 한 줄로 둬라.')
+        raise SystemExit(1)
+    bad = shape_errors(cat)
+    if bad:
+        for sec, key, why in bad[:8]:
+            print('✗ gen_ui_catalog: %s — 항목 «%s»: %s' % (rel, key, why))
+        if len(bad) > 8:
+            print('  … 그 밖 %d 개(같은 갈래)' % (len(bad) - 8))
+        print('  유니티 JsonUtility 는 절마다 상이 정해져 있다(colors=hex · layout=value) — 엉뚱한 절에 든 항목은')
+        print('  **조용히 값 0 짜리 다른 것**이 되고 원래 절에서는 사라진다(런 46·54 의 DungeonUiTests 4/4 · T47).')
         raise SystemExit(1)
     return cat
 
@@ -192,6 +236,21 @@ def self_test():
         got = entry_dups(cat)
         if got != want:
             print('✗ ⓑ %s: 기대 %r · 받은 %r' % (note, want, got)); ok = False
+
+    # ⓒ 절 모양 — «색 항목이 layout 에 들어갔다»(T47 · 런 46·54).
+    for cat, want, note in [
+        ({'colors': [{'key': 'a', 'hex': '#fff'}], 'layout': [{'key': 'b', 'value': 1}]}, [], '제자리'),
+        ({'layout': [{'key': 'white', 'hex': '#ffffff'}]},
+         [('layout', 'white', '«layout» 절 항목인데 «hex» 칸을 쥐었다 — 다른 절 것이 섞였다')], '색이 layout 에'),
+        ({'colors': [{'key': 'rem_h', 'value': 0.018}]},
+         [('colors', 'rem_h', '«colors» 절 항목인데 «value» 칸을 쥐었다 — 다른 절 것이 섞였다')], '배치가 colors 에'),
+        ({'colors': [{'key': 'a', '_': '주석만'}]},
+         [('colors', 'a', '«colors» 절 항목에 «hex» 칸이 없다')], '칸이 아예 없다'),
+        ({'textKinds': [{'kind': 'Body', 'size': 40}], 'boot': {'stage': '1-1'}}, [], '안 보는 절'),
+    ]:
+        got = shape_errors(cat)
+        if got != want:
+            print('✗ ⓒ %s: 기대 %r · 받은 %r' % (note, want, got)); ok = False
 
     # 진짜 catalog.json 이 이 자를 지나는가(자기 검사가 늘 초록이면 아무것도 지키지 않는다).
     try:
