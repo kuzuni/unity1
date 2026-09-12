@@ -359,9 +359,9 @@ node tools/export_data.js --self-test                                         # 
 | `js/balance-data.js` · `gamedata.js` · `mobdata.js` · `data/raw/*`(안 뽑음 · 결정 6ⓑ) | 수치·정의 표 | T2 → JSON · T3 강타입 | ✅ |
 | `js/bignum.js` · `util.js` | 큰 수 · 표기 · 난수 | T3 | ✅ |
 | `js/voxel.js` · `mobs.js` · `mobs-pets.js` · `mobs-mounts.js` · `mobs-enemies.js` · `mobs-props.js` · `mobs-skillfx.js` | 박스 몹 조립 · 종 표 | T2 · T4 · T5(전 종 세워 보기) | ✅ (T4 · T5) |
-| `js/prochar.js`(2,526) | 영웅 박스 모델 · 무기 파지 · 애니 | T6 | 🔄 |
+| `js/prochar.js`(2,526) | 영웅 박스 모델 · 무기 파지 · 애니 | T6 | ✅ |
 | `js/combat.js` · `state.js`(전투 부분) | 전투 틱 · 웨이브 · 보스 | T7 · T8 | T7 ✅ · T8 ⬜ |
-| `js/scene3d.js`(18,887) · `scene3d-skillfx.js`(1,088) | 3D 세계 전부: 카메라·광원·테마·적 스폰·애니 계약·데미지 숫자·셰이크·파티클·맵·소품·펫 대형·탈것 탑승·스킬 오브젝트·사망 연출·히트 이펙트 | T1(카메라·테마0) · T8 · T9 · T10 · T11 · T12 | T1 ✅ · T9 🔄 · 나머지 ⬜ (쪼개 등재 예상) |
+| `js/scene3d.js`(18,887) · `scene3d-skillfx.js`(1,088) | 3D 세계 전부: 카메라·광원·테마·적 스폰·애니 계약·데미지 숫자·셰이크·파티클·맵·소품·펫 대형·탈것 탑승·스킬 오브젝트·사망 연출·히트 이펙트 | T1(카메라·테마0) · T8 · T9 · T10 · T11 · T12 | T1 ✅ · T9 ✅(SIMPLE_BG 의 보이는 것 · 소재 T34 · 배경 복원 T35) · 나머지 ⬜ (쪼개 등재 예상) |
 | `js/state.js` · `main.js`(저장 시점·부팅) | 세이브 · 마이그레이션 · 오프라인 보상 | T13 | ✅ |
 | `js/forge.js` | 대장간 규칙 · 오토 포지 | T14 · T19 | T14 ✅ · T19 ⬜ |
 | 장비 8부위 · 페이퍼돌(`prochar.js`·`ui.js` 장비) | 등급·서브스탯·판매가·외형 | T15 · T19 | ⬜ |
