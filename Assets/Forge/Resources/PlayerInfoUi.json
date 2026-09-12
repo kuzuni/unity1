@@ -1,0 +1,21 @@
+{
+  "_": "ROUTINE T65 플레이어 정보 팝업(원작 ui.js renderPlayerInfo · css .pinfo-* · .equip-cell · .sk-orb/.sk-lv · shot-043313)의 색·배치·문구표. T62 lock 이 Assets/Forge/catalog.json 을 쥐고 있어 T65 몫만 여기 둔다(T20 PetSkillUi.json 과 같은 꼴 · T33 이 합칠 수 있다) — 코드에 숫자·색·문구를 박지 않는다(§1). 배치 키 접미: _w = 앱 폭 분수 · _h = 앱 높이 분수 · _rem = rem(catalog rem_h) · _f = 비율/분수 · _n = 개수.",
+  "colors": {
+    "preview_top": "#9d8256", "preview_bottom": "#6f5334", "preview_ink": "#ffffff",
+    "pip": "#ffffff66", "pip_done": "#35c04f", "pip_now": "#ffffff",
+    "empty_age": "#6b3538", "empty_ink_alpha": "#ffffff85",
+    "mount_face": "#4fb2ee", "mount_line": "#000000", "mount_sil": "#00000052", "mount_name": "#ffffff",
+    "orb_default": "#cccccc", "sk_lv_bg": "#17181a", "sk_lv_ink": "#ffffff", "count_ink": "#ffffff"
+  },
+  "layout": {
+    "preview_min_h_rem": 7.6, "preview_split_f": 0.55, "preview_pad_x_rem": 0.5, "preview_pad_y_rem": 0.4, "preview_gap_rem": 0.4, "preview_radius_rem": 0.5, "pip_rem": 0.5, "preview_margin_rem": 0.5,
+    "gear_pad_f": 0.0575, "gear_cols_n": 5, "gear_gap_x_f": 0.0294, "gear_gap_y_rem": 0.6, "cell_radius_f": 0.16, "cell_ink_f": 0.76, "cell_ink_lift_f": 0.06,
+    "empty_ink_f": 0.72, "empty_name_y_f": 0.05, "mount_span_n": 2, "mount_sil_f": 0.55, "mount_sil_lift_f": 0.08, "mount_face_f": 0.30, "mount_name_y_f": 0.06, "mount_count_top_rem": 0.12, "mount_count_right_rem": 0.16,
+    "loadout_top_rem": 1.25, "orb_w": 0.0624, "loadout_gap_w": 0.015, "sk_ico_f": 0.90, "sk_face_f": 0.83, "sk_lv_h_rem": 0.8, "sk_lv_pad_rem": 0.25, "sk_lv_drop_rem": 0.15,
+    "subs_top_rem": 1.2
+  },
+  "text": {
+    "shield": "🛡️", "mount_slot": "탈것", "no_loadout": "출전 중인 펫 없음", "no_subs": "보유한 옵션 없음",
+    "lv": "Lv.{0}", "count": "+{0}"
+  }
+}

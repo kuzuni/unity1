@@ -1,16 +1,86 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Forge.Core;
 using Forge.Core.Data;
+using Forge.Core.Forging;
+using Forge.Core.Mounts;
+using Forge.Core.Pets;
+using Forge.Game.Gallery;
 
 namespace Forge.Game.Ui
 {
     /// <summary>
-    /// 플레이어 정보 팝업(ROUTINE T22 · 원작 ui.js openPlayerInfo/renderPlayerInfo · shot-043313): 머리줄(아바타 · 이름 [무소속] · 성별 · 서버 1 · 전투력 | Lv.N 대장간 ⭐ · 총 피해 · 총 체력) ·
-    /// 미니 전투씬 자리(원작 Scene3D.previewStart — T8 이 꽂는다 · 그 전엔 스테이지 라벨 폴백) · 장비 8칸 격자 + 탈것 칸(T15·T11 이 채운다) · 출전 스킬/펫 줄(T17·T16) · 보유 옵션 목록.
-    /// 스탯은 T15 `Forge.heroStats` 자리라 <see cref="MetaHost"/> 의 훅으로 받는다 — 없으면 0.
+    /// T65 플레이어 정보 팝업의 표(<c>Assets/Forge/Resources/PlayerInfoUi.json</c> — 정본 CSS `.pinfo-*`·`.equip-cell`·`.sk-orb` 실측 색·배치·ui.js 문구).
+    /// T62 lock 이 <c>catalog.json</c> 을 쥐고 있어 T65 몫은 이 파일이 든다(T20 <see cref="PetSkillStyle"/> 과 같은 꼴 · T33 이 합칠 수 있다). 코드에 숫자·색·문구를 박지 않는다(§1).
+    /// </summary>
+    public static class PlayerInfoStyle
+    {
+        public const string ResourcePath = "PlayerInfoUi";
+        static JsonObject root, colors, layout, text;
+        static readonly Dictionary<string, Color> colorCache = new Dictionary<string, Color>();
+
+        static void Load()
+        {
+            if (root != null) return;
+            TextAsset ta = Resources.Load<TextAsset>(ResourcePath);
+            if (ta == null) throw new InvalidOperationException("Resources/" + ResourcePath + ".json 이 없다 (T65)");
+            root = MiniJson.ParseObject(ta.text);
+            colors = J.Obj(root["colors"]);
+            layout = J.Obj(root["layout"]);
+            text = J.Obj(root["text"]);
+        }
+
+        public static void Reset() { root = null; colorCache.Clear(); }
+
+        public static Color C(string key)
+        {
+            Load();
+            Color c;
+            if (colorCache.TryGetValue(key, out c)) return c;
+            string hex = J.Str(colors[key]);
+            if (hex == null) throw new KeyNotFoundException("PlayerInfoUi.json 에 색 «" + key + "» 이 없다");
+            if (!ColorUtility.TryParseHtmlString(hex, out c)) throw new FormatException("색 «" + key + "» 의 값 «" + hex + "» 을 못 읽는다");
+            colorCache[key] = c;
+            return c;
+        }
+
+        /// <summary>배치 값 원문(접미 _w · _h · _rem · _f · _n).</summary>
+        public static float L(string key)
+        {
+            Load();
+            object v = layout[key];
+            if (!J.IsNum(v)) throw new KeyNotFoundException("PlayerInfoUi.json 에 배치 값 «" + key + "» 이 없다");
+            return (float)J.Num(v);
+        }
+
+        /// <summary>키 접미에 맞춰 기준 px 로(_w 앱 폭 · _h 앱 높이 · _rem catalog rem).</summary>
+        public static float Px(string key)
+        {
+            float v = L(key);
+            if (key.EndsWith("_w")) return v * UiKit.RefW;
+            if (key.EndsWith("_h")) return v * UiKit.RefH;
+            if (key.EndsWith("_rem")) return v * PopupKit.Rem;
+            return v;
+        }
+
+        public static string T(string key)
+        {
+            Load();
+            string s = J.Str(text[key]);
+            if (s == null) throw new KeyNotFoundException("PlayerInfoUi.json 에 문구 «" + key + "» 이 없다");
+            return s;
+        }
+        public static string T(string key, params object[] args) { return string.Format(T(key), args); }
+    }
+
+    /// <summary>
+    /// 플레이어 정보 팝업(ROUTINE T22 · T65 · 원작 ui.js openPlayerInfo/renderPlayerInfo · shot-043313): 머리줄(아바타 · 이름 [무소속] · 성별 · 서버 1 · 전투력 | Lv.N 대장간 ⭐ · 총 피해 · 총 체력) ·
+    /// 미니 전투씬 자리(원작 Scene3D.previewStart — T8/T54 가 꽂는다 · 그 전엔 정본 폴백 = 🛡️ + 스테이지 라벨 + 웨이브 핍) · 장비 8칸 = **장비 시트와 같은 조각**(정본 `equipCellHTML` · ForgeUi 타일·Lv·★) + 와이드 파란 탈것 칸(`pinfo-mount-wide`) ·
+    /// 출전 줄 = 스킬·펫·탈것 오브(`sk-cell`+`sk-orb`+`sk-lv` · 누르면 각 상세) · 보유 옵션 목록.
+    /// 스탯은 T15 `Forge.heroStats` 자리라 <see cref="MetaHost"/> 의 훅으로 받는다 — 없으면 0. 수치·색·문구는 <see cref="PlayerInfoStyle"/>(T65) 와 catalog(T22).
     /// </summary>
     public static class PlayerInfoPopup
     {
@@ -23,6 +93,20 @@ namespace Forge.Game.Ui
         /// <summary>T8 이 꽂는다 — 프리뷰 상자에 미니 씬을 세운다(true 를 돌려주면 폴백 글자를 안 그린다).</summary>
         public static System.Func<RectTransform, bool> PreviewStart;
         public static System.Action PreviewStop;
+        /// <summary>폴백 핍의 웨이브(원작 `Combat.wave`/`Combat.totalWaves()` · 던전 중이면 핍 없음). T8 전투 씬이 있으면 그것을 읽고, 없으면 (0,0,false).</summary>
+        public static System.Func<WaveInfo> Waves = DefaultWaves;
+
+        public struct WaveInfo { public int Wave, Total; public bool Dungeon; }
+
+        static WaveInfo DefaultWaves()
+        {
+            var w = new WaveInfo();
+            Forge.Game.Battle.BattleScene bs = Forge.Game.Battle.BattleScene.Instance;
+            if (bs == null || bs.Battle == null) return w;
+            w.Wave = bs.Battle.Wave; w.Total = bs.Battle.TotalWaves();
+            w.Dungeon = bs.Battle.Context != null && bs.Battle.Context.Dungeon != null;
+            return w;
+        }
 
         public static void Open(MetaHost h)
         {
@@ -48,7 +132,7 @@ namespace Forge.Game.Ui
             float inner = cardW - PopupKit.Line3 * 2f;
             float lineH = PopupKit.FontSize(TextKind.Sub) * 1.25f;
 
-            // ---- 머리줄 ----
+            // ---- 머리줄(.pinfo-header) ----
             float y = pad;
             float av = UiKit.H("pinfo_avatar");
             float hx = pad + w * 0.0224f;
@@ -75,66 +159,259 @@ namespace Forge.Game.Ui
             UiKit.Place(r2.rectTransform, rx, y + lineH, rw, lineH);
             TextMeshProUGUI r3 = UiKit.Text(card, "hp", TextKind.Sub, PopupKit.Fmt(hp) + " 총 체력", "pp_ink", TextAlignmentOptions.Right);
             UiKit.Place(r3.rectTransform, rx, y + lineH * 2f, rw, lineH);
-            y += Mathf.Max(av, lineH * 3f) + rem * 0.5f;
+            y += Mathf.Max(av, lineH * 3f) + PlayerInfoStyle.Px("preview_margin_rem");
 
-            // ---- 미니 씬 프리뷰 자리 ----
-            float pvH = UiKit.L("pinfo_preview_h") * H;
+            // ---- 미니 씬 프리뷰(.pinfo-preview) — 미니 씬이 못 서면 정본 폴백: 🛡️ + 스테이지 라벨 + 웨이브 핍 ----
+            float pvH = Mathf.Max(UiKit.L("pinfo_preview_h") * H, PlayerInfoStyle.Px("preview_min_h_rem"));
             RectTransform preview = UiKit.Box(card, "preview");
             UiKit.Place(preview, pad, y, inner - pad * 2f, pvH);
-            PopupKit.Outlined(preview, "face", "pp_panel", rem * 0.5f, PopupKit.Line);
             bool scene = PreviewStart != null && PreviewStart(preview);
-            if (!scene)
-            {
-                TextMeshProUGUI st = UiKit.Text(preview, "stage", TextKind.Sub, "🛡 " + h.S.StageName(SaveIo.Defs), "pp_ink");
-                st.fontStyle = FontStyles.Bold;
-            }
-            y += pvH + rem * 0.5f;
+            if (!scene) Fallback(preview, h, inner - pad * 2f, pvH);
+            y += pvH + PlayerInfoStyle.Px("preview_margin_rem");
 
-            // ---- 장비 8칸 + 탈것 ----
+            // ---- 장비 격자(.equip-grid.pinfo-gear): 5열 · 8칸 + 와이드 탈것 2칸 ----
             string[] slots = SaveIo.Data != null && SaveIo.Data.Defs != null && SaveIo.Data.Defs.Slots != null ? SaveIo.Data.Defs.Slots : new string[0];
-            int cols = 4;
-            float gx = pad + inner * 0.0575f;
-            float gw = inner - gx * 2f;
-            float gap = rem * 0.3f;
-            float cell = (gw - gap * (cols - 1)) / cols;
-            JsonObject equipment = h.S.Equipment;
-            for (int i = 0; i < slots.Length; i++)
+            int cols = (int)PlayerInfoStyle.L("gear_cols_n");
+            int span = (int)PlayerInfoStyle.L("mount_span_n");
+            float gx = PopupKit.Line3 + inner * PlayerInfoStyle.L("gear_pad_f");
+            float gw = inner - (gx - PopupKit.Line3) * 2f;
+            float gapX = gw * PlayerInfoStyle.L("gear_gap_x_f"), gapY = PlayerInfoStyle.Px("gear_gap_y_rem");
+            float cell = (gw - gapX * (cols - 1)) / cols;
+            ForgeHost fh = ForgeHost.Instance;
+            int k = 0;
+            for (int i = 0; i < slots.Length; i++, k++)
             {
-                RectTransform c = UiKit.Box(card, "slot-" + slots[i]);
-                UiKit.Place(c, gx + (i % cols) * (cell + gap), y + (i / cols) * (cell + gap), cell, cell);
-                PopupKit.Outlined(c, "face", "pp_panel", rem * 0.4f, PopupKit.Line);
-                object item = equipment != null ? equipment[slots[i]] : null;
-                JsonObject it = J.Obj(item);
-                string label = it != null ? J.Str(it["name"], slots[i]) : slots[i];
-                TextMeshProUGUI t = UiKit.Text(c, "label", TextKind.Sub, label, it != null ? "pp_ink" : "pp_muted");
-                t.fontStyle = FontStyles.Bold;
-                t.textWrappingMode = TextWrappingModes.Normal;
-                if (it != null && it.Has("level"))
-                {
-                    TextMeshProUGUI lv = UiKit.Text(c, "lv", TextKind.Sub, "Lv." + J.Int(it["level"]), "pp_ink", TextAlignmentOptions.Right);
-                    UiKit.Anchor(lv.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-rem * 0.2f, rem * 0.1f), cell * 0.6f, lineH);
-                }
+                RectTransform c = EquipCell(card, fh, slots[i], cell);
+                UiKit.Place(c, gx + (k % cols) * (cell + gapX), y + (k / cols) * (cell + gapY), cell, cell);
             }
-            int rows = (slots.Length + cols - 1) / cols;
-            y += rows * (cell + gap) + rem * 1.25f;
+            // 원본(043313): 장비 2행 우측 와이드 파란 탈것 카드(grid-column: span 2)
+            if ((k % cols) + span > cols) k += cols - (k % cols);
+            float wideW = cell * span + gapX * (span - 1);
+            RectTransform mc = MountWide(card, h, wideW, cell);
+            UiKit.Place(mc, gx + (k % cols) * (cell + gapX), y + (k / cols) * (cell + gapY), wideW, cell);
+            k += span;
+            int rows = (k + cols - 1) / cols;
+            y += rows * cell + (rows - 1) * gapY + PlayerInfoStyle.Px("loadout_top_rem");
 
-            // ---- 출전 줄 ----
-            List<object> pets = h.S.ActivePets;
-            List<object> skills = h.S.EquippedSkills;
-            int n = (pets != null ? pets.Count : 0) + (skills != null ? skills.Count : 0);
-            TextMeshProUGUI lo = UiKit.Text(card, "loadout", TextKind.Sub, n > 0 ? "출전 " + n + " (스킬 " + (skills != null ? skills.Count : 0) + " · 펫 " + (pets != null ? pets.Count : 0) + ")" : "출전 중인 펫 없음", "pp_muted", TextAlignmentOptions.Left);
-            UiKit.Place(lo.rectTransform, gx, y, gw, lineH);
-            y += lineH + rem * 0.5f;
+            // ---- 출전 줄(.pinfo-loadout-row): 스킬 오브 · 펫 오브 · 탈것 오브 — 없으면 «출전 중인 펫 없음» ----
+            float orb = PlayerInfoStyle.Px("orb_w"), lgap = PlayerInfoStyle.Px("loadout_gap_w");
+            RectTransform row = UiKit.Box(card, "loadout");
+            UiKit.Place(row, gx, y, gw, orb + PlayerInfoStyle.Px("sk_lv_drop_rem"));
+            int n = Loadout(row, h, orb, lgap);
+            if (n == 0)
+            {
+                TextMeshProUGUI lo = UiKit.Text(row, "none", TextKind.Sub, PlayerInfoStyle.T("no_loadout"), "pp_muted", TextAlignmentOptions.Left);
+                UiKit.Place(lo.rectTransform, 0f, 0f, gw, lineH);
+            }
+            y += orb + PlayerInfoStyle.Px("subs_top_rem");
 
-            // ---- 보유 옵션 ----
+            // ---- 보유 옵션(.pinfo-subs-list) ----
             List<string> subs = SubLines != null ? SubLines() : null;
             RectTransform subsBox = UiKit.Box(card, "subs");
             UiKit.Place(subsBox, gx, y, gw, Mathf.Max(lineH, cardH - y - pad - rem * 1.5f));
             RectTransform subsList = PopupKit.ScrollList(subsBox, "list", rem * 0.1f, 0f, 0f, TextAnchor.UpperLeft);
-            if (subs == null || subs.Count == 0) PopupKit.Label(subsList, "none", TextKind.Sub, "보유한 옵션 없음", "pp_muted", TextAlignmentOptions.Left);
+            if (subs == null || subs.Count == 0) PopupKit.Label(subsList, "none", TextKind.Sub, PlayerInfoStyle.T("no_subs"), "pp_muted", TextAlignmentOptions.Left);
             else foreach (string s in subs) PopupKit.Label(subsList, "sub", TextKind.Sub, s, "pp_ink", TextAlignmentOptions.Left);
 
             PopupKit.XButton(card, () => Close(h));
+        }
+
+        /// <summary>정본 폴백 `.pinfo-preview`: 마른 흙 두 톤(55%) · 검정 테 · 🛡️ · 스테이지 라벨 · 웨이브 핍(던전 중이면 없음).</summary>
+        static void Fallback(RectTransform preview, MetaHost h, float w, float hgt)
+        {
+            float rem = PopupKit.Rem;
+            float radius = PlayerInfoStyle.Px("preview_radius_rem");
+            UiKit.Rounded(preview, "line", "pp_line", radius);
+            RectTransform faceRt = UiKit.Box(preview, "face");
+            PopupKit.Inset(faceRt, PopupKit.Line);
+            float split = PlayerInfoStyle.L("preview_split_f");
+            Image top = UiKit.Rounded(faceRt, "top", "pp_paper", Mathf.Max(1f, radius - PopupKit.Line));
+            top.color = PlayerInfoStyle.C("preview_top");
+            UiKit.Band(top.rectTransform, 0f, split);
+            Image bottom = UiKit.Rounded(faceRt, "bottom", "pp_paper", Mathf.Max(1f, radius - PopupKit.Line));
+            bottom.color = PlayerInfoStyle.C("preview_bottom");
+            UiKit.Band(bottom.rectTransform, split, 1f);
+            float px = PlayerInfoStyle.Px("preview_pad_x_rem"), gap = PlayerInfoStyle.Px("preview_gap_rem");
+            float lh = PopupKit.FontSize(TextKind.Sub) * 1.3f;
+            float cy = (hgt - lh) * 0.5f;
+            float x = px;
+            TextMeshProUGUI sh = UiKit.Text(preview, "shield", TextKind.Sub, PlayerInfoStyle.T("shield"), "stage_ink", TextAlignmentOptions.Left);
+            UiKit.Place(sh.rectTransform, x, cy, lh, lh);
+            x += lh + gap;
+            string label = h.S.StageName(SaveIo.Defs);
+            TextMeshProUGUI st = UiKit.Text(preview, "stage", TextKind.Sub, label, "stage_ink", TextAlignmentOptions.Left);
+            st.fontStyle = FontStyles.Bold;
+            float stW = Mathf.Min(w - x - px, PetSkillKit.TextWidth(TextKind.Sub, label) + rem * 0.2f);
+            UiKit.Place(st.rectTransform, x, cy, stW, lh);
+            x += stW + gap;
+            WaveInfo wi = Waves != null ? Waves() : new WaveInfo();
+            if (!wi.Dungeon && wi.Total > 0)
+            {
+                float pip = PlayerInfoStyle.Px("pip_rem");
+                for (int i = 1; i <= wi.Total && x + pip <= w - px; i++)
+                {
+                    Image d = UiKit.Circle(preview, "pip-" + i, "stage_ink");
+                    d.color = i < wi.Wave ? PlayerInfoStyle.C("pip_done") : i == wi.Wave ? PlayerInfoStyle.C("pip_now") : PlayerInfoStyle.C("pip");
+                    d.raycastTarget = false;
+                    UiKit.Place(d.rectTransform, x, (hgt - pip) * 0.5f, pip, pip);
+                    x += pip + gap;
+                }
+            }
+        }
+
+        /// <summary>정본 `equipCellHTML(slot)` — 장비 시트(T19 `ForgeSheet.EquipCell`)와 같은 ForgeUi 조각(시대색 타일 · 아이콘 · Lv · ★ · 누르면 세부정보). 대장간 호스트가 없으면 빈 칸.</summary>
+        static RectTransform EquipCell(Transform parent, ForgeHost fh, string slot, float size)
+        {
+            GameDefs d = fh != null ? fh.Defs : (SaveIo.Data != null ? SaveIo.Data.Defs : null);
+            ForgeItem it = fh != null && fh.Gear != null ? fh.Gear.Get(slot) : null;
+            RectTransform rt = UiKit.Box(parent, "slot-" + slot);
+            float radius = size * PlayerInfoStyle.L("cell_radius_f");
+            if (it == null)
+            {
+                Color ea = PlayerInfoStyle.C("empty_age");
+                ForgeUi.Tile(rt, "frame", ForgeUi.CellFace(ea), ForgeUi.CellLine(ea), radius, PopupKit.Line3);
+                Image ico = PopupKit.IconOr(rt, "img", ForgeUi.SlotIconKey(slot));
+                ico.color = PlayerInfoStyle.C("empty_ink_alpha");
+                ico.raycastTarget = false;
+                float ek = size * PlayerInfoStyle.L("empty_ink_f");
+                UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, size * PlayerInfoStyle.L("cell_ink_lift_f")), ek, ek);
+                string kr = d != null && d.SlotKr != null ? d.SlotKr.Get(slot, slot) : slot;
+                TextMeshProUGUI nm = UiKit.Text(rt, "slot-name", TextKind.Sub, kr, "pp_muted");
+                nm.fontStyle = FontStyles.Bold;
+                UiKit.Anchor(nm.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, size * PlayerInfoStyle.L("empty_name_y_f")), size, nm.fontSize * 1.2f);
+                return rt;
+            }
+            Color ac = ForgeUi.AgeColor(d, it.Age);
+            Image f = ForgeUi.Tile(rt, "frame", ForgeUi.CellFace(ac), ForgeUi.CellLine(ac), radius, PopupKit.Line3);
+            Image img = PopupKit.IconOr(rt, "img", ForgeUi.ItemIconKey(d, it));
+            img.raycastTarget = false;
+            float kk = size * PlayerInfoStyle.L("cell_ink_f");
+            UiKit.Anchor(img.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, size * PlayerInfoStyle.L("cell_ink_lift_f")), kk, kk);
+            ForgeUi.LvBadge(rt, it.Level, size);
+            ForgeUi.StarBadge(rt, it.Stars, size);
+            Button b = rt.gameObject.AddComponent<Button>();
+            b.targetGraphic = f;
+            string s = slot;
+            b.onClick.AddListener(() => { if (fh != null) GearDetailPopup.Open(fh, s); });   // 원작: 세부정보가 플레이어 정보 위에 겹쳐 뜬다
+            return rt;
+        }
+
+        /// <summary>정본 `.equip-cell.egg-cell.pinfo-mount-wide` — 탑승 탈것 얼굴 + Lv + 여분 «+N» · 빈 상태는 실루엣 + «탈것» · 누르면 탈것 시트(`UI.openMounts`).</summary>
+        static RectTransform MountWide(Transform parent, MetaHost h, float w, float hgt)
+        {
+            RectTransform rt = UiKit.Box(parent, "egg-cell");
+            Image f = ForgeUi.Tile(rt, "frame", PlayerInfoStyle.C("mount_face"), PlayerInfoStyle.C("mount_line"), hgt * PlayerInfoStyle.L("cell_radius_f"), PopupKit.Line3);
+            PetSkillHost ph = PetSkillHost.Instance;
+            MountSystem ms = ph != null ? ph.Mounts : null;
+            Mount am = ms != null ? ms.RiddenInst() : null;
+            GameDefs d = SaveIo.Data != null ? SaveIo.Data.Defs : null;
+            if (am != null && d != null)
+            {
+                float fs = w * PlayerInfoStyle.L("mount_face_f");
+                RectTransform face = PetSkillKit.PetFace(rt, d, am.Name, fs, GalleryKind.Mounts);
+                UiKit.Anchor(face, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, hgt * PlayerInfoStyle.L("mount_sil_lift_f")), fs, fs);
+                ForgeUi.LvBadge(rt, am.Level, hgt);
+                int extra = Math.Max(0, (ms.State != null && ms.State.ActiveMounts != null ? ms.State.ActiveMounts.Count : 0) - 1);
+                if (extra > 0)
+                {
+                    TextMeshProUGUI cnt = UiKit.Text(rt, "cell-count", TextKind.Sub, PlayerInfoStyle.T("count", extra), "stage_ink", TextAlignmentOptions.Right);
+                    cnt.fontStyle = FontStyles.Bold;
+                    PopupKit.Ring(cnt, "pp_line", 0.2f);
+                    UiKit.Anchor(cnt.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-PlayerInfoStyle.Px("mount_count_right_rem"), -PlayerInfoStyle.Px("mount_count_top_rem")), w * 0.5f, cnt.fontSize * 1.2f);
+                }
+            }
+            else
+            {
+                Image sil = PopupKit.IconOr(rt, "mount-sil", "horse");
+                sil.color = PlayerInfoStyle.C("mount_sil");
+                sil.raycastTarget = false;
+                float sk = hgt * PlayerInfoStyle.L("mount_sil_f");
+                UiKit.Anchor(sil.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, hgt * PlayerInfoStyle.L("mount_sil_lift_f")), sk, sk);
+                TextMeshProUGUI nm = UiKit.Text(rt, "slot-name", TextKind.Sub, PlayerInfoStyle.T("mount_slot"), "stage_ink");
+                nm.fontStyle = FontStyles.Bold;
+                PopupKit.Ring(nm, "pp_line", 0.2f);
+                UiKit.Anchor(nm.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, hgt * PlayerInfoStyle.L("mount_name_y_f")), w, nm.fontSize * 1.2f);
+            }
+            Button b = rt.gameObject.AddComponent<Button>();
+            b.targetGraphic = f;
+            b.onClick.AddListener(() => MountSheet.Open());
+            return rt;
+        }
+
+        /// <summary>정본 출전 줄: 장착 스킬 오브(등급색 면 · `sk_<id>` 아이콘 · Lv 알약) → 출전 펫 오브(얼굴) → 장착 탈것 오브(얼굴). 반환 = 칸 수.</summary>
+        static int Loadout(RectTransform row, MetaHost h, float orb, float gap)
+        {
+            PetSkillHost ph = PetSkillHost.Instance;
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            GameDefs d = SaveIo.Data != null ? SaveIo.Data.Defs : null;
+            float x = 0f; int n = 0;
+            List<object> skills = h.S.EquippedSkills;
+            if (skills != null && d != null)
+            {
+                foreach (object o in skills)
+                {
+                    string id = J.Str(o);
+                    SkillDef def = id != null ? d.Skill(id) : null;
+                    if (def == null) continue;
+                    int lv = ph != null && ph.Skills != null ? ph.Skills.Level(id) : 0;
+                    RectTransform cellRt = OrbCell(row, "sk-cell-" + id, x, orb, PetSkillStyle.Rarity(d, def.Rarity), lv, () => { if (sheet != null && sheet.Skills != null) sheet.Skills.OpenSkillDetail(id); });
+                    Image ico = PopupKit.IconOr(cellRt.Find("sk-orb"), "ico", "sk_" + id);
+                    ico.raycastTarget = false;
+                    float ik = orb * PlayerInfoStyle.L("sk_ico_f");
+                    UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, ik, ik);
+                    x += orb + gap; n++;
+                }
+            }
+            PetState ps = ph != null && ph.Pets != null ? ph.Pets.State : null;
+            if (ps != null && ps.ActivePets != null && d != null)
+            {
+                foreach (int i in ps.ActivePets)
+                {
+                    if (i < 0 || i >= ps.Pets.Count) continue;
+                    Pet pet = ps.Pets[i];
+                    int idx = i;
+                    RectTransform cellRt = OrbCell(row, "sk-cell-pet-" + i, x, orb, PlayerInfoStyle.C("orb_default"), pet.Level, () => { if (sheet != null && sheet.Pets != null) sheet.Pets.OpenPetDetail(idx); });
+                    float fk = orb * PlayerInfoStyle.L("sk_face_f");
+                    RectTransform face = PetSkillKit.PetFace(cellRt.Find("sk-orb"), d, pet.Name, fk, GalleryKind.Pets);
+                    UiKit.Anchor(face, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, fk, fk);
+                    x += orb + gap; n++;
+                }
+            }
+            MountState mst = ph != null && ph.Mounts != null ? ph.Mounts.State : null;
+            if (mst != null && mst.ActiveMounts != null && d != null)
+            {
+                foreach (int i in mst.ActiveMounts)
+                {
+                    if (i < 0 || i >= mst.Mounts.Count) continue;
+                    Mount m = mst.Mounts[i];
+                    int idx = i;
+                    RectTransform cellRt = OrbCell(row, "sk-cell-mount-" + i, x, orb, PlayerInfoStyle.C("orb_default"), m.Level, () => { if (sheet != null) MountUpgradePopup.Open(sheet, idx); });
+                    float fk = orb * PlayerInfoStyle.L("sk_face_f");
+                    RectTransform face = PetSkillKit.PetFace(cellRt.Find("sk-orb"), d, m.Name, fk, GalleryKind.Mounts);
+                    UiKit.Anchor(face, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, fk, fk);
+                    x += orb + gap; n++;
+                }
+            }
+            return n;
+        }
+
+        /// <summary>`.sk-cell` + `.sk-orb`(등급색 납작 면 + 검정 키라인) + `.sk-lv`(검정 알약 · 흰 글자 · 오브 아래 −.15rem).</summary>
+        static RectTransform OrbCell(RectTransform row, string name, float x, float orb, Color fill, int level, UnityEngine.Events.UnityAction onClick)
+        {
+            Button b = UiKit.Button(row, name, onClick);
+            RectTransform cell = b.GetComponent<RectTransform>();
+            UiKit.Place(cell, x, 0f, orb, orb + PlayerInfoStyle.Px("sk_lv_drop_rem"));
+            RectTransform orbRt = PetSkillKit.Orb(cell, "sk-orb", fill, PetSkillKit.Line3);
+            UiKit.Place(orbRt, 0f, 0f, orb, orb);
+            float lh = PlayerInfoStyle.Px("sk_lv_h_rem");
+            string txt = PlayerInfoStyle.T("lv", level);
+            float lw = Mathf.Min(orb * 1.1f, PetSkillKit.TextWidth(TextKind.Sub, txt) + PlayerInfoStyle.Px("sk_lv_pad_rem") * 2f);
+            RectTransform lv = UiKit.Box(cell, "sk-lv");
+            PetSkillKit.Fill(lv, "bg", PlayerInfoStyle.C("sk_lv_bg"), lh * 0.5f);
+            TextMeshProUGUI t = PetSkillKit.Text(lv, "t", TextKind.Sub, txt, PlayerInfoStyle.C("sk_lv_ink"));
+            UiKit.Fill(t.rectTransform);
+            UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, lw, lh);   // 칸 바닥 = 오브 바닥 − .15rem(정본 bottom:-.15rem)
+            return cell;
         }
     }
 }
