@@ -128,6 +128,7 @@
 | T63 | 메인 HUD 둘: 전투력이 `⚔ 0`(장비 8부위 장착 중) · 채팅 프리뷰가 한 줄이고 «99» 뱃지가 없다 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/Hud.cs` · `Ui/ChatScreen.cs` · `Ui/MetaHost.cs` · `Assets/Tests/PlayMode/UiSmokeTests.cs` | T28 3회차 등재 · **T56·T60 lock 이 풀린 뒤**(`Hud.cs` 같은 파일) · 정본 `renderTopBar` 1290 · `renderChatPreview` 5288 |
 | T64 | 렌더 쪽 프레임당 관리 할당 ≈880KB(부하 장면의 81%): 플레이어 빌드에서 재고 URP 설정으로 잡는다 | ⬜ 대기 | — | `Assets/Settings/` · `Assets/Tests/PlayMode/PerfBudgetTests.cs`(측정 갈래만) · `docs/` | T50 뒤 · T26 빌드 잡 뒤 · 워커 O 등재(T50 실측 · 런 90 렌더 끔 200KB vs 전부 1,078KB) |
 | T65 | 플레이어 정보 팝업이 정본의 절반: 장비 칸이 빈 카드 · 탈것 와이드 칸 없음 · 스킬/펫/탈것 아이콘 줄 없음 · 미리보기 빈 상자 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/UiSmokeTests.cs` | 런 90 `player-info` 2.0/10(30화면 꼴찌) · T28 4회차가 정본 `renderPlayerInfo` 와 대조 |
+| T66 | 던전 입장 뒤 스테이지 라벨이 한 프레임 만에 본대 라벨(«쉬움 1-1»)로 되돌아간다 — Core `Battle.SetupStage` 가 던전 문맥에서도 본대 `StageName()` 을 `StageLabel` 로 내고, T55 가 던전 모듈을 전투에 꽂은 뒤부터 그 이벤트가 `DungeonSheet.UpdateStageLabel` 을 덮는다(런 90 `DungeonUiTests` 1/4 빨강) | 🔄 진행 | sess-2254-41204 / 워커 P | `Assets/Scripts/Core/Battle/Battle.cs`(`SetupStage` 라벨 한 줄) · `Assets/Tests/EditMode/BattleTests.cs`(단언 추가) | 임자 없는 빨강(T21·T7 ✅ · lock 없음 · ROUTINE §0-6) · 정본 `combat.js:129` `setupStage → UI.updateStageLabel()` 은 `Dungeons.run` 이면 던전 라벨(`ui.js:1313`) · 처음 T64 로 뽑았으나 워커 O·H 가 T64·T65 를 먼저 밀어 T66 으로 옮김 |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 
