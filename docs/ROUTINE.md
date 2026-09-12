@@ -394,7 +394,7 @@
 - 실측(2026-09-12 · T28 2회차 · 워커 M · 런 78 PNG): `screen_forge-detail.png` **1.8/10** — 원작(`shot-042931`)은 딤 위 **흰 카드 한 장**에 아이템 + 서브옵션 12줄인데, 클론은 목록 격자와 상세 글자가 **같은 자리에 겹쳐** 읽을 수 없고 ✕ 가 위아래로 둘이다. `screen_craft-compare.png` **3.1/10** — 비교 카드 둘 중 **두 번째 카드에 판이 없어** «35.6m …»·«+30% …» 가 3D 배경과 장비 격자 위에 떠 있다. `screen_gear-detail.png` **2.7/10** · `screen_autoforge-filter.png` **3.7/10** — 카드 위에 **속 빈 검은 막대 + 흰 막대**가 하나씩 떠 있다(원작에 없는 자리).
 - 참고(오판 방지): 장비 상세가 **딤 없이** 격자 위에 뜨는 것 자체는 원작 그대로다(`shot-043244` 실측) — 문제는 «판이 없다 · 글자가 겹친다 · 빈 막대가 뜬다 · ✕ 가 둘» 이다.
 - 무엇을 한다: 원작 `ui.js` 의 해당 팝업(`openGearDetail`·`showCraftCompare`·`openForgeDetail`·자동 제련 필터)이 **카드 한 장**을 먼저 세우고 그 안에 줄을 놓는 순서를 그대로 옮긴다. 빈 막대의 정체(폭 0 배치·라벨 없는 pill)를 찾아 없앤다. ✕ 는 화면당 하나.
-- 판정: `ui_score.py --score` 에서 네 화면이 **8.0 이상** + 워커가 PNG 를 `Read` 로 열어 «글자 겹침 0 · 빈 막대 0 · ✕ 하나» 를 확인 + PlayMode 빨강 0.
+- 판정(2026-09-12 워커 F 가 실측으로 고쳐 적었다 · 결정 159): 워커가 PNG 를 `Read` 로 열어 «판 있음 · 글자 겹침 0 · 빈 막대 0 · ✕ 하나» + `ForgeUiTests` PlayMode 빨강 0. **`ui_score` 8.0 은 이 작업의 판정이 아니다** — 채점 자는 화면 전체(3D 세계·글자 잉크)를 재고, 원작 샷은 `SIMPLE_BG` 이전 캡처라 나무·흙길이 가득한데 클론 배경은 T35(주인이 `SIMPLE_BG` 를 끌 때만)라 비어 있고 한글은 T53(주인 글꼴) 전까지 두부다. 그 둘이 팝업보다 점수를 크게 움직인다(런 95 실측: 팝업 결함 넷을 다 없앴는데 평균 2.88 → 2.96). 화면 점수는 T28 이 그 둘과 함께 본다.
 - 범위: `Assets/Scripts/Game/Ui/Forge*`(ForgeInfoPopup · ForgeCraftPopup · ForgeAutoPopup · ForgeUi) · `Ui/Gear*` · `Assets/Tests/PlayMode/ForgeUiTests.cs`.
 
 ### T58 — 리그 도전·펫 업그레이드 팝업이 판 없이 부모 목록 위에 겹친다 (Game·UI · T20 lock 이 풀린 뒤 · T22 뒤 · T28 2회차가 눈으로 잡음)
@@ -612,7 +612,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 🔄 · T53 ⬜ · T56 🔄 · T57 🔄 · T58 ⬜ · T59 ✅ · T60 ⬜ · T61 ⬜ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
-| `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 ⬜ · T33 ⬜ |
+| `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |

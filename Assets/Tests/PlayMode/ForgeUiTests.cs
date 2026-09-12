@@ -301,9 +301,35 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>
+        /// 한 상자의 배경(line·face·bg)이 그 상자를 채우는가. 테 두께(`Inset`)만큼 안쪽으로 들어가는 것은
+        /// 정상이라 `Line3` 두 배 + 2px 를 봐준다(CI 런 95 실측: 카드 면이 정확히 12px = 2×6 작았다).
+        /// </summary>
+        private static int AssertFills(Transform box, string what, bool needIgnoreLayout)
+        {
+            RectTransform brt = (RectTransform)box;
+            float slack = PopupKit.Line3 * 2f + 2f;
+            int n = 0;
+            foreach (Transform ch in box)
+            {
+                if (ch.name != "line" && ch.name != "face" && ch.name != "bg") continue;
+                RectTransform crt = (RectTransform)ch;
+                if (needIgnoreLayout)
+                {
+                    LayoutElement le = ch.GetComponent<LayoutElement>();
+                    Assert.IsTrue(le != null && le.ignoreLayout, what + ": " + box.name + "/" + ch.name + " 이 레이아웃 칸이다 — 배경이 빈 막대가 된다");
+                }
+                Assert.GreaterOrEqual(crt.rect.height, brt.rect.height - slack, what + ": " + box.name + "/" + ch.name + " 이 부모를 안 채운다(판 없음)");
+                Assert.GreaterOrEqual(crt.rect.width, brt.rect.width - slack, what + ": " + box.name + "/" + ch.name + " 폭이 부모보다 좁다");
+                n++;
+            }
+            return n;
+        }
+
+        /// <summary>
         /// T57 — «카드가 제 판을 입었는가». 컨테이너의 배경(line·face·bg)은 레이아웃 칸이 아니라
         /// 부모를 채워야 한다: 레이아웃 칸이 되면 <see cref="Image"/> 가 스프라이트 크기만큼의 **빈 막대**로
         /// 한 줄 차지하고(원작에 없는 검은·흰 막대) 카드에는 판이 없어져 글자가 뒷화면 위에 겹쳐 보였다.
+        /// 레이아웃 그룹이 하나도 없는 팝업(자리를 손으로 놓는 꼴)은 카드 한 장만 본다.
         /// </summary>
         private static void AssertDressed(Transform root, string what)
         {
@@ -312,19 +338,13 @@ namespace Forge.Tests.PlayMode
             foreach (Transform box in root.GetComponentsInChildren<Transform>(true))
             {
                 if (box.GetComponent<LayoutGroup>() == null) continue;
-                RectTransform brt = (RectTransform)box;
-                foreach (Transform ch in box)
-                {
-                    if (ch.name != "line" && ch.name != "face" && ch.name != "bg") continue;
-                    RectTransform crt = (RectTransform)ch;
-                    LayoutElement le = ch.GetComponent<LayoutElement>();
-                    Assert.IsTrue(le != null && le.ignoreLayout, what + ": " + box.name + "/" + ch.name + " 이 레이아웃 칸이다 — 배경이 빈 막대가 된다");
-                    Assert.GreaterOrEqual(crt.rect.height, brt.rect.height - 8f, what + ": " + box.name + "/" + ch.name + " 이 부모를 안 채운다(판 없음)");
-                    Assert.GreaterOrEqual(crt.rect.width, brt.rect.width - 8f, what + ": " + box.name + "/" + ch.name + " 폭이 부모보다 좁다");
-                    checkedBg++;
-                }
+                checkedBg += AssertFills(box, what, true);
             }
-            Assert.Greater(checkedBg, 0, what + ": 레이아웃 칸 안의 배경을 하나도 못 찾았다 — 자가 헛돈다");
+            if (checkedBg > 0) return;
+            // 자리를 손으로 놓는 팝업(ForgeAutoPopup: 카드에 레이아웃 그룹이 없고 목록만 Column)은 카드 한 장을 본다.
+            Transform card = FindIn(root, "card");
+            Assert.IsNotNull(card, what + ": 레이아웃 칸 안의 배경도 card 도 없다 — 자가 헛돈다");
+            Assert.Greater(AssertFills(card, what, false), 0, what + ": 카드에 판(line·face)이 없다");
         }
 
         /// <summary>화면에 보이는 ✕ 개수(원작은 화면당 하나 · T57).</summary>
