@@ -430,11 +430,24 @@ namespace Forge.Tests.PlayMode
                 Opened = delegate { return Popups.IsOpen(ChatScreen.Name); }
             });
             // 탈것 화면은 원작에도 shot 짝이 없다(정본 SCREENS 의 `['mounts', null, …]`). 유니티 쪽은 T20 이 세운다 — 서면 찍고 아니면 건너뛴다.
+            // T20 이 세웠다: 서브탭이 아니라 원작 #mount-modal 그대로 전체 모달(`MountSheet.Open()` · 장비 시트 탈것 칸이 부른다). 태엽을 넉넉히 주고 개체가 둘 이상 되게 소환한 뒤 찍는다.
             list.Add(new Shot
             {
                 Name = "mounts", Ref = null, Optional = true,
-                Open = delegate { OpenSummon("mounts"); },
-                Opened = delegate { return Sheet.IsSheetOpen && Sheet.ActiveSub == "mounts"; }
+                Open = delegate { OpenMounts(); },
+                Opened = delegate { return MountSheet.IsOpen; }
+            });
+            list.Add(new Shot
+            {
+                Name = "mount-detail", Ref = null, Optional = true,
+                Open = delegate { OpenMounts(); MountSheet.OpenDetail(0); },
+                Opened = delegate { return MountSheet.IsOpen && Sheet.Modal.IsOpen(MountSheet.DetailModal); }
+            });
+            list.Add(new Shot
+            {
+                Name = "mount-upgrade", Ref = null, Optional = true,
+                Open = delegate { OpenMounts(); MountUpgradePopup.Open(Sheet, 0); },
+                Opened = delegate { return MountSheet.IsOpen && Sheet.Modal.IsOpen(MountUpgradePopup.ModalName); }
             });
             // 주인 지시(2026-09-12 «SafeArea 해서 모바일 상단 카메라 안 가리게») — T45 가 세운 노치 모의(`UiRoot.NotchSafeArea` 120/60)로 한 장 더 찍는다.
             // 원작 30장은 노치 없는 조건으로 찍힌 것이라 대조 대상에서 빼고(ref null), 이 한 장으로 «노치 폰에서 상단바가 카메라에 안 걸리는가» 를 눈으로 본다.
@@ -467,6 +480,24 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>화면 사이 오염 제거 — 원작 shot-screens.js 의 «전 .modal 강제 닫기 + 탭 되돌리기 + 토스트 소거» 와 같은 자리.</summary>
+        /// <summary>탈것 시트를 연다 — 개체가 둘 미만이면 태엽을 주고 x1 로 소환해(결과 연출은 바로 닫는다) 상세·업그레이드 재료가 있게 한다(T20 · PetUiTests 와 같은 길).</summary>
+        private static void OpenMounts()
+        {
+            if (P == null || P.Mounts == null) return;
+            while (P.SummonMult("mount") != 1) P.CycleSummonMult("mount");
+            SaveIo.State.Winders = 5000;
+            P.Sync();
+            MountSheet.Open();
+            for (int guard = 0; guard < 4 && P.Mounts.Count() < 2; guard++)
+            {
+                MountSheet.OnSummon();
+                if (Sheet != null && Sheet.Modal != null) Sheet.Modal.Close(SkillSummonResultView.ModalName);
+            }
+            SaveIo.State.Winders = 320;   // Seed() 값으로 되돌려 알약이 원작 시드와 같게
+            P.Sync();
+            MountSheet.Refresh();
+        }
+
         private static void CloseAll()
         {
             TechPopups.Close();
