@@ -348,7 +348,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/forge.js` | 대장간 규칙 · 오토 포지 | T14 · T19 | T14 ✅ · T19 ⬜ |
 | 장비 8부위 · 페이퍼돌(`prochar.js`·`ui.js` 장비) | 등급·서브스탯·판매가·외형 | T15 · T19 | ⬜ |
 | `js/pets.js` | 알·부화·합성·출전 규칙 | T16 · T20 | T16 ✅ · T20 ⬜ |
-| `js/skills.js` | 소환·18종·4슬롯 | T17 · T20 | T17 🔄 · T20 ⬜ |
+| `js/skills.js` | 소환·18종·3슬롯(정본 `MAX_ACTIVE`) | T17 · T20 | T17 ✅ · T20 ⬜ |
 | `js/mounts.js` | 탈것 규칙 · 탑승 | T11 · T20 | ⬜ |
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 🔄 · T21 ⬜ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ⬜ |
