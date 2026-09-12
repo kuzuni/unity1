@@ -526,6 +526,7 @@
 - **남은 일 = T50**: 프레임당 힙을 목표까지 내리는 일은 `Game/Battle/`(DamageNumbers·CubeParticles·TrailFx)에 손을 대야 하는데 그 파일들은 **T8·T12·T39 의 살아 있는 lock** 이다 — 규약 «두 작업이 같은 파일을 만져야 하면 뒤 번호가 기다린다» 대로 열지 않고 T50 으로 등재했다. 이 게이트는 그때까지 회귀 잡이(1.2MB)로 둔다.
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` 471/471 · gen_meta·gen_ui_catalog·check_docs_intact·check_decisions·check_task_rows·task_state·check_claim_scope 전부 rc 0. PlayMode 는 dotnet 하니스가 컴파일하지 않으므로 임시 csproj(UnityEngine.Modules + NUnit 3.6.1)로 이 파일만 컴파일 0 오류.
 - **플레이 콘솔 에러 0 을 무엇으로 확인했는가**: CI 런 60 유니티 잡 — `PerfBudgetTests.부팅이_targetFrameRate_60_vSync_0_을_세운다` 초록(실패 목록에 없다) · 나머지 둘은 «내가 잡은 상한» 에서만 빨강이었고 콘솔 빨강은 아니었다(`playmode-red.txt` 의 유일한 RED 는 T27 의 `WaitForEndOfFrame` 배치모드 예외). 이 커밋의 상한 정정 뒤 셋 다 초록인지는 다음 유니티 잡에서 본다.
+- **lock 반납 확인 — CI 런 79**(b68cf9d · 내 6a17cc7 포함 · `screens` 의 `playmode-red.txt`): `PerfBudgetTests` **3/3 PASS**. 그 회차 수치는 평균 **4.396ms** · p95 **6.810ms** · 최대 10.132ms · 렌더러 565 · 공유 재질 253(상한 900/300 안) · 프레임당 관리 할당 994,440B(T50 워커 O 가 갈래를 갈랐다: 임팩트+파편 ≈488KB · 스킬 재시전 ≈541KB · 데미지 숫자 ≈36KB). p95 를 한 프레임(16.6ms)으로 둔 것이 회차 소음 위에서 실제로 선다(런 60 9.7 · 런 71 12.4 · 런 79 6.8).
 - **주인이 확인할 것**: 폰에서 전투 중 프레임이 60 에 붙는지. 지금은 계산은 넉넉한데(4.1ms) 몇 초마다 GC 멈춤이 있을 수 있다 — 그 멈춤을 없애는 것이 T50 이다. 설정 탭 FPS 표시는 원작 디버그 탭에 없어 넣지 않았다.
 
 ### T43 완료 기록 (2026-09-12 · 워커 K · sess-2033-28572)
