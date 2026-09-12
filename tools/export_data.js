@@ -15,6 +15,11 @@
 //   mobs-enemies.json ENEMY_MODELS   — (적 7)
 //   mobs-skillfx.json SKILLFX_MODELS — (스킬 오브젝트)
 //   tech.json         TechTree·Ascension 의 표 칸(TECH_FIELDS · T24) — 분기·노드·보너스·비용 배수 · 승천 라인·별 배율
+//   meta.json         shop.js·pass.js·quests.js·league.js·chat.js 의 표(특가·젬 팩·패스 마일스톤·퀘스트 정의·리그 상수·
+//                     순위 보상(rewardForRank 를 1~21위로 평가한 표)·채팅 문자열) + state.js 의 진행 상수(CHAPTERS_PER_CYCLE…)
+//                     + icongen.js 의 AVATAR_POOL. 이 다섯 파일은 표가 객체 리터럴이고 상태 `S` 는 메서드 안에서만 만지므로
+//                     로드만 하면 값이 선다(T25). state.js 가 `window` 에 접근자를 걸어 이 묶음만 `window = sandbox` 인
+//                     둘째 컨텍스트에서 뽑는다 — 조형 컨텍스트에는 window 를 두지 않는다(아래 makeContext 주석).
 //   mobs-props.json   Props          — 소품은 표가 아니라 **생성 함수**(`Props.pine(s,o)` … · Math.random)라
 //                     함수 이름 목록(kinds) + 결정론 시드로 뽑은 **표본**(samples) 을 낸다. T9 가 생성기를
 //                     C# 으로 옮길 때 같은 시드·같은 인자로 같은 칸 목록이 나오는지 대조하는 고정 표본이다.
@@ -224,6 +229,53 @@ function clean(v, where) {
     throw new Error(`${where}: 다룰 수 없는 형 ${t}`);
 }
 
+// ── 메타 표 (T25 · shop/pass/quests/league/chat + state 진행 상수 + 아바타) ──────────────
+// index.html 순서 중 이 묶음이 로드 시점에 기대는 것만: util(U) · bignum(Big) · balance/gamedata(CHAPTER_THEMES → CHAPTERS_PER_CYCLE) ·
+// icongen(AVATAR_POOL · DEFAULT_AVATAR) · state(진행 상수). `League.rewardForRank`·`rewardMult` 는 함수라 1~21위(REWARD_TIERS 마지막 rank)
+// 로 평가한 표(REWARD_BY_RANK)로 낸다 — 유니티는 그 표만 읽고 식을 다시 쓰지 않는다.
+const META_LOAD_ORDER = ['util.js', 'bignum.js', 'balance-data.js', 'gamedata.js', 'icongen.js', 'state.js',
+    'shop.js', 'pass.js', 'quests.js', 'league.js', 'chat.js'];
+
+function extractMeta(src) {
+    const webjs = path.join(src, 'web', 'js');
+    const sb = { console };
+    sb.window = sb;                                   // state.js 의 `Object.defineProperty(window, 'S', …)` 캡처 하네스 지원 줄
+    vm.createContext(sb);
+    for (const f of META_LOAD_ORDER) vm.runInContext(fs.readFileSync(path.join(webjs, f), 'utf8'), sb, { filename: f });
+    const pick = (expr, name) => {
+        const v = vm.runInContext(expr, sb, { filename: 'meta#' + name });
+        if (v === undefined || v === null) throw new Error(`${name} 이 없다 — 정본의 이름이 바뀌었다`);
+        return v;
+    };
+    const Shop = pick('Shop', 'Shop'), Pass = pick('Pass', 'Pass'), Quests = pick('Quests', 'Quests');
+    const League = pick('League', 'League'), Chat = pick('Chat', 'Chat');
+    const state = pick('({ CHAPTERS_PER_CYCLE, STAGES_PER_CHAPTER, DIFFICULTY_NAMES, MAX_DIFFICULTY })', 'state');
+    const avatars = pick('({ DEFAULT_AVATAR, AVATAR_POOL })', 'avatars');
+    for (const fn of ['rewardMult', 'rewardForRank']) if (typeof League[fn] !== 'function') throw new Error(`League.${fn} 이 함수가 아니다`);
+    const tiers = League.REWARD_TIERS;
+    const rankMax = tiers[tiers.length - 1].rank;      // 21 = «21위 이하» — 그 위 순위는 전부 같은 보상
+    const rewardByRank = [];
+    for (let r = 1; r <= rankMax; r++) rewardByRank.push(Object.assign({ rank: r, mult: League.rewardMult(r) }, League.rewardForRank(r)));
+    const out = {
+        meta: {
+            note: '정본 shop.js·pass.js·quests.js·league.js·chat.js 의 표 + state.js 진행 상수 + icongen.js 아바타. REWARD_BY_RANK 는 League.rewardForRank(1..21) 을 평가한 표(21 = 21위 이하). 함수 안 리터럴(봇 cp 배율·승률 식·채팅 시드 수)은 표가 아니라 여기 없다 — Core/Meta 가 정본 줄을 달아 식으로 옮긴다.',
+            source: META_LOAD_ORDER,
+        },
+        state,
+        avatars,
+        shop: { DEALS: Shop.DEALS, GEM_PACKS: Shop.GEM_PACKS },
+        pass: { MILESTONES: Pass.MILESTONES, PREMIUM_PRICE_KR: Pass.PREMIUM_PRICE_KR },
+        quests: { STEP_CAP: Quests.STEP_CAP, DEFS: Quests.DEFS, CUR_KR: Quests.CUR_KR, NO_GEM_FALLBACK: Quests.NO_GEM_FALLBACK, FORGE_LOCKED: Quests.FORGE_LOCKED },
+        league: {
+            TICKET_MAX: League.TICKET_MAX, BOT_COUNT: League.BOT_COUNT, CHALLENGE_COUNT: League.CHALLENGE_COUNT,
+            SEASON_MS: League.SEASON_MS, START_SCORE: League.START_SCORE, NAME_POOL: League.NAME_POOL,
+            REWARD_TIERS: tiers, REWARD_BY_RANK: rewardByRank,
+        },
+        chat: { MAX_MESSAGES: Chat.MAX_MESSAGES, CLAN_TAGS: Chat.CLAN_TAGS, NAMES: Chat.NAMES, LINES: Chat.LINES, LONG_LINES: Chat.LONG_LINES },
+    };
+    return clean(out, 'meta');
+}
+
 // ── 소품 표본 ──────────────────────────────────────────────────────────────
 function xorshift32(seed) {
     let s = seed >>> 0;
@@ -315,6 +367,7 @@ function extract(src) {
         'mobs-props.json': sampleProps(ctx),
         'state.json': extractState(src),
         'tech.json': pickFields(ctx, TECH_FIELDS),
+        'meta.json': extractMeta(src),
     };
     const text = {};
     for (const k of Object.keys(files)) text[k] = serialize(files[k]);
@@ -408,6 +461,20 @@ function selfTest(src) {
     ok('TIERS 5 · MAX_LEVEL 5 · ROMAN 5 · 배수 5개 수', t.TIERS === 5 && t.MAX_LEVEL === 5 && t.ROMAN.length === 5 && [t.LV_MULT, t.TIER_MULT, t.TIME_BASE, t.TIME_LV_MULT, t.TIME_TIER_MULT].every(x => typeof x === 'number'));
     ok('NODES 전부 per·base 수', Object.values(t.NODES).every(n => typeof n.per === 'number' && typeof n.base === 'number'));
     ok('Ascension LINES 4 · LINE_KR/ICON 4 · STAR_MULT·FORGE_LEVEL 수', a.LINES.length === 4 && cnt(a.LINE_KR) === 4 && cnt(a.LINE_ICON) === 4 && typeof a.STAR_MULT === 'number' && typeof a.FORGE_LEVEL === 'number', a.LINES.join(','));
+    console.log('[메타 표 · T25]');
+    const m = files['meta.json'];
+    ok('shop DEALS 3 · 젬 없음', m.shop.DEALS.length === 3 && m.shop.DEALS.every(d => d.reward && !('gems' in d.reward)), m.shop.DEALS.length);
+    ok('shop GEM_PACKS 4', m.shop.GEM_PACKS.length === 4, m.shop.GEM_PACKS.length);
+    ok('pass MILESTONES 16 · free/premium 둘 다', m.pass.MILESTONES.length === 16 && m.pass.MILESTONES.every(x => /^\d+-\d+$/.test(x.stage) && x.free && x.premium), m.pass.MILESTONES.length);
+    ok('quests DEFS 14 · 보상에 젬 없음 · id 중복 0', m.quests.DEFS.length === 14 && m.quests.DEFS.every(d => d.rw.cur !== 'gems') && new Set(m.quests.DEFS.map(d => d.id)).size === m.quests.DEFS.length, m.quests.DEFS.length);
+    ok('quests FORGE_LOCKED 가 전부 DEFS 에 있음', m.quests.FORGE_LOCKED.every(id => m.quests.DEFS.some(d => d.id === id)));
+    ok('league NAME_POOL ≥ BOT_COUNT · CHALLENGE_COUNT ≤ BOT_COUNT', m.league.NAME_POOL.length >= m.league.BOT_COUNT && m.league.CHALLENGE_COUNT <= m.league.BOT_COUNT, `${m.league.NAME_POOL.length}/${m.league.BOT_COUNT}`);
+    ok('league REWARD_TIERS 7 · REWARD_BY_RANK = 마지막 rank 만큼 · 재화 6', m.league.REWARD_TIERS.length === 7 && m.league.REWARD_BY_RANK.length === m.league.REWARD_TIERS[6].rank && m.league.REWARD_BY_RANK.every(r => Object.keys(r).length === 8), m.league.REWARD_BY_RANK.length);
+    ok('league 보상은 순위가 내려가며 단조 감소', m.league.REWARD_BY_RANK.every((r, i, a) => i === 0 || r.mult <= a[i - 1].mult));
+    ok('chat LINES·LONG_LINES·NAMES·CLAN_TAGS 비어 있지 않음', m.chat.LINES.length > 0 && m.chat.LONG_LINES.length > 0 && m.chat.NAMES.length > 0 && m.chat.CLAN_TAGS.length > 0, `${m.chat.LINES.length}/${m.chat.LONG_LINES.length}`);
+    ok('avatars AVATAR_POOL 24 · DEFAULT_AVATAR 가 풀에 있음', m.avatars.AVATAR_POOL.length === 24 && m.avatars.AVATAR_POOL.includes(m.avatars.DEFAULT_AVATAR), m.avatars.AVATAR_POOL.length);
+    ok('meta.state 가 state.json(T13) 의 같은 칸과 일치', ['CHAPTERS_PER_CYCLE', 'STAGES_PER_CHAPTER', 'MAX_DIFFICULTY'].every(k => m.state[k] === st[k]) && JSON.stringify(m.state.DIFFICULTY_NAMES) === JSON.stringify(st.DIFFICULTY_NAMES));
+    ok('state CHAPTERS_PER_CYCLE = CHAPTER_THEMES 수 · DIFFICULTY_NAMES = MAX+1', m.state.CHAPTERS_PER_CYCLE === g.CHAPTER_THEMES.length && m.state.DIFFICULTY_NAMES.length === m.state.MAX_DIFFICULTY + 1, m.state.CHAPTERS_PER_CYCLE);
 
     console.log('[결정론]');
     const again = extract(src).text;
@@ -441,4 +508,4 @@ function main(argv) {
 }
 
 if (require.main === module) process.exit(main(process.argv.slice(2)));
-module.exports = { extract, serialize, selfTest, LOAD_ORDER, STATE_LOAD_ORDER, SEED };
+module.exports = { extract, extractMeta, serialize, selfTest, LOAD_ORDER, STATE_LOAD_ORDER, META_LOAD_ORDER, SEED };

@@ -18,7 +18,7 @@ for a in "$@"; do
 done
 case "$SRC" in /*) ;; *) SRC="$HERE/$SRC" ;; esac
 DATA="$HERE/Assets/StreamingAssets/data"
-FILES="balance.json gamedata.json mobs-pets.json mobs-mounts.json mobs-enemies.json mobs-props.json mobs-skillfx.json state.json tech.json"
+FILES="balance.json gamedata.json mobs-pets.json mobs-mounts.json mobs-enemies.json mobs-props.json mobs-skillfx.json state.json tech.json meta.json"
 
 if [ ! -d "$SRC/web/js" ]; then
   echo "✗ check_data_sync: 정본이 없다: $SRC/web/js"
