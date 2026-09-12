@@ -24,3 +24,7 @@
 - 한 작업이 만지는 파일 범위는 PROGRESS 표의 «범위» 열에 적힌 폴더·파일이다. **두 작업이 같은 파일을 만져야 하면 뒤 번호가 기다린다.** 범위에 없는 파일을 열게 되면 표의 «범위» 칸을 먼저 고쳐 push 한다(`check_claim_scope.py` 가 그것을 본다).
 - `Assets/StreamingAssets/data/*.json` 은 어느 작업도 손으로 고치지 않는다 — `node tools/export_data.js`(T2)로만 갱신한다.
 - 커밋 제목은 `T<번호> …` 로 시작한다(`check_claim_scope` 가 그 번호로 «그 작업의 커밋이 만진 파일» 을 센다).
+
+## 계정 권한 확인 기록
+
+- 계정 3 확인 2026-09-12 (`rudwpwjrwkdb95@gmail.com` · env `env_01XKJDdWmKFxSg4FuR8yethb` · 워커 I·J·K·L·Q) — 이 줄의 push 가 성공하면 그 계정에 쓰기 권한이 있다.
