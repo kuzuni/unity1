@@ -116,6 +116,8 @@ namespace Forge.Game.Gallery
             rt.antiAliasing = 4;
             RenderTexture prev = RenderTexture.active;
             for (int i = 0; i < entries.Count; i++) entries[i].Root.SetActive(false);
+            // 시트는 중립 배경(원작 renderMob 은 빈 씬) — 같은 씬에 있는 다른 렌더러(T9 지면 타일처럼 스스로 서는 것)는 찍는 동안 끈다.
+            var hidden = HideOtherRenderers(entries, rig);
             try
             {
                 for (int i = 0; i < entries.Count; i++)
@@ -138,12 +140,32 @@ namespace Forge.Game.Gallery
             finally
             {
                 RenderTexture.active = prev;
+                for (int i = 0; i < hidden.Count; i++) if (hidden[i] != null) hidden[i].enabled = true;
                 for (int i = 0; i < entries.Count; i++) entries[i].Root.SetActive(true);
                 rt.Release();
                 Object.Destroy(rt);
             }
             sheet.Apply(false);
             return sheet;
+        }
+
+        /// <summary>도감·촬영 리그 밖의 켜진 렌더러를 전부 끄고 그 목록을 돌려준다(호출자가 되돌린다).</summary>
+        public static List<Renderer> HideOtherRenderers(List<GalleryEntry> entries, Rig rig)
+        {
+            var hidden = new List<Renderer>();
+            var keep = new List<Transform>();
+            for (int i = 0; i < entries.Count; i++) keep.Add(entries[i].Root.transform);
+            if (rig != null && rig.Root != null) keep.Add(rig.Root.transform);
+            foreach (var r in Object.FindObjectsOfType<Renderer>())
+            {
+                if (!r.enabled) continue;
+                bool mine = false;
+                for (int k = 0; k < keep.Count && !mine; k++) mine = r.transform.IsChildOf(keep[k]);
+                if (mine) continue;
+                r.enabled = false;
+                hidden.Add(r);
+            }
+            return hidden;
         }
 
         /// <summary>`ui-screens/&lt;name&gt;.png` 로 저장하고 전체 경로를 돌려준다.</summary>
