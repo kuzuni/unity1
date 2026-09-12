@@ -127,24 +127,62 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(Screen.safeArea, UiRoot.EffectiveSafeArea, "되돌리면 Screen.safeArea");
         }
 
+        /// <summary>촬영 크기(ROUTINE §1 «540×1170 세로») — 실제 창 크기와 무관하게 RenderTexture 로 그린다(배치모드 에디터의 ScreenCapture 는 에디터 창을 찍는다 · CI 런 58 실측).</summary>
+        public const int ShotW = 540, ShotH = 1170;
+
         [UnityTest]
         public IEnumerator 노치_모의_화면을_찍어_남긴다()
         {
             yield return Boot();
-            Rect sa = UiRoot.NotchSafeArea(Screen.width, Screen.height);
+            Rect sa = UiRoot.NotchSafeArea(ShotW, ShotH);
             UiRoot.OverrideSafeArea(sa);
             yield return null;
-            yield return CheckAll(sa, Screen.width + "x" + Screen.height + " 실제 화면");
+            yield return CheckAll(sa, ShotW + "x" + ShotH + " 촬영");
             if (!GallerySheet.GraphicsAvailable)
             {
                 Debug.LogWarning("그래픽 장치가 없다(-nographics) — 노치 모의 촬영을 건너뛴다");
                 yield break;
             }
             PopupLayer.Instance.Toast("노치 모의 촬영");
-            yield return new WaitForEndOfFrame();
-            Texture2D shot = ScreenCapture.CaptureScreenshotAsTexture();
+            yield return null;
+            // T5 시트와 같은 길: 3D 카메라 사본 → RenderTexture 540×1170 · UI 캔버스는 그 카메라의 ScreenSpaceCamera 로 잠시 옮겨 같은 그림에 얹는다(오버레이 캔버스는 RT 에 안 그려진다).
+            UiRoot root = UiRoot.Instance;
+            Canvas canvas = root.Canvas;
+            RenderMode prevMode = canvas.renderMode;
+            Camera prevCam = canvas.worldCamera;
+            var rt = new RenderTexture(ShotW, ShotH, 24, RenderTextureFormat.ARGB32);
+            var camGo = new GameObject("t45-shot-cam");
+            var cam = camGo.AddComponent<Camera>();
+            RenderTexture prevActive = RenderTexture.active;
+            Texture2D shot = null;
+            try
+            {
+                cam.CopyFrom(Camera.main);
+                cam.rect = new Rect(0f, 0f, 1f, 1f);
+                cam.targetTexture = rt;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                canvas.planeDistance = 1f;
+                root.Layout();
+                Canvas.ForceUpdateCanvases();
+                cam.Render();
+                RenderTexture.active = rt;
+                shot = new Texture2D(ShotW, ShotH, TextureFormat.RGB24, false);
+                shot.ReadPixels(new Rect(0, 0, ShotW, ShotH), 0, 0);
+            }
+            finally
+            {
+                RenderTexture.active = prevActive;
+                cam.targetTexture = null;
+                canvas.renderMode = prevMode;
+                canvas.worldCamera = prevCam;
+                Object.Destroy(camGo);
+                rt.Release();
+                Object.Destroy(rt);
+                root.Layout();
+            }
             Assert.IsNotNull(shot, "화면 캡처");
-            // 노치 경계 = 빨간 선(위 120px · 아래 60px) · 노치 영역은 반투명 검정으로 덮는다
+            // 노치 경계 = 빨간 선(위 120px · 아래 60px) · 노치 영역은 어둡게 덮는다(원점 = 왼쪽 아래)
             int w = shot.width, h = shot.height;
             Color32[] px = shot.GetPixels32();
             int top = Mathf.RoundToInt(sa.yMax), bottom = Mathf.RoundToInt(sa.yMin);
