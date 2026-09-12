@@ -262,5 +262,37 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.AreEqual(0, Sheet.Modal.OpenCount, "시트 닫힘 = 모달 전부 닫힘(원작 closeAllTabSurfaces)");
         }
+        [UnityTest]
+        public IEnumerator 전투_HUD_스킬_바는_자동_토글과_슬롯_3이고_장착을_따라간다()
+        {
+            yield return Boot();
+            SkillBar sb = SkillBar.Instance;
+            Assert.IsNotNull(sb, "스킬 바가 HUD 층에 서지 않았다");
+            Assert.AreEqual(Host.Skills.Rules.MaxActive, sb.SlotCount, "원작 MAX_ACTIVE 3 슬롯 고정");
+            Assert.IsNotNull(sb.AutoButton);
+            string first = Host.Skills.State.Equipped.Count > 0 ? Host.Skills.State.Equipped[0] : null;
+            Assert.AreEqual(first, sb.SlotId(0), "첫 슬롯 = 장착 1번");
+            Assert.IsNull(sb.SlotId(Host.Skills.Rules.MaxActive - 1), "새 게임은 마지막 슬롯이 빈 원");
+            bool auto = SaveIo.State.AutoCast;
+            sb.AutoButton.onClick.Invoke();
+            yield return null;
+            Assert.AreNotEqual(auto, SaveIo.State.AutoCast, "자동 토글 = S.autoCast 반전");
+            SkillBar.Instance.AutoButton.onClick.Invoke();
+            yield return null;
+            Assert.AreEqual(auto, SaveIo.State.AutoCast);
+            if (first != null)
+            {
+                Host.Skills.ToggleEquip(first);
+                Host.Sync();
+                yield return null;
+                Assert.AreNotEqual(first, SkillBar.Instance.SlotId(0), "해제하면 슬롯이 따라간다");
+                Host.Skills.ToggleEquip(first);
+                Host.Sync();
+                yield return null;
+                Assert.AreEqual(first, SkillBar.Instance.SlotId(0));
+                Assert.DoesNotThrow(() => SkillBar.Instance.OnCast(first), "전투가 없거나 쿨 중이면 false 로 끝난다");
+            }
+            AssertTextGate("스킬 바");
+        }
     }
 }

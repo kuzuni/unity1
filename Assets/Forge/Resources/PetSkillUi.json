@@ -12,7 +12,8 @@
     "ascend_a": "#4caf50", "ascend_b": "#2e7d32", "cost_red": "#f2191d", "modal_dim": "#00000080", "card_shadow": "#00000040",
     "toast_bg": "#1c2128f2", "toast_line": "#444c56", "toast_ink": "#eceff1",
     "sr_bg_a": "#24306a", "sr_bg_b": "#101740", "sr_bg_c": "#070b20", "sr_bg_d": "#03040c", "sr_title_band": "#0c1434d9", "sr_name_bg": "#060a1ad6",
-    "sr_ok": "#ffc93c", "sr_ok_ink": "#2a1c04", "sr_hint": "#d2e1ffbf", "sr_new": "#e02114", "sr_badge_bg": "#020510e6", "sr_orb_deep": "#05070f", "sr_solo_own": "#0a1028b3", "sr_again": "#2c3a70e6", "sr_again_ink": "#dfe7ff", "sr_charge": "#ffffff", "sr_hilite": "#ffffff80"
+    "sr_ok": "#ffc93c", "sr_ok_ink": "#2a1c04", "sr_hint": "#d2e1ffbf", "sr_new": "#e02114", "sr_badge_bg": "#020510e6", "sr_orb_deep": "#05070f", "sr_solo_own": "#0a1028b3", "sr_again": "#2c3a70e6", "sr_again_ink": "#dfe7ff", "sr_charge": "#ffffff", "sr_hilite": "#ffffff80",
+    "sb_bg": "#11151a", "sb_ink": "#eceff1", "sb_auto_bg": "#2f3a33", "sb_auto_line": "#546e7a", "sb_auto_ink": "#90a4ae", "sb_auto_on_bg": "#2e7d32", "sb_auto_on_line": "#69f0ae", "sb_empty_bg": "#0a0a0ebf", "sb_empty_line": "#ffffff2e", "sb_cd": "#000000a6"
   },
   "layout": {
     "rem_h": 0.018957, "pad_rem": 0.8, "gap_rem": 0.45, "line3_px": 6, "line2_px": 4, "line1_px": 2,
@@ -50,7 +51,8 @@
     "sr_solo_mt_rem": 1.1, "sr_solo_gap_rem": 0.5, "sr_solo_own_r_rem": 0.55, "sr_again_w_rem": 8.6, "sr_again_h_rem": 2.3, "sr_again_r_rem": 0.6,
     "sr_sz_0": 1.0, "sr_sz_1": 0.99, "sr_sz_2": 1.03, "sr_sz_3": 1.08, "sr_sz_4": 1.16, "sr_sz_5": 1.26, "sr_peer_sz": 1.13, "sr_pop_0": 0.32, "sr_pop_1": 0.34, "sr_pop_2": 0.38, "sr_pop_3": 0.44, "sr_pop_4": 0.48, "sr_pop_5": 0.52,
     "sr_charge_ms": 240, "sr_slow_step_ms": 125, "sr_row_ms": 300, "sr_row_stag_ms": 40, "sr_tier_pause_ms": 200, "sr_holdback_ms": 150, "sr_tail_ms": 150, "sr_merge_from": 11, "sr_flash_sec": 0.55, "sr_charge_out_sec": 0.21,
-    "face_thumb_px": 128
+    "face_thumb_px": 128,
+    "sb_right_rem": 0.5, "sb_bottom_rem": 0.6, "sb_gap_rem": 0.4, "sb_btn_rem": 2.9, "sb_auto_h_rem": 1.9, "sb_auto_pad_rem": 0.6, "sb_auto_r_rem": 1.0, "sb_lv_bottom_rem": 0.1, "sb_glow_f": 1.18
   },
   "text": {
     "sub_skills": "스킬", "sub_pets": "펫", "sub_tech": "기술 트리",
@@ -75,6 +77,7 @@
     "sr_title_skill": "스킬 소환", "sr_title_pet": "펫 소환", "sr_title_mount": "탈것 소환", "sr_title_x": "{0} ×{1}", "sr_egg": "{0} 알", "sr_egg_bonus": "보너스 {0} 알", "sr_dup_skill": "조각", "sr_dup_mount": "재료", "sr_dup": "{0} +{1}", "sr_qty": "×{0}", "sr_new": "NEW", "sr_chip": "{0} {1}",
     "sr_hint": "화면을 탭하면 건너뜁니다", "sr_ok": "확인", "sr_again": "다시 소환",
     "sr_solo_skill_new": "✨ 신규 스킬 획득!", "sr_solo_skill_dup": "이미 보유한 스킬 — 조각으로 적립됩니다", "sr_solo_skill_own": "보유 Lv.{0} · 조각 {1}", "sr_solo_egg": "부화장에 넣어 부화시킬 수 있습니다", "sr_solo_egg_own": "보유 {0} 알 {1}개",
+    "sb_auto": "자동",
     "time_d": "{0}일 {1}시", "time_h": "{0}시 {1}분", "time_m": "{0}분 {1}초", "time_s": "{0}초"
   }
 }

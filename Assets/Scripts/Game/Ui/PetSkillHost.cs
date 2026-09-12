@@ -120,6 +120,7 @@ namespace Forge.Game.Ui
             Ready = true;
             while (UiRoot.Instance == null) yield return null;
             SkillPetSheet.Attach(UiRoot.Instance, this);
+            SkillBar.Attach(UiRoot.Instance, this);
             var h = OnReady;
             if (h != null) h();
         }
