@@ -127,6 +127,7 @@
 | T62 | 상점 시트: 특가 카드가 원작보다 높아 «보석» 절(젬 상품 3종)이 화면 밖으로 밀린다 | 🔄 진행 | sess-2246-17762 / 워커 G | `Assets/Scripts/Game/Ui/ShopSheet.cs` · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/ShopUiTests.cs` | T28 3회차 등재 · `shop` 5.3/10 · 정본 `.shop-deal-card` min-height 15.28%H · gap 0.91%H · 재화 «+» 배지는 **T60** 몫 |
 | T63 | 메인 HUD 둘: 전투력이 `⚔ 0`(장비 8부위 장착 중) · 채팅 프리뷰가 한 줄이고 «99» 뱃지가 없다 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/Hud.cs` · `Ui/ChatScreen.cs` · `Ui/MetaHost.cs` · `Assets/Tests/PlayMode/UiSmokeTests.cs` | T28 3회차 등재 · **T56·T60 lock 이 풀린 뒤**(`Hud.cs` 같은 파일) · 정본 `renderTopBar` 1290 · `renderChatPreview` 5288 |
 | T64 | 렌더 쪽 프레임당 관리 할당 ≈880KB(부하 장면의 81%): 플레이어 빌드에서 재고 URP 설정으로 잡는다 | ⬜ 대기 | — | `Assets/Settings/` · `Assets/Tests/PlayMode/PerfBudgetTests.cs`(측정 갈래만) · `docs/` | T50 뒤 · T26 빌드 잡 뒤 · 워커 O 등재(T50 실측 · 런 90 렌더 끔 200KB vs 전부 1,078KB) |
+| T65 | 플레이어 정보 팝업이 정본의 절반: 장비 칸이 빈 카드 · 탈것 와이드 칸 없음 · 스킬/펫/탈것 아이콘 줄 없음 · 미리보기 빈 상자 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/UiSmokeTests.cs` | 런 90 `player-info` 2.0/10(30화면 꼴찌) · T28 4회차가 정본 `renderPlayerInfo` 와 대조 |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 
@@ -548,6 +549,19 @@
 - **CI**: 런 72(`f546d38`) **초록**(dotnet · datasync · 시크릿 확인) → lock 반납, 상태는 **⬜ 대기**(남은 채점은 T27 뒤에 다음 사람이 같은 번호로 잡는다 — `task_state T28` 은 이 커밋들 때문에 «이미 손댄 흔적» 을 내니 이 기록을 먼저 읽고 잡으면 된다).
 - **ntfy**: 계정 3 의 이 세션은 `actions/workflows/…/dispatches` 가 **403 «Resource not accessible by integration»** 이다(unity1·wwwww 둘 다 실측) — 워크플로를 손으로 못 쏜다. main CI 완료마다 도는 자동 갈래(`ntfy-notify.yml` 의 `workflow_run`)가 대신 쏜다(런 145 초록). 다음 사람도 같은 계정이면 손 발사를 시도하지 말고 자동 갈래를 확인한다.
 - **다음 사람에게**: `--self-test` 를 CI dotnet 잡에 거는 한 줄은 `.github/workflows/ci.yml` 이라 **T28 범위 밖**이다(T32·T41·T49 가 그 잡을 두고 겹친다) — 그 잡을 여는 작업이 `python3 tools/ui_score.py --self-test` 한 줄을 같이 넣어 주면 된다.
+
+### T28 4회차 기록 — 런 90 재채점 + 꼴찌 화면 눈 확인 (2026-09-12 · 워커 H · sess-2257-4159)
+
+- **입력**: CI 런 90(`8aade87` · 40장)이 `screens` 에 올린 `screen_*.png` 31장. `git archive origin/screens` 로 받았다.
+- **재채점**: `python3 tools/ui_score.py --score --shots <받은 폴더>` rc 1 · 평균 **4.28 / 10 · 30화면 중 8.0 이상 0개**(2회차 4.35 · 3회차 4.27). **평균은 T53(한글 두부)이 풀리기 전에는 안 오른다** — 모든 화면의 글자 밴드가 통째로 깎이기 때문이다. 그래서 이 회차의 값은 점수가 아니라 **눈으로 본 것**이다.
+- **눈으로 본 것**(아직 아무도 안 본 최저점 위주 · 클론 4장 + 원작 짝 3장): `player-info` **2.0**(꼴찌) ↔ `shot-043313` · `gear-detail` 2.7 ↔ `shot-043244` · `craft-compare` 3.2 ↔ `shot-043224` · `pets` ↔ `shot-042356`.
+- **새로 등재한 것 하나 — T65**(`player-info`): 장비 8칸이 빈 회색 카드(같은 런의 장비 시트에는 아이콘·등급색이 멀쩡하다 = 이 팝업만 다른 조각) · 탈것 와이드 칸 없음 · 스킬/펫/탈것 아이콘 줄 세 묶음이 통째로 없음 · 미리보기가 폴백조차 아닌 빈 상자. 정본 `ui.js` `renderPlayerInfo`(5134~5186)와 한 줄씩 대조해 적었다.
+- **«결함으로 보였다가 걷어낸 것» 둘**(3회차의 «원작 샷이 낡았다» 와 같은 갈래 · ROUTINE §2 T28 절에 메모로 박았다):
+  - **장비 아이콘의 노란 별(★)** — 정본 `ui.js` 3105 가 `it.stars ?` 로 **승천 횟수가 있을 때만** 얹는다. 승천 0인 클론 세이브에 별이 없는 것이 맞다. (원작 샷은 Lv.107 승천 세이브다)
+  - **`gear-detail` 의 빨간 ✕** — 원작 샷엔 없지만 정본이 2026-08-18 에 더했고(`renderGearDetail` 주석: «이 팝업만 ✕ 가 없어서 화면에 보이는 닫는 길이 하나도 없었다»), `.x-btn { margin-top:-1.7rem }` + 주석 «플레이어 정보 ✕도 공용 규칙대로 카드에 반걸침이 맞다» 대로 **카드에 반쯤 걸치는 것이 정본**이다. 클론이 맞다.
+- **다음 회차가 정본 코드로 가릴 것**(이번엔 눈으로만 봤고 코드 대조를 못 해 등재하지 않았다): `pets` 화면 — ⓐ 부화기 남색 판의 **초록 빛 원뿔(등불)** 이 클론엔 없다(램프 3개는 있다) ⓑ 상단 가운데가 원작은 «펫» 제목인데 클론은 «□ 8/250» 이다 ⓒ 부화 중인 알이 1칸(원작 샷은 3칸) — 세이브 차이일 수 있다. 셋 다 «클론이 틀렸나 · 세이브/샷이 다른가» 를 `ui.js` 로 먼저 가려야 한다.
+- **게이트**: `ui_score --score` 실행 · `check_docs_intact` · `check_decisions` · `check_task_rows` · `task_state --check` · `check_claim_scope` 전부 rc 0. 이 회차는 `docs/` 만 만진다(유니티 코드·씬·에셋 변경 0 · PlayMode 영향 0).
+- **주인이 확인할 것**: `screens` 의 `screen_player-info.png` 를 원작 `ref/screens/shot-043313.png` 과 나란히 — 클론 팝업에는 장비 그림도, 스킬·펫 동그라미 줄도 없다.
 
 ### T28 3회차 기록 — 2회차가 안 본 화면을 눈으로 (2026-09-12 · 워커 K · sess-2232-12832)
 
