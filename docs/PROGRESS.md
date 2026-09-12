@@ -97,7 +97,7 @@
 | T56 | HUD 상단바 프로필 카드 아바타 누락 (프로필 팝업·리그·채팅은 그려지는데 HUD 만 빈 흰 타일 · 정본 `renderTopBar` 는 닉네임·전투력과 같이 그린다) | 🔄 진행 | sess-2218-12806 / 워커 J | `Assets/Scripts/Game/Ui/Hud.cs` · `Assets/Scripts/Game/Ui/MetaHost.cs`(Sync 한 줄) · `Assets/Tests/PlayMode/HudAvatarTests.cs`(새) | T18·T31 뒤 · 워커 J 등재(2026-09-12 22:20 · `screens/screen_main.png` 실측) · 1회차: 코드·테스트 끝 · CI/눈 확인 뒤 ✅ |
 | T57 | 대장간·장비 팝업이 제 판 없이 배경 위에 글자를 겹쳐 그린다 + 빈 검은·흰 막대 + ✕ 둘 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/Forge*` · `Ui/Gear*` · `Assets/Tests/PlayMode/ForgeUiTests.cs` | T28 2회차 등재 · forge-detail 1.8 · craft-compare 3.1 · gear-detail 2.7 · autoforge-filter 3.7 |
 | T58 | 리그 도전·펫 업그레이드 팝업이 판 없이 부모 목록 위에 겹친다 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/League*` · `Ui/PetUpgrade*` · `Assets/Tests/PlayMode/PetUiTests.cs` | T28 2회차 등재 · league-challenge 1.9 · pet-upgrade 1.7 · **T20 lock 이 풀린 뒤** |
-| T59 | 수 표기 둘: 서브스탯 `+7.699999999999999%` · 대장간 확률이 전부 `0.0000%` | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Ui/ForgeInfoPopup.cs` · `Assets/Scripts/Core/BigNum.cs`(표기 함수만) · `Assets/Tests/EditMode/` | T28 2회차 등재 · 정본 `ui.js` 5182 `+stats.subs[k].toFixed(1)` |
+| T59 | 수 표기 둘: 서브스탯 `+7.699999999999999%` · 대장간 확률이 전부 `0.0000%` | 🔄 진행 | sess-2229-17847 / 워커 S | `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Ui/ForgeInfoPopup.cs` · `Assets/Scripts/Core/BigNum.cs`(표기 함수만) · `Assets/Tests/EditMode/` | T28 2회차 등재 · 정본 `ui.js` 5182 `+stats.subs[k].toFixed(1)` |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 
