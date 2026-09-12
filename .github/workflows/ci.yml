@@ -187,7 +187,7 @@ jobs:
           githubToken: ''
       # 잡 로그는 MCP/웹에서 **꼬리 5000줄**만 보인다 — PlayMode XML 앞부분(B~S 픽스처)이 잘려 «어느 테스트가 빨간가» 를 못 읽고, 아티팩트 zip 은
       # 컨테이너 프록시가 막는다(T8 실측 2026-09-12 · 런 35·38). 끝에 총계·픽스처별 결과·실패 테스트 이름을 한 번 더 짧게 찍는다.
-      - name: 테스트 결과 요약 (test-run 총계 · 픽스처 · 실패 테스트 이름)
+      - name: 테스트 결과 요약 (test-run 총계 · 픽스처 · 실패 테스트 이름 · 실패 메시지 첫 6줄)
         if: always()
         run: |
           python3 - <<'PY'
@@ -200,8 +200,12 @@ jobs:
               print('== %s: total %s · passed %s · failed %s' % ((os.path.basename(f),) + (m.groups() if m else ('?', '?', '?'))))
               for fx in re.findall(r'<test-suite type="TestFixture"[^>]*name="([^"]+)"[^>]*result="(\w+)"[^>]*total="(\d+)" passed="(\d+)" failed="(\d+)"', s):
                   print('   %-32s %-7s %s/%s' % (fx[0], fx[1], fx[3], fx[2]))
-              for name in re.findall(r'<test-case[^>]*fullname="([^"]+)"[^>]*result="Failed"', s):
+              # 실패 이름만으로는 원인을 못 본다(잡 로그 API 는 꼬리 5000줄만 주고 아티팩트 blob 은 클라우드 세션 프록시가 막는다 · T10 실측) — 메시지 첫 6줄을 같이 찍는다
+              for name, body in re.findall(r'<test-case[^>]*fullname="([^"]+)"[^>]*result="Failed"[^>]*>(.*?)</test-case>', s, re.S):
                   print('   FAILED ' + name)
+                  mm = re.search(r'<message><!\[CDATA\[(.*?)\]\]></message>', body, re.S)
+                  if mm:
+                      for line in mm.group(1).strip().split('\n')[:6]: print('      | ' + line[:300])
           PY
       - uses: actions/upload-artifact@v4
         if: always()
