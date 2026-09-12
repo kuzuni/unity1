@@ -221,6 +221,17 @@ jobs:
           if gh:
               with open(gh, 'a', encoding='utf-8') as fh:
                   fh.write('missing=' + ','.join(missing) + '\n')
+          # T67 — playmode-red.txt 는 두 모드를 이어 붙이고 «== 런 끝» 이 모드마다 하나라, 꼬리를 읽으면
+          # 나중에 끝난 EditMode 줄(«초록 507 · 빨강 0»)만 보여 PlayMode 빨강이 안 보인다(런 95 실측: PlayMode 5 빨강).
+          # 모드별 총계를 한 줄씩 적어 두면 screens 배포 스텝이 그 파일 머리에 박는다.
+          with open('modes-summary.txt', 'w', encoding='utf-8') as fh:
+              for f in files:
+                  s2 = open(f, encoding='utf-8', errors='replace').read()
+                  mm = re.search(r'<test-run [^>]*?total="(\d+)" passed="(\d+)" failed="(\d+)"', s2)
+                  g = mm.groups() if mm else ('?', '?', '?')
+                  fh.write('#   %s: 전부 %s · 초록 %s · 빨강 %s\n' % ((os.path.basename(f),) + g))
+              for m in missing:
+                  fh.write('# ⚠ %s 이 없다 — 그 모드는 한 개도 안 돌았다(테스트 0개 · ROUTINE §1). 잡 로그에서 «Failed to return the Personal license seat» · «no available seats» · «Unable to activate license» 를 먼저 보라(T67).\n' % m)
           for f in files:
               s = open(f, encoding='utf-8', errors='replace').read()
               m = re.search(r'<test-run [^>]*?total="(\d+)" passed="(\d+)" failed="(\d+)"', s)
@@ -257,9 +268,10 @@ jobs:
           # T67 — 모드 XML 이 없는 런의 playmode-red.txt 는 «돈 모드» 것뿐이라 꼬리(«런 끝: 초록 N · 빨강 0»)만 보면
           #       다음 회차 워커가 «내 커밋이 든 런은 돌았다» 로 읽는다. 머리에 한 줄을 박아 screens 로도 보이게 한다.
           miss="${{ steps.summary.outputs.missing }}"
-          if [ -n "$miss" ]; then
-            { printf '# ⚠ 이 런(#%s · %s)에는 모드 결과 XML 이 없다: %s — 그 모드는 한 개도 안 돌았다(테스트 0개 · ROUTINE §1).\n' "$GITHUB_RUN_NUMBER" "$GITHUB_SHA" "$miss"
-              printf '#   아래 줄은 «돈 모드» 것뿐이다. 잡 로그에서 «Failed to return the Personal license seat» · «no available seats» · «Unable to activate license» 를 먼저 보라(T67).\n'
+          if [ -s modes-summary.txt ]; then
+            { printf '# ── 이 런 #%s (%s) 모드별 총계 — 아래 본문은 EditMode·PlayMode 가 이어 붙은 것이라\n' "$GITHUB_RUN_NUMBER" "$GITHUB_SHA"
+              printf '#    «== 런 끝» 줄이 모드마다 하나다. 꼬리만 읽지 마라(T67).\n'
+              cat modes-summary.txt
               cat ui-screens/playmode-red.txt 2>/dev/null || true
             } > ui-screens/.red.tmp && mv ui-screens/.red.tmp ui-screens/playmode-red.txt
           fi

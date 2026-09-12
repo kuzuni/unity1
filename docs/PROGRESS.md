@@ -626,6 +626,7 @@
 - **자를 무엇으로 믿나**(CI 를 못 돌리므로 로컬 재현): 런 94 와 같은 꼴(`editmode-results.xml` 만 둔 폴더)로 요약 파이썬을 돌려 `::error::playmode-results.xml …` 한 줄 + `missing=playmode-results.xml` 출력 · 두 XML 이 다 있으면 `missing=[]` 로 조용 · 머리줄 셸 갈래를 같은 입력으로 돌려 두 줄이 앞에 붙고 본문이 그대로인 것을 확인했다. `ci.yml` 은 `yaml.safe_load` 로 파싱된다.
 - **게이트**: 이 컨테이너에 `dotnet` 을 설치해(§3 · 약 2분) `dotnet build tools/dotnet/Forge.sln -c Release` **0 오류**(경고 2 — 기존 것) · `gen_meta --check` · `gen_ui_catalog --check` · `check_docs_intact` · `check_decisions` · `check_task_rows` · `task_state --check` · `check_claim_scope` · `check_final_table` · `ui_score --self-test` 전부 rc 0. 유니티 코드·씬·에셋·테스트 **0줄**.
 - **플레이 콘솔 에러 0 은 무엇으로 확인했나**: 워크플로 한 파일만 바뀐다(PlayMode 영향 0). 런 94 의 EditMode 는 505/505 초록이었고 PlayMode 는 이 런에서 돌지 않았다 — 그것을 말하게 만든 것이 이 작업이다.
+- **같은 lock 으로 하나 더(런 95 실측)**: 런 95 는 PlayMode 가 정상으로 돌았고(PlayMode 171줄 · PNG 40장) **PlayMode 5 빨강**(`ForgeUiTests` 4 = T57 lock · `ShopUiTests` 1 = T62 lock)이었는데, `playmode-red.txt` 의 **마지막** «== 런 끝» 줄은 나중에 끝난 EditMode 것(«초록 507 · 빨강 0»)이라 꼬리만 읽으면 «빨강 0» 으로 보인다. 그래서 요약 스텝이 **모드별 총계 줄**(`modes-summary.txt`)을 쓰고 배포 스텝이 그것을 `playmode-red.txt` **머리에 항상** 박는다 — 모드 XML 이 없을 때만이 아니라 **매 런**(결정 156).
 - **주인이 확인할 것**: 다음 main 런의 유니티 잡 로그 맨 끝에 «없는 모드 XML «없음»» 알림 한 줄이 보이면 자가 도는 것이다. 좌석 실패가 이어지면(런마다 «Failed to return the Personal license seat») 그것은 코드가 아니라 **유니티 계정 좌석**이 물린 것이다 — id.unity.com 에서 좌석을 풀거나 `game-ci return-license` 를 한 번 돌려야 한다.
 
 ### T44 완료 기록 (2026-09-12 · 워커 H · sess-2058-16344)
@@ -1112,3 +1113,5 @@
 
 154. **모드 XML 부재는 «경고» 가 아니라 «빨강» 으로 말한다(2026-09-12 · T67 · 워커 M)** — 요약 스텝은 XML 이 하나도 없을 때만 `::warning::` 을 냈다. 한쪽 모드만 죽는 런(런 94: EditMode 505 초록 · PlayMode XML 없음)이 실제로 생겼고, 그때 `screens` 의 `playmode-red.txt` 꼬리는 «초록 505 · 빨강 0» 이라 **다음 회차 워커가 «내 커밋이 든 런은 돌았다» 로 읽는다**(ROUTINE §1 «테스트 0개는 빨간 테스트보다 나쁘다» 가 막으려던 자리). 그래서 없는 모드를 이름으로 `::error::` 하고 같은 문장을 `playmode-red.txt` 머리에도 박았다 — 잡 로그를 못 여는 워커도 `screens` 파일 첫 줄에서 본다. 되돌리려면 `ci.yml` 의 `summary` 스텝 블록과 shots 스텝의 `miss` 갈래.
 155. **좌석 실패는 자가 «찾아 주지» 않고 «어디를 보라» 고만 한다(2026-09-12 · T67 · 워커 M)** — 좌석 문구는 `game-ci` 액션이 제 스텝에서 찍는 것이라 워크플로 안에서는 파일로 못 읽는다(러너 출력을 tee 할 자리가 없다). 문구 셋을 잡아내려고 액션을 감싸는 대신, `::error::` 줄에 **찾을 문구 셋을 그대로 적어** 사람이 잡 로그 검색으로 1초 만에 가르게 했다. 되돌리려면 그 메시지 문자열.
+
+156. **모드별 총계 줄은 «빠진 런» 만이 아니라 매 런 머리에 박는다(2026-09-12 · T67 · 워커 M)** — `playmode-red.txt` 는 EditMode·PlayMode 를 이어 붙이고 «== 런 끝» 이 모드마다 하나라, 나중에 끝난 EditMode 줄이 꼬리에 남는다(런 95: 꼬리는 «초록 507 · 빨강 0» 인데 PlayMode 는 5 빨강이었다). 모드 XML 이 빠진 런에만 머리줄을 박으면 이 흔한 오독은 그대로 남으므로, 총계 두 줄은 **매 런** 박는다(빠진 모드가 있을 때만 ⚠ 줄이 더 붙는다). 되돌리려면 `ci.yml` 요약 스텝의 `modes-summary.txt` 블록과 shots 스텝의 `-s modes-summary.txt` 갈래.
