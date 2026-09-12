@@ -155,7 +155,7 @@
 - PlayMode: 부팅 → HUD · 콘솔 빨강 0 · `TextSizeGateTests`(모든 활성 Text 가 하한 이상).
 - 범위: `Assets/Scripts/Game/Ui/` · `Assets/Forge/catalog.json` · `docs/assets-map.md` · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
 
-### T19 — UI 패널: 대장간 · 장비(8부위·장착·판매·x1/x10 제작) (Game · T14·T15·T18 뒤)
+### T19 ✅ — UI 패널: 대장간 · 장비(8부위·장착·판매·x1/x10 제작) (Game · T14·T15·T18 뒤)
 - 정본: `ui.js` 의 해당 패널 + `web/ref/screens/` 해당 샷. 배치는 원작 비율(±2%p).
 - 옮길 것(원작 `ui.js` 함수 이름 그대로 — 하나라도 빠지면 T33 이 잡는다): 대장간 `renderForgeListView`·`renderForgeLevelView`·`renderForgeDetailView`·`openForgeList/Detail/Info`·`renderForgeInfo`·`closeForgeItemDetail` · 오토 포지 `openAutoForge`·`renderAutoForge`·`toggleAuto`·`showAutoDropCard` · 제작 `showCraftModal`·`showCraftBatch`·`showCraftReveal`·`buildCraftCard` · 장비 `renderEquipSheet`·`openGearDetail`·`renderGearDetail`·`showSellConfirm`. 아이콘은 T31 `UiIcons.Get` · 소리는 T30 `Sfx.Play`(anvilHit·craft·craftReveal·equipSnap·equipToss·equipDrop).
 - 범위: `Assets/Scripts/Game/Ui/Forge*` · `Ui/Gear*` · `Assets/Tests/PlayMode/ForgeUiTests.cs`.
