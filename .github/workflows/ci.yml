@@ -218,6 +218,27 @@ jobs:
           targetPlatform: WebGL
           buildName: web
           allowDirtyBuild: true
+      # T26 — 배포 스모크: 구운 폴더를 러너 안에서 정적 서빙해 headless Chromium 으로 연다(로딩 완료 표식 · 콘솔 빨강 0 · 9:16 상자).
+      # 빨갛면 gh-pages 로 안 올린다 — 깨진 빌드를 배포하지 않는다. 컨테이너에서는 kuzuni.github.io 가 막혀 여기서만 돈다.
+      # --require: T8 이 forgeSignal('battle') 을 붙이면 `unity-ready,battle` 로 늘린다(«전투 진입»).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Playwright Chromium
+        run: |
+          npm i --no-save playwright@1.49.1
+          npx playwright install --with-deps chromium
+      - name: WebGL 배포 스모크 (tools/webgl_smoke.js)
+        run: |
+          sudo chown -R "$(id -u):$(id -g)" build 2>/dev/null || true
+          mkdir -p ui-screens
+          node tools/webgl_smoke.js --serve build/WebGL/web --require unity-ready --shot ui-screens/webgl_smoke.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: webgl-smoke
+          path: ui-screens/webgl_smoke.png
+          if-no-files-found: ignore
       - name: "gh-pages 로 배포 (Settings → Pages → Source: gh-pages, (root))"
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -225,3 +246,39 @@ jobs:
           publish_branch: gh-pages
           publish_dir: build/WebGL/web
           force_orphan: true
+
+  # T26 — Android APK. WebGL 과 같은 조건(UNITY_LICENSE · main 또는 수동 build 입력). 서명은 unity-builder 의 디버그 키(주인 키스토어 없음).
+  # 결과는 Artifact «forge-android-apk» 로 받는다(gh-pages 처럼 브랜치에 올리지 않는다 — APK 는 수십 MB 바이너리).
+  build-android:
+    name: Android APK 빌드 → Artifact
+    needs: [unity-test, gate]
+    if: needs.gate.outputs.has_ulf == 'true' && (github.ref == 'refs/heads/main' || inputs.build == true)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-android-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-android-
+            Library-
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .
+          targetPlatform: Android
+          buildName: forge
+          androidExportType: androidPackage
+          allowDirtyBuild: true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: forge-android-apk
+          path: build/Android/*.apk
+          if-no-files-found: error
