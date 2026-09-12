@@ -38,7 +38,7 @@
 | T21 | UI 패널: 던전 · 기술트리 · 승천 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/Dungeon*` · `Ui/Tech*` · `Ui/Ascend*` · `Assets/Tests/PlayMode/DungeonUiTests.cs` | T23·T24·T18 뒤 |
 | T22 | UI 패널: 상점 · 패스 · 퀘스트 · 리그 · 채팅 · 설정 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/Shop*` · `Ui/Pass*` · `Ui/Quest*` · `Ui/League*` · `Ui/Chat*` · `Ui/Settings*` · `Assets/Tests/PlayMode/ShopUiTests.cs` | T25·T18 뒤 |
 | T23 | Core 던전 4종 | ⬜ 대기 | — | `Assets/Scripts/Core/Dungeons/` · `Assets/Tests/EditMode/DungeonTests.cs` | T7 뒤 |
-| T24 | Core 기술트리 · 승천 | ⬜ 대기 | — | `Assets/Scripts/Core/Tech/` · `Core/Ascension/` · `Assets/Tests/EditMode/TechTests.cs` | T3 뒤 |
+| T24 | Core 기술트리 · 승천 | 🔄 진행 | sess-1845-4478 / 워커 T | `Assets/Scripts/Core/Tech/` · `Core/Ascension/` · `Assets/Tests/EditMode/TechTests.cs` | T3 뒤 |
 | T25 | Core 상점 · 패스 · 퀘스트 · 리그 | ⬜ 대기 | — | `Assets/Scripts/Core/Meta/` · `Assets/Tests/EditMode/MetaTests.cs` | T3 뒤 |
 | T26 | WebGL 템플릿 · 배포 스모크 · Android 잡 | ✅ 완료 | sess-1824-31207 / 워커 N | `Assets/WebGLTemplates/` · `tools/webgl_smoke.js` · `.github/workflows/ci.yml`(빌드 잡 부분만) · `ProjectSettings/ProjectSettings.asset`(webGLTemplate · 압축 폴백 · Android 식별자 칸만) | 템플릿 `Forge`(원작 fitLayout 9:16 상자 + #boot-loading 모루 오버레이 · `data-forge-ready` · `forgeSignal()`) · 스모크(Playwright · 콘솔 빨강 0 · self-test 6) · ci.yml 스모크→gh-pages · Android APK Artifact · gzip+압축 폴백 · dotnet 없음(C# 0줄) → CI 초록 확인 뒤 lock 반납 |
 | T27 | PlayMode 스모크·플레이 봇·촬영 | ⬜ 대기 | — | `Assets/Tests/PlayMode/PlaythroughTests.cs` · `UiShotsTests.cs` · `PlayLog.cs` | T19~T22 뒤 |
