@@ -222,12 +222,19 @@ namespace Forge.Tests.PlayMode
             /// <summary>T50 자: 프로파일러 계수기 «GC Allocated In Frame» 합 ÷ 프레임 — 실제 관리 할당. 계수기가 안 살면 −1.</summary>
             public long AllocPerFrame = -1;
             public int Collections;
+            /// <summary>T50 자 ②: <c>GC.GetAllocatedBytesForCurrentThread</c> 를 StepFrame 앞뒤로 재 «우리 게임 일감» 이 프레임에서 문 바이트 ÷ 프레임(런타임이 안 주면 −1). 계수기와의 차 = 렌더·캔버스·러너 몫.</summary>
+            public long StepAllocPerFrame = -1;
             /// <summary>판정에 쓰는 값 — 계수기가 살아 있으면 <see cref="AllocPerFrame"/>, 아니면 <see cref="TotalDeltaPerFrame"/>.</summary>
             public long Judged { get { return AllocPerFrame >= 0 ? AllocPerFrame : TotalDeltaPerFrame; } }
         }
 
-        /// <summary>200프레임을 밀며 잰다. <paramref name="castSkills"/> 가 false 면 스킬을 다시 시전하지 않는다(갈래별 측정).</summary>
-        static IEnumerator Measure(Rig r, float dt, bool castSkills, Sample o)
+        static long ThreadAlloc()
+        {
+            try { return GC.GetAllocatedBytesForCurrentThread(); } catch (Exception) { return -1; }
+        }
+
+        /// <summary>200프레임을 밀며 잰다. <paramref name="castSkills"/> 가 false 면 스킬을 다시 시전하지 않는다 · <paramref name="step"/> 이 false 면 게임 일감을 안 민다(정지 바닥 = 렌더·러너 몫).</summary>
+        static IEnumerator Measure(Rig r, float dt, bool castSkills, Sample o, bool step = true)
         {
             var ms = new double[MeasureFrames];
             var wall = new double[MeasureFrames];
@@ -239,11 +246,17 @@ namespace Forge.Tests.PlayMode
             long gc0 = GC.GetTotalMemory(false);
             int col0 = GC.CollectionCount(0);
             long allocSum = 0; bool recOk = rec.Valid;
+            long stepSum = 0; bool stepOk = ThreadAlloc() > 0;
             for (int f = 0; f < MeasureFrames; f++)
             {
                 sw.Restart();
-                StepFrame(r, dt);
-                if (castSkills && f % 30 == 0) CastSkills(r);
+                long t0 = stepOk ? ThreadAlloc() : 0;
+                if (step)
+                {
+                    StepFrame(r, dt);
+                    if (castSkills && f % 30 == 0) CastSkills(r);
+                }
+                if (stepOk) stepSum += ThreadAlloc() - t0;
                 sw.Stop();
                 ms[f] = sw.Elapsed.TotalMilliseconds;
                 wall[f] = Time.unscaledDeltaTime * 1000.0;
@@ -262,6 +275,7 @@ namespace Forge.Tests.PlayMode
             o.P95 = sorted[(int)(MeasureFrames * 0.95)];
             o.TotalDeltaPerFrame = Math.Max(0, (gc1 - gc0)) / MeasureFrames;
             o.AllocPerFrame = recOk && allocSum > 0 ? allocSum / MeasureFrames : -1;
+            o.StepAllocPerFrame = stepOk ? stepSum / MeasureFrames : -1;
         }
 
         static string Bytes(long b) { return b < 0 ? "?" : b + "B"; }
@@ -300,26 +314,33 @@ namespace Forge.Tests.PlayMode
                          " · 임팩트 " + r.S.Impact.Live + "(슬롯 " + r.S.Impact.Created + " · 풀 " + r.S.Impact.Pooled + " · 재질 " + FxUnlitMaterials.Made + "/" + FxUnlitMaterials.Pooled + ")" +
                          " · 적 " + r.S.Battle.AliveEnemies().Count + " · 펫 " + r.P.Pets.Count + " · 스킬 시전 " + r.D.Casts.Count;
             string line = "[T44] 부하 장면 메인스레드 게임 시간 평균 " + full.Avg.ToString("F3") + "ms · p95 " + full.P95.ToString("F3") +
-                          "ms · 최대 " + full.Max.ToString("F3") + "ms · 프레임당 관리 할당 " + Bytes(full.AllocPerFrame) + "(계수기) · GetTotalMemory 차 " + full.TotalDeltaPerFrame +
+                          "ms · 최대 " + full.Max.ToString("F3") + "ms · 프레임당 관리 할당 " + Bytes(full.AllocPerFrame) + "(계수기) · 그중 StepFrame 안 " + Bytes(full.StepAllocPerFrame) + " · GetTotalMemory 차 " + full.TotalDeltaPerFrame +
                           "B · GC 회수 " + full.Collections + " · 벽시계 평균 " + full.WallAvg.ToString("F2") + "ms(소프트웨어 렌더 포함 · 판정 밖) · " + num;
             Debug.Log(line);
             Trace(line);
 
-            // T50 갈래별 — 숫자만 끄고 · 임팩트+파편만 끄고 · 스킬 재시전만 끄고 200프레임씩 더 잰다(같은 장면 · 큰 것부터 고치기 위한 자).
-            var noNum = new Sample(); r.S.Numbers.Enabled = false;
-            yield return Measure(r, dt, true, noNum);
-            r.S.Numbers.Enabled = true;
-            var noFx = new Sample(); r.S.Fx.Enabled = false; r.S.Impact.Enabled = false;
+            // T50 갈래별(런 78 실측: 숫자 몫 ≈ 0 · 임팩트+파편 ≈ 436KB · 스킬 ≈ 488KB · 나머지 ≈ 19KB) — 임팩트와 파편을 갈라 재고, 게임 일감을 안 미는 «정지 바닥» 과 «전부 끔» 도 잰다.
+            var noImpact = new Sample(); r.S.Impact.Enabled = false;
+            yield return Measure(r, dt, true, noImpact);
+            r.S.Impact.Enabled = true;
+            var noFx = new Sample(); r.S.Fx.Enabled = false;
             yield return Measure(r, dt, true, noFx);
-            r.S.Fx.Enabled = true; r.S.Impact.Enabled = true;
+            r.S.Fx.Enabled = true;
             var noSkill = new Sample();
             yield return Measure(r, dt, false, noSkill);
-            string branches = "[T50] 프레임당 관리 할당 갈래(계수기 · 없으면 GetTotalMemory 차): 전부 " + Bytes(full.Judged) +
-                      " · 숫자 끔 " + Bytes(noNum.Judged) + "(숫자 몫 ≈ " + Bytes(full.Judged - noNum.Judged) + ")" +
-                      " · 임팩트+파편 끔 " + Bytes(noFx.Judged) + "(몫 ≈ " + Bytes(full.Judged - noFx.Judged) + ")" +
-                      " · 스킬 재시전 끔 " + Bytes(noSkill.Judged) + "(몫 ≈ " + Bytes(full.Judged - noSkill.Judged) + ")" +
-                      " · GC 회수 " + full.Collections + "/" + noNum.Collections + "/" + noFx.Collections + "/" + noSkill.Collections +
-                      " · 계수기 " + (full.AllocPerFrame >= 0 ? "살아 있음" : "없음(폴백)");
+            var allOff = new Sample(); r.S.Numbers.Enabled = false; r.S.Impact.Enabled = false; r.S.Fx.Enabled = false;
+            yield return Measure(r, dt, false, allOff);
+            r.S.Numbers.Enabled = true; r.S.Impact.Enabled = true; r.S.Fx.Enabled = true;
+            var still = new Sample();
+            yield return Measure(r, dt, false, still, false);
+            string branches = "[T50] 프레임당 관리 할당(계수기=프레임 전부 · 스텝=StepFrame 안 우리 일감): 전부 " + Bytes(full.Judged) + "/" + Bytes(full.StepAllocPerFrame) +
+                      " · 임팩트 끔 " + Bytes(noImpact.Judged) + "/" + Bytes(noImpact.StepAllocPerFrame) + "(임팩트 몫 ≈ " + Bytes(full.Judged - noImpact.Judged) + ")" +
+                      " · 파편 끔 " + Bytes(noFx.Judged) + "/" + Bytes(noFx.StepAllocPerFrame) + "(파편 몫 ≈ " + Bytes(full.Judged - noFx.Judged) + ")" +
+                      " · 스킬 재시전 끔 " + Bytes(noSkill.Judged) + "/" + Bytes(noSkill.StepAllocPerFrame) + "(스킬 몫 ≈ " + Bytes(full.Judged - noSkill.Judged) + ")" +
+                      " · 전부 끔 " + Bytes(allOff.Judged) + "/" + Bytes(allOff.StepAllocPerFrame) +
+                      " · 정지 바닥(스텝 없음) " + Bytes(still.Judged) + "/" + Bytes(still.StepAllocPerFrame) +
+                      " · GC 회수 " + full.Collections + "/" + noImpact.Collections + "/" + noFx.Collections + "/" + noSkill.Collections + "/" + allOff.Collections + "/" + still.Collections +
+                      " · 계수기 " + (full.AllocPerFrame >= 0 ? "살아 있음" : "없음(폴백)") + " · 스레드 자 " + (full.StepAllocPerFrame >= 0 ? "살아 있음" : "없음");
             Debug.Log(branches);
             Trace(branches);
 
