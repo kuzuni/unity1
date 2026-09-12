@@ -179,6 +179,24 @@ jobs:
           artifactsPath: unity-test-results
           # 빈 값으로 «명시» 해야 체크 런을 안 만든다(안 적으면 러너가 제 토큰을 채워 checks:write 없이 죽는다 · aaawunity T295).
           githubToken: ''
+      # 잡 로그는 MCP/웹에서 **꼬리 5000줄**만 보인다 — PlayMode XML 앞부분(B~S 픽스처)이 잘려 «어느 테스트가 빨간가» 를 못 읽고, 아티팩트 zip 은
+      # 컨테이너 프록시가 막는다(T8 실측 2026-09-12 · 런 35·38). 끝에 총계·픽스처별 결과·실패 테스트 이름을 한 번 더 짧게 찍는다.
+      - name: 테스트 결과 요약 (test-run 총계 · 픽스처 · 실패 테스트 이름)
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import glob, os, re
+          files = sorted(glob.glob('unity-test-results/**/*.xml', recursive=True))
+          if not files: print('::warning::unity-test-results/*.xml 이 없다 — 러너가 테스트를 못 돌렸다')
+          for f in files:
+              s = open(f, encoding='utf-8', errors='replace').read()
+              m = re.search(r'<test-run [^>]*?total="(\d+)" passed="(\d+)" failed="(\d+)"', s)
+              print('== %s: total %s · passed %s · failed %s' % ((os.path.basename(f),) + (m.groups() if m else ('?', '?', '?'))))
+              for fx in re.findall(r'<test-suite type="TestFixture"[^>]*name="([^"]+)"[^>]*result="(\w+)"[^>]*total="(\d+)" passed="(\d+)" failed="(\d+)"', s):
+                  print('   %-32s %-7s %s/%s' % (fx[0], fx[1], fx[3], fx[2]))
+              for name in re.findall(r'<test-case[^>]*fullname="([^"]+)"[^>]*result="Failed"', s):
+                  print('   FAILED ' + name)
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
