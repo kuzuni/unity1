@@ -337,5 +337,20 @@
       "stone": 4862512,
       "emissive": { "crack": 13959168, "intensity": 1.25, "glow": 16717636, "light": 16732754 }
     }
-  }
+  },
+  "CREATURE_YAW": 0.55,
+  "PET_ROW0": {
+    "mounted": [
+      [-1.05, 1.15],
+      [-1.9, 0.55],
+      [-2.12, 1.3]
+    ],
+    "unmounted": [
+      [-1.05, 1.15],
+      [-1.9, 0.55],
+      [-2.12, 1.3]
+    ]
+  },
+  "PET_ARC": { "rear": true, "rx0": 2.72, "rxStep": 0.9, "rz0": 0.35, "rzStep": 0.62, "cols": 4, "mountedRx": 0.25, "mountedRz": 0.06 },
+  "MOUNT_ARC": { "rx0": 2.5, "rxStep": 1.5, "rz0": 1.7, "rzStep": 0.85, "zBase": -0.35, "hmin": 0.32, "hmax": 1.2, "gap": 1.4 }
 }

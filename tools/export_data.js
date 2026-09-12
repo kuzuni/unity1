@@ -109,7 +109,9 @@ const PROP_HELPERS = new Set(['bx', 'cbx', 'octa', 'capLayer', 'sub']);
 //   VOX_AMBIENT · CRACK_W/CRACK_A(용암 균열 위계) · BIOMES(신설 바이옴 15종 덮어쓰기 표).
 // setTheme 안의 인라인 리터럴(안개 13/35·11/30 · 광량 1.00/0.15/0.18 …)은 표가 아니라 규칙이라 C# `WorldRules`(Core/World)가 그대로 옮긴다.
 const SCENE_FIELDS = ['SIMPLE_BG', 'VALUE', 'SUN_DAY', 'SUN_NIGHT', 'CAM_POS', 'CAM_LOOK_Y', 'CAM_FOV', 'RIDGE_MIX', 'RIDGE_LAYERS',
-    'VOXG', 'SHADE', 'TERRAIN', 'SOIL', 'LEAF_OFF', 'VOX_AMBIENT', 'CRACK_W', 'CRACK_A', 'BIOMES'];
+    'VOXG', 'SHADE', 'TERRAIN', 'SOIL', 'LEAF_OFF', 'VOX_AMBIENT', 'CRACK_W', 'CRACK_A', 'BIOMES',
+    // T10 — 크리처 공통 3/4 facing · 펫 대열(앞 3자리 · 후방 격자) · 탈것 무리 호
+    'CREATURE_YAW', 'PET_ROW0', 'PET_ARC', 'MOUNT_ARC'];
 // scene3d.js 는 로드 시점에 THREE·Voxel·Mobs·ProChar 를 참조하지 않지만 three.min.js 의 UMD 머리가 `self` 를 찾는다 —
 // 별도 컨텍스트(self = 자기 자신)에 실물 three r128 을 먼저 올린다(T4 voxel_vectors.js 와 같은 길).
 const SCENE_LOAD_ORDER = ['bignum.js', 'util.js', 'balance-data.js', 'gamedata.js', 'voxel.js', 'mobs.js', 'mobdata.js',
@@ -539,6 +541,7 @@ function selfTest(src) {
     ok('VOXG 셀 0.75 · 단 0.375 · VALUE 8칸 · SOIL 3칸', sc.VOXG.cell === 0.75 && sc.VOXG.step === 0.375 && cnt(sc.VALUE) === 8 && cnt(sc.SOIL) === 3, `${sc.VOXG.cell}/${sc.VOXG.step}`);
     ok('SUN_DAY·SUN_NIGHT·CAM_POS 3벡터 · CAM_FOV 수', [sc.SUN_DAY, sc.SUN_NIGHT, sc.CAM_POS].every(v => Array.isArray(v) && v.length === 3) && typeof sc.CAM_FOV === 'number', sc.SUN_DAY.join(','));
     ok('LEAF_OFF foliage 3 · RIDGE_LAYERS 3 · CRACK_W/A 3', sc.LEAF_OFF.foliage.length === 3 && sc.RIDGE_LAYERS.length === 3 && sc.CRACK_W.length === 3 && sc.CRACK_A.length === 3);
+    ok('T10: CREATURE_YAW 수 · PET_ROW0 mounted/unmounted 3자리 · PET_ARC rear 격자 cols 4 · MOUNT_ARC 호', typeof sc.CREATURE_YAW === 'number' && sc.PET_ROW0.mounted.length === 3 && sc.PET_ROW0.unmounted.length === 3 && sc.PET_ARC.rear === true && sc.PET_ARC.cols === 4 && typeof sc.MOUNT_ARC.hmin === 'number', `${sc.CREATURE_YAW}/${sc.PET_ARC.rx0}`);
     console.log('[소리 표 · T30]');
     const sx = files['sfx.json'];
     const modes = sx.MUSIC_MODES || {};

@@ -117,6 +117,7 @@
 ### T10 — 펫 출전 3마리: 대형(`PET_ROW0`·`PET_ARC`) · 따라오기 · 공격 참여 · 제너릭 관절 드라이버 (Game · T8 뒤)
 - 정본: `scene3d.js` 의 `makePetMesh` 어댑터 · 펫 대형 상수 · 펫 관절 드라이버(`joints` 서술 · axis/amp/f/ph/gain/abs/spin) · `pets.js` 의 출전·스탯 기여.
 - 범위: `Assets/Scripts/Game/Pets/` · `Assets/Tests/PlayMode/PetSceneTests.cs`.
+- ✅ 2026-09-12 워커 I — 대열·자세·관절은 Core(`PetFormation`·`PetSceneRules`·`PetPose` · 정본 `formationSpot` 실행 벡터 + 펫 블록 식 대조) · 씬은 `PetParty`/`PetView`(관절 = `VoxelJoint.Set`) · 스탯 접착은 T43 · 승천 데코는 T37.
 
 ### T11 — 탈것: 서서 타기 · 안장 칸 · 비행/평지 hover · 탈것 드라이버(다리·날개·바퀴·스피너) (Game · T6·T10 뒤)
 - 정본: `scene3d.js` 의 `makeMountMesh` · `RIDE_STAND_POSE` · `RIDE_STAND_BULK 1.45` · `MOUNT_FORMS`(fly hover 0.04 · 평지 0.10) · `rideSkirt(false)` · `mounts.js`.
@@ -276,6 +277,11 @@
 - 왜: `undeclared()` 는 파일 줄기(`BattleContext`)가 범위 칸에 **글자로** 있는지만 본다. §2 «범위» 는 폴더로 적는 것이 규약이라 폴더 범위 lock 은 전부 오탐이고, 그 소음에 진짜 «밖 파일» 이 묻힌다(자 스스로 «그것을 매 회차 다시 한다» 고 적어 둔 자리).
 - 방법: 범위 칸의 `…/` 로 끝나는 토큰과 `…*` 글로브 토큰(백틱 안)은 경로 접두로 보고(`Ui/Pet*` 는 `Assets/Scripts/Game/Ui/Pet` 접두) `p.startswith(prefix)` 면 덮은 것으로 · `--selftest` 에 «폴더·글로브 범위는 덮는다 · 밖 파일은 여전히 잡는다» 두 칸.
 - 범위: `tools/check_claim_scope.py`.
+### T43 — 전투 스탯 접착: 세이브 상태 → `GearSystem.HeroStats` → `BattleContext.HeroStats` (Game · T8·T13·T15·T16 뒤)
+- 정본: `forge.js heroStats()`(329~369 · 장비 8부위 + `Pets.activeBonus()` + `Mounts.activeBonus()` + `Skills.ownedPassive()` + `TechTree.gearAtkMult/gearHpMult` …) · `combat.js` 가 공격·재계산 때 `Forge.heroStats()` 를 부르는 자리 · 출전/장착 변경 → 재계산.
+- 유니티: `BattleScene.Boot` 의 `BareHeroStats.Make`(T8 결정 69ⓓ 자리표)를 `SaveIo.State` 위에 세운 `GearSystem`(T15 · `IGearHost` = 세이브 상태 + `PetSystem.ActiveBonus`(T16) + 탈것(T11) + 스킬 패시브(T12) + 기술트리(T24))의 `HeroStats()` 로 바꾼다. 세이브가 없으면 맨몸.
+- 판정: EditMode 로 같은 세이브 → 정본 `heroStats` 실행 벡터와 atk/hp/치명/공속 일치 · PlayMode 로 펫 출전 뒤 `Battle.Hero.Atk` 이 오르는가 · 콘솔 빨강 0.
+- 범위: `Assets/Scripts/Game/Battle/BattleScene.cs`(Boot 의 stats 인자) · `Assets/Scripts/Game/Battle/HeroStatsGlue.cs` · `Assets/Tests/PlayMode/HeroStatsGlueTests.cs`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -403,7 +409,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/state.js` · `main.js`(저장 시점·부팅) | 세이브 · 마이그레이션 · 오프라인 보상 | T13 | ✅ |
 | `js/forge.js` | 대장간 규칙 · 오토 포지 | T14 · T19 | ✅ (T14 · T19) |
 | 장비 8부위 · 페이퍼돌(`prochar.js`·`ui.js` 장비 · `scene3d.js` makeWeapon/makeHelmet/dressMcRig) | 등급·서브스탯·판매가·외형 | T15(규칙·표값) · T37(3D 외형 캡처) · T19 | ✅ (T15 · T37 · T19) |
-| `js/pets.js` | 알·부화·합성·출전 규칙 | T16 · T20 | T16 ✅ · T20 🔄 |
+| `js/pets.js` | 알·부화·합성·출전 규칙 · 출전 스탯 기여 | T16 · T20 · T10(출전 조형) · T43(스탯 접착) | T16 ✅ · T10 ✅ · T20 🔄 · T43 ⬜ |
 | `js/skills.js` | 소환·18종·3슬롯(정본 `MAX_ACTIVE`) | T17 · T20 | T17 ✅ · T20 🔄 |
 | `js/mounts.js` | 탈것 규칙 · 탑승 | T40(Core 규칙 · 결정 72) · T11(탑승 3D) · T20(탈것 화면) | T40 🔄 · T11 ⬜ · T20 🔄 |
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |

@@ -56,6 +56,44 @@ namespace Forge.Core.World
     }
 
     /// <summary>
+    /// 대열 호/격자 서술(정본 `PET_ARC`·`MOUNT_ARC`) — `formationSpot(i, arc, row0)` 의 두 번째 인자. `Rear` 면 후방(−x) 격자(펫), 아니면 좌우 대칭 호(탈것 무리).
+    /// `zBase` 는 있을 때만(undefined 와 가른다 — 정본 `arc.zBase === undefined ? rz·cos(a) : zBase − rz·cos(a)`).
+    /// </summary>
+    public sealed class ArcSpec
+    {
+        public bool Rear;
+        public double Rx0, RxStep, Rz0, RzStep;
+        public int Cols;
+        public double MountedRx, MountedRz;
+        public bool HasZBase;
+        public double ZBase, Hmin, Hmax, Gap;
+        public JsonObject Raw;
+
+        public static ArcSpec From(JsonObject o)
+        {
+            var a = new ArcSpec { Raw = o };
+            object v;
+            a.Rear = o.TryGet("rear", out v) && J.Bool(v);
+            a.Rx0 = J.Num(o["rx0"]); a.RxStep = J.Num(o["rxStep"]); a.Rz0 = J.Num(o["rz0"]); a.RzStep = J.Num(o["rzStep"]);
+            a.Cols = J.Int(o["cols"]);
+            a.MountedRx = J.Num(o["mountedRx"]); a.MountedRz = J.Num(o["mountedRz"]);
+            if (o.TryGet("zBase", out v) && v != null) { a.HasZBase = true; a.ZBase = J.Num(v); }
+            a.Hmin = J.Num(o["hmin"]); a.Hmax = J.Num(o["hmax"]); a.Gap = J.Num(o["gap"]);
+            return a;
+        }
+
+        /// <summary>정본 `refreshPets` 의 탑승 중 호 — `{ ...PET_ARC, rx0: rx0 + mountedRx, rz0: rz0 + mountedRz }`(나머지 칸 그대로).</summary>
+        public ArcSpec ShiftedForMount()
+        {
+            return new ArcSpec
+            {
+                Raw = Raw, Rear = Rear, Rx0 = Rx0 + MountedRx, RxStep = RxStep, Rz0 = Rz0 + MountedRz, RzStep = RzStep, Cols = Cols,
+                MountedRx = MountedRx, MountedRz = MountedRz, HasZBase = HasZBase, ZBase = ZBase, Hmin = Hmin, Hmax = Hmax, Gap = Gap,
+            };
+        }
+    }
+
+    /// <summary>
     /// `Assets/StreamingAssets/data/scene.json`(T2 추출기의 scene 갈래 · 정본 `Scene3D` 의 상수표) 강타입.
     /// 값은 전부 여기서 읽는다 — 코드에는 안 박는다(§1). setTheme 안의 인라인 리터럴(규칙)은 <see cref="WorldRules"/>.
     /// </summary>
@@ -77,6 +115,10 @@ namespace Forge.Core.World
         public double VoxAmbientLeaf, VoxAmbientProp;
         public double[] CrackW, CrackA;
         public OrderedMap<BiomeSpec> Biomes;
+        // T10 — 크리처 공통 3/4 facing(정본 `CREATURE_YAW` · 펫·탈것·소환체가 한 값) · 펫 앞 3자리(`PET_ROW0` mounted/unmounted · [x, z]) · 펫 후방 격자(`PET_ARC`) · 탈것 무리 호(`MOUNT_ARC` · T11)
+        public double CreatureYaw;
+        public double[][] PetRow0Mounted, PetRow0Unmounted;
+        public ArcSpec PetArc, MountArc;
         public JsonObject Raw;
 
         public static readonly string[] BaseBiomes = { "forest", "desert", "rock", "snow", "magic", "lava" };
@@ -114,6 +156,12 @@ namespace Forge.Core.World
             var bo = J.Obj(J.Require(o, "BIOMES"));
             d.Biomes = new OrderedMap<BiomeSpec>();
             foreach (string k in bo.Keys) d.Biomes.Add(k, BiomeSpec.From(k, J.Obj(bo[k])));
+            d.CreatureYaw = J.Num(J.Require(o, "CREATURE_YAW"));
+            var r0 = J.Obj(J.Require(o, "PET_ROW0"));
+            d.PetRow0Mounted = J.List(r0["mounted"], x => J.NumArr(x)).ToArray();
+            d.PetRow0Unmounted = J.List(r0["unmounted"], x => J.NumArr(x)).ToArray();
+            d.PetArc = ArcSpec.From(J.Obj(J.Require(o, "PET_ARC")));
+            d.MountArc = ArcSpec.From(J.Obj(J.Require(o, "MOUNT_ARC")));
             return d;
         }
 
