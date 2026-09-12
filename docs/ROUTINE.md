@@ -195,8 +195,8 @@
 - `ci.yml` 의 `build-webgl` 은 이미 있다(UNITY_LICENSE 가 있어야 굽는다 — README «주인이 할 일»). 여기서 하는 것: WebGL 템플릿(캔버스가 창을 채우는 세로 껍데기 · 로딩 완료 표식) · `tools/webgl_smoke.js`(Playwright · 컨테이너에서는 `kuzuni.github.io` 가 프록시에 막히므로 CI 러너에서 돈다) · Android 잡.
 - 범위: `Assets/WebGLTemplates/` · `tools/webgl_smoke.js` · `.github/workflows/ci.yml`(빌드 잡 부분만) · `ProjectSettings/ProjectSettings.asset`(webGLTemplate · 압축 폴백 · Android 식별자 칸만 — 템플릿을 «쓰게» 하는 칸이 거기 있다).
 
-### T27 — PlayMode 스모크·플레이 봇: 모든 화면 열기 · 한 판 플레이(전투→제작→장착→펫→스킬→던전) · 콘솔 빨강 0 · 촬영(`ui-screens/*.png`) (검증 · T19~T22 뒤)
-- 🔄 2026-09-12 워커 L — 정본은 `web/tools/shot-screens.js`(화면 31줄 = 원작 `ref/screens/shot-*.png` 30장 짝 + 짝 없는 탈것 · `SEED` 캡처 상태). `PlayLog`(빨강 수집기 · 화면 이름) · `UiShotsTests`(31 화면 열기 + `ui-screens/screen_<이름>.png` + 짝 표 `screens.json`) · `PlaythroughTests`(한 판 봇). T28 은 `screens.json` 에서 짝을 읽는다.
+### T27 ✅ — PlayMode 스모크·플레이 봇: 모든 화면 열기 · 한 판 플레이(전투→제작→장착→펫→스킬→던전) · 콘솔 빨강 0 · 촬영(`ui-screens/*.png`) (검증 · T19~T22 뒤)
+- ✅ 2026-09-12 워커 L (CI 런 83 유니티 잡 초록) — 정본은 `web/tools/shot-screens.js`(화면 31줄 = 원작 `ref/screens/shot-*.png` 30장 짝 + 짝 없는 탈것 · `SEED` 캡처 상태). `PlayLog`(빨강 수집기 · 화면 이름) · `UiShotsTests`(31 화면 열기 + `ui-screens/screen_<이름>.png` + 짝 표 `screens.json`) · `PlaythroughTests`(한 판 봇). T28 은 `screens.json` 에서 짝을 읽는다.
 - 정본 각본: wwwww `web/ROUTINES-SETUP.md` §4-C(QA 시나리오). `PlayLog.AssertNoRed` 도우미 · `UiShotsTests`(540×1170 PNG 전 화면) → CI `screens` 브랜치.
 - **(주인 지시 2026-09-12 · 가장 먼저)** 촬영은 **실제 게임 화면**이다 — 조형 시트가 아니라 부팅 직후 전투 화면(적·펫·영웅·HUD 가 한 프레임에), 웨이브 진행·보스 등장·스킬 발동 순간, 그리고 패널 전부(대장간·장비·펫·스킬·소환 결과·탈것·던전·기술트리·승천·상점·패스·퀘스트·리그·채팅·프로필·설정). 파일 이름은 원작 샷과 짝이 되게(`shot-042120` ↔ `ui-042120-battle.png` 꼴 · `docs/ref-layout.md` 가 짝 표를 쥔다). 해상도 셋: 540×1170(기본 · 노치 모의) · 360×800 · 430×932(원작 `ref/lvout-*` 과 같은 셋). 노치 모의는 `safeArea` 를 위 120px·아래 60px 깎아 넣고 그 경계선을 반투명 빨강으로 PNG 에 그려 «가림» 이 눈에 보이게. 각 PNG 는 만든 워커가 `Read` 로 열어 본다(§1).
 - 판정에 «주인이 볼 것: `screens` 브랜치의 `ui-*-battle.png` 를 폰 화면과 나란히» 한 줄.
@@ -537,10 +537,10 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 🔄 · T53 ⬜ · T56 🔄 · T57 ⬜ · T58 ⬜ · T59 ⬜ |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 🔄 · T53 ⬜ · T56 🔄 · T57 ⬜ · T58 ⬜ · T59 🔄 |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
-| `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 🔄(정본 `shot-screens.js` SCREENS 31줄 이식 · `screens.json` 짝 표) · T28 ⬜ · T33 ⬜ |
-| (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 | T45 ✅ · T44 ✅ · T27 🔄(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) |
+| `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 ⬜ · T33 ⬜ |
+| (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
