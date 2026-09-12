@@ -395,12 +395,13 @@
 - 판정: 두 화면 `ui_score` **8.0 이상** + PNG 눈 확인 + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/League*` · `Ui/PetUpgrade*`(T20 이 쥔 `Ui/Pet*` 와 겹친다 — **T20 lock 이 풀린 뒤에 잡는다**) · `Assets/Tests/PlayMode/PetUiTests.cs`.
 
-### T59 — 수 표기 둘: 서브스탯이 `+7.699999999999999%` · 확률이 전부 `0.0000%` (Game·UI · T15·T19 뒤 · T28 2회차가 눈으로 잡음)
+### T59 ✅ — 수 표기 둘: 서브스탯이 `+7.699999999999999%` · 확률이 전부 `0.0000%` (Game·UI · T15·T19 뒤 · T28 2회차가 눈으로 잡음)
 - 실측(2026-09-12 · T28 2회차 · 워커 M · 런 78 PNG): `screen_player-info.png` 에 «+7.699999999999999% …» 줄이 그대로 찍힌다. 정본 `ui.js` 5182행은 `value: +stats.subs[key].toFixed(1)` 로 **소수 한 자리**를 만든 뒤 찍는다 — 클론은 double 을 그대로 이어 붙인다. 같은 화면의 `+15.4%`·`+46.8%` 는 우연히 짧게 떨어진 값이다.
 - 둘째: `screen_forge-detail.png`·`screen_forge-info.png` 의 확률이 **전부 `0.0000%`** 다(`ForgeInfoPopup.cs` 215·276행의 `"0.0000"` 서식은 원작과 같은 자리수지만 값이 0 이다) — 표에서 확률을 못 읽어 오는 갈래인지 시대·등급 인자가 비어 있는지 본다.
 - 무엇을 한다: 서브스탯 줄은 정본과 같은 반올림(`toFixed(1)` 상당 · `NumFmt` 갈래)을 쓰고, 확률 0 의 원인을 잡는다. 수치는 코드에 박지 않는다(§1).
 - 판정: EditMode 표 테스트(정본 값 ↔ 표기 문자열) + PNG 눈 확인(«+7.7%» · 확률이 0 이 아님) + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Assets/Scripts/Game/Ui/ForgeInfoPopup.cs` · `Assets/Scripts/Core/BigNum.cs`(필요하면 표기 함수만) · `Assets/Tests/EditMode/`.
+- ✅ 2026-09-12 워커 S: ⓐ 합계 줄은 `ForgeHost.SubLines`(PlayerInfoPopup 은 줄을 받기만 한다)가 만든다 → 원작 순서·`toFixed(1)`·`> 0` 으로 고침(`NumFmt.RoundFixed/Fixed`). ⓑ 확률 «전부 0.0000%» 는 버그가 아니었다 — 런 78 PNG 의 목록은 **Lv29 의 원시 시대 한 절**(그 레벨 확률표에서 0%)이고 원작 `itemDropChance(...).toFixed(4)` 도 같은 값 · EditMode 가 Lv29 전 시대·부위를 식으로 잰다(결정 138).
 
 ### T60 — 재화 알약의 초록 «+»(상점 열기) 배지가 없다 (Game·UI · T18·T31 뒤 · 검수 Q 등재)
 - 실측(2026-09-12 22:1x · 검수 Q · 런 79 `screen_main.png`·`ui_safearea_notch.png` ↔ 정본 `ref/screens/shot-042120.png`·`shot-042356.png`): 정본 상단바의 코인·젬 알약은 아이콘 오른쪽 아래에 **초록 원 «+» 배지**를 달고 있고 그것이 상점으로 가는 버튼이다. 클론 상단바에는 그 자리 자체가 없다 — 알약이 «아이콘 + 숫자» 뿐이다(숫자 색 코인 `#ffd54f`·젬 `#ff8a80` 은 정본 CSS 와 맞다 · 색은 문제 아님).
