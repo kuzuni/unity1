@@ -51,7 +51,9 @@ namespace Forge.Game.Map
             var flipped = new byte[rgba.Length];
             int row = w * 4;
             for (int y = 0; y < h; y++) System.Buffer.BlockCopy(rgba, y * row, flipped, (h - 1 - y) * row, row);
-            tex.LoadRawTextureData(flipped);
+            // ⚠ LoadRawTextureData 는 mipChain 텍스처에 밉 전 단계 바이트를 요구해 «not enough data» 로 터진다(CI 런 30 실측) —
+            //    0단계만 SetPixelData 로 싣고 Apply(updateMipmaps) 가 밉을 만든다.
+            tex.SetPixelData(flipped, 0);
             tex.wrapMode = TextureWrapMode.Repeat;
             tex.filterMode = FilterMode.Bilinear;
             tex.Apply(true, false);
