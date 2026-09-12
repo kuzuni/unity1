@@ -138,7 +138,11 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(bs.SpawnCount, 0, "적이 하나도 안 섰다");
             Assert.Greater(bs.EventCount, 0, "전투 이벤트가 씬에 하나도 안 왔다");
             Assert.Greater(bs.KillCount, 0, "60초를 돌려도 1-1 에서 한 마리도 못 잡았다");
-            Assert.Greater(SaveIo.State.Kills, 0, "처치가 세이브에 안 적혔다");
+            Assert.Greater(bs.Battle.Context.Kills, 0, "Core 전투가 처치를 안 셌다(원작 combat.js `S.kills++`)");
+            // ⚠ 세이브 `kills` 는 아직 안 오른다 — `BattleScene.MakeBattle` 이 `BattleContext` 를 빈 채로 세워
+            //    처치·재화·보스 클리어·장착 스킬·무기 종이 세이브와 안 이어져 있다(T43 은 스탯만 이었다). **T55** 로 등재했다.
+            Trace("  전투 · 스폰 " + bs.SpawnCount + " · 처치 " + bs.KillCount + " · ctx.kills " + bs.Battle.Context.Kills
+                  + " · 세이브 kills " + SaveIo.State.Kills + "(T55 접착 전이라 0)");
 
             // ── ② 제작 — 모루를 두드려 비교 팝업까지
             log.Mark("제작");

@@ -367,6 +367,13 @@
 - 판정: 전투 단독 PNG 에 영웅·적·펫이 보이고(워커가 열어 본 기록) · 위 단언 초록 · CI 초록.
 - 범위: `Assets/Scripts/Game/Battle/` · `Game/Hero/` · `Game/Pets/` · `Assets/Tests/PlayMode/BattleSceneTests.cs` · `UiShots*`.
 
+### T55 — 전투 ↔ 세이브 접착의 나머지: 처치·재화·보스 클리어·진행·장착 스킬·자동시전·무기 종 (Game · T8·T13·T43 뒤 · 워커 L 등재)
+- 실측(2026-09-12 · T27 플레이 봇 · CI 런 78): `BattleScene.MakeBattle` 은 `new BattleContext(defs, save) { HeroStats = stats, WeaponType = "sword" }` 로 **빈 문맥**을 세운다. 그래서 원작이 전투 중에 `S` 에 직접 쓰던 것이 유니티에서는 어디에도 안 남는다 — 한 판을 돌려 적을 잡아도 `SaveIo.State.Kills` 가 0 이다(정본 `combat.js:445` `S.kills++`).
+- 안 이어진 칸: `Kills`·`Coins`·`Hammers`(전투 드랍) · `ClearedBosses`(첫 클리어 키) · `Progress`(챕터·스테이지·난이도·최고 기록) · `EquippedSkills`·`AutoCast`(세이브의 장착 스킬 3 · 자동시전 토글) · `WeaponType`(지금 `"sword"` 고정 — 장착 무기의 `wtype` 이어야 한다) · `Dungeon`(던전 판) · `Save`(원작 `saveGame()` 훅).
+- 할 일: `BattleSaveGlue`(Game) 하나가 부팅 때 문맥의 그 칸들을 세이브에서 읽어 채우고, 전투가 올린 값을 세이브로 되돌린다(T43 `HeroStatsGlue` 와 같은 꼴 · 규칙은 Core 가 쥔다 · 씬은 접착만). 되돌리는 시점은 원작 `main.js` 의 저장 시점(T13)과 같게.
+- 판정: PlayMode — 한 판 돌려 `S.kills`·`S.coins`·`S.hammers` 가 오르고, 보스 첫 클리어가 `S.clearedBosses` 에 남고, 장착 무기를 바꾸면 전투 문맥의 무기 종이 따라 바뀐다. T27 `PlaythroughTests` 의 «세이브 kills» 단언을 되살린다.
+- 범위: `Assets/Scripts/Game/Battle/BattleSaveGlue.cs`(새) · `Assets/Scripts/Game/Battle/BattleScene.cs`(`MakeBattle` 문맥 채우기 갈래만) · `Assets/Tests/PlayMode/BattleSaveGlueTests.cs` · `Assets/Tests/PlayMode/PlaythroughTests.cs`(단언 한 줄 되살리기).
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
