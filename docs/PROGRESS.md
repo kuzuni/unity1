@@ -75,7 +75,7 @@
 | T43 | 전투 스탯 접착: 세이브 상태 → `GearSystem.HeroStats`(장비 8부위 + 펫 `PetSystem.ActiveBonus` + 탈것 + 스킬 패시브 + 기술트리 %) → `BattleContext.HeroStats`(지금은 `BareHeroStats` 맨몸 상수 · T8 결정 69ⓓ) · 출전/장착 변경 시 재계산 | ✅ 완료 | sess-2033-28572 / 워커 K | `Assets/Scripts/Game/Battle/BattleScene.cs`(Boot 의 stats 인자) · `Assets/Scripts/Game/Battle/HeroStatsGlue.cs` · `Assets/Tests/PlayMode/HeroStatsGlueTests.cs` | `HeroStatsGlue.Make` = ForgeHost 의 GearSystem 위에 펫 출전 보너스·스킬 패시브·기술트리 배율·탈것 훅(T11)을 매번 채워 `HeroStats` · 호스트 없으면 맨몸 · 재계산 신호(펫/장비 이벤트 + OnReady) → `Battle.RecalcHero` · PlayMode 2 |
 | T44 | 60fps 게이트: targetFrameRate 60 · vSync 0 · 전투 최대 부하 프레임 예산(PerfBudgetTests · CPU ≤ 8ms 평균) · 프레임당 GC 0 · 드로우콜 ≤ 150 | ⬜ 대기 | — | `Assets/Scripts/Game/Bootstrap.cs`(두 줄) · `Assets/Tests/PlayMode/PerfBudgetTests.cs` · 넘길 때만 `Assets/Scripts/Game/Battle/` · `Game/Voxel/` · `Game/Ui/Hud.cs` | T8·T10·T12 뒤 · T27 다음 · 주인 지시 «60fps»(2026-09-12) |
 | T45 | SafeArea 노치 모의 검증: HUD·탭바·✕·채팅줄·토스트 코너 4점이 safeArea 안 (세 해상도) · UiRoot 주입 지점 | 🔄 진행 | sess-2055-18073 / 워커 P | `Assets/Scripts/Game/Ui/UiRoot.cs`(주입 지점 `OverrideSafeArea`·`NotchSafeArea`·노치 상수) · `Assets/Tests/PlayMode/SafeAreaTests.cs` · `Assets/Forge/catalog.json`(변경 0줄 · 노치 상수는 UiRoot) | T18 뒤 · T27 다음 · 주인 지시 «상단 카메라 안 가리게»(2026-09-12) · 코드·테스트 완료 — CI 유니티 잡의 `ui_safearea_notch.png` 를 눈으로 본 뒤 ✅(§1 «실제 화면을 본다») |
-| T46 | PlayMode 실패 진단 로그: 유니티 잡 로그가 꼬리 5000줄로 캡돼 실패 테스트의 «왜»(메시지·스택·콘솔 빨강)가 안 보인다 — PlayMode 런이 그것을 `ui-screens/playmode-red.txt` 로 남겨 `screens` 브랜치에서 읽는다 | 🔄 진행 | sess-2048-31095 / 워커 G | `Assets/Tests/PlayMode/RedLog.cs` · `tools/dotnet/Stubs`(필요한 스텁 서명) | 런 46 에서 PlayMode 26 빨강인데 이름만 보이고 이유가 안 보여 임자마다 추측으로 파고 있다(워커 E·T 회차) · 아티팩트는 컨테이너 프록시가 막는다 |
+| T46 | PlayMode 실패 진단 로그: 유니티 잡 로그가 꼬리 5000줄로 캡돼 실패 테스트의 «왜»(메시지·스택·콘솔 빨강)가 안 보인다 — PlayMode 런이 그것을 `ui-screens/playmode-red.txt` 로 남겨 `screens` 브랜치에서 읽는다 | ✅ 완료 | sess-2048-31095 / 워커 G | `Assets/Tests/PlayMode/RedLog.cs` · `tools/dotnet/Stubs`(필요한 스텁 서명) | 런 46 에서 PlayMode 26 빨강인데 이름만 보이고 이유가 안 보여 임자마다 추측으로 파고 있다(워커 E·T 회차) · 아티팩트는 컨테이너 프록시가 막는다 |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 
@@ -492,6 +492,33 @@
 
 - **(2026-09-12 · 착수)** 유니티 이식은 `kuzuni/unity1` 에서 · 원작 `kuzuni/wwwww` 는 그대로 둔다(웹판과 유니티판을 한 레포에 섞으면 헷갈린다는 주인 판단). 운영은 aaawunity 방식(루틴 워커 · 여러 계정).
 
+### T46 완료 기록 (2026-09-12 · 워커 G · sess-2048-31095)
+
+- **무엇**: `Assets/Tests/PlayMode/RedLog.cs` 하나. ⓐ `RedLogFile` — `Application.logMessageReceived` 의 Error/Exception/Assert 를 받아 `ui-screens/playmode-red.txt` 에 **그때그때 덧붙인다**(런이 중간에 죽어도 남는다 · 테스트당 40줄·줄당 600자·스택 24줄 상한). ⓑ 어셈블리 단위 `[assembly: RedLog]`(NUnit `ITestAction` · `ActionTargets.Test`) — 테스트마다 시작 줄(`── <이름>`)과 결과 줄(`PASS`/`FAIL <이름> · <상태>` + 메시지 + 스택)을 적는다. 남의 테스트 파일·`ci.yml` 은 **한 줄도 안 건드렸다**(요약 스텝은 T8 범위 · 살아 있는 lock).
+- **왜**: CI 유니티 잡 로그는 **꼬리 5000줄** 만 남는다(실측 — `get_job_logs` 가 `tail_lines` 를 6000·40000 으로 올려도 같은 701,971자를 준다). 러너가 결과 XML 을 그 앞에 통째로 찍어 실패 픽스처의 `<message>`·`<stack-trace>` 는 잘려 나가고, 아티팩트(`unity-test-results`)는 워커 컨테이너 프록시가 막는다. 그래서 런 46 의 PlayMode **26 빨강**에서 워커 E·T 가 이름만 보고 원인을 추측으로 팠다.
+- **읽는 법**: `git fetch origin screens && git show origin/screens:playmode-red.txt | head -120`. 붙는 순서가 곧 실행 순서라 «어느 테스트가 세이브를 오염시켰나»(런 27·38·40 류)도 뒤에서 읽힌다.
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` **471/471** · `gen_meta --check`·`gen_ui_catalog --check`·`check_docs_intact`·`check_decisions`·`check_task_rows`·`task_state --check`·`check_claim_scope` 전부 rc 0 · `check_data_sync.sh .wwwww-src` rc 0(13파일) · `export_data --self-test` rc 0. PlayMode 는 하니스가 컴파일하지 않으므로 **임시 csproj**(UnityEngine.Modules 2021.3.33 + NUnit 3.6.1 · 커밋 안 함)로 이 파일만 따로 컴파일해 0 오류를 봤고, **어셈블리 단위 `ITestAction` 이 테스트마다 정말 불리는지**(그리고 `TestContext.CurrentContext.Result` 의 `Outcome.Status`·`Message`·`StackTrace` 가 3.6.1 에 있는지)는 같은 NUnit 3.6.1 로 초록·빨강 테스트 둘을 실제로 돌려 확인했다(`BEFORE`/`AFTER … Failed msg=[…] stack=[…]` 가 나왔다).
+- **CI 확인 대기**: 이 커밋을 담은 유니티 잡이 돈 뒤 `screens` 브랜치에 `playmode-red.txt` 가 서는지 본다 — 그때 lock 반납(ROUTINE §1).
+- **남은 한 줄(다음 사람 · T8 몫)**: `screens` 배포 스텁의 조건이 `steps.shots.outputs.count != '0'`(= **PNG 개수**)라 PNG 가 0장인 런에서는 이 파일도 안 올라간다. PNG 를 남기는 픽스처(MobGallery·Paperdoll)까지 죽는 런에서만 생기는 구멍이다 — `ci.yml` 은 T8 범위라 손대지 않았다. 고치려면 그 조건을 «ui-screens 안에 파일이 하나라도 있으면» 으로 넓히면 된다.
+- **주인이 확인할 것**: 다음 유니티 잡 뒤 `screens` 브랜치의 `playmode-red.txt` — 빨간 테스트가 있으면 그 아래에 이유가 적혀 있다(없으면 PlayMode 가 전부 초록이라는 뜻).
+- **플레이 콘솔 에러 0**: 이 작업은 화면·전투·팝업 코드를 바꾸지 않는다(테스트 어셈블리에만 파일 하나 · 게임 코드 0줄). 진단 갈래는 전부 `try/catch` 라 쓸 수 없는 판에서도 테스트를 죽이지 않는다.
+
+### 런 46(2026-09-12 20:35~20:42 · sha c82b645) PlayMode 빨강 26건 — 임자별 (T46 이 남긴 기록 · 이름만 나온 마지막 런)
+
+| 픽스처 | 빨강 | 임자(그 자리 작업) |
+|---|---|---|
+| `BattleSceneTests` | 4/4 | T8(lock 살아 있음) |
+| `DungeonUiTests` | 4/4 | T21 ✅ · lock 없음 — 임자 없는 빨강 |
+| `ForgeUiTests` | 7/7 | T19(lock 살아 있음) |
+| `PaperdollTests` | 3/5 | T37 — 2026-09-12 20:46 `4e9e9dd`(정점 6:4 정정)로 고쳤다고 기록됨 |
+| `PetSceneTests` | 1/2 | T10(lock 살아 있음) |
+| `PetUiTests` | 5/5 | T20(lock 살아 있음) |
+| `SkillFxTests` | 2/5 | T12(lock 살아 있음) |
+
+- 초록이던 픽스처: `AudioSmoke 1` · `Bootstrap 1` · `Hero 4` · `MobGallery 6` · `ShopUi 3` · `TextSizeGate 2` · `UiIcons 3` · `UiSmoke 4` · `World 2`. EditMode 는 464/464 초록.
+- 눈에 띄는 결: 호스트가 **Ready 를 못 본** 픽스처(`ForgeHost`·`DungeonUiHost`·`PetSkillHost`)가 통째로 빨갛고 `MetaHost` 를 기다리는 `ShopUiTests` 는 초록이다 — 부팅 사슬 중간에서 무엇이 터지는지가 관건인데, **그 «무엇» 이 로그 캡 밖이라 이 작업(T46)이 필요했다**. 다음 유니티 잡의 `playmode-red.txt` 가 답을 준다.
+
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
@@ -614,3 +641,5 @@
 
 102. **T45 — 3D 카메라는 전체 화면 · safeArea 는 «눌러야 하는 UI» 만(2026-09-12 · T45 · 워커 P)** — T1 `Viewport.Letterbox` 는 `Screen` 전체에서 9:16 을 잡고(`Bootstrap.Apply` · `Camera.rect`), T18 `UiRoot.Layout` 은 **safeArea 안**에서 따로 9:16 을 잡는다 → 둘은 이중으로 깎이지 않고, 노치가 있으면 3D 는 노치 뒤까지 그리고 UI 만 안으로 든다(주인 지시 «3D 세계는 화면 전체 · 눌러야 하는 것은 safeArea 안» 과 일치). `SafeAreaTests` 가 주입 전후 `Camera.main.pixelRect` 불변을 단언한다. 되돌릴 것 없음(코드 변경 0).
 103. **T45 노치 상수는 `UiRoot` 상수 · 해상도는 safeArea 로 모의(2026-09-12 · T45 · 워커 P)** — 지시서는 «`UiCatalog` 또는 테스트 공용 상수» 인데 `catalog.json` 에 넣으면 `UiCatalog.asset` 재생성(T18 도구 · T21 이 방금 충돌을 병합한 자리)이 따라와야 해서 `UiRoot.NotchTopPx/NotchBottomPx`(120/60) 로 뒀다 — T27 촬영은 `UiRoot.NotchSafeArea(w, h)` 를 그대로 쓰면 된다. 테스트 러너에서 `Screen.SetResolution` 은 안 먹으므로 세 해상도는 **그 크기의 safeArea 를 주입**해 검사한다(오버레이 캔버스는 sa 만 보고 앱 상자를 놓으므로 실제 창 크기와 무관하게 같은 좌표가 나온다). 되돌리려면 `UiRoot.OverrideSafeArea` 갈래.
+104. **진단 로그는 테스트 안에서 적는다 · `ci.yml` 은 안 건드린다(2026-09-12 · T46 · 워커 G · sess-2048-31095)** — 실패 이유를 보이게 하는 가장 짧은 길은 T8 의 «테스트 결과 요약» 스텝이 XML 의 `<message>`·`<stack-trace>` 까지 찍는 것이지만 그 스텝은 **T8 의 살아 있는 lock 범위**다(`docs/claims/README.md` «두 작업이 같은 파일을 만져야 하면 뒤 번호가 기다린다»). 그래서 러너 바깥이 아니라 PlayMode 어셈블리 안(`RedLog.cs` 하나)에서 적고, 이미 `screens` 브랜치로 올라가는 `ui-screens/` 를 길로 썼다 — 남의 파일 0줄. 되돌리려면 그 파일 하나만 지운다(`Assets/Tests/PlayMode/RedLog.cs` + `.meta`).
+105. **콘솔 갈래와 NUnit 갈래를 둘 다 둔다(2026-09-12 · T46 · 워커 G)** — 어셈블리 단위 `ITestAction` 이 유니티 러너에서 안 불릴 위험이 있어(NUnit 3.6.1 에서는 실제로 불리는 것을 확인했지만 UTF 는 자기 러너를 쓴다) `RuntimeInitializeOnLoadMethod` 로도 콘솔 빨강을 붙게 했다. 둘이 겹치면 파일에 줄만 늘고 잃는 것은 없다. 되돌리려면 `RedLogFile.Hook` 또는 파일 머리의 `[assembly: RedLog]` 한 줄을 지운다.

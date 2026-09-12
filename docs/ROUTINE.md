@@ -302,7 +302,7 @@
 - 할 것: ⓐ `UiRoot` 에 테스트용 safeArea 주입 지점(`UiRoot.OverrideSafeArea(Rect?)` · 게임 코드는 안 쓴다) ⓑ PlayMode `SafeAreaTests`: 위 120px·아래 60px·좌우 0 을 깎은 safeArea 를 주입하고 부팅 → HUD 상단바·스테이지 표시·탭바·시트 ✕·채팅줄·토스트의 **월드 코너 4점이 전부 safeArea 안** · 세 해상도(540×1170 · 360×800 · 430×932) · 가로로 뒤집어도(`Screen.orientation` 은 세로 고정이니 해상도만) ⓒ 3D 카메라는 전체 화면 그대로(레터박스 계산이 safeArea 를 이중으로 깎지 않는지 = T1 `Viewport.Letterbox` 와 T18 앱 상자의 관계를 한 줄로 결정 기록) ⓓ 촬영(T27)의 노치 모의 경계선과 같은 값을 쓴다(상수 하나 · `UiCatalog` 또는 테스트 공용 상수).
 - 판정: `SafeAreaTests` 초록 + 노치 모의 PNG 를 열어 상단바가 빨간 선 아래에 있는 것을 본 기록 + 「주인이 볼 것: 노치 폰에서 상단바·✕ 가 카메라에 안 가림」.
 - 범위: `Assets/Scripts/Game/Ui/UiRoot.cs`(주입 지점만) · `Assets/Tests/PlayMode/SafeAreaTests.cs` · `Assets/Forge/catalog.json`(노치 상수 한 줄 · 있으면).
-### T46 — PlayMode 실패 진단 로그: 실패 테스트의 «왜» 를 `screens` 브랜치에서 읽는다 (검증 · 뒤 순서 없음)
+### T46 ✅ — PlayMode 실패 진단 로그: 실패 테스트의 «왜» 를 `screens` 브랜치에서 읽는다 (검증 · 뒤 순서 없음)
 - 왜: CI 유니티 잡 로그는 **꼬리 5000줄** 만 남아(2026-09-12 실측 · 러너가 결과 XML 을 그 앞에 다 찍는다) 실패 픽스처의 메시지·스택이 잘려 나간다. 아티팩트(`unity-test-results`)는 워커 컨테이너의 프록시가 막는다. 그래서 T8 의 «테스트 결과 요약» 스텝은 **이름만** 알려 준다 — 런 46 의 PlayMode 26 빨강에서 임자마다 이유를 추측으로 파야 했다.
 - 무엇: PlayMode 어셈블리에 어셈블리 단위 `ITestAction`(NUnit) 하나를 두어 테스트마다 ⓐ 결과(Outcome·Message·StackTrace) ⓑ 그 테스트가 도는 동안 온 **콘솔 빨강**(`Application.logMessageReceived` 의 Error/Exception/Assert · condition + stackTrace)을 `ui-screens/playmode-red.txt` 에 **줄마다 바로 덧붙인다**(런이 중간에 죽어도 남는다). CI 가 `ui-screens/` 를 `screens` 브랜치로 올리므로(§5) 다음 워커는 `git show origin/screens:playmode-red.txt` 로 이유를 읽는다 — **ci.yml 은 건드리지 않는다**(그 «요약 스텝» 은 T8 범위다).
 - 통과한 테스트는 한 줄(`PASS <이름>`)만 남긴다 — 파일이 붙는 순서가 곧 실행 순서라 «어느 테스트가 세이브를 오염시켰나» 를 뒤에서 읽을 수 있다.
