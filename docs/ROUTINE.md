@@ -223,11 +223,12 @@
 - 방법: ⓐ §7 표를 위에서 아래로 — 줄마다 «유니티의 어느 파일·테스트가 그것인가» 를 적는다(없으면 «가장 큰 번호 +1» 로 등재하고 그 줄을 그 번호로 바꾼다) ⓑ `web/ref/screens/shot-*.png` 30장 각각에 유니티 `ui-screens/*.png` 짝이 있는가(T28 대조표) ⓒ `grep -o "^\s*\(open\|render\|show\|toggle\|close\|build\)[A-Z][A-Za-z]*" .wwwww-src/web/js/ui.js` 의 함수 하나하나에 유니티 대응(같은 이름의 메서드·화면)이 있는가 ⓓ `SFX.*` 24종 · `IconGen.img/avatar/skill/tab` 키가 `Sfx.Play`·`UiIcons.Get` 로 다 불리는가 ⓔ 원작을 한 판(전투→제작→장착→펫→스킬→던전→상점→리그→채팅) 하고 유니티(T27 봇 + WebGL 배포본)로 같은 판을 해 **다른 곳을 전부 적는다**.
 - 판정: 빠진 것 0 이 될 때까지 이 작업은 ✅ 가 아니다 — 빠진 것을 등재하고 «그 번호들 뒤» 로 자기 순서를 고쳐 lock 을 반납한다(다음 회차가 다시 잡는다). 전부 ✅ 면 §7 표 머리에 «완주 YYYY-MM-DD · 커밋» 을 적고 ✅.
 - 범위: `docs/ROUTINE.md`(§7 표) · `docs/PROGRESS.md` · `docs/parity.md`(대조 결과).
-### T34 — 지면 소재 굽기: `makeGroundTexture`/`makeGroundNormalMap`(kin 6 × 512 캔버스 레시피 + BIOMES tint) · 용암 균열 발광맵(`crackNetwork`·`makeCrackTexture`) · 포석 줄눈 데칼 · 지면 셰이더(`terrainShade` macro/LOD/눈 수광면 탈색/noise · `applyShadeLift` 암부 리프트) (Game · T9 뒤)
+### T34 ✅ — 지면 소재 굽기: `makeGroundTexture`/`makeGroundNormalMap`(kin 6 × 512 캔버스 레시피 + BIOMES tint) · 용암 균열 발광맵(`crackNetwork`·`makeCrackTexture`) · 포석 줄눈 데칼 (Game · T9 뒤) — 지면 셰이더(`terrainShade`·`applyShadeLift`)는 **T38** 로 갈랐다
 - 정본: `scene3d.js` `makeGroundTexture`(2135~) · `makeGroundNormalMap`(2443~) · `crackNetwork`/`strokeCrackNet`/`makeCrackTexture`(2600~2731) · `buildTerrain` 의 포석 줄눈 캔버스 블록(2905~2985) · `terrainShade`(3650~3735) · `applyShadeLift`(1323~) · `setTheme` 의 `uRoad`/`uSnow`/`emissiveMap` 줄. T9 는 재질색·정점색(노면 회랑은 `uRoad` 배율을 정점색에 곱함)·발광 색표까지만 옮겼고 텍스처·셰이더는 여기다.
 - 캔버스 그리기는 `Math.random` 을 쓰므로 T2 표본과 같은 xorshift32 시드로 node(캔버스 대신 순수 픽셀 버퍼)에서 뽑은 PNG 와 C# 베이크가 ±1/255 로 같아야 한다. 셰이더는 URP 커스텀(Particles/Lit 위에 macro·LOD·snow·road·shadeLift 4항).
 - 판정: EditMode(텍스처 6×2 + 균열맵 픽셀 대조) + PlayMode(테마 25 순회 · 콘솔 빨강 0) + CI 초록 + PROGRESS 행 + «주인이 확인할 것: 에디터 Play → 초원 흙 결·사막 리플·용암 균열 발광이 원작(web)과 같은 인상인가».
-- 범위: `Assets/Scripts/Core/World/GroundTex*.cs` · `Assets/Scripts/Game/World/GroundTexture*.cs` · `Assets/Shaders/Terrain*.shader` · `Assets/Tests/EditMode/GroundTexTests.cs` · `Assets/Tests/EditMode/Vectors/t32-*.json` · `tools/ground_vectors.js`.
+- 대조(2026-09-12 워커 K): 브라우저 캔버스 대신 **픽셀 버퍼 캔버스 2D 시밍**(`tools/ground_vectors.js` 의 `Context2D` ↔ Core `GroundTexCanvas` · 같은 래스터 규칙)을 두고 정본 그리기 함수를 vm 에서 **그대로** 실행해 벡터를 뽑는다 → C# 굽기가 26장(알베도 12 · 노멀 12 · 발광 · 포석) 전부 **바이트 해시까지** 같다. 시드는 T2 표본과 같은 xorshift32 `LibSeed`.
+- 범위: `Assets/Scripts/Core/World/GroundTexCanvas.cs` · `Assets/Scripts/Core/World/GroundTexBake.cs` · `Assets/Scripts/Game/World/GroundTextures.cs` · `Assets/Scripts/Game/World/World.cs`(훅 2줄) · `Assets/Tests/EditMode/GroundTexTests.cs` · `Assets/Tests/EditMode/Vectors/t34-ground.json` · `Assets/Tests/PlayMode/WorldTests.cs`(렌더러 2 · 텍스처 단언) · `tools/ground_vectors.js`.
 
 ### T35 — 배경 복원 경로(`SIMPLE_BG=false`): 소품 생성기 17종 C# 이식(`mobs-props.js` → T2 표본 23개와 같은 시드 대조) · `buildProps` 배치(큰 소품 16자리 + 랜드마크 + 중경 8 + 덤불 7·잔돌 7/11·꽃 2 + 근경 앵커 6 + 중경 앵커 7 + 원거리 11/14) · 스캐터 InstancedMesh 3층(`scatterSpots` 깊이 가중·군집) · 능선 3겹(`makeRidgeGeo`) · 구름·안개 블롭·하늘 돔·천체·오로라 · 잎/덤불/이끼/블롭/결정 파생색(`leafSet`·`stoneFrom` 나머지) · 지형 높이(`heightSmooth` 양자화 벽) (Game · T9·T4 뒤 · **주인이 SIMPLE_BG 를 끌 때만**)
 - 정본은 지금 `SIMPLE_BG: true` 라 이 경로가 **화면에 없다**(T9 메모). 주인이 «배경 아예 단순» 실험(2026-08-21)을 되돌리면 그때 켠다 — 그 전에는 뒤 순서가 안 열린 것으로 본다(선점하지 않는다). `GroundGrid`(T9)는 `SimpleBg=false` 면 이미 높이·벽을 낸다.
@@ -245,6 +246,10 @@
 - 방법: T6 `hero_vectors.js`·T4 `voxel_vectors.js` 처럼 `three.min.js`(r128 실물) 위에서 정본 절만 잘라 실행 → 모델(무기 종 × 등장 시대 × 등급 · 투구 스타일 × 시대 · 갑옷 스타일 × 시대)마다 메시 목록 `{parts:[{pos,nor,col|color,mat:{color,emissive,emissiveIntensity,metalness,roughness,opacity,flatShading,map?},matrix}]}` 를 JSON 으로. 유니티 `GearMeshes` 가 그것을 Mesh/Material 로 세우고 `Paperdoll` 훅에 준다(무기 원점 = 파지점 · 자루 = 로컬 +y 규약 유지).
 - 판정: 무기 52종 × 등장 시대 · 투구/갑옷 스타일 전부 예외 0 · PlayMode 로 영웅에 입혀 콘솔 빨강 0 · `screens` 시트로 원작 썸네일(`ui.js` 장비 카드)과 나란히.
 - 범위: `tools/export_gear_meshes.js` · `Assets/StreamingAssets/data/gear-meshes.json`(추출기가 `check_data_sync` 에 들어간다) 또는 `Assets/Forge/Gear/` · `Assets/Scripts/Game/Hero/GearMeshes.cs` · `Assets/Scripts/Game/Hero/Paperdoll.cs`(훅 연결만) · `Assets/Tests/PlayMode/PaperdollTests.cs`.
+### T38 — 지면 셰이더: 정본 `terrainShade`(매크로 변조 uv 6 = 월드 30 · 거리 LOD 14~34 · 눈 수광면 탈색 uSnow · 노면 회랑 uRoad) + `applyShadeLift`(암부 리프트) 를 URP 커스텀 셰이더로 (Game · T34 뒤)
+- 정본: `scene3d.js` `TERRAIN`(scene.json 에 있다 · macro 0.30 · lod 0.45 · lodNear 14 · lodFar 34 · snow 0) · `terrainShade`(3650~3735 · `onBeforeCompile` 의 map_fragment/envmap_fragment 치환) · `applyShadeLift`(1323~) · `setTheme` 의 `uRoad`/`uSnow` 줄. T34 가 알베도·노멀·발광맵을 `Particles/Lit` 에 붙였고 노면 회랑은 T9 가 정점색 배율로 이미 낸다 — 여기서는 매크로·LOD·눈 탈색·암부 리프트 4항을 `Assets/Shaders/Terrain.shader`(URP HLSL · 정점색 · 노멀맵 · 발광맵 · 안개) 에 넣고 `GroundTextures.Apply` 가 그 셰이더로 갈아끼운다.
+- 판정: 유니티 잡에서 셰이더 컴파일 에러 0(콘솔 빨강 0 · `Shader.isSupported`) + PlayMode 테마 25 순회 + «주인이 확인할 것: 사막 리플이 근경~원경에서 같은 벽지로 안 보이고 · 설원 수광면이 백색으로 빠지는가».
+- 범위: `Assets/Shaders/Terrain.shader`(+.meta) · `Assets/Scripts/Game/World/GroundTextures.cs`(셰이더 갈아끼우기) · `tools/dotnet/Stubs/URP.cs`(필요 시) · `Assets/Tests/PlayMode/WorldTests.cs`(셰이더 단언).
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

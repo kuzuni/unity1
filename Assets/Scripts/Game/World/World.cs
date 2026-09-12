@@ -189,6 +189,8 @@ namespace Forge.Game.Map
             mr.sharedMaterial = GroundMaterial;
             mr.receiveShadows = true;
             mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            // 포석 줄눈 데칼(T34 · 정본 buildTerrain 의 pathMesh · ground 의 자식이라 타일 순환을 따라간다)
+            GroundTextures.AttachCobble(Ground.transform, Defs);
             GroundX = 0;
             WorldX = 0;
         }
@@ -248,6 +250,8 @@ namespace Forge.Game.Map
 
             // 지면: 재질색 = 흙 보정색 · 노면 회랑(|z|<2.25)은 셰이더 uRoad 대신 정점색에 배율을 곱한다(같은 곱셈 · 결정 기록)
             GroundMaterial.SetColor("_BaseColor", ToColor(L.TerrainColor));
+            // 바이옴 지면 소재(알베도 12×6 · 노멀 0.7) + 용암 발광 균열(T34 · 정본 groundTexFor / setTheme emissiveMap 갈래)
+            GroundTextures.Apply(GroundMaterial, Defs, L);
             bool linear = QualitySettings.activeColorSpace == ColorSpace.Linear;
             float rr = (float)L.Road[0], rg = (float)L.Road[1], rb = (float)L.Road[2];
             for (int i = 0; i < colors.Length; i++)

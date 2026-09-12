@@ -38,7 +38,12 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(w.Ground);
             Assert.AreEqual(80 * 80 * 6, w.GroundMesh.vertexCount, "60×60 / 0.75 = 80² 셀 × 6 (벽 없음)");
             var renderers = w.GetComponentsInChildren<Renderer>();
-            Assert.AreEqual(1, renderers.Length, "배경 제거 모드의 세계는 지면 한 메시 = 드로우콜 1");
+            Assert.AreEqual(2, renderers.Length, "배경 제거 모드의 세계는 지면 한 메시 + 포석 줄눈 데칼(T34 · 정본 pathMesh) = 드로우콜 2");
+            Transform path = w.Ground.transform.Find(GroundTextures.CobbleName);
+            Assert.IsNotNull(path, "포석 줄눈 데칼이 ground 의 자식으로 선다");
+            var pathTex = path.GetComponent<MeshRenderer>().sharedMaterial.GetTexture("_BaseMap") as Texture2D;
+            Assert.IsNotNull(pathTex, "데칼 텍스처");
+            Assert.AreEqual(GroundTexBake.CobbleWidth, pathTex.width); Assert.AreEqual(GroundTexBake.CobbleHeight, pathTex.height);
             Assert.AreEqual(0, w.ThemeIndex, "부팅 = 1챕터");
 
             Light sun = GameObject.Find(World.SunName).GetComponent<Light>();
@@ -63,6 +68,18 @@ namespace Forge.Tests.PlayMode
                 Vector3 dir = sun.transform.forward;
                 Vector3 expect = -new Vector3((float)L.SunPos[0], (float)L.SunPos[1], -(float)L.SunPos[2]).normalized;
                 Assert.Less(Vector3.Angle(dir, expect), 0.1f, what + "태양 방향(원점을 본다 · z 반전)");
+                // T34 지면 소재: 바이옴 알베도 512(12×6 반복) · 노멀 256 · 용암 kin 만 발광 균열맵
+                Material gm = w.GroundMaterial;
+                var albedo = gm.GetTexture("_BaseMap") as Texture2D;
+                Assert.IsNotNull(albedo, what + "알베도");
+                Assert.AreEqual(GroundTexBake.AlbedoSize, albedo.width, what + "알베도 512");
+                Assert.AreEqual(new Vector2(12f, 6f), gm.GetTextureScale("_BaseMap"), what + "반복 12×6");
+                var normal = gm.GetTexture("_BumpMap") as Texture2D;
+                Assert.IsNotNull(normal, what + "노멀");
+                Assert.AreEqual(GroundTexBake.NormalSize, normal.width, what + "노멀 256");
+                Assert.IsTrue(gm.IsKeywordEnabled("_NORMALMAP"), what + "_NORMALMAP");
+                Assert.AreEqual(L.CrackMap, gm.IsKeywordEnabled("_EMISSION"), what + "발광 균열 = 용암 kin 뿐");
+                if (L.CrackMap) Assert.IsNotNull(gm.GetTexture("_EmissionMap"), what + "발광맵");
             }
             w.SetTheme(0);
             yield return null;
