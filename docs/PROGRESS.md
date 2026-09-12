@@ -422,7 +422,7 @@
 - **무엇**: `tools/check_claim_scope.py` — `undeclared()` 가 범위 칸의 **백틱 토큰** 중 `…/` 로 끝나는 것(폴더)과 `*` 가 든 것(글로브 · 별표 앞까지)을 경로 접두로 뽑아(`scope_prefixes`) `Assets/…` 절대 접두는 `startswith` · 상대 접두(`Core/Battle/` · `Ui/Pet*`)는 **경로 마디 경계**(`"/"+path` 에 `"/"+pre`)에서 덮는다(`covered_by_prefix`). 줄기 글자 견줌(`Game/GearUi`)은 그대로. 머리말 «보는 칸» 에 한 줄 · `--selftest` 에 ⓐ²(폴더 · 절대/상대 · `Core/Battle/` 이 `Core/BattleUi/` 를 안 덮음 · 밖 파일은 잡음) · ⓐ³(글로브 · 다른 접두는 잡음) · ⓐ⁴(접두 뽑기가 파일 이름·줄기·산문을 안 섞음) 세 칸.
 - **실측**: 고치기 전 «살아 있는 lock 12개 · 범위에 안 적힌 채 쥔 파일 18개 · 대기 행 1개 막힘(T7)» → 고친 뒤 «범위 열이 실제로 여는 파일을 다 적는다»(ⓓ 겹침 T8↔T41 은 그대로 보고). 자기검사 15칸 rc 0(CI dotnet 잡이 `--selftest` 를 부른다).
 - **곁다리**: `task_state.py --check` 가 rc 1 이었다 — «선점 덫»(T10 이 표에서 ✅ 인데 ROUTINE §2 제목에 표시 없음 · 워커 I 의 T10 push 가 제목을 안 올렸다). 게이트가 모두에게 빨갛게 되므로 제목에 ✅ 한 글자를 붙이려 했는데 워커 B 가 b5679db 로 먼저 밀었다(리베이스에서 같은 글자라 겹침 없음 · 결정 92).
-- **게이트**: `check_claim_scope --selftest` · `check_docs_intact` · `check_decisions` · `check_task_rows` · `task_state --check`(선점 덫 해소 뒤 rc 0) · `gen_meta --check` · `check_data_sync` · `export_data --self-test` · `dotnet build/test`(C# 0줄 변경 · 통과 수는 lock 반납 때) 전부 rc 0. CI 런 번호는 lock 반납 커밋에 적는다.
+- **게이트**: `check_claim_scope --selftest` · `check_docs_intact` · `check_decisions` · `check_task_rows` · `task_state --check`(선점 덫 해소 뒤 rc 0) · `gen_meta --check` · `check_data_sync` · `export_data --self-test` · `dotnet build/test`(C# 0줄 변경 · 통과 수는 lock 반납 때) 전부 rc 0. **CI 런 47**(https://github.com/kuzuni/unity1/actions/runs/34717468296 · head bad1b6a): 런 전체 초록(dotnet 잡 = build · test · `check_claim_scope --selftest` 15칸 · 문서·.meta 검사 · datasync).
 - **주인이 확인할 것**: 없음(도구).
 - **플레이 콘솔 에러 0 확인 수단**: 해당 없음(도구).
 - **정본에서 고칠 것**: 없음.
