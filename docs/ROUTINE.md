@@ -299,7 +299,7 @@
 - 범위: `Assets/Scripts/Game/Bootstrap.cs`(targetFrameRate 두 줄) · `Assets/Tests/PlayMode/PerfBudgetTests.cs` · 넘길 때만 `Assets/Scripts/Game/Battle/`·`Game/Voxel/`·`Game/Ui/Hud.cs`(풀링·병합 갈래).
 - ✅ 2026-09-12 워커 H — `Bootstrap.ApplyFrameRate`(vSync 0 + targetFrameRate 60 · WebGL 은 원작 rAF 그대로 · 결정 109) + `PerfBudgetTests` 3개. **CI 런 60 실측**: 메인스레드 게임 시간 평균 **4.123ms** · p95 **9.749ms** · 최대 41.892ms(예산 8/12 안 · 부팅 설정 테스트도 초록) · 렌더러 522 · 공유 재질 212(정본 `matKey` 가 emissive 색을 키에 넣는다 — 갈린 것이 아니다 · 결정 106) · 드로우콜 2754 · 벽시계 27.33ms(소프트웨어 렌더). **프레임당 관리 힙 997,376B 는 목표(≈0) 초과** — 데미지 숫자·파티클에 풀링이 없다(`DamageNumbers.Spawn` 이 피격마다 RectTransform+TMP 를 새로 만든다). 그 파일들(`Game/Battle/`)은 T8·T12·T39 의 **살아 있는 lock** 이라 열지 않고 **T50** 으로 등재했다(규약 «뒤 번호가 기다린다»). 게이트는 회귀 잡이(1.2MB)로 두고 T47 이 목표까지 내린다.
 
-### T45 — SafeArea 노치 모의 검증: HUD·탭바·팝업 ✕·채팅줄·토스트가 `Screen.safeArea` 안에 있는가 (Game·검증 · T18 뒤 · **T27 다음으로 먼저**)
+### T45 ✅ — SafeArea 노치 모의 검증: HUD·탭바·팝업 ✕·채팅줄·토스트가 `Screen.safeArea` 안에 있는가 (Game·검증 · T18 뒤 · **T27 다음으로 먼저**)
 - 주인 지시 2026-09-12 «SafeArea 해서 모바일 상단 카메라 안 가리게». `UiRoot` 가 `Screen.safeArea` 를 읽어 앱 상자를 놓지만(T18) **노치가 있을 때 정말 안 가리는지 단언하는 테스트가 없다**(에디터·CI 는 safeArea = 전체 화면이라 조용히 초록).
 - 할 것: ⓐ `UiRoot` 에 테스트용 safeArea 주입 지점(`UiRoot.OverrideSafeArea(Rect?)` · 게임 코드는 안 쓴다) ⓑ PlayMode `SafeAreaTests`: 위 120px·아래 60px·좌우 0 을 깎은 safeArea 를 주입하고 부팅 → HUD 상단바·스테이지 표시·탭바·시트 ✕·채팅줄·토스트의 **월드 코너 4점이 전부 safeArea 안** · 세 해상도(540×1170 · 360×800 · 430×932) · 가로로 뒤집어도(`Screen.orientation` 은 세로 고정이니 해상도만) ⓒ 3D 카메라는 전체 화면 그대로(레터박스 계산이 safeArea 를 이중으로 깎지 않는지 = T1 `Viewport.Letterbox` 와 T18 앱 상자의 관계를 한 줄로 결정 기록) ⓓ 촬영(T27)의 노치 모의 경계선과 같은 값을 쓴다(상수 하나 · `UiCatalog` 또는 테스트 공용 상수).
 - 판정: `SafeAreaTests` 초록 + 노치 모의 PNG 를 열어 상단바가 빨간 선 아래에 있는 것을 본 기록 + 「주인이 볼 것: 노치 폰에서 상단바·✕ 가 카메라에 안 가림」.
