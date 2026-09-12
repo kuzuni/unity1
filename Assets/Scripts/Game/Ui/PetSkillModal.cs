@@ -46,7 +46,7 @@ namespace Forge.Game.Ui
 
         public static PetSkillModal Attach(UiRoot root)
         {
-            if (Instance != null) return Instance;
+            if (Instance != null && Instance.gameObject.scene == root.gameObject.scene) return Instance;
             RectTransform layer = UiKit.Box(root.App, "modals");
             layer.SetAsLastSibling();
             PetSkillModal m = layer.gameObject.AddComponent<PetSkillModal>();

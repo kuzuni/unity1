@@ -37,7 +37,7 @@ namespace Forge.Game.Ui
 
         public static SkillPetSheet Attach(UiRoot root, PetSkillHost host)
         {
-            if (Instance != null) return Instance;
+            if (Instance != null && Instance.gameObject.scene == root.gameObject.scene) return Instance;
             RectTransform panel = root.TabBar.Panel("summon");
             if (panel == null) throw new InvalidOperationException("탭바에 summon 시트가 없다 (T18)");
             SkillPetSheet s = panel.gameObject.AddComponent<SkillPetSheet>();

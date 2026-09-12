@@ -42,7 +42,7 @@ namespace Forge.Game.Ui
 
         public static SkillBar Attach(UiRoot root, PetSkillHost h)
         {
-            if (Instance != null) return Instance;
+            if (Instance != null && Instance.gameObject.scene == root.gameObject.scene) return Instance;
             RectTransform rt = UiKit.Box(root.HudLayer, "skill-bar");
             SkillBar sb = rt.gameObject.AddComponent<SkillBar>();
             sb.host = h;

@@ -20,9 +20,15 @@ namespace Forge.Tests.PlayMode
             PetSkillHost.SuppressSave = true;
             PetSkillHost.Seed = 20260912;
             SceneManager.LoadScene("SampleScene");
-            for (int i = 0; i < 600 && SkillPetSheet.Instance == null; i++) yield return null;
+            // 앞 씬의 시트·호스트가 내려가는 두 프레임을 기다린 뒤, «이 씬» 의 시트가 설 때까지(CI 런 46~58: 앞 씬 호스트가 살아 있어 새 씬에 호스트가 안 섰다 · T19 결정 112 와 같은 경쟁)
+            yield return null;
+            yield return null;
+            Scene active = SceneManager.GetActiveScene();
+            for (int i = 0; i < 600 && !(SkillPetSheet.Instance != null && SkillPetSheet.Instance.gameObject.scene == active && PetSkillHost.Ready && SkillBar.Instance != null); i++) yield return null;
             Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다(SaveIo/PetSkillHost 부팅)");
+            Assert.AreEqual(active, SkillPetSheet.Instance.gameObject.scene, "앞 씬의 시트가 남아 있다");
             Assert.IsTrue(PetSkillHost.Ready);
+            Assert.IsNotNull(PetSkillHost.Instance.Skills, "PetSkillHost 가 Ready 인데 규칙이 없다 — 앞 씬 호스트의 정적 상태가 남았다");
             yield return null;
         }
 

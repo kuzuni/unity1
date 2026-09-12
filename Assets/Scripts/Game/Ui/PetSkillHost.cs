@@ -28,7 +28,9 @@ namespace Forge.Game.Ui
     public sealed class PetSkillHost : MonoBehaviour, IPetHost, ISkillHost
     {
         public static PetSkillHost Instance { get; private set; }
-        public static bool Ready { get; private set; }
+        /// <summary>지금 살아 있는 호스트가 부팅을 마쳤는가 — 인스턴스에서 파생한다(정적 플래그면 씬을 다시 여는 PlayMode 테스트에서 앞 씬 호스트의 코루틴이 새 씬 위에서 참으로 올린다 · T19 결정 112 와 같은 경쟁).</summary>
+        public static bool Ready { get { return Instance != null && Instance.booted; } }
+        bool booted;
         public static event Action OnReady;
 
         /// <summary>효과음 훅(T30 이 채운다): gacha(최고 등급) · summonCharge(최고 등급) · summonReveal(등급).</summary>
@@ -68,10 +70,10 @@ namespace Forge.Game.Ui
 
         static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (Instance != null) return;
+            if (Instance != null && Instance.gameObject.scene == scene) return;
             foreach (Bootstrap b in Resources.FindObjectsOfTypeAll<Bootstrap>())
             {
-                if (!b.gameObject.scene.isLoaded) continue;
+                if (b.gameObject.scene != scene) continue;   // 방금 열린 씬의 Bootstrap 아래에만 — 내려가는 앞 씬 것에 붙으면 같이 지워진다
                 Create(b.transform);
                 return;
             }
@@ -79,7 +81,7 @@ namespace Forge.Game.Ui
 
         public static PetSkillHost Create(Transform parent)
         {
-            if (Instance != null) return Instance;
+            if (Instance != null && Instance.gameObject.scene == parent.gameObject.scene) return Instance;
             var go = new GameObject("PetSkillHost");
             go.transform.SetParent(parent, false);
             return go.AddComponent<PetSkillHost>();
@@ -88,21 +90,27 @@ namespace Forge.Game.Ui
         void Awake()
         {
             Instance = this;
-            Ready = false;
             StartCoroutine(Boot());
         }
 
         void OnDestroy()
         {
-            if (Instance == this) { Instance = null; Ready = false; }
+            if (Instance == this) Instance = null;
         }
+
+        /// <summary>이 호스트가 아직 제 씬의 현역인가 — 앞 씬 호스트의 코루틴이 새 씬 위에서 이어 돌며 정적 상태를 만지지 않게 매 대기 뒤 본다.</summary>
+        bool Alive { get { return this != null && Instance == this && gameObject.scene.isLoaded; } }
 
         IEnumerator Boot()
         {
-            while (!SaveIo.Ready || SaveIo.State == null) yield return null;
+            // 한 프레임 뒤에 시작한다 — 같은 sceneLoaded 에서 서는 SaveIo·UiRoot 가 먼저 제 자리를 잡게(앞 씬 것의 정적 Ready 를 보지 않으려고).
+            yield return null;
+            while (Alive && (SaveIo.Instance == null || SaveIo.Instance.gameObject.scene != gameObject.scene || !SaveIo.Ready || SaveIo.State == null)) yield return null;
+            if (!Alive) yield break;
             string techJson = null;
             var read = ReadStreaming(TechFile, t => techJson = t);
             while (read.MoveNext()) yield return read.Current;
+            if (!Alive) yield break;
             if (techJson == null) { Debug.LogError("[PetSkillHost] StreamingAssets/data/" + TechFile + " 를 못 읽었다 — 펫·스킬 화면을 세우지 않는다"); yield break; }
             Data = SaveIo.Data;
             TechData td = TechData.Load(techJson);
@@ -117,8 +125,9 @@ namespace Forge.Game.Ui
             if (SfxGacha == null) SfxGacha = Sfx.Gacha;
             if (SfxSummonCharge == null) SfxSummonCharge = Sfx.SummonCharge;
             if (SfxSummonReveal == null) SfxSummonReveal = Sfx.SummonReveal;
-            Ready = true;
-            while (UiRoot.Instance == null) yield return null;
+            booted = true;
+            while (Alive && (UiRoot.Instance == null || UiRoot.Instance.gameObject.scene != gameObject.scene || UiRoot.Instance.TabBar == null)) yield return null;
+            if (!Alive) yield break;
             SkillPetSheet.Attach(UiRoot.Instance, this);
             SkillBar.Attach(UiRoot.Instance, this);
             var h = OnReady;
@@ -139,7 +148,7 @@ namespace Forge.Game.Ui
 
         void Update()
         {
-            if (!Ready) return;
+            if (!booted || Instance != this) return;
             tickAt += Time.unscaledDeltaTime;
             if (tickAt < TickSec) return;
             tickAt = 0f;
