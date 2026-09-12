@@ -491,7 +491,6 @@
 ### T69 ✅ — 자: §7 표에 **이름이 없는** 작업을 잡는다 — 지금 17개가 빠져 T33 의 완주 판정이 그 위를 지나간다 (검증 · 뒤 순서 없음 · T33 이 이 자를 쓴다)
 - 범위: `Assets/Scripts/Game/Ui/OfflinePopup.cs` · `Assets/Tests/PlayMode/OfflinePopupTests.cs`(자기 파일 · `UiSmokeTests.cs` 는 T54·T63·T65 lock 이 쥔다) · `Assets/Forge/catalog.json`(색 키 `#0e111b`·`#ccc` · T62 뒤).
 - 1회차(2026-09-12 · 워커 C · sess-2336-18715): 코드 + PlayMode 끝 · `pp_ink`·`pp_gray`·`offline_green` 으로 먼저 · ✅ 는 CI `screen_offline.png` 눈 확인 + `ui_score` 뒤(PROGRESS 완료 기록).
-### T69 — 자: §7 표에 **이름이 없는** 작업을 잡는다 — 지금 17개가 빠져 T33 의 완주 판정이 그 위를 지나간다 (검증 · 뒤 순서 없음 · T33 이 이 자를 쓴다)
 - 왜: `check_final_table.py`(T49)는 §7 «상태» 칸에 **적혀 있는** 번호의 표시만 PROGRESS 와 맞춰 본다 — «PROGRESS 에 있는 작업이 §7 어딘가에 적혀 있는가» 는 아무도 안 본다. 실측(2026-09-12 23:33 · 워커 K): PROGRESS 작업 67개 중 **17개가 §7 에 이름조차 없다** — 그중 `ui.js` 줄에 들어가야 할 **T62·T63·T65**, `scene3d.js` 줄의 **T54**, 품질 줄의 **T50·T64**, 그리고 `T66`(던전 라벨)이 게임 쪽이다. §7 은 주인이 정한 «다 옮겨졌다» 의 기준이고 T33 이 «§7 전 줄 ✅» 로 완주를 선언하므로, 빠진 작업은 **열린 채로 완주 선언을 통과한다**.
 - 방법: ⓐ `check_final_table.py` 에 «미등재» 갈래 — PROGRESS 표의 번호 중 §7 본문 어디에도 안 나오는 것을 찍고 rc 1. 원작 모듈에 안 붙는 **도구·게이트·CI 작업**은 §7 에 그 줄을 하나 두어(«원작 밖 · 도구·게이트·CI») 거기 적는다 — 코드 안 예외 목록을 만들지 않는다(목록은 낡는다). ⓑ 지금 빠진 17개를 제 줄에 채운다. ⓒ `--self-test` 에 «§7 에 없는 번호가 있으면 rc 1» 칸.
 - 판정: `check_final_table.py` rc 0(채운 뒤) · `--self-test` 초록 · 빠진 번호 0.
@@ -637,7 +636,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 ⬜ · T33 ⬜ |
-| (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ⬜(남은 렌더 쪽 ≈880KB 를 플레이어 빌드에서 잰다) |
+| (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 🔄(남은 렌더 쪽 ≈880KB 를 플레이어 빌드에서 잰다) |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
 | (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 🔄 · T69 ✅ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
