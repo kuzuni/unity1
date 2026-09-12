@@ -1,0 +1,11823 @@
+{
+ "note": "정본 mounts.js 를 mulberry32 시드로 돌린 대조 벡터 — tools/mount_vectors.js 가 만든다 · 손으로 고치지 않는다",
+ "consts": {
+  "MAX_LEVEL": 50,
+  "INDIV_MAX_LEVEL": 100,
+  "INV_CAP": 250,
+  "MAX_ACTIVE_MOUNTS": 1,
+  "LEGACY_SPECIES": {
+   "Brown Leaf": "Pony",
+   "Lily Leaf": "Donkey",
+   "Oak Leaf": "Alpaca",
+   "Lily Pad": "Clockwork Mouse",
+   "Log Raft": "Clockwork Beetle"
+  },
+  "WINDERS_PER_SUMMON": 50,
+  "STAR_MULT": 1000000000,
+  "forge": {
+   "TIER_BASE_ATK": 12,
+   "TIER_BASE_HP": 70,
+   "TIER_STEP": 6,
+   "ATK_SLOTS": 4,
+   "HP_SLOTS": 4,
+   "LEVEL_STEP": 1.01
+  }
+ },
+ "level": [
+  {
+   "mountOpens": 0,
+   "level": 1,
+   "nextNeeded": 2,
+   "prevNeeded": 0
+  },
+  {
+   "mountOpens": 1,
+   "level": 1,
+   "nextNeeded": 2,
+   "prevNeeded": 0
+  },
+  {
+   "mountOpens": 2,
+   "level": 2,
+   "nextNeeded": 5,
+   "prevNeeded": 2
+  },
+  {
+   "mountOpens": 3,
+   "level": 2,
+   "nextNeeded": 5,
+   "prevNeeded": 2
+  },
+  {
+   "mountOpens": 4,
+   "level": 2,
+   "nextNeeded": 5,
+   "prevNeeded": 2
+  },
+  {
+   "mountOpens": 5,
+   "level": 3,
+   "nextNeeded": 8,
+   "prevNeeded": 5
+  },
+  {
+   "mountOpens": 6,
+   "level": 3,
+   "nextNeeded": 8,
+   "prevNeeded": 5
+  },
+  {
+   "mountOpens": 7,
+   "level": 3,
+   "nextNeeded": 8,
+   "prevNeeded": 5
+  },
+  {
+   "mountOpens": 8,
+   "level": 4,
+   "nextNeeded": 11,
+   "prevNeeded": 8
+  },
+  {
+   "mountOpens": 9,
+   "level": 4,
+   "nextNeeded": 11,
+   "prevNeeded": 8
+  },
+  {
+   "mountOpens": 10,
+   "level": 4,
+   "nextNeeded": 11,
+   "prevNeeded": 8
+  },
+  {
+   "mountOpens": 11,
+   "level": 5,
+   "nextNeeded": 14,
+   "prevNeeded": 11
+  },
+  {
+   "mountOpens": 12,
+   "level": 5,
+   "nextNeeded": 14,
+   "prevNeeded": 11
+  },
+  {
+   "mountOpens": 13,
+   "level": 5,
+   "nextNeeded": 14,
+   "prevNeeded": 11
+  },
+  {
+   "mountOpens": 14,
+   "level": 6,
+   "nextNeeded": 17,
+   "prevNeeded": 14
+  },
+  {
+   "mountOpens": 15,
+   "level": 6,
+   "nextNeeded": 17,
+   "prevNeeded": 14
+  },
+  {
+   "mountOpens": 16,
+   "level": 6,
+   "nextNeeded": 17,
+   "prevNeeded": 14
+  },
+  {
+   "mountOpens": 17,
+   "level": 7,
+   "nextNeeded": 20,
+   "prevNeeded": 17
+  },
+  {
+   "mountOpens": 18,
+   "level": 7,
+   "nextNeeded": 20,
+   "prevNeeded": 17
+  },
+  {
+   "mountOpens": 19,
+   "level": 7,
+   "nextNeeded": 20,
+   "prevNeeded": 17
+  },
+  {
+   "mountOpens": 20,
+   "level": 8,
+   "nextNeeded": 23,
+   "prevNeeded": 20
+  },
+  {
+   "mountOpens": 21,
+   "level": 8,
+   "nextNeeded": 23,
+   "prevNeeded": 20
+  },
+  {
+   "mountOpens": 22,
+   "level": 8,
+   "nextNeeded": 23,
+   "prevNeeded": 20
+  },
+  {
+   "mountOpens": 23,
+   "level": 9,
+   "nextNeeded": 26,
+   "prevNeeded": 23
+  },
+  {
+   "mountOpens": 24,
+   "level": 9,
+   "nextNeeded": 26,
+   "prevNeeded": 23
+  },
+  {
+   "mountOpens": 25,
+   "level": 9,
+   "nextNeeded": 26,
+   "prevNeeded": 23
+  },
+  {
+   "mountOpens": 26,
+   "level": 10,
+   "nextNeeded": 29,
+   "prevNeeded": 26
+  },
+  {
+   "mountOpens": 27,
+   "level": 10,
+   "nextNeeded": 29,
+   "prevNeeded": 26
+  },
+  {
+   "mountOpens": 28,
+   "level": 10,
+   "nextNeeded": 29,
+   "prevNeeded": 26
+  },
+  {
+   "mountOpens": 29,
+   "level": 11,
+   "nextNeeded": 32,
+   "prevNeeded": 29
+  },
+  {
+   "mountOpens": 30,
+   "level": 11,
+   "nextNeeded": 32,
+   "prevNeeded": 29
+  },
+  {
+   "mountOpens": 31,
+   "level": 11,
+   "nextNeeded": 32,
+   "prevNeeded": 29
+  },
+  {
+   "mountOpens": 32,
+   "level": 12,
+   "nextNeeded": 35,
+   "prevNeeded": 32
+  },
+  {
+   "mountOpens": 33,
+   "level": 12,
+   "nextNeeded": 35,
+   "prevNeeded": 32
+  },
+  {
+   "mountOpens": 34,
+   "level": 12,
+   "nextNeeded": 35,
+   "prevNeeded": 32
+  },
+  {
+   "mountOpens": 35,
+   "level": 13,
+   "nextNeeded": 38,
+   "prevNeeded": 35
+  },
+  {
+   "mountOpens": 36,
+   "level": 13,
+   "nextNeeded": 38,
+   "prevNeeded": 35
+  },
+  {
+   "mountOpens": 37,
+   "level": 13,
+   "nextNeeded": 38,
+   "prevNeeded": 35
+  },
+  {
+   "mountOpens": 38,
+   "level": 14,
+   "nextNeeded": 41,
+   "prevNeeded": 38
+  },
+  {
+   "mountOpens": 39,
+   "level": 14,
+   "nextNeeded": 41,
+   "prevNeeded": 38
+  },
+  {
+   "mountOpens": 40,
+   "level": 14,
+   "nextNeeded": 41,
+   "prevNeeded": 38
+  },
+  {
+   "mountOpens": 41,
+   "level": 15,
+   "nextNeeded": 44,
+   "prevNeeded": 41
+  },
+  {
+   "mountOpens": 42,
+   "level": 15,
+   "nextNeeded": 44,
+   "prevNeeded": 41
+  },
+  {
+   "mountOpens": 43,
+   "level": 15,
+   "nextNeeded": 44,
+   "prevNeeded": 41
+  },
+  {
+   "mountOpens": 44,
+   "level": 16,
+   "nextNeeded": 47,
+   "prevNeeded": 44
+  },
+  {
+   "mountOpens": 45,
+   "level": 16,
+   "nextNeeded": 47,
+   "prevNeeded": 44
+  },
+  {
+   "mountOpens": 46,
+   "level": 16,
+   "nextNeeded": 47,
+   "prevNeeded": 44
+  },
+  {
+   "mountOpens": 47,
+   "level": 17,
+   "nextNeeded": 50,
+   "prevNeeded": 47
+  },
+  {
+   "mountOpens": 48,
+   "level": 17,
+   "nextNeeded": 50,
+   "prevNeeded": 47
+  },
+  {
+   "mountOpens": 49,
+   "level": 17,
+   "nextNeeded": 50,
+   "prevNeeded": 47
+  },
+  {
+   "mountOpens": 50,
+   "level": 18,
+   "nextNeeded": 53,
+   "prevNeeded": 50
+  },
+  {
+   "mountOpens": 51,
+   "level": 18,
+   "nextNeeded": 53,
+   "prevNeeded": 50
+  },
+  {
+   "mountOpens": 52,
+   "level": 18,
+   "nextNeeded": 53,
+   "prevNeeded": 50
+  },
+  {
+   "mountOpens": 53,
+   "level": 19,
+   "nextNeeded": 56,
+   "prevNeeded": 53
+  },
+  {
+   "mountOpens": 54,
+   "level": 19,
+   "nextNeeded": 56,
+   "prevNeeded": 53
+  },
+  {
+   "mountOpens": 55,
+   "level": 19,
+   "nextNeeded": 56,
+   "prevNeeded": 53
+  },
+  {
+   "mountOpens": 56,
+   "level": 20,
+   "nextNeeded": 59,
+   "prevNeeded": 56
+  },
+  {
+   "mountOpens": 57,
+   "level": 20,
+   "nextNeeded": 59,
+   "prevNeeded": 56
+  },
+  {
+   "mountOpens": 58,
+   "level": 20,
+   "nextNeeded": 59,
+   "prevNeeded": 56
+  },
+  {
+   "mountOpens": 59,
+   "level": 21,
+   "nextNeeded": 62,
+   "prevNeeded": 59
+  },
+  {
+   "mountOpens": 60,
+   "level": 21,
+   "nextNeeded": 62,
+   "prevNeeded": 59
+  },
+  {
+   "mountOpens": 61,
+   "level": 21,
+   "nextNeeded": 62,
+   "prevNeeded": 59
+  },
+  {
+   "mountOpens": 62,
+   "level": 22,
+   "nextNeeded": 65,
+   "prevNeeded": 62
+  },
+  {
+   "mountOpens": 63,
+   "level": 22,
+   "nextNeeded": 65,
+   "prevNeeded": 62
+  },
+  {
+   "mountOpens": 64,
+   "level": 22,
+   "nextNeeded": 65,
+   "prevNeeded": 62
+  },
+  {
+   "mountOpens": 65,
+   "level": 23,
+   "nextNeeded": 68,
+   "prevNeeded": 65
+  },
+  {
+   "mountOpens": 66,
+   "level": 23,
+   "nextNeeded": 68,
+   "prevNeeded": 65
+  },
+  {
+   "mountOpens": 67,
+   "level": 23,
+   "nextNeeded": 68,
+   "prevNeeded": 65
+  },
+  {
+   "mountOpens": 68,
+   "level": 24,
+   "nextNeeded": 71,
+   "prevNeeded": 68
+  },
+  {
+   "mountOpens": 69,
+   "level": 24,
+   "nextNeeded": 71,
+   "prevNeeded": 68
+  },
+  {
+   "mountOpens": 70,
+   "level": 24,
+   "nextNeeded": 71,
+   "prevNeeded": 68
+  },
+  {
+   "mountOpens": 71,
+   "level": 25,
+   "nextNeeded": 74,
+   "prevNeeded": 71
+  },
+  {
+   "mountOpens": 72,
+   "level": 25,
+   "nextNeeded": 74,
+   "prevNeeded": 71
+  },
+  {
+   "mountOpens": 73,
+   "level": 25,
+   "nextNeeded": 74,
+   "prevNeeded": 71
+  },
+  {
+   "mountOpens": 74,
+   "level": 26,
+   "nextNeeded": 77,
+   "prevNeeded": 74
+  },
+  {
+   "mountOpens": 75,
+   "level": 26,
+   "nextNeeded": 77,
+   "prevNeeded": 74
+  },
+  {
+   "mountOpens": 76,
+   "level": 26,
+   "nextNeeded": 77,
+   "prevNeeded": 74
+  },
+  {
+   "mountOpens": 77,
+   "level": 27,
+   "nextNeeded": 80,
+   "prevNeeded": 77
+  },
+  {
+   "mountOpens": 78,
+   "level": 27,
+   "nextNeeded": 80,
+   "prevNeeded": 77
+  },
+  {
+   "mountOpens": 79,
+   "level": 27,
+   "nextNeeded": 80,
+   "prevNeeded": 77
+  },
+  {
+   "mountOpens": 80,
+   "level": 28,
+   "nextNeeded": 83,
+   "prevNeeded": 80
+  },
+  {
+   "mountOpens": 81,
+   "level": 28,
+   "nextNeeded": 83,
+   "prevNeeded": 80
+  },
+  {
+   "mountOpens": 82,
+   "level": 28,
+   "nextNeeded": 83,
+   "prevNeeded": 80
+  },
+  {
+   "mountOpens": 83,
+   "level": 29,
+   "nextNeeded": 86,
+   "prevNeeded": 83
+  },
+  {
+   "mountOpens": 84,
+   "level": 29,
+   "nextNeeded": 86,
+   "prevNeeded": 83
+  },
+  {
+   "mountOpens": 85,
+   "level": 29,
+   "nextNeeded": 86,
+   "prevNeeded": 83
+  },
+  {
+   "mountOpens": 86,
+   "level": 30,
+   "nextNeeded": 89,
+   "prevNeeded": 86
+  },
+  {
+   "mountOpens": 87,
+   "level": 30,
+   "nextNeeded": 89,
+   "prevNeeded": 86
+  },
+  {
+   "mountOpens": 88,
+   "level": 30,
+   "nextNeeded": 89,
+   "prevNeeded": 86
+  },
+  {
+   "mountOpens": 89,
+   "level": 31,
+   "nextNeeded": 92,
+   "prevNeeded": 89
+  },
+  {
+   "mountOpens": 90,
+   "level": 31,
+   "nextNeeded": 92,
+   "prevNeeded": 89
+  },
+  {
+   "mountOpens": 91,
+   "level": 31,
+   "nextNeeded": 92,
+   "prevNeeded": 89
+  },
+  {
+   "mountOpens": 92,
+   "level": 32,
+   "nextNeeded": 95,
+   "prevNeeded": 92
+  },
+  {
+   "mountOpens": 93,
+   "level": 32,
+   "nextNeeded": 95,
+   "prevNeeded": 92
+  },
+  {
+   "mountOpens": 94,
+   "level": 32,
+   "nextNeeded": 95,
+   "prevNeeded": 92
+  },
+  {
+   "mountOpens": 95,
+   "level": 33,
+   "nextNeeded": 98,
+   "prevNeeded": 95
+  },
+  {
+   "mountOpens": 96,
+   "level": 33,
+   "nextNeeded": 98,
+   "prevNeeded": 95
+  },
+  {
+   "mountOpens": 97,
+   "level": 33,
+   "nextNeeded": 98,
+   "prevNeeded": 95
+  },
+  {
+   "mountOpens": 98,
+   "level": 34,
+   "nextNeeded": 132,
+   "prevNeeded": 98
+  },
+  {
+   "mountOpens": 99,
+   "level": 34,
+   "nextNeeded": 132,
+   "prevNeeded": 98
+  },
+  {
+   "mountOpens": 131,
+   "level": 34,
+   "nextNeeded": 132,
+   "prevNeeded": 98
+  },
+  {
+   "mountOpens": 132,
+   "level": 35,
+   "nextNeeded": 166,
+   "prevNeeded": 132
+  },
+  {
+   "mountOpens": 133,
+   "level": 35,
+   "nextNeeded": 166,
+   "prevNeeded": 132
+  },
+  {
+   "mountOpens": 165,
+   "level": 35,
+   "nextNeeded": 166,
+   "prevNeeded": 132
+  },
+  {
+   "mountOpens": 166,
+   "level": 36,
+   "nextNeeded": 200,
+   "prevNeeded": 166
+  },
+  {
+   "mountOpens": 167,
+   "level": 36,
+   "nextNeeded": 200,
+   "prevNeeded": 166
+  },
+  {
+   "mountOpens": 199,
+   "level": 36,
+   "nextNeeded": 200,
+   "prevNeeded": 166
+  },
+  {
+   "mountOpens": 200,
+   "level": 37,
+   "nextNeeded": 234,
+   "prevNeeded": 200
+  },
+  {
+   "mountOpens": 201,
+   "level": 37,
+   "nextNeeded": 234,
+   "prevNeeded": 200
+  },
+  {
+   "mountOpens": 233,
+   "level": 37,
+   "nextNeeded": 234,
+   "prevNeeded": 200
+  },
+  {
+   "mountOpens": 234,
+   "level": 38,
+   "nextNeeded": 268,
+   "prevNeeded": 234
+  },
+  {
+   "mountOpens": 235,
+   "level": 38,
+   "nextNeeded": 268,
+   "prevNeeded": 234
+  },
+  {
+   "mountOpens": 267,
+   "level": 38,
+   "nextNeeded": 268,
+   "prevNeeded": 234
+  },
+  {
+   "mountOpens": 268,
+   "level": 39,
+   "nextNeeded": 302,
+   "prevNeeded": 268
+  },
+  {
+   "mountOpens": 269,
+   "level": 39,
+   "nextNeeded": 302,
+   "prevNeeded": 268
+  },
+  {
+   "mountOpens": 301,
+   "level": 39,
+   "nextNeeded": 302,
+   "prevNeeded": 268
+  },
+  {
+   "mountOpens": 302,
+   "level": 40,
+   "nextNeeded": 336,
+   "prevNeeded": 302
+  },
+  {
+   "mountOpens": 303,
+   "level": 40,
+   "nextNeeded": 336,
+   "prevNeeded": 302
+  },
+  {
+   "mountOpens": 335,
+   "level": 40,
+   "nextNeeded": 336,
+   "prevNeeded": 302
+  },
+  {
+   "mountOpens": 336,
+   "level": 41,
+   "nextNeeded": 370,
+   "prevNeeded": 336
+  },
+  {
+   "mountOpens": 337,
+   "level": 41,
+   "nextNeeded": 370,
+   "prevNeeded": 336
+  },
+  {
+   "mountOpens": 369,
+   "level": 41,
+   "nextNeeded": 370,
+   "prevNeeded": 336
+  },
+  {
+   "mountOpens": 370,
+   "level": 42,
+   "nextNeeded": 404,
+   "prevNeeded": 370
+  },
+  {
+   "mountOpens": 371,
+   "level": 42,
+   "nextNeeded": 404,
+   "prevNeeded": 370
+  },
+  {
+   "mountOpens": 403,
+   "level": 42,
+   "nextNeeded": 404,
+   "prevNeeded": 370
+  },
+  {
+   "mountOpens": 404,
+   "level": 43,
+   "nextNeeded": 438,
+   "prevNeeded": 404
+  },
+  {
+   "mountOpens": 405,
+   "level": 43,
+   "nextNeeded": 438,
+   "prevNeeded": 404
+  },
+  {
+   "mountOpens": 437,
+   "level": 43,
+   "nextNeeded": 438,
+   "prevNeeded": 404
+  },
+  {
+   "mountOpens": 438,
+   "level": 44,
+   "nextNeeded": 472,
+   "prevNeeded": 438
+  },
+  {
+   "mountOpens": 439,
+   "level": 44,
+   "nextNeeded": 472,
+   "prevNeeded": 438
+  },
+  {
+   "mountOpens": 471,
+   "level": 44,
+   "nextNeeded": 472,
+   "prevNeeded": 438
+  },
+  {
+   "mountOpens": 472,
+   "level": 45,
+   "nextNeeded": 506,
+   "prevNeeded": 472
+  },
+  {
+   "mountOpens": 473,
+   "level": 45,
+   "nextNeeded": 506,
+   "prevNeeded": 472
+  },
+  {
+   "mountOpens": 505,
+   "level": 45,
+   "nextNeeded": 506,
+   "prevNeeded": 472
+  },
+  {
+   "mountOpens": 506,
+   "level": 46,
+   "nextNeeded": 540,
+   "prevNeeded": 506
+  },
+  {
+   "mountOpens": 507,
+   "level": 46,
+   "nextNeeded": 540,
+   "prevNeeded": 506
+  },
+  {
+   "mountOpens": 539,
+   "level": 46,
+   "nextNeeded": 540,
+   "prevNeeded": 506
+  },
+  {
+   "mountOpens": 540,
+   "level": 47,
+   "nextNeeded": 574,
+   "prevNeeded": 540
+  },
+  {
+   "mountOpens": 541,
+   "level": 47,
+   "nextNeeded": 574,
+   "prevNeeded": 540
+  },
+  {
+   "mountOpens": 573,
+   "level": 47,
+   "nextNeeded": 574,
+   "prevNeeded": 540
+  },
+  {
+   "mountOpens": 574,
+   "level": 48,
+   "nextNeeded": 608,
+   "prevNeeded": 574
+  },
+  {
+   "mountOpens": 575,
+   "level": 48,
+   "nextNeeded": 608,
+   "prevNeeded": 574
+  },
+  {
+   "mountOpens": 607,
+   "level": 48,
+   "nextNeeded": 608,
+   "prevNeeded": 574
+  },
+  {
+   "mountOpens": 608,
+   "level": 49,
+   "nextNeeded": 642,
+   "prevNeeded": 608
+  },
+  {
+   "mountOpens": 609,
+   "level": 49,
+   "nextNeeded": 642,
+   "prevNeeded": 608
+  },
+  {
+   "mountOpens": 641,
+   "level": 49,
+   "nextNeeded": 642,
+   "prevNeeded": 608
+  },
+  {
+   "mountOpens": 642,
+   "level": 50,
+   "nextNeeded": null,
+   "prevNeeded": 642
+  },
+  {
+   "mountOpens": 643,
+   "level": 50,
+   "nextNeeded": null,
+   "prevNeeded": 642
+  },
+  {
+   "mountOpens": 1000000,
+   "level": 50,
+   "nextNeeded": null,
+   "prevNeeded": 642
+  },
+  {
+   "mountOpens": 1000000000,
+   "level": 50,
+   "nextNeeded": null,
+   "prevNeeded": 642
+  }
+ ],
+ "rates": [
+  {
+   "mountOpens": 0,
+   "level": 1,
+   "keys": [
+    "common"
+   ],
+   "values": [
+    1
+   ]
+  },
+  {
+   "mountOpens": 2,
+   "level": 2,
+   "keys": [
+    "common",
+    "rare"
+   ],
+   "values": [
+    0.995,
+    0.005
+   ]
+  },
+  {
+   "mountOpens": 5,
+   "level": 3,
+   "keys": [
+    "common",
+    "rare"
+   ],
+   "values": [
+    0.9931,
+    0.0069
+   ]
+  },
+  {
+   "mountOpens": 100,
+   "level": 34,
+   "keys": [
+    "common",
+    "rare",
+    "epic",
+    "legendary",
+    "ultimate",
+    "mythic"
+   ],
+   "values": [
+    0.165,
+    0.165,
+    0.165,
+    0.434,
+    0.07,
+    0.001
+   ]
+  },
+  {
+   "mountOpens": 1000,
+   "level": 50,
+   "keys": [
+    "common",
+    "rare",
+    "epic",
+    "legendary",
+    "ultimate",
+    "mythic"
+   ],
+   "values": [
+    0.175,
+    0.165,
+    0.165,
+    0.165,
+    0.165,
+    0.165
+   ]
+  },
+  {
+   "mountOpens": 1000000,
+   "level": 50,
+   "keys": [
+    "common",
+    "rare",
+    "epic",
+    "legendary",
+    "ultimate",
+    "mythic"
+   ],
+   "values": [
+    0.175,
+    0.165,
+    0.165,
+    0.165,
+    0.165,
+    0.165
+   ]
+  }
+ ],
+ "winderCost": [
+  {
+   "mountCost": 0,
+   "count": 1,
+   "cost": 50
+  },
+  {
+   "mountCost": 0,
+   "count": 5,
+   "cost": 250
+  },
+  {
+   "mountCost": 0,
+   "count": 25,
+   "cost": 1250
+  },
+  {
+   "mountCost": 0,
+   "count": 75,
+   "cost": 3750
+  },
+  {
+   "mountCost": 0,
+   "count": 0.5,
+   "cost": 25
+  },
+  {
+   "mountCost": 0,
+   "count": 2.7,
+   "cost": 135
+  },
+  {
+   "mountCost": 1,
+   "count": 1,
+   "cost": 50
+  },
+  {
+   "mountCost": 1,
+   "count": 5,
+   "cost": 248
+  },
+  {
+   "mountCost": 1,
+   "count": 25,
+   "cost": 1238
+  },
+  {
+   "mountCost": 1,
+   "count": 75,
+   "cost": 3713
+  },
+  {
+   "mountCost": 1,
+   "count": 0.5,
+   "cost": 25
+  },
+  {
+   "mountCost": 1,
+   "count": 2.7,
+   "cost": 134
+  },
+  {
+   "mountCost": 20,
+   "count": 1,
+   "cost": 40
+  },
+  {
+   "mountCost": 20,
+   "count": 5,
+   "cost": 200
+  },
+  {
+   "mountCost": 20,
+   "count": 25,
+   "cost": 1000
+  },
+  {
+   "mountCost": 20,
+   "count": 75,
+   "cost": 3000
+  },
+  {
+   "mountCost": 20,
+   "count": 0.5,
+   "cost": 20
+  },
+  {
+   "mountCost": 20,
+   "count": 2.7,
+   "cost": 108
+  },
+  {
+   "mountCost": 50,
+   "count": 1,
+   "cost": 25
+  },
+  {
+   "mountCost": 50,
+   "count": 5,
+   "cost": 125
+  },
+  {
+   "mountCost": 50,
+   "count": 25,
+   "cost": 625
+  },
+  {
+   "mountCost": 50,
+   "count": 75,
+   "cost": 1875
+  },
+  {
+   "mountCost": 50,
+   "count": 0.5,
+   "cost": 13
+  },
+  {
+   "mountCost": 50,
+   "count": 2.7,
+   "cost": 68
+  },
+  {
+   "mountCost": 90,
+   "count": 1,
+   "cost": 5
+  },
+  {
+   "mountCost": 90,
+   "count": 5,
+   "cost": 25
+  },
+  {
+   "mountCost": 90,
+   "count": 25,
+   "cost": 125
+  },
+  {
+   "mountCost": 90,
+   "count": 75,
+   "cost": 375
+  },
+  {
+   "mountCost": 90,
+   "count": 0.5,
+   "cost": 3
+  },
+  {
+   "mountCost": 90,
+   "count": 2.7,
+   "cost": 14
+  },
+  {
+   "mountCost": 100,
+   "count": 1,
+   "cost": 5
+  },
+  {
+   "mountCost": 100,
+   "count": 5,
+   "cost": 25
+  },
+  {
+   "mountCost": 100,
+   "count": 25,
+   "cost": 125
+  },
+  {
+   "mountCost": 100,
+   "count": 75,
+   "cost": 375
+  },
+  {
+   "mountCost": 100,
+   "count": 0.5,
+   "cost": 3
+  },
+  {
+   "mountCost": 100,
+   "count": 2.7,
+   "cost": 14
+  },
+  {
+   "mountCost": 150,
+   "count": 1,
+   "cost": 5
+  },
+  {
+   "mountCost": 150,
+   "count": 5,
+   "cost": 25
+  },
+  {
+   "mountCost": 150,
+   "count": 25,
+   "cost": 125
+  },
+  {
+   "mountCost": 150,
+   "count": 75,
+   "cost": 375
+  },
+  {
+   "mountCost": 150,
+   "count": 0.5,
+   "cost": 3
+  },
+  {
+   "mountCost": 150,
+   "count": 2.7,
+   "cost": 14
+  }
+ ],
+ "canSummon": [
+  {
+   "winders": 0,
+   "count": 1,
+   "can": false
+  },
+  {
+   "winders": 49,
+   "count": 1,
+   "can": false
+  },
+  {
+   "winders": 50,
+   "count": 1,
+   "can": true
+  },
+  {
+   "winders": 250,
+   "count": 5,
+   "can": true
+  },
+  {
+   "winders": 249,
+   "count": 5,
+   "can": false
+  },
+  {
+   "winders": 3750,
+   "count": 75,
+   "can": true
+  }
+ ],
+ "summon": [
+  {
+   "seed": 14,
+   "winders": 1000,
+   "mounts": 0,
+   "active": [],
+   "mountOpens": 0,
+   "extraMount": 0,
+   "mountCost": 0,
+   "count": 5,
+   "ascendMount": 0,
+   "pre": {
+    "summonCount": 5,
+    "winderCost": 250,
+    "canSummon": true,
+    "space": 250
+   },
+   "result": {
+    "results": [
+     {
+      "name": "Clockwork Beetle",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Clockwork Beetle",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Donkey",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     }
+    ]
+   },
+   "after": {
+    "mounts": [
+     {
+      "name": "Clockwork Beetle",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critCh",
+        "value": 11.3
+       },
+       {
+        "key": "skillCd",
+        "value": 3.2
+       }
+      ]
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critCh",
+        "value": 2.8
+       },
+       {
+        "key": "dblAtk",
+        "value": 9.1
+       }
+      ]
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "rangedDmg",
+        "value": 4.6
+       },
+       {
+        "key": "skillDmg",
+        "value": 12.4
+       }
+      ]
+     },
+     {
+      "name": "Clockwork Beetle",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillCd",
+        "value": 2.6
+       },
+       {
+        "key": "block",
+        "value": 1.2
+       }
+      ]
+     },
+     {
+      "name": "Donkey",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "block",
+        "value": 3.4
+       },
+       {
+        "key": "lifesteal",
+        "value": 2
+       }
+      ]
+     }
+    ],
+    "activeMounts": [
+     0
+    ],
+    "winders": 750,
+    "mountOpens": 5
+   },
+   "gacha": [
+    "common"
+   ],
+   "quests": [
+    "mountSummon:5"
+   ],
+   "saves": 2,
+   "recalc": 1
+  },
+  {
+   "seed": 3,
+   "winders": 100000,
+   "mounts": 0,
+   "active": [],
+   "mountOpens": 300,
+   "extraMount": 50,
+   "mountCost": 0,
+   "count": 75,
+   "ascendMount": 0,
+   "pre": {
+    "summonCount": 75,
+    "winderCost": 3750,
+    "canSummon": true,
+    "space": 250
+   },
+   "result": {
+    "results": [
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Pig",
+      "rarity": "epic",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Star Whale",
+      "rarity": "mythic",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Dino",
+      "rarity": "rare",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Armored Rhino",
+      "rarity": "legendary",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Alpaca",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Armored Rhino",
+      "rarity": "legendary",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Turtle",
+      "rarity": "rare",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Giant Bee",
+      "rarity": "legendary",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Panther",
+      "rarity": "epic",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Alpaca",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Dump Truck",
+      "rarity": "epic",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Hover Board",
+      "rarity": "mythic",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Cleaning Robot",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Bipedal Mech",
+      "rarity": "ultimate",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Bipedal Mech",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Bike",
+      "rarity": "legendary",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Mini Dragon",
+      "rarity": "ultimate",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Camel",
+      "rarity": "epic",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Goat",
+      "rarity": "epic",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Elk",
+      "rarity": "epic",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Donkey",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Cleaning Robot",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Star Whale",
+      "rarity": "mythic",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Clockwork Beetle",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Armored Rhino",
+      "rarity": "legendary",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Pig",
+      "rarity": "epic",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Pterosaur",
+      "rarity": "legendary",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Hover Board",
+      "rarity": "mythic",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Brown Horse",
+      "rarity": "rare",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Armored Rhino",
+      "rarity": "legendary",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Mini Dragon",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Elk",
+      "rarity": "epic",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Mini Dragon",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Turtle",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Brown Horse",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Panther",
+      "rarity": "epic",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Turtle",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Bipedal Mech",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Mini Dragon",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Clockwork Mouse",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Hover Disk",
+      "rarity": "mythic",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Bike",
+      "rarity": "legendary",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Giant Bee",
+      "rarity": "legendary",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Donkey",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Elk",
+      "rarity": "epic",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Bipedal Mech",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Clockwork Mouse",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Mini Dragon",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Camel",
+      "rarity": "epic",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Panther",
+      "rarity": "epic",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Camel",
+      "rarity": "epic",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Mini Dragon",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Panther",
+      "rarity": "epic",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Bipedal Mech",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Donkey",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Cleaning Robot",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Brown Horse",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Brown Horse",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Dino",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Bike",
+      "rarity": "legendary",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Armored Rhino",
+      "rarity": "legendary",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Bipedal Mech",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Camel",
+      "rarity": "epic",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Hover Disk",
+      "rarity": "mythic",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Hover Board",
+      "rarity": "mythic",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Pterosaur",
+      "rarity": "legendary",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Bike",
+      "rarity": "legendary",
+      "isNew": false,
+      "level": 1
+     }
+    ]
+   },
+   "after": {
+    "mounts": [
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "rangedDmg",
+        "value": 11.5
+       },
+       {
+        "key": "skillDmg",
+        "value": 2.8
+       }
+      ]
+     },
+     {
+      "name": "Pig",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "rangedDmg",
+        "value": 11.8
+       },
+       {
+        "key": "meleeDmg",
+        "value": 49.3
+       }
+      ]
+     },
+     {
+      "name": "Star Whale",
+      "rarity": "mythic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "meleeDmg",
+        "value": 44.4
+       },
+       {
+        "key": "hpPct",
+        "value": 12.4
+       }
+      ]
+     },
+     {
+      "name": "Dino",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "hpPct",
+        "value": 6.5
+       },
+       {
+        "key": "meleeDmg",
+        "value": 7.9
+       }
+      ]
+     },
+     {
+      "name": "Armored Rhino",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "hpRegen",
+        "value": 3.6
+       },
+       {
+        "key": "critCh",
+        "value": 10.3
+       }
+      ]
+     },
+     {
+      "name": "Alpaca",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillCd",
+        "value": 1.2
+       },
+       {
+        "key": "rangedDmg",
+        "value": 2.4
+       }
+      ]
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "dmgPct",
+        "value": 3.5
+       },
+       {
+        "key": "critCh",
+        "value": 2.7
+       }
+      ]
+     },
+     {
+      "name": "Armored Rhino",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 21
+       },
+       {
+        "key": "atkSpd",
+        "value": 5.9
+       }
+      ]
+     },
+     {
+      "name": "Turtle",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "meleeDmg",
+        "value": 34.1
+       },
+       {
+        "key": "dmgPct",
+        "value": 11.2
+       }
+      ]
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 77.2
+       },
+       {
+        "key": "hpRegen",
+        "value": 2.1
+       }
+      ]
+     },
+     {
+      "name": "Giant Bee",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "meleeDmg",
+        "value": 14.6
+       },
+       {
+        "key": "atkSpd",
+        "value": 1.5
+       }
+      ]
+     },
+     {
+      "name": "Panther",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "lifesteal",
+        "value": 9.5
+       },
+       {
+        "key": "dblAtk",
+        "value": 19.8
+       }
+      ]
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "block",
+        "value": 1.5
+       },
+       {
+        "key": "skillCd",
+        "value": 5.6
+       }
+      ]
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critCh",
+        "value": 4.7
+       },
+       {
+        "key": "lifesteal",
+        "value": 3.5
+       }
+      ]
+     },
+     {
+      "name": "Alpaca",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "hpRegen",
+        "value": 1.1
+       },
+       {
+        "key": "meleeDmg",
+        "value": 23.7
+       }
+      ]
+     },
+     {
+      "name": "Dump Truck",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillCd",
+        "value": 6.4
+       },
+       {
+        "key": "hpRegen",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "atkSpd",
+        "value": 1.4
+       },
+       {
+        "key": "block",
+        "value": 2.5
+       }
+      ]
+     },
+     {
+      "name": "Hover Board",
+      "rarity": "mythic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "meleeDmg",
+        "value": 9.1
+       },
+       {
+        "key": "rangedDmg",
+        "value": 12.4
+       }
+      ]
+     },
+     {
+      "name": "Cleaning Robot",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "lifesteal",
+        "value": 2.6
+       },
+       {
+        "key": "critCh",
+        "value": 6.3
+       }
+      ]
+     },
+     {
+      "name": "Bipedal Mech",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "meleeDmg",
+        "value": 28.9
+       },
+       {
+        "key": "skillCd",
+        "value": 4.8
+       }
+      ]
+     },
+     {
+      "name": "Bipedal Mech",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "meleeDmg",
+        "value": 13.9
+       },
+       {
+        "key": "dmgPct",
+        "value": 14.4
+       }
+      ]
+     },
+     {
+      "name": "Bike",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "block",
+        "value": 3.2
+       },
+       {
+        "key": "hpRegen",
+        "value": 2.9
+       }
+      ]
+     },
+     {
+      "name": "Mini Dragon",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 20.3
+       },
+       {
+        "key": "hpRegen",
+        "value": 1.7
+       }
+      ]
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "dblAtk",
+        "value": 17.9
+       },
+       {
+        "key": "dmgPct",
+        "value": 12.5
+       }
+      ]
+     },
+     {
+      "name": "Camel",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 12.1
+       },
+       {
+        "key": "rangedDmg",
+        "value": 4.2
+       }
+      ]
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "rangedDmg",
+        "value": 14
+       },
+       {
+        "key": "skillCd",
+        "value": 6.1
+       }
+      ]
+     },
+     {
+      "name": "Goat",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critCh",
+        "value": 3.2
+       },
+       {
+        "key": "atkSpd",
+        "value": 26
+       }
+      ]
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "atkSpd",
+        "value": 11
+       },
+       {
+        "key": "skillCd",
+        "value": 2.4
+       }
+      ]
+     },
+     {
+      "name": "Elk",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 23.8
+       },
+       {
+        "key": "critCh",
+        "value": 10.3
+       }
+      ]
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillCd",
+        "value": 5.3
+       },
+       {
+        "key": "rangedDmg",
+        "value": 6.8
+       }
+      ]
+     },
+     {
+      "name": "Donkey",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "meleeDmg",
+        "value": 27.7
+       },
+       {
+        "key": "dmgPct",
+        "value": 9.7
+       }
+      ]
+     },
+     {
+      "name": "Cleaning Robot",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "atkSpd",
+        "value": 24.7
+       },
+       {
+        "key": "skillCd",
+        "value": 6.6
+       }
+      ]
+     },
+     {
+      "name": "Star Whale",
+      "rarity": "mythic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 2
+       },
+       {
+        "key": "dblAtk",
+        "value": 11.3
+       }
+      ]
+     },
+     {
+      "name": "Clockwork Beetle",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "meleeDmg",
+        "value": 42.5
+       },
+       {
+        "key": "atkSpd",
+        "value": 10.6
+       }
+      ]
+     },
+     {
+      "name": "Armored Rhino",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "block",
+        "value": 1.4
+       },
+       {
+        "key": "dblAtk",
+        "value": 15.2
+       }
+      ]
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "meleeDmg",
+        "value": 26.2
+       },
+       {
+        "key": "critDmg",
+        "value": 7.1
+       }
+      ]
+     },
+     {
+      "name": "Pig",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "lifesteal",
+        "value": 3.2
+       },
+       {
+        "key": "hpRegen",
+        "value": 2.1
+       }
+      ]
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "atkSpd",
+        "value": 18.9
+       },
+       {
+        "key": "hpPct",
+        "value": 14.3
+       }
+      ]
+     },
+     {
+      "name": "Pterosaur",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 24.3
+       },
+       {
+        "key": "atkSpd",
+        "value": 18.1
+       }
+      ]
+     },
+     {
+      "name": "Hover Board",
+      "rarity": "mythic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "lifesteal",
+        "value": 8
+       },
+       {
+        "key": "hpRegen",
+        "value": 3.3
+       }
+      ]
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "meleeDmg",
+        "value": 20.4
+       },
+       {
+        "key": "lifesteal",
+        "value": 1.9
+       }
+      ]
+     },
+     {
+      "name": "Brown Horse",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "atkSpd",
+        "value": 29.1
+       },
+       {
+        "key": "hpPct",
+        "value": 8.2
+       }
+      ]
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "block",
+        "value": 3
+       },
+       {
+        "key": "dmgPct",
+        "value": 9.5
+       }
+      ]
+     },
+     {
+      "name": "Armored Rhino",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "block",
+        "value": 4.4
+       },
+       {
+        "key": "lifesteal",
+        "value": 7.4
+       }
+      ]
+     },
+     {
+      "name": "Mini Dragon",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "hpRegen",
+        "value": 3.6
+       },
+       {
+        "key": "lifesteal",
+        "value": 17.2
+       }
+      ]
+     },
+     {
+      "name": "Elk",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critCh",
+        "value": 2.5
+       },
+       {
+        "key": "block",
+        "value": 2.8
+       }
+      ]
+     },
+     {
+      "name": "Mini Dragon",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "hpRegen",
+        "value": 3
+       },
+       {
+        "key": "skillDmg",
+        "value": 11.4
+       }
+      ]
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critCh",
+        "value": 1.1
+       },
+       {
+        "key": "dblAtk",
+        "value": 19
+       }
+      ]
+     },
+     {
+      "name": "Turtle",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 17
+       },
+       {
+        "key": "rangedDmg",
+        "value": 8.5
+       }
+      ]
+     },
+     {
+      "name": "Brown Horse",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 4.4
+       },
+       {
+        "key": "critCh",
+        "value": 1.1
+       }
+      ]
+     },
+     {
+      "name": "Panther",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 50.1
+       },
+       {
+        "key": "hpRegen",
+        "value": 3.3
+       }
+      ]
+     },
+     {
+      "name": "Turtle",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 11.6
+       },
+       {
+        "key": "hpRegen",
+        "value": 3.6
+       }
+      ]
+     },
+     {
+      "name": "Bipedal Mech",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "lifesteal",
+        "value": 14.1
+       },
+       {
+        "key": "skillDmg",
+        "value": 6.5
+       }
+      ]
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "rangedDmg",
+        "value": 12.8
+       },
+       {
+        "key": "atkSpd",
+        "value": 16.7
+       }
+      ]
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "lifesteal",
+        "value": 5.6
+       },
+       {
+        "key": "skillCd",
+        "value": 4.5
+       }
+      ]
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "dblAtk",
+        "value": 14.2
+       },
+       {
+        "key": "atkSpd",
+        "value": 17.6
+       }
+      ]
+     },
+     {
+      "name": "Mini Dragon",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 13.2
+       },
+       {
+        "key": "critCh",
+        "value": 9.7
+       }
+      ]
+     },
+     {
+      "name": "Clockwork Mouse",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillCd",
+        "value": 4.3
+       },
+       {
+        "key": "dblAtk",
+        "value": 10.4
+       }
+      ]
+     },
+     {
+      "name": "Hover Disk",
+      "rarity": "mythic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 34.4
+       },
+       {
+        "key": "hpRegen",
+        "value": 1.1
+       }
+      ]
+     },
+     {
+      "name": "Bike",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "rangedDmg",
+        "value": 2.5
+       },
+       {
+        "key": "meleeDmg",
+        "value": 22.1
+       }
+      ]
+     },
+     {
+      "name": "Giant Bee",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "dblAtk",
+        "value": 11
+       },
+       {
+        "key": "atkSpd",
+        "value": 36.7
+       }
+      ]
+     },
+     {
+      "name": "Donkey",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "atkSpd",
+        "value": 18.2
+       },
+       {
+        "key": "lifesteal",
+        "value": 11.3
+       }
+      ]
+     },
+     {
+      "name": "Elk",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 4.3
+       },
+       {
+        "key": "skillCd",
+        "value": 4.3
+       }
+      ]
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "hpPct",
+        "value": 11.5
+       },
+       {
+        "key": "dblAtk",
+        "value": 11.5
+       }
+      ]
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "block",
+        "value": 1.6
+       },
+       {
+        "key": "meleeDmg",
+        "value": 31.6
+       }
+      ]
+     },
+     {
+      "name": "Bipedal Mech",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 58.1
+       },
+       {
+        "key": "dmgPct",
+        "value": 5.6
+       }
+      ]
+     },
+     {
+      "name": "Clockwork Mouse",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillCd",
+        "value": 3.6
+       },
+       {
+        "key": "dblAtk",
+        "value": 2.3
+       }
+      ]
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillCd",
+        "value": 3.4
+       },
+       {
+        "key": "dblAtk",
+        "value": 12.1
+       }
+      ]
+     },
+     {
+      "name": "Mini Dragon",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "meleeDmg",
+        "value": 28.6
+       },
+       {
+        "key": "block",
+        "value": 2.1
+       }
+      ]
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "hpRegen",
+        "value": 4
+       },
+       {
+        "key": "lifesteal",
+        "value": 18.6
+       }
+      ]
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 41.1
+       },
+       {
+        "key": "hpRegen",
+        "value": 1.1
+       }
+      ]
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 24.9
+       },
+       {
+        "key": "atkSpd",
+        "value": 13.3
+       }
+      ]
+     },
+     {
+      "name": "Camel",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 6.4
+       },
+       {
+        "key": "hpPct",
+        "value": 5.4
+       }
+      ]
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "atkSpd",
+        "value": 36.8
+       },
+       {
+        "key": "rangedDmg",
+        "value": 12.6
+       }
+      ]
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "atkSpd",
+        "value": 25.9
+       },
+       {
+        "key": "meleeDmg",
+        "value": 39.6
+       }
+      ]
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "rangedDmg",
+        "value": 11.2
+       },
+       {
+        "key": "critCh",
+        "value": 5.5
+       }
+      ]
+     },
+     {
+      "name": "Panther",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "rangedDmg",
+        "value": 3
+       },
+       {
+        "key": "atkSpd",
+        "value": 19.7
+       }
+      ]
+     },
+     {
+      "name": "Camel",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critCh",
+        "value": 11.9
+       },
+       {
+        "key": "lifesteal",
+        "value": 7.8
+       }
+      ]
+     },
+     {
+      "name": "Mini Dragon",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "dblAtk",
+        "value": 3.8
+       },
+       {
+        "key": "meleeDmg",
+        "value": 14.4
+       }
+      ]
+     },
+     {
+      "name": "Panther",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 57.1
+       },
+       {
+        "key": "hpPct",
+        "value": 5.4
+       }
+      ]
+     },
+     {
+      "name": "Bipedal Mech",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "block",
+        "value": 2.6
+       },
+       {
+        "key": "skillDmg",
+        "value": 23.4
+       }
+      ]
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "hpPct",
+        "value": 5
+       },
+       {
+        "key": "block",
+        "value": 3.2
+       }
+      ]
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "rangedDmg",
+        "value": 10.6
+       },
+       {
+        "key": "lifesteal",
+        "value": 10.7
+       }
+      ]
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critCh",
+        "value": 7.5
+       },
+       {
+        "key": "atkSpd",
+        "value": 17.2
+       }
+      ]
+     },
+     {
+      "name": "Donkey",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "dblAtk",
+        "value": 6.2
+       },
+       {
+        "key": "skillCd",
+        "value": 1.1
+       }
+      ]
+     },
+     {
+      "name": "Cleaning Robot",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "dblAtk",
+        "value": 16.8
+       },
+       {
+        "key": "skillCd",
+        "value": 4.6
+       }
+      ]
+     },
+     {
+      "name": "Brown Horse",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "hpRegen",
+        "value": 2.7
+       },
+       {
+        "key": "meleeDmg",
+        "value": 40.1
+       }
+      ]
+     },
+     {
+      "name": "Mech Spider",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 54.7
+       },
+       {
+        "key": "skillDmg",
+        "value": 21.6
+       }
+      ]
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 21.1
+       },
+       {
+        "key": "critCh",
+        "value": 5.2
+       }
+      ]
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "dmgPct",
+        "value": 12.1
+       },
+       {
+        "key": "atkSpd",
+        "value": 14.5
+       }
+      ]
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "rangedDmg",
+        "value": 8.4
+       },
+       {
+        "key": "dmgPct",
+        "value": 11.9
+       }
+      ]
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "dblAtk",
+        "value": 7.2
+       },
+       {
+        "key": "critCh",
+        "value": 9.1
+       }
+      ]
+     },
+     {
+      "name": "Sheep",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "lifesteal",
+        "value": 4
+       },
+       {
+        "key": "dmgPct",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "hpPct",
+        "value": 6.1
+       },
+       {
+        "key": "block",
+        "value": 3.6
+       }
+      ]
+     },
+     {
+      "name": "Brown Horse",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "block",
+        "value": 1.6
+       },
+       {
+        "key": "hpPct",
+        "value": 6.4
+       }
+      ]
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "dmgPct",
+        "value": 3.6
+       },
+       {
+        "key": "skillCd",
+        "value": 5.4
+       }
+      ]
+     },
+     {
+      "name": "Dino",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "meleeDmg",
+        "value": 15.7
+       },
+       {
+        "key": "skillDmg",
+        "value": 19.9
+       }
+      ]
+     },
+     {
+      "name": "Bike",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 15
+       },
+       {
+        "key": "dblAtk",
+        "value": 7
+       }
+      ]
+     },
+     {
+      "name": "Armored Rhino",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "rangedDmg",
+        "value": 7.6
+       },
+       {
+        "key": "block",
+        "value": 1.3
+       }
+      ]
+     },
+     {
+      "name": "Bipedal Mech",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "atkSpd",
+        "value": 39.8
+       },
+       {
+        "key": "critCh",
+        "value": 10.3
+       }
+      ]
+     },
+     {
+      "name": "One-Wheel Droid",
+      "rarity": "ultimate",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "dmgPct",
+        "value": 8.4
+       },
+       {
+        "key": "rangedDmg",
+        "value": 9.8
+       }
+      ]
+     },
+     {
+      "name": "Camel",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "hpRegen",
+        "value": 1.1
+       },
+       {
+        "key": "dmgPct",
+        "value": 12.6
+       }
+      ]
+     },
+     {
+      "name": "Hover Disk",
+      "rarity": "mythic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 58.8
+       },
+       {
+        "key": "atkSpd",
+        "value": 35.8
+       }
+      ]
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critCh",
+        "value": 5.2
+       },
+       {
+        "key": "skillDmg",
+        "value": 5
+       }
+      ]
+     },
+     {
+      "name": "Hover Board",
+      "rarity": "mythic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "block",
+        "value": 2.8
+       },
+       {
+        "key": "lifesteal",
+        "value": 8.5
+       }
+      ]
+     },
+     {
+      "name": "Boar",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "atkSpd",
+        "value": 15.9
+       },
+       {
+        "key": "hpRegen",
+        "value": 2.8
+       }
+      ]
+     },
+     {
+      "name": "Pterosaur",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "hpPct",
+        "value": 6.1
+       },
+       {
+        "key": "block",
+        "value": 1.9
+       }
+      ]
+     },
+     {
+      "name": "Bike",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "dmgPct",
+        "value": 6.6
+       },
+       {
+        "key": "atkSpd",
+        "value": 24.4
+       }
+      ]
+     }
+    ],
+    "activeMounts": [
+     0
+    ],
+    "winders": 96250,
+    "mountOpens": 408
+   },
+   "gacha": [
+    "mythic"
+   ],
+   "quests": [
+    "mountSummon:108"
+   ],
+   "saves": 2,
+   "recalc": 1
+  },
+  {
+   "seed": 9,
+   "winders": 100000,
+   "mounts": 245,
+   "active": [
+    2
+   ],
+   "mountOpens": 100,
+   "extraMount": 2,
+   "mountCost": 20,
+   "count": 25,
+   "ascendMount": 1,
+   "pre": {
+    "summonCount": 5,
+    "winderCost": 200,
+    "canSummon": true,
+    "space": 5
+   },
+   "result": {
+    "results": [
+     {
+      "name": "Giant Bee",
+      "rarity": "legendary",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Giant Bee",
+      "rarity": "legendary",
+      "isNew": false,
+      "level": 1
+     },
+     {
+      "name": "Elk",
+      "rarity": "epic",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Dino",
+      "rarity": "rare",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Giant Bee",
+      "rarity": "legendary",
+      "isNew": false,
+      "level": 1
+     }
+    ]
+   },
+   "after": {
+    "mounts": [
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Giant Bee",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 1,
+      "subs": [
+       {
+        "key": "skillCd",
+        "value": 1.8
+       },
+       {
+        "key": "meleeDmg",
+        "value": 35.2
+       }
+      ]
+     },
+     {
+      "name": "Giant Bee",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 1,
+      "subs": [
+       {
+        "key": "hpPct",
+        "value": 5
+       },
+       {
+        "key": "rangedDmg",
+        "value": 10
+       }
+      ]
+     },
+     {
+      "name": "Elk",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 1,
+      "subs": [
+       {
+        "key": "skillCd",
+        "value": 6.2
+       },
+       {
+        "key": "dblAtk",
+        "value": 17.6
+       }
+      ]
+     },
+     {
+      "name": "Dino",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 1,
+      "subs": [
+       {
+        "key": "lifesteal",
+        "value": 1.9
+       },
+       {
+        "key": "skillCd",
+        "value": 2.2
+       }
+      ]
+     },
+     {
+      "name": "Giant Bee",
+      "rarity": "legendary",
+      "level": 1,
+      "xp": 0,
+      "stars": 1,
+      "subs": [
+       {
+        "key": "critCh",
+        "value": 10.2
+       },
+       {
+        "key": "atkSpd",
+        "value": 8.7
+       }
+      ]
+     }
+    ],
+    "activeMounts": [
+     2
+    ],
+    "winders": 99800,
+    "mountOpens": 105
+   },
+   "gacha": [
+    "legendary"
+   ],
+   "quests": [
+    "mountSummon:5"
+   ],
+   "saves": 1,
+   "recalc": 0
+  },
+  {
+   "seed": 5,
+   "winders": 100,
+   "mounts": 0,
+   "active": [],
+   "mountOpens": 20,
+   "extraMount": 0,
+   "mountCost": 0,
+   "count": 5,
+   "ascendMount": 0,
+   "pre": {
+    "summonCount": 5,
+    "winderCost": 250,
+    "canSummon": false,
+    "space": 250
+   },
+   "result": null,
+   "after": {
+    "mounts": [],
+    "activeMounts": [],
+    "winders": 100,
+    "mountOpens": 20
+   },
+   "gacha": [],
+   "quests": [],
+   "saves": 0,
+   "recalc": 0
+  },
+  {
+   "seed": 7,
+   "winders": 100000,
+   "mounts": 250,
+   "active": [
+    0
+   ],
+   "mountOpens": 0,
+   "extraMount": 0,
+   "mountCost": 0,
+   "count": 1,
+   "ascendMount": 0,
+   "pre": {
+    "summonCount": 0,
+    "winderCost": 1,
+    "canSummon": true,
+    "space": 0
+   },
+   "result": null,
+   "after": {
+    "mounts": [
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activeMounts": [
+     0
+    ],
+    "winders": 100000,
+    "mountOpens": 0
+   },
+   "gacha": [],
+   "quests": [],
+   "saves": 0,
+   "recalc": 0
+  },
+  {
+   "seed": 21,
+   "winders": 10000,
+   "mounts": 248,
+   "active": [],
+   "mountOpens": 2000,
+   "extraMount": 100,
+   "mountCost": 90,
+   "count": 3,
+   "ascendMount": 3,
+   "pre": {
+    "summonCount": 2,
+    "winderCost": 10,
+    "canSummon": true,
+    "space": 2
+   },
+   "result": {
+    "results": [
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Panther",
+      "rarity": "epic",
+      "isNew": true,
+      "level": 1
+     }
+    ]
+   },
+   "after": {
+    "mounts": [
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Crab",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 3,
+      "subs": [
+       {
+        "key": "dmgPct",
+        "value": 13.5
+       },
+       {
+        "key": "skillCd",
+        "value": 3.1
+       }
+      ]
+     },
+     {
+      "name": "Panther",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 3,
+      "subs": [
+       {
+        "key": "block",
+        "value": 2.4
+       },
+       {
+        "key": "rangedDmg",
+        "value": 5.8
+       }
+      ]
+     }
+    ],
+    "activeMounts": [
+     248
+    ],
+    "winders": 9990,
+    "mountOpens": 2002
+   },
+   "gacha": [
+    "epic"
+   ],
+   "quests": [
+    "mountSummon:2"
+   ],
+   "saves": 2,
+   "recalc": 1
+  },
+  {
+   "seed": 22,
+   "winders": 10000,
+   "mounts": 0,
+   "active": [],
+   "mountOpens": 0,
+   "extraMount": 0,
+   "mountCost": 0,
+   "count": 0,
+   "ascendMount": 0,
+   "pre": {
+    "summonCount": 1,
+    "winderCost": 50,
+    "canSummon": true,
+    "space": 250
+   },
+   "result": {
+    "results": [
+     {
+      "name": "Donkey",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     }
+    ]
+   },
+   "after": {
+    "mounts": [
+     {
+      "name": "Donkey",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "block",
+        "value": 2.5
+       },
+       {
+        "key": "skillCd",
+        "value": 3.7
+       }
+      ]
+     }
+    ],
+    "activeMounts": [
+     0
+    ],
+    "winders": 9950,
+    "mountOpens": 1
+   },
+   "gacha": [
+    "common"
+   ],
+   "quests": [
+    "mountSummon:1"
+   ],
+   "saves": 2,
+   "recalc": 1
+  },
+  {
+   "seed": 23,
+   "winders": 10000,
+   "mounts": 3,
+   "active": [],
+   "mountOpens": 0,
+   "extraMount": 0,
+   "mountCost": 0,
+   "count": 2.7,
+   "ascendMount": 0,
+   "pre": {
+    "summonCount": 2,
+    "winderCost": 100,
+    "canSummon": true,
+    "space": 247
+   },
+   "result": {
+    "results": [
+     {
+      "name": "Alpaca",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "isNew": false,
+      "level": 1
+     }
+    ]
+   },
+   "after": {
+    "mounts": [
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Alpaca",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "lifesteal",
+        "value": 5.1
+       },
+       {
+        "key": "meleeDmg",
+        "value": 47.7
+       }
+      ]
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "atkSpd",
+        "value": 9.1
+       },
+       {
+        "key": "critDmg",
+        "value": 78.9
+       }
+      ]
+     }
+    ],
+    "activeMounts": [
+     3
+    ],
+    "winders": 9900,
+    "mountOpens": 2
+   },
+   "gacha": [
+    "common"
+   ],
+   "quests": [
+    "mountSummon:2"
+   ],
+   "saves": 2,
+   "recalc": 1
+  },
+  {
+   "seed": 24,
+   "winders": 10000,
+   "mounts": 1,
+   "active": [
+    0
+   ],
+   "mountOpens": 1,
+   "extraMount": 0,
+   "mountCost": 0,
+   "count": 1,
+   "ascendMount": 0,
+   "pre": {
+    "summonCount": 1,
+    "winderCost": 50,
+    "canSummon": true,
+    "space": 249
+   },
+   "result": {
+    "results": [
+     {
+      "name": "Alpaca",
+      "rarity": "common",
+      "isNew": true,
+      "level": 1
+     }
+    ]
+   },
+   "after": {
+    "mounts": [
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Alpaca",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 42.5
+       },
+       {
+        "key": "block",
+        "value": 2.1
+       }
+      ]
+     }
+    ],
+    "activeMounts": [
+     0
+    ],
+    "winders": 9950,
+    "mountOpens": 2
+   },
+   "gacha": [
+    "common"
+   ],
+   "quests": [
+    "mountSummon:1"
+   ],
+   "saves": 1,
+   "recalc": 0
+  }
+ ],
+ "equip": [
+  {
+   "op": "equip",
+   "idx": 0,
+   "ok": true,
+   "active": [
+    0
+   ],
+   "riddenIdx": 0,
+   "ridden": "Pony",
+   "isActive": [
+    true,
+    false,
+    false,
+    false
+   ],
+   "recalc": 1,
+   "saves": 1
+  },
+  {
+   "op": "equip",
+   "idx": 2,
+   "ok": true,
+   "active": [
+    2
+   ],
+   "riddenIdx": 2,
+   "ridden": "Sheep",
+   "isActive": [
+    false,
+    false,
+    true,
+    false
+   ],
+   "recalc": 2,
+   "saves": 2
+  },
+  {
+   "op": "equip",
+   "idx": 2,
+   "ok": true,
+   "active": [],
+   "riddenIdx": null,
+   "ridden": null,
+   "isActive": [
+    false,
+    false,
+    false,
+    false
+   ],
+   "recalc": 3,
+   "saves": 3
+  },
+  {
+   "op": "setRidden",
+   "idx": 3,
+   "ok": true,
+   "active": [
+    3
+   ],
+   "riddenIdx": 3,
+   "ridden": "Pony",
+   "isActive": [
+    false,
+    false,
+    false,
+    true
+   ],
+   "recalc": 4,
+   "saves": 4
+  },
+  {
+   "op": "setRidden",
+   "idx": 3,
+   "ok": true,
+   "active": [
+    3
+   ],
+   "riddenIdx": 3,
+   "ridden": "Pony",
+   "isActive": [
+    false,
+    false,
+    false,
+    true
+   ],
+   "recalc": 5,
+   "saves": 5
+  },
+  {
+   "op": "equip",
+   "idx": 9,
+   "ok": false,
+   "active": [
+    3
+   ],
+   "riddenIdx": 3,
+   "ridden": "Pony",
+   "isActive": [
+    false,
+    false,
+    false,
+    true
+   ],
+   "recalc": 5,
+   "saves": 5
+  },
+  {
+   "op": "setRidden",
+   "idx": -1,
+   "ok": false,
+   "active": [
+    3
+   ],
+   "riddenIdx": 3,
+   "ridden": "Pony",
+   "isActive": [
+    false,
+    false,
+    false,
+    true
+   ],
+   "recalc": 5,
+   "saves": 5
+  },
+  {
+   "op": "equip",
+   "idx": 1,
+   "ok": true,
+   "active": [
+    1
+   ],
+   "riddenIdx": 1,
+   "ridden": "Donkey",
+   "isActive": [
+    false,
+    true,
+    false,
+    false
+   ],
+   "recalc": 6,
+   "saves": 6
+  }
+ ],
+ "equipEmpty": {
+  "riddenIdx": null,
+  "riddenInst": null,
+  "ridden": null,
+  "isActive0": false,
+  "count": 0,
+  "space": 250
+ },
+ "ensure": [
+  {
+   "name": "dup_and_ghost",
+   "after": {
+    "mounts": [
+     {
+      "name": "M0",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "M1",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "M2",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activeMounts": [
+     1
+    ],
+    "winders": 0,
+    "mountOpens": 0
+   }
+  },
+  {
+   "name": "two_to_one",
+   "after": {
+    "mounts": [
+     {
+      "name": "M0",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "M1",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activeMounts": [
+     1
+    ],
+    "winders": 0,
+    "mountOpens": 0
+   }
+  },
+  {
+   "name": "not_array",
+   "after": {
+    "mounts": [
+     {
+      "name": "M0",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "M1",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activeMounts": [],
+    "winders": 0,
+    "mountOpens": 0
+   }
+  },
+  {
+   "name": "undefined_fields",
+   "after": {
+    "mounts": [
+     {
+      "name": "M0",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activeMounts": [
+     0
+    ],
+    "winders": 0,
+    "mountOpens": 0
+   }
+  }
+ ],
+ "xpNeeded": [
+  {
+   "level": 1,
+   "xp": 80
+  },
+  {
+   "level": 2,
+   "xp": 242
+  },
+  {
+   "level": 3,
+   "xp": 463
+  },
+  {
+   "level": 5,
+   "xp": 1050
+  },
+  {
+   "level": 10,
+   "xp": 3184
+  },
+  {
+   "level": 17,
+   "xp": 7444
+  },
+  {
+   "level": 33,
+   "xp": 21513
+  },
+  {
+   "level": 50,
+   "xp": 41825
+  },
+  {
+   "level": 64,
+   "xp": 62083
+  },
+  {
+   "level": 99,
+   "xp": 124768
+  },
+  {
+   "level": 100,
+   "xp": 126791
+  }
+ ],
+ "xpValue": [
+  {
+   "rarity": "common",
+   "xp": 30
+  },
+  {
+   "rarity": "rare",
+   "xp": 90
+  },
+  {
+   "rarity": "epic",
+   "xp": 270
+  },
+  {
+   "rarity": "legendary",
+   "xp": 810
+  },
+  {
+   "rarity": "ultimate",
+   "xp": 2430
+  },
+  {
+   "rarity": "mythic",
+   "xp": 7290
+  }
+ ],
+ "addXp": [
+  {
+   "level": 1,
+   "xp": 0,
+   "add": 500,
+   "level_after": 3,
+   "xp_after": 178
+  },
+  {
+   "level": 1,
+   "xp": 79,
+   "add": 1,
+   "level_after": 2,
+   "xp_after": 0
+  },
+  {
+   "level": 10,
+   "xp": 0,
+   "add": 100000,
+   "level_after": 23,
+   "xp_after": 9864
+  },
+  {
+   "level": 99,
+   "xp": 0,
+   "add": 1000000000,
+   "level_after": 100,
+   "xp_after": 0
+  },
+  {
+   "level": 100,
+   "xp": 0,
+   "add": 5,
+   "level_after": 100,
+   "xp_after": 0
+  },
+  {
+   "level": 1,
+   "xp": 0,
+   "add": 0.5,
+   "level_after": 1,
+   "xp_after": 0.5
+  }
+ ],
+ "absorb": [
+  {
+   "name": "target3_mats_0_1_5_dupes_self_ghost",
+   "ok": true,
+   "after": {
+    "mounts": [
+     {
+      "name": "C",
+      "rarity": "epic",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "D",
+      "rarity": "mythic",
+      "level": 30,
+      "xp": 949.9353609,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "E",
+      "rarity": "common",
+      "level": 2,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activeMounts": [
+     1
+    ],
+    "winders": 0,
+    "mountOpens": 0
+   },
+   "quests": [
+    "mountMerge"
+   ],
+   "recalc": 1,
+   "saves": 1
+  },
+  {
+   "name": "target0_mats_after",
+   "ok": true,
+   "after": {
+    "mounts": [
+     {
+      "name": "A",
+      "rarity": "common",
+      "level": 3,
+      "xp": 41.65436090000003,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activeMounts": [],
+    "winders": 0,
+    "mountOpens": 0
+   },
+   "quests": [
+    "mountMerge"
+   ],
+   "recalc": 1,
+   "saves": 1
+  },
+  {
+   "name": "active_removed",
+   "ok": true,
+   "after": {
+    "mounts": [
+     {
+      "name": "A",
+      "rarity": "common",
+      "level": 2,
+      "xp": 10,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activeMounts": [],
+    "winders": 0,
+    "mountOpens": 0
+   },
+   "quests": [
+    "mountMerge"
+   ],
+   "recalc": 1,
+   "saves": 1
+  },
+  {
+   "name": "ghost_target",
+   "ok": false,
+   "after": {
+    "mounts": [
+     {
+      "name": "A",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activeMounts": [
+     0
+    ],
+    "winders": 0,
+    "mountOpens": 0
+   },
+   "quests": [],
+   "recalc": 0,
+   "saves": 0
+  },
+  {
+   "name": "no_mats",
+   "ok": true,
+   "after": {
+    "mounts": [
+     {
+      "name": "A",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activeMounts": [
+     0
+    ],
+    "winders": 0,
+    "mountOpens": 0
+   },
+   "quests": [],
+   "recalc": 1,
+   "saves": 1
+  }
+ ],
+ "baseStat": [
+  {
+   "rarity": "common",
+   "atk": 48,
+   "hp": 280
+  },
+  {
+   "rarity": "rare",
+   "atk": 1207.573261237289,
+   "hp": 7044.177357217519
+  },
+  {
+   "rarity": "epic",
+   "atk": 30379.857942817955,
+   "hp": 177215.8379997714
+  },
+  {
+   "rarity": "legendary",
+   "atk": 764289.669415297,
+   "hp": 4458356.404922565
+  },
+  {
+   "rarity": "ultimate",
+   "atk": 19227828.513037484,
+   "hp": 112162332.99271865
+  },
+  {
+   "rarity": "mythic",
+   "atk": 483729408,
+   "hp": 2821754880
+  }
+ ],
+ "mountPower": [
+  {
+   "rarity": "common",
+   "level": 1,
+   "stars": 0,
+   "mountDmg": 0,
+   "mountHp": 0,
+   "atk": {
+    "m": 4.8,
+    "e": 1
+   },
+   "hp": {
+    "m": 2.8,
+    "e": 2
+   },
+   "levelMult": 1
+  },
+  {
+   "rarity": "rare",
+   "level": 17,
+   "stars": 0,
+   "mountDmg": 0,
+   "mountHp": 0,
+   "atk": {
+    "m": 1.415974618308,
+    "e": 3
+   },
+   "hp": {
+    "m": 8.259851940131,
+    "e": 3
+   },
+   "levelMult": 1.1725786449236988
+  },
+  {
+   "rarity": "mythic",
+   "level": 100,
+   "stars": 0,
+   "mountDmg": 0,
+   "mountHp": 0,
+   "atk": {
+    "m": 1.295443556888,
+    "e": 9
+   },
+   "hp": {
+    "m": 7.556754081844,
+    "e": 9
+   },
+   "levelMult": 2.678033494476761
+  },
+  {
+   "rarity": "epic",
+   "level": 1,
+   "stars": 1,
+   "mountDmg": 0,
+   "mountHp": 0,
+   "atk": {
+    "m": 3.037985794282,
+    "e": 13
+   },
+   "hp": {
+    "m": 1.772158379998,
+    "e": 14
+   },
+   "levelMult": 1
+  },
+  {
+   "rarity": "legendary",
+   "level": 50,
+   "stars": 3,
+   "mountDmg": 25,
+   "mountHp": 10,
+   "atk": {
+    "m": 1.555662266617,
+    "e": 33
+   },
+   "hp": {
+    "m": 7.985732968635,
+    "e": 33
+   },
+   "levelMult": 1.6283483384592898
+  },
+  {
+   "rarity": "ultimate",
+   "level": 2,
+   "stars": 40,
+   "mountDmg": 100,
+   "mountHp": 0,
+   "atk": {
+    "m": 3.884021359633,
+    "e": 367
+   },
+   "hp": {
+    "m": 1.132839563226,
+    "e": 368
+   },
+   "levelMult": 1.01
+  }
+ ],
+ "activeBonus": {
+  "atk": {
+   "m": 5.290477294937,
+   "e": 17
+  },
+  "hp": {
+   "m": 3.08611175538,
+   "e": 18
+  },
+  "subs": [
+   {
+    "key": "atkSpd",
+    "value": 7.7
+   }
+  ]
+ },
+ "activeBonus0": {
+  "atk": {
+   "m": 4.8,
+   "e": 1
+  },
+  "hp": {
+   "m": 2.8,
+   "e": 2
+  },
+  "subs": [
+   {
+    "key": "critCh",
+    "value": 3.5
+   },
+   {
+    "key": "hpPct",
+    "value": 12
+   }
+  ]
+ },
+ "activeBonusGhost": {
+  "atk": {
+   "m": 0,
+   "e": 0
+  },
+  "hp": {
+   "m": 0,
+   "e": 0
+  },
+  "subs": 0
+ },
+ "activeBonusEmpty": {
+  "atk": {
+   "m": 0,
+   "e": 0
+  },
+  "hp": {
+   "m": 0,
+   "e": 0
+  },
+  "subs": 0
+ },
+ "migrate": [
+  {
+   "name": "legacy_map_dupes_active_names",
+   "seed": 51,
+   "after": {
+    "mounts": [
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 3,
+      "xp": 40,
+      "stars": 1,
+      "subs": [
+       {
+        "key": "block",
+        "value": 2.5
+       }
+      ]
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillCd",
+        "value": 6.8
+       },
+       {
+        "key": "hpRegen",
+        "value": 3.9
+       }
+      ]
+     },
+     {
+      "name": "Dragon",
+      "rarity": "mythic",
+      "level": 7,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillCd",
+        "value": 3.8
+       },
+       {
+        "key": "critDmg",
+        "value": 69.5
+       }
+      ]
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 1,
+      "subs": [
+       {
+        "key": "critDmg",
+        "value": 6.7
+       },
+       {
+        "key": "dblAtk",
+        "value": 2.7
+       }
+      ]
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 1,
+      "subs": [
+       {
+        "key": "hpRegen",
+        "value": 1.8
+       },
+       {
+        "key": "dmgPct",
+        "value": 5.5
+       }
+      ]
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "rangedDmg",
+        "value": 2.2
+       },
+       {
+        "key": "critCh",
+        "value": 3.3
+       }
+      ]
+     }
+    ],
+    "activeMounts": [
+     2
+    ],
+    "winders": 0,
+    "mountOpens": 0
+   }
+  },
+  {
+   "name": "legacy_overflow_keeps_originals",
+   "seed": 52,
+   "len": 250,
+   "names": [
+    "M0",
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M6",
+    "M7",
+    "M8",
+    "M9",
+    "M10",
+    "M11",
+    "M12",
+    "M13",
+    "M14",
+    "M15",
+    "M16",
+    "M17",
+    "M18",
+    "M19",
+    "M20",
+    "M21",
+    "M22",
+    "M23",
+    "M24",
+    "M25",
+    "M26",
+    "M27",
+    "M28",
+    "M29",
+    "M30",
+    "M31",
+    "M32",
+    "M33",
+    "M34",
+    "M35",
+    "M36",
+    "M37",
+    "M38",
+    "M39",
+    "M40",
+    "M41",
+    "M42",
+    "M43",
+    "M44",
+    "M45",
+    "M46",
+    "M47",
+    "M48",
+    "M49",
+    "M50",
+    "M51",
+    "M52",
+    "M53",
+    "M54",
+    "M55",
+    "M56",
+    "M57",
+    "M58",
+    "M59",
+    "M60",
+    "M61",
+    "M62",
+    "M63",
+    "M64",
+    "M65",
+    "M66",
+    "M67",
+    "M68",
+    "M69",
+    "M70",
+    "M71",
+    "M72",
+    "M73",
+    "M74",
+    "M75",
+    "M76",
+    "M77",
+    "M78",
+    "M79",
+    "M80",
+    "M81",
+    "M82",
+    "M83",
+    "M84",
+    "M85",
+    "M86",
+    "M87",
+    "M88",
+    "M89",
+    "M90",
+    "M91",
+    "M92",
+    "M93",
+    "M94",
+    "M95",
+    "M96",
+    "M97",
+    "M98",
+    "M99",
+    "M100",
+    "M101",
+    "M102",
+    "M103",
+    "M104",
+    "M105",
+    "M106",
+    "M107",
+    "M108",
+    "M109",
+    "M110",
+    "M111",
+    "M112",
+    "M113",
+    "M114",
+    "M115",
+    "M116",
+    "M117",
+    "M118",
+    "M119",
+    "M120",
+    "M121",
+    "M122",
+    "M123",
+    "M124",
+    "M125",
+    "M126",
+    "M127",
+    "M128",
+    "M129",
+    "M0",
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M6",
+    "M7",
+    "M8",
+    "M9",
+    "M10",
+    "M11",
+    "M12",
+    "M13",
+    "M14",
+    "M15",
+    "M16",
+    "M17",
+    "M18",
+    "M19",
+    "M20",
+    "M21",
+    "M22",
+    "M23",
+    "M24",
+    "M25",
+    "M26",
+    "M27",
+    "M28",
+    "M29",
+    "M30",
+    "M31",
+    "M32",
+    "M33",
+    "M34",
+    "M35",
+    "M36",
+    "M37",
+    "M38",
+    "M39",
+    "M40",
+    "M41",
+    "M42",
+    "M43",
+    "M44",
+    "M45",
+    "M46",
+    "M47",
+    "M48",
+    "M49",
+    "M50",
+    "M51",
+    "M52",
+    "M53",
+    "M54",
+    "M55",
+    "M56",
+    "M57",
+    "M58",
+    "M59",
+    "M60",
+    "M61",
+    "M62",
+    "M63",
+    "M64",
+    "M65",
+    "M66",
+    "M67",
+    "M68",
+    "M69",
+    "M70",
+    "M71",
+    "M72",
+    "M73",
+    "M74",
+    "M75",
+    "M76",
+    "M77",
+    "M78",
+    "M79",
+    "M80",
+    "M81",
+    "M82",
+    "M83",
+    "M84",
+    "M85",
+    "M86",
+    "M87",
+    "M88",
+    "M89",
+    "M90",
+    "M91",
+    "M92",
+    "M93",
+    "M94",
+    "M95",
+    "M96",
+    "M97",
+    "M98",
+    "M99",
+    "M100",
+    "M101",
+    "M102",
+    "M103",
+    "M104",
+    "M105",
+    "M106",
+    "M107",
+    "M108",
+    "M109",
+    "M110",
+    "M111",
+    "M112",
+    "M113",
+    "M114",
+    "M115",
+    "M116",
+    "M117",
+    "M118",
+    "M119"
+   ],
+   "levels": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "active": [
+    129
+   ]
+  },
+  {
+   "name": "legacy_species_rename",
+   "moved": 3,
+   "after": {
+    "mounts": [
+     {
+      "name": "Clockwork Mouse",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Pony",
+      "rarity": "common",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Clockwork Beetle",
+      "rarity": "common",
+      "level": 4,
+      "xp": 0,
+      "stars": 2,
+      "subs": []
+     },
+     {
+      "name": "Alpaca",
+      "rarity": "rare",
+      "level": 1,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activeMounts": [
+     2
+    ],
+    "winders": 0,
+    "mountOpens": 0
+   }
+  },
+  {
+   "name": "array_clamped_250_active_pruned",
+   "len": 250,
+   "active": [
+    3
+   ]
+  },
+  {
+   "name": "missing_fields",
+   "after": {
+    "mounts": [],
+    "activeMounts": [],
+    "winders": 0,
+    "mountOpens": 0
+   }
+  }
+ ]
+}
