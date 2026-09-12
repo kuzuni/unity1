@@ -8,6 +8,9 @@ namespace Forge.Game.Ui
     /// <summary>
     /// 오프라인 보상 팝업(ROUTINE T22 · 원작 ui.js showOffline/updateOfflineValues/onCollectOffline · T13 <see cref="Offline"/> 와 짝 — 여기서는 화면만).
     /// 위 = 제목 · 수집 시간(최대) · 수급률 둘 / 아래 = 합계 · [수집]. 켜둔 채로 누적이 자라므로 1초마다 수치만 갱신한다. ✕ 는 단순 닫힘(보상은 남는다).
+    /// 머리 판(T68 · 정본 `style.css` `.offline-top`): 카드 높이의 42.80% · 평면 어두운 판 · 흰 제목 · «수집 시간:» 회색 · 시간·요율 초록 ·
+    /// 요율은 `flex-direction: column`(원형 아이콘 **위** · 글자 **아래** · 두 칸 사이 2.4rem) · 수집 버튼 우상단 `.offline-collect-dot`(.7rem 빨간 원 · 흰 테).
+    /// 정본 `#0e111b`·`#ccc` 와 같은 키는 catalog.json 에 없어(T62 lock · 그 뒤 추가) 가장 가까운 `pp_ink`·`pp_gray` 를 쓴다.
     /// </summary>
     public static class OfflinePopup
     {
@@ -23,29 +26,34 @@ namespace Forge.Game.Ui
             float cardW = UiKit.L("offline_w") * w, cardH = UiKit.L("offline_h") * H;
             RectTransform card = PopupKit.Card(p.Root, "card", cardW, cardH, "pp_paper", rem);
             float inner = cardW - PopupKit.Line3 * 2f;
-            float topH = cardH * 0.58f;
+            float topH = cardH * TopFrac;
             RectTransform top = UiKit.Box(card, "top");
             UiKit.Place(top, PopupKit.Line3, PopupKit.Line3, inner, topH);
-            UiKit.Panel(top, "bg", "pp_panel");
-            float y = rem * 0.8f;
+            UiKit.Panel(top, "bg", TopFaceKey);
+            float y = rem * 1.3f;
             TextMeshProUGUI title = UiKit.Text(top, "title", TextKind.Title, "오프라인 보상", "stage_ink");
             title.fontStyle = FontStyles.Bold;
             float titleH = PopupKit.FontSize(TextKind.Title) * 1.25f;
             UiKit.Place(title.rectTransform, 0f, y, inner, titleH);
             PopupKit.Ring(title);
-            y += titleH + rem * 0.3f;
+            y += titleH + rem * 0.15f;
             float lineH = PopupKit.FontSize(TextKind.Sub) * 1.3f;
-            TextMeshProUGUI subL = UiKit.Text(top, "sub", TextKind.Sub, "수집 시간:", "pp_ink", TextAlignmentOptions.Right);
+            TextMeshProUGUI subL = UiKit.Text(top, "sub", TextKind.Sub, "수집 시간:", SubInkKey, TextAlignmentOptions.Right);
+            subL.fontStyle = FontStyles.Bold;
             UiKit.Place(subL.rectTransform, 0f, y, inner * 0.45f, lineH);
-            counted = UiKit.Text(top, "counted", TextKind.Sub, string.Empty, "pp_green_dk", TextAlignmentOptions.Left);
+            counted = UiKit.Text(top, "counted", TextKind.Sub, string.Empty, GreenKey, TextAlignmentOptions.Left);
             counted.fontStyle = FontStyles.Bold;
             UiKit.Place(counted.rectTransform, inner * 0.47f, y, inner * 0.3f, lineH);
-            max = UiKit.Text(top, "max", TextKind.Sub, string.Empty, "pp_ink", TextAlignmentOptions.Left);
+            max = UiKit.Text(top, "max", TextKind.Sub, string.Empty, SubInkKey, TextAlignmentOptions.Left);
+            max.fontStyle = FontStyles.Bold;
             UiKit.Place(max.rectTransform, inner * 0.77f, y, inner * 0.23f, lineH);
-            y += lineH + rem * 0.6f;
-            float rateH = rem * 2.2f;
-            Rate(top, "coin", "coin", "coin", PopupKit.FmtDec(o.CoinRate) + "/초", inner * 0.05f, y, inner * 0.42f, rateH);
-            Rate(top, "hammer", "hammer", "pp_green", PopupKit.FmtDec(o.HammerRate) + "/분", inner * 0.53f, y, inner * 0.42f, rateH);
+            y += lineH + rem * 1.65f;
+            // 요율 둘 — 세로(아이콘 위 · 글자 아래) · 두 칸 사이 2.4rem · 행 전체를 가운데에
+            float circle = rem * 2.6f, gap = rem * 2.4f, rateW = Mathf.Max(circle, inner * 0.36f);
+            float rateH = circle + rem * 0.3f + lineH;
+            float rx = (inner - (rateW * 2f + gap)) * 0.5f;
+            Rate(top, "coin", "coin", "coin", PopupKit.FmtDec(o.CoinRate) + "/초", rx, y, rateW, circle, lineH);
+            Rate(top, "hammer", "hammer", GreenKey, PopupKit.FmtDec(o.HammerRate) + "/분", rx + rateW + gap, y, rateW, circle, lineH);
 
             RectTransform bottom = UiKit.Box(card, "bottom");
             UiKit.Place(bottom, PopupKit.Line3, PopupKit.Line3 + topH, inner, cardH - topH - PopupKit.Line3 * 2f);
@@ -67,25 +75,49 @@ namespace Forge.Game.Ui
             float bw = inner * 0.5f, bh = UiKit.H("btn_h") * 1.2f;
             Button collect = PopupKit.Btn(bottom, "collect", "수집", "pp_green", "pp_green_dk", () => Collect(h), bw, bh);
             UiKit.Place(collect.GetComponent<RectTransform>(), (inner - bw) * 0.5f, by, bw, bh);
+            CollectDot(collect.GetComponent<RectTransform>(), bw, rem);
 
             PopupKit.XButton(card, () => Close(h));
             Update(o);
         }
 
-        private static void Rate(Transform parent, string name, string icon, string circleKey, string text, float x, float y, float w, float h)
+        /// <summary>정본 `.offline-top` — 카드 높이의 42.80%(원본 헤더 23.27%H / 카드 콘텐츠 54.37%H). 어두운 판 `#0e111b` 은 카탈로그에 가장 가까운 `pp_ink`(T62 lock 뒤 키 추가).</summary>
+        public const float TopFrac = 0.4280f;
+        public const string TopFaceKey = "pp_ink";
+        /// <summary>정본 `.offline-sub` 글자 `#ccc` → `pp_gray`(#c4c4c4).</summary>
+        public const string SubInkKey = "pp_gray";
+        /// <summary>정본 `--pp-green`(시간·요율·해머 원판) = 카탈로그 `offline_green`.</summary>
+        public const string GreenKey = "offline_green";
+        /// <summary>정본 `.offline-collect-dot` — .7rem 빨간 원 · 흰 테(`--ol2`) · 버튼 우상단(top/right −.3rem).</summary>
+        public const float DotRem = 0.7f, DotOffsetRem = 0.3f;
+
+        /// <summary>정본 `.offline-rate`(flex column · align center · gap .3rem): 원형 아이콘 2.6rem **위**, 초록 글자 **아래**.</summary>
+        private static void Rate(Transform parent, string name, string icon, string circleKey, string text, float x, float y, float w, float circleD, float lineH)
         {
             RectTransform box = UiKit.Box(parent, name);
-            UiKit.Place(box, x, y, w, h);
+            UiKit.Place(box, x, y, w, circleD + PopupKit.Rem * 0.3f + lineH);
             RectTransform circle = UiKit.Box(box, "circle");
-            UiKit.Place(circle, 0f, 0f, h, h);
+            UiKit.Place(circle, (w - circleD) * 0.5f, 0f, circleD, circleD);
             UiKit.Circle(circle, "line", "pp_line");
             Image face = UiKit.Circle(circle, "face", circleKey);
-            PopupKit.Inset(face.rectTransform, PopupKit.Line);
+            PopupKit.Inset(face.rectTransform, UiKit.L("line2_px"));
             Image ico = PopupKit.IconOr(circle, "ico", icon);
-            PopupKit.Inset(ico.rectTransform, h * 0.2f);
-            TextMeshProUGUI t = UiKit.Text(box, "text", TextKind.Sub, text, "pp_green_dk", TextAlignmentOptions.Left);
+            PopupKit.Inset(ico.rectTransform, circleD * 0.2f);
+            TextMeshProUGUI t = UiKit.Text(box, "text", TextKind.Sub, text, GreenKey, TextAlignmentOptions.Center);
             t.fontStyle = FontStyles.Bold;
-            t.rectTransform.offsetMin = new Vector2(h + PopupKit.Rem * 0.3f, 0f);
+            UiKit.Place(t.rectTransform, 0f, circleD + PopupKit.Rem * 0.3f, w, lineH);
+        }
+
+        /// <summary>정본 `.offline-collect-dot` — 수집 버튼 우상단에 반쯤 걸친 빨간 점(흰 테).</summary>
+        private static void CollectDot(RectTransform button, float buttonW, float rem)
+        {
+            float d = rem * DotRem, off = rem * DotOffsetRem;
+            RectTransform dot = UiKit.Box(button, "dot");
+            UiKit.Place(dot, buttonW - d + off, -off, d, d);
+            UiKit.Circle(dot, "line", "white");
+            Image face = UiKit.Circle(dot, "face", "pp_red");
+            PopupKit.Inset(face.rectTransform, UiKit.L("line2_px"));
+            face.raycastTarget = false;
         }
 
         /// <summary>원작 updateOfflineValues — 숫자만 갱신(버튼 노드를 매초 갈지 않는다).</summary>
