@@ -96,7 +96,7 @@ namespace Forge.Tests.PlayMode
             while (s.HitCount == 0 && guard++ < 400) { s.Step(0.05f); if (guard % 6 == 0) yield return null; }
             Assert.Greater(s.HitCount, 0, "첫 타격");
             Assert.Greater(s.Numbers.SpawnedTotal, 0, "데미지 숫자");
-            Assert.IsTrue(s.Numbers.LastClass.StartsWith("dmg", StringComparison.Ordinal), s.Numbers.LastClass);
+            Assert.Greater(s.Numbers.DmgSpawned, 0, "dmg 등급 숫자(처치 뒤엔 loot 숫자가 마지막이라 LastClass 로 재지 않는다 · CI 런 58)");
             Assert.Greater(s.KillCount, 0, "한 방이라 처치");
             Assert.IsTrue(first.Dead || first.Removed, "첫 적이 죽었다");
             Assert.IsTrue(first.Bar.Dying || first.Bar.Done, "바 드레인");
@@ -120,8 +120,9 @@ namespace Forge.Tests.PlayMode
             s.Shake(HitRules.KillShake);
             s.Step(0.016f);
             Assert.Greater(s.ShakeMag, 0);
-            yield return Run(s, 3, 6);
-            Assert.AreEqual(0, s.ShakeMag, 1e-9, "3초면 0.001 아래 → 0");
+            // 첫 타격 전(스폰 x ≥ 3.1 · 속도 ≤ 1.4 → 근접 사거리 1.3 안까지 ≥ 1.29초 + 무기 impact) 1.2초만 민다 — 더 길면 처치·피격 셰이크가 다시 들어와 0 이 아니다(CI 런 58 실측 0.15)
+            yield return Run(s, 1.2, 6);
+            Assert.AreEqual(0, s.ShakeMag, 1e-9, "0.3·0.001^1.2 ≈ 8e-5 < 0.001 → 0");
             Vector3 p = cam.transform.localPosition;
             Assert.AreEqual(p0.y, p.y, 1e-4f, "y 복귀");
             Assert.AreEqual(p0.x + (float)(s.WorldX - wx0), p.x, 1e-3f, "x = 기준 + worldX");

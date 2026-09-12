@@ -34,6 +34,8 @@ namespace Forge.Game.Battle
         public int SpawnedTotal { get; private set; }
         public string LastText { get; private set; }
         public string LastClass { get; private set; }
+        /// <summary>피해 숫자(`dmg*` 등급)만 센 수 — loot/heal/block 은 뺀다(테스트용).</summary>
+        public int DmgSpawned { get; private set; }
 
         static double K { get { return UiKit.RefH / CssRefH; } }
 
@@ -72,6 +74,7 @@ namespace Forge.Game.Battle
         public void Spawn(Vector3 threeWorld, string text, string cls, double dx, double rise, double pop)
         {
             SpawnedTotal++; LastText = text; LastClass = cls;
+            if (cls != null && cls.StartsWith("dmg", StringComparison.Ordinal)) DmgSpawned++;
             var root = UiRoot.Instance;
             var cam = Camera.main;
             if (root == null || root.App == null || cam == null) return;
