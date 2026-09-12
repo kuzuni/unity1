@@ -262,8 +262,11 @@ namespace Forge.Game.Ui
         /// <summary>정본 `equipCellHTML(slot)` — 장비 시트(T19 `ForgeSheet.EquipCell`)와 같은 ForgeUi 조각(시대색 타일 · 아이콘 · Lv · ★ · 누르면 세부정보). 대장간 호스트가 없으면 빈 칸.</summary>
         static RectTransform EquipCell(Transform parent, ForgeHost fh, string slot, float size)
         {
-            GameDefs d = fh != null ? fh.Defs : (SaveIo.Data != null ? SaveIo.Data.Defs : null);
-            ForgeItem it = fh != null && fh.Gear != null ? fh.Gear.Get(slot) : null;
+            // 대장간 호스트는 부팅 코루틴이 Data 를 늦게 채운다(CI 런 98: Instance 는 있고 Data 가 null → Defs NRE) — 표는 SaveIo 것을 쓰고 장비만 호스트에서
+            GameDefs d = SaveIo.Data != null ? SaveIo.Data.Defs : null;
+            bool ready = fh != null && fh.Data != null && fh.Gear != null;
+            if (ready && d == null) d = fh.Defs;
+            ForgeItem it = ready ? fh.Gear.Get(slot) : null;
             RectTransform rt = UiKit.Box(parent, "slot-" + slot);
             float radius = size * PlayerInfoStyle.L("cell_radius_f");
             if (it == null)
@@ -281,6 +284,7 @@ namespace Forge.Game.Ui
                 UiKit.Anchor(nm.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, size * PlayerInfoStyle.L("empty_name_y_f")), size, nm.fontSize * 1.2f);
                 return rt;
             }
+            if (d == null) return rt;
             Color ac = ForgeUi.AgeColor(d, it.Age);
             Image f = ForgeUi.Tile(rt, "frame", ForgeUi.CellFace(ac), ForgeUi.CellLine(ac), radius, PopupKit.Line3);
             Image img = PopupKit.IconOr(rt, "img", ForgeUi.ItemIconKey(d, it));
@@ -292,7 +296,7 @@ namespace Forge.Game.Ui
             Button b = rt.gameObject.AddComponent<Button>();
             b.targetGraphic = f;
             string s = slot;
-            b.onClick.AddListener(() => { if (fh != null) GearDetailPopup.Open(fh, s); });   // 원작: 세부정보가 플레이어 정보 위에 겹쳐 뜬다
+            b.onClick.AddListener(() => { if (ForgeHost.Instance != null && ForgeHost.Instance.Data != null) GearDetailPopup.Open(ForgeHost.Instance, s); });   // 원작: 세부정보가 플레이어 정보 위에 겹쳐 뜬다
             return rt;
         }
 
