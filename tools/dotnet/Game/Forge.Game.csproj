@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Assets/Scripts/Game (MonoBehaviour 계층) — UnityEngine 참조 어셈블리(NuGet) 로 «컴파일만» 확인한다.
+       ⚠ URP·TMP 는 스텁(../Stubs)이라 여기서 초록이어도 유니티가 죽을 수 있다 — 새 패키지 API 를 쓰면
+         스텁에 같은 서명을 더하고 asmdef references 도 같이 본다(ROUTINE §1). -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>Forge.Game</AssemblyName>
+    <RootNamespace>Forge.Game</RootNamespace>
+    <DefineConstants>$(DefineConstants);UNITY_2022_3_OR_NEWER;UNITY_2022_3;UNITY_5_3_OR_NEWER;UNITY_6000_0_OR_NEWER</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)Assets/Scripts/Game/**/*.cs" />
+    <Compile Include="../Stubs/TMPro.cs" />
+    <Compile Include="../Stubs/URP.cs" />
+    <ProjectReference Include="../Core/Forge.Core.csproj" />
+    <PackageReference Include="UnityEngine.Modules" Version="2021.3.33" />
+    <PackageReference Include="Unity3D.UnityEngine.UI" Version="2020.3.21" />
+    <PackageReference Include="Unity3D.UnityEngine" Version="2020.3.21" ExcludeAssets="all" />
+    <Reference Include="DOTween"><HintPath>$(RepoRoot)Assets/Plugins/Demigiant/DOTween/DOTween.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

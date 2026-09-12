@@ -111,3 +111,7 @@ InitTestScene*.unity*
 tools/dotnet/**/bin/
 tools/dotnet/**/obj/
 tools/dotnet/**/TestResults/
+
+# dotnet 검사 하니스는 유니티 생성물이 아니다 — 위의 *.sln/*.csproj 무시에서 제외 (첫 CI 런이 «Project file does not exist» 로 죽었다)
+!tools/dotnet/**/*.csproj
+!tools/dotnet/*.sln

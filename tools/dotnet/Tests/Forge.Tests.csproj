@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Assets/Tests/EditMode 의 NUnit 테스트를 유니티 없이 돌린다 (순수 C# 테스트만 — UnityEngine API 금지).
+       NUnit 3.6.1 = 유니티 포크와 같은 API 면. 올리지 말 것(Does.Contain(object) 같은 신형 API 를 쓰면 유니티에서 죽는다). -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>Forge.Tests</AssemblyName>
+    <DefineConstants>$(DefineConstants);DOTNET_HARNESS</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)Assets/Tests/EditMode/**/*.cs" />
+    <ProjectReference Include="../Core/Forge.Core.csproj" />
+    <PackageReference Include="NUnit" Version="3.6.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+  </ItemGroup>
+</Project>
