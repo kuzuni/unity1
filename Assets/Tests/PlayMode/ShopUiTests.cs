@@ -20,9 +20,13 @@ namespace Forge.Tests.PlayMode
         private static IEnumerator Boot()
         {
             SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
             float t = 0f;
-            while (!MetaHost.Ready && t < 15f) { t += Time.unscaledDeltaTime; yield return null; }
+            while (!(MetaHost.Ready && PopupLayer.Instance != null) && t < 15f) { t += Time.unscaledDeltaTime; yield return null; }
             Assert.IsTrue(MetaHost.Ready, "MetaHost 가 15초 안에 준비되지 않았다 (SaveIo → meta.json)");
+            Assert.IsNotNull(PopupLayer.Instance, "팝업 층이 서지 않았다");
+            Assert.IsNotNull(MetaHost.Instance.Shop, "MetaHost 가 T25 Core 를 세우지 않았다");
             yield return null;
         }
 
@@ -147,9 +151,10 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual("settings", ProfilePopup.View);
             AssertTextGate();
             bool sfx = h.S.SfxOn;
+            bool vib = Forge.Core.Data.J.Bool(h.SettingsDummy["vibration"]);
             FindButton(ProfilePopup.Name, "toggle").onClick.Invoke();
             yield return null;
-            Assert.AreEqual(!Forge.Core.Data.J.Bool(h.SettingsDummy["vibration"]) == false, true, "첫 토글(진동)이 뒤집힌다");
+            Assert.AreEqual(!vib, Forge.Core.Data.J.Bool(h.SettingsDummy["vibration"]), "첫 토글(진동)이 뒤집힌다");
             ProfilePopup.SetNickname(h, "moonzzanf");
             yield return null;
             Assert.AreEqual("moonzzanf", hud.Nickname, "이름을 바꾸면 HUD 가 따라온다");

@@ -42,7 +42,7 @@ namespace Forge.Game.Ui
 
         public static PopupLayer Create(UiRoot root)
         {
-            if (Instance != null) return Instance;
+            if (Instance != null && Instance.under != null && Instance.under.parent == root.App) return Instance;
             RectTransform app = root.App;
             RectTransform under = UiKit.Box(app, "modals");
             under.SetSiblingIndex(root.TabBand.GetSiblingIndex());

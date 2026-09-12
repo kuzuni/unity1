@@ -21,7 +21,9 @@ namespace Forge.Game.Ui
     public sealed class MetaHost : MonoBehaviour
     {
         public static MetaHost Instance { get; private set; }
-        public static bool Ready { get; private set; }
+        /// <summary>지금 살아 있는 MetaHost 가 부팅을 마쳤는가 — 인스턴스에서 파생한다(정적 플래그로 두면 씬을 다시 여는 PlayMode 테스트에서 앞 씬의 값이 남아 새 호스트가 부팅되기 전에 참이 된다 · CI 런 27 실측).</summary>
+        public static bool Ready { get { return Instance != null && Instance.booted; } }
+        private bool booted;
         /// <summary>표·상태가 준비된 뒤 한 번.</summary>
         public static event Action OnReady;
 
@@ -90,18 +92,19 @@ namespace Forge.Game.Ui
         private void Awake()
         {
             Instance = this;
-            Ready = false;
             StartCoroutine(Boot());
         }
 
         private void OnDestroy()
         {
-            if (Instance == this) { Instance = null; Ready = false; }
+            if (Instance == this) Instance = null;
         }
 
         private IEnumerator Boot()
         {
-            while (!SaveIo.Ready || UiRoot.Instance == null || SaveIo.State == null) yield return null;
+            // 한 프레임 뒤에 시작한다 — 같은 sceneLoaded 에서 서는 SaveIo·UiRoot 가 먼저 제 자리를 잡게(정적 Ready 가 앞 씬 것일 수 있다).
+            yield return null;
+            while (SaveIo.Instance == null || !SaveIo.Ready || SaveIo.State == null || UiRoot.Instance == null || UiRoot.Instance.TabBar == null) yield return null;
             string metaJson = null;
             IEnumerator read = ReadStreaming(MetaTable.File, t => metaJson = t);
             while (read.MoveNext()) yield return read.Current;
@@ -120,7 +123,7 @@ namespace Forge.Game.Ui
 
             screens = new Screens(this, UiRoot.Instance, PopupLayer.Create(UiRoot.Instance));
             SyncHud();
-            Ready = true;
+            booted = true;
             Action h = OnReady;
             if (h != null) h();
 
