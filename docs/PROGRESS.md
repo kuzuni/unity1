@@ -654,6 +654,7 @@
 - **게이트**: `dotnet build` 0에러 · `dotnet test` **510/510** · `check_final_table`·`--self-test` · `check_docs_intact` · `task_state --check` · `check_task_rows` · `check_decisions` · `gen_meta --check` · `gen_ui_catalog --check` · `check_claim_scope` · `ui_score --self-test` · `check_data_sync.sh`(13파일) · `export_data --self-test` — 전부 rc 0.
 - **플레이 콘솔 에러 0 은 무엇으로 확인했나**: 이 작업은 `tools/`·`docs/` 만 만진다 — 유니티 코드·씬·에셋 변경 0(PlayMode 영향 0).
 - **주인이 확인할 것**: `docs/ROUTINE.md` §7 표 맨 아래 «(원작 밖 · 도구·게이트·CI)» 줄 — 원작에 없는 운영용 작업 11개가 거기 모여 있고, 이제 **§7 에 이름이 없는 작업이 하나라도 생기면 CI 가 말한다**.
+- **CI**: 런 104(`e4f4931`) dotnet 잡 **초록** → §1 «CI 가 그 커밋을 한 번은 돈 뒤» 대로 lock 반납.
 - **다음 사람에게**: 새 작업을 등재하면 §2·PROGRESS 뿐 아니라 **§7 제 줄에도 적는다** — 안 적으면 이 자가 rc 1 을 낸다(CI dotnet 잡은 이 자를 «보고만» 하므로 배포는 안 죽지만, 다음 워커가 그 줄을 먼저 고치게 된다).
 
 ### T44 완료 기록 (2026-09-12 · 워커 H · sess-2058-16344)
