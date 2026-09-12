@@ -132,9 +132,10 @@
 - 정본: `forge.js`(장착·판매·스탯) · `gamedata.js`(장비명·모양) · `scene3d.js` 의 무기 복셀 표(`WEAPON_GRIP`·형상) · 투구·갑옷 부착.
 - 범위: `Assets/Scripts/Core/Gear/` · `Assets/Scripts/Game/Hero/Paperdoll.cs` · `Assets/Tests/EditMode/GearTests.cs`.
 
-### T16 — Core 펫 시스템: 알 드랍(1-1~10-10) · 부화 시간(30분~32시간) · 펫 25 스탯 · 중복 레벨업 · 합성 (Core · T3 뒤)
+### T16 ✅ — Core 펫 시스템: 알 드랍(1-1~10-10) · 부화 시간(30분~32시간) · 펫 25 스탯 · 중복 레벨업 · 합성 (Core · T3 뒤)
 - 정본: `pets.js` · `balance-data.js`. 표 테스트: 드랍표 행 100개 합 · 부화 시간 표 · 합성 규칙.
-- 범위: `Assets/Scripts/Core/Pets/` · `Assets/Tests/EditMode/PetTests.cs`.
+- 대조 벡터: `tools/pet_vectors.js` 가 정본 `pets.js` 를 vm 으로 **실제로 돌려** `Assets/Tests/EditMode/pet_vectors.json` 을 뽑는다(mulberry32 시드 · 정본이 바뀌면 다시 뽑는다 · `--check` 로 같은지 본다).
+- 범위: `Assets/Scripts/Core/Pets/` · `Assets/Tests/EditMode/PetTests.cs` · `Assets/Tests/EditMode/pet_vectors.json` · `tools/pet_vectors.js`.
 
 ### T17 — Core 스킬 시스템: 소환 확률(소환 Lv1~100) · 18종 · 4슬롯 · 자동/수동 · 중복 레벨업 (Core · T7 뒤)
 - 정본: `skills.js` · `combat.js` 의 스킬 판정 · `balance-data.js`.
@@ -179,6 +180,11 @@
 ### T28 — 원작 대조 회차: `screens` PNG ↔ `web/ref/screens/shot-*.png` 비율 대조표(`docs/ref-layout.md`) + `tools/ui_score.py` (검증 · T27 뒤)
 - aaawunity §5 방식: 화면마다 «요소 · x% · y% · w% · h%» 표를 원작 샷에서 5% 격자로 판독 → 우리 PNG 와 ±3%p 대조 → 점수. **8.0 미만이면 그 화면의 UI 작업을 «다음 고칠 것» 으로 재등재**.
 - 범위: `docs/ref-layout.md` · `tools/ui_score.py`.
+
+### T29 — `task_state.py` «코드 자취» 오탐: 주석의 미래 참조(`T7 이 쓴다`)를 자취로 세어 T7·T13·T14·T25 선점을 막는다 (도구 · 뒤 순서 없음)
+- 실측(2026-09-12 워커 K · 워커 M 결정 11ⓔ 도 같은 것): `Rng.cs`·`Hud.cs` 의 `///` 주석이 «T7 전투 · T13 세이브» 를 앞으로 가리키고, `check_claim_scope.py`·`task_state.py` 의 자기 검사 픽스처 문자열이 T14·T25 를 담아 `task_state.py T7` 등이 rc 1 을 낸다 → 규약대로면 아무도 못 잡는다.
+- 고침: 자취 검사에서 **주석 줄(`//` · `///` · `#` · 문자열 리터럴)과 `tools/` 의 자기 검사 픽스처를 제외**하고 코드 식별자·파일명·폴더명만 센다. 자기 검사(`--self-test`)에 «주석만 가리키는 번호는 깨끗하다» 케이스를 더한다.
+- 범위: `tools/task_state.py`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

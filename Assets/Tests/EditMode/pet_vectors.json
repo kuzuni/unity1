@@ -1,0 +1,4393 @@
+{
+ "note": "정본 pets.js 를 mulberry32 시드로 돌린 대조 벡터 — tools/pet_vectors.js 가 만든다 · 손으로 고치지 않는다",
+ "consts": {
+  "BASE_HATCH_SLOTS": 3,
+  "MAX_HATCH_SLOTS_CAP": 5,
+  "SLOT_GEM_COST": 400,
+  "INV_CAP": 250,
+  "MAX_ACTIVE": 3,
+  "AUTO_ACTIVE": 3,
+  "POWER_DIV": 3,
+  "EGG_CAP": 100,
+  "MAX_LEVEL": 100,
+  "SUMMON_EGG_COST": 100,
+  "STAR_MULT": 1000000000,
+  "forge": {
+   "TIER_BASE_ATK": 12,
+   "TIER_BASE_HP": 70,
+   "TIER_STEP": 6,
+   "ATK_SLOTS": 4,
+   "HP_SLOTS": 4,
+   "LEVEL_STEP": 1.01
+  }
+ },
+ "eggRoll": [
+  {
+   "key": "1-1",
+   "seed": 1000,
+   "rarities": [
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "1-2",
+   "seed": 1001,
+   "rarities": [
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "1-3",
+   "seed": 1002,
+   "rarities": [
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "1-4",
+   "seed": 1003,
+   "rarities": [
+    "common",
+    "common",
+    "rare",
+    "rare",
+    "common",
+    "common",
+    "common",
+    "rare"
+   ]
+  },
+  {
+   "key": "1-5",
+   "seed": 1004,
+   "rarities": [
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "1-6",
+   "seed": 1005,
+   "rarities": [
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "1-7",
+   "seed": 1006,
+   "rarities": [
+    "common",
+    "common",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "1-8",
+   "seed": 1007,
+   "rarities": [
+    "rare",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "1-9",
+   "seed": 1008,
+   "rarities": [
+    "common",
+    "common",
+    "common",
+    "rare",
+    "common",
+    "common",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "1-10",
+   "seed": 1009,
+   "rarities": [
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "2-1",
+   "seed": 1010,
+   "rarities": [
+    "common",
+    "rare",
+    "rare",
+    "common",
+    "common",
+    "common",
+    "common",
+    "rare"
+   ]
+  },
+  {
+   "key": "2-2",
+   "seed": 1011,
+   "rarities": [
+    "rare",
+    "common",
+    "rare",
+    "rare",
+    "common",
+    "common",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "2-3",
+   "seed": 1012,
+   "rarities": [
+    "common",
+    "common",
+    "common",
+    "common",
+    "rare",
+    "common",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "2-4",
+   "seed": 1013,
+   "rarities": [
+    "common",
+    "common",
+    "rare",
+    "rare",
+    "common",
+    "rare",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "2-5",
+   "seed": 1014,
+   "rarities": [
+    "common",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "2-6",
+   "seed": 1015,
+   "rarities": [
+    "common",
+    "rare",
+    "common",
+    "rare",
+    "common",
+    "rare",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "2-7",
+   "seed": 1016,
+   "rarities": [
+    "rare",
+    "epic",
+    "common",
+    "common",
+    "common",
+    "epic",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "2-8",
+   "seed": 1017,
+   "rarities": [
+    "common",
+    "common",
+    "common",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "2-9",
+   "seed": 1018,
+   "rarities": [
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "2-10",
+   "seed": 1019,
+   "rarities": [
+    "common",
+    "rare",
+    "rare",
+    "rare",
+    "common",
+    "rare",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "3-1",
+   "seed": 1020,
+   "rarities": [
+    "common",
+    "rare",
+    "rare",
+    "common",
+    "common",
+    "rare",
+    "common",
+    "rare"
+   ]
+  },
+  {
+   "key": "3-2",
+   "seed": 1021,
+   "rarities": [
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "3-3",
+   "seed": 1022,
+   "rarities": [
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "3-4",
+   "seed": 1023,
+   "rarities": [
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "common",
+    "rare"
+   ]
+  },
+  {
+   "key": "3-5",
+   "seed": 1024,
+   "rarities": [
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "3-6",
+   "seed": 1025,
+   "rarities": [
+    "epic",
+    "rare",
+    "rare",
+    "rare",
+    "common",
+    "rare",
+    "rare",
+    "common"
+   ]
+  },
+  {
+   "key": "3-7",
+   "seed": 1026,
+   "rarities": [
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "common",
+    "common",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "3-8",
+   "seed": 1027,
+   "rarities": [
+    "rare",
+    "rare",
+    "common",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "common"
+   ]
+  },
+  {
+   "key": "3-9",
+   "seed": 1028,
+   "rarities": [
+    "common",
+    "common",
+    "epic",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "common"
+   ]
+  },
+  {
+   "key": "3-10",
+   "seed": 1029,
+   "rarities": [
+    "common",
+    "rare",
+    "rare",
+    "rare",
+    "epic",
+    "rare",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "4-1",
+   "seed": 1030,
+   "rarities": [
+    "rare",
+    "rare",
+    "epic",
+    "common",
+    "epic",
+    "rare",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "4-2",
+   "seed": 1031,
+   "rarities": [
+    "epic",
+    "rare",
+    "rare",
+    "epic",
+    "common",
+    "rare",
+    "epic",
+    "rare"
+   ]
+  },
+  {
+   "key": "4-3",
+   "seed": 1032,
+   "rarities": [
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "rare",
+    "common",
+    "common",
+    "epic"
+   ]
+  },
+  {
+   "key": "4-4",
+   "seed": 1033,
+   "rarities": [
+    "rare",
+    "epic",
+    "epic",
+    "rare",
+    "common",
+    "epic",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "4-5",
+   "seed": 1034,
+   "rarities": [
+    "epic",
+    "epic",
+    "epic",
+    "legendary",
+    "rare",
+    "rare",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "4-6",
+   "seed": 1035,
+   "rarities": [
+    "rare",
+    "epic",
+    "rare",
+    "common",
+    "rare",
+    "epic",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "4-7",
+   "seed": 1036,
+   "rarities": [
+    "epic",
+    "epic",
+    "rare",
+    "epic",
+    "rare",
+    "legendary",
+    "common",
+    "rare"
+   ]
+  },
+  {
+   "key": "4-8",
+   "seed": 1037,
+   "rarities": [
+    "epic",
+    "rare",
+    "rare",
+    "epic",
+    "rare",
+    "common",
+    "rare",
+    "epic"
+   ]
+  },
+  {
+   "key": "4-9",
+   "seed": 1038,
+   "rarities": [
+    "common",
+    "epic",
+    "legendary",
+    "epic",
+    "rare",
+    "rare",
+    "common",
+    "epic"
+   ]
+  },
+  {
+   "key": "4-10",
+   "seed": 1039,
+   "rarities": [
+    "epic",
+    "epic",
+    "epic",
+    "epic",
+    "epic",
+    "rare",
+    "epic",
+    "epic"
+   ]
+  },
+  {
+   "key": "5-1",
+   "seed": 1040,
+   "rarities": [
+    "common",
+    "epic",
+    "rare",
+    "rare",
+    "epic",
+    "common",
+    "epic",
+    "rare"
+   ]
+  },
+  {
+   "key": "5-2",
+   "seed": 1041,
+   "rarities": [
+    "epic",
+    "epic",
+    "epic",
+    "rare",
+    "common",
+    "epic",
+    "epic",
+    "epic"
+   ]
+  },
+  {
+   "key": "5-3",
+   "seed": 1042,
+   "rarities": [
+    "rare",
+    "epic",
+    "epic",
+    "common",
+    "epic",
+    "epic",
+    "epic",
+    "epic"
+   ]
+  },
+  {
+   "key": "5-4",
+   "seed": 1043,
+   "rarities": [
+    "epic",
+    "epic",
+    "legendary",
+    "epic",
+    "epic",
+    "epic",
+    "epic",
+    "epic"
+   ]
+  },
+  {
+   "key": "5-5",
+   "seed": 1044,
+   "rarities": [
+    "rare",
+    "common",
+    "common",
+    "epic",
+    "epic",
+    "common",
+    "common",
+    "epic"
+   ]
+  },
+  {
+   "key": "5-6",
+   "seed": 1045,
+   "rarities": [
+    "epic",
+    "rare",
+    "common",
+    "legendary",
+    "common",
+    "epic",
+    "epic",
+    "rare"
+   ]
+  },
+  {
+   "key": "5-7",
+   "seed": 1046,
+   "rarities": [
+    "epic",
+    "rare",
+    "common",
+    "common",
+    "epic",
+    "rare",
+    "common",
+    "epic"
+   ]
+  },
+  {
+   "key": "5-8",
+   "seed": 1047,
+   "rarities": [
+    "epic",
+    "epic",
+    "epic",
+    "epic",
+    "epic",
+    "rare",
+    "common",
+    "common"
+   ]
+  },
+  {
+   "key": "5-9",
+   "seed": 1048,
+   "rarities": [
+    "rare",
+    "epic",
+    "epic",
+    "common",
+    "epic",
+    "rare",
+    "epic",
+    "epic"
+   ]
+  },
+  {
+   "key": "5-10",
+   "seed": 1049,
+   "rarities": [
+    "legendary",
+    "epic",
+    "epic",
+    "epic",
+    "common",
+    "common",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "6-1",
+   "seed": 1050,
+   "rarities": [
+    "epic",
+    "epic",
+    "epic",
+    "common",
+    "common",
+    "common",
+    "rare",
+    "epic"
+   ]
+  },
+  {
+   "key": "6-2",
+   "seed": 1051,
+   "rarities": [
+    "rare",
+    "epic",
+    "common",
+    "epic",
+    "rare",
+    "epic",
+    "common",
+    "epic"
+   ]
+  },
+  {
+   "key": "6-3",
+   "seed": 1052,
+   "rarities": [
+    "epic",
+    "epic",
+    "epic",
+    "epic",
+    "rare",
+    "epic",
+    "epic",
+    "legendary"
+   ]
+  },
+  {
+   "key": "6-4",
+   "seed": 1053,
+   "rarities": [
+    "rare",
+    "epic",
+    "epic",
+    "rare",
+    "common",
+    "epic",
+    "epic",
+    "epic"
+   ]
+  },
+  {
+   "key": "6-5",
+   "seed": 1054,
+   "rarities": [
+    "legendary",
+    "epic",
+    "legendary",
+    "rare",
+    "rare",
+    "epic",
+    "epic",
+    "legendary"
+   ]
+  },
+  {
+   "key": "6-6",
+   "seed": 1055,
+   "rarities": [
+    "common",
+    "common",
+    "epic",
+    "epic",
+    "legendary",
+    "epic",
+    "epic",
+    "common"
+   ]
+  },
+  {
+   "key": "6-7",
+   "seed": 1056,
+   "rarities": [
+    "legendary",
+    "epic",
+    "epic",
+    "epic",
+    "legendary",
+    "rare",
+    "legendary",
+    "legendary"
+   ]
+  },
+  {
+   "key": "6-8",
+   "seed": 1057,
+   "rarities": [
+    "epic",
+    "legendary",
+    "legendary",
+    "rare",
+    "common",
+    "legendary",
+    "rare",
+    "epic"
+   ]
+  },
+  {
+   "key": "6-9",
+   "seed": 1058,
+   "rarities": [
+    "epic",
+    "legendary",
+    "rare",
+    "legendary",
+    "epic",
+    "epic",
+    "epic",
+    "legendary"
+   ]
+  },
+  {
+   "key": "6-10",
+   "seed": 1059,
+   "rarities": [
+    "epic",
+    "epic",
+    "legendary",
+    "legendary",
+    "common",
+    "legendary",
+    "common",
+    "rare"
+   ]
+  },
+  {
+   "key": "7-1",
+   "seed": 1060,
+   "rarities": [
+    "legendary",
+    "legendary",
+    "ultimate",
+    "epic",
+    "legendary",
+    "common",
+    "legendary",
+    "legendary"
+   ]
+  },
+  {
+   "key": "7-2",
+   "seed": 1061,
+   "rarities": [
+    "legendary",
+    "legendary",
+    "legendary",
+    "common",
+    "common",
+    "legendary",
+    "epic",
+    "legendary"
+   ]
+  },
+  {
+   "key": "7-3",
+   "seed": 1062,
+   "rarities": [
+    "legendary",
+    "epic",
+    "legendary",
+    "legendary",
+    "mythic",
+    "epic",
+    "legendary",
+    "legendary"
+   ]
+  },
+  {
+   "key": "7-4",
+   "seed": 1063,
+   "rarities": [
+    "common",
+    "legendary",
+    "legendary",
+    "legendary",
+    "rare",
+    "epic",
+    "legendary",
+    "common"
+   ]
+  },
+  {
+   "key": "7-5",
+   "seed": 1064,
+   "rarities": [
+    "legendary",
+    "common",
+    "rare",
+    "legendary",
+    "common",
+    "rare",
+    "legendary",
+    "legendary"
+   ]
+  },
+  {
+   "key": "7-6",
+   "seed": 1065,
+   "rarities": [
+    "legendary",
+    "epic",
+    "legendary",
+    "epic",
+    "common",
+    "epic",
+    "legendary",
+    "epic"
+   ]
+  },
+  {
+   "key": "7-7",
+   "seed": 1066,
+   "rarities": [
+    "rare",
+    "rare",
+    "legendary",
+    "legendary",
+    "legendary",
+    "epic",
+    "rare",
+    "epic"
+   ]
+  },
+  {
+   "key": "7-8",
+   "seed": 1067,
+   "rarities": [
+    "common",
+    "epic",
+    "legendary",
+    "ultimate",
+    "common",
+    "legendary",
+    "common",
+    "legendary"
+   ]
+  },
+  {
+   "key": "7-9",
+   "seed": 1068,
+   "rarities": [
+    "epic",
+    "common",
+    "legendary",
+    "epic",
+    "epic",
+    "legendary",
+    "rare",
+    "legendary"
+   ]
+  },
+  {
+   "key": "7-10",
+   "seed": 1069,
+   "rarities": [
+    "legendary",
+    "legendary",
+    "legendary",
+    "rare",
+    "legendary",
+    "common",
+    "ultimate",
+    "legendary"
+   ]
+  },
+  {
+   "key": "8-1",
+   "seed": 1070,
+   "rarities": [
+    "legendary",
+    "rare",
+    "epic",
+    "common",
+    "legendary",
+    "legendary",
+    "common",
+    "rare"
+   ]
+  },
+  {
+   "key": "8-2",
+   "seed": 1071,
+   "rarities": [
+    "legendary",
+    "epic",
+    "common",
+    "epic",
+    "ultimate",
+    "legendary",
+    "legendary",
+    "ultimate"
+   ]
+  },
+  {
+   "key": "8-3",
+   "seed": 1072,
+   "rarities": [
+    "common",
+    "common",
+    "ultimate",
+    "legendary",
+    "legendary",
+    "epic",
+    "legendary",
+    "common"
+   ]
+  },
+  {
+   "key": "8-4",
+   "seed": 1073,
+   "rarities": [
+    "legendary",
+    "rare",
+    "common",
+    "legendary",
+    "legendary",
+    "legendary",
+    "legendary",
+    "rare"
+   ]
+  },
+  {
+   "key": "8-5",
+   "seed": 1074,
+   "rarities": [
+    "legendary",
+    "rare",
+    "legendary",
+    "rare",
+    "rare",
+    "legendary",
+    "legendary",
+    "epic"
+   ]
+  },
+  {
+   "key": "8-6",
+   "seed": 1075,
+   "rarities": [
+    "legendary",
+    "common",
+    "legendary",
+    "common",
+    "ultimate",
+    "legendary",
+    "legendary",
+    "rare"
+   ]
+  },
+  {
+   "key": "8-7",
+   "seed": 1076,
+   "rarities": [
+    "epic",
+    "rare",
+    "epic",
+    "common",
+    "common",
+    "ultimate",
+    "common",
+    "epic"
+   ]
+  },
+  {
+   "key": "8-8",
+   "seed": 1077,
+   "rarities": [
+    "ultimate",
+    "legendary",
+    "common",
+    "rare",
+    "ultimate",
+    "epic",
+    "epic",
+    "ultimate"
+   ]
+  },
+  {
+   "key": "8-9",
+   "seed": 1078,
+   "rarities": [
+    "ultimate",
+    "epic",
+    "common",
+    "rare",
+    "legendary",
+    "ultimate",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "8-10",
+   "seed": 1079,
+   "rarities": [
+    "rare",
+    "ultimate",
+    "rare",
+    "legendary",
+    "ultimate",
+    "ultimate",
+    "ultimate",
+    "ultimate"
+   ]
+  },
+  {
+   "key": "9-1",
+   "seed": 1080,
+   "rarities": [
+    "ultimate",
+    "legendary",
+    "legendary",
+    "epic",
+    "legendary",
+    "ultimate",
+    "ultimate",
+    "ultimate"
+   ]
+  },
+  {
+   "key": "9-2",
+   "seed": 1081,
+   "rarities": [
+    "common",
+    "legendary",
+    "rare",
+    "common",
+    "epic",
+    "rare",
+    "common",
+    "rare"
+   ]
+  },
+  {
+   "key": "9-3",
+   "seed": 1082,
+   "rarities": [
+    "legendary",
+    "common",
+    "epic",
+    "legendary",
+    "epic",
+    "common",
+    "ultimate",
+    "ultimate"
+   ]
+  },
+  {
+   "key": "9-4",
+   "seed": 1083,
+   "rarities": [
+    "legendary",
+    "epic",
+    "common",
+    "common",
+    "rare",
+    "common",
+    "legendary",
+    "legendary"
+   ]
+  },
+  {
+   "key": "9-5",
+   "seed": 1084,
+   "rarities": [
+    "common",
+    "ultimate",
+    "rare",
+    "ultimate",
+    "ultimate",
+    "ultimate",
+    "rare",
+    "rare"
+   ]
+  },
+  {
+   "key": "9-6",
+   "seed": 1085,
+   "rarities": [
+    "rare",
+    "legendary",
+    "legendary",
+    "epic",
+    "ultimate",
+    "common",
+    "legendary",
+    "epic"
+   ]
+  },
+  {
+   "key": "9-7",
+   "seed": 1086,
+   "rarities": [
+    "rare",
+    "epic",
+    "rare",
+    "common",
+    "epic",
+    "ultimate",
+    "ultimate",
+    "rare"
+   ]
+  },
+  {
+   "key": "9-8",
+   "seed": 1087,
+   "rarities": [
+    "epic",
+    "ultimate",
+    "epic",
+    "epic",
+    "ultimate",
+    "rare",
+    "common",
+    "epic"
+   ]
+  },
+  {
+   "key": "9-9",
+   "seed": 1088,
+   "rarities": [
+    "common",
+    "epic",
+    "ultimate",
+    "common",
+    "rare",
+    "common",
+    "rare",
+    "legendary"
+   ]
+  },
+  {
+   "key": "9-10",
+   "seed": 1089,
+   "rarities": [
+    "epic",
+    "rare",
+    "ultimate",
+    "ultimate",
+    "ultimate",
+    "ultimate",
+    "ultimate",
+    "ultimate"
+   ]
+  },
+  {
+   "key": "10-1",
+   "seed": 1090,
+   "rarities": [
+    "common",
+    "common",
+    "legendary",
+    "mythic",
+    "legendary",
+    "rare",
+    "epic",
+    "ultimate"
+   ]
+  },
+  {
+   "key": "10-2",
+   "seed": 1091,
+   "rarities": [
+    "legendary",
+    "epic",
+    "rare",
+    "rare",
+    "rare",
+    "mythic",
+    "common",
+    "epic"
+   ]
+  },
+  {
+   "key": "10-3",
+   "seed": 1092,
+   "rarities": [
+    "legendary",
+    "legendary",
+    "common",
+    "rare",
+    "mythic",
+    "mythic",
+    "mythic",
+    "common"
+   ]
+  },
+  {
+   "key": "10-4",
+   "seed": 1093,
+   "rarities": [
+    "common",
+    "ultimate",
+    "common",
+    "rare",
+    "epic",
+    "rare",
+    "ultimate",
+    "epic"
+   ]
+  },
+  {
+   "key": "10-5",
+   "seed": 1094,
+   "rarities": [
+    "rare",
+    "legendary",
+    "epic",
+    "epic",
+    "ultimate",
+    "epic",
+    "rare",
+    "epic"
+   ]
+  },
+  {
+   "key": "10-6",
+   "seed": 1095,
+   "rarities": [
+    "ultimate",
+    "mythic",
+    "mythic",
+    "common",
+    "ultimate",
+    "legendary",
+    "mythic",
+    "ultimate"
+   ]
+  },
+  {
+   "key": "10-7",
+   "seed": 1096,
+   "rarities": [
+    "legendary",
+    "epic",
+    "ultimate",
+    "mythic",
+    "rare",
+    "ultimate",
+    "common",
+    "epic"
+   ]
+  },
+  {
+   "key": "10-8",
+   "seed": 1097,
+   "rarities": [
+    "mythic",
+    "epic",
+    "legendary",
+    "epic",
+    "epic",
+    "rare",
+    "legendary",
+    "epic"
+   ]
+  },
+  {
+   "key": "10-9",
+   "seed": 1098,
+   "rarities": [
+    "common",
+    "rare",
+    "legendary",
+    "ultimate",
+    "common",
+    "ultimate",
+    "rare",
+    "mythic"
+   ]
+  },
+  {
+   "key": "10-10",
+   "seed": 1099,
+   "rarities": [
+    "legendary",
+    "epic",
+    "ultimate",
+    "legendary",
+    "ultimate",
+    "mythic",
+    "rare",
+    "ultimate"
+   ]
+  },
+  {
+   "key": "99-99",
+   "seed": 1100,
+   "rarities": [
+    "ultimate",
+    "ultimate",
+    "ultimate",
+    "common",
+    "epic",
+    "mythic",
+    "epic",
+    "ultimate"
+   ]
+  }
+ ],
+ "summonLevel": [
+  {
+   "petSummonCount": 0,
+   "level": 1
+  },
+  {
+   "petSummonCount": 1,
+   "level": 1
+  },
+  {
+   "petSummonCount": 4,
+   "level": 1
+  },
+  {
+   "petSummonCount": 5,
+   "level": 2
+  },
+  {
+   "petSummonCount": 9,
+   "level": 2
+  },
+  {
+   "petSummonCount": 10,
+   "level": 3
+  },
+  {
+   "petSummonCount": 49,
+   "level": 10
+  },
+  {
+   "petSummonCount": 50,
+   "level": 11
+  },
+  {
+   "petSummonCount": 494,
+   "level": 99
+  },
+  {
+   "petSummonCount": 495,
+   "level": 100
+  },
+  {
+   "petSummonCount": 499,
+   "level": 100
+  },
+  {
+   "petSummonCount": 500,
+   "level": 100
+  },
+  {
+   "petSummonCount": 1000,
+   "level": 100
+  }
+ ],
+ "rates": [
+  {
+   "level": 1,
+   "rates": [
+    100,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 2,
+   "rates": [
+    100,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 3,
+   "rates": [
+    100,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 4,
+   "rates": [
+    89.95,
+    10,
+    0.05,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 20,
+   "rates": [
+    17.5,
+    80.9,
+    1.6,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 21,
+   "rates": [
+    17.5,
+    80.49,
+    2,
+    0.01,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 50,
+   "rates": [
+    17.5,
+    16.5,
+    59.93,
+    5.99,
+    0.08,
+    0
+   ]
+  },
+  {
+   "level": 99,
+   "rates": [
+    17.5,
+    16.5,
+    16.5,
+    16.5,
+    18.54,
+    14.46
+   ]
+  },
+  {
+   "level": 100,
+   "rates": [
+    17.5,
+    16.5,
+    16.5,
+    16.5,
+    16.5,
+    16.5
+   ]
+  },
+  {
+   "level": 0,
+   "rates": [
+    100,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "level": 150,
+   "rates": [
+    17.5,
+    16.5,
+    16.5,
+    16.5,
+    16.5,
+    16.5
+   ]
+  }
+ ],
+ "summon": [
+  {
+   "seed": 14,
+   "eggCurrency": 1000,
+   "eggs": 0,
+   "petSummonCount": 0,
+   "extraEgg": 0,
+   "count": 5,
+   "pre": {
+    "summonCount": 5,
+    "summonCost": 500,
+    "canSummon": true,
+    "eggSpace": 100
+   },
+   "result": {
+    "results": [
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     }
+    ],
+    "requested": 5,
+    "summoned": 5,
+    "clamped": false
+   },
+   "after": {
+    "eggs": [
+     "common",
+     "common",
+     "common",
+     "common",
+     "common"
+    ],
+    "hatching": [],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 500,
+    "petSummonCount": 5,
+    "hatchSlotBonus": 0
+   },
+   "gacha": [
+    "common"
+   ]
+  },
+  {
+   "seed": 3,
+   "eggCurrency": 100000,
+   "eggs": 0,
+   "petSummonCount": 495,
+   "extraEgg": 50,
+   "count": 75,
+   "pre": {
+    "summonCount": 75,
+    "summonCost": 7500,
+    "canSummon": true,
+    "eggSpace": 100
+   },
+   "result": {
+    "results": [
+     {
+      "rarity": "ultimate",
+      "extra": false
+     },
+     {
+      "rarity": "epic",
+      "extra": true
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "epic",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": true
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": true
+     },
+     {
+      "rarity": "epic",
+      "extra": false
+     },
+     {
+      "rarity": "mythic",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": true
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "legendary",
+      "extra": false
+     },
+     {
+      "rarity": "legendary",
+      "extra": false
+     },
+     {
+      "rarity": "mythic",
+      "extra": true
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": true
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": true
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "epic",
+      "extra": true
+     },
+     {
+      "rarity": "mythic",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": false
+     },
+     {
+      "rarity": "legendary",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "legendary",
+      "extra": true
+     },
+     {
+      "rarity": "mythic",
+      "extra": false
+     },
+     {
+      "rarity": "epic",
+      "extra": true
+     },
+     {
+      "rarity": "epic",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": false
+     },
+     {
+      "rarity": "legendary",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": true
+     },
+     {
+      "rarity": "ultimate",
+      "extra": false
+     },
+     {
+      "rarity": "mythic",
+      "extra": true
+     },
+     {
+      "rarity": "mythic",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": true
+     },
+     {
+      "rarity": "legendary",
+      "extra": false
+     },
+     {
+      "rarity": "epic",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "legendary",
+      "extra": true
+     },
+     {
+      "rarity": "legendary",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": true
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "legendary",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": false
+     },
+     {
+      "rarity": "epic",
+      "extra": true
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": false
+     },
+     {
+      "rarity": "mythic",
+      "extra": false
+     },
+     {
+      "rarity": "mythic",
+      "extra": false
+     },
+     {
+      "rarity": "mythic",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": false
+     },
+     {
+      "rarity": "legendary",
+      "extra": true
+     },
+     {
+      "rarity": "mythic",
+      "extra": false
+     },
+     {
+      "rarity": "legendary",
+      "extra": true
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "legendary",
+      "extra": false
+     },
+     {
+      "rarity": "mythic",
+      "extra": true
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "mythic",
+      "extra": true
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "mythic",
+      "extra": true
+     },
+     {
+      "rarity": "legendary",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": true
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "legendary",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": true
+     },
+     {
+      "rarity": "legendary",
+      "extra": false
+     },
+     {
+      "rarity": "legendary",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "epic",
+      "extra": true
+     },
+     {
+      "rarity": "epic",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": true
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "epic",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "mythic",
+      "extra": false
+     },
+     {
+      "rarity": "mythic",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "legendary",
+      "extra": false
+     },
+     {
+      "rarity": "epic",
+      "extra": false
+     },
+     {
+      "rarity": "mythic",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "ultimate",
+      "extra": false
+     }
+    ],
+    "requested": 75,
+    "summoned": 75,
+    "clamped": false
+   },
+   "after": {
+    "eggs": [
+     "ultimate",
+     "epic",
+     "common",
+     "epic",
+     "common",
+     "rare",
+     "rare",
+     "ultimate",
+     "epic",
+     "mythic",
+     "ultimate",
+     "rare",
+     "legendary",
+     "legendary",
+     "mythic",
+     "rare",
+     "ultimate",
+     "ultimate",
+     "common",
+     "ultimate",
+     "common",
+     "epic",
+     "mythic",
+     "ultimate",
+     "legendary",
+     "common",
+     "legendary",
+     "mythic",
+     "epic",
+     "epic",
+     "ultimate",
+     "legendary",
+     "ultimate",
+     "ultimate",
+     "mythic",
+     "mythic",
+     "ultimate",
+     "ultimate",
+     "common",
+     "legendary",
+     "epic",
+     "rare",
+     "legendary",
+     "legendary",
+     "ultimate",
+     "common",
+     "legendary",
+     "ultimate",
+     "epic",
+     "common",
+     "ultimate",
+     "mythic",
+     "mythic",
+     "mythic",
+     "ultimate",
+     "legendary",
+     "mythic",
+     "legendary",
+     "common",
+     "legendary",
+     "mythic",
+     "common",
+     "common",
+     "mythic",
+     "common",
+     "common",
+     "mythic",
+     "legendary",
+     "common",
+     "common",
+     "legendary",
+     "ultimate",
+     "common",
+     "common",
+     "legendary",
+     "legendary",
+     "rare",
+     "common",
+     "rare",
+     "epic",
+     "epic",
+     "rare",
+     "common",
+     "ultimate",
+     "rare",
+     "epic",
+     "common",
+     "rare",
+     "mythic",
+     "mythic",
+     "common",
+     "rare",
+     "common",
+     "rare",
+     "legendary",
+     "epic",
+     "mythic",
+     "rare",
+     "rare",
+     "ultimate"
+    ],
+    "hatching": [],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 92500,
+    "petSummonCount": 570,
+    "hatchSlotBonus": 0
+   },
+   "gacha": [
+    "mythic"
+   ]
+  },
+  {
+   "seed": 9,
+   "eggCurrency": 100000,
+   "eggs": 90,
+   "petSummonCount": 100,
+   "extraEgg": 2,
+   "count": 25,
+   "pre": {
+    "summonCount": 10,
+    "summonCost": 1000,
+    "canSummon": true,
+    "eggSpace": 10
+   },
+   "result": {
+    "results": [
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     }
+    ],
+    "requested": 25,
+    "summoned": 10,
+    "clamped": true
+   },
+   "after": {
+    "eggs": [
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "rare",
+     "common",
+     "rare",
+     "rare",
+     "common",
+     "rare",
+     "rare",
+     "rare",
+     "rare",
+     "rare"
+    ],
+    "hatching": [],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 99000,
+    "petSummonCount": 110,
+    "hatchSlotBonus": 0
+   },
+   "gacha": [
+    "rare"
+   ]
+  },
+  {
+   "seed": 5,
+   "eggCurrency": 150,
+   "eggs": 0,
+   "petSummonCount": 20,
+   "extraEgg": 0,
+   "count": 5,
+   "pre": {
+    "summonCount": 5,
+    "summonCost": 500,
+    "canSummon": false,
+    "eggSpace": 100
+   },
+   "result": null,
+   "after": {
+    "eggs": [],
+    "hatching": [],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 150,
+    "petSummonCount": 20,
+    "hatchSlotBonus": 0
+   },
+   "gacha": []
+  },
+  {
+   "seed": 7,
+   "eggCurrency": 100000,
+   "eggs": 100,
+   "petSummonCount": 0,
+   "extraEgg": 0,
+   "count": 1,
+   "pre": {
+    "summonCount": 0,
+    "summonCost": 0,
+    "canSummon": false,
+    "eggSpace": 0
+   },
+   "result": null,
+   "after": {
+    "eggs": [
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common"
+    ],
+    "hatching": [],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 100000,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   },
+   "gacha": []
+  },
+  {
+   "seed": 21,
+   "eggCurrency": 10000,
+   "eggs": 97,
+   "petSummonCount": 200,
+   "extraEgg": 100,
+   "count": 3,
+   "pre": {
+    "summonCount": 3,
+    "summonCost": 300,
+    "canSummon": true,
+    "eggSpace": 3
+   },
+   "result": {
+    "results": [
+     {
+      "rarity": "epic",
+      "extra": false
+     },
+     {
+      "rarity": "rare",
+      "extra": false
+     },
+     {
+      "rarity": "epic",
+      "extra": false
+     }
+    ],
+    "requested": 3,
+    "summoned": 3,
+    "clamped": false
+   },
+   "after": {
+    "eggs": [
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "common",
+     "epic",
+     "rare",
+     "epic"
+    ],
+    "hatching": [],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 9700,
+    "petSummonCount": 203,
+    "hatchSlotBonus": 0
+   },
+   "gacha": [
+    "epic"
+   ]
+  },
+  {
+   "seed": 22,
+   "eggCurrency": 10000,
+   "eggs": 0,
+   "petSummonCount": 0,
+   "extraEgg": 0,
+   "count": 0,
+   "pre": {
+    "summonCount": 1,
+    "summonCost": 100,
+    "canSummon": true,
+    "eggSpace": 100
+   },
+   "result": {
+    "results": [
+     {
+      "rarity": "common",
+      "extra": false
+     }
+    ],
+    "requested": 0,
+    "summoned": 1,
+    "clamped": false
+   },
+   "after": {
+    "eggs": [
+     "common"
+    ],
+    "hatching": [],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 9900,
+    "petSummonCount": 1,
+    "hatchSlotBonus": 0
+   },
+   "gacha": [
+    "common"
+   ]
+  },
+  {
+   "seed": 23,
+   "eggCurrency": 10000,
+   "eggs": 0,
+   "petSummonCount": 0,
+   "extraEgg": 0,
+   "count": 2.7,
+   "pre": {
+    "summonCount": 2,
+    "summonCost": 200,
+    "canSummon": true,
+    "eggSpace": 100
+   },
+   "result": {
+    "results": [
+     {
+      "rarity": "common",
+      "extra": false
+     },
+     {
+      "rarity": "common",
+      "extra": false
+     }
+    ],
+    "requested": 2.7,
+    "summoned": 2,
+    "clamped": true
+   },
+   "after": {
+    "eggs": [
+     "common",
+     "common"
+    ],
+    "hatching": [],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 9800,
+    "petSummonCount": 2,
+    "hatchSlotBonus": 0
+   },
+   "gacha": [
+    "common"
+   ]
+  }
+ ],
+ "hatchTime": [
+  {
+   "rarity": "common",
+   "hatchTimer": 0,
+   "sec": 1800
+  },
+  {
+   "rarity": "rare",
+   "hatchTimer": 0,
+   "sec": 7200
+  },
+  {
+   "rarity": "epic",
+   "hatchTimer": 0,
+   "sec": 14400
+  },
+  {
+   "rarity": "legendary",
+   "hatchTimer": 0,
+   "sec": 28800
+  },
+  {
+   "rarity": "ultimate",
+   "hatchTimer": 0,
+   "sec": 57600
+  },
+  {
+   "rarity": "mythic",
+   "hatchTimer": 0,
+   "sec": 115200
+  },
+  {
+   "rarity": "common",
+   "hatchTimer": 50,
+   "sec": 1200
+  },
+  {
+   "rarity": "rare",
+   "hatchTimer": 50,
+   "sec": 4800
+  },
+  {
+   "rarity": "epic",
+   "hatchTimer": 50,
+   "sec": 9600
+  },
+  {
+   "rarity": "legendary",
+   "hatchTimer": 50,
+   "sec": 19200
+  },
+  {
+   "rarity": "ultimate",
+   "hatchTimer": 50,
+   "sec": 38400
+  },
+  {
+   "rarity": "mythic",
+   "hatchTimer": 50,
+   "sec": 76800
+  }
+ ],
+ "slots": [
+  {
+   "bonus": 0,
+   "max": 3,
+   "cost": 400,
+   "canBuy": true
+  },
+  {
+   "bonus": 1,
+   "max": 4,
+   "cost": 800,
+   "canBuy": true
+  },
+  {
+   "bonus": 2,
+   "max": 5,
+   "cost": 1200,
+   "canBuy": false
+  },
+  {
+   "bonus": 3,
+   "max": 5,
+   "cost": 1600,
+   "canBuy": false
+  }
+ ],
+ "buySlot": [
+  {
+   "ok": true,
+   "gems": 500,
+   "bonus": 1,
+   "max": 4
+  },
+  {
+   "ok": false,
+   "gems": 500,
+   "bonus": 1,
+   "max": 4
+  },
+  {
+   "ok": false,
+   "gems": 500,
+   "bonus": 1,
+   "max": 4
+  },
+  {
+   "ok": false,
+   "gems": 500,
+   "bonus": 1,
+   "max": 4
+  }
+ ],
+ "startHatch": [
+  {
+   "idx": 1,
+   "ok": true,
+   "after": {
+    "eggs": [
+     "rare",
+     "mythic",
+     "epic",
+     "legendary"
+    ],
+    "hatching": [
+     {
+      "rarity": "common",
+      "endsAt": 1700001800000
+     }
+    ],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   }
+  },
+  {
+   "idx": 0,
+   "ok": true,
+   "after": {
+    "eggs": [
+     "mythic",
+     "epic",
+     "legendary"
+    ],
+    "hatching": [
+     {
+      "rarity": "common",
+      "endsAt": 1700001800000
+     },
+     {
+      "rarity": "rare",
+      "endsAt": 1700007200000
+     }
+    ],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   }
+  },
+  {
+   "idx": 0,
+   "ok": true,
+   "after": {
+    "eggs": [
+     "epic",
+     "legendary"
+    ],
+    "hatching": [
+     {
+      "rarity": "common",
+      "endsAt": 1700001800000
+     },
+     {
+      "rarity": "rare",
+      "endsAt": 1700007200000
+     },
+     {
+      "rarity": "mythic",
+      "endsAt": 1700115200000
+     }
+    ],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   }
+  },
+  {
+   "idx": 0,
+   "ok": false,
+   "after": {
+    "eggs": [
+     "epic",
+     "legendary"
+    ],
+    "hatching": [
+     {
+      "rarity": "common",
+      "endsAt": 1700001800000
+     },
+     {
+      "rarity": "rare",
+      "endsAt": 1700007200000
+     },
+     {
+      "rarity": "mythic",
+      "endsAt": 1700115200000
+     }
+    ],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   }
+  },
+  {
+   "idx": 5,
+   "ok": false,
+   "after": {
+    "eggs": [
+     "epic",
+     "legendary"
+    ],
+    "hatching": [
+     {
+      "rarity": "common",
+      "endsAt": 1700001800000
+     },
+     {
+      "rarity": "rare",
+      "endsAt": 1700007200000
+     },
+     {
+      "rarity": "mythic",
+      "endsAt": 1700115200000
+     }
+    ],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   }
+  },
+  {
+   "idx": 0,
+   "ok": false,
+   "after": {
+    "eggs": [
+     "epic",
+     "legendary"
+    ],
+    "hatching": [
+     {
+      "rarity": "common",
+      "endsAt": 1700001800000
+     },
+     {
+      "rarity": "rare",
+      "endsAt": 1700007200000
+     },
+     {
+      "rarity": "mythic",
+      "endsAt": 1700115200000
+     }
+    ],
+    "pets": [],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   }
+  }
+ ],
+ "gemSkipCost": [
+  {
+   "remainMs": 0,
+   "cost": 0
+  },
+  {
+   "remainMs": -5000,
+   "cost": 0
+  },
+  {
+   "remainMs": 1,
+   "cost": 1
+  },
+  {
+   "remainMs": 60000,
+   "cost": 1
+  },
+  {
+   "remainMs": 599999,
+   "cost": 1
+  },
+  {
+   "remainMs": 600000,
+   "cost": 1
+  },
+  {
+   "remainMs": 600001,
+   "cost": 2
+  },
+  {
+   "remainMs": 3600000,
+   "cost": 6
+  },
+  {
+   "remainMs": 115200000,
+   "cost": 192
+  }
+ ],
+ "gemSkip": [
+  {
+   "idx": 1,
+   "ok": false,
+   "after": {
+    "eggs": [],
+    "hatching": [
+     {
+      "rarity": "common",
+      "endsAt": 1700001800000
+     },
+     {
+      "rarity": "rare",
+      "endsAt": 1700007200000
+     }
+    ],
+    "pets": [],
+    "activePets": [],
+    "gems": 10,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   }
+  },
+  {
+   "idx": 0,
+   "ok": true,
+   "after": {
+    "eggs": [],
+    "hatching": [
+     {
+      "rarity": "rare",
+      "endsAt": 1700007200000
+     }
+    ],
+    "pets": [
+     {
+      "name": "Cat",
+      "rarity": "common",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 22.7
+       },
+       {
+        "key": "critCh",
+        "value": 5.6
+       }
+      ]
+     }
+    ],
+    "activePets": [
+     0
+    ],
+    "gems": 7,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   }
+  },
+  {
+   "idx": 0,
+   "ok": false,
+   "after": {
+    "eggs": [],
+    "hatching": [
+     {
+      "rarity": "rare",
+      "endsAt": 1700007200000
+     }
+    ],
+    "pets": [
+     {
+      "name": "Cat",
+      "rarity": "common",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 22.7
+       },
+       {
+        "key": "critCh",
+        "value": 5.6
+       }
+      ]
+     }
+    ],
+    "activePets": [
+     0
+    ],
+    "gems": 7,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   }
+  },
+  {
+   "idx": 2,
+   "ok": false,
+   "after": {
+    "eggs": [],
+    "hatching": [
+     {
+      "rarity": "rare",
+      "endsAt": 1700007200000
+     }
+    ],
+    "pets": [
+     {
+      "name": "Cat",
+      "rarity": "common",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "skillDmg",
+        "value": 22.7
+       },
+       {
+        "key": "critCh",
+        "value": 5.6
+       }
+      ]
+     }
+    ],
+    "activePets": [
+     0
+    ],
+    "gems": 7,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   }
+  }
+ ],
+ "tick": [
+  {
+   "name": "four_hatch_auto_active_stars2",
+   "seed": 41,
+   "after": {
+    "eggs": [],
+    "hatching": [
+     {
+      "rarity": "mythic",
+      "endsAt": 1700000000001
+     }
+    ],
+    "pets": [
+     {
+      "name": "Serpent",
+      "rarity": "legendary",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 2,
+      "subs": [
+       {
+        "key": "dmgPct",
+        "value": 9.9
+       },
+       {
+        "key": "meleeDmg",
+        "value": 42.7
+       }
+      ]
+     },
+     {
+      "name": "Unicorn",
+      "rarity": "epic",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 2,
+      "subs": [
+       {
+        "key": "skillCd",
+        "value": 3.7
+       },
+       {
+        "key": "critCh",
+        "value": 8.8
+       }
+      ]
+     },
+     {
+      "name": "Spider",
+      "rarity": "rare",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 2,
+      "subs": [
+       {
+        "key": "lifesteal",
+        "value": 7.5
+       },
+       {
+        "key": "hpPct",
+        "value": 6.7
+       }
+      ]
+     },
+     {
+      "name": "Turtle",
+      "rarity": "common",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 2,
+      "subs": [
+       {
+        "key": "hpRegen",
+        "value": 3.1
+       },
+       {
+        "key": "skillDmg",
+        "value": 10
+       }
+      ]
+     }
+    ],
+    "activePets": [
+     0,
+     1,
+     2
+    ],
+    "gems": 0,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   },
+   "toasts": [
+    "🎉 새 펫: 서펀트 (전설)",
+    "🎉 새 펫: 유니콘 (서사시)",
+    "🎉 새 펫: 거미 (희귀한)",
+    "🎉 새 펫: 거북이 (일반)"
+   ],
+   "quests": [
+    "petHatch",
+    "petHatch",
+    "petHatch",
+    "petHatch"
+   ]
+  },
+  {
+   "name": "then_mythic_after_1ms",
+   "after": {
+    "eggs": [],
+    "hatching": [],
+    "pets": [
+     {
+      "name": "Serpent",
+      "rarity": "legendary",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 2,
+      "subs": [
+       {
+        "key": "dmgPct",
+        "value": 9.9
+       },
+       {
+        "key": "meleeDmg",
+        "value": 42.7
+       }
+      ]
+     },
+     {
+      "name": "Unicorn",
+      "rarity": "epic",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 2,
+      "subs": [
+       {
+        "key": "skillCd",
+        "value": 3.7
+       },
+       {
+        "key": "critCh",
+        "value": 8.8
+       }
+      ]
+     },
+     {
+      "name": "Spider",
+      "rarity": "rare",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 2,
+      "subs": [
+       {
+        "key": "lifesteal",
+        "value": 7.5
+       },
+       {
+        "key": "hpPct",
+        "value": 6.7
+       }
+      ]
+     },
+     {
+      "name": "Turtle",
+      "rarity": "common",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 2,
+      "subs": [
+       {
+        "key": "hpRegen",
+        "value": 3.1
+       },
+       {
+        "key": "skillDmg",
+        "value": 10
+       }
+      ]
+     },
+     {
+      "name": "Genie",
+      "rarity": "mythic",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 2,
+      "subs": [
+       {
+        "key": "meleeDmg",
+        "value": 11.6
+       },
+       {
+        "key": "lifesteal",
+        "value": 3.9
+       }
+      ]
+     }
+    ],
+    "activePets": [
+     0,
+     1,
+     2
+    ],
+    "gems": 0,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   },
+   "toasts": [
+    "🎉 새 펫: 서펀트 (전설)",
+    "🎉 새 펫: 유니콘 (서사시)",
+    "🎉 새 펫: 거미 (희귀한)",
+    "🎉 새 펫: 거북이 (일반)",
+    "🎉 새 펫: 지니 (신화)"
+   ],
+   "quests": [
+    "petHatch",
+    "petHatch",
+    "petHatch",
+    "petHatch",
+    "petHatch"
+   ]
+  },
+  {
+   "name": "inventory_full_returns_egg_then_drops",
+   "seed": 42,
+   "petsLen": 250,
+   "eggs": [
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "common",
+    "rare"
+   ],
+   "hatching": 0,
+   "toasts": [
+    "🐾 펫 보관함이 가득 찼습니다 (250/250) — 알로 되돌렸습니다",
+    "🐾 펫 보관함이 가득 찼습니다 (250/250)"
+   ],
+   "quests": [
+    "petHatch",
+    "petHatch"
+   ]
+  },
+  {
+   "name": "dup_name_toast",
+   "seed": 43,
+   "after": {
+    "eggs": [],
+    "hatching": [],
+    "pets": [
+     {
+      "name": "Dog",
+      "rarity": "common",
+      "level": 3,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Dog",
+      "rarity": "common",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": [
+       {
+        "key": "hpRegen",
+        "value": 2.6
+       },
+       {
+        "key": "critCh",
+        "value": 1.7
+       }
+      ]
+     }
+    ],
+    "activePets": [
+     0,
+     1
+    ],
+    "gems": 0,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   },
+   "toasts": [
+    "🥚 강아지 하나 더 획득 (일반)"
+   ]
+  }
+ ],
+ "xpNeeded": [
+  {
+   "level": 1,
+   "xp": 80
+  },
+  {
+   "level": 2,
+   "xp": 242
+  },
+  {
+   "level": 3,
+   "xp": 463
+  },
+  {
+   "level": 5,
+   "xp": 1050
+  },
+  {
+   "level": 10,
+   "xp": 3184
+  },
+  {
+   "level": 17,
+   "xp": 7444
+  },
+  {
+   "level": 33,
+   "xp": 21513
+  },
+  {
+   "level": 50,
+   "xp": 41825
+  },
+  {
+   "level": 64,
+   "xp": 62083
+  },
+  {
+   "level": 99,
+   "xp": 124768
+  },
+  {
+   "level": 100,
+   "xp": 126791
+  }
+ ],
+ "xpValue": [
+  {
+   "rarity": "common",
+   "xp": 30
+  },
+  {
+   "rarity": "rare",
+   "xp": 90
+  },
+  {
+   "rarity": "epic",
+   "xp": 270
+  },
+  {
+   "rarity": "legendary",
+   "xp": 810
+  },
+  {
+   "rarity": "ultimate",
+   "xp": 2430
+  },
+  {
+   "rarity": "mythic",
+   "xp": 7290
+  }
+ ],
+ "addXp": [
+  {
+   "level": 1,
+   "xp": 0,
+   "add": 500,
+   "level_after": 3,
+   "xp_after": 178
+  },
+  {
+   "level": 1,
+   "xp": 79,
+   "add": 1,
+   "level_after": 2,
+   "xp_after": 0
+  },
+  {
+   "level": 10,
+   "xp": 0,
+   "add": 100000,
+   "level_after": 23,
+   "xp_after": 9864
+  },
+  {
+   "level": 99,
+   "xp": 0,
+   "add": 1000000000,
+   "level_after": 100,
+   "xp_after": 0
+  },
+  {
+   "level": 100,
+   "xp": 0,
+   "add": 5,
+   "level_after": 100,
+   "xp_after": 0
+  },
+  {
+   "level": 1,
+   "xp": 0,
+   "add": 0.5,
+   "level_after": 1,
+   "xp_after": 0.5
+  }
+ ],
+ "absorb": [
+  {
+   "name": "target0_mats_1_3_self_eggs_1_0",
+   "ok": true,
+   "after": {
+    "eggs": [
+     "common"
+    ],
+    "hatching": [],
+    "pets": [
+     {
+      "name": "Cat",
+      "rarity": "common",
+      "level": 10,
+      "dupes": 0,
+      "xp": 29.187621075134302,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Panda",
+      "rarity": "epic",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Dog",
+      "rarity": "common",
+      "level": 2,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activePets": [
+     2
+    ],
+    "gems": 0,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   }
+  },
+  {
+   "name": "null_target",
+   "ok": false
+  },
+  {
+   "name": "target_not_in_list",
+   "ok": false,
+   "after": {
+    "eggs": [
+     "common"
+    ],
+    "hatching": [],
+    "pets": [
+     {
+      "name": "Panda",
+      "rarity": "epic",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Dog",
+      "rarity": "common",
+      "level": 2,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activePets": [
+     1
+    ],
+    "gems": 0,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   }
+  }
+ ],
+ "baseStat": [
+  {
+   "rarity": "common",
+   "atk": 16,
+   "hp": 93.33333333333333
+  },
+  {
+   "rarity": "rare",
+   "atk": 402.52442041242966,
+   "hp": 2348.0591190725063
+  },
+  {
+   "rarity": "epic",
+   "atk": 10126.619314272652,
+   "hp": 59071.9459999238
+  },
+  {
+   "rarity": "legendary",
+   "atk": 254763.22313843234,
+   "hp": 1486118.8016408551
+  },
+  {
+   "rarity": "ultimate",
+   "atk": 6409276.171012495,
+   "hp": 37387444.33090622
+  },
+  {
+   "rarity": "mythic",
+   "atk": 161243136,
+   "hp": 940584960
+  }
+ ],
+ "petPower": [
+  {
+   "rarity": "common",
+   "level": 1,
+   "stars": 0,
+   "petDmg": 0,
+   "petHp": 0,
+   "atk": {
+    "m": 1.6,
+    "e": 1
+   },
+   "hp": {
+    "m": 9.333333333333,
+    "e": 1
+   },
+   "levelMult": 1
+  },
+  {
+   "rarity": "rare",
+   "level": 17,
+   "stars": 0,
+   "petDmg": 0,
+   "petHp": 0,
+   "atk": {
+    "m": 4.71991539436,
+    "e": 2
+   },
+   "hp": {
+    "m": 2.753283980044,
+    "e": 3
+   },
+   "levelMult": 1.1725786449236988
+  },
+  {
+   "rarity": "mythic",
+   "level": 100,
+   "stars": 0,
+   "petDmg": 0,
+   "petHp": 0,
+   "atk": {
+    "m": 4.318145189625,
+    "e": 8
+   },
+   "hp": {
+    "m": 2.518918027281,
+    "e": 9
+   },
+   "levelMult": 2.678033494476761
+  },
+  {
+   "rarity": "epic",
+   "level": 1,
+   "stars": 1,
+   "petDmg": 0,
+   "petHp": 0,
+   "atk": {
+    "m": 1.012661931427,
+    "e": 13
+   },
+   "hp": {
+    "m": 5.907194599992,
+    "e": 13
+   },
+   "levelMult": 1
+  },
+  {
+   "rarity": "legendary",
+   "level": 50,
+   "stars": 3,
+   "petDmg": 25,
+   "petHp": 10,
+   "atk": {
+    "m": 5.185540888723,
+    "e": 32
+   },
+   "hp": {
+    "m": 2.661910989545,
+    "e": 33
+   },
+   "levelMult": 1.6283483384592898
+  },
+  {
+   "rarity": "ultimate",
+   "level": 2,
+   "stars": 40,
+   "petDmg": 100,
+   "petHp": 0,
+   "atk": {
+    "m": 1.294673786544,
+    "e": 367
+   },
+   "hp": {
+    "m": 3.776131877422,
+    "e": 367
+   },
+   "levelMult": 1.01
+  }
+ ],
+ "activeBonus": {
+  "atk": {
+   "m": 1.763492431646,
+   "e": 17
+  },
+  "hp": {
+   "m": 1.02870391846,
+   "e": 18
+  },
+  "subs": [
+   {
+    "key": "atkSpd",
+    "value": 7.7
+   },
+   {
+    "key": "critCh",
+    "value": 3.5
+   },
+   {
+    "key": "hpPct",
+    "value": 12
+   }
+  ]
+ },
+ "activeBonusEmpty": {
+  "atk": {
+   "m": 0,
+   "e": 0
+  },
+  "hp": {
+   "m": 0,
+   "e": 0
+  },
+  "subs": 0
+ },
+ "toggle": [
+  {
+   "idx": 0,
+   "can": true,
+   "ok": true,
+   "active": [
+    0
+   ]
+  },
+  {
+   "idx": 1,
+   "can": true,
+   "ok": true,
+   "active": [
+    0,
+    1
+   ]
+  },
+  {
+   "idx": 2,
+   "can": true,
+   "ok": true,
+   "active": [
+    0,
+    1,
+    2
+   ]
+  },
+  {
+   "idx": 3,
+   "can": false,
+   "ok": false,
+   "active": [
+    0,
+    1,
+    2
+   ]
+  },
+  {
+   "idx": 1,
+   "can": true,
+   "ok": true,
+   "active": [
+    0,
+    2
+   ]
+  },
+  {
+   "idx": 3,
+   "can": true,
+   "ok": true,
+   "active": [
+    0,
+    2,
+    3
+   ]
+  },
+  {
+   "idx": 9,
+   "can": false,
+   "ok": false,
+   "active": [
+    0,
+    2,
+    3
+   ]
+  },
+  {
+   "idx": 0,
+   "can": true,
+   "ok": true,
+   "active": [
+    2,
+    3
+   ]
+  }
+ ],
+ "merge": [
+  {
+   "name": "spares_from_tail_keeps_active_and_grown",
+   "pre": {
+    "can": true,
+    "spare": [
+     0,
+     3,
+     5
+    ],
+    "dupes": 3
+   },
+   "ok": true,
+   "after": {
+    "eggs": [
+     "rare"
+    ],
+    "hatching": [],
+    "pets": [
+     {
+      "name": "Cat",
+      "rarity": "common",
+      "level": 2,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Dog",
+      "rarity": "common",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Bear",
+      "rarity": "rare",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Chicken",
+      "rarity": "common",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 1,
+      "subs": []
+     },
+     {
+      "name": "Snail",
+      "rarity": "common",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activePets": [
+     2,
+     1,
+     4
+    ],
+    "gems": 0,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   },
+   "toasts": [
+    "✨ 합성 성공! 희귀한 알 획득"
+   ],
+   "quests": [
+    "petMerge"
+   ],
+   "canAgain": false
+  },
+  {
+   "name": "legacy_dupes_first",
+   "pre": {
+    "can": true,
+    "dupes": 5
+   },
+   "ok": true,
+   "after": {
+    "eggs": [
+     "epic"
+    ],
+    "hatching": [],
+    "pets": [
+     {
+      "name": "Bear",
+      "rarity": "rare",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     },
+     {
+      "name": "Spider",
+      "rarity": "rare",
+      "level": 1,
+      "dupes": 0,
+      "xp": 0,
+      "stars": 0,
+      "subs": []
+     }
+    ],
+    "activePets": [],
+    "gems": 0,
+    "eggCurrency": 0,
+    "petSummonCount": 0,
+    "hatchSlotBonus": 0
+   }
+  },
+  {
+   "name": "mythic_never",
+   "can": false,
+   "ok": false,
+   "petsLen": 3
+  },
+  {
+   "name": "two_spares_not_enough",
+   "can": false,
+   "ok": false
+  },
+  {
+   "name": "egg_cap_blocks",
+   "can": true,
+   "ok": false,
+   "petsLen": 3,
+   "toasts": [
+    "🥚 알 보관함이 가득 차 합성할 수 없습니다"
+   ]
+  }
+ ],
+ "rollSubs": [
+  {
+   "seed": 1,
+   "subs": [
+    {
+     "key": "rangedDmg",
+     "label": "원거리 피해",
+     "value": 1
+    },
+    {
+     "key": "dmgPct",
+     "label": "피해",
+     "value": 14.7
+    }
+   ]
+  },
+  {
+   "seed": 2,
+   "subs": [
+    {
+     "key": "atkSpd",
+     "label": "공격 속도",
+     "value": 13.7
+    },
+    {
+     "key": "hpRegen",
+     "label": "체력 재생",
+     "value": 2.6
+    }
+   ]
+  },
+  {
+   "seed": 3,
+   "subs": [
+    {
+     "key": "atkSpd",
+     "label": "공격 속도",
+     "value": 2.5
+    },
+    {
+     "key": "dblAtk",
+     "label": "더블 찬스",
+     "value": 2.4
+    }
+   ]
+  },
+  {
+   "seed": 4,
+   "count": 13,
+   "subs": [
+    {
+     "key": "hpPct",
+     "value": 5.7
+    },
+    {
+     "key": "block",
+     "value": 1.3
+    },
+    {
+     "key": "hpRegen",
+     "value": 2.5
+    },
+    {
+     "key": "critCh",
+     "value": 11.7
+    },
+    {
+     "key": "rangedDmg",
+     "value": 10.7
+    },
+    {
+     "key": "skillDmg",
+     "value": 11.7
+    },
+    {
+     "key": "atkSpd",
+     "value": 35.2
+    },
+    {
+     "key": "dmgPct",
+     "value": 11.4
+    },
+    {
+     "key": "dblAtk",
+     "value": 10.3
+    },
+    {
+     "key": "meleeDmg",
+     "value": 46.6
+    },
+    {
+     "key": "skillCd",
+     "value": 3.8
+    },
+    {
+     "key": "critDmg",
+     "value": 63.3
+    },
+    {
+     "key": "lifesteal",
+     "value": 15.3
+    }
+   ]
+  },
+  {
+   "seed": 5,
+   "count": 20,
+   "subs": [
+    {
+     "key": "rangedDmg",
+     "value": 11.8
+    },
+    {
+     "key": "block",
+     "value": 3.5
+    },
+    {
+     "key": "critCh",
+     "value": 7.5
+    },
+    {
+     "key": "skillDmg",
+     "value": 14.3
+    },
+    {
+     "key": "hpPct",
+     "value": 4.2
+    },
+    {
+     "key": "atkSpd",
+     "value": 29.9
+    },
+    {
+     "key": "dmgPct",
+     "value": 1.2
+    },
+    {
+     "key": "lifesteal",
+     "value": 6.7
+    },
+    {
+     "key": "skillCd",
+     "value": 2.7
+    },
+    {
+     "key": "meleeDmg",
+     "value": 36.5
+    },
+    {
+     "key": "critDmg",
+     "value": 2.5
+    },
+    {
+     "key": "dblAtk",
+     "value": 5
+    },
+    {
+     "key": "hpRegen",
+     "value": 1.4
+    }
+   ]
+  }
+ ]
+}
