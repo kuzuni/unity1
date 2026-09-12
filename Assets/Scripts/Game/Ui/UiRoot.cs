@@ -30,6 +30,28 @@ namespace Forge.Game.Ui
         private int lastW = -1, lastH = -1;
         private Rect lastSafe;
 
+        // ── T45 SafeArea 주입 지점(테스트 전용 · 게임 코드는 안 쓴다) ──────────────────────────────────
+        /// <summary>노치 모의 값(주인 지시 2026-09-12 · ROUTINE §1 «SafeArea»): 위 120px(상단 카메라·노치) · 아래 60px(홈바). 촬영(T27)과 검증(T45)이 같은 상수를 쓴다.</summary>
+        public const float NotchTopPx = 120f, NotchBottomPx = 60f;
+        /// <summary>테스트가 꽂는 safeArea(null = `Screen.safeArea`). 정적이라 UiRoot 가 서기 전에 꽂아도 첫 Layout 부터 먹는다.</summary>
+        public static Rect? SafeAreaOverride { get; private set; }
+
+        /// <summary>테스트용: safeArea 를 덮어쓴다(null 로 되돌린다). 살아 있는 UiRoot 는 바로 다시 배치한다.</summary>
+        public static void OverrideSafeArea(Rect? rect)
+        {
+            SafeAreaOverride = rect;
+            if (Instance != null) Instance.Layout();
+        }
+
+        /// <summary>노치 모의 safeArea: 화면 w×h 에서 위 <see cref="NotchTopPx"/> · 아래 <see cref="NotchBottomPx"/> 를 깎은 것(왼쪽 아래 원점).</summary>
+        public static Rect NotchSafeArea(int w, int h)
+        {
+            return new Rect(0f, NotchBottomPx, w, h - NotchTopPx - NotchBottomPx);
+        }
+
+        /// <summary>지금 배치에 쓰는 safeArea(덮어쓴 값이 있으면 그것 · 아니면 `Screen.safeArea`).</summary>
+        public static Rect EffectiveSafeArea { get { return SafeAreaOverride ?? Screen.safeArea; } }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Hook()
         {
@@ -106,15 +128,16 @@ namespace Forge.Game.Ui
 
         private void Update()
         {
-            if (Screen.width != lastW || Screen.height != lastH || Screen.safeArea != lastSafe) Layout();
+            if (Screen.width != lastW || Screen.height != lastH || EffectiveSafeArea != lastSafe) Layout();
         }
 
-        /// <summary>앱 상자를 세이프에어리어 안 9:16 레터박스에 맞춘다(화면 픽셀 = 캔버스 단위 · 오버레이 캔버스 scaleFactor 1).</summary>
+        /// <summary>앱 상자를 세이프에어리어 안 9:16 레터박스에 맞춘다(화면 픽셀 = 캔버스 단위 · 오버레이 캔버스 scaleFactor 1).
+        /// 3D 카메라(<see cref="Bootstrap"/>)는 전체 화면 레터박스 그대로다 — safeArea 는 여기(눌러야 하는 UI)에만 걸린다(T45 결정 기록).</summary>
         public void Layout()
         {
             lastW = Screen.width;
             lastH = Screen.height;
-            lastSafe = Screen.safeArea;
+            lastSafe = EffectiveSafeArea;
             Rect sa = lastSafe;
             if (sa.width <= 0f || sa.height <= 0f) sa = new Rect(0f, 0f, lastW, lastH);
             ViewportRect r = Viewport.Letterbox(Mathf.RoundToInt(sa.width), Mathf.RoundToInt(sa.height), Bootstrap.PortraitAspect);
