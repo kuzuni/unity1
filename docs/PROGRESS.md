@@ -185,7 +185,7 @@
 
 - **원인(실측)**: 런 8(18:42 · workflow_dispatch)이 시크릿이 생겨 unity-test 7분 + WebGL·Android 굽기 30분+ 를 도는 동안 워크플로 전체 `concurrency: ci-<ref>` 가 «대기 런 하나» 만 두고 새 push 마다 옛 대기 런을 취소 → 런 9~16(T4·T16·T14·T13·T24·T5·T7·T29) 전부 `cancelled` · dotnet 검사조차 안 돌았다.
 - **고침**(`.github/workflows/ci.yml`): ⓐ 워크플로 전체 concurrency 삭제 — dotnet·datasync·gate 는 push 마다 무조건 돈다(1분). ⓑ `unity-test` 만 잡 그룹 `unity-test-${{ github.ref }}`(cancel-in-progress false · 계정 라이선스 활성화 겹침 방지). 대기 중인 것은 뒤 push 가 갈아치울 수 있으나 main 은 선형이라 뒤 런이 앞 커밋을 포함한다(§1 «내 뒤 런이 초록이면 내 확인»). ⓒ `build-webgl`·`build-android` 는 `if: has_ulf && (event == 'schedule' || inputs.build)` — push 마다 안 굽고 `on.schedule: '0 */3 * * *'`(main 최신) 또는 수동 build 입력만 · 그룹 `build-main` 직렬(주인 «가장 싼 고침» 그대로). (`ntfy-notify.yml`): ⓓ 자동 갈래 `if` 에 `conclusion != 'cancelled'`.
-- **게이트**: 두 YAML 을 PyYAML 로 파싱해 잡별 concurrency·if 를 확인 · 문서 자 전부 rc 0 · C# 0줄(dotnet 변경 없음). **판정(연속 push 3개가 dotnet 잡을 실제로 돌린 런 번호)** 은 lock 반납 커밋에 적는다 — 이 커밋의 런 + 그 뒤 워커 push 두 개.
+- **게이트**: 두 YAML 을 PyYAML 로 파싱해 잡별 concurrency·if 를 확인 · 문서 자 전부 rc 0 · C# 0줄(dotnet 변경 없음). **판정(연속 push 3개가 dotnet 잡을 실제로 돌린 런 번호)**: **런 18**(6ccdd52 · 이 커밋 · 37초 만에 초록 · 앞 런 17 이 아직 도는 중인데 대기 없이 바로 돌았다) · **런 19**(c0086ff T17 · dotnet 초록 · unity-test 는 실제 테스트 실패 1개 — PetTests 문화권 StartsWith · 별도 작업) · **런 20**(7b94d63 T6 · dotnet 초록 · unity-test 는 런 21 이 갈아치워 cancelled = 설계대로) · **런 21**(36d3eab T31 · dotnet 초록). 굽기 잡은 push 런에서 skipped. 취소 사슬 끝.
 - **주인이 확인할 것**: Actions 탭에서 이 커밋 이후 push 마다 «dotnet» 잡이 취소 없이 초록인가 · 3시간 뒤(다음 `0 */3` UTC) schedule 런이 WebGL·Android 를 굽고 gh-pages 가 갱신되는가. 지금 굽고 싶으면 Actions → CI → Run workflow → build 체크.
 - **플레이 콘솔 에러 0 확인 수단**: 해당 없음(워크플로만).
 
