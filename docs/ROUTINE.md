@@ -90,7 +90,7 @@
 - PlayMode: 스윙 한 사이클의 어깨 각 곡선이 원작 키프레임(예비 → 타격 → 회복 시각 비)과 ±5% · 무기 로컬 회전 = (MC_CARRY_X, −π/2, 0).
 - 범위: `Assets/Scripts/Game/Hero/` · `Assets/Tests/PlayMode/HeroTests.cs`.
 
-### T7 — Core 전투 엔진: 100ms 고정 틱 · 웨이브 4+보스 · 스탯·치명·넉백·처치·스테이지 진행 (Core · T3 뒤)
+### T7 ✅ — Core 전투 엔진: 100ms 고정 틱 · 웨이브 4+보스 · 스탯·치명·넉백·처치·스테이지 진행 (Core · T3 뒤)
 - 정본: `web/js/combat.js`(587줄 · 전부) · `state.js` 의 전투 관련 상태 · `balance-data.js` 의 적 스탯 곡선.
 - `Battle`(순수 C#): 입력 = 영웅 스탯·장비·펫 3·스킬 4·스테이지 → 틱마다 이벤트(공격·피격·처치·웨이브·보스·드랍). **원작 JS 와 판 단위 일치**: `tools/sim/`(node) 로 원작 `combat.js` 를 같은 시드로 돌려 처치 시각·드랍 목록을 JSON 으로 뽑고 EditMode 가 그것과 대조한다(시드 3개 × 100판).
 - 범위: `Assets/Scripts/Core/Battle/` · `tools/sim/` · `Assets/Tests/EditMode/BattleTests.cs`.
@@ -219,7 +219,7 @@ tools/check_data_sync.sh .wwwww-src                                           # 
 node tools/export_data.js --self-test                                         # (T2 뒤) 추출기 자기 검사
 ```
 
-- 로컬에 `dotnet` 이 없는 컨테이너(클라우드 세션은 대개 없다)에서는 `dotnet` 두 줄을 건너뛰고 **그 사실을 완료 기록에 적는다** — 그때는 CI 의 `dotnet` 잡이 초록인 것을 확인하기 전에는 lock 을 반납하지 않는다.
+- 로컬에 `dotnet` 이 없는 컨테이너(클라우드 세션은 대개 없다)에서는 **먼저 `apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y dotnet-sdk-8.0` 을 시도한다**(약 2분 · 결정 10 · 계정 1·4 컨테이너에서 2026-09-12 실측 성공 — PPA 403 경고는 무시). 그래도 없으면 `dotnet` 두 줄을 건너뛰고 **그 사실을 완료 기록에 적는다** — 그때는 CI 의 `dotnet` 잡이 초록인 것을 확인하기 전에는 lock 을 반납하지 않는다.
 - PlayMode 는 워커 환경에서 못 돌린다 — CI 유니티 잡 런 번호로 확인한다(시크릿이 없어 유니티 잡이 안 돌면 «주인 에디터 확인 요청» 으로 적는다).
 
 ## 4. PROGRESS.md 기록 규약
