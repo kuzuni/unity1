@@ -141,7 +141,7 @@
 - 대조 벡터: `tools/pet_vectors.js` 가 정본 `pets.js` 를 vm 으로 **실제로 돌려** `Assets/Tests/EditMode/pet_vectors.json` 을 뽑는다(mulberry32 시드 · 정본이 바뀌면 다시 뽑는다 · `--check` 로 같은지 본다).
 - 범위: `Assets/Scripts/Core/Pets/` · `Assets/Tests/EditMode/PetTests.cs` · `Assets/Tests/EditMode/pet_vectors.json` · `tools/pet_vectors.js`.
 
-### T17 — Core 스킬 시스템: 소환 확률(소환 Lv1~100) · 18종 · 4슬롯 · 자동/수동 · 중복 레벨업 (Core · T7 뒤)
+### T17 ✅ — Core 스킬 시스템: 소환 확률(소환 Lv1~100) · 18종 · 3슬롯(정본 `MAX_ACTIVE` · 지시서의 4 는 오기) · 자동/수동 · 중복 레벨업 (Core · T7 뒤)
 - 정본: `skills.js` · `combat.js` 의 스킬 판정 · `balance-data.js`.
 - 범위: `Assets/Scripts/Core/Skills/` · `Assets/Tests/EditMode/SkillTests.cs`.
 
