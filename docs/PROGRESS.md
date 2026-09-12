@@ -47,10 +47,10 @@
 | T30 | 사운드 이식: 효과음 29종 + 음악 4모드·레이어 6종 (`sfx.js` 코드 합성 그대로 · 오디오 파일 0) | 🔄 진행 | sess-1914-20666 / 워커 R | `Assets/Scripts/Core/Audio/` · `Assets/Scripts/Game/Audio/` · `Assets/StreamingAssets/data/sfx.json` · `tools/export_data.js`(sfx 갈래만) · `tools/check_data_sync.sh`(FILES 에 sfx.json 한 단어) · `tools/sfx_vectors.js` · `Assets/Tests/EditMode/Vectors/t30-sfx.json` · `Assets/Tests/EditMode/AudioTests.cs` · `Assets/Tests/PlayMode/AudioSmokeTests.cs` | T3 뒤 · 주인 지시 «원작 전부» 로 등재(2026-09-12 계정 2 대화 세션) |
 | T31 | 아이콘·아바타 이식: `icongen.js` 아이콘 136종 + `avatars.js` 아바타 24종(= `IconGen.draw` 키 160 · 제목의 «523» 은 그리기 도우미까지 센 수) → Chromium 래스터 아틀라스 + `UiIcons.Get` | ✅ 완료 | sess-1900-14706 / 워커 U | `tools/export_icons.js` · `tools/check_icons_sync.sh` · `Assets/Forge/Icons/` · `Assets/Scripts/Core/Ui/IconAtlas.cs`(순수 표 · dotnet 검증) · `Assets/Scripts/Game/Ui/UiIcons.cs` · `Assets/Scripts/Game/Ui/UiKit.cs`(Icon 한 갈래만) · `.github/workflows/ci.yml`(datasync 잡의 아이콘 검사 한 줄만) · `Assets/Tests/EditMode/IconAtlasTests.cs` · `Assets/Tests/PlayMode/UiIconsTests.cs` · `docs/assets-map.md` · `docs/ROUTINE.md`(§1 아틀라스 예외 한 줄) | 키 170(아이콘 136 · 아바타 24 · tint 변형 10 = 등급색 알 6·체크·파란 삼각형 2·기술 발바닥) · 아틀라스 2장(2048×1948 · 2048×652 · PNG 총 172KB) · Chromium `--dump-dom` 한 번(의존성 0 · 5초 · 결정론) · `UiIcons.Get(name,tint)`·`Skill/Tab/Avatar` · `UiKit.Icon` 이 아틀라스 우선 · EditMode 7 + PlayMode 3 · dotnet 296/296 · CI `datasync` 잡이 러너 Chrome 으로 재추출 대조 |
 | T33 | 완주 대조: §7 표 전 줄 ✅ · 화면 30장 · `ui.js` 함수 97개 · SFX 29 · IconGen 키 전부 짝 확인 · 빠진 것 등재 | ⬜ 대기 | — | `docs/ROUTINE.md`(§7 표) · `docs/PROGRESS.md` · `docs/parity.md` | T27·T28·T30·T31 뒤 · 마지막 · 주인 지시 «전체 빠짐없이»(2026-09-12) |
-| T34 | Unity(Mono) 에서만 빨간 EditMode 1개: PetTests 의 문화권 비교 `StartsWith("🥚")` → `StringComparison.Ordinal` (+ §1 규칙 한 줄) | 🔄 진행 | sess-1910-18444 / 워커 M | `Assets/Tests/EditMode/PetTests.cs` · `docs/ROUTINE.md`(§1 한 줄) | 뒤 순서 없음 · 워커 M 등재(CI 런 19 unity-test 실측 · dotnet 은 초록) |
 | T32 | CI concurrency: 긴 런이 도는 동안 뒤 push 의 CI 가 «대기 런 교체» 로 취소돼 워커 커밋이 검증 없이 지나감 → 빠른 잡·긴 잡 그룹 분리 · ntfy 의 cancelled 필터 | ✅ 완료 | sess-1910-18444 / 워커 M | `.github/workflows/ci.yml`(concurrency · 잡별 그룹) · `.github/workflows/ntfy-notify.yml`(cancelled 필터) | 워크플로 전체 그룹 제거 → 빠른 잡(dotnet·datasync·gate) push 마다 무조건 · unity-test 만 `unity-test-<ref>` 직렬 · 굽기 2잡은 3시간 schedule/수동 + `build-main` 직렬 · ntfy 는 cancelled 안 쏨 · 워커 H 등재(런 9~16 취소 실측) |
 | T34 | 지면 소재 굽기 (캔버스 텍스처·노멀 6종 · 용암 균열 발광맵 · 포석 줄눈 데칼 · 지면 셰이더 macro/LOD/snow/shadeLift) | ⬜ 대기 | — | `Assets/Scripts/Core/World/GroundTex*.cs` · `Assets/Scripts/Game/World/GroundTexture*.cs` · `Assets/Shaders/Terrain*.shader` · `Assets/Tests/EditMode/GroundTexTests.cs` · `Assets/Tests/EditMode/Vectors/t32-*.json` · `tools/ground_vectors.js` | T9 뒤 |
 | T35 | 배경 복원 경로 SIMPLE_BG=false (소품 생성기 17종 · buildProps 배치 · 스캐터 3층 · 능선 3겹 · 구름·하늘 돔·천체 · 잎/이끼/결정 파생색 · 지형 높이 벽) | ⬜ 대기 | — | `Assets/Scripts/Core/World/Props*.cs`·`Scatter*.cs`·`Ridge*.cs` · `Assets/Scripts/Game/World/Props*.cs`·`Scatter*.cs`·`Ridges*.cs`·`Sky*.cs` · `Assets/Tests/EditMode/PropsTests.cs` · `Assets/Tests/PlayMode/PropsSceneTests.cs` | T9·T4 뒤 · 주인이 SIMPLE_BG 를 끌 때만 |
+| T36 | Unity(Mono) 에서만 빨간 EditMode 1개: PetTests 의 문화권 비교 `StartsWith("🥚")` → `StringComparison.Ordinal` (+ §1 규칙 한 줄) | ⛔ 흡수 | sess-1910-18444 / 워커 M | `Assets/Tests/EditMode/PetTests.cs` · `docs/ROUTINE.md`(§1 한 줄) | 뒤 순서 없음 · 워커 M 등재(CI 런 19 unity-test 실측 · dotnet 은 초록) · T34 로 등재했다가 워커 I 의 T34 와 겹쳐 T36 으로 옮김 · 수리 자체는 워커 H 가 34ad307(T16)로 먼저 함 → 흡수 · 남은 것은 §1 규칙 한 줄 |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 
@@ -248,6 +248,13 @@
 - **플레이 콘솔 에러 0 확인 수단**: PlayMode `WorldTests` 2개(부팅 → 지면 1메시 · 테마 25 순회하며 안개/배경/태양/앰비언트 대조 · 타일 순환). CI 유니티 잡이 시크릿 없이 안 돌면 **주인 에디터 확인 요청**.
 - **다음 작업용**: 전투 씬(T8)은 `World.Instance.SetWorldX(worldX)` 로 행군(1.7/s · `WorldRules.WalkSpeed`)을 넘기고 물건은 `HeightAt(x,z)`(three 좌표 · SIMPLE_BG 0) 에 놓는다. 챕터 전환은 `SetTheme(index)`(0 기반 · `Progress` 의 절대 챕터 % 25). 지면 소품은 T35 전까지 없다.
 
+### T36 완료 기록 (2026-09-12 · 워커 M · sess-1910-18444)
+
+- **무엇**: CI 런 19(c0086ff) unity-test 의 EditMode 실패 1개(`PetTests.tick_부화_완료_…` :360 «하나 더 #0 Expected True But was False») — 같은 테스트가 dotnet 에선 초록. `toasts[i].StartsWith("🥚")` 가 **현재 문화권 비교**라 유니티 Mono collation 이 비BMP 이모지를 무게 0 으로 보고 항상 true 를 준 것(dotnet ICU 는 false). PetTests 의 `StartsWith` 3곳(360 · 376 «새 펫: » · 411)에 `StringComparison.Ordinal`. ROUTINE §1 에 «문자열 비교는 Ordinal» 규칙 한 줄. 레포 전체 grep: 인자에 비ASCII 가 들어간 문화권 비교는 이 셋뿐(나머지는 ASCII 라 안전하나 새 코드는 규칙대로).
+- **흡수**: 같은 수리를 워커 H 가 34ad307(T16 수리 · 결정 46)로 먼저 밀었다(같은 3곳 · 같은 Ordinal). 이 커밋은 PetTests 를 바꾸지 않고 §1 규칙 한 줄만 남긴다. 판정(unity-test 초록)은 H 의 T16 기록이 진다.
+- **주인이 확인할 것**: Actions 최신 main 런의 «Unity EditMode·PlayMode 테스트» 잡이 초록인가.
+- **플레이 콘솔 에러 0 확인 수단**: 해당 없음(테스트 문자열 비교만).
+
 ## 주인 결정
 
 - **(2026-09-12 · 착수)** 유니티 이식은 `kuzuni/unity1` 에서 · 원작 `kuzuni/wwwww` 는 그대로 둔다(웹판과 유니티판을 한 레포에 섞으면 헷갈린다는 주인 판단). 운영은 aaawunity 방식(루틴 워커 · 여러 계정).
@@ -310,3 +317,4 @@
 45. **네임스페이스 `Forge.Game.Map`(2026-09-12 · T9 · 워커 I)** — 폴더는 ROUTINE 범위대로 `Assets/Scripts/Game/World/` 인데 네임스페이스를 `Forge.Game.World` 로 두면 클래스 `World` 가 다른 `Forge.Game.*`(Ui·Battle…)에서 **네임스페이스로 잡혀** `World.Instance` 가 안 풀린다(C# 이름 찾기: 상위 네임스페이스의 멤버 네임스페이스가 using 보다 먼저). Core 쪽 `Forge.Core.World` 는 `World` 클래스가 없어 그대로. 되돌리려면 `World.cs` 첫 줄.
 46. **유니티 EditMode 빨강(CI 런 17·19) 수리 — 이모지 `StartsWith` 문화권 비교(2026-09-12 · 워커 H · sess-1858-659)** — 유니티 잡이 처음 돈 런 17(T25)·19(T17)에서 `PetTests.tick_부화_완료_…` 하나만 «하나 더 #0» 로 죽었다(다른 300여 개 · 내 `SkillTests` 14 포함 전부 초록). 원인은 코드가 아니라 테스트의 `toast.StartsWith("🥚")` — 문화권 비교라 유니티 Mono 는 보조평면 이모지를 무시 가능 문자로 봐 `true`, .NET 8(ICU)은 `false` 라 dotnet 하니스만 통과했다. `PetTests` 세 곳을 `StringComparison.Ordinal` 로 고쳤다(테스트를 끄거나 건너뛰지 않았다 · Core 는 무변경 · 나머지 `StartsWith` 는 ASCII 라 무관). 되돌리려면 이 커밋의 `PetTests.cs` 세 줄. 교훈: 유니티에서도 도는 문자열 비교는 `Ordinal` 을 명시한다.
 
+47. **T36 번호 이동 · 흡수(2026-09-12 · 워커 M)** — 이 작업을 `--new-id` 가 준 T34 로 등재·push 했는데 같은 순간 워커 I 가 909445e 로 T34(지면 소재)·T35(배경 복원)를 먼저 밀었다. 규약 «늦게 push 한 쪽이 옮긴다» 대로 내 쪽을 **T36** 으로 옮겼다(07a40ef 의 T34 행·절·lock 은 이 커밋에서 T36 으로 바뀐다 · 07a40ef 제목의 «T34» 는 이력이라 그대로). 되돌리려면 없음. 그리고 같은 수리를 워커 H 가 34ad307(T16 수리 · 결정 46)로 먼저 밀어 **T36 은 ⛔ 흡수** — 남긴 것은 §1 «문자열 비교는 Ordinal» 규칙 한 줄뿐이다.

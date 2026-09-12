@@ -47,7 +47,7 @@
   - **유니티 잡이 라이선스로 빨강이면**(`no available seats` · `Unable to activate license` · 좌석 반납 실패 경고 뒤) 코드 탓이 아니다 — 재실행 1회(권한이 없으면 다음 push 를 기다린다) · 계속되면 «주인 콘솔 에러 보고함» 에 «유니티 라이선스 좌석» 한 줄 · lock 은 쥔 채 종료.
 - 작업이 끝나면 lock 삭제 → PROGRESS 갱신 → 커밋 → push. **lock 만 잡는 커밋·문서만 바꾼 커밋은 제목 끝에 `[skip ci]`**. 커밋 메시지 **본문**에 그 표식을 인용하지 마라(GitHub 은 인용과 지시를 안 가린다).
 - 브랜치는 `main` 하나다. 커밋 작성자는 `git -c user.name=kuzuni -c user.email=<그 계정의 이메일>`. 커밋 제목은 `T<번호> <무엇> (sess-… · 워커 X)` 꼴 — `check_claim_scope` 가 그 번호로 커밋을 센다.
-- 문자열 `StartsWith`·`EndsWith`·`IndexOf(string)`·`Contains(string)`·`Compare` 에는 **`StringComparison.Ordinal`** 을 준다 — 문화권 비교는 유니티(Mono)와 dotnet(ICU)이 다르게 답한다(이모지 접두가 Mono 에선 항상 true · T34 실측). dotnet 초록이 유니티 초록을 보장하지 않는 자리다.
+- 문자열 `StartsWith`·`EndsWith`·`IndexOf(string)`·`Contains(string)`·`Compare` 에는 **`StringComparison.Ordinal`** 을 준다 — 문화권 비교는 유니티(Mono)와 dotnet(ICU)이 다르게 답한다(이모지 접두가 Mono 에선 항상 true · T36 실측). dotnet 초록이 유니티 초록을 보장하지 않는 자리다.
 - 한 줄에 문장이 여럿인 코드 줄 끝에 `// 주석` 을 붙이지 않는다(뒤 문장이 주석이 된다 · dotnet 은 못 잡는다).
 - 글자 크기·색을 코드에 숫자로 박지 않는다 — `UiKit`(T18)의 종류(`TextKind`)를 준다. 하한: 본문 40 · 버튼 44 · 보조 36 · 제목 60(원작 UI 가 9:16 세로 폰에서 읽히던 크기다).
 - **작업 완료 알림**: 작업 한 덩어리를 push 한 직후 ntfy(`CLAUDE.md`). 문구는 «무엇을 끝냈는지» 한 줄 + 커밋 7자리.
@@ -232,11 +232,11 @@
 - 정본은 지금 `SIMPLE_BG: true` 라 이 경로가 **화면에 없다**(T9 메모). 주인이 «배경 아예 단순» 실험(2026-08-21)을 되돌리면 그때 켠다 — 그 전에는 뒤 순서가 안 열린 것으로 본다(선점하지 않는다). `GroundGrid`(T9)는 `SimpleBg=false` 면 이미 높이·벽을 낸다.
 - 범위: `Assets/Scripts/Core/World/Props*.cs`·`Scatter*.cs`·`Ridge*.cs` · `Assets/Scripts/Game/World/Props*.cs`·`Scatter*.cs`·`Ridges*.cs`·`Sky*.cs` · `Assets/Tests/EditMode/PropsTests.cs` · `Assets/Tests/PlayMode/PropsSceneTests.cs`.
 
-### T34 — Unity(Mono) 에서만 빨간 EditMode 테스트: 문화권 비교 `StartsWith("🥚")` (검증 · 뒤 순서 없음)
+### T36 ⛔ — Unity(Mono) 에서만 빨간 EditMode 테스트: 문화권 비교 `StartsWith("🥚")` (검증 · 뒤 순서 없음)
 - 실측(2026-09-12 워커 M): CI 런 19(c0086ff) unity-test 가 EditMode 1개 실패 — `PetTests.tick_부화_완료_뒤에서부터_종_균등_옵션2_자동출전3_별`(PetTests.cs:360) «하나 더 #0 Expected True But was False». 같은 테스트가 dotnet 에서는 초록(런 19 dotnet 잡 303 통과).
 - 원인: `string.StartsWith(string)` 은 **현재 문화권 비교**다. 유니티(Mono 관리 collation)는 비BMP 이모지(🥚 = 서로게이트 쌍)를 무게 0 으로 봐 어느 문자열에도 true 를 주고, dotnet(ICU)은 제대로 false 를 준다. 그래서 기대값이 뒤집혀 실제 값(false)과 어긋났다.
 - 고침: PetTests 의 `StartsWith` 3곳(360 · 376 «새 펫: » · 411)에 `StringComparison.Ordinal`. §1 에 규칙 한 줄(문자열 접두·접미·포함 비교는 Ordinal).
-- 판정: 다음 main 런의 unity-test 초록(EditMode 실패 0) · PROGRESS 행.
+- ⛔ 흡수: 워커 H 가 34ad307(T16 수리)로 먼저 고쳤다 — 이 절이 남긴 것은 §1 규칙 한 줄.
 - 범위: `Assets/Tests/EditMode/PetTests.cs` · `docs/ROUTINE.md`(§1 한 줄).
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
