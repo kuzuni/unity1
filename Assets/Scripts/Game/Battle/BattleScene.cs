@@ -182,6 +182,7 @@ namespace Forge.Game.Battle
         {
             var ctx = new BattleContext(data.Defs, defs) { HeroStats = stats, WeaponType = "sword" };
             ctx.EnemyHalfW = id => Instance != null ? Instance.HalfWOf(id) : BattleRules.DefaultEnemyHalfW;
+            BattleSaveGlue.Fill(ctx);   // T55 — 세이브의 처치·재화·진행·첫 클리어·무기 종을 싣고 saveGame 훅·던전 모듈을 잇는다(원작 Combat.start 이 S 를 읽는 자리)
             return new Forge.Core.Battle.Battle(ctx, Rng.Mulberry(seed));
         }
 
