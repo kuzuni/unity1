@@ -27,6 +27,8 @@ namespace Forge.Core.Data
 
         public bool Has(string key) { return _map.ContainsKey(key); }
         public bool TryGet(string key, out object value) { return _map.TryGetValue(key, out value); }
+        /// <summary>JS `delete obj[key]` — 세이브 로드가 폐기 칸(inventory·heldCrafts·activeMount)을 지운다(T13).</summary>
+        public bool Remove(string key) { if (!_map.Remove(key)) return false; _keys.Remove(key); return true; }
 
         public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {

@@ -17,6 +17,12 @@
 //   mobs-props.json   Props          — 소품은 표가 아니라 **생성 함수**(`Props.pine(s,o)` … · Math.random)라
 //                     함수 이름 목록(kinds) + 결정론 시드로 뽑은 **표본**(samples) 을 낸다. T9 가 생성기를
 //                     C# 으로 옮길 때 같은 시드·같은 인자로 같은 칸 목록이 나오는지 대조하는 고정 표본이다.
+//   state.json       state.js 의 최상위 const(세이브 키 · 오프라인 수급률·캡 · 난이도 티어 이름 · 사이클/챕터 길이 ·
+//                     형태 보정 키 목록) + `DEFAULT_STATE` = `defaultState()` 를 **평가한 값**(시각 칸 createdAt·lastSeen·
+//                     lastOfflineClaim 은 `U.now` 를 0 으로 두고 뽑는다 — 결정론 · 유니티가 만들 때 현재 시각을 넣는다)
+//                     + `MODULE_CAPS` = state.js 가 다른 모듈에서 읽는 상한(`Pets.MAX_ACTIVE` · `Skills.MAX_ACTIVE` ·
+//                     `Mounts.MAX_ACTIVE_MOUNTS` · `Forge.MAX_LEVEL`) — 키가 곧 원작 식이다. T13 세이브가 쓴다.
+//                     ⚠ state.js 는 `window` 를 만지므로(캡처 하네스용 접근자) **별도 컨텍스트**(window = 자기 자신)에 올린다.
 //
 // 값 규약: 색은 원작 그대로 0xRRGGBB 정수(JSON 에서는 십진 정수). `paint` 규칙의 음수 인덱스·`mx` 거울은
 // 풀지 않고 그대로 둔다 — 그것을 푸는 것은 원작 `Mobs.build` 의 몫이고 유니티에서는 T4 `VoxelMob` 이 한다.
@@ -97,6 +103,48 @@ function loadAll(src) {
         vm.runInContext(code, ctx, { filename: f });
     }
     return { ctx, sources };
+}
+
+// state.json 용 두 번째 컨텍스트 — index.html 순서 중 state.js 와 그것이 로드 시점·defaultState() 에서 읽는 파일만.
+// (icongen.js 는 DEFAULT_AVATAR · gamedata.js 는 CHAPTER_THEMES · 뒤 넷은 MODULE_CAPS 의 상한 값)
+const STATE_LOAD_ORDER = [
+    'bignum.js', 'util.js', 'icongen.js', 'balance-data.js', 'gamedata.js',
+    'state.js', 'forge.js', 'pets.js', 'skills.js', 'mounts.js',
+];
+// state.js 가 다른 모듈에서 읽는 상한 — 키는 원작 식 그대로(어디서 온 수인지 JSON 만 보고 알게).
+const MODULE_CAPS = ['Pets.MAX_ACTIVE', 'Skills.MAX_ACTIVE', 'Mounts.MAX_ACTIVE_MOUNTS', 'Forge.MAX_LEVEL'];
+
+function loadState(src) {
+    const webjs = path.join(src, 'web', 'js');
+    const sandbox = { console };
+    sandbox.window = sandbox;   // state.js: Object.defineProperty(window, 'S', …)
+    vm.createContext(sandbox);
+    let stateCode = '';
+    for (const f of STATE_LOAD_ORDER) {
+        const code = fs.readFileSync(path.join(webjs, f), 'utf8');
+        if (f === 'state.js') stateCode = code;
+        vm.runInContext(code, sandbox, { filename: f });
+    }
+    return { ctx: sandbox, stateCode };
+}
+
+// state.json — 최상위 const(함수·`S` 제외) + DEFAULT_STATE + MODULE_CAPS.
+function extractState(src) {
+    const { ctx, stateCode } = loadState(src);
+    const out = pickTopLevel(ctx, stateCode, 'state.js');
+    delete out.S;   // `let S = null` — 살아 있는 상태 자리표지 표가 아니다
+    // 시각 칸을 0 으로 고정해 뽑는다(U.now 는 Date.now). 유니티 SaveDefs.DefaultState(now) 가 그 셋을 채운다.
+    out.DEFAULT_STATE = vm.runInContext(
+        '(() => { const realNow = U.now; U.now = () => 0; try { return defaultState(); } finally { U.now = realNow; } })()',
+        ctx, { filename: 'state.js#defaultState' });
+    const caps = {};
+    for (const expr of MODULE_CAPS) {
+        const v = vm.runInContext(expr, ctx, { filename: 'state.js#caps' });
+        if (typeof v !== 'number') throw new Error(`MODULE_CAPS ${expr}: 수가 아니다(${typeof v}) — 정본의 상한 이름이 바뀌었다`);
+        caps[expr] = v;
+    }
+    out.MODULE_CAPS = caps;
+    return clean(out, 'state');
 }
 
 // 최상위 `const|let|var NAME =` 이름 — 같은 컨텍스트의 스크립트 스코프에 살아 있어 이름으로 꺼낼 수 있다.
@@ -236,6 +284,7 @@ function extract(src) {
         'mobs-enemies.json': clean(need('ENEMY_MODELS'), 'ENEMY_MODELS'),
         'mobs-skillfx.json': clean(need('SKILLFX_MODELS'), 'SKILLFX_MODELS'),
         'mobs-props.json': sampleProps(ctx),
+        'state.json': extractState(src),
     };
     const text = {};
     for (const k of Object.keys(files)) text[k] = serialize(files[k]);
@@ -312,6 +361,17 @@ function selfTest(src) {
     ok('CHAPTER_THEMES ≥ 10', Array.isArray(g.CHAPTER_THEMES) && g.CHAPTER_THEMES.length >= 10, g.CHAPTER_THEMES && g.CHAPTER_THEMES.length);
     ok('함수 이름은 안 들어감', !('accNames' in g) && !('weaponsOfAge' in g));
 
+    console.log('[세이브 정의]');
+    const st = files['state.json'];
+    ok('SAVE_KEY 문자열', typeof st.SAVE_KEY === 'string' && st.SAVE_KEY.length > 0, st.SAVE_KEY);
+    ok('OFFLINE 셋(캡 초 · 코인/초 · 해머/분) 양수', [st.OFFLINE_CAP_SEC, st.OFFLINE_COIN_PER_SEC, st.OFFLINE_HAMMER_PER_MIN].every(x => typeof x === 'number' && x > 0), `${st.OFFLINE_CAP_SEC}/${st.OFFLINE_COIN_PER_SEC}/${st.OFFLINE_HAMMER_PER_MIN}`);
+    ok('CHAPTERS_PER_CYCLE = CHAPTER_THEMES 길이', st.CHAPTERS_PER_CYCLE === g.CHAPTER_THEMES.length, st.CHAPTERS_PER_CYCLE);
+    ok('DIFFICULTY_NAMES 길이 = MAX_DIFFICULTY+1 · STAGES_PER_CHAPTER 양수', Array.isArray(st.DIFFICULTY_NAMES) && st.DIFFICULTY_NAMES.length === st.MAX_DIFFICULTY + 1 && st.STAGES_PER_CHAPTER > 0, `${st.DIFFICULTY_NAMES.length}/${st.STAGES_PER_CHAPTER}`);
+    ok('STATE_SHAPE_KEYS·STATE_MIN_ONE_KEYS 가 DEFAULT_STATE 의 키', [...st.STATE_SHAPE_KEYS, ...st.STATE_MIN_ONE_KEYS].every(k => k in st.DEFAULT_STATE));
+    ok('DEFAULT_STATE 시각 칸 0 · version 1 · 시작 알 1개 · 시작 스킬 강타', st.DEFAULT_STATE.createdAt === 0 && st.DEFAULT_STATE.lastSeen === 0 && st.DEFAULT_STATE.lastOfflineClaim === 0 && st.DEFAULT_STATE.version === 1 && st.DEFAULT_STATE.eggs.length === 1 && st.DEFAULT_STATE.equippedSkills[0] === 'powerStrike', cnt(st.DEFAULT_STATE) + '키');
+    ok('DEFAULT_STATE 에 activeMount 접근자가 안 실림(세이브와 같은 규약)', !('activeMount' in st.DEFAULT_STATE));
+    ok('MODULE_CAPS 4개 수 · Forge.MAX_LEVEL = forgeProbabilities 행 수', MODULE_CAPS.every(k => typeof st.MODULE_CAPS[k] === 'number') && st.MODULE_CAPS['Forge.MAX_LEVEL'] === cnt(b.forgeProbabilities), JSON.stringify(st.MODULE_CAPS));
+
     console.log('[결정론]');
     const again = extract(src).text;
     ok('두 번 뽑아도 바이트 동일', Object.keys(text).every(k => text[k] === again[k]));
@@ -344,4 +404,4 @@ function main(argv) {
 }
 
 if (require.main === module) process.exit(main(process.argv.slice(2)));
-module.exports = { extract, serialize, selfTest, LOAD_ORDER, SEED };
+module.exports = { extract, serialize, selfTest, LOAD_ORDER, STATE_LOAD_ORDER, SEED };

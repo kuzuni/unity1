@@ -119,10 +119,10 @@
 - 이펙트 «빛 덩어리» 로 되돌리지 않는다(주인 지시). Core 스킬 판정(T17)과 시각의 타격 시각을 맞춘다.
 - 범위: `Assets/Scripts/Game/SkillFx/` · `Assets/Tests/PlayMode/SkillFxTests.cs`.
 
-### T13 — 세이브·오프라인: JSON 세이브(persistentDataPath) · 30초 자동 · 절대시각 타이머 · 오프라인 보상 (Core+Game · T3 뒤)
+### T13 ✅ — 세이브·오프라인: JSON 세이브(persistentDataPath) · 30초 자동 · 절대시각 타이머 · 오프라인 보상 (Core+Game · T3 뒤)
 - 정본: `state.js`(스키마 · 마이그레이션 · 오프라인 수급률 코인 1/초 · 해머 1/분 · 캡 4시간) · `main.js` 의 저장 시점.
 - Core `SaveData`+`Offline` 순수 계산 · Game `SaveIo`. EditMode: 오프라인 4시간 캡 · 타이머가 절대시각으로 이어지는가.
-- 범위: `Assets/Scripts/Core/Save/` · `Assets/Scripts/Game/SaveIo.cs` · `Assets/Tests/EditMode/SaveTests.cs`.
+- 범위: `Assets/Scripts/Core/Save/` · `Assets/Scripts/Game/SaveIo.cs` · `Assets/Tests/EditMode/SaveTests.cs` · `tools/export_data.js`·`tools/check_data_sync.sh`(state.json 추출 갈래) · `Assets/StreamingAssets/data/state.json`(추출기로만 · 결정 22) · `Assets/Scripts/Core/Data/MiniJson.cs`(`JsonObject.Remove` 한 줄).
 
 ### T14 ✅ — Core 대장간: 업그레이드 비용·시간(Lv1~35) · 시대 티어 확률(10시대) · 젬 스킵 · 오토 포지 (Core · T3 뒤)
 - 정본: `forge.js` · `balance-data.js`(`forgeProbabilities` 등). 확률표 합 = 100 단언 · 원작 함수와 같은 입력 → 같은 결과(시드 고정) 표 테스트.
