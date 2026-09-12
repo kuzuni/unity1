@@ -488,6 +488,11 @@
 - 무엇을 한다: 머리 판을 어두운 색으로(카탈로그에 `#0e111b` 에 가까운 키가 없으면 키 하나 추가 — `catalog.json` 은 **T62 lock 이 풀린 뒤** · 그 전엔 `pp_ink`(#17181a)로 먼저) + 글자 색을 정본대로(흰 · #ccc · 초록) · 요율 칸을 세로 배치로 · 수집 버튼에 빨간 점. 수치는 `catalog.json`/`PopupKit` 에서(§1).
 - 판정: `ui_score --score` 의 `offline` 점수가 오르고(3.7 → 8.0 목표) + PNG 눈 확인(위 절반이 어둡다 · 요율이 아이콘 아래) + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/OfflinePopup.cs` · `Assets/Forge/catalog.json`(색 키 하나 · T62 뒤) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
+### T69 — 자: §7 표에 **이름이 없는** 작업을 잡는다 — 지금 17개가 빠져 T33 의 완주 판정이 그 위를 지나간다 (검증 · 뒤 순서 없음 · T33 이 이 자를 쓴다)
+- 왜: `check_final_table.py`(T49)는 §7 «상태» 칸에 **적혀 있는** 번호의 표시만 PROGRESS 와 맞춰 본다 — «PROGRESS 에 있는 작업이 §7 어딘가에 적혀 있는가» 는 아무도 안 본다. 실측(2026-09-12 23:33 · 워커 K): PROGRESS 작업 67개 중 **17개가 §7 에 이름조차 없다** — 그중 `ui.js` 줄에 들어가야 할 **T62·T63·T65**, `scene3d.js` 줄의 **T54**, 품질 줄의 **T50·T64**, 그리고 `T66`(던전 라벨)이 게임 쪽이다. §7 은 주인이 정한 «다 옮겨졌다» 의 기준이고 T33 이 «§7 전 줄 ✅» 로 완주를 선언하므로, 빠진 작업은 **열린 채로 완주 선언을 통과한다**.
+- 방법: ⓐ `check_final_table.py` 에 «미등재» 갈래 — PROGRESS 표의 번호 중 §7 본문 어디에도 안 나오는 것을 찍고 rc 1. 원작 모듈에 안 붙는 **도구·게이트·CI 작업**은 §7 에 그 줄을 하나 두어(«원작 밖 · 도구·게이트·CI») 거기 적는다 — 코드 안 예외 목록을 만들지 않는다(목록은 낡는다). ⓑ 지금 빠진 17개를 제 줄에 채운다. ⓒ `--self-test` 에 «§7 에 없는 번호가 있으면 rc 1» 칸.
+- 판정: `check_final_table.py` rc 0(채운 뒤) · `--self-test` 초록 · 빠진 번호 0.
+- 범위: `tools/check_final_table.py` · `docs/ROUTINE.md`(§7 표) · `docs/PROGRESS.md`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
