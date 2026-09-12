@@ -169,7 +169,7 @@
 - 범위: `Assets/Scripts/Game/Ui/Shop*` · `Ui/Pass*` · `Ui/Quest*` · `Ui/League*` · `Ui/Chat*` · `Ui/Settings*` · `Assets/Tests/PlayMode/ShopUiTests.cs`.
 
 ### T23 — Core 던전 4종: 입장·소탕·보상 (Core · T7 뒤)
-- 정본: `dungeons.js`. 범위: `Assets/Scripts/Core/Dungeons/` · `Assets/Tests/EditMode/DungeonTests.cs`.
+- 정본: `dungeons.js`. 범위: `Assets/Scripts/Core/Dungeons/` · `Assets/Tests/EditMode/DungeonTests.cs` · `Assets/Tests/EditMode/Vectors/t23-dungeons.json`(정본 실행 벡터) · `tools/dungeon_vectors.js`(벡터 생성기 · 정본을 node vm 에 올린다).
 
 ### T24 ✅ — Core 기술트리 · 승천 (Core · T3 뒤)
 - 정본: `techtree.js` · `ascension.js`. 범위: `Assets/Scripts/Core/Tech/` · `Core/Ascension/` · `Assets/Tests/EditMode/TechTests.cs` · `tools/export_data.js`(표 칸 추출 갈래 `TECH_FIELDS`) · `tools/check_data_sync.sh` · `Assets/StreamingAssets/data/tech.json`.
