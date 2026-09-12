@@ -200,13 +200,27 @@ jobs:
           githubToken: ''
       # 잡 로그는 MCP/웹에서 **꼬리 5000줄**만 보인다 — PlayMode XML 앞부분(B~S 픽스처)이 잘려 «어느 테스트가 빨간가» 를 못 읽고, 아티팩트 zip 은
       # 컨테이너 프록시가 막는다(T8 실측 2026-09-12 · 런 35·38). 끝에 총계·픽스처별 결과·실패 테스트 이름을 한 번 더 짧게 찍는다.
-      - name: 테스트 결과 요약 (test-run 총계 · 픽스처 · 실패 테스트 이름 · 실패 메시지 첫 6줄)
+      - name: 테스트 결과 요약 (test-run 총계 · 픽스처 · 실패 테스트 이름 · 실패 메시지 첫 6줄 · 모드 XML 부재)
+        id: summary
         if: always()
         run: |
           python3 - <<'PY'
           import glob, os, re
           files = sorted(glob.glob('unity-test-results/**/*.xml', recursive=True))
           if not files: print('::warning::unity-test-results/*.xml 이 없다 — 러너가 테스트를 못 돌렸다')
+          # T67 — 한쪽 모드만 죽으면 아무도 못 봤다(런 94: EditMode 505 초록 · playmode-results.xml 없음 · PNG 0장).
+          # «테스트 0개는 빨간 테스트보다 나쁘다»(ROUTINE §1) — 모드마다 결과 XML 이 있는지 이름으로 말한다.
+          have = set(os.path.basename(f) for f in files)
+          missing = [m for m in ('editmode-results.xml', 'playmode-results.xml') if m not in have]
+          for m in missing:
+              print('::error::' + m + ' 이 없다 — 그 모드는 이 런에서 **한 개도** 안 돌았다(테스트 0개). '
+                    '코드 빨강이 아니라 러너가 죽은 것일 수 있다: 잡 로그에서 '
+                    '«Failed to return the Personal license seat» · «no available seats» · «Unable to activate license» 를 먼저 찾아라 '
+                    '(ROUTINE §1 «라이선스 좌석» 갈래 — 그때는 재실행 1회 · 계속되면 주인에게 보고 · lock 은 쥔 채).')
+          gh = os.environ.get('GITHUB_OUTPUT')
+          if gh:
+              with open(gh, 'a', encoding='utf-8') as fh:
+                  fh.write('missing=' + ','.join(missing) + '\n')
           for f in files:
               s = open(f, encoding='utf-8', errors='replace').read()
               m = re.search(r'<test-run [^>]*?total="(\d+)" passed="(\d+)" failed="(\d+)"', s)
@@ -240,6 +254,15 @@ jobs:
         run: |
           sudo chown -R "$(id -u):$(id -g)" ui-screens 2>/dev/null || true
           mkdir -p ui-screens
+          # T67 — 모드 XML 이 없는 런의 playmode-red.txt 는 «돈 모드» 것뿐이라 꼬리(«런 끝: 초록 N · 빨강 0»)만 보면
+          #       다음 회차 워커가 «내 커밋이 든 런은 돌았다» 로 읽는다. 머리에 한 줄을 박아 screens 로도 보이게 한다.
+          miss="${{ steps.summary.outputs.missing }}"
+          if [ -n "$miss" ]; then
+            { printf '# ⚠ 이 런(#%s · %s)에는 모드 결과 XML 이 없다: %s — 그 모드는 한 개도 안 돌았다(테스트 0개 · ROUTINE §1).\n' "$GITHUB_RUN_NUMBER" "$GITHUB_SHA" "$miss"
+              printf '#   아래 줄은 «돈 모드» 것뿐이다. 잡 로그에서 «Failed to return the Personal license seat» · «no available seats» · «Unable to activate license» 를 먼저 보라(T67).\n'
+              cat ui-screens/playmode-red.txt 2>/dev/null || true
+            } > ui-screens/.red.tmp && mv ui-screens/.red.tmp ui-screens/playmode-red.txt
+          fi
           n=$(ls ui-screens/*.png 2>/dev/null | wc -l)
           carried=0
           if [ "$n" = "0" ] && git fetch --depth 1 origin screens 2>/dev/null; then
@@ -250,8 +273,8 @@ jobs:
           any=$(ls -A ui-screens 2>/dev/null | grep -cv '^meta[.]json$' || true)
           echo "count=$n" >> "$GITHUB_OUTPUT"
           echo "any=$any" >> "$GITHUB_OUTPUT"
-          printf '{"sha":"%s","run":%s,"tests":"%s","shots":%s,"carried":%s}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$n" "$carried" > ui-screens/meta.json
-          echo "::notice::screens — 이 런의 PNG ${n}장 · 이어받은 PNG ${carried}장 · 올릴 파일 ${any}개"
+          printf '{"sha":"%s","run":%s,"tests":"%s","shots":%s,"carried":%s,"missing_modes":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$n" "$carried" "$miss" > ui-screens/meta.json
+          echo "::notice::screens — 이 런의 PNG ${n}장 · 이어받은 PNG ${carried}장 · 올릴 파일 ${any}개 · 없는 모드 XML «${miss:-없음}»"
       - name: screens 브랜치 배포
         if: ${{ !cancelled() && github.ref == 'refs/heads/main' && steps.shots.outputs.any != '0' }}
         uses: peaceiris/actions-gh-pages@v4
