@@ -79,10 +79,10 @@
 - EditMode(순수 계산은 Core 로 뺀다: `VoxelGeometry` — 칸 목록 → 정점/색/인덱스 배열): 6면 박스 1칸 = 24정점 · paint 의 음수 인덱스·mx 거울 · 재질 키 병합.
 - 범위: `Assets/Scripts/Core/Voxel/` · `Assets/Scripts/Game/Voxel/` · `Assets/Tests/EditMode/VoxelTests.cs`.
 
-### T5 — 몹 도감 씬 + 시트 촬영: 펫 25 · 탈것 29 · 적 7 · 소품 · 스킬 오브젝트 전부 세워 본다 (Game·검증 · T4 뒤)
+### T5 ✅ — 몹 도감 씬 + 시트 촬영: 펫 25 · 탈것 29 · 적 7 · 소품 · 스킬 오브젝트 전부 세워 본다 (Game·검증 · T4 뒤)
 - `MobGallery` 씬(또는 PlayMode 테스트가 세운다): JSON 의 모든 종을 격자로 세우고 **예외 0 · 파츠 수 = 표 파츠 수 · 바운딩 높이 = cell × 표 높이(±1칸)** 를 단언. 카메라 각은 원작 `web/tools/shot-mobs.js` 와 같게(정면 3/4 · 위에서 20°).
 - PlayMode 테스트가 `ui-screens/mobs_pets.png`·`mobs_mounts.png`·`mobs_enemies.png`·`mobs_props.png`·`mobs_skillfx.png` 를 남긴다 → CI 가 `screens` 브랜치로 올린다(§5). 주인이 원작 시트와 나란히 본다.
-- 범위: `Assets/Scripts/Game/Gallery/` · `Assets/Tests/PlayMode/MobGalleryTests.cs`.
+- 범위: `Assets/Scripts/Game/Gallery/`(GalleryData.cs · MobGallery.cs · GalleryProps.cs · GallerySheet.cs · MobGalleryScene.cs) · `Assets/Tests/PlayMode/MobGalleryTests.cs` · `Assets/Tests/PlayMode/Vectors/t5-bounds.json` · `tools/gallery_vectors.js`(정본 경계 상자 벡터).
 
 ### T6 — 영웅: 박스 모델 캐릭터 + 무기 파지 + 대기/걷기/근접 스윙 애니 (Game · T4 뒤)
 - 정본: `web/js/prochar.js`(머리·몸통·팔·다리 파츠 · 어깨 rx 한계 [−2.95, 2.35] · 근접 클립 = 예비동작/감기/정지/가속 타격/오버슈트/느린 회복 + 엉덩이·무릎) · `scene3d.js` 의 `applyWeaponGrip`(어깨 뼈 · anchorY = −(limbH − MC_GRIP_PULL) · `MC_CARRY_X` · 칼날 세우기 · `RANGED_SHAPES` 제외) · `WEAPON_GRIP` 표.
