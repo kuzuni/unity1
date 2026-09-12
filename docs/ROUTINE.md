@@ -225,7 +225,7 @@ node tools/export_data.js --self-test                                         # 
 | **계정 1** | `kimmoon2007@gmail.com` (표시명 «김문») | `b7a233c8-…` | `env_014bNYWJnnxgzqfDN9JPBD6p` | A · B · C · D | :05 :20 :35 :50 |
 | 계정 2 | (미정 — 붙일 때 적는다) | — | — | E · F · G · H | :12 :27 :42 :57 |
 | 계정 3 | (미정) | — | — | I · J · K · L · Q | :02 :17 :32 :47 · Q 짝수시 :00 |
-| 계정 4 | (미정) | — | — | M · N · O · P | :09 :24 :39 :54 |
+| **계정 4** | `kimmoon1995@gmail.com` (표시명 «김문») | `3814117c-…` | `env_016Xis527zoBbZPqrtAZVQ6x` | M · N · O · P | :09 :24 :39 :54 |
 
 - 새 계정을 붙이는 세션은 **이 표의 빈 줄을 먼저 채우고**(이메일·uuid·env) 그 줄의 워커 글자·슬롯을 쓴다. 같은 이메일이 이미 있으면 그 계정이다 — 새 줄을 만들지 않는다.
 - 이메일이 표에 없고 빈 줄도 없으면 루틴을 만들지 않고 «계정 표가 찼다» 로 보고한다.
@@ -266,10 +266,10 @@ node tools/export_data.js --self-test                                         # 
 | K | :32 | — | 계정 3 | — | 미등록 |
 | L | :47 | — | 계정 3 | — | 미등록 |
 | Q | 짝수시 :00 | — | 계정 3 | — | 검수 · 미등록 |
-| M | :09 | — | 계정 4 | — | 미등록 |
-| N | :24 | — | 계정 4 | — | 미등록 |
-| O | :39 | — | 계정 4 | — | 미등록 |
-| P | :54 | — | 계정 4 | — | 미등록 |
+| M | :09 | `trig_01MdzGfq8mEdrutbMPDEygV9` | 계정 4 | 2026-09-12 18:09 UTC 예정 · 세션 https://claude.ai/code/session_01Ntvg8qcH25hBHUm2QGumic · 루틴 https://claude.ai/code/routines/trig_01MdzGfq8mEdrutbMPDEygV9 | 2026-09-12 17:55 UTC 생성(계정 4 세션 · create_session + create_trigger · persistent_session 바인딩 = 대화창 하나 · outcome 브랜치 main) · `claude-fable-5-1` · env `env_016Xis527zoBbZPqrtAZVQ6x` · enabled |
+| N | :24 | `trig_01USZtkfikmcHyBWLPZ12FDZ` | 계정 4 | 2026-09-12 18:24 UTC 예정 · 세션 https://claude.ai/code/session_01BXsjJmqjNnZpFdUJQsyBtD · 루틴 https://claude.ai/code/routines/trig_01USZtkfikmcHyBWLPZ12FDZ | 2026-09-12 17:55 UTC 생성(계정 4 세션 · create_session + create_trigger · persistent_session 바인딩 = 대화창 하나 · outcome 브랜치 main) · `claude-fable-5-1` · env `env_016Xis527zoBbZPqrtAZVQ6x` · enabled |
+| O | :39 | `trig_01UKii64CLP1z2ayvgQwTWtP` | 계정 4 | 2026-09-12 18:39 UTC 예정 · 세션 https://claude.ai/code/session_011szphzNiAkiJvfnHF6BaNM · 루틴 https://claude.ai/code/routines/trig_01UKii64CLP1z2ayvgQwTWtP | 2026-09-12 17:55 UTC 생성(계정 4 세션 · create_session + create_trigger · persistent_session 바인딩 = 대화창 하나 · outcome 브랜치 main) · `claude-fable-5-1` · env `env_016Xis527zoBbZPqrtAZVQ6x` · enabled |
+| P | :54 | `trig_01G6BEu4XYkm4bRHKNyD4vVR` | 계정 4 | 2026-09-12 18:54 UTC 예정 · 세션 https://claude.ai/code/session_01KrYt1SMJHj1swZGrVGfiZV · 루틴 https://claude.ai/code/routines/trig_01G6BEu4XYkm4bRHKNyD4vVR | 2026-09-12 17:55 UTC 생성(계정 4 세션 · create_session + create_trigger · persistent_session 바인딩 = 대화창 하나 · outcome 브랜치 main) · `claude-fable-5-1` · env `env_016Xis527zoBbZPqrtAZVQ6x` · enabled |
 
 > ⚠ 이 루틴들은 MCP 커넥터 없이 뜬다(create_trigger 가 커넥터를 못 싣는다). 그래서 워커 세션에는 **GitHub MCP 가 없다** — `actions_run_trigger` 로 ntfy 를 못 쏜다. 알림은 Secret `NTFY_TOPIC` 을 넣어 **CI 완료 자동 알림**(`ntfy-notify.yml` workflow_run)으로 받는다. git push 는 프록시가 unity1 을 소스로 쥐고 있어 된다.
 
