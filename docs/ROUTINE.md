@@ -458,12 +458,12 @@
 - 범위: `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Assets/Forge/Resources/PlayerInfoUi.json`(새 · T20 `PetSkillUi.json` 꼴 · `catalog.json` 은 T62 lock 이 쥐고 있어 이 회차엔 안 연다 — T33 이 합칠 수 있다) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
 
 - ✅ 2026-09-12 워커 O(sess-2140-18689): 풀 넷(숫자 TMP 되쓰기 + 알파는 CanvasRenderer · 임팩트 슬롯+재질 조합 풀+세대 토큰 · 파편 P/궤적 Pt/FxAnims 항목) · Core 틱 버퍼 · 자를 계수기 «GC Allocated In Frame» 으로. 실측(런 78~90): 풀은 돈다(숫자 126→글자 오브젝트 24 · 임팩트 슬롯 68) · 전부 ≈1MB 중 **렌더 몫 878KB(81%)** · 렌더 끔 200KB(러너 바닥 107~361KB 포함) → 판정은 `GcNoRenderCap`(640KB) · 렌더 몫은 **T64** 로.
-### T66 — 던전 입장 뒤 스테이지 라벨이 한 프레임 만에 본대 라벨(«쉬움 1-1»)로 되돌아간다: `DungeonUiTests` 1/4 빨강 (검증·Core · 뒤 순서 없음 · 임자 없는 빨강)
-- 무엇: 런 90(8aade87) `DungeonUiTests.던전_상세는_난이도_보상_열쇠를_보이고_입장하면_판이_선다` — «스테이지 라벨이 던전을 가리킨다 · Expected "망치 도둑" · But was "쉬움 1-1"». T21 은 ✅ 이고 lock 이 없다(§0-6).
-- 왜: 정본 `combat.js:113` `setupStage()` 는 끝에 `UI.updateStageLabel()` 을 부르고 그 함수(`ui.js:1313`)는 **`Dungeons.run` 이면 «{아이콘} {kr} {stage}단계», 아니면 본대 라벨**이다. 유니티 Core `Battle.SetupStage`(T7) 는 `Emit(StageLabel, _c.Progress.StageName())` 을 **던전 문맥에서도** 낸다. T55(3a8110e) 가 `Dungeons.Attach(battle)` 로 던전 입장·복원이 `Battle.SetupStage` 를 직접 밀게 하자, `DungeonDetailPopup.Enter` → `DungeonSheet.UpdateStageLabel`(«망치 도둑 1단계» · 같은 프레임) 뒤 다음 프레임 `BattleScene.Drain` 이 그 이벤트로 HUD 를 «쉬움 1-1» 로 덮는다. T55 이전에는 던전이 전투에 안 꽂혀 있어 조용했다.
-- 무엇을 한다: `Battle.SetupStage` 의 라벨 방출을 정본대로 **본대일 때만**(`_c.Dungeon == null`) — 던전 갈래의 라벨은 이미 `Dungeons.SetupStage → Emit(DungeonEventKind.SetupStage) → DungeonSheet.UpdateStageLabel` 이 쥔다(정본 `updateStageLabel` 의 던전 갈래). `LeaveDungeon`·`OnDefeat` 의 라벨은 이미 `Dungeon == null` 뒤라 그대로. EditMode 단언 하나: 던전 문맥의 `SetupStage` 는 `StageLabel` 을 안 내고 본대 문맥은 낸다.
-- 판정: `dotnet test` 초록 + CI 유니티 잡에서 `DungeonUiTests` 4/4 초록(`screens:playmode-red.txt`) + 콘솔 빨강 0. 라벨 글자는 CI 글꼴이 □ 라 PNG 로는 못 본다(T53) — 단언으로 판정.
-- 범위: `Assets/Scripts/Core/Battle/Battle.cs`(`SetupStage` 한 줄) · `Assets/Tests/EditMode/BattleTests.cs`.
+### T66 — 던전 입장 뒤 스테이지 라벨이 본대 라벨(«쉬움 1-1»)로 되돌아간다: `DungeonUiTests` 1/4 빨강 → **T55 2회차가 먼저 고쳐** 남은 몫 = T7 sim 대조가 던전 라벨을 센다 (검증·Core 대조 · 뒤 순서 없음 · 임자 없는 빨강으로 등재)
+- 무엇(처음): 런 90(8aade87) `DungeonUiTests.던전_상세는_난이도_보상_열쇠를_보이고_입장하면_판이_선다` — «Expected "망치 도둑" · But was "쉬움 1-1"». 정본 `combat.js:113` `setupStage()` 끝의 `UI.updateStageLabel()`(`ui.js:1313`)은 **`Dungeons.run` 이면 «{kr} {stage}단계»**, 아니면 본대 라벨인데 Core `Battle.SetupStage`(T7)는 던전 문맥에서도 본대 `StageName()` 을 냈고, T55(3a8110e) 의 `Dungeons.Attach` 뒤로 그 이벤트가 다음 프레임 HUD 의 던전 라벨을 덮었다.
+- 겹침: **T55 2회차(9014a39 · 워커 N)** 가 같은 회차에 같은 뿌리를 `DungeonRun.Label`(+ `SetupStage` 한 줄 · `Dungeons.BattleRun` 한 줄 · EditMode 1)로 먼저 고쳤다 — Core 쪽은 T55 절·기록을 본다(결정 152).
+- 남은 몫(T66): `tools/sim/sim_combat.js` 의 UI 스텁 `updateStageLabel` 이 던전에서도 `stageName()` 을 적어 `combat_dungeon_tier` 기대값이 «매우 어려움 24-8» 이었고, C# `SimScenario.Context` 는 `Label` 을 안 채워 폴백으로 우연히 같았다 → **던전 라벨이 빠져도 원작 대조가 초록**. 스텁을 `ui.js:1313` 대로(`Dungeons.run` 이면 `${kr} ${run.stage}단계` · 아이콘은 `<img>` 노드라 글자에 없다) 고치고 시나리오에 `kr`·해석값 `label` 을 넣어 `Context` 가 읽는다 · 기대 JSON 재생성(`dungeon_tier` 한 줄 · 다른 둘 diff 0).
+- 판정: `dotnet test` 507/507 + 고장 주입(`Context` 의 `Label` 읽기를 빼면 `원작_대조_던전_티어상승` 빨강) + CI dotnet 잡 초록. `DungeonUiTests` 4/4 는 N 의 커밋이 든 유니티 잡에서.
+- 범위: `tools/sim/sim_combat.js` · `tools/sim/expected/combat_dungeon_tier.json`(재생성) · `Assets/Tests/EditMode/BattleTests.cs`(`SimScenario.Context` 한 줄). Core 파일은 안 만진다(T55 lock 범위).
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

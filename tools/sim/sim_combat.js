@@ -72,7 +72,7 @@ const SCENARIOS = [
         weapon: 'stoneSpear', skills: [['execution', 5], ['apocalypse', 2], ['divineShield', 1], ['warCry', 4]],
         techSkillDmgMult: 1.3, progress: { chapter: 24, stage: 8, difficulty: 0 },
         // 던전 «침공» 3단계 · 3웨이브 — Dungeons.monsterHp 는 해금 챕터 6 기준(원작 식 55·5.6^(u-1)·1.35^(s-1)).
-        dungeon: { id: 'invasion', stage: 3, waves: 3, unlockChapter: 6, theme: 'dungeon_invasion' },
+        dungeon: { id: 'invasion', stage: 3, waves: 3, unlockChapter: 6, theme: 'dungeon_invasion', kr: '침략' },   // kr = 원작 dungeons.js DEFS — 스테이지 라벨용(T66)
         rounds: 100, maxTicks: 40000,
     },
 ];
@@ -139,7 +139,8 @@ function run(src, sc, dump) {
     S.equipment.weapon = { slot: 'weapon', wtype: sc.weapon };
     let dungeon = null;
     if (sc.dungeon) {
-        dungeon = Object.assign({}, sc.dungeon, { monsterHp: 55 * Math.pow(5.6, sc.dungeon.unlockChapter - 1) * Math.pow(1.35, sc.dungeon.stage - 1) });
+        // label = 원작 ui.js 1313 updateStageLabel 의 던전 갈래 «{kr} {stage}단계»(아이콘은 <img> 노드라 글자에 없다) — C# DungeonRun.Label 이 읽는다(T66).
+        dungeon = Object.assign({}, sc.dungeon, { monsterHp: 55 * Math.pow(5.6, sc.dungeon.unlockChapter - 1) * Math.pow(1.35, sc.dungeon.stage - 1), label: `${sc.dungeon.kr} ${sc.dungeon.stage}단계` });
         S.dungeonRun = { id: dungeon.id, stage: dungeon.stage, waves: dungeon.waves };
     }
 
@@ -163,7 +164,7 @@ function run(src, sc, dump) {
         Dungeons: {
             get run() { return S.dungeonRun || null; },
             DEFAULT_WAVES: 3,
-            def() { return { theme: dungeon ? dungeon.theme : 'none' }; },
+            def() { return { theme: dungeon ? dungeon.theme : 'none', kr: dungeon ? dungeon.kr : '' }; },
             monsterHp() { return dungeon.monsterHp; },
             onClear() { S.dungeonRun = null; emit('dungeonClear'); },
             onFail() { S.dungeonRun = null; emit('dungeonFail'); },
@@ -191,7 +192,9 @@ function run(src, sc, dump) {
         },
         UI: {
             els: { passModal: { classList: { contains() { return true; } } } },
-            renderMenu() {}, updateStageLabel() { emit('stageLabel', 0, null, 0, false, vm.runInContext('stageName()', ctx)); },
+            renderMenu() {},
+            // 원작 ui.js 1313 updateStageLabel — Dungeons.run 이면 «{kr} {stage}단계», 아니면 본대 stageName() (T66 · 종전에는 던전에서도 stageName() 을 적어 C# 의 던전 라벨을 못 쟀다).
+            updateStageLabel() { const run = S.dungeonRun; emit('stageLabel', 0, null, 0, false, run ? `${dungeon.kr} ${run.stage}단계` : vm.runInContext('stageName()', ctx)); },
             updateWavePips(w) { emit('wavePips', 0, null, w); }, updateSkillBar() {}, renderTopBar() {}, renderPass() {},
             floatTextAtHero(text, cls) { emit('float', 0, null, 0, false, text); },
             floatLoot(text) { emit('loot', 0, null, 0, false, text); },

@@ -98,7 +98,7 @@ namespace Forge.Tests
             HeroStats hero = Hero(J.Obj(sc["hero"]));
             c.HeroStats = () => hero;
             JsonObject d = J.Obj(sc["dungeon"]);
-            if (d != null) c.Dungeon = new DungeonRun { Id = J.Str(d["id"]), Stage = J.Int(d["stage"]), Waves = J.Int(d["waves"]), MonsterHp = J.Num(d["monsterHp"]), Theme = J.Str(d["theme"]) };
+            if (d != null) c.Dungeon = new DungeonRun { Id = J.Str(d["id"]), Stage = J.Int(d["stage"]), Waves = J.Int(d["waves"]), MonsterHp = J.Num(d["monsterHp"]), Theme = J.Str(d["theme"]), Label = J.Str(d["label"]) };   // label: 정본 updateStageLabel 던전 갈래(T66) — 없으면 null → 진행 좌표
             return c;
         }
     }
