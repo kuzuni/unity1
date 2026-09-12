@@ -59,6 +59,24 @@ namespace Forge.Tests.PlayMode
             }
         }
 
+        private static RectTransform Find(string popupName, string objName)
+        {
+            Popup p = PopupLayer.Instance.Find(popupName);
+            Assert.IsNotNull(p, popupName + " 이 열려 있지 않다");
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == objName) return rt;
+            Assert.Fail(popupName + " 안에 «" + objName + "» 이 없다");
+            return null;
+        }
+
+        /// <summary>world 코너로 «보이는 칸(스크롤 뷰포트)» 사각형을 만든다.</summary>
+        private static Rect WorldRect(RectTransform rt)
+        {
+            Vector3[] c = new Vector3[4];
+            rt.GetWorldCorners(c);
+            return new Rect(c[0].x, c[0].y, c[2].x - c[0].x, c[2].y - c[0].y);
+        }
+
         private static Button FindButton(string popupName, string buttonName)
         {
             Popup p = PopupLayer.Instance.Find(popupName);
@@ -244,5 +262,42 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual("💎 데모 버전에서는 결제를 지원하지 않습니다", popups.LastToast);
             AssertTextGate();
         }
+        /// <summary>
+        /// T62 — «보석» 배너와 젬 카드 3장이 **스크롤하지 않고** 보이는 칸 안에 있는가(원작 shot-042632 은 배너 69.4%H · 카드 76.3%H 에 둘 다 화면 안이다).
+        /// 특가 카드가 정본 비율(15.28%H)보다 높으면 이 절이 탭바 아래로 밀려 화면에서 사라진다 — 그것이 T62 가 잡은 결함이다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 보석_절은_스크롤_없이_보이는_칸_안에_있다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            ShopSheet.Open(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+
+            Rect view = WorldRect(Find(ShopSheet.Name, "scroll"));
+            Rect banner = WorldRect(Find(ShopSheet.Name, "banner-보석"));
+            Assert.GreaterOrEqual(banner.yMin, view.yMin - 0.51f, "«보석» 배너가 보이는 칸 아래로 밀렸다 (배너 " + banner + " · 칸 " + view + ")");
+            Assert.LessOrEqual(banner.yMax, view.yMax + 0.51f, "«보석» 배너가 칸 위로 넘쳤다");
+
+            int gems = h.Meta.Shop.GemPacks.Count;
+            Assert.Greater(gems, 0, "정본 표에 젬 상품이 없다");
+            for (int i = 0; i < gems; i++)
+            {
+                Rect card = WorldRect(Find(ShopSheet.Name, "gem-" + i));
+                Assert.Less(card.yMax, view.yMax + 0.51f, "젬 카드 " + i + " 가 칸 위로 넘쳤다");
+                Assert.Greater(card.yMax, view.yMin, "젬 카드 " + i + " 가 보이는 칸 아래로 완전히 밀렸다 (카드 " + card + " · 칸 " + view + ")");
+                float hidden = view.yMin - card.yMin;
+                Assert.Less(hidden, card.height * 0.25f, "젬 카드 " + i + " 가 1/4 넘게 잘렸다 — 정본은 바닥만 탭바에 덮인다 (잘린 " + hidden + " / 높이 " + card.height + ")");
+            }
+
+            RectTransform deal = Find(ShopSheet.Name, "card");
+            Assert.AreEqual(UiKit.H("shop_deal_h"), deal.rect.height, 0.51f, "특가 카드 높이는 정본 .shop-deal-card min-height(15.28%H) 그대로여야 한다");
+            AssertTextGate();
+            ShopSheet.Close(h);
+            yield return null;
+        }
+
     }
 }

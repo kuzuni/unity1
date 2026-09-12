@@ -53,7 +53,7 @@ namespace Forge.Game.Ui
 
             // ---- 특가 카드 ----
             float cardX = UiKit.L("shop_banner_x") * w, cardW = UiKit.L("shop_banner_w") * w;
-            float cardH = UiKit.H("shop_deal_h") * 1.35f;
+            float cardH = UiKit.H("shop_deal_h");
             List<ShopDeal> deals = h.Meta.Shop.Deals;
             for (int i = 0; i < deals.Count; i++)
             {
@@ -65,9 +65,9 @@ namespace Forge.Game.Ui
                 PopupKit.Outlined(card, "face", "pp_paper", rem * 0.9f, PopupKit.Line3);
 
                 // 빨간 깃발 태그(카드 바깥선보다 왼쪽에서 시작 · 폭 고정)
-                float tagW = UiKit.L("shop_tag_w") * w, tagH = UiKit.H("shop_tag_h") * 1.5f;
+                float tagW = UiKit.L("shop_tag_w") * w, tagH = UiKit.H("shop_tag_h");
                 RectTransform tag = UiKit.Box(card, "tag");
-                UiKit.Place(tag, -w * 0.0121f, UiKit.H("shop_deal_gap"), tagW, tagH);
+                UiKit.Place(tag, -UiKit.L("shop_tag_left") * w, UiKit.H("shop_tag_top"), tagW, tagH);
                 UiKit.Panel(tag, "bg", "pp_red");
                 TextMeshProUGUI tagT = UiKit.Text(tag, "name", TextKind.Sub, d.Name, "stage_ink", TextAlignmentOptions.Left);
                 tagT.fontStyle = FontStyles.Bold;
@@ -75,13 +75,13 @@ namespace Forge.Game.Ui
                 PopupKit.Ring(tagT, "pp_line", 0.15f);
 
                 // 보상 pill 세로 나열
-                float pillW = UiKit.L("shop_pill_w") * w * 1.2f, pillH = UiKit.H("shop_pill_h") * 1.5f;
-                float py = tagH + UiKit.H("shop_deal_gap") * 2f;
+                float pillW = UiKit.L("shop_pill_w") * w, pillH = UiKit.H("shop_pill_h");
+                float py = UiKit.H("shop_deal_pad_top");
                 for (int r = 0; r < d.Reward.Count; r++)
                 {
                     string cur = d.Reward.KeyAt(r);
                     RectTransform pill = UiKit.Box(card, "pill-" + cur);
-                    UiKit.Place(pill, w * 0.0322f, py + r * (pillH + rem * 0.1f), pillW, pillH);
+                    UiKit.Place(pill, UiKit.L("shop_deal_pad_x") * w, py + r * (pillH + UiKit.H("shop_pill_gap")), pillW, pillH);
                     UiKit.Rounded(pill, "bg", "shop_pill", pillH * 0.5f);
                     Image ico = PopupKit.IconOr(pill, "ico", CurIcon(cur));
                     UiKit.Place(ico.rectTransform, rem * 0.3f, (pillH - pillH * 0.8f) * 0.5f, pillH * 0.8f, pillH * 0.8f);
@@ -93,28 +93,29 @@ namespace Forge.Game.Ui
                 // 상품 그림(우상) · 가격 버튼(우하 · 그림 위로 겹친다)
                 float artW = UiKit.L("shop_art_w") * w, artH = UiKit.H("shop_art_h");
                 RectTransform art = UiKit.Box(card, "art");
-                UiKit.Place(art, cardW - w * 0.0322f - artW, UiKit.H("shop_deal_gap") * 3f, artW, artH);
+                UiKit.Place(art, cardW - UiKit.L("shop_art_right") * w - artW, UiKit.H("shop_art_top"), artW, artH);
                 PopupKit.IconOr(art, "img", "shop_" + d.Key);
-                float priceW = UiKit.L("shop_price_w") * w * 1.15f, priceH = UiKit.H("shop_price_h");
+                float priceW = UiKit.L("shop_price_w") * w, priceH = UiKit.H("shop_price_h");
                 string key = d.Key;
                 Button price = PopupKit.Btn(card, "price", claimed ? "수령 완료" : d.PriceKr, "pp_blue", "pp_blue_dk", () => OnClaimDeal(h, key), priceW, priceH, "stage_ink", TextKind.Sub, claimed);
-                UiKit.Place(price.GetComponent<RectTransform>(), cardW - w * 0.0201f - priceW, cardH - UiKit.H("shop_deal_gap") - priceH, priceW, priceH);
+                UiKit.Place(price.GetComponent<RectTransform>(), cardW - UiKit.L("shop_price_right") * w - priceW, cardH - UiKit.H("shop_price_bottom") - priceH, priceW, priceH);
             }
 
-            PopupKit.Spacer(content, UiKit.RefH * 0.0308f - rem * 0.5f);
+            // 정본 `.shop-deals + .shop-banner` = 카드 바닥 ↔ 배너 3.08%H. 목록이 이미 넣는 것(카드 칸 안쪽 간격 + 위아래 목록 간격 둘)을 뺀다.
+            PopupKit.Spacer(content, UiKit.H("shop_deals_banner_gap") - UiKit.H("shop_deal_gap") - rem);
             Banner(content, "보석");
 
             // ---- 보석 카드(3열 격자) ----
-            float gemW = UiKit.L("shop_gem_w") * w, gemH = UiKit.H("shop_gem_h") * 1.15f, gemGap = UiKit.L("shop_gem_gap") * w;
+            float gemW = UiKit.L("shop_gem_w") * w, gemH = UiKit.H("shop_gem_h"), gemGap = UiKit.L("shop_gem_gap") * w;
             List<GemPack> packs = h.Meta.Shop.GemPacks;
             int cols = 3;
             int rows = (packs.Count + cols - 1) / cols;
-            RectTransform grid = PopupKit.Item(content, "gems", -1f, rows * gemH + (rows - 1) * gemGap + UiKit.RefH * 0.026f);
+            RectTransform grid = PopupKit.Item(content, "gems", -1f, rows * gemH + (rows - 1) * gemGap + UiKit.H("shop_gems_top"));
             for (int i = 0; i < packs.Count; i++)
             {
                 GemPack gp = packs[i];
                 RectTransform card = UiKit.Box(grid, "gem-" + i);
-                UiKit.Place(card, UiKit.L("shop_gems_x") * w + (i % cols) * (gemW + gemGap), UiKit.RefH * 0.026f + (i / cols) * (gemH + gemGap), gemW, gemH);
+                UiKit.Place(card, UiKit.L("shop_gems_x") * w + (i % cols) * (gemW + gemGap), UiKit.H("shop_gems_top") + (i / cols) * (gemH + gemGap), gemW, gemH);
                 PopupKit.Outlined(card, "face", "pp_paper", rem * 0.8f, PopupKit.Line3);
                 RectTransform amtRow = UiKit.Box(card, "amt-row");
                 UiKit.Place(amtRow, 0f, rem * 0.35f, gemW, rem * 1.5f);
@@ -155,7 +156,7 @@ namespace Forge.Game.Ui
         private static void Banner(Transform content, string text)
         {
             float w = UiKit.RefW;
-            float bh = UiKit.H("shop_banner_h") * 1.25f;
+            float bh = UiKit.H("shop_banner_h");
             RectTransform row = PopupKit.Item(content, "banner-" + text, -1f, bh);
             float bx = UiKit.L("shop_banner_x") * w, bw = UiKit.L("shop_banner_w") * w;
             RectTransform tailL = UiKit.Box(row, "tail-l");
