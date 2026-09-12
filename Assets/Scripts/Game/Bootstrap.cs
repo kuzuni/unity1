@@ -14,6 +14,9 @@ namespace Forge.Game
         /// <summary>세로 폰 화면비(원작 UI 가 읽히던 9:16 · ROUTINE T18 «9:16 레터박스 캔버스»).</summary>
         public const float PortraitAspect = 9f / 16f;
 
+        /// <summary>목표 프레임(주인 지시 2026-09-12 «60fps 로 프레임 돌아야» · ROUTINE §1 «60fps» · T44).</summary>
+        public const int TargetFps = 60;
+
         [Tooltip("비우면 Camera.main")]
         [SerializeField] private Camera targetCamera;
 
@@ -31,7 +34,23 @@ namespace Forge.Game
         private void Awake()
         {
             if (Application.isMobilePlatform) Screen.orientation = ScreenOrientation.Portrait;
+            ApplyFrameRate();
             Apply();
+        }
+
+        /// <summary>
+        /// 60fps 고정(T44). WebGL 은 브라우저 rAF 가 프레임을 주므로 원작(<c>requestAnimationFrame</c>)대로 두고 건드리지 않는다 —
+        /// 거기서 <c>targetFrameRate</c> 를 박으면 120Hz 기기가 60 으로 깎인다. 화면 잠금은 원작에 wakeLock 이 없으므로 시스템 설정 그대로.
+        /// </summary>
+        public static void ApplyFrameRate()
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // 원작은 rAF 에 실려 돈다 — 아무것도 세우지 않는다.
+#else
+            QualitySettings.vSyncCount = 0;          // vSync 가 켜져 있으면 targetFrameRate 를 무시한다
+            Application.targetFrameRate = TargetFps;
+#endif
+            if (Application.isMobilePlatform) Screen.sleepTimeout = SleepTimeout.SystemSetting;   // 원작(웹)에 wakeLock 이 없다
         }
 
         private void Update()
