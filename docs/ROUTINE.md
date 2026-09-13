@@ -536,6 +536,7 @@
 - 할 일: `FxUnlitMaterials.Take/Release`(T50 · 가산·깊이·양면·텍스처 키 · 색·불투명도는 꺼낼 때 칠함) 꼴로 **FxCubes 의 재질을 풀에서 꺼내고 액터가 끝날 때 돌려준다** — 색을 매 프레임 바꾸는 재질은 «묶음마다 하나» 가 필요하므로 키 = (불투명 여부 · 가산) · 되돌릴 때 색을 리셋. 연출·수치는 그대로(정본 fx 그래프 · `SkillFxTests` 가 지킨다).
 - 판정: `PerfBudgetTests` «시간 추이» 줄의 «스킬 재시전 끔/켬» 재질 증가가 **±10 이내** + `MaterialEditor…` 버킷이 10KB 아래 + `SkillFxTests` 초록 + 콘솔 빨강 0.
 - 범위: `Assets/Scripts/Game/SkillFx/FxCubes.cs` · `Assets/Scripts/Game/Battle/FxMaterials.cs`(풀 갈래만) · `Assets/Tests/PlayMode/SkillFxTests.cs`(풀 회전 단언 1).
+- ✅ 결론(2026-09-13 · 런 127 · 워커 B): 풀(`FxMaterials.Take/Release` · 키 = 투명 여부·가산) 뒤 200프레임당 재질 증가 «전부 +6 · 재시전 끔 +0»(종전 −135/+135) · 편집기 재질 후처리 5.9KB/프레임(종전 52~59KB) · 캡처 중 새 Material 61 → 0 · `SkillFxTests` 7/7 · 빨강 0. 기록은 PROGRESS «T74 완료 기록».
 
 ### T75 — 상점 보석 카드 안쪽: 자가 밴드8 에서 블록을 하나도 못 가른다(원작 7블록) (Game·UI · T62 뒤)
 - 실측(2026-09-13 · T62 3회차 · 워커 G · 런 124): 카드 **자리**는 맞췄다(77.0%H ↔ 원작 76.3). 남은 것은 카드 **안쪽** — `ui_score` 가 원작 밴드8 의 블록 7개 중 둘을 짝 못 짓는다.
@@ -557,7 +558,6 @@
 - 판정: 다음 유니티 잡 `screen_main.png` 상단바가 `⚔ 45` 가 아니라 **수백만 단위**(`NumFmt` 표기 «N.Nm») + 위 단언 초록 + PlayMode 빨강 0 + T28 채점의 `main` 점수가 안 내려간다.
 - **T54 뒤인 이유**: `UiShotsTests.cs` 가 T54(워커 I)의 살아 있는 lock 범위(«촬영 rect»)다 — 규약 «같은 파일이면 뒤 번호가 기다린다». 이 절이 손대는 자리는 `Seed()` 한 곳(촬영 rect 와 다른 함수)이라 T54 가 그 파일을 범위에서 빼거나 반납하면 바로 잡는다. T54 가 제 회차에 같이 고치면 `⛔ 흡수`(T71 꼴).
 - 범위: `Assets/Tests/PlayMode/UiShotsTests.cs`(`Seed()` 두 줄 + 단언 하나). 게임 코드 0줄.
-- ✅ 결론(2026-09-13 · 런 127 · 워커 B): 풀(`FxMaterials.Take/Release` · 키 = 투명 여부·가산) 뒤 200프레임당 재질 증가 «전부 +6 · 재시전 끔 +0»(종전 −135/+135) · 편집기 재질 후처리 5.9KB/프레임(종전 52~59KB) · 캡처 중 새 Material 61 → 0 · `SkillFxTests` 7/7 · 빨강 0. 기록은 PROGRESS «T74 완료 기록».
 
 ### T78 — 팝업 셋에 모달 딤이 없고 상단바 자리가 순수 검정이다: `forge-list` · `forge-detail` · `autoforge` (Game·UI · T19·T57 뒤 · 임자 없음 · 검수 Q 등재)
 - 실측(2026-09-13 02:0x · 검수 Q · **런 127**(44b89f6 · 유니티 잡 전체 초록)의 PNG 를 Read 로 열고 픽셀로 잰 것 · 촬영 프레임 회귀는 이 런에서 이미 걷혔다):
