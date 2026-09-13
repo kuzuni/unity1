@@ -74,6 +74,40 @@ namespace Forge.Tests.PlayMode
             AssertTextGate();
         }
 
+        /// <summary>T61 — 원작 shot-042120: «🔨 41307» 은 모루의 어두운 받침 위에 흰 글자 + 검정 외곽선(style.css 1625)로 놓여 밝은 시트 바닥에 흘러내리지 않는다.</summary>
+        [UnityTest]
+        public IEnumerator 모루_망치_수는_흰_글자_검정_외곽선으로_어두운_받침_위에_놓인다()
+        {
+            yield return Boot();
+            Transform anvil = SheetChild("anvil");
+            Assert.IsNotNull(anvil, "모루 그림");
+            Transform baseT = null; foreach (Transform t in anvil) if (t.name == "base") baseT = t;
+            Assert.IsNotNull(baseT, "받침 면");
+            Transform counter = SheetChild("anvil-hammers");
+            Assert.IsNotNull(counter, "해머 카운터");
+            TextMeshProUGUI count = counter.GetComponentInChildren<TextMeshProUGUI>(true);
+            Assert.IsNotNull(count, "망치 수 글자");
+            yield return null;
+            // ⓐ 글자 = 흰색 + 검정 외곽선(TMP OUTLINE_ON · 너비 > 0)
+            Assert.Greater(count.outlineWidth, 0f, "검정 외곽선 너비");
+            Assert.Less(Luma(count.outlineColor), 0.2f, "외곽선은 검정 계열");
+            Assert.Greater(Luma(count.color), 0.9f, "글자는 흰색");
+            // ⓑ 글자 중심이 받침 면 안에 있고, 받침은 어두운 주철이라 대비(밝기 차)가 문턱 이상
+            Image baseImg = baseT.GetComponent<Image>();
+            Assert.IsNotNull(baseImg);
+            Vector3[] bc = new Vector3[4]; ((RectTransform)baseT).GetWorldCorners(bc);
+            Vector3[] cc = new Vector3[4]; count.rectTransform.GetWorldCorners(cc);
+            Vector3 center = (cc[0] + cc[2]) * 0.5f;
+            Assert.IsTrue(center.x >= bc[0].x && center.x <= bc[2].x && center.y >= bc[0].y && center.y <= bc[2].y,
+                "글자 중심 " + center + " 이 받침 " + bc[0] + "~" + bc[2] + " 안에 있어야 한다(원작 61%)");
+            float contrast = Luma(count.color) - Luma(baseImg.color);
+            Assert.GreaterOrEqual(contrast, 0.5f, "글자 밝기 − 받침 밝기 ≥ 0.5 (받침 " + baseImg.color + ")");
+            Assert.Less(Luma(baseImg.color), 0.35f, "받침은 어두운 주철(catalog anvil_base)");
+            AssertTextGate();
+        }
+
+        private static float Luma(Color c) { return 0.299f * c.r + 0.587f * c.g + 0.114f * c.b; }
+
         [UnityTest]
         public IEnumerator 제작은_망치를_쓰고_비교_팝업을_띄우며_판매하면_코인이_는다()
         {

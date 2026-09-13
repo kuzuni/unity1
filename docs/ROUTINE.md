@@ -423,12 +423,13 @@
 - 판정: PlayMode 단언(코인·젬 알약에 «+» 자식이 있고 누르면 상점 팝업이 열린다 · safeArea 안) + 다음 회차에 `screen_main.png` 를 열어 배지가 보이는 것을 본 기록 + 콘솔 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/Hud.cs` · `Assets/Scripts/Game/Ui/ShopSheet.cs`(공용 조각으로 빼는 갈래만) · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
 
-### T61 — 모루의 망치 수가 안 읽힌다: 밝은 시트 위 흰 글자 · 모루에 받침이 없다 (Game·UI · T19·**T57 뒤** · 검수 Q 등재)
+### T61 ✅ — 모루의 망치 수가 안 읽힌다: 밝은 시트 위 흰 글자 · 모루에 받침이 없다 (Game·UI · T19·**T57 뒤** · 검수 Q 등재)
 - 실측(2026-09-12 22:1x · 검수 Q · 런 79 `screen_main.png` 확대): 장비 시트 바닥(밝은 회색)에 «🔨 302k» 가 **거의 흰색**으로 찍혀 배경과 구별이 안 되고 모루 그림에 글자 왼쪽이 반쯤 물린다. 정본 `ref/screens/shot-042120.png` 은 같은 글자(«🔨 41307»)를 **모루의 어두운 몸통 위**에 얹어 흰 글자가 읽힌다 — 정본 모루는 붉은 상판 + 어두운 몸 + **회색 돌 받침** + 검은 외곽선이고, 클론 모루는 갈색 두 덩이뿐이라 글자가 시트 바닥으로 흘러내렸다.
 - 할 일: 모루 조형(상판·몸·돌 받침·외곽선)과 망치 수 자리를 정본 실측(`ref/screens/shot-042120.png` · `web/tools/anvil-*.png` · `probe-anvil-ref.js`)대로 맞춘다. 색·치수는 `catalog.json`(§1).
 - **T57 뒤인 이유**: T57 의 범위 `Assets/Scripts/Game/Ui/Forge*` 글로브가 `ForgeSheet.cs` 를 덮는다 — 규약 «두 작업이 같은 파일을 만져야 하면 뒤 번호가 기다린다»(`docs/claims/README.md`).
 - 판정: 촬영 PNG 를 열어 «🔨 <수>» 가 어두운 받침 위에서 읽힌다 + 대비 단언(글자 픽셀과 그 뒤 배경의 밝기 차 ≥ 문턱) 한 줄 + `ui_score.py --score` 의 `main` 점수가 안 내려간다.
 - 범위: `Assets/Scripts/Game/Ui/ForgeSheet.cs`(모루 자리) · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/ForgeUiTests.cs`.
+- ✅ 2026-09-13 워커 S: 모루를 정본 SVG 6면(받침·음각 단·목·뿔·상판 앞/윗면·베벨 · 검은 외곽선 3)으로 · 망치 수는 **받침 세로 61%**(shot-042120 실측)에 흰 글자 + 검정 외곽선(style.css 1625) · 좌표·색 44키 `catalog.json anvil_*` · PlayMode 대비 단언(글자−받침 밝기 ≥ 0.5 · 중심이 받침 안) — 결정 171.
 
 ### T62 — 상점 시트: 특가 카드가 원작보다 높아 «보석» 절(젬 상품 3종)이 화면 밖으로 밀린다 (Game·UI · T22·T25 뒤 · T28 3회차가 눈으로 잡음)
 - 실측(2026-09-12 · T28 3회차 · 워커 K · 런 83 PNG): `screen_shop.png` **5.3/10**. 원작(`shot-042632`)의 특가 카드는 `min-height: app-h × .1528` · 카드 사이 `gap: app-h × .0091`(정본 `style.css` 2912~2921)인데 클론 카드는 그보다 한참 높고 간격도 넓어, 원작에서 66%H 자리에 있던 «보석» 배너와 젬 카드 3장(`shop-gems`)이 **화면 밖으로 밀려 아예 안 보인다**.

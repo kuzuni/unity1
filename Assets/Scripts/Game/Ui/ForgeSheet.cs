@@ -167,7 +167,7 @@ namespace Forge.Game.Ui
             return rt;
         }
 
-        /// <summary>모루 자리 — 보류 제작품이 있으면 모루 대신 그 카드(더미 두께 = HeldDeckDepth).</summary>
+        /// <summary>모루 자리 — 보류 제작품이 있으면 모루 대신 그 카드(더미 두께 = HeldDeckDepth). 망치 수(원작 `small#anvil-hammers`)는 모루일 때 **받침 위**(T61 · shot-042120 실측 61%)에, 카드일 때 카드 아래에.</summary>
         static RectTransform AnvilSlot(Transform parent, ForgeHost h, float w, float hgt)
         {
             ForgeItem held = h.HeldItem;
@@ -175,15 +175,19 @@ namespace Forge.Game.Ui
             Button b = UiKit.Button(parent, held == null ? "anvil-btn" : "held-slot", held == null ? (UnityEngine.Events.UnityAction)(() => h.OnCraft()) : () => h.OnOpenHeld());
             RectTransform rt = b.GetComponent<RectTransform>();
             float counterH = PopupKit.FontSize(TextKind.Sub) * 1.3f;
-            float bodyH = Mathf.Max(rem * 2f, hgt - counterH - rem * 0.2f);
+            RectTransform counter;
             if (held == null)
             {
                 RectTransform anvil = UiKit.Box(rt, "anvil");
-                UiKit.Place(anvil, 0f, 0f, w, bodyH);
-                DrawAnvil(anvil, w, bodyH);
+                UiKit.Place(anvil, 0f, 0f, w, hgt);
+                UnityEngine.Rect baseRect = DrawAnvil(anvil, w, hgt);
+                // 원작(shot-042120): «🔨 41307» 이 받침의 어두운 몸통 위에 얹혀 흰 글자가 읽힌다 — 받침 세로 61% 자리
+                counter = UiKit.Box(anvil, "anvil-hammers");
+                UiKit.Place(counter, baseRect.x, baseRect.y + baseRect.height * UiKit.L("anvil_count_y") - counterH * 0.5f, baseRect.width, counterH);
             }
             else
             {
+                float bodyH = Mathf.Max(rem * 2f, hgt - counterH - rem * 0.2f);
                 int n = h.HeldCount;
                 int depth = ForgeHost.HeldDeckDepth(n);
                 Color ac = ForgeUi.AgeColor(h.Defs, held.Age);
@@ -213,36 +217,52 @@ namespace Forge.Game.Ui
                 PopupKit.Inset(tb.rectTransform, PopupKit.Line);
                 tag.transform.SetParent(tagBox, false);
                 UiKit.Fill(tag.rectTransform);
+                counter = UiKit.Box(rt, "anvil-hammers");
+                UiKit.Place(counter, 0f, bodyH + rem * 0.1f, w, counterH);
             }
-            RectTransform counter = UiKit.Box(rt, "anvil-hammers");
-            UiKit.Place(counter, 0f, bodyH + rem * 0.1f, w, counterH);
+            // 원작 style.css 1625 `.anvil-btn small`: 흰 굵은 글자 + 검정 text-stroke 2px — 어느 바닥 위에서도 읽힌다
             Image hi = PopupKit.IconOr(counter, "ico", "hammer");
             UiKit.Anchor(hi.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-rem * 0.9f, 0f), counterH * 0.9f, counterH * 0.9f);
-            hammerText = UiKit.Text(counter, "count", TextKind.Sub, NumFmt.Fmt(h.Wallet.Hammers), "ink", TextAlignmentOptions.Left);
+            hammerText = UiKit.Text(counter, "count", TextKind.Sub, NumFmt.Fmt(h.Wallet.Hammers), "white", TextAlignmentOptions.Left);
             hammerText.fontStyle = FontStyles.Bold;
+            UiKit.Outline(hammerText, "pp_line", UiKit.L("anvil_count_stroke"));
             UiKit.Anchor(hammerText.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 0.5f), new Vector2(-rem * 0.7f, 0f), w * 0.6f, counterH);
             return rt;
         }
 
-        /// <summary>모루 그림 — 원작 인라인 SVG(viewBox 132×86 · 뿔/상판/허리/받침 4단)를 색면 넷으로. 외부 에셋 없음.</summary>
-        static void DrawAnvil(RectTransform rt, float w, float h)
+        /// <summary>
+        /// 모루 그림 — 원작 인라인 SVG(viewBox 132×86 · `ANVIL_SVG`)를 색면으로: 받침(어두운 주철 · 음각 단) · 목 · 상판 앞면 · 상판 윗면(+베벨 엣지) · 뿔(둥근 총알) · 검은 외곽선(stroke 3).
+        /// 좌표·색은 전부 catalog.json `anvil_*`(§1). 외부 에셋 없음. 반환: 받침 사각(모루 로컬 px) — 망치 수를 그 위에 얹는다(T61).
+        /// </summary>
+        static UnityEngine.Rect DrawAnvil(RectTransform rt, float w, float h)
         {
-            float u = Mathf.Min(w / 132f, h / 86f);
-            float ox = (w - 132f * u) * 0.5f, oy = (h - 86f * u) * 0.5f;
-            Color top = new Color(0xb0 / 255f, 0x3f / 255f, 0x18 / 255f), front = new Color(0x5a / 255f, 0x1e / 255f, 0x11 / 255f);
-            Color neck = new Color(0x2b / 255f, 0x1c / 255f, 0x18 / 255f), bas = new Color(0x6d / 255f, 0x2c / 255f, 0x1e / 255f);
-            Rect(rt, "base", ox + 12f * u, oy + 44f * u, 108f * u, 39f * u, bas, 6f * u);
-            Rect(rt, "neck", ox + 36f * u, oy + 36f * u, 60f * u, 14f * u, neck, 2f * u);
-            Rect(rt, "front", ox + 18f * u, oy + 22f * u, 80f * u, 16f * u, front, 3f * u);
-            Rect(rt, "top", ox + 14f * u, oy + 10f * u, 88f * u, 14f * u, top, 4f * u);
-            Rect(rt, "horn", ox + 98f * u, oy + 12f * u, 24f * u, 11f * u, top, 5f * u);
+            float vbW = UiKit.L("anvil_vb_w"), vbH = UiKit.L("anvil_vb_h");
+            float u = Mathf.Min(w / vbW, h / vbH);
+            float ox = (w - vbW * u) * 0.5f, oy = (h - vbH * u) * 0.5f;
+            float st = UiKit.L("anvil_stroke") * u;
+            // 그리는 순서 = SVG 순서(뒤 → 앞): 받침 → 음각 단 → 목 → 뿔 → 상판 앞면 → 상판 윗면 → 베벨
+            UnityEngine.Rect bas = Outlined(rt, "base", ox, oy, u, "anvil_base", "anvil_base", UiKit.L("anvil_base_r") * u, st);
+            Outlined(rt, "recess", ox, oy, u, "anvil_recess", "anvil_recess", 3f * u, st * 0.8f);
+            Outlined(rt, "neck", ox, oy, u, "anvil_neck", "anvil_neck", 1.5f * u, st);
+            Outlined(rt, "horn", ox, oy, u, "anvil_horn", "anvil_horn", UiKit.L("anvil_horn_r") * u, st);
+            Outlined(rt, "front", ox, oy, u, "anvil_front", "anvil_front", 2f * u, st);
+            Outlined(rt, "top", ox, oy, u, "anvil_top", "anvil_top", 3f * u, st);
+            Image bevel = UiKit.Rounded(rt, "bevel", "anvil_bevel", 1.5f * u);
+            Color bc = bevel.color; bc.a = UiKit.L("anvil_bevel_alpha"); bevel.color = bc;
+            UiKit.Place(bevel.rectTransform, ox + UiKit.L("anvil_bevel_x") * u, oy + UiKit.L("anvil_bevel_y") * u, UiKit.L("anvil_bevel_w") * u, UiKit.L("anvil_bevel_h") * u);
+            return bas;
         }
 
-        static void Rect(RectTransform parent, string name, float x, float y, float w, float h, Color c, float r)
+        /// <summary>검은 외곽선(살짝 큰 `anvil_line` 면) 위에 색면 하나 — SVG `stroke` 의 자리. 기하는 `anvil_&lt;part&gt;_x/y/w/h`.</summary>
+        static UnityEngine.Rect Outlined(RectTransform parent, string name, float ox, float oy, float u, string part, string colorKey, float r, float stroke)
         {
-            Image i = UiKit.Rounded(parent, name, "pp_paper", r);
-            i.color = c;
-            UiKit.Place(i.rectTransform, x, y, w, h);
+            float x = ox + UiKit.L(part + "_x") * u, y = oy + UiKit.L(part + "_y") * u, w = UiKit.L(part + "_w") * u, h = UiKit.L(part + "_h") * u;
+            Image line = UiKit.Rounded(parent, name + "-line", "anvil_line", r + stroke * 0.5f);
+            UiKit.Place(line.rectTransform, x - stroke * 0.5f, y - stroke * 0.5f, w + stroke, h + stroke);
+            Image fill = UiKit.Rounded(parent, name, colorKey, r);
+            UiKit.Place(fill.rectTransform, x, y, w, h);
+            return new UnityEngine.Rect(x, y, w, h);
         }
+
     }
 }
