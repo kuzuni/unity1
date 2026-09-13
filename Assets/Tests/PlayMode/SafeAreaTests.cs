@@ -161,7 +161,9 @@ namespace Forge.Tests.PlayMode
                 cam.CopyFrom(Camera.main);
                 cam.rect = new Rect(0f, 0f, 1f, 1f);
                 cam.targetTexture = rt;
-                Bootstrap.ApplyGameAreaProjection(cam);   // T54 — 게임과 같은 framing(이 RT 는 540×1170 이라 비가 다르다 · 자가 그것을 잰다)
+                // T54 6회차: 여기에 게임 framing(절두체)을 걸면 **캔버스가 그것을 따라간다** — `ScreenSpaceCamera` 캔버스는
+                // 카메라 프러스텀에 맞춰 놓이므로 UI 가 통째로 밀렸다(런 134 실측: 상단바 소실·시트 상승·아래 1/4 에 지면).
+                // 촬영은 옛 길(기본 투영) 그대로 두고, 게임 framing 은 UI 없이 세계만 찍는 `WorldFrameShotTests` 로 본다.
                 canvas.renderMode = RenderMode.ScreenSpaceCamera;
                 canvas.worldCamera = cam;
                 canvas.planeDistance = 1f;
