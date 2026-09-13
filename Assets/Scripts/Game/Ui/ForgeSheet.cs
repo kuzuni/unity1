@@ -22,7 +22,7 @@ namespace Forge.Game.Ui
         static RectTransform anvilArtRt;
         /// <summary>달군 쇳덩이 묶음(정본 `.anv-billet` · 축 = viewBox 55 21.5)과 불투명도가 애니메이션되는 두 겹(`.ab-hot`·`.ab-cool`).</summary>
         static RectTransform billetRt;
-        static CraftFxPoly billetHot, billetCool;
+        static Image billetHot, billetCool;
 
         public static void Render(ForgeHost h)
         {
@@ -290,36 +290,56 @@ namespace Forge.Game.Ui
             billetRt.pivot = new Vector2(pxo, 1f - pyo);
             billetRt.anchoredPosition = new Vector2(ox + vbW * u * pxo, -(oy + vbH * u * pyo));
 
-            int bands = Mathf.RoundToInt(UiKit.L("billet_bands"));
-            Vector2[] bar = VbPoly("billet_bar", 8, vbW, vbH);
-            Vector2[] top = VbPoly("billet_top", 4, vbW, vbH);
-            Vector2[] seam = VbPoly("billet_seam", 4, vbW, vbH);
-            float st = UiKit.L("billet_stroke");
+            Vector2[] bar = VbPoly("billet_bar", 8);
+            Vector2[] top = VbPoly("billet_top", 4);
+            Vector2[] seam = VbPoly("billet_seam", 4);
             Color[] body = { UiKit.C("billet_g0"), UiKit.C("billet_g1"), UiKit.C("billet_g2"), UiKit.C("billet_g3") };
             float[] bodyOff = { 0f, UiKit.L("billet_g1_off"), UiKit.L("billet_g2_off"), 1f };
-            Vector2 gradTo = new Vector2(UiKit.L("billet_grad_x2"), 1f);
-
-            CraftFxPoly.Add(billetRt, "ab-bar-line", CraftFxPoly.Inflate(bar, st * 0.5f / vbW, st * 0.5f / vbH), UiKit.C("billet_line"));
-            CraftFxPoly.Add(billetRt, "ab-bar", bar, body, bodyOff, Vector2.zero, gradTo, bands);
-
             Color[] hot = { UiKit.C("billet_hot0"), UiKit.C("billet_hot1"), UiKit.C("billet_hot2") };
             float[] hotOff = { 0f, UiKit.L("billet_hot1_off"), 1f };
-            billetHot = CraftFxPoly.Add(billetRt, "ab-hot", bar, hot, hotOff, Vector2.zero, new Vector2(0f, 1f), bands);
-            billetHot.Opacity = (float)AnvilFxSpec.BilletHot.Sample1(0);   // 정지 상태 = 트랙 0% (노란 단조열 .12)
+            Vector2 gradTo = new Vector2(UiKit.L("billet_grad_x2"), 1f);
 
-            CraftFxPoly.Add(billetRt, "ab-top", top, Alpha(UiKit.C("billet_top"), UiKit.L("billet_top_alpha")));
-            billetCool = CraftFxPoly.Add(billetRt, "ab-cool", bar, UiKit.C("billet_cool"));
-            billetCool.Opacity = (float)AnvilFxSpec.BilletCool.Sample1(0); // 정지 상태 = 0 (안 보인다)
-            CraftFxPoly.Add(billetRt, "ab-seam", seam, Alpha(UiKit.C("billet_seam"), UiKit.L("billet_seam_alpha")));
+            // 그리는 순서 = 정본 SVG 순서(뒤 → 앞).
+            BilletLayer("ab-bar-line", CraftFxPoly.Inflate(bar, UiKit.L("billet_stroke") * 0.5f), null, null, gradTo, UiKit.C("billet_line"), u);
+            BilletLayer("ab-bar", bar, body, bodyOff, gradTo, Color.white, u);
+            billetHot = BilletLayer("ab-hot", bar, hot, hotOff, new Vector2(0f, 1f), Color.white, u);
+            SetOpacity(billetHot, (float)AnvilFxSpec.BilletHot.Sample1(0));   // 정지 상태 = 트랙 0%(노란 단조열 .12)
+            BilletLayer("ab-top", top, null, null, gradTo, Alpha(UiKit.C("billet_top"), UiKit.L("billet_top_alpha")), u);
+            billetCool = BilletLayer("ab-cool", bar, null, null, gradTo, UiKit.C("billet_cool"), u);
+            SetOpacity(billetCool, (float)AnvilFxSpec.BilletCool.Sample1(0)); // 정지 상태 = 0(안 보인다)
+            BilletLayer("ab-seam", seam, null, null, gradTo, Alpha(UiKit.C("billet_seam"), UiKit.L("billet_seam_alpha")), u);
         }
 
-        /// <summary>카탈로그의 viewBox 좌표(`<키>_x0`·`_y0` …)를 정규 좌표(0~1 · y 아래로)로 — `CraftFxPoly` 가 쓰는 꼴.</summary>
-        static Vector2[] VbPoly(string key, int n, float vbW, float vbH)
+        /// <summary>겹 하나 — 구운 폴리곤 스프라이트를 제 바깥 사각 자리에 얹는다(색·불투명도는 <see cref="Image.color"/> · 정본 원소 `opacity` 가 그 α 다).</summary>
+        static Image BilletLayer(string name, Vector2[] pts, Color[] stops, float[] offsets, Vector2 gradTo, Color tint, float u)
+        {
+            RectTransform rt = UiKit.Box(billetRt, name);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.sprite = CraftFxPoly.Bake(name, pts, stops, offsets, Vector2.zero, gradTo);
+            img.type = Image.Type.Simple;
+            img.color = tint;
+            UnityEngine.Rect b = CraftFxPoly.Bounds(pts);
+            UiKit.Place(img.rectTransform, b.xMin * u, b.yMin * u, b.width * u, b.height * u);
+            return img;
+        }
+
+        /// <summary>정본 SVG 원소 `opacity` — 굽힌 색의 α 와 곱해진다(정본도 그렇다).</summary>
+        public static void SetOpacity(Graphic g, float a)
+        {
+            if (g == null) return;
+            Color c = g.color;
+            c.a = Mathf.Clamp01(a);
+            g.color = c;
+        }
+
+        /// <summary>카탈로그의 viewBox 좌표(`<키>_x0`·`_y0` …) — 정본 SVG 단위 그대로(132×86).</summary>
+        static Vector2[] VbPoly(string key, int n)
         {
             Vector2[] pts = new Vector2[n];
             for (int i = 0; i < n; i++)
             {
-                pts[i] = new Vector2(UiKit.L(key + "_x" + i) / vbW, UiKit.L(key + "_y" + i) / vbH);
+                pts[i] = new Vector2(UiKit.L(key + "_x" + i), UiKit.L(key + "_y" + i));
             }
             return pts;
         }

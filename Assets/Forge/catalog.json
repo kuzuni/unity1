@@ -531,7 +531,7 @@
     { "key": "anvil_count_y", "value": 0.61, "_": "shot-042120 실측: «🔨 41307» 글자 중심 = 받침 세로 61%(받침 y713~756 · 글자 y735~744)" },
     { "key": "anvil_count_stroke", "value": 0.3, "_": "style.css 1625 .anvil-btn small: #fff + -webkit-text-stroke 2px pp-line → TMP outlineWidth" },
     { "key": "anvil_fx_px", "value": 2.164, "_": "T87 — 정본 키프레임의 **절대 CSS px**(anvilbump translateY 0.5~1.1px · sheetshake 2.1~4.0px)을 기준 캔버스 px 로: 원작 앱 폭 499px(ref/screens/shot-*.png) → 1080px = ×2.164. rem 값과 달리 이 px 들은 원작에서 앱 크기를 안 따라가므로 촬영 배율로 환산한다(tt_line_px 와 같은 규약)" },
-    { "key": "billet_bands", "value": 24, "_": "T87 — 폴리곤 면을 가로 띠 24개로 잘라 그라디언트를 찍는다(정점만 칠하면 4-stop 램프가 뭉갠다)" },
+    { "key": "billet_bake_px", "value": 8, "_": "T87 — 폴리곤 겹을 굽는 해상도(viewBox 한 단위당 픽셀). 모루는 화면에서 ≈2px/단위라 8 이면 네 배로 여유가 있다(확대 촬영·큰 화면)" },
     { "key": "billet_stroke", "value": 1.8, "_": "ab-bar stroke-width 1.8 (viewBox 단위)" },
     { "key": "billet_grad_x2", "value": 0.15, "_": "anv-billet linearGradient x1 0 y1 0 → x2 .15 y2 1 — 살짝 기운 세로축" },
     { "key": "billet_g1_off", "value": 0.26 },

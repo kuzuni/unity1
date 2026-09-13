@@ -539,11 +539,11 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(Named(sheet, "ab-top"), "윗면 띠");
             Assert.IsNotNull(Named(sheet, "ab-seam"), "접합선");
 
-            CraftFxPoly hot = Poly(sheet, "ab-hot"), cool = Poly(sheet, "ab-cool");
+            Graphic hot = Poly(sheet, "ab-hot"), cool = Poly(sheet, "ab-cool");
             Assert.IsNotNull(hot, "백열 겹");
             Assert.IsNotNull(cool, "식은색 겹");
-            Assert.AreEqual((float)AnvilFxSpec.BilletHot.Sample1(0), hot.Opacity, 1e-3f, "정지 백열 = 트랙 0%(노란 단조열)");
-            Assert.AreEqual(0f, cool.Opacity, 1e-3f, "정지 식은색은 안 보인다");
+            Assert.AreEqual((float)AnvilFxSpec.BilletHot.Sample1(0), hot.color.a, 1e-3f, "정지 백열 = 트랙 0%(노란 단조열)");
+            Assert.AreEqual(0f, cool.color.a, 1e-3f, "정지 식은색은 안 보인다");
 
             h.OnCraft();
             yield return null;
@@ -562,8 +562,8 @@ namespace Forge.Tests.PlayMode
                 Assert.AreEqual((float)bil[1], bl.localScale.y, 0.01f, i + "타: 쇳덩이가 눌린다");
                 // 하중 귀속 — 쇳덩이의 압축이 모루 압축보다 한 자리 크다(정본이 «고무 모루» 라 부른 그림을 막는다)
                 Assert.Greater(1f - bl.localScale.y, (1f - (float)bump[2]) * 10f, i + "타: 눌리는 것은 쇳덩이 쪽이다");
-                Assert.AreEqual((float)AnvilFxSpec.BilletHot.Sample1(AnvilFxSpec.StrikeStop[i]), Poly(sheet, "ab-hot").Opacity, 1e-3f, i + "타: 백열 피크");
-                Assert.AreEqual((float)AnvilFxSpec.BilletCool.Sample1(AnvilFxSpec.StrikeStop[i]), Poly(sheet, "ab-cool").Opacity, 1e-3f, i + "타: 식은색");
+                Assert.AreEqual((float)AnvilFxSpec.BilletHot.Sample1(AnvilFxSpec.StrikeStop[i]), Op(sheet, "ab-hot"), 1e-3f, i + "타: 백열 피크");
+                Assert.AreEqual((float)AnvilFxSpec.BilletCool.Sample1(AnvilFxSpec.StrikeStop[i]), Op(sheet, "ab-cool"), 1e-3f, i + "타: 식은색");
             }
 
             // 끝값 — 단조는 비가역이다(납작한 채 남는다) · 식은색이 가장 진하다
@@ -571,15 +571,110 @@ namespace Forge.Tests.PlayMode
             RectTransform last = Named(sheet, "billet");
             AnvilFxSpec.Billet.Sample(100, bil);
             Assert.AreEqual((float)bil[1], last.localScale.y, 0.01f, "끝: 눌린 채 남는다(.46)");
-            Assert.AreEqual((float)AnvilFxSpec.BilletCool.Sample1(100), Poly(sheet, "ab-cool").Opacity, 1e-3f, "끝: 식은 쇠색 .82");
+            Assert.AreEqual((float)AnvilFxSpec.BilletCool.Sample1(100), Op(sheet, "ab-cool"), 1e-3f, "끝: 식은 쇠색 .82");
 
             fx.Stop();
             yield return null;
             RectTransform rest = Named(sheet, "billet");
             Assert.AreEqual(1f, rest.localScale.y, 1e-3f, "연출을 걷으면 제 자세로");
-            Assert.AreEqual((float)AnvilFxSpec.BilletHot.Sample1(0), Poly(sheet, "ab-hot").Opacity, 1e-3f, "백열도 정지값으로");
-            Assert.AreEqual(0f, Poly(sheet, "ab-cool").Opacity, 1e-3f, "식은색도 0 으로");
+            Assert.AreEqual((float)AnvilFxSpec.BilletHot.Sample1(0), Op(sheet, "ab-hot"), 1e-3f, "백열도 정지값으로");
+            Assert.AreEqual(0f, Op(sheet, "ab-cool"), 1e-3f, "식은색도 0 으로");
             h.CancelAnvilStrike();
+            yield return null;
+        }
+
+        /// <summary>
+        /// T87 7회차 — **화면에 정말 칠해지는가**. 6회차는 «칸이 있다 · 값이 맞다» 만 재서 초록이었는데 런 173 샷의 모루 상자 안 픽셀 변화는 **0** 이었다
+        /// (그때의 정점 메시 그래픽이 한 픽셀도 안 그렸다). 그래서 이 자는 UI 를 실제로 한 장 그려서 쇳덩이 자리에 «달군 쇠» 색이 있는지 센다.
+        /// 그리는 길은 T27 `UiShotsTests.Capture` 와 같다(카메라 사본 → RenderTexture → ReadPixels · 배치모드에서 옳은 유일한 길).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 쇳덩이가_화면에_실제로_칠해진다()
+        {
+            yield return Boot();
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
+            {
+                Assert.Ignore("그래픽 장치가 없다 — 픽셀은 CI 의 유니티 잡이 본다");
+            }
+            ForgeHost h = ForgeHost.Instance;
+            ForgeSheet.Render(h);
+            yield return null;
+
+            UiRoot root = UiRoot.Instance;
+            RectTransform bar = Named(root.Sheet, "ab-bar");
+            Assert.IsNotNull(bar, "쇳덩이 몸통 칸이 없다");
+
+            Canvas canvas = root.Canvas;
+            RenderMode prevMode = canvas.renderMode;
+            Camera prevCam = canvas.worldCamera;
+            float prevPlane = canvas.planeDistance;
+            RenderTexture prevActive = RenderTexture.active;
+            int w = Mathf.Max(64, Screen.width), ht = Mathf.Max(64, Screen.height);
+            RenderTexture rt = new RenderTexture(w, ht, 24, RenderTextureFormat.ARGB32);
+            GameObject camGo = new GameObject("t87-pixel-cam");
+            Camera cam = camGo.AddComponent<Camera>();
+            Texture2D shot = null;
+            try
+            {
+                int uiLayer = canvas.gameObject.layer;
+                if (Camera.main != null) cam.CopyFrom(Camera.main);
+                cam.rect = new Rect(0f, 0f, 1f, 1f);
+                cam.targetTexture = rt;
+                cam.ResetProjectionMatrix();
+                cam.cullingMask = 1 << uiLayer;
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = Color.black;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                canvas.planeDistance = 1f;
+                root.Layout();
+                Canvas.ForceUpdateCanvases();
+                cam.Render();
+
+                RenderTexture.active = rt;
+                shot = new Texture2D(w, ht, TextureFormat.RGB24, false);
+                shot.ReadPixels(new Rect(0f, 0f, w, ht), 0, 0);
+                shot.Apply(false);
+
+                Vector3[] corners = new Vector3[4];
+                bar.GetWorldCorners(corners);
+                Vector2 a = RectTransformUtility.WorldToScreenPoint(cam, corners[0]);
+                Vector2 b = RectTransformUtility.WorldToScreenPoint(cam, corners[2]);
+                int x0 = Mathf.Clamp(Mathf.FloorToInt(Mathf.Min(a.x, b.x)), 0, w - 1);
+                int x1 = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(a.x, b.x)), 0, w - 1);
+                int y0 = Mathf.Clamp(Mathf.FloorToInt(Mathf.Min(a.y, b.y)), 0, ht - 1);
+                int y1 = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(a.y, b.y)), 0, ht - 1);
+                int area = (x1 - x0 + 1) * (y1 - y0 + 1);
+                Assert.Greater(area, 8, "쇳덩이 칸이 화면에서 너무 작다(" + (x1 - x0 + 1) + "×" + (y1 - y0 + 1) + ")");
+
+                Color32[] px = shot.GetPixels32();
+                int warm = 0;
+                Color32 brightest = new Color32(0, 0, 0, 255);
+                for (int y = y0; y <= y1; y++)
+                {
+                    for (int x = x0; x <= x1; x++)
+                    {
+                        Color32 c = px[y * w + x];
+                        // 달군 쇠 = 붉은 주황~노랑(파랑이 확연히 낮고 밝다) · 모루 상판(#b03f18)보다 밝아야 한다
+                        if (c.r > 170 && c.r > c.b + 60 && c.g >= c.b) warm++;
+                        if (c.r > brightest.r) brightest = c;
+                    }
+                }
+                Assert.Greater(warm, area / 5, "쇳덩이가 화면에 안 칠해졌다 — 칸 " + area + "픽셀 중 달군 쇠 색 " + warm
+                                               + "개(가장 밝은 픽셀 rgb " + brightest.r + "," + brightest.g + "," + brightest.b + ")");
+            }
+            finally
+            {
+                RenderTexture.active = prevActive;
+                canvas.renderMode = prevMode;
+                canvas.worldCamera = prevCam;
+                canvas.planeDistance = prevPlane;
+                if (root != null) root.Layout();
+                Canvas.ForceUpdateCanvases();
+                if (shot != null) Object.Destroy(shot);
+                Object.Destroy(camGo);
+                rt.Release();
+            }
             yield return null;
         }
 
@@ -591,10 +686,17 @@ namespace Forge.Tests.PlayMode
             return null;
         }
 
-        private static CraftFxPoly Poly(RectTransform sheet, string name)
+        /// <summary>겹 하나의 그래픽(불투명도는 그 색의 α · 정본 SVG 원소 `opacity`).</summary>
+        private static Graphic Poly(RectTransform sheet, string name)
         {
             RectTransform rt = Named(sheet, name);
-            return rt == null ? null : rt.GetComponent<CraftFxPoly>();
+            return rt == null ? null : rt.GetComponent<Graphic>();
+        }
+
+        private static float Op(RectTransform sheet, string name)
+        {
+            Graphic g = Poly(sheet, name);
+            return g == null ? -1f : g.color.a;
         }
 
         /// <summary>시트가 다시 그려지면 모루 칸도 새로 생긴다 — 이름으로 매번 찾는다(없으면 null).</summary>
