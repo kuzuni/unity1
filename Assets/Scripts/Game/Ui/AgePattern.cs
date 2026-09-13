@@ -65,6 +65,7 @@ namespace Forge.Game.Ui
             for (int i = 0; i < a.Layers.Length; i++)
             {
                 RectTransform lr = UiKit.Box(layer, "pat-" + i);
+                lr.gameObject.AddComponent<CanvasRenderer>();     // Graphic 은 CanvasRenderer 가 있어야 선다(런 243 실측: 없으면 캔버스 재구성이 매 프레임 던져 온 PlayMode 가 빨개진다)
                 AgePatternGraphic gr = lr.gameObject.AddComponent<AgePatternGraphic>();
                 gr.texture = Tile(age, i);
                 gr.color = AgePatternStyle.Parse(a.Layers[i].Color);
@@ -76,6 +77,7 @@ namespace Forge.Game.Ui
             if (a.Rings != null)
             {
                 RectTransform rr = UiKit.Box(layer, "pat-rings");
+                rr.gameObject.AddComponent<CanvasRenderer>();
                 AgeRingsGraphic ring = rr.gameObject.AddComponent<AgeRingsGraphic>();
                 ring.raycastTarget = false;
                 ring.color = AgePatternStyle.Parse(a.Rings.Color);
@@ -142,6 +144,7 @@ namespace Forge.Game.Ui
     }
 
     /// <summary>타일 무늬 한 층 — `RawImage` 에 정본 마스크(`linear-gradient(90deg, transparent 0 30%, #000 50%)`)를 정점 알파로 얹은 것.</summary>
+    [RequireComponent(typeof(CanvasRenderer))]
     public sealed class AgePatternGraphic : RawImage
     {
         float maskFrom = -1f, maskTo = -1f;
@@ -175,6 +178,7 @@ namespace Forge.Game.Ui
     }
 
     /// <summary>양자 파문 — 정본 `repeating-radial-gradient(circle at 52% 50%, …)` 를 링 메시로(위상 `--gp-q` 가 커지면 링이 바깥으로 밀려난다 · 상자 크기가 곧 그라디언트 상자).</summary>
+    [RequireComponent(typeof(CanvasRenderer))]
     public sealed class AgeRingsGraphic : MaskableGraphic
     {
         AgeSpec a; float pxPerRem, phaseRem, maskFrom = -1f, maskTo = -1f; int segments = 48;

@@ -3359,6 +3359,7 @@
 - **호출**: 정본 세 자리(자동 제련 행 `.af-age-bar` · 확률 정보/목록 머리줄 `.fi-age-bar` · 장착 셀 `.equip-cell`)는 클론에서 `ForgeUi.AgeBar`(+ 장착 타일) · `ForgeAutoPopup` · `ForgeInfoPopup` — 전부 T87 lock `Ui/Forge*` 라 이번 회차는 **안 걸었다**. 2회차: `ForgeUi.AgeBar` 안에서 바탕 채움 바로 뒤에 `AgePattern.Attach(bar, age, cell:false, mask: 자동제련이면 true)` · 장착 셀/목록 타일에서 `Attach(cell, item.Age, cell:true)` · 촬영 `screen_autoforge`·`screen_forge-list` 눈 확인(무늬가 실제로 움직이는지는 두 프레임 캡처 차이로).
 - **판정 수단**: EditMode `AgePatternRulesTests` 5 · PlayMode `AgePatternTests` 3(직접 깔기: 다섯 시대 타일 픽셀이 서로 다름 · 앞 다섯 시대 층 없음 · 한 주기 = 타일 정수 칸 · 반짝임 범위 · 양자 링 위상 · 셀 .55 · 마스크 갈래) · CI 런.
 - **게이트**: `dotnet build` 0 오류(TestsPlay 포함) · `dotnet test` **581/581**(+5) · `gen_meta` 5 · 문서 자 rc 0 · catalog·data 0줄.
+- **런 243·245 판정 — 내 것이 CI 를 빨갛게 했다 → 즉시 수리(2회차 커밋)**: PlayMode 128 중 **빨강 122** — `AgeRingsGraphic`(MaskableGraphic 상속)을 `AddComponent` 로 붙인 `pat-rings` 에 **CanvasRenderer 가 없어** 캔버스 재구성(`EnableRectClipping`)이 매 프레임 `MissingComponentException` 을 던졌고, 내 테스트가 그 예외로 끊겨 상자를 못 걷자 남은 층이 뒤 테스트 전부를 «Unhandled log message» 로 물들였다(EditMode 581 은 초록 · 워커 보고함 13dda82 가 같은 뿌리를 짚었다). 고침: ⓐ 두 그래픽에 `[RequireComponent(typeof(CanvasRenderer))]` + `Attach` 가 그래픽 앞에 `CanvasRenderer` 를 명시로 붙인다 ⓑ 테스트는 시작·끝에 `t124-*` 상자를 `DestroyImmediate` 로 걷고(앞 테스트가 던져도 뒤가 안 물든다) 층·링마다 CanvasRenderer 를 단언한다. 판정 런은 다음 것.
 - **주인이 확인할 것**: 2회차 뒤 — 자동 제련 행·확률 정보 머리줄·장착 슬롯의 항성간 이상 다섯 시대에 무늬가 깔리고 각자 결대로 움직인다(별밭 시차·픽셀 계단·파문·비늘 흘러내림·별 표류).
 - **플레이 콘솔 에러 0 확인 수단**: PlayMode `AgePatternTests` 셋(빨간 로그 0 규칙) · CI 유니티 잡.
 - **정본에서 고칠 것**: 없음.
