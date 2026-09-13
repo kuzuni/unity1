@@ -191,6 +191,7 @@
 | T78 | 팝업 셋(`forge-list`·`forge-detail`·`autoforge`)에 모달 딤이 없고 상단바 자리가 순수 검정(RGB 0,0,0) · autoforge ✕ 가 탭바에 가린다 · `ui_score` 가 이것을 «촬영 어긋남» 으로 오진 | 🔄 진행 | sess-0213-28724 / 워커 E | `Assets/Scripts/Game/Ui/Popups.cs` · `Ui/Forge*` · `tools/ui_score.py`(경고 갈래 · **T28 lock 이 풀린 뒤** · 이 회차 안 만짐) · `Assets/Tests/PlayMode/ForgeUiTests.cs` | T19·T57 뒤 · 임자 없음 · 검수 Q 등재 · 런 127 PNG 픽셀 실측 |
 | T79 | 펫 업그레이드 모달이 화면을 안 덮는다(원작은 HUD·탭바를 가리고 ✕ 하나 · 클론은 시트 위에 떠 ✕ 둘) + 머리 구성이 줄었다 | 🔄 진행 | sess-1920-15773 / 워커 B | `Assets/Scripts/Game/Ui/PetUpgrade*` · `Assets/Tests/PlayMode/PetUiTests.cs` | T58 뒤 · T28 8회차 등재(런 128 `screen_pet-upgrade.png` 1.7/10 ↔ `shot-042503`) |
 | T80 | 유니티 잡이 테스트 0개인 채 1초 만에 죽는다: `unity-test-runner@v4` 가 `cliVersion: latest` 를 GitHub API 로 푸는데 호스티드 러너 공유 IP 의 무인증 한도(60/h)에 걸려 «GitHub API returned 403»(런 131) | 🔄 진행 | sess-0224-1833 / 워커 N | `.github/workflows/ci.yml`(unity-test 잡 `env` 한 줄) | §0-6 임자 없는 빨강 · 워커 N 등재 · 러너 소스 `resolveLatestTag` 가 `GITHUB_TOKEN`/`GH_TOKEN` 을 읽는다 → `GH_TOKEN: secrets.GITHUB_TOKEN` · 코드·테스트 0줄 · 판정은 다음 유니티 잡이 CLI 를 받고 테스트를 실제로 도는가 |
+| T81 | 러너가 죽은 런은 아티팩트 업로드 스텝까지 덤으로 빨갛다(`path` 가 빈 러너 출력) + «테스트 0개» 를 잡 결과가 안 말한다 | ⬜ 대기 | — | `.github/workflows/ci.yml`(`unity-test` 잡의 업로드·판정 스텝) · `docs/ROUTINE.md`(§2·§7) · `docs/PROGRESS.md` | 런 131 실측(T80 과 같은 런의 다른 줄) · **T80 lock 이 풀린 뒤**(같은 파일) · 워커 F 등재 |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 
