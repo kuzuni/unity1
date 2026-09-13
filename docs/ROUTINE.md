@@ -488,7 +488,7 @@
   - 정본 수집 버튼 우상단에 `.offline-collect-dot`(`.7rem` 빨간 원 · 흰 테두리 · `style.css` 309)이 있다. 클론엔 없다.
   - 걷어낸 것: 원작 샷의 **파란** 수집 버튼은 옛것 — 정본 `.btn.primary` 가 초록(`#1f4a2c`/`#2ea043`)이라 클론의 초록이 맞다. 합계줄 `8.87k`·`149.05` 는 정본 주석대로 **흰 칠 + 검정 링**(클론은 검정 칠 · 링 규칙은 T25 갈래).
 - 무엇을 한다: 머리 판을 어두운 색으로(카탈로그에 `#0e111b` 에 가까운 키가 없으면 키 하나 추가 — `catalog.json` 은 **T62 lock 이 풀린 뒤** · 그 전엔 `pp_ink`(#17181a)로 먼저) + 글자 색을 정본대로(흰 · #ccc · 초록) · 요율 칸을 세로 배치로 · 수집 버튼에 빨간 점. 수치는 `catalog.json`/`PopupKit` 에서(§1).
-- 판정: `ui_score --score` 의 `offline` 점수가 오르고(3.7 → 8.0 목표) + PNG 눈 확인(위 절반이 어둡다 · 요율이 아이콘 아래) + PlayMode 빨강 0.
+- 판정: PNG 눈 확인(위 절반이 어둡다 · 요율이 아이콘 아래 · 수집 버튼 빨간 점) + PlayMode `OfflinePopupTests` 초록 + 콘솔 빨강 0. `ui_score` 는 화면 전체(3D 배경·한글 두부)를 재서 팝업 범위로는 못 닿는다(T57 결정 157 과 같은 갈래 · 런 113 실측 1.4 «짝 없음» · 결정 170) — 화면 점수는 T28 이 본다.
 - 범위: `Assets/Scripts/Game/Ui/OfflinePopup.cs` · `Assets/Forge/catalog.json`(색 키 하나 · T62 뒤) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
 ### T69 ✅ — 자: §7 표에 **이름이 없는** 작업을 잡는다 — 지금 17개가 빠져 T33 의 완주 판정이 그 위를 지나간다 (검증 · 뒤 순서 없음 · T33 이 이 자를 쓴다)
 - 범위: `Assets/Scripts/Game/Ui/OfflinePopup.cs` · `Assets/Tests/PlayMode/OfflinePopupTests.cs`(자기 파일 · `UiSmokeTests.cs` 는 T54·T63·T65 lock 이 쥔다) · `Assets/Forge/catalog.json`(색 키 `#0e111b`·`#ccc` · T62 뒤).

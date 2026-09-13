@@ -47,10 +47,12 @@ namespace Forge.Game.Ui
             max = UiKit.Text(top, "max", TextKind.Sub, string.Empty, SubInkKey, TextAlignmentOptions.Left);
             max.fontStyle = FontStyles.Bold;
             UiKit.Place(max.rectTransform, inner * 0.77f, y, inner * 0.23f, lineH);
-            y += lineH + rem * 1.65f;
+            y += lineH + rem * 1.2f;
             // 요율 둘 — 세로(아이콘 위 · 글자 아래) · 두 칸 사이 2.4rem · 행 전체를 가운데에
             float circle = rem * 2.6f, gap = rem * 2.4f, rateW = Mathf.Max(circle, inner * 0.36f);
             float rateH = circle + rem * 0.3f + lineH;
+            // 글자 하한(60/36px)이 정본 rem 글자보다 커서 정본 여백(1.65rem)을 그대로 두면 행이 판 밖으로 15px 넘친다(CI 런 113) — 판 안에 붙인다
+            y = Mathf.Min(y, topH - rateH - rem * 0.5f);
             float rx = (inner - (rateW * 2f + gap)) * 0.5f;
             Rate(top, "coin", "coin", "coin", PopupKit.FmtDec(o.CoinRate) + "/초", rx, y, rateW, circle, lineH);
             Rate(top, "hammer", "hammer", GreenKey, PopupKit.FmtDec(o.HammerRate) + "/분", rx + rateW + gap, y, rateW, circle, lineH);
