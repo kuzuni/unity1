@@ -1,0 +1,257 @@
+{
+ "_": "ROUTINE T124 시대 무늬(항성간 이상 다섯 · 원작 css/style.css 918~935 · 4834~4842 · 4869~4975 · 주인 지시 grade-pattern-animation)의 수치·색표. T87 lock 이 catalog.json 을 쥐고 있어 T124 몫만 여기 둔다(T65 PlayerInfoUi.json 과 같은 꼴). 단위: _rem = 정본 rem · _f = 비율 · _s = 초(벽시계) · svg_px = 정본 인라인 SVG 의 viewBox 픽셀(타일이 tile_rem 으로 늘어난다). 색은 정본 rgba 를 #RRGGBBAA 로(.3→4d · .42→6b · .23→3b · .26→42). 코드에 숫자를 박지 않는다(§1).",
+ "layout": {
+  "cell_opacity_f": 0.55,
+  "bar_mask_from_f": 0.3,
+  "bar_mask_to_f": 0.5,
+  "ease_in_out": [
+   0.42,
+   0,
+   0.58,
+   1
+  ],
+  "supersample_n": 3,
+  "ring_segments_n": 48
+ },
+ "ages": {
+  "interstellar": {
+   "layers": [
+    {
+     "kind": "dot",
+     "tile_rem": [
+      3.1,
+      1.9
+     ],
+     "pos_rem": [
+      0.9,
+      0.2
+     ],
+     "radius_rem": 0.22,
+     "edge_rem": 0.24,
+     "color": "#c048fc",
+     "move_rem": [
+      3.1,
+      0
+     ]
+    },
+    {
+     "kind": "dot",
+     "tile_rem": [
+      2.3,
+      1.35
+     ],
+     "pos_rem": [
+      0.2,
+      0.8
+     ],
+     "radius_rem": 0.15,
+     "edge_rem": 0.17,
+     "color": "#ba3cfc",
+     "move_rem": [
+      -2.3,
+      0
+     ]
+    }
+   ],
+   "move_s": 12,
+   "steps_n": 0,
+   "pulse": {
+    "from": 0.62,
+    "to": 1,
+    "dur_s": 2.8
+   }
+  },
+  "multiverse": {
+   "layers": [
+    {
+     "kind": "bands",
+     "axis": "x",
+     "on_rem": 0.34,
+     "period_rem": 1.05,
+     "color": "#ffffff4d",
+     "move_rem": [
+      1.05,
+      0
+     ]
+    },
+    {
+     "kind": "bands",
+     "axis": "y",
+     "on_rem": 0.3,
+     "period_rem": 0.85,
+     "color": "#ffffff6b",
+     "move_rem": [
+      0,
+      0.85
+     ]
+    }
+   ],
+   "move_s": 3.5,
+   "steps_n": 7
+  },
+  "quantum": {
+   "rings": {
+    "center_f": [
+     0.52,
+     0.5
+    ],
+    "on_rem": 0.17,
+    "period_rem": 0.84,
+    "color": "#ffffff3b",
+    "dur_s": 2.8
+   }
+  },
+  "underworld": {
+   "layers": [
+    {
+     "kind": "poly",
+     "svg_px": [
+      32,
+      32
+     ],
+     "tile_rem": [
+      2,
+      2
+     ],
+     "points": [
+      [
+       16,
+       4
+      ],
+      [
+       26,
+       16
+      ],
+      [
+       16,
+       28
+      ],
+      [
+       6,
+       16
+      ]
+     ],
+     "color": "#00000042",
+     "move_rem": [
+      0,
+      2
+     ]
+    }
+   ],
+   "move_s": 7,
+   "steps_n": 0,
+   "pulse": {
+    "from": 0.74,
+    "to": 1,
+    "dur_s": 3.6
+   }
+  },
+  "divine": {
+   "layers": [
+    {
+     "kind": "stars",
+     "svg_px": [
+      60,
+      30
+     ],
+     "tile_rem": [
+      3.4,
+      1.7
+     ],
+     "color": "#fc7818",
+     "star": [
+      [
+       0,
+       -9.4
+      ],
+      [
+       2.7,
+       -2.7
+      ],
+      [
+       9.9,
+       -2.2
+      ],
+      [
+       4.4,
+       2.5
+      ],
+      [
+       6.1,
+       9.4
+      ],
+      [
+       0,
+       5.6
+      ],
+      [
+       -6.1,
+       9.4
+      ],
+      [
+       -4.4,
+       2.5
+      ],
+      [
+       -9.9,
+       -2.2
+      ],
+      [
+       -2.7,
+       -2.7
+      ]
+     ],
+     "places": [
+      [
+       11,
+       9,
+       0.62,
+       14
+      ],
+      [
+       31,
+       5,
+       0.4,
+       -24
+      ],
+      [
+       49,
+       12,
+       0.55,
+       31
+      ],
+      [
+       21,
+       23,
+       0.35,
+       48
+      ],
+      [
+       41,
+       26,
+       0.5,
+       -9
+      ],
+      [
+       3,
+       26,
+       0.3,
+       70
+      ]
+     ],
+     "move_rem": [
+      -3.4,
+      0
+     ]
+    }
+   ],
+   "move_s": 16,
+   "steps_n": 0,
+   "pulse": {
+    "from": 0.62,
+    "to": 1,
+    "dur_s": 2.2
+   }
+  }
+ }
+}
