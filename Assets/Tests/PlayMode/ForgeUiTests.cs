@@ -834,6 +834,10 @@ namespace Forge.Tests.PlayMode
             RectTransform sl = Named(sheet, "af-star-l-2"), sr = Named(sheet, "af-star-r-2");
             Assert.IsNotNull(sl, "3타 섬광 왼쪽");
             Assert.IsNotNull(sr, "3타 섬광 오른쪽");
+            // 오버레이는 모루 «그림» 의 형제여야 한다 — 자식이면 모루 반동을 타고 내려가 상대변위가 0 이 된다(정본 주석 · 15회차 자가 잡았다)
+            RectTransform overlay = Named(sheet, "anvil-fx");
+            Assert.IsNotNull(overlay, "연출 오버레이");
+            Assert.AreEqual("anvil-btn", overlay.parent.name, "오버레이는 모루 버튼의 자식(= 그림의 형제)이다");
             Assert.AreEqual(1f, sl.pivot.x, 1e-3f, "왼쪽 조각의 축은 오른쪽 끝(머리 쪽)");
             Assert.AreEqual(0f, sr.pivot.x, 1e-3f, "오른쪽 조각의 축은 왼쪽 끝(머리 쪽)");
             fx.SampleTo(AutoForgeFxSpec.HitMs[2]);

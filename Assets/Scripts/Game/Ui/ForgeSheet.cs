@@ -287,7 +287,9 @@ namespace Forge.Game.Ui
             UiKit.Place(bevel.rectTransform, ox + UiKit.L("anvil_bevel_x") * u, oy + UiKit.L("anvil_bevel_y") * u, UiKit.L("anvil_bevel_w") * u, UiKit.L("anvil_bevel_h") * u);
             DrawBillet(rt, ox, oy, u, vbW, vbH);
             vbUnit = u;
-            if (striking) DrawHammer(rt, ox, oy, u, vbW, vbH);
+            // ⚠ 연출 오버레이는 **모루 그림의 형제**다(정본 `.anvil-btn` 안에서 `.anvil-svg` 와 나란히) — 그림의 자식으로 두면
+            //   망치·링·섬광이 모루의 반동(`anvilbump`)을 그대로 타고 내려가 «상대변위 0» 이 된다(정본이 망치에 대해 못 박은 함정 · 15회차 자가 잡았다).
+            if (striking) DrawHammer(rt.parent as RectTransform, ox, oy, u, vbW, vbH);
             SetFxOrigin(rt, ox, oy, u, vbW, vbH, w, h);
             return bas;
         }
