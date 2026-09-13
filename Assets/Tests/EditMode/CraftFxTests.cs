@@ -190,6 +190,137 @@ namespace Forge.Tests
             Assert.Throws<System.ArgumentException>(() => new CssTrack(new double[] { 0, 100 }, new double[][] { new double[] { 0 }, new double[] { 1, 2 } }), "채널 수 불일치");
         }
 
+        [Test]
+        public void 망치는_모루_빌릿과_같은_클럭_같은_타격_퍼센트다()
+        {
+            CollectionAssert.AreEqual(AnvilFxSpec.StrikeMs, AutoForgeFxSpec.HitMs, "ui.js ANVIL_HITS = css afswing 타격 시각");
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.AreEqual(AnvilFxSpec.StrikeStop[i], AutoForgeFxSpec.ContactStop[i], Eps, i + "타 접촉 퍼센트가 모루와 같다");
+                Assert.AreEqual(AnvilFxSpec.DwellStop[i], AutoForgeFxSpec.DwellStop[i], Eps, i + "타 드웰 끝이 모루와 같다");
+                Assert.Less(AutoForgeFxSpec.SmearStop[i], AutoForgeFxSpec.ContactStop[i], i + "타 스미어는 접촉 직전이다");
+            }
+        }
+
+        [Test]
+        public void 망치는_타격마다_다른_자리를_친다()
+        {
+            // 정본: «대장장이는 소재를 옮긴다 — 같은 자리를 세 번 찍으면 프레임이 복사본으로 보인다»
+            double[] v = new double[4];
+            double[] hitX = new double[3];
+            for (int i = 0; i < 3; i++)
+            {
+                AutoForgeFxSpec.SampleSwing(AutoForgeFxSpec.HitMs[i], v);
+                hitX[i] = v[0];
+                // 기본 트랙 + `--dxN` 몫이 CSS 의 calc 과 같아야 한다(접촉 키를 퍼센트로 찾는다)
+                double baseX = KeyAt(AutoForgeFxSpec.Swing, AutoForgeFxSpec.ContactStop[i])[0];
+                Assert.AreEqual(baseX + AutoForgeFxSpec.HitDx[i], hitX[i], 1e-6, i + "타 접촉 x = 적힌 값 + dx");
+            }
+            Assert.Less(hitX[0], hitX[1], "타격 자리가 오른쪽으로 걸어간다");
+            Assert.Less(hitX[1], hitX[2]);
+            Assert.Greater(hitX[2] - hitX[0], 9.0, "세 자리가 실제로 벌어져 있다(정본 −4.8 → 5.4)");
+        }
+
+        [Test]
+        public void 망치는_접촉_직전에_늘어나고_드웰_동안_멈춘다()
+        {
+            double[] smear = new double[4], hit = new double[4], dwell = new double[4];
+            double[] smearY = { 1.16, 1.18, 1.22 };
+            for (int i = 0; i < 3; i++)
+            {
+                AutoForgeFxSpec.Swing.Sample(AutoForgeFxSpec.SmearStop[i], smear);
+                AutoForgeFxSpec.Swing.Sample(AutoForgeFxSpec.ContactStop[i], hit);
+                AutoForgeFxSpec.Swing.Sample(AutoForgeFxSpec.DwellStop[i], dwell);
+                Assert.AreEqual(smearY[i], smear[3], Eps, i + "타 스미어 배율");
+                Assert.AreEqual(1.0, hit[3], Eps, i + "타 접촉에서는 안 늘어난다");
+                Assert.AreEqual(hit[2], dwell[2], Eps, i + "타: 드웰 동안 각도가 멈춘다");
+                Assert.Greater(hit[1], 0, i + "타: 접촉은 모루 쪽(+y)이다");
+            }
+            Assert.Less(smearY[0], smearY[1], "스미어가 갈수록 길다");
+            Assert.Less(smearY[1], smearY[2]);
+
+            // 관통 깊이(접촉 y)도 갈수록 깊다 — 3타가 가장 깊다
+            double[] a = new double[4], b = new double[4], c = new double[4];
+            AutoForgeFxSpec.Swing.Sample(AutoForgeFxSpec.ContactStop[0], a);
+            AutoForgeFxSpec.Swing.Sample(AutoForgeFxSpec.ContactStop[1], b);
+            AutoForgeFxSpec.Swing.Sample(AutoForgeFxSpec.ContactStop[2], c);
+            Assert.Less(a[1], b[1], "2타가 더 깊다");
+            Assert.Less(b[1], c[1], "3타가 가장 깊다");
+        }
+
+        [Test]
+        public void 퇴장은_스윙_끝자세에서_이어받아_사라진다()
+        {
+            double[] end = new double[4], exit = new double[4];
+            AutoForgeFxSpec.Swing.Sample(100, end);
+            Assert.IsFalse(AutoForgeFxSpec.SampleExit(AutoForgeFxSpec.ExitStartMs - 1, exit), "1170ms 전에는 퇴장이 없다");
+            Assert.IsTrue(AutoForgeFxSpec.SampleExit(AutoForgeFxSpec.ExitStartMs, exit), "1170ms 에 넘겨받는다");
+            for (int c = 0; c < 3; c++) Assert.AreEqual(end[c], exit[c], Eps, "경계 자세가 같아야 안 튄다(채널 " + c + ")");
+            Assert.AreEqual(1.0, exit[3], Eps, "넘겨받을 때는 보인다");
+
+            AutoForgeFxSpec.SampleExit(AutoForgeFxSpec.ExitStartMs + AutoForgeFxSpec.ExitDurMs, exit);
+            Assert.AreEqual(0.0, exit[3], Eps, "끝에서 사라진다");
+            Assert.AreEqual(-74.0, exit[1], Eps, "왼쪽 위로 빠진다");
+            Assert.LessOrEqual(AutoForgeFxSpec.ExitStartMs + AutoForgeFxSpec.ExitDurMs, AnvilFxSpec.DurationMs, "퇴장이 오버레이 수명 안에서 끝난다");
+
+            // 앞이 빠르다(0→45%가 33% 구간) — 이징까지 옮겼는지 본다
+            AutoForgeFxSpec.SampleExit(AutoForgeFxSpec.ExitStartMs + AutoForgeFxSpec.ExitDurMs * 0.5, exit);
+            double[] lin = new double[4];
+            AutoForgeFxSpec.Exit.Sample(50, lin);
+            Assert.Less(exit[1], lin[1], "cubic-bezier(.2,.62,.5,1) 는 앞을 당긴다(같은 시각에 더 올라가 있다)");
+        }
+
+        [Test]
+        public void 타격_링은_접촉_8ms_앞에_켜져_갈수록_크게_퍼진다()
+        {
+            double[] v = new double[2];
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.AreEqual(AutoForgeFxSpec.HitMs[i] - 8, AutoForgeFxSpec.RingStartMs(i), Eps, i + "타 링 시작");
+                Assert.IsFalse(AutoForgeFxSpec.SampleRing(i, AutoForgeFxSpec.RingStartMs(i) - 1, v), i + "타: 켜지기 전");
+                Assert.IsTrue(AutoForgeFxSpec.SampleRing(i, AutoForgeFxSpec.RingStartMs(i), v), i + "타: 시작");
+                Assert.AreEqual(1.0, v[0], Eps, i + "타: 배율 1 에서 시작");
+                Assert.AreEqual(1.0, v[1], Eps, i + "타: 가장 밝게 시작");
+                // 접촉 프레임(8ms 뒤)에도 아직 살아 있어야 «소리와 그림» 이 같이 온다
+                Assert.IsTrue(AutoForgeFxSpec.SampleRing(i, AutoForgeFxSpec.HitMs[i], v), i + "타: 접촉 프레임에 링이 있다");
+                Assert.Greater(v[1], 0.5, i + "타: 접촉 프레임의 링이 아직 밝다");
+                AutoForgeFxSpec.SampleRing(i, AutoForgeFxSpec.RingStartMs(i) + AutoForgeFxSpec.RingDurMs, v);
+                Assert.AreEqual(AutoForgeFxSpec.RingScale[i], v[0], 1e-6, i + "타: 끝 배율");
+                Assert.AreEqual(0.0, v[1], Eps, i + "타: 끝에서 꺼진다");
+            }
+            Assert.Less(AutoForgeFxSpec.RingScale[0], AutoForgeFxSpec.RingScale[1], "링이 갈수록 크게 퍼진다");
+            Assert.Less(AutoForgeFxSpec.RingScale[1], AutoForgeFxSpec.RingScale[2]);
+        }
+
+        [Test]
+        public void 이징은_브라우저와_같은_값을_낸다()
+        {
+            Assert.AreEqual(0.0, CssEase.Linear.Ease(0), Eps);
+            Assert.AreEqual(0.5, CssEase.Linear.Ease(0.5), Eps);
+            CssEase e = new CssEase(0.2, 0.62, 0.5, 1);
+            Assert.AreEqual(0.0, e.Ease(0), Eps);
+            Assert.AreEqual(1.0, e.Ease(1), Eps);
+            Assert.Greater(e.Ease(0.25), 0.25, "앞을 당기는 곡선이다");
+            for (double t = 0.05; t < 1.0; t += 0.05)
+            {
+                Assert.GreaterOrEqual(e.Ease(t) + 1e-9, e.Ease(t - 0.05), "단조 증가");
+            }
+            // 대칭 곡선(ease-in-out 꼴)은 한가운데가 0.5 다 — 푸는 방법이 맞는지 보는 자기 검사
+            CssEase sym = new CssEase(0.42, 0, 0.58, 1);
+            Assert.AreEqual(0.5, sym.Ease(0.5), 1e-6);
+            Assert.Throws<System.ArgumentException>(() => new CssEase(1.4, 0, 0.5, 1), "x 는 0~1 이어야 한다");
+        }
+
+        /// <summary>퍼센트가 그 키와 같은 줄의 값(트랙에 «적힌 대로» 를 읽을 때).</summary>
+        private static double[] KeyAt(CssTrack t, double percent)
+        {
+            for (int i = 0; i < t.Count; i++)
+            {
+                if (System.Math.Abs(t.StopAt(i) - percent) < 1e-9) return t.ValueAt(i);
+            }
+            throw new System.ArgumentException("그 퍼센트의 키가 없다: " + percent);
+        }
+
         private static double Rest(double percent)
         {
             double[] v = new double[2];

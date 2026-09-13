@@ -60,6 +60,28 @@ namespace Forge.Core.CraftFx
             for (int c = 0; c < a.Length; c++) into[c] = a[c] + (b[c] - a[c]) * t;
         }
 
+        /// <summary>
+        /// 키 사이에 **이징**이 걸린 트랙(`animation: … cubic-bezier(...)`)을 읽는다 — CSS 는 타이밍 함수를
+        /// «구간마다» 다시 적용하므로(키프레임 사이 진행 u 를 이징해 보간) 그 뜻 그대로 푼다.
+        /// `linear` 면 <see cref="Sample"/> 와 같다.
+        /// </summary>
+        public void SampleEased(double percent, CssEase ease, double[] into)
+        {
+            if (ease == null) { Sample(percent, into); return; }
+            if (into == null || into.Length < Channels) throw new ArgumentException("into 가 채널 수보다 짧다");
+            int n = stops.Length;
+            if (percent <= stops[0]) { Copy(values[0], into); return; }
+            if (percent >= stops[n - 1]) { Copy(values[n - 1], into); return; }
+            int hi = 1;
+            while (hi < n && stops[hi] < percent) hi++;
+            int lo = hi - 1;
+            double span = stops[hi] - stops[lo];
+            double t = span <= 0 ? 1 : (percent - stops[lo]) / span;
+            double e = ease.Ease(t);
+            double[] a2 = values[lo], b2 = values[hi];
+            for (int c = 0; c < a2.Length; c++) into[c] = a2[c] + (b2[c] - a2[c]) * e;
+        }
+
         /// <summary>시간(ms)에서 값을 읽는다 — `--afdur` 를 준다.</summary>
         public void SampleMs(double ms, double durationMs, double[] into)
         {
