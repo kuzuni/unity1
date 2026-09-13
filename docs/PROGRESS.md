@@ -2363,6 +2363,17 @@
 - 남은 것: 블룸(`afbloom` · 버튼 전체를 들어 올린다) · 불티(`afspark`) · 비늘(`afscale`) · 연기(`afsmoke`) · 결과 카드(`cr*`·`cb*`·`adcpop`) · 가산 합성 재질(정본 `screen`).
 
 
+### T87 19회차 기록 (2026-09-13 15:0x · 워커 G · sess-0544-755 · lock 유지)
+
+- **블룸(`af-bloom`)까지 넣어 타격 순간의 겹이 일곱이 됐다** — 링 · 접지 그림자 · 코어 · 섬광 · 플래시 · 잔열 · 블룸.
+- 정본 주석: «이게 없으면 접촉 프레임이 정지 프레임보다 **어둡다** — 회색 머리(폭 23유닛)가 주황 상판과 크림 배경을 덮기 때문». 넓은 빛(rx 48 · ry 28 · 접점보다 6 아래)이 **버튼 전체를 두세 프레임 들어 올린다**(수명 120ms · 접촉 7ms 앞).
+- **다른 겹과 규칙이 하나 다르다**: 블룸은 **밝기도** 타격별 배율(`--afbs` 1 / 1.12 / 1.28)과 곱해진다(`opacity: calc(var(--afbs) * .38)`) — 그래서 `SampleBloom` 이 따로 있고 `ApplyBloom` 이 그것만 쓴다.
+- `AnvilFx.Restore` 가 겹 일곱을 모두 «안 보이는 제자리» 로 되돌리게 정리했다(그동안 빠져 있었다 — 시트가 다시 그려져 가려져 있던 자리다).
+- **테스트**: EditMode `블룸은_접촉_프레임을_들어_올린다`(접촉에 이미 0.82배·밝기 > .3 · 3타가 1타보다 밝고 넓다 · 창 앞에는 없다 · 수명 150ms 이하).
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` **552/552** · PlayMode 컴파일 0 오류 · 자 7종 rc 0.
+- 남은 것: 불티(`afspark`) · 비늘(`afscale`) · 연기(`afsmoke`) · 결과 카드(`cr*`·`cb*`·`adcpop`) · 가산 합성 재질(정본 `screen`).
+
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.

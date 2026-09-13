@@ -37,6 +37,8 @@ namespace Forge.Game.Ui
         /// <summary>타격 섬광 웅덩이·잔열(정본 `.af-flash.fN`·`.af-heat.tN`).</summary>
         static readonly Image[] flashes = new Image[3];
         static readonly Image[] heats = new Image[3];
+        /// <summary>블룸(정본 `.af-bloom.bN`) — 타격 순간 버튼 전체를 들어 올린다.</summary>
+        static readonly Image[] blooms = new Image[3];
         /// <summary>viewBox 한 단위의 화면 px — 망치 `afswing` 의 translate 는 **viewBox 단위**다(SVG 자식이라 CSS px 가 아니다).</summary>
         static float vbUnit;
 
@@ -54,7 +56,7 @@ namespace Forge.Game.Ui
             hammerText = null; upgText = null; anvilRt = null; anvilArtRt = null;
             billetRt = null; billetHot = null; billetCool = null; billetGlow = null;
             hammerRt = null; hammerGroup = null; vbUnit = 0f;
-            for (int i = 0; i < rings.Length; i++) { rings[i] = null; shadows[i] = null; cores[i] = null; starsL[i] = null; starsR[i] = null; flashes[i] = null; heats[i] = null; }
+            for (int i = 0; i < rings.Length; i++) { rings[i] = null; shadows[i] = null; cores[i] = null; starsL[i] = null; starsR[i] = null; flashes[i] = null; heats[i] = null; blooms[i] = null; }
             GameDefs d = h.Defs;
             float W = UiKit.RefW, rem = PopupKit.Rem;
             float sheetH = sheet.rect.height > 0 ? sheet.rect.height : (UiKit.L("chat_top") - UiKit.L("sheet_top")) * UiKit.RefH;
@@ -113,7 +115,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(upgText.rectTransform, 0f, btnH + rem * 0.25f, W - padX * 2f - rx, PopupKit.FontSize(TextKind.Sub) * 1.3f);
             }
             // 두들기는 도중 다시 그려졌다면(세이브 → Rerender) 러너를 새 모루·시트에 다시 문다 — 흐른 시간은 지킨다.
-            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, vbUnit); }
+            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit); }
         }
 
         static string RemainText(ForgeHost h)
@@ -139,7 +141,7 @@ namespace Forge.Game.Ui
             if (root == null) return;
             AnvilFx fx = AnvilFx.Ensure(root.Sheet);
             if (fx == null) return;
-            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, vbUnit);
+            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit);
             else fx.Stop();
         }
 
@@ -361,6 +363,9 @@ namespace Forge.Game.Ui
             // 정본 SVG 순서: 링 → 접지 그림자 → … → 순백 코어 → 섬광 → 망치
             DrawImpactEllipse(fx, u, shadows, "af-shadow", "fx_shadow_rx", "fx_shadow_ry", "fx_shadow_dy", "fx_shadow");
             DrawImpactEllipse(fx, u, cores, "af-core", "fx_core_rx", "fx_core_ry", "fx_core_dy", "fx_core");
+            // 정본 SVG 순서: 블룸이 맨 처음(가장 아래) — 버튼 전체를 들어 올리는 넓은 빛
+            DrawImpactGradient(fx, u, blooms, "af-bloom", "bloom_rx", "bloom_ry",
+                new string[] { "bloom0", "bloom1", "bloom2" }, new float[] { 0f, UiKit.L("bloom_off1"), 1f }, UiKit.L("bloom_dy"));
             DrawStars(fx, u);
             // 잔열 → 플래시(정본 SVG 순서: 블룸 → 잔열 → 플래시 → 링 → …) · 둘 다 방사 그라디언트 웅덩이
             DrawImpactGradient(fx, u, heats, "af-heat", "heat_rx", "heat_ry",
@@ -435,7 +440,7 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>방사 그라디언트 웅덩이 셋(잔열 · 플래시) — 타격점에 앉고 제 창에서만 <see cref="AnvilFx"/> 가 배율·불투명도를 바른다.</summary>
-        static void DrawImpactGradient(RectTransform fx, float u, Image[] into, string name, string rxKey, string ryKey, string[] colorKeys, float[] offsets)
+        static void DrawImpactGradient(RectTransform fx, float u, Image[] into, string name, string rxKey, string ryKey, string[] colorKeys, float[] offsets, float dy = 0f)
         {
             float rx = UiKit.L(rxKey), ry = UiKit.L(ryKey);
             Color[] stops = new Color[colorKeys.Length];
@@ -450,7 +455,7 @@ namespace Forge.Game.Ui
                 img.type = Image.Type.Simple;
                 Color c = Color.white; c.a = 0f;
                 img.color = c;
-                float cx = (float)AutoForgeFxSpec.HitCenterX(i), cy = (float)AutoForgeFxSpec.HitCenterY(i);
+                float cx = (float)AutoForgeFxSpec.HitCenterX(i), cy = (float)AutoForgeFxSpec.HitCenterY(i) + dy;
                 UiKit.Place(rt, (cx - rx) * u, (cy - ry) * u, rx * 2f * u, ry * 2f * u);
                 into[i] = img;
             }

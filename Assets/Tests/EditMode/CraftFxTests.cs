@@ -249,6 +249,28 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 블룸은_접촉_프레임을_들어_올린다()
+        {
+            // 정본: «이게 없으면 접촉 프레임이 정지 프레임보다 어둡다 — 회색 머리가 주황 상판과 크림 배경을 덮기 때문»
+            double[] v = new double[2];
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.IsTrue(AutoForgeFxSpec.SampleBloom(i, AutoForgeFxSpec.HitMs[i], v), i + "타 블룸이 접촉 프레임에 켜져 있다");
+                Assert.Greater(v[1], 0.3, i + "타: 접촉 프레임 밝기(배율과 곱해진다)");
+                Assert.Greater(v[0], AutoForgeFxSpec.BloomScale[i] * 0.82, i + "타: 접촉 프레임에 이미 0.82배 이상");
+                // 밝기도 타격별 배율과 곱해진다 — 3타가 1타보다 밝다
+                Assert.IsFalse(AutoForgeFxSpec.SampleBloom(i, AutoForgeFxSpec.HitMs[i] - AutoForgeFxSpec.BloomLeadMs - 1, v), i + "타: 창 앞에는 없다");
+            }
+            double[] a0 = new double[2], a2 = new double[2];
+            AutoForgeFxSpec.SampleBloom(0, AutoForgeFxSpec.HitMs[0], a0);
+            AutoForgeFxSpec.SampleBloom(2, AutoForgeFxSpec.HitMs[2], a2);
+            Assert.Greater(a2[1], a0[1], "3타 블룸이 1타보다 밝다(밝기도 --afbs 와 곱해진다)");
+            Assert.Greater(a2[0], a0[0], "3타 블룸이 1타보다 넓다");
+            // 수명이 짧다 — «2~3프레임» (120ms)
+            Assert.LessOrEqual(AutoForgeFxSpec.BloomDurMs, 150.0, "블룸은 두세 프레임짜리다");
+        }
+
+        [Test]
         public void 잔열은_타격_사이에_다리를_놓고_오버레이_안에서_끝난다()
         {
             // 정본: 플래시(100ms)·섬광(75ms)·링(200ms)이 250ms 안에 다 사라져 «타격 사이 상판이 완전히 식은 그림» 이었다 → 잔열이 다리를 놓는다

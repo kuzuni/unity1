@@ -191,6 +191,29 @@ namespace Forge.Core.CraftFx
             new double[] { 0, 45, 100 },
             new double[][] { new double[] { 0.88, 1.0 }, new double[] { 1.0, 1.0 }, new double[] { 1.3, 0.0 } });
 
+        /// <summary>
+        /// `af-bloom` — 타격 순간 **버튼 전체를 2~3프레임 들어 올리는** 넓은 빛(`screen`). 정본 주석: «이게 없으면 접촉 프레임이 정지 프레임보다 **어둡다** —
+        /// 회색 머리(폭 23유닛)가 주황 상판과 크림 배경을 덮기 때문». 수명 120ms · 접촉 7ms 앞.
+        /// ⚠ 다른 겹과 달리 **불투명도도** 타격별 배율과 곱해진다(`opacity: calc(var(--afbs) * .38)`).
+        /// </summary>
+        public const double BloomDurMs = 120;
+        /// <summary>접촉 앞당김(ms).</summary>
+        public const double BloomLeadMs = 7;
+        /// <summary>타격마다의 블룸 배율(`--afbs` 1 / 1.12 / 1.28) — 크기와 밝기 둘 다에 곱해진다.</summary>
+        public static readonly double[] BloomScale = { 1.0, 1.12, 1.28 };
+        /// <summary>`afbloom` — 채널 = 배율 곱 · opacity 곱(둘 다 <see cref="BloomScale"/> 에 곱한다).</summary>
+        public static readonly CssTrack Bloom = new CssTrack(
+            new double[] { 0, 30, 100 },
+            new double[][] { new double[] { 0.82, 0.38 }, new double[] { 1.0, 0.33 }, new double[] { 1.14, 0.0 } });
+
+        /// <summary>블룸은 밝기도 타격별 배율과 곱한다 — `into` = [배율, opacity].</summary>
+        public static bool SampleBloom(int i, double ms, double[] into)
+        {
+            if (!SampleBurst(Bloom, CssEase.Linear, BloomDurMs, BloomLeadMs, BloomScale, i, ms, into)) return false;
+            into[1] = Math.Min(1.0, into[1] * BloomScale[i]);
+            return true;
+        }
+
         /// <summary>`af-flash` — 타격 섬광 웅덩이(`screen` 합성 · 방사 그라디언트). 수명 100ms · 접촉 **6ms 앞**.</summary>
         public const double FlashDurMs = 100;
         /// <summary>접촉 앞당김(ms).</summary>
