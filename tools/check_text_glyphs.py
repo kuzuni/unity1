@@ -12,7 +12,10 @@
      셋 다 **전부 초록인 런**의 PNG 에서 □ 로 보였다. 식별자·키는 ASCII 라 넓혀도 오탐이 안 는다
      (이 자는 «글꼴에 없는 비 ASCII» 만 센다).
   ⓑ 정본 `TOAST_ICON`(`Assets/StreamingAssets/data/ui-text.json`)에 있는 이모지는 **아이콘으로 치환**되므로 뺀다
-     (T89 의 `IconText`/`UiKit.IconTextRow` 가 하는 일 · 이형 선택자 U+FE0F 포함).
+     (T89 의 `IconText`/`UiKit.IconTextRow` 가 하는 일 · 이형 선택자 U+FE0F 포함). 다만 «표에 있다» 가 «그 자리가
+     아이콘을 거친다» 는 뜻은 아니다 — 표의 이모지를 **그냥 라벨 글자로** 쓰면 그대로 □ 다(실측: `ForgeSheet`
+     잠금 «🔒» · `ForgeCraftPopup` «판매\n🪙 +»). 그래서 4회차부터 그런 자리를 따로 세어(`label_risk`)
+     `LABEL_KNOWN` 에 없는 **새 자리는 rc 1** 로 막는다.
   ⓒ 남은 글자를 주인 글꼴(`Assets/Fonts/NotoSansKR-Forge.ttf`)의 cmap 과 맞춰 없는 것을 찍는다.
 
 `KNOWN` 은 «지금 알고 있고 임자가 정해진» 자리다 — 그것만 통과시키고 **새로 생긴 두부는 rc 1** 로 막는다.
@@ -41,11 +44,24 @@ KNOWN = {
     # 2회차에 ㅋ·ㅠ 는 지웠다 — 글꼴 서브셋에 한글 자모 구획(U+3130~318F)을 더해 실제로 그려진다.
     # 3회차에 정본을 읽어 임자를 바로잡았다: 남은 일곱 중 `↻` 하나만 «정본이 아이콘으로 그리는 자리» 이고
     # 나머지 여섯은 정본도 **글자**라 고칠 길이 이모지 폴백 글꼴 하나뿐이다(T106 · 주인 에셋 승인).
-    '↻': 'ForgeSheet 자동 제련 버튼 «자동 ↻» — 정본은 글자가 아니라 아이콘(ui.js 1551 IconGen.img(autoloop)) · T100 ⓐ(T87 lock 이 풀린 뒤)',
+    '↻': 'ForgeSheet 자동 제련 버튼 «자동 ↻» — 정본은 글자가 아니라 아이콘(ui.js 1551 IconGen.img(autoloop)) · **T108**(T87 lock 이 풀린 뒤 · 같은 줄의 🔒 와 함께)',
     '😭': '채팅 문구(정본 chat.js 11행) — 정본도 **글자** · T106(이모지 폴백 글꼴)',
     '🐴': '탈것 토스트·얼굴 폴백(PetSkillUi.json /text/toast_mount_full · PetSkillKit 324행) — **정본도 글자다**: `ui.js` 2143 `creatureFace` 가 썸네일이 없는 동안 `<span>${emoji}</span>` 를 깐다(아이콘이 아니다 · 3회차에 정본을 읽고 바로잡음) · T106(이모지 폴백 글꼴)',
     '🐾': '같은 갈래(펫 보관함·출전 토스트 셋 + 얼굴 폴백) — **정본도 글자다**(`ui.js` 2162 `petFace` → `creatureFace`) · T106(이모지 폴백 글꼴)',
     '🛡': 'PlayerInfoUi.json /text/shield(미니 씬이 못 설 때의 폴백) — **정본도 글자다**: `ui.js` 5153 `<div class="pinfo-preview"><span>🛡️</span>…` · T106(이모지 폴백 글꼴)',
+}
+
+ROUTE = re.compile(r'IconTextRow|IconText\.|UiText\.(?:Split|TextOnly)|Toast\(|TextOnly\(')
+ROUTE_CTX = 3   # 리터럴 둘레 몇 줄까지 «아이콘 길» 을 찾을까
+
+# 아이콘 표 글자를 **아이콘을 안 거치고 글자로** 세우는 것이 이미 알려진 자리(임자 있음).
+# 열쇠는 «파일 이름|리터럴» 이다 — 줄 번호로 잡으면 남이 위에 한 줄만 넣어도 어긋난다.
+LABEL_KNOWN = {
+    'ForgeCraftPopup.cs|판매 🪙 +': 'T99(워커 D) — 정본 ui.js 의 판매 버튼 · 두 줄 라벨이라 가로 IconTextRow 로는 안 된다 · T87 lock 뒤',
+    'ForgeCraftPopup.cs|판매\\n🪙 +': '같은 자리의 두 줄 판',
+    'ForgeInfoPopup.cs|건너뛰기\\n💎 ': 'T99(워커 D) — 건너뛰기 버튼 · 두 줄 라벨 · T87 lock 뒤',
+    'ForgeInfoPopup.cs| 업그레이드\\n🪙 ': 'T99(워커 D) — 업그레이드 버튼 · 두 줄 라벨 · T87 lock 뒤',
+    'ForgeSheet.cs|🔒': 'T108 — 자동 제련 버튼의 잠금 표시(정본 ui.js 1551 IconGen.img(lock)) · 같은 줄의 ↻ 와 함께 · T87 lock 뒤',
 }
 
 LITERAL = re.compile(r'"((?:[^"\\]|\\.)*)"')
@@ -159,6 +175,41 @@ def data_strings(dirs=None):
     return out
 
 
+
+def label_risk(root, font, table):
+    """아이콘 표 글자를 쥔 코드 리터럴 중 **둘레에 아이콘 길이 안 보이는** 자리 → [(자리, 글자들, 리터럴)].
+
+    표에 있는 이모지는 «아이콘으로 바뀐다» 는 전제로 건너뛰는데(ⓑ), 그 전제가 깨지는 자리가 실제로 있다.
+    정적으로는 «이 리터럴 둘레에 `IconTextRow`·`Toast`·`IconText` 가 보이는가» 까지만 볼 수 있다 — 그래서
+    이 함수는 **의심 자리**를 내놓고, 임자가 정해진 것은 `LABEL_KNOWN` 이 통과시킨다."""
+    out = []
+    for dirpath, _dirs, files in os.walk(root):
+        for f in sorted(files):
+            if not f.endswith('.cs'):
+                continue
+            path = os.path.join(dirpath, f)
+            lines = open(path, encoding='utf-8').read().split('\n')
+            rel = os.path.relpath(path, ROOT)
+            for i, line in enumerate(lines, 1):
+                st = line.strip()
+                if st.startswith('//') or st.startswith('*'):
+                    continue
+                for lit in LITERAL.findall(line):
+                    bad = sorted(set(c for c in lit if ord(c) >= 0x20 and ord(c) not in font and c in table))
+                    if not bad:
+                        continue
+                    ctx = '\n'.join(lines[max(0, i - 1 - ROUTE_CTX):i + ROUTE_CTX])
+                    if ROUTE.search(ctx):
+                        continue
+                    out.append(('%s:%d' % (rel, i), ''.join(bad), lit))
+    return out
+
+
+def label_key(where, lit):
+    """`LABEL_KNOWN` 의 열쇠 — 파일 이름 + 리터럴(줄 번호는 안 쓴다)."""
+    return '%s|%s' % (os.path.basename(where.rsplit(':', 1)[0]), lit)
+
+
 def missing(strings, font, skip):
     """글꼴에도 없고 아이콘 표에도 없는 글자 → {글자: [자리…]} (순수 함수)."""
     out = {}
@@ -178,19 +229,30 @@ def main(argv):
     strings = screen_strings(SCAN_DIR) + data_strings()
     miss = missing(strings, font, skip)
     new = {ch: w for ch, w in miss.items() if ch not in KNOWN}
+    risk = label_risk(SCAN_DIR, font, skip)
+    risk_new = [r for r in risk if label_key(r[0], r[2]) not in LABEL_KNOWN]
     for ch, where in sorted(miss.items()):
         tag = '(아는 것) ' + KNOWN[ch] if ch in KNOWN else '**새 두부**'
         print('  %s U+%05X «%s» %d곳 — %s' % ('·' if ch in KNOWN else '✗', ord(ch), ch, len(where), tag))
         if ch not in KNOWN:
             for w in sorted(set(where))[:6]:
                 print('      %s' % w)
+    for where, chars, lit in risk:
+        tag = '(아는 것) ' + LABEL_KNOWN[label_key(where, lit)] if label_key(where, lit) in LABEL_KNOWN else '**새 자리**'
+        print('  %s %s «%s» 라벨 «%s» — %s' % ('·' if tag.startswith('(') else '✗', where, chars, lit, tag))
     if new:
         print('✗ check_text_glyphs: 글꼴에 없는 글자가 화면 문구에 %d 종 새로 들어왔다 — 두부(□)로 찍힌다.' % len(new))
         print('  고침 둘: ⓐ 정본이 그 자리에 아이콘을 그리면 `UiIcons`/`UiKit.IconTextRow` 로(정본 줄을 먼저 읽는다)')
         print('          ⓑ 정본도 글자로 그리면 주인 글꼴에 그 구간이 있어야 한다 — 주인 조치이므로 KNOWN 에 임자와 함께 적는다.')
         return 1
+    if risk_new:
+        print('✗ check_text_glyphs: 아이콘 표의 이모지를 **아이콘을 안 거치고** 라벨 글자로 세운 자리가 %d 곳 새로 생겼다 — 그대로 □ 다.' % len(risk_new))
+        print('  고침: 그 자리를 `UiKit.IconTextRow`(T89)로 세우거나, 정본이 정말 글자로 쓰면 `LABEL_KNOWN` 에 임자와 함께 적는다.')
+        print('  («아이콘 표에 있으니 괜찮다» 는 전제가 깨지는 자리다 — T100 4회차가 낸 구멍.)')
+        return 1
     print('✓ check_text_glyphs: 문구 %d줄(코드 %d + 데이터 %d) · 글꼴에 없는 글자 %d 종(전부 KNOWN · 임자 있음)'
-          % (len(strings), len(screen_strings(SCAN_DIR)), len(data_strings()), len(miss)))
+          ' · 아이콘을 안 거친 라벨 %d곳(전부 LABEL_KNOWN)'
+          % (len(strings), len(screen_strings(SCAN_DIR)), len(data_strings()), len(miss), len(risk)))
     return 0
 
 
@@ -213,6 +275,7 @@ def self_test():
     ]
     # 데이터: 글자 값은 세고 아이콘 «키» 는 안 센다(T100 · 정본이 이모지를 아이콘 이름으로도 쓴다)
     import json as _json
+    import tempfile
     import tempfile as _tmp
     for doc, want, note in [
         ({'text': {'a': '⏹ 끝'}}, 1, '글자 값'),
@@ -225,13 +288,26 @@ def self_test():
             got = len(missing(data_strings([d]), font, skip))
             if got != want:
                 print('✗ 데이터 스캔 «%s»: 기대 %d · 받은 %d' % (note, want, got)); ok = False
-    import tempfile
     for code, want in cases:
         with tempfile.TemporaryDirectory() as d:
             open(os.path.join(d, 'X.cs'), 'w', encoding='utf-8').write(code)
             got = len(missing(screen_strings(d), font, skip))
             if got != want:
                 print('✗ 스캔 «%s»: 기대 %d · 받은 %d' % (code[:40], want, got)); ok = False
+    # 라벨 갈래(T100 4회차): 아이콘 표 글자를 아이콘 없이 세운 자리를 잡는가
+    for code, fname, want, note in [
+        ('UiKit.IconTextRow(p, "row", TextKind.Body, "🪙 +3", "ink", 0);', 'X.cs', 0, '아이콘 길이 보이면 안 센다'),
+        ('string s = "🪙 +3";', 'X.cs', 1, '그냥 라벨이면 센다'),
+        ('string s = "🔒";', 'ForgeSheet.cs', 1, '아는 자리도 목록에는 오른다(rc 는 LABEL_KNOWN 이 가른다)'),
+    ]:
+        with tempfile.TemporaryDirectory() as d:
+            open(os.path.join(d, fname), 'w', encoding='utf-8').write(code)
+            got = len(label_risk(d, font, skip))
+            if got != want:
+                print('✗ 라벨 갈래 «%s»: 기대 %d · 받은 %d' % (note, want, got)); ok = False
+    if label_key('Assets/Scripts/Game/Ui/ForgeSheet.cs:108', '🔒') not in LABEL_KNOWN:
+        print('✗ 라벨 열쇠: 파일 이름 + 리터럴로 LABEL_KNOWN 을 못 찾는다'); ok = False
+
     # 진짜 코드가 이 자를 지나는가
     rc = main([])
     if rc != 0:
