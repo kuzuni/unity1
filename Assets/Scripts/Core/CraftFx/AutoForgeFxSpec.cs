@@ -191,6 +191,32 @@ namespace Forge.Core.CraftFx
             new double[] { 0, 45, 100 },
             new double[][] { new double[] { 0.88, 1.0 }, new double[] { 1.0, 1.0 }, new double[] { 1.3, 0.0 } });
 
+        /// <summary>`af-flash` — 타격 섬광 웅덩이(`screen` 합성 · 방사 그라디언트). 수명 100ms · 접촉 **6ms 앞**.</summary>
+        public const double FlashDurMs = 100;
+        /// <summary>접촉 앞당김(ms).</summary>
+        public const double FlashLeadMs = 6;
+        /// <summary>타격마다의 플래시 배율(`--affs` 1.16 / 1.38 / 1.82).</summary>
+        public static readonly double[] FlashScale = { 1.16, 1.38, 1.82 };
+        /// <summary>`afflash` — 채널 = 배율 곱 · opacity. `linear` 다(정본 «같은 이유로 .55 → .86 출발»).</summary>
+        public static readonly CssTrack Flash = new CssTrack(
+            new double[] { 0, 22, 100 },
+            new double[][] { new double[] { 0.86, 1.0 }, new double[] { 1.0, 1.0 }, new double[] { 1.9, 0.0 } });
+
+        /// <summary>
+        /// `af-heat` — 타격 직후 상판에 남아 서서히 식는 **잔열**. 수명 260ms · 접촉 3ms 앞.
+        /// 정본 주석: 플래시(0.1s)·섬광(0.075s)·링(0.2s)이 250ms 안에 다 사라져 «타격 사이 구간의 상판이 완전히 식은 그림» 이었다 —
+        /// 잔열이 다음 타격까지 **다리를 놓는다**. 그리고 이징을 걷어 `linear` 로 둬야 실제로 이어진다(이징판은 200~320ms 에 98% 식었다).
+        /// </summary>
+        public const double HeatDurMs = 260;
+        /// <summary>접촉 앞당김(ms).</summary>
+        public const double HeatLeadMs = 3;
+        /// <summary>타격마다의 잔열 배율(`--afhs` 1 / 1.15 / 1.45).</summary>
+        public static readonly double[] HeatScale = { 1.0, 1.15, 1.45 };
+        /// <summary>`afheat` — 채널 = 배율 곱 · opacity. 뒤가 긴 키프레임(12% / 55%)이라 다음 타격까지 밝기가 남는다.</summary>
+        public static readonly CssTrack Heat = new CssTrack(
+            new double[] { 0, 12, 55, 100 },
+            new double[][] { new double[] { 0.55, 0.95 }, new double[] { 1.0, 0.82 }, new double[] { 1.08, 0.42 }, new double[] { 1.18, 0.0 } });
+
         /// <summary>
         /// 타격 겹 하나를 읽는다 — 창은 «타격 시각 − <paramref name="leadMs"/>» 부터 <paramref name="durMs"/> 동안이고
         /// `into` = [배율, opacity](배율은 타격마다의 <paramref name="perStrike"/> 에 트랙 값을 곱한 것 · CSS 의 `scale(calc(var(--afXs) * k))` 와 같은 뜻).

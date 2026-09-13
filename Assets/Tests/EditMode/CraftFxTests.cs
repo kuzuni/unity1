@@ -249,6 +249,36 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 잔열은_타격_사이에_다리를_놓고_오버레이_안에서_끝난다()
+        {
+            // 정본: 플래시(100ms)·섬광(75ms)·링(200ms)이 250ms 안에 다 사라져 «타격 사이 상판이 완전히 식은 그림» 이었다 → 잔열이 다리를 놓는다
+            double[] v = new double[2];
+            for (int i = 0; i < 2; i++)
+            {
+                // 짧은 겹이 전부 꺼진 뒤(섬광 75 · 플래시 100 · 링 200ms) — 다음 타격까지 남은 구간이 «식은 그림» 이 되면 안 된다
+                double mid = AutoForgeFxSpec.HitMs[i] + 220;
+                Assert.Less(mid, AutoForgeFxSpec.HitMs[i + 1], i + "타: 그 시각이 다음 타격 전이다");
+                Assert.IsFalse(AutoForgeFxSpec.SampleBurst(AutoForgeFxSpec.Flash, CssEase.Linear, AutoForgeFxSpec.FlashDurMs, AutoForgeFxSpec.FlashLeadMs, AutoForgeFxSpec.FlashScale, i, mid, v), i + "타 플래시는 그때 이미 없다");
+                Assert.IsFalse(AutoForgeFxSpec.SampleRing(i, mid, v), i + "타 링도 없다");
+                Assert.IsTrue(AutoForgeFxSpec.SampleBurst(AutoForgeFxSpec.Heat, CssEase.Linear, AutoForgeFxSpec.HeatDurMs, AutoForgeFxSpec.HeatLeadMs, AutoForgeFxSpec.HeatScale, i, mid, v), i + "타 잔열은 그때도 살아 있다(다리)");
+                Assert.Greater(v[1], 0.05, i + "타: 그 구간에도 밝기가 남는다");
+            }
+            // 3타 잔열은 오버레이 수명(1500ms) 안에서 끝난다 — 넘기면 잘려 나간다(정본 probe ⑥)
+            double end = AutoForgeFxSpec.HitMs[2] - AutoForgeFxSpec.HeatLeadMs + AutoForgeFxSpec.HeatDurMs;
+            Assert.LessOrEqual(end, AnvilFxSpec.DurationMs, "3타 잔열이 오버레이 안에서 끝난다");
+            Assert.IsFalse(AutoForgeFxSpec.SampleBurst(AutoForgeFxSpec.Heat, CssEase.Linear, AutoForgeFxSpec.HeatDurMs, AutoForgeFxSpec.HeatLeadMs, AutoForgeFxSpec.HeatScale, 2, end + 1, v), "창이 끝나면 없다");
+
+            // 플래시는 접촉 프레임에 이미 거의 최대(정본이 «.55 → .86 출발» 로 고친 자리)
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.IsTrue(AutoForgeFxSpec.SampleBurst(AutoForgeFxSpec.Flash, CssEase.Linear, AutoForgeFxSpec.FlashDurMs, AutoForgeFxSpec.FlashLeadMs, AutoForgeFxSpec.FlashScale, i, AutoForgeFxSpec.HitMs[i], v), i + "타 플래시");
+                Assert.Greater(v[0], AutoForgeFxSpec.FlashScale[i] * 0.86, i + "타: 접촉에 이미 0.86배 이상");
+                Assert.AreEqual(1.0, v[1], 1e-6, i + "타: 접촉에 완전 불투명");
+                Assert.Greater(AutoForgeFxSpec.FlashScale[i], i == 0 ? 1.0 : AutoForgeFxSpec.FlashScale[i - 1], i + "타 플래시가 갈수록 크다");
+            }
+        }
+
+        [Test]
         public void 타격_겹_셋은_접촉_프레임에_이미_거의_최대다()
         {
             // 정본이 세 번 적은 교훈: 작게 출발해 뒤에 커지면 «소리는 제때 나는데 빛만 메아리로 온다»

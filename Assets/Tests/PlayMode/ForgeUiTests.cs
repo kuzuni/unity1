@@ -849,6 +849,20 @@ namespace Forge.Tests.PlayMode
             Vector3 axisLater = sl.TransformPoint(new Vector3(sl.rect.xMax, 0f, 0f));
             Assert.AreEqual(axisAtHit.x, axisLater.x, 0.5f, "섬광이 커져도 안쪽 끝은 붙박이다");
 
+            // 잔열·플래시 — 창 안에서만 보이고, 잔열은 타격 사이에도 남는다(다리)
+            for (int i = 0; i < AutoForgeFxSpec.HitMs.Length; i++)
+            {
+                Graphic flash = Poly(sheet, "af-flash-" + i), heat = Poly(sheet, "af-heat-" + i);
+                Assert.IsNotNull(flash, i + "타 플래시");
+                Assert.IsNotNull(heat, i + "타 잔열");
+                fx.SampleTo(AutoForgeFxSpec.HitMs[i]);
+                Assert.AreEqual(1f, flash.color.a, 1e-3f, i + "타: 접촉 프레임 플래시는 완전 불투명");
+                Assert.Greater(heat.color.a, 0.7f, i + "타: 접촉 프레임 잔열도 밝다");
+            }
+            fx.SampleTo((AutoForgeFxSpec.HitMs[0] + AutoForgeFxSpec.HitMs[1]) * 0.5);
+            Assert.AreEqual(0f, Op(sheet, "af-flash-0"), 1e-3f, "타격 사이에는 플래시가 없다");
+            Assert.Greater(Op(sheet, "af-heat-0"), 0.05f, "타격 사이에도 잔열이 다리를 놓는다");
+
             // 픽셀 — 3타 접촉 프레임에 코어 칸이 실제로 희다
             if (!NoGraphics())
             {
