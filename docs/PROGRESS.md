@@ -222,7 +222,7 @@
 | T74 | `FxCubes` 가 시전마다 큐브 묶음마다 새 Material(런 113·118: 재시전 끔 −135 / 켬 +135) — T50 꼴 재질 풀 | ✅ 완료 | sess-1920-15773 / 워커 B | `Assets/Scripts/Game/SkillFx/FxCubes.cs` · `Assets/Scripts/Game/Battle/FxMaterials.cs`(풀 갈래만) · `Assets/Tests/PlayMode/SkillFxTests.cs` | T50·T52 뒤 · 워커 O 등재(T64 4회차 실측) |
 | T75 | 상점 보석 카드 안쪽이 원작과 다르다: 자가 밴드8 안에서 블록을 하나도 못 가른다(원작 7블록) · 카드가 원작보다 작고 그림·가격 버튼 배분이 다르다 | 🔄 진행 | sess-0217-10350 / 워커 J | `Assets/Scripts/Game/Ui/ShopSheet.cs`(보석 카드 갈래만) · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/ShopUiTests.cs` | T62 3회차가 남긴 것 · `shop` 6.1/10 의 미짝 2 · 정본 `.shop-gem-card` 세로 배분(수량 +8~36px · 그림 +38~98px · 가격 +101~124px) · 1회차: 정본 배분 + 카탈로그 키 5 + PlayMode 1 |
 | T76 | 전투 데미지 숫자가 **열린 시트 위에** 겹쳐 그려진다(런 124 `screen_shop.png` 의 «▼745») — 원작은 `#game-area` 가 시트 아래라 안 보인다 | ✅ 완료 | sess-0150-8332 / 워커 D | `Assets/Scripts/Game/Battle/DamageNumbers.cs`(붙는 층만 · `Layer`) · `Assets/Tests/PlayMode/DamageLayerTests.cs`(자기 파일 · 다른 UI 파일은 T54·T60·T68 lock 이라 0줄) | T62 3회차가 눈으로 잡음 · 원작 `#game-area > #fx-layer` 대로 앱 상자 첫 자식 `fx-layer` 에만 붙인다 · PlayMode 1 · CI 런 128 유니티 초록 · `screen_shop.png` 눈 확인(시트 위 «▼» 없음) · lock 반납 |
-| T77 | 촬영 시드의 상단바 전투력이 `⚔ 45`(장비 8부위가 시대 6~7 인데 정본 식이면 수백만) — 클론 `UiShotsTests.Seed()` 에 정본 SEED 144행 `Combat.recalcHero()` 자리가 없다 | 🔄 진행 | sess-2203-14027 / 워커 I | `Assets/Tests/PlayMode/UiShotsTests.cs`(`Seed()` 두 줄 + 단언 하나) | 보고함(워커 J · 01:2x) → 워커 T 등재 · **T54 lock 이 풀린 뒤**(`UiShotsTests.cs` 같은 파일) · 접착은 `HeroStatsGlueTests` 가 지킨다 · 단언이 빨강이면 접착 갈래로 새 번호 |
+| T77 | 촬영 시드의 상단바 전투력이 `⚔ 45`(장비 8부위가 시대 6~7 인데 정본 식이면 수백만) — 클론 `UiShotsTests.Seed()` 에 정본 SEED 144행 `Combat.recalcHero()` 자리가 없다 | ✅ 완료 | sess-2203-14027 / 워커 I | `Assets/Tests/PlayMode/UiShotsTests.cs`(`Seed()` 두 줄 + 단언 하나) | 정본 SEED 144행 `Combat.recalcHero()` 자리가 클론 `Seed()` 에 없었다 → `HeroStatsGlue.Recalc()` 두 곳 + 막이 단언 · **런 148 `screen_main.png` 상단바 `⚔ 45` → `⚔ 19.4m`**(눈으로 확인) · PlayMode 614 통과 0 실패 · `ui_score` 의 `main` 은 올라간 화면 |
 | T78 | 팝업 셋(`forge-list`·`forge-detail`·`autoforge`)에 모달 딤이 없고 상단바 자리가 순수 검정(RGB 0,0,0) · autoforge ✕ 가 탭바에 가린다 · `ui_score` 가 이것을 «촬영 어긋남» 으로 오진 | ✅ 완료 | sess-0213-28724 / 워커 E | `Assets/Scripts/Game/Ui/Popups.cs` · `Ui/Forge*` · `tools/ui_score.py`(경고 갈래 · **T28 lock 이 풀린 뒤** · 이 회차 안 만짐) · `Assets/Tests/PlayMode/ForgeUiTests.cs` | T19·T57 뒤 · 임자 없음 · 검수 Q 등재 · 런 127 PNG 픽셀 실측 |
 | T80 | 유니티 잡이 테스트 0개인 채 1초 만에 죽는다: `unity-test-runner@v4` 가 `cliVersion: latest` 를 GitHub API 로 푸는데 호스티드 러너 공유 IP 의 무인증 한도(60/h)에 걸려 «GitHub API returned 403»(런 131) | ✅ 완료 | sess-0224-1833 / 워커 N | `.github/workflows/ci.yml`(unity-test 잡 `env` 한 줄) | §0-6 임자 없는 빨강 · 워커 N 등재 · 러너 소스 `resolveLatestTag` 가 `GITHUB_TOKEN`/`GH_TOKEN` 을 읽는다 → `GH_TOKEN: secrets.GITHUB_TOKEN` · 코드·테스트 0줄 · **런 134(dda999b · 내 env 포함) 유니티 잡이 CLI 를 받아 두 모드를 다 돌렸다**(EditMode 513 · PlayMode 89 · `missing_modes` 빈 값 · PNG 43) · 내 런 133 은 `ci.yml` 만이라 유니티 잡 건너뜀 · lock 반납 |
 | T81 | 러너가 죽은 런은 아티팩트 업로드 스텝까지 덤으로 빨갛다(`path` 가 빈 러너 출력) + «테스트 0개» 를 잡 결과가 안 말한다 | ✅ 완료 | sess-0254-40139 / 워커 P | `.github/workflows/ci.yml`(`unity-test` 잡의 업로드·판정 스텝) · `docs/ROUTINE.md`(§2·§7) · `docs/PROGRESS.md` | 런 131 실측(T80 과 같은 런의 다른 줄) · T80 ✅·lock 반납 뒤 선점(02:5x · 워커 P) · 런 138(빨강 런: 러너 빨강 → 업로드 성공 · «결과 판정» 빨강 · screens 배포 그대로) · 런 139(초록 런: 업로드·판정 성공) 실측 → ✅ · 워커 F 등재 |
@@ -1620,6 +1620,16 @@
 - **남은 것(이 작업 안)**: 오토 포지 12종(`af*`)·결과 카드 6종(`cr*`·`cb*`·`adcpop`)은 3회차 이후. 트랙 담는 그릇(`CssTrack`)이 섰으니 표만 옮기면 된다.
 - **주인이 확인할 것**: 아직 화면에는 안 보인다(이번 회차는 표와 계약을 세운 것) — 2회차 뒤 `screens` 브랜치의 제작 순간 컷에서 모루가 튀고 쇳덩이가 눌리는 것을 본다.
 
+
+### T77 완료 기록 (2026-09-13 · 워커 I · sess-2203-14027)
+
+- **눈으로 확인**: 런 148(`851e557` · 내 `412616b` 포함) 의 `screen_main.png` 상단바를 3배로 확대해 열어 봤다 — 전투력이 **`⚔ 45` → `⚔ 19.4m`**(1,940만)로 바뀌었다. 절이 요구한 «수백만 단위(`NumFmt` 의 N.Nm 꼴)» 그대로다. 닉네임 «용사» 도 한글로 보인다(T53 글꼴이 같은 구간에 들어왔다).
+- **고친 것**: 정본 `shot-screens.js` SEED 144행의 `Combat.recalcHero()` 와 **같은 자리**(스킬 뒤·펫 전) + 끝(`P.Sync()` 뒤)에 `HeroStatsGlue.Recalc()`, 그리고 `M.Touch(false)`(HUD 다시 적기)를 재계산 뒤로. 게임 코드 0줄.
+- **막이 단언**: `AssertCombatPowerTookGear` — 상단바 값이 맨몸(`BareHeroStats`)보다 크고 장비를 태운 값(`HeroStatsGlue.Make`)과 같다. 수치는 안 박았다(식은 Core `Battle.CombatPower`). 이 단언이 CI 런 148 에서 초록이었다 = 접착(T43·T55)은 성하고 원인이 시드였다는 절의 가설이 맞았다.
+- **판정 기준 셋 다 충족**: ⓐ 상단바 수백만 ✔ ⓑ PlayMode 빨강 0(런 148 `playmode-red.txt` FAIL 0 · PASS 614) ✔ ⓒ **T28 채점의 `main` 점수가 안 내려갔다** — `ui_score --score` 를 그 런 그림으로 돌리니 평균 4.31 → **4.54**, `main` 은 «올라간 화면 6개»(forge-info · gear-detail · **main** · offline · profile · settings)에 들었다 ✔
+- **내려간 화면 5개는 내 것이 아니다**(forge-detail · skills · autoforge · player-info · league-challenge): 런 141~148 사이에 **T53(한글 글꼴 · 두부 → 실제 글자라 글자 잉크가 통째로 바뀐다)** 과 **T83 1회차(촬영 합성 · 3D 자리에 영웅·적이 들어왔다)** 가 같이 들어왔다. 내 변경이 만지는 것은 상단바 숫자 하나뿐이라 그 다섯 화면의 밴드를 흔들 수 없다 — 임자는 그 두 작업 쪽에서 본다.
+- **게이트**: `dotnet build` 0 에러 · `dotnet test` **513/513** · 자 10개 + `check_data_sync` 전부 rc 0. **CI 런 148 초록** → lock 반납.
+- **주인이 확인할 것**: `screens` 의 `screen_main.png` 상단바 — 폰에서 보듯 전투력이 장비를 태운 수(1,940만)로 뜬다.
 
 ## 워커 결정 기록
 
