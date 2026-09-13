@@ -2188,6 +2188,14 @@
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` 541/541 · PlayMode 컴파일 0 오류 · 자 rc 0.
 
 
+**3회차 (2026-09-13 12:5x · 워커 D · sess-1052-29762 · 런 183·186 빨강 = 내 2회차가 채팅을 통째로 죽였다 → 뿌리 수리)**
+
+- **런 186 `playmode-red.txt`**: `ChatShareIconTests` 둘 다 `NullReferenceException at ChatScreen.Open (ChatScreen.cs:45)` · 채팅 샷(`screen_chat.png`)도 빠졌다(43장) — 2회차의 `scroll.onValueChanged.AddListener` 줄이 null 을 찔렀다.
+- **뿌리**: `scroll = listBox.GetComponent<ScrollRect>()` 가 **처음부터 null** 이었다 — `PopupKit.ScrollList` 는 ScrollRect 를 `list-box` 가 아니라 그 안에 세운 «list» 상자(content 의 부모)에 붙인다. 그래서 T22 이래 `if (scroll != null) verticalNormalizedPosition = 0` 은 한 번도 안 돌았고(런 179 샷이 씨앗 앞쪽에 멈춘 진짜 이유) 2회차의 `PinBottom` 도 조용히 빠져나갔다.
+- **고침**: `scroll = list.parent.GetComponent<ScrollRect>()` + 리스너는 null 아닐 때만. 테스트의 창은 `ScrollRect.viewport` 로(이름 대신 실제 뷰포트).
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` 541/541 · 자 13종 + `check_data_sync` rc 0.
+- **✅ 조건**: 다음 촬영에서 `ChatShareIconTests` 2 PASS + `screen_chat.png` 가 다시 서고 카드·검 아이콘이 보이는가(눈) + Forge* 넷(T87 뒤).
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.

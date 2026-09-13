@@ -106,8 +106,10 @@ namespace Forge.Tests.PlayMode
             Popup p = PopupLayer.Instance.Find(ChatScreen.Name);
             Assert.IsNotNull(p);
 
-            RectTransform viewport = FindIn(p.Root, "list-box");
-            Assert.IsNotNull(viewport, "채팅 목록 창(list-box)이 없다");
+            ScrollRect sr = p.Root.GetComponentInChildren<ScrollRect>(true);
+            Assert.IsNotNull(sr, "채팅 목록에 ScrollRect 가 없다");
+            RectTransform viewport = sr.viewport;
+            Assert.IsNotNull(viewport, "채팅 목록 창(ScrollRect.viewport)이 없다");
             RectTransform card = FindIn(p.Root, "share");
             Assert.IsNotNull(card, "씨앗 공유 카드가 없다");
             Rect vp = WorldRect(viewport), cd = WorldRect(card);

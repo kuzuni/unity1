@@ -40,9 +40,11 @@ namespace Forge.Game.Ui
             listBox.offsetMin = new Vector2(0f, bottom + inputH);
             listBox.offsetMax = new Vector2(0f, -UiKit.H("topbar_h") * 0.3f);
             list = PopupKit.ScrollList(listBox, "list", rem * 0.41f, rem * 0.5f, rem * 0.5f, TextAnchor.LowerLeft);
-            scroll = listBox.GetComponent<ScrollRect>();
+            // ScrollRect 는 list-box 가 아니라 ScrollList 가 그 안에 세운 «list» 상자(content 의 부모)에 붙는다 —
+            // 옛 코드는 list-box 에서 찾아 늘 null 이었고 그래서 «바닥으로» 가 한 번도 안 돌았다(런 179 채팅 샷 · 런 186 NRE).
+            scroll = list.parent != null ? list.parent.GetComponent<ScrollRect>() : null;
             // 정본 onChatScroll — 사용자가 위로 올려 옛 메시지를 읽는 중이면 새 메시지가 와도 끌어내리지 않는다. 바닥이면 따라간다.
-            scroll.onValueChanged.AddListener(_ => { if (!rendering && scroll != null) stick = scroll.verticalNormalizedPosition <= BottomEps; });
+            if (scroll != null) scroll.onValueChanged.AddListener(_ => { if (!rendering && scroll != null) stick = scroll.verticalNormalizedPosition <= BottomEps; });
 
             RectTransform bar = UiKit.Box(card, "input-bar");
             bar.anchorMin = new Vector2(0f, 0f);
