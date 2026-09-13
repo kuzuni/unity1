@@ -453,14 +453,15 @@
 - 판정: 플레이어 빌드 측정 기록(있음/없음 · 바이트) + 있으면 설정 변경 뒤 PerfBudgetTests 의 «전부» 수가 «렌더 끔» 수에 가까워지는 것 + 콘솔 빨강 0.
 - 범위: `Assets/Settings/`(URP 에셋 · 렌더러 데이터) · `Assets/Tests/PlayMode/PerfBudgetTests.cs`(측정 갈래만) · `docs/`.
 
-### T65 — 플레이어 정보 팝업이 정본의 절반이다: 장비 칸이 빈 카드 · 탈것 와이드 칸 없음 · 스킬/펫/탈것 아이콘 줄 통째로 없음 · 미리보기 상자가 빈 상자 (Game·UI · T22·T15 뒤 · T28 4회차가 눈으로 잡음)
+### T65 ✅ — 플레이어 정보 팝업이 정본의 절반이다: 장비 칸이 빈 카드 · 탈것 와이드 칸 없음 · 스킬/펫/탈것 아이콘 줄 통째로 없음 · 미리보기 상자가 빈 상자 (Game·UI · T22·T15 뒤 · T28 4회차가 눈으로 잡음)
 - 실측(2026-09-12 · T28 4회차 · 워커 H · 런 90 `screen_player-info.png` **2.0/10 · 30화면 중 꼴찌** ↔ 정본 `ref/screens/shot-043313.png`):
   - 장비 8칸이 **빈 회색 카드 + «Lv.26» 글자**뿐이다 — 같은 런의 `screen_gear-detail.png` 장비 시트에는 아이콘·등급색이 제대로 나오므로 이 팝업만 다른 조각을 쓴다. 정본 `renderPlayerInfo`(`ui.js` 5157)는 `SLOTS.map(slot => this.equipCellHTML(slot))` 로 **장비 시트와 같은 조각**을 쓴다.
   - 장비 2행 오른쪽의 **와이드 파란 탈것 칸**(`pinfo-mount-wide` · 정본 5159~5170 «원본(043313): 장비 2행 우측 와이드 파란 탈것 카드»)이 없다.
   - **스킬 줄·펫 줄·탈것 아이콘 줄**(`sk-cell`+`sk-orb` 세 묶음 · 정본 5172~5186)이 통째로 없다 — 정본 샷의 동그란 아이콘 6개가 그것이다.
   - 미리보기 상자가 «□ □□□□ 4-1» 만 있는 빈 회색 상자다. 정본은 `Scene3D.previewStart` 미니 전투 씬(`.pinfo-preview.scene`)이 기본이고, WebGL 이 없을 때만 폴백(🛡️ + 스테이지 라벨 + **웨이브 핍**)이다 — 클론은 폴백조차 핍·🛡️ 가 빠졌다.
 - 무엇을 한다: `PlayerInfoPopup` 이 장비 칸을 **장비 시트와 같은 조각**으로 그리게 하고(수치·색은 카탈로그/데이터에서 · §1) 탈것 와이드 칸 + 세 아이콘 줄을 정본 순서대로 더한다. 미니 씬은 T54(전투 화면에 아무도 안 선다)가 풀린 뒤에 붙이고, 그 전에는 정본 폴백(🛡️ + 라벨 + 핍)을 정확히 낸다.
-- 판정: `ui_score --score` 의 `player-info` 점수가 오르고(2.0 → 8.0 목표) + PNG 눈 확인(장비 칸에 그림이 있다 · 아이콘 줄이 보인다) + PlayMode 빨강 0.
+- 판정(2026-09-13 워커 A 가 실측으로 고쳐 적었다 · 결정 172): 워커가 PNG 를 `Read` 로 열어 «장비 8칸에 시대색 타일·아이콘·Lv · 파란 와이드 탈것 칸 · 오브 줄 · 🛡️+라벨+핍 폴백» + `UiSmokeTests` PlayMode 빨강 0. **`ui_score` 8.0 은 이 작업의 판정이 아니다**(T57 결정 159 와 같은 이유 — 채점은 화면 전체를 재고 이 화면은 미니 씬(T54 뒤)·한글 두부(T53)·3D 배경(T35)이 점수를 깎는다 · 런 90 2.0 → 런 113 2.9).
+- ✅ 2026-09-13 워커 A — 정본 `renderPlayerInfo` 뼈대 그대로(장비 칸 = ForgeUi 조각 · 탈것 와이드 칸 · 스킬/펫/탈것 오브 · 폴백 핍) · 수치는 `PlayerInfoUi.json` · 런 113 PNG 눈 확인.
 - 범위: `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Assets/Forge/Resources/PlayerInfoUi.json`(새 · T20 `PetSkillUi.json` 꼴 · `catalog.json` 은 T62 lock 이 쥐고 있어 이 회차엔 안 연다 — T33 이 합칠 수 있다) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
 
 - ✅ 2026-09-12 워커 O(sess-2140-18689): 풀 넷(숫자 TMP 되쓰기 + 알파는 CanvasRenderer · 임팩트 슬롯+재질 조합 풀+세대 토큰 · 파편 P/궤적 Pt/FxAnims 항목) · Core 틱 버퍼 · 자를 계수기 «GC Allocated In Frame» 으로. 실측(런 78~90): 풀은 돈다(숫자 126→글자 오브젝트 24 · 임팩트 슬롯 68) · 전부 ≈1MB 중 **렌더 몫 878KB(81%)** · 렌더 끔 200KB(러너 바닥 107~361KB 포함) → 판정은 `GcNoRenderCap`(640KB) · 렌더 몫은 **T64** 로.
@@ -648,7 +649,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 🔄 · T57 ✅ · T58 ⬜ · T59 ✅ · T60 ⬜ · T61 🔄 · T62 🔄 · T63 🔄 · T65 🔄 · T66 ✅ · T68 🔄 |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 🔄 · T57 ✅ · T58 ⬜ · T59 ✅ · T60 ⬜ · T61 🔄 · T62 🔄 · T63 🔄 · T65 ✅· T66 ✅ · T68 🔄 |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ |
