@@ -423,6 +423,24 @@ namespace Forge.Tests.PlayMode
             AssertTextGate("펫 업그레이드");
             // T79 — 모달이 앱 상자를 덮고 탭바 위에 그려진다(원작 #pet-upgrade-modal z40 > 탭바 z30) · 딤은 정본 .5 의 선형 공간 환산값 · ✕ 는 카드 것 하나(탭바 ✕ 는 딤 아래 원작 그대로)
             PetSkillModal.Handle up = Sheet.Modal.Find(PetUpgradePopup.ModalName);
+
+            // T115 — 넘침 막이를 **이 화면의 버튼 전부**로 넓힌다. T90 이 세운 막이는 스킬 서브시트의 버튼 둘만 재서,
+            // 펫 업그레이드의 «업그레이드» 가 버튼 밖으로 삐져나온 채 초록으로 지나갔다(런 224 PNG 실측).
+            // 재는 것: 라벨이 실제로 차지하는 폭(글꼴·크기·자간이 다 들어간 preferredWidth) ≤ 버튼 폭.
+            int checkedBtns = 0;
+            foreach (UnityEngine.UI.Button b in up.Root.GetComponentsInChildren<UnityEngine.UI.Button>(true))
+            {
+                if (!b.gameObject.activeInHierarchy) continue;
+                TMPro.TextMeshProUGUI lbl = b.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+                if (lbl == null || string.IsNullOrEmpty(lbl.text)) continue;
+                lbl.ForceMeshUpdate();
+                float w = b.GetComponent<RectTransform>().rect.width;
+                Assert.LessOrEqual(lbl.preferredWidth, w + 0.5f,
+                    "버튼 «" + lbl.text + "» 의 글자(" + lbl.preferredWidth.ToString("0.0") + ")가 버튼 폭(" + w.ToString("0.0") + ")을 넘는다 — 테두리 밖으로 삐져나온다");
+                checkedBtns++;
+            }
+            Assert.Greater(checkedBtns, 0, "펫 업그레이드 팝업에서 잰 버튼이 하나도 없다 — 막이가 헛돌고 있다");
+
             UiRoot root = UiRoot.Instance;
             Assert.AreEqual(root.App, up.Root.parent.parent, "모달 층은 앱 상자의 직계 자식");
             Assert.Greater(up.Root.parent.GetSiblingIndex(), root.TabBand.GetSiblingIndex(), "모달 층이 탭바 뒤(위)에 그려진다");

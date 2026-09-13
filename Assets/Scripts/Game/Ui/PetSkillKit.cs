@@ -198,7 +198,11 @@ namespace Forge.Game.Ui
         public enum BtnKind { Gray, Primary, Danger, Silver, Ascend }
 
         /// <summary>원작 종이 버튼(`.panel .btn` / `.modal-card .btn`): 검정 테 · 둥근 · 아래 안쪽 그늘(inset shadow) · 굵은 글자. 라벨은 Button 종류, 부제(small)는 Sub.</summary>
-        public static Button PaperButton(Transform parent, string name, BtnKind kind, string label, string sub, bool disabled, UnityAction onClick, float radiusPx = -1f)
+        /// <param name="labelKind">라벨 글자 종류. 정본이 «좁은 버튼에서는 글자를 줄인다» 고 적은 자리(예 `.petup-selrow .btn.silver` = .78rem)는
+        /// 우리 하한(§1 버튼 44)에 안 들어가므로 **한 단계 작은 종류**(Sub 36)를 준다 — 그래도 정본보다 크므로 폭은 부르는 쪽이 늘린다.</param>
+        /// <param name="letterSpacingEm">정본 `letter-spacing`(em) — TMP `characterSpacing` 은 1/100 em 단위다.</param>
+        public static Button PaperButton(Transform parent, string name, BtnKind kind, string label, string sub, bool disabled, UnityAction onClick, float radiusPx = -1f,
+                                         TextKind labelKind = TextKind.Button, float letterSpacingEm = 0f)
         {
             float r = radiusPx > 0f ? radiusPx : PetSkillStyle.Px("btn_r_rem");
             float inset = PetSkillStyle.Px("btn_inset_rem");
@@ -225,8 +229,10 @@ namespace Forge.Game.Ui
             face.raycastTarget = false;
             bool two = !string.IsNullOrEmpty(sub);
             TextMeshProUGUI lt = disabled || kind == BtnKind.Gray
-                ? Text(rt, "label", TextKind.Button, label, ink)
-                : Stroked(rt, "label", TextKind.Button, label, ink, kind == BtnKind.Silver ? 0.35f : 0.25f);
+                ? Text(rt, "label", labelKind, label, ink)
+                : Stroked(rt, "label", labelKind, label, ink, kind == BtnKind.Silver ? 0.35f : 0.25f);
+            if (letterSpacingEm != 0f) lt.characterSpacing = letterSpacingEm * 100f;   // TMP 는 1/100 em
+            lt.textWrappingMode = TextWrappingModes.NoWrap;   // 정본 `.btn { white-space: nowrap }`
             if (two)
             {
                 UiKit.Band(lt.rectTransform, 0.06f, 0.56f);

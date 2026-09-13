@@ -154,8 +154,20 @@ namespace Forge.Game.Ui
             UiKit.Place(sel.rectTransform, ppad, py, inner * 0.5f, selH);
             float cbw = PetSkillStyle.Px("petup_sel_btn_w");
             bool canConfirm = SelectedCount > 0 && !maxed;
-            ConfirmButton = PetSkillKit.PaperButton(panel, "btn-confirm", PetSkillKit.BtnKind.Silver, PetSkillStyle.T("upgrade"), null, !canConfirm, Confirm, PetSkillStyle.Px("petup_sel_btn_r_rem"));
-            UiKit.Place(ConfirmButton.GetComponent<RectTransform>(), inner - ppad - cbw, py, cbw, selH);
+            // 정본 `.petup-selrow .btn.silver` 는 폭을 15.25%W 로 못 박는 대신 **글자를 .78rem 로 줄이고 자간을 −.02em** 으로 좁힌다.
+            // 우리 하한(§1 버튼 44 · 보조 36)은 그보다 커서 그 폭에 «업그레이드» 다섯 자가 안 들어간다(44 → 220 · 36 → 180 ↔ 폭 164.7 · 런 224 실측으로 글자가 테두리 밖).
+            // 그래서 ⓐ 한 단계 작은 종류(Sub)와 정본 자간을 주고 ⓑ **그래도 모자라면 버튼을 라벨만큼만 넓힌다**(짧은 라벨이면 정본 폭 그대로).
+            ConfirmButton = PetSkillKit.PaperButton(panel, "btn-confirm", PetSkillKit.BtnKind.Silver, PetSkillStyle.T("upgrade"), null, !canConfirm, Confirm, PetSkillStyle.Px("petup_sel_btn_r_rem"),
+                                                    TextKind.Sub, PetSkillStyle.Px("petup_sel_btn_ls_em"));
+            float cbwFit = cbw;
+            TextMeshProUGUI cbl = ConfirmButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (cbl != null)
+            {
+                cbl.ForceMeshUpdate();
+                float needW = cbl.preferredWidth + PetSkillKit.Line3 * 4f;
+                if (needW > cbwFit) cbwFit = needW;
+            }
+            UiKit.Place(ConfirmButton.GetComponent<RectTransform>(), inner - ppad - cbwFit, py, cbwFit, selH);
             y += panelH + PetSkillStyle.Px("petup_panel_mb_rem");
 
             // ---- bulk row ----
