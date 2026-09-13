@@ -884,6 +884,16 @@
 - 판정: ⓐ PlayMode 픽셀/레이아웃 단언 — 카드 바닥이 앱 높이의 77±1.5%, 폭이 70±1%W ⓑ 다음 런 `screen_gear-detail.png` 를 열어 카드가 **장비 시트 바로 위**에 앉았는지 눈 확인(원작 `shot-043244` 와 나란히).
 - 범위: `Assets/Scripts/Game/Ui/GearDetailPopup.cs` · `Assets/Forge/catalog.json`(**T87 lock 뒤**) · `tools/gen_ui_catalog.py` · `Assets/Tests/PlayMode/ForgeUiTests.cs`(**T87 lock 뒤** · 단언 한 칸).
 
+### T112 — 두부 막이가 «글꼴 파일에 있는가» 가 아니라 «이미 구워졌는가» 를 묻고 있었다: `HasCharacter(c, false, false)` 의 셋째 인자 (Tests · T100 뒤 · 런 216 실측)
+- 증상(런 216 · cc88bd2): PlayMode 빨강 `TextSizeGateTests.카탈로그_글꼴이_한글을_직접_쥔다` — «카탈로그 글꼴에 **'ㅋ'** 가 없다». 그런데 같은 커밋에서 파이썬 자 `tools/check_text_glyphs.py`(글꼴 cmap 을 직접 읽는다)는 **rc 0** 이다. **두 자가 어긋난 것 자체가 증거다.**
+- 사실 확인: `Assets/Fonts/NotoSansKR-Forge.ttf` 의 cmap 을 직접 읽으면 `ㅋ`(U+314B)·`ㅠ`(U+3160)·`가`·`대` 가 **전부 있다**(코드포인트 2,061 · T100 2회차 `d3b5254` 가 U+3130~318F 를 넣은 그대로). 글꼴은 멀쩡하다.
+- 진짜 원인: `UiFont.Primary` 는 `TMP_FontAsset.CreateFontAsset(cat.font)` — **Dynamic** 애셋이라 글자표(`characterLookupTable`)가 처음엔 비어 있고 **그려진 글자만** 채워진다. TMP 의 `HasCharacter(char c, bool searchFallbacks, bool tryAddCharacter)` 는 두 인자가 **둘 다 false** 면 그 표만 본다 — 즉 «글꼴에 있는가» 가 아니라 «**이 순간까지 아틀라스에 구워졌는가**» 를 묻는다. 그래서 이 단언은 **앞 테스트가 무엇을 그렸느냐**에 따라 초록·빨강이 갈린다(런 195·209 초록 → 런 216 빨강 · 그 사이 글꼴도 카탈로그도 안 바뀌었다).
+- T100 2회차가 `(c, true, true)` → `(c, false, false)` 로 바꾼 것은 **폴백을 빼려던 것**이 맞다(배포판에 OS 폴백이 없으니 옳다). 다만 같이 꺼 버린 셋째 인자가 «원본 글꼴을 찾아본다» 는 뜻이라 질문 자체가 바뀌었다.
+- 무엇을 한다: 두 단언을 **`HasCharacter(c, /*searchFallbacks*/ false, /*tryAddCharacter*/ true)`** 로 — 폴백은 계속 빼고(판정 기준 유지), 원본 글꼴은 보게 한다. 셋째 인자를 켜면 **글꼴에 있으면 true · 없으면 false** 라 «없는 글자는 빨강» 이 그대로 살아 있다(더 느슨해지는 것은 «있는데 아직 안 구워진» 경우뿐이고 그것은 두부가 아니다).
+- 두 인자의 뜻을 주석으로 코드에 박아 같은 실수가 다시 안 나게 한다.
+- 판정: 다음 유니티 런에서 `TextSizeGateTests` 넷 전부 초록 · 파이썬 자와 답이 같아진다.
+- 범위: `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/ROUTINE.md`(§2 등재) · `docs/PROGRESS.md`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -1032,5 +1042,5 @@ node tools/export_data.js --self-test                                         # 
 | (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ✅ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) | ✅ (굽기 잡 조건 T32 ✅) · T86 🔄 |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 🔄 |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
