@@ -382,5 +382,38 @@ namespace Forge.Tests.PlayMode
                 Assert.Greater(lbl.textInfo.characterCount, 0, n + " 이 글리프를 하나도 못 그렸다(칸이 좁거나 글꼴에 글자가 없다)");
             }
         }
+
+        [UnityTest]
+        public IEnumerator T101_리그_도전_행은_별점이_버튼_위에_얹힌_세로_한_칸이다()
+        {
+            yield return Boot();
+            UiRoot.Instance.TabBar.OnTab("league");
+            yield return null;
+            MetaHost h = MetaHost.Instance;
+            LeagueSheet.OpenChallenge(h);
+            yield return null;
+            Assert.IsTrue(PopupLayer.Instance.IsOpen(LeagueSheet.ChallengeName), "상대 선택 팝업이 열려야 한다");
+
+            RectTransform row = null;
+            foreach (RectTransform rt in PopupLayer.Instance.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "row" && rt.parent != null && rt.parent.name == "opp-0") { row = rt; break; }
+            Assert.IsNotNull(row, "상대 행(opp-0/row)이 없다");
+
+            RectTransform star = null, btn = null;
+            foreach (RectTransform rt in row.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name == "star") star = rt;
+                else if (rt.name == "challenge") btn = rt;
+            }
+            Assert.IsNotNull(star, "별점 칸이 없다");
+            Assert.IsNotNull(btn, "도전 버튼이 없다");
+
+            // 정본 `.league-challenge-side { flex-direction: column }` — 별이 **버튼 위**다(가로로 나란히가 아니다).
+            float starBottom = -star.anchoredPosition.y + star.rect.height;
+            float btnTop = -btn.anchoredPosition.y;
+            Assert.LessOrEqual(starBottom, btnTop + 1f, "별점이 도전 버튼 위에 있어야 한다(정본은 세로 한 칸)");
+            Assert.AreEqual(star.anchoredPosition.x, btn.anchoredPosition.x, 1f, "별점 칸과 버튼은 같은 세로줄에 선다");
+            Assert.AreEqual(star.rect.width, btn.rect.width, 1f, "별점 칸 폭은 버튼 폭과 같다(가운데 정렬 기준)");
+        }
     }
 }
