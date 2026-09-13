@@ -571,8 +571,9 @@ namespace Forge.Tests.PlayMode
         /// safeArea 는 호출자가 이미 <see cref="ShotW"/>×<see cref="ShotH"/> 로 꽂아 두었으므로 앱 상자가 RT 를 꽉 채운다.
         /// 실패하면 경고 한 줄(빨강 아님)만 남기고 그림을 건너뛴다 — 이 테스트의 판정은 «열렸는가·글자·빨강 0» 이지 그림이 아니다(픽셀 자는 T84).
         /// </summary>
-        private static string Capture(string name)
+        private static string Capture(string name, bool notch, out string pixelFail, out string pixelInfo)
         {
+            pixelFail = null; pixelInfo = null;
             UiRoot root = UiRoot.Instance;
             if (root == null || root.Canvas == null) return null;
             Canvas canvas = root.Canvas;
@@ -614,6 +615,9 @@ namespace Forge.Tests.PlayMode
                 cam.Render();
                 onWhite = ReadBack(rt, TextureFormat.RGB24);
 
+                // T84 — 찍은 그 자리에서 매트를 읽는다(파일로 돌지 않는다) · 노치 줄은 safeArea 위 띠가 비는 것이 정상이라 뺀다(T45 의 몫).
+                if (!notch) pixelFail = PixelGate(name, onBlack, onWhite, world, out pixelInfo);
+
                 // ③ 합성.
                 shot = Composite(world, onBlack, onWhite);
                 return GallerySheet.Save(shot, OutPrefix + name);
@@ -647,6 +651,68 @@ namespace Forge.Tests.PlayMode
             t.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
             t.Apply(false);
             return t;
+        }
+
+        /// <summary>T84 — 띠의 UI 덮임 하한(0~1). 상단바·탭바는 불투명 판이라 성하면 ≈1 · 세계가 보이면 0 이다 — 딤(≈.5)만 있는 자리는 없다(그 아래 판이 불투명).</summary>
+        public const float BandCoverMin = 0.6f;
+        /// <summary>T84 — UI 가 있는 행의 세로 범위 ÷ 판 높이 하한(ROUTINE T84 ⓒ · `ui_score` 의 «채움» 과 같은 뜻).</summary>
+        public const float FillMin = 0.98f;
+
+        static float Frac(string key, float fallback)
+        {
+            try { UiCatalog c = UiCatalog.Instance; return c == null ? fallback : c.Layout(key); }
+            catch (Exception) { return fallback; }
+        }
+
+        /// <summary>
+        /// T84 — 찍은 RT 의 매트(검정 위·흰 위의 차 = UI 덮임)로 세 칸을 본다: ⓐ 상단 띠(카탈로그 `topbar_h`)가 UI 로 덮였는가 ⓑ 바닥 띠(`tabbar_top` 아래)가 UI 로 덮였는가
+        /// ⓒ UI 가 있는 행의 세로 범위가 판의 <see cref="FillMin"/> 이상인가. 프레임 회귀(런 102·108·137~139)가 세 번 «유니티 잡 초록» 으로 지나간 자리다.
+        /// 실패 문구에 화면·띠·읽은 색을 적는다(`playmode-red.txt` 로 바로 읽힌다 · T46 꼴). 픽셀은 아래가 0행(`ReadPixels`)이라 «위» 는 큰 y 다.
+        /// </summary>
+        public static string PixelGate(string name, Texture2D onBlack, Texture2D onWhite, Texture2D world, out string info)
+        {
+            int w = onBlack.width, h = onBlack.height;
+            Color32[] b = onBlack.GetPixels32(), k = onWhite.GetPixels32();
+            var rowMax = new int[h]; var rowSum = new long[h];
+            for (int y = 0; y < h; y++)
+            {
+                int o = y * w, mx = 0; long sum = 0;
+                for (int x = 0; x < w; x++)
+                {
+                    int cover = 255 - (k[o + x].g - b[o + x].g);
+                    if (cover < 0) cover = 0; else if (cover > 255) cover = 255;
+                    sum += cover; if (cover > mx) mx = cover;
+                }
+                rowMax[y] = mx; rowSum[y] = sum;
+            }
+            int topH = Mathf.RoundToInt(Frac("topbar_h", 0.065f) * h);
+            int botH = Mathf.RoundToInt((1f - Frac("tabbar_top", 0.9025f)) * h);
+            float top = Band(rowSum, w, h - topH + topH / 10, h - topH / 10);   // 띠의 안쪽 80%
+            float bottom = Band(rowSum, w, botH / 10, botH - botH / 10);
+            int first = -1, last = -1;
+            for (int y = 0; y < h; y++) if (rowMax[y] >= 128) { if (first < 0) first = y; last = y; }
+            float fill = first < 0 ? 0f : (last - first + 1) / (float)h;
+            info = "픽셀 상단 " + Pct(top) + " · 바닥 " + Pct(bottom) + " · 채움 " + Pct(fill);
+            var bad = new List<string>();
+            if (top < BandCoverMin) bad.Add("상단 띠(위 " + topH + "px · topbar_h) UI 덮임 " + Pct(top) + " < " + Pct(BandCoverMin) + " — 상단바가 없다(세계 색 " + Rgb(world, w / 2, h - topH / 2) + ")");
+            if (bottom < BandCoverMin) bad.Add("바닥 띠(아래 " + botH + "px · tabbar_top) UI 덮임 " + Pct(bottom) + " < " + Pct(BandCoverMin) + " — UI 가 바닥까지 안 닿는다(세계 색 " + Rgb(world, w / 2, botH / 2) + ")");
+            if (fill < FillMin) bad.Add("UI 세로 채움 " + Pct(fill) + " < " + Pct(FillMin) + " — 앱 상자가 그림을 안 채운다(UI 행 " + (h - 1 - last) + "~" + (h - 1 - first) + " / " + h + " · 위에서 셈)");
+            return bad.Count == 0 ? null : name + ": " + string.Join(" · ", bad.ToArray());
+        }
+
+        static float Band(long[] rowSum, int w, int y0, int y1)
+        {
+            if (y1 <= y0) return 0f;
+            long sum = 0; for (int y = y0; y < y1; y++) sum += rowSum[y];
+            return sum / (255f * w * (y1 - y0));
+        }
+
+        static string Pct(float f) { return Mathf.RoundToInt(f * 100f) + "%"; }
+
+        static string Rgb(Texture2D t, int x, int y)
+        {
+            Color32 c = t.GetPixel(Mathf.Clamp(x, 0, t.width - 1), Mathf.Clamp(y, 0, t.height - 1));
+            return c.r + "," + c.g + "," + c.b;
         }
 
         /// <summary>T83 ③ — 채널마다 <c>out = Cb + world × (1 − (Cw − Cb))</c>. 검정 위(Cb)가 «프리멀티플라이드 UI», 흰 위와의 차가 «덮임» 이다.</summary>
@@ -790,9 +856,11 @@ namespace Forge.Tests.PlayMode
                 if (gate != null) { failed.Add(gate); Trace("  GATE " + gate); }
 
                 if (!GallerySheet.GraphicsAvailable) continue;
-                string file = Capture(s.Name);
+                string pixelFail, pixelInfo;
+                string file = Capture(s.Name, s.Notch, out pixelFail, out pixelInfo);
                 if (file != null) files[s.Name] = file;
-                Trace("  그림=" + (file != null ? "ok" : "없음"));
+                Trace("  그림=" + (file != null ? "ok" : "없음") + (pixelInfo != null ? " · " + pixelInfo : ""));
+                if (pixelFail != null) { failed.Add(pixelFail); Trace("  PIXEL " + pixelFail); }
             }
 
             log.Mark("ui-shots");
