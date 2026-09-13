@@ -1,7 +1,8 @@
 {
-  "_": "T121 — 런타임 글꼴 애셋 굽기 값(UiFont.Build · TMP_FontAsset.CreateFontAsset). 낼 수 있는 최대 바깥 키라인 = padding_px × 글자px / sampling_pt. 정본 최대 획 .2em(.offline-total) = 바깥 .1em 이라 padding_px/sampling_pt 가 0.1 을 넘어야 링이 된다 — 1/6 로 잡아 36px 글자에서 6px(W .6). TMP 기본(90 · 9)은 3.6px = 정확히 천장이었다. 패딩은 9 그대로(런 200 이 식과 맞다고 잰 자리 · 15 로 키우면 띠가 식의 1.77배 — 런 234)이고 샘플링을 54 로 내렸다(2회차).",
+  "_": "T121 — 런타임 글꼴 애셋 굽기 값(UiFont.Build · TMP_FontAsset.CreateFontAsset). alpha_texels = 아틀라스 SDF 의 «알파 0→1 이 몇 텍셀인가»(실측 · 런 239 t121-ramp.txt: 54pt·패딩 9 에서 텍셀당 +12.8/255 → 19.9 텍셀 = 2×(패딩+1)). TMP 는 재질 _GradientScale 을 패딩+1 로 박는데 그 절반이라 외곽선·AA 가 전부 두 배였다 — UiFont.Build 가 이 값을 _GradientScale 로 세운다. 값을 바꾸면 PlayMode FontBakeTests 가 아틀라스를 읽어 대조한다. 낼 수 있는 최대 바깥 키라인 = R × alpha_texels × 글자px / sampling_pt(36px 글자 → 12px · 정본 최대 .2em 은 W .3).",
   "sampling_pt": 54,
   "padding_px": 9,
+  "alpha_texels": 20,
   "atlas_w": 1024,
   "atlas_h": 1024
 }

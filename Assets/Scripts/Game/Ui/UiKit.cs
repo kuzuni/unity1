@@ -296,6 +296,9 @@ namespace Forge.Game.Ui
         /// <summary>아틀라스 한 장 크기(표 `atlas_w`·`atlas_h`) — 다중 아틀라스라 넘치면 장이 는다.</summary>
         public static int AtlasW { get; private set; }
         public static int AtlasH { get; private set; }
+        /// <summary>SDF 알파 0→1 이 몇 텍셀인가(표 `alpha_texels` · 실측). TMP 는 `_GradientScale` 을 패딩+1 로 박지만 TextCore 동적 SDF 의 램프는 그 두 배(2×(패딩+1))라
+        /// 외곽선·AA 가 전부 두 배였다(런 234·239) — 굽은 뒤 재질 `_GradientScale` 을 이 값으로 세운다. `OutlinePx`(재질 G 를 읽는다)와 셰이더가 같은 단위를 본다.</summary>
+        public static int AlphaTexels { get; private set; }
 
         /// <summary>표를 읽는다(한 번). 값이 비거나 0 이면 던진다 — TMP 기본으로 조용히 잇지 않는다(T121 의 병이 그 기본값이다).</summary>
         public static void LoadBake()
@@ -304,10 +307,10 @@ namespace Forge.Game.Ui
             TextAsset ta = Resources.Load<TextAsset>(BakeResource);
             if (ta == null) throw new System.InvalidOperationException("Resources/" + BakeResource + ".json 이 없다 (T121)");
             JsonObject o = MiniJson.ParseObject(ta.text);
-            int sp = J.Int(o["sampling_pt"]), pad = J.Int(o["padding_px"]), w = J.Int(o["atlas_w"]), h = J.Int(o["atlas_h"]);
-            if (sp <= 0 || pad <= 0 || w <= 0 || h <= 0)
-                throw new System.InvalidOperationException(BakeResource + ".json 값이 비었다: sampling_pt=" + sp + " padding_px=" + pad + " atlas=" + w + "×" + h);
-            SamplingPt = sp; PaddingPx = pad; AtlasW = w; AtlasH = h;
+            int sp = J.Int(o["sampling_pt"]), pad = J.Int(o["padding_px"]), w = J.Int(o["atlas_w"]), h = J.Int(o["atlas_h"]), at = J.Int(o["alpha_texels"]);
+            if (sp <= 0 || pad <= 0 || w <= 0 || h <= 0 || at <= 0)
+                throw new System.InvalidOperationException(BakeResource + ".json 값이 비었다: sampling_pt=" + sp + " padding_px=" + pad + " atlas=" + w + "×" + h + " alpha_texels=" + at);
+            SamplingPt = sp; PaddingPx = pad; AtlasW = w; AtlasH = h; AlphaTexels = at;
         }
 
         /// <summary>붙은 OS 폴백 글꼴 이름(없으면 null).</summary>
@@ -333,6 +336,8 @@ namespace Forge.Game.Ui
             fa.name = cat.font.name + " (runtime)";
             Shader shader = ShipShader();
             if (shader != null && fa.material != null) fa.material.shader = shader;
+            // T121 3회차 — 재질의 «1 알파 = 몇 텍셀» 을 실측(표 alpha_texels)으로. TMP 기본(패딩+1)은 이 아틀라스 램프의 절반이라 링이 두 배 두꺼웠다(런 234·239 · 결정 기록).
+            if (fa.material != null && fa.material.HasProperty("_GradientScale")) fa.material.SetFloat("_GradientScale", AlphaTexels);
             if (fa.fallbackFontAssetTable == null) fa.fallbackFontAssetTable = new List<TMP_FontAsset>();
 
             HashSet<string> installed = new HashSet<string>(Font.GetOSInstalledFontNames());
