@@ -637,10 +637,19 @@ namespace Forge.Tests.PlayMode
             yield return null;
             RectTransform head = Named(UiRoot.Instance.Sheet, "hm-head");
             Assert.IsNotNull(head, "망치 머리 칸");
+
+            // ⓐ **자리** — 머리는 «닿는 자리»(3타 링의 중심 = 타격점) 바로 위에 있어야 한다.
+            //    9회차는 그림 원점이 viewBox 한가운데로 밀려 망치가 받침 쪽에 그려졌는데도 색만 보는 자가 통과했다(런 191 컷에서 눈으로 잡았다).
+            RectTransform ring2 = Named(UiRoot.Instance.Sheet, "af-ring-2");
+            Assert.IsNotNull(ring2, "3타 링(= 닿는 자리)");
+            float unit = ring2.rect.width / (UiKit.L("ring_rx") * 2f);
+            float gap = Vector3.Distance(head.position, ring2.position);
+            Assert.Less(gap, 16f * unit, "망치 머리가 닿는 자리에서 너무 멀다 — " + (gap / unit).ToString("0.0") + " 유닛 떨어져 있다(머리 반높이 ≈ 10)");
+
+            // ⓑ **픽셀** — 머리 칸이 실제로 강철로 차 있는가(칸의 절반 이상). 색만 보면 해머 카운터 아이콘 같은 남의 회색에 속는다.
             int area; string info;
-            // 강철 = 채도 낮은 회색(빨강≈파랑) · 시트 바탕(밝은 회색)보다 어둡고 키라인(거의 검정)보다 밝다
             int steel = CountPixels(head, delegate(Color32 c) { return Mathf.Abs(c.r - c.b) < 40 && Mathf.Abs(c.g - c.b) < 40 && c.r > 45 && c.r < 205; }, out area, out info, "screen_craft-strike");
-            Assert.Greater(steel, area / 6, "망치가 화면에 안 칠해졌다 — " + info);
+            Assert.Greater(steel, area * 45 / 100, "망치가 화면에 안 칠해졌다 — " + info);
 
             fx.Stop();
             yield return null;

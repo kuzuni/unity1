@@ -358,9 +358,11 @@ namespace Forge.Game.Ui
             hammerGroup.interactable = false;
             hammerGroup.alpha = (float)AutoForgeFxSpec.SwingOpacity.Sample1(0);   // 0% — 옆에서 들어오기 전이라 안 보인다
 
-            // 거치 각은 그림 쪽(정본의 안쪽 `<g>`)이 든다 — 애니메이션 회전은 칸이 든다.
+            // 거치 각은 그림 쪽(정본의 안쪽 `<g transform="translate(55,11) rotate(-20)">`)이 든다 — 애니메이션 회전은 칸이 든다.
+            // ⚠ 그림 칸은 **타격점에 붙은 크기 0 상자**여야 한다: 겹의 좌표가 «타격면 중심이 원점» 이고 거치 각도 그 점을 축으로 돈다.
+            //   여기를 `Fill` 로 두면 원점이 viewBox 한가운데(66,43)로 밀려 망치가 모루 받침 쪽에 그려진다(런 191 컷 실측 — 화면을 보고 잡았다).
             RectTransform art = UiKit.Box(hammerRt, "hammer-art");
-            UiKit.Fill(art);
+            UiKit.Anchor(art, new Vector2(pxo, 1f - pyo), new Vector2(0.5f, 0.5f), Vector2.zero, 0f, 0f);
             art.localRotation = Quaternion.Euler(0f, 0f, -UiKit.L("hmr_rest_deg"));   // CSS 의 +각은 시계 방향, 유니티는 반대
 
             Vector2[] head = LocalPoly("hmr_head");
