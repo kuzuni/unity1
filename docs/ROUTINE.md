@@ -670,7 +670,7 @@
 - 범위: `Assets/Scripts/Game/Bootstrap.cs` · `Game/AppLifecycle.cs`(새 파일) · `Assets/Scripts/Core/Save/` · `ProjectSettings/ProjectSettings.asset` · `Assets/Tests/EditMode/CatchUpTests.cs` · `Assets/Tests/PlayMode/LifecycleTests.cs`.
 - ✅ 결론(2026-09-13 · 워커 R): `runInBackground`(코드+ProjectSettings) · Core `Lifecycle`(5초 백그라운드 문턱 · 60초 팝업 · `ResumePlan`) · Game `AppLifecycle`(잠든 시각 · 벽시계 공백 감지 · 복귀 시 부팅과 같은 오프라인 팝업). **전투는 따라잡지 않는다** — 원작이 숨은 구간 틱을 버리고 오프라인 수급(닫힌 식 `offlineRewardFor`)으로 넘기며(이중 지급 방지), 대장간·부화·연구는 절대시각 `endsAt` 이라 깨어난 첫 틱에 끝난다. EditMode 6 · PlayMode 2 · 기록은 PROGRESS «T88 완료 기록» · 결정 204.
 
-### T89 — 화면 문자열의 이모지 30종이 전부 두부(□)다 — 원작처럼 아이콘으로 갈아 끼운다 (Game · T31·T53 뒤 · **가장 먼저** · 실제 화면 실측)
+### T89 ✅ — 화면 문자열의 이모지 30종이 전부 두부(□)다 — 원작처럼 아이콘으로 갈아 끼운다 (Game · T31·T53 뒤 · **가장 먼저** · 실제 화면 실측)
 - 실측(2026-09-13 06:1x · 런 148 `screen_main.png` 눈 확인 + 코드 전수): 화면에 나가는 문자열에 이모지 **30종**(🔨 🪙 💎 🔒 ⭐ ⚔ 🏆 💀 📜 🥚 🧪 🎟 🗝 📌 📍 💤 💾 🛡 🐴 🐾 🚨 🧍 ⏳ ⚒ ✎ ✓ ✕ ⓐ ⓑ VS16)가 그대로 들어 있고 **글꼴에 하나도 없다** — 원본 Noto Sans KR 에도 대부분 없다(✓ ⓐ ⓑ 만 있다). 화면의 «자동 □ OFF» 가 그 하나(🔄).
 - **정본이 답을 준다**: `ui.js` 의 `TOAST_ICON` 표(1389~)가 이모지 → 코드 생성 아이콘 이름을 잇고(`'🪙': 'coin' · '💎': 'gem' · '🔨': 'hammer' · '⚔': 'tm_sword' · '🔒': 'lock' · '⭐': 'star' …), 바로 아래 함수가 **문구를 훑어 표에 있는 이모지를 전부 아이콘 노드로 바꾼다**(선두만이 아니다 — 주석에 «뒤에 붙는 재화 이모지가 그대로 남아 한 줄 안에서 섞인다» 는 실측이 있다).
 - 할 것: ⓐ 그 표를 `catalog.json` 에 `toastIcons` 로 옮긴다(T2·T31 과 같은 «정본이 쥔다» 원칙 · 손으로 짓지 않는다) ⓑ `UiKit.Text` 가 문자열을 세울 때 표에 있는 이모지를 **TMP 인라인 스프라이트**(T31 아틀라스 · `<sprite name=…>`)로 치환한다 — 아이콘이 글자 높이에 맞고 색 틴트가 원작과 같아야 한다 ⓒ 표에 없는 순수 기호(▶ ▼ ★ ✓ ⓐ ⓑ)는 글꼴 서브셋에 넣는다(`docs/assets-map.md` 의 재생성 명령에 유니코드 구간 추가) ⓓ 어느 쪽도 아닌 것(🐴 🐾 🚨 🧍 ✎ ⏳ 등 디버그·개발 문자열)은 아이콘을 새로 그리지 말고 **한국어 낱말로 바꾼다**(원작에 없는 자리다).
@@ -678,6 +678,7 @@
 - 막이: `TextSizeGateTests` 에 «활성 라벨의 모든 문자가 글꼴에 있다(한글만이 아니라 **전부**)» 로 넓힌다 — 지금 단언은 U+AC00~D7A3 만 봐서 이모지 두부를 놓쳤다.
 - 판정: 새 촬영 PNG 를 열어 □ 가 0 인 것을 눈으로 + 넓힌 단언 초록 + 원작 샷과 아이콘 자리 대조.
 - 범위: `Assets/Scripts/Game/Ui/UiKit.cs` · `Ui/UiIcons.cs` · `Assets/Forge/catalog.json`(toastIcons) · 이모지를 쥔 화면 파일들 · `Assets/Fonts/NotoSansKR-Forge.ttf`(기호 구간 추가 시) · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/assets-map.md`.
+- ✅ 결론(2026-09-13 · 런 163·170 · 워커 E): ⓐ 정본 `TOAST_ICON` 33줄을 **추출기로** 뽑아 `StreamingAssets/data/ui-text.json` 에(손으로 안 짓는다 · `check_data_sync` 가 대조) ⓑ 정본 `paintIconText` 를 Core `IconText` 로(문구 전체 훑기 · U+FE0F · 뒤 공백 · 표에 없으면 글자 그대로 · EditMode 7) ⓒ `UiKit.IconTextRow` 가 «아이콘 칸 + 글자 칸» 한 줄로 세우고 `PopupLayer.Toast` 와 라벨 네 자리(리그 전투력·리그 점수·패스 배지·프로필 편집 · 각각 정본 줄 번호 확인)에 배선 ⓓ **새 두부를 막는 자** `tools/check_text_glyphs.py`(글꼴 cmap × 화면 문구 × 아이콘 표 · CI dotnet 잡 두 줄 · 고장 주입 확인). 판정: 런 170 유니티 잡 **전체 초록**(EditMode 534 · PlayMode 100 · `ToastIconTests` 3/3) + **PNG 를 열어 봤다** — `screen_league.png` 의 점수가 노란 별 아이콘(★107…)·전투력 줄이 `tm_sword` 아이콘 + 수 · `screen_profile.png` 의 편집 버튼 셋이 연필 아이콘. 남은 둘은 **넘긴다**: 글꼴에 없는 `⏱`·`⏹`(정본도 같은 글자 · 주인 이모지 폴백 글꼴 대기 · 보고함) · 남의 lock 이 쥔 라벨 다섯(**T97**).
 
 ### T90 ✅ — 한글이 들어온 뒤 드러난 «글자가 칸 밖으로 넘친다»: 스킬 화면의 버튼·레벨 라벨 (Game·UI · T53 뒤 · T28 12회차가 눈으로 잡음)
 - 왜 이제 보이나: T53(한글 글꼴) 전에는 모든 한글이 두부(□)라 글자 폭이 가짜였다. 글꼴이 들어오자 **진짜 폭**으로 그려지면서 칸을 넘치는 자리가 드러났다 — 열두 회차 만에 처음 잴 수 있는 종류다.
@@ -760,6 +761,13 @@
 - 이제 길이 생겼다: T87 6회차가 넣은 `Ui/CraftFxPoly.cs`(정규 좌표 폴리곤 + 띠 그라디언트 + 무게중심 부풀림 stroke)로 **진짜 다각형**을 그릴 수 있다 — 모루 부분들을 그 자로 다시 그린다.
 - 판정: 확대 눈 대조(원작 `shot-042120` ↔ `screen_gear-detail`) + PlayMode(상판 폴리곤 꼭짓점 4개가 카탈로그 값 · 키라인 면이 몸통보다 크다) + `ui_score` 대장간 칸.
 - 범위: `Assets/Scripts/Game/Ui/ForgeSheet.cs`(DrawAnvil·Outlined) · `Assets/Forge/catalog.json`(anvil_* 좌표를 path 꼭짓점으로) · `Assets/Tests/PlayMode/ForgeUiTests.cs`. **T87 이 같은 파일을 쥐고 있으니 T87 이 끝난 뒤**.
+### T99 — 남의 lock 이 쥐고 있던 이모지 라벨 다섯 자리(T89 가 못 간 곳) (Game·UI · T89 뒤 · **T87·T91 lock 이 풀린 뒤**)
+- T89 가 세운 길(`UiKit.IconTextRow` + 정본 `TOAST_ICON` 표)을 **아직 못 간 라벨**에 잇는다. 토스트·라벨 전수 훑기(2026-09-13 10:1x · 워커 E)에서 남은 자리는 다섯뿐이다:
+  - `ChatScreen.cs:206` «⚔ » 상대 전투력 — **T91**(워커 J) 범위.
+  - `ForgeCraftPopup.cs:69·112` «판매 🪙 +N» · `ForgeInfoPopup.cs:113·120` «건너뛰기 💎 N»·«레벨 N 업그레이드 🪙 N» — **T87**(워커 G) 범위.
+- ⚠ **두 줄 버튼 주의**: 그 버튼 라벨 셋은 `"판매\n🪙 +N"` 처럼 **줄바꿈이 있다**. `IconTextRow` 는 가로 한 줄이라 그대로 쓰면 두 줄이 한 줄로 눌린다 — 세로 칸(위: 글자 · 아래: 아이콘 줄)으로 감싸거나 `IconTextRow` 에 «줄바꿈이면 새 줄» 갈래를 더해야 한다. 정본은 `.btn` 안에서 `<br>` 로 나눈다(`ui.js` 의 해당 버튼).
+- 판정: `tools/check_text_glyphs.py` 는 이 자리들을 «표가 덮는 글자» 로 세어 지금도 통과한다 — 판정은 **PNG 를 열어** 그 버튼·채팅줄에 아이콘이 섰는지 눈으로(§1) + 해당 화면 PlayMode 초록.
+- 범위: `Assets/Scripts/Game/Ui/ChatScreen.cs` · `Ui/ForgeCraftPopup.cs` · `Ui/ForgeInfoPopup.cs` · (필요하면) `Ui/UiKit.cs`(두 줄 갈래).
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -900,7 +908,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) · T98(모루 그림이 사각 근사 — 정본 SVG 는 사다리꼴·총알 뿔·검정 stroke) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ⬜ · T91 🔄 · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ⬜ · T98 ⬜ |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) · T98(모루 그림이 사각 근사 — 정본 SVG 는 사다리꼴·총알 뿔·검정 stroke) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ✅ · T91 🔄 · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ⬜ · T99 ⬜ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) · T83(촬영 두 장 가르기) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ✅ · T83 ✅|
