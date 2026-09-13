@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TMPro;
+using Forge.Core.Ui;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -217,13 +218,45 @@ namespace Forge.Game.Ui
             return t;
         }
 
-        /// <summary>글자 외곽선(원작 stage-label 의 검정 text-shadow 테). 재질 인스턴스에 OUTLINE_ON 을 켠다.</summary>
+        /// <summary>글자 외곽선(원작 stage-label 의 검정 text-shadow 테). 재질 인스턴스에 OUTLINE_ON 을 켠다.
+        /// ⚠ <paramref name="width01"/> 은 TMP 의 SDF 여백 비율이라 글자가 작을수록 얇고, 띠의 절반이 채움을 먹는다(T104) —
+        /// 정본 `-webkit-text-stroke` 를 옮기는 자리는 <see cref="OutlinePx"/> 로(카탈로그 px 키 · 2회차가 호출부를 옮긴다).</summary>
         public static void Outline(TextMeshProUGUI t, string colorKey, float width01)
         {
             Material m = t.fontMaterial;
             m.EnableKeyword("OUTLINE_ON");
             t.outlineColor = C(colorKey);
             t.outlineWidth = width01;
+        }
+
+        /// <summary>
+        /// T104 — 정본 `-webkit-text-stroke: N` + `paint-order: stroke fill` 과 같은 그림: **바깥으로 N/2** 의 키라인 · 채움은 그대로.
+        /// <paramref name="strokePx"/> 는 기준 캔버스 px(카탈로그 값 · CSS px 환산은 호출자). 식은 <see cref="OutlineSdf"/>(모바일 SDF 셰이더) —
+        /// 재질의 `_GradientScale`·`_ScaleRatioA` 와 폰트 애셋의 샘플링 크기·<c>t.fontSize</c> 를 **그 순간** 읽으니 글자 크기를 정한 뒤에 부른다.
+        /// 여백이 모자라면 1 로 잘리고 반환값의 <see cref="OutlineSdf.Clipped"/> 가 선다(경고 한 줄).
+        /// </summary>
+        public static OutlineSdf OutlinePx(TextMeshProUGUI t, string colorKey, float strokePx)
+        {
+            Material m = t.fontMaterial;
+            float g = m.HasProperty("_GradientScale") ? m.GetFloat("_GradientScale") : 0f;
+            float r = m.HasProperty("_ScaleRatioA") ? m.GetFloat("_ScaleRatioA") : 0f;
+            float ps = t.font != null ? (float)t.font.faceInfo.pointSize : 0f;
+            if (g <= 0f || r <= 0f || ps <= 0f)
+            {
+                // SDF 재질이 아니거나 애셋 정보가 비었다 — CreateFontAsset(Font) 기본(패딩 9 · 90pt → G 10 · R .9)으로 잇는다(엔진 기본값이지 게임 수치가 아니다)
+                Debug.LogWarning("[UiKit.OutlinePx] " + t.name + ": 재질/폰트 값이 비어(G=" + g + " R=" + r + " pt=" + ps + ") TMP 기본값으로 환산한다");
+                if (g <= 0f) g = 10f;
+                if (r <= 0f) r = 0.9f;
+                if (ps <= 0f) ps = 90f;
+            }
+            OutlineSdf o = OutlineSdf.FromStroke(strokePx, t.fontSize, g, r, ps);
+            if (o.Clipped) Debug.LogWarning("[UiKit.OutlinePx] " + t.name + ": 획 " + strokePx + "px 는 이 글자(" + t.fontSize + "px)의 SDF 여백을 넘는다 — 보이는 띠 " + o.VisiblePx.ToString("0.00") + "px(원한 " + o.WantedPx.ToString("0.00") + ")");
+            m.EnableKeyword("OUTLINE_ON");
+            // 순서: _FaceDilate 를 먼저 — outlineWidth 세터가 메시 여백(m_padding)을 재계산하며 그때 재질의 dilate 를 읽는다
+            m.SetFloat("_FaceDilate", (float)o.Dilate);
+            t.outlineColor = C(colorKey);
+            t.outlineWidth = (float)o.Width01;
+            return o;
         }
 
         // ---- 버튼 ----

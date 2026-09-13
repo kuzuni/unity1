@@ -25,6 +25,8 @@ namespace TMPro
         // T18 (워커 I) — OS 글꼴로 만드는 오버로드(한글 폴백 · ugui 2.0 = TMP 3.2 의 공개 서명: CreateFontAsset(string familyName, string styleName, int pointSize = 90)) 와 폴백 표(List<TMP_FontAsset> fallbackFontAssetTable { get; set; }).
         public static TMP_FontAsset CreateFontAsset(string familyName, string styleName, int pointSize = 90) { return string.IsNullOrEmpty(familyName) ? null : CreateInstance<TMP_FontAsset>(); }
         public List<TMP_FontAsset> fallbackFontAssetTable { get; set; }
+        // T104 — 진짜 TMP_FontAsset 의 공개 프로퍼티 `public FaceInfo faceInfo` (UnityEngine.TextCore · pointSize 는 샘플링 크기). UiKit.OutlinePx 가 읽는다.
+        public UnityEngine.TextCore.FaceInfo faceInfo { get; set; }
         public bool HasCharacter(char c) { return false; }
         /// TMP 3.2 실서명: HasCharacter(char, bool searchFallbacks = false, bool tryAddCharacter = false)
         public bool HasCharacter(char c, bool searchFallbacks, bool tryAddCharacter) { return false; }
