@@ -402,7 +402,7 @@
 - 판정(2026-09-12 워커 F 가 실측으로 고쳐 적었다 · 결정 159): 워커가 PNG 를 `Read` 로 열어 «판 있음 · 글자 겹침 0 · 빈 막대 0 · ✕ 하나» + `ForgeUiTests` PlayMode 빨강 0. **`ui_score` 8.0 은 이 작업의 판정이 아니다** — 채점 자는 화면 전체(3D 세계·글자 잉크)를 재고, 원작 샷은 `SIMPLE_BG` 이전 캡처라 나무·흙길이 가득한데 클론 배경은 T35(주인이 `SIMPLE_BG` 를 끌 때만)라 비어 있고 한글은 T53(주인 글꼴) 전까지 두부다. 그 둘이 팝업보다 점수를 크게 움직인다(런 95 실측: 팝업 결함 넷을 다 없앴는데 평균 2.88 → 2.96). 화면 점수는 T28 이 그 둘과 함께 본다.
 - 범위: `Assets/Scripts/Game/Ui/Forge*`(ForgeInfoPopup · ForgeCraftPopup · ForgeAutoPopup · ForgeUi) · `Ui/Gear*` · `Assets/Tests/PlayMode/ForgeUiTests.cs`.
 
-### T58 — 리그 도전·펫 업그레이드 팝업이 판 없이 부모 목록 위에 겹친다 (Game·UI · T20 lock 이 풀린 뒤 · T22 뒤 · T28 2회차가 눈으로 잡음)
+### T58 ✅ — 리그 도전·펫 업그레이드 팝업이 판 없이 부모 목록 위에 겹친다 (Game·UI · T20 lock 이 풀린 뒤 · T22 뒤 · T28 2회차가 눈으로 잡음)
 - 실측(2026-09-12 · T28 2회차 · 워커 M · 런 78 PNG): `screen_league-challenge.png` **1.9/10** — 원작(`shot-042228`)은 **흰 카드**에 «상대 선택» + 티켓 pill + 상대 5줄인데, 클론은 카드도 제목도 없이 상대 5줄만 리그 순위표 위에 얹혀 두 목록이 서로 겹친다. `screen_pet-upgrade.png` **1.7/10** — 카드는 있으나 ✕ 가 **위아래로 둘**(하나는 탭바 위)이고 원작(`shot-042503`)과 머리 구성이 다르다.
 - 무엇을 한다: 원작 `ui.js` `openLeagueChallenge`·`openPetUpgrade`·`renderPetUpgrade` 의 카드·제목·티켓 줄을 그대로. ✕ 는 화면당 하나.
 - 판정: PNG 눈 확인(원작 구성·✕ 카드당 하나) + PlayMode 빨강 0. ~~`ui_score` 8.0~~ — 딤 α(.5 · 주인 지시)와 §1 글자 하한 때문에 팝업 화면은 닿을 수 없다(결정 174 · 157 과 같은 갈래).
@@ -672,7 +672,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 🔄 · T57 ✅ · T58 🔄 · T59 ✅ · T60 ⬜ · T61 ✅ · T62 🔄 · T63 🔄 · T65 ✅· T66 ✅ · T68 🔄 |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 🔄 · T57 ✅ · T58 ✅ · T59 ✅ · T60 ⬜ · T61 ✅ · T62 🔄 · T63 🔄 · T65 ✅· T66 ✅ · T68 🔄 |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ |

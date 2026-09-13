@@ -41,6 +41,18 @@ namespace Forge.Tests.PlayMode
             if (tb.ActiveTab != "summon") tb.OnTab("summon");
         }
 
+        /// <summary>소환 결과 연출을 탭으로 닫는다 — 첫 탭은 «전부 공개», 둘째 탭은 «닫기». CI 러너에서 첫 프레임이 길면(3D 얼굴 첫 굽기) 연출이 이미 끝나 첫 탭이 곧 닫기라
+        /// 둘째 탭의 <c>Current</c> 가 null 이다(런 118 NRE · 결정 기록) → 살아 있을 때만 탭한다.</summary>
+        static IEnumerator TapResultClosed()
+        {
+            for (int k = 0; k < 4 && SkillSummonResultView.Current != null; k++)
+            {
+                SkillSummonResultView.Current.OnTap();
+                yield return null;
+            }
+            Assert.IsFalse(Sheet.Modal.IsOpen(SkillSummonResultView.ModalName), "소환 결과 연출은 탭 두 번 안에 닫힌다");
+        }
+
         static void AssertTextGate(string where)
         {
             UiCatalog cat = UiCatalog.Instance;
@@ -198,11 +210,7 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.GreaterOrEqual(Host.Pets.State.Eggs.Count, eggs + 1, "알 +1(보너스 알은 더 될 수 있다)");
             Assert.IsTrue(Sheet.Modal.IsOpen(SkillSummonResultView.ModalName));
-            SkillSummonResultView.Current.OnTap();
-            yield return null;
-            SkillSummonResultView.Current.OnTap();
-            yield return null;
-            Assert.IsFalse(Sheet.Modal.IsOpen(SkillSummonResultView.ModalName));
+            yield return TapResultClosed();
 
             // 알 상세 → [부화]
             int hatching = Host.Pets.State.Hatching.Count;
@@ -325,16 +333,11 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.GreaterOrEqual(Host.Mounts.Count(), n + 1, "탈것 +1");
             Assert.IsTrue(Sheet.Modal.IsOpen(SkillSummonResultView.ModalName), "소환 결과 연출(탈것 갈래)");
-            SkillSummonResultView.Current.OnTap();
-            yield return null;
-            SkillSummonResultView.Current.OnTap();
-            yield return null;
-            Assert.IsFalse(Sheet.Modal.IsOpen(SkillSummonResultView.ModalName));
+            yield return TapResultClosed();
             Assert.AreEqual(Host.Mounts.Count(), MountSheet.GridCells, "타일 = 보유 개체 수");
             MountSheet.SummonButton.onClick.Invoke();
             yield return null;
-            SkillSummonResultView.Current.OnTap(); yield return null;
-            SkillSummonResultView.Current.OnTap(); yield return null;
+            yield return TapResultClosed();
             Assert.GreaterOrEqual(Host.Mounts.Count(), 2, "재료·교체 검사를 하려면 둘 이상");
 
             // 상세 → 장착 토글(1마리 슬롯: 다른 것을 장착하면 이전 것은 자동 해제)
