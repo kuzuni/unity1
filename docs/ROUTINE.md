@@ -727,6 +727,18 @@
 - 범위: `Assets/Scripts/Game/Ui/Skill*`(격자 오브·배지 · HUD 스킬 바는 `SkillBar.cs`) · `Assets/Forge/Resources/PetSkillUi.json`(스킬 표는 T20 이 여기 둔다 · catalog.json 은 안 쓴다) · `Assets/Tests/PlayMode/PetUiTests.cs`.
 - 1회차(2026-09-13 · 워커 B · 결정 217): 막은 이미 있었다(타원 위 면 ×0.38) → 지각값으로 · 진짜 결함은 글자 하한으로 커진 타원과 Lv 의 겹침 → 장착 오브만 Lv 중심 = max(72.9%, 타원 아래끝+.36em) · HUD `.sk-lv` 검정 알약. 실측·판정은 PROGRESS «T95 진행 기록».
 
+### T96 — 임자 없는 빨강: «screens 브랜치 배포» 스텝이 런 164·168 연속 실패 — 눈 확인(§5)·PlayMode 진단(T46) 경로가 **런 163 에 멈춰 있다** (배포·검증 · 뒤 순서 없음 · 워커 K 등재)
+- 실측(2026-09-13 09:3x · 워커 K · Actions API):
+  - `screens` 브랜치 마지막 커밋 = `2e8676f 2026-09-13 08:42:26 deploy: c77191c…` = **런 163**. `meta.json` 도 `{"run":163}` 이다.
+  - 런 **164**(`6c4f39c` · 08:48~09:00): «screens 브랜치용 meta.json» **success** → «screens 브랜치 배포» **failure**(08:59:56 · meta 뒤 22초).
+  - 런 **168**(`daf48af` · 09:21~09:32): 같은 꼴 — meta **success**(09:31:24) → 배포 **failure**(09:31:46 · 22초).
+  - 두 런은 22분 떨어져 있어 **동시 push 경쟁이 아니다**. 그 사이 `ci.yml` 변경은 `5c01c9b`(T89) 하나이고 그것은 **dotnet 잡에 스텝 둘을 더한 것**이라 이 스텝과 무관하다(런 168 이 정상 시작했으므로 YAML 도 성하다 — 로컬 `yaml.safe_load` 초록).
+- 왜 급한가: §5 «눈 확인» 과 T46 «PlayMode 실패 진단 로그» 가 **둘 다 `screens` 를 통해서만** 워커에게 온다. 지금 워커는 런 163 의 빨강만 읽을 수 있고 그 뒤 런(164·168)이 무엇으로 빨간지 **볼 길이 없다** — «테스트 0개보다 나쁜» 자리다(§1).
+- ⚠ **이 컨테이너에서는 원인을 못 읽는다**: 잡 로그 다운로드(`productionresultssa6.blob.core.windows.net`)와 `actions/permissions/workflow` API 가 **둘 다 프록시에 막힌다**(실측 · T46 이 적어 둔 «아티팩트는 프록시가 막는다» 와 같은 갈래). 그래서 등재만 하고 `ci.yml` 은 **추측으로 안 고쳤다**(잘못 고치면 모두의 CI 가 죽는다).
+- 무엇을 한다: ⓐ 웹 UI 로 그 스텝 로그를 읽을 수 있는 사람(주인) 또는 로그가 뚫리는 세션이 **실패 문구를 먼저 읽는다** ⓑ 문구 없이 짚어 볼 자리 셋 — `peaceiris/actions-gh-pages@v4` 의 `github_token` 권한(잡에 `permissions:` 블록이 **없다** · 레포 기본값이 read 로 바뀌면 push 가 403), `force_orphan: true` + `screens` 보호 규칙, `publish_dir: ui-screens` 안의 새 파일 종류 ⓒ 고치는 김에 **이 스텝이 왜 죽었는지 스스로 말하게** 한다(T46 꼴) — 실패해도 `ui-screens/deploy-error.txt` 같은 것을 남기거나, 액션 대신 `git push` 한 줄로 바꿔 stderr 를 잡 요약에 찍는다.
+- 판정: 다음 main 런에서 `screens` 의 `meta.json` 이 그 런 번호로 갱신되고 배포 스텝이 초록.
+- 범위: `.github/workflows/ci.yml`(`unity-test` 잡의 screens 배포 스텝 · 필요하면 `permissions:` 한 블록).
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -873,5 +885,5 @@ node tools/export_data.js --self-test                                         # 
 | (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ✅ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) | ✅ (굽기 잡 조건 T32 ✅) · T86 🔄 |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ⬜ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
