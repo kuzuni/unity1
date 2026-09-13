@@ -786,6 +786,67 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T87 15회차 — 타격 순간의 타원 겹 둘: **접지 그림자**(머리 밑 · 없으면 «얹혔는지 떠 있는지» 가 안 읽힌다)와 **순백 코어**(네이티브 92px 에서 «때렸다» 를 파는 마지막 수단).
+        /// 값(창·배율·밝기)과 함께 코어는 **픽셀**로도 본다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 접지_그림자와_순백_코어가_타격마다_켜졌다_꺼진다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Hammers = 30;
+            ForgeSheet.Render(h);
+            yield return null;
+            h.OnCraft();
+            yield return null;
+
+            RectTransform sheet = UiRoot.Instance.Sheet;
+            AnvilFx fx = sheet.GetComponent<AnvilFx>();
+            double[] v = new double[2];
+            for (int i = 0; i < AutoForgeFxSpec.HitMs.Length; i++)
+            {
+                Graphic shadow = Poly(sheet, "af-shadow-" + i), core = Poly(sheet, "af-core-" + i);
+                Assert.IsNotNull(shadow, i + "타 접지 그림자");
+                Assert.IsNotNull(core, i + "타 순백 코어");
+
+                // 창 앞에서는 투명
+                fx.SampleTo(AutoForgeFxSpec.HitMs[i] - AutoForgeFxSpec.ShadowLeadMs - 20);
+                Assert.AreEqual(0f, shadow.color.a, 1e-3f, i + "타: 그림자는 켜지기 전 투명");
+                Assert.AreEqual(0f, core.color.a, 1e-3f, i + "타: 코어도 투명");
+
+                // 접촉 프레임 — 둘 다 표값이고 이미 거의 최대다
+                fx.SampleTo(AutoForgeFxSpec.HitMs[i]);
+                AutoForgeFxSpec.SampleBurst(AutoForgeFxSpec.Shadow, AutoForgeFxSpec.ShadowEase, AutoForgeFxSpec.ShadowDurMs, AutoForgeFxSpec.ShadowLeadMs, AutoForgeFxSpec.ShadowScale, i, AutoForgeFxSpec.HitMs[i], v);
+                Assert.AreEqual((float)v[1], shadow.color.a, 1e-3f, i + "타: 접촉 프레임 그림자 밝기");
+                Assert.AreEqual((float)v[0], shadow.rectTransform.localScale.x, 1e-3f, i + "타: 접촉 프레임 그림자 배율");
+                AutoForgeFxSpec.SampleBurst(AutoForgeFxSpec.Core, AutoForgeFxSpec.CoreEase, AutoForgeFxSpec.CoreDurMs, AutoForgeFxSpec.StarLeadMs, AutoForgeFxSpec.CoreScale, i, AutoForgeFxSpec.HitMs[i], v);
+                Assert.AreEqual(1f, core.color.a, 1e-3f, i + "타: 코어는 접촉에 완전 불투명");
+                Assert.AreEqual((float)v[0], core.rectTransform.localScale.x, 1e-3f, i + "타: 코어 배율");
+
+                // 창이 끝나면 둘 다 꺼진다
+                fx.SampleTo(AutoForgeFxSpec.HitMs[i] + AutoForgeFxSpec.ShadowDurMs);
+                Assert.AreEqual(0f, shadow.color.a, 1e-3f, i + "타: 그림자 창 끝");
+                Assert.AreEqual(0f, core.color.a, 1e-3f, i + "타: 코어 창 끝");
+            }
+
+            // 픽셀 — 3타 접촉 프레임에 코어 칸이 실제로 희다
+            if (!NoGraphics())
+            {
+                fx.SampleTo(AutoForgeFxSpec.HitMs[2]);
+                yield return null;
+                RectTransform core2 = Named(sheet, "af-core-2");
+                int area; string info;
+                int white = CountPixels(core2, delegate(Color32 c) { return c.r > 225 && c.g > 215 && c.b > 200; }, out area, out info, null);
+                Assert.Greater(white, 6, "3타 코어가 화면에 안 칠해졌다 — " + info);
+            }
+
+            fx.Stop();
+            yield return null;
+            h.CancelAnvilStrike();
+            yield return null;
+        }
+
         private static bool NoGraphics()
         {
             return SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;

@@ -28,6 +28,9 @@ namespace Forge.Game.Ui
         static CanvasGroup hammerGroup;
         /// <summary>타격 링 셋(정본 `.af-ring.h0/h1/h2` · 망치와 **형제**라 같이 움직이지 않는다).</summary>
         static readonly Image[] rings = new Image[3];
+        /// <summary>접지 그림자·순백 코어(정본 `.af-shadow.dN`·`.af-core.cN` · 링과 같은 자리 계보).</summary>
+        static readonly Image[] shadows = new Image[3];
+        static readonly Image[] cores = new Image[3];
         /// <summary>viewBox 한 단위의 화면 px — 망치 `afswing` 의 translate 는 **viewBox 단위**다(SVG 자식이라 CSS px 가 아니다).</summary>
         static float vbUnit;
 
@@ -45,7 +48,7 @@ namespace Forge.Game.Ui
             hammerText = null; upgText = null; anvilRt = null; anvilArtRt = null;
             billetRt = null; billetHot = null; billetCool = null; billetGlow = null;
             hammerRt = null; hammerGroup = null; vbUnit = 0f;
-            for (int i = 0; i < rings.Length; i++) rings[i] = null;
+            for (int i = 0; i < rings.Length; i++) { rings[i] = null; shadows[i] = null; cores[i] = null; }
             GameDefs d = h.Defs;
             float W = UiKit.RefW, rem = PopupKit.Rem;
             float sheetH = sheet.rect.height > 0 ? sheet.rect.height : (UiKit.L("chat_top") - UiKit.L("sheet_top")) * UiKit.RefH;
@@ -104,7 +107,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(upgText.rectTransform, 0f, btnH + rem * 0.25f, W - padX * 2f - rx, PopupKit.FontSize(TextKind.Sub) * 1.3f);
             }
             // 두들기는 도중 다시 그려졌다면(세이브 → Rerender) 러너를 새 모루·시트에 다시 문다 — 흐른 시간은 지킨다.
-            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, vbUnit); }
+            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, vbUnit); }
         }
 
         static string RemainText(ForgeHost h)
@@ -130,7 +133,7 @@ namespace Forge.Game.Ui
             if (root == null) return;
             AnvilFx fx = AnvilFx.Ensure(root.Sheet);
             if (fx == null) return;
-            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, vbUnit);
+            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, vbUnit);
             else fx.Stop();
         }
 
@@ -347,6 +350,9 @@ namespace Forge.Game.Ui
             RectTransform fx = UiKit.Box(parent, "anvil-fx");
             UiKit.Place(fx, ox, oy, vbW * u, vbH * u);
             DrawRings(fx, u, vbW, vbH);
+            // 정본 SVG 순서: 링 → 접지 그림자 → … → 순백 코어 → 섬광 → 망치
+            DrawImpactEllipse(fx, u, shadows, "af-shadow", "fx_shadow_rx", "fx_shadow_ry", "fx_shadow_dy", "fx_shadow");
+            DrawImpactEllipse(fx, u, cores, "af-core", "fx_core_rx", "fx_core_ry", "fx_core_dy", "fx_core");
 
             hammerRt = UiKit.Box(fx, "hammer");
             UiKit.Place(hammerRt, 0f, 0f, vbW * u, vbH * u);
@@ -411,6 +417,30 @@ namespace Forge.Game.Ui
                 float cx = (float)AutoForgeFxSpec.HitCenterX(i), cy = (float)AutoForgeFxSpec.HitCenterY(i);
                 UiKit.Place(rt, (cx - rx) * u, (cy - ry) * u, rx * 2f * u, ry * 2f * u);
                 rings[i] = img;
+            }
+        }
+
+        /// <summary>
+        /// 타격 순간의 타원 겹(접지 그림자 · 순백 코어) 셋 — 링과 같은 «닿는 자리» 계보이고 접점보다 `<키>_dy` 만큼 아래에 앉는다.
+        /// 정지 상태에서는 투명하고(정본 `opacity: 0`), 제 창에서만 <see cref="AnvilFx"/> 가 배율·불투명도를 바른다.
+        /// </summary>
+        static void DrawImpactEllipse(RectTransform fx, float u, Image[] into, string name, string rxKey, string ryKey, string dyKey, string colorKey)
+        {
+            float rx = UiKit.L(rxKey), ry = UiKit.L(ryKey), dy = UiKit.L(dyKey);
+            Sprite sp = CraftFxPoly.BakeEllipse(name, rx, ry, new Color[] { Color.white }, new float[] { 0f });
+            Color tint = UiKit.C(colorKey);
+            for (int i = 0; i < into.Length; i++)
+            {
+                RectTransform rt = UiKit.Box(fx, name + "-" + i);
+                Image img = rt.gameObject.AddComponent<Image>();
+                img.raycastTarget = false;
+                img.sprite = sp;
+                img.type = Image.Type.Simple;
+                Color c = tint; c.a = 0f;
+                img.color = c;
+                float cx = (float)AutoForgeFxSpec.HitCenterX(i), cy = (float)AutoForgeFxSpec.HitCenterY(i) + dy;
+                UiKit.Place(rt, (cx - rx) * u, (cy - ry) * u, rx * 2f * u, ry * 2f * u);
+                into[i] = img;
             }
         }
 

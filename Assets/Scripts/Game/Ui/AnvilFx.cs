@@ -20,7 +20,7 @@ namespace Forge.Game.Ui
         private Graphic hot, cool, glow;
         private float unit;
         private Vector2 hammerHome;
-        private Image[] rings;
+        private Image[] rings, shadows, cores;
         private Vector2 anvilHome, sheetHome;
         private Vector3 anvilScaleHome, billetScaleHome;
         private bool running;
@@ -51,12 +51,12 @@ namespace Forge.Game.Ui
         /// 두들기기 시작 — `anvilRt` 는 **모루 그림 칸**(정본 `.anvil-svg` · 버튼이 아니다: 버튼에 걸면 타격 오버레이가 반동을 같이 타 상대변위가 0 이 된다 · 정본 주석),
         /// `sheetRt` 는 그 모루가 든 시트(둘 다 없어도 죽지 않는다).
         /// </summary>
-        public void Play(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, Image[] ringLayers, float vbUnit)
+        public void Play(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, Image[] ringLayers, Image[] shadowLayers, Image[] coreLayers, float vbUnit)
         {
             Stop();
             anvil = anvilRt;
             sheet = sheetRt;
-            Take(billetRt, hotLayer, coolLayer, glowLayer, hammerRt, hammerCg, ringLayers, vbUnit);
+            Take(billetRt, hotLayer, coolLayer, glowLayer, hammerRt, hammerCg, ringLayers, shadowLayers, coreLayers, vbUnit);
             if (anvil != null)
             {
                 anvilHome = anvil.anchoredPosition;
@@ -69,7 +69,7 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>쇳덩이 묶음과 불투명도 겹을 받아 «쉬는 자세» 를 적어 둔다(되돌릴 때 그 자리로).</summary>
-        private void Take(RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, Image[] ringLayers, float vbUnit)
+        private void Take(RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, Image[] ringLayers, Image[] shadowLayers, Image[] coreLayers, float vbUnit)
         {
             billet = billetRt;
             hot = hotLayer;
@@ -78,6 +78,8 @@ namespace Forge.Game.Ui
             hammer = hammerRt;
             hammerGroup = hammerCg;
             rings = ringLayers;
+            shadows = shadowLayers;
+            cores = coreLayers;
             unit = vbUnit;
             if (billet != null) billetScaleHome = billet.localScale;
             if (hammer != null) hammerHome = hammer.anchoredPosition;
@@ -88,13 +90,13 @@ namespace Forge.Game.Ui
         /// 정본은 DOM 을 갈아도 CSS 애니메이션이 그 자리에서 이어지지 않지만, 클론은 시트를 통째로 다시 그리므로
         /// 다시 물지 않으면 남은 구간이 통째로 사라진다(런 157 실측: 모루가 파괴돼 연출이 없던 일이 됐다).
         /// </summary>
-        public void Rebind(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, Image[] ringLayers, float vbUnit)
+        public void Rebind(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, Image[] ringLayers, Image[] shadowLayers, Image[] coreLayers, float vbUnit)
         {
             if (!running) return;
             Restore();
             anvil = anvilRt;
             sheet = sheetRt;
-            Take(billetRt, hotLayer, coolLayer, glowLayer, hammerRt, hammerCg, ringLayers, vbUnit);
+            Take(billetRt, hotLayer, coolLayer, glowLayer, hammerRt, hammerCg, ringLayers, shadowLayers, coreLayers, vbUnit);
             if (anvil != null)
             {
                 anvilHome = anvil.anchoredPosition;
@@ -118,6 +120,8 @@ namespace Forge.Game.Ui
             hammer = null;
             hammerGroup = null;
             rings = null;
+            shadows = null;
+            cores = null;
         }
 
         /// <summary>자기가 만든 것만 되돌린다 — 모루·시트 자리와 쇳덩이 자세·겹 불투명도(정지 상태 = 트랙 0%).</summary>
@@ -185,6 +189,32 @@ namespace Forge.Game.Ui
             ForgeSheet.SetOpacity(glow, (float)AnvilFxSpec.BilletGlow.Sample1(pct));
             ApplyHammer();
             ApplyRings();
+            ApplyBurst(shadows, AutoForgeFxSpec.Shadow, AutoForgeFxSpec.ShadowEase, AutoForgeFxSpec.ShadowDurMs, AutoForgeFxSpec.ShadowLeadMs, AutoForgeFxSpec.ShadowScale);
+            ApplyBurst(cores, AutoForgeFxSpec.Core, AutoForgeFxSpec.CoreEase, AutoForgeFxSpec.CoreDurMs, AutoForgeFxSpec.StarLeadMs, AutoForgeFxSpec.CoreScale);
+        }
+
+        /// <summary>타격 순간의 겹(그림자·코어 …) 셋 — 제 창에서만 배율·불투명도를 바르고 밖에서는 투명하게 둔다.</summary>
+        private void ApplyBurst(Image[] layers, CssTrack track, CssEase ease, double durMs, double leadMs, double[] perStrike)
+        {
+            if (layers == null || track == null) return;
+            double[] v = new double[2];
+            for (int i = 0; i < layers.Length; i++)
+            {
+                Image img = layers[i];
+                if (img == null) continue;
+                Color c = img.color;
+                if (AutoForgeFxSpec.SampleBurst(track, ease, durMs, leadMs, perStrike, i, ms, v))
+                {
+                    img.rectTransform.localScale = new Vector3((float)v[0], (float)v[0], 1f);
+                    c.a = Mathf.Clamp01((float)v[1]);
+                }
+                else
+                {
+                    img.rectTransform.localScale = Vector3.one;
+                    c.a = 0f;
+                }
+                img.color = c;
+            }
         }
 
         /// <summary>
