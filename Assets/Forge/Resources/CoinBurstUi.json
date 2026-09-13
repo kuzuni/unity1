@@ -1,0 +1,136 @@
+{
+  "_": "ROUTINE T117 판매 코인 분출(원작 ui.js 3472~3560 coinBurst · css .coin-fly/.coin-fly-y/.coin-fly-img/.coin-amt · @keyframes coinFlyX/coinFlyY/coinSpin/coinAmt)의 수치·색·문구표. T87 lock 이 Assets/Forge/catalog.json 을 쥐고 있어 T117 몫만 여기 둔다(T65 PlayerInfoUi.json 과 같은 꼴). 키 접미: _rem = 정본 rem · _px = 정본 절대 CSS px(기준 캔버스 배율은 catalog anvil_fx_px · T87 결정 222) · _ms = 벽시계 · _f = 비율 · _n = 개수. 코드에 숫자를 박지 않는다(§1).",
+  "colors": {
+    "amt": "#ffd54f",
+    "amt_outline": "#000000eb",
+    "coin_glow": "#ffc107f2"
+  },
+  "layout": {
+    "count_base_n": 3,
+    "count_log_k": 1.7,
+    "count_min_n": 3,
+    "count_max_n": 10,
+    "rows_upto1_n": 4,
+    "rows_upto2_n": 8,
+    "col_gap_rem": 4.6,
+    "row_gap_rem": 2.4,
+    "row0_rem": 1.2,
+    "jitter_rem": 0.15,
+    "rise_min_px": 58,
+    "rise_max_px": 104,
+    "delay_step_ms": 26,
+    "delay_jitter_ms": 24,
+    "fly_ms": 780,
+    "land_k": 0.72,
+    "amt_ms": 2000,
+    "remove_slack_ms": 120,
+    "amt_slack_ms": 60,
+    "coin_rem": 1.55,
+    "spin_ms": 420,
+    "bounce_rem": 0.5,
+    "amt_font_rem": 0.82,
+    "amt_outline_f": 0.3,
+    "origin_y_f": 0.4
+  },
+  "fly_y": [
+    {
+      "at": 0,
+      "y": "0",
+      "opacity": 1,
+      "ease": [
+        0.15,
+        0.7,
+        0.4,
+        1
+      ]
+    },
+    {
+      "at": 45,
+      "y": "rise",
+      "opacity": 1,
+      "ease": [
+        0.6,
+        0,
+        0.85,
+        0.4
+      ]
+    },
+    {
+      "at": 72,
+      "y": "drop",
+      "opacity": 1,
+      "ease": [
+        0.2,
+        0.7,
+        0.4,
+        1
+      ]
+    },
+    {
+      "at": 84,
+      "y": "drop-bounce",
+      "opacity": 1,
+      "ease": [
+        0.6,
+        0,
+        0.9,
+        0.5
+      ]
+    },
+    {
+      "at": 100,
+      "y": "drop",
+      "opacity": 0
+    }
+  ],
+  "amt": [
+    {
+      "at": 0,
+      "opacity": 0,
+      "ty_pct": -35,
+      "scale": 0.8,
+      "ease": [
+        0.2,
+        0.9,
+        0.3,
+        1
+      ]
+    },
+    {
+      "at": 7,
+      "opacity": 1,
+      "ty_pct": -64,
+      "scale": 1.16,
+      "ease": [
+        0.4,
+        0,
+        0.5,
+        1
+      ]
+    },
+    {
+      "at": 13,
+      "opacity": 1,
+      "ty_pct": -58,
+      "scale": 1
+    },
+    {
+      "at": 78,
+      "opacity": 1,
+      "ty_pct": -142,
+      "scale": 1
+    },
+    {
+      "at": 100,
+      "opacity": 0,
+      "ty_pct": -170,
+      "scale": 0.98
+    }
+  ],
+  "text": {
+    "plus": "+{0}",
+    "sfx_gacha_rarity": "common",
+    "anvil_btn": "anvil-btn",
+    "icon": "coin"
+  }
+}
