@@ -345,5 +345,63 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsFalse(h.Popups.IsOpen(ProfilePopup.Name));
         }
+    
+
+        /// <summary>
+        /// T97 — 플레이어 정보 팝업의 미니 씬: <c>BattlePreview</c> 가 <c>PlayerInfoPopup.PreviewStart/Stop</c> 훅에 꽂혀(원작 `Scene3D.previewStart`)
+        /// 프리뷰 상자에 RT 카메라 그림(RawImage)을 채우고 폴백(🛡️·스테이지 라벨·핍)은 안 그린다 · 닫으면 카메라·RT 를 반납한다. 빨간 로그 0.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 플레이어_정보_팝업의_미니_씬은_RT_카메라로_서고_닫으면_걷힌다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!(MetaHost.Ready && Forge.Game.Battle.BattleScene.Instance != null && Forge.Game.Battle.BattleScene.Instance.Ready) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 준비되지 않았다");
+            Assert.IsNotNull(Forge.Game.Battle.BattleScene.Instance, "전투 씬");
+            Forge.Game.Battle.BattlePreview pv = Forge.Game.Battle.BattlePreview.Instance;
+            Assert.IsNotNull(pv, "BattlePreview 가 Bootstrap 아래에 서지 않았다");
+            Assert.IsNotNull(PlayerInfoPopup.PreviewStart, "PreviewStart 훅이 비었다(T97 이전 상태)");
+            Assert.IsNotNull(PlayerInfoPopup.PreviewStop);
+            Assert.IsFalse(pv.Active);
+            MetaHost h = MetaHost.Instance;
+            PlayerInfoPopup.Open(h);
+            yield return null;
+            yield return null;
+            Popup p = h.Popups.Find(PlayerInfoPopup.Name);
+            Assert.IsNotNull(p, "플레이어 정보 팝업");
+            Transform preview = p.Root.Find("card/preview");
+            Assert.IsNotNull(preview, "프리뷰 상자");
+            Assert.IsTrue(pv.Active, "미니 씬 카메라가 돈다");
+            Assert.IsNull(preview.Find("shield"), "미니 씬이 섰으면 폴백 🛡️ 는 없다");
+            Assert.IsNull(preview.Find("stage"), "폴백 스테이지 라벨 없음");
+            Transform canvasT = preview.Find("pinfo-scene-canvas");
+            Assert.IsNotNull(canvasT, "RT 그림(RawImage)");
+            var raw = canvasT.GetComponent<UnityEngine.UI.RawImage>();
+            Assert.IsNotNull(raw);
+            Assert.IsNotNull(raw.texture, "RawImage 에 RT 가 꽂혔다");
+            Assert.AreSame(pv.Texture, raw.texture);
+            Assert.IsNotNull(pv.PreviewCamera);
+            Assert.AreSame(pv.Texture, pv.PreviewCamera.targetTexture);
+            RectTransform prt = (RectTransform)preview;
+            Assert.AreEqual(Mathf.RoundToInt(prt.rect.width), pv.Texture.width, 1, "RT 폭 = 상자 폭(화면 픽셀)");
+            Assert.AreEqual(Mathf.RoundToInt(prt.rect.height), pv.Texture.height, 1, "RT 높이 = 상자 높이");
+            Assert.AreEqual(Camera.main.transform.position, pv.PreviewCamera.transform.position, "본 카메라 자리에서 같은 씬");
+            Assert.AreEqual(Camera.main.cullingMask, pv.PreviewCamera.cullingMask);
+            PlayerInfoPopup.Close(h);
+            yield return null;
+            Assert.IsFalse(h.Popups.IsOpen(PlayerInfoPopup.Name));
+            Assert.IsFalse(pv.Active, "닫으면 카메라·RT 반납");
+            Assert.IsNull(pv.PreviewCamera);
+            Assert.IsNull(pv.Texture);
+            // 훅을 안 거치고 팝업이 통째로 파괴돼도(HideAll) 다음 프레임에 스스로 걷는다
+            PlayerInfoPopup.Open(h);
+            yield return null;
+            Assert.IsTrue(pv.Active);
+            h.Popups.HideAll();
+            yield return null;
+            yield return null;
+            Assert.IsFalse(pv.Active, "상자가 사라지면 LateUpdate 가 걷는다");
+        }
     }
 }
