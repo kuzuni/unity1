@@ -802,7 +802,7 @@
 - 판정: PlayMode 빨강 0 + CI `screen_pets.png` 눈 확인(빛기둥이 전구에서 알까지 · 리본 글자가 온전) · `ui_score --only pets` 밴드5 미짝이 줄어든다.
 - 범위: `Assets/Scripts/Game/Ui/PetPanel.cs` · `Ui/PetHatchCone.cs` · `Assets/Forge/Resources/PetSkillUi.json` · `Assets/Tests/PlayMode/PetUiTests.cs`.
 
-### T103 — 펫 업그레이드 모달이 탭바를 안 덮고 ✕ 가 둘 · 머리 판 글자가 배경과 대비가 없다 (Game·UI · T79 뒤 · T28 19회차가 정본 CSS 로 잡음)
+### T103 ✅ — 펫 업그레이드 모달이 탭바를 안 덮고 ✕ 가 둘 · 머리 판 글자가 배경과 대비가 없다 (Game·UI · T79 뒤 · T28 19회차가 정본 CSS 로 잡음)
 - 실측(2026-09-13 · T28 19회차 · 워커 M · 런 188 `screen_pet-upgrade.png` **2.1/10** — 여섯 회차째 «다음 볼 화면» 둘째):
   - ⓐ **탭바가 환하게 보이고 그 위에 ✕ 가 하나 더** 있다(카드 아래 ✕ + 탭바 위 ✕ = 둘). 원작 `shot-042503` 은 카드가 화면을 덮어 상단바·탭바가 안 보이고 ✕ 가 **하나**다.
   - ⓑ 머리 판(`.petup-panel`)의 «[일반] 거북이 · 18 피해 · 105 체력» 이 **판 색과 대비가 거의 없다**(연한 회색 글자 ↔ 연한 회색 판). 원작은 같은 자리가 진한 글자다.
@@ -811,6 +811,15 @@
 - 무엇을 한다: ⓐ 펫 업그레이드 팝업 층을 `dim-tabbar` 갈래로 올려 탭바를 덮고 부모 시트의 ✕ 를 가린다(화면당 ✕ 하나) ⓑ 머리 판 글자 색 키를 정본 잉크로 바꾼다(판 `#b7b7b7` 위 진한 글자).
 - 판정: `ui_score --score --only pet-upgrade` 가 **4.0 이상**(지금 2.1 · 이 화면은 천장이 낮지 않다 · 결정 229) + 워커가 PNG 를 열어 «✕ 하나 · 탭바 안 보임 · 머리 글자가 읽힌다» 확인 + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/PetUpgrade*` · `Ui/PetSkillModal.cs`(층·딤 갈래) · `Assets/Forge/Resources/PetSkillUi.json`(잉크 키) · `Assets/Tests/PlayMode/PetUiTests.cs`.
+
+- ✅ 결론(2026-09-13 · 워커 R · 코드 0줄 · 결정 233): **전제 둘 다 정본과 같다.** ⓐ 딤이 탭바를 덮는다(런 191 픽셀 탭바 32.8 → 13.4 · 탭바 ✕ 242 → 120 = ×0.5) — 아래 ✕ 는 딤 아래 탭바 것이고 정본도 z40 + `.modal` .5 라 같은 자리에 같은 ✕ 가 비친다(원작 샷은 .985 시절). ⓑ 정본 `style.css` 5525 가 이름을 희귀도 색 + 검정 2px 획, 피해/체력만 `#000` 으로 칠한다 — 클론과 같은 구성. 남은 진짜 차이 = **검정 획이 안 보인다**(이름 줄 어두운 픽셀 0) → 앱 전체 `UiKit.Outline` 의 일이라 **T104** 로 뗐다. `PetSkillUi.json`·`PetUiTests.cs`(T102 lock) 는 안 열었다.
+
+### T104 — 글자 외곽선이 정본 2px 검정 키라인보다 옅다: `UiKit.Outline` 의 width01 이 SDF 여백 비율이라 작은 글자에서 1px 미만 (Game·UI · T53 뒤 · **T87·T102 lock 파일은 그 뒤** · T103 이 가름)
+- 실측(2026-09-13 · T103 · 워커 R · 런 191): `screen_pet-upgrade.png` 이름 줄 «[일반] 거북이»(x160~330·y118~142) 어두운 픽셀(max<70) **0개** ↔ 같은 판 «18 피해» 줄 239개 · `screen_pet-detail.png` 흰 카드 위 같은 이름도 옅은 회색 테두리뿐. 정본은 `-webkit-text-stroke: max(1.2px,.113em) var(--pp-line)` + `paint-order: stroke fill` = 검정 **2px** 키라인(`style.css` 5451 `.petd-name` .125em · 5525 `.petup-panel .idet-name` .113em · 5518~5524 주석 «원본의 키라인은 양쪽 다 2px»).
+- 원인(코드): `UiKit.Outline(t, key, width01)` 이 TMP `outlineWidth`(0~1 · SDF 여백 비율)에 호출자 상수를 그대로 넣는다. 런타임 폰트 애셋 `TMP_FontAsset.CreateFontAsset(cat.font)` 기본값 = 90pt 샘플 · 여백 9px → 획 두께 ≈ 여백 × (렌더 크기/90) × width01 — 17px 글자 · 0.25 면 1px 이 안 된다. 호출부 20곳(`PetSkillKit.Stroked` 0.25~0.35 · `Outline` 0.18~0.3 · 던전 `dg_name_outline` 등 카탈로그 키)이 전부 같은 병.
+- 무엇을 한다: ⓐ `UiKit.Outline` 에 **px 갈래**(폰트 애셋 `atlasPadding`·`faceInfo.pointSize`·`t.fontSize` 로 width01 환산 · 1 클램프 · 환산식은 TMP SDF 셰이더 것이라 CI 픽셀로 잰다) ⓑ 카탈로그에 키라인 px 키 하나(정본 2px × 촬영 배율 2.164 · T87 결정 222 규약 · **T87 lock 뒤**) ⓒ 호출부를 그 키로(숫자 상수 제거 — §1 «수치는 코드에 박지 않는다») ⓓ `paint-order: stroke fill` 대응 — TMP 외곽선은 채움 안쪽으로 먹으니 `_FaceDilate` 로 채움 두께를 지키는지 같이 본다.
+- 판정: PlayMode 픽셀 단언(새 파일 `OutlineTests.cs` · 이름 줄 어두운 픽셀 > 0 · 획 두께 ≈ 키 값) + 워커가 PNG 를 열어 이름 둘레 검정 선 확인(pet-upgrade · pet-detail · 스킬 시트 제목).
+- 범위: `Assets/Scripts/Game/Ui/UiKit.cs` · `Assets/Forge/catalog.json`(T87 뒤) · 호출부 `Ui/PetSkillKit.cs`·`Ui/PetUpgradePopup.cs`·`Ui/Popups.cs`·`Ui/DungeonDetailPopup.cs`·`Ui/DungeonSheet.cs`·`Ui/Hud.cs`·`Ui/BattleOverlay.cs`·`Ui/SkillPanel.cs`·`Ui/SkillBar.cs`·`Ui/SkillPetSheet.cs`·`Ui/SkillRatesPopup.cs`·`Ui/MountSheet.cs` · `Ui/PetPanel.cs`(T102 뒤) · `Ui/ForgeSheet.cs`(T87 뒤) · `Assets/Tests/PlayMode/OutlineTests.cs`(새).
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -945,13 +954,13 @@ node tools/export_data.js --self-test                                         # 
 | `js/state.js` · `main.js`(저장 시점·부팅) | 세이브 · 마이그레이션 · 오프라인 보상 | T13 | ✅ |
 | `js/forge.js` | 대장간 규칙 · 오토 포지 | T14 · T19 | ✅ (T14 · T19) |
 | 장비 8부위 · 페이퍼돌(`prochar.js`·`ui.js` 장비 · `scene3d.js` makeWeapon/makeHelmet/dressMcRig) | 등급·서브스탯·판매가·외형 | T15(규칙·표값) · T37(3D 외형 캡처) · T19 | ✅ (T15 · T37 · T19) |
-| `js/pets.js` | 알·부화·합성·출전 규칙 · 출전 스탯 기여 | T16 · T20 · T10(출전 조형) · T43(스탯 접착) · T79(업그레이드 모달) · T103(업그레이드 층·대비) | T16 ✅ · T10 ✅ · T20 ✅ · T43 ✅ · T79 ✅ · T103 ⬜ |
+| `js/pets.js` | 알·부화·합성·출전 규칙 · 출전 스탯 기여 | T16 · T20 · T10(출전 조형) · T43(스탯 접착) · T79(업그레이드 모달) · T103(업그레이드 층·대비 — 정본대로 있음) | T16 ✅ · T10 ✅ · T20 ✅ · T43 ✅ · T79 ✅ · T103 ✅ |
 | `js/skills.js` | 소환·18종·3슬롯(정본 `MAX_ACTIVE`) | T17 · T20 | T17 ✅ · T20 ✅ |
 | `js/mounts.js` | 탈것 규칙 · 탑승 | T40(Core 규칙 · 결정 72) · T11(탑승 3D) · T20(탈것 화면) | T40 ✅ · T11 ✅ · T20 ✅ |
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) · T98(모루 그림이 사각 근사 — 정본 SVG 는 사다리꼴·총알 뿔·검정 stroke) · T100(남은 두부 셋 · 자 둘의 구멍) · T102(부화장 빛기둥·램프 키·리본) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ✅ · T91 ✅ · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ✅ · T99 🔄 · T101 🔄 · T100 🔄 · T102 🔄 |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) · T98(모루 그림이 사각 근사 — 정본 SVG 는 사다리꼴·총알 뿔·검정 stroke) · T100(남은 두부 셋 · 자 둘의 구멍) · T102(부화장 빛기둥·램프 키·리본) · T104(글자 외곽선 두께) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ✅ · T91 ✅ · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ✅ · T99 🔄 · T101 🔄 · T100 🔄 · T102 🔄 · T104 ⬜ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) · T83(촬영 두 장 가르기) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ✅ · T83 ✅|
