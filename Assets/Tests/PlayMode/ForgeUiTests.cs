@@ -1260,6 +1260,85 @@ namespace Forge.Tests.PlayMode
             Assert.IsFalse(done, "리빌 done 은 0.56초 뒤라 아직 아니다");
         }
 
+        /// <summary>
+        /// T87 28회차 — 광택(`crsheen`)이 **정본 자리로 쓸리고 화면에 실제로 칠해지는가**.
+        /// 함정 ⓔ(«초록 은 칠해졌다 가 아니다») 대로 값 단언과 픽셀 단언을 같이 건다 — 카드 칸의 흰 픽셀을
+        /// «띠가 카드 밖(−130%)» 일 때와 «띠가 카드 위(58%·150% 직전)» 일 때로 나눠 센다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator T87_광택이_카드_위를_쓸고_화면에_칠해진다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            ForgeItem item = h.Engine.RollItem();
+            ForgeCraftPopup.ShowReveal(h, item, () => { });
+            yield return null;
+
+            RectTransform card = FindByName("card");
+            Assert.IsNotNull(card, "리빌 카드");
+            RectTransform mask = FindByNameIn(card, "cr-sheen-box");
+            Assert.IsNotNull(mask, "광택 마스크 상자(정본 overflow: hidden)");
+            Assert.IsNotNull(mask.GetComponent<RectMask2D>(), "마스크가 없으면 띠가 카드 밖으로 새어 나간다");
+            RectTransform sheen = FindByNameIn(card, "cr-sheen");
+            Assert.IsNotNull(sheen, "광택 띠");
+            Image sheenImg = sheen.GetComponent<Image>();
+            Assert.IsNotNull(sheenImg.sprite, "띠는 구운 그라디언트 스프라이트다(정본 105° linear-gradient)");
+
+            CraftCardFx fx = card.GetComponent<CraftCardFx>();
+            float size = card.sizeDelta.x;
+            double[] sv = new double[1];
+
+            // ── 값: 지연 전에는 시작 자세(−130%) · 지연 뒤에는 오른쪽으로 간다 · 58% 부터는 머문다
+            fx.SampleTo(0);
+            CraftCardSpec.Sheen.SampleEased(0, CraftCardSpec.EaseOut, sv);
+            Assert.AreEqual((float)(sv[0] / 100.0) * size, sheen.anchoredPosition.x, 0.5f, "0ms: 카드 왼쪽 밖(−130%)");
+            fx.SampleTo(CraftCardSpec.SheenDelayMs);
+            Assert.AreEqual((float)(-130.0 / 100.0) * size, sheen.anchoredPosition.x, 0.5f, "지연 80ms 까지는 안 움직인다");
+            float mid = 0f;
+            fx.SampleTo(CraftCardSpec.SheenDelayMs + CraftCardSpec.RevealMs * 0.29);
+            mid = sheen.anchoredPosition.x;
+            Assert.Greater(mid, (float)(-130.0 / 100.0) * size, "지연 뒤에는 오른쪽으로 간다");
+            fx.SampleTo(CraftCardSpec.SheenDelayMs + CraftCardSpec.RevealMs * 0.58);
+            float end = sheen.anchoredPosition.x;
+            Assert.AreEqual((float)(150.0 / 100.0) * size, end, 0.5f, "58% 에 끝자리(150%)");
+            fx.SampleTo(CraftCardSpec.SheenDelayMs + CraftCardSpec.RevealMs);
+            Assert.AreEqual(end, sheen.anchoredPosition.x, 0.01f, "58% 뒤로는 머문다");
+
+            if (NoGraphics())
+            {
+                Debug.LogWarning("그래픽 장치가 없다(-nographics) — 광택 픽셀 단언을 건너뛴다");
+                ForgeCraftPopup.DismissReveal();
+                yield break;
+            }
+
+            // ── 픽셀(함정 ⓔ «초록은 칠해졌다가 아니다»): **같은 시각**에 띠만 껐다 켜서 카드 칸이 실제로 밝아지는지 잰다.
+            // 시각을 옮겨 비교하면 카드 제 불투명도(`crpop` 0% = 0)가 섞여 «띠가 칠했다» 를 증명하지 못한다.
+            fx.enabled = false;   // 프레임을 두 장 넘기며 재므로 러너의 `Update` 가 시각을 밀지 못하게 세운다
+            fx.SampleTo(CraftCardSpec.SheenDelayMs + CraftCardSpec.RevealMs * 0.20);   // 카드 불투명도 1 · 띠 한가운데가 칸 안
+            long lit = 0;
+            System.Func<Color32, bool> tally = c => { lit += c.r + c.g + c.b; return c.r > 170 && c.g > 170 && c.b > 170; };
+            int areaA, areaB;
+            string infoA, infoB;
+
+            sheenImg.enabled = false;
+            yield return null;
+            lit = 0;
+            CountPixels(card, tally, out areaA, out infoA, null);
+            long off = lit;
+
+            sheenImg.enabled = true;
+            yield return null;
+            lit = 0;
+            CountPixels(card, tally, out areaB, out infoB, "craft-sheen");
+            long on = lit;
+
+            Assert.AreEqual(areaA, areaB, "두 장의 카드 칸이 같은 자리여야 비교가 성립한다");
+            Assert.Greater(on, off + off / 100, "광택을 켜면 카드 칸이 눈에 띄게 밝아져야 한다(1% 이상) — 꺼짐 합 " + off
+                           + " / 켜짐 합 " + on + " · 꺼짐: " + infoA + " / 켜짐: " + infoB);
+            ForgeCraftPopup.DismissReveal();
+            yield return null;
+        }
+
         /// <summary>정본 `AnvilTop()` 과 같은 기준점 y — 테스트가 같은 식으로 다시 잰다(값을 안 박는다).</summary>
         private static float AnvilTopY()
         {

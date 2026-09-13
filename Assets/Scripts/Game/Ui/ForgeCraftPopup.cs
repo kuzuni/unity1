@@ -178,7 +178,19 @@ namespace Forge.Game.Ui
             // 링(`crring`)이 카드 **뒤**라 먼저 만든다 — 정본은 `box-shadow` 라 그림 바깥으로 퍼진다.
             Image ring = UiKit.Rounded(reveal, "cr-ring", "pp_line", size * 0.16f);
             RectTransform card = CraftCard(reveal, h, item, size);
-            CraftCardFx.Play(card, CraftCardFx.Mode.Reveal, a, size, ring, ForgeUi.AgeColor(h.Defs, item.Age));
+            // 광택(`crsheen`) — 정본 `.craft-reveal { overflow: hidden }` + `::after { inset: 0 }` 이라
+            // 카드 폭만 한 마스크 상자 안에서 띠가 −130% → 150% 로 쓸린다.
+            RectTransform mask = UiKit.Box(card, "cr-sheen-box");
+            PopupKit.Inset(mask, 0f);
+            mask.gameObject.AddComponent<RectMask2D>();
+            Image sheenImg = UiKit.Panel(mask, "cr-sheen", "pp_paper");
+            sheenImg.sprite = CraftCardArt.Sheen();
+            sheenImg.type = Image.Type.Simple;
+            sheenImg.color = Color.white;
+            sheenImg.raycastTarget = false;
+            RectTransform sheen = sheenImg.rectTransform;
+            UiKit.Anchor(sheen, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, size, size);
+            CraftCardFx.Play(card, CraftCardFx.Mode.Reveal, a, size, ring, ForgeUi.AgeColor(h.Defs, item.Age), sheen);
             h.Delay(ForgeHost.RevealCardSec, () => { DismissReveal(); done(); });
         }
 

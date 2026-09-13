@@ -15,7 +15,7 @@ namespace Forge.Game.Ui
     ///
     /// 축은 카드 한가운데(CSS `transform-origin` 기본값)라 카드 피벗을 (.5,.5) 로 두고 자리를 «가운데» 로 계산한다 —
     /// `UiKit.Place`(피벗 좌상단)를 그대로 쓰면 커지는 카드가 오른쪽 아래로 흘러내린다(T87 함정 ⓑ 와 같은 갈래).
-    /// 광택(`crsheen`)은 구운 그라디언트 띠가 필요해 28회차로 남겼다.
+    /// 광택(`crsheen`)은 구운 그라디언트 띠(<see cref="CraftCardArt.Sheen"/>)를 카드 폭만 한 마스크 안에서 쓸어 준다(28회차).
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class CraftCardFx : MonoBehaviour
@@ -27,6 +27,7 @@ namespace Forge.Game.Ui
         private CanvasGroup cardCg;
         private Image ring;              // Reveal 만
         private Graphic dim;             // Batch 만
+        private RectTransform sheen;     // Reveal 만 — 광택 띠(`crsheen`)
         private float ringBase, ringRadius;
         private Color ringColor;
         private Vector2 anchor;          // 기준점(모루 위 한 점 · y 는 «위에서 아래로»)
@@ -35,6 +36,7 @@ namespace Forge.Game.Ui
         private bool running;
 
         private readonly double[] buf = new double[3];
+        private readonly double[] buf1 = new double[1];
 
         /// <summary>연출이 도는 중인가.</summary>
         public bool Running { get { return running; } }
@@ -61,7 +63,8 @@ namespace Forge.Game.Ui
         /// <param name="size">카드 한 변.</param>
         /// <param name="ringImg">시대색 링(리빌만 · null 이면 안 그린다).</param>
         /// <param name="ringTint">링 색(시대색) — 불투명도는 표가 준다.</param>
-        public static CraftCardFx Play(RectTransform cardRt, Mode kind, Vector2 anchorDown, float size, Image ringImg, Color ringTint)
+        /// <param name="sheenRt">광택 띠(`crsheen` · 리빌만 · null 이면 안 쓸린다) — 카드 폭만 하고 마스크 안에 있어야 한다.</param>
+        public static CraftCardFx Play(RectTransform cardRt, Mode kind, Vector2 anchorDown, float size, Image ringImg, Color ringTint, RectTransform sheenRt = null)
         {
             CraftCardFx fx = cardRt.gameObject.GetComponent<CraftCardFx>();
             if (fx == null) fx = cardRt.gameObject.AddComponent<CraftCardFx>();
@@ -70,6 +73,7 @@ namespace Forge.Game.Ui
             fx.cardCg = Group(cardRt);
             fx.ring = ringImg;
             fx.ringColor = ringTint;
+            fx.sheen = sheenRt;
             fx.anchor = anchorDown;
             fx.cardSize = size;
             fx.ringBase = size;
@@ -146,6 +150,13 @@ namespace Forge.Game.Ui
             float cy = (float)CraftCardSpec.CenterYDown(anchor.y, buf[1], cardSize);
             card.anchoredPosition = new Vector2(anchor.x, -cy);
             card.localScale = new Vector3((float)buf[2], (float)buf[2], 1f);
+
+            if (sheen != null && mode == Mode.Reveal)
+            {
+                // 정본 `::after { transform: translateX(-130%) }` — 퍼센트는 **띠 제 폭** 기준이고 지연 80ms 뒤에 움직인다.
+                CraftCardSpec.Sheen.SampleEased(CraftCardSpec.SheenPercent(ms), CraftCardSpec.EaseOut, buf1);
+                sheen.anchoredPosition = new Vector2((float)(buf1[0] / 100.0) * cardSize, 0f);
+            }
 
             if (ring != null && mode == Mode.Reveal)
             {

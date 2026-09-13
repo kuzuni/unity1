@@ -121,6 +121,28 @@ namespace Forge.Core.CraftFx
                 new double[] { 1 },
             });
 
+        /// <summary>`crsheen` 띠의 기울기 — `linear-gradient(105deg, …)`(CSS 0도 = 위 · 시계방향).</summary>
+        public const double SheenAngleDeg = 105;
+
+        /// <summary>띠의 색 정지 위치 — `transparent 38%, rgba(255,255,255,.4) 50%, transparent 62%`.</summary>
+        public static readonly double[] SheenStops = { 0.38, 0.50, 0.62 };
+
+        /// <summary>띠 한가운데의 흰색 불투명도(`rgba(255,255,255,.4)`).</summary>
+        public const double SheenPeakAlpha = 0.40;
+
+        /// <summary>
+        /// 정사각 상자(0~1 · y 는 위가 1)에서 CSS 그라디언트 선의 시작·끝점을 푼다 —
+        /// 브라우저는 선 길이를 `|W·sinA| + |H·cosA|` 로 잡아 **모서리가 0/1 에 닿게** 한다(CSS Images 3 §3.4).
+        /// </summary>
+        public static void SheenAxis(out double fromX, out double fromY, out double toX, out double toY)
+        {
+            double a = SheenAngleDeg * Math.PI / 180.0;
+            double dx = Math.Sin(a), dy = Math.Cos(a);
+            double len = Math.Abs(dx) + Math.Abs(dy);
+            fromX = 0.5 - dx * len * 0.5; fromY = 0.5 - dy * len * 0.5;
+            toX = 0.5 + dx * len * 0.5; toY = 0.5 + dy * len * 0.5;
+        }
+
         /// <summary>광택의 진행(0~1) — 지연 80ms 를 뺀 뒤 <see cref="RevealMs"/> 로 나눈다. 지연 전에는 0(시작 자세).</summary>
         public static double SheenPercent(double ms)
         {

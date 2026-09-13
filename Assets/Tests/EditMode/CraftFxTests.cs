@@ -700,6 +700,27 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 광택_띠는_105도_기울기에_흰_가운데다()
+        {
+            Assert.AreEqual(105, CraftCardSpec.SheenAngleDeg, Eps, "linear-gradient(105deg, …)");
+            CollectionAssert.AreEqual(new[] { 0.38, 0.50, 0.62 }, CraftCardSpec.SheenStops, "투명 38% · 흰 50% · 투명 62%");
+            Assert.AreEqual(0.40, CraftCardSpec.SheenPeakAlpha, Eps, "rgba(255,255,255,.4)");
+
+            double fx, fy, tx, ty;
+            CraftCardSpec.SheenAxis(out fx, out fy, out tx, out ty);
+            // 105° 는 «오른쪽으로 크게 · 아래로 조금»(CSS 0도 = 위 · 시계방향) — 굽는 자의 y 는 위가 1 이라 끝점 y 가 더 작다.
+            Assert.Greater(tx, fx, "왼쪽에서 오른쪽으로 쓸린다");
+            Assert.Less(ty, fy, "아래로 조금 기운다");
+            // 축은 상자 한가운데를 지난다.
+            Assert.AreEqual(0.5, (fx + tx) * 0.5, 1e-9, "가운데를 지난다(x)");
+            Assert.AreEqual(0.5, (fy + ty) * 0.5, 1e-9, "가운데를 지난다(y)");
+            // 선 길이 = |W·sinA| + |H·cosA| (1×1 상자) — 모서리가 0/1 에 닿는다.
+            double len = System.Math.Sqrt((tx - fx) * (tx - fx) + (ty - fy) * (ty - fy));
+            double a = 105 * System.Math.PI / 180.0;
+            Assert.AreEqual(System.Math.Abs(System.Math.Sin(a)) + System.Math.Abs(System.Math.Cos(a)), len, 1e-9, "CSS 그라디언트 선 길이");
+        }
+
+        [Test]
         public void 카드판은_격자_전체가_한_애니메이션을_탄다()
         {
             // 정본 1118 «⚠️ 카드마다 animation-delay 를 주지 말 것» — 표에 카드별 지연 칸이 아예 없다.
