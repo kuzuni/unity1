@@ -73,6 +73,43 @@ namespace Forge.Tests
             Assert.AreEqual(app.H * (Bottom - Top), g.H, 1e-6f);
         }
 
+        // T54 — 화면 전체에 그리되 띠에 «원작 캔버스에 건 카메라» 와 같은 그림이 오도록 민 절두체
+        const float Near = 0.1f, Fov = 62f;
+
+        static float Hb() { return Near * (float)System.Math.Tan(Fov * 0.5 * System.Math.PI / 180.0); }
+
+        /// <summary>앱 상자 위에서부터의 자리 u 가 근평면에서 갖는 y — 절두체 위·아래를 선형 보간한다.</summary>
+        static float YAt(Viewport.FrustumEdges f, float u) { return f.Top - u * (f.Top - f.Bottom); }
+
+        [Test]
+        public void 민_절두체는_띠에_원작_카메라와_같은_세로_폭을_준다()
+        {
+            var f = Viewport.GameAreaFrustum(Near, Fov, A, Top, Bottom);
+            float hb = Hb();
+            // 띠의 위·아래 모서리가 정확히 ±hb — 원작 캔버스에 FOV 62 를 건 것과 같은 세로 대역이다.
+            Assert.AreEqual(hb, YAt(f, Top), 1e-6f, "띠 윗변 = +hb");
+            Assert.AreEqual(-hb, YAt(f, Bottom), 1e-6f, "띠 아랫변 = −hb");
+            // 띠 한가운데가 광축(y=0) — 카메라가 «화면 한가운데» 가 아니라 «띠 한가운데» 를 본다.
+            Assert.AreEqual(0f, YAt(f, (Top + Bottom) * 0.5f), 1e-6f, "띠 중심이 광축");
+            // 가로는 띠와 앱 상자가 같은 폭이다.
+            Assert.AreEqual(hb * (A / (Bottom - Top)), f.Right, 1e-6f);
+            Assert.AreEqual(-f.Right, f.Left, 1e-6f);
+            // 전체 상자는 띠보다 아래로 더 넓다(시트 뒤로 세계가 이어진다).
+            Assert.Greater(-f.Bottom, f.Top, "광축 아래가 위보다 넓다");
+        }
+
+        [Test]
+        public void 표가_비었으면_앱_상자에_건_카메라로_물러난다()
+        {
+            float hb = Hb();
+            foreach (var bad in new[] { new[] { 0f, 0f }, new[] { 0.6f, 0.2f }, new[] { -0.1f, 0.5f }, new[] { 0.1f, 1.5f } })
+            {
+                var f = Viewport.GameAreaFrustum(Near, Fov, A, bad[0], bad[1]);
+                Assert.AreEqual(hb, f.Top, 1e-6f); Assert.AreEqual(-hb, f.Bottom, 1e-6f);
+                Assert.AreEqual(hb * A, f.Right, 1e-6f);
+            }
+        }
+
         [Test]
         public void 표가_비었거나_뒤집혔으면_앱_상자_그대로다()
         {

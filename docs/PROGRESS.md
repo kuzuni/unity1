@@ -1268,6 +1268,18 @@
 - **주인이 확인할 것**: `screens` 브랜치 `screen_shop.png` ↔ 원작 `web/ref/screens/shot-042632.png` — 카드 3장·보석 절 자리가 같은가(남은 차이는 «+» 배지·글꼴 네모).
 
 
+### T54 5회차 기록 (2026-09-13 · 워커 I · sess-2203-14027)
+
+- **되돌림이 화면에 닿은 것을 눈으로 확인했다**(런 127 · `tests: success`): `screen_main.png` 에 **지면 그라디언트와 적 HP 바가 돌아왔다**(4회차 전 런 116 은 안개색 단색이었다). PlayMode **598 통과 · 실패 0**. 즉 «rect 를 띠로 좁히면 URP 가 세계를 안 그린다»(결정 176)가 화면으로 확인됐고, 되돌림도 확인됐다.
+- **이 회차에 한 것 — framing 을 rect 가 아니라 투영 행렬로**: `Viewport.GameAreaFrustum`(Core · 순수 계산)이 «원작 캔버스 상자(`#game-area`)에 카메라를 건 것과 같은 그림이 그 띠에 오도록» 중심을 민 절두체를 낸다. `Bootstrap.ApplyGameAreaProjection` 이 그것을 `Matrix4x4.Frustum` 으로 건다 — **`Camera.rect` 는 앱 상자 그대로**라 URP 갈래를 건드리지 않는다.
+  - 셈: `hb = near·tan(FOV/2)`(띠 세로 반높이) · `hf = hb/(t1−t0)` · `c = (t0+t1)/2` → `top = 2·hf·c` · `bottom = 2·hf·(c−1)` · `wb = hb·(가로세로비/(t1−t0))`.
+  - **가로세로비는 카메라가 실제로 그리는 상자에서 잰다**(`pixelWidth/pixelHeight`) — 노치 촬영 RT 는 540×1170 이라 9:16 이 아니다. 상수를 박았으면 그 컷이 늘어났을 자리다.
+  - 표(`topbar_h`·`sheet_top`)가 비었거나 뒤집혔으면 **앱 상자에 건 카메라로 물러난다** = 옛 그림 그대로(부팅이 이것 때문에 안 죽는다).
+- **로컬에서 먼저 못 박았다**(EditMode 2 · 지금 초록): 띠의 위·아래 모서리가 정확히 `±hb`(원작 캔버스에 FOV 62 를 건 것과 같은 세로 대역) · **띠 한가운데가 광축**(카메라가 화면 한가운데가 아니라 띠 한가운데를 본다) · 가로 `wb` · 광축 아래가 위보다 넓다(시트 뒤로 세계가 이어진다) · 표가 비면 앱 상자 카메라로 물러난다.
+- **촬영 둘에는 한 줄씩**(`Bootstrap.ApplyGameAreaProjection(cam)`) — rect·클리어는 안 건드린다. 이번엔 «세계가 안 그려지는» 갈래가 구조적으로 없다: 최악이라도 framing 이 어긋난 «완전한» 그림이 나온다.
+- **게이트**: `dotnet build` 0 에러 · `dotnet test` **513/513** · 자 10개 + `check_data_sync` 전부 rc 0.
+- **다음 회차에 볼 것**: 새 `screen_main.png` 에서 ⓐ 지면·HP 바가 그대로 있고 ⓑ **영웅·적이 원작 shot-042120 처럼 화면 위 1/3(≈30.8%)에 서는가**. 서면 T54 ✅. 안 서면 이번엔 framing 수치만 의심하면 된다(렌더 경로는 이미 갈라 놨다).
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
@@ -1484,3 +1496,5 @@
 183. **T62 를 6.1/10 에서 닫는다 — 남은 미짝은 남의 자리다(2026-09-13 · T62 · 워커 G)** - 판정 문구는 «shop 8.0 이상» 이지만 미짝 5 중 4(밴드1·블록2/5 = «+» 배지 · 밴드3 = 머리 밴드 높이)는 **T60·T63 이 쥔 머리 밴드**이고 §2 T62 절이 이미 «재화 «+» 배지는 T60 몫» 이라 적어 뒀다. 남은 하나(밴드8 젬 카드 안쪽)는 «특가 카드 높이·간격·안쪽 여백» 범위 밖이라 **T75 로 등재**했다. 이 작업이 잡은 결함(젬 절이 화면 밖)은 사라졌으니 여기서 닫는다 — 점수를 8.0 으로 올리는 일은 T60·T63·T75 가 이어받는다. 되돌리려면 T62 행을 🔄 로 내리고 그 셋을 T62 범위로 합치면 된다.
 184. **보고함의 «전투력 ⚔45» 는 접착이 아니라 촬영 시드에 정본 `Combat.recalcHero()` 자리가 빠진 것 — 등재만 하고 T54 lock 뒤로 미룬다(2026-09-13 · T77 · 워커 T · sess-0144-15952)** — 워커 J 가 T43·T55 임자에게 넘겼지만 둘 다 ✅ 라 임자가 없어 보고함 규약(«가장 큰 번호 +1» · UI 작업보다 우선)대로 T77 로 등재했다. 원인은 코드 읽기로 좁혔다: 정본 `shot-screens.js` SEED 144행 `Combat.recalcHero()` ↔ 클론 `UiShotsTests.Seed()` 의 `F.Push()`·`P.Sync()`·`M.Touch(false)` 셋 다 `Battle.RecalcHero` 를 안 부른다(`Sync` 는 `Skills.RecalcRequests` 가 오른 때만 · 상태에 직접 `Add` 하면 안 오른다). 접착 갈래(`HeroStatsGlue.Make` = `GearSystem.HeroStats`)는 `HeroStatsGlueTests` 가 지키고 있어 안 판다. 고침은 `UiShotsTests.cs` 의 `Seed()` 두 줄 + 단언 하나인데 그 파일이 T54(워커 I)의 살아 있는 lock 범위라 규약 «같은 파일이면 뒤 번호가 기다린다» 대로 잡지 않았다 — 결정 182(두 런을 이어 산 CI 빨강)의 예외 조건이 아니다(빨강이 아니라 틀린 수다).
 185. **데미지 숫자 층 = 앱 상자 첫 자식 `fx-layer`(2026-09-13 · T76 · 워커 D)** — ROUTINE T76 절이 «팝업 층 아래에 붙이기 / 시트 열린 동안 끄기» 둘 중 정본을 읽고 고르라 했다. 정본 `index.html` 은 `#game-area`(첫 자식 · `isolation:isolate`) 안 `#fx-layer` 에 숫자를 두고 `.modal`·`#tabbar` 는 DOM 뒤 형제라 **층 순서**로 덮는다 — 숫자를 멈추거나 끄지 않는다. 그래서 `DamageNumbers.Layer` 가 앱 상자의 0번 자식 상자에만 붙이고 `UiRoot`·`Popups` 는 안 건드렸다(T54·T60·T68 lock · 0줄). 되돌리려면 `DamageNumbers.Layer` 와 `Take` 의 부모 인자.
+
+186. **띠 framing = off-center frustum · 가로세로비는 카메라가 그리는 상자에서 잰다(2026-09-13 · T54 · 워커 I)** — 결정 176 의 예고대로 `Camera.rect` 를 안 건드리고 `Matrix4x4.Frustum` 으로 원작 `#game-area` framing 을 준다(`Viewport.GameAreaFrustum` · Core 순수 계산 · EditMode 2 로 «띠 = ±hb»·«띠 중심 = 광축» 을 못 박았다). 비율을 `PortraitAspect` 상수로 박지 않고 `cam.pixelWidth/pixelHeight` 로 재는 이유: 노치 촬영 RT 가 540×1170(0.4615)이라 9:16 을 박으면 그 컷만 가로로 늘어난다. 표가 비면 앱 상자 카메라로 물러난다. 되돌리려면 `Bootstrap.Apply` 의 `ApplyGameAreaProjection(cam)` 한 줄과 촬영 둘의 같은 한 줄을 지운다(그러면 `cam.ResetProjectionMatrix()` 가 필요 없다 — 애초에 안 걸었던 것과 같아지려면 씬을 다시 실어야 하므로, 급하면 그 자리에 `cam.ResetProjectionMatrix();` 를 둔다).

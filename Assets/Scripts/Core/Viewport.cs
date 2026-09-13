@@ -50,5 +50,46 @@ namespace Forge.Core
             float y = app.Y + app.H * (1f - bottomFrac);
             return new ViewportRect(app.X, y, app.W, h);
         }
+
+        /// <summary>근평면에서 잰 절두체 네 모서리(왼·오른·아래·위).</summary>
+        public readonly struct FrustumEdges
+        {
+            public readonly float Left, Right, Bottom, Top;
+            public FrustumEdges(float l, float r, float b, float t) { Left = l; Right = r; Bottom = b; Top = t; }
+        }
+
+        /// <summary>
+        /// 화면 «전체»(앱 상자)에 그리면서도, 원작 캔버스 상자(`#game-area` 띠)에 카메라를 건 것과 **같은 그림**이 그 띠에 오도록
+        /// 중심을 민 절두체를 낸다(off-center frustum · T54).
+        /// <para>
+        /// 왜 rect 가 아니라 이것인가: `Camera.rect` 를 띠로 좁히면 URP 가 세계를 한 픽셀도 안 그린다(런 116 실측 · 결정 176).
+        /// 투영 행렬은 rect·클리어를 안 건드리므로 그 갈래를 피한다. 띠 밖(상단바·시트 자리)에도 세계가 그려지지만 불투명 UI 가 덮는다.
+        /// </para>
+        /// <para>
+        /// 셈: 띠의 세로 반높이 <c>hb = near·tan(fov/2)</c> 를 그대로 두고, 전체 상자의 반높이를 <c>hf = hb/(t1−t0)</c> 로 늘린 뒤
+        /// 띠 한가운데 <c>c = (t0+t1)/2</c> 가 광축(y=0)에 오도록 민다 → <c>top = 2·hf·c</c> · <c>bottom = 2·hf·(c−1)</c>.
+        /// 가로는 띠와 앱 상자가 같은 폭이라 <c>wb = hb·(앱가로세로비/(t1−t0))</c> 그대로.
+        /// </para>
+        /// </summary>
+        /// <param name="near">근평면 거리</param>
+        /// <param name="fovDegrees">원작 세로 FOV(카메라 리그 값)</param>
+        /// <param name="appAspect">앱 상자 가로/세로 (9:16 이면 0.5625)</param>
+        /// <param name="topFrac">띠 시작(앱 높이에서 위로부터 · `topbar_h`)</param>
+        /// <param name="bottomFrac">띠 끝(`sheet_top`)</param>
+        public static FrustumEdges GameAreaFrustum(float near, float fovDegrees, float appAspect, float topFrac, float bottomFrac)
+        {
+            float span = bottomFrac - topFrac;
+            float hb = near * (float)System.Math.Tan(fovDegrees * 0.5 * System.Math.PI / 180.0);
+            if (!(span > 0f) || span > 1f || topFrac < 0f || bottomFrac > 1f || !(near > 0f) || !(appAspect > 0f))
+            {
+                // 표가 비었거나 뒤집혔으면 «앱 상자 전체에 건 카메라» 로 물러난다(옛 그림 그대로).
+                float w0 = hb * appAspect;
+                return new FrustumEdges(-w0, w0, -hb, hb);
+            }
+            float wb = hb * (appAspect / span);
+            float hf = hb / span;
+            float c = (topFrac + bottomFrac) * 0.5f;
+            return new FrustumEdges(-wb, wb, 2f * hf * (c - 1f), 2f * hf * c);
+        }
     }
 }

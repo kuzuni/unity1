@@ -555,6 +555,7 @@ namespace Forge.Tests.PlayMode
                 if (Camera.main != null) cam.CopyFrom(Camera.main);
                 cam.rect = new Rect(0f, 0f, 1f, 1f);
                 cam.targetTexture = rt;
+                Bootstrap.ApplyGameAreaProjection(cam);   // T54 — 게임과 같은 framing(원작 `#game-area` 띠 · rect 는 안 건드린다)
                 canvas.renderMode = RenderMode.ScreenSpaceCamera;
                 canvas.worldCamera = cam;
                 canvas.planeDistance = 1f;

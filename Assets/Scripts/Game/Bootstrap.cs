@@ -74,6 +74,22 @@ namespace Forge.Game
             // 원작 캔버스 상자 framing 은 다음 회차에 **투영 행렬**(off-center frustum)로 준다 — 그 길은 rect·클리어를 안 건드린다.
             ViewportRect r = Viewport.Letterbox(lastW, lastH, PortraitAspect);
             cam.rect = new Rect(r.X, r.Y, r.W, r.H);
+            ApplyGameAreaProjection(cam);
+        }
+
+        /// <summary>
+        /// 원작 캔버스 상자(`#game-area` = 상단바 밑 ~ 장비 시트 위)에 카메라를 건 것과 **같은 그림**이 그 띠에 오도록
+        /// 중심을 민 절두체를 건다(T54 · 셈은 <see cref="Viewport.GameAreaFrustum"/>). rect 는 앱 상자 그대로다 —
+        /// rect 를 띠로 좁히는 길은 URP 가 세계를 안 그려서 되돌렸다(결정 176).
+        /// 표가 비면 «앱 상자에 건 카메라» 로 물러나므로 옛 그림 그대로다.
+        /// </summary>
+        public static void ApplyGameAreaProjection(Camera cam)
+        {
+            if (cam == null || cam.orthographic) return;
+            // 가로세로비는 **그 카메라가 실제로 그리는 상자**에서 잰다 — 촬영 RT(노치 컷은 540×1170)는 9:16 이 아니다.
+            float aspect = cam.pixelHeight > 0 ? cam.pixelWidth / (float)cam.pixelHeight : PortraitAspect;
+            Viewport.FrustumEdges f = Viewport.GameAreaFrustum(cam.nearClipPlane, cam.fieldOfView, aspect, GameAreaTop, GameAreaBottom);
+            cam.projectionMatrix = Matrix4x4.Frustum(f.Left, f.Right, f.Bottom, f.Top, cam.nearClipPlane, cam.farClipPlane);
         }
 
         /// <summary>원작 `#game-area` 의 위·아래 자리(앱 높이 비). 수치는 UI 카탈로그(정본 판독표)가 쥔다 — 코드에 박지 않는다(§1).</summary>
