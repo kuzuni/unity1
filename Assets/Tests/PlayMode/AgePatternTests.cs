@@ -42,7 +42,8 @@ namespace Forge.Tests.PlayMode
         {
             RectTransform host = UiKit.Box(UiRoot.Instance.App, name);
             UiKit.Place(host, 40f, 300f, w, h);
-            Image bg = host.gameObject.AddComponent<Image>(); bg.color = Color.gray;   // 바탕 채움(막대 색 자리)
+            // 바탕 채움은 실제 막대·셀처럼 **자식** 하나(ForgeUi 의 fill 자리) — 층은 그 바로 위(형제 1)에 선다(런 246: 자기 자신에 Image 를 달았더니 층이 0 번이 됐다)
+            Image bg = UiKit.Box(host, "bg").gameObject.AddComponent<Image>(); bg.color = Color.gray;
             return host;
         }
 
