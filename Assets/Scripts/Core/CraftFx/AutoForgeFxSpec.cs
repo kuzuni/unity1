@@ -150,6 +150,64 @@ namespace Forge.Core.CraftFx
             new double[] { 0, 100 },
             new double[][] { new double[] { 0, 1 }, new double[] { 1, 0 } });
 
+        // ── 타격 순간의 겹 셋(접지 그림자 · 4갈래 섬광 · 순백 코어) ─────────────────────────────
+        // 정본이 셋에 같은 교훈을 적어 뒀다: «접촉 프레임에 빛이 없었다 — 작게 출발해 뒤에 커지면
+        // 소리는 제때 나는데 빛만 메아리로 온다»(`af-ring` 이 먼저 밟은 함정). 그래서 셋 다 접촉 프레임에서 거의 최대로 시작한다.
+
+        /// <summary>`af-shadow` — 머리 밑 접지 그림자(`#2a0d04`). 없으면 «머리가 상판에 얹혔는지 앞에 떠 있는지» 가 안 읽힌다.</summary>
+        public const double ShadowDurMs = 130;
+        /// <summary>그림자는 접촉 **23ms 앞**에 켠다(다가올 때 작고 옅게 → 접촉 프레임에 가장 진하고 넓게).</summary>
+        public const double ShadowLeadMs = 23;
+        /// <summary>`cubic-bezier(.2,.7,.35,1)`.</summary>
+        public static readonly CssEase ShadowEase = new CssEase(0.2, 0.7, 0.35, 1);
+        /// <summary>타격마다의 그림자 배율(`--afds` 1 / 1.12 / 1.3).</summary>
+        public static readonly double[] ShadowScale = { 1.0, 1.12, 1.3 };
+        /// <summary>`afshadow` — 채널 = 배율 곱(위 배율에 곱한다) · opacity.</summary>
+        public static readonly CssTrack Shadow = new CssTrack(
+            new double[] { 0, 36, 100 },
+            new double[][] { new double[] { 0.5, 0.1 }, new double[] { 1.0, 0.42 }, new double[] { 1.25, 0.0 } });
+
+        /// <summary>`af-star` — 4갈래 섬광(`screen` 합성). 원형 광량만으로는 상판 얼룩과 구별이 안 된다 — 축이 있어야 «어디를 때렸는지» 가 읽힌다.</summary>
+        public const double StarDurMs = 75;
+        /// <summary>섬광·코어는 접촉 **7ms 앞**.</summary>
+        public const double StarLeadMs = 7;
+        /// <summary>`cubic-bezier(.1,.75,.3,1)`.</summary>
+        public static readonly CssEase StarEase = new CssEase(0.1, 0.75, 0.3, 1);
+        /// <summary>타격마다의 섬광 배율(`--afss` 1 / 1.3 / 1.75).</summary>
+        public static readonly double[] StarScale = { 1.0, 1.3, 1.75 };
+        /// <summary>`afstar` — 채널 = 배율 곱 · opacity.</summary>
+        public static readonly CssTrack Star = new CssTrack(
+            new double[] { 0, 30, 100 },
+            new double[][] { new double[] { 0.82, 1.0 }, new double[] { 1.0, 0.96 }, new double[] { 1.35, 0.0 } });
+
+        /// <summary>`af-core` — 순백 코어(`#ffffff` · `screen`). 네이티브 92px 에서 «때렸다» 를 파는 마지막 수단(수명 3프레임).</summary>
+        public const double CoreDurMs = 70;
+        /// <summary>`cubic-bezier` 가 아니라 `linear` 다.</summary>
+        public static readonly CssEase CoreEase = CssEase.Linear;
+        /// <summary>타격마다의 코어 배율(`--afcs` 1.12 / 1.35 / 1.72).</summary>
+        public static readonly double[] CoreScale = { 1.12, 1.35, 1.72 };
+        /// <summary>`afcore` — 채널 = 배율 곱 · opacity.</summary>
+        public static readonly CssTrack Core = new CssTrack(
+            new double[] { 0, 45, 100 },
+            new double[][] { new double[] { 0.88, 1.0 }, new double[] { 1.0, 1.0 }, new double[] { 1.3, 0.0 } });
+
+        /// <summary>
+        /// 타격 겹 하나를 읽는다 — 창은 «타격 시각 − <paramref name="leadMs"/>» 부터 <paramref name="durMs"/> 동안이고
+        /// `into` = [배율, opacity](배율은 타격마다의 <paramref name="perStrike"/> 에 트랙 값을 곱한 것 · CSS 의 `scale(calc(var(--afXs) * k))` 와 같은 뜻).
+        /// 창 밖이면 false(그릴 것이 없다).
+        /// </summary>
+        public static bool SampleBurst(CssTrack track, CssEase ease, double durMs, double leadMs, double[] perStrike, int i, double ms, double[] into)
+        {
+            if (track == null || perStrike == null) throw new ArgumentNullException("track");
+            if (i < 0 || i >= HitMs.Length) throw new ArgumentOutOfRangeException("i");
+            if (into == null || into.Length < 2) throw new ArgumentException("into 는 2칸이어야 한다");
+            double t0 = HitMs[i] - leadMs;
+            if (ms < t0 || ms > t0 + durMs) return false;
+            track.SampleEased((ms - t0) / durMs * 100.0, ease, into);
+            into[0] *= perStrike[i];
+            return true;
+        }
+
         /// <summary>타격 n(0~2)의 링이 켜지는 시각(ms).</summary>
         public static double RingStartMs(int i)
         {

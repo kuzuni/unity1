@@ -249,6 +249,46 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 타격_겹_셋은_접촉_프레임에_이미_거의_최대다()
+        {
+            // 정본이 세 번 적은 교훈: 작게 출발해 뒤에 커지면 «소리는 제때 나는데 빛만 메아리로 온다»
+            double[] v = new double[2];
+            for (int i = 0; i < 3; i++)
+            {
+                // ⓐ 접지 그림자 — 접촉 23ms 앞에 켜져 접촉 프레임(36%)에 가장 진하다
+                Assert.IsTrue(AutoForgeFxSpec.SampleBurst(AutoForgeFxSpec.Shadow, AutoForgeFxSpec.ShadowEase, AutoForgeFxSpec.ShadowDurMs, AutoForgeFxSpec.ShadowLeadMs, AutoForgeFxSpec.ShadowScale, i, AutoForgeFxSpec.HitMs[i], v), i + "타 그림자");
+                Assert.Greater(v[1], 0.3, i + "타: 접촉 프레임에 그림자가 이미 짙다(작게 출발해 뒤에 커지면 늦는다)");
+                Assert.Greater(v[0], AutoForgeFxSpec.ShadowScale[i] * 0.9, i + "타: 접촉 프레임 그림자 배율도 거의 다 컸다");
+                // 가장 진한 자리는 36% — 드웰(33~50ms) 한복판이라 «닿아 있는 동안» 이다
+                double[] peak = new double[2];
+                AutoForgeFxSpec.SampleBurst(AutoForgeFxSpec.Shadow, AutoForgeFxSpec.ShadowEase, AutoForgeFxSpec.ShadowDurMs, AutoForgeFxSpec.ShadowLeadMs, AutoForgeFxSpec.ShadowScale, i, AutoForgeFxSpec.HitMs[i] - AutoForgeFxSpec.ShadowLeadMs + AutoForgeFxSpec.ShadowDurMs * 0.36, peak);
+                Assert.AreEqual(0.42, peak[1], 1e-6, i + "타: 36% 가 가장 진하다");
+                Assert.AreEqual(AutoForgeFxSpec.ShadowScale[i], peak[0], 1e-6, i + "타: 36% 배율 = 제 배율");
+                Assert.Less(AutoForgeFxSpec.ShadowDurMs * 0.36 - AutoForgeFxSpec.ShadowLeadMs, AnvilFxSpec.DwellMs[i] + 10.0, i + "타: 그 자리가 드웰 안(닿아 있는 동안)이다");
+                Assert.IsFalse(AutoForgeFxSpec.SampleBurst(AutoForgeFxSpec.Shadow, AutoForgeFxSpec.ShadowEase, AutoForgeFxSpec.ShadowDurMs, AutoForgeFxSpec.ShadowLeadMs, AutoForgeFxSpec.ShadowScale, i, AutoForgeFxSpec.HitMs[i] - AutoForgeFxSpec.ShadowLeadMs - 1, v), i + "타: 창 앞");
+
+                // ⓑ 섬광 · ⓒ 코어 — 접촉 7ms 앞에 켜지고 그 순간 이미 최대에 가깝다
+                Assert.IsTrue(AutoForgeFxSpec.SampleBurst(AutoForgeFxSpec.Star, AutoForgeFxSpec.StarEase, AutoForgeFxSpec.StarDurMs, AutoForgeFxSpec.StarLeadMs, AutoForgeFxSpec.StarScale, i, AutoForgeFxSpec.HitMs[i], v), i + "타 섬광");
+                Assert.Greater(v[0], AutoForgeFxSpec.StarScale[i] * 0.9, i + "타: 접촉 프레임 섬광이 이미 0.9배 이상");
+                Assert.Greater(v[1], 0.9, i + "타: 접촉 프레임 섬광이 밝다");
+                Assert.IsTrue(AutoForgeFxSpec.SampleBurst(AutoForgeFxSpec.Core, AutoForgeFxSpec.CoreEase, AutoForgeFxSpec.CoreDurMs, AutoForgeFxSpec.StarLeadMs, AutoForgeFxSpec.CoreScale, i, AutoForgeFxSpec.HitMs[i], v), i + "타 코어");
+                Assert.Greater(v[0], AutoForgeFxSpec.CoreScale[i] * 0.88, i + "타: 접촉 프레임 코어가 이미 0.88배 이상");
+                Assert.AreEqual(1.0, v[1], 1e-6, i + "타: 코어는 절반까지 완전 불투명");
+
+                // 셋 다 창이 끝나면 꺼지고, 수명이 오버레이 안이다
+                Assert.IsFalse(AutoForgeFxSpec.SampleBurst(AutoForgeFxSpec.Star, AutoForgeFxSpec.StarEase, AutoForgeFxSpec.StarDurMs, AutoForgeFxSpec.StarLeadMs, AutoForgeFxSpec.StarScale, i, AutoForgeFxSpec.HitMs[i] + AutoForgeFxSpec.StarDurMs, v), i + "타: 섬광 창 끝");
+                Assert.LessOrEqual(AutoForgeFxSpec.HitMs[i] + AutoForgeFxSpec.ShadowDurMs, AnvilFxSpec.DurationMs, i + "타: 그림자 수명이 오버레이 안이다");
+            }
+            // 위계 — 배율이 타격마다 커진다
+            for (int i = 1; i < 3; i++)
+            {
+                Assert.Greater(AutoForgeFxSpec.ShadowScale[i], AutoForgeFxSpec.ShadowScale[i - 1], "그림자가 갈수록 넓다");
+                Assert.Greater(AutoForgeFxSpec.StarScale[i], AutoForgeFxSpec.StarScale[i - 1], "섬광이 갈수록 크다");
+                Assert.Greater(AutoForgeFxSpec.CoreScale[i], AutoForgeFxSpec.CoreScale[i - 1], "코어가 갈수록 크다");
+            }
+        }
+
+        [Test]
         public void 링은_망치가_실제로_닿는_자리에_선다()
         {
             // 정본 hx(h)=cx+SINK_X+dx · hy(h)=cy+SINK_Y — 타격 자리가 오른쪽으로 걸어가고 접점은 갈수록 깊이 눌린다
