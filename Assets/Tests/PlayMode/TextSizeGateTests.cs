@@ -86,7 +86,9 @@ namespace Forge.Tests.PlayMode
         {
             TMP_FontAsset fa = UiFont.Primary;
             foreach (char c in "대장간던전소환퀘스트상점펫스킬탈것승천장비제작판매설정프로필리그채팅ㅋㅠ")   // T100 2회차 — 자모(ㅋ·ㅠ)도 직접 쥔다(서브셋에 U+3130~318F 를 더했다 · 빼면 채팅이 □)
-                Assert.IsTrue(fa.HasCharacter(c, false, false), "카탈로그 글꼴에 '" + c + "' 가 없다 — OS 폴백이 없는 환경에서 두부가 된다");
+                // tryAddCharacter=true — 런타임 폰트 애셋은 «동적» 이라 아직 아틀라스에 안 올라간 글자는 false 다(런 216 · ㅋ).
+                // 앞선 테스트가 그 글자를 그렸느냐에 따라 흔들리지 않게, 원본 글꼴에서 찾아 올려 본다(폴백은 여전히 안 본다).
+                Assert.IsTrue(fa.HasCharacter(c, false, true), "카탈로그 글꼴에 '" + c + "' 가 없다 — OS 폴백이 없는 환경에서 두부가 된다");
         }
 
         private static string Path(Transform t)
