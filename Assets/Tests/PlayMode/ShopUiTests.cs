@@ -362,6 +362,25 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(last, "채팅 상태에 마지막 메시지가 있어야 한다(Chat.Ensure 가 씨를 뿌린다)");
             string wantMsg = last.Type == Forge.Core.Meta.ChatMessage.TypeShare ? "전투 결과를 공유했습니다" : last.Text;
             Assert.AreEqual(wantMsg, hud.ChatMessage);
+
+            // 촬영(런 147~155)은 글자가 **안 보이는데** 위 단언은 통과했다 — 그래서 «글자가 들어갔나» 말고
+            // «그 글자가 그려질 수 있는 상태인가» 를 같이 본다: 켜져 있고 · 칸이 0 이 아니고 · 글자 크기가 하한 이상이고 · 알파가 0 이 아니다.
+            foreach (string n in new[] { "chat-preview-name", "chat-preview-msg" })
+            {
+                TMPro.TextMeshProUGUI lbl = null;
+                foreach (TMPro.TextMeshProUGUI c in UiRoot.Instance.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+                    if (c.name == n) { lbl = c; break; }
+                Assert.IsNotNull(lbl, n + " 이 없다");
+                Assert.IsTrue(lbl.isActiveAndEnabled, n + " 이 꺼져 있다");
+                Rect r = lbl.rectTransform.rect;
+                Assert.Greater(r.width, 1f, n + " 의 칸 폭이 0 이다");
+                Assert.Greater(r.height, 1f, n + " 의 칸 높이가 0 이다");
+                Assert.Greater(lbl.fontSize, 1f, n + " 의 글자 크기가 0 이다");
+                Assert.Greater(lbl.color.a, 0.01f, n + " 이 투명하다");
+                // 실제로 글리프가 배치됐는가 — TMP 가 칸이 좁아 한 글자도 못 그리면 0 이다.
+                lbl.ForceMeshUpdate();
+                Assert.Greater(lbl.textInfo.characterCount, 0, n + " 이 글리프를 하나도 못 그렸다(칸이 좁거나 글꼴에 글자가 없다)");
+            }
         }
     }
 }
