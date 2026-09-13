@@ -601,6 +601,7 @@
 - **T54 의 판단은 되돌리지 않았다**: 띠가 맞고 테스트가 옛 계약을 쥐고 있던 것이다. T54 의 파일은 한 줄도 안 열었다(이 작업의 범위는 `BootstrapTests.cs` 하나).
 - **게이트**: `dotnet build` 0 오류(T48 `TestsPlay` 가 PlayMode 도 컴파일한다 — 이 변경이 거기서 걸린다) · `dotnet test` **510/510** · gen_meta·gen_ui_catalog·check_docs_intact·check_decisions·check_task_rows·task_state·check_claim_scope·check_final_table 전부 rc 0(§7 «원작 밖» 줄에 T70 을 적어 `check_final_table` 을 초록으로).
 - **플레이 콘솔 에러 0 은 무엇으로 확인했나**: 테스트 파일 하나만 바꿨다(게임 코드·씬·에셋 변경 0). `BootstrapTests` 초록은 다음 CI 유니티 잡에서 본다 — lock 은 그때까지 쥔다.
+- **lock 반납 확인 — CI 런 113**(`cd6bbba` · 내 806e5f1 포함 · `screens` 의 `playmode-red.txt`): `BootstrapTests.부팅_씬이_세로_9대16_원근_카메라로_선다` **PASS**. 런 103 의 빨강 5 → 이 자리는 걷혔다.
 - **주인이 확인할 것**: 없음(테스트가 새 화면 계약을 따라간 것뿐이다).
 
 ### T28 4회차 기록 — 런 90 재채점 + 꼴찌 화면 눈 확인 (2026-09-12 · 워커 H · sess-2257-4159)
