@@ -87,6 +87,8 @@ namespace Forge.Game.Ui
                 upgText.fontStyle = FontStyles.Bold;
                 UiKit.Place(upgText.rectTransform, 0f, btnH + rem * 0.25f, W - padX * 2f - rx, PopupKit.FontSize(TextKind.Sub) * 1.3f);
             }
+            // 두들기는 도중 다시 그려졌다면(세이브 → Rerender) 러너를 새 모루·시트에 다시 문다 — 흐른 시간은 지킨다.
+            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilRt, sheet); }
         }
 
         static string RemainText(ForgeHost h)
@@ -178,7 +180,9 @@ namespace Forge.Game.Ui
         /// <summary>모루 자리 — 보류 제작품이 있으면 모루 대신 그 카드(더미 두께 = HeldDeckDepth). 망치 수(원작 `small#anvil-hammers`)는 모루일 때 **받침 위**(T61 · shot-042120 실측 61%)에, 카드일 때 카드 아래에.</summary>
         static RectTransform AnvilSlot(Transform parent, ForgeHost h, float w, float hgt)
         {
-            ForgeItem held = h.HeldItem;
+            // 두들기는 동안은 **모루**가 보여야 한다 — 정본은 `.anvil-btn.striking` 이 1.5초를 다 쓰고 `done()` 에서야 카드를 얹는다.
+            // 클론은 `SetPendingCraft` 의 세이브가 `Rerender` 를 불러 그 순간 카드로 갈아 치웠다(런 157: 모루가 파괴돼 연출이 사라졌다).
+            ForgeItem held = h.Striking ? null : h.HeldItem;
             float rem = PopupKit.Rem;
             Button b = UiKit.Button(parent, held == null ? "anvil-btn" : "held-slot", held == null ? (UnityEngine.Events.UnityAction)(() => h.OnCraft()) : () => h.OnOpenHeld());
             RectTransform rt = b.GetComponent<RectTransform>();

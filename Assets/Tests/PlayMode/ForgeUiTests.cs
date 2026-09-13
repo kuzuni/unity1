@@ -447,8 +447,10 @@ namespace Forge.Tests.PlayMode
             return null;
         }
         /// <summary>
-        /// T87 2회차 — 두들기는 동안 모루와 시트가 **정본 키프레임(`AnvilFxSpec`)** 대로 움직이는가.
-        /// 정본은 `.anvil-btn.striking`(`anvilbump`)과 `#equip-sheet.shaking`(`sheetshake`)을 같은 클럭(`ANVIL_FX_MS` 1500ms)으로 돌린다.
+        /// T87 2·3회차 — 두들기는 동안 모루와 시트가 **정본 키프레임(`AnvilFxSpec`)** 대로 움직이는가.
+        /// 정본은 `.anvil-btn.striking`(`anvilbump`)과 `#equip-sheet.shaking`(`sheetshake`)을 같은 클럭(`ANVIL_FX_MS` 1500ms)으로 돌리고,
+        /// **두들기는 1.5초 동안 모루가 그대로 보인다**(카드는 `done()` 에서야 얹힌다) — 클론은 세이브가 부른 `Rerender` 가 모루를 카드로 갈아 치워
+        /// 연출이 통째로 사라졌었다(런 157). 시트는 다시 그려질 수 있으므로 **칸은 매번 다시 찾는다**.
         /// </summary>
         [UnityTest]
         public IEnumerator 두들기면_모루와_시트가_정본_키프레임대로_움직인다()
@@ -461,41 +463,49 @@ namespace Forge.Tests.PlayMode
 
             RectTransform sheet = UiRoot.Instance.Sheet;
             Vector2 sheetHome = sheet.anchoredPosition;
-            RectTransform anvil = null;
-            foreach (RectTransform rt in sheet.GetComponentsInChildren<RectTransform>(true))
-                if (rt.name == "anvil") { anvil = rt; break; }
-            Assert.IsNotNull(anvil, "모루 그림 칸(anvil)이 시트에 없다");
-            Vector2 anvilHome = anvil.anchoredPosition;
+            RectTransform rest = Anvil(sheet);
+            Assert.IsNotNull(rest, "쉬는 화면에 모루가 없다");
+            float restY = rest.anchoredPosition.y, restScaleY = rest.localScale.y;
 
             h.OnCraft();
             yield return null;
             AnvilFx fx = sheet.GetComponent<AnvilFx>();
             Assert.IsNotNull(fx, "두들기기 러너가 안 붙었다");
             Assert.IsTrue(fx.Running, "두들기는 동안은 돈다");
+            Assert.IsTrue(h.Striking, "두들기는 중");
+            Assert.IsNotNull(Anvil(sheet), "두들기는 동안 모루가 화면에서 사라졌다 — 정본은 1.5초 내내 모루를 보여 준다");
 
             double[] bump = new double[3];
             double[] shake = new double[2];
             for (int i = 0; i < AnvilFxSpec.StrikeMs.Length; i++)
             {
+                RectTransform anvil = Anvil(sheet);
+                Assert.IsNotNull(anvil, i + "타: 모루 칸이 없다");
+
                 fx.SampleTo(AnvilFxSpec.StrikeMs[i]);
                 AnvilFxSpec.Bump.Sample(AnvilFxSpec.StrikeStop[i], bump);
                 AnvilFxSpec.SheetShake.Sample(AnvilFxSpec.StrikeStop[i], shake);
-                // CSS translateY 는 아래가 + · 유니티 UI 는 위가 + 라 부호가 뒤집힌다.
-                Assert.AreEqual(anvilHome.y - (float)bump[0], anvil.anchoredPosition.y, 0.02f, i + "타: 모루가 눌린다");
-                Assert.AreEqual((float)bump[2], anvil.localScale.y, 0.002f, i + "타: 모루 scaleY");
-                Assert.AreEqual(sheetHome.y - (float)shake[1], sheet.anchoredPosition.y, 0.02f, i + "타: 시트가 아래로 꽂힌다");
-                Assert.Less(anvil.localScale.y, 1f, i + "타 순간엔 눌려 있다");
+                // 러너의 기준은 «쉬는 자리»(다시 그려져도 같은 배치다) — CSS translateY 는 아래가 + 이고 유니티 UI 는 위가 + 라 부호가 뒤집힌다.
+                Assert.AreEqual(restY - (float)bump[0], anvil.anchoredPosition.y, 0.05f, i + "타: 모루가 눌린다");
+                Assert.AreEqual(restScaleY * (float)bump[2], anvil.localScale.y, 0.01f, i + "타: 모루 scaleY 가 표값");
+                Assert.AreEqual(sheetHome.y - (float)shake[1], sheet.anchoredPosition.y, 0.05f, i + "타: 시트가 아래로 꽂힌다");
+                Assert.Less(anvil.localScale.y, restScaleY, i + "타 순간엔 눌려 있다");
             }
 
-            // 끝나면 둘 다 제자리 — 러너가 자기가 만든 것만 되돌린다
             fx.Stop();
             yield return null;
-            Assert.AreEqual(anvilHome.y, anvil.anchoredPosition.y, 0.01f, "모루 제자리");
-            Assert.AreEqual(1f, anvil.localScale.y, 0.001f, "모루 크기 제자리");
-            Assert.AreEqual(sheetHome.x, sheet.anchoredPosition.x, 0.01f, "시트 제자리(x)");
-            Assert.AreEqual(sheetHome.y, sheet.anchoredPosition.y, 0.01f, "시트 제자리(y)");
+            Assert.AreEqual(sheetHome.x, sheet.anchoredPosition.x, 0.05f, "시트 제자리(x)");
+            Assert.AreEqual(sheetHome.y, sheet.anchoredPosition.y, 0.05f, "시트 제자리(y)");
             h.CancelAnvilStrike();
             yield return null;
+        }
+
+        /// <summary>시트가 다시 그려지면 모루 칸도 새로 생긴다 — 이름으로 매번 찾는다(없으면 null).</summary>
+        private static RectTransform Anvil(RectTransform sheet)
+        {
+            foreach (RectTransform rt in sheet.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "anvil") return rt;
+            return null;
         }
 
     }

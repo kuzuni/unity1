@@ -55,6 +55,31 @@ namespace Forge.Game.Ui
             Apply();
         }
 
+        /// <summary>
+        /// 두들기는 도중 시트가 다시 그려졌을 때(세이브 → `Rerender`) **흐른 시간을 지키며** 새 칸에 다시 문다.
+        /// 정본은 DOM 을 갈아도 CSS 애니메이션이 그 자리에서 이어지지 않지만, 클론은 시트를 통째로 다시 그리므로
+        /// 다시 물지 않으면 남은 구간이 통째로 사라진다(런 157 실측: 모루가 파괴돼 연출이 없던 일이 됐다).
+        /// </summary>
+        public void Rebind(RectTransform anvilRt, RectTransform sheetRt)
+        {
+            if (!running) return;
+            if (anvil != null)
+            {
+                anvil.anchoredPosition = anvilHome;
+                anvil.localScale = anvilScaleHome;
+            }
+            if (sheet != null) sheet.anchoredPosition = sheetHome;
+            anvil = anvilRt;
+            sheet = sheetRt;
+            if (anvil != null)
+            {
+                anvilHome = anvil.anchoredPosition;
+                anvilScaleHome = anvil.localScale;
+            }
+            if (sheet != null) sheetHome = sheet.anchoredPosition;
+            Apply();
+        }
+
         /// <summary>연출을 걷고 제자리로 — 취소(`CancelAnvilStrike`)와 정상 종료가 같은 길을 쓴다.</summary>
         public void Stop()
         {
