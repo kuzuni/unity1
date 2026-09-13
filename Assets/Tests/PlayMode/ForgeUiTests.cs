@@ -830,6 +830,21 @@ namespace Forge.Tests.PlayMode
                 Assert.AreEqual(0f, core.color.a, 1e-3f, i + "타: 코어 창 끝");
             }
 
+            // 섬광 두 조각 — 축이 «머리 쪽 끝» 이라 커질수록 바깥으로만 뻗는다(가운데 축이면 머리 안으로 파고들어 흰 띠가 된다)
+            RectTransform sl = Named(sheet, "af-star-l-2"), sr = Named(sheet, "af-star-r-2");
+            Assert.IsNotNull(sl, "3타 섬광 왼쪽");
+            Assert.IsNotNull(sr, "3타 섬광 오른쪽");
+            Assert.AreEqual(1f, sl.pivot.x, 1e-3f, "왼쪽 조각의 축은 오른쪽 끝(머리 쪽)");
+            Assert.AreEqual(0f, sr.pivot.x, 1e-3f, "오른쪽 조각의 축은 왼쪽 끝(머리 쪽)");
+            fx.SampleTo(AutoForgeFxSpec.HitMs[2]);
+            Graphic sg = sl.GetComponent<Graphic>();
+            Assert.Greater(sg.color.a, 0.9f, "3타 접촉 프레임에 섬광이 밝다");
+            // 커진 프레임에도 안쪽 끝(축)은 제자리다 — 머리 실루엣을 파고들지 않는다
+            Vector3 axisAtHit = sl.TransformPoint(new Vector3(sl.rect.xMax, 0f, 0f));
+            fx.SampleTo(AutoForgeFxSpec.HitMs[2] + AutoForgeFxSpec.StarDurMs * 0.6);
+            Vector3 axisLater = sl.TransformPoint(new Vector3(sl.rect.xMax, 0f, 0f));
+            Assert.AreEqual(axisAtHit.x, axisLater.x, 0.5f, "섬광이 커져도 안쪽 끝은 붙박이다");
+
             // 픽셀 — 3타 접촉 프레임에 코어 칸이 실제로 희다
             if (!NoGraphics())
             {

@@ -31,6 +31,9 @@ namespace Forge.Game.Ui
         /// <summary>접지 그림자·순백 코어(정본 `.af-shadow.dN`·`.af-core.cN` · 링과 같은 자리 계보).</summary>
         static readonly Image[] shadows = new Image[3];
         static readonly Image[] cores = new Image[3];
+        /// <summary>4갈래 섬광 — 타격마다 좌·우 두 조각(정본 `.af-star.sl/.sr`).</summary>
+        static readonly Image[] starsL = new Image[3];
+        static readonly Image[] starsR = new Image[3];
         /// <summary>viewBox 한 단위의 화면 px — 망치 `afswing` 의 translate 는 **viewBox 단위**다(SVG 자식이라 CSS px 가 아니다).</summary>
         static float vbUnit;
 
@@ -48,7 +51,7 @@ namespace Forge.Game.Ui
             hammerText = null; upgText = null; anvilRt = null; anvilArtRt = null;
             billetRt = null; billetHot = null; billetCool = null; billetGlow = null;
             hammerRt = null; hammerGroup = null; vbUnit = 0f;
-            for (int i = 0; i < rings.Length; i++) { rings[i] = null; shadows[i] = null; cores[i] = null; }
+            for (int i = 0; i < rings.Length; i++) { rings[i] = null; shadows[i] = null; cores[i] = null; starsL[i] = null; starsR[i] = null; }
             GameDefs d = h.Defs;
             float W = UiKit.RefW, rem = PopupKit.Rem;
             float sheetH = sheet.rect.height > 0 ? sheet.rect.height : (UiKit.L("chat_top") - UiKit.L("sheet_top")) * UiKit.RefH;
@@ -107,7 +110,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(upgText.rectTransform, 0f, btnH + rem * 0.25f, W - padX * 2f - rx, PopupKit.FontSize(TextKind.Sub) * 1.3f);
             }
             // 두들기는 도중 다시 그려졌다면(세이브 → Rerender) 러너를 새 모루·시트에 다시 문다 — 흐른 시간은 지킨다.
-            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, vbUnit); }
+            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, vbUnit); }
         }
 
         static string RemainText(ForgeHost h)
@@ -133,7 +136,7 @@ namespace Forge.Game.Ui
             if (root == null) return;
             AnvilFx fx = AnvilFx.Ensure(root.Sheet);
             if (fx == null) return;
-            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, vbUnit);
+            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, vbUnit);
             else fx.Stop();
         }
 
@@ -353,6 +356,7 @@ namespace Forge.Game.Ui
             // 정본 SVG 순서: 링 → 접지 그림자 → … → 순백 코어 → 섬광 → 망치
             DrawImpactEllipse(fx, u, shadows, "af-shadow", "fx_shadow_rx", "fx_shadow_ry", "fx_shadow_dy", "fx_shadow");
             DrawImpactEllipse(fx, u, cores, "af-core", "fx_core_rx", "fx_core_ry", "fx_core_dy", "fx_core");
+            DrawStars(fx, u);
 
             hammerRt = UiKit.Box(fx, "hammer");
             UiKit.Place(hammerRt, 0f, 0f, vbW * u, vbH * u);
@@ -418,6 +422,54 @@ namespace Forge.Game.Ui
                 UiKit.Place(rt, (cx - rx) * u, (cy - ry) * u, rx * 2f * u, ry * 2f * u);
                 rings[i] = img;
             }
+        }
+
+        /// <summary>
+        /// 4갈래 섬광(정본 `.af-star.sl/.sr`) — 타격점에서 좌·우로 뻗는 두 조각. 정본 주석: «원형 광량만으로는 상판 얼룩과 구별이 안 된다.
+        /// 축을 가진 별이 붙어야 *어디를 때렸는지* 와 *지금이 그 순간* 이 같이 읽힌다.»
+        /// ⚠ 축은 조각의 **머리 쪽 끝**이다(왼쪽 조각은 bbox 오른쪽 · 오른쪽 조각은 왼쪽) — 가운데를 축으로 두면 커질 때 안쪽 끝이 머리 실루엣을 파고들어 흰 띠가 생긴다(정본 실측).
+        /// 그라디언트도 축과 함께 뒤집힌다(안쪽이 흰색 불투명 · 바깥 끝이 투명).
+        /// </summary>
+        static void DrawStars(RectTransform fx, float u)
+        {
+            int n = Mathf.RoundToInt(UiKit.L("star_n"));
+            Vector2[] right = new Vector2[n];
+            Vector2[] left = new Vector2[n];
+            for (int k = 0; k < n; k++)
+            {
+                float x = UiKit.L("star_x" + k), y = UiKit.L("star_y" + k);
+                right[k] = new Vector2(x, y);
+                left[k] = new Vector2(-x, y);
+            }
+            Color[] stops = { UiKit.C("star_in"), UiKit.C("star_mid"), UiKit.C("star_out") };
+            float[] offs = { 0f, UiKit.L("star_off1"), 1f };
+            // 정본 `x1 0 → x2 1`: 왼쪽 조각은 왼(바깥) → 오른(안쪽)이 흰색, 오른쪽 조각은 그 반대.
+            Sprite spL = CraftFxPoly.Bake("af-star-l", left, new Color[] { stops[2], stops[1], stops[0] }, new float[] { 0f, 1f - offs[1], 1f }, Vector2.zero, new Vector2(1f, 0f));
+            Sprite spR = CraftFxPoly.Bake("af-star-r", right, stops, offs, Vector2.zero, new Vector2(1f, 0f));
+            for (int i = 0; i < starsL.Length; i++)
+            {
+                starsL[i] = StarPiece(fx, "af-star-l-" + i, left, spL, u, i, true);
+                starsR[i] = StarPiece(fx, "af-star-r-" + i, right, spR, u, i, false);
+            }
+        }
+
+        /// <summary>섬광 조각 하나 — 피벗을 «머리 쪽 끝» 에 두어 커질수록 바깥으로만 뻗게 한다.</summary>
+        static Image StarPiece(RectTransform fx, string name, Vector2[] pts, Sprite sp, float u, int i, bool leftSide)
+        {
+            RectTransform rt = UiKit.Box(fx, name);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.sprite = sp;
+            img.type = Image.Type.Simple;
+            Color c = Color.white; c.a = 0f;
+            img.color = c;
+            UnityEngine.Rect b = CraftFxPoly.Bounds(pts);
+            float cx = (float)AutoForgeFxSpec.HitCenterX(i), cy = (float)AutoForgeFxSpec.HitCenterY(i);
+            UiKit.Place(rt, (cx + b.xMin) * u, (cy + b.yMin) * u, b.width * u, b.height * u);
+            // 축(피벗) = 머리 쪽 끝 · 세로는 정본 55%
+            rt.pivot = new Vector2(leftSide ? 1f : 0f, 1f - 0.55f);
+            rt.anchoredPosition = new Vector2(rt.anchoredPosition.x + (leftSide ? b.width * u : 0f), rt.anchoredPosition.y - 0.55f * b.height * u);
+            return img;
         }
 
         /// <summary>
