@@ -668,6 +668,7 @@
 - 실측(2026-09-13 06:1x · 런 148 `screen_main.png` 눈 확인 + 코드 전수): 화면에 나가는 문자열에 이모지 **30종**(🔨 🪙 💎 🔒 ⭐ ⚔ 🏆 💀 📜 🥚 🧪 🎟 🗝 📌 📍 💤 💾 🛡 🐴 🐾 🚨 🧍 ⏳ ⚒ ✎ ✓ ✕ ⓐ ⓑ VS16)가 그대로 들어 있고 **글꼴에 하나도 없다** — 원본 Noto Sans KR 에도 대부분 없다(✓ ⓐ ⓑ 만 있다). 화면의 «자동 □ OFF» 가 그 하나(🔄).
 - **정본이 답을 준다**: `ui.js` 의 `TOAST_ICON` 표(1389~)가 이모지 → 코드 생성 아이콘 이름을 잇고(`'🪙': 'coin' · '💎': 'gem' · '🔨': 'hammer' · '⚔': 'tm_sword' · '🔒': 'lock' · '⭐': 'star' …), 바로 아래 함수가 **문구를 훑어 표에 있는 이모지를 전부 아이콘 노드로 바꾼다**(선두만이 아니다 — 주석에 «뒤에 붙는 재화 이모지가 그대로 남아 한 줄 안에서 섞인다» 는 실측이 있다).
 - 할 것: ⓐ 그 표를 `catalog.json` 에 `toastIcons` 로 옮긴다(T2·T31 과 같은 «정본이 쥔다» 원칙 · 손으로 짓지 않는다) ⓑ `UiKit.Text` 가 문자열을 세울 때 표에 있는 이모지를 **TMP 인라인 스프라이트**(T31 아틀라스 · `<sprite name=…>`)로 치환한다 — 아이콘이 글자 높이에 맞고 색 틴트가 원작과 같아야 한다 ⓒ 표에 없는 순수 기호(▶ ▼ ★ ✓ ⓐ ⓑ)는 글꼴 서브셋에 넣는다(`docs/assets-map.md` 의 재생성 명령에 유니코드 구간 추가) ⓓ 어느 쪽도 아닌 것(🐴 🐾 🚨 🧍 ✎ ⏳ 등 디버그·개발 문자열)은 아이콘을 새로 그리지 말고 **한국어 낱말로 바꾼다**(원작에 없는 자리다).
+- **덧(검수 Q 06:2x · 이모지와 갈래가 다르다 · 아이콘으로 못 바꾼다)**: 두부는 이모지만이 아니다 — **호환 자모**(U+3130~U+318F)도 서브셋 밖이라 □ 다. 런 147 `screen_chat.png` 일곱째 줄이 «보스 너무 세다 **□□**» 인데 정본 `chat.js` 원문은 «보스 너무 세다 **ㅋㅋ**» 다. 정본 전체에 **7종 26회**(`scene3d.js` 15 · `chat.js` 4 · `ui.js` 2 · `mobs-props.js` 2 · `techtree.js` 1 · `icongen.js` 1 · `style.css` 1 · 가장 잦은 것 ㄴ 8 · ㄱ 7 · ㄷ 5 · ㅠ 2 · ㅋ 2). 이것들은 글자지 아이콘이 아니므로 **서브셋을 다시 뽑을 때 U+AC00~D7A3 로 자르지 말고 자모 구간까지 담는다**(결정 203 의 «한글 1266자» 가 음절만이었다). 그리고 넓힌 단언은 **`HasCharacter(c, false, false)`(폴백 없이)** 로 물어야 한다 — 리눅스 CI·WebGL·안드로이드에는 OS 폴백이 없고 그 판이 판정 기준이다(지금 화면 검사는 `true, true` 라 폴백 있는 판에서 «있다» 로 세어 준다).
 - 막이: `TextSizeGateTests` 에 «활성 라벨의 모든 문자가 글꼴에 있다(한글만이 아니라 **전부**)» 로 넓힌다 — 지금 단언은 U+AC00~D7A3 만 봐서 이모지 두부를 놓쳤다.
 - 판정: 새 촬영 PNG 를 열어 □ 가 0 인 것을 눈으로 + 넓힌 단언 초록 + 원작 샷과 아이콘 자리 대조.
 - 범위: `Assets/Scripts/Game/Ui/UiKit.cs` · `Ui/UiIcons.cs` · `Assets/Forge/catalog.json`(toastIcons) · 이모지를 쥔 화면 파일들 · `Assets/Fonts/NotoSansKR-Forge.ttf`(기호 구간 추가 시) · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/assets-map.md`.
@@ -681,6 +682,12 @@
 - 무엇을 한다: 정본 `style.css` 의 그 버튼(`.skill-actions button`)·레벨 배지(`.skill-lv`)·pill 규칙을 읽어 **버튼은 글자에 맞춰 늘어나거나 글자가 줄바꿈/축소되게**(원작 규칙 그대로) · 레벨 라벨은 원 안 중앙 · pill 간격은 정본 값. 글자 크기 하한(§1 · 보조 36)은 그대로 두고 **칸을 키우는 쪽**으로 맞춘다(원작 규칙이 그렇다).
 - 판정: `ui_score --score --only skills` 가 **런 141 수준(6.8) 이상** + 워커가 PNG 를 열어 «버튼 밖으로 넘친 글자 0 · Lv 라벨이 안 잘림» 확인 + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/Skill*` · `Assets/Forge/catalog.json`(버튼·배지 자리 키) · `Assets/Tests/PlayMode/PetUiTests.cs`(스킬 시트 단언).
+### T91 — 메인 화면 채팅 미리보기 줄이 **비었다**(정본은 두 줄) (Game·UI · T22·T63 뒤 · 임자 없음 · 검수 Q 등재)
+- 실측(2026-09-13 06:0x · 검수 Q · 런 147 `screen_main.png` 을 Read 로 열고 잘라 본 것): 탭바 위 회색 띠에 **말풍선 아이콘과 «99» 배지뿐이고 글자가 한 자도 없다**(띠 높이도 ~20px 로 줄었다). **런 127 의 같은 자리에는 «Yumi» + «anyone want to trade tickets?» 두 줄이 있었다** — 그 사이 회귀다. 채팅 자체는 멀쩡하다(`screen_chat.png` 로그 열두 줄 정상 · 한글도 나온다).
+- 정본(`ref/screens/shot-042120.png` 하단): 회색 띠에 **두 줄** — «MilkMessiah이(가) 전투를 공유했습니다!»(시스템 줄) / «MilkMessiah: Ligma»(마지막 발화) · 흰 굵은 글씨 · 빨간 «99» 배지는 말풍선 **왼쪽 위**. 클론은 배지가 오른쪽 위라 띠 윗변에 잘린다.
+- 할 일: 원작 `ui.js` 의 미리보기(시스템 줄 + 마지막 발화 두 줄)를 다시 잇고, 띠 높이·글자 색·배지 자리를 정본 실측대로 `catalog.json` 에 둔다(코드에 숫자 금지 · §1).
+- 판정: PlayMode 단언(미리보기 라벨 둘이 비어 있지 않고 마지막 메시지를 담는다 — T71 이 손댄 «두 줄» 단언을 되살린다) + 촬영 PNG 를 열어 두 줄이 보이는 기록(§1) + `ui_score` 의 `main` 점수가 안 내려간다.
+- 범위: `Assets/Scripts/Game/Ui/Hud.cs`(미리보기 자리) · `Ui/Chat*` · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/ShopUiTests.cs`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -818,11 +825,11 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 🔄 · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ⬜ · T89 ⬜ |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 🔄 · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ⬜ · T89 ⬜ · T91 ⬜ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) · T83(촬영 두 장 가르기) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ✅ · T83 ✅|
-| `css/style.css` 제작 키프레임 22종 | 대장간 뽑기 연출(모루·오토포지·결과 카드) | T87 | ⬜ |
+| `css/style.css` 제작 키프레임 22종 | 대장간 뽑기 연출(모루·오토포지·결과 카드) | T87 | 🔄 |
 | (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ✅ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) | ✅ (굽기 잡 조건 T32 ✅) · T86 🔄 |
