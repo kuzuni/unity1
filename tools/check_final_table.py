@@ -114,6 +114,45 @@ def unlisted(routine_text, progress_text):
     return sorted(out, key=lambda t: int(t[0][1:]))
 
 
+RE_PARENS = re.compile(r'\([^()]*\)')
+CLOSED = '✅⛔✂'
+
+
+def work_ids(work_cell):
+    """«작업» 칸의 번호 — **괄호 안은 뺀다**(`T59(T28 2회차가 잡은 결함)` 의 T28 은 설명이지 그 줄의 작업이 아니다)."""
+    prev, cur = None, work_cell
+    while prev != cur:                       # 중첩 괄호까지 벗긴다
+        prev, cur = cur, RE_PARENS.sub(' ', cur)
+    return ['T' + n for n in RE_TID.findall(cur)]
+
+
+def unmarked(routine_text, progress_text):
+    """줄의 «작업» 칸엔 있는데 **«상태» 칸엔 표시가 없는 열린 작업** [(줄번호, 번호, PROGRESS 표시)].
+
+    왜 필요한가(T33 3회차 2026-09-13 실측): §7 `ui.js` 줄은 상태 칸이 번호마다 제 표시를 다는 ⓓ 꼴인데
+    거기 **T98 만 빠져 있었다**. `check()` 는 «적힌 표시» 만 보고 `unlisted()` 는 «절 어딘가에 이름이 있는가» 만
+    보므로 — T98 은 작업 칸에 이름이 있었다 — 둘 다 이 구멍을 못 봤다: **열린 작업 하나가 완주 판정 위를
+    그대로 지나간다.** 표시 하나가 줄 전체를 덮는 ⓐⓑⓒ 꼴은 해당 없다(그 표시가 작업 칸 번호 전부의 것이다).
+    닫힌 작업(✅⛔✂)이 빠진 것은 «다 옮겨졌다» 판정을 안 바꾸므로 잡지 않는다(빨강 소음).
+    """
+    states = progress_states(progress_text)
+    out = []
+    for lineno, work, state in final_rows(routine_text):
+        st = state.strip()
+        if st in NONE_CELLS or not any(ch in GLYPHS for ch in st):
+            continue
+        if RE_LEAD.match(st):                # ⓐⓑⓒ — 한 표시가 줄 전체를 덮는다
+            continue
+        marked = set(tid for tid, _ in row_claims(work, state))
+        for tid in work_ids(work):
+            if tid in marked:
+                continue
+            g = states.get(tid)
+            if g is not None and g not in CLOSED:
+                out.append((lineno, tid, g))
+    return out
+
+
 def check(routine_text, progress_text):
     """→ (어긋난 것 목록, 본 칸 수). 어긋남 = (줄번호, 번호, §7 표시, PROGRESS 표시 또는 사유)."""
     states = progress_states(progress_text)
@@ -148,6 +187,7 @@ def main():
     progress = io.open(os.path.join(ROOT, PROGRESS), encoding='utf-8').read()
     bad, seen = check(routine, progress)
     miss = unlisted(routine, progress)
+    blank = unmarked(routine, progress)
     rows = len(final_rows(routine))
     if miss:
         print('✗ check_final_table: §7 표에 **이름이 없는** 작업 %d개 — T33 은 §7 로 «다 옮겨졌다» 를 판정한다(그 위를 지나간다)' % len(miss))
@@ -155,6 +195,11 @@ def main():
             print('  · %s %s — §7 어느 줄에도 안 적혔다' % (tid, glyph))
         print('  고침: 그 작업을 §7 의 제 원작 줄(«작업»·«상태» 칸)에 적는다. 원작 모듈에 안 붙는')
         print('        도구·게이트·CI 작업이면 §7 의 «(원작 밖 · 도구·게이트·CI)» 줄에 적는다.')
+    if blank:
+        print('✗ check_final_table: «작업» 칸엔 있는데 «상태» 칸엔 표시가 없는 **열린 작업** %d개 — 그대로 두면 완주 판정 위를 지나간다(T33 3회차)' % len(blank))
+        for lineno, tid, g in blank:
+            print('  · %s:%d  %s  PROGRESS «%s» — 그 줄 상태 칸에 표시가 없다' % (ROUTINE, lineno, tid, g))
+        print('  고침: 그 줄 «상태» 칸에 «%s ⬜» 처럼 그 번호의 표시를 더한다(PROGRESS 상태 그대로).' % blank[0][1])
     hard = [b for b in bad if not is_soft(b[2], b[3])]
     soft = [b for b in bad if is_soft(b[2], b[3])]
     if hard:
@@ -169,9 +214,9 @@ def main():
         print('⚠ 열림 ↔ 열림 %d건 — 막지 않는다(T82 · 선점 직후의 몇 분이다 · T33 판정은 ✅ 만 본다)' % len(soft))
         for lineno, tid, glyph, want in soft:
             print('  · %s:%d  %s  §7 «%s» ↔ PROGRESS «%s» — 그 작업의 임자가 다음 커밋에 맞춘다' % (ROUTINE, lineno, tid, glyph, want))
-    if hard or miss:
+    if hard or miss or blank:
         return 1
-    print('✓ check_final_table: §7 줄 %d · 상태 표시 %d개가 PROGRESS 와 같다 · 이름이 빠진 작업 0%s'
+    print('✓ check_final_table: §7 줄 %d · 상태 표시 %d개가 PROGRESS 와 같다 · 이름이 빠진 작업 0 · 표시가 빠진 열린 작업 0%s'
           % (rows, seen, ' · 열림↔열림 %d(알림)' % len(soft) if soft else ''))
     return 0
 
@@ -247,6 +292,22 @@ def self_test():
     if unlisted(R2.replace('## 7.', '## 6.'), P) == []:
         print('✗ 미등재 갈래: §7 절이 없으면 전부 미등재로 잡아야 한다'); ok = False
 
+    # T33 3회차 — «작업 칸엔 있는데 상태 칸엔 표시가 없는 열린 작업»
+    P2 = P + '| T98 | 모루 | ⬜ 대기 | x |\n| T59 | 화면 | ✅ 완료 | x |\n'
+    HDR = '## 7. 완결\n\n| 원작 | 무엇 | 작업 | 상태 |\n|---|---|---|---|\n'
+    for row, want, note in [
+        ('| ui.js | 화면 | T59 · T98 | T59 ✅ |', [('T98', '⬜')], 'ⓓ 꼴에서 빠진 열린 작업을 잡는다'),
+        ('| ui.js | 화면 | T59 · T98 | T59 ✅ · T98 ⬜ |', [], '적혀 있으면 조용하다'),
+        ('| ui.js | 화면 | T59 · T36 | T59 ✅ |', [], '닫힌 작업(⛔)이 빠진 것은 판정을 안 바꾼다'),
+        ('| ui.js | 화면 | T59(T20 이 잡은 것) | T59 ✅ |', [], '괄호 안 번호는 그 줄의 작업이 아니다'),
+        ('| ui.js | 화면 | T59 · T98 | ✅ |', [], 'ⓐ 한 표시가 줄 전체를 덮는 꼴은 해당 없다'),
+        ('| ui.js | 화면 | T59 · T98 | 해당 없음 |', [], '작업 없는 줄'),
+        ('| ui.js | 화면 | T59 · T900 | T59 ✅ |', [], 'PROGRESS 에 없는 번호는 unlisted 가 아니라 check 의 몫'),
+    ]:
+        got = [(t, g) for _, t, g in unmarked(HDR + row + '\n', P2)]
+        if got != want:
+            print('✗ 표시 빠짐 갈래(%s): %r (기대 %r)' % (note, got, want)); ok = False
+
     # 진짜 문서로도 한 번 돌려 본다 — 다만 **여기서는 판정하지 않는다**: 남이 §7 을 어긋나게 두면
     # 그것은 «조율 결함»(보고만 하는 main() 의 몫)이지 이 자가 고장 난 것이 아니다. CI 에서
     # 자기 검사 스텝은 막고 대조 스텝은 보고만 하므로, 이 줄이 판정하면 남의 드리프트가 CI 를 막는다.
@@ -254,8 +315,10 @@ def self_test():
     progress = io.open(os.path.join(ROOT, PROGRESS), encoding='utf-8').read()
     real, seen = check(routine, progress)
     real_miss = unlisted(routine, progress)
-    print('· 지금 §7: 상태 표시 %d개 · 어긋남 %d건 · 이름이 빠진 작업 %d개%s'
-          % (seen, len(real), len(real_miss), '' if not (real or real_miss) else ' (자리는 --self-test 없이 돌려 본다)'))
+    real_blank = unmarked(routine, progress)
+    print('· 지금 §7: 상태 표시 %d개 · 어긋남 %d건 · 이름이 빠진 작업 %d개 · 표시가 빠진 열린 작업 %d개%s'
+          % (seen, len(real), len(real_miss), len(real_blank),
+             '' if not (real or real_miss or real_blank) else ' (자리는 --self-test 없이 돌려 본다)'))
 
     print('✓ check_final_table 자기 검사 통과' if ok else '✗ check_final_table 자기 검사 실패')
     return 0 if ok else 1
