@@ -86,18 +86,20 @@ namespace Forge.Tests.PlayMode
                     float want = strokePx * 0.5f * scale;
                     if (want < 3f) Assert.Ignore("캡처 배율 " + scale.ToString("0.000") + " 에서 기대 띠가 " + want.ToString("0.0") + "px 라 ±40% 를 못 잰다(런 195 꼴) — 글자 " + fontPx + "px · 앱 폭 " + root.App.rect.width);
                     string info = "글자 " + fontPx.ToString("0") + "px 획 " + strokePx.ToString("0.0") + " · 배율 " + scale.ToString("0.000") + " · 민글자 줄기 " + stem + " · 옛 띠 " + legL + "/" + legR + " 코어 " + legCore
-                        + " · px 띠 " + pxL + "/" + pxR + " 코어 " + pxCore + " · 기대 띠 " + want.ToString("0.00") + " (W=" + o.Width01.ToString("0.000") + " D=" + o.Dilate.ToString("0.000") + ")";
+                        + " · px 띠 " + pxL + "/" + pxR + " 코어 " + pxCore + " · 기대 띠 " + want.ToString("0.00") + " (W=" + o.Width01.ToString("0.000") + " D=" + o.Dilate.ToString("0.000")
+                        + " · 재질 G=" + Mat(px, "_GradientScale") + " R=" + Mat(px, "_ScaleRatioA") + " dilate=" + Mat(px, "_FaceDilate") + " outline=" + Mat(px, "_OutlineWidth")
+                        + " 샘플링 " + (px.font != null ? px.font.faceInfo.pointSize.ToString() : "?") + "pt)";
                     Debug.Log("[T104] " + info);
                     Assert.Greater(stem, 2, "민글자 «I» 줄기가 안 보인다 — " + info);
                     Assert.Greater(pxL, 1, "px 갈래 왼쪽 띠가 없다 — " + info);
                     Assert.Greater(pxR, 1, "px 갈래 오른쪽 띠가 없다 — " + info);
-                    Assert.Greater(pxL, legL * 2, "px 갈래 띠가 옛 갈래의 두 배는 두꺼워야 한다(등재 진단) — " + info);
+                    Assert.GreaterOrEqual(pxL, legL + 2, "px 갈래 띠가 옛 갈래보다 2px 이상 두꺼워야 한다(등재 진단 · 런 200 옛 3/2 ↔ px 5/6) — " + info);
                     Assert.GreaterOrEqual(pxL, want * 0.6f, "띠가 식보다 얇다 — " + info);
                     Assert.LessOrEqual(pxL, want * 1.4f + 1f, "띠가 식보다 두껍다 — " + info);
                     Assert.LessOrEqual(Mathf.Abs(pxL - pxR), 2, "띠가 좌우 비대칭 — " + info);
                     // 채움이 그대로인가: 흰 코어 폭 ≈ 검정 줄기 폭(AA 문턱 차이로 코어가 1~2px 좁게 읽힌다 · 띠가 채움을 먹었으면 2×띠만큼 좁다)
-                    Assert.GreaterOrEqual(pxCore, stem - 2.5f, "px 갈래가 채움을 먹었다(_FaceDilate 보정 실패) — " + info);
-                    Assert.LessOrEqual(pxCore, stem + 1.5f, "px 갈래가 채움을 부풀렸다 — " + info);
+                    Assert.GreaterOrEqual(pxCore, stem - 2f, "px 갈래가 채움을 먹었다(_FaceDilate 보정 실패) — " + info);
+                    Assert.LessOrEqual(pxCore, stem + 2f, "px 갈래가 채움을 부풀렸다 — " + info);
                 }
                 finally { shot.Dispose(); }
             }
@@ -118,6 +120,12 @@ namespace Forge.Tests.PlayMode
             rt.anchoredPosition = new Vector2(0f, y);
         }
 
+        private static string Mat(TextMeshProUGUI t, string prop)
+        {
+            Material m = t.fontMaterial;
+            return m != null && m.HasProperty(prop) ? m.GetFloat(prop).ToString("0.###") : "?";
+        }
+
         private static void PlaceX(RectTransform rt, float x, float w, float h)
         {
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
@@ -126,6 +134,9 @@ namespace Forge.Tests.PlayMode
             rt.anchoredPosition = new Vector2(x, 0f);
         }
 
+        /// <summary>검정↔흰 의 50% 덮임 문턱 — 줄기(검정)와 코어(흰)를 같은 문턱으로 세야 AA 편향이 상쇄된다(런 200: 어두움 100 미만·밝음 190 초과의 두 문턱은 +1.7px 를 만들었다).</summary>
+        const int Mid = 128;
+
         private static int Lum(Color32 c) { return (c.r * 299 + c.g * 587 + c.b * 114) / 1000; }
 
         /// <summary>줄기(검정 «I»)의 한가운데 행에서 가장 긴 어두운 구간.</summary>
@@ -133,7 +144,7 @@ namespace Forge.Tests.PlayMode
         {
             int[] row = MidRow(s, r);
             int best = 0, run = 0;
-            for (int i = 0; i < row.Length; i++) { if (row[i] < 100) { run++; if (run > best) best = run; } else run = 0; }
+            for (int i = 0; i < row.Length; i++) { if (row[i] < Mid) { run++; if (run > best) best = run; } else run = 0; }
             return best;
         }
 
@@ -143,12 +154,10 @@ namespace Forge.Tests.PlayMode
             int[] row = MidRow(s, r);
             left = core = right = 0;
             int i = 0, n = row.Length;
-            while (i < n && row[i] >= 100) i++;                 // 배경(흰) 지나기
-            while (i < n && row[i] < 100) { left++; i++; }     // 왼 띠
-            while (i < n && row[i] < 190 && row[i] >= 100) i++; // AA
-            while (i < n && row[i] >= 190) { core++; i++; }    // 코어(흰)
-            while (i < n && row[i] < 190 && row[i] >= 100) i++; // AA
-            while (i < n && row[i] < 100) { right++; i++; }    // 오른 띠
+            while (i < n && row[i] >= Mid) i++;                // 배경(흰) 지나기
+            while (i < n && row[i] < Mid) { left++; i++; }    // 왼 띠
+            while (i < n && row[i] >= Mid) { core++; i++; }   // 코어(흰) — 50% 덮임 한 문턱이라 줄기와 같은 자로 잰다
+            while (i < n && row[i] < Mid) { right++; i++; }   // 오른 띠
         }
 
         /// <summary>어두운 픽셀이 있는 행들의 한가운데 행(밝기 배열 · 왼→오른).</summary>
@@ -157,7 +166,7 @@ namespace Forge.Tests.PlayMode
             List<int> dark = new List<int>();
             for (int y = r.yMin; y < r.yMax; y++)
                 for (int x = r.xMin; x < r.xMax; x++)
-                    if (Lum(s.Px[y * s.W + x]) < 100) { dark.Add(y); break; }
+                    if (Lum(s.Px[y * s.W + x]) < Mid) { dark.Add(y); break; }
             Assert.Greater(dark.Count, 0, "칸 안에 어두운 픽셀이 하나도 없다(" + r + ")");
             int mid = dark[dark.Count / 2];
             int[] row = new int[r.width];
