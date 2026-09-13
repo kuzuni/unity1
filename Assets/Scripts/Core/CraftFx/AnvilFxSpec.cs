@@ -27,6 +27,13 @@ namespace Forge.Core.CraftFx
         /// <summary>정본 `probe-anvil-shake.js` 가 지키는 시트 흔들림 상한(px).</summary>
         public const double ShakeMaxPx = 4.5;
 
+        /// <summary>
+        /// `anvilbump` 의 축(정본 `.anvil-btn.striking .anvil-svg { transform-box: view-box; transform-origin: 50% 92% }` — 주석 «받침 접지면이 축»).
+        /// 값은 **viewBox(132×86) 안의 분수**이고 둘째는 위에서부터다(92% → 유닛 79.12 · 정본이 망치 침하량을 이 축으로 계산해 놨다).
+        /// ⚠ 반동은 **모루 그림에만** 건다 — 정본 주석: 버튼(`.anvil-btn`)에 걸면 타격 오버레이가 그 자식이라 «망치가 모루의 반동을 그대로 타고 내려간다»(상대변위 0).
+        /// </summary>
+        public static readonly double[] BumpOriginFrac = { 0.5, 0.92 };
+
         /// <summary>`anvilbump` — 모루(`.anvil-svg`). 채널 = translateY(px) · scaleX · scaleY. 원점 50% 92%(받침 접지면).</summary>
         public static readonly CssTrack Bump = new CssTrack(
             new double[] { 0, 18.667, 20.0, 22.2, 23.333, 26.0, 42.0, 43.333, 46.0, 47.333, 50.0, 72.0, 73.333, 76.667, 78.333, 82.667, 87.333, 92.667, 100 },

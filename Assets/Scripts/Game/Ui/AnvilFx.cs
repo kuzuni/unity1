@@ -38,7 +38,10 @@ namespace Forge.Game.Ui
             return fx;
         }
 
-        /// <summary>두들기기 시작 — `anvil` 은 모루 그림 칸, `sheet` 는 그 모루가 든 시트(둘 다 없어도 죽지 않는다).</summary>
+        /// <summary>
+        /// 두들기기 시작 — `anvilRt` 는 **모루 그림 칸**(정본 `.anvil-svg` · 버튼이 아니다: 버튼에 걸면 타격 오버레이가 반동을 같이 타 상대변위가 0 이 된다 · 정본 주석),
+        /// `sheetRt` 는 그 모루가 든 시트(둘 다 없어도 죽지 않는다).
+        /// </summary>
         public void Play(RectTransform anvilRt, RectTransform sheetRt)
         {
             Stop();
@@ -113,20 +116,28 @@ namespace Forge.Game.Ui
             if (running) Apply();
         }
 
+        /// <summary>
+        /// 정본 키프레임의 **절대 CSS px** → 기준 캔버스 px(카탈로그 `anvil_fx_px`). rem 값과 달리 이 px 들은 원작에서 앱 크기를 안 따라가므로
+        /// 촬영 배율(앱 폭 499px → 1080px)로 환산해야 «같은 깊이로 보인다» — 그대로 쓰면 정본의 절반이고, 정본 주석이 이미
+        /// «진폭이 지각 한계 미만이었다» 고 적어 둔 자리다.
+        /// </summary>
+        public static float PxScale { get { return UiKit.L("anvil_fx_px"); } }
+
         private void Apply()
         {
             double pct = ms / AnvilFxSpec.DurationMs * 100.0;
+            float px = PxScale;
             if (anvil != null)
             {
                 AnvilFxSpec.Bump.Sample(pct, bump);
-                // CSS 의 translateY 는 아래가 +, 유니티 UI 는 위가 + 다.
-                anvil.anchoredPosition = new Vector2(anvilHome.x, anvilHome.y - (float)bump[0]);
+                // CSS 의 translateY 는 아래가 +, 유니티 UI 는 위가 + 다. 스케일 축은 그림 칸의 피벗(= 정본 transform-origin 50% 92%)이다.
+                anvil.anchoredPosition = new Vector2(anvilHome.x, anvilHome.y - (float)bump[0] * px);
                 anvil.localScale = new Vector3(anvilScaleHome.x * (float)bump[1], anvilScaleHome.y * (float)bump[2], anvilScaleHome.z);
             }
             if (sheet != null)
             {
                 AnvilFxSpec.SheetShake.Sample(pct, shake);
-                sheet.anchoredPosition = new Vector2(sheetHome.x + (float)shake[0], sheetHome.y - (float)shake[1]);
+                sheet.anchoredPosition = new Vector2(sheetHome.x + (float)shake[0] * px, sheetHome.y - (float)shake[1] * px);
             }
         }
 

@@ -518,7 +518,8 @@
     { "key": "anvil_bevel_h", "value": 4 },
     { "key": "anvil_bevel_alpha", "value": 0.5 },
     { "key": "anvil_count_y", "value": 0.61, "_": "shot-042120 실측: «🔨 41307» 글자 중심 = 받침 세로 61%(받침 y713~756 · 글자 y735~744)" },
-    { "key": "anvil_count_stroke", "value": 0.3, "_": "style.css 1625 .anvil-btn small: #fff + -webkit-text-stroke 2px pp-line → TMP outlineWidth" }
+    { "key": "anvil_count_stroke", "value": 0.3, "_": "style.css 1625 .anvil-btn small: #fff + -webkit-text-stroke 2px pp-line → TMP outlineWidth" },
+    { "key": "anvil_fx_px", "value": 2.164, "_": "T87 — 정본 키프레임의 **절대 CSS px**(anvilbump translateY 0.5~1.1px · sheetshake 2.1~4.0px)을 기준 캔버스 px 로: 원작 앱 폭 499px(ref/screens/shot-*.png) → 1080px = ×2.164. rem 값과 달리 이 px 들은 원작에서 앱 크기를 안 따라가므로 촬영 배율로 환산한다(tt_line_px 와 같은 규약)" }
   ],
   "tabs": [
     { "key": "pvp", "label": "PVP", "icon": "tab_pvp", "kind": "popup" },

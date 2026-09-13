@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Forge.Core;
 using Forge.Core.Data;
+using Forge.Core.CraftFx;
 using Forge.Core.Forging;
 
 namespace Forge.Game.Ui
@@ -17,6 +18,8 @@ namespace Forge.Game.Ui
     {
         static TextMeshProUGUI hammerText, upgText;
         static RectTransform anvilRt;
+        /// <summary>모루 «그림» 칸(정본 `.anvil-svg`) — 두들기기 반동은 버튼이 아니라 이 칸에 건다(정본 주석 · <see cref="AnvilFxSpec.BumpOriginFrac"/>).</summary>
+        static RectTransform anvilArtRt;
 
         public static void Render(ForgeHost h)
         {
@@ -29,7 +32,7 @@ namespace Forge.Game.Ui
                 if (c.name == "bg" || c.name == "line") continue;
                 Object.Destroy(c.gameObject);
             }
-            hammerText = null; upgText = null; anvilRt = null;
+            hammerText = null; upgText = null; anvilRt = null; anvilArtRt = null;
             GameDefs d = h.Defs;
             float W = UiKit.RefW, rem = PopupKit.Rem;
             float sheetH = sheet.rect.height > 0 ? sheet.rect.height : (UiKit.L("chat_top") - UiKit.L("sheet_top")) * UiKit.RefH;
@@ -88,7 +91,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(upgText.rectTransform, 0f, btnH + rem * 0.25f, W - padX * 2f - rx, PopupKit.FontSize(TextKind.Sub) * 1.3f);
             }
             // 두들기는 도중 다시 그려졌다면(세이브 → Rerender) 러너를 새 모루·시트에 다시 문다 — 흐른 시간은 지킨다.
-            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilRt, sheet); }
+            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet); }
         }
 
         static string RemainText(ForgeHost h)
@@ -114,7 +117,7 @@ namespace Forge.Game.Ui
             if (root == null) return;
             AnvilFx fx = AnvilFx.Ensure(root.Sheet);
             if (fx == null) return;
-            if (on) fx.Play(anvilRt, root.Sheet);
+            if (on) fx.Play(anvilArtRt, root.Sheet);
             else fx.Stop();
         }
 
@@ -193,6 +196,7 @@ namespace Forge.Game.Ui
                 RectTransform anvil = UiKit.Box(rt, "anvil");
                 UiKit.Place(anvil, 0f, 0f, w, hgt);
                 UnityEngine.Rect baseRect = DrawAnvil(anvil, w, hgt);
+                anvilArtRt = anvil;
                 // 원작(shot-042120): «🔨 41307» 이 받침의 어두운 몸통 위에 얹혀 흰 글자가 읽힌다 — 받침 세로 61% 자리
                 counter = UiKit.Box(anvil, "anvil-hammers");
                 UiKit.Place(counter, baseRect.x, baseRect.y + baseRect.height * UiKit.L("anvil_count_y") - counterH * 0.5f, baseRect.width, counterH);
@@ -262,7 +266,22 @@ namespace Forge.Game.Ui
             Image bevel = UiKit.Rounded(rt, "bevel", "anvil_bevel", 1.5f * u);
             Color bc = bevel.color; bc.a = UiKit.L("anvil_bevel_alpha"); bevel.color = bc;
             UiKit.Place(bevel.rectTransform, ox + UiKit.L("anvil_bevel_x") * u, oy + UiKit.L("anvil_bevel_y") * u, UiKit.L("anvil_bevel_w") * u, UiKit.L("anvil_bevel_h") * u);
+            SetFxOrigin(rt, ox, oy, u, vbW, vbH, w, h);
             return bas;
+        }
+
+        /// <summary>
+        /// 두들기기 반동(`anvilbump`)의 축을 정본과 같은 자리에 둔다 — `transform-box: view-box; transform-origin: 50% 92%`(받침 접지면).
+        /// 유니티의 `localScale` 은 **피벗**을 축으로 도니 피벗을 그 점으로 옮기고, 앵커가 점(0,1)이라 배치가 밀리지 않게 위치를 되맞춘다
+        /// (자식들은 부모 «사각» 을 기준 삼으므로 피벗을 옮겨도 안 움직인다). 축이 틀리면 눌림이 위로 자라는 그림이 된다.
+        /// </summary>
+        static void SetFxOrigin(RectTransform rt, float ox, float oy, float u, float vbW, float vbH, float w, float h)
+        {
+            if (w <= 0f || h <= 0f) return;
+            float px = ox + vbW * u * (float)AnvilFxSpec.BumpOriginFrac[0];
+            float py = oy + vbH * u * (float)AnvilFxSpec.BumpOriginFrac[1];   // 위에서부터
+            rt.pivot = new Vector2(px / w, 1f - py / h);
+            rt.anchoredPosition = new Vector2(px, -py);
         }
 
         /// <summary>검은 외곽선(살짝 큰 `anvil_line` 면) 위에 색면 하나 — SVG `stroke` 의 자리. 기하는 `anvil_&lt;part&gt;_x/y/w/h`.</summary>

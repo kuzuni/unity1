@@ -657,6 +657,10 @@
 - 옮기는 법: 각 키프레임의 **시간·이징·변위·색·불투명도를 CSS 에서 그대로 읽어** DOTween(주인 에셋)이나 코드 보간으로. 눈대중 금지. 소리는 T30 표면(`AnvilHit`·`Craft`·`CraftReveal`)을 그 타이밍에 건다.
 - 판정: PlayMode 로 «누른 뒤 t 초의 값이 CSS 곡선과 ±10%» 를 키프레임마다 + **촬영**(제작 순간 컷 `screen_craft-*.png` · 워커가 열어 본다 · §1) + 원작 `shot-craft-reveal`·`shot-anvil-*` 눈 대조.
 - 범위: `Assets/Scripts/Game/Ui/Forge*` · `Ui/Anvil*` · `Ui/CraftFx*` · `Assets/Tests/PlayMode/ForgeUiTests.cs` · `Assets/Forge/catalog.json`(연출 수치 칸).
+- 옮기며 밟은 함정 셋(T87 1~5회차 실측 · 정본 주석이 먼저 적어 둔 것들):
+  - ⓐ **반동은 «그림» 에만** — 정본 `style.css` 1167: 버튼(`.anvil-btn`)에 걸면 타격 오버레이가 그 자식이라 «망치가 모루의 반동을 그대로 타고 내려간다»(상대변위 0). 클론도 러너를 버튼에 물려 4회차까지 값이 0 이었다.
+  - ⓑ **축은 `transform-origin: 50% 92%`**(받침 접지면 · `transform-box: view-box` 라 viewBox 132×86 기준). 유니티는 `localScale` 이 **피벗**을 축으로 도니 피벗을 그 점에 옮긴다.
+  - ⓒ **키프레임의 px 는 절대 CSS px** 이라 `rem` 처럼 앱 크기를 안 따라간다 — 기준 캔버스에 바를 때 촬영 배율(앱 폭 499px → 1080px = ×2.164 · 카탈로그 `anvil_fx_px`)로 곱한다. 안 곱하면 정본 깊이의 절반이다(결정 222).
 
 ### T88 ✅ — 백그라운드에서도 게임이 돈다 (Game+Core · T13 뒤 · **주인 지시**)
 - 주인(2026-09-13): «백그라운드에서도 플레이 되게 해줘야 함». `Application.runInBackground` 가 코드·ProjectSettings 어디에도 없다(실측 grep 0).

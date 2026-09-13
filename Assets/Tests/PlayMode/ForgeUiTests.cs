@@ -475,6 +475,10 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(h.Striking, "두들기는 중");
             Assert.IsNotNull(Anvil(sheet), "두들기는 동안 모루가 화면에서 사라졌다 — 정본은 1.5초 내내 모루를 보여 준다");
 
+            // 정본 키프레임의 px 는 **절대 CSS px** 이라 촬영 배율로 환산해 바른다(카탈로그 `anvil_fx_px` · 5회차).
+            float px = AnvilFx.PxScale;
+            Assert.Greater(px, 1f, "CSS px → 기준 캔버스 px 환산이 카탈로그에 있다");
+
             double[] bump = new double[3];
             double[] shake = new double[2];
             for (int i = 0; i < AnvilFxSpec.StrikeMs.Length; i++)
@@ -486,11 +490,21 @@ namespace Forge.Tests.PlayMode
                 AnvilFxSpec.Bump.Sample(AnvilFxSpec.StrikeStop[i], bump);
                 AnvilFxSpec.SheetShake.Sample(AnvilFxSpec.StrikeStop[i], shake);
                 // 러너의 기준은 «쉬는 자리»(다시 그려져도 같은 배치다) — CSS translateY 는 아래가 + 이고 유니티 UI 는 위가 + 라 부호가 뒤집힌다.
-                Assert.AreEqual(restY - (float)bump[0], anvil.anchoredPosition.y, 0.05f, i + "타: 모루가 눌린다");
+                Assert.AreEqual(restY - (float)bump[0] * px, anvil.anchoredPosition.y, 0.05f, i + "타: 모루가 눌린다");
                 Assert.AreEqual(restScaleY * (float)bump[2], anvil.localScale.y, 0.01f, i + "타: 모루 scaleY 가 표값");
-                Assert.AreEqual(sheetHome.y - (float)shake[1], sheet.anchoredPosition.y, 0.05f, i + "타: 시트가 아래로 꽂힌다");
+                Assert.AreEqual(sheetHome.y - (float)shake[1] * px, sheet.anchoredPosition.y, 0.05f, i + "타: 시트가 아래로 꽂힌다");
                 Assert.Less(anvil.localScale.y, restScaleY, i + "타 순간엔 눌려 있다");
+                Assert.Greater(Mathf.Abs(restY - anvil.anchoredPosition.y), (float)bump[0], i + "타: 환산 없이 CSS px 를 그대로 바르지 않았다");
             }
+
+            // 정본 주석 «반동은 모루 그림에만» — 버튼(.anvil-btn)이 같이 움직이면 타격 오버레이가 반동을 타고 내려가 상대변위가 0 이 된다.
+            RectTransform art = Anvil(sheet);
+            RectTransform btn = art.parent as RectTransform;
+            Assert.AreEqual("anvil-btn", btn.name, "모루 그림은 모루 버튼의 자식이다");
+            Assert.AreEqual(1f, btn.localScale.y, 1e-4f, "버튼은 안 눌린다 — 반동은 그림 칸에만");
+            // 축은 정본 `transform-origin: 50% 92%`(받침 접지면) — 피벗이 그 자리다(위에서부터 92% → 유니티 피벗 y = 1 − 0.92 를 viewBox 안에서).
+            Assert.AreEqual(AnvilFxSpec.BumpOriginFrac[0], art.pivot.x, 0.02f, "축 x = 그림 가운데");
+            Assert.Less(art.pivot.y, 0.5f, "축 y 는 받침 쪽(아래)이다 — 눌림이 위로 자라면 안 된다");
 
             fx.Stop();
             yield return null;
