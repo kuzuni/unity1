@@ -25,6 +25,7 @@ namespace Forge.Game.Ui
             public RectTransform Cd;
             public Image Glow;
             public double CdMax;
+            public RectTransform Lv;   // T95 — 검정 알약 Lv 배지(테스트가 본다)
         }
 
         PetSkillHost host;
@@ -35,6 +36,8 @@ namespace Forge.Game.Ui
         public Button AutoButton { get; private set; }
         public int SlotCount { get { return slots.Count; } }
         public string SlotId(int i) { return i >= 0 && i < slots.Count ? slots[i].Id : null; }
+        /// <summary>T95 — 슬롯의 Lv 알약(빈 슬롯은 null).</summary>
+        public RectTransform SlotLv(int i) { return i >= 0 && i < slots.Count ? slots[i].Lv : null; }
         public Button SlotButton(int i) { return i >= 0 && i < slots.Count ? slots[i].Button : null; }
         public bool AutoOn { get { return SaveIo.State != null && SaveIo.State.AutoCast; } }
 
@@ -147,9 +150,13 @@ namespace Forge.Game.Ui
                 slot.Cd = cr;
                 SkillSpec spec = sk.Spec(id);
                 slot.CdMax = spec != null ? spec.Cd : d.Cd;
-                TextMeshProUGUI lv = PetSkillKit.Stroked(orbRt, "sk-lv", TextKind.Sub, PetSkillStyle.T("lv_short", sk.Level(id)), PetSkillStyle.C("white"), 0.3f);
-                float lvH = UiCatalog.Instance.Kind(TextKind.Sub).size * 1.1f;
-                UiKit.Anchor(lv.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, PetSkillStyle.Px("sb_lv_bottom_rem")), btn * 1.4f, lvH);
+                // T95 — 원작 기본 `.sk-lv`: 검정 알약(#17181a · radius .5rem · padding 0 .25rem) 이 오브 바닥 −.15rem 에 걸린다(스킬 격자의 «맨 글자» 규칙은 #panel-skills 전용)
+                string lvText = PetSkillStyle.T("lv_short", sk.Level(id));
+                float lvH = UiCatalog.Instance.Kind(TextKind.Sub).size * PetSkillStyle.L("sb_lv_line_f");
+                float lvW = PetSkillKit.TextWidth(TextKind.Sub, lvText) + PetSkillStyle.Px("sb_lv_pad_rem") * 2f;
+                RectTransform lv = PetSkillKit.LvBadge(orbRt, lvText, lvW, lvH);
+                UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, PetSkillStyle.Px("sb_lv_bottom_rem")), lvW, lvH);
+                slot.Lv = lv;
                 slots.Add(slot);
             }
             Forge.Core.Battle.Battle b = BattleNow;

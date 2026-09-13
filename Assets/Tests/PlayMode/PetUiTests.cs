@@ -53,6 +53,38 @@ namespace Forge.Tests.PlayMode
             Assert.IsFalse(Sheet.Modal.IsOpen(SkillSummonResultView.ModalName), "소환 결과 연출은 탭 두 번 안에 닫힌다");
         }
 
+        /// <summary>T95 — 장착 오브: 어둠 막(.58 의 지각값 · 오브 전체) → 정중앙 타원(정본 치수 이상) → Lv 는 그 위, 잉크 위끝이 타원 아래끝에 닿는다.</summary>
+        static void AssertEquippedOrb(string id)
+        {
+            RectTransform cell = Sheet.Skills.Cell(id);
+            Assert.IsNotNull(cell, "장착 스킬 칸 " + id);
+            RectTransform orb = (RectTransform)cell.Find("sk-orb");
+            RectTransform dim = (RectTransform)orb.Find("equipped");
+            Assert.IsNotNull(dim, "어둠 막");
+            Assert.AreEqual(Vector2.zero, dim.anchorMin); Assert.AreEqual(Vector2.one, dim.anchorMax);
+            Assert.AreEqual(UiKit.PerceivedDim(PetSkillStyle.C("orb_dim")).a, dim.GetComponent<UnityEngine.UI.Image>().color.a, 1e-4f, "어둠 막 α = 정본 .58 의 지각값");
+            RectTransform plate = (RectTransform)orb.Find("sk-eqplate");
+            Assert.IsNotNull(plate, "«장착됨» 타원");
+            Assert.AreEqual(Vector2.zero, plate.anchoredPosition, "타원은 정중앙");
+            Assert.AreEqual(PetSkillStyle.Px("sk_eqplate_w"), plate.rect.width, 0.5f, "타원 폭 = 앱 폭 14.92%");
+            Assert.GreaterOrEqual(plate.rect.height, PetSkillStyle.Px("sk_eqplate_h") - 0.5f, "타원 높이 ≥ 정본 2.82%W(글자 하한이면 더 크다)");
+            RectTransform lv = (RectTransform)orb.Find("sk-lv");
+            Assert.Less(orb.Find("ico").GetSiblingIndex(), dim.GetSiblingIndex(), "막은 아이콘 위");
+            Assert.Less(dim.GetSiblingIndex(), plate.GetSiblingIndex(), "타원은 막 위");
+            Assert.Less(plate.GetSiblingIndex(), lv.GetSiblingIndex(), "Lv 는 타원 위(z 2)");
+            float orbH = orb.rect.height, plateBottom = orbH * 0.5f + plate.rect.height * 0.5f;
+            float inkTop = -lv.anchoredPosition.y - UiCatalog.Instance.Kind(TextKind.Body).size * PetSkillStyle.L("sk_lv_ink_half_f");
+            Assert.GreaterOrEqual(inkTop, plateBottom - 0.5f, "Lv 잉크가 타원과 안 겹친다");
+            Assert.GreaterOrEqual(-lv.anchoredPosition.y, orbH * PetSkillStyle.L("sk_lv_center_f") - 0.5f, "Lv 는 원작 72.9% 보다 위로 안 올라간다");
+        }
+
+        static void AssertPlainOrb(string id)
+        {
+            RectTransform orb = (RectTransform)Sheet.Skills.Cell(id).Find("sk-orb");
+            Assert.IsNull(orb.Find("equipped"), "비장착 오브엔 막이 없다");
+            Assert.IsNull(orb.Find("sk-eqplate"));
+        }
+
         static void AssertTextGate(string where)
         {
             UiCatalog cat = UiCatalog.Instance;
@@ -196,10 +228,12 @@ namespace Forge.Tests.PlayMode
             eq.onClick.Invoke();
             yield return null;
             Assert.AreNotEqual(was, Host.Skills.State.Equipped.Contains(id), "장착 토글");
+            if (Host.Skills.State.Equipped.Contains(id)) AssertEquippedOrb(id); else AssertPlainOrb(id);
             eq = Sheet.Modal.Find(SkillPanel.DetailModal).Content.Find("btn-equip").GetComponent<UnityEngine.UI.Button>();
             eq.onClick.Invoke();
             yield return null;
             Assert.AreEqual(was, Host.Skills.State.Equipped.Contains(id), "되돌림");
+            if (Host.Skills.State.Equipped.Contains(id)) AssertEquippedOrb(id); else AssertPlainOrb(id);
             Sheet.Modal.Find(SkillPanel.DetailModal).XButton.onClick.Invoke();
             yield return null;
             Assert.IsFalse(Sheet.Modal.IsOpen(SkillPanel.DetailModal));
@@ -322,6 +356,12 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(sb.AutoButton);
             string first = Host.Skills.State.Equipped.Count > 0 ? Host.Skills.State.Equipped[0] : null;
             Assert.AreEqual(first, sb.SlotId(0), "첫 슬롯 = 장착 1번");
+            // T95 — HUD 슬롯의 Lv 는 원작 기본 .sk-lv: 검정 알약이 오브 바닥 −.15rem 에 걸린다
+            RectTransform pill = sb.SlotLv(0);
+            Assert.IsNotNull(pill, "슬롯 Lv 알약");
+            Assert.IsNotNull(pill.Find("bg"), "알약 바탕");
+            Assert.AreEqual(PetSkillStyle.Px("sb_lv_bottom_rem"), pill.anchoredPosition.y, 0.5f, "알약 bottom = −.15rem");
+            Assert.IsNull(sb.SlotLv(Host.Skills.Rules.MaxActive - 1), "빈 슬롯엔 알약 없음");
             Assert.IsNull(sb.SlotId(Host.Skills.Rules.MaxActive - 1), "새 게임은 마지막 슬롯이 빈 원");
             bool auto = SaveIo.State.AutoCast;
             sb.AutoButton.onClick.Invoke();

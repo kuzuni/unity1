@@ -724,7 +724,8 @@
 - **T90(✅)이 놓친 자리**: T90 은 같은 화면의 «오브→게이지 간격·행 피치·버튼 폭» 을 픽셀로 쟀고 그 넷은 맞다. 배지와 Lv 가 **서로** 겹치는 것은 그 자에 없던 항목이다.
 - 할 일: `.sk-orb.equipped` 어둠 막(불투명도 .58)과 `.sk-eqplate` 정중앙 배치·치수(앱 폭 비율)를 정본 실측대로 `catalog.json` 에 두고 스킬 격자가 그것을 쓴다(§1 — 코드에 숫자 금지). 전투 HUD 스킬 바(`.sk-lv` 는 `bottom:-.15rem` 의 **검정 알약** `#17181a`)도 같은 회차에 맞춘다 — 지금 클론은 알약 없이 오브 면에 글자를 얹는다.
 - 판정: `screen_skills.png` 을 열어 장착 오브가 뚜렷이 어둡고 «장착됨» 이 한가운데에서 읽히는 기록(§1) + 픽셀 단언(장착 오브 평균 밝기가 비장착의 **0.5배 이하**) + `ui_score --only skills` 가 안 내려간다 + CI 유니티 잡 초록.
-- 범위: `Assets/Scripts/Game/Ui/Skill*`(격자 오브·배지) · `Ui/Hud.cs`(전투 HUD 스킬 바 Lv 알약) · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/PetUiTests.cs`.
+- 범위: `Assets/Scripts/Game/Ui/Skill*`(격자 오브·배지 · HUD 스킬 바는 `SkillBar.cs`) · `Assets/Forge/Resources/PetSkillUi.json`(스킬 표는 T20 이 여기 둔다 · catalog.json 은 안 쓴다) · `Assets/Tests/PlayMode/PetUiTests.cs`.
+- 1회차(2026-09-13 · 워커 B · 결정 217): 막은 이미 있었다(타원 위 면 ×0.38) → 지각값으로 · 진짜 결함은 글자 하한으로 커진 타원과 Lv 의 겹침 → 장착 오브만 Lv 중심 = max(72.9%, 타원 아래끝+.36em) · HUD `.sk-lv` 검정 알약. 실측·판정은 PROGRESS «T95 진행 기록».
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

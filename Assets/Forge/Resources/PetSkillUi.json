@@ -21,7 +21,7 @@
     "subtab_h": 0.0759, "subtab_pill_w_f": 0.906, "subtab_pill_h": 0.0362, "subtab_active_h": 0.0442, "subtab_pill_r_rem": 0.5, "subtab_btn_r_rem": 0.42,
     "head_h_rem": 1.9, "pill_h_rem": 1.32, "pill_r_rem": 1.0, "pill_pad_rem": 0.55, "pill_icon_rem": 1.32,
     "passive_w": 0.6714, "passive_h": 0.0213, "passive_r_rem": 1.0,
-    "sk_col_w": 0.1310, "sk_col_gap_w": 0.0242, "sk_row_gap_h": 0.0169, "sk_orb_w": 0.1008, "sk_cell_gap_h": 0.0101, "sk_shard_h": 0.0169, "sk_shard_r_rem": 0.45, "sk_lv_center_f": 0.729, "sk_lv_w_f": 0.9, "sk_lv_stroke_f": 0.2,
+    "sk_col_w": 0.1310, "sk_col_gap_w": 0.0242, "sk_row_gap_h": 0.0169, "sk_orb_w": 0.1008, "sk_cell_gap_h": 0.0101, "sk_shard_h": 0.0169, "sk_shard_r_rem": 0.45, "sk_lv_center_f": 0.729, "sk_lv_w_f": 0.9, "sk_lv_stroke_f": 0.2, "sk_lv_ink_half_f": 0.36,
     "sk_eqplate_w": 0.1492, "sk_eqplate_h": 0.0282, "ribbon_r_rem": 0.4,
     "pet_col_w": 0.1020, "pet_col_gap_w": 0.0551, "tile_r_rem": 0.5, "tile_face_mix_f": 0.6,
     "equipped_w_f": 0.74, "equipped_r_rem": 0.6, "equipped_pad_y_rem": 0.48, "equipped_pad_y_skill_rem": 0.28, "equipped_pad_x_rem": 0.5, "equipped_label_w": 0.198, "equipped_label_left_rem": -0.55, "equipped_label_notch_rem": 0.7, "equipped_label_lift_h": 0.0068,
@@ -53,7 +53,7 @@
     "sr_sz_0": 1.0, "sr_sz_1": 0.99, "sr_sz_2": 1.03, "sr_sz_3": 1.08, "sr_sz_4": 1.16, "sr_sz_5": 1.26, "sr_peer_sz": 1.13, "sr_pop_0": 0.32, "sr_pop_1": 0.34, "sr_pop_2": 0.38, "sr_pop_3": 0.44, "sr_pop_4": 0.48, "sr_pop_5": 0.52,
     "sr_charge_ms": 240, "sr_slow_step_ms": 125, "sr_row_ms": 300, "sr_row_stag_ms": 40, "sr_tier_pause_ms": 200, "sr_holdback_ms": 150, "sr_tail_ms": 150, "sr_merge_from": 11, "sr_flash_sec": 0.55, "sr_charge_out_sec": 0.21,
     "face_thumb_px": 128,
-    "sb_right_rem": 0.5, "sb_bottom_rem": 0.6, "sb_gap_rem": 0.4, "sb_btn_rem": 2.9, "sb_auto_h_rem": 1.9, "sb_auto_pad_rem": 0.6, "sb_auto_r_rem": 1.0, "sb_lv_bottom_rem": 0.1, "sb_glow_f": 1.18,
+    "sb_right_rem": 0.5, "sb_bottom_rem": 0.6, "sb_gap_rem": 0.4, "sb_btn_rem": 2.9, "sb_auto_h_rem": 1.9, "sb_auto_pad_rem": 0.6, "sb_auto_r_rem": 1.0, "sb_lv_bottom_rem": -0.15, "sb_lv_pad_rem": 0.25, "sb_lv_line_f": 1.2, "sb_glow_f": 1.18,
     "mounts_bottom_rem": 0.9, "mount_pill_row_h_rem": 1.6, "mtup_w_f": 0.74, "mtup_pad_rem": 0.9, "mtup_face_rem": 2.4, "mtup_grid_cols": 5, "mtup_grid_gap_rem": 0.3, "mtup_grid_max_f": 0.4, "mtup_grid_my_rem": 0.4, "mtup_chip_pad_rem": 0.3, "mtup_chip_r_rem": 0.5, "mtup_row_gap_rem": 0.45, "mtup_row_my_rem": 0.3, "mtup_btn_h_rem": 1.9, "mtup_btn_gap_rem": 0.3, "mtup_mat_max": 5
   },
   "text": {

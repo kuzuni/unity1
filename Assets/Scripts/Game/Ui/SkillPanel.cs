@@ -200,11 +200,16 @@ namespace Forge.Game.Ui
                 float ip = orb * 0.05f;
                 ico.rectTransform.offsetMin = new Vector2(ip, ip);
                 ico.rectTransform.offsetMax = new Vector2(-ip, -ip);
+                // T95 — 장착 오브: 원작 `.sk-orb.equipped::after` 어둠 막 rgba(0,0,0,.58)(선형 색 공간이라 지각값으로 · 결정 191) →
+                // `.sk-eqplate` 정중앙 검정 타원(앱 폭 14.92% × 2.82% · 글자 하한이 더 크면 칸을 키운다) → `.sk-lv` 는 그 위(z 2) · 잉크 위끝이 타원 아래끝에 닿는다(원작 실측 36~64% ↔ 64~81%).
+                float body = UiCatalog.Instance.Kind(TextKind.Body).size;
+                float lvCenter = orb * PetSkillStyle.L("sk_lv_center_f");
                 if (equipped)
                 {
-                    Image dimm = PetSkillKit.Disc(orbRt, "equipped", PetSkillStyle.C("orb_dim"));
+                    Image dimm = PetSkillKit.Disc(orbRt, "equipped", UiKit.PerceivedDim(PetSkillStyle.C("orb_dim")));
                     UiKit.Fill(dimm.rectTransform);
                     float pw = PetSkillStyle.Px("sk_eqplate_w"), ph = Mathf.Max(PetSkillStyle.Px("sk_eqplate_h"), starH * 1.1f);
+                    lvCenter = Mathf.Max(lvCenter, orb * 0.5f + ph * 0.5f + body * PetSkillStyle.L("sk_lv_ink_half_f"));
                     RectTransform plate = UiKit.Box(orbRt, "sk-eqplate");
                     UiKit.Anchor(plate, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, pw, ph);
                     Image pimg = PetSkillKit.Disc(plate, "bg", PetSkillStyle.C("eqplate"));
@@ -217,7 +222,7 @@ namespace Forge.Game.Ui
                 // 종전엔 오브 바닥에 걸쳐(중심 ≈ 82~100%) 아래가 잘려 보였다(런 148·149). 링은 원작 2px/41px ≈ 5% 꼴로 얇게.
                 TextMeshProUGUI lv = PetSkillKit.Stroked(orbRt, "sk-lv", TextKind.Body, PetSkillStyle.T("lv_short", sk.Level), PetSkillStyle.C("white"), PetSkillStyle.L("sk_lv_stroke_f"));
                 float lvH = UiCatalog.Instance.Kind(TextKind.Body).size * 1.1f;
-                UiKit.Anchor(lv.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f), new Vector2(0f, -orb * PetSkillStyle.L("sk_lv_center_f")), orb * PetSkillStyle.L("sk_lv_w_f"), lvH);
+                UiKit.Anchor(lv.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f), new Vector2(0f, -lvCenter), orb * PetSkillStyle.L("sk_lv_w_f"), lvH);
                 // 별(있을 때만 · 줄을 차지한다)
                 float below = orb + cellGap;
                 if (sk.Stars > 0) { StarRow(cell, sk.Stars, colW, below, starH); below += starH + cellGap; }
