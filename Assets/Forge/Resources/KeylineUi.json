@@ -1,9 +1,16 @@
 {
-  "_": "T109 2회차 — 정본 web/css/style.css 의 `-webkit-text-stroke` 를 옮긴 **키라인 폭표**. `Assets/Forge/catalog.json` 이 T87 lock 이라 여기 둔다(T65 PlayerInfoUi.json · T111 GearDetailUi.json 과 같은 꼴 · T33 또는 T104 2회차가 catalog 로 합칠 수 있다). 코드에 숫자를 박지 않는다(§1). em = 글자 크기에 대한 비율(정본이 `.11em` 처럼 적은 것) · px = 기준 캔버스 px(정본이 `2px`·`.5px` 처럼 적은 것 · `var(--ol2)` = 2px).",
+  "_": "T109 2회차 — 정본 web/css/style.css 의 `-webkit-text-stroke` 를 옮긴 **키라인 폭표**. `Assets/Forge/catalog.json` 이 T87 lock 이라 여기 둔다(T65 PlayerInfoUi.json · T111 GearDetailUi.json 과 같은 꼴 · T33 또는 T104 3회차가 catalog 로 합칠 수 있다). 코드에 숫자를 박지 않는다(§1). em = 글자 크기에 대한 비율(정본이 `.11em` 처럼 적은 것 · {em, min_px} 꼴이면 정본 `max(Npx, .Mem)`) · px = **정본 CSS px**(정본이 `2px`·`.5px` 처럼 적은 것 · `var(--ol2)` = 2px · `var(--ol3)` = 3px · `var(--ol4)` = 4px) — 캔버스로 넘길 때 css_px 를 곱한다(T104 2회차 · 2ae9903 보고).",
+  "css_px": 2.164,
+  "css_px_": "정본 앱 폭 499 CSS px ↔ 앱 상자 기준 1080px(UiRoot) = ×2.164 — T87 결정 222 · catalog anvil_fx_px 와 같은 수. em 은 글자 크기(이미 캔버스 px)에 곱하므로 안 곱한다.",
   "em": {
     "offline_total": 0.2,
     "offline_card": 0.11,
-    "sheet_title": 0.11
+    "sheet_title": 0.11,
+    "pass_card": 0.11,
+    "petd_name": { "em": 0.125, "min_px": 1.2, "_": "style.css 5451 .petd-wrap .petd-name max(1.2px, .125em)" },
+    "petup_name": { "em": 0.113, "min_px": 1.2, "_": "style.css 5525 .petup-panel .idet-name max(1.2px, .113em)" },
+    "league_tier_rank": 0.108,
+    "lgr_rank_n": { "em": 0.131, "min_px": 0, "_": "style.css 2578 .lgr-rank-n .16rem / 1.22rem 글자 = .131em" }
   },
   "px": {
     "equip_cell_lv": 0.3,
@@ -11,6 +18,42 @@
     "chat_time": 0.5,
     "chat_share_small": 2.0,
     "chat_share_label": 2.0,
-    "pinfo_cp": 2.0
+    "pinfo_cp": 2.0,
+    "sk_lv": 2.0,
+    "skill_auto_on": 2.0,
+    "subtab_active": 2.0,
+    "slot_buy_label": 3.0,
+    "hatch_time": 3.0,
+    "cur_pill": 3.0,
+    "petd_btn": 3.0,
+    "petup_btn_silver": 2.0,
+    "summon_btn": 4.0,
+    "gauge_span": 2.5,
+    "dgd_keys": 4.0,
+    "dgd_reward": 2.0,
+    "dgd_title": 4.0,
+    "shop_deal_tag": 2.0,
+    "shop_gem_amt": 4.0,
+    "profile_tab_on": 2.0,
+    "league_reward_banner": 2.0
+  },
+  "px_": {
+    "sk_lv": "style.css 4069 #panel-skills .sk-grid .sk-lv 2px",
+    "skill_auto_on": "634 .skill-btn.auto.on 2px(켜진 상태만)",
+    "subtab_active": "3623 #summon-subtabs.subtab-strip button.active 2px(활성만)",
+    "slot_buy_label": "4559 .slot-buy-label var(--ol3)",
+    "hatch_time": "4526 .hatch-cell .hatch-time var(--ol3)",
+    "cur_pill": "3997 .summon-sub .sheet-head .cur-pill 3px · 4258 .mount-pill-row .cur-pill.winder 3px",
+    "petd_btn": "5441 .petd-wrap .petd-btn 3px",
+    "petup_btn_silver": "5493 .petup-selrow .btn.silver 2px(비활성은 0 = 민글자)",
+    "summon_btn": "8664 .btn.summon-btn:not(.ascend-ready) var(--ol4)",
+    "gauge_span": "4663 .rates-prog span 2.5px · 5488 .petup-xpbar span 2.5px",
+    "dgd_keys": "5346 .dgd-keys 4px",
+    "dgd_reward": "5332 .dgd-reward-pill 2px(상속 · 라벨·수치)",
+    "dgd_title": "5286 .dgd-title 는 4방향 2px text-shadow — 정본 5154 주석 «2px 그림자 링 ≈ 4px 중심 스트로크» 등가로 4px",
+    "shop_deal_tag": "2935 .shop-deal-tag 2px",
+    "shop_gem_amt": "2983 .shop-gem-amt 4px",
+    "profile_tab_on": "3085 .profile-tabs button.on 2px(켜진 탭만)",
+    "league_reward_banner": "2496 .league-reward-banner 2px"
   }
 }

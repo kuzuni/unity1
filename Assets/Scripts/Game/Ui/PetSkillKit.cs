@@ -178,6 +178,14 @@ namespace Forge.Game.Ui
             return t;
         }
 
+        /// <summary>T104 2회차 — 같은 활자를 정본 폭표 키(<see cref="KeylineUi"/> · px 또는 em)로. 글자 크기를 정한 뒤 그 순간의 fontSize 로 환산한다(<see cref="UiKit.OutlinePx"/>).</summary>
+        public static TextMeshProUGUI Stroked(Transform parent, string name, TextKind kind, string text, Color color, string keylineKey, TextAlignmentOptions align = TextAlignmentOptions.Center)
+        {
+            TextMeshProUGUI t = Text(parent, name, kind, text, color, align);
+            UiKit.OutlinePx(t, "pp_line", KeylineUi.Stroke(keylineKey, t.fontSize));
+            return t;
+        }
+
         /// <summary>원작 `.cur-pill` — 검정 테 알약 + 아이콘 + 흰 굵은 글자(외곽선).</summary>
         public static RectTransform Pill(Transform parent, string name, Color bg, string iconKey, string label, float h, float x, float y, bool rightAnchor = false, float widthPx = 0f)
         {
@@ -190,7 +198,7 @@ namespace Forge.Game.Ui
             else UiKit.Anchor(pill, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(x, y), w, h);
             Image img = UiKit.Icon(pill, "ico", iconKey);
             UiKit.Place(img.rectTransform, pad, (h - ico) * 0.5f, ico, ico);
-            TextMeshProUGUI t = Stroked(pill, "label", TextKind.Sub, label, PetSkillStyle.C("white"), 0.3f, TextAlignmentOptions.Left);
+            TextMeshProUGUI t = Stroked(pill, "label", TextKind.Sub, label, PetSkillStyle.C("white"), "cur_pill", TextAlignmentOptions.Left);   // 정본 .cur-pill 3px
             UiKit.Place(t.rectTransform, pad + ico + Rem(0.3f), 0f, w - pad * 2f - ico, h);
             return pill;
         }
@@ -202,7 +210,7 @@ namespace Forge.Game.Ui
         /// 우리 하한(§1 버튼 44)에 안 들어가므로 **한 단계 작은 종류**(Sub 36)를 준다 — 그래도 정본보다 크므로 폭은 부르는 쪽이 늘린다.</param>
         /// <param name="letterSpacingEm">정본 `letter-spacing`(em) — TMP `characterSpacing` 은 1/100 em 단위다.</param>
         public static Button PaperButton(Transform parent, string name, BtnKind kind, string label, string sub, bool disabled, UnityAction onClick, float radiusPx = -1f,
-                                         TextKind labelKind = TextKind.Button, float letterSpacingEm = 0f)
+                                         TextKind labelKind = TextKind.Button, float letterSpacingEm = 0f, string keylineKey = null)
         {
             float r = radiusPx > 0f ? radiusPx : PetSkillStyle.Px("btn_r_rem");
             float inset = PetSkillStyle.Px("btn_inset_rem");
@@ -230,13 +238,13 @@ namespace Forge.Game.Ui
             bool two = !string.IsNullOrEmpty(sub);
             TextMeshProUGUI lt = disabled || kind == BtnKind.Gray
                 ? Text(rt, "label", labelKind, label, ink)
-                : Stroked(rt, "label", labelKind, label, ink, kind == BtnKind.Silver ? 0.35f : 0.25f);
+                : Stroked(rt, "label", labelKind, label, ink, keylineKey ?? (kind == BtnKind.Silver ? "petup_btn_silver" : "petd_btn"));   // 정본 .petup-selrow .btn.silver 2px · .petd-wrap .petd-btn 3px(결정 268)
             if (letterSpacingEm != 0f) lt.characterSpacing = letterSpacingEm * 100f;   // TMP 는 1/100 em
             lt.textWrappingMode = TextWrappingModes.NoWrap;   // 정본 `.btn { white-space: nowrap }`
             if (two)
             {
                 UiKit.Band(lt.rectTransform, 0.06f, 0.56f);
-                TextMeshProUGUI st = disabled ? Text(rt, "sub", TextKind.Sub, sub, ink) : Stroked(rt, "sub", TextKind.Sub, sub, ink, 0.25f);
+                TextMeshProUGUI st = disabled ? Text(rt, "sub", TextKind.Sub, sub, ink) : Stroked(rt, "sub", TextKind.Sub, sub, ink, keylineKey ?? (kind == BtnKind.Silver ? "petup_btn_silver" : "petd_btn"));
                 UiKit.Band(st.rectTransform, 0.5f, 0.94f);
             }
             else UiKit.Band(lt.rectTransform, 0.04f, 0.9f);
@@ -275,7 +283,7 @@ namespace Forge.Game.Ui
             fill.rectTransform.anchorMax = new Vector2(Mathf.Clamp01(ratio), 1f);
             fill.rectTransform.offsetMin = fill.rectTransform.offsetMax = Vector2.zero;
             fill.type = Image.Type.Sliced;
-            TextMeshProUGUI t = Stroked(box, "t", kind, label, PetSkillStyle.C("white"), 0.3f);
+            TextMeshProUGUI t = Stroked(box, "t", kind, label, PetSkillStyle.C("white"), "gauge_span");   // 정본 .rates-prog span · .petup-xpbar span 2.5px
             UiKit.Fill(t.rectTransform);
             return box;
         }

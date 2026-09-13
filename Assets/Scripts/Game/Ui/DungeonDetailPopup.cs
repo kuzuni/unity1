@@ -115,7 +115,7 @@ namespace Forge.Game.Ui
             Image scene = UiKit.Icon(hero, "scene", DungeonSheet.SceneIcon(d.Id));
             scene.preserveAspect = false;
             TextMeshProUGUI title = DungeonPopups.Bold(hero, "title", TextKind.Body, d.Kr, "white");
-            UiKit.Outline(title, "pp_ink", UiKit.L("dgd_title_outline"));
+            UiKit.OutlinePx(title, "pp_ink", KeylineUi.Stroke("dgd_title", title.fontSize));   // 정본 .dgd-title 4방향 2px 그림자 ≈ 4px 스트로크(5154 주석)
             float th = DungeonPopups.LineH(TextKind.Body);
             UiKit.Place(title.rectTransform, 0f, DungeonPopups.Rem(0.4f), cw, th);
 
@@ -151,7 +151,7 @@ namespace Forge.Game.Ui
             float kIco = keysH * 0.8f;
             float kw = keysH * 2.6f;
             TextMeshProUGUI kt = DungeonPopups.Bold(card, "keys", TextKind.Title, KeysText, "white", TextAlignmentOptions.Left);
-            UiKit.Outline(kt, "pp_line", UiKit.L("dgd_keys_outline"));
+            UiKit.OutlinePx(kt, "pp_line", KeylineUi.Stroke("dgd_keys", kt.fontSize));   // 정본 .dgd-keys 4px
             UiKit.Place(kt.rectTransform, cx - kw * 0.5f + kIco * 1.1f, y, kw, keysH);
             Image key = UiKit.Icon(card, "key", "key");
             UiKit.Place(key.rectTransform, cx - kw * 0.5f, y + (keysH - kIco) * 0.5f, kIco, kIco);
@@ -189,7 +189,7 @@ namespace Forge.Game.Ui
             for (int i = 0; i < vals.Length; i++) if (Math.Floor(vals[i]) > 0) { parts.Add(i); total += ico + NumFmt.Fmt(vals[i]).Length * lh * 0.5f + lh * 0.3f; }
             float x = Mathf.Max(padX, (pw - total) * 0.5f);
             TextMeshProUGUI label = DungeonPopups.Bold(pill, "label", TextKind.Sub, "보상:", "white", TextAlignmentOptions.Left);
-            UiKit.Outline(label, "pp_line", UiKit.L("dg_name_outline"));
+            UiKit.OutlinePx(label, "pp_line", KeylineUi.Stroke("dgd_reward", label.fontSize));   // 정본 .dgd-reward-pill 2px(상속)
             UiKit.Place(label.rectTransform, x, y, lh * 2.2f, lh);
             x += lh * 2.2f;
             for (int k = 0; k < parts.Count; k++)
@@ -201,7 +201,7 @@ namespace Forge.Game.Ui
                 string v = NumFmt.Fmt(vals[i]);
                 float vw = v.Length * lh * 0.5f + lh * 0.3f;
                 TextMeshProUGUI t = DungeonPopups.Bold(pill, "val-" + keys[i], TextKind.Sub, v, "white", TextAlignmentOptions.Left);
-                UiKit.Outline(t, "pp_line", UiKit.L("dg_name_outline"));
+                UiKit.OutlinePx(t, "pp_line", KeylineUi.Stroke("dgd_reward", t.fontSize));
                 UiKit.Place(t.rectTransform, x, y, vw, lh);
                 x += vw;
                 if (sb.Length > 0) sb.Append("  ");

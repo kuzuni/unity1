@@ -56,7 +56,7 @@ namespace Forge.Game.Ui
             PopupKit.Outlined(band, "face", "pass_banner", rem * 0.2f, PopupKit.Line3);
             TextMeshProUGUI title = UiKit.Text(band, "title", TextKind.Title, "진행 패스", "stage_ink");
             title.fontStyle = FontStyles.Bold;
-            PopupKit.Ring(title);
+            PopupKit.Ring(title, "pass_card", "pp_line");   // 정본 .pass-card .11em(상속)
 
             // 안내문 · 가격 페넌트(2등분 그리드)
             float y = padTop + bannerH + rem * 1.19f;
@@ -75,7 +75,7 @@ namespace Forge.Game.Ui
             PopupKit.Inset(pface.rectTransform, PopupKit.Line3);
             TextMeshProUGUI pt = UiKit.Text(prt, "label", TextKind.Sub, h.Meta.Pass.PremiumPriceKr, "stage_ink");
             pt.fontStyle = FontStyles.Bold;
-            PopupKit.Ring(pt, "pp_line", 0.15f);
+            PopupKit.Ring(pt, "pass_card", "pp_line");
 
             // [무료 | 프리미엄] 탭 행
             y += descH + rem * 1.31f;
@@ -133,7 +133,7 @@ namespace Forge.Game.Ui
                 PopupKit.Inset(labFace.rectTransform, PopupKit.Line);
                 TextMeshProUGUI labT = UiKit.Text(lab, "text", TextKind.Sub, SaveIo.Defs.StageDifficultyLabel(c, 0) + " " + m.Stage, "stage_ink");
                 labT.fontStyle = FontStyles.Bold;
-                PopupKit.Ring(labT, "pp_line", 0.12f);
+                PopupKit.Ring(labT, "pass_card", "pp_line");
                 // 보상 칸 둘
                 float rowY = rem * 0.63f + labelH + rem * 1.03f;
                 float gap = rem * 1.6f;
@@ -183,7 +183,7 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI t = UiKit.Text(pill, "amt", TextKind.Sub, PopupKit.Fmt(reward.ValueAt(i)), "stage_ink", TextAlignmentOptions.Left);
                 t.fontStyle = FontStyles.Bold;
                 t.rectTransform.offsetMin = new Vector2(PopupKit.Rem * 0.3f + pillH * 0.9f, 0f);
-                PopupKit.Ring(t, "pp_line", 0.12f);
+                PopupKit.Ring(t, "pass_card", "pp_line");
             }
             return cell;
         }

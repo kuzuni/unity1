@@ -139,7 +139,7 @@ namespace Forge.Game.Ui
             UiKit.Place(face, ppad, py, icon, icon);
             float tx = ppad + icon + inner * PetSkillStyle.L("petup_head_gap_f");
             float tw = inner - tx - ppad;
-            TextMeshProUGUI name = PetSkillKit.Stroked(panel, "idet-name", TextKind.Body, PetSkillStyle.T("pet_name", Defs.RarityKr.Get(t.Rarity, t.Rarity), Defs.PetKr.Get(t.Name, t.Name)), PetSkillStyle.Rarity(Defs, t.Rarity), 0.25f, TextAlignmentOptions.Left);
+            TextMeshProUGUI name = PetSkillKit.Stroked(panel, "idet-name", TextKind.Body, PetSkillStyle.T("pet_name", Defs.RarityKr.Get(t.Rarity, t.Rarity), Defs.PetKr.Get(t.Name, t.Name)), PetSkillStyle.Rarity(Defs, t.Rarity), "petup_name", TextAlignmentOptions.Left);   // 정본 .petup-panel .idet-name max(1.2px, .113em)
             UiKit.Place(name.rectTransform, tx, py, tw, body * 1.3f);
             TextMeshProUGUI s1 = PetSkillKit.Text(panel, "idet-atk", TextKind.Body, PetSkillStyle.T("dmg", PetSkillStyle.Fmt(atk)), PetSkillStyle.C("black"), TextAlignmentOptions.Left);
             UiKit.Place(s1.rectTransform, tx, py + body * 1.3f, tw, body * 1.35f);

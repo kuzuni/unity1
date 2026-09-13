@@ -65,7 +65,7 @@ namespace Forge.Game.Ui
             RectTransform head = UiKit.Box(root, "sheet-head");
             UiKit.Place(head, 0f, y, W, headH);
             Title = PetSkillStyle.T("skills_title", Sk.State.Skills.Count, Defs.SkillDefs.Count);
-            TextMeshProUGUI title = PetSkillKit.Stroked(head, "sheet-title", TextKind.Title, Title, PetSkillStyle.C("white"), 0.3f);
+            TextMeshProUGUI title = PetSkillKit.Stroked(head, "sheet-title", TextKind.Title, Title, PetSkillStyle.C("white"), "sheet_title");   // 정본 h2.sheet-title .11em
             UiKit.Fill(title.rectTransform);
             float pillH = PetSkillStyle.Px("pill_h_rem");
             PetSkillKit.Pill(head, "pill-ticket", PetSkillStyle.C("pill_ticket"), "ticket", PetSkillStyle.Fmt(H.Tickets), pillH, 0f, (headH - pillH) * 0.5f);
@@ -220,7 +220,7 @@ namespace Forge.Game.Ui
                 // Lv — #panel-skills 의 sk-lv 는 배경 없이 흰 글자 + 검정 외곽선
                 // T90 — 원작 실측(css `#panel-skills .sk-grid .sk-lv` 주석): 잉크 세로중심 = 오브 위에서 72.9% · 잉크 폭 = 지름의 90%.
                 // 종전엔 오브 바닥에 걸쳐(중심 ≈ 82~100%) 아래가 잘려 보였다(런 148·149). 링은 원작 2px/41px ≈ 5% 꼴로 얇게.
-                TextMeshProUGUI lv = PetSkillKit.Stroked(orbRt, "sk-lv", TextKind.Body, PetSkillStyle.T("lv_short", sk.Level), PetSkillStyle.C("white"), PetSkillStyle.L("sk_lv_stroke_f"));
+                TextMeshProUGUI lv = PetSkillKit.Stroked(orbRt, "sk-lv", TextKind.Body, PetSkillStyle.T("lv_short", sk.Level), PetSkillStyle.C("white"), "sk_lv");   // 정본 #panel-skills .sk-grid .sk-lv 2px
                 float lvH = UiCatalog.Instance.Kind(TextKind.Body).size * 1.1f;
                 UiKit.Anchor(lv.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f), new Vector2(0f, -lvCenter), orb * PetSkillStyle.L("sk_lv_w_f"), lvH);
                 // 별(있을 때만 · 줄을 차지한다)

@@ -363,6 +363,13 @@ namespace Forge.Game.Ui
             return t;
         }
 
+        /// <summary>T104 2회차 — 정본 폭표 키(<see cref="KeylineUi"/>)로 링을 두른다. 글자 크기를 정한 뒤에 부른다.</summary>
+        public static TextMeshProUGUI Ring(TextMeshProUGUI t, string keylineKey, string lineKey)
+        {
+            UiKit.OutlinePx(t, lineKey, KeylineUi.Stroke(keylineKey, t.fontSize));
+            return t;
+        }
+
         // ---- 버튼 ----
 
         /// <summary>입체 버튼(원작 .btn · 면 + 아래턱 + 검정 테). w &lt; 0 = 레이아웃이 폭을 준다.</summary>

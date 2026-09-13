@@ -84,7 +84,7 @@ namespace Forge.Game.Ui
             RectTransform head = UiKit.Box(root, "sheet-head");
             UiKit.Place(head, 0f, y, W, headH);
             Title = PetSkillStyle.T("pets_title", P.State.Pets.Count, P.Rules.InvCap);
-            TextMeshProUGUI title = PetSkillKit.Stroked(head, "sheet-title", TextKind.Title, Title, PetSkillStyle.C("white"), 0.3f);
+            TextMeshProUGUI title = PetSkillKit.Stroked(head, "sheet-title", TextKind.Title, Title, PetSkillStyle.C("white"), "sheet_title");   // 정본 h2.sheet-title .11em
             UiKit.Fill(title.rectTransform);
             float pillH = PetSkillStyle.Px("pill_h_rem");
             PetSkillKit.Pill(head, "pill-egg", PetSkillStyle.C("pill_egg"), "eggCracked", PetSkillStyle.Fmt(H.EggCurrency), pillH, 0f, (headH - pillH) * 0.5f);
@@ -335,7 +335,7 @@ namespace Forge.Game.Ui
                 float gapY = PetSkillStyle.Px("slot_buy_gap_w");
                 float total = labH + gapY + lh;
                 float by = rowY + (cellH - total) * 0.5f + PetSkillStyle.Px("slot_buy_top_w");
-                TextMeshProUGUI lab = PetSkillKit.Stroked(hatch, "slot-buy-label", TextKind.Sub, PetSkillStyle.T("slot_plus"), PetSkillStyle.C("white"), 0.3f);
+                TextMeshProUGUI lab = PetSkillKit.Stroked(hatch, "slot-buy-label", TextKind.Sub, PetSkillStyle.T("slot_plus"), PetSkillStyle.C("white"), "slot_buy_label");   // 정본 .slot-buy-label var(--ol3)
                 UiKit.Place(lab.rectTransform, bx - lw * 0.5f, by, lw * 2f, labH);
                 SlotBuyButton = PetSkillKit.PaperButton(hatch, "slot-buy", PetSkillKit.BtnKind.Gray, string.Empty, null, false, OnBuySlot, PetSkillStyle.Rem(0.55f));
                 RectTransform br = SlotBuyButton.GetComponent<RectTransform>();
@@ -389,7 +389,7 @@ namespace Forge.Game.Ui
             float ey = top + PetSkillStyle.Rem(0.5f);
             UiKit.Place(ei.rectTransform, (w - egg) * 0.5f, ey, egg, egg);
             float th = UiCatalog.Instance.Kind(TextKind.Sub).size * 1.2f;
-            TextMeshProUGUI time = PetSkillKit.Stroked(cell, "hatch-time", TextKind.Sub, PetSkillStyle.FmtTime((h.EndsAt - H.Now()) / 1000), PetSkillStyle.C("white"), 0.35f);
+            TextMeshProUGUI time = PetSkillKit.Stroked(cell, "hatch-time", TextKind.Sub, PetSkillStyle.FmtTime((h.EndsAt - H.Now()) / 1000), PetSkillStyle.C("white"), "hatch_time");   // 정본 .hatch-cell .hatch-time var(--ol3)
             UiKit.Place(time.rectTransform, -w * 0.25f, ey + egg + PetSkillStyle.Px("hatch_time_top_rem"), w * 1.5f, th);
             hatchTimes.Add(time);
             // 💎 스킵(xs · 오른쪽 위)
@@ -517,7 +517,7 @@ namespace Forge.Game.Ui
             float bx = padX + tile + PetSkillStyle.Px("petd_head_gap_rem");
             float bw = inner - tile - PetSkillStyle.Px("petd_head_gap_rem");
             float by = y + PetSkillStyle.Rem(0.1f);
-            TextMeshProUGUI name = PetSkillKit.Stroked(c, "petd-name", TextKind.Body, PetSkillStyle.T("pet_name", Defs.RarityKr.Get(pet.Rarity, pet.Rarity), Defs.PetKr.Get(pet.Name, pet.Name)), PetSkillStyle.Rarity(Defs, pet.Rarity), 0.25f, TextAlignmentOptions.Left);
+            TextMeshProUGUI name = PetSkillKit.Stroked(c, "petd-name", TextKind.Body, PetSkillStyle.T("pet_name", Defs.RarityKr.Get(pet.Rarity, pet.Rarity), Defs.PetKr.Get(pet.Name, pet.Name)), PetSkillStyle.Rarity(Defs, pet.Rarity), "petd_name", TextAlignmentOptions.Left);   // 정본 .petd-wrap .petd-name max(1.2px, .125em)
             UiKit.Place(name.rectTransform, bx, by, bw, body * 1.3f);
             by += body * 1.3f + PetSkillStyle.Rem(0.05f);
             TextMeshProUGUI st1 = PetSkillKit.Text(c, "petd-atk", TextKind.Body, PetSkillStyle.T("dmg", PetSkillStyle.Fmt(atk)), PetSkillStyle.C("black"), TextAlignmentOptions.Left);
@@ -581,7 +581,7 @@ namespace Forge.Game.Ui
             float bx = padX + tile + PetSkillStyle.Px("eggd_head_gap_rem");
             float bw = inner - tile - PetSkillStyle.Px("eggd_head_gap_rem");
             float by = y + PetSkillStyle.Rem(0.1f);
-            TextMeshProUGUI name = PetSkillKit.Stroked(c, "petd-name", TextKind.Body, PetSkillStyle.T("egg_name", Defs.RarityKr.Get(egg.Rarity, egg.Rarity)), PetSkillStyle.Rarity(Defs, egg.Rarity), 0.25f, TextAlignmentOptions.Left);
+            TextMeshProUGUI name = PetSkillKit.Stroked(c, "petd-name", TextKind.Body, PetSkillStyle.T("egg_name", Defs.RarityKr.Get(egg.Rarity, egg.Rarity)), PetSkillStyle.Rarity(Defs, egg.Rarity), "petd_name", TextAlignmentOptions.Left);   // 정본 .petd-wrap .petd-name max(1.2px, .125em)
             UiKit.Place(name.rectTransform, bx, by, bw, body * 1.3f);
             by += body * 1.3f + PetSkillStyle.Rem(0.05f);
             TextMeshProUGUI st = PetSkillKit.Text(c, "petd-stats", TextKind.Body, PetSkillStyle.T("hatch_time", PetSkillStyle.FmtTime(hatchSec)), PetSkillStyle.C("black"), TextAlignmentOptions.Left);

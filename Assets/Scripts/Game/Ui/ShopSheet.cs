@@ -42,7 +42,7 @@ namespace Forge.Game.Ui
             RectTransform head = PopupKit.Item(content, "head", -1f, PopupKit.FontSize(TextKind.Title) * 1.3f);
             TextMeshProUGUI title = UiKit.Text(head, "title", TextKind.Title, "상점", "shop_title");
             title.fontStyle = FontStyles.Bold;
-            PopupKit.Ring(title);
+            PopupKit.Ring(title, "sheet_title", "pp_line");   // 정본 h2.sheet-title .11em
             float curW = UiKit.L("shop_cur_w") * w, curH = UiKit.H("shop_cur_h") * 1.6f;
             CurBar(head, "coin-bar", "coin", PopupKit.Fmt(h.S.Coins), UiKit.L("shop_banner_x") * w, curW, curH, h);
             CurBar(head, "gem-bar", "gem", PopupKit.Fmt(h.S.Gems), w * 0.866f - curW, curW, curH, h);
@@ -75,7 +75,7 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI tagT = UiKit.Text(tag, "name", TextKind.Sub, d.Name, "stage_ink", TextAlignmentOptions.Left);
                 tagT.fontStyle = FontStyles.Bold;
                 tagT.rectTransform.offsetMin = new Vector2(w * 0.0503f, 0f);
-                PopupKit.Ring(tagT, "pp_line", 0.15f);
+                PopupKit.Ring(tagT, "shop_deal_tag", "pp_line");   // 정본 .shop-deal-tag 2px
 
                 // 보상 pill 세로 나열
                 float pillW = UiKit.L("shop_pill_w") * w, pillH = UiKit.H("shop_pill_h");
@@ -132,7 +132,7 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI amt = UiKit.Text(amtRow, "amt", TextKind.Body, PopupKit.Fmt(gp.Gems), "stage_ink", TextAlignmentOptions.Left);
                 amt.fontStyle = FontStyles.Bold;
                 amt.rectTransform.offsetMin = new Vector2(gemW * 0.18f + amtH * 1.08f, 0f);
-                PopupKit.Ring(amt, "pp_line", 0.25f);
+                PopupKit.Ring(amt, "shop_gem_amt", "pp_line");   // 정본 .shop-gem-amt 4px
                 float icon = UiKit.H("shop_gem_icon");
                 RectTransform iconBox = UiKit.Box(card, "icon");
                 UiKit.Place(iconBox, (gemW - icon) * 0.5f, UiKit.H("shop_gem_icon_top"), icon, icon);

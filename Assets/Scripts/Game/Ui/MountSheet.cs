@@ -79,7 +79,7 @@ namespace Forge.Game.Ui
             RectTransform head = UiKit.Box(body, "sheet-head");
             UiKit.Place(head, 0f, y, W, headH);
             Title = PetSkillStyle.T("mounts_title", M.Count(), M.Rules.InvCap);
-            TextMeshProUGUI title = PetSkillKit.Stroked(head, "sheet-title", TextKind.Title, Title, PetSkillStyle.C("white"), 0.3f);
+            TextMeshProUGUI title = PetSkillKit.Stroked(head, "sheet-title", TextKind.Title, Title, PetSkillStyle.C("white"), "sheet_title");   // 정본 h2.sheet-title .11em
             UiKit.Fill(title.rectTransform);
             y += headH + gap;
 
@@ -256,7 +256,7 @@ namespace Forge.Game.Ui
             float bx = padX + tile + PetSkillStyle.Px("petd_head_gap_rem");
             float bw = inner - tile - PetSkillStyle.Px("petd_head_gap_rem");
             float by = y + PetSkillStyle.Rem(0.1f);
-            TextMeshProUGUI name = PetSkillKit.Stroked(c, "petd-name", TextKind.Body, PetSkillStyle.T("mount_name", Defs.RarityKr.Get(mt.Rarity, mt.Rarity), Defs.MountKr.Get(mt.Name, mt.Name)), PetSkillStyle.Rarity(Defs, mt.Rarity), 0.25f, TextAlignmentOptions.Left);
+            TextMeshProUGUI name = PetSkillKit.Stroked(c, "petd-name", TextKind.Body, PetSkillStyle.T("mount_name", Defs.RarityKr.Get(mt.Rarity, mt.Rarity), Defs.MountKr.Get(mt.Name, mt.Name)), PetSkillStyle.Rarity(Defs, mt.Rarity), "petd_name", TextAlignmentOptions.Left);   // 정본 .petd-wrap .petd-name max(1.2px, .125em)
             UiKit.Place(name.rectTransform, bx, by, bw, body * 1.3f);
             by += body * 1.3f + PetSkillStyle.Rem(0.05f);
             TextMeshProUGUI st1 = PetSkillKit.Text(c, "petd-atk", TextKind.Body, PetSkillStyle.T("dmg", PetSkillStyle.Fmt(atk)), PetSkillStyle.C("black"), TextAlignmentOptions.Left);

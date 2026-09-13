@@ -84,7 +84,7 @@ namespace Forge.Game.Ui
             float tw = PetSkillStyle.Px("tri_w_rem"), th = PetSkillStyle.Px("tri_h_rem"), ti = PetSkillStyle.Px("tri_icon_h");
             PrevButton = TriButton(c, "tri-prev", "tri_left", padX, y + (headH - th) * 0.5f, tw, th, ti, () => Step(-1));
             NextButton = TriButton(c, "tri-next", "tri_right", w - padX - tw, y + (headH - th) * 0.5f, tw, th, ti, () => Step(1));
-            TextMeshProUGUI ht = PetSkillKit.Stroked(c, "rates-h3", TextKind.Title, PetSkillStyle.T("rates_level", lvl), PetSkillStyle.C("white"), 0.3f);
+            TextMeshProUGUI ht = PetSkillKit.Stroked(c, "rates-h3", TextKind.Title, PetSkillStyle.T("rates_level", lvl), PetSkillStyle.C("white"), "sheet_title");   // 정본 .rates-head h3 .11em
             UiKit.Place(ht.rectTransform, padX + tw, y, inner - tw * 2f, title * 1.15f);
             TextMeshProUGUI st = PetSkillKit.Text(c, "rates-sub", TextKind.Sub, PetSkillStyle.T("rates_sub"), PetSkillStyle.C("ink"));
             UiKit.Place(st.rectTransform, padX + tw, y + title * 1.15f, inner - tw * 2f, sub * 1.2f);

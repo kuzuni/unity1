@@ -102,7 +102,7 @@ namespace Forge.Game.Ui
             UiKit.Fill(askin);
             ((Image)askin.Find("line").GetComponent<Image>()).color = PetSkillStyle.C(on ? "sb_auto_on_line" : "sb_auto_line");
             TextMeshProUGUI at = on
-                ? PetSkillKit.Stroked(ar, "t", TextKind.Sub, autoText, PetSkillStyle.C("white"), 0.25f)
+                ? PetSkillKit.Stroked(ar, "t", TextKind.Sub, autoText, PetSkillStyle.C("white"), "skill_auto_on")   // 정본 .skill-btn.auto.on 2px
                 : PetSkillKit.Text(ar, "t", TextKind.Sub, autoText, PetSkillStyle.C("sb_auto_ink"));
             UiKit.Fill(at.rectTransform);
             // 슬롯 3

@@ -63,7 +63,7 @@ namespace Forge.Game.Ui
             UiKit.Panel(rt, "face", on ? "pp_blue" : "pp_ink");
             TextMeshProUGUI t = UiKit.Text(rt, "label", TextKind.Sub, label, "stage_ink");
             t.fontStyle = FontStyles.Bold;
-            if (on) PopupKit.Ring(t, "pp_line", 0.15f);
+            if (on) PopupKit.Ring(t, "profile_tab_on", "pp_line");   // 정본 .profile-tabs button.on 2px
         }
 
         public static void SwitchView(MetaHost h, string v)
@@ -82,7 +82,7 @@ namespace Forge.Game.Ui
             title.fontStyle = FontStyles.Bold;
             float titleH = PopupKit.FontSize(TextKind.Title) * 1.25f;
             UiKit.Place(title.rectTransform, 0f, y, inner, titleH);
-            PopupKit.Ring(title);
+            PopupKit.Ring(title, "sheet_title", "pp_line");   // 정본 .profile-title .11em
             y += titleH + rem * 0.2f;
 
             float av = UiKit.L("profile_avatar") * w;
@@ -242,7 +242,7 @@ namespace Forge.Game.Ui
             title.fontStyle = FontStyles.Bold;
             float titleH = PopupKit.FontSize(TextKind.Title) * 1.25f;
             UiKit.Place(title.rectTransform, 0f, y, inner, titleH);
-            PopupKit.Ring(title);
+            PopupKit.Ring(title, "sheet_title", "pp_line");   // 정본 .profile-title .11em
             y += titleH;
             DateTime d0 = DateTime.Now;
             TextMeshProUGUI sub = UiKit.Text(card, "sub", TextKind.Sub, "서버 시간: " + d0.Day + ". " + d0.Month + "월, " + d0.ToString("HH:mm"), "pp_muted");

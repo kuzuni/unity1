@@ -35,7 +35,7 @@ namespace Forge.Game.Ui
             title.fontStyle = FontStyles.Bold;
             float titleH = PopupKit.FontSize(TextKind.Title) * 1.25f;
             UiKit.Place(title.rectTransform, 0f, y, inner, titleH);
-            PopupKit.Ring(title);
+            PopupKit.Ring(title, "sheet_title", "pp_line");   // 정본 .offline-title .11em
             y += titleH + rem * 0.15f;
             float lineH = PopupKit.FontSize(TextKind.Sub) * 1.3f;
             TextMeshProUGUI subL = UiKit.Text(top, "sub", TextKind.Sub, "수집 시간:", SubInkKey, TextAlignmentOptions.Right);

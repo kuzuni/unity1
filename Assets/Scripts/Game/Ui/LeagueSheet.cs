@@ -189,7 +189,7 @@ namespace Forge.Game.Ui
             PopupKit.Outlined(ribbon, "face", "lgr_ribbon", rem * 0.3f, PopupKit.Line);
             TextMeshProUGUI rt = UiKit.Text(ribbon, "text", TextKind.Body, "플래티넘 리그 보상", "stage_ink");
             rt.fontStyle = FontStyles.Bold;
-            PopupKit.Ring(rt, "pp_line", 0.15f);
+            PopupKit.Ring(rt, "league_reward_banner", "pp_line");   // 정본 .league-reward-banner 2px
 
             float y = ribbonH + rem * 1.2f;
             TextMeshProUGUI desc = UiKit.Text(card, "desc", TextKind.Sub, "현재 순위(" + myRank + ")를 유지하면 시즌 종료 시\n다음 보상을 받을 수 있습니다:", "stage_ink");
@@ -242,7 +242,7 @@ namespace Forge.Game.Ui
                 }
                 TextMeshProUGUI lab = UiKit.Text(rk, "label", TextKind.Sub, t.Rank <= 3 ? t.Rank.ToString() : t.Label, "stage_ink");
                 lab.fontStyle = FontStyles.Bold;
-                PopupKit.Ring(lab, "pp_line", 0.2f);
+                PopupKit.Ring(lab, t.Rank <= 3 ? "lgr_rank_n" : "league_tier_rank", "pp_line");   // 정본 .lgr-rank-n .16rem · .league-tier-rank.text .108em
                 RectTransform g = UiKit.Box(row, "grid");
                 float gx = rem * 1.1f + rankW + rem * 0.6f;
                 UiKit.Place(g, gx, (tierH - gridH) * 0.5f, cardW - gx - rem * 1.1f, gridH);

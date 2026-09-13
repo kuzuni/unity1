@@ -132,8 +132,8 @@ namespace Forge.Game.Ui
                 subRects[i].gameObject.SetActive(on);
                 subSkins[i].gameObject.SetActive(on);
                 subLabels[i].color = PetSkillStyle.C(on ? "white" : "subtab_ink");
-                if (on) UiKit.Outline(subLabels[i], "pp_line", 0.25f);
-                else subLabels[i].outlineWidth = 0f;
+                if (on) UiKit.OutlinePx(subLabels[i], "pp_line", KeylineUi.Stroke("subtab_active", subLabels[i].fontSize));   // 정본 #summon-subtabs button.active 2px
+                else { subLabels[i].outlineWidth = 0f; subLabels[i].fontMaterial.SetFloat("_FaceDilate", 0f); }
             }
             // 기술 트리 서브탭 = T21 `TechPanel`(소환 시트 안 자기 상자 · Show 가 맨 위로 올린다) — 서브탭 줄 위까지만 차지하게 아래를 비우고 줄을 다시 맨 위로.
             if (sub == SubTech)

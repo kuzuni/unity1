@@ -110,6 +110,42 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T104 2회차 — 호출부가 정본 폭표(<see cref="KeylineUi"/>)를 **캔버스 px 로 환산해** <see cref="UiKit.OutlinePx"/> 에 넘기는가.
+        /// ⓐ 표: px 절은 ×css_px(정본 499 ↔ 앱 상자 1080 = 2.164) · em 절의 {em, min_px} 는 정본 `max(Npx, .Mem)` ⓑ 화면: 소환 시트 제목(정본 h2.sheet-title .11em)이
+        /// `_FaceDilate` &gt; 0(채움을 안 먹는 갈래)이고 `outlineWidth` 가 그 글자 크기·재질로 환산한 식과 같다 — 옛 `Outline(0.3)` 이었으면 dilate 0.
+        /// 두께 자체의 픽셀 검산은 위 픽셀 자가 이미 했다(런 200·204).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 호출부는_정본_폭표를_캔버스_px_로_환산해_받는다()
+        {
+            yield return Boot();
+            float css = KeylineUi.CssPx;
+            Assert.Greater(css, 1.5f, "css_px(정본 CSS px → 캔버스 px)가 표에 있어야 한다: " + css);
+            Assert.AreEqual(0.5f * css, KeylineUi.Px("chat_time"), 1e-4f, "px 절은 css_px 를 곱한다(2ae9903 보고 · .chat-time .5px)");
+            Assert.AreEqual(2f * css, KeylineUi.Stroke("sk_lv", 40f), 1e-4f, "Stroke 는 px 절을 먼저 본다(#panel-skills .sk-lv 2px)");
+            Assert.AreEqual(0.11f * 40f, KeylineUi.Stroke("sheet_title", 40f), 1e-4f, "em 절은 글자 크기에 곱한다(.11em)");
+            Assert.AreEqual(1.2f * css, KeylineUi.Stroke("petd_name", 10f), 1e-4f, "max(1.2px, .125em): 작은 글자는 1.2 CSS px 바닥");
+            Assert.AreEqual(0.125f * 100f, KeylineUi.Stroke("petd_name", 100f), 1e-4f, "max(1.2px, .125em): 큰 글자는 em");
+            Assert.Throws<KeyNotFoundException>(() => KeylineUi.Stroke("이런_키_없다", 10f));
+
+            UiRoot root = UiRoot.Instance;
+            root.TabBar.OnTab("summon");
+            for (int i = 0; i < 4; i++) yield return null;
+            TextMeshProUGUI title = null;
+            foreach (TextMeshProUGUI t in Object.FindObjectsByType<TextMeshProUGUI>(FindObjectsSortMode.None))
+                if (t.name == "sheet-title" && t.gameObject.activeInHierarchy) { title = t; break; }
+            Assert.IsNotNull(title, "소환 시트 제목(sheet-title)이 안 섰다");
+            Material m = title.fontMaterial;
+            float g = m.GetFloat("_GradientScale"), r = m.GetFloat("_ScaleRatioA"), ps = title.font.faceInfo.pointSize;
+            OutlineSdf want = OutlineSdf.FromStroke(KeylineUi.Stroke("sheet_title", title.fontSize), title.fontSize, g, r, ps);
+            Assert.Greater(m.GetFloat("_FaceDilate"), 0f, "px 갈래는 _FaceDilate 로 채움을 지킨다 — 옛 Outline(width01) 이면 0 이다");
+            Assert.AreEqual((double)want.Width01, (double)title.outlineWidth, 1e-3, "outlineWidth = FromStroke(.11em × 글자 " + title.fontSize + "px) 의 Width01");
+            Assert.AreEqual((double)want.Dilate, (double)m.GetFloat("_FaceDilate"), 1e-3, "_FaceDilate = 같은 식의 Dilate(D = W)");
+            Assert.IsFalse(want.Clipped, "제목 .11em 은 이 글꼴 여백 안이어야 한다(잘리면 T121 의 몫): 보이는 " + want.VisiblePx + " / 원한 " + want.WantedPx);
+            yield return null;
+        }
+
         // ---- 도우미 ----
 
         private static void Place(RectTransform rt, float y, float w, float h)
