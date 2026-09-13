@@ -882,7 +882,7 @@
 - ⚠ **두 줄 버튼**: 가로 `UiKit.IconTextRow` 를 그대로 쓰면 두 줄이 한 줄로 눌린다 — 세로 칸(위: 글자 · 아래: 아이콘 줄)으로 감싸거나 `IconTextRow` 에 «줄바꿈이면 새 줄» 갈래를 더한다. T108(`ForgeSheet` «자동 ↻ / 🔒»)과 **같은 갈래**라 `UiKit` 에 세로 갈래를 하나 세우면 다섯이 같이 풀린다.
 - 판정: `check_text_glyphs` 의 `LABEL_KNOWN` 에서 넷을 빼도 rc 0 + 해당 화면 PlayMode 초록 + `screen_craft-compare.png`·`screen_forge-info.png` 를 열어 버튼 아랫줄에 아이콘이 선 것을 눈으로(§1).
 - 범위: `Assets/Scripts/Game/Ui/ForgeCraftPopup.cs`·`Ui/ForgeInfoPopup.cs`(**T87 lock 뒤**) · `Ui/UiKit.cs`(세로 갈래 · T104 뒤) · `tools/check_text_glyphs.py`(`LABEL_KNOWN` 넷 빼기) · `Assets/Tests/PlayMode/ForgeUiTests.cs`(T87 뒤).
-- 🔄 2026-09-13 워커 N(sess-0524-8791) 1회차: 세로 갈래를 **새 파일** `Ui/IconTextStack.cs`(`Build` = 줄바꿈마다 `UiKit.IconTextRow` 를 세로로 · `UiKit.cs` 는 T121 lock · 결정 275) + PlayMode `IconTextStackTests` 1 로 세웠다. 호출부 넷(+T108 의 `ForgeSheet` 자동 버튼)과 `LABEL_KNOWN` 빼기는 T87 lock 뒤 2회차(누구든).
+- 🔄 2026-09-13 워커 N(sess-0524-8791) 1회차: 세로 갈래를 **새 파일** `Ui/IconTextStack.cs`(`Build` = 줄바꿈마다 `UiKit.IconTextRow` 를 세로로 · `UiKit.cs` 는 T121 lock · 결정 275) + PlayMode `IconTextStackTests` 1 로 세웠다. 호출부 넷(+T108 의 `ForgeSheet` 자동 버튼)과 `LABEL_KNOWN` 빼기는 T87 lock 뒤 2회차(누구든). → 런 252 새 단언 초록 · lock 반납 · **2회차 대기**(누구든 · T87 뒤).
 
 ### T111 ✅ — 장비 상세 카드가 **가운데**에 뜬다: 정본은 하단 앵커(카드 바닥 77.15%H)이고 폭도 공용 74% 가 아니라 `.gd-card` 70% 다 (Game·UI · T19 뒤 · **T87 lock(catalog.json) 뒤** · T28 23회차 실측)
 - 실측(2026-09-13 · T28 23회차 · 워커 M · 런 214 `screen_gear-detail.png` ↔ 원작 `shot-043244.png` · 같은 픽셀 코드로 흰 카드를 쟀다):
