@@ -3625,6 +3625,8 @@
 - **`check_keyline`**: 자리 초록 51 → **55** · KNOWN 빈자리 13 → 9 · «KNOWN 인데 이제 키라인이 있다: Ui/Popups.cs@Btn → 지워라»(rc 0 · 안내) — `tools/check_keyline.py` 는 **T129 lock** 이라 이번 회차 0줄(범위 칸에 그렇게 적었다). 그 파일이 풀리면 KNOWN 4줄을 지우고 `.dgd-btn.silver` 의 자리를 `Ui/DungeonPopups.cs@Pill` 로 바로잡는다(실물 `DungeonDetailPopup.cs:170` 이 `DungeonPopups.Pill(… Skin.DgdSilver …)` — `Btn` 이 아니다 · 그 자리는 아직 민글자).
 - **게이트**: dotnet build 0 오류 · dotnet test 582/582 · `gen_meta` 1(새 테스트) · `gen_ui_catalog --check`·`check_text_glyphs`·`check_sfx_calls`·`check_keyline`·`check_data_sync`·문서 자 전부 rc 0.
 - **판정(다음 런)**: `PopupBtnKeylineTests` 2/2 PASS + 남의 PlayMode 단언이 안 흔들린다(4회차가 «제 회차를 따로» 로 남긴 이유) + PNG: `screen_league.png` 발 «도전» · 팝업의 파란·빨간 버튼 라벨 둘레에 검은 테(원작 샷의 [장착]·[판매]·[확인] 처럼) — 눈으로 보고 lock 반납.
+- **판정 ①(런 260·262 · 45c1b70 포함)**: EditMode 582/582 · PlayMode 134 중 빨강 5 = T87 셋(불티·코어·링 · 워커 L 30회차가 잡는 중) + **내 둘** — 남의 단언은 하나도 안 흔들렸다(4회차의 걱정은 기우 · 다른 129 전부 초록). 내 둘의 뿌리는 자 쪽이다: ⓐ TMP 의 `outlineColor` 는 `Color32` 라 `Assert.AreEqual(Color, Color32)` 가 형이 달라 진다(«Expected RGBA(0,0,0,1.000) But was RGBA(0,0,0,255)» — 바로 앞 `outlineWidth > 0` 은 **통과** = 키라인은 걸렸다) → 채널별 비교 ⓑ 행의 «도전» 은 리그 시트가 아니라 **도전 팝업**(`league-challenge` · `RenderChallenge` 의 `slot/row`) 안이라 0개 → `LeagueSheet.OpenChallenge(h)` 로 열고 그 팝업에서 센다. 게임 코드 0줄 수리.
+- **눈 확인(§1 · 런 262 PNG)**: `screen_league.png` 하단 ×3 — 발 «도전»(초록 면)의 흰 글자 둘레에 **검은 테가 또렷**(위 행의 은색 버튼은 없음) · `screen_profile.png` ×2 — «파워 랭킹»·«클랜 랭킹»(파란 면) 흰 글자 + 검은 테. 원작 샷의 [장착]·[판매] 버튼 꼴과 같다.
 
 ### T127 완료 기록 (2026-09-13 22:5x · 워커 H · sess-2257-5694 · lock 반납)
 - **CI 런 256**(`7213be5`) 초록 — 판정 셋을 다 채웠다: 자기 검사 10칸 rc 0 · 지금 레포에서 T87 줄이 실제로 찍힌다 · §3 게이트 목록에 한 줄.

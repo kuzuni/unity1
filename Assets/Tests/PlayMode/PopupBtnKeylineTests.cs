@@ -71,7 +71,10 @@ namespace Forge.Tests.PlayMode
                 {
                     TextMeshProUGUI t = Label(PopupKit.Btn(host, "b-" + faces[i], "확인", faces[i], lips[i], null, w, h));
                     Assert.Greater(t.outlineWidth, 0f, faces[i] + ": 정본 8719 var(--ol2) 키라인이 걸려야 한다");
-                    Assert.AreEqual(line, t.outlineColor, faces[i] + ": 키라인 색은 var(--pp-line)");
+                    Color oc = t.outlineColor;   // TMP 의 outlineColor 는 Color32 — 형이 달라 AreEqual 이 진다(런 262) · 채널로 잰다
+                    Assert.AreEqual(line.r, oc.r, 2f / 255f, faces[i] + ": 키라인 색 R = var(--pp-line)");
+                    Assert.AreEqual(line.g, oc.g, 2f / 255f, faces[i] + ": 키라인 색 G = var(--pp-line)");
+                    Assert.AreEqual(line.b, oc.b, 2f / 255f, faces[i] + ": 키라인 색 B = var(--pp-line)");
                     Assert.AreEqual(ink, t.color, faces[i] + ": 채움(글자색)은 그대로(정본 color #fff)");
                     Assert.IsTrue(t.fontMaterial.IsKeywordEnabled("OUTLINE_ON"), faces[i] + ": 재질 OUTLINE_ON");
                     if (colored < 0f) colored = t.outlineWidth;
@@ -107,25 +110,29 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(PopupLayer.Instance.IsOpen(LeagueSheet.Name), "리그 시트");
             Popup p = PopupLayer.Instance.Find(LeagueSheet.Name);
             Assert.IsNotNull(p);
-            int foot = 0, rows = 0;
+            int foot = 0;
             foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
             {
                 if (t.name != "label" || t.transform.parent == null || t.transform.parent.name != "challenge") continue;
-                Transform g = t.transform.parent.parent;
-                if (g != null && g.name.StartsWith("row-"))
-                {
-                    rows++;
-                    Assert.AreEqual(0f, t.outlineWidth, 1e-6f, "행의 «도전»(challenge_btn 은색 · 정본 .btn.sm 에 규칙 없음)은 민글자");
-                }
-                else
-                {
-                    foot++;
-                    Assert.Greater(t.outlineWidth, 0f, "발의 «도전»(pp_green = 정본 .btn.primary)에 var(--ol2) 키라인");
-                }
+                foot++;
+                Assert.Greater(t.outlineWidth, 0f, "발의 «도전»(pp_green = 정본 .btn.primary)에 var(--ol2) 키라인");
             }
-            Assert.AreEqual(1, foot, "발의 «도전» 버튼 하나");
-            Assert.Greater(rows, 0, "행의 «도전» 버튼이 하나 이상");
-            p = null;
+            Assert.AreEqual(1, foot, "리그 시트 발의 «도전» 버튼 하나");
+
+            // 행의 «도전» 은 리그 시트가 아니라 **도전 팝업**(league-challenge · `RenderChallenge` 의 slot/row) 안이다 — 런 262 에서 0개로 잡혔다
+            LeagueSheet.OpenChallenge(h);
+            yield return null;
+            Assert.IsTrue(PopupLayer.Instance.IsOpen(LeagueSheet.ChallengeName), "도전 팝업");
+            Popup c = PopupLayer.Instance.Find(LeagueSheet.ChallengeName);
+            int rows = 0;
+            foreach (TextMeshProUGUI t in c.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name != "label" || t.transform.parent == null || t.transform.parent.name != "challenge") continue;
+                rows++;
+                Assert.AreEqual(0f, t.outlineWidth, 1e-6f, "행의 «도전»(challenge_btn 은색 · 정본 .btn.sm 에 규칙 없음)은 민글자");
+            }
+            Assert.Greater(rows, 0, "도전 팝업의 행 «도전» 버튼이 하나 이상");
+            h.Popups.Hide(LeagueSheet.ChallengeName);
             LeagueSheet.Close(h);
             yield return null;
         }
