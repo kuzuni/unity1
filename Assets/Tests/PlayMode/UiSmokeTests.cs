@@ -66,13 +66,12 @@ namespace Forge.Tests.PlayMode
             Rect sa = Screen.safeArea;
             if (Mathf.Approximately(sa.width, Screen.width) && Mathf.Approximately(sa.height, Screen.height))
             {
-                // T54 — 3D 카메라는 앱 상자 «전체» 가 아니라 원작 `#game-area` 띠(상단바 밑 ~ 장비 시트 위)를 쓴다.
-                float top = Bootstrap.GameAreaTop, bottom = Bootstrap.GameAreaBottom;
+                // T54 3회차 되돌림 — 카메라 rect 는 앱 상자(레터박스) 그대로다(띠 rect 는 URP 가 세계를 안 그렸다 · 런 116).
                 Rect cam = Camera.main.pixelRect;
-                Assert.AreEqual(cam.x, app.x, 2f, "가로는 앱 상자 그대로(레터박스)");
+                Assert.AreEqual(cam.x, app.x, 2f, "세이프에어리어가 전체 화면이면 앱 상자 = 카메라 레터박스");
+                Assert.AreEqual(cam.y, app.y, 2f);
                 Assert.AreEqual(cam.width, app.width, 2f);
-                Assert.AreEqual(app.height * (bottom - top), cam.height, 2f, "세로는 원작 3D 캔버스 띠 높이");
-                Assert.AreEqual(app.y + app.height * (1f - bottom), cam.y, 2f, "띠 아랫변 = 장비 시트 윗변");
+                Assert.AreEqual(cam.height, app.height, 2f);
             }
 
             Hud hud = root.Hud;

@@ -69,8 +69,10 @@ namespace Forge.Game
             lastH = Screen.height;
             Camera cam = TargetCamera;
             if (cam == null) return;
-            ViewportRect app = Viewport.Letterbox(lastW, lastH, PortraitAspect);
-            ViewportRect r = Viewport.GameArea(app, GameAreaTop, GameAreaBottom);
+            // T54 3회차 되돌림: 카메라 rect 를 원작 `#game-area` 띠로 좁혔더니 **URP 가 세계를 아예 안 그렸다**
+            // (런 116 실측 · 촬영 두 길 모두 안개색 단색 · 지면·HP 바까지 사라졌다). rect 는 앱 상자로 두고,
+            // 원작 캔버스 상자 framing 은 다음 회차에 **투영 행렬**(off-center frustum)로 준다 — 그 길은 rect·클리어를 안 건드린다.
+            ViewportRect r = Viewport.Letterbox(lastW, lastH, PortraitAspect);
             cam.rect = new Rect(r.X, r.Y, r.W, r.H);
         }
 
