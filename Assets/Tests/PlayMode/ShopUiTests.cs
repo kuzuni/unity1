@@ -387,9 +387,11 @@ namespace Forge.Tests.PlayMode
         public IEnumerator T101_리그_도전_행은_별점이_버튼_위에_얹힌_세로_한_칸이다()
         {
             yield return Boot();
-            UiRoot.Instance.TabBar.OnTab("league");
-            yield return null;
+            float t0 = 0f;
+            while (!MetaHost.Ready && t0 < 20f) { t0 += Time.unscaledDeltaTime; yield return null; }
             MetaHost h = MetaHost.Instance;
+            h.OpenLeague();   // 리그는 «pvp» 탭이 연다 — `OnTab("league")` 은 없는 키다(런 191 실측)
+            yield return null;
             LeagueSheet.OpenChallenge(h);
             yield return null;
             Assert.IsTrue(PopupLayer.Instance.IsOpen(LeagueSheet.ChallengeName), "상대 선택 팝업이 열려야 한다");
