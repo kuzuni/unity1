@@ -802,6 +802,16 @@
 - 판정: PlayMode 빨강 0 + CI `screen_pets.png` 눈 확인(빛기둥이 전구에서 알까지 · 리본 글자가 온전) · `ui_score --only pets` 밴드5 미짝이 줄어든다.
 - 범위: `Assets/Scripts/Game/Ui/PetPanel.cs` · `Ui/PetHatchCone.cs` · `Assets/Forge/Resources/PetSkillUi.json` · `Assets/Tests/PlayMode/PetUiTests.cs`.
 
+### T103 — 펫 업그레이드 모달이 탭바를 안 덮고 ✕ 가 둘 · 머리 판 글자가 배경과 대비가 없다 (Game·UI · T79 뒤 · T28 19회차가 정본 CSS 로 잡음)
+- 실측(2026-09-13 · T28 19회차 · 워커 M · 런 188 `screen_pet-upgrade.png` **2.1/10** — 여섯 회차째 «다음 볼 화면» 둘째):
+  - ⓐ **탭바가 환하게 보이고 그 위에 ✕ 가 하나 더** 있다(카드 아래 ✕ + 탭바 위 ✕ = 둘). 원작 `shot-042503` 은 카드가 화면을 덮어 상단바·탭바가 안 보이고 ✕ 가 **하나**다.
+  - ⓑ 머리 판(`.petup-panel`)의 «[일반] 거북이 · 18 피해 · 105 체력» 이 **판 색과 대비가 거의 없다**(연한 회색 글자 ↔ 연한 회색 판). 원작은 같은 자리가 진한 글자다.
+- 정본 근거(결정 219 순서대로 코드부터): `css/style.css` 3781~3783 이 **`#pet-upgrade-modal` 을 `.modal.dim-tabbar` 목록(z-index 40)** 에 넣는다 — 이 팝업은 **탭바까지 덮는** 층이다. 그리고 `.petup-panel` 은 `background: #b7b7b7` 판이라 글자는 기본 진한 잉크다(4347~4350행).
+- T79(✅ · 워커 B)가 닫은 것은 **딤 밝기**(«흰 자리 127.0 = 브라우저 .5»)였고, 내가 8회차에 등재할 때 적은 «✕ 하나 · 화면을 덮는다 · 머리 구성» 은 그 회차 판정에서 빠졌다(그 완료 기록의 판정 넷). 그래서 남은 둘만 새 번호로 뗀다.
+- 무엇을 한다: ⓐ 펫 업그레이드 팝업 층을 `dim-tabbar` 갈래로 올려 탭바를 덮고 부모 시트의 ✕ 를 가린다(화면당 ✕ 하나) ⓑ 머리 판 글자 색 키를 정본 잉크로 바꾼다(판 `#b7b7b7` 위 진한 글자).
+- 판정: `ui_score --score --only pet-upgrade` 가 **4.0 이상**(지금 2.1 · 이 화면은 천장이 낮지 않다 · 결정 229) + 워커가 PNG 를 열어 «✕ 하나 · 탭바 안 보임 · 머리 글자가 읽힌다» 확인 + PlayMode 빨강 0.
+- 범위: `Assets/Scripts/Game/Ui/PetUpgrade*` · `Ui/PetSkillModal.cs`(층·딤 갈래) · `Assets/Forge/Resources/PetSkillUi.json`(잉크 키) · `Assets/Tests/PlayMode/PetUiTests.cs`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -935,7 +945,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/state.js` · `main.js`(저장 시점·부팅) | 세이브 · 마이그레이션 · 오프라인 보상 | T13 | ✅ |
 | `js/forge.js` | 대장간 규칙 · 오토 포지 | T14 · T19 | ✅ (T14 · T19) |
 | 장비 8부위 · 페이퍼돌(`prochar.js`·`ui.js` 장비 · `scene3d.js` makeWeapon/makeHelmet/dressMcRig) | 등급·서브스탯·판매가·외형 | T15(규칙·표값) · T37(3D 외형 캡처) · T19 | ✅ (T15 · T37 · T19) |
-| `js/pets.js` | 알·부화·합성·출전 규칙 · 출전 스탯 기여 | T16 · T20 · T10(출전 조형) · T43(스탯 접착) · T79(업그레이드 모달) | T16 ✅ · T10 ✅ · T20 ✅ · T43 ✅ · T79 ✅ |
+| `js/pets.js` | 알·부화·합성·출전 규칙 · 출전 스탯 기여 | T16 · T20 · T10(출전 조형) · T43(스탯 접착) · T79(업그레이드 모달) · T103(업그레이드 층·대비) | T16 ✅ · T10 ✅ · T20 ✅ · T43 ✅ · T79 ✅ · T103 ⬜ |
 | `js/skills.js` | 소환·18종·3슬롯(정본 `MAX_ACTIVE`) | T17 · T20 | T17 ✅ · T20 ✅ |
 | `js/mounts.js` | 탈것 규칙 · 탑승 | T40(Core 규칙 · 결정 72) · T11(탑승 3D) · T20(탈것 화면) | T40 ✅ · T11 ✅ · T20 ✅ |
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
