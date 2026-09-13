@@ -85,6 +85,48 @@ namespace Forge.Game.Battle
             return m.HasProperty(BaseColorId) ? m.GetColor(BaseColorId) : m.color;
         }
 
-        public static void ClearCache() { shared.Clear(); template = null; }
+        public static void ClearCache() { shared.Clear(); template = null; pool.Clear(); }
+
+        // ===== 재질 풀(T74 · T50 `FxUnlitMaterials.Take/Release` 와 같은 꼴) =====
+        // 정본 `fxGeo` 큐브는 시전마다 `MeshBasicMaterial` 을 새로 만들었다(관리 쓰레기 0 인 WebGL). 유니티는 Material 이 네이티브 오브젝트라 시전마다 만들고 버리면
+        // 편집기 재질 후처리(52~59KB/프레임 · 런 113·118)와 GC 를 부른다 → 조합(투명 여부 · 가산)별로 되쓴다. 색·불투명도는 꺼낼 때 다시 칠한다 — 되쓰기는 새 시스템이 아니다.
+        static readonly Dictionary<int, Stack<Material>> pool = new Dictionary<int, Stack<Material>>();
+        /// <summary>풀에 쉬고 있는 재질 수.</summary>
+        public static int Pooled { get { int n = 0; foreach (var kv in pool) n += kv.Value.Count; return n; } }
+        /// <summary>풀이 새로 만든 재질 수(되쓰기가 새면 시전마다 는다).</summary>
+        public static int PoolMade { get; private set; }
+
+        public static int RecipeKey(bool transparent, bool additive) { return (transparent ? 1 : 0) | (additive ? 2 : 0); }
+
+        /// <summary><see cref="Instance"/> 와 같은 결과를 풀에서 — 돌려줄 때는 <see cref="Release"/>(같은 키). additive = 원작 `AdditiveBlending`(SrcAlpha · One).</summary>
+        public static Material Take(int hex, double opacity, bool additive, out int key)
+        {
+            bool transparent = opacity < 1 || additive;
+            key = RecipeKey(transparent, additive);
+            Stack<Material> st;
+            Material m = null;
+            if (pool.TryGetValue(key, out st))
+                while (st.Count > 0) { Material p = st.Pop(); if (p != null) { m = p; break; } }
+            if (m == null)
+            {
+                PoolMade++;
+                m = Instance(hex, transparent ? Mathf.Min(0.999f, (float)opacity) : 1);
+                if (additive)
+                {
+                    if (m.HasProperty(SrcBlendId)) m.SetFloat(SrcBlendId, (float)BlendMode.SrcAlpha);
+                    if (m.HasProperty(DstBlendId)) m.SetFloat(DstBlendId, (float)BlendMode.One);
+                }
+            }
+            SetColor(m, hex, opacity);
+            return m;
+        }
+
+        public static void Release(Material m, int key)
+        {
+            if (m == null) return;
+            Stack<Material> st;
+            if (!pool.TryGetValue(key, out st)) pool[key] = st = new Stack<Material>();
+            st.Push(m);
+        }
     }
 }

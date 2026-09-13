@@ -307,5 +307,27 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(s3.Actors.Contains("medic"));
             Assert.AreEqual(0, r.D.Pool.Active); Assert.AreEqual(0, r.D.CubeCount);
         }
+
+        [UnityTest]
+        public IEnumerator 큐브_재질은_풀에서_되쓴다_두_번째_시전에_새_재질_0()
+        {
+            yield return Boot();
+            Rig r = Make(11);
+            List<int> targets = new BattleSceneStage(r.Scene).Targets("aoe");
+            // 첫 시전: 큐브(시전 박자 모트·차지 코어·트레일)가 재질을 풀에서 꺼내고(없으면 만든다) 퇴장하며 돌려준다
+            CastRecord s1 = r.D.Cast(Def("p1", "slash", "aoe", "mythic", "#cfd8dc"), targets); StepD(r.D, 2.5);
+            r.D.Clear();
+            Assert.AreEqual(0, r.D.CubeCount, "큐브 전부 퇴장");
+            int made1 = Forge.Game.Battle.FxMaterials.PoolMade;
+            int pooled1 = Forge.Game.Battle.FxMaterials.Pooled;
+            Assert.Greater(made1, 0, "첫 시전이 재질을 만들었다(큐브를 쓰는 연출)");
+            Assert.Greater(pooled1, 0, "퇴장한 큐브의 재질이 풀로 돌아왔다");
+            // 둘째 시전: 같은 조합이면 새 재질 0 — 되쓰기가 새면 여기서 는다(런 113·118 «재시전 켬 +135»)
+            CastRecord s2 = r.D.Cast(Def("p2", "slash", "aoe", "mythic", "#cfd8dc"), targets); StepD(r.D, 2.5);
+            r.D.Clear();
+            Assert.AreEqual(made1, Forge.Game.Battle.FxMaterials.PoolMade, "둘째 시전은 풀에서만 꺼낸다 — 새 Material 0");
+            Assert.AreEqual(0, r.D.CubeCount);
+            Assert.GreaterOrEqual(Forge.Game.Battle.FxMaterials.Pooled, pooled1, "돌려준 재질이 다시 풀에 있다");
+        }
     }
 }

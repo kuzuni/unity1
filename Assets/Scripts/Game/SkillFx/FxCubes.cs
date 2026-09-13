@@ -7,18 +7,20 @@ namespace Forge.Game.SkillFx
 {
     /// <summary>
     /// 연출용 단위 큐브(원작 `fxGeo('box',1,1,1)` + `MeshBasicMaterial`) — 블록 스트림·트레일·시전 모트·차지 코어가 쓴다.
-    /// 메시는 내장 큐브 하나를 공유하고 재질은 개체마다(불투명도를 매 프레임 바꾼다) 만들어 지울 때 함께 지운다.
+    /// 메시는 내장 큐브 하나를 공유하고 재질은 개체마다(불투명도를 매 프레임 바꾼다) — T74: 조합(투명·가산)별 풀(<see cref="FxMaterials.Take"/>)에서 꺼내고 지울 때 돌려준다(시전마다 새 Material 을 만들고 버리던 것 · 런 113·118 실측 ±135).
     /// </summary>
     public sealed class FxCube
     {
         public readonly GameObject G;
         public readonly Transform T;
         public readonly Material Mat;
+        /// <summary>풀 키(<see cref="FxMaterials.RecipeKey"/>) — 돌려줄 때 같은 칸으로.</summary>
+        public readonly int MatKey;
         readonly double[] rot = { 0, 0, 0 };
         public Vector3 Pos { get; private set; }
         public bool Gone { get; private set; }
 
-        internal FxCube(GameObject g, Material m) { G = g; T = g.transform; Mat = m; }
+        internal FxCube(GameObject g, Material m, int matKey) { G = g; T = g.transform; Mat = m; MatKey = matKey; }
 
         public void SetPos(Vector3 threePos) { Pos = threePos; T.localPosition = ThreeSpace.Pos(threePos.x, threePos.y, threePos.z); }
         public void SetPos(double x, double y, double z) { SetPos(new Vector3((float)x, (float)y, (float)z)); }
@@ -33,15 +35,13 @@ namespace Forge.Game.SkillFx
             if (Gone) return;
             Gone = true;
             if (G != null) Object.Destroy(G);
-            if (Mat != null) Object.Destroy(Mat);
+            FxMaterials.Release(Mat, MatKey);   // 재질은 지우지 않고 풀로(T74)
         }
     }
 
     public static class FxCubes
     {
         static Mesh unit;
-        static readonly int SrcBlendId = Shader.PropertyToID("_SrcBlend");
-        static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
         public static int Alive { get; private set; }
 
         public static Mesh UnitMesh
@@ -68,15 +68,10 @@ namespace Forge.Game.SkillFx
             go.AddComponent<MeshFilter>().sharedMesh = UnitMesh;
             var mr = go.AddComponent<MeshRenderer>();
             mr.shadowCastingMode = ShadowCastingMode.Off; mr.receiveShadows = false;
-            Material m = FxMaterials.Instance(hex, opacity < 1 || additive ? Mathf.Min(0.999f, (float)opacity) : 1);
-            if (additive)
-            {
-                if (m.HasProperty(SrcBlendId)) m.SetFloat(SrcBlendId, (float)BlendMode.SrcAlpha);
-                if (m.HasProperty(DstBlendId)) m.SetFloat(DstBlendId, (float)BlendMode.One);
-            }
-            FxMaterials.SetColor(m, hex, opacity);
+            int key;
+            Material m = FxMaterials.Take(hex, opacity, additive, out key);   // 색·불투명도·가산은 Take 가 칠한다
             mr.sharedMaterial = m;
-            var c = new FxCube(go, m);
+            var c = new FxCube(go, m, key);
             Alive++;
             return c;
         }
