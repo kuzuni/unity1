@@ -14,6 +14,7 @@ using Forge.Core.Save;
 using Forge.Core.Tech;
 using Wallet = Forge.Core.Forging.Wallet;
 using Forge.Game.Hero;
+using Forge.Core.CraftFx;
 
 namespace Forge.Game.Ui
 {
@@ -46,8 +47,10 @@ namespace Forge.Game.Ui
         private bool booted;
         public static event Action OnReady;
 
-        /// <summary>원작 연출 시각(ms): 모루 3타 0.72초 · 리빌 카드 0.56초 · 탈락 카드 0.62초 · 배치 카드판 1.6초.</summary>
-        public const float AnvilStrikeSec = 0.72f, RevealCardSec = 0.56f, AutoCardSec = 0.62f, CraftBatchSec = 1.6f;
+        /// <summary>원작 연출 시각: 리빌 카드 0.56초 · 탈락 카드 0.62초 · 배치 카드판 1.6초.</summary>
+        /// <summary>두들기기 한 판의 길이 — 정본 `ui.js` `ANVIL_FX_MS: 1500`(= CSS 마스터 클럭 `--afdur`). T87 전에는 0.72s 였다.</summary>
+        public static readonly float AnvilStrikeSec = (float)(AnvilFxSpec.DurationMs / 1000.0);
+        public const float RevealCardSec = 0.56f, AutoCardSec = 0.62f, CraftBatchSec = 1.6f;
         /// <summary>원작 `HAMMER_BATCH_MAX` 22(UI-SPEC 82) · `FILL_CRAFT_CAP` 600(프레임 안전판).</summary>
         public const int HammerBatchMaxBase = 22, FillCraftCap = 600;
 
@@ -742,10 +745,20 @@ namespace Forge.Game.Ui
         {
             ForgeCraftPopup.DismissReveal();   // 앞 타격의 카드만 걷는다 — CancelAnvilStrike 는 AnvilBusy 까지 끄므로 여기서 부르면 방금 잠근 모루가 풀린다(CI 런 64)
             Striking = true;
-            PlaySfx("anvilHit");
             ForgeSheet.SetStriking(this, true);
             int gen = ++strikeGen;
             strikeLive = true;
+            // 정본 `ui.js` 2947: 타격 셋(`ANVIL_HITS` 300·650·1100ms)마다 `SFX.anvilHit(h === 2)` — 마지막이 큰 소리다.
+            // T87 전에는 시작에 한 번만 울려 «세 번 두들긴다» 가 소리로는 한 번이었다.
+            for (int hitIdx = 0; hitIdx < AnvilFxSpec.StrikeMs.Length; hitIdx++)
+            {
+                int myGen = gen;
+                Delay((float)(AnvilFxSpec.StrikeMs[hitIdx] / 1000.0), () =>
+                {
+                    if (myGen != strikeGen || !strikeLive) return;
+                    PlaySfx("anvilHit");
+                });
+            }
             Delay(AnvilStrikeSec, () =>
             {
                 if (gen != strikeGen || !strikeLive) return;   // 취소된 타격 — 콜백을 삼킨다

@@ -102,10 +102,18 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>모루 타격 연출 중 표시(원작 .striking — 그림은 T8/T30 자리 · 여기서는 모루를 살짝 눌러 둔다).</summary>
+        /// <summary>
+        /// 두들기기 시작·끝 — 정본은 `.anvil-btn.striking`(모루 `anvilbump`)과 `#equip-sheet.shaking`(`sheetshake`)을
+        /// 같은 마스터 클럭(`--afdur` = `ui.js` `ANVIL_FX_MS` 1500ms)으로 돌린다. T87: 그 키프레임 표를 러너가 프레임마다 바른다.
+        /// </summary>
         public static void SetStriking(ForgeHost h, bool on)
         {
-            if (anvilRt == null) return;
-            anvilRt.localScale = on ? new Vector3(1f, 0.94f, 1f) : Vector3.one;
+            UiRoot root = UiRoot.Instance;
+            if (root == null) return;
+            AnvilFx fx = AnvilFx.Ensure(root.Sheet);
+            if (fx == null) return;
+            if (on) fx.Play(anvilRt, root.Sheet);
+            else fx.Stop();
         }
 
         static Button TwoLineBtn(Transform parent, string name, string label, string face, string lip, UnityEngine.Events.UnityAction onClick, float w, float h)

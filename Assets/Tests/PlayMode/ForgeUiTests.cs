@@ -9,6 +9,7 @@ using UnityEngine.UI;
 using Forge.Core.Forging;
 using Forge.Game;
 using Forge.Game.Ui;
+using Forge.Core.CraftFx;
 
 namespace Forge.Tests.PlayMode
 {
@@ -53,7 +54,7 @@ namespace Forge.Tests.PlayMode
         {
             float t = 0f;
             while (!h.Meta.Popups.IsOpen(ForgeCraftPopup.Name) && t < 5f) { t += Time.unscaledDeltaTime; yield return null; }
-            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "망치질(0.72s) + 리빌(0.56s) 뒤 비교 팝업이 떠야 한다");
+            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "망치질(정본 1.5s) + 리빌(0.56s) 뒤 비교 팝업이 떠야 한다");
             yield return null;
         }
 
@@ -445,5 +446,57 @@ namespace Forge.Tests.PlayMode
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true)) if (t.name == name) return t;
             return null;
         }
+        /// <summary>
+        /// T87 2회차 — 두들기는 동안 모루와 시트가 **정본 키프레임(`AnvilFxSpec`)** 대로 움직이는가.
+        /// 정본은 `.anvil-btn.striking`(`anvilbump`)과 `#equip-sheet.shaking`(`sheetshake`)을 같은 클럭(`ANVIL_FX_MS` 1500ms)으로 돌린다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 두들기면_모루와_시트가_정본_키프레임대로_움직인다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Hammers = 30;
+            ForgeSheet.Render(h);
+            yield return null;
+
+            RectTransform sheet = UiRoot.Instance.Sheet;
+            Vector2 sheetHome = sheet.anchoredPosition;
+            RectTransform anvil = null;
+            foreach (RectTransform rt in sheet.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "anvil") { anvil = rt; break; }
+            Assert.IsNotNull(anvil, "모루 그림 칸(anvil)이 시트에 없다");
+            Vector2 anvilHome = anvil.anchoredPosition;
+
+            h.OnCraft();
+            yield return null;
+            AnvilFx fx = sheet.GetComponent<AnvilFx>();
+            Assert.IsNotNull(fx, "두들기기 러너가 안 붙었다");
+            Assert.IsTrue(fx.Running, "두들기는 동안은 돈다");
+
+            double[] bump = new double[3];
+            double[] shake = new double[2];
+            for (int i = 0; i < AnvilFxSpec.StrikeMs.Length; i++)
+            {
+                fx.SampleTo(AnvilFxSpec.StrikeMs[i]);
+                AnvilFxSpec.Bump.Sample(AnvilFxSpec.StrikeStop[i], bump);
+                AnvilFxSpec.SheetShake.Sample(AnvilFxSpec.StrikeStop[i], shake);
+                // CSS translateY 는 아래가 + · 유니티 UI 는 위가 + 라 부호가 뒤집힌다.
+                Assert.AreEqual(anvilHome.y - (float)bump[0], anvil.anchoredPosition.y, 0.02f, i + "타: 모루가 눌린다");
+                Assert.AreEqual((float)bump[2], anvil.localScale.y, 0.002f, i + "타: 모루 scaleY");
+                Assert.AreEqual(sheetHome.y - (float)shake[1], sheet.anchoredPosition.y, 0.02f, i + "타: 시트가 아래로 꽂힌다");
+                Assert.Less(anvil.localScale.y, 1f, i + "타 순간엔 눌려 있다");
+            }
+
+            // 끝나면 둘 다 제자리 — 러너가 자기가 만든 것만 되돌린다
+            fx.Stop();
+            yield return null;
+            Assert.AreEqual(anvilHome.y, anvil.anchoredPosition.y, 0.01f, "모루 제자리");
+            Assert.AreEqual(1f, anvil.localScale.y, 0.001f, "모루 크기 제자리");
+            Assert.AreEqual(sheetHome.x, sheet.anchoredPosition.x, 0.01f, "시트 제자리(x)");
+            Assert.AreEqual(sheetHome.y, sheet.anchoredPosition.y, 0.01f, "시트 제자리(y)");
+            h.CancelAnvilStrike();
+            yield return null;
+        }
+
     }
 }
