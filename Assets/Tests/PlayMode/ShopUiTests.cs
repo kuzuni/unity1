@@ -403,10 +403,12 @@ namespace Forge.Tests.PlayMode
 
             // ⚠ 리그 **시트**(팝업 아래에 그대로 열려 있다)에도 «도전» 버튼이 있어서 팝업 밖까지 뒤지면 그것을 집는다
             //   (런 208 실측: 그 버튼의 부모엔 별이 없어 «별점 칸이 없다» 로 빨갰다). 그래서 **이 팝업 뿌리 아래만** 본다.
-            RectTransform popupRoot = null;
-            foreach (RectTransform rt in PopupLayer.Instance.GetComponentsInChildren<RectTransform>(true))
-                if (rt.name == "modal-" + LeagueSheet.ChallengeName) { popupRoot = rt; break; }
-            Assert.IsNotNull(popupRoot, "상대 선택 팝업 뿌리(modal-" + LeagueSheet.ChallengeName + ")가 없다");
+            // 뿌리는 `PopupLayer.Find(name).Root` 로 잡는다 — 팝업 상자(`modals`/`modals-over`)는 `PopupLayer` 가 아니라
+            // **UiRoot 의 앱 상자** 아래에 있어서 `PopupLayer.Instance.GetComponentsInChildren` 으로는 안 걸린다(런 214 실측).
+            Popup popup = PopupLayer.Instance.Find(LeagueSheet.ChallengeName);
+            Assert.IsNotNull(popup, "상대 선택 팝업이 PopupLayer 에 없다");
+            RectTransform popupRoot = popup.Root;
+            Assert.IsNotNull(popupRoot, "상대 선택 팝업 뿌리가 없다");
 
             // 행 이름에 기대지 않고 «별과 도전 버튼을 함께 가진 칸» 을 행으로 삼는다(슬롯 이름이 바뀌어도 안 깨진다).
             RectTransform row = null, star = null, btn = null;
