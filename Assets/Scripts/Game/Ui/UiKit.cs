@@ -193,9 +193,9 @@ namespace Forge.Game.Ui
     }
 
     /// <summary>
-    /// TMP 글꼴 — 주인 글꼴 <c>Assets/Fonts/NotoSans-Regular.ttf</c> 를 런타임 폰트 애셋으로 만들고(에디터 없이 굽는 길),
-    /// 그 파일에 한글 cmap 이 없어(실측 2026-09-12 · U+AC00 구간 0) 원작 CSS font-family 순서(Malgun Gothic · Apple SD Gothic Neo …)대로
-    /// OS 글꼴을 폴백 표에 붙인다. OS 에 한글 글꼴이 없으면(리눅스 CI · WebGL) 한글은 네모로 나온다 — 그것은 경고 한 줄로 알린다.
+    /// TMP 글꼴 — 카탈로그 글꼴(<c>Assets/Fonts/NotoSansKR-Forge.ttf</c> · 한글 1266 자 + 라틴·기호 서브셋 · 302KB)을
+    /// 런타임 폰트 애셋으로 만든다(에디터 없이 굽는 길). 이 파일에는 한글 cmap 이 있으므로 리눅스 CI·WebGL 에서도 한글이 선다.
+    /// OS 글꼴 폴백은 그대로 남겨 둔다 — 서브셋에 없는 글자(원작에 없던 한글·한자 등)를 폰이 가진 글꼴로 메운다.
     /// </summary>
     public static class UiFont
     {
@@ -216,9 +216,9 @@ namespace Forge.Game.Ui
         private static TMP_FontAsset Build()
         {
             UiCatalog cat = UiCatalog.Instance;
-            if (cat.font == null) throw new System.InvalidOperationException("UiCatalog.font 이 비었다 — Assets/Fonts/NotoSans-Regular.ttf 참조 (gen_ui_catalog.py)");
+            if (cat.font == null) throw new System.InvalidOperationException("UiCatalog.font 이 비었다 — Assets/Fonts/NotoSansKR-Forge.ttf 참조 (gen_ui_catalog.py)");
             TMP_FontAsset fa = TMP_FontAsset.CreateFontAsset(cat.font);
-            if (fa == null) throw new System.InvalidOperationException("NotoSans-Regular 로 TMP 폰트 애셋을 못 만들었다");
+            if (fa == null) throw new System.InvalidOperationException("카탈로그 글꼴로 TMP 폰트 애셋을 못 만들었다");
             fa.name = cat.font.name + " (runtime)";
             Shader shader = ShipShader();
             if (shader != null && fa.material != null) fa.material.shader = shader;
@@ -237,7 +237,7 @@ namespace Forge.Game.Ui
                 break;
             }
             if (HangulFallback == null)
-                Debug.LogWarning("[UiFont] OS 한글 글꼴을 못 찾았다 — 한글 라벨이 네모로 보인다. 주인 에셋에 한글 글꼴(NotoSansKR 등)을 넣으면 카탈로그 font 로 바꾼다 (T18)");
+                Debug.Log("[UiFont] OS 한글 폴백 없음 — 카탈로그 글꼴이 한글을 직접 쥔다(NotoSansKR-Forge · T53)");
             return fa;
         }
 

@@ -46,6 +46,37 @@ namespace Forge.Tests.PlayMode
                 Assert.GreaterOrEqual(cat.Kind(k).size, cat.Kind(k).min, k + " 의 크기가 제 하한보다 작다");
         }
 
+        /// <summary>T53 — 화면에 실제로 서는 한글이 글꼴에 있는가(두부 □ 막이).
+        /// 폰트 애셋이 글리프를 못 찾으면 TMP 는 조용히 네모를 그린다 — 그래서 문자 단위로 묻는다.</summary>
+        [UnityTest]
+        public IEnumerator 화면_한글이_글꼴에_있다_두부가_없다()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+            TMP_FontAsset fa = UiFont.Primary;
+            System.Collections.Generic.HashSet<char> missing = new System.Collections.Generic.HashSet<char>();
+            foreach (TextMeshProUGUI t in Object.FindObjectsByType<TextMeshProUGUI>(FindObjectsSortMode.None))
+            {
+                if (!t.isActiveAndEnabled || string.IsNullOrEmpty(t.text)) continue;
+                foreach (char c in t.text)
+                {
+                    if (c < 0xAC00 || c > 0xD7A3) continue;          // 한글 음절만 본다
+                    if (!fa.HasCharacter(c, true, true)) missing.Add(c);
+                }
+            }
+            Assert.IsEmpty(missing, "글꼴에 없는 한글(화면에 □ 로 나온다): " + new string(System.Linq.Enumerable.ToArray(missing)));
+        }
+
+        /// <summary>카탈로그 글꼴 자체가 한글을 쥐고 있는가(OS 폴백에 기대지 않는다 — 리눅스 CI·WebGL 에는 없다).</summary>
+        [Test]
+        public void 카탈로그_글꼴이_한글을_직접_쥔다()
+        {
+            TMP_FontAsset fa = UiFont.Primary;
+            foreach (char c in "대장간던전소환퀘스트상점펫스킬탈것승천장비제작판매설정프로필리그채팅")
+                Assert.IsTrue(fa.HasCharacter(c, false, false), "카탈로그 글꼴에 '" + c + "' 가 없다 — OS 폴백이 없는 환경에서 두부가 된다");
+        }
+
         private static string Path(Transform t)
         {
             string s = t.name;

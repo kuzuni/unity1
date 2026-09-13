@@ -6,6 +6,7 @@
 
 ## ⚑ 신규 주인 지시 (위 항목이 최신 · 닫힌 것은 ✅ 를 단다)
 
+- **(2026-09-13 · 주인 · 넷)** «한글 글꼴 주인 대기는 뭐지 · TMP 로 하기는 한 건가 / PVP 부분 네모도 고쳐야 할 듯» → **주인 승인으로 한글 글꼴을 넣어 T53 을 닫았다**(`Assets/Fonts/NotoSansKR-Forge.ttf` · Noto Sans KR 서브셋 302KB). TMP 경로는 처음부터 옳았다. «백그라운드에서도 플레이 되게» → **T88**. «대장간 뽑을 때 애니메이션도 빠졌네 · 그런 것도 같게» → **T87**(원작 CSS 키프레임 22종).
 - **(2026-09-12 · 주인 · 화면 셋)** «SafeArea 로 모바일 상단 카메라 안 가리게 · 60fps 로 돌아야 · **실제 게임 화면을 찍어서 봐라**» → §1 «실제 화면을 본다»·«SafeArea»·«60fps» 세 규칙 + T27(가장 먼저 · 노치 모의 촬영) · T44(60fps 게이트) · T45(SafeArea 노치 모의 검증). 테스트 초록만으로 ✅ 금지 — 워커가 PNG 를 열어 본 뒤 ✅.
 - **(2026-09-12 · 주인 · 모델)** «루틴들 오퍼스로 해» → 워커·검수 루틴 모델 = **`claude-opus-5`**(§6 ②). 계정 2(E~H)는 20:14 UTC 에 · 계정 3(I~L·Q)은 20:40 UTC 에 바꿨다 · 계정 4 는 21:12 UTC 에 M 만 바꿨다(N·O·P 는 Opus 세션만 만들어 두고 루틴 묶기가 분류기에 막힘 · ③ 표 참조) · 계정 1·5 와 계정 4 의 N·O·P 는 그 계정의 다음 세션이 같은 방법으로 바꾼다(③ 표에 기록).
 - **(2026-09-12 · 주인 · 완주)** «내가 더 말을 안 해도 루틴들이 원작을 유니티로 전체 빠짐없이 옮기게» → §7 «완결 정의 · 원작 ↔ 작업 대조표» 가 기준이다. 워커는 매 회차 §7 표에서 «없음» 인 줄을 보면 **작업으로 먼저 등재**하고, 검수 Q 는 ⑤ⓔ 로 원작 목록을 다시 훑는다. 마지막은 T33 완주 대조 — §7 전 줄 ✅ 가 «다 옮겨졌다» 의 뜻이다.
@@ -45,7 +46,7 @@
 - `Assets/Scripts/Core` 에는 `UnityEngine` 을 참조하지 않는다(asmdef `noEngineReferences: true` · dotnet 이 강제). 엔진(전투 틱·대장간·펫·스킬 계산)은 전부 Core 다 — 유니티 없이 `dotnet test` 로 원작 JS 와 대조한다.
 - **판단이 필요하면 기다리지 않고 스스로 정해 적용**하고 PROGRESS «워커 결정 기록» 에 «무엇을 · 왜 · 되돌리려면 어디» 한 줄을 남긴다. 번호는 커밋 «직전» 에 `python3 tools/check_decisions.py --next` 로 뽑는다. 겹치면 **늦게 push 한 쪽이 옮긴다**.
 - **새 콘텐츠·새 시스템·밸런스 변경 금지.** 원작에 없는 것을 넣지 않는다. 원작 `web/TODO.md` 의 **미완(`[ ]`) 항목 7개도 «원작에 없는 것»** 이다 — 옮기지 않는다(그것은 wwwww 쪽 일). 옮기는 것은 원작이 **지금 하는 것** 전부다(§7 표).
-- **에셋은 주인 에셋만**: UI `GUI PRO Kit - Casual Game` · 이펙트 `JMO Assets/Cartoon FX Remaster` · `DOTween` · `AllIn1SpriteShader` · 글꼴 `Assets/Fonts/NotoSans-Regular.ttf`. 3D 조형은 **코드 생성 복셀 메시**(T4)뿐이다 — 외부 모델·임시 그림 금지. 새 에셋을 쓰면 `docs/assets-map.md` 에 «용도 · 경로 · GUID» 한 줄.
+- **에셋은 주인 에셋만**(2026-09-13 주인 승인으로 **한글 글꼴 하나만 추가**: `Assets/Fonts/NotoSansKR-Forge.ttf` · SIL OFL · 원작이 쓰는 글자만 남긴 서브셋 302KB · `docs/assets-map.md` — 다른 글꼴·모델·그림을 새로 들이는 것은 여전히 금지): UI `GUI PRO Kit - Casual Game` · 이펙트 `JMO Assets/Cartoon FX Remaster` · `DOTween` · `AllIn1SpriteShader` · 글꼴 `Assets/Fonts/NotoSans-Regular.ttf`. 3D 조형은 **코드 생성 복셀 메시**(T4)뿐이다 — 외부 모델·임시 그림 금지. 새 에셋을 쓰면 `docs/assets-map.md` 에 «용도 · 경로 · GUID» 한 줄.
 - 승인 프롬프트가 뜨는 명령·대화형 편집기(`git rebase -i`) 금지. 캡처 PNG·대용량 바이너리 커밋 금지(예외: `screens` 브랜치는 CI 가 올린다 · **T31 의 아이콘 아틀라스**는 정본 `icongen.js` 에서 도구가 결정론으로 뽑은 것이라 `Assets/Forge/Icons/` 에 둔다 · 총 3MB 상한 · 손으로 안 고친다 · `tools/check_icons_sync.sh` 가 CI 에서 정본과 대조).
 - **lock 은 «CI 가 그 커밋을 한 번은 돈 뒤» 반납한다.** 로컬 게이트는 PlayMode 를 못 돌리므로 «초록» 의 절반만 본 것이다.
   - **내 런이 `cancelled` 면**(실측 2026-09-12 18:49~19:05 런 9~15 전부 — ci.yml 의 `concurrency` 가 대기 중인 옛 런을 새 push 로 갈아치운다 · 빌드 잡 30분 때문) 그것은 실패가 아니다: main 은 선형이므로 **내 커밋 이후의 main 런이 초록이면 그것이 내 CI 확인**이다(그 런은 내 변경을 포함한다). 아무 런도 안 끝났으면 기다리지 말고 lock 을 쥔 채 종료하고 다음 회차에 본다. 그 뒤 런이 빨강이면 빨간 잡의 파일이 내 범위인지 본다 — 내 것이면 내 일, 아니면 그 임자 몫(«남의 lock 이 없는 빨강» 은 §0-6).
@@ -365,10 +366,11 @@
 - 판정: PlayMode `SkillFxTests` 에 «시전 1박 끝 젖힘 −0.14(지원계 −0.07) → 릴리즈 → 0.14초 뒤 0» 단언 · 콘솔 빨강 0 · CI 유니티 잡.
 - 범위: `Assets/Scripts/Game/Battle/HeroView.cs`(젖힘 채널 추가) · `Assets/Scripts/Game/SkillFx/SkillFxDirector.cs`·`SkillFxScene.cs` · `Assets/Tests/PlayMode/SkillFxTests.cs`.
 
-### T53 — 한글 글꼴: 화면 글자가 전부 네모(□)다 (Game · T18 뒤 · **주인 에셋 대기**)
+### T53 ✅ — 한글 글꼴: 화면 글자가 전부 네모(□)다 (Game · T18 뒤 · 주인 승인 2026-09-13 · 서브셋 글꼴로 닫았다)
 - 실측(2026-09-12 22:12 · `screens/ui_safearea_notch.png`): 스테이지·탭·버튼·토스트 등 **모든 한국어 라벨이 두부**. 원인은 결정 8 — 주인 글꼴 `NotoSans-Regular.ttf` 에 U+AC00 한글 구간 cmap 이 없고, 리눅스 CI·WebGL 에는 폴백할 OS 한글 글꼴도 없다.
 - 워커가 할 수 없는 것: 글꼴 파일을 새로 들이는 것(§1 «에셋은 주인 에셋만»). **주인이 `Assets/Fonts/` 에 한글 TTF 를 넣어 주면** 이 작업은 `catalog.json` 의 `font` 한 줄 + `UiFont.Build` 폴백 정리 + PlayMode 단언(라벨 문자열의 글리프가 폰트에 **있는가** · 없으면 실패)으로 끝난다.
-- 주인 조치 전에는 이 작업을 잡지 마라 — 잡으면 «주인 에셋 대기» 로 즉시 반납한다. 그동안 T27·T28 의 화면 대조는 **글자를 빼고 배치만** 본다.
+- **닫은 방법(2026-09-13 · 계정 2 대화 세션)**: 주인 승인 → Noto Sans KR(SIL OFL)을 **원작 `web/` 이 실제로 쓰는 한글 1266 자 + 라틴·기호**로 깎아(6.1MB → 302KB) 넣고 `catalog.json` `font` 를 그것으로. TMP 경로(`TMP_FontAsset.CreateFontAsset` + OS 폴백)는 이미 옳았다 — 폴백은 서브셋 밖 글자용으로 남겼다. 막이 둘을 `TextSizeGateTests` 에(활성 라벨의 한글을 문자 단위로 · 카탈로그 글꼴이 폴백 없이 한글을 쥐는가) · 스텁에 `HasCharacter(char,bool,bool)`. 재생성 명령은 `docs/assets-map.md`.
+- (옛 지침) 주인 조치 전에는 이 작업을 잡지 마라 — 잡으면 «주인 에셋 대기» 로 즉시 반납한다. 그동안 T27·T28 의 화면 대조는 **글자를 빼고 배치만** 본다.
 - 실측 보탬(2026-09-12 · T28 2회차 · 워커 M): 촬영 30장 **전부** 같다(`screen_main.png` «□□ 1-1» ↔ 원작 «어려움 4-1» · 탭 5개 · `settings` 토글 8줄 · `shop` 상품 제목). 원인 자리는 `UiKit.Font.Build`(`Ui/UiKit.cs` 204~228)의 **OS 글꼴 폴백** — 리눅스 러너에 한글 글꼴이 없어 경고 한 줄로 지나가고, **WebGL 배포본에는 OS 글꼴 자체가 없어 주인 폰에서도 같은 그림**이다. 주인 글꼴이 들어오기 전에도 «폴백이 비면 경고가 아니라 빨강» 한 줄은 이 작업이 먼저 넣을 수 있다.
 - 범위: `Assets/Fonts/`(주인) · `Assets/Forge/catalog.json`(font) · `Assets/Scripts/Game/Ui/UiFont.cs` · `Assets/Tests/PlayMode/TextSizeGateTests.cs`.
 
@@ -646,6 +648,21 @@
 - 범위: `Assets/Scripts/Game/Battle/BattleScene.cs`(Boot 의 Attach 인자) · `tools/webgl_smoke.js`(닫기 가드).
 - 🔄 2026-09-13 워커 N(sess-0524-8791): 두 고침 push · 수동 build 런 대기.
 
+### T87 — 대장간·제작 연출 전수: 원작 CSS 키프레임 22종이 유니티에 하나도 없다 (Game · T19·T30 뒤 · **주인 지시**)
+- 주인(2026-09-13): «대장간 뽑을 때 애니메이션도 빠져 있네. 그런 것도 같게». 정본 `web/css/style.css` 에 제작 계열 키프레임이 있는데 유니티에는 대응이 없다 —
+  - 모루: `anvilbump`(누를 때 모루가 튄다) · `anvilbillet`·`anvilbillethot`·`anvilbilletglow`·`anvilbilletcool`(쇳덩이가 올라가 달궈지고 식는다) · `sheetshake`(타격에 시트가 흔들린다) · 한 사이클 **0.72초**(`ui.js` 1019 주석).
+  - 오토 포지: `afswing`(망치 스윙) · `afring` · `afbloom` · `afflash` · `afheat` · `afshadow` · `afstar` · `afcore` · `afspark` · `afscale` · `afsmoke` · `afexit`.
+  - 결과 카드: `crpop` · `crring`(시대색 링이 퍼진다) · `crsheen`(광택 쓸림) · `cbpop`·`cbfade`(x10 묶음) · `adcpop`(자동 드랍 카드가 튀었다 코인으로 터진다) · `cardpop` · `shinesweep` · `newpulse`.
+- 옮기는 법: 각 키프레임의 **시간·이징·변위·색·불투명도를 CSS 에서 그대로 읽어** DOTween(주인 에셋)이나 코드 보간으로. 눈대중 금지. 소리는 T30 표면(`AnvilHit`·`Craft`·`CraftReveal`)을 그 타이밍에 건다.
+- 판정: PlayMode 로 «누른 뒤 t 초의 값이 CSS 곡선과 ±10%» 를 키프레임마다 + **촬영**(제작 순간 컷 `screen_craft-*.png` · 워커가 열어 본다 · §1) + 원작 `shot-craft-reveal`·`shot-anvil-*` 눈 대조.
+- 범위: `Assets/Scripts/Game/Ui/Forge*` · `Ui/Anvil*` · `Ui/CraftFx*` · `Assets/Tests/PlayMode/ForgeUiTests.cs` · `Assets/Forge/catalog.json`(연출 수치 칸).
+
+### T88 — 백그라운드에서도 게임이 돈다 (Game+Core · T13 뒤 · **주인 지시**)
+- 주인(2026-09-13): «백그라운드에서도 플레이 되게 해줘야 함». `Application.runInBackground` 가 코드·ProjectSettings 어디에도 없다(실측 grep 0).
+- 할 것: ⓐ `Application.runInBackground = true`(`Bootstrap`) · `ProjectSettings.asset` `runInBackground: 1` ⓑ **폰은 그것만으로 안 된다** — OS 가 앱을 재우면 프레임이 멎으므로 `OnApplicationPause(true)` 에 잠든 시각을 저장하고, 깨어날 때 흐른 실시간만큼 **전투·대장간·부화·오프라인 수급을 절대시각으로 따라잡는다**(원작 `state.js` 가 웹 탭 전환에서 하던 것 · T13 의 절대시각 타이머 위에 «따라잡기» 한 갈래). 따라잡기는 100ms 틱을 N 번 도는 것이 아니라 **닫힌 식**으로 — 몇 시간이면 수십만 틱이다.
+- 판정: EditMode(잠든→깨어난 시각을 주고 따라잡은 상태가 «실제로 그만큼 돈 상태» 와 같은가 · 30초·1시간·8시간·오프라인 캡 4시간 경계) + PlayMode(`OnApplicationPause` 흉내 → 콘솔 빨강 0 · 화면이 살아난다) + 「주인이 확인할 것: 폰에서 홈 → 30초 뒤 복귀 → 재화·웨이브가 그만큼 늘어 있다」.
+- 범위: `Assets/Scripts/Game/Bootstrap.cs` · `Game/AppLifecycle.cs`(새 파일) · `Assets/Scripts/Core/Save/` · `ProjectSettings/ProjectSettings.asset` · `Assets/Tests/EditMode/CatchUpTests.cs` · `Assets/Tests/PlayMode/LifecycleTests.cs`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -786,6 +803,8 @@ node tools/export_data.js --self-test                                         # 
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) · T83(촬영 두 장 가르기) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ⬜ · T83 🔄|
+| `css/style.css` 제작 키프레임 22종 | 대장간 뽑기 연출(모루·오토포지·결과 카드) | T87 | ⬜ |
+| (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ⬜ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) | ✅ (굽기 잡 조건 T32 ✅) · T86 🔄 |
 | (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ⬜ |

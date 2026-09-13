@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: UiCatalog
   m_EditorClassIdentifier: 
   catalog: {fileID: 4900000, guid: dfc9b54e3c147430ad0d1473b1ad13b1, type: 3}
-  font: {fileID: 12800000, guid: 559ed32ebb203e74780aa2b6e9e283c0, type: 3}
+  font: {fileID: 12800000, guid: 2c57c42a253f754d531ebd888b6bfbe3, type: 3}
   sprites:
   - key: tab_pvp
     sprite: {fileID: 21300000, guid: e35fc472b6ada425894eef3b044e099f, type: 3}

@@ -60,3 +60,24 @@
 |---|---|---|---|---|
 | 몹 파츠 재질 원형(조명) | `Assets/Forge/Resources/VoxelLit.mat` | `c2b614c31ac2a9874396c1e389a78bc1` | `Universal Render Pipeline/Particles/Lit`(GUID `b7839dad95683814aa64166edc107ae2`) | `VoxelMaterials` 가 matKey 마다 복제해 opacity·emissive·rough 를 준다 · 정점 색 × 흰색(결정 13) |
 | 몹 파츠 재질 원형(무조명 `mat.basic`) | `Assets/Forge/Resources/VoxelUnlit.mat` | `bdfce4d75d7fdd9d1d89e9c14f356029` | `Universal Render Pipeline/Particles/Unlit`(GUID `0406db5a14f94604a8c57ccfbc9f3b46`) | 표에 basic 파츠는 아직 없다(정본 `matKey` 가 갈래를 갖고 있어 같이 둔다) |
+
+## 한글 글꼴 `Assets/Fonts/NotoSansKR-Forge.ttf` (T53 · 2026-09-13 주인 승인)
+
+- 용도: UI 전 글자(TMP 주 글꼴 · `catalog.json` 의 `font`). 원작 `NotoSans-Regular.ttf` 에는 한글 cmap 이 없어 리눅스 CI·WebGL 에서 전부 □ 였다.
+- 출처: Google Fonts **Noto Sans KR** Regular(SIL Open Font License 1.1) · 원본 6.1MB.
+- 서브셋: 원작 `web/js|css|html` 에 실제로 나오는 한글 **1266 자** + 라틴·숫자·문장부호·통화·화살표·수학·괘선·도형·이모지 구획·전각 → **302KB**.
+- 다시 뽑는 법:
+  ```
+  curl -o NotoSansKR.ttf "$(curl -s 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400' | grep -o 'https://[^)]*\.ttf')"
+  python3 - <<'PY'
+  import re,glob
+  c=set()
+  for p in glob.glob('.wwwww-src/web/js/*.js')+glob.glob('.wwwww-src/web/*.html')+glob.glob('.wwwww-src/web/css/*.css'):
+      c|=set(re.findall(r'[가-힣]', open(p,encoding='utf-8',errors='ignore').read()))
+  open('subset_chars.txt','w',encoding='utf-8').write(''.join(sorted(c)))
+  PY
+  python3 -m fontTools.subset NotoSansKR.ttf --text-file=subset_chars.txt \
+    --unicodes="U+0020-007E,U+00A0-00FF,U+2010-2027,U+2030-205E,U+20A0-20BF,U+2190-21FF,U+2200-22FF,U+2500-257F,U+25A0-25FF,U+2600-26FF,U+3000-303F,U+FF01-FF5E" \
+    --output-file=Assets/Fonts/NotoSansKR-Forge.ttf --layout-features='*' --name-IDs='*' --recalc-bounds
+  ```
+- 라이선스 표기: OFL 은 글꼴 파일 재배포를 허용한다(예약 글꼴 이름 없음 · 판매 금지 조항은 글꼴 단독 판매에만 걸린다).
