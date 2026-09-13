@@ -174,8 +174,10 @@ namespace Forge.Game.Ui
             Image face = UiKit.Rounded(rt, "face", "pp_blue", PopupKit.Rem * 0.3f);
             face.rectTransform.offsetMin = new Vector2(PopupKit.Line, PopupKit.Line + PopupKit.Rem * 0.15f);
             face.rectTransform.offsetMax = new Vector2(-PopupKit.Line, -PopupKit.Line);
-            TextMeshProUGUI t = UiKit.Text(rt, "mark", TextKind.Sub, "✎", "stage_ink");
-            t.fontStyle = FontStyles.Bold;
+            // T89 — 정본 `ui.js` 5033·5039·5044 의 `.profile-edit-btn` 은 `IconGen.img('pencil')` 이다.
+            // «✎»(U+270E)는 글꼴에 없어 □ 로 찍혔다 — T31 아이콘으로.
+            Image t = UiKit.Icon(rt, "mark", "pencil");
+            PopupKit.Inset(t.rectTransform, PopupKit.Rem * 0.22f);
             return b;
         }
 

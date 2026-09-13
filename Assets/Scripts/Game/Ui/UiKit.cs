@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -146,7 +147,7 @@ namespace Forge.Game.Ui
         {
             RectTransform row = Box(parent, name);
             var lay = row.gameObject.AddComponent<HorizontalLayoutGroup>();
-            lay.childAlignment = TextAnchor.MiddleCenter;
+            lay.childAlignment = RowAnchor(align);
             lay.childControlWidth = true; lay.childControlHeight = true;
             lay.childForceExpandWidth = false; lay.childForceExpandHeight = false;
             lay.spacing = 0f;
@@ -171,6 +172,18 @@ namespace Forge.Game.Ui
             }
             return row;
         }
+
+        /// <summary>글자 정렬 → 줄 정렬(왼쪽·오른쪽 라벨이 아이콘 줄로 바뀌어도 자리가 안 움직이게 · T89).</summary>
+        private static TextAnchor RowAnchor(TextAlignmentOptions a)
+        {
+            string k = a.ToString();
+            if (k.IndexOf("Left", StringComparison.Ordinal) >= 0) return TextAnchor.MiddleLeft;
+            if (k.IndexOf("Right", StringComparison.Ordinal) >= 0) return TextAnchor.MiddleRight;
+            return TextAnchor.MiddleCenter;
+        }
+
+        /// <summary>줄 안의 글자 조각들(굵게·외곽선처럼 조각마다 걸어야 하는 것 · T89).</summary>
+        public static TextMeshProUGUI[] RowTexts(RectTransform row) { return row.GetComponentsInChildren<TextMeshProUGUI>(true); }
 
         public static Image Icon(Transform parent, string name, string spriteKey, string tint = null)
         {

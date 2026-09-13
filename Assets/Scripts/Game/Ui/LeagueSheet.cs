@@ -133,14 +133,17 @@ namespace Forge.Game.Ui
             TextMeshProUGUI nm = UiKit.Text(row, "name", TextKind.Sub, e.Name, "stage_ink", TextAlignmentOptions.Left);
             nm.fontStyle = FontStyles.Bold;
             UiKit.Place(nm.rectTransform, x, rowH * 0.08f, nameW, rowH * 0.45f);
-            TextMeshProUGUI cp = UiKit.Text(row, "cp", TextKind.Sub, "⚔ " + PopupKit.Fmt(e.Cp), "league_cp", TextAlignmentOptions.Left);
-            cp.fontStyle = FontStyles.Bold;
-            UiKit.Place(cp.rectTransform, x, rowH * 0.5f, nameW, rowH * 0.45f);
+            // T89 — «⚔» 는 글꼴에 없어 □ 로 찍혔다. 정본 TOAST_ICON 이 `⚔ → tm_sword` 를 쥐고 있으니 그 아이콘으로 선다.
+            RectTransform cp = UiKit.IconTextRow(row, "cp", TextKind.Sub, "⚔ " + PopupKit.Fmt(e.Cp), "league_cp", TextAlignmentOptions.Left);
+            foreach (TextMeshProUGUI piece in UiKit.RowTexts(cp)) piece.fontStyle = FontStyles.Bold;
+            UiKit.Place(cp, x, rowH * 0.5f, nameW, rowH * 0.45f);
             RectTransform score = UiKit.Box(row, "score");
             UiKit.Place(score, rowW - rem * 0.5f - scoreW, rowH * 0.12f, scoreW, scoreH);
             UiKit.Rounded(score, "bg", "league_score", rem * 0.5f);
-            TextMeshProUGUI sc = UiKit.Text(score, "text", TextKind.Sub, "★ " + PopupKit.Fmt(e.Score), "stage_ink");
-            sc.fontStyle = FontStyles.Bold;
+            // T89 — 정본 `ui.js` 4741: `<span class="league-score">${IconGen.img('star')} ${U.fmt(e.score)}</span>`.
+            // 클론은 «★»(U+2605) 글자로 찍어 글꼴에 없어 □ 였다 — 표의 ⭐ 를 써서 같은 `star` 아이콘 + 수로 세운다.
+            RectTransform scRow = UiKit.IconTextRow(score, "text", TextKind.Sub, "⭐ " + PopupKit.Fmt(e.Score), "stage_ink");
+            foreach (TextMeshProUGUI piece in UiKit.RowTexts(scRow)) piece.fontStyle = FontStyles.Bold;
             TextMeshProUGUI sv = UiKit.Text(row, "server", TextKind.Sub, "서버 " + e.Server, e.IsMe ? "stage_ink" : "league_server", TextAlignmentOptions.Right);
             UiKit.Place(sv.rectTransform, rowW - rem * 0.55f - scoreW * 1.2f, rowH - rem * 0.2f - PopupKit.FontSize(TextKind.Sub) * 1.1f, scoreW * 1.2f, PopupKit.FontSize(TextKind.Sub) * 1.1f);
         }

@@ -145,9 +145,10 @@ namespace Forge.Game.Ui
             UiKit.Place(name.rectTransform, tx, y, leftW, lineH);
             TextMeshProUGUI clan = UiKit.Text(card, "clan", TextKind.Sub, h.Gender + " · 서버 1", "pp_muted", TextAlignmentOptions.Left);
             UiKit.Place(clan.rectTransform, tx, y + lineH, leftW, lineH);
-            TextMeshProUGUI cp = UiKit.Text(card, "cp", TextKind.Sub, "⚔ " + PopupKit.Fmt(h.MyCp), "pp_ink", TextAlignmentOptions.Left);
-            cp.fontStyle = FontStyles.Bold;
-            UiKit.Place(cp.rectTransform, tx, y + lineH * 2f, leftW, lineH);
+            // T89 — «⚔» 두부 → 정본 표의 `tm_sword` 아이콘 + 수.
+            RectTransform cp = UiKit.IconTextRow(card, "cp", TextKind.Sub, "⚔ " + PopupKit.Fmt(h.MyCp), "pp_ink", TextAlignmentOptions.Left);
+            foreach (TextMeshProUGUI piece in UiKit.RowTexts(cp)) piece.fontStyle = FontStyles.Bold;
+            UiKit.Place(cp, tx, y + lineH * 2f, leftW, lineH);
 
             double stars = TotalStars != null ? TotalStars() : 0;
             Big atk = HeroAtk != null ? HeroAtk() : Big.Zero;

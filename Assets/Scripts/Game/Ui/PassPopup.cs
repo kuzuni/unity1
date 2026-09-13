@@ -148,8 +148,10 @@ namespace Forge.Game.Ui
                     UiKit.Circle(chk, "line", "pp_line");
                     Image cf = UiKit.Circle(chk, "face", "pp_green");
                     PopupKit.Inset(cf.rectTransform, PopupKit.Line);
-                    TextMeshProUGUI ck = UiKit.Text(chk, "mark", TextKind.Sub, "✓", "stage_ink");
-                    ck.fontStyle = FontStyles.Bold;
+                    // T89 — 정본 `ui.js` 4905 는 `<span class="pass-badge check">${IconGen.img('check')}</span>` 다.
+                    // «✓»(U+2713)는 글꼴에 없어 □ 로 찍혔다 — T31 아이콘으로.
+                    Image ck = UiKit.Icon(chk, "mark", "check");
+                    PopupKit.Inset(ck.rectTransform, badge * 0.24f);
                 }
                 else if (reached)
                 {

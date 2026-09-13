@@ -62,6 +62,24 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual("스테이지 2-10 도달 시 해금됩니다", PopupLayer.Instance.LastToast);
         }
 
+        [UnityTest]
+        public IEnumerator 라벨의_전투력_별_체크_연필이_글자가_아니라_아이콘이다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!UiText.Loaded && t < 5f) { t += Time.unscaledDeltaTime; yield return null; }
+
+            // 정본이 아이콘으로 그리는 네 자리(ui.js 4741 star · 4905 check · 5033 pencil · TOAST_ICON ⚔ tm_sword)에
+            // 클론이 글자(★ ✓ ✎ ⚔)를 찍어 전부 □ 였다 — 이제 이 글자들이 **어느 활성 라벨에도 없어야** 한다.
+            RectTransform row = UiKit.IconTextRow(UiRoot.Instance.App, "t89-probe", TextKind.Sub, "⚔ 12", "ink");
+            yield return null;
+            Assert.IsNotNull(row.GetComponentInChildren<Image>(true), "⚔ 가 아이콘 칸으로 안 섰다");
+            foreach (TextMeshProUGUI piece in UiKit.RowTexts(row))
+                Assert.IsFalse(piece.text.Contains("⚔"), "글자 조각에 ⚔ 가 남았다");
+            Object.Destroy(row.gameObject);
+            yield return null;
+        }
+
         private static Transform Find(Transform root, string name)
         {
             foreach (Transform tr in root.GetComponentsInChildren<Transform>(true)) if (tr.name == name) return tr;
