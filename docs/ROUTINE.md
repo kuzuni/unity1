@@ -388,7 +388,7 @@
 - 범위: `Assets/Scripts/Game/Battle/BattleSaveGlue.cs`(새) · `Assets/Scripts/Game/Battle/BattleScene.cs`(`MakeBattle` 문맥 채우기 갈래만) · `Assets/Tests/PlayMode/BattleSaveGlueTests.cs` · `Assets/Tests/PlayMode/PlaythroughTests.cs`(단언 한 줄 되살리기) · `Assets/Scripts/Core/Battle/BattleSaveSync.cs`(규칙 · Core) · `Assets/Scripts/Core/Battle/BattleContext.cs`·`Battle.cs`·`Assets/Scripts/Core/Dungeons/Dungeons.cs`(던전 판 라벨 `DungeonRun.Label` 한 줄씩) · `Assets/Tests/EditMode/BattleSaveSyncTests.cs`.
 - ✅ 2026-09-12 워커 N — 규칙은 Core `BattleSaveSync`(거울+delta · 진행 우선순위 · 합집합 · 무기 종 · EditMode 6) · 씬은 `BattleSaveGlue`(MakeBattle Fill · Stepped 뒤 Sync · saveGame 훅 · T23 `Dungeons.Attach/RestoreRun` · 클리어 팝업 → `FinishDungeonClear` · PlayMode 1) · 장착 스킬·자동시전은 T20 그대로(결정 139) · 손의 무기 메시는 T37/T15(결정 141).
 
-### T56 — HUD 상단바 프로필 카드에 아바타가 안 그려진다 (Game·UI · T18·T31 뒤 · 실제 화면 실측)
+### T56 ✅ — HUD 상단바 프로필 카드에 아바타가 안 그려진다 (Game·UI · T18·T31 뒤 · 실제 화면 실측)
 - 실측(2026-09-12 22:20 · 워커 J · `screens/screen_main.png`·`screen_profile.png` 를 열어 본 것): 상단바 왼쪽 프로필 카드의 아바타 자리가 **빈 흰 사각형**이다. 같은 PNG 의 프로필 팝업·리그 순위표·채팅에는 도트 초상이 제대로 그려진다 — T31 아틀라스는 멀쩡하고 **HUD 만 안 그린다**.
 - 원인: `Hud.Build` 가 아바타 타일을 손으로 짠다(`UiKit.Rounded` 테 + `avatar_bg` 면 두 줄) — 남들이 쓰는 `PopupKit.Avatar(... , emoji, ...)` 의 초상 스프라이트 갈래가 없다. 정본 `ui.js:1290 renderTopBar` 는 `<span class="avatar">${IconGen.avatar(S.avatarEmoji)}</span>` 로 닉네임·전투력과 **같이** 그리고, `onPickAvatar`(`ui.js:5063`)가 아바타를 바꾸면 `renderTopBar()` 를 다시 불러 상단바도 따라 바뀐다.
 - 할 일: ⓐ `Hud` 에 `SetAvatar(string emoji)` — 기존 아바타 타일 안에 `UiIcons.Avatar(emoji)` 초상을 넣고(없으면 지금처럼 빈 타일) 다시 부르면 갈아끼운다 ⓑ `MetaHost.Sync` 가 닉네임·전투력과 같은 자리에서 `AvatarEmoji` 도 밀어 준다(바뀔 때만 · 아바타 고르기 뒤 상단바가 따라 바뀌는 정본 행동) ⓒ PlayMode 단언: 부팅 뒤 HUD 아바타 타일에 초상 `Image` 가 서고 그 스프라이트가 `UiIcons.Avatar(기본 아바타)` 와 같다 · 아바타를 바꿔 `Sync` 하면 스프라이트가 따라 바뀐다.
@@ -438,7 +438,7 @@
 - 판정: `ui_score --score` 로 `shop` **8.0 이상** + PNG 눈 확인(«보석» 배너와 젬 카드가 화면 안에 있다) + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/ShopSheet.cs` · `Assets/Forge/catalog.json`(배치 값) · `Assets/Tests/PlayMode/ShopUiTests.cs`.
 
-### T63 — 메인 HUD 둘: 전투력이 `⚔ 0` · 채팅 프리뷰가 한 줄이고 «99» 뱃지가 없다 (Game·UI · T18·T22 뒤 · **T56·T60 lock 이 풀린 뒤**)
+### T63 ✅ — 메인 HUD 둘: 전투력이 `⚔ 0` · 채팅 프리뷰가 한 줄이고 «99» 뱃지가 없다 (Game·UI · T18·T22 뒤 · **T56·T60 lock 이 풀린 뒤**)
 - 실측(2026-09-12 · T28 3회차 · 워커 K · 런 83 `screen_main.png`):
   - ⓐ 프로필 카드의 전투력이 **`⚔ 0`** 이다 — 같은 화면의 장비 그리드에는 Lv.26~28 이 8부위 장착돼 있다. 정본 `renderTopBar`(`ui.js` 1290~1303)는 `Combat.combatPower()` 를 찍는다.
   - ⓑ 채팅줄이 «Zephyr: anyone want to trade tickets?» **한 줄**이고 말풍선에 뱃지가 없다. 정본 `renderChatPreview`(`ui.js` 5288~5299)는 말풍선 + **«99» 뱃지** + 이름 줄 / 메시지 줄 **두 줄**이다.
@@ -672,7 +672,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 🔄 · T57 ✅ · T58 ✅ · T59 ✅ · T60 ⬜ · T61 ✅ · T62 🔄 · T63 🔄 · T65 ✅· T66 ✅ · T68 🔄 |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ⬜ · T61 ✅ · T62 🔄 · T63 ✅ · T65 ✅· T66 ✅ · T68 🔄 |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ |
