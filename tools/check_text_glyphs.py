@@ -63,10 +63,10 @@ ROUTE_CTX = 3   # 리터럴 둘레 몇 줄까지 «아이콘 길» 을 찾을까
 # 아이콘 표 글자를 **아이콘을 안 거치고 글자로** 세우는 것이 이미 알려진 자리(임자 있음).
 # 열쇠는 «파일 이름|리터럴» 이다 — 줄 번호로 잡으면 남이 위에 한 줄만 넣어도 어긋난다.
 LABEL_KNOWN = {
-    'ForgeCraftPopup.cs|판매 🪙 +': 'T99(워커 D) — 정본 ui.js 의 판매 버튼 · 두 줄 라벨이라 가로 IconTextRow 로는 안 된다 · T87 lock 뒤',
+    'ForgeCraftPopup.cs|판매 🪙 +': 'T110(T99 에서 뗌) — 정본 ui.js 의 판매 버튼 · 두 줄 라벨이라 가로 IconTextRow 로는 안 된다 · T87 lock 뒤',
     'ForgeCraftPopup.cs|판매\\n🪙 +': '같은 자리의 두 줄 판',
-    'ForgeInfoPopup.cs|건너뛰기\\n💎 ': 'T99(워커 D) — 건너뛰기 버튼 · 두 줄 라벨 · T87 lock 뒤',
-    'ForgeInfoPopup.cs| 업그레이드\\n🪙 ': 'T99(워커 D) — 업그레이드 버튼 · 두 줄 라벨 · T87 lock 뒤',
+    'ForgeInfoPopup.cs|건너뛰기\\n💎 ': 'T110(T99 에서 뗌) — 건너뛰기 버튼 · 두 줄 라벨 · T87 lock 뒤',
+    'ForgeInfoPopup.cs| 업그레이드\\n🪙 ': 'T110(T99 에서 뗌) — 업그레이드 버튼 · 두 줄 라벨 · T87 lock 뒤',
     'ForgeSheet.cs|🔒': 'T108 — 자동 제련 버튼의 잠금 표시(정본 ui.js 1551 IconGen.img(lock)) · 같은 줄의 ↻ 와 함께 · T87 lock 뒤',
 }
 

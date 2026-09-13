@@ -766,7 +766,7 @@
 - 이제 길이 생겼다: T87 6회차가 넣은 `Ui/CraftFxPoly.cs`(정규 좌표 폴리곤 + 띠 그라디언트 + 무게중심 부풀림 stroke)로 **진짜 다각형**을 그릴 수 있다 — 모루 부분들을 그 자로 다시 그린다.
 - 판정: 확대 눈 대조(원작 `shot-042120` ↔ `screen_gear-detail`) + PlayMode(상판 폴리곤 꼭짓점 4개가 카탈로그 값 · 키라인 면이 몸통보다 크다) + `ui_score` 대장간 칸.
 - 범위: `Assets/Scripts/Game/Ui/ForgeSheet.cs`(DrawAnvil·Outlined) · `Assets/Forge/catalog.json`(anvil_* 좌표를 path 꼭짓점으로) · `Assets/Tests/PlayMode/ForgeUiTests.cs`. **T87 이 같은 파일을 쥐고 있으니 T87 이 끝난 뒤**.
-### T99 — 남의 lock 이 쥐고 있던 이모지 라벨 다섯 자리(T89 가 못 간 곳) (Game·UI · T89 뒤 · **T87·T91 lock 이 풀린 뒤**)
+### T99 ✅ — 남의 lock 이 쥐고 있던 이모지 라벨 다섯 자리(T89 가 못 간 곳) (Game·UI · T89 뒤 · **T87·T91 lock 이 풀린 뒤** · 워커 D · ChatScreen 자리 ✅ · Forge* 넷은 T110 으로 뗌)
 - T89 가 세운 길(`UiKit.IconTextRow` + 정본 `TOAST_ICON` 표)을 **아직 못 간 라벨**에 잇는다. 토스트·라벨 전수 훑기(2026-09-13 10:1x · 워커 E)에서 남은 자리는 다섯뿐이다:
   - `ChatScreen.cs:206` «⚔ » 상대 전투력 — **T91**(워커 J) 범위.
   - `ForgeCraftPopup.cs:69·112` «판매 🪙 +N» · `ForgeInfoPopup.cs:113·120` «건너뛰기 💎 N»·«레벨 N 업그레이드 🪙 N» — **T87**(워커 G) 범위.
@@ -774,6 +774,7 @@
 - 판정: `tools/check_text_glyphs.py` 는 이 자리들을 «표가 덮는 글자» 로 세어 지금도 통과한다 — 판정은 **PNG 를 열어** 그 버튼·채팅줄에 아이콘이 섰는지 눈으로(§1) + 해당 화면 PlayMode 초록.
 - 범위: `Assets/Scripts/Game/Ui/ChatScreen.cs` · `Ui/ForgeCraftPopup.cs` · `Ui/ForgeInfoPopup.cs` · (필요하면) `Ui/UiKit.cs`(두 줄 갈래).
 - 진행(워커 D · 2026-09-13): 1회차 `ChatScreen` ⚔ → 정본 `power` 아이콘(런 179 PASS) · 2회차 채팅 목록이 바닥에 안 붙어 샷에 카드가 안 보이던 것을 정본 `pinChatBottom`·`_chatStick` 대로(결정 228) · `Forge*` 넷은 T87 lock 이 풀린 뒤.
+- ✅ 결론(2026-09-13 · 워커 D · 결정 244): **ChatScreen 자리는 닫혔다** — 런 194 `ChatShareIconTests` 2/2 PASS + `screen_chat.png` 눈 확인(목록이 정본처럼 바닥 · 공유 카드 전투력 앞 검 아이콘 · ⚔ 두부 없음). 뿌리 둘을 같이 고쳤다: ⓐ ⚔ 글자 → 정본 `IconGen.img('power')` 아이콘 ⓑ `ChatScreen` 의 ScrollRect 참조가 T22 이래 null 이라 «바닥으로» 가 한 번도 안 돌던 것(정본 `pinChatBottom`·`_chatStick` 이식). **`ForgeCraftPopup`·`ForgeInfoPopup` 두 줄 버튼 넷은 T110 으로 뗐다**(T87 lock 20회차째 · 쥐고 있으면 T106·T109 가 «T99 lock 뒤» 로 못 집는다 · T100 의 선례).
 
 ### T100 ✅ — 두부가 아직 셋 남았다 · 자 둘이 그 셋을 **구조적으로** 못 본다 (Game·검증 · T53·T89 뒤 · 임자 없음 · 검수 Q 등재 · **T89 ✅ 되돌림 아님 — 남은 갈래**)
 - 실측(2026-09-13 12:0x · 검수 Q · **런 179**(1c68d7e · EditMode 540/540 · PlayMode 104/104 · 빨강 0)의 PNG 를 Read 로 열어 본 것 — **전부 초록인 런에서 눈에 보인다**):
@@ -864,6 +865,12 @@
 - 판정: ⓐ 새 자가 고장 주입(호출 하나 지우기)에서 rc 1 · 붙인 뒤 rc 0 ⓑ 다음 런 `screen_league-challenge.png` 를 6배로 열어 전투력 숫자 둘레에 **검정 선** 확인(원작 `shot-042228` 과 나란히) ⓒ PlayMode 빨강 0.
 - 범위: `tools/check_keyline.py`(새) · `Assets/Scripts/Game/Ui/LeagueSheet.cs`·`PlayerInfoPopup.cs`·`ShopSheet.cs`·`PassPopup.cs`·`OfflinePopup.cs`·`ForgeAutoPopup.cs`·`ForgeInfoPopup.cs`·`ChatScreen.cs`·`ProfilePopup.cs`·`QuestSheet.cs`·`ForgeCraftPopup.cs`(각 파일의 살아 있는 lock 뒤) · `docs/ROUTINE.md` §3 게이트 줄.
 - 🔄 2026-09-13 워커 C(sess-1535-7768) 1회차 = ⓐ 자만: `tools/check_keyline.py` — 정본 `style.css` 의 `-webkit-text-stroke` 규칙 **51개**(끄는 규칙 2 포함)를 파서로 걷고 선택자↔클론 자리 표(파일 · `#요소 이름` · `@도우미 메서드`)로 대조한다. 실측: 자리 **31 초록 · 빈자리 33**(호출 없음 27 · 요소 자체 없음 6: 오프라인 zzz · 스킬바 슬롯 Lv · 펫 타일 Lv · 보상 날림 amt·tick) — 전부 `KNOWN`(임자 T109 ⓑ) 으로 두어 rc 0. 22회차의 «호출 0 파일 11개» 는 `PopupKit.Ring` 을 안 센 수다(리그 시트만 Ring 4) — 규칙 단위로 재면 위 수가 맞다(결정 242). 자기 검사 11칸(고장 주입: Ring 지우기 · 표 밖 규칙 · 정본에 없는 선택자 · 요소 없음 · 메서드 민글자). CI `datasync` 잡(정본 체크아웃이 있는 잡) 두 스텝 + §3 한 줄. ⓑ(호출 붙이기)는 T104 2회차 `text_keyline_px` 뒤 · `ChatScreen`·`ForgeInfoPopup`·`ForgeCraftPopup` 은 T99 lock 뒤.
+
+### T110 — 대장간 팝업 두 줄 버튼 라벨 넷이 이모지 글자다(«판매 / 🪙 +N» 둘 · «건너뛰기 / 💎 N» · «레벨 N 업그레이드 / 🪙 N») — 정본은 `<br>` 아래 줄에 아이콘 (Game·UI · T89·T99 뒤 · **T87 lock 뒤** · T99 에서 뗌)
+- 자리(T89 4회차 전수 훑기 · T100 4회차 `label_risk` · `LABEL_KNOWN` 넷): `ForgeCraftPopup.cs:69·112` «판매\n🪙 +N» · `ForgeInfoPopup.cs:113·120` «건너뛰기\n💎 N»·«레벨 N 업그레이드\n🪙 N». 표(`TOAST_ICON`)에 있는 이모지지만 그냥 라벨 글자라 □ 다. 정본은 `.btn` 안에서 `<br>` 로 나누고 아래 줄에 `IconGen` 아이콘 + 수를 그린다(`ui.js` 의 해당 버튼).
+- ⚠ **두 줄 버튼**: 가로 `UiKit.IconTextRow` 를 그대로 쓰면 두 줄이 한 줄로 눌린다 — 세로 칸(위: 글자 · 아래: 아이콘 줄)으로 감싸거나 `IconTextRow` 에 «줄바꿈이면 새 줄» 갈래를 더한다. T108(`ForgeSheet` «자동 ↻ / 🔒»)과 **같은 갈래**라 `UiKit` 에 세로 갈래를 하나 세우면 다섯이 같이 풀린다.
+- 판정: `check_text_glyphs` 의 `LABEL_KNOWN` 에서 넷을 빼도 rc 0 + 해당 화면 PlayMode 초록 + `screen_craft-compare.png`·`screen_forge-info.png` 를 열어 버튼 아랫줄에 아이콘이 선 것을 눈으로(§1).
+- 범위: `Assets/Scripts/Game/Ui/ForgeCraftPopup.cs`·`Ui/ForgeInfoPopup.cs`(**T87 lock 뒤**) · `Ui/UiKit.cs`(세로 갈래 · T104 뒤) · `tools/check_text_glyphs.py`(`LABEL_KNOWN` 넷 빼기) · `Assets/Tests/PlayMode/ForgeUiTests.cs`(T87 뒤).
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -1005,7 +1012,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) · T98(모루 그림이 사각 근사 — 정본 SVG 는 사다리꼴·총알 뿔·검정 stroke) · T100(남은 두부 셋 · 자 둘의 구멍) · T102(부화장 빛기둥·램프 키·리본) · T104(글자 외곽선 두께) · T109(키라인 호출이 아예 없는 열한 파일 — T104 와 다른 갈래) · T108(자동 버튼 라벨 둘) · T106(이모지 폴백 글꼴 — 주인 승인) · T105(미니 씬 칸 채움) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ✅ · T91 ✅ · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ✅ · T99 🔄 · T101 🔄 · T100 ✅ · T102 ✅ · T104 ⬜ · T109 🔄 · T106 ⬜ · T108 ⬜ · T105 ✅ |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) · T98(모루 그림이 사각 근사 — 정본 SVG 는 사다리꼴·총알 뿔·검정 stroke) · T100(남은 두부 셋 · 자 둘의 구멍) · T102(부화장 빛기둥·램프 키·리본) · T104(글자 외곽선 두께) · T109(키라인 호출이 아예 없는 열한 파일 — T104 와 다른 갈래) · T108(자동 버튼 라벨 둘) · T106(이모지 폴백 글꼴 — 주인 승인) · T105(미니 씬 칸 채움) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ✅ · T91 ✅ · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ✅ · T99 ✅ · T110 ⬜ · T101 🔄 · T100 ✅ · T102 ✅ · T104 ⬜ · T109 🔄 · T106 ⬜ · T108 ⬜ · T105 ✅ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) · T83(촬영 두 장 가르기) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ✅ · T83 ✅|
