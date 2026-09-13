@@ -99,7 +99,6 @@ TABLE = {
 # ── 임자가 정해진 빈자리(자리 → 이유) — T109 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
     'Ui/OfflinePopup.cs#zzz': 'T109 ⓑ — 잠자는 z 글자 자리가 클론에 없다(T68 이 머리를 세울 때 안 옮김) · 세우면서 키라인',
-    'Battle/DamageNumbers.cs': 'T109 ⓑ — .float-dmg .6px / kill 1px / hero .55px(색 셋) · 데미지 숫자는 Ui 밖 Battle 에 산다',
     'Ui/SkillBar.cs#sk-lv': 'T109 ⓑ — 슬롯 Lv 라벨(.skill-btn .sk-lv 2px)이 클론에 없다(SkillBar 에 lv 이름 글자 0) · 세우면서 키라인',
     'Ui/ForgeInfoPopup.cs#title': 'T109 ⓑ — h3.fi-title .11em(T99 lock 뒤)',
     'Ui/ForgeAutoPopup.cs#af-title': 'T109 ⓑ — h3.af-title .11em · .af-title 4px #fff',

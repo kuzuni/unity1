@@ -263,6 +263,32 @@ namespace Forge.Game.Ui
             return o;
         }
 
+        /// <summary>
+        /// <see cref="OutlinePx(TextMeshProUGUI, string, float)"/> 의 **공유 재질** 갈래(T109 6회차) — 글자마다 재질을 복제하지 않는 자리(데미지 숫자 · 초당 수십 개)가
+        /// 색 키·획·글자 크기마다 하나 만든 재질에 같은 식(D = W)을 얹는다. 글자 크기와 글꼴은 호출자가 넘긴다(재질에는 글자 크기가 없다).
+        /// 재질을 글자에 붙이는 것(<c>t.fontSharedMaterial = m</c>)은 호출자 몫 — TMP 가 그때 메시 여백을 다시 잰다.
+        /// </summary>
+        public static OutlineSdf OutlinePx(Material m, TMP_FontAsset font, float fontSize, string colorKey, float strokePx)
+        {
+            float g = m.HasProperty("_GradientScale") ? m.GetFloat("_GradientScale") : 0f;
+            float r = m.HasProperty("_ScaleRatioA") ? m.GetFloat("_ScaleRatioA") : 0f;
+            float ps = font != null ? (float)font.faceInfo.pointSize : 0f;
+            if (g <= 0f || r <= 0f || ps <= 0f)
+            {
+                Debug.LogWarning("[UiKit.OutlinePx] " + m.name + ": 재질/폰트 값이 비어(G=" + g + " R=" + r + " pt=" + ps + ") TMP 기본값으로 환산한다");
+                if (g <= 0f) g = 10f;
+                if (r <= 0f) r = 0.9f;
+                if (ps <= 0f) ps = 90f;
+            }
+            OutlineSdf o = OutlineSdf.FromStroke(strokePx, fontSize, g, r, ps);
+            if (o.Clipped) Debug.LogWarning("[UiKit.OutlinePx] " + m.name + ": 획 " + strokePx + "px 는 이 글자(" + fontSize + "px)의 SDF 여백을 넘는다 — 보이는 띠 " + o.VisiblePx.ToString("0.00") + "px(원한 " + o.WantedPx.ToString("0.00") + ")");
+            m.EnableKeyword("OUTLINE_ON");
+            m.SetColor("_OutlineColor", C(colorKey));
+            m.SetFloat("_FaceDilate", (float)o.Dilate);
+            m.SetFloat("_OutlineWidth", (float)o.Width01);
+            return o;
+        }
+
         // ---- 버튼 ----
 
         /// <summary>투명 히트 영역 + Button. 겉모습(아이콘·글자)은 호출자가 자식으로 넣는다.</summary>

@@ -15,6 +15,10 @@
     "league_server_me": { "em": 0.1, "min_px": 1.2, "_": "style.css 2355 .league-row.me .league-server max(1.2px, .1em) — 파란 me 행만 · 어두운 행의 회색 서버 글자는 정본도 민무늬(2350 주석) · 5회차" }
   },
   "px": {
+    "float_dmg": 0.6,
+    "float_dmg_kill": 1.0,
+    "float_dmg_hero": 0.55,
+    "float_dmg_": "T109 6회차 — style.css 500 .float-dmg .6px · 524 .dmg-kill 1px · 539 .dmg-hero .55px(crit·skill 은 .float-dmg 를 물려받는다) · Battle/DamageNumbers 공유 재질",
     "equip_cell_lv": 0.3,
     "chat_bubble": 0.5,
     "chat_time": 0.5,

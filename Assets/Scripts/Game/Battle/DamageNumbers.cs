@@ -65,31 +65,35 @@ namespace Forge.Game.Battle
 
         static double K { get { return UiKit.RefH / CssRefH; } }
 
-        /// <summary>숫자마다 재질을 복제하지 않는다(초당 수십 개) — 아웃라인 색 키마다 하나를 만들어 나눠 쓴다(`UiKit.Outline` 은 fontMaterial 인스턴스를 만든다).</summary>
+        /// <summary>
+        /// 숫자마다 재질을 복제하지 않는다(초당 수십 개) — 아웃라인 색 키·키라인 키·글자 크기마다 하나를 만들어 나눠 쓴다(`UiKit.Outline` 은 fontMaterial 인스턴스를 만든다).
+        /// T109 6회차: 두께는 코드 상수(.2 · 여백 비율)가 아니라 정본 `-webkit-text-stroke` 폭표(`KeylineUi.json` px · `.float-dmg .6px` · `.dmg-kill 1px` · `.dmg-hero .55px`)를
+        /// <see cref="UiKit.OutlinePx(Material, TMP_FontAsset, float, string, float)"/>(D = W · T104 식)로 얹는다 — 글자 크기마다 W 가 다르니 키에 크기가 든다.
+        /// </summary>
         static readonly Dictionary<string, Material> outlineMats = new Dictionary<string, Material>();
-        static Material OutlineMaterial(TextMeshProUGUI t, string colorKey)
+        static Material OutlineMaterial(TextMeshProUGUI t, string colorKey, string strokeKey)
         {
+            string key = colorKey + "|" + strokeKey + "|" + t.fontSize.ToString("0.##");
             Material m;
-            if (outlineMats.TryGetValue(colorKey, out m) && m != null) return m;
+            if (outlineMats.TryGetValue(key, out m) && m != null) return m;
             m = new Material(t.fontSharedMaterial);
-            m.name = "dmg outline " + colorKey;
-            m.EnableKeyword("OUTLINE_ON");
-            m.SetColor("_OutlineColor", UiKit.C(colorKey));
-            m.SetFloat("_OutlineWidth", OutlineWidth);
-            outlineMats[colorKey] = m;
+            m.name = "dmg outline " + colorKey + " " + strokeKey;
+            UiKit.OutlinePx(m, t.font, t.fontSize, colorKey, KeylineUi.Px(strokeKey));
+            outlineMats[key] = m;
             return m;
         }
-        public const float OutlineWidth = 0.2f;
+        /// <summary>테스트용 — 공유 재질 캐시를 비운다(글꼴·표가 바뀐 뒤 다시 굽게).</summary>
+        public static void ResetMaterials() { outlineMats.Clear(); }
 
-        static void Style(string cls, out TextKind kind, out string colorKey, out string outlineKey, out Frame[] anim, out string prefix)
+        static void Style(string cls, out TextKind kind, out string colorKey, out string outlineKey, out string strokeKey, out Frame[] anim, out string prefix)
         {
-            kind = TextKind.Body; colorKey = "stage_ink"; outlineKey = "stage_outline"; anim = Dmg; prefix = "";
+            kind = TextKind.Body; colorKey = "stage_ink"; outlineKey = "stage_outline"; strokeKey = "float_dmg"; anim = Dmg; prefix = "";
             switch (cls)
             {
                 case "dmg-crit": kind = TextKind.Button; colorKey = "cp"; anim = Crit; break;
-                case "dmg-kill": kind = TextKind.Button; colorKey = "stage_ink"; outlineKey = "cp"; anim = Kill; break;
+                case "dmg-kill": kind = TextKind.Button; colorKey = "stage_ink"; outlineKey = "cp"; strokeKey = "float_dmg_kill"; anim = Kill; break;
                 case "dmg-skill": kind = TextKind.Button; colorKey = "stage_ink"; break;
-                case "dmg-hero": prefix = "▼"; break;
+                case "dmg-hero": prefix = "▼"; strokeKey = "float_dmg_hero"; break;
                 case "heal": kind = TextKind.Button; colorKey = "pip_done"; break;
                 case "loot": kind = TextKind.Button; colorKey = "coin"; break;
                 case "block": colorKey = "stage_ink"; break;
@@ -122,11 +126,11 @@ namespace Forge.Game.Battle
                 lp.y += (float)(HitRules.DmgSlotStep * k);
             }
             lp.y = (float)Math.Min(lp.y, topFloor);
-            TextKind kind; string colorKey, outlineKey, prefix; Frame[] anim;
-            Style(cls, out kind, out colorKey, out outlineKey, out anim, out prefix);
+            TextKind kind; string colorKey, outlineKey, strokeKey, prefix; Frame[] anim;
+            Style(cls, out kind, out colorKey, out outlineKey, out strokeKey, out anim, out prefix);
             Num n = Take(layer, kind, colorKey, prefix.Length == 0 ? (text ?? string.Empty) : prefix + text);
             TextMeshProUGUI t = n.T;
-            t.fontSharedMaterial = OutlineMaterial(t, outlineKey);
+            t.fontSharedMaterial = OutlineMaterial(t, outlineKey, strokeKey);
             RectTransform rt = n.Rt;
             // 가로 화면 클램프(아크가 다 흐른 뒤에도 앱 상자 안)
             float half = rt.sizeDelta.x * 0.5f * (float)pop * 0.5f;
