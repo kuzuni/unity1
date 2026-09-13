@@ -110,7 +110,10 @@ namespace Forge.Tests.PlayMode
                 Assert.Greater(circle.yMin, text.yMax - 1f, rate.name + ": 원형 아이콘이 글자 위에 있다");
                 Assert.AreEqual(circle.center.x, text.center.x, 2f, rate.name + ": 아이콘과 글자가 같은 세로축");
                 AssertColor(FindUnder(rate, "text").GetComponent<TextMeshProUGUI>().color, OfflinePopup.GreenKey, rate.name + " 요율 글자");
-                Assert.Greater(rtop.yMin, text.yMin - 1f, rate.name + ": 요율이 머리 판 안에 있다");
+                // 판 안인가는 배치 좌표(UiKit.Place · 부모 왼쪽 위 원점)로 본다 — 세계 좌표는 CI 런 113·121 에서 같은 값(257.5)을 내며 여백 변경에 반응하지 않았다(결정 173 기록)
+                float rateBottom = -rate.anchoredPosition.y + rate.sizeDelta.y;
+                Assert.LessOrEqual(rateBottom, top.sizeDelta.y + 0.5f, rate.name + ": 요율 칸 아래 끝(" + rateBottom + ") 이 머리 판 높이(" + top.sizeDelta.y + ") 안에 있다");
+                Assert.Greater(rate.anchoredPosition.y, -top.sizeDelta.y, rate.name + ": 요율 칸이 판 안에서 시작한다");
             }
             Assert.AreEqual(World(coin).yMin, World(hammer).yMin, 1f, "두 요율 칸은 같은 높이");
             Assert.Less(World(coin).xMax, World(hammer).xMin, "코인 칸이 해머 칸 왼쪽");
