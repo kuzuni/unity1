@@ -41,10 +41,10 @@ KNOWN = {
     'craftReveal': 'T119 ⓐ — 정본 ui.js 1938 `showCraftReveal`·1976 `showCraftBatch` 가 `SFX.craftReveal(AGES.indexOf(age))` 로 운다(둘 다 살아 있는 경로: 1804·2984 가 부른다). 클론 자리는 `ForgeCraftPopup`/`ForgeHost` 라 **T87 lock 뒤**.',
     'equipToss': 'T118 — 장비 교체 «던져내기»(정본 ui.js 3428). 그 연출 자체가 클론에 없다 · T87 lock 뒤.',
     'equipDrop': 'T118 — 같은 연출의 착지음(정본 ui.js 3439).',
-    # T119 1회차가 자를 세우다 새로 캔 셋 — «부르는 줄은 있는데 훅이 안 꽂혀» 소리가 안 난다(T120).
-    'craft': 'T120 — `ForgeHost.PlaySfx("craft")`(175행)는 있는데 그 훅 `ForgeHost.Sfx`(81행 `Action<string>`)를 **아무도 안 꽂는다** → 무음. 정본 forge.js 181 `SFX.craft()`.',
-    'equipSnap': 'T120 — 같은 훅(`ForgeHost.PlaySfx("equipSnap")` 529행). 정본 ui.js 3462.',
-    'levelUp': 'T120 — 클론에 **호출 자체가 없다**(훅도 없다). 정본은 셋: forge.js 303(대장간 레벨업) · techtree.js 382(연구 완료) · ui.js 4710(던전 클리어 팡파르).',
+    # ✅ T119 1회차가 캤던 셋(craft·equipSnap·levelUp)은 **T120 1회차가 갚아 지웠다**(2026-09-13 · 런 238 PASS) —
+    #    `Game/HostSfx.cs` 가 `ForgeHost.OnReady` 에서 훅을 꽂고(이름 → T30 래퍼), `levelUp` 은 세 자리에 걸렸다
+    #    (`ForgeEngine.LevelReached` · `TechPopups.OnClaim` · `DungeonClearPopup.Show`). KNOWN 에 남겨 두면
+    #    **누가 그 호출을 지워도 이 자가 조용히 넘어간다** — 갚은 이름은 반드시 여기서 뺀다(T120 2회차).
     # ⚠ 이 하나는 «아직 안 옮긴 것» 이 아니라 **안 옮기는 것**이다(결정 · T119 1회차).
     'stormCrackle': '**정본도 안 운다** — 유일한 호출이 `scene3d.js` 14101 `_legacyStormCloudStrike` 안인데 그 함수를 부르는 곳이 없다(살아 있는 길은 `scene3d-skillfx.js` 663 `mcThunderStrike` 이고 거기선 `stormStrike` 만 운다). 원작이 안 내는 소리를 클론이 내면 §1 «원작에 없는 것» 이다 — 레시피는 T30 이 이미 구워 뒀으니 그대로 두고 **호출은 넣지 않는다**.',
 }
