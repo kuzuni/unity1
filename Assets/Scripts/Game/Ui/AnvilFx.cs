@@ -189,7 +189,7 @@ namespace Forge.Game.Ui
 
         /// <summary>
         /// 타격 링 — 타격마다 제 창(접촉 8ms 앞 + 200ms)에서만 퍼지며 꺼진다(`afring` · cubic-bezier). 창 밖에서는 투명이다.
-        /// ⚠ 정본은 `non-scaling-stroke` 라 퍼져도 테두리 굵기가 그대로지만 여기서는 스프라이트를 키우므로 같이 굵어진다(결정 230 · 그 구간은 이미 흐려지는 중이다).
+        /// ⚠ 정본은 `non-scaling-stroke` 라 퍼져도 테두리 굵기가 그대로지만 여기서는 스프라이트를 키우므로 같이 굵어진다(결정 231 · 그 구간은 이미 흐려지는 중이다).
         /// </summary>
         private void ApplyRings()
         {

@@ -155,7 +155,7 @@ namespace Forge.Game.Ui
 
         /// <summary>
         /// 타원 **테두리**(정본 `.af-ring` 처럼 `fill:none` + stroke)를 굽는다 — 안팎 두 타원 사이만 칠한다.
-        /// ⚠ 정본은 `vector-effect: non-scaling-stroke` 라 퍼져도 굵기가 그대로지만, 구운 스프라이트를 키우면 굵기도 같이 큰다(결정 230).
+        /// ⚠ 정본은 `vector-effect: non-scaling-stroke` 라 퍼져도 굵기가 그대로지만, 구운 스프라이트를 키우면 굵기도 같이 큰다(결정 231).
         /// </summary>
         public static Sprite BakeRing(string name, float rx, float ry, float stroke)
         {

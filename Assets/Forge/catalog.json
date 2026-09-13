@@ -595,7 +595,7 @@
     { "key": "billet_glow_off1", "value": 0.46, "_": "anv-billetglow radialGradient 중간 stop" },
     { "key": "ring_rx", "value": 13, "_": "T87 타격 링 — 정본 `<ellipse class=\"af-ring\" rx=13 ry=3.4>`(상판이 누워 보여 원이 아니라 타원)" },
     { "key": "ring_ry", "value": 3.4 },
-    { "key": "ring_stroke", "value": 2.6, "_": "css .af-ring stroke-width 2.6 · 정본은 non-scaling-stroke 라 퍼져도 굵기가 그대로다(클론은 구운 스프라이트라 같이 굵어진다 · 결정 230)" },
+    { "key": "ring_stroke", "value": 2.6, "_": "css .af-ring stroke-width 2.6 · 정본은 non-scaling-stroke 라 퍼져도 굵기가 그대로다(클론은 구운 스프라이트라 같이 굵어진다 · 결정 231)" },
     { "key": "hmr_head_x0", "value": -11.5, "_": "HAMMER_SVG 머리 — 밑이 무겁고 납작한 해머 블록(폭 27 : 높이 21 = 1.28:1 · 뾰족한 쐐기 금지: 도끼로 읽힌다). 좌표 원점 = 타격면 중심(viewBox 55,11) · Q 는 2차 중점으로 폈다" },
     { "key": "hmr_head_y0", "value": 0.9 },
     { "key": "hmr_head_x1", "value": 11.5 },
