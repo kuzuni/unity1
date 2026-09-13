@@ -681,7 +681,8 @@
   - ⓒ 진행 pill(«0/3» 따위) 이 아이콘 행에서 원작보다 멀리 떨어져 있다(원작은 아이콘 바로 아래에 붙는다).
 - 무엇을 한다: 정본 `style.css` 의 그 버튼(`.skill-actions button`)·레벨 배지(`.skill-lv`)·pill 규칙을 읽어 **버튼은 글자에 맞춰 늘어나거나 글자가 줄바꿈/축소되게**(원작 규칙 그대로) · 레벨 라벨은 원 안 중앙 · pill 간격은 정본 값. 글자 크기 하한(§1 · 보조 36)은 그대로 두고 **칸을 키우는 쪽**으로 맞춘다(원작 규칙이 그렇다).
 - 판정: `ui_score --score --only skills` 가 **런 141 수준(6.8) 이상** + 워커가 PNG 를 열어 «버튼 밖으로 넘친 글자 0 · Lv 라벨이 안 잘림» 확인 + PlayMode 빨강 0.
-- 범위: `Assets/Scripts/Game/Ui/Skill*` · `Assets/Forge/catalog.json`(버튼·배지 자리 키) · `Assets/Tests/PlayMode/PetUiTests.cs`(스킬 시트 단언).
+- 범위: `Assets/Scripts/Game/Ui/Skill*` · `Assets/Forge/Resources/PetSkillUi.json`(버튼·배지 자리 키 — 스킬 화면의 표는 T20 이 여기 둔다 · catalog.json 은 안 쓴다) · `Assets/Tests/PlayMode/PetUiTests.cs`(스킬 시트 단언).
+- 1회차(2026-09-13 · 워커 B): 버튼 폭 = max(원작 고정폭, 글자+패딩) · Lv 라벨 중심 72.9%(css 실측) · 별 줄은 별이 있을 때만(행 높이 auto) — 픽셀 실측·판정은 PROGRESS «T90 진행 기록».
 ### T91 — 메인 화면 채팅 미리보기 줄이 **비었다**(정본은 두 줄) (Game·UI · T22·T63 뒤 · 임자 없음 · 검수 Q 등재)
 - 실측(2026-09-13 06:0x · 검수 Q · 런 147 `screen_main.png` 을 Read 로 열고 잘라 본 것): 탭바 위 회색 띠에 **말풍선 아이콘과 «99» 배지뿐이고 글자가 한 자도 없다**(띠 높이도 ~20px 로 줄었다). **런 127 의 같은 자리에는 «Yumi» + «anyone want to trade tickets?» 두 줄이 있었다** — 그 사이 회귀다. 채팅 자체는 멀쩡하다(`screen_chat.png` 로그 열두 줄 정상 · 한글도 나온다).
 - 정본(`ref/screens/shot-042120.png` 하단): 회색 띠에 **두 줄** — «MilkMessiah이(가) 전투를 공유했습니다!»(시스템 줄) / «MilkMessiah: Ligma»(마지막 발화) · 흰 굵은 글씨 · 빨간 «99» 배지는 말풍선 **왼쪽 위**. 클론은 배지가 오른쪽 위라 띠 윗변에 잘린다.

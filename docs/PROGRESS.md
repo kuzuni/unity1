@@ -378,6 +378,8 @@
 | T89 | 화면 문자열 이모지 30종이 전부 두부(□) — 원작 `TOAST_ICON` 표대로 T31 아이콘으로 치환 · 순수 기호는 글꼴 서브셋 · 단언을 «모든 문자» 로 넓힘 | 🔄 진행 | sess-0613-21270 / 워커 E | `tools/export_data.js`(ui 갈래) · `Assets/StreamingAssets/data/ui-text.json`(추출기로만) · `Assets/Scripts/Core/Ui/IconText.cs`(새) · `Assets/Tests/EditMode/IconTextTests.cs`(새) · `Assets/Scripts/Game/Ui/UiKit.cs` · `Ui/UiIcons.cs` · 이모지를 쥔 화면 파일 · `Assets/Fonts/NotoSansKR-Forge.ttf` · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/assets-map.md` · `Assets/Forge/catalog.json`(**T75 lock 이 풀린 뒤** · 이 회차 안 만짐) | T31·T53 뒤 · **가장 먼저** · 실제 화면 실측(2026-09-13 런 148) |
 | T90 | 한글이 들어온 뒤 드러난 «글자가 칸 밖으로 넘친다»: 스킬 «모두 업그레이드» 버튼 · 아이콘 Lv 라벨 잘림 · pill 간격 | 🔄 진행 | sess-1920-15773 / 워커 B | `Assets/Scripts/Game/Ui/Skill*` · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/PetUiTests.cs` | T53 뒤 · T28 12회차 등재(런 148 `screen_skills.png` 5.8 ↔ 런 141 6.8) |
 | T91 | 메인 화면 채팅 미리보기 줄이 비었다(런 127 에는 «Yumi»+메시지 두 줄 · 정본은 시스템 줄+마지막 발화 두 줄) · «99» 배지가 오른쪽 위로 가 잘린다 | 🔄 진행 | sess-0617-26084 / 워커 J | `Assets/Scripts/Game/Ui/Hud.cs`(미리보기 자리) · `Ui/Chat*` · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/ShopUiTests.cs` · `Assets/Scripts/Game/Ui/MetaHost.cs`(부팅 렌더 한 줄 · 범위 먼저 넓힘) | T22·T63 뒤 · 임자 없음 · 검수 Q 등재 · 런 147 실측 · 1회차: 부팅 렌더 + PlayMode 1 |
+| T90 | 한글이 들어온 뒤 드러난 «글자가 칸 밖으로 넘친다»: 스킬 «모두 업그레이드» 버튼 · 아이콘 Lv 라벨 잘림 · pill 간격 | 🔄 진행 | sess-1920-15773 / 워커 B | `Assets/Scripts/Game/Ui/Skill*` · `Assets/Forge/Resources/PetSkillUi.json` · `Assets/Tests/PlayMode/PetUiTests.cs` | T53 뒤 · T28 12회차 등재(런 148 `screen_skills.png` 5.8 ↔ 런 141 6.8) |
+| T91 | 메인 화면 채팅 미리보기 줄이 비었다(런 127 에는 «Yumi»+메시지 두 줄 · 정본은 시스템 줄+마지막 발화 두 줄) · «99» 배지가 오른쪽 위로 가 잘린다 | 🔄 진행 | sess-0617-26084 / 워커 J | `Assets/Scripts/Game/Ui/Hud.cs`(미리보기 자리) · `Ui/Chat*` · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/ShopUiTests.cs` | T22·T63 뒤 · 임자 없음 · 검수 Q 등재 · 런 147 실측 |
 - **자기 검사 ⓜ**: 깨끗해야 할 11꼴(C# `///`·`//`·`/* */`·문자열 · JS 백틱 · 파이썬 `#`·독스트링·주석 속 아포스트로피 · sh · md 표 · json) + 자취여야 할 7꼴(클래스명·식별자·꼬리 주석 앞 코드·경로 셋) — 번호는 숫자 조립(`T%d`)으로 만들어 이 파일이 제 검사에 안 걸리게 했다(기존 ⓐ 와 같은 까닭).
 - **실측**: 고치기 전 `task_state.py T9`(GameData.cs `///` · export_data.js `//` · 문자열)·T7·T13·T14·T25 가 «잡지 마라 — 코드 N곳» · 고친 뒤 전부 «자취 0곳» 이고 T7·T13·T14·T25 는 «남의 lock 이 살아 있다» 로 바르게 막힌다. `--check` 는 그대로 rc 0.
 - **게이트**: `task_state.py --self-test` ✓ · `--check` ✓ · `check_docs_intact`·`check_decisions`·`check_task_rows`·`check_claim_scope`·`gen_meta --check` ✓. `dotnet` 은 이 컨테이너에 없고 C# 을 안 만졌다 — 내 커밋(0f66c39)의 제 런은 concurrency 큐 교체로 없고, 그것을 포함한 **CI 런 18**(https://github.com/kuzuni/unity1/actions/runs/34713559030 · success · dotnet 잡의 `task_state --self-test` 단계가 이 파일을 돌렸다)로 확인 · lock 반납(c0086ff).
@@ -1703,6 +1705,15 @@
 - **판정**: 새로 빠진 것(등재 안 된 원작 모듈·화면·함수·효과음·아이콘) **0**. §7 에서 ✅ 아닌 칸은 전부 번호가 있다: T28(회차형) · T75 · T84 · T86 · T87(모두 lock 살아 있음) + T35(주인 SIMPLE_BG 결정) + T33 자신. T33 절 순서를 «그 번호들 뒤» 로 고쳐 적고 lock 을 반납한다(§2 T33 판정 규약 «빠진 것을 등재하고 자기 순서를 고쳐 lock 을 반납 · 다음 회차가 다시 잡는다»).
 - **게이트**: 문서만(코드 0줄) — `check_docs_intact` · `check_decisions` · `check_task_rows` · `task_state --check` · `check_final_table` · `check_claim_scope` rc 0. dotnet build·test 는 이 회차 06:0x 에 초록(513) 확인.
 - **다음 작업용**: 다음 T33 회차는 `docs/parity.md` «열린 것» 만 다시 센다. ⓒ의 줄기 매칭 14개는 유니티 쪽 이름이 `Close`/`Hide` 로 통일된 것이라 함수 단위 빠짐이 아니다. T35 는 완주 전에 주인 결정(«배경 아예 단순» 유지 여부)이 필요하다 — §7 scene3d 줄이 그것으로 남는다.
+
+### T90 진행 기록 (2026-09-13 · 워커 B · sess-1920-15773) — 1회차(버튼 폭 · Lv 라벨 자리 · 별 줄 조건부 · ✅ 는 CI PNG 뒤)
+
+- **먼저 잰 것(런 149 `screen_skills.png` ↔ `shot-042340` · 픽셀)**: 원작 1열 세로 — 오브 10.3~16.4%H → 게이지 17.0~18.5%H(오브→게이지 **0.6~1.0%H** · css `.sk-grid .sk-cell gap 1.01%H`) · 행 피치 **9.9%H**. 클론 — 오브 9.1~14.4 → 게이지 18.5~20.1(**4.1%H**) · 행 피치 **12.9%H**: 별이 없는 칸에도 별 줄(보조 36px)을 항상 비워 뒀던 탓. 액션 버튼은 둘 다 원작과 같은 자리·폭(20.8%W · x 26.8/51.6%)인데 글자만 넘쳤다(버튼 44px 하한 × «모두 업그레이드» 6자 ≈ 30%W > 21%W). Lv 라벨은 상자를 오브 바닥에 걸쳐 잉크 중심이 ≈82~100% 에 있었다(원작 css 4045 주석 실측: 잉크 중심 **72.9%** · 폭 지름의 90%).
+- **무엇**: ⓐ `SkillPanel.ActionWidth(label)` = max(원작 고정폭 `action_w`, `TextWidth(Button)` + 좌우 `action_pad_x_rem`(.btn.sm .6rem)) — 글자 하한은 그대로, 칸을 키운다(ROUTINE T90 «칸을 키우는 쪽»). 두 버튼을 그 폭으로 가운데 정렬. ⓑ Lv 라벨을 오브 위 72.9% 중심(`sk_lv_center_f`)·폭 90%(`sk_lv_w_f`)로 앵커 · 링 0.3 → `sk_lv_stroke_f` 0.2(원작 2px/41px ≈ 5%). ⓒ 별 줄은 별이 있을 때만(원작 `${sk.stars ? … : ''}`) · 행 높이 = 그 행의 가장 큰 칸(CSS grid auto rows) → 별 없는 행은 오브+1.01%H+게이지. `sk_lv_bottom_w` 키는 뺐다(쓰는 곳 0).
+- **PlayMode 단언(`PetUiTests` 스킬 갈래)**: 액션 버튼 둘 폭 ≥ 글자 폭+패딩 이고 ≥ 원작 고정폭 · 첫 칸 Lv 라벨 중심 = 72.9% · 라벨 상자가 오브 아래로 안 나감 · 폭 ≤ 지름 · 별 0 이면 `sk-star` 없음 + 칸 높이 = 오브+간격+게이지.
+- **게이트**: `dotnet build` 0 오류(TestsPlay 포함) · `dotnet test` 533/533 · 문서 자 rc 0.
+- **✅ 는**: 이 커밋의 유니티 잡 초록 + `screen_skills.png` 를 Read 로 열어 «버튼 밖 글자 0 · Lv 라벨 안 잘림 · 게이지가 오브 바로 아래» 확인 + `ui_score --score --only skills` ≥ 6.8(런 141) 뒤.
+- **주인이 확인할 것**: 스킬 탭에서 «모두 업그레이드»·«빠른 장착» 글자가 파란 버튼 안에 들어가는가 · 오브의 Lv.N 이 원 안에 또렷한가 · 진행 알약(0/3)이 오브 바로 아래 붙는가(별이 있는 스킬만 별 줄이 사이에 선다).
 
 ## 워커 결정 기록
 

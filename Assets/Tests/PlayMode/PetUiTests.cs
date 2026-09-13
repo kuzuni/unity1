@@ -83,6 +83,29 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(Sheet.Skills.QuickEquipButton);
             Assert.IsNotNull(Sheet.Skills.RatesButton);
             Assert.GreaterOrEqual(Sheet.Skills.GridCells, 1, "새 게임은 표창 난무 1개 보유");
+            // T90 — 한글 글꼴 뒤 드러난 넘침 셋: ⓐ 액션 버튼은 글자 폭 + 패딩 이상 ⓑ Lv 라벨은 오브 안(원작 잉크 중심 72.9%) ⓒ 별이 없는 칸은 별 줄을 비워 두지 않는다
+            foreach (var pair in new[] { new { B = Sheet.Skills.UpgradeAllButton, L = PetSkillStyle.T("upgrade_all") }, new { B = Sheet.Skills.QuickEquipButton, L = PetSkillStyle.T("quick_equip") } })
+            {
+                float need = PetSkillKit.TextWidth(TextKind.Button, pair.L) + PetSkillStyle.Px("action_pad_x_rem") * 2f;
+                Assert.GreaterOrEqual(pair.B.GetComponent<RectTransform>().rect.width, need - 0.5f, "버튼 «" + pair.L + "» 이 글자보다 좁다(넘침)");
+                Assert.GreaterOrEqual(pair.B.GetComponent<RectTransform>().rect.width, PetSkillStyle.Px("action_w") - 0.5f, "원작 고정폭은 하한");
+            }
+            string firstId = Host.Skills.State.Skills.KeyAt(0);
+            RectTransform cell0 = Sheet.Skills.Cell(firstId);
+            Assert.IsNotNull(cell0, "첫 스킬 칸");
+            RectTransform orb0 = (RectTransform)cell0.Find("sk-orb");
+            RectTransform lv0 = (RectTransform)orb0.Find("sk-lv");
+            float orbH = orb0.rect.height;
+            float lvCenter = -lv0.anchoredPosition.y;                       // 오브 위에서 잰 라벨 중심(아래가 +)
+            Assert.AreEqual(orbH * PetSkillStyle.L("sk_lv_center_f"), lvCenter, 0.5f, "Lv 라벨 중심 = 원작 72.9%");
+            Assert.LessOrEqual(lvCenter + lv0.rect.height * 0.5f, orbH + 0.5f, "Lv 라벨 상자가 오브 아래로 안 나간다");
+            Assert.LessOrEqual(lv0.rect.width, orbH * 1.0f + 0.5f, "Lv 라벨 폭 ≤ 지름(원작 90%)");
+            if (Host.Skills.State.Get(firstId).Stars == 0)
+            {
+                float expect = PetSkillStyle.Px("sk_orb_w") + PetSkillStyle.Px("sk_cell_gap_h") + PetSkillStyle.Px("sk_shard_h");
+                Assert.AreEqual(expect, cell0.rect.height, 0.5f, "별 없는 칸 = 오브 + 간격 + 게이지(별 줄 없음)");
+                Assert.IsNull(cell0.Find("sk-star"), "별 0 이면 별 줄이 없다");
+            }
             AssertTextGate("스킬 패널");
 
             Sheet.SubButton(SkillPetSheet.SubPets).onClick.Invoke();

@@ -101,12 +101,15 @@ namespace Forge.Game.Ui
             BuildEquippedRow(root, W, eqY, eqH);
 
             // ---- row.center: 모두 업그레이드 · 빠른 장착 ----
-            float aw = PetSkillStyle.Px("action_w"), ag = PetSkillStyle.Px("action_gap_w");
-            float ax = (W - aw * 2f - ag) * 0.5f;
+            // T90 — 원작 `.sk-action-btn` 폭(20.97%W)은 하한이다: 한글 글꼴이 들어와 진짜 폭으로 그려지자 «모두 업그레이드» 가 버튼 밖으로 넘쳤다.
+            // §1 글자 하한(버튼 44)은 그대로 두고 **칸을 글자에 맞춰 키운다**(원작 .btn.sm 좌우 패딩 .6rem · 두 버튼을 가운데 정렬).
+            float ag = PetSkillStyle.Px("action_gap_w");
+            float aw1 = ActionWidth(PetSkillStyle.T("upgrade_all")), aw2 = ActionWidth(PetSkillStyle.T("quick_equip"));
+            float ax = (W - aw1 - aw2 - ag) * 0.5f;
             UpgradeAllButton = PetSkillKit.PaperButton(root, "btn-upgrade-all", PetSkillKit.BtnKind.Primary, PetSkillStyle.T("upgrade_all"), null, false, OnUpgradeAll);
-            UiKit.Place(UpgradeAllButton.GetComponent<RectTransform>(), ax, actY, aw, actH);
+            UiKit.Place(UpgradeAllButton.GetComponent<RectTransform>(), ax, actY, aw1, actH);
             QuickEquipButton = PetSkillKit.PaperButton(root, "btn-quick-equip", PetSkillKit.BtnKind.Primary, PetSkillStyle.T("quick_equip"), null, false, OnQuickEquip);
-            UiKit.Place(QuickEquipButton.GetComponent<RectTransform>(), ax + aw + ag, actY, aw, actH);
+            UiKit.Place(QuickEquipButton.GetComponent<RectTransform>(), ax + aw1 + ag, actY, aw2, actH);
 
             // ---- summon-bar ----
             RectTransform bar = UiKit.Box(root, "summon-bar");
@@ -132,6 +135,16 @@ namespace Forge.Game.Ui
                 capped ? PetSkillStyle.T("gauge_max") : PetSkillStyle.T("gauge", cnt % Sk.Rules.SummonsPerLevel, Sk.Rules.SummonsPerLevel), () => SkillRatesPopup.Open(sheet, Kind));
         }
 
+        /// <summary>T90 — 액션 버튼 폭: 원작 고정폭(`action_w`)과 «글자 폭 + 좌우 패딩(.btn.sm .6rem)» 중 큰 쪽.</summary>
+        public static float ActionWidth(string label)
+        {
+            float pad = PetSkillStyle.Px("action_pad_x_rem");
+            return Mathf.Max(PetSkillStyle.Px("action_w"), PetSkillKit.TextWidth(TextKind.Button, label) + pad * 2f);
+        }
+
+        /// <summary>격자 칸(테스트가 본다). 없으면 null.</summary>
+        public RectTransform Cell(string id) { Button b; return cellButtons.TryGetValue(id, out b) ? b.GetComponent<RectTransform>() : null; }
+
         void BuildGrid(RectTransform content, float W)
         {
             float colW = PetSkillStyle.Px("sk_col_w"), colGap = PetSkillStyle.Px("sk_col_gap_w"), rowGap = PetSkillStyle.Px("sk_row_gap_h");
@@ -152,9 +165,20 @@ namespace Forge.Game.Ui
                 content.sizeDelta = new Vector2(0f, PetSkillStyle.Rem(2.4f) * 2f + starH * 1.5f);
                 return;
             }
-            float cellH = orb + cellGap + starH + cellGap + shardH;
+            // T90 — 별 줄(.sk-star)은 별이 있을 때만 선다(원작 `${sk.stars ? … : ''}`). 별이 없는 행은 «오브 + 간격 + 게이지» 뿐 —
+            // 종전엔 별 줄을 항상 비워 둬 오브→게이지 간격이 원작 1.01%H 의 4배였다(런 148·149 실측). 행 높이 = 그 행에서 가장 큰 칸(CSS grid auto rows).
             int rows = (owned.Count + cols - 1) / cols;
-            content.sizeDelta = new Vector2(0f, rows * cellH + (rows - 1) * rowGap + rowGap);
+            float[] rowH = new float[rows];
+            for (int i = 0; i < owned.Count; i++)
+            {
+                SkillEntry e = Sk.State.Get(owned[i].Id);
+                float ch = orb + cellGap + (e.Stars > 0 ? starH + cellGap : 0f) + shardH;
+                if (ch > rowH[i / cols]) rowH[i / cols] = ch;
+            }
+            float[] rowY = new float[rows];
+            float total = 0f;
+            for (int r = 0; r < rows; r++) { rowY[r] = total; total += rowH[r] + rowGap; }
+            content.sizeDelta = new Vector2(0f, total);
             for (int i = 0; i < owned.Count; i++)
             {
                 SkillDef d = owned[i];
@@ -166,7 +190,8 @@ namespace Forge.Game.Ui
                 string id = d.Id;
                 Button b = UiKit.Button(content, "sk-cell-" + id, () => OpenSkillDetail(id));
                 RectTransform cell = b.GetComponent<RectTransform>();
-                UiKit.Place(cell, x0 + (i % cols) * (colW + colGap), (i / cols) * (cellH + rowGap), colW, cellH);
+                float cellH = rowH[i / cols];
+                UiKit.Place(cell, x0 + (i % cols) * (colW + colGap), rowY[i / cols], colW, cellH);
                 cellButtons[id] = b;
                 Color rc = PetSkillStyle.Rarity(Defs, d.Rarity);
                 RectTransform orbRt = PetSkillKit.Orb(cell, "sk-orb", rc, PetSkillKit.Line3);
@@ -188,15 +213,18 @@ namespace Forge.Game.Ui
                     UiKit.Fill(pt.rectTransform);
                 }
                 // Lv — #panel-skills 의 sk-lv 는 배경 없이 흰 글자 + 검정 외곽선
-                TextMeshProUGUI lv = PetSkillKit.Stroked(orbRt, "sk-lv", TextKind.Body, PetSkillStyle.T("lv_short", sk.Level), PetSkillStyle.C("white"), 0.3f);
+                // T90 — 원작 실측(css `#panel-skills .sk-grid .sk-lv` 주석): 잉크 세로중심 = 오브 위에서 72.9% · 잉크 폭 = 지름의 90%.
+                // 종전엔 오브 바닥에 걸쳐(중심 ≈ 82~100%) 아래가 잘려 보였다(런 148·149). 링은 원작 2px/41px ≈ 5% 꼴로 얇게.
+                TextMeshProUGUI lv = PetSkillKit.Stroked(orbRt, "sk-lv", TextKind.Body, PetSkillStyle.T("lv_short", sk.Level), PetSkillStyle.C("white"), PetSkillStyle.L("sk_lv_stroke_f"));
                 float lvH = UiCatalog.Instance.Kind(TextKind.Body).size * 1.1f;
-                UiKit.Anchor(lv.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, PetSkillStyle.Px("sk_lv_bottom_w") - lvH * 0.15f), orb * 1.3f, lvH);
-                // 별
-                if (sk.Stars > 0) StarRow(cell, sk.Stars, colW, orb + cellGap, starH);
+                UiKit.Anchor(lv.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f), new Vector2(0f, -orb * PetSkillStyle.L("sk_lv_center_f")), orb * PetSkillStyle.L("sk_lv_w_f"), lvH);
+                // 별(있을 때만 · 줄을 차지한다)
+                float below = orb + cellGap;
+                if (sk.Stars > 0) { StarRow(cell, sk.Stars, colW, below, starH); below += starH + cellGap; }
                 // 조각 게이지
                 RectTransform shard = PetSkillKit.Gauge(cell, "sk-shard", colW, shardH, ratio, PetSkillStyle.T("gauge", sk.Dupes, need), PetSkillStyle.C("shard_bg"), PetSkillStyle.Px("sk_shard_r_rem"), PetSkillKit.Line2, TextKind.Sub);
                 ((Image)shard.Find("face/fill").GetComponent<Image>()).color = PetSkillStyle.C("white");
-                UiKit.Place(shard, 0f, orb + cellGap + starH + cellGap, colW, shardH);
+                UiKit.Place(shard, 0f, below, colW, shardH);
             }
         }
 
