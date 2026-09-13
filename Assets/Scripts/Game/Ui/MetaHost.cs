@@ -291,6 +291,9 @@ namespace Forge.Game.Ui
                 popups.TabXChanged += root.TabBar.SetPopupX;
                 root.Hud.ProfileButton.onClick.AddListener(OpenProfile);
                 root.Hud.ChatButton.onClick.AddListener(OpenChat);
+                // 원작 curIcoPlus — 코인·젬 알약의 «+» 는 상점을 연다(ui.js:1285 `onclick="UI.openShop()"`).
+                if (root.Hud.CoinPlusButton != null) root.Hud.CoinPlusButton.onClick.AddListener(OpenShop);
+                if (root.Hud.GemPlusButton != null) root.Hud.GemPlusButton.onClick.AddListener(OpenShop);
                 host.Changed += Rerender;
             }
 

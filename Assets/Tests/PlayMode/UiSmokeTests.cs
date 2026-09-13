@@ -5,6 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 using Forge.Game;
 using Forge.Game.Ui;
 
@@ -267,6 +268,42 @@ namespace Forge.Tests.PlayMode
         {
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true)) if (t.name == name) return t;
             return null;
+        }
+
+        [UnityTest]
+        public IEnumerator T60_재화_알약에_상점을_여는_초록_플러스가_붙는다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!MetaHost.Ready && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 준비되지 않았다");
+
+            Hud hud = Hud.Instance;
+            Assert.IsNotNull(hud.CoinPlusButton, "코인 알약에 «+» 가 없다 (정본 curIcoPlus)");
+            Assert.IsNotNull(hud.GemPlusButton, "젬 알약에 «+» 가 없다");
+
+            // 알약 안에 얹히고(아이콘 오른쪽 아래 모서리) 화면 밖으로 안 나간다.
+            foreach (Button b in new[] { hud.CoinPlusButton, hud.GemPlusButton })
+            {
+                RectTransform rt = b.GetComponent<RectTransform>();
+                Assert.IsNotNull(rt.GetComponentInChildren<Image>(true), "«+» 아이콘 그림이 없다");
+                Vector3[] c = new Vector3[4];
+                rt.GetWorldCorners(c);
+                foreach (Vector3 p in c)
+                {
+                    Vector2 sp = RectTransformUtility.WorldToScreenPoint(null, p);
+                    Assert.GreaterOrEqual(sp.x, 0f, b.name + " 가 화면 왼쪽 밖이다");
+                    Assert.LessOrEqual(sp.x, Screen.width, b.name + " 가 화면 오른쪽 밖이다");
+                }
+            }
+
+            // 누르면 상점이 열린다(원작 onclick="UI.openShop()").
+            MetaHost h = MetaHost.Instance;
+            PopupLayer popups = h.Popups;
+            Assert.IsFalse(popups.IsOpen(ShopSheet.Name), "누르기 전에는 상점이 닫혀 있어야 한다");
+            hud.CoinPlusButton.onClick.Invoke();
+            yield return null;
+            Assert.IsTrue(popups.IsOpen(ShopSheet.Name), "코인 «+» 를 누르면 상점이 열려야 한다");
         }
     }
 }

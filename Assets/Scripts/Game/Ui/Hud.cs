@@ -38,6 +38,10 @@ namespace Forge.Game.Ui
         public Button ProfileButton { get; private set; }
         /// <summary>채팅 줄을 눌렀을 때(전체화면 채팅 · T22).</summary>
         public Button ChatButton { get; private set; }
+        /// <summary>코인 알약의 초록 «+»(원작 `curIcoPlus` — 상점 열기). 배선은 <see cref="MetaHost"/>.</summary>
+        public Button CoinPlusButton { get; private set; }
+        /// <summary>젬 알약의 초록 «+».</summary>
+        public Button GemPlusButton { get; private set; }
 
         public string Nickname { get { return nickname.text; } }
         public string StageLabel { get { return stage.text; } }
@@ -106,6 +110,8 @@ namespace Forge.Game.Ui
             float py = (barH - pillH) * 0.5f;
             coins = Pill(bar, "pill-coin", "coin", "coin", w - inset - pillW * 2f - gap, py, pillW, pillH, rem);
             gems = Pill(bar, "pill-gem", "gem", "gem", w - inset - pillW, py, pillW, pillH, rem);
+            CoinPlusButton = PlusBadge(bar.Find("pill-coin"), rem);
+            GemPlusButton = PlusBadge(bar.Find("pill-gem"), rem);
 
             // ---- 스테이지 라벨 ----
             stage = UiKit.Text(hudLayer, "stage-label", TextKind.Body, boot.stage, "stage_ink", TextAlignmentOptions.Center);
@@ -141,6 +147,28 @@ namespace Forge.Game.Ui
             t.fontStyle = FontStyles.Bold;
             UiKit.Place(t.rectTransform, padL, 0f, pw - padL - padR, ph);
             return t;
+        }
+
+        /// <summary>
+        /// 재화 알약 아이콘의 오른쪽 아래 초록 «+» — 원작 `curIcoPlus`(`ui.js:1285`)가 코인·젬 알약 둘 다에 다는 상점 열기 버튼이다.
+        /// 치수는 정본 `.pill-plus`(`style.css:131` · `.74rem` 정사각 · `right:-.38rem` · `bottom:-.11rem`) 그대로 rem 배수로.
+        /// 초록 원은 T31 아틀라스의 `plus` 아이콘 그림이 쥔다(원작도 그렇다 — CSS 는 판을 안 그린다).
+        /// </summary>
+        private Button PlusBadge(Transform pill, float rem)
+        {
+            if (pill == null) return null;
+            float ico = UiKit.H("pill_icon");
+            float padL = UiKit.W("pill_pad_l");
+            float ph = UiKit.H("pill_h");
+            float s = rem * 0.74f;
+            // 아이콘 상자의 오른쪽 아래 모서리에 걸친다(정본 offset).
+            float icoX = (padL - ico) * 0.5f;
+            float icoY = (ph - ico) * 0.5f;
+            Button b = UiKit.Button(pill, "pill-plus", null);
+            UiKit.Place(b.GetComponent<RectTransform>(), icoX + ico - s + rem * 0.38f, icoY + ico - s + rem * 0.11f, s, s);
+            Image img = UiKit.Icon(b.transform, "ico", "plus");
+            UiKit.Place(img.rectTransform, 0f, 0f, s, s);
+            return b;
         }
 
         private void BuildChat(RectTransform band, float rem)
