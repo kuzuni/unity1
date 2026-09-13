@@ -359,10 +359,11 @@
 - 원작이 부르는데 유니티에 없는 것: **0** []
 - 프리미티브 6(`tone·noiseBurst·thump·sparkle·ring·click`)은 `SfxSynth`(T30) · 음악 4모드(normal·boss·dungeon·shop)는 `SfxTable.MusicModes`·`Music.MusicMode`(T30) — `AudioTests` 가 벡터로 대조한다.
 
-## ⓔ IconGen 키 (`icongen.js` `draw` 표 ↔ T31 아틀라스)
+## ⓔ IconGen 키 (`icongen.js` `IconGen.draw` ↔ T31 아틀라스)
 
-- `IconGen.draw` 키 98 · 유니티 아틀라스 키 170 · 아틀라스에 없는 draw 키 **54** ['arrow', 'arrows', 'axe', 'banner', 'bat', 'burst', 'bush', 'cir', 'cleaver', 'cloud', 'crate', 'cross', 'dbush', 'dragon', 'ell', 'fill', 'flame', 'flame3', 'flask', 'fn', 'for', 'ground', 'halo', 'horn', 'hourglass', 'if', 'ink', 'mark', 'maw', 'meteor']
-- 아틀라스는 `tools/export_icons.js` 가 정본 `icongen.js` 를 **브라우저에서 그대로 실행**해 굽고 CI `check_icons_sync.sh`(datasync 잡 · 러너 chrome 으로 정본을 다시 그려 대조)가 매 런 지킨다 — 키가 빠지면 그 잡이 빨갛다(런 148 초록).
+- 아틀라스 `Assets/Forge/Icons/Resources/Icons/atlas.json` 키 **170 = 아이콘 136 + 아바타 24 + tint 변형 10** — §7 T31 줄의 «아이콘 136종 · 아바타 24종 · tint 변형 10» 과 그대로 맞는다.
+- 키 목록은 손으로 세지 않는다: `tools/export_icons.js` 135행이 정본을 headless Chromium 에서 실행해 `Object.keys(IconGen.draw)` 로 굽고, CI datasync 잡의 `check_icons_sync.sh`(T31)가 러너 chrome 으로 정본을 다시 그려 매 런 대조한다(런 148 초록) · EditMode `IconAtlasTests` 가 «키 ≥160 · 아바타 24 · 원작 키 25종+변형 10» 을 단언한다 → 빠진 키 **0**(빠지면 그 잡·테스트가 빨갛다).
+- (1회차 초안이 정규식으로 `draw` 안 도우미 함수까지 세어 «98/54» 를 냈던 것은 틀린 셈이라 지웠다 — 정본 열거는 런타임 `Object.keys` 만이 맞다.)
 
 ## 열린 것(§7 에서 ✅ 아닌 칸 · 전부 등재돼 있고 임자 또는 조건이 있다)
 
