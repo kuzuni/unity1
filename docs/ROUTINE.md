@@ -731,6 +731,7 @@
 - 판정: `screen_skills.png` 을 열어 장착 오브가 뚜렷이 어둡고 «장착됨» 이 한가운데에서 읽히는 기록(§1) + 픽셀 단언(타원 위 오브 면 밝기가 비장착의 **0.5배 이하**) + ~~`ui_score --only skills` 가 안 내려간다~~(원작 샷의 장착 오브가 css .58 보다 옅은 ×0.7~0.85 라 이 자리는 내려간다 · 결정 218) + CI 유니티 잡 초록(PetUiTests 6/6).
 - 범위: `Assets/Scripts/Game/Ui/Skill*`(격자 오브·배지 · HUD 스킬 바는 `SkillBar.cs`) · `Assets/Forge/Resources/PetSkillUi.json`(스킬 표는 T20 이 여기 둔다 · catalog.json 은 안 쓴다) · `Assets/Tests/PlayMode/PetUiTests.cs`.
 - 1회차(2026-09-13 · 워커 B · 결정 217): 막은 이미 있었다(타원 위 면 ×0.38) → 지각값으로 · 진짜 결함은 글자 하한으로 커진 타원과 Lv 의 겹침 → 장착 오브만 Lv 중심 = max(72.9%, 타원 아래끝+.36em) · HUD `.sk-lv` 검정 알약. 실측·판정은 PROGRESS «T95 진행 기록».
+- ✅ 결론(2026-09-13 · 런 170 · 워커 B): 막은 이미 있었고(지각값으로 ×0.39) 진짜 결함은 `_h` 키로 54px 가 된 타원과 Lv 의 겹침 — 타원 39.6px 정중앙 · Lv 는 타원 아래끝에 잉크가 닿게 · HUD Lv 검정 알약 · `PetUiTests` 6/6 · ui_score skills 6.2 유지. 기록은 PROGRESS «T95 완료 기록».
 
 ### T96 — 임자 없는 빨강: «screens 브랜치 배포» 스텝이 런 164·168 연속 실패 — 눈 확인(§5)·PlayMode 진단(T46) 경로가 **런 163 에 멈춰 있다** (배포·검증 · 뒤 순서 없음 · 워커 K 등재)
 - 실측(2026-09-13 09:3x · 워커 K · Actions API):
@@ -750,7 +751,6 @@
 - 무엇을 한다: `BattleScene`(또는 `MetaHost`)이 팝업이 열릴 때 **작은 렌더 텍스처 카메라**로 지금 전투 장면을 그려 `PreviewStart(rect)` 에 꽂고, 닫을 때 `PreviewStop()` 으로 끈다 — 원작 `ui.js` 의 `pinfo-scene`(같은 씬을 작은 칸에 다시 그린다)과 같은 뜻. 새 콘텐츠 0 · 60fps 규칙대로 팝업이 닫히면 카메라·RT 를 반납한다.
 - 판정: `ui_score --score --only player-info` 가 **4.5 이상**(지금 2.9) + 워커가 PNG 를 열어 «미리보기 칸에 영웅·지면이 보인다» 확인 + `PerfBudgetTests` 상한 유지 + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Battle/BattleScene.cs`(훅 대입·RT 카메라 갈래) · `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs`(훅 호출부만) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
-- ✅ 결론(2026-09-13 · 런 170 · 워커 B): 막은 이미 있었고(지각값으로 ×0.39) 진짜 결함은 `_h` 키로 54px 가 된 타원과 Lv 의 겹침 — 타원 39.6px 정중앙 · Lv 는 타원 아래끝에 잉크가 닿게 · HUD Lv 검정 알약 · `PetUiTests` 6/6 · ui_score skills 6.2 유지. 기록은 PROGRESS «T95 완료 기록».
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
