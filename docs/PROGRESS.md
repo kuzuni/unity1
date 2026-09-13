@@ -164,7 +164,7 @@
 | T25 | Core 상점 · 패스 · 퀘스트 · 리그 | ✅ 완료 | sess-1847-30503 / 워커 L | `Assets/Scripts/Core/Meta/` · `Assets/Tests/EditMode/MetaTests.cs` · `tools/export_data.js`(shop·pass·quests·league·chat 표 추출 한 갈래) · `tools/check_data_sync.sh`(파일 목록) · `Assets/StreamingAssets/data/meta.json`(+.meta · 추출기로만) | `meta.json`(추출기 10번째 · 특가 3·젬 팩 4·패스 마일스톤 16·퀘스트 정의 14·리그 상수 6+이름 20+순위 보상 21행·채팅 줄 24+장문 3·아바타 24·진행 상수) · `MetaTable`(7표) · `IRewardWallet`(키 지갑 · `SaveStateWallet` 로 T13 세이브에 꽂음) · `DailyReset`(09:00 키 · JS toDateString 꼴) · `Shop`(일 1회 특가 · 젬 가드) · `Pass`(절대 챕터 도달 · 무료만) · `Quests`(고정 14 · tier 상승 · bump/claim/claimAll · 만렙 필터 · 젬 대체) · `League`(봇 20 · 안정 랭킹 · 승률 식 · 티켓·시즌 정산 · 보상 표) · `Chat`(인물 해시 · 시드 18 · 틱 · 공유 카드) · EditMode 56(원작 벡터: 퀘스트 tier 5줄×14 · 승률 5 · 인물 6 · 순위 보상 12) · dotnet 345 |
 | T26 | WebGL 템플릿 · 배포 스모크 · Android 잡 | ✅ 완료 | sess-1824-31207 / 워커 N | `Assets/WebGLTemplates/` · `tools/webgl_smoke.js` · `.github/workflows/ci.yml`(빌드 잡 부분만) · `ProjectSettings/ProjectSettings.asset`(webGLTemplate · 압축 폴백 · Android 식별자 칸만) | 템플릿 `Forge`(원작 fitLayout 9:16 상자 + #boot-loading 모루 오버레이 · `data-forge-ready` · `forgeSignal()`) · 스모크(Playwright · 콘솔 빨강 0 · self-test 6) · ci.yml 스모크→gh-pages · Android APK Artifact · gzip+압축 폴백 · dotnet 없음(C# 0줄) → CI 초록 확인 뒤 lock 반납 |
 | T27 | PlayMode 스모크·플레이 봇·촬영 | ✅ 완료 | sess-2050-9969 / 워커 L | `Assets/Tests/PlayMode/PlaythroughTests.cs` · `UiShotsTests.cs` · `PlayLog.cs` | **CI 런 83 유니티 잡 초록**(`UiShotsTests` PASS · `PlaythroughTests` PASS · 전 잡 success) · `PlayLog`(빨강 수집기 · 화면 이름) · 정본 `shot-screens.js` SCREENS 화면 31줄 = 원작 30장 전부 열림 + 노치 1장 · `screens` 브랜치에 `screen_*.png` 31장 + 짝 표 `screens.json`(T28 이 읽는다) · 플레이 봇 한 판(스폰 22 · 처치 17 · 펫 1 · 스킬 2 · 던전 클리어 · 빨강 0) · dotnet 471 |
-| T28 | 원작 대조 회차 (`docs/ref-layout.md` · `tools/ui_score.py`) | 🔄 진행 | 9회차 sess-0111-11076 / 워커 M | `docs/ref-layout.md` · `tools/ui_score.py` · `docs/ui-score-baseline.json`(회차 사이 점수) · `docs/ROUTINE.md`(§2 재등재) · `docs/PROGRESS.md` | **9회차**: 런 134 평균 **2.81**(8회차 4.37) · **내려간 화면 20개 — 회귀 탐지가 잡았다** · 원인은 UI 가 아니라 **앱 상자 틀**(위로 밀리고 커졌다 · T54 갈래) · **기준선은 런 128(4.37) 그대로 둔다**(틀이 돌아온 런과 견주려고) |
+| T28 | 원작 대조 회차 (`docs/ref-layout.md` · `tools/ui_score.py`) | 🔄 진행 | 10회차 sess-0111-11076 / 워커 M | `docs/ref-layout.md` · `tools/ui_score.py` · `docs/ui-score-baseline.json`(회차 사이 점수) · `docs/ROUTINE.md`(§2 재등재) · `docs/PROGRESS.md` | **10회차**: 런 139(테스트 전부 초록) 평균 **2.75** — 9회차와 같은 틀 회귀가 **두 런 연속** · 밴드 y 로 «UI 가 세로로 밀려 위가 잘린다» 를 재서 **T83 절에 실측을 보탰다** · 기준선은 런 128(4.37) 유지 |
 | T29 | `task_state.py` «코드 자취» 오탐(주석 미래 참조·도구 픽스처) 제외 | ✅ 완료 | sess-1858-659 / 워커 H | `tools/task_state.py` | `code_mentions`: 주석·문자열 리터럴·문서 내용 제외 · 자기 검사 ⓜ 18케이스 · T7·T9·T13·T14·T25 자취 0곳 · 워커 K 등재(2026-09-12) |
 | T30 | 사운드 이식: 효과음 24종(+합성 프리미티브 6) + 음악 4모드·레이어 6종 (`sfx.js` 코드 합성 그대로 · 오디오 파일 0) | ✅ 완료 | sess-1914-20666 / 워커 R | `Assets/Scripts/Core/Audio/`(SfxTable.cs · Voice.cs · SfxSynth.cs · SfxRecipes.cs · MusicSequencer.cs · Dsp.cs · SynthRenderer.cs) · `Assets/Scripts/Game/Audio/`(AudioBank.cs · Sfx.cs · Music.cs) · `Assets/StreamingAssets/data/sfx.json` · `tools/export_data.js`(sfx 갈래만) · `tools/check_data_sync.sh`(FILES 에 sfx.json 한 단어) · `tools/sfx_vectors.js` · `Assets/Tests/EditMode/Vectors/t30-sfx.json` · `Assets/Tests/EditMode/AudioTests.cs` · `Assets/Tests/PlayMode/AudioSmokeTests.cs` | Core/Audio 7파일(순수 DSP · 엔진 참조 0 · 표 `sfx.json` 11번째) · Game/Audio 3파일(백그라운드 렌더 → AudioClip) · 정본 그래프 벡터 49사례 + 음악 4모드 1,104보이스 전부 일치 · EditMode 9 · PlayMode 1 · dotnet 418(리베이스 뒤 · T30 단독 368) |
 | T31 | 아이콘·아바타 이식: `icongen.js` 아이콘 136종 + `avatars.js` 아바타 24종(= `IconGen.draw` 키 160 · 제목의 «523» 은 그리기 도우미까지 센 수) → Chromium 래스터 아틀라스 + `UiIcons.Get` | ✅ 완료 | sess-1900-14706 / 워커 U | `tools/export_icons.js` · `tools/check_icons_sync.sh` · `Assets/Forge/Icons/` · `Assets/Scripts/Core/Ui/IconAtlas.cs`(순수 표 · dotnet 검증) · `Assets/Scripts/Game/Ui/UiIcons.cs` · `Assets/Scripts/Game/Ui/UiKit.cs`(Icon 한 갈래만) · `.github/workflows/ci.yml`(datasync 잡의 아이콘 검사 한 줄만) · `Assets/Tests/EditMode/IconAtlasTests.cs` · `Assets/Tests/PlayMode/UiIconsTests.cs` · `docs/assets-map.md` · `docs/ROUTINE.md`(§1 아틀라스 예외 한 줄) | 키 170(아이콘 136 · 아바타 24 · tint 변형 10 = 등급색 알 6·체크·파란 삼각형 2·기술 발바닥) · 아틀라스 2장(2048×1948 · 2048×652 · PNG 총 172KB) · Chromium `--dump-dom` 한 번(의존성 0 · 5초 · 결정론) · `UiIcons.Get(name,tint)`·`Skill/Tab/Avatar` · `UiKit.Icon` 이 아틀라스 우선 · EditMode 7 + PlayMode 3 · dotnet 296/296 · CI `datasync` 잡이 러너 Chrome 으로 재추출 대조 |
@@ -879,6 +879,26 @@
 - **게이트**: `ui_score --self-test` 19칸 · `gen_meta`·`gen_ui_catalog`·`check_docs_intact`·`check_decisions`·`check_task_rows`·`task_state --check`·`check_claim_scope`·`check_final_table` 전부 rc 0. `tools/`·`docs/` 만 바뀐다(유니티 0줄).
 - **주인이 확인할 것**: `screens` 의 `screen_dungeons.png` — 지금은 제목이 위로 잘리고 아래에 흙바닥이 보인다. 틀이 제자리로 오면 이 화면이 다시 9.1 로 돌아온다(그것이 틀이 맞았다는 신호다).
 - **남은 것(10회차)**: T54 6회차 이후 런으로 재채점 — 런 128 기준선과 견줘 20개가 제자리로 오는지 본다.
+
+### T28 10회차 기록 — 틀 회귀가 두 런 연속 · 밴드 y 로 «어디가 어긋났나» 를 쟀다 (2026-09-13 · 워커 M · sess-0111-11076)
+
+- **채점(런 139 · `10be47d` · 유니티 잡 전부 초록 · PNG 44장)**: 평균 **2.75 / 10** — 기준선(런 128 · 4.37) 대비 **-1.62 · 내려간 화면 20개**(9회차 런 134 의 2.81 과 같은 자리). T54 가 «영웅·적이 선다» 로 ✅ 된 뒤에도 **촬영 틀은 아직 어긋나 있다**.
+- **무엇이 어긋났는지 숫자로**(같은 화면 `screen_dungeons.png` 의 밴드 y 를 두 런에서 재서 대조):
+
+  | | 제목 밴드 | 배너 y | ◀ | 탭바 | 밴드 높이 |
+  |---|---|---|---|---|---|
+  | 런 128(9.1점) | **3.0%** | 13.2 / 27.1 / 40.9 / 54.7% | 85.4% | ~90% | 12.6~12.7% |
+  | 런 139(2.4점) | **없다(잘림)** | 7.9 / 21.8 / 35.5%(셋) | **66.2%** | **72.5%** | 12.6~12.7% |
+
+  **밴드 높이가 둘이 같다** — 크기(스케일)가 아니라 **자리**다: UI 가 위로 ~13~17%H 밀려 제목이 화면 밖으로 나갔고, 앱 상자가 아래 ~21%H 를 안 덮어 그 자리에 3D 흙바닥이 보인다.
+- **어디로 보냈나**: 이 실측을 **T83 절**(«촬영 한 장에 UI + 게임 framing» · 아직 lock 없음)에 그대로 보탰다. T83 의 전제였던 «`screen_*.png` 는 UI 를 옳게 보여 준다» 가 지금은 **사실이 아니라서**, 합성을 시작하기 전에 «앱 상자 사각형이 촬영 RT 를 꽉 채우는가» 를 먼저 맞춰야 한다고 적었다. 잡는 사람이 다시 재지 않아도 된다.
+- **T83 을 내가 잡지 않은 이유**: 그 범위(`UiShotsTests.cs`)가 **T54 의 살아 있는 lock**(04:07) 과 같은 파일이다 — 규약 «두 작업이 같은 파일을 만져야 하면 뒤 번호가 기다린다».
+- **기준선은 또 갱신하지 않았다**(결정 195 그대로): 틀이 어긋난 런이 기준선이 되면 회복이 «올랐다» 로 묻힌다. 런 128(4.37)을 계속 쥔다.
+- **올라간 화면 3개**(틀이 어긋난 채로도): `forge-list`·`offline`·`pet-upgrade` — `pet-upgrade` 는 T79(워커 B ✅)가 닫은 자리다.
+- **게이트**: `ui_score --self-test` 19칸 · `gen_meta`·`gen_ui_catalog`·`check_docs_intact`·`check_decisions`·`check_task_rows`·`task_state --check`·`check_claim_scope`·`check_final_table` 전부 rc 0 · `tools/`·`docs/` 만(유니티 0줄).
+- **플레이 콘솔 에러 0**: 런 139 는 유니티 잡 **전부 초록**(EditMode+PlayMode).
+- **주인이 확인할 것**: `screens` 의 `screen_dungeons.png` 위쪽 — 던전 제목 줄이 아예 안 보이고 화면 아래 1/4 에 흙바닥이 있다. 그 두 가지가 사라지면 틀이 맞은 것이다.
+- **남은 것(11회차)**: T83(또는 T54 후속)이 틀을 맞춘 런으로 재채점 — 런 128 기준선과 견줘 20개가 돌아오는지 본다.
 
 ### T44 완료 기록 (2026-09-12 · 워커 H · sess-2058-16344)
 
