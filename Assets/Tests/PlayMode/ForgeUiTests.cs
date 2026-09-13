@@ -885,6 +885,75 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T87 21회차 — 불티(`af-spark`). 값만 보면 «칸이 있다» 로 끝나므로 **자리**(타격점에서 위쪽 반구로 나간다)와 **회전**(수평 막대로 정렬되면
+        /// 정본이 적어 둔 «상판 뒷변의 재봉선» 이다)까지 본다. 정지 상태·수명 뒤에는 꼬리가 타격점에 돌아와 투명이다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 불티가_타격점에서_위쪽_반구로_튄다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Hammers = 30;
+            ForgeSheet.Render(h);
+            yield return null;
+            h.OnCraft();
+            yield return null;
+
+            RectTransform sheet = UiRoot.Instance.Sheet;
+            AnvilFx fx = sheet.GetComponent<AnvilFx>();
+            int total = AutoForgeFxSpec.SparkCount[0] + AutoForgeFxSpec.SparkCount[1] + AutoForgeFxSpec.SparkCount[2];
+            RectTransform first = Named(sheet, "af-spark-0"), last = Named(sheet, "af-spark-" + (total - 1));
+            Assert.IsNotNull(first, "첫 불티 칸");
+            Assert.IsNotNull(last, "마지막 불티 칸(= 3타의 것)");
+            Assert.AreEqual("anvil-fx", first.parent.name, "불티는 연출 오버레이 안에 있다");
+
+            // 정지(창 앞) — 투명하고 꼬리가 타격점이다
+            fx.SampleTo(0);
+            Assert.AreEqual(0f, Op(sheet, "af-spark-0"), 1e-3f, "켜지기 전에는 투명");
+            Vector2 home = first.anchoredPosition;
+            Assert.AreEqual(0f, first.localRotation.eulerAngles.z, 1e-3f, "정지 상태에는 회전이 없다");
+
+            // 1타 접촉 프레임 — 밝고, 이미 회전이 실려 있다(수평 막대로 정렬되면 재봉선이다)
+            fx.SampleTo(AutoForgeFxSpec.HitMs[0]);
+            Assert.Greater(Op(sheet, "af-spark-0"), 0.85f, "접촉 프레임에 불티가 밝다");
+            float deg = first.localRotation.eulerAngles.z;
+            Assert.Greater(deg, 30f, "불티가 제 각도로 돌아 있다(0°·180° 로 정렬되면 정본이 지적한 «재봉선» 이다)");
+            Assert.Less(deg, 330f, "같은 이유 — 수평 정렬 금지");
+
+            // 수명 중간 — 타격점보다 위로, 그리고 바깥으로 나가 있다
+            fx.SampleTo(AutoForgeFxSpec.HitMs[0] + AutoForgeFxSpec.SparkDurMinMs * 0.55);
+            Vector2 mid = first.anchoredPosition;
+            Assert.Greater(mid.y, home.y + 1f, "불티는 타격점보다 **위로** 뜬다(유니티는 위가 +)");
+            Assert.Greater((mid - home).magnitude, 4f, "제자리에서 깜박이는 것이 아니라 실제로 날아간다");
+
+            // 수명 뒤 — 꼬리가 타격점으로 돌아오고 투명이다
+            fx.SampleTo(AutoForgeFxSpec.HitMs[0] + AutoForgeFxSpec.SparkDurMaxMs + 10);
+            Assert.AreEqual(0f, Op(sheet, "af-spark-0"), 1e-3f, "수명 뒤에는 투명");
+            Assert.AreEqual(home.x, first.anchoredPosition.x, 0.01f, "꼬리가 타격점으로 돌아온다");
+
+            // 3타 불티는 더 멀리 간다(사거리 배수 1.8)
+            fx.SampleTo(AutoForgeFxSpec.HitMs[2]);
+            Vector2 lastHome = last.anchoredPosition;
+            fx.SampleTo(AutoForgeFxSpec.HitMs[2] + AutoForgeFxSpec.SparkDurMinMs * 0.55);
+            Assert.Greater((last.anchoredPosition - lastHome).magnitude, (mid - home).magnitude, "3타 불티가 1타보다 멀리 간다");
+
+            // 픽셀 — 3타 중간 프레임에 불티 칸에 실제로 뭔가 칠해져 있다(심은 밝고 후광은 어둡다)
+            if (!NoGraphics())
+            {
+                yield return null;
+                int area; string info;
+                // 어두운 후광(정본 `rgba(72,16,0,.95)`)은 크림 배경(242,240,234)도 주황 상판(≈210,88,42)도 아닌 유일한 색이라 불티의 증거다
+                int halo = CountPixels(last, delegate(Color32 c) { return c.r > 28 && c.r < 175 && c.g < 110 && c.b < 100; }, out area, out info, null);
+                Assert.Greater(halo, 0, "3타 불티가 화면에 안 칠해졌다(후광 픽셀 0) — " + info);
+            }
+
+            fx.Stop();
+            yield return null;
+            h.CancelAnvilStrike();
+            yield return null;
+        }
+
         private static bool NoGraphics()
         {
             return SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;

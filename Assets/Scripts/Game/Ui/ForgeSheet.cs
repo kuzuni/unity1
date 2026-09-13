@@ -39,6 +39,10 @@ namespace Forge.Game.Ui
         static readonly Image[] heats = new Image[3];
         /// <summary>블룸(정본 `.af-bloom.bN`) — 타격 순간 버튼 전체를 들어 올린다.</summary>
         static readonly Image[] blooms = new Image[3];
+
+        /// <summary>불티 칸(정본 `.af-spark` · 타격마다 7·11·16개 = 34개) 과 그 표.</summary>
+        static Image[] sparks = new Image[0];
+        static Forge.Core.CraftFx.AutoForgeFxSpec.SparkSpec[] sparkSpecs = new Forge.Core.CraftFx.AutoForgeFxSpec.SparkSpec[0];
         /// <summary>viewBox 한 단위의 화면 px — 망치 `afswing` 의 translate 는 **viewBox 단위**다(SVG 자식이라 CSS px 가 아니다).</summary>
         static float vbUnit;
 
@@ -115,7 +119,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(upgText.rectTransform, 0f, btnH + rem * 0.25f, W - padX * 2f - rx, PopupKit.FontSize(TextKind.Sub) * 1.3f);
             }
             // 두들기는 도중 다시 그려졌다면(세이브 → Rerender) 러너를 새 모루·시트에 다시 문다 — 흐른 시간은 지킨다.
-            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit); }
+            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) { fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit); fx.TakeSparks(sparks, sparkSpecs); } }
         }
 
         static string RemainText(ForgeHost h)
@@ -141,7 +145,7 @@ namespace Forge.Game.Ui
             if (root == null) return;
             AnvilFx fx = AnvilFx.Ensure(root.Sheet);
             if (fx == null) return;
-            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit);
+            if (on) { fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit); fx.TakeSparks(sparks, sparkSpecs); }
             else fx.Stop();
         }
 
@@ -373,6 +377,9 @@ namespace Forge.Game.Ui
             DrawImpactGradient(fx, u, flashes, "af-flash", "flash_rx", "flash_ry",
                 new string[] { "flash0", "flash1", "flash2", "flash3" }, new float[] { 0f, UiKit.L("flash_off1"), UiKit.L("flash_off2"), 1f });
 
+            // 불티는 **망치보다 앞(= 아래)** 이다 — 정본 SVG 도 그 순서고, 그래서 사거리 하한이 머리 반폭보다 커야 가려지지 않는다(정본 주석).
+            DrawSparks(fx, u);
+
             hammerRt = UiKit.Box(fx, "hammer");
             UiKit.Place(hammerRt, 0f, 0f, vbW * u, vbH * u);
             float pxo = (float)(AutoForgeFxSpec.HitX / vbW), pyo = (float)(AutoForgeFxSpec.HitY / vbH);
@@ -467,6 +474,50 @@ namespace Forge.Game.Ui
         /// ⚠ 축은 조각의 **머리 쪽 끝**이다(왼쪽 조각은 bbox 오른쪽 · 오른쪽 조각은 왼쪽) — 가운데를 축으로 두면 커질 때 안쪽 끝이 머리 실루엣을 파고들어 흰 띠가 생긴다(정본 실측).
         /// 그라디언트도 축과 함께 뒤집힌다(안쪽이 흰색 불투명 · 바깥 끝이 투명).
         /// </summary>
+        /// <summary>
+        /// 불티 34개(7·11·16) — 정본은 `ui.js` 가 개체마다 `<path class="af-spark">` 를 인라인 스타일(`--a`·`--u`·`--v`·`--t`·`--dur`)과 함께 찍는다.
+        /// 클론은 표(<see cref="AutoForgeFxSpec.BuildSparks"/>)를 뽑아 칸을 세우고, 도형은 **기준 길이 쐐기 한 장**을 구워 칸 너비로 늘린다.
+        /// 축(피벗)은 정본 `transform-origin: 0% 50%` 대로 **꼬리 = 타격점**이다(회전·이동이 그 점을 중심으로 돈다).
+        /// </summary>
+        static void DrawSparks(RectTransform fx, float u)
+        {
+            float len = UiKit.L("spark_len"), tail = UiKit.L("spark_tail");
+            Sprite sp = CraftFxPoly.BakeSpark("af-spark", len, tail, UiKit.L("spark_tip_top"), UiKit.L("spark_tip_bot"),
+                UiKit.L("spark_halo_r"), UiKit.L("spark_glow_r"), UiKit.C("spark_halo"), UiKit.C("spark_glow"));
+            // 후광까지 구운 텍스처라 도형보다 넓다 — 늘릴 때 그 여백도 같은 비율로 늘어나므로 칸 크기에 같이 넣는다.
+            float pad = Mathf.Max(UiKit.L("spark_halo_r"), UiKit.L("spark_glow_r"));
+            Color[] tints = { UiKit.C("spark_hot"), UiKit.C("spark_warm"), UiKit.C("spark_cool") };
+            sparkSpecs = AutoForgeFxSpec.BuildSparks(SparkRand());
+            sparks = new Image[sparkSpecs.Length];
+            for (int k = 0; k < sparkSpecs.Length; k++)
+            {
+                AutoForgeFxSpec.SparkSpec q = sparkSpecs[k];
+                RectTransform rt = UiKit.Box(fx, "af-spark-" + k);
+                Image img = rt.gameObject.AddComponent<Image>();
+                img.raycastTarget = false;
+                img.sprite = sp;
+                img.type = Image.Type.Simple;
+                Color c = tints[Mathf.Clamp(q.Tint, 0, tints.Length - 1)];
+                c.a = 0f;                                   // 정지 상태는 투명(정본 `opacity: 0`)
+                img.color = c;
+                float scale = (float)q.Len / len;           // 기준 쐐기를 개체 길이로
+                float bw = (len + pad * 2f) * scale * u, bh = (tail * 2f + pad * 2f) * scale * u;
+                float cx = (float)AutoForgeFxSpec.HitCenterX(q.Strike), cy = (float)AutoForgeFxSpec.HitCenterY(q.Strike);
+                UiKit.Place(rt, (cx - pad * scale) * u, (cy - (tail + pad) * scale) * u, bw, bh);
+                // 피벗 = 꼬리 끝(= 타격점) · 세로 가운데 → 정본 `0% 50%`
+                rt.pivot = new Vector2(pad * scale * u / Mathf.Max(1e-4f, bw), 0.5f);
+                rt.anchoredPosition = new Vector2(rt.anchoredPosition.x + rt.pivot.x * bw, rt.anchoredPosition.y - 0.5f * bh);
+                sparks[k] = img;
+            }
+        }
+
+        /// <summary>불티 난수 — 정본은 `Math.random` 이라 매번 다르지만 클론은 씨앗을 고정해 테스트가 같은 묶음을 본다(결정 244).</summary>
+        static System.Func<double, double, double> SparkRand()
+        {
+            Forge.Core.Data.Rng rng = Forge.Core.Data.Rng.Mulberry((uint)Mathf.RoundToInt(UiKit.L("spark_seed")));
+            return delegate(double a, double b) { return rng.Rand(a, b); };
+        }
+
         static void DrawStars(RectTransform fx, float u)
         {
             int n = Mathf.RoundToInt(UiKit.L("star_n"));

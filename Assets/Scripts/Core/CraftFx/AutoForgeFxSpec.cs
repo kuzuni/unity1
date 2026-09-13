@@ -240,6 +240,118 @@ namespace Forge.Core.CraftFx
             new double[] { 0, 12, 55, 100 },
             new double[][] { new double[] { 0.55, 0.95 }, new double[] { 1.0, 0.82 }, new double[] { 1.08, 0.42 }, new double[] { 1.18, 0.0 } });
 
+        // ── 불티(`af-spark`) ───────────────────────────────────────────────────────────────────
+        // 정본이 이 층에 남긴 함정 넷(주석 그대로):
+        //  ⓐ **회전은 키프레임 안에 있어야 한다** — `transform="rotate()"` 프레젠테이션 속성으로 주면 `afspark` 의 `transform` 이 그것을 덮어
+        //     연출이 시작되는 순간 회전이 증발하고 불티가 전부 수평 막대로 정렬돼 «상판 뒷변의 재봉선» 이 된다(비평가 2인이 같은 그림을 지적).
+        //  ⓑ 그래서 이동 벡터를 **회전 프레임 기준**으로 미리 푼다: u = 발사 방향(등속) = d + g·sin a · v = 중력(등가속) = g·cos a.
+        //     이 분해 덕에 중간 키가 u·0.55 / v·0.30 이면 **정확한 포물선**이다(섞인 좌표로 두면 궤적이 처졌다 솟는다).
+        //  ⓒ 각도 범위는 위쪽 반구에서도 **손잡이가 뻗은 우상단을 뺀** −0.30π ~ −0.95π 다(불티는 망치 뒤라 그 몫 13%가 통째로 가려졌다).
+        //  ⓓ 사거리 하한은 머리 반폭(10.6)보다 커야 한다 — 작으면 그 불티는 접촉 프레임 내내 머리에 가려 아예 안 보인다(그래서 28부터).
+        // 색은 **정적 변주**다(정본 실측: `fill` 을 애니메이션하면 같은 오버레이의 `screen` 합성 층이 통째로 죽어 근백색 픽셀이 41 → 0 이 됐다).
+
+        /// <summary>`afspark` 의 타이밍 함수 — `cubic-bezier(0,.88,.24,1)`.</summary>
+        public static readonly CssEase SparkEase = new CssEase(0, 0.88, 0.24, 1);
+        /// <summary>`--t: calc(ANVIL_HITS[h]/1000 - 0.008)` — 불티는 접촉 **8ms 앞**에 켠다.</summary>
+        public const double SparkLeadMs = 8;
+        /// <summary>`--dur: rand(.17, .25)` — 개체마다 수명이 다르다(ms).</summary>
+        public const double SparkDurMinMs = 170, SparkDurMaxMs = 250;
+        /// <summary>타격마다의 개수(`[7, 11, 16]`) — 1·2타가 같으면 위계가 «약·약·강» 2단이 되어 크레셴도로 안 읽힌다(정본 주석).</summary>
+        public static readonly int[] SparkCount = { 7, 11, 16 };
+        /// <summary>타격마다의 사거리 배수(`[1, 1.28, 1.8]`).</summary>
+        public static readonly double[] SparkDistMul = { 1, 1.28, 1.8 };
+        /// <summary>`U.rand(28, 44)` — 사거리(viewBox 단위 · 상판 폭은 83).</summary>
+        public const double SparkDistMin = 28, SparkDistMax = 44;
+        /// <summary>중력분 `g = 7`(밝은 불티).</summary>
+        public const double SparkGravity = 7;
+        /// <summary>`U.rand(7, 13.5)` — 쐐기 길이(개체마다 달라야 복제품으로 안 읽힌다).</summary>
+        public const double SparkLenMin = 7, SparkLenMax = 13.5;
+        /// <summary>각도 = `-π * (0.30 + 0.65 * (i + rand(0, 0.6)) / n)`.</summary>
+        public const double SparkAngleBase = 0.30, SparkAngleSpan = 0.65, SparkAngleJitter = 0.6;
+        /// <summary>색온도 문턱(사거리 기준) — `d > 46` 백열 · `d > 34` 황 · 그 밑은 적(멀리 가는 조각일수록 뜨겁다).</summary>
+        public const double SparkTintHot = 46, SparkTintWarm = 34;
+        /// <summary>쐐기 꼭짓점의 y(viewBox · 꼬리 ±0.95 → 선단 −0.12/+0.13): 끝이 뾰족하고 꼬리가 끌린다(`rect rx .8` 은 «크림색 캡슐·쌀알» 로 읽혔다).</summary>
+        public static readonly double[] SparkWedgeY = { -0.95, -0.12, 0.13, 0.95 };
+
+        /// <summary>
+        /// `afspark` — 채널 = opacity · scaleX(진행 방향으로만 줄어 잔상처럼 가늘어진다) · u 몫 · v 몫.
+        /// 뒤 둘은 <see cref="SparkSpec.U"/>·<see cref="SparkSpec.V"/> 에 곱하는 비율이다(중간 키 0.55 / 0.30 = 포물선).
+        /// </summary>
+        public static readonly CssTrack Spark = new CssTrack(
+            new double[] { 0, 55, 100 },
+            new double[][]
+            {
+                new double[] { 1.0, 0.70, 0.00, 0.00 },
+                new double[] { 0.9, 1.00, 0.55, 0.30 },
+                new double[] { 0.0, 0.22, 1.00, 1.00 },
+            });
+
+        /// <summary>불티 한 개 — 정본이 JS 에서 인라인으로 내려 주는 값들(`--a`·`--u`·`--v`·`--t`·`--dur` + 길이·색온도).</summary>
+        public struct SparkSpec
+        {
+            /// <summary>몇 번째 타격의 불티인가(0~2).</summary>
+            public int Strike;
+            /// <summary>`--a` — 발사 각도(도 · CSS 회전이라 화면에서 시계 방향이 +).</summary>
+            public double AngleDeg;
+            /// <summary>`--u` — 회전 프레임의 발사 방향 이동(등속 · viewBox 단위).</summary>
+            public double U;
+            /// <summary>`--v` — 회전 프레임의 중력 이동(등가속).</summary>
+            public double V;
+            /// <summary>쐐기 길이(viewBox 단위).</summary>
+            public double Len;
+            /// <summary>사거리 d — 색온도를 가른다.</summary>
+            public double Dist;
+            /// <summary>`--dur`(ms).</summary>
+            public double DurMs;
+            /// <summary>이 불티가 켜지는 시각(ms · 타격 − <see cref="SparkLeadMs"/>).</summary>
+            public double StartMs;
+            /// <summary>색온도 갈래 — 0 백열(`#fffdf0`) · 1 황(`#ffd257`) · 2 적(`#ff9a2e`).</summary>
+            public int Tint;
+        }
+
+        /// <summary>
+        /// 불티 묶음을 정본 순서 그대로 뽑는다 — `ui.js` 는 타격마다 `n` 개를 돌며 난수를 **각도 흔들림 → 사거리 → 길이 → 수명** 순으로 뽑는다.
+        /// <paramref name="rand"/> 는 `U.rand(a, b)` 자리다(정본은 `Math.random` · 클론은 결정론 난수원을 넣어 테스트가 같은 묶음을 본다).
+        /// </summary>
+        public static SparkSpec[] BuildSparks(Func<double, double, double> rand)
+        {
+            if (rand == null) throw new ArgumentNullException("rand");
+            var list = new System.Collections.Generic.List<SparkSpec>();
+            for (int h = 0; h < HitMs.Length; h++)
+            {
+                int n = SparkCount[h];
+                for (int i = 0; i < n; i++)
+                {
+                    double a = -Math.PI * (SparkAngleBase + SparkAngleSpan * (i + rand(0, SparkAngleJitter)) / n);
+                    double d = rand(SparkDistMin, SparkDistMax) * SparkDistMul[h];
+                    double w = rand(SparkLenMin, SparkLenMax);
+                    double dur = rand(SparkDurMinMs, SparkDurMaxMs);
+                    SparkSpec sp = new SparkSpec();
+                    sp.Strike = h;
+                    sp.AngleDeg = a * 180.0 / Math.PI;
+                    sp.U = d + SparkGravity * Math.Sin(a);
+                    sp.V = SparkGravity * Math.Cos(a);
+                    sp.Len = w;
+                    sp.Dist = d;
+                    sp.DurMs = dur;
+                    sp.StartMs = HitMs[h] - SparkLeadMs;
+                    sp.Tint = d > SparkTintHot ? 0 : (d > SparkTintWarm ? 1 : 2);
+                    list.Add(sp);
+                }
+            }
+            return list.ToArray();
+        }
+
+        /// <summary>불티 하나의 지금 자세 — `into` = [opacity, scaleX, u 몫, v 몫]. 창 밖이면 false.</summary>
+        public static bool SampleSpark(SparkSpec sp, double ms, double[] into)
+        {
+            if (into == null || into.Length < 4) throw new ArgumentException("into 는 4칸이어야 한다");
+            if (sp.DurMs <= 0) throw new ArgumentException("불티 수명이 0 이하다");
+            if (ms < sp.StartMs || ms > sp.StartMs + sp.DurMs) return false;
+            Spark.SampleEased((ms - sp.StartMs) / sp.DurMs * 100.0, SparkEase, into);
+            return true;
+        }
+
         /// <summary>
         /// 타격 겹 하나를 읽는다 — 창은 «타격 시각 − <paramref name="leadMs"/>» 부터 <paramref name="durMs"/> 동안이고
         /// `into` = [배율, opacity](배율은 타격마다의 <paramref name="perStrike"/> 에 트랙 값을 곱한 것 · CSS 의 `scale(calc(var(--afXs) * k))` 와 같은 뜻).

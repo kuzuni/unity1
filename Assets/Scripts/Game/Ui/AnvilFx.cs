@@ -21,6 +21,9 @@ namespace Forge.Game.Ui
         private float unit;
         private Vector2 hammerHome;
         private Image[] rings, shadows, cores, starsL, starsR, flashes, heats, blooms;
+        private Image[] sparks;
+        private AutoForgeFxSpec.SparkSpec[] sparkSpecs;
+        private Vector2[] sparkHome;
         private Vector2 anvilHome, sheetHome;
         private Vector3 anvilScaleHome, billetScaleHome;
         private bool running;
@@ -132,6 +135,23 @@ namespace Forge.Game.Ui
             flashes = null;
             heats = null;
             blooms = null;
+            sparks = null;
+            sparkSpecs = null;
+            sparkHome = null;
+        }
+
+        /// <summary>
+        /// 불티 묶음을 따로 받는다 — 개체 수가 타격마다 달라(7·11·16) 다른 겹처럼 «3칸 배열» 이 아니고, 표(각도·사거리·수명)가 칸과 짝이어야 한다.
+        /// `Play`·`Rebind` **뒤에** 부른다(둘 다 자기가 받은 것만 되돌리므로 여기서 쉬는 자리를 적어 둔다).
+        /// </summary>
+        public void TakeSparks(Image[] sparkLayers, AutoForgeFxSpec.SparkSpec[] specs)
+        {
+            sparks = sparkLayers;
+            sparkSpecs = specs;
+            if (sparks == null) { sparkHome = null; return; }
+            sparkHome = new Vector2[sparks.Length];
+            for (int k = 0; k < sparks.Length; k++) sparkHome[k] = sparks[k] == null ? Vector2.zero : sparks[k].rectTransform.anchoredPosition;
+            if (running) Apply();
         }
 
         /// <summary>자기가 만든 것만 되돌린다 — 모루·시트 자리와 쇳덩이 자세·겹 불투명도(정지 상태 = 트랙 0%).</summary>
@@ -155,6 +175,22 @@ namespace Forge.Game.Ui
             RestLayers(flashes);
             RestLayers(heats);
             RestLayers(blooms);
+            RestSparks();
+        }
+
+        /// <summary>불티를 «안 보이는 제자리»(꼬리가 타격점 · 회전 0 · 투명)로.</summary>
+        private void RestSparks()
+        {
+            if (sparks == null) return;
+            for (int k = 0; k < sparks.Length; k++)
+            {
+                if (sparks[k] == null) continue;
+                RectTransform rt = sparks[k].rectTransform;
+                rt.localScale = Vector3.one;
+                rt.localRotation = Quaternion.identity;
+                if (sparkHome != null && k < sparkHome.Length) rt.anchoredPosition = sparkHome[k];
+                Color c = sparks[k].color; c.a = 0f; sparks[k].color = c;
+            }
         }
 
         /// <summary>겹 셋을 «안 보이는 제자리» 로 되돌린다(제 창 밖의 자세).</summary>
@@ -250,6 +286,47 @@ namespace Forge.Game.Ui
             ApplyBurst(flashes, AutoForgeFxSpec.Flash, CssEase.Linear, AutoForgeFxSpec.FlashDurMs, AutoForgeFxSpec.FlashLeadMs, AutoForgeFxSpec.FlashScale);
             ApplyBurst(heats, AutoForgeFxSpec.Heat, CssEase.Linear, AutoForgeFxSpec.HeatDurMs, AutoForgeFxSpec.HeatLeadMs, AutoForgeFxSpec.HeatScale);
             ApplyBloom();
+            ApplySparks();
+        }
+
+        /// <summary>
+        /// 불티 — 정본은 `rotate(--a) translate(--u, --v) scaleX(...)` 순서다: 이동이 **회전 뒤**에 오므로 `--u`·`--v` 는 회전 프레임 기준이고
+        /// 부모 칸에서의 변위는 R(a)·(u, v) 다(정본이 그렇게 풀어 준 덕에 중간 키 0.55 / 0.30 이 정확한 포물선이 된다).
+        /// 길이 단위는 viewBox 유닛이라 <see cref="unit"/> 을 곱한다(촬영 배율이 아니다 — SVG 안의 값이다).
+        /// </summary>
+        private void ApplySparks()
+        {
+            if (sparks == null || sparkSpecs == null) return;
+            double[] v = new double[4];
+            int n = Mathf.Min(sparks.Length, sparkSpecs.Length);
+            for (int k = 0; k < n; k++)
+            {
+                Image img = sparks[k];
+                if (img == null) continue;
+                RectTransform rt = img.rectTransform;
+                Vector2 home = sparkHome != null && k < sparkHome.Length ? sparkHome[k] : rt.anchoredPosition;
+                Color c = img.color;
+                AutoForgeFxSpec.SparkSpec q = sparkSpecs[k];
+                if (AutoForgeFxSpec.SampleSpark(q, ms, v))
+                {
+                    c.a = Mathf.Clamp01((float)v[0]);
+                    rt.localScale = new Vector3((float)v[1], 1f, 1f);
+                    rt.localRotation = Quaternion.Euler(0f, 0f, -(float)q.AngleDeg);   // CSS rotate(+) = 화면 시계 방향 = 유니티 z −
+                    double rad = q.AngleDeg * System.Math.PI / 180.0;
+                    double du = v[2] * q.U, dv = v[3] * q.V;
+                    double dx = System.Math.Cos(rad) * du - System.Math.Sin(rad) * dv;
+                    double dy = System.Math.Sin(rad) * du + System.Math.Cos(rad) * dv;  // CSS 좌표(아래가 +)
+                    rt.anchoredPosition = new Vector2(home.x + (float)dx * unit, home.y - (float)dy * unit);
+                }
+                else
+                {
+                    c.a = 0f;
+                    rt.localScale = Vector3.one;
+                    rt.localRotation = Quaternion.identity;
+                    rt.anchoredPosition = home;
+                }
+                img.color = c;
+            }
         }
 
         /// <summary>타격 순간의 겹(그림자·코어 …) 셋 — 제 창에서만 배율·불투명도를 바르고 밖에서는 투명하게 둔다.</summary>

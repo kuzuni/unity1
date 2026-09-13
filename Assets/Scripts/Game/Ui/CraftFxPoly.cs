@@ -200,6 +200,104 @@ namespace Forge.Game.Ui
             return sp;
         }
 
+        /// <summary>
+        /// 불티 쐐기(정본 `.af-spark` path) + **후광**을 한 장에 굽는다 — T87 21회차.
+        /// 정본은 심을 `fill` 로 주고 후광을 `filter: drop-shadow(0 0 1.1px rgba(72,16,0,.95)) drop-shadow(0 0 2.4px rgba(255,122,0,.75))` 로 씌운다:
+        /// «흰 불티는 시트 배경(#f2f0ea) 대비 명도비 1.12:1 이라 배경 위에서 사실상 투명하다 — 밝은 배경에서는 후광이, 주황 상판 위에서는 심이 판다».
+        /// 클론은 겹을 늘리는 대신 **텍스처에 같이 굽는다**(개체가 34개라 겹을 두 배로 늘리면 칸이 68개다):
+        /// 심은 흰색이라 <see cref="Image.color"/> 의 색온도가 그대로 곱해지고, 어두운 후광·주황 글로우는 그 곱에도 어둡고 주황인 채로 남는다.
+        /// <paramref name="len"/> 은 **기준 길이**다 — 개체 길이는 칸 너비로 늘린다(쐐기는 x 에 선형이라 늘려도 같은 도형이다).
+        /// </summary>
+        public static Sprite BakeSpark(string name, float len, float tailH, float tipTop, float tipBot, float haloR, float glowR, Color halo, Color glow)
+        {
+            Sprite hit;
+            if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+
+            Vector2[] pts =
+            {
+                new Vector2(0f, -tailH), new Vector2(len, tipTop), new Vector2(len, tipBot), new Vector2(0f, tailH),
+            };
+            float pad = Mathf.Max(haloR, glowR);
+            Rect b = Bounds(pts);
+            float x0 = b.xMin - pad, y0 = b.yMin - pad;
+            float bw = b.width + pad * 2f, bh = b.height + pad * 2f;
+            int w = Mathf.Max(4, Mathf.CeilToInt(bw * PixelsPerUnit));
+            int h = Mathf.Max(4, Mathf.CeilToInt(bh * PixelsPerUnit));
+            Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            tex.name = name;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;
+
+            Color32[] px = new Color32[w * h];
+            float inv = 1f / Super;
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    float cover = 0f;
+                    float near = float.MaxValue;
+                    for (int sy = 0; sy < Super; sy++)
+                    {
+                        for (int sx = 0; sx < Super; sx++)
+                        {
+                            float fx = (x + (sx + 0.5f) * inv) / w;
+                            float fy = 1f - (y + (sy + 0.5f) * inv) / h;   // 텍스처는 아래가 0행 · SVG 는 위가 0
+                            Vector2 p = new Vector2(x0 + fx * bw, y0 + fy * bh);
+                            if (Inside(pts, p)) { cover += 1f; near = 0f; }
+                            else { float d = DistToPoly(pts, p); if (d < near) near = d; }
+                        }
+                    }
+                    Color c;
+                    float a;
+                    int n = Super * Super;
+                    if (cover > 0f)
+                    {
+                        c = Color.white;                       // 심 — 색온도는 Image.color 가 곱한다
+                        a = cover / n;
+                    }
+                    else if (near <= haloR)
+                    {
+                        c = halo;
+                        a = halo.a * (1f - near / Mathf.Max(1e-4f, haloR));
+                    }
+                    else if (near <= glowR)
+                    {
+                        c = glow;
+                        a = glow.a * (1f - (near - haloR) / Mathf.Max(1e-4f, glowR - haloR));
+                    }
+                    else { c = Color.white; a = 0f; }
+                    px[y * w + x] = new Color32(
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.r) * 255f),
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.g) * 255f),
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.b) * 255f),
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(a) * 255f));
+                }
+            }
+            tex.SetPixels32(px);
+            tex.Apply(false, true);
+            Sprite sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            sp.name = name;
+            cache[name] = sp;
+            return sp;
+        }
+
+        /// <summary>점에서 폴리곤 둘레까지의 거리(후광 두께를 재는 자 · 바깥 점만 부른다).</summary>
+        private static float DistToPoly(Vector2[] pts, Vector2 p)
+        {
+            float best = float.MaxValue;
+            int n = pts.Length;
+            for (int i = 0, j = n - 1; i < n; j = i++)
+            {
+                Vector2 a = pts[j], b = pts[i];
+                Vector2 ab = b - a;
+                float len2 = ab.sqrMagnitude;
+                float t = len2 <= 1e-9f ? 0f : Mathf.Clamp01(Vector2.Dot(p - a, ab) / len2);
+                float d = (p - (a + ab * t)).magnitude;
+                if (d < best) best = d;
+            }
+            return best;
+        }
+
         /// <summary>축(<paramref name="from"/>→<paramref name="to"/>) 위 위치 t — SVG `linearGradient x1y1 → x2y2` 와 같은 뜻.</summary>
         private static float Project(Vector2 p, Vector2 from, Vector2 to)
         {

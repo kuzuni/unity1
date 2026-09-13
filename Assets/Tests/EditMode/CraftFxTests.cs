@@ -437,6 +437,70 @@ namespace Forge.Tests
             throw new System.ArgumentException("그 퍼센트의 키가 없다: " + percent);
         }
 
+        /// <summary>
+        /// T87 21회차 — 불티(`afspark`). 정본이 이 층에 못 박은 것 넷을 표에서 지킨다:
+        /// 위쪽 반구에서도 **손잡이 쪽(우상단)은 빼고** 튄다 · 사거리 하한이 머리 반폭(10.6)보다 크다 · 궤적이 **정확한 포물선**(중간 키 u·0.55 / v·0.30) ·
+        /// 3타가 더 많고 더 멀리 가며 마지막 불티도 오버레이 수명(1500ms) 안에서 끝난다.
+        /// </summary>
+        [Test]
+        public void 불티는_손잡이_쪽을_빼고_튀고_궤적이_포물선이다()
+        {
+            // 난수 자리에 «가운데 값» 을 넣어 같은 묶음을 본다(정본은 Math.random · 클론은 결정론 난수원)
+            AutoForgeFxSpec.SparkSpec[] mid = AutoForgeFxSpec.BuildSparks(delegate(double a, double b) { return (a + b) * 0.5; });
+            Assert.AreEqual(7 + 11 + 16, mid.Length, "불티 개수 = 7 + 11 + 16(정본 [7,11,16])");
+
+            int[] per = new int[3];
+            double[] far = new double[3];
+            foreach (AutoForgeFxSpec.SparkSpec q in mid)
+            {
+                per[q.Strike]++;
+                if (q.Dist > far[q.Strike]) far[q.Strike] = q.Dist;
+                // 각도: −0.30π ~ −0.95π + 흔들림(−0.95π 를 넘지 않는다) · 손잡이가 뻗은 −20° 쪽은 비운다
+                Assert.Less(q.AngleDeg, -53.9, "위쪽 반구 중 손잡이(−20°) 쪽은 비어야 한다 — 그 몫은 망치에 가려진다");
+                Assert.Greater(q.AngleDeg, -171.1, "모루 아래로 파고드는 불티는 오독이다");
+                Assert.GreaterOrEqual(q.Dist, AutoForgeFxSpec.SparkDistMin, "사거리 하한(머리 반폭 10.6 보다 커야 접촉 프레임에 보인다)");
+                Assert.LessOrEqual(q.StartMs + q.DurMs, AnvilFxSpec.DurationMs, "불티가 오버레이 수명 안에서 끝난다");
+                // 색온도: 멀리 가는 조각일수록 뜨겁다
+                int want = q.Dist > AutoForgeFxSpec.SparkTintHot ? 0 : (q.Dist > AutoForgeFxSpec.SparkTintWarm ? 1 : 2);
+                Assert.AreEqual(want, q.Tint, "색온도는 사거리로 갈린다");
+            }
+            Assert.AreEqual(new int[] { 7, 11, 16 }, per, "타격마다 개수가 는다(위계가 2단이면 크레셴도로 안 읽힌다)");
+            Assert.Greater(far[2], far[0] * 1.7, "3타가 1타보다 훨씬 멀리 튄다(배수 1.8)");
+
+            AutoForgeFxSpec.SparkSpec sp = mid[mid.Length - 1];
+            double[] v = new double[4];
+            // 창 앞·뒤에는 그릴 것이 없다
+            Assert.IsFalse(AutoForgeFxSpec.SampleSpark(sp, sp.StartMs - 1, v), "켜지기 전");
+            Assert.IsFalse(AutoForgeFxSpec.SampleSpark(sp, sp.StartMs + sp.DurMs + 1, v), "수명 뒤");
+            // 접촉 프레임(= 켠 뒤 8ms)에 이미 밝고 늘어나 있다 — 작게 출발해 뒤에 커지면 «빛만 메아리로 온다»
+            Assert.IsTrue(AutoForgeFxSpec.SampleSpark(sp, AutoForgeFxSpec.HitMs[sp.Strike], v));
+            Assert.Greater(v[0], 0.85, "접촉 프레임에 거의 불투명");
+            Assert.Greater(v[1], 0.85, "접촉 프레임에 이미 제 길이에 가깝다(실측 0.879 — 0.7 에서 출발해 이징이 앞에서 쏟아진다)");
+            // 중간 키 = u·0.55 / v·0.30 → 등속 + 등가속이라 정확한 포물선이다
+            Assert.IsTrue(AutoForgeFxSpec.SampleSpark(sp, sp.StartMs + sp.DurMs * 0.55, v));
+            Assert.AreEqual(0.55, v[2], 1e-9, "중간 키의 발사 방향 몫");
+            Assert.AreEqual(0.30, v[3], 1e-9, "중간 키의 중력 몫");
+            // 끝에는 꺼지고 진행 방향으로만 가늘어진다(잔상)
+            AutoForgeFxSpec.SampleSpark(sp, sp.StartMs + sp.DurMs, v);
+            Assert.AreEqual(0.0, v[0], 1e-9, "수명 끝에는 투명");
+            Assert.AreEqual(0.22, v[1], 1e-9, "끝에서 잔상처럼 가늘어진다");
+            Assert.AreEqual(1.0, v[2], 1e-9, "끝에서 사거리를 다 쓴다");
+            // 회전 프레임 분해 — u 는 발사 방향(등속) · v 는 중력(등가속)
+            double rad = sp.AngleDeg * System.Math.PI / 180.0;
+            Assert.AreEqual(sp.Dist + AutoForgeFxSpec.SparkGravity * System.Math.Sin(rad), sp.U, 1e-9, "u = d + g·sin a");
+            Assert.AreEqual(AutoForgeFxSpec.SparkGravity * System.Math.Cos(rad), sp.V, 1e-9, "v = g·cos a");
+            // 전역 좌표로 되돌리면 정본이 노린 «발사 + 중력» 이 딱 떨어진다(회전 프레임 분해의 효과):
+            //   dx = d·cos a · dy = d·sin a + g  — 즉 «각 a 로 d 만큼 날아가 g 만큼 내려온 자리» 다(CSS 는 아래가 +y).
+            double dxEnd = System.Math.Cos(rad) * sp.U - System.Math.Sin(rad) * sp.V;
+            double dyEnd = System.Math.Sin(rad) * sp.U + System.Math.Cos(rad) * sp.V;
+            Assert.AreEqual(sp.Dist * System.Math.Cos(rad), dxEnd, 1e-9, "가로는 발사 각도·사거리 그대로");
+            Assert.AreEqual(sp.Dist * System.Math.Sin(rad) + AutoForgeFxSpec.SparkGravity, dyEnd, 1e-9, "세로는 발사 + 중력 g");
+            // 중간점이 «직선의 중간» 보다 위다 = 궤적이 위로 부푼 포물선이다(정본: 직선이면 파편이 아니라 레이저다)
+            double dyMid = System.Math.Sin(rad) * (0.55 * sp.U) + System.Math.Cos(rad) * (0.30 * sp.V);
+            Assert.Less(dyMid, 0.55 * dyEnd - 1e-9, "중간점이 직선보다 위다(포물선)");
+            Assert.Less(dyMid, 0.0, "중간점은 타격점보다 위다");
+        }
+
         private static double Rest(double percent)
         {
             double[] v = new double[2];
