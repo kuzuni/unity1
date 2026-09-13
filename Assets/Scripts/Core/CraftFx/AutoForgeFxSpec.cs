@@ -342,6 +342,95 @@ namespace Forge.Core.CraftFx
             return list.ToArray();
         }
 
+        // ── 흑피(`af-scale`) ──────────────────────────────────────────────────────────────────
+        // 정본 주석: «**분출물이 100% 밝았다** — 두 비평가가 같이 꼽았다. 달군 쇠를 치면 표면 산화막(흑피, scale)이 깨져
+        // **어두운** 조각이 함께 날고, 그게 있어야 '반짝임' 이 아니라 '단조' 로 읽힌다.»
+        //  · 밝은 불티의 0.55배 사거리로 **더 느리고 무겁게**(중력분 11 · 불티는 7), 아래쪽 각(−0.18π)까지 포함해 흩는다
+        //    (흑피는 빛이 아니라 부스러기라 위로만 솟을 이유가 없다).
+        //  · 🚨 **후광(drop-shadow)을 주면 안 된다** — 어두운 조각에 주황 후광을 씌우면 다시 '불티' 가 된다(정본 주석).
+        //  · 수명은 타격마다 다르다: 앞 타격일수록 길게(0.34 / 0.30 / 0.23s) — 3타에 0.42s 를 주면 오버레이 수명을 넘겨 공중에서 잘린다.
+
+        /// <summary>`afscale` 의 타이밍 함수 — `cubic-bezier(0,.7,.35,1)`(불티보다 둔하다).</summary>
+        public static readonly CssEase ScaleEase = new CssEase(0, 0.7, 0.35, 1);
+        /// <summary>`--t: calc(ANVIL_HITS[h]/1000 + 0.004)` — 흑피는 접촉 **4ms 뒤**에 켠다(불티는 8ms 앞 · 부스러기는 조금 늦게 떨어져 나온다).</summary>
+        public const double ScaleLagMs = 4;
+        /// <summary>타격마다의 개수(`[2, 3, 5]`).</summary>
+        public static readonly int[] ScaleCount = { 2, 3, 5 };
+        /// <summary>타격마다의 사거리 배수(`[1, 1.24, 1.7]`).</summary>
+        public static readonly double[] ScaleDistMul = { 1, 1.24, 1.7 };
+        /// <summary>`U.rand(16, 27)` — 사거리(불티의 0.55배쯤).</summary>
+        public const double ScaleDistMin = 16, ScaleDistMax = 27;
+        /// <summary>중력분 `g = 11` — 밝은 불티(7)보다 무겁게 떨어진다.</summary>
+        public const double ScaleGravity = 11;
+        /// <summary>`U.rand(2.2, 3.8)` — 조각 길이(불티보다 짧고 뭉툭하다).</summary>
+        public const double ScaleLenMin = 2.2, ScaleLenMax = 3.8;
+        /// <summary>조각 높이(정본 `height="1.8"`)와 모서리 반지름(`rx="0.5"`).</summary>
+        public const double ScaleHeight = 1.8, ScaleRadius = 0.5;
+        /// <summary>각도 = `-π * (0.18 + 0.78 * (i + rand(0, 0.7)) / n)` — 불티보다 넓게(아래쪽까지) 흩는다.</summary>
+        public const double ScaleAngleBase = 0.18, ScaleAngleSpan = 0.78, ScaleAngleJitter = 0.7;
+        /// <summary>타격마다의 기본 수명(ms) — 앞 타격일수록 길다(`[.34, .30, .23]s`).</summary>
+        public static readonly double[] ScaleDurMs = { 340, 300, 230 };
+        /// <summary>`U.rand(-0.012, 0.012)` — 수명 흔들림(ms).</summary>
+        public const double ScaleDurJitterMs = 12;
+        /// <summary>색 문턱 — 사거리가 34 를 넘으면 조금 밝은 흑피(`#3a2418`), 아니면 더 어두운 것(`#241408`).</summary>
+        public const double ScaleTintSplit = 34;
+
+        /// <summary>
+        /// `afscale` — 채널 = opacity · **uniform scale**(불티는 scaleX 만이었다) · u 몫 · v 몫.
+        /// 중간 키가 `u·0.62 / v·0.34` 라 불티(0.55 / 0.30)보다 늦게까지 뻗는다 — 무거운 조각의 궤적이다.
+        /// </summary>
+        public static readonly CssTrack Scale = new CssTrack(
+            new double[] { 0, 60, 100 },
+            new double[][]
+            {
+                new double[] { 0.95, 0.80, 0.00, 0.00 },
+                new double[] { 0.80, 1.00, 0.62, 0.34 },
+                new double[] { 0.00, 0.90, 1.00, 1.00 },
+            });
+
+        /// <summary>
+        /// 흑피 묶음 — 정본은 불티 루프가 끝난 **뒤** 같은 난수 흐름으로 이 루프를 돈다(각도 흔들림 → 사거리 → 길이 → 수명).
+        /// 그래서 <see cref="BuildSparks"/> 와 **같은 <paramref name="rand"/> 를 이어서** 넘겨야 정본과 같은 순서가 된다.
+        /// </summary>
+        public static SparkSpec[] BuildScales(Func<double, double, double> rand)
+        {
+            if (rand == null) throw new ArgumentNullException("rand");
+            var list = new System.Collections.Generic.List<SparkSpec>();
+            for (int h = 0; h < HitMs.Length; h++)
+            {
+                int n = ScaleCount[h];
+                for (int i = 0; i < n; i++)
+                {
+                    double a = -Math.PI * (ScaleAngleBase + ScaleAngleSpan * (i + rand(0, ScaleAngleJitter)) / n);
+                    double d = rand(ScaleDistMin, ScaleDistMax) * ScaleDistMul[h];
+                    double w = rand(ScaleLenMin, ScaleLenMax);
+                    double dur = rand(-ScaleDurJitterMs, ScaleDurJitterMs) + ScaleDurMs[h];
+                    SparkSpec sp = new SparkSpec();
+                    sp.Strike = h;
+                    sp.AngleDeg = a * 180.0 / Math.PI;
+                    sp.U = d + ScaleGravity * Math.Sin(a);
+                    sp.V = ScaleGravity * Math.Cos(a);
+                    sp.Len = w;
+                    sp.Dist = d;
+                    sp.DurMs = dur;
+                    sp.StartMs = HitMs[h] + ScaleLagMs;
+                    sp.Tint = d > ScaleTintSplit ? 0 : 1;      // 0 = 조금 밝은 흑피 · 1 = 더 어두운 것
+                    list.Add(sp);
+                }
+            }
+            return list.ToArray();
+        }
+
+        /// <summary>흑피 하나의 지금 자세 — `into` = [opacity, scale(균등), u 몫, v 몫]. 창 밖이면 false.</summary>
+        public static bool SampleScale(SparkSpec sp, double ms, double[] into)
+        {
+            if (into == null || into.Length < 4) throw new ArgumentException("into 는 4칸이어야 한다");
+            if (sp.DurMs <= 0) throw new ArgumentException("흑피 수명이 0 이하다");
+            if (ms < sp.StartMs || ms > sp.StartMs + sp.DurMs) return false;
+            Scale.SampleEased((ms - sp.StartMs) / sp.DurMs * 100.0, ScaleEase, into);
+            return true;
+        }
+
         /// <summary>불티 하나의 지금 자세 — `into` = [opacity, scaleX, u 몫, v 몫]. 창 밖이면 false.</summary>
         public static bool SampleSpark(SparkSpec sp, double ms, double[] into)
         {

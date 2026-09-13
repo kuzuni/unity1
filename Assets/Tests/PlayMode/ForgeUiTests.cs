@@ -968,6 +968,33 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(ey, lastGone.y, Mathf.Max(0.5f, Mathf.Abs(ey) * 0.02f), "3타 불티의 세로 변위가 표와 같다");
             Assert.Greater(lastGone.magnitude, wentFirst, "3타 불티가 1타보다 멀리 간다(사거리 배수 1.8 · 각자 제 수명의 끝에서)");
 
+            // 흑피(`af-scale`) — 어둡고 무거운 조각. 불티와 같은 칸 문법이지만 **후광도 스크린 합성도 없다**(정본: 그러면 다시 불티가 된다).
+            AutoForgeFxSpec.SparkSpec[] sc = ForgeSheet.ScaleSpecs;
+            Assert.AreEqual(2 + 3 + 5, sc.Length, "흑피 표 10개");
+            RectTransform chip = Named(sheet, "af-scale-" + (sc.Length - 1));
+            Assert.IsNotNull(chip, "마지막 흑피 칸");
+            Image chipImg = chip.GetComponent<Image>();
+            Assert.IsNotNull(chipImg, "흑피 이미지");
+            Assert.Less(chipImg.color.r + chipImg.color.g + chipImg.color.b, 0.7f, "흑피는 어둡다(밝으면 그냥 불티다)");
+            Assert.AreNotEqual(CraftFxPoly.ScreenShaderName, chipImg.material == null ? "" : chipImg.material.shader.name,
+                "흑피에 스크린 합성을 걸면 어두운 조각이 사라진다");
+            AutoForgeFxSpec.SparkSpec qc = sc[sc.Length - 1];
+            fx.SampleTo(qc.StartMs - 5);
+            Assert.AreEqual(0f, chipImg.color.a, 1e-3f, "접촉 전에는 투명");
+            Vector2 chipRest = chip.anchoredPosition;
+            fx.SampleTo(qc.StartMs + qc.DurMs * 0.6);
+            Assert.Greater(chipImg.color.a, 0.5f, "한창일 때는 보인다");
+            Vector2 chipGone = chip.anchoredPosition - chipRest;
+            double crad = qc.AngleDeg * System.Math.PI / 180.0;
+            float cex = (float)((System.Math.Cos(crad) * (0.62 * qc.U) - System.Math.Sin(crad) * (0.34 * qc.V)) * unit);
+            float cey = (float)(-(System.Math.Sin(crad) * (0.62 * qc.U) + System.Math.Cos(crad) * (0.34 * qc.V)) * unit);
+            Assert.AreEqual(cex, chipGone.x, Mathf.Max(0.5f, Mathf.Abs(cex) * 0.02f), "흑피 가로 변위가 표와 같다");
+            Assert.AreEqual(cey, chipGone.y, Mathf.Max(0.5f, Mathf.Abs(cey) * 0.02f), "흑피 세로 변위가 표와 같다");
+            fx.SampleTo(qc.StartMs + qc.DurMs);
+            Assert.AreEqual(chip.localScale.x, chip.localScale.y, 1e-3f, "흑피는 균등하게 줄어든다(불티는 가로만 줄어 잔상이 된다)");
+            Assert.AreEqual(0.9f, chip.localScale.x, 1e-2f, "끝에서도 0.9배 — 부스러기는 타 없어지지 않는다");
+            fx.SampleTo(qc.StartMs + qc.DurMs * 0.6);
+
             // 픽셀 — 3타 불티의 **한창인 프레임**(제 수명의 55%)에 칸이 실제로 칠해져 있다(끝 키는 opacity 0 이라 아무것도 없다)
             if (!NoGraphics())
             {

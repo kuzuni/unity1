@@ -501,6 +501,58 @@ namespace Forge.Tests
             Assert.Less(dyMid, 0.0, "중간점은 타격점보다 위다");
         }
 
+        /// <summary>
+        /// T87 24회차 — 흑피(`afscale`). 정본이 이 층을 넣은 이유가 곧 계약이다: «분출물이 100% 밝았다 — 어두운 조각이 함께 날아야
+        /// 반짝임이 아니라 **단조**로 읽힌다». 그래서 밝은 불티와 **달라야** 하는 것들을 본다(느리다 · 무겁다 · 가깝다 · 아래쪽 각까지).
+        /// </summary>
+        [Test]
+        public void 흑피는_불티보다_느리고_무겁고_가깝게_날아간다()
+        {
+            System.Func<double, double, double> mid = delegate(double a, double b) { return (a + b) * 0.5; };
+            AutoForgeFxSpec.SparkSpec[] sp = AutoForgeFxSpec.BuildSparks(mid);
+            AutoForgeFxSpec.SparkSpec[] sc = AutoForgeFxSpec.BuildScales(mid);
+            Assert.AreEqual(2 + 3 + 5, sc.Length, "흑피 개수 = 2 + 3 + 5(정본 [2,3,5])");
+
+            double farSpark = 0, farScale = 0;
+            int[] per = new int[3];
+            foreach (AutoForgeFxSpec.SparkSpec q in sp) if (q.Dist > farSpark) farSpark = q.Dist;
+            foreach (AutoForgeFxSpec.SparkSpec q in sc)
+            {
+                per[q.Strike]++;
+                if (q.Dist > farScale) farScale = q.Dist;
+                Assert.Less(q.AngleDeg, -32.3, "흑피도 위쪽이 많다(−0.18π 부터)");
+                Assert.Greater(q.AngleDeg, -173.0, "그래도 −0.96π 를 넘지 않는다");
+                // 켜지는 시각이 불티와 다르다 — 부스러기는 접촉보다 **뒤**에 떨어져 나온다
+                Assert.AreEqual(AutoForgeFxSpec.HitMs[q.Strike] + AutoForgeFxSpec.ScaleLagMs, q.StartMs, 1e-9, "접촉 4ms 뒤에 켠다");
+                // 수명이 오버레이(1500ms) 안에서 끝난다 — 정본 주석: 3타에 0.42s 를 주면 공중에서 잘린다
+                Assert.LessOrEqual(q.StartMs + q.DurMs, AnvilFxSpec.DurationMs, "흑피가 오버레이 수명 안에서 끝난다");
+            }
+            Assert.AreEqual(new int[] { 2, 3, 5 }, per, "타격마다 개수가 는다");
+            Assert.Less(farScale, farSpark * 0.75, "흑피는 밝은 불티보다 가깝게 떨어진다(0.55배 사거리)");
+            Assert.Greater(AutoForgeFxSpec.ScaleGravity, AutoForgeFxSpec.SparkGravity, "흑피가 더 무겁다(중력분 11 ↔ 7)");
+            Assert.Greater(AutoForgeFxSpec.ScaleDurMs[0], AutoForgeFxSpec.SparkDurMaxMs, "흑피가 더 느리다(1타 340ms ↔ 불티 최대 250ms)");
+            // 앞 타격일수록 길게 — 그래야 3타만 오버레이 수명에 맞는다
+            Assert.Greater(AutoForgeFxSpec.ScaleDurMs[0], AutoForgeFxSpec.ScaleDurMs[2], "1타가 3타보다 오래 산다");
+
+            AutoForgeFxSpec.SparkSpec last = sc[sc.Length - 1];
+            double[] v = new double[4];
+            Assert.IsFalse(AutoForgeFxSpec.SampleScale(last, last.StartMs - 1, v), "켜지기 전");
+            Assert.IsFalse(AutoForgeFxSpec.SampleScale(last, last.StartMs + last.DurMs + 1, v), "수명 뒤");
+            // 시작 프레임은 «거의 불투명하지만 완전하지는 않다»(정본 .95) — 불티(1.0)와 갈린다
+            Assert.IsTrue(AutoForgeFxSpec.SampleScale(last, last.StartMs, v));
+            Assert.AreEqual(0.95, v[0], 1e-9, "흑피는 .95 로 출발한다");
+            Assert.AreEqual(0.80, v[1], 1e-9, "0.8배로 출발해");
+            // 중간 키는 불티보다 뒤까지 뻗는다(0.62 / 0.34 ↔ 0.55 / 0.30)
+            Assert.IsTrue(AutoForgeFxSpec.SampleScale(last, last.StartMs + last.DurMs * 0.6, v));
+            Assert.AreEqual(0.62, v[2], 1e-9, "중간 키의 발사 방향 몫");
+            Assert.AreEqual(0.34, v[3], 1e-9, "중간 키의 중력 몫");
+            Assert.AreEqual(1.0, v[1], 1e-9, "중간에 제 크기");
+            // 끝에서는 **작아지지만 사라지듯 가늘어지지는 않는다**(불티는 0.22 · 흑피는 0.9 — 부스러기는 타 없어지지 않는다)
+            AutoForgeFxSpec.SampleScale(last, last.StartMs + last.DurMs, v);
+            Assert.AreEqual(0.0, v[0], 1e-9, "끝에는 투명");
+            Assert.AreEqual(0.90, v[1], 1e-9, "끝에서도 0.9배 — 잔상으로 가늘어지는 것은 불티뿐이다");
+        }
+
         private static double Rest(double percent)
         {
             double[] v = new double[2];

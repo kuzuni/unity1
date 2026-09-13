@@ -47,6 +47,13 @@ namespace Forge.Game.Ui
         /// <summary>지금 세워진 불티들의 표(테스트가 «화면 변위 ↔ 표» 를 대조할 때 쓴다 · 난수라 테스트가 제 손으로 다시 뽑으면 순서가 어긋난다).</summary>
         public static Forge.Core.CraftFx.AutoForgeFxSpec.SparkSpec[] SparkSpecs { get { return sparkSpecs; } }
 
+        /// <summary>흑피 칸(정본 `.af-scale` · 타격마다 2·3·5개)과 그 표.</summary>
+        static Image[] scales = new Image[0];
+        static Forge.Core.CraftFx.AutoForgeFxSpec.SparkSpec[] scaleSpecs = new Forge.Core.CraftFx.AutoForgeFxSpec.SparkSpec[0];
+
+        /// <summary>지금 세워진 흑피들의 표.</summary>
+        public static Forge.Core.CraftFx.AutoForgeFxSpec.SparkSpec[] ScaleSpecs { get { return scaleSpecs; } }
+
         /// <summary>모루 오버레이의 «viewBox 한 단위 = 몇 px» (같은 대조에 쓴다).</summary>
         public static float VbUnit { get { return vbUnit; } }
         /// <summary>viewBox 한 단위의 화면 px — 망치 `afswing` 의 translate 는 **viewBox 단위**다(SVG 자식이라 CSS px 가 아니다).</summary>
@@ -125,7 +132,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(upgText.rectTransform, 0f, btnH + rem * 0.25f, W - padX * 2f - rx, PopupKit.FontSize(TextKind.Sub) * 1.3f);
             }
             // 두들기는 도중 다시 그려졌다면(세이브 → Rerender) 러너를 새 모루·시트에 다시 문다 — 흐른 시간은 지킨다.
-            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) { fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit); fx.TakeSparks(sparks, sparkSpecs); } }
+            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) { fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit); fx.TakeSparks(sparks, sparkSpecs, scales, scaleSpecs); } }
         }
 
         static string RemainText(ForgeHost h)
@@ -151,7 +158,7 @@ namespace Forge.Game.Ui
             if (root == null) return;
             AnvilFx fx = AnvilFx.Ensure(root.Sheet);
             if (fx == null) return;
-            if (on) { fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit); fx.TakeSparks(sparks, sparkSpecs); }
+            if (on) { fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit); fx.TakeSparks(sparks, sparkSpecs, scales, scaleSpecs); }
             else fx.Stop();
         }
 
@@ -494,7 +501,8 @@ namespace Forge.Game.Ui
             // 후광까지 구운 텍스처라 도형보다 넓다 — 늘릴 때 그 여백도 같은 비율로 늘어나므로 칸 크기에 같이 넣는다.
             float pad = Mathf.Max(UiKit.L("spark_halo_r"), UiKit.L("spark_glow_r"));
             Color[] tints = { UiKit.C("spark_hot"), UiKit.C("spark_warm"), UiKit.C("spark_cool") };
-            sparkSpecs = AutoForgeFxSpec.BuildSparks(SparkRand());
+            System.Func<double, double, double> rand = SparkRand();
+            sparkSpecs = AutoForgeFxSpec.BuildSparks(rand);
             sparks = new Image[sparkSpecs.Length];
             for (int k = 0; k < sparkSpecs.Length; k++)
             {
@@ -515,6 +523,39 @@ namespace Forge.Game.Ui
                 rt.pivot = new Vector2(pad * scale * u / Mathf.Max(1e-4f, bw), 0.5f);
                 rt.anchoredPosition = new Vector2(rt.anchoredPosition.x + rt.pivot.x * bw, rt.anchoredPosition.y - 0.5f * bh);
                 sparks[k] = img;
+            }
+            DrawScales(fx, u, rand);       // 정본은 같은 난수 흐름으로 불티 뒤에 흑피를 찍는다
+        }
+
+        /// <summary>
+        /// 흑피 10개(2·3·5) — 정본 `.af-scale`. 불티와 **같은 궤적 문법**(회전 프레임 u·v)을 쓰되 어둡고 무겁고 느리다.
+        /// 🚨 후광을 주지 않는다(정본: 어두운 조각에 주황 후광을 씌우면 다시 불티가 된다) — 그래서 스크린 합성도 아니다.
+        /// </summary>
+        static void DrawScales(RectTransform fx, float u, System.Func<double, double, double> rand)
+        {
+            scaleSpecs = AutoForgeFxSpec.BuildScales(rand);
+            scales = new Image[scaleSpecs.Length];
+            float hgt = (float)AutoForgeFxSpec.ScaleHeight, rad = (float)AutoForgeFxSpec.ScaleRadius;
+            Color[] tints = { UiKit.C("scale_far"), UiKit.C("scale_near") };
+            for (int k = 0; k < scaleSpecs.Length; k++)
+            {
+                AutoForgeFxSpec.SparkSpec q = scaleSpecs[k];
+                RectTransform rt = UiKit.Box(fx, "af-scale-" + k);
+                Image img = rt.gameObject.AddComponent<Image>();
+                img.raycastTarget = false;
+                img.sprite = UiShapes.Rounded;
+                img.type = Image.Type.Sliced;
+                img.pixelsPerUnitMultiplier = UiShapes.RoundedMultiplier(rad * u);
+                Color c = tints[Mathf.Clamp(q.Tint, 0, tints.Length - 1)];
+                c.a = 0f;
+                img.color = c;
+                float cx = (float)AutoForgeFxSpec.HitCenterX(q.Strike), cy = (float)AutoForgeFxSpec.HitCenterY(q.Strike);
+                float bw = (float)q.Len * u, bh = hgt * u;
+                UiKit.Place(rt, cx * u, (cy - hgt * 0.5f) * u, bw, bh);
+                // 정본 `transform-origin: 0% 50%` — 꼬리(타격점)가 축이다
+                rt.pivot = new Vector2(0f, 0.5f);
+                rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, rt.anchoredPosition.y - 0.5f * bh);
+                scales[k] = img;
             }
         }
 
