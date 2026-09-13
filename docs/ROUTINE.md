@@ -723,7 +723,7 @@
 - 판정: PlayMode 세 픽스처 초록 + 다음 촬영에서 팝업 아래 상단바가 `main` 의 ×0.5 안팎(픽셀) + 콘솔 빨강 0. `ui_score` 점수는 원작 샷이 .988 이라 이것으로는 크게 안 오른다(T28 메모).
 - 범위: `Assets/Scripts/Game/Ui/Popups.cs`(Show 한 줄) · `Assets/Tests/PlayMode/ForgeUiTests.cs`(AssertCovers 한 줄) · `Assets/Tests/PlayMode/UiSmokeTests.cs`(단언 한 줄) · (같이 열면) `Ui/DungeonPopups.cs` · `Ui/ForgeCraftPopup.cs`.
 
-### T95 — 장착된 스킬 오브에 **어둠 막이 없어** «장착됨» 배지와 «Lv.NN» 이 겹쳐 둘 다 안 읽힌다 (Game·UI · T20·T90 뒤 · 임자 없음 · 검수 Q 등재)
+### T95 ✅ — 장착된 스킬 오브에 **어둠 막이 없어** «장착됨» 배지와 «Lv.NN» 이 겹쳐 둘 다 안 읽힌다 (Game·UI · T20·T90 뒤 · 임자 없음 · 검수 Q 등재)
 - 실측(2026-09-13 08:0x · 검수 Q · **런 158**(5a25142)의 `screen_skills.png` 를 Read 로 열고 픽셀로 잰 것): 스킬 격자 첫 행에서 장착된 오브 셋(1~3열)의 «장착됨» 흰 배지와 그 아래 «Lv.20/23/26» 이 **서로 겹쳐** 흰 글자 둘이 밝은 오브 면 위에 포개진다 — 8배로 확대해야 글자가 갈린다. **오브 평균 밝기 98·101·105(장착) ↔ 107·113(비장착)** — 겨우 7% 어두우니 **어둠 막이 사실상 없다**.
 - 정본이 정한 것(`css/style.css`): `.sk-orb.equipped::after` 가 오브 전체에 **`rgba(0,0,0,.58)` 어둠 막**(`inset:0` · `border-radius:50%` · `z-index:1`)을 덮고, `.sk-eqplate` 는 오브 **정중앙**(`left:50% · top:50% · translate(-50%,-50%)`)에 검정 타원(`#0b0c0e` · 앱 폭의 **14.92% × 2.82%**)으로 앉으며, `.sk-lv` 만 `z-index:2` 로 그 위에 남는다. 그래서 원작 `ref/screens/shot-042340.png` 셋째 줄의 장착 오브는 **뚜렷하게 어둡고** «장착됨» 이 한가운데에서 읽힌다. 마크업 자체는 클론이 맞다(정본 `ui.js:4279~4282` 도 `sk-eqplate` 와 `sk-lv` 를 **둘 다** 그린다) — 어긋난 것은 **어둠 막과 배지 자리**다.
 - **T90(✅)이 놓친 자리**: T90 은 같은 화면의 «오브→게이지 간격·행 피치·버튼 폭» 을 픽셀로 쟀고 그 넷은 맞다. 배지와 Lv 가 **서로** 겹치는 것은 그 자에 없던 항목이다.
@@ -750,6 +750,7 @@
 - 무엇을 한다: `BattleScene`(또는 `MetaHost`)이 팝업이 열릴 때 **작은 렌더 텍스처 카메라**로 지금 전투 장면을 그려 `PreviewStart(rect)` 에 꽂고, 닫을 때 `PreviewStop()` 으로 끈다 — 원작 `ui.js` 의 `pinfo-scene`(같은 씬을 작은 칸에 다시 그린다)과 같은 뜻. 새 콘텐츠 0 · 60fps 규칙대로 팝업이 닫히면 카메라·RT 를 반납한다.
 - 판정: `ui_score --score --only player-info` 가 **4.5 이상**(지금 2.9) + 워커가 PNG 를 열어 «미리보기 칸에 영웅·지면이 보인다» 확인 + `PerfBudgetTests` 상한 유지 + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Battle/BattleScene.cs`(훅 대입·RT 카메라 갈래) · `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs`(훅 호출부만) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
+- ✅ 결론(2026-09-13 · 런 170 · 워커 B): 막은 이미 있었고(지각값으로 ×0.39) 진짜 결함은 `_h` 키로 54px 가 된 타원과 Lv 의 겹침 — 타원 39.6px 정중앙 · Lv 는 타원 아래끝에 잉크가 닿게 · HUD Lv 검정 알약 · `PetUiTests` 6/6 · ui_score skills 6.2 유지. 기록은 PROGRESS «T95 완료 기록».
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -890,7 +891,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ⬜ · T91 🔄 · T93 ✅ · T94 ⬜ · T95 ⬜ · T97 ⬜ |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ⬜ · T91 🔄 · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ⬜ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) · T83(촬영 두 장 가르기) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ✅ · T83 ✅|
