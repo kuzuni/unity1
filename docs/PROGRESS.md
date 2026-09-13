@@ -1512,6 +1512,7 @@
 - **«비었는데 초록» 막이 둘**: ⓐ `BattleSceneTests` — 눕힌 다음 부팅에는 전투·펫·연출·탈것이 스스로 선다 ⓑ `WorldFrameShotTests` — 띠 중앙 60% 의 **최빈색 < 85% · 고유색 > 50**(런 139 실측 40.6% / 2290 · 빈 화면이면 100% / 1). 임계는 추측이 아니라 그 PNG 를 재서 잡았다.
 - **게이트**: `dotnet build` 0 에러 · `dotnet test` **513/513** · 자 10개 + `check_data_sync` 전부 rc 0. 런 139 는 **PlayMode 전체 초록**(`tests: success`).
 - **플레이 콘솔 에러 0**: 런 139 `playmode-red.txt` 에 FAIL 0(런 134 의 유일한 빨강은 남의 T75 상점 단언이었고 그 뒤 초록).
+- **CI**: 런 **141**(`8dbc60f`) **초록** — PlayMode **603 통과 · 실패 0**(`playmode-red.txt` FAIL 0). 그 런의 그림도 열어 봤다: `screen_main.png` 의 상단바·스테이지 라벨·웨이브 핍·시트·채팅줄·탭바가 전부 제자리로 돌아왔고(=`ResetProjectionMatrix` 한 줄이 먹었다) 지면·HP 바도 있다. → **lock 반납**.
 - **주인이 확인할 것**: `screens` 의 `world_frame.png` — 폰에서 보는 3D 가 저 framing 이다(영웅이 화면 위 1/3). `screen_main.png` 은 UI 판정용이라 3D 가 앱 상자 framing 으로 찍힌다(T83 이 합친다).
 
 ## 워커 결정 기록
