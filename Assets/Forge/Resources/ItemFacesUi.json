@@ -1,0 +1,30 @@
+{
+  "_": "ROUTINE T122 장비 3D 썸네일(원작 `Scene3D.itemThumb` · scene3d.js 8713~9000)의 굽기 수치표. T87 lock 이 Assets/Forge/catalog.json 을 쥐고 있어 T122 몫만 여기 둔다(T111 GearDetailUi.json 과 같은 꼴 · 결정 249) — 코드에 숫자를 박지 않는다(§1).",
+  "thumb": {
+    "px": 128,
+    "fov": 35,
+    "near": 0.01,
+    "far": 200,
+    "dir_x": 1.0, "dir_y": 0.55, "dir_z": 2.3,
+    "pad": 1.10,
+    "ambient": 0.36,
+    "key": 0.84,
+    "key_x": 2, "key_y": 3, "key_z": 2,
+    "rim": 0.5,
+    "rim_x": -2.2, "rim_y": 1.6, "rim_z": -2.6,
+    "armor_yaw": -0.55,
+    "chunk": 6
+  },
+  "colors": { "rim": "#cfe4ff" },
+  "_src": {
+    "px": "정본 itemThumbInit `setSize(96, 96)` — 목록 셀 46px 기준. 클론 캔버스(1080 폭)의 셀은 ≈115px 라 펫 얼굴(PetSkillUi face_thumb_px 128)과 같은 128 로 굽는다(늘려도 뭉개지지 않게).",
+    "fov": "PerspectiveCamera(35, 1, 0.01, 200)",
+    "dir": "ITEM_THUMB_DIR {x:1.0, y:0.55, z:2.3} — 고정 3/4 시선(three 좌표 · 유니티는 z 를 뒤집는다 · 결정 4)",
+    "pad": "THUMB_FIT_PAD 1.10 (프레임의 약 91%를 피사체가 채운다 · 아래쪽은 접지 그림자 자리)",
+    "ambient": "AmbientLight(0xffffff, 0.36) — «앰비언트↓·키↑ 0.36/0.84 로 명부-암부 폭을 벌린다 · 더 밀지 말 것»",
+    "key": "DirectionalLight(0xffffff, 0.84) position(2, 3, 2)",
+    "rim": "DirectionalLight(0xcfe4ff, 0.5) position(-2.2, 1.6, -2.6) — 쿨톤 역광(림)",
+    "armor_yaw": "makeArmorPreview `g.rotation.y = -0.55` — 3/4 자세(정면 납작 상자는 96px 에서 색판으로 읽힌다)",
+    "chunk": "hydrateForgeThumbs `CHUNK = 6` — 한 프레임에 여섯 장씩(300장을 한 번에 구우면 목록을 여는 순간 수 초간 얼어붙는다)"
+  }
+}

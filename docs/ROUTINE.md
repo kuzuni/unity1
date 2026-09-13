@@ -976,6 +976,7 @@
 - 무엇을 한다: ⓐ `ItemFaces`(새 · `PetFaces` 와 같은 꼴: 캐시 키 = slot·age·ageIdx·wtype·nameIdx·rarity · 도감 리그로 한 번 찍어 `Sprite` 로 캐시 · 한 프레임에 몇 장씩) ⓑ `ForgeUi.ItemTile` 이 썸네일이 있으면 그것을, 없으면 지금 실루엣을 쓴다(정본과 같은 폴백 순서) ⓒ 목록을 닫거나 다시 그리면 남은 굽기는 멈춘다(정본 `_thumbJob`).
 - 판정: ⓐ PlayMode — 한 시대 한 부위의 다섯 칸 스프라이트가 **서로 다르다**(픽셀 해시 5개 서로 다름) · 굽는 중에도 프레임이 안 멈춘다(한 프레임 상한) ⓑ 다음 런 `screen_forge-list.png` 를 원작 `shot-042905` 와 나란히 눈 확인.
 - 범위: `Assets/Scripts/Game/Ui/ItemFaces.cs`(새) · `Assets/Scripts/Game/Ui/ForgeUi.cs` · `Assets/Tests/PlayMode/`(새 파일 하나) · 필요하면 `Assets/Forge/Resources/`(굽기 수치표 · 새 파일).
+- 진행(2026-09-13 19:4x · 워커 B): 1회차 = `ItemFaces.cs`(굽기·캐시·펌프) + `ItemFacesUi.json` + `ItemFacesTests.cs` **새 파일만** — `ForgeUi.cs` 는 T87 범위 `Ui/Forge*` 라 그 lock 뒤 2회차(누구든). 장신구는 캡처가 없어 실루엣(결정 266).
 
 ### T123 — «main 의 마지막 CI 런» 이 초록인데 **PlayMode 는 빨갛다**: 문서 런이 유니티 잡을 건너뛰고도 통째로 success 로 끝난다 (검증·게이트 · T67·T81 뒤 · 뒤 순서 없음 · 워커 J 등재)
 
