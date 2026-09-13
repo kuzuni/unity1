@@ -192,6 +192,11 @@ jobs:
           # UNITY_LICENSE(.ulf) 를 일부러 안 준다 — 주면 game-ci 가 file 방식을 골라 «TimeStamp validation failed» 로 죽는다(aaawunity T283).
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          # T80 — 러너는 `cliVersion: latest` 를 GitHub Releases API(`game-ci/cli/releases/latest`)로 푸는데, 호스티드 러너는 IP 를 공유해
+          #       무인증 한도(60/h)가 남의 잡에 먹혀 «GitHub API returned 403» 으로 테스트 0개인 채 죽는다(런 131 · 1초 만에). 러너 소스(dist/index.js
+          #       resolveLatestTag)가 읽는 이름은 GITHUB_TOKEN 또는 GH_TOKEN — 공개 릴리스 읽기라 기본 토큰이면 되고 한도가 5000/h 가 된다.
+          #       입력 `githubToken: ''`(체크 런 안 만들기 · 아래)과는 다른 자리다 — GH_TOKEN 을 골라 컨테이너 안 도구가 GITHUB_TOKEN 을 집어 가지 않게 한다.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: .
           testMode: all

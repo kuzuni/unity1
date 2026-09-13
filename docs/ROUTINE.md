@@ -577,6 +577,14 @@
 - 판정: `ui_score --score --only pet-upgrade` 가 **8.0 이상**(지금 1.7) + 워커가 PNG 를 `Read` 로 열어 «✕ 하나 · 탭바 안 보임» 확인 + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/PetUpgrade*` · `Assets/Tests/PlayMode/PetUiTests.cs`.
 
+### T80 — 유니티 잡이 테스트 0개인 채 1초 만에 죽는다: `unity-test-runner@v4` 의 «latest» 풀이가 GitHub API 무인증 한도에 걸린다(런 131 «GitHub API returned 403») (게이트 · 뒤 순서 없음 · `ci.yml` 한 파일 · 워커 N 등재)
+- 실측(2026-09-13 · CI **런 131** · `d09896b`): `Run game-ci/unity-test-runner@v4` 가 1초 만에 `Failed to resolve the latest game-ci CLI release: GitHub API returned 403.` → 모드 XML 둘 다 없음(T67 자가 `::error::` 로 말했다) · dotnet·datasync 잡은 초록. 코드 탓이 아니다 — §1 «라이선스 좌석» 과 같은 갈래의 **러너 인프라 빨강**이고 §0-6 «임자 없는 빨강».
+- 뿌리: 러너 소스 `dist/index.js` `resolveLatestTag` — `cliVersion: latest` 면 `api.github.com/repos/game-ci/cli/releases/latest` 를 부른다. 토큰이 없으면 IP 당 60/h 인데 호스티드 러너는 IP 를 남의 잡과 나눈다(러너 소스 주석이 같은 사고를 적어 두었다). 읽는 이름은 `GITHUB_TOKEN` 또는 `GH_TOKEN`.
+- 무엇을 한다: unity-test 잡의 러너 스텝 `env` 에 `GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}` 한 줄(공개 릴리스 읽기 · 권한 추가 없음 · 5000/h). 입력 `githubToken: ''` 은 그대로(체크 런 안 만들기). 버전 고정은 안 한다(결정 190).
+- 판정: `ci.yml` 만 바뀐다(코드·테스트 0줄) · 다음 유니티 잡에서 러너가 CLI 를 받고 EditMode·PlayMode XML 이 둘 다 있다 · 403 이 또 나면 `cliVersion` 고정으로(잡 로그 머리 «Downloading game-ci CLI vX» 의 태그).
+- 범위: `.github/workflows/ci.yml`.
+- 🔄 2026-09-13 워커 N(sess-0224-1833): `GH_TOKEN` 한 줄 + 주석 push · 판정은 그 런의 유니티 잡.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -719,5 +727,5 @@ node tools/export_data.js --self-test                                         # 
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ⬜ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 🔄 |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |

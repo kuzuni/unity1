@@ -190,6 +190,7 @@
 | T77 | 촬영 시드의 상단바 전투력이 `⚔ 45`(장비 8부위가 시대 6~7 인데 정본 식이면 수백만) — 클론 `UiShotsTests.Seed()` 에 정본 SEED 144행 `Combat.recalcHero()` 자리가 없다 | ⬜ 대기 | — | `Assets/Tests/PlayMode/UiShotsTests.cs`(`Seed()` 두 줄 + 단언 하나) | 보고함(워커 J · 01:2x) → 워커 T 등재 · **T54 lock 이 풀린 뒤**(`UiShotsTests.cs` 같은 파일) · 접착은 `HeroStatsGlueTests` 가 지킨다 · 단언이 빨강이면 접착 갈래로 새 번호 |
 | T78 | 팝업 셋(`forge-list`·`forge-detail`·`autoforge`)에 모달 딤이 없고 상단바 자리가 순수 검정(RGB 0,0,0) · autoforge ✕ 가 탭바에 가린다 · `ui_score` 가 이것을 «촬영 어긋남» 으로 오진 | 🔄 진행 | sess-0213-28724 / 워커 E | `Assets/Scripts/Game/Ui/Popups.cs` · `Ui/Forge*` · `tools/ui_score.py`(경고 갈래 · **T28 lock 이 풀린 뒤** · 이 회차 안 만짐) · `Assets/Tests/PlayMode/ForgeUiTests.cs` | T19·T57 뒤 · 임자 없음 · 검수 Q 등재 · 런 127 PNG 픽셀 실측 |
 | T79 | 펫 업그레이드 모달이 화면을 안 덮는다(원작은 HUD·탭바를 가리고 ✕ 하나 · 클론은 시트 위에 떠 ✕ 둘) + 머리 구성이 줄었다 | 🔄 진행 | sess-1920-15773 / 워커 B | `Assets/Scripts/Game/Ui/PetUpgrade*` · `Assets/Tests/PlayMode/PetUiTests.cs` | T58 뒤 · T28 8회차 등재(런 128 `screen_pet-upgrade.png` 1.7/10 ↔ `shot-042503`) |
+| T80 | 유니티 잡이 테스트 0개인 채 1초 만에 죽는다: `unity-test-runner@v4` 가 `cliVersion: latest` 를 GitHub API 로 푸는데 호스티드 러너 공유 IP 의 무인증 한도(60/h)에 걸려 «GitHub API returned 403»(런 131) | 🔄 진행 | sess-0224-1833 / 워커 N | `.github/workflows/ci.yml`(unity-test 잡 `env` 한 줄) | §0-6 임자 없는 빨강 · 워커 N 등재 · 러너 소스 `resolveLatestTag` 가 `GITHUB_TOKEN`/`GH_TOKEN` 을 읽는다 → `GH_TOKEN: secrets.GITHUB_TOKEN` · 코드·테스트 0줄 · 판정은 다음 유니티 잡이 CLI 를 받고 테스트를 실제로 도는가 |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 
@@ -639,6 +640,14 @@
 - **걷어낸 것에 못 넣은 것**: `forge-list` 는 클론이 시대 절 하나(0.0000%)만 보이고 원작은 시대 머리·별·다음 절까지 보인다 — T59 가 «맨 위 시대만 0% 가 맞다» 고 적었고 목록을 스크롤한 절은 안 찍혔으니(T57 기록 «스크롤한 절도 찍어야») 이번엔 판정 보류. `skill-detail` 은 클론에 «(□□□ 12□)» 한 줄과 비용 줄이 더 있는데 정본 `openSkillDetail` 대조를 못 했다 — 다음 회차.
 - **게이트**: `ui_score --score` 실행 · `check_docs_intact` · `check_decisions` · `check_task_rows` · `task_state --check` · `check_claim_scope` · `check_final_table` · dotnet build/test 전부 rc 0. 이 회차는 `docs/` 만 만진다(유니티 코드·씬·에셋 변경 0 · PlayMode 영향 0) → lock 은 이 커밋에서 반납.
 - **주인이 확인할 것**: `screens` 의 `screen_offline.png` 를 원작 `ref/screens/shot-042110.png` 과 나란히 — 원작은 위 절반이 검은 판인데 클론은 전부 밝다.
+
+### T80 기록 — 유니티 잡 «GitHub API returned 403» (2026-09-13 · 워커 N · sess-0224-1833)
+
+- **빨강**: 런 131(`d09896b` · T75)의 유니티 잡이 `Run game-ci/unity-test-runner@v4` 에서 **1초 만에** `##[error]Failed to resolve the latest game-ci CLI release: GitHub API returned 403.` — 모드 XML 둘 다 없음(테스트 0개) · `screens` 의 `meta.json` `missing_modes: editmode-results.xml,playmode-results.xml`. dotnet·datasync 잡은 초록이라 코드 탓이 아니다. §0-6 «임자 없는 빨강» — `ci.yml` 을 쥔 lock 이 없다(T67 ✅).
+- **뿌리(러너 소스 실측 · `game-ci/unity-test-runner@32e5771` `dist/index.js` `resolveLatestTag`)**: `cliVersion` 이 `latest`(우리 기본값)면 `https://api.github.com/repos/game-ci/cli/releases/latest` 를 부르는데 토큰이 없으면 무인증 한도(IP 당 60/h)이고, 호스티드 러너는 IP 를 남의 잡과 나눠 쓴다 — 러너 소스 주석 자체가 «85 잡 매트릭스가 403 으로 널리 죽었다 · 기본 GITHUB_TOKEN 이면 5000/h» 라고 적어 두었다. 코드는 `process.env.GITHUB_TOKEN || process.env.GH_TOKEN` 을 읽는다.
+- **고침(`ci.yml` 한 줄 + 주석)**: unity-test 잡의 러너 스텝 `env` 에 `GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}`. `GITHUB_TOKEN` 이 아니라 `GH_TOKEN` 을 고른 이유: 러너가 `process.env` 를 통째로 CLI 에 넘기므로(`dist/index.js` 3332) 컨테이너 안 도구가 `GITHUB_TOKEN` 을 집어 가 다른 갈래(체크 런 등)를 켤 위험을 피한다 — 입력 `githubToken: ''`(체크 런 안 만들기 · aaawunity T295)는 그대로. 버전을 고정(`cliVersion: vX`)하면 API 호출 자체가 없어지지만 컨테이너 프록시가 `github.com` 릴리스 페이지를 403 으로 막아 태그를 확인할 수 없었고, 고정값은 다음 사람이 갱신해야 하는 수치라 토큰 갈래를 택했다(결정 190).
+- **게이트**: `ci.yml` 만(코드·테스트·에셋 0줄) · 문서 자 전부 rc 0 · dotnet build/test 는 안 바뀐 코드라 511/511 그대로.
+- **판정은 다음 유니티 잡**: 이 커밋의 런(또는 concurrency 뒤 완료 런)에서 러너가 CLI 를 받고 EditMode·PlayMode XML 이 둘 다 있으면 ✅ + lock 반납. 403 이 또 나면 `cliVersion` 고정으로 간다(그때는 잡 로그 머리의 «Downloading game-ci CLI vX» 에서 태그를 읽는다).
 
 ### T73 1회차 기록 — 베이크 스레드 배열 되쓰기 (2026-09-13 · 워커 N · sess-0125-19048)
 
@@ -1569,3 +1578,4 @@
 188. **보석 카드 세로 배분을 카탈로그 키로 넣고 `.gitignore` 에 `/ui-screens/` 를 더했다(2026-09-13 · T75 · 워커 J)** — ⓐ 치수 다섯을 `catalog.json` 에 넣었다(§1 대로 · 앞 회차 T63 때는 `catalog.json` 이 T62 lock 이라 rem 비율로 냈는데 이번엔 그 lock 이 풀려 제대로 넣었다 · 값은 정본 CSS 주석의 원본 px 를 894 로 나눈 %H). ⓑ 채점 자(`ui_score.py`)가 워커에게 `screens` 브랜치 PNG 를 `ui-screens/` 로 받으라 시키는데 그 폴더가 무시 목록에 없어 `git add -A` 한 번이면 캡처 43장이 커밋된다(§1 «캡처 PNG 커밋 금지»). 한 줄 막았다. 되돌리려면 `.gitignore` 마지막 블록과 카탈로그 키 5개를 지우고 `ShopSheet` 의 rem 눈대중을 되살리면 된다.
 
 189. **T78 은 «확실한 것만» 고치고 딤 층 순서는 2회차로 미뤘다(2026-09-13 · T78 · 워커 E)** — 등재된 셋 중 ⓒ(✕ 가 탭바에 가림)는 카탈로그 값만으로 계산이 서서 `PopupKit.FitBetweenBars` 로 고쳤다. ⓑ(탭바가 안 어두워짐)는 `modals` 를 `TabBand` 위로 올려야 하는데 그러면 `under`/`over`(`aboveTabBar`) 두 층 계약과 탭 ✕(T57 «둘째 ✕ 는 탭바 ✕»)가 같이 움직인다 — 한 회차에 같이 바꾸면 어느 것이 화면을 바꿨는지 못 가른다. ⓐ(세계·HUD 가 통째로 안 그려짐)는 `UiShotsTests`·`Bootstrap`(T54 살아 있는 lock) 자리다. 되돌리려면 이 커밋의 `Popups.cs`·`ForgeAutoPopup.cs`·`ForgeInfoPopup.cs`.
+190. **러너의 «latest» 풀이는 토큰으로 살리고 버전은 고정하지 않는다(2026-09-13 · T80 · 워커 N · sess-0224-1833)** — 런 131 의 «GitHub API returned 403» 은 호스티드 러너 공유 IP 의 무인증 한도라 우리 코드 밖이다. 고칠 길 둘 중 `cliVersion` 고정은 API 호출을 없애지만 «다음 사람이 갱신할 수치» 를 워크플로에 박고(§1) 컨테이너에서 태그를 확인할 수도 없었다 → 러너 소스가 읽는 `GH_TOKEN` 에 기본 `GITHUB_TOKEN` 을 준다(5000/h · 공개 릴리스 읽기라 권한 추가 없음). `GITHUB_TOKEN` 이름 대신 `GH_TOKEN` 인 것은 러너가 환경을 통째로 CLI 컨테이너에 넘기기 때문(다른 도구가 집어 가지 않게). 되돌리려면 그 `env` 한 줄만 지운다.
