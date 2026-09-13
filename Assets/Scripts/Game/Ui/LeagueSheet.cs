@@ -248,7 +248,8 @@ namespace Forge.Game.Ui
                 UiKit.Place(rk, rem * 1.1f, 0f, rankW, tierH);
                 if (t.Rank <= 3)
                 {
-                    Image badge = PopupKit.IconOr(rk, "badge", t.Rank <= 2 ? "crown" : "badge");
+                    // T130 — 정본 ui.js 4790 `IconGen.img('rank' + t.rank)`: 1·2위 왕관 배지 · 3위 벽돌색 마름모(아틀라스 rank1~3 · T31). 종전 crown/badge 는 GUI PRO Kit 데모 스프라이트였다.
+                    Image badge = PopupKit.IconOr(rk, "badge", "rank" + t.Rank);
                     UiKit.Anchor(badge.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, rem * 2.15f, rem * 2.15f);
                 }
                 TextMeshProUGUI lab = UiKit.Text(rk, "label", TextKind.Sub, t.Rank <= 3 ? t.Rank.ToString() : t.Label, "stage_ink");

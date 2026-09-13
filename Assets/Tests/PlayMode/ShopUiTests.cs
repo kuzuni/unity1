@@ -145,6 +145,51 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T130 — 리그 보상 표의 1·2·3위 배지는 정본 아틀라스 `rank1`~`rank3`(ui.js 4790 · 1·2위 왕관 · 3위 벽돌색 마름모)이고 4위 이하는 배지 없이 글자 라벨이다.
+        /// 종전 `crown`/`badge` 는 GUI PRO Kit 데모 스프라이트라 정본 그림이 아니었다(T33 4회차 실측).</summary>
+        [UnityTest]
+        public IEnumerator T130_리그_보상_1_2_3위_배지는_정본_rank_아이콘이고_4위_이하는_배지가_없다()
+        {
+            yield return Boot();
+            PopupLayer popups = PopupLayer.Instance;
+            UiRoot.Instance.TabBar.OnTab("pvp");
+            yield return null;
+            MetaHost h = MetaHost.Instance;
+            LeagueSheet.OpenRewards(h);
+            yield return null;
+            Popup p = popups.Find(LeagueSheet.RewardsName);
+            Assert.IsNotNull(p, "보상 팝업");
+            int badges = 0, tiers = 0;
+            foreach (RectTransform tier in p.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (!tier.name.StartsWith("tier-")) continue;
+                tiers++;
+                int rank = int.Parse(tier.name.Substring(5));
+                Transform rk = tier.Find("rank");
+                Assert.IsNotNull(rk, tier.name + ": rank 칸");
+                Transform b = rk.Find("badge");
+                if (rank <= 3)
+                {
+                    Assert.IsNotNull(b, tier.name + ": 1·2·3위는 배지가 있어야 한다");
+                    Image img = b.GetComponent<Image>();
+                    Assert.IsNotNull(img);
+                    Assert.IsNotNull(img.sprite, tier.name + ": 배지 스프라이트");
+                    Assert.AreEqual("ico:rank" + rank, img.sprite.name, tier.name + ": 정본 아틀라스 rank" + rank + "(crown/badge 데모 스프라이트가 아니다)");
+                    Assert.AreSame(UiIcons.Get("rank" + rank), img.sprite, tier.name + ": UiIcons 캐시의 그 스프라이트");
+                    TextMeshProUGUI n = rk.Find("label").GetComponent<TextMeshProUGUI>();
+                    Assert.AreEqual(rank.ToString(), n.text, tier.name + ": 배지 위 흰 숫자");
+                    Assert.Greater(n.outlineWidth, 0f, tier.name + ": 숫자의 검정 링(.lgr-rank-n)");
+                    badges++;
+                }
+                else Assert.IsNull(b, tier.name + ": 4위 이하는 배지 없이 글자 라벨(정본 t.label)");
+            }
+            Assert.AreEqual(3, badges, "배지 셋(1·2·3위)");
+            Assert.Greater(tiers, 3, "4위 이하 줄이 있어야 한다");
+            FindButton(LeagueSheet.RewardsName, "x-btn").onClick.Invoke();
+            yield return null;
+            Assert.IsFalse(popups.IsOpen(LeagueSheet.RewardsName));
+        }
+
         [UnityTest]
         public IEnumerator 상점_특가는_하루_한_번_무료_수령이고_젬은_안_준다()
         {
