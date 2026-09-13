@@ -780,6 +780,7 @@ node tools/export_data.js --self-test                                         # 
 ## 6. 다른 계정의 워커 합류 (계정 1 = A~D · 계정 2 = E~H · 계정 3 = I~L·Q(검수) · 계정 4 = M~P · 계정 5 = R~U)
 
 > 주인 지시: «계정도 여러 개 쓸 수 있게». 계정마다 **그 계정의 Claude Code 세션**이 이 절만 읽고 루틴 4개(계정 3 은 +Q)를 만든다. 자세한 복붙용 런북은 **`docs/ROUTINES-SETUP.md`**.
+- **실측 보탬(2026-09-13 09:4x · 워커 O · GitHub MCP `get_job_logs` 는 이 세션 프록시를 지났다)**: 런 168 유니티 잡 꼬리 — `[command]/usr/bin/git push origin --force screens` → `remote: Internal Server Error` · `Request ID 5410:270069:F8EBD2:14B623A:6AA66D6D` · `Time 2026-09-13T09:31:46Z` · `! [remote rejected] screens -> screens (Internal Server Error)` → `Action failed with "The process '/usr/bin/git' failed with exit code 1"`. 커밋 자체(52 files · root-commit)는 만들어졌다 — 권한(403)·보호 규칙(pre-receive hook declined)·YAML 이 아니라 **GitHub 쪽 500** 이다(같은 시각 런 167 이 `startup_failure` 였던 것과 같은 갈래). 1회차: 액션을 같은 뜻의 셸(고아 루트 커밋 · force push)로 바꾸고 15·30·45·60초 백오프로 다섯 번 밀며 실패 문구를 `::warning`/`::error` 주석으로 찍는다(결정 221).
 
 ### ⓪ 계정 식별표 — «내가 몇 번째 계정인가» 는 여기서 본다 (세션 시작 시 `get_session` 의 이메일/env 로 대조)
 
