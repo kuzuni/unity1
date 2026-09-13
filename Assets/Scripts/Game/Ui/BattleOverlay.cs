@@ -34,6 +34,8 @@ namespace Forge.Game.Ui
         public float CoverAlpha { get { return cover != null ? cover.color.a : 0; } }
         public bool CutActive { get { return cutT >= 0; } }
         public string DeathSub { get { return dsub != null ? dsub.text : null; } }
+        /// <summary>오버레이 띠(상단바 아래 ~ 장비 시트 위 · 정본 `#game-area`) — 테스트가 층·띠를 본다.</summary>
+        public RectTransform Layer { get { return layer; } }
 
         /// <summary>UiRoot 아래에 한 번 세운다(없으면 null — UI 껍데기가 없는 씬).</summary>
         public static BattleOverlay Ensure()
@@ -42,7 +44,10 @@ namespace Forge.Game.Ui
             UiRoot root = UiRoot.Instance;
             if (root == null || root.App == null) return null;
             RectTransform rt = UiKit.Box(root.App, "battle-overlay");
-            UiKit.Band(rt, 0f, UiKit.L("sheet_top"));
+            // 정본 `index.html`: `#topbar`(64행) 는 `#game-area`(67행) **밖**의 형제이고 사망 암전·씬컷·보스 워닝은 전부 `#game-area` 안의
+            // `#fx-layer`/`#boss-warning`(z 13~16 · isolation) 에 산다 — 그래서 상단바는 어떤 전투 연출에도 덮이지 않는다.
+            // 띠를 «상단바 아래 ~ 시트 위» 로 둔다(T85 · 촬영 런 141 에서 사망 암전이 상단바까지 검게 덮은 자리).
+            UiKit.Band(rt, UiKit.L("topbar_h"), UiKit.L("sheet_top"));
             rt.SetSiblingIndex(root.HudLayer.GetSiblingIndex() + 1);
             var o = rt.gameObject.AddComponent<BattleOverlay>();
             o.layer = rt;

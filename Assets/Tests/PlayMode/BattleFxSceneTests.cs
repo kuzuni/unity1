@@ -169,6 +169,12 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(overlay);
             Assert.IsTrue(overlay.DeathFade("회복 후 다시 도전합니다"));
             Assert.AreEqual("회복 후 다시 도전합니다", overlay.DeathSub);
+            // T85 — 정본 `#fx-layer` 는 `#game-area` 안이고 `#topbar` 는 밖이다: 덮개 띠는 상단바 아래에서 시작하고(촬영 런 141 에서 상단바까지 검게 덮였다),
+            // 스테이지 라벨 등 게임 영역 HUD(정본 z 4) 는 덮개(z 15) 아래라 HUD 층보다 뒤 형제다.
+            UiRoot ui = UiRoot.Instance;
+            Assert.AreEqual(1f - UiKit.L("topbar_h"), overlay.Layer.anchorMax.y, 1e-4f, "덮개 띠 위 끝 = 상단바 아래");
+            Assert.AreEqual(1f - UiKit.L("sheet_top"), overlay.Layer.anchorMin.y, 1e-4f, "덮개 띠 아래 끝 = 장비 시트 위");
+            Assert.Greater(overlay.Layer.GetSiblingIndex(), ui.HudLayer.GetSiblingIndex(), "게임 영역 HUD 위 · 상단바는 띠 밖");
             yield return Run(s, 0.5, 6);
             Assert.AreEqual(0, overlay.CoverAlpha, 1e-6, "0~900ms 투명(사망 클립을 읽는 구간)");
             yield return Run(s, 1.6, 6);

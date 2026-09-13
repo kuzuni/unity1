@@ -305,5 +305,45 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsTrue(popups.IsOpen(ShopSheet.Name), "코인 «+» 를 누르면 상점이 열려야 한다");
         }
+    
+
+        /// <summary>
+        /// T85 — 프로필/설정 팝업의 딤은 정본 `.modal { background: rgba(0,0,0,.5) }`(`style.css` 1721 · 주인 지시 «투명도 50%») **한 겹**이다.
+        /// 촬영 런 141 의 «설정 뒤가 검다» 는 팝업 딤이 아니라 전투 사망 암전(T39 `BattleOverlay`)이 상단바까지 덮은 것이었다 — 그 띠는 이제 상단바 아래에서 시작한다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 프로필_설정_팝업의_딤은_정본_modal_dim_한_겹이고_전투_암전_띠는_상단바를_비켜_간다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!MetaHost.Ready && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 준비되지 않았다");
+            MetaHost h = MetaHost.Instance;
+            h.OpenProfile();
+            yield return null;
+            Popup p = h.Popups.Find(ProfilePopup.Name);
+            Assert.IsNotNull(p, "프로필 팝업");
+            ProfilePopup.SwitchView(h, "settings");
+            yield return null;
+            Assert.AreEqual("settings", ProfilePopup.View);
+            int dims = 0; Image dim = null;
+            for (int i = 0; i < p.Root.childCount; i++)
+            {
+                Transform c = p.Root.GetChild(i);
+                if (c.name == "dim") { dims++; dim = c.GetComponent<Image>(); }
+            }
+            Assert.AreEqual(1, dims, "딤은 한 겹(정본 .modal 하나)");
+            Assert.IsNotNull(dim);
+            Assert.AreEqual(UiKit.C("modal_dim").a, dim.color.a, 1e-3f, "딤 α = 카탈로그 modal_dim(정본 rgba(0,0,0,.5))");
+            BattleOverlay ov = BattleOverlay.Ensure();
+            if (ov != null)
+            {
+                Assert.AreEqual(1f - UiKit.L("topbar_h"), ov.Layer.anchorMax.y, 1e-4f, "전투 암전 띠는 상단바 아래에서 시작한다(정본 #fx-layer ⊂ #game-area · #topbar 는 밖)");
+                Assert.IsFalse(ov.DeathActive, "팝업을 열었을 뿐 사망 암전은 안 돈다");
+            }
+            ProfilePopup.Close(h);
+            yield return null;
+            Assert.IsFalse(h.Popups.IsOpen(ProfilePopup.Name));
+        }
     }
 }
