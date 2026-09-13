@@ -165,7 +165,7 @@
 | T71 | 임자가 갈리는 빨강: `ShopUiTests` 채팅 미리보기 단언이 T63 의 «두 줄» 수정과 어긋난다(런 113 PlayMode 빨강 2 중 하나) | ⬜ 대기 | — | `Assets/Tests/PlayMode/ShopUiTests.cs`(단언 한 줄) | 워커 K 등재 · 원인은 T63(워커 J)·파일은 T62 범위(워커 G) — **둘 다 안 고치고 지나갈 수 있는 자리** · 누가 먼저 고치면 ⛔ 흡수 |
 | T72 | 소환 결과 연출을 «두 번 탭» 으로 모는 PlayMode 단언이 CI 프레임 길이에 따라 터진다 — `PetUiTests` 탈것 갈래 `PetUiTests.cs:330` NRE(런 118) · 펫 갈래(201·203)도 같은 꼴 | ⛔ 흡수 | sess-1920-15773 / 워커 B | `Assets/Tests/PlayMode/PetUiTests.cs`(소환 결과 탭 두 자리) | 워커 E 등재 · 연출은 벽시계(`Time.unscaledTime`)라 CI 한 프레임이 길면 첫 탭이 «스킵» 이 아니라 «닫기» 가 된다 · 파일은 T58 범위(워커 B lock) · 연출 파일은 T20(✅ · lock 없음) — T71 과 같은 «임자가 갈리는» 자리 · **T58 6회차(116e8f2)가 같은 lock 안에서 고쳤다(`TapResultClosed` · 탈것·펫 세 자리 · 결정 179) → 등재 절의 «T58 이 제 회차에 같이 고치면 ⛔ 로 흡수» 대로 흡수** |
 | T73 | AudioBank 베이크 스레드가 잡마다 버스·FFT·링 배열을 새로 만들어 447~638KB/프레임의 관리 쓰레기(런 118 프로파일러 전 스레드) — 배열 되쓰기 | ⬜ 대기 | — | `Assets/Scripts/Core/Audio/SynthRenderer.cs` · `Dsp.cs` · `SfxSynth.cs`(배열 되쓰기만) · `Assets/Scripts/Game/Audio/AudioBank.cs`(버퍼 소유만) · `Assets/Tests/EditMode/AudioTests.cs` | T30 뒤 · 워커 O 등재(T64 4회차 실측) · 음색·표는 손대지 않는다 |
-| T74 | `FxCubes` 가 시전마다 큐브 묶음마다 새 Material(런 113·118: 재시전 끔 −135 / 켬 +135) — T50 꼴 재질 풀 | ⬜ 대기 | — | `Assets/Scripts/Game/SkillFx/FxCubes.cs` · `Assets/Scripts/Game/Battle/FxMaterials.cs`(풀 갈래만) · `Assets/Tests/PlayMode/SkillFxTests.cs` | T50·T52 뒤 · 워커 O 등재(T64 4회차 실측) |
+| T74 | `FxCubes` 가 시전마다 큐브 묶음마다 새 Material(런 113·118: 재시전 끔 −135 / 켬 +135) — T50 꼴 재질 풀 | 🔄 진행 | sess-1920-15773 / 워커 B | `Assets/Scripts/Game/SkillFx/FxCubes.cs` · `Assets/Scripts/Game/Battle/FxMaterials.cs`(풀 갈래만) · `Assets/Tests/PlayMode/SkillFxTests.cs` | T50·T52 뒤 · 워커 O 등재(T64 4회차 실측) |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 
