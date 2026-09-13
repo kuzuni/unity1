@@ -633,6 +633,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(fx, "두들기기 러너");
 
             // 3타 접촉 프레임 — 모루·쇳덩이·망치·링이 한 화면에 있는 순간이다(이 장면을 남긴다)
+            fx.enabled = false;   // 재는 동안 러너를 세운다 — 프레임 한 장이 시각을 밀면 남기는 컷도 «접촉 프레임» 이 아니게 된다
             fx.SampleTo(AutoForgeFxSpec.HitMs[2]);
             yield return null;
             RectTransform head = Named(UiRoot.Instance.Sheet, "hm-head");
@@ -652,6 +653,7 @@ namespace Forge.Tests.PlayMode
             int steel = CountPixels(head, delegate(Color32 c) { return Mathf.Abs(c.r - c.b) < 40 && Mathf.Abs(c.g - c.b) < 40 && c.r > 45 && c.r < 205; }, out area, out info, "screen_craft-strike");
             Assert.Greater(steel, area * 45 / 100, "망치가 화면에 안 칠해졌다 — " + info);
 
+            fx.enabled = true;
             fx.Stop();
             yield return null;
             h.CancelAnvilStrike();
@@ -772,12 +774,15 @@ namespace Forge.Tests.PlayMode
             // 픽셀 — 3타 링이 가장 크게 퍼지는 구간에서 테두리 색이 실제로 칠해지는가
             if (!NoGraphics())
             {
+                fx.enabled = false;   // 재는 동안 러너를 세운다 — 프레임 한 장의 `unscaledDeltaTime` 이 짧은 창을 통째로 지나친다(아래 불티 절의 주석)
                 fx.SampleTo(AutoForgeFxSpec.HitMs[2] + 60);
                 yield return null;
                 RectTransform ring2 = Named(sheet, "af-ring-2");
+                Assert.Greater(ring2.GetComponent<Image>().color.a, 0f, "재는 순간 3타 링이 켜져 있어야 한다 — 꺼져 있으면 러너가 시각을 밀었다");
                 int area; string info;
                 int bright = CountPixels(ring2, delegate(Color32 c) { return c.r > 190 && c.g > 150 && c.b < c.g; }, out area, out info, null);
                 Assert.Greater(bright, 4, "3타 링이 화면에 안 칠해졌다 — " + info);
+                fx.enabled = true;
             }
 
             fx.Stop();
@@ -886,12 +891,15 @@ namespace Forge.Tests.PlayMode
             // 픽셀 — 3타 접촉 프레임에 코어 칸이 실제로 희다
             if (!NoGraphics())
             {
+                fx.enabled = false;   // 재는 동안 러너를 세운다 — 프레임 한 장의 `unscaledDeltaTime` 이 짧은 창을 통째로 지나친다(아래 불티 절의 주석)
                 fx.SampleTo(AutoForgeFxSpec.HitMs[2]);
                 yield return null;
                 RectTransform core2 = Named(sheet, "af-core-2");
+                Assert.Greater(core2.GetComponent<Image>().color.a, 0.5f, "재는 순간 3타 코어가 밝아야 한다(접촉 프레임) — 어두우면 러너가 시각을 밀었다");
                 int area; string info;
                 int white = CountPixels(core2, delegate(Color32 c) { return c.r > 225 && c.g > 215 && c.b > 200; }, out area, out info, null);
                 Assert.Greater(white, 6, "3타 코어가 화면에 안 칠해졌다 — " + info);
+                fx.enabled = true;
             }
 
             fx.Stop();
@@ -998,12 +1006,22 @@ namespace Forge.Tests.PlayMode
             // 픽셀 — 3타 불티의 **한창인 프레임**(제 수명의 55%)에 칸이 실제로 칠해져 있다(끝 키는 opacity 0 이라 아무것도 없다)
             if (!NoGraphics())
             {
+                // ⚠ 재는 동안 러너를 세운다(T87 28회차 결정 274 ⓑ 와 같은 갈래). 여기는 그림을 봐야 해서 프레임을 한 장 넘기는데,
+                // 그러면 `AnvilFx.Update` 가 그 프레임의 `unscaledDeltaTime`(CI 배치모드는 캔버스 재구성 뒤 100ms 를 넘기도 한다)
+                // 만큼 시각을 밀어 버린다 — 불티 수명은 170~250ms 뿐이라 그 한 프레임에 제 수명을 지나 **투명**해지고,
+                // 마스터 1500ms 를 넘으면 `Stop()` → `Restore()` 까지 가 아무것도 안 남는다. 런 230·252 의 «후광 픽셀 0» 이 그것이다
+                // (같은 코드가 런 234 에서는 초록이었다 — 프레임이 빨랐을 뿐이다).
+                fx.enabled = false;
                 fx.SampleTo(ql.StartMs + ql.DurMs * 0.55);
                 yield return null;
+                Image lastImg = last.GetComponent<Image>();
+                Assert.Greater(lastImg.color.a, 0.85f, "재는 순간 3타 불티가 밝아야 한다(표 55% 키 = 0.9) — 러너가 시각을 밀었으면 여기서 걸린다");
                 int area; string info;
                 // 어두운 후광(정본 `rgba(72,16,0,.95)`)은 크림 배경(242,240,234)도 주황 상판(≈210,88,42)도 아닌 유일한 색이라 불티의 증거다
-                int halo = CountPixels(last, delegate(Color32 c) { return c.r > 28 && c.r < 175 && c.g < 110 && c.b < 100; }, out area, out info, null);
-                Assert.Greater(halo, 0, "3타 불티가 화면에 안 칠해졌다(후광 픽셀 0) — " + info);
+                int halo = CountPixels(last, delegate(Color32 c) { return c.r > 28 && c.r < 175 && c.g < 110 && c.b < 100; }, out area, out info, "af-spark-hot");
+                Assert.Greater(halo, 0, "3타 불티가 화면에 안 칠해졌다(후광 픽셀 0) — " + info
+                               + " · 불투명도 " + lastImg.color.a.ToString("0.00") + " · 잰 시각 " + (ql.StartMs + ql.DurMs * 0.55).ToString("0") + "ms");
+                fx.enabled = true;
             }
 
             fx.Stop();
