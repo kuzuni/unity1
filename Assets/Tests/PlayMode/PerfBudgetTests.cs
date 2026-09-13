@@ -11,6 +11,7 @@ using Forge.Core.Battle;
 using Forge.Core.Data;
 using Forge.Core.Save;
 using Forge.Game;
+using Forge.Game.Audio;
 using Forge.Game.Battle;
 using Forge.Game.Pets;
 using Forge.Game.SkillFx;
@@ -71,6 +72,9 @@ namespace Forge.Tests.PlayMode
         const int WarmFrames = 60, MeasureFrames = 200;
         /// <summary>T64 — 편집기 프로파일러 원시 프레임 걷기(샘플 수만 개/프레임)는 무거워 60프레임만.</summary>
         const int ProfileFrames = 60;
+        /// <summary>T64 4회차 — AudioBank 부팅 베이크(효과음×테이크 2 + 음악 4모드 · 배경 스레드)가 끝나기를 기다리는 상한. 런 118: 베이크 스레드가 447~638KB/프레임을 할당해 계수기(모든 스레드)에 섞였다.</summary>
+        const float BakeWaitSec = 120f;
+        float bakeWait; bool bakeReady;
 
         static GameData _data; static SaveDefs _defs;
         static GameData Data { get { return _data ?? (_data = GameData.LoadDirectory(System.IO.Path.Combine(Application.streamingAssetsPath, "data"))); } }
@@ -133,6 +137,10 @@ namespace Forge.Tests.PlayMode
         IEnumerator MakeLoadScene(uint seed)
         {
             yield return Boot();
+            // T64 — 씬을 다시 열면 AudioBank 가 다시 서서 처음부터 굽는다. 그 배경 스레드의 할당이 «프레임당 관리 할당» 에 섞이지 않게 다 구워진 뒤 잰다(못 기다리면 기록만).
+            float tb = Time.realtimeSinceStartup;
+            while (!AudioBank.AllReady && Time.realtimeSinceStartup - tb < BakeWaitSec) yield return null;
+            bakeWait = Time.realtimeSinceStartup - tb; bakeReady = AudioBank.AllReady;
             float dt = 1f / Bootstrap.TargetFps;
 
             var b = UnityEngine.Object.FindAnyObjectByType<Bootstrap>();
@@ -482,7 +490,7 @@ namespace Forge.Tests.PlayMode
                          " · 적 " + r.S.Battle.AliveEnemies().Count + " · 펫 " + r.P.Pets.Count + " · 스킬 시전 " + r.D.Casts.Count;
             string line = "[T44] 부하 장면 메인스레드 게임 시간 평균 " + full.Avg.ToString("F3") + "ms · p95 " + full.P95.ToString("F3") +
                           "ms · 최대 " + full.Max.ToString("F3") + "ms · 프레임당 관리 할당 " + Bytes(full.AllocPerFrame) + "(계수기) · 그중 StepFrame 안 " + Bytes(full.StepAllocPerFrame) + " · GetTotalMemory 차 " + full.TotalDeltaPerFrame +
-                          "B · GC 회수 " + full.Collections + " · 벽시계 평균 " + full.WallAvg.ToString("F2") + "ms(소프트웨어 렌더 포함 · 판정 밖) · " + num;
+                          "B · GC 회수 " + full.Collections + " · 벽시계 평균 " + full.WallAvg.ToString("F2") + "ms(소프트웨어 렌더 포함 · 판정 밖) · 오디오 베이크 " + (bakeReady ? "끝" : "미완") + "(" + bakeWait.ToString("F1") + "초 기다림) · " + num;
             Debug.Log(line);
             Trace(line);
 
