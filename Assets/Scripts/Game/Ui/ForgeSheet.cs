@@ -43,6 +43,12 @@ namespace Forge.Game.Ui
         /// <summary>불티 칸(정본 `.af-spark` · 타격마다 7·11·16개 = 34개) 과 그 표.</summary>
         static Image[] sparks = new Image[0];
         static Forge.Core.CraftFx.AutoForgeFxSpec.SparkSpec[] sparkSpecs = new Forge.Core.CraftFx.AutoForgeFxSpec.SparkSpec[0];
+
+        /// <summary>지금 세워진 불티들의 표(테스트가 «화면 변위 ↔ 표» 를 대조할 때 쓴다 · 난수라 테스트가 제 손으로 다시 뽑으면 순서가 어긋난다).</summary>
+        public static Forge.Core.CraftFx.AutoForgeFxSpec.SparkSpec[] SparkSpecs { get { return sparkSpecs; } }
+
+        /// <summary>모루 오버레이의 «viewBox 한 단위 = 몇 px» (같은 대조에 쓴다).</summary>
+        public static float VbUnit { get { return vbUnit; } }
         /// <summary>viewBox 한 단위의 화면 px — 망치 `afswing` 의 translate 는 **viewBox 단위**다(SVG 자식이라 CSS px 가 아니다).</summary>
         static float vbUnit;
 

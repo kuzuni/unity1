@@ -932,15 +932,31 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0f, Op(sheet, "af-spark-0"), 1e-3f, "수명 뒤에는 투명");
             Assert.AreEqual(home.x, first.anchoredPosition.x, 0.01f, "꼬리가 타격점으로 돌아온다");
 
-            // 3타 불티는 더 멀리 간다(사거리 배수 1.8)
-            fx.SampleTo(AutoForgeFxSpec.HitMs[2]);
-            Vector2 lastHome = last.anchoredPosition;
-            fx.SampleTo(AutoForgeFxSpec.HitMs[2] + AutoForgeFxSpec.SparkDurMinMs * 0.55);
-            Assert.Greater((last.anchoredPosition - lastHome).magnitude, (mid - home).magnitude, "3타 불티가 1타보다 멀리 간다");
+            // 표 ↔ 화면 대조 — 개체마다 수명이 다르므로(170~250ms) «같은 벽시계 시각» 이 아니라 **제 수명의 끝**에서 본다.
+            // 런 216 이 그것을 잡았다: 같은 시각에 재면 수명이 긴 3타 불티가 «덜 갔다» 로 나온다(제 궤적의 41% ↔ 1타의 60%).
+            AutoForgeFxSpec.SparkSpec[] specs = ForgeSheet.SparkSpecs;
+            Assert.AreEqual(total, specs.Length, "표와 칸 수가 같다");
+            float unit = ForgeSheet.VbUnit;
+            AutoForgeFxSpec.SparkSpec qf = specs[0], ql = specs[total - 1];
+            Assert.AreEqual(2, ql.Strike, "마지막 표는 3타의 것");
 
-            // 픽셀 — 3타 중간 프레임에 불티 칸에 실제로 뭔가 칠해져 있다(심은 밝고 후광은 어둡다)
+            fx.SampleTo(qf.StartMs + qf.DurMs);
+            float wentFirst = (first.anchoredPosition - home).magnitude;
+            Vector2 lastRest = RestPosOf(sheet, total - 1, fx, ql);
+            fx.SampleTo(ql.StartMs + ql.DurMs);
+            Vector2 lastGone = last.anchoredPosition - lastRest;
+            // 끝 키(u 몫·v 몫 둘 다 1)의 전역 변위 = R(a)·(u, v) — 즉 dx = d·cos a · dy = d·sin a + g(CSS 는 아래가 +y라 유니티에서는 부호가 뒤집힌다)
+            double rad = ql.AngleDeg * System.Math.PI / 180.0;
+            float ex = (float)((System.Math.Cos(rad) * ql.U - System.Math.Sin(rad) * ql.V) * unit);
+            float ey = (float)(-(System.Math.Sin(rad) * ql.U + System.Math.Cos(rad) * ql.V) * unit);
+            Assert.AreEqual(ex, lastGone.x, Mathf.Max(0.5f, Mathf.Abs(ex) * 0.02f), "3타 불티의 가로 변위가 표와 같다");
+            Assert.AreEqual(ey, lastGone.y, Mathf.Max(0.5f, Mathf.Abs(ey) * 0.02f), "3타 불티의 세로 변위가 표와 같다");
+            Assert.Greater(lastGone.magnitude, wentFirst, "3타 불티가 1타보다 멀리 간다(사거리 배수 1.8 · 각자 제 수명의 끝에서)");
+
+            // 픽셀 — 3타 불티의 **한창인 프레임**(제 수명의 55%)에 칸이 실제로 칠해져 있다(끝 키는 opacity 0 이라 아무것도 없다)
             if (!NoGraphics())
             {
+                fx.SampleTo(ql.StartMs + ql.DurMs * 0.55);
                 yield return null;
                 int area; string info;
                 // 어두운 후광(정본 `rgba(72,16,0,.95)`)은 크림 배경(242,240,234)도 주황 상판(≈210,88,42)도 아닌 유일한 색이라 불티의 증거다
@@ -952,6 +968,16 @@ namespace Forge.Tests.PlayMode
             yield return null;
             h.CancelAnvilStrike();
             yield return null;
+        }
+
+        /// <summary>불티 하나의 «쉬는 자리»(제 창 밖에서는 꼬리가 타격점에 있다) — 변위를 재는 기준점.</summary>
+        private static Vector2 RestPosOf(RectTransform sheet, int index, AnvilFx fx, AutoForgeFxSpec.SparkSpec q)
+        {
+            double now = fx.ElapsedMs;
+            fx.SampleTo(q.StartMs + q.DurMs + 1);       // 창 밖 = 제자리
+            Vector2 rest = Named(sheet, "af-spark-" + index).anchoredPosition;
+            fx.SampleTo(now);
+            return rest;
         }
 
         private static bool NoGraphics()
