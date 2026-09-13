@@ -482,7 +482,7 @@
 - 판정: `ci.yml` 만 바뀐다(코드·테스트 0줄) · 다음 main 런에서 dotnet·datasync 잡 초록 · 모드 XML 이 둘 다 있는 런에서는 새 줄이 조용하고, 한쪽이 없는 런에서는 `::error::` 와 `playmode-red.txt` 머리줄이 보인다.
 - 범위: `.github/workflows/ci.yml`.
 
-### T68 — 오프라인 보상 팝업 머리가 정본의 어두운 판이 아니다: 밝은 회색 판 + 검정 글자 · 요율이 아이콘 옆 · 수집 버튼 빨간 점 없음 (Game·UI · T13·T22 뒤 · T28 5회차가 눈으로 잡음)
+### T68 ✅ — 오프라인 보상 팝업 머리가 정본의 어두운 판이 아니다: 밝은 회색 판 + 검정 글자 · 요율이 아이콘 옆 · 수집 버튼 빨간 점 없음 (Game·UI · T13·T22 뒤 · T28 5회차가 눈으로 잡음)
 - 실측(2026-09-12 · T28 5회차 · 워커 N · 런 95 `screen_offline.png` **3.7/10** ↔ 정본 `ref/screens/shot-042110.png` + `style.css`·`ui.js`):
   - 정본 `.offline-top`(`style.css` 260)은 **평면 `#0e111b` 어두운 판 · 흰 글자 · 카드 높이의 42.8%** 이고 `«수집 시간:»` 은 `#ccc`, 경과 시간·요율은 `--pp-green`. 클론 `OfflinePopup.cs` 29 는 `UiKit.Panel(top, "bg", "pp_panel")`(#efefef) + `pp_ink` 검정 글자 + 제목만 `stage_ink` 흰색(밝은 판 위 흰 글자라 링에 기대 읽힌다).
   - 정본 `.offline-rate` 는 `flex-direction: column`(원형 아이콘 2.6rem **위** · `1.13/초` 글자 **아래** · 두 칸 사이 2.4rem). 클론 `Rate()` 는 원형 아이콘과 글자를 **옆으로** 붙였다.
@@ -729,7 +729,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 🔄 · T75 🔄 · T76 ✅ · T78 🔄 · T79 🔄 |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 🔄 · T76 ✅ · T78 🔄 · T79 🔄 |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ⬜ |
