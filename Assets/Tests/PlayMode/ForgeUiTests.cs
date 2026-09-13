@@ -592,18 +592,140 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 쇳덩이가_화면에_실제로_칠해진다()
         {
             yield return Boot();
-            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
-            {
-                Assert.Ignore("그래픽 장치가 없다 — 픽셀은 CI 의 유니티 잡이 본다");
-            }
+            if (NoGraphics()) Assert.Ignore("그래픽 장치가 없다 — 픽셀은 CI 의 유니티 잡이 본다");
             ForgeHost h = ForgeHost.Instance;
             ForgeSheet.Render(h);
             yield return null;
 
-            UiRoot root = UiRoot.Instance;
-            RectTransform bar = Named(root.Sheet, "ab-bar");
+            RectTransform bar = Named(UiRoot.Instance.Sheet, "ab-bar");
             Assert.IsNotNull(bar, "쇳덩이 몸통 칸이 없다");
+            int area; string info;
+            // 달군 쇠 = 붉은 주황~노랑(파랑이 확연히 낮고 밝다) · 모루 상판보다 밝아야 한다
+            int warm = CountPixels(bar, delegate(Color32 c) { return c.r > 170 && c.r > c.b + 60 && c.g >= c.b; }, out area, out info);
+            Assert.Greater(warm, area / 5, "쇳덩이가 화면에 안 칠해졌다 — " + info);
+            yield return null;
+        }
 
+        /// <summary>
+        /// T87 9회차 — 두들기는 동안 **망치가 화면에 있다**. 값(자세)은 아래 테스트가 보고, 이 자는 «강철 색이 실제로 칠해졌는가» 만 본다
+        /// (6~7회차의 교훈: 칸이 있고 값이 맞아도 한 픽셀도 안 그려질 수 있다).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 두들기는_동안_망치가_화면에_보인다()
+        {
+            yield return Boot();
+            if (NoGraphics()) Assert.Ignore("그래픽 장치가 없다 — 픽셀은 CI 의 유니티 잡이 본다");
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Hammers = 30;
+            ForgeSheet.Render(h);
+            yield return null;
+            Assert.IsNull(Named(UiRoot.Instance.Sheet, "hammer"), "쉬는 화면에는 망치가 없다(정본도 오버레이를 그때 만든다)");
+
+            h.OnCraft();
+            yield return null;
+            RectTransform hammer = Named(UiRoot.Instance.Sheet, "hammer");
+            Assert.IsNotNull(hammer, "두들기는 동안 망치 오버레이가 있어야 한다");
+            AnvilFx fx = UiRoot.Instance.Sheet.GetComponent<AnvilFx>();
+            Assert.IsNotNull(fx, "두들기기 러너");
+
+            // 3타 직전(가장 크게 감아올린 뒤 내려오는 자리) — 망치가 확실히 화면 안이다
+            fx.SampleTo(AutoForgeFxSpec.HitMs[2] - 40);
+            yield return null;
+            RectTransform head = Named(UiRoot.Instance.Sheet, "hm-head");
+            Assert.IsNotNull(head, "망치 머리 칸");
+            int area; string info;
+            // 강철 = 채도 낮은 회색(빨강≈파랑) · 시트 바탕(밝은 회색)보다 어둡고 키라인(거의 검정)보다 밝다
+            int steel = CountPixels(head, delegate(Color32 c) { return Mathf.Abs(c.r - c.b) < 40 && Mathf.Abs(c.g - c.b) < 40 && c.r > 45 && c.r < 205; }, out area, out info);
+            Assert.Greater(steel, area / 6, "망치가 화면에 안 칠해졌다 — " + info);
+
+            fx.Stop();
+            yield return null;
+            h.CancelAnvilStrike();
+            yield return null;
+        }
+
+        /// <summary>
+        /// T87 9회차 — 망치가 `afswing`·`afexit` 표대로 움직이는가. 정본은 `.af-hammer` 의 축을 **빌릿 윗면(viewBox 55,11)** 에 두고
+        /// translate 를 **viewBox 단위**로 준다(SVG 자식이라 CSS px 가 아니다) · CSS 의 +y 는 아래, +각은 시계 방향이다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 망치가_정본_스윙표대로_움직이고_퇴장한다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Hammers = 30;
+            ForgeSheet.Render(h);
+            yield return null;
+
+            RectTransform sheet = UiRoot.Instance.Sheet;
+            h.OnCraft();
+            yield return null;
+            AnvilFx fx = sheet.GetComponent<AnvilFx>();
+            RectTransform hammer = Named(sheet, "hammer");
+            Assert.IsNotNull(hammer, "망치 오버레이");
+            Assert.IsNotNull(Named(sheet, "hm-head"), "머리");
+            Assert.IsNotNull(Named(sheet, "hm-handle"), "손잡이");
+            CanvasGroup cg = hammer.GetComponent<CanvasGroup>();
+            Assert.IsNotNull(cg, "불투명도 묶음");
+
+            // 축은 빌릿 윗면(55, 11) — 모루 그림 칸(viewBox 132×86) 안의 자리다.
+            Assert.AreEqual(AutoForgeFxSpec.HitX / UiKit.L("anvil_vb_w"), hammer.pivot.x, 0.01f, "망치 축 x");
+            Assert.AreEqual(1.0 - AutoForgeFxSpec.HitY / UiKit.L("anvil_vb_h"), hammer.pivot.y, 0.01f, "망치 축 y = 빌릿 윗면");
+
+            float unit = hammer.rect.width / UiKit.L("anvil_vb_w");
+            Assert.Greater(unit, 0.5f, "viewBox 한 단위가 화면 px 로 잡힌다");
+            Vector2 home = HammerHome(hammer, unit);
+
+            double[] v = new double[4];
+            for (int i = 0; i < AutoForgeFxSpec.HitMs.Length; i++)
+            {
+                fx.SampleTo(AutoForgeFxSpec.HitMs[i]);
+                AutoForgeFxSpec.SampleSwing(AutoForgeFxSpec.HitMs[i], v);
+                Assert.AreEqual(home.x + (float)v[0] * unit, hammer.anchoredPosition.x, 0.5f, i + "타 접촉 x(타격마다 자리가 걸어간다)");
+                Assert.AreEqual(home.y - (float)v[1] * unit, hammer.anchoredPosition.y, 0.5f, i + "타 접촉 y");
+                Assert.AreEqual(-(float)v[2], hammer.localEulerAngles.z > 180f ? hammer.localEulerAngles.z - 360f : hammer.localEulerAngles.z, 0.5f, i + "타 각도(CSS 시계 방향 → 유니티 반시계)");
+                Assert.AreEqual(1f, cg.alpha, 1e-3f, i + "타에는 다 보인다");
+
+                // 스미어 — 접촉 직전 프레임에는 머리가 뒤로 늘어난다
+                fx.SampleTo(AutoForgeFxSpec.SmearStop[i] / 100.0 * AnvilFxSpec.DurationMs);
+                Assert.Greater(hammer.localScale.y, 1.1f, i + "타 스미어");
+            }
+
+            // 퇴장 — 1170ms 부터 왼쪽 위로 빠지며 사라진다
+            fx.SampleTo(AutoForgeFxSpec.ExitStartMs + AutoForgeFxSpec.ExitDurMs);
+            double[] e = new double[4];
+            AutoForgeFxSpec.SampleExit(AutoForgeFxSpec.ExitStartMs + AutoForgeFxSpec.ExitDurMs, e);
+            Assert.AreEqual(home.y - (float)e[1] * unit, hammer.anchoredPosition.y, 0.5f, "퇴장 끝 y(위로 빠진다)");
+            Assert.AreEqual(0f, cg.alpha, 1e-3f, "퇴장 끝에는 안 보인다");
+            Assert.Greater(hammer.anchoredPosition.y, home.y, "퇴장은 위쪽이다");
+
+            fx.Stop();
+            yield return null;
+            h.CancelAnvilStrike();
+            yield return null;
+        }
+
+        /// <summary>망치 칸의 «쉬는 자리» — 지금 자세에서 표값을 빼서 되찾는다(러너가 이미 한 번 발랐기 때문).</summary>
+        private static Vector2 HammerHome(RectTransform hammer, float unit)
+        {
+            AnvilFx fx = UiRoot.Instance.Sheet.GetComponent<AnvilFx>();
+            double[] v = new double[4];
+            AutoForgeFxSpec.SampleSwing(fx.ElapsedMs, v);
+            return new Vector2(hammer.anchoredPosition.x - (float)v[0] * unit, hammer.anchoredPosition.y + (float)v[1] * unit);
+        }
+
+        private static bool NoGraphics()
+        {
+            return SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
+        }
+
+        /// <summary>
+        /// UI 를 한 장 그려(카메라 사본 → RenderTexture → `ReadPixels` · T27 `UiShotsTests.Capture` 와 같은 길) <paramref name="target"/> 의 화면 사각 안에서
+        /// <paramref name="match"/> 를 만족하는 픽셀을 센다. 실패 문구에 쓸 정보(<paramref name="info"/>)도 같이 만든다.
+        /// </summary>
+        private static int CountPixels(RectTransform target, System.Func<Color32, bool> match, out int area, out string info)
+        {
+            UiRoot root = UiRoot.Instance;
             Canvas canvas = root.Canvas;
             RenderMode prevMode = canvas.renderMode;
             Camera prevCam = canvas.worldCamera;
@@ -614,6 +736,7 @@ namespace Forge.Tests.PlayMode
             GameObject camGo = new GameObject("t87-pixel-cam");
             Camera cam = camGo.AddComponent<Camera>();
             Texture2D shot = null;
+            area = 0; info = "";
             try
             {
                 int uiLayer = canvas.gameObject.layer;
@@ -637,31 +760,31 @@ namespace Forge.Tests.PlayMode
                 shot.Apply(false);
 
                 Vector3[] corners = new Vector3[4];
-                bar.GetWorldCorners(corners);
+                target.GetWorldCorners(corners);
                 Vector2 a = RectTransformUtility.WorldToScreenPoint(cam, corners[0]);
                 Vector2 b = RectTransformUtility.WorldToScreenPoint(cam, corners[2]);
                 int x0 = Mathf.Clamp(Mathf.FloorToInt(Mathf.Min(a.x, b.x)), 0, w - 1);
                 int x1 = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(a.x, b.x)), 0, w - 1);
                 int y0 = Mathf.Clamp(Mathf.FloorToInt(Mathf.Min(a.y, b.y)), 0, ht - 1);
                 int y1 = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(a.y, b.y)), 0, ht - 1);
-                int area = (x1 - x0 + 1) * (y1 - y0 + 1);
-                Assert.Greater(area, 8, "쇳덩이 칸이 화면에서 너무 작다(" + (x1 - x0 + 1) + "×" + (y1 - y0 + 1) + ")");
+                area = (x1 - x0 + 1) * (y1 - y0 + 1);
+                Assert.Greater(area, 8, target.name + " 칸이 화면에서 너무 작다(" + (x1 - x0 + 1) + "×" + (y1 - y0 + 1) + ")");
 
                 Color32[] px = shot.GetPixels32();
-                int warm = 0;
+                int hit = 0;
                 Color32 brightest = new Color32(0, 0, 0, 255);
                 for (int y = y0; y <= y1; y++)
                 {
                     for (int x = x0; x <= x1; x++)
                     {
                         Color32 c = px[y * w + x];
-                        // 달군 쇠 = 붉은 주황~노랑(파랑이 확연히 낮고 밝다) · 모루 상판(#b03f18)보다 밝아야 한다
-                        if (c.r > 170 && c.r > c.b + 60 && c.g >= c.b) warm++;
-                        if (c.r > brightest.r) brightest = c;
+                        if (match(c)) hit++;
+                        if (c.r + c.g + c.b > brightest.r + brightest.g + brightest.b) brightest = c;
                     }
                 }
-                Assert.Greater(warm, area / 5, "쇳덩이가 화면에 안 칠해졌다 — 칸 " + area + "픽셀 중 달군 쇠 색 " + warm
-                                               + "개(가장 밝은 픽셀 rgb " + brightest.r + "," + brightest.g + "," + brightest.b + ")");
+                info = target.name + " 칸 " + area + "픽셀(" + (x1 - x0 + 1) + "×" + (y1 - y0 + 1) + ") 중 맞는 색 " + hit
+                       + "개 · 가장 밝은 픽셀 rgb " + brightest.r + "," + brightest.g + "," + brightest.b;
+                return hit;
             }
             finally
             {
@@ -675,7 +798,6 @@ namespace Forge.Tests.PlayMode
                 Object.Destroy(camGo);
                 rt.Release();
             }
-            yield return null;
         }
 
         /// <summary>시트 안에서 이름으로 칸 찾기(다시 그려질 수 있어 매번 찾는다).</summary>

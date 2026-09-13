@@ -15,8 +15,11 @@ namespace Forge.Game.Ui
     /// </summary>
     public sealed class AnvilFx : MonoBehaviour
     {
-        private RectTransform anvil, sheet, billet;
+        private RectTransform anvil, sheet, billet, hammer;
+        private CanvasGroup hammerGroup;
         private Graphic hot, cool;
+        private float unit;
+        private Vector2 hammerHome;
         private Vector2 anvilHome, sheetHome;
         private Vector3 anvilScaleHome, billetScaleHome;
         private bool running;
@@ -25,6 +28,8 @@ namespace Forge.Game.Ui
         private readonly double[] bump = new double[3];
         private readonly double[] shake = new double[2];
         private readonly double[] billetV = new double[2];
+        private readonly double[] swing = new double[4];
+        private readonly double[] exit = new double[4];
 
         /// <summary>지금 돌고 있는가(테스트·중복 시작 방지).</summary>
         public bool Running { get { return running; } }
@@ -45,12 +50,12 @@ namespace Forge.Game.Ui
         /// 두들기기 시작 — `anvilRt` 는 **모루 그림 칸**(정본 `.anvil-svg` · 버튼이 아니다: 버튼에 걸면 타격 오버레이가 반동을 같이 타 상대변위가 0 이 된다 · 정본 주석),
         /// `sheetRt` 는 그 모루가 든 시트(둘 다 없어도 죽지 않는다).
         /// </summary>
-        public void Play(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer)
+        public void Play(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, RectTransform hammerRt, CanvasGroup hammerCg, float vbUnit)
         {
             Stop();
             anvil = anvilRt;
             sheet = sheetRt;
-            Take(billetRt, hotLayer, coolLayer);
+            Take(billetRt, hotLayer, coolLayer, hammerRt, hammerCg, vbUnit);
             if (anvil != null)
             {
                 anvilHome = anvil.anchoredPosition;
@@ -63,12 +68,16 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>쇳덩이 묶음과 불투명도 겹을 받아 «쉬는 자세» 를 적어 둔다(되돌릴 때 그 자리로).</summary>
-        private void Take(RectTransform billetRt, Graphic hotLayer, Graphic coolLayer)
+        private void Take(RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, RectTransform hammerRt, CanvasGroup hammerCg, float vbUnit)
         {
             billet = billetRt;
             hot = hotLayer;
             cool = coolLayer;
+            hammer = hammerRt;
+            hammerGroup = hammerCg;
+            unit = vbUnit;
             if (billet != null) billetScaleHome = billet.localScale;
+            if (hammer != null) hammerHome = hammer.anchoredPosition;
         }
 
         /// <summary>
@@ -76,13 +85,13 @@ namespace Forge.Game.Ui
         /// 정본은 DOM 을 갈아도 CSS 애니메이션이 그 자리에서 이어지지 않지만, 클론은 시트를 통째로 다시 그리므로
         /// 다시 물지 않으면 남은 구간이 통째로 사라진다(런 157 실측: 모루가 파괴돼 연출이 없던 일이 됐다).
         /// </summary>
-        public void Rebind(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer)
+        public void Rebind(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, RectTransform hammerRt, CanvasGroup hammerCg, float vbUnit)
         {
             if (!running) return;
             Restore();
             anvil = anvilRt;
             sheet = sheetRt;
-            Take(billetRt, hotLayer, coolLayer);
+            Take(billetRt, hotLayer, coolLayer, hammerRt, hammerCg, vbUnit);
             if (anvil != null)
             {
                 anvilHome = anvil.anchoredPosition;
@@ -102,6 +111,8 @@ namespace Forge.Game.Ui
             billet = null;
             hot = null;
             cool = null;
+            hammer = null;
+            hammerGroup = null;
         }
 
         /// <summary>자기가 만든 것만 되돌린다 — 모루·시트 자리와 쇳덩이 자세·겹 불투명도(정지 상태 = 트랙 0%).</summary>
@@ -165,6 +176,31 @@ namespace Forge.Game.Ui
             }
             ForgeSheet.SetOpacity(hot, (float)AnvilFxSpec.BilletHot.Sample1(pct));
             ForgeSheet.SetOpacity(cool, (float)AnvilFxSpec.BilletCool.Sample1(pct));
+            ApplyHammer();
+        }
+
+        /// <summary>
+        /// 망치 — `afswing`(0~1170ms · linear)과 그 뒤를 이어받는 `afexit`(180ms · cubic-bezier). translate 는 **viewBox 단위**라 <see cref="unit"/> 를 곱한다.
+        /// CSS 의 +y 는 아래, +각은 시계 방향이라 유니티에서는 둘 다 부호가 뒤집힌다. 스케일(스미어)은 회전보다 먼저 걸리는데 유니티 Transform 도 같은 순서다.
+        /// </summary>
+        private void ApplyHammer()
+        {
+            if (hammer == null) return;
+            double x, y, rot, scaleY, alpha;
+            if (AutoForgeFxSpec.SampleExit(ms, exit))
+            {
+                x = exit[0]; y = exit[1]; rot = exit[2]; scaleY = 1.0; alpha = exit[3];
+            }
+            else
+            {
+                AutoForgeFxSpec.SampleSwing(ms, swing);
+                x = swing[0]; y = swing[1]; rot = swing[2]; scaleY = swing[3];
+                alpha = AutoForgeFxSpec.SwingOpacity.Sample1(ms / AnvilFxSpec.DurationMs * 100.0);
+            }
+            hammer.anchoredPosition = new Vector2(hammerHome.x + (float)x * unit, hammerHome.y - (float)y * unit);
+            hammer.localRotation = Quaternion.Euler(0f, 0f, -(float)rot);
+            hammer.localScale = new Vector3(1f, (float)scaleY, 1f);
+            if (hammerGroup != null) hammerGroup.alpha = Mathf.Clamp01((float)alpha);
         }
 
         private void OnDisable()

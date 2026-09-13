@@ -23,6 +23,11 @@ namespace Forge.Game.Ui
         /// <summary>달군 쇳덩이 묶음(정본 `.anv-billet` · 축 = viewBox 55 21.5)과 불투명도가 애니메이션되는 두 겹(`.ab-hot`·`.ab-cool`).</summary>
         static RectTransform billetRt;
         static Image billetHot, billetCool;
+        /// <summary>두들기는 동안만 사는 망치 오버레이(정본 `.anvil-fx .af-hammer`)와 그 불투명도 묶음.</summary>
+        static RectTransform hammerRt;
+        static CanvasGroup hammerGroup;
+        /// <summary>viewBox 한 단위의 화면 px — 망치 `afswing` 의 translate 는 **viewBox 단위**다(SVG 자식이라 CSS px 가 아니다).</summary>
+        static float vbUnit;
 
         public static void Render(ForgeHost h)
         {
@@ -37,6 +42,7 @@ namespace Forge.Game.Ui
             }
             hammerText = null; upgText = null; anvilRt = null; anvilArtRt = null;
             billetRt = null; billetHot = null; billetCool = null;
+            hammerRt = null; hammerGroup = null; vbUnit = 0f;
             GameDefs d = h.Defs;
             float W = UiKit.RefW, rem = PopupKit.Rem;
             float sheetH = sheet.rect.height > 0 ? sheet.rect.height : (UiKit.L("chat_top") - UiKit.L("sheet_top")) * UiKit.RefH;
@@ -95,7 +101,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(upgText.rectTransform, 0f, btnH + rem * 0.25f, W - padX * 2f - rx, PopupKit.FontSize(TextKind.Sub) * 1.3f);
             }
             // 두들기는 도중 다시 그려졌다면(세이브 → Rerender) 러너를 새 모루·시트에 다시 문다 — 흐른 시간은 지킨다.
-            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool); }
+            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, hammerRt, hammerGroup, vbUnit); }
         }
 
         static string RemainText(ForgeHost h)
@@ -121,7 +127,7 @@ namespace Forge.Game.Ui
             if (root == null) return;
             AnvilFx fx = AnvilFx.Ensure(root.Sheet);
             if (fx == null) return;
-            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool);
+            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, hammerRt, hammerGroup, vbUnit);
             else fx.Stop();
         }
 
@@ -199,7 +205,7 @@ namespace Forge.Game.Ui
             {
                 RectTransform anvil = UiKit.Box(rt, "anvil");
                 UiKit.Place(anvil, 0f, 0f, w, hgt);
-                UnityEngine.Rect baseRect = DrawAnvil(anvil, w, hgt);
+                UnityEngine.Rect baseRect = DrawAnvil(anvil, w, hgt, h.Striking);
                 anvilArtRt = anvil;
                 // 원작(shot-042120): «🔨 41307» 이 받침의 어두운 몸통 위에 얹혀 흰 글자가 읽힌다 — 받침 세로 61% 자리
                 counter = UiKit.Box(anvil, "anvil-hammers");
@@ -254,7 +260,7 @@ namespace Forge.Game.Ui
         /// 모루 그림 — 원작 인라인 SVG(viewBox 132×86 · `ANVIL_SVG`)를 색면으로: 받침(어두운 주철 · 음각 단) · 목 · 상판 앞면 · 상판 윗면(+베벨 엣지) · 뿔(둥근 총알) · 검은 외곽선(stroke 3).
         /// 좌표·색은 전부 catalog.json `anvil_*`(§1). 외부 에셋 없음. 반환: 받침 사각(모루 로컬 px) — 망치 수를 그 위에 얹는다(T61).
         /// </summary>
-        static UnityEngine.Rect DrawAnvil(RectTransform rt, float w, float h)
+        static UnityEngine.Rect DrawAnvil(RectTransform rt, float w, float h, bool striking)
         {
             float vbW = UiKit.L("anvil_vb_w"), vbH = UiKit.L("anvil_vb_h");
             float u = Mathf.Min(w / vbW, h / vbH);
@@ -271,6 +277,8 @@ namespace Forge.Game.Ui
             Color bc = bevel.color; bc.a = UiKit.L("anvil_bevel_alpha"); bevel.color = bc;
             UiKit.Place(bevel.rectTransform, ox + UiKit.L("anvil_bevel_x") * u, oy + UiKit.L("anvil_bevel_y") * u, UiKit.L("anvil_bevel_w") * u, UiKit.L("anvil_bevel_h") * u);
             DrawBillet(rt, ox, oy, u, vbW, vbH);
+            vbUnit = u;
+            if (striking) DrawHammer(rt, ox, oy, u, vbW, vbH);
             SetFxOrigin(rt, ox, oy, u, vbW, vbH, w, h);
             return bas;
         }
@@ -308,6 +316,78 @@ namespace Forge.Game.Ui
             billetCool = BilletLayer("ab-cool", bar, null, null, gradTo, UiKit.C("billet_cool"), u);
             SetOpacity(billetCool, (float)AnvilFxSpec.BilletCool.Sample1(0)); // 정지 상태 = 0(안 보인다)
             BilletLayer("ab-seam", seam, null, null, gradTo, Alpha(UiKit.C("billet_seam"), UiKit.L("billet_seam_alpha")), u);
+        }
+
+        /// <summary>
+        /// 망치 오버레이(정본 `ui.js HAMMER_SVG` · `.anvil-fx .af-hammer`) — **두들기는 동안에만** 있다(정본도 `startAnvilStrike` 가 오버레이를 만들었다 끝나면 지운다).
+        /// 좌표계: 정본은 `<g transform="translate(55,11) rotate(-20)">` 안에 «타격면 중심이 원점» 인 로컬 좌표로 그린다 — 그 원점이 곧 `.af-hammer` 의
+        /// `transform-origin: 55px 11px`(빌릿 윗면)이고 `afswing` 의 회전·스케일 축이다. 그래서 칸의 **피벗을 그 점에 두고** 거치 각(−20°)은 그림 쪽에 건다.
+        /// ⚠ `afswing` 의 translate 는 **viewBox 단위**다(SVG 자식의 transform) — 모루·시트의 CSS px 환산(`anvil_fx_px`)과 다른 자다.
+        /// 그리는 순서 = SVG 순서: 손잡이(키라인) → 손잡이 → 그립 → 머리(키라인) → 머리 → 어깨 그늘 → 타격면 띠.
+        /// </summary>
+        static void DrawHammer(RectTransform parent, float ox, float oy, float u, float vbW, float vbH)
+        {
+            hammerRt = UiKit.Box(parent, "hammer");
+            UiKit.Place(hammerRt, ox, oy, vbW * u, vbH * u);
+            float pxo = (float)(AutoForgeFxSpec.HitX / vbW), pyo = (float)(AutoForgeFxSpec.HitY / vbH);
+            hammerRt.pivot = new Vector2(pxo, 1f - pyo);
+            hammerRt.anchoredPosition = new Vector2(ox + vbW * u * pxo, -(oy + vbH * u * pyo));
+            hammerGroup = hammerRt.gameObject.AddComponent<CanvasGroup>();
+            hammerGroup.blocksRaycasts = false;
+            hammerGroup.interactable = false;
+            hammerGroup.alpha = (float)AutoForgeFxSpec.SwingOpacity.Sample1(0);   // 0% — 옆에서 들어오기 전이라 안 보인다
+
+            // 거치 각은 그림 쪽(정본의 안쪽 `<g>`)이 든다 — 애니메이션 회전은 칸이 든다.
+            RectTransform art = UiKit.Box(hammerRt, "hammer-art");
+            UiKit.Fill(art);
+            art.localRotation = Quaternion.Euler(0f, 0f, -UiKit.L("hmr_rest_deg"));   // CSS 의 +각은 시계 방향, 유니티는 반대
+
+            Vector2[] head = LocalPoly("hmr_head");
+            Vector2[] handle = LocalPoly("hmr_handle");
+            Vector2[] grip = LocalPoly("hmr_grip");
+            Vector2[] face = LocalPoly("hmr_face");
+            Vector2[] shoulder = LocalPoly("hmr_shoulder");
+            float st = UiKit.L("hmr_stroke");
+            Color line = UiKit.C("hmr_line");
+            Color[] steel = { UiKit.C("hmr_steel0"), UiKit.C("hmr_steel1"), UiKit.C("hmr_steel2"), UiKit.C("hmr_steel3") };
+            float[] steelOff = { 0f, UiKit.L("hmr_steel_off1"), UiKit.L("hmr_steel_off2"), 1f };
+            Color[] wood = { UiKit.C("hmr_wood0"), UiKit.C("hmr_wood1"), UiKit.C("hmr_wood2") };
+            float[] woodOff = { 0f, UiKit.L("hmr_wood_off1"), 1f };
+            Color[] leather = { UiKit.C("hmr_grip0"), UiKit.C("hmr_grip1"), UiKit.C("hmr_grip2") };
+            float[] leatherOff = { 0f, UiKit.L("hmr_grip_off1"), 1f };
+            Vector2 steelFrom = new Vector2(UiKit.L("hmr_steel_gx1"), 0f), steelTo = new Vector2(UiKit.L("hmr_steel_gx2"), 1f);
+            Vector2 down = new Vector2(0f, 1f);
+
+            HammerLayer(art, "hm-handle-line", CraftFxPoly.Inflate(handle, st * 0.5f), null, null, Vector2.zero, down, line, u);
+            HammerLayer(art, "hm-handle", handle, wood, woodOff, Vector2.zero, down, Color.white, u);
+            HammerLayer(art, "hm-grip", grip, leather, leatherOff, Vector2.zero, down, Color.white, u);
+            HammerLayer(art, "hm-head-line", CraftFxPoly.Inflate(head, st * 0.5f), null, null, Vector2.zero, down, line, u);
+            HammerLayer(art, "hm-head", head, steel, steelOff, steelFrom, steelTo, Color.white, u);
+            HammerLayer(art, "hm-shoulder", shoulder, null, null, Vector2.zero, down, Alpha(UiKit.C("hmr_shadow"), UiKit.L("hmr_shoulder_alpha")), u);
+            HammerLayer(art, "hm-face", face, null, null, Vector2.zero, down, Alpha(UiKit.C("hmr_face"), UiKit.L("hmr_face_alpha")), u);
+        }
+
+        /// <summary>망치 겹 하나 — 로컬 좌표(타격면 중심이 원점)라 칸 가운데(피벗)를 원점으로 삼아 얹는다.</summary>
+        static void HammerLayer(RectTransform art, string name, Vector2[] pts, Color[] stops, float[] offsets, Vector2 gradFrom, Vector2 gradTo, Color tint, float u)
+        {
+            RectTransform rt = UiKit.Box(art, name);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.sprite = CraftFxPoly.Bake(name, pts, stops, offsets, gradFrom, gradTo);
+            img.type = Image.Type.Simple;
+            img.color = tint;
+            UnityEngine.Rect b = CraftFxPoly.Bounds(pts);
+            // 원점(= 칸의 피벗)에서 로컬 좌표만큼 떨어진 자리. CSS 는 아래가 +y 다.
+            UiKit.Anchor(rt, new Vector2(0.5f, 0.5f), new Vector2(0f, 1f), new Vector2(b.xMin * u, -b.yMin * u), b.width * u, b.height * u);
+        }
+
+        /// <summary>카탈로그의 로컬 좌표(`<키>_x0`·`_y0` … · 개수는 `<키>_n`).</summary>
+        static Vector2[] LocalPoly(string key)
+        {
+            int n = Mathf.RoundToInt(UiKit.L(key + "_n"));
+            Vector2[] pts = new Vector2[n];
+            for (int i = 0; i < n; i++) pts[i] = new Vector2(UiKit.L(key + "_x" + i), UiKit.L(key + "_y" + i));
+            return pts;
         }
 
         /// <summary>겹 하나 — 구운 폴리곤 스프라이트를 제 바깥 사각 자리에 얹는다(색·불투명도는 <see cref="Image.color"/> · 정본 원소 `opacity` 가 그 α 다).</summary>
