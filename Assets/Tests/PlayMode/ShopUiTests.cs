@@ -401,17 +401,26 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsTrue(PopupLayer.Instance.IsOpen(LeagueSheet.ChallengeName), "상대 선택 팝업이 열려야 한다");
 
-            // 행 이름에 기대지 않고 «도전 버튼이 있는 칸» 을 행으로 삼는다(슬롯 이름이 바뀌어도 안 깨진다).
-            RectTransform btn = null;
+            // ⚠ 리그 **시트**(팝업 아래에 그대로 열려 있다)에도 «도전» 버튼이 있어서 팝업 밖까지 뒤지면 그것을 집는다
+            //   (런 208 실측: 그 버튼의 부모엔 별이 없어 «별점 칸이 없다» 로 빨갰다). 그래서 **이 팝업 뿌리 아래만** 본다.
+            RectTransform popupRoot = null;
             foreach (RectTransform rt in PopupLayer.Instance.GetComponentsInChildren<RectTransform>(true))
-                if (rt.name == "challenge") { btn = rt; break; }
-            Assert.IsNotNull(btn, "상대 행이 하나도 없다 — League.Ensure 가 봇을 안 뿌렸다(전투력 0?)");
-            RectTransform row = btn.parent as RectTransform;
-            Assert.IsNotNull(row, "도전 버튼의 부모 행이 없다");
+                if (rt.name == "modal-" + LeagueSheet.ChallengeName) { popupRoot = rt; break; }
+            Assert.IsNotNull(popupRoot, "상대 선택 팝업 뿌리(modal-" + LeagueSheet.ChallengeName + ")가 없다");
 
-            RectTransform star = null;
-            foreach (RectTransform rt in row.GetComponentsInChildren<RectTransform>(true))
-                if (rt.name == "star") { star = rt; break; }
+            // 행 이름에 기대지 않고 «별과 도전 버튼을 함께 가진 칸» 을 행으로 삼는다(슬롯 이름이 바뀌어도 안 깨진다).
+            RectTransform row = null, star = null, btn = null;
+            foreach (RectTransform rt in popupRoot.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name != "challenge") continue;
+                RectTransform parent = rt.parent as RectTransform;
+                if (parent == null) continue;
+                foreach (RectTransform c in parent.GetComponentsInChildren<RectTransform>(true))
+                    if (c.name == "star") { star = c; break; }
+                if (star != null) { btn = rt; row = parent; break; }
+                star = null;
+            }
+            Assert.IsNotNull(btn, "상대 행이 하나도 없다 — League.Ensure 가 봇을 안 뿌렸거나 행 꼴이 바뀌었다");
             Assert.IsNotNull(star, "별점 칸이 없다");
 
             // 정본 `.league-challenge-side { flex-direction: column }` — 별이 **버튼 위**다(가로로 나란히가 아니다).
