@@ -1652,6 +1652,7 @@
 - **호출부는 안 옮겼다**: 값은 카탈로그 키(정본 2px × 2.164 · T87 결정 222 규약)여야 하는데 `catalog.json` 은 T87 lock 이고 `ForgeSheet`·`PetPanel` 도 남의 lock — 2회차(키 `text_keyline_px` + 호출부 18자리 + 옛 `Outline` 정리) · 3회차(PNG 눈 확인: pet-upgrade·pet-detail·스킬 시트 제목).
 - **게이트**: `dotnet build` 0 오류(TestsPlay 가 `OutlineTests` 를 컴파일 · 스텁 faceInfo 는 UnityEngine.TextCore 실물) · `dotnet test` 547/547(+5) · gen_meta 3 · 문서·카탈로그·datasync·export·glyph 자 전부 rc 0.
 - **판정은 다음 유니티 런**: `OutlineTests` 초록 + 잡 로그 `[T104]` 줄의 실측(배율·줄기·띠·코어)이 식과 맞는가 — 어긋나면 그 수로 식을 고친다(등재 절 «환산식은 CI 픽셀로 잰다»).
+- **런 195(6c93fbd) 판정 — 자의 눈금이 틀렸다(식은 그대로)**: 실측 «배율 0.262 · 민글자 줄기 1 · 옛 띠 1/0 · px 띠 1/1 코어 2 · 기대 띠 2.09 · W=D=0.833». CI 캡처는 캔버스 px 의 0.262 배라 96px 글자의 줄기가 화면 1px — 아무것도 못 잰다. 글자를 앱 상자 폭의 1/3.6(≤300px)·획을 글자의 13.3%(W=D=.667)로 키우고 세 라벨을 가로로 놓아 기대 띠가 화면 5px 안팎이 되게 했다(기대 띠 < 3px 면 Ignore 로 사유를 적는다). 같은 런의 다른 빨강 1(ShopUiTests T101 칸)은 T101(워커 J) 몫.
 - **주인이 확인할 것**: 아직 없음(호출부는 2회차). **정본에서 고칠 것**: 없음.
 
 ## 주인 결정

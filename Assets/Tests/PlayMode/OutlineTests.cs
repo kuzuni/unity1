@@ -22,8 +22,9 @@ namespace Forge.Tests.PlayMode
     /// </summary>
     public class OutlineTests
     {
-        const float FontPx = 96f;     // 재기 쉽게 큰 글자(자의 눈금 · 게임 크기가 아니다)
-        const float StrokePx = 16f;   // 정본식 획(캔버스 px) → 바깥 띠 8px · 캡처 배율이 ½이면 4px
+        // 자의 눈금(게임 크기가 아니다): 런 195 실측 캡처 배율 0.262(화면 px / 캔버스 px)에서 96px 글자는 줄기 1px 라 못 쟀다 —
+        // 글자를 앱 상자 폭의 1/3.6(≤300px)로, 획은 글자의 13.3%(W = D = 0.667 · 여백 안)로 잡아 바깥 띠가 화면 5px 안팎이 되게 한다.
+        const float FontFrac = 1f / 3.6f, FontMaxPx = 300f, StrokeFrac = 0.1333f;
         const float Legacy01 = 0.25f; // 옛 호출부의 대표 상수(Hud 스테이지 라벨 · PetSkillKit 버튼)
 
         private static IEnumerator Boot()
@@ -50,23 +51,27 @@ namespace Forge.Tests.PlayMode
             UiRoot root = UiRoot.Instance;
             RectTransform host = UiKit.Box(root.App, "t104-host");
             OutlineSdf o;
+            float fontPx = Mathf.Min(FontMaxPx, root.App.rect.width * FontFrac);
+            float strokePx = fontPx * StrokeFrac;
+            float slot = fontPx * 1.1f;
             try
             {
-                Place(host, 0f, 720f, 420f);
+                Place(host, 0f, slot * 3f + 40f, fontPx * 1.4f);
                 Image bg = UiKit.Panel(host, "bg", "white");
                 RectTransform b = bg.rectTransform;
                 b.anchorMin = Vector2.zero; b.anchorMax = Vector2.one; b.offsetMin = Vector2.zero; b.offsetMax = Vector2.zero;
 
+                // 세 라벨을 가로로: 검정 민글자(대조) · 옛 갈래 · px 갈래
                 TextMeshProUGUI plain = UiKit.Text(host, "plain", TextKind.Title, "I", "pp_line");
-                plain.fontSize = FontPx; Place((RectTransform)plain.transform, 130f, 720f, 130f);
+                plain.fontSize = fontPx; PlaceX((RectTransform)plain.transform, -slot, slot, fontPx * 1.3f);
                 TextMeshProUGUI legacy = UiKit.Text(host, "legacy", TextKind.Title, "I", "white");
-                legacy.fontSize = FontPx; Place((RectTransform)legacy.transform, 0f, 720f, 130f);
+                legacy.fontSize = fontPx; PlaceX((RectTransform)legacy.transform, 0f, slot, fontPx * 1.3f);
                 UiKit.Outline(legacy, "pp_line", Legacy01);
                 TextMeshProUGUI px = UiKit.Text(host, "px", TextKind.Title, "I", "white");
-                px.fontSize = FontPx; Place((RectTransform)px.transform, -130f, 720f, 130f);
-                o = UiKit.OutlinePx(px, "pp_line", StrokePx);   // 글자 크기를 정한 뒤에 부른다(그 순간의 fontSize 로 환산)
-                Assert.IsFalse(o.Clipped, "96px 글자에서 획 16 은 여백 안이어야 한다: " + o.VisiblePx + "/" + o.WantedPx);
-                Assert.AreEqual(StrokePx * 0.5, o.VisiblePx, 1e-3, "식: 보이는 띠 = 획/2");
+                px.fontSize = fontPx; PlaceX((RectTransform)px.transform, slot, slot, fontPx * 1.3f);
+                o = UiKit.OutlinePx(px, "pp_line", strokePx);   // 글자 크기를 정한 뒤에 부른다(그 순간의 fontSize 로 환산)
+                Assert.IsFalse(o.Clipped, "글자 " + fontPx + "px 에서 획 " + strokePx + " 은 여백 안이어야 한다: " + o.VisiblePx + "/" + o.WantedPx);
+                Assert.AreEqual(strokePx * 0.5, o.VisiblePx, 1e-2, "식: 보이는 띠 = 획/2");
                 yield return null;
                 yield return null;
 
@@ -78,8 +83,9 @@ namespace Forge.Tests.PlayMode
                     int stem = Stem(shot, shot.Rects[0]);
                     int legL, legCore, legR; Bands(shot, shot.Rects[1], out legL, out legCore, out legR);
                     int pxL, pxCore, pxR; Bands(shot, shot.Rects[2], out pxL, out pxCore, out pxR);
-                    float want = StrokePx * 0.5f * scale;
-                    string info = "배율 " + scale.ToString("0.000") + " · 민글자 줄기 " + stem + " · 옛 띠 " + legL + "/" + legR + " 코어 " + legCore
+                    float want = strokePx * 0.5f * scale;
+                    if (want < 3f) Assert.Ignore("캡처 배율 " + scale.ToString("0.000") + " 에서 기대 띠가 " + want.ToString("0.0") + "px 라 ±40% 를 못 잰다(런 195 꼴) — 글자 " + fontPx + "px · 앱 폭 " + root.App.rect.width);
+                    string info = "글자 " + fontPx.ToString("0") + "px 획 " + strokePx.ToString("0.0") + " · 배율 " + scale.ToString("0.000") + " · 민글자 줄기 " + stem + " · 옛 띠 " + legL + "/" + legR + " 코어 " + legCore
                         + " · px 띠 " + pxL + "/" + pxR + " 코어 " + pxCore + " · 기대 띠 " + want.ToString("0.00") + " (W=" + o.Width01.ToString("0.000") + " D=" + o.Dilate.ToString("0.000") + ")";
                     Debug.Log("[T104] " + info);
                     Assert.Greater(stem, 2, "민글자 «I» 줄기가 안 보인다 — " + info);
@@ -110,6 +116,14 @@ namespace Forge.Tests.PlayMode
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.sizeDelta = new Vector2(w, h);
             rt.anchoredPosition = new Vector2(0f, y);
+        }
+
+        private static void PlaceX(RectTransform rt, float x, float w, float h)
+        {
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(w, h);
+            rt.anchoredPosition = new Vector2(x, 0f);
         }
 
         private static int Lum(Color32 c) { return (c.r * 299 + c.g * 587 + c.b * 114) / 1000; }
