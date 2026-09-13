@@ -122,6 +122,7 @@ namespace Forge.Game.Ui
             float x = rem * 0.5f;
             TextMeshProUGUI rk = UiKit.Text(row, "rank", TextKind.Body, rank.ToString(), "stage_ink");
             rk.fontStyle = FontStyles.Bold;
+            UiKit.OutlinePx(rk, "pp_line", KeylineUi.Px("league_row_text"));   // T109 5회차 — 정본 style.css 8403 `.league-row .league-rank { 2px var(--pp-line) }`
             UiKit.Place(rk.rectTransform, x, 0f, rem * 1.8f, rowH);
             x += rem * 1.8f + rem * 0.5f;
             float av = UiKit.H("league_avatar");
@@ -132,10 +133,17 @@ namespace Forge.Game.Ui
             float nameW = rowW - x - scoreW - rem * 1.2f;
             TextMeshProUGUI nm = UiKit.Text(row, "name", TextKind.Sub, e.Name, "stage_ink", TextAlignmentOptions.Left);
             nm.fontStyle = FontStyles.Bold;
+            UiKit.OutlinePx(nm, "pp_line", KeylineUi.Px("league_row_text"));   // T109 5회차 — 정본 8403 `.league-row .league-name { 2px var(--pp-line) }`
             UiKit.Place(nm.rectTransform, x, rowH * 0.08f, nameW, rowH * 0.45f);
             // T89 — «⚔» 는 글꼴에 없어 □ 로 찍혔다. 정본 TOAST_ICON 이 `⚔ → tm_sword` 를 쥐고 있으니 그 아이콘으로 선다.
             RectTransform cp = UiKit.IconTextRow(row, "cp", TextKind.Sub, "⚔ " + PopupKit.Fmt(e.Cp), "league_cp", TextAlignmentOptions.Left);
-            foreach (TextMeshProUGUI piece in UiKit.RowTexts(cp)) piece.fontStyle = FontStyles.Bold;
+            foreach (TextMeshProUGUI piece in UiKit.RowTexts(cp))
+            {
+                piece.fontStyle = FontStyles.Bold;
+                // T109 5회차 — 정본 8408 `.league-row .league-name small { max(1.4px, .1em) var(--pp-line) }`: 이름 아래 `<small>` 이 전투력이다(ui.js 4740).
+                // 부모의 2px 을 물리면 작은 숫자의 속공간이 메워져 뭉갠다고 정본 주석이 적어 둔 자리 — 글자 크기에 비례.
+                UiKit.OutlinePx(piece, "pp_line", KeylineUi.Em("league_name_small", piece.fontSize));
+            }
             UiKit.Place(cp, x, rowH * 0.5f, nameW, rowH * 0.45f);
             RectTransform score = UiKit.Box(row, "score");
             UiKit.Place(score, rowW - rem * 0.5f - scoreW, rowH * 0.12f, scoreW, scoreH);
@@ -145,6 +153,9 @@ namespace Forge.Game.Ui
             RectTransform scRow = UiKit.IconTextRow(score, "text", TextKind.Sub, "⭐ " + PopupKit.Fmt(e.Score), "stage_ink");
             foreach (TextMeshProUGUI piece in UiKit.RowTexts(scRow)) piece.fontStyle = FontStyles.Bold;
             TextMeshProUGUI sv = UiKit.Text(row, "server", TextKind.Sub, "서버 " + e.Server, e.IsMe ? "stage_ink" : "league_server", TextAlignmentOptions.Right);
+            // T109 5회차 — 정본 2355 `.league-row.me .league-server { max(1.2px, .1em) var(--pp-line) }`: 파란 me 행만 키라인.
+            // 어두운 행의 회색 «서버 N» 은 정본도 민무늬다(2350 주석: 근흑 판 위라 검정 링이 아무것도 안 갈라 준다).
+            if (e.IsMe) UiKit.OutlinePx(sv, "pp_line", KeylineUi.Em("league_server_me", sv.fontSize));
             UiKit.Place(sv.rectTransform, rowW - rem * 0.55f - scoreW * 1.2f, rowH - rem * 0.2f - PopupKit.FontSize(TextKind.Sub) * 1.1f, scoreW * 1.2f, PopupKit.FontSize(TextKind.Sub) * 1.1f);
         }
 
@@ -333,6 +344,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(cpI.rectTransform, nx, rowH * 0.5f + (cpH - cpIco) * 0.5f, cpIco, cpIco);
                 TextMeshProUGUI cp = UiKit.Text(row, "cp", TextKind.Sub, PopupKit.Fmt(o.Bot.Cp), "challenge_cp", TextAlignmentOptions.Left);
                 cp.fontStyle = FontStyles.Bold;
+                UiKit.OutlinePx(cp, "pp_line", KeylineUi.Px("league_challenge_cp"));   // T109 5회차 — 정본 2635 `.league-challenge-name small { 2px var(--pp-line) }`(T28 22회차가 잡은 «민주황» 자리)
                 UiKit.Place(cp.rectTransform, nx + cpIco + rem * 0.15f, rowH * 0.5f, nw - cpIco - rem * 0.15f, cpH);
                 // 원작 `.league-challenge-side .star` = IconGen.img('star') + «+N»(순검정) — «★» 글자 대신 아이콘(T58)
                 // 정본 `.league-challenge-side { display:flex; flex-direction:column; align-items:center; gap:.3rem }`

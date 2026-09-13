@@ -87,7 +87,8 @@ TABLE = {
     '.rw-tick': ['Ui/DungeonSheet.cs#rw-tick'],
     '#player-info-modal .pinfo-id-text .cp': ['Ui/PlayerInfoPopup.cs#cp'],
     '.league-row .league-name, .league-row .league-rank': ['Ui/LeagueSheet.cs#name', 'Ui/LeagueSheet.cs#rank'],
-    '.league-row .league-name small': ['Ui/LeagueSheet.cs#server'],
+    # T109 5회차 — 이 small 은 이름 아래 **전투력**(ui.js 4740 `<small>${IconGen.img('power')} ${U.fmt(e.cp)}</small>`)이지 서버 글자가 아니다(결정 274).
+    '.league-row .league-name small': ['Ui/LeagueSheet.cs#cp'],
     '.btn.btn.summon-btn.summon-btn:not(.ascend-ready)': ['Ui/PetSkillKit.cs@PaperButton'],
     ('.btn.btn.primary.primary, .btn.btn.on.on, .btn.btn.equip.equip, .btn.btn.danger.danger, '
      '.btn.btn.sell.sell'): ['Ui/Popups.cs@Btn'],
@@ -100,10 +101,6 @@ KNOWN = {
     'Ui/OfflinePopup.cs#zzz': 'T109 ⓑ — 잠자는 z 글자 자리가 클론에 없다(T68 이 머리를 세울 때 안 옮김) · 세우면서 키라인',
     'Battle/DamageNumbers.cs': 'T109 ⓑ — .float-dmg .6px / kill 1px / hero .55px(색 셋) · 데미지 숫자는 Ui 밖 Battle 에 산다',
     'Ui/SkillBar.cs#sk-lv': 'T109 ⓑ — 슬롯 Lv 라벨(.skill-btn .sk-lv 2px)이 클론에 없다(SkillBar 에 lv 이름 글자 0) · 세우면서 키라인',
-    'Ui/LeagueSheet.cs#server': 'T109 ⓑ — .league-row.me .league-server max(1.2px,.1em) · .league-name small max(1.4px,.1em)',
-    'Ui/LeagueSheet.cs#rank': 'T109 ⓑ — .lgr-rank-n .16rem · .league-row .league-rank 2px',
-    'Ui/LeagueSheet.cs#name': 'T109 ⓑ — .league-row .league-name 2px',
-    'Ui/LeagueSheet.cs#cp': 'T109 ⓑ — .league-challenge-name small 2px(T28 22회차가 잡은 바로 그 자리 · 민주황)',
     'Ui/ForgeInfoPopup.cs#title': 'T109 ⓑ — h3.fi-title .11em(T99 lock 뒤)',
     'Ui/ForgeAutoPopup.cs#af-title': 'T109 ⓑ — h3.af-title .11em · .af-title 4px #fff',
     'Ui/ForgeCraftPopup.cs#title': 'T109 ⓑ — h3.sellwarn-title .11em(T99 lock 뒤)',

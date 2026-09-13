@@ -10,7 +10,9 @@
     "petd_name": { "em": 0.125, "min_px": 1.2, "_": "style.css 5451 .petd-wrap .petd-name max(1.2px, .125em)" },
     "petup_name": { "em": 0.113, "min_px": 1.2, "_": "style.css 5525 .petup-panel .idet-name max(1.2px, .113em)" },
     "league_tier_rank": 0.108,
-    "lgr_rank_n": { "em": 0.131, "min_px": 0, "_": "style.css 2578 .lgr-rank-n .16rem / 1.22rem 글자 = .131em" }
+    "lgr_rank_n": { "em": 0.131, "min_px": 0, "_": "style.css 2578 .lgr-rank-n .16rem / 1.22rem 글자 = .131em" },
+    "league_name_small": { "em": 0.1, "min_px": 1.4, "_": "style.css 8408 .league-row .league-name small max(1.4px, .1em) — 리그 행 이름 아래 전투력(ui.js 4740 의 small) · 5회차" },
+    "league_server_me": { "em": 0.1, "min_px": 1.2, "_": "style.css 2355 .league-row.me .league-server max(1.2px, .1em) — 파란 me 행만 · 어두운 행의 회색 서버 글자는 정본도 민무늬(2350 주석) · 5회차" }
   },
   "px": {
     "equip_cell_lv": 0.3,
@@ -35,7 +37,9 @@
     "shop_deal_tag": 2.0,
     "shop_gem_amt": 4.0,
     "profile_tab_on": 2.0,
-    "league_reward_banner": 2.0
+    "league_reward_banner": 2.0,
+    "league_row_text": 2.0,
+    "league_challenge_cp": 2.0
   },
   "px_": {
     "sk_lv": "style.css 4069 #panel-skills .sk-grid .sk-lv 2px",
@@ -54,6 +58,8 @@
     "shop_deal_tag": "2935 .shop-deal-tag 2px",
     "shop_gem_amt": "2983 .shop-gem-amt 4px",
     "profile_tab_on": "3085 .profile-tabs button.on 2px(켜진 탭만)",
-    "league_reward_banner": "2496 .league-reward-banner 2px"
+    "league_reward_banner": "2496 .league-reward-banner 2px",
+    "league_row_text": "8403 .league-row .league-name, .league-row .league-rank 2px(리그 행 순위·이름 · 5회차)",
+    "league_challenge_cp": "2635 .league-challenge-name small 2px(도전 상대 전투력 · 5회차)"
   }
 }
