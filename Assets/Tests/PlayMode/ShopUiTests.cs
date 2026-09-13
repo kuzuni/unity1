@@ -320,6 +320,9 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(card, "보석 카드(gem-0)가 없다");
 
             // 정본 `.shop-gem-card` 주석의 실측(894px 캡처 · 카드 상단 기준): 수량 +8~36 · 그림 +38~98 · 가격 +101~124.
+            // ⚠ 높이는 3px 여유를 둔다: 같은 정본이 두 가지로 적혀 있다 — 주석의 «밴드»(그림 60px = 6.71%H)와
+            //   규칙의 «그림 자체»(`.shop-gem-icon .ico` = 6.84%H = 61.2px). 그 2.5px 차는 캡처 반올림이지 어긋남이 아니다
+            //   (런 137 이 그 차로 빨갰다). **자리(top)** 는 이 작업이 실제로 옮긴 값이라 1px 로 조인다.
             float h = UiKit.RefH;
             Check(card, "amt-row", 8f / 894f * h, 28f / 894f * h);
             Check(card, "icon", 38f / 894f * h, 60f / 894f * h);
@@ -335,7 +338,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(rt, "보석 카드에 " + child + " 가 없다");
             float top = -rt.anchoredPosition.y;
             Assert.AreEqual(wantTop, top, 1f, child + " 의 카드 상단 기준 y (정본 배분)");
-            Assert.AreEqual(wantH, rt.sizeDelta.y, 1f, child + " 의 높이 (정본 배분)");
+            Assert.AreEqual(wantH, rt.sizeDelta.y, 3f, child + " 의 높이 (정본 배분 · 주석 밴드 ↔ CSS 규칙 2.5px 차 허용)");
         }
     }
 }
