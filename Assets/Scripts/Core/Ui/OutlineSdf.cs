@@ -16,6 +16,8 @@ namespace Forge.Core.Ui
     /// 가장자리 이동(D×R×½) = 띠 반폭(W×R×½) ⇒ D = W · 바깥 띠 = W × R × G × px/텍셀 = N/2.
     /// 단위 검산: TMP 기본 애셋(패딩 9 · 90pt → G 10 · R .9)에서 W = 1 이면 바깥 띠 = 0.1 × fontSize = 패딩 px — TMP 문서의
     /// «효과는 패딩까지» 와 같다. 여백이 모자라면(W &gt; 1) 1 로 잘리고 <see cref="Clipped"/> 가 선다.
+    /// T121: 게임 글꼴은 그 기본이 아니라 `Resources/UiFontBake.json`(90pt · 패딩 15 → G 16)으로 굽는다 — 정본 최대 획 .2em(바깥 .1em)이
+    /// 기본 패딩(글자의 10%)에서는 정확히 천장(W = 1)이라 링이 «면» 이 됐다. 표 값이면 36px 글자의 최대 바깥 띠가 6px(W .6).
     /// UnityEngine 0 — 재질·폰트 값은 호출자(`UiKit.OutlinePx`)가 읽어 넘긴다.
     /// </summary>
     public struct OutlineSdf

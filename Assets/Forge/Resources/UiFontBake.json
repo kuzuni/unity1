@@ -1,0 +1,7 @@
+{
+  "_": "T121 — 런타임 글꼴 애셋 굽기 값(UiFont.Build · TMP_FontAsset.CreateFontAsset). 낼 수 있는 최대 바깥 키라인 = padding_px × 글자px / sampling_pt. 정본 최대 획 .2em(.offline-total) = 바깥 .1em 이라 padding_px/sampling_pt 가 0.1 을 넘어야 링이 된다 — 1/6 로 잡아 36px 글자에서 6px(W .6). TMP 기본(90 · 9)은 3.6px = 정확히 천장이었다.",
+  "sampling_pt": 90,
+  "padding_px": 15,
+  "atlas_w": 1024,
+  "atlas_h": 1024
+}

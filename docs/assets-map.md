@@ -83,3 +83,4 @@
   ```
 - 다시 뽑은 뒤에는 **`python3 tools/check_text_glyphs.py`** 로 검산한다(글꼴에 없는 글자가 `KNOWN` 밖이면 rc 1) · PlayMode `TextSizeGateTests` 의 `KnownTofu` 도 같은 목록이다.
 - 라이선스 표기: OFL 은 글꼴 파일 재배포를 허용한다(예약 글꼴 이름 없음 · 판매 금지 조항은 글꼴 단독 판매에만 걸린다).
+- **굽기 값(T121 · `Assets/Forge/Resources/UiFontBake.json`)**: 런타임 애셋은 `UiFont.Build` 가 `TMP_FontAsset.CreateFontAsset(font, sampling_pt, padding_px, SDFAA, atlas_w, atlas_h, Dynamic, 다중 아틀라스)` 로 굽는다 — 지금 **90pt · 패딩 15 · 1024²**. 낼 수 있는 최대 바깥 키라인 = `padding_px × 글자px / sampling_pt`(재질 `_GradientScale` = 패딩 + 1). TMP 기본(90 · 9)은 정본 최대 획 `.2em`(`.offline-total` · 바깥 .1em)에서 정확히 천장(W 1)이라 링이 회색 «면» 이 됐다(T109 3회차 실측). 값을 바꾸면 PlayMode `FontBakeTests`(36px 글자 최대 띠 ≥ 5px · `.2em` Clipped 0)와 `OutlineTests`(픽셀) 가 검산한다. 패딩을 키우면 글리프 한 칸이 커져 아틀라스 장 수가 는다(다중 아틀라스가 받는다) — 20 넘게 올릴 일은 없다(정본 최대 획이 .2em). OS 폴백 애셋(`CreateFontAsset(family, "Regular")`)은 기본값 그대로다 — 서브셋 밖 글자에만 쓰이고 키라인 자리는 전부 서브셋 안이다.

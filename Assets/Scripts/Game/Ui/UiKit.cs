@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using TMPro;
+using Forge.Core.Data;
 using Forge.Core.Ui;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.TextCore.LowLevel;
 using UnityEngine.UI;
 
 namespace Forge.Game.Ui
@@ -283,7 +285,30 @@ namespace Forge.Game.Ui
     /// </summary>
     public static class UiFont
     {
+        /// <summary>굽기 값 표(T121) — 샘플링 pt · SDF 패딩 px · 아틀라스 크기. 수치는 코드에 안 박는다(§1).</summary>
+        public const string BakeResource = "UiFontBake";
         private static TMP_FontAsset primary;
+
+        /// <summary>샘플링 포인트 크기(표 `sampling_pt`) — 1 텍셀 = 글자px / 이 값.</summary>
+        public static int SamplingPt { get; private set; }
+        /// <summary>SDF 패딩 px(표 `padding_px`) — 재질 `_GradientScale` = 이 값 + 1 · 낼 수 있는 최대 바깥 띠 = 패딩 × 글자px / 샘플링.</summary>
+        public static int PaddingPx { get; private set; }
+        /// <summary>아틀라스 한 장 크기(표 `atlas_w`·`atlas_h`) — 다중 아틀라스라 넘치면 장이 는다.</summary>
+        public static int AtlasW { get; private set; }
+        public static int AtlasH { get; private set; }
+
+        /// <summary>표를 읽는다(한 번). 값이 비거나 0 이면 던진다 — TMP 기본으로 조용히 잇지 않는다(T121 의 병이 그 기본값이다).</summary>
+        public static void LoadBake()
+        {
+            if (SamplingPt > 0) return;
+            TextAsset ta = Resources.Load<TextAsset>(BakeResource);
+            if (ta == null) throw new System.InvalidOperationException("Resources/" + BakeResource + ".json 이 없다 (T121)");
+            JsonObject o = MiniJson.ParseObject(ta.text);
+            int sp = J.Int(o["sampling_pt"]), pad = J.Int(o["padding_px"]), w = J.Int(o["atlas_w"]), h = J.Int(o["atlas_h"]);
+            if (sp <= 0 || pad <= 0 || w <= 0 || h <= 0)
+                throw new System.InvalidOperationException(BakeResource + ".json 값이 비었다: sampling_pt=" + sp + " padding_px=" + pad + " atlas=" + w + "×" + h);
+            SamplingPt = sp; PaddingPx = pad; AtlasW = w; AtlasH = h;
+        }
 
         /// <summary>붙은 OS 폴백 글꼴 이름(없으면 null).</summary>
         public static string HangulFallback { get; private set; }
@@ -301,7 +326,9 @@ namespace Forge.Game.Ui
         {
             UiCatalog cat = UiCatalog.Instance;
             if (cat.font == null) throw new System.InvalidOperationException("UiCatalog.font 이 비었다 — Assets/Fonts/NotoSansKR-Forge.ttf 참조 (gen_ui_catalog.py)");
-            TMP_FontAsset fa = TMP_FontAsset.CreateFontAsset(cat.font);
+            LoadBake();
+            // T121 — 기본 굽기(90pt · 패딩 9)는 정본 최대 키라인(.2em = 바깥 .1em)에서 W 가 정확히 1 이라 링이 «면» 이 됐다. 패딩을 표대로 넓혀 굽는다.
+            TMP_FontAsset fa = TMP_FontAsset.CreateFontAsset(cat.font, SamplingPt, PaddingPx, GlyphRenderMode.SDFAA, AtlasW, AtlasH, AtlasPopulationMode.Dynamic, true);
             if (fa == null) throw new System.InvalidOperationException("카탈로그 글꼴로 TMP 폰트 애셋을 못 만들었다");
             fa.name = cat.font.name + " (runtime)";
             Shader shader = ShipShader();

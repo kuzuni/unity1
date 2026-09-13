@@ -3107,6 +3107,7 @@
 
 258. **원작이 «구워만 놓고 안 쓰는 것» 은 클론도 안 쓴다 — `stormCrackle` 을 안 옮겼다(2026-09-13 · T119 1회차 · 워커 E)** — T33 3회차가 «호출 0» 로 꼽은 넷 중 `stormCrackle` 은 정본에서도 **부르는 곳이 없다**: 유일한 호출이 `scene3d.js` 14101 `_legacyStormCloudStrike` 안이고 그 함수를 부르는 데가 없다(살아 있는 길은 `scene3d-skillfx.js` 663 `mcThunderStrike`). «빠진 소리» 로 보고 클론에 넣으면 그것이 바로 §1 이 막는 «원작에 없는 것» 이다. 그래서 `SkillFxDirector` 를 한 줄도 안 고치고, 근거(파일·줄)를 `check_sfx_calls.KNOWN` 에 박아 다음 사람이 같은 «빠뜨림» 으로 오해하지 않게 했다. 되돌리려면 그 KNOWN 줄을 지우고 `mcThunderStrike` 대응 자리에 `Sfx.StormCrackle()` 을 넣는다 — 그러면 원작에 없는 소리가 난다.
 259. **«이름 문자열을 훅에 넘기는 것» 은 부름으로 세지 않는다(2026-09-13 · T119 1회차 · 워커 E)** — `check_sfx_calls` 는 `Sfx.Xxx` 참조(부름·메서드 묶음 둘 다)만 «울릴 길» 로 센다. `ForgeHost.PlaySfx("craft")` 처럼 이름 문자열을 훅에 넘기는 길은 훅이 실제로 꽂혔는지 정적으로 못 보기 때문인데, 이 회차에 그 걱정이 실제였다 — `ForgeHost.Sfx` 는 레포 어디에서도 안 꽂혀 **대장간 소리 셋이 통째로 무음**이었다(T120). 헐거운 쪽(문자열을 안 세는 쪽)으로 기울이면 오탐이 생기지만 그 오탐이 바로 이런 «꽂힌 줄 알았던 훅» 을 드러낸다. 되돌리려면 `call_counts` 에 문자열 갈래를 더한다 — 그러면 T120 같은 구멍이 다시 조용해진다.
+264. **글꼴 굽기 값은 코드가 아니라 `UiFontBake.json` 이 쥐고, 패딩은 정본 최대 획의 «절반이 여백의 6할» 이 되게 15 로(2026-09-13 · T121 1회차 · 워커 A · sess-2005-27410)** — 굽는 자리는 `UiFont.Build` 의 `TMP_FontAsset.CreateFontAsset(cat.font)`(TMP 기본 90pt · 패딩 9)였다. 최대 바깥 띠 = 패딩 × 글자px / 샘플링 이라 36px 글자에서 3.6px = 정본 `.2em` 요청과 정확히 같아 W = 1(면). ⓐ 값은 §1 대로 코드에 안 박고 `Assets/Forge/Resources/UiFontBake.json`(T65 결정 153 꼴 · `catalog.json` 은 T87 lock)에 · 비거나 0 이면 던진다(TMP 기본으로 조용히 잇지 않는다 — 그 기본값이 이 병이다). ⓑ 패딩 15(= 샘플링의 1/6): .2em 이 W .6 · 36px 글자 최대 띠 6px(«적어도 5px» 판정). 20 이상은 안 간다 — 글리프 한 칸이 커져 아틀라스 장이 늘 뿐 정본 최대 획이 .2em 이다. 샘플링은 90 그대로(텍셀 밀도 = 가장자리 선명도 · 바꿀 이유 없음). ⓒ 긴 오버로드(`CreateFontAsset(Font, sampling, padding, GlyphRenderMode.SDFAA, w, h, AtlasPopulationMode.Dynamic, 다중 아틀라스 true)`)를 처음 쓴다 — dotnet 스텁에 같은 서명을 더했고 유니티 진짜 서명과 맞는지는 다음 CI 유니티 잡이 가른다(결정 465 의 자리). ⓓ OS 폴백 애셋은 기본값 그대로 둔다 — 서브셋 밖 글자에만 쓰이고 키라인 자리(합계·제목·배지)는 전부 서브셋 안이다. ⓔ 판정은 두 겹: PlayMode `FontBakeTests`(실제 애셋 `faceInfo.pointSize`·재질 `_GradientScale` = 패딩+1 · 36px 최대 띠 ≥ 5 · `.2em` Clipped 0 · W < .85) + 다음 런 `screen_offline.png` 5배 눈 확인(회색 사각 띠가 링으로).
 
 ### T115 완료 기록 (2026-09-13 · 워커 J · sess-1817-…) — 1회차(코드 + 막이 · ✅ 는 다음 촬영 눈 확인 뒤)
 
@@ -3163,3 +3164,20 @@
 **2회차로 남긴 것(둘 다 남의 lock 뒤)**: ⓐ 정본 `anvilHit(h === 2)` 의 **3타 강타** — 훅이 이름만 받아 `ForgeHost.cs`(T87)를 열어야 한다 ⓑ `check_sfx_calls.KNOWN` 에서 `craft`·`equipSnap`·`levelUp` 빼기 — 그 파일은 T119 lock.
 
 **게이트**: `dotnet build` 0 오류(PlayMode 포함) · `dotnet test` **561/561** · 자 16종 rc 0(`check_sfx_calls` rc 0 · 자기 검사 포함) · `gen_meta` 로 새 파일 `.meta` 생성.
+
+### T121 1회차 기록 (2026-09-13 19:0x~19:2x · 워커 A · sess-2005-27410 · lock 유지 · ✅ 는 CI 한 바퀴 + `screen_offline.png` 눈 확인 뒤)
+
+**무엇이 문제였나**: `UiFont.Build` 가 `TMP_FontAsset.CreateFontAsset(cat.font)` 기본(90pt · 패딩 9)으로 굽는다 → 재질 G 10 · 최대 바깥 띠 = 9 × 글자px / 90 = 글자의 10%. 정본 `.offline-total { -webkit-text-stroke-width: .2em }` 은 바깥 .1em 요청이라 **정확히 천장(W = 1 · D = 1)** — 외곽선이 SDF 여백 전체를 덮어 링이 아니라 연회색 «면»(T109 3회차 실측 · 런 229 `screen_offline.png` 5배).
+
+**한 것**
+- `Assets/Forge/Resources/UiFontBake.json`(새): `sampling_pt` 90 · `padding_px` 15 · `atlas_w`·`atlas_h` 1024 — 수치는 코드 밖(§1 · 결정 264).
+- `UiKit.cs` `UiFont`: `LoadBake()`(표 읽기 · 비면 던짐) + 공개 `SamplingPt`·`PaddingPx`·`AtlasW`·`AtlasH` + 굽기를 긴 오버로드로(`GlyphRenderMode.SDFAA` · `AtlasPopulationMode.Dynamic` · 다중 아틀라스). 다른 코드 경로는 그대로(`OutlinePx` 는 재질 값을 그 순간 읽으니 자동으로 새 여백을 쓴다).
+- `tools/dotnet/Stubs/TMPro.cs`: 긴 오버로드 서명 + `AtlasPopulationMode` 열거 — «아직 안 쓴다» 주석을 걷었다.
+- `Assets/Tests/PlayMode/FontBakeTests.cs`(새 · 1): 실제 애셋 `faceInfo.pointSize` = 표 · 재질 `_GradientScale` = 패딩 + 1 · 36px 글자 최대 띠 ≥ 5px · `.2em` Clipped 0 · W < .85 · 보이는 띠 = 획/2.
+- 주석: `OutlineSdf.cs`·`OutlineSdfTests.cs`(상수 9/90 은 단위 검산용 TMP 기본이지 게임 애셋 값이 아니다) · `docs/assets-map.md` 한글 글꼴 절에 굽기 값·바꾸는 법·검산 자.
+
+**셈**: 36px 글자 최대 띠 3.60 → **6.00px** · `.2em` W 1.00 → **0.60** · 제목 `.11em` W .55 → .33 · `2px` W .28 → .17. 글리프 한 칸 108² → 120²(아틀라스 장 ~25% 증가 · 다중 아틀라스가 받는다).
+
+**게이트**: `dotnet build` 0 오류 0 경고(PlayMode 포함) · `dotnet test` **567/567** · gen_meta(새 .meta 둘) · gen_ui_catalog · check_decisions · check_docs_intact · task_state --check · check_text_glyphs · ui_score 자기 검사 · datasync 전부 rc 0.
+
+**남은 것(2회차 · 이 세션)**: 다음 CI 유니티 잡 — ⓐ 긴 오버로드가 진짜 TMP 서명과 맞아 컴파일되는가 ⓑ `FontBakeTests` 초록 · `OutlineTests` 그대로 초록(식은 안 바뀌고 여백만 넓어졌다) ⓒ `screen_offline.png` 5배에서 회색 사각 띠가 사라지고 링만 남는가(원작 `shot-042110`) → ✅ · lock 반납.

@@ -14,14 +14,19 @@ namespace TMPro
         MidlineLeft = 0x1001, Midline = 0x1002, MidlineRight = 0x1004,
     }
     [System.Flags] public enum FontStyles { Normal = 0, Bold = 1, Italic = 2, Underline = 4 }
+    // T121 — 진짜 TMPro.AtlasPopulationMode(Static 0 · Dynamic 1 · DynamicOS 2)
+    public enum AtlasPopulationMode { Static = 0, Dynamic = 1, DynamicOS = 2 }
     public class TMP_FontAsset : ScriptableObject
     {
         public Material material;
         // T207 ① — 런타임 폰트 애셋 만들기(에디터 없이 굽는 길). 진짜 TMP 의 서명 그대로다:
         //   public static TMP_FontAsset CreateFontAsset(Font font)   (기본 = sampling 90 · padding 9 · SDFAA · 1024² · Dynamic)
-        // ⚠ 긴 오버로드(padding·아틀라스 크기를 직접 주는 것)는 아직 안 쓴다 — 스텁에 없는 서명을 쓰면
-        //   dotnet 은 초록인데 유니티에서만 죽는다(결정 465 가 남긴 자리). 두께가 잘리면 그때 같이 넓힌다.
         public static TMP_FontAsset CreateFontAsset(Font font) { return font != null ? CreateInstance<TMP_FontAsset>() : null; }
+        // T121 — 긴 오버로드(TMP 3.2 = ugui 2.0 의 공개 서명): 두께가 잘려(정본 .2em 키라인 = 패딩 천장) 패딩을 직접 준다.
+        //   CreateFontAsset(Font font, int samplingPointSize, int atlasPadding, GlyphRenderMode renderMode, int atlasWidth, int atlasHeight,
+        //                   AtlasPopulationMode atlasPopulationMode = AtlasPopulationMode.Dynamic, bool enableMultiAtlasSupport = true)
+        public static TMP_FontAsset CreateFontAsset(Font font, int samplingPointSize, int atlasPadding, UnityEngine.TextCore.LowLevel.GlyphRenderMode renderMode, int atlasWidth, int atlasHeight, AtlasPopulationMode atlasPopulationMode = AtlasPopulationMode.Dynamic, bool enableMultiAtlasSupport = true)
+        { return font != null ? CreateInstance<TMP_FontAsset>() : null; }
         // T18 (워커 I) — OS 글꼴로 만드는 오버로드(한글 폴백 · ugui 2.0 = TMP 3.2 의 공개 서명: CreateFontAsset(string familyName, string styleName, int pointSize = 90)) 와 폴백 표(List<TMP_FontAsset> fallbackFontAssetTable { get; set; }).
         public static TMP_FontAsset CreateFontAsset(string familyName, string styleName, int pointSize = 90) { return string.IsNullOrEmpty(familyName) ? null : CreateInstance<TMP_FontAsset>(); }
         public List<TMP_FontAsset> fallbackFontAssetTable { get; set; }
