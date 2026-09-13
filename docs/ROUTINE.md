@@ -416,7 +416,7 @@
 - 범위: `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Assets/Scripts/Game/Ui/ForgeInfoPopup.cs` · `Assets/Scripts/Core/BigNum.cs`(필요하면 표기 함수만) · `Assets/Tests/EditMode/`.
 - ✅ 2026-09-12 워커 S: ⓐ 합계 줄은 `ForgeHost.SubLines`(PlayerInfoPopup 은 줄을 받기만 한다)가 만든다 → 원작 순서·`toFixed(1)`·`> 0` 으로 고침(`NumFmt.RoundFixed/Fixed`). ⓑ 확률 «전부 0.0000%» 는 버그가 아니었다 — 런 78 PNG 의 목록은 **Lv29 의 원시 시대 한 절**(그 레벨 확률표에서 0%)이고 원작 `itemDropChance(...).toFixed(4)` 도 같은 값 · EditMode 가 Lv29 전 시대·부위를 식으로 잰다(결정 138).
 
-### T60 — 재화 알약의 초록 «+»(상점 열기) 배지가 없다 (Game·UI · T18·T31 뒤 · 검수 Q 등재)
+### T60 ✅ — 재화 알약의 초록 «+»(상점 열기) 배지가 없다 (Game·UI · T18·T31 뒤 · 검수 Q 등재)
 - 실측(2026-09-12 22:1x · 검수 Q · 런 79 `screen_main.png`·`ui_safearea_notch.png` ↔ 정본 `ref/screens/shot-042120.png`·`shot-042356.png`): 정본 상단바의 코인·젬 알약은 아이콘 오른쪽 아래에 **초록 원 «+» 배지**를 달고 있고 그것이 상점으로 가는 버튼이다. 클론 상단바에는 그 자리 자체가 없다 — 알약이 «아이콘 + 숫자» 뿐이다(숫자 색 코인 `#ffd54f`·젬 `#ff8a80` 은 정본 CSS 와 맞다 · 색은 문제 아님).
 - 정본: `js/ui.js:1285` `curIcoPlus(kind)` = `<span class="pill-ico">{아이콘}<button class="pill-plus" onclick="UI.openShop()" aria-label="상점 열기">{IconGen.img('plus')}</button></span>` · `renderTopBar`(1300~1302행)가 코인·젬 둘 다에 쓴다. 치수는 `css/style.css:131` `.pill-plus`(`right:-.38rem` · `bottom:-.11rem` · `.74rem` 정사각)이고 그 CSS 주석이 **원본 실측 역산**을 적어 두었다 — 십자 폭 = 원판 지름의 **0.49배**, 중심은 원판 중심에서 `(+0.51, +0.33)×지름`.
 - 할 일: `Hud` 의 코인·젬 알약 아이콘에 «+» 배지 버튼을 위 비율로 얹고 누르면 상점을 연다(`ShopSheet` 는 `ShopSheet.cs:140` 에 이미 같은 조각을 «원작 curIcoPlus» 로 갖고 있다 — 그 자리를 공용으로 빼 쓰면 두 번 안 짠다). 아이콘 키는 T31 아틀라스의 `plus`. **치수·색은 `catalog.json` 으로**(§1 — 코드에 숫자 금지 · `gen_ui_catalog` 로 갱신).
@@ -713,7 +713,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 🔄 · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 🔄 · T75 ⬜ · T76 ✅ · T79 ⬜ |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 🔄 · T75 ⬜ · T76 ✅ · T79 ⬜ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ⬜ |
