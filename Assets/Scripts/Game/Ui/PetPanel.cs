@@ -36,6 +36,9 @@ namespace Forge.Game.Ui
         readonly Dictionary<int, Button> eggTiles = new Dictionary<int, Button>();
         readonly List<Button> skipButtons = new List<Button>();
         readonly List<TextMeshProUGUI> hatchTimes = new List<TextMeshProUGUI>();
+        readonly List<PetHatchCone> hatchCones = new List<PetHatchCone>();
+        /// <summary>부화 칸 i 의 빛기둥(빈 칸은 dim) — 테스트가 «실제로 칠해졌는가» 를 픽셀로 본다(T102).</summary>
+        public PetHatchCone HatchCone(int i) { return i >= 0 && i < hatchCones.Count ? hatchCones[i] : null; }
         readonly List<TextMeshProUGUI> skipCosts = new List<TextMeshProUGUI>();
         float clockAt;
 
@@ -69,7 +72,7 @@ namespace Forge.Game.Ui
         {
             if (!PetSkillHost.Ready) return;
             PetSkillKit.Clear(root);
-            petTiles.Clear(); eggTiles.Clear(); skipButtons.Clear(); hatchTimes.Clear(); skipCosts.Clear();
+            petTiles.Clear(); eggTiles.Clear(); skipButtons.Clear(); hatchTimes.Clear(); skipCosts.Clear(); hatchCones.Clear();
             float pad = PetSkillStyle.Px("pad_rem");
             float W = root.rect.width > 0f ? root.rect.width : UiKit.RefW - pad * 2f;
             float appW = UiKit.RefW;
@@ -240,7 +243,8 @@ namespace Forge.Game.Ui
                 float rw = PetSkillKit.TextWidth(TextKind.Sub, rb) + PetSkillStyle.Rem(0.5f);
                 RectTransform ribbon = PetSkillKit.LvBadge(face, rb, rw, lvH);
                 ribbon.name = "sk-ribbon";
-                UiKit.Anchor(ribbon, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f), new Vector2(0f, PetSkillStyle.Rem(0.2f) - lvH * 0.5f + lvH * 0.5f), rw, lvH);
+                // 정본 `.sk-ribbon{top:-.2rem}` = 리본 **윗변**이 면 위 .2rem — pivot 을 윗변에 둔다(가운데를 두면 반이 면 밖으로 나가 첫 행이 grid-scroll 마스크에 잘린다 · T102)
+                UiKit.Anchor(ribbon, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, PetSkillStyle.Rem(0.2f)), rw, lvH);
             }
             string lt = PetSkillStyle.T("lv_short", level);
             float lw = PetSkillKit.TextWidth(TextKind.Sub, lt) + PetSkillStyle.Rem(0.5f);
@@ -351,23 +355,27 @@ namespace Forge.Game.Ui
         void BuildHatchCell(RectTransform cell, int i, HatchSlot h, float w, float cellH)
         {
             // 램프(원작 .hatch-lamp): 기둥 + 갓 + 전구
-            float lw = PetSkillStyle.Px("lamp_w"), lh = PetSkillStyle.Px("lamp_h");
+            // ⚠ 갓·전구 높이는 정본이 **앱 폭** 기준(`calc(var(--app-w) * .0367)`)이라 `_w` 접미다 — `_h` 로 두면 앱 높이를 곱해 1.78배 길어진다(T102 · T95 `sk_eqplate_h` 와 같은 함정)
+            float lw = PetSkillStyle.Px("lamp_w"), lh = PetSkillStyle.Px("lamp_h_w");
             RectTransform lamp = UiKit.Box(cell, "hatch-lamp");
             UiKit.Anchor(lamp, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, lw, lh);
             Image stem = UiKit.Panel(lamp, "stem", "pp_paper");
             stem.color = PetSkillStyle.C("lamp");
             UiKit.Anchor(stem.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 0f), Vector2.zero, PetSkillStyle.Px("lamp_stem_w_rem"), PetSkillStyle.Px("lamp_stem_h_rem"));
-            Image shade = PetSkillKit.Fill(lamp, "shade", PetSkillStyle.C("lamp"), lh * 0.5f);
+            // 갓 = 반타원 돔(정본 `border-radius: 50% 50% .1rem .1rem / 100% 100% .1rem .1rem`) — 알약(반지름 h/2)이 아니다(T102)
+            PetHatchCone shade = PetHatchCone.Add(lamp, "shade", PetSkillStyle.C("lamp"), PetSkillStyle.C("lamp"), 1f, PetHatchCone.Kind.Dome);
             UiKit.Fill(shade.rectTransform);
             Image bulb = PetSkillKit.Disc(lamp, "bulb", PetSkillStyle.C("lamp_bulb"));
             bulb.preserveAspect = false;
-            UiKit.Anchor(bulb.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0f, -PetSkillStyle.Px("lamp_bulb_drop_w") + PetSkillStyle.Px("lamp_bulb_h") * 0.5f), PetSkillStyle.Px("lamp_bulb_w"), PetSkillStyle.Px("lamp_bulb_h"));
+            UiKit.Anchor(bulb.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0f, -PetSkillStyle.Px("lamp_bulb_drop_w") + PetSkillStyle.Px("lamp_bulb_h_w") * 0.5f), PetSkillStyle.Px("lamp_bulb_w"), PetSkillStyle.Px("lamp_bulb_h_w"));
             // 빛기둥
             float cw = PetSkillStyle.Px("cone_w"), ch = PetSkillStyle.Px("cone_h");
             float coneTop = PetSkillStyle.Px("cone_top_rem") + PetSkillStyle.Px("cone_top_h");
             bool dim = h == null;
-            PetHatchCone cone = PetHatchCone.Add(cell, "hatch-cone", PetSkillStyle.C(dim ? "cone_dim_top" : "cone_top"), PetSkillStyle.C(dim ? "cone_dim_bottom" : "cone_bottom"), PetSkillStyle.L("cone_top_f"), 0f);
+            // 위 변 = 38%~62% → 폭 비율 .24(정본 clip-path) · 구운 스프라이트(T102 — 맨 Graphic 은 이 레포에서 안 칠해진다)
+            PetHatchCone cone = PetHatchCone.Add(cell, "hatch-cone", PetSkillStyle.C(dim ? "cone_dim_top" : "cone_top"), PetSkillStyle.C(dim ? "cone_dim_bottom" : "cone_bottom"), 1f - PetSkillStyle.L("cone_top_f") * 2f, 0f);
             UiKit.Anchor(cone.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -coneTop), cw, ch);
+            hatchCones.Add(cone);
             float top = PetSkillStyle.Px("hatch_cell_top_rem");
             if (dim)
             {

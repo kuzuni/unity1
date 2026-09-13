@@ -100,6 +100,109 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(seen, 0, where + ": 활성 글자가 없다");
         }
 
+        /// <summary>T102 — «장착됨» 리본: 정본 `.sk-ribbon{top:-.2rem}` = 윗변이 면 위 .2rem. 가운데를 거기 두면 반이 면 밖으로 나가 첫 행이 grid-scroll 마스크에 잘린다.</summary>
+        static void AssertRibbonInsideTile(int i)
+        {
+            UnityEngine.UI.Button tile = Sheet.Pets.PetTile(i);
+            Assert.IsNotNull(tile, "펫 타일 " + i);
+            RectTransform face = null, ribbon = null;
+            foreach (RectTransform rt in tile.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name == "tile-face") face = rt;
+                if (rt.name == "sk-ribbon") ribbon = rt;
+            }
+            Assert.IsNotNull(face, "타일 면");
+            Assert.IsNotNull(ribbon, "장착됨 리본");
+            Assert.AreEqual(1f, ribbon.pivot.y, 1e-3f, "리본 pivot 은 윗변");
+            Assert.AreEqual(PetSkillStyle.Rem(0.2f), ribbon.anchoredPosition.y, 0.5f, "리본 윗변 = 면 위 .2rem(정본 top:-.2rem)");
+            Vector3[] fc = new Vector3[4], rc = new Vector3[4];
+            face.GetWorldCorners(fc); ribbon.GetWorldCorners(rc);
+            Assert.Less(rc[0].y, fc[1].y, "리본 아랫변은 면 안쪽(윗변 아래)에 있다");
+            Assert.Greater(rc[0].y, fc[0].y, "리본은 면 아래로 안 내려간다");
+        }
+
+        static bool NoGraphics()
+        {
+            return SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
+        }
+
+        /// <summary>UI 를 한 장 그려 <paramref name="target"/> 의 화면 사각 안에서 <paramref name="match"/> 픽셀을 센다 — T87 `ForgeUiTests.CountPixels` 와 같은 길(그 파일은 T87 lock 이라 여기 줄인 사본 · T102).</summary>
+        static int CountPixels(RectTransform target, System.Func<Color32, bool> match, out int area, out string info)
+        {
+            UiRoot root = UiRoot.Instance;
+            Canvas canvas = root.Canvas;
+            RenderMode prevMode = canvas.renderMode;
+            Camera prevCam = canvas.worldCamera;
+            float prevPlane = canvas.planeDistance;
+            RenderTexture prevActive = RenderTexture.active;
+            int w = Mathf.Max(64, Screen.width), ht = Mathf.Max(64, Screen.height);
+            RenderTexture rt = new RenderTexture(w, ht, 24, RenderTextureFormat.ARGB32);
+            GameObject camGo = new GameObject("t102-pixel-cam");
+            Camera cam = camGo.AddComponent<Camera>();
+            Texture2D shot = null;
+            area = 0; info = "";
+            try
+            {
+                int uiLayer = canvas.gameObject.layer;
+                if (Camera.main != null) cam.CopyFrom(Camera.main);
+                cam.rect = new Rect(0f, 0f, 1f, 1f);
+                cam.targetTexture = rt;
+                cam.ResetProjectionMatrix();
+                cam.cullingMask = 1 << uiLayer;
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = Color.black;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                canvas.planeDistance = 1f;
+                root.Layout();
+                Canvas.ForceUpdateCanvases();
+                cam.Render();
+
+                RenderTexture.active = rt;
+                shot = new Texture2D(w, ht, TextureFormat.RGB24, false);
+                shot.ReadPixels(new Rect(0f, 0f, w, ht), 0, 0);
+                shot.Apply(false);
+
+                Vector3[] corners = new Vector3[4];
+                target.GetWorldCorners(corners);
+                Vector2 a = RectTransformUtility.WorldToScreenPoint(cam, corners[0]);
+                Vector2 b = RectTransformUtility.WorldToScreenPoint(cam, corners[2]);
+                int x0 = Mathf.Clamp(Mathf.FloorToInt(Mathf.Min(a.x, b.x)), 0, w - 1);
+                int x1 = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(a.x, b.x)), 0, w - 1);
+                int y0 = Mathf.Clamp(Mathf.FloorToInt(Mathf.Min(a.y, b.y)), 0, ht - 1);
+                int y1 = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(a.y, b.y)), 0, ht - 1);
+                area = (x1 - x0 + 1) * (y1 - y0 + 1);
+                Assert.Greater(area, 8, target.name + " 칸이 화면에서 너무 작다(" + (x1 - x0 + 1) + "×" + (y1 - y0 + 1) + ")");
+                Color32[] px = shot.GetPixels32();
+                int hit = 0;
+                Color32 brightest = new Color32(0, 0, 0, 255);
+                for (int y = y0; y <= y1; y++)
+                {
+                    for (int x = x0; x <= x1; x++)
+                    {
+                        Color32 c = px[y * w + x];
+                        if (match(c)) hit++;
+                        if (c.r + c.g + c.b > brightest.r + brightest.g + brightest.b) brightest = c;
+                    }
+                }
+                info = target.name + " 칸 " + area + "픽셀(" + (x1 - x0 + 1) + "×" + (y1 - y0 + 1) + ") 중 맞는 색 " + hit
+                       + "개 · 가장 밝은 픽셀 rgb " + brightest.r + "," + brightest.g + "," + brightest.b;
+                return hit;
+            }
+            finally
+            {
+                RenderTexture.active = prevActive;
+                canvas.renderMode = prevMode;
+                canvas.worldCamera = prevCam;
+                canvas.planeDistance = prevPlane;
+                if (root != null) root.Layout();
+                Canvas.ForceUpdateCanvases();
+                if (shot != null) Object.Destroy(shot);
+                Object.Destroy(camGo);
+                rt.Release();
+            }
+        }
+
         [UnityTest]
         public IEnumerator 소환_시트에_서브탭_셋과_스킬_펫_패널이_선다()
         {
@@ -285,6 +388,20 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(hatching + 1, Host.Pets.State.Hatching.Count, "부화 시작");
             Assert.IsFalse(Sheet.Modal.IsOpen(PetPanel.DetailModal), "상세는 닫힌다");
             Assert.IsNotNull(Sheet.Pets.SkipButton(hatching), "부화 칸의 💎 스킵");
+            // T102 — 부화 중인 칸의 빛기둥(.hatch-cone)이 **실제로 칠해진다**(런 95·186: 맨 Graphic 정점 메시는 0 픽셀이었다)
+            PetHatchCone cone = Sheet.Pets.HatchCone(hatching);
+            Assert.IsNotNull(cone, "부화 칸의 빛기둥");
+            Assert.IsNotNull(cone.sprite, "빛기둥은 구운 스프라이트다(맨 Graphic 은 이 레포에서 안 칠해진다)");
+            Assert.AreEqual(PetSkillStyle.Px("cone_w"), cone.rectTransform.rect.width, 0.5f, "빛기둥 폭 = 정본 12.65%W");
+            Assert.AreEqual(PetSkillStyle.Px("cone_h"), cone.rectTransform.rect.height, 0.5f, "빛기둥 높이 = 정본 12.34%H");
+            if (!NoGraphics())
+            {
+                int area; string info;
+                // 따뜻한 노랑(빨강·초록이 높고 파랑이 확연히 낮다) — 남색 바탕(#1f2740)·검정 램프와 갈린다
+                // 알·타이머·스킵 버튼이 상자 위에 겹치므로 문턱은 1/8 — 그라디언트 위쪽 3/4 만 따뜻해도 사다리꼴 면적이 상자의 1/3 을 넘는다
+                int warm = CountPixels(cone.rectTransform, delegate(Color32 c) { return c.r > 100 && c.g > 90 && c.b + 30 < c.r; }, out area, out info);
+                Assert.Greater(warm, area / 8, "빛기둥이 화면에 안 칠해졌다 — " + info);
+            }
 
             // 젬 스킵 → 펫 +1
             int pets = Host.Pets.State.Pets.Count;
@@ -339,6 +456,7 @@ namespace Forge.Tests.PlayMode
             Sheet.Pets.OnTogglePet(last);
             yield return null;
             Assert.AreNotEqual(active, Host.Pets.State.ActivePets.Contains(last));
+            if (Host.Pets.State.ActivePets.Contains(last)) AssertRibbonInsideTile(last);
             Sheet.Pets.OnTogglePet(last);
             yield return null;
             Assert.AreEqual(active, Host.Pets.State.ActivePets.Contains(last));

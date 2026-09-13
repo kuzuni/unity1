@@ -1603,6 +1603,15 @@
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` **540/540** · `check_text_glyphs`(본 검사 rc 0 · 자기 검사 통과 — 스캔 칸에 «변수 대입» 과 «데이터 네 경우» 를 더했다) · 나머지 자 전부 rc 0.
 - **CI 확인 대기**: 다음 유니티 잡에서 넓힌 `TextSizeGateTests` 가 초록인지(= 화면에 KnownTofu 밖의 두부가 없다) · `screen_profile.png` 의 «계정» 행에 초록 체크 **아이콘**이 섰는지 눈으로(§1).
 
+### T102 진행 기록 (2026-09-13 · 워커 B · sess-1920-15773) — 1회차(빛기둥을 구운 스프라이트로 · 램프 키 `_w` · 리본 pivot 윗변 · ✅ 는 CI PNG 뒤)
+
+- **먼저 본 것(런 186 `screen_pets.png` ↔ `shot-042356` 부화장 크롭)**: 원작은 돔 갓 + 노란 전구 아래로 **노란 빛기둥**이 알까지 내려오는데 클론은 검은 세로 알약(53×70px · 원본 비 1.34 인데 0.76)과 노란 점뿐 · 빛기둥 **0 픽셀**. 첫 행 «장착됨» 리본은 검은 띠 반쪽만 보인다(글자 잘림). T28 5회차가 런 95 에서 적어 둔 그 자리(T20 절 메모)를 이제 뿌리까지 갈랐다.
+- **뿌리 셋**: ⓐ `PetHatchCone : Graphic` 정점 메시 — T87 6회차가 같은 길에서 «한 픽셀도 안 나왔다»(런 173)를 실측하고 결정 223 으로 `CraftFxPoly`(구운 스프라이트 + `Image`)로 돌아섰다. 이 레포(URP · 스크린스페이스 캔버스)에서 맨 `Graphic` 은 안 칠해진다 — 이유는 안 캐고 **칠해지는 길**로 옮긴다. ⓑ `lamp_h`·`lamp_bulb_h` 의 `_h` 접미 → `Px` 가 앱 높이(1920)를 곱해 갓 70px(정본 40) · 전구 23px(정본 13). 정본 `.hatch-lamp` 은 높이도 `--app-w` 기준이다. ⓒ `TileFace` 리본 앵커 pivot(0.5,0.5) + y=+.2rem = 리본 **가운데**가 면 윗변 위 .2rem — 정본 `.sk-ribbon{top:-.2rem}` 은 **윗변**이 .2rem 위. 리본 높이(≈41px)의 반이 더 올라가 `grid-scroll` RectMask2D 가 첫 행을 자른다(정본 브라우저도 .2rem 은 자르지만 글자는 남는다).
+- **무엇**: `PetHatchCone` 을 `Image` 상속으로 — 정규 32단위 상자에 `CraftFxPoly.Bake` 로 굽고(콘 = 38%~62% 사다리꼴 + 위→아래 그라디언트 · 오른쪽 홈 삼각 · **돔** = 반타원 호 24점 + 평평한 바닥) 칸 크기로 늘린다(clip-path 비율은 늘려도 그대로). 겉 API(`Add`·`Shape`·`Top/Bottom/TopFrac`)는 그대로라 `SkillPanel.EquippedLabel` 은 안 만졌고 `Shape` 만 바꾸면 다시 굽는 속성으로 바뀌었다(+ 도형을 처음부터 주는 `Add(…, Kind)`). 램프 갓을 알약(`Fill` r=h/2)에서 돔으로 · 키 둘 `lamp_h_w`·`lamp_bulb_h_w` · 콘 `TopFrac` 은 1−2×`cone_top_f`(=.24 · 종전엔 .38 을 그대로 넣어 위 변이 정본보다 넓었다 — 어차피 안 그려졌지만) · 리본 pivot(0.5,1) y=+.2rem.
+- **단언(PetUiTests · 부화 흐름 안)**: 부화 중인 칸의 `HatchCone(i)` 가 스프라이트를 쥐고 폭·높이가 `cone_w`·`cone_h` · **픽셀**: 콘 상자 안 따뜻한 노란 픽셀(r>100 · g>90 · b+30<r)이 면적의 1/8 이상(그래픽 장치가 없으면 건너뛴다 · T87 «쇳덩이가 화면에 칠해진다» 와 같은 길). 리본: pivot.y=1 · y=+.2rem · 아랫변이 면 안쪽. 픽셀 세는 자는 `ForgeUiTests.CountPixels` 의 줄인 사본 — 그 파일은 T87 lock(살아 있음)이라 못 옮겼다. **워커 결정**: T87 이 끝나면 둘을 `Assets/Tests/PlayMode` 공용 도우미로 합치는 것이 맞다(이 회차엔 lock 이라 안 한다).
+- **게이트**: dotnet build 초록(Game+TestsPlay 컴파일) · EditMode 542/542 · gen_meta·gen_ui_catalog·check_text_glyphs·check_claim_scope·check_docs_intact·check_final_table 전부 rc 0. ✅ 는 CI `screen_pets.png` 을 눈으로 본 뒤(§1).
+- **알림 경로 메모**: 리본을 윗변 기준으로 내리면 정본처럼 첫 행 .2rem(≈7px)만 마스크에 잘린다 — 그것은 정본과 같은 잘림이라 안 고친다(원작 샷의 «가운데 큰 알약» 은 css 가 바뀌기 전 그림 · 결정 174 계열).
+
 ## 주인 결정
 
 - **(2026-09-12 · 착수)** 유니티 이식은 `kuzuni/unity1` 에서 · 원작 `kuzuni/wwwww` 는 그대로 둔다(웹판과 유니티판을 한 레포에 섞으면 헷갈린다는 주인 판단). 운영은 aaawunity 방식(루틴 워커 · 여러 계정).

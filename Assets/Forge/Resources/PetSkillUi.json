@@ -33,7 +33,7 @@
     "back_w": 0.0706, "back_h": 0.0326, "back_left_w": 0.0202, "back_bottom_h": 0.0022, "back_icon_h": 0.0179, "back_r_w": 0.0094,
     "dash_seg_w": 0.1993, "dash_h": 0.00225, "dash_top_h": 0.0242, "dash_shift_w": 0.0499,
     "hatchery_min_rem": 10.5, "hatchery_pad_rem": 0.8, "hatch_row_w": 0.5172, "hatch_row_left_w": 0.1924, "hatch_cell_w": 0.1724, "hatch_cell_top_rem": 2.6,
-    "lamp_w": 0.049, "lamp_h": 0.0367, "lamp_stem_w_rem": 0.18, "lamp_stem_h_rem": 0.5, "lamp_bulb_w": 0.0204, "lamp_bulb_h": 0.0122, "lamp_bulb_drop_w": 0.0163,
+    "lamp_w": 0.049, "lamp_h_w": 0.0367, "lamp_stem_w_rem": 0.18, "lamp_stem_h_rem": 0.5, "lamp_bulb_w": 0.0204, "lamp_bulb_h_w": 0.0122, "lamp_bulb_drop_w": 0.0163,
     "cone_top_rem": 0.7, "cone_top_h": 0.018, "cone_w": 0.1265, "cone_h": 0.1234, "cone_top_f": 0.38,
     "hatch_egg_rem": 2.1, "hatch_time_top_rem": 0.55, "hatch_skip_top_rem": -0.35, "hatch_skip_right_rem": -0.5,
     "slot_buy_w": 0.1143, "slot_buy_h": 0.0633, "slot_buy_gap_w": 0.0184, "slot_buy_top_w": 0.017, "slot_buy_left_w": 0.0133, "slot_buy_icon_w": 0.0265, "hatch_back_left_rem": 0.55, "hatch_back_bottom_rem": 0.55,
