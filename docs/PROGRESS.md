@@ -985,7 +985,7 @@
 - **메인 스레드**: 처음 161KB · 끝 168KB — 테스트 코루틴(우리 스텝 + 30프레임마다 시전) 106~108KB · `MaterialEditor.ApplyMaterialPropertyDrawersFromNative` 52~59KB · 캡처 60프레임 중 새 Material **85개(처음)·65개(끝)** = 30프레임마다 시전 × 큐브 묶음(`FxCubes.cs:71`). 렌더 단계(`PostLateUpdate.FinishFrameRendering` · 캔버스 리빌드) GC.Alloc **0**.
 - **판정**: ROUTINE T64 의 물음 «렌더 쪽 ≈880KB 가 플레이어 빌드에도 있는가 → URP 설정» 은 전제가 틀렸다 — 렌더 몫이 없다. **URP 설정 변경 0 · `Assets/Settings/` 0줄 · 플레이어 빌드 측정 불필요**(배경 스레드는 플레이어에서도 같은 관리 스레드 — 그것은 별개 작업). T50 의 판정 자(렌더 끔 상한 640KB · 풀 회전)는 그대로 두되, 이 커밋부터 `PerfBudgetTests` 가 **`AudioBank.AllReady` 를 기다린 뒤**(상한 `BakeWaitSec` 120초 · 못 기다리면 기록만) 재서 계수기 값이 베이크와 안 섞이게 했다 — «전부» 수가 처음/끝 모두 정상 상태(≈300KB)로 내려오면 회귀 상한 `GcPerFrameCap` 1.6MB 를 T72 뒤에 내릴 수 있다.
 - **등재**: **T73** AudioBank 베이크 배열 되쓰기(Core/Audio · 음색·표 불변) · **T74** FxCubes 시전당 재질 → T50 꼴 풀. 둘 다 ⬜ · 범위 표에.
-- **게이트**: `dotnet build` 0 오류(TestsPlay 포함) · `dotnet test` 510/510 · gen_meta 0 · docs·decisions·rows·task_state·final_table·claim_scope rc 0 · §7 T64 ✅ + T73·T74 이름. 런 118 `PerfBudgetTests` 3/3. 결정 178. lock 은 이 커밋(베이크 대기)의 유니티 잡을 본 뒤 반납.
+- **게이트**: `dotnet build` 0 오류(TestsPlay 포함) · `dotnet test` 510/510 · gen_meta 0 · docs·decisions·rows·task_state·final_table·claim_scope rc 0 · §7 T64 ✅ + T73·T74 이름. 런 118 `PerfBudgetTests` 3/3. 결정 178. **CI 런 121(b41dace)**: `PerfBudgetTests` 3/3 · 오디오 베이크 끝(35.9초 기다림) · 전부(처음) **209339B → 끝 207858B**(베이크가 끝난 뒤 재니 처음 수가 1,028KB→209339B 로 내려왔다 · 남은 처음/끝 차는 시전 액터 첫 조립 몫) · 게임 시간 평균 3.367ms · p95 5.533ms · 계수기 209339B. lock 반납. 회귀 상한 `GcPerFrameCap` 1.6MB 는 T73·T74 뒤 실측으로 내린다.
 
 ## 주인 결정
 
