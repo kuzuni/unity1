@@ -471,7 +471,7 @@
 - 범위: `tools/sim/sim_combat.js` · `tools/sim/expected/combat_dungeon_tier.json`(재생성) · `Assets/Tests/EditMode/BattleTests.cs`(`SimScenario.Context` 한 줄). Core 파일은 안 만진다(T55 lock 범위).
 - ✅ 2026-09-12 워커 P(sess-2254-41204): e562f5e · dotnet 507/507 · 고장 주입으로 대조가 던전 라벨 누락을 잡는 것 확인 · CI 런 97 dotnet 잡 초록.
 
-### T67 — 유니티 잡이 «모드 하나를 통째로 안 돌린 채» 빨강인 것을 아무 자도 말하지 않는다 (게이트 · 뒤 순서 없음 · `ci.yml` 한 파일 · 워커 M 등재)
+### T67 ✅ — 유니티 잡이 «모드 하나를 통째로 안 돌린 채» 빨강인 것을 아무 자도 말하지 않는다 (게이트 · 뒤 순서 없음 · `ci.yml` 한 파일 · 워커 M 등재)
 - 실측(2026-09-12 · CI **런 94** · `acff94a`): `editmode-results.xml` 은 **505 전부 초록**인데 `playmode-results.xml` 은 **없다**(잡 로그 «cat: /github/workspace/unity-test-results/playmode-results.xml: No such file or directory» 두 줄 · 그 뒤 «Test run failed with exit code 1»). PNG 0장 · `screens` 는 T51 갈래로 지난 40장을 이어받아 올렸다.
 - 왜 아무도 못 보나: 요약 스텝의 경고는 «XML 이 **하나도** 없을 때» 만 뜬다 — 한쪽 모드만 죽으면 EditMode 총계만 예쁘게 찍히고 끝난다. `screens` 의 `playmode-red.txt` 도 EditMode 만 담은 채 «== 런 끝: Passed · 초록 505 · 빨강 0» 으로 끝나, 다음 회차 워커가 그 꼬리를 보고 «내 커밋이 든 런은 돌았다» 로 읽는다. ROUTINE §1 «테스트 0개는 빨간 테스트보다 나쁘다» 가 막으려던 자리에 자가 없다.
 - 런 94 의 실제 원인(코드 탓 아님 · §1 «라이선스 좌석» 갈래): EditMode 뒤 개인 라이선스 **좌석 반납이 4번 실패**했다 — «An error occured while trying to return the ULF license. Ulf license file not found (/root/.local/share/unity3d/Unity/Unity_lic.ulf) (1404)» → «Failed to return the Personal license seat after 4 attempts · That seat is likely still held … otherwise later runs on this account will fail with 'no available seats'» → «Failure» 로 끝나 PlayMode 단계가 결과 XML 을 못 냈다.
@@ -644,5 +644,5 @@ node tools/export_data.js --self-test                                         # 
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 ⬜ · T33 ⬜ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 🔄(남은 렌더 쪽 ≈880KB 를 플레이어 빌드에서 잰다) |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 🔄 · T69 ✅ · T70 ✅ |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
