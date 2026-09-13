@@ -31,6 +31,9 @@ OPEN = '⬜'
 IGNORE = ('docs/',)
 # 한 패턴이 이만큼 넘는 파일에 걸리면 «폴더 자리»(= 새 파일을 둘 자리)로 본다 — 파일 선점이 아니다.
 FOLDER_AT = 12
+# 범위 칸은 «Ui/ForgeUi.cs» 처럼 폴더를 적기도 하고 «ForgeUi.cs» 처럼 파일명만 적기도 한다(T124 가 그렇다).
+# 파일명만 적힌 것도 세지 않으면 줄 길이를 **적게** 센다 — 확장자로 가려 받아들인다(T127 2회차).
+FILE_EXT = ('.cs', '.json', '.py', '.sh', '.js', '.yml', '.yaml', '.shader', '.asmdef', '.txt', '.ttf', '.unity', '.asset')
 RE_LOCK = re.compile(r'^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ)\s+(\S+)')
 RE_TICK = re.compile(r'`([^`]+)`')
 
@@ -49,20 +52,24 @@ def scope_patterns(cell):
     """PROGRESS «범위» 칸 → 파일·글로브 목록(백틱 안에서 `/` 가 있는 것만 · 괄호 설명은 버린다)."""
     out = []
     for tok in RE_TICK.findall(cell):
-        tok = tok.strip()
-        if '/' not in tok:
+        tok = tok.split('(')[0].strip().strip('·').strip().rstrip(',')
+        if not tok:
             continue
-        tok = tok.split('(')[0].strip().strip('·').strip()
-        tok = tok.rstrip(',')
+        if '/' not in tok and not tok.endswith(FILE_EXT):
+            continue                      # 파일 이야기가 아니다(`Big` · `Names` 같은 이름)
         if tok.endswith('/'):
             tok += '*'
-        if tok and tok not in out:
+        if tok not in out:
             out.append(tok)
     return out
 
 
 def matches(pattern, path):
-    """짧은 꼴(`Ui/Forge*`)도 긴 경로(`Assets/Scripts/Game/Ui/ForgeSheet.cs`)에 맞는다."""
+    """짧은 꼴(`Ui/Forge*`)도 · 폴더 없이 적힌 파일명(`ForgeUi.cs`)도 긴 경로에 맞는다.
+
+    ⚠ 파일명만 적힌 꼴을 흘리면 줄 길이를 **적게** 센다 — T124 의 남은 자리(`ForgeAutoPopup.cs` 등)가
+    T87 범위 `Ui/Forge*` 에 드는데도 안 찍혔다(T127 2회차 실측).
+    """
     path = path.replace('\\', '/')
     pattern = pattern.replace('\\', '/')
     return fnmatch.fnmatch(path, pattern) or fnmatch.fnmatch(path, '*/' + pattern)
@@ -205,9 +212,10 @@ def self_test():
     if parse_lock('쓰레기') != (None, None):
         print('✗ lock 읽기: 꼴이 아닌 것을 받아들였다'); ok = False
 
-    cell = '`Assets/Scripts/Game/Ui/Forge*` · `Ui/Anvil*` · `Assets/Forge/catalog.json`(연출 수치) · `docs/PROGRESS.md` · `Big`'
+    cell = ('`Assets/Scripts/Game/Ui/Forge*` · `Ui/Anvil*` · `Assets/Forge/catalog.json`(연출 수치) · '
+            '`docs/PROGRESS.md` · `Big` · `ForgeUi.cs`(각 lock 뒤) · `Names`')
     got = scope_patterns(cell)
-    want = ['Assets/Scripts/Game/Ui/Forge*', 'Ui/Anvil*', 'Assets/Forge/catalog.json', 'docs/PROGRESS.md']
+    want = ['Assets/Scripts/Game/Ui/Forge*', 'Ui/Anvil*', 'Assets/Forge/catalog.json', 'docs/PROGRESS.md', 'ForgeUi.cs']
     if got != want:
         print('✗ 범위 읽기: %r' % got); ok = False
     if scope_patterns('`Assets/Scripts/Core/CraftFx/`(CssTrack)') != ['Assets/Scripts/Core/CraftFx/*']:
@@ -219,6 +227,8 @@ def self_test():
         ('Assets/Forge/catalog.json', 'Assets/Forge/catalog.json', True),
         ('Ui/UiKit.cs', 'Assets/Scripts/Game/Ui/UiKit.cs', True),
         ('Ui/Forge*', 'Assets/Tests/PlayMode/ForgeUiTests.cs', False),
+        ('ForgeUi.cs', 'Assets/Scripts/Game/Ui/ForgeUi.cs', True),          # 폴더 없이 적힌 파일명(T127 2회차)
+        ('ForgeUi.cs', 'Assets/Scripts/Game/Ui/ForgeUiTests.cs', False),    # 이름이 겹쳐 보이는 다른 파일은 아니다
     ]:
         if matches(pat, path) != want:
             print('✗ 맞춤: %s ↔ %s = %r' % (pat, path, not want)); ok = False
@@ -232,13 +242,15 @@ def self_test():
         'T50': ('✅', '`Assets/Scripts/Game/Ui/ForgeSheet.cs`'),
         'T99': ('⬜', '`Assets/Scripts/Game/Ui/Popups.cs`'),
     }
+    rows['T124'] = ('⬜', '`Assets/Scripts/Game/Ui/AgePattern.cs` · `ForgeUi.cs`(각 lock 뒤)')
+    files = files + ['Assets/Scripts/Game/Ui/ForgeUi.cs']
     q = queue({'T87'}, rows, files)
-    if [(t, [w for w, _f in ws]) for t, ws in q] != [('T87', ['T94', 'T98'])]:
+    if [(t, [w for w, _f in ws]) for t, ws in q] != [('T87', ['T94', 'T98', 'T124'])]:
         print('✗ 줄 세기: %r' % q); ok = False
     shared = dict((w, f) for w, f in q[0][1]) if q else {}
     if shared.get('T98') != ['Assets/Scripts/Game/Ui/ForgeSheet.cs']:
         print('✗ 겹친 파일: %r' % shared.get('T98')); ok = False
-    if queue({'T87', 'T94'}, rows, files)[0][1] != [('T98', ['Assets/Scripts/Game/Ui/ForgeSheet.cs'])]:
+    if [w for w, _f in queue({'T87', 'T94'}, rows, files)[0][1]] != ['T98', 'T124']:
         print('✗ 이미 lock 을 쥔 작업은 «기다리는 줄» 이 아니다'); ok = False
     if expand(['docs/PROGRESS.md'], ['docs/PROGRESS.md']):
         print('✗ 문서는 막는 자리가 아니다'); ok = False
