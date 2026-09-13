@@ -372,7 +372,7 @@ namespace Forge.Game.Ui
             DrawRings(fx, u, vbW, vbH);
             // 정본 SVG 순서: 링 → 접지 그림자 → … → 순백 코어 → 섬광 → 망치
             DrawImpactEllipse(fx, u, shadows, "af-shadow", "fx_shadow_rx", "fx_shadow_ry", "fx_shadow_dy", "fx_shadow");
-            DrawImpactEllipse(fx, u, cores, "af-core", "fx_core_rx", "fx_core_ry", "fx_core_dy", "fx_core");
+            DrawImpactEllipse(fx, u, cores, "af-core", "fx_core_rx", "fx_core_ry", "fx_core_dy", "fx_core", true);
             // 정본 SVG 순서: 블룸이 맨 처음(가장 아래) — 버튼 전체를 들어 올리는 넓은 빛
             DrawImpactGradient(fx, u, blooms, "af-bloom", "bloom_rx", "bloom_ry",
                 new string[] { "bloom0", "bloom1", "bloom2" }, new float[] { 0f, UiKit.L("bloom_off1"), 1f }, UiKit.L("bloom_dy"));
@@ -468,6 +468,7 @@ namespace Forge.Game.Ui
                 img.type = Image.Type.Simple;
                 Color c = Color.white; c.a = 0f;
                 img.color = c;
+                img.material = CraftFxPoly.Screen();   // 정본: 블룸·플래시·잔열은 전부 `mix-blend-mode: screen`
                 float cx = (float)AutoForgeFxSpec.HitCenterX(i), cy = (float)AutoForgeFxSpec.HitCenterY(i) + dy;
                 UiKit.Place(rt, (cx - rx) * u, (cy - ry) * u, rx * 2f * u, ry * 2f * u);
                 into[i] = img;
@@ -557,6 +558,7 @@ namespace Forge.Game.Ui
             img.type = Image.Type.Simple;
             Color c = Color.white; c.a = 0f;
             img.color = c;
+            img.material = CraftFxPoly.Screen();   // 정본 `.af-star { mix-blend-mode: screen }`
             UnityEngine.Rect b = CraftFxPoly.Bounds(pts);
             float cx = (float)AutoForgeFxSpec.HitCenterX(i), cy = (float)AutoForgeFxSpec.HitCenterY(i);
             UiKit.Place(rt, (cx + b.xMin) * u, (cy + b.yMin) * u, b.width * u, b.height * u);
@@ -570,7 +572,7 @@ namespace Forge.Game.Ui
         /// 타격 순간의 타원 겹(접지 그림자 · 순백 코어) 셋 — 링과 같은 «닿는 자리» 계보이고 접점보다 `<키>_dy` 만큼 아래에 앉는다.
         /// 정지 상태에서는 투명하고(정본 `opacity: 0`), 제 창에서만 <see cref="AnvilFx"/> 가 배율·불투명도를 바른다.
         /// </summary>
-        static void DrawImpactEllipse(RectTransform fx, float u, Image[] into, string name, string rxKey, string ryKey, string dyKey, string colorKey)
+        static void DrawImpactEllipse(RectTransform fx, float u, Image[] into, string name, string rxKey, string ryKey, string dyKey, string colorKey, bool screen = false)
         {
             float rx = UiKit.L(rxKey), ry = UiKit.L(ryKey), dy = UiKit.L(dyKey);
             Sprite sp = CraftFxPoly.BakeEllipse(name, rx, ry, new Color[] { Color.white }, new float[] { 0f });
@@ -584,6 +586,7 @@ namespace Forge.Game.Ui
                 img.type = Image.Type.Simple;
                 Color c = tint; c.a = 0f;
                 img.color = c;
+                if (screen) img.material = CraftFxPoly.Screen();
                 float cx = (float)AutoForgeFxSpec.HitCenterX(i), cy = (float)AutoForgeFxSpec.HitCenterY(i) + dy;
                 UiKit.Place(rt, (cx - rx) * u, (cy - ry) * u, rx * 2f * u, ry * 2f * u);
                 into[i] = img;

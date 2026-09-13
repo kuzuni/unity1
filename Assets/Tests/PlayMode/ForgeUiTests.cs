@@ -854,6 +854,21 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(axisAtHit.x, axisLater.x, 0.05f, "섬광이 커져도 안쪽 끝은 붙박이다(오버레이 안에서)");
             Assert.AreEqual(axisAtHit.y, axisLater.y, 0.05f, "섬광이 커져도 안쪽 끝의 높이도 붙박이다");
 
+            // 정본 `mix-blend-mode: screen` — 이 다섯 겹은 상판을 **덮지 않고 밝힌다**(23회차 · 런 214 눈 확인이 잡은 «흰 띠»).
+            // 접지 그림자(어두운 겹)와 링은 정본에도 screen 이 없다 — 섞으면 어두운 타원이 «밝히는 겹» 이 되어 사라진다.
+            string[] lit = { "af-core-2", "af-star-l-2", "af-star-r-2", "af-flash-2", "af-heat-2", "af-bloom-2" };
+            foreach (string n in lit)
+            {
+                Graphic g = Poly(sheet, n);
+                Assert.IsNotNull(g, n);
+                Assert.IsNotNull(g.material, n + " 에 재질이 없다");
+                Assert.AreEqual(CraftFxPoly.ScreenShaderName, g.material.shader.name, n + " 은 스크린 합성이어야 한다");
+            }
+            Graphic dark = Poly(sheet, "af-shadow-2");
+            Assert.IsNotNull(dark, "접지 그림자");
+            Assert.AreNotEqual(CraftFxPoly.ScreenShaderName, dark.material == null ? "" : dark.material.shader.name,
+                "접지 그림자는 보통 알파다(정본에도 screen 이 없다)");
+
             // 잔열·플래시 — 창 안에서만 보이고, 잔열은 타격 사이에도 남는다(다리)
             for (int i = 0; i < AutoForgeFxSpec.HitMs.Length; i++)
             {

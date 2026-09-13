@@ -27,6 +27,25 @@ namespace Forge.Game.Ui
 
         private static readonly Dictionary<string, Sprite> cache = new Dictionary<string, Sprite>();
 
+        /// <summary>
+        /// 정본 `mix-blend-mode: screen` 층(`.af-bloom`·`.af-flash`·`.af-heat`·`.af-star`·`.af-core`)이 쓰는 재질 — T87 23회차.
+        /// 없으면(셰이더를 못 찾으면) null 을 돌려주고 그 겹은 여태처럼 보통 알파로 그려진다(연출이 사라지는 것보다 낫다).
+        /// </summary>
+        public static Material Screen()
+        {
+            if (screenMat != null) return screenMat;
+            Shader sh = Resources.Load<Shader>("UiScreen") ?? Shader.Find(ScreenShaderName);
+            if (sh == null) return null;
+            screenMat = new Material(sh);
+            screenMat.name = "af-screen";
+            return screenMat;
+        }
+
+        /// <summary>그 셰이더의 이름(테스트가 «이 겹이 스크린 합성인가» 를 이것으로 본다).</summary>
+        public const string ScreenShaderName = "Forge/UiScreen";
+
+        private static Material screenMat;
+
         /// <summary>도형의 바깥 사각(viewBox 단위).</summary>
         public static Rect Bounds(Vector2[] pts)
         {
