@@ -27,6 +27,7 @@
    - «⬜ 대기» 를 믿기 전에 **그 자리 코드를 한 번 읽는다** — 이미 반영돼 있으면 표가 늦은 것이다.
 5. 선점할 작업이 없으면(전부 lock 또는 완료): §3 게이트만 재실행해 검증하고 이상 없으면 **커밋 없이 조용히 종료**. 이상이 있으면 PROGRESS 에 «가장 큰 번호 +1» 로 등재(`python3 tools/task_state.py --new-id`)하고 종료.
 6. 회차 첫 일은 언제나 **빨강**이다 — main 의 마지막 CI 런이 빨갛거나(컴파일 파손 · 테스트 0개) 남의 lock 이 없는 빨강이면 그것을 먼저 고친다(§1).
+   - ⚠ **«마지막 CI 런이 초록» 을 눈으로 믿지 마라(T123)**: 문서만 바뀐 push 는 유니티 잡을 건너뛰고 그 런은 통째로 `success` 다 — 빨간 유니티 런 위에 초록 문서 런이 쌓이면 목록은 초록으로 보인다(실측 2026-09-13 런 230 빨강 ↔ 231·235 초록). `python3 tools/check_unity_green.py --fetch` 가 «유니티 잡이 **실제로 돈** 마지막 런» 의 판정을 준다(rc 1 이면 그것이 이번 회차의 첫 일이다).
 
 ## 1. 절대 규칙
 
@@ -1005,6 +1006,7 @@ python3 tools/check_text_glyphs.py                                            # 
 python3 tools/check_sfx_calls.py                                              # (T119) 원작 소리 24종이 게임 코드에서 실제로 울리는가 — 레시피만 있고 호출이 없는 이름을 막는다
 tools/check_data_sync.sh .wwwww-src                                           # (T2 뒤) data/*.json ↔ 정본
 python3 tools/check_keyline.py                                               # (T109) 정본 -webkit-text-stroke 규칙 ↔ 클론 키라인 호출(.wwwww-src 필요) — 정본이 주는데 클론이 안 부르는 자리를 막는다(CI datasync 잡)
+python3 tools/check_unity_green.py --fetch                                     # (T123) 유니티 잡이 **실제로 돈** 마지막 main 런이 초록인가 — 문서 런(유니티 잡 skipped)이 빨강을 덮는 것을 막는다(§0-6 의 눈을 대신한다)
 node tools/export_data.js --self-test                                         # (T2 뒤) 추출기 자기 검사
 ```
 
