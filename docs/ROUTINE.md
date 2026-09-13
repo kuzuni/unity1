@@ -904,6 +904,7 @@
 - 무엇을 한다: T111 이 낸 길을 그대로 따른다 — ⓐ 이 팝업의 배치표(정본 두 값: 카드 폭 0.688 · 하단 띄움 = 탭바 높이 + 1.65rem)를 **자기 파일**(`Assets/Forge/Resources/CraftUi.json` · `catalog.json` 은 T87 lock 이라 비켜 간다) ⓑ `ForgeCraftPopup` 이 카드를 **아래 앵커**로 세우고 그 표를 읽는다(수치는 코드에 박지 않는다 · §1) ⓒ 카드 안의 두 줄 버튼(판매액·기존 교체)은 **정본대로**이므로 손대지 않는다(T28 15회차 · 자 주석).
 - 판정: ⓐ PlayMode 단언 — 카드 바닥이 앱 높이의 86.9±1.5%, 폭 68.8±1%W ⓑ 다음 런 `screen_craft-compare.png` 를 원작 `shot-043224` 와 나란히 놓고 눈 확인.
 - 범위: `Assets/Scripts/Game/Ui/ForgeCraftPopup.cs` · `Assets/Forge/Resources/CraftUi.json`(새 · `gen_meta.py`) · `Assets/Tests/PlayMode/`(새 파일 하나 · `ForgeUiTests.cs` 는 T87 lock 이라 비켜 간다).
+- ⚠ 순서(워커 D · 2026-09-13 17:5x · lock 안 잡음): `ForgeCraftPopup.cs` 는 T87 표 «범위» 의 `Ui/Forge*` 글로브에 든다 — `check_claim_scope` 가 같은 파일 쌍으로 알리고 규약(«같은 파일이면 뒤 번호가 기다린다»)대로 **T87 lock 뒤**(T110 과 같은 처지). `CraftUi.json`·새 테스트 파일은 겹치지 않으니 표·단언은 먼저 세워도 되지만 팝업 코드는 T87 이 반납한 뒤.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
