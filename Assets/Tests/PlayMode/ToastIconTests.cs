@@ -80,6 +80,35 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        [UnityTest]
+        public IEnumerator 던전_토스트도_이모지를_아이콘으로_세운다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!UiText.Loaded && t < 5f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(UiText.Loaded, "표가 있어야 이 단언이 뜻이 있다");
+
+            // T107 — 토스트 그릇이 셋인데(공용 `PopupLayer` · 던전 `DungeonToast` · 펫/스킬 `PetSkillModal`)
+            // 둘은 아이콘 길을 안 거쳐 ⭐·🔒·🧪·💎 가 화면에서 □ 였다. 자(`check_text_glyphs`)는 «둘레에
+            // Toast( 가 보이면 아이콘 길» 로 쳐서 그 문구를 통째로 건너뛰었다 — 초록인데 화면은 두부.
+            DungeonPopups.Toast("\U0001F512 스테이지 2-10 도달 시 해금됩니다");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            DungeonToast box = Object.FindObjectOfType<DungeonToast>(true);
+            Assert.IsNotNull(box, "던전 토스트 상자가 안 섰다");
+            Transform row = box.transform.Find("text");
+            Assert.IsNotNull(row, "던전 토스트 문구 줄(text)이 없다");
+            Image ico = row.GetComponentInChildren<Image>(true);
+            Assert.IsNotNull(ico, "🔒 자리에 아이콘 칸이 안 섰다");
+            Assert.IsNotNull(ico.sprite, "아이콘 스프라이트가 비었다(T31 아틀라스)");
+            foreach (TextMeshProUGUI piece in row.GetComponentsInChildren<TextMeshProUGUI>(true))
+                Assert.IsFalse(piece.text.Contains("\U0001F512"), "글자 조각에 🔒 가 남았다: «" + piece.text + "»");
+
+            // 문구 원문은 그대로 쥔다(호출부·테스트 계약).
+            Assert.AreEqual("\U0001F512 스테이지 2-10 도달 시 해금됩니다", DungeonToast.Last);
+        }
+
         private static Transform Find(Transform root, string name)
         {
             foreach (Transform tr in root.GetComponentsInChildren<Transform>(true)) if (tr.name == name) return tr;

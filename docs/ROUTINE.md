@@ -839,13 +839,14 @@
 - 판정: `check_text_glyphs` 가 여섯을 `KNOWN` 없이 통과 + PlayMode 두부 막이 초록 + 워커가 `screen_pets.png`·`screen_player-info.png`·`screen_chat.png` 을 열어 □ 가 없는 것을 눈으로(§1).
 - 범위: `Assets/Fonts/`(새 글꼴 · 주인 승인 뒤) · `Assets/Forge/catalog.json`(T87 뒤) · `tools/gen_ui_catalog.py` · `Assets/Scripts/Game/Ui/UiKit.cs`(T99·T104 뒤) · `tools/check_text_glyphs.py` · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/assets-map.md`.
 
-### T107 — 두부 막이(`check_text_glyphs`)가 «이어 붙인 문구» 를 안 본다: 화면 이모지 20종·41자리가 초록으로 지나간다 (검증+Game·UI · T89 뒤 · T28 21회차가 PNG→코드로 잡음)
+### T107 ✅ — 두부 막이(`check_text_glyphs`)가 통째로 건너뛴 자리: **토스트 그릇 둘이 아이콘 길을 안 거쳤다** (검증+Game·UI · T89 뒤 · T28 21회차가 PNG→코드로 잡음 · 1회차 워커 F)
 - 실측(2026-09-13 · T28 21회차 · 워커 M · 런 205 `screen_craft-compare.png`): 판매 버튼이 «판매 / **□** +23» 이다 — 4배 확대해 보니 코인 아이콘이 아니라 **빈 네모(두부)** 다. 그런데 같은 커밋에서 `python3 tools/check_text_glyphs.py` 는 **rc 0**(«글꼴에 없는 글자 7종 · 전부 KNOWN»)이다.
-- 왜 새는가: 그 자리는 `ForgeCraftPopup.cs:69` 의 `PopupKit.Btn(row, "sell", "판매\n🪙 +" + NumFmt.Fmt(...), …)` — **리터럴 + 식** 으로 이어 붙인 문구다. 자의 `screen_strings()` 가 걷은 5,013줄에 **`🪙` 가 담긴 줄은 0개**였다(실측). 즉 «이어 붙이면 안 본다».
+- ⚠ **원인 정정(1회차 실측 · 워커 F)**: «이어 붙이면 안 본다» 는 틀렸다 — `screen_strings()` 는 `«판매\n🪙 +»` 를 **네 곳 다 본다**. 진짜 구멍은 자의 **치기**다: 리터럴 둘레 ±3줄에 `Toast(` 가 보이면 «아이콘 길» 로 쳐서 건너뛰는데(결정 237), 토스트 그릇 셋 중 **둘이 아이콘 길을 안 거쳤다** — `DungeonToast.Show` 는 `Bold(...)`, `PetSkillModal.Toast` 는 `PetSkillKit.Text(...)` 로 글자만 세웠다. 그래서 ⭐·🔒·🧪·💎(던전·기술·승천)과 `PetSkillUi.json` `/text/toast_*` **20줄**의 🥚·✨·🎉·🎫·🧩·⬆️·⚡·⚙️·📋 가 초록으로 지나갔다(그릇 둘 · 자리 45 실측).
 - 얼마나: 화면에 글자를 세우는 부름(`Btn`·`Button`·`Text`·`Label`·`Bold`·`Toast`·`Pill`·`Stroked`)의 리터럴만 훑어도 **글꼴에 없는 이모지 20종 · 41자리**다 — `💎`6 · `⭐`5 · `🔒`4 · `🪙`4 · `⚒`2 · `📜`2 · `🏆`2 · `🔨`2 · `💤`·`📍`·`🥚`·`🗝`·`💾`·`🎟`·`💀`·`🧪`·`⏱`·`📌`·`⏹`·`U+FE0F`. (T106 이 쥔 여섯과 겹치지 않는 것들이다.)
-- 무엇을 한다: ⓐ `tools/check_text_glyphs.py` 의 문구 걷기를 **이어 붙인 식**(`"..." + X + "..."`)·보간(`$"..."`)까지 보게 넓히고 자기 검사에 그 꼴을 한 칸 더한다 ⓑ 그러면 rc 1 로 드러나는 자리(20종 41곳)를 **정본이 무엇을 쓰는가** 로 갈라 고친다 — 정본이 아이콘(`IconGen.img`)이면 T31 아이콘으로, 정본도 글자면 T106 의 이모지 폴백 글꼴 갈래로.
-- 판정: 새 자가 **고장 주입**(이어 붙인 문구에 없는 글리프 하나)에서 rc 1 · 고친 뒤 rc 0 · `screen_craft-compare.png` 판매 버튼에 **코인 아이콘**(또는 글자가 보이는 폴백) + PlayMode 빨강 0.
-- 범위: `tools/check_text_glyphs.py` · `Assets/Scripts/Game/Ui/ForgeCraftPopup.cs`·`ForgeInfoPopup.cs`·`ForgeHost.cs`·`PassPopup.cs`·`ShopSheet.cs`·`TechPopups.cs`·`QuestSheet.cs`·`LeagueSheet.cs`·`AscendPopup.cs`·`OfflinePopup.cs`·`DebugPanel.cs`·`ProfilePopup.cs`·`ForgeAutoPopup.cs`·`DungeonDetailPopup.cs` · `Assets/Tests/PlayMode/ToastIconTests.cs`.
+- **1회차에 한 것**(워커 F · sess-1527-35260): ⓐ 토스트 그릇 둘을 아이콘 길로 이었다 — `DungeonToast.Paint`(부를 때마다 줄을 다시 세운다 · `Destroy` 는 프레임 끝이라 먼저 끈다) · `PetSkillModal.Toast`(색이 제 표에서 오므로 줄을 세운 뒤 조각마다 바른다 · `LastToast` 는 **원문**을 쥔다). ⓑ 자에 `toast_sinks` 를 더해 **그 치기의 근거를 검사**한다: 문구(`string`)를 받는 `Toast`/`Show` 는 ⓐ 제 몸이 `IconTextRow`·`UiText.Split` 을 부르거나 ⓑ 같은 클래스의 도우미가 부르거나 ⓒ 다른 그릇으로 넘겨야 하고, 아니면 **rc 1**. C# 자르기는 주석·문자열을 같은 길이 공백으로 지운 사본(`mask_cs`)에서 중괄호를 세므로 «문장 안의 `{`·`class`» 에 안 속는다.
+- **판정(1회차 · 실측)**: 고장 주입 둘 다 rc 1 — 자기 검사 칸(`UiKit.Text` 만 부르는 그릇)과 **실제 파일**(`DungeonPopups.cs` 의 `IconTextRow` 를 `UiKit.Text` 로 되돌림) · 고친 뒤 rc 0(«토스트 그릇 5개 전부 아이콘 길») · PlayMode `ToastIconTests.던전_토스트도_이모지를_아이콘으로_세운다`(🔒 가 아이콘 칸으로 서고 글자 조각에 안 남고 `DungeonToast.Last` 는 원문).
+- **T107 이 안 쥐는 것**: `LABEL_KNOWN` 에 남은 다섯은 **이미 임자가 있다** — `ForgeCraftPopup`·`ForgeInfoPopup` 의 **두 줄 라벨** 넷은 **T99**, `ForgeSheet` 잠금 🔒 는 **T108**(둘 다 T87 lock 뒤). 가로 `IconTextRow` 를 그대로 쓰면 줄이 무너지는 갈래라 세로 판이 먼저 필요하고, 그 판단은 그 두 작업의 몫이다. T107 은 «자가 못 보던 구멍» 과 «그릇 둘» 로 닫는다.
+- 범위: `tools/check_text_glyphs.py` · `Assets/Scripts/Game/Ui/DungeonPopups.cs` · `Assets/Scripts/Game/Ui/PetSkillModal.cs` · `Assets/Tests/PlayMode/ToastIconTests.cs`.
 ### T108 — 대장간 자동 제련 버튼 라벨 둘이 글자다(«자동 ↻» · 잠금 «🔒») — 정본은 둘 다 아이콘 (Game·UI · T89·T100 뒤 · **T87 lock 뒤**)
 - 실측(2026-09-13 · T100 4회차 · 워커 E · 런 191 `screen_settings.png` 오른쪽 끝에 «자동 **□** / OFF» 가 찍혔다): `ForgeSheet.cs` 108행이 `"자동 ↻\n" + (unlocked ? (AutoOn ? "ON" : "OFF") : "🔒")` 로 라벨을 만든다. `↻`(U+21BB)는 주인 글꼴에 없어 □ 이고, `🔒` 는 `TOAST_ICON` 에 있지만 **이 자리는 `IconTextRow` 를 안 거치는 그냥 라벨**이라 역시 □ 다(T100 4회차가 `label_risk` 로 잡은 다섯 중 하나).
 - 정본: `ui.js` 1551 `자동${IconGen.img('autoloop', 'auto-loop-ico')}<br>${autoUnlocked ? (S.autoForgeOn ? 'ON' : 'OFF') : IconGen.img('lock')}` — 둘 다 `IconGen` 아이콘이고 T31 아틀라스에 `autoloop`·`lock` 키가 있다(`UiIcons.Get`).
@@ -879,7 +880,7 @@ python3 tools/task_state.py --check                                           # 
 python3 tools/check_claim_scope.py                                            # 살아 있는 lock 이 «범위» 밖 파일을 쥐고 있는가 (선점 전에도)
 python3 tools/ui_score.py --self-test                                         # (T28 뒤) 원작 대조 자 자기 검사 15칸 (CI dotnet 잡도 부른다 · T51)
 python3 tools/check_final_table.py                                            # §7 완결 대조표 ↔ PROGRESS 상태 (T49 · T33 이 이 표로 완주를 판정한다)
-python3 tools/check_text_glyphs.py                                            # (T89) 화면 문구의 글자가 주인 글꼴에 다 있는가 — 새 두부(□)를 막는다
+python3 tools/check_text_glyphs.py                                            # (T89) 화면 문구의 글자가 주인 글꼴에 다 있는가 — 새 두부(□)를 막는다 + 토스트 그릇이 아이콘 길을 거치는가(T107)
 tools/check_data_sync.sh .wwwww-src                                           # (T2 뒤) data/*.json ↔ 정본
 node tools/export_data.js --self-test                                         # (T2 뒤) 추출기 자기 검사
 ```
@@ -1010,5 +1011,5 @@ node tools/export_data.js --self-test                                         # 
 | (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ✅ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) | ✅ (굽기 잡 조건 T32 ✅) · T86 🔄 |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ⬜ |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |

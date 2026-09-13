@@ -16,6 +16,12 @@
      아이콘을 거친다» 는 뜻은 아니다 — 표의 이모지를 **그냥 라벨 글자로** 쓰면 그대로 □ 다(실측: `ForgeSheet`
      잠금 «🔒» · `ForgeCraftPopup` «판매\n🪙 +»). 그래서 4회차부터 그런 자리를 따로 세어(`label_risk`)
      `LABEL_KNOWN` 에 없는 **새 자리는 rc 1** 로 막는다.
+     ⚠ 그 «둘레에 `Toast(` 가 보이면 아이콘 길» 이라는 치기는 **토스트 그릇이 정말 아이콘을 거칠 때만** 옳다.
+     5회차(T107)에 재 보니 그릇 셋 중 둘이 안 거쳤다 — `DungeonToast.Show` 는 `Bold(...)` 로, `PetSkillModal.Toast`
+     는 `PetSkillKit.Text(...)` 로 글자만 세웠다. 그래서 ⭐·🔒·🧪·💎(던전·기술·승천)과 데이터 문구의
+     🥚·✨·🎉·🎫·🧩·⬆️·⚡·⚙️·📋(`PetSkillUi.json` /text/toast_* 20줄)이 **자는 rc 0 인데 화면은 □** 였다.
+     이제 그 가정을 **검사**한다(`toast_sinks`): 문구를 그리는 토스트 그릇은 아이콘 길을 거치거나 다른 그릇으로
+     넘겨야 하고, 아니면 rc 1 이다.
   ⓒ 남은 글자를 주인 글꼴(`Assets/Fonts/NotoSansKR-Forge.ttf`)의 cmap 과 맞춰 없는 것을 찍는다.
 
 `KNOWN` 은 «지금 알고 있고 임자가 정해진» 자리다 — 그것만 통과시키고 **새로 생긴 두부는 rc 1** 로 막는다.
@@ -205,6 +211,139 @@ def label_risk(root, font, table):
     return out
 
 
+# ── 토스트 그릇 검사(T107) ────────────────────────────────────────────────────
+# `ROUTE` 가 «둘레에 Toast( 가 보이면 아이콘 길» 로 치는 근거를 **코드로 확인**한다.
+# 그릇 = 토스트 문구(`string`)를 받는 `Toast`/`Show` 메서드. 셋 중 하나면 통과다:
+#   ⓐ 제 몸이 아이콘 길(`IconTextRow`·`UiText.Split`)을 부른다      — 실제로 그리는 그릇
+#   ⓑ 같은 클래스의 메서드를 부르고 그 메서드가 ⓐ 다                 — 그리기를 한 겹 미룬 그릇(DungeonToast.Show → Paint)
+#   ⓒ 다른 그릇(`…Toast(` · `…Show(`)으로 넘긴다                    — 전달자(MetaHost.Toast → PopupLayer.Toast)
+SINK_SIG = re.compile(r'\b(?:public|private|internal|protected|static|\s)*void\s+(Toast|Show)\s*\(\s*string\s')
+ROUTER = re.compile(r'IconTextRow|UiText\.Split')
+FORWARD = re.compile(r'\b(?:Toast|Show)\s*\(')
+CLASS_SIG = re.compile(r'\b(?:class|struct)\s+([A-Za-z_]\w*)')
+
+# 임자가 정해진 «안 거치는 그릇» — 지금은 비었다(T107 이 둘 다 이었다). 새로 생기면 여기 임자와 함께 적는다.
+SINK_KNOWN = {}
+
+
+def mask_cs(text):
+    """주석·문자열을 같은 길이의 공백으로 지운 사본 — 중괄호 세기와 이름 찾기가 «문장 안의 { » 에 안 속는다.
+    자리(인덱스)는 원본과 같다(순수 함수)."""
+    out = list(text)
+    i, n = 0, len(text)
+    while i < n:
+        c = text[i]
+        if c == '/' and i + 1 < n and text[i + 1] == '/':
+            while i < n and text[i] != '\n':
+                out[i] = ' '; i += 1
+        elif c == '/' and i + 1 < n and text[i + 1] == '*':
+            while i < n and not (text[i] == '*' and i + 1 < n and text[i + 1] == '/'):
+                if text[i] != '\n':
+                    out[i] = ' '
+                i += 1
+            for _ in range(2):
+                if i < n:
+                    out[i] = ' '; i += 1
+        elif c in '"\'':
+            q = c
+            verbatim = i > 0 and text[i - 1] == '@'
+            out[i] = ' '; i += 1
+            while i < n:
+                if text[i] == '\\' and not verbatim:
+                    out[i] = ' '
+                    if i + 1 < n and text[i + 1] != '\n':
+                        out[i + 1] = ' '
+                    i += 2
+                    continue
+                if text[i] == q:
+                    out[i] = ' '; i += 1
+                    break
+                if text[i] != '\n':
+                    out[i] = ' '
+                i += 1
+        else:
+            i += 1
+    return ''.join(out)
+
+
+def _close(masked, open_brace):
+    """`open_brace` 의 `{` 와 짝이 맞는 `}` 자리."""
+    depth = 0
+    for i in range(open_brace, len(masked)):
+        if masked[i] == '{':
+            depth += 1
+        elif masked[i] == '}':
+            depth -= 1
+            if depth == 0:
+                return i
+    return len(masked) - 1
+
+
+def cs_methods(text):
+    """C# 한 벌 → [(클래스, 메서드, 몸, 줄번호)] (주석·문자열을 지운 사본으로 자른다 · 순수 함수)."""
+    masked = mask_cs(text)
+    classes = []                                   # (이름, 여는 {, 닫는 })
+    for m in re.finditer(r'\b(?:class|struct)\s+([A-Za-z_]\w*)', masked):
+        ob = masked.find('{', m.end())
+        if ob < 0:
+            continue
+        classes.append((m.group(1), ob, _close(masked, ob)))
+    out = []
+    for m in re.finditer(r'\b([A-Za-z_]\w*)\s*\([^;{}()]*\)\s*\{', masked):
+        name = m.group(1)
+        if name in ('if', 'for', 'foreach', 'while', 'switch', 'catch', 'lock', 'using', 'fixed', 'do'):
+            continue
+        ob = masked.index('{', m.end() - 1)
+        ce = _close(masked, ob)
+        cls = ''
+        for cname, cob, cce in classes:
+            if cob < m.start() < cce and (cls == '' or cob > best):
+                cls, best = cname, cob
+        out.append((cls, name, text[ob + 1:ce], text[:m.start()].count('\n') + 1))
+    return out
+
+
+def toast_sinks(root):
+    """토스트 그릇 → [(자리, 클래스.메서드, 통과했는가, 사유)] (순수 함수 · `root` 아래 .cs 만 읽는다)."""
+    out = []
+    for dirpath, _dirs, files in os.walk(root):
+        for f in sorted(files):
+            if not f.endswith('.cs'):
+                continue
+            path = os.path.join(dirpath, f)
+            rel = os.path.relpath(path, ROOT)
+            text = open(path, encoding='utf-8').read()
+            meths = cs_methods(text)
+            for cls, name, body, line in meths:
+                if name not in ('Toast', 'Show'):
+                    continue
+                if not SINK_SIG.search(_sig_line(mask_cs(text), line)):
+                    continue                               # `Toast()` 처럼 문구를 안 받는 것은 그릇이 아니다
+                if name == 'Show' and not cls.endswith('Toast'):
+                    continue                               # `Show(string)` 은 흔한 이름이다 — 토스트 클래스의 것만 그릇으로 본다
+                where = '%s:%d' % (rel, line)
+                if ROUTER.search(body):
+                    out.append((where, cls + '.' + name, True, 'ⓐ 제 몸이 아이콘 길을 부른다'))
+                    continue
+                helper = next((n for c, n, b, _l in meths
+                               if c == cls and n != name and ROUTER.search(b)
+                               and re.search(r'\b' + re.escape(n) + r'\s*\(', body)), None)
+                if helper:
+                    out.append((where, cls + '.' + name, True, 'ⓑ 같은 클래스의 «%s» 가 아이콘 길을 부른다' % helper))
+                    continue
+                if FORWARD.search(body):
+                    out.append((where, cls + '.' + name, True, 'ⓒ 다른 그릇으로 넘긴다'))
+                    continue
+                out.append((where, cls + '.' + name, False, '아이콘 길을 안 거치고 글자만 세운다'))
+    return out
+
+
+def _sig_line(text, line):
+    """그 메서드의 서명 줄(«void Toast(string …» 인가를 본다)."""
+    lines = text.split('\n')
+    return lines[line - 1] if 0 < line <= len(lines) else ''
+
+
 def label_key(where, lit):
     """`LABEL_KNOWN` 의 열쇠 — 파일 이름 + 리터럴(줄 번호는 안 쓴다)."""
     return '%s|%s' % (os.path.basename(where.rsplit(':', 1)[0]), lit)
@@ -231,6 +370,8 @@ def main(argv):
     new = {ch: w for ch, w in miss.items() if ch not in KNOWN}
     risk = label_risk(SCAN_DIR, font, skip)
     risk_new = [r for r in risk if label_key(r[0], r[2]) not in LABEL_KNOWN]
+    sinks = toast_sinks(SCAN_DIR)
+    sink_bad = [s for s in sinks if not s[2] and s[1] not in SINK_KNOWN]
     for ch, where in sorted(miss.items()):
         tag = '(아는 것) ' + KNOWN[ch] if ch in KNOWN else '**새 두부**'
         print('  %s U+%05X «%s» %d곳 — %s' % ('·' if ch in KNOWN else '✗', ord(ch), ch, len(where), tag))
@@ -250,9 +391,17 @@ def main(argv):
         print('  고침: 그 자리를 `UiKit.IconTextRow`(T89)로 세우거나, 정본이 정말 글자로 쓰면 `LABEL_KNOWN` 에 임자와 함께 적는다.')
         print('  («아이콘 표에 있으니 괜찮다» 는 전제가 깨지는 자리다 — T100 4회차가 낸 구멍.)')
         return 1
+    if sink_bad:
+        print('✗ check_text_glyphs: 토스트 그릇 %d개가 **아이콘 길을 안 거친다** — 그 그릇으로 가는 문구의 이모지는 전부 □ 다.' % len(sink_bad))
+        for where, who, _ok, why in sink_bad:
+            print('  ✗ %s  %s — %s' % (where, who, why))
+        print('  왜 이것이 여기 있는가: 이 자는 «리터럴 둘레에 `Toast(` 가 보이면 아이콘 길» 로 쳐서 그 문구를 건너뛴다(ⓑ).')
+        print('        그릇이 안 거치면 그 치기가 통째로 거짓이 되어 **초록인데 화면은 □** 다(T107 실측 · 그릇 둘 · 자리 45).')
+        print('  고침: 그 그릇이 `UiKit.IconTextRow`(T89)로 문구를 세우게 한다 — 색이 제 표에서 오면 줄을 세운 뒤 조각마다 바른다.')
+        return 1
     print('✓ check_text_glyphs: 문구 %d줄(코드 %d + 데이터 %d) · 글꼴에 없는 글자 %d 종(전부 KNOWN · 임자 있음)'
-          ' · 아이콘을 안 거친 라벨 %d곳(전부 LABEL_KNOWN)'
-          % (len(strings), len(screen_strings(SCAN_DIR)), len(data_strings()), len(miss), len(risk)))
+          ' · 아이콘을 안 거친 라벨 %d곳(전부 LABEL_KNOWN) · 토스트 그릇 %d개 전부 아이콘 길'
+          % (len(strings), len(screen_strings(SCAN_DIR)), len(data_strings()), len(miss), len(risk), len(sinks)))
     return 0
 
 
@@ -307,6 +456,44 @@ def self_test():
                 print('✗ 라벨 갈래 «%s»: 기대 %d · 받은 %d' % (note, want, got)); ok = False
     if label_key('Assets/Scripts/Game/Ui/ForgeSheet.cs:108', '🔒') not in LABEL_KNOWN:
         print('✗ 라벨 열쇠: 파일 이름 + 리터럴로 LABEL_KNOWN 을 못 찾는다'); ok = False
+
+    # 주석·문자열 지우기(T107) — 중괄호·`class` 가 글 속에 있어도 안 속아야 한다
+    for src, gone, note in [
+        ('int a = 1; // class Fake {', 'class Fake', '줄 주석'),
+        ('string s = "class Fake {";', 'class Fake', '문자열'),
+        ('/* class Fake { */ int a;', 'class Fake', '덩이 주석'),
+    ]:
+        if gone in mask_cs(src):
+            print('✗ 주석·문자열 지우기 «%s»: 아직 «%s» 가 보인다' % (note, gone)); ok = False
+    if 'int a' not in mask_cs('int a = 1; // class Fake {'):
+        print('✗ 주석·문자열 지우기: 코드까지 지웠다'); ok = False
+
+    # 토스트 그릇 갈래(T107) — «둘레에 Toast( 가 보이면 아이콘 길» 이라는 치기의 근거를 코드로 확인한다
+    SINK_CASES = [
+        ('class T { public void Toast(string m) { UiKit.IconTextRow(box, "t", TextKind.Sub, m); } }',
+         True, 'ⓐ 제 몸이 아이콘 길'),
+        ('class DungeonToast { public static void Show(string m) { instance.Paint(m); }'
+         ' void Paint(string m) { UiKit.IconTextRow(box, "t", TextKind.Sub, m); } }',
+         True, 'ⓑ 같은 클래스의 도우미'),
+        ('class T { public void Toast(string m) { PopupLayer.Instance.Toast(m); } }',
+         True, 'ⓒ 전달자'),
+        ('class T { public void Toast(string m) { UiKit.Text(box, "t", TextKind.Sub, m, "ink"); } }',
+         False, '**고장 주입** — 글자만 세우는 그릇'),
+        ('class T { public void Toast() { Clear(); } }',
+         None, '문구를 안 받으면 그릇이 아니다'),
+        ('class Panel { public void Show(string id) { Open(id); } }',
+         None, '토스트 클래스가 아닌 Show(string) 은 그릇이 아니다'),
+    ]
+    for code, want, note in SINK_CASES:
+        with tempfile.TemporaryDirectory() as d:
+            open(os.path.join(d, 'X.cs'), 'w', encoding='utf-8').write(code)
+            got = toast_sinks(d)
+            if want is None:
+                if got:
+                    print('✗ 토스트 그릇 «%s»: 그릇이 아닌데 %d개를 잡았다' % (note, len(got))); ok = False
+                continue
+            if len(got) != 1 or got[0][2] != want:
+                print('✗ 토스트 그릇 «%s»: 기대 %s · 받은 %s' % (note, want, got)); ok = False
 
     # 진짜 코드가 이 자를 지나는가
     rc = main([])

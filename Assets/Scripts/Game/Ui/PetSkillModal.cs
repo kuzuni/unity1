@@ -161,10 +161,15 @@ namespace Forge.Game.Ui
             float tw = Mathf.Min(w, PetSkillKit.TextWidth(TextKind.Sub, msg) + padX * 2f);
             RectTransform t = PetSkillKit.Framed(toasts, "toast", PetSkillStyle.C("toast_bg"), PetSkillStyle.Px("toast_r_rem"), PetSkillStyle.L("line1_px"));
             ((Image)t.Find("line").GetComponent<Image>()).color = PetSkillStyle.C("toast_line");
-            TextMeshProUGUI tx = PetSkillKit.Text(t, "t", TextKind.Sub, msg, PetSkillStyle.C("toast_ink"));
-            UiKit.Fill(tx.rectTransform);
+            // T107 — 아이콘 표(`TOAST_ICON`)의 이모지는 T31 아이콘으로 선다(T89 `UiKit.IconTextRow`).
+            // 예전에는 글자만 세워 데이터 문구의 🥚·✨·🎉·🎫·🧩·⬆️·⚡·⚙️·📋·💎 가 화면에서 두부(□)였다(PetSkillUi.json /text/toast_* 20줄 실측).
+            // 색은 이 화면 제 표(`PetSkillStyle`)에서 오므로 줄을 세운 뒤 조각마다 바른다.
+            RectTransform row = UiKit.IconTextRow(t, "t", TextKind.Sub, msg);
+            UiKit.Fill(row);
+            foreach (TextMeshProUGUI piece in UiKit.RowTexts(row)) piece.color = PetSkillStyle.C("toast_ink");
             t.sizeDelta = new Vector2(tw, h);
             toastList.Add(t);
+            lastToastMsg = msg;
             Relayout();
             StartCoroutine(Fade(t));
         }
@@ -194,14 +199,17 @@ namespace Forge.Game.Ui
         {
             get { int n = 0; foreach (RectTransform t in toastList) if (t != null) n++; return n; }
         }
+        /// <summary>살아 있는 가장 마지막 토스트의 **원문**(T107 — 줄이 아이콘 조각으로 갈리고부터 글자 조각만 모으면
+        /// 이모지가 빠진 토막이 나온다. `PopupLayer.LastToast` 와 같은 꼴로 원문을 쥔다).</summary>
         public string LastToast
         {
             get
             {
                 for (int i = toastList.Count - 1; i >= 0; i--)
-                    if (toastList[i] != null) return toastList[i].GetComponentInChildren<TextMeshProUGUI>().text;
+                    if (toastList[i] != null) return lastToastMsg;
                 return null;
             }
         }
+        string lastToastMsg;
     }
 }

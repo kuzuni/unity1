@@ -220,7 +220,7 @@ namespace Forge.Game.Ui
     public sealed class DungeonToast : MonoBehaviour
     {
         static DungeonToast instance;
-        TextMeshProUGUI label;
+        RectTransform row;
         RectTransform box;
         Coroutine hide;
 
@@ -239,13 +239,22 @@ namespace Forge.Game.Ui
                 instance = rt.gameObject.AddComponent<DungeonToast>();
                 instance.box = rt;
                 DungeonPopups.Bordered(rt, "bg", "pp_ink", h * 0.5f, DungeonPopups.Line2, "pp_line");
-                instance.label = DungeonPopups.Bold(rt, "text", TextKind.Sub, text, "white");
             }
             instance.transform.SetAsLastSibling();
-            instance.label.text = text;
+            instance.Paint(text);
             instance.box.gameObject.SetActive(true);
             if (instance.hide != null) instance.StopCoroutine(instance.hide);
             instance.hide = instance.StartCoroutine(instance.HideLater());
+        }
+
+        /// <summary>문구를 다시 그린다 — 아이콘 표(`TOAST_ICON`)의 이모지는 T31 아이콘으로 선다(T89 `UiKit.IconTextRow`).
+        /// ⚠ 여기가 «아이콘 길» 이다: 예전에는 `Bold(...)` 로 글자만 세워 ⭐·🔒·🧪·💎 가 화면에서 두부(□)였다(T107 실측).
+        /// 줄은 조각이 여럿이라 한 번 만들고 `.text` 만 바꿀 수 없다 — 부를 때마다 지우고 다시 세운다.</summary>
+        void Paint(string text)
+        {
+            if (row != null) { row.gameObject.SetActive(false); Destroy(row.gameObject); }   // Destroy 는 프레임 끝이라 먼저 끈다
+            row = UiKit.IconTextRow(box, "text", TextKind.Sub, text, "white");
+            foreach (TextMeshProUGUI piece in UiKit.RowTexts(row)) piece.fontStyle = FontStyles.Bold;
         }
 
         IEnumerator HideLater()
