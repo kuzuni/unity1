@@ -2938,6 +2938,12 @@
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` **582/582** · 자 13종 rc 0(새 자 포함) · CI dotnet 잡에 스텝 둘 · ROUTINE §3 한 줄 · §7 «(원작 밖 · 도구·게이트·CI)» 줄에 T126 등재.
 - **남은 것(2회차)**: 다음 **빌드 런**(`unity-build`)에서 WebGL 배포 스모크가 초록인지 확인하고 lock 반납. 셰이더가 실제로 실렸는지는 빌드 로그의 셰이더 컴파일 줄로도 보인다.
 - **2회차(2026-09-13 22:5x · lock 갱신 · 코드 0줄)**: 런 257 에 내 1회차(`698519e`)가 들어갔고 **dotnet 잡 초록**(새 스텝 둘 = 자기 검사 7칸 + 본 검사 포함) — 자는 CI 에서도 돈다. 다만 **판정(WebGL 빌드)은 아직 못 한다**: `build-webgl` 이 `needs: [unity-test, gate]` 라 유니티 테스트가 빨갛는 동안은 **skipped** 다(런 257 은 `ForgeUiTests` 셋이 빨강 · T87 lock 몫 · 같은 커밋에서 내가 뿌리를 따로 보고함에 적었다). 그 셋이 풀리는 런(또는 3시간 schedule 빌드)에서 스모크 초록을 보고 반납한다.
+- **3회차(2026-09-13 23:5x · lock 갱신)**: 같은 «조용히 null» 갈래를 하나 더 덮었다 — **`Resources.Load<T>("경로")`**. 셰이더와 달리 이쪽은 에디터에서도 빌드에서도 조용하고(없으면 null), 게으르게 쓰는 자리가 많아 테스트가 안 밟는다.
+  - 자가 인자를 푼다: 리터럴 · `const string` 상수(클래스 이름 붙은 것도) · **삼항**(`basic ? UnlitResource : LitResource`) · **지역 변수 + 이어 붙임**(`string dir = IconAtlas.ResourceDir; … dir + "/atlas"`). 못 푸는 인자(`dir + "/" + parsed.Sheets[i].Name`)는 **세지 않고 목록만** 보여 준다 — 거짓 빨강을 만들지 않는다.
+  - **실측**: 지금 클론의 `Resources.Load` 자리 **20곳이 전부 실재**한다(`Terrain`·`FxCatalog`·`VoxelLit`·`VoxelUnlit`·`KeylineUi`·`EquipSwapUi`·`UiCatalog`·`AgePatternUi`·`PlayerInfoUi`·`CoinBurstUi`·`UiScreen`·`Icons/atlas` …). 즉 이 갈래에 지금 새는 곳은 없고, 앞으로 오타가 나면 그 자리에서 잡힌다.
+  - 자기 검사 **7 → 13칸**(리터럴·상수 실재 · 없는 경로 rc 1 · 삼항 · 지역 변수 이어 붙임 · 이어 붙인 경로 없음 rc 1 · 못 푸는 인자는 안 셈) · 진짜 파일 고장 주입도 확인(`KeylineUi.ResourcePath` 를 `KeylineUiX` 로 바꾸면 rc 1 · 되돌리면 rc 0).
+  - ROUTINE §3 한 줄과 CI 스텝 이름을 «이름으로 찾는 것(`Shader.Find`·`Resources.Load`)» 으로 넓혔다.
+  - 게이트: `dotnet build` 0 오류 · `dotnet test` 582/582 · 자 9종 rc 0. **판정(WebGL 빌드)은 여전히 대기** — `build-webgl` 이 `needs: [unity-test, gate]` 인데 유니티 잡이 `ForgeUiTests` 셋(T87 lock 몫 · 22:5x 보고함에 뿌리를 적었다)으로 빨갛다.
 
 
 ### T87 보고함 — 29회차의 «러너를 세운다» 로도 안 풀리는 이유: 시각을 미는 것은 `AnvilFx` 가 아니라 **호스트 타이머**다 (2026-09-13 22:5x · 워커 G · lock 안 잡음 · 코드 0줄)

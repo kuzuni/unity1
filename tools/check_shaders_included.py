@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""코드가 `Shader.Find` 로 찾는 셰이더가 **빌드에도 실리는가** (ROUTINE T126 막이).
+"""코드가 이름으로 찾는 것(`Shader.Find` · `Resources.Load`)이 **빌드에도 실리는가** (ROUTINE T126 막이).
 
 왜 필요한가 — 에디터에서는 `Shader.Find` 가 프로젝트 안의 모든 셰이더를 본다. 그래서 PlayMode 테스트도
 촬영 PNG 도 전부 초록인데, **빌드(WebGL·Android)에서는 아무 에셋도 참조하지 않는 셰이더가 통째로
@@ -18,6 +18,10 @@
   4. 하나도 아니면 **rc 1**(빌드에서 잘린다) · 이름에 해당하는 `.shader` 파일이 아예 없어도 rc 1(오타·삭제).
 
 의존성 0(순수 파이썬).
+
+2회차에 한 갈래를 더 봤다 — **`Resources.Load<T>("경로")`**. 그 자리도 «없으면 조용히 null» 이라 같은 종류의 사고다
+(에디터·빌드 둘 다에서 조용하다 · 게으르게 쓰는 자리가 많아 테스트가 안 밟는다). 리터럴·`const string` 상수·
+«상수 + "/이름"» 꼴까지 풀어서 `**/Resources/<경로>.*` 가 실제로 있는지 본다(못 푸는 인자는 세지 않고 목록만 보여 준다).
 
 사용:  python3 tools/check_shaders_included.py [--self-test]
 """
@@ -113,6 +117,122 @@ def in_resources(rel_path):
     return 'Resources' in parts
 
 
+def string_consts(scripts_dir):
+    """`const string X = "Y";` → {"X": "Y", "Cls.X": "Y"} (같은 이름이 둘이면 뒤엣것도 담아 둔다)."""
+    out, later = {}, []
+    for base, _dirs, files in os.walk(scripts_dir):
+        for name in files:
+            if not name.endswith('.cs'):
+                continue
+            txt = read(os.path.join(base, name))
+            cls = None
+            for line in txt.split('\n'):
+                m = re.search(r'\b(?:class|struct)\s+([A-Za-z_][A-Za-z0-9_]*)', line)
+                if m:
+                    cls = m.group(1)
+                c = re.search(r'const\s+string\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"([^"]*)"', line)
+                if c:
+                    out[c.group(1)] = c.group(2)
+                    if cls:
+                        out[cls + '.' + c.group(1)] = c.group(2)
+            # 지역 변수가 상수를 받아 그 뒤에 경로를 이어 붙이는 꼴(`string dir = IconAtlas.ResourceDir;`)
+            for v in re.finditer(r'\bstring\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([A-Za-z_][A-Za-z0-9_.]*)\s*;', txt):
+                later.append((v.group(1), v.group(2)))
+    for name, src in later:
+        hit = out.get(src) or out.get(src.split('.')[-1])
+        if hit is not None:
+            out.setdefault(name, hit)
+    return out
+
+
+def resource_loads(scripts_dir, consts):
+    """`Resources.Load<T>(인자)` → [(경로|None, 원문 인자, 파일)]. 리터럴·상수·«상수 + "/이름"» 을 푼다."""
+    out = []
+    for base, _dirs, files in os.walk(scripts_dir):
+        for name in files:
+            if not name.endswith('.cs'):
+                continue
+            path = os.path.join(base, name)
+            rel = os.path.relpath(path, ROOT)
+            for line in read(path).split('\n'):
+                if line.lstrip().startswith('//'):
+                    continue
+                for m in re.finditer(r'Resources\.Load(?:<([^>]+)>)?\(\s*([^()]*?)\s*\)', line):
+                    arg = m.group(2).strip()
+                    for got in resolve_arg(arg, consts) or [None]:
+                        out.append((got, arg, rel, (m.group(1) or '').strip()))
+    return out
+
+
+def resolve_arg(arg, consts):
+    """인자를 경로 후보 목록으로 — 못 풀면 None. 리터럴 · 상수 · «상수 + "/이름"» · 삼항(`c ? A : B`)을 푼다."""
+    arg = arg.strip()
+    tern = re.fullmatch(r'[^?]+\?\s*([^:]+?)\s*:\s*(.+)', arg)
+    if tern:
+        got = []
+        for side in (tern.group(1), tern.group(2)):
+            part = resolve_arg(side, consts)
+            if part is None:
+                return None
+            got += part
+        return got
+    lit = re.fullmatch(r'"([^"]*)"', arg)
+    if lit:
+        return [lit.group(1)]
+    if re.fullmatch(r'[A-Za-z_][A-Za-z0-9_.]*', arg):
+        hit = consts.get(arg) or consts.get(arg.split('.')[-1])
+        return [hit] if hit is not None else None
+    m = re.fullmatch(r'([A-Za-z_][A-Za-z0-9_.]*)\s*\+\s*"([^"]*)"', arg)
+    if m:
+        head = consts.get(m.group(1)) or consts.get(m.group(1).split('.')[-1])
+        if head is not None:
+            return [head + m.group(2)]
+    return None
+
+
+def resources_files(assets_dir):
+    """`Resources/` 아래의 «폴더 기준 경로(확장자 없음)» → 실제 파일들."""
+    out = {}
+    for base, _dirs, files in os.walk(assets_dir):
+        parts = os.path.relpath(base, assets_dir).replace('\\', '/').split('/')
+        if 'Resources' not in parts:
+            continue
+        under = '/'.join(parts[parts.index('Resources') + 1:])
+        for name in files:
+            if name.endswith('.meta'):
+                continue
+            stem = os.path.splitext(name)[0]
+            key = (under + '/' + stem) if under and under != '.' else stem
+            out.setdefault(key, []).append(os.path.relpath(os.path.join(base, name), ROOT))
+    return out
+
+
+def check_resources(assets_dir, scripts_dir, quiet):
+    consts = string_consts(scripts_dir)
+    have = resources_files(assets_dir)
+    bad, unread = [], []
+    ok = 0
+    for path, arg, rel, kind in resource_loads(scripts_dir, consts):
+        if path is None:
+            unread.append((arg, rel))
+            continue
+        if path in have:
+            ok += 1
+            continue
+        bad.append((path, arg, rel, kind))
+    if not quiet:
+        for arg, rel in sorted(set(unread)):
+            print('  · (못 푼 인자 — 세지 않는다) %s  [%s]' % (arg, rel))
+        if ok:
+            print('  · Resources.Load 경로 %d자리 전부 실재한다' % ok)
+    if bad and not quiet:
+        print('Resources 에 없는 경로를 부른다 — 그 자리는 조용히 null 이 된다:')
+        for path, arg, rel, kind in bad:
+            print('  ✗ "%s" (인자 %s · %s%s)' % (path, arg, rel, (' · <' + kind + '>') if kind else ''))
+        print('고치는 법: 그 파일을 `**/Resources/<경로>.<확장자>` 에 두거나(폴더 이름이 정확히 `Resources`), 부르는 쪽 경로를 고친다.')
+    return 1 if bad else 0
+
+
 def check(assets_dir=ASSETS, scripts_dir=SCRIPTS, graphics_path=GRAPHICS, quiet=False):
     names = find_names(scripts_dir)
     files = shader_files(assets_dir)
@@ -140,6 +260,7 @@ def check(assets_dir=ASSETS, scripts_dir=SCRIPTS, graphics_path=GRAPHICS, quiet=
     if not quiet:
         for line in ok_lines:
             print('  · ' + line)
+    rc_res = check_resources(assets_dir, scripts_dir, quiet)
     if bad:
         if not quiet:
             print('빌드에 안 실리는 셰이더가 있다 — 에디터에서만 보이는 연출이 된다:')
@@ -150,8 +271,10 @@ def check(assets_dir=ASSETS, scripts_dir=SCRIPTS, graphics_path=GRAPHICS, quiet=
             print('           `- {fileID: 4800000, guid: <셰이더 guid>, type: 3}` 를 더하거나')
             print('           ⓑ 그 셰이더(또는 그것을 문 재질)를 `Resources/` 폴더에 둔다.')
         return 1
+    if rc_res:
+        return 1
     if not quiet:
-        print('✓ check_shaders_included: 코드가 찾는 셰이더 %d개가 전부 빌드에 실린다' % len(ok_lines))
+        print('✓ check_shaders_included: 코드가 찾는 셰이더 %d개가 전부 빌드에 실리고 Resources 경로도 다 실재한다' % len(ok_lines))
     return 0
 
 
@@ -208,6 +331,25 @@ def self_test():
         # ⓕ 주석 줄의 이름은 안 센다
         put('Assets/Scripts/D.cs', '// Shader.Find("T/Comment") 는 주석이다\nclass D { }')
         cases.append(('주석 속 이름은 안 센다', check(assets, scripts, gr, quiet=True) == 0))
+
+        # ── Resources.Load 갈래(2회차) ──────────────────────────────────────────
+        put('Assets/Res/Resources/Deep/thing.json', '{}')
+        put('Assets/Scripts/R1.cs', 'class R1 { const string P = "Deep/thing"; void M() { Resources.Load<TextAsset>(P); Resources.Load<TextAsset>("Deep/thing"); } }')
+        cases.append(('Resources 리터럴·상수가 실재하면 rc 0', check(assets, scripts, gr, quiet=True) == 0))
+        put('Assets/Scripts/R2.cs', 'class R2 { void M() { Resources.Load<TextAsset>("Deep/nope"); } }')
+        cases.append(('Resources 에 없는 경로면 rc 1', check(assets, scripts, gr, quiet=True) == 1))
+        os.remove(os.path.join(root, 'Assets/Scripts/R2.cs'))
+        # 삼항·지역 변수도 푼다
+        put('Assets/Res/Resources/Deep/other.json', '{}')
+        put('Assets/Scripts/R3.cs', 'class R3 { const string A = "Deep/thing"; const string B = "Deep/other"; void M(bool q) { Resources.Load<TextAsset>(q ? A : B); } }')
+        cases.append(('삼항 양쪽을 다 푼다', check(assets, scripts, gr, quiet=True) == 0))
+        put('Assets/Scripts/R4.cs', 'class R4 { const string D = "Deep"; void M() { string dir = D; Resources.Load<TextAsset>(dir + "/thing"); } }')
+        cases.append(('지역 변수 + 이어 붙인 경로도 푼다', check(assets, scripts, gr, quiet=True) == 0))
+        put('Assets/Scripts/R5.cs', 'class R5 { const string D2 = "Deep"; void M() { string d2 = D2; Resources.Load<TextAsset>(d2 + "/nope"); } }')
+        cases.append(('이어 붙인 경로가 없으면 rc 1', check(assets, scripts, gr, quiet=True) == 1))
+        os.remove(os.path.join(root, 'Assets/Scripts/R5.cs'))
+        put('Assets/Scripts/R6.cs', 'class R6 { void M(string x) { Resources.Load<TextAsset>(x); } }')
+        cases.append(('못 푸는 인자는 세지 않는다', check(assets, scripts, gr, quiet=True) == 0))
 
         bad = [name for name, ok in cases if not ok]
         for name, ok in cases:

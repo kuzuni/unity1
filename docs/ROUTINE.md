@@ -1107,7 +1107,7 @@ python3 tools/ui_score.py --self-test                                         # 
 python3 tools/check_final_table.py                                            # §7 완결 대조표 ↔ PROGRESS 상태 (T49 · T33 이 이 표로 완주를 판정한다)
 python3 tools/check_lock_queue.py                                             # (T127) 내 lock 뒤에 몇 작업이 서 있는가 · 그중 «내가 오래 안 건드린 파일» 때문인 것 (보고만 · rc 늘 0)
 python3 tools/check_text_glyphs.py                                            # (T89) 화면 문구의 글자가 주인 글꼴에 다 있는가 — 새 두부(□)를 막는다 + 토스트 그릇이 아이콘 길을 거치는가(T107)
-python3 tools/check_shaders_included.py                                       # (T126) 코드가 `Shader.Find` 로 찾는 셰이더가 **빌드에도** 실리는가 — 에디터에서만 보이는 연출을 막는다
+python3 tools/check_shaders_included.py                                       # (T126) 이름으로 찾는 것(`Shader.Find`·`Resources.Load`)이 **빌드에도** 실리는가 — «조용히 null» 을 막는다
 python3 tools/check_sfx_calls.py                                              # (T119) 원작 소리 24종이 게임 코드에서 실제로 울리는가 — 레시피만 있고 호출이 없는 이름을 막는다
 tools/check_data_sync.sh .wwwww-src                                           # (T2 뒤) data/*.json ↔ 정본
 python3 tools/check_keyline.py                                               # (T109) 정본 -webkit-text-stroke 규칙 ↔ 클론 키라인 호출(.wwwww-src 필요) — 정본이 주는데 클론이 안 부르는 자리를 막는다(CI datasync 잡)
