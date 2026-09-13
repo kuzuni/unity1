@@ -774,6 +774,20 @@
 - 범위: `Assets/Scripts/Game/Ui/ChatScreen.cs` · `Ui/ForgeCraftPopup.cs` · `Ui/ForgeInfoPopup.cs` · (필요하면) `Ui/UiKit.cs`(두 줄 갈래).
 - 진행(워커 D · 2026-09-13): 1회차 `ChatScreen` ⚔ → 정본 `power` 아이콘(런 179 PASS) · 2회차 채팅 목록이 바닥에 안 붙어 샷에 카드가 안 보이던 것을 정본 `pinChatBottom`·`_chatStick` 대로(결정 228) · `Forge*` 넷은 T87 lock 이 풀린 뒤.
 
+### T100 — 두부가 아직 셋 남았다 · 자 둘이 그 셋을 **구조적으로** 못 본다 (Game·검증 · T53·T89 뒤 · 임자 없음 · 검수 Q 등재 · **T89 ✅ 되돌림 아님 — 남은 갈래**)
+- 실측(2026-09-13 12:0x · 검수 Q · **런 179**(1c68d7e · EditMode 540/540 · PlayMode 104/104 · 빨강 0)의 PNG 를 Read 로 열어 본 것 — **전부 초록인 런에서 눈에 보인다**):
+  - ⓐ `screen_main.png` 자동 제련 버튼이 «자동 **□** / OFF» 다. 글자는 **`↻`(U+21BB)** — `Assets/Scripts/Game/Ui/ForgeSheet.cs:94` 의 `string autoLabel = "자동 ↻\n" + (unlocked ? (h.AutoOn ? "ON" : "OFF") : "🔒");`. **정본은 글자가 아니라 아이콘이다**(`ui.js:1551` = `자동${IconGen.img('autoloop', 'auto-loop-ico')}` · 잠김은 `IconGen.img('lock')`) — T89 가 세운 «이모지 → T31 아이콘» 길에 이 둘(`autoloop`·`lock`)이 안 올라갔다.
+  - ⓑ `screen_chat.png` 에 «need more hammers **□**» = **`😭`(U+1F62D)** · «오늘 던전 열쇠 다 씀 **□□**» = **`ㅠ`(U+3160) 둘**. 원문은 정본 `web/js/chat.js`(11·16행)이고 **채팅 문구는 C# 문자열이 아니라 `StreamingAssets/data/*.json`**(T2 가 정본에서 뽑은 것)으로 들어온다.
+- **자 둘이 왜 못 잡나**(이 작업의 절반은 자다 · 셋 다 «초록인데 화면엔 □» 다):
+  - `tools/check_text_glyphs.py`(T89) 는 지금 **rc 0**(«화면 문구 993줄 · 없는 글자 2종 · 전부 KNOWN»)이다. 그 자는 **부름 안에 직접 쓴 문자열 인자만** 본다(제 완료 기록: «주석·변수 대입은 안 센다») — ⓐ 는 **변수 대입**(`string autoLabel = …`)이라 안 보이고, ⓑ 는 **데이터에서 오는 글자**라 아예 소스에 없다.
+  - `Assets/Tests/PlayMode/TextSizeGateTests.cs` 의 런타임 막이는 **T89 절이 «한글만이 아니라 전부 로 넓힌다» 고 적어 둔 대로 넓혀지지 않았다** — 65행이 여전히 `if (c < 0xAC00 || c > 0xD7A3) continue;  // 한글 음절만 본다` 이고 `HasCharacter(c, true, true)`(**폴백 포함**)로 묻는다. 그래서 화면에 실제로 선 `↻`·`😭`·`ㅠ` 를 하나도 안 센다.
+- 할 일:
+  - ⓐ `ForgeSheet` 의 자동 버튼을 정본대로 **아이콘 둘**(`autoloop`·`lock`)로 — T89 가 만든 인라인 스프라이트 길을 그대로 쓴다. 표는 `catalog.json`(§1 · 손으로 짓지 않는다).
+  - ⓑ 채팅 문구의 이모지·자모: 서브셋을 다시 뽑을 때 **`data/*.json` 의 글자까지 훑어** 담는다(자모 U+3130~318F 포함 · 결정 203 의 «한글 1266자» 는 완성형만이었다). 이모지는 글꼴에 넣거나(용량) 정본처럼 아이콘으로 — **정본이 채팅에서는 이모지를 글자 그대로 쓴다**는 것이 판정 기준이다.
+  - ⓒ **자 둘을 그 구멍만큼 넓힌다**: `check_text_glyphs.py` 에 «변수에 담긴 문자열» 과 **`Assets/StreamingAssets/data/*.json` 의 값**을 스캔 대상에 더하고, `TextSizeGateTests` 의 거르개를 «글꼴이 그려야 할 모든 문자» 로 바꾸고 **`HasCharacter(c, false, false)`**(폴백 없이 · 배포판이 판정 기준)로 묻는다.
+- 판정: 고치기 **전에** 넓힌 자 둘이 **빨강**이 되는 것을 먼저 보이고(지금 rc 0 인 것이 문제다) · 고친 뒤 초록 · `screen_main.png`·`screen_chat.png` 을 열어 □ 가 0 인 기록(§1) · CI 유니티 잡 초록.
+- 범위: `Assets/Scripts/Game/Ui/ForgeSheet.cs` · `Assets/Forge/catalog.json` · `Assets/Fonts/NotoSansKR-Forge.ttf`(다시 뽑으면) · `tools/check_text_glyphs.py` · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/assets-map.md`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -913,7 +927,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) · T98(모루 그림이 사각 근사 — 정본 SVG 는 사다리꼴·총알 뿔·검정 stroke) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ✅ · T91 ✅ · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ✅ · T99 ⬜ |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) · T98(모루 그림이 사각 근사 — 정본 SVG 는 사다리꼴·총알 뿔·검정 stroke) · T100(남은 두부 셋 · 자 둘의 구멍) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ✅ · T91 ✅ · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ✅ · T99 ⬜ · T100 ⬜ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) · T83(촬영 두 장 가르기) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ✅ · T83 ✅|
