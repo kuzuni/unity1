@@ -538,6 +538,9 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(Named(sheet, "ab-bar-line"), "키라인(식은 쇠색) — 없으면 상판에 찍힌 얼룩으로 읽힌다");
             Assert.IsNotNull(Named(sheet, "ab-top"), "윗면 띠");
             Assert.IsNotNull(Named(sheet, "ab-seam"), "접합선");
+            Graphic glow = Poly(sheet, "ab-glow");
+            Assert.IsNotNull(glow, "빛 웅덩이(정본은 이것이 없으면 «흰 딱지» 가 얹힌 것으로 읽힌다)");
+            Assert.AreEqual((float)AnvilFxSpec.BilletGlow.Sample1(0), glow.color.a, 1e-3f, "정지 빛 웅덩이 = 트랙 0%(.5)");
 
             Graphic hot = Poly(sheet, "ab-hot"), cool = Poly(sheet, "ab-cool");
             Assert.IsNotNull(hot, "백열 겹");
@@ -564,6 +567,7 @@ namespace Forge.Tests.PlayMode
                 Assert.Greater(1f - bl.localScale.y, (1f - (float)bump[2]) * 10f, i + "타: 눌리는 것은 쇳덩이 쪽이다");
                 Assert.AreEqual((float)AnvilFxSpec.BilletHot.Sample1(AnvilFxSpec.StrikeStop[i]), Op(sheet, "ab-hot"), 1e-3f, i + "타: 백열 피크");
                 Assert.AreEqual((float)AnvilFxSpec.BilletCool.Sample1(AnvilFxSpec.StrikeStop[i]), Op(sheet, "ab-cool"), 1e-3f, i + "타: 식은색");
+                Assert.AreEqual((float)AnvilFxSpec.BilletGlow.Sample1(AnvilFxSpec.StrikeStop[i]), Op(sheet, "ab-glow"), 1e-3f, i + "타: 빛 웅덩이도 같이 밝아진다");
             }
 
             // 끝값 — 단조는 비가역이다(납작한 채 남는다) · 식은색이 가장 진하다

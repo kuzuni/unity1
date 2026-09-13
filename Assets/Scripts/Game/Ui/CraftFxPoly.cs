@@ -114,6 +114,45 @@ namespace Forge.Game.Ui
             return sp;
         }
 
+        /// <summary>
+        /// 방사 그라디언트 타원을 굽는다(SVG `radialGradient cx=.5 cy=.5 r=.5` 꼴 · 정본 `anv-billetglow` 의 빛 웅덩이).
+        /// 가운데가 stop 0, 가장자리가 마지막 stop 이고 그 사이는 선형이다. 크기는 viewBox 단위의 반지름 둘.
+        /// </summary>
+        public static Sprite BakeEllipse(string name, float rx, float ry, Color[] stops, float[] offsets)
+        {
+            Sprite hit;
+            if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+
+            int w = Mathf.Max(2, Mathf.CeilToInt(rx * 2f * PixelsPerUnit));
+            int h = Mathf.Max(2, Mathf.CeilToInt(ry * 2f * PixelsPerUnit));
+            Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            tex.name = name;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;
+            Color32[] px = new Color32[w * h];
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    float nx = (x + 0.5f) / w * 2f - 1f, ny = (y + 0.5f) / h * 2f - 1f;
+                    float d = Mathf.Sqrt(nx * nx + ny * ny);          // 타원 안이면 0~1
+                    Color c = Sample(stops, offsets, Mathf.Clamp01(d));
+                    float a = d >= 1f ? 0f : c.a;
+                    px[y * w + x] = new Color32(
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.r) * 255f),
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.g) * 255f),
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.b) * 255f),
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(a) * 255f));
+                }
+            }
+            tex.SetPixels32(px);
+            tex.Apply(false, true);
+            Sprite sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            sp.name = name;
+            cache[name] = sp;
+            return sp;
+        }
+
         /// <summary>축(<paramref name="from"/>→<paramref name="to"/>) 위 위치 t — SVG `linearGradient x1y1 → x2y2` 와 같은 뜻.</summary>
         private static float Project(Vector2 p, Vector2 from, Vector2 to)
         {

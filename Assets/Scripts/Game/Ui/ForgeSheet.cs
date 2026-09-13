@@ -22,7 +22,7 @@ namespace Forge.Game.Ui
         static RectTransform anvilArtRt;
         /// <summary>달군 쇳덩이 묶음(정본 `.anv-billet` · 축 = viewBox 55 21.5)과 불투명도가 애니메이션되는 두 겹(`.ab-hot`·`.ab-cool`).</summary>
         static RectTransform billetRt;
-        static Image billetHot, billetCool;
+        static Image billetHot, billetCool, billetGlow;
         /// <summary>두들기는 동안만 사는 망치 오버레이(정본 `.anvil-fx .af-hammer`)와 그 불투명도 묶음.</summary>
         static RectTransform hammerRt;
         static CanvasGroup hammerGroup;
@@ -41,7 +41,7 @@ namespace Forge.Game.Ui
                 Object.Destroy(c.gameObject);
             }
             hammerText = null; upgText = null; anvilRt = null; anvilArtRt = null;
-            billetRt = null; billetHot = null; billetCool = null;
+            billetRt = null; billetHot = null; billetCool = null; billetGlow = null;
             hammerRt = null; hammerGroup = null; vbUnit = 0f;
             GameDefs d = h.Defs;
             float W = UiKit.RefW, rem = PopupKit.Rem;
@@ -101,7 +101,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(upgText.rectTransform, 0f, btnH + rem * 0.25f, W - padX * 2f - rx, PopupKit.FontSize(TextKind.Sub) * 1.3f);
             }
             // 두들기는 도중 다시 그려졌다면(세이브 → Rerender) 러너를 새 모루·시트에 다시 문다 — 흐른 시간은 지킨다.
-            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, hammerRt, hammerGroup, vbUnit); }
+            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, vbUnit); }
         }
 
         static string RemainText(ForgeHost h)
@@ -127,7 +127,7 @@ namespace Forge.Game.Ui
             if (root == null) return;
             AnvilFx fx = AnvilFx.Ensure(root.Sheet);
             if (fx == null) return;
-            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, hammerRt, hammerGroup, vbUnit);
+            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, vbUnit);
             else fx.Stop();
         }
 
@@ -307,7 +307,20 @@ namespace Forge.Game.Ui
             float[] hotOff = { 0f, UiKit.L("billet_hot1_off"), 1f };
             Vector2 gradTo = new Vector2(UiKit.L("billet_grad_x2"), 1f);
 
-            // 그리는 순서 = 정본 SVG 순서(뒤 → 앞).
+            // 그리는 순서 = 정본 SVG 순서(뒤 → 앞). 맨 뒤는 달군 쇠가 상판에 흘리는 빛 웅덩이다
+            // (정본 주석: «빛을 내는 물체는 제 발밑을 어둡게 만들지 않는다» · 크게 깔면 상판이 뿌옇게 떠 모루 형태가 죽는다).
+            float grx = UiKit.L("billet_glow_rx"), gry = UiKit.L("billet_glow_ry");
+            RectTransform glowRt = UiKit.Box(billetRt, "ab-glow");
+            Image glow = glowRt.gameObject.AddComponent<Image>();
+            glow.raycastTarget = false;
+            glow.sprite = CraftFxPoly.BakeEllipse("ab-glow", grx, gry,
+                new Color[] { UiKit.C("billet_glow0"), UiKit.C("billet_glow1"), UiKit.C("billet_glow2") },
+                new float[] { 0f, UiKit.L("billet_glow_off1"), 1f });
+            glow.type = Image.Type.Simple;
+            UiKit.Place(glowRt, (UiKit.L("billet_glow_cx") - grx) * u, (UiKit.L("billet_glow_cy") - gry) * u, grx * 2f * u, gry * 2f * u);
+            billetGlow = glow;
+            SetOpacity(billetGlow, (float)AnvilFxSpec.BilletGlow.Sample1(0));   // 정지 상태 = 트랙 0%(.5)
+
             BilletLayer("ab-bar-line", CraftFxPoly.Inflate(bar, UiKit.L("billet_stroke") * 0.5f), null, null, gradTo, UiKit.C("billet_line"), u);
             BilletLayer("ab-bar", bar, body, bodyOff, gradTo, Color.white, u);
             billetHot = BilletLayer("ab-hot", bar, hot, hotOff, new Vector2(0f, 1f), Color.white, u);

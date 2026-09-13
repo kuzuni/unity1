@@ -2105,6 +2105,17 @@
 - 남은 것: 빛 웅덩이(`.ab-glow` 방사 그라디언트) · 불티·링·섬광 등 af* 나머지 · 결과 카드(`cr*`·`cb*`·`adcpop`).
 
 
+### T87 10회차 기록 (2026-09-13 11:5x · 워커 G · sess-0544-755 · lock 유지)
+
+- **빛 웅덩이(`.ab-glow`)를 얹어 빌릿 겹을 정본 구성 그대로 채웠다** — 달군 쇠가 상판에 흘리는 타원(정본 `ANVIL_SVG` 의 `<ellipse class="ab-glow" cx=55 cy=16.6 rx=14.5 ry=5.4>` · `anv-billetglow` 방사 그라디언트 · 트랙 `BilletGlow` 가 .5 ↔ .95 로 같이 밝아진다).
+- **왜 필요한가**(정본 주석): «백열 겹만 켜지면 *흰 딱지* 가 얹힌 것으로 읽힌다» · «빛을 내는 물체는 제 발밑을 어둡게 만들지 않는다»(접지 그림자를 어둡게 그리면 안 된다) · «크게 깔면 안 된다 — rx 21 로 상판 폭 절반을 덮었더니 네이티브 92px 에서 상판이 통째로 뿌옇게 떠 모루 형태가 죽었다»(그래서 빌릿 실루엣에 바짝 붙인 14.5×5.4다).
+- **수단**: `CraftFxPoly.BakeEllipse` — 방사 그라디언트(`cx .5 cy .5 r .5`)를 타원 텍스처로 굽는다(가운데 stop 0 → 가장자리 마지막 stop · 타원 밖은 α 0). 폴리곤 굽는 자와 같은 캐시를 쓴다.
+- **겹 순서**(정본 SVG 그대로): **빛 웅덩이** → 키라인 → 몸통 → 백열 → 윗면 띠 → 식은색 → 접합선.
+- 테스트에 두 줄 보탬: 정지 상태의 빛 웅덩이 α = 트랙 0%(.5) · 타격마다 `BilletGlow` 표값과 같은가.
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` 540/540 · PlayMode 컴파일 0 오류 · 자 rc 0.
+- 9회차(망치) 판정은 런 181 이 돌고 있어 다음 회차가 읽는다.
+
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.

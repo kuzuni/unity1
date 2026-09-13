@@ -17,7 +17,7 @@ namespace Forge.Game.Ui
     {
         private RectTransform anvil, sheet, billet, hammer;
         private CanvasGroup hammerGroup;
-        private Graphic hot, cool;
+        private Graphic hot, cool, glow;
         private float unit;
         private Vector2 hammerHome;
         private Vector2 anvilHome, sheetHome;
@@ -50,12 +50,12 @@ namespace Forge.Game.Ui
         /// 두들기기 시작 — `anvilRt` 는 **모루 그림 칸**(정본 `.anvil-svg` · 버튼이 아니다: 버튼에 걸면 타격 오버레이가 반동을 같이 타 상대변위가 0 이 된다 · 정본 주석),
         /// `sheetRt` 는 그 모루가 든 시트(둘 다 없어도 죽지 않는다).
         /// </summary>
-        public void Play(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, RectTransform hammerRt, CanvasGroup hammerCg, float vbUnit)
+        public void Play(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, float vbUnit)
         {
             Stop();
             anvil = anvilRt;
             sheet = sheetRt;
-            Take(billetRt, hotLayer, coolLayer, hammerRt, hammerCg, vbUnit);
+            Take(billetRt, hotLayer, coolLayer, glowLayer, hammerRt, hammerCg, vbUnit);
             if (anvil != null)
             {
                 anvilHome = anvil.anchoredPosition;
@@ -68,11 +68,12 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>쇳덩이 묶음과 불투명도 겹을 받아 «쉬는 자세» 를 적어 둔다(되돌릴 때 그 자리로).</summary>
-        private void Take(RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, RectTransform hammerRt, CanvasGroup hammerCg, float vbUnit)
+        private void Take(RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, float vbUnit)
         {
             billet = billetRt;
             hot = hotLayer;
             cool = coolLayer;
+            glow = glowLayer;
             hammer = hammerRt;
             hammerGroup = hammerCg;
             unit = vbUnit;
@@ -85,13 +86,13 @@ namespace Forge.Game.Ui
         /// 정본은 DOM 을 갈아도 CSS 애니메이션이 그 자리에서 이어지지 않지만, 클론은 시트를 통째로 다시 그리므로
         /// 다시 물지 않으면 남은 구간이 통째로 사라진다(런 157 실측: 모루가 파괴돼 연출이 없던 일이 됐다).
         /// </summary>
-        public void Rebind(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, RectTransform hammerRt, CanvasGroup hammerCg, float vbUnit)
+        public void Rebind(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, float vbUnit)
         {
             if (!running) return;
             Restore();
             anvil = anvilRt;
             sheet = sheetRt;
-            Take(billetRt, hotLayer, coolLayer, hammerRt, hammerCg, vbUnit);
+            Take(billetRt, hotLayer, coolLayer, glowLayer, hammerRt, hammerCg, vbUnit);
             if (anvil != null)
             {
                 anvilHome = anvil.anchoredPosition;
@@ -111,6 +112,7 @@ namespace Forge.Game.Ui
             billet = null;
             hot = null;
             cool = null;
+            glow = null;
             hammer = null;
             hammerGroup = null;
         }
@@ -127,6 +129,7 @@ namespace Forge.Game.Ui
             if (billet != null) billet.localScale = billetScaleHome;
             ForgeSheet.SetOpacity(hot, (float)AnvilFxSpec.BilletHot.Sample1(0));
             ForgeSheet.SetOpacity(cool, (float)AnvilFxSpec.BilletCool.Sample1(0));
+            ForgeSheet.SetOpacity(glow, (float)AnvilFxSpec.BilletGlow.Sample1(0));
         }
 
         /// <summary>정본 클럭은 «게임 시간» 이 아니라 벽시계다(CSS 애니메이션) — `unscaledDeltaTime` 으로 돈다.</summary>
@@ -176,6 +179,7 @@ namespace Forge.Game.Ui
             }
             ForgeSheet.SetOpacity(hot, (float)AnvilFxSpec.BilletHot.Sample1(pct));
             ForgeSheet.SetOpacity(cool, (float)AnvilFxSpec.BilletCool.Sample1(pct));
+            ForgeSheet.SetOpacity(glow, (float)AnvilFxSpec.BilletGlow.Sample1(pct));
             ApplyHammer();
         }
 
