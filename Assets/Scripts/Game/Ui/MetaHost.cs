@@ -204,7 +204,9 @@ namespace Forge.Game.Ui
             Hud hud = Hud.Instance;
             if (hud == null || S == null) return;
             string nick = Nickname, cp = PopupKit.Fmt(MyCp), coins = PopupKit.Fmt(S.Coins), gems = PopupKit.Fmt(S.Gems);
-            if (force || nick != hudNick || cp != hudCp) { hud.SetProfile(nick, cp); hudNick = nick; hudCp = cp; }
+            // 닉네임과 전투력을 **따로** 민다 — 전투력은 전투 중 매초 바뀌는데(T63) 같이 밀면 닉네임을 직접 준 쪽의 글자를 덮는다(런 108 실측).
+            if (force || nick != hudNick) { hud.SetProfile(nick, cp); hudNick = nick; hudCp = cp; }
+            if (force || cp != hudCp) { hud.SetCombatPower(cp); hudCp = cp; }
             if (force || coins != hudCoins || gems != hudGems) { hud.SetCurrency(coins, gems); hudCoins = coins; hudGems = gems; }
             // 원작은 아바타도 renderTopBar 가 닉네임·전투력과 같이 그린다(ui.js renderTopBar · onPickAvatar 가 다시 부른다).
             string avatar = AvatarEmoji;

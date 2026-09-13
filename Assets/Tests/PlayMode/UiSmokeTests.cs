@@ -251,6 +251,13 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(badgeText, "뱃지에 글자가 없다");
             Assert.AreEqual(Hud.ChatBadgeText, badgeText.text);
 
+            // 전투력은 전투 중 매초 바뀐다 — 그 갱신이 닉네임까지 다시 쓰면 안 된다(런 108 `HUD_Set` 이 그렇게 빨갰다).
+            hud.SetProfile("moonzzanf", "20.7b");
+            h.SyncHud();
+            yield return null;
+            Assert.AreEqual("moonzzanf", hud.Nickname,
+                "전투력 갱신이 닉네임을 덮었다 — SyncHud 는 닉네임과 전투력을 따로 밀어야 한다");
+
             hud.SetChatPreview("Zephyr", "anyone want to trade tickets?");
             Assert.AreEqual("Zephyr", hud.ChatName, "이름 줄이 따로 서야 한다");
             Assert.AreEqual("anyone want to trade tickets?", hud.ChatMessage, "메시지 줄이 따로 서야 한다");

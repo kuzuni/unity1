@@ -186,6 +186,16 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>
+        /// 전투력만 갈아끼운다. 전투력은 전투가 도는 동안 **매초 바뀌므로**(T63 이 훅을 살린 뒤로) 그때마다
+        /// <see cref="SetProfile"/> 로 닉네임까지 다시 쓰면 닉네임을 직접 준 쪽(테스트·디버그 표면)의 글자를 되돌린다
+        /// (CI 런 108 `HUD_Set_표면이_글자를_바꾼다` 가 그렇게 빨갰다 — 기대 «moonzzanf», 실제 «용사»).
+        /// </summary>
+        public void SetCombatPower(string combatPower) { cp.text = combatPower ?? string.Empty; }
+
+        /// <summary>지금 상단바에 걸린 전투력 글자 — 테스트·검증용.</summary>
+        public string CombatPowerText { get { return cp.text; } }
+
+        /// <summary>
         /// 원작 <c>renderTopBar</c> 의 <c>IconGen.avatar(S.avatarEmoji)</c> — 프로필 카드의 도트 초상(T31 아틀라스).
         /// 원작은 아바타를 고치면 상단바를 다시 그리므로(<c>onPickAvatar</c>) 다시 불러 갈아끼울 수 있다.
         /// 아틀라스에 없는 이모지면 초상을 감춘다(지금까지의 빈 흰 타일 그대로 · 원작은 이모지 글자로 폰트 폴백한다).
