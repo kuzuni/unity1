@@ -153,6 +153,53 @@ namespace Forge.Game.Ui
             return sp;
         }
 
+        /// <summary>
+        /// 타원 **테두리**(정본 `.af-ring` 처럼 `fill:none` + stroke)를 굽는다 — 안팎 두 타원 사이만 칠한다.
+        /// ⚠ 정본은 `vector-effect: non-scaling-stroke` 라 퍼져도 굵기가 그대로지만, 구운 스프라이트를 키우면 굵기도 같이 큰다(결정 230).
+        /// </summary>
+        public static Sprite BakeRing(string name, float rx, float ry, float stroke)
+        {
+            Sprite hit;
+            if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+
+            int w = Mathf.Max(4, Mathf.CeilToInt(rx * 2f * PixelsPerUnit));
+            int h = Mathf.Max(4, Mathf.CeilToInt(ry * 2f * PixelsPerUnit));
+            Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            tex.name = name;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;
+            Color32[] px = new Color32[w * h];
+            float inx = Mathf.Max(0.01f, rx - stroke * 0.5f) / rx, iny = Mathf.Max(0.01f, ry - stroke * 0.5f) / ry;
+            float inv = 1f / Super;
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    float cover = 0f;
+                    for (int sy = 0; sy < Super; sy++)
+                    {
+                        for (int sx = 0; sx < Super; sx++)
+                        {
+                            float nx = (x + (sx + 0.5f) * inv) / w * 2f - 1f;
+                            float ny = (y + (sy + 0.5f) * inv) / h * 2f - 1f;
+                            bool outside = nx * nx + ny * ny <= 1f;
+                            float ix = nx / inx, iy = ny / iny;
+                            bool inside = ix * ix + iy * iy <= 1f;
+                            if (outside && !inside) cover += 1f;
+                        }
+                    }
+                    byte a = (byte)Mathf.RoundToInt(255f * cover / (Super * Super));
+                    px[y * w + x] = new Color32(255, 255, 255, a);
+                }
+            }
+            tex.SetPixels32(px);
+            tex.Apply(false, true);
+            Sprite sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            sp.name = name;
+            cache[name] = sp;
+            return sp;
+        }
+
         /// <summary>축(<paramref name="from"/>→<paramref name="to"/>) 위 위치 t — SVG `linearGradient x1y1 → x2y2` 와 같은 뜻.</summary>
         private static float Project(Vector2 p, Vector2 from, Vector2 to)
         {

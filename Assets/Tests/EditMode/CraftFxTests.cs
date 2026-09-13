@@ -249,6 +249,30 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 링은_망치가_실제로_닿는_자리에_선다()
+        {
+            // 정본 hx(h)=cx+SINK_X+dx · hy(h)=cy+SINK_Y — 타격 자리가 오른쪽으로 걸어가고 접점은 갈수록 깊이 눌린다
+            double[] cx = new double[3], cy = new double[3];
+            for (int i = 0; i < 3; i++)
+            {
+                cx[i] = AutoForgeFxSpec.HitCenterX(i);
+                cy[i] = AutoForgeFxSpec.HitCenterY(i);
+                Assert.AreEqual(AutoForgeFxSpec.HitX + AutoForgeFxSpec.SinkX[i] + AutoForgeFxSpec.HitDx[i], cx[i], Eps, i + "타 중심 x");
+                Assert.AreEqual(AutoForgeFxSpec.HitY + AutoForgeFxSpec.SinkY[i], cy[i], Eps, i + "타 중심 y");
+            }
+            Assert.Less(cx[0], cx[1], "자리가 오른쪽으로 걸어간다");
+            Assert.Less(cx[1], cx[2]);
+            Assert.Less(cy[0], cy[1], "갈수록 깊이 눌린다(+y 는 아래)");
+            Assert.Less(cy[1], cy[2]);
+            // 접점은 빌릿 윗면(11)보다 아래이고 상판 아래로는 안 내려간다(모루 상판 앞면 y 25)
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.Greater(cy[i], AutoForgeFxSpec.HitY, i + "타: 눌린 자리는 정지 접점보다 아래다");
+                Assert.Less(cy[i], 25.0, i + "타: 상판 안이다");
+            }
+        }
+
+        [Test]
         public void 퇴장은_스윙_끝자세에서_이어받아_사라진다()
         {
             double[] end = new double[4], exit = new double[4];

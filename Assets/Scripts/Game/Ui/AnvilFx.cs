@@ -20,6 +20,7 @@ namespace Forge.Game.Ui
         private Graphic hot, cool, glow;
         private float unit;
         private Vector2 hammerHome;
+        private Image[] rings;
         private Vector2 anvilHome, sheetHome;
         private Vector3 anvilScaleHome, billetScaleHome;
         private bool running;
@@ -50,12 +51,12 @@ namespace Forge.Game.Ui
         /// 두들기기 시작 — `anvilRt` 는 **모루 그림 칸**(정본 `.anvil-svg` · 버튼이 아니다: 버튼에 걸면 타격 오버레이가 반동을 같이 타 상대변위가 0 이 된다 · 정본 주석),
         /// `sheetRt` 는 그 모루가 든 시트(둘 다 없어도 죽지 않는다).
         /// </summary>
-        public void Play(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, float vbUnit)
+        public void Play(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, Image[] ringLayers, float vbUnit)
         {
             Stop();
             anvil = anvilRt;
             sheet = sheetRt;
-            Take(billetRt, hotLayer, coolLayer, glowLayer, hammerRt, hammerCg, vbUnit);
+            Take(billetRt, hotLayer, coolLayer, glowLayer, hammerRt, hammerCg, ringLayers, vbUnit);
             if (anvil != null)
             {
                 anvilHome = anvil.anchoredPosition;
@@ -68,7 +69,7 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>쇳덩이 묶음과 불투명도 겹을 받아 «쉬는 자세» 를 적어 둔다(되돌릴 때 그 자리로).</summary>
-        private void Take(RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, float vbUnit)
+        private void Take(RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, Image[] ringLayers, float vbUnit)
         {
             billet = billetRt;
             hot = hotLayer;
@@ -76,6 +77,7 @@ namespace Forge.Game.Ui
             glow = glowLayer;
             hammer = hammerRt;
             hammerGroup = hammerCg;
+            rings = ringLayers;
             unit = vbUnit;
             if (billet != null) billetScaleHome = billet.localScale;
             if (hammer != null) hammerHome = hammer.anchoredPosition;
@@ -86,13 +88,13 @@ namespace Forge.Game.Ui
         /// 정본은 DOM 을 갈아도 CSS 애니메이션이 그 자리에서 이어지지 않지만, 클론은 시트를 통째로 다시 그리므로
         /// 다시 물지 않으면 남은 구간이 통째로 사라진다(런 157 실측: 모루가 파괴돼 연출이 없던 일이 됐다).
         /// </summary>
-        public void Rebind(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, float vbUnit)
+        public void Rebind(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, Graphic hotLayer, Graphic coolLayer, Graphic glowLayer, RectTransform hammerRt, CanvasGroup hammerCg, Image[] ringLayers, float vbUnit)
         {
             if (!running) return;
             Restore();
             anvil = anvilRt;
             sheet = sheetRt;
-            Take(billetRt, hotLayer, coolLayer, glowLayer, hammerRt, hammerCg, vbUnit);
+            Take(billetRt, hotLayer, coolLayer, glowLayer, hammerRt, hammerCg, ringLayers, vbUnit);
             if (anvil != null)
             {
                 anvilHome = anvil.anchoredPosition;
@@ -115,6 +117,7 @@ namespace Forge.Game.Ui
             glow = null;
             hammer = null;
             hammerGroup = null;
+            rings = null;
         }
 
         /// <summary>자기가 만든 것만 되돌린다 — 모루·시트 자리와 쇳덩이 자세·겹 불투명도(정지 상태 = 트랙 0%).</summary>
@@ -181,6 +184,34 @@ namespace Forge.Game.Ui
             ForgeSheet.SetOpacity(cool, (float)AnvilFxSpec.BilletCool.Sample1(pct));
             ForgeSheet.SetOpacity(glow, (float)AnvilFxSpec.BilletGlow.Sample1(pct));
             ApplyHammer();
+            ApplyRings();
+        }
+
+        /// <summary>
+        /// 타격 링 — 타격마다 제 창(접촉 8ms 앞 + 200ms)에서만 퍼지며 꺼진다(`afring` · cubic-bezier). 창 밖에서는 투명이다.
+        /// ⚠ 정본은 `non-scaling-stroke` 라 퍼져도 테두리 굵기가 그대로지만 여기서는 스프라이트를 키우므로 같이 굵어진다(결정 230 · 그 구간은 이미 흐려지는 중이다).
+        /// </summary>
+        private void ApplyRings()
+        {
+            if (rings == null) return;
+            double[] v = new double[2];
+            for (int i = 0; i < rings.Length; i++)
+            {
+                Image img = rings[i];
+                if (img == null) continue;
+                Color c = img.color;
+                if (AutoForgeFxSpec.SampleRing(i, ms, v))
+                {
+                    img.rectTransform.localScale = new Vector3((float)v[0], (float)v[0], 1f);
+                    c.a = Mathf.Clamp01((float)v[1]);
+                }
+                else
+                {
+                    img.rectTransform.localScale = Vector3.one;
+                    c.a = 0f;
+                }
+                img.color = c;
+            }
         }
 
         /// <summary>

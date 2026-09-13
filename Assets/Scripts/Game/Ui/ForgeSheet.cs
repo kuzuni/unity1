@@ -26,6 +26,8 @@ namespace Forge.Game.Ui
         /// <summary>두들기는 동안만 사는 망치 오버레이(정본 `.anvil-fx .af-hammer`)와 그 불투명도 묶음.</summary>
         static RectTransform hammerRt;
         static CanvasGroup hammerGroup;
+        /// <summary>타격 링 셋(정본 `.af-ring.h0/h1/h2` · 망치와 **형제**라 같이 움직이지 않는다).</summary>
+        static readonly Image[] rings = new Image[3];
         /// <summary>viewBox 한 단위의 화면 px — 망치 `afswing` 의 translate 는 **viewBox 단위**다(SVG 자식이라 CSS px 가 아니다).</summary>
         static float vbUnit;
 
@@ -43,6 +45,7 @@ namespace Forge.Game.Ui
             hammerText = null; upgText = null; anvilRt = null; anvilArtRt = null;
             billetRt = null; billetHot = null; billetCool = null; billetGlow = null;
             hammerRt = null; hammerGroup = null; vbUnit = 0f;
+            for (int i = 0; i < rings.Length; i++) rings[i] = null;
             GameDefs d = h.Defs;
             float W = UiKit.RefW, rem = PopupKit.Rem;
             float sheetH = sheet.rect.height > 0 ? sheet.rect.height : (UiKit.L("chat_top") - UiKit.L("sheet_top")) * UiKit.RefH;
@@ -101,7 +104,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(upgText.rectTransform, 0f, btnH + rem * 0.25f, W - padX * 2f - rx, PopupKit.FontSize(TextKind.Sub) * 1.3f);
             }
             // 두들기는 도중 다시 그려졌다면(세이브 → Rerender) 러너를 새 모루·시트에 다시 문다 — 흐른 시간은 지킨다.
-            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, vbUnit); }
+            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, vbUnit); }
         }
 
         static string RemainText(ForgeHost h)
@@ -127,7 +130,7 @@ namespace Forge.Game.Ui
             if (root == null) return;
             AnvilFx fx = AnvilFx.Ensure(root.Sheet);
             if (fx == null) return;
-            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, vbUnit);
+            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, vbUnit);
             else fx.Stop();
         }
 
@@ -340,11 +343,16 @@ namespace Forge.Game.Ui
         /// </summary>
         static void DrawHammer(RectTransform parent, float ox, float oy, float u, float vbW, float vbH)
         {
-            hammerRt = UiKit.Box(parent, "hammer");
-            UiKit.Place(hammerRt, ox, oy, vbW * u, vbH * u);
+            // 정본 구조: `.anvil-fx` 오버레이(모루와 같은 viewBox) 안에 링·불티가 먼저, 망치가 **맨 뒤**(= 맨 위)다.
+            RectTransform fx = UiKit.Box(parent, "anvil-fx");
+            UiKit.Place(fx, ox, oy, vbW * u, vbH * u);
+            DrawRings(fx, u, vbW, vbH);
+
+            hammerRt = UiKit.Box(fx, "hammer");
+            UiKit.Place(hammerRt, 0f, 0f, vbW * u, vbH * u);
             float pxo = (float)(AutoForgeFxSpec.HitX / vbW), pyo = (float)(AutoForgeFxSpec.HitY / vbH);
             hammerRt.pivot = new Vector2(pxo, 1f - pyo);
-            hammerRt.anchoredPosition = new Vector2(ox + vbW * u * pxo, -(oy + vbH * u * pyo));
+            hammerRt.anchoredPosition = new Vector2(vbW * u * pxo, -(vbH * u * pyo));
             hammerGroup = hammerRt.gameObject.AddComponent<CanvasGroup>();
             hammerGroup.blocksRaycasts = false;
             hammerGroup.interactable = false;
@@ -378,6 +386,30 @@ namespace Forge.Game.Ui
             HammerLayer(art, "hm-head", head, steel, steelOff, steelFrom, steelTo, Color.white, u);
             HammerLayer(art, "hm-shoulder", shoulder, null, null, Vector2.zero, down, Alpha(UiKit.C("hmr_shadow"), UiKit.L("hmr_shoulder_alpha")), u);
             HammerLayer(art, "hm-face", face, null, null, Vector2.zero, down, Alpha(UiKit.C("hmr_face"), UiKit.L("hmr_face_alpha")), u);
+        }
+
+        /// <summary>
+        /// 타격 링 셋(정본 `.af-ring.hN`) — 타격마다 **닿는 자리**(`ui.js hx/hy` = 타격점 + 침하 + 걸어가는 dx)에 타원 테두리가 한 번 퍼진다.
+        /// 정본 주석: 지연을 타격보다 8ms 앞에 둬야 «소리는 제때 나는데 그림만 메아리로 오는» 조합을 피한다.
+        /// </summary>
+        static void DrawRings(RectTransform fx, float u, float vbW, float vbH)
+        {
+            float rx = UiKit.L("ring_rx"), ry = UiKit.L("ring_ry");
+            Sprite sp = CraftFxPoly.BakeRing("af-ring", rx, ry, UiKit.L("ring_stroke"));
+            Color line = UiKit.C("ring_line");
+            for (int i = 0; i < rings.Length; i++)
+            {
+                RectTransform rt = UiKit.Box(fx, "af-ring-" + i);
+                Image img = rt.gameObject.AddComponent<Image>();
+                img.raycastTarget = false;
+                img.sprite = sp;
+                img.type = Image.Type.Simple;
+                Color c = line; c.a = 0f;                       // 정본 `.af-ring { opacity: 0 }` — 제 차례에만 켜진다
+                img.color = c;
+                float cx = (float)AutoForgeFxSpec.HitCenterX(i), cy = (float)AutoForgeFxSpec.HitCenterY(i);
+                UiKit.Place(rt, (cx - rx) * u, (cy - ry) * u, rx * 2f * u, ry * 2f * u);
+                rings[i] = img;
+            }
         }
 
         /// <summary>망치 겹 하나 — 로컬 좌표(타격면 중심이 원점)라 칸 가운데(피벗)를 원점으로 삼아 얹는다.</summary>

@@ -114,6 +114,28 @@ namespace Forge.Core.CraftFx
                 new double[] { 8, -74, -64, 0 },
             });
 
+        /// <summary>
+        /// `ui.js SINK_X/SINK_Y` — 타격마다 «접점이 눌려 내려간» 양(viewBox 단위). 모루 침하 + 빌릿 압축의 합이라
+        /// 링·불티·그림자가 **망치가 실제로 닿는 자리**에 놓인다(정본 주석: 정지 y=11 대비 6.33 / 9.25 / 14.35 유닛 중 오버슛을 뺀 값이 이 표다).
+        /// </summary>
+        public static readonly double[] SinkX = { -0.07, -0.11, -0.18 };
+        /// <summary>같은 표의 세로 몫.</summary>
+        public static readonly double[] SinkY = { 2.71, 4.81, 7.49 };
+
+        /// <summary>타격 n 의 접점 x(viewBox) — `ui.js` 의 `hx(h) = cx + SINK_X[h] + ANVIL_HIT_DX[h]`.</summary>
+        public static double HitCenterX(int i)
+        {
+            if (i < 0 || i >= HitMs.Length) throw new ArgumentOutOfRangeException("i");
+            return HitX + SinkX[i] + HitDx[i];
+        }
+
+        /// <summary>타격 n 의 접점 y(viewBox) — `hy(h) = cy + SINK_Y[h]`.</summary>
+        public static double HitCenterY(int i)
+        {
+            if (i < 0 || i >= HitMs.Length) throw new ArgumentOutOfRangeException("i");
+            return HitY + SinkY[i];
+        }
+
         /// <summary>`afring` 길이(ms) — `.2s`.</summary>
         public const double RingDurMs = 200;
         /// <summary>`afring` 지연 보정(ms) — `calc(var(--hN) - 8ms)`: 60fps 에서 접촉 프레임에 링의 최대 광량이 놓이게 8ms 앞에 켠다.</summary>

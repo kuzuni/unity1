@@ -718,6 +718,64 @@ namespace Forge.Tests.PlayMode
             return new Vector2(hammer.anchoredPosition.x - (float)v[0] * unit, hammer.anchoredPosition.y + (float)v[1] * unit);
         }
 
+        /// <summary>
+        /// T87 11회차 — 타격 링(정본 `.af-ring.hN`): 타격마다 **닿는 자리**에서 제 창(접촉 8ms 앞 + 200ms)에만 퍼지고, 창 밖에서는 보이지 않는다.
+        /// 값과 함께 **픽셀**도 본다(ⓔ 규칙) — 링이 퍼지는 순간 그 테두리 자리에 밝은 띠 색이 실제로 칠해지는가.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 타격_링이_닿는_자리에서_퍼졌다_꺼진다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Hammers = 30;
+            ForgeSheet.Render(h);
+            yield return null;
+            Assert.IsNull(Named(UiRoot.Instance.Sheet, "af-ring-0"), "쉬는 화면에는 오버레이가 없다");
+
+            h.OnCraft();
+            yield return null;
+            RectTransform sheet = UiRoot.Instance.Sheet;
+            AnvilFx fx = sheet.GetComponent<AnvilFx>();
+            double[] v = new double[2];
+            for (int i = 0; i < AutoForgeFxSpec.HitMs.Length; i++)
+            {
+                Graphic ring = Poly(sheet, "af-ring-" + i);
+                Assert.IsNotNull(ring, i + "타 링 칸");
+
+                // 창 밖(켜지기 한참 전)에는 투명하다
+                fx.SampleTo(AutoForgeFxSpec.RingStartMs(i) - 60);
+                Assert.AreEqual(0f, ring.color.a, 1e-3f, i + "타: 켜지기 전에는 안 보인다");
+
+                // 접촉 프레임에는 아직 밝다(정본이 «소리는 제때인데 그림만 메아리» 를 고친 자리)
+                fx.SampleTo(AutoForgeFxSpec.HitMs[i]);
+                AutoForgeFxSpec.SampleRing(i, AutoForgeFxSpec.HitMs[i], v);
+                Assert.AreEqual((float)v[1], ring.color.a, 1e-3f, i + "타: 접촉 프레임 밝기");
+                Assert.Greater(ring.color.a, 0.5f, i + "타: 접촉 프레임에 링이 밝다");
+                Assert.AreEqual((float)v[0], ring.rectTransform.localScale.x, 1e-3f, i + "타: 퍼진 배율");
+
+                // 창이 끝나면 꺼지고 제 크기로 돌아온다
+                fx.SampleTo(AutoForgeFxSpec.RingStartMs(i) + AutoForgeFxSpec.RingDurMs + 30);
+                Assert.AreEqual(0f, ring.color.a, 1e-3f, i + "타: 창이 끝나면 꺼진다");
+                Assert.AreEqual(1f, ring.rectTransform.localScale.x, 1e-3f, i + "타: 배율도 제자리");
+            }
+
+            // 픽셀 — 3타 링이 가장 크게 퍼지는 구간에서 테두리 색이 실제로 칠해지는가
+            if (!NoGraphics())
+            {
+                fx.SampleTo(AutoForgeFxSpec.HitMs[2] + 60);
+                yield return null;
+                RectTransform ring2 = Named(sheet, "af-ring-2");
+                int area; string info;
+                int bright = CountPixels(ring2, delegate(Color32 c) { return c.r > 190 && c.g > 150 && c.b < c.g; }, out area, out info);
+                Assert.Greater(bright, 4, "3타 링이 화면에 안 칠해졌다 — " + info);
+            }
+
+            fx.Stop();
+            yield return null;
+            h.CancelAnvilStrike();
+            yield return null;
+        }
+
         private static bool NoGraphics()
         {
             return SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
