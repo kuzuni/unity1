@@ -2760,6 +2760,16 @@
 - **게이트**: `dotnet build` 0 오류(PlayMode 포함) · `dotnet test` 567/567 · `gen_meta`(5) · 카탈로그·문서·결정·표·상태·범위·§7·ui_score·키라인·두부·sfx 자 · datasync(13) · export 자기 검사 전부 rc 0. 코드는 새 파일 5 + .meta 5 · 기존 파일 변경 0.
 - **CI 확인(19:3x · 런 234 · faad178 · 내 51cd4f0 포함 · 런 233 의 내 유니티 잡은 뒤 push 에 갈아치워져 cancelled)**: `EquipSwapTests` **2/2 PASS** · EditMode 567/567 · PlayMode 120/121(빨강 1 = T121 `OutlineTests` · A 의 lock) → lock 반납 · 행 ⬜(2회차 남음).
 
+
+### T124 보고함 — 런 244 PlayMode 122/128 빨강의 뿌리 (2026-09-13 20:5x · 워커 G · lock 안 잡음 · 코드 0줄)
+
+- **증상**: 런 244(`d3209ed` = T124 1회차) 에서 PlayMode 128칸 중 **122칸이 빨강**이다(EditMode 는 581/581 초록). 내 회차 첫 일은 빨강이라 열어 봤는데 `check_unity_green` 판정이 «임자 T124 · lock 살아 있음(28분 전) — 그의 몫» 이라 **코드는 한 줄도 안 건드렸다**. 대신 뿌리만 적어 둔다(임자가 로그를 다시 읽는 회차를 아끼라고).
+- **뿌리는 한 줄이다**: `MissingComponentException: There is no 'CanvasRenderer' attached to the "pat-rings" game object` — `UnityEngine.UI.RectMask2D.PerformClipping` → `MaskableGraphic.SetClipRect` 에서 **매 프레임** 터진다. 그래서 특정 테스트가 아니라 **부팅하는 거의 모든 PlayMode 칸**이 «Unhandled log message» 로 함께 빨개졌다(AudioSmoke·Battle·Ui… 전부).
+- **왜**: `AgePattern.cs:78` 의 `UiKit.Box(layer, "pat-rings")` 는 **`RectTransform` 만 단 빈 오브젝트**를 만들고(`UiKit.Box` 는 `new GameObject(name, typeof(RectTransform))`), 그 위에 `AddComponent<AgeRingsGraphic>()`(`: MaskableGraphic`)을 얹는다. `Graphic` 의 `[RequireComponent(typeof(CanvasRenderer))]` 는 **상속 클래스에 자동으로 따라붙지 않으므로** `CanvasRenderer` 가 없는 채로 그래픽이 등록되고, 그 순간부터 마스크가 클리핑할 때마다 예외가 난다. 이 레포에서 `Graphic` 을 상속한 클래스는 지금 `AgeRingsGraphic` **하나뿐**이라 선례가 없었다.
+- **고치는 법(임자 몫 · 둘 중 하나)**: ⓐ `AgeRingsGraphic` 선언 위에 `[RequireComponent(typeof(CanvasRenderer))]` ⓑ 또는 `rr.gameObject.AddComponent<CanvasRenderer>();` 를 `AddComponent<AgeRingsGraphic>()` **앞에** 한 줄. 어느 쪽이든 `AgePatternTests` 셋과 나머지 120칸이 같이 풀린다.
+- **덧 — 고친 뒤에도 «안 보일» 수 있다(결정 226)**: T87 6·7회차에 같은 길(`Graphic` 상속 + `OnPopulateMesh` 정점 메시)로 빌릿을 그렸다가 **화면에 한 픽셀도 안 나왔다**(런 173 실측: 테스트는 전부 초록, 모루 상자 픽셀 변화 0). 이 레포에서 실제로 칠해지는 것이 확인된 길은 **텍스처를 구워 `Image` 에 얹기**(`CraftFxPoly.Bake*`)다. T124 의 링도 값 단언만으로는 그 갈래를 못 잡으니 **픽셀 단언**(`CountPixels` 꼴 · `ForgeUiTests.쇳덩이가_화면에_실제로_칠해진다` 가 본보기)을 같이 세우기를 권한다.
+- 내 자리(T87)는 26회차에 lock 을 반납했고 지금은 워커 L 이 27회차(결과 카드)로 쥐고 있다. 이번 회차 나는 §0-5 대로 **게이트만 재실행**했다: `dotnet build` 0 오류 · `dotnet test` **581/581** · 파이썬·노드 자 12종 rc 0.
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
