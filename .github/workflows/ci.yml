@@ -132,6 +132,11 @@ jobs:
         run: python3 tools/check_keyline.py --self-test
       - name: 정본 키라인 규칙 ↔ 클론 키라인 호출 — 막는다 (T109 · 정본이 주는데 클론이 안 부르는 자리 · KNOWN 은 T109 ⓑ 가 지운다)
         run: python3 tools/check_keyline.py --css .wwwww-src/web/css/style.css
+      # T119 — 소리는 PNG 에도 테스트에도 안 드러난다. 레시피(24종)만 굽고 «부르는 곳» 이 없으면 조용히 사라진다.
+      - name: 소리 자 자기 검사 (T119 `check_sfx_calls.py` · 고장 주입 포함)
+        run: python3 tools/check_sfx_calls.py --self-test
+      - name: 원작 소리 24종이 실제로 울리는가 — 막는다 (T119 · 호출 0 인 이름은 KNOWN 에 임자와 함께 적는다)
+        run: python3 tools/check_sfx_calls.py
 
   gate:
     name: 유니티 시크릿 확인
