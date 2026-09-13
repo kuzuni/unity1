@@ -532,10 +532,14 @@ STALE_REF_NOTES = [
     u"제작 비교 버튼: 원작 샷(`shot-043224`)의 버튼은 «판매»·«장착» 한 단어인데 지금 정본은 `<small>` 로 "
     u"판매액(코인+금액)과 «기존 교체»/«다시 장착» 을 단다(`ui.js` 3266·3269 — 그 코드 주석이 그 샷을 대놓고 "
     u"«타이틀 줄 없음, 버튼 라벨은 판매/장착만» 이라 적었다). 클론의 두 줄 버튼은 **정본대로**다(T28 15회차 실측).",
+    u"장비 상세의 빨간 ✕: 원작 샷(`shot-043244`)에는 없고 클론에는 있다 — 정본이 2026-08-18 에 **더한 것**이다"
+    u"(`ui.js` 3289 주석 «이 팝업만 ✕ 가 없어서 화면에 보이는 닫는 길이 하나도 없었다» · `style.css` 1733). "
+    u"클론의 ✕ 가 카드 아래로 반쯤 걸치는 것도 정본대로다(T28 23회차). 다만 같은 화면의 **카드 자리·폭**은 "
+    u"진짜로 어긋나 있다(바닥 −17.8%p · 폭 +4.4%p → T111).",
     u"리그 «상대 선택» 상대 이름: 원작 샷(`shot-042228`)의 이름은 **흰 글자 + 검정 키라인**인데 지금 정본 "
     u"`.league-challenge-name` 은 `color: var(--pp-ink)`(#17181a) 민글자다 — 클론의 어두운 민글자가 "
     u"**정본대로**다(T28 22회차 6배 확대 실측). 같은 행에서 **전투력 숫자의 검정 키라인은 정본에도 있다**"
-    u"(`style.css` 2635 `-webkit-text-stroke: 2px`) — 그쪽은 진짜 결함이라 T108 로 뗐다.",
+    u"(`style.css` 2635 `-webkit-text-stroke: 2px`) — 그쪽은 진짜 결함이라 T109 로 뗐다.",
 ]
 
 
@@ -603,6 +607,12 @@ def load_baseline(path):
         except (TypeError, ValueError):
             pass
     out["_hist"] = hist
+    fps = {}
+    for k, v in (d.get("fingerprints") or {}).items():
+        u_ = fp_unpack(v)
+        if u_:
+            fps[k] = u_
+    out["_fp"] = fps
     return out
 
 
@@ -617,8 +627,81 @@ def median_of(hist, name):
 
 HIST_KEEP = 6     # 기준선 파일이 들고 있는 회차 수(중앙값용 · 파일이 커지지 않게)
 
+# ── 그림 지문 (T28 23회차 · 워커 M) ────────────────────────────────────────
+# `screens` 는 force_orphan 이라 **지난 런 PNG 가 안 남는다**. 그래서 화면마다 굵은 격자
+# 밝기(FP_ROWS×FP_COLS)를 기준선 파일에 같이 적어 둔다 — 다음 회차가 «점수가 내려갔다» 를
+# 만났을 때 «그림이 어디서 달라졌나»(팝업 안 ↔ 팝업 뒤)를 수로 말할 수 있다.
+# 실측(런 208 ↔ 214 두 벌을 직접 견줌): 30장 중 20장이 **픽셀 차 0.0**(촬영은 거의 결정적이다) ·
+# 움직인 넷은 전부 **팝업 안**이 달라졌다(`player-info` 안 5.0 ↔ 뒤 0.6 · `league` 16.8 ↔ 0.0 ·
+# `chat` 10.5 ↔ 9.2 · `league-challenge` 2.8 ↔ 0.0) — 장비 등급 색·수 자릿수 같은 **게임 상태**다.
+FP_ROWS, FP_COLS = 16, 8
+FP_BOX = (0.06, 0.09, 0.94, 0.86)   # 팝업이 차지하는 상자(안 ↔ 뒤 를 가르는 금)
+FP_SAME = 1.0                        # 이보다 작으면 «그 자리는 안 달라졌다»
 
-def save_baseline_file(path, scores, avg, run=None):
+
+def fingerprint(img):
+    """굵은 격자 밝기 — 회차 사이 «어디가 달라졌나» 를 재는 데만 쓴다(판독에는 안 쓴다)."""
+    g = img.gray()
+    W, H = img.w, img.h
+    out = []
+    for r in range(FP_ROWS):
+        y0, y1 = H * r // FP_ROWS, H * (r + 1) // FP_ROWS
+        for c in range(FP_COLS):
+            x0, x1 = W * c // FP_COLS, W * (c + 1) // FP_COLS
+            n = 0
+            tot = 0
+            for y in range(y0, y1, 2):
+                base = y * W
+                for x in range(x0, x1, 2):
+                    tot += g[base + x]
+                    n += 1
+            out.append(int(round(tot / float(n or 1))))
+    return out
+
+
+def fp_pack(fp):
+    """지문(0~255 칸)을 한 줄 base64 로 — 회차마다 3,840줄짜리 숫자 덩어리가 diff 를 덮지 않게."""
+    import base64
+    return base64.b64encode(bytes(bytearray(min(255, max(0, int(v))) for v in fp))).decode("ascii")
+
+
+def fp_unpack(v):
+    """base64 한 줄 → 칸 목록. 옛 꼴(숫자 목록)도 그대로 읽는다."""
+    if isinstance(v, list):
+        try:
+            return [int(x) for x in v]
+        except (TypeError, ValueError):
+            return None
+    if not isinstance(v, str):
+        return None
+    import base64
+    try:
+        return list(bytearray(base64.b64decode(v.encode("ascii"))))
+    except Exception:
+        return None
+
+
+def fp_diff(a, b):
+    """두 지문의 차 — (팝업 안 평균, 팝업 뒤 평균). 길이가 다르면 (None, None)."""
+    if not a or not b or len(a) != len(b) or len(a) != FP_ROWS * FP_COLS:
+        return None, None
+    din = dout = 0.0
+    cin = cout = 0
+    for r in range(FP_ROWS):
+        yc = (r + 0.5) / FP_ROWS
+        for c in range(FP_COLS):
+            xc = (c + 0.5) / FP_COLS
+            d = abs(a[r * FP_COLS + c] - b[r * FP_COLS + c])
+            if FP_BOX[0] <= xc <= FP_BOX[2] and FP_BOX[1] <= yc <= FP_BOX[3]:
+                din += d
+                cin += 1
+            else:
+                dout += d
+                cout += 1
+    return din / (cin or 1), dout / (cout or 1)
+
+
+def save_baseline_file(path, scores, avg, run=None, fps=None):
     import json
     cur = dict((n, round(v, 1)) for n, v in scores)
     hist = []
@@ -634,6 +717,8 @@ def save_baseline_file(path, scores, avg, run=None):
     hist = [h for h in hist if h.get("run") != run]
     hist.append({"run": run, "avg": round(avg, 2), "screens": cur})
     d = {"run": run, "avg": round(avg, 2), "screens": cur, "history": hist[-HIST_KEEP:]}
+    if fps:
+        d["fingerprints"] = dict((k, fp_pack(v)) for k, v in fps.items())
     with open(path, "w", encoding="utf-8") as f:
         f.write(json.dumps(d, ensure_ascii=False, indent=1, sort_keys=True) + "\n")
 
@@ -677,6 +762,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
               u" — T27 촬영이 CI 에서 돈 뒤에 생긴다.")
         return 2
     scores, missing, bad, skewed, unfilled = [], [], [], [], []
+    fps = {}
     for name in [n for n, _ in pairs()]:
         if only and name not in only:
             continue
@@ -705,6 +791,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             unfilled.append(name)
         s, why = score_screen(ent["rects"], read_layout(img, name))
         scores.append((name, s))
+        fps[name] = fingerprint(img)
         mark = u"✓" if s >= PASS_MARK else u"✗"
         print(u"  %s %-18s %4.1f / 10   (원작 요소 %d)" % (mark, name, s, len(ent["rects"])))
         if s < PASS_MARK:
@@ -737,30 +824,39 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             print(u"지난 회차(런 %s) 평균 %.2f → 이번 %.2f (%+.2f)"
                   % (base.get("_run", "?"), base["_avg"], avg, avg - base["_avg"]))
         hist = base.get("_hist") or []
+        obase = base.get("_fp") or {}
         hard, soft = [], []
         for t in drops:
             n = t[0]
-            if abs(t[2] - t[1]) <= BG_SHAKY.get(n, 0.0):
-                soft.append(t)
-                continue
+            din, dout = fp_diff(obase.get(n), fps.get(n))
             med = median_of(hist, n) if len(hist) >= 3 else None
             # 자취가 3회차 이상이면 «지난 회차» 가 아니라 **중앙값**과도 견준다 — 지난 회차 하나가
-            # 튄 것(배경이 조용했던 런)을 «회귀» 로 부르지 않는다(T28 22회차 · forge-detail 1.9 건).
+            # 튄 것을 «회귀» 로 부르지 않는다(T28 22회차 · forge-detail 1.9 가 그 꼴이었다).
             if med is not None and t[2] > med - DROP_MARK:
-                soft.append(t + (med,))
+                soft.append((n, t[1], t[2], u"최근 %d회차 중앙값 %.1f 자리다" % (len(hist), med), din, dout))
+            elif din is not None and din < FP_SAME and dout < FP_SAME:
+                # 그림은 사실상 같은데 점수만 움직였다 = 밴드 경계 하나가 걸린 것(자의 흔들림).
+                soft.append((n, t[1], t[2], u"그림이 거의 같다(안 %.1f · 뒤 %.1f) — 밴드 경계가 걸린 자의 흔들림이다" % (din, dout), din, dout))
+            elif din is not None and din < FP_SAME and dout > din:
+                # 지문이 «팝업 안은 그대로 · 뒤만 달라졌다» 고 말하면 코드가 아닐 공산이 크다.
+                soft.append((n, t[1], t[2], u"그림 안쪽은 그대로다(안 %.1f · 뒤 %.1f)" % (din, dout), din, dout))
+            elif din is None and abs(t[2] - t[1]) <= BG_SHAKY.get(n, 0.0):
+                # 지문이 없는 첫 회차에만 쓰는 물러섬(실측 상한 표)
+                soft.append((n, t[1], t[2], u"배경만으로도 ±%.1f 움직이는 화면(지문 없음)" % BG_SHAKY.get(n, 0.0), None, None))
             else:
-                hard.append(t)
+                hard.append((n, t[1], t[2], din, dout))
         if hard:
-            print(u"⚠ 내려간 화면 %d개 — 회귀다(고친 사람이 아니라 **깬 사람**을 찾는다):" % len(hard))
-            for n, b, c in hard:
-                print(u"    %-18s %.1f → %.1f (%+.1f)" % (n, b, c, c - b))
+            print(u"⚠ 내려간 화면 %d개 — 그림이 실제로 달라졌다(«깬 사람» 은 이 수를 보고 찾는다):" % len(hard))
+            for n, b, c, din, dout in hard:
+                tail = u"" if din is None else (
+                    u" · 그림 차: 팝업 안 %.1f · 뒤 %.1f → %s" % (
+                        din, dout,
+                        u"**안쪽**이 달라졌다(게임 상태 — 장비 등급 색·수 자릿수 — 인지 코드인지 PNG 로 가른다)"
+                        if din >= dout else u"**뒤**가 달라졌다"))
+                print(u"    %-18s %.1f → %.1f (%+.1f)%s" % (n, b, c, c - b, tail))
         if soft:
-            print(u"· 내려갔지만 아직 회귀가 아닌 화면 %d개 — 깬 사람을 찾기 전에"
-                  u" 두 회차 PNG 의 **팝업 뒤**(세계·상단바 숫자·뒤 목록)부터 견준다:" % len(soft))
-            for t in soft:
-                n, b, c = t[0], t[1], t[2]
-                why = (u"최근 %d회차 중앙값 %.1f 자리다" % (len(hist), t[3])) if len(t) > 3 \
-                    else (u"배경만으로도 ±%.1f 움직이는 화면" % BG_SHAKY.get(n, 0.0))
+            print(u"· 내려갔지만 아직 회귀가 아닌 화면 %d개:" % len(soft))
+            for n, b, c, why, din, dout in soft:
                 print(u"    %-18s %.1f → %.1f (%+.1f · %s)" % (n, b, c, c - b, why))
         if ups:
             print(u"· 올라간 화면 %d개: %s" % (len(ups), " ".join(sorted(ups))))
@@ -777,7 +873,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                 run = json.load(open(mp, encoding="utf-8")).get("run")
             except Exception:
                 run = None
-        save_baseline_file(baseline_path, scores, avg, run)
+        save_baseline_file(baseline_path, scores, avg, run, fps)
         print(u"· 기준선을 %s 에 적었다(다음 회차가 이것과 견준다)" % os.path.relpath(baseline_path, REPO))
     if bad:
         # T28 16회차(워커 M): 29개를 줄줄이 찍으면 아무도 안 읽는다 — **낮은 것 다섯**만 점수와 함께 준다.
@@ -953,6 +1049,25 @@ def self_test():
     chk(abs((median_of(bh["_hist"], "forge-detail") or 0) - 1.2) < 1e-9,
         u"자취 중앙값은 1.2 다 — 튄 회차(1.9)가 아니라 (%s)"
         % median_of(bh["_hist"], "forge-detail"))
+
+    # ㉑ 그림 지문: 같은 그림은 0 · 팝업 안만 바꾸면 «안» 이, 뒤만 바꾸면 «뒤» 가 커진다
+    base_img = _canvas(80, 160, (120, 120, 120))
+    _fill(base_img, 8, 20, 72, 140, (230, 230, 230))
+    fa = fingerprint(base_img)
+    chk(fp_diff(fa, fa) == (0.0, 0.0), u"같은 그림의 지문 차는 0 이다")
+    inner = _canvas(80, 160, (120, 120, 120))
+    _fill(inner, 8, 20, 72, 140, (230, 230, 230))
+    _fill(inner, 20, 60, 60, 100, (0, 0, 0))          # 팝업 **안**만 바꾼다
+    din, dout = fp_diff(fa, fingerprint(inner))
+    chk(din > dout, u"팝업 안만 바뀌면 지문의 «안» 이 «뒤» 보다 크다 (안 %.1f · 뒤 %.1f)" % (din, dout))
+    outer = _canvas(80, 160, (120, 120, 120))
+    _fill(outer, 8, 20, 72, 140, (230, 230, 230))
+    _fill(outer, 0, 150, 80, 160, (0, 0, 0))          # 팝업 **뒤**(아래 띠)만 바꾼다
+    din2, dout2 = fp_diff(fa, fingerprint(outer))
+    chk(dout2 > din2 and din2 < FP_SAME,
+        u"뒤만 바뀌면 «뒤» 만 커지고 «안» 은 같음 문턱 아래다 (안 %.1f · 뒤 %.1f)" % (din2, dout2))
+
+    chk(fp_unpack(fp_pack(fa)) == fa, u"지문 base64 왕복이 같다 (%d칸)" % len(fa))
 
     print(u"")
     if fail:

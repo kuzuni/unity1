@@ -874,6 +874,16 @@
 - 판정: `check_text_glyphs` 의 `LABEL_KNOWN` 에서 넷을 빼도 rc 0 + 해당 화면 PlayMode 초록 + `screen_craft-compare.png`·`screen_forge-info.png` 를 열어 버튼 아랫줄에 아이콘이 선 것을 눈으로(§1).
 - 범위: `Assets/Scripts/Game/Ui/ForgeCraftPopup.cs`·`Ui/ForgeInfoPopup.cs`(**T87 lock 뒤**) · `Ui/UiKit.cs`(세로 갈래 · T104 뒤) · `tools/check_text_glyphs.py`(`LABEL_KNOWN` 넷 빼기) · `Assets/Tests/PlayMode/ForgeUiTests.cs`(T87 뒤).
 
+### T111 — 장비 상세 카드가 **가운데**에 뜬다: 정본은 하단 앵커(카드 바닥 77.15%H)이고 폭도 공용 74% 가 아니라 `.gd-card` 70% 다 (Game·UI · T19 뒤 · **T87 lock(catalog.json) 뒤** · T28 23회차 실측)
+- 실측(2026-09-13 · T28 23회차 · 워커 M · 런 214 `screen_gear-detail.png` ↔ 원작 `shot-043244.png` · 같은 픽셀 코드로 흰 카드를 쟀다):
+  - 세로 — 클론 카드 바닥 **59.2%H** ↔ 원작 **77.0%H** = **−17.8%p**(카드가 장비 시트 위가 아니라 세계 한가운데 떠 있다).
+  - 가로 — 클론 **72.6%W** ↔ 원작 **68.2%W** = **+4.4%p**.
+- 정본: `css/style.css` 1737~1738 `#gear-detail-modal { align-items: flex-end; padding-bottom: calc(var(--app-h) * .223 - 1.7rem); }` · `#gear-detail-modal .gd-card { width: 70%; }` — 그 위 주석이 원작 실측을 «흰 카드 바운딩 박스 y 59.64%H → 하단 77.15%H · 폭 ≈70%» 로 못 박아 두었고, «✕ 가 카드 아래로 반쯤 튀어나오므로 하단 앵커에서 그 몫을 빼 둔다» 까지 적혀 있다.
+- 클론(원인): `Assets/Scripts/Game/Ui/GearDetailPopup.cs` 33~35 는 폭을 **공용 `modal_wide_w`(0.74)** 로 잡고 `PopupKit.Card` 기본 자리(가운데)에 세운다 — 하단 앵커도, `.gd-card` 전용 폭도 없다.
+- 무엇을 한다: ⓐ 카탈로그에 `gd_card_w`(0.70)와 하단 띄움 키(`gd_bottom` = `.223·H − 1.7rem` 의 유니티 몫 · **T87 lock 뒤**) ⓑ `GearDetailPopup.Render` 가 카드를 **아래 앵커**로 세우고 그 키를 쓴다(수치는 코드에 박지 않는다 · §1) ⓒ ✕ 가 카드 아래로 반쯤 걸치는 지금 모습은 정본대로이므로 건드리지 않는다.
+- 판정: ⓐ PlayMode 픽셀/레이아웃 단언 — 카드 바닥이 앱 높이의 77±1.5%, 폭이 70±1%W ⓑ 다음 런 `screen_gear-detail.png` 를 열어 카드가 **장비 시트 바로 위**에 앉았는지 눈 확인(원작 `shot-043244` 와 나란히).
+- 범위: `Assets/Scripts/Game/Ui/GearDetailPopup.cs` · `Assets/Forge/catalog.json`(**T87 lock 뒤**) · `tools/gen_ui_catalog.py` · `Assets/Tests/PlayMode/ForgeUiTests.cs`(**T87 lock 뒤** · 단언 한 칸).
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -1014,7 +1024,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) · T98(모루 그림이 사각 근사 — 정본 SVG 는 사다리꼴·총알 뿔·검정 stroke) · T100(남은 두부 셋 · 자 둘의 구멍) · T102(부화장 빛기둥·램프 키·리본) · T104(글자 외곽선 두께) · T109(키라인 호출이 아예 없는 열한 파일 — T104 와 다른 갈래) · T108(자동 버튼 라벨 둘) · T106(이모지 폴백 글꼴 — 주인 승인) · T105(미니 씬 칸 채움) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ✅ · T91 ✅ · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ✅ · T99 ✅ · T110 ⬜ · T101 🔄 · T100 ✅ · T102 ✅ · T104 ⬜ · T109 🔄 · T106 ⬜ · T108 ⬜ · T105 ✅ |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) · T98(모루 그림이 사각 근사 — 정본 SVG 는 사다리꼴·총알 뿔·검정 stroke) · T100(남은 두부 셋 · 자 둘의 구멍) · T102(부화장 빛기둥·램프 키·리본) · T104(글자 외곽선 두께) · T109(키라인 호출이 아예 없는 열한 파일 — T104 와 다른 갈래) · T111(장비 상세 카드 자리·폭) · T108(자동 버튼 라벨 둘) · T106(이모지 폴백 글꼴 — 주인 승인) · T105(미니 씬 칸 채움) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ✅ · T91 ✅ · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ✅ · T99 ✅ · T110 ⬜ · T101 🔄 · T100 ✅ · T102 ✅ · T104 ⬜ · T109 🔄 · T111 ⬜ · T106 ⬜ · T108 ⬜ · T105 ✅ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) · T83(촬영 두 장 가르기) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ✅ · T83 ✅|
