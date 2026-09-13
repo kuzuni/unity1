@@ -617,6 +617,13 @@ def load_baseline(path):
         if u_:
             fps[k] = u_
     out["_fp"] = fps
+    bd = {}
+    for k, v in (d.get("bands") or {}).items():
+        try:
+            bd[k] = int(v)
+        except (TypeError, ValueError):
+            pass
+    out["_bands"] = bd
     return out
 
 
@@ -709,7 +716,7 @@ def fp_diff(a, b):
     return din / (win or 1.0), dout / (wout or 1.0)
 
 
-def save_baseline_file(path, scores, avg, run=None, fps=None):
+def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None):
     import json
     cur = dict((n, round(v, 1)) for n, v in scores)
     hist = []
@@ -727,6 +734,8 @@ def save_baseline_file(path, scores, avg, run=None, fps=None):
     d = {"run": run, "avg": round(avg, 2), "screens": cur, "history": hist[-HIST_KEEP:]}
     if fps:
         d["fingerprints"] = dict((k, fp_pack(v)) for k, v in fps.items())
+    if bands:
+        d["bands"] = dict((k, int(v)) for k, v in bands.items())
     with open(path, "w", encoding="utf-8") as f:
         f.write(json.dumps(d, ensure_ascii=False, indent=1, sort_keys=True) + "\n")
 
@@ -770,7 +779,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
               u" — T27 촬영이 CI 에서 돈 뒤에 생긴다.")
         return 2
     scores, missing, bad, skewed, unfilled = [], [], [], [], []
-    fps = {}
+    fps, bands = {}, {}
     for name in [n for n, _ in pairs()]:
         if only and name not in only:
             continue
@@ -797,9 +806,13 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                   u" — 촬영 프레임이 눌렸거나 화면 한쪽이 통째로 비었다(세계가 안 그려짐 등)"
                   % (name, fh, fw, FILL_H_MIN, FILL_W_MIN))
             unfilled.append(name)
-        s, why = score_screen(ent["rects"], read_layout(img, name))
+        got = read_layout(img, name)
+        s, why = score_screen(ent["rects"], got)
         scores.append((name, s))
         fps[name] = fingerprint(img)
+        # 밴드를 몇 개로 쪼갰나 — 회차 사이에 이 수가 달라지면 «요소가 어긋났다» 가 아니라
+        # **자가 화면을 다르게 쪼갠 것**이다(T28 24·27회차 실측: 잉크가 한 겹 두꺼워지면 밴드가 붙는다).
+        bands[name] = sum(1 for r in got if u"블록" not in r.name)
         mark = u"✓" if s >= PASS_MARK else u"✗"
         print(u"  %s %-18s %4.1f / 10   (원작 요소 %d)" % (mark, name, s, len(ent["rects"])))
         if s < PASS_MARK:
@@ -833,6 +846,12 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                   % (base.get("_run", "?"), base["_avg"], avg, avg - base["_avg"]))
         hist = base.get("_hist") or []
         obase = base.get("_fp") or {}
+        oband = base.get("_bands") or {}
+
+        def band_note(n):
+            a, b = oband.get(n), bands.get(n)
+            return u"" if a is None or b is None or a == b else u" · 밴드 %d → %d(자가 다르게 쪼갰다)" % (a, b)
+
         hard, soft = [], []
         for t in drops:
             n = t[0]
@@ -861,11 +880,11 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                         din, dout,
                         u"**안쪽**이 달라졌다(게임 상태 — 장비 등급 색·수 자릿수 — 인지 코드인지 PNG 로 가른다)"
                         if din >= dout else u"**뒤**가 달라졌다"))
-                print(u"    %-18s %.1f → %.1f (%+.1f)%s" % (n, b, c, c - b, tail))
+                print(u"    %-18s %.1f → %.1f (%+.1f)%s%s" % (n, b, c, c - b, tail, band_note(n)))
         if soft:
             print(u"· 내려갔지만 아직 회귀가 아닌 화면 %d개:" % len(soft))
             for n, b, c, why, din, dout in soft:
-                print(u"    %-18s %.1f → %.1f (%+.1f · %s)" % (n, b, c, c - b, why))
+                print(u"    %-18s %.1f → %.1f (%+.1f · %s)%s" % (n, b, c, c - b, why, band_note(n)))
         if ups:
             print(u"· 올라간 화면 %d개: %s" % (len(ups), " ".join(sorted(ups))))
         if not drops and not ups:
@@ -881,7 +900,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                 run = json.load(open(mp, encoding="utf-8")).get("run")
             except Exception:
                 run = None
-        save_baseline_file(baseline_path, scores, avg, run, fps)
+        save_baseline_file(baseline_path, scores, avg, run, fps, bands)
         print(u"· 기준선을 %s 에 적었다(다음 회차가 이것과 견준다)" % os.path.relpath(baseline_path, REPO))
     if bad:
         # T28 16회차(워커 M): 29개를 줄줄이 찍으면 아무도 안 읽는다 — **낮은 것 다섯**만 점수와 함께 준다.
@@ -1080,6 +1099,16 @@ def self_test():
     _fill(side, 0, 40, 4, 120, (0, 0, 0))            # 왼쪽 **옆 여백**만 바꾼다(상자 밖)
     din3, dout3 = fp_diff(fa, fingerprint(side))
     chk(dout3 > din3, u"옆 여백만 바뀌어도 «뒤» 가 «안» 보다 크다 (안 %.1f · 뒤 %.1f)" % (din3, dout3))
+
+    two = _canvas(60, 200, (250, 250, 250))
+    _fill(two, 5, 20, 55, 40, (10, 10, 10))
+    _fill(two, 5, 120, 55, 140, (10, 10, 10))
+    nb2 = sum(1 for r in read_layout(two) if u"블록" not in r.name)
+    three = _canvas(60, 200, (250, 250, 250))
+    for y0 in (20, 80, 140):
+        _fill(three, 5, y0, 55, y0 + 20, (10, 10, 10))
+    nb3 = sum(1 for r in read_layout(three) if u"블록" not in r.name)
+    chk(nb3 > nb2, u"띠가 셋인 그림은 둘인 그림보다 밴드가 많다 (%d ↔ %d) — 밴드 수는 셀 수 있다" % (nb2, nb3))
 
     chk(fp_unpack(fp_pack(fa)) == fa, u"지문 base64 왕복이 같다 (%d칸)" % len(fa))
 
