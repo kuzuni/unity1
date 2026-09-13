@@ -1047,6 +1047,13 @@
 - 할 일: 촬영 직전에 세이브를 **깨끗한 판**으로 되돌리고(`Seed()` 가 세운 것만 남게) 장비까지 고정 굴림으로 세운다. `UiShotsTests` 가 제 판을 스스로 세우면 앞 테스트 순서에 안 물린다.
 - 판정: **같은 커밋으로 두 번 찍은 PNG 가 서로 같아야 한다** — `screen_player-info.png`·`screen_main.png` 의 «크게 다른 픽셀» 이 **1% 아래**(지금 5.5%). CI 두 런(같은 sha 로 `workflow_dispatch` 두 번)으로 재는 것이 가장 곧다. 그 뒤 `ui_score --score` 의 «내려간 화면» 이 실제 회귀만 가리키는지 한 회차 지켜본다.
 - 범위: `Assets/Tests/PlayMode/UiShotsTests.cs`(`Seed()`·판 되돌리기) · `Assets/Tests/PlayMode/PlaythroughTests.cs`(세이브를 남기지 않게 · 필요하면) · `tools/ui_score.py`(«상태 차이» 와 «회귀» 를 가르는 문구 · 있으면 좋다).
+### T129 — 플레이어 정보 «출전 줄» 오브의 Lv 라벨이 **잘려 찍힌다**(«Lv. 20» → «v. 2») — 클론이 만든 폭 상한 하나 (Game·UI · T65·T109 뒤 · 임자 없는 파일 · 워커 I 등재)
+- 실측(2026-09-13 22:0x · 워커 I · 런 254 `screen_player-info.png` 을 8배로 확대 ↔ 원작 `ref/screens/shot-043313.png` 같은 배율): 출전 줄 오브 여섯의 레벨 라벨이 **글자가 좌우로 잘린 채** 찍힌다 — 첫 칸이 «Lv. 20» 인데 «v. 2» 만 보인다. 여섯 칸 전부 같다.
+- 원인(코드): `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` 의 `OrbCell` 이 라벨 상자 폭을 `Mathf.Min(orb * 1.1f, 글자폭 + 안여백×2)` 로 잡는다. **`orb * 1.1f` 상한은 정본에 없는 클론의 발명**이다 — 정본 `.sk-lv`(`style.css` 4045)는 `white-space: nowrap` + `padding: 0 .25rem` 라 **글자 폭대로** 늘어나고 오브보다 넓어져도 그만이다. 지금 오브 지름은 정본대로 앱 폭 6.24%(`PlayerInfoUi.json orb_w`)라 상한이 «Lv. NN» 을 못 담는다.
+- 같이 고치는 것(같은 줄의 내 실수 · T109 2회차 `a43f87a`): 423행 `UiKit.OutlinePx(t, "white", KeylineUi.Px("equip_cell_lv"))` 는 **다른 요소의 규칙을 얹은 것**이다 — 정본에서 `-webkit-text-stroke: .3px #fff` 를 받는 것은 `.equip-cell .cell-lv`(`style.css` 936)이고 이 자리는 `.sk-lv`(테 규칙 없음 · `#panel-skills .sk-grid` 안에서만 2px 검정 테)다. 클론의 `.equip-cell .cell-lv` 실물은 `Ui/ForgeUi.cs` 135행(`"lv"`)이라 **T87 lock 안**이다 — `tools/check_keyline.py` 의 `MAP['.equip-cell .cell-lv']` 을 그 자리로 옮기고 `KNOWN` 에 «T87 뒤» 로 적는다.
+- ⚠ **별(★)은 쫓지 마라**: 원작 샷의 오브 바닥에 붙은 주황 별은 지금 정본 `renderPlayerInfo`(`ui.js` 5169~5180)의 출전 줄 마크업에 **없다**(`.sk-star` 는 스킬·펫·탈것 패널에만 있다) — 클론에 별이 없는 것은 정본대로다.
+- 판정: PlayMode — 출전 줄 라벨 상자 폭 ≥ 그 글자의 `preferredWidth`(잘림 0) · 라벨 글자에 테 0 + 다음 런 `screen_player-info.png` 을 8배로 열어 «Lv. NN» 이 온전히 보이는가(§1) + `check_keyline` rc 0.
+- 범위: `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs`(OrbCell 두 줄) · `tools/check_keyline.py`(MAP·KNOWN 한 칸) · `Assets/Tests/PlayMode/UiSmokeTests.cs`(단언) · `docs/ROUTINE.md`(§2 이 절) · `docs/PROGRESS.md`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
