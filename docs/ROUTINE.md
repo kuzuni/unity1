@@ -513,6 +513,16 @@
 - 판정: CI 유니티 잡에서 `ShopUiTests` 초록 + PlayMode 빨강 0(그 테스트 갈래) + `dotnet build` 초록(T48 하니스가 PlayMode 도 컴파일한다).
 - 범위: `Assets/Tests/PlayMode/ShopUiTests.cs`(그 한 단언).
 
+### T72 — 소환 결과 연출을 «두 번 탭» 으로 모는 PlayMode 단언이 CI 프레임 길이에 따라 터진다: `PetUiTests` 탈것 갈래 NRE (검증·UI · **T58 lock 이 풀린 뒤** · 워커 E 등재)
+- 실측(2026-09-13 01:13 · 워커 E · CI 런 118 `playmode-red.txt` · PlayMode 85 중 빨강 3):
+  `PetUiTests.탈것_시트_소환_상세_장착_타기_업그레이드_확률_팝업` 이 `PetUiTests.cs:330` 에서 `System.NullReferenceException`. 그 줄은 **첫 소환의 두 번째** `SkillSummonResultView.Current.OnTap()` 이다 — 즉 첫 탭에서 이미 `Current` 가 `null` 이 됐다. 런 113 에서는 초록이었다(그 런 빨강 둘은 T68·T71).
+- 왜(정본 코드로 가른 것 · 클론 결함이 아니라 **단언의 가정**이 틀렸다): `SkillSummonResult.OnTap()` 은 «연출 중이면 스킵 · **끝났으면 닫기**»(원작 `onSummonResultTap` 과 같다 · 637행) 이고 `Close()` 가 `Current = null` 을 한다(648행). 그런데 연출 진행은 **벽시계**(`Time.unscaledTime` · 556·570행 `elapsed >= delays[마지막] + sr_tail_ms` → `Finish()` → `done = true`)다. 소환 1회짜리 표는 `sr_charge_ms + sr_tail_ms` 로 짧아서, CI 한 프레임이 그보다 길면 테스트의 `yield return null` **한 번 만에 연출이 저절로 끝난다** → 첫 탭이 «스킵» 이 아니라 «닫기» 가 되고 둘째 탭이 null 을 친다.
+- 그래서 이것은 **프레임 길이에 달린 단언**이다(«한 번은 스킵 · 한 번은 닫기» 를 가정). 같은 꼴이 펫 갈래에도 있다(`PetUiTests.cs:201·203` · 런 118 에서는 우연히 초록) — 둘 다 고친다.
+- 무엇을 한다: 탭을 **횟수로 세지 말고 상태로 몬다** — `while (SkillSummonResultView.Current != null && 프레임 한도) { Current.OnTap(); yield return null; }` 꼴로 «닫힐 때까지» 두드리고, 그 뒤 `Assert.IsFalse(Sheet.Modal.IsOpen(SkillSummonResultView.ModalName))` 로 판정한다. 연출 코드(`SkillSummonResult.cs`)는 정본 그대로 두라 — 고칠 것은 테스트의 가정뿐이다.
+- ⚠ 임자: 빨강의 파일 `Assets/Tests/PlayMode/PetUiTests.cs` 는 **T58 범위**(워커 B · lock 살아 있음)이고 연출 파일은 T20(✅ · lock 없음)이다 — T71 과 같은 «임자가 갈리는» 자리라 이 절로 남긴다. T58 이 반납하면 누구든 잡는다 · T58 이 제 회차에 같이 고치면 ⛔ 로 흡수.
+- 판정: CI 유니티 잡에서 `PetUiTests` 전 갈래 초록(런 118 은 1건 빨강) · `dotnet build` 초록(T48 하니스가 PlayMode 도 컴파일한다).
+- 범위: `Assets/Tests/PlayMode/PetUiTests.cs`(소환 결과 탭 두 자리).
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -655,5 +665,5 @@ node tools/export_data.js --self-test                                         # 
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 🔄(남은 렌더 쪽 ≈880KB 를 플레이어 빌드에서 잰다) |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ⬜ |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ⬜ · T72 ⬜ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
