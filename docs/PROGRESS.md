@@ -2116,6 +2116,16 @@
 - 9회차(망치) 판정은 런 181 이 돌고 있어 다음 회차가 읽는다.
 
 
+**2회차 (2026-09-13 11:5x · 워커 D · sess-1052-29762 · 런 179 판정 + 목록이 바닥에 안 붙던 것을 정본대로)**
+
+- **1회차 판정**: 런 177(내 커밋)은 concurrency 로 취소 · 내 커밋을 품은 런 178·179 초록 · `screens`(런 179 · tests success) `playmode-red.txt` 에 `PASS ChatShareIconTests.공유_카드의_전투력은…` — 계층 단언은 실제 런타임에서 통과.
+- **눈 확인은 못 했다**: `screen_chat.png`(런 179)에는 공유 카드가 **안 보인다** — 목록이 11:05~11:20(씨앗 앞쪽)에 멈춰 있고 마지막 줄이 입력바에 잘린다. 정본 샷(`shot-043500`)은 카드가 맨 아래서 둘째다.
+- **원인**(`ChatScreen.RenderList`): `Destroy`(프레임 끝) 직후·레이아웃을 재기 전에 `verticalNormalizedPosition = 0` 을 넣어 ScrollRect 가 **옛 content 높이**로 정규화했다 → 헛값. 정본은 `openChat` 이 보이게 만든 뒤 `pinChatBottom()`(scrollTop = scrollHeight)을 한 번 더 부르고, `renderChatList` 는 `_chatStick`(바닥에 붙어 있었으면 따라간다)으로 재렌더를 다룬다(`ui.js` 5300~5353).
+- **고침**(같은 파일 `ChatScreen.cs` · T99 범위 안): `PinBottom()` = 옛 줄을 먼저 끄고(Destroy 지연) `LayoutRebuilder.ForceRebuildLayoutImmediate(list)` → 0 · `Open` 끝에 한 번 더(정본 순서) · `stick`(정본 `_chatStick`) 을 `scroll.onValueChanged` 로 갱신하고 `RenderList` 는 붙어 있었을 때만 따라간다 · 정본의 40px 여유는 옮기지 않았다(수치를 코드에 안 박는다 · 카탈로그는 T87 lock 파일) — 바닥 판정은 정규화 0 근처(부동소수 여유만).
+- **테스트 +1**(`ChatShareIconTests`): 채팅을 열면 공유 카드·최신 줄이 목록 창(`list-box`) 안에 있고, 보낸 뒤에도 최신 줄이 창 안이다(월드 사각 포함 검사).
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` 540/540 · 자 13종 + `check_data_sync` rc 0.
+- **✅ 조건**: 다음 촬영 `screen_chat.png` 에서 카드가 보이고 그 전투력 앞에 검 아이콘(눈) + Forge* 넷(T87 뒤). T28 채팅 칸 점수는 목록이 정본처럼 바닥이 되니 바뀔 것이다(기준선 갱신은 T28 몫).
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
@@ -2390,3 +2400,4 @@
 
 226. **«그려지는가» 는 픽셀이 판정한다 — 새 그리기 수단은 검증된 길(구운 스프라이트 + Image)로(2026-09-13 · T87 7회차 · 워커 G)** — 결정 223 은 각진 SVG 면을 `Graphic` 상속 정점 메시로 그리기로 했고 그것은 **화면에 한 픽셀도 안 나왔다**(런 173 실측: 모루 상자 픽셀 변화 0 · 그런데 PlayMode 101/101 초록 · 콘솔 빨강 0). 원인은 컨테이너에서 유니티를 못 돌려 못 좁혔고, 회차마다 10분짜리 CI 왕복으로 더듬는 대신 **이 레포에서 실제로 칠해지는 것이 확인된 길**(`UiShapes` 처럼 텍스처를 구워 `Image` 에 얹기)로 갈아탔다: 폴리곤을 짝홀 규칙 + 3×3 초과표본으로 굽고, 그라디언트도 같이 굽고, 불투명도는 `Image.color.a` 로 준다. 값 단언만으로는 이 갈래를 못 잡으므로 **픽셀 단언**(`쇳덩이가_화면에_실제로_칠해진다`)을 같이 세웠다 — 앞으로 새 그림을 넣는 회차는 그 짝을 같이 만든다. 되돌리려면 `CraftFxPoly` 를 6회차 판(정점 메시)으로 되돌리고 픽셀 자를 지운다 — 그러면 다시 안 보인다.
 227. **T99 는 T87 과 안 겹치는 자리(ChatScreen)부터 · 아이콘은 표의 ⚔ 가 아니라 정본이 그리는 `power`(2026-09-13 · T99 1회차 · 워커 D · sess-1052-29762)** — ⓐ 제목의 «T87·T91 lock 이 풀린 뒤» 는 파일 겹침 회피가 본뜻이라 T91 반납 뒤 `ChatScreen.cs` 만 먼저 고쳤고 `Forge*` 넷은 T87 lock 이 살아 있는 동안 열지 않는다(규약 «같은 파일이면 뒤 번호가 기다린다» 를 파일 단위로 지킨다 · lock 은 회차마다 갱신). ⓑ T89 는 라벨 ⚔ 를 `IconTextRow`(표 → `tm_sword`)로 세웠지만 이 자리 정본은 `IconGen.img('power')` 라 «그대로 옮기기» 대로 `power` 아이콘을 직접 세웠다(HUD·리그 도전 행과 같은 선례). 되돌리려면 `ChatScreen.Side` 의 T99 주석 블록 한 곳과 `ChatShareIconTests.cs`.
+228. **채팅 목록 «바닥 붙임» 을 T99 안에서 정본대로 고쳤다(2026-09-13 · T99 2회차 · 워커 D · sess-1052-29762)** — 런 179 `screen_chat.png` 에 공유 카드가 안 보여 T99 판정(«PNG 를 열어 눈으로»)이 막혔다. 원인은 `ChatScreen.RenderList` 가 레이아웃을 재기 전에 스크롤 0 을 넣는 것(헛값)이라 정본 `pinChatBottom`·`_chatStick`(`ui.js` 5300~5353)을 같은 파일에 옮겼다 — T99 범위 파일이고 T22 는 ✅ 라 lock 충돌이 없으며, 채팅 샷이 정본(맨 아래 = 최신)과 같아진다. 정본의 40px 여유는 수치라 안 옮겼다(카탈로그는 T87 lock · 바닥 판정은 정규화 0 근처). 되돌리려면 `ChatScreen.cs` 의 `PinBottom`·`stick` 블록.

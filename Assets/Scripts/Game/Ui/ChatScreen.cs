@@ -18,6 +18,11 @@ namespace Forge.Game.Ui
         private static TMP_InputField input;
         private static RectTransform list;
         private static ScrollRect scroll;
+        /// <summary>정본 `_chatStick` — 바닥에 붙어 있는가(true 면 재렌더가 바닥을 따라간다).</summary>
+        private static bool stick = true;
+        private static bool rendering;
+        /// <summary>«바닥» 판정의 부동소수 여유(설계 수치가 아니다 · 정규화 0~1 에서 0 근처).</summary>
+        private const float BottomEps = 1e-3f;
 
         public static void Open(MetaHost h)
         {
@@ -36,6 +41,8 @@ namespace Forge.Game.Ui
             listBox.offsetMax = new Vector2(0f, -UiKit.H("topbar_h") * 0.3f);
             list = PopupKit.ScrollList(listBox, "list", rem * 0.41f, rem * 0.5f, rem * 0.5f, TextAnchor.LowerLeft);
             scroll = listBox.GetComponent<ScrollRect>();
+            // 정본 onChatScroll — 사용자가 위로 올려 옛 메시지를 읽는 중이면 새 메시지가 와도 끌어내리지 않는다. 바닥이면 따라간다.
+            scroll.onValueChanged.AddListener(_ => { if (!rendering && scroll != null) stick = scroll.verticalNormalizedPosition <= BottomEps; });
 
             RectTransform bar = UiKit.Box(card, "input-bar");
             bar.anchorMin = new Vector2(0f, 0f);
@@ -77,6 +84,8 @@ namespace Forge.Game.Ui
             input.onSubmit.AddListener(_ => Send(h));
 
             RenderList(h);
+            // 정본 openChat: renderChatFull 뒤 보이게 만들고 `pinChatBottom()` 을 한 번 더 — «최신 메시지가 입력바 바로 위».
+            PinBottom();
         }
 
         public static void Close(MetaHost h)
@@ -85,6 +94,18 @@ namespace Forge.Game.Ui
             input = null;
             list = null;
             scroll = null;
+            stick = true;
+        }
+
+        /// <summary>정본 `pinChatBottom` — 목록을 최신 메시지에 붙인다. 행 높이는 전부 LayoutElement 고정값이라 레이아웃을 즉시 다시 재고 바닥(0)으로 민다
+        /// (재기 전에 0 을 넣으면 ScrollRect 가 옛 content 높이로 정규화해 헛값이 된다 — 런 179 채팅 샷이 11:05~11:20 에 멈춰 있던 이유).</summary>
+        public static void PinBottom()
+        {
+            if (list == null || scroll == null) return;
+            stick = true;
+            LayoutRebuilder.ForceRebuildLayoutImmediate(list);
+            Canvas.ForceUpdateCanvases();
+            scroll.verticalNormalizedPosition = 0f;
         }
 
         /// <summary>원작 onSendChat — 입력값을 보내고 비운다.</summary>
@@ -121,10 +142,18 @@ namespace Forge.Game.Ui
         private static void RenderList(MetaHost h)
         {
             if (list == null) return;
-            for (int i = list.childCount - 1; i >= 0; i--) UnityEngine.Object.Destroy(list.GetChild(i).gameObject);
+            bool wasStick = stick;
+            rendering = true;
+            for (int i = list.childCount - 1; i >= 0; i--)
+            {
+                GameObject old = list.GetChild(i).gameObject;
+                old.SetActive(false);                 // Destroy 는 프레임 끝에 되므로 레이아웃이 옛 줄을 안 세게 먼저 끈다
+                UnityEngine.Object.Destroy(old);
+            }
             List<ChatMessage> msgs = h.ChatState.Messages ?? new List<ChatMessage>();
             foreach (ChatMessage m in msgs) Row(list, m);
-            if (scroll != null) scroll.verticalNormalizedPosition = 0f;
+            rendering = false;
+            if (wasStick) PinBottom();               // 정본 renderChatList: 바닥에 붙어 있었으면 새 메시지를 따라간다
         }
 
         private static string Time(double at)

@@ -772,6 +772,7 @@
 - ⚠ **두 줄 버튼 주의**: 그 버튼 라벨 셋은 `"판매\n🪙 +N"` 처럼 **줄바꿈이 있다**. `IconTextRow` 는 가로 한 줄이라 그대로 쓰면 두 줄이 한 줄로 눌린다 — 세로 칸(위: 글자 · 아래: 아이콘 줄)으로 감싸거나 `IconTextRow` 에 «줄바꿈이면 새 줄» 갈래를 더해야 한다. 정본은 `.btn` 안에서 `<br>` 로 나눈다(`ui.js` 의 해당 버튼).
 - 판정: `tools/check_text_glyphs.py` 는 이 자리들을 «표가 덮는 글자» 로 세어 지금도 통과한다 — 판정은 **PNG 를 열어** 그 버튼·채팅줄에 아이콘이 섰는지 눈으로(§1) + 해당 화면 PlayMode 초록.
 - 범위: `Assets/Scripts/Game/Ui/ChatScreen.cs` · `Ui/ForgeCraftPopup.cs` · `Ui/ForgeInfoPopup.cs` · (필요하면) `Ui/UiKit.cs`(두 줄 갈래).
+- 진행(워커 D · 2026-09-13): 1회차 `ChatScreen` ⚔ → 정본 `power` 아이콘(런 179 PASS) · 2회차 채팅 목록이 바닥에 안 붙어 샷에 카드가 안 보이던 것을 정본 `pinChatBottom`·`_chatStick` 대로(결정 228) · `Forge*` 넷은 T87 lock 이 풀린 뒤.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

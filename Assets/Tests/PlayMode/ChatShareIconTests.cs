@@ -93,5 +93,65 @@ namespace Forge.Tests.PlayMode
             foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
                 Assert.IsFalse(t.text != null && t.text.Contains("⚔"), t.name + " 에 ⚔ 글자가 남았다: «" + t.text + "»");
         }
+        /// <summary>정본 `openChat` 은 `pinChatBottom()` 으로 «최신 메시지가 입력바 바로 위» 에 오게 한다 — 씨앗의 공유 카드는 맨 아래서 둘째라 창 안에 있어야 한다
+        /// (런 179 채팅 샷은 목록이 11:05~11:20 에 멈춰 카드가 창 밖이었다). 보낸 뒤에는 바닥을 따라간다(정본 `_chatStick`).</summary>
+        [UnityTest]
+        public IEnumerator 채팅을_열면_목록이_바닥에_붙어_공유_카드가_창_안에_보이고_보낸_뒤에도_바닥을_따라간다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            Hud.Instance.ChatButton.onClick.Invoke();
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(ChatScreen.Name);
+            Assert.IsNotNull(p);
+
+            RectTransform viewport = FindIn(p.Root, "list-box");
+            Assert.IsNotNull(viewport, "채팅 목록 창(list-box)이 없다");
+            RectTransform card = FindIn(p.Root, "share");
+            Assert.IsNotNull(card, "씨앗 공유 카드가 없다");
+            Rect vp = WorldRect(viewport), cd = WorldRect(card);
+            Assert.IsTrue(cd.yMin >= vp.yMin - 0.5f && cd.yMax <= vp.yMax + 0.5f,
+                "공유 카드가 목록 창 밖이다 — 창 y " + vp.yMin + "~" + vp.yMax + " · 카드 y " + cd.yMin + "~" + cd.yMax + " (정본 pinChatBottom)");
+
+            // 마지막 줄(최신 메시지)도 창 안 — 바닥에 붙었다.
+            RectTransform content = FindIn(p.Root, "content");
+            Assert.IsNotNull(content);
+            RectTransform last = LastActiveRow(content);
+            Assert.IsNotNull(last, "메시지 줄이 없다");
+            Rect lr = WorldRect(last);
+            Assert.IsTrue(lr.yMin >= vp.yMin - 0.5f, "최신 메시지가 입력바 아래로 밀려 있다 — 창 yMin " + vp.yMin + " · 줄 yMin " + lr.yMin);
+
+            // 보내면 새 줄이 바닥에 서고 창은 그 줄을 따라간다.
+            Assert.IsTrue(h.Chat.SendPlayer(h.ChatState, "안녕", h.Nickname, h.AvatarEmoji, h.Gender, h.NowMs));
+            h.Touch();
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            last = LastActiveRow(content);
+            Assert.IsNotNull(last);
+            lr = WorldRect(last); vp = WorldRect(viewport);
+            Assert.IsTrue(lr.yMin >= vp.yMin - 0.5f && lr.yMax <= vp.yMax + 0.5f,
+                "보낸 뒤 최신 메시지가 창 밖이다 — 창 y " + vp.yMin + "~" + vp.yMax + " · 줄 y " + lr.yMin + "~" + lr.yMax);
+        }
+
+        private static RectTransform FindIn(Transform root, string name)
+        {
+            foreach (RectTransform rt in root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == name) return rt;
+            return null;
+        }
+
+        private static RectTransform LastActiveRow(RectTransform content)
+        {
+            for (int i = content.childCount - 1; i >= 0; i--)
+                if (content.GetChild(i).gameObject.activeSelf) return (RectTransform)content.GetChild(i);
+            return null;
+        }
+
+        private static Rect WorldRect(RectTransform rt)
+        {
+            Vector3[] c = new Vector3[4];
+            rt.GetWorldCorners(c);
+            return new Rect(c[0].x, c[0].y, c[2].x - c[0].x, c[2].y - c[0].y);
+        }
     }
 }
