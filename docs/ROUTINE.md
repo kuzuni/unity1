@@ -701,7 +701,7 @@
 - 판정: `check_task_rows --self-test` 초록 · 지금 표에 대고 돌리면 **T90·T91 을 이름으로 찍고 rc 1**.
 - 범위: `tools/check_task_rows.py`.
 
-### T93 — 대장간 목록·상세 팝업의 딤이 상단바·탭바를 안 덮는다: 원작은 팝업이 뜨면 화면 전체가 어두워진다 (Game·UI · T78·T85 뒤 · T28 13회차가 눈으로+자로 잡음)
+### T93 ✅ — 대장간 목록·상세 팝업의 딤이 상단바·탭바를 안 덮는다: 원작은 팝업이 뜨면 화면 전체가 어두워진다 (Game·UI · T78·T85 뒤 · T28 13회차가 눈으로+자로 잡음)
 - 실측(2026-09-13 · T28 13회차 · 워커 M · 런 155 `screen_forge-detail.png` **1.1/10** — 30화면 중 꼴찌):
   - **자**: 원작 판독표(`shot-042931`)의 **첫 밴드가 y 16.6%** 인데(그 위는 통째로 어두워 아무 블록도 안 잡힌다) 클론은 **첫 밴드가 y 0.9%** 다 — 상단바(용사·⚔12.2m·🪙27.1m·💎8.15k)가 **환하게** 잡힌다. 아래 탭바(PVP·던전·소환·퀘스트·상점)도 같다.
   - **눈**: 원작은 카드 밖이 거의 검고 목록 행이 옆으로 어렴풋이 비치는데, 클론은 상단바·탭바·채팅줄이 **원래 밝기 그대로**다.
@@ -710,6 +710,13 @@
 - 무엇을 한다: 정본 `style.css`·`ui.js` 에서 팝업별 `.modal-backdrop` 유무를 표로 뽑아(그 표를 `catalog.json` 이나 코드 한 곳에 두고) 대장간 계열에 **앱 상자 전체를 덮는 딤**을 되살린다. 딤 밝기는 결정 191 값 그대로.
 - 판정: `ui_score --score --only forge-detail forge-list autoforge` 가 **런 141 수준(2.2·4.0·4.3) 이상** + 워커가 PNG 를 열어 «상단바·탭바가 어둡다» 확인 + `--read` 로 첫 밴드 y 가 **10% 아래에서 안 잡힌다** + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/Forge*`(딤 갈래) · 딤 공용 자리(`Ui/UiKit.cs` 또는 `Ui/PetSkillModal.cs`) · `Assets/Forge/catalog.json`(팝업별 딤 표) · `Assets/Tests/PlayMode/ForgeUiTests.cs`.
+- ✅ 결론(2026-09-13 · 워커 R · 코드 0줄): **전제가 틀렸다.** T85 는 팝업 딤을 안 건드렸고(런 141 의 어둠 = 사망 암전 덮개), 런 155 대장간 팝업은 상단바 ×0.66·탭바 ×0.64(한 겹)/×0.4(두 겹)로 **덮여 있다** — 정본 `.modal` .5(주인 지시 «투명도 50%») 그대로. 원작 샷 042905·042931·043117 은 .988 시절이라 «첫 밴드 y ≥ 10%» 는 정본 .5 로는 나오지 않는다(T28 «낡은 샷» 여섯째). 남은 진짜 차이(선형 α 환산 · 결정 191)는 **T94**. 기록은 PROGRESS «T93 완료 기록».
+
+### T94 — 팝업 공용 딤도 브라우저 밝기로: `Popups.Show` 에 `UiKit.PerceivedDim`(결정 191) + 딤 색 단언 둘을 지각 α 로 (Game·UI·검증 · **T87 뒤**(`ForgeUiTests.cs` 같은 파일) · T93 등재)
+- 실측(2026-09-13 · T93 · 런 155): 팝업 한 겹 아래 상단바가 `main` 의 ×0.66 — 프로젝트가 선형 색 공간이라 `modal_dim` α .5 가 브라우저의 .5(×0.5)보다 밝다(결정 191 이 `PetSkillModal` 에서 잰 것과 같은 자리). `Popups.Show`(`Ui/Popups.cs` 80행) 는 `UiKit.Panel(p.Root, "dim", dimKey)` 그대로 · `PetSkillModal` 만 `UiKit.PerceivedDim` 을 거친다.
+- 무엇을 한다: ⓐ `Popups.Show` 의 딤에 `dim.color = UiKit.PerceivedDim(dim.color)` 한 줄(표값은 그대로 · `modal_dim_deep` 도 같은 환산) ⓑ T78 `ForgeUiTests.AssertCovers` 402행 `Assert.AreEqual(UiKit.C("modal_dim"), dim.color, …)` → 지각 α 비교 ⓒ T85 `UiSmokeTests` 337행 같은 갱신. 그때 `DungeonPopups.cs` 37행(raw `modal_dim`)·`ForgeCraftPopup.cs` 215~216(`new Color(0,0,0,0.42f)` 리터럴 · §1 위반)도 같은 길로.
+- 판정: PlayMode 세 픽스처 초록 + 다음 촬영에서 팝업 아래 상단바가 `main` 의 ×0.5 안팎(픽셀) + 콘솔 빨강 0. `ui_score` 점수는 원작 샷이 .988 이라 이것으로는 크게 안 오른다(T28 메모).
+- 범위: `Assets/Scripts/Game/Ui/Popups.cs`(Show 한 줄) · `Assets/Tests/PlayMode/ForgeUiTests.cs`(AssertCovers 한 줄) · `Assets/Tests/PlayMode/UiSmokeTests.cs`(단언 한 줄) · (같이 열면) `Ui/DungeonPopups.cs` · `Ui/ForgeCraftPopup.cs`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -848,7 +855,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ⬜ · T91 🔄 · T93 ⬜ |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ⬜ · T91 🔄 · T93 ✅ · T94 ⬜ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) · T83(촬영 두 장 가르기) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ✅ · T83 ✅|
