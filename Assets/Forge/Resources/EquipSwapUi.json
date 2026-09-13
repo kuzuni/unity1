@@ -1,0 +1,91 @@
+{
+  "_": "ROUTINE T118 장비 교체 «던져내기»(원작 ui.js 3305~3466 EQSW_* · grabEquipSwapFx · playEquipSwapFx · css 7277~7375 #equip-swap-fx/.eqsw-fly/.eqsw-fly-y/.eqsw-fly-r/.eqsw-fly-box/.eqsw-dust/.eqsw-snap-box · @keyframes eqswX/eqswY/eqswR/eqswSquash/eqswDust/eqswSnap)의 수치·색·이름표. T87 lock 이 Assets/Forge/catalog.json 을 쥐고 있어 T118 몫만 여기 둔다(T117 CoinBurstUi.json 과 같은 꼴). 키 접미: _rem = 정본 rem · _px = 정본 절대 CSS px(기준 캔버스 배율은 catalog anvil_fx_px · T87 결정 222) · _ms = 벽시계 · _f = 비율 · _deg = 도 · _w/_h = 칸 폭/높이 배수 · _n = 개수. 키프레임 ease 는 정본 animation-timing-function(적지 않은 구간은 CSS 기본 ease = .25,.1,.25,1 · 끝값이 같은 구간은 무관). 코드에 숫자를 박지 않는다(§1).",
+  "colors": {
+    "dust": "#e2d6c4",
+    "shadow": "#0000008c"
+  },
+  "text": {
+    "layer": "equip-swap-fx",
+    "grid": "equip-grid",
+    "cell_prefix": "cell-",
+    "frame": "frame",
+    "card": "card",
+    "fly": "eqsw-fly",
+    "shadow": "eqsw-shadow",
+    "dust": "eqsw-dust",
+    "snap": "eqsw-snap"
+  },
+  "layout": {
+    "fly_ms": 900,
+    "land_k": 0.58,
+    "snap_ms": 340,
+    "snap_delay_ms": 130,
+    "shrink_f": 0.55,
+    "tilt_min_deg": 8,
+    "tilt_max_deg": 22,
+    "turns_min_n": 1,
+    "turns_max_n": 2,
+    "turn_deg": 360,
+    "reach_w_f": 1.12,
+    "reach_h_f": 1.05,
+    "reach_pad_px": 2,
+    "land_dist_min_w": 1.5,
+    "land_dist_max_w": 2.2,
+    "drop_min_h_f": 1.1,
+    "rise_min_h_f": 0.42,
+    "rise_max_h_f": 0.64,
+    "remove_slack_ms": 160,
+    "dust_ms": 500,
+    "dust_remove_ms": 520,
+    "dust_w_f": 1.6,
+    "dust_h_f": 0.34,
+    "dust_y_f": 0.46,
+    "dust_alpha_core_f": 0.5,
+    "bounce_big_rem": 0.8,
+    "bounce_small_rem": 0.26,
+    "shadow_dy_rem": 0.35,
+    "shadow_blur_rem": 0.6,
+    "hollow_brightness_f": 0.72,
+    "hollow_saturate_f": 0.55
+  },
+  "x": [
+    { "at": 0, "v": 0, "ease": [0.12, 0.62, 0.35, 1] },
+    { "at": 58, "v": 1, "ease": [0.25, 0.1, 0.25, 1] },
+    { "at": 100, "v": 1 }
+  ],
+  "y": [
+    { "at": 0, "y": "0", "opacity": 1, "ease": [0.1, 0.72, 0.36, 1] },
+    { "at": 26, "y": "rise", "opacity": 1, "ease": [0.58, 0, 0.86, 0.36] },
+    { "at": 58, "y": "drop", "opacity": 1, "ease": [0.15, 0.72, 0.4, 1] },
+    { "at": 68, "y": "drop-big", "opacity": 1, "ease": [0.6, 0, 0.9, 0.5] },
+    { "at": 76, "y": "drop", "opacity": 1, "ease": [0.15, 0.72, 0.4, 1] },
+    { "at": 82, "y": "drop-small", "opacity": 1, "ease": [0.6, 0, 0.9, 0.5] },
+    { "at": 87, "y": "drop", "opacity": 1, "ease": [0.25, 0.1, 0.25, 1] },
+    { "at": 100, "y": "drop", "opacity": 0 }
+  ],
+  "r": [
+    { "at": 0, "v": 0, "ease": [0.1, 0.55, 0.45, 1] },
+    { "at": 58, "v": 1, "ease": [0.25, 0.1, 0.25, 1] },
+    { "at": 100, "v": 1 }
+  ],
+  "squash": [
+    { "at": 0, "sx": 1, "sy": 1, "of_sk": false, "ease": [0.25, 0.1, 0.25, 1] },
+    { "at": 54, "sx": 1, "sy": 1, "of_sk": true, "ease": [0.25, 0.1, 0.25, 1] },
+    { "at": 60, "sx": 1.12, "sy": 0.84, "of_sk": true, "ease": [0.25, 0.1, 0.25, 1] },
+    { "at": 68, "sx": 0.96, "sy": 1.05, "of_sk": true, "ease": [0.25, 0.1, 0.25, 1] },
+    { "at": 78, "sx": 1, "sy": 1, "of_sk": true, "ease": [0.25, 0.1, 0.25, 1] },
+    { "at": 100, "sx": 1, "sy": 1, "of_sk": true }
+  ],
+  "dust": [
+    { "at": 0, "opacity": 0, "sx": 0.28, "sy": 0.5, "ty_pct": -50, "ease": [0, 0, 0.58, 1] },
+    { "at": 18, "opacity": 0.95, "sx": 0.72, "sy": 0.86, "ty_pct": -50, "ease": [0, 0, 0.58, 1] },
+    { "at": 100, "opacity": 0, "sx": 1.5, "sy": 1.1, "ty_pct": -62 }
+  ],
+  "snap": [
+    { "at": 0, "ty_pct": -42, "scale": 0.58, "opacity": 0.25, "brightness": 1, "ease": [0.5, 0, 0.75, 0.4] },
+    { "at": 46, "ty_pct": 0, "scale": 1.16, "opacity": 1, "brightness": 1.75, "ease": [0.2, 0.9, 0.35, 1] },
+    { "at": 72, "ty_pct": 0, "scale": 0.955, "opacity": 1, "brightness": 1.12, "ease": [0.3, 0.7, 0.4, 1] },
+    { "at": 88, "ty_pct": 0, "scale": 1.028, "opacity": 1, "brightness": 1, "ease": [0.25, 0.1, 0.25, 1] },
+    { "at": 100, "ty_pct": 0, "scale": 1, "opacity": 1, "brightness": 1 }
+  ]
+}
