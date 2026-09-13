@@ -90,9 +90,11 @@ namespace Forge.Core.Audio
         // ---- FFT 합성곱 (ConvolverNode 자리 · 균일 분할 overlap-add) ----
 
         /// <summary>제자리 복소 radix-2 FFT(n 은 2의 거듭제곱). inverse 면 1/n 스케일까지.</summary>
-        public static void Fft(double[] re, double[] im, bool inverse)
+        public static void Fft(double[] re, double[] im, bool inverse) { Fft(re, im, inverse, re.Length); }
+
+        /// <summary>앞 <paramref name="n"/> 칸만 변환한다(배열이 더 길어도 된다 · T73 되쓰기).</summary>
+        public static void Fft(double[] re, double[] im, bool inverse, int n)
         {
-            int n = re.Length;
             for (int i = 1, j = 0; i < n; i++)
             {
                 int bit = n >> 1;
@@ -153,32 +155,42 @@ namespace Forge.Core.Audio
             }
         }
 
-        /// <summary>x ⊛ ir 를 outLen 샘플까지(overlap-add · 블록마다 FFT 두 번).</summary>
+        /// <summary>x ⊛ ir 를 outLen 샘플까지(overlap-add · 블록마다 FFT 두 번). 배열을 새로 잡는 갈래 — 되쓰기는 아래 오버로드.</summary>
         public static double[] Convolve(double[] x, ConvolverKernel k, int outLen)
         {
             var y = new double[outLen];
+            Convolve(x, x.Length, k, outLen, y, new double[k.FftSize], new double[k.FftSize]);
+            return y;
+        }
+
+        /// <summary>
+        /// 같은 합성곱을 호출자가 준 배열에(T73 되쓰기): <paramref name="x"/> 의 앞 <paramref name="xLen"/> 칸만 입력으로, 출력은 <paramref name="y"/> 의 앞 <paramref name="outLen"/> 칸(0 으로 지우고 더한다),
+        /// <paramref name="re"/>·<paramref name="im"/> 은 길이 ≥ <c>k.FftSize</c> 의 작업 배열. 배열이 더 길어도 결과는 같다(모든 루프가 길이 인자까지만 본다).
+        /// </summary>
+        public static void Convolve(double[] x, int xLen, ConvolverKernel k, int outLen, double[] y, double[] re, double[] im)
+        {
             int n = k.FftSize;
-            var re = new double[n];
-            var im = new double[n];
-            for (int start = 0; start < x.Length && start < outLen; start += k.BlockSize)
+            if (re.Length < n || im.Length < n) throw new ArgumentException("FFT 작업 배열이 FftSize 보다 짧다");
+            if (y.Length < outLen) throw new ArgumentException("출력 배열이 outLen 보다 짧다");
+            Array.Clear(y, 0, outLen);
+            for (int start = 0; start < xLen && start < outLen; start += k.BlockSize)
             {
                 Array.Clear(re, 0, n); Array.Clear(im, 0, n);
-                int cnt = Math.Min(k.BlockSize, x.Length - start);
+                int cnt = Math.Min(k.BlockSize, xLen - start);
                 bool any = false;
                 for (int i = 0; i < cnt; i++) { re[i] = x[start + i]; if (re[i] != 0) any = true; }
                 if (!any) continue;
-                Fft(re, im, false);
+                Fft(re, im, false, n);
                 for (int i = 0; i < n; i++)
                 {
                     double r = re[i] * k.Re[i] - im[i] * k.Im[i];
                     double m = re[i] * k.Im[i] + im[i] * k.Re[i];
                     re[i] = r; im[i] = m;
                 }
-                Fft(re, im, true);
+                Fft(re, im, true, n);
                 int lim = Math.Min(n, outLen - start);
                 for (int i = 0; i < lim; i++) y[start + i] += re[i];
             }
-            return y;
         }
 
         // ---- 소프트 리미터 (DynamicsCompressorNode 자리) ----

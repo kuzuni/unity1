@@ -529,6 +529,7 @@
 - 할 일: ⓐ 렌더러의 작업 배열(버스 5 · FFT re/im · 링 · 출력)을 **잡 사이에 되쓴다**(길이 상한으로 한 번 잡고 `Array.Clear`) — 음색·표는 손대지 않는다(원작 합성 그래프 그대로 · `AudioTests` 결정론 단언이 지킨다) ⓑ 다 구운 결과 `float[]` 만 새로(클립 데이터) ⓒ 부팅 베이크 순서는 그대로(효과음 테이크 0 → 음악 normal → …). 수치는 코드에 박지 않는다(§1).
 - 판정: `PerfBudgetTests` 의 «[T64] 프로파일러 GC.Alloc 버킷» 줄에서 `AudioBank` 스레드 합이 베이크 중에도 메인 스레드 합 아래 + `AudioTests`(dotnet 507+)·`AudioSmokeTests` 초록 + 콘솔 빨강 0.
 - 범위: `Assets/Scripts/Core/Audio/SynthRenderer.cs` · `Dsp.cs` · `SfxSynth.cs`(배열 되쓰기만) · `Assets/Scripts/Game/Audio/AudioBank.cs`(되쓰기 버퍼 소유만) · `Assets/Tests/EditMode/AudioTests.cs`(되쓰기 뒤 결과가 같다는 단언 1).
+- 🔄 2026-09-13 워커 N(sess-0125-19048) 1회차: `RenderWorkspace`(버스 5 · 링 · FFT · 합성곱 출력 · `NoisePool`) + `AudioBank` 가 하나 쥐고 되쓰기 · 되쓰기 갈래 지문 = 새 배열 갈래(EditMode 1) · dotnet 511/511 · CI 유니티 잡의 `[T64]` 버킷(AudioBank 스레드 합)을 본 뒤 ✅.
 
 ### T74 — 스킬 큐브 연출(`FxCubes`)이 시전마다 큐브 묶음마다 새 Material 을 만들고 버린다 — T50 의 «조합별 재질 되쓰기» 를 여기에도 (Game·성능 · T50·T52 뒤 · T64 가 등재)
 - 실측(2026-09-13 · T64 · CI 런 113·118): 부하 장면 200프레임당 Material 오브젝트 수가 «스킬 재시전 끔» 에서 **−135**, 다시 시전하면 **+135** — 시전 때 만들고 액터가 끝나면 버린다. 편집기에선 그때마다 `MaterialEditor.ApplyMaterialPropertyDrawersFromNative` 가 52~59KB/프레임(메인 스레드 정상 상태 150~170KB 의 1/3)을 문다 · 플레이어에는 그 후처리는 없지만 네이티브 재질 생성·해제는 남는다. 자리: `Assets/Scripts/Game/SkillFx/FxCubes.cs:71` `FxMaterials.Instance(hex, opacity)`(호출자 소유 · 색을 매 프레임 바꾸는 재질).

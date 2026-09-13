@@ -270,6 +270,63 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 되쓰기_작업_공간으로_구워도_결과가_같고_배열을_다시_쓴다()
+        {
+            // T73 — AudioBank 워커가 잡 사이에 되쓰는 RenderWorkspace: 긴 음악을 먼저 구워 배열을 더럽힌 뒤 효과음·음악을 다시 구워도
+            // 새 배열로 구운 것과 지문(float 비트)까지 같아야 한다(«길이보다 긴 배열» · «지운 뒤 더하기» · 노이즈 풀 되쓰기가 소리를 못 바꾼다).
+            var ws = new RenderWorkspace();
+            int steps = Table.StepsPerBar * 2;
+            AudioFactory.RenderMusic(Table, "normal", 21, TestRate, steps, ws);
+            int grownAfterMusic = ws.Grown;
+            double[] busRef = ws.SfxBus;
+            int noiseCreated = ws.Noise.Created;
+            int compared = 0;
+            foreach (string name in SfxRecipes.Names)
+            {
+                var call = new SfxCall(name, 0, 0, "common");
+                RenderedClip fresh = AudioFactory.RenderSfx(call, Rarities, 11, TestRate);
+                RenderedClip pooled = AudioFactory.RenderSfx(call, Rarities, 11, TestRate, ws);
+                Assert.AreEqual(fresh.Samples.Length, pooled.Samples.Length, name + " 길이");
+                Assert.AreEqual(fresh.Fingerprint, pooled.Fingerprint, name + " 되쓰기 뒤에도 같은 샘플");
+                compared++;
+            }
+            Assert.Greater(compared, 20);
+            Assert.AreEqual(0, ws.Noise.Rented, "렌더가 끝나면 노이즈 버퍼는 전부 풀로 돌아간다");
+            Assert.AreSame(busRef, ws.SfxBus, "음악(가장 긴 잡)이 잡은 버스를 효과음이 그대로 되쓴다");
+            Assert.AreEqual(grownAfterMusic, ws.Grown, "효과음 24종을 굽는 동안 버스·FFT 배열을 새로 잡지 않는다");
+            // 음악도 같은 작업 공간으로 두 번 — 같은 지문 · 노이즈 버퍼(하이햇 · 같은 길이)는 두 번째부터 새로 안 만든다
+            foreach (var kv in Table.Modes)
+            {
+                RenderedClip fresh = AudioFactory.RenderMusic(Table, kv.Key, 21, TestRate, steps);
+                RenderedClip pooled = AudioFactory.RenderMusic(Table, kv.Key, 21, TestRate, steps, ws);
+                Assert.AreEqual(fresh.Fingerprint, pooled.Fingerprint, kv.Key + " 음악 되쓰기 지문");
+            }
+            int createdBeforeRepeat = ws.Noise.Created;
+            AudioFactory.RenderMusic(Table, "normal", 21, TestRate, steps, ws);
+            Assert.AreEqual(createdBeforeRepeat, ws.Noise.Created, "같은 음악을 다시 구우면 노이즈 버퍼를 하나도 새로 만들지 않는다");
+            Assert.Greater(noiseCreated, 0, "첫 음악은 노이즈 버퍼를 만들었다(자가 도는지)");
+            // 루프 접기 갈래도 같은 지문
+            RenderedClip loopA = AudioFactory.RenderMusic(Table, "normal", 3, 8000);
+            RenderedClip loopB = AudioFactory.RenderMusic(Table, "normal", 3, 8000, 0, ws);
+            Assert.AreEqual(loopA.Fingerprint, loopB.Fingerprint, "루프 접기도 되쓰기 뒤 같은 샘플");
+            // 되쓰기 갈래의 관리 할당은 «결과 float[] + 점수 객체» 뿐이어야 한다 — 새 배열 갈래의 절반 아래(버스 5 × double 이 빠진다)
+            long a0 = AllocatedNow(); if (a0 >= 0)
+            {
+                var call = new SfxCall("gacha", 0, 0, "common");
+                long f0 = AllocatedNow(); AudioFactory.RenderSfx(call, Rarities, 11, TestRate); long fresh = AllocatedNow() - f0;
+                long p0 = AllocatedNow(); AudioFactory.RenderSfx(call, Rarities, 11, TestRate, ws); long pooled = AllocatedNow() - p0;
+                Assert.Less(pooled, fresh / 2, "되쓰기 갈래 관리 할당 " + pooled + "B < 새 배열 갈래 " + fresh + "B 의 절반");
+            }
+        }
+
+        /// <summary>이 스레드가 지금까지 할당한 관리 바이트 — 런타임이 못 주면 -1(그 단언은 건너뛴다).</summary>
+        static long AllocatedNow()
+        {
+            try { long b = GC.GetAllocatedBytesForCurrentThread(); return b > 0 ? b : -1; }
+            catch (Exception) { return -1; }
+        }
+
+        [Test]
         public void 자동화_램프_규약()
         {
             var p = new AudioParam(1);

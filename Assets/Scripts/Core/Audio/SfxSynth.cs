@@ -46,13 +46,19 @@ namespace Forge.Core.Audio
         /// <summary>`ctx.currentTime` — 효과음은 0 에서 시작한다.</summary>
         public double Now;
 
-        public SfxSynth(int sampleRate, Rng rng)
+        /// <summary>노이즈 버퍼 풀(T73 · null 이면 매번 새 배열) — 값·길이·난수 소비 순서는 풀이 있어도 같다.</summary>
+        readonly NoisePool _noisePool;
+
+        public SfxSynth(int sampleRate, Rng rng) : this(sampleRate, rng, null) { }
+
+        public SfxSynth(int sampleRate, Rng rng, NoisePool noisePool)
         {
             if (sampleRate <= 0) throw new ArgumentOutOfRangeException("sampleRate");
             if (rng == null) throw new ArgumentNullException("rng");
             SampleRate = sampleRate;
             Rng = rng;
             Score = new Score(sampleRate);
+            _noisePool = noisePool;
         }
 
         public static Wave ParseWave(string s)
@@ -209,7 +215,7 @@ namespace Forge.Core.Audio
         /// <summary>`d[i] = (Math.random() * 2 - 1) * (1 - i / n)` — Float32Array 에 담기던 대로 float 로 반올림.</summary>
         float[] NoiseBuffer(int n)
         {
-            var d = new float[n];
+            float[] d = _noisePool != null ? _noisePool.Rent(n) : new float[n];
             for (int i = 0; i < n; i++) d[i] = (float)((Rng.Random() * 2 - 1) * (1 - (double)i / n));
             return d;
         }

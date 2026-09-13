@@ -49,6 +49,8 @@ namespace Forge.Game.Audio
         readonly ConcurrentQueue<Job> _todo = new ConcurrentQueue<Job>();
         readonly ConcurrentQueue<Job> _done = new ConcurrentQueue<Job>();
         readonly AutoResetEvent _wake = new AutoResetEvent(false);
+        /// <summary>렌더 작업 공간(T73) — 버스·FFT·링·노이즈 버퍼를 잡 사이에 되쓴다. 굽는 스레드는 하나(워커 · WebGL 은 메인)라 하나면 된다. 새로 만드는 것은 클립 샘플뿐.</summary>
+        readonly RenderWorkspace _ws = new RenderWorkspace();
         Thread _worker;
         /// <summary>WebGL 은 스레드가 없다 — 프레임마다 한 건씩 메인 스레드에서 굽는다(결정 기록).</summary>
         bool _sync;
@@ -132,6 +134,10 @@ namespace Forge.Game.Audio
             _wake.Set();
         }
 
+        /// <summary>작업 공간이 배열을 새로 잡은 횟수 · 노이즈 버퍼를 새로 만든 수(T73 자 · 베이크가 끝나면 더 안 는다).</summary>
+        public int WorkspaceGrown { get { return _ws.Grown; } }
+        public int NoiseCreated { get { return _ws.Noise.Created; } }
+
         /// <summary>워커 — 유니티 API 를 부르지 않는다(순수 Core 렌더).</summary>
         void Work()
         {
@@ -144,12 +150,12 @@ namespace Forge.Game.Audio
             }
         }
 
-        static void RenderJob(Job j)
+        void RenderJob(Job j)
         {
             try
             {
-                if (j.Mode != null) j.Clip = AudioFactory.RenderMusic(Table, j.Mode, AudioFactory.Seed("music:" + j.Mode, 0));
-                else j.Clip = AudioFactory.RenderSfx(j.Call, Rarities, AudioFactory.Seed(j.Call.Key, j.Take));
+                if (j.Mode != null) j.Clip = AudioFactory.RenderMusic(Table, j.Mode, AudioFactory.Seed("music:" + j.Mode, 0), AudioFactory.DefaultSampleRate, 0, _ws);
+                else j.Clip = AudioFactory.RenderSfx(j.Call, Rarities, AudioFactory.Seed(j.Call.Key, j.Take), AudioFactory.DefaultSampleRate, _ws);
             }
             catch (Exception e)
             {
