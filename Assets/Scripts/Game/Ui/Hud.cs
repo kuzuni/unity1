@@ -196,11 +196,17 @@ namespace Forge.Game.Ui
             // 이름 줄 / 메시지 줄 두 줄 — 정본 `.chat-preview-lines`(세로 쌓기 · 이름은 굵게).
             float tx = padX + av + rem * 0.4f;
             float tw = UiKit.RefW - tx - padX;
+            // 정본 `.chat-preview-name`·`.chat-preview-msg` 는 **`white-space: nowrap`** 이다 — 한 줄에 가로 말줄임.
+            // ⚠ `textWrappingMode` 를 안 끄면 줄바꿈이 켜진 채라 긴 메시지가 두 줄이 되고, 반쪽 띠 높이에 안 맞아
+            //   TMP 가 Ellipsis 로 **글리프를 통째로 버린다**(글자는 들어 있는데 화면엔 아무것도 안 나온다 ·
+            //   런 159 실측: `textInfo.characterCount == 0` · 그것이 T91 «채팅 띠가 비었다» 의 뿌리였다).
             chatName = UiKit.Text(band, "chat-preview-name", TextKind.Sub, string.Empty, "chat_name", TextAlignmentOptions.Left);
             chatName.fontStyle = FontStyles.Bold;
+            chatName.textWrappingMode = TextWrappingModes.NoWrap;
             chatName.overflowMode = TextOverflowModes.Ellipsis;
             UiKit.Place(chatName.rectTransform, tx, 0f, tw, bandH * 0.5f);
             chat = UiKit.Text(band, "chat-preview-msg", TextKind.Sub, string.Empty, "chat_ink", TextAlignmentOptions.Left);
+            chat.textWrappingMode = TextWrappingModes.NoWrap;
             chat.overflowMode = TextOverflowModes.Ellipsis;
             UiKit.Place(chat.rectTransform, tx, bandH * 0.5f, tw, bandH * 0.5f);
         }
