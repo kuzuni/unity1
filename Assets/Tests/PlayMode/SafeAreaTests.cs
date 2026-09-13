@@ -153,21 +153,34 @@ namespace Forge.Tests.PlayMode
             var rt = new RenderTexture(ShotW, ShotH, 24, RenderTextureFormat.ARGB32);
             var camGo = new GameObject("t45-shot-cam");
             var cam = camGo.AddComponent<Camera>();
+            var uiCamGo = new GameObject("t45-shot-ui-cam");
+            var uiCam = uiCamGo.AddComponent<Camera>();
             RenderTexture prevActive = RenderTexture.active;
             Texture2D shot = null;
             try
             {
+                // T54 — 게임과 같은 겹: 3D 는 원작 `#game-area` 띠에만 · UI 는 앱 상자 전체(UiShotsTests.Capture 와 같은 길).
                 cam.CopyFrom(Camera.main);
-                // T54 — 촬영은 레터박스만 걷고 3D 띠(원작 `#game-area`)는 그대로 둔다(UiShotsTests.Capture 와 같은 값).
                 Forge.Core.ViewportRect band = Forge.Core.Viewport.GameArea(new Forge.Core.ViewportRect(0f, 0f, 1f, 1f), Bootstrap.GameAreaTop, Bootstrap.GameAreaBottom);
                 cam.rect = new Rect(band.X, band.Y, band.W, band.H);
                 cam.targetTexture = rt;
+
+                uiCam.CopyFrom(cam);
+                uiCam.rect = new Rect(0f, 0f, 1f, 1f);
+                uiCam.clearFlags = CameraClearFlags.Depth;
+                uiCam.cullingMask = 1 << canvas.gameObject.layer;
+                uiCam.targetTexture = rt;
+
                 canvas.renderMode = RenderMode.ScreenSpaceCamera;
-                canvas.worldCamera = cam;
+                canvas.worldCamera = uiCam;
                 canvas.planeDistance = 1f;
                 root.Layout();
                 Canvas.ForceUpdateCanvases();
+                RenderTexture.active = rt;
+                GL.Clear(true, true, Color.black);      // 띠 밖은 어느 카메라도 안 지운다 — 불투명 UI 가 덮는다
+                RenderTexture.active = prevActive;
                 cam.Render();
+                uiCam.Render();
                 RenderTexture.active = rt;
                 shot = new Texture2D(ShotW, ShotH, TextureFormat.RGB24, false);
                 shot.ReadPixels(new Rect(0, 0, ShotW, ShotH), 0, 0);
@@ -176,9 +189,11 @@ namespace Forge.Tests.PlayMode
             {
                 RenderTexture.active = prevActive;
                 cam.targetTexture = null;
+                uiCam.targetTexture = null;
                 canvas.renderMode = prevMode;
                 canvas.worldCamera = prevCam;
                 Object.Destroy(camGo);
+                Object.Destroy(uiCamGo);
                 rt.Release();
                 Object.Destroy(rt);
                 root.Layout();

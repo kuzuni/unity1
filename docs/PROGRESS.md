@@ -1016,6 +1016,15 @@
 - **남은 것(다음 회차)**: CI 유니티 잡의 `screens` PNG `screen_offline.png` 를 열어 «위 절반이 어둡다 · 요율이 아이콘 아래 · 빨간 점» 을 눈으로 보고 `tools/ui_score.py` 의 `offline` 점수(3.7 → 목표 8.0)를 적은 뒤 ✅ · T62 lock 이 풀리면 `catalog.json` 에 `#0e111b`·`#ccc` 키를 넣고 `TopFaceKey`·`SubInkKey` 를 바꾼다.
 - **주인이 확인할 것**: 에디터 Play → 오프라인 버튼 → 팝업 위 절반이 어두운 판(흰 제목 · 회색 «수집 시간:» · 초록 시간) · 코인/해머 원 아래에 «/초»·«/분» · [수집] 오른쪽 위 빨간 점 · 콘솔 빨강 0.
 
+### T54 3회차 기록 (2026-09-13 · 워커 I · sess-2203-14027)
+
+- **내가 낸 회귀를 먼저 고쳤다**: 2회차 뒤 런 106 의 `screen_main.png` 를 열어 보니 **UI 가 통째로 띠 안으로 눌리고 아래 45%가 검정**이었다. 뿌리는 촬영 길이다 — `Capture` 는 카메라 하나로 **세계와 캔버스를 같이** 그리는데(오버레이 캔버스는 RT 에 안 그려져 `ScreenSpaceCamera` 로 잠시 옮긴다) 그 카메라의 `rect` 를 띠로 줄이자 **캔버스까지 띠를 따라갔다**.
+- **고침 — 게임과 같은 겹으로 둘**: `cam`(세계 · rect = 원작 `#game-area` 띠) + `uiCam`(캔버스 · rect = 앱 상자 전체 · `clearFlags = Depth` 로 띠의 3D 를 안 지운다 · `cullingMask = 1 << canvas.gameObject.layer` 로 세계는 안 그린다). 띠 밖은 어느 카메라도 안 지우므로 `GL.Clear` 한 번을 먼저 민다(그 위를 불투명 UI 가 덮는다). 실제 게임의 캔버스는 `ScreenSpaceOverlay` 라 이 갈래가 없다 — 촬영에만 있던 구멍이다. `UiShotsTests.Capture`(T27)·`SafeAreaTests`(T45) 둘 다 같은 길로.
+- **런 106 빨강 6 중 내 것은 하나였고 이미 임자가 맞췄다**: `BootstrapTests.부팅_씬이_세로_9대16_원근_카메라로_선다`(«카메라 화면비 0.5625 여야 하는데 1.1538» = 띠의 가로세로비)는 **워커 H 가 T70**(`806e5f1`)으로 새 계약에 맞췄다. 나머지 넷(`UiSmokeTests` 닉네임·`PlayerInfoPopup` NRE · `ShopUiTests` 둘 · `OfflinePopupTests`)은 내 변경과 무관한 남의 작업 빨강이다.
+- **2회차 카메라 단언은 CI 에서 초록이었다**: `UiSmokeTests.부팅_후_HUD_시트_채팅줄_탭바가_선다`(띠 높이·아랫변 단언)가 런 106 빨강 목록에 없다 — 게임 쪽 카메라 rect 는 의도대로 섰다는 뜻이다.
+- **게이트**: `dotnet build` 0 에러 · `dotnet test` **510/510** · 자 10개 + `check_data_sync` 전부 rc 0.
+- **다음 회차(lock 쥔 채)**: 새 `screen_main.png` 를 열어 ⓐ UI 가 제자리로 돌아왔는가 ⓑ **영웅·적이 원작 shot-042120 처럼 화면 위 1/3 에 서는가** ⓒ 띠 밖에 얼룩이 없는가 — 셋을 보고 ✅ 를 판단한다. 얼룩이 있으면 «지우기 전용» 카메라(cullingMask 0)를 게임 쪽에도 하나 세운다.
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.

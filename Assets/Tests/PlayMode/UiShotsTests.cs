@@ -546,21 +546,35 @@ namespace Forge.Tests.PlayMode
             RenderTexture rt = new RenderTexture(ShotW, ShotH, 24, RenderTextureFormat.ARGB32);
             GameObject camGo = new GameObject("t27-shot-cam");
             Camera cam = camGo.AddComponent<Camera>();
+            GameObject uiCamGo = new GameObject("t27-shot-ui-cam");
+            Camera uiCam = uiCamGo.AddComponent<Camera>();
             Texture2D shot = null;
             try
             {
+                // T54 — 게임과 같은 겹: **3D 는 원작 `#game-area` 띠에만**(cam) · **UI 는 앱 상자 전체**(uiCam).
+                // 한 카메라로 둘 다 그리면(옛 코드) 캔버스가 그 카메라의 rect 를 따라가 UI 까지 띠 안으로 눌린다 — 런 106 에서 실제로 그랬다.
                 if (Camera.main != null) cam.CopyFrom(Camera.main);
-                // T54 — 찍는 대상은 «앱 상자» 라 레터박스는 걷되, 3D 가 차지하는 띠(원작 `#game-area`)는 그대로 둔다.
-                // 여기서 전체 화면으로 되돌리면 카메라가 화면 한가운데를 비춰 영웅이 장비 시트 뒤로 숨는다(그 상태로 30장이 찍혔다).
                 ViewportRect band = Viewport.GameArea(new ViewportRect(0f, 0f, 1f, 1f), Bootstrap.GameAreaTop, Bootstrap.GameAreaBottom);
                 cam.rect = new Rect(band.X, band.Y, band.W, band.H);
                 cam.targetTexture = rt;
+
+                uiCam.CopyFrom(cam);
+                uiCam.rect = new Rect(0f, 0f, 1f, 1f);
+                uiCam.clearFlags = CameraClearFlags.Depth;     // 띠에 그린 3D 를 지우지 않는다
+                uiCam.cullingMask = 1 << canvas.gameObject.layer;   // 캔버스가 실제로 선 레이어만 — 세계는 안 그린다(띠 밖으로 새면 원작에 없는 그림이다)
+                uiCam.targetTexture = rt;
+
                 canvas.renderMode = RenderMode.ScreenSpaceCamera;
-                canvas.worldCamera = cam;
+                canvas.worldCamera = uiCam;
                 canvas.planeDistance = 1f;
                 root.Layout();
                 Canvas.ForceUpdateCanvases();
+                // 띠 밖(상단바·시트·채팅·탭바 자리)은 어느 카메라도 지우지 않으므로 먼저 한 번 민다 — 불투명 UI 가 그 위를 덮는다.
+                RenderTexture.active = rt;
+                GL.Clear(true, true, Color.black);
+                RenderTexture.active = prevActive;
                 cam.Render();
+                uiCam.Render();
                 RenderTexture.active = rt;
                 shot = new Texture2D(ShotW, ShotH, TextureFormat.RGB24, false);
                 shot.ReadPixels(new Rect(0, 0, ShotW, ShotH), 0, 0);
@@ -582,6 +596,7 @@ namespace Forge.Tests.PlayMode
                 Canvas.ForceUpdateCanvases();
                 if (shot != null) UnityEngine.Object.Destroy(shot);
                 UnityEngine.Object.Destroy(camGo);
+                UnityEngine.Object.Destroy(uiCamGo);
                 rt.Release();
                 UnityEngine.Object.Destroy(rt);
             }
