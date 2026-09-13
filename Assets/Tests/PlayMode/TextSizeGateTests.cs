@@ -61,12 +61,24 @@ namespace Forge.Tests.PlayMode
                 if (!t.isActiveAndEnabled || string.IsNullOrEmpty(t.text)) continue;
                 foreach (char c in t.text)
                 {
-                    if (c < 0xAC00 || c > 0xD7A3) continue;          // 한글 음절만 본다
-                    if (!fa.HasCharacter(c, true, true)) missing.Add(c);
+                    // T100 — 한글 음절만 보던 자리를 «글꼴이 그려야 할 모든 글자» 로 넓힌다. 종전 거르개는
+                    // 화면에 실제로 선 `↻`·`😭`·`ㅠ` 를 하나도 안 세서 «전부 초록인데 화면엔 □» 가 났다.
+                    if (c < 0x80) continue;                          // ASCII 는 어느 글꼴에나 있다
+                    if (char.IsWhiteSpace(c) || char.IsControl(c)) continue;
+                    if (KnownTofu.IndexOf(c) >= 0) continue;         // 임자가 정해진 아는 자리(tools/check_text_glyphs.py 의 KNOWN 과 같은 목록)
+                    // 폴백 없이 묻는다 — 배포판(리눅스 CI·WebGL)에는 OS 폴백이 없으므로 그것이 판정 기준이다.
+                    if (!fa.HasCharacter(c, false, false)) missing.Add(c);
                 }
             }
-            Assert.IsEmpty(missing, "글꼴에 없는 한글(화면에 □ 로 나온다): " + new string(System.Linq.Enumerable.ToArray(missing)));
+            Assert.IsEmpty(missing, "글꼴에 없는 글자(화면에 □ 로 나온다): " + new string(System.Linq.Enumerable.ToArray(missing)));
         }
+
+        /// <summary>
+        /// T100 — «아는 두부»: 임자가 정해져 있고 지금 못 고치는 글자(정본도 글자로 쓰거나 남의 lock 이 쥔 자리).
+        /// `tools/check_text_glyphs.py` 의 `KNOWN` 과 **같은 목록**이다 — 한쪽만 지우면 다른 쪽이 잡는다.
+        /// 새 글자는 여기 없으니 이 단언이 빨개진다(그것이 이 막이의 일이다).
+        /// </summary>
+        private const string KnownTofu = "\u23F1\u23F9\u21BB\u3160\u314B\uD83D\uDC34\uD83D\uDC3E\uD83D\uDE2D\uD83D\uDEE1";
 
         /// <summary>카탈로그 글꼴 자체가 한글을 쥐고 있는가(OS 폴백에 기대지 않는다 — 리눅스 CI·WebGL 에는 없다).</summary>
         [Test]

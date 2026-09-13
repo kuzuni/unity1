@@ -6,8 +6,11 @@
 드러났다. 이 자는 **코드에 박힌 화면 문구**를 훑어 «글꼴에 없는 글자» 를 찍는다.
 
 무엇을 보는가:
-  ⓐ 화면에 글자를 세우는 부름(`UiKit.Text`·`Label`·`Bold`·`Btn`·`Toast`·`Stroked`…)의 **문자열 인자**만 본다
-     (주석·코드 식별자는 안 본다 — 주석의 이모지는 화면에 안 나간다).
+  ⓐ `Assets/Scripts/Game` 의 **모든 문자열 리터럴**(주석 줄 제외) + `StreamingAssets/data/*.json`·`Assets/Forge/Resources/*.json`
+     의 **문자열 값**을 본다. 부름 인자만 보던 T89 판은 구멍이 둘이었다(T100 · 검수 Q 실측): «변수에 담은 문구»
+     (`string autoLabel = "자동 ↻…"`)와 «데이터에서 오는 글자»(정본 `chat.js` 의 `😭`·`ㅠ`)를 통째로 놓쳤다 —
+     셋 다 **전부 초록인 런**의 PNG 에서 □ 로 보였다. 식별자·키는 ASCII 라 넓혀도 오탐이 안 는다
+     (이 자는 «글꼴에 없는 비 ASCII» 만 센다).
   ⓑ 정본 `TOAST_ICON`(`Assets/StreamingAssets/data/ui-text.json`)에 있는 이모지는 **아이콘으로 치환**되므로 뺀다
      (T89 의 `IconText`/`UiKit.IconTextRow` 가 하는 일 · 이형 선택자 U+FE0F 포함).
   ⓒ 남은 글자를 주인 글꼴(`Assets/Fonts/NotoSansKR-Forge.ttf`)의 cmap 과 맞춰 없는 것을 찍는다.
@@ -34,10 +37,26 @@ SCAN_DIR = os.path.join(ROOT, 'Assets', 'Scripts', 'Game')
 KNOWN = {
     '⏱': 'ForgeInfoPopup 업그레이드 버튼(정본도 같은 글자) — 주인 글꼴/정본 표 대기',
     '⏹': 'ForgeHost 자동 제련 종료 토스트(정본 ui.js 2272 그대로) — 주인 글꼴/정본 표 대기',
+    # T100 — 넓힌 뒤 드러난 셋. 임자가 정해져 있고 이 회차에 못 고치는 자리다(고칠 파일이 남의 lock · 글꼴 재추출 필요).
+    '↻': 'ForgeSheet 자동 제련 버튼 «자동 ↻» — 정본은 글자가 아니라 아이콘(ui.js 1551 IconGen.img(autoloop)) · T100 ⓐ(T87 lock 이 풀린 뒤)',
+    '😭': '채팅 문구(정본 chat.js 11행) — data/*.json 으로 들어온다 · 이모지 글리프는 주인 글꼴 밖(폴백 글꼴 대기) · T100 ⓑ',
+    'ㅠ': '채팅 문구의 한글 자모 «ㅠ»(정본 chat.js 16행) — 서브셋이 완성형만 담았다(U+3130~318F 를 더하면 낫는다) · T100 ⓑ',
+    'ㅋ': '채팅 문구의 한글 자모 «ㅋ»(정본 chat.js · meta.json /chat/LINES/14) — ㅠ 와 같은 서브셋 갈래 · T100 ⓑ',
+    '🐴': '펫·탈것 토스트와 얼굴 폴백(PetSkillUi.json /text/toast_mount_full · PetSkillKit 324행) — 정본은 `IconGen.img(MOUNT_ICONS[…])` 아이콘이다 · T20 자리라 T100 ⓐ 와 같이 넘긴다',
+    '🐾': '같은 갈래(펫 보관함·출전 토스트 셋 + 얼굴 폴백) — 정본은 아이콘 · T100 ⓐ',
+    '🛡': 'PlayerInfoUi.json /text/shield 라벨(T65 자리) — 정본은 방어 아이콘 · T100 ⓐ 와 같이 넘긴다',
 }
 
-CALL = re.compile(r'\b(?:Text|Label|Bold|Btn|Toast|Stroked|SetProfile|Placeholder)\s*\(')
 LITERAL = re.compile(r'"((?:[^"\\]|\\.)*)"')
+DATA_DIRS = [
+    os.path.join(ROOT, 'Assets', 'StreamingAssets', 'data'),
+    os.path.join(ROOT, 'Assets', 'Forge', 'Resources'),
+]
+# 데이터 안의 이모지가 전부 «화면 글자» 인 것은 아니다 — 정본은 이모지를 **아이콘 키**로도 쓴다
+# (`PET_ICONS`·`MOUNT_ICONS`·`SKILL_ICONS`·`AGE_ICON`·`AVATAR_POOL`·기술트리 `icon`). 그 값은 `IconGen.img(…)`
+# ·아바타 아틀라스(T31)로 그려지므로 글꼴과 무관하다. 키 경로로 가른다 — 값으로 가르면 같은 이모지가
+# 글자로 쓰인 자리까지 놓친다.
+ICON_KEY = re.compile(r'(?i)(icon|emoji|avatar)')
 
 
 def font_chars(path):
@@ -92,7 +111,7 @@ def icon_chars(path):
 
 
 def screen_strings(root):
-    """화면에 글자를 세우는 부름의 문자열 인자 → [(파일:줄, 문자열)] (주석 줄은 뺀다)."""
+    """`root` 아래 C# 의 **모든 문자열 리터럴** → [(파일:줄, 문자열)] (주석 줄은 뺀다 · T100 으로 넓혔다)."""
     out = []
     for dirpath, _dirs, files in os.walk(root):
         for f in sorted(files):
@@ -104,10 +123,38 @@ def screen_strings(root):
                 st = line.strip()
                 if st.startswith('//') or st.startswith('*'):
                     continue
-                if not CALL.search(line):
-                    continue
                 for lit in LITERAL.findall(line):
                     out.append(('%s:%d' % (rel, i), lit))
+    return out
+
+
+def data_strings(dirs=None):
+    """데이터가 쥔 화면 글자 → [(파일:키경로, 문자열)]. 채팅 문구처럼 **소스에 없는 글자**가 여기로 온다(T100 ⓑ)."""
+    out = []
+    for d in (dirs if dirs is not None else DATA_DIRS):
+        if not os.path.isdir(d):
+            continue
+        for f in sorted(os.listdir(d)):
+            if not f.endswith('.json'):
+                continue
+            p = os.path.join(d, f)
+            rel = os.path.relpath(p, ROOT)
+            try:
+                doc = json.load(open(p, encoding='utf-8'))
+            except ValueError:
+                continue
+
+            def walk(v, path):
+                if isinstance(v, str):
+                    if not ICON_KEY.search(path):          # 아이콘·아바타 «키» 는 글자가 아니다(아래 주석)
+                        out.append(('%s:%s' % (rel, path or '/'), v))
+                elif isinstance(v, dict):
+                    for k, vv in v.items():
+                        walk(vv, path + '/' + str(k))
+                elif isinstance(v, list):
+                    for i, vv in enumerate(v):
+                        walk(vv, path + '/' + str(i))
+            walk(doc, '')
     return out
 
 
@@ -127,7 +174,8 @@ def main(argv):
         return self_test()
     font = font_chars(FONT)
     skip = icon_chars(TABLE)
-    miss = missing(screen_strings(SCAN_DIR), font, skip)
+    strings = screen_strings(SCAN_DIR) + data_strings()
+    miss = missing(strings, font, skip)
     new = {ch: w for ch, w in miss.items() if ch not in KNOWN}
     for ch, where in sorted(miss.items()):
         tag = '(아는 것) ' + KNOWN[ch] if ch in KNOWN else '**새 두부**'
@@ -140,8 +188,8 @@ def main(argv):
         print('  고침 둘: ⓐ 정본이 그 자리에 아이콘을 그리면 `UiIcons`/`UiKit.IconTextRow` 로(정본 줄을 먼저 읽는다)')
         print('          ⓑ 정본도 글자로 그리면 주인 글꼴에 그 구간이 있어야 한다 — 주인 조치이므로 KNOWN 에 임자와 함께 적는다.')
         return 1
-    print('✓ check_text_glyphs: 화면 문구 %d줄 · 글꼴에 없는 글자 %d 종(전부 KNOWN · 임자 있음)'
-          % (len(screen_strings(SCAN_DIR)), len(miss)))
+    print('✓ check_text_glyphs: 문구 %d줄(코드 %d + 데이터 %d) · 글꼴에 없는 글자 %d 종(전부 KNOWN · 임자 있음)'
+          % (len(strings), len(screen_strings(SCAN_DIR)), len(data_strings()), len(miss)))
     return 0
 
 
@@ -160,8 +208,22 @@ def self_test():
     cases = [
         ('UiKit.Text(p, "n", TextKind.Sub, "⏹ 끝", "ink");', 1),
         ('// UiKit.Text(p, "n", TextKind.Sub, "⏹ 끝");', 0),
-        ('string s = "⏹";', 0),
+        ('string s = "⏹";', 1),          # T100 — 변수 대입도 센다(ForgeSheet 의 «자동 ↻» 를 놓친 구멍)
     ]
+    # 데이터: 글자 값은 세고 아이콘 «키» 는 안 센다(T100 · 정본이 이모지를 아이콘 이름으로도 쓴다)
+    import json as _json
+    import tempfile as _tmp
+    for doc, want, note in [
+        ({'text': {'a': '⏹ 끝'}}, 1, '글자 값'),
+        ({'PET_ICONS': {'Cat': '🐱'}}, 0, '아이콘 키'),
+        ({'avatars': {'AVATAR_POOL': ['🐱']}}, 0, '아바타 키'),
+        ({'chat': {'LINES': ['⏹']}}, 1, '채팅 문구'),
+    ]:
+        with _tmp.TemporaryDirectory() as d:
+            _json.dump(doc, open(os.path.join(d, 'x.json'), 'w', encoding='utf-8'))
+            got = len(missing(data_strings([d]), font, skip))
+            if got != want:
+                print('✗ 데이터 스캔 «%s»: 기대 %d · 받은 %d' % (note, want, got)); ok = False
     import tempfile
     for code, want in cases:
         with tempfile.TemporaryDirectory() as d:

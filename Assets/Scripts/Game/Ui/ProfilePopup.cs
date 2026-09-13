@@ -265,10 +265,10 @@ namespace Forge.Game.Ui
             ToggleRow(h, list, n++, "채팅 표시", J.Bool(d["chatShow"]), () => ToggleDummy(h, "chatShow"));
             ToggleRow(h, list, n++, "채팅 다크 모드", J.Bool(d["chatDark"]), () => ToggleDummy(h, "chatDark"));
             ToggleRow(h, list, n++, "클랜 채팅 미리보기", J.Bool(d["clanChatPreview"]), () => ToggleDummy(h, "clanChatPreview"));
-            StaticRow(h, list, n++, "언어", null);
-            StaticRow(h, list, n++, "계정", "✓");
-            StaticRow(h, list, n++, "차단 목록", null);
-            StaticRow(h, list, n++, "개인정보 보호", null);
+            StaticRow(h, list, n++, "언어", false);
+            StaticRow(h, list, n++, "계정", true);
+            StaticRow(h, list, n++, "차단 목록", false);
+            StaticRow(h, list, n++, "개인정보 보호", false);
             ActRow(list, n++, "수동 저장", "저장", "pp_blue", () => { h.Save(); h.Toast("💾 저장 완료"); });
             ActRow(list, n++, "게임 초기화", "초기화", "settings_act_danger", () => Confirm(h));
         }
@@ -293,15 +293,18 @@ namespace Forge.Game.Ui
             UiKit.Anchor(rt, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-PopupKit.Rem * 1.95f, 0f), w, hh);
         }
 
-        private static void StaticRow(MetaHost h, RectTransform list, int i, string label, string check)
+        private static void StaticRow(MetaHost h, RectTransform list, int i, string label, bool check)
         {
             RectTransform row = SettingsRow(list, i, label);
             UiKit.Button(row, "hit", () => h.Toast("데모 버전에서는 지원하지 않습니다"));
-            if (check != null)
+            if (check)
             {
-                TextMeshProUGUI c = UiKit.Text(row, "check", TextKind.Body, check, "pp_green", TextAlignmentOptions.Right);
-                c.fontStyle = FontStyles.Bold;
-                c.rectTransform.offsetMax = new Vector2(-PopupKit.Rem * 1.95f, 0f);
+                // T100 — 정본 `ui.js` 5078~5081 의 `checkRow` 는 `<span class="settings-check">${IconGen.img('check')}</span>` 다.
+                // 클론은 «✓»(U+2713)를 **글자로** 찍어 주인 한글 글꼴에 없어 □ 였다(T89 막이를 데이터·변수까지 넓혀서 드러났다).
+                float sz = PopupKit.Rem * 1.25f;
+                Image c = UiKit.Icon(row, "check", "check");
+                UiKit.Anchor(c.rectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+                             new Vector2(-PopupKit.Rem * 1.95f - sz * 0.5f, 0f), sz, sz);
             }
         }
 
