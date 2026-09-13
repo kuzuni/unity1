@@ -185,9 +185,17 @@ namespace Forge.Game.Ui
             TextMeshProUGUI nm = UiKit.Text(nameLine, "name", TextKind.Sub, (m.Tag != null ? "[" + m.Tag + "] " : string.Empty) + name, "chat_name", TextAlignmentOptions.Left);
             nm.fontStyle = FontStyles.Bold;
             nm.rectTransform.offsetMax = new Vector2(-rem * 3f, 0f);
-            TextMeshProUGUI gender = UiKit.Text(nameLine, "gender", TextKind.Sub, m.Gender ?? string.Empty, "pp_muted", TextAlignmentOptions.Right);
-            gender.rectTransform.offsetMin = new Vector2(bubbleW - rem * 3f, 0f);
-            gender.rectTransform.offsetMax = new Vector2(-rem * 1.8f, 0f);
+            // T131 — 정본 ui.js `chatNameIcons(m)`(5259·5281 두 줄 다): 이름 뒤에 [성별 아이콘][클랜 배지]. 성별은 글자 ♂/♀ 가 아니라 gender_m/f 아이콘,
+            // 배지는 이름 해시가 h%3≠0 인 이름에만(Core Chat.ClanBadge). 치수는 정본 style.css 3336~3341(PersonIconsUi.json).
+            float gw = PersonIcons.Px("chat_gender_w"), cw = PersonIcons.Px("chat_clan_w");
+            float gx = bubbleW - rem * 3f + PersonIcons.Px("chat_ico_mr_em", PopupKit.FontSize(TextKind.Sub));
+            Image gender = UiKit.Icon(nameLine, "gender", Chat.GenderIcon(m.Gender));
+            UiKit.Anchor(gender.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(gx, 0f), gw, gw);
+            if (Chat.ClanBadge(m.Name))   // 정본은 m.name 을 해시한다 — 내 공유 카드(name 없음)엔 배지가 안 붙는다
+            {
+                Image clan = UiKit.Icon(nameLine, "clan", "clanbadge");
+                UiKit.Anchor(clan.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(gx + gw + PersonIcons.Px("chat_clan_ml_w"), 0f), cw, cw);
+            }
             TextMeshProUGUI time = UiKit.Text(nameLine, "time", TextKind.Sub, Time(m.At), "chat_time", TextAlignmentOptions.Right);
             time.fontStyle = FontStyles.Bold;
             UiKit.OutlinePx(time, "chat_time", KeylineUi.Px("chat_time"));   // 정본 .chat-time { .5px currentColor }

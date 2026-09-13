@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using Forge.Core.Meta;
 using Forge.Core.Save;
 using Forge.Game;
 using Forge.Game.Ui;
@@ -134,6 +135,83 @@ namespace Forge.Tests.PlayMode
             lr = WorldRect(last); vp = WorldRect(viewport);
             Assert.IsTrue(lr.yMin >= vp.yMin - 0.5f && lr.yMax <= vp.yMax + 0.5f,
                 "보낸 뒤 최신 메시지가 창 밖이다 — 창 y " + vp.yMin + "~" + vp.yMax + " · 줄 y " + lr.yMin + "~" + lr.yMax);
+        }
+
+        /// <summary>T131 — 정본 `ui.js` `chatNameIcons(m)`(msg·share 두 줄 다): 이름 뒤에 [성별 아이콘 gender_m/f][클랜 배지 clanbadge]. 성별은 글자 ♂/♀ 가 아니라 아이콘이고
+        /// 배지는 이름 해시(`h*33+c` · `h%3≠0`)인 이름에만 선다. 치수는 정본 `style.css` 3336~3341(PersonIconsUi.json). 해시 벡터는 정본 함수를 node 로 돌린 값.</summary>
+        [UnityTest]
+        public IEnumerator 채팅_이름줄은_성별_아이콘과_이름_해시_클랜_배지이고_글자_남녀_기호는_없다()
+        {
+            // 정본 해시 벡터(ui.js chatNameIcons 를 node 로 돌렸다)
+            Assert.IsTrue(Chat.ClanBadge("MilkMessiah")); Assert.IsTrue(Chat.ClanBadge("Bearopotamus")); Assert.IsTrue(Chat.ClanBadge("Kite"));
+            Assert.IsFalse(Chat.ClanBadge("Yumi")); Assert.IsFalse(Chat.ClanBadge("Jennzee")); Assert.IsFalse(Chat.ClanBadge("Pirimid"));
+            Assert.AreEqual("gender_f", Chat.GenderIcon(Chat.GenderFemale)); Assert.AreEqual("gender_m", Chat.GenderIcon(Chat.GenderMale)); Assert.AreEqual("gender_m", Chat.GenderIcon(null));
+
+            yield return Boot();
+            Hud.Instance.ChatButton.onClick.Invoke();
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(ChatScreen.Name);
+            Assert.IsNotNull(p, "채팅 화면이 안 열렸다");
+            Rect app = WorldRect(UiRoot.Instance.App);
+            int rows = 0, badges = 0;
+            foreach (RectTransform nl in p.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (nl.name != "name-line") continue;
+                rows++;
+                Transform g = nl.Find("gender");
+                Assert.IsNotNull(g, "이름줄에 성별 아이콘 칸(gender)이 없다");
+                Image gi = g.GetComponent<Image>();
+                Assert.IsNotNull(gi, "gender 는 Image 여야 한다(글자가 아니다)");
+                Assert.IsNotNull(gi.sprite, "gender_m/f 스프라이트가 비었다(T31 아틀라스)");
+                Rect gr = WorldRect((RectTransform)g);
+                Assert.AreEqual(PersonIcons.L("chat_gender_w"), gr.width / app.width, 0.002f, "성별 아이콘 폭 = 앱 폭 × .0370(정본 .chat-gender)");
+                Assert.AreEqual(gr.width, gr.height, 0.5f, "성별 아이콘은 정사각");
+                TextMeshProUGUI nm = nl.Find("name").GetComponent<TextMeshProUGUI>();
+                string name = nm.text; int cut = name.IndexOf("] ", System.StringComparison.Ordinal); if (cut >= 0) name = name.Substring(cut + 2);
+                bool want = Chat.ClanBadge(name);
+                Transform c = nl.Find("clan");
+                Assert.AreEqual(want, c != null, "«" + name + "» 의 클랜 배지 유무가 정본 해시(h%3≠0)와 다르다");
+                if (c != null)
+                {
+                    badges++;
+                    Assert.IsNotNull(c.GetComponent<Image>().sprite, "clanbadge 스프라이트가 비었다");
+                    Rect cr = WorldRect((RectTransform)c);
+                    Assert.AreEqual(PersonIcons.L("chat_clan_w"), cr.width / app.width, 0.002f, "클랜 배지 폭 = 앱 폭 × .0540(정본 .chat-clan)");
+                    Assert.Greater(cr.xMin, gr.xMin, "배지는 성별 아이콘 오른쪽");
+                }
+            }
+            Assert.GreaterOrEqual(rows, 1, "메시지 줄이 없다");
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+                Assert.IsFalse(t.text != null && (t.text.Contains(Chat.GenderMale) || t.text.Contains(Chat.GenderFemale)), t.name + " 에 성별 글자가 남았다: «" + t.text + "»");
+        }
+
+        /// <summary>T131 — 프로필 성별 칸(정본 `ui.js` 5043 `IconGen.img(gender_*)` · `.profile-field .ico` 1.15em): 글자 ♂/♀ 가 아니라 아이콘.</summary>
+        [UnityTest]
+        public IEnumerator 프로필_성별_칸은_아이콘이고_글자_남녀_기호는_없다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            ProfilePopup.Open(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(ProfilePopup.Name);
+            Assert.IsNotNull(p, "프로필 팝업이 안 열렸다");
+            RectTransform f = FindIn(p.Root, "gender-field");
+            Assert.IsNotNull(f, "성별 칸(gender-field)이 없다");
+            Transform ico = f.Find("ico");
+            Assert.IsNotNull(ico, "성별 칸 안에 아이콘(ico)이 없다");
+            Image img = ico.GetComponent<Image>();
+            Assert.IsNotNull(img); Assert.IsNotNull(img.sprite, "gender_m/f 스프라이트가 비었다");
+            Rect r = WorldRect((RectTransform)ico), fr = WorldRect(f);
+            Assert.AreEqual(r.width, r.height, 0.5f, "아이콘은 정사각");
+            Assert.Greater(r.width, 0f);
+            Assert.IsTrue(r.xMin >= fr.xMin && r.xMax <= fr.xMax && r.yMin >= fr.yMin - 0.5f && r.yMax <= fr.yMax + 0.5f, "아이콘이 칸 안에 있다");
+            Assert.IsNull(f.Find("text"), "성별 칸에 글자 조각이 남았다");
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+                Assert.IsFalse(t.text != null && (t.text.Contains(Chat.GenderMale) || t.text.Contains(Chat.GenderFemale)), t.name + " 에 성별 글자가 남았다: «" + t.text + "»");
+            ProfilePopup.Close(h);
+            yield return null;
         }
 
         private static RectTransform FindIn(Transform root, string name)

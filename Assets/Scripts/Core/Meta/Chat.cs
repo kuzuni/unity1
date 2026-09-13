@@ -55,6 +55,18 @@ namespace Forge.Core.Meta
         public const int MaxPlayerTextLen = 200;
         public const string GenderMale = "♂", GenderFemale = "♀";
 
+        /// <summary>정본 `ui.js` `chatNameIcons`·프로필 5043·플레이어 정보 5195: 성별 → T31 아이콘 키(`♀` 만 `gender_f` · 그 밖은 `gender_m`). T131.</summary>
+        public static string GenderIcon(string gender) { return gender == GenderFemale ? "gender_f" : "gender_m"; }
+
+        /// <summary>정본 `ui.js` `chatNameIcons`: 클랜 배지는 «일부 유저만» — 이름 해시 `h = (h*33 + c) >>> 0` 가 `h % 3 !== 0` 인 이름에만 단다. T131.</summary>
+        public static bool ClanBadge(string name)
+        {
+            uint h = 0;
+            string key = name ?? string.Empty;
+            for (int i = 0; i < key.Length; i++) unchecked { h = h * 33u + key[i]; }
+            return h % 3u != 0u;
+        }
+
         readonly ChatTable _t;
         readonly AvatarTable _avatars;
         readonly Rng _rng;

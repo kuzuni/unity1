@@ -109,7 +109,8 @@ namespace Forge.Game.Ui
             l2.fontStyle = FontStyles.Bold;
             UiKit.Place(l2.rectTransform, fx, fy, fw, labelH);
             fy += labelH + rem * 0.1f;
-            Field(card, "gender-field", h.Gender, fx, fy, fw - edit - rem * 0.4f, fieldH);
+            // T131 — 정본 ui.js 5043 `<span class="profile-field">${IconGen.img(S.gender === '♀' ? 'gender_f' : 'gender_m')}</span>`: 성별은 글자 ♂/♀ 가 아니라 아이콘(칸 안 1.15em · style.css 3159).
+            IconField(card, "gender-field", Chat.GenderIcon(h.Gender), fx, fy, fw - edit - rem * 0.4f, fieldH);
             Button genderEdit = EditButton(card, "gender-edit", () => OnToggleGender(h));
             UiKit.Place(genderEdit.GetComponent<RectTransform>(), fx + fw - edit, fy + (fieldH - edit) * 0.5f, edit, edit);
             y = Mathf.Max(y + av + rem * 0.15f + edit, fy + fieldH);
@@ -149,6 +150,19 @@ namespace Forge.Game.Ui
             UiKit.Place(r1.GetComponent<RectTransform>(), bx, y, bw, bh);
             Button r2 = PopupKit.Btn(card, "clan-rank", "클랜 랭킹", "pp_blue", "pp_blue_dk", () => h.OpenStub("클랜 랭킹", "클랜 시스템은 준비 중입니다."), bw, bh, "stage_ink", TextKind.Sub);
             UiKit.Place(r2.GetComponent<RectTransform>(), bx + bw + rem * 0.5f, y, bw, bh);
+        }
+
+        /// <summary>글자 대신 아이콘 하나가 든 칸(원작 `.profile-field .ico` — T131 성별). 상자·왼쪽 여백은 <see cref="Field"/> 와 같다.</summary>
+        private static void IconField(RectTransform card, string name, string iconKey, float x, float y, float w, float h)
+        {
+            RectTransform f = UiKit.Box(card, name);
+            UiKit.Place(f, x, y, w, h);
+            UiKit.Rounded(f, "line", "pp_line", PopupKit.Rem * 0.4f);
+            Image face = UiKit.Rounded(f, "face", "pp_panel", PopupKit.Rem * 0.4f - PopupKit.Line);
+            PopupKit.Inset(face.rectTransform, PopupKit.Line);
+            float em = PersonIcons.Px("profile_gender_em", PopupKit.FontSize(TextKind.Sub));
+            Image ico = UiKit.Icon(f, "ico", iconKey);
+            UiKit.Anchor(ico.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(PopupKit.Rem * 0.55f, 0f), em, em);
         }
 
         private static void Field(RectTransform card, string name, string text, float x, float y, float w, float h)
