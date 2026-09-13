@@ -488,7 +488,7 @@
   - 정본 수집 버튼 우상단에 `.offline-collect-dot`(`.7rem` 빨간 원 · 흰 테두리 · `style.css` 309)이 있다. 클론엔 없다.
   - 걷어낸 것: 원작 샷의 **파란** 수집 버튼은 옛것 — 정본 `.btn.primary` 가 초록(`#1f4a2c`/`#2ea043`)이라 클론의 초록이 맞다. 합계줄 `8.87k`·`149.05` 는 정본 주석대로 **흰 칠 + 검정 링**(클론은 검정 칠 · 링 규칙은 T25 갈래).
 - 무엇을 한다: 머리 판을 어두운 색으로(카탈로그에 `#0e111b` 에 가까운 키가 없으면 키 하나 추가 — `catalog.json` 은 **T62 lock 이 풀린 뒤** · 그 전엔 `pp_ink`(#17181a)로 먼저) + 글자 색을 정본대로(흰 · #ccc · 초록) · 요율 칸을 세로 배치로 · 수집 버튼에 빨간 점. 수치는 `catalog.json`/`PopupKit` 에서(§1).
-- 판정: PNG 눈 확인(위 절반이 어둡다 · 요율이 아이콘 아래 · 수집 버튼 빨간 점) + PlayMode `OfflinePopupTests` 초록 + 콘솔 빨강 0. `ui_score` 는 화면 전체(3D 배경·한글 두부)를 재서 팝업 범위로는 못 닿는다(T57 결정 157 과 같은 갈래 · 런 113 실측 1.4 «짝 없음» · 결정 170) — 화면 점수는 T28 이 본다.
+- 판정: PNG 눈 확인(위 절반이 어둡다 · 요율이 아이콘 아래 · 수집 버튼 빨간 점) + PlayMode `OfflinePopupTests` 초록 + 콘솔 빨강 0. `ui_score` 는 화면 전체(3D 배경·한글 두부)를 재서 팝업 범위로는 못 닿는다(T57 결정 157 과 같은 갈래 · 런 113 실측 1.4 «짝 없음» · 결정 173) — 화면 점수는 T28 이 본다.
 - 범위: `Assets/Scripts/Game/Ui/OfflinePopup.cs` · `Assets/Forge/catalog.json`(색 키 하나 · T62 뒤) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
 ### T69 ✅ — 자: §7 표에 **이름이 없는** 작업을 잡는다 — 지금 17개가 빠져 T33 의 완주 판정이 그 위를 지나간다 (검증 · 뒤 순서 없음 · T33 이 이 자를 쓴다)
 - 범위: `Assets/Scripts/Game/Ui/OfflinePopup.cs` · `Assets/Tests/PlayMode/OfflinePopupTests.cs`(자기 파일 · `UiSmokeTests.cs` 는 T54·T63·T65 lock 이 쥔다) · `Assets/Forge/catalog.json`(색 키 `#0e111b`·`#ccc` · T62 뒤).
@@ -649,7 +649,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 🔄 · T57 ✅ · T58 ⬜ · T59 ✅ · T60 ⬜ · T61 🔄 · T62 🔄 · T63 🔄 · T65 ✅· T66 ✅ · T68 🔄 |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 🔄 · T57 ✅ · T58 🔄 · T59 ✅ · T60 ⬜ · T61 ✅ · T62 🔄 · T63 🔄 · T65 ✅· T66 ✅ · T68 🔄 |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ |
