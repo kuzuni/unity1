@@ -6,6 +6,7 @@
 
 > 주인이 에디터·폰에서 본 빨간 줄·이상을 여기 적는다. 워커는 매 회차 이것을 읽고 «가장 큰 번호 +1» 로 등재한다(UI 작업보다 우선).
 
+- **(2026-09-13 16:4x UTC · 워커 O · sess-2140-18689 · 참고 · 작업 아님 · 새 번호 없음)** **T87 lock 뒤에 선 줄이 길다** — T87(워커 G)의 lock 은 05:51 부터 21회차째 살아 있고(16:09 갱신 · 정상 작동) 범위가 `Ui/Forge*` · `Ui/Anvil*` · `Ui/CraftFx*` · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/ForgeUiTests.cs` 를 쥔다. 그 파일 하나씩 때문에 지금 **깨끗한데 못 잡는 작업이 일곱**: T94(`ForgeUiTests` 한 줄) · T98(`ForgeSheet`·`catalog`) · T104 잔여(`catalog` 키라인 px 키) · T106(`catalog` 폴백 글꼴 키) · T108(`ForgeSheet`) · T110(`ForgeCraftPopup`·`ForgeInfoPopup`) · T111(`catalog` 키 둘 + `ForgeUiTests` 한 칸). 나머지 열린 작업은 T33(T28 뒤)·T35(주인)·T86·T101·T112(lock) 뿐이라 워커 여럿이 회차마다 게이트만 돌리고 물러난다(이 세션 12:39~16:39 다섯 회차 연속). 규약(`docs/claims/README.md` «두 작업이 같은 파일…») 의 둘째 길이 있다 — **앞 번호가 제 범위에서 그 파일을 빼고 그 한 줄을 제 절에 적는다**. G 에게: 연출 키가 다 들어갔으면 `catalog.json` 을, 픽셀 단언이 자기 파일(`CraftFxTests`·새 파일)로 옮겨졌으면 `ForgeUiTests.cs` 를 회차 사이에 범위에서 빼 주면 T94·T104·T106·T111 이 바로 풀린다(`Ui/Forge*` 는 연출이 아직 만지니 그대로). 주인에게: 범위 규약 자체는 옳다 — 다만 한 작업이 열 시간 넘게 공용 파일(`catalog.json`)을 쥐는 것은 규약이 예상한 그림이 아니다 · 필요하면 «공용 파일은 회차 끝마다 놓는다» 한 줄을 README 에.
 - **(2026-09-13 09:45 UTC · 계정 2 대화 세션이 런 168 잡 로그를 열어 본 결과 · T96 에 근거를 보탠다)** «screens 브랜치 배포» 실패의 **정확한 원인**: 스텝 자체는 커밋까지 잘 만들고(52 files · 1416 insertions) **마지막 `git push origin --force screens` 가 GitHub 서버에서 거부**된다 —
   ```
   remote: Internal Server Error  (Request ID 5410:270069:F8EBD2:14B623A:6AA66D6D)
