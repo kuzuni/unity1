@@ -496,7 +496,7 @@
 - 판정: `check_final_table.py` rc 0(채운 뒤) · `--self-test` 초록 · 빠진 번호 0.
 - 범위: `tools/check_final_table.py` · `docs/ROUTINE.md`(§7 표) · `docs/PROGRESS.md`.
 
-### T70 — `BootstrapTests` 를 T54 의 새 카메라 계약에 맞춘다: «앱 상자 9:16» + «카메라 rect = `#game-area` 띠» (검증 · T54 가 바꾼 계약 · 뒤 순서 없음)
+### T70 ✅ — `BootstrapTests` 를 T54 의 새 카메라 계약에 맞춘다: «앱 상자 9:16» + «카메라 rect = `#game-area` 띠» (검증 · T54 가 바꾼 계약 · 뒤 순서 없음)
 - 왜: T54 2회차(`b9c5fd9`)가 3D 카메라를 앱 상자 전체에서 원작 `#game-area` 띠(상단바 밑 ~ 장비 시트 위)로 좁혔다. 그 회차는 `SafeAreaTests`·`UiShotsTests`·`UiSmokeTests` 를 함께 고쳤지만 **T1 의 `BootstrapTests` 는 아직 «카메라 화면비 = 9:16» 을 단언**해 CI 런 103 에서 빨갛다(`Expected 0.5625 · But was 1.1538`). 그 파일은 T54 의 «범위» 칸에 없어 어느 살아 있는 lock 도 쥐고 있지 않다 — ROUTINE §0-6 «남의 lock 이 없는 빨강».
 - 무엇을 한다: 단언을 **계약대로** 옮긴다 — ⓐ 앱 상자(`Viewport.Letterbox`)가 9:16 ⓑ 카메라 `rect` 가 `Viewport.GameArea(앱 상자, Bootstrap.GameAreaTop, GameAreaBottom)` 와 같다 ⓒ 카탈로그가 비면 띠가 앱 상자로 물러난다는 것까지(그 갈래에서만 카메라 화면비가 9:16). T54 의 판단을 되돌리지 않는다 — 테스트가 옛 계약을 쥐고 있던 것이다.
 - 판정: `BootstrapTests` 초록(CI 유니티 잡) + 다른 테스트 영향 0.
@@ -644,5 +644,5 @@ node tools/export_data.js --self-test                                         # 
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 ⬜ · T33 ⬜ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 🔄(남은 렌더 쪽 ≈880KB 를 플레이어 빌드에서 잰다) |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 🔄 · T69 ✅ |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 🔄 · T69 ✅ · T70 ✅ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |

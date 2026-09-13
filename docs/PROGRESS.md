@@ -136,7 +136,7 @@
 | T67 | 유니티 잡이 모드 하나를 통째로 안 돌린 채 빨강인 것을 아무 자도 말하지 않는다(런 94: EditMode 505 초록 · `playmode-results.xml` 없음 · PNG 0장 · 원인은 라이선스 좌석 반납 실패) | 🔄 진행 | sess-2310-4367 / 워커 M | `.github/workflows/ci.yml` | 뒤 순서 없음 · 워커 M 등재 · 코드·테스트 0줄 |
 | T68 | 오프라인 보상 팝업 머리가 정본의 어두운 판(`#0e111b` · 흰 글자)이 아니라 밝은 회색 판(`pp_panel`)에 검정 글자 · 요율 두 칸이 아이콘 **아래**가 아니라 옆 · 수집 버튼 우상단의 빨간 점 없음 | 🔄 진행 | sess-2336-18715 / 워커 C | `Assets/Scripts/Game/Ui/OfflinePopup.cs` · `Assets/Forge/catalog.json`(어두운 판 색 키 하나 · **T62 lock 이 풀린 뒤**) · `Assets/Tests/PlayMode/UiSmokeTests.cs` | T28 5회차 등재 · 런 95 `offline` 3.7/10 · 정본 `style.css` `.offline-top` 260(평면 `#0e111b` · 헤더 42.8%) · `.offline-rate`(column) · `.offline-collect-dot` 309 · `ui.js` `showOffline` 5890 |
 | T69 | 자: §7 표에 이름이 없는 작업을 잡는다(등재 당시 19개 · T33 완주 판정이 그 위를 지나간다) | ✅ 완료 | sess-2332-30952 / 워커 K | `tools/check_final_table.py` · `docs/ROUTINE.md`(§7 표·머리줄) · `docs/PROGRESS.md` | `unlisted()` 갈래 + §7 «(원작 밖 · 도구·게이트·CI)» 줄 신설 · 빠진 19개를 제 줄에 채움 → 이름이 빠진 작업 **0** · §7 상태 표시 63 → **82** |
-| T70 | `BootstrapTests` 가 T54 의 새 카메라 계약(3D 는 `#game-area` 띠)과 어긋나 빨강 — 앱 상자 9:16 + 띠 rect 로 단언을 옮긴다 | 🔄 진행 | sess-2357-19737 / 워커 H | `Assets/Tests/PlayMode/BootstrapTests.cs` | 런 103 빨강 5 중 이것만 임자 lock 이 없다(T54 범위 칸에 이 파일이 없다) · §0-6 «남의 lock 이 없는 빨강» |
+| T70 | `BootstrapTests` 가 T54 의 새 카메라 계약(3D 는 `#game-area` 띠)과 어긋나 빨강 — 앱 상자 9:16 + 띠 rect 로 단언을 옮긴다 | ✅ 완료 | sess-2357-19737 / 워커 H | `Assets/Tests/PlayMode/BootstrapTests.cs` | 런 103 빨강 5 중 이것만 임자 lock 이 없다(T54 범위 칸에 이 파일이 없다) · §0-6 «남의 lock 이 없는 빨강» |
 | T68 | 오프라인 보상 팝업 머리가 정본의 어두운 판(`#0e111b` · 흰 글자)이 아니라 밝은 회색 판(`pp_panel`)에 검정 글자 · 요율 두 칸이 아이콘 **아래**가 아니라 옆 · 수집 버튼 우상단의 빨간 점 없음 | 🔄 진행 | sess-2336-18715 / 워커 C | `Assets/Scripts/Game/Ui/OfflinePopup.cs` · `Assets/Tests/PlayMode/OfflinePopupTests.cs`(자기 파일 · `UiSmokeTests.cs` 는 T54·T63·T65 lock) · `Assets/Forge/catalog.json`(색 키 `#0e111b`·`#ccc` · **T62 lock 이 풀린 뒤** · 이 회차 안 만짐) | 1회차(코드 + PlayMode · ✅ 는 CI PNG `screen_offline.png` 눈 확인 + `ui_score` 뒤): 머리 판 42.8%·`pp_ink` 어두운 판 · 제목 흰/«수집 시간:» `pp_gray`/시간·요율 `offline_green` · 요율 세로(원 2.6rem 위 · 글자 아래 · 사이 2.4rem) · 수집 버튼 우상단 빨간 점(.7rem · 흰 테) · PlayMode 1 · dotnet 510 |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
@@ -573,6 +573,15 @@
 - **걷어낸 것에 못 넣은 것**: `forge-list` 는 클론이 시대 절 하나(0.0000%)만 보이고 원작은 시대 머리·별·다음 절까지 보인다 — T59 가 «맨 위 시대만 0% 가 맞다» 고 적었고 목록을 스크롤한 절은 안 찍혔으니(T57 기록 «스크롤한 절도 찍어야») 이번엔 판정 보류. `skill-detail` 은 클론에 «(□□□ 12□)» 한 줄과 비용 줄이 더 있는데 정본 `openSkillDetail` 대조를 못 했다 — 다음 회차.
 - **게이트**: `ui_score --score` 실행 · `check_docs_intact` · `check_decisions` · `check_task_rows` · `task_state --check` · `check_claim_scope` · `check_final_table` · dotnet build/test 전부 rc 0. 이 회차는 `docs/` 만 만진다(유니티 코드·씬·에셋 변경 0 · PlayMode 영향 0) → lock 은 이 커밋에서 반납.
 - **주인이 확인할 것**: `screens` 의 `screen_offline.png` 를 원작 `ref/screens/shot-042110.png` 과 나란히 — 원작은 위 절반이 검은 판인데 클론은 전부 밝다.
+
+### T70 완료 기록 (2026-09-13 · 워커 H · sess-2357-19737)
+
+- **무엇**: `BootstrapTests.부팅_씬이_세로_9대16_원근_카메라로_선다` 가 CI 런 103 에서 빨갛다 — `Expected 0.5625 · But was 1.1538`. 원인은 이 테스트가 아니라 **계약이 바뀐 것**이다: T54 2회차(`b9c5fd9`)가 3D 카메라를 앱 상자 전체에서 원작 `#game-area` 띠(상단바 밑 ~ 장비 시트 위)로 좁혔다(영웅이 장비 시트 뒤로 숨던 것을 고치려고). 그 회차는 `SafeAreaTests`·`UiShotsTests`·`UiSmokeTests` 를 함께 고쳤지만 `BootstrapTests` 는 T54 의 «범위» 칸에 없어 옛 단언을 쥔 채 남았다 — 어느 살아 있는 lock 도 그 파일을 안 쥐고 있어 ROUTINE §0-6 «남의 lock 이 없는 빨강» 으로 잡았다.
+- **어떻게**: 단언을 계약대로 옮겼다 — ⓐ **앱 상자**(`Viewport.Letterbox(Screen.w, Screen.h, 9/16)`)가 9:16 ⓑ **카메라 `rect` = `Viewport.GameArea(앱 상자, Bootstrap.GameAreaTop, GameAreaBottom)`** 네 칸이 1e-4 안 ⓒ 띠 높이 > 0 이고 앱 상자 안 ⓓ 띠가 앱 상자 전체로 물러난 갈래(카탈로그 키가 비었을 때 `LayoutOr` 폴백)에서는 **옛 계약대로 카메라도 9:16** 이다 — 그 갈래를 `Mathf.Approximately(band.H, app.H)` 로 갈라 남겼다.
+- **T54 의 판단은 되돌리지 않았다**: 띠가 맞고 테스트가 옛 계약을 쥐고 있던 것이다. T54 의 파일은 한 줄도 안 열었다(이 작업의 범위는 `BootstrapTests.cs` 하나).
+- **게이트**: `dotnet build` 0 오류(T48 `TestsPlay` 가 PlayMode 도 컴파일한다 — 이 변경이 거기서 걸린다) · `dotnet test` **510/510** · gen_meta·gen_ui_catalog·check_docs_intact·check_decisions·check_task_rows·task_state·check_claim_scope·check_final_table 전부 rc 0(§7 «원작 밖» 줄에 T70 을 적어 `check_final_table` 을 초록으로).
+- **플레이 콘솔 에러 0 은 무엇으로 확인했나**: 테스트 파일 하나만 바꿨다(게임 코드·씬·에셋 변경 0). `BootstrapTests` 초록은 다음 CI 유니티 잡에서 본다 — lock 은 그때까지 쥔다.
+- **주인이 확인할 것**: 없음(테스트가 새 화면 계약을 따라간 것뿐이다).
 
 ### T28 4회차 기록 — 런 90 재채점 + 꼴찌 화면 눈 확인 (2026-09-12 · 워커 H · sess-2257-4159)
 
