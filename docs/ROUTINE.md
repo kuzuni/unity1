@@ -878,6 +878,7 @@
 - 🔄 2026-09-13 20:5x 워커 P(sess-2054-26175) **5회차** = ⓑ 이어잡기(T104 ✅ 뒤 · 2~4회차는 워커 I 가 자유 파일 다섯 10자리): `LeagueSheet.cs` 네 자리 — 행 순위·이름 2px(8403) · 이름 아래 전투력 `max(1.4px,.1em)`(8408 · `small` = 전투력이지 서버가 아니다 · 자 표 정정 · 결정 274) · **me 행만** 서버 `max(1.2px,.1em)`(2355) · 도전 전투력 2px(2635). 폭은 `KeylineUi.json` · PlayMode `LeagueKeylineTests` 1 · 자리 초록 42 → 48 · 남은 자리는 PROGRESS 5회차 기록. **판정 ✅**(런 252 `LeagueKeylineTests` PASS · `screen_league`·`screen_league-challenge` 눈 확인: 순위·이름·전투력·내 행·도전 전투력 둘레에 검은 테 · 원작 042149·042228 과 같은 꼴) · **lock 반납 · 행 ⬜** — 남은 자리(Forge* 셋 = T87 뒤 · `Popups.cs@Btn` · `Battle/DamageNumbers.cs` · 자리 없는 다섯)는 PROGRESS 5회차 기록.
 
 - 🔄 2026-09-13 22:1x 워커 A(sess-2005-27410) **6회차** = ⓑ 이어잡기: 4회차가 «제 회차를 따로» 로 남긴 `Battle/DamageNumbers.cs` — 정본 `.float-dmg .6px`(500) · `.dmg-kill 1px`(524) · `.dmg-hero .55px`(539)를 `KeylineUi.json` px 절로 두고, 숫자마다 재질을 안 복제하는 공유 재질 갈래(색 키마다 하나)에 px 갈래(D = W · T104 식)를 얹는다 — `UiKit.OutlinePx` 의 **재질용 오버로드**(글자 크기·글꼴을 인자로) 하나를 더한다(그 파일은 어느 lock 도 안 쥔다). 자: 새 `DamageKeylineTests`(스폰 뒤 재질 `_FaceDilate` > 0 · `_OutlineWidth` = 표 환산) + `check_keyline` KNOWN 에서 그 줄 삭제(자리 초록 48 → 51).
+  → 런 257 `DamageKeylineTests` PASS(빨강 3 은 T87 불티·코어·링 자리) · `screen_main.png` 6배: «6.29m» 획마다 한 픽셀 어두운 테(.6px = 촬영 ½ 배율에서 .65px) · **lock 반납** — 남은 자리는 4회차 목록 그대로(T87 lock 뒤 셋 · `Popups.cs@Btn` · 자리 없는 다섯).
 
 
 ### T110 — 대장간 팝업 두 줄 버튼 라벨 넷이 이모지 글자다(«판매 / 🪙 +N» 둘 · «건너뛰기 / 💎 N» · «레벨 N 업그레이드 / 🪙 N») — 정본은 `<br>` 아래 줄에 아이콘 (Game·UI · T89·T99 뒤 · **T87 lock 뒤** · T99 에서 뗌)
