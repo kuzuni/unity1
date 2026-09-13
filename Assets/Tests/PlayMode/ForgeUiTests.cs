@@ -643,7 +643,8 @@ namespace Forge.Tests.PlayMode
             RectTransform ring2 = Named(UiRoot.Instance.Sheet, "af-ring-2");
             Assert.IsNotNull(ring2, "3타 링(= 닿는 자리)");
             float unit = ring2.rect.width / (UiKit.L("ring_rx") * 2f);
-            float gap = Vector3.Distance(head.position, ring2.position);
+            // `RectTransform.position` 은 **피벗** 자리라 칸마다 다르다 — 가운데끼리 잰다.
+            float gap = Vector3.Distance(head.TransformPoint(head.rect.center), ring2.TransformPoint(ring2.rect.center));
             Assert.Less(gap, 16f * unit, "망치 머리가 닿는 자리에서 너무 멀다 — " + (gap / unit).ToString("0.0") + " 유닛 떨어져 있다(머리 반높이 ≈ 10)");
 
             // ⓑ **픽셀** — 머리 칸이 실제로 강철로 차 있는가(칸의 절반 이상). 색만 보면 해머 카운터 아이콘 같은 남의 회색에 속는다.
