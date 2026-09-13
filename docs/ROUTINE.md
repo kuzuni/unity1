@@ -885,7 +885,7 @@
 - 범위: `Assets/Scripts/Game/Ui/GearDetailPopup.cs` · `Assets/Forge/Resources/GearDetailUi.json`(새 · `catalog.json` 은 T87 lock → T65 꼴 · 결정 249) · `Assets/Tests/PlayMode/GearDetailTests.cs`(새 · `ForgeUiTests.cs` 는 T87 lock → 자기 파일 · T68 꼴). 원래 적었던 `catalog.json` 키 둘·`gen_ui_catalog.py`·`ForgeUiTests.cs` 한 칸은 T33 이 카탈로그로 합칠 때 옮긴다.
 - 🔄 2026-09-13 워커 T(sess-1644-31925): T87 lock 은 `catalog.json`·`ForgeUiTests.cs` 만 막고 `GearDetailPopup.cs` 는 자유라, 보고함(워커 O)의 정체를 풀 길로 «자기 파일» 꼴을 택했다(결정 249). 키 둘 = 정본 1737~1738: `card_w` .70 · `bottom_h` .223(카드 바닥이 앱 바닥에서 뜨는 몫 — 정본 `padding-bottom` 의 `−1.7rem` 은 `.idet-wrap` 이 ✕ 반쪽을 끌어안는 몫이라 카드 자체는 .223·H 에 앉는다 · 그 CSS 주석 «카드 하단 77.70%H 유지»). **1회차**: `GearDetailStyle`(표 로더) + `Render` 가 카드를 앱 바닥에서 `bottom_h` 위에 바닥 피벗으로 앉힌다(높이는 ContentSizeFitter 가 위로 키운다) + `GearDetailTests` 1 — 세계 좌표로 앱 상자 대비 폭·바닥 비율을 잰다. ✅ 는 CI `GearDetailTests` 초록 + 다음 런 `screen_gear-detail.png` 를 열어 카드가 장비 시트 바로 위에 앉은 것을 본 뒤.
 
-### T112 — 두부 막이가 «글꼴 파일에 있는가» 가 아니라 «이미 구워졌는가» 를 묻고 있었다: `HasCharacter(c, false, false)` 의 셋째 인자 (Tests · T100 뒤 · 런 216 실측)
+### T112 ✅ — 두부 막이가 «글꼴 파일에 있는가» 가 아니라 «이미 구워졌는가» 를 묻고 있었다: `HasCharacter(c, false, false)` 의 셋째 인자 (Tests · T100 뒤 · 런 216 실측)
 - 증상(런 216 · cc88bd2): PlayMode 빨강 `TextSizeGateTests.카탈로그_글꼴이_한글을_직접_쥔다` — «카탈로그 글꼴에 **'ㅋ'** 가 없다». 그런데 같은 커밋에서 파이썬 자 `tools/check_text_glyphs.py`(글꼴 cmap 을 직접 읽는다)는 **rc 0** 이다. **두 자가 어긋난 것 자체가 증거다.**
 - 사실 확인: `Assets/Fonts/NotoSansKR-Forge.ttf` 의 cmap 을 직접 읽으면 `ㅋ`(U+314B)·`ㅠ`(U+3160)·`가`·`대` 가 **전부 있다**(코드포인트 2,061 · T100 2회차 `d3b5254` 가 U+3130~318F 를 넣은 그대로). 글꼴은 멀쩡하다.
 - 진짜 원인: `UiFont.Primary` 는 `TMP_FontAsset.CreateFontAsset(cat.font)` — **Dynamic** 애셋이라 글자표(`characterLookupTable`)가 처음엔 비어 있고 **그려진 글자만** 채워진다. TMP 의 `HasCharacter(char c, bool searchFallbacks, bool tryAddCharacter)` 는 두 인자가 **둘 다 false** 면 그 표만 본다 — 즉 «글꼴에 있는가» 가 아니라 «**이 순간까지 아틀라스에 구워졌는가**» 를 묻는다. 그래서 이 단언은 **앞 테스트가 무엇을 그렸느냐**에 따라 초록·빨강이 갈린다(런 195·209 초록 → 런 216 빨강 · 그 사이 글꼴도 카탈로그도 안 바뀌었다).
@@ -893,7 +893,7 @@
 - 무엇을 한다: 두 단언을 **`HasCharacter(c, /*searchFallbacks*/ false, /*tryAddCharacter*/ true)`** 로 — 폴백은 계속 빼고(판정 기준 유지), 원본 글꼴은 보게 한다. 셋째 인자를 켜면 **글꼴에 있으면 true · 없으면 false** 라 «없는 글자는 빨강» 이 그대로 살아 있다(더 느슨해지는 것은 «있는데 아직 안 구워진» 경우뿐이고 그것은 두부가 아니다).
 - 두 인자의 뜻을 주석으로 코드에 박아 같은 실수가 다시 안 나게 한다.
 - 🔶 **선점이 겹쳤다(2026-09-13 16:4x · 결정 248)**: 런 216 빨강 자리(`카탈로그_글꼴이…`)는 워커 C 가 T100 갈래로 **먼저 push** 했다(`13a64a5` · 결정 247). 규약대로 그 줄은 C 것을 살렸고, 이 번호는 **C 가 안 덮은 반쪽 = 같은 파일 73행 `화면_한글이…`** 로 좁혔다(번호를 ✂ 로 태우면 그 자리는 아무도 안 본다).
-- 판정: 다음 유니티 런에서 `TextSizeGateTests` 넷 전부 초록 · 파이썬 자와 답이 같아진다.
+- 판정: 다음 유니티 런에서 `TextSizeGateTests` 넷 전부 초록 · 파이썬 자와 답이 같아진다. → **런 222(`a43f87a`) EditMode 553/553 · PlayMode 114/114 · 빨강 0 · 넷 전부 PASS 로 닫혔다**(2026-09-13 · 워커 K).
 - 범위: `Assets/Tests/PlayMode/TextSizeGateTests.cs`(73행 한 줄 + 주석) · `docs/ROUTINE.md`(§2 등재) · `docs/PROGRESS.md`.
 
 ### T113 — 제작 비교 팝업도 **가운데**에 뜬다: 정본은 하단 앵커(카드 바닥 86.9%H)이고 폭도 공용 74% 가 아니라 68.8% 다 — T111 과 같은 병, 다른 팝업 (Game·UI · **T111 뒤**(같은 길을 쓴다) · T28 24회차 실측)
@@ -1052,5 +1052,5 @@ node tools/export_data.js --self-test                                         # 
 | (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ✅ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) | ✅ (굽기 잡 조건 T32 ✅) · T86 🔄 |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 🔄 |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 ✅ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
