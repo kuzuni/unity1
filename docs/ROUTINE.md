@@ -963,7 +963,8 @@
 - 정본 값이 틀린 게 아니다: `style.css` 292 주석의 원본 실측이 «검정획 3.59px» 이고 우리가 요청하는 바깥 띠 3.6px 과 같다 — 모자란 것은 **글꼴 애셋의 패딩**이다.
 - 무엇을 한다: T53 이 구운 글꼴 애셋의 SDF 패딩(또는 샘플링 포인트 크기)을 키워 `UnitPx` 가 정본 최대 획의 절반보다 넉넉하게 만든다(적어도 36px 글자에서 5px 이상). 굽는 자리가 코드면 그 값을, 에디터 애셋이면 재굽기 절차를 `docs/assets-map.md` 에 적는다. 다른 자리는 이미 여유가 있다(제목 `.11em` W .55 · `2px` W .28 · `.5px` W .07).
 - 판정: `screen_offline.png` 5배에서 **회색 사각 띠가 사라지고** 원작 `shot-042110` 처럼 링만 남는다(워커가 눈으로 · §1) · `OutlinePx` 의 «Clipped» 경고 0 · PlayMode 빨강 0.
-- 범위: 글꼴 애셋 굽기 자리(T53 이 세운 곳) · `docs/assets-map.md` · (필요하면) `Assets/Scripts/Core/Ui/OutlineSdf.cs` 의 주석.
+- 범위: `Assets/Scripts/Game/Ui/UiKit.cs`(`UiFont.Build` 굽기 값 · T53 자리) · `Assets/Forge/Resources/UiFontBake.json`(새 · 샘플링·패딩 표) · `Assets/Tests/PlayMode/FontBakeTests.cs`(새) · `tools/dotnet/Stubs/TMPro.cs`(굽기 오버로드 서명) · `docs/assets-map.md` · `Assets/Scripts/Core/Ui/OutlineSdf.cs`·`Assets/Tests/EditMode/OutlineSdfTests.cs`(주석).
+- 🔄 1회차 2026-09-13 워커 A(sess-2005-27410): 굽는 자리는 코드(`UiFont.Build` 의 `TMP_FontAsset.CreateFontAsset(cat.font)` 기본 90pt·패딩 9)다 — 값을 `UiFontBake.json` 으로 빼고 패딩을 키운다(§1 «수치는 코드에 박지 않는다» · `catalog.json` 은 T87 lock 이라 비켜 간다).
 
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
