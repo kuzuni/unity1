@@ -388,7 +388,12 @@ namespace Forge.Tests.PlayMode
         {
             yield return Boot();
             float t0 = 0f;
-            while (!MetaHost.Ready && t0 < 20f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            // 상대 목록(`League.Ensure` 가 뿌리는 봇)은 전투력을 보고 만들어지므로 전투가 설 때까지 기다린다 —
+            // 그 전엔 목록이 비어 행이 하나도 없다(런 199 실측: «상대 행이 없다»).
+            while ((!MetaHost.Ready || Forge.Game.Battle.BattleScene.Instance == null
+                    || !Forge.Game.Battle.BattleScene.Instance.Ready) && t0 < 25f)
+            { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 준비되지 않았다");
             MetaHost h = MetaHost.Instance;
             h.OpenLeague();   // 리그는 «pvp» 탭이 연다 — `OnTab("league")` 은 없는 키다(런 191 실측)
             yield return null;
@@ -396,19 +401,18 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsTrue(PopupLayer.Instance.IsOpen(LeagueSheet.ChallengeName), "상대 선택 팝업이 열려야 한다");
 
-            RectTransform row = null;
+            // 행 이름에 기대지 않고 «도전 버튼이 있는 칸» 을 행으로 삼는다(슬롯 이름이 바뀌어도 안 깨진다).
+            RectTransform btn = null;
             foreach (RectTransform rt in PopupLayer.Instance.GetComponentsInChildren<RectTransform>(true))
-                if (rt.name == "row" && rt.parent != null && rt.parent.name == "opp-0") { row = rt; break; }
-            Assert.IsNotNull(row, "상대 행(opp-0/row)이 없다");
+                if (rt.name == "challenge") { btn = rt; break; }
+            Assert.IsNotNull(btn, "상대 행이 하나도 없다 — League.Ensure 가 봇을 안 뿌렸다(전투력 0?)");
+            RectTransform row = btn.parent as RectTransform;
+            Assert.IsNotNull(row, "도전 버튼의 부모 행이 없다");
 
-            RectTransform star = null, btn = null;
+            RectTransform star = null;
             foreach (RectTransform rt in row.GetComponentsInChildren<RectTransform>(true))
-            {
-                if (rt.name == "star") star = rt;
-                else if (rt.name == "challenge") btn = rt;
-            }
+                if (rt.name == "star") { star = rt; break; }
             Assert.IsNotNull(star, "별점 칸이 없다");
-            Assert.IsNotNull(btn, "도전 버튼이 없다");
 
             // 정본 `.league-challenge-side { flex-direction: column }` — 별이 **버튼 위**다(가로로 나란히가 아니다).
             float starBottom = -star.anchoredPosition.y + star.rect.height;
