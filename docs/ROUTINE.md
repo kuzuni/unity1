@@ -395,7 +395,7 @@
 - 판정: 위 단언 초록 + 다음 회차에 `screen_main.png` 를 열어 상단바에 초상이 보이는 것을 본 기록 + 콘솔 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/Hud.cs`(아바타 타일·`SetAvatar`) · `Assets/Scripts/Game/Ui/MetaHost.cs`(Sync 한 줄) · `Assets/Tests/PlayMode/HudAvatarTests.cs`(새).
 
-### T57 — 대장간·장비 팝업이 제 판(카드) 없이 배경 위에 글자를 겹쳐 그린다 + 빈 검은·흰 막대 둘 + ✕ 가 둘 (Game·UI · T19 뒤 · T28 2회차가 눈으로 잡음)
+### T57 ✅ — 대장간·장비 팝업이 제 판(카드) 없이 배경 위에 글자를 겹쳐 그린다 + 빈 검은·흰 막대 둘 + ✕ 가 둘 (Game·UI · T19 뒤 · T28 2회차가 눈으로 잡음)
 - 실측(2026-09-12 · T28 2회차 · 워커 M · 런 78 PNG): `screen_forge-detail.png` **1.8/10** — 원작(`shot-042931`)은 딤 위 **흰 카드 한 장**에 아이템 + 서브옵션 12줄인데, 클론은 목록 격자와 상세 글자가 **같은 자리에 겹쳐** 읽을 수 없고 ✕ 가 위아래로 둘이다. `screen_craft-compare.png` **3.1/10** — 비교 카드 둘 중 **두 번째 카드에 판이 없어** «35.6m …»·«+30% …» 가 3D 배경과 장비 격자 위에 떠 있다. `screen_gear-detail.png` **2.7/10** · `screen_autoforge-filter.png` **3.7/10** — 카드 위에 **속 빈 검은 막대 + 흰 막대**가 하나씩 떠 있다(원작에 없는 자리).
 - 참고(오판 방지): 장비 상세가 **딤 없이** 격자 위에 뜨는 것 자체는 원작 그대로다(`shot-043244` 실측) — 문제는 «판이 없다 · 글자가 겹친다 · 빈 막대가 뜬다 · ✕ 가 둘» 이다.
 - 무엇을 한다: 원작 `ui.js` 의 해당 팝업(`openGearDetail`·`showCraftCompare`·`openForgeDetail`·자동 제련 필터)이 **카드 한 장**을 먼저 세우고 그 안에 줄을 놓는 순서를 그대로 옮긴다. 빈 막대의 정체(폭 0 배치·라벨 없는 pill)를 찾아 없앤다. ✕ 는 화면당 하나.
@@ -638,7 +638,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 🔄 · T53 ⬜ · T56 🔄 · T57 🔄 · T58 ⬜ · T59 ✅ · T60 ⬜ · T61 ⬜ · T62 🔄 · T63 🔄 · T65 🔄 · T66 ✅ · T68 🔄 |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 🔄 · T53 ⬜ · T56 🔄 · T57 ✅ · T58 ⬜ · T59 ✅ · T60 ⬜ · T61 ⬜ · T62 🔄 · T63 🔄 · T65 🔄 · T66 ✅ · T68 🔄 |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ |
