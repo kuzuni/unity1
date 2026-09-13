@@ -745,6 +745,9 @@ namespace Forge.Game.Ui
         {
             ForgeCraftPopup.DismissReveal();   // 앞 타격의 카드만 걷는다 — CancelAnvilStrike 는 AnvilBusy 까지 끄므로 여기서 부르면 방금 잠근 모루가 풀린다(CI 런 64)
             Striking = true;
+            // ⚠ 순서: `Striking` 을 켠 **뒤에 다시 그린다**. `OnCraft` 의 `SetPendingCraft → Save → Rerender` 는 아직 꺼져 있는 상태로
+            //    지나가 모루를 «보류 카드» 로 바꿔 놓는다(런 163 실측) — 여기서 한 번 더 그려야 두들길 모루가 화면에 선다.
+            ForgeSheet.Render(this);
             ForgeSheet.SetStriking(this, true);
             int gen = ++strikeGen;
             strikeLive = true;
@@ -768,12 +771,15 @@ namespace Forge.Game.Ui
 
         public void CancelAnvilStrike()
         {
+            bool was = Striking;
             strikeLive = false;
             strikeGen++;
             Striking = false;
             AnvilBusy = false;
             ForgeSheet.SetStriking(this, false);
             ForgeCraftPopup.DismissReveal();
+            // 두들기다 끊겼으면 시트를 제 모습으로 되돌린다 — 취소 전에는 «모루» 를 그리고 있었다(정본 `.striking` 해제와 같은 자리).
+            if (was) ForgeSheet.Render(this);
         }
 
         public Coroutine Delay(float sec, Action then) { return StartCoroutine(DelayCo(sec, then)); }

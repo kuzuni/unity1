@@ -1881,6 +1881,15 @@
 - **✅ 는**: 유니티 잡 초록 + `screen_skills.png` 를 열어 장착 오브의 «장착됨» 타원과 Lv 가 안 겹치고 막이 어두운 것(타원 위 면 밝기 장착/비장착 ≤ 0.5) + `ui_score --only skills` 가 안 내려간 것 + `screen_main.png` HUD 슬롯의 Lv 알약을 본 뒤.
 - **주인이 확인할 것**: 스킬 탭의 장착 오브에서 «장착됨» 타원 아래로 Lv.N 이 또렷이 갈려 읽히는가 · 전투 HUD 스킬 슬롯 아래에 검정 알약 Lv 가 붙었는가.
 
+### T87 4회차 기록 (2026-09-13 08:4x · 워커 G · sess-0544-755 · lock 유지)
+
+- **3회차 고침이 덜 먹었다(런 163 빨강 1 · 같은 내 테스트)**: «두들기는 동안 모루가 화면에서 사라졌다». `AnvilSlot` 이 `h.Striking` 을 보게 한 것만으로는 부족했다 — **순서**가 문제였다. `OnCraft` 는 `SetPendingCraft → Save → OnMetaChanged → Rerender` 를 **`Striking` 이 아직 꺼져 있을 때** 지나가므로 그 재렌더가 모루를 «보류 카드» 로 바꿔 놓고, 그 뒤 `PlayAnvilStrike` 가 `Striking` 을 켜도 **다시 그리는 사람이 없다**.
+- **고침**: `PlayAnvilStrike` 가 `Striking = true` 바로 뒤에 `ForgeSheet.Render(this)` 를 한 번 부른다(그 다음 `SetStriking` 이 러너를 새 모루에 문다). 정본과 같은 순서 — `.striking` 이 붙은 상태의 화면을 그린 뒤 애니메이션이 돈다.
+- **덤**: `CancelAnvilStrike` 도 두들기다 끊긴 경우 시트를 다시 그린다(모루 → 제 모습). 안 그러면 취소 뒤에도 모루가 남는다.
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` **534/534** · 자 8종 rc 0.
+- **배운 것(다음 사람에게)**: 이 시트는 «세이브 → 재렌더» 가 흔해서 **연출을 켜는 쪽이 자기 화면을 한 번 그려야 한다**. 러너는 `Rebind` 로 재렌더를 견디지만, 그리는 내용(모루냐 카드냐)을 정하는 것은 렌더 시점의 상태다.
+
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
