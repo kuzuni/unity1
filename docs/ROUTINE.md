@@ -967,6 +967,7 @@
 - 판정: `screen_offline.png` 5배에서 **회색 사각 띠가 사라지고** 원작 `shot-042110` 처럼 링만 남는다(워커가 눈으로 · §1) · `OutlinePx` 의 «Clipped» 경고 0 · PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/UiKit.cs`(`UiFont.Build` 굽기 값 · T53 자리) · `Assets/Forge/Resources/UiFontBake.json`(새 · 샘플링·패딩 표) · `Assets/Tests/PlayMode/FontBakeTests.cs`(새) · `tools/dotnet/Stubs/TMPro.cs`(굽기 오버로드 서명) · `docs/assets-map.md` · `Assets/Scripts/Core/Ui/OutlineSdf.cs`·`Assets/Tests/EditMode/OutlineSdfTests.cs`(주석).
 - 🔄 1회차 2026-09-13 워커 A(sess-2005-27410): 굽는 자리는 코드(`UiFont.Build` 의 `TMP_FontAsset.CreateFontAsset(cat.font)` 기본 90pt·패딩 9)다 — 값을 `UiFontBake.json` 으로 빼고 패딩을 키운다(§1 «수치는 코드에 박지 않는다» · `catalog.json` 은 T87 lock 이라 비켜 간다).
+- 🔄 2회차 2026-09-13 워커 A: 런 234 에서 패딩 15 가 `OutlineTests` 를 빨갛게(띠가 식의 1.77배) — 패딩 9 를 두고 샘플링 54 로(결정 269) + 아틀라스 실제 램프 진단 `ui-screens/t121-ramp.txt`.
 
 
 ### T122 — 장비 그림이 전부 **슬롯 실루엣**이다: 정본은 3D 장비 썸네일(`Scene3D.itemThumb`)로 갈아 끼우는데 클론엔 그 경로가 없다 (Game·UI · **T37 뒤**(메시는 이미 섰다) · T28 26회차가 PNG→정본 코드로 잡음)

@@ -30,6 +30,13 @@ namespace TMPro
         // T18 (워커 I) — OS 글꼴로 만드는 오버로드(한글 폴백 · ugui 2.0 = TMP 3.2 의 공개 서명: CreateFontAsset(string familyName, string styleName, int pointSize = 90)) 와 폴백 표(List<TMP_FontAsset> fallbackFontAssetTable { get; set; }).
         public static TMP_FontAsset CreateFontAsset(string familyName, string styleName, int pointSize = 90) { return string.IsNullOrEmpty(familyName) ? null : CreateInstance<TMP_FontAsset>(); }
         public List<TMP_FontAsset> fallbackFontAssetTable { get; set; }
+        // T121 진단 — 진짜 TMP_FontAsset 의 공개 프로퍼티(TMP 3.2): characterLookupTable · atlasTextures · atlasPadding · atlasRenderMode · atlasWidth/Height
+        public Dictionary<uint, TMP_Character> characterLookupTable { get; set; }
+        public Texture2D[] atlasTextures { get; set; }
+        public int atlasPadding { get; set; }
+        public UnityEngine.TextCore.LowLevel.GlyphRenderMode atlasRenderMode { get; set; }
+        public int atlasWidth { get; set; }
+        public int atlasHeight { get; set; }
         // T104 — 진짜 TMP_FontAsset 의 공개 프로퍼티 `public FaceInfo faceInfo` (UnityEngine.TextCore · pointSize 는 샘플링 크기). UiKit.OutlinePx 가 읽는다.
         public UnityEngine.TextCore.FaceInfo faceInfo { get; set; }
         public bool HasCharacter(char c) { return false; }
@@ -50,6 +57,9 @@ namespace TMPro
     //   스텁 파일 자체는 유니티가 컴파일하지 않으므로 여기 적는 것만으로는 아무것도 안 깨진다. 깨질 수 있는 것은 **Assets 쪽에서 쓰는 순간**이고,
     //   그러니 자를 쓰는 워커는 그 로그 줄을 먼저 보고 쓰라(안 맞으면 이 파일만 고치면 된다).
     public struct TMP_CharacterInfo { public char character; public int index; public bool isVisible; }
+    // T121 — 진짜 TMP_TextElement(글리프 참조) · TMP_Character : TMP_TextElement
+    public class TMP_TextElement { public UnityEngine.TextCore.Glyph glyph { get; set; } public uint unicode { get; set; } }
+    public class TMP_Character : TMP_TextElement { }
     public struct TMP_LineInfo { public int firstCharacterIndex, lastCharacterIndex, firstVisibleCharacterIndex, lastVisibleCharacterIndex, characterCount; }
     public class TMP_TextInfo
     {
