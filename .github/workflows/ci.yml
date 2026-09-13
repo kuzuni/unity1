@@ -95,6 +95,12 @@ jobs:
 
       - name: 화면 문구의 글자가 글꼴에 다 있는가 — 막는다 (T89 · 새 두부 □)
         run: python3 tools/check_text_glyphs.py
+
+      - name: 셰이더 포함 자 자기 검사 (T126 `check_shaders_included.py` · 고장 주입 7칸)
+        run: python3 tools/check_shaders_included.py --self-test
+
+      - name: 코드가 찾는 셰이더가 빌드에도 실리는가 — 막는다 (T126 · 에디터에서만 보이는 연출)
+        run: python3 tools/check_shaders_included.py
       - name: 테스트 결과 Artifact
         if: always()
         uses: actions/upload-artifact@v4

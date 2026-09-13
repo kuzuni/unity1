@@ -1014,6 +1014,16 @@
 - 판정: 자기 검사에 이번 실측을 칸으로 박는다(픽스처 `AgePatternTests` + 머리 커밋 제목 `T109 …` → 임자 **T124**) · 고장 주입(범위에 없는 픽스처 → «못 가렸다» 갈래) · 실제 `--fetch` 가 지금 main 에서 T124 를 찍는다.
 - 범위: `tools/check_unity_green.py`.
 
+### T126 — 빌드에는 **없는** 셰이더 둘: `Forge/FxUnlit`·`Forge/EnemyBody` 가 어떤 에셋에도 안 걸려 플레이어에서 잘린다 (배포·Game · T39 뒤 · 워커 G 등재)
+- 실측(2026-09-13 21:4x · 워커 G · 코드 읽기 + GUID 역추적): 런타임이 `Shader.Find` 로 찾는 이름은 넷(`Forge/Terrain` · `Forge/FxUnlit` · `Forge/EnemyBody` · `Forge/UiScreen`)인데, 빌드에 실리는 길은 셋뿐이다 — ⓐ Resources 폴더 ⓑ 씬·프리팹·재질이 GUID 로 참조 ⓒ `ProjectSettings/GraphicsSettings.asset` 의 `m_AlwaysIncludedShaders`.
+  - `Forge/Terrain` ← `Assets/Forge/Resources/Terrain.mat` 이 GUID 로 물고 있다(ⓐ+ⓑ) — 안전.
+  - `Forge/UiScreen` ← `Assets/Forge/Resources/UiScreen.shader`(ⓐ) — 안전(T87 23회차).
+  - **`Forge/FxUnlit`(`Assets/Shaders/FxUnlit.shader`) 과 `Forge/EnemyBody`(`Assets/Shaders/Dissolve.shader`) 는 셋 다 아니다** — `m_AlwaysIncludedShaders` 여덟 줄은 전부 유니티 내장 GUID 이고, 두 셰이더의 GUID 를 `--include=*.mat --include=*.prefab --include=*.unity --include=*.asset` 로 훑어도 참조가 **0** 이다.
+- 무엇이 깨지나: 에디터(PlayMode·촬영)에서는 `Shader.Find` 가 프로젝트의 모든 셰이더를 보므로 **전부 초록**이다. 그러나 WebGL·Android 빌드에서는 둘이 스트립돼 `Shader.Find` 가 null 을 주고 코드가 폴백으로 넘어간다(`FxUnlitMaterials.Find` → URP Unlit · `EnemyBodyFx.Find` → URP Lit). 그러면 ⓐ 임팩트 연출의 **가산 합성·깊이 끄기·양면**(`_SrcBlend`·`_DstBlend`·`_ZTest`·`_Cull`)이 통째로 사라지고(폴백에 그 프로퍼티가 없어 `HasProperty` 가드가 전부 거짓) ⓑ 적 몸의 **림 라이트·피격 플래시·디졸브**가 없어진다. 즉 «에디터에서만 보이는 연출» 이다.
+- 무엇을 한다: ⓐ 두 셰이더를 `m_AlwaysIncludedShaders` 에 넣는다(`{fileID: 4800000, guid: <셰이더 guid>, type: 3}`) — 재질 에셋을 새로 만들지 않는 가장 작은 고침이다. ⓑ 자(`tools/check_shaders_included.py`)를 새로 두어 **코드가 `Shader.Find` 로 찾는 모든 `Forge/*` 이름**이 위 셋 중 하나로 빌드에 실리는지 검사한다(아니면 rc 1 · 고장 주입 자기 검사 포함) · §3 과 CI dotnet 잡에 한 줄. ⓒ 다음 빌드 런에서 `unity-build` 가 초록인지 + 배포 스모크 콘솔 빨강 0 을 확인한다.
+- 판정: 자가 rc 0 이고 고장 주입(둘 중 하나를 목록에서 빼면) rc 1 · `dotnet build`·기존 테스트 초록 · 다음 WebGL 빌드 런에서 스모크 초록.
+- 범위: `ProjectSettings/GraphicsSettings.asset` · `tools/check_shaders_included.py`(새 파일) · `.github/workflows/ci.yml`(스텝 두 줄) · `docs/ROUTINE.md` §3.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -1031,6 +1041,7 @@ python3 tools/check_claim_scope.py                                            # 
 python3 tools/ui_score.py --self-test                                         # (T28 뒤) 원작 대조 자 자기 검사 15칸 (CI dotnet 잡도 부른다 · T51)
 python3 tools/check_final_table.py                                            # §7 완결 대조표 ↔ PROGRESS 상태 (T49 · T33 이 이 표로 완주를 판정한다)
 python3 tools/check_text_glyphs.py                                            # (T89) 화면 문구의 글자가 주인 글꼴에 다 있는가 — 새 두부(□)를 막는다 + 토스트 그릇이 아이콘 길을 거치는가(T107)
+python3 tools/check_shaders_included.py                                       # (T126) 코드가 `Shader.Find` 로 찾는 셰이더가 **빌드에도** 실리는가 — 에디터에서만 보이는 연출을 막는다
 python3 tools/check_sfx_calls.py                                              # (T119) 원작 소리 24종이 게임 코드에서 실제로 울리는가 — 레시피만 있고 호출이 없는 이름을 막는다
 tools/check_data_sync.sh .wwwww-src                                           # (T2 뒤) data/*.json ↔ 정본
 python3 tools/check_keyline.py                                               # (T109) 정본 -webkit-text-stroke 규칙 ↔ 클론 키라인 호출(.wwwww-src 필요) — 정본이 주는데 클론이 안 부르는 자리를 막는다(CI datasync 잡)
@@ -1164,5 +1175,5 @@ node tools/export_data.js --self-test                                         # 
 | (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ✅ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) | ✅ (굽기 잡 조건 T32 ✅) · T86 ✅(런 223 스모크 초록 · gh-pages 배포) |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 · T123(유니티 잡을 건너뛴 문서 런이 빨강을 덮는다) · T125(그 자의 임자 판별) | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 ✅ · T123 ✅ · T125 ✅ |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 · T123(유니티 잡을 건너뛴 문서 런이 빨강을 덮는다) · T125(그 자의 임자 판별) · T126(빌드에 안 실리는 셰이더) | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 ✅ · T123 ✅ · T125 ✅ · T126 🔄 |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
