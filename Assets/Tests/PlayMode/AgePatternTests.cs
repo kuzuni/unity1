@@ -29,6 +29,15 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>앞 테스트가 던져 남긴 상자를 걷는다 — 남은 층이 캔버스 재구성에서 던지면 뒤 테스트가 전부 빨개진다(런 243·245).</summary>
+        static void Sweep()
+        {
+            if (UiRoot.Instance == null) return;
+            var gone = new List<GameObject>();
+            foreach (Transform c in UiRoot.Instance.App) if (c.name.StartsWith("t124-")) gone.Add(c.gameObject);
+            foreach (GameObject g in gone) Object.DestroyImmediate(g);
+        }
+
         static RectTransform Host(string name, float w, float h)
         {
             RectTransform host = UiKit.Box(UiRoot.Instance.App, name);
@@ -47,6 +56,7 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 다섯_시대의_무늬가_서로_다르고_앞_다섯_시대는_층이_없다()
         {
             yield return Boot();
+            Sweep();
             string[] plain = { "primitive", "medieval", "earlyModern", "modern", "space" };
             string[] patterned = { "interstellar", "multiverse", "quantum", "underworld", "divine" };
             RectTransform host = Host("t124-host", 600f, 80f);
@@ -61,6 +71,8 @@ namespace Forge.Tests.PlayMode
                 made.Add(p);
                 Assert.AreEqual("age-pattern", p.Layer.name);
                 Assert.IsNotNull(p.Layer.GetComponent<RectMask2D>(), "정본 overflow:hidden");
+                foreach (var g in p.Layers) Assert.IsNotNull(g.GetComponent<CanvasRenderer>(), a + " 층에 CanvasRenderer(런 243 의 구멍)");
+                if (p.Rings != null) Assert.IsNotNull(p.Rings.GetComponent<CanvasRenderer>(), "링 메시에 CanvasRenderer");
                 if (a == "quantum") { Assert.IsNotNull(p.Rings, "양자는 링 메시"); Assert.AreEqual(0, p.Layers.Length); }
                 else
                 {
@@ -77,7 +89,8 @@ namespace Forge.Tests.PlayMode
             }
             yield return null;
             foreach (AgePattern p in made) Assert.Greater(p.Group.alpha, 0f);
-            Object.Destroy(host.gameObject);
+            Object.DestroyImmediate(host.gameObject);
+            Sweep();
         }
 
         static float[] ToCoverage(Texture2D t) { Color32[] px = t.GetPixels32(); var f = new float[px.Length]; for (int i = 0; i < px.Length; i++) f[i] = px[i].a / 255f; return f; }
@@ -86,6 +99,7 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 한_주기_뒤_첫_프레임과_같고_반짝임은_표_범위_안이며_양자_링은_위상을_따른다()
         {
             yield return Boot();
+            Sweep();
             RectTransform host = Host("t124-cycle", 600f, 80f);
             AgePatternSpec s = AgePattern.Spec;
             foreach (string a in new[] { "interstellar", "multiverse", "underworld", "divine" })
@@ -125,13 +139,15 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0f, q.Rings.PhaseRem, 1e-4f, "2.8초 = 위상 0 (같은 그림)");
             Assert.AreEqual(rings0, q.Rings.RingCount);
             Assert.AreEqual(1f, q.Group.alpha, 1e-6f);
-            Object.Destroy(host.gameObject);
+            Object.DestroyImmediate(host.gameObject);
+            Sweep();
         }
 
         [UnityTest]
         public IEnumerator 장착_셀은_흐림_55_이고_자동_제련_막대는_왼쪽_30에서_50_마스크가_정점_알파로_걸린다()
         {
             yield return Boot();
+            Sweep();
             RectTransform host = Host("t124-cell", 120f, 120f);
             AgePatternSpec s = AgePattern.Spec;
             AgePattern cell = AgePattern.Attach(host, "divine", cell: true);
@@ -148,7 +164,8 @@ namespace Forge.Tests.PlayMode
             var cr = m.Layers[0].GetComponent<CanvasRenderer>();
             Assert.IsNotNull(cr);
             Assert.AreEqual(1f, m.Group.alpha / (float)AgePatternRules.Pulse(s, m.A, 0), 1e-4f, "막대는 흐림 1");
-            Object.Destroy(host.gameObject); Object.Destroy(bar.gameObject);
+            Object.DestroyImmediate(host.gameObject); Object.DestroyImmediate(bar.gameObject);
+            Sweep();
         }
     }
 }
