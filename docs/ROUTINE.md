@@ -839,6 +839,14 @@
 - 판정: `check_text_glyphs` 가 여섯을 `KNOWN` 없이 통과 + PlayMode 두부 막이 초록 + 워커가 `screen_pets.png`·`screen_player-info.png`·`screen_chat.png` 을 열어 □ 가 없는 것을 눈으로(§1).
 - 범위: `Assets/Fonts/`(새 글꼴 · 주인 승인 뒤) · `Assets/Forge/catalog.json`(T87 뒤) · `tools/gen_ui_catalog.py` · `Assets/Scripts/Game/Ui/UiKit.cs`(T99·T104 뒤) · `tools/check_text_glyphs.py` · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/assets-map.md`.
 
+### T107 — 두부 막이(`check_text_glyphs`)가 «이어 붙인 문구» 를 안 본다: 화면 이모지 20종·41자리가 초록으로 지나간다 (검증+Game·UI · T89 뒤 · T28 21회차가 PNG→코드로 잡음)
+- 실측(2026-09-13 · T28 21회차 · 워커 M · 런 205 `screen_craft-compare.png`): 판매 버튼이 «판매 / **□** +23» 이다 — 4배 확대해 보니 코인 아이콘이 아니라 **빈 네모(두부)** 다. 그런데 같은 커밋에서 `python3 tools/check_text_glyphs.py` 는 **rc 0**(«글꼴에 없는 글자 7종 · 전부 KNOWN»)이다.
+- 왜 새는가: 그 자리는 `ForgeCraftPopup.cs:69` 의 `PopupKit.Btn(row, "sell", "판매\n🪙 +" + NumFmt.Fmt(...), …)` — **리터럴 + 식** 으로 이어 붙인 문구다. 자의 `screen_strings()` 가 걷은 5,013줄에 **`🪙` 가 담긴 줄은 0개**였다(실측). 즉 «이어 붙이면 안 본다».
+- 얼마나: 화면에 글자를 세우는 부름(`Btn`·`Button`·`Text`·`Label`·`Bold`·`Toast`·`Pill`·`Stroked`)의 리터럴만 훑어도 **글꼴에 없는 이모지 20종 · 41자리**다 — `💎`6 · `⭐`5 · `🔒`4 · `🪙`4 · `⚒`2 · `📜`2 · `🏆`2 · `🔨`2 · `💤`·`📍`·`🥚`·`🗝`·`💾`·`🎟`·`💀`·`🧪`·`⏱`·`📌`·`⏹`·`U+FE0F`. (T106 이 쥔 여섯과 겹치지 않는 것들이다.)
+- 무엇을 한다: ⓐ `tools/check_text_glyphs.py` 의 문구 걷기를 **이어 붙인 식**(`"..." + X + "..."`)·보간(`$"..."`)까지 보게 넓히고 자기 검사에 그 꼴을 한 칸 더한다 ⓑ 그러면 rc 1 로 드러나는 자리(20종 41곳)를 **정본이 무엇을 쓰는가** 로 갈라 고친다 — 정본이 아이콘(`IconGen.img`)이면 T31 아이콘으로, 정본도 글자면 T106 의 이모지 폴백 글꼴 갈래로.
+- 판정: 새 자가 **고장 주입**(이어 붙인 문구에 없는 글리프 하나)에서 rc 1 · 고친 뒤 rc 0 · `screen_craft-compare.png` 판매 버튼에 **코인 아이콘**(또는 글자가 보이는 폴백) + PlayMode 빨강 0.
+- 범위: `tools/check_text_glyphs.py` · `Assets/Scripts/Game/Ui/ForgeCraftPopup.cs`·`ForgeInfoPopup.cs`·`ForgeHost.cs`·`PassPopup.cs`·`ShopSheet.cs`·`TechPopups.cs`·`QuestSheet.cs`·`LeagueSheet.cs`·`AscendPopup.cs`·`OfflinePopup.cs`·`DebugPanel.cs`·`ProfilePopup.cs`·`ForgeAutoPopup.cs`·`DungeonDetailPopup.cs` · `Assets/Tests/PlayMode/ToastIconTests.cs`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -986,5 +994,5 @@ node tools/export_data.js --self-test                                         # 
 | (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ✅ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) | ✅ (굽기 잡 조건 T32 ✅) · T86 🔄 |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ⬜ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
