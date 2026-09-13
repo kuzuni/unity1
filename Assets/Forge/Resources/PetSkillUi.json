@@ -22,7 +22,7 @@
     "head_h_rem": 1.9, "pill_h_rem": 1.32, "pill_r_rem": 1.0, "pill_pad_rem": 0.55, "pill_icon_rem": 1.32,
     "passive_w": 0.6714, "passive_h": 0.0213, "passive_r_rem": 1.0,
     "sk_col_w": 0.1310, "sk_col_gap_w": 0.0242, "sk_row_gap_h": 0.0169, "sk_orb_w": 0.1008, "sk_cell_gap_h": 0.0101, "sk_shard_h": 0.0169, "sk_shard_r_rem": 0.45, "sk_lv_center_f": 0.729, "sk_lv_w_f": 0.9, "sk_lv_stroke_f": 0.2, "sk_lv_ink_half_f": 0.36,
-    "sk_eqplate_w": 0.1492, "sk_eqplate_h": 0.0282, "ribbon_r_rem": 0.4,
+    "sk_eqplate_w": 0.1492, "sk_eqplate_h_w": 0.0282, "ribbon_r_rem": 0.4,
     "pet_col_w": 0.1020, "pet_col_gap_w": 0.0551, "tile_r_rem": 0.5, "tile_face_mix_f": 0.6,
     "equipped_w_f": 0.74, "equipped_r_rem": 0.6, "equipped_pad_y_rem": 0.48, "equipped_pad_y_skill_rem": 0.28, "equipped_pad_x_rem": 0.5, "equipped_label_w": 0.198, "equipped_label_left_rem": -0.55, "equipped_label_notch_rem": 0.7, "equipped_label_lift_h": 0.0068,
     "mini_rem": 2.7, "mini_skill_rem": 2.16, "mini_gap_rem": 0.35, "mini_gap_skill_w": 0.0280, "mini_r_rem": 0.4, "mini_lv_r_rem": 0.5,

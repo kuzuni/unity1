@@ -208,7 +208,7 @@ namespace Forge.Game.Ui
                 {
                     Image dimm = PetSkillKit.Disc(orbRt, "equipped", UiKit.PerceivedDim(PetSkillStyle.C("orb_dim")));
                     UiKit.Fill(dimm.rectTransform);
-                    float pw = PetSkillStyle.Px("sk_eqplate_w"), ph = Mathf.Max(PetSkillStyle.Px("sk_eqplate_h"), starH * 1.1f);
+                    float pw = PetSkillStyle.Px("sk_eqplate_w"), ph = Mathf.Max(PetSkillStyle.Px("sk_eqplate_h_w"), starH * 1.1f);   // 정본 2.82%W(앱 폭 기준 · 종전 키는 _h 라 높이 기준 54px 로 컸다)
                     lvCenter = Mathf.Max(lvCenter, orb * 0.5f + ph * 0.5f + body * PetSkillStyle.L("sk_lv_ink_half_f"));
                     RectTransform plate = UiKit.Box(orbRt, "sk-eqplate");
                     UiKit.Anchor(plate, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, pw, ph);

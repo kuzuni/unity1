@@ -67,7 +67,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(plate, "«장착됨» 타원");
             Assert.AreEqual(Vector2.zero, plate.anchoredPosition, "타원은 정중앙");
             Assert.AreEqual(PetSkillStyle.Px("sk_eqplate_w"), plate.rect.width, 0.5f, "타원 폭 = 앱 폭 14.92%");
-            Assert.GreaterOrEqual(plate.rect.height, PetSkillStyle.Px("sk_eqplate_h") - 0.5f, "타원 높이 ≥ 정본 2.82%W(글자 하한이면 더 크다)");
+            Assert.GreaterOrEqual(plate.rect.height, PetSkillStyle.Px("sk_eqplate_h_w") - 0.5f, "타원 높이 ≥ 정본 2.82%W(글자 하한이면 더 크다)");
             RectTransform lv = (RectTransform)orb.Find("sk-lv");
             Assert.Less(orb.Find("ico").GetSiblingIndex(), dim.GetSiblingIndex(), "막은 아이콘 위");
             Assert.Less(dim.GetSiblingIndex(), plate.GetSiblingIndex(), "타원은 막 위");
@@ -129,8 +129,12 @@ namespace Forge.Tests.PlayMode
             RectTransform lv0 = (RectTransform)orb0.Find("sk-lv");
             float orbH = orb0.rect.height;
             float lvCenter = -lv0.anchoredPosition.y;                       // 오브 위에서 잰 라벨 중심(아래가 +)
-            Assert.AreEqual(orbH * PetSkillStyle.L("sk_lv_center_f"), lvCenter, 0.5f, "Lv 라벨 중심 = 원작 72.9%");
-            Assert.LessOrEqual(lvCenter + lv0.rect.height * 0.5f, orbH + 0.5f, "Lv 라벨 상자가 오브 아래로 안 나간다");
+            float inkHalf = UiCatalog.Instance.Kind(TextKind.Body).size * PetSkillStyle.L("sk_lv_ink_half_f");
+            float expectCenter = orbH * PetSkillStyle.L("sk_lv_center_f");
+            RectTransform plate0 = (RectTransform)orb0.Find("sk-eqplate");
+            if (plate0 != null) expectCenter = Mathf.Max(expectCenter, orbH * 0.5f + plate0.rect.height * 0.5f + inkHalf);   // T95 — 장착 오브는 타원 아래
+            Assert.AreEqual(expectCenter, lvCenter, 0.5f, "Lv 라벨 중심 = 원작 72.9%(장착 오브는 타원 아래끝 + 잉크 반높이)");
+            Assert.LessOrEqual(lvCenter + inkHalf, orbH + 0.5f, "Lv 잉크가 오브 아래로 안 나간다");
             Assert.LessOrEqual(lv0.rect.width, orbH * 1.0f + 0.5f, "Lv 라벨 폭 ≤ 지름(원작 90%)");
             if (Host.Skills.State.Get(firstId).Stars == 0)
             {
