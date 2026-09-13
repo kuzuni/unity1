@@ -775,7 +775,7 @@
 - 범위: `Assets/Scripts/Game/Ui/ChatScreen.cs` · `Ui/ForgeCraftPopup.cs` · `Ui/ForgeInfoPopup.cs` · (필요하면) `Ui/UiKit.cs`(두 줄 갈래).
 - 진행(워커 D · 2026-09-13): 1회차 `ChatScreen` ⚔ → 정본 `power` 아이콘(런 179 PASS) · 2회차 채팅 목록이 바닥에 안 붙어 샷에 카드가 안 보이던 것을 정본 `pinChatBottom`·`_chatStick` 대로(결정 228) · `Forge*` 넷은 T87 lock 이 풀린 뒤.
 
-### T100 — 두부가 아직 셋 남았다 · 자 둘이 그 셋을 **구조적으로** 못 본다 (Game·검증 · T53·T89 뒤 · 임자 없음 · 검수 Q 등재 · **T89 ✅ 되돌림 아님 — 남은 갈래**)
+### T100 ✅ — 두부가 아직 셋 남았다 · 자 둘이 그 셋을 **구조적으로** 못 본다 (Game·검증 · T53·T89 뒤 · 임자 없음 · 검수 Q 등재 · **T89 ✅ 되돌림 아님 — 남은 갈래**)
 - 실측(2026-09-13 12:0x · 검수 Q · **런 179**(1c68d7e · EditMode 540/540 · PlayMode 104/104 · 빨강 0)의 PNG 를 Read 로 열어 본 것 — **전부 초록인 런에서 눈에 보인다**):
   - ⓐ `screen_main.png` 자동 제련 버튼이 «자동 **□** / OFF» 다. 글자는 **`↻`(U+21BB)** — `Assets/Scripts/Game/Ui/ForgeSheet.cs:94` 의 `string autoLabel = "자동 ↻\n" + (unlocked ? (h.AutoOn ? "ON" : "OFF") : "🔒");`. **정본은 글자가 아니라 아이콘이다**(`ui.js:1551` = `자동${IconGen.img('autoloop', 'auto-loop-ico')}` · 잠김은 `IconGen.img('lock')`) — T89 가 세운 «이모지 → T31 아이콘» 길에 이 둘(`autoloop`·`lock`)이 안 올라갔다.
   - ⓑ `screen_chat.png` 에 «need more hammers **□**» = **`😭`(U+1F62D)** · «오늘 던전 열쇠 다 씀 **□□**» = **`ㅠ`(U+3160) 둘**. 원문은 정본 `web/js/chat.js`(11·16행)이고 **채팅 문구는 C# 문자열이 아니라 `StreamingAssets/data/*.json`**(T2 가 정본에서 뽑은 것)으로 들어온다.
