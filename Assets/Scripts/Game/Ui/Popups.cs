@@ -176,6 +176,23 @@ namespace Forge.Game.Ui
         /// <summary>탭바 위쪽 y(앱 위에서 · 기준 px).</summary>
         public static float TabTop { get { return UiKit.L("tabbar_top") * UiKit.RefH; } }
 
+        /// <summary>카드 아래턱에 걸치는 ✕(<see cref="XButton"/>)가 카드 밑으로 내려가는 양 — 원 반지름 + 아래턱 그림자.</summary>
+        public static float XOverhang { get { return UiKit.H("xbtn") * 0.5f + UiKit.H("xbtn_shadow"); } }
+
+        /// <summary>
+        /// 가운데 정렬 카드가 **HUD 상단바 아래 ~ 탭바 위**에 들어가게 높이와 y 오프셋을 잡는다(T78).
+        /// 종전에는 높이를 <c>H × 0.84</c> 로 박아 카드 아래턱(+✕ 반쯤 걸친 것)이 탭바 밑으로 들어가
+        /// <c>autoforge</c> 의 닫기 ✕ 가 탭바에 가렸다(검수 Q 실측 · 런 127 `screen_autoforge.png`).
+        /// </summary>
+        public static void FitBetweenBars(float wantH, out float h, out float yOffset)
+        {
+            float H = UiKit.RefH;
+            float top = UiKit.H("topbar_h") + Rem * 0.6f;
+            float bottom = TabTop - XOverhang - Rem * 0.3f;
+            h = Mathf.Min(wantH, bottom - top);
+            yOffset = H * 0.5f - (top + bottom) * 0.5f;
+        }
+
         public static void Inset(RectTransform rt, float px)
         {
             rt.offsetMin = new Vector2(px, px);

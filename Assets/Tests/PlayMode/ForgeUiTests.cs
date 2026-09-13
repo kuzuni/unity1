@@ -242,6 +242,8 @@ namespace Forge.Tests.PlayMode
             AssertTextGate();
             // T57 — 상세는 제 판 위에 그려지고(목록 격자에 겹치지 않는다) ✕ 는 화면에 하나다(목록 것).
             AssertDressed(h.Meta.Popups.Find(ForgeInfoPopup.ItemName).Root, "forge-detail");
+            AssertCovers(ForgeInfoPopup.Name, "forge-list");                                   // T78
+            AssertCovers(ForgeInfoPopup.ItemName, "forge-detail");                             // T78
             Assert.AreEqual(1, XButtons(), "상세가 열려도 ✕ 는 하나(원작 shot-042931)");
             ForgeInfoPopup.CloseItemDetail(h);
             yield return null;
@@ -304,6 +306,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(h.Engine.AutoForgeConfig().FilterOn);
             Assert.IsNotNull(FindIn(h.Meta.Popups.Find(ForgeAutoPopup.Name).Root, "af-sub-critCh"), "필터가 켜지면 옵션 행 13");
             AssertDressed(h.Meta.Popups.Find(ForgeAutoPopup.Name).Root, "autoforge-filter");   // T57
+            AssertCovers(ForgeAutoPopup.Name, "autoforge");                                    // T78
             h.PickHammers(3);
             yield return null;
             Assert.AreEqual(3, h.Engine.AutoForgeConfig().HammersPerBatch);
@@ -379,6 +382,47 @@ namespace Forge.Tests.PlayMode
             Transform card = FindIn(root, "card");
             Assert.IsNotNull(card, what + ": 레이아웃 칸 안의 배경도 card 도 없다 — 자가 헛돈다");
             Assert.Greater(AssertFills(card, what, false), 0, what + ": 카드에 판(line·face)이 없다");
+        }
+
+        /// <summary>
+        /// T78 — 팝업 한 장이 «판을 덮었는가»: ⓐ 딤이 카탈로그 `modal_dim` 색 그대로 **앱 상자 네 귀퉁이**를 덮고
+        /// ⓑ 카드 아래턱에 걸친 ✕ 가 **탭바 위**에 남는다(런 127 `screen_autoforge.png` 에서 ✕ 가 탭바에 반쯤 가렸다).
+        /// 픽셀이 아니라 사각형으로 본다 — 촬영이 없는 런에서도 도는 단언이다.
+        /// </summary>
+        private static void AssertCovers(string popupName, string what)
+        {
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(popupName);
+            Assert.IsNotNull(p, what + ": 팝업이 안 열렸다");
+            Transform dimT = FindIn(p.Root, "dim");
+            Assert.IsNotNull(dimT, what + ": 딤 층이 없다");
+            Image dim = dimT.GetComponent<Image>();
+            Assert.IsNotNull(dim, what + ": 딤에 Image 가 없다");
+            Assert.AreEqual(UiKit.C("modal_dim"), dim.color, what + ": 딤 색이 카탈로그 modal_dim 이 아니다");
+
+            RectTransform app = UiRoot.Instance.App;
+            Rect a = RectOf(app), d = RectOf(dim.rectTransform);
+            Assert.LessOrEqual(d.xMin, a.xMin + 0.5f, what + ": 딤이 앱 상자 왼쪽을 덜 덮는다");
+            Assert.GreaterOrEqual(d.xMax, a.xMax - 0.5f, what + ": 딤이 앱 상자 오른쪽을 덜 덮는다");
+            Assert.LessOrEqual(d.yMin, a.yMin + 0.5f, what + ": 딤이 앱 상자 아래를 덜 덮는다");
+            Assert.GreaterOrEqual(d.yMax, a.yMax - 0.5f, what + ": 딤이 앱 상자 위를 덜 덮는다");
+
+            Transform x = FindIn(p.Root, "x-btn");
+            if (x == null) return;
+            Rect xr = RectOf((RectTransform)x);
+            float tabTopY = a.yMin + (1f - UiKit.L("tabbar_top")) * a.height;   // 화면 좌표는 아래가 0
+            Assert.GreaterOrEqual(xr.yMin, tabTopY - 0.5f,
+                what + ": 닫기 ✕ 아래턱이 탭바 위쪽(" + tabTopY.ToString("0.0") + ")보다 아래다 — 탭바가 ✕ 를 가린다");
+        }
+
+        /// <summary>월드 코너 넷 → 화면 사각형.</summary>
+        private static Rect RectOf(RectTransform rt)
+        {
+            Vector3[] c = new Vector3[4];
+            rt.GetWorldCorners(c);
+            float x0 = Mathf.Min(c[0].x, c[2].x), x1 = Mathf.Max(c[0].x, c[2].x);
+            float y0 = Mathf.Min(c[0].y, c[2].y), y1 = Mathf.Max(c[0].y, c[2].y);
+            return new Rect(x0, y0, x1 - x0, y1 - y0);
         }
 
         /// <summary>화면에 보이는 ✕ 개수(원작은 화면당 하나 · T57).</summary>

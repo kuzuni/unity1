@@ -41,8 +41,9 @@ namespace Forge.Game.Ui
             float rem = PopupKit.Rem, W = UiKit.RefW, H = UiKit.RefH;
             float w = W * 0.85f, pad = rem * 0.9f;
             float inner = w - pad * 2f - PopupKit.Line3 * 2f;
-            float cardH = H * 0.84f;
-            RectTransform card = PopupKit.Card(root, "card", w, cardH, "pp_paper", rem * 1.1f);
+            float cardH, cardY;
+            PopupKit.FitBetweenBars(H * 0.84f, out cardH, out cardY);   // T78 — ✕ 가 탭바에 가리지 않게
+            RectTransform card = PopupKit.Card(root, "card", w, cardH, "pp_paper", rem * 1.1f, "pp_line", cardY);
             TextMeshProUGUI title = UiKit.Text(card, "af-title", TextKind.Title, "자동 제련", "pp_ink");
             title.fontStyle = FontStyles.Bold;
             float th = PopupKit.FontSize(TextKind.Title) * 1.3f;
