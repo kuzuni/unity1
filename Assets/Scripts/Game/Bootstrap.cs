@@ -36,7 +36,18 @@ namespace Forge.Game
         {
             if (Application.isMobilePlatform) Screen.orientation = ScreenOrientation.Portrait;
             ApplyFrameRate();
+            ApplyRunInBackground();
             Apply();
+        }
+
+        /// <summary>
+        /// 백그라운드에서도 돈다(T88 · 주인 지시 2026-09-13 «백그라운드에서도 플레이 되게»). 창이 초점을 잃어도(데스크톱 · WebGL 캔버스 blur)
+        /// 루프가 멈추지 않는다 — `ProjectSettings.asset` 의 `runInBackground: 1` 과 같은 값이고, 여기서도 세워 빌드 설정이 되돌아가도 유지한다.
+        /// 폰은 OS 가 앱을 재우므로 이것만으로는 안 된다 — 깨어날 때의 따라잡기는 <see cref="AppLifecycle"/>(원작 `visibilitychange` 자리)가 한다.
+        /// </summary>
+        public static void ApplyRunInBackground()
+        {
+            Application.runInBackground = true;
         }
 
         /// <summary>

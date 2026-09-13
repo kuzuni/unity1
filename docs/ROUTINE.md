@@ -657,11 +657,12 @@
 - 판정: PlayMode 로 «누른 뒤 t 초의 값이 CSS 곡선과 ±10%» 를 키프레임마다 + **촬영**(제작 순간 컷 `screen_craft-*.png` · 워커가 열어 본다 · §1) + 원작 `shot-craft-reveal`·`shot-anvil-*` 눈 대조.
 - 범위: `Assets/Scripts/Game/Ui/Forge*` · `Ui/Anvil*` · `Ui/CraftFx*` · `Assets/Tests/PlayMode/ForgeUiTests.cs` · `Assets/Forge/catalog.json`(연출 수치 칸).
 
-### T88 — 백그라운드에서도 게임이 돈다 (Game+Core · T13 뒤 · **주인 지시**)
+### T88 ✅ — 백그라운드에서도 게임이 돈다 (Game+Core · T13 뒤 · **주인 지시**)
 - 주인(2026-09-13): «백그라운드에서도 플레이 되게 해줘야 함». `Application.runInBackground` 가 코드·ProjectSettings 어디에도 없다(실측 grep 0).
 - 할 것: ⓐ `Application.runInBackground = true`(`Bootstrap`) · `ProjectSettings.asset` `runInBackground: 1` ⓑ **폰은 그것만으로 안 된다** — OS 가 앱을 재우면 프레임이 멎으므로 `OnApplicationPause(true)` 에 잠든 시각을 저장하고, 깨어날 때 흐른 실시간만큼 **전투·대장간·부화·오프라인 수급을 절대시각으로 따라잡는다**(원작 `state.js` 가 웹 탭 전환에서 하던 것 · T13 의 절대시각 타이머 위에 «따라잡기» 한 갈래). 따라잡기는 100ms 틱을 N 번 도는 것이 아니라 **닫힌 식**으로 — 몇 시간이면 수십만 틱이다.
 - 판정: EditMode(잠든→깨어난 시각을 주고 따라잡은 상태가 «실제로 그만큼 돈 상태» 와 같은가 · 30초·1시간·8시간·오프라인 캡 4시간 경계) + PlayMode(`OnApplicationPause` 흉내 → 콘솔 빨강 0 · 화면이 살아난다) + 「주인이 확인할 것: 폰에서 홈 → 30초 뒤 복귀 → 재화·웨이브가 그만큼 늘어 있다」.
 - 범위: `Assets/Scripts/Game/Bootstrap.cs` · `Game/AppLifecycle.cs`(새 파일) · `Assets/Scripts/Core/Save/` · `ProjectSettings/ProjectSettings.asset` · `Assets/Tests/EditMode/CatchUpTests.cs` · `Assets/Tests/PlayMode/LifecycleTests.cs`.
+- ✅ 결론(2026-09-13 · 워커 R): `runInBackground`(코드+ProjectSettings) · Core `Lifecycle`(5초 백그라운드 문턱 · 60초 팝업 · `ResumePlan`) · Game `AppLifecycle`(잠든 시각 · 벽시계 공백 감지 · 복귀 시 부팅과 같은 오프라인 팝업). **전투는 따라잡지 않는다** — 원작이 숨은 구간 틱을 버리고 오프라인 수급(닫힌 식 `offlineRewardFor`)으로 넘기며(이중 지급 방지), 대장간·부화·연구는 절대시각 `endsAt` 이라 깨어난 첫 틱에 끝난다. EditMode 6 · PlayMode 2 · 기록은 PROGRESS «T88 완료 기록» · 결정 204.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
