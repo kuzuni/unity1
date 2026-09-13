@@ -342,6 +342,46 @@ namespace Forge.Core.CraftFx
             return list.ToArray();
         }
 
+        // ── 연기(`af-smoke`) ─────────────────────────────────────────────────────────────────
+        // 정본 주석: «타격마다 훅 오르고 **꼬리(650~900ms)를 채운다**. 지금까지 그 구간은 모루 잔진동에만 기대고 있었는데,
+        // 모루를 강체로 만들면서 그마저 사라졌다. 김이 오르는 건 물리적으로도 옳고 92px 에서 **면적**으로 읽히는 몇 안 되는 요소다.
+        // 망치 **뒤**에 둬 머리를 흐리지 않는다.»
+        // ⚠ 지연은 타격 시각에 붙어 있지 않고 **절대값**이다(`.173s` / `.378s` / `.648s`). 정본이 «3타 연기(.648 + .25s)가
+        //   900ms 에 끝나 오버레이 수명과 맞물린다» 고 적은 그 900ms 는 **지금 클럭(1500ms)보다 앞선 시절의 값**이라,
+        //   타격(300 / 650 / 1100ms)보다 127 / 272 / 452ms 씩 이르다. 글자 그대로 옮긴다 — 우리가 «고치면» 그것이 원작과의 차이다.
+
+        /// <summary>`afsmoke` 길이(ms) — `.25s`.</summary>
+        public const double SmokeDurMs = 250;
+        /// <summary>`animation-delay` — 타격 시각이 아니라 **절대 시각**이다(정본 그대로).</summary>
+        public static readonly double[] SmokeDelayMs = { 173, 378, 648 };
+        /// <summary>타격마다의 연기 배율(`--afms` 1 / 1.2 / 1.5) — 크기와 밝기 둘 다에 곱해진다.</summary>
+        public static readonly double[] SmokeScale = { 1.0, 1.2, 1.5 };
+        /// <summary>`ease-out` = `cubic-bezier(0, 0, .58, 1)`.</summary>
+        public static readonly CssEase SmokeEase = new CssEase(0, 0, 0.58, 1);
+
+        /// <summary>`afsmoke` — 채널 = opacity(배율과 곱한다) · translateY(viewBox 단위 · CSS 는 위가 −) · 배율 곱.</summary>
+        public static readonly CssTrack Smoke = new CssTrack(
+            new double[] { 0, 30, 100 },
+            new double[][]
+            {
+                new double[] { 0.0, 0.0, 0.35 },
+                new double[] { 0.6, -2.0, 0.80 },
+                new double[] { 0.0, -9.0, 1.50 },
+            });
+
+        /// <summary>연기 하나의 지금 자세 — `into` = [opacity, translateY, 배율]. 창 밖이면 false. 밝기·크기 둘 다 <see cref="SmokeScale"/> 와 곱한다.</summary>
+        public static bool SampleSmoke(int i, double ms, double[] into)
+        {
+            if (i < 0 || i >= SmokeDelayMs.Length) throw new ArgumentOutOfRangeException("i");
+            if (into == null || into.Length < 3) throw new ArgumentException("into 는 3칸이어야 한다");
+            double t0 = SmokeDelayMs[i];
+            if (ms < t0 || ms > t0 + SmokeDurMs) return false;
+            Smoke.SampleEased((ms - t0) / SmokeDurMs * 100.0, SmokeEase, into);
+            into[0] = Math.Min(1.0, into[0] * SmokeScale[i]);
+            into[2] *= SmokeScale[i];
+            return true;
+        }
+
         // ── 흑피(`af-scale`) ──────────────────────────────────────────────────────────────────
         // 정본 주석: «**분출물이 100% 밝았다** — 두 비평가가 같이 꼽았다. 달군 쇠를 치면 표면 산화막(흑피, scale)이 깨져
         // **어두운** 조각이 함께 날고, 그게 있어야 '반짝임' 이 아니라 '단조' 로 읽힌다.»

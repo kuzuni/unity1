@@ -40,6 +40,9 @@ namespace Forge.Game.Ui
         /// <summary>블룸(정본 `.af-bloom.bN`) — 타격 순간 버튼 전체를 들어 올린다.</summary>
         static readonly Image[] blooms = new Image[3];
 
+        /// <summary>연기 칸 셋(정본 `.af-smoke.m0/m1/m2`).</summary>
+        static readonly Image[] smokes = new Image[3];
+
         /// <summary>불티 칸(정본 `.af-spark` · 타격마다 7·11·16개 = 34개) 과 그 표.</summary>
         static Image[] sparks = new Image[0];
         static Forge.Core.CraftFx.AutoForgeFxSpec.SparkSpec[] sparkSpecs = new Forge.Core.CraftFx.AutoForgeFxSpec.SparkSpec[0];
@@ -132,7 +135,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(upgText.rectTransform, 0f, btnH + rem * 0.25f, W - padX * 2f - rx, PopupKit.FontSize(TextKind.Sub) * 1.3f);
             }
             // 두들기는 도중 다시 그려졌다면(세이브 → Rerender) 러너를 새 모루·시트에 다시 문다 — 흐른 시간은 지킨다.
-            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) { fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit); fx.TakeSparks(sparks, sparkSpecs, scales, scaleSpecs); } }
+            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) { fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit); fx.TakeSparks(sparks, sparkSpecs, scales, scaleSpecs, smokes); } }
         }
 
         static string RemainText(ForgeHost h)
@@ -158,7 +161,7 @@ namespace Forge.Game.Ui
             if (root == null) return;
             AnvilFx fx = AnvilFx.Ensure(root.Sheet);
             if (fx == null) return;
-            if (on) { fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit); fx.TakeSparks(sparks, sparkSpecs, scales, scaleSpecs); }
+            if (on) { fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool, billetGlow, hammerRt, hammerGroup, rings, shadows, cores, starsL, starsR, flashes, heats, blooms, vbUnit); fx.TakeSparks(sparks, sparkSpecs, scales, scaleSpecs, smokes); }
             else fx.Stop();
         }
 
@@ -373,23 +376,22 @@ namespace Forge.Game.Ui
         /// </summary>
         static void DrawHammer(RectTransform parent, float ox, float oy, float u, float vbW, float vbH)
         {
-            // 정본 구조: `.anvil-fx` 오버레이(모루와 같은 viewBox) 안에 링·불티가 먼저, 망치가 **맨 뒤**(= 맨 위)다.
+            // 정본 SVG 순서 그대로 쌓는다(먼저 그린 것이 뒤 · `ui.js` 2860~2915):
+            //   블룸 → 잔열 → 플래시 → 링 → 접지 그림자 → 순백 코어 → 연기 → 흑피 → 불티 → **망치** → 섬광
+            // ⚠ 섬광이 망치 **앞**인 것이 요점이다 — 정본 주석: «뒤에 두면 흰 코어가 통째로 머리(반폭 9.4)에 가려
+            //   밖으로 나오는 건 주황 스커트뿐이고, 그게 주황 상판에 얹혀 '얼룩'이 된다».
             RectTransform fx = UiKit.Box(parent, "anvil-fx");
             UiKit.Place(fx, ox, oy, vbW * u, vbH * u);
-            DrawRings(fx, u, vbW, vbH);
-            // 정본 SVG 순서: 링 → 접지 그림자 → … → 순백 코어 → 섬광 → 망치
-            DrawImpactEllipse(fx, u, shadows, "af-shadow", "fx_shadow_rx", "fx_shadow_ry", "fx_shadow_dy", "fx_shadow");
-            DrawImpactEllipse(fx, u, cores, "af-core", "fx_core_rx", "fx_core_ry", "fx_core_dy", "fx_core", true);
-            // 정본 SVG 순서: 블룸이 맨 처음(가장 아래) — 버튼 전체를 들어 올리는 넓은 빛
             DrawImpactGradient(fx, u, blooms, "af-bloom", "bloom_rx", "bloom_ry",
                 new string[] { "bloom0", "bloom1", "bloom2" }, new float[] { 0f, UiKit.L("bloom_off1"), 1f }, UiKit.L("bloom_dy"));
-            DrawStars(fx, u);
-            // 잔열 → 플래시(정본 SVG 순서: 블룸 → 잔열 → 플래시 → 링 → …) · 둘 다 방사 그라디언트 웅덩이
             DrawImpactGradient(fx, u, heats, "af-heat", "heat_rx", "heat_ry",
                 new string[] { "heat0", "heat1", "heat2" }, new float[] { 0f, UiKit.L("heat_off1"), 1f });
             DrawImpactGradient(fx, u, flashes, "af-flash", "flash_rx", "flash_ry",
                 new string[] { "flash0", "flash1", "flash2", "flash3" }, new float[] { 0f, UiKit.L("flash_off1"), UiKit.L("flash_off2"), 1f });
-
+            DrawRings(fx, u, vbW, vbH);
+            DrawImpactEllipse(fx, u, shadows, "af-shadow", "fx_shadow_rx", "fx_shadow_ry", "fx_shadow_dy", "fx_shadow");
+            DrawImpactEllipse(fx, u, cores, "af-core", "fx_core_rx", "fx_core_ry", "fx_core_dy", "fx_core", true);
+            DrawSmoke(fx, u);
             // 불티는 **망치보다 앞(= 아래)** 이다 — 정본 SVG 도 그 순서고, 그래서 사거리 하한이 머리 반폭보다 커야 가려지지 않는다(정본 주석).
             DrawSparks(fx, u);
 
@@ -433,6 +435,38 @@ namespace Forge.Game.Ui
             HammerLayer(art, "hm-head", head, steel, steelOff, steelFrom, steelTo, Color.white, u);
             HammerLayer(art, "hm-shoulder", shoulder, null, null, Vector2.zero, down, Alpha(UiKit.C("hmr_shadow"), UiKit.L("hmr_shoulder_alpha")), u);
             HammerLayer(art, "hm-face", face, null, null, Vector2.zero, down, Alpha(UiKit.C("hmr_face"), UiKit.L("hmr_face_alpha")), u);
+
+            // 섬광은 **망치 앞**(= 마지막 자식)이다 — 정본이 그 이유를 적어 뒀다(뒤에 두면 흰 코어가 머리에 가려 주황 스커트만 남아 «얼룩» 이 된다).
+            DrawStars(fx, u);
+        }
+
+        /// <summary>
+        /// 연기 셋(`af-smoke`) — 정본: «타격마다 훅 오르고 **꼬리(650~900ms)를 채운다** … 92px 에서 **면적**으로 읽히는 몇 안 되는 요소다.
+        /// 망치 **뒤**에 둬 머리를 흐리지 않는다». 축은 `transform-origin: 50% 100%`(밑변)이라 김이 **아래에서 피어오른다**.
+        /// </summary>
+        static void DrawSmoke(RectTransform fx, float u)
+        {
+            float rx = UiKit.L("smoke_rx"), ry = UiKit.L("smoke_ry");
+            float dx = UiKit.L("smoke_dx"), dy = UiKit.L("smoke_dy");
+            Color[] stops = { UiKit.C("smoke0"), UiKit.C("smoke1"), UiKit.C("smoke2") };
+            float[] offs = { 0f, UiKit.L("smoke_off1"), 1f };
+            Sprite sp = CraftFxPoly.BakeEllipse("af-smoke", rx, ry, stops, offs);
+            for (int i = 0; i < smokes.Length; i++)
+            {
+                RectTransform rt = UiKit.Box(fx, "af-smoke-" + i);
+                Image img = rt.gameObject.AddComponent<Image>();
+                img.raycastTarget = false;
+                img.sprite = sp;
+                img.type = Image.Type.Simple;
+                Color c = Color.white; c.a = 0f;      // 정지 상태는 투명(정본 `opacity: 0`)
+                img.color = c;
+                float cx = (float)AutoForgeFxSpec.HitCenterX(i) + dx, cy = (float)AutoForgeFxSpec.HitCenterY(i) + dy;
+                UiKit.Place(rt, (cx - rx) * u, (cy - ry) * u, rx * 2f * u, ry * 2f * u);
+                // 축 = 밑변 가운데(정본 `50% 100%`) — 커질 때 위로만 부푼다
+                rt.pivot = new Vector2(0.5f, 0f);
+                rt.anchoredPosition = new Vector2(rt.anchoredPosition.x + rx * u, rt.anchoredPosition.y - ry * 2f * u);
+                smokes[i] = img;
+            }
         }
 
         /// <summary>
@@ -501,8 +535,11 @@ namespace Forge.Game.Ui
             // 후광까지 구운 텍스처라 도형보다 넓다 — 늘릴 때 그 여백도 같은 비율로 늘어나므로 칸 크기에 같이 넣는다.
             float pad = Mathf.Max(UiKit.L("spark_halo_r"), UiKit.L("spark_glow_r"));
             Color[] tints = { UiKit.C("spark_hot"), UiKit.C("spark_warm"), UiKit.C("spark_cool") };
+            // 난수는 정본 순서(불티 → 흑피)로 먼저 **표만** 뽑고, 칸은 정본 SVG 순서(흑피가 뒤 · 불티가 앞)로 세운다.
             System.Func<double, double, double> rand = SparkRand();
             sparkSpecs = AutoForgeFxSpec.BuildSparks(rand);
+            scaleSpecs = AutoForgeFxSpec.BuildScales(rand);
+            DrawScales(fx, u);
             sparks = new Image[sparkSpecs.Length];
             for (int k = 0; k < sparkSpecs.Length; k++)
             {
@@ -524,16 +561,14 @@ namespace Forge.Game.Ui
                 rt.anchoredPosition = new Vector2(rt.anchoredPosition.x + rt.pivot.x * bw, rt.anchoredPosition.y - 0.5f * bh);
                 sparks[k] = img;
             }
-            DrawScales(fx, u, rand);       // 정본은 같은 난수 흐름으로 불티 뒤에 흑피를 찍는다
         }
 
         /// <summary>
         /// 흑피 10개(2·3·5) — 정본 `.af-scale`. 불티와 **같은 궤적 문법**(회전 프레임 u·v)을 쓰되 어둡고 무겁고 느리다.
         /// 🚨 후광을 주지 않는다(정본: 어두운 조각에 주황 후광을 씌우면 다시 불티가 된다) — 그래서 스크린 합성도 아니다.
         /// </summary>
-        static void DrawScales(RectTransform fx, float u, System.Func<double, double, double> rand)
+        static void DrawScales(RectTransform fx, float u)
         {
-            scaleSpecs = AutoForgeFxSpec.BuildScales(rand);
             scales = new Image[scaleSpecs.Length];
             float hgt = (float)AutoForgeFxSpec.ScaleHeight, rad = (float)AutoForgeFxSpec.ScaleRadius;
             Color[] tints = { UiKit.C("scale_far"), UiKit.C("scale_near") };

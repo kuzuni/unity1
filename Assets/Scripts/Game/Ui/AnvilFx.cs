@@ -21,9 +21,9 @@ namespace Forge.Game.Ui
         private float unit;
         private Vector2 hammerHome;
         private Image[] rings, shadows, cores, starsL, starsR, flashes, heats, blooms;
-        private Image[] sparks, scaleBits;
+        private Image[] sparks, scaleBits, smokes;
         private AutoForgeFxSpec.SparkSpec[] sparkSpecs, scaleSpecs;
-        private Vector2[] sparkHome, scaleHome;
+        private Vector2[] sparkHome, scaleHome, smokeHome;
         private Vector2 anvilHome, sheetHome;
         private Vector3 anvilScaleHome, billetScaleHome;
         private bool running;
@@ -141,14 +141,18 @@ namespace Forge.Game.Ui
             scaleBits = null;
             scaleSpecs = null;
             scaleHome = null;
+            smokes = null;
+            smokeHome = null;
         }
 
         /// <summary>
         /// 불티 묶음을 따로 받는다 — 개체 수가 타격마다 달라(7·11·16) 다른 겹처럼 «3칸 배열» 이 아니고, 표(각도·사거리·수명)가 칸과 짝이어야 한다.
         /// `Play`·`Rebind` **뒤에** 부른다(둘 다 자기가 받은 것만 되돌리므로 여기서 쉬는 자리를 적어 둔다).
         /// </summary>
-        public void TakeSparks(Image[] sparkLayers, AutoForgeFxSpec.SparkSpec[] specs, Image[] scaleLayers, AutoForgeFxSpec.SparkSpec[] scaleTable)
+        public void TakeSparks(Image[] sparkLayers, AutoForgeFxSpec.SparkSpec[] specs, Image[] scaleLayers, AutoForgeFxSpec.SparkSpec[] scaleTable, Image[] smokeLayers)
         {
+            smokes = smokeLayers;
+            smokeHome = HomesOf(smokes);
             sparks = sparkLayers;
             sparkSpecs = specs;
             sparkHome = HomesOf(sparks);
@@ -190,6 +194,7 @@ namespace Forge.Game.Ui
             RestLayers(blooms);
             RestEjecta(sparks, sparkHome);
             RestEjecta(scaleBits, scaleHome);
+            RestEjecta(smokes, smokeHome);
         }
 
         /// <summary>분출물(불티·흑피)을 «안 보이는 제자리»(꼬리가 타격점 · 회전 0 · 투명)로.</summary>
@@ -302,6 +307,39 @@ namespace Forge.Game.Ui
             ApplyBloom();
             ApplyEjecta(sparks, sparkSpecs, sparkHome, false);
             ApplyEjecta(scaleBits, scaleSpecs, scaleHome, true);
+            ApplySmoke();
+        }
+
+        /// <summary>
+        /// 연기 — 정본 `afsmoke`. 축이 **밑변 가운데**(`transform-origin: 50% 100%`)라 커질수록 위로만 부풀고,
+        /// `translateY` 는 viewBox 단위다(SVG 자식). 밝기·크기 둘 다 타격별 배율(`--afms`)과 곱해진다.
+        /// ⚠ 지연이 타격 시각이 아니라 절대값(173 / 378 / 648ms)인 것도 정본 그대로다 — <see cref="AutoForgeFxSpec.SmokeDelayMs"/> 주석.
+        /// </summary>
+        private void ApplySmoke()
+        {
+            if (smokes == null) return;
+            double[] v = new double[3];
+            for (int i = 0; i < smokes.Length; i++)
+            {
+                Image img = smokes[i];
+                if (img == null) continue;
+                RectTransform rt = img.rectTransform;
+                Vector2 home = smokeHome != null && i < smokeHome.Length ? smokeHome[i] : rt.anchoredPosition;
+                Color c = img.color;
+                if (AutoForgeFxSpec.SampleSmoke(i, ms, v))
+                {
+                    c.a = Mathf.Clamp01((float)v[0]);
+                    rt.anchoredPosition = new Vector2(home.x, home.y - (float)v[1] * unit);   // CSS 는 위가 −, 유니티는 +
+                    rt.localScale = new Vector3((float)v[2], (float)v[2], 1f);
+                }
+                else
+                {
+                    c.a = 0f;
+                    rt.anchoredPosition = home;
+                    rt.localScale = Vector3.one;
+                }
+                img.color = c;
+            }
         }
 
         /// <summary>

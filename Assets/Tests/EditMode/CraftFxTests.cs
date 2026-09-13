@@ -553,6 +553,45 @@ namespace Forge.Tests
             Assert.AreEqual(0.90, v[1], 1e-9, "끝에서도 0.9배 — 잔상으로 가늘어지는 것은 불티뿐이다");
         }
 
+        /// <summary>
+        /// T87 25회차 — 연기(`afsmoke`). 정본이 이 층을 넣은 이유가 계약이다: «타격마다 훅 오르고 **꼬리(650~900ms)를 채운다** —
+        /// 그 구간은 모루 잔진동에만 기대고 있었는데 모루를 강체로 만들면서 그마저 사라졌다».
+        /// 지연이 타격 시각이 아니라 **절대값**(173 / 378 / 648ms)인 것도 정본 그대로 옮긴다.
+        /// </summary>
+        [Test]
+        public void 연기는_세_번_훅_오르고_구백밀리초_안에_끝난다()
+        {
+            double[] v = new double[3];
+            for (int i = 0; i < AutoForgeFxSpec.SmokeDelayMs.Length; i++)
+            {
+                double t0 = AutoForgeFxSpec.SmokeDelayMs[i];
+                Assert.IsFalse(AutoForgeFxSpec.SampleSmoke(i, t0 - 1, v), i + "번 연기는 켜지기 전");
+                // 0% 는 투명하고 작다 — 김은 «있다가 커지는» 것이 아니라 «피어오르는» 것이다
+                Assert.IsTrue(AutoForgeFxSpec.SampleSmoke(i, t0, v));
+                Assert.AreEqual(0.0, v[0], 1e-9, "시작은 투명");
+                Assert.AreEqual(0.0, v[1], 1e-9, "시작은 제자리");
+                Assert.AreEqual(0.35 * AutoForgeFxSpec.SmokeScale[i], v[2], 1e-9, "시작 배율 = .35 × --afms");
+                // 30% 에서 가장 진하고, 그 뒤로는 옅어지며 계속 오른다
+                Assert.IsTrue(AutoForgeFxSpec.SampleSmoke(i, t0 + AutoForgeFxSpec.SmokeDurMs * 0.3, v));
+                Assert.AreEqual(System.Math.Min(1.0, 0.6 * AutoForgeFxSpec.SmokeScale[i]), v[0], 1e-9, "가장 진한 프레임");
+                Assert.AreEqual(-2.0, v[1], 1e-9, "2유닛 떠올랐다");
+                Assert.IsTrue(AutoForgeFxSpec.SampleSmoke(i, t0 + AutoForgeFxSpec.SmokeDurMs, v));
+                Assert.AreEqual(0.0, v[0], 1e-9, "끝에는 투명");
+                Assert.AreEqual(-9.0, v[1], 1e-9, "9유닛까지 오른다");
+                Assert.AreEqual(1.5 * AutoForgeFxSpec.SmokeScale[i], v[2], 1e-9, "끝 배율 = 1.5 × --afms");
+                Assert.IsFalse(AutoForgeFxSpec.SampleSmoke(i, t0 + AutoForgeFxSpec.SmokeDurMs + 1, v), i + "번 연기는 수명 뒤");
+            }
+            // 뒤 타격일수록 크고 진하다
+            Assert.Greater(AutoForgeFxSpec.SmokeScale[2], AutoForgeFxSpec.SmokeScale[0], "3타 연기가 가장 크다");
+            // 정본 주석의 그 수: 3타 연기가 900ms 에 끝난다(그보다 길면 «꼬리가 잘려 연기가 공중에서 사라진다»)
+            double last = AutoForgeFxSpec.SmokeDelayMs[2] + AutoForgeFxSpec.SmokeDurMs;
+            Assert.AreEqual(898, last, 2.0, "3타 연기가 900ms 에 끝난다");
+            Assert.Less(last, AnvilFxSpec.DurationMs, "오버레이 수명 안에서 끝난다");
+            // ⚠ 이 층만 타격 시각과 어긋난다(정본이 더 짧은 클럭 시절 값을 그대로 들고 있다) — 옮기는 쪽에서 «고치지» 않는다
+            for (int i = 0; i < AutoForgeFxSpec.SmokeDelayMs.Length; i++)
+                Assert.Less(AutoForgeFxSpec.SmokeDelayMs[i], AutoForgeFxSpec.HitMs[i], i + "번 연기는 제 타격보다 이르다(정본 값 그대로)");
+        }
+
         private static double Rest(double percent)
         {
             double[] v = new double[2];

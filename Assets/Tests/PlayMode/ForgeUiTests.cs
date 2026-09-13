@@ -1012,6 +1012,75 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T87 25회차 — 연기(`af-smoke`)와 **그리기 순서**. 정본 SVG 는 겹 순서 자체가 계약이다(`ui.js` 2860~2915):
+        /// 블룸 → 잔열 → 플래시 → 링 → 접지 그림자 → 순백 코어 → 연기 → 흑피 → 불티 → **망치** → 섬광.
+        /// 특히 섬광이 망치 **앞**이어야 한다 — 정본: «뒤에 두면 흰 코어가 통째로 머리에 가려 밖으로 나오는 건 주황 스커트뿐이고,
+        /// 그게 주황 상판에 얹혀 '얼룩' 이 된다».
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 연기가_피어오르고_겹_순서가_정본_그대로다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Hammers = 30;
+            ForgeSheet.Render(h);
+            yield return null;
+            h.OnCraft();
+            yield return null;
+
+            RectTransform sheet = UiRoot.Instance.Sheet;
+            AnvilFx fx = sheet.GetComponent<AnvilFx>();
+            RectTransform overlay = Named(sheet, "anvil-fx");
+            Assert.IsNotNull(overlay, "연출 오버레이");
+
+            // ── 겹 순서(먼저 그린 것이 뒤) ───────────────────────────────────────────────
+            string[] order = { "af-bloom-0", "af-heat-0", "af-flash-0", "af-ring-0", "af-shadow-0", "af-core-0", "af-smoke-0", "af-scale-0", "af-spark-0", "hammer", "af-star-l-0" };
+            int prev = -1;
+            for (int k = 0; k < order.Length; k++)
+            {
+                RectTransform rt = Named(sheet, order[k]);
+                Assert.IsNotNull(rt, order[k] + " 칸이 없다");
+                int idx = rt.parent == overlay ? rt.GetSiblingIndex() : -2;
+                Assert.AreNotEqual(-2, idx, order[k] + " 는 오버레이의 직접 자식이어야 한다");
+                Assert.Greater(idx, prev, order[k] + " 가 " + (k > 0 ? order[k - 1] : "(처음)") + " 보다 앞(= 위)에 있어야 한다");
+                prev = idx;
+            }
+
+            // ── 연기 ────────────────────────────────────────────────────────────────────
+            for (int i = 0; i < AutoForgeFxSpec.SmokeDelayMs.Length; i++)
+            {
+                RectTransform puff = Named(sheet, "af-smoke-" + i);
+                Assert.IsNotNull(puff, i + "번 연기");
+                Image img = puff.GetComponent<Image>();
+                double t0 = AutoForgeFxSpec.SmokeDelayMs[i];
+
+                fx.SampleTo(t0 - 10);
+                Assert.AreEqual(0f, img.color.a, 1e-3f, i + "번 연기는 켜지기 전 투명");
+                Vector2 rest = puff.anchoredPosition;
+
+                fx.SampleTo(t0 + AutoForgeFxSpec.SmokeDurMs * 0.3);
+                Assert.Greater(img.color.a, 0.3f, i + "번 연기가 가장 진한 프레임");
+                Assert.Greater(puff.anchoredPosition.y, rest.y + 1f, i + "번 연기는 위로 오른다");
+                Assert.AreEqual(rest.x, puff.anchoredPosition.x, 1e-3f, i + "번 연기는 옆으로 안 샌다");
+                Assert.AreEqual(0f, puff.pivot.y, 1e-3f, "축은 밑변이다(정본 50% 100%)");
+
+                fx.SampleTo(t0 + AutoForgeFxSpec.SmokeDurMs + 10);
+                Assert.AreEqual(0f, img.color.a, 1e-3f, i + "번 연기는 수명 뒤 투명");
+                Assert.AreEqual(rest.y, puff.anchoredPosition.y, 1e-2f, i + "번 연기는 제자리로 돌아온다");
+            }
+            // 3타 연기가 1타보다 크다(--afms 1 → 1.5)
+            fx.SampleTo(AutoForgeFxSpec.SmokeDelayMs[0] + AutoForgeFxSpec.SmokeDurMs * 0.3);
+            float small = Named(sheet, "af-smoke-0").localScale.x;
+            fx.SampleTo(AutoForgeFxSpec.SmokeDelayMs[2] + AutoForgeFxSpec.SmokeDurMs * 0.3);
+            Assert.Greater(Named(sheet, "af-smoke-2").localScale.x, small * 1.4f, "3타 연기가 1타보다 크다");
+
+            fx.Stop();
+            yield return null;
+            h.CancelAnvilStrike();
+            yield return null;
+        }
+
         /// <summary>불티 하나의 «쉬는 자리»(제 창 밖에서는 꼬리가 타격점에 있다) — 변위를 재는 기준점.</summary>
         private static Vector2 RestPosOf(RectTransform sheet, int index, AnvilFx fx, AutoForgeFxSpec.SparkSpec q)
         {
