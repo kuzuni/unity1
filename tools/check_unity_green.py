@@ -18,7 +18,14 @@ T67(런 안에서 모드 XML 이 빠졌는가)·T81(잡 결과가 스텝에 갇�
   0 — `tests == "success"`. 그 뒤에 main 커밋이 쌓여 있으면 «아직 유니티가 안 본 커밋 N개» 를 알림으로 적는다(막지 않는다).
   1 — `tests` 가 success 가 아니다(빨강·취소 등) · `missing_modes` 가 비어 있지 않다(테스트 0개인 모드 · §1 «빨간 테스트보다 나쁘다»)
       · meta.json 이 없거나 못 읽는다(판정 근거가 사라진 것도 초록이 아니다).
-빨강이면 같은 브랜치의 `playmode-red.txt` 에서 `FAIL`/`RED` 줄을 뽑아 **무엇이 빨간지 이름까지** 보여 준다.
+빨강이면 같은 브랜치의 `playmode-red.txt` 에서 `FAIL`/`RED` 줄을 뽑아 **무엇이 빨간지 이름까지** 보여 주고,
+**그 빨강이 누구 몫인지**까지 가린다 — 빠진 테스트의 픽스처 이름(`…PlayMode.AgePatternTests.…`)으로 그 파일
+(`AgePatternTests.cs`)을 찾고, `docs/PROGRESS.md` 의 «범위» 열이 그 파일을 적은 작업을 임자로 삼는다(T125).
+  ⚠ **커밋 제목으로 가리지 않는다.** main 은 워커 열여섯이 같이 미는 가지라 런 머리 커밋은 «마지막에 민
+    사람» 일 뿐이다 — 1회차(T123)는 그렇게 가려서 런 250 의 `AgePatternTests`(T124)를 머리 커밋 제목만 보고
+    **T109 의 것**으로 찍었다(실측 2026-09-13 21:2x). 임자를 틀리면 ⓐ 엉뚱한 lock 을 믿고 **진짜 임자 없는
+    빨강을 지나치거나** ⓑ 그 lock 이 죽어 있으면 «이것이 네 일이다» 로 **남이 지금 고치는 자리**로 워커를
+    보낸다. 범위 열로 못 가린 자리는 **«못 가렸다» 고 말하고** 커밋을 민 워커는 참고로만 준다.
 
 의존성 0(순수 파이썬 + git). `--fetch` 를 주면 먼저 `git fetch origin screens` 한다.
 
@@ -92,35 +99,83 @@ def behind(sha, main=MAIN):
 LOCK_MIN = 90   # 규약 `docs/claims/README.md` — 90분 지난 lock 은 죽은 것이다
 
 
-def owner(sha, now=None):
-    """빨간 커밋의 임자를 가린다 — (작업ID, lock 살아 있는가, 몇 분 됐는가).
-
-    §0-6 은 «남의 lock 이 없는 빨강이면 **네가** 고친다» 인데, 그 판정을 워커가 매번 손으로 했다
-    (커밋 제목에서 T번호를 읽고 → `docs/claims/` 를 뒤지고 → 90분을 센다). 자가 대신한다.
-    커밋 제목이 `T<번호> …`(§1 규약)가 아니거나 lock 파일이 없으면 (None, False, None).
-    """
-    if not sha:
-        return None, False, None
-    rc, out = _git(['log', '-1', '--format=%s', sha])
-    if rc != 0:
-        return None, False, None
-    m = re.match(r'^T(\d+)\b', out.strip())
-    if not m:
-        return None, False, None
-    tid = 'T' + m.group(1)
+def lock_state(tid, now=None):
+    """그 작업 lock → (살아 있는가, 몇 분 됐는가). lock 파일이 없으면 (False, None)."""
     path = os.path.join(ROOT, 'docs', 'claims', tid + '.lock')
     try:
         with io.open(path, encoding='utf-8') as f:
             stamp = f.read().split()[0]
     except (IOError, OSError, IndexError):
-        return tid, False, None
+        return False, None
     try:
-        t = datetime.datetime.strptime(stamp, '%Y-%m-%dT%H:%M:%SZ')
+        t0 = datetime.datetime.strptime(stamp, '%Y-%m-%dT%H:%M:%SZ')
     except ValueError:
-        return tid, True, None   # 읽을 수 없는 타임스탬프는 «살아 있다» 쪽으로 닫는다
-    now = now or datetime.datetime.utcnow()
-    age = int((now - t).total_seconds() // 60)
-    return tid, age < LOCK_MIN, age
+        return True, None       # 읽을 수 없는 타임스탬프는 «살아 있다» 쪽으로 닫는다
+    age = int(((now or datetime.datetime.utcnow()) - t0).total_seconds() // 60)
+    return age < LOCK_MIN, age
+
+
+def pusher(sha):
+    """그 커밋을 민 워커의 작업 번호 — **임자가 아니다**(main 은 여럿이 미는 가지다 · T125).
+    범위로 임자를 못 가렸을 때만 «누가 밀었나» 로 물러나는 자리에 쓴다."""
+    if not sha:
+        return None
+    rc, out = _git(['log', '-1', '--format=%s', sha])
+    if rc != 0:
+        return None
+    m = re.match(r'^T(\d+)\b', out.strip())
+    return ('T' + m.group(1)) if m else None
+
+
+def fixtures(fails):
+    """FAIL 줄 → 빠진 테스트의 **픽스처 이름** 목록(`Forge.Tests.PlayMode.AgePatternTests.…` → `AgePatternTests`).
+
+    테스트 이름에는 점이 없다(한글·밑줄) — 그래서 «마지막 점 앞» 이 픽스처다."""
+    out = []
+    for ln in fails:
+        head = ln.split(' · ')[0].strip()
+        parts = head.split()
+        if len(parts) < 2:
+            continue
+        dotted = parts[1].split('.')
+        if len(dotted) < 2:
+            continue
+        name = dotted[-2]
+        if name and name not in out:
+            out.append(name)
+    return out
+
+
+def scope_owners(fixture, progress_text):
+    """그 픽스처 파일(`<이름>.cs`)을 «범위» 열에 적은 작업 번호들 — 이것이 **진짜 임자**다(T125).
+
+    왜 커밋 제목이 아닌가: main 은 워커 열여섯이 같이 미는 가지라 런 머리 커밋은 «마지막에 민 사람»
+    일 뿐이다(실측 2026-09-13 런 250: 빨강은 `AgePatternTests`(T124)인데 머리 커밋은 T109 의 것이었다).
+    범위 열은 규약이 «그 작업이 여는 파일» 을 적게 한 자리라(`check_claim_scope` 가 지킨다) 여기서 읽는다."""
+    # ⚠ 그냥 «담겼는가» 로 보면 짧은 이름이 긴 파일에 걸린다(`UiTests` ↔ `ForgeUiTests.cs` · 자기 검사 ⓚ).
+    #   앞에 낱말 글자가 없어야 한다 — 경로 구분자 `/`·따옴표·공백 뒤라야 그 파일이다.
+    needle = re.compile(r'(?<![0-9A-Za-z_])' + re.escape(fixture) + r'\.cs\b')
+    out = []
+    for line in progress_text.split('\n'):
+        if not line.startswith('| T'):
+            continue
+        cells = [c.strip() for c in line.strip().strip('|').split('|')]
+        if len(cells) < 5:
+            continue
+        m = re.fullmatch(r'T(\d+)', cells[0])
+        if not m or not needle.search(cells[4]):
+            continue
+        tid = 'T' + m.group(1)
+        if tid not in out:
+            out.append(tid)
+    return out
+
+
+def read_progress():
+    try:
+        return io.open(os.path.join(ROOT, 'docs', 'PROGRESS.md'), encoding='utf-8').read()
+    except (IOError, OSError):
+        return ''
 
 
 def own_line(tid, alive, age):
@@ -133,6 +188,45 @@ def own_line(tid, alive, age):
                 % (tid, ('%d분 전' % age) if age is not None else '시각을 못 읽었다'))
     return ('  · 빨강의 임자: **%s** — lock 이 없다%s. §0-6 대로 **이것이 네 일이다**.'
             % (tid, (' (마지막 갱신 %d분 전 · 90분 규약으로 죽었다)' % age) if age is not None else ''))
+
+
+def own_lines(fails, progress_text, sha, now=None):
+    """빨강마다 임자 한 줄 — **빠진 테스트 파일 ↔ PROGRESS 범위 열** 로 가린다(T125).
+
+    갈래 넷:
+      ⓐ 범위에 그 파일을 적은 작업이 하나  → 그 작업이 임자다(lock 살았나 죽었나까지 말한다)
+      ⓑ 여럿인데 **살아 있는 lock 이 하나** → 그 하나를 임자로(나머지는 곁들여 적는다)
+      ⓒ 여럿이고 다 죽었거나 다 살았다     → 다 적고 눈으로 고르게 한다
+      ⓓ 아무도 그 파일을 안 적었다         → «못 가렸다» 고 **말하고** 커밋을 민 워커를 참고로만 준다
+    """
+    names = fixtures(fails)
+    if not names:
+        who = pusher(sha)
+        return [('  · 빨강의 임자: 빠진 테스트 이름을 못 읽었다 — 그 커밋(%s)을 민 워커는 %s 다. '
+                 'lock 을 눈으로 확인한다.' % (sha[:7] or '?', who or '못 가렸다'))]
+    out = []
+    for name in names:
+        cands = scope_owners(name, progress_text)
+        if not cands:
+            who = pusher(sha)
+            out.append('  · `%s` 의 임자: **못 가렸다** — 그 파일(`%s.cs`)을 «범위» 열에 적은 작업이 없다. '
+                       '(그 커밋을 민 워커는 %s 지만 main 은 여럿이 미는 가지라 임자가 아니다.) '
+                       'lock 을 눈으로 확인하고, 임자가 없으면 §0-6 대로 **네가 고친다**.'
+                       % (name, name, who or '못 가렸다'))
+            continue
+        states = [(c,) + lock_state(c, now) for c in cands]
+        live = [s for s in states if s[1]]
+        if len(cands) == 1:
+            out.append('  · `%s` 의 임자: ' % name + own_line(*states[0]).split(': ', 1)[1])
+        elif len(live) == 1:
+            rest = ' · 같은 파일을 적은 다른 작업: %s' % ' '.join(c for c, a, _g in states if not a)
+            out.append('  · `%s` 의 임자: ' % name + own_line(*live[0]).split(': ', 1)[1] + rest)
+        else:
+            who = ' '.join('%s(lock %s)' % (c, ('%d분 전' % g) if a and g is not None
+                                            else ('살아 있다' if a else '없다')) for c, a, g in states)
+            out.append('  · `%s` 의 임자 후보 여럿: %s — 눈으로 고른다(살아 있는 lock 이 있으면 그의 몫).'
+                       % (name, who))
+    return out
 
 
 def judge(meta, anc=None, n_after=None, fails=(), own=None):
@@ -160,8 +254,10 @@ def judge(meta, anc=None, n_after=None, fails=(), own=None):
         out.append('     그 런들은 문서 push 라 유니티 잡이 **skipped** 였을 뿐이다 — 초록이 빨강을 덮은 것이다.')
         for f in fails:
             out.append('  · ' + f)
-        out.append(own if own else
-                   ('  · 빨강의 임자: 그 커밋(%s)을 민 워커다 — lock 을 눈으로 확인한다.' % (sha[:7] or '?')))
+        if own:
+            out.extend([own] if isinstance(own, str) else list(own))
+        else:
+            out.append('  · 빨강의 임자: 그 커밋(%s)을 민 워커다 — lock 을 눈으로 확인한다.' % (sha[:7] or '?'))
         rc = 1
     else:
         out.append('✓ check_unity_green: %s — 초록' % head)
@@ -227,17 +323,49 @@ def self_test():
     eq('ⓗ 없는 lock 은 네 일', '네 일이다' in own_line('T77', False, None), True)
     eq('ⓗ 죽은 lock 도 네 일', '90분 규약으로 죽었다' in own_line('T77', False, 130), True)
     eq('ⓗ 번호를 못 가리면 눈으로', '눈으로 확인' in own_line(None, False, None), True)
-    # ⓘ 임자 줄이 주어지면 judge 가 그것을 그대로 쓴다(기본 문구 대신)
+    # ⓘ 임자 줄이 주어지면 judge 가 그것을 그대로 쓴다(기본 문구 대신 · 한 줄도 여러 줄도)
     _, out = judge({'sha': 'f' * 40, 'run': 105, 'tests': 'failure', 'missing_modes': ''}, True, 1,
                    (), own_line('T121', True, 2))
     eq('ⓘ judge 가 임자 줄을 쓴다', any('**T121**' in l for l in out), True)
+    _, out = judge({'sha': 'f' * 40, 'run': 105, 'tests': 'failure', 'missing_modes': ''}, True, 1,
+                   (), ['  · 첫 줄', '  · 둘째 줄'])
+    eq('ⓘ 여러 줄도 쓴다', sum(1 for l in out if '째 줄' in l or '첫 줄' in l), 2)
+
+    # ⓙ 픽스처 읽기(T125) — 테스트 이름에는 점이 없다(한글·밑줄)
+    eq('ⓙ 픽스처', fixtures(['FAIL Forge.Tests.PlayMode.AgePatternTests.장착_셀은_흐림_55 · Failed']),
+       ['AgePatternTests'])
+    eq('ⓙ 같은 픽스처는 한 번', fixtures(['FAIL A.B.XTests.하나 · Failed', 'FAIL A.B.XTests.둘 · Failed']),
+       ['XTests'])
+    eq('ⓙ 못 읽는 줄은 건너뛴다', fixtures(['FAIL 이상한줄', 'RED ']), [])
+
+    # ⓚ **이번 회차의 실측**(T125 의 뿌리) — 런 250 의 빨강은 AgePatternTests 인데
+    #    머리 커밋 20db536 의 제목은 「T109 …」 였다. 범위 열로 보면 임자는 T124 다.
+    P = ('| ID | 작업 | 상태 | SID | 범위 | 메모 |\n|---|---|---|---|---|---|\n'
+         '| T109 | 키라인 | 🔄 | s1 | `tools/check_keyline.py` · `Ui/LeagueSheet.cs` | — |\n'
+         '| T124 | 시대 무늬 | 🔄 | s2 | `Ui/AgePattern.cs` · `Assets/Tests/PlayMode/AgePatternTests.cs` | — |\n')
+    eq('ⓚ 범위로 임자를 가린다', scope_owners('AgePatternTests', P), ['T124'])
+    eq('ⓚ 남의 파일은 안 집는다', scope_owners('ForgeUiTests', P), [])
+    # 짧은 이름이 긴 파일에 걸리면 안 된다 — `UiTests` 는 `ForgeUiTests.cs` 가 아니다
+    P3 = (P + '| T131 | 대장간 | 🔄 | s4 | `Assets/Tests/PlayMode/ForgeUiTests.cs` | — |\n')
+    eq('ⓚ 짧은 이름이 긴 파일에 안 걸린다', scope_owners('UiTests', P3), [])
+    eq('ⓚ 제 이름은 걸린다', scope_owners('ForgeUiTests', P3), ['T131'])
+    eq('ⓚ 테스트 아닌 파일도 같은 규칙', scope_owners('AgePattern', P), ['T124'])
+
+    # ⓛ 고장 주입 — 아무도 안 적은 픽스처면 «못 가렸다» 고 **말한다**(엉뚱한 임자를 찍지 않는다)
+    lines = own_lines(['FAIL A.B.NobodysTests.무엇 · Failed'], P, '')
+    eq('ⓛ 못 가렸다고 말한다', any('못 가렸다' in l for l in lines), True)
+    eq('ⓛ 네가 고친다로 보낸다', any('네가 고친다' in l for l in lines), True)
+
+    # ⓜ 여럿이 같은 파일을 적었으면 살아 있는 lock 쪽을 고르고, 다 죽었으면 둘 다 적는다
+    P2 = (P + '| T130 | 딴것 | 🔄 | s3 | `Assets/Tests/PlayMode/AgePatternTests.cs` | — |\n')
+    eq('ⓜ 후보 둘', scope_owners('AgePatternTests', P2), ['T124', 'T130'])
 
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  · ' + f)
         return 1
-    print('✓ check_unity_green --self-test 20칸 통과')
+    print('✓ check_unity_green --self-test 32칸 통과')
     return 0
 
 
@@ -265,7 +393,7 @@ def main(argv):
     anc, n_after = behind(meta.get('sha') if meta else None)
     red = bool(meta) and str(meta.get('tests')) != 'success'
     fails = red_lines(ref) if red else []
-    own = own_line(*owner(meta.get('sha'))) if red else None
+    own = own_lines(fails, read_progress(), str(meta.get('sha', ''))) if red else None
     rc, out = judge(meta, anc, n_after, fails, own)
     for ln in out:
         print(ln)
