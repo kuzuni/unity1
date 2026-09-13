@@ -561,10 +561,15 @@ namespace Forge.Tests.PlayMode
         /// <summary>
         /// 앱 상자(9:16)를 `ui-screens/screen_&lt;이름&gt;.png`(<see cref="ShotW"/>×<see cref="ShotH"/>) 로 남긴다. 그래픽 장치가 없으면 null.
         /// ⚠ `ScreenCapture.CaptureScreenshotAsTexture()` 는 프레임 끝에서만 옳은데 그 자리를 잡는 코루틴 대기가 **배치모드에서 안 불려**
-        /// 예외로 PlayMode 런이 통째로 죽는다(CI 런 60 실측). 그래서 T45 `SafeAreaTests` 가 CI 런 64 에서 검증한 길을 그대로 쓴다 —
-        /// 본 카메라 사본을 RenderTexture 에 그리고, 오버레이 캔버스를 잠깐 그 카메라의 `ScreenSpaceCamera` 로 옮겨 같은 그림에 얹는다.
+        /// 예외로 PlayMode 런이 통째로 죽는다(CI 런 60 실측). 그래서 카메라 사본으로 RenderTexture 에 직접 그린다(T45 `SafeAreaTests` 가 런 64 에서 검증한 길).
+        ///
+        /// T83 — 한 장에 «UI + 게임 framing» 을 같이 담는다. 카메라 하나로 같이 그리면 둘 중 하나가 어긋난다(T54 가 받은 벽 셋: rect 띠는 URP 가
+        /// 세계를 안 그리고 · 투영을 걸면 `ScreenSpaceCamera` 캔버스가 프러스텀을 따라 밀린다 · `CopyFrom` 은 투영까지 복사한다). 그래서 **따로 찍어 합성**한다:
+        ///   ① 세계 — 게임과 같은 절두체(<see cref="Bootstrap.ApplyGameAreaProjection"/> · 촬영 RT 비율로 셈) · UI 층 제외 · 캔버스는 오버레이인 채(RT 에 안 실린다)
+        ///   ② UI — 기본 투영 · UI 층만 · 검정 배경 위 한 번, 흰 배경 위 한 번(RT 알파는 UGUI 블렌드가 srcA² 로 적어 못 믿는다 — 두 장의 차가 정확한 매트다)
+        ///   ③ 합성 — 채널마다 `out = Cb + world × (1 − (Cw − Cb))` (Cb = 검정 위 · Cw = 흰 위). 딤·반투명 판이 게임과 같은 밝기로 얹힌다.
         /// safeArea 는 호출자가 이미 <see cref="ShotW"/>×<see cref="ShotH"/> 로 꽂아 두었으므로 앱 상자가 RT 를 꽉 채운다.
-        /// 실패하면 경고 한 줄(빨강 아님)만 남기고 그림을 건너뛴다 — 이 테스트의 판정은 «열렸는가·글자·빨강 0» 이지 그림이 아니다.
+        /// 실패하면 경고 한 줄(빨강 아님)만 남기고 그림을 건너뛴다 — 이 테스트의 판정은 «열렸는가·글자·빨강 0» 이지 그림이 아니다(픽셀 자는 T84).
         /// </summary>
         private static string Capture(string name)
         {
@@ -578,30 +583,39 @@ namespace Forge.Tests.PlayMode
             RenderTexture rt = new RenderTexture(ShotW, ShotH, 24, RenderTextureFormat.ARGB32);
             GameObject camGo = new GameObject("t27-shot-cam");
             Camera cam = camGo.AddComponent<Camera>();
-            Texture2D shot = null;
+            Texture2D world = null, onBlack = null, onWhite = null, shot = null;
             try
             {
-                // T54 3회차 되돌림 — 카메라 하나로 세계·캔버스를 같이 그리는 옛 길. 띠 rect 를 준 두 시도가 다 화면을 망쳤다:
-                // 한 카메라에 띠를 주면 캔버스까지 눌리고(런 106), 세계/UI 두 카메라로 갈라도 **URP 가 띠 rect 에서 세계를 안 그렸다**(런 116 · 단색).
-                // 원작 캔버스 상자 framing 은 rect 가 아니라 투영 행렬로 주는 것이 다음 길이다(Bootstrap 주석).
+                int uiLayer = canvas.gameObject.layer;
                 if (Camera.main != null) cam.CopyFrom(Camera.main);
                 cam.rect = new Rect(0f, 0f, 1f, 1f);
                 cam.targetTexture = rt;
-                // T54 7회차: `Camera.CopyFrom` 은 **커스텀 투영 행렬까지 복사한다**(런 139 실측 — 6회차에서 이 자리의
-                // `ApplyGameAreaProjection` 을 지웠는데도 UI 가 계속 밀렸다). `ScreenSpaceCamera` 캔버스는 카메라 프러스텀에
-                // 맞춰 놓이므로 게임 투영이 따라오면 UI 가 통째로 밀린다 → 촬영은 **기본 투영으로 되돌린다**.
-                // 게임 framing 은 캔버스가 없는 `WorldFrameShotTests`(ui-screens/world_frame.png)가 본다.
+
+                // ① 세계 — 게임 절두체 · UI 층 제외. 캔버스는 아직 오버레이라 이 그림에 안 실린다.
+                cam.cullingMask &= ~(1 << uiLayer);
                 cam.ResetProjectionMatrix();
+                Bootstrap.ApplyGameAreaProjection(cam);
+                cam.Render();
+                world = ReadBack(rt, TextureFormat.RGB24);
+
+                // ② UI — 기본 투영 · UI 층만 · 검정/흰 배경 위 두 번.
+                cam.ResetProjectionMatrix();
+                cam.cullingMask = 1 << uiLayer;
+                cam.clearFlags = CameraClearFlags.SolidColor;
                 canvas.renderMode = RenderMode.ScreenSpaceCamera;
                 canvas.worldCamera = cam;
                 canvas.planeDistance = 1f;
                 root.Layout();
                 Canvas.ForceUpdateCanvases();
+                cam.backgroundColor = Color.black;
                 cam.Render();
-                RenderTexture.active = rt;
-                shot = new Texture2D(ShotW, ShotH, TextureFormat.RGB24, false);
-                shot.ReadPixels(new Rect(0, 0, ShotW, ShotH), 0, 0);
-                shot.Apply(false);
+                onBlack = ReadBack(rt, TextureFormat.RGB24);
+                cam.backgroundColor = Color.white;
+                cam.Render();
+                onWhite = ReadBack(rt, TextureFormat.RGB24);
+
+                // ③ 합성.
+                shot = Composite(world, onBlack, onWhite);
                 return GallerySheet.Save(shot, OutPrefix + name);
             }
             catch (Exception e)
@@ -617,11 +631,45 @@ namespace Forge.Tests.PlayMode
                 canvas.planeDistance = prevPlane;
                 if (root != null) root.Layout();
                 Canvas.ForceUpdateCanvases();
+                if (world != null) UnityEngine.Object.Destroy(world);
+                if (onBlack != null) UnityEngine.Object.Destroy(onBlack);
+                if (onWhite != null) UnityEngine.Object.Destroy(onWhite);
                 if (shot != null) UnityEngine.Object.Destroy(shot);
                 UnityEngine.Object.Destroy(camGo);
                 rt.Release();
-                UnityEngine.Object.Destroy(rt);
             }
+        }
+
+        static Texture2D ReadBack(RenderTexture rt, TextureFormat fmt)
+        {
+            RenderTexture.active = rt;
+            var t = new Texture2D(rt.width, rt.height, fmt, false);
+            t.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+            t.Apply(false);
+            return t;
+        }
+
+        /// <summary>T83 ③ — 채널마다 <c>out = Cb + world × (1 − (Cw − Cb))</c>. 검정 위(Cb)가 «프리멀티플라이드 UI», 흰 위와의 차가 «덮임» 이다.</summary>
+        public static Texture2D Composite(Texture2D world, Texture2D onBlack, Texture2D onWhite)
+        {
+            Color32[] w = world.GetPixels32(), b = onBlack.GetPixels32(), k = onWhite.GetPixels32();
+            var o = new Color32[w.Length];
+            for (int i = 0; i < w.Length; i++)
+            {
+                o[i] = new Color32(Over(b[i].r, k[i].r, w[i].r), Over(b[i].g, k[i].g, w[i].g), Over(b[i].b, k[i].b, w[i].b), 255);
+            }
+            var t = new Texture2D(world.width, world.height, TextureFormat.RGB24, false);
+            t.SetPixels32(o);
+            t.Apply(false);
+            return t;
+        }
+
+        static byte Over(byte cb, byte cw, byte world)
+        {
+            int cover = 255 - (cw - cb);               // 0 = UI 가 없다 · 255 = UI 가 다 가린다
+            if (cover < 0) cover = 0; else if (cover > 255) cover = 255;
+            int v = cb + world * (255 - cover) / 255;
+            return (byte)(v > 255 ? 255 : v);
         }
 
         /// <summary>한 줄씩 바로 덧붙인다(런이 중간에 죽어도 «어디까지 갔는지» 는 남는다).</summary>
