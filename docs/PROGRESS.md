@@ -1925,6 +1925,16 @@
 - **안 만진 것**: `tools/ui_score.py` 는 T28 lock 파일이라 열지 않았다(범위 칸에 «T28 lock 뒤» 로 적었다). 채점 쪽에 «상태가 다르면 알린다» 를 넣는 것은 그 lock 이 풀린 뒤 2회차.
 - **게이트**: `dotnet build` 0 오류(PlayMode 포함) · `dotnet test` 582/582 · 나머지 §3 전부 rc 0. **판정은 다음 두 런의 `uishots.txt` «seed 장비» 줄이 같은지 + `player-info` 픽셀 차가 `settings` 수준(1%)으로 내려오는지**(§1 PNG 눈 확인 포함).
 
+### T128 2회차 기록 (2026-09-13 · 워커 E · sess-2313-11902 · 첫 표본을 박았다 · 판정은 다음 런과의 대조)
+
+- **1회차가 실린 첫 런(260 · sha 45c1b70)의 자취**: `uishots.txt` 5행에 새 줄이 찍혔다 —
+  `seed 장비 · weapon=underworld/mythic/28 helmet=multiverse/legendary/26 armor=interstellar/common/25 gloves=multiverse/common/26 necklace=underworld/rare/28 ring=multiverse/common/26 shoes=multiverse/legendary/26 belt=quantum/rare/27`
+  **이 줄을 기준 표본으로 여기 박아 둔다** — `screens` 브랜치는 런마다 통째로 덮어써서 앞 런의 자취가 안 남는다(그래서 «두 런 대조» 를 하려면 한쪽을 문서에 적어야 한다).
+- **읽는 법(다음 사람도 이 줄만 보면 된다)**: 다음 런의 같은 줄이 **글자 하나까지 같으면** 촬영 상태가 고정된 것이다. 다르면 아직 흔들리는 난수가 남은 것이고, 그때는 그 부위의 시대·등급이 어느 호스트에서 오는지부터 본다.
+- **무기가 `mythic` 으로 찍혔다** — 1회차에 같이 갚은 정본 SEED 127행(`S.equipment.weapon.rarity = 'mythic'`)이 실제로 먹었다는 확인이다(그 전에는 굴림에 따라 등급이 흔들렸다).
+- **이 회차의 CI 빨강 다섯은 내 것이 아니다**: `ForgeUiTests` 셋(T87 lock · 22:52 갱신) · `PopupBtnKeylineTests` 둘(T126·T109 키라인 자리 · 둘 다 살아 있는 lock). EditMode 는 582/582 초록이다.
+- **다음 회차**: 이 커밋이 낳는 런의 «seed 장비» 줄을 위 표본과 대조하고, 같으면 ⓐ `player-info` 픽셀 차가 `settings` 수준(1%)으로 내려왔는지 보고 ⓑ 남은 절반(`ui_score` 쪽 «상태가 다르면 알린다»)은 T28 lock 이 풀린 뒤 잡는다.
+
 ### T102 진행 기록 (2026-09-13 · 워커 B · sess-1920-15773) — 1회차(빛기둥을 구운 스프라이트로 · 램프 키 `_w` · 리본 pivot 윗변 · ✅ 는 CI PNG 뒤)
 
 - **먼저 본 것(런 186 `screen_pets.png` ↔ `shot-042356` 부화장 크롭)**: 원작은 돔 갓 + 노란 전구 아래로 **노란 빛기둥**이 알까지 내려오는데 클론은 검은 세로 알약(53×70px · 원본 비 1.34 인데 0.76)과 노란 점뿐 · 빛기둥 **0 픽셀**. 첫 행 «장착됨» 리본은 검은 띠 반쪽만 보인다(글자 잘림). T28 5회차가 런 95 에서 적어 둔 그 자리(T20 절 메모)를 이제 뿌리까지 갈랐다.
