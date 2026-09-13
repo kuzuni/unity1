@@ -788,6 +788,13 @@
 - 판정: 고치기 **전에** 넓힌 자 둘이 **빨강**이 되는 것을 먼저 보이고(지금 rc 0 인 것이 문제다) · 고친 뒤 초록 · `screen_main.png`·`screen_chat.png` 을 열어 □ 가 0 인 기록(§1) · CI 유니티 잡 초록.
 - 범위: `Assets/Scripts/Game/Ui/ForgeSheet.cs` · `Assets/Forge/catalog.json` · `Assets/Fonts/NotoSansKR-Forge.ttf`(다시 뽑으면) · `tools/check_text_glyphs.py` · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/assets-map.md`.
 
+### T101 — 리그 «상대 선택» 행의 별점이 도전 버튼 **왼쪽**에 있다: 정본은 버튼 **위**(세로 한 칸) (Game·UI · T22·T58 뒤 · 워커 J 등재)
+- 실측(2026-09-13 12:2x · 워커 J · 런 183 `screen_league-challenge.png` ↔ 원작 `shot-042228.png`): 클론은 상대 행 오른쪽이 «⭐+5  [도전]» **가로 두 덩어리**인데, 원작은 «⭐+5» 가 **[도전] 버튼 바로 위**에 얹힌 **세로 한 칸**이다. `ui_score` 의 `league-challenge` 2.4/10 에서 못 짝지은 밴드2 블록 넷이 이 자리다.
+- 정본: `ui.js` `renderLeagueChallenge` 의 `<span class="league-challenge-side">` 안에 `.star` 와 `button.btn.sm` 이 차례로 들어가고, CSS `.league-challenge-side { display:flex; flex-direction:column; align-items:center; gap:.3rem }`(style.css 2636) 가 그것을 세로로 쌓는다. 버튼 폭은 `.league-challenge-row .btn.sm { width: calc(var(--app-w) * .2173) }`(2626) — 클론 카탈로그 `lc_btn_w` 와 같은 값이라 폭은 이미 맞다.
+- 할 일: 별 칸을 버튼 **위**로 옮기고(칸 폭 = 버튼 폭 · 가운데 정렬 · 간격 .3rem · 둘을 합친 높이를 행 가운데에), 이름 칸은 별 자리를 뺀 만큼 넓힌다.
+- 판정: `ui_score --only league-challenge` 의 밴드2 미짝이 줄고 + PNG 눈 확인(별이 버튼 위) + PlayMode 빨강 0.
+- 범위: `Assets/Scripts/Game/Ui/LeagueSheet.cs`(도전 행 갈래) · `Assets/Tests/PlayMode/ShopUiTests.cs`(단언 한 줄).
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -927,7 +934,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) · T98(모루 그림이 사각 근사 — 정본 SVG 는 사다리꼴·총알 뿔·검정 stroke) · T100(남은 두부 셋 · 자 둘의 구멍) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ✅ · T91 ✅ · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ✅ · T99 ⬜ · T100 ⬜ |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) · T98(모루 그림이 사각 근사 — 정본 SVG 는 사다리꼴·총알 뿔·검정 stroke) · T100(남은 두부 셋 · 자 둘의 구멍) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ✅ · T91 ✅ · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ✅ · T99 · T101 🔄 · T100 ⬜ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) · T83(촬영 두 장 가르기) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ✅ · T83 ✅|

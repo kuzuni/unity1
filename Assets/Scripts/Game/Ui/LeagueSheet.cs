@@ -322,7 +322,8 @@ namespace Forge.Game.Ui
                 RectTransform avatar = PopupKit.Avatar(row, "avatar", av, o.Bot.Avatar, rem * 0.4f);
                 UiKit.Place(avatar, rem * 0.6f, (rowH - av) * 0.5f, av, av);
                 float nx = rem * 0.6f + av + rem * 0.6f;
-                float nw = rowW - nx - btnW - rem * 3.5f;
+                // 정본 `.league-challenge-side` 는 **세로 한 칸**(별 위 · 도전 버튼 아래)이라 이름 칸은 버튼 폭만 비우면 된다.
+                float nw = rowW - nx - btnW - rem * 1.2f;
                 TextMeshProUGUI nm = UiKit.Text(row, "name", TextKind.Sub, o.Bot.Name, "pp_ink", TextAlignmentOptions.Left);
                 nm.fontStyle = FontStyles.Bold;
                 UiKit.Place(nm.rectTransform, nx, rowH * 0.12f, nw, rowH * 0.4f);
@@ -334,20 +335,27 @@ namespace Forge.Game.Ui
                 cp.fontStyle = FontStyles.Bold;
                 UiKit.Place(cp.rectTransform, nx + cpIco + rem * 0.15f, rowH * 0.5f, nw - cpIco - rem * 0.15f, cpH);
                 // 원작 `.league-challenge-side .star` = IconGen.img('star') + «+N»(순검정) — «★» 글자 대신 아이콘(T58)
+                // 정본 `.league-challenge-side { display:flex; flex-direction:column; align-items:center; gap:.3rem }`
+                // — 별점이 **도전 버튼 위**에 얹힌 세로 한 칸이다(클론은 버튼 **왼쪽**에 나란히 뒀었다 · 런 183 `screen_league-challenge` 2.4/10 의 밴드2 미짝 넷).
                 float starW = rem * 2.6f, starIco = PopupKit.FontSize(TextKind.Sub) * 1.0f;
+                float sideX = rowW - rem * 0.6f - btnW;
+                float starH = PopupKit.FontSize(TextKind.Sub) * 1.1f;
+                float sideGap = rem * 0.3f;
+                float sideY = (rowH - (starH + sideGap + btnH)) * 0.5f;
                 RectTransform starBox = UiKit.Box(row, "star");
-                UiKit.Place(starBox, rowW - rem * 0.6f - btnW - starW, 0f, starW, rowH);
+                UiKit.Place(starBox, sideX, sideY, btnW, starH);
+                float starIn = (btnW - starW) * 0.5f;   // 별+«+N» 을 칸 가운데로(정본 align-items: center)
                 Image starI = PopupKit.IconOr(starBox, "star-ico", "star");
-                UiKit.Place(starI.rectTransform, 0f, (rowH - starIco) * 0.5f, starIco, starIco);
+                UiKit.Place(starI.rectTransform, starIn, (starH - starIco) * 0.5f, starIco, starIco);
                 TextMeshProUGUI star = UiKit.Text(starBox, "star-n", TextKind.Sub, "+" + o.StarReward, "pp_line", TextAlignmentOptions.Left);
                 star.fontStyle = FontStyles.Bold;
-                UiKit.Place(star.rectTransform, starIco + rem * 0.05f, 0f, starW - starIco, rowH);
+                UiKit.Place(star.rectTransform, starIn + starIco + rem * 0.05f, 0f, starW - starIco, starH);
                 int idx = o.Index;
                 bool can = h.League.CanChallenge(h.LeagueState, idx);
                 // 원작 `.btn.sm` 두 줄: «도전» / 티켓 아이콘 + «1»(IconGen.img('ticket')) — 이모지 대신 아이콘 줄(T58)
                 Button b = PopupKit.Btn(row, "challenge", "도전", "challenge_btn", "challenge_btn_dk", () => OnChallenge(h, idx), btnW, btnH, "pp_line", TextKind.Sub, !can);
                 RectTransform br = b.GetComponent<RectTransform>();
-                UiKit.Place(br, rowW - rem * 0.6f - btnW, (rowH - btnH) * 0.5f, btnW, btnH);
+                UiKit.Place(br, sideX, sideY + starH + sideGap, btnW, btnH);
                 RectTransform lab = b.transform.Find("label").GetComponent<RectTransform>();
                 float lip = UiKit.H("btn_lip");
                 lab.offsetMin = new Vector2(0f, lip + (btnH - lip) * 0.42f);
