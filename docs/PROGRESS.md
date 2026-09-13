@@ -430,6 +430,7 @@
 | T95 | 장착된 스킬 오브에 어둠 막(정본 `rgba(0,0,0,.58)`)이 없어 «장착됨» 배지와 «Lv.NN» 이 겹쳐 둘 다 안 읽힌다(장착 밝기 98~105 ↔ 비장착 107~113) · 전투 HUD 스킬 바 Lv 도 검정 알약 없이 오브 면에 얹힌다 | ✅ 완료 | sess-1920-15773 / 워커 B | `Assets/Scripts/Game/Ui/Skill*` · `Assets/Forge/Resources/PetSkillUi.json` · `Assets/Tests/PlayMode/PetUiTests.cs` | T20·T90 뒤 · 임자 없음 · 검수 Q 등재 · 런 158 픽셀 실측 |
 | T96 | 임자 없는 빨강: «screens 브랜치 배포» 가 런 164·168 연속 실패 — 눈 확인(§5)·T46 진단이 런 163 에 멈췄다 | 🔄 진행 | sess-2140-18689 / 워커 O | `.github/workflows/ci.yml`(screens 배포 스텝 · 필요하면 `permissions:`) | 워커 K 등재 · 잡 로그·권한 API 가 이 컨테이너 프록시에 막혀 원인 문구를 못 읽었다 — 추측으로 안 고쳤다 |
 | T97 | 플레이어 정보 팝업의 미니 씬이 안 꽂혀 «빈 갈색 상자»(훅 `PlayerInfoPopup.PreviewStart` 에 대입하는 줄이 0곳) | 🔄 진행 | sess-2015-28206 / 워커 R | `Assets/Scripts/Game/Battle/BattleScene.cs` · `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs`(호출부) · `Assets/Tests/PlayMode/UiSmokeTests.cs` | T8·T65 뒤 · T28 16회차 등재(런 170 `player-info` 2.9 ↔ 원작 `shot-043313` 미니 전투 장면) |
+| T98 | 모루 그림이 «사각 근사» 라 정본 SVG 와 다르다: 기운 상판 사다리꼴 · 둥근 총알 뿔 · 검은 키라인 3 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/ForgeSheet.cs`(DrawAnvil·Outlined) · `Assets/Forge/catalog.json`(anvil_* 꼭짓점) · `Assets/Tests/PlayMode/ForgeUiTests.cs` | **T87 뒤**(같은 파일) · 워커 G 등재(런 170 `screen_gear-detail` ↔ 원작 `shot-042120` 3배 확대 눈 대조) · 수단은 T87 6회차가 넣은 `CraftFxPoly` |
 - **자기 검사 ⓜ**: 깨끗해야 할 11꼴(C# `///`·`//`·`/* */`·문자열 · JS 백틱 · 파이썬 `#`·독스트링·주석 속 아포스트로피 · sh · md 표 · json) + 자취여야 할 7꼴(클래스명·식별자·꼬리 주석 앞 코드·경로 셋) — 번호는 숫자 조립(`T%d`)으로 만들어 이 파일이 제 검사에 안 걸리게 했다(기존 ⓐ 와 같은 까닭).
 - **실측**: 고치기 전 `task_state.py T9`(GameData.cs `///` · export_data.js `//` · 문자열)·T7·T13·T14·T25 가 «잡지 마라 — 코드 N곳» · 고친 뒤 전부 «자취 0곳» 이고 T7·T13·T14·T25 는 «남의 lock 이 살아 있다» 로 바르게 막힌다. `--check` 는 그대로 rc 0.
 - **게이트**: `task_state.py --self-test` ✓ · `--check` ✓ · `check_docs_intact`·`check_decisions`·`check_task_rows`·`check_claim_scope`·`gen_meta --check` ✓. `dotnet` 은 이 컨테이너에 없고 C# 을 안 만졌다 — 내 커밋(0f66c39)의 제 런은 concurrency 큐 교체로 없고, 그것을 포함한 **CI 런 18**(https://github.com/kuzuni/unity1/actions/runs/34713559030 · success · dotnet 잡의 `task_state --self-test` 단계가 이 파일을 돌렸다)로 확인 · lock 반납(c0086ff).
@@ -1982,6 +1983,11 @@
 
 
 ### T87 6회차 기록 (2026-09-13 10:0x · 워커 G · sess-0544-755 · lock 유지)
+
+- **(회차 끝에 덧붙임 · 런 170 판정) 5회차는 초록이다.** 유니티 잡 `FAILED: 0` · «판정 — 모드 XML 둘 다 있고 실패 0 · 유니티 잡 초록». 런 163·164·168 을 이어 온 빨강이 사라졌다(그 사이 T91·T95 도 제 것을 고쳤다). `screens` 배포도 **1번째 시도에 성공**(T96 의 셸 배포 · 런 170 · PNG 44장) — 눈 확인 경로가 1시간 30분 만에 다시 열렸다.
+- **눈 확인(§1)**: 런 170 `screen_gear-detail.png` 의 모루 자리를 원작 `shot-042120.png` 과 3배 확대해 나란히 봤다. 두 가지를 얻었다.
+  - ⓐ **원작 샷에는 빌릿이 없다** — 상판 위가 비어 있다. 정본 **코드**에는 `<g class="anv-billet">` 이 있고 CSS 주석이 «비평가 2인이 *처음과 끝이 똑같다* 고 읽어» 넣은 내력을 적어 뒀다 = 샷이 그 이전 캡처다. 결정 219(«샷이 아니라 코드가 정본») 대로 코드를 따랐다 → **T28 임자에게**: `ui_score.py` 의 낡은 샷 목록에 `shot-042120`(대장간 시트 · 빌릿 이전)을 넣어 달라(그 파일은 T28 lock 이라 내가 안 고쳤다).
+  - ⓑ **모루 그림 자체가 정본과 다르다** — 정본은 기운 사다리꼴 상판 · 둥근 총알 뿔 · 온 부분에 검정 stroke 3 인데 클론은 전부 둥근 사각 근사이고 키라인이 눈에 안 띈다(`DrawAnvil` 주석이 «기운 사다리꼴을 사각으로» 라고 스스로 적어 뒀다). 6회차가 넣은 `CraftFxPoly` 로 진짜 다각형을 그릴 수 있게 됐으니 **T98 로 등재**했다(T87 뒤 · 같은 파일 · 같은 순간 워커 M 이 T97 을 먼저 밀어 규약대로 내가 번호를 옮겼다).
 
 - **달군 쇳덩이(빌릿)를 그리고 `Billet`·`BilletHot`·`BilletCool` 트랙을 물렸다.** 1회차에 Core 로 옮긴 표 다섯 중 세 개가 여태 «아무도 읽지 않는 표» 였다 — 이제 화면이 읽는다.
 - **왜 이것이 먼저인가**: 정본 주석이 이 겹을 «🚨 이게 없으면 하중을 **모루가 대신 먹는다** — 강철 모루가 세로로 11% 눌리는 *고무 모루* 그림이었다» 로 시작한다. 5회차까지 클론은 모루만 눌리고 눌릴 물건이 없었다.
