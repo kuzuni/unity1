@@ -86,7 +86,13 @@ namespace Forge.Game.Ui
             return root;
         }
 
-        private void Awake() { Instance = this; }
+        private void Awake()
+        {
+            Instance = this;
+            // T89 — 화면 문구의 이모지 → 아이콘 표(StreamingAssets/data/ui-text.json). 늦게 와도 해가 없다:
+            // 표가 없는 동안 그린 문구는 이모지가 글자로 남을 뿐이고(정본에서 «표에 없는 이모지» 와 같다) 다음 렌더부터 아이콘이 선다.
+            if (!UiText.Loaded) StartCoroutine(UiText.Load());
+        }
         private void OnDestroy() { if (Instance == this) Instance = null; }
 
         private void Build()

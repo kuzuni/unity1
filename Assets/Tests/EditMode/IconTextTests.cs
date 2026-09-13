@@ -79,6 +79,15 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 조각_수가_토스트_문구에서_정본과_같다()
+        {
+            // 정본이 실제로 내는 토스트 몇 줄 — 아이콘 조각과 글자 조각의 수가 규칙대로 나오는가.
+            Assert.AreEqual(2, IconText.Split("\U0001F528 29", Icon).Count, "[hammer]+«29» 두 조각(이모지 뒤 공백은 아이콘 마진이 대신한다)");
+            Assert.AreEqual(1, IconText.Split("\U0001F512", Icon).Count, "아이콘 하나뿐이면 글자 조각이 없다");
+            Assert.AreEqual(1, IconText.Split("스테이지 2-10 도달 시 해금됩니다", Icon).Count, "이모지가 없으면 조각 하나 = 라벨 하나(호출부 계약이 안 바뀐다)");
+        }
+
+        [Test]
         public void 빈_문구와_표_없음도_안_터진다()
         {
             Assert.AreEqual(0, IconText.Split("", Icon).Count);

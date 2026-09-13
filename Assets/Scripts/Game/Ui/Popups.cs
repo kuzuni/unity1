@@ -149,8 +149,10 @@ namespace Forge.Game.Ui
             UiKit.Rounded(t, "line", "toast_line", h * 0.5f);
             Image face = UiKit.Rounded(t, "bg", "toast_bg", h * 0.5f - PopupKit.Line);
             PopupKit.Inset(face.rectTransform, PopupKit.Line);
-            TextMeshProUGUI txt = UiKit.Text(t, "msg", TextKind.Sub, msg, "ink");
-            txt.fontStyle = FontStyles.Bold;
+            // T89 — 정본 `UI.paintIconText` 의 자리가 바로 여기다(표 이름이 `TOAST_ICON` 인 이유).
+            // 표에 있는 이모지는 T31 아이콘으로, 나머지는 글자로 선다. 표가 아직 안 읽혔으면 조각 하나 = 옛 모양 그대로.
+            RectTransform rowRt = UiKit.IconTextRow(t, "msg-row", TextKind.Sub, msg, "ink");
+            foreach (TextMeshProUGUI piece in rowRt.GetComponentsInChildren<TextMeshProUGUI>(true)) piece.fontStyle = FontStyles.Bold;
             toastStack++;
             LastToast = msg;
             StartCoroutine(ToastLife(t.gameObject));

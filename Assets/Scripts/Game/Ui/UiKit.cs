@@ -134,6 +134,44 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>아이콘. 원작 IconGen 키면 아틀라스(T31 <see cref="UiIcons"/> · tint 는 정본 <c>{ tint }</c> 옵션)에서, 아니면 카탈로그 스프라이트(GUI PRO Kit 조각)에서. 비율 유지.</summary>
+        /// <summary>
+        /// 이모지가 섞인 문구를 «아이콘 + 글자» 한 줄로 세운다(ROUTINE T89 · 정본 `UI.paintIconText`).
+        /// 표(<see cref="UiText"/>)에 있는 이모지는 T31 아틀라스의 아이콘으로, 나머지는 글자 그대로 — 닉네임·장비명은 손대지 않는다.
+        /// 아이콘 한 칸은 **글자 크기의 정사각**이라 줄 높이가 글자와 같다. 표에 걸리는 이모지가 하나도 없으면
+        /// 조각 하나뿐이므로 <see cref="Text"/> 와 같은 모양(라벨 하나)이 나온다 — 호출부 계약이 안 바뀐다.
+        /// </summary>
+        /// <returns>줄 상자(가로 레이아웃). 글자 조각은 <c>"msg"</c>·<c>"msg-2"</c>… · 아이콘은 <c>"ico-N"</c>.</returns>
+        public static RectTransform IconTextRow(Transform parent, string name, TextKind kind, string msg, string colorKey = null,
+                                                TextAlignmentOptions align = TextAlignmentOptions.Center)
+        {
+            RectTransform row = Box(parent, name);
+            var lay = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+            lay.childAlignment = TextAnchor.MiddleCenter;
+            lay.childControlWidth = true; lay.childControlHeight = true;
+            lay.childForceExpandWidth = false; lay.childForceExpandHeight = false;
+            lay.spacing = 0f;
+
+            float size = Cat.Kind(kind).size;
+            int texts = 0, icons = 0;
+            foreach (Forge.Core.Ui.IconRun r in UiText.Split(msg))
+            {
+                if (r.IsIcon)
+                {
+                    Image ico = Icon(row, "ico-" + (++icons), r.Icon);
+                    var le = ico.gameObject.AddComponent<LayoutElement>();
+                    le.preferredWidth = le.preferredHeight = size;
+                    le.flexibleWidth = 0f;
+                    continue;
+                }
+                // 글자 조각은 크기를 안 준다 — TextMeshProUGUI 가 ILayoutElement 라 가로 레이아웃이 제 폭을 물어 본다
+                // (폭을 손으로 재려면 TMP_Text.GetPreferredValues 를 불러야 하는데, 하니스 스텁에 그 서명이 없어
+                //  «스텁에 없는 서명을 추측해 넣지 않는다»(§1)는 규칙에 걸린다).
+                Text(row, texts == 0 ? "msg" : "msg-" + (texts + 1), kind, r.Text, colorKey, align);
+                texts++;
+            }
+            return row;
+        }
+
         public static Image Icon(Transform parent, string name, string spriteKey, string tint = null)
         {
             RectTransform rt = Box(parent, name);
