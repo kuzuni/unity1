@@ -359,6 +359,10 @@ namespace Forge.Tests.PlayMode
             while (!(MetaHost.Ready && Forge.Game.Battle.BattleScene.Instance != null && Forge.Game.Battle.BattleScene.Instance.Ready) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
             Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 준비되지 않았다");
             Assert.IsNotNull(Forge.Game.Battle.BattleScene.Instance, "전투 씬");
+            // T105 — 정본 미니 씬 리그는 scene.json(World.Defs · 비동기 읽기)이 선 뒤에 걸린다: 런 204 에서 팝업이 표보다 먼저 열려 Rigged=false 였다
+            while (!(Forge.Game.Map.World.Instance != null && Forge.Game.Map.World.Instance.Defs != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsNotNull(Forge.Game.Map.World.Instance, "World");
+            Assert.IsNotNull(Forge.Game.Map.World.Instance.Defs, "scene.json(SceneDefs)이 20초 안에 서지 않았다");
             Forge.Game.Battle.BattlePreview pv = Forge.Game.Battle.BattlePreview.Instance;
             Assert.IsNotNull(pv, "BattlePreview 가 Bootstrap 아래에 서지 않았다");
             Assert.IsNotNull(PlayerInfoPopup.PreviewStart, "PreviewStart 훅이 비었다(T97 이전 상태)");

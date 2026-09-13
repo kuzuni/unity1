@@ -155,6 +155,8 @@ namespace Forge.Game.Battle
             Camera main = Camera.main;
             if (main == null) { Stop(); return; }
             // 본 카메라를 따라간다(셰이크·행군·FOV 펀치) · 상자 크기가 바뀌면 RT 를 다시 만든다(원작 previewResize)
+            // 정본 리그는 표(World.Defs)·영웅 리그가 선 뒤에야 걸린다 — 팝업이 그보다 먼저 열렸으면(런 204 실측) 설 때까지 매 프레임 다시 시도하고 그동안만 본 카메라를 따른다
+            if (!Rigged) Rigged = ApplyRig(cam, rt.width, rt.height);
             if (!Rigged || !ApplyRig(cam, rt.width, rt.height))
             {
                 cam.transform.SetPositionAndRotation(main.transform.position, main.transform.rotation);
