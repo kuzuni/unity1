@@ -44,6 +44,25 @@
 - **(2026-09-12 20:55 UTC · 계정 2 대화 세션 · 주인 대신 등재 · 가장 먼저)** 주인: «SafeArea 로 상단 카메라 안 가리게 · 60fps · **실제 게임 화면을 찍어서 봐라**». → **T27 을 지금 가장 먼저 잡는다**(전투 화면·패널 전부를 노치 모의로 촬영 → `screens` · 워커가 PNG 를 열어 본다 · ROUTINE §1 «실제 화면을 본다»), 그 다음 **T45**(SafeArea 노치 모의 단언) · **T44**(60fps 게이트 · `targetFrameRate` 가 지금 없다). 화면·전투 작업은 앞으로 테스트 초록만으로 ✅ 금지.
 
 ### 검수 Q 보고
+- **(2026-09-13 02:01~02:2x 회차 · sess-0201-17836 · 검수 Q · main `88367d7` 기준)**
+  - **ⓐ CI — 처음으로 유니티 잡이 통째로 초록이다.** 최근 완료 셋 = 런 **127**(44b89f6 · **success** · 유니티 잡이 실제로 돌았다 · skipped 아님) · **126**(607b326 · cancelled) · **125**(4041670 · cancelled). 런 128 진행 중. 런 127 의 `playmode-red.txt` 머리(T67 이 붙인 모드별 총계): **editmode 511/511 · playmode 87/87 · 빨강 0 · RED 0 · FAIL 0**. 그 앞 빨강(런 124 `2e43626` · 런 121 `b41dace`)은 **T71**(채팅 미리보기 단언)·**T72**(소환 결과 두 번 탭 경쟁)이 잡아 걷혔다. **임자 없는 빨강 0.**
+  - **ⓑ ✅ 재검증 — 최근 다섯 T71·T62·T64·T58·T61 의 «확인 수단» 을 실제로 다시 돌렸다**(main 88367d7):
+    - `dotnet build` **0 오류**(경고 2 = 기존) · `dotnet test` **511/511** · `gen_meta --check` · `gen_ui_catalog --check`·`--self-test` · `check_docs_intact` · `check_decisions`(180) · `check_task_rows`(77행) · `task_state --check` · `check_claim_scope` · `check_final_table`·`--self-test` · `ui_score --self-test`(19칸) · `export_data --self-test` · `check_data_sync.sh`(13파일) · `check_icons_sync.sh` — **전부 rc 0**. 정본 벡터 자 **12종 `--check` 일치** · `sfx_vectors` 재생성 `git diff` 0.
+    - PlayMode 쪽은 런 127 의 `playmode-red.txt` 에서 이름으로 확인 — 87개 전부 PASS(T62 `ShopUiTests` · T58 `PetUiTests` · T61 `ForgeUiTests` · T64/T50 `PerfBudgetTests` 포함). T71 은 단언 한 줄이라 그 테스트 PASS 로 갈음. → **다섯 다 정말 돈다.**
+  - **ⓒ lock**: 파일 8개인데 **`T28.lock` 이 105분**(`2026-09-13T00:16:00Z` · SID `sess-0011-24013`)으로 **90분을 넘겼다** — `check_claim_scope` 도 산 lock 을 7개로 센다.
+    - ⚠ **그런데 일은 살아 있다**: 표의 임자는 **7회차 `sess-0111-11076`(워커 M)** 이고 그 세션이 01:15 에 T28 7회차를 커밋했다. **6회차 SID 의 타임스탬프를 그대로 둔 채 회차만 넘긴 것**이라, 규약대로(«90분 지난 lock 은 죽은 것으로 보고 뺏는다») 다음 사람이 뺏으면 **두 세션이 같은 자리를 판다**. 규약 «장기 세션은 90분 전에 타임스탬프를 갱신해 push 한다 — 그것이 살아 있다는 유일한 신호» 대로 임자 M 이 **갱신하거나 반납**할 것. 검수 Q 는 남의 lock 을 안 만진다.
+    - 나머지 7개는 9~52분(T54 52 · T58 42 · T60 40 · T73 36 · T74 35 · T68 23 · T76 9). 겹침 쌍은 **3개로 줄었다**(지난 회차 11개) — T54↔T60 · T54↔T68 · T60↔T68 이고 전부 `UiSmokeTests.cs` 한 파일이다.
+  - **ⓓ `screens` ↔ 정본**(런 127 배포 · `screen_*` 34 + 시트 8 + 노치 1):
+    - ✅ **촬영 프레임 회귀가 걷혔다** — 지난 회차에 540×452 로 눌렸던 것이 이제 판을 채운다(`screen_main` 내용 y=0~943 · 노치 y=0~1110 · 픽셀 실측). T54 3회차(세계/UI 카메라 분리)가 실제로 통했다.
+    - ✅ **지난 회차 지적 셋이 화면에서 사라졌다**: HUD 프로필 **아바타 도트 초상**(T56) · 재화 알약의 **초록 «+» 배지**(T60 · 진행 중인데 이미 보인다) · 모루 망치 수 **«🔨 302k» 가 어두운 몸통 위**(T61). 지난 회차에 내가 등재한 T60·T61 이 눈으로 확인된다.
+    - 남은 기지(旣知): **한글 전부 □**(T53 · 주인 에셋 대기) · **3D 세계에 영웅·적·펫이 없다**(T54 · lock 살아 있음).
+    - 🔴 **새 발견 → T78 등재**: `screen_forge-list`·`screen_forge-detail`·`screen_autoforge` 팝업 셋에서 ⓐ 상단바 자리(앞 둘 y=0~117 · autoforge y=0~79)가 **순수 검정 RGB (0,0,0)** — 딤이 아니라 아무것도 안 그려진 자리다(같은 층의 `screen_forge-info` 는 (14,18,21) 로 멀쩡) ⓑ **모달 딤이 아예 없다** — 카드 뒤 3D 세계가 y≈900 에서 생 초록 `(0,128,32)`, 탭바도 그대로 밝다. 정본(`shot-042905`·`shot-042931`·`shot-043117`)은 위·아래 모두 `(0,0,0)`~`(2,2,2)` 로 화면 전체가 덮인다(`css/style.css` 모달 딤 `rgba(0,0,0,.5)`) ⓒ `autoforge` 는 카드가 탭바에 물려 ✕ 가 반쯤 가린다. **T57 은 ✅ 이고 lock 도 없어 임자 없는 결함**이다(T57 이 고친 «판·겹침·빈 막대·✕ 둘» 과는 다른 층).
+    - ⚠ **자가 그것을 매 회차 오진한다**: `ui_score --score` 가 이 셋을 «앱 상자가 그림을 안 채웠다 → 촬영이 어긋난 것이라 **화면마다 재등재하지 마라**» 로 찍는다. 런 127 에서 촬영은 멀쩡한데(나머지 27장은 판을 채운다) 그 문구 때문에 T28 회차마다 그냥 지나간다 — T78 에 «경고 갈래 좁히기» 를 같이 넣었다.
+    - 조형 시트 8장: `mobs_*` 5장 중 4장은 런 103 과 바이트가 같고 `mobs_pets`·`gear_*` 3장은 다르지만 눈으로 보면 같은 그림이다(러너 AA 흔들림 · 3회차 연속 같은 꼴). 정본 재렌더·정본 시트와 대조해 **펫 25 · 탈것 29 · 적 7 · 스킬 오브젝트 20 · 소품 · 무기 53 · 투구 · 갑옷** 모두 형태·순서 일치, 분홍 머티리얼·검은 칸 0.
+    - 참고(T28 몫 · 작업 아님): 자가 `chat` 을 «틀 불일치 — 원작 세로/가로 1.611 ↔ 클론 1.778» 로 찍는다. 원작 `shot-*` 이 화면마다 창 크기가 달라 생긴 정본 쪽 편차다(클론은 9:16 고정이 맞다) — 채점에서 그 화면만 틀 보정이 필요하다.
+    - 이 회차 `ui_score --score` 평균 **4.36/10**(런 118 4.31 → +0.05 · 8.0 이상 0개). 점수를 올리는 일은 T28 이 화면마다 재등재한다.
+  - **ⓔ §7 대조표**: 정본 `web/js/*.js` 전 모듈·`index.html`·`css/style.css`·`ref/screens` 재점검 — 이름 없는 모듈 **0** · «없음» 줄 **0** · 미등재 작업 **0**(§7 줄 23 · 표시 91 · T78 포함).
+  - **등재**: **T78**(팝업 셋 모달 딤·상단바 자리 · `ui_score` 오진 갈래).
 - **(2026-09-13 00:00~00:2x 회차 · sess-0000-11134 · 검수 Q · main `ff8d12d` 기준)**
   - **ⓐ CI**: 최근 완료 셋 = 런 **107**(d835d5b · cancelled) · **105**(ea3217d · cancelled) · **104**(e4f4931 · success 이나 **유니티 잡 skipped**). 런 106·108 은 진행 중. §1 «cancelled 는 뒤 런» 대로 판정이 선 마지막 유니티 잡은 **런 103**(ddc584d · failure) — `playmode-red.txt` 로 **PASS 588 · FAIL 5 · RED 0**, 다섯 다 임자가 있다:
     ⑴ `BootstrapTests.부팅_씬이_세로_9대16…`(«Expected 0.5625 · But was 1.1538») → **T70**(23:59 선점) ⑵ `ShopUiTests.보석_절은_스크롤_없이…` → **T62**(수리 d835d5b 밀었다) ⑶ `ShopUiTests.프로필_설정_채팅…`(«미리보기 = moonzzanf: 안녕» 인데 «안녕») · ⑷ `UiSmokeTests.HUD_Set_표면이_글자를_바꾼다`(닉네임 «moonzzanf» 인데 «용사») → 둘 다 **T56↔T63 이 `Hud.cs` 를 함께 쥔 채 도는 중**의 진행 상태 ⑸ `UiSmokeTests.플레이어_정보_팝업…` NRE(`ForgeHost.get_Defs` · `ForgeHost.cs:56`) → **T65**(수리 239c9be 밀었다 · 런 108 대기). **임자 없는 빨강 0.**
@@ -169,6 +188,7 @@
 | T75 | 상점 보석 카드 안쪽이 원작과 다르다: 자가 밴드8 안에서 블록을 하나도 못 가른다(원작 7블록) · 카드가 원작보다 작고 그림·가격 버튼 배분이 다르다 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/ShopSheet.cs`(보석 카드 갈래만) · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/ShopUiTests.cs` | T62 3회차가 남긴 것 · `shop` 6.1/10 의 미짝 2 · 정본 `.shop-gem-card` 세로 배분(수량 +8~36px · 그림 +38~98px · 가격 +101~124px) |
 | T76 | 전투 데미지 숫자가 **열린 시트 위에** 겹쳐 그려진다(런 124 `screen_shop.png` 의 «▼745») — 원작은 `#game-area` 가 시트 아래라 안 보인다 | ✅ 완료 | sess-0150-8332 / 워커 D | `Assets/Scripts/Game/Battle/DamageNumbers.cs`(붙는 층만 · `Layer`) · `Assets/Tests/PlayMode/DamageLayerTests.cs`(자기 파일 · 다른 UI 파일은 T54·T60·T68 lock 이라 0줄) | T62 3회차가 눈으로 잡음 · 원작 `#game-area > #fx-layer` 대로 앱 상자 첫 자식 `fx-layer` 에만 붙인다 · PlayMode 1 · CI 런 128 유니티 초록 · `screen_shop.png` 눈 확인(시트 위 «▼» 없음) · lock 반납 |
 | T77 | 촬영 시드의 상단바 전투력이 `⚔ 45`(장비 8부위가 시대 6~7 인데 정본 식이면 수백만) — 클론 `UiShotsTests.Seed()` 에 정본 SEED 144행 `Combat.recalcHero()` 자리가 없다 | ⬜ 대기 | — | `Assets/Tests/PlayMode/UiShotsTests.cs`(`Seed()` 두 줄 + 단언 하나) | 보고함(워커 J · 01:2x) → 워커 T 등재 · **T54 lock 이 풀린 뒤**(`UiShotsTests.cs` 같은 파일) · 접착은 `HeroStatsGlueTests` 가 지킨다 · 단언이 빨강이면 접착 갈래로 새 번호 |
+| T78 | 팝업 셋(`forge-list`·`forge-detail`·`autoforge`)에 모달 딤이 없고 상단바 자리가 순수 검정(RGB 0,0,0) · autoforge ✕ 가 탭바에 가린다 · `ui_score` 가 이것을 «촬영 어긋남» 으로 오진 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/Popups.cs` · `Ui/Forge*` · `tools/ui_score.py`(경고 갈래) · `Assets/Tests/PlayMode/ForgeUiTests.cs` | T19·T57 뒤 · 임자 없음 · 검수 Q 등재 · 런 127 PNG 픽셀 실측 |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
 
