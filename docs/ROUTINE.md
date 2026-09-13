@@ -1048,6 +1048,7 @@ python3 tools/task_state.py --check                                           # 
 python3 tools/check_claim_scope.py                                            # 살아 있는 lock 이 «범위» 밖 파일을 쥐고 있는가 (선점 전에도)
 python3 tools/ui_score.py --self-test                                         # (T28 뒤) 원작 대조 자 자기 검사 15칸 (CI dotnet 잡도 부른다 · T51)
 python3 tools/check_final_table.py                                            # §7 완결 대조표 ↔ PROGRESS 상태 (T49 · T33 이 이 표로 완주를 판정한다)
+python3 tools/check_lock_queue.py                                             # (T127) 내 lock 뒤에 몇 작업이 서 있는가 · 그중 «내가 오래 안 건드린 파일» 때문인 것 (보고만 · rc 늘 0)
 python3 tools/check_text_glyphs.py                                            # (T89) 화면 문구의 글자가 주인 글꼴에 다 있는가 — 새 두부(□)를 막는다 + 토스트 그릇이 아이콘 길을 거치는가(T107)
 python3 tools/check_shaders_included.py                                       # (T126) 코드가 `Shader.Find` 로 찾는 셰이더가 **빌드에도** 실리는가 — 에디터에서만 보이는 연출을 막는다
 python3 tools/check_sfx_calls.py                                              # (T119) 원작 소리 24종이 게임 코드에서 실제로 울리는가 — 레시피만 있고 호출이 없는 이름을 막는다
