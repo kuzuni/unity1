@@ -2,6 +2,12 @@
   "_": "T109 2회차 — 정본 web/css/style.css 의 `-webkit-text-stroke` 를 옮긴 **키라인 폭표**. `Assets/Forge/catalog.json` 이 T87 lock 이라 여기 둔다(T65 PlayerInfoUi.json · T111 GearDetailUi.json 과 같은 꼴 · T33 또는 T104 3회차가 catalog 로 합칠 수 있다). 코드에 숫자를 박지 않는다(§1). em = 글자 크기에 대한 비율(정본이 `.11em` 처럼 적은 것 · {em, min_px} 꼴이면 정본 `max(Npx, .Mem)`) · px = **정본 CSS px**(정본이 `2px`·`.5px` 처럼 적은 것 · `var(--ol2)` = 2px · `var(--ol3)` = 3px · `var(--ol4)` = 4px) — 캔버스로 넘길 때 css_px 를 곱한다(T104 2회차 · 2ae9903 보고).",
   "css_px": 2.164,
   "css_px_": "정본 앱 폭 499 CSS px ↔ 앱 상자 기준 1080px(UiRoot) = ×2.164 — T87 결정 222 · catalog anvil_fx_px 와 같은 수. em 은 글자 크기(이미 캔버스 px)에 곱하므로 안 곱한다.",
+  "btn_face": {
+    "_": "T109 7회차 — 공용 PopupKit.Btn 의 «면 색 키 → 키라인 폭표 키». 정본은 버튼 클래스로 가르는데(3548~3555: .modal-card .btn.primary/.on/.equip = var(--pp-blue) · .danger/.sell = var(--pp-red)) 클론은 면 색 키가 그 클래스다 — pp_blue = primary/on/equip · pp_red = danger/sell · pp_green = 종이 시트의 primary(수집·수령·도전). 표에 없는 면(pp_gray · card_bg · challenge_btn …)은 정본에 규칙이 없어 민글자. 값은 «px»·«em» 절의 키.",
+    "pp_blue": "btn_colored",
+    "pp_green": "btn_colored",
+    "pp_red": "btn_colored"
+  },
   "em": {
     "offline_total": 0.2,
     "offline_card": 0.11,
@@ -19,6 +25,10 @@
     "float_dmg_kill": 1.0,
     "float_dmg_hero": 0.55,
     "float_dmg_": "T109 6회차 — style.css 500 .float-dmg .6px · 524 .dmg-kill 1px · 539 .dmg-hero .55px(crit·skill 은 .float-dmg 를 물려받는다) · Battle/DamageNumbers 공유 재질",
+    "btn_colored": 2.0,
+    "af_start": 4.0,
+    "fi_skip": 4.0,
+    "btn_colored_": "T109 7회차 — style.css 8719 .btn.btn.primary.primary, .btn.btn.on.on, .btn.btn.equip.equip, .btn.btn.danger.danger, .btn.btn.sell.sell { -webkit-text-stroke: var(--ol2) var(--pp-line) } · var(--ol2) = 2px(33행) · 비활성은 8725 .disabled { -webkit-text-stroke: 0 } = 민글자 · 5015 .af-start 4px #000 · 5150 .fi-card .fi-skip 4px #000(둘은 호출부 ForgeAutoPopup·ForgeInfoPopup 이 T87 lock — 반납 뒤 keylineKey 로 건다)",
     "equip_cell_lv": 0.3,
     "chat_bubble": 0.5,
     "chat_time": 0.5,

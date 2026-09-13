@@ -372,8 +372,11 @@ namespace Forge.Game.Ui
 
         // ---- 버튼 ----
 
-        /// <summary>입체 버튼(원작 .btn · 면 + 아래턱 + 검정 테). w &lt; 0 = 레이아웃이 폭을 준다.</summary>
-        public static Button Btn(Transform parent, string name, string label, string faceKey, string lipKey, UnityAction onClick, float w, float h, string inkKey = "stage_ink", TextKind kind = TextKind.Button, bool disabled = false)
+        /// <summary>입체 버튼(원작 .btn · 면 + 아래턱 + 검정 테). w &lt; 0 = 레이아웃이 폭을 준다.
+        /// 라벨 키라인(T109 7회차 · 정본 `style.css` 8719 `.btn.btn.primary/on/equip/danger/sell { -webkit-text-stroke: var(--ol2) var(--pp-line) }`):
+        /// <paramref name="keylineKey"/> 가 null 이면 면 색 키 표(<see cref="KeylineUi.BtnFace"/> · `KeylineUi.json` btn_face)가 정한다 · "" 는 끈다 ·
+        /// 그 밖은 폭표 키(`.af-start`·`.fi-skip` 4px 처럼 제 규칙이 있는 버튼) · 비활성은 정본 8725 `.disabled { -webkit-text-stroke: 0 }` 대로 민글자.</summary>
+        public static Button Btn(Transform parent, string name, string label, string faceKey, string lipKey, UnityAction onClick, float w, float h, string inkKey = "stage_ink", TextKind kind = TextKind.Button, bool disabled = false, string keylineKey = null)
         {
             Button b = UiKit.Button(parent, name, onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
@@ -389,6 +392,8 @@ namespace Forge.Game.Ui
             TextMeshProUGUI t = UiKit.Text(rt, "label", kind, label, inkKey);
             t.fontStyle = FontStyles.Bold;
             t.rectTransform.offsetMin = new Vector2(0f, lip);
+            string kl = keylineKey ?? KeylineUi.BtnFace(faceKey);
+            if (!string.IsNullOrEmpty(kl) && !disabled) Ring(t, kl, "pp_line");
             if (disabled)
             {
                 b.interactable = false;

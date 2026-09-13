@@ -14,7 +14,7 @@ namespace Forge.Game.Ui
     {
         public const string ResourcePath = "KeylineUi";
 
-        private static JsonObject em, px;
+        private static JsonObject em, px, btnFace;
         private static float cssPx;
 
         private static void Load()
@@ -25,6 +25,7 @@ namespace Forge.Game.Ui
             JsonObject root = J.Obj(MiniJson.Parse(ta.text));
             em = J.Obj(root["em"]);
             px = J.Obj(root["px"]);
+            btnFace = J.Obj(root["btn_face"]);   // T109 7회차 — 없으면 null(버튼 라벨은 민글자)
             if (em == null || px == null) throw new KeyNotFoundException(ResourcePath + ".json 에 «em»·«px» 절이 없다");
             object c = root["css_px"];
             if (!J.IsNum(c) || J.Num(c) <= 0) throw new KeyNotFoundException(ResourcePath + ".json 에 «css_px»(정본 CSS px → 캔버스 px 배율) 이 없다");
@@ -54,6 +55,19 @@ namespace Forge.Game.Ui
             float w = (float)J.Num(o["em"]) * fontSizePx;
             float floor = (float)J.Num(o["min_px"], 0) * cssPx;
             return w < floor ? floor : w;
+        }
+
+        /// <summary>
+        /// T109 7회차 — 공용 <see cref="PopupKit.Btn"/> 의 면 색 키(<c>pp_blue</c> …)가 정본 버튼 클래스(`.btn.primary/on/equip/danger/sell`)를 대신한다 —
+        /// 표 <c>btn_face</c> 가 그 면에 거는 키라인 폭표 키를 돌려준다. 표에 없는 면(회색 · 디버그)은 정본에 규칙이 없어 <c>null</c>(민글자).
+        /// </summary>
+        public static string BtnFace(string faceKey)
+        {
+            Load();
+            if (btnFace == null || string.IsNullOrEmpty(faceKey)) return null;
+            object v = btnFace[faceKey];
+            string k = v as string;
+            return string.IsNullOrEmpty(k) ? null : k;
         }
 
         /// <summary>키 하나로 — «px» 절에 있으면 <see cref="Px"/>, «em» 절에 있으면 <see cref="Em"/>(둘 다면 px). 호출부가 어느 절인지 몰라도 되게.</summary>
