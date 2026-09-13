@@ -414,12 +414,14 @@ namespace Forge.Game.Ui
             UiKit.Place(orbRt, 0f, 0f, orb, orb);
             float lh = PlayerInfoStyle.Px("sk_lv_h_rem");
             string txt = PlayerInfoStyle.T("lv", level);
-            // 정본 `.sk-lv`(style.css 4045)는 `white-space: nowrap` + `padding: 0 .25rem` — 상자가 **글자 폭대로** 늘어나고 오브보다 넓어져도 그만이다.
-            // 옛 `Mathf.Min(orb * 1.1f, …)` 상한은 정본에 없는 클론의 발명이라 «Lv. 20» 이 «v. 2» 로 잘려 찍혔다(T129 · 런 254 PNG 8배 실측).
-            float lw = PetSkillKit.TextWidth(TextKind.Sub, txt) + PlayerInfoStyle.Px("sk_lv_pad_rem") * 2f;
             RectTransform lv = UiKit.Box(cell, "sk-lv");
             PetSkillKit.Fill(lv, "bg", PlayerInfoStyle.C("sk_lv_bg"), lh * 0.5f);
             TextMeshProUGUI t = PetSkillKit.Text(lv, "t", TextKind.Sub, txt, PlayerInfoStyle.C("sk_lv_ink"));
+            // 정본 `.sk-lv`(style.css 4045)는 `white-space: nowrap` + `padding: 0 .25rem` — 상자가 **글자 폭대로** 늘어나고 오브보다 넓어져도 그만이다.
+            // 옛 `Mathf.Min(orb * 1.1f, …)` 상한은 정본에 없는 클론의 발명이라 «Lv.20» 이 제 상자에 잘렸다(T129 1회차 · 런 254 PNG 8배 실측).
+            // 폭은 **어림(`TextWidth` 은 라틴 한 자를 0.58em 로 셈한다)이 아니라 TMP 가 실제로 잰 값**으로 잡는다 — 어림은 «Lv.20» 을 1.18배 부풀려
+            // 알약이 이웃 칸을 덮었다(2회차 실측 · 어림 104.4px ↔ 실측 ≈88px · 칸 간격 83.6px).
+            float lw = t.preferredWidth + PlayerInfoStyle.Px("sk_lv_pad_rem") * 2f;
             UiKit.Fill(t.rectTransform);
             // 테 없음이 정본이다 — `.sk-lv` 에는 `-webkit-text-stroke` 규칙이 없고(검정 알약 위 흰 글자),
             // `.3px #fff` 를 받는 것은 **다른 요소**인 `.equip-cell .cell-lv`(style.css 936)다. 그 실물은 `Ui/ForgeUi.cs` 135행이다(T129 가 T109 2회차의 오배치를 걷었다).

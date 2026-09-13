@@ -189,8 +189,12 @@ namespace Forge.Tests.PlayMode
                 // T129 — 정본 `.sk-lv` 는 `white-space: nowrap` 라 상자가 글자 폭대로 늘어난다.
                 // 옛 클론은 폭을 오브 지름의 1.1배로 잘라 «Lv. 20» 이 «v. 2» 로 찍혔다(런 254 PNG 8배 실측).
                 TMPro.TextMeshProUGUI lt = lv.Find("t").GetComponent<TMPro.TextMeshProUGUI>();
-                Assert.IsTrue(((RectTransform)lv).rect.width + 0.5f >= lt.preferredWidth,
-                    t.name + " Lv 라벨 상자(" + ((RectTransform)lv).rect.width.ToString("0.0") + ") 가 글자(" + lt.preferredWidth.ToString("0.0") + ") 보다 좁다 — 잘려 찍힌다");
+                float lvw = ((RectTransform)lv).rect.width, pad = PlayerInfoStyle.Px("sk_lv_pad_rem");
+                Assert.IsTrue(lvw + 0.5f >= lt.preferredWidth,
+                    t.name + " Lv 라벨 상자(" + lvw.ToString("0.0") + ") 가 글자(" + lt.preferredWidth.ToString("0.0") + ") 보다 좁다 — 잘려 찍힌다");
+                // 정본 `.sk-lv` 은 글자 + `padding: 0 .25rem` 딱 그만큼이다 — 어림으로 부풀리면 알약이 이웃 칸을 덮는다(T129 2회차).
+                Assert.IsTrue(lvw <= lt.preferredWidth + pad * 2f + 0.5f,
+                    t.name + " Lv 라벨 상자(" + lvw.ToString("0.0") + ") 가 글자+안여백(" + (lt.preferredWidth + pad * 2f).ToString("0.0") + ") 보다 넓다 — 이웃을 덮는다");
                 Assert.AreEqual(0f, lt.outlineWidth, 1e-4f, t.name + " Lv 글자에 테 0(정본 .sk-lv 에는 -webkit-text-stroke 규칙이 없다)");
             }
             Assert.IsTrue(orbs > 0 || row.Find("none") != null, "오브가 있거나 «출전 중인 펫 없음»");

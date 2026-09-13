@@ -1060,6 +1060,8 @@
 - ⚠ **별(★)은 쫓지 마라**: 원작 샷의 오브 바닥에 붙은 주황 별은 지금 정본 `renderPlayerInfo`(`ui.js` 5169~5180)의 출전 줄 마크업에 **없다**(`.sk-star` 는 스킬·펫·탈것 패널에만 있다) — 클론에 별이 없는 것은 정본대로다.
 - 판정: PlayMode — 출전 줄 라벨 상자 폭 ≥ 그 글자의 `preferredWidth`(잘림 0) · 라벨 글자에 테 0 + 다음 런 `screen_player-info.png` 을 8배로 열어 «Lv. NN» 이 온전히 보이는가(§1) + `check_keyline` rc 0.
 - 범위: `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs`(OrbCell 두 줄) · `tools/check_keyline.py`(MAP·KNOWN 한 칸) · `Assets/Tests/PlayMode/UiSmokeTests.cs`(단언) · `docs/ROUTINE.md`(§2 이 절) · `docs/PROGRESS.md`.
+- **2회차 실측(2026-09-13 23:0x · 런 259 PNG 8배)**: 1회차 뒤에도 라벨의 **마지막 자리가 안 보인다** — 다만 원인이 바뀌었다. 이제는 제 상자에 잘리는 것이 아니라 **이웃 칸의 알약이 덮는 것**이다(알약 여섯이 이어져 검은 띠 하나로 보인다). 폭 어림(`PetSkillKit.TextWidth` · 라틴 한 자 = 0.58em)이 «Lv.20» 을 1.18배 부풀린 탓이라 **TMP 가 실제로 잰 `preferredWidth`** 로 바꿨다(어림 104.4px → 실측 ≈88px).
+- **남은 겹침은 «글자 크기 하한 ↔ 정본 .6rem» 의 충돌이라 이 절에서 안 고친다(결정 283)** — 셈: 칸 간격 = 오브 67.4px(앱폭 6.24%) + 사이 16.2px(1.5%) = **83.6px**. 정본 `.sk-lv` 은 `.6rem`(21.8 캔버스px)이라 알약이 53.4 + 안여백 18.2 = **71.6px** 로 간격 안에 든다. 그런데 클론은 `TextKind.Sub`(**36px** · `TextSizeGateTests` 가 지키는 하한)라 같은 글자가 88 + 18.2 = **106px** — 간격보다 22px 넓다. 즉 **정본대로 그리면 하한을 깨고, 하한을 지키면 알약이 겹친다.** 정본 자신이 스킬 화면에서 같은 병을 «알약을 걷고 오브 면에 흰 글자 + 검정 링»(`sk-orb-lv-pill` · `style.css` 4066)으로 고쳤고 **원작 샷 `shot-043313` 의 출전 줄도 그 꼴**이다 — 다만 정본은 그 규칙을 `#panel-skills` 로 좁혀 뒀다. 어느 쪽으로 갈지는 «글자 크기 하한» 을 쥔 자리(T53·`TextSizeGateTests`)와 같이 볼 일이라 **별 회차·별 판단**으로 남긴다.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
