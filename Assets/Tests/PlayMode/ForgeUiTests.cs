@@ -605,7 +605,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(bar, "쇳덩이 몸통 칸이 없다");
             int area; string info;
             // 달군 쇠 = 붉은 주황~노랑(파랑이 확연히 낮고 밝다) · 모루 상판보다 밝아야 한다
-            int warm = CountPixels(bar, delegate(Color32 c) { return c.r > 170 && c.r > c.b + 60 && c.g >= c.b; }, out area, out info);
+            int warm = CountPixels(bar, delegate(Color32 c) { return c.r > 170 && c.r > c.b + 60 && c.g >= c.b; }, out area, out info, null);
             Assert.Greater(warm, area / 5, "쇳덩이가 화면에 안 칠해졌다 — " + info);
             yield return null;
         }
@@ -632,14 +632,14 @@ namespace Forge.Tests.PlayMode
             AnvilFx fx = UiRoot.Instance.Sheet.GetComponent<AnvilFx>();
             Assert.IsNotNull(fx, "두들기기 러너");
 
-            // 3타 직전(가장 크게 감아올린 뒤 내려오는 자리) — 망치가 확실히 화면 안이다
-            fx.SampleTo(AutoForgeFxSpec.HitMs[2] - 40);
+            // 3타 접촉 프레임 — 모루·쇳덩이·망치·링이 한 화면에 있는 순간이다(이 장면을 남긴다)
+            fx.SampleTo(AutoForgeFxSpec.HitMs[2]);
             yield return null;
             RectTransform head = Named(UiRoot.Instance.Sheet, "hm-head");
             Assert.IsNotNull(head, "망치 머리 칸");
             int area; string info;
             // 강철 = 채도 낮은 회색(빨강≈파랑) · 시트 바탕(밝은 회색)보다 어둡고 키라인(거의 검정)보다 밝다
-            int steel = CountPixels(head, delegate(Color32 c) { return Mathf.Abs(c.r - c.b) < 40 && Mathf.Abs(c.g - c.b) < 40 && c.r > 45 && c.r < 205; }, out area, out info);
+            int steel = CountPixels(head, delegate(Color32 c) { return Mathf.Abs(c.r - c.b) < 40 && Mathf.Abs(c.g - c.b) < 40 && c.r > 45 && c.r < 205; }, out area, out info, "screen_craft-strike");
             Assert.Greater(steel, area / 6, "망치가 화면에 안 칠해졌다 — " + info);
 
             fx.Stop();
@@ -766,7 +766,7 @@ namespace Forge.Tests.PlayMode
                 yield return null;
                 RectTransform ring2 = Named(sheet, "af-ring-2");
                 int area; string info;
-                int bright = CountPixels(ring2, delegate(Color32 c) { return c.r > 190 && c.g > 150 && c.b < c.g; }, out area, out info);
+                int bright = CountPixels(ring2, delegate(Color32 c) { return c.r > 190 && c.g > 150 && c.b < c.g; }, out area, out info, null);
                 Assert.Greater(bright, 4, "3타 링이 화면에 안 칠해졌다 — " + info);
             }
 
@@ -785,7 +785,7 @@ namespace Forge.Tests.PlayMode
         /// UI 를 한 장 그려(카메라 사본 → RenderTexture → `ReadPixels` · T27 `UiShotsTests.Capture` 와 같은 길) <paramref name="target"/> 의 화면 사각 안에서
         /// <paramref name="match"/> 를 만족하는 픽셀을 센다. 실패 문구에 쓸 정보(<paramref name="info"/>)도 같이 만든다.
         /// </summary>
-        private static int CountPixels(RectTransform target, System.Func<Color32, bool> match, out int area, out string info)
+        private static int CountPixels(RectTransform target, System.Func<Color32, bool> match, out int area, out string info, string saveAs)
         {
             UiRoot root = UiRoot.Instance;
             Canvas canvas = root.Canvas;
@@ -846,6 +846,8 @@ namespace Forge.Tests.PlayMode
                 }
                 info = target.name + " 칸 " + area + "픽셀(" + (x1 - x0 + 1) + "×" + (y1 - y0 + 1) + ") 중 맞는 색 " + hit
                        + "개 · 가장 밝은 픽셀 rgb " + brightest.r + "," + brightest.g + "," + brightest.b;
+                // §1 «실제 화면을 본다» — 제작 순간을 한 장 남겨 다음 사람이 눈으로 본다(CI 가 ui-screens/ 를 screens 브랜치로 올린다).
+                if (!string.IsNullOrEmpty(saveAs)) Forge.Game.Gallery.GallerySheet.Save(shot, saveAs);
                 return hit;
             }
             finally

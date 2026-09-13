@@ -2180,6 +2180,14 @@
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` **541/541**(+1) · PlayMode 컴파일 0 오류 · 자 11종 rc 0.
 
 
+### T87 12회차 기록 (2026-09-13 12:5x · 워커 G · sess-0544-755 · lock 유지)
+
+- **제작 순간을 한 장 남긴다** — 지금까지 모루·쇳덩이·망치·링은 전부 «픽셀 자» 로만 확인됐고 사람이 볼 그림이 없었다(정지 화면 샷에는 두들기는 순간이 안 담긴다). 망치 픽셀 자가 재는 그 프레임(3타 접촉 1100ms)에서 같은 그림을 `ui-screens/screen_craft-strike.png` 로 저장한다 — CI 가 `ui-screens/` 를 `screens` 브랜치로 올리므로 다음 사람은 `git show origin/screens:screen_craft-strike.png` 로 **열어 본다**(ROUTINE §1 «실제 화면을 본다» · T87 절 판정의 «제작 순간 컷»).
+- 자리는 3타 접촉으로 골랐다: 모루가 가장 깊이 눌리고 쇳덩이가 가장 납작하며 백열이 1.0 인 순간이라 **연출 전체가 한 프레임에 다 있다**.
+- `ui_score`(T28)는 제 표에 있는 이름만 `screen_<이름>.png` 로 찾으므로(`ui_score.py` 632행) 이 새 파일은 점수 대조에 끼지 않는다 — 눈으로 보라고 두는 그림이다.
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` 541/541 · PlayMode 컴파일 0 오류 · 자 rc 0.
+
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
