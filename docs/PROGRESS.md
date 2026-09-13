@@ -165,7 +165,7 @@
 | T71 | 임자가 갈리는 빨강: `ShopUiTests` 채팅 미리보기 단언이 T63 의 «두 줄» 수정과 어긋난다(런 113·121 PlayMode 빨강 2 중 하나) | ✅ 완료 | sess-0132-20017 / 워커 K | `Assets/Tests/PlayMode/ShopUiTests.cs`(단언 한 줄) | 한 줄 단언 → 두 줄 단언(`hud.ChatName`·`hud.ChatMessage`) · T63 이 제 파일에 쓴 꼴 그대로 |
 | T72 | 소환 결과 연출을 «두 번 탭» 으로 모는 PlayMode 단언이 CI 프레임 길이에 따라 터진다 — `PetUiTests` 탈것 갈래 `PetUiTests.cs:330` NRE(런 118) · 펫 갈래(201·203)도 같은 꼴 | ⛔ 흡수 | sess-1920-15773 / 워커 B | `Assets/Tests/PlayMode/PetUiTests.cs`(소환 결과 탭 두 자리) | 워커 E 등재 · 연출은 벽시계(`Time.unscaledTime`)라 CI 한 프레임이 길면 첫 탭이 «스킵» 이 아니라 «닫기» 가 된다 · 파일은 T58 범위(워커 B lock) · 연출 파일은 T20(✅ · lock 없음) — T71 과 같은 «임자가 갈리는» 자리 · **T58 6회차(116e8f2)가 같은 lock 안에서 고쳤다(`TapResultClosed` · 탈것·펫 세 자리 · 결정 179) → 등재 절의 «T58 이 제 회차에 같이 고치면 ⛔ 로 흡수» 대로 흡수** |
 | T73 | AudioBank 베이크 스레드가 잡마다 버스·FFT·링 배열을 새로 만들어 447~638KB/프레임의 관리 쓰레기(런 118 프로파일러 전 스레드) — 배열 되쓰기 | ✅ 완료 | sess-0125-19048 / 워커 N | `Assets/Scripts/Core/Audio/SynthRenderer.cs` · `Dsp.cs` · `SfxSynth.cs`(배열 되쓰기만) · `Assets/Scripts/Game/Audio/AudioBank.cs`(버퍼 소유만) · `Assets/Tests/EditMode/AudioTests.cs` | T30 뒤 · 워커 O 등재(T64 4회차 실측) · 음색·표는 손대지 않는다 · **1회차(워커 N)**: Core `RenderWorkspace`(버스 5 · 딜레이 링 · FFT re/im · 합성곱 출력 · `NoisePool`)를 `AudioBank` 워커가 하나 쥐고 잡 사이에 되쓴다 — 새로 만드는 것은 클립 `float[]` 뿐 · EditMode 1(되쓰기 뒤 지문 동일 · 되쓰기 갈래 할당 < 새 배열 갈래의 절반) · dotnet 511/511 · **CI 런 127(44b89f6 · 내 커밋 포함) 초록**: EditMode 511 · PlayMode 87/87 · `AudioTests`·`AudioSmokeTests` PASS · 실측(44.1kHz 실제 잡): 효과음 24종 96.9MB → 6.3MB(출력 5.6MB) · 음악 루프 52~60MB → 3.4~3.6MB(출력 3.0~3.5MB) · lock 반납 |
-| T74 | `FxCubes` 가 시전마다 큐브 묶음마다 새 Material(런 113·118: 재시전 끔 −135 / 켬 +135) — T50 꼴 재질 풀 | 🔄 진행 | sess-1920-15773 / 워커 B | `Assets/Scripts/Game/SkillFx/FxCubes.cs` · `Assets/Scripts/Game/Battle/FxMaterials.cs`(풀 갈래만) · `Assets/Tests/PlayMode/SkillFxTests.cs` | T50·T52 뒤 · 워커 O 등재(T64 4회차 실측) |
+| T74 | `FxCubes` 가 시전마다 큐브 묶음마다 새 Material(런 113·118: 재시전 끔 −135 / 켬 +135) — T50 꼴 재질 풀 | ✅ 완료 | sess-1920-15773 / 워커 B | `Assets/Scripts/Game/SkillFx/FxCubes.cs` · `Assets/Scripts/Game/Battle/FxMaterials.cs`(풀 갈래만) · `Assets/Tests/PlayMode/SkillFxTests.cs` | T50·T52 뒤 · 워커 O 등재(T64 4회차 실측) |
 | T75 | 상점 보석 카드 안쪽이 원작과 다르다: 자가 밴드8 안에서 블록을 하나도 못 가른다(원작 7블록) · 카드가 원작보다 작고 그림·가격 버튼 배분이 다르다 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/ShopSheet.cs`(보석 카드 갈래만) · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/ShopUiTests.cs` | T62 3회차가 남긴 것 · `shop` 6.1/10 의 미짝 2 · 정본 `.shop-gem-card` 세로 배분(수량 +8~36px · 그림 +38~98px · 가격 +101~124px) |
 | T76 | 전투 데미지 숫자가 **열린 시트 위에** 겹쳐 그려진다(런 124 `screen_shop.png` 의 «▼745») — 원작은 `#game-area` 가 시트 아래라 안 보인다 | 🔄 진행 | sess-0150-8332 / 워커 D | `Assets/Scripts/Game/Battle/DamageNumbers.cs`(붙는 층만 · `Layer`) · `Assets/Tests/PlayMode/DamageLayerTests.cs`(자기 파일 · 다른 UI 파일은 T54·T60·T68 lock 이라 0줄) | T62 3회차가 눈으로 잡음 · **1회차(sess-0150-8332 · 워커 D)**: 원작 `#game-area > #fx-layer` 대로 앱 상자 첫 자식 `fx-layer` 에만 붙인다 · PlayMode 1 · ✅ 는 CI `screen_shop.png` 눈 확인 뒤 · T8·T18 뒤 |
 | T77 | 촬영 시드의 상단바 전투력이 `⚔ 45`(장비 8부위가 시대 6~7 인데 정본 식이면 수백만) — 클론 `UiShotsTests.Seed()` 에 정본 SEED 144행 `Combat.recalcHero()` 자리가 없다 | ⬜ 대기 | — | `Assets/Tests/PlayMode/UiShotsTests.cs`(`Seed()` 두 줄 + 단언 하나) | 보고함(워커 J · 01:2x) → 워커 T 등재 · **T54 lock 이 풀린 뒤**(`UiShotsTests.cs` 같은 파일) · 접착은 `HeroStatsGlueTests` 가 지킨다 · 단언이 빨강이면 접착 갈래로 새 번호 |
@@ -451,6 +451,7 @@
 - **워커 결정 기록(테스트 경쟁 · 결정 179)**: 런 118 `PetUiTests.탈것_시트…` 가 `SkillSummonResultView.Current.OnTap()` 둘째 호출에서 NRE — 첫 프레임이 길면(러너에서 탈것 3D 얼굴 첫 굽기) 연출이 이미 끝나 첫 탭이 곧 닫기라 둘째 탭의 `Current` 가 null. 런 90~116 은 프레임이 짧아 통과. 고침: `TapResultClosed()`(살아 있을 때만 탭 · 최대 4 · 닫힘 단언) 로 탈것·펫 소환 자리 셋을 바꿨다(PetUiTests.cs 는 T58 범위). 게임 코드 변경 0.
 - **주인이 확인할 것**: PVP 탭 → [도전] → 상대 선택 카드의 행 아이콘 셋 · 펫 상세 → [업그레이드] 카드(✕ 는 카드 것 하나 · 탭바 ✕ 는 딤 아래).
 - **남긴 것**: 딤 팝업의 `ui_score` 는 자가 카드 밖을 재는 한 안 오른다(결정 174 · T28 M 이 «앱 상자 채움» 가드처럼 «딤 카드만 채점» 갈래를 두면 그때) · 한글 두부 T53.
+- **lock 반납(2026-09-13 02:1x · 런 127)**: 116e8f2 를 포함한 런 127(44b89f6)에서 `PetUiTests` **6/6 PASS**(탈것 시트 테스트 포함 · 런 118 NRE 재발 0) · 런 121(116e8f2 앞)도 6/6 — `TapResultClosed` 는 프레임 경쟁을 막는 보험으로 남는다. `docs/claims/T58.lock` 삭제.
 
 ### T20 완료 기록 (2026-09-12~13 · 워커 B · sess-1920-15773 · 6회차 · 마감 2026-09-13 00:35)
 
@@ -1279,6 +1280,12 @@
 - **촬영 둘에는 한 줄씩**(`Bootstrap.ApplyGameAreaProjection(cam)`) — rect·클리어는 안 건드린다. 이번엔 «세계가 안 그려지는» 갈래가 구조적으로 없다: 최악이라도 framing 이 어긋난 «완전한» 그림이 나온다.
 - **게이트**: `dotnet build` 0 에러 · `dotnet test` **513/513** · 자 10개 + `check_data_sync` 전부 rc 0.
 - **다음 회차에 볼 것**: 새 `screen_main.png` 에서 ⓐ 지면·HP 바가 그대로 있고 ⓑ **영웅·적이 원작 shot-042120 처럼 화면 위 1/3(≈30.8%)에 서는가**. 서면 T54 ✅. 안 서면 이번엔 framing 수치만 의심하면 된다(렌더 경로는 이미 갈라 놨다).
+### T74 완료 기록 (2026-09-13 · 워커 B · sess-1920-15773) — 2회차 ✅(런 127 실측 · lock 반납)
+
+- **런 127(44b89f6 · 내 2e43626 포함 · tests success)**: `SkillFxTests` **7/7 PASS**(새 «큐브_재질은_풀에서_되쓴다_두_번째_시전에_새_재질_0» 포함) · `PerfBudgetTests` 3/3 · `playmode-red.txt` FAIL 0 · RED 0.
+- **판정 넷 전부**(ROUTINE T74): ⓐ `perf-t64.txt` «시간 추이» 200프레임당 재질 증가 — **전부 +6 · 스킬 재시전 끔 +0** → 재시전 몫 **+6**(런 113·118 의 −135/+135 → ±10 안) · 전부(끝) +0. ⓑ 편집기 버킷 `MaterialEditor.ApplyMaterialPropertyDrawersFromNative` **5,895B/프레임**(처음 · 종전 52~59KB) · 끝 캡처엔 목록에서 사라짐 · «캡처 중 새 Material» **61개 → 0개**(종전 85/65) — 배치 모드에서도 잡혀 결정 180 의 대체 판정은 필요 없었다(그대로 둔다 · 다음에 편집기 버킷이 0 으로 나오면 그때 쓴다). ⓒ `SkillFxTests` 초록. ⓓ 콘솔 빨강 0. 메인 스레드는 처음 161KB → **122.9KB** · 끝 168KB → **108.6KB**/프레임(같은 런의 T73(워커 N)이 AudioBank 스레드를 걷어 전 스레드 합은 611KB → 124.7KB).
+- **정본 대조**: 연출 코드는 `Make` 의 재질 출처 한 줄과 `Destroy` 의 반납 한 줄만 바뀌었고 색·불투명도·가산은 같은 값이 같은 속성에 들어간다(1회차 기록). 화면 PNG 는 스킬 연출을 찍는 화면이 없어 눈 확인 대상이 아니다 — 주인 확인 항목(연속 시전 색)은 그대로 둔다.
+- **lock 반납**: `docs/claims/T74.lock` 삭제(이 커밋). §2 제목·§7 칸 ✅.
 
 ## 워커 결정 기록
 

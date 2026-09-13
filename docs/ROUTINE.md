@@ -531,7 +531,7 @@
 - 범위: `Assets/Scripts/Core/Audio/SynthRenderer.cs` · `Dsp.cs` · `SfxSynth.cs`(배열 되쓰기만) · `Assets/Scripts/Game/Audio/AudioBank.cs`(되쓰기 버퍼 소유만) · `Assets/Tests/EditMode/AudioTests.cs`(되쓰기 뒤 결과가 같다는 단언 1).
 - ✅ 2026-09-13 워커 N(sess-0125-19048) 1회차: `RenderWorkspace`(버스 5 · 링 · FFT · 합성곱 출력 · `NoisePool`) + `AudioBank` 가 하나 쥐고 되쓰기 · 되쓰기 갈래 지문 = 새 배열 갈래(EditMode 1) · dotnet 511/511 · CI 런 127 초록(EditMode 511 · PlayMode 87/87 · AudioBank 스레드가 [T64] 버킷 상위에서 사라짐) · 실측 효과음 24종 96.9MB → 6.3MB · 음악 루프 52~60MB → 3.4~3.6MB.
 
-### T74 — 스킬 큐브 연출(`FxCubes`)이 시전마다 큐브 묶음마다 새 Material 을 만들고 버린다 — T50 의 «조합별 재질 되쓰기» 를 여기에도 (Game·성능 · T50·T52 뒤 · T64 가 등재)
+### T74 ✅ — 스킬 큐브 연출(`FxCubes`)이 시전마다 큐브 묶음마다 새 Material 을 만들고 버린다 — T50 의 «조합별 재질 되쓰기» 를 여기에도 (Game·성능 · T50·T52 뒤 · T64 가 등재)
 - 실측(2026-09-13 · T64 · CI 런 113·118): 부하 장면 200프레임당 Material 오브젝트 수가 «스킬 재시전 끔» 에서 **−135**, 다시 시전하면 **+135** — 시전 때 만들고 액터가 끝나면 버린다. 편집기에선 그때마다 `MaterialEditor.ApplyMaterialPropertyDrawersFromNative` 가 52~59KB/프레임(메인 스레드 정상 상태 150~170KB 의 1/3)을 문다 · 플레이어에는 그 후처리는 없지만 네이티브 재질 생성·해제는 남는다. 자리: `Assets/Scripts/Game/SkillFx/FxCubes.cs:71` `FxMaterials.Instance(hex, opacity)`(호출자 소유 · 색을 매 프레임 바꾸는 재질).
 - 할 일: `FxUnlitMaterials.Take/Release`(T50 · 가산·깊이·양면·텍스처 키 · 색·불투명도는 꺼낼 때 칠함) 꼴로 **FxCubes 의 재질을 풀에서 꺼내고 액터가 끝날 때 돌려준다** — 색을 매 프레임 바꾸는 재질은 «묶음마다 하나» 가 필요하므로 키 = (불투명 여부 · 가산) · 되돌릴 때 색을 리셋. 연출·수치는 그대로(정본 fx 그래프 · `SkillFxTests` 가 지킨다).
 - 판정: `PerfBudgetTests` «시간 추이» 줄의 «스킬 재시전 끔/켬» 재질 증가가 **±10 이내** + `MaterialEditor…` 버킷이 10KB 아래 + `SkillFxTests` 초록 + 콘솔 빨강 0.
@@ -557,6 +557,7 @@
 - 판정: 다음 유니티 잡 `screen_main.png` 상단바가 `⚔ 45` 가 아니라 **수백만 단위**(`NumFmt` 표기 «N.Nm») + 위 단언 초록 + PlayMode 빨강 0 + T28 채점의 `main` 점수가 안 내려간다.
 - **T54 뒤인 이유**: `UiShotsTests.cs` 가 T54(워커 I)의 살아 있는 lock 범위(«촬영 rect»)다 — 규약 «같은 파일이면 뒤 번호가 기다린다». 이 절이 손대는 자리는 `Seed()` 한 곳(촬영 rect 와 다른 함수)이라 T54 가 그 파일을 범위에서 빼거나 반납하면 바로 잡는다. T54 가 제 회차에 같이 고치면 `⛔ 흡수`(T71 꼴).
 - 범위: `Assets/Tests/PlayMode/UiShotsTests.cs`(`Seed()` 두 줄 + 단언 하나). 게임 코드 0줄.
+- ✅ 결론(2026-09-13 · 런 127 · 워커 B): 풀(`FxMaterials.Take/Release` · 키 = 투명 여부·가산) 뒤 200프레임당 재질 증가 «전부 +6 · 재시전 끔 +0»(종전 −135/+135) · 편집기 재질 후처리 5.9KB/프레임(종전 52~59KB) · 캡처 중 새 Material 61 → 0 · `SkillFxTests` 7/7 · 빨강 0. 기록은 PROGRESS «T74 완료 기록».
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -698,7 +699,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ⬜ |
-| (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 🔄(FxCubes 시전당 재질 되쓰기) |
+| (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
 | (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
