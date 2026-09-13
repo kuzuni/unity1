@@ -26,6 +26,18 @@ namespace Forge.Game.Ui
         public static float H(string key) { return Cat.Layout(key) * RefH; }
         public static Color C(string key) { return Cat.ColorOf(key); }
 
+        /// <summary>
+        /// 검정 덮개(딤)의 지각 α — 정본 css `rgba(0,0,0,.5)`(주인 지시 «투명도 50%») 는 브라우저가 sRGB 공간에서 섞어 흰 바탕이 127 이 되는데,
+        /// 이 프로젝트는 선형 색 공간이라 캔버스가 선형에서 섞어 같은 α .5 로 흰 바탕이 188 이 된다(런 129 실측 187 · T79).
+        /// «같은 sRGB 결과» 가 나오도록 α 를 환산한다: 남길 밝기 (1−α) 를 선형으로 옮긴 만큼만 남긴다. 감마 공간이면 그대로. 검정 덮개에만 쓴다.
+        /// </summary>
+        public static Color PerceivedDim(Color dim)
+        {
+            if (QualitySettings.activeColorSpace != ColorSpace.Linear) return dim;
+            float keep = Mathf.GammaToLinearSpace(1f - dim.a);
+            return new Color(dim.r, dim.g, dim.b, 1f - keep);
+        }
+
         // ---- 사각형 ----
 
         public static RectTransform Box(Transform parent, string name)

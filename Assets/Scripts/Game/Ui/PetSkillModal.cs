@@ -76,7 +76,7 @@ namespace Forge.Game.Ui
             h = new Handle { Name = name };
             h.Root = UiKit.Box(layer, "modal-" + name);
             Image dim = UiKit.Panel(h.Root, "dim", "pp_line");
-            dim.color = PetSkillStyle.C("modal_dim");
+            dim.color = UiKit.PerceivedDim(PetSkillStyle.C("modal_dim"));   // 정본 .5 를 선형 공간에서 같은 밝기로(T79)
             dim.raycastTarget = true;
             float w = widthFrac * UiKit.RefW;
             float r = PetSkillStyle.Px("modal_card_r_rem");

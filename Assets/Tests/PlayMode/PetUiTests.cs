@@ -243,6 +243,19 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(Sheet.Modal.IsOpen(PetUpgradePopup.ModalName), "업그레이드 팝업");
             Assert.AreEqual(last, PetUpgradePopup.Target);
             AssertTextGate("펫 업그레이드");
+            // T79 — 모달이 앱 상자를 덮고 탭바 위에 그려진다(원작 #pet-upgrade-modal z40 > 탭바 z30) · 딤은 정본 .5 의 선형 공간 환산값 · ✕ 는 카드 것 하나(탭바 ✕ 는 딤 아래 원작 그대로)
+            PetSkillModal.Handle up = Sheet.Modal.Find(PetUpgradePopup.ModalName);
+            UiRoot root = UiRoot.Instance;
+            Assert.AreEqual(root.App, up.Root.parent.parent, "모달 층은 앱 상자의 직계 자식");
+            Assert.Greater(up.Root.parent.GetSiblingIndex(), root.TabBand.GetSiblingIndex(), "모달 층이 탭바 뒤(위)에 그려진다");
+            RectTransform dimRt = (RectTransform)up.Root.Find("dim");
+            Assert.IsNotNull(dimRt, "딤 층");
+            Assert.AreEqual(Vector2.zero, dimRt.anchorMin); Assert.AreEqual(Vector2.one, dimRt.anchorMax);
+            Assert.AreEqual(Vector2.zero, dimRt.sizeDelta, "딤이 앱 상자 전체를 덮는다");
+            Assert.AreEqual(UiKit.PerceivedDim(PetSkillStyle.C("modal_dim")).a, dimRt.GetComponent<UnityEngine.UI.Image>().color.a, 1e-4f, "딤 α = 정본 .5 의 지각값");
+            int xs = 0;
+            foreach (Transform ch in up.Root.GetComponentsInChildren<Transform>(true)) if (ch.name == "x-btn") xs++;
+            Assert.AreEqual(1, xs, "✕ 는 카드 것 하나");
             if (Host.Pets.State.Eggs.Count > 0)
             {
                 PetUpgradePopup.ToggleMat(true, 0);

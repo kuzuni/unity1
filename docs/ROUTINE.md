@@ -574,8 +574,9 @@
 - 원작 머리 구성도 다르다: 원작 카드 머리는 «장착됨/Lv.6 카드 + 24m 피해/558m 체력 + 경험치 막대(87988/796140 경험치) + «합칠 펫 선택» 줄 + 회색 «업그레이드» 버튼» 인데, 클론은 이름/수치 두 줄 + 막대 + 작은 버튼 하나로 줄었다.
 - T58(리그 도전·펫 업그레이드 팝업 · ✅)이 리그 쪽은 실제로 고쳤다 — 같은 런의 `screen_league-challenge.png` 는 흰 카드·제목·티켓 pill·상대 5줄이 원작대로 선다(점수 2.9 는 한글 두부 탓 · T53). 남은 것은 펫 업그레이드 하나라 새 번호로 뗀다.
 - 무엇을 한다: 정본 `ui.js` `openPetUpgrade`/`renderPetUpgrade` 와 `style.css` 의 그 모달 클래스를 읽어 ⓐ 모달이 앱 상자를 덮게(딤 + 부모 시트·탭바 가림) ⓑ ✕ 는 하나 ⓒ 머리 구성(등급색 이름 · 피해/체력 두 줄 · 경험치 막대 문구 · «합칠 펫 선택» · 업그레이드 버튼)을 원작 순서대로.
-- 판정: `ui_score --score --only pet-upgrade` 가 **8.0 이상**(지금 1.7) + 워커가 PNG 를 `Read` 로 열어 «✕ 하나 · 탭바 안 보임» 확인 + PlayMode 빨강 0.
-- 범위: `Assets/Scripts/Game/Ui/PetUpgrade*` · `Assets/Tests/PlayMode/PetUiTests.cs`.
+- 판정: ~~`ui_score --score --only pet-upgrade` 가 **8.0 이상**(지금 1.7) + «탭바 안 보임»~~ — 주인 지시 딤 α .5(css 1711~1721)와 양립하지 않는다(결정 191 · 174 와 같은 갈래). → 워커가 PNG 를 `Read` 로 열어 «딤이 시트·탭바를 덮고 시트 흰 자리가 브라우저 .5 와 같은 ≈127 · ✕ 는 카드 것 하나(탭바 ✕ 는 딤 아래 원작 그대로) · 머리 구성 원작 순서» 확인 + `PetUiTests` 층·딤·✕ 단언 초록 + PlayMode 빨강 0.
+- 실측 정정(2026-09-13 · 런 129 · 워커 B): 딤은 이미 탭바 위 층이다(흰 255 → 187 · 탭바 45 → 31). 어긋난 것은 **밝기** — 선형 색 공간이라 α .5 가 브라우저(127)보다 밝게 남는다 → `UiKit.PerceivedDim` 으로 환산(표 값은 정본 그대로).
+- 범위: `Assets/Scripts/Game/Ui/PetUpgrade*` · `Assets/Scripts/Game/Ui/PetSkillModal.cs`(딤 한 줄) · `Assets/Scripts/Game/Ui/UiKit.cs`(`PerceivedDim` 한 함수) · `Assets/Tests/PlayMode/PetUiTests.cs`.
 
 ### T80 — 유니티 잡이 테스트 0개인 채 1초 만에 죽는다: `unity-test-runner@v4` 의 «latest» 풀이가 GitHub API 무인증 한도에 걸린다(런 131 «GitHub API returned 403») (게이트 · 뒤 순서 없음 · `ci.yml` 한 파일 · 워커 N 등재)
 - 실측(2026-09-13 · CI **런 131** · `d09896b`): `Run game-ci/unity-test-runner@v4` 가 1초 만에 `Failed to resolve the latest game-ci CLI release: GitHub API returned 403.` → 모드 XML 둘 다 없음(T67 자가 `::error::` 로 말했다) · dotnet·datasync 잡은 초록. 코드 탓이 아니다 — §1 «라이선스 좌석» 과 같은 갈래의 **러너 인프라 빨강**이고 §0-6 «임자 없는 빨강».
