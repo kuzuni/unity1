@@ -203,9 +203,14 @@ namespace Forge.Game.Ui
             TextMeshProUGUI n = UiKit.Text(side, "name", TextKind.Sub, who ?? string.Empty, "pp_ink", TextAlignmentOptions.Left);
             n.fontStyle = FontStyles.Bold;
             UiKit.Place(n.rectTransform, tx, h * 0.15f, w - tx, h * 0.35f);
-            TextMeshProUGUI c = UiKit.Text(side, "cp", TextKind.Sub, "⚔ " + cp, colorKey, TextAlignmentOptions.Left);
+            // T99 — 정본 `ui.js` 5264·5269: `<small>${IconGen.img('power')} ${U.fmt(cp)}</small>` — 전투력은 «⚔» 글자가 아니라
+            // `power` 아이콘 + 수다(글꼴에 ⚔ 가 없어 □ 로 찍히던 자리 · HUD `cp` 줄·리그 도전 행과 같은 길). 아이콘 한 칸은 글자 크기의 정사각.
+            float cpH = h * 0.35f, cpIco = Mathf.Min(PopupKit.FontSize(TextKind.Sub), cpH);
+            Image cpI = PopupKit.IconOr(side, "cp-ico", "power");
+            UiKit.Place(cpI.rectTransform, tx, h * 0.5f + (cpH - cpIco) * 0.5f, cpIco, cpIco);
+            TextMeshProUGUI c = UiKit.Text(side, "cp", TextKind.Sub, cp, colorKey, TextAlignmentOptions.Left);
             c.fontStyle = FontStyles.Bold;
-            UiKit.Place(c.rectTransform, tx, h * 0.5f, w - tx, h * 0.35f);
+            UiKit.Place(c.rectTransform, tx + cpIco + rem * 0.15f, h * 0.5f, w - tx - cpIco - rem * 0.15f, cpH);
         }
 
         /// <summary>말풍선 줄 수 어림(글자당 폭 ≈ 0.6em · 한글은 1em) — 레이아웃 전에 행 높이를 잡기 위한 것.</summary>

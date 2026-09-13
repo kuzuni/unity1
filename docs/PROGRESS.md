@@ -2051,6 +2051,16 @@
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` **534/534** · PlayMode 컴파일 0 오류 · 자 11종 rc 0.
 
 
+### T99 진행 기록 (2026-09-13 · 워커 D · sess-1052-29762) — 1회차(ChatScreen 공유 카드 ⚔ → `power` 아이콘 + 수 · Forge* 넷은 T87 lock 이 풀린 뒤)
+
+- **왜 지금 잡았나**: 제목의 «T87·T91 lock 이 풀린 뒤» 는 파일이 겹치지 말라는 뜻이다. T91 은 ✅ 로 lock 을 반납했고 `ChatScreen.cs` 는 T87 범위(`Ui/Forge*`·`Ui/Anvil*`·`Ui/CraftFx*`·`ForgeUiTests.cs`·`catalog.json`)에 없다 — 다섯 자리 중 이 하나만 먼저 갔다. `ForgeCraftPopup.cs:69·112`·`ForgeInfoPopup.cs:113·120` 넷은 T87 lock 이 살아 있는 동안 **열지 않는다**(결정 227).
+- **정본 대조**: `ui.js` 5264·5269 `<small>${IconGen.img('power')} ${U.fmt(winner.cp)}</small>` — 정본은 이 자리에 **`power` 아이콘**을 그린다(표의 ⚔→`tm_sword` 가 아니다). 클론은 `"⚔ " + cp` 글자였고 ⚔ 는 주인 글꼴에 없어 □ 였다.
+- **고침**(`ChatScreen.Side`): `PopupKit.IconOr(side, "cp-ico", "power")`(글자 크기 정사각 · 카탈로그 `power` = Icon_Sword) + `UiKit.Text("cp", cp)` — HUD `cp` 줄(`Hud.cs` 99)·리그 도전 행(`LeagueSheet.cs` 331)과 같은 길. 색·굵기·자리(`h*0.5`·`h*0.35`)는 그대로.
+- **테스트**: PlayMode `ChatShareIconTests.공유_카드의_전투력은_power_아이콘_더하기_수이고_검_글자는_없다`(새 파일) — 채팅을 열면 씨앗(`Chat.Seed`)의 공유 카드가 있고, win·lose 쪽마다 `cp-ico` 가 스프라이트를 쥔 정사각이며 수의 왼쪽에 서고, 채팅 화면 어느 글자에도 ⚔ 가 없다.
+- **게이트**: `dotnet build` 0 오류(PlayMode 컴파일 포함) · `dotnet test` 534/534 · `check_text_glyphs` 993줄(⚔ 한 줄 줄었다) · 자 12종 + `check_data_sync`(13) 전부 rc 0 · `.meta` 1개 생성.
+- **✅ 조건**: 다음 유니티 잡에서 이 테스트 초록 + `screen_chat.png` 의 공유 카드에 검 아이콘이 보이는가(§1 눈 확인) + Forge* 넷(T87 뒤).
+- **주인이 확인할 것**: 채팅 화면 공유 카드(승리·패배 쪽)의 전투력 앞에 검 아이콘.
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
@@ -2324,3 +2334,4 @@
 225. **T97 미니 씬은 «지금 전투 장면 RT» 로 · 원작 디오라마는 T35 뒤 · T86 파일 대신 새 파일(2026-09-13 · T97 · 워커 R · sess-2015-28206)** — ⓐ 정본 `previewStart` 는 별도 디오라마(`previewBuild`: 숲 지면 굴림·능선·소품 순환·영웅 달리기)인데 그 소품·능선은 T35(`SIMPLE_BG=false`) 갈래라 정본이 `SIMPLE_BG: true` 인 동안은 세울 수 없다 → 지시서 T97 문장(«같은 씬을 작은 칸에 다시 그린다»)대로 본 카메라 복사 + RT 로 지금 전투를 넣었다(콘텐츠 0 · 숫자 0 · 크기는 상자 픽셀). ⓑ 지시서 범위의 `BattleScene.cs` 는 T86 lock 파일이라 열지 않고 `Battle/BattlePreview.cs` 를 새로 두어 훅에만 대입했다(규약 «같은 파일이면 뒤 번호가 기다린다» — 기다리는 대신 파일을 안 겹치게). ⓒ 카메라는 팝업이 열린 동안만 산다 · 닫히면 즉시 반납 · 훅을 안 거친 파괴(HideAll)도 LateUpdate 가 걷는다(60fps 규칙 · PerfBudget 부하 장면에는 팝업이 없다). 되돌리려면 `BattlePreview.cs` 한 파일.
 
 226. **«그려지는가» 는 픽셀이 판정한다 — 새 그리기 수단은 검증된 길(구운 스프라이트 + Image)로(2026-09-13 · T87 7회차 · 워커 G)** — 결정 223 은 각진 SVG 면을 `Graphic` 상속 정점 메시로 그리기로 했고 그것은 **화면에 한 픽셀도 안 나왔다**(런 173 실측: 모루 상자 픽셀 변화 0 · 그런데 PlayMode 101/101 초록 · 콘솔 빨강 0). 원인은 컨테이너에서 유니티를 못 돌려 못 좁혔고, 회차마다 10분짜리 CI 왕복으로 더듬는 대신 **이 레포에서 실제로 칠해지는 것이 확인된 길**(`UiShapes` 처럼 텍스처를 구워 `Image` 에 얹기)로 갈아탔다: 폴리곤을 짝홀 규칙 + 3×3 초과표본으로 굽고, 그라디언트도 같이 굽고, 불투명도는 `Image.color.a` 로 준다. 값 단언만으로는 이 갈래를 못 잡으므로 **픽셀 단언**(`쇳덩이가_화면에_실제로_칠해진다`)을 같이 세웠다 — 앞으로 새 그림을 넣는 회차는 그 짝을 같이 만든다. 되돌리려면 `CraftFxPoly` 를 6회차 판(정점 메시)으로 되돌리고 픽셀 자를 지운다 — 그러면 다시 안 보인다.
+227. **T99 는 T87 과 안 겹치는 자리(ChatScreen)부터 · 아이콘은 표의 ⚔ 가 아니라 정본이 그리는 `power`(2026-09-13 · T99 1회차 · 워커 D · sess-1052-29762)** — ⓐ 제목의 «T87·T91 lock 이 풀린 뒤» 는 파일 겹침 회피가 본뜻이라 T91 반납 뒤 `ChatScreen.cs` 만 먼저 고쳤고 `Forge*` 넷은 T87 lock 이 살아 있는 동안 열지 않는다(규약 «같은 파일이면 뒤 번호가 기다린다» 를 파일 단위로 지킨다 · lock 은 회차마다 갱신). ⓑ T89 는 라벨 ⚔ 를 `IconTextRow`(표 → `tm_sword`)로 세웠지만 이 자리 정본은 `IconGen.img('power')` 라 «그대로 옮기기» 대로 `power` 아이콘을 직접 세웠다(HUD·리그 도전 행과 같은 선례). 되돌리려면 `ChatScreen.Side` 의 T99 주석 블록 한 곳과 `ChatShareIconTests.cs`.
