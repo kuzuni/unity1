@@ -744,6 +744,13 @@
 - 판정: 다음 main 런에서 `screens` 의 `meta.json` 이 그 런 번호로 갱신되고 배포 스텝이 초록.
 - 범위: `.github/workflows/ci.yml`(`unity-test` 잡의 screens 배포 스텝 · 필요하면 `permissions:` 한 블록).
 
+### T97 — 플레이어 정보 팝업의 미니 씬이 안 꽂혀 «빈 갈색 상자» 다 (Game · T8·T65 뒤 · T28 16회차가 눈으로+코드로 잡음)
+- 실측(2026-09-13 · T28 16회차 · 워커 M · 런 170 `screen_player-info.png` **2.9/10** ↔ 원작 `shot-043313`): 원작의 미리보기 칸에는 **작은 전투 장면**(풀·흙길·영웅·적·바위·나무)이 들어 있는데, 클론은 **갈색 그라디언트 상자**에 정본 폴백(«🛡️ + 어려움 4-1 + 웨이브 핍 4개»)만 있다.
+- 코드로 확인(결정 219 순서대로): `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` 93~95행이 «**T8 이 꽂는다** — 프리뷰 상자에 미니 씬을 세운다» 라며 `public static Func<RectTransform,bool> PreviewStart` / `Action PreviewStop` 훅을 두는데, **`Assets/Scripts/Game` 어디에도 그 훅에 대입하는 줄이 없다**(grep 0곳). 그래서 169행 `bool scene = PreviewStart != null && …` 이 항상 false 라 폴백만 그린다. T65(플레이어 정보 팝업 ✅)는 칸·줄을 채웠지 이 훅은 안 꽂았다.
+- 무엇을 한다: `BattleScene`(또는 `MetaHost`)이 팝업이 열릴 때 **작은 렌더 텍스처 카메라**로 지금 전투 장면을 그려 `PreviewStart(rect)` 에 꽂고, 닫을 때 `PreviewStop()` 으로 끈다 — 원작 `ui.js` 의 `pinfo-scene`(같은 씬을 작은 칸에 다시 그린다)과 같은 뜻. 새 콘텐츠 0 · 60fps 규칙대로 팝업이 닫히면 카메라·RT 를 반납한다.
+- 판정: `ui_score --score --only player-info` 가 **4.5 이상**(지금 2.9) + 워커가 PNG 를 열어 «미리보기 칸에 영웅·지면이 보인다» 확인 + `PerfBudgetTests` 상한 유지 + PlayMode 빨강 0.
+- 범위: `Assets/Scripts/Game/Battle/BattleScene.cs`(훅 대입·RT 카메라 갈래) · `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs`(훅 호출부만) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -883,7 +890,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ⬜ · T91 🔄 · T93 ✅ · T94 ⬜ · T95 ⬜ |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ⬜ · T91 🔄 · T93 ✅ · T94 ⬜ · T95 ⬜ · T97 ⬜ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) · T83(촬영 두 장 가르기) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ✅ · T83 ✅|

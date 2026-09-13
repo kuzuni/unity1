@@ -702,7 +702,13 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         save_baseline_file(baseline_path, scores, avg, run)
         print(u"· 기준선을 %s 에 적었다(다음 회차가 이것과 견준다)" % os.path.relpath(baseline_path, REPO))
     if bad:
-        print(u"«다음 고칠 것»(ROUTINE §2 T28 · 그 화면의 UI 작업을 재등재한다): " + " ".join(bad))
+        # T28 16회차(워커 M): 29개를 줄줄이 찍으면 아무도 안 읽는다 — **낮은 것 다섯**만 점수와 함께 준다.
+        low = sorted(((n, v) for n, v in scores if v < PASS_MARK), key=lambda t: t[1])[:5]
+        print(u"«다음 볼 화면»(ROUTINE §2 T28 · 낮은 것부터 · 원작 PNG 와 나란히 보고 정본 코드로 확인한 뒤 등재):")
+        for n, v in low:
+            print(u"    %-18s %4.1f" % (n, v))
+        if len(bad) > len(low):
+            print(u"    (%s점 미만 %d개 중 다섯만 적었다 — 나머지는 이 다섯이 닫힌 뒤)" % (PASS_MARK, len(bad)))
         return 1
     return 0
 
