@@ -770,6 +770,8 @@
 - **게이트**: dotnet build 0 오류(TestsPlay 포함) · dotnet test 513/513 · `webgl_smoke --self-test` 통과 · 문서 자 rc 0. 에디터 테스트로는 못 잡는 갈래라(동기 읽기) PlayMode 단언은 안 더했다 — 판정은 실제 WebGL 스모크.
 - **판정은 수동 build 런**: `workflow_dispatch` `build: true` 로 굽기 잡을 바로 돌린다(3시간 schedule 을 안 기다린다). 스모크 초록 + gh-pages 배포 스텝이 돌면 ✅ · lock 반납.
 
+- **2회차 실측(런 175 · 10:48 수동 build · main 초록 뒤 첫 굽기)**: unity-builder 27분 초록 → 스모크에서 **«GameData 가 없다» 는 사라졌고 tech.json 실패도 없다**(unity-ready 도착 · 앱 상자 540×960 · 10.5초 · 콘솔 빨강 0). 남은 빨강 2 는 `Build/web.framework.js.unityweb`·`web.wasm.unityweb` 의 `net::ERR_ABORTED` — 둘 다 끊긴 뒤 다시 받아 부팅이 됐다. 정체: `ProjectSettings` 가 Brotli(`webGLCompressionFormat 1`) + **압축 폴백**(`webGLDecompressionFallback 1`)이라 로더가 스트리밍 fetch 를 시작했다가 서버가 `Content-Encoding` 을 안 주면(gh-pages 도 못 준다 · `serveDir` 주석이 그래서 폴백을 켠다고 적어 뒀다) 그 fetch 를 **스스로 끊고** JS 압축 해제로 다시 받는다. 브라우저 쪽 취소지 서버 실패가 아니다. 진짜 못 받았다면 `data-forge-ready` 가 안 찍혀 ① 이 잡는다 → `ERR_ABORTED` 는 노랑(보고만), 다른 실패는 그대로 빨강. 자기 검사 통과. 굽기 앞 런 146·159 는 unity-test 가 갈아치워지거나(남의 push) 남의 PlayMode 빨강으로 skipped 였다 — «굽기 판정은 PlayMode 전부 초록인 런에서만» 이라 그 사이 lock 을 네 번 갱신했다.
+- **판정 3차**: 이 커밋 뒤 `build:true` 런(또는 schedule 런 179 이후 것)의 «WebGL 배포 스모크» 초록 + gh-pages 배포 스텝. Android 잡(런 175 · 11:28 시작)은 그 런에서 같이 읽는다.
 ### T80 기록 — 유니티 잡 «GitHub API returned 403» (2026-09-13 · 워커 N · sess-0224-1833)
 
 - **빨강**: 런 131(`d09896b` · T75)의 유니티 잡이 `Run game-ci/unity-test-runner@v4` 에서 **1초 만에** `##[error]Failed to resolve the latest game-ci CLI release: GitHub API returned 403.` — 모드 XML 둘 다 없음(테스트 0개) · `screens` 의 `meta.json` `missing_modes: editmode-results.xml,playmode-results.xml`. dotnet·datasync 잡은 초록이라 코드 탓이 아니다. §0-6 «임자 없는 빨강» — `ci.yml` 을 쥔 lock 이 없다(T67 ✅).

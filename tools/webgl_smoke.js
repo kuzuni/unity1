@@ -112,7 +112,16 @@ async function runSmoke(opts, log) {
     page.on('pageerror', err => { reds.push(`pageerror: ${err.message}`); if (!opts.quiet) log(`  [pageerror] ${err.message}`); });
     const isBuildAsset = u => /\/(Build|StreamingAssets)\//.test(u) || /\.(loader\.js|framework\.js|wasm|data|unityweb)(\?|$)/.test(u);
     // T86 — 우리가 browser.close() 를 부르는 순간 아직 날아가던 요청은 ERR_ABORTED 로 실패 이벤트가 온다(런 140: tech.json). 그건 빌드의 잘못이 아니라 닫기의 부산물이다 — 닫기 뒤 이벤트는 세지 않는다.
-    page.on('requestfailed', req => { if (closing) return; if (isBuildAsset(req.url())) reds.push(`요청 실패: ${req.url()} (${req.failure() && req.failure().errorText})`); });
+    // T86 2회차 — net::ERR_ABORTED 는 서버 실패가 아니라 **브라우저 쪽이 스스로 끊은** 요청이다. 압축 폴백(.unityweb · ProjectSettings
+    //   webGLDecompressionFallback 1)이 켜진 빌드는 로더가 스트리밍 fetch 를 시작했다가 서버가 Content-Encoding 을 안 주면(gh-pages 도 못 준다)
+    //   그 fetch 를 끊고 JS 압축 해제로 다시 받는다 — 런 175 실측: framework.js.unityweb·wasm.unityweb 둘 다 ERR_ABORTED 뒤 unity-ready 도착.
+    //   진짜 못 받은 것이면 로딩 완료 표식(data-forge-ready)이 안 찍혀 ① 이 잡는다. 그래서 ERR_ABORTED 는 노랑(보고만), 나머지 실패는 빨강.
+    page.on('requestfailed', req => {
+      if (closing || !isBuildAsset(req.url())) return;
+      const why = (req.failure() && req.failure().errorText) || '?';
+      if (why === 'net::ERR_ABORTED') { warns.push(`요청 끊김(브라우저 쪽 · 압축 폴백 재요청 갈래): ${req.url()}`); return; }
+      reds.push(`요청 실패: ${req.url()} (${why})`);
+    });
     page.on('response', res => { if (res.status() >= 400 && (isBuildAsset(res.url()) || res.request().isNavigationRequest())) reds.push(`HTTP ${res.status()}: ${res.url()}`); });
 
     log(`열기: ${url} (${opts.width}×${opts.height})`);

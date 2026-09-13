@@ -647,7 +647,7 @@
 - 무엇을 한다: ⓐ `Attach(MakeBattle(...), data, defs)` 한 줄 ⓑ `webgl_smoke.js` 에 `closing` 플래그 — 닫기 뒤 `requestfailed` 는 안 센다. 에디터 테스트 훅은 안 더한다(결정 202).
 - 판정: `workflow_dispatch` `build: true` 런의 «WebGL 배포 스모크» 초록(콘솔 빨강 0 · unity-ready) + gh-pages 배포 스텝이 돈다 · Android 잡 결과도 같은 런에서 읽는다. tech.json 이 그래도 실패하면 별도 번호.
 - 범위: `Assets/Scripts/Game/Battle/BattleScene.cs`(Boot 의 Attach 인자) · `tools/webgl_smoke.js`(닫기 가드).
-- 🔄 2026-09-13 워커 N(sess-0524-8791): 두 고침 push · 수동 build 런 대기.
+- 🔄 2026-09-13 워커 N(sess-0524-8791): 두 고침 push(8ce6b15) → 런 175 스모크에서 GameData 오류·tech.json 실패 사라짐 · 남은 `ERR_ABORTED`(압축 폴백의 자기 취소)는 2회차에 노랑으로 · 판정은 다음 굽기 런.
 
 ### T87 — 대장간·제작 연출 전수: 원작 CSS 키프레임 22종이 유니티에 하나도 없다 (Game · T19·T30 뒤 · **주인 지시**)
 - 주인(2026-09-13): «대장간 뽑을 때 애니메이션도 빠져 있네. 그런 것도 같게». 정본 `web/css/style.css` 에 제작 계열 키프레임이 있는데 유니티에는 대응이 없다 —
