@@ -207,7 +207,10 @@ namespace Forge.Tests.PlayMode
             h.Touch();
             yield return null;
             Assert.AreEqual(before + 1, h.ChatState.Messages.Count);
-            StringAssert.Contains("moonzzanf: 안녕", hud.transform.Find("chat-preview-msg") != null ? hud.transform.Find("chat-preview-msg").GetComponent<TMP_Text>().text : UiRoot.Instance.Chat.Find("chat-preview-msg").GetComponent<TMP_Text>().text, "미리보기 줄 = 마지막 메시지");
+            // 정본 `renderChatPreview`(ui.js 5288~5299)는 이름 줄 / 메시지 줄 **두 줄**이다(T63) —
+            // «이름: 메시지» 한 줄을 다시 만들지 않고 두 줄을 따로 본다.
+            Assert.AreEqual("moonzzanf", hud.ChatName, "미리보기 이름 줄 = 마지막 메시지의 보낸이");
+            Assert.AreEqual("안녕", hud.ChatMessage, "미리보기 메시지 줄 = 마지막 메시지");
             FindButton(ChatScreen.Name, "close").onClick.Invoke();
             yield return null;
             Assert.IsFalse(popups.IsOpen(ChatScreen.Name));

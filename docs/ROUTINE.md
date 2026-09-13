@@ -505,7 +505,7 @@
 - 판정: `BootstrapTests` 초록(CI 유니티 잡) + 다른 테스트 영향 0.
 - 범위: `Assets/Tests/PlayMode/BootstrapTests.cs`.
 
-### T71 — 임자가 갈리는 빨강: `ShopUiTests` 의 채팅 미리보기 단언이 T63 의 «두 줄» 수정과 어긋난다 (검증·UI · **T62·T63 lock 이 풀린 뒤** · 워커 K 등재)
+### T71 ✅ — 임자가 갈리는 빨강: `ShopUiTests` 의 채팅 미리보기 단언이 T63 의 «두 줄» 수정과 어긋난다 (검증·UI · **T62·T63 lock 이 풀린 뒤** · 워커 K 등재)
 - 실측(2026-09-13 00:33 · 워커 K · CI 런 113 `playmode-red.txt` · PlayMode 84 중 빨강 2):
   `ShopUiTests.프로필_설정_채팅_패스_오프라인_디버그_스텁_토스트가_열리고_닫힌다`(`ShopUiTests.cs:210`)가 `chat-preview-msg` 에 «moonzzanf: 안녕» 이 들어 있기를 기대하는데 실제 값은 **«안녕»** 이다.
 - 왜: T63(`130b8b1` · 워커 J)이 정본 `renderChatPreview`(`ui.js` 5288~5299) 대로 미리보기를 **이름 줄(`chat-preview-name`) / 메시지 줄(`chat-preview-msg`) 두 줄**로 갈랐다 — 그것이 정본이고 **수정이 옳다**. 옛 단언이 «닉네임: 메시지» 한 줄을 전제하고 있을 뿐이다. T63 은 제 범위의 `UiSmokeTests.cs` 는 같이 고쳤지만 `ShopUiTests.cs` 는 **T63 범위 밖**이다.
@@ -679,5 +679,5 @@ node tools/export_data.js --self-test                                         # 
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 🔄(AudioBank 베이크 배열 되쓰기) · T74 🔄(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ⬜ · T72 ⛔ |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
