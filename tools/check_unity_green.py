@@ -24,8 +24,11 @@ T67(런 안에서 모드 XML 이 빠졌는가)·T81(잡 결과가 스텝에 갇�
 
 사용:  python3 tools/check_unity_green.py [--fetch] [--ref origin/screens] [--self-test]
 """
+import datetime
+import io
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -86,7 +89,53 @@ def behind(sha, main=MAIN):
         return True, None
 
 
-def judge(meta, anc=None, n_after=None, fails=()):
+LOCK_MIN = 90   # 규약 `docs/claims/README.md` — 90분 지난 lock 은 죽은 것이다
+
+
+def owner(sha, now=None):
+    """빨간 커밋의 임자를 가린다 — (작업ID, lock 살아 있는가, 몇 분 됐는가).
+
+    §0-6 은 «남의 lock 이 없는 빨강이면 **네가** 고친다» 인데, 그 판정을 워커가 매번 손으로 했다
+    (커밋 제목에서 T번호를 읽고 → `docs/claims/` 를 뒤지고 → 90분을 센다). 자가 대신한다.
+    커밋 제목이 `T<번호> …`(§1 규약)가 아니거나 lock 파일이 없으면 (None, False, None).
+    """
+    if not sha:
+        return None, False, None
+    rc, out = _git(['log', '-1', '--format=%s', sha])
+    if rc != 0:
+        return None, False, None
+    m = re.match(r'^T(\d+)\b', out.strip())
+    if not m:
+        return None, False, None
+    tid = 'T' + m.group(1)
+    path = os.path.join(ROOT, 'docs', 'claims', tid + '.lock')
+    try:
+        with io.open(path, encoding='utf-8') as f:
+            stamp = f.read().split()[0]
+    except (IOError, OSError, IndexError):
+        return tid, False, None
+    try:
+        t = datetime.datetime.strptime(stamp, '%Y-%m-%dT%H:%M:%SZ')
+    except ValueError:
+        return tid, True, None   # 읽을 수 없는 타임스탬프는 «살아 있다» 쪽으로 닫는다
+    now = now or datetime.datetime.utcnow()
+    age = int((now - t).total_seconds() // 60)
+    return tid, age < LOCK_MIN, age
+
+
+def own_line(tid, alive, age):
+    """임자 한 줄 — judge 가 그대로 찍는다(자기 검사가 이 줄만 따로 잰다)."""
+    if tid is None:
+        return ('  · 빨강의 임자: 그 커밋 제목이 `T<번호> …` 가 아니라 작업을 못 가렸다 — '
+                'lock 을 눈으로 확인하고, 임자가 없으면 §0-6 대로 **네가 고친다**.')
+    if alive:
+        return ('  · 빨강의 임자: **%s** — lock 이 살아 있다(%s). 그의 몫이니 건드리지 말고 네 작업을 잡는다.'
+                % (tid, ('%d분 전' % age) if age is not None else '시각을 못 읽었다'))
+    return ('  · 빨강의 임자: **%s** — lock 이 없다%s. §0-6 대로 **이것이 네 일이다**.'
+            % (tid, (' (마지막 갱신 %d분 전 · 90분 규약으로 죽었다)' % age) if age is not None else ''))
+
+
+def judge(meta, anc=None, n_after=None, fails=(), own=None):
     """순수 판정 — (rc, 줄 목록). 네트워크·git 없이 자기 검사할 수 있게 갈라 둔다."""
     out = []
     if meta is None:
@@ -111,8 +160,8 @@ def judge(meta, anc=None, n_after=None, fails=()):
         out.append('     그 런들은 문서 push 라 유니티 잡이 **skipped** 였을 뿐이다 — 초록이 빨강을 덮은 것이다.')
         for f in fails:
             out.append('  · ' + f)
-        out.append('  · 빨강의 임자: 그 커밋(%s)을 민 워커다. 그 작업의 lock 이 살아 있으면 그의 몫이고,'
-                   ' lock 이 없으면 §0-6 대로 **네가 고친다**.' % (sha[:7] or '?'))
+        out.append(own if own else
+                   ('  · 빨강의 임자: 그 커밋(%s)을 민 워커다 — lock 을 눈으로 확인한다.' % (sha[:7] or '?')))
         rc = 1
     else:
         out.append('✓ check_unity_green: %s — 초록' % head)
@@ -172,12 +221,23 @@ def self_test():
     rc, _ = judge({'sha': 'e' * 40, 'run': 104, 'tests': 'cancelled', 'missing_modes': ''}, True, 0)
     eq('ⓖ 취소 rc', rc, 1)
 
+    # ⓗ 임자 줄 — lock 이 살아 있으면 «그의 몫», 없으면 «네 일»
+    eq('ⓗ 산 lock 은 그의 몫', '그의 몫' in own_line('T121', True, 2), True)
+    eq('ⓗ 산 lock 에 분이 보인다', '2분 전' in own_line('T121', True, 2), True)
+    eq('ⓗ 없는 lock 은 네 일', '네 일이다' in own_line('T77', False, None), True)
+    eq('ⓗ 죽은 lock 도 네 일', '90분 규약으로 죽었다' in own_line('T77', False, 130), True)
+    eq('ⓗ 번호를 못 가리면 눈으로', '눈으로 확인' in own_line(None, False, None), True)
+    # ⓘ 임자 줄이 주어지면 judge 가 그것을 그대로 쓴다(기본 문구 대신)
+    _, out = judge({'sha': 'f' * 40, 'run': 105, 'tests': 'failure', 'missing_modes': ''}, True, 1,
+                   (), own_line('T121', True, 2))
+    eq('ⓘ judge 가 임자 줄을 쓴다', any('**T121**' in l for l in out), True)
+
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  · ' + f)
         return 1
-    print('✓ check_unity_green --self-test 14칸 통과')
+    print('✓ check_unity_green --self-test 20칸 통과')
     return 0
 
 
@@ -203,8 +263,10 @@ def main(argv):
 
     meta = read_meta(ref)
     anc, n_after = behind(meta.get('sha') if meta else None)
-    fails = red_lines(ref) if (meta and str(meta.get('tests')) != 'success') else []
-    rc, out = judge(meta, anc, n_after, fails)
+    red = bool(meta) and str(meta.get('tests')) != 'success'
+    fails = red_lines(ref) if red else []
+    own = own_line(*owner(meta.get('sha'))) if red else None
+    rc, out = judge(meta, anc, n_after, fails, own)
     for ln in out:
         print(ln)
     return rc
