@@ -543,7 +543,7 @@
 - 판정: `ui_score --score --only shop` 의 밴드8 미짝 0 + PNG 눈 확인 + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/ShopSheet.cs`(보석 카드 갈래만) · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/ShopUiTests.cs`.
 
-### T76 — 전투 데미지 숫자가 열린 시트 위에 겹쳐 그려진다 (Game·UI · T8·T18 뒤)
+### T76 ✅ — 전투 데미지 숫자가 열린 시트 위에 겹쳐 그려진다 (Game·UI · T8·T18 뒤)
 - 실측(2026-09-13 · T62 3회차 · 워커 G · 런 124 `screen_shop.png`): 상점 시트가 열린 화면인데 첫 특가 카드 오른쪽 위에 회색 «▼745» 가 떠 있다 — `DamageNumbers` 의 `dmg-hero`(접두 «▼») 글자다.
 - 원작: 데미지 숫자는 `#game-area` 안에 있고 시트·팝업은 그 위를 덮는 층이라 **시트가 열리면 안 보인다**. 클론은 전투 글자가 팝업 층 위로 온다.
 - 할 것: 데미지 숫자(그리고 같은 층에 붙는 전투 글자)를 팝업 층 **아래** 층에 붙이거나, 시트가 열린 동안 그 층을 끈다(정본이 어느 쪽인지 `ui.js` 의 시트 열기 경로를 읽고 고른다).
@@ -695,7 +695,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 🔄 · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 🔄 · T75 ⬜ · T76 🔄 |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 🔄 · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 🔄 · T75 ⬜ · T76 ✅ |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ⬜ |

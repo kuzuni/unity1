@@ -167,7 +167,7 @@
 | T73 | AudioBank 베이크 스레드가 잡마다 버스·FFT·링 배열을 새로 만들어 447~638KB/프레임의 관리 쓰레기(런 118 프로파일러 전 스레드) — 배열 되쓰기 | ✅ 완료 | sess-0125-19048 / 워커 N | `Assets/Scripts/Core/Audio/SynthRenderer.cs` · `Dsp.cs` · `SfxSynth.cs`(배열 되쓰기만) · `Assets/Scripts/Game/Audio/AudioBank.cs`(버퍼 소유만) · `Assets/Tests/EditMode/AudioTests.cs` | T30 뒤 · 워커 O 등재(T64 4회차 실측) · 음색·표는 손대지 않는다 · **1회차(워커 N)**: Core `RenderWorkspace`(버스 5 · 딜레이 링 · FFT re/im · 합성곱 출력 · `NoisePool`)를 `AudioBank` 워커가 하나 쥐고 잡 사이에 되쓴다 — 새로 만드는 것은 클립 `float[]` 뿐 · EditMode 1(되쓰기 뒤 지문 동일 · 되쓰기 갈래 할당 < 새 배열 갈래의 절반) · dotnet 511/511 · **CI 런 127(44b89f6 · 내 커밋 포함) 초록**: EditMode 511 · PlayMode 87/87 · `AudioTests`·`AudioSmokeTests` PASS · 실측(44.1kHz 실제 잡): 효과음 24종 96.9MB → 6.3MB(출력 5.6MB) · 음악 루프 52~60MB → 3.4~3.6MB(출력 3.0~3.5MB) · lock 반납 |
 | T74 | `FxCubes` 가 시전마다 큐브 묶음마다 새 Material(런 113·118: 재시전 끔 −135 / 켬 +135) — T50 꼴 재질 풀 | ✅ 완료 | sess-1920-15773 / 워커 B | `Assets/Scripts/Game/SkillFx/FxCubes.cs` · `Assets/Scripts/Game/Battle/FxMaterials.cs`(풀 갈래만) · `Assets/Tests/PlayMode/SkillFxTests.cs` | T50·T52 뒤 · 워커 O 등재(T64 4회차 실측) |
 | T75 | 상점 보석 카드 안쪽이 원작과 다르다: 자가 밴드8 안에서 블록을 하나도 못 가른다(원작 7블록) · 카드가 원작보다 작고 그림·가격 버튼 배분이 다르다 | ⬜ 대기 | — | `Assets/Scripts/Game/Ui/ShopSheet.cs`(보석 카드 갈래만) · `Assets/Forge/catalog.json` · `Assets/Tests/PlayMode/ShopUiTests.cs` | T62 3회차가 남긴 것 · `shop` 6.1/10 의 미짝 2 · 정본 `.shop-gem-card` 세로 배분(수량 +8~36px · 그림 +38~98px · 가격 +101~124px) |
-| T76 | 전투 데미지 숫자가 **열린 시트 위에** 겹쳐 그려진다(런 124 `screen_shop.png` 의 «▼745») — 원작은 `#game-area` 가 시트 아래라 안 보인다 | 🔄 진행 | sess-0150-8332 / 워커 D | `Assets/Scripts/Game/Battle/DamageNumbers.cs`(붙는 층만 · `Layer`) · `Assets/Tests/PlayMode/DamageLayerTests.cs`(자기 파일 · 다른 UI 파일은 T54·T60·T68 lock 이라 0줄) | T62 3회차가 눈으로 잡음 · **1회차(sess-0150-8332 · 워커 D)**: 원작 `#game-area > #fx-layer` 대로 앱 상자 첫 자식 `fx-layer` 에만 붙인다 · PlayMode 1 · ✅ 는 CI `screen_shop.png` 눈 확인 뒤 · T8·T18 뒤 |
+| T76 | 전투 데미지 숫자가 **열린 시트 위에** 겹쳐 그려진다(런 124 `screen_shop.png` 의 «▼745») — 원작은 `#game-area` 가 시트 아래라 안 보인다 | ✅ 완료 | sess-0150-8332 / 워커 D | `Assets/Scripts/Game/Battle/DamageNumbers.cs`(붙는 층만 · `Layer`) · `Assets/Tests/PlayMode/DamageLayerTests.cs`(자기 파일 · 다른 UI 파일은 T54·T60·T68 lock 이라 0줄) | T62 3회차가 눈으로 잡음 · 원작 `#game-area > #fx-layer` 대로 앱 상자 첫 자식 `fx-layer` 에만 붙인다 · PlayMode 1 · CI 런 128 유니티 초록 · `screen_shop.png` 눈 확인(시트 위 «▼» 없음) · lock 반납 |
 | T77 | 촬영 시드의 상단바 전투력이 `⚔ 45`(장비 8부위가 시대 6~7 인데 정본 식이면 수백만) — 클론 `UiShotsTests.Seed()` 에 정본 SEED 144행 `Combat.recalcHero()` 자리가 없다 | ⬜ 대기 | — | `Assets/Tests/PlayMode/UiShotsTests.cs`(`Seed()` 두 줄 + 단언 하나) | 보고함(워커 J · 01:2x) → 워커 T 등재 · **T54 lock 이 풀린 뒤**(`UiShotsTests.cs` 같은 파일) · 접착은 `HeroStatsGlueTests` 가 지킨다 · 단언이 빨강이면 접착 갈래로 새 번호 |
 
 ### T1 완료 기록 (2026-09-12 · 워커 D · sess-1754-10989)
@@ -996,13 +996,16 @@
 - **등재**: **T73** AudioBank 베이크 배열 되쓰기(Core/Audio · 음색·표 불변) · **T74** FxCubes 시전당 재질 → T50 꼴 풀. 둘 다 ⬜ · 범위 표에.
 - **게이트**: `dotnet build` 0 오류(TestsPlay 포함) · `dotnet test` 510/510 · gen_meta 0 · docs·decisions·rows·task_state·final_table·claim_scope rc 0 · §7 T64 ✅ + T73·T74 이름. 런 118 `PerfBudgetTests` 3/3. 결정 178. **CI 런 121(b41dace)**: `PerfBudgetTests` 3/3 · 오디오 베이크 끝(35.9초 기다림) · 전부(처음) **209339B → 끝 207858B**(베이크가 끝난 뒤 재니 처음 수가 1,028KB→209KB 로 내려왔고 **처음과 끝이 같다** — 일시 몫은 전부 베이크였다 · 렌더 끔 상한 640KB 아래에 «전부» 가 들어온다) · 게임 시간 평균 3.367ms · p95 5.533ms · 계수기 209339B. lock 반납. 회귀 상한 `GcPerFrameCap` 1.6MB 는 T73·T74 뒤 실측으로 내린다.
 
-### T76 진행 기록 (2026-09-13 · 워커 D · sess-0150-8332)
+### T76 완료 기록 (2026-09-13 · 워커 D · sess-0150-8332)
 
 - **1회차 — 무엇**: 정본을 읽었다 — `index.html` 62~69: `#app` 의 **첫** 자식이 `#game-area` 이고 그 안에 `#fx-layer`(`scene3d.js damageNumber` 가 `.float-dmg` 를 붙이는 곳) · `.modal`(172~) · `#tabbar`(157) 는 DOM 뒤에 온다 · `style.css:145` `#game-area{isolation:isolate}` 라 그 안의 z-index 가 밖으로 못 나온다 → 시트가 열리면 숫자는 **그 아래**다. 클론은 `DamageNumbers.Take` 가 `UiKit.Text(root.App, …)` + `SetAsLastSibling()` 으로 앱 상자의 **마지막** 형제에 붙여 팝업 층(`modals`·`modals-over`)보다 위에 그렸다(런 124 `screen_shop.png` «▼745»).
 - **고침**(`DamageNumbers.cs` 만): `Layer(root)` — 앱 상자 안 `fx-layer` 상자(없으면 만들고 `Band(0,1)` 로 꽉 채움 · 항상 `SetAsFirstSibling`) · `Spawn` 의 화면→로컬 변환·상단/좌우 클램프·`Take` 를 전부 그 층 기준으로 · 풀에서 꺼낸 글자가 다른 부모면 층으로 옮긴다. 시트를 «열린 동안 끄기» 갈래는 안 골랐다 — 정본은 층 순서로 덮을 뿐 숫자를 멈추지 않는다.
 - **테스트**: `Tests/PlayMode/DamageLayerTests.cs` 1개(자기 파일 · `UiSmokeTests.cs` 는 T54·T60·T68 lock): 부팅 → 숫자 하나 → `fx-layer` 가 앱 상자의 0번 자식이고 HUD·시트 자리·탭바보다 앞 → 상점 탭 열기 → 숫자의 앱 상자 직하 조상 인덱스 < 상점 팝업 루트의 인덱스 → 열린 동안 새 숫자도 아래 → 수명 뒤 풀 2·층은 그대로 0번.
 - **게이트**: dotnet(apt) build 0 오류(TestsPlay 가 PlayMode 도 컴파일) · test 511/511 · gen_meta·docs·decisions·rows·task_state·claim_scope·datasync·export·gallery_vectors·catalog·final_table 전부 rc 0.
-- **남은 것**: 이 커밋의 CI 유니티 잡 초록 + `screens` 의 `screen_shop.png`(상점 시트 위에 «▼» 글자 없음)를 Read 로 본 뒤 ✅ · lock 반납.
+- **CI**: 런 128(https://github.com/kuzuni/unity1/actions/runs/34731832024 · 커밋 88367d7) — dotnet 잡·datasync 초록 · **유니티 EditMode·PlayMode 잡 초록**(`DamageLayerTests` 포함 · 빨간 로그 0) · `screens` 배포(meta `tests: success` · 43장).
+- **눈으로 본 것(§1 «실제 화면을 본다»)**: 런 128 `screen_shop.png` 를 Read 로 열었다 — 상점 시트(특가 카드 3 · «보석» 배너 · 젬 카드 3)가 앱 상자를 덮고 그 위에 «▼» 전투 글자가 **없다**(런 124 에는 첫 특가 카드 오른쪽 위에 «▼745» 가 있었다). `screen_main.png` 도 같이 봤다 — 전투 화면·HUD·장비 그리드·채팅줄·탭바 정상(글자 □ 는 T53 주인 에셋 대기). 촬영 프레임은 9:16(T54 복구 뒤).
+- **주인이 확인할 것**: 전투 중 상점·던전·펫 시트를 열었을 때 데미지 숫자가 시트 위로 새어 나오지 않는가(원작처럼 시트 아래 세계에서만 튄다).
+- **플레이 콘솔 에러 0 확인 수단**: PlayMode `DamageLayerTests.시트가_열려도_데미지_숫자는_팝업_층_아래에_남는다`(런 128 초록).
 
 ## 주인 결정
 
