@@ -1,0 +1,11 @@
+{
+  "_": "ROUTINE T111 장비 상세 팝업(원작 css #gear-detail-modal · .gd-card · shot-043244)의 배치표. T87 lock 이 Assets/Forge/catalog.json 을 쥐고 있어 T111 몫만 여기 둔다(T65 PlayerInfoUi.json 과 같은 꼴 · 결정 249 · T33 이 카탈로그로 합칠 수 있다) — 코드에 숫자를 박지 않는다(§1). 배치 키 접미: _w = 앱 폭 분수 · _h = 앱 높이 분수.",
+  "layout": {
+    "card_w": 0.70,
+    "bottom_h": 0.223
+  },
+  "_src": {
+    "card_w": "style.css 1738 `#gear-detail-modal .gd-card { width: 70%; }` (공용 .modal-card.wide 74% 가 아니다)",
+    "bottom_h": "style.css 1737 `#gear-detail-modal { align-items: flex-end; padding-bottom: calc(var(--app-h) * .223 - 1.7rem); }` — −1.7rem 은 .idet-wrap 이 카드 아래 닫기 버튼(x-btn) 반쪽을 끌어안는 몫이라 카드 자체의 바닥은 앱 바닥에서 .223·H 위에 앉는다(그 CSS 주석 «카드 하단 77.70%H 유지» · 원본 실측 77.15%H)"
+  }
+}
