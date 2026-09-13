@@ -200,15 +200,18 @@ namespace Forge.Game.Ui
             // ⚠ `textWrappingMode` 를 안 끄면 줄바꿈이 켜진 채라 긴 메시지가 두 줄이 되고, 반쪽 띠 높이에 안 맞아
             //   TMP 가 Ellipsis 로 **글리프를 통째로 버린다**(글자는 들어 있는데 화면엔 아무것도 안 나온다 ·
             //   런 159 실측: `textInfo.characterCount == 0` · 그것이 T91 «채팅 띠가 비었다» 의 뿌리였다).
-            chatName = UiKit.Text(band, "chat-preview-name", TextKind.Sub, string.Empty, "chat_name", TextAlignmentOptions.Left);
+            // 두 줄을 «띠 높이의 절반» 칸에 각각 담으면 안 된다: 그 칸(51.6)이 글꼴 줄높이보다 조금이라도 낮으면
+            // TMP 가 Ellipsis 규칙으로 **글리프를 통째로 버려** 글자가 통째로 사라진다(런 159·163 실측 characterCount 0).
+            // 그래서 칸은 **띠 전체 높이**로 주고 위/아래 정렬로 두 줄 자리를 낸다 — 글꼴 줄높이가 바뀌어도 안 무너진다.
+            chatName = UiKit.Text(band, "chat-preview-name", TextKind.Sub, string.Empty, "chat_name", TextAlignmentOptions.TopLeft);
             chatName.fontStyle = FontStyles.Bold;
-            chatName.textWrappingMode = TextWrappingModes.NoWrap;
-            chatName.overflowMode = TextOverflowModes.Ellipsis;
-            UiKit.Place(chatName.rectTransform, tx, 0f, tw, bandH * 0.5f);
-            chat = UiKit.Text(band, "chat-preview-msg", TextKind.Sub, string.Empty, "chat_ink", TextAlignmentOptions.Left);
+            chatName.textWrappingMode = TextWrappingModes.NoWrap;   // 정본 `.chat-preview-name { white-space: nowrap }`
+            chatName.overflowMode = TextOverflowModes.Ellipsis;     // 정본 `text-overflow: ellipsis`(가로)
+            UiKit.Place(chatName.rectTransform, tx, 0f, tw, bandH);
+            chat = UiKit.Text(band, "chat-preview-msg", TextKind.Sub, string.Empty, "chat_ink", TextAlignmentOptions.BottomLeft);
             chat.textWrappingMode = TextWrappingModes.NoWrap;
             chat.overflowMode = TextOverflowModes.Ellipsis;
-            UiKit.Place(chat.rectTransform, tx, bandH * 0.5f, tw, bandH * 0.5f);
+            UiKit.Place(chat.rectTransform, tx, 0f, tw, bandH);
         }
 
         // ---- 뒤 작업이 부르는 표면 ----
