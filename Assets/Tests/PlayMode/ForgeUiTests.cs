@@ -633,9 +633,10 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(fx, "두들기기 러너");
 
             // 3타 접촉 프레임 — 모루·쇳덩이·망치·링이 한 화면에 있는 순간이다(이 장면을 남긴다)
-            fx.enabled = false;   // 재는 동안 러너를 세운다 — 프레임 한 장이 시각을 밀면 남기는 컷도 «접촉 프레임» 이 아니게 된다
+            // 프레임을 넘기지 않는다 — 넘기면 호스트의 1.5초 `Delay` 가 깨어나 두들기기가 끝나 버리고(그러면 «접촉 프레임» 이 아니라
+            // 아무것도 없는 컷이 저장된다) 러너도 시각을 민다. `CountPixels` 가 제 안에서 캔버스를 갱신하고 그린다.
+            fx.enabled = false;
             fx.SampleTo(AutoForgeFxSpec.HitMs[2]);
-            yield return null;
             RectTransform head = Named(UiRoot.Instance.Sheet, "hm-head");
             Assert.IsNotNull(head, "망치 머리 칸");
 
@@ -774,9 +775,15 @@ namespace Forge.Tests.PlayMode
             // 픽셀 — 3타 링이 가장 크게 퍼지는 구간에서 테두리 색이 실제로 칠해지는가
             if (!NoGraphics())
             {
-                fx.enabled = false;   // 재는 동안 러너를 세운다 — 프레임 한 장의 `unscaledDeltaTime` 이 짧은 창을 통째로 지나친다(아래 불티 절의 주석)
+                // ⚠ **여기서 프레임을 넘기지 않는다**(런 252·257 이 가르쳐 준 자리). `CountPixels` 가 제 안에서
+                // `root.Layout()` + `Canvas.ForceUpdateCanvases()` + `cam.Render()` 를 하므로 한 장 그리는 데 프레임이 필요 없고,
+                // 프레임을 한 장이라도 넘기면 그 경계에서 **벽시계로 도는 것 둘**이 깨어난다:
+                //  ⓐ `AnvilFx.Update` 가 `unscaledDeltaTime`(CI 배치모드는 100ms 를 넘기도 한다)만큼 시각을 더 민다,
+                //  ⓑ 호스트의 `Delay(AnvilStrikeSec=1.5초)` 코루틴이 깨어나 `SetStriking(false)` → `fx.Stop()` → `Restore()` —
+                //     그러면 `running=false` 라 뒤이은 `SampleTo` 는 아무 일도 안 하고 모든 겹이 투명해진다.
+                // 자가 앞선 단언들로 실시간 1.5초를 넘겨 쓰는 것은 정상이다(시각은 `SampleTo` 가 준다) — 프레임만 안 넘기면 된다.
+                fx.enabled = false;
                 fx.SampleTo(AutoForgeFxSpec.HitMs[2] + 60);
-                yield return null;
                 RectTransform ring2 = Named(sheet, "af-ring-2");
                 Assert.Greater(ring2.GetComponent<Image>().color.a, 0f, "재는 순간 3타 링이 켜져 있어야 한다 — 꺼져 있으면 러너가 시각을 밀었다");
                 int area; string info;
@@ -891,9 +898,15 @@ namespace Forge.Tests.PlayMode
             // 픽셀 — 3타 접촉 프레임에 코어 칸이 실제로 희다
             if (!NoGraphics())
             {
-                fx.enabled = false;   // 재는 동안 러너를 세운다 — 프레임 한 장의 `unscaledDeltaTime` 이 짧은 창을 통째로 지나친다(아래 불티 절의 주석)
+                // ⚠ **여기서 프레임을 넘기지 않는다**(런 252·257 이 가르쳐 준 자리). `CountPixels` 가 제 안에서
+                // `root.Layout()` + `Canvas.ForceUpdateCanvases()` + `cam.Render()` 를 하므로 한 장 그리는 데 프레임이 필요 없고,
+                // 프레임을 한 장이라도 넘기면 그 경계에서 **벽시계로 도는 것 둘**이 깨어난다:
+                //  ⓐ `AnvilFx.Update` 가 `unscaledDeltaTime`(CI 배치모드는 100ms 를 넘기도 한다)만큼 시각을 더 민다,
+                //  ⓑ 호스트의 `Delay(AnvilStrikeSec=1.5초)` 코루틴이 깨어나 `SetStriking(false)` → `fx.Stop()` → `Restore()` —
+                //     그러면 `running=false` 라 뒤이은 `SampleTo` 는 아무 일도 안 하고 모든 겹이 투명해진다.
+                // 자가 앞선 단언들로 실시간 1.5초를 넘겨 쓰는 것은 정상이다(시각은 `SampleTo` 가 준다) — 프레임만 안 넘기면 된다.
+                fx.enabled = false;
                 fx.SampleTo(AutoForgeFxSpec.HitMs[2]);
-                yield return null;
                 RectTransform core2 = Named(sheet, "af-core-2");
                 Assert.Greater(core2.GetComponent<Image>().color.a, 0.5f, "재는 순간 3타 코어가 밝아야 한다(접촉 프레임) — 어두우면 러너가 시각을 밀었다");
                 int area; string info;
@@ -1006,14 +1019,15 @@ namespace Forge.Tests.PlayMode
             // 픽셀 — 3타 불티의 **한창인 프레임**(제 수명의 55%)에 칸이 실제로 칠해져 있다(끝 키는 opacity 0 이라 아무것도 없다)
             if (!NoGraphics())
             {
-                // ⚠ 재는 동안 러너를 세운다(T87 28회차 결정 274 ⓑ 와 같은 갈래). 여기는 그림을 봐야 해서 프레임을 한 장 넘기는데,
-                // 그러면 `AnvilFx.Update` 가 그 프레임의 `unscaledDeltaTime`(CI 배치모드는 캔버스 재구성 뒤 100ms 를 넘기도 한다)
-                // 만큼 시각을 밀어 버린다 — 불티 수명은 170~250ms 뿐이라 그 한 프레임에 제 수명을 지나 **투명**해지고,
-                // 마스터 1500ms 를 넘으면 `Stop()` → `Restore()` 까지 가 아무것도 안 남는다. 런 230·252 의 «후광 픽셀 0» 이 그것이다
-                // (같은 코드가 런 234 에서는 초록이었다 — 프레임이 빨랐을 뿐이다).
+                // ⚠ **여기서 프레임을 넘기지 않는다**(런 252·257 이 가르쳐 준 자리). `CountPixels` 가 제 안에서
+                // `root.Layout()` + `Canvas.ForceUpdateCanvases()` + `cam.Render()` 를 하므로 한 장 그리는 데 프레임이 필요 없고,
+                // 프레임을 한 장이라도 넘기면 그 경계에서 **벽시계로 도는 것 둘**이 깨어난다:
+                //  ⓐ `AnvilFx.Update` 가 `unscaledDeltaTime`(CI 배치모드는 100ms 를 넘기도 한다)만큼 시각을 더 민다,
+                //  ⓑ 호스트의 `Delay(AnvilStrikeSec=1.5초)` 코루틴이 깨어나 `SetStriking(false)` → `fx.Stop()` → `Restore()` —
+                //     그러면 `running=false` 라 뒤이은 `SampleTo` 는 아무 일도 안 하고 모든 겹이 투명해진다.
+                // 자가 앞선 단언들로 실시간 1.5초를 넘겨 쓰는 것은 정상이다(시각은 `SampleTo` 가 준다) — 프레임만 안 넘기면 된다.
                 fx.enabled = false;
                 fx.SampleTo(ql.StartMs + ql.DurMs * 0.55);
-                yield return null;
                 Image lastImg = last.GetComponent<Image>();
                 Assert.Greater(lastImg.color.a, 0.85f, "재는 순간 3타 불티가 밝아야 한다(표 55% 키 = 0.9) — 러너가 시각을 밀었으면 여기서 걸린다");
                 int area; string info;
@@ -1338,14 +1352,13 @@ namespace Forge.Tests.PlayMode
             int areaA, areaB;
             string infoA, infoB;
 
+            // 프레임을 안 넘긴다 — 넘기면 호스트의 `Delay(RevealCardSec=0.56초)` 가 깨어나 카드를 걷어 버린다(런 252 는 운이 좋았다).
             sheenImg.enabled = false;
-            yield return null;
             lit = 0;
             CountPixels(card, tally, out areaA, out infoA, null);
             long off = lit;
 
             sheenImg.enabled = true;
-            yield return null;
             lit = 0;
             CountPixels(card, tally, out areaB, out infoB, "craft-sheen");
             long on = lit;
