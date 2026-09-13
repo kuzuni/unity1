@@ -270,6 +270,7 @@
     { "key": "shop_gem_gap", "value": 0.0322, "_": "보석 카드 간격 3.22%W" },
     { "key": "shop_cur_w", "value": 0.155, "_": "상점 재화 바 15.5%W" },
     { "key": "shop_cur_h", "value": 0.0239, "_": "2.39%H" },
+    { "key": "shop_sub_gap", "value": 0.02692, "_": "부제 ↔ 특가 카드 = 정본 .shop-sub margin-bottom 1.42rem (= 1.42 × rem_h)" },
     { "key": "shop_deal_pad_x", "value": 0.0322, "_": "특가 카드 안쪽 좌우 여백 3.22%W (정본 .shop-deal-card padding)" },
     { "key": "shop_deal_pad_top", "value": 0.057, "_": "카드 위 여백 = 첫 보상 pill 상단 5.7%H" },
     { "key": "shop_tag_left", "value": 0.0121, "_": "리본 태그가 카드 왼쪽선 밖으로 1.21%W" },

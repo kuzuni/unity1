@@ -50,6 +50,8 @@ namespace Forge.Game.Ui
             Banner(content, "오늘의 특가");
             TextMeshProUGUI sub = PopupKit.Label(content, "sub", TextKind.Sub, "일일 특가 3개 모두 구매하면 새로운 3개가 나와요!", "stage_ink");
             sub.fontStyle = FontStyles.Bold;
+            // 정본 `.shop-sub` 는 아래 여백이 1.42rem 이다 — 목록이 넣는 칸 간격(0.5rem)만으로는 카드가 2.7%H 위에서 시작한다.
+            PopupKit.Spacer(content, UiKit.H("shop_sub_gap") - rem * 0.5f);
 
             // ---- 특가 카드 ----
             float cardX = UiKit.L("shop_banner_x") * w, cardW = UiKit.L("shop_banner_w") * w;
@@ -59,7 +61,8 @@ namespace Forge.Game.Ui
             {
                 ShopDeal d = deals[i];
                 bool claimed = h.Shop.Claimed(h.ShopState, d.Key);
-                RectTransform rowBox = PopupKit.Item(content, "deal-" + d.Key, -1f, cardH + UiKit.H("shop_deal_gap"));
+                // 카드 사이 0.91%H 는 **목록 칸 간격이 이미 넣는다**(rem*0.5 = 0.95%H) — 칸 높이에 또 더하면 간격을 두 번 세어 카드 줄이 원작보다 벌어진다.
+                RectTransform rowBox = PopupKit.Item(content, "deal-" + d.Key, -1f, cardH);
                 RectTransform card = UiKit.Box(rowBox, "card");
                 UiKit.Place(card, cardX, 0f, cardW, cardH);
                 PopupKit.Outlined(card, "face", "pp_paper", rem * 0.9f, PopupKit.Line3);
@@ -102,7 +105,7 @@ namespace Forge.Game.Ui
             }
 
             // 정본 `.shop-deals + .shop-banner` = 카드 바닥 ↔ 배너 3.08%H. 목록이 이미 넣는 것(카드 칸 안쪽 간격 + 위아래 목록 간격 둘)을 뺀다.
-            PopupKit.Spacer(content, UiKit.H("shop_deals_banner_gap") - UiKit.H("shop_deal_gap") - rem);
+            PopupKit.Spacer(content, UiKit.H("shop_deals_banner_gap") - rem);
             Banner(content, "보석");
 
             // ---- 보석 카드(3열 격자) ----
@@ -110,12 +113,14 @@ namespace Forge.Game.Ui
             List<GemPack> packs = h.Meta.Shop.GemPacks;
             int cols = 3;
             int rows = (packs.Count + cols - 1) / cols;
-            RectTransform grid = PopupKit.Item(content, "gems", -1f, rows * gemH + (rows - 1) * gemGap + UiKit.H("shop_gems_top"));
+            // 정본 `.shop-gems { margin-top: calc(var(--app-h) * .026 - .5rem) }` — 목록이 넣는 칸 간격만큼 빼는 것까지 정본 그대로.
+            float gemsTop = UiKit.H("shop_gems_top") - rem * 0.5f;
+            RectTransform grid = PopupKit.Item(content, "gems", -1f, rows * gemH + (rows - 1) * gemGap + gemsTop);
             for (int i = 0; i < packs.Count; i++)
             {
                 GemPack gp = packs[i];
                 RectTransform card = UiKit.Box(grid, "gem-" + i);
-                UiKit.Place(card, UiKit.L("shop_gems_x") * w + (i % cols) * (gemW + gemGap), UiKit.H("shop_gems_top") + (i / cols) * (gemH + gemGap), gemW, gemH);
+                UiKit.Place(card, UiKit.L("shop_gems_x") * w + (i % cols) * (gemW + gemGap), gemsTop + (i / cols) * (gemH + gemGap), gemW, gemH);
                 PopupKit.Outlined(card, "face", "pp_paper", rem * 0.8f, PopupKit.Line3);
                 RectTransform amtRow = UiKit.Box(card, "amt-row");
                 UiKit.Place(amtRow, 0f, rem * 0.35f, gemW, rem * 1.5f);
