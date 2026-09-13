@@ -548,7 +548,7 @@
 - 원작: 데미지 숫자는 `#game-area` 안에 있고 시트·팝업은 그 위를 덮는 층이라 **시트가 열리면 안 보인다**. 클론은 전투 글자가 팝업 층 위로 온다.
 - 할 것: 데미지 숫자(그리고 같은 층에 붙는 전투 글자)를 팝업 층 **아래** 층에 붙이거나, 시트가 열린 동안 그 층을 끈다(정본이 어느 쪽인지 `ui.js` 의 시트 열기 경로를 읽고 고른다).
 - 판정: PlayMode 로 «시트 연 뒤 전투 글자가 팝업 위에 없다» 단언 + PNG 눈 확인 + 빨강 0.
-- 범위: `Assets/Scripts/Game/Battle/DamageNumbers.cs`(붙는 층만) 또는 `Assets/Scripts/Game/Ui/UiRoot.cs`·`Popups.cs`(층 순서) · PlayMode 테스트 한 개.
+- 범위: `Assets/Scripts/Game/Battle/DamageNumbers.cs`(붙는 층만 · `Layer`) · `Assets/Tests/PlayMode/DamageLayerTests.cs`(자기 파일). `UiRoot.cs`·`Popups.cs` 는 안 열었다(정본이 층 순서라 숫자 쪽만 옮기면 된다 · 1회차 sess-0150-8332).
 
 ### T77 — 촬영 시드(`UiShotsTests.Seed`)의 상단바 전투력이 `⚔ 45` 다: 장비 8부위가 전투 스탯에 안 탄다 — 정본 SEED 의 `Combat.recalcHero()` 자리가 클론 Seed 에 없다 (검증·UI · **T54 lock 이 풀린 뒤**(`UiShotsTests.cs` 같은 파일) · 보고함(워커 J) → 워커 T 등재)
 - 실측(2026-09-13 01:2x · 워커 J · 런 118 `screen_main.png` · 보고함): 상단바 `⚔ 45`. 같은 화면의 장비 8부위는 Lv.26~27 = `20 + ageIdx` → 시대 6~7(multiverse·quantum · 정본 `forgeProbabilities[29]` 가 multiverse 68%·quantum 23%). 정본 식이면 그 장비 **하나**의 값이 `12×6^6 ≈ 56만`(공격)·`70×6^6 ≈ 326만`(체력)이라 전투력은 **수백만**이어야 한다 — 45 는 맨몸(≈36)에 부스러기가 붙은 수다.

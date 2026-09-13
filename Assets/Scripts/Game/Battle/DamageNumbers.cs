@@ -12,9 +12,28 @@ namespace Forge.Game.Battle
     /// 데미지 숫자(T8) — 원작 `damageNumber`(17267 · DOM 오버레이 `.float-dmg`) + `css/style.css` 의 아크 키프레임(`dmg`·`dmgcrit`·`dmgkill`)을 T18 앱 상자(<see cref="UiRoot.App"/>) 위의 TMP 글자로.
     /// 월드 → 화면 → 앱 상자 로컬 좌표. 글자는 <see cref="UiKit.Text"/> 로만(fontSize 직접 금지 · §1) · px 단위는 원작 rem 기준(앱 높이 844 → 1920)으로 환산.
     /// 색 키는 카탈로그의 가장 가까운 것(dmg 전용 키는 T22 가 catalog.json 에 더한다 · 결정 기록).
+    /// 층(T76): 원작은 `.float-dmg` 가 `#game-area > #fx-layer`(`#app` 의 **첫** 자식 · `isolation: isolate`) 안에 있고 시트·`.modal`·탭바는 DOM 뒤에 와서 그 위를 덮는다 —
+    /// 여기서도 앱 상자의 **맨 아래 형제** `fx-layer` 에만 붙인다(<see cref="Layer"/>). 앱 상자에 직접 붙이면 마지막 형제라 열린 시트 위에 겹친다(런 124 `screen_shop.png` 의 «▼745»).
     /// </summary>
     public sealed class DamageNumbers
     {
+        /// <summary>원작 `#fx-layer` — 앱 상자 안 전투 글자 층의 이름.</summary>
+        public const string LayerName = "fx-layer";
+
+        /// <summary>앱 상자의 첫 자식 `fx-layer`(없으면 만든다 · 앱 상자를 꽉 채운다). HUD·시트·채팅줄·패널·탭바·팝업 층이 전부 그 뒤 형제라 위를 덮는다.</summary>
+        public static RectTransform Layer(UiRoot root)
+        {
+            if (root == null || root.App == null) return null;
+            RectTransform rt = root.App.Find(LayerName) as RectTransform;
+            if (rt == null)
+            {
+                rt = UiKit.Box(root.App, LayerName);
+                UiKit.Band(rt, 0f, 1f);
+            }
+            if (rt.GetSiblingIndex() != 0) rt.SetAsFirstSibling();
+            return rt;
+        }
+
         /// <summary>원작 `fitLayout`: 루트 폰트 = 앱높이/844×16 — CSS px 하나가 앱 상자에서 RefH/844 px.</summary>
         public const double CssRefH = 844;
         public const int MaxLive = 40;
@@ -87,12 +106,13 @@ namespace Forge.Game.Battle
             var cam = Camera.main;
             if (root == null || root.App == null || cam == null) return;
             if (live.Count > MaxLive) return;
+            RectTransform layer = Layer(root);
             Vector3 sp = cam.WorldToScreenPoint(ThreeSpace.Pos(threeWorld.x, threeWorld.y, threeWorld.z));
             Vector2 lp;
-            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(root.App, new Vector2(sp.x, sp.y), null, out lp)) return;
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(layer, new Vector2(sp.x, sp.y), null, out lp)) return;
             double k = K;
             // 슬롯 회피(연타가 같은 픽셀에 겹치지 않게 · 4칸까지)
-            double topFloor = root.App.rect.yMax - (HitRules.DmgTopMargin + Math.Abs(rise)) * k;
+            double topFloor = layer.rect.yMax - (HitRules.DmgTopMargin + Math.Abs(rise)) * k;
             for (int i = 0; i < 4; i++)
             {
                 bool clash = false;
@@ -104,14 +124,14 @@ namespace Forge.Game.Battle
             lp.y = (float)Math.Min(lp.y, topFloor);
             TextKind kind; string colorKey, outlineKey, prefix; Frame[] anim;
             Style(cls, out kind, out colorKey, out outlineKey, out anim, out prefix);
-            Num n = Take(root.App, kind, colorKey, prefix.Length == 0 ? (text ?? string.Empty) : prefix + text);
+            Num n = Take(layer, kind, colorKey, prefix.Length == 0 ? (text ?? string.Empty) : prefix + text);
             TextMeshProUGUI t = n.T;
             t.fontSharedMaterial = OutlineMaterial(t, outlineKey);
             RectTransform rt = n.Rt;
             // 가로 화면 클램프(아크가 다 흐른 뒤에도 앱 상자 안)
             float half = rt.sizeDelta.x * 0.5f * (float)pop * 0.5f;
             float pad = (float)(HitRules.DmgSidePad * k);
-            float minX = root.App.rect.xMin + pad + half - (float)Math.Min(0, dx * k), maxX = root.App.rect.xMax - pad - half - (float)Math.Max(0, dx * k);
+            float minX = layer.rect.xMin + pad + half - (float)Math.Min(0, dx * k), maxX = layer.rect.xMax - pad - half - (float)Math.Max(0, dx * k);
             if (minX <= maxX) lp.x = Mathf.Clamp(lp.x, minX, maxX);
             n.Anim = anim; n.Origin = lp; n.Dx = dx * k; n.Rise = rise * k; n.Pop = pop; n.Age = 0; n.Color = t.color;
             live.Add(n);
@@ -119,13 +139,13 @@ namespace Forge.Game.Battle
         }
 
         /// <summary>풀에서 꺼내(없으면 <see cref="UiKit.Text"/> 로 한 번 만들고) 종류·색·글자를 다시 입힌다 — 종류 표식(<see cref="UiTextKindTag"/>)·글자 크기는 §1 하한 게이트가 보므로 같이 갱신한다.</summary>
-        Num Take(RectTransform app, TextKind kind, string colorKey, string text)
+        Num Take(RectTransform layer, TextKind kind, string colorKey, string text)
         {
             Num n = null;
             while (pool.Count > 0) { n = pool.Pop(); if (n.Rt != null) break; n = null; }
             if (n == null)
             {
-                var t0 = UiKit.Text(app, "dmg", kind, text, colorKey);
+                var t0 = UiKit.Text(layer, "dmg", kind, text, colorKey);
                 var rt0 = t0.rectTransform;
                 rt0.anchorMin = rt0.anchorMax = new Vector2(0.5f, 0.5f);
                 rt0.pivot = new Vector2(0.5f, 0.5f);
@@ -139,6 +159,7 @@ namespace Forge.Game.Battle
             t.color = UiKit.C(colorKey);
             t.text = text;
             if (n.Tag != null) n.Tag.Kind = kind;
+            if (n.Rt.parent != layer) n.Rt.SetParent(layer, false);
             n.Rt.SetAsLastSibling();
             n.Rt.gameObject.SetActive(true);
             return n;
