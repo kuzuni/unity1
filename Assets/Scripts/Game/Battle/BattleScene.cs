@@ -173,7 +173,9 @@ namespace Forge.Game.Battle
             // 세계(T9)가 서기를 잠깐 기다린다(없어도 전투는 돈다)
             for (int i = 0; i < 120 && World.Instance != null && !World.Instance.Ready; i++) yield return null;
             // T43 — 영웅 스탯은 세이브 위의 GearSystem.HeroStats(장비+펫+스킬 패시브+기술트리) · 호스트가 아직 없으면 맨몸 → 서는 순간 재계산
-            Attach(MakeBattle(data, defs, HeroStatsGlue.Make, (uint)(DateTime.UtcNow.Ticks & 0xffffffff)));
+            // T86 — 여기서 읽은 data·defs 를 Attach 에 **같이 넘긴다**. 안 넘기면 Attach 가 SaveIo.Data 로 폴백하는데, WebGL·Android 는 SaveIo 가
+            //       UnityWebRequest 로 늦게 읽어 그 순간 null 이라 «GameData 가 없다» 로 부팅이 죽는다(런 140 WebGL 스모크 실측 · 에디터는 동기 읽기라 안 보였다).
+            Attach(MakeBattle(data, defs, HeroStatsGlue.Make, (uint)(DateTime.UtcNow.Ticks & 0xffffffff)), data, defs);
             HeroStatsGlue.Install(this);
         }
 

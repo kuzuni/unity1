@@ -100,6 +100,7 @@ async function runSmoke(opts, log) {
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--no-sandbox', '--disable-dev-shm-usage'],
   });
   const result = { url, ok: false, reds, warns, signals: [], appBox: null, ready: false, ms: 0 };
+  let closing = false;   // T86 — browser.close() 뒤의 요청 실패(ERR_ABORTED)는 빌드 탓이 아니다
   try {
     const page = await browser.newPage({ viewport: { width: opts.width, height: opts.height }, deviceScaleFactor: 1 });
     page.on('console', msg => {
@@ -110,7 +111,8 @@ async function runSmoke(opts, log) {
     });
     page.on('pageerror', err => { reds.push(`pageerror: ${err.message}`); if (!opts.quiet) log(`  [pageerror] ${err.message}`); });
     const isBuildAsset = u => /\/(Build|StreamingAssets)\//.test(u) || /\.(loader\.js|framework\.js|wasm|data|unityweb)(\?|$)/.test(u);
-    page.on('requestfailed', req => { if (isBuildAsset(req.url())) reds.push(`요청 실패: ${req.url()} (${req.failure() && req.failure().errorText})`); });
+    // T86 — 우리가 browser.close() 를 부르는 순간 아직 날아가던 요청은 ERR_ABORTED 로 실패 이벤트가 온다(런 140: tech.json). 그건 빌드의 잘못이 아니라 닫기의 부산물이다 — 닫기 뒤 이벤트는 세지 않는다.
+    page.on('requestfailed', req => { if (closing) return; if (isBuildAsset(req.url())) reds.push(`요청 실패: ${req.url()} (${req.failure() && req.failure().errorText})`); });
     page.on('response', res => { if (res.status() >= 400 && (isBuildAsset(res.url()) || res.request().isNavigationRequest())) reds.push(`HTTP ${res.status()}: ${res.url()}`); });
 
     log(`열기: ${url} (${opts.width}×${opts.height})`);
@@ -151,6 +153,7 @@ async function runSmoke(opts, log) {
       log(`촬영: ${opts.shot}`);
     }
   } finally {
+    closing = true;
     await browser.close();
     if (served) served.server.close();
   }

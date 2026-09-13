@@ -638,6 +638,14 @@
 - 범위: `Assets/Scripts/Game/Ui/SettingsPopup*`·`ProfilePopup*`(딤 유무 한 줄씩) · 딤을 공용으로 깐 자리(`Ui/UiKit.cs` 또는 `Ui/PetSkillModal.cs` 중 그 갈래) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.
 - ✅ 결론(2026-09-13 · 워커 R): **전제가 틀렸다** — 정본 `style.css` 1721 은 모든 `.modal` 에 .5 딤(설정·프로필 포함 · 주인 지시)이고 원작 샷 042744 만 낡아 딤이 없다 → 팝업 딤은 그대로. 검은 배경의 정체는 **촬영 중 영웅 사망 → T39 `BattleOverlay` 암전 덮개가 상단바까지 덮은 것**(34장 픽셀 순서 실측). 덮개 띠를 정본 `#game-area`(상단바 아래~시트 위)로 좁혔다 · 영웅이 죽는 원인은 T77 · 기록은 PROGRESS «T85 완료 기록».
 
+### T86 — WebGL 배포물이 부팅에서 죽는다: `BattleScene.Boot` 가 제가 읽은 GameData 를 `Attach` 에 안 넘긴다(런 140 첫 WebGL 스모크 «GameData 가 없다») + 스모크가 닫기 부산물을 빨강으로 센다 (배포·검증 · T26·T32 뒤 · 워커 N 등재)
+- 실측(2026-09-13 · schedule **런 140** · 80c8552 · 첫 실제 WebGL 굽기): unity-builder 27분 초록 → `webgl_smoke` 빨강 2 — `InvalidOperationException: BattleScene.Attach: GameData 가 없다` · `요청 실패: StreamingAssets/data/tech.json (net::ERR_ABORTED)`. `unity-ready` 는 왔다(앱 상자 540×960).
+- 뿌리: `BattleScene.Boot`(155~178행)는 `SaveIo.Data` 가 null 이면 데이터를 제가 읽지만 `Attach(MakeBattle(data, …))` 에 **data·defs 를 안 넘기고**, `Attach` 는 `data ?? SaveIo.Data` 로 폴백한다. WebGL·Android 는 SaveIo 가 `UnityWebRequest` 로 늦게 읽어 그 순간 null → throw. 에디터·CI 는 동기 읽기라 안 보인다. tech.json 실패는 스모크가 `browser.close()` 순간의 ERR_ABORTED 를 센 것(닫기 부산물).
+- 무엇을 한다: ⓐ `Attach(MakeBattle(...), data, defs)` 한 줄 ⓑ `webgl_smoke.js` 에 `closing` 플래그 — 닫기 뒤 `requestfailed` 는 안 센다. 에디터 테스트 훅은 안 더한다(결정 202).
+- 판정: `workflow_dispatch` `build: true` 런의 «WebGL 배포 스모크» 초록(콘솔 빨강 0 · unity-ready) + gh-pages 배포 스텝이 돈다 · Android 잡 결과도 같은 런에서 읽는다. tech.json 이 그래도 실패하면 별도 번호.
+- 범위: `Assets/Scripts/Game/Battle/BattleScene.cs`(Boot 의 Attach 인자) · `tools/webgl_smoke.js`(닫기 가드).
+- 🔄 2026-09-13 워커 N(sess-0524-8791): 두 고침 push · 수동 build 런 대기.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -779,6 +787,6 @@ node tools/export_data.js --self-test                                         # 
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) · T83(촬영 두 장 가르기) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ⬜ · T83 🔄|
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
-| WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
+| WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) | ✅ (굽기 잡 조건 T32 ✅) · T86 🔄 |
 | (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ⬜ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
