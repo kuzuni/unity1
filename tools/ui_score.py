@@ -519,6 +519,24 @@ def score_screen(ref_rects, got_rects):
     return 10.0 * ok / tot, [u"%s — %s" % (n, w) for _, n, w in worst[:5]]
 
 
+# ── 원작 샷이 «지금 정본» 과 다른 자리 (T28 14회차 · 워커 M) ─────────────
+# `web/ref/screens/shot-*.png` 30장은 **찍힌 시점의 원작**이다. 그 뒤 주인 지시로 정본이 바뀐 자리가 있고,
+# 그런 자리는 클론이 «정본대로» 여도 점수가 안 오른다 — 회차마다 그것을 결함으로 다시 진단하는 일을 막는다.
+STALE_REF_NOTES = [
+    u"3D 세계: 원작 샷에는 나무·흙길·능선이 있다. 배포 정본은 `SIMPLE_BG: true`(주인 지시)라 단색 지면이다 "
+    u"— `main`·`offline`·`gear-detail` 의 세계 밴드는 T35(배경 복원) 전까지 못 맞춘다(결정 134).",
+    u"모달 딤: 원작 샷은 딤 α ≈ .988 시절이라 팝업 뒤가 새카맣다. 지금 정본은 주인 지시 «투명도 50%» 의 .5 다 "
+    u"— 팝업 화면에서 상단바·탭바가 «보이는» 것은 결함이 아니다(T93 오진 · 결정 214).",
+]
+
+
+def print_stale_notes():
+    print(u"")
+    print(u"· 원작 샷이 지금 정본과 다른 자리(클론 결함이 아니다 — 점수로 쫓지 마라):")
+    for n in STALE_REF_NOTES:
+        print(u"    – " + n)
+
+
 # ── 회차 사이 점수 기준선 (T28 7회차 · 워커 M) ─────────────────────────────
 DROP_MARK = 0.5   # 이만큼 움직이면 사람이 봐야 한다(판독 잡음은 0.1~0.2)
 
@@ -667,6 +685,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             print(u"· 올라간 화면 %d개: %s" % (len(ups), " ".join(sorted(ups))))
         if not drops and not ups:
             print(u"· 지난 회차와 견줘 %.1f점 넘게 움직인 화면 없음" % DROP_MARK)
+    print_stale_notes()
     if save_baseline:
         # 런 번호는 CI 가 screens 에 같이 올린 meta.json 에서 읽는다(없으면 비운다).
         run = None
@@ -823,6 +842,9 @@ def self_test():
         u"기준선 쓰기 → 읽기 왕복(화면 점수 · 평균 · 런 번호)")
     chk(load_baseline(os.path.join(REPO, "tools", ".없는파일.json")) == {},
         u"기준선 파일이 없으면 빈 것으로 조용히 지나간다(첫 회차)")
+
+    chk(len(STALE_REF_NOTES) >= 2 and all(u"정본" in n for n in STALE_REF_NOTES),
+        u"«원작 샷이 지금 정본과 다른 자리» 주석이 살아 있다(회차마다 같은 오진을 막는다)")
 
     print(u"")
     if fail:
