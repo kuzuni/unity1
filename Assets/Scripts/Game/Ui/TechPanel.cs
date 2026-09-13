@@ -143,6 +143,7 @@ namespace Forge.Game.Ui
             RectTransform gp = DungeonPopups.CurPill(body, "pill-gem", "gem", "pill_gem", NumFmt.Fmt(Host.S.Gems), out gemLabel);
             UiKit.Place(gp, W - padX - pw, padTop + (rowH - ph) * 0.5f, pw, ph);
             title = DungeonPopups.Bold(body, "title", TextKind.Title, text, "pp_ink");
+            UiKit.OutlinePx(title, "pp_line", KeylineUi.Em("sheet_title", title.fontSize));   // 정본 h3.tb-title(3846 묶음) { -webkit-text-stroke: .11em var(--pp-line) }
             UiKit.Place(title.rectTransform, padX + pw, padTop + (rowH - titleH) * 0.5f, W - (padX + pw) * 2f, titleH);
             return padTop + rowH;
         }

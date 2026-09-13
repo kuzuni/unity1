@@ -147,7 +147,11 @@ namespace Forge.Game.Ui
             UiKit.Place(clan.rectTransform, tx, y + lineH, leftW, lineH);
             // T89 — «⚔» 두부 → 정본 표의 `tm_sword` 아이콘 + 수.
             RectTransform cp = UiKit.IconTextRow(card, "cp", TextKind.Sub, "⚔ " + PopupKit.Fmt(h.MyCp), "pp_ink", TextAlignmentOptions.Left);
-            foreach (TextMeshProUGUI piece in UiKit.RowTexts(cp)) piece.fontStyle = FontStyles.Bold;
+            foreach (TextMeshProUGUI piece in UiKit.RowTexts(cp))
+            {
+                piece.fontStyle = FontStyles.Bold;
+                UiKit.OutlinePx(piece, "pp_line", KeylineUi.Px("pinfo_cp"));   // 정본 #player-info-modal .pinfo-id-text .cp { 2px var(--pp-line) }
+            }
             UiKit.Place(cp, tx, y + lineH * 2f, leftW, lineH);
 
             double stars = TotalStars != null ? TotalStars() : 0;
@@ -415,6 +419,7 @@ namespace Forge.Game.Ui
             PetSkillKit.Fill(lv, "bg", PlayerInfoStyle.C("sk_lv_bg"), lh * 0.5f);
             TextMeshProUGUI t = PetSkillKit.Text(lv, "t", TextKind.Sub, txt, PlayerInfoStyle.C("sk_lv_ink"));
             UiKit.Fill(t.rectTransform);
+            UiKit.OutlinePx(t, "white", KeylineUi.Px("equip_cell_lv"));   // 정본 .equip-cell .cell-lv { -webkit-text-stroke: .3px #fff }
             UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, lw, lh);   // 칸 바닥 = 오브 바닥 − .15rem(정본 bottom:-.15rem)
             return cell;
         }

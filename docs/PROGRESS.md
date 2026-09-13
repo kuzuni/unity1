@@ -2512,6 +2512,23 @@
 - **뗀 것**: `ForgeCraftPopup`·`ForgeInfoPopup` 두 줄 버튼 넷 → **T110**(T87 lock 뒤 · T108 과 같은 세로 갈래). `check_text_glyphs.LABEL_KNOWN` 넷의 임자 표기도 T110 으로.
 - **본 것(이 작업 밖)**: 공유 카드 배치가 정본(초록·회색 두 세로 칸)과 다르다 — T22 배치 · T28 채팅 점수로 판단.
 
+### T109 2회차 기록 (2026-09-13 · 워커 I · sess-2203-14027)
+
+- **무엇**: 1회차(워커 C)가 세운 자 `tools/check_keyline.py` 가 «정본에 키라인 규칙이 있는데 클론 호출이 0» 이라고 찍어 둔 자리 중, **남의 lock 이 안 쥔 파일 다섯**에 정본 `-webkit-text-stroke` 를 붙였다(절의 «각 파일의 살아 있는 lock 뒤» 그대로 · 파일 단위로 열린다).
+  - `OfflinePopup` 합계 줄 코인·해머 2자리(정본 `.offline-total { .2em var(--pp-line) }`)
+  - `PlayerInfoPopup` 전투력 행(`#player-info-modal .pinfo-id-text .cp { 2px }`) · 장비 칸 Lv(`.equip-cell .cell-lv { .3px #fff }`)
+  - `ChatScreen` 말풍선·시각(`.chat-bubble`·`.chat-time { .5px currentColor }`) · 공유 카드 라벨·전투력(`.chat-share-label`·`.chat-share-side small:last-child { var(--ol2) #000 }`)
+  - `TechPanel`·`AscendPopup` 제목(3846 묶음 `h3.tb-title`·`.asc-focus-title { .11em var(--pp-line) }`)
+  - **남긴 자리**: `LeagueSheet`(T101 lock) · `ForgeAutoPopup`·`ForgeInfoPopup`·`ForgeCraftPopup`(T87 lock) · `Popups.cs@Btn`(공용 `PopupKit.Btn` 이라 모든 버튼이 한 번에 바뀐다 — 남의 PlayMode 단언을 흔들 자리라 제 회차를 따로 받는 게 맞다) · `DamageNumbers`(Battle) · «자리 자체가 없는» 넷(`PetPanel#sk-lv`·`SkillBar#sk-lv`·`DungeonSheet#rw-amt`·`#rw-tick`·`OfflinePopup#zzz`).
+- **수치는 코드에 안 박았다(§1)**: 폭표를 `Assets/Forge/Resources/KeylineUi.json` 에 뒀다 — `catalog.json` 이 T87 lock 이라 **T65 `PlayerInfoUi.json`·T111 `GearDetailUi.json` 과 같은 길**(결정 249)이다. 정본이 `2px` 처럼 절대값으로 적은 자리와 `.11em` 처럼 글자 크기 비율로 적은 자리를 `px`·`em` 두 절로 갈라 담고, 로더 `KeylineUi.Px/Em` 이 «기준 캔버스 px» 하나로 환산해 T104 의 `UiKit.OutlinePx`(SDF 환산)에 넘긴다. T33·T104 2회차가 catalog 로 합칠 수 있다.
+- **`currentColor` 갈래**: 정본 `.chat-bubble`·`.chat-time` 은 획 색이 **글자색과 같다**. 색 키로는 못 적는 자리라 호출 뒤 `t.outlineColor = t.color;` 한 줄로 제 색을 준다(주석에 정본 줄).
+- **자를 한 갈래 가르쳤다**: `IconTextRow` 는 «행» 을 돌려주고 글자는 그 안의 조각이라 `RowTexts(행)` 로 돌며 조각마다 거는데, 자가 그 모양을 몰라 `PlayerInfoPopup#cp` 를 «호출 없음» 으로 봤다. 탐지에 그 갈래를 더하고 **자기 검사 2칸**(조각마다 걸면 0 · 안 걸면 1)을 같이 넣었다 — 11칸 → **13칸**.
+- **자 눈금**: `check_keyline` 자리 초록 **31 → 42** · KNOWN 빈자리 **33 → 22** · 문제 0. 채운 자리 10개는 KNOWN 에서 지웠다(안 지우면 자가 «KNOWN 인데 이제 있다» 로 알린다).
+- **곁가지(내가 낸 것을 내가 잡았다)**: 새 표의 설명 문구에 쓴 «ⓑ» 가 글꼴에 없어 `check_text_glyphs` 가 **새 두부 1종**으로 잡았다(그 자는 Resources JSON 문구도 읽는다). 문구를 «2회차» 로 바꿔 rc 0 으로 돌렸다 — 데이터 파일의 설명 칸도 화면 문구와 같은 자를 지난다는 것을 기록해 둔다.
+- **게이트**: `dotnet build` 0 에러 · `dotnet test` **553/553** · `gen_meta --check`(새 `.meta` 둘 같이 생성) · `gen_ui_catalog --check` · 문서 자 4 · `check_claim_scope` · `check_final_table` · `ui_score --self-test` · **`check_keyline` rc 0 · `--self-test` 13칸** · `check_text_glyphs` rc 0 · `export_data --self-test` · `check_data_sync`(정본 일치).
+- **플레이 콘솔 에러 0**: CI 몫 — lock 을 쥔 채 다음 회차에 런 결과를 본다.
+- **다음 회차에 볼 것**: `screens` 의 `screen_offline.png`·`screen_player-info.png`·`screen_chat.png`·`screen_tech-overview.png` 를 6배로 열어 **글자 둘레에 검정(흰) 선**이 생겼는지 원작 샷과 나란히(§1) · `ui_score` 의 그 화면 점수가 안 내려갔는지.
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
@@ -2907,3 +2924,5 @@
 249. **T87 lock 뒤에 선 작업은 lock 이 쥔 파일을 «자기 파일» 로 비켜 간다 — T111 은 GearDetailUi.json(T65 결정 153 꼴) + GearDetailTests.cs(T68 결정 160 꼴)(2026-09-13 · T111 · 워커 T · sess-1644-31925)** — 보고함(워커 O · 16:4x)대로 T87(05:51 부터 21회차 · 정상 갱신) 하나가 깨끗한 작업 일곱을 막고 있다. T111 이 T87 에 기대는 것은 `catalog.json` 키 둘과 `ForgeUiTests.cs` 단언 한 칸뿐이고 정작 고칠 `GearDetailPopup.cs` 는 아무 lock 도 안 쥔다. 규약(«범위에 없는 파일을 열게 되면 표의 «범위» 칸을 먼저 고쳐 push») 대로 범위를 먼저 고쳐 잡는다 — 수치는 코드에 안 박고(§1) `Assets/Forge/Resources/GearDetailUi.json` 에, 단언은 새 `GearDetailTests.cs` 에. 두 키(`card_w` 0.70 · `bottom_h` 0.223 = 정본 `style.css` 1737~1738 의 `.gd-card` 70% · `padding-bottom: .223·H − 1.7rem` 에서 ✕ 몫 1.7rem 을 되돌린 값)는 T33 이 카탈로그로 합칠 수 있다. T94·T98·T104·T108·T110 은 고칠 파일 자체가 T87 범위(`Ui/Forge*`·`ForgeUiTests` 단언 변경)라 이 길이 없다.
 
 250. **정본 `mix-blend-mode: screen` 은 UI 셰이더 한 장으로 옮긴다 — 결정 232(«가산 재질은 나중»)를 닫는다(2026-09-13 · T87 23회차 · 워커 G)** — 15회차에는 흰 코어를 보통 알파로 두고 «어두운 상판에 얹는 그림은 거의 같다» 고 적었다. 런 214 제작 순간 컷을 6배로 열어 보니 **아니었다**: 크림빛 가로 띠가 상판과 쇳덩이를 덮어 «흰 막대가 지나간다» 로 읽혔다. 정본이 다섯 겹(`af-bloom`·`af-flash`·`af-heat`·`af-star`·`af-core`)에 screen 을 건 이유가 그것이다(덮지 않고 밝힌다). 고정 기능 블렌드 `Blend OneMinusDstColor One` + 프리멀티플라이면 `S·α·(1−D) + D` 라 정본 식의 알파 가중판이 그대로 나오므로, `UI/Default` 에서 **블렌드 두 줄만** 바꾼 셰이더(`Assets/Forge/Resources/UiScreen.shader`)를 두고 `Image.material` 로 갈아 끼웠다(겹·칸 수는 그대로). 어두운 겹(접지 그림자·링)에는 걸지 않는다 — screen 은 어두운 색을 «없는 것» 으로 만든다. 못 찾으면 null → 보통 알파로 물러나고 자가 빨갛게 알린다. 되돌리려면 `CraftFxPoly.Screen()` 이 null 을 돌려주게 한다.
+
+251. **키라인 폭표는 `KeylineUi.json` 곁 표에 · `currentColor` 는 호출 뒤 제 색으로(2026-09-13 · T109 · 워커 I)** — 정본 `-webkit-text-stroke` 폭을 `catalog.json` 에 넣어야 맞지만 그 파일은 T87 lock 이다. T65 `PlayerInfoUi.json`·T111 `GearDetailUi.json`(결정 249)과 같은 길로 `Assets/Forge/Resources/KeylineUi.json` 에 `px`(절대)·`em`(글자 크기 비율) 두 절로 담고 로더 `KeylineUi.Px/Em` 이 기준 캔버스 px 로 환산해 `UiKit.OutlinePx` 에 넘긴다 — 코드에 숫자 0(§1) · T33·T104 2회차가 catalog 로 합칠 수 있다. 정본이 `currentColor` 로 적은 두 자리(`.chat-bubble`·`.chat-time`)는 색 «키» 가 없는 자리라 호출 뒤 `t.outlineColor = t.color;` 한 줄로 준다. 되돌리려면 그 표와 로더를 지우고 호출 열 줄을 지운다. 공용 `PopupKit.Btn`(버튼 라벨 전부가 한 번에 바뀐다)은 **일부러 남겼다** — 남의 PlayMode 단언을 흔들 자리라 제 회차를 따로 받는 게 맞다.

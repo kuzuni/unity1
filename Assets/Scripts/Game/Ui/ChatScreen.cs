@@ -190,6 +190,8 @@ namespace Forge.Game.Ui
             gender.rectTransform.offsetMax = new Vector2(-rem * 1.8f, 0f);
             TextMeshProUGUI time = UiKit.Text(nameLine, "time", TextKind.Sub, Time(m.At), "chat_time", TextAlignmentOptions.Right);
             time.fontStyle = FontStyles.Bold;
+            UiKit.OutlinePx(time, "chat_time", KeylineUi.Px("chat_time"));   // 정본 .chat-time { .5px currentColor }
+            time.outlineColor = time.color;
             time.rectTransform.offsetMin = new Vector2(bubbleW - rem * 3.2f, 0f);
             time.rectTransform.offsetMax = new Vector2(rem * 3.2f, 0f);
 
@@ -210,6 +212,9 @@ namespace Forge.Game.Ui
                 UiKit.Place(bubble, x, nameH + rem * 0.2f, bubbleW, bodyH);
                 UiKit.Rounded(bubble, "bg", m.Mine ? "chat_bubble_mine" : "chat_bubble", rem * 0.6f);
                 TextMeshProUGUI t = UiKit.Text(bubble, "text", TextKind.Sub, m.Text ?? string.Empty, "pp_ink", TextAlignmentOptions.Left);
+                // 정본 .chat-bubble { -webkit-text-stroke: .5px currentColor } — `currentColor` 라 글자색과 같은 키라인이다(색 키가 아니라 제 색).
+                UiKit.OutlinePx(t, "pp_ink", KeylineUi.Px("chat_bubble"));
+                t.outlineColor = t.color;
                 t.textWrappingMode = TextWrappingModes.Normal;
                 t.rectTransform.offsetMin = new Vector2(rem * 0.5f, rem * 0.2f);
                 t.rectTransform.offsetMax = new Vector2(-rem * 0.5f, -rem * 0.2f);
@@ -228,6 +233,7 @@ namespace Forge.Game.Ui
             {
                 TextMeshProUGUI lb = UiKit.Text(side, "label", TextKind.Sub, label, colorKey);
                 lb.fontStyle = FontStyles.Bold;
+                UiKit.OutlinePx(lb, "pp_line", KeylineUi.Px("chat_share_label"));   // 정본 .chat-share-label { var(--ol2) #000 }
                 UiKit.Place(lb.rectTransform, 0f, h - PopupKit.FontSize(TextKind.Sub) * 1.2f, av + rem * 0.8f, PopupKit.FontSize(TextKind.Sub) * 1.2f);
             }
             float tx = rem * 0.4f + av + rem * 0.3f;
@@ -241,6 +247,7 @@ namespace Forge.Game.Ui
             UiKit.Place(cpI.rectTransform, tx, h * 0.5f + (cpH - cpIco) * 0.5f, cpIco, cpIco);
             TextMeshProUGUI c = UiKit.Text(side, "cp", TextKind.Sub, cp, colorKey, TextAlignmentOptions.Left);
             c.fontStyle = FontStyles.Bold;
+            UiKit.OutlinePx(c, "pp_line", KeylineUi.Px("chat_share_small"));   // 정본 .chat-share-side small:last-child { var(--ol2) #000 }
             UiKit.Place(c.rectTransform, tx + cpIco + rem * 0.15f, h * 0.5f, w - tx - cpIco - rem * 0.15f, cpH);
         }
 

@@ -98,29 +98,19 @@ TABLE = {
 # ── 임자가 정해진 빈자리(자리 → 이유) — T109 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
     'Ui/OfflinePopup.cs#zzz': 'T109 ⓑ — 잠자는 z 글자 자리가 클론에 없다(T68 이 머리를 세울 때 안 옮김) · 세우면서 키라인',
-    'Ui/OfflinePopup.cs#coins': 'T109 ⓑ — .offline-card .11em / .offline-total .2em',
-    'Ui/OfflinePopup.cs#hammers': 'T109 ⓑ — .offline-card .11em',
     'Battle/DamageNumbers.cs': 'T109 ⓑ — .float-dmg .6px / kill 1px / hero .55px(색 셋) · 데미지 숫자는 Ui 밖 Battle 에 산다',
     'Ui/SkillBar.cs#sk-lv': 'T109 ⓑ — 슬롯 Lv 라벨(.skill-btn .sk-lv 2px)이 클론에 없다(SkillBar 에 lv 이름 글자 0) · 세우면서 키라인',
-    'Ui/PlayerInfoPopup.cs#t': 'T109 ⓑ — 장비 칸 Lv(.equip-cell .cell-lv .3px #fff)',
     'Ui/LeagueSheet.cs#server': 'T109 ⓑ — .league-row.me .league-server max(1.2px,.1em) · .league-name small max(1.4px,.1em)',
     'Ui/LeagueSheet.cs#rank': 'T109 ⓑ — .lgr-rank-n .16rem · .league-row .league-rank 2px',
     'Ui/LeagueSheet.cs#name': 'T109 ⓑ — .league-row .league-name 2px',
     'Ui/LeagueSheet.cs#cp': 'T109 ⓑ — .league-challenge-name small 2px(T28 22회차가 잡은 바로 그 자리 · 민주황)',
-    'Ui/ChatScreen.cs#text': 'T109 ⓑ — .chat-bubble .5px currentColor(T99 lock 뒤)',
-    'Ui/ChatScreen.cs#time': 'T109 ⓑ — .chat-time .5px currentColor(T99 lock 뒤)',
-    'Ui/ChatScreen.cs#cp': 'T109 ⓑ — .chat-share-side small:last-child var(--ol2)(T99 lock 뒤)',
-    'Ui/ChatScreen.cs#label': 'T109 ⓑ — .chat-share-label var(--ol2)(T99 lock 뒤)',
     'Ui/ForgeInfoPopup.cs#title': 'T109 ⓑ — h3.fi-title .11em(T99 lock 뒤)',
     'Ui/ForgeAutoPopup.cs#af-title': 'T109 ⓑ — h3.af-title .11em · .af-title 4px #fff',
-    'Ui/TechPanel.cs#title': 'T109 ⓑ — h3.tb-title .11em(DungeonPopups.Bold 은 키라인을 안 건다)',
     'Ui/ForgeCraftPopup.cs#title': 'T109 ⓑ — h3.sellwarn-title .11em(T99 lock 뒤)',
-    'Ui/AscendPopup.cs#title': 'T109 ⓑ — .asc-focus-title .11em(DungeonPopups.Bold 은 키라인을 안 건다)',
     'Ui/Popups.cs@Btn': 'T109 ⓑ — .btn.btn.primary… var(--ol2) · .af-start 4px · .fi-skip 4px · .dgd-btn.silver 2px: PopupKit.Btn 라벨이 민글자',
     'Ui/PetPanel.cs#sk-lv': 'T109 ⓑ — .petd-tile .sk-lv 2.5px: 펫 미니 타일의 Lv 글자가 클론에 없다(PetPanel 에 lv 이름 글자 0) · 세우면서 키라인',
     'Ui/DungeonSheet.cs#rw-amt': 'T109 ⓑ — .rw-amt 4px #2a2018: 보상 날림의 획득량 글자가 클론에 없다(DungeonSheet 는 아이콘만 날린다) · 세우면서 키라인',
     'Ui/DungeonSheet.cs#rw-tick': 'T109 ⓑ — .rw-tick 3.5px #2a2018: 보상 날림의 체크 글자가 클론에 없다 · 세우면서 키라인',
-    'Ui/PlayerInfoPopup.cs#cp': 'T109 ⓑ — #player-info-modal .pinfo-id-text .cp 2px(IconTextRow 글자 칸)',
 }
 
 KEYLINE_CALL = re.compile(r'\b(?:UiKit\.Outline|UiKit\.OutlinePx|PetSkillKit\.Stroked|PopupKit\.Ring|Stroked|Ring)\s*\(')
@@ -206,6 +196,10 @@ def check_target(game_dir, target):
             var = a.group(1)
             if re.search(r'\b(?:Outline|OutlinePx|Ring)\s*\(\s*' + re.escape(var) + r'\s*[,)]', src):  # labels[i] 처럼 ] 로 끝나는 변수도
                 return 'ok', '"%s" → %s 에 키라인 호출' % (tail, var)
+            # `IconTextRow` 는 «행» 을 돌려주고 글자는 그 안의 조각들이다 — `RowTexts(행)` 로 돌며 조각마다 거는 갈래(T109 ⓑ · PlayerInfoPopup #cp).
+            rt = re.search(r'RowTexts\s*\(\s*' + re.escape(var) + r'\s*\)', src)
+            if rt and re.search(r'\b(?:Outline|OutlinePx|Ring)\s*\(', src[rt.end():rt.end() + 400]):
+                return 'ok', '"%s" → RowTexts(%s) 조각마다 키라인 호출' % (tail, var)
     if not found:
         return 'absent', '"%s" 이름으로 만드는 글자가 없다' % tail
     return 'missing', '"%s" 글자에 Outline/OutlinePx/Ring 이 안 걸린다' % tail
@@ -290,6 +284,14 @@ namespace X {
                 : PetSkillKit.Text(p, "str", TextKind.Sub, "s", Color.white);
             labels[i] = PetSkillKit.Text(p, "arr", TextKind.Sub, "a", Color.white);
             if (on) UiKit.Outline(labels[i], "pp_line", 0.25f);
+            RectTransform row = UiKit.IconTextRow(p, "row", TextKind.Sub, "r", "ink");
+            foreach (TextMeshProUGUI piece in UiKit.RowTexts(row))
+            {
+                piece.fontStyle = FontStyles.Bold;
+                UiKit.OutlinePx(piece, "pp_line", 2f);
+            }
+            RectTransform bare = UiKit.IconTextRow(p, "rowbare", TextKind.Sub, "r", "ink");
+            foreach (TextMeshProUGUI piece in UiKit.RowTexts(bare)) piece.fontStyle = FontStyles.Bold;
         }
     }
 }
@@ -335,6 +337,11 @@ namespace X {
     # 8 배열 원소 변수(labels[i]) 도 잡는다 · 삼항 Stroked 도 잡는다
     t = dict(base); t['.e-file'] = ['Ui/Sheet.cs#arr']
     expect('배열 변수 Outline → 0', t, {'Ui/Sheet.cs#plain': '임자'}, 0)
+    # 8-2 IconTextRow 행 → RowTexts(행) 조각마다 거는 갈래도 잡는다(T109 ⓑ) · 안 걸면 못 잡는다
+    t = dict(base); t['.e-file'] = ['Ui/Sheet.cs#row']
+    expect('RowTexts 조각 키라인 → 0', t, {'Ui/Sheet.cs#plain': '임자'}, 0)
+    t = dict(base); t['.e-file'] = ['Ui/Sheet.cs#rowbare']
+    expect('RowTexts 인데 키라인 없음 → 1', t, {'Ui/Sheet.cs#plain': '임자'}, 1)
     # 9 KNOWN 인데 이제 있다 → 알리기만(rc 0)
     lines = expect('KNOWN 해소 알림', base, {'Ui/Sheet.cs#plain': '임자', 'Ui/Sheet.cs#name': '옛 임자'}, 0)
     if not any('KNOWN 인데 이제 키라인이 있다' in l for l in lines):
@@ -351,7 +358,7 @@ namespace X {
         for f in fails:
             print('  - ' + f)
         return 1
-    print('✓ check_keyline --self-test 11칸 통과')
+    print('✓ check_keyline --self-test 13칸 통과')
     return 0
 
 

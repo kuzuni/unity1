@@ -67,11 +67,13 @@ namespace Forge.Game.Ui
             UiKit.Place(ci.rectTransform, inner * 0.18f, 0f, ico, ico);
             coins = UiKit.Text(total, "coins", TextKind.Sub, string.Empty, "pp_ink", TextAlignmentOptions.Left);
             coins.fontStyle = FontStyles.Bold;
+            UiKit.OutlinePx(coins, "pp_line", KeylineUi.Em("offline_total", coins.fontSize));   // 정본 .offline-total { -webkit-text-stroke: .2em var(--pp-line) }
             UiKit.Place(coins.rectTransform, inner * 0.18f + ico + rem * 0.2f, 0f, inner * 0.25f, lineH);
             Image hi = PopupKit.IconOr(total, "hammer-ico", "hammer");
             UiKit.Place(hi.rectTransform, inner * 0.55f, 0f, ico, ico);
             hammers = UiKit.Text(total, "hammers", TextKind.Sub, string.Empty, "pp_ink", TextAlignmentOptions.Left);
             hammers.fontStyle = FontStyles.Bold;
+            UiKit.OutlinePx(hammers, "pp_line", KeylineUi.Em("offline_total", hammers.fontSize));   // 정본 .offline-total(같은 줄의 두 수)
             UiKit.Place(hammers.rectTransform, inner * 0.55f + ico + rem * 0.2f, 0f, inner * 0.25f, lineH);
             by += lineH + rem * 0.7f;
             float bw = inner * 0.5f, bh = UiKit.H("btn_h") * 1.2f;

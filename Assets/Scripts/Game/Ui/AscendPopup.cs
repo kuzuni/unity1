@@ -65,6 +65,7 @@ namespace Forge.Game.Ui
             Image star = UiKit.Icon(card, "star", "star");
             UiKit.Place(star.rectTransform, pad, y + (titleH - sd) * 0.5f, sd, sd);
             TextMeshProUGUI title = DungeonPopups.Bold(card, "title", TextKind.Button, TitleText, "pp_ink", TextAlignmentOptions.Left);
+            UiKit.OutlinePx(title, "pp_line", KeylineUi.Em("sheet_title", title.fontSize));   // 정본 3846 묶음(h3.sheet-title …) { .11em var(--pp-line) }
             UiKit.Place(title.rectTransform, pad + sd * 1.2f, y, inner - sd * 1.2f, titleH);
             y += titleH + gap;
             TextMeshProUGUI guide = DungeonPopups.Para(card, "guide", TextKind.Sub, "라인마다 조건을 채우면 그 라인을 승천시킵니다 — 승천 횟수만큼 이후 획득물에 별이 붙습니다.", "muted2", TextAlignmentOptions.Center);
@@ -117,6 +118,7 @@ namespace Forge.Game.Ui
                 string kr = asc.Table.LineKr[line];
                 int next = asc.Count(st, line) + 1;
                 TextMeshProUGUI ft = DungeonPopups.Bold(focus, "title", TextKind.Body, kr + " 승천", "pp_ink");
+                UiKit.OutlinePx(ft, "pp_line", KeylineUi.Em("sheet_title", ft.fontSize));   // 정본 .asc-focus-title { .11em var(--pp-line) }
                 UiKit.Place(ft.rectTransform, 0f, fy, inner, DungeonPopups.LineH(TextKind.Body));
                 fy += DungeonPopups.LineH(TextKind.Body);
                 TextMeshProUGUI fc = UiKit.Text(focus, "cnt", TextKind.Sub, "현재 승천 " + asc.Count(st, line) + "회 → " + next + "회", "pp_ink");

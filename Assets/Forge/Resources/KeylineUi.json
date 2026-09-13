@@ -1,0 +1,16 @@
+{
+  "_": "T109 2회차 — 정본 web/css/style.css 의 `-webkit-text-stroke` 를 옮긴 **키라인 폭표**. `Assets/Forge/catalog.json` 이 T87 lock 이라 여기 둔다(T65 PlayerInfoUi.json · T111 GearDetailUi.json 과 같은 꼴 · T33 또는 T104 2회차가 catalog 로 합칠 수 있다). 코드에 숫자를 박지 않는다(§1). em = 글자 크기에 대한 비율(정본이 `.11em` 처럼 적은 것) · px = 기준 캔버스 px(정본이 `2px`·`.5px` 처럼 적은 것 · `var(--ol2)` = 2px).",
+  "em": {
+    "offline_total": 0.2,
+    "offline_card": 0.11,
+    "sheet_title": 0.11
+  },
+  "px": {
+    "equip_cell_lv": 0.3,
+    "chat_bubble": 0.5,
+    "chat_time": 0.5,
+    "chat_share_small": 2.0,
+    "chat_share_label": 2.0,
+    "pinfo_cp": 2.0
+  }
+}
