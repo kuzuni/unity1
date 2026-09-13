@@ -22,7 +22,7 @@ namespace Forge.Game.Ui
         public static void Open(ForgeHost h)
         {
             if (!h.AutoForgeUnlocked) { h.Meta.Toast("🔒 스테이지 2-10 도달 시 해금됩니다"); return; }
-            h.Meta.Popups.Show(Name);
+            h.Meta.Popups.Show(Name, null, true);   // T78 — 정본 `#autoforge-modal` z-index 40(딤이 탭바까지 · slug modal-dim-tabbar)
             Render(h);
         }
 

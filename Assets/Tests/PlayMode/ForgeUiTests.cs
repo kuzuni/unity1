@@ -407,6 +407,12 @@ namespace Forge.Tests.PlayMode
             Assert.LessOrEqual(d.yMin, a.yMin + 0.5f, what + ": 딤이 앱 상자 아래를 덜 덮는다");
             Assert.GreaterOrEqual(d.yMax, a.yMax - 0.5f, what + ": 딤이 앱 상자 위를 덜 덮는다");
 
+            // ⓓ T78 2회차 — 정본 slug `modal-dim-tabbar`(style.css 3777~3784)가 이 셋을 «ⓑ 진짜 팝업» 으로
+            //     가른다: 딤이 탭바까지 덮고(z 40/42) 닫기는 카드의 ✕ 다. 그래서 탭바 위 층에 서야 한다.
+            Assert.IsTrue(p.AboveTabBar, what + ": 딤이 탭바 아래 층이라 탭바가 안 덮인다(정본 z-index 40)");
+            Assert.Greater(PopupLayer.Instance.OverLayer.GetSiblingIndex(), UiRoot.Instance.TabBand.GetSiblingIndex(),
+                what + ": modals-over 가 탭바보다 아래에 꽂혔다");
+
             Transform x = FindIn(p.Root, "x-btn");
             if (x == null) return;
             Rect xr = RectOf((RectTransform)x);

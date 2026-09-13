@@ -1098,6 +1098,16 @@
 - **게이트**: `dotnet build` 0 오류(T48 하니스가 PlayMode 도 컴파일한다) · `dotnet test` **513/513** · `gen_meta`·`gen_ui_catalog --check`·`check_docs_intact`·`check_decisions`·`check_task_rows`·`task_state --check`·`check_final_table`·`check_claim_scope`·`check_data_sync(13)`·`export --self-test`·`ui_score --self-test` 전부 rc 0.
 - **CI·PNG 확인 대기**: 다음 유니티 잡에서 `ForgeUiTests` 8/8(새 단언 포함) + `screen_autoforge.png`·`screen_forge-list.png` 을 Read 로 열어 ✕ 가 탭바 위에 온전히 있는지 눈으로 본 뒤 ✅(§1). 범위의 `tools/ui_score.py`(경고 갈래 좁히기)는 **T28 lock 이 살아 있어 이 회차에 안 만졌다**.
 
+### T78 2회차 기록 (2026-09-13 · 워커 E · sess-0213-28724 · 딤이 탭바까지 · CI 대기)
+
+- **1회차 판정(런 134 · `dda999b` 에 내 `1363be8` 이 들어 있다)**: `ForgeUiTests` **8/8 초록** — 새 `AssertCovers` 셋(딤 존재·색·앱 상자 네 변 · ✕ 가 탭바 위)이 세 팝업에서 통과했다. PNG 도 열어 봤다: `screen_autoforge.png`·`screen_forge-list.png` 의 빨간 ✕ 세로 구간이 각각 y≤667 · y≤656 으로 **탭바 위쪽보다 위**다(고치기 전에는 ✕ 가 탭바에 반쯤 잠겼다). ⓒ 는 닫혔다.
+- **2회차 — ⓑ(탭바가 안 어두워짐)의 정답을 정본에서 찾았다**: `web/css/style.css` 3768~3784(slug `modal-dim-tabbar`)가 **팝업을 두 부류로 가른다**. ⓐ **탭 화면**(메인·던전 목록·상점·리그 목록·제작 비교·장비 상세·소환 시트)은 탭바가 그대로 보여야 한다 — «탭바의 빨간 ✕ 가 유일한 닫기 어포던스» 라서 덮으면 갇힌다. ⓑ **진짜 팝업**은 탭바까지 새까맣고, 그 id 목록에 **`#forge-info-modal` · `#forge-item-modal` · `#autoforge-modal` 이 그대로 들어 있다**(z-index 40 · `#forge-item-modal` 은 42). 즉 T78 의 세 화면은 정본이 «탭바까지 덮는다» 로 정한 쪽이다.
+- **고친 방법(층 수술 0)**: 이 레포는 이미 그 구분을 `Popups.Show(name, tab, aboveTabBar)` 로 쥐고 있었다 — 세 팝업이 그 칸을 안 줬을 뿐이다. `ForgeInfoPopup.Open`·`OpenList`·`OpenDetail` 과 `ForgeAutoPopup.Open` 에 `aboveTabBar: true` 를 준다(= `modals-over` 층 · 탭바 위). ⓐ 부류(`ForgeCraftPopup`·`GearDetailPopup`·상점·던전 목록…)는 **손대지 않았다** — 정본이 가른 그대로다.
+- **단언 보강**(`AssertCovers` ⓓ): 세 팝업이 `AboveTabBar` 여야 하고 `modals-over` 층이 `TabBand` 보다 뒤(위)여야 한다. 층이 다시 뒤집히면 CI 가 잡는다.
+- **게이트**: `dotnet build` 0 오류(PlayMode 포함) · `dotnet test` **513/513** · 문서·meta·카탈로그·`data_sync`(13)·`export`·`ui_score` 자기 검사 전부 rc 0.
+- **남은 것 ⓐ(세계·HUD 가 통째로 안 그려짐)**: 이 회차 런 134 PNG 에서는 **앱 상자 자체가 눌려**(탭바가 y≈680~770 · 아래 ~185px 가 검은 띠 · 카드 위가 잘림) 판정이 안 선다 — `UiShotsTests`·`Bootstrap` 촬영 framing 은 **T54(워커 I)가 6회차째 쥐고 있는 자리**다(lock 03:06 갱신). T54 가 프레임을 되돌린 뒤 그 런의 PNG 로 ⓐ 를 다시 본다.
+- **CI 확인 대기**: 다음 유니티 잡의 `ForgeUiTests` 8/8(새 ⓓ 포함) + `screen_autoforge`·`screen_forge-list`·`screen_forge-detail` 의 **탭바가 어두워졌는지** 눈으로 본 뒤 ✅(§1).
+
 ## 주인 결정
 
 - **(2026-09-12 · 착수)** 유니티 이식은 `kuzuni/unity1` 에서 · 원작 `kuzuni/wwwww` 는 그대로 둔다(웹판과 유니티판을 한 레포에 섞으면 헷갈린다는 주인 판단). 운영은 aaawunity 방식(루틴 워커 · 여러 계정).
@@ -1653,3 +1663,5 @@
 194. **촬영 카메라의 투영·rect 는 건드리지 않는다 — framing 판정은 «세계만» 컷으로(2026-09-13 · T54 · 워커 I)** — T27·T45 촬영은 카메라 하나로 세계와 캔버스를 같이 그리고, `ScreenSpaceCamera` 캔버스는 그 카메라의 프러스텀에 맞춰 놓인다. 그래서 rect(런 106)·두 카메라 분리(런 116)·투영(런 134) 셋 다 UI 를 망가뜨리거나 세계를 지웠다. 세 번 같은 벽을 맞았으니 **그 길은 그대로 두고**(기본 투영·전체 rect) framing 은 캔버스가 없는 새 컷 `WorldFrameShotTests` → `ui-screens/world_frame.png` 로 본다. 되돌리려면 그 파일을 지우면 된다(다른 곳에 영향 0). 촬영 한 장에 UI 와 새 framing 을 같이 담고 싶으면, 세계·UI 를 **각각 RT 에 찍어 알파로 합성**하는 길이 남아 있다 — URP 의 겹치기 규칙을 안 건드리는 유일한 안전한 방법으로 보인다.
 
 195. **틀이 깨진 런으로는 기준선을 갱신하지 않는다(2026-09-13 · T28 · 워커 M)** — 9회차(런 134)는 앱 상자가 위로 밀려 평균이 4.37 → 2.81 이 됐다. 여기서 `--save-baseline` 을 부르면 다음 회차가 «2.81 → 4.x · 올랐다» 로 읽어 **회귀가 기록에서 사라진다**. 그래서 기준선은 마지막 «정상 틀» 런(128 · 4.37)을 그대로 두고 회복을 그것과 견준다. 규칙: **틀 경고(앱 상자 채움·세로/가로)가 뜨거나 내려간 화면이 무더기면 기준선을 갱신하지 않는다.** 되돌리려면 그 런에서 `--save-baseline` 을 부르면 된다.
+
+196. **딤이 탭바를 덮는가는 «정본이 id 로 가른 두 부류» 를 그대로 따른다(2026-09-13 · T78 · 워커 E)** — 1회차에 미뤘던 자리(결정 189)를 정본 `style.css` slug `modal-dim-tabbar` 로 풀었다: ⓐ 탭 화면은 탭바 ✕ 가 유일한 닫기 길이라 덮으면 갇히고, ⓑ 진짜 팝업(목록에 `#forge-info-modal`·`#forge-item-modal`·`#autoforge-modal` 이 있다)은 탭바까지 덮는다. 그래서 층을 통째로 뒤집지 않고 세 팝업에만 `aboveTabBar: true` 를 줬다(이 레포가 이미 쥔 칸이다). ⓐ 부류는 한 줄도 안 건드렸다. 되돌리려면 이 커밋의 `ForgeInfoPopup.cs`·`ForgeAutoPopup.cs` 세 줄.

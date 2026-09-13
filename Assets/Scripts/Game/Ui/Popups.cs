@@ -38,6 +38,9 @@ namespace Forge.Game.Ui
         public event Action<string> TabXChanged;
 
         public int OpenCount { get { return open.Count; } }
+
+        /// <summary>탭바 위 층(`aboveTabBar` 팝업이 사는 곳) — 테스트가 층 순서를 본다(T78).</summary>
+        public RectTransform OverLayer { get { return over; } }
         public IReadOnlyList<Popup> Open { get { return open; } }
 
         public static PopupLayer Create(UiRoot root)

@@ -23,15 +23,18 @@ namespace Forge.Game.Ui
 
         public static string View { get { return view; } }
 
-        public static void Open(ForgeHost h) { view = "level"; h.Meta.Popups.Show(Name); Render(h); }
-        public static void OpenList(ForgeHost h) { view = "list"; h.Meta.Popups.Show(Name); Render(h); }
+        // T78 — 정본 `css/style.css` 3777~3784(slug `modal-dim-tabbar`)가 이름으로 가른 «ⓑ 진짜 팝업» 이라
+        // 딤이 탭바까지 덮는다(`#forge-info-modal`·`#forge-item-modal` 이 그 id 목록에 있다 · z-index 40/42).
+        // 탭바 ✕ 가 유일한 닫기 길인 «ⓐ 탭 화면»(상점·던전 목록·제작 비교·장비 상세…)은 그대로 둔다.
+        public static void Open(ForgeHost h) { view = "level"; h.Meta.Popups.Show(Name, null, true); Render(h); }
+        public static void OpenList(ForgeHost h) { view = "list"; h.Meta.Popups.Show(Name, null, true); Render(h); }
         public static void Close(ForgeHost h) { h.Meta.Popups.Hide(ItemName); h.Meta.Popups.Hide(Name); }
         public static void CloseItemDetail(ForgeHost h) { h.Meta.Popups.Hide(ItemName); }
 
         public static void OpenDetail(ForgeHost h, string age, string slot, int variant, string wtype)
         {
             detailAge = age; detailSlot = slot; detailVariant = variant; detailWtype = wtype;
-            h.Meta.Popups.Show(ItemName);
+            h.Meta.Popups.Show(ItemName, null, true);   // T78 — 정본 `#forge-item-modal` z-index 42(탭바 위)
             RenderDetail(h);
         }
 
