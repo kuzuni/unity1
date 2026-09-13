@@ -232,6 +232,8 @@ namespace Forge.Tests.PlayMode
             public int Collections;
             /// <summary>T50 자 ②: <c>GC.GetAllocatedBytesForCurrentThread</c> 를 StepFrame 앞뒤로 재 «우리 게임 일감» 이 프레임에서 문 바이트 ÷ 프레임(런타임이 안 주면 −1). 계수기와의 차 = 렌더·캔버스·러너 몫.</summary>
             public long StepAllocPerFrame = -1;
+            /// <summary>T64 자: 측정 200프레임 동안 늘어난 Material·Mesh 오브젝트 수(<c>Resources.FindObjectsOfTypeAll</c> 차 · 측정 창 밖에서 센다) — «재질이 매 프레임 새로 만들어지는가».</summary>
+            public int MatDelta, MeshDelta;
             /// <summary>판정에 쓰는 값 — 계수기가 살아 있으면 <see cref="AllocPerFrame"/>, 아니면 <see cref="TotalDeltaPerFrame"/>.</summary>
             public long Judged { get { return AllocPerFrame >= 0 ? AllocPerFrame : TotalDeltaPerFrame; } }
         }
@@ -240,6 +242,8 @@ namespace Forge.Tests.PlayMode
         {
             try { return GC.GetAllocatedBytesForCurrentThread(); } catch (Exception) { return -1; }
         }
+
+        static int CountAll<T>() where T : UnityEngine.Object { return Resources.FindObjectsOfTypeAll<T>().Length; }
 
         /// <summary>200프레임을 밀며 잰다. <paramref name="castSkills"/> 가 false 면 스킬을 다시 시전하지 않는다 · <paramref name="step"/> 이 false 면 게임 일감을 안 민다(정지 바닥 = 렌더·러너 몫).</summary>
         /// <summary>렌더를 끈 채 잰다(카메라·캔버스 전부 비활성 → 게임 일감만 남는다). 되돌리기는 호출자가 <see cref="RenderOn"/>.</summary>
@@ -352,6 +356,16 @@ namespace Forge.Tests.PlayMode
             for (int i = 0; i < l.Count && i < n; i++) { if (i > 0) sb.Append(" · "); sb.Append(l[i].Key).Append(' ').Append(l[i].Value / Math.Max(1, frames)).Append('B'); }
             return sb.Length == 0 ? "(없음)" : sb.ToString();
         }
+
+        static string ProfLine(string when, AllocBuckets b)
+        {
+            string line = b.Frames > 0
+                ? "[T64] 프로파일러 GC.Alloc 버킷 " + when + "(" + b.Frames + "프레임 평균 · 샘플 " + (b.Samples / b.Frames) + "/프레임 · 합 " + (b.Total / b.Frames) + "B/프레임): 경로 ⟨" + TopN(b.Path, b.Frames, 10) +
+                  "⟩ · 직접 부모 ⟨" + TopN(b.Parent, b.Frames, 12) + "⟩" + (b.Why.Length > 0 ? " · ⚠ " + b.Why : "")
+                : "[T64] 프로파일러 GC.Alloc 버킷 " + when + ": 자 없음 — " + b.Why;
+            Debug.Log(line);
+            return line;
+        }
 #endif
 
         static IEnumerator Measure(Rig r, float dt, bool castSkills, Sample o, bool step = true)
@@ -359,6 +373,7 @@ namespace Forge.Tests.PlayMode
             var ms = new double[MeasureFrames];
             var wall = new double[MeasureFrames];
             var sw = new System.Diagnostics.Stopwatch();
+            int mat0 = CountAll<Material>(), mesh0 = CountAll<Mesh>();
             GC.Collect();
             yield return null;
             ProfilerRecorder rec = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame");
@@ -396,7 +411,10 @@ namespace Forge.Tests.PlayMode
             o.TotalDeltaPerFrame = Math.Max(0, (gc1 - gc0)) / MeasureFrames;
             o.AllocPerFrame = recOk && allocSum > 0 ? allocSum / MeasureFrames : -1;
             o.StepAllocPerFrame = stepOk ? stepSum / MeasureFrames : -1;
+            o.MatDelta = CountAll<Material>() - mat0; o.MeshDelta = CountAll<Mesh>() - mesh0;
         }
+
+        static string Grow(Sample o) { return "+" + o.MatDelta + "/+" + o.MeshDelta; }
 
         static string Bytes(long b) { return b < 0 ? "?" : b + "B"; }
 
@@ -427,6 +445,11 @@ namespace Forge.Tests.PlayMode
                 yield return null;
             }
 
+#if UNITY_EDITOR
+            // T64 2회차 — 런 108 에서 «렌더 몫» 이 약 1,400프레임 뒤 저절로 사라졌다(카메라만/캔버스만/광원만 끔 셋이 전부 렌더 끔과 같은 190KB). 그러니 버킷은 예열 직후(1.1MB 가 있을 때)와 끝 둘 다 찍는다.
+            var bucketsFirst = new AllocBuckets();
+            yield return ProfileAllocs(r, dt, ProfileFrames, bucketsFirst);
+#endif
             var full = new Sample();
             yield return Measure(r, dt, true, full);
 
@@ -484,18 +507,23 @@ namespace Forge.Tests.PlayMode
             string t64 = "[T64] 렌더 몫 가르기(프레임당 관리 할당 · 전부 " + Bytes(full.Judged) + " · 렌더 끔 " + Bytes(noRender.Judged) + "): 카메라만 끔(" + camList.Count + "대) " + Bytes(camOff.Judged) + "(카메라 몫 ≈ " + Bytes(full.Judged - camOff.Judged) + ")" +
                          " · 캔버스만 끔(" + canvasList.Count + "장) " + Bytes(canvasOff.Judged) + "(캔버스 몫 ≈ " + Bytes(full.Judged - canvasOff.Judged) + ")" +
                          " · 추가 광원만 끔(" + lightList.Count + "개 · 측정 중 새로 켜진 점광 " + lightsNow + ") " + Bytes(lightsOff.Judged) + "(광원 몫 ≈ " + Bytes(full.Judged - lightsOff.Judged) + ")" +
-                         " · GC 회수 " + camOff.Collections + "/" + canvasOff.Collections + "/" + lightsOff.Collections;
+                         " · GC 회수 " + camOff.Collections + "/" + canvasOff.Collections + "/" + lightsOff.Collections + " · 재질/메시 증가 " + Grow(camOff) + " · " + Grow(canvasOff) + " · " + Grow(lightsOff);
             Debug.Log(t64);
             Trace(t64, "perf-t64.txt");
+            // T64 2회차 — 같은 측정을 끝에 한 번 더: «전부(처음)» 과 «전부(끝)» 의 차가 시간 추이(전투 자체가 아니라 첫 몇천 프레임에만 있는 것)다.
+            var full2 = new Sample();
+            yield return Measure(r, dt, true, full2);
+            string trend = "[T64] 시간 추이(같은 부하 · 전부 켬): 전부(처음 · 예열 60 뒤) " + Bytes(full.Judged) + " → 전부(끝 · 약 2,300프레임 뒤) " + Bytes(full2.Judged) +
+                           " · 측정 200프레임당 재질/메시 오브젝트 증가: 전부 " + Grow(full) + " · 임팩트 끔 " + Grow(noImpact) + " · 파편 끔 " + Grow(noFx) + " · 스킬 재시전 끔 " + Grow(noSkill) +
+                           " · 전부 끔 " + Grow(allOff) + " · 정지 " + Grow(still) + " · 렌더 끔 " + Grow(noRender) + " · 카메라만 끔 " + Grow(camOff) + " · 캔버스만 끔 " + Grow(canvasOff) + " · 광원만 끔 " + Grow(lightsOff) + " · 전부(끝) " + Grow(full2) +
+                           " · 임팩트 재질 만듦/풀 " + FxUnlitMaterials.Made + "/" + FxUnlitMaterials.Pooled;
+            Debug.Log(trend);
+            Trace(trend, "perf-t64.txt");
 #if UNITY_EDITOR
-            var buckets = new AllocBuckets();
-            yield return ProfileAllocs(r, dt, ProfileFrames, buckets);
-            string prof = buckets.Frames > 0
-                ? "[T64] 프로파일러 GC.Alloc 버킷(" + buckets.Frames + "프레임 평균 · 샘플 " + (buckets.Samples / buckets.Frames) + "/프레임 · 합 " + (buckets.Total / buckets.Frames) + "B/프레임): 경로 ⟨" + TopN(buckets.Path, buckets.Frames, 10) +
-                  "⟩ · 직접 부모 ⟨" + TopN(buckets.Parent, buckets.Frames, 12) + "⟩" + (buckets.Why.Length > 0 ? " · ⚠ " + buckets.Why : "")
-                : "[T64] 프로파일러 GC.Alloc 버킷: 자 없음 — " + buckets.Why;
-            Debug.Log(prof);
-            Trace(prof, "perf-t64.txt");
+            var bucketsLast = new AllocBuckets();
+            yield return ProfileAllocs(r, dt, ProfileFrames, bucketsLast);
+            Trace(ProfLine("처음(예열 직후)", bucketsFirst), "perf-t64.txt");
+            Trace(ProfLine("끝(갈래 뒤)", bucketsLast), "perf-t64.txt");
 #endif
 
             Assert.Greater(r.S.Numbers.SpawnedTotal, 0, "부하 장면에 데미지 숫자가 없다 — 부하가 아니다");
