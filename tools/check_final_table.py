@@ -15,6 +15,10 @@
 
 사용:  python3 tools/check_final_table.py [--self-test]
        (어긋나면 ✗ 와 rc 1 · CI dotnet 잡은 이것을 **보고만** 한다 — 배포가 죽는 갈래가 아니다)
+   ⚠ «열림 ↔ 열림»(⬜ ↔ 🔄)은 **알리기만** 한다(T82) — 선점 커밋이 PROGRESS 를 🔄 로 바꾸는 순간부터
+     §7 을 고칠 때까지 몇 분 동안 모든 워커의 게이트가 빨개졌다(2026-09-12 T61 · 2026-09-13 T81 실측).
+     T33 의 «다 옮겨졌다» 판정은 ✅ 만 본다 — ⬜ 인지 🔄 인지는 그 판정을 바꾸지 않는다.
+     **닫힌 표시(✅⛔✂)가 한쪽에라도 끼면 그대로 rc 1** 이다(끝난 것을 안 옮겼거나, 안 끝난 것을 끝났다고 적은 갈래).
 """
 import io, os, re, sys
 
@@ -131,6 +135,14 @@ def check(routine_text, progress_text):
     return bad, seen
 
 
+OPEN = '⬜🔄'
+
+
+def is_soft(glyph, want):
+    """열림 ↔ 열림(⬜ ↔ 🔄) 어긋남인가 — T33 판정을 안 바꾸므로 막지 않고 알리기만 한다(T82)."""
+    return want in GLYPHS and glyph in OPEN and want in OPEN
+
+
 def main():
     routine = io.open(os.path.join(ROOT, ROUTINE), encoding='utf-8').read()
     progress = io.open(os.path.join(ROOT, PROGRESS), encoding='utf-8').read()
@@ -143,17 +155,24 @@ def main():
             print('  · %s %s — §7 어느 줄에도 안 적혔다' % (tid, glyph))
         print('  고침: 그 작업을 §7 의 제 원작 줄(«작업»·«상태» 칸)에 적는다. 원작 모듈에 안 붙는')
         print('        도구·게이트·CI 작업이면 §7 의 «(원작 밖 · 도구·게이트·CI)» 줄에 적는다.')
-    if bad:
-        print('✗ check_final_table: §7 대조표가 PROGRESS 와 어긋난다 %d건 — T33 은 이 표로 «다 옮겨졌다» 를 판정한다' % len(bad))
-        for lineno, tid, glyph, want in bad:
+    hard = [b for b in bad if not is_soft(b[2], b[3])]
+    soft = [b for b in bad if is_soft(b[2], b[3])]
+    if hard:
+        print('✗ check_final_table: §7 대조표가 PROGRESS 와 어긋난다 %d건 — T33 은 이 표로 «다 옮겨졌다» 를 판정한다' % len(hard))
+        for lineno, tid, glyph, want in hard:
             if want in GLYPHS:
                 print('  · %s:%d  %s  §7 «%s» ↔ PROGRESS «%s»' % (ROUTINE, lineno, tid, glyph, want))
             else:
                 print('  · %s:%d  %s  §7 «%s» — %s' % (ROUTINE, lineno, tid, glyph, want))
         print('  고침: 끝낸 워커가 §7 의 그 칸도 같이 바꾼다(§7 머리줄 규약). 지금 고치려면 PROGRESS 상태에 맞춰 그 글자만.')
-    if bad or miss:
+    if soft:
+        print('⚠ 열림 ↔ 열림 %d건 — 막지 않는다(T82 · 선점 직후의 몇 분이다 · T33 판정은 ✅ 만 본다)' % len(soft))
+        for lineno, tid, glyph, want in soft:
+            print('  · %s:%d  %s  §7 «%s» ↔ PROGRESS «%s» — 그 작업의 임자가 다음 커밋에 맞춘다' % (ROUTINE, lineno, tid, glyph, want))
+    if hard or miss:
         return 1
-    print('✓ check_final_table: §7 줄 %d · 상태 표시 %d개가 PROGRESS 와 같다 · 이름이 빠진 작업 0' % (rows, seen))
+    print('✓ check_final_table: §7 줄 %d · 상태 표시 %d개가 PROGRESS 와 같다 · 이름이 빠진 작업 0%s'
+          % (rows, seen, ' · 열림↔열림 %d(알림)' % len(soft) if soft else ''))
     return 0
 
 
@@ -203,6 +222,18 @@ def self_test():
         bad, _ = check('## 7. x\n\n| 원작 | 무엇 | 작업 | 상태 |\n|---|---|---|---|\n' + row + '\n', P)
         if not any(b[3] == want_reason for b in bad):   # 한 줄이 두 가지로 어긋날 수 있다(«두 표시» 줄이 그렇다)
             print('✗ %s: %r' % (note, bad)); ok = False
+
+    # T82 — 열림↔열림은 알리기만 · 닫힌 표시가 끼면 그대로 막는다
+    for glyph, want, soft, note in [
+        ('⬜', '🔄', True,  '선점 직후(§7 ⬜ ↔ PROGRESS 🔄)'),
+        ('🔄', '⬜', True,  '반납 직후(§7 🔄 ↔ PROGRESS ⬜)'),
+        ('🔄', '✅', False, '끝났는데 §7 이 진행'),
+        ('✅', '🔄', False, '§7 만 끝났다고'),
+        ('⬜', '⛔', False, '접힌 것을 대기로'),
+        ('⬜', 'PROGRESS 표에 그 번호 행이 없다', False, '사유 문자열은 늘 막는다'),
+    ]:
+        if is_soft(glyph, want) != soft:
+            print('✗ T82 갈래(%s): is_soft(%r, %r) = %r' % (note, glyph, want, is_soft(glyph, want))); ok = False
 
     # 미등재 갈래 — §7 에 이름조차 없는 번호를 잡는가
     R2 = ('## 7. 완결\n\n| 원작 | 무엇 | 작업 | 상태 |\n|---|---|---|---|\n'
