@@ -180,7 +180,19 @@ namespace Forge.Tests.PlayMode
             Transform row = card.Find("loadout");
             Assert.IsNotNull(row, "출전 줄");
             int orbs = 0;
-            foreach (Transform t in row) if (t.name.StartsWith("sk-cell-")) { orbs++; Assert.IsNotNull(t.Find("sk-orb"), t.name + " 오브"); Assert.IsNotNull(t.Find("sk-lv"), t.name + " Lv 알약"); }
+            foreach (Transform t in row) if (t.name.StartsWith("sk-cell-"))
+            {
+                orbs++;
+                Assert.IsNotNull(t.Find("sk-orb"), t.name + " 오브");
+                Transform lv = t.Find("sk-lv");
+                Assert.IsNotNull(lv, t.name + " Lv 알약");
+                // T129 — 정본 `.sk-lv` 는 `white-space: nowrap` 라 상자가 글자 폭대로 늘어난다.
+                // 옛 클론은 폭을 오브 지름의 1.1배로 잘라 «Lv. 20» 이 «v. 2» 로 찍혔다(런 254 PNG 8배 실측).
+                TMPro.TextMeshProUGUI lt = lv.Find("t").GetComponent<TMPro.TextMeshProUGUI>();
+                Assert.IsTrue(((RectTransform)lv).rect.width + 0.5f >= lt.preferredWidth,
+                    t.name + " Lv 라벨 상자(" + ((RectTransform)lv).rect.width.ToString("0.0") + ") 가 글자(" + lt.preferredWidth.ToString("0.0") + ") 보다 좁다 — 잘려 찍힌다");
+                Assert.AreEqual(0f, lt.outlineWidth, 1e-4f, t.name + " Lv 글자에 테 0(정본 .sk-lv 에는 -webkit-text-stroke 규칙이 없다)");
+            }
             Assert.IsTrue(orbs > 0 || row.Find("none") != null, "오브가 있거나 «출전 중인 펫 없음»");
             // 미니 씬 폴백(T54 전) — 🛡️ · 스테이지 라벨 · 웨이브 핍(전투 씬이 있고 던전이 아니면 총 웨이브 수만큼)
             Transform pv = card.Find("preview");

@@ -43,7 +43,7 @@ TABLE = {
     '.float-dmg.dmg-hero': ['Battle/DamageNumbers.cs'],
     '.skill-btn .sk-lv': ['Ui/SkillBar.cs#sk-lv'],
     '.skill-btn.auto.on': ['Ui/SkillBar.cs#t'],
-    '.equip-cell .cell-lv': ['Ui/PlayerInfoPopup.cs#t'],
+    '.equip-cell .cell-lv': ['Ui/ForgeUi.cs#lv'],
     '.anvil-btn small': ['Ui/ForgeSheet.cs#count'],
     '.league-row.me .league-server': ['Ui/LeagueSheet.cs#server'],
     '.league-reward-banner': ['Ui/LeagueSheet.cs#text'],

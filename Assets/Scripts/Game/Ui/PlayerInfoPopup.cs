@@ -414,12 +414,15 @@ namespace Forge.Game.Ui
             UiKit.Place(orbRt, 0f, 0f, orb, orb);
             float lh = PlayerInfoStyle.Px("sk_lv_h_rem");
             string txt = PlayerInfoStyle.T("lv", level);
-            float lw = Mathf.Min(orb * 1.1f, PetSkillKit.TextWidth(TextKind.Sub, txt) + PlayerInfoStyle.Px("sk_lv_pad_rem") * 2f);
+            // 정본 `.sk-lv`(style.css 4045)는 `white-space: nowrap` + `padding: 0 .25rem` — 상자가 **글자 폭대로** 늘어나고 오브보다 넓어져도 그만이다.
+            // 옛 `Mathf.Min(orb * 1.1f, …)` 상한은 정본에 없는 클론의 발명이라 «Lv. 20» 이 «v. 2» 로 잘려 찍혔다(T129 · 런 254 PNG 8배 실측).
+            float lw = PetSkillKit.TextWidth(TextKind.Sub, txt) + PlayerInfoStyle.Px("sk_lv_pad_rem") * 2f;
             RectTransform lv = UiKit.Box(cell, "sk-lv");
             PetSkillKit.Fill(lv, "bg", PlayerInfoStyle.C("sk_lv_bg"), lh * 0.5f);
             TextMeshProUGUI t = PetSkillKit.Text(lv, "t", TextKind.Sub, txt, PlayerInfoStyle.C("sk_lv_ink"));
             UiKit.Fill(t.rectTransform);
-            UiKit.OutlinePx(t, "white", KeylineUi.Px("equip_cell_lv"));   // 정본 .equip-cell .cell-lv { -webkit-text-stroke: .3px #fff }
+            // 테 없음이 정본이다 — `.sk-lv` 에는 `-webkit-text-stroke` 규칙이 없고(검정 알약 위 흰 글자),
+            // `.3px #fff` 를 받는 것은 **다른 요소**인 `.equip-cell .cell-lv`(style.css 936)다. 그 실물은 `Ui/ForgeUi.cs` 135행이다(T129 가 T109 2회차의 오배치를 걷었다).
             UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, lw, lh);   // 칸 바닥 = 오브 바닥 − .15rem(정본 bottom:-.15rem)
             return cell;
         }

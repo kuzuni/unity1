@@ -2860,6 +2860,17 @@
 - 내 자리(T87)는 26회차에 lock 을 반납했고 지금은 워커 L 이 27회차(결과 카드)로 쥐고 있다. 이번 회차 나는 §0-5 대로 **게이트만 재실행**했다: `dotnet build` 0 오류 · `dotnet test` **581/581** · 파이썬·노드 자 12종 rc 0.
 
 
+### T129 1회차 기록 — 플레이어 정보 출전 줄 Lv 라벨이 잘려 찍히던 뿌리 (2026-09-13 22:0x~22:2x · 워커 I · sess-2203-14027 · lock 유지 · ✅ 는 CI 한 바퀴 뒤)
+
+- **어떻게 찾았나**: 이 회차에 선점할 작업이 없어(열린 ⬜ 가 전부 T87·T28 lock 뒤) §1 «눈으로 본다» 를 했다 — `screens`(런 254)의 `screen_player-info.png` 와 원작 `ref/screens/shot-043313.png` 의 **같은 자리**를 8배로 확대해 나란히 봤다. 출전 줄 오브 여섯의 레벨 라벨이 전부 **좌우로 잘려** 있었다(첫 칸 «Lv. 20» → «v. 2»).
+- **뿌리**: `PlayerInfoPopup.OrbCell` 이 라벨 상자 폭을 `Mathf.Min(orb * 1.1f, 글자폭 + 안여백×2)` 로 잡았다. **`orb * 1.1f` 상한은 정본에 없다** — 정본 `.sk-lv`(`style.css` 4045)는 `white-space: nowrap` + `padding: 0 .25rem` 라 글자 폭대로 늘어나고 오브보다 넓어져도 그만이다. 오브 지름은 정본대로 앱 폭 6.24%(`PlayerInfoUi.json orb_w` · 정본 `.pinfo-loadout-row .sk-cell`)라 상한이 «Lv. NN» 을 못 담는다. 상한을 걷었다(한 줄).
+- **같이 걷은 내 실수(결정 279)**: 같은 줄의 `UiKit.OutlinePx(t, "white", KeylineUi.Px("equip_cell_lv"))` 는 T109 2회차(`a43f87a` · 내가 민 것)가 **다른 요소의 규칙**을 얹은 것이다 — `-webkit-text-stroke: .3px #fff` 는 `.equip-cell .cell-lv`(`style.css` 936)의 것이고 이 자리는 `.sk-lv`(테 규칙 없음)다. 진짜 `.equip-cell .cell-lv` 는 `Ui/ForgeUi.cs` 135행 `LvBadge` 이고 거기엔 이미 `PopupKit.Ring` 이 걸려 있다 — `check_keyline.py` 의 `MAP` 을 그 자리로 옮기니 **자리 초록 48 그대로**다(KNOWN 을 늘리지 않았다).
+- **막이 둘**(`UiSmokeTests` T65 절): ⓐ 오브마다 «라벨 상자 폭 ≥ 그 글자의 `preferredWidth`»(잘림 0 · 실패 문구에 두 수를 적어 다음 사람이 바로 읽게) ⓑ «라벨 글자 테 0»(정본에 규칙이 없다는 사실을 자로 못 박는다).
+- **⚠ 별(★)은 쫓지 마라**: 원작 샷의 오브 바닥에 붙은 주황 별은 지금 정본 `renderPlayerInfo`(`ui.js` 5169~5180)의 출전 줄 마크업에 **없다**(`.sk-star` 는 스킬·펫·탈것 패널에만 있다) — 클론에 별이 없는 것은 정본대로다.
+- **번호**: 처음 `T128` 로 잡았는데 같은 순간 검수 Q 가 먼저 밀어(`dd87965`) 규약대로 **늦게 민 쪽이 옮겨** `T129` 가 됐다.
+- **게이트**: `dotnet build` 0 error · `dotnet test` **582 통과 / 0 실패** · `check_keyline` rc 0(자리 초록 48) · `check_final_table`·`check_task_rows`·`task_state --check`·`check_claim_scope`·`check_decisions`·`check_docs_intact`·`check_text_glyphs`·`check_sfx_calls`·`check_shaders_included`·`gen_meta --check`·`gen_ui_catalog --check`·`ui_score --self-test`·`export_data --self-test`·`check_data_sync` 전부 rc 0. PlayMode 는 CI 몫이라 **lock 은 다음 런이 초록인 것을 본 뒤** 반납한다.
+- **다음 회차(누구든)**: 이 팝업의 남은 자리는 T115(미리보기 칸 바닥)·T111(카드 자리·폭) 쪽이고, 출전 줄은 다음 런 PNG 를 8배로 열어 «Lv. NN» 이 온전한지 눈으로 본 뒤 ✅ 로 닫으면 된다.
+
 ### T126 1회차 기록 — 빌드에 안 실리던 셰이더 둘 (2026-09-13 21:4x~22:0x · 워커 G · sess-2144-31207 · lock 유지)
 
 - **왜 이 작업을 등재했나**: 이번 회차에 선점할 자리가 없어(깨끗한 다섯은 전부 살아 있는 T87 lock 과 같은 파일이거나 주인 에셋 승인 사안) §0-5 대로 게이트만 돌려 보다가, 내 T87 23회차의 `Forge/UiScreen` 을 `Resources/` 에 둔 이유를 되짚으며 **다른 셰이더들도 그 길이 있는지** 봤다. 없었다.
@@ -3528,3 +3539,4 @@
 - **게이트**: `dotnet build` 0 오류(PlayMode 컴파일 포함) · `dotnet test` 582/582 · gen_meta(새 .meta) · 자 전부 rc 0.
 - **남은 자리(4회차 목록 그대로)**: `ForgeAutoPopup`·`ForgeInfoPopup`·`ForgeCraftPopup`(T87 lock) · 공용 `Popups.cs@Btn`(제 회차) · «자리 자체가 없는» 다섯(`PetPanel#sk-lv`·`SkillBar#sk-lv`·`DungeonSheet#rw-amt`·`#rw-tick`·`OfflinePopup#zzz`).
 - **판정(다음 런)**: `DamageKeylineTests` 초록 · PlayMode 빨강 0(내 자리) · `screen_main.png`(전투 중 데미지 숫자) 3배로 숫자 둘레 검정 키라인 확인 → lock 반납(행은 ⬜ · 남은 자리 누구든).
+279. **자가 «정본 규칙 ↔ 클론 자리» 를 잇는 표는 «같은 글자» 가 아니라 «같은 요소» 로 이어야 한다 — T109 2회차가 `.equip-cell .cell-lv` 를 `.sk-lv` 에 얹었다(2026-09-13 · T129 1회차 · 워커 I · sess-2203-14027)** — `check_keyline.py` 의 `MAP` 은 정본 CSS 규칙마다 «이 클론 자리가 그것을 낸다» 를 적는다. T109 2회차(`a43f87a`)는 `.equip-cell .cell-lv`(장비 칸 Lv 배지 · `-webkit-text-stroke: .3px #fff`)의 짝으로 `Ui/PlayerInfoPopup.cs#t` 를 적고 거기에 흰 테를 걸었는데, 그 자리는 **출전 줄 오브의 `.sk-lv`**(검정 알약 위 흰 글자 · 정본에 테 규칙이 **없다**)다. 둘 다 «Lv. N» 글자라 이름만 보면 같아 보이지만 요소가 다르다. 진짜 `.equip-cell .cell-lv` 는 `Ui/ForgeUi.cs` 135행(`LvBadge`)이고 거기엔 이미 `PopupKit.Ring` 이 걸려 있어 자는 처음부터 초록이었다 — 즉 T109 는 **초록인 자리를 위해 엉뚱한 자리에 테를 하나 더 얹은 것**이다. 그 테가 눈에 띈 자리는 아니지만(0.65 캔버스 px) 규칙이 «정본대로» 가 아니다. 고침: `MAP['.equip-cell .cell-lv']` 을 `Ui/ForgeUi.cs#lv` 로 옮기고(자리 초록 48 그대로) `PlayerInfoPopup` 의 그 호출을 걷었다. 규칙: **`MAP` 에 자리를 적기 전에 그 클론 자리가 정본 선택자의 **요소**인지 확인한다 — 글자 내용(«Lv. N»)이나 변수 이름이 같은 것은 근거가 아니다.** 되돌리려면 `tools/check_keyline.py` 한 줄 + `PlayerInfoPopup.cs` 의 그 호출.
