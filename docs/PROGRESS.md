@@ -3065,6 +3065,8 @@
 
 261. **정본이 제 안에서 어긋난 값도 «글자 그대로» 옮긴다 — 연기 지연(2026-09-13 · T87 25회차 · 워커 G)** — `afsmoke` 의 `animation-delay` 는 `.173s / .378s / .648s` 인데 타격은 300 / 650 / 1100ms 다(연기가 127~452ms 씩 이르다). 정본 주석이 그 까닭을 남겨 뒀다 — «3타 연기(.648 + .25s)가 **900ms** 에 끝나 오버레이 수명과 맞물린다» 는 **지금 클럭(1500ms)보다 앞선 시절**의 셈이다. 타격에 맞춰 재배치하면 «더 나아» 보이겠지만 그것은 원작에 없는 타이밍을 만드는 일이라(금지 셋 중 «원작에 없는 것 추가») 값을 그대로 옮기고 EditMode 가 그 어긋남까지 단언한다(«연기는 제 타격보다 이르다»). 주인이 맞추길 원하면 그때 `SmokeDelayMs` 를 `HitMs` 기준으로 바꾸면 된다 — 한 줄이다. 되돌릴 곳: `AutoForgeFxSpec.SmokeDelayMs`.
 
+262. **무음 훅은 `ForgeHost` 밖에서 꽂는다 · 이미 꽂힌 훅은 안 덮는다 · 타격 세기는 2회차로(2026-09-13 · T120 1회차 · 워커 H · sess-1857-3434)** — 고칠 자리(`ForgeHost.cs` 81행 `public Action<string> Sfx`)가 T87 lock 의 `Ui/Forge*` 안이라 규약대로면 통째로 기다려야 했다. 그런데 그 파일이 이미 **밖에서 꽂을 길**을 열어 뒀다(`public static event Action OnReady` + 공개 필드). 그래서 새 파일 `Assets/Scripts/Game/HostSfx.cs` 가 `OnReady` 에 붙어 «비어 있으면» 기본값을 채운다 — T87 파일은 한 글자도 안 연다(T111 `GearDetailUi.json` · T117 `Ui/CoinBurst` 와 같은 길). 세 가지를 정해 적용했다: ⓐ **이미 꽂힌 훅은 안 덮는다** — 그 훅을 `Action` 으로 남긴 뜻이 «테스트가 갈아끼운다» 이므로(PlayMode 단언으로 못 박았다) ⓑ 표에 없는 이름은 조용히 흘린다(호스트가 새 이름을 붙여도 예외로 안 죽는다) ⓒ 대장간 레벨업 소리는 `ForgeEngine.LevelReached`(Core 신호 · 정본 `forge.js` 303 자리)에 붙였다 — UI 를 안 거치므로 팝업이 닫혀 있어도 운다(정본도 그렇다). **일부러 안 한 것**: 정본 `ui.js` 2943 은 `SFX.anvilHit(h === 2)` 로 **3타만 강하게** 우는데 훅이 이름 하나만 받아 지금은 전부 약한 타격이다 — 세기를 실으려면 `ForgeHost.cs` 를 열어야 해서 **T120 2회차**(T87 lock 뒤)로 적었다. `check_sfx_calls.KNOWN` 에서 셋 빼기도 그 파일이 T119 lock 이라 2회차 몫이다. 되돌리려면 `HostSfx.cs` 를 지우고 `TechPopups.OnClaim`·`DungeonClearPopup` 의 `Sfx.LevelUp()` 두 줄을 지운다.
+
 251. **키라인 폭표는 `KeylineUi.json` 곁 표에 · `currentColor` 는 호출 뒤 제 색으로(2026-09-13 · T109 · 워커 I)** — 정본 `-webkit-text-stroke` 폭을 `catalog.json` 에 넣어야 맞지만 그 파일은 T87 lock 이다. T65 `PlayerInfoUi.json`·T111 `GearDetailUi.json`(결정 249)과 같은 길로 `Assets/Forge/Resources/KeylineUi.json` 에 `px`(절대)·`em`(글자 크기 비율) 두 절로 담고 로더 `KeylineUi.Px/Em` 이 기준 캔버스 px 로 환산해 `UiKit.OutlinePx` 에 넘긴다 — 코드에 숫자 0(§1) · T33·T104 2회차가 catalog 로 합칠 수 있다. 정본이 `currentColor` 로 적은 두 자리(`.chat-bubble`·`.chat-time`)는 색 «키» 가 없는 자리라 호출 뒤 `t.outlineColor = t.color;` 한 줄로 준다. 되돌리려면 그 표와 로더를 지우고 호출 열 줄을 지운다. 공용 `PopupKit.Btn`(버튼 라벨 전부가 한 번에 바뀐다)은 **일부러 남겼다** — 남의 PlayMode 단언을 흔들 자리라 제 회차를 따로 받는 게 맞다.
 
 **✅ 6회차 (2026-09-13 17:2x · 워커 J · 눈 확인 끝 · lock 반납)**
@@ -3127,3 +3129,25 @@
 - **내 ⓑ 를 T119 1회차(워커 E)가 고쳤고 그 정정이 옳다 — `parity.md` 를 그대로 고쳐 적었다**: «호출 0 은 넷» 이 아니라 **일곱**이고(`craft`·`equipSnap`·`levelUp` 은 훅을 아무도 안 꽂아 무음 = T120), `stormCrackle` 은 **옮기면 안 되는 것**이었다 — 정본의 유일한 호출이 `_legacyStormCloudStrike`(정의 한 곳 · 호출 0 · 직접 다시 확인) 안이다. 내 셈이 ⓐ 메서드 묶음(`SfxGacha = Sfx.Gacha`)을 «0» 으로 ⓑ 훅 문자열(`PlaySfx("craft")`)을 «울린다» 로 센 것이 뿌리다.
 - **다음 회차 T33 이 쓸 규칙 한 줄**(3회차가 산 것): «클론이 안 부른다» 다음에는 반드시 «**정본은 그 길을 실제로 밟는가**» 를 묻는다 — 안 그러면 원작에 없는 것을 넣는 쪽으로 잘못 등재한다.
 - 3회차가 등재한 셋의 한 시간 뒤: **T117 1회차 ✅**(워커 R · 런 229) · **T119 1회차**(워커 E · 소리 자 + T120 등재) · **T118 은 아직 임자 없음**.
+
+### T120 1회차 기록 (2026-09-13 19:0x~19:3x · 워커 H · sess-1857-3434 · lock 유지 · ✅ 는 CI 한 바퀴 뒤)
+
+**무엇이 문제였나**: `ForgeHost` 는 `PlaySfx("craft")`(175) · `PlaySfx("equipSnap")`(529) · `PlaySfx("anvilHit")`(762) 를 부르는데 그 훅 `ForgeHost.Sfx`(81행)에 **대입하는 코드가 레포 어디에도 없었다** → 대장간 소리 셋이 통째로 무음. `levelUp` 은 호출도 훅도 아예 없었다(정본은 셋).
+
+**한 것**
+| 소리 | 어디서 우는가(이 회차 뒤) | 정본 |
+|---|---|---|
+| `craft` | `ForgeHost.Engine.Crafted` → 훅 → `Sfx.Craft` | `forge.js` 181 |
+| `equipSnap` | `DoResolveCraft` 장착 → 훅 | `ui.js` 3462 |
+| `anvilHit` | 타격 세 번마다 → 훅(⚠ 전부 약하게 — 아래) | `ui.js` 2943 |
+| `levelUp` ⑴ | `ForgeEngine.LevelReached`(대장간 레벨업) | `forge.js` 303 |
+| `levelUp` ⑵ | `TechPopups.OnClaim` — 연구가 실제로 완료된 자리 | `techtree.js` 382 |
+| `levelUp` ⑶ | `DungeonClearPopup.Show` 끝(카드를 띄운 뒤 한 번) | `ui.js` 4710 |
+
+- 훅은 **T87 lock 파일을 안 열고** 새 파일 `Assets/Scripts/Game/HostSfx.cs` 가 `ForgeHost.OnReady` 에 붙어 꽂는다(결정 262 · 비어 있을 때만 채운다).
+- PlayMode 단언 하나 추가(`AudioSmokeTests.대장간_호스트의_소리_훅이_꽂혀_이름으로도_실제로_난다`): 훅이 null 이 아니고 · 이름 넷이 실제로 울고 · 모르는 이름은 조용하고 · 갈아끼운 훅이 살아남는다.
+- `check_sfx_calls`: **호출 0 이 일곱 → 넷**(`craftReveal`(T119) · `equipToss`·`equipDrop`(T118) · `stormCrackle`(안 옮긴다))로 줄었다.
+
+**2회차로 남긴 것(둘 다 남의 lock 뒤)**: ⓐ 정본 `anvilHit(h === 2)` 의 **3타 강타** — 훅이 이름만 받아 `ForgeHost.cs`(T87)를 열어야 한다 ⓑ `check_sfx_calls.KNOWN` 에서 `craft`·`equipSnap`·`levelUp` 빼기 — 그 파일은 T119 lock.
+
+**게이트**: `dotnet build` 0 오류(PlayMode 포함) · `dotnet test` **561/561** · 자 16종 rc 0(`check_sfx_calls` rc 0 · 자기 검사 포함) · `gen_meta` 로 새 파일 `.meta` 생성.

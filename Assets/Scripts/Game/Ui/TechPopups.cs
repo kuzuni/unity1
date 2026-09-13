@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Forge.Core;
 using Forge.Core.Tech;
+using Forge.Game.Audio;
 
 namespace Forge.Game.Ui
 {
@@ -64,7 +65,8 @@ namespace Forge.Game.Ui
 
         public static void OnClaim()
         {
-            if (Tree.Claim(Host.Now())) AfterChange();
+            // 정본 techtree.js 382: 연구가 실제로 완료된 그 자리에서 `SFX.levelUp()` 이 운다(토스트 앞) · T120
+            if (Tree.Claim(Host.Now())) { Sfx.LevelUp(); AfterChange(); }
         }
 
         static void AfterChange()

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Forge.Core;
 using Forge.Core.Dungeon;
+using Forge.Game.Audio;
 
 namespace Forge.Game.Ui
 {
@@ -95,6 +96,9 @@ namespace Forge.Game.Ui
 
             ConfirmButton = DungeonPopups.Pill(gold, "confirm", "보상 수령", DungeonPopups.Skin.Blue, TextKind.Button, Confirm);
             UiKit.Place(DungeonPopups.Root(ConfirmButton), pad, y, cw - pad * 2f, btnH);
+
+            // 정본 ui.js 4710 — 카드를 띄운 **뒤** 한 번(«클리어 팬페어» 주석). 열 때마다 한 번이지 보상 수령에는 없다(T120).
+            Sfx.LevelUp();
         }
 
         public static void Confirm()

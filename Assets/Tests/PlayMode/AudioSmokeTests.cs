@@ -4,7 +4,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Forge.Core.Audio;
+using Forge.Game;
 using Forge.Game.Audio;
+using Forge.Game.Ui;
 
 namespace Forge.Tests.PlayMode
 {
@@ -103,6 +105,43 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(music.Running, "토글 켬 → 다시");
             music.StopMusic();
             Assert.IsFalse(music.IsPlaying);
+        }
+
+        /// <summary>
+        /// T120 — 대장간 소리 셋이 **실제로 울릴 길**이 꽂혀 있는가. `ForgeHost` 는 이름 문자열로만 부르고 그 훅
+        /// <c>ForgeHost.Sfx</c> 를 아무도 안 꽂아 `craft`·`equipSnap`·`anvilHit` 가 통째로 무음이었다(T119 1회차 실측).
+        /// 소리는 PNG 에도 안 찍히고 앞 테스트의 «24종 전부 재생» 은 **래퍼를 직접 부르므로** 이 구멍을 못 본다 —
+        /// 그래서 «호스트가 부르는 길» 을 따로 묻는다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 대장간_호스트의_소리_훅이_꽂혀_이름으로도_실제로_난다()
+        {
+            yield return Boot();
+            yield return WaitUntil(() => ForgeHost.Ready && ForgeHost.Instance != null, 60f, "ForgeHost 부팅");
+            yield return WaitUntil(() => AudioBank.SfxReady, 120f, "효과음 렌더");
+
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h.Sfx, "ForgeHost.Sfx 훅이 비어 있다 — 대장간 소리가 통째로 무음이다(T120)");
+
+            int before = Sfx.PlayedCount, hooked = HostSfx.Played;
+            foreach (string name in new[] { "craft", "equipSnap", "anvilHit", "levelUp" })
+            {
+                h.Sfx(name);
+                Assert.AreEqual(name, HostSfx.LastName, name + " 이 훅을 지났다");
+            }
+            Assert.AreEqual(hooked + 4, HostSfx.Played, "이름 넷이 전부 표에 있다");
+            Assert.AreEqual(before + 4, Sfx.PlayedCount, "이름으로 부른 넷이 실제로 났다");
+
+            // 표에 없는 이름은 조용히 흘린다(호스트가 새 이름을 붙여도 예외로 죽지 않는다).
+            h.Sfx("nope");
+            Assert.AreEqual(before + 4, Sfx.PlayedCount, "모르는 이름은 안 난다");
+
+            // 훅을 갈아끼운 뒤 다시 꽂아도 **내 것이 산다** — 테스트가 갈아끼울 자리를 남긴 뜻(ForgeHost 81행)을 지킨다.
+            int mine = 0;
+            h.Sfx = _ => mine++;
+            HostSfx.Attach();
+            h.Sfx("craft");
+            Assert.AreEqual(1, mine, "다시 Attach 한 뒤 남의 훅이 사라졌다");
         }
     }
 }
