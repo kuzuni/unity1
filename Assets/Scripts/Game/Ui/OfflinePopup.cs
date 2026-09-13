@@ -65,13 +65,15 @@ namespace Forge.Game.Ui
             UiKit.Place(total, 0f, by, inner, lineH);
             Image ci = PopupKit.IconOr(total, "coin-ico", "coin");
             UiKit.Place(ci.rectTransform, inner * 0.18f, 0f, ico, ico);
-            coins = UiKit.Text(total, "coins", TextKind.Sub, string.Empty, "pp_ink", TextAlignmentOptions.Left);
+            // 정본 `.offline-total { color: #fff; -webkit-text-stroke-width: .2em }` — **흰 칠 + 검정 링**이다.
+            // (정본 style.css 290~296 이 «검정으로 오독하기 쉽다 · 다시 검정으로 돌리지 말 것» 이라고 못 박아 뒀다 · T109 2회차가 키라인을 붙이며 드러났다)
+            coins = UiKit.Text(total, "coins", TextKind.Sub, string.Empty, "white", TextAlignmentOptions.Left);
             coins.fontStyle = FontStyles.Bold;
             UiKit.OutlinePx(coins, "pp_line", KeylineUi.Em("offline_total", coins.fontSize));   // 정본 .offline-total { -webkit-text-stroke: .2em var(--pp-line) }
             UiKit.Place(coins.rectTransform, inner * 0.18f + ico + rem * 0.2f, 0f, inner * 0.25f, lineH);
             Image hi = PopupKit.IconOr(total, "hammer-ico", "hammer");
             UiKit.Place(hi.rectTransform, inner * 0.55f, 0f, ico, ico);
-            hammers = UiKit.Text(total, "hammers", TextKind.Sub, string.Empty, "pp_ink", TextAlignmentOptions.Left);
+            hammers = UiKit.Text(total, "hammers", TextKind.Sub, string.Empty, "white", TextAlignmentOptions.Left);   // 정본 .offline-total color:#fff
             hammers.fontStyle = FontStyles.Bold;
             UiKit.OutlinePx(hammers, "pp_line", KeylineUi.Em("offline_total", hammers.fontSize));   // 정본 .offline-total(같은 줄의 두 수)
             UiKit.Place(hammers.rectTransform, inner * 0.55f + ico + rem * 0.2f, 0f, inner * 0.25f, lineH);

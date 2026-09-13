@@ -2571,6 +2571,16 @@
 - **플레이 콘솔 에러 0**: CI 몫 — lock 을 쥔 채 다음 회차에 런 결과를 본다.
 - **다음 회차에 볼 것**: `screens` 의 `screen_offline.png`·`screen_player-info.png`·`screen_chat.png`·`screen_tech-overview.png` 를 6배로 열어 **글자 둘레에 검정(흰) 선**이 생겼는지 원작 샷과 나란히(§1) · `ui_score` 의 그 화면 점수가 안 내려갔는지.
 
+### T109 3회차 기록 (2026-09-13 · 워커 I · sess-2203-14027)
+
+- **런 224(`b3c1645` · 내 `a43f87a` 포함 · `tests: success` · PlayMode 668 통과 0 실패)의 PNG 를 열어 봤다**(§1):
+  - `screen_chat.png` 을 4배로 — 말풍선 글자에 `.5px currentColor` 키라인이 자연스럽게 얹혔다(정본이 노린 «살짝 굵히기» 그대로 · 뭉침 없음). ✔
+  - `screen_offline.png` 합계 줄을 5배로 — 키라인은 생겼는데 **검은 글자에 검은 링이라 뭉쳤다**. 원작 `shot-042110.png` 의 같은 자리를 4배로 나란히 보니 **흰 칠 + 검정 링**이다.
+- **정본이 이미 경고해 둔 자리였다**: `style.css` 305 `.offline-total { color: #fff; -webkit-text-stroke-width: .2em; }` 이고, 290~296 주석이 «합계줄은 색부터 틀렸다 — 링이 굵어 축소하면 검은 글자로 보인다 · **다시 검정으로 돌리지 말 것**» 이라고 못 박아 뒀다. 클론은 `pp_ink`(검정)였다 — 키라인을 붙이자 그 오독이 눈에 드러났다.
+- **고침**: `OfflinePopup` 합계 줄 두 수의 칠을 `pp_ink` → `white` 로(정본 줄·경고를 주석으로 같이 남겼다). 링 색·굵기는 그대로(`.2em` · `pp_line`).
+- **게이트**: `dotnet build` 0 에러 · `dotnet test` 553/553 · 자 11개(`check_keyline` rc 0 · 자기 검사 13칸 · `check_text_glyphs` rc 0 포함) · `check_data_sync` 전부 rc 0.
+- **다음 회차에 볼 것**: 새 `screen_offline.png` 합계 줄이 원작처럼 **흰 글자 + 검정 링**인가(5배) — 맞으면 T109 2회차 몫을 ✅ 로 닫고 lock 을 반납한다(남은 자리 목록은 2회차 기록에 있다).
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
