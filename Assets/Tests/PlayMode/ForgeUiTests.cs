@@ -843,11 +843,16 @@ namespace Forge.Tests.PlayMode
             fx.SampleTo(AutoForgeFxSpec.HitMs[2]);
             Graphic sg = sl.GetComponent<Graphic>();
             Assert.Greater(sg.color.a, 0.9f, "3타 접촉 프레임에 섬광이 밝다");
-            // 커진 프레임에도 안쪽 끝(축)은 제자리다 — 머리 실루엣을 파고들지 않는다
-            Vector3 axisAtHit = sl.TransformPoint(new Vector3(sl.rect.xMax, 0f, 0f));
+            // 커진 프레임에도 안쪽 끝(축)은 제자리다 — 머리 실루엣을 파고들지 않는다.
+            // 재는 자리는 **오버레이 안**이다: 화면(월드) 좌표로 재면 `sheetshake`(시트가 같이 흔들린다 · AnvilFxSpec.SheetShake)가 같이 잡힌다 —
+            // 3타 접촉(73.333% · x 1.30px)과 그 뒤 45ms(76.333% · x 0.21px) 사이의 1.09 CSS px 가 그것이고, 이것은 **모든 겹이 함께** 움직이는 정본 그대로다
+            // (17·19회차 런 205·209 의 «0.59px» 빨강이 바로 이 시트 흔들림이었다 · 결정 243). 축이 지켜야 하는 것은 «형제들 사이에서 안 움직인다» 이므로 부모 칸 좌표로 본다.
+            fx.SampleTo(AutoForgeFxSpec.HitMs[2]);
+            Vector3 axisAtHit = sl.parent.InverseTransformPoint(sl.TransformPoint(new Vector3(sl.rect.xMax, 0f, 0f)));
             fx.SampleTo(AutoForgeFxSpec.HitMs[2] + AutoForgeFxSpec.StarDurMs * 0.6);
-            Vector3 axisLater = sl.TransformPoint(new Vector3(sl.rect.xMax, 0f, 0f));
-            Assert.AreEqual(axisAtHit.x, axisLater.x, 0.5f, "섬광이 커져도 안쪽 끝은 붙박이다");
+            Vector3 axisLater = sl.parent.InverseTransformPoint(sl.TransformPoint(new Vector3(sl.rect.xMax, 0f, 0f)));
+            Assert.AreEqual(axisAtHit.x, axisLater.x, 0.05f, "섬광이 커져도 안쪽 끝은 붙박이다(오버레이 안에서)");
+            Assert.AreEqual(axisAtHit.y, axisLater.y, 0.05f, "섬광이 커져도 안쪽 끝의 높이도 붙박이다");
 
             // 잔열·플래시 — 창 안에서만 보이고, 잔열은 타격 사이에도 남는다(다리)
             for (int i = 0; i < AutoForgeFxSpec.HitMs.Length; i++)
