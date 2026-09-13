@@ -8,6 +8,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Forge.Core.Battle;
 using Forge.Core.Data;
 using Forge.Core.Dungeon;
 using Forge.Core.Forging;
@@ -18,6 +19,7 @@ using Forge.Core.Tech;
 using CoreRng = Forge.Core.Data.Rng;
 using Forge.Core;
 using Forge.Game;
+using Forge.Game.Battle;
 using Forge.Game.Gallery;
 using Forge.Game.Ui;
 
@@ -151,6 +153,10 @@ namespace Forge.Tests.PlayMode
             for (int i = 0; i < take && sk.Equipped.Count < 3; i++) sk.Equipped.Add(defs[i].Id);
             sk.SummonCount = 260;
 
+            // T77 — 정본 SEED 144행 `Combat.recalcHero()` 자리. 상태에 장비·스킬을 **직접** 넣으면 아무도 재계산을 안 부르고,
+            // HUD 전투력은 부팅 때(장비 0) 계산해 둔 스탯을 계속 읽는다 — 그래서 촬영 상단바가 «⚔ 45»(맨몸 수)로 찍혔다.
+            HeroStatsGlue.Recalc();
+
             // 펫 — 알·부화·보유를 채운다(정본: 알 30 소환 → 8마리 부화 · 부화 1칸 진행 · 출전 3)
             PetState ps = P.Pets.State;
             ps.Eggs.Clear(); ps.Pets.Clear(); ps.Hatching.Clear(); ps.ActivePets.Clear();
@@ -187,7 +193,33 @@ namespace Forge.Tests.PlayMode
             }
 
             P.Sync();
-            M.Touch(false);
+            HeroStatsGlue.Recalc();   // T77 — 펫 출전·기술 연구까지 넣은 뒤 한 번 더(정본은 펫 소환이 제 안에서 부른다)
+            M.Touch(false);           // HUD 는 재계산 **뒤에** 다시 적는다
+        }
+
+        /// <summary>
+        /// T77 — 촬영 전 단언: 상단바 전투력이 **장비를 태운 값**인가. 정본 SEED 는 장비 8부위(Lv.26~27 = 시대 6~7)를 채우므로
+        /// 전투력은 맨몸(≈36)이 아니라 수백만 단위여야 한다. 수치는 박지 않는다(§1) — 맨몸은 <see cref="BareHeroStats"/> ·
+        /// 식은 Core `Battle.CombatPower` 를 그대로 쓴다. 이 단언이 빨강이면 원인이 시드가 아니라 접착(T43·T55 갈래)이다.
+        /// </summary>
+        private static void AssertCombatPowerTookGear()
+        {
+            BattleScene bs = BattleScene.Instance;
+            Assert.IsNotNull(bs, "전투 씬이 없어 전투력을 잴 수 없다");
+            Assert.IsNotNull(bs.Battle, "전투가 아직 안 섰다");
+            Assert.IsTrue(HeroStatsGlue.Live, "장비·펫·스킬 호스트가 안 서서 맨몸 스탯을 쓰고 있다");
+
+            Big cp = M.MyCp;
+            Big bare = Cp(BareHeroStats.Make());
+            Big geared = Cp(HeroStatsGlue.Make());
+            Assert.IsTrue(cp.Cmp(bare) > 0, "상단바 전투력 " + NumFmt.Fmt(cp) + " 이 맨몸 " + NumFmt.Fmt(bare) + " 보다 크지 않다 — 장비가 안 탔다");
+            Assert.AreEqual(NumFmt.Fmt(geared), NumFmt.Fmt(cp), "상단바 전투력이 장비를 태운 값과 다르다");
+        }
+
+        /// <summary>원작 `Combat.combatPower()` 식(Core `Battle.CombatPower` 와 같은 줄)을 스탯 하나에 적용한다.</summary>
+        private static Big Cp(HeroStats st)
+        {
+            return st.Atk.Mul(st.AttacksPerSec * (1 + st.CritCh / 100 * st.CritDmg / 100)).Add(st.Hp.Div(8));
         }
 
         /// <summary>원작 `SCREENS` 표 그대로(순서·이름·shot 번호). 탈것 화면은 T20 이 아직 안 세웠으므로 «있으면 찍는다».</summary>
@@ -668,6 +700,7 @@ namespace Forge.Tests.PlayMode
             }
             yield return null;
             yield return new WaitForSeconds(0.5f);   // 전투 씬이 자리잡을 시간(원작 2.5s · 여기는 씬만 서면 된다)
+            AssertCombatPowerTookGear();             // T77 — 상단바가 «⚔ 45»(맨몸)로 찍히던 자리
 
             for (int i = 0; i < shots.Count; i++)
             {

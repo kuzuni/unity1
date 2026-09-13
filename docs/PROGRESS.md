@@ -1515,6 +1515,16 @@
 - **CI**: 런 **141**(`8dbc60f`) **초록** — PlayMode **603 통과 · 실패 0**(`playmode-red.txt` FAIL 0). 그 런의 그림도 열어 봤다: `screen_main.png` 의 상단바·스테이지 라벨·웨이브 핍·시트·채팅줄·탭바가 전부 제자리로 돌아왔고(=`ResetProjectionMatrix` 한 줄이 먹었다) 지면·HP 바도 있다. → **lock 반납**.
 - **주인이 확인할 것**: `screens` 의 `world_frame.png` — 폰에서 보는 3D 가 저 framing 이다(영웅이 화면 위 1/3). `screen_main.png` 은 UI 판정용이라 3D 가 앱 상자 framing 으로 찍힌다(T83 이 합친다).
 
+### T77 1회차 기록 (2026-09-13 · 워커 I · sess-2203-14027)
+
+- **선점 근거**: `task_state T77` 은 rc 1 이었지만 그 근거가 **등재 커밋 제목 하나뿐**(«코드 자취 0곳»)이라 결정 11ⓔ·58 과 같은 꼴이다. 표는 ⬜ · lock 없음 · 절을 다 읽고 잡았다. T77 이 기다리던 «T54 lock(같은 파일 `UiShotsTests.cs`)» 은 이 회차 첫 일로 내가 반납했다.
+- **정본 대조**: `web/tools/shot-screens.js` SEED 144행이 스킬을 세운 **직후** `Combat.recalcHero()` 를 부른다(그 앞 113~143행이 장비 8부위·서브 2줄·스킬 15종을 세이브에 직접 넣는다). 클론 `Seed()` 는 `F.Gear.Set`·`sk.Skills.Add` 로 상태에 직접 넣고 `F.Push()`·`P.Sync()`·`M.Touch(false)` 만 불렀다 — **셋 중 어느 것도 재계산을 안 부른다**. 그래서 HUD 는 부팅 때(장비 0) 계산해 둔 스탯을 읽어 «⚔ 45»(맨몸 ≈36 + 부스러기)로 찍혔다.
+- **고침**: ⓐ 정본 144행과 **같은 자리**(스킬 뒤·펫 전)에 `HeroStatsGlue.Recalc()` ⓑ 끝의 `P.Sync()` 뒤에 한 번 더(펫 출전·기술 연구까지 넣은 상태로) — `M.Touch(false)`(HUD 다시 적기)는 **재계산 뒤**로 순서를 맞췄다. 게임 코드 0줄, 촬영 시드만.
+- **막이 단언**(촬영 루프 직전 `AssertCombatPowerTookGear`): `M.MyCp` 가 ⓐ 맨몸(`BareHeroStats.Make()`)보다 크고 ⓑ 장비를 태운 값(`HeroStatsGlue.Make()`)과 **같다**. 식은 Core `Battle.CombatPower` 와 같은 줄을 쓰고 **수치는 안 박았다**(§1). 절의 예고대로, 이 단언이 빨강이면 원인이 시드가 아니라 접착(T43·T55 갈래)이라는 뜻이라 그때 새 번호로 등재하면 된다.
+- **게이트**: `dotnet build` 0 에러 · `dotnet test` **513/513** · 자 10개 + `check_data_sync` 전부 rc 0.
+- **플레이 콘솔 에러 0**: CI 몫 — lock 을 쥔 채 다음 회차에 런 결과와 `screen_main.png` 상단바를 본다.
+- **다음 회차에 볼 것**: `screens` 의 `screen_main.png` 상단바가 «⚔ 45» 가 아니라 **수백만 단위**(`NumFmt` 의 «N.Nm» 꼴)인가 · `playmode-red.txt` 에 새 단언이 초록인가 · T28 채점의 `main` 점수가 안 내려갔는가.
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
