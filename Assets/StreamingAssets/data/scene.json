@@ -458,5 +458,6 @@
   "RIDE_SEAT_RATIO": 1.45,
   "RIDE_WIDTH_RATIO": 0.74,
   "MOUNT_GAIT": 5.4,
-  "MOUNT_IDLE_GAIT": 1.7
+  "MOUNT_IDLE_GAIT": 1.7,
+  "PREVIEW_CAM": { "fov": 42, "near": 0.1, "far": 120, "pos": [0.1, 1.95, 4.3], "look": [0.05, 0.92, 0], "hero": [0, 0, 0.4] }
 }

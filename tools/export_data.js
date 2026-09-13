@@ -141,7 +141,30 @@ function extractScene(src) {
         if (!(k in S)) throw new Error(`Scene3D.${k} 이 없다 — 정본이 바뀌었다 (SCENE_FIELDS 를 맞출 것)`);
         out[k] = clean(S[k], `scene.${k}`);
     }
+    out.PREVIEW_CAM = extractPreviewCam(src);
     return out;
+}
+
+// T105 — 플레이어 정보 팝업 미니 씬의 카메라 리그. 정본은 `Scene3D.previewBuild()` **메서드 본문의 리터럴**
+// (`new THREE.PerspectiveCamera(42, 1, 0.1, 120)` · `position.set(0.1, 1.95, 4.3)` · `lookAt(0.05, 0.92, 0)` · 영웅 리그
+// `rig.group.position.set(0, 0, 0.4)`)이라 객체 필드 평가로는 안 나온다 — previewBuild 본문만 잘라 소스에서 읽는다.
+// 좌표는 three 좌표 그대로(유니티 쪽 ThreeSpace 가 z 를 뒤집는다). 정본이 줄을 바꾸면 여기서 던진다(조용히 옛 값을 쓰지 않는다).
+function extractPreviewCam(src) {
+    const code = fs.readFileSync(path.join(src, 'web', 'js', 'scene3d.js'), 'utf8');
+    const a = code.indexOf('previewBuild()');
+    if (a < 0) throw new Error('scene3d.js 에 previewBuild() 가 없다 — 정본이 바뀌었다');
+    const b = code.indexOf('previewResize()', a);
+    const body = code.slice(a, b > a ? b : a + 12000);
+    const vec = (re, what) => {
+        const m = re.exec(body);
+        if (!m) throw new Error(`previewBuild 에서 ${what} 을 못 읽었다 — 정본이 바뀌었다`);
+        return m.slice(1).map(Number);
+    };
+    const cam = vec(/_pvCam\s*=\s*new THREE\.PerspectiveCamera\(\s*([\d.]+)\s*,\s*[^,]+,\s*([\d.]+)\s*,\s*([\d.]+)\s*\)/, 'PerspectiveCamera(fov, aspect, near, far)');
+    const pos = vec(/_pvCam\.position\.set\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)/, '_pvCam.position.set');
+    const look = vec(/_pvCam\.lookAt\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)/, '_pvCam.lookAt');
+    const hero = vec(/rig\.group\.position\.set\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)/, 'rig.group.position.set');
+    return { fov: cam[0], near: cam[1], far: cam[2], pos, look, hero };
 }
 
 // ── 로드 ────────────────────────────────────────────────────────────────────
@@ -567,6 +590,7 @@ function selfTest(src) {
     ok('CHAPTER_THEMES 의 biome 이 원본 6종 또는 BIOMES 키', g.CHAPTER_THEMES.every(t => ['forest', 'desert', 'rock', 'snow', 'magic', 'lava'].includes(t.biome) || t.biome in sc.BIOMES));
     ok('VOXG 셀 0.75 · 단 0.375 · VALUE 8칸 · SOIL 3칸', sc.VOXG.cell === 0.75 && sc.VOXG.step === 0.375 && cnt(sc.VALUE) === 8 && cnt(sc.SOIL) === 3, `${sc.VOXG.cell}/${sc.VOXG.step}`);
     ok('SUN_DAY·SUN_NIGHT·CAM_POS 3벡터 · CAM_FOV 수', [sc.SUN_DAY, sc.SUN_NIGHT, sc.CAM_POS].every(v => Array.isArray(v) && v.length === 3) && typeof sc.CAM_FOV === 'number', sc.SUN_DAY.join(','));
+    ok('T105: PREVIEW_CAM(정본 previewBuild 리그) fov·near·far 수 · pos/look/hero 3벡터 · 카메라가 영웅 앞(+z)에서 아래를 본다', sc.PREVIEW_CAM && ['fov', 'near', 'far'].every(k => typeof sc.PREVIEW_CAM[k] === 'number') && [sc.PREVIEW_CAM.pos, sc.PREVIEW_CAM.look, sc.PREVIEW_CAM.hero].every(v => Array.isArray(v) && v.length === 3) && sc.PREVIEW_CAM.pos[2] > sc.PREVIEW_CAM.hero[2] && sc.PREVIEW_CAM.pos[1] > sc.PREVIEW_CAM.look[1], sc.PREVIEW_CAM && `${sc.PREVIEW_CAM.fov}/${sc.PREVIEW_CAM.pos.join(',')}`);
     ok('LEAF_OFF foliage 3 · RIDGE_LAYERS 3 · CRACK_W/A 3', sc.LEAF_OFF.foliage.length === 3 && sc.RIDGE_LAYERS.length === 3 && sc.CRACK_W.length === 3 && sc.CRACK_A.length === 3);
     ok('T10: CREATURE_YAW 수 · PET_ROW0 mounted/unmounted 3자리 · PET_ARC rear 격자 cols 4 · MOUNT_ARC 호', typeof sc.CREATURE_YAW === 'number' && sc.PET_ROW0.mounted.length === 3 && sc.PET_ROW0.unmounted.length === 3 && sc.PET_ARC.rear === true && sc.PET_ARC.cols === 4 && typeof sc.MOUNT_ARC.hmin === 'number', `${sc.CREATURE_YAW}/${sc.PET_ARC.rx0}`);
     ok('T11: MOUNT_FORMS 5계열(flat stand · fly bulk · wheeled seatByLeg · biped noNarrow) · MOUNT_FORM_OF 종→계열 · MOUNT_SADDLE_OF 14종 · RIDE_STAND_POSE 5본 · 배수/비례/각속도 수', sc.MOUNT_FORMS && sc.MOUNT_FORMS.flat.stand === true && typeof sc.MOUNT_FORMS.fly.bulk === 'number' && sc.MOUNT_FORMS.wheeled.seatByLeg === true && sc.MOUNT_FORMS.biped.noNarrow === true && typeof sc.MOUNT_FORMS.quad.saddle === 'number' && sc.MOUNT_FORM_OF['Hover Board'] === 'flat' && Object.keys(sc.MOUNT_SADDLE_OF).length === 14 && Object.keys(sc.RIDE_STAND_POSE).length === 5 && [sc.RIDE_STAND_BULK, sc.RIDE_SEAT_RATIO, sc.RIDE_WIDTH_RATIO, sc.MOUNT_GAIT, sc.MOUNT_IDLE_GAIT].every(x => typeof x === 'number'), `${Object.keys(sc.MOUNT_FORMS)}/${sc.RIDE_STAND_BULK}`);

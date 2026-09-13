@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Forge.Game.Ui;
+using Forge.Game.Voxel;
 
 namespace Forge.Game.Battle
 {
@@ -24,6 +25,8 @@ namespace Forge.Game.Battle
         public RawImage Image { get { return img; } }
         /// <summary>선 횟수(테스트).</summary>
         public int StartCount { get; private set; }
+        /// <summary>정본 미니 씬 카메라 리그(scene.json `PREVIEW_CAM`)에 섰는가 — false 면 본 카메라 복사(T97 방식 · 표가 없을 때만).</summary>
+        public bool Rigged { get; private set; }
 
         private Camera cam;
         private RenderTexture rt;
@@ -91,10 +94,10 @@ namespace Forge.Game.Battle
             var go = new GameObject("pinfo-scene-cam");
             go.transform.SetParent(transform, false);
             cam = go.AddComponent<Camera>();
-            cam.CopyFrom(main);                 // 같은 자리·같은 FOV·같은 컬링 = «같은 씬을 작은 칸에»
-            cam.ResetProjectionMatrix();        // 앱 상자용 비대칭 절두체(T54)는 상자 비율로 다시 잡는다
+            cam.CopyFrom(main);                 // 클리어·배경·컬링·깊이 = 본 카메라(같은 씬)
             cam.rect = new Rect(0f, 0f, 1f, 1f);
-            cam.aspect = (float)w / h;
+            Rigged = ApplyRig(cam, w, h);       // 정본 previewBuild 리그(T105) — 표가 없으면 본 리그 복사(T97)
+            if (!Rigged) { cam.ResetProjectionMatrix(); cam.aspect = (float)w / h; }
             cam.targetTexture = rt;
             cam.depth = main.depth - 1;
             img = new GameObject("pinfo-scene-canvas", typeof(RectTransform)).AddComponent<RawImage>();
@@ -106,6 +109,29 @@ namespace Forge.Game.Battle
             img.rectTransform.SetAsFirstSibling();
             host = container;
             StartCount++;
+            return true;
+        }
+
+        /// <summary>
+        /// 정본 `previewBuild()` 의 카메라 리그(scene.json `PREVIEW_CAM` · fov 42 · (0.1,1.95,4.3) → (0.05,0.92,0) · 영웅 리그 (0,0,0.4) · three 좌표)를
+        /// **지금 전투의 영웅 리그 자리**에 건다 — 원작 미니 씬은 «주인공이 주제이므로 본편보다 바짝 붙는다»(멀면 초록 판에 점 하나).
+        /// 본 리그를 그대로 복사하면 세로 화각 62° 가 납작한 칸에 그대로 걸려 띠 아래(시트 뒤 흙 절벽)까지 비친다(T105 · 런 195 실측). 표가 없으면 false.
+        /// </summary>
+        static bool ApplyRig(Camera cam, int w, int h)
+        {
+            var world = Forge.Game.Map.World.Instance;
+            var d = world != null ? world.Defs : null;
+            BattleScene bs = BattleScene.Instance;
+            if (d == null || !d.HasPreviewCam || bs == null || bs.Hero == null || bs.Hero.Rig == null) return false;
+            // 정본 미니 씬의 원점 = 영웅 리그가 (0,0,0.4) 에 서 있는 곳 → 지금 영웅 리그 자리에서 그만큼 되돌린 자리
+            Vector3 origin = bs.Hero.Rig.transform.position - ThreeSpace.Pos(d.PvHero);
+            cam.ResetProjectionMatrix();
+            cam.fieldOfView = (float)d.PvFov;
+            cam.nearClipPlane = (float)d.PvNear;
+            cam.farClipPlane = (float)d.PvFar;
+            cam.aspect = (float)w / h;
+            cam.transform.position = origin + ThreeSpace.Pos(d.PvPos);
+            cam.transform.LookAt(origin + ThreeSpace.Pos(d.PvLook), Vector3.up);
             return true;
         }
 
@@ -129,8 +155,11 @@ namespace Forge.Game.Battle
             Camera main = Camera.main;
             if (main == null) { Stop(); return; }
             // 본 카메라를 따라간다(셰이크·행군·FOV 펀치) · 상자 크기가 바뀌면 RT 를 다시 만든다(원작 previewResize)
-            cam.transform.SetPositionAndRotation(main.transform.position, main.transform.rotation);
-            cam.fieldOfView = main.fieldOfView;
+            if (!Rigged || !ApplyRig(cam, rt.width, rt.height))
+            {
+                cam.transform.SetPositionAndRotation(main.transform.position, main.transform.rotation);
+                cam.fieldOfView = main.fieldOfView;
+            }
             Vector2 size = host.rect.size;
             int w = Mathf.RoundToInt(size.x), h = Mathf.RoundToInt(size.y);
             if (w >= 2 && h >= 2 && (w != rt.width || h != rt.height))

@@ -105,6 +105,11 @@ namespace Forge.Core.World
         public double GroundK, GroundMax, FoliageK, FoliageMax, SatK, FarDesat, LeafFloor, LeafCool;
         public double[] SunDay, SunNight, CamPos;
         public double CamLookY, CamFov;
+        // T105 — 정본 `previewBuild()` 의 미니 씬 카메라 리그(플레이어 정보 팝업 미리보기): fov · near/far · 자리 · 시선 · 영웅 리그 자리.
+        // three 좌표 그대로(유니티 쪽 ThreeSpace 가 z 를 뒤집는다) · 옛 표에는 없어 HasPreviewCam=false 로 물러난다.
+        public bool HasPreviewCam;
+        public double PvFov, PvNear, PvFar;
+        public double[] PvPos, PvLook, PvHero;
         public double[] RidgeMixDay, RidgeMixNight;
         public double VoxCell, VoxStep;
         public double ShadeStrength;
@@ -137,6 +142,14 @@ namespace Forge.Core.World
             d.CamPos = J.NumArr(J.Require(o, "CAM_POS"));
             d.CamLookY = J.Num(J.Require(o, "CAM_LOOK_Y"));
             d.CamFov = J.Num(J.Require(o, "CAM_FOV"));
+            object pcv;
+            if (o.TryGet("PREVIEW_CAM", out pcv) && pcv != null)
+            {
+                var pc = J.Obj(pcv);
+                d.HasPreviewCam = true;
+                d.PvFov = J.Num(pc["fov"]); d.PvNear = J.Num(pc["near"]); d.PvFar = J.Num(pc["far"]);
+                d.PvPos = J.NumArr(pc["pos"]); d.PvLook = J.NumArr(pc["look"]); d.PvHero = J.NumArr(pc["hero"]);
+            }
             var rm = J.Obj(J.Require(o, "RIDGE_MIX"));
             d.RidgeMixDay = J.NumArr(rm["day"]); d.RidgeMixNight = J.NumArr(rm["night"]);
             var vg = J.Obj(J.Require(o, "VOXG"));

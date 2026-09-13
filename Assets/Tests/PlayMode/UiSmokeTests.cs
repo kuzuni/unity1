@@ -386,7 +386,20 @@ namespace Forge.Tests.PlayMode
             RectTransform prt = (RectTransform)preview;
             Assert.AreEqual(Mathf.RoundToInt(prt.rect.width), pv.Texture.width, 1, "RT 폭 = 상자 폭(화면 픽셀)");
             Assert.AreEqual(Mathf.RoundToInt(prt.rect.height), pv.Texture.height, 1, "RT 높이 = 상자 높이");
-            Assert.AreEqual(Camera.main.transform.position, pv.PreviewCamera.transform.position, "본 카메라 자리에서 같은 씬");
+            // T105 — 정본 previewBuild 리그: 본 카메라 복사가 아니라 fov 42 · 영웅 리그 원점 + (0.1,1.95,4.3) 에서 (0.05,0.92,0) 을 본다 → 칸 바닥까지 지면
+            var sd = Forge.Game.Map.World.Instance.Defs;
+            Assert.IsTrue(sd.HasPreviewCam, "scene.json PREVIEW_CAM(추출기 T105)");
+            Assert.IsTrue(pv.Rigged, "미니 카메라가 정본 미니 씬 리그에 섰다");
+            Camera pc = pv.PreviewCamera;
+            Assert.AreEqual((float)sd.PvFov, pc.fieldOfView, 1e-3f, "fov = 정본 previewBuild 42");
+            Vector3 origin = Forge.Game.Battle.BattleScene.Instance.Hero.Rig.transform.position - Forge.Game.Voxel.ThreeSpace.Pos(sd.PvHero);
+            Assert.Less(Vector3.Distance(origin + Forge.Game.Voxel.ThreeSpace.Pos(sd.PvPos), pc.transform.position), 1e-3f, "카메라 자리 = 영웅 리그 원점 + PREVIEW_CAM.pos");
+            Vector3 toLook = (origin + Forge.Game.Voxel.ThreeSpace.Pos(sd.PvLook) - pc.transform.position).normalized;
+            Assert.Greater(Vector3.Dot(toLook, pc.transform.forward), 0.999f, "시선 = PREVIEW_CAM.look");
+            Ray floor = pc.ViewportPointToRay(new Vector3(0.5f, 0f, 0f));
+            Assert.Less(floor.direction.y, 0f, "칸 아래 모서리 광선이 아래를 본다");
+            float hitZ = floor.origin.z + floor.direction.z * (-floor.origin.y / floor.direction.y);
+            Assert.Less(hitZ, origin.z + 0f, "칸 바닥 광선이 지면(y=0)을 영웅 원점보다 카메라 쪽에서 만난다 — 칸 바닥까지 지면(흙 절벽·시트 뒤가 아님)");
             Assert.AreEqual(Camera.main.cullingMask, pv.PreviewCamera.cullingMask);
             PlayerInfoPopup.Close(h);
             yield return null;
