@@ -24,6 +24,8 @@
 //                     MUSIC_STEPS_PER_BAR · MUSIC_BARS_PER_CHORD · MUSIC_LOOP_STEPS (T30). `SFX` 객체는 메서드 묶음(효과음 레시피 ·
 //                     합성 프리미티브)이라 표가 아니다 — C# `SfxRecipes`(Core/Audio)가 함수 단위로 옮긴다. 셋째 컨텍스트(sfx.js 홀로 ·
 //                     최상위는 다른 모듈을 안 읽는다)에서 뽑는다.
+//   ui-text.json      ui.js 의 `TOAST_ICON` — 화면 문구의 이모지 → 코드 생성 아이콘 이름(T89). 문구를 훑어 표에 있는
+//                     이모지를 전부 아이콘으로 바꾼다(정본 `UI.paintIconText`). ui.js 는 정의 시점에 DOM 을 안 만져 홀로 올라간다.
 //   mobs-props.json   Props          — 소품은 표가 아니라 **생성 함수**(`Props.pine(s,o)` … · Math.random)라
 //                     함수 이름 목록(kinds) + 결정론 시드로 뽑은 **표본**(samples) 을 낸다. T9 가 생성기를
 //                     C# 으로 옮길 때 같은 시드·같은 인자로 같은 칸 목록이 나오는지 대조하는 고정 표본이다.
@@ -333,6 +335,28 @@ function extractMeta(src) {
     return clean(out, 'meta');
 }
 
+// ── 화면 문자열 표 (T89) ───────────────────────────────────────────────────
+// 정본 `ui.js` 의 `TOAST_ICON`(이모지 → 코드 생성 아이콘 이름)만 뽑는다. 화면에 나가는 문구에는
+// 이모지가 그대로 들어 있고 글꼴에는 그 글리프가 없어 전부 두부(□)가 된다 — 원작은 이 표로
+// **문구를 훑어 이모지를 아이콘 노드로 갈아 끼운다**(`UI.paintIconText`). 표를 손으로 베끼지 않는다.
+// ui.js 는 정의 시점에 DOM 을 안 만지므로 홀로 vm 에 올리면 값이 선다(실측 2026-09-13).
+function extractUiText(src) {
+    const sb = { console };
+    sb.window = sb;
+    vm.createContext(sb);
+    vm.runInContext(fs.readFileSync(path.join(src, 'web', 'js', 'ui.js'), 'utf8'), sb, { filename: 'ui.js' });
+    const table = vm.runInContext("typeof UI !== 'undefined' && UI.TOAST_ICON ? UI.TOAST_ICON : null", sb);
+    if (!table || typeof table !== 'object') throw new Error('UI.TOAST_ICON 이 없다 — 정본의 이름이 바뀌었다');
+    const out = {
+        meta: {
+            note: '정본 ui.js 의 TOAST_ICON — 이모지(키) → IconGen 아이콘 이름(값). 문구를 훑어 표에 있는 이모지를 전부 아이콘으로 바꾼다(UI.paintIconText · 선두만이 아니다). 이형 선택자 U+FE0F 와 이모지 뒤 공백 한 칸은 건너뛴다.',
+            source: ['ui.js'],
+        },
+        TOAST_ICON: table,
+    };
+    return clean(out, 'ui-text');
+}
+
 // ── 소품 표본 ──────────────────────────────────────────────────────────────
 function xorshift32(seed) {
     let s = seed >>> 0;
@@ -427,6 +451,7 @@ function extract(src) {
         'meta.json': extractMeta(src),
         'scene.json': extractScene(src),
         'sfx.json': extractSfx(src),
+        'ui-text.json': extractUiText(src),
     };
     const text = {};
     for (const k of Object.keys(files)) text[k] = serialize(files[k]);
@@ -560,6 +585,14 @@ function selfTest(src) {
     ok('MUSIC_LOOP_STEPS = 4 × BARS_PER_CHORD × STEPS_PER_BAR', sx.MUSIC_LOOP_STEPS === 4 * sx.MUSIC_BARS_PER_CHORD * sx.MUSIC_STEPS_PER_BAR, sx.MUSIC_LOOP_STEPS);
     ok('SFX 메서드 객체는 안 들어감', !('SFX' in sx));
 
+    console.log('[화면 문자열 표 · T89]');
+    const ut = files['ui-text.json'];
+    const ti = ut.TOAST_ICON || {};
+    ok('TOAST_ICON 이 30줄 이상 · 키는 전부 이모지(ASCII 아님) · 값은 아이콘 이름', cnt(ti) >= 30 &&
+        Object.entries(ti).every(([k, v]) => typeof v === 'string' && v.length > 0 && [...k].every(ch => ch.codePointAt(0) > 0x7f)), cnt(ti));
+    ok('화면에서 가장 많이 쓰는 재화 이모지가 표에 있다(🪙 coin · 💎 gem · 🔨 hammer · ⚔ tm_sword · 🔒 lock)',
+        ti['\u{1FA99}'] === 'coin' && ti['\u{1F48E}'] === 'gem' && ti['\u{1F528}'] === 'hammer' && ti['\u2694'] === 'tm_sword' && ti['\u{1F512}'] === 'lock');
+
     console.log('[결정론]');
     const again = extract(src).text;
     ok('두 번 뽑아도 바이트 동일', Object.keys(text).every(k => text[k] === again[k]));
@@ -592,4 +625,4 @@ function main(argv) {
 }
 
 if (require.main === module) process.exit(main(process.argv.slice(2)));
-module.exports = { extract, extractMeta, extractSfx, serialize, selfTest, LOAD_ORDER, STATE_LOAD_ORDER, META_LOAD_ORDER, SEED };
+module.exports = { extract, extractMeta, extractSfx, extractUiText, serialize, selfTest, LOAD_ORDER, STATE_LOAD_ORDER, META_LOAD_ORDER, SEED };
