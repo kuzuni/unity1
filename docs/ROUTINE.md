@@ -244,7 +244,7 @@
 - 범위: `.github/workflows/ci.yml`(concurrency · 잡별 그룹) · `.github/workflows/ntfy-notify.yml`(cancelled 필터).
 - (2026-09-12 계정 2 대화 세션 · 주인 «가장 먼저» 로 올림) 실측: 런 9~15 전부 cancelled · 원인은 굽기 잡(WebGL·Android 20~40분)이 push 마다 도는 것. 가장 싼 고침: `build-webgl`·`build-android` 의 `if` 를 `github.event_name == 'schedule' || inputs.build == true` 로 두고 `on.schedule: cron '0 */3 * * *'`(main 최신을 굽는다) · 굽기 잡은 별도 `concurrency` 그룹(`build-main`) · `unity-test` 는 push 마다 그대로(7분). 취소가 남는 동안의 lock 반납은 §1 «내 뒤 런이 초록이면 내 확인» 규칙으로.
 
-### T33 — 완주 대조: §7 표의 모든 줄이 ✅ 이고 원작 화면 30장·`ui.js` 공개 함수 97개·`SFX` 24종(`SfxRecipes.Names`)·`IconGen` 키가 유니티에 다 있는가 (검증 · T27·T28·T30·T31 뒤 · **마지막**)
+### T33 — 완주 대조: §7 표의 모든 줄이 ✅ 이고 원작 화면 30장·`ui.js` 공개 함수 97개·`SFX` 24종(`SfxRecipes.Names`)·`IconGen` 키가 유니티에 다 있는가 (검증 · T27·T28·T30·T31 뒤 · **마지막** · 1회차 2026-09-13 워커 A: `docs/parity.md` — 빠진 것 0 · 열린 칸 T28·T75·T84·T86·T87 + T35 주인 결정 뒤에 다시 잡는다)
 - 방법: ⓐ §7 표를 위에서 아래로 — 줄마다 «유니티의 어느 파일·테스트가 그것인가» 를 적는다(없으면 «가장 큰 번호 +1» 로 등재하고 그 줄을 그 번호로 바꾼다) ⓑ `web/ref/screens/shot-*.png` 30장 각각에 유니티 `ui-screens/*.png` 짝이 있는가(T28 대조표) ⓒ `grep -o "^\s*\(open\|render\|show\|toggle\|close\|build\)[A-Z][A-Za-z]*" .wwwww-src/web/js/ui.js` 의 함수 하나하나에 유니티 대응(같은 이름의 메서드·화면)이 있는가 ⓓ `SFX.*` 24종 · `IconGen.img/avatar/skill/tab` 키가 `Sfx.Play`·`UiIcons.Get` 로 다 불리는가 ⓔ 원작을 한 판(전투→제작→장착→펫→스킬→던전→상점→리그→채팅) 하고 유니티(T27 봇 + WebGL 배포본)로 같은 판을 해 **다른 곳을 전부 적는다**.
 - 판정: 빠진 것 0 이 될 때까지 이 작업은 ✅ 가 아니다 — 빠진 것을 등재하고 «그 번호들 뒤» 로 자기 순서를 고쳐 lock 을 반납한다(다음 회차가 다시 잡는다). 전부 ✅ 면 §7 표 머리에 «완주 YYYY-MM-DD · 커밋» 을 적고 ✅.
 - 범위: `docs/ROUTINE.md`(§7 표) · `docs/PROGRESS.md` · `docs/parity.md`(대조 결과).
