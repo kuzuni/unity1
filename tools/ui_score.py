@@ -33,6 +33,7 @@ import zlib
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REF_DIR = os.path.join(REPO, ".wwwww-src", "web", "ref", "screens")
 TABLE = os.path.join(REPO, "docs", "ref-layout.md")
+BASELINE = os.path.join(REPO, "docs", "ui-score-baseline.json")  # T28 회차 사이 점수(회귀 탐지 · 워커 M 7회차)
 SHOTS_JS = os.path.join(REPO, ".wwwww-src", "web", "tools", "shot-screens.js")
 SHOTS_CS = os.path.join(REPO, "Assets", "Tests", "PlayMode", "UiShotsTests.cs")
 
@@ -518,6 +519,48 @@ def score_screen(ref_rects, got_rects):
     return 10.0 * ok / tot, [u"%s — %s" % (n, w) for _, n, w in worst[:5]]
 
 
+# ── 회차 사이 점수 기준선 (T28 7회차 · 워커 M) ─────────────────────────────
+DROP_MARK = 0.5   # 이만큼 움직이면 사람이 봐야 한다(판독 잡음은 0.1~0.2)
+
+
+def load_baseline(path):
+    """지난 회차 점수. 없으면 빈 dict — 첫 회차에도 조용히 돈다."""
+    if not path or not os.path.exists(path):
+        return {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            raw = f.read()
+    except OSError:
+        return {}
+    out = {}
+    # 의존성 0 규칙(PIL·numpy 없음과 같은 이유로 json 도 표준 라이브러리만 쓴다 — json 은 표준이라 그대로 쓴다)
+    try:
+        import json
+        d = json.loads(raw)
+    except Exception:
+        return {}
+    for k, v in (d.get("screens") or {}).items():
+        try:
+            out[k] = float(v)
+        except (TypeError, ValueError):
+            pass
+    if d.get("avg") is not None:
+        try:
+            out["_avg"] = float(d["avg"])
+        except (TypeError, ValueError):
+            pass
+    if d.get("run") is not None:
+        out["_run"] = d["run"]
+    return out
+
+
+def save_baseline_file(path, scores, avg, run=None):
+    import json
+    d = {"run": run, "avg": round(avg, 2), "screens": dict((n, round(v, 1)) for n, v in scores)}
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(json.dumps(d, ensure_ascii=False, indent=1, sort_keys=True) + "\n")
+
+
 # ── 앱 상자가 그림을 채우는가 (T28 6회차 · 워커 M) ─────────────────────────
 # 촬영 프레임이 눌리면(런 108: 3D 카메라 띠 안에 UI 까지 그려 앱 상자가 위 49% 만 차지) 모든 화면의
 # y%% 가 통째로 밀려 «UI 가 30군데 망가진 것» 처럼 보인다. 그것은 점수가 아니라 **틀**이 어긋난 것이다.
@@ -546,7 +589,7 @@ def content_fill(img):
     return (rows[-1] - rows[0] + 1) / float(H), (cols[-1] - cols[0] + 1) / float(W)
 
 
-def score(table_path, shots_dir, only=None):
+def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baseline=False):
     table = load_table(table_path)
     if not table:
         print(u"✗ 판독표가 없다(%s) — 먼저 `--gen` 을 돌린다" % os.path.relpath(table_path, REPO))
@@ -580,7 +623,7 @@ def score(table_path, shots_dir, only=None):
         if fh < FILL_H_MIN or fw < FILL_W_MIN:
             # 앱 상자가 그림을 안 채우면 모든 자리의 y%% 가 같은 비로 밀린다 — 화면마다 고칠 것이 아니라 촬영이 어긋난 것이다.
             print(u"  ⚠ %-18s 앱 상자가 그림을 안 채운다: 세로 채움 %.2f · 가로 채움 %.2f (하한 %.2f/%.2f)"
-                  u" — 촬영 프레임 문제다(점수는 이 뒤에 다시 잰다)"
+                  u" — 촬영 프레임이 눌렸거나 화면 한쪽이 통째로 비었다(세계가 안 그려짐 등)"
                   % (name, fh, fw, FILL_H_MIN, FILL_W_MIN))
             unfilled.append(name)
         s, why = score_screen(ent["rects"], read_layout(img, name))
@@ -606,6 +649,36 @@ def score(table_path, shots_dir, only=None):
     avg = sum(s for _, s in scores) / len(scores)
     print(u"─" * 60)
     print(u"평균 %.2f / 10 · 화면 %d개 · %s점 미만 %d개" % (avg, len(scores), PASS_MARK, len(bad)))
+    # ── 지난 회차와 대조(T28 7회차 · 워커 M): «평균이 4.23 → 1.72» 같은 회귀를 회차마다 손으로 세지 않는다.
+    base = load_baseline(baseline_path)
+    if base:
+        cur = dict(scores)
+        drops = sorted(((n, base[n], cur[n]) for n in cur if n in base and cur[n] - base[n] <= -DROP_MARK),
+                       key=lambda t: t[2] - t[1])
+        ups = [n for n in cur if n in base and cur[n] - base[n] >= DROP_MARK]
+        if base.get("_avg") is not None:
+            print(u"지난 회차(런 %s) 평균 %.2f → 이번 %.2f (%+.2f)"
+                  % (base.get("_run", "?"), base["_avg"], avg, avg - base["_avg"]))
+        if drops:
+            print(u"⚠ 내려간 화면 %d개 — 회귀다(고친 사람이 아니라 **깬 사람**을 찾는다):" % len(drops))
+            for n, b, c in drops:
+                print(u"    %-18s %.1f → %.1f (%+.1f)" % (n, b, c, c - b))
+        if ups:
+            print(u"· 올라간 화면 %d개: %s" % (len(ups), " ".join(sorted(ups))))
+        if not drops and not ups:
+            print(u"· 지난 회차와 견줘 %.1f점 넘게 움직인 화면 없음" % DROP_MARK)
+    if save_baseline:
+        # 런 번호는 CI 가 screens 에 같이 올린 meta.json 에서 읽는다(없으면 비운다).
+        run = None
+        mp = os.path.join(shots_dir, "meta.json")
+        if os.path.exists(mp):
+            try:
+                import json
+                run = json.load(open(mp, encoding="utf-8")).get("run")
+            except Exception:
+                run = None
+        save_baseline_file(baseline_path, scores, avg, run)
+        print(u"· 기준선을 %s 에 적었다(다음 회차가 이것과 견준다)" % os.path.relpath(baseline_path, REPO))
     if bad:
         print(u"«다음 고칠 것»(ROUTINE §2 T28 · 그 화면의 UI 작업을 재등재한다): " + " ".join(bad))
         return 1
@@ -741,6 +814,16 @@ def self_test():
     fh2, fw2 = content_fill(half)
     chk(fh2 < FILL_H_MIN, u"위 절반만 쓰는 그림은 «앱 상자가 안 채운다» 로 걸린다 (세로 %.2f)" % fh2)
 
+    # ⑱ 기준선 왕복 + 회귀 탐지 문턱
+    tmpb = os.path.join(REPO, "tools", ".ui_score_baseline_test.json")
+    save_baseline_file(tmpb, [("main", 4.6), ("shop", 6.1)], 5.35, run=118)
+    b = load_baseline(tmpb)
+    os.remove(tmpb)
+    chk(abs(b.get("main", 0) - 4.6) < 1e-9 and abs(b.get("_avg", 0) - 5.35) < 1e-9 and b.get("_run") == 118,
+        u"기준선 쓰기 → 읽기 왕복(화면 점수 · 평균 · 런 번호)")
+    chk(load_baseline(os.path.join(REPO, "tools", ".없는파일.json")) == {},
+        u"기준선 파일이 없으면 빈 것으로 조용히 지나간다(첫 회차)")
+
     print(u"")
     if fail:
         print(u"✗ ui_score self-test: %d/%d 칸 실패" % (len(fail), ok[0]))
@@ -761,6 +844,8 @@ def main():
     ap.add_argument("--shots", default=os.path.join(REPO, "ui-screens"), help="클론 샷 폴더")
     ap.add_argument("--table", default=TABLE, help="판독표 경로")
     ap.add_argument("--only", nargs="*", help="이 화면 이름만")
+    ap.add_argument("--baseline", default=BASELINE, help="지난 회차 점수 파일(회귀 대조)")
+    ap.add_argument("--save-baseline", action="store_true", help="이번 점수를 기준선으로 적는다")
     a = ap.parse_args()
 
     if a.self_test:
@@ -772,7 +857,7 @@ def main():
     if a.gen:
         return gen(a.ref_dir, a.table, a.only)
     if a.score:
-        return score(a.table, a.shots, a.only)
+        return score(a.table, a.shots, a.only, a.baseline, a.save_baseline)
     ap.print_help()
     return 0
 
