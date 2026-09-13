@@ -1,5 +1,5 @@
 {
-  "_": "T121 — 런타임 글꼴 애셋 굽기 값(UiFont.Build · TMP_FontAsset.CreateFontAsset). alpha_texels = 아틀라스 SDF 의 «알파 0→1 이 몇 텍셀인가»(실측 · 런 239 t121-ramp.txt: 54pt·패딩 9 에서 텍셀당 +12.8/255 → 19.9 텍셀 = 2×(패딩+1)). TMP 는 재질 _GradientScale 을 패딩+1 로 박는데 그 절반이라 외곽선·AA 가 전부 두 배였다 — UiFont.Build 가 이 값을 _GradientScale 로 세운다. 값을 바꾸면 PlayMode FontBakeTests 가 아틀라스를 읽어 대조한다. 낼 수 있는 최대 바깥 키라인 = R × alpha_texels × 글자px / sampling_pt(36px 글자 → 12px · 정본 최대 .2em 은 W .3).",
+  "_": "T121 — 런타임 글꼴 애셋 굽기 값(UiFont.Build · TMP_FontAsset.CreateFontAsset). 재질 _GradientScale(«알파 0→1 = 몇 텍셀»)은 TMP 가 박는 패딩+1 이 아니라 굽은 직후 아틀라스에서 잰 값으로 세운다(UiFont.MeasureAlphaTexels · 굽기 값에 따라 10·20·30 으로 달랐다 — 런 200·239·234). alpha_texels 는 지금 굽기 값에서 마지막으로 잰 램프(54pt·패딩 9 → 19.9): 못 잴 때의 폴백이고 FontBakeTests 가 실측과 ±15% 로 대조한다 — 굽기 값을 바꾸면 다시 재서 적는다. 낼 수 있는 최대 바깥 키라인 = R × 램프 × 글자px / sampling_pt(36px 글자 → 12px · 정본 최대 .2em 은 W .3).",
   "sampling_pt": 54,
   "padding_px": 9,
   "alpha_texels": 20,

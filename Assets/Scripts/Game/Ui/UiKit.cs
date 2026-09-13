@@ -228,7 +228,9 @@ namespace Forge.Game.Ui
             Material m = t.fontMaterial;
             m.EnableKeyword("OUTLINE_ON");
             t.outlineColor = C(colorKey);
-            t.outlineWidth = width01;
+            // T121 4회차 — width01 은 «TMP 기본 애셋(90pt · 패딩 9 · 램프 10 텍셀)에서 보이던 두께» 다. 여백을 넓혀 구우면 같은 width01 이 그만큼 굵어지므로
+            // (런 241: 옛 갈래가 3.4배 굵어져 통짜 막대) 그 애셋 기준으로 환산해 옛 호출부 10곳의 그림을 지킨다. px 갈래(OutlinePx)는 재질 값을 읽으니 무관.
+            t.outlineWidth = width01 * UiFont.LegacyWidthScale;
         }
 
         /// <summary>
@@ -296,9 +298,28 @@ namespace Forge.Game.Ui
         /// <summary>아틀라스 한 장 크기(표 `atlas_w`·`atlas_h`) — 다중 아틀라스라 넘치면 장이 는다.</summary>
         public static int AtlasW { get; private set; }
         public static int AtlasH { get; private set; }
-        /// <summary>SDF 알파 0→1 이 몇 텍셀인가(표 `alpha_texels` · 실측). TMP 는 `_GradientScale` 을 패딩+1 로 박지만 TextCore 동적 SDF 의 램프는 그 두 배(2×(패딩+1))라
-        /// 외곽선·AA 가 전부 두 배였다(런 234·239) — 굽은 뒤 재질 `_GradientScale` 을 이 값으로 세운다. `OutlinePx`(재질 G 를 읽는다)와 셰이더가 같은 단위를 본다.</summary>
-        public static int AlphaTexels { get; private set; }
+        /// <summary>SDF 알파 0→1 이 몇 텍셀인가 — 굽은 직후 아틀라스에서 **직접 잰 값**(<see cref="MeasureAlphaTexels"/>). TMP 는 `_GradientScale` 을 패딩+1 로 박지만 TextCore 동적 SDF 의
+        /// 램프는 굽기 값에 따라 그와 다르다(90pt·패딩 9 → 10 · 54pt·패딩 9 → 20 · 90pt·패딩 15 → 30 · 런 200·239·234 실측) — 그래서 재지 않고는 식이 안 맞는다(런 234·239 링 두 배).
+        /// 굽은 뒤 재질 `_GradientScale` 을 이 값으로 세워 `OutlinePx`(재질 G 를 읽는다)·셰이더가 같은 단위를 본다. 못 재면 표 `alpha_texels`(마지막 실측)로 잇고 경고.</summary>
+        public static double AlphaTexels { get; private set; }
+        /// <summary>표 `alpha_texels` — 지금 굽기 값에서 마지막으로 잰 램프(못 잴 때의 폴백 · `FontBakeTests` 가 실측과 ±15% 로 대조).</summary>
+        public static int AlphaTexelsExpected { get; private set; }
+        /// <summary>실측이 실패해 표 값으로 이었는가(진단).</summary>
+        public static bool AlphaTexelsFromTable { get; private set; }
+
+        /// <summary>TMP 기본 애셋(`CreateFontAsset(Font)` = 90pt · 패딩 9)의 샘플링과 램프(런 200·204 실측 10 텍셀) — 엔진 기본값이지 게임 수치가 아니다. 옛 `Outline(width01)` 의 두께 기준.</summary>
+        public const double TmpDefaultSampling = 90, TmpDefaultRampTexels = 10;
+        /// <summary>옛 갈래 `UiKit.Outline(width01)` 의 환산 배율 — width01 이 TMP 기본 애셋에서 내던 캔버스 px 두께(width01 × R × ½ × 램프 × 글자/샘플링)를 지금 애셋에서도 내게.
+        /// = (샘플링/90) × (10/램프). 기본 애셋이면 1.</summary>
+        public static float LegacyWidthScale
+        {
+            get
+            {
+                if (primary == null) primary = Build();
+                if (AlphaTexels <= 0 || SamplingPt <= 0) return 1f;
+                return (float)((SamplingPt / TmpDefaultSampling) * (TmpDefaultRampTexels / AlphaTexels));
+            }
+        }
 
         /// <summary>표를 읽는다(한 번). 값이 비거나 0 이면 던진다 — TMP 기본으로 조용히 잇지 않는다(T121 의 병이 그 기본값이다).</summary>
         public static void LoadBake()
@@ -310,7 +331,7 @@ namespace Forge.Game.Ui
             int sp = J.Int(o["sampling_pt"]), pad = J.Int(o["padding_px"]), w = J.Int(o["atlas_w"]), h = J.Int(o["atlas_h"]), at = J.Int(o["alpha_texels"]);
             if (sp <= 0 || pad <= 0 || w <= 0 || h <= 0 || at <= 0)
                 throw new System.InvalidOperationException(BakeResource + ".json 값이 비었다: sampling_pt=" + sp + " padding_px=" + pad + " atlas=" + w + "×" + h + " alpha_texels=" + at);
-            SamplingPt = sp; PaddingPx = pad; AtlasW = w; AtlasH = h; AlphaTexels = at;
+            SamplingPt = sp; PaddingPx = pad; AtlasW = w; AtlasH = h; AlphaTexelsExpected = at;
         }
 
         /// <summary>붙은 OS 폴백 글꼴 이름(없으면 null).</summary>
@@ -336,8 +357,16 @@ namespace Forge.Game.Ui
             fa.name = cat.font.name + " (runtime)";
             Shader shader = ShipShader();
             if (shader != null && fa.material != null) fa.material.shader = shader;
-            // T121 3회차 — 재질의 «1 알파 = 몇 텍셀» 을 실측(표 alpha_texels)으로. TMP 기본(패딩+1)은 이 아틀라스 램프의 절반이라 링이 두 배 두꺼웠다(런 234·239 · 결정 기록).
-            if (fa.material != null && fa.material.HasProperty("_GradientScale")) fa.material.SetFloat("_GradientScale", AlphaTexels);
+            // T121 3·4회차 — 재질의 «1 알파 = 몇 텍셀» 을 아틀라스에서 잰 값으로. TMP 기본(패딩+1)은 굽기 값에 따라 실제 램프와 어긋난다(런 234·239 링 두 배 · 결정 기록).
+            double ramp = MeasureAlphaTexels(fa, null);
+            AlphaTexelsFromTable = ramp <= 0;
+            if (AlphaTexelsFromTable)
+            {
+                Debug.LogWarning("[UiFont] 아틀라스 램프를 못 재 표 alpha_texels(" + AlphaTexelsExpected + ")로 잇는다 — 굽기 값이 바뀌었으면 키라인 두께가 어긋날 수 있다");
+                ramp = AlphaTexelsExpected;
+            }
+            AlphaTexels = ramp;
+            if (fa.material != null && fa.material.HasProperty("_GradientScale")) fa.material.SetFloat("_GradientScale", (float)ramp);
             if (fa.fallbackFontAssetTable == null) fa.fallbackFontAssetTable = new List<TMP_FontAsset>();
 
             HashSet<string> installed = new HashSet<string>(Font.GetOSInstalledFontNames());
@@ -355,6 +384,56 @@ namespace Forge.Game.Ui
             if (HangulFallback == null)
                 Debug.Log("[UiFont] OS 한글 폴백 없음 — 카탈로그 글꼴이 한글을 직접 쥔다(NotoSansKR-Forge · T53)");
             return fa;
+        }
+
+        /// <summary>
+        /// 아틀라스에서 «알파 0→1 이 몇 텍셀인가» 를 잰다: 글리프 «I» 를 굽고 그 줄기 한가운데 행을 읽어, 꼭대기에서 왼쪽으로 내려오는 오르막 구간의
+        /// 텍셀당 증가분 중앙값으로 255/기울기. «I» 줄기가 좁아 255 에 안 닿아도 잰다(런 239: 0 13 26 … 154 · 기울기 12.8 → 19.9 텍셀). 못 재면 0.
+        /// <paramref name="log"/> 가 있으면 읽은 행과 셈을 적는다(`FontBakeTests` 가 `ui-screens/t121-ramp.txt` 로 남긴다).
+        /// </summary>
+        public static double MeasureAlphaTexels(TMP_FontAsset fa, System.Text.StringBuilder log)
+        {
+            try
+            {
+                if (fa == null) return 0;
+                if (log != null) log.Append("# 애셋 ").Append(fa.name).Append(" · 샘플링 ").Append(fa.faceInfo.pointSize).Append("pt · atlasPadding ").Append(fa.atlasPadding)
+                    .Append(" · renderMode ").Append(fa.atlasRenderMode).Append(" · 아틀라스 ").Append(fa.atlasWidth).Append('×').Append(fa.atlasHeight)
+                    .Append(" · 장 수 ").Append(fa.atlasTextures != null ? fa.atlasTextures.Length : 0).Append('\n');
+                fa.TryAddCharacters("I");
+                TMP_Character ch;
+                if (fa.characterLookupTable == null || !fa.characterLookupTable.TryGetValue('I', out ch) || ch.glyph == null) { if (log != null) log.Append("«I» 글리프를 못 찾았다\n"); return 0; }
+                UnityEngine.TextCore.GlyphRect gr = ch.glyph.glyphRect;
+                int ai = ch.glyph.atlasIndex;
+                Texture2D tex = fa.atlasTextures != null && ai >= 0 && ai < fa.atlasTextures.Length ? fa.atlasTextures[ai] : null;
+                if (log != null) log.Append("«I» glyphRect x ").Append(gr.x).Append(" y ").Append(gr.y).Append(" w ").Append(gr.width).Append(" h ").Append(gr.height).Append(" · atlasIndex ").Append(ai).Append('\n');
+                if (tex == null || gr.width <= 0 || gr.height <= 0) { if (log != null) log.Append("아틀라스 텍스처/글리프 칸이 없다\n"); return 0; }
+                Color32[] px = tex.GetPixels32();
+                int tw = tex.width, th = tex.height;
+                int y = Mathf.Clamp(gr.y + gr.height / 2, 0, th - 1);
+                int pad = Mathf.Max(fa.atlasPadding, 0) + 3;
+                int x0 = Mathf.Max(0, gr.x - pad), x1 = Mathf.Min(tw - 1, gr.x + gr.width + pad);
+                List<int> row = new List<int>();
+                for (int x = x0; x <= x1; x++) row.Add(px[y * tw + x].a);
+                if (log != null) { log.Append("행 y=").Append(y).Append(" x ").Append(x0).Append('~').Append(x1).Append(" 알파: "); foreach (int a in row) log.Append(a).Append(' '); log.Append('\n'); }
+                // 꼭대기(줄기 한가운데)에서 왼쪽으로 내려오는 오르막 구간만 본다 — 앞쪽 잡음(이웃 글리프 여백)은 안 센다
+                int peak = 0;
+                for (int i = 1; i < row.Count; i++) if (row[i] > row[peak]) peak = i;
+                int start = peak;
+                while (start > 0 && row[start - 1] < row[start]) start--;
+                List<int> diffs = new List<int>();
+                for (int i = start; i < peak; i++) diffs.Add(row[i + 1] - row[i]);
+                double ramp = 0;
+                if (diffs.Count >= 3)
+                {
+                    diffs.Sort();
+                    double slope = diffs[diffs.Count / 2];
+                    if (slope > 0) ramp = 255.0 / slope;
+                }
+                if (log != null) log.Append("꼭대기 ").Append(row.Count > 0 ? row[peak] : 0).Append(" · 오르막 ").Append(diffs.Count).Append(" 텍셀 · 기울기 중앙값 ")
+                    .Append(diffs.Count >= 3 ? diffs[diffs.Count / 2].ToString() : "?").Append(" /텍셀 → 알파 0→1 = ").Append(ramp > 0 ? ramp.ToString("0.0") : "?").Append(" 텍셀\n");
+                return ramp;
+            }
+            catch (System.Exception e) { if (log != null) log.Append("측정 실패: ").Append(e.GetType().Name).Append(' ').Append(e.Message).Append('\n'); return 0; }
         }
 
         /// <summary>빌드에 실리는 것이 확실한 TMP 셰이더 — 기본 폰트 애셋(Resources 의 LiberationSans SDF)이 문 것. 런타임 애셋의 Shader.Find 결과는 빌드에 안 실릴 수 있다.</summary>

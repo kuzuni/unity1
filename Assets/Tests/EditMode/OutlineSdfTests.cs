@@ -7,7 +7,7 @@ namespace Forge.Tests
     /// T104 — 정본 `-webkit-text-stroke` → TMP SDF 재질 값 환산(<see cref="OutlineSdf"/>). 값은 TMP `CreateFontAsset(Font)` 기본 애셋
     /// (패딩 9 · 90pt → `_GradientScale` 10 · `_ScaleRatioA` .9 = 배포된 LiberationSans SDF.asset 의 값)과 등재 실측(17.66 CSS px 글자 ·
     /// 정본 2px 키라인 · 촬영 배율 2.164)이다. 실제 화면 두께는 PlayMode `OutlineTests` 가 픽셀로 잰다.
-    /// (T121: 게임 글꼴은 `UiFontBake.json` 의 54pt · 패딩 9 로 굽고 재질 G 는 실측 램프 `alpha_texels` 20 으로 세운다 — 여기 상수는 식의 단위 검산용 TMP 기본값이다 · 실제 애셋 값은 PlayMode `FontBakeTests` 가 아틀라스를 읽어 본다.)
+    /// (T121: 게임 글꼴은 `UiFontBake.json` 의 54pt · 패딩 9 로 굽고 재질 G 는 부팅 때 아틀라스에서 잰 램프(≈20)로 세운다 — 여기 상수는 식의 단위 검산용 TMP 기본값이다 · 실제 애셋 값은 PlayMode `FontBakeTests` 가 아틀라스를 읽어 본다.)
     /// </summary>
     public class OutlineSdfTests
     {

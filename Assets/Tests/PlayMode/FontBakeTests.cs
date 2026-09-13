@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TextCore;
 using TMPro;
 using Forge.Core.Ui;
 using Forge.Game.Gallery;
@@ -12,12 +10,10 @@ using Forge.Game.Ui;
 namespace Forge.Tests.PlayMode
 {
     /// <summary>
-    /// T121 — 런타임 글꼴 애셋의 SDF 패딩이 정본 최대 키라인(`.offline-total` 의 `.2em` = 바깥 .1em)을 담는가.
-    /// TMP 기본(90pt · 패딩 9)은 36px 글자에서 최대 바깥 띠 3.60px = 요청 3.6px 과 같아 W = 1 → 링이 여백을 다 덮어 회색 «면» 이 됐다(T109 3회차 실측).
-    /// 표(`Resources/UiFontBake.json`)대로 구웠는지 실제 애셋·재질 값으로 검산한다 — 그림은 다음 런 `screen_offline.png` 를 눈으로.
-    /// 2·3회차: 런 234(패딩 15)·239(54pt·패딩 9) 둘 다 `OutlineTests` 의 실측 띠가 식(재질 G = 패딩 + 1)의 1.77배 — 런 239 의 진단이 아틀라스 «I» 행에서 알파가 텍셀당 12.8/255 오르는 것
-    /// (= 19.9 텍셀/알파 = 2×(패딩+1) · TMP 가 박는 G 의 두 배)을 읽었다. 그래서 `UiFont.Build` 가 재질 G 를 표 `alpha_texels` 로 세우고, 이 자가 그 램프를 아틀라스에서 다시 재
-    /// 표와 ±15% 로 대조한다(`ui-screens/t121-ramp.txt` 로도 남긴다 · screens 브랜치).
+    /// T121 — 런타임 글꼴 애셋의 SDF 여백이 정본 최대 키라인(`.offline-total` 의 `.2em` = 바깥 .1em)을 담는가, 그리고 재질의 «1 알파 = 몇 텍셀»(`_GradientScale`)이
+    /// 아틀라스의 실제 램프와 같은가. TMP 기본(90pt · 패딩 9 · G 10)은 36px 글자에서 최대 바깥 띠 3.6px = 요청 3.6px 이라 W = 1 → 링이 여백을 다 덮어 회색 «면» 이 됐고(T109 3회차 실측),
+    /// 여백을 넓히자 TMP 가 박는 G(패딩+1)가 실제 램프(런 239 실측 19.9 텍셀)의 절반이라 링이 두 배였다(런 234·239). 그래서 `UiFont.Build` 가 램프를 아틀라스에서 재 G 로 세운다 —
+    /// 이 자는 그 값을 다시 재 표(`alpha_texels` · 마지막 실측)와 대조하고 `ui-screens/t121-ramp.txt` 로 남긴다(screens 브랜치). 그림은 `screen_offline.png` 를 눈으로.
     /// </summary>
     public class FontBakeTests
     {
@@ -25,18 +21,28 @@ namespace Forge.Tests.PlayMode
         const double MaxStrokeEm = 0.2;     // 정본 최대 -webkit-text-stroke-width
 
         [Test]
-        public void 굽기_표가_정본_최대_키라인_2em_을_잘리지_않게_담는다()
+        public void 굽기_표가_정본_최대_키라인_2em_을_잘리지_않게_담고_재질_G_는_아틀라스_램프와_같다()
         {
             TMP_FontAsset fa = UiFont.Primary;
             Assert.IsNotNull(fa, "런타임 글꼴 애셋");
             Assert.Greater(UiFont.PaddingPx, 0, "표의 padding_px");
             Assert.AreEqual(UiFont.SamplingPt, fa.faceInfo.pointSize, "샘플링 크기가 표(sampling_pt)대로 구워졌다");
 
+            StringBuilder log = new StringBuilder();
+            log.Append("# T121 램프 진단 — UiFont.AlphaTexels ").Append(UiFont.AlphaTexels.ToString("0.0")).Append(UiFont.AlphaTexelsFromTable ? " (표 폴백!)" : " (실측)")
+               .Append(" · 표 alpha_texels ").Append(UiFont.AlphaTexelsExpected).Append(" · 옛 갈래 배율 ").Append(UiFont.LegacyWidthScale.ToString("0.000")).Append('\n');
+            double ramp = UiFont.MeasureAlphaTexels(fa, log);
+            WriteDiag(log.ToString());
+            Assert.IsFalse(UiFont.AlphaTexelsFromTable, "부팅 때 아틀라스 램프를 못 재 표로 이었다 — ui-screens/t121-ramp.txt");
+            Assert.Greater(ramp, 0, "아틀라스 «I» 행에서 램프 기울기를 못 읽었다 — ui-screens/t121-ramp.txt");
+            Assert.AreEqual(UiFont.AlphaTexels, ramp, 1e-6, "부팅 때 잰 램프와 지금 잰 램프가 같다");
+            Assert.AreEqual(UiFont.AlphaTexelsExpected, ramp, UiFont.AlphaTexelsExpected * 0.15, "실측 램프가 표 alpha_texels 와 ±15% 안이어야 한다 — 굽기 값을 바꿨으면 표도 다시 재라(폴백 값이 틀리면 안 된다)");
+
             Material m = fa.material;
             Assert.IsNotNull(m, "애셋 재질");
             Assert.IsTrue(m.HasProperty("_GradientScale"), "SDF 재질(_GradientScale)");
             float g = m.GetFloat("_GradientScale");
-            Assert.AreEqual(UiFont.AlphaTexels, g, 0.01f, "_GradientScale = 표의 alpha_texels(실측 램프 · TMP 기본 패딩+1 의 두 배 · 3회차)");
+            Assert.AreEqual(ramp, g, 0.01f, "_GradientScale = 아틀라스에서 잰 램프(TMP 기본 패딩+1 이 아니다)");
             float r = m.HasProperty("_ScaleRatioA") ? m.GetFloat("_ScaleRatioA") : 0f;
             if (r <= 0f) r = 1f;   // 재질 기본(비율 미계산)이면 1 — UiKit.OutlinePx 와 같은 읽기
 
@@ -48,72 +54,12 @@ namespace Forge.Tests.PlayMode
             Assert.Less(o.Width01, 0.85, "천장(W 1)에서 떨어져 있어야 외곽선이 면이 아니라 링이 된다 — W " + o.Width01.ToString("0.00"));
             Assert.AreEqual(MaxStrokeEm * OfflineTotalPx * 0.5, o.VisiblePx, 1e-6, "보이는 바깥 띠 = 획의 절반");
 
-            double ramp = WriteRampDiag(fa, g, r);
-            Assert.Greater(ramp, 0, "아틀라스 «I» 행에서 램프 기울기를 못 읽었다 — ui-screens/t121-ramp.txt");
-            Assert.AreEqual(UiFont.AlphaTexels, ramp, UiFont.AlphaTexels * 0.15, "실측 램프(알파 0→1 텍셀 수)가 표 alpha_texels 와 ±15% 안이어야 한다 — 굽기 값을 바꿨으면 표도 다시 재라");
+            // 옛 갈래(Outline(width01))는 TMP 기본 애셋에서 보이던 두께를 지킨다: 배율 = (샘플링/90) × (10/램프)
+            Assert.AreEqual((UiFont.SamplingPt / UiFont.TmpDefaultSampling) * (UiFont.TmpDefaultRampTexels / ramp), UiFont.LegacyWidthScale, 1e-4, "옛 갈래 환산 배율");
         }
 
-        /// <summary>글리프 «I» 의 줄기 한가운데 행을 아틀라스에서 읽어 알파 램프(0→255 에 몇 텍셀 드는가 = 오르는 구간 기울기의 중앙값으로 255/기울기)를 재고 `ui-screens/t121-ramp.txt` 에 남긴다. 못 재면 0.</summary>
-        private static double WriteRampDiag(TMP_FontAsset fa, float g, float r)
+        private static void WriteDiag(string text)
         {
-            double ramp = 0;
-            StringBuilder sb = new StringBuilder();
-            try
-            {
-                sb.Append("# T121 램프 진단 — 애셋 ").Append(fa.name).Append(" · 샘플링 ").Append(fa.faceInfo.pointSize).Append("pt · atlasPadding ").Append(fa.atlasPadding)
-                  .Append(" · renderMode ").Append(fa.atlasRenderMode).Append(" · 아틀라스 ").Append(fa.atlasWidth).Append('×').Append(fa.atlasHeight)
-                  .Append(" · 장 수 ").Append(fa.atlasTextures != null ? fa.atlasTextures.Length : 0).Append(" · 재질 G ").Append(g).Append(" R ").Append(r).Append('\n');
-                fa.TryAddCharacters("I");
-                TMP_Character ch;
-                if (fa.characterLookupTable == null || !fa.characterLookupTable.TryGetValue('I', out ch) || ch.glyph == null)
-                {
-                    sb.Append("«I» 글리프를 못 찾았다\n");
-                }
-                else
-                {
-                    GlyphRect gr = ch.glyph.glyphRect;
-                    int ai = ch.glyph.atlasIndex;
-                    Texture2D tex = fa.atlasTextures != null && ai >= 0 && ai < fa.atlasTextures.Length ? fa.atlasTextures[ai] : null;
-                    sb.Append("«I» glyphRect x ").Append(gr.x).Append(" y ").Append(gr.y).Append(" w ").Append(gr.width).Append(" h ").Append(gr.height).Append(" · atlasIndex ").Append(ai).Append('\n');
-                    if (tex == null) sb.Append("아틀라스 텍스처가 없다\n");
-                    else
-                    {
-                        Color32[] px = tex.GetPixels32();
-                        int tw = tex.width;
-                        int y = gr.y + gr.height / 2;
-                        int pad = Mathf.Max(fa.atlasPadding, 0) + 3;
-                        int x0 = Mathf.Max(0, gr.x - pad), x1 = Mathf.Min(tw - 1, gr.x + gr.width + pad);
-                        sb.Append("행 y=").Append(y).Append(" x ").Append(x0).Append('~').Append(x1).Append(" 알파: ");
-                        List<int> row = new List<int>();
-                        for (int x = x0; x <= x1; x++) { int a = px[y * tw + x].a; row.Add(a); sb.Append(a).Append(' '); }
-                        sb.Append('\n');
-                        // 왼쪽 가장자리의 램프: 처음 a>8 부터 처음 a>=247 까지의 텍셀 수(경계 양끝 포함 대략) — «1 알파 = 몇 텍셀» 의 실측
-                        int first = -1, full = -1;
-                        for (int i = 0; i < row.Count; i++) { if (first < 0 && row[i] > 8) first = i; if (first >= 0 && row[i] >= 247) { full = i; break; } }
-                        int half = -1;
-                        for (int i = 0; i < row.Count; i++) if (row[i] >= 128) { half = i; break; }
-                        sb.Append("왼쪽 램프(>8 → ≥247) 텍셀 ").Append(first >= 0 && full >= 0 ? (full - first).ToString() : "?")
-                          .Append(" · 바깥쪽(>8 → ≥128) ").Append(first >= 0 && half >= 0 ? (half - first).ToString() : "?")
-                          .Append(" · 재질 G = ").Append(g).Append('\n');
-                        // 기울기: 첫 오르는 구간(a 가 8 을 넘은 뒤 꼭대기까지)의 텍셀당 증가분 중앙값 → 255/기울기 = 알파 0→1 텍셀 수(«I» 줄기가 좁아 255 에 안 닿아도 잰다)
-                        List<int> diffs = new List<int>();
-                        if (first >= 0)
-                        {
-                            for (int i = first; i + 1 < row.Count && row[i + 1] > row[i]; i++) diffs.Add(row[i + 1] - row[i]);
-                        }
-                        if (diffs.Count >= 3)
-                        {
-                            diffs.Sort();
-                            double slope = diffs[diffs.Count / 2];
-                            if (slope > 0) ramp = 255.0 / slope;
-                        }
-                        sb.Append("오르는 구간 ").Append(diffs.Count).Append(" 텍셀 · 기울기 중앙값 ").Append(diffs.Count >= 3 ? diffs[diffs.Count / 2].ToString() : "?")
-                          .Append(" /텍셀 → 알파 0→1 = ").Append(ramp > 0 ? ramp.ToString("0.0") : "?").Append(" 텍셀 · 표 alpha_texels ").Append(UiFont.AlphaTexels).Append('\n');
-                    }
-                }
-            }
-            catch (System.Exception e) { sb.Append("진단 실패: ").Append(e.GetType().Name).Append(' ').Append(e.Message).Append('\n'); }
-            string text = sb.ToString();
             Debug.Log("[T121] " + text);
             try
             {
@@ -122,7 +68,6 @@ namespace Forge.Tests.PlayMode
                 File.WriteAllText(Path.Combine(dir, "t121-ramp.txt"), text, new UTF8Encoding(false));
             }
             catch (System.Exception e) { Debug.Log("[T121] 진단 파일을 못 썼다: " + e.Message); }
-            return ramp;
         }
     }
 }
