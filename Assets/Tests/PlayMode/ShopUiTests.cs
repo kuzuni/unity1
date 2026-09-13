@@ -305,5 +305,37 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+
+        [UnityTest]
+        public IEnumerator T75_보석_카드_안쪽_세로_배분이_정본_배분과_같다()
+        {
+            yield return Boot();
+            UiRoot.Instance.TabBar.OnTab("shop");
+            yield return null;
+            Assert.IsTrue(PopupLayer.Instance.IsOpen(ShopSheet.Name), "상점 시트가 열려야 한다");
+
+            RectTransform card = null;
+            foreach (RectTransform rt in PopupLayer.Instance.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "gem-0") { card = rt; break; }
+            Assert.IsNotNull(card, "보석 카드(gem-0)가 없다");
+
+            // 정본 `.shop-gem-card` 주석의 실측(894px 캡처 · 카드 상단 기준): 수량 +8~36 · 그림 +38~98 · 가격 +101~124.
+            float h = UiKit.RefH;
+            Check(card, "amt-row", 8f / 894f * h, 28f / 894f * h);
+            Check(card, "icon", 38f / 894f * h, 60f / 894f * h);
+            Check(card, "buy", 101f / 894f * h, 23f / 894f * h);
+        }
+
+        /// <summary>카드 상단 기준 자식의 top·높이가 정본 값과 1px 안에서 같은가(UiKit.Place 는 y 를 위에서 아래로 음수로 쓴다).</summary>
+        private static void Check(RectTransform card, string child, float wantTop, float wantH)
+        {
+            RectTransform rt = null;
+            foreach (RectTransform t in card.GetComponentsInChildren<RectTransform>(true))
+                if (t.name == child) { rt = t; break; }
+            Assert.IsNotNull(rt, "보석 카드에 " + child + " 가 없다");
+            float top = -rt.anchoredPosition.y;
+            Assert.AreEqual(wantTop, top, 1f, child + " 의 카드 상단 기준 y (정본 배분)");
+            Assert.AreEqual(wantH, rt.sizeDelta.y, 1f, child + " 의 높이 (정본 배분)");
+        }
     }
 }

@@ -122,21 +122,24 @@ namespace Forge.Game.Ui
                 RectTransform card = UiKit.Box(grid, "gem-" + i);
                 UiKit.Place(card, UiKit.L("shop_gems_x") * w + (i % cols) * (gemW + gemGap), gemsTop + (i / cols) * (gemH + gemGap), gemW, gemH);
                 PopupKit.Outlined(card, "face", "pp_paper", rem * 0.8f, PopupKit.Line3);
+                // 카드 «안쪽» 세로 배분은 정본 `.shop-gem-card` 주석의 실측 그대로다(카드 상단 기준 · 894px 캡처 기준을 %H 로):
+                // 수량 줄 +8~36px · 그림 +38~98px · 가격 버튼 +101~124px. rem 눈대중으로 두면 자가 밴드8 의 블록을 못 가른다(T75).
+                float amtTop = UiKit.H("shop_gem_amt_top"), amtH = UiKit.H("shop_gem_amt_h");
                 RectTransform amtRow = UiKit.Box(card, "amt-row");
-                UiKit.Place(amtRow, 0f, rem * 0.35f, gemW, rem * 1.5f);
+                UiKit.Place(amtRow, 0f, amtTop, gemW, amtH);
                 Image dia = PopupKit.IconOr(amtRow, "dia", "gem");
-                UiKit.Place(dia.rectTransform, gemW * 0.18f, 0f, rem * 1.4f, rem * 1.4f);
+                UiKit.Place(dia.rectTransform, gemW * 0.18f, 0f, amtH, amtH);
                 TextMeshProUGUI amt = UiKit.Text(amtRow, "amt", TextKind.Body, PopupKit.Fmt(gp.Gems), "stage_ink", TextAlignmentOptions.Left);
                 amt.fontStyle = FontStyles.Bold;
-                amt.rectTransform.offsetMin = new Vector2(gemW * 0.18f + rem * 1.5f, 0f);
+                amt.rectTransform.offsetMin = new Vector2(gemW * 0.18f + amtH * 1.08f, 0f);
                 PopupKit.Ring(amt, "pp_line", 0.25f);
                 float icon = UiKit.H("shop_gem_icon");
                 RectTransform iconBox = UiKit.Box(card, "icon");
-                UiKit.Place(iconBox, (gemW - icon) * 0.5f, rem * 2.1f, icon, icon);
+                UiKit.Place(iconBox, (gemW - icon) * 0.5f, UiKit.H("shop_gem_icon_top"), icon, icon);
                 PopupKit.IconOr(iconBox, "img", GemIcons[i < GemIcons.Length ? i : GemIcons.Length - 1]);
-                float bw = w * 0.1811f, bh = UiKit.H("btn_h");
+                float bw = w * 0.1811f, bh = UiKit.H("shop_gem_btn_h");
                 Button buy = PopupKit.Btn(card, "buy", gp.PriceKr, "pp_blue", "pp_blue_dk", () => h.Toast("💎 데모 버전에서는 결제를 지원하지 않습니다"), bw, bh, "stage_ink", TextKind.Sub);
-                UiKit.Place(buy.GetComponent<RectTransform>(), (gemW - bw) * 0.5f, gemH - bh - rem * 0.3f, bw, bh);
+                UiKit.Place(buy.GetComponent<RectTransform>(), (gemW - bw) * 0.5f, UiKit.H("shop_gem_btn_top"), bw, bh);
             }
             PopupKit.Spacer(content, UiKit.RefH - PopupKit.TabTop + rem * 0.9f);
 

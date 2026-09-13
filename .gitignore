@@ -119,3 +119,7 @@ tools/dotnet/**/TestResults/
 # 파이썬 자를 모듈로 불러 시험하면 생긴다(T41 실측) — 커밋 금지
 __pycache__/
 *.pyc
+
+# 채점·눈 확인용으로 `screens` 브랜치에서 받아 두는 캡처 PNG — 커밋 금지(§1 «캡처 PNG 커밋 금지»).
+# `tools/ui_score.py` 가 이 폴더를 읽고, PlayMode 촬영도 여기에 쓴다(CI 가 screens 브랜치로 올린다).
+/ui-screens/
