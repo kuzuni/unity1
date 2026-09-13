@@ -689,20 +689,24 @@ def fp_diff(a, b):
     """두 지문의 차 — (팝업 안 평균, 팝업 뒤 평균). 길이가 다르면 (None, None)."""
     if not a or not b or len(a) != len(b) or len(a) != FP_ROWS * FP_COLS:
         return None, None
+    # 칸을 «가운데가 상자 안인가» 로 가르면 가로 8칸에서는 **모든 칸이 안**이 된다(칸 가운데 6.25~93.75%가
+    # 상자 6~94% 안에 다 든다) — 그러면 «뒤» 가 상단바·탭바만 재게 된다(T28 26회차에 들켰다).
+    # 그래서 칸이 상자와 **겹치는 넓이 비**로 안/뒤에 나눠 싣는다.
     din = dout = 0.0
-    cin = cout = 0
+    win = wout = 0.0
     for r in range(FP_ROWS):
-        yc = (r + 0.5) / FP_ROWS
+        y0, y1 = float(r) / FP_ROWS, float(r + 1) / FP_ROWS
+        oy = max(0.0, min(y1, FP_BOX[3]) - max(y0, FP_BOX[1])) / (y1 - y0)
         for c in range(FP_COLS):
-            xc = (c + 0.5) / FP_COLS
+            x0, x1 = float(c) / FP_COLS, float(c + 1) / FP_COLS
+            ox = max(0.0, min(x1, FP_BOX[2]) - max(x0, FP_BOX[0])) / (x1 - x0)
+            f = ox * oy                                   # 이 칸이 상자와 겹치는 비(0~1)
             d = abs(a[r * FP_COLS + c] - b[r * FP_COLS + c])
-            if FP_BOX[0] <= xc <= FP_BOX[2] and FP_BOX[1] <= yc <= FP_BOX[3]:
-                din += d
-                cin += 1
-            else:
-                dout += d
-                cout += 1
-    return din / (cin or 1), dout / (cout or 1)
+            din += d * f
+            win += f
+            dout += d * (1.0 - f)
+            wout += (1.0 - f)
+    return din / (win or 1.0), dout / (wout or 1.0)
 
 
 def save_baseline_file(path, scores, avg, run=None, fps=None):
@@ -1070,6 +1074,12 @@ def self_test():
     din2, dout2 = fp_diff(fa, fingerprint(outer))
     chk(dout2 > din2 and din2 < FP_SAME,
         u"뒤만 바뀌면 «뒤» 만 커지고 «안» 은 같음 문턱 아래다 (안 %.1f · 뒤 %.1f)" % (din2, dout2))
+
+    side = _canvas(80, 160, (120, 120, 120))
+    _fill(side, 8, 20, 72, 140, (230, 230, 230))
+    _fill(side, 0, 40, 4, 120, (0, 0, 0))            # 왼쪽 **옆 여백**만 바꾼다(상자 밖)
+    din3, dout3 = fp_diff(fa, fingerprint(side))
+    chk(dout3 > din3, u"옆 여백만 바뀌어도 «뒤» 가 «안» 보다 크다 (안 %.1f · 뒤 %.1f)" % (din3, dout3))
 
     chk(fp_unpack(fp_pack(fa)) == fa, u"지문 base64 왕복이 같다 (%d칸)" % len(fa))
 
