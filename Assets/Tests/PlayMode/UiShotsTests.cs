@@ -126,19 +126,32 @@ namespace Forge.Tests.PlayMode
 
             // 장비 8부위 풀장착 — 서브옵션은 정본과 같이 2줄로 고정(랜덤 1~4줄이면 카드 높이가 매 런 달라져 대조가 안 된다)
             CoreRng rng = CoreRng.Mulberry(20260912);
+            // T128 — **촬영용 굴림은 시드 고정 엔진으로 한다.** `ForgeHost` 는 게임 엔진의 난수를 벽시계로 씨 뿌리므로
+            // (`ForgeHost.cs` 172 `Rng.Mulberry((uint)(Meta.NowMs …))`) 같은 `Seed()` 라도 부위마다 시대·등급이 런마다 달라졌다
+            // (검수 Q 실측: 런 238↔254 `player-info` 장비 셀 크게 다른 픽셀 5.5% ↔ 상태가 같은 `settings` 는 1.0%).
+            // 그러면 T28 채점의 «내려간 화면» 이 회귀인지 상태 차이인지 못 가린다. 게임 난수는 그대로 두고
+            // **촬영에서만** 같은 표·같은 상태에 고정 시드를 물린 엔진을 따로 세워 굴린다(밸런스·콘텐츠 0 · 정본 SEED 와 같은 절차).
+            ForgeEngine roll = new ForgeEngine(F.Data, F.Forge, F.Wallet, CoreRng.Mulberry(20260912), () => SaveIo.NowMs(), F.Mods);
+            StringBuilder gearTrace = new StringBuilder();
             foreach (string slot in F.Defs.Slots)
             {
                 ForgeItem it = null;
                 for (int i = 0; i < 60 && it == null; i++)
                 {
-                    ForgeItem r = F.Engine.RollItem();
+                    ForgeItem r = roll.RollItem();
                     if (r != null && r.Slot == slot) it = r;
                 }
                 if (it == null) continue;
                 it.Level = 20 + it.AgeIdx;
                 it.Subs = SubstatRoll.Roll(F.Defs, rng, 2);
+                // 정본 SEED 127행 `S.equipment.weapon.rarity = 'mythic'` — 무기 칸만 신화로 박는다(원작 샷이 그 상태다).
+                if (slot == "weapon") it.Rarity = "mythic";
                 F.Gear.Set(slot, it);
+                gearTrace.Append(slot).Append('=').Append(it.Age).Append('/').Append(it.Rarity)
+                         .Append('/').Append(it.Level.ToString("0")).Append(' ');
             }
+            // 이 줄이 런마다 같아야 «상태가 같은 두 런» 이다 — 다르면 촬영 상태가 또 흔들린 것이다(T128).
+            Trace("seed 장비 · " + gearTrace.ToString().TrimEnd());
             F.Forge.UpgradeEndsAt = SaveIo.NowMs() + 96 * 60e3;   // 확률 정보 팝업 하단 진행바
             F.Push();
 
