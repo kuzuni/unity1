@@ -323,16 +323,41 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI nm = UiKit.Text(row, "name", TextKind.Sub, o.Bot.Name, "pp_ink", TextAlignmentOptions.Left);
                 nm.fontStyle = FontStyles.Bold;
                 UiKit.Place(nm.rectTransform, nx, rowH * 0.12f, nw, rowH * 0.4f);
-                TextMeshProUGUI cp = UiKit.Text(row, "cp", TextKind.Sub, "⚔ " + PopupKit.Fmt(o.Bot.Cp), "challenge_cp", TextAlignmentOptions.Left);
+                // 원작 `.league-challenge-name small` = IconGen.img('power') + 전투력 — 글자 «⚔» 가 아니라 T31 아이콘(T58 · 글꼴에 없는 글자는 □ 로 찍힌다)
+                float cpH = rowH * 0.4f, cpIco = cpH * 0.9f;
+                Image cpI = PopupKit.IconOr(row, "cp-ico", "power");
+                UiKit.Place(cpI.rectTransform, nx, rowH * 0.5f + (cpH - cpIco) * 0.5f, cpIco, cpIco);
+                TextMeshProUGUI cp = UiKit.Text(row, "cp", TextKind.Sub, PopupKit.Fmt(o.Bot.Cp), "challenge_cp", TextAlignmentOptions.Left);
                 cp.fontStyle = FontStyles.Bold;
-                UiKit.Place(cp.rectTransform, nx, rowH * 0.5f, nw, rowH * 0.4f);
-                TextMeshProUGUI star = UiKit.Text(row, "star", TextKind.Sub, "★+" + o.StarReward, "pp_line");
+                UiKit.Place(cp.rectTransform, nx + cpIco + rem * 0.15f, rowH * 0.5f, nw - cpIco - rem * 0.15f, cpH);
+                // 원작 `.league-challenge-side .star` = IconGen.img('star') + «+N»(순검정) — «★» 글자 대신 아이콘(T58)
+                float starW = rem * 2.6f, starIco = PopupKit.FontSize(TextKind.Sub) * 1.0f;
+                RectTransform starBox = UiKit.Box(row, "star");
+                UiKit.Place(starBox, rowW - rem * 0.6f - btnW - starW, 0f, starW, rowH);
+                Image starI = PopupKit.IconOr(starBox, "star-ico", "star");
+                UiKit.Place(starI.rectTransform, 0f, (rowH - starIco) * 0.5f, starIco, starIco);
+                TextMeshProUGUI star = UiKit.Text(starBox, "star-n", TextKind.Sub, "+" + o.StarReward, "pp_line", TextAlignmentOptions.Left);
                 star.fontStyle = FontStyles.Bold;
-                UiKit.Place(star.rectTransform, rowW - rem * 0.6f - btnW - rem * 2.6f, 0f, rem * 2.6f, rowH);
+                UiKit.Place(star.rectTransform, starIco + rem * 0.05f, 0f, starW - starIco, rowH);
                 int idx = o.Index;
                 bool can = h.League.CanChallenge(h.LeagueState, idx);
-                Button b = PopupKit.Btn(row, "challenge", "도전  🎟1", "challenge_btn", "challenge_btn_dk", () => OnChallenge(h, idx), btnW, btnH, "pp_line", TextKind.Sub, !can);
-                UiKit.Place(b.GetComponent<RectTransform>(), rowW - rem * 0.6f - btnW, (rowH - btnH) * 0.5f, btnW, btnH);
+                // 원작 `.btn.sm` 두 줄: «도전» / 티켓 아이콘 + «1»(IconGen.img('ticket')) — 이모지 대신 아이콘 줄(T58)
+                Button b = PopupKit.Btn(row, "challenge", "도전", "challenge_btn", "challenge_btn_dk", () => OnChallenge(h, idx), btnW, btnH, "pp_line", TextKind.Sub, !can);
+                RectTransform br = b.GetComponent<RectTransform>();
+                UiKit.Place(br, rowW - rem * 0.6f - btnW, (rowH - btnH) * 0.5f, btnW, btnH);
+                RectTransform lab = b.transform.Find("label").GetComponent<RectTransform>();
+                float lip = UiKit.H("btn_lip");
+                lab.offsetMin = new Vector2(0f, lip + (btnH - lip) * 0.42f);
+                float tkH = (btnH - lip) * 0.42f, tkIco = tkH * 0.85f;
+                float tkTextW = PopupKit.FontSize(TextKind.Sub) * 0.8f;
+                float tkX = (btnW - tkIco - rem * 0.1f - tkTextW) * 0.5f;
+                Image tkI = PopupKit.IconOr(br, "ticket-ico", "ticket");
+                tkI.raycastTarget = false;
+                UiKit.Place(tkI.rectTransform, tkX, btnH - lip - tkH + (tkH - tkIco) * 0.5f, tkIco, tkIco);
+                TextMeshProUGUI tkN = UiKit.Text(br, "ticket-n", TextKind.Sub, "1", "pp_line", TextAlignmentOptions.Left);
+                tkN.fontStyle = FontStyles.Bold;
+                tkN.raycastTarget = false;
+                UiKit.Place(tkN.rectTransform, tkX + tkIco + rem * 0.1f, btnH - lip - tkH, tkTextW + rem, tkH);
             }
 
             PopupKit.XButton(card, () => { h.Popups.Hide(ChallengeName); Open(h); });

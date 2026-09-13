@@ -405,7 +405,7 @@
 ### T58 — 리그 도전·펫 업그레이드 팝업이 판 없이 부모 목록 위에 겹친다 (Game·UI · T20 lock 이 풀린 뒤 · T22 뒤 · T28 2회차가 눈으로 잡음)
 - 실측(2026-09-12 · T28 2회차 · 워커 M · 런 78 PNG): `screen_league-challenge.png` **1.9/10** — 원작(`shot-042228`)은 **흰 카드**에 «상대 선택» + 티켓 pill + 상대 5줄인데, 클론은 카드도 제목도 없이 상대 5줄만 리그 순위표 위에 얹혀 두 목록이 서로 겹친다. `screen_pet-upgrade.png` **1.7/10** — 카드는 있으나 ✕ 가 **위아래로 둘**(하나는 탭바 위)이고 원작(`shot-042503`)과 머리 구성이 다르다.
 - 무엇을 한다: 원작 `ui.js` `openLeagueChallenge`·`openPetUpgrade`·`renderPetUpgrade` 의 카드·제목·티켓 줄을 그대로. ✕ 는 화면당 하나.
-- 판정: 두 화면 `ui_score` **8.0 이상** + PNG 눈 확인 + PlayMode 빨강 0.
+- 판정: PNG 눈 확인(원작 구성·✕ 카드당 하나) + PlayMode 빨강 0. ~~`ui_score` 8.0~~ — 딤 α(.5 · 주인 지시)와 §1 글자 하한 때문에 팝업 화면은 닿을 수 없다(결정 174 · 157 과 같은 갈래).
 - 범위: `Assets/Scripts/Game/Ui/League*` · `Ui/PetUpgrade*`(T20 이 쥔 `Ui/Pet*` 와 겹친다 — **T20 lock 이 풀린 뒤에 잡는다**) · `Assets/Tests/PlayMode/PetUiTests.cs`.
 
 ### T59 ✅ — 수 표기 둘: 서브스탯이 `+7.699999999999999%` · 확률이 전부 `0.0000%` (Game·UI · T15·T19 뒤 · T28 2회차가 눈으로 잡음)
