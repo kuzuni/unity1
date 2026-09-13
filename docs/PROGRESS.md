@@ -2830,7 +2830,8 @@
 - **PlayMode 단언**: `ToastIconTests.던전_토스트도_이모지를_아이콘으로_세운다` — 🔒 가 아이콘 칸(스프라이트 있음)으로 서고 글자 조각에 안 남고 `DungeonToast.Last` 는 원문 그대로.
 - **T107 이 안 쥐는 것**: `LABEL_KNOWN` 다섯은 이미 임자가 있다 — `ForgeCraftPopup`·`ForgeInfoPopup` 두 줄 라벨 넷은 **T99**, `ForgeSheet` 잠금 🔒 는 **T108**(둘 다 `T87` lock 뒤). 가로 `IconTextRow` 로는 줄이 무너지는 갈래라 그 판단은 그 작업들 몫이다.
 - **게이트**: `dotnet build` 0 오류(TestsPlay 포함) · `dotnet test` **552/552** · `check_text_glyphs` rc 0(«토스트 그릇 5개 전부 아이콘 길») + 자기 검사 · 나머지 §3 자 전부 rc 0 · `check_data_sync` 13개 일치.
-- **남은 판정**: 다음 촬영 런의 `screen_` PNG 에서 던전·기술·승천 토스트와 펫/스킬 토스트의 이모지 자리가 아이콘인지 **눈으로**(§1). CI 한 바퀴를 돌고 초록이면 lock 반납.
+- **런 211 판정 · lock 반납(`e86da6c`)**: EditMode 552/552 · PlayMode 112 중 **110 초록** — `ToastIconTests` **4/4**(새 던전 토스트 단언 포함) · 그릇을 만진 화면의 `DungeonUiTests` **4/4** · `PetUiTests` **6/6**. 빨강 둘은 남의 살아 있는 lock 몫이다(`ForgeUiTests.접지_그림자와_순백_코어…` = T87 · `ShopUiTests.T101_리그_도전_행…` = T101). dotnet·datasync 잡도 전부 초록.
+- **남은 눈 확인**(T107 이 안 쥔다 · T28 회차가 본다): 촬영 런의 `screen_` PNG 에서 던전·기술·승천 토스트와 펫/스킬 토스트의 이모지 자리가 아이콘인지 — 토스트는 2.2~2.6초만 떠 있어 촬영 순간에 안 걸릴 수 있다. 계층 단언(`ToastIconTests`)이 그 자리를 대신 지킨다.
 - **정본에서 고칠 것**: 없음.
 
 ### T105 완료 기록 (2026-09-13 · 워커 R · sess-2015-28206) — 코드 · 판정은 CI 런 + PNG 뒤 lock 반납
