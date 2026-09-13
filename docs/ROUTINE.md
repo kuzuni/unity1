@@ -251,6 +251,7 @@
 - 방법: ⓐ §7 표를 위에서 아래로 — 줄마다 «유니티의 어느 파일·테스트가 그것인가» 를 적는다(없으면 «가장 큰 번호 +1» 로 등재하고 그 줄을 그 번호로 바꾼다) ⓑ `web/ref/screens/shot-*.png` 30장 각각에 유니티 `ui-screens/*.png` 짝이 있는가(T28 대조표) ⓒ `grep -o "^\s*\(open\|render\|show\|toggle\|close\|build\)[A-Z][A-Za-z]*" .wwwww-src/web/js/ui.js` 의 함수 하나하나에 유니티 대응(같은 이름의 메서드·화면)이 있는가 ⓓ `SFX.*` 24종 · `IconGen.img/avatar/skill/tab` 키가 `Sfx.Play`·`UiIcons.Get` 로 다 불리는가 ⓔ 원작을 한 판(전투→제작→장착→펫→스킬→던전→상점→리그→채팅) 하고 유니티(T27 봇 + WebGL 배포본)로 같은 판을 해 **다른 곳을 전부 적는다**.
 - 판정: 빠진 것 0 이 될 때까지 이 작업은 ✅ 가 아니다 — 빠진 것을 등재하고 «그 번호들 뒤» 로 자기 순서를 고쳐 lock 을 반납한다(다음 회차가 다시 잡는다). 전부 ✅ 면 §7 표 머리에 «완주 YYYY-MM-DD · 커밋» 을 적고 ✅.
 - **3회차(2026-09-13 · 워커 H · sess-1757-15757)**: 2회차가 남긴 «넷» 중 셋(T89·T90·T91)이 닫혀 목록이 낡아 다시 셌다. 새로 잡은 것 — ⓐ §7 `ui.js` 줄 **상태 칸에 T98 이 없었다**(작업 칸엔 있다 → 열린 작업이 완주 판정 위를 그냥 지나간다 · `check_final_table.py` 에 그 구멍을 막는 자를 더했다) ⓑ 정본 소리 24종 중 **호출 0 이 넷**(`craftReveal`·`equipToss`·`equipDrop`·`stormCrackle`) ⓒ 그 뿌리인 연출 둘이 통째로 없다 — 판매 코인 `coinBurst` · 장비 교체 던져내기 `equip-swap-throwout` → **T117·T118·T119 등재**(내 번호 T114~T116 은 검수 Q 의 T114 와 겹쳐 규약대로 늦게 민 내가 옮겼다 · 결정 255).
+- **4회차(2026-09-13 · 워커 F · sess-2327-52310)**: 3회차가 SFX 24종에 댄 눈(«이름이 있는가» 말고 «부르는 곳이 있는가»)을 **IconGen 축**에 그대로 댔다. T31 아틀라스 키 170개(변형 뺀 160) ↔ 클론 코드·데이터 대조 — 접두어로 조립하는 것(`sk_`·`tab_`·`shop_`·`slot_`·`wpn_`·`dg_`·`age_`·`avatar_`)을 빼고 나면 **부르는 곳이 0 인 키 열하나**가 남았다. 하나(`autoloop`)는 이미 T108 의 것이고 나머지 열을 셋으로 묶어 등재했다 — **T130**(리그 1·2·3위 배지가 남의 키트 스프라이트) · **T131**(성별 둘은 글자 ♂/♀ · 클랜 배지는 없음) · **T132**(`chatbubble`·`passsword`·`chatcam`·`barrier`·`chest` 다섯 자리 한 줄씩). 셋 다 **그림은 이미 구워져 있고 부르는 줄만 없다** — 아틀라스 동기화 검사(T31)는 «키가 있는가» 만 보므로 이 구멍을 못 본다.
 - 범위: `docs/ROUTINE.md`(§7 표 · §2) · `docs/PROGRESS.md` · `docs/parity.md`(대조 결과) · `tools/check_final_table.py`(3회차가 «작업 칸엔 있고 상태 칸엔 없는 열린 작업» 자를 더했다).
 ### T34 ✅ — 지면 소재 굽기: `makeGroundTexture`/`makeGroundNormalMap`(kin 6 × 512 캔버스 레시피 + BIOMES tint) · 용암 균열 발광맵(`crackNetwork`·`makeCrackTexture`) · 포석 줄눈 데칼 (Game · T9 뒤) — 지면 셰이더(`terrainShade`·`applyShadeLift`)는 **T38** 로 갈랐다
 - 정본: `scene3d.js` `makeGroundTexture`(2135~) · `makeGroundNormalMap`(2443~) · `crackNetwork`/`strokeCrackNet`/`makeCrackTexture`(2600~2731) · `buildTerrain` 의 포석 줄눈 캔버스 블록(2905~2985) · `terrainShade`(3650~3735) · `applyShadeLift`(1323~) · `setTheme` 의 `uRoad`/`uSnow`/`emissiveMap` 줄. T9 는 재질색·정점색(노면 회랑은 `uRoad` 배율을 정점색에 곱함)·발광 색표까지만 옮겼고 텍스처·셰이더는 여기다.
@@ -1065,6 +1066,26 @@
 - **2회차 실측(2026-09-13 23:0x · 런 259 PNG 8배)**: 1회차 뒤에도 라벨의 **마지막 자리가 안 보인다** — 다만 원인이 바뀌었다. 이제는 제 상자에 잘리는 것이 아니라 **이웃 칸의 알약이 덮는 것**이다(알약 여섯이 이어져 검은 띠 하나로 보인다). 폭 어림(`PetSkillKit.TextWidth` · 라틴 한 자 = 0.58em)이 «Lv.20» 을 1.18배 부풀린 탓이라 **TMP 가 실제로 잰 `preferredWidth`** 로 바꿨다(어림 104.4px → 실측 ≈88px).
 - **남은 겹침은 «글자 크기 하한 ↔ 정본 .6rem» 의 충돌이라 이 절에서 안 고친다(결정 283)** — 셈: 칸 간격 = 오브 67.4px(앱폭 6.24%) + 사이 16.2px(1.5%) = **83.6px**. 정본 `.sk-lv` 은 `.6rem`(21.8 캔버스px)이라 알약이 53.4 + 안여백 18.2 = **71.6px** 로 간격 안에 든다. 그런데 클론은 `TextKind.Sub`(**36px** · `TextSizeGateTests` 가 지키는 하한)라 같은 글자가 88 + 18.2 = **106px** — 간격보다 22px 넓다. 즉 **정본대로 그리면 하한을 깨고, 하한을 지키면 알약이 겹친다.** 정본 자신이 스킬 화면에서 같은 병을 «알약을 걷고 오브 면에 흰 글자 + 검정 링»(`sk-orb-lv-pill` · `style.css` 4066)으로 고쳤고 **원작 샷 `shot-043313` 의 출전 줄도 그 꼴**이다 — 다만 정본은 그 규칙을 `#panel-skills` 로 좁혀 뒀다. 어느 쪽으로 갈지는 «글자 크기 하한» 을 쥔 자리(T53·`TextSizeGateTests`)와 같이 볼 일이라 **별 회차·별 판단**으로 남긴다.
 
+### T130 — 리그 보상 1·2·3위 배지가 **정본 아이콘이 아니라 남의 키트 스프라이트**다 (Game·UI · T22·T58 뒤 · T33 4회차 등재)
+- 정본: `ui.js` 4790~4792 — `const badge = t.rank <= 3 ? 'rank' + t.rank : ''` → `IconGen.img(badge, 'lgr-rank-ico')` + 그 위에 흰 숫자. 정본 주석이 못 박아 뒀다: «1·2위가 **왕관 배지 위에 흰 숫자**, 3위가 **벽돌색 마름모 배지** — 🥈🥉 이모지가 아니다».
+- 클론: `LeagueSheet.cs:250` 이 `PopupKit.IconOr(rk, "badge", t.Rank <= 2 ? "crown" : "badge")` — `crown`·`badge` 는 **GUI PRO Kit 데모 스프라이트**(`catalog.json`)다. 정본이 제 손으로 그린 `rank1`~`rank3` 는 **T31 아틀라스에 이미 구워져 있고 부르는 곳만 없다**(실측: 아틀라스 키 170개 중 하나).
+- 무엇을 한다: 그 두 자리를 `UiIcons.Get("rank" + t.Rank)` 로 바꾼다. 카탈로그는 안 건드린다(아틀라스 키라 `catalog.json` = T87 lock 을 안 연다).
+- 판정: PNG 눈 확인(원작 `shot-042208` ↔ `screen_league-rewards`) — 1·2위 왕관 · 3위 마름모 · 그 위 흰 숫자 + PlayMode 단언.
+- 범위: `Assets/Scripts/Game/Ui/LeagueSheet.cs` · `Assets/Tests/PlayMode/ShopUiTests.cs`.
+
+### T131 — 사람 표시 아이콘 셋이 통째로 안 불린다: 성별 둘은 **글자로**, 클랜 배지는 **아예 없이** (Game·UI · T63·T89 뒤 · T33 4회차 등재)
+- 정본: 성별을 **아이콘으로** 그린다 — `ui.js` 5043(프로필 칸) · 5195(`.clan` 줄) · 5239(채팅 이름 줄)가 전부 `IconGen.img(S.gender === '♀' ? 'gender_f' : 'gender_m')`. 클랜 배지는 `ui.js` 5244 `if (h % 3 !== 0) out += IconGen.img('clanbadge', 'chat-clan')`.
+- 클론: `ProfilePopup.cs:112` · `PlayerInfoPopup.cs:146` · `ChatScreen.cs:188` 이 **글자 `♂`/`♀`** 를 찍고, 클랜 배지는 자취 0. 셋 다 아틀라스에 구워져 있다.
+- ⚠ **이 갈래는 «두부» 가 아니다**: `♂`·`♀` 는 주인 글꼴에 있어 화면에 **보인다** — 그래서 `check_text_glyphs`(T89)도 `TextSizeGateTests` 도 안 짖는다. 틀린 것은 «안 보인다» 가 아니라 «정본은 아이콘인데 우리는 글자» 다. T100 4회차가 «아이콘 표에 있으니 괜찮다» 를 의심했듯, 여기서는 «글꼴에 있으니 괜찮다» 가 깨진다.
+- 판정: PNG 눈 확인(프로필·플레이어 정보·채팅 세 화면) + PlayMode 단언(그 자리에 `Image` 가 서고 글자 조각에 `♂`·`♀` 가 없다).
+- 범위: `Assets/Scripts/Game/Ui/ProfilePopup.cs` · `Ui/ChatScreen.cs` · `Ui/PlayerInfoPopup.cs`(**T129 lock 뒤**) · `Assets/Tests/PlayMode/ChatShareIconTests.cs`.
+
+### T132 — 정본이 아이콘으로 그리는 다섯 자리가 클론에 **부르는 곳이 0** (Game·UI · T22·T63·T89 뒤 · T33 4회차 등재)
+- 다섯과 정본 줄: 채팅 미리보기 아바타 `chatbubble`(`ui.js` 5294) · 패스 칼 `passsword`(4924) · 채팅 공유 카메라 `chatcam`(5271) · 준비 중 팝업 `barrier`(1257) · 오프라인 버튼 상자 `chest`(6146 · 정본도 «정적 마크업이라 부팅 때 갈아 끼운다» 고 적어 뒀다).
+- 다섯 다 **T31 아틀라스에 구워져 있다** — 빠진 것은 그림이 아니라 부르는 줄 하나씩이다.
+- 판정: PNG 눈 확인(§1) — 메인 채팅 미리보기 · 패스 · 채팅 공유 카드 · 준비 중 팝업 · 오프라인 버튼.
+- 범위: `Assets/Scripts/Game/Ui/Hud.cs` · `Ui/PassPopup.cs` · `Ui/ChatScreen.cs` · `Ui/OfflinePopup.cs` · `Ui/Popups.cs`(**T109 lock 뒤**) · `Assets/Tests/PlayMode/UiIconsTests.cs`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -1211,7 +1232,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
 | `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) · T78(검수 Q 가 런 127 PNG 로 잡은 딤·상단바 자리) · T85(설정 딤) · T90(글자 넘침) · T89(이모지) · T91(채팅 미리보기 빔) · T93(대장간 딤 — 정본대로 있음) · T94(팝업 딤 지각 α) · T95(장착 오브 어둠 막·배지 자리) · T97(미니 씬) · T98(모루 그림이 사각 근사 — 정본 SVG 는 사다리꼴·총알 뿔·검정 stroke) · T100(남은 두부 셋 · 자 둘의 구멍) · T102(부화장 빛기둥·램프 키·리본) · T104(글자 외곽선 두께) · T109(키라인 호출이 아예 없는 열한 파일 — T104 와 다른 갈래) · T111(장비 상세 카드 자리·폭) · T113(제작 비교 카드 자리·폭 — 같은 병) · T115(버튼 글자 넘침 막이가 두 자리만 본다) · T122(장비 그림이 슬롯 실루엣뿐 — 3D 썸네일 경로 없음) · T129(출전 줄 Lv 라벨 잘림 — 클론이 만든 폭 상한) · T124(시대 무늬·움직임이 통째로 없다 — 주인 지시) · T108(자동 버튼 라벨 둘) · T106(이모지 폴백 글꼴 — 주인 승인) · T105(미니 씬 칸 채움) · T114(상세 카드 확률 줄) · T117(판매 코인 연출 `coinBurst` — 호출 0) · T118(장비 교체 던져내기 `equip-swap-throwout` — 대응 0) · T121(글꼴 SDF 패딩이 정본 최대 키라인을 못 담는다) · T129(출전 줄 Lv 라벨 잘림) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ✅ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 ✅ · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 ✅ · T75 ✅ · T76 ✅ · T78 ✅ · T79 ✅ · T85 ✅ · T90 ✅ · T89 ✅ · T91 ✅ · T93 ✅ · T94 ⬜ · T95 ✅ · T97 ✅ · T99 ✅ · T110 ⬜ · T101 ✅ · T100 ✅ · T102 ✅ · T104 ✅ · T109 🔄 · T111 ✅ · T113 ⬜ · T115 ✅ · T122 🔄 · T129 🔄 · T124 ⬜ · T106 ⬜ · T108 ⬜ · T105 ✅ · T114 ⬜ · **T98 ⬜**(3회차가 이 칸에서 빠진 것을 찾았다) · T117 ⬜ · T118 ⬜ · T121 ✅ · T129 🔄 |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 · T119(구워는 놨는데 **부르는 곳이 없는** 소리 + 호출 0 자) · T120(대장간 소리 훅 미연결 · levelUp 호출 0) | T30 ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) · T119 ⬜ · T120 ⬜ |
-| `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
+| `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 · T130 · T131 · T132 | T31 ✅ · T130 ⬜ · T131 ⬜ · T132 ⬜ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) · T83(촬영 두 장 가르기) · T128(촬영 상태 결정론) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ✅ · T83 ✅ · T128 🔄|
 | `css/style.css` 제작 키프레임 22종 | 대장간 뽑기 연출(모루·오토포지·결과 카드) | T87 | 🔄 |
 | (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ✅ |
