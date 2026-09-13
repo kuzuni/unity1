@@ -119,7 +119,7 @@ def rows(path):
             if len(c) != COLS:
                 shape.append((n, tid, len(c)))
                 continue
-            out.append((n, tid, c[2].strip(), c[1].strip()))
+            out.append((n, tid, c[2].strip(), c[1].strip(), c[4].strip()))
     return out, shape
 
 
@@ -170,9 +170,11 @@ def main():
         print("            ⓑ 빠진 칸은 만든다(모르면 «(기록 없음)») · ⓒ 줄이 «|» 로 안 끝나 다음 줄들이 새어 나갔으면 `<br>` 로 한 칸에 접는다.")
         return 1
 
-    for n, tid, status, desc in table_rows:
+    scope_of = {}
+    for n, tid, status, desc, scope in table_rows:
         by_id.setdefault(tid, []).append((n, status))
         desc_of[(tid, n)] = desc
+        scope_of[(tid, n)] = scope
 
     # ⓒ 한 줄 안에서 어긋난 것 — 머리는 «⬜ 대기» 인데 본문에 «코드 push»·✅·🔄 가 있다.
     #    워커들이 상태 칸 «뒤» 에 회차 기록을 덧붙이면서 머리를 안 고쳐 생긴다(T170 실측 · 결정 500).
@@ -238,6 +240,24 @@ def main():
                 parent_done.append((tid, n, len(kids)))
 
     dups = {k: v for k, v in by_id.items() if len(v) > 1}
+
+    # ⓗ 같은 작업의 접히지 않은 줄이 둘 이상인데 «범위» 칸이 **서로 다르다** (T92).
+    #    아래 `bad` 는 «⬜ ↔ 🔄/✅» 가 어긋날 때만 잡는다 — 상태가 같으면 «상태가 같다» 로 조용하다.
+    #    그런데 `check_claim_scope` 는 그 작업의 «범위» 칸을 읽어 «lock 이 범위 밖 파일을 쥐었는가» 를 판정한다:
+    #    두 줄의 범위가 다르면 **어느 줄을 읽느냐로 답이 갈린다**(한 줄에만 적힌 파일이 «범위 밖» 오탐이 되거나,
+    #    진짜 범위 밖이 다른 줄에 묻힌다). 규약 «범위에 없는 파일을 열게 되면 표를 먼저 고친다»(claims README)가
+    #    두 줄에서는 성립하지 않는다 — 실측 2026-09-13 T90·T91(rebase 가 양쪽 범위를 다 살렸다).
+    scope_split = []
+    for tid, items in dups.items():
+        live = [n for n, st in items if not folded(st)]
+        if len(live) < 2:
+            continue
+        seen = {}
+        for n in live:
+            seen.setdefault(scope_of.get((tid, n), ""), []).append(n)
+        if len(seen) > 1:
+            scope_split.append((tid, sorted(live), seen))
+
     bad = []
     for tid, items in dups.items():
         live = [it for it in items if not folded(it[1])]
@@ -280,6 +300,17 @@ def main():
         for tid, n, k in sorted(parent_done, key=lambda x: x[1]):
             print("    " + tid + " — " + str(n) + "행 · 하위 " + str(k) + "개가 전부 ✅/⛔")
         print("    부모에게 제 몫이 남았으면 그대로 두고, 남은 것이 없으면 머리를 ✅ 로 올린다(본문은 안 지운다).")
+
+    if scope_split:
+        print("같은 작업이 두 줄인데 «범위» 칸이 서로 다르다 — `check_claim_scope` 가 어느 줄을 읽느냐로 답이 갈린다(T92):")
+        for tid, live, seen in sorted(scope_split, key=lambda x: x[0]):
+            print("  " + tid + " — " + ", ".join(str(n) + "행" for n in live) + " · 범위가 " + str(len(seen)) + "가지")
+            for sc, ns in seen.items():
+                print("      " + ", ".join(str(n) + "행" for n in ns) + ": " + (sc[:96] if sc else "(빈 칸)"))
+        print("고치는 법: 두 범위를 **한 줄로 합치고**(둘 다 그 작업이 실제로 여는 파일이다) 남은 줄은")
+        print("            «✂ 중복 행 — 살아 있는 기록은 N행이다» 로 접는다(지우지 않는다 · 이력이다).")
+        print("            두 줄이 «다른 작업인데 번호만 같다» 면 접지 말고 번호를 옮긴다(아래 ⓑ 와 같은 규약).")
+        return 1
 
     if bad:
         print("같은 작업이 두 줄에 있고 상태가 어긋난다 — «대기» 줄만 본 워커가 끝난 일을 다시 잡는다:")
@@ -338,6 +369,44 @@ def selftest():
         got = live_lock_ids(d)
         if not ({"T288", "T288-4"} <= got):
             print("✗ 쪼갠 lock: " + repr(got)); ok = False
+
+    # ⓗ 범위 칸만 다른 중복 — 상태가 같아 다른 갈래가 전부 조용한 자리다(T92).
+    import tempfile as _tf
+    HEAD = u"| ID | 작업 | 상태 | SID / 워커 | 범위 | 핵심 |\n|---|---|---|---|---|---|\n"
+    def run_on(body):
+        """임시 PROGRESS 로 main() 을 돌려 (rc, 출력) 를 낸다 — 표 갈래를 통째로 검산한다."""
+        import contextlib, io as _io
+        global DOC, CLAIMS
+        d = _tf.mkdtemp()
+        path = os.path.join(d, "PROGRESS.md")
+        io.open(path, "w", encoding="utf-8").write(HEAD + body)
+        oldD, oldC = DOC, CLAIMS
+        DOC, CLAIMS = path, os.path.join(d, "claims")
+        buf = _io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf):
+                rc = main()
+        finally:
+            DOC, CLAIMS = oldD, oldC
+        return rc, buf.getvalue()
+
+    same = (u"| T90 | 글자 넘침 | 🔄 진행 | s / B | `Ui/Skill*` | 가 |\n"
+            u"| T90 | 글자 넘침 | 🔄 진행 | s / B | `Ui/Skill*` | 나 |\n")
+    rc, out = run_on(same)
+    if rc != 0:
+        print("✗ ⓗ: 범위가 같은 중복은 조용해야 한다 — rc=" + str(rc) + "\n" + out); ok = False
+
+    diff = (u"| T90 | 글자 넘침 | 🔄 진행 | s / B | `Ui/Skill*` · `catalog.json` | 가 |\n"
+            u"| T90 | 글자 넘침 | 🔄 진행 | s / B | `Ui/Skill*` · `PetSkillUi.json` | 나 |\n")
+    rc, out = run_on(diff)
+    if rc != 1 or "범위" not in out or "T90" not in out:
+        print("✗ ⓗ: 범위가 다른 중복은 rc 1 로 이름을 찍어야 한다 — rc=" + str(rc) + "\n" + out); ok = False
+
+    folded_diff = (u"| T90 | 글자 넘침 | 🔄 진행 | s / B | `Ui/Skill*` · `catalog.json` | 가 |\n"
+                   u"| T90 | 글자 넘침 | ✂ 중복 행 — 살아 있는 기록은 3행이다 | s / B | `Ui/Skill*` · `PetSkillUi.json` | 나 |\n")
+    rc, out = run_on(folded_diff)
+    if rc != 0:
+        print("✗ ⓗ: 접은 줄은 세지 않아야 한다 — rc=" + str(rc) + "\n" + out); ok = False
 
     # 접힘은 «칸 머리» 에서만 읽는다(T172 가 통째로 사라졌던 자리).
     if not folded("✂ 중복 행 — 살아 있는 기록은 168행이다") or folded("✅ 완료 — 옛 줄은 ✂ 로 접었다"):
