@@ -514,6 +514,89 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T87 6회차 — 하중을 먹는 것은 **강철 모루가 아니라 달군 쇳덩이**여야 한다(정본 `ui.js`·`style.css` 주석: «이게 없으면 하중을 모루가 대신 먹는다 —
+        /// 강철 모루가 세로로 11% 눌리는 *고무 모루* 그림이었다»). 정지 상태에도 쇳덩이가 있고(정본 SVG 에 늘 들어 있다), 두들기면
+        /// `anvilbillet`·`anvilbillethot`·`anvilbilletcool` 표대로 눌리고 달았다 식는다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 쇳덩이가_모루_대신_눌리고_백열이_켜졌다_식는다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Hammers = 30;
+            ForgeSheet.Render(h);
+            yield return null;
+
+            RectTransform sheet = UiRoot.Instance.Sheet;
+            RectTransform billet = Named(sheet, "billet");
+            Assert.IsNotNull(billet, "정지 상태에도 달군 쇳덩이가 상판 위에 있다(정본 SVG 에 늘 들어 있다)");
+            // 축은 정본 `transform-origin: 55px 21.5px`(viewBox 132×86) — 밑면이 상판을 파고들지 않게.
+            Assert.AreEqual(AnvilFxSpec.BilletOriginVb[0] / UiKit.L("anvil_vb_w"), billet.pivot.x, 0.01f, "쇳덩이 축 x");
+            Assert.AreEqual(1.0 - AnvilFxSpec.BilletOriginVb[1] / UiKit.L("anvil_vb_h"), billet.pivot.y, 0.01f, "쇳덩이 축 y = 밑면");
+            Assert.IsNotNull(Named(sheet, "ab-bar"), "쇳덩이 몸통");
+            Assert.IsNotNull(Named(sheet, "ab-bar-line"), "키라인(식은 쇠색) — 없으면 상판에 찍힌 얼룩으로 읽힌다");
+            Assert.IsNotNull(Named(sheet, "ab-top"), "윗면 띠");
+            Assert.IsNotNull(Named(sheet, "ab-seam"), "접합선");
+
+            CraftFxPoly hot = Poly(sheet, "ab-hot"), cool = Poly(sheet, "ab-cool");
+            Assert.IsNotNull(hot, "백열 겹");
+            Assert.IsNotNull(cool, "식은색 겹");
+            Assert.AreEqual((float)AnvilFxSpec.BilletHot.Sample1(0), hot.Opacity, 1e-3f, "정지 백열 = 트랙 0%(노란 단조열)");
+            Assert.AreEqual(0f, cool.Opacity, 1e-3f, "정지 식은색은 안 보인다");
+
+            h.OnCraft();
+            yield return null;
+            AnvilFx fx = sheet.GetComponent<AnvilFx>();
+            Assert.IsNotNull(fx, "두들기기 러너");
+
+            double[] bump = new double[3], bil = new double[2];
+            for (int i = 0; i < AnvilFxSpec.StrikeMs.Length; i++)
+            {
+                RectTransform bl = Named(sheet, "billet");
+                RectTransform anvil = Anvil(sheet);
+                fx.SampleTo(AnvilFxSpec.StrikeMs[i]);
+                AnvilFxSpec.Billet.Sample(AnvilFxSpec.StrikeStop[i], bil);
+                AnvilFxSpec.Bump.Sample(AnvilFxSpec.StrikeStop[i], bump);
+                Assert.AreEqual((float)bil[0], bl.localScale.x, 0.01f, i + "타: 쇳덩이가 옆으로 퍼진다");
+                Assert.AreEqual((float)bil[1], bl.localScale.y, 0.01f, i + "타: 쇳덩이가 눌린다");
+                // 하중 귀속 — 쇳덩이의 압축이 모루 압축보다 한 자리 크다(정본이 «고무 모루» 라 부른 그림을 막는다)
+                Assert.Greater(1f - bl.localScale.y, (1f - (float)bump[2]) * 10f, i + "타: 눌리는 것은 쇳덩이 쪽이다");
+                Assert.AreEqual((float)AnvilFxSpec.BilletHot.Sample1(AnvilFxSpec.StrikeStop[i]), Poly(sheet, "ab-hot").Opacity, 1e-3f, i + "타: 백열 피크");
+                Assert.AreEqual((float)AnvilFxSpec.BilletCool.Sample1(AnvilFxSpec.StrikeStop[i]), Poly(sheet, "ab-cool").Opacity, 1e-3f, i + "타: 식은색");
+            }
+
+            // 끝값 — 단조는 비가역이다(납작한 채 남는다) · 식은색이 가장 진하다
+            fx.SampleTo(AnvilFxSpec.DurationMs);
+            RectTransform last = Named(sheet, "billet");
+            AnvilFxSpec.Billet.Sample(100, bil);
+            Assert.AreEqual((float)bil[1], last.localScale.y, 0.01f, "끝: 눌린 채 남는다(.46)");
+            Assert.AreEqual((float)AnvilFxSpec.BilletCool.Sample1(100), Poly(sheet, "ab-cool").Opacity, 1e-3f, "끝: 식은 쇠색 .82");
+
+            fx.Stop();
+            yield return null;
+            RectTransform rest = Named(sheet, "billet");
+            Assert.AreEqual(1f, rest.localScale.y, 1e-3f, "연출을 걷으면 제 자세로");
+            Assert.AreEqual((float)AnvilFxSpec.BilletHot.Sample1(0), Poly(sheet, "ab-hot").Opacity, 1e-3f, "백열도 정지값으로");
+            Assert.AreEqual(0f, Poly(sheet, "ab-cool").Opacity, 1e-3f, "식은색도 0 으로");
+            h.CancelAnvilStrike();
+            yield return null;
+        }
+
+        /// <summary>시트 안에서 이름으로 칸 찾기(다시 그려질 수 있어 매번 찾는다).</summary>
+        private static RectTransform Named(RectTransform sheet, string name)
+        {
+            foreach (RectTransform rt in sheet.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == name) return rt;
+            return null;
+        }
+
+        private static CraftFxPoly Poly(RectTransform sheet, string name)
+        {
+            RectTransform rt = Named(sheet, name);
+            return rt == null ? null : rt.GetComponent<CraftFxPoly>();
+        }
+
         /// <summary>시트가 다시 그려지면 모루 칸도 새로 생긴다 — 이름으로 매번 찾는다(없으면 null).</summary>
         private static RectTransform Anvil(RectTransform sheet)
         {

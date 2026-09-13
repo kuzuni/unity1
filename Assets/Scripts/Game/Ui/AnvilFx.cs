@@ -14,14 +14,16 @@ namespace Forge.Game.Ui
     /// </summary>
     public sealed class AnvilFx : MonoBehaviour
     {
-        private RectTransform anvil, sheet;
+        private RectTransform anvil, sheet, billet;
+        private CraftFxPoly hot, cool;
         private Vector2 anvilHome, sheetHome;
-        private Vector3 anvilScaleHome;
+        private Vector3 anvilScaleHome, billetScaleHome;
         private bool running;
         private double ms;
 
         private readonly double[] bump = new double[3];
         private readonly double[] shake = new double[2];
+        private readonly double[] billetV = new double[2];
 
         /// <summary>지금 돌고 있는가(테스트·중복 시작 방지).</summary>
         public bool Running { get { return running; } }
@@ -42,11 +44,12 @@ namespace Forge.Game.Ui
         /// 두들기기 시작 — `anvilRt` 는 **모루 그림 칸**(정본 `.anvil-svg` · 버튼이 아니다: 버튼에 걸면 타격 오버레이가 반동을 같이 타 상대변위가 0 이 된다 · 정본 주석),
         /// `sheetRt` 는 그 모루가 든 시트(둘 다 없어도 죽지 않는다).
         /// </summary>
-        public void Play(RectTransform anvilRt, RectTransform sheetRt)
+        public void Play(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, CraftFxPoly hotPoly, CraftFxPoly coolPoly)
         {
             Stop();
             anvil = anvilRt;
             sheet = sheetRt;
+            Take(billetRt, hotPoly, coolPoly);
             if (anvil != null)
             {
                 anvilHome = anvil.anchoredPosition;
@@ -58,22 +61,27 @@ namespace Forge.Game.Ui
             Apply();
         }
 
+        /// <summary>쇳덩이 묶음과 불투명도 겹을 받아 «쉬는 자세» 를 적어 둔다(되돌릴 때 그 자리로).</summary>
+        private void Take(RectTransform billetRt, CraftFxPoly hotPoly, CraftFxPoly coolPoly)
+        {
+            billet = billetRt;
+            hot = hotPoly;
+            cool = coolPoly;
+            if (billet != null) billetScaleHome = billet.localScale;
+        }
+
         /// <summary>
         /// 두들기는 도중 시트가 다시 그려졌을 때(세이브 → `Rerender`) **흐른 시간을 지키며** 새 칸에 다시 문다.
         /// 정본은 DOM 을 갈아도 CSS 애니메이션이 그 자리에서 이어지지 않지만, 클론은 시트를 통째로 다시 그리므로
         /// 다시 물지 않으면 남은 구간이 통째로 사라진다(런 157 실측: 모루가 파괴돼 연출이 없던 일이 됐다).
         /// </summary>
-        public void Rebind(RectTransform anvilRt, RectTransform sheetRt)
+        public void Rebind(RectTransform anvilRt, RectTransform sheetRt, RectTransform billetRt, CraftFxPoly hotPoly, CraftFxPoly coolPoly)
         {
             if (!running) return;
-            if (anvil != null)
-            {
-                anvil.anchoredPosition = anvilHome;
-                anvil.localScale = anvilScaleHome;
-            }
-            if (sheet != null) sheet.anchoredPosition = sheetHome;
+            Restore();
             anvil = anvilRt;
             sheet = sheetRt;
+            Take(billetRt, hotPoly, coolPoly);
             if (anvil != null)
             {
                 anvilHome = anvil.anchoredPosition;
@@ -86,18 +94,27 @@ namespace Forge.Game.Ui
         /// <summary>연출을 걷고 제자리로 — 취소(`CancelAnvilStrike`)와 정상 종료가 같은 길을 쓴다.</summary>
         public void Stop()
         {
-            if (running)
-            {
-                if (anvil != null)
-                {
-                    anvil.anchoredPosition = anvilHome;
-                    anvil.localScale = anvilScaleHome;
-                }
-                if (sheet != null) sheet.anchoredPosition = sheetHome;
-            }
+            if (running) Restore();
             running = false;
             anvil = null;
             sheet = null;
+            billet = null;
+            hot = null;
+            cool = null;
+        }
+
+        /// <summary>자기가 만든 것만 되돌린다 — 모루·시트 자리와 쇳덩이 자세·겹 불투명도(정지 상태 = 트랙 0%).</summary>
+        private void Restore()
+        {
+            if (anvil != null)
+            {
+                anvil.anchoredPosition = anvilHome;
+                anvil.localScale = anvilScaleHome;
+            }
+            if (sheet != null) sheet.anchoredPosition = sheetHome;
+            if (billet != null) billet.localScale = billetScaleHome;
+            if (hot != null) hot.Opacity = (float)AnvilFxSpec.BilletHot.Sample1(0);
+            if (cool != null) cool.Opacity = (float)AnvilFxSpec.BilletCool.Sample1(0);
         }
 
         /// <summary>정본 클럭은 «게임 시간» 이 아니라 벽시계다(CSS 애니메이션) — `unscaledDeltaTime` 으로 돈다.</summary>
@@ -139,6 +156,14 @@ namespace Forge.Game.Ui
                 AnvilFxSpec.SheetShake.Sample(pct, shake);
                 sheet.anchoredPosition = new Vector2(sheetHome.x + (float)shake[0] * px, sheetHome.y - (float)shake[1] * px);
             }
+            if (billet != null)
+            {
+                // 하중은 강철 모루가 아니라 **달군 쇠**가 먹는다(정본 주석) — 축은 쇳덩이 밑면(피벗)이다.
+                AnvilFxSpec.Billet.Sample(pct, billetV);
+                billet.localScale = new Vector3(billetScaleHome.x * (float)billetV[0], billetScaleHome.y * (float)billetV[1], billetScaleHome.z);
+            }
+            if (hot != null) hot.Opacity = (float)AnvilFxSpec.BilletHot.Sample1(pct);
+            if (cool != null) cool.Opacity = (float)AnvilFxSpec.BilletCool.Sample1(pct);
         }
 
         private void OnDisable()

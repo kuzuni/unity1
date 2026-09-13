@@ -20,6 +20,9 @@ namespace Forge.Game.Ui
         static RectTransform anvilRt;
         /// <summary>모루 «그림» 칸(정본 `.anvil-svg`) — 두들기기 반동은 버튼이 아니라 이 칸에 건다(정본 주석 · <see cref="AnvilFxSpec.BumpOriginFrac"/>).</summary>
         static RectTransform anvilArtRt;
+        /// <summary>달군 쇳덩이 묶음(정본 `.anv-billet` · 축 = viewBox 55 21.5)과 불투명도가 애니메이션되는 두 겹(`.ab-hot`·`.ab-cool`).</summary>
+        static RectTransform billetRt;
+        static CraftFxPoly billetHot, billetCool;
 
         public static void Render(ForgeHost h)
         {
@@ -33,6 +36,7 @@ namespace Forge.Game.Ui
                 Object.Destroy(c.gameObject);
             }
             hammerText = null; upgText = null; anvilRt = null; anvilArtRt = null;
+            billetRt = null; billetHot = null; billetCool = null;
             GameDefs d = h.Defs;
             float W = UiKit.RefW, rem = PopupKit.Rem;
             float sheetH = sheet.rect.height > 0 ? sheet.rect.height : (UiKit.L("chat_top") - UiKit.L("sheet_top")) * UiKit.RefH;
@@ -91,7 +95,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(upgText.rectTransform, 0f, btnH + rem * 0.25f, W - padX * 2f - rx, PopupKit.FontSize(TextKind.Sub) * 1.3f);
             }
             // 두들기는 도중 다시 그려졌다면(세이브 → Rerender) 러너를 새 모루·시트에 다시 문다 — 흐른 시간은 지킨다.
-            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet); }
+            if (h.Striking) { AnvilFx fx = AnvilFx.Ensure(sheet); if (fx != null) fx.Rebind(anvilArtRt, sheet, billetRt, billetHot, billetCool); }
         }
 
         static string RemainText(ForgeHost h)
@@ -117,7 +121,7 @@ namespace Forge.Game.Ui
             if (root == null) return;
             AnvilFx fx = AnvilFx.Ensure(root.Sheet);
             if (fx == null) return;
-            if (on) fx.Play(anvilArtRt, root.Sheet);
+            if (on) fx.Play(anvilArtRt, root.Sheet, billetRt, billetHot, billetCool);
             else fx.Stop();
         }
 
@@ -266,8 +270,64 @@ namespace Forge.Game.Ui
             Image bevel = UiKit.Rounded(rt, "bevel", "anvil_bevel", 1.5f * u);
             Color bc = bevel.color; bc.a = UiKit.L("anvil_bevel_alpha"); bevel.color = bc;
             UiKit.Place(bevel.rectTransform, ox + UiKit.L("anvil_bevel_x") * u, oy + UiKit.L("anvil_bevel_y") * u, UiKit.L("anvil_bevel_w") * u, UiKit.L("anvil_bevel_h") * u);
+            DrawBillet(rt, ox, oy, u, vbW, vbH);
             SetFxOrigin(rt, ox, oy, u, vbW, vbH, w, h);
             return bas;
+        }
+
+        /// <summary>
+        /// 달군 쇳덩이(정본 `ANVIL_SVG` 의 `<g class="anv-billet">`) — 상판 위에 누운 8각 각봉과 그 겹들. **정지 상태에도 있다**(정본도 SVG 에 늘 들어 있다).
+        /// 정본 주석이 못 박은 것 셋: 🚨 모서리를 둥글리지 말 것(둥근 알약은 UI 어휘다 · 챔퍼로 깎은 각봉) · 🚨 키라인이 있어야 «상판에 찍힌 얼룩» 이 아니라 물체가 된다
+        /// (검정 대신 식은 쇠색 `billet_line`) · 🚨 몸통 색을 노란 단조 온도로 올려 주황 상판과 색상환을 벌린다.
+        /// 그리는 순서 = SVG 순서: 키라인 → 몸통 → 백열 → 윗면 띠 → 식은색 → 접합선. (빛 웅덩이 `.ab-glow` 는 방사 그라디언트라 다음 회차.)
+        /// </summary>
+        static void DrawBillet(RectTransform parent, float ox, float oy, float u, float vbW, float vbH)
+        {
+            billetRt = UiKit.Box(parent, "billet");
+            UiKit.Place(billetRt, ox, oy, vbW * u, vbH * u);
+            // 축은 정본 `transform-origin: 55px 21.5px`(빌릿 밑면) — 눌릴 때 밑면이 상판을 파고들지 않게.
+            float pxo = (float)(AnvilFxSpec.BilletOriginVb[0] / vbW), pyo = (float)(AnvilFxSpec.BilletOriginVb[1] / vbH);
+            billetRt.pivot = new Vector2(pxo, 1f - pyo);
+            billetRt.anchoredPosition = new Vector2(ox + vbW * u * pxo, -(oy + vbH * u * pyo));
+
+            int bands = Mathf.RoundToInt(UiKit.L("billet_bands"));
+            Vector2[] bar = VbPoly("billet_bar", 8, vbW, vbH);
+            Vector2[] top = VbPoly("billet_top", 4, vbW, vbH);
+            Vector2[] seam = VbPoly("billet_seam", 4, vbW, vbH);
+            float st = UiKit.L("billet_stroke");
+            Color[] body = { UiKit.C("billet_g0"), UiKit.C("billet_g1"), UiKit.C("billet_g2"), UiKit.C("billet_g3") };
+            float[] bodyOff = { 0f, UiKit.L("billet_g1_off"), UiKit.L("billet_g2_off"), 1f };
+            Vector2 gradTo = new Vector2(UiKit.L("billet_grad_x2"), 1f);
+
+            CraftFxPoly.Add(billetRt, "ab-bar-line", CraftFxPoly.Inflate(bar, st * 0.5f / vbW, st * 0.5f / vbH), UiKit.C("billet_line"));
+            CraftFxPoly.Add(billetRt, "ab-bar", bar, body, bodyOff, Vector2.zero, gradTo, bands);
+
+            Color[] hot = { UiKit.C("billet_hot0"), UiKit.C("billet_hot1"), UiKit.C("billet_hot2") };
+            float[] hotOff = { 0f, UiKit.L("billet_hot1_off"), 1f };
+            billetHot = CraftFxPoly.Add(billetRt, "ab-hot", bar, hot, hotOff, Vector2.zero, new Vector2(0f, 1f), bands);
+            billetHot.Opacity = (float)AnvilFxSpec.BilletHot.Sample1(0);   // 정지 상태 = 트랙 0% (노란 단조열 .12)
+
+            CraftFxPoly.Add(billetRt, "ab-top", top, Alpha(UiKit.C("billet_top"), UiKit.L("billet_top_alpha")));
+            billetCool = CraftFxPoly.Add(billetRt, "ab-cool", bar, UiKit.C("billet_cool"));
+            billetCool.Opacity = (float)AnvilFxSpec.BilletCool.Sample1(0); // 정지 상태 = 0 (안 보인다)
+            CraftFxPoly.Add(billetRt, "ab-seam", seam, Alpha(UiKit.C("billet_seam"), UiKit.L("billet_seam_alpha")));
+        }
+
+        /// <summary>카탈로그의 viewBox 좌표(`<키>_x0`·`_y0` …)를 정규 좌표(0~1 · y 아래로)로 — `CraftFxPoly` 가 쓰는 꼴.</summary>
+        static Vector2[] VbPoly(string key, int n, float vbW, float vbH)
+        {
+            Vector2[] pts = new Vector2[n];
+            for (int i = 0; i < n; i++)
+            {
+                pts[i] = new Vector2(UiKit.L(key + "_x" + i) / vbW, UiKit.L(key + "_y" + i) / vbH);
+            }
+            return pts;
+        }
+
+        static Color Alpha(Color c, float a)
+        {
+            c.a *= a;
+            return c;
         }
 
         /// <summary>

@@ -34,6 +34,12 @@ namespace Forge.Core.CraftFx
         /// </summary>
         public static readonly double[] BumpOriginFrac = { 0.5, 0.92 };
 
+        /// <summary>
+        /// `anvilbillet` 의 축(정본 `.anvil-btn.striking .anv-billet { transform-box: view-box; transform-origin: 55px 21.5px }`) — **viewBox(132×86) 절대 단위**다.
+        /// 정본 주석: «압축 축은 빌릿 밑면이다. 가운데를 축으로 잡으면 눌리면서 밑면이 상판을 파고들어 *모루 속으로 가라앉는* 그림이 된다.»
+        /// </summary>
+        public static readonly double[] BilletOriginVb = { 55.0, 21.5 };
+
         /// <summary>`anvilbump` — 모루(`.anvil-svg`). 채널 = translateY(px) · scaleX · scaleY. 원점 50% 92%(받침 접지면).</summary>
         public static readonly CssTrack Bump = new CssTrack(
             new double[] { 0, 18.667, 20.0, 22.2, 23.333, 26.0, 42.0, 43.333, 46.0, 47.333, 50.0, 72.0, 73.333, 76.667, 78.333, 82.667, 87.333, 92.667, 100 },
