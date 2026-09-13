@@ -66,8 +66,13 @@ namespace Forge.Tests.PlayMode
                     if (c < 0x80) continue;                          // ASCII 는 어느 글꼴에나 있다
                     if (char.IsWhiteSpace(c) || char.IsControl(c)) continue;
                     if (KnownTofu.IndexOf(c) >= 0) continue;         // 임자가 정해진 아는 자리(tools/check_text_glyphs.py 의 KNOWN 과 같은 목록)
-                    // 폴백 없이 묻는다 — 배포판(리눅스 CI·WebGL)에는 OS 폴백이 없으므로 그것이 판정 기준이다.
-                    if (!fa.HasCharacter(c, false, false)) missing.Add(c);
+                    // T112 — 두 인자의 뜻이 다르다. `searchFallbacks`(둘째)는 **끈다**: 배포판(리눅스 CI·WebGL)에
+                    // OS 폴백이 없으므로 «주인 글꼴 혼자» 가 판정 기준이다. `tryAddCharacter`(셋째)는 **켠다**:
+                    // 런타임 애셋은 Dynamic 이라 이것을 끄면 «글꼴에 있는가» 가 아니라 «이 순간까지 아틀라스에
+                    // 구워졌는가» 를 묻게 된다 — 아래 «카탈로그 글꼴이…» 가 그것 때문에 런 216 에 빨개졌다.
+                    // 이 자리는 «화면에 이미 선 글자» 만 봐서 지금껏 맞게 돌았지만 같은 함정이라 함께 켠다
+                    // (글꼴에 없는 글자는 셋째를 켜도 false 라 막이는 안 느슨해진다).
+                    if (!fa.HasCharacter(c, false, true)) missing.Add(c);
                 }
             }
             Assert.IsEmpty(missing, "글꼴에 없는 글자(화면에 □ 로 나온다): " + new string(System.Linq.Enumerable.ToArray(missing)));

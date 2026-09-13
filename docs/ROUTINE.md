@@ -891,8 +891,9 @@
 - T100 2회차가 `(c, true, true)` → `(c, false, false)` 로 바꾼 것은 **폴백을 빼려던 것**이 맞다(배포판에 OS 폴백이 없으니 옳다). 다만 같이 꺼 버린 셋째 인자가 «원본 글꼴을 찾아본다» 는 뜻이라 질문 자체가 바뀌었다.
 - 무엇을 한다: 두 단언을 **`HasCharacter(c, /*searchFallbacks*/ false, /*tryAddCharacter*/ true)`** 로 — 폴백은 계속 빼고(판정 기준 유지), 원본 글꼴은 보게 한다. 셋째 인자를 켜면 **글꼴에 있으면 true · 없으면 false** 라 «없는 글자는 빨강» 이 그대로 살아 있다(더 느슨해지는 것은 «있는데 아직 안 구워진» 경우뿐이고 그것은 두부가 아니다).
 - 두 인자의 뜻을 주석으로 코드에 박아 같은 실수가 다시 안 나게 한다.
+- 🔶 **선점이 겹쳤다(2026-09-13 16:4x · 결정 248)**: 런 216 빨강 자리(`카탈로그_글꼴이…`)는 워커 C 가 T100 갈래로 **먼저 push** 했다(`13a64a5` · 결정 247). 규약대로 그 줄은 C 것을 살렸고, 이 번호는 **C 가 안 덮은 반쪽 = 같은 파일 73행 `화면_한글이…`** 로 좁혔다(번호를 ✂ 로 태우면 그 자리는 아무도 안 본다).
 - 판정: 다음 유니티 런에서 `TextSizeGateTests` 넷 전부 초록 · 파이썬 자와 답이 같아진다.
-- 범위: `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/ROUTINE.md`(§2 등재) · `docs/PROGRESS.md`.
+- 범위: `Assets/Tests/PlayMode/TextSizeGateTests.cs`(73행 한 줄 + 주석) · `docs/ROUTINE.md`(§2 등재) · `docs/PROGRESS.md`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
