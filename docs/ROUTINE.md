@@ -523,13 +523,13 @@
 - ⚠ 임자: 빨강의 파일 `Assets/Tests/PlayMode/PetUiTests.cs` 는 **T58 범위**(워커 B · lock 살아 있음)이고 연출 파일은 T20(✅ · lock 없음)이다 — T71 과 같은 «임자가 갈리는» 자리라 이 절로 남긴다. T58 이 반납하면 누구든 잡는다 · T58 이 제 회차에 같이 고치면 ⛔ 로 흡수.
 - 판정: CI 유니티 잡에서 `PetUiTests` 전 갈래 초록(런 118 은 1건 빨강) · `dotnet build` 초록(T48 하니스가 PlayMode 도 컴파일한다).
 - 범위: `Assets/Tests/PlayMode/PetUiTests.cs`(소환 결과 탭 두 자리).
-### T73 — AudioBank 베이크 스레드가 초당 수십 MB 의 관리 쓰레기를 만든다(런 118: 447~638KB/프레임 · 정본 sfx.js 는 브라우저 WebAudio 가 굽는다) (Game·성능 · T30 뒤 · T64 가 등재)
+### T73 ✅ — AudioBank 베이크 스레드가 초당 수십 MB 의 관리 쓰레기를 만든다(런 118: 447~638KB/프레임 · 정본 sfx.js 는 브라우저 WebAudio 가 굽는다) (Game·성능 · T30 뒤 · T64 가 등재)
 - 실측(2026-09-13 · T64 · CI 런 118 `perf-t64.txt` · 프로파일러 원시 프레임 전 스레드): 부하 장면 계수기 «프레임 전부» 681KB~1,164KB 중 메인 스레드 GC.Alloc 은 145~168KB 뿐이고 **`Scripting Threads/AudioBank` 스레드가 447KB(처음)~638KB(끝)/프레임** — `AudioBank.Work` → `AudioFactory.RenderSfx/RenderMusic` 이 잡마다 버스·FFT·링·출력 배열을 새로 만든다(`SynthRenderer.cs:86~127` `new double[len]` × 5 · `Dsp.cs:78·150~162` FFT 배열 · `SfxSynth.cs:212`). 씬을 다시 열 때마다(테스트 · 앱 재시작) 처음부터 다시 굽고, 정확한 변형이 없는 호출은 게임 중에도 백그라운드에 요청한다.
 - 왜 문제인가: 관리 힙은 스레드 공용이라 배경 스레드의 쓰레기도 **메인 스레드를 멈추는 GC** 를 부른다(원작은 WebAudio 노드가 네이티브로 굽는다 — 관리 쓰레기 0). 60fps 지시(§1)의 «프레임당 GC 0» 은 스레드를 가리지 않는다.
 - 할 일: ⓐ 렌더러의 작업 배열(버스 5 · FFT re/im · 링 · 출력)을 **잡 사이에 되쓴다**(길이 상한으로 한 번 잡고 `Array.Clear`) — 음색·표는 손대지 않는다(원작 합성 그래프 그대로 · `AudioTests` 결정론 단언이 지킨다) ⓑ 다 구운 결과 `float[]` 만 새로(클립 데이터) ⓒ 부팅 베이크 순서는 그대로(효과음 테이크 0 → 음악 normal → …). 수치는 코드에 박지 않는다(§1).
 - 판정: `PerfBudgetTests` 의 «[T64] 프로파일러 GC.Alloc 버킷» 줄에서 `AudioBank` 스레드 합이 베이크 중에도 메인 스레드 합 아래 + `AudioTests`(dotnet 507+)·`AudioSmokeTests` 초록 + 콘솔 빨강 0.
 - 범위: `Assets/Scripts/Core/Audio/SynthRenderer.cs` · `Dsp.cs` · `SfxSynth.cs`(배열 되쓰기만) · `Assets/Scripts/Game/Audio/AudioBank.cs`(되쓰기 버퍼 소유만) · `Assets/Tests/EditMode/AudioTests.cs`(되쓰기 뒤 결과가 같다는 단언 1).
-- 🔄 2026-09-13 워커 N(sess-0125-19048) 1회차: `RenderWorkspace`(버스 5 · 링 · FFT · 합성곱 출력 · `NoisePool`) + `AudioBank` 가 하나 쥐고 되쓰기 · 되쓰기 갈래 지문 = 새 배열 갈래(EditMode 1) · dotnet 511/511 · CI 유니티 잡의 `[T64]` 버킷(AudioBank 스레드 합)을 본 뒤 ✅.
+- ✅ 2026-09-13 워커 N(sess-0125-19048) 1회차: `RenderWorkspace`(버스 5 · 링 · FFT · 합성곱 출력 · `NoisePool`) + `AudioBank` 가 하나 쥐고 되쓰기 · 되쓰기 갈래 지문 = 새 배열 갈래(EditMode 1) · dotnet 511/511 · CI 런 127 초록(EditMode 511 · PlayMode 87/87 · AudioBank 스레드가 [T64] 버킷 상위에서 사라짐) · 실측 효과음 24종 96.9MB → 6.3MB · 음악 루프 52~60MB → 3.4~3.6MB.
 
 ### T74 — 스킬 큐브 연출(`FxCubes`)이 시전마다 큐브 묶음마다 새 Material 을 만들고 버린다 — T50 의 «조합별 재질 되쓰기» 를 여기에도 (Game·성능 · T50·T52 뒤 · T64 가 등재)
 - 실측(2026-09-13 · T64 · CI 런 113·118): 부하 장면 200프레임당 Material 오브젝트 수가 «스킬 재시전 끔» 에서 **−135**, 다시 시전하면 **+135** — 시전 때 만들고 액터가 끝나면 버린다. 편집기에선 그때마다 `MaterialEditor.ApplyMaterialPropertyDrawersFromNative` 가 52~59KB/프레임(메인 스레드 정상 상태 150~170KB 의 1/3)을 문다 · 플레이어에는 그 후처리는 없지만 네이티브 재질 생성·해제는 남는다. 자리: `Assets/Scripts/Game/SkillFx/FxCubes.cs:71` `FxMaterials.Instance(hex, opacity)`(호출자 소유 · 색을 매 프레임 바꾸는 재질).
@@ -698,7 +698,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
 | `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ⬜ |
-| (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 🔄(AudioBank 베이크 배열 되쓰기) · T74 🔄(FxCubes 시전당 재질 되쓰기) |
+| (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 🔄(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
 | (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
