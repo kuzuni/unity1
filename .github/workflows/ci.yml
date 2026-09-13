@@ -89,6 +89,12 @@ jobs:
       # T51 — 이 레포의 검사 자는 전부 «자기 검사» 가 여기 걸려 있다. T28 의 자만 빠져 있었다(T28 은 ci.yml 이 제 범위 밖이었다).
       - name: 원작 대조 자 자기 검사 (T28 `ui_score.py` · 15칸)
         run: python3 tools/ui_score.py --self-test
+
+      - name: 글자 자 자기 검사 (T89 `check_text_glyphs.py`)
+        run: python3 tools/check_text_glyphs.py --self-test
+
+      - name: 화면 문구의 글자가 글꼴에 다 있는가 — 막는다 (T89 · 새 두부 □)
+        run: python3 tools/check_text_glyphs.py
       - name: 테스트 결과 Artifact
         if: always()
         uses: actions/upload-artifact@v4
