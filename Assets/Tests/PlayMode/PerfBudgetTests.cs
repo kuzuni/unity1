@@ -290,12 +290,18 @@ namespace Forge.Tests.PlayMode
             public readonly Dictionary<string, long> Path = new Dictionary<string, long>();
             /// <summary>직접 부모 마커(예: UniversalRenderPipeline.RenderSingleCamera · Canvas.SendWillRenderCanvases).</summary>
             public readonly Dictionary<string, long> Parent = new Dictionary<string, long>();
-            public int Frames, Samples; public long Total; public string Why = "";
+            /// <summary>스레드별 GC.Alloc 합(메인 스레드 밖의 할당 — 계수기는 모든 스레드를 세지만 GC.Alloc 샘플은 스레드마다 따로 있다 · 런 113: 계수기 1,028KB vs 메인 스레드 샘플 145KB).</summary>
+            public readonly Dictionary<string, long> Threads = new Dictionary<string, long>();
+            public int Frames, Samples, ThreadsSeen; public long Total, MainTotal; public string Why = "";
+            /// <summary>캡처 동안 프레임 사이에 늘어난 Material 오브젝트 수의 합(양의 차만 · 만들고 바로 버려도 잡힌다) — 편집기 재질 후처리 57KB/프레임의 임자를 세는 자.</summary>
+            public int MatsCreated;
         }
 
         static void Bump(Dictionary<string, long> d, string k, long v) { long cur; d.TryGetValue(k, out cur); d[k] = cur + v; }
 
         /// <summary>깊이 우선으로 놓인 샘플을 «남은 자식 수» 스택으로 걷는다 — 샘플 i 를 볼 때 스택이 곧 조상 경로다.</summary>
+        const int MaxThreads = 64;
+
         static void WalkFrames(int first, int last, AllocBuckets o)
         {
             try
@@ -303,27 +309,39 @@ namespace Forge.Tests.PlayMode
                 var remain = new List<int>(); var names = new List<string>();
                 for (int fi = first; fi <= last; fi++)
                 {
-                    using (UnityEditor.Profiling.RawFrameDataView fd = UnityEditorInternal.ProfilerDriver.GetRawFrameDataView(fi, 0))
+                    bool counted = false;
+                    for (int ti = 0; ti < MaxThreads; ti++)
                     {
-                        if (fd == null || !fd.valid) continue;
-                        int gcId = fd.GetMarkerId("GC.Alloc");
-                        if (gcId == UnityEditor.Profiling.FrameDataView.invalidMarkerId) { o.Why = "GC.Alloc 마커 없음"; continue; }
-                        o.Frames++;
-                        remain.Clear(); names.Clear();
-                        int n = fd.sampleCount;
-                        for (int i = 0; i < n; i++)
+                        using (UnityEditor.Profiling.RawFrameDataView fd = UnityEditorInternal.ProfilerDriver.GetRawFrameDataView(fi, ti))
                         {
-                            while (remain.Count > 0 && remain[remain.Count - 1] == 0) { remain.RemoveAt(remain.Count - 1); names.RemoveAt(names.Count - 1); }
-                            if (remain.Count > 0) remain[remain.Count - 1]--;
-                            if (fd.GetSampleMarkerId(i) == gcId && fd.GetSampleMetadataCount(i) > 0)
+                            if (fd == null || !fd.valid) { if (ti == 0) break; else continue; }
+                            int gcId = fd.GetMarkerId("GC.Alloc");
+                            if (gcId == UnityEditor.Profiling.FrameDataView.invalidMarkerId) { if (ti == 0) o.Why = "GC.Alloc 마커 없음"; continue; }
+                            if (!counted) { o.Frames++; counted = true; }
+                            if (fi == first) o.ThreadsSeen++;
+                            string tname = ti == 0 ? "메인" : (fd.threadGroupName + "/" + fd.threadName);
+                            remain.Clear(); names.Clear();
+                            int n = fd.sampleCount;
+                            for (int i = 0; i < n; i++)
                             {
-                                long sz = fd.GetSampleMetadataAsLong(i, 0);
-                                o.Total += sz; o.Samples++;
-                                string path = names.Count > 2 ? names[1] + "/" + names[2] : names.Count > 1 ? names[1] : "(루트)";
-                                Bump(o.Path, path, sz);
-                                Bump(o.Parent, names.Count > 0 ? names[names.Count - 1] : "(루트)", sz);
+                                while (remain.Count > 0 && remain[remain.Count - 1] == 0) { remain.RemoveAt(remain.Count - 1); names.RemoveAt(names.Count - 1); }
+                                if (remain.Count > 0) remain[remain.Count - 1]--;
+                                if (fd.GetSampleMarkerId(i) == gcId && fd.GetSampleMetadataCount(i) > 0)
+                                {
+                                    long sz = fd.GetSampleMetadataAsLong(i, 0);
+                                    o.Total += sz; o.Samples++;
+                                    Bump(o.Threads, tname, sz);
+                                    if (ti == 0)
+                                    {
+                                        o.MainTotal += sz;
+                                        string path = names.Count > 2 ? names[1] + "/" + names[2] : names.Count > 1 ? names[1] : "(루트)";
+                                        Bump(o.Path, path, sz);
+                                        Bump(o.Parent, names.Count > 0 ? names[names.Count - 1] : "(루트)", sz);
+                                    }
+                                    else Bump(o.Parent, tname + "⟶" + (names.Count > 0 ? names[names.Count - 1] : "(루트)"), sz);
+                                }
+                                remain.Add(fd.GetSampleChildrenCount(i)); names.Add(fd.GetSampleName(i));
                             }
-                            remain.Add(fd.GetSampleChildrenCount(i)); names.Add(fd.GetSampleName(i));
                         }
                     }
                 }
@@ -341,7 +359,13 @@ namespace Forge.Tests.PlayMode
             yield return null;
             yield return null;
             int first = UnityEditorInternal.ProfilerDriver.lastFrameIndex + 1;
-            for (int f = 0; f < frames; f++) { StepFrame(r, dt); if (f % 30 == 0) CastSkills(r); yield return null; }
+            int mats = CountAll<Material>();
+            for (int f = 0; f < frames; f++)
+            {
+                StepFrame(r, dt); if (f % 30 == 0) CastSkills(r);
+                yield return null;
+                int now = CountAll<Material>(); if (now > mats) o.MatsCreated += now - mats; mats = now;
+            }
             int last = UnityEditorInternal.ProfilerDriver.lastFrameIndex;
             UnityEditorInternal.ProfilerDriver.enabled = false;
             if (last < first) { o.Why = "프로파일러 프레임 없음(first " + first + " · last " + last + " · enabled 가 안 붙었다)"; yield break; }
@@ -360,8 +384,8 @@ namespace Forge.Tests.PlayMode
         static string ProfLine(string when, AllocBuckets b)
         {
             string line = b.Frames > 0
-                ? "[T64] 프로파일러 GC.Alloc 버킷 " + when + "(" + b.Frames + "프레임 평균 · 샘플 " + (b.Samples / b.Frames) + "/프레임 · 합 " + (b.Total / b.Frames) + "B/프레임): 경로 ⟨" + TopN(b.Path, b.Frames, 10) +
-                  "⟩ · 직접 부모 ⟨" + TopN(b.Parent, b.Frames, 12) + "⟩" + (b.Why.Length > 0 ? " · ⚠ " + b.Why : "")
+                ? "[T64] 프로파일러 GC.Alloc 버킷 " + when + "(" + b.Frames + "프레임 평균 · 스레드 " + b.ThreadsSeen + " · 샘플 " + (b.Samples / b.Frames) + "/프레임 · 전 스레드 합 " + (b.Total / b.Frames) + "B/프레임 · 메인 " + (b.MainTotal / b.Frames) + "B · 캡처 중 새 Material " + b.MatsCreated + "개): 스레드 ⟨" + TopN(b.Threads, b.Frames, 8) + "⟩ · 경로 ⟨" + TopN(b.Path, b.Frames, 8) +
+                  "⟩ · 직접 부모 ⟨" + TopN(b.Parent, b.Frames, 14) + "⟩" + (b.Why.Length > 0 ? " · ⚠ " + b.Why : "")
                 : "[T64] 프로파일러 GC.Alloc 버킷 " + when + ": 자 없음 — " + b.Why;
             Debug.Log(line);
             return line;
