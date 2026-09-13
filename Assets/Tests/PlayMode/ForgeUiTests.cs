@@ -1187,6 +1187,103 @@ namespace Forge.Tests.PlayMode
             return null;
         }
 
+        /// <summary>
+        /// T87 27회차 — 제작 **결과 카드**(`crpop` + `crring`)와 자동 제련 **탈락 카드**(`adcpop`)가 정본 키프레임대로 움직이는가.
+        /// 정본 계약: 리빌은 끝에서 **머물고**(불투명도 1) 탈락은 **빨려 들어간다**(불투명도 0 · 아래로 · 작게).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator T87_결과_카드가_정본_키프레임대로_튀어올랐다_머문다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            ForgeItem item = h.Engine.RollItem();
+            bool done = false;
+            ForgeCraftPopup.ShowReveal(h, item, () => { done = true; });
+            yield return null;
+
+            RectTransform card = FindByName("card");
+            Assert.IsNotNull(card, "리빌 카드가 안 섰다");
+            CraftCardFx fx = card.GetComponent<CraftCardFx>();
+            Assert.IsNotNull(fx, "카드에 러너가 안 붙었다");
+            Assert.AreEqual(CraftCardSpec.RevealMs, fx.DurationMs, 1e-6, "crpop .56s");
+            Assert.AreEqual(new Vector2(0.5f, 0.5f), card.pivot, "축은 카드 한가운데(CSS transform-origin 기본)");
+            CanvasGroup cg = card.GetComponent<CanvasGroup>();
+            Assert.IsNotNull(cg);
+            Image ring = FindByNameIn(card.parent as RectTransform, "cr-ring") == null ? null
+                : FindByNameIn(card.parent as RectTransform, "cr-ring").GetComponent<Image>();
+            Assert.IsNotNull(ring, "시대색 링이 안 섰다");
+
+            float size = card.sizeDelta.x;
+            double[] v = new double[3];
+            double[] rv = new double[2];
+            // 표의 키마다: 불투명도·크기·가운데 자리·링이 값과 같은가.
+            foreach (double pct in new double[] { 0, 24, 44, 62, 100 })
+            {
+                fx.SampleTo(CraftCardSpec.RevealMs * pct / 100.0);
+                CraftCardSpec.Pop.SampleEased(pct, CraftCardSpec.Bounce, v);
+                Assert.AreEqual((float)v[0], cg.alpha, 1e-3f, pct + "%: 불투명도");
+                Assert.AreEqual((float)v[2], card.localScale.x, 1e-3f, pct + "%: 크기");
+                float cy = (float)CraftCardSpec.CenterYDown(AnvilTopY(), v[1], size);
+                Assert.AreEqual(-cy, card.anchoredPosition.y, 0.5f, pct + "%: 가운데 y(translate 퍼센트를 푼 값)");
+                CraftCardSpec.Ring.SampleEased(pct, CraftCardSpec.EaseOut, rv);
+                Assert.AreEqual((float)rv[1], ring.color.a, 1e-3f, pct + "%: 링 불투명도");
+                Assert.AreEqual(size + (float)rv[0] * PopupKit.Rem * 2f, ring.rectTransform.sizeDelta.x, 0.5f, pct + "%: 링이 퍼진 폭");
+            }
+            // 62% ~ 100% 는 «머문다» — 자리도 크기도 안 바뀐다.
+            fx.SampleTo(CraftCardSpec.RevealMs * 0.62);
+            Vector2 held = card.anchoredPosition;
+            float heldS = card.localScale.x;
+            fx.SampleTo(CraftCardSpec.RevealMs);
+            Assert.AreEqual(held.y, card.anchoredPosition.y, 0.01f, "62% 뒤로는 머문다");
+            Assert.AreEqual(heldS, card.localScale.x, 1e-4f);
+            Assert.AreEqual(1f, cg.alpha, 1e-4f, "리빌은 끝에도 보인다(팝업에 자리를 넘긴다)");
+            ForgeCraftPopup.DismissReveal();
+            yield return null;
+
+            // ── 탈락 카드: 끝에서 빨려 들어간다
+            ForgeCraftPopup.ShowAutoDropCard(h, item, () => { });
+            yield return null;
+            RectTransform adc = FindByName("card");
+            Assert.IsNotNull(adc, "탈락 카드가 안 섰다");
+            CraftCardFx afx = adc.GetComponent<CraftCardFx>();
+            CanvasGroup acg = adc.GetComponent<CanvasGroup>();
+            Assert.AreEqual(CraftCardSpec.AutoDropMs, afx.DurationMs, 1e-6, "adcpop .62s");
+            afx.SampleTo(CraftCardSpec.AutoDropMs * 0.18);
+            float peakY = adc.anchoredPosition.y, peakS = adc.localScale.x;
+            Assert.AreEqual(1f, acg.alpha, 1e-3f, "18% 에는 보인다");
+            afx.SampleTo(CraftCardSpec.AutoDropMs);
+            Assert.AreEqual(0f, acg.alpha, 1e-3f, "끝에서 사라진다");
+            Assert.Less(adc.anchoredPosition.y, peakY, "정점보다 아래로 내려간다(모루 쪽)");
+            Assert.Less(adc.localScale.x, peakS, "작아진다");
+            ForgeCraftPopup.DismissReveal();
+            yield return null;
+            Assert.IsFalse(done, "리빌 done 은 0.56초 뒤라 아직 아니다");
+        }
+
+        /// <summary>정본 `AnvilTop()` 과 같은 기준점 y — 테스트가 같은 식으로 다시 잰다(값을 안 박는다).</summary>
+        private static float AnvilTopY()
+        {
+            float sheetTop = UiKit.L("sheet_top") * UiKit.RefH;
+            float rem = PopupKit.Rem;
+            float cell = (UiKit.RefW - UiKit.RefW * 0.1094f * 2f - UiKit.RefW * 0.0294f * 4f) / 5f;
+            return sheetTop + rem * 0.55f + cell * 2f + rem * 0.6f + rem * 0.5f;
+        }
+
+        private static RectTransform FindByName(string name)
+        {
+            foreach (RectTransform rt in UiRoot.Instance.App.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == name) return rt;
+            return null;
+        }
+
+        private static RectTransform FindByNameIn(RectTransform root, string name)
+        {
+            if (root == null) return null;
+            foreach (RectTransform rt in root.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == name) return rt;
+            return null;
+        }
+
         /// <summary>겹 하나의 그래픽(불투명도는 그 색의 α · 정본 SVG 원소 `opacity`).</summary>
         private static Graphic Poly(RectTransform sheet, string name)
         {

@@ -592,6 +592,154 @@ namespace Forge.Tests
                 Assert.Less(AutoForgeFxSpec.SmokeDelayMs[i], AutoForgeFxSpec.HitMs[i], i + "번 연기는 제 타격보다 이르다(정본 값 그대로)");
         }
 
+        // ─────────────────────────── T87 27회차 · 결과 카드(`crpop`·`crring`·`crsheen`·`cbpop`·`cbfade`·`adcpop`) ───────────────────────────
+
+        [Test]
+        public void 결과_카드_클럭은_정본_그대로다()
+        {
+            Assert.AreEqual(560, CraftCardSpec.RevealMs, Eps, "crpop/crring/crsheen .56s");
+            Assert.AreEqual(620, CraftCardSpec.AutoDropMs, Eps, "adcpop .62s");
+            Assert.AreEqual(340, CraftCardSpec.BatchPopMs, Eps, "cbpop .34s");
+            Assert.AreEqual(180, CraftCardSpec.BatchFadeMs, Eps, "cbfade .18s");
+            Assert.AreEqual(80, CraftCardSpec.SheenDelayMs, Eps, "crsheen 지연 .08s");
+            Assert.AreEqual(-110, CraftCardSpec.RestTranslateYPct, Eps, ".auto-drop-card 기본 translate(-50%, -110%)");
+        }
+
+        [Test]
+        public void 리빌은_머물고_탈락은_빨려_들어간다()
+        {
+            // 정본 1091: «탈락 카드와 몸통은 같지만 끝에서 빨려 들어가지 않는다 — 튀어올라 머문 채 자리를 넘긴다».
+            double[] v = new double[3];
+            CraftCardSpec.Pop.Sample(100, v);
+            Assert.AreEqual(1, v[0], Eps, "리빌은 끝에도 보인다");
+            Assert.AreEqual(-117, v[1], Eps, "리빌 끝 자세");
+            Assert.AreEqual(1, v[2], Eps, "리빌 끝 크기");
+            CraftCardSpec.Pop.Sample(62, v);
+            Assert.AreEqual(-117, v[1], Eps, "62% 와 100% 가 같아야 마지막 38% 가 «머문다»");
+            Assert.AreEqual(1, v[2], Eps);
+
+            CraftCardSpec.AutoDrop.Sample(100, v);
+            Assert.AreEqual(0, v[0], Eps, "탈락은 끝에 사라진다");
+            Assert.AreEqual(-84, v[1], Eps, "모루 쪽(아래)으로 빨려 들어간다");
+            Assert.Less(v[2], 1.0, "빨려 들어가며 작아진다");
+        }
+
+        [Test]
+        public void 두_카드_다_튀어올랐다_내려앉는다()
+        {
+            // 정점(가장 높이 · 가장 크게) → 되내려옴 → 제자리. 세로는 음수가 위쪽이다.
+            double[] v = new double[3];
+            CraftCardSpec.Pop.Sample(24, v);
+            double peakY = v[1], peakS = v[2];
+            CraftCardSpec.Pop.Sample(0, v);
+            Assert.Less(peakY, v[1], "정점이 시작보다 위");
+            Assert.Greater(peakS, v[2], "정점이 시작보다 크다");
+            CraftCardSpec.Pop.Sample(100, v);
+            Assert.Less(peakY, v[1], "정점이 끝자리보다 위");
+            Assert.Greater(peakS, v[2], "정점이 끝보다 크다");
+            CraftCardSpec.Pop.Sample(44, v);
+            Assert.Less(v[2], 1.0, "44% 는 살짝 눌린다(.97)");
+
+            CraftCardSpec.AutoDrop.Sample(18, v);
+            Assert.AreEqual(-118, v[1], Eps, "탈락 카드 정점");
+            Assert.AreEqual(1.05, v[2], Eps);
+            CraftCardSpec.AutoDrop.Sample(70, v);
+            Assert.AreEqual(CraftCardSpec.RestTranslateYPct, v[1], Eps, "70% 는 기본 자세(-110%)로 내려앉는다");
+        }
+
+        [Test]
+        public void 불투명도는_한_번만_켜지고_꺼진다()
+        {
+            // 리빌: 0 → 1 로 켜진 뒤 안 꺼진다. 탈락: 켜졌다 끝에서만 꺼진다(중간에 깜빡이면 안 된다).
+            double prev = -1;
+            bool fell = false;
+            for (double p = 0; p <= 100; p += 0.5)
+            {
+                double[] v = new double[3];
+                CraftCardSpec.Pop.Sample(p, v);
+                if (prev >= 0 && v[0] < prev - 1e-6) fell = true;
+                prev = v[0];
+            }
+            Assert.IsFalse(fell, "리빌 불투명도는 내려가지 않는다");
+
+            double[] w = new double[3];
+            CraftCardSpec.AutoDrop.Sample(18, w);
+            Assert.AreEqual(1, w[0], Eps);
+            CraftCardSpec.AutoDrop.Sample(70, w);
+            Assert.AreEqual(1, w[0], Eps, "18~70% 는 계속 보인다");
+        }
+
+        [Test]
+        public void 링은_퍼지며_흐려진다()
+        {
+            double[] v = new double[2];
+            CraftCardSpec.Ring.Sample(0, v);
+            Assert.AreEqual(0, v[0], Eps, "spread 0 에서 시작");
+            Assert.AreEqual(CraftCardSpec.RingAlpha0, v[1], Eps, "72%");
+            CraftCardSpec.Ring.Sample(100, v);
+            Assert.AreEqual(CraftCardSpec.RingSpreadRem, v[0], Eps, "1.1rem 까지 퍼진다");
+            Assert.AreEqual(0, v[1], Eps, "끝은 transparent");
+            double[] a = new double[2], b = new double[2];
+            CraftCardSpec.Ring.Sample(30, a);
+            CraftCardSpec.Ring.Sample(60, b);
+            Assert.Less(a[0], b[0], "계속 퍼진다");
+            Assert.Greater(a[1], b[1], "계속 흐려진다");
+        }
+
+        [Test]
+        public void 광택은_늦게_시작해_58퍼센트에_닿고_머문다()
+        {
+            Assert.AreEqual(0, CraftCardSpec.SheenPercent(0), Eps, "지연 전에는 진행 0");
+            Assert.AreEqual(0, CraftCardSpec.SheenPercent(CraftCardSpec.SheenDelayMs), Eps);
+            Assert.AreEqual(100, CraftCardSpec.SheenPercent(CraftCardSpec.SheenDelayMs + CraftCardSpec.RevealMs), Eps);
+            Assert.AreEqual(100, CraftCardSpec.SheenPercent(99999), Eps, "넘어도 100 에서 자른다");
+
+            Assert.AreEqual(-130, CraftCardSpec.Sheen.Sample1(0), Eps, "::after 기본 transform 과 같은 시작 자세");
+            Assert.AreEqual(150, CraftCardSpec.Sheen.Sample1(58), Eps);
+            Assert.AreEqual(150, CraftCardSpec.Sheen.Sample1(100), Eps, "58% 뒤로는 머문다");
+        }
+
+        [Test]
+        public void 카드판은_격자_전체가_한_애니메이션을_탄다()
+        {
+            // 정본 1118 «⚠️ 카드마다 animation-delay 를 주지 말 것» — 표에 카드별 지연 칸이 아예 없다.
+            double[] v = new double[2];
+            CraftCardSpec.BatchPop.Sample(0, v);
+            Assert.AreEqual(0, v[0], Eps);
+            Assert.AreEqual(0.74, v[1], Eps);
+            CraftCardSpec.BatchPop.Sample(62, v);
+            Assert.AreEqual(1, v[0], Eps);
+            Assert.AreEqual(1.04, v[1], Eps, "62% 에서 살짝 넘겼다가");
+            CraftCardSpec.BatchPop.Sample(100, v);
+            Assert.AreEqual(1.00, v[1], Eps, "1 로 내려앉는다");
+            Assert.AreEqual(0, CraftCardSpec.BatchFade.Sample1(0), Eps);
+            Assert.AreEqual(1, CraftCardSpec.BatchFade.Sample1(100), Eps);
+        }
+
+        [Test]
+        public void 튀어오름_이징은_1을_넘겼다_돌아온다()
+        {
+            // cubic-bezier(.18,.9,.28,1.06) — y2 가 1.06 이라 중간에 1을 넘는 구간이 있어야 «튀어오름» 으로 읽힌다.
+            bool over = false;
+            for (double t = 0; t <= 1.0001; t += 0.01) if (CraftCardSpec.Bounce.Ease(t) > 1.0) over = true;
+            Assert.IsTrue(over, "정본 이징은 1을 넘는다");
+            Assert.AreEqual(1, CraftCardSpec.Bounce.Ease(1), 1e-9, "끝은 정확히 1");
+            // ease-out 은 앞이 빠르다(같은 t 에서 선형보다 크다).
+            Assert.Greater(CraftCardSpec.EaseOut.Ease(0.25), 0.25, "ease-out 은 앞이 빠르다");
+        }
+
+        [Test]
+        public void 카드_가운데_자리는_translate_퍼센트를_푼_값이다()
+        {
+            // CSS: 기준점에서 요소를 (-50%, pct%) 옮긴다 → 가운데 = 기준 + pct%·h + h/2.
+            Assert.AreEqual(100 + (-110 / 100.0) * 50 + 25, CraftCardSpec.CenterYDown(100, -110, 50), 1e-9);
+            // 기본 자세(-110%)에서 카드 윗변은 기준점보다 110%·h 위 · 바닥은 10%·h 위 — 즉 카드가 기준점 위에 «떠 있다».
+            double center = CraftCardSpec.CenterYDown(0, CraftCardSpec.RestTranslateYPct, 100);
+            Assert.AreEqual(-60, center, 1e-9, "가운데");
+            Assert.AreEqual(-110, center - 50, 1e-9, "윗변 = 가운데 − h/2");
+            Assert.AreEqual(-10, center + 50, 1e-9, "바닥 = 가운데 + h/2 — 기준점보다 위(음수)");
+        }
+
         private static double Rest(double percent)
         {
             double[] v = new double[2];

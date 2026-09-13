@@ -175,8 +175,10 @@ namespace Forge.Game.Ui
             reveal = Overlay("craft-reveal");
             float size = PopupKit.Rem * 3.7f;
             Vector2 a = AnvilTop();
+            // 링(`crring`)이 카드 **뒤**라 먼저 만든다 — 정본은 `box-shadow` 라 그림 바깥으로 퍼진다.
+            Image ring = UiKit.Rounded(reveal, "cr-ring", "pp_line", size * 0.16f);
             RectTransform card = CraftCard(reveal, h, item, size);
-            UiKit.Place(card, a.x - size * 0.5f, a.y - size * 1.1f, size, size);
+            CraftCardFx.Play(card, CraftCardFx.Mode.Reveal, a, size, ring, ForgeUi.AgeColor(h.Defs, item.Age));
             h.Delay(ForgeHost.RevealCardSec, () => { DismissReveal(); done(); });
         }
 
@@ -188,7 +190,7 @@ namespace Forge.Game.Ui
             float size = PopupKit.Rem * 3.7f;
             Vector2 a = AnvilTop();
             RectTransform card = CraftCard(reveal, h, item, size);
-            UiKit.Place(card, a.x - size * 0.5f, a.y - size * 1.1f, size, size);
+            CraftCardFx.Play(card, CraftCardFx.Mode.AutoDrop, a, size, null, Color.clear);
             h.Delay(ForgeHost.AutoCardSec, () => { DismissReveal(); done(); });
         }
 
@@ -213,7 +215,7 @@ namespace Forge.Game.Ui
             DismissBatch();
             batch = Overlay("craft-batch");
             Image dim = UiKit.Panel(batch, "dim", "modal_dim");
-            dim.color = new Color(0f, 0f, 0f, 0.42f);
+            dim.color = new Color(0f, 0f, 0f, CraftCardFx.DimBase);
             dim.raycastTarget = true;
             int cols = items.Count <= 4 ? items.Count : items.Count <= 9 ? 3 : 4;
             int rows = (items.Count + cols - 1) / cols;
@@ -227,6 +229,8 @@ namespace Forge.Game.Ui
                 card.name = "cb-card-" + i;
                 UiKit.Place(card, (i % cols) * (size + gap), (i / cols) * (size + gap), size, size);
             }
+            // 정본 1118 «⚠️ 카드마다 animation-delay 를 주지 말 것» — 격자 **전체**가 `cbpop` 하나를 탄다.
+            CraftCardFx.PlayBatch(grid, dim);
             bool finished = false;
             Action finish = () => { if (finished) return; finished = true; DismissBatch(); done(); };
             Button b = dim.gameObject.AddComponent<Button>();
