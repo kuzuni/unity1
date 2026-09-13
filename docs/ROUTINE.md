@@ -830,6 +830,7 @@
 - 어디를 볼까(잡는 사람이 확인할 것 · 둘 다 후보다): ⓐ `BattlePreview.Start` 가 카메라를 `CopyFrom(main)` 한 뒤 **`transform.SetParent(transform,false)`** 로 제 오브젝트 자리에 둔다 — 본 카메라의 **자리·각도는 CopyFrom 이 안 옮긴다**(설정만 복사). 본 카메라의 `position`·`rotation` 을 같이 옮겼는지 본다. ⓑ 본 카메라는 T54 의 **비대칭 절두체**(앱 상자 framing)인데 미니 카메라는 `ResetProjectionMatrix()` + `aspect = w/h` 로 다시 잡는다 — 세로 화각이 달라 지면이 칸 바닥에 못 닿을 수 있다.
 - 판정: `ui_score --score --only player-info` 가 **3.5 이상**(지금 2.8) + 워커가 PNG 를 열어 «칸 바닥까지 지면» 확인 + 행 평균 밝기로 칸 아래 2%p 가 25 가 아님 + `PerfBudgetTests` 상한 유지 + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Battle/BattlePreview.cs` · `Assets/Tests/PlayMode/UiSmokeTests.cs`(칸 채움 단언 한 줄).
+- ✅ 결론(2026-09-13 · 워커 R · 결정 236): 후보 ⓐⓑ 둘 다 아니었다 — 원인은 **본 리그 복사 그 자체**(fov 62 를 3:1 칸에 걸면 띠 아래 흙 절벽까지 들어온다 · 런 195 `screen_main` y430~530 도 같은 어둠). 정본 `previewBuild` 의 미니 카메라 리그(fov 42 · (0.1,1.95,4.3) → (0.05,0.92,0) · 영웅 (0,0,0.4))를 추출기 → `scene.json` `PREVIEW_CAM` → `SceneDefs` → `BattlePreview.ApplyRig` 로 끌어와 지금 영웅 리그 자리에 건다(코드에 수 0 · 표가 없으면 T97 방식). PlayMode 단언: 칸 아래 모서리 광선이 지면을 영웅 앞에서 만난다. 판정(런 번호 · PNG)은 완료 기록에.
 ### T106 — 이모지 여섯이 화면에서 □: 정본도 «글자» 라 이모지 폴백 글꼴 말고는 길이 없다 (Game·UI · T53·T100 뒤 · **주인 에셋 승인 사안** · T87·T99·T104 lock 파일은 그 뒤)
 - 실측(2026-09-13 · T100 3회차 · 워커 E): `check_text_glyphs` 가 세는 «글꼴에 없는 글자» 일곱 중 여섯이 이모지다 — `⏱`(ForgeInfoPopup 업그레이드 버튼) · `⏹`(ForgeHost 자동 제련 종료 토스트 · 정본 `ui.js` 2272) · `🐴`·`🐾`(`PetSkillKit.PetFace` 의 얼굴 폴백 + 펫·탈것 토스트 문구) · `🛡`(`PlayerInfoUi.json /text/shield`) · `😭`(채팅 문구 · 정본 `chat.js` 11).
 - 정본 확인: 전부 **글자**다 — `ui.js` 2143 `creatureFace` 가 3D 썸네일이 구워지기 전에는 `<span>${emoji}</span>` 를 깔고(2162 `petFace`), `ui.js` 5153 `.pinfo-preview` 는 `<span>🛡️</span>`, 토스트·채팅 문구는 문자열 그대로다. 브라우저가 OS 이모지 글꼴로 그려 주던 것이라 **리눅스 CI·WebGL 에는 그 글꼴이 없다**(한글이 그랬듯이 · T53).
@@ -837,8 +838,6 @@
 - 무엇을 한다(주인 승인 뒤): ⓐ 이모지 글꼴 하나를 `Assets/Fonts/` 에 · 정본에 실제로 나오는 이모지만 남긴 서브셋(T53·T100 2회차와 같은 `fontTools.subset` 길 · TMP 는 색 비트맵 글꼴(CBDT/COLR)을 못 그리므로 **단색** 글꼴이어야 한다 — 정본의 색 이모지와 다른 점을 결정 기록에 남긴다) ⓑ 카탈로그에 폴백 글꼴 키(`gen_ui_catalog.py` 같이 · **T87 lock 뒤**) ⓒ `UiFont.Build` 의 `fallbackFontAssetTable` 에 더한다(UiKit 309~319 에 OS 폴백을 붙이는 자리가 이미 있다 · **T99·T104 lock 뒤**) ⓓ `check_text_glyphs.KNOWN` 과 `TextSizeGateTests.KnownTofu` 에서 여섯을 빼고, PlayMode 물음을 그 여섯에 한해 «폴백 포함» 으로.
 - 판정: `check_text_glyphs` 가 여섯을 `KNOWN` 없이 통과 + PlayMode 두부 막이 초록 + 워커가 `screen_pets.png`·`screen_player-info.png`·`screen_chat.png` 을 열어 □ 가 없는 것을 눈으로(§1).
 - 범위: `Assets/Fonts/`(새 글꼴 · 주인 승인 뒤) · `Assets/Forge/catalog.json`(T87 뒤) · `tools/gen_ui_catalog.py` · `Assets/Scripts/Game/Ui/UiKit.cs`(T99·T104 뒤) · `tools/check_text_glyphs.py` · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/assets-map.md`.
-
-- ✅ 결론(2026-09-13 · 워커 R · 결정 236): 후보 ⓐⓑ 둘 다 아니었다 — 원인은 **본 리그 복사 그 자체**(fov 62 를 3:1 칸에 걸면 띠 아래 흙 절벽까지 들어온다 · 런 195 `screen_main` y430~530 도 같은 어둠). 정본 `previewBuild` 의 미니 카메라 리그(fov 42 · (0.1,1.95,4.3) → (0.05,0.92,0) · 영웅 (0,0,0.4))를 추출기 → `scene.json` `PREVIEW_CAM` → `SceneDefs` → `BattlePreview.ApplyRig` 로 끌어와 지금 영웅 리그 자리에 건다(코드에 수 0 · 표가 없으면 T97 방식). PlayMode 단언: 칸 아래 모서리 광선이 지면을 영웅 앞에서 만난다. 판정(런 번호 · PNG)은 완료 기록에.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
