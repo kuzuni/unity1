@@ -532,6 +532,10 @@ STALE_REF_NOTES = [
     u"제작 비교 버튼: 원작 샷(`shot-043224`)의 버튼은 «판매»·«장착» 한 단어인데 지금 정본은 `<small>` 로 "
     u"판매액(코인+금액)과 «기존 교체»/«다시 장착» 을 단다(`ui.js` 3266·3269 — 그 코드 주석이 그 샷을 대놓고 "
     u"«타이틀 줄 없음, 버튼 라벨은 판매/장착만» 이라 적었다). 클론의 두 줄 버튼은 **정본대로**다(T28 15회차 실측).",
+    u"리그 «상대 선택» 상대 이름: 원작 샷(`shot-042228`)의 이름은 **흰 글자 + 검정 키라인**인데 지금 정본 "
+    u"`.league-challenge-name` 은 `color: var(--pp-ink)`(#17181a) 민글자다 — 클론의 어두운 민글자가 "
+    u"**정본대로**다(T28 22회차 6배 확대 실측). 같은 행에서 **전투력 숫자의 검정 키라인은 정본에도 있다**"
+    u"(`style.css` 2635 `-webkit-text-stroke: 2px`) — 그쪽은 진짜 결함이라 T108 로 뗐다.",
 ]
 
 
@@ -543,7 +547,25 @@ def print_stale_notes():
 
 
 # ── 회차 사이 점수 기준선 (T28 7회차 · 워커 M) ─────────────────────────────
-DROP_MARK = 0.5   # 이만큼 움직이면 사람이 봐야 한다(판독 잡음은 0.1~0.2)
+# 문턱 0.5 의 근거(T28 22회차 실측 · 런 208 30장 × 흔들림 4가지 = 120회): UI 를 안 바꾸는
+# 흔들림(밝기 ±1 · 세로/가로 1px 밀림)만 주면 |Δ| 중앙값 0.00 · 90분위 0.11 · **최대 0.49** 다
+# — 즉 0.5 는 판독 잡음 바로 위다. 이 문턱 자체는 낮추지도 올리지도 않는다.
+DROP_MARK = 0.5   # 이만큼 움직이면 사람이 봐야 한다(판독 잡음 실측: 90분위 0.11 · 최대 0.49)
+
+# ── «내려간 화면» 을 회귀로 부르기 전에 (T28 22회차 · 워커 M) ────────────────
+# 판독 잡음은 0.5 아래지만, **팝업 뒤 배경**(살아 있는 3D 세계 · 상단바 숫자 · 뒤 목록)은
+# 회차마다 다르고 그것만으로 점수가 크게 움직인다. 실측(런 208 · 팝업 상자 바깥을 통째로
+# 단색 30/90/150 으로 바꿔 재측정): 팝업 화면 20장 중 **19장이 0.5 이상**, 중앙값 ≈1.4.
+# 아래 수는 그 **상한**이다(실제 회차 간 배경 변화는 이보다 작다) — 그래서 이 수보다 작은
+# 하락은 «깬 사람» 이 아니라 먼저 **두 PNG 의 팝업 뒤**를 견주라고 따로 찍는다.
+# 되돌리려면 PROGRESS 22회차 기록. 값은 손으로 고치지 말고 같은 실측을 다시 해서 고친다.
+BG_SHAKY = {
+    "shop": 4.3, "settings": 3.3, "pet-upgrade": 3.1, "profile": 2.5, "player-info": 2.3,
+    "forge-list": 2.2, "gear-detail": 1.7, "craft-compare": 1.7, "league": 1.7,
+    "summon-rates": 1.5, "league-challenge": 1.5, "chat": 1.4, "forge-info": 1.1,
+    "autoforge": 1.1, "offline": 1.1, "pass": 0.7, "forge-detail": 0.7,
+    "autoforge-filter": 0.6, "league-rewards": 0.5,
+}
 
 
 def load_baseline(path):
@@ -574,12 +596,44 @@ def load_baseline(path):
             pass
     if d.get("run") is not None:
         out["_run"] = d["run"]
+    hist = []
+    for h in (d.get("history") or []):
+        try:
+            hist.append((h.get("run"), dict((k, float(v)) for k, v in (h.get("screens") or {}).items())))
+        except (TypeError, ValueError):
+            pass
+    out["_hist"] = hist
     return out
+
+
+def median_of(hist, name):
+    """자취에서 그 화면의 중앙값 — 한 회차가 튄 것(배경이 조용했던 런)에 속지 않는다."""
+    vs = sorted(h[name] for _, h in hist if name in h)
+    if not vs:
+        return None
+    n = len(vs)
+    return vs[n // 2] if n % 2 else (vs[n // 2 - 1] + vs[n // 2]) / 2.0
+
+
+HIST_KEEP = 6     # 기준선 파일이 들고 있는 회차 수(중앙값용 · 파일이 커지지 않게)
 
 
 def save_baseline_file(path, scores, avg, run=None):
     import json
-    d = {"run": run, "avg": round(avg, 2), "screens": dict((n, round(v, 1)) for n, v in scores)}
+    cur = dict((n, round(v, 1)) for n, v in scores)
+    hist = []
+    if path and os.path.exists(path):
+        try:
+            with open(path, encoding="utf-8") as f:
+                old = json.loads(f.read())
+            hist = list(old.get("history") or [])
+            if not hist and old.get("screens"):      # 자취가 없던 옛 파일 — 그 한 회차부터 이어 붙인다
+                hist = [{"run": old.get("run"), "avg": old.get("avg"), "screens": old["screens"]}]
+        except (OSError, ValueError):
+            hist = []
+    hist = [h for h in hist if h.get("run") != run]
+    hist.append({"run": run, "avg": round(avg, 2), "screens": cur})
+    d = {"run": run, "avg": round(avg, 2), "screens": cur, "history": hist[-HIST_KEEP:]}
     with open(path, "w", encoding="utf-8") as f:
         f.write(json.dumps(d, ensure_ascii=False, indent=1, sort_keys=True) + "\n")
 
@@ -682,10 +736,32 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         if base.get("_avg") is not None:
             print(u"지난 회차(런 %s) 평균 %.2f → 이번 %.2f (%+.2f)"
                   % (base.get("_run", "?"), base["_avg"], avg, avg - base["_avg"]))
-        if drops:
-            print(u"⚠ 내려간 화면 %d개 — 회귀다(고친 사람이 아니라 **깬 사람**을 찾는다):" % len(drops))
-            for n, b, c in drops:
+        hist = base.get("_hist") or []
+        hard, soft = [], []
+        for t in drops:
+            n = t[0]
+            if abs(t[2] - t[1]) <= BG_SHAKY.get(n, 0.0):
+                soft.append(t)
+                continue
+            med = median_of(hist, n) if len(hist) >= 3 else None
+            # 자취가 3회차 이상이면 «지난 회차» 가 아니라 **중앙값**과도 견준다 — 지난 회차 하나가
+            # 튄 것(배경이 조용했던 런)을 «회귀» 로 부르지 않는다(T28 22회차 · forge-detail 1.9 건).
+            if med is not None and t[2] > med - DROP_MARK:
+                soft.append(t + (med,))
+            else:
+                hard.append(t)
+        if hard:
+            print(u"⚠ 내려간 화면 %d개 — 회귀다(고친 사람이 아니라 **깬 사람**을 찾는다):" % len(hard))
+            for n, b, c in hard:
                 print(u"    %-18s %.1f → %.1f (%+.1f)" % (n, b, c, c - b))
+        if soft:
+            print(u"· 내려갔지만 아직 회귀가 아닌 화면 %d개 — 깬 사람을 찾기 전에"
+                  u" 두 회차 PNG 의 **팝업 뒤**(세계·상단바 숫자·뒤 목록)부터 견준다:" % len(soft))
+            for t in soft:
+                n, b, c = t[0], t[1], t[2]
+                why = (u"최근 %d회차 중앙값 %.1f 자리다" % (len(hist), t[3])) if len(t) > 3 \
+                    else (u"배경만으로도 ±%.1f 움직이는 화면" % BG_SHAKY.get(n, 0.0))
+                print(u"    %-18s %.1f → %.1f (%+.1f · %s)" % (n, b, c, c - b, why))
         if ups:
             print(u"· 올라간 화면 %d개: %s" % (len(ups), " ".join(sorted(ups))))
         if not drops and not ups:
@@ -856,6 +932,27 @@ def self_test():
 
     chk(len(STALE_REF_NOTES) >= 2 and all(u"정본" in n for n in STALE_REF_NOTES),
         u"«원작 샷이 지금 정본과 다른 자리» 주석이 살아 있다(회차마다 같은 오진을 막는다)")
+
+    # ⑲ 뒤 배경 폭: 실측한 화면은 그 폭 안의 하락을 «회귀» 로 부르지 않는다
+    chk(all(v >= DROP_MARK for v in BG_SHAKY.values()) and len(BG_SHAKY) >= 15,
+        u"«뒤 배경» 폭 표가 살아 있고 모두 문턱 %.1f 이상이다 (%d화면)" % (DROP_MARK, len(BG_SHAKY)))
+    chk(BG_SHAKY.get("forge-detail", 0) >= 0.7 > 0.5,
+        u"여섯 회차째 1.1 인 forge-detail 은 배경만으로 ±0.7 — 0.8 하락을 바로 «깬 사람» 으로 몰지 않는다")
+
+    # ⑳ 기준선 자취: 회차를 이어 붙이고 중앙값을 낸다(한 회차가 튄 것에 안 속는다)
+    tmph = os.path.join(REPO, "tools", ".ui_score_hist_test.json")
+    if os.path.exists(tmph):
+        os.remove(tmph)
+    save_baseline_file(tmph, [("forge-detail", 1.1)], 1.1, run=201)
+    save_baseline_file(tmph, [("forge-detail", 1.2)], 1.2, run=203)
+    save_baseline_file(tmph, [("forge-detail", 1.9)], 1.9, run=205)
+    bh = load_baseline(tmph)
+    os.remove(tmph)
+    chk(len(bh.get("_hist") or []) == 3 and bh.get("_run") == 205,
+        u"기준선이 회차 자취를 이어 붙인다 (%d회차)" % len(bh.get("_hist") or []))
+    chk(abs((median_of(bh["_hist"], "forge-detail") or 0) - 1.2) < 1e-9,
+        u"자취 중앙값은 1.2 다 — 튄 회차(1.9)가 아니라 (%s)"
+        % median_of(bh["_hist"], "forge-detail"))
 
     print(u"")
     if fail:
