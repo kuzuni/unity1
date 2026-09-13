@@ -518,6 +518,34 @@ def score_screen(ref_rects, got_rects):
     return 10.0 * ok / tot, [u"%s — %s" % (n, w) for _, n, w in worst[:5]]
 
 
+# ── 앱 상자가 그림을 채우는가 (T28 6회차 · 워커 M) ─────────────────────────
+# 촬영 프레임이 눌리면(런 108: 3D 카메라 띠 안에 UI 까지 그려 앱 상자가 위 49% 만 차지) 모든 화면의
+# y%% 가 통째로 밀려 «UI 가 30군데 망가진 것» 처럼 보인다. 그것은 점수가 아니라 **틀**이 어긋난 것이다.
+FILL_H_MIN = 0.90   # 세로 채움 하한 — 정상 런 실측 0.94~1.00 · 눌린 런 0.487
+FILL_W_MIN = 0.80   # 가로 채움 하한 — 정상 런 실측 0.91~1.00
+
+
+def content_fill(img):
+    """그림에서 «바탕이 아닌 것» 이 차지하는 세로·가로 비. 바탕색은 테두리 픽셀의 최빈값."""
+    g = img.gray()
+    W, H = img.w, img.h
+    cnt = {}
+    for x in range(0, W, 3):
+        for v in (g[x], g[(H - 1) * W + x]):
+            cnt[v] = cnt.get(v, 0) + 1
+    for y in range(0, H, 3):
+        for v in (g[y * W], g[y * W + W - 1]):
+            cnt[v] = cnt.get(v, 0) + 1
+    bg = max(cnt.items(), key=lambda kv: kv[1])[0] if cnt else 0
+    rows = [y for y in range(H)
+            if sum(1 for x in range(0, W, 2) if abs(g[y * W + x] - bg) > 12) > W * 0.005]
+    cols = [x for x in range(W)
+            if sum(1 for y in range(0, H, 2) if abs(g[y * W + x] - bg) > 12) > H * 0.005]
+    if not rows or not cols:
+        return 0.0, 0.0
+    return (rows[-1] - rows[0] + 1) / float(H), (cols[-1] - cols[0] + 1) / float(W)
+
+
 def score(table_path, shots_dir, only=None):
     table = load_table(table_path)
     if not table:
@@ -528,7 +556,7 @@ def score(table_path, shots_dir, only=None):
         print(u"  `git fetch origin screens && git show origin/screens:screen_main.png > …` 로 받아 둔다"
               u" — T27 촬영이 CI 에서 돈 뒤에 생긴다.")
         return 2
-    scores, missing, bad, skewed = [], [], [], []
+    scores, missing, bad, skewed, unfilled = [], [], [], [], []
     for name in [n for n, _ in pairs()]:
         if only and name not in only:
             continue
@@ -548,6 +576,13 @@ def score(table_path, shots_dir, only=None):
                 print(u"  ⚠ %-18s 틀 불일치: 원작 세로/가로 %.3f ↔ 클론 %.3f (%dx%d) — 앱 상자를 9:16 으로 잘라 찍는다"
                       % (name, ra, rb, img.w, img.h))
                 skewed.append(name)
+        fh, fw = content_fill(img)
+        if fh < FILL_H_MIN or fw < FILL_W_MIN:
+            # 앱 상자가 그림을 안 채우면 모든 자리의 y%% 가 같은 비로 밀린다 — 화면마다 고칠 것이 아니라 촬영이 어긋난 것이다.
+            print(u"  ⚠ %-18s 앱 상자가 그림을 안 채운다: 세로 채움 %.2f · 가로 채움 %.2f (하한 %.2f/%.2f)"
+                  u" — 촬영 프레임 문제다(점수는 이 뒤에 다시 잰다)"
+                  % (name, fh, fw, FILL_H_MIN, FILL_W_MIN))
+            unfilled.append(name)
         s, why = score_screen(ent["rects"], read_layout(img, name))
         scores.append((name, s))
         mark = u"✓" if s >= PASS_MARK else u"✗"
@@ -561,6 +596,10 @@ def score(table_path, shots_dir, only=None):
     if skewed:
         print(u"  · ⚠ 틀(세로/가로)이 원작과 다른 화면 %d개: %s — 점수보다 이것이 먼저다"
               % (len(skewed), " ".join(skewed)))
+    if unfilled:
+        print(u"  · ⚠ 앱 상자가 그림을 안 채운 화면 %d개: %s" % (len(unfilled), " ".join(unfilled)))
+        print(u"    이 런의 점수는 «UI 가 그만큼 망가졌다» 가 아니다 — **촬영이 어긋난 것**이라"
+              u" 화면마다 재등재하지 말고 촬영을 먼저 고친다(T27·T54 갈래).")
     if not scores:
         print(u"✗ 점수를 낸 화면이 0개다 — 클론 샷(`screen_*.png`)이 하나도 없다")
         return 2
@@ -689,6 +728,18 @@ def self_test():
     pr = pairs()
     chk(len(pr) >= 30 and pr[0][0] == "main" and pr[0][1] == "shot-042120.png",
         u"짝 표 첫 줄이 main ↔ shot-042120.png 다 (줄 %d)" % len(pr))
+
+    # ⑯ 앱 상자 채움: 꽉 찬 그림은 1.0 에 가깝고, 위 절반만 쓰는 그림은 하한 아래다(런 108 실측 0.487)
+    full = _canvas(100, 200, (8, 8, 8))
+    _fill(full, 4, 4, 96, 196, (230, 230, 230))
+    fh, fw = content_fill(full)
+    chk(fh >= FILL_H_MIN and fw >= FILL_W_MIN,
+        u"꽉 찬 그림은 채움 하한 위다 (세로 %.2f · 가로 %.2f)" % (fh, fw))
+
+    half = _canvas(100, 200, (8, 8, 8))
+    _fill(half, 4, 4, 96, 96, (230, 230, 230))   # 위 절반만
+    fh2, fw2 = content_fill(half)
+    chk(fh2 < FILL_H_MIN, u"위 절반만 쓰는 그림은 «앱 상자가 안 채운다» 로 걸린다 (세로 %.2f)" % fh2)
 
     print(u"")
     if fail:
