@@ -664,6 +664,14 @@
 - 범위: `Assets/Scripts/Game/Bootstrap.cs` · `Game/AppLifecycle.cs`(새 파일) · `Assets/Scripts/Core/Save/` · `ProjectSettings/ProjectSettings.asset` · `Assets/Tests/EditMode/CatchUpTests.cs` · `Assets/Tests/PlayMode/LifecycleTests.cs`.
 - ✅ 결론(2026-09-13 · 워커 R): `runInBackground`(코드+ProjectSettings) · Core `Lifecycle`(5초 백그라운드 문턱 · 60초 팝업 · `ResumePlan`) · Game `AppLifecycle`(잠든 시각 · 벽시계 공백 감지 · 복귀 시 부팅과 같은 오프라인 팝업). **전투는 따라잡지 않는다** — 원작이 숨은 구간 틱을 버리고 오프라인 수급(닫힌 식 `offlineRewardFor`)으로 넘기며(이중 지급 방지), 대장간·부화·연구는 절대시각 `endsAt` 이라 깨어난 첫 틱에 끝난다. EditMode 6 · PlayMode 2 · 기록은 PROGRESS «T88 완료 기록» · 결정 204.
 
+### T89 — 화면 문자열의 이모지 30종이 전부 두부(□)다 — 원작처럼 아이콘으로 갈아 끼운다 (Game · T31·T53 뒤 · **가장 먼저** · 실제 화면 실측)
+- 실측(2026-09-13 06:1x · 런 148 `screen_main.png` 눈 확인 + 코드 전수): 화면에 나가는 문자열에 이모지 **30종**(🔨 🪙 💎 🔒 ⭐ ⚔ 🏆 💀 📜 🥚 🧪 🎟 🗝 📌 📍 💤 💾 🛡 🐴 🐾 🚨 🧍 ⏳ ⚒ ✎ ✓ ✕ ⓐ ⓑ VS16)가 그대로 들어 있고 **글꼴에 하나도 없다** — 원본 Noto Sans KR 에도 대부분 없다(✓ ⓐ ⓑ 만 있다). 화면의 «자동 □ OFF» 가 그 하나(🔄).
+- **정본이 답을 준다**: `ui.js` 의 `TOAST_ICON` 표(1389~)가 이모지 → 코드 생성 아이콘 이름을 잇고(`'🪙': 'coin' · '💎': 'gem' · '🔨': 'hammer' · '⚔': 'tm_sword' · '🔒': 'lock' · '⭐': 'star' …), 바로 아래 함수가 **문구를 훑어 표에 있는 이모지를 전부 아이콘 노드로 바꾼다**(선두만이 아니다 — 주석에 «뒤에 붙는 재화 이모지가 그대로 남아 한 줄 안에서 섞인다» 는 실측이 있다).
+- 할 것: ⓐ 그 표를 `catalog.json` 에 `toastIcons` 로 옮긴다(T2·T31 과 같은 «정본이 쥔다» 원칙 · 손으로 짓지 않는다) ⓑ `UiKit.Text` 가 문자열을 세울 때 표에 있는 이모지를 **TMP 인라인 스프라이트**(T31 아틀라스 · `<sprite name=…>`)로 치환한다 — 아이콘이 글자 높이에 맞고 색 틴트가 원작과 같아야 한다 ⓒ 표에 없는 순수 기호(▶ ▼ ★ ✓ ⓐ ⓑ)는 글꼴 서브셋에 넣는다(`docs/assets-map.md` 의 재생성 명령에 유니코드 구간 추가) ⓓ 어느 쪽도 아닌 것(🐴 🐾 🚨 🧍 ✎ ⏳ 등 디버그·개발 문자열)은 아이콘을 새로 그리지 말고 **한국어 낱말로 바꾼다**(원작에 없는 자리다).
+- 막이: `TextSizeGateTests` 에 «활성 라벨의 모든 문자가 글꼴에 있다(한글만이 아니라 **전부**)» 로 넓힌다 — 지금 단언은 U+AC00~D7A3 만 봐서 이모지 두부를 놓쳤다.
+- 판정: 새 촬영 PNG 를 열어 □ 가 0 인 것을 눈으로 + 넓힌 단언 초록 + 원작 샷과 아이콘 자리 대조.
+- 범위: `Assets/Scripts/Game/Ui/UiKit.cs` · `Ui/UiIcons.cs` · `Assets/Forge/catalog.json`(toastIcons) · 이모지를 쥔 화면 파일들 · `Assets/Fonts/NotoSansKR-Forge.ttf`(기호 구간 추가 시) · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/assets-map.md`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
