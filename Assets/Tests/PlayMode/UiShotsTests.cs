@@ -555,9 +555,11 @@ namespace Forge.Tests.PlayMode
                 if (Camera.main != null) cam.CopyFrom(Camera.main);
                 cam.rect = new Rect(0f, 0f, 1f, 1f);
                 cam.targetTexture = rt;
-                // T54 6회차: 여기에 게임 framing(절두체)을 걸면 **캔버스가 그것을 따라간다** — `ScreenSpaceCamera` 캔버스는
-                // 카메라 프러스텀에 맞춰 놓이므로 UI 가 통째로 밀렸다(런 134 실측: 상단바 소실·시트 상승·아래 1/4 에 지면).
-                // 촬영은 옛 길(기본 투영) 그대로 두고, 게임 framing 은 UI 없이 세계만 찍는 `WorldFrameShotTests` 로 본다.
+                // T54 7회차: `Camera.CopyFrom` 은 **커스텀 투영 행렬까지 복사한다**(런 139 실측 — 6회차에서 이 자리의
+                // `ApplyGameAreaProjection` 을 지웠는데도 UI 가 계속 밀렸다). `ScreenSpaceCamera` 캔버스는 카메라 프러스텀에
+                // 맞춰 놓이므로 게임 투영이 따라오면 UI 가 통째로 밀린다 → 촬영은 **기본 투영으로 되돌린다**.
+                // 게임 framing 은 캔버스가 없는 `WorldFrameShotTests`(ui-screens/world_frame.png)가 본다.
+                cam.ResetProjectionMatrix();
                 canvas.renderMode = RenderMode.ScreenSpaceCamera;
                 canvas.worldCamera = cam;
                 canvas.planeDistance = 1f;

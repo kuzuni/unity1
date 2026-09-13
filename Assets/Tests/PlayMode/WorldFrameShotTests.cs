@@ -59,6 +59,7 @@ namespace Forge.Tests.PlayMode
                     shot.ReadPixels(new Rect(0, 0, ShotW, ShotH), 0, 0);
                     shot.Apply(false);
                     GallerySheet.Save(shot, "world_frame");
+                    AssertNotEmpty(shot);
                 }
                 finally
                 {
@@ -80,6 +81,40 @@ namespace Forge.Tests.PlayMode
             float yBottom = f.Top - bottom * (f.Top - f.Bottom);
             Assert.AreEqual(hb, yTop, 1e-5f, "띠 윗변이 원작 카메라의 +hb");
             Assert.AreEqual(-hb, yBottom, 1e-5f, "띠 아랫변이 −hb");
+        }
+
+        /// <summary>
+        /// T54 촬영 단언 — «비었는데 초록» 막이. 띠(원작 `#game-area`) 안 가로 중앙 60% 가 **배경·하늘 한 색이 아니어야** 한다:
+        /// 거기에 영웅·적이 서기 때문이다. 임계는 실측으로 잡았다(런 139 `world_frame.png`: 최빈색 **40.6%** · 고유색 **2290**).
+        /// 세계가 비면 그 자리는 안개색 한 가지다(최빈 100% · 고유색 1) — T54 이전 촬영 30장이 정확히 그 꼴이었다.
+        /// </summary>
+        private static void AssertNotEmpty(Texture2D shot)
+        {
+            int y0 = Mathf.RoundToInt(Bootstrap.GameAreaTop * shot.height);
+            int y1 = Mathf.RoundToInt(Bootstrap.GameAreaBottom * shot.height);
+            int x0 = Mathf.RoundToInt(0.2f * shot.width), x1 = Mathf.RoundToInt(0.8f * shot.width);
+            var seen = new System.Collections.Generic.Dictionary<int, int>();
+            int total = 0, best = 0;
+            for (int y = y0; y < y1; y += 2)
+            {
+                // Texture2D 는 아래가 0 이고 띠 비율은 «위에서부터» 라 뒤집어 읽는다.
+                int ty = shot.height - 1 - y;
+                for (int x = x0; x < x1; x += 2)
+                {
+                    Color32 c = shot.GetPixel(x, ty);
+                    int key = (c.r << 16) | (c.g << 8) | c.b;
+                    int n;
+                    seen.TryGetValue(key, out n);
+                    n++;
+                    seen[key] = n;
+                    if (n > best) best = n;
+                    total++;
+                }
+            }
+            Assert.Greater(total, 0, "띠 표본이 0 이다");
+            float topShare = best / (float)total;
+            Assert.Less(topShare, 0.85f, "띠 중앙이 한 색으로 덮였다(= 세계에 아무도 없다) · 최빈색 비율 " + topShare.ToString("P1"));
+            Assert.Greater(seen.Count, 50, "띠 중앙 색이 " + seen.Count + "종뿐 — 하늘만 찍혔다");
         }
     }
 }
