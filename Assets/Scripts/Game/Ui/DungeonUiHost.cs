@@ -30,6 +30,9 @@ namespace Forge.Game.Ui
 
         public TechData TechData { get; private set; }
         public Dungeons Dungeons { get; private set; }
+
+        /// <summary>촬영·테스트용 시드(0 이면 시각) — T128. 씬을 세우기 **전에** 넣는다.</summary>
+        public static uint Seed;
         public TechTree Tech { get; private set; }
         public Ascension Asc { get; private set; }
         public AscensionState AscState { get; private set; }
@@ -112,7 +115,8 @@ namespace Forge.Game.Ui
             Asc.Ensure(AscState);
             SaveAscState();
 
-            Dungeons = new Dungeons(S, this, Rng.Mulberry((uint)(SaveIo.NowMs() % 4294967295.0)), TimeZoneInfo.Local);
+            // T128 — 촬영은 같은 상태로 두 번 찍혀야 한다(시각 시드면 던전 화면이 런마다 흔들린다 · MetaHost.Seed 와 같은 훅).
+            Dungeons = new Dungeons(S, this, Rng.Mulberry(Seed != 0 ? Seed : (uint)(SaveIo.NowMs() % 4294967295.0)), TimeZoneInfo.Local);
             Dungeons.Emitted += OnDungeonEvent;
             Dungeons.Ensure();
 

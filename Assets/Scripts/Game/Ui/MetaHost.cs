@@ -43,6 +43,9 @@ namespace Forge.Game.Ui
         public IRewardWallet Wallet { get; private set; }
         public Rng Rng { get; private set; }
 
+        /// <summary>촬영·테스트용 시드(0 이면 시각) — T128. 씬을 세우기 **전에** 넣는다.</summary>
+        public static uint Seed;
+
         /// <summary>
         /// 원작 `Combat.combatPower()`. 기본값이 살아 있는 전투(<see cref="Forge.Game.Battle.BattleScene"/>)의 <c>Battle.CombatPower()</c> 를 읽는다 —
         /// T7 이 정본 식(`atk × 공속 × (1+치명) + hp/8`)을 Core 에 이미 옮겼으므로 여기서 수를 다시 세지 않는다(§1).
@@ -124,7 +127,9 @@ namespace Forge.Game.Ui
             if (metaJson == null) { Debug.LogError("[MetaHost] StreamingAssets/data/" + MetaTable.File + " 를 못 읽었다 — 상점·패스·퀘스트·리그·채팅을 세우지 않는다"); yield break; }
             Meta = MetaTable.Load(metaJson);
             Wallet = new SaveStateWallet(S);
-            Rng = Rng.Mulberry((uint)(NowMs % uint.MaxValue));
+            // T128 — 촬영(T27)은 «같은 상태 두 번» 이 되어야 T28 채점이 회귀와 상태 차이를 가른다.
+            // 시각으로 씨를 뿌리면 리그 상대·채팅 줄이 런마다 달라져 그 대조가 무너진다(PetSkillHost.Seed 와 같은 훅).
+            Rng = Rng.Mulberry(Seed != 0 ? Seed : (uint)(NowMs % uint.MaxValue));
             Shop = new Shop(Meta.Shop);
             Pass = new Pass(Meta.Pass, Meta.State);
             Quests = new Quests(Meta.Quests, () => { Func<bool> f = ForgeUpgradable; return f == null || f(); });

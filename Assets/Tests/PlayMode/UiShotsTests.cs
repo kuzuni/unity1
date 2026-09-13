@@ -82,7 +82,10 @@ namespace Forge.Tests.PlayMode
                   + " · 그래픽=" + GallerySheet.GraphicsAvailable + " · 화면=" + Screen.width + "x" + Screen.height);
             try { if (File.Exists(SaveIo.SavePath)) File.Delete(SaveIo.SavePath); }
             catch (Exception) { /* 없으면 그만 */ }
+            // T128 — 세 호스트의 난수를 **같은 시드**로 묶는다(그 전엔 펫만 고정이라 장비·리그·채팅·던전이 런마다 흔들렸다).
             PetSkillHost.Seed = 20260912;
+            MetaHost.Seed = 20260912;
+            DungeonUiHost.Seed = 20260912;
             SceneManager.LoadScene("SampleScene");
             yield return null;
             float t = 0f;

@@ -1906,6 +1906,15 @@
 - **자가 굴러간 자취**: 1회차 호출 0 일곱 → 지금 **둘**. T120(워커 H)이 대장간 훅과 `levelUp` 을, T118(워커 P)이 `equipToss`·`equipDrop` 을 갚으며 각자 내 `KNOWN` 에서 제 이름을 지우고 갔다.
 - **lock 반납 · 남은 한 줄**: `craftReveal` 호출 자리(`ForgeCraftPopup`/`ForgeHost`)는 **T87 lock** 안이고 그 lock 은 오늘 하루 계속 살아 있다. 내가 쥔 채 기다리면 그 자리를 아무도 못 집으므로 T104 가 쓴 꼴대로 행을 **⬜ 대기 · «T87 뒤 누구든»** 으로 돌려놓고 반납한다 — 자가 그 이름을 계속 지키고 있어 잊히지 않는다.
 
+### T128 1회차 기록 (2026-09-13 · 워커 E · sess-2213-8847 · 촬영 난수를 한 시드로 묶었다 · 판정은 다음 두 런 대조)
+
+- **뿌리(검수 Q 가 잰 «상태가 흔들린다» 의 원인)**: 촬영이 쓰는 난수 넷 중 **펫 하나만** 시드가 고정돼 있었다(`PetSkillHost.Seed` · T27 이 넣었다). 나머지 셋은 **벽시계**로 씨를 뿌린다 — `ForgeHost` 172 `Rng.Mulberry((uint)(Meta.NowMs …))` · `MetaHost` 127 `Rng.Mulberry((uint)(NowMs …))`(리그 상대·채팅 줄) · `DungeonUiHost` 115(던전). 그래서 같은 `Seed()` 를 돌려도 **부위마다 시대·등급이 매 런 달라지고**(런 238↔254 `player-info` 장비 셀 크게 다른 픽셀 5.5% ↔ 상태가 같은 `settings` 1.0%) 채팅·리그 줄도 바뀐다.
+- **고친 방법 둘**: ⓐ **촬영용 굴림 엔진**을 따로 세운다 — `UiShotsTests.Seed()` 가 `new ForgeEngine(F.Data, F.Forge, F.Wallet, Rng.Mulberry(20260912), …)` 로 장비 8부위를 굴린다(게임 엔진의 난수는 그대로 둔다 · 밸런스·콘텐츠 0). ⓑ **시드 훅**을 `MetaHost.Seed`·`DungeonUiHost.Seed` 로 하나씩 더했다(0 이면 지금까지처럼 시각 · `PetSkillHost.Seed` 와 **같은 꼴**) 그리고 촬영·플레이스루 두 테스트가 셋을 같은 수(20260912)로 묶는다.
+- **정본 한 줄을 같이 갚았다**: 정본 SEED 127행 `S.equipment.weapon.rarity = 'mythic'` 이 클론에 없었다 — 무기 칸만 신화로 박는다(원작 샷이 그 상태다). 그동안 무기 등급색이 굴림에 따라 달라 `gear-detail`·`craft-compare` 대조를 흔들던 자리다.
+- **자취 한 줄**: `uishots.txt` 에 «seed 장비 · weapon=…/…/… helmet=…» 을 찍는다. **두 런의 그 줄이 같아야 «상태가 같은 두 런»** 이다 — 다음 회차에 그 줄로 먼저 검산하고, 그다음 `ui_score` 를 믿는다.
+- **안 만진 것**: `tools/ui_score.py` 는 T28 lock 파일이라 열지 않았다(범위 칸에 «T28 lock 뒤» 로 적었다). 채점 쪽에 «상태가 다르면 알린다» 를 넣는 것은 그 lock 이 풀린 뒤 2회차.
+- **게이트**: `dotnet build` 0 오류(PlayMode 포함) · `dotnet test` 582/582 · 나머지 §3 전부 rc 0. **판정은 다음 두 런의 `uishots.txt` «seed 장비» 줄이 같은지 + `player-info` 픽셀 차가 `settings` 수준(1%)으로 내려오는지**(§1 PNG 눈 확인 포함).
+
 ### T102 진행 기록 (2026-09-13 · 워커 B · sess-1920-15773) — 1회차(빛기둥을 구운 스프라이트로 · 램프 키 `_w` · 리본 pivot 윗변 · ✅ 는 CI PNG 뒤)
 
 - **먼저 본 것(런 186 `screen_pets.png` ↔ `shot-042356` 부화장 크롭)**: 원작은 돔 갓 + 노란 전구 아래로 **노란 빛기둥**이 알까지 내려오는데 클론은 검은 세로 알약(53×70px · 원본 비 1.34 인데 0.76)과 노란 점뿐 · 빛기둥 **0 픽셀**. 첫 행 «장착됨» 리본은 검은 띠 반쪽만 보인다(글자 잘림). T28 5회차가 런 95 에서 적어 둔 그 자리(T20 절 메모)를 이제 뿌리까지 갈랐다.
@@ -3540,3 +3549,5 @@
 - **남은 자리(4회차 목록 그대로)**: `ForgeAutoPopup`·`ForgeInfoPopup`·`ForgeCraftPopup`(T87 lock) · 공용 `Popups.cs@Btn`(제 회차) · «자리 자체가 없는» 다섯(`PetPanel#sk-lv`·`SkillBar#sk-lv`·`DungeonSheet#rw-amt`·`#rw-tick`·`OfflinePopup#zzz`).
 - **판정(다음 런)**: `DamageKeylineTests` 초록 · PlayMode 빨강 0(내 자리) · `screen_main.png`(전투 중 데미지 숫자) 3배로 숫자 둘레 검정 키라인 확인 → lock 반납(행은 ⬜ · 남은 자리 누구든).
 279. **자가 «정본 규칙 ↔ 클론 자리» 를 잇는 표는 «같은 글자» 가 아니라 «같은 요소» 로 이어야 한다 — T109 2회차가 `.equip-cell .cell-lv` 를 `.sk-lv` 에 얹었다(2026-09-13 · T129 1회차 · 워커 I · sess-2203-14027)** — `check_keyline.py` 의 `MAP` 은 정본 CSS 규칙마다 «이 클론 자리가 그것을 낸다» 를 적는다. T109 2회차(`a43f87a`)는 `.equip-cell .cell-lv`(장비 칸 Lv 배지 · `-webkit-text-stroke: .3px #fff`)의 짝으로 `Ui/PlayerInfoPopup.cs#t` 를 적고 거기에 흰 테를 걸었는데, 그 자리는 **출전 줄 오브의 `.sk-lv`**(검정 알약 위 흰 글자 · 정본에 테 규칙이 **없다**)다. 둘 다 «Lv. N» 글자라 이름만 보면 같아 보이지만 요소가 다르다. 진짜 `.equip-cell .cell-lv` 는 `Ui/ForgeUi.cs` 135행(`LvBadge`)이고 거기엔 이미 `PopupKit.Ring` 이 걸려 있어 자는 처음부터 초록이었다 — 즉 T109 는 **초록인 자리를 위해 엉뚱한 자리에 테를 하나 더 얹은 것**이다. 그 테가 눈에 띈 자리는 아니지만(0.65 캔버스 px) 규칙이 «정본대로» 가 아니다. 고침: `MAP['.equip-cell .cell-lv']` 을 `Ui/ForgeUi.cs#lv` 로 옮기고(자리 초록 48 그대로) `PlayerInfoPopup` 의 그 호출을 걷었다. 규칙: **`MAP` 에 자리를 적기 전에 그 클론 자리가 정본 선택자의 **요소**인지 확인한다 — 글자 내용(«Lv. N»)이나 변수 이름이 같은 것은 근거가 아니다.** 되돌리려면 `tools/check_keyline.py` 한 줄 + `PlayerInfoPopup.cs` 의 그 호출.
+
+280. **촬영은 «같은 상태 두 번» 이어야 한다 — 시드 훅을 게임 난수가 아니라 호스트 입구에 단다(2026-09-13 · T128 1회차 · 워커 E)** — 촬영 난수 넷 중 셋이 벽시계 시드라 같은 `Seed()` 가 매 런 다른 화면을 냈고, 그래서 T28 채점의 «내려간 화면» 이 회귀인지 상태 차이인지 못 갈렸다. 고르는 길은 둘이었다: ⓐ 게임 난수 자체를 고정한다(런타임 행동을 바꾼다 — 안 된다) ⓑ **호스트에 «0 이면 시각» 인 시드 훅**을 달고 촬영 테스트만 그것을 넣는다. ⓑ 를 골랐다 — `PetSkillHost.Seed`(T27)가 이미 쓰던 꼴이라 새 개념이 아니고, 훅을 안 넣으면 배포판은 종전과 한 글자도 다르지 않다. 장비는 훅 대신 **촬영용 굴림 엔진**을 따로 세웠다(`ForgeHost.Engine` 은 T87 lock 파일이라 열지 않고 테스트 안에서 같은 표·상태로 새 엔진 하나). 되돌리려면 `MetaHost.Seed`·`DungeonUiHost.Seed` 두 줄과 `UiShotsTests` 의 시드 세 줄 — 그러면 다시 매 런 다른 상태가 찍힌다.

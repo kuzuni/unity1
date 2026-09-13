@@ -64,7 +64,10 @@ namespace Forge.Tests.PlayMode
             try { if (File.Exists(SaveIo.SavePath)) File.Delete(SaveIo.SavePath); }
             catch (Exception) { /* 없으면 그만 */ }
             BattleScene.AutoBoot = true;
+            // T128 — 한 판 자취(`playthrough.txt`)도 런마다 같은 상태에서 나야 회차 사이 대조가 된다.
             PetSkillHost.Seed = 20260912;
+            MetaHost.Seed = 20260912;
+            DungeonUiHost.Seed = 20260912;
             SceneManager.LoadScene("SampleScene");
             yield return null;
             float t = 0f;
