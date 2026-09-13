@@ -550,6 +550,13 @@
 - 판정: PlayMode 로 «시트 연 뒤 전투 글자가 팝업 위에 없다» 단언 + PNG 눈 확인 + 빨강 0.
 - 범위: `Assets/Scripts/Game/Battle/DamageNumbers.cs`(붙는 층만) 또는 `Assets/Scripts/Game/Ui/UiRoot.cs`·`Popups.cs`(층 순서) · PlayMode 테스트 한 개.
 
+### T77 — 촬영 시드(`UiShotsTests.Seed`)의 상단바 전투력이 `⚔ 45` 다: 장비 8부위가 전투 스탯에 안 탄다 — 정본 SEED 의 `Combat.recalcHero()` 자리가 클론 Seed 에 없다 (검증·UI · **T54 lock 이 풀린 뒤**(`UiShotsTests.cs` 같은 파일) · 보고함(워커 J) → 워커 T 등재)
+- 실측(2026-09-13 01:2x · 워커 J · 런 118 `screen_main.png` · 보고함): 상단바 `⚔ 45`. 같은 화면의 장비 8부위는 Lv.26~27 = `20 + ageIdx` → 시대 6~7(multiverse·quantum · 정본 `forgeProbabilities[29]` 가 multiverse 68%·quantum 23%). 정본 식이면 그 장비 **하나**의 값이 `12×6^6 ≈ 56만`(공격)·`70×6^6 ≈ 326만`(체력)이라 전투력은 **수백만**이어야 한다 — 45 는 맨몸(≈36)에 부스러기가 붙은 수다.
+- 원인(코드 읽기 · 워커 T): 정본 `web/tools/shot-screens.js` SEED(113~165행)는 장비·스킬을 세이브에 직접 넣은 뒤 **144행 `Combat.recalcHero()`** 를 부른다. 클론 `UiShotsTests.Seed()`(106~191행)는 `F.Gear.Set(...)`·`sk.Skills.Add(...)` 로 상태에 직접 넣고 `F.Push()`·`P.Sync()`·`M.Touch(false)` 만 부른다 — 셋 중 어느 것도 `Battle.RecalcHero` 를 부르지 않는다(`PetSkillHost.Sync` 는 `Skills.RecalcRequests` 가 바뀐 때만 `RequestRecalc` · 상태에 직접 `Add` 하면 그 수가 안 오른다 · `MetaHost.Touch` 는 HUD 만 다시 적는다). 그래서 HUD 는 부팅 때(장비 0) 계산해 둔 스탯을 읽는다. 접착 자체(`HeroStatsGlue.Make` → `GearSystem.HeroStats`)는 `HeroStatsGlueTests` 가 «전투 atk = GearSystem.HeroStats» 로 지키고 있어 의심 자리가 아니다. **45 − 36 ≈ 9 의 출처**는 안 밝혔다(부팅 뒤 어느 재계산이 무엇을 태웠는지) — 아래 단언이 그것도 같이 잡는다.
+- 무엇을 한다: ⓐ `Seed()` 에서 정본 144행 자리(스킬을 세운 뒤 · 펫 전)와 끝(`P.Sync()` 뒤)에 정본 `Combat.recalcHero()` 상당 = `HeroStatsGlue.Recalc()`(또는 `P.RequestRecalc()`)를 부른다. ⓑ 캡처 전에 단언 하나: `M.MyCp` 가 `F.GearSys.HeroStats()` 로 `Battle.CombatPower` 식을 돌린 값과 같고(`Big` 지수·가수) 맨몸 전투력(`BareHeroStats` 상수로 같은 식)보다 크다 — 이 단언이 빨강이면 원인이 시드가 아니라 접착(T43·T55 갈래)이므로 그때 새 번호로 등재한다. ⓒ 수치는 안 박는다(§1 — 맨몸은 `BareHeroStats` · 식은 `Battle.CombatPower`).
+- 판정: 다음 유니티 잡 `screen_main.png` 상단바가 `⚔ 45` 가 아니라 **수백만 단위**(`NumFmt` 표기 «N.Nm») + 위 단언 초록 + PlayMode 빨강 0 + T28 채점의 `main` 점수가 안 내려간다.
+- **T54 뒤인 이유**: `UiShotsTests.cs` 가 T54(워커 I)의 살아 있는 lock 범위(«촬영 rect»)다 — 규약 «같은 파일이면 뒤 번호가 기다린다». 이 절이 손대는 자리는 `Seed()` 한 곳(촬영 rect 와 다른 함수)이라 T54 가 그 파일을 범위에서 빼거나 반납하면 바로 잡는다. T54 가 제 회차에 같이 고치면 `⛔ 흡수`(T71 꼴).
+- 범위: `Assets/Tests/PlayMode/UiShotsTests.cs`(`Seed()` 두 줄 + 단언 하나). 게임 코드 0줄.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -687,10 +694,10 @@ node tools/export_data.js --self-test                                         # 
 | `js/dungeons.js` | 던전 4종 | T23 · T21 | T23 ✅ · T21 ✅ |
 | `js/techtree.js` · `ascension.js` | 기술트리 · 승천 | T24 · T21 | T24 ✅ · T21 ✅ |
 | `js/shop.js` · `pass.js` · `quests.js` · `league.js` · `chat.js` | 상점·패스·퀘스트·리그·채팅 | T25 · T22 | ✅ (T25 · T22) |
-| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 🔄 · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 🔄 · T75 ⬜ · T76 ⬜ |
+| `js/ui.js`(6,181) · `css/style.css` · `index.html` | 캔버스·HUD·탭·패널 전부(공개 함수 97개 — T19~T22 절에 이름별로 나눠 적었다) · 메뉴·프로필·설정·디버그 | T18 · T19 · T20 · T21 · T22 · T53(한글 글꼴) · T56 · T57 · T58 · T59(T28 2회차가 PNG 로 잡은 결함) · T60 · T61(검수 Q 가 PNG 로 잡은 결함) · T62 · T63 · T65 · T68(T28 3~5회차가 PNG 로 잡은 결함) · T66(던전 라벨) · T75(보석 카드 안쪽) · T76(전투 글자가 시트 위로) | T18 ✅ · T19 ✅ · T21 ✅ · T22 ✅ · T20 ✅ · T53 ⬜ · T56 ✅ · T57 ✅ · T58 ✅ · T59 ✅ · T60 🔄 · T61 ✅ · T62 ✅ · T63 ✅ · T65 ✅· T66 ✅ · T68 🔄 · T75 ⬜ · T76 🔄 |
 | `js/sfx.js`(618) | 효과음 24종(+프리미티브 6) · 음악 4모드 (코드 합성) | T30 | ✅ (`Core/Audio` · `Game/Audio` · `AudioTests` 벡터 대조 · `AudioSmokeTests`) |
 | `js/icongen.js`(6,704) · `avatars.js`(831) | 아이콘 136종 · 아바타 24종(`IconGen.draw` 키 160 · «523» 은 도우미까지 센 수) + tint 변형 10 | T31 | ✅ |
-| `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ |
+| `ref/screens/shot-*.png` 30장 · `tools/shot-*.js` · `ref/UI-SPEC.md` · `ref/POLISH.md` | 원작 화면 정본 · 촬영 도구 · 비율 규격 | T27(촬영) · T28(대조) · T33(완주) · T77(촬영 시드 전투력) | T27 ✅(원작 30장 전부 열림 + `screen_*.png` 31장 + 짝 표 `screens.json` · CI 런 83) · T28 🔄 · T33 ⬜ · T77 ⬜ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 🔄(AudioBank 베이크 배열 되쓰기) · T74 🔄(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 | ✅ (굽기 잡 조건 T32 ✅) |
 | (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ |
