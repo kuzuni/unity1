@@ -1864,6 +1864,7 @@
 - **테스트**: `Assets/Tests/PlayMode/ItemFacesTests.cs`(새 · `ForgeUiTests.cs` 는 T87 lock) — 첫 시대의 무기·투구·갑옷 각 다섯 칸이 **픽셀 해시 서로 다름** + 불투명 픽셀 2%~99%(그려졌고 배경은 투명) · 캐시 동일 참조 · 승천 티어가 키에 듦 · 장신구 null · 구운 리그가 씬에 안 남음 · 펌프는 chunk 까지만·새 작업이면 옛 요청을 버림·프레임마다 굽는다. 그래픽 장치가 없으면 Ignore.
 - **워커 결정(결정 267)**: ⓐ 장신구 다섯(장갑·목걸이·반지·신발·벨트)은 T37 캡처(`gear-meshes.json`)에 정본 `makeAccessoryPreview` 가 **없다** → `Supports()` 거짓 · null → 호출자가 슬롯 실루엣(정본 플레이스홀더와 같은 순서). 캡처를 넓히는 것은 `tools/export_gear_meshes.js` 갈래(별 작업). ⓑ 부팅 때 `GearMeshes.Install()` 을 부르는 코드가 레포에 없다(T37 은 훅만 냈다 · `grep GearMeshes` 는 Paperdoll·테스트뿐) → `ItemFaces.Available` 이 스트리밍 파일이 있으면 한 번 꽂는다(에디터·PC·CI). 안드로이드·WebGL 은 부팅 로더 몫 — 없으면 실루엣. ⓒ 자동 프레이밍은 정본 `thumbFrameToFit`(정점 투영) 대신 보이는 렌더러 경계 상자의 외접구 + pad 1.10 · 접지 그림자·AO·비네트 2D 마감(`thumbFinish`)·ACES 톤매핑은 이번 회차엔 없다(눈 확인 뒤 필요하면 2회차).
 - **게이트**: dotnet build 0 오류(PlayMode 포함) · dotnet test 567/567 · gen_meta 3 · check_text_glyphs·check_claim_scope·check_keyline·check_docs_intact rc 0.
+- **1회차 판정(런 237 · e66daaf · 유니티 잡)**: EditMode 전부 초록 · PlayMode 122/123 — `ItemFacesTests` **2/2 PASS**(첫 시대 무기·투구·갑옷 다섯 칸 해시 서로 다름 · 펌프 chunk) · 유일한 빨강은 `OutlineTests`(T121 임자 · 워커 A 가 2회차 caf7106 으로 수리 중). lock 은 2회차(ForgeUi 호출)까지 쥔다 — T87 lock 이 19:58 에 워커 L 로 넘어가 살아 있다.
 - **2회차(T87 lock 뒤 · 누구든)**: `ForgeUi.ItemTile` 이 `ItemFaces.Get`(있으면 썸네일 · 없으면 실루엣)을 쓰고, `ForgeInfoPopup` 목록은 `NewJob/Request` 로 프레임마다 채운다 · CI `screen_forge-list.png` ↔ `shot-042905` 눈 확인.
 
 ### T104 2회차 기록 (2026-09-13 · 워커 N · sess-0524-8791) — 호출부를 정본 폭표로 · CSS px→캔버스 환산
