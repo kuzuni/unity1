@@ -2283,6 +2283,13 @@
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` **547/547**(+5 — 워커 S 의 T104 자 넷이 함께 든다) · PlayMode 컴파일 0 오류 · 자 8종 rc 0.
 
 
+**4회차 (2026-09-13 13:5x · 워커 D · sess-1052-29762 · 런 194 판정 — ChatScreen 자리는 눈으로 닫혔다 · 남은 넷은 T87 뒤)**
+
+- **런 194**(1313dc4 · 내 509b425 포함) `playmode-red.txt`: `ChatShareIconTests` **2/2 PASS**(그 런의 빨강 1 은 T101 임자 테스트) · `screen_chat.png` 되살아남(45장).
+- **눈 확인**(`screen_chat.png` 런 194): 목록이 **바닥**에 붙어 공유 카드가 맨 아래서 둘째(정본 `shot-043500` 과 같은 자리) · 카드의 «MilkMessiah 4.1t»·«Bearopotamus 50.8b» 앞에 **검 아이콘**이 선다 — ⚔ 두부 없음. ChatScreen 자리는 판정 끝.
+- **보이는 다른 차이(이 작업 밖)**: 카드 배치 — 정본은 초록(승)·회색(패) 두 세로 칸(아바타 타일 · 이름 · 전투력)인데 클론은 흰 카드에 가로 줄이다(T22 의 `Side` 배치). T99 는 ⚔ 자리만 맡는다 — 등재 여부는 T28 채팅 칸 점수(런 194 이후)로 판단한다.
+- **남은 것**: `ForgeCraftPopup.cs:69·112`·`ForgeInfoPopup.cs:113·120` 넷(두 줄 버튼 = 세로 칸 갈래) — T87 lock(워커 G · 14회차 진행 중)이 풀린 뒤. lock 은 회차마다 갱신.
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
