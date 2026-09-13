@@ -136,6 +136,9 @@ namespace Forge.Game.Ui
 
             screens = new Screens(this, UiRoot.Instance, PopupLayer.Create(UiRoot.Instance));
             SyncHud(true);
+            // 원작은 부팅 UI 초기화에서 미리보기를 **한 번 그린다**(ui.js:849 `renderChatPreview()`), 그 뒤 새 메시지가 올 때마다 다시 그린다(main.js:229).
+            // 클론엔 뒤엣것만 있어서 «새 봇 메시지가 아직 안 온» 부팅 직후에는 채팅 띠가 비어 있었다(T91 · 런 147·149 캡처가 그 순간이었다).
+            ChatScreen.RenderPreview(this);
             booted = true;
             Action h = OnReady;
             if (h != null) h();

@@ -340,5 +340,28 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(wantTop, top, 1f, child + " 의 카드 상단 기준 y (정본 배분)");
             Assert.AreEqual(wantH, rt.sizeDelta.y, 3f, child + " 의 높이 (정본 배분 · 주석 밴드 ↔ CSS 규칙 2.5px 차 허용)");
         }
+
+        [UnityTest]
+        public IEnumerator T91_부팅_직후에_채팅_미리보기_두_줄이_차_있다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!MetaHost.Ready && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 준비되지 않았다");
+
+            // 원작은 부팅 UI 초기화에서 renderChatPreview() 를 한 번 부른다(ui.js:849) — 새 봇 메시지를 기다리지 않는다.
+            // 그것이 없어서 촬영(런 147·149)이 «빈 채팅 띠» 를 찍었다(T91).
+            Hud hud = Hud.Instance;
+            Assert.IsNotNull(hud, "HUD 가 없다");
+            Assert.IsFalse(string.IsNullOrEmpty(hud.ChatName), "부팅 직후 채팅 미리보기 이름 줄이 비어 있다");
+            Assert.IsFalse(string.IsNullOrEmpty(hud.ChatMessage), "부팅 직후 채팅 미리보기 메시지 줄이 비어 있다");
+
+            // 마지막 메시지를 그대로 담는가(정본 renderChatPreview 는 Chat.lastMessage() 를 쓴다).
+            MetaHost h = MetaHost.Instance;
+            Forge.Core.Meta.ChatMessage last = h.Chat.LastMessage(h.ChatState, h.NowMs);
+            Assert.IsNotNull(last, "채팅 상태에 마지막 메시지가 있어야 한다(Chat.Ensure 가 씨를 뿌린다)");
+            string wantMsg = last.Type == Forge.Core.Meta.ChatMessage.TypeShare ? "전투 결과를 공유했습니다" : last.Text;
+            Assert.AreEqual(wantMsg, hud.ChatMessage);
+        }
     }
 }
