@@ -151,5 +151,53 @@ namespace Forge.Tests.PlayMode
             }
             yield return null;
         }
+            [UnityTest]
+        public IEnumerator 확률_정보_제목은_11em_링_건너뛰기_버튼은_4px_다()
+        {
+            // 정본 style.css 3846 제목 묶음의 `h3.fi-title`(.11em var(--pp-line) · ui.js 2054) · 5150 `.fi-card .fi-skip { 4px #000 }`(T109 14회차 · 마지막 KNOWN 둘).
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Coins = 1000; h.S.Gems = 100; h.Pull();
+            h.OnStartUpgrade();   // 업그레이드 중이어야 건너뛰기 버튼이 선다 · 시작하면 확률 정보 팝업이 열린다
+            yield return null;
+            Assert.IsTrue(h.Upgrading, "업그레이드 타이머");
+            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeInfoPopup.Name), "확률 정보 팝업");
+            Transform root = h.Meta.Popups.Find(ForgeInfoPopup.Name).Root;
+            RectTransform host = UiKit.Box(UiRoot.Instance.App, "t109-14-host");
+            try
+            {
+                TextMeshProUGUI title = FindIn(root, "title").GetComponent<TextMeshProUGUI>();
+                Assert.AreEqual("확률 정보", title.text);
+                Assert.Greater(title.outlineWidth, 0f, "fi-title: 정본 3846 .11em var(--pp-line)");
+                AssertLine(title, "fi-title");
+                TextMeshProUGUI refT = UiKit.Text(host, "ref-fi-title", TextKind.Title, "확률 정보", "pp_ink");
+                UiKit.OutlinePx(refT, "pp_line", KeylineUi.Em("sheet_title", refT.fontSize));
+                Assert.AreEqual(refT.outlineWidth, title.outlineWidth, 1e-5f, "fi-title 폭 = sheet_title .11em × 글자 크기");
+
+                Transform skip = FindIn(root, "fi-skip");
+                Assert.IsNotNull(skip, "건너뛰기 버튼");
+                Transform stack = skip.Find("label-stack");
+                Assert.IsNotNull(stack, "세로 갈래 라벨(T110)");
+                int pieces = 0;
+                float w = UiKit.L("league_challenge_w") * UiRoot.Instance.App.rect.width, bh = UiKit.H("btn_h");
+                TextMeshProUGUI ref4 = PopupKit.Btn(host, "b-ref", "건너뛰기", "pp_gray", "pp_gray_dk", null, w, bh, "stage_ink", TextKind.Sub, false, "fi_skip").transform.Find("label").GetComponent<TextMeshProUGUI>();
+                TextMeshProUGUI plain = PopupKit.Btn(host, "b-plain", "건너뛰기", "pp_gray", "pp_gray_dk", null, w, bh, "stage_ink", TextKind.Sub).transform.Find("label").GetComponent<TextMeshProUGUI>();
+                foreach (TextMeshProUGUI piece in stack.GetComponentsInChildren<TextMeshProUGUI>(true))
+                {
+                    pieces++;
+                    Assert.Greater(piece.outlineWidth, 0f, "fi-skip 조각 «" + piece.text + "»: 정본 5150 4px #000");
+                    AssertLine(piece, "fi-skip");
+                    Assert.AreEqual(ref4.outlineWidth, piece.outlineWidth, 1e-5f, "fi-skip 폭 = 폭표 fi_skip(4px)");
+                }
+                Assert.Greater(pieces, 0, "건너뛰기 글자 조각");
+                Assert.AreEqual(0f, plain.outlineWidth, 1e-5f, "회색 면의 공용 버튼은 면 표대로 민글자(fi-skip 만 제 키로 4px)");
+            }
+            finally
+            {
+                Object.Destroy(host.gameObject);
+                h.Meta.Popups.Hide(ForgeInfoPopup.Name);
+            }
+            yield return null;
+        }
     }
 }

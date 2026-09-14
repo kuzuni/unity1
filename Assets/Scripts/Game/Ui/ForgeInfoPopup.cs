@@ -64,6 +64,8 @@ namespace Forge.Game.Ui
             RectTransform head = PopupKit.Item(card, "head", -1f, PopupKit.FontSize(TextKind.Title) * 1.25f);
             TextMeshProUGUI title = UiKit.Text(head, "title", TextKind.Title, "확률 정보", "pp_ink");
             title.fontStyle = FontStyles.Bold;
+            // T109 14회차 — 정본 style.css 3846 의 제목 묶음에 `h3.fi-title` 이 들어 있다(`-webkit-text-stroke: .11em var(--pp-line)` · ui.js 2054). 폭은 표(sheet_title).
+            UiKit.OutlinePx(title, "pp_line", KeylineUi.Em("sheet_title", title.fontSize));
             float ib = rem * 1.5f;
             Button infoBtn = ForgeUi.InfoButton(head, "fi-info-btn", ib, () => OpenList(h));
             UiKit.Anchor(infoBtn.GetComponent<RectTransform>(), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-rem * 0.3f, 0f), ib, ib);
@@ -111,8 +113,9 @@ namespace Forge.Game.Ui
                 tt.fontStyle = FontStyles.Bold;
                 PopupKit.Spacer(card, rem * 0.5f);
                 // T110 — 정본 ui.js 2043 `건너뛰기<br><span class="fi-skip-gem">${IconGen.img('gem')} N</span>`: 아랫줄은 젬 **아이콘** + 수(세로 갈래 IconTextStack).
-                Button skip = PopupKit.Btn(card, "fi-skip", "", "pp_gray", "pp_gray_dk", () => h.OnGemSkipForge(), inner * 0.6f, bh, "stage_ink", TextKind.Sub);
-                IconTextStack.ReplaceLabel(skip, TextKind.Sub, "건너뛰기\n💎 " + NumFmt.Fmt(h.Engine.GemSkipCost()), "stage_ink", "pp_gray");
+                // T109 14회차 — 정본 5150 `.fi-card .fi-skip { -webkit-text-stroke: 4px #000 }`: 회색 면은 공용 면 표(btn_face)에서 0 이라 이 자리는 제 키(fi_skip)를 넘긴다 — Btn 의 12번째 인자(자가 보는 자리)와 세로 갈래 조각 둘 다.
+                Button skip = PopupKit.Btn(card, "fi-skip", "", "pp_gray", "pp_gray_dk", () => h.OnGemSkipForge(), inner * 0.6f, bh, "stage_ink", TextKind.Sub, false, "fi_skip");
+                IconTextStack.ReplaceLabel(skip, TextKind.Sub, "건너뛰기\n💎 " + NumFmt.Fmt(h.Engine.GemSkipCost()), "stage_ink", "pp_gray", "fi_skip");
             }
             else
             {

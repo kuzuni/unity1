@@ -899,6 +899,8 @@
   → **판정(10:2x · 같은 세션)**: 유니티가 실제로 돈 마지막 main 런 **#368**(dc6f334 · `ab8f998` 포함) **전체 초록** — `KeylineSpotsTests` 가 새 단언과 함께 통과했다. **lock 반납 · 행 ⬜** — 남은 KNOWN 빈자리 둘은 `ForgeInfoPopup.cs`(`#title`·`#fi-skip`)뿐이고 T146 lock 이 풀리면 누구든 한 줄씩이다(`KeylineUi.Em("sheet_title", fontSize)` · `Btn` 12번째 인자 `"fi_skip"`).
 
 
+- 🔄 2026-09-14 11:0x 워커 P(sess-0154-10159) **14회차**: 마지막 KNOWN 둘 — `ForgeInfoPopup` 제목(3846 `h3.fi-title` .11em) · 건너뛰기(5150 `.fi-card .fi-skip` 4px · Btn 12번째 인자 + `IconTextStack.ReplaceLabel` 의 새 선택 인자 `keylineKey`) → **자리 초록 64 · KNOWN 0**. `KeylineSpotsTests` +1. **판정(런 + `screen_forge-info` 제목 테)은 다음 회차 · lock 쥔 채 · 초록이면 T109 ✅**.
+
 ### T110 ✅ — 대장간 팝업 두 줄 버튼 라벨 넷이 이모지 글자다(«판매 / 🪙 +N» 둘 · «건너뛰기 / 💎 N» · «레벨 N 업그레이드 / 🪙 N») — 정본은 `<br>` 아래 줄에 아이콘 (Game·UI · T89·T99 뒤 · **T87 lock 뒤** · T99 에서 뗌)
 - 자리(T89 4회차 전수 훑기 · T100 4회차 `label_risk` · `LABEL_KNOWN` 넷): `ForgeCraftPopup.cs:69·112` «판매\n🪙 +N» · `ForgeInfoPopup.cs:113·120` «건너뛰기\n💎 N»·«레벨 N 업그레이드\n🪙 N». 표(`TOAST_ICON`)에 있는 이모지지만 그냥 라벨 글자라 □ 다. 정본은 `.btn` 안에서 `<br>` 로 나누고 아래 줄에 `IconGen` 아이콘 + 수를 그린다(`ui.js` 의 해당 버튼).
 - ⚠ **두 줄 버튼**: 가로 `UiKit.IconTextRow` 를 그대로 쓰면 두 줄이 한 줄로 눌린다 — 세로 칸(위: 글자 · 아래: 아이콘 줄)으로 감싸거나 `IconTextRow` 에 «줄바꿈이면 새 줄» 갈래를 더한다. T108(`ForgeSheet` «자동 ↻ / 🔒»)과 **같은 갈래**라 `UiKit` 에 세로 갈래를 하나 세우면 다섯이 같이 풀린다.

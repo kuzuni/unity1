@@ -82,14 +82,15 @@ namespace Forge.Game.Ui
         /// «판매<small>coin +N</small>» · «건너뛰기<br>gem N» · «레벨 N 업그레이드<br><small>coin N · ⏱ T</small>»). 이모지는 표(`UiText`)로 아이콘이 된다.
         /// 굵게·키라인(<see cref="KeylineUi.BtnFace"/>)은 Btn 의 라벨과 같이 걸고 마지막에 <see cref="Fit"/>. T108 <c>ForgeSheet.AutoBtn</c> 과 같은 꼴.
         /// </summary>
-        public static RectTransform ReplaceLabel(Button b, TextKind kind, string msg, string inkKey, string faceKey)
+        /// <param name="keylineKey">면 표(<see cref="KeylineUi.BtnFace"/>) 대신 쓸 폭 키 — 정본이 그 버튼만 따로 적은 자리(예 `.fi-card .fi-skip 4px` · T109 14회차). null 이면 면 표.</param>
+        public static RectTransform ReplaceLabel(Button b, TextKind kind, string msg, string inkKey, string faceKey, string keylineKey = null)
         {
             RectTransform rt = b.GetComponent<RectTransform>();
             Transform plain = rt.Find("label");
             if (plain != null) plain.gameObject.SetActive(false);
             RectTransform stack = Build(rt, "label-stack", kind, msg, inkKey);
             stack.offsetMin = new Vector2(0f, UiKit.H("btn_lip"));
-            string kl = KeylineUi.BtnFace(faceKey);
+            string kl = keylineKey ?? KeylineUi.BtnFace(faceKey);
             foreach (TextMeshProUGUI t in UiKit.RowTexts(stack))
             {
                 t.fontStyle = FontStyles.Bold;
