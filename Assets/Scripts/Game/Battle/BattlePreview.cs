@@ -63,7 +63,7 @@ namespace Forge.Game.Battle
         {
             Instance = this;
             // 원작 ui.js 5216: 팝업이 DOM 에 붙은 뒤 Scene3D.previewStart(host) · closePlayerInfo → previewStop
-            PlayerInfoPopup.PreviewStart = Start;
+            PlayerInfoPopup.PreviewStart = Begin;
             PlayerInfoPopup.PreviewStop = Stop;
         }
 
@@ -73,13 +73,18 @@ namespace Forge.Game.Battle
             if (Instance == this)
             {
                 Instance = null;
-                if (PlayerInfoPopup.PreviewStart == (System.Func<RectTransform, bool>)Start) PlayerInfoPopup.PreviewStart = null;
+                if (PlayerInfoPopup.PreviewStart == (System.Func<RectTransform, bool>)Begin) PlayerInfoPopup.PreviewStart = null;
                 if (PlayerInfoPopup.PreviewStop == (System.Action)Stop) PlayerInfoPopup.PreviewStop = null;
             }
         }
 
-        /// <summary>원작 `previewStart(container)` — 못 서면 false(호출자가 정본 폴백을 그린다).</summary>
-        public bool Start(RectTransform container)
+        /// <summary>원작 `previewStart(container)` — 못 서면 false(호출자가 정본 폴백을 그린다).
+        ///
+        /// ⚠ 이름이 <c>Start</c> 면 안 된다(T171). 이 클래스는 <see cref="MonoBehaviour"/> 라 유니티가 `Start` 를
+        ///   **제 메시지**로 찾는데, 인자가 있으면 못 부르고 대신 «Script error (BattlePreview): Start() can not take
+        ///   parameters.» 를 컴파일·인스턴스마다 콘솔에 찍는다(런 403 로그 557~561행에 넷). 인자 있는 메서드는
+        ///   유니티 메시지 이름(`Start`·`Update`·`Awake`·`OnEnable`…)을 피해서 짓는다.</summary>
+        public bool Begin(RectTransform container)
         {
             Stop();
             if (container == null) return false;
