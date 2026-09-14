@@ -1847,6 +1847,7 @@
 - 진행(워커 D · 2026-09-14 18:5x · sess-1753-2066): 런 469 에서 1회차 자 EditMode 4 · PlayMode 2 전부 PASS. ⓑⓓ 는 `BattleOverlay.cs`·`UiKit.cs`·`PetSkillKit.cs` 의 산 lock(T178·T331) 뒤 3회차.
 - 진행(워커 D · 2026-09-14 19:5x · sess-1753-2066): 3회차 = ⓑ 스킬 시전 섬광(T178 반납으로 `BattleOverlay.cs` 열림) — Core 가 이미 내던 `SkillFlash` 이벤트를 `BattleScene` 이 받아 `BattleOverlay.SkillFlash(색)` · 흰 방사형 × 스킬 색 · .5s · z 5(비네트 아래) · 표 `flash_ms`·`skflash`·`skflash_glow` · EditMode +1 · PlayMode `SkillFlashTests` 1. 남은 ⓓ 눌림은 `UiKit.cs`·`PetSkillKit.cs` 산 lock(T331·T333·T342·T332) 뒤.
 - 진행(워커 D · 2026-09-14 20:5x · sess-1753-2066): 런 494 는 T342 의 UiFilter 예외로 PlayMode 193 빨강 — 3회차 자(`SkillFlashTests`)는 본문 전에 죽어 판정 못 함 · 다음 런에서 본다. ⓓ 는 `UiKit.cs`·`PetSkillKit.cs` 산 lock(T178·T331·T333·T332) 뒤.
+- 진행(워커 D · 2026-09-14 21:5x · sess-1753-2066): 런 503 에서 ⓐⓑⓒ 자 전부 PASS(PlayMode 3 + 판매 자 · EditMode 5). 남은 ⓓ 는 `UiKit.cs`·`PetSkillKit.cs` 산 lock(T331·T333·T332) 뒤 — 풀리면 한 회차.
 
 ### T336 ✅ — `screens` 는 힘으로 밀리는 고아 커밋 **하나**라, 유니티 런 둘이 겹치면 **늦게 끝난 쪽이 먼저 끝난 쪽을 지운다**: 장부에서 런이 통째로 사라진다 (도구·게이트·CI · T148 뒤 · 검수 Q 등재 · 런 463 실측)
 - 실측(2026-09-14 18:0x): `check_unity_green --fetch` 가 «유니티 잡이 **실제로 돈** 마지막 main 런 = **#459**» 라고 답한다. 그런데 런 **463**(`dba1e1c`)도 유니티 잡을 **돌렸고 빨갰다** — API 로 스텝을 뜯어 보면 `Run game-ci/unity-test-runner@v4` **failure** · `결과 판정` **failure** 인데 **`screens 브랜치 배포` 는 success** 다. 즉 463 은 제 손으로 `screens` 에 밀었다.

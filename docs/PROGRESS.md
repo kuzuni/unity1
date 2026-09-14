@@ -4095,6 +4095,7 @@
 - **✅ 조건**: 다음 유니티 런 `DungeonFxTests` 2 PASS(콘솔 빨강 0) + 2회차 ⓑⓓ(lock 뒤). 촬영 목록에 던전 클리어 샷이 없어 눈 확인은 PlayMode 값 단언으로 갈음(§1 «실제 화면» 은 유니티 런의 계층 단언).
 
 ## 워커 결정 기록
+- **5회차(2026-09-14 21:5x · 워커 D · sess-1753-2066 · lock 갱신)**: 런 503(`91992c8` · K 의 T342 수리 실림) — **내 자 전부 초록**: PlayMode `SkillFlashTests` 1 · `DungeonFxTests` 2 · `ForgeUiTests` 판매 자 · EditMode `DungeonFxRulesTests` 5 → ⓐⓑⓒ 판정 끝. 이 회차는 §0-6 임자 없는 빨강(`ForgeCardWidthTests` · T339 위 줄) 수리. ⓓ 눌림은 `UiKit.cs`(T331 21:42 · T333 20:53)·`PetSkillKit.cs`(T332 21:07) 산 lock 뒤.
 
 ### T349 1회차 기록 — 촬영 카메라 도우미 `ShotCam` + 자 (2026-09-14 21:5x · 워커 O · sess-2140-18689 · lock 유지 · 판정은 다음 유니티 런)
 - **무엇(새 파일 둘 · 남의 파일 0줄)**: `Ui/ShotCam.cs` — `From(main, name, rt)` 가 새 카메라에 `CopyFrom` + `rect` + `targetTexture` + **URP 추가 데이터 복사**(`CopyUrp`: renderType · renderPostProcessing · renderShadows · requiresDepth/ColorOption · antialiasing · volumeLayerMask) 를 한 번에 한다. 값은 하나도 정하지 않는다 — 게임 카메라가 켜 둔 것을 그대로 따라간다(§1 · 원본에 데이터가 없으면 아무것도 안 정한다). `SameUrp(a, b)` 는 자가 쓴다. framing(`Bootstrap.ApplyGameAreaProjection` · cullingMask · clearFlags)은 전처럼 촬영 자가 제 손으로 잇는다.
@@ -5069,6 +5070,7 @@
 - **폭도 같은 자로 다시 봤다**: 원작 74.50%W ↔ 클론 83.70%W — 등재 표와 정확히 같다(1회차의 폭 고침이 옳은 방향이다 · 77.19%W 로 가면 원작 74.5 와 테 몫만큼 차이).
 - **1회차 판정은 아직**: 내 `5bc9b8b` 이 실린 런 #492 는 **두 모드가 다 안 돌았다**(`SceneGradeTests` 의 `UnityEngine.Rendering.Universal` CS0234 — T341 이 `a94aa75` 로 이미 고쳤다 · 결정 341 대로 «이미 고쳐졌나» 를 먼저 봤다). 다음 런이 처음 판정한다.
 - **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 0.
+- §0 빨강 수리(2026-09-14 21:5x · 워커 D · sess-1753-2066 · T339 lock 은 136분 · 마지막 커밋 78분 — 안 뺏고 자만 고쳤다 · 결정 556): 런 503 `ForgeCardWidthTests.세_팝업의_실제_카드_폭이_표대로다` «autoforge 가 열렸다 · Expected not null · But was **null**» — 새 세이브는 2-10 전이라 `ForgeAutoPopup.Open` 이 🔒 토스트만 내고 안 연다(같은 함정을 AgePatternTests 가 런 299 에서 밟았다). 자에 `BestChapter 3 · BestStage 1 · Pull()` 두 줄. 1회차·2회차의 폭·높이 셈은 안 건드렸다 — 판정은 다음 유니티 런(런 492 안 돎 · 494 T342 · 503 이 첫 판정이었다).
 
 ### T339 1회차 기록 (2026-09-14 19:5x · 워커 F · sess-1927-53071) — 박힌 `0.85` 를 정본 표로 · **높이 하나는 일부러 안 건드렸다** · lock 유지
 
@@ -6963,3 +6965,4 @@
 - **남은 몫(3회차)**: ⓑⓒⓔ(표에 자리 키를 더하고 `UiFilter.ApplyColor` 를 부르면 된다) + 런 503 뒤 PNG 눈 확인(`screen_forge.png`·`screen_pets.png`).
 554. **rebase 충돌은 «표식 0» 을 스스로 확인한 뒤에만 `git add` 한다 — 해결 스크립트가 멈췄는데 `git add`·`rebase --continue`·push 가 이어져 충돌 표식이 든 PROGRESS.md 가 main 에 3분 있었다(2026-09-14 · T344 · 워커 T · sess-2044-58314)** — 6bfcff5: 내 파이썬 해결기가 assert 로 멈췄는데 뒤 명령이 `&&` 없이 이어져 표식(`<<<<<<<`·`=======`·`>>>>>>>`)이 그대로 커밋됐고 런 504 dotnet 잡이 «문서가 통째로 깨졌는가» 로 빨갰다(T330 의 그 자가 제 몫을 했다). b7186a3 이 걷었다. 규칙: ⓐ 충돌 해결 뒤 `grep -c '^<<<<<<<\|^>>>>>>>'` 가 0 이고 `check_docs_intact` 가 초록일 때만 `git add` ⓑ 해결기와 `git add` 사이는 `&&` 로 묶는다 ⓒ 같은 번호 행이 둘이면 «내 SID 가 든 행» 을 남긴다. **같은 사고가 한 번 더 났다(247a459 · 22분 뒤)** — 해결기 뒤에 `;` 로 끊긴 체인이 있어 «표식 남음» 판정과 무관하게 `git add` 가 돌았다(d09268b 로 수리). 그래서 ⓓ 해결기 → 표식 0 검사 → 게이트 → `git add` → `rebase --continue` → push 를 **한 줄 `&&` 체인**으로만 쓴다(`;` 금지 · 어느 하나가 빨가면 push 까지 전부 멈춘다). 되돌릴 것 없음.
 553. **rebase 충돌은 «표식 0» 을 스스로 확인한 뒤에만 `git add` 한다 — 해결 스크립트가 멈췄는데 `git add`·`rebase --continue`·push 가 이어져 충돌 표식이 든 PROGRESS.md 가 main 에 3분 있었다(2026-09-14 · T344 · 워커 T · sess-2044-58314)** — 6bfcff5: 내 파이썬 해결기가 assert 로 멈췄는데 뒤 명령이 `&&` 없이 이어져 표식(`<<<<<<<`·`=======`·`>>>>>>>`)이 그대로 커밋됐고 런 504 dotnet 잡이 «문서가 통째로 깨졌는가» 로 빨갰다(T330 의 그 자가 제 몫을 했다). b7186a3 이 걷었다. 규칙: ⓐ 충돌 해결 뒤 `grep -c '^<<<<<<<\|^>>>>>>>'` 가 0 이고 `check_docs_intact` 가 초록일 때만 `git add` ⓑ 해결기와 `git add` 사이는 `&&` 로 묶는다 ⓒ 같은 번호 행이 둘이면 «내 SID 가 든 행» 을 남긴다. 되돌릴 것 없음.
+556. **죽은 lock 의 제 자가 빨가면 뺏지 않고 자만 고친다 — 마지막 커밋이 90분 안이면 임자가 잇는 중일 수 있다(2026-09-14 · §0 빨강 수리 · 워커 D · sess-1753-2066)** — 런 503 `ForgeCardWidthTests`(T339 · lock 136분 · 마지막 커밋 `1a1e37b` 78분 전)가 «autoforge 가 열렸다 · null» 로 빨강. 뿌리는 자가 새 세이브에서 2-10 해금 없이 `ForgeAutoPopup.Open` 을 부른 것 — 1·2회차의 셈이 아니라 자의 준비 한 줄이다(AgePatternTests 런 299 와 같은 함정 · 그 자의 처방 그대로). 임자 F 의 커밋이 최근이라(T348 이 지금 자에 넣고 있는 «커밋 나이» 기준) lock 을 안 뺏고 **자 두 줄만** 고쳐 T339 기록 아래 한 줄로 알렸다 — 판정을 못 받은 채 빨강이 §0-6 의 눈을 가리는 것이 더 비싸다(T153 «남의 일이다 로 잘못 막으면 아무도 안 줍는다»). 되돌리려면 그 자의 `BestChapter/BestStage/Pull` 한 줄.
