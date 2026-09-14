@@ -46,6 +46,10 @@ namespace TMPro
         public bool TryAddCharacters(string characters, bool includeFontFeatures = false) { return false; }
         /// T106 — 런 418 `stub-sigs.txt`(진짜 유니티 6000.3.8f1 표면 · T174) 17행 «TryAddCharacters uint[],bool» 그대로. BMP 밖 코드포인트(이모지)는 이 갈래로 올린다(string 갈래는 서리게이트 짝을 안 합친다 · 런 418 실측).
         public bool TryAddCharacters(uint[] unicodes, bool includeFontFeatures) { return false; }
+        /// 실서명(stub-sigs.txt 18행 «TryAddCharacters uint[],uint[],bool»): TryAddCharacters(uint[] unicodes, out uint[] missingUnicodes, bool includeFontFeatures = false).
+        public bool TryAddCharacters(uint[] unicodes, out uint[] missingUnicodes, bool includeFontFeatures = false) { missingUnicodes = new uint[0]; return false; }
+        /// 실서명(stub-sigs.txt 13행 «HasCharacters string,uint[],bool,bool»): HasCharacters(string text, out uint[] missingCharacters, bool searchFallbacks = false, bool tryAddCharacter = false).
+        public bool HasCharacters(string text, out uint[] missingCharacters, bool searchFallbacks = false, bool tryAddCharacter = false) { missingCharacters = new uint[0]; return false; }
     }
     // T207 ② — 아래 서명은 **추측이 아니라 실측**이다: CI #441 의 유니티 잡이 진짜 `TMP_Text` 의
     // 공개 프로퍼티 129개를 이름:타입으로 찍어 왔고(`TmpFontProbeTests` 의 `[T207②]` 줄) 그중 이 레포가
