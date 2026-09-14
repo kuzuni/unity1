@@ -155,6 +155,32 @@ namespace Forge.Tests.PlayMode
                 Assert.Greater(darkOn, 0, "on 프레임에 검정 화소가 0 — 엣지 패스가 안 돈다(렌더러 기능 등록·머티리얼·깊이 요구 확인)");
                 // 상자 둘레는 2 × (3유닛 상자의 화면 폭 + 높이) 남짓이고 선은 1~2px 이라, 화면의 한 줌이어야 한다(면이 통째로 칠해지면 임계가 틀린 것이다).
                 Assert.Less(darkOn, Size * Size / 8, "검정이 화면의 1/8 을 넘는다 — 선이 아니라 면이 칠해졌다");
+
+                // 🖊️ **두께 규약을 화면에서 잰다**(정본의 핵심: «선은 어느 기기에서나 1.00 CSS px»).
+                //    같은 장면을 팽창만 켜고 한 장 더 찍어 검정 화소를 센다 — 반경 1 검출 + 한 칸 팽창이므로 **두 배**여야 한다.
+                //    둘레로 눈금을 맞춘다: 앞 상자 색 화소 수 N 이 곧 (한 변)² 이라 둘레 ≈ 4√N — 그래서 화면 크기·카메라와 무관한 자가 된다.
+                float savedDilate = Shader.GetGlobalFloat(EdgeOutlineHost.DilateProp);
+                Shader.SetGlobalFloat(EdgeOutlineHost.DilateProp, 1f);
+                SetActive(feature, true);
+                EdgeOutlineHost.SetOn(true);
+                yield return null;
+                Texture2D wide = Shoot(cam, rt);
+                SetActive(feature, false);
+                Shader.SetGlobalFloat(EdgeOutlineHost.DilateProp, savedDilate);
+                int darkWide = Dark(wide);
+                int boxPx = Second(off);   // off 프레임에서 «바탕 다음으로 넓은 색» = 앞 상자(색을 코드에 안 박는다)
+                try { GallerySheet.Save(wide, "screen_t147-edge-dilate"); } catch (System.Exception e) { Debug.LogWarning("[T147] 그림 저장 실패: " + e.Message); }
+                Object.DestroyImmediate(wide);
+                double perim = boxPx > 0 ? 4.0 * System.Math.Sqrt(boxPx) : 0.0;
+                Note("t147-thickness.txt",
+                     "T147 두께 실측 — 앞 상자 화소 " + boxPx + " → 둘레 ≈ " + perim.ToString("0") +
+                     "\n팽창 off 검정 " + darkOn + " (둘레당 " + (perim > 0 ? (darkOn / perim).ToString("0.00") : "?") + ")" +
+                     "\n팽창 on  검정 " + darkWide + " (둘레당 " + (perim > 0 ? (darkWide / perim).ToString("0.00") : "?") + ")\n");
+                Assert.Greater(boxPx, 100, "앞 상자가 화면에 안 잡힌다 — 장면 세우기가 틀렸다");
+                Assert.That(darkOn / perim, Is.EqualTo(1.0).Within(0.6),
+                    "팽창 off 인데 선이 둘레당 한 줄이 아니다(" + (darkOn / perim).ToString("0.00") + ") — 정본은 이 대역에서 1 버퍼px 이다");
+                Assert.That(darkWide / perim, Is.EqualTo(2.0).Within(0.8),
+                    "팽창 on 인데 선이 둘레당 두 줄이 아니다(" + (darkWide / perim).ToString("0.00") + ") — 팽창은 반경 1 검출에 한 칸을 더해 2 버퍼px 을 만든다");
             }
             finally
             {
@@ -284,6 +310,29 @@ namespace Forge.Tests.PlayMode
             tex.ReadPixels(new Rect(0f, 0f, rt.width, rt.height), 0, 0);
             tex.Apply(false);
             return tex;
+        }
+
+
+        /// <summary>
+        /// «바탕 다음으로 넓은 색» 의 화소 수 = 앞 상자의 넓이. 색을 코드에 안 박는다(톤맵·색공간이 바뀌어도 산다).
+        /// 이 넓이 N 이 (한 변)² 이므로 둘레 ≈ 4√N 이고, 그것이 선 두께를 재는 눈금이 된다.
+        /// </summary>
+        static int Second(Texture2D tex)
+        {
+            Color32[] px = tex.GetPixels32();
+            var tally = new Dictionary<int, int>();
+            for (int i = 0; i < px.Length; i++)
+            {
+                int key = (px[i].r >> 3 << 10) | (px[i].g >> 3 << 5) | (px[i].b >> 3);  // 5bit 씩 — 미세한 흔들림은 한 칸으로 본다
+                int had; tally.TryGetValue(key, out had); tally[key] = had + 1;
+            }
+            int first = 0, second = 0;
+            foreach (var kv in tally)
+            {
+                if (kv.Value > first) { second = first; first = kv.Value; }
+                else if (kv.Value > second) second = kv.Value;
+            }
+            return second;
         }
 
         static int Dark(Texture2D tex)
