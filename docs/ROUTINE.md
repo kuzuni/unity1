@@ -1423,6 +1423,12 @@
 - 🔄 2026-09-14 10:4x 워커 N(sess-0524-8791) 1회차: `ForgeHost.BootGuard(what, step)`(try/catch · `LogWarning` 한 줄 · `BootGuardTrips`)로 두 줄을 각각 감싸고, 둘째는 정본 그대로 `AutoOn && AutoForgeUnlocked`(결정 337) · PlayMode `BootGuardTests` 2(격리 자체 · 손상 대기품 세이브 재부팅 → `AutoSeqRunning`). 판정은 다음 런.
 
 
+### T158 — WebGL·Android 굽기를 **별도 워크플로**(`build-webgl.yml`)로 뗀다: `ci.yml` 안의 굽기 잡은 워커 push 가 앞 런을 갈아치울 때 같이 죽어 배포본이 09-13 18:19 판에서 멈췄다 (도구·CI · T26·T32 뒤 · 계정 2 보고함 10:10 등재 · 워커 S)
+- 실측(보고함 2026-09-14 10:10 · 계정 2): gh-pages 배포본이 **09-13 18:19** 판이다. ⓐ 3시간 `schedule` 런이 GitHub 사정으로 띄어 돈다(09-13 23:00 · 09-14 04:08 만 · 07:00 건너뜀) ⓑ **돌아도 워커 push 에 밀려 취소된다** — 08:51 수동 `build=true` 런 360 · 01:43 런 286 이 `cancelled`. `build-webgl` 잡을 별도 concurrency 그룹으로 떼어 놨어도(T32) **워크플로 런 자체가 취소되면 그 안의 잡도 죽는다**: `unity-test` 잡 그룹(`unity-test-<ref>` · 대기 중 런은 뒤 push 가 갈아치운다)에 `needs: [unity-test, gate]` 로 매여 있어 굽기 런이 그 사슬에 묶인다.
+- 무엇을 한다: `.github/workflows/build-webgl.yml`(새) — `schedule`(3시간) + `workflow_dispatch` 만(**main push 트리거 없음** — 그래야 워커 push 에 안 밀린다) · 제 `gate`(UNITY_LICENSE 있는가) · `build-webgl`(스모크 → gh-pages) · `build-android`(Artifact) 를 ci.yml 에서 그대로 옮기고, ci.yml 에서는 두 잡·`schedule`·`build` 입력을 지운다(테스트 잡에 안 매인다 — 굽는 것은 «그 시각의 main 머리» 이고 테스트는 ci.yml 이 따로 지킨다).
+- 판정: 새 워크플로를 `workflow_dispatch` 로 한 번 돌려 워커 push 가 이어지는 중에도 **취소되지 않고** 끝나는가(스모크 초록 · gh-pages 갱신 · 배포본 시각이 오늘) · ci.yml 의 남은 잡은 그대로 초록 · `ntfy-notify.yml` 의 cancelled 필터는 안 건드린다.
+- 범위: `.github/workflows/build-webgl.yml`(새) · `.github/workflows/ci.yml`(굽기 잡 둘·schedule·build 입력 삭제 · 머리 주석) · `docs/ROUTINE.md`(§7 배포 줄).
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -1574,6 +1580,6 @@ node tools/export_data.js --self-test                                         # 
 | `css/style.css` 제작 키프레임 22종 | 대장간 뽑기 연출(모루·오토포지·결과 카드) | T87 | ✅ |
 | (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ✅ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
-| WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) | ✅ (굽기 잡 조건 T32 ✅) · T86 ✅(런 223 스모크 초록 · gh-pages 배포) |
+| WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) · T158(굽기 워크플로 분리 — 워커 push 에 안 밀리게) | ✅ (굽기 잡 조건 T32 ✅) · T86 ✅(런 223 스모크 초록 · gh-pages 배포) · T158 🔄 |
 | (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 · T123(유니티 잡을 건너뛴 문서 런이 빨강을 덮는다) · T125(그 자의 임자 판별) · T126(빌드에 안 실리는 셰이더) · T127 · T137(Core 를 안 보던 두부 막이) · T145(빨강 임자를 이력으로 되짚기) · T150(콘솔 빨강이 댄 파일로 임자 찾기) · T148(빨강 임자를 «런 사이 코드 커밋» 으로도 가린다) · T149(연출 중간값을 재던 자 둘) · T151(실종된 모드의 에디터 로그를 잡 로그 끝과 screens 로) · T152(채팅 이름줄 자도 카드 팝 뒤에) · T153(창 안에서 0줄 바꾼 작업을 임자로 단정하지 않는다) · T154| T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 ✅ · T123 ✅ · T125 ✅ · T126 ✅ · T127 ✅ · T137 ✅ · T145 ✅ · T148 ✅ · T150 ✅ · T149 ✅ · T151 ✅ · T152 ✅ · T153 ✅ · T154 ✅ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
