@@ -110,6 +110,10 @@ jobs:
       # T184 ⓑ — §3 목록(tools/gate.sh 안 배열)과 이 파일이 갈리는 것을 **구조로** 막는다.
       #          자를 새로 세우고 여기 두 줄을 잊으면 이 스텝이 빨개진다 — 사람 기억에 안 맡긴다.
       #          (T175 가 check_richtext 하나를 세워 닫은 갈래가 하루 만에 둘로 다시 벌어져 있었다.)
+      # T336 — screens 장부(runs.jsonl)를 겹친 런끼리 합치는 자. 유니티 잡의 배포 스텝이 밀기 전에도 돌리지만 그 잡은 Assets 를
+      #        안 만진 push 에선 건너뛰므로 여기서도 돈다(자를 고친 커밋이 그 잡 없이 초록으로 지나가지 않게).
+      - name: screens 장부 합치기 자 자기 검사 (T336 `screens_ledger.py --self-test` · 20칸)
+        run: python3 tools/screens_ledger.py --self-test
       - name: 게이트 자 자기 검사 (T184 `gate.sh --self-test` · 실물 컴파일 오류 주입 포함 27칸)
         run: tools/gate.sh --self-test
       - name: §3 게이트 목록 ↔ 이 파일이 부르는 이름 — 막는다 (T184 ⓑ)

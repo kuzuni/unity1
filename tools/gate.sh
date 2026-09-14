@@ -49,6 +49,7 @@ block|-|TMP richText 가 글자 공장 밖에서 켜지는가 (T175)|python3 too
 block|-|이름으로 찾는 것이 빌드에도 실리는가 (T126)|python3 tools/check_shaders_included.py
 block|-|원작 소리 24종이 실제로 울리는가 (T119)|python3 tools/check_sfx_calls.py
 block|-|하니스 스텁이 실물에 없는 서명을 갖고 있나 (T174)|python3 tools/check_stub_sigs.py
+block|-|screens 장부 합치기 자 자기 검사 (T336 · CI 배포 스텝도 밀기 전에 같은 자를 돌린다)|python3 tools/screens_ledger.py --self-test
 block|wwwww|정본 바깥 그림자 61자리가 클론에 서 있는가 (T331 · 안쪽 inset 은 안 본다)|python3 tools/check_box_shadows.py
 block|wwwww|정본 바깥 그림자가 클론에 서 있는가 (T331)|python3 tools/check_box_shadows.py
 block|wwwww|data/*.json ↔ 정본 (T2)|tools/check_data_sync.sh .wwwww-src
