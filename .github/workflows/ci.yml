@@ -293,6 +293,41 @@ jobs:
           name: unity-test-results
           path: unity-test-results
           if-no-files-found: ignore
+      # T151 — 모드 XML 이 없는 런의 «왜» 는 러너 안(`unity-test-results/<모드>.log` · game-ci 가 모드마다 -logFile 로 남긴다)에만 있다:
+      #        잡 로그는 MCP 로 꼬리 5000줄만 오고(런 348 은 전체 6,805줄 · PlayMode 구간은 앞 1,805줄이라 못 본다) 아티팩트 zip·로그 blob 은
+      #        컨테이너 프록시가 막는다(세 길 전부 403). 그래서 러너가 여기서 스스로 말한다 — 원인 문구 줄 + 꼬리를 잡 로그 **끝**(5000줄 창 안 ·
+      #        다른 정보를 밀어내지 않게 상한)에 찍고, 더 긴 발췌(머리 60 + 꼬리 400)를 `screens` 의 `<모드>-log.txt` 로 보낸다. 두 모드가 다 돈 런은 조용.
+      #        «좌석 반납 4번 실패» 경고는 초록 런 꼬리에도 똑같이 있어 원인이 아니다(T151 · 런 346 실측) — 원인은 초록 런과 **차이나는** 줄에서 찾는다.
+      - name: 실종 모드 로그 발췌 (모드 XML 이 없는 모드의 에디터 로그 → 잡 로그 끝 + screens · T151)
+        if: always()
+        env:
+          MISSING: ${{ steps.summary.outputs.missing }}
+        run: |
+          [ -n "$MISSING" ] || { echo "모드 XML 둘 다 있다 — 발췌 없음(T151)"; exit 0; }
+          sudo chown -R "$(id -u):$(id -g)" ui-screens unity-test-results 2>/dev/null || true
+          mkdir -p ui-screens
+          pat='error|Exception|crash|Abort|Fatal|Killed|signal|license|seat|compiler errors|Shader error'
+          for x in ${MISSING//,/ }; do
+            mode="${x%-results.xml}"
+            log="unity-test-results/$mode.log"
+            out="ui-screens/$mode-log.txt"
+            {
+              printf '# T151 — 런 #%s (%s) · %s 의 결과 XML 이 없다 · 에디터 로그 %s\n' "$GITHUB_RUN_NUMBER" "$GITHUB_SHA" "$mode" "$log"
+              if [ ! -s "$log" ]; then
+                printf '# 로그 파일도 없다(또는 0바이트) — 러너가 이 모드의 에디터를 띄우지도 않았다. unity-test-results/ 에 있는 것: %s\n' "$(ls unity-test-results 2>/dev/null | tr '\n' ' ')"
+              else
+                printf '# 줄 수 %s · 마지막 수정 %s\n' "$(wc -l < "$log")" "$(date -u -r "$log" +%FT%TZ)"
+                printf '## 원인 문구 줄(최대 60 · %s)\n' "$pat"
+                grep -nE "$pat" "$log" | head -n 60
+                printf '## 머리 60줄\n'; head -n 60 "$log"
+                printf '## 꼬리 400줄\n'; tail -n 400 "$log"
+              fi
+            } > "$out"
+            echo "::error::T151 — $mode 결과 XML 이 없다 · 에디터 로그 발췌를 screens 의 $mode-log.txt 로 올린다(아래 그룹은 원인 문구 줄 ≤60 + 꼬리 120줄)"
+            echo "::group::T151 $mode 로그 발췌 ($log)"
+            if [ -s "$log" ]; then grep -nE "$pat" "$log" | head -n 60; echo '-- 꼬리 120줄 --'; tail -n 120 "$log"; else echo "(로그 파일 없음 — unity-test-results/: $(ls unity-test-results 2>/dev/null | tr '\n' ' '))"; fi
+            echo "::endgroup::"
+          done
       # T81 — 잡 결과는 러너 스텝이 통째로 쥐고 있었다: 러너가 XML 을 남기고 초록으로 끝났는데 한 모드가 통째로 빠진 런(런 94)이 초록이었고,
       #       러너가 죽은 런은 «왜» 가 로그 속에만 있었다. 요약 스텝의 출력으로 잡 결과를 한 번 더 명시적으로 낸다 — 신호는 겹으로 · 초록 오판 0.
       #       (러너 스텝은 그대로 둔다. 요약 스텝이 죽어 출력이 비면 판정도 빨강이다 — 닫힌 쪽으로 실패한다.)

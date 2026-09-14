@@ -3460,6 +3460,17 @@
 
 ## 워커 결정 기록
 
+### T151 1회차 기록 — 실종 모드의 에디터 로그를 러너가 스스로 내보낸다 (2026-09-14 08:0x · 워커 O · sess-2140-18689 · lock 유지 · 판정은 다음 유니티 런)
+- **왜 이 회차의 첫 일이었나(§0-6)**: `check_unity_green` 이 런 348(`d5885e5`)을 «테스트 0개인 모드(playmode-results.xml) · 빨간 테스트보다 나쁘다» 로 찍었고 임자를 못 댔다. 워커 K 07:3x 참고가 «다음 한 걸음 = ci.yml 에 로그 꼬리 내보내기 · 지금은 T109 lock» 로 남겼는데, T109 lock 은 e56422b 로 반납돼 있었다 → 등재(T151)하고 잡았다.
+- **잡 로그를 직접 읽었다**(GitHub MCP `get_job_logs` · 컨테이너 curl 이 아니라 MCP 라 프록시를 안 탄다): 잡 전체 6,805줄 중 **꼬리 5000줄**만 온다(`tail_lines` 20000·12000·8000 전부 같은 5000줄). 창은 07:32:23(EditMode 종료 스택)부터 — `Testing in playmode` 머리는 앞 1,805줄에 있어 못 본다. 창 안 사실: EditMode 645/645 · `Testing in COMBINE_RESULTS` · game-ci 자신의 `cat …/playmode-results.xml: No such file` + bun 스택 → `Failure`. «Aborting·Native Crash·compiler errors·Shader error·no available seats» 는 창 안에 0줄.
+- **순서**: game-ci `testMode: all` 은 **playmode → editmode → COMBINE_RESULTS** 다(346·348 꼬리가 editmode XML 바로 뒤 COMBINE · 런 350 의 T46 머리줄이 PlayMode `07:38:19Z` → EditMode `07:50:11Z`). 그러니 348 의 PlayMode 는 EditMode **앞**에서 죽었다 — 스텝 시작 07:27:49 → EditMode 스위트 시작 07:31:20 의 3분 30초 안(346 은 같은 스텝이 13분 48초). `screens` 의 `playmode-red.txt` 에 PlayMode 의 T46 머리줄이 없다 = PlayMode 에디터는 테스트 러너 시작까지도 못 갔다. 워커 K 의 «EditMode 뒤에 죽는다» 는 순서가 반대다(참고 줄은 지우지 않는다 · 결정 330 꼴).
+- **정정(T67)**: «좌석 반납 4번 실패(`Ulf license file not found (1404)`)» 는 두 모드를 다 돈 런 346 꼬리에도 **똑같이** 있다(07:27:15). 원인이 아니라 매 런의 마무리 경고 — ROUTINE T67 절에 정정 꼬리를 달았다(원문 유지).
+- **막힌 길 셋(재실측)**: 잡 로그 blob(`productionresultssa19.blob.core.windows.net`) curl CONNECT 403 · WebFetch `EGRESS_BLOCKED` · 아티팩트 zip(4파일 = XML 1 + `<모드>.log` 3 · 75,983B) 같은 host 403. `gh` 없음.
+- **고침(`ci.yml` 한 스텝 · 코드 0줄)**: 요약 스텝 뒤 «실종 모드 로그 발췌» — `MISSING` 이 비면 한 줄로 조용 · 모드마다 `unity-test-results/<모드>.log` 의 원인 문구 줄(≤60) + 꼬리 120줄을 **잡 로그 끝**(`::group::`)에, 머리 60 + 꼬리 400 을 `ui-screens/<모드>-log.txt` 로(→ `screens` · `git show origin/screens:playmode-log.txt`). 로그 파일조차 없으면 «에디터를 띄우지도 않았다 + 폴더 목록» 한 줄. `sudo chown` 은 shots 스텝과 같은 이유(도커가 root 로 만든다).
+- **결정 331**: **초록 런의 꼬리에도 있는 줄은 빨강의 원인이 아니다** — 빨강의 원인 줄은 초록 런과 **차이나는** 줄에서만 찾는다(T67 이 런 94 에서 «좌석 반납 실패» 를 원인으로 적은 것이 이 규칙을 안 지킨 자리). 러너 밖에서 못 읽는 것은 러너가 스스로 내보내게 한다(잡 로그 **끝** = 5000줄 창 안 · `screens`).
+- **판정 대기**: 이 커밋은 `ci.yml` 만이라 유니티 잡은 skipped — 정상 런의 «조용함» 은 다음 코드 push 의 런에서, 진짜 판정은 다음 «모드 XML 부재» 런에서 보인다. 그 뒤 `check_unity_green`(T150 lock)이 `<모드>-log.txt` 를 읽는 칸은 T150 뒤 회차 몫.
+- 게이트: 로컬 모사 셋 통과 · YAML 파싱 rc 0 · §3 자 전부 rc 0(아래 커밋 본문).
+
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
 
 2. **계정 5 합류(2026-09-12 · 착수 세션 · 계정 5 `rudwpwjrwkdb2007@gmail.com`)** — 주인이 «이건 계정 5» 라 해서 §6 ⓪ 식별표가 네 줄뿐이던 것을 **다섯 줄로 늘리고** 워커 글자를 Q 다음인 **R·S·T·U**, 슬롯을 기존 분 나열의 5분 빈 칸 한가운데인 **:14 :29 :44 :59** 로 잡았다(어느 슬롯과도 2분 이상 뜬다 · 계정 2~4 줄은 다른 세션이 동시에 채우고 있어 건드리지 않았다). §4 프롬프트의 `<이 계정의 이메일>` 자리는 이 계정 이메일로 채웠고(placeholder 는 X 와 같은 채움 자리다) 머리줄의 워커·분 나열을 «A~P·R~U · 다섯 계정» 으로 고쳤다 — 가드 프로토콜 1~7 은 글자 그대로다. 워커 세션은 `outcome_branch: main` 으로 만들었다(안 주면 하니스가 세션별 `claude/*` 브랜치를 물려 워커가 main 대신 제 브랜치로 밀고, lock 직렬화가 통째로 무너진다). 되돌리려면 이 커밋과 루틴 `trig_019JzVy5…`·`trig_01Ah2XwY…`·`trig_018q9B6x…`·`trig_01DrEPHt…` 삭제.

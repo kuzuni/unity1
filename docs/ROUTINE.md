@@ -485,7 +485,7 @@
 ### T67 ✅ — 유니티 잡이 «모드 하나를 통째로 안 돌린 채» 빨강인 것을 아무 자도 말하지 않는다 (게이트 · 뒤 순서 없음 · `ci.yml` 한 파일 · 워커 M 등재)
 - 실측(2026-09-12 · CI **런 94** · `acff94a`): `editmode-results.xml` 은 **505 전부 초록**인데 `playmode-results.xml` 은 **없다**(잡 로그 «cat: /github/workspace/unity-test-results/playmode-results.xml: No such file or directory» 두 줄 · 그 뒤 «Test run failed with exit code 1»). PNG 0장 · `screens` 는 T51 갈래로 지난 40장을 이어받아 올렸다.
 - 왜 아무도 못 보나: 요약 스텝의 경고는 «XML 이 **하나도** 없을 때» 만 뜬다 — 한쪽 모드만 죽으면 EditMode 총계만 예쁘게 찍히고 끝난다. `screens` 의 `playmode-red.txt` 도 EditMode 만 담은 채 «== 런 끝: Passed · 초록 505 · 빨강 0» 으로 끝나, 다음 회차 워커가 그 꼬리를 보고 «내 커밋이 든 런은 돌았다» 로 읽는다. ROUTINE §1 «테스트 0개는 빨간 테스트보다 나쁘다» 가 막으려던 자리에 자가 없다.
-- 런 94 의 실제 원인(코드 탓 아님 · §1 «라이선스 좌석» 갈래): EditMode 뒤 개인 라이선스 **좌석 반납이 4번 실패**했다 — «An error occured while trying to return the ULF license. Ulf license file not found (/root/.local/share/unity3d/Unity/Unity_lic.ulf) (1404)» → «Failed to return the Personal license seat after 4 attempts · That seat is likely still held … otherwise later runs on this account will fail with 'no available seats'» → «Failure» 로 끝나 PlayMode 단계가 결과 XML 을 못 냈다.
+- 런 94 의 실제 원인(코드 탓 아님 · §1 «라이선스 좌석» 갈래): EditMode 뒤 개인 라이선스 **좌석 반납이 4번 실패**했다 — «An error occured while trying to return the ULF license. Ulf license file not found (/root/.local/share/unity3d/Unity/Unity_lic.ulf) (1404)» → «Failed to return the Personal license seat after 4 attempts · That seat is likely still held … otherwise later runs on this account will fail with 'no available seats'» → «Failure» 로 끝나 PlayMode 단계가 결과 XML 을 못 냈다. **정정(2026-09-14 · T151 · 워커 O)**: 이 좌석 반납 실패 문구는 두 모드를 다 돈 **초록 런의 꼬리에도 똑같이** 있다(런 346 07:27:15 실측) — 원인이 아니라 매 런의 마무리 경고다. 런 94·306·307·348 의 진짜 원인은 잡 로그 앞부분(PlayMode 구간)에 있고 그것을 러너가 스스로 내보내게 한 것이 T151 이다.
 - 무엇을 한다(전부 `.github/workflows/ci.yml`): ⓐ 요약 스텝에 **모드별 존재 검사** — `editmode-results.xml`·`playmode-results.xml` 중 없는 것이 있으면 `::error::` 로 «그 모드가 한 개도 안 돌았다» 를 이름으로 찍는다(있는 쪽 총계는 그대로) ⓑ 잡 로그의 좌석 문구(`Failed to return the Personal license seat` · `no available seats` · `Unable to activate license`)를 러너 출력에서 잡아 «라이선스 좌석» 을 따로 한 줄 ⓒ `ui-screens/playmode-red.txt` **머리**에 «이 런에 PlayMode 결과 없음(모드 XML 부재)» 한 줄을 덧붙여 `screens` 로 읽는 워커가 꼬리만 보고 속지 않게 한다 ⓓ 좌석 실패가 다음 런에도 이어지면 §1 대로 «주인 콘솔 에러 보고함» 에 «유니티 라이선스 좌석» 한 줄.
 - 판정: `ci.yml` 만 바뀐다(코드·테스트 0줄) · 다음 main 런에서 dotnet·datasync 잡 초록 · 모드 XML 이 둘 다 있는 런에서는 새 줄이 조용하고, 한쪽이 없는 런에서는 `::error::` 와 `playmode-red.txt` 머리줄이 보인다.
 - 범위: `.github/workflows/ci.yml`.
@@ -1326,6 +1326,7 @@
 - 판정: `ci.yml` 만 바뀐다(코드 0줄 · 유니티 잡은 다음 코드 push 에서 돈다) · 정상 런에서 새 파일 0·새 출력 0 · 다음 «모드 XML 부재» 런에서 잡 로그 끝과 `screens` 에 그 모드의 로그 발췌가 보인다.
 - 그 뒤(이 작업 밖): `check_unity_green`(T150 lock)이 `<모드>-log.txt` 가 있으면 첫 원인 줄을 판정에 같이 찍는 것 — T150 임자 또는 다음 회차가 T150 뒤에.
 - 범위: `.github/workflows/ci.yml` · `docs/ROUTINE.md`(§2 이 절 · §7 한 칸) · `docs/PROGRESS.md`.
+- 1회차(2026-09-14 08:0x · 워커 O): ⓐ~ⓓ 를 `ci.yml` «실종 모드 로그 발췌» 스텝 하나로 넣었다(요약 스텝 뒤 · `if: always()` · `steps.summary.outputs.missing` 을 읽는다). 로컬 모사 셋(로그 있음 · 로그 없음 · 둘 다 있음) 통과 · YAML 파싱 rc 0. 순서 실측 덤: 런 350 의 T46 머리줄이 PlayMode `07:38:19Z` → EditMode `07:50:11Z` — playmode 가 먼저다. 판정: 정상 런은 스텝이 «발췌 없음» 한 줄로 조용 · 다음 «모드 XML 부재» 런에서 잡 로그 끝 `::group::T151 …` 과 `screens` 의 `<모드>-log.txt`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
