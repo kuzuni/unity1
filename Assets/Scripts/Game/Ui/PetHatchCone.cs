@@ -132,7 +132,7 @@ namespace Forge.Game.Ui
             double sigmaBaked = Forge.Core.Ui.FilterRules.BakeSigmaPx(sigmaCanvas, bakedH, r.height);
             if (sigmaBaked <= 0) return;
 
-            sprite = UiFilter.Blur(sharp, sigmaBaked, BlurSiteKey + "-" + Mathf.RoundToInt((float)(sigmaBaked * 100)));
+            sprite = UiFilter.Blur(sharp, sigmaBaked, BlurSiteKey + "-" + Mathf.RoundToInt((float)(sigmaBaked * 100)), Mathf.Max(r.width, r.height));
             blurredFor = new Vector2(r.width, r.height);
         }
     }

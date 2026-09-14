@@ -87,6 +87,32 @@ namespace Forge.Core.Ui
             if (cssPx <= 0 || bakedPx <= 0 || displayPx <= 0) return 0;
             return cssPx * (bakedPx / displayPx);
         }
+
+        /// <summary>
+        /// 번짐을 **어느 해상도에서 구울 것인가**. 도형은 화면보다 크게 구워 둘 때가 많은데(확대 촬영 대비),
+        /// 번짐까지 그 해상도로 걸면 σ 도 같이 커져 **커널이 제곱으로 비싸진다** — 실측: 256² 판에 σ 4.99(반경 15)면
+        /// 두 패스 곱셈 **5.1M · `Color[]` 2.6MB**, 화면 해상도(133px)로 내리면 σ 2.60(반경 8) · **0.8M · 0.7MB** 다(6배·4배).
+        /// 번진 그림은 어차피 부드러워 화면 크기 위로는 볼 것이 없으니 **화면 크기까지만 굽는다**(§1 «프레임당 GC 할당 0»·60fps).
+        /// </summary>
+        /// <returns>구울 한 변(화소) — 원본보다 크게는 안 키운다.</returns>
+        public static int BlurBakeSide(double bakedPx, double displayPx)
+        {
+            if (bakedPx <= 0) return 0;
+            if (displayPx <= 0 || displayPx >= bakedPx) return (int)Math.Round(bakedPx, MidpointRounding.AwayFromZero);
+            int n = (int)Math.Round(displayPx, MidpointRounding.AwayFromZero);
+            return n < 2 ? 2 : n;
+        }
+
+        /// <summary>커널 한 줄의 탭 수 — 비용을 말할 때 쓴다(자기 검사가 이 수로 «싸졌는가» 를 잰다).</summary>
+        public static int KernelTaps(double sigma) { return 2 * KernelRadius(sigma) + 1; }
+
+        /// <summary>분리 가능 가우시안 두 패스의 곱셈 횟수 — `2 × (변+2반경)² × 탭`.</summary>
+        public static long BlurMuls(double side, double sigma)
+        {
+            int r = KernelRadius(sigma);
+            double w = side + 2.0 * r;
+            return (long)(2.0 * w * w * KernelTaps(sigma));
+        }
     }
 
     /// <summary>한 자리의 `filter` 선언 — 표(`Resources/FilterUi.json`)의 한 줄.</summary>

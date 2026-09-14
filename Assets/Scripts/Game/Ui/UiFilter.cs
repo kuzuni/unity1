@@ -100,7 +100,11 @@ namespace Forge.Game.Ui
         /// σ 는 **구운 화소** 단위다: 정본이 말한 CSS px 를 <see cref="FilterRules.BakeSigmaPx"/> 로 옮겨 넘긴다.
         /// 번짐이 잘리지 않게 테두리를 커널 반경만큼 넓혀 굽는다.
         /// </summary>
-        public static Sprite Blur(Sprite src, double sigmaPx, string keySuffix)
+        public static Sprite Blur(Sprite src, double sigmaPx, string keySuffix) { return Blur(src, sigmaPx, keySuffix, 0); }
+
+        /// <param name="displayPx">화면에 설 한 변(화소). 주면 **그 크기까지만 굽는다** — 번짐은 해상도를 올려도 볼 것이 없고
+        /// 커널이 제곱으로 비싸진다(<see cref="FilterRules.BlurBakeSide"/> 의 실측 5.1M → 0.8M · 2.6MB → 0.7MB). 0 이면 원본 해상도.</param>
+        public static Sprite Blur(Sprite src, double sigmaPx, string keySuffix, double displayPx)
         {
             if (src == null || sigmaPx <= 0) return src;
             string key = src.GetInstanceID() + "|blur|" + keySuffix;
@@ -109,6 +113,17 @@ namespace Forge.Game.Ui
 
             Rect r = src.textureRect;
             int w0 = Mathf.Max(1, Mathf.RoundToInt(r.width)), h0 = Mathf.Max(1, Mathf.RoundToInt(r.height));
+
+            // 화면보다 크게 구워 둔 도형이면 화면 크기로 내려서 번진다 — σ 도 같은 비율로 줄인다(번짐 모양은 그대로).
+            int side = FilterRules.BlurBakeSide(Mathf.Max(w0, h0), displayPx);
+            if (side > 0 && side < Mathf.Max(w0, h0))
+            {
+                double shrink = (double)side / Mathf.Max(w0, h0);
+                int dw = Mathf.Max(2, Mathf.RoundToInt(w0 * (float)shrink)), dh = Mathf.Max(2, Mathf.RoundToInt(h0 * (float)shrink));
+                Sprite small = Resample(src, dw, dh, keySuffix);
+                if (small != null) { src = small; r = src.textureRect; w0 = dw; h0 = dh; sigmaPx *= shrink; }
+            }
+
             Color[] src0 = ReadPixels(src.texture, Mathf.RoundToInt(r.x), Mathf.RoundToInt(r.y), w0, h0);
             if (src0 == null) return src;
 
@@ -179,6 +194,31 @@ namespace Forge.Game.Ui
                 RenderTexture.ReleaseTemporary(rt);
                 if (tmp != null) UnityEngine.Object.Destroy(tmp);
             }
+        }
+
+        /// <summary>GPU 로 한 번 베껴 크기를 줄인다(쌍선형) — 번지기 전에만 쓴다.</summary>
+        static Sprite Resample(Sprite src, int w, int h, string keySuffix)
+        {
+            string key = src.GetInstanceID() + "|small|" + w + "x" + h + "|" + keySuffix;
+            Sprite got;
+            if (baked.TryGetValue(key, out got) && got != null) return got;
+
+            RenderTexture rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            RenderTexture prev = RenderTexture.active;
+            try
+            {
+                rt.filterMode = FilterMode.Bilinear;
+                Graphics.Blit(src.texture, rt);
+                RenderTexture.active = rt;
+                var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { name = "small-" + keySuffix, filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+                tex.ReadPixels(new Rect(0, 0, w, h), 0, 0, false);
+                tex.Apply(false, false);
+                var sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), src.pixelsPerUnit);
+                sp.name = tex.name;
+                baked[key] = sp;
+                return sp;
+            }
+            finally { RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rt); }
         }
 
         static void BlurAxis(Color[] src, Color[] dst, int w, int h, double[] k, int rad, bool horizontal)

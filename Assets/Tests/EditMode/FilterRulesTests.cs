@@ -122,6 +122,41 @@ namespace Forge.Tests.EditMode
         }
 
         [Test]
+        public void 번짐은_화면_크기까지만_굽는다_그_위로는_볼_것이_없다()
+        {
+            Assert.AreEqual(133, FilterRules.BlurBakeSide(256, 133), "화면이 작으면 그 크기로 내린다");
+            Assert.AreEqual(256, FilterRules.BlurBakeSide(256, 400), "화면이 더 크면 원본보다 키우지 않는다");
+            Assert.AreEqual(256, FilterRules.BlurBakeSide(256, 0), "화면 크기를 모르면 원본 그대로");
+            Assert.AreEqual(2, FilterRules.BlurBakeSide(256, 1), "너무 작아도 두 화소는 남긴다");
+        }
+
+        [Test]
+        public void 화면_해상도로_내리면_실제로_싸진다()
+        {
+            // 부화 원뿔 실측: 32단위 상자를 8px/단위로 구워 256² · 화면 높이 133px · 정본 blur(1.2px) × css_px 2.164
+            double sigmaCanvas = 1.2 * 2.164;
+            double sigmaBaked = FilterRules.BakeSigmaPx(sigmaCanvas, 256, 133);
+
+            Assert.AreEqual(15, FilterRules.KernelRadius(sigmaBaked), "굽는 해상도 그대로면 반경 15");
+            Assert.AreEqual(8, FilterRules.KernelRadius(sigmaCanvas), "화면 해상도로 내리면 반경 8");
+
+            long big = FilterRules.BlurMuls(256, sigmaBaked);
+            long small = FilterRules.BlurMuls(133, sigmaCanvas);
+            Assert.Greater(big, 5000000L, "그대로 굽던 값이 500만 곱셈을 넘었다(§1 60fps·GC 0 이 걸린다)");
+            Assert.Less(small, 1000000L, "내리면 100만 아래");
+            Assert.Greater((double)big / small, 5.0, "다섯 배 넘게 싸진다");
+        }
+
+        [Test]
+        public void 내려도_번짐_모양은_그대로다()
+        {
+            // σ 를 같은 비율로 줄이므로 «σ / 한 변» 이 안 바뀐다 — 화면에서 본 번짐 폭이 같다는 뜻이다
+            double sigmaBaked = FilterRules.BakeSigmaPx(1.2 * 2.164, 256, 133);
+            double shrink = 133.0 / 256.0;
+            Assert.AreEqual(sigmaBaked / 256.0, (sigmaBaked * shrink) / 133.0, 1e-12);
+        }
+
+        [Test]
         public void 함수가_하나도_없는_줄은_거절한다()
         {
             var o = MiniJson.ParseObject("{\"line\": 1}");
