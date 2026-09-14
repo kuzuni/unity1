@@ -35,7 +35,8 @@ GAME_DEFAULT = os.path.join('Assets', 'Scripts', 'Game')
 # ── 정본 선택자 ↔ 클론 자리 ──────────────────────────────────────────────────────────────
 # 선택자는 style.css 의 것을 공백 하나로 정규화한 그대로. 순서는 style.css 등장 순.
 TABLE = {
-    '.ob-zzz i': ['Ui/OfflinePopup.cs#zzz'],
+    # T109 12회차 — 상자 위 졸음 글자는 T133 `OfflineButton` 이 `UiKit.Text(zzzRoot, "z" + i, …)` 로 세우고 `OfflineButtonUi.json` zzz_line_px(2.5) 로 링을 건다.
+    '.ob-zzz i': ['Ui/OfflineButton.cs#z'],
     '.offline-card': ['Ui/OfflinePopup.cs#coins', 'Ui/OfflinePopup.cs#hammers'],
     '.offline-total': ['Ui/OfflinePopup.cs#coins'],
     '.float-dmg': ['Battle/DamageNumbers.cs'],
@@ -100,7 +101,6 @@ TABLE = {
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — T109 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
-    'Ui/OfflinePopup.cs#zzz': 'T109 ⓑ — 잠자는 z 글자 자리가 클론에 없다(T68 이 머리를 세울 때 안 옮김) · 세우면서 키라인',
     'Ui/ForgeInfoPopup.cs#title': 'T109 ⓑ — h3.fi-title .11em(T122 lock 뒤 · 11회차가 남김)',
     'Ui/ForgeCraftPopup.cs#title': 'T109 ⓑ — h3.sellwarn-title .11em(T122 lock 뒤 · 11회차가 남김)',
     # T109 9회차 — 7회차가 공용 Popups.cs@Btn 에 키라인(면 키 표 · 2px)을 걸자 이 셋이 «초록» 으로 보였다. 셋은 제 규칙이 따로라 실물 자리로 옮기고 임자를 적는다.
