@@ -756,7 +756,7 @@ def fp_diff(a, b):
     return din / (win or 1.0), dout / (wout or 1.0)
 
 
-def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None):
+def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None, carried=False):
     import json
     cur = dict((n, round(v, 1)) for n, v in scores)
     hist = []
@@ -770,8 +770,14 @@ def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None):
         except (OSError, ValueError):
             hist = []
     hist = [h for h in hist if h.get("run") != run]
-    hist.append({"run": run, "avg": round(avg, 2), "screens": cur})
+    ent = {"run": run, "avg": round(avg, 2), "screens": cur}
+    if carried:
+        # 이 런은 제 PNG 를 안 냈다 — 그림은 지난 런 것이다(T28 44회차). 자취에 그대로 남긴다.
+        ent["carried"] = True
+    hist.append(ent)
     d = {"run": run, "avg": round(avg, 2), "screens": cur, "history": hist[-HIST_KEEP:]}
+    if carried:
+        d["carried"] = True
     if fps:
         d["fingerprints"] = dict((k, fp_pack(v)) for k, v in fps.items())
     if bands:
@@ -808,6 +814,45 @@ def content_fill(img):
     return (rows[-1] - rows[0] + 1) / float(H), (cols[-1] - cols[0] + 1) / float(W)
 
 
+# ── 보스 경고 연출을 물고 찍힌 화면 (T28 44회차 · 워커 M) ────────────────
+# 정본 `style.css` 337~400: `#boss-warning` 은 **전투 씬(#game-area) 안**의 풀스크린 연출이고
+# z-index 16 이라 **팝업(20/22/40/60) 아래**에 깔린다 — 그래서 팝업 화면을 찍어도 씬 대역이
+# 통째로 붉게 나온다. 배너 바탕이 `linear-gradient(180deg,#1e0202,#5a0707 45%,#240303)` 이라
+# 그 붉음은 **어두운 순색 적색**(#5a0707 = 90,7,7)이다.
+# 실측(런 403 · `screen_gear-detail.png`): y 6~55% 의 가로줄이 **한 색으로 꽉 찬 (90,14,11)** 이고
+# 같은 런의 이웃 `craft-compare` 는 멀쩡한 딤 세계였다 — 연출이 도는 **순간**에 두 장이 걸린 것이다.
+# 이것은 UI 결함이 아니라 **촬영 타이밍**이다(T128 ⓒ 카드 팝과 같은 갈래). 회귀로 부르지 않는다.
+BW_Y0, BW_Y1 = 0.06, 0.55   # 전투 씬 대역(정본 `#game-area`)
+BW_RED_MAX = 160            # #5a0707 계열 — 밝은 순적색(#ff1c1c 등 UI 색)은 뺀다
+BW_RED_MIN = 40
+BW_ROW_FRAC = 0.60          # 그 대역의 가로줄 중 이만큼이 «한 색 어두운 적색» 이면 연출이다
+
+
+def bw_hit(img):
+    """전투 씬 대역이 보스 경고(#boss-warning)의 붉은 판으로 덮였나 — (덮인 줄 비, 대표색)."""
+    W, H = img.w, img.h
+    px = img.px
+    y0, y1 = int(H * BW_Y0), int(H * BW_Y1)
+    hit, tot, rep = 0, 0, None
+    for y in range(y0, y1, 2):
+        tot += 1
+        i0 = (y * W) * 3
+        r, g, b = px[i0], px[i0 + 1], px[i0 + 2]
+        if not (BW_RED_MIN <= r <= BW_RED_MAX and r >= 3 * max(g, b)):
+            continue
+        same = True
+        for x in range(0, W, 4):
+            i = (y * W + x) * 3
+            if abs(px[i] - r) > 6 or abs(px[i + 1] - g) > 6 or abs(px[i + 2] - b) > 6:
+                same = False
+                break
+        if same:
+            hit += 1
+            if rep is None:
+                rep = (r, g, b)
+    return (hit / float(tot) if tot else 0.0), rep
+
+
 def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baseline=False, notes_full=False):
     table = load_table(table_path)
     if not table:
@@ -819,6 +864,26 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
               u" — T27 촬영이 CI 에서 돈 뒤에 생긴다.")
         return 2
     scores, missing, bad, skewed, unfilled = [], [], [], [], []
+    bw = []
+    meta, carried = {}, False
+    mp0 = os.path.join(shots_dir, "meta.json")
+    if os.path.exists(mp0):
+        try:
+            import json as _json
+            with open(mp0, encoding="utf-8") as _f:
+                meta = _json.loads(_f.read()) or {}
+        except (OSError, ValueError):
+            meta = {}
+    # ── 이어받은 그림 (T28 44회차 · 워커 M) ─────────────────────────────
+    # `ci.yml` 은 이 런이 PNG 를 한 장도 못 내면(PlayMode 가 라이선스·크래시로 안 돌면) **지난 screens 의
+    # PNG 를 그대로 이어받아** 올린다(`shots:0 · carried:N`). 그런데 meta.json 은 그 그림이 **어느 런 것인지**
+    # 안 적는다 — 그대로 기준선에 «런 403» 이라 적으면 자취가 거짓말을 한다(실측 2026-09-14 런 403).
+    if meta.get("shots") == 0 and (meta.get("carried") or 0) > 0:
+        carried = True
+        print(u"  ⚠ 런 %s 는 제 PNG 를 한 장도 안 냈다 — 이 그림은 지난 런에서 **이어받은 %s장**이다"
+              u"(meta.json 이 어느 런 것인지 안 적는다)."
+              % (meta.get("run", "?"), meta.get("carried")))
+        print(u"    점수는 멀쩡하다(그림은 진짜다) — 다만 **런 번호를 이 그림에 붙이지 마라**.")
     fps, bands = {}, {}
     suspect = [False]
     for name in [n for n, _ in pairs()]:
@@ -847,6 +912,9 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                   u" — 촬영 프레임이 눌렸거나 화면 한쪽이 통째로 비었다(세계가 안 그려짐 등)"
                   % (name, fh, fw, FILL_H_MIN, FILL_W_MIN))
             unfilled.append(name)
+        frac, rep = bw_hit(img)
+        if frac >= BW_ROW_FRAC:
+            bw.append((name, frac, rep))
         got = read_layout(img, name)
         s, why = score_screen(ent["rects"], got)
         scores.append((name, s))
@@ -867,6 +935,13 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
               % (len(skewed), " ".join(skewed)))
     if unfilled:
         print(u"  · ⚠ 앱 상자가 그림을 안 채운 화면 %d개: %s" % (len(unfilled), " ".join(unfilled)))
+    if bw:
+        print(u"  · ⚠ 보스 경고 연출(#boss-warning)을 물고 찍힌 화면 %d개: %s"
+              % (len(bw), " ".join(u"%s %.0f%%%s" % (n, f * 100, u"" if c is None else u" %s" % (c,)) for n, f, c in bw)))
+        print(u"    정본 `style.css` 337~400 그대로 연출은 씬 안(z 16)이라 팝업 아래에 깔린다 —"
+              u" 팝업 화면을 찍어도 씬 대역이 통째로 붉다."
+              u" **UI 결함이 아니라 촬영 타이밍이다**(T128 ⓒ 카드 팝과 같은 갈래) — 재등재하지 마라."
+              )
         print(u"    이 런의 점수는 «UI 가 그만큼 망가졌다» 가 아니다 — **촬영이 어긋난 것**이라"
               u" 화면마다 재등재하지 말고 촬영을 먼저 고친다(T27·T54 갈래).")
     if not scores:
@@ -898,9 +973,14 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             n = t[0]
             din, dout = fp_diff(obase.get(n), fps.get(n))
             med = median_of(hist, n) if len(hist) >= 3 else None
+            bwset = dict((t[0], t[1]) for t in bw)
             # 자취가 3회차 이상이면 «지난 회차» 가 아니라 **중앙값**과도 견준다 — 지난 회차 하나가
             # 튄 것을 «회귀» 로 부르지 않는다(T28 22회차 · forge-detail 1.9 가 그 꼴이었다).
-            if med is not None and t[2] > med - DROP_MARK:
+            if n in bwset:
+                # 씬 대역이 통째로 붉으면 밴드가 녹아 붙는다 — 그림이 달라진 것은 맞지만 **UI 가 아니다**.
+                soft.append((n, t[1], t[2], u"보스 경고 연출을 물고 찍혔다(씬 대역 %.0f%%) — 촬영 타이밍이다"
+                             % (bwset[n] * 100), din, dout))
+            elif med is not None and t[2] > med - DROP_MARK:
                 soft.append((n, t[1], t[2], u"최근 %d회차 중앙값 %.1f 자리다" % (len(hist), med), din, dout))
             elif din is not None and din < FP_SAME and dout < FP_SAME:
                 # 그림은 사실상 같은데 점수만 움직였다 = 밴드 경계 하나가 걸린 것(자의 흔들림).
@@ -949,15 +1029,8 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         save_baseline = False
     if save_baseline:
         # 런 번호는 CI 가 screens 에 같이 올린 meta.json 에서 읽는다(없으면 비운다).
-        run = None
-        mp = os.path.join(shots_dir, "meta.json")
-        if os.path.exists(mp):
-            try:
-                import json
-                run = json.load(open(mp, encoding="utf-8")).get("run")
-            except Exception:
-                run = None
-        save_baseline_file(baseline_path, scores, avg, run, fps, bands)
+        run = meta.get("run")
+        save_baseline_file(baseline_path, scores, avg, run, fps, bands, carried)
         print(u"· 기준선을 %s 에 적었다(다음 회차가 이것과 견준다)" % os.path.relpath(baseline_path, REPO))
     if bad:
         # T28 16회차(워커 M): 29개를 줄줄이 찍으면 아무도 안 읽는다 — **낮은 것 다섯**만 점수와 함께 준다.
@@ -1169,6 +1242,35 @@ def self_test():
     chk(nb3 > nb2, u"띠가 셋인 그림은 둘인 그림보다 밴드가 많다 (%d ↔ %d) — 밴드 수는 셀 수 있다" % (nb2, nb3))
 
     chk(fp_unpack(fp_pack(fa)) == fa, u"지문 base64 왕복이 같다 (%d칸)" % len(fa))
+
+    # ⑨ 보스 경고 연출 감지(T28 44회차) — 씬 대역이 통째로 #5a0707 이면 «촬영 타이밍» 이지 회귀가 아니다
+    bwimg = _canvas(60, 200, (250, 250, 250))
+    _fill(bwimg, 0, int(200 * 0.06), 60, int(200 * 0.55), (90, 7, 7))
+    f_bw, rep = bw_hit(bwimg)
+    chk(f_bw >= BW_ROW_FRAC, u"씬 대역이 #5a0707 로 덮이면 보스 경고로 잡는다 (%.2f)" % f_bw)
+    chk(rep == (90, 7, 7), u"보스 경고 대표색을 그대로 돌려준다 (%s)" % (rep,))
+    clean = _canvas(60, 200, (250, 250, 250))
+    _fill(clean, 0, int(200 * 0.06), 60, int(200 * 0.30), (110, 180, 150))   # 멀쩡한 딤 세계
+    chk(bw_hit(clean)[0] < BW_ROW_FRAC, u"붉지 않은 세계는 보스 경고로 안 잡는다")
+    bright = _canvas(60, 200, (250, 250, 250))
+    _fill(bright, 0, int(200 * 0.06), 60, int(200 * 0.55), (255, 28, 28))    # UI 의 ultimate 적색
+    chk(bw_hit(bright)[0] < BW_ROW_FRAC, u"밝은 순적색(UI 등급색 #ff1c1c)은 연출로 안 잡는다")
+
+    # ⑩ 이어받은 그림은 기준선 자취에 그렇게 적힌다(T28 44회차)
+    import tempfile, json as _j, codecs
+    fd, tmpb = tempfile.mkstemp(suffix=".json")
+    os.close(fd)
+    try:
+        save_baseline_file(tmpb, [("a", 5.0)], 5.0, 403, None, None, True)
+        got = _j.loads(codecs.open(tmpb, encoding="utf-8").read())
+        chk(got.get("carried") is True and got["history"][-1].get("carried") is True,
+            u"이어받은 런은 기준선과 자취 둘 다에 «carried» 로 남는다")
+        save_baseline_file(tmpb, [("a", 5.0)], 5.0, 404, None, None, False)
+        got2 = _j.loads(codecs.open(tmpb, encoding="utf-8").read())
+        chk("carried" not in got2 and got2["history"][-1].get("carried") is None,
+            u"제 그림을 낸 런에는 «carried» 를 안 적는다")
+    finally:
+        os.unlink(tmpb)
 
     print(u"")
     if fail:
