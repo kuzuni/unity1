@@ -52,7 +52,17 @@ namespace Forge.Game.Ui
             if (f.HasGrayscale || f.HasSaturate || f.HasBrightness)
             {
                 Sprite src = img.sprite;
-                if (src != null) img.sprite = BakeFiltered(src, f);
+                // §0-6 수리(런 501) — 굽기는 **부팅 길** 위에 있다(`ForgeHost.Boot` → `ForgeSheet.EquipCell`).
+                // 여기서 던지면 화면이 통째로 안 선다(그 런에서 PlayMode 244개 중 198개가 그렇게 넘어졌다).
+                // 그래서 무슨 일이 있어도 원본을 두고 지나간다 — 경고 한 줄만 남긴다(빨강이 아니라 §1 «콘솔 에러 0» 을 안 깬다).
+                if (src != null)
+                {
+                    try { img.sprite = BakeFiltered(src, f); }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogWarning("UiFilter: 색 filter 를 못 구웠다 — 원본 그대로 둔다 (" + siteKey + ") " + e.Message);
+                    }
+                }
             }
             Color c = img.color;
             img.color = new Color(c.r, c.g, c.b, f.HasOpacity ? (float)f.Opacity : c.a);
@@ -138,10 +148,16 @@ namespace Forge.Game.Ui
         static Color[] ReadPixels(Texture2D tex, int x, int y, int w, int h)
         {
             if (tex == null) return null;
+            if (x < 0 || y < 0 || x + w > tex.width || y + h > tex.height) return null;
             if (tex.isReadable)
             {
-                if (x < 0 || y < 0 || x + w > tex.width || y + h > tex.height) return null;
-                return tex.GetPixels(x, y, w, h);
+                // §0-6 수리(런 501): `isReadable` 이 true 라도 **CPU 사본이 없을 수 있다** — 압축·크런치 판이거나
+                // 업로드 뒤 버린 판이면 `GetPixels` 가 «texture data is either not readable, corrupted or does not exist»
+                // 로 던진다. 런 501 의 아이콘 아틀라스 `atlas-0` 이 그랬고, 그 예외가 `ForgeSheet.EquipCell` → `ForgeHost.Boot`
+                // 를 타고 올라가 **PlayMode 244개 중 198개**를 넘어뜨렸다. 여기서 받아 아래 GPU 베끼기로 내려간다.
+                try { return tex.GetPixels(x, y, w, h); }
+                catch (UnityEngine.UnityException) { }
+                catch (System.ArgumentException) { }
             }
 
             // 읽기 불가 — GPU 로 베낀다. sRGB 판으로 읽어야 색이 안 어긋난다.
@@ -153,7 +169,6 @@ namespace Forge.Game.Ui
                 Graphics.Blit(tex, rt);
                 RenderTexture.active = rt;
                 tmp = new Texture2D(w, h, TextureFormat.RGBA32, false);
-                if (x < 0 || y < 0 || x + w > tex.width || y + h > tex.height) return null;
                 tmp.ReadPixels(new Rect(x, y, w, h), 0, 0, false);
                 tmp.Apply(false, false);
                 return tmp.GetPixels();

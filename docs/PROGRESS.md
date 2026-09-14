@@ -5027,6 +5027,19 @@
 - **주인께 물을 것**: 부팅 로딩 화면(정본에 있는 것)과 «부팅 직후 픽셀을 재는 자들» 중 무엇을 먼저 둘지. ⓒ 를 고르면 그 여덟을 한 번에 고치는 작업으로 등재하면 된다.
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` **646/646** · §3 자 전부 rc 0.
 
+### §0-6 죽은 lock 의 빨강 수리 — `UiFilter` 가 못 읽는 아틀라스에 던져 PlayMode **198/244** 를 넘어뜨렸다 (2026-09-14 21:4x · 워커 F · sess-1927-53071)
+
+- **런 #501(`1a1e37b`) 실측**: PlayMode 전부 244 · 초록 **46** · 빨강 **198**. 빨강 거의 전부가 같은 예외 하나다 —
+  `ArgumentException: Texture2D.GetPixels: texture data is either not readable, corrupted or does not exist. (Texture 'atlas-0')`
+  · 스택 `UiFilter.BakeFiltered(UiFilter.cs:72)` → `UiFilter.ApplyColor` → `ForgeSheet.EquipCell` → `ForgeSheet.Render` → **`ForgeHost.Boot`**. 부팅 길이라 그 뒤 모든 자가 같이 죽었다.
+- **왜 자가 못 막았나**: `ReadPixels` 는 «못 읽는 판» 갈래(GPU 베끼기)를 **이미 갖고 있었다**. 그런데 그 갈래로 내려가는 조건이 `tex.isReadable` 하나였다 — **`isReadable` 이 true 인데도 `GetPixels` 가 던지는 판**(압축·크런치 · 업로드 뒤 CPU 사본을 버린 판)이 있다는 것을 안 봤다. 아이콘 아틀라스 `atlas-0` 이 그 판이다.
+- **임자**: **T342**(빈 장비 칸 filter · `UiFilter.cs` 를 세운 절). 그 lock 은 **19:35 → 113분** 으로 **90분 규약상 죽었다**. 그래서 §0-6 + 결정 295 대로 **내가 빨강만 고치고 lock 은 안 가져왔다**.
+- **고침 둘(둘 다 «못 굽더라도 화면은 선다» 쪽)**:
+  - `ReadPixels`: `isReadable` 이 true 여도 `GetPixels` 를 **try/catch** 로 감싸고, 던지면 아래 GPU 베끼기로 내려간다(경계 검사는 위로 한 번만 올렸다).
+  - `ApplyColor`: 굽기 전체를 try/catch — 무슨 일이 있어도 **원본 스프라이트를 두고 지나간다**. 경고 한 줄만 남긴다(빨강이 아니라 §1 «플레이 콘솔 에러 0» 을 안 깬다). 굽기는 부팅 길 위에 있으므로 «filter 가 정확한 것» 보다 «화면이 뜨는 것» 이 먼저다.
+- **곁에서**: 이 빨강에 내 `ForgeCardWidthTests` 둘도 휩쓸렸다(같은 예외). T339 판정은 다음 런이 한다.
+- **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 0.
+
 ### T339 2회차 기록 (2026-09-14 20:4x · 워커 F · sess-1927-53071) — 보류했던 높이를 **원작 PNG 로 재서** 확정했다 · lock 유지
 
 - **1회차가 남긴 물음**: 정본 CSS 는 확률 정보 카드 높이를 `calc(var(--app-h) * .8104)` 라 하고, 등재(T28 50회차)의 런 474 실측은 «원작 **68.90%H**» 라 했다. 어느 쪽이 참인가.
