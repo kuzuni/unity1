@@ -236,6 +236,42 @@ def red_only(fails):
     return reds - fail
 
 
+def expected_reds(text):
+    """**일부러 낸** 콘솔 빨강의 픽스처 집합(T189).
+
+    `RedLog`(T46)는 `Application.logMessageReceived` 에 붙어 **모든** 콘솔 빨강을 적는다 —
+    테스트가 `LogAssert.Expect` 로 미리 받아 둔 것까지 똑같이 `RED` 로 적힌다(가릴 API 가 없다).
+    그런데 유니티 테스트 프레임워크는 **기대 안 한 `LogType.Error` 가 뜨면 그 테스트를 넘어뜨린다** —
+    그러므로 «그 테스트가 그 뒤 `PASS` 했다» 는 것이 곧 «그 빨강은 기대된 것» 이라는 증거다.
+    실측 런 438 `BootGuardTests.손상_대기품_세이브로…`: 손상 세이브를 **일부러** 먹여 정본과 같은
+    `console.error` 를 내는 자리이고 `LogAssert.Expect` 도 돼 있으며 바로 다음 줄이 `PASS` 다."""
+    out, pending = set(), {}
+    for ln in text.split('\n'):
+        if ln.startswith('RED '):
+            full = _dotted(ln)
+            if full:
+                pending[full] = _fixture(ln)
+            continue
+        if ln.startswith('PASS '):
+            full = _dotted(ln)
+            if full in pending:
+                out.add(pending.pop(full))
+            continue
+        if ln.startswith('FAIL '):
+            pending.pop(_dotted(ln), None)
+    return out
+
+
+def _dotted(ln):
+    """한 줄에서 **점 찍힌 전체 이름**(`Forge.Tests.PlayMode.X.무엇`)을 집는다 — 없으면 빈 글자."""
+    head = ln.split(' · ')[0].strip()
+    for tok in head.split()[1:]:
+        tok = tok.strip('[]')
+        if tok.count('.') >= 2:
+            return tok
+    return ''
+
+
 def stack_paths(text):
     """{픽스처: [Assets/… 경로]} — **RED 덩이 안의 `at` 줄**이 댄 프로덕션 파일(T188).
 
@@ -569,7 +605,7 @@ def ledger_note(runs, missing, look=8):
 
 
 def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None, touched=None, missing='', runs=None,
-              passed=None):
+              passed=None, expected=None):
     """빨강마다 임자 한 줄 — **빠진 테스트 파일 ↔ PROGRESS 범위 열** 로 가린다(T125).
 
     갈래 넷:
@@ -612,10 +648,20 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
                  'lock 을 눈으로 확인한다.' % (sha[:7] or '?', who or '못 가렸다'))]
     err = err or {}
     passed = passed or set()
+    expected = expected or set()
     out = []
     for name in names:
         # ⓡ T188 — RED 만 있고 FAIL 이 없는 자는 **넘어지지 않았다**(다음 줄이 PASS 다).
         #          단언을 찾아 테스트 파일을 열면 헛걸음이다 — 빨강은 콘솔 줄 하나다.
+        if name in expected:
+            # ⓦ T189 — 그 자는 PASS 했다. 유니티는 **기대 안 한** 콘솔 빨강이면 테스트를 넘어뜨리므로,
+            #          PASS 는 곧 «이 빨강은 `LogAssert.Expect` 된 것» 이라는 증거다 — 고칠 것이 없다.
+            out.append('  · `%s` 의 `RED` 는 **일부러 낸 빨강이다 — 고칠 것이 없다**. 그 자는 그 뒤 `PASS` 했고, '
+                       '유니티는 **기대 안 한 콘솔 빨강이면 테스트를 넘어뜨린다** — 그러니 이 줄은 '
+                       '`LogAssert.Expect` 로 미리 받아 둔 것이다(`RedLog`(T46)는 `logMessageReceived` 에 붙어 '
+                       '**기대된 것까지 똑같이** 적는다 · 가릴 API 가 없다). 이 런이 빨간 까닭은 **다른 줄**에 있다.'
+                       % name)
+            continue
         if name in passed:
             out.append('  · `%s` 는 **넘어지지 않았다(PASS)** — 이 빨강은 그 자가 돌 때 남은 '
                        '**콘솔 에러 한 줄**이다(§1 «플레이 콘솔 에러 0»). 테스트 파일에서 단언을 찾지 마라 — '
@@ -893,6 +939,22 @@ def self_test():
        any('넘어진 자(' in l for l in
            own_lines([RED_LN], P5, '', lock=live, err=stack_paths(RED438))), True)
 
+    # ⓦ T189 — 그 RED 는 **일부러 낸 것**이었다(다음 줄이 PASS 다 = UTF 가 LogAssert.Expect 로 받아 넘겼다).
+    #    ⓥ 만으로는 «ForgeHost.cs 를 고쳐라» 로 보내 버린다 — 잘 돌고 있는 자리를 고치러 가는 길이다.
+    eq('ⓦ PASS 로 닫힌 RED 는 기대된 것', expected_reds(RED438), {'BootGuardTests'})
+    eq('ⓦ FAIL 로 닫히면 기대된 것이 아니다', expected_reds(RED343), set())
+    eq('ⓦ PASS 가 아예 없으면 비어 있다',
+       expected_reds('RED  Error  [A.B.C.\ubb34\uc5c7]\n  |    x\n'), set())
+    eq('ⓦ 다른 테스트의 PASS 로는 안 닫힌다',
+       expected_reds('RED  Error  [A.B.C.\ud558\ub098]\nPASS A.B.C.\ub458\n'), set())
+    eq('ⓦ 전체 이름을 집는다', _dotted(RED_LN), 'Forge.Tests.PlayMode.BootGuardTests.\uc190\uc0c1')
+    eq('ⓦ 점이 모자라면 빈 글자', _dotted('RED  Error  [Nope]'), '')
+    lines = own_lines([RED_LN], P5, '', lock=live, err=stack_paths(RED438),
+                      passed=red_only([RED_LN]), expected=expected_reds(RED438))
+    eq('ⓦ 고칠 것이 없다고 말한다',
+       len(lines) == 1 and '일부러 낸 빨강이다' in lines[0], True)
+    eq('ⓦ 임자 사다리를 아예 안 탄다', any('임자' in l and 'T19' in l for l in lines), False)
+
     # ⓟ T148 — 장부 읽기 · 마지막 초록
     runs = parse_runs('{"sha":"aaa","run":329,"tests":"success","missing_modes":""}\n깨진 줄\n'
                       '{"sha":"bbb","run":330,"tests":"cancelled","missing_modes":""}\n'
@@ -1091,6 +1153,7 @@ def main(argv):
                 if path not in err.setdefault(name, []):
                     err[name].append(path)
         own = own_lines(fails, read_progress(), cur, err=err, passed=red_only(fails),
+                        expected=expected_reds(text),
                         touched=prod_touch(commits), missing=str(meta.get('missing_modes', '') or ''), runs=runs)
         between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None))
     rc, out = judge(meta, anc, n_after, fails, own, between)
