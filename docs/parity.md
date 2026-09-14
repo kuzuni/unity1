@@ -671,3 +671,35 @@ T30 이 24종을 전부 합성해 놓았지만 `Assets/Scripts` 어디에서도 
 
 ## 이 회차의 판정
 - 새로 빠진 것: **0**. 축 셋을 닫았다. T33 은 아직 ✅ 가 아니다(§7 전 줄 ✅ 가 조건).
+
+---
+
+# T33 완주 대조 — **9회차** (2026-09-14 05:3x~06:0x · 워커 S · sess-0029-41207)
+
+8회차가 남긴 축 셋 중 **둘**을 열었다(`ref/POLISH.md` 항목 전수는 안 열었다 — 10회차 몫). **둘 다 깨끗 — 새로 빠진 것 0.**
+
+## ⓝ `ref/UI-SPEC.md` 조항 전수(66) ↔ 클론 — **0건**
+
+- 방법: 조항마다 «클론의 어느 파일이 그것인가» 를 코드 grep 으로 잡고, 문구·수치가 있는 조항은 그 문구(«수집까지» · «열쇠는 던전을 완료할 때만» · «09:00» · «빠른 장착» · «모두 업그레이드» · «슬롯+1» · «건너뛰기» · «서버 시간» · «파워 랭킹/클랜 랭킹» · «메시지 보내기…» · «0.0000%»)로 다시 잡았다. T28 `ref-layout.md` 의 화면 31절이 «자리» 를 이미 재고 있으므로 이 축은 «있는가·같은 말을 하는가» 만 물었다.
+- 공통 레이아웃 4 · 메인 8(이정표 = T139 ✅ · 알 칸 = `ForgeSheet` held-slot · 업그레이드 남은 시간 = `ForgeSheet`) · 오프라인 3(T144 ✅) · 리그 5(`LeagueSheet` — 보상 6종 `RewardCurs` · «수집까지» · 티켓 0/5 · 상대 ⭐+N 350행) · 던전 4(`DungeonSheet`·`DungeonDetailPopup` — 09:00 · 완료할 때만 · ◀▶ · 소탕/입장) · 스킬 9(`SkillPanel`·`SkillRatesPopup` — 15/18 · 패시브 배너 · 조각 게이지 · 장착됨 · 빠른 장착 · x5 · ℹ) · 펫 7(`PetPanel`·`PetUpgradePopup`·`PetHatchCone` — 부화장 3 · 슬롯+1 · 합칠 펫 = `AbsorbMaterials`) · 기술트리 5(`TechPanel`·`TechPopups` — 카드 4 · 노드 N/5 · 건너뛰기 ◆) · 상점 3 · 패스 2 · 프로필/설정 3(`ProfilePopup` — 연필 · 랭킹 둘 · 서버 시간 · 토글) · 대장간 팝업 5(`ForgeInfoPopup`·`ForgeAutoPopup` — 두 열 확률 · 목록 0.0000% · 서브스탯 13 · 유지/필터) · 비교 2(T113 ✅ · 위 장착됨/아래 새) · 세부 1 · 플레이어 정보 5(`BattlePreview` · 8칸 · 출전 줄 · 보유 옵션 목록 219행) · 채팅 4(`ChatScreen` — 공유 카드 · ◀ · 입력) · 승천 6(`AscendPopup` · 별 = 카드마다) · 재화 표 8 — **전부 자취 있음**.
+- **SPEC 에만 있고 정본(web)에 없는 것**은 옮기지 않는다(§1 «정본이 지금 하는 것» · 결정 290 갈래): ⓐ 도전 티켓 «🎟 파랑» — 정본도 `IconGen.img('ticket')` 하나로 스킬 티켓과 같이 그린다(`ui.js` 4870) → 클론의 `ticket` 하나가 맞다 ⓑ 펫 업그레이드 «선택 슬롯 5칸» — 정본은 등급별 일괄 선택 칩 + 목록(`AbsorbMaterials`) → 클론이 정본과 같다 ⓒ 「❗현재 클론과 차이」 줄들(열쇠 소모 시점·리셋 09:00·난이도 선택·던전 탭)은 정본이 이미 고친 뒤라 클론도 같다.
+
+## ⓞ `main.js` 부팅 순서 · 타이머 · 저장 시점 ↔ `Bootstrap`·`SaveIo`·`AppLifecycle`·호스트 — **0건**
+
+| 정본 `main.js` | 클론 |
+|---|---|
+| `boot()`: loadGame → Dungeons/TechTree/Mounts/Ascension/Forge/Pass/Chat `ensure` → `pendingOffline` → UI.init → Scene3D.init → fitLayout → Combat.start → Dungeons.restoreRun → League.ensure → renderTopBar/updateStageLabel → warmup → 오프라인 팝업(≥60초) → restorePendingCraft → autoSeq | `SaveIo`(-900) 로드·보정 → `AppLifecycle`(-850) → `UiRoot`/`Bootstrap`(카메라·상자) → `MetaHost.OnReady`(League/Shop/Pass/Chat) → `BattleScene.Boot` + `BattleSaveGlue`(`Dungeons.RestoreRun` 73행) → `ForgeHost`(`RestorePendingCraft` 203행 · `StartAutoSeq` 204행) → 오프라인 팝업 `MetaHost` 152~153(`Elapsed >= 60`) · 부팅 화면 단계표는 **T142**(진행 중) |
+| 논리 틱 `LOGIC_TICK_MS = 100` · hidden 이면 멈춤 · 복귀 시 `min(5000, …)` 따라잡기 | `BattleRules.Tick`(100ms 누적 · `BattleScene` 225행) · `AppLifecycle.MarkPaused/ResumeNow` · `Lifecycle.BackgroundGapMs = 5000` |
+| 1초 틱: Forge.tickUpgrade · TechTree.tick · Pets.tick · Dungeons/League/Shop `ensure`(09:00) · Chat.tick · UI.tickSecond | `ForgeHost.Engine.TickUpgrade` 287행 · `TechPopups.Tick` · `PetSkillHost.TickSec = 1` · `DailyReset.ResetDateKey`(MetaHost 76) · `Chat.Tick` (MetaHost 267) |
+| 3초 틱: 자동 제련 `autoSeqStep` · 열린 플레이어 정보/장비 세부 재렌더 | `ForgeHost` autoSeq(204·294·481) · 팝업 재렌더는 `Touch` 이벤트(밀기 대신 변화 시) |
+| 저장: 30초 · `visibilitychange` hidden · `beforeunload` | `SaveIo.AutosaveIntervalSec = 30` · `OnApplicationPause/Focus` · `OnApplicationQuit` |
+| 첫 `pointerdown` 에 `SFX.resume()`·`startMusic()` | `Sfx.Resume`(빈 몸 — 유니티는 사용자 제스처 잠금이 없다) · `Music` 부팅 시작 |
+
+## 이 회차가 얻은 규칙
+> **SPEC(원본 폰 게임 관찰 문서)과 정본(web)이 다를 때 기준은 정본이다.** SPEC 은 정본을 만들 때의 목표였고 정본은 그 뒤 주인 지시로 갈라진 자리(아이콘 통합·재료 선택 UI·던전 규칙)를 스스로 적어 두었다 — 클론은 §1 대로 «정본이 지금 하는 것» 을 따르고, SPEC 조항은 «정본에 그 기능이 있는가» 를 묻는 체크리스트로만 쓴다.
+
+## 다음 회차(10회차)가 열 축 — 아직 아무도 안 연 것
+- **`ref/POLISH.md` 항목 전수**(33항목 · 448줄) ↔ 클론 — 그래픽 목표 문서라 «정본(web)이 실제로 구현한 항목» 만 대상이다(정본에도 없는 목표 항목은 옮기지 않는다).
+
+## 이 회차의 판정
+- 새로 빠진 것: **0**. 축 둘을 닫았다. T33 은 아직 ✅ 가 아니다(§7 전 줄 ✅ 가 조건 · 열린 줄은 T28·T35·T110·T128·T136·T138·T142·T146 …).
