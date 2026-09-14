@@ -62,6 +62,11 @@ def body(rel, is_dir):
     if ext == '.png':
         # 그림(T70 번개 시트) — 스프라이트 단일 모드(textureType 8 · spriteMode 1 → 스프라이트 fileID 21300000 · gen_catalog.py 가 그 값을 쓴다).
         # 무압축(textureCompression 0): 시트가 작고(≤ 1MB) WebGL 의 DXT/ETC 알파 블록이 볼트 가장자리를 뭉갠다.
+        # T353 — 아이콘 시트(Icons/Resources/Icons/atlas-N.png · T31 이 정본 icongen 에서 뽑는다)는 최근접(filterMode 0 · Point).
+        #        정본 style.css 7215·7225·1959 `.ico`·`.ico.av-ico`·`.dg-banner { image-rendering: pixelated }` — «최근접 축소를 강제한다 ·
+        #        안 걸면 칸 단위로 끊긴 색이 다시 그라디언트가 된다». 128px 칸을 화면 40~50px 로 줄일 때 정본처럼 칸 경계가 딱딱하게 남아야 한다.
+        #        나머지 그림(번개 시트 등)은 그대로 바이리니어(1).
+        filt = 0 if '/Icons/Resources/Icons/' in rel.replace('\\', '/') else 1
         return ("TextureImporter:\n  internalIDToNameTable: []\n  externalObjects: {}\n  serializedVersion: 12\n"
                 "  mipmaps:\n    mipMapMode: 0\n    enableMipMap: 0\n    sRGBTexture: 1\n    linearTexture: 0\n    fadeOut: 0\n"
                 "    borderMipMap: 0\n    mipMapsPreserveCoverage: 0\n    alphaTestReferenceValue: 0.5\n"
@@ -70,7 +75,7 @@ def body(rel, is_dir):
                 "  isReadable: 0\n  streamingMipmaps: 0\n  streamingMipmapsPriority: 0\n  vTOnly: 0\n  ignoreMasterTextureLimit: 0\n"
                 "  grayScaleToAlpha: 0\n  generateCubemap: 6\n  cubemapConvolution: 0\n  seamlessCubemap: 0\n  textureFormat: 1\n"
                 "  maxTextureSize: 2048\n"
-                "  textureSettings:\n    serializedVersion: 2\n    filterMode: 1\n    aniso: 1\n    mipBias: 0\n"
+                f"  textureSettings:\n    serializedVersion: 2\n    filterMode: {filt}\n    aniso: 1\n    mipBias: 0\n"
                 "    wrapU: 1\n    wrapV: 1\n    wrapW: 1\n"
                 "  nPOTScale: 0\n  lightmap: 0\n  compressionQuality: 50\n  spriteMode: 1\n  spriteExtrude: 1\n  spriteMeshType: 1\n"
                 "  alignment: 0\n  spritePivot: {x: 0.5, y: 0.5}\n  spritePixelsToUnits: 100\n"
