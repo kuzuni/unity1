@@ -330,6 +330,12 @@ namespace Forge.Tests.PlayMode
             if (frameMs < revealMs)
                 Assert.IsFalse(v.Done, "연 뒤 " + frameMs.ToString("0") + "ms 밖에 안 지났는데(연출 창 "
                                + revealMs.ToString("0") + "ms) 벌써 끝났다");
+            // T334 2회차 — 연출 시각·판정이 Core 상태 기계(`SummonSeqRun`)로 옮겨졌다. 그 상태가 화면에 열려 있어야
+            //   3회차가 겹을 얹을 수 있다. x1 소환(셀 하나 · 주역 없음)에서는 넷 다 거짓이다.
+            Assert.IsFalse(v.Charging, "x1 은 홀드백이 없다 — charging 이 아니다");
+            Assert.IsFalse(v.Flash, "x1 은 flash 가 아니다");
+            Assert.IsFalse(v.Wipe, "x1 은 wipe 가 아니다");
+
             v.OnTap();
             yield return null;
             Assert.IsTrue(v.Done, "탭 = 스킵 → 완료");

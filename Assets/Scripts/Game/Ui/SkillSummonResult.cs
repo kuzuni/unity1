@@ -8,6 +8,7 @@ using Forge.Core.Mounts;
 using Forge.Core.Pets;
 using Forge.Game.Gallery;
 using Forge.Core.Skills;
+using Forge.Core.Ui;
 
 namespace Forge.Game.Ui
 {
@@ -56,8 +57,21 @@ namespace Forge.Game.Ui
         float start;
         int idx;
         bool done, holdback, heroFired;
+        /// <summary>T334 2회차 — 정본 `tickSummonResult` 의 상태 기계(Core · UnityEngine 0). 시각·판정은 전부 이것이 쥔다.</summary>
+        SummonSeqRun seq;
         SummonFx fx;   // T179 연출 겹(무대판에서만)
         public SummonFx Fx { get { return fx; } }
+
+        // ── T334 2회차 — 정본 다섯 상태를 그대로 연다(3회차가 이 위에 겹을 얹는다) ──
+        /// <summary>`charging` — 홀드백에서 마지막 한 칸을 남긴 구간(정지가 아니라 축적).</summary>
+        public bool Charging { get { return seq != null && seq.Charging; } }
+        /// <summary>`hero` — 주역(최고 등급) 셀이 착지했다.</summary>
+        public bool Hero { get { return seq != null && seq.Hero; } }
+        /// <summary>`flash` — 뜸들인 단독 등장의 전 화면 섬광(홀드백일 때만).</summary>
+        public bool Flash { get { return seq != null && seq.Flash; } }
+        /// <summary>`wipe` — 홀드백이 없는 주역의 셀 중심 가산 원형 와이프(대량 소환).</summary>
+        public bool Wipe { get { return seq != null && seq.Wipe; } }
+        // 주역 비트(`HeroKicking`)는 아직 안 연다 — 그 길이가 3회차에 정해진다(위 Open 의 주석).
         int heroIdx = -1;
         string best;
         Action repeat;
@@ -166,6 +180,8 @@ namespace Forge.Game.Ui
         }
 
         static int RarityIdx(string r) { return Array.IndexOf(Defs.Rarities, r); }
+        /// <summary>순위 → 등급 이름(T334 2회차 — 상태 기계가 돌려주는 «이번 프레임 최고 순위» 를 소리 이름으로).</summary>
+        static string RarityOf(int rank) { return rank >= 0 && rank < Defs.Rarities.Length ? Defs.Rarities[rank] : null; }
         static bool Hi(string r) { return r == "legendary" || r == "ultimate" || r == "mythic"; }
 
         /// <summary>원작 srCols — 마지막 행 충전율이 가장 높은 열 수.</summary>
@@ -346,6 +362,17 @@ namespace Forge.Game.Ui
             start = Time.unscaledTime;
             idx = 0;
             done = false;
+            // T334 2회차 — 시각·판정을 Core 상태 기계에 넘긴다(정본 tickSummonResult 그대로).
+            // 등급 순위는 정본 `RARITIES.indexOf` 자리 — 이 화면이 이미 쓰는 RarityIdx 다.
+            List<int> rank = new List<int>(cells.Count);
+            for (int i = 0; i < cells.Count; i++) rank.Add(RarityIdx(cells[i].Entry.Rarity));
+            List<double> ds = new List<double>(delays.Count);
+            for (int i = 0; i < delays.Count; i++) ds.Add(delays[i]);
+            // ⚠ 주역 비트 길이는 **0 으로 둔다**(3회차 몫). 정본에 «350ms» 같은 수는 **없다** — 그 비트는 CSS 가
+            //   쥐고 있고 후보가 셋이다: `srshakehit .44s`(5676 · 판 흔들기) · `srheropop .52s`(6727 · 주역 셀 팝) ·
+            //   `srrecede .68s`(6720 · 나머지 셀 물러남). 어느 것이 «비트» 인지는 그 겹을 실제로 얹는 회차가
+            //   화면을 보고 고른다 — 지금 하나를 골라 표에 박으면 근거 없는 수가 굳는다.
+            seq = new SummonSeqRun(ds, rank, holdback, heroIdx, PetSkillStyle.L("sr_tail_ms"), 0.0);
         }
 
         Cell BuildCell(RectTransform grid, Entry e, int i, float x, float y, float cw, bool heroic, bool peer, bool dense, bool one)
@@ -567,23 +594,20 @@ namespace Forge.Game.Ui
         // ===== 시계(원작 tickSummonResult · rAF) =====
         void Update()
         {
-            if (!done)
+            if (!done && seq != null)
             {
                 float elapsed = (Time.unscaledTime - start) * 1000f;
-                string loud = null;
-                while (idx < cells.Count && delays[idx] <= elapsed)
+                int loudRank = seq.Tick(elapsed);          // 밀린 셀을 다 띄우고 상태를 옮긴다(정본 tickSummonResult)
+                while (idx < seq.Revealed && idx < cells.Count) { TurnOn(cells[idx]); idx++; }
+                if (loudRank >= 0)
                 {
-                    TurnOn(cells[idx]);
-                    if (loud == null || RarityIdx(cells[idx].Entry.Rarity) > RarityIdx(loud)) loud = cells[idx].Entry.Rarity;
-                    idx++;
-                }
-                if (loud != null)
-                {
+                    // 효과음은 이번 프레임 **최고 등급 하나**(정본 주석 — 한 프레임에 여럿이 몰려도 한 번).
+                    string loud = RarityOf(loudRank);
                     var sr = PetSkillHost.SfxSummonReveal;
-                    if (sr != null) sr(loud);
-                    if (idx >= cells.Count && heroIdx >= 0) FireHero();
+                    if (sr != null && loud != null) sr(loud);
                 }
-                if (idx >= cells.Count && elapsed >= delays[delays.Count - 1] + PetSkillStyle.L("sr_tail_ms")) Finish();
+                if (seq.Hero && !heroFired) FireHero();
+                if (seq.Done) Finish();
             }
             AnimateCells();
             AnimateFlash();
