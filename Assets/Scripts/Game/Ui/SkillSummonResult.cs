@@ -16,7 +16,7 @@ namespace Forge.Game.Ui
     /// 원작 타임라인 그대로: ① 빛 모임(SR_CHARGE 240ms) → ② 등급 오름차순으로 셀 팝(≤10 = 125ms 간격 · &gt;10 = 행 웨이브 300/40ms + 등급 경계 200ms 정지) →
     /// ③ 최고 등급(전설↑ · 단독)은 150ms 홀드백 뒤 주역 비트 + 화면 섬광 → ④ 150ms 여운 뒤 [확인] · 등급 집계 칩 · x1 은 요약+[다시 소환]. 탭 = 스킵 · 끝난 뒤 탭 = 닫기.
     /// 11개부터 같은 항목을 한 셀로 묶는다(×N · 조각 +N · NEW). 그림 = 슬롯의 그림(스킬 sk_* · 알 등급색 egg · summon-result-image-unify).
-    /// 광채·광선·소환진·먼지·반사는 CSS 다층 그라데이션이라 정점 색 원판·섬광·바닥 타원으로 줄였다(결정 기록 · 주인 눈 확인). 효과음은 <see cref="PetSkillHost"/> 훅(T30).
+    /// 광채·소환진·먼지는 CSS 다층 그라데이션이라 정점 색 원판·섬광·바닥 타원으로 줄였다(결정 기록 · 주인 눈 확인). 천개·광선·별·바닥 반사는 T179 가 <see cref="SummonFx"/> 로 세운다(무대판). 효과음은 <see cref="PetSkillHost"/> 훅(T30).
     /// </summary>
     public sealed class SkillSummonResultView : MonoBehaviour
     {
@@ -313,6 +313,13 @@ namespace Forge.Game.Ui
                 }
                 bool peer = heroIdx >= 0 && !heroic && e.Rarity == best;
                 cells.Add(BuildCell(grid, e, i, x, y, cw, heroic, peer, dense, one));
+            }
+            // T179 3회차 — 바닥 반사의 원본(정본 buildSummonReflection: done 에서 이 그리드를 복제) · 셀별 구체 배율(--sz · heroic 확대는 복제본에서 뗀다)
+            if (fx != null)
+            {
+                var orbSz = new List<float>(cells.Count);
+                foreach (Cell cc in cells) orbSz.Add(cc.BaseScale);
+                fx.SetReflectSource(grid, orbSz);
             }
 
             // ---- 섬광 ----

@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Forge.Core.Data;
+using Forge.Game.Gallery;
 
 namespace Forge.Game.Ui
 {
     /// <summary>
     /// T179 — 소환 결과 팝업의 연출 겹(정본 `.sr-canopy`(아치 + 빛발 3 + 스필) · `.sr-rays`(배경 광선) · `.sr-stars`(별)). 수치는 `Resources/SummonFxUi.json`.
     /// 정본은 CSS 그라디언트·마스크·blur 로 그리는데 UGUI 에는 그것이 없어 **한 장씩 굽는다**(<see cref="CraftFxPoly"/>·<see cref="AgePattern"/> 과 같은 길 · 결정 223 «맨 Graphic 은 안 칠해진다»).
-    /// 층 사다리(정본 5692~5697): 광선 0 · 바닥 10 · 별 15 · 천개 20 · 그리드 40 — 형제 순서로 지킨다. 바닥 반사(`.sr-reflect` 12)는 2회차.
+    /// 층 사다리(정본 5692~5697): 광선 0 · 바닥 10 · 반사 12 · 별 15 · 천개 20 · 그리드 40 — 형제 순서로 지킨다.
+    /// 바닥 반사(`.sr-reflect` · 3회차): 정본 `buildSummonReflection`(ui.js 771~790)은 done 에서 그리드를 **복제**해 이름·배지를 떼고 뒤집어(scaleY −1.22 · 위 변 고정) blur 4px + 세로 마스크로 깐다.
+    /// UGUI 엔 blur 도 소프트 마스크도 없고, 정본 주석대로 «blur 가 약하면 거꾸로 놓인 아이콘 줄로 읽힌다» 라 겹 복제로는 못 옮긴다 — 그래서 <see cref="BakeReflection"/> 이 복제 그리드를 임시 월드 캔버스에 세워
+    /// «1 픽셀 = blur 4px» 해상도의 RT 에 한 번 찍고(다운샘플이 곧 흐림) 상자 흐림·채도·밝기·마스크를 픽셀로 얹은 **한 장**을 뒤집힌 Image 에 건다. done **다음** 프레임에 한다(결정 516 과 같은 까닭).
     /// ⚠ 굽기는 <see cref="Build"/> 가 아니라 **첫 Update 에서** 한다(<see cref="Bake"/>) — 팝업을 연 프레임에 픽셀 루프를 얹으면 그 프레임이 연출 창(`sr_charge_ms + sr_tail_ms` = 390ms)을
     /// 넘겨 결과가 탭보다 먼저 끝난다(런 438·444 `PetUiTests.스킬_소환…` · 결정 516). 그 전까지 Image 는 꺼 둔다(스프라이트 없는 Image 는 흰 네모를 그린다).
     /// </summary>
@@ -17,7 +21,19 @@ namespace Forge.Game.Ui
     {
         static readonly Dictionary<string, Sprite> cache = new Dictionary<string, Sprite>();
 
-        RectTransform canopy, rays;
+        RectTransform canopy, rays, floor;
+        // ---- 바닥 반사(3회차) ----
+        RectTransform grid, reflect;
+        Image reflectImg;
+        Texture2D reflectTex;
+        Sprite reflectSprite;
+        readonly List<float> orbScales = new List<float>();
+        float reflectAt = -1f;
+        int doneFrame = -1;
+        /// <summary>반사 무대(임시 월드 캔버스)를 세우는 자리 — 전장(원점 근처)·PetFaces 무대(0,−500,0)와 겹치지 않게 멀리.</summary>
+        static readonly Vector3 ReflectAway = new Vector3(0f, -3000f, 0f);
+        /// <summary>복제본에서 떼는 것(정본 ui.js 777: 이름·등급·배지 — 거울상 글자는 노이즈). `.sr-ray/.sr-beam/.sr-ghost/.sr-spark` 는 클론에 없다.</summary>
+        static readonly string[] ReflectStrip = { "sr-name", "sr-sub", "sr-qty", "sr-dup", "sr-new" };
         CanvasGroup canopyGroup, starsGroup;
         Image raysImg;
         Sprite raysIdle, raysDone;
@@ -40,6 +56,10 @@ namespace Forge.Game.Ui
         public float StarsAlpha { get { return starsGroup != null ? starsGroup.alpha : 0f; } }
         /// <summary>스프라이트를 다 구웠는가 — Build 직후엔 false · 첫 Update 뒤 true.</summary>
         public bool Baked { get { return baked; } }
+        /// <summary>바닥 반사(`.sr-reflect`) — done 다음 프레임 전엔 null.</summary>
+        public RectTransform Reflect { get { return reflect; } }
+        /// <summary>반사 그림이 찍혔는가(그래픽 장치가 없으면 상자만 서고 false).</summary>
+        public bool ReflectBaked { get { return reflectImg != null && reflectImg.sprite != null; } }
 
         /// <summary>
         /// 무대(`stage`)판의 몸(`sr-body`)에 세 겹을 세운다. <paramref name="gridTop"/>·<paramref name="gridW"/> 는 그리드의 몸 안 자리(위에서 · 폭) · <paramref name="floor"/> 는 이미 선 소환진(그 위에 별·천개를 끼운다).
@@ -48,6 +68,7 @@ namespace Forge.Game.Ui
         {
             SummonFx fx = body.gameObject.AddComponent<SummonFx>();
             fx.t0 = Time.unscaledTime;
+            fx.floor = floor;
             float W = body.rect.width, H = body.rect.height, rem = PetSkillStyle.RemPx;
             var s = SummonFxStyle.Root;
 
@@ -137,6 +158,7 @@ namespace Forge.Game.Ui
             if (done) return;
             done = true;
             doneAt = Time.unscaledTime;
+            doneFrame = Time.frameCount;
             if (raysDone == null) raysDone = BakeRays("sr-rays-done", "rays_done_mask", "rays_done_mask_a");
             if (raysImg != null) raysImg.sprite = raysDone;
         }
@@ -171,6 +193,8 @@ namespace Forge.Game.Ui
         void Update()
         {
             if (!baked) Bake();
+            // 바닥 반사 — 정본 finishSummonResult → buildSummonReflection. done 을 받은 **다음** 프레임에 한 번(연 프레임·탭 프레임을 안 늘린다)
+            if (done && reflect == null && grid != null && Time.frameCount > doneFrame) BakeReflection();
             float t = Time.unscaledTime - t0;
             // 천개 도입 — srcanopy .45s(.05s 뒤) scale(.8)·translateY(-.5rem) → 1
             if (canopyGroup != null)
@@ -200,6 +224,13 @@ namespace Forge.Game.Ui
                 float a = done ? Veil(Time.unscaledTime - doneAt, L("rays_done_breath_s"), 0f, L("rays_done_a_lo"), L("rays_done_a_hi")) : L("rays_a") * ie;
                 raysImg.color = new Color(1f, 1f, 1f, a);
             }
+            // 반사 — srreflect .5s ease-out 로 α 0 → .88
+            if (reflectImg != null && reflectImg.sprite != null)
+            {
+                float k = Mathf.Clamp01((Time.unscaledTime - reflectAt) / (L("reflect_in_ms") / 1000f));
+                float e = 1f - (1f - k) * (1f - k);
+                reflectImg.color = new Color(1f, 1f, 1f, L("reflect_a") * e);
+            }
             // 별 — done 뒤 .6s 로 켜고 각자 호흡(srstar α .9↔1 · scale .97↔1.2 · dur·delay 는 표 수열)
             if (starsGroup != null && done)
             {
@@ -212,6 +243,201 @@ namespace Forge.Game.Ui
                     starGroups[i].alpha = Veil(dt, starDur[i], starDelay[i], L("star_a_lo"), 1f);
                 }
             }
+        }
+
+        // ================= 바닥 반사(3회차) =================
+
+        /// <summary>반사의 원본 — 그리드와 셀별 구체 배율(정본 `--sz` · heroic 확대는 복제본에서 뗀다 · ui.js 776). 셀을 다 세운 뒤 한 번 부른다.</summary>
+        public void SetReflectSource(RectTransform gridRt, IList<float> cellOrbScales)
+        {
+            grid = gridRt;
+            orbScales.Clear();
+            if (cellOrbScales != null) orbScales.AddRange(cellOrbScales);
+        }
+
+        /// <summary>
+        /// `.sr-reflect` 를 세운다(정본 6957~6978 · ui.js 771~790): 몸 폭 · 위 변 = 그리드 아래 − 8px(위로 겹침) · 높이 = 그리드 높이 · 피벗 위 가운데에서 scaleY(−1.22)(정본 transform-origin 55% = 위 변 고정) · z 12(바닥 다음 형제).
+        /// 그림은 <see cref="BakeReflectSprite"/> 한 장 — 그래픽 장치가 없으면 상자만 서고 Image 는 꺼진 채다. 두 번 불러도 한 번만.
+        /// </summary>
+        public void BakeReflection()
+        {
+            if (reflect != null || grid == null) return;
+            RectTransform body = (RectTransform)transform;
+            float cssPx = L("css_px");
+            float gw = grid.rect.width, gh = grid.rect.height;
+            float gridTop = -grid.anchoredPosition.y;   // UiKit.Place: 위에서 잰 자리
+            reflect = UiKit.Box(body, "sr-reflect");
+            reflect.anchorMin = reflect.anchorMax = new Vector2(0f, 1f);
+            reflect.pivot = new Vector2(0.5f, 1f);
+            reflect.sizeDelta = new Vector2(body.rect.width, gh);
+            reflect.anchoredPosition = new Vector2(body.rect.width * 0.5f, -(gridTop + gh - L("reflect_top_px") * cssPx));
+            reflect.localScale = new Vector3(1f, -L("reflect_sy"), 1f);
+            reflect.SetSiblingIndex(floor != null ? floor.GetSiblingIndex() + 1 : 1);
+            reflectImg = reflect.gameObject.AddComponent<Image>();
+            reflectImg.raycastTarget = false;
+            reflectImg.color = new Color(1f, 1f, 1f, 0f);
+            reflectImg.enabled = false;
+            reflectSprite = BakeReflectSprite(gw, gh);
+            if (reflectSprite == null) return;
+            reflectImg.sprite = reflectSprite;
+            reflectImg.enabled = true;
+            reflectAt = Time.unscaledTime;
+        }
+
+        /// <summary>
+        /// 복제 그리드를 임시 월드 캔버스(멀리)에 세워 정사영 카메라로 «1 픽셀 = blur 4px» 해상도 RT 에 찍고, 읽은 픽셀에 상자 흐림(반지름 `reflect_blur_r`)·채도 .9·밝기 1.1·세로 마스크(원본 좌표 · 위 1 → 56% .6 → 96% 0)를 얹는다.
+        /// 뒤집기는 그림이 아니라 <see cref="Reflect"/> 의 배율이 한다(정본도 mask·filter 뒤에 transform). 실패하면 경고 한 줄 · null(반사 없이 간다 — PetFaces 와 같은 태도).
+        /// </summary>
+        Sprite BakeReflectSprite(float gw, float gh)
+        {
+            if (!GallerySheet.GraphicsAvailable || gw < 1f || gh < 1f) return null;
+            float blurPx = Mathf.Max(1f, L("reflect_blur_px") * L("css_px"));   // 캔버스 px
+            int W = Mathf.Clamp(Mathf.RoundToInt(gw / blurPx), 8, 512), H = Mathf.Clamp(Mathf.RoundToInt(gh / blurPx), 4, 512);
+            GameObject stageGo = new GameObject("sr-reflect-stage", typeof(RectTransform), typeof(Canvas));
+            stageGo.layer = gameObject.layer;
+            GameObject camGo = new GameObject("sr-reflect-cam");
+            RenderTexture rt = null, prev = RenderTexture.active;
+            Texture2D tex = null;
+            try
+            {
+                Canvas sc = stageGo.GetComponent<Canvas>();
+                sc.renderMode = RenderMode.WorldSpace;
+                RectTransform srt = (RectTransform)stageGo.transform;
+                srt.position = ReflectAway;
+                srt.pivot = new Vector2(0.5f, 0.5f);
+                srt.sizeDelta = new Vector2(gw, gh);
+                GameObject clone = Instantiate(grid.gameObject, srt, false);
+                clone.name = "sr-grid";
+                RectTransform crt = (RectTransform)clone.transform;
+                UiKit.Fill(crt);
+                NormalizeReflectClone(crt);
+                SetLayerDeep(clone.transform, stageGo.layer);
+                Camera cam = camGo.AddComponent<Camera>();
+                if (Camera.main != null) cam.CopyFrom(Camera.main);
+                cam.enabled = false;
+                cam.rect = new Rect(0f, 0f, 1f, 1f);
+                cam.ResetProjectionMatrix();
+                cam.orthographic = true;
+                cam.orthographicSize = gh * 0.5f;
+                cam.aspect = gw / gh;
+                cam.nearClipPlane = 0.1f;
+                cam.farClipPlane = 100f;
+                cam.useOcclusionCulling = false;
+                cam.cullingMask = 1 << stageGo.layer;
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
+                cam.transform.position = ReflectAway + new Vector3(0f, 0f, -10f);
+                cam.transform.rotation = Quaternion.identity;
+                Canvas.ForceUpdateCanvases();
+                rt = RenderTexture.GetTemporary(W, H, 0, RenderTextureFormat.ARGB32);
+                cam.targetTexture = rt;
+                cam.Render();
+                cam.targetTexture = null;
+                RenderTexture.active = rt;
+                tex = new Texture2D(W, H, TextureFormat.RGBA32, false);
+                tex.name = "sr-reflect";
+                tex.wrapMode = TextureWrapMode.Clamp; tex.filterMode = FilterMode.Bilinear;
+                tex.ReadPixels(new Rect(0f, 0f, W, H), 0, 0);
+                ReflectPixels(tex);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning("[SummonFx] 바닥 반사 굽기 실패 — 반사 없이: " + ex.Message);
+                if (tex != null) Destroy(tex);
+                return null;
+            }
+            finally
+            {
+                RenderTexture.active = prev;
+                if (rt != null) RenderTexture.ReleaseTemporary(rt);
+                stageGo.SetActive(false);
+                Destroy(camGo);
+                Destroy(stageGo);
+            }
+            reflectTex = tex;
+            Sprite sp = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+            sp.name = "sr-reflect";
+            return sp;
+        }
+
+        /// <summary>읽은 RT 픽셀에 상자 흐림(사전곱 평균) · 채도 · 밝기 · 세로 마스크(원본 좌표 · 위 = 0%). 표 조회는 루프 밖(결정 516).</summary>
+        void ReflectPixels(Texture2D tex)
+        {
+            int W = tex.width, H = tex.height;
+            Color32[] src = tex.GetPixels32();
+            var dst = new Color32[W * H];
+            int r = Mathf.Max(0, Mathf.RoundToInt(L("reflect_blur_r")));
+            float sat = L("reflect_saturate"), bri = L("reflect_brightness");
+            float[] ms = SummonFxStyle.Arr("reflect_mask"), ma = SummonFxStyle.Arr("reflect_mask_a");
+            for (int y = 0; y < H; y++)
+            {
+                float fromTop = 1f - (y + 0.5f) / H;
+                float mask = Stops(ms, ma, fromTop);
+                for (int x = 0; x < W; x++)
+                {
+                    float sr = 0f, sg = 0f, sb = 0f, sa = 0f; int n = 0;
+                    for (int dy = -r; dy <= r; dy++)
+                    {
+                        int yy = y + dy; if (yy < 0 || yy >= H) continue;
+                        for (int dx = -r; dx <= r; dx++)
+                        {
+                            int xx = x + dx; if (xx < 0 || xx >= W) continue;
+                            Color32 c = src[yy * W + xx];
+                            float a = c.a / 255f;
+                            sr += c.r / 255f * a; sg += c.g / 255f * a; sb += c.b / 255f * a; sa += a; n++;
+                        }
+                    }
+                    float outA = n > 0 ? sa / n : 0f;
+                    float rr = 0f, gg = 0f, bb = 0f;
+                    if (sa > 1e-5f) { rr = sr / sa; gg = sg / sa; bb = sb / sa; }
+                    float gray = 0.299f * rr + 0.587f * gg + 0.114f * bb;
+                    rr = Mathf.Clamp01(Mathf.Lerp(gray, rr, sat) * bri);
+                    gg = Mathf.Clamp01(Mathf.Lerp(gray, gg, sat) * bri);
+                    bb = Mathf.Clamp01(Mathf.Lerp(gray, bb, sat) * bri);
+                    dst[y * W + x] = new Color(rr, gg, bb, outA * mask);
+                }
+            }
+            tex.SetPixels32(dst);
+            tex.Apply(false, false);   // 읽을 수 있게 둔다(자가 마스크·구체를 본다)
+        }
+
+        /// <summary>정본 ui.js 775~777 + CSS 6977~6978: 셀 전부 on(α 1 · transform none) · heroic 뗌(구체 배율 = --sz 만) · 이름·등급·배지 제거. Destroy 는 프레임 끝이라 **끈다**(이 프레임에 찍는다).</summary>
+        void NormalizeReflectClone(RectTransform gridClone)
+        {
+            for (int i = 0; i < gridClone.childCount; i++)
+            {
+                Transform cell = gridClone.GetChild(i);
+                cell.localScale = Vector3.one;
+                CanvasGroup cg = cell.GetComponent<CanvasGroup>();
+                if (cg != null) cg.alpha = 1f;
+                Transform wrap = cell.Find("sr-orbwrap");
+                if (wrap != null) wrap.localScale = Vector3.one * (i < orbScales.Count ? orbScales[i] : 1f);
+                Transform[] all = cell.GetComponentsInChildren<Transform>(true);
+                for (int k = 0; k < all.Length; k++)
+                    if (Array.IndexOf(ReflectStrip, all[k].name) >= 0) all[k].gameObject.SetActive(false);
+            }
+        }
+
+        static void SetLayerDeep(Transform t, int layer)
+        {
+            t.gameObject.layer = layer;
+            for (int i = 0; i < t.childCount; i++) SetLayerDeep(t.GetChild(i), layer);
+        }
+
+        /// <summary>CSS 그라디언트 스톱(xs 오름차순 · ys 값) — 밖은 끝값.</summary>
+        static float Stops(float[] xs, float[] ys, float x)
+        {
+            if (xs == null || xs.Length == 0) return 0f;
+            if (x <= xs[0]) return ys[0];
+            for (int i = 0; i + 1 < xs.Length; i++)
+                if (x < xs[i + 1]) return Mathf.Lerp(ys[i], ys[i + 1], (x - xs[i]) / Mathf.Max(1e-6f, xs[i + 1] - xs[i]));
+            return ys[ys.Length - 1];
+        }
+
+        void OnDestroy()
+        {
+            if (reflectSprite != null) Destroy(reflectSprite);
+            if (reflectTex != null) Destroy(reflectTex);
         }
 
         // ================= 굽기 =================

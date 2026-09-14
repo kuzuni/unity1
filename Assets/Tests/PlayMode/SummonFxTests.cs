@@ -11,7 +11,9 @@ namespace Forge.Tests.PlayMode
 {
     /// <summary>
     /// T179 — 소환 결과 무대판의 연출 겹 셋(정본 `.sr-rays` z0 · `.sr-stars` z15 · `.sr-canopy` z20)이 서고, 자리·개수가 표(`SummonFxUi.json`)대로이며,
-    /// 별은 done 뒤에만 켜진다. 그림은 `screen_summon-result` 류 PNG 눈 확인. 바닥 반사(.sr-reflect)는 2회차.
+    /// 별은 done 뒤에만 켜진다. 그림은 `screen_summon-result` 류 PNG 눈 확인.
+    /// 3회차: 바닥 반사(`.sr-reflect` z12 · 정본 6957~6978 · ui.js 771~790)가 done **다음** 프레임에 서고 — 몸 폭 · 위 변 = 셀 줄 끝 − 8px · 아래로만 1.22배 · 바닥과 별 사이 —
+    /// 구운 한 장은 구체가 찍혀 있고 원본 좌표 맨 아래 줄은 마스크로 0 · α 는 .5s 뒤 .88.
     /// </summary>
     public class SummonFxTests
     {
@@ -105,6 +107,80 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(1f, fx.StarsAlpha, 0.05f, "done .6s 뒤 별 α 1");
             Capture("screen_t179-summon");   // 촬영 목록에 소환 결과 팝업이 없다(summon-rates 뿐) — T134·T138 처럼 이 자가 한 장 굽는다(눈 확인용)
             Debug.Log("[T179] one 판 · 천개 " + cp.rect.width.ToString("0") + "×" + cp.rect.height.ToString("0") + " · 광선 " + rays.rect.width.ToString("0") + " · 별 " + fx.StarCount);
+            if (SkillSummonResultView.Current != null) SkillSummonResultView.Current.OnTap();
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator 바닥_반사가_done_다음_프레임에_서고_자리_배율_층_마스크가_표대로다()
+        {
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            while (Host.SummonMult("skill") != 1) Host.CycleSummonMult("skill");
+            Host.Tickets = 10000;
+            Host.Sync();
+            yield return null;
+            Sheet.Skills.SummonButton.onClick.Invoke();
+            yield return null;
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+            SummonFx fx = v.Fx;
+            Assert.IsNotNull(fx, "무대판(stage)이면 연출 겹이 선다");
+            RectTransform body = (RectTransform)fx.transform;
+            RectTransform grid = (RectTransform)body.Find("sr-grid");
+            Transform floor = body.Find("sr-floor"), stars = body.Find("sr-stars");
+            Assert.IsNotNull(grid); Assert.IsNotNull(floor); Assert.IsNotNull(stars);
+            // ⓐ done 전엔 없다(정본은 finishSummonResult 에서 만든다) — 러너가 느려 벌써 done 이면 이 단언은 건너뛴다
+            if (!v.Done) { Assert.IsNull(fx.Reflect, "done 전엔 반사가 없다"); v.OnTap(); }
+            float t = 0f;
+            while (!v.Done && t < 5f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done, "탭 뒤 done");
+            // ⓑ done 다음 프레임(들)에 선다 — 탭 프레임 자체는 안 늘린다(결정 516)
+            for (int i = 0; i < 30 && fx.Reflect == null; i++) yield return null;
+            RectTransform rf = fx.Reflect;
+            Assert.IsNotNull(rf, "done 뒤 반사(.sr-reflect)가 선다");
+            Assert.AreEqual("sr-reflect", rf.name);
+            // ⓒ 층 사다리 — 바닥(10) < 반사(12) < 별(15)
+            Assert.Less(floor.GetSiblingIndex(), rf.GetSiblingIndex(), "바닥(10) < 반사(12)");
+            Assert.Less(rf.GetSiblingIndex(), stars.GetSiblingIndex(), "반사(12) < 별(15)");
+            // ⓓ 자리 — 몸 폭(left 0 · right 0) · 복제 그리드 높이 · scaleY(−1.22) · 위 변 = 그리드 아래 − 8px(위로 겹침) · 아래로만 1.22배(정본 transform-origin 55% = 위 변 고정)
+            Assert.AreEqual(body.rect.width, rf.rect.width, 1f, "반사 폭 = 몸 폭");
+            Assert.AreEqual(grid.rect.height, rf.rect.height, 1f, "반사 상자 높이 = 그리드 높이(복제)");
+            Assert.AreEqual(-SummonFxStyle.L("reflect_sy"), rf.localScale.y, 1e-3f, "scaleY(−1.22)");
+            Vector3[] gc = new Vector3[4], rc = new Vector3[4];
+            grid.GetWorldCorners(gc); rf.GetWorldCorners(rc);
+            float scale = UiRoot.Instance.App.lossyScale.y;
+            float gridBottom = Mathf.Min(gc[0].y, gc[1].y), rfTop = Mathf.Max(rc[0].y, rc[1].y), rfBottom = Mathf.Min(rc[0].y, rc[1].y);
+            float topPx = SummonFxStyle.L("reflect_top_px") * SummonFxStyle.L("css_px");
+            Assert.AreEqual(topPx * scale, rfTop - gridBottom, 1.5f * scale + 0.5f, "반사 위 변 = 셀 줄 끝 − 8px(세계 y 로는 그리드 아래보다 위)");
+            Assert.AreEqual(grid.rect.height * SummonFxStyle.L("reflect_sy") * scale, rfTop - rfBottom, 2f * scale + 0.5f, "아래로 1.22배");
+            // ⓔ 그림 — 그래픽 장치가 있으면 한 장이 찍혀 있다: 구체 픽셀 > 0 · 다는 아니다 · 원본 좌표 맨 아래 줄(96~100%)은 마스크로 α 0
+            Image im = rf.GetComponent<Image>();
+            Assert.IsNotNull(im);
+            if (Forge.Game.Gallery.GallerySheet.GraphicsAvailable)
+            {
+                Assert.IsTrue(fx.ReflectBaked, "구운 반사 스프라이트");
+                Texture2D tx = im.sprite.texture;
+                Color32[] px = tx.GetPixels32();
+                int W = tx.width, H = tx.height, lit = 0, litTop = 0;
+                for (int i = 0; i < px.Length; i++) if (px[i].a > 12) { lit++; if (i / W >= H / 2) litTop++; }
+                Assert.Greater(lit, 0, "구체가 찍혔다(복제 그리드 → RT → 픽셀)");
+                Assert.Less(lit, W * H, "전부 칠해진 판이 아니다(배경 α 0)");
+                Assert.Greater(litTop, 0, "구체는 셀 위쪽(원본 좌표 위 절반)에 있다");
+                int bottomLit = 0;
+                for (int x = 0; x < W; x++) if (px[x].a > 2) bottomLit++;
+                Assert.AreEqual(0, bottomLit, "원본 좌표 맨 아래 줄은 마스크(96% → 0)로 투명");
+                Debug.Log("[T179] 반사 판 " + W + "×" + H + " · 구체 픽셀 " + lit + " · 위 절반 " + litTop);
+                // ⓕ srreflect .5s ease-out → α .88
+                t = 0f;
+                while (t < SummonFxStyle.L("reflect_in_ms") / 1000f + 0.25f) { t += Time.unscaledDeltaTime; yield return null; }
+                Assert.AreEqual(SummonFxStyle.L("reflect_a"), im.color.a, 0.05f, "반사 α .88");
+            }
+            else Debug.Log("[T179] 그래픽 장치 없음 — 반사 상자만 확인했다");
+            Capture("screen_t179-reflect");
             if (SkillSummonResultView.Current != null) SkillSummonResultView.Current.OnTap();
             yield return null;
         }
