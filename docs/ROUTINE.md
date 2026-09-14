@@ -1190,6 +1190,7 @@
 - 판정: PlayMode(부팅 중 덮개가 서고 퍼센트가 일곱 단계로 오르고 끝나면 사라진다 · 콘솔 빨강 0) + PNG 눈 확인(§1).
 
 
+- **1회차(2026-09-14 · 워커 F · sess-0227-77341)**: 셈·표·시험을 세웠다 — `Core/Ui/BootLoadingRules.cs`(`BootLoadingSpec` · UnityEngine 0) · `Resources/BootLoadingUi.json`(단계 일곱 · 인라인 CSS 의 px·색·시각 · `bl-swing`·`bl-spark` 키프레임) · EditMode `BootLoadingRulesTests` **8**. 표가 쥔 것: 단계 퍼센트·글자 · 진행률 → 채움 폭 · 망치 각도(주기로 접어 무한 반복) · 불티 셋의 지연과 방향 · 페이드(.4s)와 제거(450ms)의 순서. **2회차가 할 것**: `Ui/BootLoading.cs` 로 화면을 세우고 `Bootstrap` 이 단계를 알리게 배선(둘 다 그때 lock 을 본다).
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.

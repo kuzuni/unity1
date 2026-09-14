@@ -1,0 +1,70 @@
+{
+  "_": "T142 — 부팅 로딩 오버레이. 정본 `web/index.html` 21~55행의 **인라인 CSS**(외부 style.css 가 아니다 — 무거운 스크립트 평가 전에 그려져야 해서 인라인이다)와 `web/js/main.js` 28~110행 boot() 의 단계 표를 그대로 옮겼다. 수치는 코드에 박지 않는다(§1).",
+
+  "stages": [
+    { "pct": 8,   "label": "세이브 불러오는 중…",  "_": "main.js blSet(8, …) · loadGame·Dungeons/TechTree/Mounts/Ascension/Forge/Pass/Chat ensure" },
+    { "pct": 24,  "label": "인터페이스 조립 중…",  "_": "UI.init()" },
+    { "pct": 42,  "label": "전장 짓는 중…",        "_": "Scene3D.init + fitLayout" },
+    { "pct": 58,  "label": "전투 준비 중…",        "_": "Combat 준비" },
+    { "pct": 74,  "label": "용광로 데우는 중…",    "_": "대장간" },
+    { "pct": 96,  "label": "마무리 중…",           "_": "틱·자동저장 등록" },
+    { "pct": 100, "label": "",                     "_": "끝 — 라벨은 안 바꾼다(정본 blSet 은 label 이 비면 글자를 안 건드린다)" }
+  ],
+
+  "layout": {
+    "_": "정본 인라인 CSS 의 px 를 그대로. 앱 폭 기준 비율이 아니라 px 다 — 로딩창은 뷰포트 한가운데 고정 크기다.",
+    "box_gap_px": 14,
+    "forge_w_px": 96, "forge_h_px": 84,
+    "anvil_w_px": 64, "anvil_h_px": 22, "anvil_bottom_px": 8,
+    "anvil_foot_w_px": 30, "anvil_foot_h_px": 10,
+    "hammer_w_px": 44, "hammer_h_px": 44, "hammer_left_f": 0.58, "hammer_bottom_px": 30,
+    "hammer_pivot_x_f": 0.88, "hammer_pivot_y_f": 0.88,
+    "hammer_head_w_px": 22, "hammer_head_h_px": 14, "hammer_head_top_px": 2,
+    "hammer_haft_w_px": 5, "hammer_haft_h_px": 32, "hammer_haft_left_px": 9, "hammer_haft_top_px": 12,
+    "spark_d_px": 5, "spark_left_f": 0.46, "spark_bottom_px": 26,
+    "title_px": 22, "title_track_em": 0.12,
+    "track_w_px": 216, "track_h_px": 8, "track_r_px": 5,
+    "stage_px": 12
+  },
+
+  "times": {
+    "_": "swing·spark 는 CSS animation 주기(무한 반복) · fill 은 transition · done 은 .4s 페이드 뒤 450ms 에 제거(main.js blDone 주석 «인라인 CSS transition .4s 와 맞춤»).",
+    "swing_ms": 1000, "spark_ms": 1000,
+    "spark_delay2_ms": 50, "spark_delay3_ms": 100,
+    "fill_ms": 250, "fade_ms": 400, "remove_ms": 450
+  },
+
+  "colors": {
+    "_": "정본 인라인 CSS 그대로. bg 는 radial-gradient 세 칸(가운데 → 중간 → 바깥).",
+    "bg_in": "#2a3550", "bg_mid": "#171e30", "bg_out": "#0d1220",
+    "anvil_top": "#5d6a80", "anvil_bottom": "#3a4356", "anvil_foot": "#2c3344",
+    "hammer_head_top": "#8b97ab", "hammer_head_bottom": "#55617a",
+    "hammer_haft_top": "#a8794a", "hammer_haft_bottom": "#7a5430",
+    "spark": "#ffd873",
+    "title": "#f2e8d8", "stage": "#9aa7c0",
+    "track": "#ffffff", "track_a": 0.12,
+    "fill_from": "#e8a33d", "fill_to": "#ffd873"
+  },
+
+  "swing": [
+    { "at": 0,   "rot_deg": -52, "ease": [0.55, 0, 0.3, 1] },
+    { "at": 12,  "rot_deg": -52, "ease": [0.55, 0, 0.3, 1] },
+    { "at": 38,  "rot_deg": 6,   "ease": [0.55, 0, 0.3, 1] },
+    { "at": 55,  "rot_deg": 6,   "ease": [0.55, 0, 0.3, 1] },
+    { "at": 100, "rot_deg": -52, "ease": [0.55, 0, 0.3, 1] }
+  ],
+
+  "spark": [
+    { "at": 0,   "opacity": 0, "k": 0, "ease": "ease-out" },
+    { "at": 36,  "opacity": 0, "k": 0, "ease": "ease-out" },
+    { "at": 44,  "opacity": 1, "k": 0.16, "ease": "ease-out" },
+    { "at": 100, "opacity": 0, "k": 1, "ease": "ease-out" }
+  ],
+
+  "spark_move": {
+    "_": "정본은 조각마다 CSS 변수 --dx/--dy 로 방향을 준다(s1 은 기본값). k 는 그 방향으로 간 비율이다.",
+    "dx1_px": 0, "dy1_px": -24,
+    "dx2_px": -16, "dy2_px": -20,
+    "dx3_px": 18, "dy3_px": -14
+  }
+}
