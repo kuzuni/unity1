@@ -487,7 +487,38 @@ def _lock_word(alive, age):
     return 'lock %d분 전 — 90분 규약으로 **죽었다**(뺏을 수 있다)' % age
 
 
-def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None, touched=None, missing=''):
+def ledger_note(runs, missing, look=8):
+    """장부(`screens/runs.jsonl`)로 «이번이 처음인가, 계속되는가» 를 센다(T172 3회차).
+
+    왜: §1 의 갈래가 «재실행 1회 → **되풀이되면** 보고함» 인데, «되풀이» 인지 아닌지는 지금까지
+    사람이 `runs.jsonl` 을 손으로 읽어야 알 수 있었다(워커 J 가 두 회차 연속 그렇게 했다).
+    **사이에 멀쩡한 런이 있으면 간헐(플레이크)** · **연달아 빠지면 서 있는 파손**이다 — 갈래가 다르다.
+    """
+    if not runs:
+        return ''
+    mode = (missing or '').split(',')[0].strip()
+    if not mode:
+        return ''
+    recent = list(runs)[-look:]
+    if len(recent) < 2:
+        return ''
+    hit = [str(d.get('run')) for d in recent if mode in str(d.get('missing_modes', '') or '')]
+    if len(hit) <= 1:
+        return ('\n    · 장부: 최근 런 %d개 중 이 모드가 빠진 것은 **이번 하나뿐**이다 — 간헐(플레이크)로 보고 '
+                '**다음 코드 push 의 런**을 기다린다. 그때 또 빠지면 그것이 §1 의 «되풀이» 다.' % len(recent))
+    # 연달았는가(마지막 두 개가 모두 빠졌는가)
+    straight = len(recent) >= 2 and mode in str(recent[-1].get('missing_modes', '') or '') \
+        and mode in str(recent[-2].get('missing_modes', '') or '')
+    if straight:
+        return ('\n    · 장부: 최근 런 %d개 중 %d번 빠졌고 **연달아 빠지는 중**이다(런 %s) — 간헐이 아니라 '
+                '**서 있는 파손**이다. 컴파일·라이선스 중 어느 쪽인지 잡 로그를 열고, 못 열면 보고함에 올린다.'
+                % (len(recent), len(hit), ' '.join(hit)))
+    return ('\n    · 장부: 최근 런 %d개 중 %d번 빠졌지만 **사이에 멀쩡한 런이 있다**(빠진 런: %s) — '
+            '서 있는 파손이 아니라 **간헐**이다. §1 의 «되풀이» 로 보고 보고함에 올릴지는 '
+            '**연달아 빠질 때** 정한다(지금 주인을 부르면 헛걸음이다).' % (len(recent), len(hit), ' '.join(hit)))
+
+
+def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None, touched=None, missing='', runs=None):
     """빨강마다 임자 한 줄 — **빠진 테스트 파일 ↔ PROGRESS 범위 열** 로 가린다(T125).
 
     갈래 넷:
@@ -521,7 +552,8 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
                     '재실행 1회(권한이 없으면 **다음 코드 push 의 런**을 기다린다), 되풀이되면 «주인 콘솔 에러 보고함» 에 '
                     '«유니티 라이선스 좌석» 한 줄. 그게 아니면 그 모드의 어셈블리 컴파일을 본다'
                     '(스텁에만 있는 멤버는 `dotnet build` 가 못 잡는다).' % missing)
-        return [head]
+        tail = ledger_note(runs, missing)
+        return [head + tail] if tail else [head]
     names = fixtures(fails)
     if not names:
         who = pusher(sha)
@@ -896,12 +928,31 @@ def self_test():
                       lock=both_live, missing='')
     eq('ⓨ 평소에는 임자를 그대로 가린다', any('임자: **T156**' in l for l in lines), True)
 
+    # ⓐⓐ T172 3회차 — 장부로 «처음 ↔ 간헐 ↔ 연달아» 를 가른다
+    def L(*miss):
+        return [{'run': 400 + i, 'missing_modes': m} for i, m in enumerate(miss)]
+    PM = 'playmode-results.xml'
+    one = ledger_note(L('', '', '', PM), PM)
+    eq('ⓐⓐ 처음이면 «이번 하나뿐»', '이번 하나뿐' in one, True)
+    eq('ⓐⓐ 처음이면 다음 런을 기다리라 한다', '다음 코드 push 의 런' in one, True)
+    gap = ledger_note(L(PM, '', '', PM), PM)
+    eq('ⓐⓐ 사이에 멀쩡한 런이 있으면 «간헐»', '간헐' in gap and '사이에 멀쩡한 런이 있다' in gap, True)
+    eq('ⓐⓐ 간헐이면 주인을 아직 안 부른다', '헛걸음' in gap, True)
+    run2 = ledger_note(L('', '', PM, PM), PM)
+    eq('ⓐⓐ 연달아면 «서 있는 파손»', '서 있는 파손' in run2 and '연달아 빠지는 중' in run2, True)
+    eq('ⓐⓐ 빠진 런 번호를 싣는다', '402' in run2 and '403' in run2, True)
+    eq('ⓐⓐ 장부가 없으면 조용하다', ledger_note(None, PM), '')
+    eq('ⓐⓐ 빠진 모드가 없으면 조용하다', ledger_note(L('', ''), ''), '')
+    # 임자 줄에 실제로 얹힌다
+    lines = own_lines([], P_ANY, 'a' * 40, lock=both_live, missing=PM, runs=L('', '', '', PM))
+    eq('ⓐⓐ 임자 줄에 장부가 붙는다', '장부: 최근 런' in lines[0], True)
+
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  · ' + f)
         return 1
-    print('✓ check_unity_green --self-test 102칸 통과')
+    print('✓ check_unity_green --self-test 111칸 통과')
     return 0
 
 
@@ -938,7 +989,7 @@ def main(argv):
         commits = code_commits(gsha, cur) if gsha else code_commits(None, cur, RECENT_CODE)
         # T153 — 임자 줄이 «그의 몫» 으로 막기 전에, 그 작업이 이 창에서 프로덕션을 바꾸긴 했는지 먼저 센다
         own = own_lines(fails, read_progress(), cur, err=error_paths(red_text(ref)),
-                        touched=prod_touch(commits), missing=str(meta.get('missing_modes', '') or ''))
+                        touched=prod_touch(commits), missing=str(meta.get('missing_modes', '') or ''), runs=runs)
         between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None))
     rc, out = judge(meta, anc, n_after, fails, own, between)
     for ln in out:
