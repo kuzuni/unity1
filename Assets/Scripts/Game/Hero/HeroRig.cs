@@ -5,6 +5,7 @@ using UnityEngine.Rendering;
 using Forge.Core.Data;
 using Forge.Core.Hero;
 using Forge.Game.Voxel;
+using Forge.Game.Render;
 
 namespace Forge.Game.Hero
 {
@@ -90,6 +91,7 @@ namespace Forge.Game.Hero
             mr.sharedMaterial = mat;
             mr.shadowCastingMode = shadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
             mr.receiveShadows = shadows;
+            EdgePartId.Tag(mr);   // T330 — 파츠 ID 번호를 생성 시각에 굳힌다(윤곽선 넷째 항 · 팔↔몸통·허리↔다리 경계)
             return mr;
         }
 
@@ -135,6 +137,7 @@ namespace Forge.Game.Hero
             var mr = model.AddComponent<MeshRenderer>();
             mr.sharedMaterial = HeroMeshes.Skin(VoxelMaterials.DefaultRough);
             mr.shadowCastingMode = ShadowCastingMode.On;
+            EdgePartId.Tag(mr);   // T330 — 무기도 파츠(정본 heroG 아래 전부 ID_LAYER)
             Grip = WeaponGrip.Apply(Solver, WtypeId, def != null ? (double?)def.RestX : null, def != null ? def.Shape : null, ridePose, reach);
             var parent = Bones[Grip.ParentBone];
             if (WeaponMount.parent != parent) WeaponMount.SetParent(parent, false);

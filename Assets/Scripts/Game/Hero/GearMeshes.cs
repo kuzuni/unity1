@@ -7,6 +7,7 @@ using Forge.Core.Data;
 using Forge.Core.Gear;
 using Forge.Core.Voxel;
 using Forge.Game.Voxel;
+using Forge.Game.Render;
 
 namespace Forge.Game.Hero
 {
@@ -538,6 +539,7 @@ namespace Forge.Game.Hero
             mr.sharedMaterials = built.Materials;
             mr.shadowCastingMode = ShadowCastingMode.On;
             mr.receiveShadows = true;
+            EdgePartId.Tag(mr);   // T330 — 투구·옷도 파츠(정본 heroG 아래 전부 ID_LAYER)
             return go;
         }
 

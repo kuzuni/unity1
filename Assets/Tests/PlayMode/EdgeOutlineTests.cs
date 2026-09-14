@@ -8,6 +8,7 @@ using Forge.Core.Render;
 using Forge.Game.Gallery;
 using Forge.Game.Render;
 using Forge.Game.Voxel;
+using Forge.Game.Hero;
 using Forge.Core.Data;
 
 namespace Forge.Tests.PlayMode
@@ -412,6 +413,33 @@ namespace Forge.Tests.PlayMode
             }
             finally { if (root != null) Object.DestroyImmediate(root); }
         }
+        // ───────── T330 4회차 — 영웅 렌더러 태그 ─────────
+
+        /// <summary>정본 `renderIdPass` 의 roots 첫째는 `heroG` — 영웅의 상자·데칼·무기 전부가 파츠 번호를 받는다.</summary>
+        [Test]
+        public void 영웅_리그의_상자_데칼_무기_전부가_파츠_ID_를_받는다()
+        {
+            var root = new GameObject("t330-hero");
+            try
+            {
+                HeroRig rig = HeroRig.Create(root.transform, "t330 hero");
+                Assert.Greater(rig.Boxes.Count, 1, "영웅 상자가 하나뿐이면 잴 경계가 없다");
+                var seen = new HashSet<int>();
+                foreach (MeshRenderer mr in rig.Boxes)
+                {
+                    EdgePartIdTag tag = mr.GetComponent<EdgePartIdTag>();
+                    Assert.IsNotNull(tag, "상자 " + mr.name + " 에 태그가 없다");
+                    Assert.IsTrue(seen.Add(tag.Id), "번호가 겹친다: " + tag.Id);
+                }
+                foreach (MeshRenderer mr in rig.Decals) Assert.IsNotNull(mr.GetComponent<EdgePartIdTag>(), "데칼 " + mr.name + " 에 태그가 없다(작은 것은 ID 패스가 그때 뺀다)");
+                Assert.Greater(rig.WeaponMount.childCount, 0, "무기 그룹이 비었다");
+                var weapon = rig.WeaponMount.GetChild(0).GetComponent<MeshRenderer>();
+                Assert.IsNotNull(weapon);
+                Assert.IsNotNull(weapon.GetComponent<EdgePartIdTag>(), "무기에 태그가 없다");
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         // ───────── T330 2회차 — ID 보조 패스 + 컴포짓 넷째 항 ─────────
 
         static EdgePartIdTag TagCube(Transform parent, Vector3 pos, Vector3 scale, Color c)
