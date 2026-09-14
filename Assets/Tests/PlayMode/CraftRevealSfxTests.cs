@@ -45,24 +45,29 @@ namespace Forge.Tests.PlayMode
             Assert.GreaterOrEqual(idx, 0, "굴린 장비의 시대는 표에 있다");
             AudioClip want = AudioBank.Instance.Sfx(new SfxCall("craftReveal", idx));
             Assert.IsNotNull(want, "craftReveal 레시피 클립(T30)");
-            // ⓐ 공개 카드
-            int before = Sfx.PlayedCount;
-            bool doneA = false;
-            ForgeCraftPopup.ShowReveal(F, it, () => doneA = true);
-            yield return null;
-            Assert.AreEqual(before + 1, Sfx.PlayedCount, "공개 카드가 뜨는 순간 소리 하나");
-            Assert.AreSame(want, Sfx.LastPlayed, "그 소리는 craftReveal(시대 " + idx + ")");
-            ForgeCraftPopup.DismissReveal();
-            // ⓑ 배치 카드판 — 첫 장의 시대로
-            var items = new List<ForgeItem> { it, F.Engine.RollItem(), F.Engine.RollItem() };
-            before = Sfx.PlayedCount;
-            bool doneB = false;
-            ForgeCraftPopup.ShowBatch(F, items, () => doneB = true);
-            yield return null;
-            Assert.IsTrue(ForgeCraftPopup.BatchVisible, "메인 화면이라 카드판이 폈다");
-            Assert.AreEqual(before + 1, Sfx.PlayedCount, "카드판을 붙인 직후 소리 하나(정본 1976)");
-            Assert.AreSame(want, Sfx.LastPlayed, "첫 장의 시대 인덱스로");
-            ForgeCraftPopup.DismissBatch();
+            // 배경 전투(Sfx.Hit · 스킬 anvilHit)가 같은 프레임에 울 수 있어 총계·마지막 클립이 아니라 «craftReveal(idx) 클립» 만 센다(§0 런 457 · 결정 523).
+            int reveal = 0;
+            Action<AudioClip> tally = c => { if (ReferenceEquals(c, want)) reveal++; };
+            Sfx.Played += tally;
+            try
+            {
+                // ⓐ 공개 카드
+                bool doneA = false;
+                ForgeCraftPopup.ShowReveal(F, it, () => doneA = true);
+                yield return null;
+                Assert.AreEqual(1, reveal, "공개 카드가 뜨는 순간 craftReveal(시대 " + idx + ") 이 한 번");
+                ForgeCraftPopup.DismissReveal();
+                // ⓑ 배치 카드판 — 첫 장의 시대로
+                var items = new List<ForgeItem> { it, F.Engine.RollItem(), F.Engine.RollItem() };
+                reveal = 0;
+                bool doneB = false;
+                ForgeCraftPopup.ShowBatch(F, items, () => doneB = true);
+                yield return null;
+                Assert.IsTrue(ForgeCraftPopup.BatchVisible, "메인 화면이라 카드판이 폈다");
+                Assert.AreEqual(1, reveal, "카드판을 붙인 직후 craftReveal 이 첫 장의 시대 인덱스로 한 번(정본 1976)");
+                ForgeCraftPopup.DismissBatch();
+            }
+            finally { Sfx.Played -= tally; }
             yield return null;
             Assert.IsFalse(ForgeCraftPopup.BatchVisible);
         }

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Forge.Core.Audio;
 
@@ -15,6 +16,8 @@ namespace Forge.Game.Audio
         public static AudioClip LastPlayed { get; private set; }
         /// <summary>재생에 성공한 횟수(스모크 테스트용).</summary>
         public static int PlayedCount { get; private set; }
+        /// <summary>재생될 때마다 그 클립을 알린다 — 테스트가 «어느 소리가» 울었는지 총계·마지막이 아니라 클립으로 세게(배경 전투의 hit 과 같은 프레임에 겹쳐도 흔들리지 않게 · §0 런 457).</summary>
+        public static event Action<AudioClip> Played;
 
         AudioSource _src;
 
@@ -58,6 +61,8 @@ namespace Forge.Game.Audio
             me._src.PlayOneShot(clip);
             LastPlayed = clip;
             PlayedCount++;
+            Action<AudioClip> h = Played;
+            if (h != null) h(clip);
             return true;
         }
 
