@@ -1139,6 +1139,14 @@
 - 길 둘: ⓐ **정본 자리에 맞는 작은 종류를 카탈로그에 더한다**(예 `Micro` 18~20px) + §1 의 하한 줄에 «그 종류는 예외» 를 적는다 — 정본과 같아지는 길 ⓑ 하한을 지키고 라벨을 오브 밖에 둔다 — 정본과 달라진다. **ⓐ 가 정본이다**(다만 하한은 주인 규칙이라 기록을 남긴다).
 - 판정: `screen_main.png` 5배 확대에서 라벨이 오브 안에 들어오고(폭 ≤ 지름) · `TextSizeGateTests` 가 새 종류를 알고 초록 · `ui_score` 의 `main` 점수가 안 내린다.
 - 범위: `Assets/Forge/catalog.json`(`textKinds` · **T87 lock 뒤**) · `Assets/Scripts/Game/Ui/UiKit.cs`·`PetSkillKit.cs`(그 종류를 쓰는 자리) · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/ROUTINE.md`(§1 하한 줄).
+- **막혀 있다(2026-09-14 03:0x · 워커 I · 선점했다가 규약대로 물러났다)**: T87 은 풀렸지만 그 사이 `catalog.json` 을 **T98·T108·T131·T135** 가, `UiKit.cs`·`SkillBar.cs` 를 **T109** 가 제 범위로 적었다(전부 살아 있는 lock · 전부 앞 번호) — 규약 «두 작업이 같은 파일을 만져야 하면 뒤 번호가 기다린다» 그대로 손을 뗐다. **다음 사람은 그 다섯이 반납됐는지부터 보라.**
+- **그대로 실행할 수 있게 적어 둔 설계(워커 I · 이 회차에 한 번 만들어 게이트 초록까지 본 뒤 되돌린 것이다 — 617/617 통과)**:
+  - ⓐ `catalog.json` `textKinds` 에 `{ "kind": "Micro", "size": 18.2, "min": 18 }` — 18.2 = 정본 `.5rem`(= `rem_h` .018957 × 1920 = 36.4px 의 절반). 넣은 뒤 **`python3 tools/gen_ui_catalog.py`** 로 `UiCatalog.asset` 을 다시 쓴다(안 쓰면 `--check` 가 빨갛다).
+  - ⓑ `UiKit.cs` 14행 `public enum TextKind { Title, Button, Body, Sub, Micro }`.
+  - ⓒ `SkillBar.cs` 160~162행의 `TextKind.Sub` **셋**(`lvH` 의 `Kind(...).size` · `lvW` 의 `TextWidth` · `Stroked`)을 `TextKind.Micro` 로. 링 굵기는 `Stroked` 가 **그 순간의 fontSize** 로 환산하니 따라온다(`KeylineUi.Stroke`).
+  - ⓓ `TextSizeGateTests.카탈로그의_종류_하한은_ROUTINE_규칙_그대로다` 에 «`Micro`.min ≥ 18» 과 «**`Micro`.min < `Sub`.min**» 두 줄 — 예외가 본문·버튼으로 새지 않게 막는 자리다.
+  - ⓔ §1 하한 줄에 예외 한 문장: «**`Micro` 18** — 정본이 판(알약) 없이 그림 위에 얹는 작은 배지(`.skill-btn .sk-lv` .5rem · `.sk-lv` 4045)에만. 본문·버튼·제목·보조 라벨에는 쓰지 않는다.» (주인 규칙을 건드리는 것이라 PROGRESS «워커 결정 기록» 에도 한 줄.)
+  - ⓕ 같은 병인 `PlayerInfoPopup` 출전 줄(T129 가 «잉크가 오브 폭의 131%» 로 남겨 둔 자리)은 정본이 `.6rem` 이라 종류를 `Micro` 로 바꾸고 그 자리 표에서 `.6rem` 을 주면 된다 — 그 파일은 **T131 lock**.
 
 ### T137 ✅ — 두부 막이가 `Assets/Scripts/Core` 를 **통째로 안 본다**: 거기 진짜 두부 둘이 초록으로 지나간다 (검증 · T89·T100·T107 뒤 · T33 6회차가 캤다)
 - 실측(2026-09-14 · 워커 F): `check_text_glyphs.SCAN_DIR` 은 `Assets/Scripts/Game` 하나다. `Assets/Scripts/Core` 를 같은 자로 훑으면 리터럴 **2,388줄**이 나오고, 그 안에 **글꼴에도 아이콘 표에도 없는 글자 둘**이 있다 — `Core/Dungeons/Dungeons.cs:237` 의 «🚪 진행 중이던 던전에서 나와 본대로 복귀했습니다» 와 `Core/Battle/Battle.cs:578` 의 «🔥 난이도 상승! …». 둘 다 **토스트로 화면에 나가는 문구**인데 자는 지금 rc 0 이다.
