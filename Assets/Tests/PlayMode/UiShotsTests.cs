@@ -616,6 +616,10 @@ namespace Forge.Tests.PlayMode
             Texture2D world = null, onBlack = null, onWhite = null, shot = null;
             try
             {
+                // T128 ⓒ — 찍기 전에 **돌고 있는 카드 팝을 끝낸다**. 정지 촬영이 팝 도중(불투명도 0→1 · 배율 .7→1)을 찍으면
+                // 팝업 화면이 반투명·축소로 남아 T28 채점이 «내려간 화면» 으로 읽는다(런 341 실측 · `CardPop.SettleAll` 의 주석이
+                // 이 자리를 가리켜 두었다). 게임 흐름은 안 건드린다 — 촬영 자만 부른다.
+                CardPop.SettleAll();
                 int uiLayer = canvas.gameObject.layer;
                 if (Camera.main != null) cam.CopyFrom(Camera.main);
                 cam.rect = new Rect(0f, 0f, 1f, 1f);
