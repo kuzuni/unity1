@@ -32,8 +32,8 @@ T67(런 안에서 모드 XML 이 빠졌는가)·T81(잡 결과가 스텝에 갇�
   `ForgeUiTests`·`PetUiTests`·`ShopUiTests`·`TextSizeGateTests` 열넷이 빨강) 어느 칸에도 안 걸려 «산 lock 이 하나도 없다 →
   네 일이다» 로 찍힌다. 그래서 «직전 **유니티가 실제로 돈 초록 런** 의 sha ↔ 이번 sha 사이의 **코드 커밋**»(`[skip ci]`·문서 전용
   제외 · 코드 = ci.yml gate 와 같은 `Assets/|Packages/|ProjectSettings/`)을 뽑아 그 제목의 `T<번호>` 중 **산 lock 이 있는 것**을
-  «이 런에 새로 들어온 후보» 로 먼저 말한다. 그 커밋이 고친 테스트 파일이 이번 런에서 빨갛지 않으면(«제 자가 초록») 그 갈래는
-  아니라고 같이 적는다. 직전 초록 sha 는 `screens` 브랜치의 **`runs.jsonl`**(ci.yml 이 유니티 잡이 돈 런마다 한 줄 덧붙인다 ·
+  «이 런에 새로 들어온 후보» 로 먼저 말한다. 그 커밋이 고친 테스트 파일이 이번 런에서 빨간지(«제 자도 빨강» 이면 앞에)·초록인지를 **참고로만** 적는다 —
+  제 자가 초록이라고 후보에서 빼지 않는다(2회차 · 런 341: T135 카드 팝은 제 자가 초록인 채 남의 폭 자 둘을 깼다). 직전 초록 sha 는 `screens` 브랜치의 **`runs.jsonl`**(ci.yml 이 유니티 잡이 돈 런마다 한 줄 덧붙인다 ·
   screens 는 고아 커밋 하나를 force push 하므로 `meta.json` 이력은 없다 — 장부가 그 자리다)에서 읽는다. 장부가 없거나 초록이
   없으면 그렇다고 말하고 이번 sha 에서 거슬러 최근 코드 커밋 몇 개를 참고로만 보인다.
 
@@ -307,32 +307,39 @@ def between_lines(commits, fails_fixtures, green, lock=None, now=None, no_ledger
             return [head + ' — **없다**. 사이가 전부 `[skip ci]`·문서 커밋이라, 이 빨강은 새 코드가 아니라 러너·환경 갈래거나 지난 런부터 있던 것이다.']
         return [head, '    (코드 커밋을 하나도 못 읽었다 — git 이력이 얕거나 sha 가 main 의 조상이 아니다.)']
     rows = []
-    cands = []
+    cands = []        # 산 lock 을 쥔 코드 커밋 전부 — «제 자가 초록» 이라도 뺀다(아래 ⚠)
+    hot = []          # 그중 제 자도 빨간 것 — 먼저 말한다
     for sha, title, files in commits:
         m = re.match(r'^T(\d+)\b', title)
         tid = ('T' + m.group(1)) if m else None
         own_tests = test_files_of(files)
-        green_own = [t for t in own_tests if t not in fails_fixtures]
+        own_red = [t for t in own_tests if t in fails_fixtures]
+        own_green = [t for t in own_tests if t not in fails_fixtures]
         if tid:
             alive, age = lock(tid, now)
             word = _lock_word(alive, age)
         else:
             alive, word = False, '제목이 T 로 안 시작한다'
         note = ''
-        if green_own and not any(t in fails_fixtures for t in own_tests):
-            note = ' · 제 자(%s)가 초록 → **이 갈래는 아니다**' % '·'.join(green_own)
-        elif any(t in fails_fixtures for t in own_tests):
-            note = ' · 제 자(%s)도 빨강' % '·'.join(t for t in own_tests if t in fails_fixtures)
+        if own_red:
+            note = ' · 제 자(%s)도 빨강' % '·'.join(own_red)
+        elif own_green:
+            # ⚠ T148 2회차 — «제 자가 초록 → 이 갈래는 아니다» 로 **빼지 않는다**. 런 341 실측: T135 2회차(카드 팝 배율)는
+            #    제 자 CardPopTests 가 초록인 채 남의 폭 자 둘(T113·T111)을 깼다 — 남의 자를 깨뜨리는 커밋은 원래 제 자로는 안 잡힌다.
+            note = ' · 제 자(%s)는 초록(참고 — 남의 자를 깨뜨린 커밋은 제 자로 안 잡힌다)' % '·'.join(own_green)
         rows.append('    - %s %s(%s)%s — %s' % (sha[:7], tid or '?', word, note, title[:60]))
-        if tid and alive and not (green_own and not any(t in fails_fixtures for t in own_tests)):
+        if tid and alive:
             cands.append(tid)
+            if own_red:
+                hot.append(tid)
     out = [head + ':'] + rows
     if len(cands) == 1:
         out.append('    → 범위 열로 못 가린 빨강은 **먼저 %s 의 것으로 본다**(사이 코드 커밋 중 산 lock 은 그 하나). '
                    '그의 몫이니 건드리지 말고 네 작업을 잡는다 — 임자가 아니라고 판단되면 그때 §0-6 이다.' % cands[0])
     elif len(cands) > 1:
-        out.append('    → 산 lock 을 쥔 후보 %s 를 **나란히** 둔다 — 빨간 자가 무엇을 세우는지(부팅·오버레이·글자 하한…)로 눈으로 가른다.'
-                   % ' · '.join(cands))
+        order = hot + [c for c in cands if c not in hot]
+        out.append('    → 산 lock 을 쥔 후보 %s 를 **나란히** 둔다%s — 빨간 자가 무엇을 세우는지(부팅·오버레이·글자 하한·카드 배율…)로 눈으로 가른다.'
+                   % (' · '.join(order), '(제 자도 빨간 %s 가 앞)' % ' · '.join(hot) if hot else ''))
     else:
         out.append('    → 산 lock 을 쥔 코드 커밋이 없다 — 이 칸으로도 임자가 안 나온다(§0-6 대로 네 일일 수 있다).')
     return out
@@ -602,9 +609,15 @@ def self_test():
     both_live = lambda tid, now=None: (True, 30)
     lines = between_lines(C331, F331, ('da87587' + '0' * 33, 329), lock=both_live)
     eq('ⓡ 초록 런 번호·sha 가 보인다', '#329' in lines[0] and 'da87587' in lines[0], True)
-    eq('ⓡ T142 를 먼저 말한다', any('먼저 T142 의 것으로 본다' in l for l in lines), True)
-    eq('ⓡ T120 은 제 자가 초록이라 아니다', any('T120' in l and 'AudioSmokeTests' in l and '이 갈래는 아니다' in l for l in lines), True)
-    eq('ⓡ 그의 몫이라 말한다', any('그의 몫' in l for l in lines), True)
+    eq('ⓡ 산 lock 둘은 나란히 · 제 자도 빨간 T142 가 앞', any('나란히' in l and l.index('T142') < l.index('T120') for l in lines if '나란히' in l), True)
+    eq('ⓡ T120 은 제 자가 초록이라고만 적는다(빼지 않는다 · 2회차)', any('T120' in l and 'AudioSmokeTests' in l and '참고' in l for l in lines), True)
+    eq('ⓡ «이 갈래는 아니다» 는 이제 없다', any('이 갈래는 아니다' in l for l in lines), False)
+    # ⓦ T148 2회차 — 런 341 그대로: T135(카드 팝 · 제 자 CardPopTests 초록)와 T109(제 자 KeylineSpotsTests 초록)가 산 lock → 둘 다 후보
+    C341 = [('7741af2' + '0' * 33, 'T109 11회차: KNOWN 빈자리', ['Assets/Scripts/Game/Ui/DungeonPopups.cs', 'Assets/Tests/PlayMode/KeylineSpotsTests.cs']),
+            ('c45974f' + '0' * 33, 'T135 2회차 ⓑ: 모달 열림 카드 팝', ['Assets/Scripts/Game/Ui/CardPop.cs', 'Assets/Tests/PlayMode/CardPopTests.cs'])]
+    lines = between_lines(C341, ['CraftComparePopupTests', 'GearDetailTests'], ('816f96f' + '0' * 33, 339), lock=both_live)
+    eq('ⓦ T135 가 후보에 남는다', any('나란히' in l and 'T135' in l and 'T109' in l for l in lines), True)
+    eq('ⓦ 제 자 초록은 참고 표시', any('T135' in l and 'CardPopTests' in l and '참고' in l for l in lines), True)
     # ⓢ 사이에 코드 커밋이 없다
     lines = between_lines([], F331, ('da87587' + '0' * 33, 329), lock=both_live)
     eq('ⓢ 없다고 말한다', any('**없다**' in l for l in lines), True)
@@ -632,7 +645,7 @@ def self_test():
         for f in fails:
             print('  · ' + f)
         return 1
-    print('✓ check_unity_green --self-test 66칸 통과')
+    print('✓ check_unity_green --self-test 69칸 통과')
     return 0
 
 
