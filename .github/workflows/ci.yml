@@ -360,8 +360,14 @@ jobs:
           fi
           n=$(ls ui-screens/*.png 2>/dev/null | wc -l)
           carried=0
+          # T170 — 이어받기는 **PNG 만이 아니다.** 이 잡이 그림을 한 장도 못 냈다는 것은 곧 «PlayMode 가 안 돌았다» 는 뜻이고,
+          #        그때 지난 런의 **글자 자국**(`t121-ramp.txt`·`t147-feature.txt`·`t167-itemfaces.txt`·`perf-*.txt`·`playthrough.txt` …)까지
+          #        같이 날아갔다(런 403 실측: 에디터가 play mode 어셈블리 재적재에서 SIGSEGV → shots 0 · 글자 자국 전멸).
+          #        그 파일들은 «초록인 런의 잡 로그에는 안 실리니 글자로 남긴다» 는 바로 그 목적으로 만들어진 것이라
+          #        **가장 필요한 순간에 사라지던 셈**이다. 이 런이 스스로 쓴 파일은 덮지 않는다(있으면 건너뛴다).
           if [ "$n" = "0" ] && git fetch --depth 1 origin screens 2>/dev/null; then
-            for f in $(git ls-tree --name-only FETCH_HEAD | grep -E '[.]png$' || true); do
+            for f in $(git ls-tree --name-only FETCH_HEAD | grep -E '[.](png|txt)$' || true); do
+              if [ -e "ui-screens/$f" ]; then continue; fi   # 이 런이 쓴 것은 안 덮는다(`set -e` 에 안 걸리게 if 로)
               git show "FETCH_HEAD:$f" > "ui-screens/$f" && carried=$((carried+1)) || true
             done
           fi
