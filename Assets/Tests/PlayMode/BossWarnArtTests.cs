@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using Forge.Core.BattleFx;
 using Forge.Game;
 using Forge.Game.Ui;
 
@@ -105,6 +106,85 @@ namespace Forge.Tests.PlayMode
 
             h.Popups.Hide(PassPopup.Name);
             yield return null;
+        }
+
+        /// <summary>T173 2회차 — §1 «실제 화면을 본다»: 촬영 목록에 보스 경고 프레임이 없다(T176 뒤로는 촬영이 경고가 꺼질 때까지 기다린다).
+        /// 연출 한가운데 프레임(딤 가득 · 점멸 정점)과 팝업이 뜬 프레임(딤만 꺼짐)을 한 장씩 굽는다 — 눈 확인용 · 실패해도 판정을 안 흔든다(T179 길).
+        /// 씬까지 같이 그린다(카메라 마스크를 안 좁힌다) — 검정 위에서는 방사형 감광이 안 읽힌다.</summary>
+        [UnityTest]
+        public IEnumerator T173_눈_확인용_보스_경고_프레임_두_장을_굽는다()
+        {
+            yield return Boot();
+            BattleOverlay o = BattleOverlay.Ensure();
+            MetaHost h = MetaHost.Instance;
+
+            o.BossWarning(2.0);
+            o.Tick((float)(FxRules.BossWarnDur * FxRules.WarnFlashPeak));   // 점멸 정점(u .12) · 딤은 이미 가득(WarnDimIn .08)
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Image dim = Find(o.Layer, "bw-dim");
+            Assert.IsNotNull(dim, "bw-dim");
+            Assert.Greater(dim.color.a, 0.5f, "한가운데 프레임 — 딤이 켜져 있다");
+            Capture("screen_t173-boss-warn");
+
+            PassPopup.Open(h);
+            yield return null;
+            o.Tick(0.05f);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Assert.AreEqual(0f, dim.color.a, 1e-4f, "팝업이 뜬 프레임 — 딤은 꺼진다(정본 363)");
+            Capture("screen_t173-boss-warn-popup");
+
+            h.Popups.Hide(PassPopup.Name);
+            yield return null;
+        }
+
+        /// <summary>UI 와 씬을 한 장 그린다(T179 `SummonFxTests.Capture` 와 같은 길 · 마스크만 안 좁힌다) — 눈 확인용 · 실패해도 판정을 안 흔든다.</summary>
+        static void Capture(string saveAs)
+        {
+            UiRoot root = UiRoot.Instance;
+            Canvas canvas = root.Canvas;
+            RenderMode prevMode = canvas.renderMode;
+            Camera prevCam = canvas.worldCamera;
+            float prevPlane = canvas.planeDistance;
+            RenderTexture prevActive = RenderTexture.active;
+            int w = Mathf.Max(64, Screen.width), hh = Mathf.Max(64, Screen.height);
+            RenderTexture rt = new RenderTexture(w, hh, 24, RenderTextureFormat.ARGB32);
+            GameObject camGo = new GameObject("t173-pixel-cam");
+            Camera cam = camGo.AddComponent<Camera>();
+            try
+            {
+                if (Camera.main != null) cam.CopyFrom(Camera.main);
+                cam.rect = new Rect(0f, 0f, 1f, 1f);
+                cam.targetTexture = rt;
+                cam.ResetProjectionMatrix();
+                cam.cullingMask |= 1 << canvas.gameObject.layer;
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = Color.black;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                canvas.planeDistance = 1f;
+                root.Layout();
+                Canvas.ForceUpdateCanvases();
+                cam.Render();
+                RenderTexture.active = rt;
+                Texture2D tex = new Texture2D(w, hh, TextureFormat.RGB24, false);
+                tex.ReadPixels(new Rect(0f, 0f, w, hh), 0, 0);
+                tex.Apply(false);
+                try { Forge.Game.Gallery.GallerySheet.Save(tex, saveAs); } catch (System.Exception e) { Debug.Log("[T173] PNG 저장 생략: " + e.Message); }
+                Object.Destroy(tex);
+            }
+            finally
+            {
+                RenderTexture.active = prevActive;
+                canvas.renderMode = prevMode;
+                canvas.worldCamera = prevCam;
+                canvas.planeDistance = prevPlane;
+                root.Layout();
+                cam.targetTexture = null;
+                Object.Destroy(camGo);
+                Object.Destroy(rt);
+            }
         }
 
         private static Image Find(Transform root, string name)
