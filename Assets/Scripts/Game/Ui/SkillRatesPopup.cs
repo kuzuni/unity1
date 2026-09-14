@@ -105,6 +105,10 @@ namespace Forge.Game.Ui
                 string r = rar[i];
                 RectTransform bar = PetSkillKit.Framed(c, "rate-bar-" + r, PetSkillStyle.Rarity(Defs, r), PetSkillStyle.Px("rate_bar_r_rem"), PetSkillKit.Line3);
                 UiKit.Place(bar, padX, y, inner, barH);
+                // T178 4회차 — 정본 8577 `.rate-bar { background-image: … }` 등급색 면 위 겹 둘: 에나멜 하이라이트(28% 하드 스톱) + 위 1px 림. 둥근 면이라 Mask 로(3회차 길).
+                Image rateFace = bar.Find("face").GetComponent<Image>();
+                SurfaceArt.FillMasked(rateFace, "rate-enamel", "rate_bar_enamel", inner - PetSkillKit.Line3 * 2f, barH - PetSkillKit.Line3 * 2f);
+                SurfaceArt.FillMasked(rateFace, "rate-rim", "rate_bar_rim", inner - PetSkillKit.Line3 * 2f, barH - PetSkillKit.Line3 * 2f);
                 string name = Defs.RarityKr.Get(r, r);
                 TextMeshProUGUI nt = PetSkillKit.Text(bar, "rate-name", TextKind.Sub, name, PetSkillStyle.C("ink"), TextAlignmentOptions.Left);
                 float nw = PetSkillKit.TextWidth(TextKind.Sub, name);

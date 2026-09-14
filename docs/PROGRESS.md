@@ -4974,6 +4974,17 @@
 - **고침(빨강 한 줄만)**: 프레임 수가 아니라 **경과 시각**으로 가른다 — `!CardPop.Spec.Done(pop.ElapsedMs)` 일 때만 «도는 중» 을 단언한다. 형제 시험(T165 1회차가 «벽시계가 실제로 250ms» 로 고친 그것)이 이미 쓰는 길과 같다. «정말 튀는가» 는 그 형제 시험이 표와 대조해 지키고, 이 시험의 몫(`SettleAll` 이 지금 끝내고 러너·CanvasGroup 을 걷는다)은 그대로 다 남았다.
 - **lock 은 안 잡았다**: 결정 295 의 결 그대로 «임자 없는 빨강 한 줄» 만 고치고 그 절을 가져오지 않았다.
 
+### T178 4회차 기록 (2026-09-14 20:1x~20:3x · 워커 R · sess-2015-28206 · lock 유지 — CI 자 + PNG 를 본 뒤 반납) — 산 lock 없는 자리 둘 + 표에 CSS px 정지점
+
+- **고른 자리**: `--list` 125 중 살아 있는 lock 이 안 쥔 파일의 것 — `#tabbar`(8317 · `TabBar.cs`) · `.rate-bar`(8577 · `SkillRatesPopup.cs`). 나머지 후보(`.pet-tile .tile-face` PetPanel = T333 · `.shop-*`·`.league-row` = T333 · `.equip-cell.egg-cell` = T342 · `.fi/.af-age-bar` = T339 · `.qst-row`·`#topbar`·`.btn.btn` = T331/T333)는 그 lock 뒤. 활성 탭 방사형 둘(8325 · RR)은 `SurfaceArt` 가 선형만 굽어 **다음 회차**(방사형 굽기 한 자리 — T173 `BattleOverlay.Radial` 의 farthest-corner 식을 옮기면 된다).
+- **표(`SurfaceUi.json`) 넷 + 뿌리 `css_px`**: `tabbar_rim`(0deg · `.12 0 1px → 0 1px` · **`unit: "px"`**) · `tabbar_shade`(180deg · .16 → .03@30% → 검 .16@64% → 검 .38) · `rate_bar_rim`(180deg · `.62 0 1px → 0 1px` · px) · `rate_bar_enamel`(180deg · .40 → .10@27% → 0@**28%** 하드 스톱 → 0@66% → 검 .05@67% → 검 .30). 정본의 `0 1px` 림은 %가 아니라 픽셀이라 표에 단위를 뒀다.
+- **`SurfaceArt`**: `PxOffsets(key)` · `CssPx` · `Bake(key, aspect, lineLenCanvasPx)` — px 겹은 정지점을 `css_px / 선 길이` 로 나눠 0~1 로(캐시 키에 길이) · `Fill` 이 자리의 선 길이(|W·sin각| + |H·cos각|)를 넘긴다 · 길이를 모르면(0) 굽는 판의 길이로(림이 굵어질 뿐 안 사라진다). % 겹은 그대로.
+- **배선**: `TabBar.Build` — 바탕(`bg`) 다음·테(`line`) 앞에 `tabbar-grad` → `tabbar-rim`(정본 border-top 이 background 위에 그려지는 순서) · `SkillRatesPopup` — 등급색 `Framed` 의 `face` 위에 `FillMasked` 로 `rate-enamel` → `rate-rim`(3회차 길 · 모서리 밖으로 안 샌다).
+- **자**: `check_surface_gradients` TABLE +2(자리 초록 **12 → 16** · 미정 125 → 123 · 문제 0) · PlayMode `SurfaceArtTests` +2 — ⓐ 표(각도 0/180/180/180 · px 플래그 · 밴드 정지점 넷 · 에나멜 27%=.10 · 30%=0 · 66%=0 · 100%=검 .30) + px 림을 선 길이 100 에 구우면 맨 아래 줄만 밝고(0deg 의 시작) 두께 ≤ ⌈css_px/100 × 96⌉+1 줄 ⓑ 씬 — 탭바 밴드에서 `bg < tabbar-grad < tabbar-rim < line` 순·꽉 채움·클릭 안 먹음·위 줄이 아래 줄보다 밝음 · 소환 시트 [확률] 팝업의 `rate-bar-<등급>` face 에 Mask + `rate-enamel` → `rate-rim` · 림은 맨 위 줄만 α > 100.
+- **게이트**: `tools/gate.sh` 막는 자 전부 rc 0(`dotnet build` 0 오류 — 첫 판은 `px` 지역 변수 이름이 굽기 루프의 `Color32[] px` 와 겹쳐 CS0128 · `pxUnit` 으로) · `dotnet test` 652/652. `check_unity_green` 은 런 492(asmdef 참조 구멍 · T343·f6fb87a 가 고쳤다)라 보고만.
+- **판정(다음 유니티 런)**: `SurfaceArtTests` 7/7 + `screen_main.png` 하단 탭바가 위 밝고 아래 어두운 밴드에 아래 가장자리 실선인지 · `screen_summon-rates.png` 등급 막대 위쪽 ⅓ 이 유약 광택(28% 에서 끊김)인지 → 그때 반납.
+- **주인이 확인할 것**: 탭바가 «금속 밴드» 로 읽히는가(정본 8317 주석 «위 림라이트 · 밴드 안쪽으로 파인 그늘» 중 그늘은 box-shadow 라 T331 몫) · 확률 막대가 에나멜처럼 보이는가.
+
 ### T178 3회차 기록 (2026-09-14 18:5x · 워커 C · sess-1836-24089) — 둥근 면 위의 겹 셋 · **판정 초록 · lock 반납**
 - **무엇**: `SurfaceArt.FillMasked(Image face, name, key, w, h)` — 면에 `Mask` 를 걸고(`showMaskGraphic`) 2회차 `Fill` 을 얹는다(결정 530). 정본 값은 `SurfaceUi.json` 세 키(`shop_banner` · `lgr_collect_pill` · `pinfo_preview`)에 각도·정지점 그대로.
 - **닫은 자리 셋**: ⓐ `.shop-banner`(style.css 2899 · 180deg #ffb300→#e89400) — `ShopSheet.Banner` 의 face 위 `shop-banner-grad` ⓑ `.league-collect-pill`(2522 · 180deg #e3e3e3→#c2c2c2) — 리그 보상 카드 «수집까지:» 알약 face 위 `collect-grad` ⓒ `.pinfo-preview`(3179 · 180deg #9d8256 55%, #6f5334 55%) — 폴백 미리보기의 두 판(top/bottom)을 걷고 `ground` 면 위 `preview-grad` 한 장(정지점 둘이 같은 55% → `Sample` 이 CSS 처럼 날카로운 경계를 낸다).

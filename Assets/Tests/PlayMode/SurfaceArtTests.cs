@@ -138,6 +138,100 @@ namespace Forge.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator 탭바와_확률_막대_표가_정본_각도_정지점_px_림을_그대로_쥔다()
+        {
+            yield return Boot();
+            // T178 4회차 — 정본 8317 #tabbar(0deg 아래 1px 림 + 180deg 밴드) · 8577 .rate-bar(180deg 위 1px 림 + 에나멜 · 28% 하드 스톱)
+            Assert.AreEqual(0f, SurfaceArt.Angle("tabbar_rim"), 1e-4f, "정본 8319 `linear-gradient(**0deg**, …)` — 아래에서 위로");
+            Assert.AreEqual(180f, SurfaceArt.Angle("tabbar_shade"), 1e-4f);
+            Assert.AreEqual(180f, SurfaceArt.Angle("rate_bar_rim"), 1e-4f);
+            Assert.AreEqual(180f, SurfaceArt.Angle("rate_bar_enamel"), 1e-4f);
+            Assert.IsTrue(SurfaceArt.PxOffsets("tabbar_rim") && SurfaceArt.PxOffsets("rate_bar_rim"), "림 둘은 정지점이 CSS px(`0 1px`)");
+            Assert.IsFalse(SurfaceArt.PxOffsets("tabbar_shade") || SurfaceArt.PxOffsets("rate_bar_enamel"), "나머지는 %");
+
+            Color[] col; float[] off;
+            SurfaceArt.Stops("tabbar_shade", out col, out off);
+            Assert.AreEqual(4, col.Length, "정본 8320~8321 정지점 넷");
+            Assert.AreEqual(0.16f, col[0].a, 1e-3f); Assert.AreEqual(1f, col[0].r, 1e-3f, "위는 흰 .16");
+            Assert.AreEqual(0.30f, off[1], 1e-3f); Assert.AreEqual(0.03f, col[1].a, 1e-3f);
+            Assert.AreEqual(0.64f, off[2], 1e-3f); Assert.AreEqual(0f, col[2].r, 1e-3f, "64% 부터 검정");
+            Assert.AreEqual(0.38f, col[3].a, 1e-3f, "아래는 검 .38");
+
+            SurfaceArt.Stops("rate_bar_enamel", out col, out off);
+            Assert.AreEqual(6, col.Length, "정본 8580~8583 정지점 여섯");
+            Assert.AreEqual(0.10f, SurfaceArt.Sample(col, off, 0.27f).a, 1e-3f, "27% 에서 .10");
+            Assert.AreEqual(0f, SurfaceArt.Sample(col, off, 0.30f).a, 1e-4f, "28% 하드 스톱 뒤는 0 — 정본 주석 «경계는 끊김이 만든다»");
+            Assert.AreEqual(0f, SurfaceArt.Sample(col, off, 0.66f).a, 1e-4f, "66% 까지 평지");
+            Color bottom = SurfaceArt.Sample(col, off, 1f);
+            Assert.AreEqual(0.30f, bottom.a, 1e-3f); Assert.AreEqual(0f, bottom.r, 1e-3f, "아래는 검 .30");
+
+            // px 림 — 선 길이 100 캔버스 px 자리에 구우면 1 CSS px(=css_px 캔버스 px)만 밝다: 0deg 는 아래가 시작이라 맨 아래 줄 α ≈ .12 · 가운데 줄 0
+            Sprite rim = SurfaceArt.Bake("tabbar_rim", 4f, 100f);
+            Texture2D tx = rim.texture;
+            Color32[] px = tx.GetPixels32();
+            int W = tx.width, H = tx.height;
+            Assert.Greater(px[W / 2].a, 20, "맨 아래 줄(0deg 의 시작)에 림 .12 (≈31/255)");
+            Assert.AreEqual(0, px[(H / 2) * W + W / 2].a, "가운데 줄은 투명");
+            Assert.AreEqual(0, px[(H - 1) * W + W / 2].a, "맨 위 줄은 투명");
+            float k = SurfaceArt.CssPx / 100f;
+            int litRows = 0; for (int y = 0; y < H; y++) if (px[y * W + W / 2].a > 10) litRows++;
+            Assert.LessOrEqual(litRows, Mathf.CeilToInt(k * H) + 1, "림 두께 = 1 CSS px 를 선 길이로 나눈 몫(판 96줄 중 " + (k * H).ToString("0.0") + "줄)");
+            Assert.GreaterOrEqual(litRows, 1);
+        }
+
+        [UnityTest]
+        public IEnumerator 탭바_밴드와_확률_막대에_겹이_선다()
+        {
+            yield return Boot();
+            // ⓐ 탭바 — 밴드(tabbar)의 자식 · bg 다음 · 테(line)·버튼 앞 · 꽉 채움 · 클릭 안 먹음
+            Transform band = UiRoot.Instance.TabBand;
+            Assert.IsNotNull(band);
+            Transform grad = band.Find("tabbar-grad"), rim = band.Find("tabbar-rim"), bg = band.Find("bg"), line = band.Find("line");
+            Assert.IsNotNull(grad, "탭바 밴드 겹(tabbar-grad)"); Assert.IsNotNull(rim, "탭바 아래 림(tabbar-rim)");
+            Assert.Less(bg.GetSiblingIndex(), grad.GetSiblingIndex(), "바탕 위");
+            Assert.Less(grad.GetSiblingIndex(), rim.GetSiblingIndex(), "밴드 → 림 순");
+            Assert.Less(rim.GetSiblingIndex(), line.GetSiblingIndex(), "테(border-top) 아래");
+            UnityEngine.UI.Image gi = grad.GetComponent<UnityEngine.UI.Image>();
+            Assert.IsNotNull(gi.sprite, "구운 그림"); Assert.IsFalse(gi.raycastTarget, "클릭 안 먹음");
+            Assert.AreEqual(Vector2.zero, gi.rectTransform.offsetMin); Assert.AreEqual(Vector2.zero, gi.rectTransform.offsetMax);
+            // 구운 밴드: 위 줄이 아래 줄보다 밝다(흰 .16 ↔ 검 .38)
+            Color32[] px = gi.sprite.texture.GetPixels32(); int W = gi.sprite.texture.width, H = gi.sprite.texture.height;
+            Color32 top = px[(H - 1) * W + W / 2], bot = px[W / 2];
+            Assert.Greater(top.r, bot.r, "위는 흰 기 · 아래는 검");
+            Assert.Greater(bot.a, top.a, "아래가 더 진하다(.38 > .16)");
+
+            // ⓑ 확률 막대 — 소환 시트의 [확률] 팝업을 열어 rate-bar-<등급> 의 둥근 면(face) 위에 Mask 로 겹 둘
+            float t = 0f;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(PetSkillHost.Ready, "소환 호스트가 20초 안에 안 섰다");
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            SkillPetSheet.Instance.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            SkillPetSheet.Instance.Skills.RatesButton.onClick.Invoke();
+            yield return null;
+            Assert.IsTrue(SkillPetSheet.Instance.Modal.IsOpen(SkillRatesPopup.ModalName), "확률 팝업");
+            Transform enamel = FindDeep(UiRoot.Instance.App, "rate-enamel");
+            Assert.IsNotNull(enamel, "확률 막대 에나멜 겹(rate-enamel)");
+            Assert.AreEqual("face", enamel.parent.name, "둥근 면(face)의 자식");
+            UnityEngine.UI.Mask mask = enamel.parent.GetComponent<UnityEngine.UI.Mask>();
+            Assert.IsNotNull(mask, "면에 Mask"); Assert.IsTrue(mask.showMaskGraphic, "등급색 면은 그대로 보인다");
+            Transform rrim = enamel.parent.Find("rate-rim");
+            Assert.IsNotNull(rrim, "위 1px 림(rate-rim)");
+            Assert.Less(enamel.GetSiblingIndex(), rrim.GetSiblingIndex(), "에나멜 → 림 순");
+            UnityEngine.UI.Image ei = enamel.GetComponent<UnityEngine.UI.Image>();
+            Assert.IsNotNull(ei.sprite); Assert.IsFalse(ei.raycastTarget);
+            // 림은 위 줄만: 180deg 는 위가 시작 → 맨 위 줄 α > 0 · 가운데 0
+            UnityEngine.UI.Image ri = rrim.GetComponent<UnityEngine.UI.Image>();
+            Color32[] rp = ri.sprite.texture.GetPixels32(); int rw = ri.sprite.texture.width, rh = ri.sprite.texture.height;
+            Assert.Greater(rp[(rh - 1) * rw + rw / 2].a, 100, "맨 위 줄 림 .62");
+            Assert.AreEqual(0, rp[(rh / 2) * rw + rw / 2].a, "가운데는 투명");
+            Debug.Log("[T178] 탭바 겹 " + W + "×" + H + " · 확률 막대 림 " + rw + "×" + rh);
+            SkillPetSheet.Instance.Modal.CloseAll();
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator 상점_배너는_둥근_면_위에_마스크로_겹을_얹는다()
         {
             yield return Boot();

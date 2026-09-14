@@ -45,7 +45,17 @@ namespace Forge.Game.Ui
             return (float)J.Num(v);
         }
 
-        /// <summary>그 겹의 정지점 — 색과 자리(0~1)를 한 쌍으로.</summary>
+        /// <summary>그 겹의 정지점이 CSS px 인가(`unit: "px"` · 정본 `0 1px` 림) — 그러면 <see cref="Bake(string, float, float)"/> 가 자리의 선 길이로 나눈다. T178 4회차.</summary>
+        public static bool PxOffsets(string key)
+        {
+            JsonObject one = J.Obj(Table()[key]);
+            return one != null && J.Str(one["unit"]) == "px";
+        }
+
+        /// <summary>CSS px 하나 = 캔버스 px 몇 개(표 뿌리 `css_px`).</summary>
+        public static float CssPx { get { return (float)J.Num(Table()["css_px"], 2.164); } }
+
+        /// <summary>그 겹의 정지점 — 색과 자리(0~1 · `unit: "px"` 인 겹은 CSS px)를 한 쌍으로.</summary>
         public static void Stops(string key, out Color[] colors, out float[] offsets)
         {
             JsonObject one = J.Obj(Table()[key]);
@@ -79,12 +89,19 @@ namespace Forge.Game.Ui
             return col[col.Length - 1];
         }
 
-        /// <summary>그 겹 한 장을 굽는다(같은 키·같은 비율은 한 번만).</summary>
-        public static Sprite Bake(string key, float aspect)
+        /// <summary>그 겹 한 장을 굽는다(같은 키·같은 비율은 한 번만). `unit: "px"` 인 겹은 <see cref="Bake(string, float, float)"/> 로 선 길이를 준다.</summary>
+        public static Sprite Bake(string key, float aspect) { return Bake(key, aspect, 0f); }
+
+        /// <summary>
+        /// 그 겹 한 장을 굽는다. <paramref name="lineLenCanvasPx"/> = 그 자리의 그라디언트 선 길이(캔버스 px · |W·sin각| + |H·cos각|) —
+        /// 정지점이 CSS px 인 겹(`0 1px` 림)은 이것으로 나눠 0~1 로 바꾼다(T178 4회차). % 겹은 무시한다.
+        /// </summary>
+        public static Sprite Bake(string key, float aspect, float lineLenCanvasPx)
         {
             if (aspect <= 0f || float.IsNaN(aspect)) aspect = 1f;
             if (aspect > 8f) aspect = 8f;                      // 아주 납작한 자리도 굽는 비용을 묶는다
-            string name = key + "-" + aspect.ToString("0.00");
+            bool pxUnit = PxOffsets(key);
+            string name = key + "-" + aspect.ToString("0.00") + (pxUnit ? "-L" + Mathf.RoundToInt(lineLenCanvasPx) : "");
             Sprite hit;
             if (cache.TryGetValue(name, out hit) && hit != null) return hit;
 
@@ -94,6 +111,13 @@ namespace Forge.Game.Ui
             Stops(key, out col, out pos);
             float rad = Angle(key) * Mathf.Deg2Rad;
             float dx = Mathf.Sin(rad), dy = -Mathf.Cos(rad);   // CSS: 0deg 는 위로 · y 는 아래가 +
+            if (pxUnit)
+            {
+                // CSS px → 선 길이의 분수. 자리 길이를 모르면(0) 굽는 판의 길이를 쓴다(림이 굵게 나오지만 안 사라진다).
+                float realLen = lineLenCanvasPx > 0f ? lineLenCanvasPx : Mathf.Abs(w * dx) + Mathf.Abs(h * dy);
+                float k = CssPx / Mathf.Max(1f, realLen);
+                for (int i = 0; i < pos.Length; i++) pos[i] = Mathf.Clamp01(pos[i] * k);
+            }
             float len = Mathf.Abs(w * dx) + Mathf.Abs(h * dy);
             if (len <= 0f) len = 1f;
 
@@ -133,7 +157,8 @@ namespace Forge.Game.Ui
             Image img = rt.gameObject.AddComponent<Image>();
             img.raycastTarget = false;
             img.type = Image.Type.Simple;
-            img.sprite = Bake(key, h > 0f ? w / h : 1f);
+            float rad = Angle(key) * Mathf.Deg2Rad;
+            img.sprite = Bake(key, h > 0f ? w / h : 1f, Mathf.Abs(w * Mathf.Sin(rad)) + Mathf.Abs(h * Mathf.Cos(rad)));
             img.color = Color.white;
             return img;
         }

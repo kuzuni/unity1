@@ -57,9 +57,12 @@ namespace Forge.Game.Ui
             UiCatalog cat = UiCatalog.Instance;
             float line = UiKit.L("line_px");
             UiKit.Panel(band, "bg", "tabbar_bg");
+            float bandH = (1f - UiKit.L("tabbar_top")) * UiKit.RefH;
+            // T178 4회차 — 정본 8317 `#tabbar { background-image: … }` 겹 둘: 위 밝고 아래 어두운 밴드(180deg) + 아래 가장자리 1px 림(0deg). 테(line)·버튼 아래.
+            SurfaceArt.Fill(band, "tabbar-grad", "tabbar_shade", UiKit.RefW, bandH);
+            SurfaceArt.Fill(band, "tabbar-rim", "tabbar_rim", UiKit.RefW, bandH);
             UiKit.Line(band, "line", "topbar_line", line, true);
 
-            float bandH = (1f - UiKit.L("tabbar_top")) * UiKit.RefH;
             int n = cat.Tabs.Count;
             float bw = UiKit.RefW / n;
             float icon = UiKit.H("tab_icon");

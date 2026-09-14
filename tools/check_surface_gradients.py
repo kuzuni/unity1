@@ -57,6 +57,9 @@ TABLE = {
     '.shop-banner': ['Ui/ShopSheet.cs#shop-banner-grad'],
     '.league-collect-pill': ['Ui/LeagueSheet.cs#collect-grad'],
     '.pinfo-preview': ['Ui/PlayerInfoPopup.cs#preview-grad'],
+    # T178 4회차 — 하단 탭바 밴드(겹 둘 · 아래 1px 림은 표의 `unit: "px"`) · 스킬 확률 막대(에나멜 하이라이트 + 위 1px 림 · 둥근 면이라 FillMasked).
+    '#tabbar': ['Ui/TabBar.cs#tabbar-grad', 'Ui/TabBar.cs#tabbar-rim'],
+    '.rate-bar': ['Ui/SkillRatesPopup.cs#rate-enamel', 'Ui/SkillRatesPopup.cs#rate-rim'],
 }
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ────────────────────────────────
