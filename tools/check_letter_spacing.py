@@ -56,14 +56,6 @@ TABLE = {
 # ── 임자가 정해진 빈자리(자리 → 이유) — T168 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
     'Ui/ForgeUi.cs$equip_cell_lv_ls_em': 'T168 ⓑ — .equip-cell .cell-lv .05em · ForgeUi.cs 는 T156 lock 뒤',
-    'Ui/ChatScreen.cs$chat_placeholder_ls_em': 'T168 ⓑ — 입력칸 안내 글자 -.06em · ChatScreen.cs 는 T132 lock 뒤',
-    'Ui/ForgeInfoPopup.cs$substat_row_ls_em': 'T168 ⓑ — .substat-row -.01em',
-    'Ui/DungeonClearPopup.cs$dgclear_title_ls_em': 'T168 ⓑ — .dgclear-title .06em',
-    'Ui/SkillSummonResult.cs$sr_title_ls_em': 'T168 ⓑ — .sr-title .07em',
-    'Ui/SkillSummonResult.cs$sr_sub_ls_em': 'T168 ⓑ — .sr-sub .02em',
-    'Ui/SkillSummonResult.cs$sr_new_ls_em': 'T168 ⓑ — .sr-new .04em',
-    'Ui/SkillSummonResult.cs$sr_again_ls_em': 'T168 ⓑ — .sr-again .04em',
-    'Ui/SkillSummonResult.cs$sr_ok_ls_em': 'T168 ⓑ — .sr-ok .06em',
 }
 
 # ── 코드에 박힌 자간(§1 «수치를 코드에 박지 않는다») — 자리 → 임자 ──────────────────────────

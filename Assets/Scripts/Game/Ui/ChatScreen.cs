@@ -77,6 +77,9 @@ namespace Forge.Game.Ui
             viewport.gameObject.AddComponent<RectMask2D>();
             TextMeshProUGUI txt = UiKit.Text(viewport, "text", TextKind.Sub, string.Empty, "pp_ink", TextAlignmentOptions.Left);
             TextMeshProUGUI ph = UiKit.Text(viewport, "placeholder", TextKind.Sub, "메시지 보내기...", "pp_muted", TextAlignmentOptions.Left);
+            // T168 3회차 — 정본 style.css 3460 `.chat-input-bar input::placeholder { letter-spacing: -.06em }`(음수 · 안내 글자만 좁힌다).
+            // 정본 3459 주석: «굵기를 되살리고 폭은 letter-spacing 으로 원본값에 맞춘다(두 지표를 동시에 통과시키는 유일한 조합)».
+            LetterSpacing.Apply(ph, "chat_placeholder_ls_em");
             input = ibox.gameObject.AddComponent<TMP_InputField>();
             input.textViewport = viewport;
             input.textComponent = txt;

@@ -310,6 +310,7 @@ namespace Forge.Game.Ui
                 SubstatDef s = d.Substats[i];
                 // T146 — 정본 3708 `.substat-row { font-weight: 700 }` + 3731 `#forge-item-modal .idet-subs .substat-row { color: #3a3a3a }`
                 TextMeshProUGUI row = PopupKit.Label(subs, "substat-" + s.Key, TextKind.Sub, ForgeUi.SubRangeText(d, s.Key, s.Max) + " " + s.Label, "idet_row_ink", TextAlignmentOptions.Left, false, true);
+                LetterSpacing.Apply(row, "substat_row_ls_em");   // T168 3회차 — 정본 3729 `#forge-item-modal .idet-subs .substat-row { letter-spacing: -.01em }`(음수 · 이 모달에서만 좁다)
             }
             // ✕ 는 화면당 하나다(T57): 이 팝업은 목록 팝업 **위에** 서므로 제 ✕ 를 또 달면 둘이 겹쳐 보인다
             // (원작 shot-042931 에는 밝은 ✕ 가 0개 · 딤 아래 목록의 ✕ 하나뿐이다 · 결정 기록 참조).

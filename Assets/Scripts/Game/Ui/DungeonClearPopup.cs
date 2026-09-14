@@ -53,6 +53,7 @@ namespace Forge.Game.Ui
             float y = pad;
             Title = "클리어!";
             TextMeshProUGUI t = DungeonPopups.Bold(gold, "title", TextKind.Title, Title, "dgclear_title");
+            LetterSpacing.Apply(t, "dgclear_title_ls_em");   // T168 3회차 — 정본 style.css 5375 `.dgclear-title { letter-spacing: .06em }`
             UiKit.Place(t.rectTransform, 0f, y, cw, titleH);
             y += titleH + gap;
 

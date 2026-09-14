@@ -43,6 +43,24 @@ namespace Forge.Tests.PlayMode
             Assert.Throws<System.Collections.Generic.KeyNotFoundException>(() => LetterSpacing.Em("없는_키_ls_em"), "표에 없는 키는 조용히 0 이 아니라 던진다");
         }
 
+        /// <summary>3회차에 붙인 자리들의 값이 정본 그대로인가(부호까지 — 음수는 «좁힌다» 는 뜻이다).</summary>
+        [UnityTest]
+        public IEnumerator 표가_정본_자간을_부호까지_그대로_쥔다()
+        {
+            yield return Boot();
+
+            Assert.AreEqual(0.07f, LetterSpacing.Em("sr_title_ls_em"), 1e-5f, "style.css 6207 .sr-title");
+            Assert.AreEqual(0.02f, LetterSpacing.Em("sr_sub_ls_em"), 1e-5f, "7059 .sr-sub");
+            Assert.AreEqual(0.04f, LetterSpacing.Em("sr_new_ls_em"), 1e-5f, "6980 .sr-new");
+            Assert.AreEqual(0.04f, LetterSpacing.Em("sr_again_ls_em"), 1e-5f, "5791 .sr-again");
+            Assert.AreEqual(0.06f, LetterSpacing.Em("sr_ok_ls_em"), 1e-5f, "7139 .sr-ok");
+            Assert.AreEqual(0.06f, LetterSpacing.Em("dgclear_title_ls_em"), 1e-5f, "5375 .dgclear-title");
+            // 음수 둘 — 부호를 잃으면 «넓힌다» 가 되어 정본과 반대로 간다
+            Assert.AreEqual(-0.01f, LetterSpacing.Em("substat_row_ls_em"), 1e-5f, "3729 .substat-row 는 **음수**(좁힌다)");
+            Assert.AreEqual(-0.06f, LetterSpacing.Em("chat_placeholder_ls_em"), 1e-5f, "3460 입력칸 안내 글자도 음수");
+            Assert.Less(LetterSpacing.Tmp("chat_placeholder_ls_em"), 0f, "TMP 단위로 바뀌어도 음수 그대로");
+        }
+
         [UnityTest]
         public IEnumerator 보스_경고와_사망_배너의_글자가_표대로_벌어진다()
         {

@@ -229,6 +229,7 @@ namespace Forge.Game.Ui
             Image tico = UiKit.Icon(band, "ico", kind == "pet" ? "egg" : kind == "mount" ? "winder" : "ticket");
             UiKit.Place(tico.rectTransform, PetSkillStyle.Px("sr_title_pad_x_rem"), (headH - title * 1.05f) * 0.5f, title * 1.05f, title * 1.05f);
             TextMeshProUGUI tx = PetSkillKit.Text(band, "t", TextKind.Title, tt, PetSkillStyle.C("white"), TextAlignmentOptions.Left);
+            LetterSpacing.Apply(tx, "sr_title_ls_em");   // T168 3회차 — 정본 style.css 6207 `.sr-title { letter-spacing: .07em }`
             UiKit.Place(tx.rectTransform, PetSkillStyle.Px("sr_title_pad_x_rem") + title * 1.2f, 0f, tw, headH);
 
             // ---- 발(집계 · 힌트 · 확인) ----
@@ -417,6 +418,7 @@ namespace Forge.Game.Ui
                     RectTransform nb = PetSkillKit.Framed(wrap, "sr-new", PetSkillStyle.C("sr_new"), PetSkillStyle.Px("sr_new_r_rem"), PetSkillKit.Line2);
                     UiKit.Anchor(nb, new Vector2(0.93f, 0.92f), new Vector2(1f, 1f), Vector2.zero, bw, bh);
                     TextMeshProUGUI nt = PetSkillKit.Text(nb, "t", TextKind.Sub, nw, PetSkillStyle.C("white"));
+                    LetterSpacing.Apply(nt, "sr_new_ls_em");   // T168 3회차 — 정본 6980 `.sr-new`
                     UiKit.Fill(nt.rectTransform);
                 }
                 // 이름판 · 등급 칩
@@ -433,6 +435,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(rk, (cw - rkW) * 0.5f, sy, rkW, subH);
                 PetSkillKit.Fill(rk, "bg", rc, PetSkillStyle.Px("sr_rk_r_rem"));
                 TextMeshProUGUI rt = PetSkillKit.Text(rk, "t", TextKind.Sub, e.Sub, ChipInk(rc));
+                LetterSpacing.Apply(rt, "sr_sub_ls_em");   // T168 3회차 — 정본 7059 `.sr-sub`
                 UiKit.Fill(rt.rectTransform);
             }
             cell.localScale = Vector3.one * 0.35f;
@@ -500,6 +503,7 @@ namespace Forge.Game.Ui
             okFace.rectTransform.offsetMin = new Vector2(PetSkillKit.Line2, PetSkillKit.Line2 + PetSkillStyle.Px("sr_ok_inset_rem"));
             okFace.rectTransform.offsetMax = new Vector2(-PetSkillKit.Line2, -PetSkillKit.Line2);
             TextMeshProUGUI okt = PetSkillKit.Text(okr, "t", TextKind.Button, PetSkillStyle.T("sr_ok"), PetSkillStyle.C("sr_ok_ink"));
+            LetterSpacing.Apply(okt, "sr_ok_ls_em");   // T168 3회차 — 정본 7139 `.sr-ok`
             UiKit.Fill(okt.rectTransform);
             ok = okr.gameObject;
             ok.SetActive(false);
@@ -542,6 +546,7 @@ namespace Forge.Game.Ui
                 UiKit.Fill(askin);
                 ((Image)askin.Find("line").GetComponent<Image>()).color = new Color(0.59f, 0.67f, 0.92f, 0.55f);
                 TextMeshProUGUI at = PetSkillKit.Text(ar, "t", TextKind.Sub, PetSkillStyle.T("sr_again"), PetSkillStyle.C("sr_again_ink"));
+                LetterSpacing.Apply(at, "sr_again_ls_em");   // T168 3회차 — 정본 5791 `.sr-again`
                 UiKit.Fill(at.rectTransform);
                 solo = sb.gameObject;
                 solo.SetActive(false);
