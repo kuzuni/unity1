@@ -487,7 +487,7 @@ def _lock_word(alive, age):
     return 'lock %d분 전 — 90분 규약으로 **죽었다**(뺏을 수 있다)' % age
 
 
-def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None, touched=None):
+def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None, touched=None, missing=''):
     """빨강마다 임자 한 줄 — **빠진 테스트 파일 ↔ PROGRESS 범위 열** 로 가린다(T125).
 
     갈래 넷:
@@ -502,6 +502,15 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
     """
     hist = hist or history_owners
     lock = lock or lock_state
+    # T172 — 모드가 통째로 안 돈 런은 **코드 임자를 찾을 일이 아니다**(빠진 테스트 이름이 아예 없다).
+    #        여기서 «그 커밋을 민 워커» 를 대면 죄 없는 사람을 가리킨다(실측 런 403: PlayMode 0개인데 T156 을 댔다).
+    if missing:
+        return [('  · 빨강의 임자: **찾지 마라 — 모드가 통째로 안 돌았다**(«%s»). 빠진 테스트 이름이 없으니 '
+                 '코드 임자를 가릴 근거가 없다. §1 의 **«유니티 라이선스 좌석»** 갈래로 간다: '
+                 '잡 로그가 `no available seats`·`Unable to activate license`·좌석 반납 실패면 **코드 탓이 아니다** — '
+                 '재실행 1회(권한이 없으면 **다음 코드 push 의 런**을 기다린다), 되풀이되면 «주인 콘솔 에러 보고함» 에 '
+                 '«유니티 라이선스 좌석» 한 줄. 그게 아니면 PlayMode 어셈블리 컴파일을 본다'
+                 '(`dotnet build` 의 TestsPlay(T48)가 초록이면 **유니티 전용 API** 쪽이다).' % missing)]
     names = fixtures(fails)
     if not names:
         who = pusher(sha)
@@ -853,12 +862,26 @@ def self_test():
     eq('ⓧ 산 행이 임자가 된다', any('임자: **T171**' in l for l in lines), True)
     eq('ⓧ 죽은 행은 꼬리로만', any('죽은 행' in l for l in lines), True)
 
+    # ⓨ T172 — 모드가 통째로 안 돈 런은 코드 임자를 가리키지 않는다
+    P_ANY = '| T156 | 리본 | 🔄 진행 | s / 워커 X | `Assets/Tests/PlayMode/CraftComparePopupTests.cs` | x |'
+    lines = own_lines([], P_ANY, 'a' * 40, lock=both_live, missing='playmode-results.xml')
+    eq('ⓨ 한 줄만 낸다', len(lines), 1)
+    eq('ⓨ «찾지 마라» 로 시작', '찾지 마라 — 모드가 통째로 안 돌았다' in lines[0], True)
+    eq('ⓨ 빠진 모드 이름을 싣는다', 'playmode-results.xml' in lines[0], True)
+    eq('ⓨ §1 라이선스 좌석 갈래로 보낸다', '유니티 라이선스 좌석' in lines[0], True)
+    eq('ⓨ 컴파일 갈래도 일러 준다', 'TestsPlay' in lines[0], True)
+    eq('ⓨ 죄 없는 워커를 안 가리킨다', '민 워커' in lines[0], False)
+    # 빠진 모드가 없으면 지금까지 하던 대로다(빨강 이름이 있으면 임자를 가린다)
+    lines = own_lines(['FAIL Forge.Tests.PlayMode.CraftComparePopupTests.가 · Failed'], P_ANY, 'a' * 40,
+                      lock=both_live, missing='')
+    eq('ⓨ 평소에는 임자를 그대로 가린다', any('임자: **T156**' in l for l in lines), True)
+
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  · ' + f)
         return 1
-    print('✓ check_unity_green --self-test 89칸 통과')
+    print('✓ check_unity_green --self-test 96칸 통과')
     return 0
 
 
@@ -894,7 +917,8 @@ def main(argv):
         gsha, grun = last_green(runs, cur)
         commits = code_commits(gsha, cur) if gsha else code_commits(None, cur, RECENT_CODE)
         # T153 — 임자 줄이 «그의 몫» 으로 막기 전에, 그 작업이 이 창에서 프로덕션을 바꾸긴 했는지 먼저 센다
-        own = own_lines(fails, read_progress(), cur, err=error_paths(red_text(ref)), touched=prod_touch(commits))
+        own = own_lines(fails, read_progress(), cur, err=error_paths(red_text(ref)),
+                        touched=prod_touch(commits), missing=str(meta.get('missing_modes', '') or ''))
         between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None))
     rc, out = judge(meta, anc, n_after, fails, own, between)
     for ln in out:
