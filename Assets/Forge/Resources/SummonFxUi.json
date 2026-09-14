@@ -45,7 +45,7 @@
     "star_s0_px": 9, "star_s_step": 7, "star_s_mod": 7, "star_d_step": 313, "star_d_mod_ms": 2600, "star_dur0_s": 2.6, "star_dur_step_s": 0.7, "star_dur_mod": 4,
     "star_lobe_px": 2.6, "star_lobe_len_f": 3.1, "star_mid_stop": 0.38, "star_edge_stop": 0.74,
     "star_a_lo": 0.9, "star_s_lo": 0.97, "star_s_hi": 1.2, "stars_fade_ms": 600,
-    "bake_px": 512
+    "bake_px": 256
   },
   "_src": {
     "canopy": "5836~5846 .sr-canopy 78%/3.1 · .one 62%/3 mb -2.6rem · stage:not(.one):not(.compact) 84%/2.5 mb -2.8rem · .compact 64%/3.9 mb -1.5rem(compact = herorow · ui.js 469~473) · 도입 srcanopy .45s .05s scale(.8) translateY(-.5rem)",
@@ -54,6 +54,7 @@
     "spill_b": "5894~5903 b: bottom 52% · 74% × 12rem(compact 6.5rem) · radial 58%×100% at 50% 100% .5→.34@42%→0 · 세로 마스크 44%→74%(.55)→100% · blur 3px · srveil 5.2s · b::after 가로 훑는 빛띠(screen 합성)는 안 옮김(결정 기록)",
     "rays": "5931~5955 .sr-rays 190% 정사각 ·  alpha .17(+.11·pre-k — 등급 예고는 안 옮김) · conic .7°/9° + 2.6°/31° · radial 마스크 22/34/54/72 · srrayspin 20s · srintro .24s scale 1.3 / 7152~7160 done:  alpha .5 · 마스크 20/32/62/88/100 · 26s 회전 + srraysbreath 2.4s .35↔.6",
     "stars": "ui.js 337~351 24개(앞 12 위 밴드) x=5+(i·43)%90 % · y=위 1+(i·7)%17 / 아래 76+(i·11)%18 % · s=9+(i·7)%7 px · d=(i·313)%2600 ms · dur=2.6+(i%4)·.7 s / 5967~5990 z 15 · done 에서 .6s 로 켠다 · radial #fff→(210,230,255,.85)38%→0 74% · 십자 로브 2.6px × 3.1s · srstar  alpha .9↔1 scale .97↔1.2",
+    "bake_px_": "굽는 해상도(광선 정사각 · 아치 폭) — 512 는 첫 열림 프레임을 길게 만들어(런 438: x1 판이 첫 프레임에 이미 done · PetUiTests 흔들림) 256 으로",
     "reflect": "6957~6978 .sr-reflect — 2회차(그리드 복제 뒤집기 scaleY(-1.22) ·  alpha .88 · blur 4px · 세로 마스크)"
   }
 }

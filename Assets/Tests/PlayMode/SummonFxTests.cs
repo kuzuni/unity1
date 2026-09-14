@@ -75,7 +75,10 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(cp.rect.width / SummonFxStyle.L("canopy_one_aspect"), cp.rect.height, 1f, "비율 3:1");
             Assert.AreEqual(3, fx.RayBarCount, "빛발 셋");
             Assert.IsNotNull(cp.Find("arch")); Assert.IsNotNull(cp.Find("spill")); Assert.IsNotNull(cp.Find("ray-2"));
-            // 천개 바닥은 그리드 위에서 mb 만큼 아래(정본 margin-bottom -2.6rem = 겹침)
+            // 천개 바닥은 그리드 위에서 mb 만큼 아래(정본 margin-bottom -2.6rem = 겹침) — 도입(srcanopy .45s · scale .8→1 · 가운데 피벗)이 끝난 뒤 잰다(런 438: 도중에 재서 −16px)
+            float tin = 0f;
+            while (tin < (SummonFxStyle.L("canopy_in_delay_ms") + SummonFxStyle.L("canopy_in_ms")) / 1000f + 0.1f) { tin += Time.unscaledDeltaTime; yield return null; }
+            Assert.AreEqual(1f, cp.localScale.x, 1e-3f, "도입이 끝나면 천개 배율 1");
             float mb = SummonFxStyle.L("canopy_one_mb_rem") * PetSkillStyle.RemPx;
             Vector3[] gc = new Vector3[4], cc = new Vector3[4];
             ((RectTransform)grid).GetWorldCorners(gc); cp.GetWorldCorners(cc);
@@ -84,13 +87,13 @@ namespace Forge.Tests.PlayMode
 
             // ⓓ 별 — 24개 · 앞 12 위 밴드(y ≤ 18%) · 뒤 12 아래 밴드(y ≥ 76%) · done 전 α 0
             Assert.AreEqual(Mathf.RoundToInt(SummonFxStyle.L("stars_n")), fx.StarCount, "별 24");
-            Assert.AreEqual(0f, fx.StarsAlpha, 1e-6f, "done 전엔 별이 꺼져 있다(정본 .sr-stars opacity 0)");
+            if (!v.Done) Assert.AreEqual(0f, fx.StarsAlpha, 1e-6f, "done 전엔 별이 꺼져 있다(정본 .sr-stars opacity 0)");
             int top = 0, bottom = 0;
             foreach (Transform st in stars) { if (!st.name.StartsWith("star-")) continue; float ay = ((RectTransform)st).anchorMin.y; if (ay >= 1f - 0.19f) top++; else if (ay <= 1f - 0.75f) bottom++; }
             Assert.AreEqual(12, top, "위 밴드 12"); Assert.AreEqual(12, bottom, "아래 밴드 12");
 
-            // ⓔ done — 탭으로 전부 공개 → 별이 켜진다(.6s)
-            v.OnTap();
+            // ⓔ done — 탭으로 전부 공개 → 별이 켜진다(.6s) · 러너가 느려 이미 done 이면 탭은 곧 닫기라 안 누른다
+            if (!v.Done) v.OnTap();
             float t = 0f;
             while (!v.Done && t < 5f) { t += Time.unscaledDeltaTime; yield return null; }
             Assert.IsTrue(v.Done, "탭 뒤 done");
