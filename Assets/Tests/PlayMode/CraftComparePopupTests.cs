@@ -133,6 +133,14 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(pr, rightGap, 0.5f, "오른쪽 패딩 1.5rem — «<» 파임 몫이라 왼쪽보다 넓다");
             Assert.Greater(rightGap, pl, "글자 상자가 오른쪽으로 더 좁아 글자가 왼쪽으로 치우쳐 보인다(원작 그대로)");
 
+            // 깃발은 카드 **밖으로 내민다**(정본 `left: -1.52rem` · 주석 «22.2 + 7(내밈)»). 원작 `shot-043224` 에서도
+            // 리본 왼쪽 끝이 카드 왼쪽 변보다 왼쪽이다 — 런 406 클론은 변에 붙어 있었다(2회차 자리 수리).
+            RectTransform outer = (RectTransform)p.Root.Find("card");
+            Assert.IsNotNull(outer, "바깥 카드");
+            Vector3[] oc = new Vector3[4];
+            outer.GetWorldCorners(oc);
+            Assert.Less(r[0].x, oc[0].x, "리본 왼쪽 끝이 카드 왼쪽 변보다 왼쪽이어야 «내민 깃발» 이다");
+
             ForgeCraftPopup.Hide(F);
             yield return null;
         }

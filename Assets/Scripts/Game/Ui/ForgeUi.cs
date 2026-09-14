@@ -254,7 +254,11 @@ namespace Forge.Game.Ui
             float w = RibbonArt.Width(UiKit.RefW), h = fs + pt + pb;
             RectTransform rt = UiKit.Box(card, "ribbon");
             rt.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
-            UiKit.Place(rt, -rem * 1.2f, -h * 0.8f, w, h);
+            // 자리도 표에서(정본 `top: -1.05rem; left: -1.52rem`) — 종전 `(-1.2rem, -0.8h)` 는 어림이라 깃발이 카드 밖으로
+            // **안 내밀고** 왼쪽 변에 붙었다(런 406 PNG ↔ 원작 `shot-043224` 실측: 원작은 카드 왼쪽 밖으로 나온다).
+            // 정본 주석: «`.modal-card`(padding 1.1rem + --ol2 테)의 같은 자리에 앉으므로 22.2 + 7(내밈) ≈ 2rem».
+            Vector2 off = RibbonArt.Offset(rem);
+            UiKit.Place(rt, off.x, off.y, w, h);
             RibbonArt.Build(rt, "flag", w, h, rem);
             TextMeshProUGUI t = UiKit.Text(rt, "label", TextKind.Sub, text, red ? "pp_red" : "pp_ink");
             t.fontStyle = FontStyles.Bold;
