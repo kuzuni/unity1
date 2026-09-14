@@ -152,9 +152,9 @@ namespace Forge.Tests.PlayMode
             Debug.Log("[T106] " + text);
             try
             {
-                string dir = Path.Combine(Directory.GetCurrentDirectory(), GallerySheet.OutDir);
+                string dir = System.IO.Path.Combine(Directory.GetCurrentDirectory(), GallerySheet.OutDir);   // 이 클래스의 Path(Transform) 헬퍼와 이름이 겹쳐 완전 이름으로
                 Directory.CreateDirectory(dir);
-                File.WriteAllText(Path.Combine(dir, "t106-emoji.txt"), text, new UTF8Encoding(false));
+                File.WriteAllText(System.IO.Path.Combine(dir, "t106-emoji.txt"), text, new UTF8Encoding(false));
             }
             catch (System.Exception ex) { Debug.Log("[T106] 진단 파일을 못 썼다: " + ex.Message); }
         }
