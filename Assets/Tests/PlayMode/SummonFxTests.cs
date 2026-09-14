@@ -1,0 +1,106 @@
+using System.Collections;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+using UnityEngine.UI;
+using Forge.Game;
+using Forge.Game.Ui;
+
+namespace Forge.Tests.PlayMode
+{
+    /// <summary>
+    /// T179 — 소환 결과 무대판의 연출 겹 셋(정본 `.sr-rays` z0 · `.sr-stars` z15 · `.sr-canopy` z20)이 서고, 자리·개수가 표(`SummonFxUi.json`)대로이며,
+    /// 별은 done 뒤에만 켜진다. 그림은 `screen_summon-result` 류 PNG 눈 확인. 바닥 반사(.sr-reflect)는 2회차.
+    /// </summary>
+    public class SummonFxTests
+    {
+        static IEnumerator Boot()
+        {
+            PetSkillHost.SuppressSave = true;
+            PetSkillHost.Seed = 20260912;
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+            Scene active = SceneManager.GetActiveScene();
+            for (int i = 0; i < 600 && !(SkillPetSheet.Instance != null && SkillPetSheet.Instance.gameObject.scene == active && PetSkillHost.Ready && SkillBar.Instance != null); i++) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            Assert.IsTrue(PetSkillHost.Ready);
+            yield return null;
+        }
+
+        static SkillPetSheet Sheet { get { return SkillPetSheet.Instance; } }
+        static PetSkillHost Host { get { return PetSkillHost.Instance; } }
+
+        [UnityTest]
+        public IEnumerator 무대판에_광선_별_천개가_서고_별은_done_뒤에만_켜진다()
+        {
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            while (Host.SummonMult("skill") != 1) Host.CycleSummonMult("skill");
+            Host.Tickets = 10000;
+            Host.Sync();
+            yield return null;
+            Sheet.Skills.SummonButton.onClick.Invoke();
+            yield return null;
+            Assert.IsTrue(Sheet.Modal.IsOpen(SkillSummonResultView.ModalName), "결과 연출 팝업");
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v);
+            Assert.AreEqual(1, v.CellCount, "x1 = 무대판(one)");
+            SummonFx fx = v.Fx;
+            Assert.IsNotNull(fx, "무대판(stage)이면 연출 겹이 선다");
+
+            // ⓐ 층 사다리 — 광선은 몸의 첫 형제(z0) · 별은 바닥 뒤 · 천개는 별 뒤 · 그리드는 그 뒤(z40)
+            RectTransform body = (RectTransform)fx.transform;
+            Assert.AreEqual("sr-rays", body.GetChild(0).name, "광선이 맨 아래(z 0)");
+            Transform floor = body.Find("sr-floor"), stars = body.Find("sr-stars"), canopy = body.Find("sr-canopy"), grid = body.Find("sr-grid");
+            Assert.IsNotNull(floor); Assert.IsNotNull(stars); Assert.IsNotNull(canopy); Assert.IsNotNull(grid);
+            Assert.Less(floor.GetSiblingIndex(), stars.GetSiblingIndex(), "바닥(10) < 별(15)");
+            Assert.Less(stars.GetSiblingIndex(), canopy.GetSiblingIndex(), "별(15) < 천개(20)");
+            Assert.Less(canopy.GetSiblingIndex(), grid.GetSiblingIndex(), "천개(20) < 그리드(40)");
+
+            // ⓑ 광선 — 폭 190% 정사각 · 몸 가운데
+            RectTransform rays = fx.Rays;
+            Assert.AreEqual(body.rect.width * SummonFxStyle.L("rays_w_f"), rays.rect.width, 1f, "광선 폭 = 몸 폭 × 1.9");
+            Assert.AreEqual(rays.rect.width, rays.rect.height, 1f, "정사각");
+            Assert.IsNotNull(rays.GetComponent<Image>().sprite, "구운 광선 스프라이트");
+
+            // ⓒ 천개 — one 판: 그리드 폭 × .62 · 비율 3:1 · 아치 + 빛발 3 + 스필
+            RectTransform cp = fx.Canopy;
+            float gw = ((RectTransform)grid).rect.width;
+            Assert.AreEqual(gw * SummonFxStyle.L("canopy_one_w_f"), cp.rect.width, 1f, "천개 폭(one) = 그리드 폭 × .62");
+            Assert.AreEqual(cp.rect.width / SummonFxStyle.L("canopy_one_aspect"), cp.rect.height, 1f, "비율 3:1");
+            Assert.AreEqual(3, fx.RayBarCount, "빛발 셋");
+            Assert.IsNotNull(cp.Find("arch")); Assert.IsNotNull(cp.Find("spill")); Assert.IsNotNull(cp.Find("ray-2"));
+            // 천개 바닥은 그리드 위에서 mb 만큼 아래(정본 margin-bottom -2.6rem = 겹침)
+            float mb = SummonFxStyle.L("canopy_one_mb_rem") * PetSkillStyle.RemPx;
+            Vector3[] gc = new Vector3[4], cc = new Vector3[4];
+            ((RectTransform)grid).GetWorldCorners(gc); cp.GetWorldCorners(cc);
+            float scale = UiRoot.Instance.App.lossyScale.y;
+            Assert.AreEqual(mb * scale, cc[0].y - gc[1].y, 2f * scale + 0.5f, "천개 바닥 = 그리드 위 − 2.6rem(겹침)");
+
+            // ⓓ 별 — 24개 · 앞 12 위 밴드(y ≤ 18%) · 뒤 12 아래 밴드(y ≥ 76%) · done 전 α 0
+            Assert.AreEqual(Mathf.RoundToInt(SummonFxStyle.L("stars_n")), fx.StarCount, "별 24");
+            Assert.AreEqual(0f, fx.StarsAlpha, 1e-6f, "done 전엔 별이 꺼져 있다(정본 .sr-stars opacity 0)");
+            int top = 0, bottom = 0;
+            foreach (Transform st in stars) { if (!st.name.StartsWith("star-")) continue; float ay = ((RectTransform)st).anchorMin.y; if (ay >= 1f - 0.19f) top++; else if (ay <= 1f - 0.75f) bottom++; }
+            Assert.AreEqual(12, top, "위 밴드 12"); Assert.AreEqual(12, bottom, "아래 밴드 12");
+
+            // ⓔ done — 탭으로 전부 공개 → 별이 켜진다(.6s)
+            v.OnTap();
+            float t = 0f;
+            while (!v.Done && t < 5f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done, "탭 뒤 done");
+            Assert.IsTrue(fx.Done, "연출 겹도 done 을 받는다");
+            t = 0f;
+            while (t < 0.8f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.AreEqual(1f, fx.StarsAlpha, 0.05f, "done .6s 뒤 별 α 1");
+            Debug.Log("[T179] one 판 · 천개 " + cp.rect.width.ToString("0") + "×" + cp.rect.height.ToString("0") + " · 광선 " + rays.rect.width.ToString("0") + " · 별 " + fx.StarCount);
+            if (SkillSummonResultView.Current != null) SkillSummonResultView.Current.OnTap();
+            yield return null;
+        }
+    }
+}

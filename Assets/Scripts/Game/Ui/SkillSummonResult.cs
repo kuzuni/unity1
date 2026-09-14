@@ -56,6 +56,8 @@ namespace Forge.Game.Ui
         float start;
         int idx;
         bool done, holdback, heroFired;
+        SummonFx fx;   // T179 연출 겹(무대판에서만)
+        public SummonFx Fx { get { return fx; } }
         int heroIdx = -1;
         string best;
         Action repeat;
@@ -284,6 +286,8 @@ namespace Forge.Game.Ui
                     float fw = gw * (one ? 0.64f : 0.88f);
                     UiKit.Anchor(floor.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -totalH * 0.5f + PetSkillStyle.Rem(1.4f)), fw, fw / (one ? 2.6f : 2.5f));
                     floor.transform.SetAsFirstSibling();
+                    // T179 — 연출 겹(정본 sr-canopy 아치+빛발+스필 · sr-rays · sr-stars · ui.js 491~494: canopy = stage · compact = herorow) — 그리드 위 밴드·배경·별
+                    fx = SummonFx.Build(body, floor.rectTransform, (bodyH - totalH) * 0.5f, gw, one, heroRow);
                 }
             }
             for (int i = 0; i < n; i++)
@@ -632,6 +636,7 @@ namespace Forge.Game.Ui
         void Finish()
         {
             done = true;
+            if (fx != null) fx.SetDone();   // T179 — 정본 #summon-result-modal.done: 별 켜기 · 광선 done 마스크
             if (hint != null) hint.SetActive(false);
             if (ok != null) ok.SetActive(true);
             if (chips != null && rolls > 1) chips.SetActive(true);
