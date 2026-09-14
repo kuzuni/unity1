@@ -1024,6 +1024,13 @@ namespace Forge.Tests.PlayMode
                 catch (Exception e) { gate = s.Name + ": 글자 게이트가 터졌다 — " + e.Message; }
                 if (gate != null) { failed.Add(gate); Trace("  GATE " + gate); }
 
+                // T176 — 촬영 28번째(gear-detail)가 **매 런** 보스 경고(정본 `#boss-warning` · z16 · 팝업 아래라 덮이는 것 자체는 정본대로)를 물었다
+                //        (런 403·413 둘 다 씬 대역 덮임 84% · 대표색 (90,14,11) · 점수 3.2 — 우연이 아니다 · T28 45회차). 연출은 손대지 않고
+                //        **찍기 직전에** 경고가 꺼질 때까지 기다린다(정본 길이 2s · `FxRules.BossWarnDur` · 상한 600프레임). 아직 돌면 자국을 남긴다(ⓑ 후보).
+                int bwWait = 0;
+                while (BattleOverlay.Instance != null && BattleOverlay.Instance.WarningActive && bwWait < 600) { bwWait++; yield return null; }
+                if (bwWait > 0) Trace("  보스 경고 대기 " + bwWait + "프레임" + (BattleOverlay.Instance != null && BattleOverlay.Instance.WarningActive ? " · 아직 돈다(T176 ⓑ 후보)" : ""));
+
                 if (!GallerySheet.GraphicsAvailable) continue;
                 string pixelFail, pixelInfo;
                 string file = Capture(s.Name, s.Notch, out pixelFail, out pixelInfo);
