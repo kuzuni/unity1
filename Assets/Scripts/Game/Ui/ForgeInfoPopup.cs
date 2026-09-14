@@ -278,10 +278,14 @@ namespace Forge.Game.Ui
             double baseVal = Math.Floor(main == "atk" ? ForgeRules.TierBaseAtkAt(ageIdx) : ForgeRules.TierBaseHpAt(ageIdx));
 
             float rem = PopupKit.Rem;
-            float w = UiKit.L("modal_card_w") * UiKit.RefW, pad = rem * 0.9f;
-            float inner = w - pad * 2f - PopupKit.Line3 * 2f;
+            // T177 — 정본 3649 `#forge-item-modal .modal-card.item-detail { width: 68.9% }`(공용 modal_card_w 75% 가 아니다 · T111·T113 과 같은 병)
+            //        + 3720 `padding: 1.7% 2.7%`(컨테이닝 블록 = 모달 = 앱 폭). 값은 ForgeItemUi.json.
+            float w = ForgeItemStyle.L("card_w") * UiKit.RefW;
+            float padV = ForgeItemStyle.L("card_pad_v_app_f") * UiKit.RefW, pad = ForgeItemStyle.L("card_pad_h_app_f") * UiKit.RefW;
+            float inner = w - pad * 2f - PopupKit.Line3 * 2f;   // = .idet-wrap 폭(아래 %마진·%패딩의 컨테이닝 블록)
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
-            PopupKit.Column(card, pad, rem * 0.5f);
+            VerticalLayoutGroup cg = PopupKit.Column(card, pad, ForgeItemStyle.L("card_gap_rem") * rem);   // 3648 gap: 0
+            cg.padding = new RectOffset(Mathf.RoundToInt(pad), Mathf.RoundToInt(pad), Mathf.RoundToInt(padV), Mathf.RoundToInt(padV));
             float tile = rem * 3.6f;
             RectTransform head = PopupKit.Item(card, "idet-head", -1f, tile + rem * 0.4f);
             RectTransform t = ForgeUi.ItemTile(head, "idet-icon", tile, d, age, icon);
@@ -298,23 +302,58 @@ namespace Forge.Game.Ui
             //         `idet-icon` + `idet-title`(이름 · 스탯) **두 줄뿐**이고 원작 샷 `shot-042931` 도 그렇다.
             //         드랍 확률은 «모든 장비의 목록» 격자 셀(위 `Cell` 의 `pct`)에만 나온다 — 그 자리는 정본에도 있다.
             //         §1 «원작에 없는 것을 넣지 않는다» · 검수 Q 등재(런 223 `screen_forge-detail` 30장 중 꼴찌 1.2/10).
+            // T177 — 정본 3723 `#forge-item-modal .idet-subs { margin-top: 12.9% }`(컨테이닝 블록 = .idet-wrap = inner · 원본 아이콘 하단→판 상단 41px): 카드 gap 이 0 이라 여백 칸으로.
+            PopupKit.Spacer(card, ForgeItemStyle.L("subs_margin_top_wrap_f") * inner).name = "idet-subs-margin";
             RectTransform subs = PopupKit.Item(card, "idet-subs", -1f, -1f);
             // T146 — 정본 style.css 3722~3726 `#forge-item-modal .idet-subs { background: #d6d6d6 }`: 이 모달만 공용 판(--pp-panel #efefef)을
             //   덮어썼다(정본 주석 «원본 실측 rgb(214,214,214) — --pp-panel 은 25 밝았다»). 공용 pp_panel 을 고치면 다른 화면이 따라 어두워지니 제 키로.
             Image sbg = UiKit.Rounded(subs, "bg", "idet_panel", rem * 0.6f);
-            VerticalLayoutGroup sg = PopupKit.Column(subs, rem * 0.5f, rem * 0.15f);
+            // T177 — 3723 `padding: 3.3% 4% 4.4%; gap: 0`(컨테이닝 블록 = .idet-wrap)
+            VerticalLayoutGroup sg = PopupKit.Column(subs, 0f, ForgeItemStyle.L("subs_gap_rem") * rem);
+            int sp = Mathf.RoundToInt(ForgeItemStyle.L("subs_pad_side_wrap_f") * inner);
+            sg.padding = new RectOffset(sp, sp, Mathf.RoundToInt(ForgeItemStyle.L("subs_pad_top_wrap_f") * inner), Mathf.RoundToInt(ForgeItemStyle.L("subs_pad_bottom_wrap_f") * inner));
             // T146 — 정본 3707 `.idet-lead { font-weight: 800 }` + 3728 `#forge-item-modal .idet-lead { color: #000 }`(순검정 · 굵게)
-            PopupKit.Label(subs, "idet-lead", TextKind.Sub, "장비은(는) 아래 목록에서 2x개의 고유한 하위 스탯을 굴립니다:", "idet_lead_ink", TextAlignmentOptions.Left, true, true, PopupKit.FontSize(TextKind.Sub) * 2.7f);
+            // T177 — 높이는 줄바꿈 내용대로(정본 .92rem·1.13 은 §1 하한 아래라 Sub 그대로) · 3727 `margin-bottom: .96rem` 은 여백 칸으로(gap 0)
+            PopupKit.Label(subs, "idet-lead", TextKind.Sub, "장비은(는) 아래 목록에서 2x개의 고유한 하위 스탯을 굴립니다:", "idet_lead_ink", TextAlignmentOptions.Left, true, true);
+            PopupKit.Spacer(subs, ForgeItemStyle.L("lead_mb_rem") * rem).name = "idet-lead-margin";
+            float rowH = ForgeItemStyle.L("row_pitch_h") * UiKit.RefH;   // 3714 «행 피치 1.93%H» — 정본이 적은 «2.47%H 로 13행 누적 +6.14%p» 병의 자리
             for (int i = 0; i < d.Substats.Count; i++)
             {
                 SubstatDef s = d.Substats[i];
                 // T146 — 정본 3708 `.substat-row { font-weight: 700 }` + 3731 `#forge-item-modal .idet-subs .substat-row { color: #3a3a3a }`
-                TextMeshProUGUI row = PopupKit.Label(subs, "substat-" + s.Key, TextKind.Sub, ForgeUi.SubRangeText(d, s.Key, s.Max) + " " + s.Label, "idet_row_ink", TextAlignmentOptions.Left, false, true);
+                TextMeshProUGUI row = PopupKit.Label(subs, "substat-" + s.Key, TextKind.Sub, ForgeUi.SubRangeText(d, s.Key, s.Max) + " " + s.Label, "idet_row_ink", TextAlignmentOptions.Left, false, true, rowH);
                 LetterSpacing.Apply(row, "substat_row_ls_em");   // T168 3회차 — 정본 3729 `#forge-item-modal .idet-subs .substat-row { letter-spacing: -.01em }`(음수 · 이 모달에서만 좁다)
             }
             // ✕ 는 화면당 하나다(T57): 이 팝업은 목록 팝업 **위에** 서므로 제 ✕ 를 또 달면 둘이 겹쳐 보인다
             // (원작 shot-042931 에는 밝은 ✕ 가 0개 · 딤 아래 목록의 ✕ 하나뿐이다 · 결정 기록 참조).
             // 닫는 길은 딤 탭(위 dim.onClick = CloseItemDetail)과 목록 팝업의 ✕ 다.
+        }
+    }
+
+    /// <summary>T177 — `Resources/ForgeItemUi.json`(장비 시대 상세 배치표 · T111 `GearDetailStyle`·T113 `CraftStyle` 과 같은 꼴). 숫자는 표에서만(§1).</summary>
+    public static class ForgeItemStyle
+    {
+        public const string ResourcePath = "ForgeItemUi";
+        static JsonObject root, layout;
+
+        static void Load()
+        {
+            if (root != null) return;
+            TextAsset ta = Resources.Load<TextAsset>(ResourcePath);
+            if (ta == null) throw new InvalidOperationException("Resources/" + ResourcePath + ".json 이 없다 (T177)");
+            root = MiniJson.ParseObject(ta.text);
+            layout = J.Obj(root["layout"]);
+        }
+
+        public static void Reset() { root = null; layout = null; }
+
+        /// <summary>배치 값 원문(분수·rem — 접미가 곱할 기준을 말한다).</summary>
+        public static float L(string key)
+        {
+            Load();
+            object v = layout[key];
+            if (!J.IsNum(v)) throw new System.Collections.Generic.KeyNotFoundException("ForgeItemUi.json 에 배치 값 «" + key + "» 이 없다");
+            return (float)J.Num(v);
         }
     }
 }

@@ -1,0 +1,29 @@
+{
+  "_": "ROUTINE T177 장비 시대 상세(#forge-item-modal · 원본 shot-042931 492×881 픽셀 대조 블록 style.css 3649 · 3712~3731)의 배치표. T111 GearDetailUi.json · T113 CraftUi.json 과 같은 꼴(catalog.json 은 남의 lock) — 코드에 숫자를 박지 않는다(§1). 목록 팝업(#forge-info-modal)은 이 표를 안 쓴다. 접미: _w = 앱 폭 분수 · _app_f = 앱 폭에 곱하는 분수(카드 자체의 %패딩 — 컨테이닝 블록이 모달) · _wrap_f = 카드 내용 폭(.idet-wrap = 카드 폭 − 좌우 패딩 − 테)에 곱하는 분수(.idet-subs 의 %마진·%패딩 — 컨테이닝 블록이 .idet-wrap) · _h = 앱 높이 분수 · _rem = 정본 rem.",
+  "layout": {
+    "card_w": 0.689,
+    "card_pad_v_app_f": 0.017,
+    "card_pad_h_app_f": 0.027,
+    "card_gap_rem": 0,
+    "subs_margin_top_wrap_f": 0.129,
+    "subs_pad_top_wrap_f": 0.033,
+    "subs_pad_side_wrap_f": 0.04,
+    "subs_pad_bottom_wrap_f": 0.044,
+    "subs_gap_rem": 0,
+    "lead_mb_rem": 0.96,
+    "row_pitch_h": 0.0193
+  },
+  "_src": {
+    "card_w": "style.css 3649 `#forge-item-modal .modal-card.item-detail { width: 68.9%; }` — 공용 .modal-card.item-detail 77.6%(3647)·클론 공용 modal_card_w 75% 가 아니다 · 정본 주석 «원본 실측 폭 339/492 = 68.90%W»",
+    "card_pad_v_app_f": "3720 `#forge-item-modal .modal-card.item-detail { padding: 1.7% 2.7%; }` — %패딩의 컨테이닝 블록은 모달(앱 폭)",
+    "card_pad_h_app_f": "3720 같은 줄 2.7% · 정본 실측 «좌우 패딩 13px(2.64%W)»",
+    "card_gap_rem": "3648 `.modal-card.item-detail { gap: 0 }` — 머리(idet-head)와 판(idet-subs) 사이는 gap 이 아니라 아래 margin-top 이 벌린다",
+    "subs_margin_top_wrap_f": "3723 `#forge-item-modal .idet-subs { margin-top: 12.9% }` — 컨테이닝 블록 .idet-wrap(= 카드 내용 폭) · 정본 주석 «원본 아이콘 하단→패널 상단 41px»(41/881 = 4.65%H ≈ 0.129 × 686px = 88.5px 캔버스 — 맞는다)",
+    "subs_pad_top_wrap_f": "3723 `padding: 3.3% 4% 4.4%` 첫째",
+    "subs_pad_side_wrap_f": "3723 둘째",
+    "subs_pad_bottom_wrap_f": "3723 셋째",
+    "subs_gap_rem": "3723 `gap: 0` (공용 .idet-subs 의 .18rem 을 덮는다)",
+    "lead_mb_rem": "3727 `#forge-item-modal .idet-lead { margin-bottom: .96rem }` — lead 글자(.92rem·line-height 1.13)는 §1 하한(Sub 36px)이라 종류 Sub 그대로 · 높이는 줄바꿈 내용대로",
+    "row_pitch_h": "3714 정본 주석 «하위 스탯 행 피치 1.93%H(17px)» + 3729 `.substat-row { font-size: .84rem; line-height: 1.21 }` — 글자는 §1 하한(Sub)이라 행 높이만 정본 피치로 못 박는다(정본이 «클론은 행 피치 2.47%H 라 13행 누적으로 카드가 +6.14%p 높았다» 고 적은 그 병)"
+  }
+}

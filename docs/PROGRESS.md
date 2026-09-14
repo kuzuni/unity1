@@ -5680,3 +5680,9 @@
 
 - 무엇: `ci.yml` dotnet 잡의 문서 손상 자 바로 뒤에 `check_richtext.py --self-test`(7칸) + 본 검사 두 줄 — `continue-on-error` 없이(막는 자). `.wwwww-src` 가 필요 없는 자라 datasync 잡이 아니라 dotnet 잡이다(clip_paths·letter_spacing 은 정본 CSS 를 읽어 datasync 에 있다 — 꼴은 같다). `check_lock_queue` 는 안 넣었다(T127 보고 전용).
 - 판정: 이 커밋의 CI dotnet 잡 로그에 두 스텝이 서고 초록. «되켜는 한 줄» 고장 주입은 자기 검사 7칸이 이미 한다(사본 브랜치를 따로 밀지 않았다 — 워커 push 가 CI 사슬을 흔든다).
+
+### T177 1회차 기록 (2026-09-14 14:5x · 워커 S · sess-0029-41207 · lock 유지 — CI 자 + `screen_forge-detail.png` 을 본 뒤 반납)
+
+- 무엇: `Assets/Forge/Resources/ForgeItemUi.json`(새 · T111·T113 꼴) — `card_w` .689(3649) · 카드 %패딩 1.7/2.7(3720 · 컨테이닝 블록 = 앱 폭) · `gap 0`(3648) · `.idet-subs` margin-top 12.9% · padding 3.3/4/4.4 · gap 0(3723 · 컨테이닝 블록 = .idet-wrap = 카드 내용 폭 · 정본 주석의 «41px» 과 맞는다) · lead margin-bottom .96rem(3727) · 행 피치 .0193H(3714). `ForgeInfoPopup.RenderDetail` 의 상세 갈래가 공용 `modal_card_w` 대신 이 표를 읽고, 머리→판 여백·lead 아래 여백은 gap 0 이라 여백 칸(`Spacer`)으로, 하위 스탯 행은 높이를 정본 피치로 못 박는다(정본이 «행 피치 2.47%H 라 13행 누적 +6.14%p» 라 적은 병 = 우리 병). 목록 갈래는 안 건드렸다.
+- 못 옮긴 것(정직하게): lead .92rem·행 .84rem 글자 크기는 §1 하한(Sub 36px) 아래라 종류 Sub 그대로 — 행은 높이를 피치로 못 박아 정본과 같고, lead 두 줄은 조금 높다(카드 높이 ±2.5%p 로 잰다).
+- 판정: PlayMode `ForgeItemDetailTests` 1(폭 68.9%W ±1 · 카드 위→판 위 13.17%H ±1 · 행 피치 1.93%H ±.1 · 높이 47.56%H ±2.5) + 다음 런 `screen_forge-detail.png` ↔ 원작 `shot-042931` 눈 확인.
