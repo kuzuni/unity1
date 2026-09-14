@@ -289,7 +289,11 @@ namespace Forge.Game.Ui
 
         private static RectTransform SettingsRow(RectTransform list, int i, string label)
         {
-            float rowH = UiKit.H("settings_row_h") * 1.25f;
+            // T140 — 카탈로그 `settings_row_h`(.0475)가 **이미 정본 값**이다: 정본 `style.css` 3098~3103 의 주석이
+            // «세로 .5rem 은 39.5px 라 원본 42px(4.75%H)보다 낮았다» 며 그 4.75%H 를 기준으로 여백을 잡았다.
+            // 거기에 1.25 를 한 번 더 곱하고 있어 행이 42 → 57px 로 부풀었고, 상자(45.6%H)는 정본대로라
+            // 같은 자리에 원작은 **열 줄**, 클론은 **여덟 줄**만 들어 «차단 목록»·«개인정보 보호» 가 첫 화면에서 사라졌다.
+            float rowH = UiKit.H("settings_row_h");
             RectTransform row = PopupKit.Item(list, "row-" + i, -1f, rowH);
             UiKit.Panel(row, "bg", i % 2 == 0 ? "settings_odd" : "settings_even");
             TextMeshProUGUI t = UiKit.Text(row, "label", TextKind.Sub, label, "pp_ink", TextAlignmentOptions.Left);
