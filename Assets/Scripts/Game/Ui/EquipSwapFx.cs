@@ -15,6 +15,8 @@ namespace Forge.Game.Ui
         public string Slot;
         public RectTransform Cell;
         public EquipSwapGrab G;
+        /// <summary>붙잡는 순간 떠 둔 옛 타일의 복제(정본 `inner: cell.innerHTML`) — 렌더가 칸을 갈아끼운 뒤에 날려도 **옛 장비** 모습이다. Play 가 가져간다.</summary>
+        public RectTransform Ghost;
     }
 
     /// <summary>
@@ -115,7 +117,11 @@ namespace Forge.Game.Ui
                     double cl, ct, cr, cb; fx.Rect((RectTransform)card, out cl, out ct, out cr, out cb);
                     if (cr - cl > 0) { g.HasBlock = true; g.BlockL = cl; g.BlockR = cr; break; }
                 }
-            return new EquipSwapGrabbed { Slot = slot, Cell = cell, G = g };
+            // T118 2회차 — 옛 타일의 «모습» 도 지금 붙잡아 둔다(정본은 innerHTML 을 담아 간다): 호출부가 그 뒤 칸을 갈아끼우면
+            // Play 시점의 칸은 새 장비라, 그때 복제하면 «새 장비가 날아가는» 그림이 된다. 층에 꺼진 채 두었다가 Play 가 켠다.
+            RectTransform ghost = fx.Clone(cell, g.W, g.H, EquipSwapStyle.T("fly"));
+            if (ghost != null) ghost.gameObject.SetActive(false);
+            return new EquipSwapGrabbed { Slot = slot, Cell = cell, G = g, Ghost = ghost };
         }
 
         /// <summary>정본 `playEquipSwapFx(fx)` — 렌더 **뒤에** 부른다. null 이면 조용히 생략(false).</summary>
@@ -138,10 +144,13 @@ namespace Forge.Game.Ui
             LastPlan = p; LastGrab = gr.G; PlayCount++;
             LastSounds.Clear();
             RectTransform cell = gr.Cell;
-            // ⑴ 옛 장비 — 칸을 그대로 입힌 복제 타일이 날아간다
-            RectTransform clone = Clone(cell, gr.G.W, gr.G.H, EquipSwapStyle.T("fly"));
+            // ⑴ 옛 장비 — 붙잡을 때 떠 둔 복제(Ghost · 옛 모습)가 날아간다 · 없으면 지금 칸을 복제
+            RectTransform clone = gr.Ghost != null ? gr.Ghost : Clone(cell, gr.G.W, gr.G.H, EquipSwapStyle.T("fly"));
+            gr.Ghost = null;
             if (clone != null)
             {
+                clone.gameObject.SetActive(true);
+                clone.SetAsLastSibling();
                 // 칸에서는 안 보이던 드롭섀도(공중에 뜬 물건이라는 단서 · 정본 box-shadow 0 .35rem .6rem rgba(0,0,0,.55) — 번짐은 못 내고 판만)
                 Image sh = new GameObject(EquipSwapStyle.T("shadow"), typeof(RectTransform), typeof(Image)).GetComponent<Image>();
                 sh.transform.SetParent(clone, false);
@@ -153,8 +162,10 @@ namespace Forge.Game.Ui
                 StartCoroutine(Fly(s, gr.G, p, clone, (float)rem));
             }
             Sound("equipToss", Sfx.EquipToss);
-            // ⑵ 그동안 칸은 빈 소켓
+            // ⑵ 그동안 칸은 빈 소켓 — 호출부(ForgeHost)가 같은 프레임에 시트를 다시 그렸으면 붙잡은 칸은 프레임 끝에 사라지므로
+            //    다음 프레임에 살아 있는 칸을 다시 집어 빈 소켓을 옮긴다(Rehollow) · 딸깍(130ms)까지 새 장비가 맨살로 보이는 틈을 없앤다
             Hollow hollow = cell != null ? MakeHollow(cell, s) : null;
+            StartCoroutine(Rehollow(gr, s, hollow));
             // ⑶ 새 장비 — 딸깍
             StartCoroutine(Snap(s, gr, hollow));
         }
@@ -256,6 +267,19 @@ namespace Forge.Game.Ui
                 h.Frame.color = new Color(c.r * k, c.g * k, c.b * k, c.a);
             }
             return h;
+        }
+
+        /// <summary>다음 프레임: 렌더가 칸을 갈아끼웠으면(옛 칸은 `Destroy` 라 프레임 끝에 사라진다) 살아 있는 새 칸으로 빈 소켓을 옮긴다. 안 갈아끼웠으면 아무것도 안 한다.</summary>
+        IEnumerator Rehollow(EquipSwapGrabbed gr, EquipSwapSpec s, Hollow h)
+        {
+            yield return null;
+            if (h == null) yield break;
+            RectTransform live = CellOf(gr.Slot);
+            if (live == null || live == h.Cell || !live.gameObject.activeInHierarchy) yield break;
+            if (h.Cell != null) Restore(h);   // 옛 칸이 아직 살아 있는 드문 경우만 되돌린다(파괴됐으면 == null)
+            Hollow n = MakeHollow(live, s);
+            h.Cell = n.Cell; h.Frame = n.Frame; h.FrameColor = n.FrameColor;
+            h.Hidden.Clear(); h.Hidden.AddRange(n.Hidden);
         }
 
         static void Restore(Hollow h)

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using Forge.Core.Forging;
 using Forge.Core.Ui;
 using Forge.Game;
 using Forge.Game.Ui;
@@ -11,7 +12,7 @@ using Forge.Game.Ui;
 namespace Forge.Tests.PlayMode
 {
     /// <summary>
-    /// T118 — 장비 교체 «던져내기»(정본 `equip-swap-throwout`). 1회차는 연출을 직접 부른다(`ForgeHost` 의 Grab/Play 두 줄은 T87 lock 뒤):
+    /// T118 — 장비 교체 «던져내기»(정본 `equip-swap-throwout`). 앞 둘은 연출을 직접 부르고, 셋째(2회차)는 `ForgeHost.DoResolveCraft` 의 실장착으로 돈다:
     /// 붙잡은 칸이 있고 · 옛 타일 복제가 바깥쪽으로 날아 정수 바퀴 돌고 · 소리 셋이 정본 순서(던짐 0 → 딸깍 130 → 착지 522ms) · 칸은 그동안 빈 소켓이었다가 되살아나고 · 수명이 끝나면 층이 빈다 · 팝업 카드가 열려 있으면 착지 자리가 카드 밖.
     /// </summary>
     public class EquipSwapTests
@@ -117,6 +118,77 @@ namespace Forge.Tests.PlayMode
             PlayerInfoPopup.Close(h);
             yield return WaitMs(EquipSwapFx.Spec.FlyMs + 300);
             Assert.AreEqual(0, EquipSwapFx.Instance.Layer.childCount);
+        }
+            static IEnumerator WaitCraftPopup(ForgeHost h)
+        {
+            float t = 0f;
+            while (!h.Meta.Popups.IsOpen(ForgeCraftPopup.Name) && t < 8f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "망치질 + 리빌 뒤 비교 팝업이 떠야 한다");
+            yield return null;
+        }
+
+        /// <summary>T118 2회차 — 실장착: 빈 부위 첫 장착은 연출 0(«교체» 가 아니다) · 그 부위를 채운 뒤 같은 부위를 장착하면 옛 타일이 날고 소리 셋이 정본 순서 · 비교 팝업이 열린 채라 착지는 카드 밖.</summary>
+        [UnityTest]
+        public IEnumerator 실장착_빈_부위_첫_장착은_연출_0_이고_교체는_옛_타일이_날며_딸깍은_연출_안에서만_운다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Hammers = 20; h.Pull();
+            h.OnCraft();
+            yield return WaitCraftPopup(h);
+            ForgeItem item = h.Pending;
+            Assert.IsNotNull(item);
+            string slot = item.Slot;
+            // 그 부위가 비어 있으면 같은 부위의 장비를 하나 굴려 먼저 끼운다(Core 굴림 · 해머 소모 없음) — 교체가 «반드시» 나게
+            if (h.Gear.Get(slot) == null)
+            {
+                // ⓐ 먼저 «빈 부위 첫 장착 = 연출 0» 을 본다: 이 대기품을 그대로 끼운다
+                h.ResolveCraft("equip");
+                yield return null;
+                Assert.AreSame(item, h.Gear.Get(slot), "빈 부위에 끼워졌다");
+                Assert.IsTrue(EquipSwapFx.Instance == null || EquipSwapFx.Instance.PlayCount == 0, "빈 부위 첫 장착은 교체가 아니라 연출 0(정본 3898 주석)");
+                Assert.IsFalse(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "빈 부위면 팝업이 닫힌다");
+                // ⓑ 같은 부위가 나올 때까지 굴린 장비를 대기품으로 세운다(Craft 는 부위가 랜덤이라 굴림으로 부위를 맞춘다)
+                ForgeItem again = null;
+                for (int i = 0; i < 400 && again == null; i++) { ForgeItem r = h.Engine.RollItem(); if (r != null && r.Slot == slot) again = r; }
+                Assert.IsNotNull(again, "400번 안에 같은 부위(" + slot + ")가 굴려져야 한다");
+                h.SetPendingCraft(again);
+                h.ShowCraftModal(again);
+                yield return null;
+                item = again;
+            }
+            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "비교 팝업이 열린 채 [장착]");
+            ForgeItem prev = h.Gear.Get(slot);
+            Assert.IsNotNull(prev, "이제 그 부위에 옛 장비가 있다");
+            int before = EquipSwapFx.Instance != null ? EquipSwapFx.Instance.PlayCount : 0;
+            h.ResolveCraft("equip");
+            yield return null;
+            Assert.AreSame(item, h.Gear.Get(slot), "새 장비가 끼워졌다");
+            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "옛 장비가 있으면 두 카드가 맞바뀐 채 열려 있다");
+            EquipSwapFx fx = EquipSwapFx.Instance;
+            Assert.IsNotNull(fx, "교체면 연출 층이 선다");
+            Assert.AreEqual(before + 1, fx.PlayCount, "교체 한 번 = 연출 한 번");
+            Assert.IsTrue(fx.LastGrab.HasBlock, "비교 팝업 카드가 열린 채 스왑 — 착지는 카드 옆 빈 띠(정본 주 경로)");
+            Assert.AreEqual(1, fx.Flying, "옛 타일 복제가 날고 있다");
+            Assert.AreEqual(1, fx.LastSounds.Count); Assert.AreEqual("equipToss", fx.LastSounds[0], "던질 때 equipToss");
+            RectTransform live = EquipSwapFx.CellOf(slot);
+            Assert.IsNotNull(live, "다시 그려진 칸");
+            yield return null;   // Rehollow — 다시 그려진 새 칸이 빈 소켓
+            int hidden = 0;
+            foreach (Graphic g in live.GetComponentsInChildren<Graphic>(true)) if (g.transform != live && !g.enabled) hidden++;
+            Assert.Greater(hidden, 0, "새 칸은 딸깍 전까지 빈 소켓(내용물 감춤)");
+            EquipSwapSpec s = EquipSwapFx.Spec;
+            yield return WaitMs(EquipSwapRules.LandMs(s) + 120);
+            Assert.AreEqual("equipSnap", fx.LastSounds[1], "딸깍은 연출 안 130ms — ForgeHost 가 바로 울리던 줄은 뺐다(결정 296)");
+            EquipSwapPlan p = fx.LastPlan;
+            bool clear = p.LandX + p.Reach <= fx.LastGrab.BlockL + 1e-6 || p.LandX - p.Reach >= fx.LastGrab.BlockR - 1e-6;
+            Assert.IsTrue(!p.Lands || clear, "눕는 자리는 카드 밖");
+            if (p.Lands) Assert.AreEqual("equipDrop", fx.LastSounds[2], "착지음 522ms");
+            yield return WaitMs(EquipSwapRules.LandMs(s) + s.DustRemoveMs + 400);
+            Assert.AreEqual(0, fx.Layer.childCount, "층은 비었다");
+            int hiddenAfter = 0;
+            foreach (Graphic g in live.GetComponentsInChildren<Graphic>(true)) if (g.transform != live && !g.enabled) hiddenAfter++;
+            Assert.AreEqual(0, hiddenAfter, "칸의 내용물이 되살아났다");
         }
     }
 }

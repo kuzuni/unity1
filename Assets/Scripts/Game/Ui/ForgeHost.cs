@@ -526,15 +526,21 @@ namespace Forge.Game.Ui
             if (!swapBack) ForgeCraftPopup.Hide(this);
             if (item == null) return;
             Pull();
-            if (mode == "equip") { GearSys.Equip(item); PlaySfx("equipSnap"); }
+            // T118 2회차 — 정본 ui.js 3899: 교체 연출(`equip-swap-throwout`)은 렌더가 칸을 갈아끼우기 **전에** 옛 타일을 붙잡는다.
+            //   빈 부위에 처음 끼우는 건 «교체» 가 아니라 던져 낼 옛 장비가 없으니 연출도 없다(null → Play 가 조용히 생략).
+            EquipSwapGrabbed swapFx = swapBack ? EquipSwapFx.Grab(item.Slot) : null;
+            // 딸깍(equipSnap)은 정본 3462 대로 **교체 연출 안에서** 130ms 뒤 운다(EquipSwapFx.Snap) — 빈 부위 첫 장착은 정본도 무음이라
+            //   여기서 바로 울리던 줄을 뺐다(결정 296 · 정본 equipSnap 호출은 ui.js 3462 한 곳뿐).
+            if (mode == "equip") GearSys.Equip(item);
             else GearSys.Sell(item);
             if (swapBack)
             {
                 Push();
                 SetPendingCraft(prev, true);
-                ShowCraftModal(prev);
+                ShowCraftModal(prev);   // ForgeSheet.Render — 칸이 새 장비로 갈아끼워진다(정본 renderEquipSheet)
             }
             else Save();
+            EquipSwapFx.Play(swapFx);   // 정본 3904 — 렌더 **뒤**: 옛 타일이 바깥쪽으로 날아 눕고 130ms 뒤 새 장비가 딸깍
             AutoSeqStep();
             if (!autoSeq) OpenNextAutoMatch();
         }

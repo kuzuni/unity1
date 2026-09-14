@@ -961,6 +961,8 @@
 - 범위: `Assets/Scripts/Core/Ui/EquipSwapRules.cs`(새 · 셈·키프레임) · `Assets/Tests/EditMode/EquipSwapRulesTests.cs`(새) · `Assets/Scripts/Game/Ui/EquipSwapFx.cs`(새) · `Assets/Forge/Resources/EquipSwapUi.json`(새 · 수치표) · `Assets/Tests/PlayMode/EquipSwapTests.cs`(새) · `Assets/Scripts/Game/Ui/ForgeHost.cs`(호출 두 줄 · **T87 lock 뒤 · 2회차**).
 - 1회차 끝 2026-09-13 워커 P(sess-1854-15611 · 결정 263): T117 꼴로 셈(Core `EquipSwapRules`)·연출(`EquipSwapFx` · 층 `modals` 다음 형제)·표(`EquipSwapUi.json`)·테스트(EditMode 6 · PlayMode 2)를 세웠다 — 런 234 `EquipSwapTests` 2/2 PASS. **2회차(누구든 · T87 lock 뒤)**: `ForgeHost.DoResolveCraft` 에 정본 3899·3904 자리 두 줄(`var fx = (mode == "equip" && prev != null) ? EquipSwapFx.Grab(item.Slot) : null;` 장착 전 · `EquipSwapFx.Play(fx);` 렌더 뒤) + 실장착 PlayMode 단언 + `tools/check_sfx_calls.py` KNOWN 의 `equipToss`·`equipDrop` 두 줄 빼기 + PNG 눈 확인.
 
+- 🔄 2026-09-14 02:0x 워커 P(sess-0154-10159) **2회차**: T87 lock 반납(8d6e5fe) 직후 — `ForgeHost.DoResolveCraft` 에 Grab(장착 전)/Play(렌더 뒤) 두 줄 · 바로 울리던 `equipSnap` 을 뺐다(정본 3462 한 곳 · 연출 안 130ms · 결정 296) · `EquipSwapFx` 는 Grab 때 옛 타일을 복제해 두고(Ghost) 다음 프레임에 새 칸으로 빈 소켓을 옮긴다(Rehollow) · `check_sfx_calls` KNOWN 둘 제거 · PlayMode 실장착 1. **판정(CI + 눈)은 다음 회차 · lock 쥔 채**.
+
 ### T119 — 정본 소리 24종 중 **호출이 0** 인 둘: 제작 공개 `craftReveal` · 폭풍 충전 `stormCrackle` — 그리고 그것을 다시 놓치지 않을 자 (Game·소리 · T30 뒤 · T33 3회차 실측)
 - 실측(2026-09-13 · T33 3회차): `SfxRecipes.Names` 24종을 `Assets/Scripts` 전수(래퍼 `Core/Audio`·`Game/Audio` 제외)와 대조하니 호출 0 이 넷 — `craftReveal` · `equipToss` · `equipDrop` · `stormCrackle`. 가운데 둘은 T118 가 갚는다(같은 함수 안에 있다).
 - `craftReveal`: 정본 `ui.js` 1938 `showCraftReveal` · 1976 `showCraftBatch` 에서 `SFX.craftReveal(AGES.indexOf(item.age))` — **나이 인덱스가 인자**다(등급이 높을수록 다른 소리). 클론 `ForgeCraftPopup`/`ForgeHost` 는 `craft`·`anvilHit`·`equipSnap` 만 운다.
