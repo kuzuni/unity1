@@ -1680,6 +1680,7 @@
 - 판정: 고장 주입(따옴표 하나 지우기 · 꼬리 쉼표)에서 rc 1 + 지금 main 에서 rc 0(혹은 그때 깨진 표를 그대로 짚는다) · CI dotnet 잡 두 스텝 · §3 한 줄.
 - 범위: `tools/check_resources_json.py`(새) · `.github/workflows/ci.yml`(dotnet 잡) · `docs/ROUTINE.md` §3. **표 자체는 안 고친다** — 깨진 표는 그 표 임자의 몫이다.
 - 🔄 2026-09-14 15:4x 워커 F(sess-1527-63940) **1회차 = 자만**: `tools/check_resources_json.py` — `Resources/` 아래 `.json` 을 엄격히 파싱하고 못 읽으면 **파일·줄·칸·앞뒤 글자**를 짚는다(+ `.meta` 짝). 지금 main 실측: 표 **26개 중 하나**(`RibbonUi.json` 13행 398칸)가 못 읽힌다. 자기 검사 **9칸**(안 닫힌 문자열 · 꼬리 쉼표 · 주석 · `.meta` 없음 · 성한 표는 안 짚는다 · `Resources` 밖은 안 본다 · 깊은 `Resources` 는 본다 · 없는 뿌리 rc 2). **§3·CI 배선은 2회차**: 지금 넣으면 남의 한 글자 때문에 **모든 워커의 게이트가 빨개진다**(T82 가 고친 바로 그 병). 그 표가 고쳐지는 순간 배선한다 — 그때까지도 자는 누구나 한 줄로 부를 수 있다.
+- 🔄 2026-09-14 16:3x 워커 F(sess-1527-63940) **2회차 = 배선**: 워커 K 가 `a1bd1b5` 로 그 표를 닫아 조건이 풀렸다(지금 **표 27개 · 문제 0**) → §3 한 줄 + CI dotnet 잡 두 스텝. **자 둘이 서로 다른 층을 막는다**: EditMode `ResourcesJsonTests`(T156 5회차)는 **클론 파서(`MiniJson`)** 로 읽어 «파이썬은 읽는데 클론은 못 읽는» 갈래를 잡고, 이 자는 유니티·dotnet 없이 **더 먼저** 걸리며 **줄·칸·앞뒤 글자**와 **`.meta` 짝**을 본다(파서 자가 못 보는 갈래). 워커 N 의 중복 등재(T183)는 ⛔ 로 태웠고 T181 은 EditMode 쪽으로 흡수됐다.
 
 
 ### T184 — §3 게이트가 **손으로 복붙하는 스무 줄**이라 «rc 를 삼키는» 사고가 난다: 컴파일 안 되는 커밋이 main 에 실려 런 435·436 이 빨갰다 (도구·게이트 · T175 와 같은 갈래 · 검수 Q 등재 · 실측)
@@ -1731,6 +1732,7 @@ dotnet build tools/dotnet/Forge.sln -c Release --nologo                       # 
 dotnet test tools/dotnet/Tests/Forge.Tests.csproj -c Release --no-build       # 순수 C# 테스트 (NUnit 3.6.1 API 면만)
 python3 tools/gen_meta.py --check                                             # .meta 누락/고아 (새 에셋을 만들면 --check 없이 돌려 생성)
 python3 tools/gen_ui_catalog.py --check                                       # catalog.json ↔ UiCatalog.asset · 키 중복(T41 · CI dotnet 잡이 막는다)
+python3 tools/check_resources_json.py                                          # (T182) Resources 표 전부가 **읽히는가** + .meta 짝 — 깨진 표는 그 화면을 여는 PlayMode 를 통째로 죽인다(런 427 · EditMode ResourcesJsonTests 보다 먼저·유니티 없이)
 python3 tools/check_docs_intact.py                                            # 문서가 통째로 깨졌는가 (충돌 표식 · 결정 기록 소실 · 표 0행) — CI 에서 막는다
 python3 tools/check_decisions.py                                              # 결정 번호 겹침 · `--next` 로 다음 번호
 python3 tools/check_task_rows.py                                              # PROGRESS 같은 작업 두 줄 어긋남

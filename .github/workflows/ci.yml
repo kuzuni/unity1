@@ -46,6 +46,12 @@ jobs:
         run: python3 tools/gen_ui_catalog.py --self-test
       - name: "UI 카탈로그 ↔ UiCatalog.asset 동기화 · 키 중복 — 막는다"
         run: python3 tools/gen_ui_catalog.py --check
+      # T182 — 표 하나가 깨지면 그것을 읽는 화면·연출·시험이 **통째로** 넘어진다(런 427: RibbonUi.json 13행 → PlayMode 20개).
+      #        EditMode `ResourcesJsonTests`(T156 5회차)가 클론 파서로 같은 것을 보고, 이 자는 그보다 **먼저**(유니티 없이) 막고 `.meta` 짝까지 본다.
+      - name: Resources 표 자 자기 검사 (T182 `check_resources_json.py` · 고장 주입 9칸)
+        run: python3 tools/check_resources_json.py --self-test
+      - name: Resources 표가 전부 읽히는가 + .meta 짝 — 막는다 (T182)
+        run: python3 tools/check_resources_json.py
       # 문서가 «통째로 깨졌는가»(충돌 표식 · 결정 기록 소실 · 표 행 0개) — 되돌릴 자리가 묻히기 전에 **막는다**.
       - name: 문서 손상 자 자기 검사
         run: python3 tools/check_docs_intact.py --self-test
