@@ -123,6 +123,7 @@ namespace Forge.Game.Ui
             TextMeshProUGUI rk = UiKit.Text(row, "rank", TextKind.Body, rank.ToString(), "stage_ink");
             rk.fontStyle = FontStyles.Bold;
             UiKit.OutlinePx(rk, "pp_line", KeylineUi.Px("league_row_text"));   // T109 5회차 — 정본 style.css 8403 `.league-row .league-rank { 2px var(--pp-line) }`
+            UiKit.TextShadow(rk, "league_row");   // T333 3회차 — 정본 8392 의 첫 겹(0 1px 1px rgba(0,0,0,.75)) · 키라인과 같은 재질에 얹힌다(순서 무관)
             UiKit.Place(rk.rectTransform, x, 0f, rem * 1.8f, rowH);
             x += rem * 1.8f + rem * 0.5f;
             float av = UiKit.H("league_avatar");
@@ -134,6 +135,7 @@ namespace Forge.Game.Ui
             TextMeshProUGUI nm = UiKit.Text(row, "name", TextKind.Sub, e.Name, "stage_ink", TextAlignmentOptions.Left);
             nm.fontStyle = FontStyles.Bold;
             UiKit.OutlinePx(nm, "pp_line", KeylineUi.Px("league_row_text"));   // T109 5회차 — 정본 8403 `.league-row .league-name { 2px var(--pp-line) }`
+            UiKit.TextShadow(nm, "league_row");   // T333 3회차 — 정본 8392 첫 겹
             UiKit.Place(nm.rectTransform, x, rowH * 0.08f, nameW, rowH * 0.45f);
             // T89 — «⚔» 는 글꼴에 없어 □ 로 찍혔다. 정본 TOAST_ICON 이 `⚔ → tm_sword` 를 쥐고 있으니 그 아이콘으로 선다.
             RectTransform cp = UiKit.IconTextRow(row, "cp", TextKind.Sub, "⚔ " + PopupKit.Fmt(e.Cp), "league_cp", TextAlignmentOptions.Left);
@@ -151,7 +153,8 @@ namespace Forge.Game.Ui
             // T89 — 정본 `ui.js` 4741: `<span class="league-score">${IconGen.img('star')} ${U.fmt(e.score)}</span>`.
             // 클론은 «★»(U+2605) 글자로 찍어 글꼴에 없어 □ 였다 — 표의 ⭐ 를 써서 같은 `star` 아이콘 + 수로 세운다.
             RectTransform scRow = UiKit.IconTextRow(score, "text", TextKind.Sub, "⭐ " + PopupKit.Fmt(e.Score), "stage_ink");
-            foreach (TextMeshProUGUI piece in UiKit.RowTexts(scRow)) piece.fontStyle = FontStyles.Bold;
+            // T333 3회차 — 정본 8392 는 `.league-score` 도 같은 한 겹을 받는다(알약 판 위 점수).
+            foreach (TextMeshProUGUI piece in UiKit.RowTexts(scRow)) { piece.fontStyle = FontStyles.Bold; UiKit.TextShadow(piece, "league_row"); }
             TextMeshProUGUI sv = UiKit.Text(row, "server", TextKind.Sub, "서버 " + e.Server, e.IsMe ? "stage_ink" : "league_server", TextAlignmentOptions.Right);
             // T109 5회차 — 정본 2355 `.league-row.me .league-server { max(1.2px, .1em) var(--pp-line) }`: 파란 me 행만 키라인.
             // 어두운 행의 회색 «서버 N» 은 정본도 민무늬다(2350 주석: 근흑 판 위라 검정 링이 아무것도 안 갈라 준다).

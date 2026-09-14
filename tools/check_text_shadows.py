@@ -14,6 +14,8 @@ T333 — 정본 `text-shadow` 선언 ↔ 클론 글자 그림자(`UiKit.TextShad
   "Ui/File.cs#name"      그 이름으로 만든 글자에 그림자 호출이 닿아야 함(변수 대입 꼬리를 좇는다)
   "Ui/File.cs@Method"    도우미 메서드 본문 안에 그림자 호출이 있어야 함
   "—<이유>"              대조하지 않는다(클론에 자리 없음 등)
+  "ring:<위 꼴>"         그 자리에 **링**(`UiKit.Outline`/`OutlinePx` · SDF 스트로크)이 닿아야 함 — 정본이 4/8방향 hard 링으로 흉내 낸
+                         text-shadow 는 TMP 언더레이 한 겹으로 못 낸다(T333 3회차 · 등재 절 ⓒ · `.chat-name` 20겹 = 변당 2px 순검정).
 
 빈자리 중 «임자가 정해진 것» 은 KNOWN 에 두어 rc 0 으로 지나간다. 닫았는데 안 지우면 «이제 있다» 로 알린다.
 
@@ -35,22 +37,43 @@ TABLE = {
     # T333 1회차 — 색 버튼 라벨(8336·8504 같은 선택자 · 뒤 규칙 .62 가 이긴다) · 비활성 흰 엠보스(8356) → 공용 PopupKit.Btn
     '.btn.btn:not(.silver):not(.ascend-ready), .modal-card .btn.btn:not(.silver):not(.ascend-ready), .panel .btn.btn:not(.silver):not(.ascend-ready), #equip-sheet .btn.btn:not(.silver):not(.ascend-ready)': ['Ui/Popups.cs@Btn'],
     '.btn.btn.disabled, .modal-card .btn.btn.disabled, .panel .btn.btn.disabled, #equip-sheet .btn.btn.disabled': ['Ui/Popups.cs@Btn'],
+    # T333 2회차 — 8381 한 벌 «밝은 종이 위 글자는 흰 엠보스»: 시트 제목 다섯 자리(나머지 선택자는 KNOWN 에 임자와 함께)
+    '.sheet-title, .modal-card h3, .modal-card .idet-name, .stat-grid div, .substat-list div, .prob-box div, .shop-reward-pill, .qst-row .qst-name': [
+        'Ui/MountSheet.cs#sheet-title', 'Ui/PetPanel.cs#sheet-title', 'Ui/SkillPanel.cs#sheet-title',
+        'Ui/ShopSheet.cs#title', 'Ui/AscendPopup.cs#title',
+        'Ui/ForgeInfoPopup.cs#idet-name', 'Ui/QuestSheet.cs#qst-name',
+    ],
+    # T333 3회차 ⓒ — 정본이 «4/8방향 hard 링» 으로 흉내 낸 것: 언더레이 한 겹으로는 못 내니 SDF 스트로크(`ring:`)로 센다
+    '#stage-label': ['ring:Ui/Hud.cs#stage-label'],
+    '.chat-name, .chat-tag': ['ring:Ui/ChatScreen.cs#name'],
+    '.dgd-title': ['ring:Ui/DungeonDetailPopup.cs#title'],
+    # T333 3회차 — 8392 두 겹 중 첫 겹(읽히게 만드는 아래 1px 드롭 · 둘째 겹 글로우는 근사로 뺀다 · 표 `league_row` 주석)
+    '.league-row .league-name, .league-row .league-rank, .league-score, .equipped-label + * , .chat-preview-name': [
+        'Ui/LeagueSheet.cs#rank', 'Ui/LeagueSheet.cs#name',
+        # `.league-score` 는 아이콘+수 두 조각(`UiKit.RowTexts`)이라 «이름 → 변수» 꼬리로는 못 좇는다 — 그 행을 세우는 메서드로 센다
+        'Ui/LeagueSheet.cs@Row',
+    ],
 }
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ────────────────────────────────
 KNOWN = {
+    'Ui/ForgeInfoPopup.cs#idet-name': 'T332·T339 의 산 lock 이 쥔 파일 — 정본 8381 `.modal-card .idet-name`(장비 상세 이름) 은 그 lock 뒤',
+    'Ui/QuestSheet.cs#qst-name': 'T331 산 lock + 클론에 그 이름 자리가 아직 없다 — 정본 8381 `.qst-row .qst-name`',
 }
 
 SHADOW = r'UiKit\.TextShadow'
+# ⓒ 4/8방향 hard 링(정본이 text-shadow 로 흉내 낸 키라인) — 언더레이 한 겹으로는 못 내니 SDF 스트로크로 낸다(T104 `UiKit.Outline`/`OutlinePx`).
+RING = r'UiKit\.Outline(?:Px)?'
 SHADOW_CALL = re.compile(r'\b' + SHADOW + r'\s*\(')
+RING_CALL = re.compile(r'\b' + RING + r'\s*\(')
 CREATE_CALL = re.compile(r'\.(Text|Label|Bold|Stroked|IconTextRow|Btn)\s*\(\s*[^,()]+,\s*"([^"]+)"')
 ASSIGN_TAIL = re.compile(r'([\w\[\]\.]+)\s*=\s*(?:[\w!.()\[\]]+\s*\?\s*)?[\w.]*$')
 DECL = re.compile(r'(?<![\w-])text-shadow\s*:\s*([^;}]+)')
 
 
-def shadow_on(var):
+def shadow_on(var, call=SHADOW):
     v = re.escape(var)
-    return re.compile(r'\b' + SHADOW + r'\s*\(\s*' + v + r'\s*,')
+    return re.compile(r'\b' + call + r'\s*\(\s*' + v + r'\s*,')
 
 
 def keyline_selectors():
@@ -108,19 +131,27 @@ def _method_body(src, name):
 
 
 def check_target(game_dir, target):
-    """(상태, 설명) — 'ok' | 'missing'(자리는 있는데 그림자 호출 없음) | 'absent'(자리·메서드·파일 없음)."""
+    """(상태, 설명) — 'ok' | 'missing'(자리는 있는데 그림자 호출 없음) | 'absent'(자리·메서드·파일 없음).
+
+    `ring:` 접두가 붙으면 «언더레이» 가 아니라 «SDF 스트로크»(`UiKit.Outline`/`OutlinePx`)를 센다 — 정본이 4/8방향 hard 링으로
+    흉내 낸 text-shadow 는 TMP 언더레이 한 겹으로 못 내기 때문이다(T333 3회차 · 등재 절 ⓒ).
+    """
+    ring = target.startswith('ring:')
+    if ring:
+        target = target[len('ring:'):]
+    call, call_re, word = (RING, RING_CALL, '링') if ring else (SHADOW, SHADOW_CALL, '그림자')
     file_part, sep, tail = re.match(r'([^#@]+)([#@]?)(.*)', target).groups()
     path = os.path.join(game_dir, file_part)
     if not os.path.isfile(path):
         return 'absent', '파일 없음 ' + file_part
     src = _read(path)
     if sep == '':
-        return ('ok' if SHADOW_CALL.search(src) else 'missing'), '파일 전체'
+        return ('ok' if call_re.search(src) else 'missing'), '파일 전체'
     if sep == '@':
         body = _method_body(src, tail)
         if body is None:
             return 'absent', '메서드 없음 ' + tail + '('
-        return ('ok' if SHADOW_CALL.search(body) else 'missing'), '메서드 ' + tail + '( 본문'
+        return ('ok' if call_re.search(body) else 'missing'), '메서드 ' + tail + '( 본문'
     found = False
     for m in CREATE_CALL.finditer(src):
         if m.group(2) != tail:
@@ -128,11 +159,11 @@ def check_target(game_dir, target):
         found = True
         head = src[max(0, m.start() - 160):m.start()].replace('\n', ' ')
         a = ASSIGN_TAIL.search(head)
-        if a and shadow_on(a.group(1)).search(src):
-            return 'ok', '"%s" → %s 에 그림자 호출이 닿는다' % (tail, a.group(1))
+        if a and shadow_on(a.group(1), call).search(src):
+            return 'ok', '"%s" → %s 에 %s 호출이 닿는다' % (tail, a.group(1), word)
     if not found:
         return 'absent', '"%s" 이름으로 만드는 자리가 없다' % tail
-    return 'missing', '"%s" 에 그림자 호출이 안 닿는다' % tail
+    return 'missing', '"%s" 에 %s 호출이 안 닿는다' % (tail, word)
 
 
 # ── 대조 ──────────────────────────────────────────────────────────
@@ -175,7 +206,7 @@ def run(css_path, game_dir, table, known, out=print, list_pending=False, keyline
                 if t in known:
                     known_now_ok.append(t)
                 continue
-            tag = '그림자 없음' if state == 'missing' else '자리 없음'
+            tag = ('링 없음' if t.startswith('ring:') else '그림자 없음') if state == 'missing' else '자리 없음'
             if t in known:
                 n_known += 1
                 out('· KNOWN(%s)  %s  ← style.css %d %s { text-shadow: %s }  — %s' % (tag, t, line, sel[:70], val[:60], known[t]))
@@ -278,14 +309,27 @@ def self_test():
             expect('ⓘ 끄는 규칙 문법 ' + sel, ts.startswith('—'))
             continue
         for t in ts:
-            expect('ⓘ 자리 문법 ' + t, re.match(r'^[\w/]+\.cs([#@][\w-]+)?$', t) is not None)
+            expect('ⓘ 자리 문법 ' + t, re.match(r'^(ring:)?[\w/]+\.cs([#@][\w-]+)?$', t) is not None)
     expect('ⓘ check_keyline TABLE 을 읽는다', len(keyline_selectors()) >= 40, str(len(keyline_selectors())))
+    # ⓙ ring: 갈래 — 링이 있으면 초록 · 언더레이만 있으면 «링 없음» · 링만 있는 자리를 언더레이로 재면 «그림자 없음»
+    cs('class Face { static void R(Transform p){ var a = UiKit.Text(p, "s-e", TextKind.Body, "x"); UiKit.OutlinePx(a, "pp_line", 4f); }\n'
+       ' static void S(Transform p){ var b = UiKit.Text(p, "s-b", TextKind.Body, "y"); UiKit.TextShadow(b, "k"); } }')
+    rc, out = go({'.s-e': ['ring:Ui/Face.cs#s-e']}, {}, base_css)
+    expect('ⓙ 링 초록', rc == 0 and '자리 초록 1' in out, out)
+    rc, out = go({'.s-b, .s-c': ['ring:Ui/Face.cs#s-b']}, {})
+    expect('ⓙ 언더레이만 있으면 링 없음', rc == 1 and '링 없음' in out, out)
+    rc, out = go({'.s-e': ['Ui/Face.cs#s-e']}, {})
+    expect('ⓙ 링만 있으면 그림자 없음', rc == 1 and '그림자 없음' in out, out)
+    # ⓚ 옛 갈래 `UiKit.Outline(width01)` 도 링으로 센다(Hud 의 #stage-label 이 그것을 쓴다)
+    cs('class Face { static void R(Transform p){ var a = UiKit.Text(p, "s-e", TextKind.Body, "x"); UiKit.Outline(a, "stage_outline", .25f); } }')
+    rc, out = go({'.s-e': ['ring:Ui/Face.cs#s-e']}, {})
+    expect('ⓚ 옛 Outline 갈래', rc == 0 and '자리 초록 1' in out, out)
     if fails:
         print('✗ check_text_shadows --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  · ' + f[:400])
         return 1
-    print('✓ check_text_shadows --self-test 20칸 통과')
+    print('✓ check_text_shadows --self-test 24칸 통과')
     return 0
 
 

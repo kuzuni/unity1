@@ -187,6 +187,9 @@ namespace Forge.Game.Ui
             UiKit.Place(nameLine, x, 0f, bubbleW, nameH);
             TextMeshProUGUI nm = UiKit.Text(nameLine, "name", TextKind.Sub, (m.Tag != null ? "[" + m.Tag + "] " : string.Empty) + name, "chat_name", TextAlignmentOptions.Left);
             nm.fontStyle = FontStyles.Bold;
+            // T333 3회차 — 정본 style.css 3344 `.chat-name, .chat-tag` 의 20겹 링: 변당 2px 순검정이다(정본 주석이 «1px 8방향으로는 절반» 이라 2px 을 겹쳐 둘렀다고 적어 둔 그 자리 ·
+            // --olc 오타로 한 번도 안 그려졌던 4겹을 #000 으로 되살린 규칙). 흰 목록 위 주황 닉네임이 떠 보이는 까닭이 이 키라인이다 — 언더레이 한 겹으로는 못 내니 SDF 스트로크로.
+            UiKit.OutlinePx(nm, "pp_line", TextShadowUi.RingPx("chat_name"));
             nm.rectTransform.offsetMax = new Vector2(-rem * 3f, 0f);
             // T131 — 정본 ui.js `chatNameIcons(m)`(5259·5281 두 줄 다): 이름 뒤에 [성별 아이콘][클랜 배지]. 성별은 글자 ♂/♀ 가 아니라 gender_m/f 아이콘,
             // 배지는 이름 해시가 h%3≠0 인 이름에만(Core Chat.ClanBadge). 치수는 정본 style.css 3336~3341(PersonIconsUi.json).

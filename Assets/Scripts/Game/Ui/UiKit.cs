@@ -391,6 +391,17 @@ namespace Forge.Game.Ui
             return o;
         }
 
+        /// <summary>T333 3회차 — 정본이 «4/8방향 hard 링» 으로 흉내 낸 `text-shadow`(키라인 자 표 밖 · 등재 절 ⓒ)의 **변당 두께**(표 `rings` · 정본 CSS px → 캔버스 px).
+        /// 링은 언더레이 한 겹으로 못 내니 <see cref="UiKit.OutlinePx(TextMeshProUGUI, string, float)"/>(SDF 스트로크 · T104)로 낸다.</summary>
+        public static float RingPx(string key)
+        {
+            Load();
+            JsonObject rings = J.Obj(root["rings"]);
+            object v = rings != null ? rings[key] : null;
+            if (!J.IsNum(v)) throw new KeyNotFoundException(ResourcePath + ".json 의 «rings» 에 «" + key + "» 이 없다");
+            return (float)J.Num(v) * KeylineUi.CssPx;
+        }
+
         /// <summary>표 값(CSS px) — `dx_px` · `dy_px`(아래가 +) · `blur_px`.</summary>
         public static float Px(string key, string field)
         {

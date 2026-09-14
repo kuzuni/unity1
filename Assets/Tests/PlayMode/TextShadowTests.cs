@@ -126,5 +126,65 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(c.r + c.g + c.b, 2.7f, "엠보스는 흰색이어야 한다(정본 rgba(255,255,255,.92))");
             yield return null;
         }
+
+        /// <summary>
+        /// T333 3회차 — 정본 8392 `.league-row .league-name, .league-row .league-rank, .league-score … { 0 1px 1px rgba(0,0,0,.75), 0 0 6px rgba(0,0,0,.35) }`.
+        /// 두 겹인데 TMP 언더레이는 한 겹뿐이라 **읽히게 만드는 첫 겹**(아래 1px 드롭)만 낸다(표 `league_row` 주석). 같은 글자의 2px 키라인(T109 5회차 · 8403)은
+        /// 같은 재질 인스턴스에 얹히니 **둘 다 살아 있어야** 한다 — 하나가 다른 하나를 지우면 그것이 이 자의 빨강이다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 리그_행_글자는_키라인_위에_정본_첫_겹_그림자를_더_받는다()
+        {
+            yield return Boot();
+            MetaHost.Instance.OpenLeague();
+            yield return null;
+            Popup p = MetaHost.Instance.Popups.Find(LeagueSheet.Name);
+            Assert.IsNotNull(p, "리그 시트가 안 열렸다");
+            int rows = 0;
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.transform.parent == null || !t.transform.parent.name.StartsWith("row-", System.StringComparison.Ordinal)) continue;
+                if (t.name != "rank" && t.name != "name") continue;
+                rows++;
+                AssertShadow(t, "league_row", "리그 행 «" + t.name + "»");
+                Assert.Greater(t.outlineWidth, 0f, "리그 행 «" + t.name + "»: 정본 8403 의 2px 키라인이 그림자에 지워지면 안 된다");
+                Assert.Less(t.fontMaterial.GetFloat("_UnderlayOffsetY"), 0f, "리그 행 «" + t.name + "»: 그림자는 아래로(CSS 0 1px)");
+            }
+            Assert.Greater(rows, 1, "랭킹 행의 순위·이름 글자를 못 찾았다");
+            yield return null;
+        }
+
+        /// <summary>
+        /// T333 3회차 ⓒ — 정본 3344 `.chat-name, .chat-tag` 의 20겹 링. 정본 주석이 «1px 8방향으로는 절반밖에 안 나오므로 2px 링을 겹쳐 두른다» 고 적어 둔
+        /// **변당 2px 순검정**이라, 언더레이 한 겹이 아니라 SDF 스트로크(`UiKit.OutlinePx` · T104)로 낸다. 두께는 표 `rings.chat_name`(CSS px) ×
+        /// <see cref="KeylineUi.CssPx"/> 이고, 링이므로 언더레이는 안 켜져 있어야 한다(켜 두면 같은 자리에 겹이 둘이 된다).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 채팅_닉네임은_20겹_링을_변당_2px_스트로크로_낸다()
+        {
+            yield return Boot();
+            MetaHost.Instance.OpenChat();
+            yield return null;
+            Popup p = MetaHost.Instance.Popups.Find(ChatScreen.Name);
+            Assert.IsNotNull(p, "채팅 화면이 안 열렸다");
+            int names = 0;
+            float want = TextShadowUi.RingPx("chat_name");
+            Assert.Greater(want, 4f, "표 rings.chat_name(2 CSS px) × css_px(2.164) 는 4 캔버스 px 를 넘어야 한다");
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name != "name" || t.transform.parent == null || t.transform.parent.name != "name-line") continue;
+                names++;
+                Material m = t.fontMaterial;
+                OutlineSdf o = OutlineSdf.FromStroke(want, t.fontSize, m.GetFloat("_GradientScale"),
+                    m.HasProperty("_ScaleRatioA") ? m.GetFloat("_ScaleRatioA") : 1f, t.font.faceInfo.pointSize);
+                Assert.AreEqual((float)o.Width01, m.GetFloat("_OutlineWidth"), 1e-3f, "닉네임 «" + t.text + "»: 링 두께 = 표 × css_px 의 SDF 환산");
+                Assert.Greater(t.outlineWidth, 0f, "닉네임 «" + t.text + "»: 링이 실제로 켜져야 한다");
+                Color oc = m.GetColor("_OutlineColor");
+                Assert.Less(oc.r + oc.g + oc.b, 0.1f, "닉네임 «" + t.text + "»: 링은 순검정(정본 #000 · 카탈로그 pp_line)");
+                Assert.IsFalse(m.IsKeywordEnabled("UNDERLAY_ON"), "닉네임 «" + t.text + "»: 링 자리에 언더레이까지 켜면 겹이 둘이 된다");
+            }
+            Assert.Greater(names, 1, "채팅 목록의 닉네임을 못 찾았다");
+            yield return null;
+        }
     }
 }

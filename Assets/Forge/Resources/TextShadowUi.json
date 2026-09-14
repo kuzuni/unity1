@@ -24,11 +24,24 @@
       "color": "#FFFFFF",
       "alpha": 0.92,
       "_": "style.css 8381 `.sheet-title, .modal-card h3, .modal-card .idet-name, .stat-grid div, .substat-list div, .prob-box div, .shop-reward-pill, .qst-row .qst-name { text-shadow: 0 1px 0 rgba(255,255,255,.92) }` — 정본 주석의 한 벌 규칙 «어두운 바탕 위 글자는 검정 그림자로, 밝은 종이 위 글자는 흰 엠보스로»."
+    },
+    "league_row": {
+      "dx_px": 0,
+      "dy_px": 1,
+      "blur_px": 1,
+      "color": "#000000",
+      "alpha": 0.75,
+      "_": "style.css 8392 `.league-row .league-name, .league-row .league-rank, .league-score, .equipped-label + *, .chat-preview-name { text-shadow: 0 1px 1px rgba(0,0,0,.75), 0 0 6px rgba(0,0,0,.35) }` — 두 겹이다. TMP 언더레이는 한 겹뿐이라 **읽히게 만드는 첫 겹**(아래 1px 드롭)만 낸다: 둘째 겹은 반지름 6px 알파 .35 의 바깥 글로우로, 정본에서도 검정 판 위에서는 거의 안 보인다(T333 3회차 · 근사 기록)."
     }
   },
   "btn_none_keylines": [
     "summon_btn"
   ],
   "btn_none_keylines_": "제 규칙이 text-shadow: none 인 버튼의 키라인 표 키 — style.css 8661 .btn.btn.summon-btn.summon-btn:not(.ascend-ready) { text-shadow: none }",
-  "shadows_": "btn 의 «색 버튼» 은 T109 7회차와 같은 가름 — KeylineUi.json btn_face 에 든 면(pp_blue·pp_green·pp_red = 정본 .primary/.on/.equip/.danger/.sell)만 그림자 · 그 밖(회색·종이·디버그 = 정본 .silver 계열)은 없음 · 비활성은 면과 무관하게 흰 엠보스(8356)"
+  "shadows_": "btn 의 «색 버튼» 은 T109 7회차와 같은 가름 — KeylineUi.json btn_face 에 든 면(pp_blue·pp_green·pp_red = 정본 .primary/.on/.equip/.danger/.sell)만 그림자 · 그 밖(회색·종이·디버그 = 정본 .silver 계열)은 없음 · 비활성은 면과 무관하게 흰 엠보스(8356)",
+  "rings": {
+    "chat_name": 2,
+    "chat_name_": "style.css 3344 `.chat-name, .chat-tag` 의 20겹 링 = **변당 2px 순검정**(정본 주석: «1px 8방향으로는 절반밖에 안 나오므로 2px 링을 겹쳐 두른다» · --olc 오타로 죽었던 4겹을 #000 으로 되살린 그 규칙). 링은 언더레이 한 겹으로 못 내니 UiKit.OutlinePx(SDF 스트로크 · T104)로 낸다 — 색은 카탈로그 pp_line(#000000)."
+  },
+  "rings_": "T333 3회차 — 정본이 «4/8방향 hard 링» 으로 흉내 낸 text-shadow(키라인 자 표 밖 · 등재 절 셋째 갈래)의 **변당 두께**(정본 CSS px). 값은 TextShadowUi.RingPx 가 KeylineUi css_px 로 캔버스 px 로 환산한다."
 }
