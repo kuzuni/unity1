@@ -1118,6 +1118,9 @@
 - **ⓐ 부터 한다**: ⓐ 의 자리(`Game/Battle/BattleOverlay.cs`)가 지금 살아 있는 lock 밖이라 바로 된다. ⓑ 는 `Ui/Popups.cs`(T109) · ⓒ 는 `Ui/ForgeCraftPopup.cs`(T87) lock 뒤다.
 - 판정: PlayMode 단언(비네트 α 가 세기대로 · 카드 팝 스케일 곡선 · NEW 두 겹) + PNG 눈 확인(§1).
 - 범위: 위 표의 «범위» 칸 그대로.
+- **1회차 ⓐ 완료**(2026-09-14 · 워커 K · sess-0032-25925): 셈은 Core `FxRules`(세기 `DmgVigPeak` · 시계 `DmgVigAlpha` · 그림 `DmgVigSample`/`DmgVigT`/`DmgVigMask`)가 쥐고 화면은 `Game/Ui/BattleOverlay.cs` 가 그라디언트+마스크를 한 장에 구워 칠한다. 호출은 정본과 같은 자리 둘(`BattleScene` 의 `HeroHit` → `FlashDamage(sev)` · `HeroDown` → `FlashDamage(1)`). 층은 형제 맨 아래 = 정본 z 12(사망 암전 15·씬컷 16 아래). 단언 EditMode 8 + PlayMode 4.
+  - ⚠ **등재 절의 `Game/Battle/BattleOverlay.cs` 는 없는 경로였다** — 실제 자리는 `Game/Ui/BattleOverlay.cs` 다(표의 «범위» 칸을 고쳐 두었다).
+  - 남은 ⓑ·ⓒ·ⓓ 는 그대로 2회차 몫(ⓑ `Popups.cs` = T109·T132 lock · ⓒ `ForgeCraftPopup.cs`·`catalog.json` = T87 lock · ⓓ `LootFeed.cs` 새 파일).
 
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)

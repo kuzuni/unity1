@@ -225,5 +225,91 @@ namespace Forge.Core.BattleFx
             return k < 1 ? 1.12 * Math.Sin(k * Math.PI / 2) : 1 + 0.12 * Math.Max(0, 1 - (u - 0.12) / 0.2);
         }
         public static double WarnSubAlpha(double u) { return u < WarnSubDelay ? u / WarnSubDelay : u < WarnDimHold ? 1 : Math.Max(0, 1 - (u - WarnDimHold) / (1 - WarnDimHold)); }
+
+        // ── 피격 붉은 비네트(T135 ⓐ · `ui.js` 1360 `flashDamage` · `style.css` 438 `#dmg-flash` · 481 `@keyframes dmgvignette`) ──
+        // 정본은 세기만 JS 가 `--vig` 로 주고 지속·감쇠는 CSS 키프레임이 쥔다("JS 타이머+트랜지션 조합은 연타 시 서로 잘라먹는다").
+        // 여기서도 같게 나눈다 — 세기는 <see cref="DmgVigPeak"/>, 시계는 <see cref="DmgVigAlpha"/>, 그림은 <see cref="DmgVigSample"/>·<see cref="DmgVigMask"/>.
+
+        /// <summary>`min(.64, .32 + sev×1.05)` (`ui.js` 1366) — 정본이 `toFixed(2)` 로 자르므로 소수 둘째 자리에서 반올림한다.</summary>
+        public const double DmgVigBase = 0.32, DmgVigK = 1.05, DmgVigMax = 0.64;
+        /// <summary>정본 `sev || 0.12` — 0·undefined 면 0.12 로 떨어진다.</summary>
+        public const double DmgVigSevFallback = 0.12;
+        /// <summary>`animation: dmgvignette .44s` + 키프레임 0%/3%/10%/100%.</summary>
+        public const double DmgVigMs = 440, DmgVigRise = 0.03, DmgVigHold = 0.10;
+        /// <summary>`radial-gradient(ellipse at center, transparent 46%, rgba(120,14,14,.34) 72%, rgba(255,58,44,.92) 100%)`.</summary>
+        public const double DmgVigStop0 = 0.46, DmgVigStop1 = 0.72;
+        public const int DmgVigMidRgb = 0x780e0e, DmgVigEdgeRgb = 0xff3a2c;
+        public const double DmgVigMidA = 0.34, DmgVigEdgeA = 0.92;
+        /// <summary>`mask-image: linear-gradient(to bottom, #000 82%, transparent 100%)` — 아래 18% 를 빼 씬 경계에서 잘리는 대신 사라지게 한다.</summary>
+        public const double DmgVigMaskKeep = 0.82;
+
+        /// <summary>CSS `ease-out` = cubic-bezier(0,0,.58,1) 근사. 검산: 그 곡선은 x=.3425 에서 y=.5 · x=.7347 에서 y=.896 이고 이 식은 .500·.897 을 준다.</summary>
+        public static double EaseOut01(double k)
+        {
+            k = k < 0 ? 0 : k > 1 ? 1 : k;
+            return 1 - Math.Pow(1 - k, 1.68);
+        }
+
+        /// <summary>`flashDamage(sev)` 가 `--vig` 에 넣는 값.</summary>
+        public static double DmgVigPeak(double sev)
+        {
+            double s = sev > 0 ? sev : DmgVigSevFallback;
+            return Math.Round(Math.Min(DmgVigMax, DmgVigBase + s * DmgVigK), 2, MidpointRounding.AwayFromZero);
+        }
+
+        /// <summary>`@keyframes dmgvignette` — 0%→0 · 3%→정점 · 10%→정점 · 100%→0 (구간마다 ease-out).</summary>
+        public static double DmgVigAlpha(double ms, double peak)
+        {
+            double u = ms / DmgVigMs;
+            if (u <= 0 || u >= 1) return 0;
+            if (u < DmgVigRise) return peak * EaseOut01(u / DmgVigRise);
+            if (u < DmgVigHold) return peak;
+            return peak * (1 - EaseOut01((u - DmgVigHold) / (1 - DmgVigHold)));
+        }
+
+        /// <summary>`ellipse at center`(기본 farthest-corner)의 그라디언트 반지름 — 상자 네 모서리에서 정확히 1, 한가운데서 0.</summary>
+        public static double DmgVigT(double u, double v)
+        {
+            double dx = 2 * u - 1, dy = 2 * v - 1;
+            return Math.Sqrt((dx * dx + dy * dy) / 2);
+        }
+
+        /// <summary>세로 마스크 — <paramref name="yFromTop"/> 0=씬 위, 1=씬 아래.</summary>
+        public static double DmgVigMask(double yFromTop)
+        {
+            if (yFromTop <= DmgVigMaskKeep) return 1;
+            double k = (yFromTop - DmgVigMaskKeep) / (1 - DmgVigMaskKeep);
+            return k >= 1 ? 0 : 1 - k;
+        }
+
+        /// <summary>
+        /// 반지름 <paramref name="t"/>(<see cref="DmgVigT"/>)에서의 비네트 색. 0~1 RGB 와 알파.
+        /// 정지점 사이는 **프리멀티플라이드**로 섞는다 — CSS 가 `transparent`(rgba(0,0,0,0))를 그렇게 섞어서,
+        /// 첫 구간이 검게 물들지 않고 붉은색 그대로 알파만 오른다.
+        /// </summary>
+        public static void DmgVigSample(double t, out double r, out double g, out double b, out double a)
+        {
+            double mr = ((DmgVigMidRgb >> 16) & 0xff) / 255.0, mg = ((DmgVigMidRgb >> 8) & 0xff) / 255.0, mb = (DmgVigMidRgb & 0xff) / 255.0;
+            double er = ((DmgVigEdgeRgb >> 16) & 0xff) / 255.0, eg = ((DmgVigEdgeRgb >> 8) & 0xff) / 255.0, eb = (DmgVigEdgeRgb & 0xff) / 255.0;
+            if (t <= DmgVigStop0) { r = mr; g = mg; b = mb; a = 0; return; }
+            if (t >= DmgVigStop1)
+            {
+                double k2 = Math.Min(1, (t - DmgVigStop1) / (1 - DmgVigStop1));
+                Mix(mr, mg, mb, DmgVigMidA, er, eg, eb, DmgVigEdgeA, k2, out r, out g, out b, out a);
+                return;
+            }
+            double k1 = (t - DmgVigStop0) / (DmgVigStop1 - DmgVigStop0);
+            Mix(mr, mg, mb, 0, mr, mg, mb, DmgVigMidA, k1, out r, out g, out b, out a);
+        }
+
+        static void Mix(double r0, double g0, double b0, double a0, double r1, double g1, double b1, double a1, double k,
+                        out double r, out double g, out double b, out double a)
+        {
+            a = a0 + (a1 - a0) * k;
+            if (a <= 0) { r = r1; g = g1; b = b1; return; }
+            r = (r0 * a0 + (r1 * a1 - r0 * a0) * k) / a;
+            g = (g0 * a0 + (g1 * a1 - g0 * a0) * k) / a;
+            b = (b0 * a0 + (b1 * a1 - b0 * a0) * k) / a;
+        }
     }
 }

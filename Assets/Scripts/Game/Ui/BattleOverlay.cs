@@ -26,6 +26,8 @@ namespace Forge.Game.Ui
         double deathT = -1;
         // scene cut
         Image cut; double cutT = -1, cutMs;
+        // 피격 붉은 비네트(T135 ⓐ)
+        Image vig; double vigT = -1, vigPeak;
 
         public bool WarningActive { get { return warnT >= 0; } }
         public double WarningT { get { return warnT; } }
@@ -34,6 +36,12 @@ namespace Forge.Game.Ui
         public float CoverAlpha { get { return cover != null ? cover.color.a : 0; } }
         public bool CutActive { get { return cutT >= 0; } }
         public string DeathSub { get { return dsub != null ? dsub.text : null; } }
+        public bool VignetteActive { get { return vigT >= 0; } }
+        /// <summary>이번 피격의 `--vig`(정점 알파).</summary>
+        public double VignettePeak { get { return vigPeak; } }
+        public float VignetteAlpha { get { return vig != null && vig.gameObject.activeSelf ? vig.color.a : 0f; } }
+        /// <summary>비네트 면 — 테스트가 층·띠·그림을 본다.</summary>
+        public Image Vignette { get { return vig; } }
         /// <summary>오버레이 띠(상단바 아래 ~ 장비 시트 위 · 정본 `#game-area`) — 테스트가 층·띠를 본다.</summary>
         public RectTransform Layer { get { return layer; } }
 
@@ -201,6 +209,75 @@ namespace Forge.Game.Ui
             bannerGroup.anchoredPosition = new Vector2(0, (float)(-(1 - k) * FxRules.DeathBannerRise * Rem));
         }
 
+        // ── 피격 붉은 비네트(T135 ⓐ · 정본 `ui.js` 1360 `flashDamage` · `style.css` 438 `#dmg-flash`) ──
+
+        /// <summary>
+        /// 그라디언트+마스크를 한 장에 구운다. 셈은 전부 <see cref="FxRules"/> 가 쥐고(EditMode 가 잰다) 여기서는 칠하기만 한다.
+        /// 정규화 좌표로 굽기 때문에 띠가 세로로 길어도 CSS 와 같은 그림이 나온다(CSS 도 그라디언트를 상자 기준으로 푼다).
+        /// </summary>
+        static Sprite vigSprite;
+        static Sprite VigSprite()
+        {
+            if (vigSprite != null) return vigSprite;
+            const int n = 256;
+            Texture2D tex = new Texture2D(n, n, TextureFormat.RGBA32, false);
+            tex.name = "dmg-vignette";
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;
+            Color32[] px = new Color32[n * n];
+            for (int y = 0; y < n; y++)
+            {
+                // 텍스처 y 는 아래가 0 이고 마스크는 «위에서부터» 재므로 뒤집는다.
+                double v = (y + 0.5) / n, yFromTop = 1 - v;
+                double mask = FxRules.DmgVigMask(yFromTop);
+                for (int x = 0; x < n; x++)
+                {
+                    double u = (x + 0.5) / n;
+                    double r, g, b, a;
+                    FxRules.DmgVigSample(FxRules.DmgVigT(u, v), out r, out g, out b, out a);
+                    a *= mask;
+                    px[y * n + x] = new Color32(B(r), B(g), B(b), B(a));
+                }
+            }
+            tex.SetPixels32(px);
+            // CPU 복사본을 남긴다(`UiShapes` 는 안 남긴다) — PlayMode 단언이 구운 픽셀을 되읽어
+            // «가운데 투명 · 가장자리 붉음 · 바닥 사라짐» 을 직접 재기 때문이다. 256² RGBA = 256KB.
+            tex.Apply(false, false);
+            vigSprite = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            vigSprite.name = "dmg-vignette";
+            return vigSprite;
+        }
+
+        static byte B(double v) { return (byte)Math.Max(0, Math.Min(255, Math.Round(v * 255))); }
+
+        void BuildVignette()
+        {
+            if (vig != null) return;
+            vig = UiKit.Panel(layer, "dmg-flash", "pp_paper");
+            UiKit.Fill(vig.rectTransform);
+            vig.sprite = VigSprite();
+            vig.type = Image.Type.Simple;
+            vig.color = new Color(1, 1, 1, 0);   // 색은 스프라이트가 쥐고 여기서는 세기만 곱한다(정본 `--vig`).
+            vig.raycastTarget = false;
+            // 정본 z-index 12 — 씬 안 HUD 위 · **사망 암전(15)·씬컷(16)·보스 워닝 아래**(css 438 의 긴 경고 그대로).
+            // 이 띠 안에서는 형제 순서가 곧 서열이므로 늘 맨 아래에 둔다.
+            vig.transform.SetAsFirstSibling();
+            vig.gameObject.SetActive(false);
+        }
+
+        /// <summary>`UI.flashDamage(sev)` — 연타해도 처음부터 다시 돈다(정본은 리플로우 강제로 같은 일을 한다).</summary>
+        public void FlashDamage(double sev)
+        {
+            BuildVignette();
+            vigPeak = FxRules.DmgVigPeak(sev);
+            vigT = 0;
+            vig.transform.SetAsFirstSibling();
+            vig.gameObject.SetActive(true);
+            DriveVignette();
+        }
+
+        void DriveVignette() { Alpha(vig, FxRules.DmgVigAlpha(vigT * 1000, vigPeak)); }
+
         // ── 씬컷 ──
         /// <summary>`sceneCut(apply, dur)` — 호출부가 apply 를 먼저 돌린 뒤 커버가 걷힌다.</summary>
         public void SceneCut(double ms)
@@ -227,6 +304,12 @@ namespace Forge.Game.Ui
                 deathT += dt;
                 if (deathT * 1000 >= FxRules.DeathTotalMs) { deathT = -1; deathRoot.gameObject.SetActive(false); }
                 else DriveDeath();
+            }
+            if (vigT >= 0)
+            {
+                vigT += dt;
+                if (vigT * 1000 >= FxRules.DmgVigMs) { vigT = -1; Alpha(vig, 0); vig.gameObject.SetActive(false); }
+                else DriveVignette();
             }
             if (cutT >= 0)
             {

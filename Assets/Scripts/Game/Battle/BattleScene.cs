@@ -355,8 +355,16 @@ namespace Forge.Game.Battle
                     if (Enemies.TryGetValue(e.Id, out v)) { v.Kill(); KillCount++; KindsKilled.Add(v.Kind); }
                     break;
                 case BattleEventKind.Shake: Shake(e.Num); break;
-                case BattleEventKind.HeroHit: Hero.Hit(e.Num, e.Value.HasValue ? NumFmt.Fmt(e.Value.Value) : null); break;
-                case BattleEventKind.HeroDown: Hero.Down(); break;
+                // 정본 `scene3d.js` 13351 — 영웅 피격은 몸 플래시·HP바·셰이크와 **같은 자리**에서 화면 비네트를 부른다(T135 ⓐ).
+                case BattleEventKind.HeroHit:
+                    Hero.Hit(e.Num, e.Value.HasValue ? NumFmt.Fmt(e.Value.Value) : null);
+                    { var ovh = BattleOverlay.Ensure(); if (ovh != null) ovh.FlashDamage(e.Num); }
+                    break;
+                // 정본 13374 `UI.flashDamage(1)` — «치명타 피격보다 진하게»(상한 .64 에 걸린다).
+                case BattleEventKind.HeroDown:
+                    Hero.Down();
+                    { var ovd = BattleOverlay.Ensure(); if (ovd != null) ovd.FlashDamage(1); }
+                    break;
                 case BattleEventKind.Float:
                     Numbers.Spawn(new Vector3((float)(Hero.X + HitRules.HeroDmgX), (float)(Hero.Y + HitRules.HpBar.HeroY + HitRules.HpBar.BgH * HitRules.HeroDmgYK), 0), e.Tag, e.Tag == "BLOCK" ? "block" : "heal", 0, -HitRules.DmgRiseDefault, 1);
                     break;
