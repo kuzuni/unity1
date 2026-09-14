@@ -55,9 +55,8 @@ KNOWN = {
     '⏹': 'ForgeHost 자동 제련 종료 토스트(정본 ui.js 2272 그대로) — 정본도 **글자** · T106(이모지 폴백 글꼴)',
     # T100 — 넓힌 뒤 드러난 자리들. 임자가 정해져 있고 이 회차에 못 고친다(고칠 파일이 남의 lock · 이모지 폴백 글꼴은 주인 몫).
     # 2회차에 ㅋ·ㅠ 는 지웠다 — 글꼴 서브셋에 한글 자모 구획(U+3130~318F)을 더해 실제로 그려진다.
-    # 3회차에 정본을 읽어 임자를 바로잡았다: 남은 일곱 중 `↻` 하나만 «정본이 아이콘으로 그리는 자리» 이고
-    # 나머지 여섯은 정본도 **글자**라 고칠 길이 이모지 폴백 글꼴 하나뿐이다(T106 · 주인 에셋 승인).
-    '↻': 'ForgeSheet 자동 제련 버튼 «자동 ↻» — 정본은 글자가 아니라 아이콘(ui.js 1551 IconGen.img(autoloop)) · **T108**(T87 lock 이 풀린 뒤 · 같은 줄의 🔒 와 함께)',
+    # 3회차에 정본을 읽어 임자를 바로잡았다: 남은 일곱 중 `↻` 하나만 «정본이 아이콘으로 그리는 자리» 였고(T108 이 아틀라스 `autoloop` 아이콘으로 바꿔 지웠다 —
+    # 그 자리가 다시 글자가 되면 «새 두부» 로 rc 1) 나머지 여섯은 정본도 **글자**라 고칠 길이 이모지 폴백 글꼴 하나뿐이다(T106 · 주인 에셋 승인).
     '😭': '채팅 문구(정본 chat.js 11행) — 정본도 **글자** · T106(이모지 폴백 글꼴)',
     '🐴': '탈것 토스트·얼굴 폴백(PetSkillUi.json /text/toast_mount_full · PetSkillKit 324행) — **정본도 글자다**: `ui.js` 2143 `creatureFace` 가 썸네일이 없는 동안 `<span>${emoji}</span>` 를 깐다(아이콘이 아니다 · 3회차에 정본을 읽고 바로잡음) · T106(이모지 폴백 글꼴)',
     '🐾': '같은 갈래(펫 보관함·출전 토스트 셋 + 얼굴 폴백) — **정본도 글자다**(`ui.js` 2162 `petFace` → `creatureFace`) · T106(이모지 폴백 글꼴)',
@@ -77,7 +76,7 @@ LABEL_KNOWN = {
     'ForgeCraftPopup.cs|판매\\n🪙 +': '같은 자리의 두 줄 판',
     'ForgeInfoPopup.cs|건너뛰기\\n💎 ': 'T110(T99 에서 뗌) — 건너뛰기 버튼 · 두 줄 라벨 · T87 lock 뒤',
     'ForgeInfoPopup.cs| 업그레이드\\n🪙 ': 'T110(T99 에서 뗌) — 업그레이드 버튼 · 두 줄 라벨 · T87 lock 뒤',
-    'ForgeSheet.cs|🔒': 'T108 — 자동 제련 버튼의 잠금 표시(정본 ui.js 1551 IconGen.img(lock)) · 같은 줄의 ↻ 와 함께 · T87 lock 뒤',
+    # T108 — `ForgeSheet.cs|🔒`(자동 제련 버튼 잠금) 은 아틀라스 `lock` 아이콘으로 바꿔 지웠다 · 다시 글자가 되면 «새 자리» 로 rc 1.
     # T137 — Core 자리. Core 는 그리지 않으므로 «둘레에 아이콘 길» 이 있을 수 없다 — 소비처를 손으로 따라가 적는다.
     'Dungeons.cs|🔨 ': 'Core Dungeons.RewardText — Game 에 **호출 0**(DungeonSheet.RewardLine·DungeonDetailPopup.BuildRewardRow 가 제 아이콘으로 그린다) · 부르는 날 IconTextRow 로',
     'Dungeons.cs|🪙 ': '같은 RewardText(호출 0)',
@@ -514,7 +513,7 @@ def self_test():
             got = len(label_risk(d, font, skip))
             if got != want:
                 print('✗ 라벨 갈래 «%s»: 기대 %d · 받은 %d' % (note, want, got)); ok = False
-    if label_key('Assets/Scripts/Game/Ui/ForgeSheet.cs:108', '🔒') not in LABEL_KNOWN:
+    if label_key('Assets/Scripts/Game/Ui/ForgeCraftPopup.cs:69', '판매 🪙 +') not in LABEL_KNOWN:   # T108 뒤 남은 열쇠 중 하나(T110 2회차가 빼면 다른 열쇠로)
         print('✗ 라벨 열쇠: 파일 이름 + 리터럴로 LABEL_KNOWN 을 못 찾는다'); ok = False
 
     # T137 — Core 도 훑는다: 목록에 Core 가 있고, 둘째 폴더의 두부도 센다(고장 주입 · «Game 하나» 로 돌아가면 여기서 잡힌다)

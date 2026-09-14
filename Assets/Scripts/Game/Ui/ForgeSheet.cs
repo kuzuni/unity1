@@ -125,8 +125,7 @@ namespace Forge.Game.Ui
             Button fb = TwoLineBtn(right, "forge-btn", forgeLabel, "pp_blue", "pp_blue_dk", () => ForgeInfoPopup.Open(h), btnW * 1.15f, btnH);
             UiKit.Place(fb.GetComponent<RectTransform>(), 0f, 0f, btnW * 1.15f, btnH);
             bool unlocked = h.AutoForgeUnlocked;
-            string autoLabel = "자동 ↻\n" + (unlocked ? (h.AutoOn ? "ON" : "OFF") : "🔒");
-            Button ab = TwoLineBtn(right, "auto-btn", autoLabel, unlocked ? (h.AutoOn ? "pp_green" : "pp_blue") : "pp_gray", unlocked ? (h.AutoOn ? "pp_green_dk" : "pp_blue_dk") : "pp_gray_dk", () => h.OnAutoForgeBtn(), btnW * 0.85f - gap, btnH);
+            Button ab = AutoBtn(right, h, unlocked, unlocked ? (h.AutoOn ? "pp_green" : "pp_blue") : "pp_gray", unlocked ? (h.AutoOn ? "pp_green_dk" : "pp_blue_dk") : "pp_gray_dk", btnW * 0.85f - gap, btnH);
             UiKit.Place(ab.GetComponent<RectTransform>(), btnW * 1.15f + gap, 0f, btnW * 0.85f - gap, btnH);
             if (h.Upgrading)
             {
@@ -170,6 +169,34 @@ namespace Forge.Game.Ui
             Button b = PopupKit.Btn(parent, name, label, face, lip, onClick, w, h, "stage_ink", TextKind.Sub);
             TextMeshProUGUI t = b.GetComponentInChildren<TextMeshProUGUI>();
             if (t != null) { t.textWrappingMode = TextWrappingModes.Normal; t.lineSpacing = -20f; }
+            return b;
+        }
+
+        /// <summary>
+        /// T108 — 자동 제련 버튼. 정본 `ui.js` 1551 `자동${IconGen.img('autoloop','auto-loop-ico')}<br>${unlocked ? (on ? 'ON' : 'OFF') : IconGen.img('lock')}` —
+        /// 윗줄 «자동» + 고리 **아이콘**(글자 ↻ 가 아니다 · 주인 글꼴에 없어 □ 였다) · 아랫줄 ON/OFF 또는 잠금 **아이콘**(글자 🔒 가 아니다).
+        /// 두 줄이라 세로 갈래 <see cref="IconTextStack"/>(T110 1회차)로 세우고 아이콘은 T31 아틀라스 키로 직접 단다(정본도 이모지 표가 아니라 `IconGen.img` 다).
+        /// 아이콘 치수는 카탈로그(정본 `.auto-loop-ico` 1.15em · `.ico` 1.45em · 마진). 라벨 키라인은 <see cref="PopupKit.Btn"/> 과 같은 면 키 표(<see cref="KeylineUi.BtnFace"/>).
+        /// </summary>
+        static Button AutoBtn(Transform parent, ForgeHost h, bool unlocked, string face, string lip, float w, float hgt)
+        {
+            Button b = PopupKit.Btn(parent, "auto-btn", "", face, lip, () => h.OnAutoForgeBtn(), w, hgt, "stage_ink", TextKind.Sub);
+            RectTransform rt = b.GetComponent<RectTransform>();
+            Transform plain = rt.Find("label");
+            if (plain != null) plain.gameObject.SetActive(false);   // Btn 이 세운 빈 한 줄 라벨은 끈다 — 줄은 아래 세로 갈래가 쥔다
+            float fs = PopupKit.FontSize(TextKind.Sub);
+            RectTransform stack = IconTextStack.Build(rt, "label-stack", TextKind.Sub, unlocked ? "자동\n" + (h.AutoOn ? "ON" : "OFF") : "자동\n", "stage_ink");
+            stack.offsetMin = new Vector2(0f, UiKit.H("btn_lip"));   // Btn 라벨과 같은 자리(아래턱 위)
+            RectTransform l1 = (RectTransform)stack.Find("line-1"), l2 = (RectTransform)stack.Find("line-2");
+            IconTextStack.AppendIcon(l1, "autoloop", fs * UiKit.L("auto_loop_ico_em"), fs, fs * UiKit.L("auto_loop_ico_ml_em"), fs * UiKit.L("ico_mr_em"));
+            if (!unlocked) IconTextStack.AppendIcon(l2, "lock", fs * UiKit.L("ico_em"), fs, 0f, fs * UiKit.L("ico_mr_em"));
+            string kl = KeylineUi.BtnFace(face);
+            foreach (TextMeshProUGUI t in UiKit.RowTexts(stack))
+            {
+                t.fontStyle = FontStyles.Bold;
+                if (!string.IsNullOrEmpty(kl)) PopupKit.Ring(t, kl, "pp_line");
+            }
+            IconTextStack.Fit(stack);
             return b;
         }
 

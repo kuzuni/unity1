@@ -32,6 +32,51 @@ namespace Forge.Game.Ui
             return box;
         }
 
+        /// <summary>
+        /// T108 — 줄 끝에 **아이콘 키로** 아이콘 한 칸을 더한다(정본이 이모지 표가 아니라 `IconGen.img('autoloop')` 처럼 직접 아이콘을 박는 자리).
+        /// 칸(<c>"ico-N"</c>)은 정본 `.ico` 의 인라인 상자 — 폭 = 왼 마진 + 한 변 + 오른 마진 · 높이 = 줄 높이(<paramref name="lineHeightPx"/>) 로 두고,
+        /// 그림(<c>"img"</c>)은 칸 가운데에 한 변 <paramref name="sizePx"/> 정사각으로 **넘치게** 놓는다 — 정본 `margin: -.32em … -.32em` 이
+        /// 아이콘을 줄 높이보다 크게 그리면서 줄상자는 안 키우는 것과 같다. 치수는 카탈로그(`ico_em`·`ico_my_em`·`ico_mr_em`·`auto_loop_ico_*`)에서 호출부가 읽어 넘긴다.
+        /// </summary>
+        public static Image AppendIcon(RectTransform line, string iconKey, float sizePx, float lineHeightPx, float marginLeftPx = 0f, float marginRightPx = 0f)
+        {
+            int n = 0;
+            for (int i = 0; i < line.childCount; i++) if (line.GetChild(i).name.StartsWith("ico-")) n++;
+            RectTransform cell = UiKit.Box(line, "ico-" + (n + 1));
+            var le = cell.gameObject.AddComponent<LayoutElement>();
+            le.preferredWidth = marginLeftPx + sizePx + marginRightPx;
+            le.preferredHeight = lineHeightPx;
+            le.flexibleWidth = 0f;
+            Image img = UiKit.Icon(cell, "img", iconKey);
+            UiKit.Anchor(img.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2((marginLeftPx - marginRightPx) * 0.5f, 0f), sizePx, sizePx);
+            return img;
+        }
+
+        /// <summary>
+        /// T108 — 줄마다 크기를 **직접 재어** <see cref="LayoutElement"/> 로 박는다(글자 조각은 <c>GetPreferredValues</c> · 아이콘 칸은 제 <see cref="LayoutElement"/>).
+        /// 중첩 레이아웃 그룹의 선호값에 기대지 않는다 — 런 292 PNG 에서 안쪽 <see cref="UiKit.IconTextRow"/> 의 선호 폭이 0 으로 읽혀 줄이 사라진 전례(T138 2회차 · `LootFeed`·`RewardBurst.LabelRow` 와 같은 길).
+        /// 굵게·아이콘을 다 더한 **뒤 마지막에** 부른다(굵은 글자는 폭이 다르다).
+        /// </summary>
+        public static void Fit(RectTransform stack)
+        {
+            for (int i = 0; i < stack.childCount; i++)
+            {
+                RectTransform line = stack.GetChild(i) as RectTransform;
+                if (line == null || !line.name.StartsWith("line-")) continue;
+                float w = 0f, h = 0f;
+                for (int k = 0; k < line.childCount; k++)
+                {
+                    Transform piece = line.GetChild(k);
+                    TextMeshProUGUI tm = piece.GetComponent<TextMeshProUGUI>();
+                    LayoutElement pl = piece.GetComponent<LayoutElement>();
+                    if (tm != null) { Vector2 pv = tm.GetPreferredValues(); w += pv.x; h = Mathf.Max(h, pv.y); }
+                    else if (pl != null) { w += pl.preferredWidth; h = Mathf.Max(h, pl.preferredHeight); }
+                }
+                LayoutElement le = line.GetComponent<LayoutElement>() ?? line.gameObject.AddComponent<LayoutElement>();
+                le.preferredWidth = w; le.preferredHeight = h; le.flexibleWidth = 0f; le.flexibleHeight = 0f;
+            }
+        }
+
         /// <summary>줄 수(정본 `<br>` 개수 + 1).</summary>
         public static int LineCount(RectTransform stack)
         {
