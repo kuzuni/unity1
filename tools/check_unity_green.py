@@ -729,6 +729,91 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
     return out
 
 
+# ── T338 — 잡별 판정: «런은 빨간데 내 잡은 초록» 을 한 줄로 ──────────────────────────────
+# ci.yml 의 잡 넷: dotnet(도구·문서·순수 C#) · datasync(data/*.json·아이콘·자들) · gate(시크릿) · unity-test(needs: [dotnet, gate]).
+# 유니티 잡만 빨가면 도구·게이트·CI·문서를 민 워커의 몫은 지난 것이다 — §1 «lock 은 CI 가 그 커밋을 한 번은 돈 뒤 반납한다» 를
+# 그 워커가 한 회차 더 기다리지 않게 판정 줄 뒤에 붙인다. API 를 못 부르는 환경이면 needs 관계로 추정만 한다(ⓒ).
+API_REPO = os.environ.get('CHECK_UNITY_GREEN_REPO', 'kuzuni/unity1')
+API_TIMEOUT = 8
+UNITY_JOB = 'Unity'          # 잡 이름에 이 낱말이 들면 유니티 잡(ci.yml `Unity EditMode·PlayMode 테스트`)
+JOB_SHORT = (('dotnet', 'dotnet'), ('data/', 'datasync'), ('시크릿', 'gate'), (UNITY_JOB, 'unity'))
+
+
+def _short(name):
+    for key, short in JOB_SHORT:
+        if key in name:
+            return short
+    return name[:12]
+
+
+def _api_json(url):
+    import urllib.request
+    req = urllib.request.Request(url, headers={'Accept': 'application/vnd.github+json', 'User-Agent': 'check_unity_green'})
+    tok = os.environ.get('GITHUB_TOKEN') or os.environ.get('GH_TOKEN')
+    if tok:
+        req.add_header('Authorization', 'Bearer ' + tok)
+    with urllib.request.urlopen(req, timeout=API_TIMEOUT) as r:
+        return json.loads(r.read().decode('utf-8'))
+
+
+def parse_jobs(payload):
+    """`/actions/runs/<id>/jobs` 응답 → [{name, short, conclusion, red_steps}] (순수 · 자기 검사용)."""
+    out = []
+    for j in (payload or {}).get('jobs', []) or []:
+        name = str(j.get('name', ''))
+        red = [str(st.get('name', '')) for st in (j.get('steps') or [])
+               if st.get('conclusion') not in (None, 'success', 'skipped', 'neutral')]
+        out.append({'name': name, 'short': _short(name), 'conclusion': str(j.get('conclusion') or j.get('status') or '?'),
+                    'red_steps': red})
+    return out
+
+
+def fetch_jobs(sha):
+    """그 sha 의 CI 런(워크플로 이름 «CI»)의 잡 목록. 못 부르면 None(조용히 건너뛴다 · T338 ⓒ)."""
+    if not sha:
+        return None
+    try:
+        base = 'https://api.github.com/repos/%s/actions' % API_REPO
+        runs = _api_json('%s/runs?head_sha=%s&per_page=10' % (base, sha))
+        cand = [r for r in runs.get('workflow_runs', []) if str(r.get('name')) == 'CI'] or runs.get('workflow_runs', [])
+        if not cand:
+            return None
+        run = sorted(cand, key=lambda r: int(r.get('run_number', 0)))[-1]
+        if str(run.get('status')) != 'completed':
+            return None
+        return parse_jobs(_api_json('%s/runs/%s/jobs?per_page=30' % (base, run['id'])))
+    except Exception:
+        return None
+
+
+def job_lines(jobs, sha, unity_red=True):
+    """잡별 한 줄(T338). jobs 가 None 이면 needs 관계로 추정만(오프라인) · 유니티가 빨갈 때만 부른다."""
+    s7 = (sha or '')[:7] or '?'
+    if jobs is None:
+        if not unity_red:
+            return []
+        return ['  ◦ 잡별(오프라인 추정 · API 없음): 이 런에서 유니티 잡이 돌았으므로 그 앞 잡 dotnet·gate 는 초록이었다'
+                '(ci.yml `needs: [dotnet, gate]`) — datasync 는 API 로만 안다. 네 커밋이 %s 에 실렸고 네 몫이 도구·문서뿐이면'
+                ' `git merge-base --is-ancestor <내 커밋> %s` 로 확인한 뒤 lock 을 반납해도 된다(§1).' % (s7, s7)]
+    reds = [j for j in jobs if j['conclusion'] not in ('success', 'skipped', 'neutral')]
+    mine = [j for j in reds if UNITY_JOB not in j['name']]
+    unity = [j for j in jobs if UNITY_JOB in j['name']]
+    summary = ' · '.join('%s %s' % (j['short'], '✓' if j['conclusion'] == 'success' else ('—' if j['conclusion'] == 'skipped' else '✗'))
+                         for j in jobs)
+    out = ['  ◦ 잡별: ' + summary]
+    if mine:
+        for j in mine:
+            steps = ' '.join('«%s»' % st for st in j['red_steps']) or '(빨간 스텝 이름 없음)'
+            out.append('    ✗ %s 잡이 빨갛다 — 빨간 스텝 %s — 이것은 **도구·문서·데이터 갈래의 일**이다(유니티가 아니다).'
+                       % (j['short'], steps))
+    elif reds and unity and all(UNITY_JOB in j['name'] for j in reds):
+        out.append('    → 유니티 잡만 빨갛다 — dotnet·datasync·gate 는 초록. 네 커밋이 이 런(%s)에 실렸으면 네 도구·문서·CI 몫은 지났다:'
+                   ' `git merge-base --is-ancestor <내 커밋> %s` 가 0 이면 lock 을 반납해도 된다(§1 · T338).' % (s7, s7))
+    elif not reds:
+        out.append('    → 잡 전부 초록.')
+    return out
+
+
 def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None):
     """순수 판정 — (rc, 줄 목록). 네트워크·git 없이 자기 검사할 수 있게 갈라 둔다."""
     out = []
@@ -1104,6 +1189,50 @@ def self_test():
     lines = own_lines([], P_ANY, 'a' * 40, lock=both_live, missing=PM, runs=L('', '', '', PM))
     eq('ⓐⓐ 임자 줄에 장부가 붙는다', '장부: 최근 런' in lines[0], True)
 
+    # ⓐⓑ T338 — 잡별 판정
+    payload = {'jobs': [
+        {'name': 'dotnet 컴파일 · 순수 C# 테스트 · 문서·.meta 검사', 'conclusion': 'success', 'steps': [{'name': 'dotnet build', 'conclusion': 'success'}]},
+        {'name': 'data/*.json ↔ wwwww main 동기화 검사', 'conclusion': 'success', 'steps': []},
+        {'name': '유니티 시크릿 확인', 'conclusion': 'success', 'steps': []},
+        {'name': 'Unity EditMode·PlayMode 테스트', 'conclusion': 'failure',
+         'steps': [{'name': 'Run game-ci/unity-test-runner@v4', 'conclusion': 'failure'}, {'name': '결과 판정', 'conclusion': 'failure'}, {'name': 'Post', 'conclusion': 'skipped'}]},
+    ]}
+    jobs = parse_jobs(payload)
+    eq('ⓐⓑ 잡 넷을 읽는다', [j['short'] for j in jobs], ['dotnet', 'datasync', 'gate', 'unity'])
+    eq('ⓐⓑ 빨간 스텝만 센다(skipped 는 아니다)', jobs[3]['red_steps'], ['Run game-ci/unity-test-runner@v4', '결과 판정'])
+    lines = job_lines(jobs, '28627b4' + 'f' * 33)
+    eq('ⓐⓑ 유니티만 빨가면 «네 몫은 지났다»', any('유니티 잡만 빨갛다' in l and '지났다' in l for l in lines), True)
+    eq('ⓐⓑ 요약 줄에 넷이 보인다', 'dotnet ✓ · datasync ✓ · gate ✓ · unity ✗' in lines[0], True)
+    eq('ⓐⓑ merge-base 확인 명령을 댄다', any('merge-base --is-ancestor' in l and '28627b4' in l for l in lines), True)
+    # ⓑ 내 잡(dotnet)이 빨간 런 435 꼴 — 빨간 스텝 이름을 댄다
+    payload2 = {'jobs': [
+        {'name': 'dotnet 컴파일 · 순수 C# 테스트 · 문서·.meta 검사', 'conclusion': 'failure',
+         'steps': [{'name': 'dotnet build', 'conclusion': 'success'}, {'name': '글자 자 자기 검사 (T89)', 'conclusion': 'failure'}]},
+        {'name': 'data/*.json ↔ wwwww main 동기화 검사', 'conclusion': 'success', 'steps': []},
+        {'name': '유니티 시크릿 확인', 'conclusion': 'success', 'steps': []},
+        {'name': 'Unity EditMode·PlayMode 테스트', 'conclusion': 'skipped', 'steps': []},
+    ]}
+    lines = job_lines(parse_jobs(payload2), 'b' * 40)
+    eq('ⓑ 내 잡이 빨가면 그 잡 이름', any(l.strip().startswith('✗ dotnet 잡이 빨갛다') for l in lines), True)
+    eq('ⓑ 빨간 스텝 이름을 댄다', any('«글자 자 자기 검사 (T89)»' in l for l in lines), True)
+    eq('ⓑ 초록 스텝은 안 댄다', any('«dotnet build»' in l for l in lines), False)
+    eq('ⓑ «네 몫은 지났다» 를 안 한다', any('지났다' in l for l in lines), False)
+    eq('ⓑ 건너뛴 잡은 — 로', 'unity —' in lines[0], True)
+    # ⓒ 둘 다 빨가면 내 잡 쪽을 먼저 말한다
+    payload3 = {'jobs': [{'name': 'dotnet 컴파일', 'conclusion': 'failure', 'steps': [{'name': 'x', 'conclusion': 'failure'}]},
+                         {'name': 'Unity EditMode·PlayMode 테스트', 'conclusion': 'failure', 'steps': []}]}
+    lines = job_lines(parse_jobs(payload3), 'c' * 40)
+    eq('ⓒ 둘 다 빨가면 내 잡 줄', any('dotnet 잡이 빨갛다' in l for l in lines), True)
+    eq('ⓒ 둘 다 빨가면 «지났다» 없음', any('지났다' in l for l in lines), False)
+    # ⓓ 전부 초록 · ⓔ API 없음(오프라인 추정) · ⓕ 빈 응답
+    lines = job_lines(parse_jobs({'jobs': [{'name': 'dotnet 컴파일', 'conclusion': 'success', 'steps': []}]}), 'd' * 40)
+    eq('ⓓ 전부 초록', any('잡 전부 초록' in l for l in lines), True)
+    lines = job_lines(None, 'e' * 40)
+    eq('ⓔ API 없으면 needs 추정 한 줄', len(lines) == 1 and 'needs: [dotnet, gate]' in lines[0] and 'eeeeeee' in lines[0], True)
+    eq('ⓔ 유니티가 초록이면 조용하다', job_lines(None, 'e' * 40, unity_red=False), [])
+    eq('ⓕ 빈 응답', parse_jobs({}), [])
+    eq('ⓕ 응답이 None', parse_jobs(None), [])
+
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
         for f in fails:
@@ -1114,7 +1243,7 @@ def self_test():
 
 
 def main(argv):
-    ref, do_fetch = REF, False
+    ref, do_fetch, no_api = REF, False, False
     i = 0
     while i < len(argv):
         a = argv[i]
@@ -1122,11 +1251,13 @@ def main(argv):
             return self_test()
         if a == '--fetch':
             do_fetch = True
+        elif a == '--no-api':
+            no_api = True
         elif a == '--ref' and i + 1 < len(argv):
             i += 1
             ref = argv[i]
         else:
-            print('사용: check_unity_green.py [--fetch] [--ref origin/screens] [--self-test]')
+            print('사용: check_unity_green.py [--fetch] [--no-api] [--ref origin/screens] [--self-test]')
             return 2
         i += 1
 
@@ -1159,6 +1290,11 @@ def main(argv):
     rc, out = judge(meta, anc, n_after, fails, own, between)
     for ln in out:
         print(ln)
+    if meta and (red or str(meta.get('missing_modes', '') or '')):
+        # T338 — 남의 PlayMode 빨강이 내 dotnet·datasync·gate 초록을 덮지 않게 잡별 한 줄
+        sha = str(meta.get('sha', ''))
+        for ln in job_lines(None if no_api else fetch_jobs(sha), sha, unity_red=True):
+            print(ln)
     return rc
 
 
