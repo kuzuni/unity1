@@ -187,37 +187,80 @@ def verdict():
 
 
 def read_dump(text):
-    """진짜 유니티가 찍은 것을 «타입 → 서명 집합» 으로 읽는다. 못 찾은 타입은 값이 None."""
+    """진짜 유니티가 찍은 것을 «타입 → {이름: [매개변수 목록…]}» 으로 읽는다. 못 찾은 타입은 값이 None.
+
+    fmt 2 부터 **선택 매개변수 뒤에 «=»** 가 붙는다(`char,bool=,bool=`) — 그게 있어야
+    «스텁이 짧게 적은 것» 과 «실물에 없는 것» 을 가를 수 있다."""
     out, cur = {}, None
+    fmt = 1
     for line in text.split('\n'):
-        if not line or line.startswith('#'): continue
+        if not line: continue
+        if line.startswith('#'):
+            if line.strip() == '# fmt 2': fmt = 2
+            continue
         p = line.split('\t')
         if p[0] == 'T':
             cur = p[1]
-            out[cur] = None if (len(p) > 2 and p[2] == 'notfound') else set()
-        elif p[0] in ('M', 'P') and cur is not None and out.get(cur) is not None:
-            out[cur].add(('%s(%s)' % (p[1], p[2] if len(p) > 2 else '')) if p[0] == 'M' else p[1])
-    return out
+            out[cur] = None if (len(p) > 2 and p[2] == 'notfound') else {}
+        elif p[0] == 'M' and cur is not None and out.get(cur) is not None:
+            ps = [x for x in (p[2].split(',') if len(p) > 2 and p[2] else []) if x != '']
+            out[cur].setdefault(p[1], []).append(ps)
+        elif p[0] == 'P' and cur is not None and out.get(cur) is not None:
+            out[cur].setdefault(p[1], []).append(None)      # 속성·필드 — 매개변수 없음
+    return out, fmt
 
 
-def judge(rows, dump):
-    """스텁 멤버마다 «진짜에 있는가». 돌려주는 것은 (없는 것, 본 타입 수, 못 찾은 타입)."""
-    missing, unknown_types = [], []
+def fits(want, real_list):
+    """스텁이 적은 매개변수 `want` 가 실물 오버로드 하나와 **부를 수 있게** 맞는가.
+
+    ⓐ 그대로 같으면 맞다.
+    ⓑ 실물이 더 길어도, 넘치는 자리가 **전부 선택 매개변수**면 그 호출은 컴파일된다
+       (실물 `HasCharacter(char, bool = false, bool = false)` ↔ 스텁 `HasCharacter(char)`).
+    돌려주는 것은 (맞는가, 앞자리가 겹쳤는가). 뒤엣것이 참이면 «스텁이 짧게 적은 자리» 라
+    옛 판 판정 파일(선택 표시가 없다)에서는 빨강 대신 «모르는 것» 으로 내린다."""
+    saw_prefix = False
+    for real in real_list:
+        if real is None: continue
+        bare = [x[:-1] if x.endswith('=') else x for x in real]
+        if bare == want: return True, False
+        if len(real) > len(want) and bare[:len(want)] == want:
+            rest = real[len(want):]
+            if all(x.endswith('=') for x in rest): return True, False
+            saw_prefix = True
+    return False, saw_prefix
+
+
+def judge(rows, dump, fmt=2):
+    """스텁 멤버마다 «진짜에 있는가». (없는 것, 본 타입 수, 못 찾은 타입, 모르는 것)."""
+    missing, unknown_types, unsure = [], [], []
     seen_types = set()
     for r in rows:
         full = full_of(r)
-        if full not in dump:
-            continue                      # 아직 안 찍힌 타입 — 다음 런이 답한다
+        if full not in dump: continue          # 아직 안 찍힌 타입 — 다음 런이 답한다
         real = dump[full]
         if real is None:
             if full not in unknown_types: unknown_types.append(full)
             continue
         seen_types.add(full)
         sig = sig_of(r)
-        if sig in real: continue
         if ('%s.%s' % (full, sig)) in KNOWN or ('%s.%s' % (full, r['name'])) in KNOWN: continue
-        missing.append((full, sig, r['file'], r['line'], r['src'][:110]))
-    return missing, len(seen_types), unknown_types
+        cand = real.get(r['name'])
+        if cand is None:
+            missing.append((full, sig, r['file'], r['line'], r['src'][:110], '이름부터 없다'))
+            continue
+        if r['kind'] != 'method':
+            if any(c is None for c in cand): continue
+            missing.append((full, sig, r['file'], r['line'], r['src'][:110], '같은 이름이 메서드로만 있다'))
+            continue
+        ok, prefix = fits(r['params'] or [], cand)
+        if ok: continue
+        shown = ' · 실물: ' + ' / '.join('%s(%s)' % (r['name'], ','.join(c)) for c in cand if c is not None)
+        # 앞자리가 겹쳤는데 **옛 판 파일**이면 «나머지가 선택인가» 를 알 길이 없다 — 빨강 대신 알림.
+        if prefix and fmt < 2:
+            unsure.append((full, sig, shown))
+            continue
+        missing.append((full, sig, r['file'], r['line'], r['src'][:110], '매개변수가 안 맞는다' + shown))
+    return missing, len(seen_types), unknown_types, unsure
 
 
 def run():
@@ -234,22 +277,25 @@ def run():
         print('  · 다음 유니티 런의 `StubSigsTests` 가 그 타입들의 진짜 표면을 찍어 screens 로 올린다.')
         return 0
 
-    dump = read_dump(v)
-    missing, nseen, unknown = judge(rows, dump)
+    dump, fmt = read_dump(v)
+    missing, nseen, unknown, unsure = judge(rows, dump, fmt)
     for t in unknown:
         print('⚠ check_stub_sigs: 진짜 유니티가 타입 «%s» 를 못 찾았다 — 이름이나 어셈블리가 바뀐 자리일 수 있다(알림).' % t)
+    for full, sig, shown in unsure:
+        print('⚠ check_stub_sigs: %s.%s — 스텁이 **짧게** 적었고 실물의 나머지 자리가 선택인지 이 판정 파일로는 모른다%s'
+              % (full, sig, '(옛 판 파일 · fmt 2 를 찍는 런 뒤에 다시 본다)' if fmt < 2 else ''))
     if missing:
         print('✗ check_stub_sigs: 스텁이 **실물에 없는 서명** %d개를 갖고 있다 — 이대로 밀면 유니티가'
               ' «Scripts have compiler errors» 로 죽고 결과 XML 이 0개가 된다(§1 · 런 409·410·412).' % len(missing))
-        for full, sig, fn, ln, src in missing:
-            print('  · %s.%s' % (full, sig))
+        for full, sig, fn, ln, src, why in missing:
+            print('  · %s.%s — %s' % (full, sig, why))
             print('      %s:%d  %s' % (fn, ln, src))
         print('  고치는 법: 그 서명을 실물에서 다시 확인해 스텁을 고치거나, 그 멤버를 쓰는 코드를 실물에'
               ' 있는 길로 바꾼다(런 409 는 뒤쪽이었다). 이 레포가 일부러 더한 것이면 자의 KNOWN 에 까닭과 함께 적는다.')
         return 1
 
-    print('✓ check_stub_sigs: 스텁 공개 멤버 %d개 · 진짜 유니티가 찍은 타입 %d개와 견줘 없는 서명 0'
-          % (len(rows), nseen))
+    print('✓ check_stub_sigs: 스텁 공개 멤버 %d개 · 진짜 유니티가 찍은 타입 %d개와 견줘 없는 서명 0%s'
+          % (len(rows), nseen, (' · 모르는 것 %d(위 알림)' % len(unsure)) if unsure else ''))
     return 0
 
 
@@ -296,38 +342,59 @@ def self_test():
     chk('서명이 매개변수까지 담긴다', 'HasCharacter(uint,bool,bool)' in set(sig_of(r) for r in fake))
     chk('속성 서명은 이름뿐이다', 'atlasWidth' in set(sig_of(r) for r in fake))
 
-    # ── 핵심: 진짜에 char 오버로드만 있고 uint 오버로드는 없을 때 **잡는가**(런 409·412 의 그 자리)
-    real = ('# 머리\n'
+    # ── 핵심 ①: 진짜가 `HasCharacter(char, bool=, bool=)` 뿐일 때 — 가짜 uint 는 잡고, 짧게 적은 char 는 안 잡는다.
+    #    (선택 매개변수 표시 «=» 가 그 둘을 가른다 · 첫 판은 이걸 몰라 진짜를 셋이나 잘못 잡았다)
+    real = ('# 머리\n# fmt 2\n'
             'T\tTMPro.TMP_FontAsset\n'
-            'M\tHasCharacter\tchar\n'
+            'M\tHasCharacter\tchar,bool=,bool=\n'
             'P\tatlasWidth\n')
-    dump = read_dump(real)
-    miss, nseen, unk = judge(fake, dump)
+    dump, fmt = read_dump(real)
+    chk('fmt 2 를 읽는다', fmt == 2)
+    miss, nseen, unk, unsure = judge(fake, dump, fmt)
     chk('가짜 오버로드(uint)를 잡는다', any(m[1] == 'HasCharacter(uint,bool,bool)' for m in miss))
-    chk('진짜 오버로드(char)는 안 잡는다', not any(m[1] == 'HasCharacter(char)' for m in miss))
+    chk('짧게 적은 진짜(char)는 안 잡는다 — 나머지가 선택이라 호출이 선다', not any(m[1] == 'HasCharacter(char)' for m in miss))
+    chk('짧게 적은 진짜는 «모르는 것» 으로도 안 샌다', not any(u[1] == 'HasCharacter(char)' for u in unsure))
     chk('진짜 속성은 안 잡는다', not any(m[1] == 'atlasWidth' for m in miss))
     chk('본 타입 수를 센다', nseen == 1)
     chk('못 찾은 타입은 없다', unk == [])
 
+    # ── 핵심 ②: 나머지가 **선택이 아니면** 짧게 적은 것은 진짜로 못 부른다 → 빨강
+    d_req, f_req = read_dump('# fmt 2\nT\tTMPro.TMP_FontAsset\nM\tHasCharacter\tchar,bool,bool\nP\tatlasWidth\n')
+    miss_req, _, _, _ = judge(fake, d_req, f_req)
+    chk('나머지가 필수면 짧게 적은 것을 잡는다', any(m[1] == 'HasCharacter(char)' for m in miss_req))
+
+    # ── 옛 판 판정 파일(fmt 1)은 선택 여부를 모른다 → 빨강이 아니라 «모르는 것»
+    d_old, f_old = read_dump('T\tTMPro.TMP_FontAsset\nM\tHasCharacter\tchar,bool,bool\nP\tatlasWidth\n')
+    miss_old, _, _, unsure_old = judge(fake, d_old, f_old)
+    chk('옛 판 파일은 fmt 1 로 읽는다', f_old == 1)
+    chk('옛 판에서 짧게 적은 것은 «모르는 것»', any(u[1] == 'HasCharacter(char)' for u in unsure_old))
+    chk('옛 판에서도 가짜 오버로드는 잡는다', any(m[1] == 'HasCharacter(uint,bool,bool)' for m in miss_old))
+
     # 이름만 같고 매개변수가 다르면 **다른 것**이다(이름 대조였다면 여기서 뚫린다)
-    dump2 = read_dump('T\tTMPro.TMP_FontAsset\nM\tHasCharacter\tuint,bool,bool\nM\tHasCharacter\tchar\nP\tatlasWidth\n')
-    miss2, _, _ = judge(fake, dump2)
+    d2, f2 = read_dump('# fmt 2\nT\tTMPro.TMP_FontAsset\nM\tHasCharacter\tuint,bool,bool\nM\tHasCharacter\tchar\nP\tatlasWidth\n')
+    miss2, _, _, _ = judge(fake, d2, f2)
     chk('진짜에 있으면 초록', miss2 == [])
 
     # 타입을 못 찾았을 때는 «빨강» 이 아니라 «알림»
-    dump3 = read_dump('T\tTMPro.TMP_FontAsset\tnotfound\n')
-    miss3, _, unk3 = judge(fake, dump3)
+    d3, f3 = read_dump('# fmt 2\nT\tTMPro.TMP_FontAsset\tnotfound\n')
+    miss3, _, unk3, _ = judge(fake, d3, f3)
     chk('타입을 못 찾으면 알림만', miss3 == [] and unk3 == ['TMPro.TMP_FontAsset'])
 
     # 아직 안 찍힌 타입은 건너뛴다(다음 런이 답한다)
-    miss4, _, _ = judge(fake, read_dump('T\tTMPro.OtherType\n'))
+    d4, f4 = read_dump('# fmt 2\nT\tTMPro.OtherType\n')
+    miss4, _, _, _ = judge(fake, d4, f4)
     chk('안 찍힌 타입은 건너뛴다', miss4 == [])
+
+    # 이름부터 없으면 잡는다
+    d5, f5 = read_dump('# fmt 2\nT\tTMPro.TMP_FontAsset\nP\tatlasWidth\n')
+    miss5, _, _, _ = judge(fake, d5, f5)
+    chk('이름부터 없으면 잡는다', any(m[5] == '이름부터 없다' for m in miss5))
 
     # KNOWN — 이 레포가 일부러 더한 자리는 넘어간다
     KNOWN['TMPro.TMP_FontAsset.HasCharacter(uint,bool,bool)'] = '자기 검사'
-    miss5, _, _ = judge(fake, dump)
+    miss6, _, _, _ = judge(fake, dump, fmt)
     KNOWN.pop('TMPro.TMP_FontAsset.HasCharacter(uint,bool,bool)')
-    chk('KNOWN 에 적힌 서명은 넘어간다', miss5 == [])
+    chk('KNOWN 에 적힌 서명은 넘어간다', miss6 == [])
 
     # 줄인 이름 — 양쪽이 같은 자로 줄어야 견줄 수 있다
     chk('네임스페이스를 뗀다', short('UnityEngine.TextCore.LowLevel.GlyphRenderMode') == 'glyphrendermode')

@@ -86,7 +86,11 @@ namespace Forge.Tests.PlayMode
 
             var sb = new StringBuilder();
             sb.Append("# T174 — 진짜 유니티가 찍은 공개 표면. `tools/check_stub_sigs.py` 가 이것을 받아 스텁과 견준다.\n");
+            sb.Append("# fmt 2\n");
             sb.Append("# 한 줄: «T\\t<타입>[\\tnotfound]» · «M\\t<메서드>\\t<줄인 매개변수>» · «P\\t<속성·필드>»\n");
+            // ⚠ fmt 2 부터 **선택 매개변수 뒤에 «=» 를 붙인다**(`char,bool=,bool=`). 그게 없으면 스텁이
+            //   짧게 적힌 것(`HasCharacter(char)`)이 «실물에 없다» 로 잘못 잡힌다 — 실물이
+            //   `HasCharacter(char, bool = false, bool = false)` 라 그 호출은 멀쩡히 컴파일되기 때문이다(첫 판 실측).
             sb.Append("# 유니티 ").Append(Application.unityVersion).Append('\n');
 
             int types = 0, found = 0, members = 0;
@@ -109,7 +113,12 @@ namespace Forge.Tests.PlayMode
                     if (m.IsSpecialName) continue;            // 속성 접근자(get_/set_)는 아래 P 로 나온다
                     ParameterInfo[] ps = m.GetParameters();
                     var one = new StringBuilder();
-                    for (int i = 0; i < ps.Length; i++) { if (i > 0) one.Append(','); one.Append(Short(ps[i].ParameterType)); }
+                    for (int i = 0; i < ps.Length; i++)
+                    {
+                        if (i > 0) one.Append(',');
+                        one.Append(Short(ps[i].ParameterType));
+                        if (ps[i].IsOptional) one.Append('=');      // 선택 매개변수 — 스텁이 여기서 끊어도 호출은 선다
+                    }
                     sb.Append("M\t").Append(m.Name).Append('\t').Append(one).Append('\n');
                     members++;
                 }
