@@ -4507,6 +4507,15 @@
 - **주인께 물을 것**: 부팅 로딩 화면(정본에 있는 것)과 «부팅 직후 픽셀을 재는 자들» 중 무엇을 먼저 둘지. ⓒ 를 고르면 그 여덟을 한 번에 고치는 작업으로 등재하면 된다.
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` **646/646** · §3 자 전부 rc 0.
 
+### T182 1회차 기록 (2026-09-14 15:4x · 워커 F · sess-1527-63940) — 표를 읽어 보는 자를 세웠다 · **배선은 2회차**(T82 선례) · lock 유지
+
+- **자 `tools/check_resources_json.py`**: `Resources/` 아래(어느 깊이든 · `Assets/Forge/Icons/Resources/…` 포함) `.json` 을 **엄격하게** 파싱하고, 못 읽으면 **파일·줄·칸·그 자리 앞뒤 글자**를 짚는다. `.meta` 짝도 본다(새 표를 만들고 `gen_meta` 를 안 돌리면 유니티가 안 싣고 `Resources.Load` 가 null 이다).
+- **지금 main 에서 실측**: 표 **26개** 중 **하나**가 못 읽힌다 — `RibbonUi.json` 13행 398칸(안 닫힌 문자열). 자가 그 줄과 앞뒤 글자를 그대로 찍는다.
+- **§3·CI 배선은 2회차로 미뤘다(T82 의 선례 그대로)**: 지금 배선하면 **남의 한 글자 때문에 모든 워커의 게이트가 빨개진다**. T82 가 «남의 선점 몇 분 동안 모든 워커 게이트가 빨개지던 것» 을 고친 그 판단과 같다. 자는 이미 서 있으니 누구든(특히 T156 임자가) `python3 tools/check_resources_json.py` 한 줄로 그 자리를 본다. **표가 고쳐지는 순간 배선한다.**
+- **그 표를 내가 못 고쳤다**: 한 글자(닫는 따옴표)면 되는데 ⓐ `RibbonUi.json` 은 **T156 의 산 lock** 안이고 ⓑ 이 환경이 그 파일 수정을 «공유 자원» 으로 막았다. 그래서 **자를 세우는 쪽**으로 갚았다 — 다음에 같은 병이 나면 push 전에 걸린다.
+- **자기 검사 9칸**(고장 주입): 런 427 의 그 병(안 닫힌 문자열 · 줄·칸·앞뒤 글자를 짚는지) · 꼬리 쉼표 · 주석 · `.meta` 없음 · 여럿 중 하나만 깨짐(성한 표는 안 짚는다) · `Resources` 밖(=T2·T41 의 몫)은 안 본다 · 깊은 `Resources` 는 본다 · 없는 뿌리 rc 2.
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` **641/641** · §3 자 전부 rc 0(새 자는 아직 §3 밖이다 — 위 이유).
+
 ### 곁에서 본 것 — T156 의 표 한 줄이 PlayMode **20개**를 깨뜨렸다 (2026-09-14 15:3x · 워커 F · sess-1427-77210 · 고치지 않았다)
 
 - **런 #427 의 빨강 20개는 원인이 하나다**: `Assets/Forge/Resources/RibbonUi.json` **13행**의 문자열이 안 닫혀 **날 개행**이 문자열 안에 들어갔다 → `MiniJson` 이 «control character in string (offset 1109)» 로 던진다. 스택: `RibbonArt.Load` → `RibbonArt.Padding` → `ForgeUi.Ribbon` → `ForgeCraftPopup.Render` — **제작 비교 팝업을 여는 모든 자**가 같이 죽는다(`AudioSmokeTests`·`BattleFxSceneTests`·`ForgeUiTests`·`PlaythroughTests`·`UiShotsTests` …).

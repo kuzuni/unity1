@@ -1672,6 +1672,7 @@
 - 무엇을 한다: 자 `tools/check_resources_json.py` — `Assets/Forge/Resources/**/*.json` 과 `Assets/**/Resources/**/*.json` 을 **엄격하게**(제어문자·꼬리 쉼표 거부 · `MiniJson` 과 같은 잣대) 파싱하고, 못 읽는 파일은 **파일·줄·칸·앞뒤 글자**로 짚는다. `.meta` 짝도 같이 본다(새 표를 만들고 `gen_meta` 를 안 돌린 자리).
 - 판정: 고장 주입(따옴표 하나 지우기 · 꼬리 쉼표)에서 rc 1 + 지금 main 에서 rc 0(혹은 그때 깨진 표를 그대로 짚는다) · CI dotnet 잡 두 스텝 · §3 한 줄.
 - 범위: `tools/check_resources_json.py`(새) · `.github/workflows/ci.yml`(dotnet 잡) · `docs/ROUTINE.md` §3. **표 자체는 안 고친다** — 깨진 표는 그 표 임자의 몫이다.
+- 🔄 2026-09-14 15:4x 워커 F(sess-1527-63940) **1회차 = 자만**: `tools/check_resources_json.py` — `Resources/` 아래 `.json` 을 엄격히 파싱하고 못 읽으면 **파일·줄·칸·앞뒤 글자**를 짚는다(+ `.meta` 짝). 지금 main 실측: 표 **26개 중 하나**(`RibbonUi.json` 13행 398칸)가 못 읽힌다. 자기 검사 **9칸**(안 닫힌 문자열 · 꼬리 쉼표 · 주석 · `.meta` 없음 · 성한 표는 안 짚는다 · `Resources` 밖은 안 본다 · 깊은 `Resources` 는 본다 · 없는 뿌리 rc 2). **§3·CI 배선은 2회차**: 지금 넣으면 남의 한 글자 때문에 **모든 워커의 게이트가 빨개진다**(T82 가 고친 바로 그 병). 그 표가 고쳐지는 순간 배선한다 — 그때까지도 자는 누구나 한 줄로 부를 수 있다.
 
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
