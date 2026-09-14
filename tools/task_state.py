@@ -564,6 +564,20 @@ def docs_only_verdict(pmark, lk, files, commits, paths_of):
         len(commits), h, when[:16], subj[:60])
 
 
+def resume_verdict(pmark, lk, age):
+    """T187 — «반납한 행을 이어 잡아도 되나». (True, 까닭) 또는 (None, None).
+
+    T160 이 «등재만 된 ⬜» 을 열었지만, 코드 커밋이 한 번이라도 붙은 행은 여전히 «이미 손댄 흔적 → 잡지 마라» 였다 —
+    회차를 나눠 하는 작업(T109·T128·T159·T168·T178 …)은 임자가 lock 을 반납하고 떠난 뒤 **아무도 규약(지시서 3 · rc 0)대로는
+    못 잇는** 자리가 됐다(2026-09-14 실측: 열린 작업 다섯이 전부 그 꼴). 잣대는 T329 의 것을 그대로 쓴다 — **그 번호의 마지막
+    커밋이 90분(STALE_MIN) 넘게 조용하면 임자는 떠난 것**이다. 산 lock · ✅ · 90분 안의 커밋 · 얕은 클론(나이 None)은 그대로
+    «먼저 읽어라 / 뺏지 마라» 다(T447·T465 의 인수 규약을 좁힌 것이 아니라, 그 규약이 «임자가 없는데도» 막던 자리만 연다)."""
+    if pmark not in ("⬜", "🔄") or lk or age is None or age <= STALE_MIN:
+        return None, None
+    return True, ("이어 잡아도 된다 — 그 번호의 마지막 커밋이 %d분 전(90분 초과 · 임자가 떠났다 · T187) · "
+                  "먼저 읽어라: 그 절의 마지막 회차 기록과 «남은 몫»" % age)
+
+
 def verdict(tid, heads, rows):
     """(잡아도 되나, 한 줄 판정). «잡아도 되나» 가 거짓이면 그 회차에 그 번호를 선점하지 않는다."""
     lk = lock_of(tid)
@@ -603,6 +617,10 @@ def verdict(tid, heads, rows):
     ok, why = docs_only_verdict(pmark, lk, files, commits, commit_paths)
     if ok is not None:
         return ok, why
+    ok, why = resume_verdict(pmark, lk, task_commit_age(tid))
+    if ok is not None:
+        h, when, subj = commits[0] if commits else ("", "", "")
+        return ok, why + ((" · 마지막 커밋 %s(%s) «%s»" % (h, when[:16], subj[:60])) if h else "")
     if commits:
         h, when, subj = commits[0]
         return False, "⚠ **이미 손댄 흔적** — 커밋 %s(%s) «%s» · 코드 %d곳. 먼저 읽어라" % (
@@ -690,7 +708,7 @@ def task_commit_age(tid, log=None):
             return None
         if cnt < SHALLOW_MIN:
             return None
-        log = _git(["log", "--format=%h\t%cI\t%s", "-400"])
+        log = _git(["log", "--format=%h\t%cI\t%s", "-1500"])   # T187 — 하루치 이력 안에서 그 번호의 마지막 커밋을 찾는다
     pat = re.compile(r"^" + tid + r"(?![\w-])")
     for line in log.split("\n"):
         parts = line.split("\t")
@@ -1508,7 +1526,16 @@ def self_test():
             if got != want:
                 print("⛔ 자기 검사 실패(T160) — 등재만 된 ⬜ 판정: %s/%s/%s/%d커밋 → %r (기대 %r)" % (pm, lk_, fl, len(cm), got, want))
                 return 1
-        print("✓ task_state --self-test: 어긋난 짝을 잡고(T161) · **등재만 된 ⬜ 는 잡아도 되고 코드 커밋·🔄·lock 이 있으면 아니고(T160)** · **«🔄 인데 lock 없음·마지막 커밋 90분 초과» 를 참고로 찍되 산 lock·방금 커밋·✅ 는 안 찍고(T164)** · ✅ 를 달면 조용하고 · 빈 번호는 통과하고 ·"
+        # ⓤ T187 — «반납한 행 이어 잡기»: ⬜/🔄 + lock 없음 + 마지막 커밋 90분 초과 → True · 산 lock·90분 안·✅·나이 None → None
+        t186 = [(("⬜", None, 600), True), (("🔄", None, 600), True), (("🔄", None, 30), None),
+                (("✅", None, 600), None), (("⬜", ("sess-0000-1", 5), 600), None), (("🔄", None, None), None),
+                (("🔄", None, STALE_MIN), None)]
+        for (pm, lk_, age), want in t186:
+            got = resume_verdict(pm, lk_, age)[0]
+            if got != want:
+                print("⛔ 자기 검사 실패(T187) — 이어 잡기 판정: %s/%s/%s → %r (기대 %r)" % (pm, lk_, age, got, want))
+                return 1
+        print("✓ task_state --self-test: 어긋난 짝을 잡고(T161) · **등재만 된 ⬜ 는 잡아도 되고 코드 커밋·🔄·lock 이 있으면 아니고(T160)** · **«🔄 인데 lock 없음·마지막 커밋 90분 초과» 를 참고로 찍되 산 lock·방금 커밋·✅ 는 안 찍고(T164)** · **반납한 ⬜/🔄 행은 마지막 커밋이 90분 넘게 조용하면 «이어 잡아도 된다» 고 90분 안·산 lock·✅·나이 None 은 아니고(T187)** · ✅ 를 달면 조용하고 · 빈 번호는 통과하고 ·"
               " 같은 번호 두 제목을 잡고 · «행 없음 ↔ 접힌 행만» 을 가르고 · ⛔ 와 `\\|` 도 읽고 ·"
               " 참고 줄이 마지막 요약에도 실리고(T231) · «⬜ + 살아 있는 lock» 을 잡되 죽은 lock 은 안 잡고(T238) · **미래로 적힌 lock 을 잡되 1분 차에는 안 울고**(T294) · **본문에 ✂ 를 인용한 살아 있는 줄을 접힘으로 안 센다**(T249) · **«낡은 lock 인데 임자는 살아 있다» 를 잡되 «둘 다 낡음»·«아직 살아 있음»·«판단 못 함» 셋에는 안 울고**(T329)"
               " · **맨 위 행을 지워도 발급이 안 내려가고(옛 규칙이면 그 번호를 재발급한다) · 지워진 번호를 잡되 멀쩡한 표·구멍·git 없음 셋에는 안 울고**(T415)"
