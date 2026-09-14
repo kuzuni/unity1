@@ -157,6 +157,8 @@ namespace Forge.Game.Ui
             float cell = (inner - gridPadX * 2f - cellGapX * 4f) / 5f;
             float labelH = PopupKit.FontSize(TextKind.Sub) * 1.2f;
             float cellH = cell + H * 0.0069f + labelH;
+            // T122 ⓑ — 정본 hydrateForgeThumbs(ui.js 2183): 목록을 다시 그리면 이전 굽기 작업은 스스로 멈춘다(_thumbJob) · 한 프레임 몇 장씩(펌프)
+            int thumbJob = ItemFaces.NewJob();
             for (int ai = 0; ai < d.Ages.Length; ai++)
             {
                 string age = d.Ages[ai];
@@ -168,7 +170,7 @@ namespace Forge.Game.Ui
                 for (int i = 0; i < weapons.Length; i++)
                 {
                     string wt = weapons[i]; int idx = i;
-                    cells.Add(rt => Cell(rt, h, age, "weapon", idx, wt, ForgeUi.WeaponIconKey(d, wt), wp, stars, cell, labelH));
+                    cells.Add(rt => Cell(rt, h, age, ageIdx, "weapon", idx, wt, ForgeUi.WeaponIconKey(d, wt), wp, stars, cell, labelH, thumbJob));
                 }
                 foreach (string slot in d.Slots)
                 {
@@ -184,7 +186,7 @@ namespace Forge.Game.Ui
                     for (int i = 0; i < names.Length; i++)
                     {
                         int idx = i; string sl = slot;
-                        cells.Add(rt => Cell(rt, h, age, sl, idx, null, ForgeUi.SlotIconKey(sl), sp, stars, cell, labelH));
+                        cells.Add(rt => Cell(rt, h, age, ageIdx, sl, idx, null, ForgeUi.SlotIconKey(sl), sp, stars, cell, labelH, thumbJob));
                     }
                 }
                 int rows = (cells.Count + 4) / 5;
@@ -206,10 +208,20 @@ namespace Forge.Game.Ui
             PopupKit.XButton(card, () => Open(h));
         }
 
-        static void Cell(RectTransform rt, ForgeHost h, string age, string slot, int variant, string wtype, string icon, double pct, int stars, float size, float labelH)
+        /// <summary>정본 hydrateForgeThumbs(ui.js 2190~2194)가 셀의 data- 로 만드는 썸네일 키 — rarity 'common' · 승천 티어 없음(stars 는 배지에만).</summary>
+        static ForgeItem ThumbDef(string age, int ageIdx, string slot, int variant, string wtype)
+        {
+            return new ForgeItem { Slot = slot, Age = age, AgeIdx = ageIdx, WType = wtype, NameIdx = variant, Rarity = "common", Stars = 0 };
+        }
+
+        static void Cell(RectTransform rt, ForgeHost h, string age, int ageIdx, string slot, int variant, string wtype, string icon, double pct, int stars, float size, float labelH, int thumbJob)
         {
             RectTransform tile = ForgeUi.ItemTile(rt, "fl-face", size, h.Defs, age, icon, 0.8f, agePattern: true);   // T124 3회차 — 정본 ui.js 2090 `fl-face equip-cell[data-age]`: 목록 타일도 시대 무늬 층(.55)을 입는다
             UiKit.Place(tile, 0f, 0f, size, size);
+            // T122 ⓑ — 정본 2104 는 슬롯 아이콘을 플레이스홀더로 깔고 2183 hydrateForgeThumbs 가 다음 프레임부터 한 프레임 몇 장씩 3D 썸네일로 갈아 끼운다
+            //   (같은 부위 다섯 칸이 전부 같은 그림이던 자리). 캡처가 없는 장신구는 정본도 실루엣(Request 가 null 로 답한다).
+            if (ItemFaces.Supports(slot))
+                ItemFaces.Request(thumbJob, h.Defs, ThumbDef(age, ageIdx, slot, variant, wtype), sp => { if (tile != null) ForgeUi.ApplyThumb(tile, sp, size); });
             Image face = tile.GetComponentInChildren<Image>();
             if (stars > 0)
             {
@@ -270,6 +282,7 @@ namespace Forge.Game.Ui
             float tile = rem * 3.6f;
             RectTransform head = PopupKit.Item(card, "idet-head", -1f, tile + rem * 0.4f);
             RectTransform t = ForgeUi.ItemTile(head, "idet-icon", tile, d, age, icon);
+            ForgeUi.ApplyThumb(t, ItemFaces.Get(d, ThumbDef(age, ageIdx, slot, detailVariant, detailWtype)), tile);   // T122 ⓑ — 정본 2244 `idet-icon`: thumb ? <img> : 아이콘(동기 · 한 장)
             UiKit.Place(t, 0f, rem * 0.2f, tile, tile);
             float lh = PopupKit.FontSize(TextKind.Body) * 1.3f;
             TextMeshProUGUI nm = UiKit.Text(head, "idet-name", TextKind.Body, "[" + ForgeUi.AgeKr(d, age) + "] " + name, "pp_ink", TextAlignmentOptions.Left);

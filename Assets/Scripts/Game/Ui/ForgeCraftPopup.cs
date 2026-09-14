@@ -165,7 +165,8 @@ namespace Forge.Game.Ui
 
         static RectTransform CraftCard(Transform parent, ForgeHost h, ForgeItem it, float size)
         {
-            RectTransform tile = ForgeUi.ItemTile(parent, "card", size, h.Defs, it.Age, ForgeUi.ItemIconKey(h.Defs, it), 0.9f);
+            // T122 ⓑ — 정본 buildCraftCard 도 itemImgHTML(3D 썸네일 · 없으면 실루엣)로 그린다: ForgeItem 오버로드(2회차)가 그 폴백 순서를 쥔다
+            RectTransform tile = ForgeUi.ItemTile(parent, "card", size, h.Defs, it, 0.9f);
             return tile;
         }
 

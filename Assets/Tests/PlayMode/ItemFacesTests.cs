@@ -316,5 +316,72 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(1, ItemFaces.CacheCount, "굽힌 것만 캐시에 든다 · 이전 " + before);
             yield return null;
         }
+            /// <summary>T122 ⓑ — 정본 2104 플레이스홀더 + 2183 hydrateForgeThumbs(펌프 · rarity common · 티어 없음) · 2244 상세 `idet-icon`(동기) · 1906 buildCraftCard(itemImgHTML):
+        /// 목록의 투구·갑옷 다섯 칸이 서로 다른 구운 썸네일이고 장신구 칸은 실루엣 · 상세 아이콘 = 그 정의의 썸네일 · 리빌 카드 = 그 장비의 썸네일.</summary>
+        [UnityTest]
+        public IEnumerator 목록_상세_리빌_카드의_장비_그림은_구운_썸네일이고_장신구는_실루엣이다()
+        {
+            yield return Boot();
+            if (!GallerySheet.GraphicsAvailable) Assert.Ignore("그래픽 장치가 없다 — 썸네일은 CI 의 유니티 잡이 본다");
+            PlayLog log = PlayLog.Start("item-faces-list");
+            ForgeHost h = ForgeHost.Instance;
+            GameDefs d = h.Defs;
+            Assert.IsTrue(ItemFaces.Available, "장비 메시 표(gear-meshes.json)가 꽂혀야 한다");
+            string age = d.Ages[0];
+
+            // ① 목록 — 펌프가 다음 프레임부터 몇 장씩 굽는다 · 다 구울 때까지 프레임을 넘긴다
+            ForgeInfoPopup.OpenList(h);
+            yield return null;
+            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeInfoPopup.Name), "장비 목록 팝업");
+            int frames = 0;
+            while (ItemFaces.Pending > 0 && frames < 2000) { frames++; yield return null; }
+            Assert.AreEqual(0, ItemFaces.Pending, "펌프가 2000프레임 안에 다 굽는다");
+            Transform section = FindIn(h.Meta.Popups.Find(ForgeInfoPopup.Name).Root, "section-" + age);
+            Assert.IsNotNull(section, "첫 시대 절");
+            var helmetSprites = new System.Collections.Generic.List<Sprite>();
+            int silhouettes = 0;
+            foreach (Transform cell in FindIn(section, "forge-item-grid"))
+            {
+                if (!cell.name.StartsWith("cell-")) continue;
+                Transform tile = cell.Find("fl-face"); Assert.IsNotNull(tile, cell.name + " 타일");
+                Image img = tile.Find("img").GetComponent<Image>();
+                Assert.IsNotNull(img.sprite, cell.name + " 그림");
+                for (int i = 0; i < 5; i++)
+                {
+                    Sprite want = ItemFaces.Get(d, "helmet", age, 0, null, i, "common", 0);
+                    if (want != null && ReferenceEquals(img.sprite, want)) helmetSprites.Add(img.sprite);
+                }
+                if (ReferenceEquals(img.sprite, UiIcons.Get(ForgeUi.SlotIconKey("gloves")))) silhouettes++;
+            }
+            Assert.AreEqual(5, helmetSprites.Count, "첫 시대 투구 다섯 칸이 각각 제 정의의 구운 썸네일을 쥔다(펌프가 갈아 끼웠다)");
+            Assert.AreEqual(5, new System.Collections.Generic.HashSet<Sprite>(helmetSprites).Count, "투구 다섯 칸은 서로 다른 그림(정본이 고치려던 «같은 부위 다섯이 같은 그림»)");
+            Assert.Greater(silhouettes, 0, "캡처가 없는 장신구(장갑) 칸은 슬롯 실루엣 그대로");
+
+            // ② 상세 — 동기 한 장
+            ForgeInfoPopup.OpenDetail(h, age, "helmet", 1, null);
+            yield return null;
+            Transform head = FindIn(h.Meta.Popups.Find(ForgeInfoPopup.ItemName).Root, "idet-head");
+            Image di = head.Find("idet-icon/img").GetComponent<Image>();
+            Assert.AreSame(ItemFaces.Get(d, "helmet", age, 0, null, 1, "common", 0), di.sprite, "상세 아이콘 = 그 정의의 썸네일(정본 2244)");
+            ForgeInfoPopup.CloseItemDetail(h);
+            ForgeInfoPopup.Close(h);
+            yield return null;
+
+            // ③ 리빌 카드 — 그 장비의 썸네일(정본 buildCraftCard → itemImgHTML)
+            ForgeItem it = null;
+            for (int i = 0; i < 200 && it == null; i++) { ForgeItem r = h.Engine.RollItem(); if (ItemFaces.Supports(r.Slot)) it = r; }
+            Assert.IsNotNull(it);
+            bool done = false;
+            ForgeCraftPopup.ShowReveal(h, it, () => { done = true; });
+            yield return null;
+            Transform reveal = UiRoot.Instance.App.Find("craft-reveal");
+            Assert.IsNotNull(reveal, "리빌 카드 오버레이");
+            Image ci = reveal.Find("card/img").GetComponent<Image>();
+            Assert.AreSame(ItemFaces.Get(d, it), ci.sprite, "리빌 카드 = 그 장비의 구운 썸네일");
+            float t = 0f;
+            while (!done && t < 3f) { t += Time.unscaledDeltaTime; yield return null; }
+            log.AssertNoRed();
+            log.Dispose();
+        }
     }
 }
