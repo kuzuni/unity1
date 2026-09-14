@@ -1,12 +1,13 @@
 {
-  "_": "ROUTINE T335 (가)(다) — 던전 클리어 팝업의 보상 칸 팝(정본 style.css 5390 dgc-pop)·카드 가라앉기(5396~5397 dgclear-sink · ui.js 4721 leaving)·딤 페이드(5398 .modal.dgclear-out) 와 기술 노드 «연구 완료» 초록 맥동(4622~4626 tt-ready · ui.js 5414 researching ready)의 수치표. T169 lock 이 Assets/Forge/catalog.json 을 쥐고 있어 T335 몫은 여기 둔다(T135 CardPopUi.json 과 같은 꼴 · T33 이 합칠 수 있다) — 코드에 숫자를 박지 않는다(§1). 접미 _ms = 벽시계 · 트랙은 RewardBurstSpec.Track(퍼센트·구간 이징).",
+  "_": "ROUTINE T335 (가)(나)(다) — 던전 클리어 팝업의 보상 칸 팝(정본 style.css 5390 dgc-pop)·카드 가라앉기(5396~5397 dgclear-sink · ui.js 4721 leaving)·딤 페이드(5398 .modal.dgclear-out) 와 기술 노드 «연구 완료» 초록 맥동(4622~4626 tt-ready · ui.js 5414 researching ready)의 수치표. T169 lock 이 Assets/Forge/catalog.json 을 쥐고 있어 T335 몫은 여기 둔다(T135 CardPopUi.json 과 같은 꼴 · T33 이 합칠 수 있다) — 코드에 숫자를 박지 않는다(§1). 접미 _ms = 벽시계 · 트랙은 RewardBurstSpec.Track(퍼센트·구간 이징).",
   "layout": {
     "pop_ms": 380,
     "pop_stagger_ms": 90,
     "sink_delay_ms": 120,
     "sink_ms": 450,
     "dim_out_ms": 550,
-    "ready_ms": 1100
+    "ready_ms": 1100,
+    "flash_ms": 500
   },
   "dgcpop": [
     { "at": 0,   "scale": 0.3, "alpha": 0, "ease": [0.34, 1.56, 0.64, 1] },
@@ -20,12 +21,20 @@
     { "at": 0,   "scale": 1.0, "alpha": 1, "ease": "ease" },
     { "at": 100, "scale": 1.0, "alpha": 0 }
   ],
+  "skflash": [
+    { "at": 0,   "scale": 1.0, "alpha": 0, "ease": "ease-out" },
+    { "at": 25,  "scale": 1.0, "alpha": 1, "ease": "ease-out" },
+    { "at": 100, "scale": 1.0, "alpha": 0 }
+  ],
+  "skflash_glow": { "cx": 0.5, "cy": 0.5, "core_alpha": 0.2, "edge": 0.65 },
   "ttready": { "from_key": "tech_node_border", "to_key": "pp_green", "ease": "ease-in-out" },
   "_src": {
     "pop_ms · dgcpop": "css 5389~5392 `.dgc-cell { animation: dgc-pop .38s cubic-bezier(.34,1.56,.64,1) backwards }` · `@keyframes dgc-pop { from { transform: scale(.3); opacity: 0 } to { transform: none; opacity: 1 } }` — backwards = 시작 전에도 from 모습",
     "pop_stagger_ms": "css 5390~5391 `.dgc-cell:nth-child(2) { animation-delay: .09s }` · `:nth-child(3) { .18s }` — 칸마다 .09s 씩 늦게(넷째 뒤는 규칙이 없어 같은 간격으로 잇는다 · 정본은 칸이 셋 이하)",
     "sink_delay_ms · sink_ms · dgsink": "css 5396~5397 `.dgclear-card.leaving { animation: dgclear-sink .45s ease-in .12s forwards }` · `@keyframes dgclear-sink { to { transform: scale(.9); opacity: 0 } }` — ui.js 4721 [보상 수령] 뒤 `card.classList.add('leaving')`",
     "dim_out_ms · dimout": "css 5398 `.modal.dgclear-out { transition: background .55s ease; background: rgba(0,0,0,0) }` — ui.js 4722 «딤도 함께 걷힌다 — 복귀할 화면이 미리 비치게» · 클론은 딤 Image 의 알파를 시작값에서 0 으로",
+    "flash_ms · skflash": "css 1919~1921 `#skill-flash { position: absolute; inset: 0; opacity: 0; z-index: 5 }` · `.play { animation: skflash .5s ease-out }` · `@keyframes skflash { 0% { opacity: 0 } 25% { opacity: 1 } 100% { opacity: 0 } }` — combat.js 377 `UI.skillFlash(d.color)` 는 **공격 스킬**(aoe·단일)에서만 · 회복·버프는 안 부른다(클론 Core Battle.TryCast 의 SkillFlash 이벤트가 같은 자리)",
+    "skflash_glow": "ui.js 3779~3785 `el.style.background = radial-gradient(ellipse at center, ${color}33 0%, transparent 65%)` — 색은 스킬 정의 `color`(gamedata skills) · 가운데 알파 0x33/255 = .2 · 65% 에서 투명 · farthest-corner(타원 기본) — 클론은 흰 방사형 한 장을 굽고 Image.color 로 스킬 색을 곱한다(투명으로 가는 보간은 알파만 줄이므로 같은 그림)",
     "ready_ms · ttready": "css 4622~4626 `.tech-tree-node.researching.ready { animation: tt-ready 1.1s ease-in-out infinite alternate }` · from border #7d3920(=카탈로그 tech_node_border) → to var(--pp-green) — box-shadow 글로우(0 0 .5rem .12rem rgba(53,212,53,.55))는 T331 흐림 도우미 뒤(등재문 «그 전엔 테 색 왕복만»)"
   }
 }

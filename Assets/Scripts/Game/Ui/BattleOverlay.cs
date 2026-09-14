@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using Forge.Core.BattleFx;
 using Forge.Core.Data;
+using Forge.Core.Ui;
 
 namespace Forge.Game.Ui
 {
@@ -30,6 +31,8 @@ namespace Forge.Game.Ui
         Image cut; double cutT = -1, cutMs;
         // 피격 붉은 비네트(T135 ⓐ)
         Image vig; double vigT = -1, vigPeak;
+        // 스킬 시전 섬광(T335 ⓑ · 정본 `#skill-flash` css 1919 · ui.js 3779 `skillFlash(color)`)
+        Image skf; double skfT = -1;
 
         public bool WarningActive { get { return warnT >= 0; } }
         public double WarningT { get { return warnT; } }
@@ -44,6 +47,10 @@ namespace Forge.Game.Ui
         public float VignetteAlpha { get { return vig != null && vig.gameObject.activeSelf ? vig.color.a : 0f; } }
         /// <summary>비네트 면 — 테스트가 층·띠·그림을 본다.</summary>
         public Image Vignette { get { return vig; } }
+        public bool SkillFlashActive { get { return skfT >= 0; } }
+        public float SkillFlashAlpha { get { return skf != null && skf.gameObject.activeSelf ? skf.color.a : 0f; } }
+        /// <summary>섬광 면 — 테스트가 층·색·서열을 본다.</summary>
+        public Image SkillFlashImage { get { return skf; } }
         /// <summary>오버레이 띠(상단바 아래 ~ 장비 시트 위 · 정본 `#game-area`) — 테스트가 층·띠를 본다.</summary>
         public RectTransform Layer { get { return layer; } }
 
@@ -396,6 +403,70 @@ namespace Forge.Game.Ui
 
         void DriveVignette() { Alpha(vig, FxRules.DmgVigAlpha(vigT * 1000, vigPeak)); }
 
+        // ── 스킬 시전 섬광(T335 ⓑ · 정본 css 1919~1921 `#skill-flash` z 5 · ui.js 3779 `skillFlash(color)` · combat.js 377 공격 스킬만) ──
+
+        /// <summary>
+        /// 흰 방사형 한 장 — 정본 `radial-gradient(ellipse at center, ${color}33 0%, transparent 65%)` 의 **알파만** 굽고 색은 <see cref="Image.color"/> 가 곱한다
+        /// (투명으로 가는 보간은 색을 안 바꾸고 알파만 줄이므로 같은 그림). 셈은 <see cref="DungeonFxSpec.FlashGlowAlpha"/>(EditMode 가 잰다).
+        /// </summary>
+        static Sprite skfSprite;
+        static Sprite SkillFlashSprite()
+        {
+            if (skfSprite != null) return skfSprite;
+            DungeonFxSpec sp = DungeonClearFx.Spec;
+            const int n = 128;
+            Texture2D tex = new Texture2D(n, n, TextureFormat.RGBA32, false);
+            tex.name = "skill-flash";
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;
+            Color32[] px = new Color32[n * n];
+            for (int y = 0; y < n; y++)
+            {
+                double v = 1 - (y + 0.5) / n;   // 텍스처는 아래가 0행 · CSS 는 위가 0
+                for (int x = 0; x < n; x++)
+                {
+                    double u = (x + 0.5) / n;
+                    px[y * n + x] = new Color32(255, 255, 255, B(sp.FlashGlowAlpha(u, v)));
+                }
+            }
+            tex.SetPixels32(px);
+            tex.Apply(false, false);
+            skfSprite = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            skfSprite.name = tex.name;
+            return skfSprite;
+        }
+
+        void BuildSkillFlash()
+        {
+            if (skf != null) return;
+            skf = UiKit.Panel(layer, "skill-flash", "pp_paper");
+            UiKit.Fill(skf.rectTransform);
+            skf.sprite = SkillFlashSprite();
+            skf.type = Image.Type.Simple;
+            skf.raycastTarget = false;
+            skf.color = new Color(1, 1, 1, 0);
+            skf.gameObject.SetActive(false);
+        }
+
+        /// <summary>`UI.skillFlash(color)` — 스킬 색(`#rrggbb`)의 방사형 섬광 .5s. 연타하면 처음부터 다시 돈다(정본은 리플로우 강제).</summary>
+        public void SkillFlash(string colorHex)
+        {
+            Color c;
+            if (string.IsNullOrEmpty(colorHex) || !ColorUtility.TryParseHtmlString(colorHex, out c)) throw new FormatException("스킬 색 «" + colorHex + "» 을 못 읽는다(gamedata skills color)");
+            BuildSkillFlash();
+            skf.color = new Color(c.r, c.g, c.b, 0f);
+            skfT = 0;
+            skf.gameObject.SetActive(true);
+            DriveSkillFlash();
+        }
+
+        void DriveSkillFlash()
+        {
+            // 정본 z-index 5 — 비네트(12)·사망(15)·씬컷(16)·보스 워닝 전부 아래. 비네트가 켜질 때 스스로 맨 아래로 가므로 매 프레임 되돌린다.
+            if (skf.transform.GetSiblingIndex() != 0) skf.transform.SetAsFirstSibling();
+            Alpha(skf, DungeonClearFx.Spec.FlashAlphaAt(skfT * 1000));
+        }
+
         // ── 씬컷 ──
         /// <summary>`sceneCut(apply, dur)` — 호출부가 apply 를 먼저 돌린 뒤 커버가 걷힌다.</summary>
         public void SceneCut(double ms)
@@ -428,6 +499,12 @@ namespace Forge.Game.Ui
                 vigT += dt;
                 if (vigT * 1000 >= FxRules.DmgVigMs) { vigT = -1; Alpha(vig, 0); vig.gameObject.SetActive(false); }
                 else DriveVignette();
+            }
+            if (skfT >= 0)
+            {
+                skfT += dt;
+                if (DungeonClearFx.Spec.FlashDone(skfT * 1000)) { skfT = -1; Alpha(skf, 0); skf.gameObject.SetActive(false); }
+                else DriveSkillFlash();
             }
             if (cutT >= 0)
             {

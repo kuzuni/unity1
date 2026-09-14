@@ -376,6 +376,7 @@ namespace Forge.Game.Battle
                 case BattleEventKind.Music: if (Music.Instance != null) Music.Instance.SetMusicMode(e.Tag); break;
                 case BattleEventKind.DeathFade: { var ov = BattleOverlay.Ensure(); if (ov != null) ov.DeathFade(e.Tag); break; }
                 case BattleEventKind.SceneCut: { var ov = BattleOverlay.Ensure(); if (ov != null) ov.SceneCut(FxRules.SceneCutMs); break; }
+                case BattleEventKind.SkillFlash: { var ov = BattleOverlay.Ensure(); if (ov != null) ov.SkillFlash(e.Tag); break; }   // T335 ⓑ — 정본 combat.js 377 `UI.skillFlash(d.color)`
                 // skill*(T12) · toast(T22/T27) · save · dungeon*(T21) — 이 작업 밖.
                 default: break;
             }

@@ -80,5 +80,26 @@ namespace Forge.Tests
             for (int ms = 0; ms <= 4400; ms += 25) { double t = s.ReadyT(ms); Assert.GreaterOrEqual(t, 0); Assert.LessOrEqual(t, 1); }
             Assert.Less(s.ReadyT(110), 0.1, "ease-in-out 이라 앞이 느리다");
         }
+        [Test]
+        public void 스킬_섬광은_반_틱에_켜지고_끝에_꺼지며_방사형은_가운데_2할에서_65퍼센트_밖이_투명이다()
+        {
+            var s = S();
+            Assert.AreEqual(500, s.FlashMs, 1e-9, "css 1920 skflash .5s");
+            Assert.AreEqual(0.2, s.FlashCoreAlpha, 1e-9, "ui.js 3781 `${color}33` = 0x33/255 ≈ .2");
+            Assert.AreEqual(0.65, s.FlashEdge, 1e-9, "ui.js 3781 transparent 65%");
+            Assert.AreEqual(0, s.FlashAlphaAt(0), 1e-9, "0% opacity 0");
+            Assert.AreEqual(1, s.FlashAlphaAt(125), 1e-9, "25% opacity 1");
+            Assert.AreEqual(0, s.FlashAlphaAt(500), 1e-9, "100% opacity 0");
+            Assert.IsFalse(s.FlashDone(499)); Assert.IsTrue(s.FlashDone(500));
+            double prev = -1;
+            for (int ms = 0; ms <= 125; ms += 5) { double a = s.FlashAlphaAt(ms); Assert.GreaterOrEqual(a, prev, "켜지는 구간은 단조 증가 " + ms); prev = a; }
+            for (int ms = 125; ms <= 500; ms += 5) { double a = s.FlashAlphaAt(ms); Assert.LessOrEqual(a, prev + 1e-12, "꺼지는 구간은 단조 감소 " + ms); prev = a; }
+            Assert.Greater(s.FlashAlphaAt(30), 30.0 / 125, "ease-out 이라 앞이 빠르다");
+            Assert.AreEqual(0.2, s.FlashGlowAlpha(0.5, 0.5), 1e-9, "가운데 = core_alpha");
+            Assert.AreEqual(0.1, s.FlashGlowAlpha(0.5 + 0.325 * 0.5, 0.5), 1e-9, "반지름 절반 = 절반(선형)");
+            Assert.AreEqual(0, s.FlashGlowAlpha(0.5 + 0.65 * 0.5, 0.5), 1e-9, "65% 에서 투명");
+            Assert.AreEqual(0, s.FlashGlowAlpha(0, 0), 1e-9, "모서리(farthest-corner 100%)는 투명");
+            Assert.AreEqual(s.FlashGlowAlpha(0.5, 0.2), s.FlashGlowAlpha(0.2, 0.5), 1e-9, "타원 — 가로·세로 같은 비율이면 같은 값");
+        }
     }
 }
