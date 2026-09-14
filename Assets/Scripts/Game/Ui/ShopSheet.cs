@@ -101,7 +101,7 @@ namespace Forge.Game.Ui
                 float priceW = UiKit.L("shop_price_w") * w, priceH = UiKit.H("shop_price_h");
                 string key = d.Key;
                 Button price = null;
-                price = PopupKit.Btn(card, "price", claimed ? "수령 완료" : d.PriceKr, "pp_blue", "pp_blue_dk", () => OnClaimDeal(h, key, price.GetComponent<RectTransform>()), priceW, priceH, "stage_ink", TextKind.Sub, claimed);
+                price = PopupKit.Btn(card, "price", claimed ? "수령 완료" : d.PriceKr, "pp_blue", "pp_blue_dk", () => OnClaimDeal(h, key, price ? price.GetComponent<RectTransform>() : null), priceW, priceH, "stage_ink", TextKind.Sub, claimed);
                 UiKit.Place(price.GetComponent<RectTransform>(), cardW - UiKit.L("shop_price_right") * w - priceW, cardH - UiKit.H("shop_price_bottom") - priceH, priceW, priceH);
             }
 

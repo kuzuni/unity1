@@ -43,6 +43,22 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>그 버튼이 어느 딜 카드(`deal-<key>`) 안에 있는가 — 수령 뒤 `Touch` 가 시트를 다시 그려 버튼 객체가 바뀌므로 이름으로 다시 찾는다(런 313 MissingReference).</summary>
+        private static string DealOf(Transform t)
+        {
+            for (Transform x = t; x != null; x = x.parent) if (x.name.StartsWith("deal-")) return x.name;
+            return null;
+        }
+
+        private static Button PriceOf(string popupName, string dealName)
+        {
+            Popup p = PopupLayer.Instance.Find(popupName);
+            Assert.IsNotNull(p, popupName + " 이 열려 있지 않다");
+            foreach (Button b in p.Root.GetComponentsInChildren<Button>(true))
+                if (b.name == "price" && DealOf(b.transform) == dealName) return b;
+            return null;
+        }
+
         private static Button FindButton(string popupName, string name, bool interactableOnly)
         {
             Popup p = PopupLayer.Instance.Find(popupName);
@@ -60,6 +76,8 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Button price = FindButton(ShopSheet.Name, "price", true);
             Assert.IsNotNull(price, "새 세이브의 상점에 아직 안 받은 무료칸이 하나는 있어야 한다");
+            string deal = DealOf(price.transform);
+            Assert.IsNotNull(deal, "가격 버튼은 deal-<key> 카드 안에 있다");
             int before = RewardBurst.Instance != null ? RewardBurst.Instance.PlayCount : 0;
             price.onClick.Invoke();
             yield return null;
@@ -69,8 +87,11 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(rb.LastEntries.Count, 0, "재화가 하나는 터져야 한다");
             foreach (RewardEntry e in rb.LastEntries) Assert.AreNotEqual("gems", e.Currency, "젬은 claimDeal 이 안 주니 연출에서도 뺀다(정본 4941 delete r.gems)");
 
-            // 같은 버튼을 다시 — 오늘은 이미 수령 → 토스트만 · 연출 없음
-            price.onClick.Invoke();
+            // 수령 뒤 Touch 가 시트를 다시 그린다 — 같은 딜의 **새** 버튼은 «수령 완료»(비활성)이고 눌러도 토스트만 · 연출 없음
+            Button again = PriceOf(ShopSheet.Name, deal);
+            Assert.IsNotNull(again, "다시 그린 시트에도 같은 딜의 가격 버튼이 있다");
+            Assert.IsFalse(again.interactable, "받은 칸은 «수령 완료» 비활성");
+            again.onClick.Invoke();
             yield return null;
             Assert.AreEqual(before + 1, rb.PlayCount, "이미 받은 칸은 안 터진다");
 

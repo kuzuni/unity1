@@ -47,7 +47,7 @@ namespace Forge.Game.Ui
 
             RectTransform allBar = PopupKit.Item(content, "allbar", -1f, btnH);
             Button all = null;
-            all = PopupKit.Btn(allBar, "claim-all", "일괄수령" + (ready > 0 ? " (" + ready + ")" : ""), "pp_green", "pp_green_dk", () => OnClaimAll(h, all.GetComponent<RectTransform>()), btnW * 1.6f, btnH, "stage_ink", TextKind.Sub, ready == 0);
+            all = PopupKit.Btn(allBar, "claim-all", "일괄수령" + (ready > 0 ? " (" + ready + ")" : ""), "pp_green", "pp_green_dk", () => OnClaimAll(h, all ? all.GetComponent<RectTransform>() : null), btnW * 1.6f, btnH, "stage_ink", TextKind.Sub, ready == 0);
             UiKit.Anchor(all.GetComponent<RectTransform>(), new Vector2(0.5f, 0.5f), new Vector2(1f, 0.5f), new Vector2(rowW * 0.5f, 0f), btnW * 1.6f, btnH);
 
             if (list.Count == 0) PopupKit.Label(content, "empty", TextKind.Body, "퀘스트를 불러오지 못했습니다", "pp_muted");
@@ -101,7 +101,7 @@ namespace Forge.Game.Ui
                 rwT.rectTransform.offsetMin = new Vector2(icon * 0.65f, 0f);
                 int idx = i;
                 Button claim = null;
-                claim = PopupKit.Btn(right, "claim", "수령", done ? "pp_green" : "pp_gray", done ? "pp_green_dk" : "pp_gray_dk", () => OnClaim(h, idx, claim.GetComponent<RectTransform>()), btnW, btnH, "stage_ink", TextKind.Sub, !done);
+                claim = PopupKit.Btn(right, "claim", "수령", done ? "pp_green" : "pp_gray", done ? "pp_green_dk" : "pp_gray_dk", () => OnClaim(h, idx, claim ? claim.GetComponent<RectTransform>() : null), btnW, btnH, "stage_ink", TextKind.Sub, !done);
                 UiKit.Place(claim.GetComponent<RectTransform>(), 0f, rowH - padY * 0.6f - btnH, btnW, btnH);
             }
             PopupKit.Spacer(content, UiKit.RefH - PopupKit.TabTop + rem * 0.9f);
