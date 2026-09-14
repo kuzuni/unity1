@@ -22,6 +22,9 @@ namespace Forge.Tests.PlayMode
 
         private static BootLoading Open()
         {
+            // ⚠ `Ensure` 는 이미 선 것이 있으면 그것을 돌려준다 — 진짜 부팅이 세운(따라가는) 오버레이를
+            //   물려받으면 이 테스트가 민 진행률을 다음 프레임에 덮어쓴다(런 336 실측). 먼저 치운다.
+            if (BootLoading.Instance != null) Object.DestroyImmediate(BootLoading.Instance.gameObject);
             BootLoading.ResetCache();
             return BootLoading.Ensure(UiRoot.Instance.App);
         }
@@ -114,6 +117,7 @@ namespace Forge.Tests.PlayMode
             while (!MetaHost.Ready && t0 < 10f) { t0 += Time.unscaledDeltaTime; yield return null; }
             Assert.IsTrue(MetaHost.Ready, "부팅이 안 끝났다 — 이 단언의 전제가 없다");
 
+            if (BootLoading.Instance != null) Object.DestroyImmediate(BootLoading.Instance.gameObject);
             BootLoading.ResetCache();
             BootLoading bl = BootLoading.Ensure(UiRoot.Instance.App, true);   // 진짜 부팅처럼 «따라가기» 를 켠다
             yield return null;

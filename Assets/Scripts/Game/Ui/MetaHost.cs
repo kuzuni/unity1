@@ -108,10 +108,6 @@ namespace Forge.Game.Ui
         private void Awake()
         {
             Instance = this;
-            // T142 — 부팅 로딩 오버레이를 띄운다(정본 index.html 의 `#boot-loading`). 한 줄인 이유:
-            // 진행률은 «누가 무엇을 끝냈는가» 를 그 화면이 스스로 읽는다(BootLoading.Follow) — 여기서
-            // 단계마다 부르면 이 부팅이 남의 준비를 기다리게 되어 순서가 바뀐다.
-            BootLoading.Begin();
             StartCoroutine(Boot());
         }
 
