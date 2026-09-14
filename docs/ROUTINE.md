@@ -1922,6 +1922,7 @@
 - **1회차(2026-09-14 22:3x · 워커 B · sess-1920-15773 · lock 유지)**: 표 `Resources/TextClampUi.json` + 도우미 `Ui/TextClamp.cs`(`Lines`·`BoxHeight`·`Apply`) + `PlayMode/TextClampTests.cs` 3. **자리 배선은 0** — `ProfilePopup.cs` 도 T346 2회차 lock 의 범위 열에 있어(등재 때의 «반납» 은 지나갔다) 기다린다(결정 560). 2회차: lock 이 풀리는 파일부터 `TextClamp.Apply(t, "<자리>")` + `BoxHeight` 로 상자 높이 · 그 자리 자는 PlayMode 에 한 칸씩.
 - **2회차(23:1x · 워커 B · lock 유지)**: 런 524·528 내 자 둘 빨강 — 상자 높이 1.25배는 TMP 실제 줄높이(faceInfo ≈1.45)보다 낮아 줄을 통째로 버렸다(lineCount 0 · Hud.cs 208 의 함정). `BoxHeight` 를 글꼴 지표 × (1+slack_f) 로 고쳤다. T346 반납으로 `ProfilePopup.Field` 배선(한 줄) + 자리 자 1. 남은 둘은 T342·T178(ForgeSheet) · T334(SkillSummonResult) lock 뒤.
 - **3회차(23:3x · 워커 B · lock 유지)**: T342 lock 만료(104분)로 `ForgeSheet.cs` 가 열려 held-name 배선(Apply · 폭 = 카드 · 높이 = 실제 줄높이) + 자리 자 1(자 5). 남은 자리는 소환 이름 하나(T334 lock 뒤).
+- **4회차(00:0x · 워커 B · lock 유지)**: 런 535 로 2회차 판정 — 줄 수·잘림은 전부 섰고 «마지막 글자 …» 만 TMP 의 characterCount 가 말줄임 글자를 안 가리켜 빈 글자였다 → 자를 «보이는 … 이 있는가» 로. `screen_profile` 눈 확인 그대로. 판정은 다음 런 자 5.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

@@ -54,11 +54,14 @@ namespace Forge.Tests.PlayMode
             return t;
         }
 
-        static char LastVisible(TextMeshProUGUI t)
+        /// <summary>보이는 글자 중에 …(U+2026)이 있는가 — TMP 는 말줄임을 끼워 넣을 때 characterCount 가 그 글자를 가리키지 않는다
+        /// (런 535 실측: characterInfo[characterCount-1].character 가 빈 글자). 그래서 글자 정보 배열을 끝까지 훑는다.</summary>
+        static bool HasEllipsis(TextMeshProUGUI t)
         {
-            int n = t.textInfo.characterCount;
-            Assert.Greater(n, 0, "글자가 한 자도 안 그려졌다");
-            return t.textInfo.characterInfo[n - 1].character;
+            TMP_CharacterInfo[] ci = t.textInfo.characterInfo;
+            if (ci == null) return false;
+            for (int i = 0; i < ci.Length; i++) if (ci[i].isVisible && ci[i].character == '\u2026') return true;
+            return false;
         }
 
         [UnityTest]
@@ -90,7 +93,7 @@ namespace Forge.Tests.PlayMode
                 Assert.AreEqual(TextOverflowModes.Ellipsis, t.overflowMode, "정본 text-overflow: ellipsis");
                 Assert.AreEqual(1, t.textInfo.lineCount, "한 줄");
                 Assert.Less(t.textInfo.characterCount, LongName.Length, "잘렸다");
-                Assert.AreEqual('…', LastVisible(t), "마지막 글자는 …");
+                Assert.IsTrue(HasEllipsis(t), "잘린 끝에 …(U+2026)이 보인다");
             }
             finally { Object.Destroy(host.gameObject); }
         }
@@ -110,14 +113,14 @@ namespace Forge.Tests.PlayMode
                 Assert.AreEqual(TextWrappingModes.Normal, two.textWrappingMode, "두 줄 클램프는 줄바꿈을 허용한다");
                 Assert.AreEqual(2, two.textInfo.lineCount, "-webkit-line-clamp: 2");
                 Assert.Less(two.textInfo.characterCount, LongName.Length, "둘째 줄 뒤는 버린다");
-                Assert.AreEqual('…', LastVisible(two), "둘째 줄 끝이 …");
+                Assert.IsTrue(HasEllipsis(two), "둘째 줄 끝에 …(U+2026)이 보인다");
 
                 const string Short = "망령의 활";
                 TextMeshProUGUI one = Make(host, "profile_field", Short, w);
                 yield return null;
                 one.ForceMeshUpdate();
                 Assert.AreEqual(Short.Length, one.textInfo.characterCount, "들어가는 이름은 한 자도 안 버린다");
-                Assert.AreNotEqual('…', LastVisible(one));
+                Assert.IsFalse(HasEllipsis(one), "안 잘린 이름엔 … 이 없다");
             }
             finally { Object.Destroy(host.gameObject); }
         }
@@ -144,7 +147,7 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(TextOverflowModes.Ellipsis, t.overflowMode, "정본 text-overflow: ellipsis");
             Assert.AreEqual(1, t.textInfo.lineCount, "한 줄 — 두 줄로 안 꺾인다");
             Assert.Greater(t.textInfo.characterCount, 0, "글자가 통째로 사라지면(런 528 꼴) 안 된다");
-            if (t.textInfo.characterCount < Wide.Length) Assert.AreEqual('\u2026', LastVisible(t), "잘렸으면 끝은 …");
+            if (t.textInfo.characterCount < Wide.Length) Assert.IsTrue(HasEllipsis(t), "잘렸으면 끝은 …");
             ProfilePopup.Close(h);
             yield return null;
         }
@@ -180,7 +183,7 @@ namespace Forge.Tests.PlayMode
             Assert.GreaterOrEqual(nm.rectTransform.rect.height, TextClamp.LineHeight(nm) - 0.01f, "상자 높이 ≥ 실제 줄높이 — 낮으면 TMP 가 줄을 통째로 버린다(런 528)");
             Assert.AreEqual(1, nm.textInfo.lineCount, "한 줄");
             Assert.Greater(nm.textInfo.characterCount, 0, "이름이 통째로 사라지면 안 된다");
-            if (nm.textInfo.characterCount < h.HeldItem.Name.Length) Assert.AreEqual('\u2026', LastVisible(nm), "잘렸으면 끝은 …");
+            if (nm.textInfo.characterCount < h.HeldItem.Name.Length) Assert.IsTrue(HasEllipsis(nm), "잘렸으면 끝은 …");
         }
     }
 }
