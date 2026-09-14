@@ -1527,6 +1527,7 @@
 - 무엇을 한다: ⓐ 자 `tools/check_letter_spacing.py` — 정본 선언(선택자·em)을 걷어 클론 자리 표와 대조(`#이름`·`@메서드` 꼴은 T109·T159 그대로) · 빈자리는 `KNOWN`(임자) · 고장 주입 자기 검사. ⓑ 자리마다 자간을 준다 — 값은 새 표(`Assets/Forge/Resources/` · em)에서 읽고 TMP 단위(**1/100 em**)로 환산한다(`PetSkillKit` 이 이미 쓰는 환산). 박힌 `32f` 도 그때 표로 옮긴다.
 - 판정: ⓐ 고장 주입에서 rc 1 · 붙인 뒤 rc 0 ⓑ 다음 런 `screen_main.png`(보스 경고)·소환 결과·던전 클리어 PNG 를 열어 글자 사이가 벌어진 것을 눈으로 + PlayMode 단언(`characterSpacing` 이 표의 em × 100).
 - 범위: `tools/check_letter_spacing.py`(새) · `Assets/Scripts/Game/Ui/BattleOverlay.cs` · `Ui/SkillSummonResult.cs` · `Ui/DungeonClearPopup.cs` · `Assets/Forge/Resources/`(새 자간표) · `Assets/Tests/PlayMode/`(새 파일 하나).
+- 🔄 2026-09-14 12:5x 워커 F(sess-1227-51884) **1회차 = ⓐ 자만**: `tools/check_letter_spacing.py` — 정본 `letter-spacing` 선언 **열넷**(애니 키프레임 안의 둘은 «자리» 가 아니라 뺀다)을 걷고 선택자↔클론 자리 표로 대조한다. «자간을 준다» 의 뜻을 **규약 하나로 못 박았다**: 그 자리가 **자간 표 키(`…_ls_em`)를 부른다** — 정본 값은 em 이고 TMP `characterSpacing` 은 1/100 em 이라 환산이 한 군데에만 있어야 하기 때문이다(`PetSkillKit` 이 이미 그 꼴). 자 갈래가 하나 더 있다: **코드에 박힌 자간**(오른쪽이 숫자뿐인 `characterSpacing =`)을 §1 위반으로 따로 센다. 실측: **자리 초록 1**(`.petup-selrow .btn.silver` → `PetUpgradePopup` 이 `petup_sel_btn_ls_em` 을 넘긴다) · **KNOWN 빈자리 11** · **박힌 숫자 1**(`BattleOverlay:178 = 32f`) · 대조 안 함 둘(`#skill-cutin` 은 클론에 자리 자체가 없다 · `.af-age-star` 는 정본이 0). 고장 주입 둘: 자기 검사 **14칸** + **진짜 파일**에서 그 하나뿐인 초록(`petup_sel_btn_ls_em`)을 `0f` 로 바꾸면 rc 1. §3 에 한 줄 + CI 두 스텝(`datasync` 잡). ⓑ(자간 붙이기)는 2회차부터 — `.bw-sub`(.55em · 가장 눈에 띈다)와 `SkillSummonResult` 다섯이 먼저다.
 
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
@@ -1553,6 +1554,7 @@ python3 tools/check_sfx_calls.py                                              # 
 tools/check_data_sync.sh .wwwww-src                                           # (T2 뒤) data/*.json ↔ 정본
 python3 tools/check_keyline.py                                               # (T109) 정본 -webkit-text-stroke 규칙 ↔ 클론 키라인 호출(.wwwww-src 필요) — 정본이 주는데 클론이 안 부르는 자리를 막는다(CI datasync 잡)
 python3 tools/check_clip_paths.py                                            # (T159) 정본 clip-path 도형 ↔ 클론이 그 자리를 **굽는가**(.wwwww-src 필요) — 네모 한 장으로 때운 자리를 센다 · `--self-test` 13칸
+python3 tools/check_letter_spacing.py                                        # (T168) 정본 letter-spacing ↔ 클론이 그 자리에 자간을 주는가(.wwwww-src 필요) + **코드에 박힌 자간**(§1) · `--self-test` 14칸
 python3 tools/check_unity_green.py --fetch                                     # (T123) 유니티 잡이 **실제로 돈** 마지막 main 런이 초록인가 — 문서 런(유니티 잡 skipped)이 빨강을 덮는 것을 막는다(§0-6 의 눈을 대신한다)
 node tools/export_data.js --self-test                                         # (T2 뒤) 추출기 자기 검사
 ```
