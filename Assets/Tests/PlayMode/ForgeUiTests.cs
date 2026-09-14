@@ -8,6 +8,7 @@ using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Forge.Core.Forging;
 using Forge.Game;
+using Forge.Game.Battle;
 using Forge.Game.Ui;
 using Forge.Core.CraftFx;
 
@@ -125,30 +126,40 @@ namespace Forge.Tests.PlayMode
             Forge.Game.Battle.BattleScene.AutoBoot = false;
             yield return Boot();
             ForgeHost h = ForgeHost.Instance;
-            h.S.Hammers = 10; h.Pull();
-            double coins = h.S.Coins;
-            h.OnCraft();
-            Assert.IsTrue(h.AnvilBusy, "망치질 중엔 모루가 잠긴다");
-            Assert.IsNotNull(h.Pending, "대기품은 연출 전에 세이브에 남는다");
-            Assert.AreEqual(9, h.S.Hammers, "해머 1 소모가 세이브에 즉시 쓰였다");
-            yield return WaitCraftPopup(h);
-            Assert.IsFalse(h.AnvilBusy);
-            AssertTextGate();
-            // T57 — 비교 카드 둘 다 판 위에 있다(새 장비 카드가 3D 배경 위에 떠 있던 자리).
-            AssertDressed(h.Meta.Popups.Find(ForgeCraftPopup.Name).Root, "craft-compare");
-            ForgeItem item = h.Pending;
-            double price = h.GearSys.SellPrice(item);
-            h.ResolveCraft("sell");
-            yield return null;
-            if (h.Meta.Popups.IsOpen(ForgeCraftPopup.SellName))
+            // §0 빨강 수리(런 469 · «판매가만큼 코인 Expected 544 But was 547»): 망치질(1.5s)+리빌(0.56s)을 기다리는 동안 배경 전투가
+            // 적을 잡으면 처치 코인(1장 `CoinBase` 3 · `BattleSaveSync` 가 프레임마다 세이브로)이 같은 `S.Coins` 에 섞인다 — T119 와 같은 경쟁 조건.
+            // 이 자는 «판매가 → 세이브» 만 묻는 자이니 재는 동안 전투 시계를 세운다(`ManualStep` · BattleSaveGlueTests·BattleFxSceneTests 와 같은 손잡이).
+            BattleScene battle = BattleScene.Instance;
+            bool manualWas = battle != null && battle.ManualStep;
+            if (battle != null) battle.ManualStep = true;
+            try
             {
-                h.OnSellConfirm();
+                h.S.Hammers = 10; h.Pull();
+                double coins = h.S.Coins;
+                h.OnCraft();
+                Assert.IsTrue(h.AnvilBusy, "망치질 중엔 모루가 잠긴다");
+                Assert.IsNotNull(h.Pending, "대기품은 연출 전에 세이브에 남는다");
+                Assert.AreEqual(9, h.S.Hammers, "해머 1 소모가 세이브에 즉시 쓰였다");
+                yield return WaitCraftPopup(h);
+                Assert.IsFalse(h.AnvilBusy);
+                AssertTextGate();
+                // T57 — 비교 카드 둘 다 판 위에 있다(새 장비 카드가 3D 배경 위에 떠 있던 자리).
+                AssertDressed(h.Meta.Popups.Find(ForgeCraftPopup.Name).Root, "craft-compare");
+                ForgeItem item = h.Pending;
+                double price = h.GearSys.SellPrice(item);
+                h.ResolveCraft("sell");
                 yield return null;
+                if (h.Meta.Popups.IsOpen(ForgeCraftPopup.SellName))
+                {
+                    h.OnSellConfirm();
+                    yield return null;
+                }
+                Assert.IsFalse(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "[판매] 는 팝업을 닫는다");
+                Assert.IsNull(h.Pending);
+                Assert.AreEqual(coins + price, h.S.Coins, 0.5, "판매가만큼 코인이 세이브에 들어갔다(전투 시계는 세워 두었다 — 처치 코인이 섞이면 이 자가 아니라 ManualStep 을 본다)");
+                Assert.IsNull(h.S[ForgeSave.KeyPending], "세이브의 pendingCraft 가 비었다");
             }
-            Assert.IsFalse(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "[판매] 는 팝업을 닫는다");
-            Assert.IsNull(h.Pending);
-            Assert.AreEqual(coins + price, h.S.Coins, 0.5, "판매가만큼 코인이 세이브에 들어갔다");
-            Assert.IsNull(h.S[ForgeSave.KeyPending], "세이브의 pendingCraft 가 비었다");
+            finally { if (battle != null) battle.ManualStep = manualWas; }
         }
 
         [UnityTest]

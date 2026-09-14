@@ -1825,6 +1825,7 @@
 - 판정: PlayMode(칸 팝 첫 프레임 스케일 .3 · 카드 `leaving` 뒤 .57s 에 알파 0 · 스킬 시전 프레임에 판 알파 > 0 · 완료 노드 테 색 왕복) + `screen_dungeon-clear` 눈 확인(정지 촬영은 팝 끝난 뒤 · T128 ⓒ 갈래).
 - 범위: `Assets/Scripts/Game/Ui/DungeonClearPopup.cs`·`Ui/DungeonPopups.cs`(표) · `Assets/Scripts/Game/Ui/BattleOverlay.cs`(**T331 lock 뒤**) 또는 `Game/SkillFx/SkillFxScene.cs` · `Ui/TechPanel.cs` · `Ui/UiKit.cs`·`Ui/PetSkillKit.cs`(눌림 · **T178·T331 lock 뒤**) · `Assets/Tests/PlayMode/`(새 파일)
 - 진행(워커 D · 2026-09-14 17:5x · sess-1753-2066): 1회차 = ⓐ(칸 팝 `dgc-pop` .38s/.09s 계단 · 카드 `dgclear-sink` .45s ease-in .12s · 딤 `.dgclear-out` .55s → 끝나면 뿌리 스스로 걷음 · 수령 직후 `IsOpen` false) + ⓒ(테 색 브론즈↔초록 1.1s alternate · 글로우는 T331 뒤). 수치는 `DungeonFxUi.json`(`catalog.json` 은 T169 lock · 결정 526) · Core `DungeonFxRules` + EditMode 4 · PlayMode `DungeonFxTests` 2. **ⓑ 스킬 섬광(`BattleOverlay.cs` T178 lock)·ⓓ 눌림(`UiKit.cs`·`PetSkillKit.cs` T178·T331·T168 lock)은 2회차.**
+- 진행(워커 D · 2026-09-14 18:5x · sess-1753-2066): 런 469 에서 1회차 자 EditMode 4 · PlayMode 2 전부 PASS. ⓑⓓ 는 `BattleOverlay.cs`·`UiKit.cs`·`PetSkillKit.cs` 의 산 lock(T178·T331) 뒤 3회차.
 
 ### T336 — `screens` 는 힘으로 밀리는 고아 커밋 **하나**라, 유니티 런 둘이 겹치면 **늦게 끝난 쪽이 먼저 끝난 쪽을 지운다**: 장부에서 런이 통째로 사라진다 (도구·게이트·CI · T148 뒤 · 검수 Q 등재 · 런 463 실측)
 - 실측(2026-09-14 18:0x): `check_unity_green --fetch` 가 «유니티 잡이 **실제로 돈** 마지막 main 런 = **#459**» 라고 답한다. 그런데 런 **463**(`dba1e1c`)도 유니티 잡을 **돌렸고 빨갰다** — API 로 스텝을 뜯어 보면 `Run game-ci/unity-test-runner@v4` **failure** · `결과 판정` **failure** 인데 **`screens 브랜치 배포` 는 success** 다. 즉 463 은 제 손으로 `screens` 에 밀었다.
