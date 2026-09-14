@@ -95,9 +95,16 @@ namespace Forge.Tests.PlayMode
             yield return Boot();
             PopupLayer L = PopupLayer.Instance;
             Popup p = L.ShowStub("정착 시험", "설명");
+            CardPop pop = p.Root.GetComponent<CardPop>();
             yield return null;
             RectTransform card = (RectTransform)p.Root.Find("card");
-            Assert.Less(card.localScale.x, 1f, "정착 전엔 도는 중");
+            // §0-6 수리(런 465 · 임자 없는 빨강): «한 프레임 뒤엔 아직 도는 중» 은 **시간 가정**이었다 —
+            // CI 의 첫 프레임은 씬을 막 올린 뒤라 팝 한 판(250ms)보다 길 수 있고, 그러면 러너가 이미 끝내
+            // 카드를 원래 모습으로 돌려 놓는다(그 런의 «Expected: less than 1.0f · But was: 1.0f»).
+            // 그래서 프레임 수가 아니라 **경과 시각**으로 가른다 — 형제 시험(T165 1회차)이 쓴 길과 같다.
+            // «정말 튀는가» 는 그 형제 시험이 표와 대조해 지키고, 이 시험의 몫은 아래 SettleAll 쪽이다.
+            bool running = pop != null && !CardPop.Spec.Done(pop.ElapsedMs);
+            if (running) Assert.Less(card.localScale.x, 1f, "정착 전엔 도는 중");
             CardPop.SettleAll();
             Assert.AreEqual(1f, card.localScale.x, 1e-6f, "정착 즉시 scale 1");
             Assert.AreEqual(1f, card.localScale.y, 1e-6f);
