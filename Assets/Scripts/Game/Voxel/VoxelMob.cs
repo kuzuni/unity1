@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using Forge.Core.Data;
 using Forge.Core.Voxel;
+using Forge.Game.Render;
 
 namespace Forge.Game.Voxel
 {
@@ -100,6 +101,7 @@ namespace Forge.Game.Voxel
                 mr.receiveShadows = true;
                 rig.Renderers.Add(mr);
                 rig.Meshes.Add(mf);
+                EdgePartId.Tag(mr);   // T330 — 파츠 ID 번호를 생성 시각에 굳힌다(윤곽선 넷째 항 · 정본 idMatFor)
 
                 Transform node;
                 if (pp.HasPivot)

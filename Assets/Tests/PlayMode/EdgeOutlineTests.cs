@@ -7,6 +7,8 @@ using UnityEngine.TestTools;
 using Forge.Core.Render;
 using Forge.Game.Gallery;
 using Forge.Game.Render;
+using Forge.Game.Voxel;
+using Forge.Core.Data;
 
 namespace Forge.Tests.PlayMode
 {
@@ -359,6 +361,56 @@ namespace Forge.Tests.PlayMode
                 if (l < DarkMax) n++;
             }
             return n;
+        }
+        // ───────── T330 1회차 — 파츠 ID 태그 배선 ─────────
+
+        /// <summary>정본 `idMatFor`: 파츠마다 생성 시각에 번호 하나 · 0 없음 · 서로 다름 · 살아 있는 동안만 목록에 있다.</summary>
+        [Test]
+        public void 복셀_몹의_파츠마다_ID_번호가_생성_시각에_굳는다()
+        {
+            GameData data = GalleryData.Load();
+            Assert.Greater(data.Pets.Count, 0, "펫 표가 비었다");
+            MobModel model = data.Pets[data.Pets.Names[0]];
+            var root = new GameObject("t330-rig");
+            try
+            {
+                VoxelMobRig rig = VoxelMob.Build(model, 0, 0, root.transform, "t330 " + model.Name);
+                Assert.Greater(rig.Renderers.Count, 1, "파츠가 하나뿐이면 이 항이 잴 경계가 없다");
+                var seen = new HashSet<int>();
+                foreach (MeshRenderer mr in rig.Renderers)
+                {
+                    EdgePartIdTag tag = mr.GetComponent<EdgePartIdTag>();
+                    Assert.IsNotNull(tag, mr.name + " 에 파츠 ID 태그가 없다");
+                    Assert.AreSame(mr, tag.Target);
+                    Assert.That(tag.Id, Is.InRange(1, EdgePartIdRules.MaxId), mr.name + " 번호 범위");
+                    Assert.IsTrue(seen.Add(tag.Id), mr.name + " 번호가 겹친다: " + tag.Id);
+                    Assert.IsTrue(EdgePartId.Live.Contains(tag), "살아 있는 태그 목록에 있어야 ID 패스가 돈다");
+                    Assert.AreSame(tag, EdgePartId.Tag(mr), "다시 붙여도 같은 번호(태그) — 번호는 안 바뀐다");
+                    Vector4 u = EdgePartId.Uniform(tag.Id);
+                    Assert.AreEqual(tag.Id, EdgePartIdRules.Decode(u.x, u.y), "전역 벡터 (r,g) 가 제 번호로 되읽힌다");
+                }
+                // «ID 패스에 넣는가» — 코앞 카메라는 전부 넣고, 아주 먼 카메라는 전부(짧은 변 < 6px) 뺀다
+                var camGo = new GameObject("t330-cam");
+                try
+                {
+                    Camera cam = camGo.AddComponent<Camera>();
+                    cam.fieldOfView = 60f;
+                    EdgeOutlineSpec s = EdgeOutlineHost.Spec;
+                    cam.transform.position = new Vector3(0, 0.5f, -2f);
+                    cam.transform.LookAt(root.transform.position + Vector3.up * 0.5f);
+                    int use = 0;
+                    foreach (MeshRenderer mr in rig.Renderers) if (EdgePartId.UseId(mr.GetComponent<EdgePartIdTag>(), cam, s, 960)) use++;
+                    Assert.Greater(use, 0, "2m 앞에서는 큰 파츠가 남아야 한다");
+                    cam.transform.position = new Vector3(0, 0.5f, -5000f);
+                    foreach (MeshRenderer mr in rig.Renderers)
+                        Assert.IsFalse(EdgePartId.UseId(mr.GetComponent<EdgePartIdTag>(), cam, s, 960), mr.name + " — 5km 밖에서는 화면 1px 도 안 된다");
+                }
+                finally { Object.DestroyImmediate(camGo); }
+                Object.DestroyImmediate(root);
+                root = null;
+                foreach (int id in seen) Assert.IsFalse(EdgePartId.Live.Exists(t => t != null && t.Id == id), "걷힌 파츠는 목록에서 빠진다: " + id);
+            }
+            finally { if (root != null) Object.DestroyImmediate(root); }
         }
     }
 }
