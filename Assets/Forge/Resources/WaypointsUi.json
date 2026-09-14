@@ -1,0 +1,29 @@
+{
+  "_": "ROUTINE T139 맵 위 이정표 버튼 둘(정본 index.html 83·86 #waypoint-mystery·#waypoint-pass · style.css 315~335 .waypoint/.waypoint-icon/.waypoint-time/#waypoint-mystery/#waypoint-pass · ui.js 6126 카운트다운(매초 tick) · 6135 WP_ICON · 6172 msUntilDailyReset(09:00 = Core DailyReset.ResetHour) · 6177 onWaypointMystery → openStub). 리그 이정표(#waypoint-league)는 정본이 지웠다(index.html 81 주석 · 주인 지시 2026-08-19) — 표에 넣지 않는다(표가 막는다). catalog.json 은 산 lock 여럿이라 T139 몫만 여기(결정 249·302 꼴). 접미: _rem = 정본 rem · _f = #game-area(무대 띠) 비율 · _ms = 벽시계. 코드에 숫자를 박지 않는다(§1). 정본 .waypoint-time font-size .6rem 은 §1 하한 아래라 종류(Sub) 크기로 선다 — T136 이 작은 종류를 더하면 time_font_rem 으로 바꾼다.",
+  "colors": {
+    "time_bg": "#000000A6",
+    "time_ink": "#ffd54f",
+    "icon_shadow": "#00000061"
+  },
+  "layout": {
+    "icon_rem": 2.3,
+    "gap_rem": 0.15,
+    "time_font_rem": 0.6,
+    "time_pad_x_rem": 0.35,
+    "time_radius_rem": 0.4,
+    "shadow_dy_rem": 0.08,
+    "shadow_blur_rem": 0.1,
+    "tick_ms": 1000
+  },
+  "waypoints": [
+    { "id": "waypoint-mystery", "icon": "wp_mystery", "top_f": 0.21, "right_f": 0.03, "countdown": true,  "tap": "stub" },
+    { "id": "waypoint-pass",    "icon": "power",      "top_f": 0.36, "right_f": 0.04, "countdown": false, "tap": "pass" }
+  ],
+  "text": {
+    "layer": "waypoints",
+    "icon": "waypoint-icon",
+    "time": "waypoint-time",
+    "stub_title": "미스터리 상자",
+    "stub_desc": "특별 이벤트 상자는 준비 중입니다."
+  }
+}
