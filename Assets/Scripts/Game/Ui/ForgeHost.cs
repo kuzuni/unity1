@@ -199,10 +199,31 @@ namespace Forge.Game.Ui
             Action r = OnReady;
             if (r != null) r();
 
-            // 원작 boot: 지난 세션이 고르지 않고 떠난 제작품 복원 → 자동 제련이 켜져 있었으면 시퀀스 재개
-            RestorePendingCraft();
-            if (AutoOn) StartAutoSeq();
+            // 원작 boot(main.js 119~123): 지난 세션이 고르지 않고 떠난 제작품 복원 → 자동 제련이 켜져 있었으면 시퀀스 재개.
+            // 🚨 둘 다 격리한다(T157 · 정본 «boot-pending-craft-unguarded» QA 20차): 손상 대기품 한 칸이 여기서 던지면 정본은 틱·자동 저장까지 통째로 잃었다.
+            //    클론은 코루틴이라 파장이 작지만(훅·자동 저장은 위에서 이미 섰다) 자동 제련이 조용히 안 이어지고 콘솔 빨강이 뜬다 — 정본처럼 «나머지 부팅은 계속한다».
+            //    안쪽 가드(IsForgeShaped)와 바깥 격리 «둘 다» 가 정본의 답이다(«둘 중 하나만 하면 다음에 다른 필드가 같은 자리에서 터진다»).
+            BootGuard("RestorePendingCraft", RestorePendingCraft);
+            if (AutoOn && AutoForgeUnlocked) BootGuard("StartAutoSeq", StartAutoSeq);   // 정본 `S.autoForgeOn && isUnlocked('autoForge')`
         }
+
+        /// <summary>
+        /// T157 — 부팅 끝자락 위험 호출의 격리(정본 `main.js` 119~123 `try { … } catch (e) { console.error('… 실패 — 나머지 부팅은 계속한다', e) }`).
+        /// 던지면 **경고** 한 줄을 남기고 false — 정본은 console.error 지만 여기서 LogError 를 쓰면 그 자체가 §1 «플레이 콘솔 에러 0» 막이를 깨므로 Warning.
+        /// </summary>
+        public static bool BootGuard(string what, Action step)
+        {
+            try { step(); return true; }
+            catch (Exception e)
+            {
+                BootGuardTrips++;
+                Debug.LogWarning("[ForgeHost] " + what + "() 실패 — 나머지 부팅은 계속한다(T157 · 정본 main.js 119): " + e);
+                return false;
+            }
+        }
+
+        /// <summary>격리가 삼킨 횟수(시험·디버그).</summary>
+        public static int BootGuardTrips { get; private set; }
 
         private static IEnumerator ReadStreaming(string name, Action<string> done)
         {

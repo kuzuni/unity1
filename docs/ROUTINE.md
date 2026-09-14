@@ -1420,6 +1420,7 @@
 - 무엇을 한다: 두 줄을 각각 `try/catch` 로 감싸고 `Debug.LogWarning` 한 줄로 남긴다(정본처럼 «나머지 부팅은 계속한다»). 정본과 달리 `LogError` 를 쓰면 그 자체가 §1 막이를 깨므로 **Warning** 으로 한다.
 - 판정: PlayMode — 대기품을 일부러 깨뜨린 세이브로 부팅해도 **자동 제련 시퀀스가 선다** + 콘솔 빨강 0.
 - 범위: 위 표의 «범위» 칸 그대로.
+- 🔄 2026-09-14 10:4x 워커 N(sess-0524-8791) 1회차: `ForgeHost.BootGuard(what, step)`(try/catch · `LogWarning` 한 줄 · `BootGuardTrips`)로 두 줄을 각각 감싸고, 둘째는 정본 그대로 `AutoOn && AutoForgeUnlocked`(결정 337) · PlayMode `BootGuardTests` 2(격리 자체 · 손상 대기품 세이브 재부팅 → `AutoSeqRunning`). 판정은 다음 런.
 
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
