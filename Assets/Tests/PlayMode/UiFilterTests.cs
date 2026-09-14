@@ -94,9 +94,46 @@ namespace Forge.Tests.PlayMode
             ForgeSheet.Render(h);
             yield return null; yield return null;
             Capture("screen_t342-empty-cell");
+
+            // 촬영 한 장으로는 못 가린다(칸이 화면에서 27px 이라 회색·밝기를 눈으로 못 읽는다) —
+            // **실물 아틀라스 경로**를 여기서 잰다: 내 단위 자는 제가 만든 읽히는 스프라이트를 쓰므로
+            // «진짜 아이콘이 걸러졌는가» 는 한 번도 안 봤다(그것이 이 칸의 까닭이다).
+            Image cell = FindEmptyCellIcon(slot);
+            Assert.IsNotNull(cell, "빈 칸의 아이콘 Image 를 못 찾았다 — 칸을 비웠는데 «빈 칸» 으로 안 그려졌다는 뜻이다");
+            Assert.AreEqual(0.52f, cell.color.a, 1e-3f, "정본 opacity(.52)");
+            Assert.IsNotNull(cell.sprite, "빈 칸 아이콘에 스프라이트가 없다");
+            StringAssert.StartsWith("filt-equip_cell_empty", cell.sprite.name,
+                "실물 아이콘이 **안 걸러졌다** — UiFilter 가 원본을 그대로 돌려줬다(읽기 경로가 null 을 냈을 때 그렇게 된다)");
+
+            // 걸러진 화소가 실제로 회색인가 — 정본 grayscale(1) 이면 R=G=B 다
+            Texture2D t = cell.sprite.texture;
+            int gray = 0, seen = 0;
+            for (int y = 0; y < t.height; y += 2)
+                for (int x = 0; x < t.width; x += 2)
+                {
+                    Color c = t.GetPixel(x, y);
+                    if (c.a < 0.2f) continue;
+                    seen++;
+                    if (Mathf.Abs(c.r - c.g) < 0.02f && Mathf.Abs(c.g - c.b) < 0.02f) gray++;
+                }
+            Assert.Greater(seen, 20, "걸러진 그림에 보이는 화소가 거의 없다");
+            Assert.AreEqual(seen, gray, "grayscale(1) 인데 색이 남은 화소가 있다 — 건 것은 알파뿐이라는 뜻이다");
+
             h.Gear.Set(slot, keep);
             ForgeSheet.Render(h);
             yield return null;
+        }
+
+        /// <summary>대장간 시트에서 «빈 칸» 으로 그려진 칸의 아이콘 Image — 이름이 `cell-<슬롯>` 인 칸 안의 `img`.</summary>
+        static Image FindEmptyCellIcon(string slot)
+        {
+            foreach (Image img in UiRoot.Instance.GetComponentsInChildren<Image>(true))
+            {
+                if (!string.Equals(img.name, "img", StringComparison.Ordinal)) continue;
+                Transform p = img.transform.parent;
+                if (p != null && string.Equals(p.name, "cell-" + slot, StringComparison.Ordinal)) return img;
+            }
+            return null;
         }
 
         [SetUp] public void Up() { UiFilter.Reset(); root = new GameObject("t342"); }

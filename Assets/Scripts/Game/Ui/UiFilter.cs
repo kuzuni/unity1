@@ -184,9 +184,16 @@ namespace Forge.Game.Ui
                 Graphics.Blit(tex, rt);
                 RenderTexture.active = rt;
                 tmp = new Texture2D(w, h, TextureFormat.RGBA32, false);
-                tmp.ReadPixels(new Rect(x, y, w, h), 0, 0, false);
+                // ⚠ 좌표계가 다르다: `Sprite.textureRect`·`GetPixels` 는 **왼쪽 아래**가 원점인데
+                //    `Texture2D.ReadPixels` 는 활성 RenderTexture 를 **왼쪽 위** 원점으로 읽는다.
+                //    그대로 넘기면 아틀라스에서 **다른 아이콘을 잘라 온다**(맨 윗줄만 우연히 맞는다).
+                tmp.ReadPixels(new Rect(x, tex.height - (y + h), w, h), 0, 0, false);
                 tmp.Apply(false, false);
-                return tmp.GetPixels();
+                Color[] got = tmp.GetPixels();
+                // ReadPixels 가 위에서부터 채웠으므로 줄 차례를 뒤집어 `GetPixels` 와 같은 꼴로 돌려준다.
+                var flipped = new Color[got.Length];
+                for (int row = 0; row < h; row++) System.Array.Copy(got, (h - 1 - row) * w, flipped, row * w, w);
+                return flipped;
             }
             finally
             {
