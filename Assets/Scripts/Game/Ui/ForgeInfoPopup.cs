@@ -206,7 +206,7 @@ namespace Forge.Game.Ui
 
         static void Cell(RectTransform rt, ForgeHost h, string age, string slot, int variant, string wtype, string icon, double pct, int stars, float size, float labelH)
         {
-            RectTransform tile = ForgeUi.ItemTile(rt, "fl-face", size, h.Defs, age, icon, 0.8f);
+            RectTransform tile = ForgeUi.ItemTile(rt, "fl-face", size, h.Defs, age, icon, 0.8f, agePattern: true);   // T124 3회차 — 정본 ui.js 2090 `fl-face equip-cell[data-age]`: 목록 타일도 시대 무늬 층(.55)을 입는다
             UiKit.Place(tile, 0f, 0f, size, size);
             Image face = tile.GetComponentInChildren<Image>();
             if (stars > 0)

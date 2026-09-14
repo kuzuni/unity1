@@ -259,6 +259,47 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(cells, 0, "장비 시트 칸");
         }
 
+        /// <summary>T124 3회차 ⓐ — «모든 장비의 목록» 격자 타일(정본 `fl-face equip-cell[data-age]` · ui.js 2090)에도 무늬 층이 선다. 섹션은 열 시대 전부 서므로 제련 레벨과 무관하다.</summary>
+        [UnityTest]
+        public IEnumerator 모든_장비의_목록_격자_타일에_무늬_층이_걸린다()
+        {
+            yield return Boot();
+            Sweep();
+            ForgeHost h = ForgeHost.Instance;
+            ForgeInfoPopup.OpenList(h);
+            yield return null; yield return null;
+            Popup p = h.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(p, "목록 팝업");
+            Assert.AreEqual("list", ForgeInfoPopup.View);
+            int tiles = 0, patterned = 0, plain = 0;
+            foreach (string age in h.Defs.Ages)
+            {
+                RectTransform section = FindDeep(p.Root, "section-" + age);
+                Assert.IsNotNull(section, age + " 섹션");
+                foreach (RectTransform t in section.GetComponentsInChildren<RectTransform>(true))
+                {
+                    if (t.name != "fl-face") continue;
+                    tiles++;
+                    Transform layer = t.Find("age-pattern");
+                    if (AgePattern.Has(age))
+                    {
+                        Assert.IsNotNull(layer, age + " 목록 타일에 무늬 층");
+                        AgePattern ap = layer.GetComponent<AgePattern>();
+                        Assert.AreEqual((float)AgePattern.Spec.CellOpacity, ap.BaseOpacity, 1e-6f, "목록 타일은 filter: opacity(.55)");
+                        Assert.AreEqual(1, layer.GetSiblingIndex(), "틀 채움 바로 위 · 아이콘 뒤(형제 1)");
+                        foreach (var g in ap.Layers) Assert.IsFalse(g.Masked, age + " 타일에는 마스크가 없다");
+                        patterned++;
+                    }
+                    else { Assert.IsNull(layer, age + " 목록 타일은 민무늬"); plain++; }
+                }
+            }
+            Assert.Greater(tiles, 0, "격자 타일");
+            Assert.Greater(patterned, 0, "뒤 다섯 시대 타일");
+            Assert.Greater(plain, 0, "앞 다섯 시대 타일");
+            h.Meta.Popups.HideAll();
+            yield return null;
+        }
+
         static RectTransform FindDeep(Transform root, string name)
         {
             foreach (RectTransform r in root.GetComponentsInChildren<RectTransform>(true)) if (r.name == name) return r;
