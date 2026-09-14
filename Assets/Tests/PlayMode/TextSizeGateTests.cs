@@ -122,11 +122,13 @@ namespace Forge.Tests.PlayMode
             Assert.IsFalse(Has(em, '가'), "이모지 글꼴은 한글을 안 쥔다(서브셋이 이모지뿐)");
         }
 
-        /// <summary>글꼴 애셋이 코드포인트 하나를 쥐는가 — 동적 애셋이라 먼저 올려 보고(TryAddCharacters) 표에서 찾는다. `HasCharacter` 는 char 만 받아 BMP 밖(이모지)을 못 묻는다(런 409 · 실제 TMP 에 uint 오버로드가 없다).</summary>
+        /// <summary>글꼴 애셋이 코드포인트 하나를 쥐는가 — 동적 애셋이라 먼저 올려 보고(TryAddCharacters(uint[])) 표에서 찾는다. `HasCharacter` 는 char 만 받아 BMP 밖(이모지)을 못 묻는다(런 409 · 실제 TMP 에 uint 오버로드가 없다 · 진짜 표면은 screens 의 stub-sigs.txt).</summary>
         private static bool Has(TMP_FontAsset fa, uint cp)
         {
             if (fa == null) return false;
-            fa.TryAddCharacters(char.ConvertFromUtf32((int)cp));
+            // 런 418: string 갈래 TryAddCharacters("🐴") 는 서리게이트 짝을 한 코드포인트로 안 합쳐 BMP 밖이 false 였다(⏱·⏹ 은 true).
+            //         uint[] 갈래(진짜 표면 stub-sigs.txt 17행 «TryAddCharacters uint[],bool»)로 코드포인트를 그대로 올린다.
+            fa.TryAddCharacters(new uint[] { cp }, false);
             return fa.characterLookupTable != null && fa.characterLookupTable.ContainsKey(cp);
         }
 

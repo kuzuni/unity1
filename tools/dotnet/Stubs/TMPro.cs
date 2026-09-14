@@ -44,6 +44,8 @@ namespace TMPro
         public bool HasCharacter(char c, bool searchFallbacks, bool tryAddCharacter) { return false; }
         // T106 — ⚠ HasCharacter(uint, bool, bool) 은 **실제 TMP 에 없다**(런 409 컴파일 오류 CS1503). BMP 밖 코드포인트는 TryAddCharacters + characterLookupTable.ContainsKey 로 묻는다.
         public bool TryAddCharacters(string chars) { return false; }
+        /// T106 — 런 418 `stub-sigs.txt`(진짜 유니티 6000.3.8f1 표면 · T174) 17행 «TryAddCharacters uint[],bool» 그대로. BMP 밖 코드포인트(이모지)는 이 갈래로 올린다(string 갈래는 서리게이트 짝을 안 합친다 · 런 418 실측).
+        public bool TryAddCharacters(uint[] unicodes, bool includeFontFeatures) { return false; }
     }
     // T207 ② — 아래 서명은 **추측이 아니라 실측**이다: CI #441 의 유니티 잡이 진짜 `TMP_Text` 의
     // 공개 프로퍼티 129개를 이름:타입으로 찍어 왔고(`TmpFontProbeTests` 의 `[T207②]` 줄) 그중 이 레포가
