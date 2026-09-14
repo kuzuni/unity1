@@ -1889,44 +1889,6 @@
 - 범위: `Assets/Forge/Resources/ForgeAutoUi.json`·`ForgeInfoUi.json`(둘 다 새) · `Assets/Scripts/Game/Ui/ForgeAutoPopup.cs` · `Assets/Scripts/Game/Ui/ForgeInfoPopup.cs` · `Assets/Tests/PlayMode/`(새 파일 하나 또는 `ForgeUiTests` — **그 파일 lock 뒤**).
 - 🔄 2026-09-14 19:5x 워커 F(sess-1927-53071) **1회차 = 폭 셋 + 자동 제련 높이**: 표 둘(`ForgeAutoUi.json`·`ForgeInfoUi.json`)과 읽는 조각 둘(`ForgeAutoStyle`·`ForgeInfoStyle` · T177 `ForgeItemStyle` 과 같은 자리)을 세우고 박힌 `0.85` 를 화면마다 정본 값으로 — `.af-card` `min(app-w*.7719, 23rem)`(앞쪽이 이긴다) · `.fi-card` `min(app-w*.9, 22.9rem)`(**뒤쪽이 이겨** 같은 77.19%W · `.9` 만 옮기면 90%W 로 더 나빠진다) · `.fl-card` **71%**(목록은 폭이 다르다) · 자동 제련 높이 `0.84` → `.8452`. **확률 정보 높이는 일부러 안 건드렸다** — 정본 CSS(81.04%H)와 이 절의 런 474 실측(원작 **68.90%H**)이 어긋난다. 81.04 를 넣으면 원작에서 더 멀어지므로 표에 값만 두고 쓰지 않았다(코드·표 주석에 적음 · PNG 로 가른 사람이 2회차에 쓴다). PlayMode `ForgeCardWidthTests`(새 · 둘). gate.sh 막는 자 전부 rc 0.
 
-## 3. 게이트 (커밋 전 · 세션 종료 전)
-
-> ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. 이 규칙은 **말로만 있던 동안 샜다**: 런 435·436 이 둘 다 `dotnet build` 에서 빨갰고 임자가 `45c03d5` 제목에 적었다 — «내 빌드 확인 줄이 오류를 삼켰다». 그래서 스무 줄을 손으로 옮겨 붙이지 않는다(T184).
-
-```bash
-tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막는 자가 하나라도 0이 아니면 0이 아닌 값으로 끝난다
-```
-
-- **목록은 `tools/gate.sh` 안 배열 한 곳에 있다.** 자를 더하거나 빼면 거기만 고친다 — 이 문서에 목록을 다시 적지 않는다(두 목록을 사람이 맞춰 두면 반드시 갈린다 · T175 가 그렇게 샜다).
-  - `tools/gate.sh --list` 자 이름만 (CI 가 읽을 자리)
-  - `tools/gate.sh --check-ci` 이 목록 ↔ `.github/workflows/ci.yml` 대조
-  - `tools/gate.sh --self-test` 자기 검사 27칸 (Core 에 컴파일 오류 한 줄을 실제로 넣어 본다)
-- `block` 은 rc 를 센다 · `report` 는 알리기만 한다(`ci.yml` 의 `continue-on-error` 와 같은 자리 · T127 이 rc 0 으로 고정한 `check_lock_queue` 포함).
-- **준비물이 없으면 `SKIP` 으로 찍고 빨강으로 안 센다** — 그러면 꼬리에 «건너뛴 자 N» 이 붙는다. 그 사실을 **완료 기록에 적고**, 그때는 CI 해당 잡이 초록인 것을 본 뒤 lock 을 반납한다.
-  - `dotnet` 이 없는 컨테이너(클라우드 세션은 대개 없다)에서는 먼저 `apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y dotnet-sdk-8.0` 을 시도한다(약 2분 · 결정 10 · PPA 403 경고는 무시).
-  - 정본 대조 자들은 `.wwwww-src` 가 있어야 돈다(§0-3 의 `git clone --depth 1 https://github.com/kuzuni/wwwww .wwwww-src`).
-- PlayMode 는 워커 환경에서 못 돌린다 — CI 유니티 잡 런 번호로 확인한다(시크릿이 없어 유니티 잡이 안 돌면 «주인 에디터 확인 요청» 으로 적는다).
-- 새 에셋을 만들었으면 `python3 tools/gen_meta.py`(`--check` 없이)로 `.meta` 를 같이 만든다 — 게이트는 **누락을 알릴 뿐** 만들어 주지 않는다.
-
-## 4. PROGRESS.md 기록 규약
-
-- 표의 자기 작업 행을 갱신: 상태(⬜ 대기 / 🔄 진행 / ✅ 완료 / ⛔ 폐기·흡수 / ✂ 번호 태움) · SID · 워커 · 핵심 수치.
-- 완료 시 반드시: 게이트 결과(테스트 수 · 빌드 초록 · CI 런 번호) + 커밋 해시 + **«주인이 확인할 것» 한 줄** + «플레이 콘솔 에러 0 을 무엇으로 확인했는가»(PlayMode 테스트 이름·CI 런 / 또는 «주인 에디터 확인 요청»).
-- 완료 기록은 `### T<n> 완료 기록 (날짜 · 워커)` 절로 표 아래에 붙인다 — 다음 사람이 «무엇을 · 왜 · 어디서 확인» 을 거기서 읽는다.
-- 판단이 필요한 것은 기다리지 않고 정해 적용하고 «워커 결정 기록» 에 번호를 이어 한 줄(«무엇을 · 왜 · 되돌리려면 어디»). «주인 승인 대기» 절은 만들지 않는다.
-- «주인 콘솔 에러 보고함» 에 주인이 적은 것은 «가장 큰 번호 +1» 로 등재하고 UI 작업보다 앞에 둔다.
-
-## 5. 눈 확인 회차 (`screens` 브랜치)
-
-- CI 유니티 잡은 PlayMode 촬영 테스트가 남긴 `ui-screens/*.png` 를 main push 마다 `screens` 브랜치로 올린다(빨간 런이어도 · `meta.json` 의 `tests` 칸으로 빨간 런의 그림인지 안다 · PNG 0장이면 안 올린다).
-- 워커는 `git fetch origin screens && git show origin/screens:<파일>.png > /tmp/x.png` 로 받아 **Read 로 직접 본다**. 원작 시트는 `.wwwww-src/web/ref/` 와 `web/tools/shot-*.js` 가 만드는 것(원작을 node+Playwright 로 직접 찍어도 된다 — 컨테이너에 Chromium 이 있다: `/opt/pw-browsers/chromium`).
-- ✅ 조건(UI 작업): T28 의 점수 8.0 이상. 조형 작업: 시트에서 원작과 실루엣·색이 같다(주인 눈).
-
-## 6. 다른 계정의 워커 합류 (계정 1 = A~D · 계정 2 = E~H · 계정 3 = I~L·Q(검수) · 계정 4 = M~P · 계정 5 = R~U)
-
-> 주인 지시: «계정도 여러 개 쓸 수 있게». 계정마다 **그 계정의 Claude Code 세션**이 이 절만 읽고 루틴 4개(계정 3 은 +Q)를 만든다. 자세한 복붙용 런북은 **`docs/ROUTINES-SETUP.md`**.
-- **실측 보탬(2026-09-13 09:4x · 워커 O · GitHub MCP `get_job_logs` 는 이 세션 프록시를 지났다)**: 런 168 유니티 잡 꼬리 — `[command]/usr/bin/git push origin --force screens` → `remote: Internal Server Error` · `Request ID 5410:270069:F8EBD2:14B623A:6AA66D6D` · `Time 2026-09-13T09:31:46Z` · `! [remote rejected] screens -> screens (Internal Server Error)` → `Action failed with "The process '/usr/bin/git' failed with exit code 1"`. 커밋 자체(52 files · root-commit)는 만들어졌다 — 권한(403)·보호 규칙(pre-receive hook declined)·YAML 이 아니라 **GitHub 쪽 500** 이다(같은 시각 런 167 이 `startup_failure` 였던 것과 같은 갈래). 1회차: 액션을 같은 뜻의 셸(고아 루트 커밋 · force push)로 바꾸고 15·30·45·60초 백오프로 다섯 번 밀며 실패 문구를 `::warning`/`::error` 주석으로 찍는다(결정 221).
-
 ### T341 — 3D 뷰 전체의 **색 보정이 0** 이다: 정본 `#game3d { filter: saturate(1.12) contrast(1.07) }`(style.css 152 · 주석 «컬러 그레이딩 — 무보정 에디터 뷰포트 인상 제거») ↔ 클론 URP 볼륨 `ForgeVolume.asset` 의 ColorAdjustments 는 saturation·contrast override 가 **꺼져 있다** (Game·렌더 · T39·T97 뒤 · T33 19회차 등재)
 
 - 정본: 3D 캔버스 한 장(`#game3d`)에만 건다 — HUD·패널·팝업(`#app` 형제)은 안 물든다. 주석이 «비평가: 포스트프로세싱 전무» 에 대한 답이라 적어 뒀다. 식은 CSS `saturate()`(휘도 보존 행렬) · `contrast()`(0.5 중심 선형).
@@ -1981,6 +1943,14 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 무엇을 한다: 자 `tools/check_asmdef_refs.py` — 각 `.asmdef` 아래 `.cs` 의 `using X.Y.Z;` 를 걷어 **그 네임스페이스를 주는 어셈블리가 그 asmdef 의 `references` 에 있는가**를 본다. 유니티 패키지 네임스페이스 → 어셈블리 이름은 작은 표로 쥔다(`UnityEngine.Rendering.Universal` → `Unity.RenderPipelines.Universal.Runtime` · `TMPro` → `Unity.TextMeshPro` · `UnityEngine.UI` → `UnityEngine.UI` · `UnityEngine.InputSystem` → `Unity.InputSystem` · `UnityEngine.TestTools`/`NUnit.Framework` → TestRunner 쌍 …). 표에 없는 네임스페이스는 **막지 않고 알린다**(거짓 빨강 금지 · 결정 493 꼴). `UnityEngine`·`System*` 은 엔진 기본이라 건너뛴다.
 - 판정: ⓐ 사본 실험 — 런 490 의 그 파일 + 그때의 asmdef 로 **rc 1** ⓑ 지금 저장소에서 rc 0 ⓒ `--self-test`(표에 없는 네임스페이스는 통과 · 주석·문자열 안의 `using` 은 안 센다).
 - 범위: `tools/check_asmdef_refs.py`(새) · `docs/ROUTINE.md` §3 한 줄 · `tools/gate.sh`(T184 가 세운 묶음 자 · **그 lock 뒤**)
+
+- **검수 Q 덧붙임(2026-09-14 20:0x · sess-2000-20599 · 같은 것을 나도 등재하려다 워커 H 가 먼저 민 것을 보고 접었다 · 내 줄은 안 남겼다 — 여기에 쓸 것만 옮긴다):**
+  - **표를 코드에 박지 마라(§1)** — 네임스페이스 → 어셈블리 짝은 `docs/asmdef-map.json` 한 곳에. 첫 판은 지금 쓰이는 것만이면 된다: `UnityEngine.Rendering(.Universal)` → `Unity.RenderPipelines.Core/Universal.Runtime` · `TMPro` → `Unity.TextMeshPro` · `UnityEngine.UI` → `UnityEngine.UI` · `UnityEngine.TestTools`·`UnityEditor.TestTools` → `UnityEngine/UnityEditor.TestRunner` · `NUnit.Framework` → `nunit.framework.dll`(precompiled).
+  - **`using` 만 보면 샌다** — 완전 이름 사용(`UnityEngine.Rendering.Universal.X` 꼴)도 같이 모아야 한다.
+  - **모르는 네임스페이스는 조용히 지나가지 말고 rc 1** — 표에 한 줄 적는 행위가 곧 «실물을 확인했다» 는 뜻이다(T174 의 «출처 줄» 과 같은 생각).
+  - **`Forge.Core` 는 `noEngineReferences: true` 다** — 그 폴더에서 `UnityEngine*` 을 쓰면 참조를 더할 게 아니라 **그 자체로 rc 1** 이어야 한다(§1 «Core 는 UnityEngine 참조 0»).
+  - **판정에 고장 주입 셋**: ⓐ `Forge.Tests.PlayMode.asmdef` 에서 `Unity.RenderPipelines.Universal.Runtime` 을 빼면 rc 1 이고 **`SceneGradeTests.cs:5` 를 집어낸다** ⓑ 지금 main 에서 rc 0 ⓒ `Forge.Core` 폴더에 `using UnityEngine;` 한 줄 → rc 1.
+  - **왜 값이 큰지 한 줄로**: 이 파손은 한 테스트가 아니라 **두 모드 전부**를 없앤다 — 장부에 자취가 남는 최근 런 여덟 중 이 모양이 **둘**이다(런 490 · 런 409~412 은 T174 갈래의 같은 증상).
 
 ### ⓪ 계정 식별표 — «내가 몇 번째 계정인가» 는 여기서 본다 (세션 시작 시 `get_session` 의 이메일/env 로 대조)
 
@@ -2086,5 +2056,5 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 | (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ✅ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) · T158(굽기 워크플로 분리 — 워커 push 에 안 밀리게) | ✅ (굽기 잡 조건 T32 ✅) · T86 ✅(런 223 스모크 초록 · gh-pages 배포) · T158 ✅ |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 · T164 · T183 · T173 · T123(유니티 잡을 건너뛴 문서 런이 빨강을 덮는다) · T125(그 자의 임자 판별) · T126(빌드에 안 실리는 셰이더) · T127 · T137(Core 를 안 보던 두부 막이) · T145(빨강 임자를 이력으로 되짚기) · T150(콘솔 빨강이 댄 파일로 임자 찾기) · T148(빨강 임자를 «런 사이 코드 커밋» 으로도 가린다) · T149(연출 중간값을 재던 자 둘) · T151(실종된 모드의 에디터 로그를 잡 로그 끝과 screens 로) · T152(채팅 이름줄 자도 카드 팝 뒤에) · T153(창 안에서 0줄 바꾼 작업을 임자로 단정하지 않는다) · T154 · T160(등재만 된 ⬜ 를 선점 자가 막지 않게) · T161(오프라인 수집 자가 팝 도중을 잰다) · T162(✂ 접힌 작업을 임자로 지목) · T181(표 JSON 전수를 하니스가 읽는다) · T165(카드 팝 자의 벽시계 단언) · T170(글자 자국까지 이어받기) · T172(모드가 안 돈 런에 엉뚱한 임자) · T188(테스트는 PASS 인데 콘솔이 빨간 빨강에 임자 줄이 없다) · T189(일부러 낸 콘솔 빨강을 §1 위반으로 읽는다) · T174(스텁이 실물에 없는 멤버를 가져도 하니스가 초록) · T175(check_richtext 가 CI 밖) · T180(PlayMode 가 에디터 SIGSEGV 로 안 돈다) · T182(Resources 표 파싱 자) · T184(§3 스무 줄을 gate.sh 하나로 — rc 를 안 삼킨다) · T185(ui_score 가 화면이 사라진 회차를 «올랐다» 로 본다) · T187(반납한 회차 작업 이어 잡기) · T336(겹친 런이 screens 장부를 지운다) · T338(런은 빨간데 내 잡은 초록 — 도구·문서 민 워커가 lock 을 한 회차 더 쥔다) · T343(asmdef 참조 누락 — 하니스가 못 보는 갈래) | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 ✅ · T123 ✅ · T125 ✅ · T126 ✅ · T127 ✅ · T137 ✅ · T145 ✅ · T148 ✅ · T150 ✅ · T149 ✅ · T151 ✅ · T152 ✅ · T153 ✅ · T154 ✅ · T160 ✅ · T161 ✂ · T162 ✅ · T164 ✅ · T187 ✅ · T165 ✅ · T170 ✅ · T171 ✅ · T172 ✅ · T188 ✅ · T189 ✅ · T173 ✅ · T174 ✅ · T175 ✅ · T180 ✅ · T181 ⛔ · T182 ✅ · T183 ✂ · T184 ✅ · T185 ✅· T186 ✅ · T336 ✅ · T337 ✅ · T338 ✅ · T340 🔄 · T343 ⬜ |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 · T164 · T183 · T173 · T123(유니티 잡을 건너뛴 문서 런이 빨강을 덮는다) · T125(그 자의 임자 판별) · T126(빌드에 안 실리는 셰이더) · T127 · T137(Core 를 안 보던 두부 막이) · T145(빨강 임자를 이력으로 되짚기) · T150(콘솔 빨강이 댄 파일로 임자 찾기) · T148(빨강 임자를 «런 사이 코드 커밋» 으로도 가린다) · T149(연출 중간값을 재던 자 둘) · T151(실종된 모드의 에디터 로그를 잡 로그 끝과 screens 로) · T152(채팅 이름줄 자도 카드 팝 뒤에) · T153(창 안에서 0줄 바꾼 작업을 임자로 단정하지 않는다) · T154 · T160(등재만 된 ⬜ 를 선점 자가 막지 않게) · T161(오프라인 수집 자가 팝 도중을 잰다) · T162(✂ 접힌 작업을 임자로 지목) · T181(표 JSON 전수를 하니스가 읽는다) · T165(카드 팝 자의 벽시계 단언) · T170(글자 자국까지 이어받기) · T172(모드가 안 돈 런에 엉뚱한 임자) · T188(테스트는 PASS 인데 콘솔이 빨간 빨강에 임자 줄이 없다) · T189(일부러 낸 콘솔 빨강을 §1 위반으로 읽는다) · T174(스텁이 실물에 없는 멤버를 가져도 하니스가 초록) · T175(check_richtext 가 CI 밖) · T180(PlayMode 가 에디터 SIGSEGV 로 안 돈다) · T182(Resources 표 파싱 자) · T184(§3 스무 줄을 gate.sh 하나로 — rc 를 안 삼킨다) · T185(ui_score 가 화면이 사라진 회차를 «올랐다» 로 본다) · T187(반납한 회차 작업 이어 잡기) · T336(겹친 런이 screens 장부를 지운다) · T338(런은 빨간데 내 잡은 초록 — 도구·문서 민 워커가 lock 을 한 회차 더 쥔다) · T343(asmdef 참조 누락 — 하니스가 못 보는 갈래)| T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 ✅ · T123 ✅ · T125 ✅ · T126 ✅ · T127 ✅ · T137 ✅ · T145 ✅ · T148 ✅ · T150 ✅ · T149 ✅ · T151 ✅ · T152 ✅ · T153 ✅ · T154 ✅ · T160 ✅ · T161 ✂ · T162 ✅ · T164 ✅ · T187 ✅ · T165 ✅ · T170 ✅ · T171 ✅ · T172 ✅ · T188 ✅ · T189 ✅ · T173 ✅ · T174 ✅ · T175 ✅ · T180 ✅ · T181 ⛔ · T182 ✅ · T183 ✂ · T184 ✅ · T185 ✅· T186 ✅ · T336 ✅ · T337 ✅ · T338 ✅ · T340 🔄· T343 ⬜ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
