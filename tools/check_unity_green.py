@@ -505,12 +505,23 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
     # T172 — 모드가 통째로 안 돈 런은 **코드 임자를 찾을 일이 아니다**(빠진 테스트 이름이 아예 없다).
     #        여기서 «그 커밋을 민 워커» 를 대면 죄 없는 사람을 가리킨다(실측 런 403: PlayMode 0개인데 T156 을 댔다).
     if missing:
-        return [('  · 빨강의 임자: **찾지 마라 — 모드가 통째로 안 돌았다**(«%s»). 빠진 테스트 이름이 없으니 '
-                 '코드 임자를 가릴 근거가 없다. §1 의 **«유니티 라이선스 좌석»** 갈래로 간다: '
-                 '잡 로그가 `no available seats`·`Unable to activate license`·좌석 반납 실패면 **코드 탓이 아니다** — '
-                 '재실행 1회(권한이 없으면 **다음 코드 push 의 런**을 기다린다), 되풀이되면 «주인 콘솔 에러 보고함» 에 '
-                 '«유니티 라이선스 좌석» 한 줄. 그게 아니면 PlayMode 어셈블리 컴파일을 본다'
-                 '(`dotnet build` 의 TestsPlay(T48)가 초록이면 **유니티 전용 API** 쪽이다).' % missing)]
+        both = missing.count('.xml') >= 2
+        if both:
+            head = ('  · 빨강의 임자: **찾지 마라 — 두 모드가 다 안 돌았다**(«%s»). 잡이 테스트를 시작조차 못 한 것이다 — '
+                    '**컴파일 파손을 먼저 본다**(실측 2026-09-14 런 410~412: T106 이 실제 TMP 에 없는 '
+                    '`HasCharacter(uint,bool,bool)` 를 써 PlayMode 어셈블리가 깨졌고 `563c80f` 로 회복됐다). '
+                    '⚠ `dotnet build` 의 TestsPlay(T48)가 **초록이어도 안심하면 안 된다** — 스텁(`tools/dotnet/Stubs`)에만 '
+                    '있는 멤버는 로컬에서 안 걸린다(§1 «유니티 패키지 타입» 줄). 잡 로그의 첫 컴파일 오류를 본다. '
+                    '그게 아니고 로그가 `no available seats`·`Unable to activate license`·좌석 반납 실패면 '
+                    '§1 의 **«유니티 라이선스 좌석»** 갈래다(재실행 1회 → 되풀이되면 보고함).' % missing)
+        else:
+            head = ('  · 빨강의 임자: **찾지 마라 — 모드가 통째로 안 돌았다**(«%s»). 빠진 테스트 이름이 없으니 '
+                    '코드 임자를 가릴 근거가 없다. 한 모드만 없으면 **§1 의 «유니티 라이선스 좌석»** 갈래를 먼저 본다: '
+                    '잡 로그가 `no available seats`·`Unable to activate license`·좌석 반납 실패면 **코드 탓이 아니다** — '
+                    '재실행 1회(권한이 없으면 **다음 코드 push 의 런**을 기다린다), 되풀이되면 «주인 콘솔 에러 보고함» 에 '
+                    '«유니티 라이선스 좌석» 한 줄. 그게 아니면 그 모드의 어셈블리 컴파일을 본다'
+                    '(스텁에만 있는 멤버는 `dotnet build` 가 못 잡는다).' % missing)
+        return [head]
     names = fixtures(fails)
     if not names:
         who = pusher(sha)
@@ -869,8 +880,17 @@ def self_test():
     eq('ⓨ «찾지 마라» 로 시작', '찾지 마라 — 모드가 통째로 안 돌았다' in lines[0], True)
     eq('ⓨ 빠진 모드 이름을 싣는다', 'playmode-results.xml' in lines[0], True)
     eq('ⓨ §1 라이선스 좌석 갈래로 보낸다', '유니티 라이선스 좌석' in lines[0], True)
-    eq('ⓨ 컴파일 갈래도 일러 준다', 'TestsPlay' in lines[0], True)
+    eq('ⓨ 컴파일 갈래도 일러 준다', '어셈블리 컴파일' in lines[0], True)
     eq('ⓨ 죄 없는 워커를 안 가리킨다', '민 워커' in lines[0], False)
+    # ⓩ T172 2회차 — **두 모드가 다 없으면** 컴파일 파손을 먼저 대라(실측 런 410~412)
+    two = own_lines([], P_ANY, 'a' * 40, lock=both_live,
+                    missing='editmode-results.xml,playmode-results.xml')
+    eq('ⓩ 두 모드 갈래는 다른 말을 한다', '두 모드가 다 안 돌았다' in two[0], True)
+    eq('ⓩ 컴파일 파손을 먼저', '컴파일 파손을 먼저 본다' in two[0], True)
+    eq('ⓩ 스텁 함정을 일러 준다', '스텁' in two[0] and 'TestsPlay' in two[0], True)
+    eq('ⓩ 실측 사례를 싣는다', '410~412' in two[0], True)
+    eq('ⓩ 라이선스 갈래는 뒤에 남긴다', '라이선스 좌석' in two[0], True)
+    eq('ⓩ 한 모드 갈래는 라이선스를 먼저', '라이선스 좌석»** 갈래를 먼저 본다' in lines[0], True)
     # 빠진 모드가 없으면 지금까지 하던 대로다(빨강 이름이 있으면 임자를 가린다)
     lines = own_lines(['FAIL Forge.Tests.PlayMode.CraftComparePopupTests.가 · Failed'], P_ANY, 'a' * 40,
                       lock=both_live, missing='')
@@ -881,7 +901,7 @@ def self_test():
         for f in fails:
             print('  · ' + f)
         return 1
-    print('✓ check_unity_green --self-test 96칸 통과')
+    print('✓ check_unity_green --self-test 102칸 통과')
     return 0
 
 
