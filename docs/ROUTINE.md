@@ -1696,6 +1696,17 @@
 - 판정: ⓐ 사본에서 `Assets/Scripts/Core` 에 컴파일 오류 한 줄을 넣으면 `tools/gate.sh` 가 **0이 아닌 값**으로 끝나고 그 줄이 `rc=1` 로 찍힌다 ⓑ 지금 main 에서 rc 0 ⓒ `--list` 가 뱉는 이름과 `ci.yml` 이 부르는 이름이 같다(자기 검사 한 칸).
 - 범위: `tools/gate.sh`(새) · `docs/ROUTINE.md`(§3 을 한 줄로 · §2 이 절 · §7 한 칸) · `.github/workflows/ci.yml`(**T175 가 손대는 파일** — 그 뒤 · 아니면 이 작업이 ⓒ만 빼고 먼저) · `docs/PROGRESS.md`.
 - ⚠ 자들을 **고치는 일이 아니다** — 부르는 방법만 하나로 모은다. 자기 검사(`--self-test`)들은 지금 그대로 목록에 든다.
+- 🔄 1회차(2026-09-14 16:4x · 워커 K · sess-1632-26627) **ⓐⓑ 완료 · ⓒ 는 재는 것까지**: `tools/gate.sh` 를 세우고 §3 을 «이것을 돌려라» 한 줄로 줄였다(스무 줄 → 여섯 줄 설명).
+  - **목록은 스크립트 안 배열 한 곳**(`mode|need|label|command` · 27자). `mode` 는 `block`(rc 를 센다) / `report`(알리기만) 둘이고, 가른 기준은 **`ci.yml` 이 `continue-on-error: true` 로 둔 자리**다 — 사람이 새로 정한 것이 아니라 이미 정해져 있던 것을 옮겨 적었다(`check_decisions`·`check_task_rows`·`task_state --check`·`check_claim_scope`·`check_final_table` + T127 의 `check_lock_queue`).
+  - `set -e` 를 안 쓴다 — **전부 돌린 뒤** 모아서 보여 주고, 막는 자가 하나라도 0이 아니면 스크립트가 1로 끝난다. 0이 아니게 끝난 자의 **출력을 그대로 붙여** 준다(막는 자는 통째로 · 보고 전용은 25줄까지).
+  - `need` 로 준비물을 적는다(`dotnet`·`node`·`wwwww`·`gh`) — 없으면 `SKIP` 이고 **빨강이 아니다**. 대신 꼬리에 «건너뛴 자 N» 과 «완료 기록에 적어라» 가 붙는다(§3 이 말로 하던 것을 자가 한다). 모르는 `need` 키는 **조용히 안 꺼진다** — 크게 알리고 그냥 돌린다(오타 하나가 자를 끄는 것이 바로 이 작업이 막는 사고다 · 결정 516).
+  - **rc 를 앞 칸으로** 옮겼다 — `[ 1/27] rc=0    block  라벨`. 한글 라벨은 `printf %-64s` 로 칸이 안 맞아 rc 가 줄마다 다른 자리에 찍혔다. 「꼬리로 읽지 마라, rc 를 보라」 는 rc 가 **눈이 가는 한 칸**에 있어야 지켜진다.
+- 판정 셋 중 둘이 이 회차에 닫혔다:
+  - ⓐ **실물 고장 주입 초록**: 자기 검사 ⓙ 칸이 `Assets/Scripts/Core/__GateSelfTest.cs` 에 컴파일 안 되는 한 줄을 **실제로 넣고** `gate.sh` 를 돌린다 → rc 1 이고 `rc=0` 이 한 줄도 안 찍힌다(그 뒤 파일을 지우고 다시 빌드해 원상복구). dotnet 이 없는 컨테이너에서는 그 칸만 «건너뛴다» 고 말하고 넘어간다.
+  - ⓑ **지금 main 에서 rc 0**: 27자 중 막는 자 19 전부 rc 0(dotnet·node·`.wwwww-src` 다 있는 컨테이너였다 · 건너뛴 자 0). 보고 전용 둘이 rc 1 인데 둘 다 «이 회차의 빨강» 이 아니다 — `check_unity_green`(런 440 은 T189·T186·T179 몫) 과 아래 ⓒ.
+  - ⓒ **재는 것까지 했고 고치는 것은 다음 회차**: `--check-ci` 가 «막는 자 19 중 **2** 가 CI 밖» 을 집어냈다 — **`check_unity_messages.py`(T171)** 와 **`check_surface_gradients.py`(T178)**. T175 가 닫은 구멍(`check_richtext`)이 **한 달도 못 가 두 개로 다시 벌어져 있었다** — ⓑ 가 «구조로 닫아야 한다» 던 그 일이 실측으로 확인된 셈이다. 특히 `check_unity_messages` 는 T171 이 «PlayMode 통째 실종(SIGSEGV)» 을 겪고 세운 자다.
+    - **`.github/workflows/ci.yml` 은 이번 회차에 안 건드렸다** — T182 의 산 lock 이 쥔 파일이고 §2 가 «아니면 이 작업이 ⓒ만 빼고 먼저» 를 미리 허락해 뒀다. 대신 `--check-ci` 를 **`report` 게이트로 목록에 넣어** 매 회차 눈에 띄게 했다(결정 517). T182 가 반납하면 2회차가 ⓒ를 닫는다: ci.yml 이 `gate.sh --list` 를 읽게 하고 이 칸을 `report` → `block` 으로 올린다.
+  - 자기 검사 **27칸**(ⓐ 전부 초록 → rc 0 / ⓑ 막는 자 하나 넘어짐 → rc 1 · 그 줄 `rc=1` / ⓒ 꼬리가 «고치는 법» 이어도 rc 로 가른다 / ⓓ 보고 전용은 rc 를 안 센다 / ⓔ `set -e` 가 아니다 — 앞이 넘어져도 끝까지 간다 / ⓕ 모르는 준비물 키는 자를 안 끈다 / ⓖ `--list` / ⓗ `--check-ci` 가 «CI 밖» 을 집어낸다·다 부르면 rc 0 / ⓘ 보고 전용은 CI 밖이어도 안 나무란다 / ⓙ 실물 컴파일 오류 주입).
 
 ### T185 — `ui_score` 가 **화면이 사라진 회차를 «올랐다» 로 보고한다**: 빠진 화면을 세지도, 평균의 분모가 바뀐 것을 말하지도 않는다 (도구·게이트 · T28 뒤 · 검수 Q 등재 · 런 432 실측)
 - 실측(2026-09-14 16:0x · 런 **432**): `ui_score --score` 가 «**평균 4.63 / 10 · 화면 28개**» 와 «지난 회차(런 425) 평균 4.52 → 이번 **4.63 (+0.11)**» 를 나란히 찍는다. 그런데 기준선(런 425)은 **화면 30개**다 — 이번에 **`craft-compare`·`gear-detail` 두 장이 아예 안 찍혔다**(`screens.json` 에 그 둘만 `"file": null`).
@@ -1743,39 +1754,22 @@
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
-> ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
+> ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. 이 규칙은 **말로만 있던 동안 샜다**: 런 435·436 이 둘 다 `dotnet build` 에서 빨갰고 임자가 `45c03d5` 제목에 적었다 — «내 빌드 확인 줄이 오류를 삼켰다». 그래서 스무 줄을 손으로 옮겨 붙이지 않는다(T184).
 
 ```bash
-dotnet build tools/dotnet/Forge.sln -c Release --nologo                       # 컴파일 (Core · Game(스텁) · Tests · TestsPlay = PlayMode 테스트 «컴파일만» · T48)
-dotnet test tools/dotnet/Tests/Forge.Tests.csproj -c Release --no-build       # 순수 C# 테스트 (NUnit 3.6.1 API 면만)
-python3 tools/gen_meta.py --check                                             # .meta 누락/고아 (새 에셋을 만들면 --check 없이 돌려 생성)
-python3 tools/gen_ui_catalog.py --check                                       # catalog.json ↔ UiCatalog.asset · 키 중복(T41 · CI dotnet 잡이 막는다)
-python3 tools/check_resources_json.py                                          # (T182) Resources 표 전부가 **읽히는가** + .meta 짝 — 깨진 표는 그 화면을 여는 PlayMode 를 통째로 죽인다(런 427 · EditMode ResourcesJsonTests 보다 먼저·유니티 없이)
-python3 tools/check_docs_intact.py                                            # 문서가 통째로 깨졌는가 (충돌 표식 · 결정 기록 소실 · 표 0행) — CI 에서 막는다
-python3 tools/check_decisions.py                                              # 결정 번호 겹침 · `--next` 로 다음 번호
-python3 tools/check_task_rows.py                                              # PROGRESS 같은 작업 두 줄 어긋남
-python3 tools/task_state.py --check                                           # ROUTINE §2 제목 ↔ PROGRESS 상태 · 번호 중복
-python3 tools/check_claim_scope.py                                            # 살아 있는 lock 이 «범위» 밖 파일을 쥐고 있는가 (선점 전에도)
-python3 tools/ui_score.py --self-test                                         # (T28 뒤) 원작 대조 자 자기 검사 15칸 (CI dotnet 잡도 부른다 · T51)
-python3 tools/check_final_table.py                                            # §7 완결 대조표 ↔ PROGRESS 상태 (T49 · T33 이 이 표로 완주를 판정한다)
-python3 tools/check_lock_queue.py                                             # (T127) 내 lock 뒤에 몇 작업이 서 있는가 · 그중 «내가 오래 안 건드린 파일» 때문인 것 (보고만 · rc 늘 0)
-python3 tools/check_text_glyphs.py                                            # (T89) 화면 문구의 글자가 주인 글꼴에 다 있는가 — 새 두부(□)를 막는다 + 토스트 그릇이 아이콘 길을 거치는가(T107)
-python3 tools/check_unity_messages.py                                         # (T33 15회차) MonoBehaviour 안에서 유니티 «메시지» 이름(`Start`·`Update`·`Awake`…)을 다른 뜻으로 쓰는가 — 하니스가 못 잡는 갈래(T171 런 403: `Start(RectTransform)` → 콘솔 에러 폭주 → 어셈블리 재적재 SIGSEGV → PlayMode 통째 실종) · `--self-test` 7칸
-python3 tools/check_richtext.py                                                # (T33 13회차) 정본 `U.escapeHtml` 자리 — 글자 공장 하나(`UiKit.Text`)가 TMP `richText` 를 끄고 있는가 · 밖에서 TMP 를 만들거나 되켜는 자리 0(플레이어 닉네임·채팅의 꺾쇠가 태그로 먹히는 것을 막는다) · `--self-test` 7칸
-python3 tools/check_shaders_included.py                                       # (T126) 이름으로 찾는 것(`Shader.Find`·`Resources.Load`)이 **빌드에도** 실리는가 — «조용히 null» 을 막는다
-python3 tools/check_sfx_calls.py                                              # (T119) 원작 소리 24종이 게임 코드에서 실제로 울리는가 — 레시피만 있고 호출이 없는 이름을 막는다
-python3 tools/check_stub_sigs.py                                               # (T174) 하니스 스텁이 **실물에 없는 서명**을 갖고 있나 — 진짜 표면은 유니티가 screens 의 `stub-sigs.txt` 로 찍는다(그게 없으면 알리기만 · rc 0)
-tools/check_data_sync.sh .wwwww-src                                           # (T2 뒤) data/*.json ↔ 정본
-python3 tools/check_keyline.py                                               # (T109) 정본 -webkit-text-stroke 규칙 ↔ 클론 키라인 호출(.wwwww-src 필요) — 정본이 주는데 클론이 안 부르는 자리를 막는다(CI datasync 잡)
-python3 tools/check_clip_paths.py                                            # (T159) 정본 clip-path 도형 ↔ 클론이 그 자리를 **굽는가**(.wwwww-src 필요) — 네모 한 장으로 때운 자리를 센다 · `--self-test` 13칸
-python3 tools/check_surface_gradients.py                                     # (T178) 정본 gradient 겹 선언 176 ↔ 클론이 그 자리를 굽는가 — 표의 자리에 겹이 없으면 rc 1 · 표에 없는 선택자는 «미정» 으로 세기만(--list)
-python3 tools/check_letter_spacing.py                                        # (T168) 정본 letter-spacing ↔ 클론이 그 자리에 자간을 주는가(.wwwww-src 필요) + **코드에 박힌 자간**(§1) · `--self-test` 14칸
-python3 tools/check_unity_green.py --fetch                                     # (T123) 유니티 잡이 **실제로 돈** 마지막 main 런이 초록인가 — 문서 런(유니티 잡 skipped)이 빨강을 덮는 것을 막는다(§0-6 의 눈을 대신한다)
-node tools/export_data.js --self-test                                         # (T2 뒤) 추출기 자기 검사
+tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막는 자가 하나라도 0이 아니면 0이 아닌 값으로 끝난다
 ```
 
-- 로컬에 `dotnet` 이 없는 컨테이너(클라우드 세션은 대개 없다)에서는 **먼저 `apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y dotnet-sdk-8.0` 을 시도한다**(약 2분 · 결정 10 · 계정 1·4 컨테이너에서 2026-09-12 실측 성공 — PPA 403 경고는 무시). 그래도 없으면 `dotnet` 두 줄을 건너뛰고 **그 사실을 완료 기록에 적는다** — 그때는 CI 의 `dotnet` 잡이 초록인 것을 확인하기 전에는 lock 을 반납하지 않는다.
+- **목록은 `tools/gate.sh` 안 배열 한 곳에 있다.** 자를 더하거나 빼면 거기만 고친다 — 이 문서에 목록을 다시 적지 않는다(두 목록을 사람이 맞춰 두면 반드시 갈린다 · T175 가 그렇게 샜다).
+  - `tools/gate.sh --list` 자 이름만 (CI 가 읽을 자리)
+  - `tools/gate.sh --check-ci` 이 목록 ↔ `.github/workflows/ci.yml` 대조
+  - `tools/gate.sh --self-test` 자기 검사 27칸 (Core 에 컴파일 오류 한 줄을 실제로 넣어 본다)
+- `block` 은 rc 를 센다 · `report` 는 알리기만 한다(`ci.yml` 의 `continue-on-error` 와 같은 자리 · T127 이 rc 0 으로 고정한 `check_lock_queue` 포함).
+- **준비물이 없으면 `SKIP` 으로 찍고 빨강으로 안 센다** — 그러면 꼬리에 «건너뛴 자 N» 이 붙는다. 그 사실을 **완료 기록에 적고**, 그때는 CI 해당 잡이 초록인 것을 본 뒤 lock 을 반납한다.
+  - `dotnet` 이 없는 컨테이너(클라우드 세션은 대개 없다)에서는 먼저 `apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y dotnet-sdk-8.0` 을 시도한다(약 2분 · 결정 10 · PPA 403 경고는 무시).
+  - 정본 대조 자들은 `.wwwww-src` 가 있어야 돈다(§0-3 의 `git clone --depth 1 https://github.com/kuzuni/wwwww .wwwww-src`).
 - PlayMode 는 워커 환경에서 못 돌린다 — CI 유니티 잡 런 번호로 확인한다(시크릿이 없어 유니티 잡이 안 돌면 «주인 에디터 확인 요청» 으로 적는다).
+- 새 에셋을 만들었으면 `python3 tools/gen_meta.py`(`--check` 없이)로 `.meta` 를 같이 만든다 — 게이트는 **누락을 알릴 뿐** 만들어 주지 않는다.
 
 ## 4. PROGRESS.md 기록 규약
 
@@ -1900,5 +1894,5 @@ node tools/export_data.js --self-test                                         # 
 | (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ✅ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) · T158(굽기 워크플로 분리 — 워커 push 에 안 밀리게) | ✅ (굽기 잡 조건 T32 ✅) · T86 ✅(런 223 스모크 초록 · gh-pages 배포) · T158 ✅ |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 · T164 · T183 · T173 · T123(유니티 잡을 건너뛴 문서 런이 빨강을 덮는다) · T125(그 자의 임자 판별) · T126(빌드에 안 실리는 셰이더) · T127 · T137(Core 를 안 보던 두부 막이) · T145(빨강 임자를 이력으로 되짚기) · T150(콘솔 빨강이 댄 파일로 임자 찾기) · T148(빨강 임자를 «런 사이 코드 커밋» 으로도 가린다) · T149(연출 중간값을 재던 자 둘) · T151(실종된 모드의 에디터 로그를 잡 로그 끝과 screens 로) · T152(채팅 이름줄 자도 카드 팝 뒤에) · T153(창 안에서 0줄 바꾼 작업을 임자로 단정하지 않는다) · T154 · T160(등재만 된 ⬜ 를 선점 자가 막지 않게) · T161(오프라인 수집 자가 팝 도중을 잰다) · T162(✂ 접힌 작업을 임자로 지목) · T181(표 JSON 전수를 하니스가 읽는다) · T165(카드 팝 자의 벽시계 단언) · T170(글자 자국까지 이어받기) · T172(모드가 안 돈 런에 엉뚱한 임자) · T188(테스트는 PASS 인데 콘솔이 빨간 빨강에 임자 줄이 없다) · T189(일부러 낸 콘솔 빨강을 §1 위반으로 읽는다) · T174(스텁이 실물에 없는 멤버를 가져도 하니스가 초록) · T175(check_richtext 가 CI 밖) · T180(PlayMode 가 에디터 SIGSEGV 로 안 돈다) · T182(Resources 표 파싱 자) · T184(§3 스무 줄을 gate.sh 하나로 — rc 를 안 삼킨다) · T185(ui_score 가 화면이 사라진 회차를 «올랐다» 로 본다) · T187(반납한 회차 작업 이어 잡기) | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 ✅ · T123 ✅ · T125 ✅ · T126 ✅ · T127 ✅ · T137 ✅ · T145 ✅ · T148 ✅ · T150 ✅ · T149 ✅ · T151 ✅ · T152 ✅ · T153 ✅ · T154 ✅ · T160 ✅ · T161 ✂ · T162 ✅ · T164 ✅ · T187 ✅ · T165 ✅ · T170 ✅ · T171 ✅ · T172 ✅ · T188 ✅ · T189 ✅ · T173 🔄 · T174 ✅ · T175 ✅ · T180 ✅ · T181 ⛔ · T182 🔄 · T183 ✂ · T184 ⬜ · T185 🔄 · T186 🔄 |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 · T164 · T183 · T173 · T123(유니티 잡을 건너뛴 문서 런이 빨강을 덮는다) · T125(그 자의 임자 판별) · T126(빌드에 안 실리는 셰이더) · T127 · T137(Core 를 안 보던 두부 막이) · T145(빨강 임자를 이력으로 되짚기) · T150(콘솔 빨강이 댄 파일로 임자 찾기) · T148(빨강 임자를 «런 사이 코드 커밋» 으로도 가린다) · T149(연출 중간값을 재던 자 둘) · T151(실종된 모드의 에디터 로그를 잡 로그 끝과 screens 로) · T152(채팅 이름줄 자도 카드 팝 뒤에) · T153(창 안에서 0줄 바꾼 작업을 임자로 단정하지 않는다) · T154 · T160(등재만 된 ⬜ 를 선점 자가 막지 않게) · T161(오프라인 수집 자가 팝 도중을 잰다) · T162(✂ 접힌 작업을 임자로 지목) · T181(표 JSON 전수를 하니스가 읽는다) · T165(카드 팝 자의 벽시계 단언) · T170(글자 자국까지 이어받기) · T172(모드가 안 돈 런에 엉뚱한 임자) · T188(테스트는 PASS 인데 콘솔이 빨간 빨강에 임자 줄이 없다) · T189(일부러 낸 콘솔 빨강을 §1 위반으로 읽는다) · T174(스텁이 실물에 없는 멤버를 가져도 하니스가 초록) · T175(check_richtext 가 CI 밖) · T180(PlayMode 가 에디터 SIGSEGV 로 안 돈다) · T182(Resources 표 파싱 자) · T184(§3 스무 줄을 gate.sh 하나로 — rc 를 안 삼킨다) · T185(ui_score 가 화면이 사라진 회차를 «올랐다» 로 본다) · T187(반납한 회차 작업 이어 잡기) | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 ✅ · T123 ✅ · T125 ✅ · T126 ✅ · T127 ✅ · T137 ✅ · T145 ✅ · T148 ✅ · T150 ✅ · T149 ✅ · T151 ✅ · T152 ✅ · T153 ✅ · T154 ✅ · T160 ✅ · T161 ✂ · T162 ✅ · T164 ✅ · T187 ✅ · T165 ✅ · T170 ✅ · T171 ✅ · T172 ✅ · T188 ✅ · T189 ✅ · T173 🔄 · T174 ✅ · T175 ✅ · T180 ✅ · T181 ⛔ · T182 🔄 · T183 ✂ · T184 🔄 · T185 🔄 · T186 🔄 |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
