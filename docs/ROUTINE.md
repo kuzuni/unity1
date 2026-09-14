@@ -1280,6 +1280,8 @@
 - 판정: `screen_forge-detail.png` 판 바탕 픽셀이 **214±2** + 행 글자가 굵다(눈 확인) + `ui_score --score --only forge-detail` 이 안 내린다 + PlayMode 빨강 0.
 - 범위: `Assets/Scripts/Game/Ui/ForgeInfoPopup.cs`(판·lead·행 셋 · **T109·T110·T124 lock 뒤**) · `Assets/Forge/catalog.json`(색 키 셋) · `Assets/Tests/PlayMode/ForgeUiTests.cs`(판 색 단언).
 
+- 🔄 2026-09-14 08:1x 워커 P(sess-0154-10159) **1회차**: `catalog.json` 에 세 키(`idet_panel` #d6d6d6 · `idet_lead_ink` #000 · `idet_row_ink` #3a3a3a) + `ForgeInfoPopup` 판·lead(굵게)·행(굵게) 색 키 셋 + `ForgeUiTests` 단언 6. **판정(런 + `screen_forge-detail` 판 픽셀 214±2 + ui_score)은 다음 회차 · lock 쥔 채**.
+
 ### T147 — 캐릭터 **윤곽선(후처리 깊이-엣지 아웃라인)** 이 클론에 없다: 정본 `initPost`/`renderFrame` 컴포짓이 영웅·펫·탈것·적에 1px 검정 윤곽을 그리고 **모바일에서도 켠다**(`postEdge = true`) (Game·전투 3D · T8·T39 뒤 · T33 10회차 등재 · 워커 S)
 - 정본: `scene3d.js` 550 `initPost()` — `postOn = !mobile`(블룸+비네트 · **데스크톱 한정**) · `postEdge = true`(**모든 기기**). `renderFrame`(995): 씬을 RT(`_rtScene` + 깊이 텍스처)와 파츠 ID 버퍼(`_rtId` · rgb 16bit 파츠 ID · a 선형깊이/`idZFar` 32)에 그린 뒤 풀스크린 컴포짓 `_compMat` 이 네 항으로 윤곽을 판정해 검정선을 얹는다: 깊이 상대 임계 `edgeK` .028(이웃이 나보다 edgeK×깊이×탭거리 이상 멀면 나를 칠함 · `edgeMaxZ` 22 안에서만 · 하늘 화소 제외) · 법선 `normalK` .9 · 크리즈 `creaseK` .010 · 파츠 ID 경계 `idOn`. 텍셀 1/512. 1192~1262 의 인버티드-헐 셸(`applyOutlineTree` · `OUTLINE_E` .02)은 **포스트 스택이 없을 때만** 쓰는 잔재다(`if (this.postOn || this.postEdge) return;`) — 옮기지 않는다.
 - 클론: URP 볼륨(`Assets/Settings/ForgeVolume.asset`)은 `ColorAdjustments` 노출(정본 `toneMappingExposure`)만 쓰고 **Renderer Feature 0 · 엣지 셰이더 0**(`Assets/Scripts`·`Assets/Shaders` grep). T39 는 «`rimFlash` 림 셸·`flashTargets.out` 은 아웃라인 복원 뒤 죽은 갈래» 로 뺐지만 **살아 있는 쪽(포스트 엣지)** 은 아무도 안 잡았다 — 촬영 PNG 의 영웅·적에 검정 윤곽이 없는 것이 그 자취다.

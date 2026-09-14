@@ -283,13 +283,17 @@ namespace Forge.Game.Ui
             //         드랍 확률은 «모든 장비의 목록» 격자 셀(위 `Cell` 의 `pct`)에만 나온다 — 그 자리는 정본에도 있다.
             //         §1 «원작에 없는 것을 넣지 않는다» · 검수 Q 등재(런 223 `screen_forge-detail` 30장 중 꼴찌 1.2/10).
             RectTransform subs = PopupKit.Item(card, "idet-subs", -1f, -1f);
-            Image sbg = UiKit.Rounded(subs, "bg", "pp_panel", rem * 0.6f);
+            // T146 — 정본 style.css 3722~3726 `#forge-item-modal .idet-subs { background: #d6d6d6 }`: 이 모달만 공용 판(--pp-panel #efefef)을
+            //   덮어썼다(정본 주석 «원본 실측 rgb(214,214,214) — --pp-panel 은 25 밝았다»). 공용 pp_panel 을 고치면 다른 화면이 따라 어두워지니 제 키로.
+            Image sbg = UiKit.Rounded(subs, "bg", "idet_panel", rem * 0.6f);
             VerticalLayoutGroup sg = PopupKit.Column(subs, rem * 0.5f, rem * 0.15f);
-            PopupKit.Label(subs, "idet-lead", TextKind.Sub, "장비은(는) 아래 목록에서 2x개의 고유한 하위 스탯을 굴립니다:", "pp_ink", TextAlignmentOptions.Left, true, false, PopupKit.FontSize(TextKind.Sub) * 2.7f);
+            // T146 — 정본 3707 `.idet-lead { font-weight: 800 }` + 3728 `#forge-item-modal .idet-lead { color: #000 }`(순검정 · 굵게)
+            PopupKit.Label(subs, "idet-lead", TextKind.Sub, "장비은(는) 아래 목록에서 2x개의 고유한 하위 스탯을 굴립니다:", "idet_lead_ink", TextAlignmentOptions.Left, true, true, PopupKit.FontSize(TextKind.Sub) * 2.7f);
             for (int i = 0; i < d.Substats.Count; i++)
             {
                 SubstatDef s = d.Substats[i];
-                TextMeshProUGUI row = PopupKit.Label(subs, "substat-" + s.Key, TextKind.Sub, ForgeUi.SubRangeText(d, s.Key, s.Max) + " " + s.Label, "pp_ink", TextAlignmentOptions.Left, false, false);
+                // T146 — 정본 3708 `.substat-row { font-weight: 700 }` + 3731 `#forge-item-modal .idet-subs .substat-row { color: #3a3a3a }`
+                TextMeshProUGUI row = PopupKit.Label(subs, "substat-" + s.Key, TextKind.Sub, ForgeUi.SubRangeText(d, s.Key, s.Max) + " " + s.Label, "idet_row_ink", TextAlignmentOptions.Left, false, true);
             }
             // ✕ 는 화면당 하나다(T57): 이 팝업은 목록 팝업 **위에** 서므로 제 ✕ 를 또 달면 둘이 겹쳐 보인다
             // (원작 shot-042931 에는 밝은 ✕ 가 0개 · 딤 아래 목록의 ✕ 하나뿐이다 · 결정 기록 참조).

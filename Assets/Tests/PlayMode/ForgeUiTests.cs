@@ -250,6 +250,22 @@ namespace Forge.Tests.PlayMode
             int subs = 0;
             foreach (Transform t in h.Meta.Popups.Find(ForgeInfoPopup.ItemName).Root.GetComponentsInChildren<Transform>(true)) if (t.name.StartsWith("substat-")) subs++;
             Assert.AreEqual(h.Defs.Substats.Count, subs, "옵션 13종 범위");
+            // T146 — 이 모달만 판·글자 색을 덮어쓴다(정본 3722~3731): 판 #d6d6d6(공용 pp_panel 보다 25 어둡다) · lead 순검정·굵게 · 행 #3a3a3a·굵게
+            {
+                Transform subsRt = FindIn(h.Meta.Popups.Find(ForgeInfoPopup.ItemName).Root, "idet-subs");
+                Assert.IsNotNull(subsRt, "하위 스탯 판(idet-subs)");
+                Image sbg = FindIn(subsRt, "bg").GetComponent<Image>();
+                Assert.AreEqual((Color32)UiKit.C("idet_panel"), (Color32)sbg.color, "판 바탕 = idet_panel(#d6d6d6 · 정본 3726)");
+                Assert.AreNotEqual((Color32)UiKit.C("pp_panel"), (Color32)sbg.color, "공용 pp_panel 그대로가 아니다(25 밝던 자리)");
+                TextMeshProUGUI lead = FindIn(subsRt, "idet-lead").GetComponent<TextMeshProUGUI>();
+                Assert.AreEqual((Color32)UiKit.C("idet_lead_ink"), (Color32)lead.color, "lead 는 순검정(정본 3728)");
+                Assert.IsTrue((lead.fontStyle & FontStyles.Bold) != 0, "lead 는 굵게(정본 3707 800)");
+                TextMeshProUGUI row0 = null;
+                foreach (TextMeshProUGUI tt in subsRt.GetComponentsInChildren<TextMeshProUGUI>(true)) if (tt.name.StartsWith("substat-")) { row0 = tt; break; }
+                Assert.IsNotNull(row0, "하위 스탯 행");
+                Assert.AreEqual((Color32)UiKit.C("idet_row_ink"), (Color32)row0.color, "행 글자 #3a3a3a(정본 3731)");
+                Assert.IsTrue((row0.fontStyle & FontStyles.Bold) != 0, "행 글자는 굵게(정본 3708 700)");
+            }
             AssertTextGate();
             // T114 — 카드 머리는 **두 줄**이다: 정본 ui.js 2242~2248 `idet-head` = 아이콘 + (이름 · 스탯).
             //        «확률 N%» 은 정본에 없다(드랍 확률은 «모든 장비의 목록» 격자 셀에만 · 원작 샷 shot-042931).
