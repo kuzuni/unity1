@@ -593,6 +593,13 @@ def print_stale_notes(full=False):
 # — 즉 0.5 는 판독 잡음 바로 위다. 이 문턱 자체는 낮추지도 올리지도 않는다.
 DROP_MARK = 0.5   # 이만큼 움직이면 사람이 봐야 한다(판독 잡음 실측: 90분위 0.11 · 최대 0.49)
 
+# ── 한 런이 통째로 이상한가 (T28 38회차 · 워커 M) ──────────────────────────
+# 런 341 에서 팝업 여섯 화면이 **카드 팝(.25s scale .7→1) 도중**에 찍혀 반투명으로 남았다
+# (지문 «팝업 안» 차가 29~64 · 밴드 21→14). 한 화면이 그런 것은 게임 상태지만 **여러 화면이
+# 한꺼번에** 그러면 촬영이 어긋난 것이다 — 그 런을 기준선으로 삼으면 다음 회차가 유령을 쫓는다.
+FRAME_BIG_DIFF = 20.0   # 지문 «팝업 안» 차가 이보다 크면 «그 화면은 통째로 달라졌다»
+FRAME_BIG_MIN = 3       # 그런 화면이 이만큼이면 런을 의심한다
+
 # ── «내려간 화면» 을 회귀로 부르기 전에 (T28 22회차 · 워커 M) ────────────────
 # 판독 잡음은 0.5 아래지만, **팝업 뒤 배경**(살아 있는 3D 세계 · 상단바 숫자 · 뒤 목록)은
 # 회차마다 다르고 그것만으로 점수가 크게 움직인다. 실측(런 208 · 팝업 상자 바깥을 통째로
@@ -813,6 +820,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         return 2
     scores, missing, bad, skewed, unfilled = [], [], [], [], []
     fps, bands = {}, {}
+    suspect = [False]
     for name in [n for n, _ in pairs()]:
         if only and name not in only:
             continue
@@ -920,9 +928,25 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                 print(u"    %-18s %.1f → %.1f (%+.1f · %s)%s" % (n, b, c, c - b, why, band_note(n)))
         if ups:
             print(u"· 올라간 화면 %d개: %s" % (len(ups), " ".join(sorted(ups))))
+        # 여러 화면이 한꺼번에 «안쪽이 통째로 달라졌다» 면 촬영이 어긋난 런이다.
+        big = []
+        for n in sorted(cur):
+            din, _ = fp_diff(obase.get(n), fps.get(n))
+            if din is not None and din > FRAME_BIG_DIFF:
+                big.append((n, din))
+        if len(big) >= FRAME_BIG_MIN:
+            suspect[0] = True
+            print(u"⚠ 이 런의 촬영이 통째로 어긋났을 수 있다 — «팝업 안» 이 %.0f 넘게 달라진 화면이 %d개다: %s"
+                  % (FRAME_BIG_DIFF, len(big), " ".join(u"%s %.0f" % t for t in big)))
+            print(u"    (실측 전례: 런 341 은 카드 팝 .25s 도중에 찍혀 팝업이 반투명이었다 — T128 ⓒ)")
+            print(u"    → PNG 를 한 장 열어 보고, 어긋난 런이면 **기준선을 갱신하지 마라**.")
         if not drops and not ups:
             print(u"· 지난 회차와 견줘 %.1f점 넘게 움직인 화면 없음" % DROP_MARK)
     print_stale_notes(notes_full)
+    if save_baseline and suspect[0]:
+        print(u"· 기준선을 **안 적었다** — 위 «촬영이 어긋났을 수 있다» 경고 때문이다."
+              u" 멀쩡한 런에서 다시 `--save-baseline` 하면 된다(결정 195·199 의 규칙 그대로).")
+        save_baseline = False
     if save_baseline:
         # 런 번호는 CI 가 screens 에 같이 올린 meta.json 에서 읽는다(없으면 비운다).
         run = None
