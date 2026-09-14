@@ -84,6 +84,8 @@ namespace Forge.Tests.PlayMode
             RenderTexture rt = new RenderTexture(Size, Size, 24, RenderTextureFormat.ARGB32);
             RenderTexture prevActive = RenderTexture.active;
             Texture2D on = null, off = null;
+            // 10회차부터 렌더러 에셋은 기능을 **켠 채** 싣는다 — 이 자는 원래 상태를 기억했다가 되돌린다.
+            object savedActive = GetHidden(feature, "m_Active");
             try
             {
                 var hostGo = new GameObject("t147-host");
@@ -184,7 +186,7 @@ namespace Forge.Tests.PlayMode
             }
             finally
             {
-                SetActive(feature, false);
+                SetActive(feature, savedActive is bool && (bool)savedActive);
                 EdgeOutlineHost.SetOn(true);
                 RenderTexture.active = prevActive;
                 if (on != null) Object.DestroyImmediate(on);
@@ -249,6 +251,18 @@ namespace Forge.Tests.PlayMode
                 if (i < names.Length - 1) sb.Append(" · ");
             }
             return sb.ToString();
+        }
+
+
+        /// <summary>숨은 필드 읽기 — 기반 클래스의 `m_Active`(SerializeField private)를 보려고.</summary>
+        static object GetHidden(object feature, string field)
+        {
+            for (System.Type t = feature != null ? feature.GetType() : null; t != null; t = t.BaseType)
+            {
+                FieldInfo f = t.GetField(field, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                if (f != null) return f.GetValue(feature);
+            }
+            return null;
         }
 
         static object Get(object feature, string field)

@@ -79,7 +79,17 @@ namespace Forge.Game.Render
         }
 
         private void Awake() { Instance = this; Apply(); }
-        private void OnDestroy() { if (Instance == this) Instance = null; }
+        /// <summary>
+        /// 🚨 **선은 이 호스트가 살아 있는 동안만 그린다.** 유니폼은 전역이라 한 번 켜면 씬이 바뀌어도 남는데,
+        /// 촬영·썸네일처럼 **제 카메라로 오프스크린을 굽는 자리**(갤러리·장비 얼굴·픽셀 자)는 정본에 없는 클론 기계라
+        /// 거기까지 선이 얹히면 그 자들의 그림이 달라진다. 호스트가 걷히면 항을 통째로 끈다(= 정본 판정기의 off 프레임과 같은 자리).
+        /// </summary>
+        private void OnDestroy()
+        {
+            if (Instance != this) return;
+            Instance = null;
+            Shader.SetGlobalFloat(OnProp, 0f);
+        }
         private void Update() { if (Screen.width != lastW) Apply(); }
 
         /// <summary>표 → 전역 유니폼. 두께 스위치는 그때의 화면 폭으로 다시 잰다.</summary>
