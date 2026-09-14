@@ -201,16 +201,66 @@ def fixtures(fails):
     테스트 이름에는 점이 없다(한글·밑줄) — 그래서 «마지막 점 앞» 이 픽스처다."""
     out = []
     for ln in fails:
-        head = ln.split(' · ')[0].strip()
-        parts = head.split()
-        if len(parts) < 2:
-            continue
-        dotted = parts[1].split('.')
-        if len(dotted) < 2:
-            continue
-        name = dotted[-2]
+        name = _fixture(ln)
         if name and name not in out:
             out.append(name)
+    return out
+
+
+def _fixture(ln):
+    """한 줄 → 픽스처 이름(못 읽으면 빈 글자).
+
+    꼴이 둘이다 — `FAIL <점 찍힌 이름> · …` 와 `RED  Error  [<점 찍힌 이름>]`(T188).
+    뒤에서는 `parts[1]` 이 `Error` 라 점이 없어 예전엔 **그냥 버려졌다** —
+    그래서 «테스트는 PASS 인데 콘솔이 빨간» 빨강에 임자 줄이 한 줄도 안 나왔다(실측 런 438)."""
+    head = ln.split(' · ')[0].strip()
+    for tok in head.split()[1:]:
+        dotted = tok.strip('[]').split('.')
+        if len(dotted) >= 2 and dotted[-2]:
+            return dotted[-2]
+    return ''
+
+
+def red_only(fails):
+    """`FAIL` 없이 `RED` 줄로만 나온 픽스처 집합(T188).
+
+    그런 자는 **넘어지지 않았다** — 바로 다음 줄이 `PASS` 다.
+    빨강의 정체는 §1 «플레이 콘솔 에러 0» 을 깨뜨린 **콘솔 줄 하나** 이므로,
+    단언을 찾으러 테스트 파일을 열면 헛걸음이다."""
+    reds, fail = set(), set()
+    for ln in fails:
+        name = _fixture(ln)
+        if not name:
+            continue
+        (reds if ln.startswith('RED ') else fail).add(name)
+    return reds - fail
+
+
+def stack_paths(text):
+    """{픽스처: [Assets/… 경로]} — **RED 덩이 안의 `at` 줄**이 댄 프로덕션 파일(T188).
+
+    T150 의 <see cref="error_paths"/> 는 `at ` 줄을 «넘어진 자 자신의 파일» 이라며 버린다 —
+    단언으로 넘어진 자림 그것이 맞다. 그러나 `Debug.LogError` 가 남긴 스택은
+    **그 줄을 찍은 프로덕션 코드** 다(실측 런 438: `ForgeHost.cs:422` ← `BootGuard` ← `Boot`).
+    그래서 RED 줄 다음부터 다음 판정 줄(`PASS`/`FAIL`/`RED`/`──`) 전까지만 긁는다."""
+    out = {}
+    cur = None
+    for ln in text.split('\n'):
+        st = ln.strip()
+        if ln.startswith('RED '):
+            cur = _fixture(ln) or None
+            continue
+        if ln.startswith(('PASS ', 'FAIL ', '\u2500')):
+            cur = None
+            continue
+        if cur is None or not (st.startswith('at ') or st.startswith('at\t')):
+            continue
+        for path in ERR_PATH.findall(ln):
+            if path.startswith('Assets/Tests/'):
+                continue
+            out.setdefault(cur, [])
+            if path not in out[cur]:
+                out[cur].append(path)
     return out
 
 
@@ -518,7 +568,8 @@ def ledger_note(runs, missing, look=8):
             '**연달아 빠질 때** 정한다(지금 주인을 부르면 헛걸음이다).' % (len(recent), len(hit), ' '.join(hit)))
 
 
-def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None, touched=None, missing='', runs=None):
+def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None, touched=None, missing='', runs=None,
+              passed=None):
     """빨강마다 임자 한 줄 — **빠진 테스트 파일 ↔ PROGRESS 범위 열** 로 가린다(T125).
 
     갈래 넷:
@@ -560,8 +611,15 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
         return [('  · 빨강의 임자: 빠진 테스트 이름을 못 읽었다 — 그 커밋(%s)을 민 워커는 %s 다. '
                  'lock 을 눈으로 확인한다.' % (sha[:7] or '?', who or '못 가렸다'))]
     err = err or {}
+    passed = passed or set()
     out = []
     for name in names:
+        # ⓡ T188 — RED 만 있고 FAIL 이 없는 자는 **넘어지지 않았다**(다음 줄이 PASS 다).
+        #          단언을 찾아 테스트 파일을 열면 헛걸음이다 — 빨강은 콘솔 줄 하나다.
+        if name in passed:
+            out.append('  · `%s` 는 **넘어지지 않았다(PASS)** — 이 빨강은 그 자가 돌 때 남은 '
+                       '**콘솔 에러 한 줄**이다(§1 «플레이 콘솔 에러 0»). 테스트 파일에서 단언을 찾지 마라 — '
+                       '빨강을 찍은 것은 **자취(`at …`)가 댄 코드**다.' % name)
         # ⓟ T150 — 빨강 본문이 «제 것이 아닌 파일» 을 댔으면 그 파일의 임자를 **먼저** 찍는다.
         for path in err.get(name, [])[:2]:
             powner = path_owners(path, progress_text)
@@ -576,7 +634,8 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
                        % (name, path, pick[0], _lock_word(pick[1], pick[2]),
                           ' — 그의 몫이니 건드리지 말고 네 작업을 잡는다.' if pick[1]
                           else ' — lock 이 없으니 §0-6 대로 **이것이 네 일이다**(넘어진 자가 아니라 **이 파일**을 고친다).'))
-            out.append('    ↳ 넘어진 자(`%s`)의 임자는 아래에 그대로 남긴다 — 그 사람 몫이 아닐 수 있다.' % name)
+            out.append('    ↳ %s(`%s`)의 임자는 아래에 그대로 남긴다 — 그 사람 몫이 아닐 수 있다.'
+                       % ('빨강을 받아 적은 자' if name in passed else '넘어진 자', name))
         cands, dead, dstat = scope_owners_split(name, progress_text)
         # T162 — ✂ 접음·⛔ 폐기·흡수 행은 «임자» 가 아니다(이미 끝났거나 남에게 넘어간 번호다).
         dead_note = ''
@@ -671,8 +730,11 @@ def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None):
 
 def self_test():
     fails = []
+    cells = [0]
 
     def eq(name, got, want):
+        # T188 — 칸 수는 **세어서** 말한다. 손으로 적던 수는 회차마다 안 맞았다(96 → 102 → 111 을 사람이 고쳤다).
+        cells[0] += 1
         if got != want:
             fails.append('%s: 얻은 값 %r ≠ 바란 값 %r' % (name, got, want))
 
@@ -797,6 +859,39 @@ def self_test():
     eq('ⓠ 넘어진 자도 남긴다', any('의 임자: **T124**' in l for l in lines), True)
     lines = own_lines(['FAIL A.B.AgePatternTests.\ubb34\uc5c7 · Failed'], P4, '', lock=live, err={})
     eq('ⓠ 본문 경로가 없으면 종전 그대로', any('제 파일 이야기가 아니다' in l for l in lines), False)
+
+    # ⓥ T188 — «테스트는 PASS 인데 콘솔이 빨간» 빨강(실측 런 438). RED 줄이 통째로 버려져 임자 줄이 **한 줄도** 안 나왔다.
+    RED438 = ("\u2500\u2500 Forge.Tests.PlayMode.BootGuardTests.\uc190\uc0c1\n"
+              "RED  Error  [Forge.Tests.PlayMode.BootGuardTests.\uc190\uc0c1]\n"
+              "  |    restorePendingCraft: \ubc84\ub838\ub2e4\n"
+              "  at   UnityEngine.Debug:LogError (object)\n"
+              "  at   Forge.Game.Ui.ForgeHost:RestorePendingCraft () (at Assets/Scripts/Game/Ui/ForgeHost.cs:422)\n"
+              "  at   Forge.Tests.PlayMode.BootGuardTests:\uc190\uc0c1 () (at Assets/Tests/PlayMode/BootGuardTests.cs:40)\n"
+              "PASS Forge.Tests.PlayMode.BootGuardTests.\uc190\uc0c1\n"
+              "\u2500\u2500 Forge.Tests.PlayMode.OtherTests.\ubb34\uc5c7\n"
+              "  at   Forge.Game.Ui.NotMine:X () (at Assets/Scripts/Game/Ui/NotMine.cs:1)\n")
+    RED_LN = 'RED  Error  [Forge.Tests.PlayMode.BootGuardTests.\uc190\uc0c1]'
+    eq('ⓥ RED 줄에서도 픽스처를 읽는다', fixtures([RED_LN]), ['BootGuardTests'])
+    eq('ⓥ FAIL 줄은 종전 그대로', fixtures(['FAIL A.B.PetUiTests.\ubb34\uc5c7 · Failed']), ['PetUiTests'])
+    eq('ⓥ FAIL 이 같이 있으면 PASS 로 안 친다',
+       red_only([RED_LN, 'FAIL A.B.BootGuardTests.\uc190\uc0c1 · Failed']), set())
+    eq('ⓥ RED 만 있으면 PASS 로 친다', red_only([RED_LN]), {'BootGuardTests'})
+    eq('ⓥ 스택이 댄 프로덕션 파일을 뽑는다',
+       stack_paths(RED438), {'BootGuardTests': ['Assets/Scripts/Game/Ui/ForgeHost.cs']})
+    eq('ⓥ 스택의 제 테스트 파일은 안 센다',
+       any('Assets/Tests/' in p_ for p_ in stack_paths(RED438).get('BootGuardTests', [])), False)
+    eq('ⓥ RED 덩이 밖의 자취는 안 샌다', 'OtherTests' in stack_paths(RED438), False)
+    eq('ⓥ 본문에 경로가 없으면 조용하다', stack_paths(''), {})
+    P5 = (P + '| T19 | 대장간 | 🔄 | s6 | `Assets/Scripts/Game/Ui/ForgeHost.cs` | — |\n'
+              '| T157 | 부팅 격리 | ✅ | s7 | `Assets/Tests/PlayMode/BootGuardTests.cs` | — |\n')
+    lines = own_lines([RED_LN], P5, '', lock=live, err=stack_paths(RED438), passed=red_only([RED_LN]))
+    eq('ⓥ 먼저 «넘어지지 않았다» 를 말한다',
+       lines and '넘어지지 않았다(PASS)' in lines[0] and 'BootGuardTests' in lines[0], True)
+    eq('ⓥ 그 다음 스택이 댄 파일의 임자를 찍는다', any('**T19**' in l for l in lines), True)
+    eq('ⓥ 꼬리표가 «넘어진 자» 가 아니다', any('빨강을 받아 적은 자' in l for l in lines), True)
+    eq('ⓥ passed 가 비면 종전 문구 그대로',
+       any('넘어진 자(' in l for l in
+           own_lines([RED_LN], P5, '', lock=live, err=stack_paths(RED438))), True)
 
     # ⓟ T148 — 장부 읽기 · 마지막 초록
     runs = parse_runs('{"sha":"aaa","run":329,"tests":"success","missing_modes":""}\n깨진 줄\n'
@@ -952,7 +1047,7 @@ def self_test():
         for f in fails:
             print('  · ' + f)
         return 1
-    print('✓ check_unity_green --self-test 111칸 통과')
+    print('✓ check_unity_green --self-test %d칸 통과' % cells[0])
     return 0
 
 
@@ -988,7 +1083,14 @@ def main(argv):
         gsha, grun = last_green(runs, cur)
         commits = code_commits(gsha, cur) if gsha else code_commits(None, cur, RECENT_CODE)
         # T153 — 임자 줄이 «그의 몫» 으로 막기 전에, 그 작업이 이 창에서 프로덕션을 바꾸긴 했는지 먼저 센다
-        own = own_lines(fails, read_progress(), cur, err=error_paths(red_text(ref)),
+        text = red_text(ref)
+        # T188 — 콘솔 빨강(RED)은 스택이 곧 증거다. T150 의 본문 경로에 **덧붙여** 준다(덮어쓰지 않는다).
+        err = error_paths(text)
+        for name, paths in stack_paths(text).items():
+            for path in paths:
+                if path not in err.setdefault(name, []):
+                    err[name].append(path)
+        own = own_lines(fails, read_progress(), cur, err=err, passed=red_only(fails),
                         touched=prod_touch(commits), missing=str(meta.get('missing_modes', '') or ''), runs=runs)
         between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None))
     rc, out = judge(meta, anc, n_after, fails, own, between)
