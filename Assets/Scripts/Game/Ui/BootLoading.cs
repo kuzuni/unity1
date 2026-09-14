@@ -76,8 +76,7 @@ namespace Forge.Game.Ui
 
             // 바탕: 정본 radial-gradient 세 칸 → 가운데 칸 색 한 장으로 덮고 바깥 칸을 그 위에 옅게 깐다.
             // (그라디언트 재질은 T30 계열이 들어올 때 · 지금은 «어둡게 덮는다» 가 이 화면의 일이다.)
-            Image bg = UiKit.Panel(root, "bg", null);
-            bg.color = Hex("bg_mid");
+            Image bg = Face(root, "bg", Hex("bg_mid"));
             UiKit.Fill(bg.rectTransform);
 
             RectTransform box = UiKit.Box(root, "bl-box");
@@ -91,12 +90,10 @@ namespace Forge.Game.Ui
                          (float)spec.ForgeWPx, (float)spec.ForgeHPx);
             y += (float)(spec.ForgeHPx + spec.BoxGapPx);
 
-            Image anvil = UiKit.Panel(forge, "bl-anvil", null);
-            anvil.color = Hex("anvil_top");
+            Image anvil = Face(forge, "bl-anvil", Hex("anvil_top"));
             UiKit.Anchor(anvil.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
                          new Vector2(0f, (float)spec.AnvilBottomPx), (float)spec.AnvilWPx, (float)spec.AnvilHPx);
-            Image foot = UiKit.Panel(forge, "bl-anvil-foot", null);
-            foot.color = Hex("anvil_foot");
+            Image foot = Face(forge, "bl-anvil-foot", Hex("anvil_foot"));
             UiKit.Anchor(foot.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
                          new Vector2(0f, (float)(spec.AnvilBottomPx - spec.AnvilFootHPx)), (float)spec.AnvilFootWPx, (float)spec.AnvilFootHPx);
 
@@ -104,27 +101,24 @@ namespace Forge.Game.Ui
             UiKit.Anchor(hammer, new Vector2((float)spec.HammerLeftF, 0f), new Vector2((float)spec.HammerLeftF, 0f),
                          new Vector2(0f, (float)spec.HammerBottomPx), (float)spec.HammerWPx, (float)spec.HammerHPx);
             hammer.pivot = new Vector2((float)spec.HammerPivotXF, (float)spec.HammerPivotYF);
-            Image head = UiKit.Panel(hammer, "head", null);
-            head.color = Hex("hammer_head_top");
+            Image head = Face(hammer, "head", Hex("hammer_head_top"));
             UiKit.Anchor(head.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, -(float)spec.HammerHeadTopPx),
                          (float)spec.HammerHeadWPx, (float)spec.HammerHeadHPx);
-            Image haft = UiKit.Panel(hammer, "haft", null);
-            haft.color = Hex("hammer_haft_top");
+            Image haft = Face(hammer, "haft", Hex("hammer_haft_top"));
             UiKit.Anchor(haft.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
                          new Vector2((float)spec.HammerHaftLeftPx, -(float)spec.HammerHaftTopPx),
                          (float)spec.HammerHaftWPx, (float)spec.HammerHaftHPx);
 
             for (int i = 0; i < spec.SparkDxPx.Length; i++)
             {
-                Image sp = UiKit.Circle(forge, "bl-spark-" + (i + 1), null);
-                sp.color = Hex("spark");
+                Image sp = DotFace(forge, "bl-spark-" + (i + 1), Hex("spark"));
                 UiKit.Anchor(sp.rectTransform, new Vector2((float)spec.SparkLeftF, 0f), new Vector2((float)spec.SparkLeftF, 0f),
                              new Vector2(0f, (float)spec.SparkBottomPx), (float)spec.SparkDPx, (float)spec.SparkDPx);
                 sparks.Add(sp.rectTransform);
             }
 
             // ── 제목 ────────────────────────────────────────────────────────────
-            TextMeshProUGUI title = UiKit.Text(box, "bl-title", TextKind.Title, "포지 클론", null, TextAlignmentOptions.Center);
+            TextMeshProUGUI title = UiKit.Text(box, "bl-title", TextKind.Title, "포지 클론", "ink", TextAlignmentOptions.Center);
             title.color = Hex("title");
             title.fontSize = (float)spec.TitlePx;
             title.fontStyle = FontStyles.Bold;
@@ -134,19 +128,17 @@ namespace Forge.Game.Ui
             y += (float)(spec.TitlePx * 1.4f + spec.BoxGapPx);
 
             // ── 진행 막대 ───────────────────────────────────────────────────────
-            Image track = UiKit.Rounded(box, "bl-track", null, (float)spec.TrackRPx);
             Color tc = Hex("track"); tc.a = (float)spec.TrackAlpha;
-            track.color = tc;
+            Image track = RoundFace(box, "bl-track", tc, (float)spec.TrackRPx);
             UiKit.Anchor(track.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -y),
                          (float)spec.TrackWPx, (float)spec.TrackHPx);
-            Image f = UiKit.Rounded(track.rectTransform, "bl-fill", null, (float)spec.TrackRPx);
-            f.color = Hex("fill_from");
+            Image f = RoundFace(track.rectTransform, "bl-fill", Hex("fill_from"), (float)spec.TrackRPx);
             fill = f.rectTransform;
             UiKit.Anchor(fill, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), Vector2.zero, 0f, (float)spec.TrackHPx);
             y += (float)(spec.TrackHPx + spec.BoxGapPx);
 
             // ── 단계 글자 ───────────────────────────────────────────────────────
-            stageText = UiKit.Text(box, "bl-stage", TextKind.Sub, string.Empty, null, TextAlignmentOptions.Center);
+            stageText = UiKit.Text(box, "bl-stage", TextKind.Sub, string.Empty, "ink", TextAlignmentOptions.Center);
             stageText.color = Hex("stage");
             stageText.fontSize = (float)spec.StagePx;
             UiKit.Anchor(stageText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -y),
@@ -154,6 +146,36 @@ namespace Forge.Game.Ui
 
             Stage = string.Empty;
             Apply(0);
+        }
+
+        /// <summary>단색 면 — `UiKit.Panel` 과 같지만 **색을 카탈로그 키가 아니라 값으로** 받는다.
+        /// ⚠ `UiKit.Panel(parent, name, null)` 은 «카탈로그를 건너뛴다» 가 아니라 `ColorOf(null)` 로 들어가
+        ///   `ArgumentNullException` 이다(런 313 실측 · 이 화면의 네 테스트가 전부 그 줄에서 터졌다).</summary>
+        private static Image Face(Transform parent, string name, Color c)
+        {
+            RectTransform rt = UiKit.Box(parent, name);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.color = c;
+            img.raycastTarget = false;
+            return img;
+        }
+
+        private static Image RoundFace(Transform parent, string name, Color c, float radiusPx)
+        {
+            Image img = Face(parent, name, c);
+            img.sprite = UiShapes.Rounded;
+            img.type = Image.Type.Sliced;
+            img.pixelsPerUnitMultiplier = UiShapes.RoundedMultiplier(radiusPx);
+            return img;
+        }
+
+        private static Image DotFace(Transform parent, string name, Color c)
+        {
+            Image img = Face(parent, name, c);
+            img.sprite = UiShapes.Circle;
+            img.type = Image.Type.Simple;
+            img.preserveAspect = true;
+            return img;
         }
 
         private Color Hex(string key)
