@@ -37,6 +37,9 @@ namespace Forge.Core.Ui
         public double SwingMs, SparkMs, SparkDelay2Ms, SparkDelay3Ms, FillMs, FadeMs, RemoveMs;
 
         /// <summary>정본 CSS px 1 = 기준 캔버스 px 몇인가(정본 앱 폭 499 ↔ 카탈로그 reference 1080).</summary>
+        /// <summary>덮개의 정렬 순서(정본 인라인 CSS `z-index: 200`) — 이 덮개는 `#app` 밖이라 앱 캔버스 위에 제 캔버스로 선다.</summary>
+        public int ZIndex;
+
         public double CssPx;
 
         // 불티 셋의 방향(정본은 조각마다 CSS 변수 --dx/--dy)
@@ -90,6 +93,8 @@ namespace Forge.Core.Ui
                 string v = kv.Value as string;
                 if (v != null && kv.Key != "_") s.Colors.Add(kv.Key, v);
             }
+
+            s.ZIndex = (int)J.Num(J.Require(root, "z_index"));
 
             s.Swing = Stops(J.Require(root, "swing"), "swing");
             s.Spark = Stops(J.Require(root, "spark"), "spark");

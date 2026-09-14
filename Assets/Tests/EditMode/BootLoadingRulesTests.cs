@@ -48,6 +48,9 @@ namespace Forge.Tests
             var s = S();
             // 표의 수는 **정본 CSS px** 이고 `css_px`(499 ↔ 1080) 를 곱해 기준 캔버스로 온다.
             Assert.AreEqual(2.164, s.CssPx, 1e-9);
+            // 정본 인라인 CSS `#boot-loading { … z-index: 200 }`(index.html 24) — 덮개는 `#app` 밖이라
+            // 클론에서 이 수는 **제 오버레이 캔버스의 정렬 순서**가 된다(8회차).
+            Assert.AreEqual(200, s.ZIndex, "정본 z-index: 200");
             Assert.AreEqual(216.0 * 2.164, s.TrackWPx, 1e-6, "정본 .bl-track width: 216 CSS px");
             Assert.AreEqual(0.0, s.FillWidthPx(0), 1e-9);
             Assert.AreEqual(s.TrackWPx * 0.5, s.FillWidthPx(50), 1e-6);

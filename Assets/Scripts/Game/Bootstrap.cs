@@ -38,6 +38,11 @@ namespace Forge.Game
             ApplyFrameRate();
             ApplyRunInBackground();
             Apply();
+            // T142 — 부팅 로딩 덮개. 정본은 이것을 `#app` **앞**에 두어 파서가 제일 먼저 만나게 한다
+            // (`index.html` 21 «마크업도 #app 앞»). 클론에서 그 «제일 먼저» 에 해당하는 자리가 여기다 —
+            // 부팅 뿌리는 `DefaultExecutionOrder(-1000)` 이라 씬의 어떤 호스트보다 먼저 돈다.
+            // 덮개는 앱 캔버스가 아니라 제 오버레이 캔버스에 서고, 여섯 신호가 다 서면 스스로 사라진다.
+            BootLoading.Begin();
         }
 
         /// <summary>

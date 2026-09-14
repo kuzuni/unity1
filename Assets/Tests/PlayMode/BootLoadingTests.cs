@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using Forge.Game.Gallery;
 using Forge.Game.Ui;
 
 namespace Forge.Tests.PlayMode
@@ -126,6 +127,98 @@ namespace Forge.Tests.PlayMode
             float t = 0f;
             while (go != null && t < 3f) { t += Time.unscaledDeltaTime; yield return null; }
             Assert.IsTrue(go == null, "다 선 씬에서는 스스로 100% 로 가서 사라져야 한다");
+        }
+
+        /// <summary>덮개 캔버스를 한 장 그려 `ui-screens/&lt;name&gt;.png` 로 남긴다 — §1 «실제 화면을 본다».
+        /// 오버레이 캔버스는 카메라 렌더에 안 들어가므로(그것이 8회차가 노린 성질이다) 찍을 때만 잠깐
+        /// `ScreenSpaceCamera` 로 돌린다 — `ForgeUiTests.CountPixels` 와 같은 길이다.</summary>
+        private static void Shoot(string name)
+        {
+            Canvas c = BootLoading.Canvas;
+            if (c == null) return;
+            int w = Mathf.Max(64, Screen.width), h = Mathf.Max(64, Screen.height);
+            RenderMode prevMode = c.renderMode;
+            Camera prevCam = c.worldCamera;
+            float prevPlane = c.planeDistance;
+            RenderTexture prevActive = RenderTexture.active;
+            RenderTexture rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
+            GameObject camGo = new GameObject("boot-shot-cam");
+            Camera cam = camGo.AddComponent<Camera>();
+            Texture2D shot = null;
+            try
+            {
+                if (Camera.main != null) cam.CopyFrom(Camera.main);
+                cam.rect = new Rect(0f, 0f, 1f, 1f);
+                cam.ResetProjectionMatrix();
+                cam.targetTexture = rt;
+                cam.cullingMask = 1 << c.gameObject.layer;
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = Color.black;
+                c.renderMode = RenderMode.ScreenSpaceCamera;
+                c.worldCamera = cam;
+                c.planeDistance = 1f;
+                Canvas.ForceUpdateCanvases();
+                cam.Render();
+                RenderTexture.active = rt;
+                shot = new Texture2D(w, h, TextureFormat.RGB24, false);
+                shot.ReadPixels(new Rect(0f, 0f, w, h), 0, 0);
+                shot.Apply(false);
+                GallerySheet.Save(shot, name);
+            }
+            finally
+            {
+                RenderTexture.active = prevActive;
+                c.renderMode = prevMode;
+                c.worldCamera = prevCam;
+                c.planeDistance = prevPlane;
+                if (shot != null) Object.Destroy(shot);
+                Object.Destroy(camGo);
+                Object.Destroy(rt);
+            }
+        }
+
+        /// <summary>T142 8회차 — 배선. 부팅 뿌리 한 줄(`Bootstrap.Awake` → `BootLoading.Begin`)이 덮개를 띄우고,
+        /// 덮개는 **앱 캔버스 밖 제 캔버스**에 서며(정본 `#boot-loading` 은 `#app` 밖 · `z-index: 200`),
+        /// 여섯 신호가 다 서면 스스로 사라진다.
+        ///
+        /// «앱 캔버스 밖» 이 이 작업의 핵심이다 — 4·6회차는 `UiRoot.App` 아래에 세웠고, 그래서 이 레포의
+        /// 픽셀·촬영 자 여덟(`UiRoot.Canvas` 를 제 카메라로 그려 `ReadPixels` 한다)이 덮개까지 같이 그려
+        /// «맞는 색 0개» 로 빨개졌다(런 336·354). 그 자들을 한 줄도 안 고치고 푸는 길이 여기다.</summary>
+        [UnityTest]
+        public IEnumerator 부팅_뿌리가_덮개를_띄우고_앱_캔버스_밖에_세우고_다_서면_치운다()
+        {
+            yield return Boot();
+
+            BootLoading bl = BootLoading.Instance;
+            Assert.IsNotNull(bl, "부팅 뿌리(Bootstrap.Awake → BootLoading.Begin)가 덮개를 안 띄웠다");
+            Canvas c = BootLoading.Canvas;
+            Assert.IsNotNull(c, "덮개가 제 캔버스에 서지 않았다");
+            Assert.AreEqual(RenderMode.ScreenSpaceOverlay, c.renderMode, "정본 position: fixed — 화면 전체를 덮는 오버레이 캔버스다");
+            Assert.AreEqual(BootLoading.Spec.ZIndex, c.sortingOrder, "정본 인라인 CSS z-index: 200");
+            Assert.IsNull(c.GetComponent<GraphicRaycaster>(), "덮개는 입력을 안 먹는다(결정 323 조건 ⓐ) — 레이캐스터가 없어야 한다");
+
+            Assert.IsNotNull(UiRoot.Instance, "UiRoot 가 안 섰다 — 이 단언의 전제가 없다");
+            Assert.IsFalse(bl.transform.IsChildOf(UiRoot.Instance.transform),
+                           "덮개가 앱 캔버스 아래 있다 — 정본은 #app **밖**이다(index.html 21 «마크업도 #app 앞»). " +
+                           "여기 있으면 픽셀·촬영 자 여덟이 덮개를 같이 그린다(런 336·354)");
+
+            // §1 «실제 화면을 본다» — 아직 덮개가 서 있는 지금 한 장 남긴다.
+            Shoot("screen_boot-loading");
+
+            GameObject go = bl.gameObject;
+            double lastPct = -1;
+            string lastStage = null;
+            float t = 0f;
+            while (go != null && t < 40f)
+            {
+                if (bl != null) { lastPct = bl.Pct; lastStage = bl.Stage; }
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.IsTrue(go == null,
+                          "부팅이 다 선 뒤에는 덮개가 스스로 사라져야 한다(정본 blDone) — " +
+                          "40초 뒤에도 " + lastPct.ToString("0.#") + "% «" + lastStage + "» 에 멈춰 있다");
+            Assert.IsNull(BootLoading.Canvas, "덮개가 치워지면 제 캔버스도 같이 치워져야 한다");
         }
 
         [UnityTest]

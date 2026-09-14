@@ -13,6 +13,9 @@ namespace Forge.Game.Ui
     /// 부팅 로딩 오버레이(T142 2회차) — 정본 `web/index.html` 21~60 의 `#boot-loading` 을 세운다.
     /// 모루 + 흔들리는 망치 + 불티 셋 · 제목 «포지 클론» · 진행 막대 · 단계 글자.
     ///
+    /// **자리**: 정본은 이 덮개를 `#app` **밖**(`position: fixed; inset: 0; z-index: 200` · 마크업도 `#app` 앞)에 둔다.
+    /// 그래서 클론도 앱 캔버스가 아니라 <see cref="Canvas"/>(제 오버레이 캔버스)에 선다 — 8회차.
+    ///
     /// 수치·색·단계는 전부 <see cref="BootLoadingSpec"/>(표 `Resources/BootLoadingUi.json`)에서 온다(§1).
     /// 진행률을 미는 쪽(부팅 절차)은 3회차가 단다 — 여기서는 <see cref="Set"/>·<see cref="Done"/> 만 연다.
     ///
@@ -55,7 +58,11 @@ namespace Forge.Game.Ui
 
         public static void ResetCache() { cached = null; }
 
-        /// <summary>오버레이를 세운다(이미 있으면 그대로). 부모는 앱 상자 — 탭바·시트보다 위다.</summary>
+        /// <summary>이 덮개가 사는 **제 캔버스**(정본 `#boot-loading` 은 `#app` 밖이다 · <see cref="Begin"/> 이 세운다).
+        /// 손으로 부모를 주고 세운 자리(테스트·미리보기)에서는 null 이다.</summary>
+        public static Canvas Canvas { get; private set; }
+
+        /// <summary>오버레이를 세운다(이미 있으면 그대로). 부모를 직접 준다 — 진짜 부팅은 <see cref="Begin"/> 을 쓴다.</summary>
         public static BootLoading Ensure(Transform parent) { return Ensure(parent, false); }
 
         /// <summary><paramref name="follow"/> 가 참이면 매 프레임 «무엇이 섰는가» 를 읽어 스스로 진행률을 민다.
@@ -73,7 +80,18 @@ namespace Forge.Game.Ui
             return bl;
         }
 
-        private void OnDestroy() { if (Instance == this) Instance = null; }
+        private void OnDestroy()
+        {
+            if (Instance != this) return;
+            Instance = null;
+            // 제 캔버스로 섰다면 그 캔버스도 같이 치운다 — 정본이 `#boot-loading` 을 통째로 removeChild 하는 것과 같다.
+            if (Canvas != null && transform.parent == Canvas.transform)
+            {
+                Canvas c = Canvas;
+                Canvas = null;
+                Destroy(c.gameObject);
+            }
+        }
 
         private void Build()
         {
@@ -231,15 +249,36 @@ namespace Forge.Game.Ui
         /// <summary>부팅이 시작될 때 한 번 — UI 뿌리가 설 때까지 기다렸다가 오버레이를 세우고, 그 뒤로는
         /// **무엇이 섰는가** 를 보고 스스로 진행률을 민다(정본은 boot() 안에서 순서대로 blSet 을 부르지만
         /// 클론은 그 일들을 서로 다른 MonoBehaviour 가 제 차례에 한다 — 그래서 부름이 아니라 신호로 읽는다).
-        /// 부르는 쪽은 <see cref="MetaHost"/> 한 줄뿐이다.</summary>
-        public static void Begin()
+        /// 부르는 쪽은 <see cref="Bootstrap"/> 한 줄뿐이다 — 정본이 덮개를 `#app` **앞**에 두어 파서가 먼저 만나게 한
+        /// 것과 같은 자리다(부팅 뿌리는 `DefaultExecutionOrder(-1000)` 라 씬에서 제일 먼저 돈다).</summary>
+        public static BootLoading Begin()
         {
-            if (Instance != null || driver != null) return;
-            GameObject go = new GameObject("boot-loading-driver");
-            driver = go.AddComponent<BootLoadingDriver>();
+            if (Instance != null) return Instance;
+            return Ensure(EnsureCanvas(), true);
         }
 
-        private static BootLoadingDriver driver;
+        /// <summary>덮개가 설 제 캔버스 — 화면 전체를 덮는 오버레이 캔버스다(정본 `position: fixed; inset: 0`).
+        ///
+        /// ⚠ **여기가 4·6회차가 틀렸던 자리다.** 그때는 `UiRoot.App` 아래(= 앱 캔버스)에 세웠는데, 정본은
+        ///   `index.html` 21~24 에서 «마크업도 #app 앞(파서가 먼저 만나게)» 라고 적고 `#boot-loading` 을
+        ///   `position: fixed; inset: 0; z-index: 200` 으로 **앱 밖**에 둔다. 앱 캔버스 아래에 두면 이 레포의
+        ///   픽셀·촬영 자들(`UiRoot.Canvas` 를 제 카메라로 그려 `ReadPixels` 하는 여덟)이 덮개까지 같이 그려
+        ///   «맞는 색 0개» 로 빨개진다(런 336·354 실측 · 결정 323·331). 제 캔버스로 옮기면 그 자들의 카메라
+        ///   렌더에 안 들어가면서(오버레이 캔버스는 카메라 targetTexture 로 안 그려진다) 주인 화면에는 그대로 뜬다.
+        ///
+        /// 레이캐스터는 **안 단다** — 결정 323 의 조건 ⓐ(«덮개가 입력을 안 먹는다»)를 구조로 지킨다.</summary>
+        private static RectTransform EnsureCanvas()
+        {
+            if (Canvas != null) return (RectTransform)Canvas.transform;
+            GameObject go = new GameObject("boot-loading", typeof(RectTransform), typeof(Canvas));
+            int ui = LayerMask.NameToLayer("UI");
+            if (ui >= 0) go.layer = ui;
+            Canvas c = go.GetComponent<Canvas>();
+            c.renderMode = RenderMode.ScreenSpaceOverlay;
+            c.sortingOrder = Spec.ZIndex;       // 정본 z-index: 200
+            Canvas = c;
+            return (RectTransform)go.transform;
+        }
 
         /// <summary>여섯 신호 → 진행률. 신호 하나하나는 그 일을 끝낸 쪽이 스스로 세우는 것이라 여기서는 읽기만 한다.</summary>
         public void Follow()
@@ -278,22 +317,6 @@ namespace Forge.Game.Ui
                     Color c = img.color; c.a = (float)op; img.color = c;
                 }
             }
-        }
-    }
-
-    /// <summary>UI 뿌리가 설 때까지 기다렸다 오버레이를 세우는 얇은 층 — 세우고 나면 스스로 사라진다.</summary>
-    internal sealed class BootLoadingDriver : MonoBehaviour
-    {
-        private System.Collections.IEnumerator Start()
-        {
-            float t = 0f;
-            while ((UiRoot.Instance == null || UiRoot.Instance.App == null) && t < 10f)
-            {
-                t += Time.unscaledDeltaTime;
-                yield return null;
-            }
-            if (UiRoot.Instance != null && UiRoot.Instance.App != null) BootLoading.Ensure(UiRoot.Instance.App, true);
-            Destroy(gameObject);
         }
     }
 }

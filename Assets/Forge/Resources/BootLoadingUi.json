@@ -11,6 +11,9 @@
     { "pct": 100, "label": "",                     "_": "끝 — 라벨은 안 바꾼다(정본 blSet 은 label 이 비면 글자를 안 건드린다)" }
   ],
 
+  "z_index": 200,
+  "_z_index": "정본 인라인 CSS `#boot-loading { position: fixed; inset: 0; z-index: 200 }`(index.html 24). 이 덮개는 `#app` **밖**이라(마크업도 #app 앞 · 같은 파일 21행 주석) 클론에서도 앱 캔버스가 아니라 **제 캔버스**의 정렬 순서로 옮긴다.",
+
   "css_px": 2.164,
   "_css_px": "정본 CSS px 1 = 기준 캔버스 px 몇인가(정본 앱 폭 499 ↔ 카탈로그 reference 1080 · KeylineUi.json 과 같은 값). 아래 `layout` 의 수는 **정본 CSS px** 이고 화면에 세울 때 이 값을 곱한다 — 안 곱하면 글자가 §1 하한 아래로 내려가 `TextSizeGateTests` 가 씬 전체에서 빨개진다(런 331 실측 16개).",
 
