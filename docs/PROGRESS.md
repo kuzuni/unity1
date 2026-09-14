@@ -4145,6 +4145,18 @@
 - **주인께 물을 것**: 부팅 로딩 화면(정본에 있는 것)과 «부팅 직후 픽셀을 재는 자들» 중 무엇을 먼저 둘지. ⓒ 를 고르면 그 여덟을 한 번에 고치는 작업으로 등재하면 된다.
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` **646/646** · §3 자 전부 rc 0.
 
+### T159 1회차 기록 (2026-09-14 10:5x · 워커 F · sess-1027-40217) — ⓐ «모양» 을 보는 자를 세웠다 · lock 유지
+
+- **왜 등재했나**: 이 회차에 §0-5 대로 «선점할 작업이 없다» 를 확인했다(⬜ 인 T35 는 지시서가 «켜기 전엔 선점하지 않는다» · T106 은 §1 «다른 글꼴 들이기 금지» · T128·T156 의 남은 덩어리는 T28·T122 lock 안). 그래서 게이트를 다 돌린 뒤 **이상을 찾아** 등재했다 — 정본 `clip-path` 아홉 자리 대조에서 다섯이 민무늬였다.
+- **자 `tools/check_clip_paths.py`**: 정본 `style.css` 의 `clip-path` 규칙 **15개**(`.pass-price`·`::before` 의 `var(--pen)` 을 펴서 센 둘 포함)를 걷고, 선택자↔클론 자리 표로 대조한다. 자리 꼴은 `check_keyline`(T109)과 같다 — `파일` · `파일#이름` · `파일@메서드` · `—`(끄는 규칙).
+- **«도형이 있다» 의 정의**: 그 자리가 **굽는 길**을 지나가는가(`CraftFxPoly.Bake*` · `PetHatchCone.Add` · `ClipShape.*` · 제 손으로 굽는 `Sprite.Create`). 결정 223(«맨 `Graphic` 은 이 레포에서 안 칠해진다») 때문에 이 레포의 모양은 **전부** 구운 스프라이트로 오므로, 이 물음이 곧 «모양이 왔는가» 다.
+- **실측**: 자리 초록 **3** · KNOWN 빈자리 **12** · 문제 0.
+  - 초록 셋: `.equipped-label`→`SkillPanel@EquippedLabel`(NotchRight) · `.hatch-cone`→`PetPanel#hatch-cone` · `.rw-pop`→`RewardBurst@StarSprite`.
+  - 빈자리: `.cmp-ribbon`(**T156** 몫 · `ForgeUi.cs` 는 T122 lock) + ⓑ 몫 다섯 자리(리그 리본 꼬리 둘 · 패스 리본 꼬리 둘 · 가격 페넌트 · 패스 칸 꼬리 넷 · 거래 태그) = 규칙 11개.
+- **고장 주입 둘**: ⓐ `--self-test` **13칸**(var 펴기 · 끄는 규칙 · 표에 없는 규칙 · 정본에 없는 선택자 · 자리 없음 ↔ KNOWN · 메서드 민네모 · 호출부를 정의로 오인 · KNOWN 해소 알림 · 정본 없음 rc 2) ⓑ **진짜 파일**: `PetPanel` 의 `PetHatchCone.Add` 를 네모로 바꾸면 자가 rc 1 로 떨어지며 «네모/둥근 네모 한 장이다» 라고 짚는다.
+- **CI 배선은 2회차**: 정본 체크아웃이 있는 `datasync` 잡에 두 스텝을 붙여야 하는데 `ci.yml` 이 **T158 lock** 안이다. 그 lock 이 풀리면 `check_keyline` 옆에 붙인다.
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` **641/641** · §3 자 전부 rc 0(새 자 포함).
+
 ### T109 13회차 기록 (2026-09-14 09:3x · 워커 F · sess-0927-88012) — 자유로운 빈자리 하나를 닫았다 · **판정 초록 · lock 반납**
 
 - **고른 이유**: 지금 자리 초록 61 · KNOWN 빈자리 **셋**인데 둘(`ForgeInfoPopup#title`·`#fi-skip`)은 `ForgeInfoPopup.cs` 라 **T146 lock** 뒤다. 남은 하나 `ForgeCraftPopup#title` 의 파일만 비어 있었다 — 그 하나만 집었다.

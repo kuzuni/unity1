@@ -1441,6 +1441,7 @@
 - 무엇을 한다: ⓐ 자 `tools/check_clip_paths.py` — 정본 CSS 의 `clip-path` 규칙(선택자·다각형)을 걷어 클론 자리 표와 대조하고, 남는 자리는 `KNOWN`(임자·lock)으로 적어 rc 0. 고장 주입으로 제 자리를 실제로 보는지 검사한다(T109 ⓐ 의 꼴 그대로). ⓑ 위 다섯을 `CraftFxPoly.Bake`(T87 6회차 · 결정 223 «맨 `Graphic` 은 이 레포에서 안 칠해진다»)로 굽는다 — 치수·비율은 새 표 파일에(정본 `catalog.json` 자리는 T155 lock 이라 T65 꼴로 뗀 표).
 - 판정: ⓐ 새 자가 고장 주입에서 rc 1 · 붙인 뒤 rc 0 ⓑ 다음 런 `screen_pass.png`·`screen_league.png`·`screen_shop.png` 을 8배로 열어 «V 홈 · 아래 꼭짓점 · 칸 꼬리 · 제비꼬리» 를 눈으로 + PlayMode 단언(구운 스프라이트가 민무늬 사각이 아니다 · 꼭짓점 비율).
 - 범위: `tools/check_clip_paths.py`(새) · `Assets/Scripts/Game/Ui/PassPopup.cs`·`Ui/LeagueSheet.cs`·`Ui/ShopSheet.cs` · `Assets/Forge/Resources/`(새 도형표) · `Assets/Tests/PlayMode/`(새 파일 하나).
+- 🔄 2026-09-14 10:5x 워커 F(sess-1027-40217) **1회차 = ⓐ 자만**: `tools/check_clip_paths.py` — 정본 `style.css` 의 `clip-path` 규칙 **15개**(`var(--pen)` 을 편 둘 포함)를 걷고 선택자↔클론 자리 표(파일 · `#이름` · `@메서드`)로 대조한다. «도형이 있다» 의 뜻은 **그 자리가 굽는 길을 지나가는가**(`CraftFxPoly.Bake*` · `PetHatchCone.Add` · `ClipShape.*` · 제 손으로 굽는 `Sprite.Create`) — 결정 223 대로 이 레포에서 모양은 전부 구운 스프라이트로 오기 때문이다. 실측: **자리 초록 3**(`.equipped-label`→`SkillPanel@EquippedLabel` · `.hatch-cone`→`PetPanel#hatch-cone` · `.rw-pop`→`RewardBurst@StarSprite`) · **KNOWN 빈자리 12**(`.cmp-ribbon` 은 T156 몫 · 나머지 열하나가 ⓑ 몫인 다섯 자리다) · 문제 0. 고장 주입 둘: 자기 검사 13칸 + **진짜 파일**에서 `PetPanel` 의 `PetHatchCone.Add` 를 네모로 바꾸면 rc 1(«네모/둥근 네모 한 장이다»). §3 에 한 줄. **CI 한 줄(정본 체크아웃이 있는 `datasync` 잡)은 `ci.yml` 이 T158 lock 이라 2회차** — 그때 `--self-test` + 실대조 두 스텝을 `check_keyline` 옆에 붙인다. ⓑ(도형 붙이기)는 2회차부터 한 자리씩.
 
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
@@ -1465,6 +1466,7 @@ python3 tools/check_shaders_included.py                                       # 
 python3 tools/check_sfx_calls.py                                              # (T119) 원작 소리 24종이 게임 코드에서 실제로 울리는가 — 레시피만 있고 호출이 없는 이름을 막는다
 tools/check_data_sync.sh .wwwww-src                                           # (T2 뒤) data/*.json ↔ 정본
 python3 tools/check_keyline.py                                               # (T109) 정본 -webkit-text-stroke 규칙 ↔ 클론 키라인 호출(.wwwww-src 필요) — 정본이 주는데 클론이 안 부르는 자리를 막는다(CI datasync 잡)
+python3 tools/check_clip_paths.py                                            # (T159) 정본 clip-path 도형 ↔ 클론이 그 자리를 **굽는가**(.wwwww-src 필요) — 네모 한 장으로 때운 자리를 센다 · `--self-test` 13칸
 python3 tools/check_unity_green.py --fetch                                     # (T123) 유니티 잡이 **실제로 돈** 마지막 main 런이 초록인가 — 문서 런(유니티 잡 skipped)이 빨강을 덮는 것을 막는다(§0-6 의 눈을 대신한다)
 node tools/export_data.js --self-test                                         # (T2 뒤) 추출기 자기 검사
 ```
