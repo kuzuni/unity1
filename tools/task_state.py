@@ -281,8 +281,45 @@ def _git(args):
 ID_IN_TEXT = re.compile(r"\bT\d{1,4}(?![\w-])")
 
 
-def history_ids():
-    """**커밋 제목**에 한 번이라도 나온 작업 ID 전부 (T415).
+LEAD_ID = re.compile(r"^\s*(T\d{1,4})(?![\w-])")
+
+
+def title_ids(subj, rows_all):
+    """제목 하나 → (**이 커밋이 쓴 번호**, **인용만 된 번호**) (T337).
+
+    §1 이 커밋 제목을 `T<번호> <무엇> (sess-… · 워커 X)` 꼴로 못 박았다 —
+    그러므로 **맨 앞 번호가 그 커밋의 작업**이고, 뒤에 나오는 것은 참조다.
+    다만 뒤에 있어도 **표에 행이 있으면** 이 레포의 실재 번호이므로 «쓴 것» 으로 센다
+    (한 커밋이 둘을 닫거나 새 번호를 같이 등재하는 꼴 — «T172 ✅ … + **T188** 등재·선점»).
+    """
+    ids = set(ID_IN_TEXT.findall(subj)) - {"T0"}   # T0 = «작업 번호 없음» 파수꾼(문서·운영 커밋) — 발급된 번호가 아니다
+    used = set(ids & rows_all)
+    lead = LEAD_ID.match(subj)
+    if lead and lead.group(1) != "T0":
+        used.add(lead.group(1))
+    return used, ids - used
+
+
+def cited_ids(rows_all=None, log=None):
+    """{번호: 그 제목} — **인용만 됐고 표에도 없는** 번호(T337).
+
+    «행이 지워졌다» 가 **아니다**: 이 레포에서 발급된 적이 없는 남의 번호다
+    (실측: 워커 O 의 T187 제목이 aaawunity 쪽 `T329 잣대` 를 인용해 `--new-id` 가 T330 을 줬고
+    번호 141개가 한 번에 탔다 · 결정 514).
+    """
+    rows_all = row_ids_all() if rows_all is None else rows_all
+    lines = (_git(["log", "--format=%s"]) if log is None else log).split("\n")
+    used, cited = set(), {}
+    for subj in lines:
+        u, c = title_ids(subj, rows_all)
+        used |= u
+        for t in c:
+            cited.setdefault(t, subj.strip())
+    return dict((t, subj) for t, subj in cited.items() if t not in used)
+
+
+def history_ids(rows_all=None, log=None):
+    """**커밋 제목이 «쓴»** 작업 ID 전부 (T415 · 잣대는 T337).
 
     왜 이력을 보나 — 번호 발급 규칙(«이미 쓰인 번호 중 가장 큰 것 +1»)이 **표**를 읽으면,
     누가 작업을 접으며 행을 지우는 순간 최대가 **내려가고** 다음 사람이 같은 번호를 다시 뽑는다.
@@ -290,18 +327,25 @@ def history_ids():
     30분 뒤 워커 C 가 규칙 그대로 **다시 409** 를 발급했다(결정 1180 ⑥).
     **커밋 제목은 append-only 라 절대 안 줄어든다** — 그래서 여기를 읽는다.
 
-    ⚠ 이 집합은 «발급된 번호» 보다 **넓다**(«T278 의 자로» 같은 참조도 들어온다).
-      넓은 쪽으로 틀리는 것이 안전하다 — 번호를 **건너뛰는** 것은 값이 0 이고,
-      번호가 **겹치는** 것은 두 워커가 같은 lock 을 서로 다른 일로 잡는 사고다.
+    ⚠ 예전엔 제목의 `T\\d+` 를 **전부** 집었다 — «넓은 쪽으로 틀리는 것이 안전하다(건너뛰기는 값이 0)» 는
+      판단이었고, 겹침을 막는 쪽은 옳다. 그러나 **건너뛰기의 값은 0 이 아니었다**(T337):
+      남의 프로젝트 번호를 인용한 제목 하나가 «이력 최대» 를 T329 로 밀어 **번호 141개를 태웠고**,
+      «표에 행이 없다 = 행이 지워졌다» 경보가 영원히 켜진 채 유령 행을 부른다.
+      그래서 <see cref="title_ids"/> 의 잣대로 좁힌다 — **겹침 막이는 그대로다**:
+      같은 커밋에서 등재한 번호는 행이 같이 실려 남고, 행이 지워진 번호는 제 커밋이 그 번호로 시작해 남는다.
     """
-    out = _git(["log", "--format=%s"])
-    return set(ID_IN_TEXT.findall(out))
+    rows_all = row_ids_all() if rows_all is None else rows_all
+    lines = (_git(["log", "--format=%s"]) if log is None else log).split("\n")
+    out = set()
+    for subj in lines:
+        out |= title_ids(subj, rows_all)[0]
+    return out
 
 
 def next_id(rows_all=None, hist=None):
     """다음 작업 번호 → (다음, 표 최대, 이력 최대). git 이 없으면 이력 최대는 None."""
     rows_all = row_ids_all() if rows_all is None else rows_all
-    hist = history_ids() if hist is None else hist
+    hist = history_ids(rows_all) if hist is None else hist
     n = lambda s: max((int(t[1:]) for t in s), default=0)
     tmax, hmax = n(rows_all), (n(hist) if hist else None)
     return max(tmax, hmax or 0) + 1, tmax, hmax
@@ -316,7 +360,7 @@ def buried_ids(rows_all=None, hist=None):
       **한 번도 발급된 적이 없고**(이력에 없다), 정작 T409 는 곧바로 재발급돼 구멍이 아니었다.
     """
     rows_all = row_ids_all() if rows_all is None else rows_all
-    hist = history_ids() if hist is None else hist
+    hist = history_ids(rows_all) if hist is None else hist
     return sorted(hist - rows_all, key=lambda t: int(t[1:]))
 
 
@@ -327,7 +371,7 @@ def cmd_new_id():
     행이 지워진 날 조용히 어긋난다(결정 1166 «조건이 차면 하라» 는 그 조건을 재는 길이 있을 때만 지시다).
     """
     rows_all = row_ids_all()
-    hist = history_ids()
+    hist = history_ids(rows_all)
     nxt, tmax, hmax = next_id(rows_all, hist)
     print("다음 작업 번호 = **T%d**" % nxt)
     print("  · 표(docs/PROGRESS.md) 최대 = T%d" % tmax)
@@ -337,6 +381,12 @@ def cmd_new_id():
         print("⚠ 이력에는 있는데 **표에 행이 없는** 번호 %d개 — 행이 지워졌다(= 그 번호가 되살아난다):" % len(buried))
         print("   %s" % " ".join(buried))
         print("   접을 때는 행을 지우지 말고 **✂ 로 남겨 번호를 태운다**(T284·T296 의 꼴).")
+    cited = cited_ids(rows_all)
+    if cited:
+        print("· (참고) 제목 안에서 **인용만 된** 번호 %d개 — 발급된 적 없는 번호라 **안 센다**(T337):" % len(cited))
+        for tid in sorted(cited, key=lambda t: int(t[1:])):
+            print("   %s ← «%s»" % (tid, cited[tid][:70]))
+        print("   남의 레포 번호를 제목에 인용할 때는 **«aaawunity T329» 처럼 레포를 붙인다** — 안 그러면 이 자가 그 수까지 번호로 읽는다.")
     print("⚠ 이 수는 «지금» 의 답이다 — 같은 순간 남도 같은 답을 얻는다.")
     print("   같은 번호를 동시에 뽑는 갈래는 이 자가 못 막는다(2026-09-10 T414 가 그랬다) —")
     print("   그것을 가르는 것은 규약의 **push 순서**다(«push 가 먼저 성공한 쪽이 이긴다» · 늦게 민 쪽이 옮긴다).")
@@ -922,6 +972,15 @@ def cmd_check(heads, rows, dups=None, commit_age=None):
         print("  고침: 접을 때 행을 지우지 말고 **✂ 로 남겨 번호를 태운다**(T284·T296 의 꼴). 발급은 `--new-id` 로.")
         notes.append("이력에만 있고 표에 행이 없는 번호 %s" % " ".join(buried))
 
+    # T337 — «인용» 은 지워진 행이 아니다. 가려서 말하지 않으면 유령 행을 부른다(실측: T329).
+    cited = cited_ids()
+    if cited:
+        print("· (참고 · 실패 아님) 제목 안에서 **인용만 된** 번호 %d개 — 이 레포에서 발급된 적이 없어 «지워진 행» 이 **아니다**:" % len(cited))
+        for tid in sorted(cited, key=lambda t: int(t[1:])):
+            print("  · %s ← «%s»" % (tid, cited[tid][:70]))
+        print("  고침: 남의 레포 번호는 **«aaawunity T329» 처럼 레포를 붙여** 인용한다(T337).")
+        notes.append("제목에 인용만 된 번호 %s" % " ".join(sorted(cited, key=lambda t: int(t[1:]))))
+
     bad = mismatches(heads, rows)
     if not bad:
         if rc == 0:
@@ -1360,6 +1419,43 @@ def self_test():
                   % (nxt0, tmax0, hmax0))
             return 1
 
+        # ⓩ T337 — «제목이 쓴 번호» 와 «인용» 을 가른다. 순수 함수라 git 없이 잰다.
+        #    실측: 워커 O 의 T187 제목이 aaawunity 쪽 `T329 잣대` 를 인용해 이력 최대가 T329 가 됐고
+        #    `--new-id` 가 T330 을 줘 **번호 141개가 한 번에 탔다**(결정 514).
+        ROWS = {"T187", "T188"}
+        t337 = [
+            # (제목, 세는 번호, 인용으로 미는 번호)
+            ("T187 선점 lock + 1회차: … (T329 잣대 · 결정 513)", {"T187"}, {"T329"}),
+            ("T172 ✅ 완료 + T188 등재·선점", {"T172", "T188"}, set()),
+            ("T188 1회차: T150 의 갈래를 그대로", {"T188"}, {"T150"}),
+            ("T0 §7 표 한 칸: T74 가 선점됐는데", set(), {"T74"}),
+        ]
+        for subj, want_used, want_cited in t337:
+            got_used, got_cited = title_ids(subj, ROWS)
+            if (got_used, got_cited) != (want_used, want_cited):
+                print("⛔ 자기 검사 실패(T337) — «%s» → 쓴 %s / 인용 %s (기대 %s / %s)"
+                      % (subj[:40], sorted(got_used), sorted(got_cited), sorted(want_used), sorted(want_cited)))
+                return 1
+        LOG = ("T187 1회차 (T329 잣대)\nT188 1회차\nT0 문서 손질\n")
+        if history_ids(ROWS, LOG) != {"T187", "T188"}:
+            print("⛔ 자기 검사 실패(T337) — 이력 집합이 %s" % sorted(history_ids(ROWS, LOG)))
+            return 1
+        if next_id(ROWS, history_ids(ROWS, LOG))[0] != 189:
+            print("⛔ 자기 검사 실패(T337) — 인용에 부풀어 발급이 %d 다(기대 189)"
+                  % next_id(ROWS, history_ids(ROWS, LOG))[0])
+            return 1
+        if set(cited_ids(ROWS, LOG)) != {"T329"}:
+            print("⛔ 자기 검사 실패(T337) — 인용 목록이 %s" % sorted(cited_ids(ROWS, LOG)))
+            return 1
+        # 다른 커밋이 그 번호로 시작하면 «인용» 이 아니다(그 번호는 실재한다).
+        if cited_ids(ROWS, LOG + "T329 이 레포의 진짜 작업\n") != {}:
+            print("⛔ 자기 검사 실패(T337) — 맨 앞에 선 번호를 인용으로 봤다")
+            return 1
+        # T415 회귀 막이: 행이 지워진 번호는 제 커밋이 그 번호로 시작하므로 **여전히** 잡힌다.
+        if history_ids({"T414"}, "T414 1회차\nT415 1회차\n") != {"T414", "T415"}:
+            print("⛔ 자기 검사 실패(T337) — T415 사고 막이가 깨졌다")
+            return 1
+
         # T446 — «남이 놓고 간 진단» 을 세는 두 눈. 값을 손으로 넣어 갈래를 낸다(git·표와 무관하게 순수 함수다).
         HOLDER = "sess-0000-1"
         row_cases = [
@@ -1543,7 +1639,7 @@ def self_test():
               " · **«행은 «lock 쥔 채» 라는데 lock 파일이 없다» 를 칸 «머리» 로만 가려 잡고(뒤 이력의 «반납» 에 안 속는다) · ✅·⬜ 표시에는 안 울고, 판정(rc)은 안 바꾼다**(T453)"
               " · **«표에 열린 행은 있는데 §2 에 제목이 없다» 를 잡되 닫힌 행·제목이 있는 행에는 안 울고, 그 참고가 끝줄에도 실리고 rc 는 0 이다**(T466)"
               " · **제목이 그 번호로 시작해도 SID 로 «임자가 아니다» 를 가렸으면 놓고 간 진단으로 세고, 임자 것·임자를 모를 때·제목에 SID 가 없을 때 셋에는 종전대로 안 센다**(T468)"
-              " · **«임자가 살아 있다» 를 그 SID 가 **민** 커밋(제목)으로만 재고, 남의 커밋 몸통에 적힌 그 SID·빈 SID·빈 로그에는 안 속는다**(T481) · **«코드 자취» 는 코드 식별자·파일명·폴더명만 세고 주석(`//` `///` `/* */` `#` 삼중따옴표)·문자열 리터럴·문서 내용은 안 센다**(T29)")
+              " · **«임자가 살아 있다» 를 그 SID 가 **민** 커밋(제목)으로만 재고, 남의 커밋 몸통에 적힌 그 SID·빈 SID·빈 로그에는 안 속는다**(T481) · **제목이 «쓴» 번호와 «인용» 을 가르고(T0 파수꾼 포함) T415 사고 막이는 그대로 서고(T337)** · **«코드 자취» 는 코드 식별자·파일명·폴더명만 세고 주석(`//` `///` `/* */` `#` 삼중따옴표)·문자열 리터럴·문서 내용은 안 센다**(T29)")
         return 0
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
