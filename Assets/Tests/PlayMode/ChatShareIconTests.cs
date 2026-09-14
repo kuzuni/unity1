@@ -96,6 +96,15 @@ namespace Forge.Tests.PlayMode
         }
         /// <summary>정본 `openChat` 은 `pinChatBottom()` 으로 «최신 메시지가 입력바 바로 위» 에 오게 한다 — 씨앗의 공유 카드는 맨 아래서 둘째라 창 안에 있어야 한다
         /// (런 179 채팅 샷은 목록이 11:05~11:20 에 멈춰 카드가 창 밖이었다). 보낸 뒤에는 바닥을 따라간다(정본 `_chatStick`).</summary>
+        /// <summary>T152 — 채팅 화면도 팝업이라 열릴 때 T135 ⓑ 카드 팝(scale .7→1 · .25s)이 돈다. 한 프레임 뒤에 폭을 재면 연출 중간값이다
+        /// (런 350: 클랜 배지 .0520 = .054 × .962 · 성별 아이콘은 오차 .002 안에 걸려 살았다). T149 와 같은 길 — 시간을 어림하지 않고 러너가 사라질 때까지 넘긴다.</summary>
+        private static IEnumerator SettleCardPop()
+        {
+            for (int i = 0; i < 600 && Object.FindObjectsByType<CardPop>(FindObjectsSortMode.None).Length > 0; i++)
+                yield return null;
+            Assert.AreEqual(0, Object.FindObjectsByType<CardPop>(FindObjectsSortMode.None).Length, "카드 팝이 600프레임 안에 안 끝났다(T152)");
+        }
+
         [UnityTest]
         public IEnumerator 채팅을_열면_목록이_바닥에_붙어_공유_카드가_창_안에_보이고_보낸_뒤에도_바닥을_따라간다()
         {
@@ -103,6 +112,7 @@ namespace Forge.Tests.PlayMode
             MetaHost h = MetaHost.Instance;
             Hud.Instance.ChatButton.onClick.Invoke();
             yield return null;
+            yield return SettleCardPop();   // T152 — 팝이 도는 동안 재면 창·줄 자리가 연출 중간값이다
             Canvas.ForceUpdateCanvases();
             Popup p = PopupLayer.Instance.Find(ChatScreen.Name);
             Assert.IsNotNull(p);
@@ -150,6 +160,7 @@ namespace Forge.Tests.PlayMode
             yield return Boot();
             Hud.Instance.ChatButton.onClick.Invoke();
             yield return null;
+            yield return SettleCardPop();   // T152 — 팝이 도는 동안 재면 폭이 연출 중간값이다(런 350 · 배지 .0520)
             Canvas.ForceUpdateCanvases();
             Popup p = PopupLayer.Instance.Find(ChatScreen.Name);
             Assert.IsNotNull(p, "채팅 화면이 안 열렸다");
