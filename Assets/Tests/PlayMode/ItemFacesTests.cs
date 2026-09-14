@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Forge.Core.Data;
@@ -141,6 +142,85 @@ namespace Forge.Tests.PlayMode
             for (int f = 0; f < 5 && got.Count == before; f++) yield return null;
             Assert.AreEqual(before + 1, got.Count, "펌프가 프레임마다 굽는다");
             Assert.IsNotNull(got[got.Count - 1]);
+        }
+
+        private static RectTransform FindIn(Transform root, string name)
+        {
+            foreach (RectTransform rt in root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == name) return rt;
+            return null;
+        }
+
+        private static Image TileImg(Transform root, string cardName, string label)
+        {
+            RectTransform card = FindIn(root, cardName);
+            Assert.IsNotNull(card, label + " 카드");
+            Transform tile = card.Find("tile");
+            Assert.IsNotNull(tile, label + " 타일");
+            Image img = tile.Find("img") != null ? tile.Find("img").GetComponent<Image>() : null;
+            Assert.IsNotNull(img, label + " 그림");
+            return img;
+        }
+
+        /// <summary>T122 2회차 — 정본 `itemImgHTML`: 비교 팝업 두 카드(장착됨·새 장비)의 그림은 `Scene3D.itemThumb` 3D 썸네일이고, 캡처가 없는 장신구는 슬롯 실루엣 그대로다.</summary>
+        [UnityTest]
+        public IEnumerator 비교_팝업_두_카드의_장비_그림은_구운_썸네일이고_장신구는_실루엣이다()
+        {
+            yield return Boot();
+            if (!GallerySheet.GraphicsAvailable) Assert.Ignore("그래픽 장치가 없다 — 썸네일은 CI 의 유니티 잡이 본다");
+            PlayLog log = PlayLog.Start("item-faces-card");
+            ForgeHost h = ForgeHost.Instance;
+            GameDefs d = h.Defs;
+            Assert.IsTrue(ItemFaces.Available, "장비 메시 표(gear-meshes.json)가 꽂혀야 한다");
+            int px = Mathf.RoundToInt(ItemFacesStyle.L("px"));
+
+            // 캡처가 있는 부위(무기·투구·갑옷)의 장비 둘 — 하나는 장착, 하나는 «새 장비»
+            ForgeItem cur = null, fresh = null;
+            for (int i = 0; i < 200 && (cur == null || fresh == null); i++)
+            {
+                ForgeItem it = h.Engine.RollItem();
+                if (!ItemFaces.Supports(it.Slot)) continue;
+                if (cur == null) cur = it;
+                else if (it.Slot == cur.Slot && ItemFaces.Key(it) != ItemFaces.Key(cur)) fresh = it;
+            }
+            Assert.IsNotNull(cur, "무기·투구·갑옷 하나는 나와야 한다");
+            Assert.IsNotNull(fresh, "같은 부위의 다른 장비 하나");
+            h.GearSys.Equip(cur);
+            yield return null;
+
+            ForgeCraftPopup.Show(h, fresh);
+            yield return null;
+            yield return null;
+            Popup p = h.Meta.Popups.Find(ForgeCraftPopup.Name);
+            Assert.IsNotNull(p, "비교 팝업이 열려 있다");
+            Image curImg = TileImg(p.Root, "cur", "장착됨");
+            Image newImg = TileImg(p.Root, "new", "새 장비");
+            Assert.IsNotNull(curImg.sprite, "장착됨 그림");
+            Assert.IsNotNull(newImg.sprite, "새 장비 그림");
+            Assert.AreSame(ItemFaces.Get(d, cur), curImg.sprite, "장착됨 카드 = 그 장비의 구운 썸네일(캐시 같은 참조)");
+            Assert.AreSame(ItemFaces.Get(d, fresh), newImg.sprite, "새 장비 카드 = 그 장비의 구운 썸네일");
+            Assert.AreNotSame(curImg.sprite, newImg.sprite, "두 장비의 썸네일은 서로 다르다");
+            Assert.AreEqual(px, curImg.sprite.texture.width, "구운 크기(ItemFacesUi px)");
+            Assert.AreNotSame(UiIcons.Get(ForgeUi.ItemIconKey(d, cur)), curImg.sprite, "아틀라스 실루엣이 아니다");
+            Assert.AreEqual(Color.white, curImg.color, "썸네일은 틴트 없이");
+            Assert.IsTrue(curImg.preserveAspect, "object-fit: contain");
+            float frac = ItemFacesStyle.L("img_frac");
+            Rect tileR = ((RectTransform)curImg.transform.parent).rect;
+            Assert.AreEqual(tileR.width * frac, curImg.rectTransform.rect.width, 0.6f, "썸네일 한 변 = 타일 × img_frac(정본 .fl-face img 100%)");
+            h.Meta.Popups.Hide(ForgeCraftPopup.Name);
+            yield return null;
+
+            // 장신구 — 캡처가 없어 Get 은 null · 타일은 슬롯 실루엣 그대로(정본 플레이스홀더 순서)
+            ForgeItem glove = new ForgeItem { Slot = "gloves", Age = d.Ages[0], AgeIdx = 0, Rarity = "common", Name = "장갑", Level = 1 };
+            Assert.IsNull(ItemFaces.Get(d, glove), "장신구는 캡처가 없다");
+            RectTransform acc = ForgeUi.ItemTile(UiRoot.Instance.App, "t122-acc", 100f, d, glove);
+            yield return null;
+            Image accImg = acc.Find("img").GetComponent<Image>();
+            Assert.AreSame(UiIcons.Get(ForgeUi.SlotIconKey("gloves")), accImg.sprite, "장신구 타일은 슬롯 실루엣");
+            Assert.AreEqual(76f, accImg.rectTransform.rect.width, 0.6f, "실루엣 잉크 76%(옛 배치 그대로)");
+            UnityEngine.Object.Destroy(acc.gameObject);
+            yield return null;
+            log.AssertNoRed();
+            log.Dispose();
         }
     }
 }

@@ -13,7 +13,8 @@
     "rim": 0.5,
     "rim_x": -2.2, "rim_y": 1.6, "rim_z": -2.6,
     "armor_yaw": -0.55,
-    "chunk": 6
+    "chunk": 6,
+    "img_frac": 1.0
   },
   "colors": { "rim": "#cfe4ff" },
   "_src": {
@@ -25,6 +26,7 @@
     "key": "DirectionalLight(0xffffff, 0.84) position(2, 3, 2)",
     "rim": "DirectionalLight(0xcfe4ff, 0.5) position(-2.2, 1.6, -2.6) — 쿨톤 역광(림)",
     "armor_yaw": "makeArmorPreview `g.rotation.y = -0.55` — 3/4 자세(정면 납작 상자는 96px 에서 색판으로 읽힌다)",
+    "img_frac": "타일 안 썸네일 크기 = 타일 한 변 × 이 값 — `.fl-face img { width:100%; height:100%; object-fit:contain }`(style.css 755) · `.cmp-img` 3.6rem 은 타일 자체가 <img> 라(1852) 100% · 여백은 굽기 pad 1.10 이 이미 쥔다(플레이스홀더 .ico 의 76~90% 잉크와 다른 값 · 2회차)",
     "chunk": "hydrateForgeThumbs `CHUNK = 6` — 한 프레임에 여섯 장씩(300장을 한 번에 구우면 목록을 여는 순간 수 초간 얼어붙는다)"
   }
 }

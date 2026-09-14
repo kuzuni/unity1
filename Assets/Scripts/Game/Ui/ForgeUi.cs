@@ -131,6 +131,33 @@ namespace Forge.Game.Ui
             return rt;
         }
 
+        /// <summary>
+        /// T122 — 정본 `itemImgHTML(item)`: `Scene3D.itemThumb(item)` 이 있으면 3D 썸네일 <img>(타일 100% · object-fit contain), 없으면 슬롯 플레이스홀더.
+        /// 동기 호출도 정본 그대로(비교·상세 카드는 한두 장 · 키 단위 캐시). 목록처럼 많은 칸은 <see cref="ItemFaces.Request"/> 로 프레임마다 받아 <see cref="ApplyThumb"/> 로 갈아 끼운다.
+        /// </summary>
+        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, ForgeItem it, float inkFrac = 0.76f, bool agePattern = false)
+        {
+            RectTransform rt = ItemTile(parent, name, size, d, it.Age, ItemIconKey(d, it), inkFrac, agePattern);
+            ApplyThumb(rt, ItemFaces.Get(d, it), size);
+            return rt;
+        }
+
+        /// <summary>구운 썸네일이 있으면 타일의 `img` 를 그것으로 갈아 끼운다(정본 hydrate · `.fl-face img` 100%). null 이면 실루엣 그대로(false).</summary>
+        public static bool ApplyThumb(RectTransform tile, Sprite thumb, float size)
+        {
+            if (tile == null || thumb == null) return false;
+            Transform t = tile.Find("img");
+            Image img = t != null ? t.GetComponent<Image>() : null;
+            if (img == null) return false;
+            img.sprite = thumb;
+            img.color = Color.white;
+            img.type = Image.Type.Simple;
+            img.preserveAspect = true;
+            float k = size * ItemFacesStyle.L("img_frac");
+            UiKit.Anchor(img.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, k, k);
+            return true;
+        }
+
         /// <summary>Lv 배지(흰 글자 + 검정 링) — 타일 아래쪽.</summary>
         public static TextMeshProUGUI LvBadge(RectTransform tile, double level, float size)
         {
@@ -177,7 +204,7 @@ namespace Forge.Game.Ui
             // `.cmp-lower .cmp-card-wrap.new .cmp-card{background:transparent}`. 흰 판은 이것을 품은
             // 팝업 카드(cur)와 회색 하부 패널(new)이 쥔다. (T57: 여기서 흰 테를 한 겹 더 그려
             // 원작에 없는 상자가 생기고, 반대로 새 장비 카드는 판 없이 3D 배경 위에 떠 보였다.)
-            RectTransform tileRt = ItemTile(card, "tile", tile, d, item.Age, ItemIconKey(d, item));
+            RectTransform tileRt = ItemTile(card, "tile", tile, d, item);   // T122 — 정본 itemImgHTML: 3D 썸네일이 있으면 그것, 없으면 실루엣
             UiKit.Place(tileRt, rem * 0.7f, rem * 0.6f, tile, tile);
             LvBadge(tileRt, item.Level, tile);
             StarBadge(tileRt, item.Stars, tile);
