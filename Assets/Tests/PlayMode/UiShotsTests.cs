@@ -306,16 +306,17 @@ namespace Forge.Tests.PlayMode
                 Opened = delegate { return Sheet.IsSheetOpen && Sheet.ActiveSub == SkillPetSheet.SubSkills; }
             });
             // 원작 042356·042445 는 같은 상태다 — 원작도 같은 오프너로 두 장을 찍는다.
+            // T166 — 정본 SCREENS 27·28 행은 둘 다 `PETS_STATE_SRC` 를 건다(기본 시드는 펫 8 + 알 12 라 판이 통째로 밀린다).
             list.Add(new Shot
             {
                 Name = "pets", Ref = "042356",
-                Open = delegate { OpenSummon(SkillPetSheet.SubPets); },
+                Open = delegate { PetsState(); OpenSummon(SkillPetSheet.SubPets); },
                 Opened = delegate { return Sheet.IsSheetOpen && Sheet.ActiveSub == SkillPetSheet.SubPets; }
             });
             list.Add(new Shot
             {
                 Name = "pets-2", Ref = "042445",
-                Open = delegate { OpenSummon(SkillPetSheet.SubPets); },
+                Open = delegate { PetsState(); OpenSummon(SkillPetSheet.SubPets); },
                 Opened = delegate { return Sheet.IsSheetOpen && Sheet.ActiveSub == SkillPetSheet.SubPets; }
             });
             list.Add(new Shot
@@ -337,16 +338,31 @@ namespace Forge.Tests.PlayMode
                 Opened = delegate { return Sheet.Modal.IsOpen(SkillPanel.DetailModal); }
             });
             // 원작 042449/042503 의 대상은 그리드 가운데(인덱스 1) — 정본과 같은 자리를 연다.
+            // T166 — 정본 SCREENS 37·38 행 그대로: `PETS_STATE_SRC` + `S.pets[1].name='Treant'` + 인덱스 1 열기.
+            // 042503 은 거기에 «재료로 알 1개가 선택된 상태» 까지다(정본 `UI._petUpgradeMats.eggs.push(0)`).
             list.Add(new Shot
             {
                 Name = "pet-detail", Ref = "042449",
-                Open = delegate { OpenSummon(SkillPetSheet.SubPets); Sheet.Pets.OpenPetDetail(1); },
+                Open = delegate
+                {
+                    PetsState();
+                    if (P.Pets.State.Pets.Count > 1) P.Pets.State.Pets[1].Name = PetsShotMidName;
+                    OpenSummon(SkillPetSheet.SubPets);
+                    Sheet.Pets.OpenPetDetail(1);
+                },
                 Opened = delegate { return Sheet.Modal.IsOpen(PetPanel.DetailModal); }
             });
             list.Add(new Shot
             {
                 Name = "pet-upgrade", Ref = "042503",
-                Open = delegate { OpenSummon(SkillPetSheet.SubPets); PetUpgradePopup.Open(Sheet, 1); },
+                Open = delegate
+                {
+                    PetsState();
+                    if (P.Pets.State.Pets.Count > 1) P.Pets.State.Pets[1].Name = PetsShotMidName;
+                    OpenSummon(SkillPetSheet.SubPets);
+                    PetUpgradePopup.Open(Sheet, 1);
+                    PetUpgradePopup.ToggleMat(true, 0);
+                },
                 Opened = delegate { return Sheet.Modal.IsOpen(PetUpgradePopup.ModalName); }
             });
             // 원작 042521 은 **펫** 확률표다(스킬로 열면 배경 그리드와 문구가 달라진다).
@@ -531,6 +547,86 @@ namespace Forge.Tests.PlayMode
                 OpenUp(tt, p, depth + 1);
             }
         }
+
+        /// <summary>T166 — 정본 `tools/shot-pets.js` 의 `PETS_STATE_SRC` 를 옮긴 것. **펫 넷**(`pets`·`pets-2`·`pet-detail`·`pet-upgrade`)이
+        /// 원작과 같은 보유 상태에서 찍히게 한다.
+        ///
+        /// 정본이 그 파일 머리에 적어 둔 까닭 그대로다: «기본 시드로 찍으면 **보유 수가 달라 세로 레이아웃이 통째로 어긋난다** —
+        /// 원본은 펫 3 + 알 7 = 타일 10개(2행)인데 기본 시드는 펫 8 + 알 12 = 20개(4행)라 그리드가 2행 더 쌓이고
+        /// 그 아래 «장착됨» 행·소환 바·부화장이 전부 밀린다». 런 384 클론 실측도 같았다 — «[일반] 거북이 Lv.13 · 펫 8 + 알 25».
+        ///
+        /// 원본 상태: 펫 3종 전부 출전(Lv.61/6/3 · 전부 `ultimate` · ⭐1) · 알 7 · 부화 3칸 8시간 27분 · 소환 340(= Lv.69) · 🥚 28 · 💎 62.
+        /// ⚠ `Dupes` 는 0 이어야 한다 — 정본 주석대로 같은 등급 dupes 합이 3 이상이면 그리드 아래 «궁극의 3 → 신화 알» 합치기 행이
+        ///   생겨(원본에는 없다) 그 아래가 전부 밀린다.
+        ///
+        /// 정본이 이 앞뒤로 하는 «자동 제련 끄기 · 열린 모달 닫기 · 토스트 소거» 는 이 레포에선 화면 사이 청소(<see cref="Reset"/> 계열)가
+        /// 이미 한다 — 그래서 상태만 옮긴다. 정본이 화면마다 리로드를 안 하듯 이 주입도 뒤 화면으로 그대로 이어진다
+        /// (그래서 `summon-rates` 배경이 원작 042521 처럼 같은 그리드가 된다 — 정본도 그 화면엔 주입을 **안** 건다).</summary>
+        private static void PetsState()
+        {
+            PetSkillHost h = P;
+            if (h == null || h.Pets == null) return;
+            PetState st = h.Pets.State;
+
+            // 이름은 정본 `nm(i) = Pets.LIST[i % len]` 자리 — 표의 종을 등급 순서대로 편 것의 앞 셋.
+            List<string> names = new List<string>();
+            foreach (var kv in h.Data.Balance.Pets.Stats)
+                foreach (PetStat ps in kv.Value) names.Add(ps.Name);
+
+            int[] levels = { 61, 6, 3 };
+            st.Pets.Clear();
+            for (int i = 0; i < levels.Length; i++)
+                st.Pets.Add(new Pet
+                {
+                    Name = names.Count > 0 ? names[i % names.Count] : ("펫" + i),
+                    Rarity = PetsShotRarity, Level = levels[i], Dupes = 0, Xp = 0, Stars = 1,
+                    Subs = h.Pets.RollSubs()
+                });
+            st.ActivePets.Clear();
+            for (int i = 0; i < levels.Length; i++) st.ActivePets.Add(i);
+
+            st.Eggs.Clear();
+            for (int i = 0; i < PetsShotEggs; i++) st.Eggs.Add(new Egg(PetsShotRarity));
+
+            double ends = SaveIo.NowMs() + PetsShotHatchMin * 60e3;
+            st.Hatching.Clear();
+            for (int i = 0; i < PetsShotHatching; i++) st.Hatching.Add(new HatchSlot(PetsShotRarity, ends));
+
+            st.HatchSlotBonus = 0;
+            st.PetSummonCount = PetsShotSummonCount;
+            h.EggCurrency = PetsShotEggCurrency;
+            h.Gems = PetsShotGems;
+
+            StringBuilder sb = new StringBuilder("pets=");
+            for (int i = 0; i < st.Pets.Count; i++)
+                sb.Append(st.Pets[i].Name).Append('/').Append(st.Pets[i].Rarity).Append('/').Append(st.Pets[i].Level).Append(' ');
+            sb.Append("active=").Append(st.ActivePets.Count)
+              .Append(" eggs=").Append(st.Eggs.Count)
+              .Append(" hatch=").Append(st.Hatching.Count)
+              .Append(" lv=").Append(h.Pets.SummonLevel());
+            PetShotSignature = sb.ToString();
+        }
+
+        /// <summary>T166 — 촬영이 펫 넷에 실제로 꽂은 상태의 서명(런마다 같아야 «원작과 같은 상태를 찍었다» 가 성립한다).</summary>
+        private static string PetShotSignature;
+
+        /// <summary>위 서명의 기대값 — 정본 `shot-pets.js` 가 못 박은 원본 상태 그대로다.
+        /// 이름 셋은 표(`balance.json` `petStats`)를 등급 순서대로 편 앞 셋이고(정본 `Pets.LIST[i]` 자리), 레벨은 61/6/3,
+        /// 등급은 전부 `ultimate`, 알 7 · 부화 3 · 소환 레벨 69 다. 빨개지면 둘 중 하나다 —
+        /// ⓐ 주입이 안 걸렸다(고쳐야 한다) ⓑ 정본 표의 종 순서가 바뀌었다(그때는 새 서명을 적고 회차 기록에 까닭을 남긴다).</summary>
+        private const string PetShotSignatureExpected =
+            "pets=Snail/ultimate/61 Turtle/ultimate/6 Mouse/ultimate/3 active=3 eggs=7 hatch=3 lv=69";
+
+        // 정본 shot-pets.js 가 못 박은 원본 상태의 수 — 이 자리(촬영 재현)의 값이라 카탈로그가 아니라 여기 둔다(tech-branch 주입과 같은 꼴).
+        private const string PetsShotRarity = "ultimate";
+        private const int PetsShotEggs = 7;
+        private const int PetsShotHatching = 3;
+        private const double PetsShotHatchMin = 8 * 60 + 27;      // 원본 «8시간 27분»
+        private const int PetsShotSummonCount = 340;              // 원본 «Lv. 69» (= 340/5 + 1)
+        private const double PetsShotEggCurrency = 28;
+        private const double PetsShotGems = 62;
+        /// <summary>정본이 `pet-detail`·`pet-upgrade` 에서만 덮어쓰는 이름 — 원작 042449·042503 의 대상이 «[궁극의] 트렌트 Lv.6» 이다.</summary>
+        private const string PetsShotMidName = "Treant";
 
         private static void OpenSummon(string sub)
         {
@@ -960,6 +1056,10 @@ namespace Forge.Tests.PlayMode
             for (int i = 0; i < shots.Count; i++) if (!shots[i].Optional) required++;
             Trace("done · 필수 " + required + "장 · 어긋남 " + failed.Count + " · PNG " + files.Count + " · 빨강 " + log.RedCount);
             log.Dispose();
+
+            // T166 — 펫 넷이 «원작과 같은 보유 상태» 에서 찍혔는가. 이 줄이 비면 주입 자체가 안 불린 것이다.
+            Assert.AreEqual(PetShotSignatureExpected, PetShotSignature,
+                            "펫 넷의 촬영 상태가 정본 shot-pets.js 의 원본 상태와 다르다 — 서로 다른 화면을 견주게 된다(T166)");
 
             if (failed.Count > 0) Assert.Fail("원작 화면 " + required + "장 중 " + failed.Count + "건이 어긋났다:\n  · " + string.Join("\n  · ", failed.ToArray()) + "\n자취 꼬리: " + TraceTail(10));
             log.AssertNoRed();
