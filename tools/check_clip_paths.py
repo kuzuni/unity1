@@ -38,7 +38,8 @@ GAME_DEFAULT = os.path.join('Assets', 'Scripts', 'Game')
 # ── 정본 선택자 ↔ 클론 자리 ──────────────────────────────────────────────────────────────
 # 선택자는 style.css 의 것을 공백 하나로 정규화한 그대로. 순서는 style.css 등장 순.
 TABLE = {
-    '.cmp-ribbon': ['Ui/ForgeUi.cs@Ribbon'],
+    # 노치는 RibbonArt.Build 가 굽는다(T156 · CraftFxPoly.Bake 두 겹 · ForgeUi.Ribbon 은 그것을 부를 뿐).
+    '.cmp-ribbon': ['Ui/RibbonArt.cs@Build'],
     # 리본 꼬리는 «바깥 변에서 절반 깊이로 파고드는 V 홈» 이다(정본 2502 주석) — 안쪽 변은 본체에 붙는 직선.
     '.league-reward-banner::before': ['Ui/LeagueSheet.cs#tail-l'],
     '.league-reward-banner::after': ['Ui/LeagueSheet.cs#tail-r'],
@@ -60,7 +61,6 @@ TABLE = {
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — T159 ⓑ 가 닫을 때마다 지운다 ──────────────────────────
 KNOWN = {
-    'Ui/ForgeUi.cs@Ribbon': 'T156 — .cmp-ribbon 의 «<» 노치(그 절이 임자 · ForgeUi.cs 는 T122 lock 뒤)',
 }
 
 # 굽는 길(결정 223 · T87 6회차 CraftFxPoly · T102 PetHatchCone · 제 손으로 굽는 Sprite.Create)

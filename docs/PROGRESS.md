@@ -4747,6 +4747,14 @@
 - **ⓑ 순서**(2회차부터): `.bw-sub`(가장 눈에 띈다) → `SkillSummonResult` 다섯 → `.dgclear-title` → 박힌 `32f` 를 표로. `ForgeUi`·`ChatScreen` 자리는 T156·T132 lock 뒤다.
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` **641/641** · §3 자 전부 rc 0(새 자 포함).
 
+### T168 4회차 기록 — 마지막 자리 `.equip-cell .cell-lv` (2026-09-14 17:0x · 워커 P · sess-0154-10159 · lock 쥔 채)
+- **자리**: 정본 `style.css` 936~946 `.equip-cell .cell-lv { … letter-spacing: .05em }` — 장비 칸 Lv 배지. 3회차(워커 F)가 «`ForgeUi.cs` 는 T156 lock 뒤» 로 남긴 하나이고 T156 ✅(a8f2328)로 열렸다.
+- **한 것**: `ForgeUi.LvBadge` 에 `LetterSpacing.Apply(t, "equip_cell_lv_ls_em")` 한 줄 · `LetterSpacingUi.json` 키 `equip_cell_lv_ls_em .05`(+ 출처 줄) · `check_letter_spacing.py` KNOWN 한 줄 지움 → **자리 초록 14 → 15 · KNOWN 0**(`--self-test` 14칸 통과). 어느 시트(장비·플레이어 정보·상세)든 배지는 같은 공장이라 한 줄로 다 닫힌다.
+- **자**: `LetterSpacingTests` +1 `장비_칸_Lv_배지의_글자가_표대로_벌어진다` — 배지 공장을 직접 세워 표값 .05(양수) ↔ `characterSpacing`(TMP 1/100 em 환산 한 군데).
+- **범위**: 행의 «범위» 칸을 이 회차가 여는 넷으로 좁혔다(T179 lock 의 `SkillSummonResult.cs` 와 안 겹친다).
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` 642/642 · 자 열여섯 rc 0.
+- **✅ 조건**: 다음 유니티 런 `LetterSpacingTests` 4/4 → 행 ✅ · §2 ✅ · §7 ✅ · lock 반납(자간은 그림으로 재기엔 .05em × 배지 글자라 자로 판정한다 — 3회차와 같은 잣대).
+
 ### T159 3회차 기록 (2026-09-14 11:5x · 워커 F · sess-1027-40217) — 남은 ⓑ 셋을 다 닫았다 · **판정 초록 · lock 반납**
 
 - **닫은 자리 셋**(규칙 일곱):
@@ -4785,6 +4793,12 @@
 - **고장 주입 둘**: ⓐ `--self-test` **13칸**(var 펴기 · 끄는 규칙 · 표에 없는 규칙 · 정본에 없는 선택자 · 자리 없음 ↔ KNOWN · 메서드 민네모 · 호출부를 정의로 오인 · KNOWN 해소 알림 · 정본 없음 rc 2) ⓑ **진짜 파일**: `PetPanel` 의 `PetHatchCone.Add` 를 네모로 바꾸면 자가 rc 1 로 떨어지며 «네모/둥근 네모 한 장이다» 라고 짚는다.
 - **CI 배선은 2회차**: 정본 체크아웃이 있는 `datasync` 잡에 두 스텝을 붙여야 하는데 `ci.yml` 이 **T158 lock** 안이다. 그 lock 이 풀리면 `check_keyline` 옆에 붙인다.
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` **641/641** · §3 자 전부 rc 0(새 자 포함).
+
+### T159 4회차 기록 — 마지막 KNOWN `.cmp-ribbon` (2026-09-14 17:0x · 워커 P · sess-0154-10159 · lock 쥔 채 · 코드 0줄)
+- **자리**: 3회차(워커 F)가 «남은 KNOWN 빈자리는 `.cmp-ribbon` 하나 · T156 이 쥐고 있다 · 그쪽이 닫으면 자가 알려 준다» 로 남겼다. T156 ✅(a8f2328)가 노치를 `RibbonArt.Build`(`CraftFxPoly.Bake` 두 겹 · 정본 `polygon(0 0, 100% 0, 88% 50%, 100% 100%, 0 100%)` 꼭짓점은 `RibbonUi.json`)로 구웠는데, 자의 표는 여전히 `Ui/ForgeUi.cs@Ribbon` **본문**을 보고 있어 «KNOWN 인데 이제 도형이 있다» 가 **안 울렸다** — `ForgeUi.Ribbon` 은 `RibbonArt.Build` 를 부를 뿐 굽는 호출이 그 본문에 없다(자의 «보는 칸» 한계 · 표가 굽는 자리를 가리켜야 한다).
+- **한 것**: `check_clip_paths.py` 표 `.cmp-ribbon → Ui/RibbonArt.cs@Build` · KNOWN 한 줄 지움 → **자리 초록 14 → 15 · KNOWN 0**(`--self-test` 13칸 통과). 게임 코드 0줄.
+- **게이트**: 자 열여섯 rc 0 · `dotnet build`·`test` 642/642(코드 변경 없음).
+- **✅ 조건**: 다음 CI datasync·dotnet 잡 초록(자가 도는 곳) → 행 ✅ · §2 ✅ · §7 ✅ · lock 반납. 그림 판정은 T156 ✅(런 444 + 원작 6배 눈 대조)이 이미 했다.
 
 ### T109 13회차 기록 (2026-09-14 09:3x · 워커 F · sess-0927-88012) — 자유로운 빈자리 하나를 닫았다 · **판정 초록 · lock 반납**
 
