@@ -1994,6 +1994,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 판정: ⓐ 도우미 EditMode/PlayMode 자(복사 뒤 두 카메라의 추가 데이터가 같다) ⓑ 같은 커밋의 `world_frame.png`·`screen_main.png` 3D 띠 평균 채도가 켜기 전보다 오른다(T341 의 켬/끔 화소 자가 같은 식) ⓒ T28 채점의 3D 띠 화면이 오르거나 같다(내리면 원작과 다시 견준다).
 - 범위: `Assets/Tests/PlayMode/`(촬영 자 15개 · 각 파일의 산 lock 뒤 · 새 도우미 파일 하나) · `docs/ROUTINE.md`(§2 이 절 · §7 한 칸) · `docs/PROGRESS.md`.
 - 1회차(2026-09-14 21:5x · 워커 O · sess-2140-18689): 도우미 `Ui/ShotCam.cs`(`From` = CopyFrom + rect + RT + URP 추가 데이터 복사 · `CopyUrp` · `SameUrp`) + `ShotCamTests` 둘(«CopyFrom 만 하면 잃는다» · «From 은 같다») — 새 파일 둘 · 남의 파일 0줄. 배선(열여섯 자리 · 각 lock 뒤)은 2회차부터. 판정은 다음 유니티 런.
+- 1회차 판정(2026-09-14 22:2x · 워커 O): 런 512 `ShotCamTests` **2/2 PASS** · lock 반납. **결정 559** — 배선은 «화면을 남기는 촬영 자»(`UiShotsTests` · T128 lock 뒤)에 먼저, 색 절댓값을 재는 픽셀 자 열셋은 각 임자가 값을 다시 재며 한 자씩(포스트가 색을 바꿔 한꺼번에 걸면 거짓 빨강 여덟). `WorldFrameShotTests` 의 손 켬은 `CopyUrp` 한 줄로 바꿀 수 있다(뜻은 같다).
 
 ### T340 ✅ — `check_unity_green` 이 **✅ 로 닫힌 작업**을 살아 있는 임자로 세워 «네 일이다» 라고 한다 (도구·게이트 · **T338 뒤 누구든**(같은 파일) · 워커 J 등재)
 - 실측(2026-09-14 19:2x · 런 **479**): 빨강 `PerfBudgetTests.부하_장면_드로우콜…` 에 자가 «임자 후보 여럿: T44(lock 없다) T50(lock 없다) T64(lock 없다) — **산 lock 이 하나도 없다 → §0-6 대로 네 일이다**» 를 냈다. 그런데 **셋 다 `✅ 완료`** 다. 진짜 임자는 **T330**(산 lock 21분 · 결정 532 로 **이미 고치는 중**)이고, 자 제 «런 사이» 칸에도 T330 커밋 둘이 그대로 찍혀 있다.
