@@ -84,8 +84,9 @@ TABLE = {
     '.petup-selrow .btn.silver': ['Ui/PetSkillKit.cs@PaperButton'],
     '.petup-selrow .btn.silver.disabled': '—정본이 끄는 규칙(폭 0)',
     '.petup-panel .idet-name': ['Ui/PetUpgradePopup.cs#idet-name'],
-    '.rw-amt': ['Ui/DungeonSheet.cs#rw-amt'],
-    '.rw-tick': ['Ui/DungeonSheet.cs#rw-tick'],
+    # T109 11회차 — 보상 날림의 획득량·누적 카운터는 T134 `RewardBurst.LabelRow` 가 세운다(`rw-amt`·`rw-tick` 둘 다 그 메서드 · 4px·3.5px #2a2018 은 RewardBurstUi.json amt/tick_stroke_px).
+    '.rw-amt': ['Ui/RewardBurst.cs@LabelRow'],
+    '.rw-tick': ['Ui/RewardBurst.cs@LabelRow'],
     '#player-info-modal .pinfo-id-text .cp': ['Ui/PlayerInfoPopup.cs#cp'],
     '.league-row .league-name, .league-row .league-rank': ['Ui/LeagueSheet.cs#name', 'Ui/LeagueSheet.cs#rank'],
     # T109 5회차 — 이 small 은 이름 아래 **전투력**(ui.js 4740 `<small>${IconGen.img('power')} ${U.fmt(e.cp)}</small>`)이지 서버 글자가 아니다(결정 274).
@@ -100,15 +101,10 @@ TABLE = {
 # ── 임자가 정해진 빈자리(자리 → 이유) — T109 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
     'Ui/OfflinePopup.cs#zzz': 'T109 ⓑ — 잠자는 z 글자 자리가 클론에 없다(T68 이 머리를 세울 때 안 옮김) · 세우면서 키라인',
-    'Ui/ForgeInfoPopup.cs#title': 'T109 ⓑ — h3.fi-title .11em(T99 lock 뒤)',
-    'Ui/ForgeAutoPopup.cs#af-title': 'T109 ⓑ — h3.af-title .11em · .af-title 4px #fff',
-    'Ui/ForgeCraftPopup.cs#title': 'T109 ⓑ — h3.sellwarn-title .11em(T99 lock 뒤)',
-    'Ui/DungeonSheet.cs#rw-amt': 'T109 ⓑ — .rw-amt 4px #2a2018: 보상 날림의 획득량 글자가 클론에 없다(DungeonSheet 는 아이콘만 날린다) · 세우면서 키라인',
-    'Ui/DungeonSheet.cs#rw-tick': 'T109 ⓑ — .rw-tick 3.5px #2a2018: 보상 날림의 체크 글자가 클론에 없다 · 세우면서 키라인',
+    'Ui/ForgeInfoPopup.cs#title': 'T109 ⓑ — h3.fi-title .11em(T122 lock 뒤 · 11회차가 남김)',
+    'Ui/ForgeCraftPopup.cs#title': 'T109 ⓑ — h3.sellwarn-title .11em(T122 lock 뒤 · 11회차가 남김)',
     # T109 9회차 — 7회차가 공용 Popups.cs@Btn 에 키라인(면 키 표 · 2px)을 걸자 이 셋이 «초록» 으로 보였다. 셋은 제 규칙이 따로라 실물 자리로 옮기고 임자를 적는다.
-    'Ui/ForgeAutoPopup.cs#af-start': 'T109 ⓑ — .af-start 4px #000(정본 5015): 공용 Btn 표(btn_face)로 2px 만 걸린다 · 호출부가 keylineKey "af_start" 를 넘겨야 한다 · T124 lock 뒤',
-    'Ui/ForgeInfoPopup.cs#fi-skip': 'T109 ⓑ — .fi-card .fi-skip 4px #000(정본 5150): 회색 면이라 표에서 0 · 호출부가 keylineKey "fi_skip" 을 넘겨야 한다 · T114·T124 lock 뒤',
-    'Ui/DungeonPopups.cs@Pill': 'T109 ⓑ — .dgd-btn.silver 2px var(--pp-line)(정본 5363): 실물은 DungeonDetailPopup 170 의 Pill(Skin.DgdSilver) · 그 메서드에 Ring · DungeonPopups.cs 는 T94 lock 뒤',
+    'Ui/ForgeInfoPopup.cs#fi-skip': 'T109 ⓑ — .fi-card .fi-skip 4px #000(정본 5150): 회색 면이라 표에서 0 · 호출부가 keylineKey "fi_skip" 을 넘겨야 한다 · T122 lock 뒤(11회차가 남김)',
 }
 
 KEYLINE_CALL = re.compile(r'\b(?:UiKit\.Outline|UiKit\.OutlinePx|PetSkillKit\.Stroked|PopupKit\.Ring|Stroked|Ring)\s*\(')
@@ -172,7 +168,8 @@ def _read(path):
 
 
 def _method_body(src, name):
-    m = re.search(r'\bstatic\s+[\w<>\[\],\s]+\s' + re.escape(name) + r'\s*\(', src)
+    # T109 11회차 — 인스턴스 메서드(`RewardBurst.LabelRow`)도 «자리» 다: `static` 은 있어도 없어도 된다(호출 `x = LabelRow(` 는 `=` 가 글자 부류 밖이라 안 걸린다).
+    m = re.search(r'\b(?:static\s+)?[\w<>\[\],\s]+\s' + re.escape(name) + r'\s*\(', src)
     if not m:
         return None
     i = src.find('{', m.end())
@@ -362,6 +359,12 @@ namespace X {
     # 6 메서드 본문에 키라인이 없다 → 1
     t = dict(base); t['.f-method'] = ['Ui/Sheet.cs@Bare']
     expect('메서드 민글자 → 1', t, {'Ui/Sheet.cs#plain': '임자'}, 1)
+    # 6b T109 11회차 — 인스턴스 메서드도 «@메서드» 자리로 찾는다(RewardBurst.LabelRow) · 호출부 `x = LabelRow(` 는 정의로 안 본다
+    inst = 'class B { RectTransform LabelRow(Transform p, string n) { var t = UiKit.Text(p, n, TextKind.Sub, "x"); UiKit.OutlinePx(t, "pp_line", 2f); return null; } void Go() { RectTransform r = LabelRow(null, "rw-amt"); } }'
+    if _method_body(inst, 'LabelRow') is None or 'OutlinePx' not in _method_body(inst, 'LabelRow'):
+        fails.append('인스턴스 메서드 본문을 못 찾는다')
+    if _method_body('class C { void Go() { var r = LabelRow(null, "a"); } }', 'LabelRow') is not None:
+        fails.append('호출부를 정의로 잘못 본다')
     # 7 고장 주입: 리그 이름의 Ring 을 지우면 1
     broken = cs.replace('PopupKit.Ring(nm, "pp_line", 0.2f);', '')
     expect('Ring 지움 → 1', base, {'Ui/Sheet.cs#plain': '임자'}, 1, cs_text=broken)
@@ -394,7 +397,7 @@ namespace X {
         for f in fails:
             print('  - ' + f)
         return 1
-    print('✓ check_keyline --self-test 13칸 통과')
+    print('✓ check_keyline --self-test 15칸 통과')
     return 0
 
 

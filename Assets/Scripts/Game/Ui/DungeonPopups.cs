@@ -119,6 +119,8 @@ namespace Forge.Game.Ui
             BottomShade(face, dk, RemL("btn_shadow_rem"), Mathf.Max(0f, radiusPx - Line3));
             TextMeshProUGUI t = Bold(rt, "label", kind, label, ink);
             t.rectTransform.offsetMax = new Vector2(0f, -RemL("btn_shadow_rem") * 0.5f);
+            // T109 11회차 — 정본 style.css 5363 `.dgd-btn.silver { -webkit-text-stroke: 2px var(--pp-line) }`(흰 칠 + 검정 링 · 회색 잠김 알약은 규칙 없음).
+            if (skin == Skin.DgdSilver) PopupKit.Ring(t, "dgd_btn_silver", "pp_line");
             Button b = UiKit.Button(rt, "hit", onClick == null ? null : (UnityAction)(() => onClick()));
             b.interactable = interactable;
             return b;
