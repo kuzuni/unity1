@@ -2,7 +2,7 @@
 // 정본 web/js/scene3d.js initPost() 컴포짓 프래그먼트를 그대로 옮긴 것이고, 셈의 정본은
 // Assets/Scripts/Core/Render/EdgeOutlineRules.cs 다(EditMode 가 그 셈을 잰다 · 여기는 같은 식을 HLSL 로).
 // 수치는 하나도 안 박는다 — 전부 전역 유니폼이고 EdgeOutlineHost 가 EdgeOutlineUi.json 표에서 실어 준다.
-// 파츠 ID 항(④)은 보조 패스가 필요해 3회차다 — 지금은 실루엣·법선·곡률 셋.
+// 파츠 ID 항(④)은 T330 2회차 — 보조 패스(EdgeIdPass)가 액터 파츠만 `_EdgeIdTex` 에 굽고(rgb = 16bit 번호 · a = 선형깊이/idZFar) 여기서 IdLine 을 잇는다.
 Shader "Forge/EdgeOutline"
 {
     SubShader
@@ -39,10 +39,25 @@ Shader "Forge/EdgeOutline"
             float _EdgeDiagF;     // 대각 탭 거리 환산(1/√2)
             float _EdgeR2F;       // 반경 2 탭 거리 환산(1/2)
             float4 _EdgeLineColor;
+            // ④ 파츠 ID 항(T330) — 보조 패스가 굽는 ID 버퍼와 그 계수. `_EdgeIdOn` 은 «이 카메라에 ID 버퍼가 있는가»(Core EdgeIdTaps.Has).
+            float _EdgeIdOn;
+            float _EdgeIdZFar;    // a 채널 깊이 스케일
+            float _EdgeIdTolZ;    // 가시성 검증 허용오차(뷰공간 유닛)
+            float _EdgeIdLoF;     // 키 = r × 255 + g × 65280
+            float _EdgeIdHiF;
+            TEXTURE2D(_EdgeIdTex);
+            SAMPLER(sampler_EdgeIdTex);
 
             float LinZ(float2 uv)
             {
                 return LinearEyeDepth(SampleSceneDepth(uv), _ZBufferParams);
+            }
+
+            // ID 화소 → 정수 키(Core EdgeOutlineRules.IdKey · 정본 idkey). 앞의 step 이 가시성 검증 — 가려진 액터 화소는 키 0(배경).
+            float IdKey(float2 uv, float z)
+            {
+                float4 j = SAMPLE_TEXTURE2D_LOD(_EdgeIdTex, sampler_EdgeIdTex, uv, 0);
+                return step(abs(j.a * _EdgeIdZFar - z), _EdgeIdTolZ) * (j.r * _EdgeIdLoF + j.g * _EdgeIdHiF);
             }
 
             // 깊이만으로 뷰공간 법선 복원 — n ∝ (q_u, q_v, -(q - u·q_u - v·q_v)).
@@ -116,7 +131,19 @@ Shader "Forge/EdgeOutline"
                 // 법선항은 반경 1 안에 곡률선이 없는 자리에서만(비접촉 게이트) · 둘 다 큰 계단 안에서는 꺼진다.
                 float crs = max(crvHy, step(_EdgeNormalK, 1.0 - dmin) * (1.0 - crvNear)) * (1.0 - step(_EdgeK * z0, amax));
 
-                float edge = max(sil, crs) * step(z0, _EdgeMaxZ);
+                // ④ 파츠 ID 불연속(Core IdLine) — 깊이도 법선도 0 인 «같은 평면 파츠 경계» 전용.
+                //    두께 규율은 실루엣과 같다: 팽창 off 면 키가 큰 쪽만(1px) · on 이면 양쪽(2px). 깊이가 이어진 이웃(cN)에만 건다.
+                float idl = 0.0;
+                if (_EdgeIdOn > 0.5)
+                {
+                    float k0 = IdKey(uv, z0);
+                    float kl = IdKey(uv - tx, zl), kr = IdKey(uv + tx, zr), kd = IdKey(uv - ty, zd), ku = IdKey(uv + ty, zu);
+                    float idOne = max(max(cL * step(0.5, k0 - kl), cR * step(0.5, k0 - kr)), max(cU * step(0.5, k0 - ku), cD * step(0.5, k0 - kd)));
+                    float idTwo = max(max(cL * step(0.5, abs(k0 - kl)), cR * step(0.5, abs(k0 - kr))), max(cU * step(0.5, abs(k0 - ku)), cD * step(0.5, abs(k0 - kd))));
+                    idl = lerp(idOne, idTwo, _EdgeDilate);
+                }
+
+                float edge = max(sil, max(crs, idl)) * step(z0, _EdgeMaxZ);
                 return half4(_EdgeLineColor.rgb, edge);
             }
             ENDHLSL

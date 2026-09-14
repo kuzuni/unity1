@@ -412,5 +412,233 @@ namespace Forge.Tests.PlayMode
             }
             finally { if (root != null) Object.DestroyImmediate(root); }
         }
+        // ───────── T330 2회차 — ID 보조 패스 + 컴포짓 넷째 항 ─────────
+
+        static EdgePartIdTag TagCube(Transform parent, Vector3 pos, Vector3 scale, Color c)
+        {
+            GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = pos;
+            go.transform.localScale = scale;
+            Renderer r = go.GetComponent<Renderer>();
+            Shader sh = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Universal Render Pipeline/Lit");
+            Material m = new Material(sh);
+            m.color = c;
+            r.sharedMaterial = m;
+            return EdgePartId.Tag(r);
+        }
+
+        static Texture2D ReadLinear(RenderTexture rt)
+        {
+            RenderTexture prev = RenderTexture.active;
+            RenderTexture.active = rt;
+            var tex = new Texture2D(rt.width, rt.height, TextureFormat.RGBA32, false, true);
+            tex.ReadPixels(new Rect(0f, 0f, rt.width, rt.height), 0, 0);
+            tex.Apply(false);
+            RenderTexture.active = prev;
+            return tex;
+        }
+
+        /// <summary>x 열 띠(반폭 hw) · y0..y1 행에서 어두운 화소 수와 «어두운 화소가 하나라도 있는 행» 수.</summary>
+        static void ColumnDark(Texture2D tex, int cx, int hw, int y0, int y1, out int dark, out int rows)
+        {
+            Color32[] px = tex.GetPixels32();
+            dark = 0; rows = 0;
+            for (int y = Mathf.Max(0, y0); y <= Mathf.Min(tex.height - 1, y1); y++)
+            {
+                bool any = false;
+                for (int x = Mathf.Max(0, cx - hw); x <= Mathf.Min(tex.width - 1, cx + hw); x++)
+                {
+                    Color32 c = px[y * tex.width + x];
+                    float l = (c.r * 0.299f + c.g * 0.587f + c.b * 0.114f) / 255f;
+                    if (l < DarkMax) { dark++; any = true; }
+                }
+                if (any) rows++;
+            }
+        }
+
+        static int RectDark(Texture2D tex, int x0, int x1, int y0, int y1)
+        {
+            Color32[] px = tex.GetPixels32();
+            int n = 0;
+            for (int y = Mathf.Max(0, y0); y <= Mathf.Min(tex.height - 1, y1); y++)
+                for (int x = Mathf.Max(0, x0); x <= Mathf.Min(tex.width - 1, x1); x++)
+                {
+                    Color32 c = px[y * tex.width + x];
+                    float l = (c.r * 0.299f + c.g * 0.587f + c.b * 0.114f) / 255f;
+                    if (l < DarkMax) n++;
+                }
+            return n;
+        }
+
+        /// <summary>
+        /// 정본 `renderIdPass` 의 결과 버퍼: 액터 파츠 화소는 rgb 에 제 번호 · a 에 선형깊이/idZFar 를, 배경은 0 을 남긴다.
+        /// 🚨 r·g 는 «바이트를 실은 숫자» 라 sRGB 곡선을 한 번만 타도 이웃 번호가 한 칸으로 뭉친다 — 그래서 되읽은 번호가 **정확히** 같아야 한다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator ID_보조_패스는_파츠_화소에_제_번호와_깊이를_배경엔_0을_남긴다()
+        {
+            if (NoGraphics()) { Assert.Ignore("그래픽 장치가 없다 — 픽셀은 CI 의 유니티 잡이 본다"); yield break; }
+            Shader sh = EdgeIdPass.IdShader;
+            Assert.IsNotNull(sh, "ID 셰이더(" + EdgeIdPass.IdShaderName + ")가 없다");
+            Assert.IsTrue(sh.isSupported, "ID 셰이더가 컴파일에 실패했다 — 에디터 로그의 «Shader error in Forge/EdgePartId» 줄을 보라");
+            GameObject rig = new GameObject("t330-id-rig");
+            RenderTexture rt = new RenderTexture(Size, Size, 24, RenderTextureFormat.ARGB32);
+            Texture2D id = null;
+            try
+            {
+                var hostGo = new GameObject("t330-host");
+                hostGo.transform.SetParent(rig.transform, false);
+                hostGo.AddComponent<EdgeOutlineHost>().Apply();
+                EdgeOutlineSpec s = EdgeOutlineHost.Spec;
+
+                Camera cam = new GameObject("t330-cam").AddComponent<Camera>();
+                cam.transform.SetParent(rig.transform, false);
+                cam.nearClipPlane = 0.1f; cam.farClipPlane = 100f; cam.fieldOfView = 45f;
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = new Color(0.6f, 0.6f, 0.65f);
+                cam.targetTexture = rt;
+
+                // 팔↔몸통 자리: 같은 앞면(z = 8.5)·같은 법선의 상자 둘이 x = 0 에서 맞닿는다. 세로로 치우쳐 두어 위아래가 뒤집힌 버퍼도 걸린다.
+                EdgePartIdTag a = TagCube(rig.transform, new Vector3(-1.5f, 2f, 10f), new Vector3(3f, 3f, 3f), new Color(0.85f, 0.80f, 0.55f));
+                EdgePartIdTag b = TagCube(rig.transform, new Vector3(1.5f, 2f, 10f), new Vector3(3f, 3f, 3f), new Color(0.85f, 0.80f, 0.55f));
+                Assert.AreNotEqual(a.Id, b.Id);
+                yield return null;
+
+                EdgeIdPass pass = EdgeIdPass.Attach(cam, true);
+                pass.RenderNow();
+                Assert.AreEqual(2, pass.LastDrawn, "상자 둘 다 화면에서 6 CSS px 보다 크니 ID 패스에 들어가야 한다");
+                Assert.IsNotNull(pass.Target);
+                Assert.AreEqual(rt.width, pass.Target.width, "ID 버퍼는 본 카메라와 같은 크기");
+                Assert.IsFalse(pass.Target.sRGB, "ID 버퍼는 선형이어야 한다(sRGB 면 번호가 뭉친다)");
+                id = ReadLinear(pass.Target);
+                try { GallerySheet.Save(id, "screen_t330-idbuf"); } catch (System.Exception e) { Debug.LogWarning("[T330] 그림 저장 실패: " + e.Message); }
+
+                Vector3 pa = cam.WorldToScreenPoint(new Vector3(-1.5f, 2f, 8.5f));
+                Vector3 pb = cam.WorldToScreenPoint(new Vector3(1.5f, 2f, 8.5f));
+                Color32[] raw = id.GetPixels32();   // 바이트 그대로(GetPixel 의 float 왕복을 피한다)
+                Color32 ca = raw[(int)pa.y * id.width + (int)pa.x];
+                Color32 cb = raw[(int)pb.y * id.width + (int)pb.x];
+                Color32 bg = raw[2 * id.width + 2];
+                Debug.Log("[T330] ID 버퍼 — A " + ca + " · B " + cb + " · 배경 " + bg + " · 그린 파츠 " + pass.LastDrawn);
+                Assert.AreEqual(a.Id, EdgePartIdRules.Decode(ca.r / 255.0, ca.g / 255.0), "상자 A 화소의 번호");
+                Assert.AreEqual(b.Id, EdgePartIdRules.Decode(cb.r / 255.0, cb.g / 255.0), "상자 B 화소의 번호");
+                Assert.That(ca.a / 255.0 * s.IdZFar, Is.EqualTo(8.5).Within(s.IdTolZ), "a = 선형깊이/idZFar — 앞면 8.5 유닛(허용오차 = 컴포짓의 id_tol_z)");
+                Assert.That(cb.a / 255.0 * s.IdZFar, Is.EqualTo(8.5).Within(s.IdTolZ));
+                Assert.AreEqual(0, bg.r + bg.g + bg.a, "배경은 키 0 · 깊이 0");
+                Assert.IsFalse(a.Twin.enabled, "쌍둥이는 보조 카메라가 그린 뒤 꺼져 있어야 한다 — 다른 카메라가 보면 안 된다");
+                Assert.AreEqual(EdgeIdPass.IdLayer, a.Twin.gameObject.layer);
+            }
+            finally
+            {
+                if (id != null) Object.DestroyImmediate(id);
+                Object.DestroyImmediate(rig);
+                rt.Release(); Object.DestroyImmediate(rt);
+                Shader.SetGlobalFloat(EdgeIdPass.IdOnProp, 0f);
+            }
+        }
+
+        /// <summary>
+        /// 넷째 항의 판정(ROUTINE T330): 깊이·법선이 같은 파츠 경계(팔↔몸통)에 **on 프레임에만** 검정 줄이 서고 · ①②③ 만으로는 그 줄이 0 이며 ·
+        /// 언덕 뒤 액터(가려진 파츠)는 가리개 위에 유령선을 안 그린다(`idkey` 의 가시성 step).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 같은_평면_파츠_경계에_ID_항만이_줄을_긋고_가려진_파츠는_유령선이_없다()
+        {
+            if (NoGraphics()) { Assert.Ignore("그래픽 장치가 없다 — 픽셀은 CI 의 유니티 잡이 본다"); yield break; }
+            object feature = Feature();
+            if (feature == null) { Assert.Ignore("렌더러에서 EdgeOutline 기능을 못 찾았다(파이프라인 꼴이 바뀌었다)"); yield break; }
+            Assert.IsTrue(Shader.Find(EdgeOutlineHost.ShaderName).isSupported, "엣지 셰이더가 컴파일에 실패했다");
+            Assert.IsTrue(EdgeIdPass.IdShader != null && EdgeIdPass.IdShader.isSupported, "ID 셰이더가 없거나 컴파일에 실패했다");
+
+            GameObject rig = new GameObject("t330-rig");
+            RenderTexture rt = new RenderTexture(Size, Size, 24, RenderTextureFormat.ARGB32);
+            RenderTexture prevActive = RenderTexture.active;
+            Texture2D on = null, noId = null, off = null;
+            object savedActive = GetHidden(feature, "m_Active");
+            try
+            {
+                var hostGo = new GameObject("t330-host");
+                hostGo.transform.SetParent(rig.transform, false);
+                hostGo.AddComponent<EdgeOutlineHost>().Apply();
+
+                Camera cam = new GameObject("t330-cam").AddComponent<Camera>();
+                cam.transform.SetParent(rig.transform, false);
+                cam.nearClipPlane = 0.1f; cam.farClipPlane = 100f; cam.fieldOfView = 45f;
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = new Color(0.6f, 0.6f, 0.65f);
+                cam.targetTexture = rt;
+
+                // 뒷벽(태그 없음 = 배경 키) · 위쪽: 맞닿은 상자 둘(같은 앞면 z 8.5) · 아래쪽: 가리개(태그 없음 · z 5.75 앞면) 뒤에 숨은 태그 상자
+                Cube(rig.transform, new Vector3(0f, 0f, 20f), new Vector3(40f, 40f, 0.2f), new Color(0.72f, 0.74f, 0.78f));
+                EdgePartIdTag a = TagCube(rig.transform, new Vector3(-1.5f, 2f, 10f), new Vector3(3f, 3f, 3f), new Color(0.85f, 0.80f, 0.55f));
+                EdgePartIdTag b = TagCube(rig.transform, new Vector3(1.5f, 2f, 10f), new Vector3(3f, 3f, 3f), new Color(0.85f, 0.80f, 0.55f));
+                Cube(rig.transform, new Vector3(0f, -1.6f, 6f), new Vector3(3f, 2.2f, 0.5f), new Color(0.80f, 0.86f, 0.80f));
+                EdgePartIdTag hidden = TagCube(rig.transform, new Vector3(0f, -1.6f, 10f), new Vector3(2f, 1.2f, 2f), new Color(0.9f, 0.5f, 0.5f));
+                Assert.IsNotNull(hidden);
+                yield return null;
+
+                EdgeIdPass pass = EdgeIdPass.Attach(cam, true);
+                SetActive(feature, true);
+                EdgeOutlineHost.SetOn(true);
+                yield return null;
+                pass.RenderNow();
+                on = Shoot(cam, rt);
+                // ①②③ 만: ID 패스를 끄고(전역 _EdgeIdOn 0) 같은 장면
+                pass.enabled = false;
+                noId = Shoot(cam, rt);
+                // off 프레임(네 항 다 끔)
+                EdgeOutlineHost.SetOn(false);
+                yield return null;
+                off = Shoot(cam, rt);
+                SetActive(feature, false);
+                try { GallerySheet.Save(on, "screen_t330-id-on"); GallerySheet.Save(noId, "screen_t330-id-noid"); GallerySheet.Save(off, "screen_t330-id-off"); }
+                catch (System.Exception e) { Debug.LogWarning("[T330] 그림 저장 실패(단언은 계속): " + e.Message); }
+
+                // 이음매 띠: x = 두 상자의 경계(0, ·, 8.5) 화면 열 ±2px · y 는 상자 위아래 실루엣을 피해 안쪽 0.4 유닛씩 뺀 구간
+                Vector3 seamLo = cam.WorldToScreenPoint(new Vector3(0f, 0.9f, 8.5f));
+                Vector3 seamHi = cam.WorldToScreenPoint(new Vector3(0f, 3.1f, 8.5f));
+                int cx = Mathf.RoundToInt(seamLo.x), y0 = Mathf.RoundToInt(Mathf.Min(seamLo.y, seamHi.y)), y1 = Mathf.RoundToInt(Mathf.Max(seamLo.y, seamHi.y));
+                int band = y1 - y0 + 1;
+                int darkOn, rowsOn, darkNo, rowsNo, darkOff, rowsOff;
+                ColumnDark(on, cx, 2, y0, y1, out darkOn, out rowsOn);
+                ColumnDark(noId, cx, 2, y0, y1, out darkNo, out rowsNo);
+                ColumnDark(off, cx, 2, y0, y1, out darkOff, out rowsOff);
+                // 상자 A 안쪽(경계에서 떨어진 열) — 선이 없어야 한다
+                Vector3 inA = cam.WorldToScreenPoint(new Vector3(-1.5f, 2f, 8.5f));
+                int darkInA, rowsInA;
+                ColumnDark(on, Mathf.RoundToInt(inA.x), 2, y0, y1, out darkInA, out rowsInA);
+                // 가리개 안쪽(실루엣 안 25% 안쪽) — 숨은 파츠의 유령선 0
+                Vector3 oc0 = cam.WorldToScreenPoint(new Vector3(-1.1f, -2.4f, 5.75f));
+                Vector3 oc1 = cam.WorldToScreenPoint(new Vector3(1.1f, -0.8f, 5.75f));
+                int ghost = RectDark(on, Mathf.RoundToInt(Mathf.Min(oc0.x, oc1.x)), Mathf.RoundToInt(Mathf.Max(oc0.x, oc1.x)),
+                                         Mathf.RoundToInt(Mathf.Min(oc0.y, oc1.y)), Mathf.RoundToInt(Mathf.Max(oc0.y, oc1.y)));
+                Note("t330-idline.txt",
+                     "T330 넷째 항 실측 — 이음매 띠 " + band + "행 (x " + cx + " ±2)\n" +
+                     "on: 검정 " + darkOn + " · 줄 있는 행 " + rowsOn + "\n①②③만: 검정 " + darkNo + " · 행 " + rowsNo + "\noff: 검정 " + darkOff + "\n" +
+                     "상자 A 안쪽 열 검정 " + darkInA + " · 가리개 안쪽 유령 검정 " + ghost + " · ID 패스 파츠 " + pass.LastDrawn + "\n");
+                Debug.Log("[T330] 이음매 on " + darkOn + "/" + band + "행 " + rowsOn + " · ①②③만 " + darkNo + " · off " + darkOff + " · A 안쪽 " + darkInA + " · 유령 " + ghost);
+
+                Assert.Greater(band, 20, "이음매 띠가 너무 짧다 — 장면 세우기가 틀렸다");
+                Assert.AreEqual(0, darkOff, "off 프레임에 검정이 남았다 — 네 항이 다 꺼지지 않았다");
+                Assert.LessOrEqual(darkNo, band / 10, "①②③ 만으로 이음매에 줄이 섰다(" + darkNo + ") — 이 장면은 깊이·법선이 같은 경계라 ID 항만 잡아야 한다(장면이 틀렸거나 다른 항이 샌다)");
+                Assert.GreaterOrEqual(rowsOn, band * 8 / 10, "on 프레임 이음매에 줄이 안 선다(줄 있는 행 " + rowsOn + "/" + band + ") — ID 버퍼가 컴포짓에 안 물렸거나 키가 같다(sRGB·uv 뒤집힘·_EdgeIdOn 확인 · t330-idline.txt)");
+                Assert.LessOrEqual(darkOn, band * 3, "이음매가 3px 보다 두껍다(" + darkOn + "/" + band + "행) — 팽창 off 면 키 큰 쪽 1px 이어야 한다");
+                Assert.LessOrEqual(darkInA, band / 10, "상자 안쪽 열에 줄이 있다(" + darkInA + ") — 같은 파츠 안에서 키가 흔들린다(버퍼 정밀도)");
+                Assert.AreEqual(0, ghost, "가리개 위에 유령선 " + ghost + " — 숨은 파츠의 ID 가 깊이 검증(id_tol_z)을 통과했다");
+            }
+            finally
+            {
+                SetActive(feature, savedActive is bool && (bool)savedActive);
+                EdgeOutlineHost.SetOn(true);
+                RenderTexture.active = prevActive;
+                if (on != null) Object.DestroyImmediate(on);
+                if (noId != null) Object.DestroyImmediate(noId);
+                if (off != null) Object.DestroyImmediate(off);
+                Object.DestroyImmediate(rig);
+                rt.Release(); Object.DestroyImmediate(rt);
+                Shader.SetGlobalFloat(EdgeIdPass.IdOnProp, 0f);
+            }
+        }
     }
 }

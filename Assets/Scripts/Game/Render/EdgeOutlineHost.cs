@@ -32,6 +32,11 @@ namespace Forge.Game.Render
         public const string DiagFProp = "_EdgeDiagF";
         public const string R2FProp = "_EdgeR2F";
         public const string ColorProp = "_EdgeLineColor";
+        // ④ 파츠 ID 항(T330) — 보조 패스 `EdgeIdPass` 가 `_EdgeIdTex`·`_EdgeIdOn` 을 카메라마다 싣고, 계수는 여기서 표로 싣는다.
+        public const string IdZFarProp = "_EdgeIdZFar";
+        public const string IdTolZProp = "_EdgeIdTolZ";
+        public const string IdLoFProp = "_EdgeIdLoF";
+        public const string IdHiFProp = "_EdgeIdHiF";
 
         static EdgeOutlineSpec spec;
         public static EdgeOutlineSpec Spec
@@ -89,8 +94,21 @@ namespace Forge.Game.Render
             if (Instance != this) return;
             Instance = null;
             Shader.SetGlobalFloat(OnProp, 0f);
+            Shader.SetGlobalFloat(EdgeIdPass.IdOnProp, 0f);
+            if (IdPass != null) { Destroy(IdPass); IdPass = null; }
         }
-        private void Update() { if (Screen.width != lastW) Apply(); }
+        /// <summary>본 카메라에 단 ID 보조 패스(T330). 카메라가 늦게 서거나 바뀌면 다음 Update 가 다시 단다.</summary>
+        public EdgeIdPass IdPass { get; private set; }
+
+        private void Update()
+        {
+            if (Screen.width != lastW) Apply();
+            if (IdPass == null)
+            {
+                Camera main = Camera.main;
+                if (main != null) IdPass = EdgeIdPass.Attach(main);
+            }
+        }
 
         /// <summary>표 → 전역 유니폼. 두께 스위치는 그때의 화면 폭으로 다시 잰다.</summary>
         public void Apply()
@@ -105,6 +123,10 @@ namespace Forge.Game.Render
             Shader.SetGlobalFloat(DiagFProp, (float)s.DiagF);
             Shader.SetGlobalFloat(R2FProp, (float)s.R2F);
             Shader.SetGlobalColor(ColorProp, LineColor(s));
+            Shader.SetGlobalFloat(IdZFarProp, (float)s.IdZFar);
+            Shader.SetGlobalFloat(IdTolZProp, (float)s.IdTolZ);
+            Shader.SetGlobalFloat(IdLoFProp, (float)s.IdLoF);
+            Shader.SetGlobalFloat(IdHiFProp, (float)s.IdHiF);
             Shader.SetGlobalFloat(DilateProp, EdgeOutlineRules.DilateOn(s, EdgeOutlineRules.BufScale(s, lastW)) ? 1f : 0f);
             Shader.SetGlobalFloat(OnProp, On ? 1f : 0f);
         }
