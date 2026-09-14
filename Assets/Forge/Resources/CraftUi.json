@@ -1,0 +1,11 @@
+{
+  "_": "ROUTINE T113 제작 비교 팝업(원작 css 1742 #craft-modal · 1748 .modal-card.wide · shot-043224)의 배치표. T87 lock 이 Assets/Forge/catalog.json 을 쥐던 때의 길(T111 GearDetailUi.json · T65 PlayerInfoUi.json 과 같은 꼴 · T33 이 카탈로그로 합칠 수 있다) — 코드에 숫자를 박지 않는다(§1). 배치 키 접미: _w = 앱 폭 분수 · _rem = 정본 rem.",
+  "layout": {
+    "card_w": 0.688,
+    "bottom_rem": 1.65
+  },
+  "_src": {
+    "card_w": "style.css 1748 `#craft-modal .modal-card.wide { width: 68.8%; }` — 공용 .modal-card.wide 74% 가 아니다(원본 흰 본체 67.33%W + 테두리·AA 1.46%p)",
+    "bottom_rem": "style.css 1742 `#craft-modal { align-items: flex-end; padding-bottom: calc(var(--tabbar-h) + 1.65rem); }` — 카드 바닥 = 앱 바닥에서 탭바 높이(카탈로그 tabbar_top) + 1.65rem 위(원본 실측 86.90%H)"
+  }
+}

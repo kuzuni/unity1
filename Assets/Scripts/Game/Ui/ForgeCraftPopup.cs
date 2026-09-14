@@ -51,9 +51,12 @@ namespace Forge.Game.Ui
             bool newIsHigher = cur == null || h.GearSys.ItemValue(item).Gte(h.GearSys.ItemValue(cur));
 
             float rem = PopupKit.Rem;
-            float w = UiKit.L("modal_wide_w") * UiKit.RefW;
+            // T113 — 정본 1748: 폭은 공용 .modal-card.wide(74%) 가 아니라 68.8%W · 1742: 카드는 가운데가 아니라 **하단 앵커**
+            // (padding-bottom = 탭바 높이 + 1.65rem → 카드 바닥이 앱 바닥에서 그만큼 위 · 원본 실측 86.9%H). T111 장비 상세와 같은 길(자기 표 CraftUi.json).
+            float w = CraftStyle.Px("card_w");
             float pad = UiKit.H("card_pad");
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
+            UiKit.Anchor(card, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, CraftStyle.BottomPx()), w, card.sizeDelta.y);
             PopupKit.Column(card, pad + rem * 0.5f, rem * 0.5f);
             float inner = w - (pad + rem * 0.5f) * 2f;
             RectTransform curCard = ForgeUi.ItemCard(card, "cur", inner, cur, "장착됨", cur != null ? (newIsHigher ? "down" : "up") : null, false, d, h.GearSys.ItemValue);
@@ -256,5 +259,47 @@ namespace Forge.Game.Ui
         }
 
         public static bool BatchVisible { get { return batch != null; } }
+    }
+
+    /// <summary>
+    /// T113 제작 비교 팝업의 배치표(<c>Assets/Forge/Resources/CraftUi.json</c> — 정본 `style.css` 1742 `#craft-modal` · 1748 `.modal-card.wide`).
+    /// T111 <see cref="GearDetailStyle"/> 과 같은 꼴 — 코드에 숫자를 박지 않는다(§1). 키 접미: _w 앱 폭 분수 · _rem 정본 rem.
+    /// </summary>
+    public static class CraftStyle
+    {
+        public const string ResourcePath = "CraftUi";
+        static JsonObject root, layout;
+
+        static void Load()
+        {
+            if (root != null) return;
+            TextAsset ta = Resources.Load<TextAsset>(ResourcePath);
+            if (ta == null) throw new InvalidOperationException("Resources/" + ResourcePath + ".json 이 없다 (T113)");
+            root = MiniJson.ParseObject(ta.text);
+            layout = J.Obj(root["layout"]);
+        }
+
+        public static void Reset() { root = null; layout = null; }
+
+        /// <summary>배치 값 원문.</summary>
+        public static float L(string key)
+        {
+            Load();
+            object v = layout[key];
+            if (!J.IsNum(v)) throw new System.Collections.Generic.KeyNotFoundException("CraftUi.json 에 배치 값 «" + key + "» 이 없다");
+            return (float)J.Num(v);
+        }
+
+        /// <summary>키 접미에 맞춰 기준 px 로(_w 앱 폭 · _rem 정본 rem).</summary>
+        public static float Px(string key)
+        {
+            float v = L(key);
+            if (key.EndsWith("_w")) return v * UiKit.RefW;
+            if (key.EndsWith("_rem")) return v * PopupKit.Rem;
+            return v;
+        }
+
+        /// <summary>카드 바닥이 앱 바닥에서 뜨는 높이(기준 px) — 정본 `padding-bottom: calc(var(--tabbar-h) + 1.65rem)` = 탭바 높이(카탈로그 `tabbar_top`) + `bottom_rem`.</summary>
+        public static float BottomPx() { return (1f - UiKit.L("tabbar_top")) * UiKit.RefH + Px("bottom_rem"); }
     }
 }
