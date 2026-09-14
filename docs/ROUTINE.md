@@ -1143,7 +1143,12 @@
 - 왜 T109 8회차가 안 고쳤나: 글자 하한(36~60)은 **지시서 §1 규칙**(T18)이라 한 화면 사정으로 깨지 않는다 — 판(알약)을 걷는 것과 크기를 내리는 것은 다른 판단이다.
 - 길 둘: ⓐ **정본 자리에 맞는 작은 종류를 카탈로그에 더한다**(예 `Micro` 18~20px) + §1 의 하한 줄에 «그 종류는 예외» 를 적는다 — 정본과 같아지는 길 ⓑ 하한을 지키고 라벨을 오브 밖에 둔다 — 정본과 달라진다. **ⓐ 가 정본이다**(다만 하한은 주인 규칙이라 기록을 남긴다).
 - 판정: `screen_main.png` 5배 확대에서 라벨이 오브 안에 들어오고(폭 ≤ 지름) · `TextSizeGateTests` 가 새 종류를 알고 초록 · `ui_score` 의 `main` 점수가 안 내린다.
-- 범위: `Assets/Forge/catalog.json`(`textKinds` · **T87 lock 뒤**) · `Assets/Scripts/Game/Ui/UiKit.cs`·`PetSkillKit.cs`(그 종류를 쓰는 자리) · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/ROUTINE.md`(§1 하한 줄).
+- 범위: `Assets/Forge/catalog.json`(`textKinds` · **T87 lock 뒤**) · `Assets/Scripts/Game/Ui/UiKit.cs`·`PetSkillKit.cs`(그 종류를 쓰는 자리) · `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs`(**둘째 자리 · T131 lock 뒤**) · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/ROUTINE.md`(§1 하한 줄).
+- **둘째 자리 — 플레이어 정보 «출전 줄» 이 더 나쁘다(검수 Q 2026-09-14 04:0x · 런 310 `screen_player-info.png` 실측 · 새 번호 안 뽑았다 — 병도 처방(`Micro` 종류)도 이 작업 것이고 부르는 자리만 하나 는다):**
+  - 잰 값(540×960): 오브 여섯의 링 `x92~121·133~163·175~204·217~246·259~288·301~330` → **지름 30px · 피치 41.7px**(피치는 정본 `.pinfo-loadout-row` 6.24%W+1.5%W = 41.8px 와 **맞다**). 라벨 잉크는 `x86~125`·`128~167`… → **폭 40px · 이웃과 틈 2~3px**. 2px 검정 링이 그 틈을 먹어 여섯이 **한 덩어리로 뭉갠다**(3배 확대: «Lv.2(Lv.2(Lv.2(Lv.1(Lv.1(Lv.16»).
+  - 원작 `shot-043313`(496×880) 같은 줄: 라벨 잉크 **29px**(`x122~150`·`161~189`) · 이웃과 틈 **10~11px** · 피치 39px. → **라벨/오브 = 원작 85% ↔ 클론 133%.** 클론 라벨이 **1.27배** 넓다.
+  - 꼴(알약이 아니라 흰 글자+검정 링)은 **클론이 맞다** — `shot-043313` 을 8배로 확대하면 알약 없이 오브 면 위 흰 «Lv.9» 다(`PlayerInfoPopup.cs` 3회차 결정 289 의 판단이 옳았다). **틀린 것은 폭 하나**이고 그 폭은 `Sub` 36px 하한이 만든 것이라 처방이 이 작업의 ⓐ(`Micro`)와 같다.
+  - 판정에 한 줄 더: `screen_player-info.png` 3배 확대에서 라벨 여섯이 **서로 안 닿는다**(이웃 틈 ≥ 정본 2.0%W).
 - **막혀 있다(2026-09-14 03:0x · 워커 I · 선점했다가 규약대로 물러났다)**: T87 은 풀렸지만 그 사이 `catalog.json` 을 **T98·T108·T131·T135** 가, `UiKit.cs`·`SkillBar.cs` 를 **T109** 가 제 범위로 적었다(전부 살아 있는 lock · 전부 앞 번호) — 규약 «두 작업이 같은 파일을 만져야 하면 뒤 번호가 기다린다» 그대로 손을 뗐다. **다음 사람은 그 다섯이 반납됐는지부터 보라.**
 - **그대로 실행할 수 있게 적어 둔 설계(워커 I · 이 회차에 한 번 만들어 게이트 초록까지 본 뒤 되돌린 것이다 — 617/617 통과)**:
   - ⓐ `catalog.json` `textKinds` 에 `{ "kind": "Micro", "size": 18.2, "min": 18 }` — 18.2 = 정본 `.5rem`(= `rem_h` .018957 × 1920 = 36.4px 의 절반). 넣은 뒤 **`python3 tools/gen_ui_catalog.py`** 로 `UiCatalog.asset` 을 다시 쓴다(안 쓰면 `--check` 가 빨갛다).
