@@ -603,6 +603,76 @@ def _lock_word(alive, age):
     return 'lock %d분 전 — 90분 규약으로 **죽었다**(뺏을 수 있다)' % age
 
 
+# ── T344 — «모드가 통째로 안 돈» 런: 잡 로그는 컨테이너에서 못 연다(blob 리다이렉트를 프록시가 막는다) · 답은 screens 의 <모드>-log.txt(T151) ──
+MODE_LOG_CAUSE = re.compile(r'\berror CS\d+\b|Shader error|compiler errors|Exception|crash|Abort|Fatal|Killed|signal', re.I)
+MODE_LOG_LICENSE = re.compile(r'no available seats|Unable to activate license|License (?:activation|is not valid|has expired)|DISPLAY_ERROR', re.I)
+MODE_LOG_PATH = re.compile(r'(Assets/[\w./ -]+?\.(?:cs|asmdef|shader|json))')
+
+
+def mode_log_name(mode_xml):
+    """`editmode-results.xml` → `editmode-log.txt`(T151 이 screens 에 올리는 이름)."""
+    m = str(mode_xml or '').strip()
+    return m[:-len('-results.xml')] + '-log.txt' if m.endswith('-results.xml') else ''
+
+
+def read_mode_log(ref, mode_xml):
+    name = mode_log_name(mode_xml)
+    if not name:
+        return None
+    rc, out = _git(['show', '%s:%s' % (ref, name)])
+    return out if rc == 0 and out.strip() else None
+
+
+def mode_log_note(text, mode_xml, progress_text, meta_run=None, lock=None, now=None):
+    """<모드>-log.txt(T151) 를 **자가 직접 읽어** 원인 줄과 임자를 댄다(순수 · 자기 검사용).
+
+    ⓐ 로그가 없으면 조용(빈 목록) ⓑ 머리의 런 번호가 meta 의 런과 다르면 «다른 런의 로그» 라고 말하고 그친다(screens 는 마지막 런 것 하나뿐)
+    ⓒ 첫 `error CS…` 줄(없으면 첫 원인 문구 줄)을 그대로 싣고, 그 줄이 댄 `Assets/…` 파일의 임자를 «범위» 열에서 찾는다(`path_owners`)
+    ⓓ 원인 줄이 라이선스 문구면 그때만 라이선스 갈래 — «보고함» 은 로그에도 근거가 없을 때만이다."""
+    if not text:
+        return []
+    lock = lock or lock_state
+    name = mode_log_name(mode_xml) or '<모드>-log.txt'
+    head = text.split('\n', 1)[0]
+    m = re.search(r'런 #(\d+)', head)
+    log_run = int(m.group(1)) if m else None
+    if meta_run is not None and log_run is not None and int(log_run) != int(meta_run):
+        return ['    · 모드 로그(`%s` · T151): 머리가 런 #%s 의 것이라 **이 런(#%s)의 로그가 아니다** — screens 는 마지막 런 것 하나뿐이니 '
+                '다음 런에서 다시 본다(그 전엔 이 로그로 임자를 가리지 마라).' % (name, log_run, meta_run)]
+    body = [ln for ln in text.split('\n') if not ln.startswith('#')]
+    def strip_no(ln):
+        return re.sub(r'^\s*\d+:', '', ln).strip()
+    cs = next((strip_no(ln) for ln in body if re.search(r'\berror CS\d+\b', ln)), None)
+    lic = next((strip_no(ln) for ln in body if MODE_LOG_LICENSE.search(ln)), None)
+    cause = cs or next((strip_no(ln) for ln in body if MODE_LOG_CAUSE.search(ln)), None)
+    out = []
+    if cs or (cause and not lic):
+        line = cs or cause
+        out.append('    · 모드 로그(`%s` · T151 · 런 #%s): 첫 원인 줄 — `%s`' % (name, log_run or '?', line[:220]))
+        pm = MODE_LOG_PATH.search(line)
+        if pm:
+            path = pm.group(1)
+            owners = path_owners(path, progress_text)
+            if owners:
+                states = [(t,) + lock(t, now) for t in owners]
+                live = [st for st in states if st[1]]
+                pick = live[0] if live else states[0]
+                out.append('      ↳ 그 파일 `%s` 의 임자 **%s**(%s) — %s' % (
+                    path, pick[0], _lock_word(pick[1], pick[2]),
+                    '그의 몫이다(§1 «유니티 패키지 타입을 새로 쓰면 asmdef references 에 넣는다» 꼴이면 그 절이 고친다).' if pick[1]
+                    else 'lock 이 없으니 §0-6 대로 **이것이 네 일이다** — 잡 로그가 아니라 이 줄이 근거다.'))
+            else:
+                out.append('      ↳ 그 파일 `%s` 을 «범위» 로 적은 작업이 없다 — §0-6 대로 네가 고친다(근거는 이 줄이다 · 보고함이 아니다).' % path)
+        return out
+    if lic:
+        out.append('    · 모드 로그(`%s` · T151 · 런 #%s): 원인 줄이 라이선스다 — `%s` → §1 «유니티 라이선스 좌석» 갈래'
+                   '(재실행 1회 → 되풀이되면 보고함). 코드 탓이 아니다.' % (name, log_run or '?', lic[:160]))
+        return out
+    out.append('    · 모드 로그(`%s` · T151 · 런 #%s): 원인 문구 줄이 없다 — 머리 60·꼬리 400 을 직접 읽는다'
+               '(`git show origin/screens:%s`). 그래도 근거가 없을 때만 보고함이다.' % (name, log_run or '?', name))
+    return out
+
+
 def ledger_note(runs, missing, look=8):
     """장부(`screens/runs.jsonl`)로 «이번이 처음인가, 계속되는가» 를 센다(T172 3회차).
 
@@ -627,7 +697,8 @@ def ledger_note(runs, missing, look=8):
         and mode in str(recent[-2].get('missing_modes', '') or '')
     if straight:
         return ('\n    · 장부: 최근 런 %d개 중 %d번 빠졌고 **연달아 빠지는 중**이다(런 %s) — 간헐이 아니라 '
-                '**서 있는 파손**이다. 컴파일·라이선스 중 어느 쪽인지 잡 로그를 열고, 못 열면 보고함에 올린다.'
+                '**서 있는 파손**이다. 컴파일·라이선스 중 어느 쪽인지는 **`git show origin/screens:<모드>-log.txt`**(T151)로 본다 — '
+                '잡 로그는 컨테이너에서 못 연다(T344) · 아래 «모드 로그» 줄이 그것을 읽은 결과다 · 로그에도 근거가 없을 때만 보고함이다.'
                 % (len(recent), len(hit), ' '.join(hit)))
     return ('\n    · 장부: 최근 런 %d개 중 %d번 빠졌지만 **사이에 멀쩡한 런이 있다**(빠진 런: %s) — '
             '서 있는 파손이 아니라 **간헐**이다. §1 의 «되풀이» 로 보고 보고함에 올릴지는 '
@@ -635,7 +706,7 @@ def ledger_note(runs, missing, look=8):
 
 
 def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None, touched=None, missing='', runs=None,
-              passed=None, expected=None):
+              passed=None, expected=None, mode_logs=None, meta_run=None):
     """빨강마다 임자 한 줄 — **빠진 테스트 파일 ↔ PROGRESS 범위 열** 로 가린다(T125).
 
     갈래 넷:
@@ -659,18 +730,22 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
                     '**컴파일 파손을 먼저 본다**(실측 2026-09-14 런 410~412: T106 이 실제 TMP 에 없는 '
                     '`HasCharacter(uint,bool,bool)` 를 써 PlayMode 어셈블리가 깨졌고 `563c80f` 로 회복됐다). '
                     '⚠ `dotnet build` 의 TestsPlay(T48)가 **초록이어도 안심하면 안 된다** — 스텁(`tools/dotnet/Stubs`)에만 '
-                    '있는 멤버는 로컬에서 안 걸린다(§1 «유니티 패키지 타입» 줄). 잡 로그의 첫 컴파일 오류를 본다. '
-                    '그게 아니고 로그가 `no available seats`·`Unable to activate license`·좌석 반납 실패면 '
+                    '있는 멤버는 로컬에서 안 걸린다(§1 «유니티 패키지 타입» 줄). **`origin/screens:editmode-log.txt`·`playmode-log.txt`**(T151)의 첫 `error CS…` 줄을 본다 — 잡 로그는 컨테이너에서 못 연다(T344). '
+                    '그게 아니고 그 로그가 `no available seats`·`Unable to activate license`·좌석 반납 실패면 '
                     '§1 의 **«유니티 라이선스 좌석»** 갈래다(재실행 1회 → 되풀이되면 보고함).' % missing)
         else:
             head = ('  · 빨강의 임자: **찾지 마라 — 모드가 통째로 안 돌았다**(«%s»). 빠진 테스트 이름이 없으니 '
                     '코드 임자를 가릴 근거가 없다. 한 모드만 없으면 **§1 의 «유니티 라이선스 좌석»** 갈래를 먼저 본다: '
-                    '잡 로그가 `no available seats`·`Unable to activate license`·좌석 반납 실패면 **코드 탓이 아니다** — '
+                    '`origin/screens:<모드>-log.txt`(T151 · 잡 로그는 못 연다 · T344)가 `no available seats`·`Unable to activate license`·좌석 반납 실패면 **코드 탓이 아니다** — '
                     '재실행 1회(권한이 없으면 **다음 코드 push 의 런**을 기다린다), 되풀이되면 «주인 콘솔 에러 보고함» 에 '
                     '«유니티 라이선스 좌석» 한 줄. 그게 아니면 그 모드의 어셈블리 컴파일을 본다'
                     '(스텁에만 있는 멤버는 `dotnet build` 가 못 잡는다).' % missing)
         tail = ledger_note(runs, missing)
-        return [head + tail] if tail else [head]
+        out = [head + tail] if tail else [head]
+        # T344 — 자가 그 로그를 직접 읽는다(못 여는 잡 로그 대신)
+        for mode_xml in [x.strip() for x in str(missing).split(',') if x.strip()]:
+            out.extend(mode_log_note((mode_logs or {}).get(mode_xml), mode_xml, progress_text, meta_run=meta_run, lock=lock, now=now))
+        return out
     names = fixtures(fails)
     if not names:
         who = pusher(sha)
@@ -1318,6 +1393,43 @@ def self_test():
     eq('ⓧⓧ 전부 닫혔으면 «런 사이» 를 가리킨다', any('«런 사이» 칸의 산 lock 커밋' in l for l in lines), True)
     eq('ⓧⓧ row_status 가 상태를 쥔다', row_status(P_DONE).get('T50'), '✅ 완료')
 
+    # ⓧⓧⓧ T344 — 모드 로그(T151)를 자가 직접 읽는다
+    LOG_492 = ('# T151 — 런 #492 (abc) · playmode 의 결과 XML 이 없다 · 에디터 로그 unity-test-results/playmode.log\n'
+               '# 줄 수 1234 · 마지막 수정 2026-09-14T20:10:00Z\n## 원인 문구 줄(최대 60)\n'
+               "812:Assets/Tests/PlayMode/SceneGradeTests.cs(5,29): error CS0234: The type or namespace name 'Universal' does not exist in the namespace 'UnityEngine.Rendering'\n"
+               '900:Scripts have compiler errors.\n## 머리 60줄\n…')
+    P_341 = '| T341 | 장면 채점 | 🔄 진행 | 워커 S | `Assets/Tests/PlayMode/SceneGradeTests.cs` · `Assets/Scripts/Game/Render/SceneGrade.cs` | x |'
+    live_341 = lambda tid, now=None: (tid == 'T341', 12.0 if tid == 'T341' else None)
+    lines = mode_log_note(LOG_492, 'playmode-results.xml', P_341, meta_run=492, lock=live_341)
+    eq('ⓧⓧⓧ 첫 error CS 줄을 싣는다', any('error CS0234' in l for l in lines), True)
+    eq('ⓧⓧⓧ 그 줄의 파일 임자 T341', any('`Assets/Tests/PlayMode/SceneGradeTests.cs` 의 임자 **T341**' in l for l in lines), True)
+    eq('ⓧⓧⓧ 산 lock 이면 그의 몫', any('그의 몫이다' in l for l in lines), True)
+    eq('ⓧⓧⓧ 줄 번호 접두를 뗀다', any('812:' in l for l in lines), False)
+    lines = mode_log_note(LOG_492, 'playmode-results.xml', P_341, meta_run=492, lock=lambda t, now=None: (False, None))
+    eq('ⓧⓧⓧ lock 없으면 네 일이다', any('이것이 네 일이다' in l for l in lines), True)
+    lines = mode_log_note(LOG_492, 'playmode-results.xml', '', meta_run=492, lock=live_341)
+    eq('ⓧⓧⓧ 범위에 없으면 «네가 고친다» (보고함이 아니다)', any('네가 고친다' in l and '보고함이 아니다' in l for l in lines), True)
+    lines = mode_log_note(LOG_492, 'playmode-results.xml', P_341, meta_run=494, lock=live_341)
+    eq('ⓧⓧⓧ 다른 런의 로그면 임자를 안 가린다', len(lines) == 1 and '이 런(#494)의 로그가 아니다' in lines[0], True)
+    LOG_LIC = '# T151 — 런 #348 (x) · playmode 의 결과 XML 이 없다 · 에디터 로그 y\n## 원인 문구 줄\n33:[Licensing::Client] Error: no available seats\n'
+    lines = mode_log_note(LOG_LIC, 'playmode-results.xml', P_341, meta_run=348, lock=live_341)
+    eq('ⓧⓧⓧ 라이선스 문구면 그 갈래', any('«유니티 라이선스 좌석» 갈래' in l and 'no available seats' in l for l in lines), True)
+    eq('ⓧⓧⓧ 라이선스면 파일 임자를 안 찾는다', any('의 임자' in l for l in lines), False)
+    LOG_NONE = '# T151 — 런 #500 (x) · editmode 의 결과 XML 이 없다 · 에디터 로그 y\n## 원인 문구 줄\n## 머리 60줄\nhello\n'
+    lines = mode_log_note(LOG_NONE, 'editmode-results.xml', P_341, meta_run=500, lock=live_341)
+    eq('ⓧⓧⓧ 원인 줄이 없으면 직접 읽으라 하고 보고함은 그 뒤', any('원인 문구 줄이 없다' in l and 'editmode-log.txt' in l for l in lines), True)
+    eq('ⓧⓧⓧ 로그가 없으면 조용', mode_log_note(None, 'playmode-results.xml', P_341, meta_run=1), [])
+    eq('ⓧⓧⓧ 이름 변환', mode_log_name('editmode-results.xml'), 'editmode-log.txt')
+    eq('ⓧⓧⓧ 엉뚱한 이름은 빈 문자열', mode_log_name('foo.xml'), '')
+    # own_lines 의 «모드 빠짐» 갈래에 실제로 얹힌다 · 옛 «잡 로그를 열고» 문구는 사라졌다
+    lines = own_lines([], P_341, 'a' * 40, lock=live_341, missing='playmode-results.xml',
+                      runs=[{'run': 490, 'missing_modes': 'playmode-results.xml'}, {'run': 492, 'missing_modes': 'playmode-results.xml'}],
+                      mode_logs={'playmode-results.xml': LOG_492}, meta_run=492)
+    eq('ⓧⓧⓧ 모드 빠짐 갈래에 모드 로그 줄이 붙는다', any('모드 로그(' in l for l in lines), True)
+    eq('ⓧⓧⓧ 서 있는 파손이면 screens 로그를 대라', any('git show origin/screens:<모드>-log.txt' in l for l in lines), True)
+    eq('ⓧⓧⓧ «잡 로그를 열고» 는 없다', any('잡 로그를 열고' in l for l in lines), False)
+    eq('ⓧⓧⓧ 머리 문구도 screens 로그를 댄다', any('잡 로그는 컨테이너에서 못 연다' in l for l in lines), True)
+
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
         for f in fails:
@@ -1368,9 +1480,12 @@ def main(argv):
             for path in paths:
                 if path not in err.setdefault(name, []):
                     err[name].append(path)
+        miss_str = str(meta.get('missing_modes', '') or '')
+        mode_logs = {x.strip(): read_mode_log(ref, x.strip()) for x in miss_str.split(',') if x.strip()}
         own = own_lines(fails, read_progress(), cur, err=err, passed=red_only(fails),
                         expected=expected_reds(text),
-                        touched=prod_touch(commits), missing=str(meta.get('missing_modes', '') or ''), runs=runs)
+                        touched=prod_touch(commits), missing=miss_str, runs=runs,
+                        mode_logs=mode_logs, meta_run=meta.get('run'))
         between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None))
     rc, out = judge(meta, anc, n_after, fails, own, between)
     for ln in out:
