@@ -82,7 +82,11 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(MetaHost.Ready, "MetaHost 가 15초 안에 준비되지 않았다");
             Assert.IsNotNull(Hud.Instance, "HUD 가 서지 않았다");
 
-            Image av = FindImage(Hud.Instance.transform, "chat-preview-avatar");
+            // ⚠ 미리보기 띠는 HUD 층의 **자식이 아니라 형제**다 — `UiRoot.Build` 가 `Chat` 을 `App` 아래에 세우고
+            //    `Hud` 컴포넌트는 `HudLayer` 에 붙는다(`UiRoot.cs` 116·127). `Hud.Instance.transform` 아래에서 찾으면
+            //    구현이 멀쩡해도 늘 null 이다(런 280 빨강의 정체). 그 띠에서 바로 찾는다.
+            Assert.IsNotNull(UiRoot.Instance.Chat, "채팅 미리보기 띠가 안 섰다");
+            Image av = FindImage(UiRoot.Instance.Chat, "chat-preview-avatar");
             Assert.IsNotNull(av, "채팅 미리보기 아바타 칸이 없다");
             Assert.IsNotNull(av.sprite, "채팅 미리보기 아바타 스프라이트가 비었다");
             Assert.AreEqual("ico:chatbubble", av.sprite.name, "정본 ui.js 5294 = IconGen.img('chatbubble')");
