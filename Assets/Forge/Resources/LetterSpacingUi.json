@@ -26,5 +26,7 @@
   "chat_placeholder_ls_em": -0.06,
   "_chat_placeholder": "style.css 3460 `.chat-input-bar input::placeholder { letter-spacing: -.06em }` — **음수**. 3459 주석: «굵기를 되살리고 폭은 letter-spacing 으로 원본값에 맞춘다(두 지표를 동시에 통과시키는 유일한 조합)».",
   "death_sub_ls_em": 0.06,
-  "_death_sub": "scene3d.js 17423 `letter-spacing:.06em` — 사망 배너 부제(되밀기는 정본에 없다)."
+  "_death_sub": "scene3d.js 17423 `letter-spacing:.06em` — 사망 배너 부제(되밀기는 정본에 없다).",
+  "equip_cell_lv_ls_em": 0.05,
+  "_equip_cell_lv": "style.css 936~946 `.equip-cell .cell-lv { … letter-spacing: .05em }` — 장비 칸 Lv 배지(`ForgeUi.LvBadge` · 타일 아래쪽 흰 글자 + 검정 링). T168 4회차 · 마지막 자리."
 }

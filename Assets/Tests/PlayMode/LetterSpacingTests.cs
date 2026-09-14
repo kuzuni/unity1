@@ -88,6 +88,25 @@ namespace Forge.Tests.PlayMode
             if (dsub != null) Assert.AreEqual(LetterSpacing.Tmp("death_sub_ls_em"), dsub.characterSpacing, 1e-3f, "정본 17423 `.06em`");
         }
 
+        /// <summary>T168 4회차 — 장비 칸 Lv 배지(정본 style.css 936~946 `.equip-cell .cell-lv { letter-spacing: .05em }`)가 표대로 벌어진다.
+        /// 배지 공장(`ForgeUi.LvBadge`)을 직접 세워 잰다 — 어느 시트를 열든 같은 공장이라 실물과 같다.</summary>
+        [UnityTest]
+        public IEnumerator 장비_칸_Lv_배지의_글자가_표대로_벌어진다()
+        {
+            yield return Boot();
+            RectTransform tile = UiKit.Box(UiRoot.Instance.App, "t168-tile");
+            try
+            {
+                TextMeshProUGUI lv = ForgeUi.LvBadge(tile, 12, 100f);
+                yield return null;
+                Assert.IsNotNull(lv, "Lv 배지");
+                Assert.Greater(LetterSpacing.Em("equip_cell_lv_ls_em"), 0f, "정본 .05em — 양수(벌린다)");
+                Assert.AreEqual(0.05f, LetterSpacing.Em("equip_cell_lv_ls_em"), 1e-4f, "표가 정본 값 그대로");
+                Assert.AreEqual(LetterSpacing.Tmp("equip_cell_lv_ls_em"), lv.characterSpacing, 1e-3f, "배지 글자가 표대로 벌어진다(TMP 1/100 em 환산은 한 군데)");
+            }
+            finally { Object.Destroy(tile.gameObject); }
+        }
+
         /// <summary>그 이름의 가지에서 첫 TMP 글자를 찾는다(그 자신이 글자면 그것).</summary>
         private static TextMeshProUGUI Find(Transform root, string name)
         {

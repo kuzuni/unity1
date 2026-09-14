@@ -163,6 +163,7 @@ namespace Forge.Game.Ui
         {
             TextMeshProUGUI t = UiKit.Text(tile, "lv", TextKind.Sub, "Lv. " + JsNum.ToString(level), "stage_ink");
             t.fontStyle = FontStyles.Bold;
+            LetterSpacing.Apply(t, "equip_cell_lv_ls_em");   // T168 4회차 — 정본 style.css 936~946 `.equip-cell .cell-lv { letter-spacing: .05em }`
             PopupKit.Ring(t, "pp_line", 0.25f);
             UiKit.Anchor(t.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, size * 0.08f), size, t.fontSize * 1.2f);
             return t;
