@@ -1,0 +1,36 @@
+{
+  "_": "ROUTINE T135 의 셋째 갈래 — 제작 비교 팝업의 «새로운!» 카드 강조(정본 css 1833 `.cmp-card.new` · 1834 `::after` · 1841 `@keyframes shinesweep` · 1842 `@keyframes newpulse`). 수치는 전부 여기서 온다(§1 «코드에 숫자를 박지 않는다»). 접미: _px = 정본 CSS px · _f = 카드 크기 분수 · _deg = 도 · _ms = 벽시계.",
+  "layout": {
+    "pulse_ms": 1300,
+    "sweep_ms": 1700,
+    "sweep_w_f": 0.45,
+    "sweep_h_f": 2.20,
+    "sweep_top_f": -0.60,
+    "sweep_rot_deg": 15,
+    "sweep_angle_deg": 105,
+    "sweep_peak_a": 0.5
+  },
+  "newpulse": [
+    { "at": 0,   "glow_px": 6,  "ease": "ease-in-out" },
+    { "at": 50,  "glow_px": 16, "ease": "ease-in-out" },
+    { "at": 100, "glow_px": 6 }
+  ],
+  "shinesweep": [
+    { "at": 0,   "left_f": -0.80, "ease": "ease-in-out" },
+    { "at": 55,  "left_f": 1.30,  "ease": "ease-in-out" },
+    { "at": 100, "left_f": 1.30 }
+  ],
+  "_src": {
+    "pulse_ms": "css 1833 `animation: newpulse 1.3s ease-in-out infinite`",
+    "newpulse": "css 1842 `0%,100% { box-shadow: 0 0 6px var(--rc,#ffd54f) } 50% { box-shadow: 0 0 16px }` — 번짐 반지름만 움직인다(색은 희귀도색 --rc · 없으면 #ffd54f)",
+    "sweep_ms": "css 1838 `animation: shinesweep 1.7s ease-in-out infinite`",
+    "shinesweep": "css 1841 `0% { left:-80% } 55% { left:130% } 100% { left:130% }` — 55~100% 는 **멈춰 있다**(쓸고 난 뒤 쉬는 구간)",
+    "sweep_w_f": "css 1835 `width: 45%` (카드 폭 기준)",
+    "sweep_h_f": "css 1835 `height: 220%` (카드 높이 기준 — 기울여도 위아래가 남게)",
+    "sweep_top_f": "css 1835 `top: -60%`",
+    "sweep_rot_deg": "css 1837 `transform: rotate(15deg)`",
+    "sweep_angle_deg": "css 1836 `linear-gradient(105deg, transparent, rgba(255,255,255,.5), transparent)` 의 각",
+    "sweep_peak_a": "같은 줄 `rgba(255,255,255,.5)` 의 알파 — 띠 한가운데가 가장 밝다",
+    "_overflow": "css 1833 `overflow: hidden` — 띠는 카드 밖으로 안 나간다(유니티에선 카드에 RectMask2D)"
+  }
+}
