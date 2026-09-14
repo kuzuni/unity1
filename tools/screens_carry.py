@@ -70,14 +70,24 @@ def header(run, src):
             % (run if run is not None else '?', src if src is not None else '?'))
 
 
-def plan(dir_, names, meta_text, run, carried_out):
+def plan(dir_, names, meta_text, run, carried_out, stats_out=None):
+    """(이어받을 이름 목록) — `carried.txt` 를 쓰고, stats_out 이 있으면 «후보 수 · 받을 수» 도 적는다.
+
+    **후보 수를 따로 세는 까닭(T347 2회차)**: `carried: 0` 한 수로는 «받을 것이 없었다» 와 «지난 screens 를 아예 못 받았다» 가
+    똑같이 보인다 — 앞의 것은 정상이고 뒤의 것은 이어받기가 통째로 죽은 것이다. 런 535 실물이 `shots 69 · carried 0` 이었고
+    그 둘을 가르려면 «지난 screens 가 몇 개를 내놓았나» 가 있어야 했다.
+    """
     have = set(os.listdir(dir_)) if os.path.isdir(dir_) else set()
-    take = wanted(names, have)
+    cand = wanted(names, set())          # 확장자·목록 자신만 거른 «지난 screens 가 내놓은 것»
+    take = wanted(names, have)           # 그중 이 런이 아직 안 쓴 것
     if take:
         with open(carried_out, 'w', encoding='utf-8') as f:
             f.write(header(run, from_run(meta_text)))
             for n in take:
                 f.write(n + '\n')
+    if stats_out:
+        with open(stats_out, 'w', encoding='utf-8') as f:
+            f.write('candidates=%d\ntake=%d\n' % (len(cand), len(take)))
     return take
 
 
@@ -133,13 +143,24 @@ def self_test():
     # ⓖ 디렉터리가 아직 없어도 돈다
     take = plan(os.path.join(tmp, 'nope'), ['a.png'], '', 1, os.path.join(tmp, 'c.txt'))
     expect('ⓖ 없는 디렉터리', take == ['a.png'])
+    # ⓗ 후보 수 — «받을 것이 없었다»(후보 3 · 받을 것 0) ↔ «아예 못 받았다»(후보 0)를 가른다(T347 2회차 · 런 535)
+    d3 = os.path.join(tmp, 'd')
+    os.makedirs(d3)
+    for n in ('a.png', 'b.txt'):
+        open(os.path.join(d3, n), 'w').close()
+    st = os.path.join(tmp, 'stats.txt')
+    take = plan(d3, ['a.png', 'b.txt', 'runs.jsonl'], '', 9, os.path.join(d3, CARRIED), st)
+    expect('ⓗ 받을 것 0', take == [], str(take))
+    expect('ⓗ 후보는 2', _read(st) == 'candidates=2\ntake=0\n', repr(_read(st)))
+    take = plan(d3, [], '', 9, os.path.join(d3, CARRIED), st)
+    expect('ⓗ 못 받으면 후보 0', _read(st) == 'candidates=0\ntake=0\n', repr(_read(st)))
     shutil.rmtree(tmp, ignore_errors=True)
     if fails:
         print('✗ screens_carry --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  · ' + f[:300])
         return 1
-    print('✓ screens_carry --self-test 12칸 통과')
+    print('✓ screens_carry --self-test 15칸 통과')
     return 0
 
 
@@ -151,6 +172,7 @@ def main(argv):
     ap.add_argument('--from-meta', default='')
     ap.add_argument('--run', default='')
     ap.add_argument('--carried-out', default='')
+    ap.add_argument('--stats-out', default='')
     ap.add_argument('--self-test', action='store_true')
     a = ap.parse_args(argv)
     if a.self_test:
@@ -165,7 +187,7 @@ def main(argv):
         run = int(a.run)
     except (TypeError, ValueError):
         run = None
-    for n in plan(a.dir, text.split('\n'), _read(a.from_meta), run, out):
+    for n in plan(a.dir, text.split('\n'), _read(a.from_meta), run, out, a.stats_out or None):
         print(n)
     return 0
 

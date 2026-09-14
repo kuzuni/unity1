@@ -114,7 +114,7 @@ jobs:
       #        안 만진 push 에선 건너뛰므로 여기서도 돈다(자를 고친 커밋이 그 잡 없이 초록으로 지나가지 않게).
       - name: screens 장부 합치기 자 자기 검사 (T336 `screens_ledger.py --self-test` · 20칸)
         run: python3 tools/screens_ledger.py --self-test
-      - name: screens 이어받기 자 자기 검사 (T347 `screens_carry.py --self-test` · 12칸)
+      - name: screens 이어받기 자 자기 검사 (T347 `screens_carry.py --self-test` · 15칸)
         run: python3 tools/screens_carry.py --self-test
       - name: 게이트 자 자기 검사 (T184 `gate.sh --self-test` · 실물 컴파일 오류 주입 포함 27칸)
         run: tools/gate.sh --self-test
@@ -432,21 +432,26 @@ jobs:
           #        **가장 필요한 순간에 사라지던 셈**이다. 이 런이 스스로 쓴 파일은 덮지 않는다(있으면 건너뛴다).
           # T347 — 바깥 조건 `[ "$n" = "0" ]` 을 **걷었다**. 그것 때문에 «몇 장이라도 낸 런»(부분 실패)이 나머지를
           #        통째로 지웠다(런 494 실물 `shots: 17 · carried: 0` ↔ 직전 런 463 은 63장 · 46장 + 글자 자국 소실).
-          #        고르기는 `tools/screens_carry.py` 가 쥔다(자기 검사 12칸) — «이 런이 쓴 것은 안 덮는다» 는 그대로이고,
+          #        고르기는 `tools/screens_carry.py` 가 쥔다(자기 검사 15칸) — «이 런이 쓴 것은 안 덮는다» 는 그대로이고,
           #        이어받은 것은 `carried.txt` 에 «어느 런 것인가» 로 적어 눈 확인(§1)이 지난 그림을 이번 것으로 읽지 않게 한다.
           carry="$GITHUB_WORKSPACE/tools/screens_carry.py"
           python3 "$carry" --self-test || { echo "::error::screens 이어받기 자(tools/screens_carry.py) 자기 검사 실패 — 이어받기를 멈춘다(T347)"; exit 1; }
+          cand=0
           if git fetch --depth 1 origin screens 2>/dev/null; then
             git show FETCH_HEAD:meta.json > prev-meta.json 2>/dev/null || : > prev-meta.json
-            for f in $(git ls-tree --name-only FETCH_HEAD | python3 "$carry" plan --dir ui-screens --names - --from-meta prev-meta.json --run "$GITHUB_RUN_NUMBER"); do
+            for f in $(git ls-tree --name-only FETCH_HEAD | python3 "$carry" plan --dir ui-screens --names - --from-meta prev-meta.json --run "$GITHUB_RUN_NUMBER" --stats-out carry-stats.txt); do
               git show "FETCH_HEAD:$f" > "ui-screens/$f" && carried=$((carried+1)) || true
             done
-            rm -f prev-meta.json
+            cand=$(sed -n 's/^candidates=//p' carry-stats.txt 2>/dev/null || true)
+            rm -f prev-meta.json carry-stats.txt
           fi
+          # T347 2회차 — `carried: 0` 한 수로는 «받을 것이 없었다»(정상)와 «지난 screens 를 아예 못 받았다»(이어받기가 죽음)가
+          #        똑같아 보인다(런 535 실물 `shots 69 · carried 0`). 지난 screens 가 내놓은 **후보 수**를 같이 적어 둘을 가른다.
+          case "$cand" in ''|*[!0-9]*) cand=0 ;; esac   # meta.json 은 JSON 이다 — 숫자가 아니면 0
           any=$(ls -A ui-screens 2>/dev/null | grep -cv '^meta[.]json$' || true)
           echo "count=$n" >> "$GITHUB_OUTPUT"
           echo "any=$any" >> "$GITHUB_OUTPUT"
-          printf '{"sha":"%s","run":%s,"tests":"%s","shots":%s,"carried":%s,"missing_modes":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$n" "$carried" "$miss" > ui-screens/meta.json
+          printf '{"sha":"%s","run":%s,"tests":"%s","shots":%s,"carried":%s,"carry_candidates":%s,"missing_modes":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$n" "$carried" "$cand" "$miss" > ui-screens/meta.json
           # T148 — 런 **장부** `runs.jsonl`: 유니티 잡이 돈 런마다 한 줄을 **덧붙인다**(지난 screens 의 장부를 받아 이어 쓴다 · 꼬리 400줄).
           #        screens 는 고아 커밋 하나를 force push 하므로 meta.json 에는 이력이 없다 — `check_unity_green` 이 «직전 초록 런의 sha» 를
           #        여기서 읽어 «그 뒤 이 런에 새로 들어온 코드 커밋» 으로 남의 자 여럿을 깨뜨린 임자를 가린다. 못 받으면 이 런 한 줄로 새로 시작한다.
@@ -454,7 +459,7 @@ jobs:
           if git fetch --depth 1 origin screens 2>/dev/null; then git show FETCH_HEAD:runs.jsonl > ui-screens/.runs.tmp 2>/dev/null || : > ui-screens/.runs.tmp; fi
           printf '{"sha":"%s","run":%s,"tests":"%s","missing_modes":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$miss" >> ui-screens/.runs.tmp
           tail -n 400 ui-screens/.runs.tmp > ui-screens/runs.jsonl && rm -f ui-screens/.runs.tmp
-          echo "::notice::screens — 이 런의 PNG ${n}장 · 이어받은 파일 ${carried}개(무엇인지는 screens 의 carried.txt · T347) · 올릴 파일 ${any}개 · 없는 모드 XML «${miss:-없음}»"
+          echo "::notice::screens — 이 런의 PNG ${n}장 · 이어받은 파일 ${carried}개/후보 ${cand}개(무엇인지는 screens 의 carried.txt · T347) · 올릴 파일 ${any}개 · 없는 모드 XML «${miss:-없음}»"
       # T96 — 런 164·168: peaceiris/actions-gh-pages 의 `git push --force screens` 가 «remote: Internal Server Error» 로 거절됐다
       #       (GitHub 쪽 500 · 22분 간격 두 번 · 같은 시각 런 167 은 startup_failure). 액션은 한 번 밀고 죽어 그 문구가 잡 로그 깊숙이만 남고
       #       screens(눈 확인 §5 · T46 진단)가 멈춘다. 같은 일(고아 루트 커밋 하나 · force push)을 셸로 하고 ⓐ 15·30·45·60초 뒤 네 번 더 민다
