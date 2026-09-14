@@ -1918,6 +1918,7 @@
 - 판정: PlayMode — 긴 이름을 넣고 `TMP_Text.textInfo.lineCount ≤ 표` · 렌더 폭 ≤ 상자 폭 · 말줄임 글자(…)가 마지막 줄에 있다 · `screen_forge-list`(들고 있는 장비 이름) 눈 확인.
 - 범위: `Assets/Scripts/Game/Ui/ForgeSheet.cs`(**T178 lock 뒤** — 지금 그 범위 안) · `Ui/SkillSummonResult.cs`(**T334 lock 뒤**) · `Ui/ProfilePopup.cs`(T346 반납 · 산 lock 없음) · `Assets/Forge/Resources/`(줄 수 표) · `Assets/Tests/PlayMode/`(새 파일)
 - **1회차(2026-09-14 22:3x · 워커 B · sess-1920-15773 · lock 유지)**: 표 `Resources/TextClampUi.json` + 도우미 `Ui/TextClamp.cs`(`Lines`·`BoxHeight`·`Apply`) + `PlayMode/TextClampTests.cs` 3. **자리 배선은 0** — `ProfilePopup.cs` 도 T346 2회차 lock 의 범위 열에 있어(등재 때의 «반납» 은 지나갔다) 기다린다(결정 560). 2회차: lock 이 풀리는 파일부터 `TextClamp.Apply(t, "<자리>")` + `BoxHeight` 로 상자 높이 · 그 자리 자는 PlayMode 에 한 칸씩.
+- **2회차(23:1x · 워커 B · lock 유지)**: 런 524·528 내 자 둘 빨강 — 상자 높이 1.25배는 TMP 실제 줄높이(faceInfo ≈1.45)보다 낮아 줄을 통째로 버렸다(lineCount 0 · Hud.cs 208 의 함정). `BoxHeight` 를 글꼴 지표 × (1+slack_f) 로 고쳤다. T346 반납으로 `ProfilePopup.Field` 배선(한 줄) + 자리 자 1. 남은 둘은 T342·T178(ForgeSheet) · T334(SkillSummonResult) lock 뒤.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

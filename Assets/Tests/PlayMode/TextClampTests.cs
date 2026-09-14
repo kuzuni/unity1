@@ -48,8 +48,8 @@ namespace Forge.Tests.PlayMode
         static TextMeshProUGUI Make(RectTransform host, string site, string text, float w)
         {
             TextMeshProUGUI t = UiKit.Text(host, "t351-" + site, TextKind.Sub, text, "pp_ink", TextAlignmentOptions.TopLeft);
-            UiKit.Place(t.rectTransform, 0f, 0f, w, TextClamp.BoxHeight(TextKind.Sub, site));
             TextClamp.Apply(t, site);
+            UiKit.Place(t.rectTransform, 0f, 0f, w, TextClamp.BoxHeight(t, site));   // 높이가 곧 클램프 — 글꼴 지표로 잰다(런 528: 1.25 배는 줄을 통째로 버렸다)
             return t;
         }
 
@@ -68,6 +68,7 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(1, TextClamp.Lines("held_name"), "1005 .held-name 한 줄 말줄임");
             Assert.AreEqual(2, TextClamp.Lines("sr_name"), "7048 .sr-name > span -webkit-line-clamp: 2");
             Assert.Greater(TextClamp.LineHeightF(), 0f);
+            Assert.GreaterOrEqual(TextClamp.SlackF(), 0f);
             foreach (string s in TextClamp.Sites()) Assert.GreaterOrEqual(TextClamp.Lines(s), 1, s);
             Assert.Throws<System.Collections.Generic.KeyNotFoundException>(() => TextClamp.Lines("no-such-site"), "표에 없는 자리는 던진다 — 조용히 넘치지 않는다");
         }
@@ -118,6 +119,33 @@ namespace Forge.Tests.PlayMode
                 Assert.AreNotEqual('…', LastVisible(one));
             }
             finally { Object.Destroy(host.gameObject); }
+        }
+
+        /// <summary>자리 배선 — 프로필 이름 칸(정본 3052 `.profile-field` 한 줄 말줄임): 닉네임은 12자 상한(ui.js 5066)이라 넓은 글자 12자로 채워 본다.</summary>
+        [UnityTest]
+        public IEnumerator 프로필_이름_칸은_한_줄_말줄임_규칙을_걸고_두_줄로_꺾이지_않는다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            const string Wide = "뷁뷁뷁뷁뷁뷁뷁뷁뷁뷁뷁뷁";   // 12자 · 가장 넓은 한글 꼴
+            ProfilePopup.SetNickname(h, Wide);
+            ProfilePopup.Open(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(ProfilePopup.Name);
+            Assert.IsNotNull(p, "프로필 팝업이 안 열렸다");
+            Transform field = p.Root.Find("card/name-field");
+            Assert.IsNotNull(field, "이름 칸(name-field)이 없다");
+            TextMeshProUGUI t = field.Find("text").GetComponent<TextMeshProUGUI>();
+            Assert.IsNotNull(t);
+            t.ForceMeshUpdate();
+            Assert.AreEqual(TextWrappingModes.NoWrap, t.textWrappingMode, "정본 white-space: nowrap");
+            Assert.AreEqual(TextOverflowModes.Ellipsis, t.overflowMode, "정본 text-overflow: ellipsis");
+            Assert.AreEqual(1, t.textInfo.lineCount, "한 줄 — 두 줄로 안 꺾인다");
+            Assert.Greater(t.textInfo.characterCount, 0, "글자가 통째로 사라지면(런 528 꼴) 안 된다");
+            if (t.textInfo.characterCount < Wide.Length) Assert.AreEqual('\u2026', LastVisible(t), "잘렸으면 끝은 …");
+            ProfilePopup.Close(h);
+            yield return null;
         }
     }
 }

@@ -1,6 +1,7 @@
 {
-  "_": "ROUTINE T351 — 정본 overflow 축의 글자 자르기·말줄임(text-overflow: ellipsis · -webkit-line-clamp) 자리 표. 자리마다 «허용 줄 수» 하나가 수치다: 1 = 한 줄 말줄임(white-space: nowrap + text-overflow: ellipsis) · 2 = 두 줄 뒤 자름(-webkit-line-clamp: 2). TMP 는 Ellipsis 모드가 상자 안에 든 마지막 줄 끝에 …(U+2026 · 글꼴에 있다) 을 붙이므로 상자 높이 = 줄 수 × 글자 크기 × line_height_f 로 잡는다(TextClamp.BoxHeight). 채팅 미리보기 둘(Hud.cs 212~217)이 본보기이고 이 표는 그 규칙을 자리 이름으로 쥔다. 코드에 숫자를 박지 않는다(§1). 접미 _f = 비율.",
-  "line_height_f": 1.25,
+  "_": "ROUTINE T351 — 정본 overflow 축의 글자 자르기·말줄임(text-overflow: ellipsis · -webkit-line-clamp) 자리 표. 자리마다 «허용 줄 수» 하나가 수치다: 1 = 한 줄 말줄임(white-space: nowrap + text-overflow: ellipsis) · 2 = 두 줄 뒤 자름(-webkit-line-clamp: 2). TMP 는 Ellipsis 모드가 상자 안에 든 마지막 줄 끝에 …(U+2026 · 글꼴에 있다) 을 붙이므로 상자 높이 = 줄 수 × 실제 줄높이 × (1 + slack_f) 로 잡는다(TextClamp.BoxHeight). 줄높이는 글꼴 faceInfo(lineHeight / pointSize)에서 재고 line_height_f 는 그것을 못 읽을 때의 대체값이다 — 런 528 실측: 1.25 로 잡으면 TMP 가 줄을 통째로 버려 글자가 0 이 된다(Hud.cs 208 주석의 함정). 채팅 미리보기 둘(Hud.cs 212~217)이 본보기이고 이 표는 그 규칙을 자리 이름으로 쥔다. 코드에 숫자를 박지 않는다(§1). 접미 _f = 비율.",
+  "line_height_f": 1.45,
+  "slack_f": 0.06,
   "sites": {
     "profile_field": { "lines": 1, "_": "style.css 3052 .profile-field { overflow: hidden; text-overflow: ellipsis; white-space: nowrap } · 닉네임은 ui.js 5066 이 12자로 자른다 · 클론 ProfilePopup.Field" },
     "held_name":     { "lines": 1, "_": "style.css 1003~1006 .anvil-btn.held-slot .held-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap } · 클론 ForgeSheet held-name" },

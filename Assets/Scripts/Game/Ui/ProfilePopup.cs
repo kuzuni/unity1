@@ -175,6 +175,7 @@ namespace Forge.Game.Ui
             TextMeshProUGUI t = UiKit.Text(f, "text", TextKind.Sub, text, "pp_ink", TextAlignmentOptions.Left);
             t.fontStyle = FontStyles.Bold;
             t.rectTransform.offsetMin = new Vector2(PopupKit.Rem * 0.55f, 0f);
+            TextClamp.Apply(t, "profile_field");   // T351 — 정본 3052 .profile-field { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
         }
 
         /// <summary>파란 라운드 사각 편집 버튼(원작 .profile-edit-btn · 연필).</summary>

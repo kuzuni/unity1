@@ -45,7 +45,7 @@ namespace Forge.Game.Ui
             return (int)J.Num(v);
         }
 
-        /// <summary>줄높이 비율(글자 크기 × 이 값 = 한 줄 상자 높이).</summary>
+        /// <summary>글꼴 지표를 못 읽을 때의 줄높이 비율(글자 크기 × 이 값).</summary>
         public static float LineHeightF()
         {
             Load();
@@ -54,10 +54,29 @@ namespace Forge.Game.Ui
             return (float)J.Num(v);
         }
 
-        /// <summary>그 자리의 글자 상자 높이 = 줄 수 × 종류 글자 크기 × 줄높이 비율 — Ellipsis 는 «상자 안에 든 줄» 까지만 그리므로 높이가 곧 클램프다.</summary>
-        public static float BoxHeight(TextKind kind, string site)
+        /// <summary>상자에 더 주는 여유 비율 — TMP 는 줄이 상자 높이에 조금이라도 안 들면 그 줄을 통째로 버린다(런 528 실측 characterCount 0).</summary>
+        public static float SlackF()
         {
-            return Lines(site) * UiCatalog.Instance.Kind(kind).size * LineHeightF();
+            Load();
+            object v = root["slack_f"];
+            if (!J.IsNum(v) || J.Num(v) < 0) throw new InvalidOperationException(ResourcePath + ".json slack_f 가 없다 (T351)");
+            return (float)J.Num(v);
+        }
+
+        /// <summary>이 글자의 실제 한 줄 높이 — 글꼴 faceInfo(lineHeight / pointSize) × 글자 크기. 지표가 비어 있으면 표의 비율로.</summary>
+        public static float LineHeight(TMP_Text t)
+        {
+            if (t == null) throw new ArgumentNullException("t");
+            float f = 0f;
+            if (t.font != null && t.font.faceInfo.pointSize > 0) f = t.font.faceInfo.lineHeight / t.font.faceInfo.pointSize;
+            if (f <= 0f) f = LineHeightF();
+            return t.fontSize * f;
+        }
+
+        /// <summary>그 자리의 글자 상자 높이 = 줄 수 × 실제 줄높이 × (1 + 여유) — Ellipsis 는 «상자 안에 든 줄» 까지만 그리므로 높이가 곧 클램프다.</summary>
+        public static float BoxHeight(TMP_Text t, string site)
+        {
+            return Lines(site) * LineHeight(t) * (1f + SlackF());
         }
 
         /// <summary>정본의 자르기 규칙을 건다: 한 줄이면 NoWrap + Ellipsis · 여러 줄이면 Normal(줄바꿈) + Ellipsis(상자 밖 줄은 버리고 …).</summary>
