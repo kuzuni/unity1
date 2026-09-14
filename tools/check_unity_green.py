@@ -167,6 +167,25 @@ def behind(sha, main=MAIN):
 LOCK_MIN = 90   # 규약 `docs/claims/README.md` — 90분 지난 lock 은 죽은 것이다
 
 
+def last_commit_age(tid, now=None):
+    """T348 — 그 작업 번호로 시작하는 **마지막 커밋**이 몇 분 전인가(제목 `T<번호> …` · 어느 SID 든). git 이 없거나 커밋이 없으면 None.
+
+    왜: lock 파일 시각은 «원래 SID» 만 갱신한다. 다른 SID 가 이어받아 코드를 밀어도 lock 은 낡아 «죽었다(뺏을 수 있다)» 로 보인다
+    (실측 2026-09-14 런 501: T342 lock 103분 · 그런데 워커 K 가 다른 SID 로 36분 전에 밀었다). `task_state` 가 쓰는 잣대(T187·T329)와 같다."""
+    if not tid:
+        return None
+    rc, out = _git(['log', '-1', '--format=%ct', '-E', '--grep=^%s( |:)' % re.escape(tid)])
+    if rc != 0 or not out.strip():
+        return None
+    try:
+        ts = int(out.strip().split()[0])
+    except ValueError:
+        return None
+    import calendar
+    nowts = calendar.timegm((now or datetime.datetime.utcnow()).timetuple())
+    return max(0, int((nowts - ts) // 60))
+
+
 def lock_state(tid, now=None):
     """그 작업 lock → (살아 있는가, 몇 분 됐는가). lock 파일이 없으면 (False, None)."""
     path = os.path.join(ROOT, 'docs', 'claims', tid + '.lock')
@@ -521,10 +540,11 @@ def test_files_of(files):
     return out
 
 
-def between_lines(commits, fails_fixtures, green, lock=None, now=None, no_ledger=False):
+def between_lines(commits, fails_fixtures, green, lock=None, now=None, no_ledger=False, commit_age=None):
     """순수 — «런 사이» 문구(T148). commits = [(sha, 제목, 파일)] 새 것부터 · green = (sha, run) 또는 (None, None).
 
     갈래 셋: 초록 런을 못 찾았다 / 사이에 코드 커밋이 없다 / 하나·여럿(산 lock 이 있는 것을 먼저 · 제 자가 초록인 갈래는 아니라고)."""
+    cage = commit_age or last_commit_age
     lock = lock or lock_state
     gsha, grun = green
     if not gsha:
@@ -547,7 +567,7 @@ def between_lines(commits, fails_fixtures, green, lock=None, now=None, no_ledger
         own_green = [t for t in own_tests if t not in fails_fixtures]
         if tid:
             alive, age = lock(tid, now)
-            word = _lock_word(alive, age)
+            word = _lock_word(alive, age, recent=(cage(tid, now) if (not alive and age is not None) else None), tid=tid)
         else:
             alive, word = False, '제목이 T 로 안 시작한다'
         note = ''
@@ -582,8 +602,12 @@ def read_progress():
         return ''
 
 
-def own_line(tid, alive, age):
-    """임자 한 줄 — judge 가 그대로 찍는다(자기 검사가 이 줄만 따로 잰다)."""
+def own_line(tid, alive, age, recent=None):
+    """임자 한 줄 — judge 가 그대로 찍는다(자기 검사가 이 줄만 따로 잰다). `recent` = 그 번호의 마지막 커밋 나이(분 · T348)."""
+    if tid is not None and not alive and age is not None and recent is not None and recent < LOCK_MIN:
+        return ('  · 빨강의 임자: **%s** — lock 은 %d분 전(90분 규약으론 죽었다)이지만 그 번호로 **%d분 전 커밋**이 있다 — '
+                '**다른 SID 가 이어 하는 중일 수 있다** · 뺏지 말고 `python3 tools/task_state.py %s` 로 확인한다(T348).'
+                % (tid, age, recent, tid))
     if tid is None:
         return ('  · 빨강의 임자: 그 커밋 제목이 `T<번호> …` 가 아니라 작업을 못 가렸다 — '
                 'lock 을 눈으로 확인하고, 임자가 없으면 §0-6 대로 **네가 고친다**.')
@@ -594,12 +618,18 @@ def own_line(tid, alive, age):
             % (tid, (' (마지막 갱신 %d분 전 · 90분 규약으로 죽었다)' % age) if age is not None else ''))
 
 
-def _lock_word(alive, age):
-    """lock 한 낱말 — «살았다(N분 전)» · «죽었다(N분 전 · 90분 규약)» · «없다» 를 **가른다**(T125 2회차)."""
+def _lock_word(alive, age, recent=None, tid=None):
+    """lock 한 낱말 — «살았다(N분 전)» · «죽었다(N분 전 · 90분 규약)» · «없다» 를 **가른다**(T125 2회차).
+
+    T348 — 죽은 lock 이라도 그 번호로 **90분 안의 커밋**(`recent` 분)이 있으면 «뺏을 수 있다» 라 하지 않는다:
+    다른 SID 가 이어 하는 중일 수 있다(lock 파일은 원래 SID 만 갱신한다). `task_state <ID>` 로 확인하라고 보낸다."""
     if alive:
         return 'lock %s' % (('%d분 전' % age) if age is not None else '살아 있다')
     if age is None:
         return 'lock 없다'
+    if recent is not None and recent < LOCK_MIN:
+        return ('lock %d분 전(90분 규약으론 죽었다) — 그런데 그 번호로 **%d분 전 커밋**이 있다 · **다른 SID 가 이어 하는 중일 수 있다** — '
+                '뺏지 말고 `python3 tools/task_state.py %s` 로 확인하라(T348)' % (age, recent, tid or '<ID>'))
     return 'lock %d분 전 — 90분 규약으로 **죽었다**(뺏을 수 있다)' % age
 
 
@@ -623,7 +653,7 @@ def read_mode_log(ref, mode_xml):
     return out if rc == 0 and out.strip() else None
 
 
-def mode_log_note(text, mode_xml, progress_text, meta_run=None, lock=None, now=None):
+def mode_log_note(text, mode_xml, progress_text, meta_run=None, lock=None, now=None, commit_age=None):
     """<모드>-log.txt(T151) 를 **자가 직접 읽어** 원인 줄과 임자를 댄다(순수 · 자기 검사용).
 
     ⓐ 로그가 없으면 조용(빈 목록) ⓑ 머리의 런 번호가 meta 의 런과 다르면 «다른 런의 로그» 라고 말하고 그친다(screens 는 마지막 런 것 하나뿐)
@@ -632,6 +662,10 @@ def mode_log_note(text, mode_xml, progress_text, meta_run=None, lock=None, now=N
     if not text:
         return []
     lock = lock or lock_state
+    cage = commit_age or last_commit_age
+
+    def lw(tid, alive, age):   # T348 — 죽은 lock 이면 그 번호의 마지막 커밋 나이를 같이 본다
+        return _lock_word(alive, age, recent=(cage(tid, now) if (not alive and age is not None) else None), tid=tid)
     name = mode_log_name(mode_xml) or '<모드>-log.txt'
     head = text.split('\n', 1)[0]
     m = re.search(r'런 #(\d+)', head)
@@ -658,7 +692,7 @@ def mode_log_note(text, mode_xml, progress_text, meta_run=None, lock=None, now=N
                 live = [st for st in states if st[1]]
                 pick = live[0] if live else states[0]
                 out.append('      ↳ 그 파일 `%s` 의 임자 **%s**(%s) — %s' % (
-                    path, pick[0], _lock_word(pick[1], pick[2]),
+                    path, pick[0], lw(pick[0], pick[1], pick[2]),
                     '그의 몫이다(§1 «유니티 패키지 타입을 새로 쓰면 asmdef references 에 넣는다» 꼴이면 그 절이 고친다).' if pick[1]
                     else 'lock 이 없으니 §0-6 대로 **이것이 네 일이다** — 잡 로그가 아니라 이 줄이 근거다.'))
             else:
@@ -706,7 +740,7 @@ def ledger_note(runs, missing, look=8):
 
 
 def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None, touched=None, missing='', runs=None,
-              passed=None, expected=None, mode_logs=None, meta_run=None):
+              passed=None, expected=None, mode_logs=None, meta_run=None, commit_age=None):
     """빨강마다 임자 한 줄 — **빠진 테스트 파일 ↔ PROGRESS 범위 열** 로 가린다(T125).
 
     갈래 넷:
@@ -721,6 +755,13 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
     """
     hist = hist or history_owners
     lock = lock or lock_state
+    cage = commit_age or last_commit_age
+
+    def lw(tid, alive, age):   # T348 — 죽은 lock 이면 그 번호의 마지막 커밋 나이를 같이 본다
+        return _lock_word(alive, age, recent=(cage(tid, now) if (not alive and age is not None) else None), tid=tid)
+
+    def rc_of(tid, alive, age):
+        return cage(tid, now) if (not alive and age is not None) else None
     # T172 — 모드가 통째로 안 돈 런은 **코드 임자를 찾을 일이 아니다**(빠진 테스트 이름이 아예 없다).
     #        여기서 «그 커밋을 민 워커» 를 대면 죄 없는 사람을 가리킨다(실측 런 403: PlayMode 0개인데 T156 을 댔다).
     if missing:
@@ -744,7 +785,7 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
         out = [head + tail] if tail else [head]
         # T344 — 자가 그 로그를 직접 읽는다(못 여는 잡 로그 대신)
         for mode_xml in [x.strip() for x in str(missing).split(',') if x.strip()]:
-            out.extend(mode_log_note((mode_logs or {}).get(mode_xml), mode_xml, progress_text, meta_run=meta_run, lock=lock, now=now))
+            out.extend(mode_log_note((mode_logs or {}).get(mode_xml), mode_xml, progress_text, meta_run=meta_run, lock=lock, now=now, commit_age=cage))
         return out
     names = fixtures(fails)
     if not names:
@@ -782,9 +823,10 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
             plive = [st for st in pstates if st[1]]
             pick = plive[0] if plive else pstates[0]
             out.append('  · `%s` 의 빨강은 **제 파일 이야기가 아니다** — 콘솔 에러가 `%s` 를 댄다: 그 파일의 임자 **%s**(%s)%s'
-                       % (name, path, pick[0], _lock_word(pick[1], pick[2]),
+                       % (name, path, pick[0], lw(pick[0], pick[1], pick[2]),
                           ' — 그의 몫이니 건드리지 말고 네 작업을 잡는다.' if pick[1]
-                          else ' — lock 이 없으니 §0-6 대로 **이것이 네 일이다**(넘어진 자가 아니라 **이 파일**을 고친다).'))
+                          else (' — 뺏지 말고 `task_state` 로 먼저 확인한다(T348).' if rc_of(*pick) is not None and rc_of(*pick) < LOCK_MIN
+                                else ' — lock 이 없으니 §0-6 대로 **이것이 네 일이다**(넘어진 자가 아니라 **이 파일**을 고친다).')))
             out.append('    ↳ %s(`%s`)의 임자는 아래에 그대로 남긴다 — 그 사람 몫이 아닐 수 있다.'
                        % ('빨강을 받아 적은 자' if name in passed else '넘어진 자', name))
         cands, dead, dstat = scope_owners_split(name, progress_text)
@@ -819,7 +861,7 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
                 rstat = row_status(progress_text)
                 _keep, hdone = split_done([h for h, _a, _g in hstates], rstat, lock, now)
                 tail = ' · 그 파일을 고쳐 온 작업: %s' % ' '.join(
-                    '%s(%s)' % (h, '✅ 닫힌 행' if h in hdone else _lock_word(a, g)) for h, a, g in hstates)
+                    '%s(%s)' % (h, '✅ 닫힌 행' if h in hdone else lw(h, a, g)) for h, a, g in hstates)
                 if hdone and len(hdone) == len(hstates):
                     tail += (' — 전부 닫힌 절이라 지금 빨강의 임자가 아니다 · **아래 «런 사이» 칸의 산 lock 커밋**(그 창에서 코드를 민 작업)이'
                              ' 먼저다(T340 · 실측 런 479: 그것이 T330 이었다).')
@@ -831,17 +873,17 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
         states = [(c,) + lock(c, now) for c in cands]   # T153 — 주입한 lock 을 쓴다(여기만 모듈 lock_state 를 불러 자기 검사가 안 닿았다)
         live = [s for s in states if s[1]]
         if len(cands) == 1:
-            out.append('  · `%s` 의 임자: ' % name + own_line(*states[0]).split(': ', 1)[1]
+            out.append('  · `%s` 의 임자: ' % name + own_line(*states[0], recent=rc_of(*states[0])).split(': ', 1)[1]
                        + (touch_note(states[0][0], touched) if states[0][1] else '') + dead_note)
         elif len(live) == 1:
             rest = ' · 같은 파일을 적은 다른 작업: %s' % ' '.join(c for c, a, _g in states if not a)
-            out.append('  · `%s` 의 임자: ' % name + own_line(*live[0]).split(': ', 1)[1] + rest
+            out.append('  · `%s` 의 임자: ' % name + own_line(*live[0], recent=rc_of(*live[0])).split(': ', 1)[1] + rest
                        + touch_note(live[0][0], touched))
         else:
             # ⚠ «lock 이 죽었다» 와 «lock 이 아예 없다» 를 한 낱말로 뭉개면 안 된다 — 앞은 §0-6 의
             #    «뺏어도 되는 자리» 이고 뒤는 «아직 아무도 안 잡은 자리» 다(실측 2026-09-14: T132 의
             #    lock 이 98분이라 죽었는데 «없다» 로 찍혀 몇 분이 지났는지도 안 보였다).
-            who = ' '.join('%s(%s)' % (c, _lock_word(a, g)) for c, a, g in states)
+            who = ' '.join('%s(%s)' % (c, lw(c, a, g)) for c, a, g in states)
             live_note = '' if live else ' · **산 lock 이 하나도 없다 → §0-6 대로 네 일이다**'
             out.append('  · `%s` 의 임자 후보 여럿: %s — 눈으로 고른다(살아 있는 lock 이 있으면 그의 몫)%s.'
                        % (name, who, live_note))
@@ -1429,6 +1471,37 @@ def self_test():
     eq('ⓧⓧⓧ 서 있는 파손이면 screens 로그를 대라', any('git show origin/screens:<모드>-log.txt' in l for l in lines), True)
     eq('ⓧⓧⓧ «잡 로그를 열고» 는 없다', any('잡 로그를 열고' in l for l in lines), False)
     eq('ⓧⓧⓧ 머리 문구도 screens 로그를 댄다', any('잡 로그는 컨테이너에서 못 연다' in l for l in lines), True)
+
+    # ⓧⓧⓧⓧ T348 — 죽은 lock 이라도 그 번호로 90분 안 커밋이 있으면 «뺏을 수 있다» 라 하지 않는다
+    eq('ⓧⓧⓧⓧ 죽은 lock + 36분 전 커밋 → 이어 하는 중', '다른 SID 가 이어 하는 중일 수 있다' in _lock_word(False, 103, recent=36, tid='T342'), True)
+    eq('ⓧⓧⓧⓧ 그 줄은 task_state 를 대라 한다', 'task_state.py T342' in _lock_word(False, 103, recent=36, tid='T342'), True)
+    eq('ⓧⓧⓧⓧ 그 줄에 «뺏을 수 있다» 는 없다', '뺏을 수 있다' in _lock_word(False, 103, recent=36, tid='T342'), False)
+    eq('ⓧⓧⓧⓧ 커밋도 90분 넘으면 종전 문구', _lock_word(False, 103, recent=200, tid='T342'), 'lock 103분 전 — 90분 규약으로 **죽었다**(뺏을 수 있다)')
+    eq('ⓧⓧⓧⓧ 커밋 나이 None(얕은 클론)이면 종전 문구', _lock_word(False, 103, recent=None), 'lock 103분 전 — 90분 규약으로 **죽었다**(뺏을 수 있다)')
+    eq('ⓧⓧⓧⓧ 산 lock 은 그대로', _lock_word(True, 12, recent=3), 'lock 12분 전')
+    eq('ⓧⓧⓧⓧ lock 없음은 그대로', _lock_word(False, None, recent=3), 'lock 없다')
+    ol = own_line('T342', False, 103, recent=36)
+    eq('ⓧⓧⓧⓧ own_line 도 «네 일이다» 를 안 한다', '네 일이다' in ol, False)
+    eq('ⓧⓧⓧⓧ own_line 이 커밋 나이를 말한다', '36분 전 커밋' in ol and 'task_state.py T342' in ol, True)
+    eq('ⓧⓧⓧⓧ own_line 종전(커밋 200분)', '네 일이다' in own_line('T342', False, 103, recent=200), True)
+    # own_lines 에 실제로 얹힌다 — 런 501 꼴: UiFilter.cs 의 임자 T342 · lock 103분 · 다른 SID 커밋 36분 전
+    P_342 = '| T342 | 필터 | 🔄 진행 | 워커 K | `Assets/Scripts/Game/Ui/UiFilter.cs` · `Assets/Tests/PlayMode/UiFilterTests.cs` | x |'
+    dead_342 = lambda tid, now=None: (False, 103) if tid == 'T342' else (False, None)
+    age_36 = lambda tid, now=None: 36 if tid == 'T342' else None
+    lines = own_lines(['FAIL Forge.Tests.PlayMode.UiFilterTests.가 · Failed'], P_342, 'a' * 40, lock=dead_342, commit_age=age_36)
+    eq('ⓧⓧⓧⓧ 런 501 꼴: 뺏으라 하지 않는다', any('뺏을 수 있다' in l or '네 일이다' in l for l in lines), False)
+    eq('ⓧⓧⓧⓧ 런 501 꼴: 이어 하는 중 + task_state', any('이어 하는 중' in l and 'task_state.py T342' in l for l in lines), True)
+    lines = own_lines(['FAIL Forge.Tests.PlayMode.UiFilterTests.가 · Failed'], P_342, 'a' * 40, lock=dead_342, commit_age=lambda t, now=None: 200)
+    eq('ⓧⓧⓧⓧ 커밋도 낡았으면 종전대로 네 일', any('네 일이다' in l for l in lines), True)
+    # ⓟ 경로 갈래(콘솔 에러가 남의 파일을 댄 경우)도 같은 잣대
+    lines = own_lines(['FAIL Forge.Tests.PlayMode.SomeTests.가 · Failed'], P_342, 'a' * 40, lock=dead_342, commit_age=age_36,
+                      err={'SomeTests': ['Assets/Scripts/Game/Ui/UiFilter.cs']}, hist=lambda name, log=None: [])
+    eq('ⓧⓧⓧⓧ 경로 갈래도 뺏지 말라 한다', any('UiFilter.cs' in l and '뺏지 말고' in l for l in lines), True)
+    eq('ⓧⓧⓧⓧ 경로 갈래에 «이것이 네 일이다» 없음', any('이것이 네 일이다' in l for l in lines), False)
+    # between_lines 의 lock 낱말도 같은 잣대
+    bl = between_lines([('abc1234', 'T342 2회차: 무엇', ['Assets/Scripts/Game/Ui/UiFilter.cs']), ], set(), ('g' * 40, 400),
+                       lock=dead_342, commit_age=age_36)
+    eq('ⓧⓧⓧⓧ «런 사이» 칸의 lock 낱말도 이어 하는 중', any('이어 하는 중' in l for l in bl), True)
 
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
