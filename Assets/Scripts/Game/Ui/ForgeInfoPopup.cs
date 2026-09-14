@@ -224,7 +224,7 @@ namespace Forge.Game.Ui
             // T122 ⓑ — 정본 2104 는 슬롯 아이콘을 플레이스홀더로 깔고 2183 hydrateForgeThumbs 가 다음 프레임부터 한 프레임 몇 장씩 3D 썸네일로 갈아 끼운다
             //   (같은 부위 다섯 칸이 전부 같은 그림이던 자리). 캡처가 없는 장신구는 정본도 실루엣(Request 가 null 로 답한다).
             if (ItemFaces.Supports(slot))
-                ItemFaces.Request(thumbJob, h.Defs, ThumbDef(age, ageIdx, slot, variant, wtype), sp => { if (tile != null) ForgeUi.ApplyThumb(tile, sp, size); });
+                ItemFaces.Request(thumbJob, h.Defs, ThumbDef(age, ageIdx, slot, variant, wtype), sp => { if (tile != null) ForgeUi.ApplyThumb(tile, sp, size, "list"); });   // T332 3회차 — 목록 `.fl-face img`(763~770)만 접지 그림자가 옅다(.28)
             Image face = tile.GetComponentInChildren<Image>();
             if (stars > 0)
             {
@@ -289,7 +289,7 @@ namespace Forge.Game.Ui
             float tile = rem * 3.6f;
             RectTransform head = PopupKit.Item(card, "idet-head", -1f, tile + rem * 0.4f);
             RectTransform t = ForgeUi.ItemTile(head, "idet-icon", tile, d, age, icon);
-            ForgeUi.ApplyThumb(t, ItemFaces.Get(d, ThumbDef(age, ageIdx, slot, detailVariant, detailWtype)), tile);   // T122 ⓑ — 정본 2244 `idet-icon`: thumb ? <img> : 아이콘(동기 · 한 장)
+            ForgeUi.ApplyThumb(t, ItemFaces.Get(d, ThumbDef(age, ageIdx, slot, detailVariant, detailWtype)), tile, "");   // T122 ⓑ — 정본 2244 `idet-icon`: thumb ? <img> : 아이콘(동기 · 한 장) · T332 3회차 — `.idet-icon img`(3668)는 아웃라인만이고 접지 그림자가 없다(빈 키)
             UiKit.Place(t, 0f, rem * 0.2f, tile, tile);
             float lh = PopupKit.FontSize(TextKind.Body) * 1.3f;
             TextMeshProUGUI nm = UiKit.Text(head, "idet-name", TextKind.Body, "[" + ForgeUi.AgeKr(d, age) + "] " + name, "pp_ink", TextAlignmentOptions.Left);

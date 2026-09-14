@@ -33,6 +33,28 @@ namespace Forge.Tests.PlayMode
             }
             catch (System.Exception e) { Debug.LogWarning("[T167] 글자 남기기 실패(단언은 계속): " + e.Message); }
         }
+        /// <summary>
+        /// T332 3회차 — 정본 접지 그림자가 그 자리에 정본 값으로 걸렸는가(`ForgeUi.ThumbShadow`).
+        /// <paramref name="key"/> 가 비면 «그림자가 없다(또는 꺼져 있다)» 를 본다(`.idet-icon img` 3668).
+        /// </summary>
+        static void AssertThumbShadow(Image img, string key, string where)
+        {
+            Shadow sh = null;
+            foreach (Shadow c in img.GetComponents<Shadow>()) if (c.GetType() == typeof(Shadow)) { sh = c; break; }
+            if (string.IsNullOrEmpty(key))
+            {
+                Assert.IsTrue(sh == null || !sh.enabled, where + " 는 정본이 접지 그림자를 안 건다(style.css 3668)");
+                return;
+            }
+            Assert.IsNotNull(sh, where + " 에 접지 그림자가 걸렸다(정본 drop-shadow(0 2px …))");
+            Assert.IsTrue(sh.enabled, where + " 의 접지 그림자가 켜져 있다");
+            float dy = ItemFacesStyle.L("gs_dy_css_px") * KeylineUi.CssPx;
+            Assert.AreEqual(0f, sh.effectDistance.x, 0.01f, where + " 접지 그림자는 가로로 안 밀린다(정본 `0` 2px)");
+            Assert.AreEqual(-dy, sh.effectDistance.y, 0.01f, where + " 접지 그림자는 " + dy + " 캔버스 px 만큼 **아래**(유니티 −y)");
+            Assert.AreEqual(ItemFacesStyle.L("gs_" + key + "_a"), sh.effectColor.a, 0.005f, where + " 접지 그림자 알파(정본 rgba(0,0,0,알파))");
+            Assert.Less(sh.effectColor.r + sh.effectColor.g + sh.effectColor.b, 0.05f, where + " 접지 그림자 색은 검정");
+        }
+
         private static IEnumerator Boot()
         {
             try { if (System.IO.File.Exists(SaveIo.SavePath)) System.IO.File.Delete(SaveIo.SavePath); } catch (System.Exception) { }
@@ -201,6 +223,7 @@ namespace Forge.Tests.PlayMode
             Assert.AreNotSame(UiIcons.Get(ForgeUi.ItemIconKey(d, cur)), sheetImg.sprite, "아틀라스 실루엣이 아니다");
             Assert.AreEqual(Color.white, sheetImg.color, "썸네일은 틴트 없이");
             Assert.IsTrue(sheetImg.preserveAspect, "object-fit: contain");
+            AssertThumbShadow(sheetImg, "cell", "장비 시트 칸 `.equip-cell .cell-img`(7672)");
             Rect cellR = ((RectTransform)sheetImg.transform.parent).rect;
             Assert.AreEqual(cellR.width * frac, sheetImg.rectTransform.rect.width, 0.6f, "썸네일 한 변 = 칸 × img_frac");
             Image sheetGlove = CellImg(sheet, "cell-gloves", "장비 시트 장갑");
@@ -213,6 +236,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(p, "플레이어 정보 팝업");
             Image infoImg = CellImg(p.Root, "slot-" + cur.Slot, "플레이어 정보 " + cur.Slot);
             Assert.AreSame(thumb, infoImg.sprite, "플레이어 정보 칸 = 같은 썸네일(캐시 같은 참조)");
+            AssertThumbShadow(infoImg, "cell", "플레이어 정보 칸 `.equip-cell .cell-img`(7672)");
             Assert.AreEqual(Color.white, infoImg.color, "틴트 없이");
             Assert.IsTrue(infoImg.preserveAspect, "contain");
             Image infoGlove = CellImg(p.Root, "slot-gloves", "플레이어 정보 장갑");
@@ -371,6 +395,7 @@ namespace Forge.Tests.PlayMode
                 Transform tile = cell.Find("fl-face"); Assert.IsNotNull(tile, cell.name + " 타일");
                 Image img = tile.Find("img").GetComponent<Image>();
                 Assert.IsNotNull(img.sprite, cell.name + " 그림");
+                AssertThumbShadow(img, "list", "목록 칸 " + cell.name + " `.fl-face img`(763~770)");
                 for (int i = 0; i < 5; i++)
                 {
                     Sprite want = ItemFaces.Get(d, "helmet", age, 0, null, i, "common", 0);
@@ -388,6 +413,9 @@ namespace Forge.Tests.PlayMode
             Transform head = FindIn(h.Meta.Popups.Find(ForgeInfoPopup.ItemName).Root, "idet-head");
             Image di = head.Find("idet-icon/img").GetComponent<Image>();
             Assert.AreSame(ItemFaces.Get(d, "helmet", age, 0, null, 1, "common", 0), di.sprite, "상세 아이콘 = 그 정의의 썸네일(정본 2244)");
+            AssertThumbShadow(di, "", "장비 상세 머리 `.idet-icon img`");
+            // 정본의 두 값이 뒤바뀌지 않았는가 — 목록이 장비 칸보다 **옅다**(.28 < .35). 표를 잘못 채우면 이 줄이 먼저 넘어진다.
+            Assert.Less(ItemFacesStyle.L("gs_list_a"), ItemFacesStyle.L("gs_cell_a"), "정본은 목록(.28)이 장비 칸(.35)보다 옅다");
             ForgeInfoPopup.CloseItemDetail(h);
             ForgeInfoPopup.Close(h);
             yield return null;

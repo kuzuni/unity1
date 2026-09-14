@@ -142,8 +142,11 @@ namespace Forge.Game.Ui
             return rt;
         }
 
-        /// <summary>구운 썸네일이 있으면 타일의 `img` 를 그것으로 갈아 끼운다(정본 hydrate · `.fl-face img` 100%). null 이면 실루엣 그대로(false).</summary>
-        public static bool ApplyThumb(RectTransform tile, Sprite thumb, float size)
+        /// <summary>
+        /// 구운 썸네일이 있으면 타일의 `img` 를 그것으로 갈아 끼운다(정본 hydrate · `.fl-face img` 100%). null 이면 실루엣 그대로(false).
+        /// <paramref name="shadowKey"/> 는 접지 그림자 종류(<see cref="ThumbShadow"/>) — 기본 `cell` 이 정본의 다수값이고, 예외 둘만 호출자가 바꾼다.
+        /// </summary>
+        public static bool ApplyThumb(RectTransform tile, Sprite thumb, float size, string shadowKey = "cell")
         {
             if (tile == null || thumb == null) return false;
             Transform t = tile.Find("img");
@@ -155,7 +158,37 @@ namespace Forge.Game.Ui
             img.preserveAspect = true;
             float k = size * ItemFacesStyle.L("img_frac");
             UiKit.Anchor(img.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, k, k);
+            ThumbShadow(img, shadowKey);
             return true;
+        }
+
+        /// <summary>
+        /// T332 3회차 — 정본의 **접지 그림자**를 UI 층에서 건다. 굽기(텍스처)로는 못 한다(결정 529): 정본 `pad 1.10` 이 남기는 아래 여백은
+        /// `drop-shadow(0 **2px** …)` 오프셋 하나에 이미 다 쓰이고, CSS 필터는 `img` 상자 **밖으로** 나가지만 텍스처는 못 나간다 — 구우면 아래가 일자로 끊긴다.
+        /// `UnityEngine.UI.Shadow` 는 그래픽 메시를 그대로 한 번 더 오프셋해 그리므로 스프라이트 알파를 그대로 따라간다 = `drop-shadow(0 dy 0 c)`.
+        /// ⚠ **흐림은 근사로 뺐다** — `Shadow` 에 흐림 손잡이가 없다(정본 1.5~2 CSS px · 결정 520 의 «흐림은 근사» 와 같은 태도). 자리마다 다른 것은 알파다.
+        /// 키(정본 `style.css`):
+        /// `cell` = 장비 칸 `.equip-cell:not(.empty) .cell-img`(7672) · 펫·탈것 `.mt-face.has-thumb > img`(7604) · 상세·비교 카드 `.adc-img`(1081·1147·1876) — `0 2px 2px rgba(0,0,0,.35)`
+        /// `list` = 목록 `.fl-face img`(763~770) — `0 2px 1.5px rgba(0,0,0,.28)`
+        /// 빈 키 = 장비 상세 머리 `.idet-icon img`(3668) — 아웃라인만 걸고 **접지 그림자는 없다**.
+        /// </summary>
+        public static void ThumbShadow(Image img, string key)
+        {
+            if (img == null) return;
+            Shadow sh = null;
+            foreach (Shadow c in img.GetComponents<Shadow>()) if (c.GetType() == typeof(Shadow)) { sh = c; break; }   // Outline 도 Shadow 를 잇는다 — 그것은 건드리지 않는다
+            if (string.IsNullOrEmpty(key))
+            {
+                if (sh != null) sh.enabled = false;
+                return;
+            }
+            if (sh == null) sh = img.gameObject.AddComponent<Shadow>();
+            sh.enabled = true;
+            Color c2 = ItemFacesStyle.C("gs_ink");
+            c2.a = ItemFacesStyle.L("gs_" + key + "_a");
+            sh.effectColor = c2;
+            sh.effectDistance = new Vector2(0f, -ItemFacesStyle.L("gs_dy_css_px") * KeylineUi.CssPx);   // CSS 의 «아래로 dy» 는 유니티 UI 에서 −y
+            sh.useGraphicAlpha = true;
         }
 
         /// <summary>Lv 배지(흰 글자 + 검정 링) — 타일 아래쪽.</summary>
