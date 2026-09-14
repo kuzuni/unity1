@@ -39,11 +39,11 @@ namespace TMPro
         public int atlasHeight { get; set; }
         // T104 — 진짜 TMP_FontAsset 의 공개 프로퍼티 `public FaceInfo faceInfo` (UnityEngine.TextCore · pointSize 는 샘플링 크기). UiKit.OutlinePx 가 읽는다.
         public UnityEngine.TextCore.FaceInfo faceInfo { get; set; }
-        public bool HasCharacter(char c) { return false; }
-        /// TMP 3.2 실서명: HasCharacter(char, bool searchFallbacks = false, bool tryAddCharacter = false)
-        public bool HasCharacter(char c, bool searchFallbacks, bool tryAddCharacter) { return false; }
+        /// 실서명(런 418 stub-sigs.txt 11행 «HasCharacter char,bool,bool»): HasCharacter(char, bool searchFallbacks = false, bool tryAddCharacter = false) — 옛 1-인자 오버로드는 실물에 없어(자 T174) 기본값 인자로 합쳤다.
+        public bool HasCharacter(char c, bool searchFallbacks = false, bool tryAddCharacter = false) { return false; }
         // T106 — ⚠ HasCharacter(uint, bool, bool) 은 **실제 TMP 에 없다**(런 409 컴파일 오류 CS1503). BMP 밖 코드포인트는 TryAddCharacters + characterLookupTable.ContainsKey 로 묻는다.
-        public bool TryAddCharacters(string chars) { return false; }
+        /// 실서명(stub-sigs.txt 19행 «TryAddCharacters string,bool»): TryAddCharacters(string, bool includeFontFeatures = false) — 옛 1-인자 꼴은 실물에 없어 기본값 인자로.
+        public bool TryAddCharacters(string characters, bool includeFontFeatures = false) { return false; }
         /// T106 — 런 418 `stub-sigs.txt`(진짜 유니티 6000.3.8f1 표면 · T174) 17행 «TryAddCharacters uint[],bool» 그대로. BMP 밖 코드포인트(이모지)는 이 갈래로 올린다(string 갈래는 서리게이트 짝을 안 합친다 · 런 418 실측).
         public bool TryAddCharacters(uint[] unicodes, bool includeFontFeatures) { return false; }
     }
@@ -137,6 +137,7 @@ namespace TMPro
         public SubmitEvent onSubmit { get; set; } = new SubmitEvent();
         public SubmitEvent onEndEdit { get; set; } = new SubmitEvent();
         public RectTransform textViewport { get; set; }
-        public void DeactivateInputField() { }
+        /// 실서명(stub-sigs.txt 954행 «DeactivateInputField bool»): DeactivateInputField(bool clearSelection = false) — 옛 0-인자 꼴은 실물에 없어 기본값 인자로(자 T174 · 런 424).
+        public void DeactivateInputField(bool clearSelection = false) { }
     }
 }
