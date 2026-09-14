@@ -15,6 +15,9 @@ namespace Forge.Core.Battle
         public double Num;
         public bool Flag;
         public string Tag;
+        /// <summary>T138 3회차 — 정본 `UI.toast(msg, lane)` 의 둘째 인자(`"combat"` = 전투 레인 · null = 기본 레인). **판 단위 대조(해시 · `BattleTests.HashLine`)와 `ToString` 밖**이다 —
+        /// 정본 sim 이 UI 인자를 안 세므로 여기 실어도 벡터가 안 흔들린다(Kind·Id·Num·Flag 에 실으면 깨진다). Loot 이벤트 등 다른 종류는 null.</summary>
+        public string Lane;
         public override string ToString() { return Tick + "|" + Kind + "|" + Id + "|" + (Value.HasValue ? Value.Value.ToString() : "") + "|" + Num + "|" + (Flag ? 1 : 0) + "|" + Tag; }
     }
 

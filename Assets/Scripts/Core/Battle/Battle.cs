@@ -62,9 +62,9 @@ namespace Forge.Core.Battle
         }
 
         // ── 이벤트 ──
-        void Emit(string kind, int id = 0, Big? value = null, double num = 0, bool flag = false, string tag = "")
+        void Emit(string kind, int id = 0, Big? value = null, double num = 0, bool flag = false, string tag = "", string lane = null)
         {
-            Events.Add(new BattleEvent { Tick = _tick, Kind = kind, Id = id, Value = value, Num = num, Flag = flag, Tag = tag ?? "" });
+            Events.Add(new BattleEvent { Tick = _tick, Kind = kind, Id = id, Value = value, Num = num, Flag = flag, Tag = tag ?? "", Lane = lane });
         }
 
         // ── 시작 ──
@@ -566,7 +566,7 @@ namespace Forge.Core.Battle
                 _c.ClearedBosses.Add(key);
                 double bonus = Math.Ceiling(BattleRules.FirstClearBonusBase * Math.Pow(BattleRules.CoinPerChapter, p.CurAbsChapter - 1) * Math.Pow(BattleRules.CoinPerStage, p.Stage - 1));
                 _c.Coins += bonus;
-                Emit(BattleEventKind.Toast, tag: "🏆 " + p.StageName() + " 첫 클리어! 🪙+" + NumFmt.Fmt(bonus));
+                Emit(BattleEventKind.Toast, tag: "🏆 " + p.StageName() + " 첫 클리어! 🪙+" + NumFmt.Fmt(bonus), lane: "combat");   // 정본 combat.js 484 — «스테이지에서 벌어진 일이라 combat 레인»(팝업이 떠 있으면 그 아래) · T138
             }
             bool tierUp = false;
             if (p.Stage >= p.StagesPerChapter)
@@ -575,7 +575,7 @@ namespace Forge.Core.Battle
                 else if (p.Difficulty < p.MaxDifficulty) { p.Difficulty++; p.Chapter = 1; p.Stage = 1; tierUp = true; }
             }
             else p.Stage++;
-            if (tierUp) Emit(BattleEventKind.Toast, tag: "🔥 난이도 상승! " + p.StageName() + "부터 다시 도전합니다");
+            if (tierUp) Emit(BattleEventKind.Toast, tag: "🔥 난이도 상승! " + p.StageName() + "부터 다시 도전합니다", lane: "combat");   // 정본 combat.js 499 · T138
             if (p.CurRank > p.BestRank) p.RecordBest();
             if (_c.Save != null) _c.Save();
             Emit(BattleEventKind.Save);

@@ -368,9 +368,10 @@ namespace Forge.Game.Battle
                 case BattleEventKind.Float:
                     Numbers.Spawn(new Vector3((float)(Hero.X + HitRules.HeroDmgX), (float)(Hero.Y + HitRules.HpBar.HeroY + HitRules.HpBar.BgH * HitRules.HeroDmgYK), 0), e.Tag, e.Tag == "BLOCK" ? "block" : "heal", 0, -HitRules.DmgRiseDefault, 1);
                     break;
-                case BattleEventKind.Loot:
-                    Numbers.Spawn(new Vector3((float)(Hero.X + HitRules.DmgX), (float)(Hero.Y + HitRules.HpBar.HeroY), 0), e.Tag, "loot", HitRules.DmgDxMin, -HitRules.DmgRiseDefault, 1);
-                    break;
+                // T138 3회차 — 정본 combat.js 450·454 `UI.floatLoot(…)`: 전리품은 영웅 머리 위 숫자가 아니라 무대 한쪽 레인(#loot-feed · 여섯 줄 상한 · 1.6초)에 쌓인다.
+                case BattleEventKind.Loot: LootFeed.Push(e.Tag); break;
+                // T138 3회차 — 정본 `UI.toast(msg, lane)`: 레인은 Core 가 이벤트에 실어 보낸다(첫 클리어·난이도 상승 = combat · «사거리 안에 적이 없습니다» 는 기본 레인).
+                case BattleEventKind.Toast: if (PopupLayer.Instance != null) PopupLayer.Instance.Toast(e.Tag, e.Lane); break;
                 case BattleEventKind.BossEntrance: StartBossEntrance(); break;
                 case BattleEventKind.Music: if (Music.Instance != null) Music.Instance.SetMusicMode(e.Tag); break;
                 case BattleEventKind.DeathFade: { var ov = BattleOverlay.Ensure(); if (ov != null) ov.DeathFade(e.Tag); break; }
