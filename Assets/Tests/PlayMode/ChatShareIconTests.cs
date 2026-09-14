@@ -214,6 +214,40 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T131 2회차 — 플레이어 정보 «성별 · 서버 1» 줄(정본 `ui.js` 5195 `IconGen.img(gender_*) · 서버 1` · CSS 3158 `.clan .ico` 1.05em): 글자 ♂/♀ 가 아니라 아이콘 + 글자.</summary>
+        [UnityTest]
+        public IEnumerator 플레이어_정보_clan_줄은_성별_아이콘_더하기_서버_글자이고_남녀_기호는_없다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!ForgeHost.Ready && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            MetaHost h = MetaHost.Instance;
+            PlayerInfoPopup.Open(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(PlayerInfoPopup.Name);
+            Assert.IsNotNull(p, "플레이어 정보 팝업이 안 열렸다");
+            RectTransform ico = FindIn(p.Root, "clan-ico");
+            Assert.IsNotNull(ico, "clan 줄에 성별 아이콘(clan-ico)이 없다");
+            Image img = ico.GetComponent<Image>();
+            Assert.IsNotNull(img); Assert.IsNotNull(img.sprite, "gender_m/f 스프라이트가 비었다");
+            Rect ir = WorldRect(ico);
+            Assert.AreEqual(ir.width, ir.height, 0.5f, "아이콘은 정사각");
+            Assert.Greater(ir.width, 0f);
+            RectTransform clan = FindIn(p.Root, "clan");
+            Assert.IsNotNull(clan, "clan 글자가 없다");
+            TextMeshProUGUI ct = clan.GetComponent<TextMeshProUGUI>();
+            Assert.IsNotNull(ct);
+            Assert.IsTrue(ct.text.Contains("서버 1"), "clan 줄 글자 «" + ct.text + "»");
+            Rect cr = WorldRect(clan);
+            Assert.LessOrEqual(ir.xMax, cr.xMin + 0.5f, "아이콘이 글자 왼쪽에 있다(정본 순서: 아이콘 → · 서버 1)");
+            Assert.Less(Mathf.Abs(ir.center.y - cr.center.y), cr.height, "아이콘과 글자가 같은 줄");
+            foreach (TextMeshProUGUI tx in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+                Assert.IsFalse(tx.text != null && (tx.text.Contains(Chat.GenderMale) || tx.text.Contains(Chat.GenderFemale)), tx.name + " 에 성별 글자가 남았다: «" + tx.text + "»");
+            PlayerInfoPopup.Close(h);
+            yield return null;
+        }
+
         private static RectTransform FindIn(Transform root, string name)
         {
             foreach (RectTransform rt in root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == name) return rt;

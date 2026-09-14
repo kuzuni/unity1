@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using Forge.Core;
 using Forge.Core.Data;
 using Forge.Core.Forging;
+using Forge.Core.Meta;
 using Forge.Core.Mounts;
 using Forge.Core.Pets;
 using Forge.Game.Gallery;
@@ -143,8 +144,13 @@ namespace Forge.Game.Ui
             TextMeshProUGUI name = UiKit.Text(card, "name", TextKind.Sub, h.Nickname + " [무소속]", "pp_ink", TextAlignmentOptions.Left);
             name.fontStyle = FontStyles.Bold;
             UiKit.Place(name.rectTransform, tx, y, leftW, lineH);
-            TextMeshProUGUI clan = UiKit.Text(card, "clan", TextKind.Sub, h.Gender + " · 서버 1", "pp_muted", TextAlignmentOptions.Left);
-            UiKit.Place(clan.rectTransform, tx, y + lineH, leftW, lineH);
+            // T131 — 정본 ui.js 5195 `<span class="clan">${IconGen.img(S.gender === '♀' ? 'gender_f' : 'gender_m')} · 서버 1</span>`:
+            // 성별은 글자 ♂/♀ 가 아니라 아이콘(CSS 3158 `.clan .ico` 1.05em · 오른쪽 여백 .05em · PersonIconsUi.json).
+            float gEm = PersonIcons.Px("pinfo_gender_em", PopupKit.FontSize(TextKind.Sub)), gMr = PersonIcons.Px("pinfo_gender_mr_em", PopupKit.FontSize(TextKind.Sub));
+            Image clanIco = UiKit.Icon(card, "clan-ico", Chat.GenderIcon(h.Gender));
+            UiKit.Place(clanIco.rectTransform, tx, y + lineH + (lineH - gEm) * 0.5f, gEm, gEm);
+            TextMeshProUGUI clan = UiKit.Text(card, "clan", TextKind.Sub, " · 서버 1", "pp_muted", TextAlignmentOptions.Left);
+            UiKit.Place(clan.rectTransform, tx + gEm + gMr, y + lineH, leftW - gEm - gMr, lineH);
             // T89 — «⚔» 두부 → 정본 표의 `tm_sword` 아이콘 + 수.
             RectTransform cp = UiKit.IconTextRow(card, "cp", TextKind.Sub, "⚔ " + PopupKit.Fmt(h.MyCp), "pp_ink", TextAlignmentOptions.Left);
             foreach (TextMeshProUGUI piece in UiKit.RowTexts(cp))

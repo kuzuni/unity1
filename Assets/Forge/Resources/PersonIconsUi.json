@@ -5,13 +5,17 @@
     "chat_gender_w": 0.0370,
     "chat_clan_w": 0.0540,
     "chat_clan_ml_w": -0.008,
-    "chat_ico_mr_em": 0
+    "chat_ico_mr_em": 0,
+    "pinfo_gender_em": 1.05,
+    "pinfo_gender_mr_em": 0.05
   },
   "_src": {
     "profile_gender_em": "style.css 3159 `.profile-field .ico { width: 1.15em; height: 1.15em; }` — 프로필 성별 칸(ui.js 5043 IconGen.img(gender_*))",
     "chat_gender_w": "style.css 3336 `.chat-name-line .chat-gender { width/height: calc(var(--app-w) * .0370) }` — 원본 shot-043500 실측 성별 15×14px(3.01×2.81%W)를 캔버스 비율로 역산한 상자",
     "chat_clan_w": "style.css 3337 `.chat-name-line .chat-clan { width/height: calc(var(--app-w) * .0540) }` — 클랜 배지 26×22px(5.21×4.41%W)",
     "chat_clan_ml_w": "style.css 3341 `.chat-name-line .chat-clan { margin-left: calc(var(--app-w) * -.008) }` (3337 의 −.004 를 뒤 규칙이 덮는다 · 성별→배지 간격 원본 4.3px)",
-    "chat_ico_mr_em": "style.css 3339 `.chat-name-line .ico { margin-right: 0 }` — 이름→성별 간격 원본 4.5px"
+    "chat_ico_mr_em": "style.css 3339 `.chat-name-line .ico { margin-right: 0 }` — 이름→성별 간격 원본 4.5px",
+    "pinfo_gender_em": "style.css 3158 `.pinfo-id-text .clan .ico { width: 1.05em; height: 1.05em; }` — 플레이어 정보 «성별 · 서버 1» 줄(ui.js 5195 IconGen.img(gender_*))",
+    "pinfo_gender_mr_em": "style.css 3158 `margin: -.2em .05em -.2em 0` 의 오른쪽 .05em — 아이콘과 « · 서버 1» 사이"
   }
 }
