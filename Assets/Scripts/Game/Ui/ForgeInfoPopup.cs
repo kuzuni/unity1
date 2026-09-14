@@ -230,6 +230,14 @@ namespace Forge.Game.Ui
         {
             RectTransform tile = ForgeUi.ItemTile(rt, "fl-face", size, h.Defs, age, icon, 0.8f, agePattern: true);   // T124 3회차 — 정본 ui.js 2090 `fl-face equip-cell[data-age]`: 목록 타일도 시대 무늬 층(.55)을 입는다
             UiKit.Place(tile, 0f, 0f, size, size);
+            // T332 4회차 — 접지 그림자는 **플레이스홀더에도** 건다. 정본 선택자가 `.fl-face img, **.fl-face .ico**`(style.css 761)이고
+            // 그 주석이 까닭을 댄다: «플레이스홀더 `.ico`(IconGen) 도 같이 걸어야 **하이드레이션 전후로 그림이 안 튄다**».
+            // (윗줄 754 주석은 «img 에만 건다» 라고 적었지만 그 블록엔 `filter` 가 없다 — 렌더 결과는 아래 블록이 쥔다 · §1 «정본대로 = 렌더 결과» · 결정 520 ⓒ 와 같은 갈래.)
+            // 그래서 캡처가 없는 장신구 칸(끝까지 실루엣)도 이웃과 같은 그림자를 쓴다 — 아래 `Request` 는 같은 키를 다시 걸 뿐이다.
+            {
+                Transform ph = tile.Find("img");
+                if (ph != null) ForgeUi.ThumbShadow(ph.GetComponent<Image>(), "list");
+            }
             // T122 ⓑ — 정본 2104 는 슬롯 아이콘을 플레이스홀더로 깔고 2183 hydrateForgeThumbs 가 다음 프레임부터 한 프레임 몇 장씩 3D 썸네일로 갈아 끼운다
             //   (같은 부위 다섯 칸이 전부 같은 그림이던 자리). 캡처가 없는 장신구는 정본도 실루엣(Request 가 null 로 답한다).
             if (ItemFaces.Supports(slot))

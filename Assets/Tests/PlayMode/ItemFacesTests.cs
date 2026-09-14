@@ -395,7 +395,9 @@ namespace Forge.Tests.PlayMode
                 Transform tile = cell.Find("fl-face"); Assert.IsNotNull(tile, cell.name + " 타일");
                 Image img = tile.Find("img").GetComponent<Image>();
                 Assert.IsNotNull(img.sprite, cell.name + " 그림");
-                AssertThumbShadow(img, "list", "목록 칸 " + cell.name + " `.fl-face img`(763~770)");
+                // 정본 선택자는 `.fl-face img, **.fl-face .ico**`(761) — **구운 썸네일이든 실루엣 플레이스홀더든** 같은 그림자를 쓴다
+                // («하이드레이션 전후로 그림이 안 튄다» · 754 주석의 «img 에만» 은 `filter` 가 없는 윗 블록 이야기다 · 4회차).
+                AssertThumbShadow(img, "list", "목록 칸 " + cell.name + " `.fl-face img`·`.ico`(정본 761 — 플레이스홀더도 같이 건다)");
                 for (int i = 0; i < 5; i++)
                 {
                     Sprite want = ItemFaces.Get(d, "helmet", age, 0, null, i, "common", 0);

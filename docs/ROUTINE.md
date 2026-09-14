@@ -1811,7 +1811,11 @@
   - **못 옮긴 것**: 흐림(정본 1.5~2 CSS px) — `Shadow` 에 손잡이가 없다(결정 520 «흐림은 근사»). 눈 확인에서 딱딱하면 겹을 쌓는다.
   - 막이: 세 자리에 «가로 0 · 아래 dy · 알파 · 검정» + `.idet-icon` 에 «없다» + **`gs_list_a` < `gs_cell_a`**(표 두 칸을 뒤바꿔도 자리 단언은 다 통과한다).
   - ⚠ `check_text_glyphs` 는 **JSON `_src` 주석까지** 화면 문구로 센다 — 표 주석에 «α» 를 쓰면 새 두부로 빨개진다(「알파」로 적는다).
-  - **남은 것(4회차 · lock 유지)**: ⓑ 펫 `.mt-face.has-thumb > img` = `Ui/PetSkillKit.cs`(**T335 lock 뒤**) · ⓒ 별 둘은 글자 그림자라 `UiKit.TextShadow`(T333) 길 = `UiKit.cs`(**T331·T333 lock 뒤**) · 다음 런 `screen_forge-list`·`screen_gear-detail` 8배 눈 확인.
+- **4회차(2026-09-14 22:0x · 워커 I · 판정 + 3회차의 구멍)**:
+  - **판정 섰다**: 런 508 `screen_forge-list.png` 8배 + 화소 단면 — 몽둥이 실루엣이 `y=242`(검정 테)에서 끝나고 `y=243`(**136** ↔ 배경 158) · `y=244`(**154** ↔ 179) 두 줄이 어둡다. α ≈ 0.14 가 두 줄 = 정본 `.28` 한 겹이 **비정수 오프셋**(4.33 캔버스 px = 2.16 화면 px)에 갈려 앉은 것 — 합이 맞고 모양은 부드럽다. **3회차의 «흐림을 못 옮겼다 → 딱딱하면 겹을 쌓는다» 는 접는다**(이미 근사돼 있다).
+  - **3회차의 구멍을 제 자가 잡았다**: `ForgeInfoPopup.Cell` 이 `ApplyThumb` 를 `Supports(slot)` 일 때만 불러 **장신구 칸(끝까지 실루엣)** 이 그림자를 못 받았다. 정본 선택자는 **`.fl-face img, .fl-face .ico`**(761)이고 주석이 까닭을 댄다 — «플레이스홀더도 같이 걸어야 **하이드레이션 전후로 그림이 안 튄다**». 754 주석의 «img 에만» 은 `filter` 가 없는 윗 블록 이야기다(§1 «정본대로 = 렌더 결과» · 결정 520 ⓒ). 타일을 세울 때 플레이스홀더에도 `list` 를 건다.
+  - ⚠ **정본 쪽은 수치로 못 댄다**: `shot-042905` 는 그림자가 앉을 자리에 **별 배지**(771)가 겹친다 — 정본 근거는 CSS 선언이고, 재려면 별이 없는 `.adc-img`(장비 상세 카드) 화면이 나은데 런 508 에 없다.
+  - **남은 것(5회차 · lock 유지)**: ⓑ 펫 `.mt-face.has-thumb > img` = `Ui/PetSkillKit.cs`(**T335 lock 뒤**) · ⓒ 별 둘은 글자 그림자라 `UiKit.TextShadow`(T333) 길 = `UiKit.cs`(**T331·T333 lock 뒤**).
   - **(옛 3회차 계획 · 위가 실행분이다)**: `UnityEngine.UI.Shadow`(스프라이트 사본 오프셋 = `drop-shadow(0 dy 0 c)`)를 자리마다 붙여 정본 값 셋을 그대로 가른다 — 목록 `.fl-face img` `0 2px 1.5px rgba(0,0,0,.28)`(763) · 장비 칸 `.equip-cell .cell-img`(7672)·펫 `.mt-face.has-thumb > img`(7604) `0 2px 2px rgba(0,0,0,.35)` · `.idet-icon img` **없음**(3668) · 상세·비교 카드 `.adc-img`(1081·1147·1876). 자리 파일 = `Ui/ForgeUi.cs`·`Ui/PetSkillKit.cs`·`Ui/GearDetail*`·`Ui/CraftComparePopup*` — **지금 T331·T333 lock 과 겹쳐 있어 안 열었다**(T136 의 교훈). 여는 회차에 «범위» 칸을 먼저 고친다. ⓒ 별 둘(`.cmp-star`·`.rate-star` 1px 하드)은 `Ui/ForgeUi.cs` 같은 덩어리로.
 
 ### T333 — `text-shadow` 54 선언 중 키라인 자 밖 **44**: 클론엔 글자 그림자 능력이 **0**(TMP Underlay 사용 0) — 색 버튼 전부의 글자 1px 그림자 · 시트 제목의 흰 양각 · 키라인 표 밖의 4/8방향 링 열 자리 · 대미지 숫자·보스 마퀴 글로우 (Game·UI · T104·T109 뒤 갈래 · T33 18회차 등재)
