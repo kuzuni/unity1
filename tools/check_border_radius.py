@@ -14,6 +14,7 @@ T345 — 정본 `border-radius` 선언 ↔ 클론 둥근 모서리 대조 자.
 
 TABLE 값의 꼴:
   ['Ui/File.cs$key_r_rem']   그 파일이 표 키를 부르고 · 표값 = 정본 값
+  ['Ui/File.cs$key_r_rem@PetSkillUi.json']  키가 다른 곁 표(같은 Resources 폴더)에 있는 자리 — 이미 표값을 읽는 자리를 짝만 적을 때
   ['Ui/File.cs@Method']      그 메서드 본문에 둥근 모서리 증거(`Circle(`·`RadiusUi.`·표 키) — 정본 `50%`(원) 자리에 쓴다
   ['Ui/File.cs']             파일 어디든 증거
   '✓<까닭>'                  20회차 ⓡ 가 눈으로 견줘 맞는 자리(표값 자리 · 알약 동치(결정 543) · 맞는 리터럴) — 대조하지 않는다
@@ -49,8 +50,10 @@ TABLE = {
     '.back-btn': '✓`.btn.back-btn` 5189 가 덮는다(정본 뒤로 버튼은 늘 .btn 이다) — 위 줄이 그 자리',
     '.league-back-btn': '✓LeagueSheet 뒤로 버튼 .45rem(20회차 ⓡ 리그 8 자리 ✓)',
     # 판(면) 자체가 없는 후보 3 — 화면 PNG 로 가른 뒤 등재 또는 수리(T345 ⓒ)
-    '.substat-row': '—판 없음 후보(정본 #22272e .4rem · ui.js 2232) — ⓒ PNG 판정 뒤 GearDetailPopup 에 세운다',
-    '.mat-chip': '—판 없음 후보(정본 #22272e + 테 .5rem · ui.js 5767) — ⓒ PNG 판정 뒤',
+    # ⓒ 판 없음 후보 — 2회차 판정: 정본 렌더 줄(ui.js 2232)은 `.idet-subs` 안뿐이고 3708 `.idet-subs .substat-row { border: none; background: none }` 이 판을 걷는다 → 클론(ForgeInfoPopup 의 민글자 행)이 맞다
+    '.substat-row': '✓정본 3708 `.idet-subs .substat-row` 가 배경·테를 걷는다(렌더 줄 ui.js 2232 는 .idet-subs 안뿐) — 클론 ForgeInfoPopup 민글자 행 그대로',
+    # ⓒ 판 없음 후보 — 2회차 판정: 클론엔 이미 `MountUpgradePopup` 재료 칩이 `PetSkillKit.Framed(… mtup_chip_r_rem …)` 로 서 있다(정본 .5rem)
+    '.mat-chip': ['Ui/MountUpgradePopup.cs$mtup_chip_r_rem@PetSkillUi.json'],
     '.tech-tree-label .tech-tree-node-time': '—판 없음 후보(정본 pp-ink 위 초록 글자 .6rem · ui.js 5420) — ⓒ PNG 판정 뒤 · TechPanel.cs 는 T335·T342 lock',
     # 죽은 CSS(정본 ui.js·index.html 에 자취 0 · 20회차 ⓡ)
     '.stat-grid': '—죽은 CSS(정본 렌더 줄 0)',
@@ -159,7 +162,17 @@ def load_table(path):
         return None
     if not isinstance(root, dict):
         return None
-    return {k: v for k, v in root.items() if not k.startswith('_')}
+    out = {}
+    for k, v in root.items():
+        if k.startswith('_'):
+            continue
+        if isinstance(v, dict):                      # 곁 표의 절(`layout`·`colors`…) — 한 단계 안의 키도 자리다(PetSkillUi 꼴)
+            for k2, v2 in v.items():
+                if not k2.startswith('_') and not isinstance(v2, dict):
+                    out.setdefault(k2, v2)
+        else:
+            out[k] = v
+    return out
 
 
 def key_unit(key):
@@ -189,10 +202,16 @@ def _method_body(src, name):
     return src[i:]
 
 
-def check_target(game_dir, target, table, unit, num):
+def check_target(game_dir, target, table, unit, num, res_dir=None):
     """(상태, 설명) — 'ok' | 'missing'(자리가 표를 안 부른다) | 'value'(표값이 정본과 다르다 · 표에 키가 없다) | 'absent'(파일·메서드 없음 · 규약 어김)."""
     m = re.match(r'([^#@$]+)([@$]?)(.*)', target)
     file_part, sep, tail = m.groups()
+    other = None
+    if sep == '$' and '@' in tail:
+        tail, other = tail.split('@', 1)          # 키가 다른 곁 표에 있는 자리
+        table = load_table(os.path.join(res_dir or '.', other))
+        if table is None:
+            return 'value', '곁 표 %s 를 못 읽었다(같은 Resources 폴더에 있어야 한다)' % other
     path = os.path.join(game_dir, file_part)
     if not os.path.isfile(path):
         return 'absent', '파일 없음 ' + file_part
@@ -214,14 +233,14 @@ def check_target(game_dir, target, table, unit, num):
     if ku != unit:
         return 'value', '단위가 다르다 — 정본은 %s 인데 키 꼬리는 %s 다(%s)' % (unit, ku, tail)
     if table is None or tail not in table:
-        return 'value', '표(RadiusUi.json)에 «%s» 이 없다' % tail
+        return 'value', '표(%s)에 «%s» 이 없다' % (other or 'RadiusUi.json', tail)
     tv = table[tail]
     if not isinstance(tv, (int, float)) or isinstance(tv, bool):
         return 'value', '표값 «%s» 이 수가 아니다: %r' % (tail, tv)
     if abs(float(tv) - num) > 1e-6:
         return 'value', '표값 «%s» = %s 인데 정본은 %s 다 → 표를 정본에 맞춰라' % (tail, tv, num)
     if ('"' + tail + '"') in src:
-        return 'ok', '표 키 "%s" 를 부른다' % tail
+        return 'ok', '표 키 "%s" 를 부른다%s' % (tail, (' (' + other + ')') if other else '')
     return 'missing', '표 키 "%s" 를 아무 데서도 안 부른다 — 그 자리는 코드에 박힌 반지름이다(§1)' % tail
 
 
@@ -232,6 +251,7 @@ def run(css_path, game_dir, table_path, table_map, known, out=print, list_undeci
         return 2
     rules = parse_rules(_read_text(css_path))
     table = load_table(table_path)
+    res_dir = os.path.dirname(os.path.abspath(table_path))
     problems = 0
     if table is None:
         problems += 1
@@ -254,7 +274,7 @@ def run(css_path, game_dir, table_path, table_map, known, out=print, list_undeci
                 n_off += 1
             continue
         for t in targets:
-            state, why = check_target(game_dir, t, table, unit, num)
+            state, why = check_target(game_dir, t, table, unit, num, res_dir)
             if state == 'ok':
                 n_ok += 1
                 if t in known:
@@ -388,6 +408,33 @@ namespace X {
     # 13 표 파일이 깨졌다/없다 → 1
     expect('표 깨짐 → 1', base, kn, 1, tbl='{"a_r_rem": 0.42,', want_line='표를 못 읽었다')
     expect('표 없음 → 1', base, kn, 1, tbl=None)
+    # 13b 곁 표(@Other.json) — 키가 거기 있고 파일이 부르면 0 · 곁 표에 키가 없으면 1 · 곁 표 자체가 없으면 1
+    def expect_other(name, other_tbl, cs_text, want, want_line=None):
+        with tempfile.TemporaryDirectory() as d:
+            os.makedirs(os.path.join(d, 'Ui'))
+            with open(os.path.join(d, 'style.css'), 'w', encoding='utf-8') as f:
+                f.write('.o-chip { border-radius: .5rem; }\n')
+            with open(os.path.join(d, 'Ui', 'Sheet.cs'), 'w', encoding='utf-8') as f:
+                f.write(cs_text)
+            tp = os.path.join(d, 'RadiusUi.json')
+            with open(tp, 'w', encoding='utf-8') as f:
+                f.write(json.dumps({'z_r_rem': 1}))
+            if other_tbl is not None:
+                with open(os.path.join(d, 'Other.json'), 'w', encoding='utf-8') as f:
+                    f.write(json.dumps(other_tbl))
+            lines = []
+            rc = run(os.path.join(d, 'style.css'), d, tp, {'.o-chip': ['Ui/Sheet.cs$chip_r_rem@Other.json']}, {}, out=lines.append)
+            if rc != want:
+                fails.append('%s: rc %d ≠ %d\n  ' % (name, rc, want) + '\n  '.join(lines))
+            if want_line and not any(want_line in l for l in lines):
+                fails.append('%s: «%s» 줄이 안 나온다\n  ' % (name, want_line) + '\n  '.join(lines))
+    cs_o = 'class S { void B(Transform p) { var x = K.Framed(p, "skin", C("bg"), Style.Px("chip_r_rem"), 2); } }'
+    expect_other('곁 표 초록', {'_': 'x', 'chip_r_rem': 0.5}, cs_o, 0)
+    expect_other('곁 표 절 안의 키도 자리다', {'_': 'x', 'layout': {'chip_r_rem': 0.5}}, cs_o, 0)
+    expect_other('곁 표 값 다름 → 1', {'chip_r_rem': 0.4}, cs_o, 1, want_line='표를 정본에 맞춰라')
+    expect_other('곁 표에 키 없음 → 1', {'other_r_rem': 0.5}, cs_o, 1, want_line='표(Other.json)에')
+    expect_other('곁 표 없음 → 1', None, cs_o, 1, want_line='곁 표 Other.json 를 못 읽었다')
+    expect_other('곁 표는 있는데 안 부른다 → 1', {'chip_r_rem': 0.5}, 'class S { }', 1, want_line='코드에 박힌 반지름')
     # 14 파서: 주석·키프레임 안은 안 센다 · 값 0 · 줄 번호
     rules = parse_rules(css)
     sels = [r[1] for r in rules]
@@ -409,7 +456,7 @@ namespace X {
         for f in fails:
             print('  - ' + f)
         return 1
-    print('✓ check_border_radius --self-test 18칸 통과')
+    print('✓ check_border_radius --self-test 24칸 통과')
     return 0
 
 
