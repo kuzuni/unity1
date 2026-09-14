@@ -4769,6 +4769,7 @@
 - **주인이 확인할 것**: 없다.
 - **남은 것**: 런 판정 뒤 ⓑ 닫고 lock 반납(행은 ⓒ2 가 남아 ⬜ 로) · ⓒ2(`ForgeCraftPopup` NEW 강조 화면 붙이기)는 T122 lock 뒤 누구든.
 - **판정 ①(런 343 · 07:2x)**: `CardPopTests` PASS · EditMode `CardPopRulesTests` 3 PASS(645/645). **그러나 촬영이 팝 도중을 찍었다** — 런 341·343 `screen_settings.png` 등 팝업 여섯 장이 반투명·축소 중(카드 너머 세계가 비친다 · T28 38회차가 T128 ⓒ 로 등재 · T149 가 카드 폭 자 둘을 «팝 끝난 뒤 재기» 로 고쳤다). 뿌리는 내 ⓑ 라 여기서 닫는다: `CardPop.SettleAll()`(돌고 있는 팝을 지금 끝내고 캔버스 갱신 · 게임 흐름은 안 부른다) + `UiShotsTests` 가 화면을 연 직후 한 줄 + `AgePatternTests.Capture` 한 줄 + PlayMode `SettleAll_은_팝을_지금_끝내_카드를_원래_모습으로_돌린다`. 남의 빨강: `AgePatternTests`(임자 없음이라 자가 내 일로 댔지만 문구는 T147 `EdgeOutline.shader` 의 `Blit.hlsl` include 오류 · T147 lock 살아 있음) · `EdgeOutlineTests`(T147) · `GearDetailTests`(T149 · 폭 실측 .58 = 팝 도중 · T149 가 고쳤다). 판정 ②는 다음 런 PNG(팝업 카드가 원래 크기·불투명).
+- **판정 ② 보류(런 351 · 08:1x)**: `CardPopTests` 둘(팝·정착) PASS · EditMode 646/646. 그러나 **런 351 촬영 58장이 전부 민회색**(파일마다 8861바이트 · 픽셀 128,128,128 · `WorldFrameShotTests` 까지 빨강) — `a7d416b`(T147 3회차 · EdgeOutline 셰이더의 include 를 고쳐 **전체화면 패스가 처음으로 실제로 돈** 커밋)부터다. 카드 팝 갈래가 아님은 워커 I 가 보고함 9행에서 이미 가렸다(런 341 엔 그 빨강이 없었고 그때 이미 `c45974f` 가 들어 있었다). 그러니 «팝업 카드가 원래 크기·불투명» 눈 확인은 **T147 이 화면을 되살린 다음 런**에서 한다 · lock 유지(갱신). 재는 자 규약: 팝업의 크기·픽셀을 재는 PlayMode 자는 연 뒤 `CardPop.SettleAll()`(또는 러너가 사라질 때까지 프레임 넘기기 · T149·T152 의 길)을 먼저 부른다 — ROUTINE T135 절에 적었다.
 
 ### T147 2회차 기록 (2026-09-14 06:4x~07:0x · 워커 G · sess-0542-31207 · lock 유지 · 판정은 다음 런 + PNG)
 
