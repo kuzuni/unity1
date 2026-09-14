@@ -1778,6 +1778,8 @@
 - 무엇을 한다: ⓐ 자 `tools/check_text_shadows.py`(T109 `check_keyline` 꼴 · `text-shadow` 만 · 키라인 표에 있는 선택자는 «T104·T109 몫» 으로 빼고 센다 · KNOWN) ⓑ `UiKit.Text` 에 «그림자 키» 갈래(표 `TextShadowUi.json` · px 은 `css_px` 환산 · em 은 글자 크기 · 색·오프셋·흐림) ⓒ 자리는 버튼 라벨(`PopupKit.Btn`) → 제목 → 링 열 자리 → 글로우.
 - 판정: 자 고장 주입 rc 1 · `screen_main` 버튼 글자 8배 확대에서 아래 1px 어두운 줄 · 시트 제목 아래 흰 줄 · `TextSizeGateTests` 초록(재질 인스턴스가 는다 — T121 램프와 겹치지 않게).
 - 범위: `tools/check_text_shadows.py`(새) · `Assets/Scripts/Game/Ui/UiKit.cs`(**T106·T178 lock 뒤**) · `Ui/Popups.cs`(Btn 라벨 · 그 파일 lock 뒤) · `Assets/Forge/Resources/TextShadowUi.json`(새) · `Assets/Tests/PlayMode/`(새 파일)
+- 🔄 1회차 2026-09-14 17:1x 워커 A(sess-2005-27410): `UiKit.cs`(T106 ✅ · T178 반납)·`Popups.cs` 를 쥔 산 lock 이 없어 ⓐ 자 + ⓑ `UiKit.TextShadow`(TMP `_Underlay*` · 환산식은 Core `UnderlaySdf` · 표 `TextShadowUi.json`) + ⓒ 첫 자리 = 색 버튼 라벨(`PopupKit.Btn` · 정본 8504 `0 1px 1px rgba(4,18,52,.62)` · 비활성 8356 흰 줄)을 한 회차로. 자 CI 스텝은 `ci.yml` 이 T182 lock 이라 2회차.
+
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
