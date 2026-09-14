@@ -680,7 +680,30 @@ def lock_claim_gap(rows):
     return out
 
 
-def cmd_check(heads, rows, dups=None):
+def task_commit_age(tid, log=None):
+    """그 번호로 시작하는 **마지막 커밋이 몇 분 전**인가 — 없거나 얕은 클론이면 `None`(T164 · `sid_commit_age` 와 같은 조심).
+    커밋 «제목» 만 본다(`footprint` 와 같은 자) — 남이 제 커밋 글에 그 번호를 적은 것은 안 센다."""
+    if log is None:
+        try:
+            cnt = int((_git(["rev-list", "--count", "HEAD"]).strip() or "0"))
+        except ValueError:
+            return None
+        if cnt < SHALLOW_MIN:
+            return None
+        log = _git(["log", "--format=%h\t%cI\t%s", "-400"])
+    pat = re.compile(r"^" + tid + r"(?![\w-])")
+    for line in log.split("\n"):
+        parts = line.split("\t")
+        if len(parts) == 3 and pat.match(parts[2]):
+            try:
+                t = datetime.datetime.fromisoformat(parts[1])
+            except ValueError:
+                return None
+            return (datetime.datetime.now(datetime.timezone.utc) - t).total_seconds() / 60.0
+    return None
+
+
+def cmd_check(heads, rows, dups=None, commit_age=None):
     rc = 0
     # 마지막 «✓ 요약» 줄에 한 번 더 실을 참고 사항들 — T231.
     #    까닭: 이 자의 «(참고 · 실패 아님)» 줄은 실패가 아니라서 종료 코드에 안 잡히고,
@@ -763,6 +786,29 @@ def cmd_check(heads, rows, dups=None):
             print("  · %-5s PROGRESS.md:%d  ↔  docs/claims/%s.lock  %s · %d분 전" % (tid, n_, tid, sid, age))
         print("  고침: 임자가 상태 칸을 🔄 로 올린다(또는 일을 접었으면 lock 을 지운다).")
         notes.append("⬜ 인데 lock 살아 있음 %s" % " ".join(t[0] for t in trap))
+
+    # ⓚ **«🔄 진행» 인데 lock 이 없고 그 번호의 마지막 커밋이 90분보다 오래됐다** (T164 · T33 12회차 실측).
+    #    세션이 1회차만 하고 죽으면 행은 🔄 인 채 남고, `task_state <ID>` 는 🔄 를 «먼저 읽어라» 로 거르므로 그 절은
+    #    워커들의 «선점할 것 없음» 목록에 **후보로도 안 오른다** — T132 가 그렇게 11시간 30분을 숨었다.
+    #    ⓖ 가 «⬜ 인데 lock 있음» 을 보니 그 반대 «🔄 인데 lock 없음 + 오래됨» 을 여기 짝으로 둔다.
+    #    ⚠ 막지 않는다(결정 493) — 그 행을 이어 잡을지는 사람이 정한다. 방금 반납한 행(커밋 90분 안)은 안 찍는다.
+    #    ⚠ 얕은 클론(커밋 나이를 못 잰다 · None)에서는 판단하지 않는다 — 거짓 경고로 매 런 울지 않게(sid_commit_age 와 같은 조심).
+    age_of = commit_age or task_commit_age
+    idle = []
+    for tid, (n_, mark, _txt) in rows.items():
+        if mark != "🔄" or lock_of(tid):
+            continue
+        age = age_of(tid)
+        if age is not None and age > STALE_MIN:
+            idle.append((tid, n_, age))
+    if idle:
+        idle.sort(key=lambda t: int(t[0][1:]))
+        print("· (참고 · 실패 아님) **«🔄 진행» 인데 lock 이 없고 마지막 커밋이 90분을 넘긴 작업** — 임자가 떠난 자리일 수 있다(T164):")
+        for tid, n_, age in idle:
+            print("  · %-5s PROGRESS.md:%d  lock 없음 · 그 번호의 마지막 커밋 %d분 전" % (tid, n_, age))
+        print("  그 절의 마지막 회차 기록을 읽고 남은 몫이 있으면 이어 잡는다(`task_state <ID>` 의 «먼저 읽어라» 가 그 뜻이다) ·"
+              " 끝난 것이면 임자가 ✅ 를 단다.")
+        notes.append("🔄 인데 lock 없음·오래됨 %s" % " ".join(t[0] for t in idle))
 
     # ⓗ-2 **그 반대 방향** — «🔄 이고 행은 «쥔 채» 라는데 lock 파일이 없다» (T453 · 2026-09-11 실측 둘).
     #     ⓗ 가 «안 잡았다는데 lock 이 있다» 를 보니, 짝이 되는 «쥐었다는데 lock 이 없다» 를 여기 같이 둔다.
@@ -1152,6 +1198,35 @@ def self_test():
                 print("⛔ 자기 검사 실패 — 죽은 lock(90분 초과)인데 «잡지 마라» 로 찍었다(거짓 경고):\n%s" % out_stale)
                 return 1
 
+            # ⓚ **«🔄 인데 lock 없음 + 마지막 커밋 오래됨»(T164)** — 잡는가 · 살아 있는 lock · 방금 커밋 · ✅ 는 안 잡는가.
+            def _run_k(mark, minutes, age):
+                io.open(r, "w", encoding="utf-8").write("### %s %s— 새 일\n" % (free, "✅ " if mark == "✅" else ""))
+                io.open(p, "w", encoding="utf-8").write(
+                    "| ID | 작업 | 상태 | SID |\n| %s | 새 일 | %s 진행 | sess-test |\n" % (free, mark))
+                lp = os.path.join(claims, free + ".lock")
+                if minutes is None:
+                    if os.path.exists(lp): os.remove(lp)
+                else:
+                    _write(minutes)
+                b = io.StringIO(); k = sys.stdout
+                try:
+                    sys.stdout = b; rc_ = cmd_check(routine_heads(r), progress_rows(p), commit_age=lambda t: age)
+                finally:
+                    sys.stdout = k
+                return rc_, b.getvalue()
+            for mark, minutes, age, want in (("🔄", None, 600, True), ("🔄", 5, 600, False), ("🔄", None, 10, False),
+                                             ("✅", None, 600, False), ("🔄", None, None, False)):
+                rc_k, out_k = _run_k(mark, minutes, age)
+                if rc_k != 0:
+                    print("⛔ 자기 검사 실패(T164) — ⓚ 가 막았다(알리기만 · 결정 493): rc=%s" % rc_k)
+                    return 1
+                if ("마지막 커밋이 90분을 넘긴" in out_k) != want:
+                    print("⛔ 자기 검사 실패(T164) — %s/lock %s/커밋 %s분 → 기대 %s:\n%s" % (mark, minutes, age, want, out_k))
+                    return 1
+            io.open(r, "w", encoding="utf-8").write("### %s — 새 일\n" % free)
+            io.open(p, "w", encoding="utf-8").write(
+                "| ID | 작업 | 상태 | SID |\n| %s | 새 일 | ⬜ **대기 — 선점 안 됨** | |\n" % free)
+
             # ⓘ **«미래로 적힌 lock»(T294)** — 잡는가 · 그리고 **시계 차이만 한 것은 안 잡는가**.
             #    여기서도 거짓 경고 쪽이 더 나쁘다: 컨테이너마다 시계가 조금씩 다른데 1~2분마다 울면
             #    워커가 이 참고 줄 전체를 흘려 읽게 되고, 그러면 ⓖ 도 같이 묻힌다.
@@ -1433,7 +1508,7 @@ def self_test():
             if got != want:
                 print("⛔ 자기 검사 실패(T160) — 등재만 된 ⬜ 판정: %s/%s/%s/%d커밋 → %r (기대 %r)" % (pm, lk_, fl, len(cm), got, want))
                 return 1
-        print("✓ task_state --self-test: 어긋난 짝을 잡고(T161) · **등재만 된 ⬜ 는 잡아도 되고 코드 커밋·🔄·lock 이 있으면 아니고(T160)** · ✅ 를 달면 조용하고 · 빈 번호는 통과하고 ·"
+        print("✓ task_state --self-test: 어긋난 짝을 잡고(T161) · **등재만 된 ⬜ 는 잡아도 되고 코드 커밋·🔄·lock 이 있으면 아니고(T160)** · **«🔄 인데 lock 없음·마지막 커밋 90분 초과» 를 참고로 찍되 산 lock·방금 커밋·✅ 는 안 찍고(T164)** · ✅ 를 달면 조용하고 · 빈 번호는 통과하고 ·"
               " 같은 번호 두 제목을 잡고 · «행 없음 ↔ 접힌 행만» 을 가르고 · ⛔ 와 `\\|` 도 읽고 ·"
               " 참고 줄이 마지막 요약에도 실리고(T231) · «⬜ + 살아 있는 lock» 을 잡되 죽은 lock 은 안 잡고(T238) · **미래로 적힌 lock 을 잡되 1분 차에는 안 울고**(T294) · **본문에 ✂ 를 인용한 살아 있는 줄을 접힘으로 안 센다**(T249) · **«낡은 lock 인데 임자는 살아 있다» 를 잡되 «둘 다 낡음»·«아직 살아 있음»·«판단 못 함» 셋에는 안 울고**(T329)"
               " · **맨 위 행을 지워도 발급이 안 내려가고(옛 규칙이면 그 번호를 재발급한다) · 지워진 번호를 잡되 멀쩡한 표·구멍·git 없음 셋에는 안 울고**(T415)"
