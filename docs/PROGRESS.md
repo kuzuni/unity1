@@ -4235,3 +4235,11 @@
 - **플레이 콘솔 에러 0**(하니스) — 유니티 판정은 다음 런(PlayMode 새 셋 PASS · 화면 변화는 토스트뿐이라 PNG 는 안 본다 · ROUTINE 판정 줄 그대로).
 - **주인이 확인할 것**: 없다.
 - **남은 것**: 런 판정 뒤 ✅ · lock 반납.
+
+### T134 3회차 기록 (2026-09-14 03:5x · 워커 O · sess-2140-18689 · lock 유지 · 판정은 다음 런 + PNG)
+
+- **무엇**: ⓓ 호출 여덟 자리를 정본 줄 그대로 이었다 — `QuestSheet.OnClaim`(`ui.js` 4607 `{[got.cur]: got.amt}` · from = 그 [수령] 버튼 · 토스트 없음) · `QuestSheet.OnClaimAll`(4623 `gains` · **토스트보다 먼저** — 정본 주석 «rewardBurst 가 토스트 보류를 세운다») · `DungeonClearPopup.Confirm`(4720 · from = [보상 수령] · `Close()` 전) · `ShopSheet.OnClaimDeal`(4941 `d.reward` 에서 **gems 를 뺀다** · from = 가격 버튼) · `PassPopup.OnClaim`(5004 `m.free` · from = 그 칸) · `OfflinePopup.Collect`(5941 `{coins, hammers}` · from = [수집] · **팝업 닫기 전**) · `DungeonSheet` 소탕(`dungeons.js` 180 `rewardBurst(r)` · from 없음 — 종전 T22 대체 토스트 «+해머 302 · +코인 27.1k» 는 걷었다 · 정본 ⚡ 소탕 토스트는 Core `Dungeons.Sweep` 266 이 따로 낸다). 버튼을 시작점으로 넘기려 호출부 셋은 `Button x = null; x = PopupKit.Btn(…, () => …(x.GetComponent<RectTransform>()), …)` 꼴(람다가 뒤에 대입되는 지역을 잡는다).
+- **도우미**(`RewardBurst.cs` · 범위 안): `Rewards(params object[] kv)`(쌍 나열) · `Rewards(IEnumerable<KeyValuePair<string,double>>, except)`(`OrderedMap` 등 · 제외 재화) · `Rewards(DungeonRewards)`(해머·코인·티켓·알·물약 · 0 은 Burst 가 거른다). `OrderedMap<T>` 가 `IEnumerable<KeyValuePair>` 라 `Gains`·`Free`·`Reward` 를 그대로 넘긴다.
+- **자**: 새 `Assets/Tests/PlayMode/RewardBurstWiringTests.cs` 1 — 상점 무료칸 [가격] 한 번 → `PlayCount` +1 · `LastEntries` 에 `gems` 없음 · 같은 칸 다시 → 토스트만(+0) · 퀘스트 일괄수령(수령할 것 없음) → +0. 연출 자체는 1회차 `RewardBurstTests` 가 지킨다.
+- **게이트**: dotnet build 0 오류(PlayMode 컴파일 포함) · dotnet test 621/621 · `gen_meta` 1 · `check_claim_scope`·`check_text_glyphs`·`check_keyline`·`check_sfx_calls` rc 0.
+- **판정(다음 런)**: `RewardBurstWiringTests` PASS + 기존 `ShopUiTests`·`RewardBurstTests`·`DungeonUiTests` 등 무사 + PNG(§1): 촬영 목록에 «수령 순간» 컷이 없으니 `screen_shop.png` 가 안 흔들리는 것 + T134 1회차의 `screen_t134-reward.png` 그대로 → ✅ · lock 반납.

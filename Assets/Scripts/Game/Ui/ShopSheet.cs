@@ -100,7 +100,8 @@ namespace Forge.Game.Ui
                 PopupKit.IconOr(art, "img", "shop_" + d.Key);
                 float priceW = UiKit.L("shop_price_w") * w, priceH = UiKit.H("shop_price_h");
                 string key = d.Key;
-                Button price = PopupKit.Btn(card, "price", claimed ? "수령 완료" : d.PriceKr, "pp_blue", "pp_blue_dk", () => OnClaimDeal(h, key), priceW, priceH, "stage_ink", TextKind.Sub, claimed);
+                Button price = null;
+                price = PopupKit.Btn(card, "price", claimed ? "수령 완료" : d.PriceKr, "pp_blue", "pp_blue_dk", () => OnClaimDeal(h, key, price.GetComponent<RectTransform>()), priceW, priceH, "stage_ink", TextKind.Sub, claimed);
                 UiKit.Place(price.GetComponent<RectTransform>(), cardW - UiKit.L("shop_price_right") * w - priceW, cardH - UiKit.H("shop_price_bottom") - priceH, priceW, priceH);
             }
 
@@ -180,10 +181,14 @@ namespace Forge.Game.Ui
             t.fontStyle = FontStyles.Bold;
         }
 
-        private static void OnClaimDeal(MetaHost h, string key)
+        private static void OnClaimDeal(MetaHost h, string key, RectTransform from)
         {
-            if (h.Shop.ClaimDeal(h.ShopState, h.Wallet, key)) h.Touch();
-            else h.Toast("오늘은 이미 수령했습니다");
+            if (!h.Shop.ClaimDeal(h.ShopState, h.Wallet, key)) { h.Toast("오늘은 이미 수령했습니다"); return; }
+            ShopDeal d = null;
+            foreach (ShopDeal x in h.Meta.Shop.Deals) if (x.Key == key) { d = x; break; }
+            // 정본 ui.js 4941 — 젬은 claimDeal 이 지급을 걸러내므로 연출에서도 뺀다 · 토스트 없음(수령 연출이 이미 말한다) · T134 3회차
+            if (d != null) RewardBurst.Play(RewardBurst.Rewards(d.Reward, "gems"), from);
+            h.Touch();
         }
 
         /// <summary>재화 키 → 아이콘 키(원작 CURRENCY_ICON · QUEST_CUR_ICON).</summary>

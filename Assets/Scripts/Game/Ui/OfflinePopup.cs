@@ -16,6 +16,7 @@ namespace Forge.Game.Ui
     {
         public const string Name = "offline";
         private static TextMeshProUGUI counted, max, coins, hammers;
+        private static RectTransform collectBtn;   // T134 3회차 — 수령 연출의 시작점([수집] · 정본 5941)
         private static float acc;
 
         public static void Show(MetaHost h, OfflineReward o)
@@ -82,6 +83,7 @@ namespace Forge.Game.Ui
             Button collect = PopupKit.Btn(bottom, "collect", "수집", "pp_green", "pp_green_dk", () => Collect(h), bw, bh);
             UiKit.Place(collect.GetComponent<RectTransform>(), (inner - bw) * 0.5f, by, bw, bh);
             CollectDot(collect.GetComponent<RectTransform>(), bw, rem);
+            collectBtn = collect.GetComponent<RectTransform>();
 
             PopupKit.XButton(card, () => Close(h));
             Update(o);
@@ -147,6 +149,8 @@ namespace Forge.Game.Ui
         {
             OfflineReward r = SaveIo.Instance != null ? SaveIo.Instance.ClaimOffline() : null;
             if (r == null) { h.Toast("💤 아직 누적된 오프라인 보상이 없습니다"); Close(h); return; }
+            // 정본 ui.js 5941 — 수령 연출은 팝업을 닫기 **전에**(시작점 좌표는 호출 시점에 잡히고 연출 층은 닫히는 팝업 위에서 이어진다) · T134 3회차
+            RewardBurst.Play(RewardBurst.Rewards("coins", r.Coins, "hammers", r.Hammers), collectBtn);
             Close(h);
             h.Touch();
         }
@@ -155,6 +159,7 @@ namespace Forge.Game.Ui
         {
             h.Popups.Hide(Name);
             counted = max = coins = hammers = null;
+            collectBtn = null;
         }
     }
 }

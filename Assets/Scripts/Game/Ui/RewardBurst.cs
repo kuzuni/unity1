@@ -68,6 +68,30 @@ namespace Forge.Game.Ui
             return rb.Burst(rewards, from);
         }
 
+        // ── T134 3회차 — 호출부 도우미: 정본 `rewardBurst({ [cur]: amt })` 의 «재화 → 양» 을 세 꼴에서 만든다(양 0 이하는 Burst 가 거른다).
+        /// <summary>쌍 나열 — `Rewards("coins", 12, "hammers", 3)`.</summary>
+        public static List<KeyValuePair<string, double>> Rewards(params object[] kv)
+        {
+            var list = new List<KeyValuePair<string, double>>();
+            for (int i = 0; i + 1 < kv.Length; i += 2) list.Add(new KeyValuePair<string, double>((string)kv[i], Convert.ToDouble(kv[i + 1])));
+            return list;
+        }
+
+        /// <summary>표(`OrderedMap` 등)에서 — <paramref name="except"/> 재화는 뺀다(정본 4941 상점 무료칸: `delete r.gems` — claimDeal 이 젬을 안 주니 «안 준 걸 준 것처럼» 안 보이게).</summary>
+        public static List<KeyValuePair<string, double>> Rewards(IEnumerable<KeyValuePair<string, double>> m, string except)
+        {
+            var list = new List<KeyValuePair<string, double>>();
+            if (m != null) foreach (KeyValuePair<string, double> e in m) if (except == null || e.Key != except) list.Add(e);
+            return list;
+        }
+
+        /// <summary>던전 보상(정본 `grantRewards` 의 r · 지급 순서 해머 → 코인 → 티켓 → 알 → 물약).</summary>
+        public static List<KeyValuePair<string, double>> Rewards(Forge.Core.Dungeon.DungeonRewards r)
+        {
+            if (r == null) return new List<KeyValuePair<string, double>>();
+            return Rewards("hammers", r.Hammers, "coins", r.Coins, "tickets", r.Tickets, "eggCurrency", r.EggCurrency, "potions", r.Potions);
+        }
+
         /// <summary>도착 pill(코인·젬은 `pill-coin`·`pill-gem`) — 없으면 상단바 — 그마저 없으면 null(정본 폴백 = 화면 위 가운데).</summary>
         public static RectTransform TargetOf(string currency, out bool isBand)
         {

@@ -106,6 +106,8 @@ namespace Forge.Game.Ui
             if (busy) return;
             busy = true;
             DungeonRewards r = rewards;
+            // 정본 ui.js 4720 — [보상 수령]에서 터져 상단 재화 바로 흡수 · Close 전에(시작점은 호출 시점에 잡힌다) · T134 3회차
+            RewardBurst.Play(RewardBurst.Rewards(r), ConfirmButton != null ? ConfirmButton.GetComponent<RectTransform>() : null);
             Close();
             if (DungeonUiHost.Instance != null) DungeonUiHost.Instance.RenderTopBar();
             var h = Confirmed;

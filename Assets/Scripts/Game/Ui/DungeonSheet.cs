@@ -86,14 +86,15 @@ namespace Forge.Game.Ui
                 case DungeonEventKind.Toast: DungeonPopups.Toast(e.Text); break;
                 case DungeonEventKind.OpenDungeons: if (IsOpen) Rebuild(); break;
                 case DungeonEventKind.RenderDungeonDetail: DungeonDetailPopup.Refresh(); break;
-                case DungeonEventKind.RewardBurst: DungeonPopups.Toast(RewardLine(e.Rewards)); host.RenderTopBar(); break;
+                // T134 3회차 — 정본 dungeons.js 180 `UI.rewardBurst(r)`(from 없음 · 소탕은 팝업 없이 이펙트만) · ⚡ 소탕 토스트는 Core Dungeons.Sweep 이 따로 낸다 · 종전 T22 대체 토스트는 걷었다
+                case DungeonEventKind.RewardBurst: RewardBurst.Play(RewardBurst.Rewards(e.Rewards), null); host.RenderTopBar(); break;
                 case DungeonEventKind.RenderTopBar: host.RenderTopBar(); break;
                 case DungeonEventKind.ShowDungeonClear: DungeonClearPopup.Show(DungeonDefs.Find(e.Id), e.Stage, e.Rewards); break;
                 case DungeonEventKind.SetupStage: UpdateStageLabel(); break;
             }
         }
 
-        /// <summary>원작 rewardBurst 대신(T22 공용 연출 전) — «+해머 302 · +코인 27.1k» 한 줄.</summary>
+        /// <summary>«+해머 302 · +코인 27.1k» 한 줄 — T22 가 rewardBurst 대신 쓰던 토스트 문구(T134 3회차부터 소탕 자리는 진짜 연출을 부른다 · 이 줄은 남겨 둔다).</summary>
         public static string RewardLine(DungeonRewards r)
         {
             var parts = new List<string>();

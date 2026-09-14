@@ -46,7 +46,8 @@ namespace Forge.Game.Ui
             float btnW = UiKit.H("quest_btn_w") * 1.6f, btnH = UiKit.H("quest_btn_h") * 1.3f;
 
             RectTransform allBar = PopupKit.Item(content, "allbar", -1f, btnH);
-            Button all = PopupKit.Btn(allBar, "claim-all", "일괄수령" + (ready > 0 ? " (" + ready + ")" : ""), "pp_green", "pp_green_dk", () => OnClaimAll(h), btnW * 1.6f, btnH, "stage_ink", TextKind.Sub, ready == 0);
+            Button all = null;
+            all = PopupKit.Btn(allBar, "claim-all", "일괄수령" + (ready > 0 ? " (" + ready + ")" : ""), "pp_green", "pp_green_dk", () => OnClaimAll(h, all.GetComponent<RectTransform>()), btnW * 1.6f, btnH, "stage_ink", TextKind.Sub, ready == 0);
             UiKit.Anchor(all.GetComponent<RectTransform>(), new Vector2(0.5f, 0.5f), new Vector2(1f, 0.5f), new Vector2(rowW * 0.5f, 0f), btnW * 1.6f, btnH);
 
             if (list.Count == 0) PopupKit.Label(content, "empty", TextKind.Body, "퀘스트를 불러오지 못했습니다", "pp_muted");
@@ -99,7 +100,8 @@ namespace Forge.Game.Ui
                 rwT.fontStyle = FontStyles.Bold;
                 rwT.rectTransform.offsetMin = new Vector2(icon * 0.65f, 0f);
                 int idx = i;
-                Button claim = PopupKit.Btn(right, "claim", "수령", done ? "pp_green" : "pp_gray", done ? "pp_green_dk" : "pp_gray_dk", () => OnClaim(h, idx), btnW, btnH, "stage_ink", TextKind.Sub, !done);
+                Button claim = null;
+                claim = PopupKit.Btn(right, "claim", "수령", done ? "pp_green" : "pp_gray", done ? "pp_green_dk" : "pp_gray_dk", () => OnClaim(h, idx, claim.GetComponent<RectTransform>()), btnW, btnH, "stage_ink", TextKind.Sub, !done);
                 UiKit.Place(claim.GetComponent<RectTransform>(), 0f, rowH - padY * 0.6f - btnH, btnW, btnH);
             }
             PopupKit.Spacer(content, UiKit.RefH - PopupKit.TabTop + rem * 0.9f);
@@ -107,17 +109,21 @@ namespace Forge.Game.Ui
             PopupKit.SheetBack(sheet, () => Close(h));
         }
 
-        private static void OnClaim(MetaHost h, int i)
+        private static void OnClaim(MetaHost h, int i, RectTransform from)
         {
             QuestClaim got = h.Quests.Claim(h.QuestState, h.Wallet, i);
             if (got == null) return;
+            // 정본 ui.js 4607 — 토스트 없음 · «+획득량» 라벨이 같은 정보를 같은 자리에서 말한다(T134 3회차)
+            RewardBurst.Play(RewardBurst.Rewards(got.Cur, got.Amt), from);
             h.Touch();
         }
 
-        private static void OnClaimAll(MetaHost h)
+        private static void OnClaimAll(MetaHost h, RectTransform from)
         {
             QuestClaimAll r = h.Quests.ClaimAll(h.QuestState, h.Wallet);
             if (r.N == 0) { h.Toast("📜 수령할 수 있는 퀘스트가 없습니다"); return; }
+            // 정본 ui.js 4623 — 연출을 토스트보다 **먼저**(정본 주석: rewardBurst 가 토스트 보류를 세운다 · 뒤에 부르면 «+획득량» 과 겹친다)
+            RewardBurst.Play(RewardBurst.Rewards(r.Gains, null), from);
             var parts = new List<string>();
             for (int i = 0; i < r.Gains.Count; i++)
             {

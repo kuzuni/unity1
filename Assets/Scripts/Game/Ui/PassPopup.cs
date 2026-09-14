@@ -160,7 +160,7 @@ namespace Forge.Game.Ui
                 }
                 else if (reached)
                 {
-                    Button b = UiKit.Button(freeCell, "claim", () => OnClaim(h, stage));
+                    Button b = UiKit.Button(freeCell, "claim", () => OnClaim(h, stage, freeCell));   // 정본 5004 from = 그 칸(cell)
                     b.transform.SetAsLastSibling();
                 }
                 RectTransform premCell = Cell(seg, "premium", cellW + gap + rem * 0.2f, rowY, cellW, cellH, "pass_cell", m.Premium, "pass_pill", pillH, cellPad);
@@ -193,9 +193,14 @@ namespace Forge.Game.Ui
             return cell;
         }
 
-        private static void OnClaim(MetaHost h, string stage)
+        private static void OnClaim(MetaHost h, string stage, RectTransform from)
         {
-            if (h.Pass.Claim(h.PassState, h.Wallet, stage, h.S.BestAbsChapter(SaveIo.Defs), h.S.BestStage)) h.Touch();
+            if (!h.Pass.Claim(h.PassState, h.Wallet, stage, h.S.BestAbsChapter(SaveIo.Defs), h.S.BestStage)) return;
+            PassMilestone m = null;
+            foreach (PassMilestone x in h.Meta.Pass.Milestones) if (x.Stage == stage) { m = x; break; }
+            // 정본 ui.js 5004 — m.free 를 그 칸에서 터뜨린다 · 토스트 없음 · T134 3회차
+            if (m != null) RewardBurst.Play(RewardBurst.Rewards(m.Free, null), from);
+            h.Touch();
         }
     }
 }
