@@ -1831,6 +1831,7 @@
 - 범위: `tools/check_text_shadows.py`(새) · `Assets/Scripts/Game/Ui/UiKit.cs`(**T106·T178 lock 뒤**) · `Ui/Popups.cs`(Btn 라벨 · 그 파일 lock 뒤) · `Assets/Forge/Resources/TextShadowUi.json`(새) · `Assets/Tests/PlayMode/`(새 파일)
 - 🔄 1회차 2026-09-14 17:1x 워커 A(sess-2005-27410): `UiKit.cs`(T106 ✅ · T178 반납)·`Popups.cs` 를 쥔 산 lock 이 없어 ⓐ 자 + ⓑ `UiKit.TextShadow`(TMP `_Underlay*` · 환산식은 Core `UnderlaySdf` · 표 `TextShadowUi.json`) + ⓒ 첫 자리 = 색 버튼 라벨(`PopupKit.Btn` · 정본 8504 `0 1px 1px rgba(4,18,52,.62)` · 비활성 8356 흰 줄)을 한 회차로. 자 CI 스텝은 `ci.yml` 이 T182 lock 이라 2회차.
   → 런 457 `TextShadowTests` PASS(EditMode 652 · 빨강 1 은 T119 자리) · `screen_main` 파란 버튼 8배: 키라인 아래 남색 한 겹 · **lock 반납** — 2회차(누구든): `gate.sh`·`ci.yml` 등록(T184·T182 뒤) · 시트 제목 8381 · 리그 행 8392 · 글로우 자리(`--list` 미정 37).
+- 🔄 5회차 2026-09-14 23:5x 워커 D(sess-1753-2066 · 선점): 미정 31 중 **산 lock 밖 파일**은 셋뿐 — `.dgclear-title`(5375 · `DungeonClearPopup.cs` · T335 반납으로 열림) · `.bw-track span`(402)·`.bw-sub`(411 · `BattleOverlay.cs`). 여러 겹 중 «읽히게 만드는 한 겹»(league_row 갈래 그대로) + 자 TABLE 셋 + PlayMode 자. `gate.sh`·`ci.yml` 등록은 T331·T343·T345·T347 lock 이 쥐고 있어 이번에도 못 한다.
 
 
 ### T334 — 소환 결과 팝업의 **연출 시퀀스(충전 → 주역 등장 → 섬광/와이프 → 완료 · 등급 섬광 · 먼지·빛가루·유성) 키프레임 40 이 클론에 없다**: 정본 `tickSummonResult`·`fireSummonHero`·`finishSummonResult` 가 거는 `charging`·`hero`·`flash`·`wipe`·`done` 다섯 상태의 CSS 연출 (Game·UI · **T179 뒤**(같은 파일 `SkillSummonResult.cs`) · T23·T112 뒤 · T33 18회차 등재)
