@@ -17,7 +17,7 @@ namespace Forge.Game.Ui
 
         public static void Open(MetaHost h)
         {
-            h.Popups.Show(Name);
+            h.Popups.Show(Name, null, PopupZUi.AboveTabBar(Name));   // T346 2회차 — 정본 `#pass-modal` z 40 > 탭바 30(표 PopupZUi.json) · 딤이 하단 네비를 덮는다
             Render(h);
         }
 

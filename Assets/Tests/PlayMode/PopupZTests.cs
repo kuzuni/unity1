@@ -80,5 +80,23 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsFalse(h.Popups.IsOpen(ProfilePopup.Name));
         }
+
+        [UnityTest]
+        public IEnumerator 진행_패스_팝업은_정본_z_표대로_탭바_위_층에_선다()
+        {
+            // T346 2회차 — 정본 3781 `#pass-modal { z-index: 40 }` > 탭바 30. 1회차가 «T345 lock 뒤» 로 남긴 자리(PassPopup.cs:20).
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            Assert.IsTrue(PopupZUi.AboveTabBar(PassPopup.Name), "표: #pass-modal 은 탭바 위");
+            PassPopup.Open(h);
+            yield return null;
+            AssertLayer(PassPopup.Name);
+            // 딤이 탭 띠를 덮는다 — 위 층(modals-over)은 탭 띠보다 뒤 형제라 그 안의 딤이 여섯 칸 네비 위에 그려진다
+            Popup p = PopupLayer.Instance.Find(PassPopup.Name);
+            Assert.Greater(p.Root.parent.GetSiblingIndex(), UiRoot.Instance.TabBand.GetSiblingIndex(), "패스 팝업 층이 탭 띠보다 위에 그려진다");
+            PassPopup.Close(h);
+            yield return null;
+            Assert.IsFalse(h.Popups.IsOpen(PassPopup.Name));
+        }
     }
 }

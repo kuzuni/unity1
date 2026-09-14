@@ -5,7 +5,7 @@
     "offline":          { "z": 40, "_": "style.css 3781~3783 #offline-modal … { z-index: 40 }" },
     "profile":          { "z": 40, "_": "style.css 3782 #profile-modal (같은 규칙)" },
     "player-info":      { "z": 40, "_": "style.css 3782 #player-info-modal (같은 규칙 · 자리는 T178 lock 뒤)" },
-    "pass":             { "z": 40, "_": "style.css 3781 #pass-modal (같은 규칙 · 자리는 T345 lock 뒤)" },
+    "pass":             { "z": 40, "_": "style.css 3781 #pass-modal (같은 규칙 · 2회차가 PassPopup.Open 에 걸었다)" },
     "chat":             { "z": 40, "_": "style.css 3787 #chat-modal { z-index: 40 } (자리는 T333 lock 뒤)" },
     "forge-info":       { "z": 40, "_": "style.css 3782 #forge-info-modal — 클론은 이미 true (T78)" },
     "forge-item":       { "z": 42, "_": "style.css 3785 #detail-modal, #forge-item-modal { z-index: 42 } — 클론은 이미 true (T78)" },
