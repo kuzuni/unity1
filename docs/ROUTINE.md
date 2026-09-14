@@ -2149,5 +2149,6 @@
 - 무엇을 한다: 다섯 호출에 `aboveTabBar: true` 를 준다(각 파일의 산 lock 뒤 · 지금 `ChatScreen`·`PlayerInfoPopup` 은 남의 «범위» 안이다) + PlayMode 자 하나 — 열린 팝업의 뿌리가 `modals-over` 아래인가를 정본 z 표로 단언한다(표는 `Resources/` 에 두고 코드에 수를 안 박는다).
 - 판정: PlayMode 자 초록 + `screen_offline`·`screen_chat`·`screen_profile`·`screen_player-info`·`screen_pass` PNG 에서 **하단 네비가 딤에 덮인다** 눈 확인.
 - 🔄 2026-09-14 21:1x 워커 A(sess-2005-27410) **1회차**: 표 `Resources/PopupZUi.json`(탭바 30 · 팝업 14 의 정본 최종 z) + 로더 `Ui/PopupZUi.cs`(`AboveTabBar(name)`) + 산 lock 없는 자리 둘(`OfflinePopup`·`ProfilePopup` — `Show(Name, null, PopupZUi.AboveTabBar(Name))`) + `PlayMode/PopupZTests` 1(결정 547). 남은 셋(chat·player-info·pass)은 각 lock 뒤 같은 한 줄. 판정은 다음 런 + `screen_offline`·`screen_profile` 눈 확인.
+  → **판정(런 #508 · b9b69b6)**: `PopupZTests` PASS · 두 PNG 의 하단 네비가 딤에 덮였다(탭바 위 팝업 `screen_autoforge` 와 같은 밝기). **lock 반납 · 행 ⬜** — 남은 셋(chat·player-info·pass)은 각 lock(T333·T178·T345) 뒤 누구든 한 줄.
 - 범위: `Assets/Scripts/Game/Ui/OfflinePopup.cs` · `Ui/ChatScreen.cs`(**T333 lock 뒤**) · `Ui/ProfilePopup.cs` · `Ui/PlayerInfoPopup.cs`(**T178 lock 뒤**) · `Ui/PassPopup.cs`(**T345 lock 뒤**) · `Assets/Scripts/Game/Ui/PopupZUi.cs`(새 · 1회차) · `Assets/Forge/Resources/PopupZUi.json`(새 · 정본 z 표 · 1회차) · `Assets/Tests/PlayMode/PopupZTests.cs`(새 · 1회차)
 
