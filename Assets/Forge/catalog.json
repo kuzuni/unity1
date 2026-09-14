@@ -402,6 +402,8 @@
     { "key": "pinfo_avatar", "value": 0.0531, "_": "2.8rem / H" },
     { "key": "offline_w", "value": 0.69, "_": "오프라인 카드 69%W" },
     { "key": "offline_h", "value": 0.5504, "_": "55.04%H" },
+    { "key": "offline_collect_w", "value": 0.298, "_": "T155 · [수집] 파란 면 폭 29.80%W(정본 style.css 306~308 주석 실측 · 버튼 상자 = 면 + 좌우 테 line3)" },
+    { "key": "offline_collect_h", "value": 0.0749, "_": "T155 · [수집] 파란 면 높이 7.49%H(정본 4.6rem 상자에서 테·아래턱을 뺀 면 · 같은 주석) · 상자 = 면 + 테 둘 + btn_lip" },
     { "key": "quest_row_w", "value": 0.776, "_": "퀘스트 행 77.6%W" },
     { "key": "quest_row_gap", "value": 0.0118, "_": "행 간격 .62rem / H" },
     { "key": "quest_icon", "value": 0.0398, "_": "2.1rem / H" },

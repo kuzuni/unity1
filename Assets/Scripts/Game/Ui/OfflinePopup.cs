@@ -59,8 +59,17 @@ namespace Forge.Game.Ui
             Rate(top, "hammer", "hammer", GreenKey, PopupKit.FmtDec(o.HammerRate) + "/분", rx + rateW + gap, y, rateW, circle, lineH);
 
             RectTransform bottom = UiKit.Box(card, "bottom");
-            UiKit.Place(bottom, PopupKit.Line3, PopupKit.Line3 + topH, inner, cardH - topH - PopupKit.Line3 * 2f);
-            float by = rem * 0.8f;
+            float bottomH = cardH - topH - PopupKit.Line3 * 2f;
+            UiKit.Place(bottom, PopupKit.Line3, PopupKit.Line3 + topH, inner, bottomH);
+            // T155 — 정본 `.offline-bottom { padding: 1.1rem .9rem 1.3rem; justify-content: center; gap: 1.79rem }`(style.css 279~281):
+            //        합계줄 + [수집] 덩어리를 흰 몸통 **세로 가운데**에 둔다(종전엔 위에서 아래로 쌓아 아래가 통째로 비었다 · 검수 Q 런 364).
+            //        [수집] 은 이 버튼만의 치수 `.offline-collect-btn { width: 51.7%; height: 4.6rem }`(306) — 그 주석이 원본 파란 면을 29.80%W × 7.49%H 로 실측해 두었다.
+            //        면 치수를 표(offline_collect_w/h)에 두고 상자 = 면 + 테(line3) · 아래턱(btn_lip) 이다(PopupKit.Btn 이 면을 그만큼 안으로 그린다).
+            float lip = UiKit.H("btn_lip");
+            float bw = UiKit.W("offline_collect_w") + PopupKit.Line3 * 2f, bh = UiKit.H("offline_collect_h") + PopupKit.Line3 * 2f + lip;
+            float padT = rem * BottomPadTopRem, padB = rem * BottomPadBottomRem, gapV = rem * BottomGapRem;
+            float blockH = lineH + gapV + bh;
+            float by = padT + Mathf.Max(0f, (bottomH - padT - padB - blockH) * 0.5f);
             float ico = lineH;
             RectTransform total = UiKit.Box(bottom, "total");
             UiKit.Place(total, 0f, by, inner, lineH);
@@ -78,8 +87,7 @@ namespace Forge.Game.Ui
             hammers.fontStyle = FontStyles.Bold;
             UiKit.OutlinePx(hammers, "pp_line", KeylineUi.Em("offline_total", hammers.fontSize));   // 정본 .offline-total(같은 줄의 두 수)
             UiKit.Place(hammers.rectTransform, inner * 0.55f + ico + rem * 0.2f, 0f, inner * 0.25f, lineH);
-            by += lineH + rem * 0.7f;
-            float bw = inner * 0.5f, bh = UiKit.H("btn_h") * 1.2f;
+            by += lineH + gapV;
             // T144 — 정본은 파랑: 668 `.btn.primary`(초록 · 0-2-0)를 3548 `.modal-card .btn.primary { background: var(--pp-blue) }`(0-3-0)가 덮고
             //        오프라인 카드는 `modal-card offline-card`(ui.js 5891)다 · 307 주석의 «원본 파란 면 실측» 도 같은 말 · T68 의 «초록이 맞다» 는 기본 규칙만 본 오독
             Button collect = PopupKit.Btn(bottom, "collect", "수집", "pp_blue", "pp_blue_dk", () => Collect(h), bw, bh);
@@ -100,6 +108,8 @@ namespace Forge.Game.Ui
         public const string GreenKey = "offline_green";
         /// <summary>정본 `.offline-collect-dot` — .7rem 빨간 원 · 흰 테(`--ol2`) · 버튼 우상단(top/right −.3rem).</summary>
         public const float DotRem = 0.7f, DotOffsetRem = 0.3f;
+        /// <summary>정본 `.offline-bottom { padding: 1.1rem .9rem 1.3rem; gap: 1.79rem }`(T155 · style.css 279~281) — 합계줄·[수집] 덩어리를 세로 가운데에 두는 셈의 상수.</summary>
+        public const float BottomPadTopRem = 1.1f, BottomPadBottomRem = 1.3f, BottomGapRem = 1.79f;
 
         /// <summary>정본 `.offline-rate`(flex column · align center · gap .3rem): 원형 아이콘 2.6rem **위**, 초록 글자 **아래**.</summary>
         private static void Rate(Transform parent, string name, string icon, string circleKey, string text, float x, float y, float w, float circleD, float lineH)
