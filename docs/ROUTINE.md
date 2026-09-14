@@ -1029,7 +1029,7 @@
 - 판정: 자기 검사에 이번 실측을 칸으로 박는다(픽스처 `AgePatternTests` + 머리 커밋 제목 `T109 …` → 임자 **T124**) · 고장 주입(범위에 없는 픽스처 → «못 가렸다» 갈래) · 실제 `--fetch` 가 지금 main 에서 T124 를 찍는다.
 - 범위: `tools/check_unity_green.py`.
 
-### T126 — 빌드에는 **없는** 셰이더 둘: `Forge/FxUnlit`·`Forge/EnemyBody` 가 어떤 에셋에도 안 걸려 플레이어에서 잘린다 (배포·Game · T39 뒤 · 워커 G 등재)
+### T126 ✅ — 빌드에는 **없는** 셰이더 둘: `Forge/FxUnlit`·`Forge/EnemyBody` 가 어떤 에셋에도 안 걸려 플레이어에서 잘린다 (배포·Game · T39 뒤 · 워커 G 등재)
 - 실측(2026-09-13 21:4x · 워커 G · 코드 읽기 + GUID 역추적): 런타임이 `Shader.Find` 로 찾는 이름은 넷(`Forge/Terrain` · `Forge/FxUnlit` · `Forge/EnemyBody` · `Forge/UiScreen`)인데, 빌드에 실리는 길은 셋뿐이다 — ⓐ Resources 폴더 ⓑ 씬·프리팹·재질이 GUID 로 참조 ⓒ `ProjectSettings/GraphicsSettings.asset` 의 `m_AlwaysIncludedShaders`.
   - `Forge/Terrain` ← `Assets/Forge/Resources/Terrain.mat` 이 GUID 로 물고 있다(ⓐ+ⓑ) — 안전.
   - `Forge/UiScreen` ← `Assets/Forge/Resources/UiScreen.shader`(ⓐ) — 안전(T87 23회차).
@@ -1039,6 +1039,7 @@
 - 판정: 자가 rc 0 이고 고장 주입(둘 중 하나를 목록에서 빼면) rc 1 · `dotnet build`·기존 테스트 초록 · 다음 WebGL 빌드 런에서 스모크 초록.
 - 범위: `ProjectSettings/GraphicsSettings.asset` · `tools/check_shaders_included.py`(새 파일) · `.github/workflows/ci.yml`(스텝 두 줄) · `docs/ROUTINE.md` §3.
 
+- ✅ 결론(2026-09-14 02:4x · 워커 G · sess-2144-31207): 두 셰이더를 `m_AlwaysIncludedShaders` 에 넣어 **빌드에 실리게** 했고, 같은 사고를 앞으로 막는 자(`tools/check_shaders_included.py` · 자기 검사 13칸 · CI 스텝 둘)를 세웠다. 자는 셰이더 이름(`Shader.Find`)과 `Resources.Load<T>("경로")` 두 갈래를 본다 — 지금 셰이더 4 · Resources 23자리가 전부 실재한다. **판정 근거**: ⓐ 진짜 파일 고장 주입(고침 전 상태 rc 1 · `KeylineUi.ResourcePath` 오타 rc 1 · 되돌리면 rc 0) ⓑ CI dotnet 잡에서 두 스텝이 초록(런 269·286 …) ⓒ 런 271 이 유니티 잡까지 전 초록이라 이 변경이 에디터 경로를 안 깨뜨린다. **남긴 것 한 줄**: WebGL 굽기 런의 로그에서 «Compiling shader Forge/FxUnlit·Forge/EnemyBody» 를 눈으로 보는 확인은 **다음 굽기 런에서** 하면 된다 — 수동 굽기 런(286)은 push 가 잦아 `unity-test` 가 concurrency 로 취소돼(T32 설계) 굽기가 skip 됐고, 그것을 기다리며 lock 을 쥐고 있을 이유가 없다(자와 고장 주입이 이미 같은 것을 지킨다).
 ### T127 ✅ — 자: **lock 하나가 몇 작업을 세우고 있는가** — 그리고 그중 몇이 «임자가 오래 안 건드린 파일» 때문인가 (도구·게이트 · 뒤 순서 없음 · T87 실측)
 - 왜: 규약(`docs/claims/README.md`)의 «두 작업이 같은 파일을 만져야 하면 뒤 번호가 기다린다» 는 옳지만, **한 작업이 공용 파일을 오래 쥐면 그 뒤로 줄이 길어진다** — 2026-09-13 실측: T87(대장간 연출)이 05:44~21:5x 동안 `Ui/Forge*`·`Assets/Forge/catalog.json`·`Assets/Tests/PlayMode/ForgeUiTests.cs` 를 쥐어 **열린 작업 여럿**(T94·T98·T108·T113·T114·T117 2회차·T120 ⓐ·T124 2회차 …)이 회차마다 게이트만 돌리고 물러났다(워커 O 16:4x 보고 · 워커 H 다섯 회차 연속).
 - 규약에 이미 둘째 길이 있다: **«범위에 없는 파일을 열게 되면 표의 «범위» 칸을 먼저 고쳐 push»** — 뒤집으면 «더는 안 여는 파일은 범위에서 빼도 된다». 그런데 그 판단에 필요한 사실(«그 파일을 내가 마지막으로 만진 게 언제고, 그 때문에 누가 기다리는가»)을 아무도 안 보여 준다. 이 자가 그것을 **lock 임자 자신의 게이트 출력에** 띄운다.
@@ -1347,5 +1348,5 @@ node tools/export_data.js --self-test                                         # 
 | (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ✅ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) | ✅ (굽기 잡 조건 T32 ✅) · T86 ✅(런 223 스모크 초록 · gh-pages 배포) |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 · T123(유니티 잡을 건너뛴 문서 런이 빨강을 덮는다) · T125(그 자의 임자 판별) · T126(빌드에 안 실리는 셰이더) · T127 · T137(Core 를 안 보던 두부 막이) | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 ✅ · T123 ✅ · T125 ✅ · T126 🔄 · T127 ✅ · T137 ✅ |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 · T123(유니티 잡을 건너뛴 문서 런이 빨강을 덮는다) · T125(그 자의 임자 판별) · T126(빌드에 안 실리는 셰이더) · T127 · T137(Core 를 안 보던 두부 막이) | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 ✅ · T123 ✅ · T125 ✅ · T126 ✅ · T127 ✅ · T137 ✅ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
