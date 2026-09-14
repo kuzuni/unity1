@@ -38,7 +38,7 @@ SKIP_DIRS = [
 
 # 임자가 정해진 «호출 0» — 왜 아직 0인지와 누가 갚는지를 같이 적는다.
 KNOWN = {
-    'craftReveal': 'T119 ⓐ — 정본 ui.js 1938 `showCraftReveal`·1976 `showCraftBatch` 가 `SFX.craftReveal(AGES.indexOf(age))` 로 운다(둘 다 살아 있는 경로: 1804·2984 가 부른다). 클론 자리는 `ForgeCraftPopup`/`ForgeHost` 라 **T87 lock 뒤**.',
+    # ✅ craftReveal 은 T119 4회차(2026-09-14 · 워커 S)가 갚았다 — `ForgeCraftPopup.ShowReveal`·`ShowBatch` 가 정본 ui.js 1938·1976 대로 `Sfx.CraftReveal(AGES.indexOf(age))` 를 분다. KNOWN 에서 뺀다(남기면 호출이 지워져도 자가 조용히 넘어간다 · T120 2회차 규칙).
     # ✅ T119 1회차가 캤던 셋(craft·equipSnap·levelUp)은 **T120 1회차가 갚아 지웠다**(2026-09-13 · 런 238 PASS) —
     #    `Game/HostSfx.cs` 가 `ForgeHost.OnReady` 에서 훅을 꽂고(이름 → T30 래퍼), `levelUp` 은 세 자리에 걸렸다
     #    (`ForgeEngine.LevelReached` · `TechPopups.OnClaim` · `DungeonClearPopup.Show`). KNOWN 에 남겨 두면

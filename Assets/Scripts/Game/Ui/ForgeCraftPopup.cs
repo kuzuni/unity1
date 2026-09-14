@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using Forge.Core;
 using Forge.Core.Data;
 using Forge.Core.Forging;
+using Forge.Game.Audio;
 
 namespace Forge.Game.Ui
 {
@@ -161,6 +162,9 @@ namespace Forge.Game.Ui
             return tile;
         }
 
+        /// <summary>정본 `AGES.indexOf(item.age)` — 표에 없는 시대는 −1(정본과 같다 · `Sfx.CraftReveal` 이 0 으로 받는다).</summary>
+        public static int AgeIndex(ForgeHost h, ForgeItem it) { return Array.IndexOf(h.Defs.Ages, it.Age); }
+
         static Vector2 AnvilTop()
         {
             UiRoot root = UiRoot.Instance;
@@ -194,6 +198,7 @@ namespace Forge.Game.Ui
             RectTransform sheen = sheenImg.rectTransform;
             UiKit.Anchor(sheen, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, size, size);
             CraftCardFx.Play(card, CraftCardFx.Mode.Reveal, a, size, ring, ForgeUi.AgeColor(h.Defs, item.Age), sheen);
+            Sfx.CraftReveal(AgeIndex(h, item));   // 정본 ui.js 1938 `SFX.craftReveal(AGES.indexOf(item.age))` — T119 4회차
             h.Delay(ForgeHost.RevealCardSec, () => { DismissReveal(); done(); });
         }
 
@@ -246,6 +251,7 @@ namespace Forge.Game.Ui
             }
             // 정본 1118 «⚠️ 카드마다 animation-delay 를 주지 말 것» — 격자 **전체**가 `cbpop` 하나를 탄다.
             CraftCardFx.PlayBatch(grid, dim);
+            Sfx.CraftReveal(AgeIndex(h, items[0]));   // 정본 ui.js 1976 `SFX.craftReveal(AGES.indexOf(items[0].age))` — 카드판을 붙인 직후 · T119 4회차
             bool finished = false;
             Action finish = () => { if (finished) return; finished = true; DismissBatch(); done(); };
             Button b = dim.gameObject.AddComponent<Button>();
