@@ -89,6 +89,64 @@ def red_lines(ref=REF, limit=8):
     return hits
 
 
+# T150 — 빨강 본문이 **이름까지 댄 파일**. 콘솔 에러(`RED`)로 넘어진 자는 제 파일과 무관한데,
+# 사다리(ⓐ~ⓔ)는 전부 «그 테스트 파일» 단위라 엉뚱한 사람에게 간다(실측 런 343: 셰이더 에러로
+# 넘어진 `AgePatternTests` 를 «T124 — lock 없다 → 네 일이다» 로 찍었다 · 진짜는 T147 의 셰이더).
+ERR_PATH = re.compile(r'(Assets/[0-9A-Za-z_./\-]+\.(?:cs|shader|hlsl|cginc|mat|json|asset|unity|asmdef))')
+
+
+def red_text(ref=REF):
+    """`playmode-red.txt` 전문(없으면 빈 글자) — 머리줄만 보는 <see cref="red_lines"/> 와 달리 **본문**이 필요하다."""
+    rc, out = _git(['show', ref + ':playmode-red.txt'])
+    return out if rc == 0 else ''
+
+
+def error_paths(text):
+    """{픽스처: [Assets/… 경로]} — 빨강 본문이 댄 **제 것이 아닌** 파일.
+
+    `Assets/Tests/…` 는 뺀다(그것은 넘어진 자 자신이고, 스택 줄에 늘 찍힌다).
+    갈래를 안 가리고 본문 전체를 훑는 까닭: 유니티는 같은 에러를 `RED … | …` 와 `FAIL … msg …` 두 꼴로
+    적는데 둘 다 경로를 그대로 담고 있어, 어느 쪽을 잡아도 같은 답이 나온다."""
+    out = {}
+    cur = None
+    for ln in text.split('\n'):
+        m = re.search(r'Forge\.Tests\.[A-Za-z]+\.([A-Za-z0-9_]+)\.', ln)
+        if m:
+            cur = m.group(1)
+        if cur is None:
+            continue
+        st = ln.strip()
+        if st.startswith('at ') or st.startswith('at\t'):
+            continue          # 스택 줄 — 넘어진 자 자신의 파일이다
+        for path in ERR_PATH.findall(ln):
+            if path.startswith('Assets/Tests/'):
+                continue
+            out.setdefault(cur, [])
+            if path not in out[cur]:
+                out[cur].append(path)
+    return out
+
+
+def path_owners(path, progress_text):
+    """그 **경로의 파일 이름**을 «범위» 열에 적은 작업 번호들 — `scope_owners` 의 확장자 일반판(T150)."""
+    base = path.rsplit('/', 1)[-1]
+    needle = re.compile(r'(?<![0-9A-Za-z_])' + re.escape(base) + r'\b')
+    out = []
+    for line in progress_text.split('\n'):
+        if not line.startswith('| T'):
+            continue
+        cells = [c.strip() for c in line.strip().strip('|').split('|')]
+        if len(cells) < 5:
+            continue
+        m = re.fullmatch(r'T(\d+)', cells[0])
+        if not m or not needle.search(cells[4]):
+            continue
+        tid = 'T' + m.group(1)
+        if tid not in out:
+            out.append(tid)
+    return out
+
+
 def behind(sha, main=MAIN):
     """그 sha 뒤에 main 커밋이 몇 개 쌓였는가. (조상 여부, 개수) — 못 세면 (None, None)."""
     if not sha:
@@ -373,7 +431,7 @@ def _lock_word(alive, age):
     return 'lock %d분 전 — 90분 규약으로 **죽었다**(뺏을 수 있다)' % age
 
 
-def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None):
+def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None):
     """빨강마다 임자 한 줄 — **빠진 테스트 파일 ↔ PROGRESS 범위 열** 로 가린다(T125).
 
     갈래 넷:
@@ -382,6 +440,9 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None):
       ⓒ 여럿이고 다 죽었거나 다 살았다     → 다 적고 눈으로 고르게 한다
       ⓓ 아무도 그 파일을 안 적었다         → **그 파일을 고쳐 온 커밋**(<see cref="history_owners"/>)에 산 lock 이 있으면 그의 몫(T145) ·
                                             없으면 «못 가렸다» 고 말하고 커밋을 민 워커·이력 후보를 참고로만 준다
+
+    ⓟ **본문이 남의 파일 이름을 대면 그것이 먼저다(T150)** — 콘솔 에러로 넘어진 자는 제 파일과 무관하다.
+       위 넷보다 앞에 «이 빨강의 뿌리는 <경로>(임자 …)» 를 적고, 테스트 파일 임자는 «넘어진 자» 로 뒤에 남긴다.
     """
     hist = hist or history_owners
     lock = lock or lock_state
@@ -390,8 +451,24 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None):
         who = pusher(sha)
         return [('  · 빨강의 임자: 빠진 테스트 이름을 못 읽었다 — 그 커밋(%s)을 민 워커는 %s 다. '
                  'lock 을 눈으로 확인한다.' % (sha[:7] or '?', who or '못 가렸다'))]
+    err = err or {}
     out = []
     for name in names:
+        # ⓟ T150 — 빨강 본문이 «제 것이 아닌 파일» 을 댔으면 그 파일의 임자를 **먼저** 찍는다.
+        for path in err.get(name, [])[:2]:
+            powner = path_owners(path, progress_text)
+            if not powner:
+                out.append('  · `%s` 의 빨강은 **제 파일 이야기가 아니다** — 콘솔 에러가 `%s` 를 댄다(그 파일을 «범위» 로 적은 작업이 없다 · 이력으로 찾아라).'
+                           % (name, path))
+                continue
+            pstates = [(t,) + lock(t, now) for t in powner]
+            plive = [st for st in pstates if st[1]]
+            pick = plive[0] if plive else pstates[0]
+            out.append('  · `%s` 의 빨강은 **제 파일 이야기가 아니다** — 콘솔 에러가 `%s` 를 댄다: 그 파일의 임자 **%s**(%s)%s'
+                       % (name, path, pick[0], _lock_word(pick[1], pick[2]),
+                          ' — 그의 몫이니 건드리지 말고 네 작업을 잡는다.' if pick[1]
+                          else ' — lock 이 없으니 §0-6 대로 **이것이 네 일이다**(넘어진 자가 아니라 **이 파일**을 고친다).'))
+            out.append('    ↳ 넘어진 자(`%s`)의 임자는 아래에 그대로 남긴다 — 그 사람 몫이 아닐 수 있다.' % name)
         cands = scope_owners(name, progress_text)
         if not cands:
             # T145 — 범위 열이 비었어도 **그 파일을 고쳐 온 작업**에 산 lock 이 있으면 그의 몫이다(남의 진행 중인 자리를 뺏지 않는다).
@@ -585,6 +662,26 @@ def self_test():
     P2 = (P + '| T130 | 딴것 | 🔄 | s3 | `Assets/Tests/PlayMode/AgePatternTests.cs` | — |\n')
     eq('ⓜ 후보 둘', scope_owners('AgePatternTests', P2), ['T124', 'T130'])
 
+    # ⓠ T150 — 빨강 본문이 **남의 파일 이름**을 대면 그 임자가 먼저다(실측 런 343: 셰이더 에러로 넘어진
+    #    `AgePatternTests` 를 «T124 — lock 없다 → 네 일» 로 보냈는데 진짜는 T147 의 `EdgeOutline.shader` 였다).
+    RED343 = ("\u2500\u2500 Forge.Tests.PlayMode.AgePatternTests.\ubb34\uc5c7\n"
+              "RED  Error  [Forge.Tests.PlayMode.AgePatternTests.\ubb34\uc5c7]\n"
+              "  |    Shader error in 'Forge/EdgeOutline': Couldn't open include file ... at Assets/Shaders/EdgeOutline.shader(21)\n"
+              "FAIL Forge.Tests.PlayMode.AgePatternTests.\ubb34\uc5c7 \u00b7 Failed\n"
+              "  at   at Forge.Tests.PlayMode.AgePatternTests ... in /github/workspace/Assets/Tests/PlayMode/AgePatternTests.cs:80\n")
+    eq('ⓠ 본문이 댄 남의 파일을 뽑는다', error_paths(RED343), {'AgePatternTests': ['Assets/Shaders/EdgeOutline.shader']})
+    eq('ⓠ 스택 줄의 제 테스트 파일은 안 센다',
+       any('Assets/Tests/' in p_ for p_ in error_paths(RED343).get('AgePatternTests', [])), False)
+    P4 = (P + '| T147 | 윤곽선 | 🔄 | s5 | `Assets/Shaders/EdgeOutline.shader` · `Ui/EdgeOutlineHost.cs` | — |\n')
+    eq('ⓠ 경로의 임자를 가린다', path_owners('Assets/Shaders/EdgeOutline.shader', P4), ['T147'])
+    lines = own_lines(['FAIL A.B.AgePatternTests.\ubb34\uc5c7 · Failed'], P4, '', lock=live,
+                      err=error_paths(RED343))
+    eq('ⓠ 뿌리 파일의 임자를 먼저 찍는다',
+       lines and '제 파일 이야기가 아니다' in lines[0] and '**T147**' in lines[0], True)
+    eq('ⓠ 넘어진 자도 남긴다', any('의 임자: **T124**' in l for l in lines), True)
+    lines = own_lines(['FAIL A.B.AgePatternTests.\ubb34\uc5c7 · Failed'], P4, '', lock=live, err={})
+    eq('ⓠ 본문 경로가 없으면 종전 그대로', any('제 파일 이야기가 아니다' in l for l in lines), False)
+
     # ⓟ T148 — 장부 읽기 · 마지막 초록
     runs = parse_runs('{"sha":"aaa","run":329,"tests":"success","missing_modes":""}\n깨진 줄\n'
                       '{"sha":"bbb","run":330,"tests":"cancelled","missing_modes":""}\n'
@@ -673,7 +770,7 @@ def main(argv):
     anc, n_after = behind(meta.get('sha') if meta else None)
     red = bool(meta) and str(meta.get('tests')) != 'success'
     fails = red_lines(ref) if red else []
-    own = own_lines(fails, read_progress(), str(meta.get('sha', ''))) if red else None
+    own = own_lines(fails, read_progress(), str(meta.get('sha', '')), err=error_paths(red_text(ref))) if red else None
     between = None
     if red:
         cur = str(meta.get('sha', ''))
