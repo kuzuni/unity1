@@ -76,6 +76,9 @@ namespace Forge.Game.Ui
         string best;
         Action repeat;
         Image flash;
+        /// <summary>T334 3회차 — 주역 와이프(정본 `.sr-wipe` · 홀드백이 **없는** 주역에서만). 가산 혼합이라 씬을 안 죽인다.</summary>
+        Image wipe;
+        float wipeAt = -1f;
         float flashAt = -1f;
         RectTransform foot;
         GameObject hint, ok, chips, solo;
@@ -342,6 +345,25 @@ namespace Forge.Game.Ui
             flash = UiKit.Panel(c, "sr-flash", "pp_line");
             flash.color = new Color(1f, 1f, 1f, 0f);
             flash.raycastTarget = false;
+
+            // ---- 주역 와이프(정본 `.sr-wipe` 6184~6198) ----
+            // 정본이 이 겹을 따로 둔 까닭이 주석에 있다: 홀드백이 없는 대량 소환에 **전 화면 섬광을 쓰면 안 된다**
+            // — «x75 는 위쪽 20셀이 같이 하얗게 떠 등급 구분이 무너진다». 그래서 주역 셀 중심에서 번지는
+            // **가산 원형 와이프**라 정점 순간에도 반경이 아직 작다. 혼합은 T173 이 세운 `CraftFxPoly.Screen()`.
+            if (heroIdx >= 0)
+            {
+                RectTransform wr = UiKit.Box(c, "sr-wipe");
+                UiKit.Fill(wr);
+                wipe = wr.gameObject.AddComponent<Image>();
+                wipe.raycastTarget = false;
+                wipe.type = Image.Type.Simple;
+                Color rc = PetSkillStyle.Rarity(Defs, best);
+                wipe.sprite = SummonFx.BakeWipe("sr-wipe-" + ColorUtility.ToHtmlStringRGB(rc), rc);
+                Material sm = CraftFxPoly.Screen();
+                if (sm != null) wipe.material = sm;   // 못 찾으면 보통 알파로 그린다(연출이 사라지는 것보다 낫다 · T173 꼴)
+                wipe.color = new Color(1f, 1f, 1f, 0f);
+                wr.SetAsLastSibling();
+            }
 
             // ---- 시각표(원작 tickSummonResult 의 지연) ----
             float charge = PetSkillStyle.L("sr_charge_ms"), slow = PetSkillStyle.L("sr_slow_step_ms"), rowMs = PetSkillStyle.L("sr_row_ms"), stag = PetSkillStyle.L("sr_row_stag_ms"), pause = PetSkillStyle.L("sr_tier_pause_ms"), hold = PetSkillStyle.L("sr_holdback_ms");
@@ -611,6 +633,7 @@ namespace Forge.Game.Ui
             }
             AnimateCells();
             AnimateFlash();
+            AnimateWipe();
         }
 
         void TurnOn(Cell c)
@@ -648,10 +671,50 @@ namespace Forge.Game.Ui
         {
             if (heroFired) return;
             heroFired = true;
-            flash.color = PetSkillStyle.Rarity(Defs, best);
-            flashAt = Time.unscaledTime;
+            // 정본 fireSummonHero 748~757: 홀드백이면 `.flash`(전 화면), **아니면 `.wipe`** — 그 갈래를 그대로.
+            // 예전 클론은 둘 다 전 화면 섬광이고 홀드백이 아닐 때만 옅게 했다(0.45) — 정본이 «쓰면 안 된다» 고
+            // 못 박은 자리다(x75 는 위쪽 20셀이 같이 하얗게 뜬다).
+            if (holdback || wipe == null)
+            {
+                flash.color = PetSkillStyle.Rarity(Defs, best);
+                flashAt = Time.unscaledTime;
+            }
+            else
+            {
+                // 가운데를 주역 셀로 옮긴다(정본 `--fx`/`--fy`). 스프라이트는 가운데로 구웠으니 자리만 잡는다.
+                RectTransform wr = (RectTransform)wipe.transform;
+                if (heroIdx >= 0 && heroIdx < cells.Count && cells[heroIdx].Root != null)
+                    wr.pivot = HeroPivot(wr, cells[heroIdx].Root);
+                wipeAt = Time.unscaledTime;
+            }
             var g = PetSkillHost.SfxGacha;
             if (g != null) g(best);
+        }
+
+        /// <summary>주역 셀의 가운데를 와이프 상자 안의 피벗(0~1)으로 — 정본 `transform-origin: var(--fx) var(--fy)`.</summary>
+        static Vector2 HeroPivot(RectTransform box, RectTransform cell)
+        {
+            Vector2 c = (Vector2)box.InverseTransformPoint(cell.TransformPoint(cell.rect.center));
+            Rect r = box.rect;
+            if (r.width <= 0f || r.height <= 0f) return new Vector2(0.5f, 0.5f);
+            return new Vector2(Mathf.Clamp01((c.x - r.xMin) / r.width), Mathf.Clamp01((c.y - r.yMin) / r.height));
+        }
+
+        /// <summary>정본 `@keyframes srwipe`(6194~6198): 불투명도 0 → .98(15%% ≈ 70ms 정점) → 0 · 배율 .55 → 1.12 → 2.2.</summary>
+        void AnimateWipe()
+        {
+            if (wipe == null) return;
+            if (wipeAt < 0f) return;
+            float ms = SummonFxStyle.L("wipe_ms");
+            float t = ms <= 0f ? 1f : (Time.unscaledTime - wipeAt) * 1000f / ms;
+            float pk = SummonFxStyle.L("wipe_peak_f"), pa = SummonFxStyle.L("wipe_peak_a");
+            float s0 = SummonFxStyle.L("wipe_scale0_f"), sp = SummonFxStyle.L("wipe_scale_peak_f"), s1 = SummonFxStyle.L("wipe_scale1_f");
+            float a, sc;
+            if (t <= pk) { float k = pk <= 0f ? 1f : t / pk; a = Mathf.Lerp(0f, pa, k); sc = Mathf.Lerp(s0, sp, k); }
+            else { float k = Mathf.Clamp01((t - pk) / Mathf.Max(1e-4f, 1f - pk)); a = Mathf.Lerp(pa, 0f, k); sc = Mathf.Lerp(sp, s1, k); }
+            if (t >= 1f) { a = 0f; sc = s1; wipeAt = -1f; }
+            Color c = wipe.color; wipe.color = new Color(c.r, c.g, c.b, a);
+            wipe.transform.localScale = new Vector3(sc, sc, 1f);
         }
 
         void AnimateFlash()

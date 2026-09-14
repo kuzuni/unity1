@@ -234,5 +234,48 @@ namespace Forge.Tests.PlayMode
                 Object.Destroy(rt);
             }
         }
-    }
+    
+        /// <summary>T334 3회차 — 주역 와이프. 정본 `fireSummonHero` 748~757 이 못 박은 갈래다:
+        /// 홀드백이면 전 화면 `.flash`, **아니면 `.wipe`**(주역 셀 중심 가산 원형). 전 화면 섬광을 쓰면
+        /// «x75 는 위쪽 20셀이 같이 하얗게 떠 등급 구분이 무너진다» — 정본이 쓰면 안 된다고 적어 둔 자리다.</summary>
+        [UnityTest]
+        public IEnumerator 주역_와이프는_가산_혼합이고_정본_네_스톱대로_굽는다()
+        {
+            yield return Boot();
+
+            // 굽기: 등급색이 들어가므로 등급마다 한 장 · 같은 색이면 같은 참조(캐시)
+            Color rc = new Color(1f, 0.11f, 0.11f, 1f);
+            Sprite a = SummonFx.BakeWipe("sr-wipe-test", rc);
+            Sprite b = SummonFx.BakeWipe("sr-wipe-test", rc);
+            Assert.IsNotNull(a, "와이프를 못 구웠다");
+            Assert.AreSame(a, b, "같은 이름이면 한 번만 굽는다");
+
+            Texture2D t = a.texture;
+            int w = t.width, h = t.height;
+            float s1 = SummonFxStyle.L("wipe_stop1_f"), s2 = SummonFxStyle.L("wipe_stop2_f"), s3 = SummonFxStyle.L("wipe_stop3_f");
+            Assert.AreEqual(0.24f, s1, 1e-4f, "정본 24%");
+            Assert.AreEqual(0.52f, s2, 1e-4f, "정본 52%");
+            Assert.AreEqual(0.82f, s3, 1e-4f, "정본 82%");
+
+            // 가운데는 흰색이고 불투명 · 24% 자리는 등급색 · 82% 밖은 투명(정본 네 스톱)
+            Color mid = t.GetPixel(w / 2, h / 2);
+            Assert.Greater(mid.a, 0.9f, "가운데는 불투명해야 한다");
+            Assert.Greater(Mathf.Min(mid.r, mid.g, mid.b), 0.9f, "가운데는 흰색이다(정본 #fff 0%)");
+
+            Color at24 = t.GetPixel(w / 2 + Mathf.RoundToInt(w / 2f * s1), h / 2);
+            Assert.Greater(at24.r - at24.g, 0.3f, "24% 자리는 등급색이 실려야 한다(붉은 등급)");
+
+            Color outside = t.GetPixel(w / 2 + Mathf.RoundToInt(w / 2f * 0.95f), h / 2);
+            Assert.Less(outside.a, 0.02f, "82% 밖은 투명하다");
+
+            // 바깥으로 갈수록 옅어진다(24% → 52% → 82%)
+            float aIn = t.GetPixel(w / 2 + Mathf.RoundToInt(w / 2f * 0.30f), h / 2).a;
+            float aMid = t.GetPixel(w / 2 + Mathf.RoundToInt(w / 2f * 0.60f), h / 2).a;
+            Assert.Greater(aIn, aMid, "안쪽이 바깥보다 진하다");
+
+            // 혼합 — 정본 `mix-blend-mode: screen`
+            Material sm = CraftFxPoly.Screen();
+            if (sm != null) Assert.AreEqual(CraftFxPoly.ScreenShaderName, sm.shader.name, "가산(스크린) 셰이더여야 한다");
+        }
+}
 }

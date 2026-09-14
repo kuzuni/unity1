@@ -570,6 +570,36 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>별 하나 — 방사 점(#fff → 38% (210,230,255,.85) → 74% 0) + 십자 로브(2.6px × 3.1s · 가운데 .95). 정본 5970~5984.</summary>
+        /// <summary>주역 와이프 한 장 — 정본 `.sr-wipe`(style.css 6184~6190)의 방사 그라디언트 그대로:
+        /// 흰 0%% → **등급색** 24%% → 흰 .34 52%% → 투명 82%%. 등급색이 들어가므로 등급마다 한 장씩 굽는다(최대 여섯).
+        /// 가운데는 정본이 `--fx`/`--fy` 로 옮기지만 여기서는 **가운데로 굽고 자리는 RectTransform 이 잡는다**
+        /// (스프라이트를 자리마다 다시 구우면 장수가 셀 수만큼 는다).</summary>
+        public static Sprite BakeWipe(string name, Color rc)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            int W = 256, H = 256;
+            float s0 = L("wipe_stop0_f"), s1 = L("wipe_stop1_f"), s2 = L("wipe_stop2_f"), s3 = L("wipe_stop3_f");
+            float a0 = L("wipe_a0"), a1 = L("wipe_a1"), a2 = L("wipe_a2"), a3 = L("wipe_a3");
+            var px = new Color32[W * H];
+            for (int y = 0; y < H; y++)
+            {
+                float v = (y + 0.5f) / H * 2f - 1f;
+                for (int x = 0; x < W; x++)
+                {
+                    float u = (x + 0.5f) / W * 2f - 1f;
+                    float r = Mathf.Sqrt(u * u + v * v);          // 0 = 가운데 · 1 = 변의 한가운데
+                    float a;
+                    Color c;
+                    if (r <= s1) { a = Ramp(r, s0, a0, s1, a1); c = Color.Lerp(Color.white, rc, s1 <= s0 ? 1f : Mathf.Clamp01((r - s0) / (s1 - s0))); }
+                    else if (r <= s2) { a = Ramp(r, s1, a1, s2, a2); c = Color.Lerp(rc, Color.white, Mathf.Clamp01((r - s1) / Mathf.Max(1e-4f, s2 - s1))); }
+                    else { a = Ramp(r, s2, a2, s3, a3); c = Color.white; }
+                    if (r > s3) a = 0f;
+                    px[y * W + x] = new Color(c.r, c.g, c.b, Mathf.Clamp01(a));
+                }
+            }
+            return Finish(name, NewTex(name, W, H), px);
+        }
+
         public static Sprite BakeStar(string name, float sz, float box)
         {
             Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
