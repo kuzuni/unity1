@@ -50,6 +50,9 @@ TABLE = {
     '.af-age-bar[data-age="quantum"], .fi-age-bar[data-age="quantum"], .equip-cell[data-age="quantum"]': ['Ui/AgePattern.cs@Tile'],
     # T87 28회차 — 결과 카드 광택 띠(crsheen) 는 CraftCardArt.Sheen 이 굽는다.
     '.auto-drop-card.craft-reveal::after': ['Ui/CraftCardArt.cs@Sheen'],
+    # T178 2회차 — 던전 배너의 비스듬한 바탕과 «왼쪽 제목 자리 스크림» 은 공용 굽기 SurfaceArt 가 표(SurfaceUi.json)대로 굽는다.
+    '.dg-banner': ['Ui/DungeonSheet.cs#bg-grad'],
+    '.dg-banner::before': ['Ui/DungeonSheet.cs#scrim'],
 }
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ────────────────────────────────

@@ -148,6 +148,17 @@ jobs:
         run: python3 tools/check_clip_paths.py --self-test
       - name: 정본 clip-path 도형 ↔ 클론이 그 자리를 굽는가 — 막는다 (T159 · KNOWN 은 T159 ⓑ 가 지운다)
         run: python3 tools/check_clip_paths.py --css .wwwww-src/web/css/style.css
+      # T171 곁다리(§0-6 · T175 ⓒ 가 «다음 회차» 로 남긴 자리 · ci.yml 이 T182 lock 이라 못 넣었던 것): MonoBehaviour 가 유니티 «메시지»
+      #      이름(Start·Update…)을 다른 뜻으로 쓰면 에디터가 인스턴스마다 에러를 찍고 런 403 처럼 PlayMode 가 통째로 죽는다.
+      - name: 유니티 메시지 이름 자 자기 검사 (T171 `check_unity_messages.py` · 7칸)
+        run: python3 tools/check_unity_messages.py --self-test
+      - name: MonoBehaviour 가 유니티 메시지 이름을 다른 뜻으로 쓰는가 — 막는다 (T171)
+        run: python3 tools/check_unity_messages.py
+      # T178 — 정본은 거의 모든 면에 겹(linear/radial-gradient)을 깐다(선언 176). 클론의 공용 표면은 색 한 칸이라 그 겹이 조용히 사라진다.
+      - name: 표면 겹 자 자기 검사 (T178 `check_surface_gradients.py` · 고장 주입)
+        run: python3 tools/check_surface_gradients.py --self-test
+      - name: 정본 표면 겹 ↔ 클론이 그 자리를 굽는가 — 막는다 (T178 · 표에 없는 선택자는 «미정» 으로 세기만 한다)
+        run: python3 tools/check_surface_gradients.py --css .wwwww-src/web/css/style.css
       # T168 — 자간은 PNG 에서 «글자가 좀 붙었네» 로만 보여 채점에 안 걸린다. 정본이 .55em 으로 벌려 놓은 줄이 클론에선 0 이었다.
       - name: 자간 자 자기 검사 (T168 `check_letter_spacing.py` · 고장 주입 14칸)
         run: python3 tools/check_letter_spacing.py --self-test

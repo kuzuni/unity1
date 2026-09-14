@@ -181,8 +181,14 @@ namespace Forge.Game.Ui
             float radius = DungeonPopups.RemL("dg_banner_radius_rem");
             RectTransform rt = UiKit.Box(body, "dg-" + d.Id);
             RectTransform face = DungeonPopups.Bordered(rt, "frame", "app_bg", radius, line3);
+            // T178 2회차 — 정본 style.css 1952 `.dg-banner { background: linear-gradient(120deg, var(--bg,#444c56), #161b22) }`:
+            // 배너 제 바탕이 비스듬한 겹이다(일러스트가 없는 던전은 이것만 보인다). 여태 단색 한 장이었다.
+            SurfaceArt.Fill(face, "bg-grad", "dg_banner", bw, bh);
             Image scene = UiKit.Icon(face, "scene", SceneIcon(d.Id));
             scene.preserveAspect = false;
+            // 정본 1982 `.dg-banner::before` — **왼쪽 제목 자리 스크림**(일러스트 위에 얹혀 흰 제목을 살린다).
+            // 정본 주석이 값의 내력까지 적어 뒀다(«R8 .36→.22 · 도달 62%→42%»). 클론엔 이 겹이 아예 없었다.
+            SurfaceArt.Fill(face, "scrim", "dg_banner_scrim", bw, bh);
             if (!ok)
             {
                 CanvasGroup cg = rt.gameObject.AddComponent<CanvasGroup>();
