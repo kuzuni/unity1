@@ -130,6 +130,24 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 신호가_선_만큼만_진행률이_간다()
+        {
+            var s = S();
+            // 정본은 boot() 안에서 순서대로 blSet 을 부르지만 클론은 그 여섯 가지 일을 서로 다른
+            // MonoBehaviour 가 제 차례에 한다 — 그래서 «부름» 이 아니라 «무엇이 섰는가» 로 읽는다.
+            Assert.AreEqual(0, s.PctFromReady(false, false, false, false, false, false), 1e-9, "아무것도 안 섰으면 0");
+            Assert.AreEqual(8, s.PctFromReady(true, false, false, false, false, false), 1e-9);
+            Assert.AreEqual(24, s.PctFromReady(true, true, false, false, false, false), 1e-9);
+            Assert.AreEqual(42, s.PctFromReady(true, true, true, false, false, false), 1e-9);
+            Assert.AreEqual(58, s.PctFromReady(true, true, true, true, false, false), 1e-9);
+            Assert.AreEqual(74, s.PctFromReady(true, true, true, true, true, false), 1e-9);
+            Assert.AreEqual(100, s.PctFromReady(true, true, true, true, true, true), 1e-9, "여섯이 다 서면 마지막 칸");
+            // 순서를 건너뛴 신호는 앞 단계에서 멎는다 — 뒤엣것이 먼저 서도 진행률이 앞질러 가지 않는다
+            Assert.AreEqual(0, s.PctFromReady(false, true, true, true, true, true), 1e-9, "첫 신호가 아직이면 0 에서 멎는다");
+            Assert.AreEqual(8, s.PctFromReady(true, false, true, true, true, true), 1e-9, "둘째가 아직이면 8 에서 멎는다");
+        }
+
+        [Test]
         public void 표가_깨지면_조용히_넘어가지_않는다()
         {
             // 고장 주입: 마지막 단계가 100 이 아니면 표를 못 읽는다(진행바가 안 차고 끝나는 갈래)

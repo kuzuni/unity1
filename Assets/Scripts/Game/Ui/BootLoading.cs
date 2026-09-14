@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Forge.Core.Data;
 using Forge.Core.Ui;
+using Forge.Game.Battle;
 
 namespace Forge.Game.Ui
 {
@@ -33,6 +34,7 @@ namespace Forge.Game.Ui
         private TextMeshProUGUI stageText;
         private CanvasGroup group;
         private float ms;
+        private bool following;
 
         private static BootLoadingSpec cached;
 
@@ -54,12 +56,18 @@ namespace Forge.Game.Ui
         public static void ResetCache() { cached = null; }
 
         /// <summary>오버레이를 세운다(이미 있으면 그대로). 부모는 앱 상자 — 탭바·시트보다 위다.</summary>
-        public static BootLoading Ensure(Transform parent)
+        public static BootLoading Ensure(Transform parent) { return Ensure(parent, false); }
+
+        /// <summary><paramref name="follow"/> 가 참이면 매 프레임 «무엇이 섰는가» 를 읽어 스스로 진행률을 민다.
+        /// 진짜 부팅(드라이버)만 참으로 세운다 — 손으로 세우는 자리(테스트·미리보기)까지 따라가면 이미 다 선 씬에서
+        /// 세우자마자 100%% 로 가 사라져 버린다.</summary>
+        public static BootLoading Ensure(Transform parent, bool follow)
         {
             if (Instance != null) return Instance;
             if (parent == null) return null;
             RectTransform rt = UiKit.Box(parent, "boot-loading");
             BootLoading bl = rt.gameObject.AddComponent<BootLoading>();
+            bl.following = follow;
             bl.Build();
             Instance = bl;
             return bl;
@@ -217,7 +225,37 @@ namespace Forge.Game.Ui
             if (this != null) Destroy(gameObject);
         }
 
-        private void Update() { Apply(ms += Time.unscaledDeltaTime * 1000f); }
+        /// <summary>부팅이 시작될 때 한 번 — UI 뿌리가 설 때까지 기다렸다가 오버레이를 세우고, 그 뒤로는
+        /// **무엇이 섰는가** 를 보고 스스로 진행률을 민다(정본은 boot() 안에서 순서대로 blSet 을 부르지만
+        /// 클론은 그 일들을 서로 다른 MonoBehaviour 가 제 차례에 한다 — 그래서 부름이 아니라 신호로 읽는다).
+        /// 부르는 쪽은 <see cref="MetaHost"/> 한 줄뿐이다.</summary>
+        public static void Begin()
+        {
+            if (Instance != null || driver != null) return;
+            GameObject go = new GameObject("boot-loading-driver");
+            driver = go.AddComponent<BootLoadingDriver>();
+        }
+
+        private static BootLoadingDriver driver;
+
+        /// <summary>여섯 신호 → 진행률. 신호 하나하나는 그 일을 끝낸 쪽이 스스로 세우는 것이라 여기서는 읽기만 한다.</summary>
+        public void Follow()
+        {
+            bool save = SaveIo.Instance != null && SaveIo.Ready && SaveIo.State != null;
+            bool ui = UiRoot.Instance != null && UiRoot.Instance.TabBar != null;
+            bool scene = BattleScene.Instance != null;
+            bool battle = BattleScene.Instance != null && BattleScene.Instance.Ready;
+            bool forge = ForgeHost.Ready;
+            bool meta = MetaHost.Ready;
+            Set(spec.PctFromReady(save, ui, scene, battle, forge, meta));
+            if (save && ui && scene && battle && forge && meta && !Fading) Done();
+        }
+
+        private void Update()
+        {
+            Apply(ms += Time.unscaledDeltaTime * 1000f);
+            if (following && !Fading) Follow();
+        }
 
         /// <summary>망치 각도와 불티 셋을 그 시각의 값으로 — 표가 셈을 쥔다.</summary>
         private void Apply(float atMs)
@@ -237,6 +275,22 @@ namespace Forge.Game.Ui
                     Color c = img.color; c.a = (float)op; img.color = c;
                 }
             }
+        }
+    }
+
+    /// <summary>UI 뿌리가 설 때까지 기다렸다 오버레이를 세우는 얇은 층 — 세우고 나면 스스로 사라진다.</summary>
+    internal sealed class BootLoadingDriver : MonoBehaviour
+    {
+        private System.Collections.IEnumerator Start()
+        {
+            float t = 0f;
+            while ((UiRoot.Instance == null || UiRoot.Instance.App == null) && t < 10f)
+            {
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            if (UiRoot.Instance != null && UiRoot.Instance.App != null) BootLoading.Ensure(UiRoot.Instance.App, true);
+            Destroy(gameObject);
         }
     }
 }

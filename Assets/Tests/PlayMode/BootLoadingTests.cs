@@ -105,6 +105,26 @@ namespace Forge.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator 부팅이_끝난_씬에서는_스스로_100까지_가고_사라진다()
+        {
+            yield return Boot();
+            // SampleScene 이 다 선 뒤(= 여섯 신호가 전부 참)에 오버레이를 띄우면, 아무도 밀어 주지 않아도
+            // 제 눈으로 «다 섰다» 를 읽고 100% 로 가서 스스로 치워져야 한다(T142 4회차 배선).
+            float t0 = 0f;
+            while (!MetaHost.Ready && t0 < 10f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "부팅이 안 끝났다 — 이 단언의 전제가 없다");
+
+            BootLoading.ResetCache();
+            BootLoading bl = BootLoading.Ensure(UiRoot.Instance.App, true);   // 진짜 부팅처럼 «따라가기» 를 켠다
+            yield return null;
+            yield return null;
+            GameObject go = bl.gameObject;
+            float t = 0f;
+            while (go != null && t < 3f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(go == null, "다 선 씬에서는 스스로 100% 로 가서 사라져야 한다");
+        }
+
+        [UnityTest]
         public IEnumerator 끝나면_페이드하고_스스로_사라진다()
         {
             yield return Boot();

@@ -164,6 +164,26 @@ namespace Forge.Core.Ui
             return at;
         }
 
+        /// <summary>어디까지 준비됐는가 → 그 순간 보여야 할 진행률(%). 정본 `boot()` 의 단계 여섯을 **클론이 실제로
+        /// 그 일을 끝낸 신호**에 하나씩 붙인다 — 순서대로 하나라도 아직이면 그 앞 단계에서 멎는다.
+        ///
+        /// 왜 «신호» 인가: 정본은 한 함수 안에서 순서대로 내려가며 `blSet` 을 부르지만, 클론은 그 여섯 가지 일을
+        /// **서로 다른 MonoBehaviour 가 제 차례에** 한다(`SaveIo`·`UiRoot`·`BattleScene`·`ForgeHost`·`MetaHost`).
+        /// 그러니 «지금 몇 %인가» 는 부름 순서가 아니라 **무엇이 섰는가** 로 답해야 한다.
+        /// 여섯이 다 서면 마지막 칸(100%)을 준다 — 그때 화면을 치운다.</summary>
+        public double PctFromReady(bool save, bool ui, bool scene, bool battle, bool forge, bool meta)
+        {
+            bool[] step = { save, ui, scene, battle, forge, meta };
+            int n = 0;
+            while (n < step.Length && step[n]) n++;
+            if (n == 0) return 0;
+            int i = n - 1;
+            if (i >= Stages.Length) i = Stages.Length - 1;
+            // 여섯을 다 지났으면 마지막 칸(100%)
+            if (n >= step.Length && Stages.Length > step.Length) return Stages[Stages.Length - 1].Pct;
+            return Stages[i].Pct;
+        }
+
         /// <summary>주기로 접는다(음수도 접힌다 — 지연이 걸린 불티가 0ms 에 제 창 뒤쪽에서 시작한다).</summary>
         static double Wrap(double ms, double periodMs)
         {
