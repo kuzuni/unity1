@@ -214,7 +214,7 @@ def fixtures(fails):
     return out
 
 
-def scope_owners(fixture, progress_text):
+def scope_owners(fixture, progress_text, status=None):
     """그 픽스처 파일(`<이름>.cs`)을 «범위» 열에 적은 작업 번호들 — 이것이 **진짜 임자**다(T125).
 
     왜 커밋 제목이 아닌가: main 은 워커 열여섯이 같이 미는 가지라 런 머리 커밋은 «마지막에 민 사람»
@@ -224,6 +224,8 @@ def scope_owners(fixture, progress_text):
     #   앞에 낱말 글자가 없어야 한다 — 경로 구분자 `/`·따옴표·공백 뒤라야 그 파일이다.
     needle = re.compile(r'(?<![0-9A-Za-z_])' + re.escape(fixture) + r'\.cs\b')
     out = []
+    if status is None:
+        status = {}
     for line in progress_text.split('\n'):
         if not line.startswith('| T'):
             continue
@@ -236,7 +238,26 @@ def scope_owners(fixture, progress_text):
         tid = 'T' + m.group(1)
         if tid not in out:
             out.append(tid)
+            status[tid] = cells[2]
     return out
+
+
+DEAD_MARKS = ('✂', '⛔')   # T162 — 접힌 행·폐기된 행은 «임자» 가 아니다
+
+
+def scope_owners_split(fixture, progress_text):
+    """그 파일을 «범위» 로 적은 작업을 **살아 있는 후보 ↔ 죽은 행**으로 가른다(T162).
+
+    죽은 행 = 상태 칸이 **✂ 접음**(번호를 태운 행) 또는 **⛔ 폐기·흡수**. 그런 행은 «임자» 가 아니다 —
+    실측(2026-09-14 런 381): `OfflineCollectTests` 빨강을 «임자 T161 · lock 없다 → **네 일이다**» 로 찍었는데
+    T161 은 12분 전 같은 진단으로 남이 이미 고쳐 **✂ 로 접힌 행**이었다(수리는 T155 `7c10ef9`).
+    즉 **이미 끝난 일을 다시 시키는** 오답이다.
+    """
+    status = {}
+    live, dead = [], []
+    for tid in scope_owners(fixture, progress_text, status):
+        (dead if any(mk in status.get(tid, '') for mk in DEAD_MARKS) else live).append(tid)
+    return live, dead, status
 
 
 def history_owners(fixture, log=None):
@@ -504,7 +525,13 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
                           ' — 그의 몫이니 건드리지 말고 네 작업을 잡는다.' if pick[1]
                           else ' — lock 이 없으니 §0-6 대로 **이것이 네 일이다**(넘어진 자가 아니라 **이 파일**을 고친다).'))
             out.append('    ↳ 넘어진 자(`%s`)의 임자는 아래에 그대로 남긴다 — 그 사람 몫이 아닐 수 있다.' % name)
-        cands = scope_owners(name, progress_text)
+        cands, dead, dstat = scope_owners_split(name, progress_text)
+        # T162 — ✂ 접음·⛔ 폐기·흡수 행은 «임자» 가 아니다(이미 끝났거나 남에게 넘어간 번호다).
+        dead_note = ''
+        if dead:
+            dead_note = (' · ⚠ 그 파일을 «범위» 로 적었지만 **죽은 행**이라 임자에서 뺀 것: %s'
+                         ' — 접힌 번호는 그 일이 **이미 끝났거나 남에게 흡수됐다**는 뜻이다(T162).'
+                         % ' '.join('%s(%s)' % (t, dstat.get(t, '?')) for t in dead))
         if not cands:
             # T145 — 범위 열이 비었어도 **그 파일을 고쳐 온 작업**에 산 lock 이 있으면 그의 몫이다(남의 진행 중인 자리를 뺏지 않는다).
             hcands = hist(name) or []
@@ -514,22 +541,22 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
                 tid, _alive, age = hlive[0]
                 out.append('  · `%s` 의 임자: **%s** — «범위» 열엔 없지만 **그 파일을 고쳐 온 커밋**이 그 작업이고 %s. '
                            '그의 몫이니 건드리지 말고 네 작업을 잡는다. (임자는 «범위» 열에 `%s.cs` 를 적어라 — `check_claim_scope` 가 보는 자리다.)'
-                           % (name, tid, _lock_word(True, age), name))
+                           % (name, tid, _lock_word(True, age), name) + dead_note)
                 continue
             who = pusher(sha)
             tail = ''
             if hstates:
                 tail = ' · 그 파일을 고쳐 온 작업: %s' % ' '.join('%s(%s)' % (h, _lock_word(a, g)) for h, a, g in hstates)
-            out.append('  · `%s` 의 임자: **못 가렸다** — 그 파일(`%s.cs`)을 «범위» 열에 적은 작업이 없다. '
+            out.append('  · `%s` 의 임자: **못 가렸다** — 그 파일(`%s.cs`)을 «범위» 열에 적은 **살아 있는** 작업이 없다. '
                        '(그 커밋을 민 워커는 %s 지만 main 은 여럿이 미는 가지라 임자가 아니다.)%s '
-                       'lock 을 눈으로 확인하고, 임자가 없으면 §0-6 대로 **네가 고친다**.'
-                       % (name, name, who or '못 가렸다', tail))
+                       'lock 을 눈으로 확인하고, 임자가 없으면 §0-6 대로 **네가 고친다**.%s'
+                       % (name, name, who or '못 가렸다', tail, dead_note))
             continue
         states = [(c,) + lock(c, now) for c in cands]   # T153 — 주입한 lock 을 쓴다(여기만 모듈 lock_state 를 불러 자기 검사가 안 닿았다)
         live = [s for s in states if s[1]]
         if len(cands) == 1:
             out.append('  · `%s` 의 임자: ' % name + own_line(*states[0]).split(': ', 1)[1]
-                       + (touch_note(states[0][0], touched) if states[0][1] else ''))
+                       + (touch_note(states[0][0], touched) if states[0][1] else '') + dead_note)
         elif len(live) == 1:
             rest = ' · 같은 파일을 적은 다른 작업: %s' % ' '.join(c for c, a, _g in states if not a)
             out.append('  · `%s` 의 임자: ' % name + own_line(*live[0]).split(': ', 1)[1] + rest
@@ -804,12 +831,34 @@ def self_test():
                       lock=both_live, touched=touched)
     eq('ⓦ 바꾼 임자는 경고 없이 지금대로', any('프로덕션 줄은 0' in l for l in lines), False)
 
+    # ⓧ T162 — ✂ 접음·⛔ 폐기 행은 임자가 아니다
+    P_DEAD = ('| T161 | 오프라인 자 | ✂ 접음 | 워커 I | `Assets/Tests/PlayMode/OfflineCollectTests.cs` | x |\n'
+              '| T170 | 딴 일 | ⛔ 폐기·흡수 | 워커 Z | `Assets/Tests/PlayMode/OfflineCollectTests.cs` | x |')
+    live, dead, dstat = scope_owners_split('OfflineCollectTests', P_DEAD)
+    eq('ⓧ 죽은 행만 있으면 살아 있는 후보 0', live, [])
+    eq('ⓧ 접힘·폐기를 둘 다 죽은 행으로', dead, ['T161', 'T170'])
+    eq('ⓧ 상태 낱말을 그대로 쥔다', dstat.get('T161'), '✂ 접음')
+    no_hist = lambda name, log=None: []
+    lines = own_lines(['FAIL Forge.Tests.PlayMode.OfflineCollectTests.가 · Failed'], P_DEAD, 'a' * 40,
+                      lock=both_live, hist=no_hist)
+    eq('ⓧ «네 일이다» 로 단정하지 않는다', any('임자: **T161**' in l for l in lines), False)
+    eq('ⓧ 죽은 행이었다고 말한다', any('죽은 행' in l and 'T161(✂ 접음)' in l for l in lines), True)
+    eq('ⓧ 살아 있는 작업이 없다고 말한다', any('**살아 있는** 작업이 없다' in l for l in lines), True)
+    # 살아 있는 행이 섞여 있으면 그쪽이 임자고, 죽은 행은 꼬리로만 붙는다
+    P_MIX = P_DEAD + '\n| T171 | 산 일 | 🔄 진행 | 워커 Y | `Assets/Tests/PlayMode/OfflineCollectTests.cs` | x |'
+    live2, dead2, _ = scope_owners_split('OfflineCollectTests', P_MIX)
+    eq('ⓧ 섞이면 산 것만 후보', live2, ['T171'])
+    lines = own_lines(['FAIL Forge.Tests.PlayMode.OfflineCollectTests.가 · Failed'], P_MIX, 'a' * 40,
+                      lock=both_live, hist=no_hist)
+    eq('ⓧ 산 행이 임자가 된다', any('임자: **T171**' in l for l in lines), True)
+    eq('ⓧ 죽은 행은 꼬리로만', any('죽은 행' in l for l in lines), True)
+
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  · ' + f)
         return 1
-    print('✓ check_unity_green --self-test 80칸 통과')
+    print('✓ check_unity_green --self-test 89칸 통과')
     return 0
 
 
