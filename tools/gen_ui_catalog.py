@@ -166,8 +166,13 @@ def render(cat):
         '  m_EditorClassIdentifier: ',
         '  catalog: {fileID: %d, guid: %s, type: 3}' % (FILEID_TEXTASSET, guid_of(CATALOG)),
         '  font: {fileID: %d, guid: %s, type: 3}' % (FILEID_FONT, guid_of(cat['font'])),
-        '  sprites:',
     ]
+    # T106 — 이모지 폴백 글꼴(단색 Noto Emoji 서브셋). 키가 없으면 빈 참조(옛 카탈로그도 그대로 선다).
+    if cat.get('emojiFont'):
+        lines.append('  emojiFont: {fileID: %d, guid: %s, type: 3}' % (FILEID_FONT, guid_of(cat['emojiFont'])))
+    else:
+        lines.append('  emojiFont: {fileID: 0}')
+    lines.append('  sprites:')
     seen = set()
     for e in cat['sprites']:
         key, rel = e['key'], e['path']

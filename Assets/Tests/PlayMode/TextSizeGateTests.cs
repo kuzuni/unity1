@@ -63,13 +63,24 @@ namespace Forge.Tests.PlayMode
             foreach (TextMeshProUGUI t in Object.FindObjectsByType<TextMeshProUGUI>(FindObjectsSortMode.None))
             {
                 if (!t.isActiveAndEnabled || string.IsNullOrEmpty(t.text)) continue;
-                foreach (char c in t.text)
+                string text = t.text;
+                for (int i = 0; i < text.Length; i++)
                 {
+                    char c = text[i];
                     // T100 — 한글 음절만 보던 자리를 «글꼴이 그려야 할 모든 글자» 로 넓힌다. 종전 거르개는
                     // 화면에 실제로 선 `↻`·`😭`·`ㅠ` 를 하나도 안 세서 «전부 초록인데 화면엔 □» 가 났다.
                     if (c < 0x80) continue;                          // ASCII 는 어느 글꼴에나 있다
                     if (char.IsWhiteSpace(c) || char.IsControl(c)) continue;
                     if (KnownTofu.IndexOf(c) >= 0) continue;         // 임자가 정해진 아는 자리(tools/check_text_glyphs.py 의 KNOWN 과 같은 목록)
+                    // T106 — 이모지(BMP 밖은 서리게이트 짝)는 카탈로그의 이모지 폴백 글꼴이 쥔다 → 그 글자만 «폴백 포함» 으로 묻는다.
+                    //        짝을 한 코드포인트로 합쳐 HasCharacter(uint) 로 본다. 주 글꼴 혼자 판정하는 규칙(T112)은 그대로 — 폴백도 배포판에 실리는 파일이다.
+                    if (char.IsHighSurrogate(c) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]))
+                    {
+                        uint cp = (uint)char.ConvertToUtf32(c, text[i + 1]); i++;
+                        if (!fa.HasCharacter(cp, true, true)) { missing.Add(c); missing.Add(text[i]); }
+                        continue;
+                    }
+                    if (EmojiChars.IndexOf(c) >= 0) { if (!fa.HasCharacter(c, true, true)) missing.Add(c); continue; }
                     // T112 — 두 인자의 뜻이 다르다. `searchFallbacks`(둘째)는 **끈다**: 배포판(리눅스 CI·WebGL)에
                     // OS 폴백이 없으므로 «주인 글꼴 혼자» 가 판정 기준이다. `tryAddCharacter`(셋째)는 **켠다**:
                     // 런타임 애셋은 Dynamic 이라 이것을 끄면 «글꼴에 있는가» 가 아니라 «이 순간까지 아틀라스에
@@ -88,7 +99,27 @@ namespace Forge.Tests.PlayMode
         /// 새 글자는 여기 없으니 이 단언이 빨개진다(그것이 이 막이의 일이다).
         /// </summary>
         /// T137 — Core 토스트 둘(🚪 U+1F6AA Dungeons.cs:237 · 🔥 U+1F525 Battle.cs:578)도 같은 목록 — 정본도 글자(dungeons.js 156 · combat.js 499) · T106.
-        private const string KnownTofu = "\u23F1\u23F9\u21BB\uD83D\uDC34\uD83D\uDC3E\uD83D\uDE2D\uD83D\uDEE1\uD83D\uDEAA\uD83D\uDD25";
+        /// T106 — 이모지 여덟은 폴백 글꼴(NotoEmoji-Forge)이 쥐어 «아는 두부» 에서 뺐다 — 남은 것은 `↻`(T108 이 아이콘으로 바꿨다 · 다시 글자가 되면 빨강) 하나.
+        private const string KnownTofu = "\u21BB";
+        /// <summary>T106 — 정본이 글자로 쓰는 이모지 여덟 중 BMP 안의 둘(⏱ ⏹) — 폴백 포함으로 묻는다(BMP 밖 여섯은 서리게이트 짝으로 HasCharacters 가 본다).</summary>
+        private const string EmojiChars = "\u23F1\u23F9";
+
+        /// <summary>T106 — 이모지 폴백 글꼴이 카탈로그에 꽂혀 있고, 정본이 글자로 쓰는 여덟을 (주 글꼴이 아니라) 그것이 직접 쥔다.</summary>
+        [Test]
+        public void 이모지_여덟은_폴백_글꼴이_직접_쥔다()
+        {
+            TMP_FontAsset fa = UiFont.Primary;
+            TMP_FontAsset em = UiFont.EmojiFallback;
+            Assert.IsNotNull(em, "카탈로그 emojiFont(NotoEmoji-Forge.ttf)로 만든 폴백 애셋이 없다 — 이모지 자리가 □ 다");
+            Assert.IsTrue(fa.fallbackFontAssetTable != null && fa.fallbackFontAssetTable.Contains(em), "폴백 표에 이모지 애셋이 걸려 있어야 TMP 가 찾는다");
+            foreach (uint cp in new uint[] { 0x23F1, 0x23F9, 0x1F62D, 0x1F434, 0x1F43E, 0x1F6AA, 0x1F525, 0x1F6E1 })
+            {
+                string e = char.ConvertFromUtf32((int)cp);
+                Assert.IsTrue(em.HasCharacter(cp, false, true), "이모지 폴백 글꼴에 «" + e + "»(U+" + cp.ToString("X") + ") 가 없다 — 서브셋을 다시 뽑는다(docs/assets-map.md)");
+                Assert.IsTrue(fa.HasCharacter(cp, true, true), "주 글꼴 + 폴백으로 «" + e + "» 를 못 찾는다");
+            }
+            Assert.IsFalse(em.HasCharacter('가', false, true), "이모지 글꼴은 한글을 안 쥔다(서브셋이 이모지뿐)");
+        }
 
         /// <summary>카탈로그 글꼴 자체가 한글을 쥐고 있는가(OS 폴백에 기대지 않는다 — 리눅스 CI·WebGL 에는 없다).</summary>
         [Test]

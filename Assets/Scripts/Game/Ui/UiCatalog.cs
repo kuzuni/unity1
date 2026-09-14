@@ -39,6 +39,8 @@ namespace Forge.Game.Ui
         public TextAsset catalog;
         [Tooltip("주인 글꼴 Assets/Fonts/NotoSans-Regular.ttf")]
         public Font font;
+        [Tooltip("T106 — 이모지 폴백 글꼴 Assets/Fonts/NotoEmoji-Forge.ttf(정본이 글자로 쓰는 이모지 여덟 · 단색 서브셋). 없으면 폴백 없이 선다.")]
+        public Font emojiFont;
         public List<SpriteEntry> sprites = new List<SpriteEntry>();
 
         private Data data;

@@ -2,6 +2,7 @@
   "_": "UI 카탈로그 (ROUTINE T18). 용도 키 → GUI PRO Kit 경로 · 글자 종류(TextKind) 크기·하한 · 색 · 배치 비율. 값의 출처는 정본 wwwww web/css/style.css + main.js(fitLayout: 1rem = 앱높이/844×16 · 앱 = 9:16) 와 web/ref/screens/shot-042120.png 실측. 코드에 숫자·색을 박지 않고 여기서 읽는다(§1). 런타임 에셋 Assets/Forge/Resources/UiCatalog.asset 은 tools/gen_ui_catalog.py 가 이 파일에서 만든다 — 손으로 고치지 않는다.",
   "reference": {"w": 1080, "h": 1920},
   "font": "Assets/Fonts/NotoSansKR-Forge.ttf",
+  "emojiFont": "Assets/Fonts/NotoEmoji-Forge.ttf",
   "fallbackOsFonts": ["Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans CJK KR", "Noto Sans KR", "NanumGothic", "Segoe UI"],
   "sprites": [
     { "key": "tab_pvp", "path": "Assets/GUI PRO Kit - Casual Game/ResourcesData/Sprite/Demo/Demo_Icon_ItemIcons(Original)/Icon_Battle.Png" },

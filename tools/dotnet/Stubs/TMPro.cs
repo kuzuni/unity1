@@ -42,6 +42,8 @@ namespace TMPro
         public bool HasCharacter(char c) { return false; }
         /// TMP 3.2 실서명: HasCharacter(char, bool searchFallbacks = false, bool tryAddCharacter = false)
         public bool HasCharacter(char c, bool searchFallbacks, bool tryAddCharacter) { return false; }
+        /// T106 — TMP 3.2 실서명: HasCharacter(uint unicode, bool searchFallbacks = false, bool tryAddCharacter = false) — BMP 밖 코드포인트(이모지)용.
+        public bool HasCharacter(uint unicode, bool searchFallbacks, bool tryAddCharacter) { return false; }
         public bool TryAddCharacters(string chars) { return false; }
     }
     // T207 ② — 아래 서명은 **추측이 아니라 실측**이다: CI #441 의 유니티 잡이 진짜 `TMP_Text` 의

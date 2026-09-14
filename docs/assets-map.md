@@ -84,3 +84,20 @@
 - 다시 뽑은 뒤에는 **`python3 tools/check_text_glyphs.py`** 로 검산한다(글꼴에 없는 글자가 `KNOWN` 밖이면 rc 1) · PlayMode `TextSizeGateTests` 의 `KnownTofu` 도 같은 목록이다.
 - 라이선스 표기: OFL 은 글꼴 파일 재배포를 허용한다(예약 글꼴 이름 없음 · 판매 금지 조항은 글꼴 단독 판매에만 걸린다).
 - **굽기 값(T121 · `Assets/Forge/Resources/UiFontBake.json`)**: 런타임 애셋은 `UiFont.Build` 가 `TMP_FontAsset.CreateFontAsset(font, sampling_pt, padding_px, SDFAA, atlas_w, atlas_h, Dynamic, 다중 아틀라스)` 로 굽는다 — 지금 **54pt · 패딩 9 · 1024²**. 굽은 직후 **아틀라스에서 «알파 0→1 = 몇 텍셀» 을 직접 재**(`UiFont.MeasureAlphaTexels` · 글리프 «I» 줄기 행의 기울기) 재질 `_GradientScale` 을 그 값으로 세운다: TMP 는 패딩+1 을 박지만 TextCore 동적 SDF 의 램프는 굽기 값에 따라 그와 다르다(90pt·9 → 10 · 54pt·9 → 20 · 90pt·15 → 30 · 런 200·239·234 실측)라 재지 않으면 외곽선(`OutlinePx` 식)이 어긋난다(런 234·239 링 두 배). 표의 `alpha_texels` 는 지금 굽기 값에서 마지막으로 잰 램프 — 못 잴 때의 폴백이고 PlayMode `FontBakeTests` 가 실측과 ±15% 로 대조한다(`ui-screens/t121-ramp.txt`). **굽기 값을 바꾸면 그 자로 램프를 다시 재 `alpha_texels` 를 고친다.** 낼 수 있는 최대 바깥 키라인 = `R × 램프 × 글자px / sampling_pt`(36px → 12px · 정본 최대 `.2em` 은 W .3). 옛 갈래 `UiKit.Outline(width01)`(호출부 10곳 · T104 3회차가 표로 옮길 자리)은 «TMP 기본 애셋(90pt · 패딩 9 · 램프 10)에서 보이던 두께» 를 지키도록 `UiFont.LegacyWidthScale` = (샘플링/90)×(10/램프) 을 곱한다 — 여백을 넓혀도 굵어지지 않는다. OS 폴백 애셋(`CreateFontAsset(family, "Regular")`)은 기본값 그대로다 — 서브셋 밖 글자에만 쓰이고 키라인 자리는 전부 서브셋 안이다.
+
+## 이모지 글꼴 `Assets/Fonts/NotoEmoji-Forge.ttf` (T106 · 2026-09-14 · 워커 결정 499 — 루틴 규칙 5 «승인을 기다리지 않는다» · 주인이 보고 되돌릴 수 있게 여기 적는다)
+
+- 용도: TMP **폴백** 글꼴(`catalog.json` 의 `emojiFont` → `UiCatalog.emojiFont` → `UiFont.Build` 가 주 글꼴 폴백 표 **맨 앞**에 잇는다 · `UiFont.EmojiFallback`). 정본이 **글자**로 쓰는 이모지 여덟(⏱ ⏹ 😭 🐴 🐾 🚪 🔥 🛡 · `ui.js` 2143·2162·2272·5153 · `chat.js` 11 · `dungeons.js` 156 · `combat.js` 499)을 브라우저는 OS 이모지 글꼴로 그리지만 리눅스 CI·WebGL 엔 그 글꼴이 없어 □ 였다(T100 실측).
+- 출처: Google Fonts **Noto Emoji**(단색 · SIL Open Font License 1.1 · `fonts.googleapis.com/css2?family=Noto+Emoji` → `fonts.gstatic.com/s/notoemoji/v64/….ttf` · 원본 865KB · 버전 3.006).
+- 서브셋: 그 여덟 + `U+FE0F`(변형 선택자 · 정본 `🛡️` 가 붙여 쓴다) → 글리프 **10 · 4.1KB**. 새 이모지가 화면 문구에 들어오면 `check_text_glyphs` 가 rc 1 로 잡는다 — 그때 아래 명령의 `--unicodes` 에 더한다.
+- **왜 단색인가(결정 499)**: 정본은 브라우저의 **색** 이모지인데 TMP 는 색 비트맵 글꼴(CBDT/COLR)을 SDF 로 못 굽는다 — 단색 Noto Emoji 가 «글자를 글자로 옮기는» 유일한 길이다. 아이콘(T31 아틀라스)으로 바꾸는 것은 정본이 글자를 쓰는 한 «그대로 옮기기» 가 아니라 안 한다(T106 절).
+- 다시 뽑는 법:
+  ```
+  curl -A Mozilla/5.0 -o NotoEmoji.ttf "$(curl -s -A Mozilla/5.0 'https://fonts.googleapis.com/css2?family=Noto+Emoji' | grep -o 'https://[^)]*\.ttf' | head -1)"
+  python3 -m fontTools.subset NotoEmoji.ttf \
+    --unicodes="U+23F1,U+23F9,U+1F62D,U+1F434,U+1F43E,U+1F6AA,U+1F525,U+1F6E1,U+FE0F" \
+    --output-file=Assets/Fonts/NotoEmoji-Forge.ttf --layout-features='*' --name-IDs='*' --recalc-bounds
+  python3 tools/check_text_glyphs.py --self-test && python3 tools/check_text_glyphs.py
+  ```
+- 굽기: 주 글꼴과 같은 표(`UiFontBake.json` · 54pt · 패딩 9 · SDFAA · Dynamic)로 굽고 `_GradientScale` 도 주 글꼴에서 잰 램프를 그대로 준다 — 이모지 자리에 키라인이 걸려도 두께 셈이 같다.
+- 자: `tools/check_text_glyphs.py`(주 글꼴 ∪ 이모지 글꼴 cmap · 자기 검사에 여덟) · PlayMode `TextSizeGateTests`(화면 글자 전수 — 이모지는 폴백 포함으로 묻는다 · `이모지_여덟은_폴백_글꼴이_직접_쥔다`).

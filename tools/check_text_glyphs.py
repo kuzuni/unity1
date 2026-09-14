@@ -23,7 +23,7 @@
      🥚·✨·🎉·🎫·🧩·⬆️·⚡·⚙️·📋(`PetSkillUi.json` /text/toast_* 20줄)이 **자는 rc 0 인데 화면은 □** 였다.
      이제 그 가정을 **검사**한다(`toast_sinks`): 문구를 그리는 토스트 그릇은 아이콘 길을 거치거나 다른 그릇으로
      넘겨야 하고, 아니면 rc 1 이다.
-  ⓒ 남은 글자를 주인 글꼴(`Assets/Fonts/NotoSansKR-Forge.ttf`)의 cmap 과 맞춰 없는 것을 찍는다.
+  ⓒ 남은 글자를 주인 글꼴(`Assets/Fonts/NotoSansKR-Forge.ttf`) + 이모지 폴백(`NotoEmoji-Forge.ttf` · T106)의 cmap 과 맞춰 없는 것을 찍는다.
 
 `KNOWN` 은 «지금 알고 있고 임자가 정해진» 자리다 — 그것만 통과시키고 **새로 생긴 두부는 rc 1** 로 막는다.
 의존성 0(순수 파이썬 · fonttools 없이 cmap 4/12 형식을 직접 읽는다).
@@ -38,6 +38,7 @@ import sys
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 FONT = os.path.join(ROOT, 'Assets', 'Fonts', 'NotoSansKR-Forge.ttf')
+EMOJI_FONT = os.path.join(ROOT, 'Assets', 'Fonts', 'NotoEmoji-Forge.ttf')   # T106 — 이모지 폴백(단색 Noto Emoji 서브셋 · UiFont 가 주 글꼴 뒤에 잇는다)
 TABLE = os.path.join(ROOT, 'Assets', 'StreamingAssets', 'data', 'ui-text.json')
 # T137 — 훑는 폴더는 **목록**이다. T89 는 «화면 문구는 Game/Ui 에 있다» 로 시작했지만 이 레포의 규약은 수치·문구를
 # `Core`(UnityEngine 참조 0)로 내리는 것이라 전투·던전 토스트가 Core 에서 태어나 `Emit` 으로 흘러 나간다 —
@@ -51,19 +52,10 @@ SCAN_DIR = GAME_DIR   # 옛 이름 — 남의 스크립트가 부를 수 있어 
 # 한글 글꼴에 이모지 글리프가 없어 □ 로 남는다: 주인 조치(이모지 폴백 글꼴)나 정본이 TOAST_ICON 에
 # 그 두 글자를 넣어 주기 전에는 못 고친다. 여기 적은 것만 통과하고 **새 두부는 막는다**.
 KNOWN = {
-    '⏱': 'ForgeInfoPopup 업그레이드 버튼 — 정본도 **글자**로 쓴다(브라우저 이모지 글꼴이 그린다) · T106(이모지 폴백 글꼴)',
-    '⏹': 'ForgeHost 자동 제련 종료 토스트(정본 ui.js 2272 그대로) — 정본도 **글자** · T106(이모지 폴백 글꼴)',
-    # T100 — 넓힌 뒤 드러난 자리들. 임자가 정해져 있고 이 회차에 못 고친다(고칠 파일이 남의 lock · 이모지 폴백 글꼴은 주인 몫).
-    # 2회차에 ㅋ·ㅠ 는 지웠다 — 글꼴 서브셋에 한글 자모 구획(U+3130~318F)을 더해 실제로 그려진다.
-    # 3회차에 정본을 읽어 임자를 바로잡았다: 남은 일곱 중 `↻` 하나만 «정본이 아이콘으로 그리는 자리» 였고(T108 이 아틀라스 `autoloop` 아이콘으로 바꿔 지웠다 —
-    # 그 자리가 다시 글자가 되면 «새 두부» 로 rc 1) 나머지 여섯은 정본도 **글자**라 고칠 길이 이모지 폴백 글꼴 하나뿐이다(T106 · 주인 에셋 승인).
-    '😭': '채팅 문구(정본 chat.js 11행) — 정본도 **글자** · T106(이모지 폴백 글꼴)',
-    '🐴': '탈것 토스트·얼굴 폴백(PetSkillUi.json /text/toast_mount_full · PetSkillKit 324행) — **정본도 글자다**: `ui.js` 2143 `creatureFace` 가 썸네일이 없는 동안 `<span>${emoji}</span>` 를 깐다(아이콘이 아니다 · 3회차에 정본을 읽고 바로잡음) · T106(이모지 폴백 글꼴)',
-    '🐾': '같은 갈래(펫 보관함·출전 토스트 셋 + 얼굴 폴백) — **정본도 글자다**(`ui.js` 2162 `petFace` → `creatureFace`) · T106(이모지 폴백 글꼴)',
-    # T137 — Core 를 훑자 드러난 둘. 정본도 **글자**다(아이콘 표에 없다) — 고칠 길은 이모지 폴백 글꼴(T106)뿐.
-    '🚪': 'Core/Dungeons/Dungeons.cs:237 «🚪 진행 중이던 던전에서 나와…»(정본 dungeons.js 156 UI.toast 그대로 · DungeonPopups.Toast 로 나간다) — 정본도 **글자** · T106(이모지 폴백 글꼴)',
-    '🔥': 'Core/Battle/Battle.cs:578 «🔥 난이도 상승!…»(정본 combat.js 499 UI.toast(…, combat) 그대로) — 정본도 **글자** · T106(이모지 폴백 글꼴) · 지금은 전투 토스트 레인이 없어 화면에 안 나간다(T138 이 세우면 그 길로)',
-    '🛡': 'PlayerInfoUi.json /text/shield(미니 씬이 못 설 때의 폴백) — **정본도 글자다**: `ui.js` 5153 `<div class="pinfo-preview"><span>🛡️</span>…` · T106(이모지 폴백 글꼴)',
+    # T106 — 이모지 여덟(⏱ ⏹ 😭 🐴 🐾 🚪 🔥 🛡)은 `Assets/Fonts/NotoEmoji-Forge.ttf`(단색 Noto Emoji 서브셋)가 쥔다 → KNOWN 에서 뺐다.
+    #        정본도 **글자**(ui.js 2143·2162·2272·5153 · chat.js 11 · dungeons.js 156 · combat.js 499)라 아이콘으로 바꾸지 않는다(«그대로 옮기기»).
+    #        새 이모지가 화면 문구에 들어오면 여기서 rc 1 로 잡힌다 — 그때는 서브셋에 그 글자를 더한다(docs/assets-map.md «이모지 글꼴»).
+    #        `↻` 는 T108 이 아틀라스 `autoloop` 아이콘으로 바꿔 지웠다 — 그 자리가 다시 글자가 되면 «새 두부» 로 rc 1.
 }
 
 ROUTE = re.compile(r'IconTextRow|IconTextStack\.|IconText\.|UiText\.(?:Split|TextOnly)|Toast\(|TextOnly\(')   # IconTextStack(T110) = 줄마다 IconTextRow · 세로 갈래도 아이콘 길
@@ -418,7 +410,7 @@ def missing(strings, font, skip):
 def main(argv):
     if '--self-test' in argv:
         return self_test()
-    font = font_chars(FONT)
+    font = font_chars(FONT) | font_chars(EMOJI_FONT)   # T106 — 주 글꼴 + 이모지 폴백(둘 다 배포판에 실린다)
     skip = icon_chars(TABLE)
     code = [s_ for d in SCAN_DIRS for s_ in screen_strings(d)]
     strings = code + data_strings()
@@ -468,6 +460,11 @@ def self_test():
         got = ord(ch) in font
         if got != want:
             print('✗ cmap: «%s» U+%04X 기대 %s · 받은 %s' % (ch, ord(ch), want, got)); ok = False
+    emoji = font_chars(EMOJI_FONT)   # T106 — 폴백 글꼴은 이모지 여덟을 쥐고 한글은 안 쥔다
+    for ch, want in [('⏱', True), ('⏹', True), ('😭', True), ('🐴', True), ('🐾', True), ('🚪', True), ('🔥', True), ('🛡', True), ('가', False), ('\U0001F528', False)]:
+        got = ord(ch) in emoji
+        if got != want:
+            print('✗ 이모지 cmap: «%s» U+%04X 기대 %s · 받은 %s' % (ch, ord(ch), want, got)); ok = False
     skip = icon_chars(TABLE)
     for ch, want in [('\U0001FA99', True), ('⚔', True), ('️', True), ('가', False)]:
         if (ch in skip) != want:

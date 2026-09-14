@@ -368,6 +368,8 @@ namespace Forge.Game.Ui
 
         /// <summary>붙은 OS 폴백 글꼴 이름(없으면 null).</summary>
         public static string HangulFallback { get; private set; }
+        /// <summary>T106 — 이모지 폴백 애셋(카탈로그 `emojiFont` · 단색 Noto Emoji 서브셋). 정본이 글자로 쓰는 ⏱⏹😭🐴🐾🚪🔥🛡 을 이것이 그린다. 카탈로그에 없으면 null.</summary>
+        public static TMP_FontAsset EmojiFallback { get; private set; }
 
         public static TMP_FontAsset Primary
         {
@@ -400,6 +402,23 @@ namespace Forge.Game.Ui
             AlphaTexels = ramp;
             if (fa.material != null && fa.material.HasProperty("_GradientScale")) fa.material.SetFloat("_GradientScale", (float)ramp);
             if (fa.fallbackFontAssetTable == null) fa.fallbackFontAssetTable = new List<TMP_FontAsset>();
+
+            // T106 — 이모지 폴백(정본은 브라우저의 OS 이모지 글꼴이 그리던 «글자» · 리눅스 CI·WebGL 엔 없다): 카탈로그의 단색 Noto Emoji 서브셋을
+            //        OS 폴백보다 **앞에** 둔다(배포판엔 OS 폴백이 없으니 이것이 유일한 길). 굽기·재질은 주 글꼴과 같은 표라 키라인 셈이 같다.
+            EmojiFallback = null;
+            if (cat.emojiFont != null)
+            {
+                TMP_FontAsset em = TMP_FontAsset.CreateFontAsset(cat.emojiFont, SamplingPt, PaddingPx, GlyphRenderMode.SDFAA, AtlasW, AtlasH, AtlasPopulationMode.Dynamic, true);
+                if (em != null)
+                {
+                    em.name = cat.emojiFont.name + " (emoji fallback)";
+                    if (shader != null && em.material != null) em.material.shader = shader;
+                    if (em.material != null && em.material.HasProperty("_GradientScale")) em.material.SetFloat("_GradientScale", (float)ramp);
+                    fa.fallbackFontAssetTable.Add(em);
+                    EmojiFallback = em;
+                }
+                else Debug.LogWarning("[UiFont] 이모지 폴백 글꼴로 TMP 애셋을 못 만들었다 — 이모지 자리는 □ 다(T106)");
+            }
 
             HashSet<string> installed = new HashSet<string>(Font.GetOSInstalledFontNames());
             foreach (string family in cat.FallbackOsFonts)
