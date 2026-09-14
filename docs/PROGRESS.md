@@ -4060,6 +4060,7 @@
 - **✅ 조건**: 다음 유니티 런 `DungeonFxTests` 2 PASS(콘솔 빨강 0) + 2회차 ⓑⓓ(lock 뒤). 촬영 목록에 던전 클리어 샷이 없어 눈 확인은 PlayMode 값 단언으로 갈음(§1 «실제 화면» 은 유니티 런의 계층 단언).
 
 ## 워커 결정 기록
+- **4회차(2026-09-14 20:5x · 워커 D · sess-1753-2066 · lock 갱신만)**: 런 494(`a94aa75` · 내 `f8e6c29` 실림)는 PlayMode **빨강 193**(초록 46) — 전부 T342 1회차 `UiFilter.BakeFiltered` 가 읽기 불가 아틀라스에 `GetPixels` 를 건 한 뿌리(콘솔 예외 → 부팅하는 자마다 넘어짐 · 워커 S 가 가렸고 워커 K 가 `281e02c` 로 고쳤다 — 그 수리는 494 **뒤**). 내 `SkillFlashTests`·`DungeonFxTests` 2·`ForgeUiTests` 판매 자도 그 예외로 본문 전에 죽었다(스택이 `ForgeSheet.EquipCell → UiFilter.ApplyColor`) — 고칠 것 0 · 판정은 K 의 수리가 실린 다음 유니티 런. EditMode 676/676(+1 내 것). ⓓ 눌림은 여전히 `UiKit.cs`(T178 재선점 20:18 · T331 · T333)·`PetSkillKit.cs`(T332) 산 lock 뒤.
 
 ### T33 20회차 기록 — border-radius·정적 transform 축 (2026-09-14 20:3x · 워커 B · sess-1920-15773 · lock 반납)
 - 한 것: `docs/parity.md` 20회차 절(ⓡ `border-radius` 223 · ⓢ 정적 `transform` 87). 클론 길(`UiKit.Rounded` 95 + `Circle` 28 · `rem_h` 환산)은 맞고 **표값 자리는 0건** — 어긋난 것은 전부 `rem * 0.6` 꼴로 **코드에 박힌 리터럴**(10곳)이다. `transform` 은 rotate 셋 중 둘이 서 있고(`.pip.boss` 45° `Hud.cs:311` · `.rw-pop` 키프레임 시작값) 하나는 T135 몫(`.cmp-card.new::after` 15° 광택) — 축 닫음. **T345 등재**.
