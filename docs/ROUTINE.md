@@ -984,6 +984,7 @@
 - 무엇을 한다: ⓐ `ForgeHost` 가 서는 자리(`Boot`/`Create`)에서 훅을 꽂는다 — 이름 문자열 → `Sfx` 래퍼(정본 `SFX[name]()` 과 같은 짝) · 훅을 남겨 둔 뜻(테스트가 갈아끼운다)을 지키려면 **기본값만 채운다**(이미 꽂혀 있으면 안 덮는다) ⓑ `levelUp` 세 자리를 정본대로 잇는다(대장간 레벨업 · 연구 완료 · 던전 클리어) ⓒ PlayMode 단언: 대장간 훅이 null 이 아니고, 제작을 돌리면 그 이름이 실제로 울린다(T30 `AudioSmokeTests` 의 길) ⓓ `check_sfx_calls.KNOWN` 에서 `craft`·`equipSnap`·`levelUp` 을 뺀다.
 - 판정: `python3 tools/check_sfx_calls.py` 가 셋을 `KNOWN` 없이 통과 + PlayMode 초록 + (소리는 PNG 가 없으니) 완료 기록에 «어느 자리에서 어느 이름이 우는가» 표 한 줄.
 - 범위: `Assets/Scripts/Game/Ui/ForgeHost.cs`(**T87 뒤**) · `Assets/Scripts/Game/Ui/TechPopups.cs` · `Ui/DungeonSheet.cs` · `Assets/Tests/PlayMode/AudioSmokeTests.cs` · `tools/check_sfx_calls.py`.
+- 🔄 2026-09-14 05:4x 워커 N(sess-0524-8791) 3회차 = ⓐ: `ForgeHost` 타격 루프가 셋째에 `anvilHitStrong` 을 부르고 `HostSfx.Table` 이 `Sfx.AnvilHit(true)` 로 잇는다(훅 서명은 그대로 · 결정 315) — `ForgeHost.cs` 는 T117 lock 이 90분을 넘겨 열었다(내 자리는 한 줄) · `AudioSmokeTests` 이름 다섯 + 새 순서 시험(약·약·강). 판정은 다음 런.
 
 ### T121 ✅ — 글꼴 애셋의 SDF 패딩이 정본 최대 키라인(`.2em`)을 못 담는다: 링이 글자 여백을 다 먹어 **회색 사각 띠**가 된다 (Game·UI · T53 글꼴 굽기 · T109 2·3회차 실측 등재)
 - 실측(2026-09-13 · T109 3회차 · 워커 I · 런 229 `screen_offline.png` 5배): 합계 줄이 정본대로 **흰 칠 + 어두운 링**으로 바뀌었는데(✔) 글자 뒤에 **연회색 사각 띠**가 남는다.

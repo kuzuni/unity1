@@ -124,17 +124,17 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(h.Sfx, "ForgeHost.Sfx 훅이 비어 있다 — 대장간 소리가 통째로 무음이다(T120)");
 
             int before = Sfx.PlayedCount, hooked = HostSfx.Played;
-            foreach (string name in new[] { "craft", "equipSnap", "anvilHit", "levelUp" })
+            foreach (string name in new[] { "craft", "equipSnap", "anvilHit", "anvilHitStrong", "levelUp" })
             {
                 h.Sfx(name);
                 Assert.AreEqual(name, HostSfx.LastName, name + " 이 훅을 지났다");
             }
-            Assert.AreEqual(hooked + 4, HostSfx.Played, "이름 넷이 전부 표에 있다");
-            Assert.AreEqual(before + 4, Sfx.PlayedCount, "이름으로 부른 넷이 실제로 났다");
+            Assert.AreEqual(hooked + 5, HostSfx.Played, "이름 다섯이 전부 표에 있다(anvilHitStrong 은 T120 3회차)");
+            Assert.AreEqual(before + 5, Sfx.PlayedCount, "이름으로 부른 다섯이 실제로 났다");
 
             // 표에 없는 이름은 조용히 흘린다(호스트가 새 이름을 붙여도 예외로 죽지 않는다).
             h.Sfx("nope");
-            Assert.AreEqual(before + 4, Sfx.PlayedCount, "모르는 이름은 안 난다");
+            Assert.AreEqual(before + 5, Sfx.PlayedCount, "모르는 이름은 안 난다");
 
             // 훅을 갈아끼운 뒤 다시 꽂아도 **내 것이 산다** — 테스트가 갈아끼울 자리를 남긴 뜻(ForgeHost 81행)을 지킨다.
             int mine = 0;
@@ -142,6 +142,25 @@ namespace Forge.Tests.PlayMode
             HostSfx.Attach();
             h.Sfx("craft");
             Assert.AreEqual(1, mine, "다시 Attach 한 뒤 남의 훅이 사라졌다");
+        }
+
+        /// <summary>T120 3회차 — 정본 `ui.js` 2943 `ANVIL_HITS.map((t, h) => SFX.anvilHit(h === 2))`: 두들김 셋 중 **셋째만 강타**. 훅에 실리는 이름의 순서를 그대로 받아 본다.</summary>
+        [UnityTest]
+        public IEnumerator 모루_두들김은_약_약_강_순서로_운다()
+        {
+            yield return Boot();
+            yield return WaitUntil(() => ForgeHost.Ready && ForgeHost.Instance != null && MetaHost.Ready, 60f, "ForgeHost 부팅");
+            ForgeHost h = ForgeHost.Instance;
+            var names = new System.Collections.Generic.List<string>();
+            h.Sfx = n => { names.Add(n); HostSfx.Play(n); };
+            h.S.Hammers = 10; h.Pull();
+            h.OnCraft();
+            float t = 0f;
+            while (!h.Meta.Popups.IsOpen(ForgeCraftPopup.Name) && t < 6f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "망치질(정본 1.5s) + 리빌 뒤 비교 팝업");
+            var hits = names.FindAll(n => n.StartsWith("anvilHit", System.StringComparison.Ordinal));
+            Assert.AreEqual(new[] { "anvilHit", "anvilHit", "anvilHitStrong" }, hits.ToArray(), "타격 셋 = 약·약·강(정본 h === 2) · 받은 순서: " + string.Join(",", names));
+            Assert.AreEqual(3, hits.Count, "타격은 셋 · 타격 사이에 다른 anvilHit 이름이 끼지 않는다");
         }
     }
 }

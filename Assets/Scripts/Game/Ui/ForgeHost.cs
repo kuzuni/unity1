@@ -77,7 +77,7 @@ namespace Forge.Game.Ui
         public Action RecalcHero;
         /// <summary>T21 이 꽂는다 — 원작 UI.openAscension('forge'). 없으면 스텁.</summary>
         public Action<string> OpenAscension;
-        /// <summary>T30 이 꽂는다 — anvilHit·craft·craftReveal·equipSnap·equipToss·equipDrop.</summary>
+        /// <summary>T30 이 꽂는다 — anvilHit·anvilHitStrong(셋째 타격 · T120)·craft·craftReveal·equipSnap·equipToss·equipDrop.</summary>
         public Action<string> Sfx;
 
         // ---- 대기품 · 자동 제련(원작 S.pendingCraft · autoMatchQueue · autoMatchHeld · autoBatch · autoForgeOn · UI._autoSeq) ----
@@ -770,11 +770,11 @@ namespace Forge.Game.Ui
             // T87 전에는 시작에 한 번만 울려 «세 번 두들긴다» 가 소리로는 한 번이었다.
             for (int hitIdx = 0; hitIdx < AnvilFxSpec.StrikeMs.Length; hitIdx++)
             {
-                int myGen = gen;
+                int myGen = gen, h = hitIdx;
                 Delay((float)(AnvilFxSpec.StrikeMs[hitIdx] / 1000.0), () =>
                 {
                     if (myGen != strikeGen || !strikeLive) return;
-                    PlaySfx("anvilHit");
+                    PlaySfx(h == 2 ? "anvilHitStrong" : "anvilHit");   // 정본 `SFX.anvilHit(h === 2)` — 셋째만 강타(T120 3회차 · HostSfx 표)
                 });
             }
             Delay(AnvilStrikeSec, () =>

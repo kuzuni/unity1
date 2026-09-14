@@ -21,12 +21,13 @@ namespace Forge.Game
     /// 대장간 레벨업(`levelUp`)도 여기서 운다 — 정본 `forge.js` 303 `tickUpgrade` 가 레벨을 올리며 `SFX.levelUp()` 을
     /// 부르고, 클론에서 그 자리에 해당하는 신호가 <c>ForgeEngine.LevelReached</c> 다.
     ///
-    /// ⚠ 남은 것(T120 2회차 · <c>ForgeHost.cs</c> = T87 lock 뒤): 정본 `ui.js` 2943 은 `SFX.anvilHit(h === 2)` 로
-    /// **3타만 강하게** 운다. 훅이 이름 하나만 받으므로 지금은 전부 약한 타격이다 — 세기를 실으려면 그 파일을 열어야 한다.
+    /// 정본 `ui.js` 2943 은 `SFX.anvilHit(h === 2)` 로 **셋째 타격만 강하게** 운다 — 훅이 이름 하나만 받으므로 세기는
+    /// 이름에 싣는다: `anvilHit`(약) · `anvilHitStrong`(강). <see cref="ForgeHost"/> 의 타격 루프가 셋째에 후자를 부른다(T120 3회차).
     /// </summary>
     public static class HostSfx
     {
         static void AnvilWeak() { Sfx.AnvilHit(false); }
+        static void AnvilStrong() { Sfx.AnvilHit(true); }
 
         /// <summary>이름 → T30 래퍼. 원작 `SFX[name]()` 과 같은 짝이다(비교는 <see cref="StringComparer.Ordinal"/> · ROUTINE §1).</summary>
         static readonly Dictionary<string, Action> Table = new Dictionary<string, Action>(StringComparer.Ordinal)
@@ -34,6 +35,7 @@ namespace Forge.Game
             { "craft", Sfx.Craft },
             { "equipSnap", Sfx.EquipSnap },
             { "anvilHit", AnvilWeak },
+            { "anvilHitStrong", AnvilStrong },
             { "levelUp", Sfx.LevelUp },
         };
 
