@@ -6,6 +6,7 @@ using System.Text;
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Forge.Core.Battle;
@@ -730,6 +731,9 @@ namespace Forge.Tests.PlayMode
         /// safeArea 는 호출자가 이미 <see cref="ShotW"/>×<see cref="ShotH"/> 로 꽂아 두었으므로 앱 상자가 RT 를 꽉 채운다.
         /// 실패하면 경고 한 줄(빨강 아님)만 남기고 그림을 건너뛴다 — 이 테스트의 판정은 «열렸는가·글자·빨강 0» 이지 그림이 아니다(픽셀 자는 T84).
         /// </summary>
+        /// <summary>T349 — 첫 장에서 한 번만 «촬영 카메라가 게임 카메라와 같은가» 를 자취에 남긴다.</summary>
+        private static bool urpTraced;
+
         private static string Capture(string name, bool notch, out string pixelFail, out string pixelInfo)
         {
             pixelFail = null; pixelInfo = null;
@@ -741,8 +745,11 @@ namespace Forge.Tests.PlayMode
             float prevPlane = canvas.planeDistance;
             RenderTexture prevActive = RenderTexture.active;
             RenderTexture rt = new RenderTexture(ShotW, ShotH, 24, RenderTextureFormat.ARGB32);
-            GameObject camGo = new GameObject("t27-shot-cam");
-            Camera cam = camGo.AddComponent<Camera>();
+            // T349 배선 — 촬영 카메라는 `ShotCam.From` 이 세운다: `CopyFrom` 이 **안 옮기는** URP 추가 데이터
+            //   (renderPostProcessing · volumeLayerMask · antialiasing · renderShadows …)까지 게임 카메라를 그대로 따라간다.
+            //   그 전까지 이 자리는 `CopyFrom` 만 해서 55장 전부의 3D 띠가 톤맵(T1)·노출(T9)·색 보정(T341) **없이** 찍혔다(결정 550).
+            Camera cam = ShotCam.From(Camera.main, "t27-shot-cam", rt);
+            GameObject camGo = cam.gameObject;
             Texture2D world = null, onBlack = null, onWhite = null, shot = null;
             try
             {
@@ -751,9 +758,18 @@ namespace Forge.Tests.PlayMode
                 // 이 자리를 가리켜 두었다). 게임 흐름은 안 건드린다 — 촬영 자만 부른다.
                 CardPop.SettleAll();
                 int uiLayer = canvas.gameObject.layer;
-                if (Camera.main != null) cam.CopyFrom(Camera.main);
-                cam.rect = new Rect(0f, 0f, 1f, 1f);
-                cam.targetTexture = rt;
+                UniversalAdditionalCameraData camUrp = cam.GetComponent<UniversalAdditionalCameraData>();
+
+                // 자취 한 줄 — 이 장이 «게임과 같은 카메라» 로 찍혔는가(T349 판정용 · 다음 런의 ui-shots 자취에서 읽는다).
+                if (!urpTraced)
+                {
+                    urpTraced = true;
+                    Camera main = Camera.main;
+                    UniversalAdditionalCameraData mainUrp = main != null ? main.GetComponent<UniversalAdditionalCameraData>() : null;
+                    Trace("촬영 카메라 URP: 포스트=" + (camUrp != null ? camUrp.renderPostProcessing.ToString() : "없음")
+                          + " · 게임 카메라 포스트=" + (mainUrp != null ? mainUrp.renderPostProcessing.ToString() : "없음")
+                          + " · 같은가=" + ShotCam.SameUrp(main, cam));
+                }
 
                 // ① 세계 — 게임 절두체 · UI 층 제외. 캔버스는 아직 오버레이라 이 그림에 안 실린다.
                 cam.cullingMask &= ~(1 << uiLayer);
@@ -763,6 +779,10 @@ namespace Forge.Tests.PlayMode
                 world = ReadBack(rt, TextureFormat.RGB24);
 
                 // ② UI — 기본 투영 · UI 층만 · 검정/흰 배경 위 두 번.
+                // 🚨 여기서만 포스트를 끈다. 게임의 캔버스는 `ScreenSpaceOverlay` 라 **카메라 포스트를 안 탄다** —
+                //    UI 를 톤맵·색 보정에 태우면 ⓐ 게임과 다른 색이 되고 ⓑ 합성이 쓰는 매트(흰 위 − 검정 위)가 비선형이 되어 딤·반투명 판이 틀어진다.
+                //    세계(①)는 켜진 채로 찍혔다 — 그것이 T349 가 고치려는 자리다.
+                if (camUrp != null) camUrp.renderPostProcessing = false;
                 cam.ResetProjectionMatrix();
                 cam.cullingMask = 1 << uiLayer;
                 cam.clearFlags = CameraClearFlags.SolidColor;
