@@ -1,0 +1,18 @@
+{
+  "_": "T173 — 보스 경고 두 겹(정본 web/css/style.css 366~376 `.bw-dim`·`.bw-flash`)의 방사형 그라디언트. 색은 정본 rgba 그대로(rgb 0~255 · 알파 0~1). 값을 catalog.json 이 아니라 곁 표에 두는 것은 그 파일이 남의 lock 일 때가 잦기 때문이다(T65·T98·T111·T156·T159·T168 과 같은 길).",
+  "_farthest": "CSS `radial-gradient(ellipse at 50% 42%, …)` 의 기본은 farthest-corner — 100% 지점이 **가장 먼 모서리**를 지난다. 그래서 굽는 쪽도 반지름을 `max(cx, 1-cx)`·`max(cy, 1-cy)` 로 잡는다(상자를 꽉 채운다 · 타원 밖을 투명으로 두면 모서리가 비어 정본과 달라진다).",
+  "bake_px": 128,
+  "_bake_px": "굽는 한 변(정사각). 그라디언트는 매끈해서 이 해상도로 화면을 덮어도 띠가 안 보인다 — 그리고 굽은 그림을 **읽을 수 있게** 남겨 PlayMode 자가 «가운데가 가장자리보다 옅은가» 를 픽셀로 잰다.",
+  "dim": {
+    "cx": 0.5, "cy": 0.42,
+    "stops": [[72, 4, 4, 0.34], [6, 2, 4, 0.76]],
+    "offsets": [0, 1],
+    "_": "style.css 368 `.bw-dim { background: radial-gradient(ellipse at 50% 42%, rgba(72,4,4,.34), rgba(6,2,4,.76)) }` — 가운데가 옅고 가장자리가 짙은 감광. 정본 주석: «화면을 눌러 배너가 유일한 밝은 값이 되게»."
+  },
+  "flash": {
+    "cx": 0.5, "cy": 0.42,
+    "stops": [[255, 72, 48, 0.62], [190, 10, 10, 0.34]],
+    "offsets": [0, 0.70],
+    "_": "style.css 374 `.bw-flash { mix-blend-mode: screen; background: radial-gradient(ellipse at 50% 42%, rgba(255,72,48,.62), rgba(190,10,10,.34) 70%) }` — 정본 주석: «screen 합성이라 밝은 낮 배경에서도 **가산 경광등**으로 읽힌다». 70% 뒤는 마지막 색 그대로다."
+  }
+}

@@ -4453,6 +4453,20 @@
 - **주인께 물을 것**: 부팅 로딩 화면(정본에 있는 것)과 «부팅 직후 픽셀을 재는 자들» 중 무엇을 먼저 둘지. ⓒ 를 고르면 그 여덟을 한 번에 고치는 작업으로 등재하면 된다.
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` **646/646** · §3 자 전부 rc 0.
 
+### T173 1회차 기록 (2026-09-14 14:4x · 워커 F · sess-1427-77210) — 보스 경고 두 겹을 정본 방사형 + 가산으로 · lock 유지
+
+- **고른 이유**: 이 절이 «`BattleOverlay.cs` 는 **T168 의 산 lock 뒤**» 라고 적었는데 그 lock 이 바로 내 것이었고 이 회차에 판정 초록으로 반납했다 — §2 순서상 잡을 수 있는 가장 앞 작업이었다(T169 는 `catalog.json` 이 T106 lock 안이라 뒤 번호인 내가 기다린다).
+- **먼저 빨강**(§0-6): 런 #415 의 빨강 둘(`CraftComparePopupTests` = T156 · `TextSizeGateTests` = T106)은 **둘 다 제 임자의 산 lock** 안이다.
+- **ⓐ 방사형 두 겹**: `.bw-dim`(정본 368 `radial-gradient(ellipse at 50% 42%, rgba(72,4,4,.34), rgba(6,2,4,.76))`)·`.bw-flash`(374 `… rgba(255,72,48,.62), rgba(190,10,10,.34) 70%`)를 굽는다. 색·중심·비율은 새 표 `Resources/BossWarnUi.json` 이 쥔다.
+  - **`CraftFxPoly.BakeEllipse` 를 안 썼다**: 그 자는 타원 **밖을 투명**으로 두는데 CSS 의 기본은 `farthest-corner` 라 **모서리까지 마지막 색으로 꽉 찬다**. 반지름을 `max(cx,1−cx)`·`max(cy,1−cy)` 로 잡아 상자를 채우는 굽기를 `BattleOverlay` 안에 뒀다(자리도 그 한 곳뿐이다).
+  - 굽은 그림은 `Apply(false, **false**)` 로 **읽을 수 있게** 남겼다 — T159 3회차에 겪은 «구운 픽셀을 못 읽는다» 를 처음부터 피했고, 덕분에 자가 «가운데가 가장자리보다 옅은가» 를 픽셀로 잰다.
+- **ⓑ 가산 합성**: 점멸에 `CraftFxPoly.Screen()`(T87 이 세운 `Forge/UiScreen` 재질 · 정본 `mix-blend-mode: screen`)을 건다. 못 찾으면 null 이 와서 여태처럼 보통 알파로 그려진다(연출이 사라지는 것보다 낫다).
+  - 같이 지운 것: `Alpha(flash, WarnFlash(t) * **0.62**)` 의 `0.62` — 그것은 정본 rgba 의 알파를 코드에 박은 것이었다. 이제 **구운 그림이 .62·.34 를 쥔다**(§1).
+- **ⓒ 팝업이 뜨면 경고 딤만 끈다**: 정본 363 `#app:has(> .modal:not(.hidden)) #boss-warning .bw-dim { display: none }` → `PopupLayer.Instance.OpenCount > 0` 이면 `dim` 알파 0. **점멸·배너는 그대로** 둔다(정본 주석: «카드 옆 여백에서 보스 온다가 여전히 읽힌다»).
+- **PlayMode `BossWarnArtTests`(새 · 셋)**: 감광의 가운데 알파 .34 ↔ 모서리 .76 이고 가운데가 더 옅다(+ 네 모서리가 다 칠해져 있다 = farthest-corner) · 점멸의 가운데 .62 ↔ 70% 뒤 .34 이고 가운데가 더 밝다 + 재질이 `Forge/UiScreen` · 팝업을 열고 한 박자 밀면 딤만 0 이 되고 배너는 남는다.
+- **안 건드린 것**: 시간 곡선(`FxRules`)·z 서열·촬영 타이밍. 절이 ⚠ 로 적은 대로 «연출을 물고 찍히는 것» 자체는 클론 결함이 아니다.
+- **게이트**: `dotnet build` 0 오류(PlayMode 컴파일 포함) · `dotnet test` **641/641** · §3 자 전부 rc 0. 판정은 다음 유니티 런(`BossWarnArtTests` 3) + `ui_score` 의 그 화면 줄.
+
 ### T168 3회차 기록 (2026-09-14 13:4x · 워커 F · sess-1227-51884) — 남은 여덟 중 일곱을 붙였다 · **판정 초록 · lock 반납**
 
 - **먼저 빨강**(§0-6): 런 #403 은 «PlayMode 가 통째로 안 돌았다(테스트 0개)» 인데 **이미 임자가 붙어 있었다** — 워커 E 가 T171 로 뿌리(`BattlePreview.Start(RectTransform)` 이 유니티 메시지 이름과 부딪혀 콘솔 에러 넷 + 어셈블리 재적재 SIGSEGV)를 고쳐 push 했고(런 406), 워커 J 가 T172 로 «모드가 안 돈 런의 임자 대기» 자를 고쳤다. 결정 341 대로 **이미 고쳐졌나를 먼저 봐서** 겹쳐 잡지 않았다.

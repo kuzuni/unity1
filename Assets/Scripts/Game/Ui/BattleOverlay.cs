@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Forge.Core.BattleFx;
+using Forge.Core.Data;
 
 namespace Forge.Game.Ui
 {
@@ -75,6 +77,106 @@ namespace Forge.Game.Ui
             return im;
         }
 
+        // ── T173 — 정본 방사형 두 겹을 굽는다(표 `BossWarnUi.json`) ──────────────────────────────
+        const string BossWarnRes = "BossWarnUi";
+        static JsonObject bwTable;
+        static readonly Dictionary<string, Sprite> bwSprites = new Dictionary<string, Sprite>();
+
+        /// <summary>그 겹의 방사형 그림을 깐다(<paramref name="mat"/> 가 있으면 그 재질로 — 정본 `mix-blend-mode: screen`).</summary>
+        static Image Radial(Transform parent, string name, string key, Material mat)
+        {
+            RectTransform rt = UiKit.Box(parent, name);
+            UiKit.Fill(rt);
+            Image im = rt.gameObject.AddComponent<Image>();
+            im.raycastTarget = false;
+            im.type = Image.Type.Simple;
+            im.sprite = RadialSprite(key);
+            if (mat != null) im.material = mat;   // 못 찾으면 null 이 와서 여태처럼 보통 알파로 그려진다(연출이 사라지는 것보다 낫다)
+            im.color = new Color(1f, 1f, 1f, 0f);
+            return im;
+        }
+
+        static JsonObject BossWarnTable()
+        {
+            if (bwTable != null) return bwTable;
+            TextAsset ta = Resources.Load<TextAsset>(BossWarnRes);
+            if (ta == null) throw new KeyNotFoundException("Resources/" + BossWarnRes + ".json 이 없다");
+            bwTable = J.Obj(MiniJson.Parse(ta.text));
+            if (bwTable == null || bwTable.Count == 0) throw new KeyNotFoundException(BossWarnRes + ".json 을 못 읽었다");
+            return bwTable;
+        }
+
+        /// <summary>
+        /// 상자를 꽉 채우는 방사형 그라디언트 한 장. 중심은 표의 `cx`·`cy`(정본 `at 50% 42%`)이고 100% 지점은
+        /// **가장 먼 모서리**다(CSS 기본 `farthest-corner`) — 타원 밖을 투명으로 두면 모서리가 비어 정본과 달라진다.
+        /// 굽은 그림은 <c>Apply(false, false)</c> 로 **읽을 수 있게** 남긴다(PlayMode 자가 «가운데가 가장자리보다 옅은가» 를 픽셀로 잰다).
+        /// </summary>
+        static Sprite RadialSprite(string key)
+        {
+            Sprite hit;
+            if (bwSprites.TryGetValue(key, out hit) && hit != null) return hit;
+            JsonObject root = BossWarnTable();
+            JsonObject one = J.Obj(root[key]);
+            List<object> stops = one == null ? null : J.Arr(one["stops"]);
+            List<object> offs = one == null ? null : J.Arr(one["offsets"]);
+            if (stops == null || offs == null || stops.Count < 2 || offs.Count != stops.Count)
+                throw new KeyNotFoundException(BossWarnRes + ".json 의 «" + key + "» 에 stops·offsets(길이가 같은 둘)이 없다");
+            float cx = (float)J.Num(one["cx"], 0.5), cy = (float)J.Num(one["cy"], 0.5);
+            int n = Mathf.Max(8, (int)J.Num(root["bake_px"], 128));
+
+            Color[] col = new Color[stops.Count];
+            float[] pos = new float[offs.Count];
+            for (int i = 0; i < stops.Count; i++)
+            {
+                List<object> c = J.Arr(stops[i]);
+                if (c == null || c.Count < 4) throw new KeyNotFoundException(BossWarnRes + ".json 의 «" + key + "» stop " + i + " 가 [r,g,b,a] 가 아니다");
+                col[i] = new Color((float)J.Num(c[0]) / 255f, (float)J.Num(c[1]) / 255f, (float)J.Num(c[2]) / 255f, (float)J.Num(c[3]));
+                pos[i] = (float)J.Num(offs[i]);
+            }
+            // farthest-corner — 중심에서 가장 먼 모서리가 100%
+            float rx = Mathf.Max(cx, 1f - cx), ry = Mathf.Max(cy, 1f - cy);
+            Texture2D tex = new Texture2D(n, n, TextureFormat.RGBA32, false);
+            tex.name = "bw-" + key;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;
+            Color32[] px = new Color32[n * n];
+            for (int y = 0; y < n; y++)
+            {
+                for (int x = 0; x < n; x++)
+                {
+                    float u = (x + 0.5f) / n;
+                    float v = 1f - (y + 0.5f) / n;              // 텍스처는 아래가 0행이고 CSS 는 위가 0
+                    float dx = (u - cx) / rx, dy = (v - cy) / ry;
+                    Color c = SampleStops(col, pos, Mathf.Clamp01(Mathf.Sqrt(dx * dx + dy * dy)));
+                    px[y * n + x] = new Color32(
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.r) * 255f),
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.g) * 255f),
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.b) * 255f),
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.a) * 255f));
+                }
+            }
+            tex.SetPixels32(px);
+            tex.Apply(false, false);
+            Sprite sp = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            sp.name = tex.name;
+            bwSprites[key] = sp;
+            return sp;
+        }
+
+        /// <summary>stop 사이 선형 — 마지막 offset 뒤는 마지막 색 그대로다(정본 `… .34) 70%` 의 뒤쪽).</summary>
+        static Color SampleStops(Color[] col, float[] pos, float t)
+        {
+            if (t <= pos[0]) return col[0];
+            for (int i = 1; i < pos.Length; i++)
+            {
+                if (t > pos[i]) continue;
+                float span = pos[i] - pos[i - 1];
+                float k = span <= 0f ? 1f : (t - pos[i - 1]) / span;
+                return Color.Lerp(col[i - 1], col[i], k);
+            }
+            return col[col.Length - 1];
+        }
+
         static void Alpha(Graphic g, double a)
         {
             if (g == null) return;
@@ -88,8 +190,11 @@ namespace Forge.Game.Ui
             float rem = Rem;
             warnRoot = UiKit.Box(layer, "boss-warning");
             UiKit.Fill(warnRoot);
-            dim = Full(warnRoot, "bw-dim", "modal_dim_deep", 0);
-            flash = Full(warnRoot, "bw-flash", "pp_red", 0);
+            // T173 — 정본 368·374 는 **방사형 그라디언트 두 겹**이다(단색 판이 아니다): 감광은 가운데가 옅고 가장자리가 짙으며,
+            // 점멸은 `mix-blend-mode: screen` 이라 «가산 경광등» 이다. 클론은 둘 다 단색 판 + 보통 알파라 씬을 덮어 죽이는
+            // 붉은 물감이었다(런 403 `gear-detail` 의 통짜 (90,14,11)). 색·중심·비율은 `BossWarnUi.json` 이 쥔다.
+            dim = Radial(warnRoot, "bw-dim", "dim", null);
+            flash = Radial(warnRoot, "bw-flash", "flash", CraftFxPoly.Screen());
             banner = UiKit.Box(warnRoot, "bw-banner");
             float hazard = 0.5f * rem, pad = 0.3f * rem, textH = 1.5f * rem * 1.2f;
             float bannerH = hazard * 2 + pad * 2 + textH;
@@ -155,8 +260,13 @@ namespace Forge.Game.Ui
         void DriveWarning()
         {
             double u = Math.Min(1, warnT / warnDur);
-            Alpha(dim, FxRules.WarnDim(u));
-            Alpha(flash, FxRules.WarnFlash(warnT) * 0.62);
+            // T173 — 정본 363 `#app:has(> .modal:not(.hidden)) #boss-warning .bw-dim { display: none }`:
+            // 팝업이 떠 있으면 **경고 딤만** 끈다(모달 딤과 겹쳐 화면이 통째로 검게 죽는다 · 점멸·배너는 그대로 둬야
+            // 카드 옆 여백에서 «보스 온다» 가 읽힌다 — 정본 주석).
+            bool modal = PopupLayer.Instance != null && PopupLayer.Instance.OpenCount > 0;
+            Alpha(dim, modal ? 0 : FxRules.WarnDim(u));
+            // 세기(0~1)만 여기서 준다 — 정본 rgba 의 .62·.34 는 구운 그림이 이미 쥐고 있다(예전의 `* 0.62` 는 그 값을 코드에 박은 것이었다).
+            Alpha(flash, FxRules.WarnFlash(warnT));
             banner.localScale = new Vector3(1, (float)FxRules.WarnBanner(u), 1);
             Alpha(sub, FxRules.WarnSubAlpha(u));
             if (trackW <= 0 && marquee != null) trackW = marquee.preferredWidth / 3f;
