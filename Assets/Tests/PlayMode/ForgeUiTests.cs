@@ -82,8 +82,10 @@ namespace Forge.Tests.PlayMode
             yield return Boot();
             Transform anvil = SheetChild("anvil");
             Assert.IsNotNull(anvil, "모루 그림");
-            Transform baseT = null; foreach (Transform t in anvil) if (t.name == "base") baseT = t;
-            Assert.IsNotNull(baseT, "받침 면");
+            // T98 2회차 — 받침은 이제 정본 SVG 폴리곤(`AnvilArt` · `anvil-art` 상자 안 `anv-base`)이다.
+            Transform baseT = null;
+            foreach (RectTransform t in anvil.GetComponentsInChildren<RectTransform>(true)) if (t.name == "anv-base") baseT = t;
+            Assert.IsNotNull(baseT, "받침 면(anv-base)");
             Transform counter = SheetChild("anvil-hammers");
             Assert.IsNotNull(counter, "해머 카운터");
             TextMeshProUGUI count = counter.GetComponentInChildren<TextMeshProUGUI>(true);
@@ -101,9 +103,12 @@ namespace Forge.Tests.PlayMode
             Vector3 center = (cc[0] + cc[2]) * 0.5f;
             Assert.IsTrue(center.x >= bc[0].x && center.x <= bc[2].x && center.y >= bc[0].y && center.y <= bc[2].y,
                 "글자 중심 " + center + " 이 받침 " + bc[0] + "~" + bc[2] + " 안에 있어야 한다(원작 61%)");
-            float contrast = Luma(count.color) - Luma(baseImg.color);
-            Assert.GreaterOrEqual(contrast, 0.5f, "글자 밝기 − 받침 밝기 ≥ 0.5 (받침 " + baseImg.color + ")");
-            Assert.Less(Luma(baseImg.color), 0.35f, "받침은 어두운 주철(catalog anvil_base)");
+            // 받침 색은 이제 **구운 그라디언트**라 `Image.color` 는 흰색이다(칠은 스프라이트 안) — 구운 텍스처는
+            // `Apply(false, true)` 로 읽기가 막혀 있으니 표의 스톱으로 묻는다: **가장 밝은 스톱까지 어두우면** 면 전체가 어둡다.
+            Color baseTop = AnvilArt.StopBrightest("anv-base");
+            float contrast = Luma(count.color) - Luma(baseTop);
+            Assert.GreaterOrEqual(contrast, 0.5f, "글자 밝기 − 받침 밝기 ≥ 0.5 (받침 가장 밝은 스톱 " + baseTop + ")");
+            Assert.Less(Luma(baseTop), 0.35f, "받침은 어두운 주철(정본 anv-base 그라디언트)");
             AssertTextGate();
         }
 

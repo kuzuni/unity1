@@ -327,17 +327,13 @@ namespace Forge.Game.Ui
             float vbW = UiKit.L("anvil_vb_w"), vbH = UiKit.L("anvil_vb_h");
             float u = Mathf.Min(w / vbW, h / vbH);
             float ox = (w - vbW * u) * 0.5f, oy = (h - vbH * u) * 0.5f;
-            float st = UiKit.L("anvil_stroke") * u;
-            // 그리는 순서 = SVG 순서(뒤 → 앞): 받침 → 음각 단 → 목 → 뿔 → 상판 앞면 → 상판 윗면 → 베벨
-            UnityEngine.Rect bas = Outlined(rt, "base", ox, oy, u, "anvil_base", "anvil_base", UiKit.L("anvil_base_r") * u, st);
-            Outlined(rt, "recess", ox, oy, u, "anvil_recess", "anvil_recess", 3f * u, st * 0.8f);
-            Outlined(rt, "neck", ox, oy, u, "anvil_neck", "anvil_neck", 1.5f * u, st);
-            Outlined(rt, "horn", ox, oy, u, "anvil_horn", "anvil_horn", UiKit.L("anvil_horn_r") * u, st);
-            Outlined(rt, "front", ox, oy, u, "anvil_front", "anvil_front", 2f * u, st);
-            Outlined(rt, "top", ox, oy, u, "anvil_top", "anvil_top", 3f * u, st);
-            Image bevel = UiKit.Rounded(rt, "bevel", "anvil_bevel", 1.5f * u);
-            Color bc = bevel.color; bc.a = UiKit.L("anvil_bevel_alpha"); bevel.color = bc;
-            UiKit.Place(bevel.rectTransform, ox + UiKit.L("anvil_bevel_x") * u, oy + UiKit.L("anvil_bevel_y") * u, UiKit.L("anvil_bevel_w") * u, UiKit.L("anvil_bevel_h") * u);
+            // T98 2회차 — 옛 «둥근 사각 여섯» 을 걷고 **정본 SVG 폴리곤**으로 바꿨다(`AnvilArt` · 표는 Resources/AnvilArtUi.json).
+            // 옛 그림은 상판·앞면·받침이 전부 둥근 사각이고 뿔이 둥근 사각이라 확대 대조에서 «주황 블록 + 로켓 노즈» 로 읽혔다(T98 등재).
+            // 겹 순서·꼭짓점·획(#170d0b 3)·상판 위 어휘(스텝·하디 홀·프리첼 홀)는 전부 표가 쥔다 — 여기는 자리와 크기만 준다.
+            RectTransform art = AnvilArt.Build(rt, "anvil-art", u);
+            UiKit.Place(art, ox, oy, vbW * u, vbH * u);
+            UnityEngine.Rect ab = AnvilArt.PartBounds("anv-base");
+            UnityEngine.Rect bas = new UnityEngine.Rect(ox + ab.x * u, oy + ab.y * u, ab.width * u, ab.height * u);
             DrawBillet(rt, ox, oy, u, vbW, vbH);
             vbUnit = u;
             // ⚠ 연출 오버레이는 **모루 그림의 형제**다(정본 `.anvil-btn` 안에서 `.anvil-svg` 와 나란히) — 그림의 자식으로 두면
@@ -774,16 +770,9 @@ namespace Forge.Game.Ui
             rt.anchoredPosition = new Vector2(px, -py);
         }
 
-        /// <summary>검은 외곽선(살짝 큰 `anvil_line` 면) 위에 색면 하나 — SVG `stroke` 의 자리. 기하는 `anvil_&lt;part&gt;_x/y/w/h`.</summary>
-        static UnityEngine.Rect Outlined(RectTransform parent, string name, float ox, float oy, float u, string part, string colorKey, float r, float stroke)
-        {
-            float x = ox + UiKit.L(part + "_x") * u, y = oy + UiKit.L(part + "_y") * u, w = UiKit.L(part + "_w") * u, h = UiKit.L(part + "_h") * u;
-            Image line = UiKit.Rounded(parent, name + "-line", "anvil_line", r + stroke * 0.5f);
-            UiKit.Place(line.rectTransform, x - stroke * 0.5f, y - stroke * 0.5f, w + stroke, h + stroke);
-            Image fill = UiKit.Rounded(parent, name, colorKey, r);
-            UiKit.Place(fill.rectTransform, x, y, w, h);
-            return new UnityEngine.Rect(x, y, w, h);
-        }
+        // T98 2회차에 `Outlined`(둥근 사각 + 살짝 큰 검은 면)를 걷었다 — 모루는 이제 정본 SVG 폴리곤(`AnvilArt`)이라
+        // 획도 `CraftFxPoly.Inflate` 로 «면을 부풀린 사본» 이다. 옛 카탈로그 키(`anvil_base_*`·`anvil_top`·`anvil_line`
+        // ·`anvil_bevel_*`·`anvil_stroke`·`anvil_horn_r`)는 이제 아무도 안 읽지만 `catalog.json` 은 남의 lock 이라 안 지운다.
 
     }
 }

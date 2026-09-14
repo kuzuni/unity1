@@ -75,6 +75,52 @@ namespace Forge.Game.Ui
             return d == null ? null : SvgPath.Flatten(d, samples);
         }
 
+        /// <summary>이름으로 겹을 찾는다(없으면 −1).</summary>
+        public static int PartIndex(string name)
+        {
+            Load();
+            for (int i = 0; i < parts.Count; i++) if (J.Str(J.Obj(parts[i])["name"]) == name) return i;
+            return -1;
+        }
+
+        /// <summary>겹의 상자(viewBox 단위) — 타원 겹도 다룬다. 부르는 쪽이 «받침 자리» 같은 것을 표에서 얻는다.</summary>
+        public static Rect PartBounds(string name)
+        {
+            Load();
+            int i = PartIndex(name);
+            if (i < 0) throw new KeyNotFoundException(ResourcePath + ".json 에 겹 «" + name + "» 이 없다");
+            JsonObject o = J.Obj(parts[i]);
+            List<object> el = J.Arr(o["ellipse"]);
+            if (el != null)
+            {
+                float cx = (float)J.Num(el[0]), cy = (float)J.Num(el[1]), rx = (float)J.Num(el[2]), ry = (float)J.Num(el[3]);
+                return new Rect(cx - rx, cy - ry, rx * 2f, ry * 2f);
+            }
+            double[] b = SvgPath.Bounds(SvgPath.Flatten(J.Str(o["d"]), samples));
+            return new Rect((float)b[0], (float)b[1], (float)(b[2] - b[0]), (float)(b[3] - b[1]));
+        }
+
+        /// <summary>
+        /// 겹에서 **가장 밝은 칠** — 구운 텍스처는 `Apply(false, true)` 로 읽기가 막혀 있어 자가 픽셀을 못 본다.
+        /// «받침이 어두운 주철인가» 같은 물음은 표의 스톱으로 답한다(가장 밝은 스톱까지 어두우면 면 전체가 어둡다).
+        /// </summary>
+        public static Color StopBrightest(string name)
+        {
+            Load();
+            int i = PartIndex(name);
+            if (i < 0) throw new KeyNotFoundException(ResourcePath + ".json 에 겹 «" + name + "» 이 없다");
+            JsonObject o = J.Obj(parts[i]);
+            Color tint; Color[] stops; float[] offs; Vector2 f, t;
+            Fill(o, out tint, out stops, out offs, out f, out t);
+            if (stops == null) return tint;
+            Color best = stops[0];
+            for (int k = 1; k < stops.Length; k++)
+                if (Luma(stops[k]) > Luma(best)) best = stops[k];
+            return best;
+        }
+
+        private static float Luma(Color c) { return 0.299f * c.r + 0.587f * c.g + 0.114f * c.b; }
+
         /// <summary>
         /// 모루 한 벌을 <paramref name="parent"/> 아래에 세운다. 자리는 viewBox 좌상단 기준이고
         /// <paramref name="unit"/> 이 «viewBox 한 유닛 = 캔버스 몇 px» 이다(`ForgeSheet` 의 `vbUnit` 과 같은 뜻).
