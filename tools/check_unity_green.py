@@ -190,6 +190,15 @@ def own_line(tid, alive, age):
             % (tid, (' (마지막 갱신 %d분 전 · 90분 규약으로 죽었다)' % age) if age is not None else ''))
 
 
+def _lock_word(alive, age):
+    """lock 한 낱말 — «살았다(N분 전)» · «죽었다(N분 전 · 90분 규약)» · «없다» 를 **가른다**(T125 2회차)."""
+    if alive:
+        return 'lock %s' % (('%d분 전' % age) if age is not None else '살아 있다')
+    if age is None:
+        return 'lock 없다'
+    return 'lock %d분 전 — 90분 규약으로 **죽었다**(뺏을 수 있다)' % age
+
+
 def own_lines(fails, progress_text, sha, now=None):
     """빨강마다 임자 한 줄 — **빠진 테스트 파일 ↔ PROGRESS 범위 열** 로 가린다(T125).
 
@@ -222,10 +231,13 @@ def own_lines(fails, progress_text, sha, now=None):
             rest = ' · 같은 파일을 적은 다른 작업: %s' % ' '.join(c for c, a, _g in states if not a)
             out.append('  · `%s` 의 임자: ' % name + own_line(*live[0]).split(': ', 1)[1] + rest)
         else:
-            who = ' '.join('%s(lock %s)' % (c, ('%d분 전' % g) if a and g is not None
-                                            else ('살아 있다' if a else '없다')) for c, a, g in states)
-            out.append('  · `%s` 의 임자 후보 여럿: %s — 눈으로 고른다(살아 있는 lock 이 있으면 그의 몫).'
-                       % (name, who))
+            # ⚠ «lock 이 죽었다» 와 «lock 이 아예 없다» 를 한 낱말로 뭉개면 안 된다 — 앞은 §0-6 의
+            #    «뺏어도 되는 자리» 이고 뒤는 «아직 아무도 안 잡은 자리» 다(실측 2026-09-14: T132 의
+            #    lock 이 98분이라 죽었는데 «없다» 로 찍혀 몇 분이 지났는지도 안 보였다).
+            who = ' '.join('%s(%s)' % (c, _lock_word(a, g)) for c, a, g in states)
+            live_note = '' if live else ' · **산 lock 이 하나도 없다 → §0-6 대로 네 일이다**'
+            out.append('  · `%s` 의 임자 후보 여럿: %s — 눈으로 고른다(살아 있는 lock 이 있으면 그의 몫)%s.'
+                       % (name, who, live_note))
     return out
 
 
@@ -356,6 +368,11 @@ def self_test():
     eq('ⓛ 못 가렸다고 말한다', any('못 가렸다' in l for l in lines), True)
     eq('ⓛ 네가 고친다로 보낸다', any('네가 고친다' in l for l in lines), True)
 
+    # ⓝ 죽은 lock 과 없는 lock 을 가른다(T125 2회차 · 실측: T132 의 98분 lock 이 «없다» 로 뭉개졌다)
+    eq('ⓝ 산 lock', _lock_word(True, 12), 'lock 12분 전')
+    eq('ⓝ 죽은 lock 은 분과 규약을 말한다', '죽었다' in _lock_word(False, 98) and '98분' in _lock_word(False, 98), True)
+    eq('ⓝ 없는 lock 은 그냥 없다', _lock_word(False, None), 'lock 없다')
+
     # ⓜ 여럿이 같은 파일을 적었으면 살아 있는 lock 쪽을 고르고, 다 죽었으면 둘 다 적는다
     P2 = (P + '| T130 | 딴것 | 🔄 | s3 | `Assets/Tests/PlayMode/AgePatternTests.cs` | — |\n')
     eq('ⓜ 후보 둘', scope_owners('AgePatternTests', P2), ['T124', 'T130'])
@@ -365,7 +382,7 @@ def self_test():
         for f in fails:
             print('  · ' + f)
         return 1
-    print('✓ check_unity_green --self-test 32칸 통과')
+    print('✓ check_unity_green --self-test 35칸 통과')
     return 0
 
 
