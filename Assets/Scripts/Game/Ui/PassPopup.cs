@@ -38,6 +38,11 @@ namespace Forge.Game.Ui
             float trackH = UiKit.H("pass_track_h");
             float cardH = padTop + bannerH + rem * 1.19f + descH + rem * 1.31f + headerH + trackH + padBottom;
             RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "pass_bg", rem);
+            // T132 — 정본 ui.js 4924 `<div class="pass-sword">${IconGen.img('passsword')}</div>` · style.css 2686: 카드 윗변에서 4.81rem 위 · 가운데 · 3.72×6.72rem.
+            // 리본(.pass-banner)보다 먼저 세운다 — 정본 DOM 순서대로 리본이 칼자루 위를 덮는다. 치수는 StaticIconsUi.json(§1).
+            Image sword = PopupKit.IconOr(card, "pass-sword", "passsword");
+            UiKit.Anchor(sword.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+                new Vector2(0f, -StaticIconsUi.Rem("pass_sword_top_rem")), StaticIconsUi.Rem("pass_sword_w_rem"), StaticIconsUi.Rem("pass_sword_h_rem"));
             float inner = cardW - PopupKit.Line3 * 2f;
             float padX = rem * 1.1f;
 

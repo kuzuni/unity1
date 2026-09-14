@@ -177,7 +177,9 @@ namespace Forge.Game.Ui
             float padX = UiKit.W("chat_pad_x");
             float av = UiKit.H("chat_avatar");
             ChatButton = UiKit.Button(band, "hit", null);
-            Image ico = UiKit.Icon(band, "chat-preview-avatar", "chat");
+            // T132 — 정본 ui.js 5294 `<span class="chat-preview-avatar">${IconGen.img('chatbubble')}…` : 아틀라스에 «chat» 키는 없어
+            // 카탈로그 스프라이트로 물러나던 자리 — 정본이 그리는 chatbubble 로.
+            Image ico = UiKit.Icon(band, "chat-preview-avatar", "chatbubble");
             UiKit.Place(ico.rectTransform, padX, (bandH - av) * 0.5f, av, av);
 
             // 말풍선 오른쪽 위 «99» 뱃지 — 정본 `.chat-preview-badge`(top/right −.42rem · 빨강 판 + 흰 글자 + 테).

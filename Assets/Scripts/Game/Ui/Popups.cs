@@ -133,7 +133,21 @@ namespace Forge.Game.Ui
             PopupKit.Column(card, UiKit.H("card_pad"), PopupKit.Rem * 0.45f);
             PopupKit.Label(card, "title", TextKind.Title, title, "pp_ink");
             PopupKit.Label(card, "desc", TextKind.Body, desc, "pp_muted", TextAlignmentOptions.Center, true);
-            PopupKit.Label(card, "soon", TextKind.Body, "다음 업데이트에서 추가될 예정입니다.", "pp_muted", TextAlignmentOptions.Center, true);
+            // T132 — 정본 ui.js 1257 `${IconGen.img('barrier', 'stub-ico wide')}다음 업데이트에서 추가될 예정입니다.` : 바리케이드가 글자 앞에 선다
+            // (style.css 1767·1770: 높이 1.35em · 가로 1.88em(ASPECT 1.39) · 오른쪽 .42em). 치수는 StaticIconsUi.json(§1).
+            RectTransform soon = UiKit.Box(card, "soon-row");
+            HorizontalLayoutGroup soonLay = soon.gameObject.AddComponent<HorizontalLayoutGroup>();
+            soonLay.childAlignment = TextAnchor.MiddleCenter;
+            soonLay.childControlWidth = true; soonLay.childControlHeight = true;
+            soonLay.childForceExpandWidth = false; soonLay.childForceExpandHeight = false;
+            float soonEm = PopupKit.FontSize(TextKind.Body);
+            soonLay.spacing = StaticIconsUi.Em("stub_ico_gap_em", soonEm);
+            Image barrier = PopupKit.IconOr(soon, "barrier", "barrier");
+            LayoutElement barrierLe = barrier.gameObject.AddComponent<LayoutElement>();
+            barrierLe.preferredWidth = StaticIconsUi.Em("stub_ico_w_em", soonEm);
+            barrierLe.preferredHeight = StaticIconsUi.Em("stub_ico_h_em", soonEm);
+            barrierLe.flexibleWidth = 0f;
+            PopupKit.Label(soon, "soon", TextKind.Body, "다음 업데이트에서 추가될 예정입니다.", "pp_muted", TextAlignmentOptions.Center, true);
             PopupKit.Btn(card, "close", "닫기", "pp_gray", "pp_gray_dk", () => Hide(p), -1f, UiKit.H("btn_h"), "pp_ink");
             return p;
         }
