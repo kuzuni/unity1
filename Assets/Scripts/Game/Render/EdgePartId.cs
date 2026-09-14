@@ -16,17 +16,12 @@ namespace Forge.Game.Render
         /// <summary>1~65535 · 0 은 배경 키라 절대 안 붙는다.</summary>
         public int Id;
         public Renderer Target;
-        /// <summary>ID 보조 패스가 세우는 쌍둥이 렌더러(같은 메시 · ID 재질 · 보조 카메라가 그리는 순간에만 켜진다) — <see cref="EdgeIdPass"/>.</summary>
+        /// <summary>ID 보조 패스가 세우는 쌍둥이 렌더러(같은 메시 · 공유 ID 재질 + 번호 MPB · 보조 카메라가 그리는 순간에만 켜진다) — <see cref="EdgeIdPass"/>.</summary>
         public MeshRenderer Twin;
-        public Material TwinMaterial;
 
         private void OnEnable() { EdgePartId.Live.Add(this); }
         private void OnDisable() { EdgePartId.Live.Remove(this); }
-        private void OnDestroy()
-        {
-            if (TwinMaterial != null) { Object.Destroy(TwinMaterial); TwinMaterial = null; }
-            Twin = null;
-        }
+        private void OnDestroy() { Twin = null; }
     }
 
     public static class EdgePartId

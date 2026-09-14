@@ -38,6 +38,7 @@ namespace Forge.Game.Render
         public bool Manual;
 
         static Shader idShader;
+        static Material idMaterial;
         static int idLayer = -1;
 
         /// <summary>표의 `layers.id_layer`(정본 ID_LAYER 7).</summary>
@@ -63,6 +64,25 @@ namespace Forge.Game.Render
             {
                 if (idShader == null) idShader = Shader.Find(IdShaderName);
                 return idShader;
+            }
+        }
+
+        /// <summary>
+        /// 쌍둥이 전부가 나눠 쓰는 ID 재질 **하나**. 번호는 쌍둥이의 `MaterialPropertyBlock` 에 싣는다(런 469 · 워커 G 보고):
+        /// 파츠마다 재질 인스턴스를 만들면 T44 의 «공유 재질 상한 300» 자가 파츠 수만큼 는 재질을 회귀로 잡는다(705 렌더러 · 397 재질).
+        /// MPB 가 SRP 배처를 깨는 대가는 **본 패스가 안 치른다** — 쌍둥이는 보조 카메라만 그린다(결정 519 ⓐ 의 «본 패스 렌더러에 MPB 안 쓴다» 는 그대로).
+        /// </summary>
+        public static Material IdMaterial
+        {
+            get
+            {
+                if (idMaterial == null)
+                {
+                    if (IdShader == null) throw new System.InvalidOperationException("ID 셰이더(" + IdShaderName + ")가 없다 — GraphicsSettings 항상 포함 목록을 보라");
+                    idMaterial = new Material(IdShader);
+                    idMaterial.name = "EdgePartId (shared)";
+                }
+                return idMaterial;
             }
         }
 
@@ -158,7 +178,7 @@ namespace Forge.Game.Render
             Aux.rect = new Rect(0f, 0f, 1f, 1f);
         }
 
-        /// <summary>파츠의 쌍둥이 렌더러(같은 메시 · ID 재질 인스턴스 · id_layer · 꺼진 채)를 세우거나 메시 교체를 따라간다.</summary>
+        /// <summary>파츠의 쌍둥이 렌더러(같은 메시 · 공유 ID 재질 + 번호 MPB · id_layer · 꺼진 채)를 세우거나 메시 교체를 따라간다.</summary>
         public static void EnsureTwin(EdgePartIdTag t)
         {
             if (t == null || t.Target == null) return;
@@ -177,19 +197,20 @@ namespace Forge.Game.Render
                 mr.reflectionProbeUsage = ReflectionProbeUsage.Off;
                 mr.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
                 mr.enabled = false;
-                t.TwinMaterial = new Material(IdShader);
-                t.TwinMaterial.name = "EdgePartId " + t.Id;
-                t.TwinMaterial.SetVector(EdgePartId.IdProp, EdgePartId.Uniform(t.Id));
+                var block = new MaterialPropertyBlock();
+                block.SetVector(EdgePartId.IdProp, EdgePartId.Uniform(t.Id));   // 번호는 생성 시각에 굳는다 — 재질이 아니라 블록에
+                mr.SetPropertyBlock(block);
                 t.Twin = mr;
             }
             var tf = t.Twin.GetComponent<MeshFilter>();
             if (tf.sharedMesh != mesh) tf.sharedMesh = mesh;
             int subs = mesh != null ? mesh.subMeshCount : 1;
+            Material shared = IdMaterial;
             Material[] mats = t.Twin.sharedMaterials;
-            if (mats == null || mats.Length != subs || (subs > 0 && mats[0] != t.TwinMaterial))
+            if (mats == null || mats.Length != subs || (subs > 0 && mats[0] != shared))
             {
                 mats = new Material[subs];
-                for (int i = 0; i < subs; i++) mats[i] = t.TwinMaterial;
+                for (int i = 0; i < subs; i++) mats[i] = shared;
                 t.Twin.sharedMaterials = mats;
             }
         }

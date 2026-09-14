@@ -507,7 +507,12 @@ namespace Forge.Tests.PlayMode
 
                 EdgeIdPass pass = EdgeIdPass.Attach(cam, true);
                 pass.RenderNow();
-                Assert.AreEqual(2, pass.LastDrawn, "상자 둘 다 화면에서 6 CSS px 보다 크니 ID 패스에 들어가야 한다");
+                // 런 469: 앞 자들이 남긴 액터(갤러리·펫 시험의 복셀 몹)도 살아 있는 태그라 20 이 나왔다 — «내 둘이 들어갔는가» 는 아래 화소가 가른다.
+                Assert.GreaterOrEqual(pass.LastDrawn, 2, "상자 둘 다 화면에서 6 CSS px 보다 크니 ID 패스에 들어가야 한다");
+                Assert.AreSame(EdgeIdPass.IdMaterial, a.Twin.sharedMaterial, "쌍둥이는 ID 재질 하나를 나눠 쓴다(T44 공유 재질 상한) — 번호는 MPB 에");
+                var blk = new MaterialPropertyBlock();
+                a.Twin.GetPropertyBlock(blk);
+                Assert.AreEqual(a.Id, EdgePartIdRules.Decode(blk.GetVector(EdgePartId.IdProp).x, blk.GetVector(EdgePartId.IdProp).y), "쌍둥이 MPB 의 번호");
                 Assert.IsNotNull(pass.Target);
                 Assert.AreEqual(rt.width, pass.Target.width, "ID 버퍼는 본 카메라와 같은 크기");
                 Assert.IsFalse(pass.Target.sRGB, "ID 버퍼는 선형이어야 한다(sRGB 면 번호가 뭉친다)");
