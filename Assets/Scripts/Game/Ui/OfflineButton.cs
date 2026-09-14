@@ -26,6 +26,8 @@ namespace Forge.Game.Ui
         public Button Btn { get; private set; }
         /// <summary>상자 그림(정본 <c>.ob-chest</c>) — 들썩임이 이 칸에 걸린다.</summary>
         public RectTransform Chest { get; private set; }
+        /// <summary>눌림 피드백(T355 · 표 `offline_chest`) — 들썩이는(ready) 동안은 정본처럼 animation 이 transform 을 쥐어 눌림이 안 보인다.</summary>
+        public PressFx Press { get; private set; }
         /// <summary>졸음 글자 셋(정본 <c>.ob-zzz i</c>).</summary>
         public readonly List<TextMeshProUGUI> Zzz = new List<TextMeshProUGUI>();
         /// <summary>지금 보상이 쌓였는가(정본 <c>.ready</c>) · 마지막 탭 결과(테스트).</summary>
@@ -89,6 +91,7 @@ namespace Forge.Game.Ui
 
             ob.Btn = b;
             ob.Chest = chest;
+            ob.Press = PressFx.Attach(b.gameObject, chest, "offline_chest");   // T355 — 정본 213·216 #offline-btn:active .ob-chest { translateY(.08rem) scale(.94) · .1s ease-out }
             Instance = ob;
             ob.Refresh();
             return ob;
@@ -123,11 +126,12 @@ namespace Forge.Game.Ui
                     Chest.anchoredPosition = new Vector2(0f, (float)-dy * rem * -1f);
                     Chest.localScale = new Vector3((float)sc, (float)sc, 1f);
                 }
-                else if (Chest.localScale != Vector3.one)
+                else if (Chest.localScale != Vector3.one && !(Press != null && Press.Active))
                 {
                     Chest.anchoredPosition = Vector2.zero;
                     Chest.localScale = Vector3.one;
                 }
+                if (Press != null) Press.Suppressed = IsReady;   // T355 — 들썩임(animation)이 transform 을 쥔 동안은 눌림이 안 보인다(정본과 같다)
             }
 
             for (int i = 0; i < zzzRt.Count; i++)

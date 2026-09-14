@@ -1,0 +1,13 @@
+{
+  "_": "T355 — 정본 style.css 의 눌림 피드백(`:active` + `transition: transform .07~.1s ease-out`) 표. 키 = 클론 자리 · dy_rem = translateY(rem · 아래가 +) · scale · brightness(filter) · ms = transition 길이 · ease = transition-timing-function. 눌림·놓음 둘 다 같은 ms·ease 로 오간다(CSS transition). 셈은 Core PressRules · 거는 도우미는 Ui/PressFx(UiKit 은 T178·T331·T333 lock). 수치는 코드에 안 박는다(§1).",
+  "press": {
+    "offline_chest": { "dy_rem": 0.08, "scale": 0.94, "brightness": 1.0,  "ms": 100, "ease": "ease-out", "_": "style.css 213 #offline-btn .ob-chest { transition: transform .1s ease-out } · 216 #offline-btn:active .ob-chest { translateY(.08rem) scale(.94) } — 1회차 자리(OfflineButton)" },
+    "pet_tile":      { "dy_rem": 0.08, "scale": 1.0,  "brightness": 1.07, "ms": 80,  "ease": "ease-out", "_": "style.css 4301 .pet-tile .tile-face { transition: transform .08s ease-out, filter .08s } · 4304 :active { translateY(.08rem); brightness(1.07) } — PetSkillKit(T332 lock 뒤)" },
+    "equip_cell":    { "dy_rem": 0.08, "scale": 1.0,  "brightness": 1.07, "ms": 80,  "ease": "ease-out", "_": "style.css 7743 .equip-cell:not(.egg-cell) { transition: transform .08s ease-out, filter .08s } · 7750 :not(.empty):active { translateY(.08rem); brightness(1.07) } — ForgeSheet.EquipCell(T342·T351 lock 뒤)" },
+    "egg_cell":      { "dy_rem": 0.08, "scale": 1.0,  "brightness": 1.07, "ms": 80,  "ease": "ease-out", "_": "style.css 8087 .equip-cell.egg-cell:active { translateY(.08rem); brightness(1.07) } — ForgeSheet 알 칸" },
+    "af_check":      { "dy_rem": 0.06, "scale": 1.0,  "brightness": 1.12, "ms": 70,  "ease": "ease-out", "_": "style.css 4974 .af-check { transition: transform .07s ease-out, filter .07s } · 4982 :active { translateY(.06rem); brightness(1.12) } — ForgeAutoPopup(T339·T345 lock 뒤)" },
+    "af_sub_row":    { "dy_rem": 0.06, "scale": 1.0,  "brightness": 0.97, "ms": 70,  "ease": "ease-out", "_": "style.css 5000 .af-sub-row { transition: transform .07s ease-out, filter .07s } · 5002 :active { translateY(.06rem); brightness(.97) }" },
+    "af_spinner":    { "dy_rem": 0.10, "scale": 1.0,  "brightness": 1.0,  "ms": 70,  "ease": "ease-out", "_": "style.css 5009 .af-spinner { transition: transform .07s ease-out, box-shadow .07s } · 5011 :active { translateY(.1rem); inset 0 .12rem .3rem rgba(0,0,0,.55) } — 안쪽 그늘은 T331(box-shadow) 갈래 · 여기선 이동만" }
+  },
+  "panel_slide": { "dy_pct": 105, "ms": 220, "ease": "ease-out", "_": "style.css 642 .panel { transform: translateY(105%); transition: transform .22s ease-out } · .panel.open { transform: none } — 탭 패널 슬라이드(UiRoot · 2회차)" }
+}
