@@ -786,6 +786,7 @@ namespace Forge.Tests.PlayMode
                 // T128 ⓓ — «찍혔다» 가 «그려졌다» 는 아니다. 노치 줄도 포함해 **모든** 장을 본다.
                 string flat = FlatFrameFail(name, shot);
                 if (flat != null) pixelFail = pixelFail == null ? flat : pixelFail + " · " + flat;
+                ShotPrint(name, shot);
                 return GallerySheet.Save(shot, OutPrefix + name);
             }
             catch (Exception e)
@@ -809,6 +810,56 @@ namespace Forge.Tests.PlayMode
                 rt.Release();
             }
         }
+
+
+        /// <summary>
+        /// T128 9회차 — **화면 지문**. 이 절의 판정 한 줄(«같은 커밋으로 두 번 찍은 PNG 가 서로 같아야 한다»)을 사람이 이미지를 내려받아
+        /// 견주지 않고도 재게 한다: 찍은 장마다 16×16 칸의 평균 밝기를 16단계로 줄여 hex 한 줄로 `screens/t128-shots.txt` 에 적는다.
+        /// 두 런의 그 파일을 `diff` 하면 **흔들린 화면의 이름이 그대로 나온다**(같으면 줄이 하나도 안 다르다).
+        /// 거친 눈금인 것은 일부러다 — 잔떨림(안티에일리어싱 한두 화소)에는 안 흔들리고 «상태가 달라진 화면» 만 잡는다.
+        /// 촘촘한 대조는 그대로 `tools/ui_score.py --score` 의 몫이다.
+        /// </summary>
+        private static void ShotPrint(string name, Texture2D shot)
+        {
+            if (shot == null) return;
+            try
+            {
+                Color32[] px = shot.GetPixels32();
+                int w = shot.width, h = shot.height;
+                if (w < 16 || h < 16) return;
+                var sb = new StringBuilder(name).Append(' ');
+                for (int gy = 0; gy < 16; gy++)
+                {
+                    for (int gx = 0; gx < 16; gx++)
+                    {
+                        int x0 = gx * w / 16, x1 = (gx + 1) * w / 16;
+                        int y0 = gy * h / 16, y1 = (gy + 1) * h / 16;
+                        long sum = 0; int n = 0;
+                        for (int y = y0; y < y1; y += 4)
+                            for (int x = x0; x < x1; x += 4)
+                            {
+                                Color32 c = px[y * w + x];
+                                sum += (c.r * 299 + c.g * 587 + c.b * 114) / 1000;
+                                n++;
+                            }
+                        int v = n > 0 ? (int)(sum / n) : 0;
+                        sb.Append("0123456789abcdef"[(v >> 4) & 15]);
+                    }
+                }
+                string dir = Path.Combine(Directory.GetCurrentDirectory(), GallerySheet.OutDir);
+                Directory.CreateDirectory(dir);
+                string file = Path.Combine(dir, "t128-shots.txt");
+                if (!shotPrintOpened)
+                {
+                    shotPrintOpened = true;
+                    File.WriteAllText(file, "# T128 — 화면 지문(16x16 밝기 · 16단계). 두 런의 이 파일을 diff 하면 흔들린 화면 이름이 나온다.\n", new UTF8Encoding(false));
+                }
+                File.AppendAllText(file, sb.ToString() + "\n", new UTF8Encoding(false));
+            }
+            catch (Exception) { /* 지문이 촬영을 죽이지 않는다 */ }
+        }
+
+        static bool shotPrintOpened;
 
         static Texture2D ReadBack(RenderTexture rt, TextureFormat fmt)
         {
