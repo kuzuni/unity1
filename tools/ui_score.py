@@ -629,6 +629,26 @@ DROP_MARK = 0.5   # 이만큼 움직이면 사람이 봐야 한다(인공 잡음
 #   그래서 판독기는 그대로 두고 **자취로 이름을 대는 것(SHAKY)** 이 이 문제의 답이다.
 SHAKY_SPREAD = 1.5
 
+
+def _flaps(vals):
+    """자취가 «오르내리는가» — 한쪽으로만 내려간 **계단**은 흔들림이 아니다 (T28 54회차).
+
+    48회차의 첫 판은 «자취 폭» 하나만 봤다. 그런데 런 508 에서 촬영 포스트 한 겹이 얹히자
+    `dungeons`·`pets`·`tech-overview` 가 **한 번에 내려가 그대로 머물렀고**(방향 바뀜 0),
+    폭만 보는 자는 그 셋을 «흔들린다» 로 불러 목록을 넷으로 불렸다 — 계단은 임자를 찾아야 할
+    **진짜 변화**이고, 흔들림은 그 반대다. 그래서 **의미 있는 차(±DROP_MARK 밖)의 방향이
+    한 번이라도 뒤집혀야** 흔들림으로 본다. 실측(런 528 자취 6회차):
+    `settings` [6.0 6.0 4.5 4.7 3.7 6.8] 방향 바뀜 **1** → 흔들림 ·
+    `dungeons` [9.3 9.3 8.6 8.6 8.6 5.8] 방향 바뀜 **0** → 계단(T341 포스트 한 겹)."""
+    sign = []
+    for i in range(len(vals) - 1):
+        d = vals[i + 1] - vals[i]
+        if d >= DROP_MARK:
+            sign.append(1)
+        elif d <= -DROP_MARK:
+            sign.append(-1)
+    return any(sign[i] != sign[i + 1] for i in range(len(sign) - 1))
+
 # ── 한 런이 통째로 이상한가 (T28 38회차 · 워커 M) ──────────────────────────
 # 런 341 에서 팝업 여섯 화면이 **카드 팝(.25s scale .7→1) 도중**에 찍혀 반투명으로 남았다
 # (지문 «팝업 안» 차가 29~64 · 밴드 21→14). 한 화면이 그런 것은 게임 상태지만 **여러 화면이
@@ -1184,7 +1204,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         shaky = []
         for n in sorted(cur):
             vals = [h[1][n] for h in hist if n in h[1]]
-            if len(vals) >= 3 and max(vals) - min(vals) >= SHAKY_SPREAD:
+            if len(vals) >= 3 and max(vals) - min(vals) >= SHAKY_SPREAD and _flaps(vals):
                 shaky.append((n, min(vals), max(vals), median_of(hist, n)))
         if shaky:
             print(u"· ⚠ 회차마다 크게 흔들리는 화면 %d개 — **한 회차의 수를 근거로 삼지 마라**(중앙값을 봐라):"
@@ -1448,6 +1468,12 @@ def self_test():
     chk(sh == ["a"], u"자취 폭이 %.1f 넘는 화면만 «흔들린다» 로 집는다 (%s)" % (SHAKY_SPREAD, sh))
     chk(abs(median_of(hist_, "a") - 4.8) < 1e-9,
         u"흔들리는 화면은 중앙값으로 읽는다 (%.1f)" % median_of(hist_, "a"))
+    # 계단 ↔ 흔들림 가르기(T28 54회차) — 한쪽으로만 내려간 것은 흔들림이 아니다
+    chk(_flaps([6.0, 6.0, 4.5, 4.7, 3.7, 6.8]), u"오르내리는 자취는 «흔들린다»(실측 `settings`)")
+    chk(not _flaps([9.3, 9.3, 8.6, 8.6, 8.6, 5.8]),
+        u"한쪽으로만 내려간 계단은 «흔들린다» 가 아니다(실측 `dungeons` — 포스트 한 겹)")
+    chk(not _flaps([5.0, 5.0, 5.0]), u"안 움직인 자취도 «흔들린다» 가 아니다")
+    chk(not _flaps([5.0, 5.3, 5.1]), u"문턱(%.1f) 안쪽 오르내림은 안 센다" % DROP_MARK)
 
     # ⑫ 화면 집합이 바뀐 회차(T185) — 낮은 화면이 빠지면 «전체 평균» 은 저절로 오른다
     b_scr = {"a": 5.0, "b": 5.0, "c": 3.0, "d": 3.5}         # 지난 회차 4장 · 평균 4.125
