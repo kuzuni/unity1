@@ -127,6 +127,7 @@ namespace Forge.Game.Ui
             Hud = HudLayer.gameObject.AddComponent<Hud>();
             Hud.Build(HudLayer, Chat);
             Waypoints.Ensure(this);   // T139 — 맵 위 이정표 둘(정본 index.html 83·86 · z3 = HUD 아래 형제)
+            OfflineButton.Ensure(this);   // T133 — 메인 오프라인 보상 버튼(정본 index.html 75 · z4 = HUD 아래 형제)
             TabBar = TabBand.gameObject.AddComponent<TabBar>();
             TabBar.Build(TabBand, PanelHost);
 

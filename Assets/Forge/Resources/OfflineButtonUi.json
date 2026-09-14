@@ -1,0 +1,43 @@
+{
+  "_": "ROUTINE T133 메인 화면 오프라인 보상 버튼(정본 index.html 75 #offline-btn · style.css 204~246 #offline-btn/.ob-chest/.ob-zzz + @keyframes ob-bob·ob-zzz · ui.js 841 클릭 → onClaimOffline · 5930 pendingOffline 없으면 토스트 · 5944 수령 뒤 ready 해제 · 6085 매 틱 ready 토글((now − lastOfflineClaim)/1000 ≥ 60) · 6145 paintStaticIcons 가 .ob-chest 에 chest 아이콘). 정본은 '오프라인' 글자를 없애고 상자 그림만 남겼다(index.html 74 주석). catalog.json 은 산 lock 여럿이라 T133 몫만 여기(T139 와 같은 꼴). 접미: _rem = 정본 rem · _f = 버튼 안 비율 · _ms = 벽시계 · _px = 기준 캔버스 px. 코드에 숫자를 박지 않는다(§1). 졸음 글자의 검정 키라인(정본 -webkit-text-stroke: 2.5px #000) 색은 catalog.json 의 공용 키 «pp_line» 을 쓴다 — catalog.json 이 산 lock 여럿이라 새 색 키를 못 더한다(굵기 2.5px 는 이 표의 zzz_line_px). 정본 .ob-zzz i font-size .78rem 은 §1 하한 아래라 종류(Sub) 크기로 선다 — T136 이 작은 종류를 더하면 zzz_font_rem 으로 바꾼다. prefers-reduced-motion 갈래는 유니티에 그 OS 신호가 없어 두지 않는다(결정 263).",
+  "colors": {
+    "zzz_ink": "#eaf6ff",
+    "chest_shadow": "#00000073"
+  },
+  "layout": {
+    "btn_rem": 2.9,
+    "left_rem": 0.5,
+    "bottom_rem": 0.6,
+    "chest_shadow_dy_rem": 0.1,
+    "press_dy_rem": 0.08,
+    "press_scale": 0.94,
+    "ready_sec": 60,
+    "bob_ms": 1600,
+    "bob_dy_rem": 0.14,
+    "bob_scale": 1.04,
+    "zzz_left_f": 0.58,
+    "zzz_bottom_f": 0.62,
+    "zzz_font_rem": 0.78,
+    "zzz_line_px": 2.5,
+    "zzz_ms": 2700,
+    "zzz_gap_ms": 900,
+    "zzz_count": 3,
+    "zzz_end_dx_rem": 0.75,
+    "zzz_end_dy_rem": -1.7,
+    "zzz_from_scale": 0.55,
+    "zzz_to_scale": 1.25,
+    "zzz_from_rot": -10,
+    "zzz_to_rot": 12,
+    "zzz_in_f": 0.16,
+    "zzz_out_f": 0.7,
+    "tick_ms": 1000
+  },
+  "text": {
+    "btn": "offline-btn",
+    "chest": "ob-chest",
+    "zzz": "ob-zzz",
+    "zzz_letter": "z",
+    "chest_icon": "chest",
+    "toast_empty": "💤 아직 누적된 오프라인 보상이 없습니다"
+  }
+}
