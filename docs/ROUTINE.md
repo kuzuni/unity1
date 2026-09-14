@@ -1590,7 +1590,7 @@
 - ⚠ **촬영 타이밍과 섞지 마라**: 연출을 물고 찍히는 것 자체는 클론 결함이 아니다(정본 z 16 그대로다 · T128 ⓒ 카드 팝과 같은 갈래). 44회차에 `ui_score` 가 그 화면을 «촬영 타이밍» 으로 갈라 회귀에서 빼도록 고쳤다 — T173 은 **연출의 그림이 정본과 다르다**는 것 하나다.
 
 
-### T174 — **T48 하니스가 «스텁이 실물에 없는 멤버를 가져도» 초록을 준다**: 그 거짓말이 런 409·410·412 를 «두 모드 0개» 로 만들었다 (도구·게이트 · T48 뒤 · 검수 Q 등재 · 런 412 에디터 로그 실측)
+### T174 ✅ — **T48 하니스가 «스텁이 실물에 없는 멤버를 가져도» 초록을 준다**: 그 거짓말이 런 409·410·412 를 «두 모드 0개» 로 만들었다 (도구·게이트 · T48 뒤 · 검수 Q 등재 · 런 412 에디터 로그 실측)
 - 실측(2026-09-14 · 런 **412**(`c53b2e0`) — `screens` 의 `playmode-log.txt`·`editmode-log.txt`(T151 이 낸 것)가 원인을 **한 줄로** 댄다):
   - `Assets/Tests/PlayMode/TextSizeGateTests.cs(80,46): error CS1503: Argument 1: cannot convert from 'uint' to 'char'` (118·119 행도 같다) → `Scripts have compiler errors.` → **editmode·playmode 둘 다 결과 XML 0개**. §1 의 «테스트 0개인 모드는 빨간 테스트보다 나쁘다» 가 **세 런**(409·410·412) 이어졌다. 라이선스 좌석 갈래가 **아니다**(로그 119행 `Successfully updated license`).
   - 임자 **T106**(lock 살아 있다)이 스스로 찾아 `563c80f` 로 고쳤다 — «실제 TMP 에 없는 `HasCharacter(uint,bool,bool)` 을 써 PlayMode 컴파일이 깨졌다 … **스텁의 가짜 오버로드를 걷는다**».
@@ -1644,6 +1644,7 @@
 - 판정: ⓐ 고장 주입 rc 1 ⓑ `screen_main`·`screen_shop`·`screen_league` PNG 를 원작과 나란히 열어 «면이 평평하지 않다» 눈 확인 + `ui_score` 가 안 내려간다.
 - 범위: `tools/check_surface_gradients.py`(새) · `Assets/Scripts/Game/Ui/UiKit.cs`(굽기 도우미 · **그 파일 lock 뒤**) · `Assets/Forge/Resources/SurfaceUi.json`(새 표) · 배선 파일은 회차마다 «범위» 칸에 더해 적는다 · `Assets/Tests/PlayMode/`(새 파일)
 - 1회차(2026-09-14 15:5x · 워커 O · sess-2140-18689) = ⓐ 자만: `tools/check_surface_gradients.py` — 정본 선언 176(선택자 137) 전수 · 자리 초록 7(T173 방사형 둘 · T135 비네트 · T124 무늬 셋 · T87 광택) · **미정 130**(표에 없는 선택자는 세기만 하고 막지 않는다 · 결정 511 · `--list`) · 문제 0 · 자기 검사 18칸 + 고장 주입. CI 두 스텝은 `ci.yml` 이 T174·T182 lock 이라 2회차(§3 목록엔 넣었다). ⓑ 굽기 도우미는 `UiKit.cs`(T106 lock) 뒤.
+- 1회차 판정(2026-09-14 16:1x · 워커 O): 런 434(`dd4405b`) dotnet·datasync 초록 · lock 반납 — 2회차는 `ci.yml`(T174·T182)·`UiKit.cs`(T106) lock 이 풀린 뒤 누구든 잇는다(`--list` 가 자리를 준다).
 
 ### T179 — 소환 결과 팝업의 **연출 겹 넷이 통째로 없다**: 천개 아치(`.sr-canopy` + 빛발 `<i>`×3) · 빛발 판(`.sr-rays`) · 바닥 반사(`.sr-reflect`) · 별(`.sr-stars`) (Game·UI · T23·T112 뒤 · T33 16회차 등재)
 
