@@ -65,17 +65,10 @@ namespace Forge.Game.Ui
             Sprite got;
             if (baked.TryGetValue(key, out got) && got != null) return got;
 
-            Texture2D st = src.texture;
             Rect r = src.textureRect;
             int w = Mathf.Max(1, Mathf.RoundToInt(r.width)), h = Mathf.Max(1, Mathf.RoundToInt(r.height));
-            Color[] px;
-            try { px = st.GetPixels(Mathf.RoundToInt(r.x), Mathf.RoundToInt(r.y), w, h); }
-            catch (UnityException)
-            {
-                // 읽을 수 없는 텍스처(import 설정이 Read/Write off) — 원본을 그대로 돌려준다(조용히 null 이 되는 것보다 낫다).
-                Debug.LogWarning("[UiFilter] 스프라이트를 못 읽어 색 filter 를 건너뛴다: " + src.name + " (" + f.Key + ")");
-                return src;
-            }
+            Color[] px = ReadPixels(src.texture, Mathf.RoundToInt(r.x), Mathf.RoundToInt(r.y), w, h);
+            if (px == null) return src;
             for (int i = 0; i < px.Length; i++)
             {
                 Color p = px[i];
@@ -83,7 +76,7 @@ namespace Forge.Game.Ui
                 FilterRules.Apply(f, ref cr, ref cg, ref cb);
                 px[i] = new Color((float)cr, (float)cg, (float)cb, p.a);
             }
-            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { name = "filt-" + f.Key, filterMode = st.filterMode, wrapMode = TextureWrapMode.Clamp };
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { name = "filt-" + f.Key, filterMode = src.texture.filterMode, wrapMode = TextureWrapMode.Clamp };
             tex.SetPixels(px);
             tex.Apply(false, false);                                   // CPU 사본을 남긴다 — PlayMode 가 화소를 되읽는다
             var sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), src.pixelsPerUnit);
@@ -106,13 +99,8 @@ namespace Forge.Game.Ui
 
             Rect r = src.textureRect;
             int w0 = Mathf.Max(1, Mathf.RoundToInt(r.width)), h0 = Mathf.Max(1, Mathf.RoundToInt(r.height));
-            Color[] src0;
-            try { src0 = src.texture.GetPixels(Mathf.RoundToInt(r.x), Mathf.RoundToInt(r.y), w0, h0); }
-            catch (UnityException)
-            {
-                Debug.LogWarning("[UiFilter] 스프라이트를 못 읽어 blur 를 건너뛴다: " + src.name);
-                return src;
-            }
+            Color[] src0 = ReadPixels(src.texture, Mathf.RoundToInt(r.x), Mathf.RoundToInt(r.y), w0, h0);
+            if (src0 == null) return src;
 
             double[] k = FilterRules.GaussianKernel(sigmaPx);
             int rad = (k.Length - 1) / 2;
@@ -136,6 +124,46 @@ namespace Forge.Game.Ui
             sp.name = "blur-" + keySuffix + "-" + src.name;
             baked[key] = sp;
             return sp;
+        }
+
+        /// <summary>
+        /// 텍스처 한 조각의 화소를 읽는다 — **읽을 수 없는 텍스처(import 설정 Read/Write off)도 읽는다**.
+        ///
+        /// ⚠ 런 494 가 가르친 것: `Texture2D.GetPixels` 는 읽기 불가 텍스처에서 **던지기 전에 유니티가 콘솔에 빨간 줄을 먼저 찍는다**
+        ///    («Texture … is not readable»). `try/catch` 로 감싸도 그 줄은 이미 남아 §1 «플레이 콘솔 에러 0» 이 깨진다 —
+        ///    실제로 그 한 뿌리가 PlayMode 193 개를 빨갛게 만들었다. 그러니 **던지게 두지 말고 미리 가른다**.
+        ///    아이콘 아틀라스(T31)처럼 읽기 불가인 것은 GPU 로 한 번 베껴(Blit → RenderTexture → ReadPixels) 읽는다 — 화소는 같다.
+        /// </summary>
+        /// <returns>못 읽으면 null(부르는 쪽이 원본을 그대로 쓴다) — 빨간 줄은 안 남긴다.</returns>
+        static Color[] ReadPixels(Texture2D tex, int x, int y, int w, int h)
+        {
+            if (tex == null) return null;
+            if (tex.isReadable)
+            {
+                if (x < 0 || y < 0 || x + w > tex.width || y + h > tex.height) return null;
+                return tex.GetPixels(x, y, w, h);
+            }
+
+            // 읽기 불가 — GPU 로 베낀다. sRGB 판으로 읽어야 색이 안 어긋난다.
+            RenderTexture rt = RenderTexture.GetTemporary(tex.width, tex.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            RenderTexture prev = RenderTexture.active;
+            Texture2D tmp = null;
+            try
+            {
+                Graphics.Blit(tex, rt);
+                RenderTexture.active = rt;
+                tmp = new Texture2D(w, h, TextureFormat.RGBA32, false);
+                if (x < 0 || y < 0 || x + w > tex.width || y + h > tex.height) return null;
+                tmp.ReadPixels(new Rect(x, y, w, h), 0, 0, false);
+                tmp.Apply(false, false);
+                return tmp.GetPixels();
+            }
+            finally
+            {
+                RenderTexture.active = prev;
+                RenderTexture.ReleaseTemporary(rt);
+                if (tmp != null) UnityEngine.Object.Destroy(tmp);
+            }
         }
 
         static void BlurAxis(Color[] src, Color[] dst, int w, int h, double[] k, int rad, bool horizontal)

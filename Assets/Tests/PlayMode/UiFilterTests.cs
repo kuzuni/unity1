@@ -113,6 +113,38 @@ namespace Forge.Tests.PlayMode
             Assert.AreSame(s, UiFilter.Blur(s, 0, "zero"));
         }
 
+        [Test]
+        public void 읽기_불가_아틀라스에도_콘솔_빨강을_안_남긴다()
+        {
+            // 런 494 — 이 한 뿌리가 PlayMode 193 개를 빨갛게 만들었다.
+            // `GetPixels` 는 읽기 불가 텍스처에서 **던지기 전에 유니티가 콘솔 빨강을 먼저 찍는다** — try/catch 로는 못 막는다(§1 «플레이 콘솔 에러 0»).
+            // 그러니 `isReadable` 로 미리 갈라 GPU 로 베껴 읽어야 한다.
+            var rt = new RenderTexture(8, 8, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            rt.Create();
+            var prev = RenderTexture.active;
+            RenderTexture.active = rt;
+            GL.Clear(true, true, new Color(0x6b / 255f, 0x35 / 255f, 0x38 / 255f, 1f));
+            RenderTexture.active = prev;
+
+            // 읽기 불가 텍스처를 만든다(Apply(false, **false**) = CPU 사본을 버린다 — 아이콘 아틀라스와 같은 꼴)
+            var hard = new Texture2D(8, 8, TextureFormat.RGBA32, false);
+            var fill = new Color[64];
+            for (int i = 0; i < fill.Length; i++) fill[i] = new Color(0x6b / 255f, 0x35 / 255f, 0x38 / 255f, 1f);
+            hard.SetPixels(fill);
+            hard.Apply(false, true);                      // makeNoLongerReadable: true
+            Assert.IsFalse(hard.isReadable, "이 칸이 서려면 텍스처가 정말 읽기 불가여야 한다");
+
+            var img = new GameObject("img", typeof(RectTransform)).AddComponent<Image>();
+            img.transform.SetParent(root.transform, false);
+            img.sprite = Sprite.Create(hard, new Rect(0, 0, 8, 8), new Vector2(0.5f, 0.5f), 100f);
+
+            UiFilter.ApplyColor(img, "equip_cell_empty");   // 콘솔 빨강이 나면 이 자가 넘어진다(RedLog · T46)
+
+            Assert.AreEqual(0.52f, img.color.a, 1e-4f, "못 읽더라도 opacity 는 건다");
+            rt.Release();
+            UnityEngine.Object.Destroy(rt);
+        }
+
         [UnityTest]
         public IEnumerator 라_부화_원뿔은_이름이_맞을_때만_번진다()
         {
