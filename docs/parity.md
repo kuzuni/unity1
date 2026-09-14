@@ -946,3 +946,41 @@ POLISH.md 를 읽고 «소품·용암 빛이 없다» 를 새 작업으로 등�
 ## 이 회차의 판정
 - 새 축(그라디언트 176) — **빠진 것 둘**(T178 · T179 등재 · 결정 507).
 - T33 은 여전히 ✅ 가 아니다(T35·T106 주인 몫 + T169·T178·T179).
+
+# T33 완주 대조 — **20회차** (2026-09-14 20:2x · 워커 B · sess-1920-15773)
+
+19회차가 «다음 회차가 열 축» 으로 세어만 둔 둘을 열었다 — 파서는 19회차 것과 같은 결(주석 걷기 · `@keyframes`/`@media` 중첩 추적)이고 수도 같다(`border-radius` **223** · 정적 `transform` **87** · 규칙 7,165).
+
+## ⓡ `border-radius` 223 ↔ 클론 둥근 모서리 — **표값 자리 0건 · 리터럴 자리 10건 어긋남 · 판 없음 후보 3**
+- 값 분포: `50%` 52(원) · rem 값 150(`.5rem` 29 · `1rem` 22 · `.6rem` 19 · `.7rem` 17 · `.4rem` 15 · `.55rem` 11 …) · `0`/`inherit` 12 · px 7(스크롤바 자국 5 · `.pip.boss` 2px) · `calc(var(--app-w) * .0094)` 2.
+- 클론의 길: `UiKit.Rounded`(9-슬라이스 `UiShapes.Rounded` 반지름 24 · `pixelsPerUnitMultiplier = 24 / radiusPx` → 화면 반지름 = 넘긴 캔버스 px) **95곳** + `UiKit.Circle` **28곳**(정본 `50%` 자리). rem 환산은 `rem_h`(1rem = 16/844 H = 36.4 캔버스 px) 하나다 — 길 자체는 맞다.
+- **표값 자리(0건)**: `PetSkillUi.json` `*_r_rem` 36키 · `catalog.json` `*_radius(_rem)`·`btn_r`·`card_r`·`pass_cell_r` 13키 · `LootFeedUi`·`WaypointsUi`·`PlayerInfoUi`·`AgePatternUi` — 키마다 정본 줄과 견줬다(subtab .42 · sk-shard .45 · ribbon .4 · tile .5 · equipped .6 · mini .4 · btn .7 · x5 1 · gauge .5 · modal 1.1 · petd .55/.4 · skd 1 · rate .5/.4 · petup .7/.6/.6/.55/.6 · toast 2 · sr-* 8 · sb 1 · dg-banner(sheet) .8 · dgd .6/.6 · dgc .7 · tt .35 · tb .8 · idet(tech) .8 · tech-prog .5 · cur-pill 1 · asc .5 · card 1 · btn .55 · pass-cell .6 · loot 1 · waypoint .4 · preview .5) — **하나도 안 어긋난다**.
+- **알약 동치(결정 543)**: 정본이 `1rem`/`2rem`/`.48rem` 처럼 «높이의 반 이상» 을 준 자리(토스트 2rem/높이≈1.9rem · 퀘스트 바 .48/.95 · 토글 1/1.35 · 자동 제련 토글 1/1.27 · 하위 행 1 · 채팅 뱃지 .6/≈.65 · 상점 보상 알약 1/1.32 · 패스 라벨 1 · 통화 알약 1 · 확률 칩 1) 는 클론의 `h * 0.5`(알약) 와 **같은 그림**이다 — ✓ 로 센다(10곳).
+- **리터럴 자리 — 어긋남 10**(정본 rem → 클론 · 파일:줄):
+
+  | 정본 | 값 | 클론 | 값 |
+  |---|---|---|---|
+  | `.chat-bubble` 3371 | .42rem | `ChatScreen.cs:234` | `rem * 0.6` |
+  | `.chat-share-card` 3389 | **0**(각진 카드 · 주석 «원본 카드는 모서리가 각져 있어») | `ChatScreen.cs:216` | `rem * 0.6` |
+  | `.chat-input-bar input` 3449 | .3rem | `ChatScreen.cs:71` | `bh * 0.3` = .52rem |
+  | `.chat-input-bar .btn.round` 3270 | .35rem | `ChatScreen.cs:61` | `bh * 0.3` = .52rem |
+  | `.chat-share-side .icon-circle.sm` 3401 | .28rem | `ChatScreen.cs:251` | `av * 0.5` = 1.31rem(거의 원) |
+  | `.idet-subs` 3703(`#forge-item-modal` 3722 는 반지름을 안 덮는다) | .8rem | `ForgeInfoPopup.cs:318` | `rem * 0.6` |
+  | `.upg-progress` 694 | .55rem | `ForgeInfoPopup.cs:110·112` | `rem * 0.5` |
+  | `.af-spinner` 4783 | .45rem | `ForgeAutoPopup.cs:101` | `rem * 0.3` |
+  | `.af-dd-list` 4791 | .45rem | `ForgeAutoPopup.cs:129` | `rem * 0.3` |
+  | `.btn.back-btn` 5189(`.back-btn` 5178 의 .6rem 을 덮는다) | calc(--app-w × .0094) = .28rem | `Popups.cs:471` | `Rem * 0.45`(= `.league-back-btn` 2383 값) |
+
+- **판(면) 자체가 없는 후보 3**(정본은 배경+반지름이 있는 판인데 클론에 그 이름의 둥근 면이 없다 · 셋 다 `ui.js` 에 렌더 줄이 있다 = 죽은 CSS 가 아니다): `.substat-row`(793 · #22272e · .4rem · ui.js 2232) · `.mat-chip`(806 · #22272e + 테 · .5rem · ui.js 5767) · `.tech-tree-node-time`(2209 · pp-ink 위 초록 글자 · .6rem · ui.js 5420·5422). 클론 `GearDetailPopup.cs` 에는 `Rounded/Panel` 호출이 0 이고 `TechPanel.cs` 에 그 라벨의 둥근 면이 없다 — **화면 PNG 로 가른 뒤** 수리(T345 ⓒ).
+- **죽은 CSS(안 센다)**: `.stat-grid`·`.hatch-slot`·`.egg-chip` 은 `ui.js`·`index.html` 에 자취 0.
+- ✓ 로 확인한 리터럴 자리(참고): 프로필 팝업 9(1/.5/.4/.4/.38/.3/.5) · 리그 8(.6/.5/.3/.5/.7/.7/.4 아바타 둘) · 상점 5(.9/.8/.3 + 알약 둘) · 패스 4 · 제작 비교 3(`.cmp-card` .8 · `.cmp-lower` .7 · `.swc-col` .55) · 대장간 시트 4(장비 칸 `size × .16` ≈ .7rem · 덱 .7 · 태그 알약) · 채팅 아바타 .4 · 토스트 알약 · 설정 토글·행동 .5 · 던전 상세 hero(`.dgd-card .dg-detail-hero` 5280 이 0 으로 덮는다 → 클론 `Box` 그대로 ✓).
+
+## ⓢ 정적 `transform` 87 ↔ 클론 — **빠진 것 0 · 세 rotate 중 둘은 서 있고 하나는 T135 몫**
+- 76 은 `translate*`(가운데 맞춤 `translate(-50%,-50%)`·`translateX(-50%)` · 절대 배치 오프셋 · `.tech-tree-col`·`.tech-tier-tag`·`.equipped-label` 의 calc 오프셋) — **모양이 아니라 자리**다. 클론은 앵커·피벗으로 같은 자리를 잡는다(§7 ui.js 줄 · T28 대조표가 이미 본다).
+- 8 은 연출의 **시작 상태**(`.sr-wipe scale(.55)` · `.sr-cell scale(.35)` · `.sr-relight/.sr-tierflash/.sr-beam scale(.3/.24/.2)` · `.rw-glow/.rw-ring/.rw-pop scale(.2/.3/.25)` · `#skill-cutin scale(0)` · `.bw-banner scaleY(0)` · `#offline-btn:active scale(.94)` · `.ob-zzz` 셋) — 임자가 있다(T179·T334 소환 결과 · 리워드 버스트 · T335 ⓓ 눌림 · 오프라인 버튼 `OfflineButton.cs`). `.sr-reflect scaleY(-1.22)` 는 T179 3회차가 세웠다(`SummonFx`).
+- **rotate 3**: `.pip.boss rotate(45deg)` 195 → `Hud.cs:311` ✓ · `.cmp-card.new::after rotate(15deg)`(1834 · `shinesweep` 띠) → 클론 자취 0 이지만 **T135 ⓒ 가 이미 쥔 연출**(5회차 등재 · `newpulse`·`shinesweep`) · `.rw-pop … rotate(0deg)` 7514 는 키프레임 시작값(`RewardBurst.cs:361·442` 가 각을 돈다) ✓. `skew` 0.
+- 축을 **닫는다** — 새로 등재할 것 없음.
+
+## 이 회차의 판정
+- ⓡ → **T345 등재**(어긋난 리터럴 10 + 판 없음 후보 3 · 자 `tools/check_border_radius.py` 로 못 박는다 · T331 과 같은 갈래). ⓢ 닫힘.
+- T33 은 여전히 ✅ 가 아니다(T35·T106 주인 몫 + 열린 §7 칸). 다음 회차가 열 축(세어만 뒀다): `opacity` 정적 선언 · `z-index` 층 순서(정본 z 5·6·25 …) · `overflow`(스크롤 영역) — 파서는 이 회차 것을 그대로 쓰면 된다.
