@@ -408,7 +408,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(dimT, what + ": 딤 층이 없다");
             Image dim = dimT.GetComponent<Image>();
             Assert.IsNotNull(dim, what + ": 딤에 Image 가 없다");
-            Assert.AreEqual(UiKit.C("modal_dim"), dim.color, what + ": 딤 색이 카탈로그 modal_dim 이 아니다");
+            Assert.AreEqual(UiKit.PerceivedDim(UiKit.C("modal_dim")), dim.color, what + ": 딤 색이 카탈로그 modal_dim 의 지각값이 아니다(T94 · 결정 191)");
 
             RectTransform app = UiRoot.Instance.App;
             Rect a = RectOf(app), d = RectOf(dim.rectTransform);

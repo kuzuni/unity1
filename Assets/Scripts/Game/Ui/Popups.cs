@@ -85,6 +85,7 @@ namespace Forge.Game.Ui
             p = new Popup { Name = name, Tab = tab, AboveTabBar = aboveTabBar };
             p.Root = UiKit.Box(aboveTabBar ? over : under, "modal-" + name);
             Image dim = UiKit.Panel(p.Root, "dim", dimKey);
+            dim.color = UiKit.PerceivedDim(dim.color);   // T94 — 정본 rgba(0,0,0,.5) 를 선형 공간에서 브라우저와 같은 밝기로(결정 191 · modal_dim_deep 도 같은 환산)
             dim.raycastTarget = true;
             open.Add(p);
             RaiseTabX();

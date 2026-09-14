@@ -35,6 +35,7 @@ namespace Forge.Game.Ui
         {
             RectTransform rt = UiKit.Box(UiRoot.Instance.App, name);
             Image dim = UiKit.Panel(rt, "dim", "modal_dim");
+            dim.color = UiKit.PerceivedDim(dim.color);   // T94 — 공용 Popups.Show 와 같은 환산(결정 191)
             dim.raycastTarget = true;
             return rt;
         }

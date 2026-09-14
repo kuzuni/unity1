@@ -352,7 +352,7 @@ namespace Forge.Tests.PlayMode
             }
             Assert.AreEqual(1, dims, "딤은 한 겹(정본 .modal 하나)");
             Assert.IsNotNull(dim);
-            Assert.AreEqual(UiKit.C("modal_dim").a, dim.color.a, 1e-3f, "딤 α = 카탈로그 modal_dim(정본 rgba(0,0,0,.5))");
+            Assert.AreEqual(UiKit.PerceivedDim(UiKit.C("modal_dim")).a, dim.color.a, 1e-3f, "딤 α = 카탈로그 modal_dim(정본 rgba(0,0,0,.5))의 지각값(T94 · 결정 191)");
             BattleOverlay ov = BattleOverlay.Ensure();
             if (ov != null)
             {
