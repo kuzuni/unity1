@@ -43,6 +43,8 @@ namespace Forge.Game.Ui
             public bool On;
             public float OnAt;
             public bool Heroic;
+            /// <summary>T334 3회차 ⓑ — 흡기 전 제자리(anchoredPosition)와 «슬롯 → 광원» 벡터(정본 `--dx/--dy`).</summary>
+            public Vector2 Home, ToLight;
         }
 
         public static SkillSummonResultView Current { get; private set; }
@@ -80,6 +82,11 @@ namespace Forge.Game.Ui
         Image wipe;
         float wipeAt = -1f;
         float flashAt = -1f;
+        /// <summary>T334 3회차 ⓑ — 충전 구간이 움직이는 것들: 소환진·중앙 광원·비네트(정본 `.sr-floor`·`.sr-halo`·`.sr-wrap::before`).</summary>
+        Image floorImg, haloImg, vigImg;
+        Color floorBase, haloBase;
+        Vector3 floorHome;
+        float chargeAt = -1f;
         RectTransform foot;
         GameObject hint, ok, chips, solo;
         string kind;
@@ -87,6 +94,18 @@ namespace Forge.Game.Ui
         public bool Done { get { return done; } }
         public int CellCount { get { return cells.Count; } }
         public int OnCount { get { int n = 0; foreach (Cell c in cells) if (c.On) n++; return n; } }
+        // ── T334 3회차 ⓑ — 충전 겹을 자가 수로 잰다(정지 프레임이 없다는 것은 «움직였다» 로만 증명된다) ──
+        /// <summary>비네트(`.sr-wrap::before`)의 지금 불투명도.</summary>
+        public float VigAlpha { get { return vigImg != null ? vigImg.color.a : -1f; } }
+        /// <summary>소환진(`.sr-floor`)의 지금 배율(제자리 대비).</summary>
+        public float FloorScale { get { return floorImg != null && floorHome.x != 0f ? floorImg.rectTransform.localScale.x / floorHome.x : -1f; } }
+        /// <summary>소환진의 지금 밝기 — 틴트 한 색의 최대 성분(충전 내내 오른다).</summary>
+        public float FloorBright { get { if (floorImg == null) return -1f; Color c = floorImg.color; return Mathf.Max(c.r, Mathf.Max(c.g, c.b)); } }
+        /// <summary>중앙 광원(`.sr-halo`)의 지금 불투명도.</summary>
+        public float HaloAlpha { get { return haloImg != null ? haloImg.color.a : -1f; } }
+        /// <summary>셀 하나가 제자리에서 광원 쪽으로 빨려든 거리(흡기 · 정본 `srinhale`).</summary>
+        public float CellPulledIn(int i) { return i < 0 || i >= cells.Count ? -1f : (cells[i].Root.anchoredPosition - cells[i].Home).magnitude; }
+
         public Button OkButton { get; private set; }
         public Button AgainButton { get; private set; }
 
@@ -233,6 +252,15 @@ namespace Forge.Game.Ui
             halo.color = new Color(halo.color.r, halo.color.g, halo.color.b, 0.18f);
             halo.preserveAspect = false;
             UiKit.Anchor(halo.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, PetSkillStyle.Rem(26f), PetSkillStyle.Rem(16f));
+            haloImg = halo; haloBase = halo.color;
+            // 비네트(정본 `.sr-wrap::before` z 2) — 고정 그라디언트 한 장, 움직이는 것은 불투명도·배율뿐.
+            RectTransform vigRt = UiKit.Box(c, "sr-vig");
+            UiKit.Fill(vigRt);
+            vigImg = vigRt.gameObject.AddComponent<Image>();
+            vigImg.sprite = SummonFx.BakeVig("sr-vig");
+            vigImg.preserveAspect = false;
+            vigImg.raycastTarget = false;
+            vigImg.color = new Color(1f, 1f, 1f, 0f);
 
             // ---- 머리 ----
             float padT = PetSkillStyle.Px("sr_pad_top_rem"), padX = PetSkillStyle.Px("sr_pad_x_rem"), padB = PetSkillStyle.Px("sr_pad_bottom_rem");
@@ -305,6 +333,7 @@ namespace Forge.Game.Ui
                     float fw = gw * (one ? 0.64f : 0.88f);
                     UiKit.Anchor(floor.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -totalH * 0.5f + PetSkillStyle.Rem(1.4f)), fw, fw / (one ? 2.6f : 2.5f));
                     floor.transform.SetAsFirstSibling();
+                    floorImg = floor; floorBase = floor.color; floorHome = floor.rectTransform.localScale;
                     // T179 — 연출 겹(정본 sr-canopy 아치+빛발+스필 · sr-rays · sr-stars · ui.js 491~494: canopy = stage · compact = herorow) — 그리드 위 밴드·배경·별
                     fx = SummonFx.Build(body, floor.rectTransform, (bodyH - totalH) * 0.5f, gw, one, heroRow);
                 }
@@ -409,7 +438,7 @@ namespace Forge.Game.Ui
             UiKit.Place(cell, x, y, cw, ch);
             var cg = cell.gameObject.AddComponent<CanvasGroup>();
             cg.alpha = 0f;
-            var c = new Cell { Root = cell, Group = cg, Entry = e, Heroic = heroic };
+            var c = new Cell { Root = cell, Group = cg, Entry = e, Heroic = heroic, Home = cell.anchoredPosition };
             c.BaseScale = heroic ? 1f : PetSkillStyle.L("sr_sz_" + Mathf.Clamp(tier, 0, 5)) * (peer ? PetSkillStyle.L("sr_peer_sz") : 1f);
             c.Pop = PetSkillStyle.L("sr_pop_" + Mathf.Clamp(tier, 0, 5));
             // orbwrap
@@ -632,6 +661,7 @@ namespace Forge.Game.Ui
                 if (seq.Done) Finish();
             }
             AnimateCells();
+            AnimateCharge();
             AnimateFlash();
             AnimateWipe();
         }
@@ -665,6 +695,88 @@ namespace Forge.Game.Ui
                 float b = done && t >= 1f ? 1f + 0.025f * Mathf.Sin((tt - i * 0.21f) * 2.4f) : 1f;
                 c.OrbWrap.localScale = Vector3.one * c.BaseScale * (c.Heroic && heroFired ? 1.18f : 1f) * b;
             }
+        }
+
+
+        /// <summary>
+        /// T334 3회차 ⓑ — 홀드백 대기 구간(정본 `#summon-result-modal.charging` · style.css 6815~6879).
+        /// 정본 주석이 못 박은 것: 이 구간은 **정지가 아니라 축적**이고, 예전엔 480ms 가 통째로 정지 프레임이라
+        /// «긴장» 이 아니라 «렌더 멈춤» 으로 읽혔다. 그래서 다섯이 한꺼번에 움직인다 —
+        /// 소환진이 부풀며 밝아지다 **마지막 12%에 수축**(그 반동으로 주역이 터진다) · 눈금이 `steps(9)` 로 순차 점등 ·
+        /// 중앙 광원이 점점 좁은 간격으로 뛰고 · 비네트가 조여들고 · 정착한 조연 셀이 광원 쪽으로 빨려든다(사출의 역재생).
+        ///
+        /// 값·곡선은 전부 <see cref="SummonChargeSpec"/>(Core · 표 `charge` 절)이 쥔다 — 여기는 그것을 화면에 거는 손일 뿐이다.
+        /// 구간이 끝나면(주역 착지) 정본이 클래스를 떼는 것과 같게 **제자리로 되돌린다** — 그 순간은 섬광/와이프가 덮는다.
+        /// </summary>
+        void AnimateCharge()
+        {
+            bool on = seq != null && seq.Charging;
+            if (!on)
+            {
+                if (chargeAt < 0f) return;
+                chargeAt = -1f;
+                if (floorImg != null) { floorImg.color = floorBase; floorImg.rectTransform.localScale = floorHome; }
+                if (haloImg != null) haloImg.color = haloBase;
+                if (vigImg != null) { vigImg.color = new Color(1f, 1f, 1f, 0f); vigImg.rectTransform.localScale = Vector3.one; }
+                for (int i = 0; i < cells.Count; i++) cells[i].Root.anchoredPosition = cells[i].Home;
+                return;
+            }
+            if (chargeAt < 0f)
+            {
+                chargeAt = Time.unscaledTime;
+                // «슬롯 → 광원» 벡터(정본 `--dx/--dy` 는 setSummonEjectPaths 가 심어 둔다 — 클론엔 없어 여기서 잰다).
+                for (int i = 0; i < cells.Count; i++)
+                {
+                    Cell c = cells[i];
+                    c.Home = c.Root.anchoredPosition;
+                    // 두 자리 다 **같은 부모의 지역 좌표**로 재야 한다 — anchoredPosition 과 localPosition 은 상수만큼
+                    // 어긋나 있어서(앵커·피벗) 차이(벡터)는 같지만 한쪽을 다른 쪽에서 빼면 그 상수가 섞여 들어간다.
+                    c.ToLight = haloImg != null
+                        ? (Vector2)c.Root.parent.InverseTransformPoint(haloImg.rectTransform.position) - (Vector2)c.Root.localPosition
+                        : Vector2.zero;
+                }
+            }
+            SummonChargeSpec sp = SummonFxStyle.Charge;
+            float ms = (Time.unscaledTime - chargeAt) * 1000f;
+            if (floorImg != null)
+            {
+                float sc = (float)sp.FloorAt(ms, "scale"), br = (float)sp.FloorAt(ms, "bright"), sa = (float)sp.FloorAt(ms, "sat");
+                floorImg.rectTransform.localScale = floorHome * sc;
+                // ⚠ 눈금(`srtickup`)은 **아직 안 건다**: 정본에서 그것은 `.sr-floor::after` 의 룬 띠인데 클론의 소환진은
+                //    민 원판 한 장이고 룬 눈금은 천개 아치에 구워져 있다(`BakeArch`). 없는 겹에 얹으면 «소환진이 통째로
+                //    짙어진다» 가 되어 정본과 다른 그림이 된다 — 수치(`TickAlpha`)는 표·Core 에 세워 두고 겹은 다음 회차에 낸다.
+                floorImg.color = Brighten(floorBase, br, sa, floorBase.a);
+            }
+            if (haloImg != null)
+            {
+                float a = (float)sp.HaloAt(ms, "alpha"), sc = (float)sp.HaloAt(ms, "scale"), br = (float)sp.HaloAt(ms, "bright");
+                haloImg.rectTransform.localScale = Vector3.one * sc;
+                haloImg.color = Brighten(haloBase, br, 1f, a);
+            }
+            if (vigImg != null)
+            {
+                vigImg.color = new Color(1f, 1f, 1f, (float)sp.VigAt(ms, "alpha"));
+                vigImg.rectTransform.localScale = Vector3.one * (float)sp.VigAt(ms, "scale");
+            }
+            float back = (float)sp.InhaleAt(ms, "back_f"), isc = (float)sp.InhaleAt(ms, "scale");
+            for (int i = 0; i < cells.Count; i++)
+            {
+                Cell c = cells[i];
+                if (!c.On || c.Heroic) continue;          // 정본 `.sr-cell.on:not(.heroic)`
+                c.Root.anchoredPosition = c.Home + c.ToLight * back;
+                c.Root.localScale *= isc;                 // AnimateCells 가 이미 판 팝을 얹었다 — 그 위에 흡기를 곱한다
+            }
+        }
+
+        /// <summary>CSS `filter: brightness(b) saturate(s)` 를 틴트 한 색으로 — 알파는 따로 준다(합성 단계라 곱하기가 맞다).</summary>
+        static Color Brighten(Color c, float bright, float sat, float alpha)
+        {
+            float g = c.r * 0.2126f + c.g * 0.7152f + c.b * 0.0722f;
+            return new Color(
+                Mathf.Clamp01((g + (c.r - g) * sat) * bright),
+                Mathf.Clamp01((g + (c.g - g) * sat) * bright),
+                Mathf.Clamp01((g + (c.b - g) * sat) * bright),
+                Mathf.Clamp01(alpha));
         }
 
         void FireHero()

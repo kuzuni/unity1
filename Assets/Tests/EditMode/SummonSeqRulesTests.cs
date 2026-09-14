@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using System.IO;
 using NUnit.Framework;
+using Forge.Core.Data;
 using Forge.Core.Ui;
 
 namespace Forge.Tests
@@ -87,6 +90,121 @@ namespace Forge.Tests
         public void 지연표와_등급표_길이가_다르면_거부한다()
         {
             Assert.Throws<System.ArgumentException>(() => new SummonSeqRun(new double[] { 1, 2 }, new int[] { 0 }, false, -1, Tail, Kick));
+        }
+    }
+
+    /// <summary>T334 3회차 ⓑ — 충전 구간 키프레임 넷(정본 `style.css` 6815~6879)이 표에서 그대로 서고 정본 곡선대로 나온다.</summary>
+    public class SummonChargeSpecTests
+    {
+        static SummonChargeSpec spec;
+        static SummonChargeSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonChargeSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 소환진은_부풀다_마지막_12퍼센트에_수축하고_밝기는_끝까지_오른다()
+        {
+            SummonChargeSpec s = S();
+            double peak = s.FloorAt(s.ChargeMs * 0.88, "scale"), end = s.FloorAt(s.ChargeMs, "scale");
+            Assert.Greater(peak, 1.05, "88% 에 가장 부풀어 있어야 한다");
+            Assert.Less(end, 1.0, "마지막 12% 는 **수축** — 그 반동으로 주역이 터진다(정본 주석 «지우지 말 것»)");
+            Assert.Greater(s.FloorAt(s.ChargeMs, "bright"), s.FloorAt(s.ChargeMs * 0.88, "bright"), "밝기는 끝까지 오른다 — 수축이 «꺼진다» 로 읽히면 안 된다");
+        }
+
+        [Test]
+        public void 어느_구간에서도_값이_멈추지_않는다()
+        {
+            // 정본이 세 번 못 박은 것: ease-in 을 쓰면 앞 절반이 정지 프레임이 된다. linear + 촘촘한 키프레임이라야 한다.
+            SummonChargeSpec s = S();
+            double step = s.ChargeMs / 12.0, prevFloor = s.FloorAt(0, "bright"), prevVig = s.VigAt(0, "alpha");
+            for (double t = step; t <= s.ChargeMs + 1e-9; t += step)
+            {
+                double f = s.FloorAt(t, "bright"), v = s.VigAt(t, "alpha");
+                Assert.Greater(f - prevFloor, 1e-4, t + "ms 창에서 소환진 밝기가 멈췄다");
+                Assert.Greater(v - prevVig, 1e-4, t + "ms 창에서 비네트가 멈췄다");
+                prevFloor = f; prevVig = v;
+            }
+        }
+
+        [Test]
+        public void 중앙_광원은_여러_산을_그리고_간격이_좁아진다()
+        {
+            SummonChargeSpec s = S();
+            var peaks = new List<double>();
+            double prev = s.HaloAt(0, "alpha");
+            bool rising = false;
+            for (int i = 1; i <= 400; i++)
+            {
+                double t = s.ChargeMs * i / 400.0, a = s.HaloAt(t, "alpha");
+                if (a < prev && rising) peaks.Add(t);
+                rising = a > prev;
+                prev = a;
+            }
+            // 마지막 «산» 은 내려오지 않는다 — 끝값이 곧 최고점(alpha 1)이라 그대로 주역 등장으로 넘어간다.
+            peaks.Add(s.ChargeMs);
+            Assert.GreaterOrEqual(peaks.Count, 3, "대기창 안에 산이 여럿 들어와야 «축적» 으로 읽힌다(한 주기로는 안 읽혔다 — 정본 주석)");
+            // 정본 주석의 «132→110→99→88→77ms» 는 **의도**고, 실제 키프레임(12·44·80·100%)의 산 간격은
+            // 89.6 · 100.8 · 56ms 다 — 단조로 좁아지지 않는다. 자는 실제 표를 지킨다: **마지막 박이 가장 빠르다**.
+            double last = peaks[peaks.Count - 1] - peaks[peaks.Count - 2];
+            for (int i = 1; i < peaks.Count - 1; i++)
+                Assert.Less(last, peaks[i] - peaks[i - 1] + 1e-6, "마지막 산까지의 간격이 가장 짧아야 «조여든다» 로 읽힌다");
+            Assert.AreEqual(1.0, s.HaloAt(s.ChargeMs, "alpha"), 1e-9, "끝은 완전 불투명");
+            Assert.Greater(s.HaloAt(s.ChargeMs, "bright"), 2.9, "끝 밝기 2.95");
+        }
+
+        [Test]
+        public void 눈금은_아홉_칸_계단이다()
+        {
+            SummonChargeSpec s = S();
+            Assert.AreEqual(s.TickA0, s.TickAlpha(0), 1e-9);
+            Assert.AreEqual(s.TickAlpha(s.ChargeMs * 0.02), s.TickAlpha(s.ChargeMs * 0.10), 1e-9, "한 칸 안에서는 안 움직인다(steps)");
+            Assert.AreNotEqual(s.TickAlpha(s.ChargeMs * 0.10), s.TickAlpha(s.ChargeMs * 0.13), "칸을 넘으면 뛴다");
+            Assert.AreEqual(s.TickA1, s.TickAlpha(s.ChargeMs), 1e-9, "끝은 완전 점등");
+            // 도는 동안(진행 < 100%)의 계단은 아홉이다 — 끝값(TickA1)은 `forwards` 가 100% 키프레임에서 가져오는
+            // 열 번째 값이라 세지 않는다(CSS `steps(9, end)` 가 그렇다).
+            var seen = new List<double>();
+            for (int i = 0; i < 300; i++)
+            {
+                double a = s.TickAlpha(s.ChargeMs * i / 300.0);
+                if (seen.Count == 0 || System.Math.Abs(seen[seen.Count - 1] - a) > 1e-9) seen.Add(a);
+            }
+            Assert.AreEqual(9, seen.Count, "칸은 아홉이다(정본 steps(9))");
+        }
+
+        [Test]
+        public void 조연_셀은_광원_쪽으로_빨려들며_작아진다()
+        {
+            SummonChargeSpec s = S();
+            Assert.AreEqual(0.0, s.InhaleAt(0, "back_f"), 1e-9, "0% 는 srpop 의 끝 상태 그대로여야 한 프레임도 안 튄다");
+            Assert.AreEqual(1.0, s.InhaleAt(0, "scale"), 1e-9);
+            Assert.Greater(s.InhaleAt(s.ChargeMs, "back_f"), s.InhaleAt(s.ChargeMs * 0.5, "back_f"));
+            Assert.Less(s.InhaleAt(s.ChargeMs, "scale"), 0.96);
+            Assert.Less(s.InhaleAt(s.ChargeMs, "bright"), s.InhaleAt(0, "bright"), "조연은 어두워진다 — 주역이 밝을 자리를 낸다");
+        }
+
+        [Test]
+        public void 끝난_뒤에는_마지막_칸에_머문다()
+        {
+            SummonChargeSpec s = S();
+            Assert.AreEqual(100.0, s.Percent(s.ChargeMs * 3), 1e-9, "정본 forwards");
+            Assert.AreEqual(s.FloorAt(s.ChargeMs, "scale"), s.FloorAt(s.ChargeMs * 3, "scale"), 1e-9);
+        }
+
+        [Test]
+        public void 표에_ease_를_두면_거부한다()
+        {
+            // 이 구간의 가속감은 이징이 아니라 키프레임 간격이 만든다 — 정본이 세 번 못 박은 자리라 자가 지킨다.
+            string bad = "{\u0022charge\u0022:{\u0022charge_ms\u0022:280,\u0022tick_steps\u0022:9,\u0022tick_a0\u0022:0.45,\u0022tick_a1\u0022:1,"
+                + "\u0022vig_rx_f\u0022:0.82,\u0022vig_ry_f\u0022:0.51,\u0022vig_cy_f\u0022:0.44,\u0022vig_inner_f\u0022:0.12,\u0022vig_outer_a\u0022:0.9,\u0022vig_bake_px\u0022:256,"
+                + "\u0022srfloorcharge\u0022:[{\u0022at\u0022:0,\u0022scale\u0022:1,\u0022bright\u0022:1,\u0022sat\u0022:1,\u0022ease\u0022:\u0022ease-in\u0022},{\u0022at\u0022:100,\u0022scale\u0022:1,\u0022bright\u0022:2,\u0022sat\u0022:1}],"
+                + "\u0022srhalocharge\u0022:[],\u0022srvig\u0022:[],\u0022srinhale\u0022:[]}}";
+            Assert.Throws<System.FormatException>(() => SummonChargeSpec.From(MiniJson.ParseObject(bad)));
         }
     }
 }

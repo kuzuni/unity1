@@ -250,7 +250,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(a, "와이프를 못 구웠다");
             Assert.AreSame(a, b, "같은 이름이면 한 번만 굽는다");
 
-            Texture2D t = a.texture;
+            Texture2D t = Readable(a.texture);
             int w = t.width, h = t.height;
             float s1 = SummonFxStyle.L("wipe_stop1_f"), s2 = SummonFxStyle.L("wipe_stop2_f"), s3 = SummonFxStyle.L("wipe_stop3_f");
             Assert.AreEqual(0.24f, s1, 1e-4f, "정본 24%");
@@ -276,6 +276,28 @@ namespace Forge.Tests.PlayMode
             // 혼합 — 정본 `mix-blend-mode: screen`
             Material sm = CraftFxPoly.Screen();
             if (sm != null) Assert.AreEqual(CraftFxPoly.ScreenShaderName, sm.shader.name, "가산(스크린) 셰이더여야 한다");
+        }
+
+        /// <summary>
+        /// 구운 한 장의 화소를 읽는다 — `SummonFx` 는 <c>Apply(false, true)</c> 로 구워 **CPU 사본을 버린다**(메모리).
+        /// 그래서 `GetPixel` 은 런 503 에서처럼 «is not readable» 로 넘어진다. GPU 로 한 번 베껴 읽으면 화소는 같다(T342 와 같은 길).
+        /// ⚠ 굽는 쪽을 읽기 가능으로 되돌리지 말 것 — 이 판들은 화면에만 쓰이고, 사본을 남기면 그만큼 메모리가 는다.
+        /// </summary>
+        static Texture2D Readable(Texture2D src)
+        {
+            if (src.isReadable) return src;
+            RenderTexture rt = RenderTexture.GetTemporary(src.width, src.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            RenderTexture prev = RenderTexture.active;
+            try
+            {
+                Graphics.Blit(src, rt);
+                RenderTexture.active = rt;
+                var copy = new Texture2D(src.width, src.height, TextureFormat.RGBA32, false);
+                copy.ReadPixels(new Rect(0f, 0f, src.width, src.height), 0, 0, false);
+                copy.Apply(false, false);
+                return copy;
+            }
+            finally { RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rt); }
         }
 }
 }

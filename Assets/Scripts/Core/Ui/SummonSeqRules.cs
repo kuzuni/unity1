@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Forge.Core.Data;
 
 namespace Forge.Core.Ui
 {
@@ -89,5 +90,106 @@ namespace Forge.Core.Ui
 
         /// <summary>주역 비트가 도는 중인가(착지 뒤 `HeroKickMs` 안).</summary>
         public bool HeroKicking(double elapsedMs) { return Hero && elapsedMs >= HeroAtMs && elapsedMs - HeroAtMs < HeroKickMs; }
+    }
+
+    /// <summary>
+    /// T334 3회차 ⓑ — 홀드백 대기 구간(`#summon-result-modal.charging`)의 **키프레임 넷**(정본 `style.css` 6815~6879):
+    /// 소환진 `srfloorcharge`(.28s linear · 부풀다 마지막 12%에 **수축** · 밝기는 계속 오른다) · 눈금 `srtickup`(`steps(9)` 순차 점등) ·
+    /// 중앙 광원 `srhalocharge`(맥동 간격이 132→77ms 로 좁아지는 다섯 산) · 비네트 `srvig`(불투명도 0→1 · 배율 1.10→1) ·
+    /// 정착한 조연 셀의 흡기 `srinhale`(슬롯→광원 벡터의 일부만큼 되돌리며 scale 1→.958).
+    ///
+    /// ⚠ 정본이 세 번 못 박은 것 — **보간은 전부 `linear`** 다(`ease-in` 은 앞 절반이 정지 프레임이 된다).
+    ///    가속감은 이징이 아니라 **키프레임 간격**으로만 만든다(뒤로 갈수록 값 폭이 커진다). 표에 `ease` 를 넣지 않는 까닭이다.
+    /// ⚠ 비네트는 `background` 가 아니라 `opacity`+`transform` 이다 — 그라디언트를 키프레임으로 만들면 화면에서 계단이 된다(정본 5738~5744).
+    ///
+    /// 수치는 전부 표(`SummonFxUi.json` 의 `charge` 절)에서 온다(§1) · 시계는 공용 CSS 키프레임 기계(<see cref="RewardBurstSpec.Track"/>) · UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonChargeSpec
+    {
+        /// <summary>충전 램프 한 번의 길이(ms · 정본 `.28s`).</summary>
+        public double ChargeMs;
+        /// <summary>눈금 점등 계단 수(정본 `steps(9)`) · 그 처음·끝 불투명도.</summary>
+        public double TickSteps, TickA0, TickA1;
+        /// <summary>비네트 타원(정본 `radial-gradient(82% 51% at 50% 44%, …)`) — 반지름 비·중심 y·속 투명 반경·바깥 알파.</summary>
+        public double VigRxF, VigRyF, VigCyF, VigInnerF, VigOuterA;
+        /// <summary>비네트를 굽는 한 변(px).</summary>
+        public double VigBakePx;
+        public RewardBurstSpec.Track Floor, Halo, Vig, Inhale;
+
+        public static SummonChargeSpec From(JsonObject root)
+        {
+            JsonObject c = J.Obj(J.Require(root, "charge"));
+            var s = new SummonChargeSpec
+            {
+                ChargeMs = J.Num(J.Require(c, "charge_ms")),
+                TickSteps = J.Num(J.Require(c, "tick_steps")),
+                TickA0 = J.Num(J.Require(c, "tick_a0")),
+                TickA1 = J.Num(J.Require(c, "tick_a1")),
+                VigRxF = J.Num(J.Require(c, "vig_rx_f")),
+                VigRyF = J.Num(J.Require(c, "vig_ry_f")),
+                VigCyF = J.Num(J.Require(c, "vig_cy_f")),
+                VigInnerF = J.Num(J.Require(c, "vig_inner_f")),
+                VigOuterA = J.Num(J.Require(c, "vig_outer_a")),
+                VigBakePx = J.Num(J.Require(c, "vig_bake_px")),
+            };
+            if (s.ChargeMs <= 0) throw new FormatException("SummonFxUi charge: charge_ms 는 0보다 커야 한다");
+            if (s.TickSteps < 1) throw new FormatException("SummonFxUi charge: tick_steps 는 1 이상이어야 한다");
+            if (s.VigInnerF < 0 || s.VigInnerF >= 1) throw new FormatException("SummonFxUi charge: vig_inner_f 는 0 이상 1 미만이어야 한다");
+            s.Floor = Stops(c, "srfloorcharge");
+            s.Halo = Stops(c, "srhalocharge");
+            s.Vig = Stops(c, "srvig");
+            s.Inhale = Stops(c, "srinhale");
+            return s;
+        }
+
+        /// <summary>키프레임 배열 하나 — 퍼센트 오름차순 · 이징은 정본대로 전부 linear(표에 `ease` 를 안 쓴다).</summary>
+        static RewardBurstSpec.Track Stops(JsonObject c, string name)
+        {
+            var list = J.List(J.Require(c, name), x => J.Obj(x));
+            if (list.Count < 2) throw new FormatException("SummonFxUi charge: " + name + " 키프레임이 둘 미만이다");
+            var keys = new RewardBurstSpec.KeyStop[list.Count];
+            double prev = -1;
+            for (int i = 0; i < list.Count; i++)
+            {
+                JsonObject o = list[i];
+                var k = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(o, "at")) };
+                if (k.At < prev) throw new FormatException("SummonFxUi charge: " + name + " 퍼센트는 오름차순이어야 한다");
+                prev = k.At;
+                foreach (var kv in o)
+                {
+                    if (kv.Key == "at") continue;
+                    if (kv.Key == "ease") throw new FormatException("SummonFxUi charge: " + name + " 에 ease 를 두지 마라 — 정본이 세 번 못 박은 대로 이 구간은 전부 linear 다");
+                    if (!(kv.Value is double)) throw new FormatException("SummonFxUi charge: 키프레임 칸 «" + kv.Key + "» 은 수여야 한다");
+                    k.Num[kv.Key] = (double)kv.Value;
+                }
+                keys[i] = k;
+            }
+            return new RewardBurstSpec.Track { Keys = keys };
+        }
+
+        /// <summary>충전 시작에서 <paramref name="ms"/> 뒤의 진행 퍼센트(끝나면 100 에 머문다 — 정본 `forwards`).</summary>
+        public double Percent(double ms)
+        {
+            if (ms <= 0) return 0;
+            if (ms >= ChargeMs) return 100;
+            return ms / ChargeMs * 100;
+        }
+
+        public double FloorAt(double ms, string field) { return Floor.Sample(Percent(ms), field, null); }
+        public double HaloAt(double ms, string field) { return Halo.Sample(Percent(ms), field, null); }
+        public double VigAt(double ms, string field) { return Vig.Sample(Percent(ms), field, null); }
+        public double InhaleAt(double ms, string field) { return Inhale.Sample(Percent(ms), field, null); }
+
+        /// <summary>
+        /// 눈금 불투명도 — 정본 `steps(9)`(기본 `end`): 진행을 **아홉 칸으로 끊어** 순차 점등으로 읽히게 한다.
+        /// 계단이라 값이 구간 안에서는 안 움직인다 — 그 대신 이 구간의 «안 멈춤» 은 소환진·광원·비네트가 맡는다(정본 주석).
+        /// </summary>
+        public double TickAlpha(double ms)
+        {
+            double p = Percent(ms) / 100.0;
+            double step = Math.Floor(p * TickSteps) / TickSteps;
+            if (step > 1) step = 1;
+            return TickA0 + (TickA1 - TickA0) * step;
+        }
     }
 }

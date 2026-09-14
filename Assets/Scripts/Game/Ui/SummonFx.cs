@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Forge.Core.Data;
+using Forge.Core.Ui;
 using Forge.Game.Gallery;
 
 namespace Forge.Game.Ui
@@ -600,6 +601,34 @@ namespace Forge.Game.Ui
             return Finish(name, NewTex(name, W, H), px);
         }
 
+        /// <summary>
+        /// 충전 비네트(정본 `.sr-wrap::before` 5744) — `radial-gradient(82% 51% at 50% 44%, rgba(0,0,0,0) 12%, rgba(0,0,0,.90) 100%)` 한 장.
+        /// 정본이 못 박은 대로 **그라디언트는 고정**이고 움직이는 것은 이 판의 불투명도·배율뿐이다(배경을 키프레임으로 만들면 화면에서 계단이 된다).
+        /// </summary>
+        public static Sprite BakeVig(string name)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            SummonChargeSpec sp = SummonFxStyle.Charge;
+            int N = Mathf.Max(8, Mathf.RoundToInt((float)sp.VigBakePx));
+            float rx = (float)sp.VigRxF, ry = (float)sp.VigRyF, cy = (float)sp.VigCyF;
+            float inner = (float)sp.VigInnerF, outA = (float)sp.VigOuterA;
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            {
+                // CSS 는 위에서 아래로 — 구운 판은 아래에서 위로(UGUI) 라 y 를 뒤집는다.
+                float fy = 1f - (y + 0.5f) / N;
+                for (int x = 0; x < N; x++)
+                {
+                    float fx2 = (x + 0.5f) / N;
+                    float u = (fx2 - 0.5f) / rx, v = (fy - cy) / ry;
+                    float r = Mathf.Sqrt(u * u + v * v);           // 1 = 그라디언트의 바깥 끝
+                    float a = r <= inner ? 0f : Mathf.Clamp01((r - inner) / Mathf.Max(1e-4f, 1f - inner)) * outA;
+                    px[y * N + x] = new Color(0f, 0f, 0f, a);
+                }
+            }
+            return Finish(name, NewTex(name, N, N), px);
+        }
+
         public static Sprite BakeStar(string name, float sz, float box)
         {
             Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
@@ -645,7 +674,11 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; }
+
+        static SummonChargeSpec charge;
+        /// <summary>T334 3회차 ⓑ — 충전 구간 키프레임 넷(Core 가 쥔 셈 · 표의 `charge` 절).</summary>
+        public static SummonChargeSpec Charge { get { Load(); if (charge == null) charge = SummonChargeSpec.From(root); return charge; } }
 
         public static Color C(string key)
         {
