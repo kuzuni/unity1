@@ -4949,6 +4949,7 @@
 - 판정: `--self-test` 66 → **69칸**(ⓡ 런 331 = T142·T120 나란히 · T142 앞 · ⓦ 런 341 = T135·T109 둘 다 후보 · 참고 표시). 실제 `--fetch`(런 341): «먼저 T135 의 것으로 본다» — 보고함에 적은 뿌리와 같다.
 
 328. **«누가 넘어졌나» 와 «누가 밀었나» 는 다르다 — 빨강 본문이 이름을 대면 그것이 임자다(2026-09-14 · T150 · 워커 E)** — `check_unity_green` 의 임자 사다리는 넷 다 «그 테스트 파일» 을 열쇠로 썼다. 그래서 **콘솔 에러**로 넘어진 자(제 파일과 무관)를 엉뚱한 사람에게 보냈다(실측 런 343: 셰이더 에러로 넘어진 `AgePatternTests` → «T124 네 일» · 진짜는 T147). 고친 규칙: **본문에서 `Assets/…` 경로를 읽어 그 파일의 임자를 맨 앞에 찍는다.** 다만 넘어진 자의 임자 줄은 **지우지 않는다** — 경로가 여럿이거나 본문이 엉뚱한 파일을 댈 수도 있어, 자가 한쪽을 골라 없애면 새 오판이 생긴다(자는 «가려 주는 것» 이지 «대신 판단하는 것» 이 아니다). 되돌리려면 `own_lines` 의 ⓟ 블록과 `error_paths`·`path_owners`.
+338. **굽기는 제 워크플로 파일로 — `unity-test` 사슬에서 뗀다(2026-09-14 · T158 1회차 · 워커 S)** — ci.yml 의 `build-webgl`·`build-android` 는 `needs: [unity-test, gate]` 였고 `unity-test` 는 잡 그룹 `unity-test-<ref>`(대기 중 런은 뒤 push 가 갈아치운다 · T32) 안이라, 워커 push 가 이어지는 한 굽기 런은 «대기 중» 에 갈아치워져 통째로 cancelled 였다(런 286·360). 잡 그룹을 따로 둔 것(T32 `build-main`)으로는 못 막는다 — 런이 취소되면 그 안의 잡도 죽는다. 그래서 `.github/workflows/build-webgl.yml` 을 새로 두고 **push 트리거를 안 넣는다**(schedule 3시간 + workflow_dispatch 만): 어떤 push 도 이 런을 갈아치우지 않는다. 테스트에 안 매이는 대신 T26 스모크가 깨진 빌드의 배포를 막는다(그 자는 그대로 옮겼다). ci.yml 에서는 잡 둘·`schedule`·`build` 입력·gate 의 `has_ulf` 를 지웠다(남은 잡은 그대로). 수동 dispatch 의 `android` 입력은 기본 꺼짐(WebGL 만 20~30분 · APK 는 schedule 마다). 되돌리려면: 두 파일의 이 커밋 diff.
 337. **부팅 끝자락의 위험 호출은 정본처럼 «둘 다» 격리한다 — 안쪽 가드 + 바깥 try/catch · 경고는 Warning · 자동 제련 재개는 해금 조건까지 정본 그대로 · T157 1회차(2026-09-14 · 워커 N)** — `ForgeHost.Boot()` 의 `RestorePendingCraft()`·`StartAutoSeq()` 를 `BootGuard(what, step)` 로 감쌌다(정본 `main.js` 119~123 · «boot-pending-craft-unguarded» QA 20차). 정본은 `console.error` 지만 클론에서 `LogError` 는 그 자체가 §1 «플레이 콘솔 에러 0» 막이를 깨므로 `LogWarning` 으로 남긴다(ROUTINE T157 절의 지시 그대로). 둘째 줄의 조건도 정본 `S.autoForgeOn && isUnlocked('autoForge')` 대로 `AutoOn && AutoForgeUnlocked` 로 맞췄다 — 클론은 `AutoOn` 만 보고 있었다(잠긴 채 켜진 세이브가 오면 정본은 안 잇는다). 안쪽 가드(`IsForgeShaped` · 손상 대기품을 버리고 토스트)는 그대로 두었다 — 정본이 «둘 중 하나만 하면 다음에 다른 필드가 같은 자리에서 터진다» 고 적은 그 둘이다.
 ### T33 완주 대조 9회차 기록 — `ref/UI-SPEC.md` 조항 전수: 빠진 것 0 · 경고 하나 (2026-09-14 · 워커 J · sess-0717-10287)
 
@@ -5090,3 +5091,8 @@
 - **플레이 콘솔 에러 0**(하니스) — 유니티 판정은 다음 런(PlayMode 둘 PASS · 화면 변화 없음이라 PNG 는 안 본다).
 - **주인이 확인할 것**: 없다.
 - **남은 것**: 런 판정 뒤 ✅ · lock 반납.
+
+### T158 1회차 기록 (2026-09-14 10:4x · 워커 S · sess-0029-41207 · lock 유지 — 수동 dispatch 런이 끝까지 가는 것을 본 뒤 반납)
+
+- 무엇: `.github/workflows/build-webgl.yml`(새 · schedule + dispatch · 제 `gate`(UNITY_LICENSE) · `build-webgl` 스모크→gh-pages · `build-android` Artifact(수동일 땐 `android` 입력)) — ci.yml 의 잡 둘을 그대로 옮기고 ci.yml 에서 지웠다(결정 338). ci.yml 의 남은 잡(dotnet · datasync · gate · unity-test)은 안 건드렸다.
+- 판정: ⓐ 이 커밋 뒤 `build-webgl.yml` 을 dispatch 로 한 번 돌린다 — 워커 push 가 이어져도 `cancelled` 되지 않고 스모크 초록 · gh-pages 갱신 ⓑ ci.yml 런은 그대로 초록. 둘 다 확인한 뒤 lock 반납.

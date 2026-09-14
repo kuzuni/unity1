@@ -1,12 +1,13 @@
 # CI — 시크릿(UNITY_EMAIL·UNITY_PASSWORD)이 없으면 dotnet 검사만 돌고 초록이어야 한다.
-# 시크릿이 있으면: push 마다 EditMode/PlayMode 테스트. UNITY_LICENSE(.ulf) 까지 있으면 **3시간마다(schedule) 또는 수동(build 입력)** main 최신을 WebGL·Android 로 굽는다.
+# 시크릿이 있으면: push 마다 EditMode/PlayMode 테스트. 굽기(WebGL·Android)는 **여기 없다** — T158 이 `build-webgl.yml`(schedule + 수동 · main push 트리거 없음)로 뗐다:
+#   이 파일의 굽기 잡은 `unity-test` 잡 그룹의 «대기 중 런은 뒤 push 가 갈아치운다» 사슬에 `needs` 로 매여, 워커 push 가 이어지는 한 한 번도 끝까지 못 갔다(런 286·360 cancelled · 배포본 09-13 18:19 에 멈춤).
 #
 # T32 — concurrency 는 잡별로 나눈다. 워크플로 전체를 한 그룹에 넣으면 GitHub 이 «대기 중 런을 하나만» 두고 새 push 가 올 때마다
 # 옛 대기 런을 취소해(런 9~16 전부 cancelled · 2026-09-12 실측) 워커 커밋이 dotnet 검사조차 못 받고 지나갔다.
 #   · 빠른 잡(dotnet · datasync · gate): 그룹 없음 — push 마다 반드시 돈다(1분).
 #   · unity-test: 잡 그룹 `unity-test-<ref>` 직렬(라이선스 활성화 겹침 방지 · 7분). 대기 중인 것은 뒤 push 가 갈아치울 수 있다 —
 #     main 은 선형이라 뒤 런이 앞 커밋을 포함하므로 «내 뒤 런이 초록이면 내 확인» (ROUTINE §1).
-#   · build-webgl · build-android: push 마다 돌지 않는다(30~40분이 위 대기 사슬의 원인). schedule/수동만 · 그룹 `build-main` 직렬.
+#   · build-webgl · build-android: `build-webgl.yml` 로 옮겼다(T158) — 이 워크플로의 런이 취소돼도 굽기는 안 죽는다.
 # (aaawunity 의 ci.yml 을 뼈대만 남기고 옮겼다 — 검사 자(tools/check_*.py)는 이 레포에서 필요해질 때 하나씩 더한다.)
 name: CI
 
@@ -15,17 +16,9 @@ on:
     branches: ['**']
   pull_request:
   workflow_dispatch:
-    inputs:
-      build:
-        description: "WebGL·Android 를 지금 굽는다 (기본 꺼짐 — 켜면 런이 20~40분 길어진다)"
-        type: boolean
-        default: false
-  # T32 — 굽기는 push 가 아니라 시계로: 3시간마다 main 최신을 굽는다(schedule 은 기본 브랜치에서만 돈다).
-  schedule:
-    - cron: '0 */3 * * *'
 
 permissions:
-  contents: write   # gh-pages 배포
+  contents: write   # screens 브랜치 배포(gh-pages 는 build-webgl.yml)
   checks: write     # unity-test-runner 가 «Test Results» 체크 런을 만들 때(githubToken 빈 값과 한 벌)
 
 jobs:
@@ -150,7 +143,6 @@ jobs:
     timeout-minutes: 5
     outputs:
       has_license: ${{ steps.check.outputs.has }}
-      has_ulf: ${{ steps.ulf.outputs.has }}
       has_code: ${{ steps.code.outputs.has }}
     steps:
       - uses: actions/checkout@v4
@@ -178,13 +170,6 @@ jobs:
         run: |
           if [ -n "$EM" ] && [ -n "$PW" ]; then echo "has=true" >> "$GITHUB_OUTPUT";
           else echo "has=false" >> "$GITHUB_OUTPUT"; echo "::notice::UNITY_EMAIL/UNITY_PASSWORD 시크릿이 없어 유니티 단계를 건너뛴다 (README «주인이 할 일»)"; fi
-      # 굽기(unity-builder)는 계정 방식을 안 받는다 — .ulf(UNITY_LICENSE)나 시리얼이 있어야 굽는다(aaawunity T499 실측).
-      - id: ulf
-        env:
-          LIC: ${{ secrets.UNITY_LICENSE }}
-        run: |
-          if [ -n "$LIC" ]; then echo "has=true" >> "$GITHUB_OUTPUT";
-          else echo "has=false" >> "$GITHUB_OUTPUT"; echo "::notice::UNITY_LICENSE 시크릿이 없어 굽기 잡(WebGL)을 건너뛴다"; fi
 
   unity-test:
     name: Unity EditMode·PlayMode 테스트
@@ -410,103 +395,3 @@ jobs:
           done
           echo "::error::screens 브랜치 배포 5회 실패(런 $GITHUB_RUN_NUMBER) — $msg"
           exit 1
-
-  build-webgl:
-    name: WebGL 빌드 → GitHub Pages (gh-pages)
-    needs: [unity-test, gate]
-    # T32 — push 마다 굽지 않는다: 3시간 schedule(main) 또는 수동 build 입력만. 둘 다 별도 그룹에서 직렬.
-    if: needs.gate.outputs.has_ulf == 'true' && (github.event_name == 'schedule' || inputs.build == true)
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    concurrency:
-      group: build-main
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: false
-      - uses: actions/cache@v4
-        with:
-          path: Library
-          key: Library-webgl-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: |
-            Library-webgl-
-            Library-
-      - uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          projectPath: .
-          targetPlatform: WebGL
-          buildName: web
-          allowDirtyBuild: true
-      # T26 — 배포 스모크: 구운 폴더를 러너 안에서 정적 서빙해 headless Chromium 으로 연다(로딩 완료 표식 · 콘솔 빨강 0 · 9:16 상자).
-      # 빨갛면 gh-pages 로 안 올린다 — 깨진 빌드를 배포하지 않는다. 컨테이너에서는 kuzuni.github.io 가 막혀 여기서만 돈다.
-      # --require: T8 이 forgeSignal('battle') 을 붙이면 `unity-ready,battle` 로 늘린다(«전투 진입»).
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Playwright Chromium
-        run: |
-          npm i --no-save playwright@1.49.1
-          npx playwright install --with-deps chromium
-      - name: WebGL 배포 스모크 (tools/webgl_smoke.js)
-        run: |
-          sudo chown -R "$(id -u):$(id -g)" build 2>/dev/null || true
-          mkdir -p ui-screens
-          node tools/webgl_smoke.js --serve build/WebGL/web --require unity-ready --shot ui-screens/webgl_smoke.png
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: webgl-smoke
-          path: ui-screens/webgl_smoke.png
-          if-no-files-found: ignore
-      - name: "gh-pages 로 배포 (Settings → Pages → Source: gh-pages, (root))"
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: build/WebGL/web
-          force_orphan: true
-
-  # T26 — Android APK. WebGL 과 같은 조건(UNITY_LICENSE · 3시간 schedule 또는 수동 build 입력 · T32). 서명은 unity-builder 의 디버그 키(주인 키스토어 없음).
-  # 결과는 Artifact «forge-android-apk» 로 받는다(gh-pages 처럼 브랜치에 올리지 않는다 — APK 는 수십 MB 바이너리).
-  build-android:
-    name: Android APK 빌드 → Artifact
-    needs: [unity-test, gate]
-    # T32 — WebGL 과 같은 조건(schedule 또는 수동 build 입력) · 같은 직렬 그룹.
-    if: needs.gate.outputs.has_ulf == 'true' && (github.event_name == 'schedule' || inputs.build == true)
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    concurrency:
-      group: build-main
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: false
-      - uses: actions/cache@v4
-        with:
-          path: Library
-          key: Library-android-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: |
-            Library-android-
-            Library-
-      - uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          projectPath: .
-          targetPlatform: Android
-          buildName: forge
-          androidExportType: androidPackage
-          allowDirtyBuild: true
-      - uses: actions/upload-artifact@v4
-        with:
-          name: forge-android-apk
-          path: build/Android/*.apk
-          if-no-files-found: error
