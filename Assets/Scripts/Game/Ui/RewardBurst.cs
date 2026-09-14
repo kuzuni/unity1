@@ -210,9 +210,19 @@ namespace Forge.Game.Ui
             return x >= rx && x <= rx + rw && y >= ry && y <= ry + rh;
         }
 
+        /// <summary>가운데가 (cx, cy) 인 w×h 상자 — 피벗 가운데(CSS transform-origin 기본) 라 scale·rotate 가 중심을 돈다. `UiKit.Box` 의 늘림 앵커를 푼다(안 풀면 rect 폭 = 부모 폭 + w).</summary>
         static void Center(RectTransform rt, double cx, double cy, double w, double h)
         {
-            UiKit.Place(rt, (float)(cx - w * 0.5), (float)(cy - h * 0.5), (float)w, (float)h);
+            rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2((float)w, (float)h);
+            rt.anchoredPosition = new Vector2((float)cx, -(float)cy);
+        }
+
+        /// <summary>정본 `translate(-50%, 0)` 자리 — 가로 가운데 cx · 위 yTop (피벗은 가운데).</summary>
+        static void PlaceTop(RectTransform rt, double cx, double yTop, double w, double h)
+        {
+            Center(rt, cx, yTop + h * 0.5, w, h);
         }
 
         static void Alpha(Graphic g, double a) { Color c = g.color; c.a = (float)Math.Max(0, Math.Min(1, a)); g.color = c; }
@@ -367,8 +377,8 @@ namespace Forge.Game.Ui
                     RewardBurstRules.TickBump(s, pct, out sc, out ty);
                     if (pct >= 100) bump = -1; else bump += Time.unscaledDeltaTime * 1000.0;
                 }
-                float w = tick.Row.rect.width, h = tick.Row.rect.height;
-                UiKit.Place(tick.Row, (float)(tick.X - w * 0.5), (float)(tick.Y + ty * rem), w, h);
+                float w = tick.Row.sizeDelta.x, h = tick.Row.sizeDelta.y;
+                PlaceTop(tick.Row, tick.X, tick.Y + ty * rem, w, h);
                 tick.Row.localScale = new Vector3((float)sc, (float)sc, 1f);
                 if (tick.Out)
                 {
@@ -444,12 +454,13 @@ namespace Forge.Game.Ui
             TextMeshProUGUI txt; Image ico;
             string label = RewardBurstStyle.T("plus", NumFmt.Fmt(amount));
             RectTransform row = LabelRow(Layer, "rw-amt", label, icoKey, s.AmtFontRem * rem, s.AmtIcoRem * rem, s.AmtGapRem * rem, s.AmtStrokePx, "amt", out txt, out ico);
-            float w = row.rect.width, h = row.rect.height;
+            float w = row.sizeDelta.x, h = row.sizeDelta.y;
+            PlaceTop(row, lx, ly, w, h);
             double delay = RewardBurstRules.AmtDelayMs(s, ci), end = RewardBurstRules.AmtEndMs(s, ci);
             yield return Run(delay, s.AmtMs, end, row.gameObject, pct =>
             {
                 double a, ty, sc; RewardBurstRules.Amt(s, pct, out a, out ty, out sc);
-                UiKit.Place(row, (float)(lx - w * 0.5), (float)(ly + ty * rem), w, h);   // translate(-50%, ty)
+                PlaceTop(row, lx, ly + ty * rem, w, h);   // translate(-50%, ty)
                 row.localScale = new Vector3((float)sc, (float)sc, 1f);
                 Alpha(txt, a); if (ico != null) Alpha(ico, a);
             });
@@ -461,6 +472,7 @@ namespace Forge.Game.Ui
         RectTransform LabelRow(Transform parent, string name, string label, string icoKey, double fontPx, double icoPx, double gapPx, double strokeCssPx, string colorKey, out TextMeshProUGUI txt, out Image ico)
         {
             RectTransform row = UiKit.Box(parent, name);
+            Center(row, 0, 0, 1, 1);   // 늘림 앵커를 먼저 푼다 — SetLabel 의 sizeDelta 가 곧 rect 크기가 되게
             txt = UiKit.Text(row, "text", TextKind.Sub, label);
             txt.fontSize = (float)fontPx;
             txt.fontStyle = FontStyles.Bold;

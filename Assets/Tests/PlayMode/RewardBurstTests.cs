@@ -64,6 +64,21 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(2, rb.Impacts, "글로우 + 링");
             Assert.AreEqual(2, rb.Amts, "재화마다 «+획득량» 하나");
             Assert.AreEqual(0, rb.Anchors, "안 가려졌으니 앵커 없음");
+            // 런 278 PNG: «+5» 라벨이 앱 상자 왼쪽 밖에 찍혔다 — Box 의 늘림 앵커 위에 sizeDelta 만 줘서 rect 폭이 «부모 폭 + w» 였다. 폭·피벗·자리를 못박는다.
+            int rows = 0, flies = 0;
+            foreach (RectTransform ch in rb.Layer)
+            {
+                if (ch.name == "rw-amt")
+                {
+                    rows++;
+                    Assert.Less(ch.rect.width, rb.Layer.rect.width * 0.5f, "«+획득량» 상자 폭은 제 글자 폭(부모 폭이 더해지면 안 된다)");
+                    Assert.AreEqual(new Vector2(0.5f, 0.5f), ch.pivot, "피벗 가운데(CSS transform-origin)");
+                    float cx = ch.anchoredPosition.x;
+                    Assert.IsTrue(cx >= 0f && cx <= rb.Layer.rect.width, "라벨 가운데가 앱 상자 안 — 지금 " + cx);
+                }
+                if (ch.name == "rw-fly") { flies++; Assert.AreEqual(new Vector2(0.5f, 0.5f), ch.pivot, "아이콘은 중심을 돌며 회전한다"); Assert.Less(ch.rect.width, rb.Layer.rect.width * 0.2f); }
+            }
+            Assert.AreEqual(2, rows); Assert.AreEqual(8, flies);
             // 비행 중간 — 눈 확인용 한 장
             double lastDelay = RewardBurstRules.LastDelayMs(s, 1, 5);
             yield return WaitMs(lastDelay + s.FlyMs * 0.45);

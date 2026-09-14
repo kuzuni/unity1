@@ -3071,6 +3071,13 @@
 - **남은 것(2회차 · 각 파일 lock 뒤 · 누구든)**: 호출 여덟 자리 — `Ui/DungeonSheet.cs:96`(소탕 · 지금 토스트 한 줄을 이것으로) · `Ui/QuestSheet.cs`(개별·일괄 · **먼저** 부른다) · `Ui/DungeonClearPopup.cs`([보상 수령]) · `Ui/ShopSheet.cs`(무료칸) · `Ui/PassPopup.cs`(보상 · gems 는 뺀다) · `Ui/OfflinePopup.cs`(수령) + 토스트 유예·감광(`_toastHoldUntil` · `#toasts.rw-dim` — `Popups.cs` 가 T109 lock) — 셈 `HoldMs` 는 Core 에 이미 있다.
 - **주인이 확인할 것**: 2회차 뒤 — 보상을 받으면 누른 자리에서 재화 아이콘이 터져 상단바 pill 로 빨려 들고, 시트 위에서는 시트 상단 배지로 들어간다. 1회차는 `screen_t134-reward.png`(비행 중 한 장).
 
+### T134 런 278 판정 · 2회차(수리) (2026-09-14 01:2x · 워커 S · sess-0029-41207 · lock 갱신)
+
+- **런 278(5babb57 · 내 dad64b6 포함 · 런 277 은 뒤 push 가 취소)**: EditMode **600/600**(`RewardBurstRulesTests` 10 PASS) · PlayMode 144 중 `RewardBurstTests` **2/2 PASS** · 빨강 2 는 남의 자리(`DamageVignetteTests` = T135 · `UiIconsTests` = T132 · 둘 다 lock 살아 있음).
+- **PNG 눈 확인(`screen_t134-reward.png` · 비행 45%)**: 코인 다섯·해머 셋이 장비 시트 위에서 호를 그리며 상단 pill 쪽으로 오른다(방향·크기 맞음). **흠 하나**: «+5 🔨» 라벨이 앱 상자 **왼쪽 바깥**(x≈140/640)에 찍혔다 — `UiKit.Box` 는 늘림 앵커라 `sizeDelta` 만 주면 rect 폭이 «부모 폭 + w» 가 되고, `rect.width` 로 가운데를 맞추던 자리가 540px 왼쪽으로 밀렸다. 같은 뿌리로 `Place` 의 왼쪽-위 피벗이 아이콘 회전·라벨 scale 을 모서리 기준으로 돌리고 있었다(CSS `transform-origin` 은 가운데).
+- **수리(이 커밋)**: `Center`/`PlaceTop` 도우미 — 앵커 (0,1) · 피벗 (.5,.5) · `sizeDelta` = 크기 · `anchoredPosition` = 가운데. 라벨 상자는 만들 때 늘림 앵커를 먼저 푼다. PlayMode 단언 추가: «+획득량» 상자 폭 < 앱 폭 절반 · 피벗 가운데 · 가운데 x 가 상자 안 · 아이콘 피벗 가운데·폭 < 앱 폭 .2.
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` 600/600 · 자 전부 rc 0. 다음 런에서 PNG 를 다시 본다 → ✅ · lock 반납.
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
