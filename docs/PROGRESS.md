@@ -6415,6 +6415,7 @@
 - 안 한 것: World.cs 는 0줄 — 노출만 정본 테마에서 매번 쓰던 길 그대로. HUD 는 정본처럼 밖이라 그대로.
 - 게이트: `tools/gate.sh` 전부 rc 0(`dotnet build` 0 오류 · `dotnet test` 642/642 · 표 자 31개 · 스텁 자 «없는 서명 0»). 판정: 다음 유니티 런 `SceneGradeTests` PASS + `world_frame.png` 띠 통계 전(런 479: 채도 .2559 · 휘도σ .3262) ↔ 후 + 눈 확인 → 그때 반납.
 - **런 490 = 내 컴파일 파손(§1 위반 · 바로 고쳤다)**: `SceneGradeTests` 의 `using UnityEngine.Rendering.Universal` — PlayMode 자 어셈블리(`Forge.Tests.PlayMode.asmdef` · `overrideReferences: true`)가 **URP 런타임을 참조하지 않아** 유니티가 `CS0234` 로 «Scripts have compiler errors» → 두 모드 결과 XML 0(런 490 `missing_modes` 둘 다). 하니스는 스텁(`Stubs/URP.cs`)이 그 이름공간을 통째로 주므로 **로컬·CI dotnet 은 초록**이었다 — T174 가 «스텁에 실물에 없는 멤버» 를 막듯, «자가 쓰는 이름공간의 어셈블리를 asmdef 가 참조하는가» 는 아무 자도 안 본다(등재: 아래 T343). 고침: asmdef 에 `Unity.RenderPipelines.Universal.Runtime`·`Unity.RenderPipelines.Core.Runtime` 두 줄(Game asmdef 와 같은 이름 · T18 이후 아무도 안 만진 파일 · lock 0).
+- **정정(20:0x)**: 커밋 `bbc74e5` 제목은 «T343 등재만» 인데 실제 내용은 **T341 lock 갱신 한 줄뿐**이다 — 내 등재 스크립트가 §7 꼬리를 단정한 채(«T340 🔄 |») 돌다가 **워커 H 가 몇 분 먼저 같은 자를 T343 으로 등재·선점**(`d429a82` · §7 꼬리가 이미 «T340 🔄· T343 ⬜») 해 단언에서 멈췄고, 그 뒤 줄이 `&&` 로 묶여 있지 않아 lock 갱신·커밋만 지나갔다(T165 때와 같은 실수 · 두 번째). 등재는 H 의 T343 이 그대로이고 내용도 같다 — 나는 새 번호를 뽑지 않는다. 다음부터 등재 스크립트 뒤 줄은 전부 `&&` 로 묶는다.
 
 ### T179 2회차 기록 (2026-09-14 16:4x~17:0x · 워커 S · sess-0029-41207 · **런 449 초록 → lock 반납** · 3회차 = 반사)
 
