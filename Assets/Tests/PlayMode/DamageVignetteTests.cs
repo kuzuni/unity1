@@ -12,6 +12,7 @@ using Forge.Core.Data;
 using Forge.Core.Save;
 using Forge.Core.Hero;
 using Forge.Game;
+using Forge.Game.Gallery;
 using Forge.Game.Battle;
 using Forge.Game.Ui;
 
@@ -21,6 +22,8 @@ namespace Forge.Tests.PlayMode
     /// T135 ⓐ — 피격 붉은 비네트가 **화면에 실제로 선다**. 셈은 EditMode(`DmgVignetteRulesTests`)가 재고,
     /// 여기서는 ⓐ 면이 서는가 ⓑ 층이 정본 z 12(HUD 위 · 사망 암전·씬컷 아래)인가 ⓒ 그림이 «가운데 투명 · 가장자리 붉음 · 바닥 사라짐» 인가
     /// ⓓ 시계가 돌아 걷히는가 ⓔ 전투의 영웅 피격이 실제로 이것을 부르는가 를 본다.
+    /// 판정 PNG: **정점 한 장**(`screen_t135-vignette.png` · 주인 눈 확인용) — 촬영 목록의 화면들은 피격 순간을 안 담으므로
+    /// T104·T134·T138 과 같은 길로 이 테스트가 직접 한 장 굽는다.
     /// </summary>
     public class DamageVignetteTests
     {
@@ -36,6 +39,71 @@ namespace Forge.Tests.PlayMode
             SceneManager.LoadScene("SampleScene");
             yield return null;
             yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator 정점_한_장을_구워_눈_확인에_남긴다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!MetaHost.Ready && t < 15f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 15초 안에 준비되지 않았다");
+            var ov = BattleOverlay.Ensure();
+            Assert.IsNotNull(ov);
+            // 사망 세기(상한 .64)로 켠 뒤 정점 구간(13~44ms)에서 굽는다 — 가장 진한 프레임이 눈에 제일 잘 읽힌다.
+            ov.FlashDamage(1);
+            ov.Tick(0.02f);
+            Assert.AreEqual((float)FxRules.DmgVigMax, ov.Vignette.color.a, 1e-3, "정점에서 굽는다");
+            Capture("screen_t135-vignette");
+            yield return null;
+        }
+
+        /// <summary>UI 를 한 장 그린다(T104 `OutlineTests.Grab` · T134 `RewardBurstTests.Capture` 와 같은 길) — 눈 확인용 · 실패해도 판정을 안 흔든다.</summary>
+        static void Capture(string saveAs)
+        {
+            UiRoot root = UiRoot.Instance;
+            Canvas canvas = root.Canvas;
+            RenderMode prevMode = canvas.renderMode;
+            Camera prevCam = canvas.worldCamera;
+            float prevPlane = canvas.planeDistance;
+            RenderTexture prevActive = RenderTexture.active;
+            int w = Mathf.Max(64, Screen.width), h = Mathf.Max(64, Screen.height);
+            RenderTexture rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
+            GameObject camGo = new GameObject("t135-pixel-cam");
+            Camera cam = camGo.AddComponent<Camera>();
+            try
+            {
+                if (Camera.main != null) cam.CopyFrom(Camera.main);
+                cam.rect = new Rect(0f, 0f, 1f, 1f);
+                cam.targetTexture = rt;
+                cam.ResetProjectionMatrix();
+                cam.cullingMask = 1 << canvas.gameObject.layer;
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = Color.black;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                canvas.planeDistance = 1f;
+                root.Layout();
+                Canvas.ForceUpdateCanvases();
+                cam.Render();
+                RenderTexture.active = rt;
+                Texture2D tex = new Texture2D(w, h, TextureFormat.RGB24, false);
+                tex.ReadPixels(new Rect(0f, 0f, w, h), 0, 0);
+                tex.Apply(false);
+                try { GallerySheet.Save(tex, saveAs); } catch (System.Exception e) { Debug.Log("[T135] PNG 저장 생략: " + e.Message); }
+                UnityEngine.Object.Destroy(tex);
+            }
+            finally
+            {
+                RenderTexture.active = prevActive;
+                canvas.renderMode = prevMode;
+                canvas.worldCamera = prevCam;
+                canvas.planeDistance = prevPlane;
+                root.Layout();
+                cam.targetTexture = null;
+                UnityEngine.Object.Destroy(camGo);
+                UnityEngine.Object.Destroy(rt);
+            }
         }
 
         static Color32 At(Sprite sp, double u, double v)
