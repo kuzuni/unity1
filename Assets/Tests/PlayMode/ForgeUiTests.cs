@@ -217,9 +217,14 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeInfoPopup.Name));
             Assert.AreEqual("level", ForgeInfoPopup.View);
             Popup p = h.Meta.Popups.Find(ForgeInfoPopup.Name);
+            // T114 2회차 — 세는 것은 «시대 막대»(`ForgeInfoPopup` 87행 `age-<시대키>`)뿐이다.
+            //   T124 2회차가 그 막대 **안에** 무늬 층 `age-pattern`(뒤 다섯 시대)을 깔면서 이 셈이 10 → 15 가 돼 빨개졌다(런 299).
+            //   무늬 층은 막대가 아니라 막대의 자식이다 — 이름 앞가지로만 세면 «막대가 늘었다» 로 잘못 읽는다.
+            //   문자열 비교는 `Ordinal`(§1 · 종전 줄은 문화권 비교였다).
             int bars = 0;
-            foreach (Transform t in p.Root.GetComponentsInChildren<Transform>(true)) if (t.name.StartsWith("age-")) bars++;
-            Assert.AreEqual(h.Defs.Ages.Length, bars, "시대 막대 10 (0% 시대도 표시)");
+            foreach (Transform t in p.Root.GetComponentsInChildren<Transform>(true))
+                if (t.name.StartsWith("age-", System.StringComparison.Ordinal) && !t.name.StartsWith("age-pat", System.StringComparison.Ordinal)) bars++;
+            Assert.AreEqual(h.Defs.Ages.Length, bars, "시대 막대 = 시대 수(0% 시대도 표시) · 무늬 층은 막대가 아니다");
             Assert.IsNotNull(FindIn(p.Root, "fi-upgrade"), "업그레이드 버튼");
             AssertTextGate();
 
