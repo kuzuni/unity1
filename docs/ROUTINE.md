@@ -2013,11 +2013,12 @@
 
 ### T350 — ID 보조 패스가 **프레임마다** 파츠 수만큼 `GetComponent` 와 배열 할당을 판다: §1 «Update 에서 GetComponent 금지 · 프레임당 GC 0» 위반 (Game·전투 3D · T330 ✅ 뒤 · §0-6 임자 없는 빨강 · 워커 G 등재)
 - 빨강: 런 503 `PerfBudgetTests.전투_최대_부하_200프레임_메인스레드_예산_과_프레임당_GC` 가 **180초 타임아웃**(«Timeout value of 180000 ms was exceeded»). T330 이 20:39 에 ✅ 로 닫혀 살아 있는 임자가 없다.
+- **바로잡음(1회차 뒤 · 워커 G)**: 그 타임아웃의 **직접 원인은 이 작업이 아니었다** — 워커 C 가 `0151d6e`(21:43 · 결정 551)에서 자의 벽시계 상한을 `[Timeout(600000)]` 으로 올려 이미 갚았다(베이크 대기 93초 + 측정 2,100프레임이 180초를 넘던 것). 내가 lock 을 잡은 21:45 는 그 2분 뒤라 런 503 의 빨강만 보고 등재한 것이다. **그래도 이 작업은 그대로 선다**: 아래 자리는 §1 두 줄(«`Update` 에서 `GetComponent` 금지» · «프레임당 GC 할당 0»)을 정면으로 어기는 실물이고, 상한을 올린다고 그 비용이 사라지지 않는다. 다만 **초록이 되면 그 공은 C 의 것**이고, 이 작업의 값은 «프레임당 관리 할당·메인스레드 시간이 줄었는가» 로만 잰다.
 - 자리: `Assets/Scripts/Game/Render/EdgeIdPass.cs` — `LateUpdate → Sync()` 가 **매 프레임** `EdgePartId.Live` 전부에 `EnsureTwin` 을 부르고, 그 안에서 파츠마다
   ⓐ `t.Target.GetComponent<MeshFilter>()` ⓑ `t.Twin.GetComponent<MeshFilter>()` ⓒ `t.Twin.sharedMaterials`(**게터가 배열을 새로 만든다**)를 한다.
   부하 장면의 렌더러가 705개니 프레임마다 **GetComponent 1410 번 + 배열 705 개**다 — §1 의 «`Update` 에서 `GetComponent` 금지» 와 «프레임당 GC 할당 0» 을 둘 다 정면으로 어긴다.
 - 할 일: 참조를 **한 번만** 잡아 태그가 쥔다(`EdgePartIdTag` 에 `TargetFilter`·`TwinFilter`·`TwinMesh`·`TwinSubs`) · 메시가 **바뀐 프레임에만** 서브메시 수를 다시 세고 재질 배열을 새로 만든다 · 그 밖의 프레임은 아무것도 안 만든다. 정본도 ID 재질을 «생성 시각에» 굳히고 프레임마다 다시 세우지 않는다.
-- 판정: `PerfBudgetTests` 둘(200프레임 예산 · 드로우콜/공유 재질)이 초록 · `EdgeOutlineTests` 의 ID 자 둘이 그대로 초록(선은 안 변한다) · `screens/perf-*.txt` 의 프레임당 관리 할당이 T330 앞 수준으로.
+- 판정: **초록/빨강이 아니라 수로 잰다** — `screens/perf-t50.txt` 의 «렌더 몫»·«프레임당 관리 할당(계수기)» 이 런 503(전부 1,0xxKB 대)보다 내려갔는가 · `EdgeOutlineTests` 의 ID 자 둘이 그대로 초록(선은 안 변한다 — 참조만 캐시했다) · `PerfBudgetTests` 둘이 초록(상한은 C 가 올렸으니 이것만으로는 이 작업의 증거가 아니다).
 - 범위: `Assets/Scripts/Game/Render/EdgeIdPass.cs` · `Assets/Scripts/Game/Render/EdgePartId.cs` · `Assets/Tests/PlayMode/EdgeOutlineTests.cs`.
 
 ### ⓪ 계정 식별표 — «내가 몇 번째 계정인가» 는 여기서 본다 (세션 시작 시 `get_session` 의 이메일/env 로 대조)
