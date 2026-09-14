@@ -68,8 +68,11 @@ namespace Forge.Tests.PlayMode
                 RectTransform srt = shade.rectTransform;
                 Assert.AreEqual(-px, srt.anchoredPosition.y, 0.5f, id + ": 정본 inset 0 -.3rem — 원을 .3rem 내린다");
                 Assert.AreEqual(0f, srt.anchoredPosition.x, 0.5f, id + ": 가로로는 안 움직인다");
-                Assert.AreEqual(Vector2.zero, srt.offsetMin, id + ": 면과 같은 크기(늘림 앵커)");
-                Assert.AreEqual(Vector2.zero, srt.offsetMax, id + ": 면과 같은 크기(늘림 앵커)");
+                // 늘림 앵커에서 anchoredPosition 을 내리면 offsetMin·offsetMax 의 y 가 **둘 다** −px 가 된다(크기는 면 그대로 · 자리만 아래로) — 런 390 실측 (0, −10.92)
+                Assert.AreEqual(-px, srt.offsetMin.y, 0.5f, id + ": 아래 여백 −px(면과 같은 크기 · 아래로만)");
+                Assert.AreEqual(-px, srt.offsetMax.y, 0.5f, id + ": 위 여백 −px(면과 같은 크기 · 아래로만)");
+                Assert.AreEqual(0f, srt.offsetMin.x, 0.5f, id + ": 가로 크기는 면과 같다");
+                Assert.AreEqual(0f, srt.offsetMax.x, 0.5f, id + ": 가로 크기는 면과 같다");
                 Assert.IsFalse(shade.raycastTarget, id + ": 띠는 탭을 안 먹는다");
 
                 // 색 = 면 상태 키에 매인 검정 α(정본 .22/.08/.12) · 선형 색 공간이면 PerceivedDim 환산
