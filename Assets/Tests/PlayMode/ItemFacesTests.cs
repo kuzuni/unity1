@@ -400,8 +400,9 @@ namespace Forge.Tests.PlayMode
                  "T167 진단 — 굽는 동안 재질이 안 물린 조각(유니티는 그 자리를 자홍 255,0,255 로 그린다)\n"
                  + (ItemFaces.MissingMats.Count == 0
                         ? "없음 — 이 판에서 구운 썸네일의 서브메시는 전부 재질이 물렸다.\n"
-                          + "  → 그런데 `screen_player-info.png` 에는 자홍 35픽셀이 네 런째 그대로다(런 359·366·375·390).\n"
-                          + "  → 그러면 범인은 «재질 배열» 이 아니라 **재질의 셰이더·색** 쪽이다. 2회차는 그쪽을 판다.\n"
+                          + "  ✔ 2회차 결론(런 412 · 워커 I): `screen_player-info.png` 의 «자홍 35픽셀» 은 **결함이 아니다**.\n"
+                          + "    gear-meshes.json 의 재질 64(novaCannon 의 반투명 보라 코어)가 c=e=0xAA1CFF(170,28,255) · ei 1.15 라\n"
+                          + "    방출이 (195,32,255) 로 번져 관찰자의 자홍 자(R>180·B>180·G<120)에 걸린 것이다 — 정본 데이터 그대로다.\n"
                         : string.Join("\n", ItemFaces.MissingMats.ToArray()) + "\n")
                  + "센 조각 수: " + ItemFaces.MissingMats.Count + "\n");
 
