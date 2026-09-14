@@ -118,7 +118,15 @@ namespace Forge.Tests.PlayMode
                 yield return null;
                 Texture2D asIs = Shoot(cam, rt);
                 SetActive(feature, false);
-                Debug.Log("[T147] 에셋 값 그대로 찍은 장면 — " + (Uniform(asIs) ? "통째로 단색(" + Mid(asIs) + ") · 에셋 칸이 범인이다" : "장면이 산다(" + Mid(asIs) + ") · 에셋 칸은 멀쩡하다"));
+                string asIsLine = Uniform(asIs) ? "통째로 단색(" + Mid(asIs) + ") · 에셋 칸이 범인이다" : "장면이 산다(" + Mid(asIs) + ") · 에셋 칸은 멀쩡하다";
+                Debug.Log("[T147] 에셋 값 그대로 찍은 장면 — " + asIsLine);
+                // 🚨 `Debug.Log` 는 **초록인 런의 잡 로그에 안 실린다**(요약 스텝이 실패 메시지만 찍는다 · 런 384 실측).
+                //    그래서 같은 줄을 `ui-screens/` 에 텍스트로도 남긴다 — 그 폴더는 CI 가 `screens` 브랜치로 올리므로
+                //    다음 회차가 **초록인 런에서도** 값을 읽을 수 있다(PNG 옆에 글자 한 장).
+                Note("t147-feature.txt",
+                     "T147 진단 — 렌더러에 실제로 실린 값\n" + before +
+                     "\n에셋 값 그대로 찍은 장면: " + asIsLine +
+                     "\n(이 판은 fetchColorBuffer 를 리플렉션으로 켜 놓고 판정한다 · 화면 " + Size + "px · 팽창 " + Shader.GetGlobalFloat(EdgeOutlineHost.DilateProp) + ")\n");
                 try { GallerySheet.Save(asIs, "screen_t147-edge-asis"); } catch (System.Exception e) { Debug.LogWarning("[T147] 진단 그림 저장 실패: " + e.Message); }
                 Object.DestroyImmediate(asIs);
 
@@ -206,6 +214,18 @@ namespace Forge.Tests.PlayMode
             return null;
         }
 
+
+        /// <summary>글자 한 장을 촬영 폴더에 남긴다 — CI 가 `screens` 로 올리므로 **초록인 런에서도** 다음 회차가 읽는다.</summary>
+        static void Note(string file, string text)
+        {
+            try
+            {
+                string dir = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), GallerySheet.OutDir);
+                System.IO.Directory.CreateDirectory(dir);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(dir, file), text);
+            }
+            catch (System.Exception e) { Debug.LogWarning("[T147] 글자 남기기 실패(단언은 계속): " + e.Message); }
+        }
 
         /// <summary>렌더러 에셋에 **실제로 실린** 값을 한 줄로 — 손으로 쓴 YAML 이 그대로 들어갔는지 보는 자리.</summary>
         static string Describe(object feature)
