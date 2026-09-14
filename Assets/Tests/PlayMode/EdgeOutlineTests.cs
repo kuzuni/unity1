@@ -68,7 +68,11 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 깊이_계단에_검정_띠가_생기고_off_프레임엔_없다()
         {
             if (NoGraphics()) { Assert.Ignore("그래픽 장치가 없다 — 픽셀은 CI 의 유니티 잡이 본다"); yield break; }
-            Assert.IsNotNull(Shader.Find(EdgeOutlineHost.ShaderName), "엣지 셰이더가 없다 — 렌더러 기능이 그릴 것이 없다");
+            Shader sh = Shader.Find(EdgeOutlineHost.ShaderName);
+            Assert.IsNotNull(sh, "엣지 셰이더가 없다 — 렌더러 기능이 그릴 것이 없다");
+            // 🚨 컴파일 에러가 난 셰이더는 `isSupported` 가 false 다. 이 한 줄이 없으면 런 343 처럼
+            //    «검정 화소 0» 이라는 **증상**만 남아 배선을 뒤지게 된다(진짜 원인은 include 경로였다).
+            Assert.IsTrue(sh.isSupported, "엣지 셰이더가 컴파일에 실패했다 — 에디터 로그의 «Shader error in Forge/EdgeOutline» 줄을 보라");
 
             GameObject rig = new GameObject("t147-rig");
             RenderTexture rt = new RenderTexture(Size, Size, 24, RenderTextureFormat.ARGB32);

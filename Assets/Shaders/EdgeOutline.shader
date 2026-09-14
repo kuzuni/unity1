@@ -19,7 +19,9 @@ Shader "Forge/EdgeOutline"
             #pragma fragment Frag
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Blit.hlsl"
+            // 🚨 전체화면 블릿의 `Vert`·`Varyings`·`_BlitTexture` 는 **core 패키지의 Runtime/Utilities** 에 있다 —
+            //    `universal/ShaderLibrary/Blit.hlsl` 은 **없는 경로**다(런 343 실측: «Couldn't open include file»).
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
             float _EdgeOn;        // 판정기의 «off 프레임» — 0 이면 네 항이 통째로 꺼진다(정본 규칙)
@@ -46,8 +48,9 @@ Shader "Forge/EdgeOutline"
 
             half4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 float2 uv = input.texcoord;
-                half4 src = SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp, uv);
+                half4 src = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv);
                 if (_EdgeOn < 0.5) return src;
 
                 float2 texel = _ScreenParams.zw - 1.0;
