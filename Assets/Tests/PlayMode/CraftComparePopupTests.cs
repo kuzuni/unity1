@@ -123,12 +123,15 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(TMPro.TextAlignmentOptions.Center, label.alignment, "정본 `text-align: center` — 치우침은 정렬이 아니라 패딩이 만든다(결정 339)");
             float rem = PopupKit.Rem, pl, pr, pt, pb;
             RibbonArt.Padding(rem, out pl, out pr, out pt, out pb);
-            Vector3[] l = new Vector3[4];
-            label.rectTransform.GetWorldCorners(l);
-            float leftGap = l[0].x - r[0].x, rightGap = r[2].x - l[2].x;
-            Assert.AreEqual(pl, leftGap, 1.5f, "왼쪽 패딩 .5rem");
-            Assert.AreEqual(pr, rightGap, 1.5f, "오른쪽 패딩 1.5rem — «<» 파임 몫이라 왼쪽보다 넓다");
-            Assert.Greater(rightGap, leftGap, "글자 상자가 오른쪽으로 더 좁아 글자가 왼쪽으로 치우쳐 보인다(원작 그대로)");
+            // ⚠ 여백은 **칸 좌표**로 잰다. `GetWorldCorners` 는 캔버스 배율이 실린 월드 값이라(런 398 실측: 기준 px 의 1/4)
+            //    기준 캔버스 px 인 패딩 값과 바로 견주면 배율만큼 어긋난다 — 폭 비(20.3%)처럼 «비» 로 재는 자리와 다르다.
+            RectTransform lt = label.rectTransform;
+            float ribW = RibbonArt.Width(UiKit.RefW);
+            Assert.AreEqual(pl, lt.anchoredPosition.x, 0.5f, "왼쪽 패딩 .5rem(칸 좌표)");
+            Assert.AreEqual(ribW - pl - pr, lt.rect.width, 0.5f, "글자 상자는 양쪽 패딩만큼 좁다");
+            float rightGap = ribW - (lt.anchoredPosition.x + lt.rect.width);
+            Assert.AreEqual(pr, rightGap, 0.5f, "오른쪽 패딩 1.5rem — «<» 파임 몫이라 왼쪽보다 넓다");
+            Assert.Greater(rightGap, pl, "글자 상자가 오른쪽으로 더 좁아 글자가 왼쪽으로 치우쳐 보인다(원작 그대로)");
 
             ForgeCraftPopup.Hide(F);
             yield return null;
