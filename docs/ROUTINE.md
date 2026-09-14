@@ -1411,6 +1411,16 @@
 - 판정: 다음 런 `screen_craft-compare.png` 을 8배로 열어 «오른쪽 «<» 노치 · 아랫변 없음 · 글자 왼쪽» 셋을 눈으로 + PlayMode(리본 폭 = 앱 폭 .203 · 노치 꼭짓점이 폭의 88%) + `ui_score` 의 `craft-compare` 가 안 내린다.
 - 범위: `Assets/Scripts/Game/Ui/ForgeUi.cs`(`Ribbon` · **T122 lock 뒤**) · `Assets/Forge/Resources/` 의 그 폭표 · `Assets/Tests/PlayMode/CraftComparePopupTests.cs`(단언).
 
+### T157 — 부팅 끝자락의 두 호출이 정본과 달리 안 감싸여 있다: 정본이 «두 번 밟았다» 고 적어 둔 함정 (Game·UI · T14·T19 뒤 · T33 11회차가 부팅 차례 대조로 잡음)
+
+- 정본(`main.js` 119~123): `try { UI.restorePendingCraft(); } catch (e) { console.error(…) }` · `try { if (S.autoForgeOn && isUnlocked('autoForge')) UI.startAutoSeq(); } catch (e) { … }`. 바로 위 🚨 주석이 이유를 통째로 적어 뒀다 — «`UI.init()`·`Combat.start()` 와 **같은 이유로** 격리한다(boot-pending-craft-unguarded · 2026-08-20 QA 20차): 이 줄이 `boot()` 안에서 유일하게 안 감싼 위험 호출이었고, `subs` 가 빠진 대기품 한 칸이 여기서 던지면 **아래의 논리 틱·rAF 루프·1초 틱·오토포지 안전망·30초 자동 저장·딥링크가 통째로 등록되지 않았다.** 자동 저장이 안 붙는 게 가장 나쁘다 — 오래된 세이브가 덮어써지지 않아 새로고침해도 영원히 같은 상태로 부팅된다». 그리고 «`restorePendingCraft` 쪽 가드도 같이 올렸지만(`isForgeShaped`), **둘 중 하나만 하면 다음에 다른 필드가 같은 자리에서 터진다** — 이 저장소가 이미 **두 번 밟은** 함정이다».
+- 클론(`ForgeHost.Boot()` 203~204): `RestorePendingCraft(); if (AutoOn) StartAutoSeq();` — **그냥 부른다**. 안쪽 가드 `ForgeSave.IsForgeShaped` 는 **이미 있다**(정본의 둘 중 하나) — 빠진 것은 **바깥 격리**다.
+- 파장은 정본보다 작다(정직하게 적는다): `Boot()` 가 **코루틴**이라 던져도 그 코루틴만 멈추고, `booted = true`·`OnReady()`·자동 저장(`SaveIo` 는 따로 선 MonoBehaviour)은 **앞서 이미 섰다**. 남는 해는 둘 — ⓐ `StartAutoSeq()` 가 안 돌아 **자동 제련이 조용히 안 이어진다**(세이브에 켜져 있었는데도) ⓑ 콘솔 빨강이 떠 §1 «플레이 콘솔 에러 0» 이 깨진다.
+- 무엇을 한다: 두 줄을 각각 `try/catch` 로 감싸고 `Debug.LogWarning` 한 줄로 남긴다(정본처럼 «나머지 부팅은 계속한다»). 정본과 달리 `LogError` 를 쓰면 그 자체가 §1 막이를 깨므로 **Warning** 으로 한다.
+- 판정: PlayMode — 대기품을 일부러 깨뜨린 세이브로 부팅해도 **자동 제련 시퀀스가 선다** + 콘솔 빨강 0.
+- 범위: 위 표의 «범위» 칸 그대로.
+
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. `; echo rc=$?` 를 붙여 돌린다.
@@ -1546,7 +1556,7 @@ node tools/export_data.js --self-test                                         # 
 | `js/prochar.js`(2,526) | 영웅 박스 모델 · 무기 파지 · 애니 | T6 | ✅ |
 | `js/combat.js` · `state.js`(전투 부분) | 전투 틱 · 웨이브 · 보스 · 전투가 `S` 에 쓰는 것(처치·재화·첫 클리어·진행·saveGame·던전 판) | T7 · T8 · T55 | ✅ (T7 · T8 · T55) |
 | `js/scene3d.js`(18,887) · `scene3d-skillfx.js`(1,088) | 3D 세계 전부: 카메라·광원·테마·적 스폰·애니 계약·데미지 숫자·셰이크·파티클·맵·소품·펫 대형·탈것 탑승·스킬 오브젝트·사망 연출·히트 이펙트 | T1(카메라·테마0) · T8 · T9 · T10 · T11 · T12 · T39 · T52 · T54(화면에 아무도 안 선다) · T147(후처리 깊이-엣지 아웃라인) | T1 ✅ · T8 ✅(적 스폰·보행·공격·피격·사망·숫자·셰이크·파티클 · 뺀 연출은 T39 ✅) · T9 ✅(SIMPLE_BG 의 보이는 것 · 소재 T34 · 배경 복원 T35) · T34 ✅ · T38 ✅ · T10 ✅(펫 대형·따라오기·관절 드라이버) · T39 ✅(레갈리아·보스 재질·등장 워닝·디졸브·림·플래시·플레어/스파이크/링/점광/그을음·궤적·블롭·암전) · T11 ✅ · T35 ⬜(SIMPLE_BG 복원 전엔 안 잡는다) · T12 ✅(`scene3d-skillfx.js` 전부 + 스킬 디스패처) · T52 ✅(시전 젖힘 `heroG.rotation.z` — T12·T39 가 뺀 것) · T54 ✅(촬영 PNG 에 영웅·적·펫이 0 — 오브젝트는 서는데 화면에 안 그려진다) · T147 🔄(캐릭터 윤곽선 — 정본 `postEdge` 는 모바일도 켠다 · T33 10회차) |
-| `js/state.js` · `main.js`(저장 시점·부팅) | 세이브 · 마이그레이션 · 오프라인 보상 | T13 | ✅ |
+| `js/state.js` · `main.js`(저장 시점·부팅) | 세이브 · 마이그레이션 · 오프라인 보상 | T13 · T157(부팅 끝자락 두 호출 격리) | ✅ · T157 ⬜ |
 | `js/forge.js` | 대장간 규칙 · 오토 포지 | T14 · T19 | ✅ (T14 · T19) |
 | 장비 8부위 · 페이퍼돌(`prochar.js`·`ui.js` 장비 · `scene3d.js` makeWeapon/makeHelmet/dressMcRig) | 등급·서브스탯·판매가·외형 | T15(규칙·표값) · T37(3D 외형 캡처) · T19 | ✅ (T15 · T37 · T19) |
 | `js/pets.js` | 알·부화·합성·출전 규칙 · 출전 스탯 기여 | T16 · T20 · T10(출전 조형) · T43(스탯 접착) · T79(업그레이드 모달) · T103(업그레이드 층·대비 — 정본대로 있음) | T16 ✅ · T10 ✅ · T20 ✅ · T43 ✅ · T79 ✅ · T103 ✅ |

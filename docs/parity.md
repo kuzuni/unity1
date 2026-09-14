@@ -815,3 +815,39 @@ POLISH.md 를 읽고 «소품·용암 빛이 없다» 를 새 작업으로 등�
 
 ## 이 회차의 판정
 - 새로 빠진 것: **0**. 축 하나를 **영구히** 닫았다(결정 333). T33 은 아직 ✅ 가 아니다.
+
+---
+
+# T33 완주 대조 — **11회차** (2026-09-14 10:3x · 워커 J · sess-1017-32332) — **목록의 마지막 축**
+
+축: 정본 `main.js`(272줄) **부팅 차례·격리·틱·자동 저장** ↔ 클론 `Bootstrap`·`SaveIo`·`Lifecycle`·`ForgeHost`.
+
+## ⓟ `main.js` 계약 전수 — **1건**
+
+| 정본 계약 | 클론 |
+|---|---|
+| 자동 저장 `setInterval(saveGame, 30000)` | `SaveIo.AutosaveIntervalSec = 30f`(주석에 정본 줄 인용) ✅ |
+| `visibilitychange` 저장 · `beforeunload` 저장 | `OnApplicationPause`/`OnApplicationFocus`/`OnApplicationQuit` ✅ |
+| 논리 틱 100ms · 밀린 틱 **최대 5초분** 따라잡기 · 숨은 동안 건너뜀 | `Lifecycle.BackgroundGapMs = 5000`(정본 191행 인용) · `BattleScene` 이 100ms 누적 ✅ |
+| rAF 루프가 **먼저 예약**하고 `update` 를 try/catch(로그는 앞 5회만) | 유니티는 `Update()` 가 프레임을 잡아 구조가 다르다 — 옮길 대상 아님 |
+| 부팅 차례: `loadGame` → ensure 7 → `pendingOffline` 먼저 잡기 → `UI.init` → `Scene3D.init` → `Combat.start` → `Dungeons.restoreRun` → **`League.ensure`(전투력 계산 뒤)** → `renderTopBar` → `warmup` → 오프라인 팝업(경과 ≥60초) → `restorePendingCraft` → 자동 제련 이어가기 | 순서 그대로 있다 ✅ |
+| **격리**: `UI.init`·`Scene3D.init`·`Combat.start`·`Dungeons.restoreRun`·`warmup`·**`restorePendingCraft`·`startAutoSeq`** 를 각각 `try/catch` | **마지막 둘이 안 감싸였다 → T157** |
+
+### 새로 캔 것 — T157
+정본은 그 두 줄 위에 🚨 로 «이 저장소가 이미 **두 번 밟은** 함정» 이라고 적어 뒀다: 대기품 한 칸이 던지면
+**논리 틱·rAF·1초 틱·오토포지 안전망·30초 자동 저장·딥링크가 통째로 등록되지 않는다**. 클론은 안쪽 가드
+(`IsForgeShaped`)는 옮겼는데 **바깥 격리**를 안 옮겼다 — 정본이 «둘 중 하나만 하면 다음에 다른 필드가 같은 자리에서
+터진다» 고 못 박은 바로 그 «둘 중 하나» 다. 파장은 정본보다 작다(코루틴이라 그 코루틴만 멈추고 자동 저장은 따로 선다) —
+남는 해는 **자동 제련이 조용히 안 이어지는 것**과 **콘솔 빨강**이다.
+
+## 이 회차가 얻은 규칙
+> **주석의 🚨 는 옮길 목록이다.** 정본이 «왜 이렇게 썼는지» 를 적어 둔 자리는 그 저장소가 **실제로 밟은 함정**이고,
+> 그 방어는 기능이 아니라서 화면·테스트 어디에도 안 드러난다 — 우리 자들(키프레임·아이콘·문구·세이브 축)이
+> 전부 놓친 갈래가 이것이었다.
+
+## 남은 축
+- **없다.** 5~11회차가 연 축 아홉(`@keyframes`·세이브 필드·`@media`·`index.html` id·토스트 문구·`::before/::after`·`data-*`·`title=`·UI-SPEC·POLISH·`main.js`)이 전부 닫혔다.
+  T33 에 남은 것은 **«§7 열린 칸이 전부 ✅ 가 되는 것»** 뿐이다 — 다음 회차는 새 축을 열 게 아니라 **§7 열린 칸을 세는 회차**다.
+
+## 이 회차의 판정
+- 새로 빠진 것: **하나**(T157). T33 은 아직 ✅ 가 아니다.
