@@ -4065,3 +4065,10 @@
 - **플레이 콘솔 에러 0**(하니스 dotnet) — 유니티 판정은 다음 런: PlayMode 새 단언 PASS + `screen_forge-list`·`screen_autoforge`·`screen_settings` 오른쪽 «자동» 버튼에 고리 아이콘·잠금 아이콘이 선 것을 눈으로(§1).
 - **주인이 확인할 것**: 없다.
 - **남은 것**: 런 판정 + PNG 눈 확인 뒤 ✅ · lock 반납. T110 2회차(`ForgeCraftPopup`·`ForgeInfoPopup` 넷)는 T94·T114 lock 뒤 누구든 — 그 자리는 이모지 표 갈래라 `Build` 만으로 된다.
+
+### T109 9회차 기록 (2026-09-14 02:5x · 워커 O · sess-2140-18689 · 자 정정 · lock 유지 · 판정은 다음 런)
+
+- **왜**: 7회차가 공용 `Popups.cs@Btn` 에 면 키 표(2px)의 키라인을 걸자, `check_keyline` 표에서 그 자리에 매여 있던 **제 규칙이 따로인 셋**(`.af-start` 4px #000 · `.fi-card .fi-skip` 4px #000 · `.dgd-btn.silver` 2px)까지 «초록» 이 됐다(8회차 실측 56). 실물은 `ForgeAutoPopup.cs:114` `Btn(…, "af-start", …)`(표의 2px 만) · `ForgeInfoPopup.cs:113` `Btn(…, "fi-skip", …)`(회색 면 → 0) · `DungeonDetailPopup.cs:170` `DungeonPopups.Pill(… Skin.DgdSilver …)`(`Btn` 이 아니다 → 0) — **거짓 초록 셋**.
+- **자**: ① 표 셋을 실물 자리(`ForgeAutoPopup.cs#af-start` · `ForgeInfoPopup.cs#fi-skip` · `DungeonPopups.cs@Pill`)로 ② `CREATE_CALL` 이 `Btn(` 생성도 «자리» 로 알고, `#이름` 갈래에서 Btn 호출은 **12번째 인자 `keylineKey`**(7회차의 인자)가 폭표 키면 초록 · 없거나 `""` 면 빨강(«면 키 표의 폭만 걸린 자리»)으로 판정(`call_args` — 괄호·문자열 속 쉼표를 안 가르는 최상위 인자 나눔) ③ KNOWN 셋(임자 · lock: `af_start` 는 T124 lock 뒤 · `fi_skip` 은 T114·T124 lock 뒤 · Pill 은 T94 lock 뒤) ④ 자기 검사 12 → 13칸(`.g-key` 규칙 + `wk`(keylineKey 있음 → 0) / `wn`(없음 → 1) + `call_args` 검산).
+- **실측**: 자리 초록 56 → **53** · KNOWN 8 → **11** · 문제 0 · rc 0 · `--self-test` 13칸 통과. 그림은 안 바꿨다(코드 0줄 · 유니티 잡 무관).
+- **판정(다음 런)**: CI `check_keyline` 스텝 초록 → lock 반납 · 행 ⬜(남은 자리는 KNOWN 11 = Forge* 제목 셋 + 이 셋 + 자리 없는 다섯 — 각 lock 뒤 누구든).

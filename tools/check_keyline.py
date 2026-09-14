@@ -70,12 +70,12 @@ TABLE = {
     '.hatch-cell .hatch-time': ['Ui/PetPanel.cs#hatch-time'],
     '.slot-buy-label': ['Ui/PetPanel.cs#slot-buy-label'],
     '.rates-prog span': ['Ui/PetSkillKit.cs@Gauge'],
-    '.af-start': ['Ui/Popups.cs@Btn'],
+    '.af-start': ['Ui/ForgeAutoPopup.cs#af-start'],          # T109 9회차 — 공용 Btn 이 아니라 그 호출부(4px 는 keylineKey 로 넘겨야 한다)
     '.af-title': ['Ui/ForgeAutoPopup.cs#af-title'],
-    '.fi-card .fi-skip': ['Ui/Popups.cs@Btn'],
+    '.fi-card .fi-skip': ['Ui/ForgeInfoPopup.cs#fi-skip'],   # T109 9회차 — 같은 이유(회색 면이라 표에서는 0)
     '.dgd-reward-pill': ['Ui/DungeonDetailPopup.cs'],
     '.dgd-keys': ['Ui/DungeonDetailPopup.cs'],
-    '.dgd-btn.silver': ['Ui/Popups.cs@Btn'],
+    '.dgd-btn.silver': ['Ui/DungeonPopups.cs@Pill'],        # T109 9회차 — 실물은 DungeonDetailPopup 170 의 Pill(Skin.DgdSilver) · Btn 이 아니다
     '.petd-wrap .petd-btn': ['Ui/PetSkillKit.cs@PaperButton'],
     '.petd-wrap .petd-name': ['Ui/PetPanel.cs#petd-name', 'Ui/MountSheet.cs#petd-name'],
     '.petd-wrap .petd-tile .sk-lv': ['Ui/PetPanel.cs#sk-lv'],
@@ -105,10 +105,37 @@ KNOWN = {
     'Ui/PetPanel.cs#sk-lv': 'T109 ⓑ — .petd-tile .sk-lv 2.5px: 펫 미니 타일의 Lv 글자가 클론에 없다(PetPanel 에 lv 이름 글자 0) · 세우면서 키라인',
     'Ui/DungeonSheet.cs#rw-amt': 'T109 ⓑ — .rw-amt 4px #2a2018: 보상 날림의 획득량 글자가 클론에 없다(DungeonSheet 는 아이콘만 날린다) · 세우면서 키라인',
     'Ui/DungeonSheet.cs#rw-tick': 'T109 ⓑ — .rw-tick 3.5px #2a2018: 보상 날림의 체크 글자가 클론에 없다 · 세우면서 키라인',
+    # T109 9회차 — 7회차가 공용 Popups.cs@Btn 에 키라인(면 키 표 · 2px)을 걸자 이 셋이 «초록» 으로 보였다. 셋은 제 규칙이 따로라 실물 자리로 옮기고 임자를 적는다.
+    'Ui/ForgeAutoPopup.cs#af-start': 'T109 ⓑ — .af-start 4px #000(정본 5015): 공용 Btn 표(btn_face)로 2px 만 걸린다 · 호출부가 keylineKey "af_start" 를 넘겨야 한다 · T124 lock 뒤',
+    'Ui/ForgeInfoPopup.cs#fi-skip': 'T109 ⓑ — .fi-card .fi-skip 4px #000(정본 5150): 회색 면이라 표에서 0 · 호출부가 keylineKey "fi_skip" 을 넘겨야 한다 · T114·T124 lock 뒤',
+    'Ui/DungeonPopups.cs@Pill': 'T109 ⓑ — .dgd-btn.silver 2px var(--pp-line)(정본 5363): 실물은 DungeonDetailPopup 170 의 Pill(Skin.DgdSilver) · 그 메서드에 Ring · DungeonPopups.cs 는 T94 lock 뒤',
 }
 
 KEYLINE_CALL = re.compile(r'\b(?:UiKit\.Outline|UiKit\.OutlinePx|PetSkillKit\.Stroked|PopupKit\.Ring|Stroked|Ring)\s*\(')
-CREATE_CALL = re.compile(r'\.(Text|Label|Bold|Stroked|IconTextRow)\s*\(\s*[^,()]+,\s*"([^"]+)"')
+CREATE_CALL = re.compile(r'\.(Text|Label|Bold|Stroked|IconTextRow|Btn)\s*\(\s*[^,()]+,\s*"([^"]+)"')   # Btn — T109 9회차(공용 버튼의 호출부도 «자리» 다)
+BTN_KEY_ARG = 12   # PopupKit.Btn 의 keylineKey 자리(1부터) — null=면 키 표 · ""=끄기 · 그 밖=폭표 키(T109 7회차)
+
+
+def call_args(src, start):
+    """`start`(여는 괄호 자리)부터 짝이 맞는 괄호까지의 **최상위 인자** 목록 — 괄호·문자열 속 쉼표는 안 가른다."""
+    depth = 0; cur = ''; out = []; i = start; in_str = False
+    while i < len(src):
+        c = src[i]
+        if in_str:
+            cur += c
+            if c == '\\': cur += src[i + 1]; i += 1
+            elif c == '"': in_str = False
+        elif c == '"': in_str = True; cur += c
+        elif c in '([{': depth += 1; cur += c if depth > 1 else ''
+        elif c in ')]}':
+            depth -= 1
+            if depth == 0: out.append(cur.strip()); return out
+            cur += c
+        elif c == ',' and depth == 1: out.append(cur.strip()); cur = ''
+        else: cur += c
+        i += 1
+    return out
+
 ASSIGN_TAIL = re.compile(r'([\w\[\]\.]+)\s*=\s*(?:[\w!.()\[\]]+\s*\?\s*)?[\w.]*$')  # «nm = UiKit» · «st = on ? PetSkillKit» 꼬리
 STROKE_DECL = re.compile(r'-webkit-text-stroke(?:-width)?\s*:\s*([^;]+);')
 
@@ -184,6 +211,13 @@ def check_target(game_dir, target):
         found = True
         if m.group(1) == 'Stroked':
             return 'ok', '"%s" 를 Stroked 로 만든다' % tail
+        if m.group(1) == 'Btn':
+            # T109 9회차 — 공용 PopupKit.Btn 은 제 안에서 라벨을 세우고 표(btn_face)대로 키라인을 건다. 제 규칙이 따로인 버튼은
+            # 12번째 인자 keylineKey 로 폭표 키를 넘겨야 «그 자리에 그 규칙» 이다 — 인자가 없거나 "" 면 이 자리의 규칙은 안 걸린 것.
+            args = call_args(src, src.find('(', m.start()))
+            if len(args) >= BTN_KEY_ARG and re.match(r'^"[a-z][a-z0-9_]*"$', args[BTN_KEY_ARG - 1]):
+                return 'ok', '"%s" → Btn(… keylineKey %s)' % (tail, args[BTN_KEY_ARG - 1])
+            return 'missing', '"%s" 는 공용 Btn 호출인데 keylineKey(12번째 인자)가 없다 — 면 키 표의 폭만 걸린다' % tail
         head = src[max(0, m.start() - 160):m.start()].replace('\n', ' ')
         a = ASSIGN_TAIL.search(head)
         if a:
@@ -254,6 +288,7 @@ def self_test():
 .d-str { -webkit-text-stroke: 3px #000; }
 .e-file { -webkit-text-stroke: 1px #000; }
 .f-method { -webkit-text-stroke: 4px #000; }
+.g-key { -webkit-text-stroke: 4px #000; }
 """
     cs = """
 namespace X {
@@ -285,6 +320,8 @@ namespace X {
                 UiKit.OutlinePx(piece, "pp_line", 2f);
             }
             RectTransform bare = UiKit.IconTextRow(p, "rowbare", TextKind.Sub, "r", "ink");
+            Button wk = PopupKit.Btn(p, "wk", "l", "f", "d", () => Go(a, b), 1f, 2f, "ink", TextKind.Button, false, "af_start");
+            Button wn = PopupKit.Btn(p, "wn", "l", "f", "d", null, 1f, 2f, "ink");
             foreach (TextMeshProUGUI piece in UiKit.RowTexts(bare)) piece.fontStyle = FontStyles.Bold;
         }
     }
@@ -307,7 +344,7 @@ namespace X {
 
     base = {
         '.a-name': ['Ui/Sheet.cs#name'], '.b-plain': ['Ui/Sheet.cs#plain'], '.c-btn': '—끄는 규칙',
-        '.d-str': ['Ui/Sheet.cs#str'], '.e-file': ['Ui/Sheet.cs'], '.f-method': ['Ui/Sheet.cs@Btn'],
+        '.d-str': ['Ui/Sheet.cs#str'], '.e-file': ['Ui/Sheet.cs'], '.f-method': ['Ui/Sheet.cs@Btn'], '.g-key': ['Ui/Sheet.cs#wk'],
     }
     # 1 다 있으면 0 (plain 은 KNOWN)
     expect('전부 초록', base, {'Ui/Sheet.cs#plain': '임자'}, 0)
@@ -336,13 +373,18 @@ namespace X {
     expect('RowTexts 조각 키라인 → 0', t, {'Ui/Sheet.cs#plain': '임자'}, 0)
     t = dict(base); t['.e-file'] = ['Ui/Sheet.cs#rowbare']
     expect('RowTexts 인데 키라인 없음 → 1', t, {'Ui/Sheet.cs#plain': '임자'}, 1)
+    # 8b T109 9회차 — 공용 Btn 호출부: 12번째 인자 keylineKey 가 있으면 초록, 없으면 빨강(면 키 표의 폭만 걸린 자리)
+    t = dict(base); t['.g-key'] = ['Ui/Sheet.cs#wn']
+    expect('Btn 호출인데 keylineKey 없음 → 1', t, {'Ui/Sheet.cs#plain': '임자'}, 1)
+    if call_args('f(a, "x, y", g(1, 2), [3, 4], h)', 1) != ['a', '"x, y"', 'g(1, 2)', '[3, 4]', 'h']:
+        fails.append('call_args: %r' % call_args('f(a, "x, y", g(1, 2), [3, 4], h)', 1))
     # 9 KNOWN 인데 이제 있다 → 알리기만(rc 0)
     lines = expect('KNOWN 해소 알림', base, {'Ui/Sheet.cs#plain': '임자', 'Ui/Sheet.cs#name': '옛 임자'}, 0)
     if not any('KNOWN 인데 이제 키라인이 있다' in l for l in lines):
         fails.append('KNOWN 해소 알림이 안 나온다')
     # 10 파서: 주석 속 중괄호를 무시하고 줄 번호를 지킨다
     rules = parse_rules(css)
-    if [r[1] for r in rules] != ['.a-name', '.b-plain', '.c-btn', '.d-str', '.e-file', '.f-method'] or rules[0][0] != 3:
+    if [r[1] for r in rules] != ['.a-name', '.b-plain', '.c-btn', '.d-str', '.e-file', '.f-method', '.g-key'] or rules[0][0] != 3:
         fails.append('파서: %r' % rules)
     # 11 정본 CSS 가 없으면 2
     if run('/nonexistent/style.css', '.', base, {}, out=lambda s: None) != 2:
