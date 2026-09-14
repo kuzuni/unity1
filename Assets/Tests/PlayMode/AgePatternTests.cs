@@ -368,6 +368,7 @@ namespace Forge.Tests.PlayMode
         /// <summary>UI 를 한 장 그린다(T135 `DamageVignetteTests.Capture` 와 같은 길) — 눈 확인용 · 실패해도 판정을 안 흔든다.</summary>
         static void Capture(string saveAs)
         {
+            CardPop.SettleAll();   // T135 ⓑ — 판정 PNG 는 카드 팝이 끝난 모습이어야 한다(T128 ⓒ 와 같은 갈래)
             UiRoot root = UiRoot.Instance;
             Canvas canvas = root.Canvas;
             RenderMode prevMode = canvas.renderMode;

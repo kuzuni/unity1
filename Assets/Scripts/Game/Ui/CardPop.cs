@@ -40,6 +40,29 @@ namespace Forge.Game.Ui
             return c != null ? c : popupRoot.gameObject.AddComponent<CardPop>();
         }
 
+        /// <summary>
+        /// 돌고 있는 팝을 전부 **지금** 끝낸다(카드를 원래 모습으로 · 러너 제거 · 캔버스 갱신). 촬영·픽셀 자가 찍기 전에 부른다 —
+        /// 정지 촬영이 팝 도중(반투명·축소)을 찍으면 그림이 정본과 어긋난다(런 341 · T28 38회차 · T128 ⓒ). 게임 흐름에서는 안 부른다.
+        /// </summary>
+        public static void SettleAll()
+        {
+            foreach (CardPop c in FindObjectsByType<CardPop>(FindObjectsInactive.Include, FindObjectsSortMode.None)) c.Finish();
+            Canvas.ForceUpdateCanvases();
+        }
+
+        bool finished;
+
+        void Finish()
+        {
+            if (finished) return;
+            finished = true;
+            Transform t = transform.Find(CardName);
+            if (Card == null && t != null) Card = t as RectTransform;
+            Restore();
+            Card = null;
+            Destroy(this);
+        }
+
         /// <summary>벽시계 경과(ms) — 시험이 같은 시각의 기대값을 셈한다.</summary>
         public double ElapsedMs { get; private set; }
         /// <summary>지금 값을 건 카드(없으면 null).</summary>
@@ -48,15 +71,17 @@ namespace Forge.Game.Ui
 
         void Update()
         {
+            if (finished) return;
             ElapsedMs += Time.unscaledDeltaTime * 1000.0;
             Apply();
         }
 
         // 카드는 Show 뒤 같은 프레임에 호출부가 세운다 — 렌더 직전에 한 번 더 걸어 첫 프레임이 «다 큰 카드» 로 찍히지 않게.
-        void LateUpdate() { Apply(); }
+        void LateUpdate() { if (!finished) Apply(); }
 
         void Apply()
         {
+            if (finished) return;
             CardPopSpec s = Spec;
             Transform t = transform.Find(CardName);
             RectTransform card = t as RectTransform;
@@ -66,7 +91,7 @@ namespace Forge.Game.Ui
                 Card = card;
             }
             if (Card == null) { if (s.Done(ElapsedMs)) Destroy(this); return; }
-            if (s.Done(ElapsedMs)) { Restore(); Card = null; Destroy(this); return; }
+            if (s.Done(ElapsedMs)) { Finish(); return; }
             if (mine == null)
             {
                 mine = Card.GetComponent<CanvasGroup>();

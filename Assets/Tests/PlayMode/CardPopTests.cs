@@ -81,5 +81,28 @@ namespace Forge.Tests.PlayMode
             L.Hide(p2);
             yield return null;
         }
+
+        /// <summary>촬영·픽셀 자가 쓰는 길 — 팝을 지금 끝내면 같은 프레임에 카드가 원래 모습이고 러너·CanvasGroup 이 걷힌다(T128 ⓒ · 런 341).</summary>
+        [UnityTest]
+        public IEnumerator SettleAll_은_팝을_지금_끝내_카드를_원래_모습으로_돌린다()
+        {
+            yield return Boot();
+            PopupLayer L = PopupLayer.Instance;
+            Popup p = L.ShowStub("정착 시험", "설명");
+            yield return null;
+            RectTransform card = (RectTransform)p.Root.Find("card");
+            Assert.Less(card.localScale.x, 1f, "정착 전엔 도는 중");
+            CardPop.SettleAll();
+            Assert.AreEqual(1f, card.localScale.x, 1e-6f, "정착 즉시 scale 1");
+            Assert.AreEqual(1f, card.localScale.y, 1e-6f);
+            CanvasGroup cg = card.GetComponent<CanvasGroup>();
+            Assert.IsTrue(cg == null || cg.alpha >= 1f - 1e-6f, "α 1(CanvasGroup 은 프레임 끝에 걷힌다)");
+            yield return null;
+            Assert.IsNull(p.Root.GetComponent<CardPop>(), "러너는 걷힌다");
+            Assert.IsNull(card.GetComponent<CanvasGroup>(), "내가 더한 CanvasGroup 은 걷힌다");
+            Assert.AreEqual(1f, card.localScale.x, 1e-6f, "다음 프레임에도 원래 모습(러너가 되살리지 않는다)");
+            L.Hide(p);
+            yield return null;
+        }
     }
 }

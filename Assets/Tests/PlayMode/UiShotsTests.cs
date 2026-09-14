@@ -868,6 +868,7 @@ namespace Forge.Tests.PlayMode
                     try { s.Open(); }
                     catch (Exception e) { failed.Add(s.Name + ": 여는 중 터졌다 — " + e.Message); Trace("  OPENFAIL " + e.Message); threw = true; }
                 }
+                CardPop.SettleAll();   // T135 ⓑ·T128 ⓒ — 정지 촬영은 카드 팝(.25s)이 끝난 모습을 찍는다(런 341 은 반투명·축소 중이 찍혔다)
                 yield return null;
                 yield return null;
                 if (threw) continue;
