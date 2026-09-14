@@ -488,6 +488,17 @@
 | T86 | WebGL 배포물이 부팅에서 죽는다: `BattleScene.Boot` 가 제가 읽은 GameData 를 `Attach` 에 안 넘겨 `SaveIo.Data`(WebGL 은 비동기 · 그 순간 null)로 폴백 → «GameData 가 없다»(런 140 첫 WebGL 스모크 빨강) + 스모크가 닫기 부산물 ERR_ABORTED 를 빨강으로 센다 | ✅ 완료 | sess-0524-8791 / 워커 N | `Assets/Scripts/Game/Battle/BattleScene.cs`(Boot 의 Attach 인자 한 줄) · `tools/webgl_smoke.js`(닫기 뒤 requestfailed 무시) | §0-6 임자 없는 빨강(schedule 런 140 · T26 ✅ 인데 첫 실제 스모크) · 워커 N 등재 · 에디터·CI 테스트는 SaveIo 가 동기 읽기라 못 잡는 WebGL 전용 · 판정은 수동 build 런의 «WebGL 배포 스모크» 초록 · **✅ 런 223**(17:17 수동 build · a43f87a): unity-test 초록(PlayMode 114/114) · WebGL unity-builder 27분 초록 · «WebGL 배포 스모크» **초록**(unity-ready · 11.8초 · 빨강 0 · 노랑 4 = .unityweb ERR_ABORTED 폴백 + 글꼴 두부 2) · gh-pages 배포 스텝 success(2a70c55 · 20 파일) · Android 초록(12분 · APK Artifact) |
 | T79 | 펫 업그레이드 모달이 화면을 안 덮는다(원작은 HUD·탭바를 가리고 ✕ 하나 · 클론은 시트 위에 떠 ✕ 둘) + 머리 구성이 줄었다 | ✅ 완료 | sess-1920-15773 / 워커 B | `Assets/Scripts/Game/Ui/PetUpgrade*` · `Assets/Scripts/Game/Ui/PetSkillModal.cs`(딤 한 줄) · `Assets/Scripts/Game/Ui/UiKit.cs`(`PerceivedDim` 한 함수) · `Assets/Tests/PlayMode/PetUiTests.cs` | T58 뒤 · T28 8회차 등재(런 128 `screen_pet-upgrade.png` 1.7/10 ↔ `shot-042503`) |
 
+### T167 1회차 기록 — 자홍 조각의 «이름을 대게» 만들었다(아직 안 고친다) (2026-09-14 12:1x~12:4x · 워커 I · sess-2203-14027 · lock 유지)
+
+- **선점 전 점검 셋**(결정 305·341): `task_state T167` rc 0 · `check_claim_scope` 겹침 0 · **`git log -2` 로 세 파일에 런 390 뒤 수리 커밋이 없음**을 확인하고 잡았다.
+- **내 눈으로 다시 셌다**: 런 390 `screen_player-info.png` 에서 자홍(R>180·B>180·G<120) **35픽셀** · 자리는 `(261~275, 394~395)` = 장비 격자 투구 줄. 색이 `(255,99,255)` 계열 — 유니티의 «없는 재질» 자홍에 조명이 묻은 값이다. 등재(T28 40·42·43회차)와 같다.
+- **이 회차에 안 고친 이유**: 굽는 자리는 유니티 안(PlayMode)이라 이 컨테이너에서 못 돌린다. 그래서 **먼저 이름을 대게** 했다 — 뿌리가 «재질 배열» 인지 «재질의 셰이더» 인지부터 갈라야 2회차가 한 번에 닫는다.
+- **넣은 것 둘**:
+  - `ItemFaces.CheckMaterials`(굽기 직전) — 모델의 `MeshRenderer` 마다 ⓐ 서브메시 수 > 재질 수 ⓑ 재질 null ⓒ 재질의 셰이더 null(T126 갈래) 셋을 재 **경고 + `ItemFaces.MissingMats` 에 한 줄**. 경고라 CI 를 빨갛게 안 만든다(막이는 에러만 본다).
+  - `ItemFacesTests` 끝에서 그 목록을 **`ui-screens/t167-itemfaces.txt`** 로 남긴다 — `Debug.LogWarning` 은 **초록인 런의 잡 로그에 안 실리므로**(T147 실측) 글자로 남겨야 다음 회차가 읽는다. 목록이 비면 그 파일이 «그러면 범인은 재질 배열이 아니라 셰이더·색 쪽이다 — 2회차는 그쪽을 판다» 고 스스로 적는다.
+- **게이트**: `dotnet build` 0 error · `dotnet test` **641/641** · §3 자 16종 전부 rc 0.
+- **2회차(내가 잇는다 · lock 유지)**: 다음 런의 `screens` 에서 `t167-itemfaces.txt` 를 읽어 ⓐ 목록이 있으면 그 조각의 재질 자리(T37 시대·등급 표)를 고치고 ⓑ 비어 있으면 `GearMaterials.Make` 쪽(셰이더·색)을 판다. 그 뒤 «구운 스프라이트에 자홍 0» 단언을 세운다(§2 판정).
+
 ### T149 ✅ 완료 기록 — 런 350 에서 둘 다 PASS · lock 반납 (2026-09-14 08:0x · 워커 I · sess-2203-14027)
 
 - **판정**: 런 **350**(`2c24001`)에서 `GearDetailTests.장비_상세_카드는…` · `CraftComparePopupTests.비교_카드는…` **둘 다 PASS**. 팝이 끝난 뒤에 재니 폭이 정본 값(70% · 68.8%)으로 돌아왔다.

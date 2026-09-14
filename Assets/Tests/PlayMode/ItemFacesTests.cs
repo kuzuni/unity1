@@ -21,6 +21,18 @@ namespace Forge.Tests.PlayMode
     /// </summary>
     public class ItemFacesTests
     {
+
+        /// <summary>T167 — 진단 한 줄을 `ui-screens/` 에 남긴다(CI 가 `screens` 브랜치로 올린다 · T147 과 같은 길).</summary>
+        static void Note(string file, string text)
+        {
+            try
+            {
+                string dir = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), GallerySheet.OutDir);
+                System.IO.Directory.CreateDirectory(dir);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(dir, file), text);
+            }
+            catch (System.Exception e) { Debug.LogWarning("[T167] 글자 남기기 실패(단언은 계속): " + e.Message); }
+        }
         private static IEnumerator Boot()
         {
             try { if (System.IO.File.Exists(SaveIo.SavePath)) System.IO.File.Delete(SaveIo.SavePath); } catch (System.Exception) { }
@@ -380,6 +392,19 @@ namespace Forge.Tests.PlayMode
             Assert.AreSame(ItemFaces.Get(d, it), ci.sprite, "리빌 카드 = 그 장비의 구운 썸네일");
             float t = 0f;
             while (!done && t < 3f) { t += Time.unscaledDeltaTime; yield return null; }
+
+            // T167 — 굽는 동안 «재질이 안 물린 조각» 이 있었나. 이 자는 그것을 **아직 막지 않는다**(막이는 2회차):
+            // 지금은 이름을 밖으로 내보내는 것이 일이다. `Debug.LogWarning` 은 초록인 런의 잡 로그에 안 실리므로(T147 실측)
+            // `ui-screens/` 에 글자로도 남긴다 — 그 폴더는 CI 가 `screens` 브랜치로 올려 다음 회차가 초록인 런에서도 읽는다.
+            Note("t167-itemfaces.txt",
+                 "T167 진단 — 굽는 동안 재질이 안 물린 조각(유니티는 그 자리를 자홍 255,0,255 로 그린다)\n"
+                 + (ItemFaces.MissingMats.Count == 0
+                        ? "없음 — 이 판에서 구운 썸네일의 서브메시는 전부 재질이 물렸다.\n"
+                          + "  → 그런데 `screen_player-info.png` 에는 자홍 35픽셀이 네 런째 그대로다(런 359·366·375·390).\n"
+                          + "  → 그러면 범인은 «재질 배열» 이 아니라 **재질의 셰이더·색** 쪽이다. 2회차는 그쪽을 판다.\n"
+                        : string.Join("\n", ItemFaces.MissingMats.ToArray()) + "\n")
+                 + "센 조각 수: " + ItemFaces.MissingMats.Count + "\n");
+
             log.AssertNoRed();
             log.Dispose();
         }

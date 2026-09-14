@@ -224,6 +224,7 @@ namespace Forge.Game.Ui
             {
                 model = BuildModel(gm, defs, it);
                 if (model == null) return null;
+                CheckMaterials(model, k);
                 model.transform.SetParent(stage.transform, false);
                 model.transform.localPosition = Vector3.zero;
                 if (it.Slot == "armor") model.transform.localRotation = Quaternion.AngleAxis(-ItemFacesStyle.L("armor_yaw") * Mathf.Rad2Deg, Vector3.up);
@@ -294,6 +295,39 @@ namespace Forge.Game.Ui
                 return rig.gameObject;
             }
             return null;
+        }
+
+        /// <summary>
+        /// T167 — **재질이 안 물린 조각을 드러낸다.** 유니티는 서브메시에 재질이 없거나(배열이 짧다) 재질이 null 이면 그 조각을
+        /// «없는 재질» 자홍(255,0,255)으로 그린다 — 굽는 쪽은 아무 말도 안 하고, `ItemFacesTests` 는 «썸네일이 서로 다르다» 만 물어
+        /// 분홍으로 구워져도 초록이다(런 359·366·375·390 에서 `screen_player-info.png` 에 같은 35픽셀 · T28 40·42·43회차 실측).
+        /// 여기서는 **고치지 않고 이름을 댄다**: 다음 런 콘솔이 «어느 부위·어느 조각·몇 번째 서브메시» 인지 말하게 해
+        /// 2회차가 그 자리(정본 시대·등급 재질 표 · T37)를 바로 열 수 있게 한다. 경고라 CI 를 빨갛게 만들지 않는다(에러만 막이에 걸린다).
+        /// <see cref="MissingMats"/> 는 자가 읽을 수 있게 남긴 자국이다.
+        /// </summary>
+        public static readonly List<string> MissingMats = new List<string>();
+
+        static void CheckMaterials(GameObject model, string k)
+        {
+            foreach (MeshRenderer mr in model.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                MeshFilter mf = mr.GetComponent<MeshFilter>();
+                int subs = mf != null && mf.sharedMesh != null ? mf.sharedMesh.subMeshCount : 0;
+                Material[] mats = mr.sharedMaterials;
+                int have = mats != null ? mats.Length : 0;
+                if (subs > have) Note(k, mr.name + ": 서브메시 " + subs + " > 재질 " + have + " — 남는 " + (subs - have) + "칸이 자홍으로 그려진다");
+                for (int i = 0; i < have; i++)
+                    if (mats[i] == null) Note(k, mr.name + ": 서브메시 " + i + " 의 재질이 null");
+                    else if (mats[i].shader == null) Note(k, mr.name + ": 서브메시 " + i + " 재질 «" + mats[i].name + "» 의 셰이더가 null(빌드에 안 실렸다 — T126 갈래)");
+            }
+        }
+
+        static void Note(string k, string why)
+        {
+            string line = k + " · " + why;
+            if (MissingMats.Contains(line)) return;
+            MissingMats.Add(line);
+            Debug.LogWarning("[ItemFaces] 재질이 안 물린 조각 — " + line);
         }
 
         static GameObject Node(string name, GearBuilt built)
