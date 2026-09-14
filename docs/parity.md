@@ -527,3 +527,45 @@ T30 이 24종을 전부 합성해 놓았지만 `Assets/Scripts` 어디에서도 
 
 ## 이 회차의 판정
 - 새로 빠진 것: **열 종 · 작업 둘**(T134 · T135). T33 은 아직 ✅ 가 아니다.
+
+# T33 완주 대조 — **6회차** (2026-09-14 01:2x · 워커 F · sess-0127-63118)
+
+5회차(워커 J)가 «다음 회차가 열 축» 으로 셋을 적어 뒀다 — `index.html` id·data-* · `state.js` 세이브 필드 ·
+`css @media`. 이 회차는 앞의 둘을 열었다.
+
+## ⓖ `state.js` 세이브 필드 ↔ 클론 저장 트리 — **빠진 것 0 · 축을 닫는다**
+
+- 뽑는 법: `defaultState()` 의 최상위 키 **55개** + 고정 형태 레코드 다섯(`settingsDummy`·`autoForge`·
+  `lineAscend`·`summonMult`·`equipment`)의 안쪽 키 24개 → 클론 `Assets/Scripts/**/*.cs` 전수 + 데이터 JSON.
+- 결과: **55/55 양방향 일치**. 중첩 24개도 전부 있다(`equipment` 여덟 부위는 코드가 아니라
+  `gamedata.json` 의 `SLOTS` 로 온다 — §1 «수치는 코드에 박지 않는다» 대로다).
+- 상수 선언만 있고 안 쓰는 필드도 **0개**였다(키 상수 이름으로 다시 세어 확인).
+- **왜 이 축은 앞으로 다시 안 봐도 되는가**: 클론의 기본 세이브는 손으로 적은 표가 아니라
+  `tools/export_data.js` 가 정본에서 뽑은 `StreamingAssets/data/state.json` 의 `DEFAULT_STATE` 다.
+  그 파일은 매 커밋 `check_data_sync.sh` 가 정본과 바이트로 대조한다 — **구조적으로 어긋날 수 없다.**
+  다음 회차는 이 축에 시간을 쓰지 말 것.
+
+## ⓗ `index.html` id 54개 ↔ 클론 — **셋을 캤다**
+
+- 뽑는 법: `id="…"` 전수 54 → kebab·camel·Pascal·snake 로 펴서 `Assets/**` 전수 대조 → 자취 0 이 23.
+- ⚠ 23 을 그대로 «빠졌다» 로 적으면 3회차 `stormCrackle` 오판을 되풀이한다. DOM id 는 SFX·IconGen 키와
+  달리 **이름이 계약이 아니다**(`chat-modal` = `ChatScreen`, `shop-modal` = `ShopSheet` …). 그래서
+  이름이 아니라 **기능**으로 하나씩 물었다.
+- 기능까지 없는 것 셋 → **T138**(`loot-feed` 전리품 레인 + `toasts-combat` 전투 토스트 레인) ·
+  **T139**(`waypoint-mystery`·`waypoint-pass` 이정표 버튼 둘).
+- **판정 보류 하나**: `boot-loading`(모루+망치 부팅 오버레이 · 진행 막대 · «불 지피는 중…»).
+  유니티 빌드는 제 로딩 화면이 따로 있어 «같은 자리» 가 아니다 — 옮길지 말지는 주인 조형 판단이라
+  등재하지 않고 여기 적어 둔다. 나머지 19 는 이름만 다르고 기능이 있다(눈으로 하나씩 확인).
+
+## ⓘ 덤으로 캔 것 — 자 자신의 구멍 (**T137**)
+
+`index.html` 축을 훑다 `Core/Battle/Battle.cs` 의 전투 문구가 두부 막이에 한 번도 안 걸린 것을 봤다.
+`check_text_glyphs.SCAN_DIR` 이 `Assets/Scripts/Game` 하나라 **`Assets/Scripts/Core` 2,388줄이 눈 밖**이고,
+거기 **진짜 두부 둘**(`🚪` Dungeons.cs:237 · `🔥` Battle.cs:578 — 글꼴에도 아이콘 표에도 없다)이
+초록으로 지나가고 있었다. 아이콘 표 글자도 Core 에 14종 22자리가 있어 T107 의 «아이콘 길» 판정이
+그 자리에는 한 번도 안 걸렸다.
+
+## 이 회차의 판정
+- 새로 빠진 것: **작업 셋**(T137 · T138 · T139) · 축 하나를 **닫았다**(세이브 필드).
+- T33 은 아직 ✅ 가 아니다. 7회차가 열 축: `css @media`(반응형 분기) ↔ 클론 SafeArea·비율 갈래 ·
+  `ui.js` 공개 함수 97개 · 원작 화면 30장.
