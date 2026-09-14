@@ -83,9 +83,11 @@ namespace Forge.Game.Ui
             float cgap = DungeonPopups.RemL("dgc_cells_gap_rem");
             float rowW = cells.Count * cellW + Mathf.Max(0, cells.Count - 1) * cgap;
             float cx = (cw - rowW) * 0.5f;
+            var cellRts = new List<RectTransform>();
             for (int i = 0; i < cells.Count; i++)
             {
                 RectTransform cell = UiKit.Box(gold, "cell-" + cells[i].Key);
+                cellRts.Add(cell);
                 UiKit.Place(cell, cx + i * (cellW + cgap), y, cellW, cellH);
                 DungeonPopups.Bordered(cell, "bg", "dgclear_cell", DungeonPopups.RemL("dgc_cell_radius_rem"), DungeonPopups.Line2, "dgclear_cell_border");
                 Image img = UiKit.Icon(cell, "ico", cells[i].Key);
@@ -94,6 +96,9 @@ namespace Forge.Game.Ui
                 UiKit.Place(amt.rectTransform, 0f, cellPad + ico + DungeonPopups.Rem(0.3f), cellW, DungeonPopups.LineH(TextKind.Sub));
             }
             y += cellH + gap;
+            // T335 ⓐ — 정본 style.css 5389~5391 `.dgc-cell { animation: dgc-pop .38s cubic-bezier(.34,1.56,.64,1) backwards }` + nth-child .09s 씩:
+            //           칸이 통통 튀며 순서대로 등장. 수치는 DungeonFxUi.json.
+            DungeonClearFx.BeginPop(card, cellRts);
 
             ConfirmButton = DungeonPopups.Pill(gold, "confirm", "보상 수령", DungeonPopups.Skin.Blue, TextKind.Button, Confirm);
             UiKit.Place(DungeonPopups.Root(ConfirmButton), pad, y, cw - pad * 2f, btnH);
@@ -109,12 +114,25 @@ namespace Forge.Game.Ui
             DungeonRewards r = rewards;
             // 정본 ui.js 4720 — [보상 수령]에서 터져 상단 재화 바로 흡수 · Close 전에(시작점은 호출 시점에 잡힌다) · T134 3회차
             RewardBurst.Play(RewardBurst.Rewards(r), ConfirmButton != null ? ConfirmButton.GetComponent<RectTransform>() : null);
-            Close();
+            Leave();
             if (DungeonUiHost.Instance != null) DungeonUiHost.Instance.RenderTopBar();
             var h = Confirmed;
             if (h != null) h(r);
         }
 
+        /// <summary>T335 ⓐ — 정본 ui.js 4721~4722: 카드는 한 박자 뒤 가라앉고(`leaving` · dgclear-sink .45s ease-in .12s) 딤도 함께 걷힌다(`.dgclear-out` .55s) —
+        /// 팝업은 지금 닫힌 것으로 치고(<see cref="IsOpen"/> false · 정본 `_dgclearBusy`) 뿌리는 러너가 끝나면 스스로 걷는다(정본 setTimeout → hidden).</summary>
+        static void Leave()
+        {
+            if (overlay == null) return;
+            RectTransform ov = overlay;
+            overlay = null;
+            Transform cardTr = ov.Find("card");
+            Transform dimTr = ov.Find("dim");
+            DungeonClearFx.BeginLeave(ov, cardTr as RectTransform, dimTr != null ? dimTr.GetComponent<Image>() : null);
+        }
+
+        /// <summary>즉시 닫기(연출 없음) — 다시 열 때·강제 정리용.</summary>
         public static void Close()
         {
             if (overlay == null) return;

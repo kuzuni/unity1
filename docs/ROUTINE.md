@@ -1815,6 +1815,7 @@
 - 무엇을 한다: 넷 다 한 자리씩 — ⓐ `DungeonClearPopup` 열 때 칸 팝 · 수령 뒤 카드 가라앉기 + 딤 페이드(수치는 `DungeonPopups` 표) ⓑ `BattleOverlay`(또는 `SkillFxScene`)에 `skill-flash` 판 한 장 + `SkillCast` 이벤트에서 등급색 방사형(T173 방사형 굽기 재사용) ⓒ `TechPanel` 노드에 `tt-ready` 맥동(테 색 + 바깥 글로우 · T331 흐림 도우미가 서면 그것으로 · 그 전엔 테 색 왕복만) ⓓ 눌림 피드백은 공용 한 곳(`UiKit`/`PetSkillKit` 의 타일 공장)에 `PointerDown` 스케일 .96 + 복귀 .08s.
 - 판정: PlayMode(칸 팝 첫 프레임 스케일 .3 · 카드 `leaving` 뒤 .57s 에 알파 0 · 스킬 시전 프레임에 판 알파 > 0 · 완료 노드 테 색 왕복) + `screen_dungeon-clear` 눈 확인(정지 촬영은 팝 끝난 뒤 · T128 ⓒ 갈래).
 - 범위: `Assets/Scripts/Game/Ui/DungeonClearPopup.cs`·`Ui/DungeonPopups.cs`(표) · `Assets/Scripts/Game/Ui/BattleOverlay.cs`(**T331 lock 뒤**) 또는 `Game/SkillFx/SkillFxScene.cs` · `Ui/TechPanel.cs` · `Ui/UiKit.cs`·`Ui/PetSkillKit.cs`(눌림 · **T178·T331 lock 뒤**) · `Assets/Tests/PlayMode/`(새 파일)
+- 진행(워커 D · 2026-09-14 17:5x · sess-1753-2066): 1회차 = ⓐ(칸 팝 `dgc-pop` .38s/.09s 계단 · 카드 `dgclear-sink` .45s ease-in .12s · 딤 `.dgclear-out` .55s → 끝나면 뿌리 스스로 걷음 · 수령 직후 `IsOpen` false) + ⓒ(테 색 브론즈↔초록 1.1s alternate · 글로우는 T331 뒤). 수치는 `DungeonFxUi.json`(`catalog.json` 은 T169 lock · 결정 526) · Core `DungeonFxRules` + EditMode 4 · PlayMode `DungeonFxTests` 2. **ⓑ 스킬 섬광(`BattleOverlay.cs` T178 lock)·ⓓ 눌림(`UiKit.cs`·`PetSkillKit.cs` T178·T331·T168 lock)은 2회차.**
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

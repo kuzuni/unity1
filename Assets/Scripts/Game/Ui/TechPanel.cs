@@ -382,6 +382,13 @@ namespace Forge.Game.Ui
             UiKit.Place(rt, x, top, d, d);
             RectTransform faceRt = DungeonPopups.BorderedCircle(rt, "circle", fill, DungeonPopups.RemL("tt_border_rem"), border);
             NodeShade(faceRt, shade, DungeonPopups.RemL("tt_shade_rem"));
+            // T335 ⓒ — 정본 style.css 4622 `.tech-tree-node.researching.ready { animation: tt-ready 1.1s ease-in-out infinite alternate }`(ui.js 5414 `researching ready`):
+            //           눌러야 할 노드라 테 색이 브론즈 ↔ 초록으로 맥동한다(면 색은 그대로 · 글로우는 T331 뒤). 테 = BorderedCircle 의 바깥 원.
+            if (ready)
+            {
+                Image ring = rt.Find("circle").GetComponent<Image>();
+                TechReadyPulse.Begin(ring, UiKit.C(DungeonClearFx.Spec.ReadyFromKey), UiKit.C(DungeonClearFx.Spec.ReadyToKey));
+            }
             float ico = d * UiKit.L("tt_icon");
             Image face = max ? UiKit.Icon(rt, "face", "check") : TechIcon(rt, "face", id);
             UiKit.Anchor(face.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, ico, ico);

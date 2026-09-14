@@ -3905,6 +3905,15 @@
 - 그 축을 열다 **SIMPLE_BG 와 무관한 산 갈래 하나**를 캤다: 정본은 후처리 **깊이-엣지 아웃라인**(`initPost` `postEdge = true` · 모바일 포함 · 네 항 컴포짓)으로 캐릭터 윤곽을 그리는데 클론에 그 패스가 없다(볼륨은 노출 조정뿐 · Renderer Feature 0). T39 가 뺀 것은 «아웃라인 복원 뒤 죽은 림 셸» 이었고 산 쪽은 아무도 안 잡았다 → **T147 등재**(§7 `scene3d.js` 줄에 ⬜ 로 올림). 블룸+비네트는 `postOn = !mobile` 이라 모바일 클론 대상에선 «정본이 지금 하는 것» 이 아니다 — T147 임자가 결정으로 남긴다.
 - 8회차가 남긴 축 셋(UI-SPEC · main.js · POLISH)을 9·10회차로 다 열었다. 남은 축 없음 — 11회차는 열린 §7 줄이 닫힌 뒤의 재검. 자세한 대조는 `docs/parity.md` 10회차.
 
+### T335 진행 기록 (2026-09-14 · 워커 D · sess-1753-2066) — 1회차(ⓐ 던전 클리어 셋 + ⓒ 연구 완료 맥동 · ⓑⓓ 는 lock 뒤)
+
+- **정본 대조**: ⓐ `style.css` 5389~5392 `.dgc-cell { animation: dgc-pop .38s cubic-bezier(.34,1.56,.64,1) backwards }` + nth-child .09s 계단 · 5396~5397 `.dgclear-card.leaving { animation: dgclear-sink .45s ease-in .12s forwards }`(`ui.js` 4721) · 5398 `.modal.dgclear-out { transition: background .55s ease; background: rgba(0,0,0,0) }`(4722 «복귀할 화면이 미리 비치게») · 그 뒤 `setTimeout → hidden`. ⓒ 4622~4626 `.tech-tree-node.researching.ready { animation: tt-ready 1.1s ease-in-out infinite alternate }` from border #7d3920 → to var(--pp-green)(`ui.js` 5414).
+- **고침**: `Core/Ui/DungeonFxRules.cs`(표·셈 · UnityEngine 0 · `RewardBurstSpec.Track` 공용 기계) · `Ui/DungeonClearFx.cs`(러너 · Pop = 카드에 붙어 칸마다 scale·α · Leave = 뿌리에 붙어 카드 scale·α + 딤 α → `LeaveDone` 이면 뿌리 파괴 · `SettleAll`) · `Ui/TechReadyPulse.cs`(테 Image 색을 from↔to 로 · 위상은 절대 벽시계라 1초 재렌더에도 이어진다) · `DungeonClearPopup.Show` 가 칸을 세운 뒤 `BeginPop` · `Confirm` 은 `Close` 대신 `Leave`(overlay 를 놓아 `IsOpen` false · 뿌리는 러너 몫 · 가라앉는 카드는 `blocksRaycasts` false) · `TechPanel.Node` 가 `ready` 면 바깥 원에 `TechReadyPulse.Begin`.
+- **수치**: `Assets/Forge/Resources/DungeonFxUi.json`(`_src` 에 정본 줄) — `catalog.json` 은 T169 lock 이라 자기 표(T135 `CardPopUi.json` 꼴). 코드에 숫자 0. 글로우(box-shadow)는 옮기지 않았다(등재문 «T331 흐림 도우미 뒤 · 그 전엔 테 색 왕복만»).
+- **테스트**: EditMode `DungeonFxRulesTests` 4(표값 · backwards/계단/오버슈트 · 지연·forwards·딤 · alternate 왕복) · PlayMode `DungeonFxTests` 2(첫 프레임 마지막 칸 작고 투명 → 끝나면 원래 모습 · 수령 직후 `IsOpen` false + 300ms 에 카드 작고 옅고 딤 옅음 → 뿌리 사라짐 / 완료 노드 테에 러너 + 0.35s 사이 색 변화 + from~to 안 · 완료 누르면 멎음). 기존 `DungeonUiTests`·`PlaythroughTests` 의 «Confirm → IsOpen false» 는 그대로 참.
+- **게이트**: `tools/gate.sh` 전부 rc 0 · `dotnet test` 656/656(+4) · gen_meta 6.
+- **✅ 조건**: 다음 유니티 런 `DungeonFxTests` 2 PASS(콘솔 빨강 0) + 2회차 ⓑⓓ(lock 뒤). 촬영 목록에 던전 클리어 샷이 없어 눈 확인은 PlayMode 값 단언으로 갈음(§1 «실제 화면» 은 유니티 런의 계층 단언).
+
 ## 워커 결정 기록
 
 ### T187 완료 기록 (2026-09-14 16:4x · 워커 O · sess-2140-18689 · lock 반납)
@@ -6275,3 +6284,4 @@
 - **왜 단언이 아니라 글자인가**: 기대값을 모르는 채 단언을 세우면 그 빨강을 다음 워커들이 매 회차 밟는다(T147 7회차에서 배운 것). 값이 두 런 같으면 **8회차에 그 값을 `GearSignatureExpected` 옆에 못박는다** — 그때부터는 CI 가 본다.
 - **게이트**: `dotnet build` 0 오류(PlayMode 컴파일 포함) · `dotnet test` 652/652 · §3 자 전부 rc 0.
 - **주인이 확인할 것**: 없다.
+526. **T335 는 ⓐⓒ 만 먼저 · 수치는 자기 표 · 글로우는 안 옮김(2026-09-14 · T335 1회차 · 워커 D · sess-1753-2066)** — ⓐ ⓑ 스킬 섬광은 `BattleOverlay.cs`(T178 lock) · ⓓ 눌림은 `UiKit.cs`·`PetSkillKit.cs`(T178·T331·T168 lock)라 규약(«같은 파일이면 뒤 번호가 기다린다»)대로 2회차. ⓑ 등재문의 «수치는 DungeonPopups 표» = `catalog.json` 인데 T169 lock 이라 `DungeonFxUi.json`(T135 `CardPopUi.json` 꼴 · T33 이 합칠 수 있다). ⓒ `tt-ready` 의 box-shadow 글로우는 등재문대로 T331 흐림 도우미 뒤 — 테 색 왕복만. ⓓ 수령 뒤 팝업을 «지금 닫힘» 으로 치고 뿌리만 러너가 걷는다(정본 `_dgclearBusy` + `setTimeout → hidden`) — 기존 «Confirm → IsOpen false» 단언이 그대로 참이다. 되돌리려면 `DungeonClearPopup.Leave`·`TechPanel.Node` 의 T335 블록과 새 파일 넷.
