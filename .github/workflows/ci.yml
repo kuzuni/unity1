@@ -183,6 +183,13 @@ jobs:
       - name: 정본 바깥 그림자가 클론에 서 있는가 — 막는다 (T331 · 아직 안 선 자리는 KNOWN 에 까닭과 다음 회차를 적는다)
         run: python3 tools/check_box_shadows.py
 
+      # T343 — `using` 한 네임스페이스를 그 asmdef 가 참조하는가. dotnet 하니스(T48)는 Assets 를 한 덩어리로
+      #        컴파일해 **asmdef 경계가 없다** — 런 490·492 가 두 모드를 통째로 잃은 갈래를 구조적으로 못 잡는다.
+      - name: asmdef 자 자기 검사 (T343 `check_asmdef_refs.py` · 고장 주입 포함 20칸)
+        run: python3 tools/check_asmdef_refs.py --self-test
+      - name: using ↔ asmdef 참조가 맞는가 — 막는다 (T343 · 표에 없는 네임스페이스는 알리기만)
+        run: python3 tools/check_asmdef_refs.py
+
       # T174 — 하니스는 URP·TMP 를 스텁으로 문다(T48). 스텁이 실물에 없는 서명을 가지면 **로컬은 초록인데
       #        유니티가 «Scripts have compiler errors» 로 죽고 결과 XML 이 0개가 된다**(§1 · 런 409·410·412).
       #        진실은 유니티 안에서만 읽히므로 PlayMode `StubSigsTests` 가 진짜 표면을 screens 로 찍고
