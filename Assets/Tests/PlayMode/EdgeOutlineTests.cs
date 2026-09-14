@@ -432,6 +432,8 @@ namespace Forge.Tests.PlayMode
                     Assert.IsTrue(seen.Add(tag.Id), "번호가 겹친다: " + tag.Id);
                 }
                 foreach (MeshRenderer mr in rig.Decals) Assert.IsNotNull(mr.GetComponent<EdgePartIdTag>(), "데칼 " + mr.name + " 에 태그가 없다(작은 것은 ID 패스가 그때 뺀다)");
+                // 런 483: Create 는 무기를 안 세운다 — 무기 렌더러는 Equip(정본 refreshHeroEquip)이 만든다(막대 한 자루 = 기본 club 파지).
+                rig.Equip(null, null);
                 Assert.Greater(rig.WeaponMount.childCount, 0, "무기 그룹이 비었다");
                 var weapon = rig.WeaponMount.GetChild(0).GetComponent<MeshRenderer>();
                 Assert.IsNotNull(weapon);

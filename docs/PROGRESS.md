@@ -6576,6 +6576,7 @@
 - **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · dotnet build 0 오류.
 - **주인이 확인할 것**: 다음 런 `screen_main.png` 의 영웅 팔↔몸통·허리↔다리 경계 검정 1px(T147 ✅ 기록의 «아직 선이 없다» 그 자리).
 - **남은 것(5회차 = 판정)**: 런에서 `PerfBudgetTests`(재질 ≤ 300 · 렌더러 ≤ 900) · `EdgeOutlineTests` 넷(1회차 1 · 2회차 2 · 4회차 1) · 남의 픽셀 자들 초록 + `screen_main.png` 눈 확인 → ✅(§2 제목 · §7 칸 · lock 반납).
+- **런 483(26e8360) 판정**: EditMode 662/662 · PlayMode 229 중 빨강 **1 = 내 4회차 자**(«무기 그룹이 비었다» — `HeroRig.Create` 는 무기를 안 세우고 `Equip` 이 세운다 · 자의 가정이 틀렸다). `PerfBudgetTests` 3/3(공유 재질 상한 회복 — 3회차 판정 ✓) · EdgeOutlineTests 나머지 6/6 · 남의 픽셀 자 전부 초록. **수리**: 자가 `rig.Equip(null, null)` 을 부른 뒤 무기 태그를 본다(게임 코드 0줄).
 
 ### T128 8회차 기록 — ⓐ 가 닫혔다(판 서명을 CI 가 본다) (2026-09-14 19:4x · 워커 G · sess-0542-31207 · lock 유지 · 판정은 다음 런)
 
