@@ -116,7 +116,8 @@ namespace Forge.Tests.PlayMode
             {
                 string e = char.ConvertFromUtf32((int)cp);
                 Assert.IsTrue(Has(em, cp), "이모지 폴백 글꼴에 «" + e + "»(U+" + cp.ToString("X") + ") 가 없다 — 서브셋을 다시 뽑는다(docs/assets-map.md)");
-                Assert.IsFalse(Has(fa, cp), "주 글꼴이 «" + e + "» 를 직접 쥘 리 없다(서브셋 밖) — 폴백이 그린다");
+                // 주 글꼴 쪽은 안 묻는다 — 런 413: 주 애셋의 characterLookupTable 이 ⏱ 에 true 를 줬다(«주 글꼴은 안 쥔다» 가 틀린 전제였다 ·
+                // 어느 쪽이 먼저 그리든 정본 글자가 화면에 서면 된다 · 화면 전수는 위 «두부가 없다» 가 본다).
             }
             Assert.IsFalse(Has(em, '가'), "이모지 글꼴은 한글을 안 쥔다(서브셋이 이모지뿐)");
         }
