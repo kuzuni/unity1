@@ -79,11 +79,13 @@ namespace Forge.Tests.PlayMode
             float tin = 0f;
             while (tin < (SummonFxStyle.L("canopy_in_delay_ms") + SummonFxStyle.L("canopy_in_ms")) / 1000f + 0.1f) { tin += Time.unscaledDeltaTime; yield return null; }
             Assert.AreEqual(1f, cp.localScale.x, 1e-3f, "도입이 끝나면 천개 배율 1");
+            Assert.IsTrue(fx.Baked, "굽기는 Build 가 아니라 첫 Update 에서(연 프레임을 가볍게 · 결정 516) — 도입이 끝났으면 다 구워져 있다");
             float mb = SummonFxStyle.L("canopy_one_mb_rem") * PetSkillStyle.RemPx;
             Vector3[] gc = new Vector3[4], cc = new Vector3[4];
             ((RectTransform)grid).GetWorldCorners(gc); cp.GetWorldCorners(cc);
             float scale = UiRoot.Instance.App.lossyScale.y;
-            Assert.AreEqual(mb * scale, cc[0].y - gc[1].y, 2f * scale + 0.5f, "천개 바닥 = 그리드 위 − 2.6rem(겹침)");
+            // 정본 margin-bottom 이 음수 = 천개 바닥이 그리드 위선보다 **아래**(겹침) → 세계 y(위가 +)로는 바닥 − 그리드위 = −mb (런 444: 부호를 거꾸로 적어 +23.7 을 기다렸다 · 실측 −23.66)
+            Assert.AreEqual(-mb * scale, cc[0].y - gc[1].y, 2f * scale + 0.5f, "천개 바닥 = 그리드 위 − 2.6rem(겹침 · 아래로)");
 
             // ⓓ 별 — 24개 · 앞 12 위 밴드(y ≤ 18%) · 뒤 12 아래 밴드(y ≥ 76%) · done 전 α 0
             Assert.AreEqual(Mathf.RoundToInt(SummonFxStyle.L("stars_n")), fx.StarCount, "별 24");

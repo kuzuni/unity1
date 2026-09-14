@@ -10,6 +10,8 @@ namespace Forge.Game.Ui
     /// T179 — 소환 결과 팝업의 연출 겹(정본 `.sr-canopy`(아치 + 빛발 3 + 스필) · `.sr-rays`(배경 광선) · `.sr-stars`(별)). 수치는 `Resources/SummonFxUi.json`.
     /// 정본은 CSS 그라디언트·마스크·blur 로 그리는데 UGUI 에는 그것이 없어 **한 장씩 굽는다**(<see cref="CraftFxPoly"/>·<see cref="AgePattern"/> 과 같은 길 · 결정 223 «맨 Graphic 은 안 칠해진다»).
     /// 층 사다리(정본 5692~5697): 광선 0 · 바닥 10 · 별 15 · 천개 20 · 그리드 40 — 형제 순서로 지킨다. 바닥 반사(`.sr-reflect` 12)는 2회차.
+    /// ⚠ 굽기는 <see cref="Build"/> 가 아니라 **첫 Update 에서** 한다(<see cref="Bake"/>) — 팝업을 연 프레임에 픽셀 루프를 얹으면 그 프레임이 연출 창(`sr_charge_ms + sr_tail_ms` = 390ms)을
+    /// 넘겨 결과가 탭보다 먼저 끝난다(런 438·444 `PetUiTests.스킬_소환…` · 결정 516). 그 전까지 Image 는 꺼 둔다(스프라이트 없는 Image 는 흰 네모를 그린다).
     /// </summary>
     public sealed class SummonFx : MonoBehaviour
     {
@@ -26,7 +28,9 @@ namespace Forge.Game.Ui
         readonly List<CanvasGroup> starGroups = new List<CanvasGroup>();
         readonly List<float> starDur = new List<float>(), starDelay = new List<float>();
         float t0, doneAt = -1f;
-        bool done;
+        bool done, baked;
+        readonly List<Action> pending = new List<Action>();
+        readonly List<Image> pendingImgs = new List<Image>();
 
         public RectTransform Canopy { get { return canopy; } }
         public RectTransform Rays { get { return rays; } }
@@ -34,6 +38,8 @@ namespace Forge.Game.Ui
         public int RayBarCount { get { return rayBars.Count; } }
         public bool Done { get { return done; } }
         public float StarsAlpha { get { return starsGroup != null ? starsGroup.alpha : 0f; } }
+        /// <summary>스프라이트를 다 구웠는가 — Build 직후엔 false · 첫 Update 뒤 true.</summary>
+        public bool Baked { get { return baked; } }
 
         /// <summary>
         /// 무대(`stage`)판의 몸(`sr-body`)에 세 겹을 세운다. <paramref name="gridTop"/>·<paramref name="gridW"/> 는 그리드의 몸 안 자리(위에서 · 폭) · <paramref name="floor"/> 는 이미 선 소환진(그 위에 별·천개를 끼운다).
@@ -50,9 +56,8 @@ namespace Forge.Game.Ui
             fx.rays = UiKit.Box(body, "sr-rays");
             UiKit.Anchor(fx.rays, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, rw, rw);
             fx.raysImg = fx.rays.gameObject.AddComponent<Image>();
-            fx.raysIdle = BakeRays("sr-rays", "rays_mask", "rays_mask_a");
-            fx.raysDone = BakeRays("sr-rays-done", "rays_done_mask", "rays_done_mask_a");
-            fx.raysImg.sprite = fx.raysIdle;
+            Image raysImg = fx.raysImg;
+            fx.Defer(raysImg, () => { fx.raysIdle = BakeRays("sr-rays", "rays_mask", "rays_mask_a"); raysImg.sprite = fx.raysIdle; });   // done 마스크는 SetDone 에서
             fx.raysImg.raycastTarget = false;
             fx.raysImg.color = new Color(1f, 1f, 1f, L("rays_a"));
             fx.rays.SetAsFirstSibling();
@@ -75,7 +80,8 @@ namespace Forge.Game.Ui
                 RectTransform st = UiKit.Box(starsRt, "star-" + i);
                 UiKit.Anchor(st, new Vector2(x, 1f - y), new Vector2(0.5f, 0.5f), Vector2.zero, box, box);
                 Image si = st.gameObject.AddComponent<Image>();
-                si.sprite = BakeStar("sr-star-" + Mathf.RoundToInt(sz), sz, box);
+                string starName = "sr-star-" + Mathf.RoundToInt(sz);
+                fx.Defer(si, () => si.sprite = BakeStar(starName, sz, box));
                 si.raycastTarget = false;
                 fx.stars.Add(st);
                 fx.starGroups.Add(st.gameObject.AddComponent<CanvasGroup>());
@@ -94,14 +100,16 @@ namespace Forge.Game.Ui
             fx.canopyGroup.blocksRaycasts = false;
             Image arch = UiKit.Box(fx.canopy, "arch").gameObject.AddComponent<Image>();
             UiKit.Fill(arch.rectTransform);
-            arch.sprite = BakeArch("sr-arch-" + (one ? "one" : compact ? "compact" : "stage"), cw, ch, rem);
+            string archName = "sr-arch-" + (one ? "one" : compact ? "compact" : "stage");
+            fx.Defer(arch, () => arch.sprite = BakeArch(archName, cw, ch, rem));
             arch.raycastTarget = false;
             // 스필(b) — 아치 위로 넓게 새는 빛무리
             float sw = cw * L("spill_w_f"), sh = (compact ? L("spill_compact_h_rem") : L("spill_h_rem")) * rem;
             RectTransform spRt = UiKit.Box(fx.canopy, "spill");
             UiKit.Anchor(spRt, new Vector2(0.5f, L("spill_bottom_f")), new Vector2(0.5f, 0f), Vector2.zero, sw, sh);
             fx.spill = spRt.gameObject.AddComponent<Image>();
-            fx.spill.sprite = BakeSpill("sr-spill");
+            Image spill = fx.spill;
+            fx.Defer(spill, () => spill.sprite = BakeSpill("sr-spill"));
             fx.spill.raycastTarget = false;
             // 빛발 3 — 아치에서 위로
             float bw = L("ray_w_rem") * rem;
@@ -110,13 +118,13 @@ namespace Forge.Game.Ui
             float[] xs = { -dx, 0f, dx }; float[] hs = { hSide, hMid, hSide };
             float[] per = { L("ray_side1_period_s"), L("ray_period_s"), L("ray_side3_period_s") };
             float[] del = { 0f, 0f, L("ray_side3_delay_s") };
-            Sprite bar = BakeRayBar("sr-ray");
             for (int i = 0; i < 3; i++)
             {
                 RectTransform r = UiKit.Box(fx.canopy, "ray-" + (i + 1));
                 UiKit.Anchor(r, new Vector2(0.5f, L("ray_bottom_f")), new Vector2(0.5f, 0f), new Vector2(xs[i], 0f), bw, hs[i]);
                 Image ri = r.gameObject.AddComponent<Image>();
-                ri.sprite = bar; ri.raycastTarget = false;
+                fx.Defer(ri, () => ri.sprite = BakeRayBar("sr-ray"));   // 셋이 한 장을 나눠 쓴다(cache)
+                ri.raycastTarget = false;
                 fx.rayBars.Add(ri); fx.rayPeriod.Add(per[i]); fx.rayDelay.Add(del[i]);
             }
             fx.canopy.SetSiblingIndex(starsRt.GetSiblingIndex() + 1);
@@ -129,7 +137,26 @@ namespace Forge.Game.Ui
             if (done) return;
             done = true;
             doneAt = Time.unscaledTime;
+            if (raysDone == null) raysDone = BakeRays("sr-rays-done", "rays_done_mask", "rays_done_mask_a");
             if (raysImg != null) raysImg.sprite = raysDone;
+        }
+
+        /// <summary>미룬 굽기 하나 — 스프라이트가 올 때까지 Image 를 꺼 둔다.</summary>
+        void Defer(Image img, Action bake)
+        {
+            img.enabled = false;
+            pendingImgs.Add(img);
+            pending.Add(bake);
+        }
+
+        /// <summary>미룬 굽기를 전부 한다(첫 Update · 테스트가 앞당길 수도 있다). 두 번 불러도 한 번만.</summary>
+        public void Bake()
+        {
+            if (baked) return;
+            baked = true;
+            for (int i = 0; i < pending.Count; i++) pending[i]();
+            for (int i = 0; i < pendingImgs.Count; i++) if (pendingImgs[i] != null) pendingImgs[i].enabled = true;
+            pending.Clear(); pendingImgs.Clear();
         }
 
         static float L(string key) { return SummonFxStyle.L(key); }
@@ -143,6 +170,7 @@ namespace Forge.Game.Ui
 
         void Update()
         {
+            if (!baked) Bake();
             float t = Time.unscaledTime - t0;
             // 천개 도입 — srcanopy .45s(.05s 뒤) scale(.8)·translateY(-.5rem) → 1
             if (canopyGroup != null)
@@ -216,22 +244,24 @@ namespace Forge.Game.Ui
             int W = Mathf.RoundToInt(L("bake_px")), H = Mathf.Max(8, Mathf.RoundToInt(W * h / Mathf.Max(1f, w)));
             Color line = SummonFxStyle.C("line"), fill = SummonFxStyle.C("fill");
             float strokeN = (L("arch_stroke_rem") * rem) / (w * 0.5f);   // 반지름 단위 두께
+            // 표 값은 루프 밖에서 한 번만 읽는다(픽셀마다 사전을 뒤지면 굽기가 수백 ms — 결정 516)
+            float mSolid = L("arch_mask_solid_f"), mEnd = L("arch_mask_end_f"), tmSolid = L("tick_mask_solid_f"), tmEnd = L("tick_mask_end_f");
+            float fr0 = L("arch_fill_r0"), fr1 = L("arch_fill_r1"), tEvery = L("tick_every_deg"), tDeg = L("tick_deg"), tr0 = L("tick_r0"), tr1 = L("tick_r1"), tr2 = L("tick_r2");
             var px = new Color32[W * H];
             for (int y = 0; y < H; y++)
             {
                 float v = (y + 0.5f) / H;                 // 0 = 아래 · 1 = 위
                 float fromTop = 1f - v;
-                float mask = Ramp(fromTop, L("arch_mask_solid_f"), 1f, L("arch_mask_end_f"), 0f);
-                float tmask = Ramp(fromTop, L("tick_mask_solid_f"), 1f, L("tick_mask_end_f"), 0f);
+                float mask = Ramp(fromTop, mSolid, 1f, mEnd, 0f);
+                float tmask = Ramp(fromTop, tmSolid, 1f, tmEnd, 0f);
                 for (int x = 0; x < W; x++)
                 {
                     float u = (x + 0.5f) / W * 2f - 1f, vv = v * 2f - 1f;
                     float r = Mathf.Sqrt(u * u + vv * vv);
                     float ring = 1f - Mathf.Clamp01((Mathf.Abs(r - 1f + strokeN * 0.5f) - strokeN * 0.5f) / (1.5f / W * 2f));
-                    float band = r < L("arch_fill_r0") ? 0f : r < L("arch_fill_r1") ? Ramp(r, L("arch_fill_r0"), 0f, L("arch_fill_r1"), 1f) : Ramp(r, L("arch_fill_r1"), 1f, 1f, 0f);
-                    float deg = Mathf.Repeat(Mathf.Atan2(vv, u) * Mathf.Rad2Deg, 360f);
-                    bool tick = Mathf.Repeat(deg, L("tick_every_deg")) < L("tick_deg") && r >= L("tick_r0") && r <= L("tick_r2");
-                    float tickA = tick ? (r < L("tick_r1") ? Ramp(r, L("tick_r0"), 0f, L("tick_r1"), 1f) : 1f) * tmask : 0f;
+                    float band = r < fr0 ? 0f : r < fr1 ? Ramp(r, fr0, 0f, fr1, 1f) : Ramp(r, fr1, 1f, 1f, 0f);
+                    bool tick = r >= tr0 && r <= tr2 && Mathf.Repeat(Mathf.Repeat(Mathf.Atan2(vv, u) * Mathf.Rad2Deg, 360f), tEvery) < tDeg;
+                    float tickA = tick ? (r < tr1 ? Ramp(r, tr0, 0f, tr1, 1f) : 1f) * tmask : 0f;
                     float a = Mathf.Max(ring * line.a * mask, Mathf.Max(band * fill.a * mask, tickA * line.a));
                     Color c = ring * mask > 0.01f || tickA > 0.01f ? line : fill;
                     px[y * W + x] = new Color(c.r, c.g, c.b, a);
@@ -246,11 +276,12 @@ namespace Forge.Game.Ui
             Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
             int W = 32, H = 256;
             Color c = SummonFxStyle.C("ray");
+            float a0 = L("ray_a0"), a46 = L("ray_a46"), a80 = L("ray_a80");
             var px = new Color32[W * H];
             for (int y = 0; y < H; y++)
             {
                 float v = (y + 0.5f) / H;   // 0 = 밑동
-                float ga = v < 0.46f ? Ramp(v, 0f, L("ray_a0"), 0.46f, L("ray_a46")) : v < 0.8f ? Ramp(v, 0.46f, L("ray_a46"), 0.8f, L("ray_a80")) : Ramp(v, 0.8f, L("ray_a80"), 1f, 0f);
+                float ga = v < 0.46f ? Ramp(v, 0f, a0, 0.46f, a46) : v < 0.8f ? Ramp(v, 0.46f, a46, 0.8f, a80) : Ramp(v, 0.8f, a80, 1f, 0f);
                 for (int x = 0; x < W; x++)
                 {
                     float u = (x + 0.5f) / W * 2f - 1f, vv = v * 2f - 1f;
@@ -268,16 +299,17 @@ namespace Forge.Game.Ui
             Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
             int W = 256, H = 128;
             Color c = SummonFxStyle.C("spill");
+            float mMid = L("spill_mask_mid_f"), mSolid = L("spill_mask_solid_f"), mMidA = L("spill_mask_mid_a"), rx = L("spill_rx_f"), sa0 = L("spill_a0"), sa42 = L("spill_a42");
             var px = new Color32[W * H];
             for (int y = 0; y < H; y++)
             {
                 float v = (y + 0.5f) / H;   // 0 = 아래
-                float mask = v < L("spill_mask_mid_f") ? Ramp(v, L("spill_mask_solid_f"), 1f, L("spill_mask_mid_f"), L("spill_mask_mid_a")) : Ramp(v, L("spill_mask_mid_f"), L("spill_mask_mid_a"), 1f, 0f);
+                float mask = v < mMid ? Ramp(v, mSolid, 1f, mMid, mMidA) : Ramp(v, mMid, mMidA, 1f, 0f);
                 for (int x = 0; x < W; x++)
                 {
-                    float u = ((x + 0.5f) / W * 2f - 1f) / L("spill_rx_f");
+                    float u = ((x + 0.5f) / W * 2f - 1f) / rx;
                     float r = Mathf.Sqrt(u * u + v * v);
-                    float a = r < 0.42f ? Ramp(r, 0f, L("spill_a0"), 0.42f, L("spill_a42")) : Ramp(r, 0.42f, L("spill_a42"), 1f, 0f);
+                    float a = r < 0.42f ? Ramp(r, 0f, sa0, 0.42f, sa42) : Ramp(r, 0.42f, sa42, 1f, 0f);
                     px[y * W + x] = new Color(c.r, c.g, c.b, a * mask);
                 }
             }
@@ -291,6 +323,7 @@ namespace Forge.Game.Ui
             int S = Mathf.RoundToInt(L("bake_px"));
             Color c1 = SummonFxStyle.C("rays1"), c2 = SummonFxStyle.C("rays2");
             float[] ms = SummonFxStyle.Arr(maskKey), ma = SummonFxStyle.Arr(maskAKey);
+            float s1Every = L("rays_spoke1_every_deg"), s1Deg = L("rays_spoke1_deg"), s2Every = L("rays_spoke2_every_deg"), s2Deg = L("rays_spoke2_deg");
             var px = new Color32[S * S];
             for (int y = 0; y < S; y++)
                 for (int x = 0; x < S; x++)
@@ -301,8 +334,8 @@ namespace Forge.Game.Ui
                     for (int i = 0; i + 1 < ms.Length; i++) if (r >= ms[i] && r < ms[i + 1]) { mask = Mathf.Lerp(ma[i], ma[i + 1], (r - ms[i]) / (ms[i + 1] - ms[i])); break; }
                     if (r < ms[0]) mask = ma[0];
                     float deg = Mathf.Repeat(Mathf.Atan2(v, u) * Mathf.Rad2Deg, 360f);
-                    float a1 = Mathf.Repeat(deg, L("rays_spoke1_every_deg")) < L("rays_spoke1_deg") ? c1.a : 0f;
-                    float a2 = Mathf.Repeat(deg, L("rays_spoke2_every_deg")) < L("rays_spoke2_deg") ? c2.a : 0f;
+                    float a1 = Mathf.Repeat(deg, s1Every) < s1Deg ? c1.a : 0f;
+                    float a2 = Mathf.Repeat(deg, s2Every) < s2Deg ? c2.a : 0f;
                     Color c = a2 > a1 ? c2 : c1;
                     px[y * S + x] = new Color(c.r, c.g, c.b, Mathf.Max(a1, a2) * mask);
                 }
@@ -316,14 +349,15 @@ namespace Forge.Game.Ui
             int S = Mathf.Max(8, Mathf.RoundToInt(box));
             Color core = SummonFxStyle.C("star_core"), mid = SummonFxStyle.C("star_mid"), lobe = SummonFxStyle.C("star_lobe");
             float lobeW = L("star_lobe_px") * L("css_px") / box * S;
+            float midStop = L("star_mid_stop"), edgeStop = L("star_edge_stop");
             var px = new Color32[S * S];
             for (int y = 0; y < S; y++)
                 for (int x = 0; x < S; x++)
                 {
                     float cx = x + 0.5f - S * 0.5f, cy = y + 0.5f - S * 0.5f;
                     float r = Mathf.Sqrt(cx * cx + cy * cy) / (sz / box * S * 0.5f);   // 1 = 점의 반지름
-                    float a = r < L("star_mid_stop") ? Ramp(r, 0f, core.a, L("star_mid_stop"), mid.a) : Ramp(r, L("star_mid_stop"), mid.a, L("star_edge_stop"), 0f);
-                    Color c = r < L("star_mid_stop") ? Color.Lerp(core, mid, r / L("star_mid_stop")) : mid;
+                    float a = r < midStop ? Ramp(r, 0f, core.a, midStop, mid.a) : Ramp(r, midStop, mid.a, edgeStop, 0f);
+                    Color c = r < midStop ? Color.Lerp(core, mid, r / midStop) : mid;
                     // 로브 — 세로·가로 막대(폭 lobeW · 길이 = 상자) · 가운데 .95 → 끝 0
                     float lv = Mathf.Abs(cx) <= lobeW * 0.5f ? 1f - Mathf.Abs(cy) / (S * 0.5f) : 0f;
                     float lh = Mathf.Abs(cy) <= lobeW * 0.5f ? 1f - Mathf.Abs(cx) / (S * 0.5f) : 0f;
