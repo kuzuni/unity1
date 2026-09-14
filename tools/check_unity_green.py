@@ -338,6 +338,41 @@ def code_commits(since_sha, until_sha, limit=None):
     return got
 
 
+PROD_RE = re.compile(r'^(Assets/(?!Tests/)|Packages/|ProjectSettings/)')   # T153 — 테스트는 «남을 깨뜨릴 수 있는 줄» 이 아니다
+
+
+def prod_touch(commits):
+    """창 안 커밋들을 작업 번호로 묶어 «프로덕션 파일을 건드렸는가» 를 센다(T153).
+
+    돌려주는 것: {작업ID: (그 작업 커밋 수, 프로덕션 파일을 만진 커밋 수)}.
+    제목이 `T<번호> …`(§1 규약)가 아닌 커밋은 어느 작업에도 안 넣는다.
+    **왜 필요한가**: 자가 «임자 T87 · lock 산다 → 건드리지 마라» 로 막았는데 창 안 T87 커밋 둘이
+    새 테스트 파일·docs·lock 뿐이라 **프로덕션 0줄**이었다(검수 Q 실측 · 런 350). 그러면 그 빨강은
+    아무도 안 줍는다 — T148 의 반대 방향 오답이다.
+    """
+    got = {}
+    for sha, title, files in commits or []:
+        m = re.match(r'^T(\d+)\b', (title or '').strip())
+        if not m:
+            continue
+        tid = 'T' + m.group(1)
+        n, p = got.get(tid, (0, 0))
+        got[tid] = (n + 1, p + (1 if any(PROD_RE.match(f) for f in (files or [])) else 0))
+    return got
+
+
+def touch_note(tid, touched):
+    """임자 줄 뒤에 붙는 «창 안에서 실제로 바꿨는가» 한 줄(T153) — 바꿨거나 창을 모르면 빈 문자열."""
+    if not touched or tid not in touched:
+        return ''
+    n, p = touched[tid]
+    if p > 0:
+        return ''
+    return ('\n    ⚠ 다만 **이 런 창에서 %s 가 바꾼 프로덕션 줄은 0 이다** — 창 안 그 작업 커밋 %d개는 '
+            '테스트·문서·lock 뿐이다(T153). «그의 몫» 으로 단정하지 말고, 아래 «런 사이» 에서 '
+            '**실제로 프로덕션을 바꾼 작업**을 눈으로 가른다 — 그러지 않으면 이 빨강을 아무도 안 줍는다.' % (tid, n))
+
+
 def test_files_of(files):
     """그 커밋이 고친 테스트 픽스처 이름들(`Assets/Tests/**/XTests.cs` → `XTests`)."""
     out = []
@@ -431,7 +466,7 @@ def _lock_word(alive, age):
     return 'lock %d분 전 — 90분 규약으로 **죽었다**(뺏을 수 있다)' % age
 
 
-def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None):
+def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None, touched=None):
     """빨강마다 임자 한 줄 — **빠진 테스트 파일 ↔ PROGRESS 범위 열** 로 가린다(T125).
 
     갈래 넷:
@@ -490,13 +525,15 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
                        'lock 을 눈으로 확인하고, 임자가 없으면 §0-6 대로 **네가 고친다**.'
                        % (name, name, who or '못 가렸다', tail))
             continue
-        states = [(c,) + lock_state(c, now) for c in cands]
+        states = [(c,) + lock(c, now) for c in cands]   # T153 — 주입한 lock 을 쓴다(여기만 모듈 lock_state 를 불러 자기 검사가 안 닿았다)
         live = [s for s in states if s[1]]
         if len(cands) == 1:
-            out.append('  · `%s` 의 임자: ' % name + own_line(*states[0]).split(': ', 1)[1])
+            out.append('  · `%s` 의 임자: ' % name + own_line(*states[0]).split(': ', 1)[1]
+                       + (touch_note(states[0][0], touched) if states[0][1] else ''))
         elif len(live) == 1:
             rest = ' · 같은 파일을 적은 다른 작업: %s' % ' '.join(c for c, a, _g in states if not a)
-            out.append('  · `%s` 의 임자: ' % name + own_line(*live[0]).split(': ', 1)[1] + rest)
+            out.append('  · `%s` 의 임자: ' % name + own_line(*live[0]).split(': ', 1)[1] + rest
+                       + touch_note(live[0][0], touched))
         else:
             # ⚠ «lock 이 죽었다» 와 «lock 이 아예 없다» 를 한 낱말로 뭉개면 안 된다 — 앞은 §0-6 의
             #    «뺏어도 되는 자리» 이고 뒤는 «아직 아무도 안 잡은 자리» 다(실측 2026-09-14: T132 의
@@ -737,12 +774,42 @@ def self_test():
     _, out = judge({'sha': 'f' * 40, 'run': 332, 'tests': 'success', 'missing_modes': ''}, True, 0, (), None, ['  · «런 사이»'])
     eq('ⓥ 초록이면 안 붙는다', any('런 사이' in l for l in out), False)
 
+    # ⓦ T153 — «이 런 창에서 프로덕션 0줄인 작업» 을 임자로 단정하지 않는다
+    W_T87 = [('a' * 40, 'T87 34회차(닫기 회차): 시작점 대조 (sess-x · 워커 G)',
+              ['Assets/Tests/PlayMode/CraftRevealSeamTests.cs', 'docs/PROGRESS.md']),
+             ('b' * 40, 'T87 선점 lock (sess-x · 워커 G)', ['docs/claims/T87.lock']),
+             ('c' * 40, 'T147 2회차: 윤곽선 (sess-y · 워커 K)',
+              ['Assets/Shaders/EdgeOutline.shader', 'Assets/Settings/UniversalRenderer.asset'])]
+    touched = prod_touch(W_T87)
+    eq('ⓦ T87 은 창 안 커밋 둘·프로덕션 0', touched.get('T87'), (2, 0))
+    eq('ⓦ T147 은 프로덕션을 바꿨다', touched.get('T147'), (1, 1))
+    eq('ⓦ 프로덕션 0 이면 경고가 붙는다', '프로덕션 줄은 0' in touch_note('T87', touched), True)
+    eq('ⓦ 경고에 커밋 수가 보인다', '커밋 2개' in touch_note('T87', touched), True)
+    eq('ⓦ 실제로 바꿨으면 조용하다', touch_note('T147', touched), '')
+    eq('ⓦ 창을 모르면 조용하다', touch_note('T87', None), '')
+    eq('ⓦ 창 밖 작업이면 조용하다', touch_note('T999', touched), '')
+    # 임자 줄에 실제로 얹히는가 — 산 lock 갈래 둘(하나뿐 · 여럿 중 하나)
+    PROG_ONE = '| T87 | 대장간 | 🔄 진행 | s / 워커 G | `Assets/Tests/PlayMode/ForgeUiTests.cs` | x |'
+    lines = own_lines(['FAIL Forge.Tests.PlayMode.ForgeUiTests.가 · Failed'], PROG_ONE, 'a' * 40,
+                      lock=both_live, touched=touched)
+    eq('ⓦ 하나뿐 갈래에 경고가 붙는다', any('프로덕션 줄은 0' in l for l in lines), True)
+    PROG_TWO = (PROG_ONE + '\n| T94 | 딤 | ⬜ 대기 | — | `Assets/Tests/PlayMode/ForgeUiTests.cs` | x |')
+    only87 = lambda tid, now=None: ((True, 5) if tid == 'T87' else (False, None))
+    lines = own_lines(['FAIL Forge.Tests.PlayMode.ForgeUiTests.가 · Failed'], PROG_TWO, 'a' * 40,
+                      lock=only87, touched=touched)
+    eq('ⓦ 여럿 중 산 lock 하나 갈래에도 붙는다', any('프로덕션 줄은 0' in l for l in lines), True)
+    # 프로덕션을 실제로 바꾼 임자는 지금대로 조용하다(T147·T152 갈래)
+    PROG_147 = '| T147 | 윤곽선 | 🔄 진행 | s / 워커 K | `Assets/Tests/PlayMode/EdgeOutlineTests.cs` | x |'
+    lines = own_lines(['FAIL Forge.Tests.PlayMode.EdgeOutlineTests.가 · Failed'], PROG_147, 'c' * 40,
+                      lock=both_live, touched=touched)
+    eq('ⓦ 바꾼 임자는 경고 없이 지금대로', any('프로덕션 줄은 0' in l for l in lines), False)
+
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  · ' + f)
         return 1
-    print('✓ check_unity_green --self-test 69칸 통과')
+    print('✓ check_unity_green --self-test 80칸 통과')
     return 0
 
 
@@ -770,13 +837,15 @@ def main(argv):
     anc, n_after = behind(meta.get('sha') if meta else None)
     red = bool(meta) and str(meta.get('tests')) != 'success'
     fails = red_lines(ref) if red else []
-    own = own_lines(fails, read_progress(), str(meta.get('sha', '')), err=error_paths(red_text(ref))) if red else None
     between = None
+    own = None
     if red:
         cur = str(meta.get('sha', ''))
         runs = read_runs(ref)
         gsha, grun = last_green(runs, cur)
         commits = code_commits(gsha, cur) if gsha else code_commits(None, cur, RECENT_CODE)
+        # T153 — 임자 줄이 «그의 몫» 으로 막기 전에, 그 작업이 이 창에서 프로덕션을 바꾸긴 했는지 먼저 센다
+        own = own_lines(fails, read_progress(), cur, err=error_paths(red_text(ref)), touched=prod_touch(commits))
         between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None))
     rc, out = judge(meta, anc, n_after, fails, own, between)
     for ln in out:
