@@ -195,7 +195,9 @@ namespace Forge.Tests.PlayMode
                 // 정본 `.sk-lv` 은 글자 + `padding: 0 .25rem` 딱 그만큼이다 — 어림으로 부풀리면 알약이 이웃 칸을 덮는다(T129 2회차).
                 Assert.IsTrue(lvw <= lt.preferredWidth + pad * 2f + 0.5f,
                     t.name + " Lv 라벨 상자(" + lvw.ToString("0.0") + ") 가 글자+안여백(" + (lt.preferredWidth + pad * 2f).ToString("0.0") + ") 보다 넓다 — 이웃을 덮는다");
-                Assert.AreEqual(0f, lt.outlineWidth, 1e-4f, t.name + " Lv 글자에 테 0(정본 .sk-lv 에는 -webkit-text-stroke 규칙이 없다)");
+                // T129 3회차(결정 289) — 알약을 걷고 오브 면 위 «흰 글자 + 검정 링»(정본 sk-orb-lv-pill 갈래 · 원작 샷 shot-043313).
+                Assert.IsNull(lv.Find("bg"), t.name + " Lv 라벨에 검정 알약이 남아 있다 — 이웃 칸을 덮는다");
+                Assert.Greater(lt.outlineWidth, 0f, t.name + " Lv 글자에 검정 링이 없다");
             }
             Assert.IsTrue(orbs > 0 || row.Find("none") != null, "오브가 있거나 «출전 중인 펫 없음»");
             // 미니 씬 폴백(T54 전) — 🛡️ · 스테이지 라벨 · 웨이브 핍(전투 씬이 있고 던전이 아니면 총 웨이브 수만큼)

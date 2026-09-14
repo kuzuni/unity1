@@ -404,7 +404,7 @@ namespace Forge.Game.Ui
             return n;
         }
 
-        /// <summary>`.sk-cell` + `.sk-orb`(등급색 납작 면 + 검정 키라인) + `.sk-lv`(검정 알약 · 흰 글자 · 오브 아래 −.15rem).</summary>
+        /// <summary>`.sk-cell` + `.sk-orb`(등급색 납작 면 + 검정 키라인) + `.sk-lv`(오브 면 위 흰 글자 + 검정 링 · T129 3회차 · 결정 289).</summary>
         static RectTransform OrbCell(RectTransform row, string name, float x, float orb, Color fill, int level, UnityEngine.Events.UnityAction onClick)
         {
             Button b = UiKit.Button(row, name, onClick);
@@ -415,17 +415,21 @@ namespace Forge.Game.Ui
             float lh = PlayerInfoStyle.Px("sk_lv_h_rem");
             string txt = PlayerInfoStyle.T("lv", level);
             RectTransform lv = UiKit.Box(cell, "sk-lv");
-            PetSkillKit.Fill(lv, "bg", PlayerInfoStyle.C("sk_lv_bg"), lh * 0.5f);
             TextMeshProUGUI t = PetSkillKit.Text(lv, "t", TextKind.Sub, txt, PlayerInfoStyle.C("sk_lv_ink"));
-            // 정본 `.sk-lv`(style.css 4045)는 `white-space: nowrap` + `padding: 0 .25rem` — 상자가 **글자 폭대로** 늘어나고 오브보다 넓어져도 그만이다.
-            // 옛 `Mathf.Min(orb * 1.1f, …)` 상한은 정본에 없는 클론의 발명이라 «Lv.20» 이 제 상자에 잘렸다(T129 1회차 · 런 254 PNG 8배 실측).
-            // 폭은 **어림(`TextWidth` 은 라틴 한 자를 0.58em 로 셈한다)이 아니라 TMP 가 실제로 잰 값**으로 잡는다 — 어림은 «Lv.20» 을 1.18배 부풀려
-            // 알약이 이웃 칸을 덮었다(2회차 실측 · 어림 104.4px ↔ 실측 ≈88px · 칸 간격 83.6px).
+            // 폭은 **어림(`TextWidth` 은 라틴 한 자를 0.58em 로 셈한다)이 아니라 TMP 가 실제로 잰 값**으로 잡는다(2회차 · 어림은 «Lv.20» 을 1.18배 부풀린다).
             float lw = t.preferredWidth + PlayerInfoStyle.Px("sk_lv_pad_rem") * 2f;
             UiKit.Fill(t.rectTransform);
-            // 테 없음이 정본이다 — `.sk-lv` 에는 `-webkit-text-stroke` 규칙이 없고(검정 알약 위 흰 글자),
-            // `.3px #fff` 를 받는 것은 **다른 요소**인 `.equip-cell .cell-lv`(style.css 936)다. 그 실물은 `Ui/ForgeUi.cs` 135행이다(T129 가 T109 2회차의 오배치를 걷었다).
-            UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, lw, lh);   // 칸 바닥 = 오브 바닥 − .15rem(정본 bottom:-.15rem)
+            // 3회차(결정 289) — **검정 알약이 아니라 오브 면 위 흰 글자 + 검정 링**이다.
+            // 정본 `.sk-lv`(style.css 4045)는 알약이지만 그 알약은 `.6rem` 글자 기준이라 칸 간격(83.6px) 안에 든다(71.6px).
+            // 클론은 글자 크기 하한(`TextSizeGateTests` · Sub 36px)을 지켜야 해 같은 알약이 106px 이 되어 **이웃 칸을 통째로 덮었다**(런 259·268 PNG 8배: 검은 띠 하나 · 마지막 자리 안 보임).
+            // 정본이 같은 겹침을 스킬 화면에서 고친 길이 그대로 있고(`sk-orb-lv-pill` · `#panel-skills .sk-grid .sk-lv` · style.css 4066: 알약을 걷고 2px 검정 테)
+            // 원작 샷 `shot-043313` 의 출전 줄도 **그 꼴**이다 — 그 길로 간다. 불투명한 판이 사라져 이웃을 안 가린다.
+            // 폭은 T109 의 정본 폭표(`KeylineUi.json px.sk_lv` = 정본 2px × `css_px`)를 그대로 읽는다 — 같은 시각 워커 H 가 `SkillBar` 의 같은 병을 그 키로 고쳤다(T109 8회차).
+            UiKit.OutlinePx(t, "pp_line", KeylineUi.Px("sk_lv"));
+            float lvh = Mathf.Max(lh, t.preferredHeight);
+            UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                new Vector2(0f, PlayerInfoStyle.Px("sk_lv_drop_rem") + PlayerInfoStyle.Px("sk_lv_rise_w")),
+                lw, lvh);   // 오브 바닥에서 정본 `bottom: calc(app-w * .0042)` 만큼 위(알약 시절의 −.15rem 아래가 아니다)
             return cell;
         }
     }
