@@ -569,3 +569,44 @@ T30 이 24종을 전부 합성해 놓았지만 `Assets/Scripts` 어디에서도 
 - 새로 빠진 것: **작업 셋**(T137 · T138 · T139) · 축 하나를 **닫았다**(세이브 필드).
 - T33 은 아직 ✅ 가 아니다. 7회차가 열 축: `css @media`(반응형 분기) ↔ 클론 SafeArea·비율 갈래 ·
   `ui.js` 공개 함수 97개 · 원작 화면 30장.
+
+---
+
+# T33 완주 대조 — **6회차** (2026-09-14 02:2x · 워커 J · sess-0217-24026)
+
+5회차가 적어 둔 «다음 축 셋» 을 한 회차에 다 열었다. 결과는 **둘은 깨끗, 하나에서 둘을 캤다**.
+
+## ⓖ 정본 `state.js` 세이브 필드 ↔ 클론 저장 트리 — **0건(깨끗)**
+
+이 축은 «화면이 이상하다» 가 아니라 **«진행이 조용히 안 남는다»** 를 잡으러 열었다.
+
+| 물음 | 결과 |
+|---|---|
+| 최상위 45칸이 클론에 있는가 | **45/45 있다** |
+| 중첩 레코드(settingsDummy 4 · autoForge 5 · summonMult 3 · lineAscend 4 · equipment 8 · quests·pets·mounts·eggs·hatching·techResearch·dungeonRun 항목 꼴) | 전부 있다. `equipment` 의 gloves·necklace·shoes·belt 와 `skills` 의 powerStrike 가 «없다» 로 뜬 것은 **오탐** — 클론은 그것을 `gamedata.json` 의 `SLOTS`·스킬 표에서 읽는다(§1 «수치를 코드에 박지 않는다» 를 지킨 결과다) |
+| **쓰기만 하고 읽는 데가 없는 칸은 없는가** | «한 파일에서만 보이는 칸» 11개를 전부 따라가 봤다 — 전부 타입 있는 속성(`Kills`·`AutoCast`·`AutoForgeOn`·`HatchSlotBonus`·`Cleared` …)으로 흘러 다른 파일에서 읽힌다. 예: `questsCleared` → `MetaSave` → `QuestState.Cleared` → `Quests.Tier()` → `NeedOf()` 로 정본 `quests.js` 90·154 와 같은 길 |
+
+## ⓗ `@media` 분기 — **0건 · 5회차의 내 추측이 틀렸다**
+
+5회차에 «`@media`(반응형 분기)» 라고 적었는데, 정본의 `@media` 는 **여섯 개뿐이고 전부 접근성**이다
+(`prefers-color-scheme: dark` 1 · `forced-colors: active` 1 · **`prefers-reduced-motion: reduce` 4**).
+**반응형 breakpoint 는 0개다** — 정본은 고정 9:16 앱 상자라 애초에 없다. 다음 사람이 이 축을 다시 열 필요 없다.
+`prefers-reduced-motion` 넷도 이미 닫혀 있다 — **결정 263**(«유니티에 그 OS 신호가 없어 두지 않는다» · `EquipSwapFx`) 과
+`AgePattern.Motion` 스위치가 그 자리다.
+
+## ⓘ `index.html` 의 id 54개 ↔ 클론 — **2건 캤다**
+
+- 날것으로 훑으면 «자취 0» 이 22개인데, 그중 14개는 **꼬리 이름 차이**다(정본 `#pet-upgrade-modal` ↔ 클론 `ModalName = "pet-upgrade"`). `-modal`·`-btn` 꼬리를 펴니 8개가 남았고, 그중 `game3d`(유니티 카메라) · `panel-pets`(→ `PetPanel`) 는 옮겨진 것이었다.
+- **남은 여섯이 둘로 묶인다**:
+  - **T141 · 맵 위 이정표 둘** — `#waypoint-mystery`(+ `#waypoint-mystery-time` 일일 초기화 카운트다운) · `#waypoint-pass`. 아이콘 `wp_mystery` 는 **T31 아틀라스에 이미 구워져 있는데** `ForgeUi.cs:81` 이 폴백 키로만 쓴다 — **T130·T133 과 똑같은 꼴**이다(그림은 있고 부르는 곳이 없다). 리그 이정표는 정본에서 주인 지시로 삭제됐으니 옮기지 않는다.
+  - **T142 · 부팅 로딩 화면** — `#boot-loading`(모루+망치+불티 · 제목 · 진행바 `#bl-fill` · 단계 글자 `#bl-stage`). 부팅을 일곱 단계로 쪼개 퍼센트를 올린다(8 «세이브 불러오는 중…» → 96 «마무리 중…» → 100). 정본 주석이 왜 있는지까지 적어 뒀다: «첫 렌더의 셰이더 컴파일은 없앨 수 없으니 **로딩창 아래에서 소화한다**». **주인이 제일 먼저 보는 화면인데 클론엔 없다.**
+
+## 이 회차가 얻은 규칙
+> **«자취 0» 을 세기 전에 이름 꼬리를 먼저 편다.** id 축은 날것으로 22건이었고 꼬리(`-modal`·`-btn`)만 펴도 8건이 됐다 —
+> 5회차의 네 갈래 표(결정 290)에 «ⓑ 이름만 다르게 옮겨진 것» 이 있는 이유가 이것이다. 꼬리를 안 펴면 회차가 남의 시간을 쓴다.
+
+## 다음 회차가 열 축(아직 안 물은 것)
+- 정본 `ui.js` 의 **토스트·문구 표**(사용자에게 보이는 문장 전수) ↔ 클론 문자열 · `index.html` 의 `data-*` 속성 · `css` 의 `::before/::after` 장식 층(키프레임 없이 그림만 있는 것).
+
+## 이 회차의 판정
+- 새로 빠진 것: **둘**(T141 · T142). 두 축(세이브 · `@media`)은 깨끗했고, 그중 하나는 **다시 열 필요 없음**으로 닫았다. T33 은 아직 ✅ 가 아니다.
