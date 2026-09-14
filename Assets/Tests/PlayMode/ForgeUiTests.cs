@@ -117,6 +117,12 @@ namespace Forge.Tests.PlayMode
         [UnityTest]
         public IEnumerator 제작은_망치를_쓰고_비교_팝업을_띄우며_판매하면_코인이_는다()
         {
+            // §0 빨강 수리(런 469: «판매가만큼 코인이 세이브에 들어갔다 · Expected 544 · But was 547»):
+            // 이 자는 «판매로 들어온 코인» 을 재는데 **배경 전투가 같은 세이브에 처치 금화를 넣는다** — 총계로 재면
+            // 전투가 한 마리라도 잡은 프레임에서 어긋난다(워커 C 가 소리 자에서 겪은 «총계 ↔ 그 클립» 과 같은 갈래).
+            // 집에 이미 있는 길로 전투를 안 띄운다(`BattleScene.AutoBoot` · 다섯 자가 쓰는 꼴 · 읽히면 기본값으로 돌아온다).
+            // 이 자는 제작·비교·판매만 보므로 전투가 없어도 보는 것이 하나도 줄지 않는다.
+            Forge.Game.Battle.BattleScene.AutoBoot = false;
             yield return Boot();
             ForgeHost h = ForgeHost.Instance;
             h.S.Hammers = 10; h.Pull();
