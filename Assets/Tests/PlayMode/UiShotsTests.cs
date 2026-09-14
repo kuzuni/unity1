@@ -653,6 +653,9 @@ namespace Forge.Tests.PlayMode
 
                 // ③ 합성.
                 shot = Composite(world, onBlack, onWhite);
+                // T128 ⓓ — «찍혔다» 가 «그려졌다» 는 아니다. 노치 줄도 포함해 **모든** 장을 본다.
+                string flat = FlatFrameFail(name, shot);
+                if (flat != null) pixelFail = pixelFail == null ? flat : pixelFail + " · " + flat;
                 return GallerySheet.Save(shot, OutPrefix + name);
             }
             catch (Exception e)
@@ -690,6 +693,12 @@ namespace Forge.Tests.PlayMode
         public const float BandCoverMin = 0.6f;
         /// <summary>T84 — UI 가 있는 행의 세로 범위 ÷ 판 높이 하한(ROUTINE T84 ⓒ · `ui_score` 의 «채움» 과 같은 뜻).</summary>
         public const float FillMin = 0.98f;
+
+        /// <summary>한 색이 프레임의 이만큼을 넘으면 «그림» 이 아니다(T128 ⓓ · 런 358 은 58장이 전부 rgb 128,128,128 인데 촬영 자가 초록이었다).</summary>
+        public const float FlatFrameMax = 0.99f;
+
+        /// <summary>단색 프레임 문구의 표식 — 부르는 쪽이 «같은 꼴» 을 묶어 세는 데 쓴다.</summary>
+        const string FlatMark = "단색 프레임";
 
         static float Frac(string key, float fallback)
         {
@@ -731,6 +740,32 @@ namespace Forge.Tests.PlayMode
             if (bottom < BandCoverMin) bad.Add("바닥 띠(아래 " + botH + "px · tabbar_top) UI 덮임 " + Pct(bottom) + " < " + Pct(BandCoverMin) + " — UI 가 바닥까지 안 닿는다(세계 색 " + Rgb(world, w / 2, botH / 2) + ")");
             if (fill < FillMin) bad.Add("UI 세로 채움 " + Pct(fill) + " < " + Pct(FillMin) + " — 앱 상자가 그림을 안 채운다(UI 행 " + (h - 1 - last) + "~" + (h - 1 - first) + " / " + h + " · 위에서 셈)");
             return bad.Count == 0 ? null : name + ": " + string.Join(" · ", bad.ToArray());
+        }
+
+        /// <summary>
+        /// T128 ⓓ — **단색 프레임 막이**. 화면이 통째로 한 색이면 «찍혔다» 로 초록을 내면 안 된다.
+        /// 왜 <see cref="PixelGate"/> 가 못 잡나: 그 자는 검정 바탕 ↔ 흰 바탕 두 장의 **차이**로 UI 덮임을 재는데,
+        /// 전체화면 패스가 깨져 두 장이 똑같은 회색으로 나오면 차이가 0 → «덮임 100%» 로 읽혀 오히려 통과한다
+        /// (런 358 실측: `screen_*` 58장이 전부 rgb 128,128,128 인데 `UiShotsTests` 는 PASS · 그 회색은
+        /// 유니티가 **안 물린 텍스처**에 물리는 기본값이라 «그리다 만» 것이 아니라 «아예 안 그려진» 것이다).
+        /// 그래서 합성한 그림을 직접 본다 — 가운데 픽셀과 같은 색이 <see cref="FlatFrameMax"/> 를 넘으면 빨강.
+        /// 일곱 칸마다 하나씩만 재도 판정이 안 바뀐다(74k 표본 · 58장에 붙어도 눈에 안 띈다).
+        /// </summary>
+        static string FlatFrameFail(string name, Texture2D shot)
+        {
+            Color32[] px = shot.GetPixels32();
+            if (px.Length == 0) return name + ": 촬영이 빈 그림이다";
+            Color32 c0 = px[px.Length / 2];
+            int same = 0, n = 0;
+            for (int i = 0; i < px.Length; i += 7)
+            {
+                n++;
+                if (px[i].r == c0.r && px[i].g == c0.g && px[i].b == c0.b) same++;
+            }
+            float frac = n == 0 ? 0f : same / (float)n;
+            if (frac < FlatFrameMax) return null;
+            return name + ": 촬영이 **" + FlatMark + "**이다 — rgb " + c0.r + "," + c0.g + "," + c0.b + " 가 " + Pct(frac)
+                   + " (그림이 안 그려졌다 · 전체화면 패스·셰이더·카메라를 먼저 본다 · 128 회색은 안 물린 텍스처의 기본값)";
         }
 
         static float Band(long[] rowSum, int w, int y0, int y1)
@@ -825,6 +860,7 @@ namespace Forge.Tests.PlayMode
             PlayLog log = PlayLog.Start("ui-shots");
             var files = new Dictionary<string, string>();
             var failed = new List<string>();
+            int flatCount = 0;   // T128 ⓓ — 단색 프레임 장수(첫 장만 문구로 적고 나머지는 센다)
             List<Shot> shots = null;
             string bootErr = null;
             Trace("boot ok · 촬영=" + ShotW + "x" + ShotH);
@@ -897,8 +933,20 @@ namespace Forge.Tests.PlayMode
                 string file = Capture(s.Name, s.Notch, out pixelFail, out pixelInfo);
                 if (file != null) files[s.Name] = file;
                 Trace("  그림=" + (file != null ? "ok" : "없음") + (pixelInfo != null ? " · " + pixelInfo : ""));
-                if (pixelFail != null) { failed.Add(pixelFail); Trace("  PIXEL " + pixelFail); }
+                if (pixelFail != null)
+                {
+                    Trace("  PIXEL " + pixelFail);
+                    // 단색 프레임은 대개 **모든 장**이 함께 죽는다(전체화면 패스 한 겹 · 런 358 은 58장 전부) —
+                    // 58줄을 다 쌓으면 실패 문구가 진단을 덮으므로 첫 장만 적고 나머지는 수로만 센다.
+                    if (pixelFail.IndexOf(FlatMark, StringComparison.Ordinal) >= 0)
+                    {
+                        flatCount++;
+                        if (flatCount == 1) failed.Add(pixelFail);
+                    }
+                    else failed.Add(pixelFail);
+                }
             }
+            if (flatCount > 1) failed.Add("단색 프레임이 " + flatCount + "장이다(위 첫 장과 같은 꼴) — 한 겹이 화면 전체를 덮은 것이지 화면마다의 결함이 아니다");
 
             log.Mark("ui-shots");
             UiRoot.OverrideSafeArea(null);
