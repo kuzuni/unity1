@@ -21,7 +21,7 @@ namespace Forge.Game.Ui
 
         public static void Show(MetaHost h, OfflineReward o)
         {
-            Popup p = h.Popups.Show(Name);
+            Popup p = h.Popups.Show(Name, null, PopupZUi.AboveTabBar(Name));   // T346 — 정본 `#offline-modal` z 40 > 탭바 30(표 PopupZUi)
             if (p.Root.childCount > 1) { Update(o); return; }
             float rem = PopupKit.Rem, w = UiKit.RefW, H = UiKit.RefH;
             float cardW = UiKit.L("offline_w") * w, cardH = UiKit.L("offline_h") * H;

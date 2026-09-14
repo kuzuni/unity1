@@ -22,7 +22,7 @@ namespace Forge.Game.Ui
         {
             view = "profile";
             picking = false;
-            h.Popups.Show(Name);
+            h.Popups.Show(Name, null, PopupZUi.AboveTabBar(Name));   // T346 — 정본 `#profile-modal` z 40 > 탭바 30(표 PopupZUi)
             Render(h);
         }
 

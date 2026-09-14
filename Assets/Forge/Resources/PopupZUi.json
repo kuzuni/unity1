@@ -1,0 +1,20 @@
+{
+  "_": "T346 — 정본 style.css 의 팝업 겹 순서(z-index · 같은 특이도라 뒤 규칙이 이긴 최종값). 클론 PopupLayer 는 탭바 아래 형제(modals)와 위(modals-over) 두 층뿐이라, 팝업마다 «정본 z 가 탭바 z 보다 큰가» 만 읽어 층을 고른다(PopupZUi.AboveTabBar). 키 = 클론 팝업 이름(Popups.Show 의 name). 수치는 코드에 안 박는다(§1).",
+  "tabbar": { "z": 30, "_": "style.css 3766 #tabbar { z-index: 30 } (1693 의 10 을 뒤 규칙이 덮는다)" },
+  "modals": {
+    "offline":          { "z": 40, "_": "style.css 3781~3783 #offline-modal … { z-index: 40 }" },
+    "profile":          { "z": 40, "_": "style.css 3782 #profile-modal (같은 규칙)" },
+    "player-info":      { "z": 40, "_": "style.css 3782 #player-info-modal (같은 규칙 · 자리는 T178 lock 뒤)" },
+    "pass":             { "z": 40, "_": "style.css 3781 #pass-modal (같은 규칙 · 자리는 T345 lock 뒤)" },
+    "chat":             { "z": 40, "_": "style.css 3787 #chat-modal { z-index: 40 } (자리는 T333 lock 뒤)" },
+    "forge-info":       { "z": 40, "_": "style.css 3782 #forge-info-modal — 클론은 이미 true (T78)" },
+    "forge-item":       { "z": 42, "_": "style.css 3785 #detail-modal, #forge-item-modal { z-index: 42 } — 클론은 이미 true (T78)" },
+    "autoforge":        { "z": 31, "_": "style.css 4691 #autoforge-modal { z-index: 31 } (3782 의 40 을 뒤 규칙이 덮는다 · 탭바 위인 것은 같다) — 클론은 이미 true" },
+    "gear-detail":      { "z": 22, "_": "style.css 1726 #gear-detail-modal { z-index: 22 } — 탭바 아래(클론 기본값이 맞다)" },
+    "league":           { "z": 20, "_": "style.css 1711 .modal { z-index: 20 } — 탭이 여는 시트 · 탭바 아래(그래야 그 탭이 빨간 닫기 표시로 남는다)" },
+    "league-rewards":   { "z": 40, "_": "style.css 3783 .modal.dim-tabbar (ui.js 4781 openLeagueRewards 가 건다) — 클론은 이미 true" },
+    "league-challenge": { "z": 40, "_": "style.css 3783 .modal.dim-tabbar (ui.js 4853 openLeagueChallenge) — 클론은 이미 true" },
+    "shop":             { "z": 20, "_": "style.css 1711 .modal — 탭바 아래" },
+    "quest":            { "z": 20, "_": "style.css 1711 .modal — 탭바 아래" }
+  }
+}
