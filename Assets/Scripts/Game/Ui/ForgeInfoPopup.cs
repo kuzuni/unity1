@@ -259,7 +259,6 @@ namespace Forge.Game.Ui
             }
             string main = d.SlotMain.Get(slot, "atk");
             double baseVal = Math.Floor(main == "atk" ? ForgeRules.TierBaseAtkAt(ageIdx) : ForgeRules.TierBaseHpAt(ageIdx));
-            double pct = h.Engine.ItemDropChance(age, slot);
 
             float rem = PopupKit.Rem;
             float w = UiKit.L("modal_card_w") * UiKit.RefW, pad = rem * 0.9f;
@@ -277,8 +276,10 @@ namespace Forge.Game.Ui
             TextMeshProUGUI mv = UiKit.Text(head, "idet-main", TextKind.Sub, NumFmt.Fmt(baseVal) + " " + ForgeUi.StatLabel(main), "pp_ink", TextAlignmentOptions.Left);
             mv.fontStyle = FontStyles.Bold;
             UiKit.Place(mv.rectTransform, tile + rem * 0.6f, rem * 0.2f + lh, inner - tile - rem * 0.6f, lh);
-            TextMeshProUGUI pv = UiKit.Text(head, "idet-pct", TextKind.Sub, "확률 " + pct.ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture) + "%", "pp_muted", TextAlignmentOptions.Left);
-            UiKit.Place(pv.rectTransform, tile + rem * 0.6f, rem * 0.2f + lh * 2f, inner - tile - rem * 0.6f, lh);
+            // T114 — 여기에 «확률 0.0000%» 셋째 줄을 달지 않는다: 정본 `ui.js` 2242~2248 의 `idet-head` 는
+            //         `idet-icon` + `idet-title`(이름 · 스탯) **두 줄뿐**이고 원작 샷 `shot-042931` 도 그렇다.
+            //         드랍 확률은 «모든 장비의 목록» 격자 셀(위 `Cell` 의 `pct`)에만 나온다 — 그 자리는 정본에도 있다.
+            //         §1 «원작에 없는 것을 넣지 않는다» · 검수 Q 등재(런 223 `screen_forge-detail` 30장 중 꼴찌 1.2/10).
             RectTransform subs = PopupKit.Item(card, "idet-subs", -1f, -1f);
             Image sbg = UiKit.Rounded(subs, "bg", "pp_panel", rem * 0.6f);
             VerticalLayoutGroup sg = PopupKit.Column(subs, rem * 0.5f, rem * 0.15f);

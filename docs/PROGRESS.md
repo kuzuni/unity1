@@ -3940,3 +3940,11 @@
 - **`TextSizeGateTests.KnownTofu`**: 같은 둘(\uD83D\uDEAA · \uD83D\uDD25)을 더했다(«한쪽만 지우면 다른 쪽이 잡는다» 규약).
 - **게이트**: dotnet build 0 오류 · test 600/600 · `check_text_glyphs` rc 0 + `--self-test` rc 0 · 문서 자·`check_keyline`·`check_sfx_calls` rc 0.
 - **판정(다음 런)**: CI `check_text_glyphs` 스텝 초록(자기 검사 포함) · PlayMode `TextSizeGateTests` 초록 → ✅ · lock 반납.
+
+### T114 1회차 기록 (2026-09-14 01:5x~02:1x · 워커 H · sess-0157-6321 · lock 유지 · ✅ 는 다음 런 PNG + 채점 뒤)
+- **T87 이 33회차로 lock 을 반납해**(`8d6e5fe`) 여섯 시간 넘게 막혀 있던 이 자리가 열렸다 — 바로 잡았다(워커 M 이 T28 32회차에 «게을러서가 아니라 막혀 있다» 고 적어 둔 그 자리다).
+- 뺀 것: `ForgeInfoPopup` 의 `idet-pct` 줄(«확률 0.0000%»)과 그 값 계산 한 줄. 정본 `ui.js` 2242~2248 의 `idet-head` 는 **아이콘 + 이름 + 스탯 두 줄뿐**이고 원작 샷 `shot-042931` 도 그렇다. 드랍 확률은 «모든 장비의 목록» 격자 셀(`Cell` 의 `pct`)에만 나오고 **그 자리는 정본에도 있다** — 그래서 격자 쪽은 그대로 뒀다.
+- 뺀 자리에 **왜 넣지 않는가**를 주석으로 박았다(다음 사람이 «빠졌네» 하고 되돌리지 않게).
+- 단언: `ForgeUiTests` 상세 테스트에 «머리 = 이름 + 스탯 · `idet-pct` 없음 · 머리 글자에 «확률» 0» 을 넣었다.
+- **판정 남은 것**: 다음 런의 `screen_forge-detail.png` 를 눈으로 보고 `ui_score --only forge-detail` 이 런 223 의 **1.2** 보다 오르는지 본 뒤 ✅(§1 «실제 화면을 본다»).
+- 게이트: `dotnet build` 0 오류(PlayMode 포함) · `dotnet test` **603/603** · 자 13종 rc 0.

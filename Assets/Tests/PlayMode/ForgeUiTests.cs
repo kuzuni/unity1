@@ -241,6 +241,15 @@ namespace Forge.Tests.PlayMode
             foreach (Transform t in h.Meta.Popups.Find(ForgeInfoPopup.ItemName).Root.GetComponentsInChildren<Transform>(true)) if (t.name.StartsWith("substat-")) subs++;
             Assert.AreEqual(h.Defs.Substats.Count, subs, "옵션 13종 범위");
             AssertTextGate();
+            // T114 — 카드 머리는 **두 줄**이다: 정본 ui.js 2242~2248 `idet-head` = 아이콘 + (이름 · 스탯).
+            //        «확률 N%» 은 정본에 없다(드랍 확률은 «모든 장비의 목록» 격자 셀에만 · 원작 샷 shot-042931).
+            Transform headRt = FindIn(h.Meta.Popups.Find(ForgeInfoPopup.ItemName).Root, "idet-head");
+            Assert.IsNotNull(headRt, "상세 카드 머리");
+            Assert.IsNotNull(FindIn(headRt, "idet-name"), "머리 첫 줄 = 이름");
+            Assert.IsNotNull(FindIn(headRt, "idet-main"), "머리 둘째 줄 = 스탯");
+            Assert.IsNull(FindIn(headRt, "idet-pct"), "정본에 없는 «확률 N%» 줄이 없다(§1)");
+            foreach (TextMeshProUGUI ht in headRt.GetComponentsInChildren<TextMeshProUGUI>(true))
+                Assert.IsFalse(ht.text.Contains("확률", System.StringComparison.Ordinal), "머리에 «확률» 글자 0 — " + ht.name + " «" + ht.text + "»");
             // T57 — 상세는 제 판 위에 그려지고(목록 격자에 겹치지 않는다) ✕ 는 화면에 하나다(목록 것).
             AssertDressed(h.Meta.Popups.Find(ForgeInfoPopup.ItemName).Root, "forge-detail");
             AssertCovers(ForgeInfoPopup.Name, "forge-list");                                   // T78
