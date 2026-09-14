@@ -424,6 +424,7 @@ namespace Forge.Game.Ui
             }
             var queued = new List<ForgeItem>(AutoQueue);
             AutoQueue.Clear();
+            // 정본 resolvePendingCraft 는 여기서 coinBurst 를 안 부른다(탭을 옮긴 뒤라 모루가 가려져 있다 · T117 2회차가 정본 호출 다섯 자리와 대조) — 넣지 말 것
             for (int i = 0; i < queued.Count; i++) if (queued[i] != null && queued[i].Slot != null) GearSys.AutoResolve(queued[i]);
             if (Pending == null) { if (queued.Count > 0) Save(); return; }
             CancelAnvilStrike();
@@ -532,7 +533,7 @@ namespace Forge.Game.Ui
             // 딸깍(equipSnap)은 정본 3462 대로 **교체 연출 안에서** 130ms 뒤 운다(EquipSwapFx.Snap) — 빈 부위 첫 장착은 정본도 무음이라
             //   여기서 바로 울리던 줄을 뺐다(결정 296 · 정본 equipSnap 호출은 ui.js 3462 한 곳뿐).
             if (mode == "equip") GearSys.Equip(item);
-            else GearSys.Sell(item);
+            else CoinBurst.Play(GearSys.Sell(item));   // T117 2회차 — 정본 3901 `this.coinBurst(Forge.sell(item))`: 비교 팝업은 위에서 이미 접혔다(가드는 CoinBurst 가 본다)
             if (swapBack)
             {
                 Push();
@@ -608,12 +609,13 @@ namespace Forge.Game.Ui
         {
             DrainAutoBatch();
             int sold = 0;
+            double gained = 0;
             var keep = new List<ForgeItem>();
             foreach (ForgeItem it in AutoQueue)
             {
                 if (it == null || it.Slot == null) continue;
                 if (Engine.PassesAutoFilter(it)) { keep.Add(it); continue; }
-                GearSys.AutoResolve(it); sold++;
+                gained += GearSys.AutoResolve(it).Gained; sold++;
             }
             AutoQueue.Clear();
             AutoQueue.AddRange(keep);
@@ -622,8 +624,9 @@ namespace Forge.Game.Ui
             {
                 if (Meta.Popups.IsOpen(ForgeCraftPopup.Name)) { CancelAnvilStrike(); ForgeCraftPopup.Hide(this); }
                 ClearPendingCraft();
-                GearSys.AutoResolve(held); sold++;
+                gained += GearSys.AutoResolve(held).Gained; sold++;
             }
+            if (sold > 0) CoinBurst.Play(gained);   // T117 2회차 — 정본 1711: 판매액을 모아 한 번
             Save();
             return sold;
         }
@@ -663,7 +666,8 @@ namespace Forge.Game.Ui
                 ForgeItem held = Pending;
                 if (Engine.PassesAutoFilter(held)) { ShowCraftModal(held); return; }
                 ClearPendingCraft();
-                GearSys.AutoResolve(held);
+                AutoResolveResult r = GearSys.AutoResolve(held);
+                CoinBurst.Play(r.Gained);   // T117 2회차 — 정본 1756: 처리 토스트는 생략(autoforge-toast-suppress) · 판매 코인 연출만 남긴다
                 Save();
             }
             if (OpenNextAutoMatch()) return;
@@ -706,6 +710,7 @@ namespace Forge.Game.Ui
             var kept = new List<ForgeItem>();
             lastSold = new List<ForgeItem>();
             int crafted = 0, sold = 0;
+            double gained = 0;
             while (kept.Count < target && Wallet.Hammers >= 1 && crafted < FillCraftCap)
             {
                 List<ForgeItem> chunk = Engine.Craft((int)Math.Min(Math.Min(target - kept.Count, Wallet.Hammers), FillCraftCap - crafted));
@@ -715,11 +720,13 @@ namespace Forge.Game.Ui
                 foreach (ForgeItem it in chunk)
                 {
                     if (Engine.PassesAutoFilter(it)) kept.Add(it);
-                    else { GearSys.AutoResolve(it); sold++; lastSold.Add(it); }
+                    else { gained += GearSys.AutoResolve(it).Gained; sold++; lastSold.Add(it); }
                 }
                 AutoBatch = new List<ForgeItem>(kept);
                 Save();
             }
+            // T117 2회차 — 정본 1841: 판매 코인 연출은 배치당 한 번으로 합친다(장당 터뜨리면 화면이 코인으로 덮인다)
+            if (sold > 0) CoinBurst.Play(gained);
             return kept;
         }
 
@@ -731,6 +738,7 @@ namespace Forge.Game.Ui
             var batch = new List<ForgeItem>(AutoBatch);
             AutoBatch = new List<ForgeItem>();
             int sold = 0;
+            double gained = 0;
             foreach (ForgeItem it in batch)
             {
                 if (!ForgeSave.IsForgeShaped(it, Defs)) { Debug.LogError("drainAutoBatch: 제작물의 최소 형태가 아닌 autoBatch 항목을 버렸다 — " + MiniJson.Serialize(GearCodec.ItemTo(it))); continue; }
@@ -739,8 +747,9 @@ namespace Forge.Game.Ui
                     if (Engine.AutoForgeConfig().StopOnTarget && autoSeq) stopAfterPick = true;
                     QueueAutoMatch(it);
                 }
-                else { GearSys.AutoResolve(it); sold++; }
+                else { gained += GearSys.AutoResolve(it).Gained; sold++; }
             }
+            if (sold > 0) CoinBurst.Play(gained);   // T117 2회차 — 정본 1890: 배치당 한 번(10장에서 화면이 코인으로 덮이지 않게)
             Save();
             return batch.Count;
         }

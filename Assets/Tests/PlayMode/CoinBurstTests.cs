@@ -3,6 +3,8 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Forge.Core;
+using Forge.Core.Forging;
 using Forge.Core.Ui;
 using Forge.Game;
 using Forge.Game.Ui;
@@ -10,7 +12,7 @@ using Forge.Game.Ui;
 namespace Forge.Tests.PlayMode
 {
     /// <summary>
-    /// T117 — 판매 코인 분출(정본 `coinBurst`). 1회차는 연출 자체를 직접 부른다(`ForgeHost` 의 호출 한 줄은 T87 lock 뒤):
+    /// T117 — 판매 코인 분출(정본 `coinBurst`). 앞 둘은 연출 자체를 직접 부르고, 셋째(2회차)는 `ForgeHost.DoResolveCraft` 의 실판매로 돈다:
     /// 조각 수가 금액 눈금대로(3~10) · 라벨이 전부 «+합÷개수» 같은 값 · 층이 장비 시트 위·패널 아래 · 팝업/탭 패널이 열려 있으면 0 · 수명이 끝나면 다 걷힌다.
     /// </summary>
     public class CoinBurstTests
@@ -85,6 +87,55 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsFalse(CoinBurst.Covered());
             Assert.AreEqual(6, CoinBurst.Play(100), "덮개가 걷히면 다시 뜬다");
+        }
+            static IEnumerator WaitCraftPopup(ForgeHost h)
+        {
+            float t = 0f;
+            while (!h.Meta.Popups.IsOpen(ForgeCraftPopup.Name) && t < 8f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "망치질 + 리빌 뒤 비교 팝업이 떠야 한다");
+            yield return null;
+        }
+
+        /// <summary>T117 2회차 — 실판매: 비교 팝업의 [판매] 가 팝업을 접은 **그 프레임**에 분출이 돈다(정본 3901 · 팝업은 `Destroy` 라 프레임 끝까지 남지만 «열린 목록» 으로 가드를 본다 · 결정 310) · 조각 수·라벨은 판매가 눈금대로 · 탭을 옮긴 정리(`ResolvePendingCraft`)는 정본대로 연출 0.</summary>
+        [UnityTest]
+        public IEnumerator 실판매_비교_팝업의_판매는_팝업을_접은_그_프레임에_판매가_눈금대로_코인이_튄다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Hammers = 20; h.Pull();
+            h.OnCraft();
+            yield return WaitCraftPopup(h);
+            ForgeItem item = h.Pending;
+            Assert.IsNotNull(item);
+            double price = h.GearSys.SellPrice(item);
+            double coins = h.S.Coins;
+            int before = CoinBurst.Instance != null ? CoinBurst.Instance.PlayCount : 0;
+            h.ResolveCraft("sell");
+            if (h.Meta.Popups.IsOpen(ForgeCraftPopup.SellName)) h.OnSellConfirm();   // 옛 장비보다 좋은 것을 팔 때의 확인 — 확인도 팝업을 접은 뒤 같은 프레임에 판다
+            // 같은 프레임 — 팝업 판은 아직 modals 아래 있다(Destroy 는 프레임 끝) · 그래도 연출은 돌아야 한다
+            Assert.IsFalse(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "[판매] 는 팝업을 닫는다");
+            CoinBurst cb = CoinBurst.Instance;
+            Assert.IsNotNull(cb, "판매 뒤 코인 분출 층이 선다");
+            Assert.AreEqual(before + 1, cb.PlayCount, "실판매 한 번 = 분출 한 번(팝업을 방금 접은 프레임 · 정본 3901)");
+            CoinBurstSpec s = CoinBurst.Spec;
+            int n = CoinBurstRules.Count(s, price);
+            Assert.AreEqual(n, cb.LastCount, "조각 수는 판매가 눈금대로");
+            Assert.AreEqual(n, cb.LastLabels.Count);
+            string want = "+" + NumFmt.Fmt(CoinBurstRules.Per(price, n));
+            foreach (string l in cb.LastLabels) Assert.AreEqual(want, l, "라벨은 전부 합÷개수");
+            yield return null;
+            Assert.AreEqual(coins + price, h.S.Coins, 0.5, "판매가만큼 코인이 들어갔다");
+            Assert.Greater(cb.Pieces, 0, "조각이 날고 있다");
+            // 탭을 옮긴 정리는 정본 resolvePendingCraft 에 coinBurst 가 없다 — 대기품을 세우고 정리해도 분출 0
+            yield return WaitSec(2.5f);
+            h.S.Hammers = 20; h.Pull();
+            h.OnCraft();
+            yield return WaitCraftPopup(h);
+            int plays = cb.PlayCount;
+            h.ResolvePendingCraft();
+            yield return null;
+            Assert.AreEqual(plays, cb.PlayCount, "탭 이동 정리(resolvePendingCraft)는 정본대로 연출 0");
+            Assert.IsNull(h.Pending, "대기품은 자동 판정(판매)됐다");
         }
     }
 }

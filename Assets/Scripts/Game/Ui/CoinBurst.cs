@@ -57,11 +57,13 @@ namespace Forge.Game.Ui
             UiRoot root = UiRoot.Instance;
             if (root == null) return true;
             if (root.TabBar != null && root.TabBar.ActiveTab != null) return true;
-            MetaHost m = MetaHost.Instance;
-            if (m != null && m.Popups != null && m.Popups.Open.Count > 0) return true;
+            // 팝업(정본 `.modal:not(.hidden)`)은 팝업 층의 «열린 목록» 으로 본다 — `Hide` 가 판을 `Destroy` 로 걷어 그 오브젝트는 프레임 끝까지
+            // `modals` 아래 남아 있으므로, 아이 수로 재면 [판매] 직후(비교 팝업을 방금 접은 그 프레임 = 정본 3901 의 주 경로)가 «가려짐» 으로
+            // 잘못 읽혀 연출이 통째로 빠진다(T117 2회차 실측 · 결정 310). 층이 아직 없을 때만 아이 수로 대신 본다.
+            PopupLayer pl = PopupLayer.Instance;
+            if (pl != null) return pl.Open.Count > 0;
             Transform modals = root.App.Find("modals");
-            if (modals != null && modals.childCount > 0) return true;
-            return false;
+            return modals != null && modals.childCount > 0;
         }
 
         /// <summary>모루 버튼(정본 `.anvil-btn`) — 장비 시트 안에서 이름으로 찾는다(없으면 null · 시트가 든 것이 held-slot 이면 없다 = 정본 «조용히 생략»).</summary>

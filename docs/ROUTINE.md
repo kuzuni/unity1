@@ -958,6 +958,8 @@
 - 범위: `Assets/Scripts/Game/Ui/CoinBurst.cs`(새) · `Assets/Forge/Resources/CoinBurstUi.json`(새 · 수치표 · `catalog.json` 은 T87 lock) · `Assets/Scripts/Game/Ui/ForgeHost.cs`(호출 · **T87 lock 뒤**) · `Assets/Tests/PlayMode/`(새 파일 · `ForgeUiTests.cs` 는 T87 lock).
 - ✅ 1회차(2026-09-13 · 워커 R · 결정 260 · 런 229 초록 · lock 반납): 연출·표·자를 세웠다 — Core `CoinBurstRules`(셈 · EditMode 6) · `Resources/CoinBurstUi.json`(수치·키프레임·색·문구) · `Ui/CoinBurst.cs`(층 = 장비 시트 위 형제 · 정본 가드 · 벽시계) · PlayMode `CoinBurstTests` 2(직접 호출). **남은 것 = 호출 한 줄**(`ForgeHost.DoResolveCraft` 의 Sell 뒤 `CoinBurst.Play(가격)` + 오토포지 갈래 · T87 lock 뒤 · 누구든) + 실판매 단언.
 
+- 🔄 2026-09-14 04:0x 워커 P(sess-0154-10159) **2회차**: T87 lock 반납 뒤 — 정본 호출 다섯 자리(3901 수동 [판매] · 1756 autoSeqStep · 1711 purge · 1841 craftUntilMatches · 1890 drainAutoBatch · 뒤 셋은 배치당 한 번)를 `ForgeHost` 에 그대로 · `resolvePendingCraft` 자리는 정본도 안 부른다 · `Covered()` 가 `modals` 아이 수로 보던 것을 «열린 목록» 으로(Hide 의 Destroy 가 프레임 끝까지 남아 [판매] 프레임이 가려짐으로 읽혔다 · 결정 310) · PlayMode 실판매 1. **판정(CI + 눈)은 다음 회차 · lock 쥔 채**.
+
 ### T118 ✅ — 장비 교체 «던져내기» 연출(`equip-swap-throwout`)이 없다 — 옛 장비가 회전하며 바닥에 눕는 그 연출 · 소리 둘(`equipToss`·`equipDrop`)은 구워만 놓고 **호출이 0** (Game·UI · **T87 lock 뒤**(`Ui/Forge*`) · T33 3회차 실측)
 - 정본: `js/ui.js` 3329 `grabEquipSwapFx(slot)`(렌더가 칸을 갈아끼우기 **전에** 옛 타일 자리를 붙잡는다) · 3362~3470 `playEquipSwapFx(fx)`. 옛 장비는 **화면 바깥쪽**으로 날아가고 회전은 정수 바퀴(360°·720°) + 기울기 8~22° 로 끝난다(아무 각도로 멈추면 AABB 가 √2배로 부풀어 자리 계산이 어긋난다) · 착지 반경은 `(W·sk·1.12·cosθ + H·sk·1.05·sinθ)/2 + 2` · 팝업 카드가 열려 있으면 착지점을 카드 **옆 빈 띠**로 옮긴다 · `prefers-reduced-motion` 이면 통째로 생략.
 - 소리: `SFX.equipToss()`(3428 · 던질 때) · `SFX.equipDrop()`(3439 · 착지) · `SFX.equipSnap()`(3462 · 새 장비가 칸에 붙을 때) 셋이 **이 함수 안에** 있다.
