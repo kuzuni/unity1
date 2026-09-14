@@ -4277,3 +4277,12 @@
 - **PNG(런 308 screens 53장 · Read 로 열어 봄)**: `screen_main.png` 무대 띠 오른쪽 위 21% 에 미스터리 상자(갈색 통나무 위 초록 덩어리 + 머리 위 `?`) · 바로 아래 검정 알약에 노란 «5시 15분»(03:36Z 촬영 = 로컬 12:36 → 09:00 까지 20시간? — 러너 TZ 가 UTC 라 09:00 UTC 까지 5시 24분 안팎 · 정본 셈 그대로) · 36% 에 금빛 교차 검(패스). 상자·테 없이 그림만(정본 주석 «맵 위에 그림만»). `screen_t139-waypoints.png`(테스트가 구운 UI 한 장)도 같은 자리. 리그 이정표 없음.
 - **반납**: `docs/claims/T139.lock` 을 이 커밋에서 지운다 · ROUTINE §2 제목 ✅ · 표 행 ✅.
 - **남긴 것**: 그림자 번짐(uGUI 한계) · 카운트다운 글자 종류(T136 뒤 `time_font_rem`) — 결정 306.
+
+### T109 10회차 기록 (2026-09-14 04:0x~04:4x · 워커 H · sess-0357-4736 · lock 유지 · 판정은 다음 런 + PNG)
+- 남은 «자리 없음» 넷 중 **`.petd-wrap .petd-tile .sk-lv`**(펫·탈것 상세 타일의 Lv)를 갚았다 — `OfflinePopup#zzz`(T133 lock)·`DungeonSheet#rw-amt`·`#rw-tick`(T134 lock)은 남의 자리라 안 건드렸다.
+- **정본 두 규칙을 갈라 읽었다**: 기본 `.sk-lv`(style.css 4045)는 **검정 알약**이고, `.petd-wrap .petd-tile .sk-lv`(5467)는 그 판을 **끄지 않고** 글자만 «흰 칠 + 2.5px 검정 링» 으로 덮는다. 그래서 여기서는 알약을 그대로 두고 **링만** 걸었다 — 판까지 걷는 전투 바(603 · T109 8회차)와 **다른 자리**다(같은 클래스 이름이라 헷갈리기 쉬워 주석·단언에 그 차이를 박았다).
+- 고친 것: `KeylineUi.json` px 절에 `petd_tile_lv` **2.5**(출처 줄 포함) · `PetSkillKit.LvBadge(…, keylineKey)` 갈래를 더해 판은 두고 글자에 `OutlinePx` · `PetPanel.TileFace` 가 그 키를 넘긴다(리본 `.sk-ribbon` 은 정본에 키라인 규칙이 없어 그대로).
+- 자(`check_keyline`): MAP 의 그 자리를 **짓는 코드가 있는 파일**(`Ui/PetSkillKit.cs`)로 옮기고 KNOWN 한 줄을 뺐다 → **자리 초록 53 → 54 · KNOWN 빈자리 11 → 10 · 문제 0**.
+  - 한 가지 자 사정에 맞춘 것: 그 자는 «`<받는이>.Text(…, "이름"`» 꼴로 자리를 찾는다 — 같은 클래스 안 호출이라 받는이가 없어 못 봤다. 코드 쪽에서 `PetSkillKit.Text(…)` 로 이름을 붙여 부르고 **왜 그렇게 부르는지 주석**을 달았다(자를 느슨하게 고치면 엉뚱한 자리가 «있다» 로 잡힐 수 있어 코드 쪽 한 토큰이 더 싸다).
+- 단언: `PetUiTests.AssertTileLvKeyline` — 이름이 `sk-lv` · 흰 칠 · `outlineWidth > 0` · **알약 판(`bg`)은 그대로 있다**(전투 바와 다른 자리라는 것을 못 박는다).
+- 게이트: `dotnet build` 0 오류(PlayMode 포함) · `dotnet test` **621/621** · 자 11종 rc 0.

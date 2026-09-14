@@ -121,6 +121,29 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(rc[0].y, fc[0].y, "리본은 면 아래로 안 내려간다");
         }
 
+        /// <summary>
+        /// T109 10회차 — 정본 `.petd-wrap .petd-tile .sk-lv`(style.css 5467): **알약은 그대로** 두고 그 글자가
+        /// 흰 칠 + **2.5px 검정 링**이다(폭표 `KeylineUi.px.petd_tile_lv`). 기본 `.sk-lv`(4045)만 옮겼던 자리다.
+        /// </summary>
+        static void AssertTileLvKeyline(int i)
+        {
+            UnityEngine.UI.Button tile = Sheet.Pets.PetTile(i);
+            Assert.IsNotNull(tile, "펫 타일 " + i);
+            TextMeshProUGUI lv = null;
+            RectTransform badge = null;
+            foreach (RectTransform rt in tile.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name != "sk-lv") continue;
+                lv = rt.GetComponent<TextMeshProUGUI>();
+                badge = rt.parent as RectTransform;
+            }
+            Assert.IsNotNull(lv, "타일 Lv 글자(정본 이름 sk-lv)");
+            Assert.AreEqual(PetSkillStyle.C("white"), lv.color, "흰 칠(정본 color:#fff)");
+            Assert.Greater(lv.outlineWidth, 0f, "2.5px 검정 링(정본 -webkit-text-stroke)");
+            Assert.IsNotNull(badge, "Lv 알약 상자");
+            Assert.IsNotNull(badge.Find("bg"), "알약 판은 그대로다 — 정본 5467 은 background 를 끄지 않는다(전투 바 603 과 다른 자리)");
+        }
+
         static bool NoGraphics()
         {
             return SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
@@ -475,6 +498,7 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.AreNotEqual(active, Host.Pets.State.ActivePets.Contains(last));
             if (Host.Pets.State.ActivePets.Contains(last)) AssertRibbonInsideTile(last);
+            AssertTileLvKeyline(last);                                                  // T109 10회차 — 타일 Lv 링(정본 5467)
             Sheet.Pets.OnTogglePet(last);
             yield return null;
             Assert.AreEqual(active, Host.Pets.State.ActivePets.Contains(last));

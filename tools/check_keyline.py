@@ -78,7 +78,8 @@ TABLE = {
     '.dgd-btn.silver': ['Ui/DungeonPopups.cs@Pill'],        # T109 9회차 — 실물은 DungeonDetailPopup 170 의 Pill(Skin.DgdSilver) · Btn 이 아니다
     '.petd-wrap .petd-btn': ['Ui/PetSkillKit.cs@PaperButton'],
     '.petd-wrap .petd-name': ['Ui/PetPanel.cs#petd-name', 'Ui/MountSheet.cs#petd-name'],
-    '.petd-wrap .petd-tile .sk-lv': ['Ui/PetPanel.cs#sk-lv'],
+    # T109 10회차 — 그 자리를 짓는 코드는 공용 조각 `PetSkillKit.LvBadge`(PetPanel·MountSheet 의 타일이 같이 쓴다)다.
+    '.petd-wrap .petd-tile .sk-lv': ['Ui/PetSkillKit.cs#sk-lv'],
     '.petup-xpbar span': ['Ui/PetSkillKit.cs@Gauge'],
     '.petup-selrow .btn.silver': ['Ui/PetSkillKit.cs@PaperButton'],
     '.petup-selrow .btn.silver.disabled': '—정본이 끄는 규칙(폭 0)',
@@ -102,7 +103,6 @@ KNOWN = {
     'Ui/ForgeInfoPopup.cs#title': 'T109 ⓑ — h3.fi-title .11em(T99 lock 뒤)',
     'Ui/ForgeAutoPopup.cs#af-title': 'T109 ⓑ — h3.af-title .11em · .af-title 4px #fff',
     'Ui/ForgeCraftPopup.cs#title': 'T109 ⓑ — h3.sellwarn-title .11em(T99 lock 뒤)',
-    'Ui/PetPanel.cs#sk-lv': 'T109 ⓑ — .petd-tile .sk-lv 2.5px: 펫 미니 타일의 Lv 글자가 클론에 없다(PetPanel 에 lv 이름 글자 0) · 세우면서 키라인',
     'Ui/DungeonSheet.cs#rw-amt': 'T109 ⓑ — .rw-amt 4px #2a2018: 보상 날림의 획득량 글자가 클론에 없다(DungeonSheet 는 아이콘만 날린다) · 세우면서 키라인',
     'Ui/DungeonSheet.cs#rw-tick': 'T109 ⓑ — .rw-tick 3.5px #2a2018: 보상 날림의 체크 글자가 클론에 없다 · 세우면서 키라인',
     # T109 9회차 — 7회차가 공용 Popups.cs@Btn 에 키라인(면 키 표 · 2px)을 걸자 이 셋이 «초록» 으로 보였다. 셋은 제 규칙이 따로라 실물 자리로 옮기고 임자를 적는다.

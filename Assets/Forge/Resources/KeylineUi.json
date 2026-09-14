@@ -41,6 +41,8 @@
     "slot_buy_label": 3.0,
     "hatch_time": 3.0,
     "cur_pill": 3.0,
+    "petd_tile_lv": 2.5,
+    "petd_tile_lv_": "정본 style.css 5467 `.petd-wrap .petd-tile .sk-lv` = color #fff + -webkit-text-stroke 2.5px var(--pp-line) — 펫·탈것 상세 타일의 Lv 알약 글자다. 알약 판은 기본 .sk-lv(4045) 그대로 두고 링만 는다(T109 10회차).",
     "petd_btn": 3.0,
     "petup_btn_silver": 2.0,
     "summon_btn": 4.0,

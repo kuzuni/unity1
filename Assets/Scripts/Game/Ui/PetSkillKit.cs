@@ -253,11 +253,30 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>원작 `.sk-lv` — 검정 알약 위 흰 굵은 글자(Lv.N).</summary>
-        public static RectTransform LvBadge(Transform parent, string text, float w, float h)
+        public static RectTransform LvBadge(Transform parent, string text, float w, float h) { return LvBadge(parent, text, w, h, null); }
+
+        /// <summary>
+        /// 알약 배지. <paramref name="keylineKey"/> 를 주면 **판은 그대로 두고 글자에만** 정본 키라인을 건다 —
+        /// 정본 `.petd-wrap .petd-tile .sk-lv`(style.css 5467)가 그 꼴이다(기본 `.sk-lv` 4045 의 검정 알약 위에
+        /// 흰 칠 + 2.5px 링). 글자 이름도 그때는 `sk-lv` 로 둔다 — 정본 클래스 이름이고 `check_keyline`(T109)이
+        /// «그 자리가 있는가» 를 그 이름으로 본다.
+        /// </summary>
+        public static RectTransform LvBadge(Transform parent, string text, float w, float h, string keylineKey)
         {
             RectTransform box = UiKit.Box(parent, "lv");
             Fill(box, "bg", PetSkillStyle.C("ink"), h * 0.5f);
-            TextMeshProUGUI t = Text(box, "t", TextKind.Sub, text, PetSkillStyle.C("white"));
+            TextMeshProUGUI t;
+            if (keylineKey == null)
+            {
+                t = Text(box, "t", TextKind.Sub, text, PetSkillStyle.C("white"));
+            }
+            else
+            {
+                // 이름은 정본 클래스 그대로 `sk-lv` — 자(`tools/check_keyline.py`)가 «그 자리가 있는가» 를 이 이름으로 본다.
+                // 같은 클래스 안이지만 `PetSkillKit.` 을 붙여 부른다: 그 자는 «<받는이>.Text(…, "이름"» 꼴로 자리를 찾는다.
+                t = PetSkillKit.Text(box, "sk-lv", TextKind.Sub, text, PetSkillStyle.C("white"));
+                UiKit.OutlinePx(t, "pp_line", KeylineUi.Stroke(keylineKey, t.fontSize));
+            }
             UiKit.Fill(t.rectTransform);
             box.sizeDelta = new Vector2(w, h);
             return box;

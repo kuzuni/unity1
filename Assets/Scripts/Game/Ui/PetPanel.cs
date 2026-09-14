@@ -248,7 +248,9 @@ namespace Forge.Game.Ui
             }
             string lt = PetSkillStyle.T("lv_short", level);
             float lw = PetSkillKit.TextWidth(TextKind.Sub, lt) + PetSkillStyle.Rem(0.5f);
-            RectTransform lv = PetSkillKit.LvBadge(face, lt, lw, lvH);
+            // T109 10회차 — 정본 `.petd-wrap .petd-tile .sk-lv`(style.css 5467): 알약은 그대로 두고 글자에 2.5px 검정 링
+            //   («타일 위 Lv 글자도 원본은 흰 채움 + 검정 키라인이다» — 정본 주석의 리본 글자 y=419 스캔 근거).
+            RectTransform lv = PetSkillKit.LvBadge(face, lt, lw, lvH, "petd_tile_lv");
             UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0f, PetSkillStyle.Rem(0.15f)), lw, lvH);
             return face;
         }
