@@ -66,6 +66,7 @@ namespace Forge.Game.Ui
             UiKit.Place(star.rectTransform, pad, y + (titleH - sd) * 0.5f, sd, sd);
             TextMeshProUGUI title = DungeonPopups.Bold(card, "title", TextKind.Button, TitleText, "pp_ink", TextAlignmentOptions.Left);
             UiKit.OutlinePx(title, "pp_line", KeylineUi.Em("sheet_title", title.fontSize));   // 정본 3846 묶음(h3.sheet-title …) { .11em var(--pp-line) }
+            UiKit.TextShadow(title, "paper_emboss");   // T333 2회차 — 정본 8381 한 벌 «밝은 종이 위 글자는 흰 엠보스»(0 1px 0 rgba(255,255,255,.92))
             UiKit.Place(title.rectTransform, pad + sd * 1.2f, y, inner - sd * 1.2f, titleH);
             y += titleH + gap;
             TextMeshProUGUI guide = DungeonPopups.Para(card, "guide", TextKind.Sub, "라인마다 조건을 채우면 그 라인을 승천시킵니다 — 승천 횟수만큼 이후 획득물에 별이 붙습니다.", "muted2", TextAlignmentOptions.Center);

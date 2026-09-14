@@ -1,10 +1,34 @@
 {
   "_": "T333 — 정본 style.css 의 `text-shadow`(키라인 표 밖 44) 를 옮긴 글자 그림자 표. TMP 언더레이 한 겹(UiKit.TextShadow · 식은 Core UnderlaySdf). px = 정본 CSS px(캔버스로 넘길 때 KeylineUi css_px 2.164 를 곱한다 · T104 규약) · dy 는 CSS 방향(아래가 +) · blur = CSS 흐림 반지름 · color = #RRGGBB + alpha. 코드에 숫자를 박지 않는다(§1). catalog.json 은 T87 lock 이라 자기 표(T65 PlayerInfoUi 꼴).",
   "shadows": {
-    "btn_label": { "dx_px": 0, "dy_px": 1, "blur_px": 1, "color": "#041234", "alpha": 0.62, "_": "style.css 8504 .btn.btn:not(.silver):not(.ascend-ready) … { text-shadow: 0 1px 1px rgba(4,18,52,.62) } — 8336 의 .55 를 뒤 규칙(같은 특이도)이 덮는다 · 색 버튼 전부의 글자가 판에 앉는 한 겹" },
-    "btn_label_disabled": { "dx_px": 0, "dy_px": 1, "blur_px": 0, "color": "#FFFFFF", "alpha": 0.55, "_": "style.css 8356 .btn.btn.disabled … { text-shadow: 0 1px 0 rgba(255,255,255,.55) } — 밝은 면 버튼은 흰 엠보스" }
+    "btn_label": {
+      "dx_px": 0,
+      "dy_px": 1,
+      "blur_px": 1,
+      "color": "#041234",
+      "alpha": 0.62,
+      "_": "style.css 8504 .btn.btn:not(.silver):not(.ascend-ready) … { text-shadow: 0 1px 1px rgba(4,18,52,.62) } — 8336 의 .55 를 뒤 규칙(같은 특이도)이 덮는다 · 색 버튼 전부의 글자가 판에 앉는 한 겹"
+    },
+    "btn_label_disabled": {
+      "dx_px": 0,
+      "dy_px": 1,
+      "blur_px": 0,
+      "color": "#FFFFFF",
+      "alpha": 0.55,
+      "_": "style.css 8356 .btn.btn.disabled … { text-shadow: 0 1px 0 rgba(255,255,255,.55) } — 밝은 면 버튼은 흰 엠보스"
+    },
+    "paper_emboss": {
+      "dx_px": 0,
+      "dy_px": 1,
+      "blur_px": 0,
+      "color": "#FFFFFF",
+      "alpha": 0.92,
+      "_": "style.css 8381 `.sheet-title, .modal-card h3, .modal-card .idet-name, .stat-grid div, .substat-list div, .prob-box div, .shop-reward-pill, .qst-row .qst-name { text-shadow: 0 1px 0 rgba(255,255,255,.92) }` — 정본 주석의 한 벌 규칙 «어두운 바탕 위 글자는 검정 그림자로, 밝은 종이 위 글자는 흰 엠보스로»."
+    }
   },
-  "btn_none_keylines": ["summon_btn"],
+  "btn_none_keylines": [
+    "summon_btn"
+  ],
   "btn_none_keylines_": "제 규칙이 text-shadow: none 인 버튼의 키라인 표 키 — style.css 8661 .btn.btn.summon-btn.summon-btn:not(.ascend-ready) { text-shadow: none }",
   "shadows_": "btn 의 «색 버튼» 은 T109 7회차와 같은 가름 — KeylineUi.json btn_face 에 든 면(pp_blue·pp_green·pp_red = 정본 .primary/.on/.equip/.danger/.sell)만 그림자 · 그 밖(회색·종이·디버그 = 정본 .silver 계열)은 없음 · 비활성은 면과 무관하게 흰 엠보스(8356)"
 }

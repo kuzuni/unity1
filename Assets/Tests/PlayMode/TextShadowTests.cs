@@ -96,5 +96,31 @@ namespace Forge.Tests.PlayMode
             finally { Object.Destroy(host.gameObject); }
             yield return null;
         }
+
+        /// <summary>
+        /// T333 2회차 — 정본 8381 의 한 벌: **밝은 종이 위 글자는 흰 엠보스**(`0 1px 0 rgba(255,255,255,.92)`).
+        /// 시트 제목이 그 규칙의 첫 선택자(`.sheet-title`)다. 공용 자리(`UiKit`·`Popups.cs`·`QuestSheet`)는 남의 lock 이라
+        /// 이번 회차는 **시트 제목 다섯 자리**만 걸었다(펫·스킬·탈것·상점·승천) — 나머지 선택자는 그 lock 들이 풀린 뒤다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 시트_제목은_정본_흰_엠보스_한_겹을_쓴다()
+        {
+            yield return Boot();
+            // 시트는 탭을 안 눌러도 서 있다(꺼져 있을 뿐) — 재질은 꺼진 칸에서도 읽힌다.
+            TextMeshProUGUI title = null;
+            for (int i = 0; i < 600 && title == null; i++)
+            {
+                foreach (TextMeshProUGUI t in UiRoot.Instance.App.GetComponentsInChildren<TextMeshProUGUI>(true))
+                    if (t.name == "sheet-title") { title = t; break; }
+                if (title == null) yield return null;
+            }
+            Assert.IsNotNull(title, "시트 제목(sheet-title)이 600프레임 안에 안 섰다");
+            Canvas.ForceUpdateCanvases();
+            AssertShadow(title, "paper_emboss", "시트 제목");
+            // 정본 규칙의 뜻이 «흰 엠보스» 다 — 색이 어두우면 옮긴 것이 아니다.
+            Color c = title.fontMaterial.GetColor("_UnderlayColor");
+            Assert.Greater(c.r + c.g + c.b, 2.7f, "엠보스는 흰색이어야 한다(정본 rgba(255,255,255,.92))");
+            yield return null;
+        }
     }
 }

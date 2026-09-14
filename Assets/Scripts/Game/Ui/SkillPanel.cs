@@ -66,6 +66,7 @@ namespace Forge.Game.Ui
             UiKit.Place(head, 0f, y, W, headH);
             Title = PetSkillStyle.T("skills_title", Sk.State.Skills.Count, Defs.SkillDefs.Count);
             TextMeshProUGUI title = PetSkillKit.Stroked(head, "sheet-title", TextKind.Title, Title, PetSkillStyle.C("white"), "sheet_title");   // 정본 h2.sheet-title .11em
+            UiKit.TextShadow(title, "paper_emboss");   // T333 2회차 — 정본 8381 한 벌 «밝은 종이 위 글자는 흰 엠보스»(0 1px 0 rgba(255,255,255,.92))
             UiKit.Fill(title.rectTransform);
             float pillH = PetSkillStyle.Px("pill_h_rem");
             PetSkillKit.Pill(head, "pill-ticket", PetSkillStyle.C("pill_ticket"), "ticket", PetSkillStyle.Fmt(H.Tickets), pillH, 0f, (headH - pillH) * 0.5f);
