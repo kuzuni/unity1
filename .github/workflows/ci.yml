@@ -339,6 +339,13 @@ jobs:
           echo "count=$n" >> "$GITHUB_OUTPUT"
           echo "any=$any" >> "$GITHUB_OUTPUT"
           printf '{"sha":"%s","run":%s,"tests":"%s","shots":%s,"carried":%s,"missing_modes":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$n" "$carried" "$miss" > ui-screens/meta.json
+          # T148 — 런 **장부** `runs.jsonl`: 유니티 잡이 돈 런마다 한 줄을 **덧붙인다**(지난 screens 의 장부를 받아 이어 쓴다 · 꼬리 400줄).
+          #        screens 는 고아 커밋 하나를 force push 하므로 meta.json 에는 이력이 없다 — `check_unity_green` 이 «직전 초록 런의 sha» 를
+          #        여기서 읽어 «그 뒤 이 런에 새로 들어온 코드 커밋» 으로 남의 자 여럿을 깨뜨린 임자를 가린다. 못 받으면 이 런 한 줄로 새로 시작한다.
+          : > ui-screens/.runs.tmp
+          if git fetch --depth 1 origin screens 2>/dev/null; then git show FETCH_HEAD:runs.jsonl > ui-screens/.runs.tmp 2>/dev/null || : > ui-screens/.runs.tmp; fi
+          printf '{"sha":"%s","run":%s,"tests":"%s","missing_modes":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$miss" >> ui-screens/.runs.tmp
+          tail -n 400 ui-screens/.runs.tmp > ui-screens/runs.jsonl && rm -f ui-screens/.runs.tmp
           echo "::notice::screens — 이 런의 PNG ${n}장 · 이어받은 PNG ${carried}장 · 올릴 파일 ${any}개 · 없는 모드 XML «${miss:-없음}»"
       # T96 — 런 164·168: peaceiris/actions-gh-pages 의 `git push --force screens` 가 «remote: Internal Server Error» 로 거절됐다
       #       (GitHub 쪽 500 · 22분 간격 두 번 · 같은 시각 런 167 은 startup_failure). 액션은 한 번 밀고 죽어 그 문구가 잡 로그 깊숙이만 남고

@@ -27,6 +27,16 @@ T67(런 안에서 모드 XML 이 빠졌는가)·T81(잡 결과가 스텝에 갇�
     빨강을 지나치거나** ⓑ 그 lock 이 죽어 있으면 «이것이 네 일이다» 로 **남이 지금 고치는 자리**로 워커를
     보낸다. 범위 열로 못 가린 자리는 **«못 가렸다» 고 말하고** 커밋을 민 워커는 참고로만 준다.
 
+ⓔ **«런 사이» 로 임자를 한 번 더 가린다(T148)** — 범위 열·산 lock·이력(ⓐ~ⓓ)은 전부 «그 테스트 파일» 단위라, 한 커밋이
+  **남의** 자 여럿을 깨뜨리면(실측 2026-09-14 런 331: T142 4회차의 `MetaHost.Awake` 가 부팅 오버레이를 조건 없이 띄워
+  `ForgeUiTests`·`PetUiTests`·`ShopUiTests`·`TextSizeGateTests` 열넷이 빨강) 어느 칸에도 안 걸려 «산 lock 이 하나도 없다 →
+  네 일이다» 로 찍힌다. 그래서 «직전 **유니티가 실제로 돈 초록 런** 의 sha ↔ 이번 sha 사이의 **코드 커밋**»(`[skip ci]`·문서 전용
+  제외 · 코드 = ci.yml gate 와 같은 `Assets/|Packages/|ProjectSettings/`)을 뽑아 그 제목의 `T<번호>` 중 **산 lock 이 있는 것**을
+  «이 런에 새로 들어온 후보» 로 먼저 말한다. 그 커밋이 고친 테스트 파일이 이번 런에서 빨갛지 않으면(«제 자가 초록») 그 갈래는
+  아니라고 같이 적는다. 직전 초록 sha 는 `screens` 브랜치의 **`runs.jsonl`**(ci.yml 이 유니티 잡이 돈 런마다 한 줄 덧붙인다 ·
+  screens 는 고아 커밋 하나를 force push 하므로 `meta.json` 이력은 없다 — 장부가 그 자리다)에서 읽는다. 장부가 없거나 초록이
+  없으면 그렇다고 말하고 이번 sha 에서 거슬러 최근 코드 커밋 몇 개를 참고로만 보인다.
+
 의존성 0(순수 파이썬 + git). `--fetch` 를 주면 먼저 `git fetch origin screens` 한다.
 
 사용:  python3 tools/check_unity_green.py [--fetch] [--ref origin/screens] [--self-test]
@@ -193,6 +203,141 @@ def history_owners(fixture, log=None):
     return seen
 
 
+# ---- ⓔ «런 사이» (T148) -----------------------------------------------------------------------------------------
+CODE_RE = re.compile(r'^(Assets/|Packages/|ProjectSettings/)')   # ci.yml gate 의 «유니티가 읽는 나무» 와 같은 식
+RUNS_FILE = 'runs.jsonl'
+RECENT_CODE = 6   # 초록 런을 못 찾았을 때 참고로 보이는 최근 코드 커밋 수
+
+
+def read_runs(ref=REF):
+    """screens 브랜치의 `runs.jsonl`(런마다 한 줄 `{"sha","run","tests","missing_modes"}` · 오래된 것부터) → 목록. 없으면 None."""
+    rc, out = _git(['show', ref + ':' + RUNS_FILE])
+    if rc != 0:
+        return None
+    return parse_runs(out)
+
+
+def parse_runs(text):
+    """순수 — 깨진 줄은 건너뛴다(장부 한 줄이 깨졌다고 판정을 잃지 않는다)."""
+    runs = []
+    for ln in (text or '').split('\n'):
+        ln = ln.strip()
+        if not ln:
+            continue
+        try:
+            d = json.loads(ln)
+        except ValueError:
+            continue
+        if isinstance(d, dict) and d.get('sha'):
+            runs.append(d)
+    return runs
+
+
+def last_green(runs, cur_sha):
+    """장부에서 **이번 런 앞의 마지막 초록**(tests success · 모드 XML 다 있음) → (sha, run). 없으면 (None, None)."""
+    if not runs:
+        return None, None
+    seen_cur = False
+    for d in reversed(runs):
+        if str(d.get('sha', '')) == str(cur_sha):
+            seen_cur = True
+            continue
+        if not seen_cur and cur_sha:
+            # 장부 꼬리에 이번 런이 아직 없을 수 있다(deploy 순서) — 그래도 이번 sha 와 같은 줄만 빼고 앞쪽을 본다
+            pass
+        if str(d.get('tests', '')) == 'success' and not str(d.get('missing_modes', '') or ''):
+            return str(d['sha']), d.get('run')
+    return None, None
+
+
+def is_code_commit(title, files):
+    """«유니티가 읽는» 코드 커밋인가 — `[skip ci]` 제목·문서 전용은 아니다(gate 와 같은 규칙)."""
+    if '[skip ci]' in (title or ''):
+        return False
+    return any(CODE_RE.match(f) for f in (files or []))
+
+
+def code_commits(since_sha, until_sha, limit=None):
+    """`since..until` 의 코드 커밋(새 것부터) → [(sha, 제목, 파일 목록)]. since 가 없으면 until 에서 거슬러 limit 개."""
+    rng = ('%s..%s' % (since_sha, until_sha)) if since_sha else until_sha
+    args = ['log', '--format=%H%x09%s']
+    if not since_sha:
+        args.append('-%d' % ((limit or RECENT_CODE) * 6))   # lock 커밋이 코드 커밋의 몇 배라 넉넉히 본다
+    rc, out = _git(args + [rng])
+    if rc != 0:
+        return []
+    got = []
+    for ln in out.split('\n'):
+        if '\t' not in ln:
+            continue
+        sha, title = ln.split('\t', 1)
+        rc2, files = _git(['diff-tree', '--no-commit-id', '--name-only', '-r', sha])
+        flist = [f for f in files.split('\n') if f] if rc2 == 0 else []
+        if is_code_commit(title, flist):
+            got.append((sha, title.strip(), flist))
+            if limit and len(got) >= limit:
+                break
+    return got
+
+
+def test_files_of(files):
+    """그 커밋이 고친 테스트 픽스처 이름들(`Assets/Tests/**/XTests.cs` → `XTests`)."""
+    out = []
+    for f in files or []:
+        if f.startswith('Assets/Tests/') and f.endswith('.cs'):
+            name = os.path.basename(f)[:-3]
+            if name not in out:
+                out.append(name)
+    return out
+
+
+def between_lines(commits, fails_fixtures, green, lock=None, now=None, no_ledger=False):
+    """순수 — «런 사이» 문구(T148). commits = [(sha, 제목, 파일)] 새 것부터 · green = (sha, run) 또는 (None, None).
+
+    갈래 셋: 초록 런을 못 찾았다 / 사이에 코드 커밋이 없다 / 하나·여럿(산 lock 이 있는 것을 먼저 · 제 자가 초록인 갈래는 아니라고)."""
+    lock = lock or lock_state
+    gsha, grun = green
+    if not gsha:
+        head = ('  · «런 사이»: 직전 초록 유니티 런을 **못 찾았다**(%s) — 이번 sha 에서 거슬러 최근 코드 커밋을 참고로만 보인다'
+                % ('screens 의 `runs.jsonl` 장부가 아직 없다 — 다음 유니티 런부터 쌓인다' if no_ledger else '장부에 초록 런이 없다'))
+    else:
+        head = '  · «런 사이»: 직전 초록 유니티 런 #%s(%s) 뒤 **이 런에 새로 들어온 코드 커밋**' % (grun if grun is not None else '?', gsha[:7])
+    if not commits:
+        if gsha:
+            return [head + ' — **없다**. 사이가 전부 `[skip ci]`·문서 커밋이라, 이 빨강은 새 코드가 아니라 러너·환경 갈래거나 지난 런부터 있던 것이다.']
+        return [head, '    (코드 커밋을 하나도 못 읽었다 — git 이력이 얕거나 sha 가 main 의 조상이 아니다.)']
+    rows = []
+    cands = []
+    for sha, title, files in commits:
+        m = re.match(r'^T(\d+)\b', title)
+        tid = ('T' + m.group(1)) if m else None
+        own_tests = test_files_of(files)
+        green_own = [t for t in own_tests if t not in fails_fixtures]
+        if tid:
+            alive, age = lock(tid, now)
+            word = _lock_word(alive, age)
+        else:
+            alive, word = False, '제목이 T 로 안 시작한다'
+        note = ''
+        if green_own and not any(t in fails_fixtures for t in own_tests):
+            note = ' · 제 자(%s)가 초록 → **이 갈래는 아니다**' % '·'.join(green_own)
+        elif any(t in fails_fixtures for t in own_tests):
+            note = ' · 제 자(%s)도 빨강' % '·'.join(t for t in own_tests if t in fails_fixtures)
+        rows.append('    - %s %s(%s)%s — %s' % (sha[:7], tid or '?', word, note, title[:60]))
+        if tid and alive and not (green_own and not any(t in fails_fixtures for t in own_tests)):
+            cands.append(tid)
+    out = [head + ':'] + rows
+    if len(cands) == 1:
+        out.append('    → 범위 열로 못 가린 빨강은 **먼저 %s 의 것으로 본다**(사이 코드 커밋 중 산 lock 은 그 하나). '
+                   '그의 몫이니 건드리지 말고 네 작업을 잡는다 — 임자가 아니라고 판단되면 그때 §0-6 이다.' % cands[0])
+    elif len(cands) > 1:
+        out.append('    → 산 lock 을 쥔 후보 %s 를 **나란히** 둔다 — 빨간 자가 무엇을 세우는지(부팅·오버레이·글자 하한…)로 눈으로 가른다.'
+                   % ' · '.join(cands))
+    else:
+        out.append('    → 산 lock 을 쥔 코드 커밋이 없다 — 이 칸으로도 임자가 안 나온다(§0-6 대로 네 일일 수 있다).')
+    return out
+
+
 def read_progress():
     try:
         return io.open(os.path.join(ROOT, 'docs', 'PROGRESS.md'), encoding='utf-8').read()
@@ -279,7 +424,7 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None):
     return out
 
 
-def judge(meta, anc=None, n_after=None, fails=(), own=None):
+def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None):
     """순수 판정 — (rc, 줄 목록). 네트워크·git 없이 자기 검사할 수 있게 갈라 둔다."""
     out = []
     if meta is None:
@@ -308,6 +453,8 @@ def judge(meta, anc=None, n_after=None, fails=(), own=None):
             out.extend([own] if isinstance(own, str) else list(own))
         else:
             out.append('  · 빨강의 임자: 그 커밋(%s)을 민 워커다 — lock 을 눈으로 확인한다.' % (sha[:7] or '?'))
+        if between:
+            out.extend(list(between))
         rc = 1
     else:
         out.append('✓ check_unity_green: %s — 초록' % head)
@@ -431,12 +578,61 @@ def self_test():
     P2 = (P + '| T130 | 딴것 | 🔄 | s3 | `Assets/Tests/PlayMode/AgePatternTests.cs` | — |\n')
     eq('ⓜ 후보 둘', scope_owners('AgePatternTests', P2), ['T124', 'T130'])
 
+    # ⓟ T148 — 장부 읽기 · 마지막 초록
+    runs = parse_runs('{"sha":"aaa","run":329,"tests":"success","missing_modes":""}\n깨진 줄\n'
+                      '{"sha":"bbb","run":330,"tests":"cancelled","missing_modes":""}\n'
+                      '{"sha":"ccc","run":331,"tests":"failure","missing_modes":""}\n')
+    eq('ⓟ 깨진 줄은 건너뛴다', [d['run'] for d in runs], [329, 330, 331])
+    eq('ⓟ 이번 런 앞의 마지막 초록', last_green(runs, 'ccc'), ('aaa', 329))
+    eq('ⓟ 모드 XML 이 빠진 초록은 초록이 아니다',
+       last_green(parse_runs('{"sha":"a","run":1,"tests":"success","missing_modes":"playmode-results.xml"}\n{"sha":"c","run":2,"tests":"failure"}'), 'c'),
+       (None, None))
+    eq('ⓟ 장부가 비면 없다', last_green([], 'c'), (None, None))
+    eq('ⓟ 장부가 None 이어도 없다', last_green(None, 'c'), (None, None))
+    # ⓠ 코드 커밋 판별 — gate 와 같은 규칙
+    eq('ⓠ [skip ci] 는 아니다', is_code_commit('T1 lock [skip ci]', ['Assets/a.cs']), False)
+    eq('ⓠ 문서 전용은 아니다', is_code_commit('T1 문서', ['docs/PROGRESS.md', 'tools/x.py']), False)
+    eq('ⓠ Assets 를 만지면 코드', is_code_commit('T142 4회차', ['docs/PROGRESS.md', 'Assets/Scripts/Game/Ui/MetaHost.cs']), True)
+    eq('ⓠ ProjectSettings 도 코드', is_code_commit('T1', ['ProjectSettings/GraphicsSettings.asset']), True)
+    eq('ⓠ 테스트 픽스처 이름', test_files_of(['Assets/Tests/PlayMode/AudioSmokeTests.cs', 'Assets/Scripts/Game/HostSfx.cs']), ['AudioSmokeTests'])
+    # ⓡ 고장 주입 — 런 331 그대로: 초록 329 뒤 코드 커밋은 T120(제 자 AudioSmokeTests 초록)·T142(산 lock) → T142 를 먼저 말한다
+    C331 = [('42a3f8e' + '0' * 33, 'T142 4회차: 배선 — 진행률을 «부름» 이 아니라', ['Assets/Scripts/Core/Ui/BootLoadingRules.cs', 'Assets/Scripts/Game/Ui/MetaHost.cs', 'docs/PROGRESS.md']),
+            ('15d2922' + '0' * 33, 'T120 3회차 ⓐ: 모루 두들김 셋째만 강타', ['Assets/Scripts/Game/HostSfx.cs', 'Assets/Tests/PlayMode/AudioSmokeTests.cs'])]
+    F331 = ['ForgeUiTests', 'PetUiTests', 'ShopUiTests', 'TextSizeGateTests', 'BootLoadingTests']
+    both_live = lambda tid, now=None: (True, 30)
+    lines = between_lines(C331, F331, ('da87587' + '0' * 33, 329), lock=both_live)
+    eq('ⓡ 초록 런 번호·sha 가 보인다', '#329' in lines[0] and 'da87587' in lines[0], True)
+    eq('ⓡ T142 를 먼저 말한다', any('먼저 T142 의 것으로 본다' in l for l in lines), True)
+    eq('ⓡ T120 은 제 자가 초록이라 아니다', any('T120' in l and 'AudioSmokeTests' in l and '이 갈래는 아니다' in l for l in lines), True)
+    eq('ⓡ 그의 몫이라 말한다', any('그의 몫' in l for l in lines), True)
+    # ⓢ 사이에 코드 커밋이 없다
+    lines = between_lines([], F331, ('da87587' + '0' * 33, 329), lock=both_live)
+    eq('ⓢ 없다고 말한다', any('**없다**' in l for l in lines), True)
+    # ⓣ 여럿이 다 산 lock 이고 제 자로 못 가르면 나란히
+    C2 = [('a' * 40, 'T142 4회차', ['Assets/x.cs']), ('b' * 40, 'T120 3회차', ['Assets/y.cs'])]
+    lines = between_lines(C2, F331, ('c' * 40, 329), lock=both_live)
+    eq('ⓣ 나란히 둔다', any('나란히' in l and 'T142' in l and 'T120' in l for l in lines), True)
+    # 산 lock 이 하나도 없으면 «네 일일 수 있다»
+    lines = between_lines(C2, F331, ('c' * 40, 329), lock=lambda tid, now=None: (False, 130))
+    eq('ⓣ 죽은 lock 뿐이면 네 일일 수 있다', any('네 일일 수 있다' in l for l in lines), True)
+    # ⓤ 초록 런을 못 찾았다 — 장부 없음 / 장부에 초록 없음 을 가른다 · 참고 후보는 보인다
+    lines = between_lines(C2, F331, (None, None), lock=both_live, no_ledger=True)
+    eq('ⓤ 장부가 없다고 말한다', any('장부가 아직 없다' in l for l in lines), True)
+    eq('ⓤ 참고 후보는 보인다', any('T142' in l for l in lines), True)
+    lines = between_lines(C2, F331, (None, None), lock=both_live, no_ledger=False)
+    eq('ⓤ 장부에 초록이 없다고 말한다', any('장부에 초록 런이 없다' in l for l in lines), True)
+    # ⓥ judge 가 between 줄을 own 줄 뒤에 그대로 붙인다(초록이면 안 붙인다)
+    _, out = judge({'sha': 'f' * 40, 'run': 331, 'tests': 'failure', 'missing_modes': ''}, True, 1, (), ['  · 임자'], ['  · «런 사이»'])
+    eq('ⓥ 빨강이면 붙는다', out.index('  · «런 사이»') > out.index('  · 임자'), True)
+    _, out = judge({'sha': 'f' * 40, 'run': 332, 'tests': 'success', 'missing_modes': ''}, True, 0, (), None, ['  · «런 사이»'])
+    eq('ⓥ 초록이면 안 붙는다', any('런 사이' in l for l in out), False)
+
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  · ' + f)
         return 1
-    print('✓ check_unity_green --self-test 42칸 통과')
+    print('✓ check_unity_green --self-test 66칸 통과')
     return 0
 
 
@@ -465,7 +661,14 @@ def main(argv):
     red = bool(meta) and str(meta.get('tests')) != 'success'
     fails = red_lines(ref) if red else []
     own = own_lines(fails, read_progress(), str(meta.get('sha', ''))) if red else None
-    rc, out = judge(meta, anc, n_after, fails, own)
+    between = None
+    if red:
+        cur = str(meta.get('sha', ''))
+        runs = read_runs(ref)
+        gsha, grun = last_green(runs, cur)
+        commits = code_commits(gsha, cur) if gsha else code_commits(None, cur, RECENT_CODE)
+        between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None))
+    rc, out = judge(meta, anc, n_after, fails, own, between)
     for ln in out:
         print(ln)
     return rc
