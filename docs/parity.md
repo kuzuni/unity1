@@ -985,7 +985,7 @@ POLISH.md 를 읽고 «소품·용암 빛이 없다» 를 새 작업으로 등�
 - ⓡ → **T345 등재**(어긋난 리터럴 10 + 판 없음 후보 3 · 자 `tools/check_border_radius.py` 로 못 박는다 · T331 과 같은 갈래). ⓢ 닫힘.
 - T33 은 여전히 ✅ 가 아니다(T35·T106 주인 몫 + 열린 §7 칸). 다음 회차가 열 축(세어만 뒀다): `opacity` 정적 선언 · `z-index` 층 순서(정본 z 5·6·25 …) · `overflow`(스크롤 영역) — 파서는 이 회차 것을 그대로 쓰면 된다.
 
-## ⓥ 17회차 — 정본 **`z-index` 112 선언**(겹 순서) 전수 (2026-09-14 · 워커 H · sess-2057-19689)
+## ⓥ 18회차 — 정본 **`z-index` 112 선언**(겹 순서) 전수 (2026-09-14 · 워커 H · sess-2057-19689)
 
 - 남은 CSS 속성 축을 세어 고른 것이다 — `box-shadow`(T331) · `text-shadow`(T333) · `border-radius`(T345) · `filter`(T342) 는 이미 임자가 붙었고, 아직 아무도 안 센 것 중 가장 큰 것이 **`z-index` 112 선언 · 선택자 111** 이었다(그 다음은 `transform` 404 · `opacity` 370 인데 둘은 «자리마다 다른 값» 이라 축 하나로 못 묶는다).
 - **정본 겹 순서(최종값 · 같은 특이도는 뒤 규칙이 이긴다)**: `#reward-burst` 70 · `#summon-result-modal` 60 · `#detail-modal`·`#forge-item-modal` 42 · `#offline`·`#chat`·`#profile`·`#player-info`·`#pass`·`#pet-upgrade`·`#dungeon-detail`·`#forge-info` **40** · `#autoforge` 31 · **`#tabbar` 30** · `#toasts` 30 · `#gear-detail`·`#mount-upgrade` 22 · `#equip-swap-fx` 21 · `.modal` 20.
