@@ -170,13 +170,18 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(before + 1, fx.PlayCount, "교체 한 번 = 연출 한 번");
             Assert.IsTrue(fx.LastGrab.HasBlock, "비교 팝업 카드가 열린 채 스왑 — 착지는 카드 옆 빈 띠(정본 주 경로)");
             Assert.AreEqual(1, fx.Flying, "옛 타일 복제가 날고 있다");
-            Assert.AreEqual(1, fx.LastSounds.Count); Assert.AreEqual("equipToss", fx.LastSounds[0], "던질 때 equipToss");
+            // 런 292 실측: 러너에서 장착 프레임(팝업·시트 재렌더)이 130ms 를 넘겨 이 자리에 딸깍이 이미 울려 있었다(Count 2) — 개수가 아니라 **순서**를 본다
+            Assert.GreaterOrEqual(fx.LastSounds.Count, 1);
+            Assert.AreEqual("equipToss", fx.LastSounds[0], "던질 때 equipToss 가 첫 소리");
+            if (fx.LastSounds.Count > 1) Assert.AreEqual("equipSnap", fx.LastSounds[1], "둘째는 딸깍");
+            Assert.LessOrEqual(fx.LastSounds.Count, 2, "착지음(522ms)은 아직 아니다");
             RectTransform live = EquipSwapFx.CellOf(slot);
             Assert.IsNotNull(live, "다시 그려진 칸");
             yield return null;   // Rehollow — 다시 그려진 새 칸이 빈 소켓
             int hidden = 0;
             foreach (Graphic g in live.GetComponentsInChildren<Graphic>(true)) if (g.transform != live && !g.enabled) hidden++;
-            Assert.Greater(hidden, 0, "새 칸은 딸깍 전까지 빈 소켓(내용물 감춤)");
+            bool snapDone = fx.Snaps == 0 && fx.LastSounds.Contains("equipSnap");   // 느린 러너에서 딸깍(130+340ms)이 벌써 끝났으면 칸은 이미 되살아났다
+            if (!snapDone) Assert.Greater(hidden, 0, "새 칸은 딸깍 전까지 빈 소켓(내용물 감춤)");
             EquipSwapSpec s = EquipSwapFx.Spec;
             yield return WaitMs(EquipSwapRules.LandMs(s) + 120);
             Assert.AreEqual("equipSnap", fx.LastSounds[1], "딸깍은 연출 안 130ms — ForgeHost 가 바로 울리던 줄은 뺐다(결정 296)");

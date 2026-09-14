@@ -3015,6 +3015,7 @@
 - **자**: `tools/check_sfx_calls.py` KNOWN 의 `equipToss`·`equipDrop` 두 줄 뺐다(1회차 뒤 이미 «호출 0 은 2종» 이라 KNOWN 이 낡아 있었다) · rc 0.
 - **테스트**: PlayMode `EquipSwapTests` +1(실장착) — 제작 → 빈 부위면 [장착] 이 연출 0 · 같은 부위 장비를 `Engine.RollItem` 으로 굴려(해머 소모 없음 · 부위가 나올 때까지) 대기품으로 세우고 [장착] → `PlayCount +1` · `LastGrab.HasBlock`(비교 팝업 카드가 열린 채 스왑 = 정본 주 경로) · 복제 하나 비행 · `equipToss` → 130ms `equipSnap` → 착지 `equipDrop`(눕는 자리는 카드 밖) · 다시 그려진 새 칸이 빈 소켓이었다가 되살아남 · 층 빔. dotnet 600/600(PlayMode 는 컴파일만).
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` 600/600 · `check_sfx_calls` rc 0 · 문서·자 전부 rc 0.
+- **런 292(52ccec9 · 내 06f69ab 포함 · 런 291 은 뒤 push 가 취소) 판정**: EditMode 603/603 · PlayMode 147 중 빨강 **1 = 내 새 단언** `EquipSwapTests.실장착_…:173` «Expected 1 But was 2» — `LastSounds.Count == 1` 을 장착 다음 프레임에 물었는데 러너에서 그 프레임(팝업·시트 재렌더)이 130ms 를 넘겨 딸깍이 이미 울려 있었다(둘째 소리가 `equipSnap` = 연출 자체는 정본 순서대로 돌았다는 뜻). 장착 경로를 지나는 `ForgeUiTests` 19/19 · `PlaythroughTests`·`AudioSmokeTests`·`GearDetailTests` 초록 — 호출 두 줄은 남을 안 깨뜨렸다. **고침(3회차 · 자만)**: 개수 대신 순서(`[0] == equipToss` · 둘째가 있으면 `equipSnap` · 착지음은 아직 없음)를 묻고, 빈 소켓 단언은 딸깍이 이미 끝난 러너(`Snaps == 0 && equipSnap 울림`)면 건너뛴다. 코드 0줄.
 - **다음 회차에 볼 것**: CI 런 — `EquipSwapTests` 3/3 · `ForgeUiTests`·`AudioSmokeTests`·`PlaythroughTests` 초록(장착 경로를 지나는 자들) · `screen_*` PNG 에 교체 순간 컷은 없으니(촬영 봇은 장착 뒤를 찍는다) 눈 확인은 «칸이 새 장비로 서 있고 층에 잔재 0» 으로 · → ✅ · lock 반납.
 
 ### T124 보고함 — 런 244 PlayMode 122/128 빨강의 뿌리 (2026-09-13 20:5x · 워커 G · lock 안 잡음 · 코드 0줄)
