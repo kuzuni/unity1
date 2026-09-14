@@ -6717,6 +6717,21 @@
 - **곁**: 이번 축의 아이콘 흐림은 T349(촬영이 게임과 다르다)와 다르다 — 게임도 Bilinear 로 그린다(진짜 결함).
 - 게이트: 문서 자 전부 rc 0 · 코드 0줄 · lock 반납. 다음 축 후보(안 센 것): `opacity` 352 · `gap` 181 · `pointer-events` 68 · `text-align` 89 · `white-space` 41 · `vertical-align` 26 · `min-height` 46 · `aspect-ratio` 24.
 
+### T354 1회차 기록 — 정본 줄높이 81 자리를 표·셈·자로 세웠다(배선은 lock 뒤) (2026-09-14 23:2x~23:4x · 워커 J · sess-2318-11672 · lock 유지)
+
+- **회차 첫 일(§0-6)**: 런 528 의 빨강 다섯(`SummonChargeTests`→T334 · `TextClampTests` 둘→T351 · `UiShadowTests` 둘→T331)은 **전부 산 lock 임자**라 안 건드렸다. `BootGuardTests` `RED` 는 자가 «일부러 낸 빨강» 으로 걸렀다(T189).
+- **왜 T354 였나(§2 앞 번호를 건너뛴 까닭)**: lock 없는 열린 작업은 다섯뿐이었고 T333·T346 은 남이 한 시간 안에 밀었다. §2 상 더 앞인 **T352**(내가 지난 회차에 등재한 것)는 알맹이가 `UiKit.cs` 인데 그 파일이 **산 lock 셋**(T178·T331·T355) 뒤라 **이번 회차에 할 수 있는 조각이 없다**. T354 는 절이 «표(새 파일) 또는 TextClampUi(T351 뒤)» 로 갈래를 열어 둬서 **전부 새 파일로 1회차**가 된다 — T331·T342·T345 가 쓴 그 꼴(표 + Core 규칙 + EditMode 자 먼저, 배선은 다음)이다.
+- **만든 것 셋(전부 새 파일 · 남의 파일 0줄)**:
+  - `Assets/Forge/Resources/LineHeightUi.json` — 자리 **81**(style.css 80 + `ui.js` 인라인 1). 키 꼬리가 단위다(`…_lh` 배수 79 · `…_lh_rem` 1 · `…_lh_w` 1). `_정본` 칸에 **파일·줄 번호·선택자·원값**을 그대로 담았다 — 값을 고치려면 그 줄부터 읽게.
+  - `Assets/Scripts/Core/Ui/LineHeightRules.cs` — UnityEngine 0. 핵심은 단위 옮김이다: CSS `line-height` 는 «글자 크기의 배수» 인데 TMP `lineSpacing` 은 «**글꼴 자산 단위의 덧붙임**» 이라 `lineSpacing = 배수 × pointSize − faceLineHeight` 다. 크기를 바꿔도 비율이 유지된다(baseScale 이 양쪽에 같이 걸린다).
+  - `Assets/Tests/EditMode/LineHeightRulesTests.cs` — 6.
+- **글꼴을 직접 쟀다**: `NotoSansKR-Forge.ttf` 의 `head`·`hhea` 를 바이트로 읽어 unitsPerEm **1000** · ascender **1160** · descender **−288** · lineGap **0** → 기본 줄높이 **1.448em**. 절이 적어 둔 값과 같다(짐작이 아니라 실측으로 확인했다).
+- **배선하면 화면이 어느 쪽으로 움직이나**: 배수 자리 79 중 **74 가 지금보다 좁아지고 다섯만 넓어진다**(1.45 ×2 · 1.5 ×3). 가장 많은 값은 **1** 스물다섯 — 글꼴 기본 1.448 과 가장 크게 어긋나는 무리이고, 두 줄 이상 글자가 지금 **0.448em 씩 더 벌어져** 있다는 뜻이다.
+- **⚠ 자가 내 단언 둘을 반박했다**(그래서 자를 먼저 쓴 값이다): ⓐ «정본에 글꼴 기본보다 벌린 자리는 없다» 는 **틀렸다** — `1.5` 셋·`1.45` 둘이 있다. ⓑ «`1` 은 스물넷» 도 틀렸다 — 정본이 `1` 24 번과 `1.0` 1 번으로 적었고 **같은 수**라 25 다. 둘 다 실측대로 고쳤다.
+- **안 한 것(다음 회차 = 2회차)**: 배선(`UiKit.LineHeight(t, key)` 또는 T351 의 자리 표에 열 하나) · 자리 파일 25곳 · PlayMode 판정 + `screen_*.png` 눈 확인. `UiKit.cs` lock 셋이 풀려야 연다.
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` **708/708** · `gen_meta` rc 0(새 파일 셋의 `.meta` 생성) · `tools/gate.sh` **rc 0**(막는 자 전부 · 건너뛴 자 없다).
+- **남은 것(✅ 조건)**: 배선 + PlayMode 판정 + 화면 눈 확인.
+
 ### T33 완주 대조 21회차 · lock 반납 — 축 = `font-weight` 233 + `tabular-nums` 6 (2026-09-14 22:2x~22:4x · 워커 J · sess-2218-22711)
 
 - **회차 첫 일(§0-6)**: 런 512 의 빨강 셋(`ForgeCardWidthTests`→T335 25분 · `ItemFacesTests`→T332 8분 · `SummonChargeTests`→T334 3분)은 **전부 산 lock 임자**라 안 건드렸다. `BootGuardTests` `RED` 는 자가 «일부러 낸 빨강» 으로 걸렀다(T189).
