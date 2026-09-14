@@ -39,10 +39,13 @@ namespace Forge.Game.Ui
             AutoForgeConfig cfg = h.Engine.AutoForgeConfig();
             OrderedMap<double> probs = h.Engine.AgeProbsAt(h.Forge.ForgeLevel);
             float rem = PopupKit.Rem, W = UiKit.RefW, H = UiKit.RefH;
-            float w = W * 0.85f, pad = rem * 0.9f;
+            // T339 — 여태 박혀 있던 `0.85`·`0.84` 를 정본 표로. style.css 4682
+            //        `.af-card { width: min(calc(var(--app-w) * .7719), 23rem); height: calc(var(--app-h) * .8452) }`.
+            //        min 을 그대로 옮긴다 — 기준 캔버스에서는 앞쪽이 이겨 77.19%W 다(클론은 83.70%W 였다 · 런 474 실측).
+            float w = ForgeAutoStyle.CardW(W, rem), pad = rem * 0.9f;
             float inner = w - pad * 2f - PopupKit.Line3 * 2f;
             float cardH, cardY;
-            PopupKit.FitBetweenBars(H * 0.84f, out cardH, out cardY);   // T78 — ✕ 가 탭바에 가리지 않게
+            PopupKit.FitBetweenBars(H * ForgeAutoStyle.L("card_h_f"), out cardH, out cardY);   // T78 — ✕ 가 탭바에 가리지 않게
             RectTransform card = PopupKit.Card(root, "card", w, cardH, "pp_paper", rem * 1.1f, "pp_line", cardY);
             TextMeshProUGUI title = UiKit.Text(card, "af-title", TextKind.Title, "자동 제련", "pp_ink");
             title.fontStyle = FontStyles.Bold;
@@ -159,6 +162,42 @@ namespace Forge.Game.Ui
             Button b = row.gameObject.AddComponent<Button>();
             b.targetGraphic = face;
             b.onClick.AddListener(() => onClick());
+        }
+    }
+
+    /// <summary>
+    /// T339 — 자동 제련 카드 치수표(`Resources/ForgeAutoUi.json`). 값을 코드에 안 박는다(§1) ·
+    /// `catalog.json` 이 남의 lock 일 때가 잦아 곁 표로 둔다(T177 <see cref="ForgeItemStyle"/> 과 같은 꼴).
+    /// </summary>
+    public static class ForgeAutoStyle
+    {
+        public const string ResourcePath = "ForgeAutoUi";
+        static JsonObject root, layout;
+
+        static void Load()
+        {
+            if (root != null) return;
+            TextAsset ta = Resources.Load<TextAsset>(ResourcePath);
+            if (ta == null) throw new System.InvalidOperationException("Resources/" + ResourcePath + ".json 이 없다 (T339)");
+            root = MiniJson.ParseObject(ta.text);
+            layout = J.Obj(root["layout"]);
+        }
+
+        public static void Reset() { root = null; layout = null; }
+
+        /// <summary>배치 값 원문(분수·rem — 접미가 곱할 기준을 말한다).</summary>
+        public static float L(string key)
+        {
+            Load();
+            object v = layout == null ? null : layout[key];
+            if (!J.IsNum(v)) throw new KeyNotFoundException("ForgeAutoUi.json 에 배치 값 «" + key + "» 이 없다 (T339)");
+            return (float)J.Num(v);
+        }
+
+        /// <summary>정본 `width: min(calc(var(--app-w) * .7719), 23rem)` 을 그대로 — 둘 중 작은 쪽이다.</summary>
+        public static float CardW(float appW, float rem)
+        {
+            return Mathf.Min(L("card_w_f") * appW, L("card_w_max_rem") * rem);
         }
     }
 }

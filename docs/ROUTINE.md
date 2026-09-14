@@ -1884,6 +1884,7 @@
 - 무엇을 한다: T177 이 낸 길 그대로 — ⓐ 배치표를 **자기 파일**로(`Assets/Forge/Resources/ForgeAutoUi.json`(새) · `ForgeInfoUi.json`(새) · `catalog.json` 은 T87 lock 이라 비켜 간다): `card_w` 0.7719 · `af_card_h` 0.8452 · `fi_card_h` 0.8104 — 값마다 정본 줄 번호를 주석으로 ⓑ 세 자리(`ForgeAutoPopup:42` · `ForgeInfoPopup:59`·`:145`)의 박힌 `0.85f`·`0.84f` 대신 그 표를 읽는다(§1 «수치는 코드에 박지 않는다») ⓒ `forge-detail`(`:283`)은 이미 표를 읽으므로 **건드리지 않는다**.
 - 판정: PlayMode 단언 — 네 팝업의 카드 폭 = 앱 폭 × 0.7719(±0.005) · `autoforge` 높이 = 앱 높이 × 0.8452(탭바에 걸리면 `FitBetweenBars` 몫만큼만 줄어든다) · `forge-info` 높이 = × 0.8104. 그리고 다음 런 `ui_score --score` 의 «팝업 카드 가로 상자» 줄에서 **네 화면이 사라진다**(그 줄이 판정을 그대로 대신한다).
 - 범위: `Assets/Forge/Resources/ForgeAutoUi.json`·`ForgeInfoUi.json`(둘 다 새) · `Assets/Scripts/Game/Ui/ForgeAutoPopup.cs` · `Assets/Scripts/Game/Ui/ForgeInfoPopup.cs` · `Assets/Tests/PlayMode/`(새 파일 하나 또는 `ForgeUiTests` — **그 파일 lock 뒤**).
+- 🔄 2026-09-14 19:5x 워커 F(sess-1927-53071) **1회차 = 폭 셋 + 자동 제련 높이**: 표 둘(`ForgeAutoUi.json`·`ForgeInfoUi.json`)과 읽는 조각 둘(`ForgeAutoStyle`·`ForgeInfoStyle` · T177 `ForgeItemStyle` 과 같은 자리)을 세우고 박힌 `0.85` 를 화면마다 정본 값으로 — `.af-card` `min(app-w*.7719, 23rem)`(앞쪽이 이긴다) · `.fi-card` `min(app-w*.9, 22.9rem)`(**뒤쪽이 이겨** 같은 77.19%W · `.9` 만 옮기면 90%W 로 더 나빠진다) · `.fl-card` **71%**(목록은 폭이 다르다) · 자동 제련 높이 `0.84` → `.8452`. **확률 정보 높이는 일부러 안 건드렸다** — 정본 CSS(81.04%H)와 이 절의 런 474 실측(원작 **68.90%H**)이 어긋난다. 81.04 를 넣으면 원작에서 더 멀어지므로 표에 값만 두고 쓰지 않았다(코드·표 주석에 적음 · PNG 로 가른 사람이 2회차에 쓴다). PlayMode `ForgeCardWidthTests`(새 · 둘). gate.sh 막는 자 전부 rc 0.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

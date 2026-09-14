@@ -56,9 +56,14 @@ namespace Forge.Game.Ui
             OrderedMap<double> curP = h.Engine.AgeProbsAt(h.Forge.ForgeLevel);
             OrderedMap<double> nextP = info != null ? h.Engine.AgeProbsAt(h.Forge.ForgeLevel + 1) : null;
             float rem = PopupKit.Rem;
-            float w = UiKit.RefW * 0.85f;
+            // T339 — 정본 style.css 5043 `.fi-card { width: min(calc(var(--app-w) * .9), 22.9rem) }` — 그 줄 주석이 답이다: «원본 카드 77.19%W».
+            //        기준 캔버스에서는 **뒤쪽(22.9rem)이 이겨** 그 값이 된다(`.9` 만 쓰면 90%W 로 한참 넓다). 클론은 박힌 0.85 로 83.70%W 였다.
+            float w = ForgeInfoStyle.FiCardW(UiKit.RefW, rem);
             float pad = rem * 0.9f;
             float inner = w - pad * 2f - PopupKit.Line3 * 2f;
+            // 높이는 이 회차에 **안 건드린다**(내용이 정한다 · `-1f`): 정본 CSS 는 `height: calc(var(--app-h) * .8104)` 인데
+            // 등재(T28 50회차)의 런 474 실측은 «원작 68.90%H ↔ 클론 73.23%H» 로 **CSS 값과 어긋난다**(81.04 를 넣으면 원작에서 더 멀어진다).
+            // 근거 둘이 어긋나면 재고 적는다 — 표에 `fi_card_h_f` 를 둔 채 쓰지 않고, 그 어긋남을 완료 기록에 남겼다(2회차 몫).
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
             PopupKit.Column(card, pad, rem * 0.3f);
             RectTransform head = PopupKit.Item(card, "head", -1f, PopupKit.FontSize(TextKind.Title) * 1.25f);
@@ -142,10 +147,13 @@ namespace Forge.Game.Ui
             RectTransform root = PopupLayer.Clear(p);
             GameDefs d = h.Defs;
             float rem = PopupKit.Rem, W = UiKit.RefW, H = UiKit.RefH;
-            float w = W * 0.85f, pad = rem * 0.9f;
+            // T339 — 정본 5606 `.fl-card { width: 71% }`(주석: «원본 shot-042905 71.3% · shot-042931 70.5% 실측»).
+            //        목록 카드는 **확률 정보와 폭이 다르다**(71 ↔ 77.19) — 여태 둘 다 박힌 0.85 로 같았다.
+            float w = W * ForgeInfoStyle.L("fl_card_w_f"), pad = rem * 0.9f;
             float inner = w - pad * 2f - PopupKit.Line3 * 2f;
             float cardH, cardY;
-            PopupKit.FitBetweenBars(H * 0.76f, out cardH, out cardY);   // T78 — ✕ 가 탭바에 가리지 않게
+            // 높이는 정본에 선언이 없어(공용 상한이 잡는다) 쓰던 값을 표로만 옮겼다 — 재는 사람이 표를 고친다.
+            PopupKit.FitBetweenBars(H * ForgeInfoStyle.L("fl_card_h_f"), out cardH, out cardY);   // T78 — ✕ 가 탭바에 가리지 않게
             RectTransform card = PopupKit.Card(root, "card", w, cardH, "pp_paper", rem * 1.1f, "pp_line", cardY);
             TextMeshProUGUI title = UiKit.Text(card, "title", TextKind.Title, "모든 장비의 목록", "pp_ink");
             title.fontStyle = FontStyles.Bold;
@@ -331,6 +339,42 @@ namespace Forge.Game.Ui
     }
 
     /// <summary>T177 — `Resources/ForgeItemUi.json`(장비 시대 상세 배치표 · T111 `GearDetailStyle`·T113 `CraftStyle` 과 같은 꼴). 숫자는 표에서만(§1).</summary>
+    /// <summary>
+    /// T339 — 확률 정보·목록 카드 치수표(`Resources/ForgeInfoUi.json`). 장비 시대 상세는 T177 의
+    /// <see cref="ForgeItemStyle"/>(`ForgeItemUi.json`)가 쥔다 — 이 조각은 그 형제다.
+    /// </summary>
+    public static class ForgeInfoStyle
+    {
+        public const string ResourcePath = "ForgeInfoUi";
+        static JsonObject root, layout;
+
+        static void Load()
+        {
+            if (root != null) return;
+            TextAsset ta = Resources.Load<TextAsset>(ResourcePath);
+            if (ta == null) throw new InvalidOperationException("Resources/" + ResourcePath + ".json 이 없다 (T339)");
+            root = MiniJson.ParseObject(ta.text);
+            layout = J.Obj(root["layout"]);
+        }
+
+        public static void Reset() { root = null; layout = null; }
+
+        /// <summary>배치 값 원문(분수·rem — 접미가 곱할 기준을 말한다).</summary>
+        public static float L(string key)
+        {
+            Load();
+            object v = layout == null ? null : layout[key];
+            if (!J.IsNum(v)) throw new System.Collections.Generic.KeyNotFoundException("ForgeInfoUi.json 에 배치 값 «" + key + "» 이 없다 (T339)");
+            return (float)J.Num(v);
+        }
+
+        /// <summary>정본 `width: min(calc(var(--app-w) * .9), 22.9rem)` 을 그대로 — 둘 중 작은 쪽이다(기준 캔버스에서는 뒤쪽이 이긴다).</summary>
+        public static float FiCardW(float appW, float rem)
+        {
+            return UnityEngine.Mathf.Min(L("fi_card_w_f") * appW, L("fi_card_w_max_rem") * rem);
+        }
+    }
+
     public static class ForgeItemStyle
     {
         public const string ResourcePath = "ForgeItemUi";
