@@ -210,7 +210,10 @@ namespace Forge.Game.Ui
                 Color face = ForgeUi.CellFace(new Color(0x6b / 255f, 0x35 / 255f, 0x38 / 255f));
                 ForgeUi.Tile(rt, "frame", face, ForgeUi.CellLine(new Color(0x6b / 255f, 0x35 / 255f, 0x38 / 255f)), size * 0.16f, PopupKit.Line3);
                 Image ico = PopupKit.IconOr(rt, "img", ForgeUi.SlotIconKey(slot));
-                ico.color = new Color(1f, 1f, 1f, 0.52f);
+                // T342 ⓐ — 정본 style.css 862 `filter: grayscale(1) brightness(1.75) opacity(.52)`.
+                // 여태 알파(.52)만 있었다: 틴트는 곱하기라 «회색 눕히기»·«밝기 올리기» 를 못 한다(마룬 타일 위에서 형태가 안 읽힌다 —
+                // 정본 주석 860~861 이 바로 그 까닭으로 밝기를 올려 «어두운 면 위 밝은 실루엣» 으로 뒤집은 자리다).
+                UiFilter.ApplyColor(ico, "equip_cell_empty");
                 float k = size * 0.72f;
                 UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, size * 0.06f), k, k);
                 TextMeshProUGUI nm = UiKit.Text(rt, "slot-name", TextKind.Sub, d.SlotKr.Get(slot, slot), "pp_muted");

@@ -1,0 +1,18 @@
+{
+  "_": "ROUTINE T342 정본 CSS `filter` 자리표 — web/css/style.css 의 선언 그대로. 셈은 Core/Ui/FilterRules.cs(명세 정의)가 쥐고, 이 표는 자리마다의 값만 쥔다(§1 «수치는 코드에 박지 않는다»). line = 정본 style.css 줄 번호(되짚는 자리). blur_px 는 CSS px 이고 명세상 «반지름» 이 아니라 가우시안 표준편차다.",
+  "sites": {
+    "_": "남은 셋(mount_slot_empty 857 · tech_node_locked 2193 · summon_orb_* 6656~6665)은 그 파일이 산 lock 이라 1회차 범위 밖 — 들어오면 그때 적는다. 표 글자에 동그라미 글자를 쓰지 않는다(check_text_glyphs 가 새 두부로 잡는다).",
+    "equip_cell_empty": {
+      "_": ".equip-cell.empty .cell-img.dim — 마룬 타일 위에서 형태가 안 읽혀 «어두운 면 위 밝은 실루엣» 으로 뒤집은 자리(정본 주석 860~861)",
+      "line": 862,
+      "grayscale": 1,
+      "brightness": 1.75,
+      "opacity": 0.52
+    },
+    "hatch_cone": {
+      "_": ".hatch-cone — 부화장 램프 빛기둥의 가장자리를 부드럽게(정본 주석 8024 «원뿔 가장자리 블러»)",
+      "line": 8025,
+      "blur_px": 1.2
+    }
+  }
+}

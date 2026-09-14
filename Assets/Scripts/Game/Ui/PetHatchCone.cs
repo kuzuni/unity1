@@ -49,9 +49,24 @@ namespace Forge.Game.Ui
             return c;
         }
 
+        /// <summary>
+        /// T342 ⓓ — 정본 `style.css` 8025 `.hatch-cone { filter: blur(1.2px) }`.
+        /// 이 컴포넌트는 부화장 빛기둥 말고 «장착됨» 라벨 홈에도 쓰이므로(<c>SkillPanel</c>), 정본이 그 선언을 건 자리와 같은 이름일 때만 건다 —
+        /// 정본 선택자가 `.hatch-cone` 이고 클론의 그 오브젝트 이름도 그대로 `hatch-cone` 이다.
+        /// 표(`Resources/FilterUi.json`)의 `hatch_cone` 이 없으면 아무것도 안 한다.
+        /// </summary>
+        public const string BlurObjectName = "hatch-cone";
+        const string BlurSiteKey = "hatch_cone";
+
+        /// <summary>번지기 전 원본 — 크기가 바뀌어 다시 번지게 할 때 겹쳐 번지지 않도록 쥐고 있는다.</summary>
+        private Sprite sharp;
+        /// <summary>마지막으로 번짐을 구운 화면 크기(canvas px) — 같은 크기면 다시 안 굽는다.</summary>
+        private Vector2 blurredFor = Vector2.zero;
+
         /// <summary>지금 값(<see cref="Shape"/>·<see cref="Top"/>·<see cref="Bottom"/>·<see cref="TopFrac"/>)으로 스프라이트를 굽고 건다.</summary>
         public void Rebuild()
         {
+            sharp = null; blurredFor = Vector2.zero;
             type = Type.Simple;
             preserveAspect = false;
             if (shape == Kind.Cone)
@@ -62,6 +77,8 @@ namespace Forge.Game.Ui
                 string key = "pet-cone-" + ColorUtility.ToHtmlStringRGBA(Top) + "-" + ColorUtility.ToHtmlStringRGBA(Bottom) + "-" + Mathf.RoundToInt(TopFrac * 1000f);
                 sprite = CraftFxPoly.Bake(key, pts, new[] { Top, Bottom }, new[] { 0f, 1f }, Vector2.zero, new Vector2(0f, 1f));
                 color = Color.white;
+                sharp = sprite;
+                ApplyBlur();
                 return;
             }
             Vector2[] shapePts;
@@ -85,6 +102,38 @@ namespace Forge.Game.Ui
             }
             sprite = CraftFxPoly.Bake(name, shapePts);
             color = Top;
+        }
+
+        /// <summary>칸 크기가 정해지거나 바뀌면 그 크기에 맞는 번짐을 다시 굽는다(늘림 배율이 곧 번짐 배율이다).</summary>
+        protected override void OnRectTransformDimensionsChange()
+        {
+            base.OnRectTransformDimensionsChange();
+            ApplyBlur();
+        }
+
+        /// <summary>
+        /// 정본 `blur(1.2px)` 를 **이 칸이 화면에 설 크기**에 맞춰 건다.
+        /// 도형은 정규 상자(<see cref="Box"/>)에 굽고 칸 크기로 늘리므로, 구울 때의 σ 는 늘림 배율만큼 커야 화면에서 1.2 CSS px 가 된다.
+        /// </summary>
+        void ApplyBlur()
+        {
+            if (shape != Kind.Cone || sharp == null) return;
+            if (!string.Equals(name, BlurObjectName, System.StringComparison.Ordinal)) return;
+            if (!UiFilter.Table.Has(BlurSiteKey)) return;
+            var spec = UiFilter.Table.Get(BlurSiteKey);
+            if (!spec.HasBlur || spec.BlurPx <= 0) return;
+
+            Rect r = rectTransform.rect;
+            if (r.width <= 1f || r.height <= 1f) return;              // 아직 크기가 안 정해졌다 — 정해지면 다시 불린다
+            if (blurredFor == new Vector2(r.width, r.height)) return;
+
+            float bakedH = sharp.textureRect.height;
+            double sigmaCanvas = spec.BlurPx * KeylineUi.CssPx;       // 정본 CSS px → 캔버스 px (표 css_px = 2.164)
+            double sigmaBaked = Forge.Core.Ui.FilterRules.BakeSigmaPx(sigmaCanvas, bakedH, r.height);
+            if (sigmaBaked <= 0) return;
+
+            sprite = UiFilter.Blur(sharp, sigmaBaked, BlurSiteKey + "-" + Mathf.RoundToInt((float)(sigmaBaked * 100)));
+            blurredFor = new Vector2(r.width, r.height);
         }
     }
 }
