@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -68,6 +70,10 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 깊이_계단에_검정_띠가_생기고_off_프레임엔_없다()
         {
             if (NoGraphics()) { Assert.Ignore("그래픽 장치가 없다 — 픽셀은 CI 의 유니티 잡이 본다"); yield break; }
+            // 🚨 렌더러의 엣지 기능은 **꺼 둔 채** 실린다(결정 331) — 런 350~355 에서 이 패스가 모든 카메라의
+            //    화면을 통째로 회색 128 로 씻어 남의 픽셀 자 넷을 깨뜨렸다. 그래서 이 자만 켰다 끈다.
+            object feature = Feature();
+            if (feature == null) { Assert.Ignore("렌더러에서 EdgeOutline 기능을 못 찾았다(파이프라인 꼴이 바뀌었다) — 켤 수 없으니 판정도 못 한다"); yield break; }
             Shader sh = Shader.Find(EdgeOutlineHost.ShaderName);
             Assert.IsNotNull(sh, "엣지 셰이더가 없다 — 렌더러 기능이 그릴 것이 없다");
             // 🚨 컴파일 에러가 난 셰이더는 `isSupported` 가 false 다. 이 한 줄이 없으면 런 343 처럼
@@ -98,17 +104,24 @@ namespace Forge.Tests.PlayMode
                 Cube(rig.transform, new Vector3(0f, 0f, 10f), new Vector3(3f, 3f, 3f), new Color(0.85f, 0.80f, 0.55f));
                 yield return null;
 
+                SetActive(feature, true);
                 EdgeOutlineHost.SetOn(true);
                 yield return null;
                 on = Shoot(cam, rt);
                 EdgeOutlineHost.SetOn(false);
                 yield return null;
                 off = Shoot(cam, rt);
+                SetActive(feature, false);
 
                 int darkOn = Dark(on), darkOff = Dark(off);
                 try { GallerySheet.Save(on, "screen_t147-edge-on"); GallerySheet.Save(off, "screen_t147-edge-off"); }
                 catch (System.Exception e) { Debug.LogWarning("[T147] 그림 저장 실패(단언은 계속): " + e.Message); }
 
+                // 🚨 먼저 «입력이 물렸는가» 를 가른다. off 프레임의 셰이더는 `src` 를 그대로 돌려주므로,
+                //    그 그림이 **단색**이면 장면이 아니라 `_BlitTexture` 를 못 받은 것이다(유니티는 안 물린 텍스처에 회색 128 을 물린다).
+                //    이 한 줄이 없으면 «검정 화소 0» 이라는 증상만 남아 판정식을 뒤지게 된다(런 354 실측).
+                Assert.IsFalse(Uniform(off), "off 프레임이 통째로 단색이다(" + Mid(off) + ") — 패스는 도는데 입력(_BlitTexture)이 안 물렸다. 주입점·fetchColorBuffer 를 의심하라");
+                Assert.IsFalse(Uniform(on), "on 프레임이 통째로 단색이다(" + Mid(on) + ") — 위와 같은 갈래(입력 없음)");
                 Assert.AreEqual(0, darkOff, "off 프레임에 검정 화소가 있다 — 네 항이 다 꺼지지 않았거나 장면이 원래 어둡다");
                 Assert.Greater(darkOn, 0, "on 프레임에 검정 화소가 0 — 엣지 패스가 안 돈다(렌더러 기능 등록·머티리얼·깊이 요구 확인)");
                 // 상자 둘레는 2 × (3유닛 상자의 화면 폭 + 높이) 남짓이고 선은 1~2px 이라, 화면의 한 줌이어야 한다(면이 통째로 칠해지면 임계가 틀린 것이다).
@@ -116,6 +129,7 @@ namespace Forge.Tests.PlayMode
             }
             finally
             {
+                SetActive(feature, false);
                 EdgeOutlineHost.SetOn(true);
                 RenderTexture.active = prevActive;
                 if (on != null) Object.DestroyImmediate(on);
@@ -123,6 +137,56 @@ namespace Forge.Tests.PlayMode
                 Object.DestroyImmediate(rig);
                 rt.Release(); Object.DestroyImmediate(rt);
             }
+        }
+
+
+        /// <summary>
+        /// 렌더러 에셋에 실린 엣지 기능을 **이름으로** 찾는다(URP 타입을 컴파일에 끌어들이지 않으려고 리플렉션 — 하니스는 URP 를 스텁으로 문다).
+        /// 못 찾으면 null: 파이프라인 꼴이 바뀐 것이니 이 자는 판정하지 않고 물러난다.
+        /// </summary>
+        static object Feature()
+        {
+            Object rp = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline as Object
+                        ?? UnityEngine.Rendering.GraphicsSettings.defaultRenderPipeline as Object;
+            if (rp == null) return null;
+            FieldInfo list = rp.GetType().GetField("m_RendererDataList", BindingFlags.Instance | BindingFlags.NonPublic);
+            var datas = list != null ? list.GetValue(rp) as System.Array : null;
+            if (datas == null) return null;
+            foreach (object data in datas)
+            {
+                if (data == null) continue;
+                FieldInfo feats = data.GetType().GetField("m_RendererFeatures", BindingFlags.Instance | BindingFlags.NonPublic);
+                var items = feats != null ? feats.GetValue(data) as System.Collections.IEnumerable : null;
+                if (items == null) continue;
+                foreach (object f in items)
+                {
+                    var o = f as Object;
+                    if (o != null && o.name == "EdgeOutline") return f;
+                }
+            }
+            return null;
+        }
+
+        static void SetActive(object feature, bool on)
+        {
+            if (feature == null) return;
+            MethodInfo m = feature.GetType().GetMethod("SetActive", BindingFlags.Instance | BindingFlags.Public);
+            if (m != null) m.Invoke(feature, new object[] { on });
+        }
+
+        /// <summary>그림이 통째로 한 색인가 — 안 물린 텍스처(회색 128)를 «장면» 으로 착각하지 않으려는 자.</summary>
+        static bool Uniform(Texture2D tex)
+        {
+            Color32[] px = tex.GetPixels32();
+            for (int i = 1; i < px.Length; i++)
+                if (px[i].r != px[0].r || px[i].g != px[0].g || px[i].b != px[0].b) return false;
+            return true;
+        }
+
+        static string Mid(Texture2D tex)
+        {
+            Color32 c = tex.GetPixels32()[tex.width * (tex.height / 2) + tex.width / 2];
+            return "rgb " + c.r + "," + c.g + "," + c.b;
         }
 
         static void Cube(Transform parent, Vector3 pos, Vector3 scale, Color c)
