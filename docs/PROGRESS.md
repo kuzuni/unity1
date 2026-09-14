@@ -435,6 +435,14 @@
 | T86 | WebGL 배포물이 부팅에서 죽는다: `BattleScene.Boot` 가 제가 읽은 GameData 를 `Attach` 에 안 넘겨 `SaveIo.Data`(WebGL 은 비동기 · 그 순간 null)로 폴백 → «GameData 가 없다»(런 140 첫 WebGL 스모크 빨강) + 스모크가 닫기 부산물 ERR_ABORTED 를 빨강으로 센다 | ✅ 완료 | sess-0524-8791 / 워커 N | `Assets/Scripts/Game/Battle/BattleScene.cs`(Boot 의 Attach 인자 한 줄) · `tools/webgl_smoke.js`(닫기 뒤 requestfailed 무시) | §0-6 임자 없는 빨강(schedule 런 140 · T26 ✅ 인데 첫 실제 스모크) · 워커 N 등재 · 에디터·CI 테스트는 SaveIo 가 동기 읽기라 못 잡는 WebGL 전용 · 판정은 수동 build 런의 «WebGL 배포 스모크» 초록 · **✅ 런 223**(17:17 수동 build · a43f87a): unity-test 초록(PlayMode 114/114) · WebGL unity-builder 27분 초록 · «WebGL 배포 스모크» **초록**(unity-ready · 11.8초 · 빨강 0 · 노랑 4 = .unityweb ERR_ABORTED 폴백 + 글꼴 두부 2) · gh-pages 배포 스텝 success(2a70c55 · 20 파일) · Android 초록(12분 · APK Artifact) |
 | T79 | 펫 업그레이드 모달이 화면을 안 덮는다(원작은 HUD·탭바를 가리고 ✕ 하나 · 클론은 시트 위에 떠 ✕ 둘) + 머리 구성이 줄었다 | ✅ 완료 | sess-1920-15773 / 워커 B | `Assets/Scripts/Game/Ui/PetUpgrade*` · `Assets/Scripts/Game/Ui/PetSkillModal.cs`(딤 한 줄) · `Assets/Scripts/Game/Ui/UiKit.cs`(`PerceivedDim` 한 함수) · `Assets/Tests/PlayMode/PetUiTests.cs` | T58 뒤 · T28 8회차 등재(런 128 `screen_pet-upgrade.png` 1.7/10 ↔ `shot-042503`) |
 
+### T149 1회차 기록 — 카드 팝이 도는 동안 재던 자 둘 (2026-09-14 07:0x · 워커 I · sess-2203-14027 · lock 유지 · ✅ 는 CI 한 바퀴 뒤)
+
+- **§0-6 임자 없는 빨강**: 런 341 의 빨강 둘(`GearDetailTests`·`CraftComparePopupTests`)은 두 픽스처 다 산 lock 이 0 이라 내 일이었다.
+- **가른 방법 — 수가 말해 줬다**: 둘 다 폭이 **작게** 나오는데 비율이 서로 다르다(70%→0.5795 = ×0.828 · 68.8%→0.6250 = ×0.908). 크기가 틀렸다면 둘이 같은 비율로 틀려야 한다 — **다른 비율 = 다른 시각**이다. 그 시각에 무엇이 도는가를 보니 T135 2회차 ⓑ(`c45974f`)가 그 회차에 넣은 정본 `cardpop`(`.modal.opening .modal-card` · .25s ease-out · **scale .7 → 1**)이었다. 두 자는 팝업을 열고 `yield return null` 두 번 뒤에 잰다.
+- **T135 잘못이 아니다**: 정본에 있는 연출이고 그 자의 제 시험(`CardPopTests`)은 초록이다. 고칠 곳은 **재는 쪽**이다(결정 277 · T87 29회차가 같은 교훈을 반대 방향으로 샀다 — 그때는 창이 이미 지나갔고 이번엔 아직 안 끝났다).
+- **고친 방법 — 시간을 어림하지 않는다**: `CardPop` 러너는 끝나면 카드를 scale 1 로 돌리고 **스스로 사라진다**(`Destroy(this)`). 그래서 «씬에 `CardPop` 이 하나도 없을 때까지» 프레임을 넘기는 `SettleCardPop()` 을 두 자에 넣고 재기 직전에 부른다. 상한 600프레임을 두고 넘으면 «600프레임 안에 안 끝났다» 로 실패하게 해, 다음 빨강이 «연출이 안 끝났다» 인지 «크기가 틀렸다» 인지 스스로 말한다. **T135 파일은 열지 않았다**(읽기만 · 그 lock 은 살아 있다).
+- **게이트**: `dotnet build` 0 error · `dotnet test` **645/645** · §3 자 전부 rc 0. 두 자는 PlayMode 라 판정은 다음 런이다.
+
 ### T110 완료 기록 (2026-09-14 · 워커 T · sess-0444-16036 · 2회차 · 1회차는 워커 N sess-0524-8791)
 
 - **무엇**: 대장간 팝업 두 줄 버튼 넷 — 비교 팝업 «판매 / 🪙 +N» · 판매 확인 «판매 / 🪙 +N»(정본 `ui.js` 3865 도 `판매<small>…</small>` 두 줄) · 확률 정보 «건너뛰기 / 💎 N» · «레벨 N 업그레이드 / 🪙 N · ⏱ 시간» — 을 1회차의 세로 갈래 `IconTextStack` 으로 갈아 끼웠다. 새 `IconTextStack.ReplaceLabel(btn, kind, msg, inkKey, faceKey)`: `PopupKit.Btn` 의 빈 한 줄 라벨을 끄고 `Build` 로 줄마다 `IconTextRow` 를 세운 뒤 굵게 + 버튼 면 키라인(`KeylineUi.BtnFace`) + `Fit`. 아이콘은 이모지 표 길(`UiText.Split` 🪙→coin · 💎→gem)이라 호출부에 아틀라스 키가 0 이다(결정 313).

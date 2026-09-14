@@ -17,6 +17,16 @@ namespace Forge.Tests.PlayMode
     /// </summary>
     public class GearDetailTests
     {
+
+        /// <summary>T149 — 카드 팝(T135 `cardpop` · .25s ease-out · scale .7 → 1)이 끝날 때까지 프레임을 넘긴다.
+        /// **시간을 어림하지 않는다**: 러너(<see cref="Forge.Game.Ui.CardPop"/>)는 끝나면 카드를 scale 1 로 돌리고 스스로 사라진다.
+        /// 팝이 도는 동안 재면 폭이 «연출 중간값» 으로 나온다(런 341 실측: 70% → 57.95% · 68.8% → 62.5%) — 결정 277 과 같은 갈래다.</summary>
+        static IEnumerator SettleCardPop()
+        {
+            for (int i = 0; i < 600 && Object.FindObjectsByType<CardPop>(FindObjectsSortMode.None).Length > 0; i++)
+                yield return null;
+            Assert.AreEqual(0, Object.FindObjectsByType<CardPop>(FindObjectsSortMode.None).Length, "카드 팝이 600프레임 안에 안 끝났다(T149)");
+        }
         private static IEnumerator Boot()
         {
             try { if (System.IO.File.Exists(SaveIo.SavePath)) System.IO.File.Delete(SaveIo.SavePath); } catch (System.Exception) { }
@@ -93,6 +103,7 @@ namespace Forge.Tests.PlayMode
             Popup p = h.Meta.Popups.Find(GearDetailPopup.Name);
             Assert.IsNotNull(p, "장비 세부정보 팝업이 열려 있다");
             RectTransform card = FindUnder(p.Root, "card");
+            yield return SettleCardPop();   // T149 — 팝이 도는 동안 재면 폭이 연출 중간값이다
             Rect app = World(UiRoot.Instance.App), rc = World(card);
             Assert.Greater(app.height, 0f, "앱 상자");
 
