@@ -102,7 +102,6 @@ TABLE = {
 # ── 임자가 정해진 빈자리(자리 → 이유) — T109 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
     'Ui/ForgeInfoPopup.cs#title': 'T109 ⓑ — h3.fi-title .11em(T122 lock 뒤 · 11회차가 남김)',
-    'Ui/ForgeCraftPopup.cs#title': 'T109 ⓑ — h3.sellwarn-title .11em(T122 lock 뒤 · 11회차가 남김)',
     # T109 9회차 — 7회차가 공용 Popups.cs@Btn 에 키라인(면 키 표 · 2px)을 걸자 이 셋이 «초록» 으로 보였다. 셋은 제 규칙이 따로라 실물 자리로 옮기고 임자를 적는다.
     'Ui/ForgeInfoPopup.cs#fi-skip': 'T109 ⓑ — .fi-card .fi-skip 4px #000(정본 5150): 회색 면이라 표에서 0 · 호출부가 keylineKey "fi_skip" 을 넘겨야 한다 · T122 lock 뒤(11회차가 남김)',
 }

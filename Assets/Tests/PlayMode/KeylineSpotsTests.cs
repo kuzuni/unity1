@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using Forge.Core.Forging;
 using Forge.Core.Save;
 using Forge.Game;
 using Forge.Game.Ui;
@@ -116,6 +117,38 @@ namespace Forge.Tests.PlayMode
                 Assert.AreEqual(0f, gl.outlineWidth, 1e-6f, "회색 잠김 알약은 정본에 규칙이 없다 — 민글자");
             }
             finally { Object.Destroy(host.gameObject); }
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator 판매_경고_제목에_정본_제목_묶음_키라인이_걸린다()
+        {
+            // 정본 style.css 3846 의 제목 묶음에 `h3.sellwarn-title` 이 들어 있다(.11em var(--pp-line)) ·
+            // ui.js 3849 가 «정말 판매할까요?» 를 그 클래스로 찍는다(T109 13회차).
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            ForgeItem sold = h.Engine.RollItem();
+            ForgeItem kept = h.Engine.RollItem();
+            ForgeCraftPopup.ShowSellConfirm(h, sold, kept);
+            yield return null;
+            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeCraftPopup.SellName), "판매 경고가 열린다");
+            Transform root = h.Meta.Popups.Find(ForgeCraftPopup.SellName).Root;
+            RectTransform host = UiKit.Box(UiRoot.Instance.App, "t109-13-host");
+            try
+            {
+                TextMeshProUGUI title = FindIn(root, "title").GetComponent<TextMeshProUGUI>();
+                Assert.AreEqual("정말 판매할까요?", title.text);
+                Assert.Greater(title.outlineWidth, 0f, "sellwarn-title: 정본 3846 .11em var(--pp-line)");
+                AssertLine(title, "sellwarn-title");
+                TextMeshProUGUI refT = UiKit.Text(host, "ref-sellwarn", TextKind.Body, "정말 판매할까요?", "pp_ink");
+                UiKit.OutlinePx(refT, "pp_line", KeylineUi.Em("sheet_title", refT.fontSize));
+                Assert.AreEqual(refT.outlineWidth, title.outlineWidth, 1e-5f, "폭 = sheet_title .11em × 글자 크기");
+            }
+            finally
+            {
+                Object.Destroy(host.gameObject);
+                ForgeCraftPopup.HideSellConfirm(h);
+            }
             yield return null;
         }
     }
