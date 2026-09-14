@@ -1339,29 +1339,40 @@ namespace Forge.Tests.PlayMode
                 yield break;
             }
 
-            // ── 픽셀(함정 ⓔ «초록은 칠해졌다가 아니다»): **같은 시각**에 띠만 껐다 켜서 카드 칸이 실제로 밝아지는지 잰다.
+            // ── 픽셀(함정 ⓔ «초록은 칠해졌다가 아니다»): **같은 시각**에 띠만 껐다 켜서 카드 칸을 두 번 재고 **두 장 다 남긴다**.
             // 시각을 옮겨 비교하면 카드 제 불투명도(`crpop` 0% = 0)가 섞여 «띠가 칠했다» 를 증명하지 못한다.
-            // 프레임을 안 넘기므로 러너의 `Update` 는 돌 자리가 없다(`enabled` 로 세우지 않는다 — 위 모루 자들의 함정과 같은 갈래).
+            // 프레임을 안 넘긴다 — 넘기면 호스트의 `Delay(RevealCardSec=0.56초)` 가 카드를 걷는다(러너를 `enabled` 로 세우지도 않는다 · 결정 286).
+            // 32회차: 런 275 의 `craft-sheen.png` 를 6배로 열어 보니 카드 칸이 **한 색으로 평평**했다(142,142,142 · 띠도 시대색도 없다).
+            // 합만 보면 «1% 늘었다» 로 초록이 될 수 있어(첫 장이 배치 전이면 그렇다) 정본이 적은 «띠» 의 성질을 자로 박는다:
+            //  ⓐ 켜면 칸 밝기 **합**이 는다 · ⓑ 그런데 **가장 어두운 픽셀은 그대로**여야 한다 — 카드를 통째로 덮는 막이면 그 값이 같이 뜬다
+            //    (정본 `linear-gradient(105deg, transparent 38%, …, transparent 62%)` 은 칸의 일부만 지난다).
             fx.SampleTo(CraftCardSpec.SheenDelayMs + CraftCardSpec.RevealMs * 0.20);   // 카드 불투명도 1 · 띠 한가운데가 칸 안
-            long lit = 0;
-            System.Func<Color32, bool> tally = c => { lit += c.r + c.g + c.b; return c.r > 170 && c.g > 170 && c.b > 170; };
+            long lit = 0; int lo = 766, hi = -1;
+            System.Func<Color32, bool> tally = c =>
+            {
+                int v = c.r + c.g + c.b;
+                lit += v; if (v < lo) lo = v; if (v > hi) hi = v;
+                return v > 510;
+            };
             int areaA, areaB;
             string infoA, infoB;
 
-            // 프레임을 안 넘긴다 — 넘기면 호스트의 `Delay(RevealCardSec=0.56초)` 가 깨어나 카드를 걷어 버린다(런 252 는 운이 좋았다).
             sheenImg.enabled = false;
-            lit = 0;
-            CountPixels(card, tally, out areaA, out infoA, null);
-            long off = lit;
+            lit = 0; lo = 766; hi = -1;
+            CountPixels(card, tally, out areaA, out infoA, "craft-sheen-off");
+            long off = lit; int offLo = lo, offHi = hi;
 
             sheenImg.enabled = true;
-            lit = 0;
-            CountPixels(card, tally, out areaB, out infoB, "craft-sheen");
-            long on = lit;
+            lit = 0; lo = 766; hi = -1;
+            CountPixels(card, tally, out areaB, out infoB, "craft-sheen-on");
+            long on = lit; int onLo = lo, onHi = hi;
 
+            string both = "꺼짐 합 " + off + " 어두운 " + offLo + " 밝은 " + offHi
+                          + " / 켜짐 합 " + on + " 어두운 " + onLo + " 밝은 " + onHi + " · 칸 " + areaA + "픽셀";
             Assert.AreEqual(areaA, areaB, "두 장의 카드 칸이 같은 자리여야 비교가 성립한다");
-            Assert.Greater(on, off + off / 100, "광택을 켜면 카드 칸이 눈에 띄게 밝아져야 한다(1% 이상) — 꺼짐 합 " + off
-                           + " / 켜짐 합 " + on + " · 꺼짐: " + infoA + " / 켜짐: " + infoB);
+            Assert.Greater(on, off + off / 100, "광택을 켜면 카드 칸이 눈에 띄게 밝아져야 한다(1% 이상) — " + both);
+            Assert.LessOrEqual(onLo - offLo, 8, "광택은 **띠**다 — 칸을 통째로 덮는 막이면 가장 어두운 픽셀까지 밝아진다(정본 38~62% 만 흰다) — " + both);
+            Assert.GreaterOrEqual(onHi, offHi, "띠가 지나는 자리는 어두워지지 않는다 — " + both);
             ForgeCraftPopup.DismissReveal();
             yield return null;
         }
