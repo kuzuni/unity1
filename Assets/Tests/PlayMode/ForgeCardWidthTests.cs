@@ -79,6 +79,9 @@ namespace Forge.Tests.PlayMode
             yield return null;
             float fiW = CardWidth(h, ForgeInfoPopup.Name);
             Assert.AreEqual(ForgeInfoStyle.FiCardW(W, rem), fiW, 0.5f, "확률 정보 — 정본 77.19%W");
+            // T339 2회차 — 높이도 표대로(정본 5048 `height: calc(var(--app-h) * .8104)`).
+            // 원작 PNG 실측 79.9%H(y85~789 · shot-042831) ↔ 클론은 내용이 정하던 72.1%H 였다.
+            Assert.AreEqual(UiKit.RefH * ForgeInfoStyle.L("fi_card_h_f"), CardHeight(h, ForgeInfoPopup.Name), 0.5f, "확률 정보 높이 — 정본 81.04%H");
             ForgeInfoPopup.Close(h);
             yield return null;
 

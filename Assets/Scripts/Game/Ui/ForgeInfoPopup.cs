@@ -61,10 +61,11 @@ namespace Forge.Game.Ui
             float w = ForgeInfoStyle.FiCardW(UiKit.RefW, rem);
             float pad = rem * 0.9f;
             float inner = w - pad * 2f - PopupKit.Line3 * 2f;
-            // 높이는 이 회차에 **안 건드린다**(내용이 정한다 · `-1f`): 정본 CSS 는 `height: calc(var(--app-h) * .8104)` 인데
-            // 등재(T28 50회차)의 런 474 실측은 «원작 68.90%H ↔ 클론 73.23%H» 로 **CSS 값과 어긋난다**(81.04 를 넣으면 원작에서 더 멀어진다).
-            // 근거 둘이 어긋나면 재고 적는다 — 표에 `fi_card_h_f` 를 둔 채 쓰지 않고, 그 어긋남을 완료 기록에 남겼다(2회차 몫).
-            RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
+            // 높이: 정본 5048 `height: calc(var(--app-h) * .8104)`. 1회차엔 등재의 «원작 68.90%H» 와 어긋나 보류했는데,
+            // 2회차에 원작 PNG(`ref/screens/shot-042831.png`)의 카드 왼쪽 안쪽 세로줄을 직접 재니 **밝은 판이 y85~789 = 79.9%H**
+            // 로 이어졌다 — CSS 주석의 «px 80~793 = 81.04%H» 와 맞고 68.90 은 자의 측정 한계였다(§4 기록 참조).
+            // 클론은 같은 자로 72.1%H(내용이 정하던 값)라 표대로 고정하면 원작 쪽으로 간다. 내용이 더 짧으므로 넘침도 없다.
+            RectTransform card = PopupKit.Card(root, "card", w, UiKit.RefH * ForgeInfoStyle.L("fi_card_h_f"), "pp_paper", rem * 1.1f);
             PopupKit.Column(card, pad, rem * 0.3f);
             RectTransform head = PopupKit.Item(card, "head", -1f, PopupKit.FontSize(TextKind.Title) * 1.25f);
             TextMeshProUGUI title = UiKit.Text(head, "title", TextKind.Title, "확률 정보", "pp_ink");
