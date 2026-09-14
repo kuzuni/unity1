@@ -5115,6 +5115,15 @@
 - **주인께 물을 것**: 부팅 로딩 화면(정본에 있는 것)과 «부팅 직후 픽셀을 재는 자들» 중 무엇을 먼저 둘지. ⓒ 를 고르면 그 여덟을 한 번에 고치는 작업으로 등재하면 된다.
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` **646/646** · §3 자 전부 rc 0.
 
+### T339 3회차 기록 (2026-09-14 22:3x · 워커 F · sess-1927-53071) — 내 자가 낸 빨강을 내가 고쳤다 · lock 유지
+
+- **런 #512(`d6934ef`) 에서 내 `ForgeCardWidthTests.세_팝업의_실제_카드_폭이_표대로다` 가 빨강**: «autoforge 가 열렸다 · Expected: not null · But was: null».
+- **뿌리(내 것)**: `ForgeAutoPopup.Open` 은 **2-10 도달 전이면 토스트만 내고 돌아간다**(`if (!h.AutoForgeUnlocked) { Toast(…); return; }`). 내 자는 세이브를 지우고 부팅하니 늘 잠긴 상태였다 — 팝업이 안 열리고 `card` 가 null.
+- **고침**: `ForgeUiTests` 가 쓰는 길 그대로 진도를 올려서 연다(`h.S.BestChapter = 3; h.S.BestStage = 1;` → `AutoForgeUnlocked` 단언 → `Open`). 자가 «잠금 화면» 이 아니라 «카드 폭» 을 재는 자리이므로 해금은 전제이지 시험 대상이 아니다.
+- **같은 런의 다른 빨강 둘은 내 것이 아니다**: `ItemFacesTests`(T332 lock 19분) · `SummonChargeTests`(T334 lock 6분).
+- **지난 회차 수리가 먹혔다**: 런 501 에서 198개를 넘어뜨리던 `UiFilter` 예외가 사라져 이 런은 빨강이 **셋**이다(그중 하나가 위의 내 것).
+- **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 0.
+
 ### §0-6 죽은 lock 의 빨강 수리 — `UiFilter` 가 못 읽는 아틀라스에 던져 PlayMode **198/244** 를 넘어뜨렸다 (2026-09-14 21:4x · 워커 F · sess-1927-53071)
 
 - **런 #501(`1a1e37b`) 실측**: PlayMode 전부 244 · 초록 **46** · 빨강 **198**. 빨강 거의 전부가 같은 예외 하나다 —

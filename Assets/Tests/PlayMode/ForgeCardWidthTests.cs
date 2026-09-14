@@ -68,6 +68,10 @@ namespace Forge.Tests.PlayMode
             // `ForgeAutoPopup.Open` 이 🔒 토스트만 내고 팝업을 안 연다(24행) — AgePatternTests 209 · ForgeUiTests 335 와 같이 먼저 해금한다.
             h.S.BestChapter = 3; h.S.BestStage = 1; h.Pull();
             Assert.IsTrue(h.AutoForgeUnlocked, "2-10 뒤 해금");
+            // 자동 제련은 **2-10 도달 뒤에만** 열린다(`ForgeAutoPopup.Open` 이 잠기면 토스트만 내고 돌아간다) —
+            // 이 자는 세이브를 지우고 부팅하므로 `ForgeUiTests` 가 쓰는 길 그대로 진도를 올려 연다(런 512 빨강 수리).
+            h.S.BestChapter = 3; h.S.BestStage = 1;
+            Assert.IsTrue(h.AutoForgeUnlocked, "2-10 을 넘겨 자동 제련이 해금됐다");
             ForgeAutoPopup.Open(h);
             yield return null;
             Assert.AreEqual(ForgeAutoStyle.CardW(W, rem), CardWidth(h, ForgeAutoPopup.Name), 0.5f, "자동 제련 — 정본 77.19%W(클론은 83.70 이었다)");
