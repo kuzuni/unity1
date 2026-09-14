@@ -117,12 +117,14 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>장비 아이콘 타일(시대색 프레임 + 아이콘 · 잉크 76%). 반환 = 타일 루트.</summary>
-        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, string age, string iconKey, float inkFrac = 0.76f)
+        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, string age, string iconKey, float inkFrac = 0.76f, bool agePattern = false)
         {
             Color ac = AgeColor(d, age);
             RectTransform rt = UiKit.Box(parent, name);
             rt.sizeDelta = new Vector2(size, size);
             Tile(rt, "frame", CellFace(ac), CellLine(ac), size * 0.16f, PopupKit.Line3);
+            // T124 — 정본 `.fl-face.equip-cell[data-age]` 만 시대 무늬를 입는다(제작 카드·상세 머리 아이콘은 equip-cell 이 아니다) → 호출자가 켠다
+            if (agePattern) AgePattern.Attach(rt, age, cell: true, mask: false, siblingIndex: 1);
             Image ico = PopupKit.IconOr(rt, "img", iconKey);
             float k = size * inkFrac;
             UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, k, k);
@@ -225,11 +227,13 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>시대 막대(원작 `.fi-age-bar`): 좌 아이콘+이름+★ · 중 현재% · 우 어두운 세그먼트에 다음%(null 이면 없음). 반환 = 막대 루트.</summary>
-        public static RectTransform AgeBar(Transform parent, string name, float w, float h, GameDefs d, string age, string cur, string next, int stars, Action onClick = null, bool? check = null)
+        public static RectTransform AgeBar(Transform parent, string name, float w, float h, GameDefs d, string age, string cur, string next, int stars, Action onClick = null, bool? check = null, bool autoForge = false)
         {
             Color ac = AgeColor(d, age);
             RectTransform bar = PopupKit.Item(parent, name, w, h);
             Image f = Tile(bar, "bar", ac, Color.black, h * 0.25f, PopupKit.Line);
+            // T124 — 시대 무늬 층(정본 `.af-age-bar::before`·`.fi-age-bar::before` · 항성간 이상 다섯만 · 바탕 채움 바로 위 · 글자·체크 뒤) · 자동 제련 막대만 왼쪽 30→50% 마스크
+            AgePattern.Attach(bar, age, cell: false, mask: autoForge, siblingIndex: 1);
             float rem = PopupKit.Rem;
             float x = rem * 0.5f;
             if (check.HasValue)

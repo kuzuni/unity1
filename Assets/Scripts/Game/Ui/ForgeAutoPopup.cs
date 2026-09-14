@@ -63,7 +63,7 @@ namespace Forge.Game.Ui
                 string age = d.Ages[i];
                 if (probs.Get(age, 0) <= 0) continue;
                 string a = age;
-                ForgeUi.AgeBar(content, "af-age-" + age, inner, barH, d, age, NumFmt.PctTrim(probs.Get(age, 0)), null, stars, () => h.ToggleKeepAge(a), cfg.KeepAges.Contains(age));
+                ForgeUi.AgeBar(content, "af-age-" + age, inner, barH, d, age, NumFmt.PctTrim(probs.Get(age, 0)), null, stars, () => h.ToggleKeepAge(a), cfg.KeepAges.Contains(age), autoForge: true);   // T124 — 자동 제련 막대는 정본 마스크(왼쪽 30→50%)
             }
             RectTransform filterRow = PopupKit.Item(content, "af-filter-row", -1f, UiKit.H("settings_toggle_h") + rem * 0.3f);
             TextMeshProUGUI fl = UiKit.Text(filterRow, "label", TextKind.Sub, "필터", "pp_ink", TextAlignmentOptions.Right);

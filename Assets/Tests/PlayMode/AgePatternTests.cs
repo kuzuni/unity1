@@ -168,5 +168,93 @@ namespace Forge.Tests.PlayMode
             Object.DestroyImmediate(host.gameObject); Object.DestroyImmediate(bar.gameObject);
             Sweep();
         }
+
+        static readonly string[] PatternedAges = { "interstellar", "multiverse", "quantum", "underworld", "divine" };
+
+        [UnityTest]
+        public IEnumerator 확률_정보_막대와_자동_제련_막대와_장비_시트_칸에_무늬_층이_걸린다()
+        {
+            yield return Boot();
+            Sweep();
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h);
+            // ⓐ 확률 정보(.fi-age-bar) — 열 시대 막대 전부: 항성간 이상 다섯만 층 · 마스크 없음
+            ForgeInfoPopup.Open(h);
+            yield return null; yield return null;
+            Popup info = h.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(info, "확률 정보 팝업");
+            int seen = 0;
+            foreach (string age in h.Defs.Ages)
+            {
+                RectTransform bar = FindDeep(info.Root, "age-" + age);
+                if (bar == null) continue;
+                seen++;
+                Transform layer = bar.Find("age-pattern");
+                if (System.Array.IndexOf(PatternedAges, age) >= 0)
+                {
+                    Assert.IsNotNull(layer, age + " 막대에 무늬 층");
+                    Assert.AreEqual(1, layer.GetSiblingIndex(), age + " 층은 바탕 채움 바로 위(글자·체크 뒤)");
+                    AgePattern p = layer.GetComponent<AgePattern>();
+                    Assert.AreEqual(1f, p.BaseOpacity, 1e-6f, "막대는 흐림 1");
+                    foreach (var g in p.Layers) Assert.IsFalse(g.Masked, age + " 확률 정보 막대에는 마스크가 없다");
+                }
+                else Assert.IsNull(layer, age + " 는 정본에 무늬가 없다(민무늬)");
+            }
+            Assert.GreaterOrEqual(seen, 10, "열 시대 막대");
+            h.Meta.Popups.HideAll();
+            yield return null;
+            // ⓑ 자동 제련(.af-age-bar) — 왼쪽 30→50% 마스크
+            h.Pull();
+            h.Engine.AutoForgeConfig().FilterOn = false;
+            h.Push();
+            ForgeAutoPopup.Open(h);
+            yield return null; yield return null;
+            Popup auto = h.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(auto, "자동 제련 팝업");
+            int masked = 0;
+            foreach (string age in PatternedAges)
+            {
+                RectTransform bar = FindDeep(auto.Root, "af-age-" + age);
+                if (bar == null) continue;   // 확률 0 인 시대는 행이 없다(정본과 같다)
+                Transform layer = bar.Find("age-pattern");
+                Assert.IsNotNull(layer, age + " 자동 제련 막대에 무늬 층");
+                AgePattern p = layer.GetComponent<AgePattern>();
+                if (p.Layers.Length > 0) { Assert.IsTrue(p.Layers[0].Masked, age + " 자동 제련 막대는 마스크"); masked++; }
+                else Assert.IsNotNull(p.Rings, "양자 링");
+            }
+            foreach (string age in h.Defs.Ages)
+            {
+                if (System.Array.IndexOf(PatternedAges, age) >= 0) continue;
+                RectTransform bar = FindDeep(auto.Root, "af-age-" + age);
+                if (bar != null) Assert.IsNull(bar.Find("age-pattern"), age + " 는 민무늬");
+            }
+            h.Meta.Popups.HideAll();
+            yield return null;
+            // ⓒ 장비 시트 칸(.equip-cell) — 낀 장비의 시대가 다섯 안이면 흐림 .55 층 · 아니면 없음
+            RectTransform sheet = UiRoot.Instance.Sheet;
+            Assert.IsNotNull(sheet);
+            int cells = 0;
+            foreach (RectTransform c in sheet.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (!c.name.StartsWith("cell-")) continue;
+                cells++;
+                var it = h.Gear.Get(c.name.Substring(5));
+                Transform layer = c.Find("age-pattern");
+                if (it != null && AgePattern.Has(it.Age))
+                {
+                    Assert.IsNotNull(layer, c.name + " 에 무늬 층(" + it.Age + ")");
+                    Assert.AreEqual((float)AgePattern.Spec.CellOpacity, layer.GetComponent<AgePattern>().BaseOpacity, 1e-6f, "장착 셀은 filter: opacity(.55)");
+                    Assert.AreEqual(1, layer.GetSiblingIndex(), "썸네일 뒤(형제 1)");
+                }
+                else Assert.IsNull(layer, c.name + " 은 무늬 없음");
+            }
+            Assert.Greater(cells, 0, "장비 시트 칸");
+        }
+
+        static RectTransform FindDeep(Transform root, string name)
+        {
+            foreach (RectTransform r in root.GetComponentsInChildren<RectTransform>(true)) if (r.name == name) return r;
+            return null;
+        }
     }
 }
