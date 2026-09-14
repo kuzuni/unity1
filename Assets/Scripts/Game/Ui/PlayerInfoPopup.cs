@@ -426,10 +426,11 @@ namespace Forge.Game.Ui
             // 원작 샷 `shot-043313` 의 출전 줄도 **그 꼴**이다 — 그 길로 간다. 불투명한 판이 사라져 이웃을 안 가린다.
             // 폭은 T109 의 정본 폭표(`KeylineUi.json px.sk_lv` = 정본 2px × `css_px`)를 그대로 읽는다 — 같은 시각 워커 H 가 `SkillBar` 의 같은 병을 그 키로 고쳤다(T109 8회차).
             UiKit.OutlinePx(t, "pp_line", KeylineUi.Px("sk_lv"));
+            // 세로 자리 — 정본 실측 «잉크 세로중심이 오브 상단에서 72.9%»(style.css 4050 머리말의 픽셀 census · 원작 샷 `shot-043313` 의 출전 줄도 같은 자리).
+            // 칸 바닥 기준이라 오브 아래 여백(`sk_lv_drop_rem`)을 더한다.
             float lvh = Mathf.Max(lh, t.preferredHeight);
-            UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
-                new Vector2(0f, PlayerInfoStyle.Px("sk_lv_drop_rem") + PlayerInfoStyle.Px("sk_lv_rise_w")),
-                lw, lvh);   // 오브 바닥에서 정본 `bottom: calc(app-w * .0042)` 만큼 위(알약 시절의 −.15rem 아래가 아니다)
+            float lvy = PlayerInfoStyle.Px("sk_lv_drop_rem") + orb * (1f - PlayerInfoStyle.L("sk_lv_center_f")) - lvh * 0.5f;
+            UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, lvy), lw, lvh);
             return cell;
         }
     }

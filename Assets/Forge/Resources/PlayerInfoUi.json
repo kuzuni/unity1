@@ -1,5 +1,5 @@
 {
-  "_": "ROUTINE T65 플레이어 정보 팝업(원작 ui.js renderPlayerInfo · css .pinfo-* · .equip-cell · .sk-orb/.sk-lv · shot-043313)의 색·배치·문구표. T62 lock 이 Assets/Forge/catalog.json 을 쥐고 있어 T65 몫만 여기 둔다(T20 PetSkillUi.json 과 같은 꼴 · T33 이 합칠 수 있다) — 코드에 숫자·색·문구를 박지 않는다(§1). 배치 키 접미: _w = 앱 폭 분수 · _h = 앱 높이 분수 · _rem = rem(catalog rem_h) · _f = 비율/분수 · _n = 개수 · _px = 기준 캔버스 px. T129 3회차: 출전 줄 Lv 라벨은 검정 알약이 아니라 오브 면 위 흰 글자 + 검정 링이다(정본이 같은 겹침을 스킬 화면에서 고친 길 sk-orb-lv-pill · style.css 4066 · 원작 샷 shot-043313 도 그 꼴) — 링 폭은 T109 의 정본 폭표(KeylineUi.json px.sk_lv)를 읽는다 · sk_lv_rise_w .0042 = 정본 bottom: calc(app-w*.0042) · sk_lv_bg 는 정본 .sk-lv 의 알약 색으로 표에 남겨 둔다(지금은 안 쓴다).",
+  "_": "ROUTINE T65 플레이어 정보 팝업(원작 ui.js renderPlayerInfo · css .pinfo-* · .equip-cell · .sk-orb/.sk-lv · shot-043313)의 색·배치·문구표. T62 lock 이 Assets/Forge/catalog.json 을 쥐고 있어 T65 몫만 여기 둔다(T20 PetSkillUi.json 과 같은 꼴 · T33 이 합칠 수 있다) — 코드에 숫자·색·문구를 박지 않는다(§1). 배치 키 접미: _w = 앱 폭 분수 · _h = 앱 높이 분수 · _rem = rem(catalog rem_h) · _f = 비율/분수 · _n = 개수 · _px = 기준 캔버스 px. T129 3회차: 출전 줄 Lv 라벨은 검정 알약이 아니라 오브 면 위 흰 글자 + 검정 링이다(정본이 같은 겹침을 스킬 화면에서 고친 길 sk-orb-lv-pill · style.css 4066 · 원작 샷 shot-043313 도 그 꼴) — 링 폭은 T109 의 정본 폭표(KeylineUi.json px.sk_lv)를 읽는다 · sk_lv_center_f .729 = 정본 실측 «잉크 세로중심이 오브 상단에서 72.9%»(style.css 4050 머리말 · shot-042340 픽셀 census · 원작 샷 shot-043313 의 출전 줄도 같은 자리) · sk_lv_bg 는 정본 .sk-lv 의 알약 색으로 표에 남겨 둔다(지금은 안 쓴다).",
   "colors": {
     "preview_top": "#9d8256", "preview_bottom": "#6f5334", "preview_ink": "#ffffff",
     "pip": "#ffffff66", "pip_done": "#35c04f", "pip_now": "#ffffff",
@@ -12,7 +12,7 @@
     "gear_pad_f": 0.0575, "gear_cols_n": 5, "gear_gap_x_f": 0.0294, "gear_gap_y_rem": 0.6, "cell_radius_f": 0.16, "cell_ink_f": 0.76, "cell_ink_lift_f": 0.06,
     "empty_ink_f": 0.72, "empty_name_y_f": 0.05, "mount_span_n": 2, "mount_sil_f": 0.55, "mount_sil_lift_f": 0.08, "mount_face_f": 0.30, "mount_name_y_f": 0.06, "mount_count_top_rem": 0.12, "mount_count_right_rem": 0.16,
     "loadout_top_rem": 1.25, "orb_w": 0.0624, "loadout_gap_w": 0.015, "sk_ico_f": 0.90, "sk_face_f": 0.83, "sk_lv_h_rem": 0.8, "sk_lv_pad_rem": 0.25, "sk_lv_drop_rem": 0.15,
-    "sk_lv_rise_w": 0.0042,
+    "sk_lv_center_f": 0.729,
     "subs_top_rem": 1.2
   },
   "text": {
