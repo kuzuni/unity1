@@ -329,6 +329,36 @@ def scope_owners(fixture, progress_text, status=None):
 
 
 DEAD_MARKS = ('✂', '⛔')   # T162 — 접힌 행·폐기된 행은 «임자» 가 아니다
+DONE_MARKS = ('✅',)       # T340 — ✅ 로 닫힌 행은 «그 일이 끝났다» 는 뜻이지 «지금 이 빨강의 임자» 가 아니다
+
+
+def row_status(progress_text):
+    """PROGRESS 표 전 행의 상태 칸(`T<번호>` → «✅ 완료» 등) — 범위 열과 무관한 후보(이력 후보)의 ✅ 를 가릴 때 쓴다(T340)."""
+    st = {}
+    for line in progress_text.split('\n'):
+        if not line.startswith('| T'):
+            continue
+        cells = [c.strip() for c in line.strip().strip('|').split('|')]
+        m = re.fullmatch(r'T(\d+)', cells[0]) if cells else None
+        if m and len(cells) >= 3:
+            st['T' + m.group(1)] = cells[2]
+    return st
+
+
+def split_done(cands, status, lock, now=None):
+    """T340 — 후보 중 **✅ 로 닫힌 행**을 뺀다. 단 그 번호에 **산 lock** 이 있으면(닫은 뒤 누가 이어 잡았다) 종전대로 후보다.
+
+    실측(2026-09-14 런 479): `PerfBudgetTests` 빨강에 «임자 후보 T44·T50·T64 — 산 lock 이 하나도 없다 → 네 일이다» 를
+    냈는데 셋 다 오래 전에 ✅ 로 닫힌 절이었고, 진짜 임자는 그 파일을 그 시각에 고치던 **T330(산 lock)** 이었다.
+    ✅ 를 ✂·⛔ 와 같은 «죽은 행» 으로 빼면 후보가 비어 `history_owners`(T145)가 돌고 그것이 T330 을 댄다."""
+    keep, done = [], []
+    for c in cands:
+        if any(mk in status.get(c, '') for mk in DONE_MARKS) and not lock(c, now)[0]:
+            done.append(c)
+        else:
+            keep.append(c)
+    return keep, done
+
 
 
 def scope_owners_split(fixture, progress_text):
@@ -683,12 +713,19 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
             out.append('    ↳ %s(`%s`)의 임자는 아래에 그대로 남긴다 — 그 사람 몫이 아닐 수 있다.'
                        % ('빨강을 받아 적은 자' if name in passed else '넘어진 자', name))
         cands, dead, dstat = scope_owners_split(name, progress_text)
+        # T340 — ✅ 로 닫힌 행도 임자가 아니다(산 lock 이 있으면 예외). 문구는 ✂·⛔ 와 가른다.
+        cands, done = split_done(cands, dstat, lock, now)
         # T162 — ✂ 접음·⛔ 폐기·흡수 행은 «임자» 가 아니다(이미 끝났거나 남에게 넘어간 번호다).
         dead_note = ''
         if dead:
             dead_note = (' · ⚠ 그 파일을 «범위» 로 적었지만 **죽은 행**이라 임자에서 뺀 것: %s'
                          ' — 접힌 번호는 그 일이 **이미 끝났거나 남에게 흡수됐다**는 뜻이다(T162).'
                          % ' '.join('%s(%s)' % (t, dstat.get(t, '?')) for t in dead))
+        if done:
+            dead_note += (' · ⚠ 그 파일을 «범위» 로 적었지만 **✅ 로 닫힌 행**이라 임자에서 뺀 것: %s'
+                          ' — 닫힌 일이다(그 절이 세운 파일이라는 참고일 뿐) · 그 자가 지금 빨간 것은 **새로 깨진 것**이니'
+                          ' 임자는 «그 파일을 고쳐 온 작업»·«런 사이» 칸에서 찾는다(T340).'
+                          % ' '.join('%s(%s)' % (t, dstat.get(t, '?')) for t in done))
         if not cands:
             # T145 — 범위 열이 비었어도 **그 파일을 고쳐 온 작업**에 산 lock 이 있으면 그의 몫이다(남의 진행 중인 자리를 뺏지 않는다).
             hcands = hist(name) or []
@@ -703,7 +740,14 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
             who = pusher(sha)
             tail = ''
             if hstates:
-                tail = ' · 그 파일을 고쳐 온 작업: %s' % ' '.join('%s(%s)' % (h, _lock_word(a, g)) for h, a, g in hstates)
+                # T340 — 이력 후보도 ✅ 로 닫힌 절이면 «lock 없다» 가 아니라 «닫힌 행» 으로 말한다(그 절은 임자가 아니다).
+                rstat = row_status(progress_text)
+                _keep, hdone = split_done([h for h, _a, _g in hstates], rstat, lock, now)
+                tail = ' · 그 파일을 고쳐 온 작업: %s' % ' '.join(
+                    '%s(%s)' % (h, '✅ 닫힌 행' if h in hdone else _lock_word(a, g)) for h, a, g in hstates)
+                if hdone and len(hdone) == len(hstates):
+                    tail += (' — 전부 닫힌 절이라 지금 빨강의 임자가 아니다 · **아래 «런 사이» 칸의 산 lock 커밋**(그 창에서 코드를 민 작업)이'
+                             ' 먼저다(T340 · 실측 런 479: 그것이 T330 이었다).')
             out.append('  · `%s` 의 임자: **못 가렸다** — 그 파일(`%s.cs`)을 «범위» 열에 적은 **살아 있는** 작업이 없다. '
                        '(그 커밋을 민 워커는 %s 지만 main 은 여럿이 미는 가지라 임자가 아니다.)%s '
                        'lock 을 눈으로 확인하고, 임자가 없으면 §0-6 대로 **네가 고친다**.%s'
@@ -1232,6 +1276,47 @@ def self_test():
     eq('ⓔ 유니티가 초록이면 조용하다', job_lines(None, 'e' * 40, unity_red=False), [])
     eq('ⓕ 빈 응답', parse_jobs({}), [])
     eq('ⓕ 응답이 None', parse_jobs(None), [])
+
+    # ⓧⓧ T340 — ✅ 로 닫힌 행은 임자가 아니다(산 lock 이면 예외) · ✂⛔ 와 문구가 다르다 · 전부 닫혔으면 이력의 산 lock 이 임자
+    P_DONE = ('| T44 | 성능 자 | ✅ 완료 | 워커 A | `Assets/Tests/PlayMode/PerfBudgetTests.cs` | x |\n'
+              '| T50 | 성능 둘 | ✅ 완료 | 워커 B | `Assets/Tests/PlayMode/PerfBudgetTests.cs` | x |\n'
+              '| T64 | 성능 셋 | ✅ 완료 | 워커 C | `Assets/Tests/PlayMode/PerfBudgetTests.cs` | x |')
+    none_lock = lambda tid, now=None: (False, None)
+    t330_live = lambda tid, now=None: (tid == 'T330', 21.0 if tid == 'T330' else None)
+    live, dead, dstat = scope_owners_split('PerfBudgetTests', P_DONE)
+    keep, done = split_done(live, dstat, none_lock)
+    eq('ⓧⓧ ✅ 만 있으면 후보 0', keep, [])
+    eq('ⓧⓧ 닫힌 셋을 뺀다', done, ['T44', 'T50', 'T64'])
+    keep2, done2 = split_done(['T44', 'T50'], {'T44': '✅ 완료', 'T50': '✅ 완료'}, lambda t, now=None: (t == 'T44', 5.0))
+    eq('ⓧⓧ 산 lock 인 ✅ 는 종전대로 후보', (keep2, done2), (['T44'], ['T50']))
+    keep3, done3 = split_done(['T161'], {'T161': '✂ 접음'}, none_lock)
+    eq('ⓧⓧ ✂ 는 여기 몫이 아니다(T162 가 뺀다)', (keep3, done3), (['T161'], []))
+    hist_330 = lambda name, log=None: ['T330']
+    lines = own_lines(['FAIL Forge.Tests.PlayMode.PerfBudgetTests.부하_장면 · Failed'], P_DONE, 'a' * 40,
+                      lock=t330_live, hist=hist_330)
+    eq('ⓧⓧ «네 일이다» 로 단정하지 않는다', any('네 일이다' in l for l in lines), False)
+    eq('ⓧⓧ 이력의 산 lock T330 을 임자로 댄다', any('임자: **T330**' in l for l in lines), True)
+    eq('ⓧⓧ 닫힌 행이었다고 말한다(✂⛔ 문구가 아니다)', any('✅ 로 닫힌 행' in l and 'T44(✅ 완료)' in l for l in lines), True)
+    eq('ⓧⓧ 죽은 행 문구는 안 쓴다', any('**죽은 행**' in l for l in lines), False)
+    eq('ⓧⓧ 새로 깨진 것이라고 말한다', any('새로 깨진 것' in l for l in lines), True)
+    # 이력에도 산 lock 이 없으면 «못 가렸다» 로 떨어진다(종전 ⓓ) — 여전히 «네 일이다» 가 아니라 «임자 없으면» 조건부
+    lines = own_lines(['FAIL Forge.Tests.PlayMode.PerfBudgetTests.부하_장면 · Failed'], P_DONE, 'a' * 40,
+                      lock=none_lock, hist=lambda name, log=None: [])
+    eq('ⓧⓧ 이력도 없으면 «못 가렸다»', any('못 가렸다' in l for l in lines), True)
+    eq('ⓧⓧ 그때도 닫힌 행 꼬리가 붙는다', any('✅ 로 닫힌 행' in l for l in lines), True)
+    # 열린 후보가 섞여 있으면 종전 갈래(그 후보가 임자) · ✅ 는 꼬리로
+    P_MIX2 = P_DONE + '\n| T330 | 윤곽선 넷째 항 | 🔄 진행 | 워커 G | `Assets/Tests/PlayMode/PerfBudgetTests.cs` | x |'
+    lines = own_lines(['FAIL Forge.Tests.PlayMode.PerfBudgetTests.부하_장면 · Failed'], P_MIX2, 'a' * 40,
+                      lock=t330_live, hist=hist_330)
+    eq('ⓧⓧ 열린 후보가 섞이면 그것이 임자', any('임자: **T330**' in l for l in lines), True)
+    eq('ⓧⓧ 그때도 ✅ 셋은 후보에 안 든다', any('T44(lock 없다)' in l for l in lines), False)
+    # 이력 후보가 ✅ 절뿐이면 «lock 없다» 가 아니라 «닫힌 행» 으로 말하고 «런 사이» 를 가리킨다(런 479 실물 꼴 — T330 은 그 파일을 안 고쳤다)
+    lines = own_lines(['FAIL Forge.Tests.PlayMode.PerfBudgetTests.부하_장면 · Failed'], P_DONE, 'a' * 40,
+                      lock=none_lock, hist=lambda name, log=None: ['T64', 'T50', 'T44'])
+    eq('ⓧⓧ 이력 후보의 ✅ 를 닫힌 행으로', any('T64(✅ 닫힌 행)' in l for l in lines), True)
+    eq('ⓧⓧ 이력 후보에 «lock 없다» 를 안 쓴다', any('T64(lock 없다)' in l for l in lines), False)
+    eq('ⓧⓧ 전부 닫혔으면 «런 사이» 를 가리킨다', any('«런 사이» 칸의 산 lock 커밋' in l for l in lines), True)
+    eq('ⓧⓧ row_status 가 상태를 쥔다', row_status(P_DONE).get('T50'), '✅ 완료')
 
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
