@@ -1064,7 +1064,35 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             print(u"    이 자는 딤을 안 본다 — 밴드 점수가 내려가도 이 Δ 가 0 에 가까워졌으면 **고침이 맞다**"
                   u"(T177 실측: 카드를 정본 치수에 넣었더니 점수는 2.2 → 1.1 로 떨어졌다).")
     if not scores:
-        print(u"✗ 점수를 낸 화면이 0개다 — 클론 샷(`screen_*.png`)이 하나도 없다")
+        # ── 표의 30장을 한 장도 못 찾은 회차 (T28 52회차 · 런 501 실측) ─────────
+        # 폴더에 PNG 가 아예 없는 것과, **진단용 PNG 는 있는데 대조할 30장만 없는 것**은 다른 일이다.
+        # 런 501 이 뒤쪽이었다: `UiShotsTests` 가 던져 죽어 `screen_<이름>.png` 30장이 한 장도 안 나왔는데
+        # 진단 샷 9장(`screen_boot-loading`·`screen_t147-*`·`screen_t330-*` …)은 남아 `meta.json` 이
+        # `shots: 17 · carried: 0` 이 됐다 — **이어받기가 «PNG 0장» 에만 걸려 있어 안 돌았고**(`ci.yml` 431)
+        # `screens` 에서 30장이 통째로 사라졌다. 그때 «샷이 하나도 없다» 고만 찍으면 읽는 사람이 헛다리를 짚는다.
+        other = 0
+        try:
+            other = len([f for f in os.listdir(shots_dir) if f.endswith(".png")])
+        except OSError:
+            pass
+        if other:
+            print(u"✗ 대조표의 화면을 **한 장도 못 찾았다** — 그런데 폴더엔 PNG 가 %d장 있다"
+                  u"(진단 샷·시트). 촬영(`UiShotsTests`)이 30장을 내기 전에 선 것이다." % other)
+        else:
+            print(u"✗ 점수를 낸 화면이 0개다 — 클론 샷(`screen_*.png`)이 하나도 없다")
+        if meta:
+            print(u"    이 런 meta: shots %s · carried %s · 없는 모드 «%s»"
+                  % (meta.get("shots", "?"), meta.get("carried", "?"), meta.get("missing_modes") or u"없음"))
+            if meta.get("shots") and not meta.get("carried"):
+                print(u"    ⚠ `shots` 가 0 이 아니라서 **이어받기가 안 돌았다** — 지난 런의 30장까지 같이 사라졌다(T347 · 워커 I 등재).")
+        base0 = load_baseline(baseline_path)
+        gone0 = sorted(n for n in base0 if not n.startswith("_"))
+        if gone0:
+            print(u"    지난 회차(런 %s)에 있던 화면 %d개가 통째로 빠졌다: %s"
+                  % (base0.get("_run", "?"), len(gone0),
+                     " · ".join(u"%s %.1f" % (n, base0[n]) for n in gone0[:6]) +
+                     (u" …" if len(gone0) > 6 else u"")))
+            print(u"    **기준선은 그대로 둔다** — 이 회차는 «점수가 내려갔다» 가 아니라 «촬영이 섰다» 이다.")
         return 2
     avg = sum(s for _, s in scores) / len(scores)
     print(u"─" * 60)
