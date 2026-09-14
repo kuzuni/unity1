@@ -182,8 +182,9 @@ namespace Forge.Game.Render
         public static void EnsureTwin(EdgePartIdTag t)
         {
             if (t == null || t.Target == null) return;
-            var mf = t.Target.GetComponent<MeshFilter>();
-            Mesh mesh = mf != null ? mf.sharedMesh : null;
+            // 🚨 T350 — 참조는 **한 번만** 찾는다(이 함수는 `LateUpdate` 마다 파츠 전부에 대해 돈다 · §1 «Update 에서 GetComponent 금지»).
+            if (t.TargetFilter == null) t.TargetFilter = t.Target.GetComponent<MeshFilter>();
+            Mesh mesh = t.TargetFilter != null ? t.TargetFilter.sharedMesh : null;
             if (t.Twin == null)
             {
                 var go = new GameObject(TwinName);
@@ -201,15 +202,19 @@ namespace Forge.Game.Render
                 block.SetVector(EdgePartId.IdProp, EdgePartId.Uniform(t.Id));   // 번호는 생성 시각에 굳는다 — 재질이 아니라 블록에
                 mr.SetPropertyBlock(block);
                 t.Twin = mr;
+                t.TwinFilter = go.GetComponent<MeshFilter>();
+                t.TwinMesh = null;   // 아래에서 처음 얹는다
             }
-            var tf = t.Twin.GetComponent<MeshFilter>();
-            if (tf.sharedMesh != mesh) tf.sharedMesh = mesh;
-            int subs = mesh != null ? mesh.subMeshCount : 1;
-            Material shared = IdMaterial;
-            Material[] mats = t.Twin.sharedMaterials;
-            if (mats == null || mats.Length != subs || (subs > 0 && mats[0] != shared))
+            if (t.TwinFilter == null) t.TwinFilter = t.Twin.GetComponent<MeshFilter>();
+            // 🚨 T350 — **메시가 바뀐 프레임에만** 일한다. 그 밖의 프레임은 여기서 아무것도 안 만든다
+            //    (`sharedMaterials` 게터는 부를 때마다 배열을 새로 만든다 — 프레임당 GC 할당 0 규칙을 그대로 어긴다).
+            if (t.TwinMesh != mesh)
             {
-                mats = new Material[subs];
+                t.TwinMesh = mesh;
+                if (t.TwinFilter != null) t.TwinFilter.sharedMesh = mesh;
+                int subs = mesh != null ? mesh.subMeshCount : 1;
+                Material shared = IdMaterial;
+                var mats = new Material[subs];
                 for (int i = 0; i < subs; i++) mats[i] = shared;
                 t.Twin.sharedMaterials = mats;
             }

@@ -2011,6 +2011,15 @@
 - 범위: `tools/check_unity_green.py`(**T340·T344 lock 뒤**) · `docs/ROUTINE.md`(§2 이 절 · §7 한 칸) · `docs/PROGRESS.md`.
 - 🔄 2026-09-14 21:5x 워커 T(sess-2144-77461) **1회차**: T344 를 닫고 같은 파일을 이어 잡았다. `last_commit_age(tid)`(`git log -1 --format=%ct -E --grep='^T342( |:)'` — 그 번호로 시작하는 마지막 커밋 · 어느 SID 든 · 없거나 git 이 없으면 None) 를 `_lock_word(alive, age, recent, tid)`·`own_line(…, recent)` 에 넣었다: 죽은 lock 이라도 `recent < 90` 이면 «lock N분 전(90분 규약으론 죽었다) — 그런데 그 번호로 **M분 전 커밋**이 있다 · **다른 SID 가 이어 하는 중일 수 있다** — 뺏지 말고 `python3 tools/task_state.py <ID>` 로 확인하라(T348)» · 커밋도 90분 넘거나 나이를 모르면(얕은 클론) 종전 문구 그대로. 임자 줄 넷 갈래·콘솔 경로 갈래(T150)·이력 후보·모드 로그(T344)·«런 사이»(T148) 의 lock 낱말이 전부 같은 잣대를 쓴다(`own_lines`·`between_lines`·`mode_log_note` 에 `commit_age` 주입). `--self-test` 184 → **200칸**(런 501 꼴 = lock 103분 · 커밋 36분 → «뺏을 수 있다»·«네 일이다» 0 · task_state 안내 · 커밋 200분이면 종전 · None 이면 종전 · 산 lock/없는 lock 그대로 · 경로 갈래 · 런 사이). **실물**: 지금 main 에서 자를 돌리면 «이어 하는 중» 줄이 셋 나온다(lock 이 낡은 채 다른 SID 가 미는 자리 셋). ✅ 는 이 커밋의 CI(dotnet 잡) 초록 뒤.
 
+### T350 — ID 보조 패스가 **프레임마다** 파츠 수만큼 `GetComponent` 와 배열 할당을 판다: §1 «Update 에서 GetComponent 금지 · 프레임당 GC 0» 위반 (Game·전투 3D · T330 ✅ 뒤 · §0-6 임자 없는 빨강 · 워커 G 등재)
+- 빨강: 런 503 `PerfBudgetTests.전투_최대_부하_200프레임_메인스레드_예산_과_프레임당_GC` 가 **180초 타임아웃**(«Timeout value of 180000 ms was exceeded»). T330 이 20:39 에 ✅ 로 닫혀 살아 있는 임자가 없다.
+- 자리: `Assets/Scripts/Game/Render/EdgeIdPass.cs` — `LateUpdate → Sync()` 가 **매 프레임** `EdgePartId.Live` 전부에 `EnsureTwin` 을 부르고, 그 안에서 파츠마다
+  ⓐ `t.Target.GetComponent<MeshFilter>()` ⓑ `t.Twin.GetComponent<MeshFilter>()` ⓒ `t.Twin.sharedMaterials`(**게터가 배열을 새로 만든다**)를 한다.
+  부하 장면의 렌더러가 705개니 프레임마다 **GetComponent 1410 번 + 배열 705 개**다 — §1 의 «`Update` 에서 `GetComponent` 금지» 와 «프레임당 GC 할당 0» 을 둘 다 정면으로 어긴다.
+- 할 일: 참조를 **한 번만** 잡아 태그가 쥔다(`EdgePartIdTag` 에 `TargetFilter`·`TwinFilter`·`TwinMesh`·`TwinSubs`) · 메시가 **바뀐 프레임에만** 서브메시 수를 다시 세고 재질 배열을 새로 만든다 · 그 밖의 프레임은 아무것도 안 만든다. 정본도 ID 재질을 «생성 시각에» 굳히고 프레임마다 다시 세우지 않는다.
+- 판정: `PerfBudgetTests` 둘(200프레임 예산 · 드로우콜/공유 재질)이 초록 · `EdgeOutlineTests` 의 ID 자 둘이 그대로 초록(선은 안 변한다) · `screens/perf-*.txt` 의 프레임당 관리 할당이 T330 앞 수준으로.
+- 범위: `Assets/Scripts/Game/Render/EdgeIdPass.cs` · `Assets/Scripts/Game/Render/EdgePartId.cs` · `Assets/Tests/PlayMode/EdgeOutlineTests.cs`.
+
 ### ⓪ 계정 식별표 — «내가 몇 번째 계정인가» 는 여기서 본다 (세션 시작 시 `get_session` 의 이메일/env 로 대조)
 
 | 계정 | 로그인 이메일 | account uuid | environment_id | 워커 | 슬롯(UTC) |

@@ -19,6 +19,17 @@ namespace Forge.Game.Render
         /// <summary>ID 보조 패스가 세우는 쌍둥이 렌더러(같은 메시 · 공유 ID 재질 + 번호 MPB · 보조 카메라가 그리는 순간에만 켜진다) — <see cref="EdgeIdPass"/>.</summary>
         public MeshRenderer Twin;
 
+        // 🚨 T350 — 아래 셋은 **프레임마다 다시 찾지 않으려고** 태그가 쥔다.
+        //    `EdgeIdPass.Sync` 는 `LateUpdate` 마다 살아 있는 파츠 전부를 훑으므로, 거기서 `GetComponent` 를 부르거나
+        //    `sharedMaterials`(게터가 배열을 **새로 만든다**)를 읽으면 부하 장면(렌더러 705)에서 프레임당
+        //    GetComponent 1410 번 + 배열 705 개가 된다 — §1 «Update 에서 GetComponent 금지 · 프레임당 GC 할당 0» 위반이다.
+        /// <summary>대상의 메시 필터(한 번만 찾는다 · 없으면 null).</summary>
+        public MeshFilter TargetFilter;
+        /// <summary>쌍둥이의 메시 필터(세울 때 잡는다).</summary>
+        public MeshFilter TwinFilter;
+        /// <summary>쌍둥이에 마지막으로 얹은 메시 — 이것이 바뀐 프레임에만 재질 배열을 다시 만든다.</summary>
+        public Mesh TwinMesh;
+
         private void OnEnable() { EdgePartId.Live.Add(this); }
         private void OnDisable() { EdgePartId.Live.Remove(this); }
         private void OnDestroy() { Twin = null; }
@@ -81,8 +92,9 @@ namespace Forge.Game.Render
             Renderer r = t.Target;
             if (!r.enabled || !r.gameObject.activeInHierarchy) return false;
             if (!OpaqueDepth(r.sharedMaterial)) return false;
-            var mf = r.GetComponent<MeshFilter>();
-            Mesh mesh = mf != null ? mf.sharedMesh : null;
+            // 🚨 T350 — 이 함수도 **프레임마다 파츠 전부**에 대해 돈다(ID 패스의 `Tag()`), 그러니 참조는 태그가 쥔 것을 쓴다.
+            if (t.TargetFilter == null) t.TargetFilter = r.GetComponent<MeshFilter>();
+            Mesh mesh = t.TargetFilter != null ? t.TargetFilter.sharedMesh : null;
             if (mesh == null) return false;
             Bounds bb = mesh.bounds;
             Matrix4x4 mv = cam.worldToCameraMatrix * r.localToWorldMatrix;
