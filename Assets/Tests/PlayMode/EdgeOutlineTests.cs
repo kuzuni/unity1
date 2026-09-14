@@ -104,34 +104,17 @@ namespace Forge.Tests.PlayMode
                 Cube(rig.transform, new Vector3(0f, 0f, 10f), new Vector3(3f, 3f, 3f), new Color(0.85f, 0.80f, 0.55f));
                 yield return null;
 
-                // 🚨 런 364 실측: off 프레임이 **통째로 회색 128** 이었다 = 패스는 도는데 `_BlitTexture` 가 안 물렸다.
-                //    가장 그럴듯한 갈래는 «손으로 쓴 렌더러 에셋의 `fetchColorBuffer` 가 실제로는 안 실렸다» 이다
-                //    (그 칸이 꺼져 있으면 URP 는 색 복사본을 만들지 않아 재질이 안 물린 텍스처를 읽는다).
-                //    그래서 이 회차는 **그 칸을 리플렉션으로 켜 놓고** 재고, 원래 읽힌 값을 단언 메시지에 실어 보낸다 —
-                //    다음 런 하나로 «표가 안 실렸다» 인지 «주입점이 틀렸다» 인지 갈린다. 잰 뒤에는 원래대로 되돌린다.
+                // 🚨 런 364~395 의 자취: 이 패스는 한때 화면을 회색 128 로 씻었다 — 색 복사본(`fetchColorBuffer`)을
+                //    받아야 했는데 손으로 쓴 에셋에서 그 칸만 `False` 로 실렸기 때문이다(`t147-feature.txt` 실측).
+                //    8회차는 **색을 아예 안 읽는 쪽**으로 피했다(알파 혼합으로 선만 얹는다 · 정본 `mix(c, 검정, edge)` 와 같은 식).
                 string before = Describe(feature);
                 Debug.Log("[T147] 렌더러에 실제로 실린 값 — " + before);
-                // ⓐ **강제 전에 한 장**: 에셋 값 그대로 찍어 «손으로 쓴 YAML 이 이 패스를 세우는가» 를 로그로 남긴다.
-                //    런 371 은 강제 뒤에 초록이었으므로, 이 한 장이 단색이면 고칠 곳은 셰이더가 아니라 **에셋 칸**이다.
-                SetActive(feature, true);
-                EdgeOutlineHost.SetOn(false);
-                yield return null;
-                Texture2D asIs = Shoot(cam, rt);
-                SetActive(feature, false);
-                string asIsLine = Uniform(asIs) ? "통째로 단색(" + Mid(asIs) + ") · 에셋 칸이 범인이다" : "장면이 산다(" + Mid(asIs) + ") · 에셋 칸은 멀쩡하다";
-                Debug.Log("[T147] 에셋 값 그대로 찍은 장면 — " + asIsLine);
-                // 🚨 `Debug.Log` 는 **초록인 런의 잡 로그에 안 실린다**(요약 스텝이 실패 메시지만 찍는다 · 런 384 실측).
-                //    그래서 같은 줄을 `ui-screens/` 에 텍스트로도 남긴다 — 그 폴더는 CI 가 `screens` 브랜치로 올리므로
-                //    다음 회차가 **초록인 런에서도** 값을 읽을 수 있다(PNG 옆에 글자 한 장).
-                Note("t147-feature.txt",
-                     "T147 진단 — 렌더러에 실제로 실린 값\n" + before +
-                     "\n에셋 값 그대로 찍은 장면: " + asIsLine +
-                     "\n(이 판은 fetchColorBuffer 를 리플렉션으로 켜 놓고 판정한다 · 화면 " + Size + "px · 팽창 " + Shader.GetGlobalFloat(EdgeOutlineHost.DilateProp) + ")\n");
-                try { GallerySheet.Save(asIs, "screen_t147-edge-asis"); } catch (System.Exception e) { Debug.LogWarning("[T147] 진단 그림 저장 실패: " + e.Message); }
-                Object.DestroyImmediate(asIs);
+                // 8회차부터 셰이더는 **색을 안 읽고 얹는다**(알파 혼합) — `fetchColorBuffer` 가 꺼져 있어도 그린다.
+                //    (런 395 의 `t147-feature.txt`: 손으로 쓴 그 칸만 `False` 로 실렸다. 안 쓰는 쪽으로 피했다.)
+                Note("t147-feature.txt", "T147 진단 — 렌더러에 실제로 실린 값\n" + before +
+                     "\n셰이더는 색을 안 읽고 얹는다(Blend SrcAlpha OneMinusSrcAlpha) — fetchColorBuffer 는 안 쓴다.\n" +
+                     "화면 " + Size + "px · 팽창 " + Shader.GetGlobalFloat(EdgeOutlineHost.DilateProp) + "\n");
 
-                object savedFetch = Get(feature, "fetchColorBuffer");
-                Set(feature, "fetchColorBuffer", true);
                 SetActive(feature, true);
                 EdgeOutlineHost.SetOn(true);
                 yield return null;
@@ -140,7 +123,6 @@ namespace Forge.Tests.PlayMode
                 yield return null;
                 off = Shoot(cam, rt);
                 SetActive(feature, false);
-                if (savedFetch != null) Set(feature, "fetchColorBuffer", savedFetch);
 
                 // 한 런에서 둘째 갈래까지 같이 가른다: 단색이면 **주입점을 500(투명 뒤)으로 내려** 한 장 더 찍는다.
                 //    거기서 그림이 살면 «600(후처리 뒤)에서는 활성 색이 최종 타깃과 갈린다» 가 답이다.
@@ -167,7 +149,7 @@ namespace Forge.Tests.PlayMode
                 // 🚨 먼저 «입력이 물렸는가» 를 가른다. off 프레임의 셰이더는 `src` 를 그대로 돌려주므로,
                 //    그 그림이 **단색**이면 장면이 아니라 `_BlitTexture` 를 못 받은 것이다(유니티는 안 물린 텍스처에 회색 128 을 물린다).
                 //    이 한 줄이 없으면 «검정 화소 0» 이라는 증상만 남아 판정식을 뒤지게 된다(런 354 실측).
-                Assert.IsFalse(Uniform(off), "off 프레임이 통째로 단색이다(" + Mid(off) + ") — 패스는 도는데 입력(_BlitTexture)이 안 물렸다. 에셋에 실린 값 «" + before + "» · 이 판은 fetchColorBuffer 를 켜 놓고 쟀다 · " + alt);
+                Assert.IsFalse(Uniform(off), "off 프레임이 통째로 단색이다(" + Mid(off) + ") — 패스는 도는데 입력(_BlitTexture)이 안 물렸다. 에셋에 실린 값 «" + before + "» · " + alt);
                 Assert.IsFalse(Uniform(on), "on 프레임이 통째로 단색이다(" + Mid(on) + ") — 위와 같은 갈래(입력 없음) · 에셋 값 «" + before + "»");
                 Assert.AreEqual(0, darkOff, "off 프레임에 검정 화소가 있다 — 네 항이 다 꺼지지 않았거나 장면이 원래 어둡다");
                 Assert.Greater(darkOn, 0, "on 프레임에 검정 화소가 0 — 엣지 패스가 안 돈다(렌더러 기능 등록·머티리얼·깊이 요구 확인)");

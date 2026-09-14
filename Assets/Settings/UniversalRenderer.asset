@@ -70,7 +70,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 0
   injectionPoint: 600
-  fetchColorBuffer: 1
+  fetchColorBuffer: 0
   requirements: 1
   passMaterial: {fileID: 2100000, guid: ec3783f9cfba5ffe397f5fd28851a7bc, type: 2}
   passIndex: 0

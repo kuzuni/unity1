@@ -8,7 +8,12 @@ Shader "Forge/EdgeOutline"
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
-        ZWrite Off ZTest Always Cull Off
+        // 🚨 **색을 읽지 않고 «위에 얹는다»** (T147 8회차 · 런 395 의 t147-feature.txt 가 준 답).
+        //    정본은 `c = mix(c, 검정, edge)` 인데, 알파 혼합이 그것과 **같은 식**이다(edge 가 0/1 이라 더 그렇다).
+        //    입력(`_BlitTexture`)을 안 읽으면 URP 의 색 복사본(`fetchColorBuffer`)이 필요 없어진다 —
+        //    손으로 쓴 렌더러 에셋에서 그 칸만 안 실리던 자리를 **아예 안 쓰는 쪽으로** 피한다.
+        //    덤: 프레임마다 전체화면 색 복사 한 번이 사라진다(§1 60fps).
+        ZWrite Off ZTest Always Cull Off Blend SrcAlpha OneMinusSrcAlpha
 
         Pass
         {
@@ -50,8 +55,8 @@ Shader "Forge/EdgeOutline"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 float2 uv = input.texcoord;
-                half4 src = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv);
-                if (_EdgeOn < 0.5) return src;
+                // 판정기의 «off 프레임» — 아무것도 안 얹는다(알파 0).
+                if (_EdgeOn < 0.5) return half4(0.0, 0.0, 0.0, 0.0);
 
                 float2 texel = _ScreenParams.zw - 1.0;
                 float2 tx = float2(texel.x, 0.0), ty = float2(0.0, texel.y);
@@ -112,7 +117,7 @@ Shader "Forge/EdgeOutline"
                 float crs = max(crvHy, step(_EdgeNormalK, 1.0 - dmin) * (1.0 - crvNear)) * (1.0 - step(_EdgeK * z0, amax));
 
                 float edge = max(sil, crs) * step(z0, _EdgeMaxZ);
-                return half4(lerp(src.rgb, _EdgeLineColor.rgb, edge), src.a);
+                return half4(_EdgeLineColor.rgb, edge);
             }
             ENDHLSL
         }
