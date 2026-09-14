@@ -1,13 +1,9 @@
 using System.Collections;
-using System.IO;
-using System.Text;
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
-using Forge.Game;
-using Forge.Game.Gallery;
 using Forge.Game.Ui;
 
 namespace Forge.Tests.PlayMode
@@ -108,9 +104,8 @@ namespace Forge.Tests.PlayMode
         /// <summary>T106 — 정본이 글자로 쓰는 이모지 여덟 중 BMP 안의 둘(⏱ ⏹) — 폴백 포함으로 묻는다(BMP 밖 여섯은 서리게이트 짝으로 HasCharacters 가 본다).</summary>
         private const string EmojiChars = "\u23F1\u23F9";
 
-        /// <summary>T106 — 이모지 폴백 글꼴이 카탈로그에 꽂혀 있고 정본이 글자로 쓰는 여덟 중 BMP 둘(⏱ ⏹)을 직접 쥔다.
-        /// BMP 밖 여섯은 런 418·429 에서 string·uint[] 두 갈래 다 «없음» 이라(cmap 엔 (3,10) 형식 12 로 들어 있다) 왜인지를 먼저 잰다 —
-        /// 실물 표면에 있는 세 길(uint[] out · HasCharacters(string,out uint[]) · 실제 글자 렌더)을 한 번에 찍어 `ui-screens/t106-emoji.txt` 로 남긴다(단언은 다음 회차가 그 파일을 읽고 건다).</summary>
+        /// <summary>T106 — 이모지 폴백 글꼴이 카탈로그에 꽂혀 있고 정본이 글자로 쓰는 여덟(⏱ ⏹ 😭 🐴 🐾 🚪 🔥 🛡)을 직접 쥔다.
+        /// 런 438 진단(`t106-emoji.txt`): `TryAddCharacters(uint[])` 는 BMP 밖을 못 올리지만 `HasCharacters(string, out uint[], …, tryAddCharacter:true)` 와 실제 글자 렌더는 여덟 전부를 폴백에서 찾는다 → 그 길로 묻는다.</summary>
         [Test]
         public void 이모지_여덟은_폴백_글꼴이_직접_쥔다()
         {
@@ -118,55 +113,24 @@ namespace Forge.Tests.PlayMode
             TMP_FontAsset em = UiFont.EmojiFallback;
             Assert.IsNotNull(em, "카탈로그 emojiFont(NotoEmoji-Forge.ttf)로 만든 폴백 애셋이 없다 — 이모지 자리가 □ 다");
             Assert.IsTrue(fa.fallbackFontAssetTable != null && fa.fallbackFontAssetTable.Contains(em), "폴백 표에 이모지 애셋이 걸려 있어야 TMP 가 찾는다");
-            foreach (uint cp in new uint[] { 0x23F1, 0x23F9 })
-                Assert.IsTrue(Has(em, cp), "이모지 폴백 글꼴에 «" + char.ConvertFromUtf32((int)cp) + "»(U+" + cp.ToString("X") + ") 가 없다 — 서브셋을 다시 뽑는다(docs/assets-map.md)");
-            Assert.IsFalse(Has(em, '가'), "이모지 글꼴은 한글을 안 쥔다(서브셋이 이모지뿐)");
-
-            StringBuilder sb = new StringBuilder();
-            sb.Append("# T106 이모지 진단 — 애셋 ").Append(em.name).Append(" · 샘플링 ").Append(em.faceInfo.pointSize).Append("pt · 아틀라스 ").Append(em.atlasWidth).Append('×').Append(em.atlasHeight).Append('\n');
-            sb.Append("# 열: 코드포인트 · ⓐ TryAddCharacters(uint[],out) 반환/빠진 수 · ⓑ HasCharacters(string,out uint[],false,true) 반환/빠진 수 · ⓒ lookup 에 있나 · ⓓ 글자 렌더 뒤 lookup 에 있나 · ⓔ 주 글꼴로 렌더 뒤 이모지 lookup 에 있나\n");
             foreach (uint cp in new uint[] { 0x23F1, 0x23F9, 0x1F62D, 0x1F434, 0x1F43E, 0x1F6AA, 0x1F525, 0x1F6E1 })
             {
                 string e = char.ConvertFromUtf32((int)cp);
-                uint[] missA; bool a = em.TryAddCharacters(new uint[] { cp }, out missA, false);
-                uint[] missB; bool b = em.HasCharacters(e, out missB, false, true);
-                bool c = em.characterLookupTable != null && em.characterLookupTable.ContainsKey(cp);
-                bool d = false, e2 = false;
-                if (UiRoot.Instance != null)
-                {
-                    TextMeshProUGUI t = UiKit.Text(UiRoot.Instance.App, "t106-probe", TextKind.Sub, e, "pp_ink");
-                    t.font = em; t.ForceMeshUpdate(true, true);
-                    d = em.characterLookupTable != null && em.characterLookupTable.ContainsKey(cp);
-                    t.font = fa; t.ForceMeshUpdate(true, true);
-                    e2 = em.characterLookupTable != null && em.characterLookupTable.ContainsKey(cp);
-                    Object.DestroyImmediate(t.gameObject);
-                }
-                sb.Append("U+").Append(cp.ToString("X")).Append(' ').Append(e).Append(" · ⓐ ").Append(a).Append('/').Append(missA != null ? missA.Length : -1)
-                  .Append(" · ⓑ ").Append(b).Append('/').Append(missB != null ? missB.Length : -1).Append(" · ⓒ ").Append(c).Append(" · ⓓ ").Append(d).Append(" · ⓔ ").Append(e2).Append('\n');
+                Assert.IsTrue(Has(em, cp), "이모지 폴백 글꼴에 «" + e + "»(U+" + cp.ToString("X") + ") 가 없다 — 서브셋을 다시 뽑는다(docs/assets-map.md)");
+                Assert.IsTrue(em.characterLookupTable != null && em.characterLookupTable.ContainsKey(cp), "«" + e + "» 가 올라간 뒤 이모지 애셋 표에 있어야 한다");
             }
-            WriteDiag(sb.ToString());
+            Assert.IsFalse(Has(em, '가'), "이모지 글꼴은 한글을 안 쥔다(서브셋이 이모지뿐)");
         }
 
-        private static void WriteDiag(string text)
-        {
-            Debug.Log("[T106] " + text);
-            try
-            {
-                string dir = System.IO.Path.Combine(Directory.GetCurrentDirectory(), GallerySheet.OutDir);   // 이 클래스의 Path(Transform) 헬퍼와 이름이 겹쳐 완전 이름으로
-                Directory.CreateDirectory(dir);
-                File.WriteAllText(System.IO.Path.Combine(dir, "t106-emoji.txt"), text, new UTF8Encoding(false));
-            }
-            catch (System.Exception ex) { Debug.Log("[T106] 진단 파일을 못 썼다: " + ex.Message); }
-        }
-
-        /// <summary>글꼴 애셋이 코드포인트 하나를 쥐는가 — 동적 애셋이라 먼저 올려 보고(TryAddCharacters(uint[])) 표에서 찾는다. `HasCharacter` 는 char 만 받아 BMP 밖(이모지)을 못 묻는다(런 409 · 실제 TMP 에 uint 오버로드가 없다 · 진짜 표면은 screens 의 stub-sigs.txt).</summary>
+        /// <summary>글꼴 애셋이 코드포인트 하나를 쥐는가(폴백은 안 본다 · 동적 애셋이라 올려 본다). `HasCharacter` 는 char 만 받아 BMP 밖(이모지)을 못 묻는다(런 409).</summary>
         private static bool Has(TMP_FontAsset fa, uint cp)
         {
             if (fa == null) return false;
-            // 런 418: string 갈래 TryAddCharacters("🐴") 는 서리게이트 짝을 한 코드포인트로 안 합쳐 BMP 밖이 false 였다(⏱·⏹ 은 true).
-            //         uint[] 갈래(진짜 표면 stub-sigs.txt 17행 «TryAddCharacters uint[],bool»)로 코드포인트를 그대로 올린다.
-            fa.TryAddCharacters(new uint[] { cp }, false);
-            return fa.characterLookupTable != null && fa.characterLookupTable.ContainsKey(cp);
+            // 런 418·429·438 실측: TryAddCharacters 의 string 갈래는 서리게이트 짝을 안 합치고 uint[] 갈래는 BMP 밖을 못 올렸다(둘 다 🐴 false).
+            //   HasCharacters(string, out uint[], searchFallbacks, tryAddCharacter:true)(진짜 표면 stub-sigs.txt 13행)는 여덟 전부 true 였고
+            //   실제 글자 렌더(ForceMeshUpdate)도 같은 결과 — 이것이 TMP 가 화면 글자에 쓰는 길이라 자도 이 길로 묻는다.
+            uint[] missing;
+            return fa.HasCharacters(char.ConvertFromUtf32((int)cp), out missing, false, true);
         }
 
         /// <summary>주 글꼴 또는 이모지 폴백(`UiFont.EmojiFallback`)이 쥐는가 — 정본이 글자로 쓰는 이모지 여덟만 이 물음을 쓴다(그 밖은 «주 글꼴 혼자» · T112).</summary>
