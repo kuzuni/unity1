@@ -311,15 +311,25 @@ namespace Forge.Tests.PlayMode
             int before = Host.Skills.State.SummonCount;
             double tickets = Host.Tickets;
             double cost = Host.Skills.TicketCost(1);
+            // ⚠ 이 한 프레임이 **연출 창보다 길 수 있다**(T186 · 런 438 실측 «Expected: False / But was: True»).
+            //   창은 표가 못 박은 sr_charge_ms(240) + sr_tail_ms(150) = 390ms 인데 배치모드 러너는 씬을 세운
+            //   직후 한 프레임이 그보다 길기도 하다 — 그러면 열자마자 Finish() 가 돌아 Done 이 참이다.
+            //   그래서 «아직 연출 중이다» 는 **그 프레임이 실제로 창보다 짧았을 때만** 묻는다(화면이 아니라
+            //   러너의 사정이라 여기서 재야 한다). 이 자가 지켜야 하는 것은 그 앞뒤가 아니라 «탭 = 스킵» 이다.
+            float openedAt = Time.unscaledTime;
             Sheet.Skills.SummonButton.onClick.Invoke();
             yield return null;
+            float frameMs = (Time.unscaledTime - openedAt) * 1000f;
+            float revealMs = PetSkillStyle.L("sr_charge_ms") + PetSkillStyle.L("sr_tail_ms");
             Assert.AreEqual(before + 1, Host.Skills.State.SummonCount, "x1 소환 = 굴림 1");
             Assert.AreEqual(tickets - cost, Host.Tickets, 1e-9, "티켓 선결제");
             Assert.IsTrue(Sheet.Modal.IsOpen(SkillSummonResultView.ModalName), "결과 연출 팝업");
             SkillSummonResultView v = SkillSummonResultView.Current;
             Assert.IsNotNull(v);
             Assert.AreEqual(1, v.CellCount);
-            Assert.IsFalse(v.Done);
+            if (frameMs < revealMs)
+                Assert.IsFalse(v.Done, "연 뒤 " + frameMs.ToString("0") + "ms 밖에 안 지났는데(연출 창 "
+                               + revealMs.ToString("0") + "ms) 벌써 끝났다");
             v.OnTap();
             yield return null;
             Assert.IsTrue(v.Done, "탭 = 스킵 → 완료");
