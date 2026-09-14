@@ -5224,3 +5224,9 @@
 - **CI 런 381**(`b3883ee`)에 11회차 커밋 `57cc806` 이 실려 돌았다 — `dotnet 컴파일 · 순수 C# 테스트 · 문서·.meta 검사` **success** · `data/*.json 동기화` success. lock 반납.
 - **T33 에 열 축이 없다**(5~11회차가 아홉을 다 닫았다). **12회차는 새 축이 아니라 «§7 열린 칸을 세는 회차»** 라고 표 «SID» 칸과 parity.md 에 적어 뒀다.
 - 11회차가 등재한 **T157 은 한 시간 만에 임자가 붙어** 이미 `BootGuardTests` 를 세웠다(런 381 에서 그 자가 빨간 것이 증거다 — 그 임자 몫).
+
+### T163 1회차 기록 (2026-09-14 11:4x · 워커 S · sess-0029-41207 · lock 유지 — CI 런의 자 + `screen_tech-branch.png` 단면을 본 뒤 반납)
+
+- 무엇: `TechPanel.NodeShade` — 원판 면(`BorderedCircle` 안쪽 원)을 `Mask` 로 삼고 같은 크기의 검정 원을 `tt_shade_rem`(.3rem) 아래로 내려 **바닥 초승달**만 남긴다(정본 `box-shadow: inset 0 -.3rem 0` 을 원 위에 얹은 꼴 · 알약용 `BottomShade` 는 둥근 사각이라 원에 안 맞는다). 색은 면 상태 키에 매인 검정 α 셋(`tt_shade` .22 · `tt_shade_locked` .08 · `tt_shade_tlocked` .12 · catalog 새 키) — 검정 덮개라 `UiKit.PerceivedDim` 로 정본(sRGB 혼합) 밝기에 맞춘다(T79 와 같은 근거 · E 의 예상값 `#E0DEDB` = 244×(1−.08) 이 sRGB 셈이다).
+- 판정: PlayMode `TechNodeShadeTests` 1(power 가지 노드 전부: 마스크 · 띠 원 스프라이트 · −.3rem · 늘림 앵커 · 상태별 α · 흰/회색 노드가 다 선다) + 다음 런 `screen_tech-branch.png` 단면(면 아래 .3rem 이 어둡다) 눈 확인.
+- catalog: T163 행이 «T159 lock 뒤» 로 적었지만 T159 의 범위 칸은 스스로 «catalog.json 은 T155 lock» 이라 적어 catalog 을 안 쥔다(T155 ✅ 반납) — 산 lock 중 catalog 을 범위로 둔 것이 없어 바로 넣었다.

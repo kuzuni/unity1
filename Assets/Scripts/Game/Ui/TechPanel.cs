@@ -339,6 +339,27 @@ namespace Forge.Game.Ui
             LinkCount++;
         }
 
+        /// <summary>
+        /// T163 — 원판 바닥의 눌림 띠(정본 `inset 0 -Npx 0 rgba(0,0,0,α)` 를 **원** 위에 얹은 꼴 = 바닥 초승달).
+        /// 알약의 <see cref="DungeonPopups.BottomShade"/> 는 둥근 사각 띠라 원에는 안 맞는다 — 면(원 스프라이트)을 <see cref="Mask"/> 로 삼고
+        /// 같은 크기의 검정 원을 <paramref name="px"/> 만큼 아래로 내려 마스크 밖으로 빠진 위쪽을 잘라내면 바닥 띠만 남는다.
+        /// 검정 덮개라 <see cref="UiKit.PerceivedDim"/> 로 정본(sRGB 혼합)과 같은 밝기가 나게 한다(T79 · 선형 색 공간).
+        /// </summary>
+        public static Image NodeShade(RectTransform face, string colorKey, float px)
+        {
+            Mask mask = face.gameObject.GetComponent<Mask>();
+            if (mask == null) mask = face.gameObject.AddComponent<Mask>();
+            mask.showMaskGraphic = true;
+            Image s = UiKit.Circle(face, "shade", colorKey);
+            s.color = UiKit.PerceivedDim(s.color);
+            s.raycastTarget = false;
+            RectTransform rt = s.rectTransform;
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+            rt.anchoredPosition = new Vector2(0f, -px);
+            return s;
+        }
+
         /// <summary>원작 nodeCol — 원(상태 색) + 아이콘(만렙이면 체크) + 아래 «lv/5»(연구 중이면 남은 시간 · 끝났으면 «완료!»).</summary>
         void Node(RectTransform parent, string id, float x, float top, float d, float labelH)
         {
@@ -353,10 +374,14 @@ namespace Forge.Game.Ui
             else if (!open) { fill = "tech_tlocked"; border = "tech_tlocked_border"; }
             else { fill = "tech_locked"; border = "tech_locked_border"; }
             if (max) { fill = "tech_done"; border = "tech_done_border"; }
+            // T163 — 정본 `.tech-tree-node { box-shadow: inset 0 -.3rem 0 rgba(0,0,0,.22) }`(style.css 2185) · `.locked` .08(2188) · `.tlocked` .12(2190):
+            //        원판 바닥의 «눌림 띠». 면 색 키가 곧 상태다(locked/tlocked 만 옅다 · active·researching·done 은 기본).
+            string shade = fill == "tech_locked" ? "tt_shade_locked" : fill == "tech_tlocked" ? "tt_shade_tlocked" : "tt_shade";
 
             RectTransform rt = UiKit.Box(parent, "node-" + id);
             UiKit.Place(rt, x, top, d, d);
-            DungeonPopups.BorderedCircle(rt, "circle", fill, DungeonPopups.RemL("tt_border_rem"), border);
+            RectTransform faceRt = DungeonPopups.BorderedCircle(rt, "circle", fill, DungeonPopups.RemL("tt_border_rem"), border);
+            NodeShade(faceRt, shade, DungeonPopups.RemL("tt_shade_rem"));
             float ico = d * UiKit.L("tt_icon");
             Image face = max ? UiKit.Icon(rt, "face", "check") : TechIcon(rt, "face", id);
             UiKit.Anchor(face.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, ico, ico);
