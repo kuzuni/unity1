@@ -174,7 +174,7 @@ jobs:
         run: python3 tools/check_letter_spacing.py --css .wwwww-src/web/css/style.css
       # T331 — 정본 box-shadow 168 중 **바깥 그림자 61**(카드 아래턱·패널 위턱·상단바 그늘…)이 클론에 0 이다.
       #        안쪽 띠(inset)는 이미 `PopupKit.BottomShade` 로 서 있다 — 이 자는 **바깥** 갈래만 본다.
-      - name: 그림자 자 자기 검사 (T331 `check_box_shadows.py` · 고장 주입 포함 21칸)
+      - name: 그림자 자 자기 검사 (T331 `check_box_shadows.py` · 고장 주입 포함 28칸)
         run: python3 tools/check_box_shadows.py --self-test
       - name: 정본 바깥 그림자가 클론에 서 있는가 — 막는다 (T331 · 아직 안 선 자리는 KNOWN 에 까닭과 다음 회차를 적는다)
         run: python3 tools/check_box_shadows.py

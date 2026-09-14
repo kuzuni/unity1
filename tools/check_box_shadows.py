@@ -5,7 +5,8 @@
 무엇이 아팠나
 -------------
 정본 `style.css` 의 `box-shadow` 선언은 **168개**다(주석을 지우고 센 수 — 등재 글의 168과 같다).
-갈래로 가르면 `none` 40 · **안쪽(`inset`)만 67** · **바깥 그림자를 쓰는 것 61** 이다. 그 바깥 그림자가 이 UI 의 «떠 있음» 을 통째로 만든다 — 카드의 딱딱한 아래턱(`.modal-card
+갈래로 가르면 `none` 40 · **안쪽(`inset`)만 67** · **테두리(`0 0 0 1px`)만 3** · **이 축이 보는 것 58** 이다.
+그 바깥 그림자가 이 UI 의 «떠 있음» 을 통째로 만든다 — 카드의 딱딱한 아래턱(`.modal-card
 0 .5rem 0`), 패널의 위턱(`.panel 0 -.4rem 0`), 상단바·자동 제련 카드의 흐린 그늘, 스킬 버튼의 발광.
 **클론에는 그 갈래가 0이다**(흐림을 굽는 도우미 자체가 없다) — 그래서 모든 화면이 정본보다 «납작하게»
 읽힌다. 안쪽 띠(`inset 0 -Nrem 0`)는 이미 `PopupKit.BottomShade`·`btn_lip` 관용구로 서 있다(T163 계열).
@@ -86,16 +87,54 @@ def parts_of(value):
     return out
 
 
+LEN = re.compile(r'^(?:-?[\d.]+(?:rem|px|em)?|calc\([^)]*\)|0)$')
+
+
+def geom_of(part):
+    """조각에서 «x y 흐림 퍼짐» 네 자리를 뽑는다(색·`inset` 은 건너뛴다). 못 읽으면 None."""
+    toks, cur, d = [], '', 0
+    for ch in part.strip():
+        if ch == '(': d += 1
+        elif ch == ')': d -= 1
+        if ch.isspace() and d == 0:
+            if cur: toks.append(cur); cur = ''
+        else:
+            cur += ch
+    if cur: toks.append(cur)
+    nums = [t for t in toks if LEN.match(t)]
+    if len(nums) < 2: return None
+    while len(nums) < 4: nums.append('0')
+    return nums[:4]
+
+
+def zero(tok):
+    return tok == '0' or bool(re.match(r'^-?0(?:rem|px|em)$', tok or ''))
+
+
 def kind_of(part):
-    """조각 하나의 갈래 — 'inset' · 'hard'(흐림 0) · 'blur'."""
+    """조각 하나의 갈래.
+
+    · `inset` — 안쪽(앞이든 **뒤든**). 이 축이 안 본다(`PopupKit.BottomShade`·`btn_lip` 이 이미 쥔다).
+    · `ring`  — x·y·흐림 0 인데 **퍼짐만** 있다(`0 0 0 1px …`). 그건 그림자가 아니라 **테두리**고
+                이 레포에선 **T109 `check_keyline`** 축이 이미 센다 — 여기서 또 세면 두 번 센다.
+    · `glow`  — x·y 0 인데 흐림이 있다(`0 0 8px …`). 뒤로 지는 그늘이 아니라 **둘레가 빛나는 것**이다.
+    · `hard`  — 치우침이 있고 흐림 0(정본의 «딱딱한 턱» · `.modal-card 0 .5rem 0`).
+    · `drop`  — 치우침도 흐림도 있다(보통의 드리운 그림자).
+    """
     p = part.strip()
     if p.startswith('inset') or p.endswith('inset'): return 'inset'
-    nums = re.findall(r'-?[\d.]+(?:rem|px|em)|calc\([^)]*\)|\b0\b', p)
-    if len(nums) >= 3:
-        third = nums[2]
-        if third == '0' or re.match(r'^-?0(?:rem|px|em)$', third): return 'hard'
-        return 'blur'
-    return 'hard'
+    g = geom_of(p)
+    if g is None: return 'hard'
+    x, y, blur, spread = g
+    off = not (zero(x) and zero(y))
+    if not off and zero(blur):
+        return 'ring' if not zero(spread) else 'hard'
+    if not off: return 'glow'
+    return 'hard' if zero(blur) else 'drop'
+
+
+# 키프레임 선택자(`0%`·`from`·`to`…)는 **자리가 아니다** — 그 애니메이션이 걸리는 요소가 따로 있다.
+KEYFRAME_SEL = re.compile(r'^\s*(?:from|to|[\d.]+%)(?:\s*,\s*(?:from|to|[\d.]+%))*\s*$')
 
 
 def outer_decls(css_path=CSS):
@@ -110,7 +149,9 @@ def outer_decls(css_path=CSS):
         if not val or val.split()[0] == 'none': continue
         ps = parts_of(val)
         kinds = [kind_of(p) for p in ps]
-        if all(k == 'inset' for k in kinds): continue
+        # 안쪽(inset)과 테두리(ring)만인 선언은 **이 축이 아니다** — 앞은 `PopupKit.BottomShade`,
+        # 뒤는 T109 `check_keyline` 이 이미 센다. 둘 다 세면 한 자리를 두 자가 판정한다.
+        if all(k in ('inset', 'ring') for k in kinds): continue
         j = i
         while j >= 0 and '{' not in lines[j]: j -= 1
         sel = lines[j].split('{')[0].strip() if j >= 0 else '?'
@@ -151,14 +192,26 @@ def run():
 
     # 표에도 KNOWN 에도 없는 **새 정본 자리** — 막지는 않고 알린다(정본이 자라면 이 축이 낡는다).
     known_sels = set(s for _, s, _, _ in SPOTS)
-    unseen = [(n, s) for n, s, v, k in decls if s not in known_sels]
+    rest = [(n, s, v, k) for n, s, v, k in decls if s not in known_sels]
+    frames = [r for r in rest if KEYFRAME_SEL.match(r[1])]
+    unseen = [r for r in rest if not KEYFRAME_SEL.match(r[1])]
+    by_kind = {}
+    for n, s, v, k in unseen:
+        main = 'drop' if 'drop' in k else ('hard' if 'hard' in k else 'glow')
+        by_kind.setdefault(main, []).append((n, s))
 
     print('· 정본 바깥 그림자 선언 %d개(전체 box-shadow 중 안쪽만인 것은 뺐다) · 표의 자리 %d개 · 클론에 선 자리 %d개'
           % (len(decls), len(SPOTS), standing))
-    if unseen:
-        print('⚠ 표에 없는 정본 자리 %d개(알림 — 다음 회차가 표에 담는다): %s%s'
-              % (len(unseen), ', '.join('%s(%d)' % (s, n) for n, s in unseen[:6]),
-                 ' …' if len(unseen) > 6 else ''))
+    if frames:
+        print('  · 키프레임 선택자 %d개는 **자리가 아니다**(`0%%`·`from`·`to` — 그 애니메이션이 걸리는 요소가 따로 있다) → 안 센다'
+              % len(frames))
+    for main in ('hard', 'drop', 'glow'):
+        rows = by_kind.get(main)
+        if not rows: continue
+        label = {'hard': '딱딱한 턱', 'drop': '드리운 그림자', 'glow': '둘레 발광'}[main]
+        print('⚠ 표에 없는 %s %d개(알림 — 다음 회차가 표에 담는다): %s%s'
+              % (label, len(rows), ', '.join('%s(%d)' % (s, n) for n, s in rows[:5]),
+                 ' …' if len(rows) > 5 else ''))
     for key, sel, where in stale:
         print('✗ KNOWN 에 «아직 안 섰다» 로 적힌 %s(%s)가 실제로는 서 있다 — %s · 그 줄을 지워라' % (key, sel, where))
     for key, sel, ln, kind in bad:
@@ -188,8 +241,15 @@ def self_test():
     chk('inset 을 안쪽으로', kind_of('inset 0 -.3rem 0 rgba(0,0,0,.22)') == 'inset')
     chk('뒤에 붙은 inset 도 안쪽으로', kind_of('0 0 0 2px #69f0ae inset') == 'inset')
     chk('흐림 0 은 hard', kind_of('0 .5rem 0 rgba(0,0,0,.25)') == 'hard')
-    chk('흐림 있으면 blur', kind_of('0 .3rem .6rem rgba(0,0,0,.45)') == 'blur')
-    chk('음수 y 도 읽는다', kind_of('0 -.14rem .34rem rgba(0,0,0,.40)') == 'blur')
+    chk('흐림 있으면 드리운 그림자', kind_of('0 .3rem .6rem rgba(0,0,0,.45)') == 'drop')
+    chk('음수 y 도 읽는다', kind_of('0 -.14rem .34rem rgba(0,0,0,.40)') == 'drop')
+    chk('치우침 없이 흐리면 발광', kind_of('0 0 8px rgba(105,240,174,.45)') == 'glow')
+    chk('퍼짐만 있으면 테두리(T109 축이라 여기선 안 본다)', kind_of('0 0 0 1px rgba(0,0,0,.45)') == 'ring')
+    chk('치우침 + 흐림은 드리운 그림자', kind_of('0 .3rem .6rem rgba(0,0,0,.45)') == 'drop')
+    chk('음수 퍼짐 발광도 발광', kind_of('0 0 .5rem -.14rem var(--rc, #ccc)') == 'glow')
+    chk('calc 치우침도 읽는다', kind_of('calc(var(--dg) * 1 - 1px) 0 0 0 var(--dedge)') == 'hard')
+    chk('키프레임 선택자를 가린다', bool(KEYFRAME_SEL.match('0%, 100%')) and bool(KEYFRAME_SEL.match('from')))
+    chk('보통 선택자는 키프레임이 아니다', not KEYFRAME_SEL.match('.modal-card'))
 
     # ⓒ 주석 지우기 — 줄 번호가 안 밀린다
     src = 'a{}\n/* box-shadow: 0 1rem 0 #000;\n   두 줄 주석 */\n.b{ box-shadow: 0 .5rem 0 #000; }\n'
@@ -207,7 +267,7 @@ def self_test():
         chk('.modal-card 아래턱을 뽑는다', '.modal-card' in sels)
         chk('.panel 위턱을 뽑는다', '.panel' in sels)
         chk('안쪽만인 선언은 안 뽑는다(.tech-tree-node.locked)', '.tech-tree-node.locked' not in sels)
-        chk('바깥 그림자가 쉰은 넘는다(실측 61)', len(decls) > 50)
+        chk('이 축이 보는 선언이 쉰은 넘는다(실측 58)', len(decls) > 50)
         chk('선언 총계는 168(등재 글과 같다)', sum(1 for _ in re.finditer(r'box-shadow\s*:', strip_comments(open(CSS, encoding='utf-8').read()))) == 168)
 
     # ⓔ 클론 호출 세기 — 주석은 안 센다
