@@ -138,13 +138,15 @@ namespace Forge.Tests.PlayMode
             var ov = BattleOverlay.Ensure();
             Assert.IsFalse(ov.VignetteActive);
             // 정본 `scene3d.js` 13351 이 영웅 피격에서 부르는 자리 — 씬이 그 이벤트를 삼키면 비네트가 켜져야 한다.
+            // ⚠ 큐를 비우는 `Drain` 은 **논리 틱이 한 번 지날 때만** 돈다(`Step` 의 `while (acc >= BattleRules.Tick)`).
+            //    한 프레임(16ms)만 밀면 이벤트가 큐에 남아 있어 «안 불렀다» 로 읽힌다 — 틱 하나를 통째로 민다(런 280 에서 이걸로 빨갰다).
             s.Battle.Events.Add(new BattleEvent { Kind = BattleEventKind.HeroHit, Num = 0.2 });
-            s.Step(0.016f);
+            s.Step((float)BattleRules.Tick);
             Assert.IsTrue(ov.VignetteActive, "영웅 피격이 비네트를 안 불렀다");
             Assert.AreEqual(0.53, ov.VignettePeak, 1e-9, "피해 비율이 그대로 세기로 들어간다");
             // 정본 13374 `UI.flashDamage(1)` — «치명타 피격보다 진하게».
             s.Battle.Events.Add(new BattleEvent { Kind = BattleEventKind.HeroDown });
-            s.Step(0.016f);
+            s.Step((float)BattleRules.Tick);
             Assert.AreEqual(FxRules.DmgVigMax, ov.VignettePeak, 1e-9, "사망은 상한 세기 .64");
             UnityEngine.Object.Destroy(s.gameObject);
             yield return null;

@@ -3437,6 +3437,7 @@
 - **안 만진 것**: ⓑ `Ui/Popups.cs`(T109·T132 lock) · ⓒ `Ui/ForgeCraftPopup.cs`·`Assets/Forge/catalog.json`(T87 lock) · ⓓ `Ui/LootFeed.cs`. 수치도 `catalog.json` 대신 Core 상수로 받았다 — 이 갈래(`Core/BattleFx/FxRules`)는 전투 연출 수치를 원래부터 그렇게 쥔다(`RegaliaGold`·`BossWarnDur`… 와 같은 줄).
 - **게이트**: `dotnet build` 0 오류(PlayMode 컴파일 포함) · `dotnet test` **590/590**(+8) · 나머지 §3 자 전부 rc 0.
 - **판정(✅ 조건)**: ⓐ 다음 유니티 런에서 `DamageVignetteTests` 4 + `BattleFxSceneTests` 초록 ⓑ 촬영 PNG 에서 피격 순간 화면 가장자리가 붉은지 눈 확인(§1). 그 뒤 2회차(ⓑ·ⓒ·ⓓ)로 이어 가거나 lock 을 반납한다.
+- **2회차(2026-09-14 · sess-0132-976) — 런 280 에서 내 단언 하나가 빨갰다**: `전투의_영웅_피격이_비네트를_부른다` 가 «영웅 피격이 비네트를 안 불렀다». 나머지 셋(면·층·시계 / 연타·상한 / 구운 픽셀)은 PASS 였으니 **연출이 아니라 내 단언이 틀렸다**. 이유: 이벤트 큐를 비우는 `BattleScene.Drain` 은 `Step` 안의 `while (acc >= BattleRules.Tick)` 밖에서 안 돈다 — 한 프레임(16ms)만 밀면 논리 틱(100ms)이 아직 안 지나 내가 넣은 이벤트가 큐에 그대로 남는다. `Step((float)BattleRules.Tick)` 로 틱 하나를 통째로 밀게 고쳤다(수치는 상수로 받아 틱이 바뀌어도 안 어긋난다).
 
 ### T107 완료 기록 (2026-09-13 · 워커 F · sess-1527-35260) — 1회차 · 자 + 토스트 그릇 둘 · lock 은 CI 한 바퀴 뒤 반납
 
