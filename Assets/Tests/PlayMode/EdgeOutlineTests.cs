@@ -675,5 +675,59 @@ namespace Forge.Tests.PlayMode
                 Shader.SetGlobalFloat(EdgeIdPass.IdOnProp, 0f);
             }
         }
+        /// <summary>
+        /// T350 — ID 보조 패스의 **프레임당 비용**은 «한 번만» 이어야 한다(§1 «`Update` 에서 `GetComponent` 금지 · 프레임당 GC 할당 0»).
+        /// 화소가 아니라 **상태**를 본다: ⓐ 메시 필터는 처음 한 번만 찾고 «없더라» 도 기억한다(메시 필터 없는 파츠가 프레임마다 다시 파이던 자리) ·
+        /// ⓑ 같은 메시로 다시 부르면 쌍둥이의 재질 배열을 **새로 만들지 않는다** ⓒ 메시가 바뀐 프레임에는 따라간다.
+        /// </summary>
+        [Test]
+        public void ID_보조_패스는_파츠_참조를_한_번만_찾고_메시가_바뀔_때만_다시_세운다()
+        {
+            GameObject rig = new GameObject("t350-rig");
+            try
+            {
+                // ⓐ 메시 필터가 **없는** 렌더러 — 1회차의 «TargetFilter == null 이면 찾는다» 는 이런 파츠를 프레임마다 다시 팠다.
+                var bare = new GameObject("t350-no-filter");
+                bare.transform.SetParent(rig.transform, false);
+                var bareR = bare.AddComponent<MeshRenderer>();
+                EdgePartIdTag bareTag = EdgePartId.Tag(bareR);
+                Assert.IsFalse(bareTag.TargetFilterLooked, "아직 찾기 전이다");
+                Assert.IsNull(EdgePartId.TargetMesh(bareTag, bareR), "메시 필터가 없으니 메시도 없다");
+                Assert.IsTrue(bareTag.TargetFilterLooked, "«없더라» 를 기억해야 다음 프레임에 다시 안 판다");
+                Assert.IsNull(bareTag.TargetFilter);
+
+                // ⓑ 메시가 있는 파츠: 두 번째 호출은 쌍둥이를 다시 세우지 않는다.
+                var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                go.transform.SetParent(rig.transform, false);
+                var r = go.GetComponent<MeshRenderer>();
+                EdgePartIdTag t = EdgePartId.Tag(r);
+                EdgeIdPass.EnsureTwin(t);
+                Assert.IsNotNull(t.Twin, "쌍둥이가 섰다");
+                Assert.IsNotNull(t.TwinFilter, "쌍둥이의 메시 필터를 쥐고 있다");
+                Mesh mesh0 = t.TwinMesh;
+                Assert.AreSame(go.GetComponent<MeshFilter>().sharedMesh, mesh0, "쌍둥이는 대상의 메시를 쓴다");
+                Material[] mats0 = t.Twin.sharedMaterials;
+                MeshRenderer twin0 = t.Twin;
+                EdgeIdPass.EnsureTwin(t);
+                EdgeIdPass.EnsureTwin(t);
+                Assert.AreSame(twin0, t.Twin, "같은 메시면 쌍둥이를 다시 만들지 않는다");
+                Assert.AreSame(mesh0, t.TwinMesh, "기억한 메시가 그대로다");
+                Assert.AreEqual(mats0.Length, t.Twin.sharedMaterials.Length);
+                Assert.AreSame(EdgeIdPass.IdMaterial, t.Twin.sharedMaterial, "ID 재질 하나를 나눠 쓴다");
+
+                // ⓒ 메시를 갈면 그 프레임엔 따라간다.
+                GameObject donor = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                donor.transform.SetParent(rig.transform, false);   // rig 와 함께 걷힌다
+                Mesh other = donor.GetComponent<MeshFilter>().sharedMesh;
+                go.GetComponent<MeshFilter>().sharedMesh = other;
+                EdgeIdPass.EnsureTwin(t);
+                Assert.AreSame(other, t.TwinMesh, "메시가 바뀐 프레임엔 쌍둥이도 바뀐다");
+                Assert.AreSame(other, t.TwinFilter.sharedMesh);
+            }
+            finally
+            {
+                Object.DestroyImmediate(rig);
+            }
+        }
     }
 }

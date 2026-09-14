@@ -25,6 +25,12 @@ namespace Forge.Game.Render
         //    GetComponent 1410 번 + 배열 705 개가 된다 — §1 «Update 에서 GetComponent 금지 · 프레임당 GC 할당 0» 위반이다.
         /// <summary>대상의 메시 필터(한 번만 찾는다 · 없으면 null).</summary>
         public MeshFilter TargetFilter;
+        /// <summary>
+        /// 🚨 T350 2회차 — «찾아봤는가». <see cref="TargetFilter"/> 가 null 인 것과 «아직 안 찾았다» 는 다르다:
+        /// `MeshFilter` 가 **없는** 파츠(스킨드 메시·라인 등)를 null 검사로만 가리면 그 파츠는 프레임마다 `GetComponent` 를 다시 판다 —
+        /// 1회차가 없앤 그 비용이 «메시 필터 없는 파츠» 에만 그대로 남는다. 이 깃발이 «없더라» 도 기억한다.
+        /// </summary>
+        public bool TargetFilterLooked;
         /// <summary>쌍둥이의 메시 필터(세울 때 잡는다).</summary>
         public MeshFilter TwinFilter;
         /// <summary>쌍둥이에 마지막으로 얹은 메시 — 이것이 바뀐 프레임에만 재질 배열을 다시 만든다.</summary>
@@ -70,12 +76,31 @@ namespace Forge.Game.Render
             return new Vector4((float)r, (float)g, 0f, 0f);
         }
 
+        /// <summary>
+        /// 태그가 쥔 메시 필터로 파츠의 메시를 가져온다 — `GetComponent` 는 **처음 한 번만**(없으면 «없더라» 를 기억한다 · T350).
+        /// `EdgeIdPass.EnsureTwin` 과 <see cref="UseId"/> 가 둘 다 프레임마다 파츠 전부에 대해 부르는 자리라 여기 한 곳으로 모은다.
+        /// </summary>
+        public static Mesh TargetMesh(EdgePartIdTag t, Renderer r)
+        {
+            if (t == null) return null;
+            if (!t.TargetFilterLooked)
+            {
+                if (r == null) r = t.Target;
+                t.TargetFilter = r != null ? r.GetComponent<MeshFilter>() : null;
+                t.TargetFilterLooked = true;
+            }
+            return t.TargetFilter != null ? t.TargetFilter.sharedMesh : null;
+        }
+
+        /// <summary>`_ZWrite` 의 셰이더 번호 — 이름으로 물으면 부를 때마다 문자열을 번호로 바꾼다(이 자리는 프레임마다 파츠 수만큼 돈다 · T350 2회차).</summary>
+        static readonly int ZWriteProp = Shader.PropertyToID("_ZWrite");
+
         /// <summary>정본 930 «불투명 + 깊이 쓰기» — 투명 큐(≥ 3000)이거나 `_ZWrite` 0 이면 ID 를 안 쓴다.</summary>
         public static bool OpaqueDepth(Material m)
         {
             if (m == null) return false;
             bool transparent = m.renderQueue >= (int)RenderQueue.Transparent;
-            bool depthWrite = !m.HasProperty("_ZWrite") || m.GetFloat("_ZWrite") != 0f;
+            bool depthWrite = !m.HasProperty(ZWriteProp) || m.GetFloat(ZWriteProp) != 0f;
             return EdgePartIdRules.OpaqueDepth(transparent, depthWrite);
         }
 
@@ -93,8 +118,7 @@ namespace Forge.Game.Render
             if (!r.enabled || !r.gameObject.activeInHierarchy) return false;
             if (!OpaqueDepth(r.sharedMaterial)) return false;
             // 🚨 T350 — 이 함수도 **프레임마다 파츠 전부**에 대해 돈다(ID 패스의 `Tag()`), 그러니 참조는 태그가 쥔 것을 쓴다.
-            if (t.TargetFilter == null) t.TargetFilter = r.GetComponent<MeshFilter>();
-            Mesh mesh = t.TargetFilter != null ? t.TargetFilter.sharedMesh : null;
+            Mesh mesh = TargetMesh(t, r);
             if (mesh == null) return false;
             Bounds bb = mesh.bounds;
             Matrix4x4 mv = cam.worldToCameraMatrix * r.localToWorldMatrix;

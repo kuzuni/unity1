@@ -2019,6 +2019,7 @@
   부하 장면의 렌더러가 705개니 프레임마다 **GetComponent 1410 번 + 배열 705 개**다 — §1 의 «`Update` 에서 `GetComponent` 금지» 와 «프레임당 GC 할당 0» 을 둘 다 정면으로 어긴다.
 - 할 일: 참조를 **한 번만** 잡아 태그가 쥔다(`EdgePartIdTag` 에 `TargetFilter`·`TwinFilter`·`TwinMesh`·`TwinSubs`) · 메시가 **바뀐 프레임에만** 서브메시 수를 다시 세고 재질 배열을 새로 만든다 · 그 밖의 프레임은 아무것도 안 만든다. 정본도 ID 재질을 «생성 시각에» 굳히고 프레임마다 다시 세우지 않는다.
 - 판정: **초록/빨강이 아니라 수로 잰다** — `screens/perf-t50.txt` 의 «렌더 몫»·«프레임당 관리 할당(계수기)» 이 런 503(전부 1,0xxKB 대)보다 내려갔는가 · `EdgeOutlineTests` 의 ID 자 둘이 그대로 초록(선은 안 변한다 — 참조만 캐시했다) · `PerfBudgetTests` 둘이 초록(상한은 C 가 올렸으니 이것만으로는 이 작업의 증거가 아니다).
+- 2회차(같은 세션)에서 메운 틈: `MeshFilter` 가 **없는** 파츠는 «null 이면 찾는다» 로는 프레임마다 다시 파인다 — «찾아봤는가» 를 따로 기억하고(`TargetFilterLooked`) 두 부르는 자리를 도우미 `EdgePartId.TargetMesh` 하나로 모았다 · `OpaqueDepth` 의 `_ZWrite` 도 이름이 아니라 `Shader.PropertyToID` 번호로 묻는다 · 자 하나 더(`ID_보조_패스는_파츠_참조를_한_번만_찾고_메시가_바뀔_때만_다시_세운다` — 화소가 아니라 상태를 본다).
 - 범위: `Assets/Scripts/Game/Render/EdgeIdPass.cs` · `Assets/Scripts/Game/Render/EdgePartId.cs` · `Assets/Tests/PlayMode/EdgeOutlineTests.cs`.
 
 ### ⓪ 계정 식별표 — «내가 몇 번째 계정인가» 는 여기서 본다 (세션 시작 시 `get_session` 의 이메일/env 로 대조)

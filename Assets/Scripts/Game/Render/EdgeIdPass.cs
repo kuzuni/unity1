@@ -183,8 +183,7 @@ namespace Forge.Game.Render
         {
             if (t == null || t.Target == null) return;
             // 🚨 T350 — 참조는 **한 번만** 찾는다(이 함수는 `LateUpdate` 마다 파츠 전부에 대해 돈다 · §1 «Update 에서 GetComponent 금지»).
-            if (t.TargetFilter == null) t.TargetFilter = t.Target.GetComponent<MeshFilter>();
-            Mesh mesh = t.TargetFilter != null ? t.TargetFilter.sharedMesh : null;
+            Mesh mesh = EdgePartId.TargetMesh(t, t.Target);
             if (t.Twin == null)
             {
                 var go = new GameObject(TwinName);
