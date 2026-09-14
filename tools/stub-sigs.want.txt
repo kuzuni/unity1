@@ -1,0 +1,14 @@
+# T174 — 진짜 유니티에게 «이 타입들의 공개 표면을 찍어 달라» 는 목록.
+#   `python3 tools/check_stub_sigs.py --emit` 이 스텁을 읽어 다시 쓴다(손으로 고치지 않는다).
+#   PlayMode `StubSigsTests` 가 이것을 읽어 ui-screens/stub-sigs.txt 로 답한다.
+# 한 줄 = <어셈블리 힌트>	<타입 전체이름>
+TMPro	TMPro.TMP_FontAsset
+TMPro	TMPro.TMP_TextInfo
+TMPro	TMPro.TMP_Text
+TMPro	TMPro.TMP_Settings
+TMPro	TMPro.TextMeshPro
+TMPro	TMPro.TMP_InputField
+URP	UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+URP	UnityEngine.Rendering.Volume
+URP	UnityEngine.Rendering.Universal.ColorAdjustments
+URP	UnityEngine.Rendering.Universal.Bloom

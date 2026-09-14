@@ -1649,6 +1649,7 @@ python3 tools/check_unity_messages.py                                         # 
 python3 tools/check_richtext.py                                                # (T33 13회차) 정본 `U.escapeHtml` 자리 — 글자 공장 하나(`UiKit.Text`)가 TMP `richText` 를 끄고 있는가 · 밖에서 TMP 를 만들거나 되켜는 자리 0(플레이어 닉네임·채팅의 꺾쇠가 태그로 먹히는 것을 막는다) · `--self-test` 7칸
 python3 tools/check_shaders_included.py                                       # (T126) 이름으로 찾는 것(`Shader.Find`·`Resources.Load`)이 **빌드에도** 실리는가 — «조용히 null» 을 막는다
 python3 tools/check_sfx_calls.py                                              # (T119) 원작 소리 24종이 게임 코드에서 실제로 울리는가 — 레시피만 있고 호출이 없는 이름을 막는다
+python3 tools/check_stub_sigs.py                                               # (T174) 하니스 스텁이 **실물에 없는 서명**을 갖고 있나 — 진짜 표면은 유니티가 screens 의 `stub-sigs.txt` 로 찍는다(그게 없으면 알리기만 · rc 0)
 tools/check_data_sync.sh .wwwww-src                                           # (T2 뒤) data/*.json ↔ 정본
 python3 tools/check_keyline.py                                               # (T109) 정본 -webkit-text-stroke 규칙 ↔ 클론 키라인 호출(.wwwww-src 필요) — 정본이 주는데 클론이 안 부르는 자리를 막는다(CI datasync 잡)
 python3 tools/check_clip_paths.py                                            # (T159) 정본 clip-path 도형 ↔ 클론이 그 자리를 **굽는가**(.wwwww-src 필요) — 네모 한 장으로 때운 자리를 센다 · `--self-test` 13칸
