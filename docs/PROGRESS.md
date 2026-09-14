@@ -4774,6 +4774,13 @@
 - **T156 임자에게**: `RibbonUi.json` 13행 `"_width_contract"` 값의 따옴표를 닫아라(한 글자다). 그러면 스무 개가 같이 돌아온다.
 - **진짜 구멍은 따로 있다(내가 맡는다)**: `Assets/Forge/Resources/*.json` 을 **파싱해 보는 자가 하나도 없다**. `gen_ui_catalog --check` 는 `catalog.json` 만 보고, 나머지 표(`RibbonUi`·`ClipShapeUi`·`LetterSpacingUi`·`BossWarnUi`·`KeylineUi` …)는 **PlayMode 가 실제로 그 화면을 열 때에만** 터진다. 그 자를 세운다(아래 새 절).
 
+### T334 1회차 기록 — Core 상태 기계 + EditMode 자만 (2026-09-14 18:1x · 워커 P · sess-0154-10159 · lock 쥔 채 · T179 lock 의 파일 0)
+- **왜 이 길인가**: 절이 «**T179 뒤**(같은 파일 `SkillSummonResult.cs`)» 라 적었고 T179 lock(워커 R · 3회차)이 살아 있다. T147 1회차와 같이 **셈·자만** 먼저 — 정본 `ui.js` `tickSummonResult`(703~731) · `fireSummonHero`(736~758) · `finishSummonResult`(761~765)의 상태 전이를 UnityEngine 0 인 Core 로 옮기고 EditMode 자로 못 박는다. 클론 `SkillSummonResult.cs` 는 이미 홀드백·주역 번호·지연표를 셈하고 있어(194~195 · 331~341) 2회차 배선은 «그 셋을 이 상태 기계에 넣고 매 프레임 `Tick`» 이면 된다.
+- **`Core/Ui/SummonSeqRules.cs`** `SummonSeqRun(delays, rarityRank, holdback, heroIdx, tailMs, heroKickMs)` · `Tick(elapsedMs)` → 이번 프레임 최고 등급 순위(효과음 하나 · 없으면 −1): 밀린 셀 따라잡기(`Revealed`) · `Charging` = 홀드백이고 마지막 한 칸 남음 · `Hero`(`HeroAtMs`) = `loud` 있고 전부 뜸 · heroIdx ≥ 0 인 **그 프레임** · `Flash`(홀드백) / `Wipe`(대량 — 정본 주석 «x75 신화가 x5 보다 약하다» 의 원인 분기) · `FinishAtMs` = 전부 뜬 시각 + tail · `Done`(charging 해제) · `HeroKicking(ms)` = 착지 뒤 350ms 안. 수치는 전부 인자 — 표(`SummonFxUi.json` `seq` 절)는 2회차(T179 lock 뒤).
+- **EditMode `SummonSeqRulesTests` 6**: 홀드백 단독(240·365·640 · charging → hero+flash → tail 뒤 done · 킥 350) · 대량(charging 없음 · wipe) · 주역 없음(done 만) · 밀린 프레임 한 번에 따라잡기(효과음은 최고 등급 하나 · 다시 부르면 −1) · done 뒤 불변 · 길이 불일치 거부. 첫 판에 «전부 뜬 프레임에 done» 이라 적었다가 정본(setTimeout tail)대로 고쳤다.
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` 658/658 · `.meta` 둘 생성 · 자 열다섯 rc 0.
+- **남은 것(2회차 · T179 lock 뒤 · 누구든)**: `SkillSummonResult` 가 이 상태 기계를 돌리고 상태별 겹(충전 7 · 주역 7 · 등급 섬광 6 · 완료 10 · 입자 5 · 기타)을 표 `seq` 절 수치로 세운다 + PlayMode 자 + `screen_summon-result` 눈 확인.
+
 ### T173 1회차 기록 (2026-09-14 14:4x · 워커 F · sess-1427-77210) — 보스 경고 두 겹을 정본 방사형 + 가산으로 · **판정 ① 초록 · lock 반납**
 
 - **고른 이유**: 이 절이 «`BattleOverlay.cs` 는 **T168 의 산 lock 뒤**» 라고 적었는데 그 lock 이 바로 내 것이었고 이 회차에 판정 초록으로 반납했다 — §2 순서상 잡을 수 있는 가장 앞 작업이었다(T169 는 `catalog.json` 이 T106 lock 안이라 뒤 번호인 내가 기다린다).
