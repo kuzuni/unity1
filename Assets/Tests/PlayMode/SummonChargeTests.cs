@@ -59,16 +59,23 @@ namespace Forge.Tests.PlayMode
             while (!v.Charging && !v.Hero && t < 6f) { t += Time.unscaledDeltaTime; yield return null; }
             Assert.IsTrue(v.Charging, "홀드백이면 마지막 한 칸을 남긴 순간 charging 이어야 한다(정본 720)");
 
+            // 정본은 소환진을 **`.done` 에서만** 등급색으로 물들인다(style.css 7182~7185 · ui.js 551) —
+            // 그전에 원색으로 칠해 두면 «원색이 배경에 묻혀 소환진이 사라진다»(ui.js 548) 고 정본이 못 박았고,
+            // 밝기 램프도 화면에서 안 읽힌다(궁극의 #ff1c1c 는 빨강이 이미 1.0 이라 CSS 도 거기서 자른다 · 런 512).
+            Color rc = PetSkillStyle.Rarity(PetSkillHost.Instance.Data.Defs, "ultimate");
+            Assert.Greater(Mathf.Abs(v.FloorColor.b - rc.b), 0.2f, "충전 중 소환진은 아직 등급색이 아니다(정본 기본 푸른 바탕)");
+
             // ⓑ 구간 안에서 값이 **자란다** — 한 프레임도 같은 그림이 아니다.
             var vig = new List<float>();
             var bright = new List<float>();
-            float floorMax = 0f, pulled = 0f, haloMin = 2f, haloMax = -1f;
+            float floorMax = 0f, pulled = 0f, haloMin = 2f, haloMax = -1f, brightMax = -1f;
             int onIdx = -1;
             for (int i = 0; i < v.CellCount; i++) if (v.CellPulledIn(i) >= 0f) { onIdx = i; break; }
             while (v.Charging && t < 8f)
             {
                 vig.Add(v.VigAlpha);
                 bright.Add(v.FloorBright);
+                brightMax = Mathf.Max(brightMax, v.FloorBright);
                 floorMax = Mathf.Max(floorMax, v.FloorScale);
                 haloMin = Mathf.Min(haloMin, v.HaloAlpha);
                 haloMax = Mathf.Max(haloMax, v.HaloAlpha);
@@ -78,7 +85,9 @@ namespace Forge.Tests.PlayMode
             }
             Assert.GreaterOrEqual(vig.Count, 3, "대기창이 몇 프레임은 돌아야 잰 것이 뜻이 있다");
             Assert.Greater(vig[vig.Count - 1], vig[0] + 0.05f, "비네트가 조여들지 않았다 — 이 구간이 다시 정지 프레임이다");
-            Assert.Greater(bright[bright.Count - 1], bright[0], "소환진 밝기가 안 올랐다");
+            // 마지막 프레임이 아니라 **구간 안 최댓값**과 견준다: 정본 곡선은 88% 에 밝기 정점을 찍고 100% 로 가며
+            // 아주 조금 내려온다(채도가 같이 오르는 탓) — 마지막 한 점만 보면 그 차이에 걸릴 수 있다.
+            Assert.Greater(brightMax, bright[0], "소환진 밝기가 안 올랐다(세 성분의 합 — 등급색은 한 성분이 이미 잘려 있다)");
             Assert.Greater(floorMax, 1.03f, "소환진이 부풀지 않았다");
             Assert.Greater(haloMax - haloMin, 0.1f, "중앙 광원이 뛰지 않았다 — «축적» 이 안 읽힌다");
             Assert.Greater(pulled, 0.5f, "정착한 조연 셀이 광원 쪽으로 안 빨려들었다(정본 srinhale)");
@@ -89,6 +98,13 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(v.Hero, "주역이 착지해야 한다");
             Assert.AreEqual(0f, v.VigAlpha, 1e-4f, "구간이 끝나면 비네트는 걷힌다(그 순간은 섬광이 덮는다)");
             Assert.AreEqual(1f, v.FloorScale, 1e-3f, "소환진도 제자리로");
+
+            // 끝까지 가면(`done`) 그때 등급색으로 물든다 — 정본이 승격하는 유일한 순간이다.
+            float t2 = 0f;
+            while (!v.Done && t2 < 6f) { t2 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done);
+            Assert.AreEqual(rc.r, v.FloorColor.r, 0.02f, "done 에서 소환진이 등급색으로 물든다");
+            Assert.AreEqual(rc.b, v.FloorColor.b, 0.02f);
             if (onIdx >= 0) Assert.AreEqual(0f, v.CellPulledIn(onIdx), 1e-3f, "조연 셀도 제자리로");
         }
     }

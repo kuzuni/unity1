@@ -99,8 +99,17 @@ namespace Forge.Game.Ui
         public float VigAlpha { get { return vigImg != null ? vigImg.color.a : -1f; } }
         /// <summary>소환진(`.sr-floor`)의 지금 배율(제자리 대비).</summary>
         public float FloorScale { get { return floorImg != null && floorHome.x != 0f ? floorImg.rectTransform.localScale.x / floorHome.x : -1f; } }
-        /// <summary>소환진의 지금 밝기 — 틴트 한 색의 최대 성분(충전 내내 오른다).</summary>
-        public float FloorBright { get { if (floorImg == null) return -1f; Color c = floorImg.color; return Mathf.Max(c.r, Mathf.Max(c.g, c.b)); } }
+        /// <summary>
+        /// 소환진(`.sr-floor`)의 지금 밝기 — 세 성분의 **합**이다.
+        ///
+        /// ⚠ 최댓값으로 재면 안 된다(런 512 가 가르친 것): 등급색이 `#ff1c1c`(ultimate)처럼 **한 성분이 이미 1.0** 이면
+        ///    CSS `filter: brightness()` 도 거기서 잘려 그 성분은 안 움직인다 — 오르는 것은 나머지 두 성분이고,
+        ///    화면에서는 «붉은 판이 흰 쪽으로 씻긴다» 로 보인다. 합은 그 두 갈래를 다 담는다.
+        /// </summary>
+        public float FloorBright { get { if (floorImg == null) return -1f; Color c = floorImg.color; return c.r + c.g + c.b; } }
+        /// <summary>소환진의 지금 색 — 등급색으로 물들었는지 자가 본다(정본은 `.done` 에서만 물든다).</summary>
+        public Color FloorColor { get { return floorImg != null ? floorImg.color : Color.clear; } }
+
         /// <summary>중앙 광원(`.sr-halo`)의 지금 불투명도.</summary>
         public float HaloAlpha { get { return haloImg != null ? haloImg.color.a : -1f; } }
         /// <summary>셀 하나가 제자리에서 광원 쪽으로 빨려든 거리(흡기 · 정본 `srinhale`).</summary>
@@ -327,8 +336,11 @@ namespace Forge.Game.Ui
                 if (stage)
                 {
                     // 소환진(바닥 타원) — 그리드 아래
-                    Image floor = PetSkillKit.Disc(body, "sr-floor", PetSkillStyle.Rarity(Defs, best));
-                    floor.color = new Color(floor.color.r, floor.color.g, floor.color.b, 0.22f);
+                    // 정본 `.sr-floor`(style.css 5809~5812)의 기본 바탕은 **푸른색**이고, 등급색으로 물드는 것은
+                    // `#summon-result-modal.done` 한 줄(7182~7185)에서다 — ui.js 548 주석이 까닭을 댄다:
+                    // «원색 그대로는 배경에 묻혀 소환진이 사라진다». 처음부터 등급 원색으로 칠하면 `charging` 의
+                    // 밝기 램프도 화면에서 안 읽힌다(궁극의 #ff1c1c 는 빨강이 이미 1.0 이라 CSS 도 거기서 자른다).
+                    Image floor = PetSkillKit.Disc(body, "sr-floor", SummonFxStyle.C("floor_fill"));
                     floor.preserveAspect = false;
                     float fw = gw * (one ? 0.64f : 0.88f);
                     UiKit.Anchor(floor.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -totalH * 0.5f + PetSkillStyle.Rem(1.4f)), fw, fw / (one ? 2.6f : 2.5f));
@@ -843,6 +855,13 @@ namespace Forge.Game.Ui
         {
             done = true;
             if (fx != null) fx.SetDone();   // T179 — 정본 #summon-result-modal.done: 별 켜기 · 광선 done 마스크
+            // 소환진이 등급색으로 물드는 것은 **이 순간뿐**이다(정본 ui.js 551~552 · style.css 7182~7185) — 알파도 .2 → .26.
+            if (floorImg != null)
+            {
+                Color rc = PetSkillStyle.Rarity(Defs, best);
+                floorImg.color = new Color(rc.r, rc.g, rc.b, SummonFxStyle.L("floor_done_a"));
+                floorBase = floorImg.color;
+            }
             if (hint != null) hint.SetActive(false);
             if (ok != null) ok.SetActive(true);
             if (chips != null && rolls > 1) chips.SetActive(true);

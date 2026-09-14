@@ -1,6 +1,9 @@
 {
   "_": "ROUTINE T179 소환 결과 팝업의 연출 겹(정본 style.css 5836~5990 · 6957~6980 · 7152~7190 · ui.js 337~351 summonStageStars · 491 sr-canopy 마크업)의 수치표. 코드에 숫자를 박지 않는다(§1). 접미: _f = 그 폭·높이의 분수 · _rem = 정본 rem · _px = 정본 CSS px(캔버스로 넘길 때 css_px 를 곱한다) · _ms = 밀리초 · _s = 초 · _deg = 도. 1회차 = 천개(아치+빛발 3+스필)·배경 광선·별 · 3회차 = 바닥 반사(.sr-reflect · reflect_*).",
   "colors": {
+    "floor_fill": "#6092FF33",
+    "floor_line": "#96C3FF80",
+    "_floor": "정본 style.css 5809~5812 의 `.sr-floor` 기본 바탕 — `--floor-fill rgba(96,146,255,.2)` · `--floor-line rgba(150,195,255,.5)`. **소환 내내 이 푸른색이고**, 등급색으로 물드는 것은 `#summon-result-modal.done` 한 줄(7182~7185)에서다. 정본 ui.js 548 주석: «선은 등급색 원본이 아니라 밝게 띄운 파생색 — 배경까지 그 등급색으로 물든 뒤라 원색 그대로는 배경에 묻혀 소환진이 사라진다».\n\n⚠ 처음부터 등급 원색으로 칠하면 `charging` 의 `brightness` 램프가 **화면에서 안 읽힌다**: 예컨대 궁극의(#ff1c1c)는 빨강 성분이 이미 1.0 이라 CSS 도 거기서 자른다(런 512 가 내 자로 그것을 잡았다).",
     "line": "#96c3ff80",
     "line_": "5857 --floor-line 기본 rgba(150,195,255,.5) — 아치 테·룬 눈금·빛발 밑동",
     "fill": "#6092ff33",
@@ -114,6 +117,8 @@
       0
     ],
     "rays_done_spin_s": 26,
+    "floor_done_a": 0.26,
+    "_floor_done": "정본 ui.js 552 `--floor-fill-hi rgba(등급색,.26)` — 소환진이 등급색으로 물드는 것은 `.done` 한 순간뿐이고 알파도 .2 → .26 으로 오른다.",
     "rays_done_a_lo": 0.35,
     "rays_done_a_hi": 0.6,
     "rays_done_breath_s": 2.4,
