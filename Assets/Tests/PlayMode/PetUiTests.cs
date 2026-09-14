@@ -496,12 +496,18 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(sb.AutoButton);
             string first = Host.Skills.State.Equipped.Count > 0 ? Host.Skills.State.Equipped[0] : null;
             Assert.AreEqual(first, sb.SlotId(0), "첫 슬롯 = 장착 1번");
-            // T95 — HUD 슬롯의 Lv 는 원작 기본 .sk-lv: 검정 알약이 오브 바닥 −.15rem 에 걸린다
-            RectTransform pill = sb.SlotLv(0);
-            Assert.IsNotNull(pill, "슬롯 Lv 알약");
-            Assert.IsNotNull(pill.Find("bg"), "알약 바탕");
-            Assert.AreEqual(PetSkillStyle.Px("sb_lv_bottom_rem"), pill.anchoredPosition.y, 0.5f, "알약 bottom = −.15rem");
-            Assert.IsNull(sb.SlotLv(Host.Skills.Rules.MaxActive - 1), "빈 슬롯엔 알약 없음");
+            // T109 8회차 — 전투 바 슬롯의 Lv 는 **판 없는 흰 글자 + 2px 검정 링**이다:
+            // 정본 style.css 603 `.skill-btn .sk-lv` 가 기본 `.sk-lv`(4045 검정 알약)를 덮는다
+            // (background:none · border:none · padding:0 · -webkit-text-stroke 2px · bottom .1rem).
+            RectTransform lvRt = sb.SlotLv(0);
+            Assert.IsNotNull(lvRt, "슬롯 Lv 라벨");
+            Assert.IsNull(lvRt.Find("bg"), "판(알약 바탕)이 없다 — 정본 603 이 background 를 끈다");
+            TextMeshProUGUI lvTx = lvRt.GetComponent<TextMeshProUGUI>();
+            Assert.IsNotNull(lvTx, "Lv 라벨은 글자 자체다");
+            Assert.AreEqual(PetSkillStyle.C("white"), lvTx.color, "흰 칠");
+            Assert.Greater(lvTx.outlineWidth, 0f, "검정 링이 걸렸다(정본 2px)");
+            Assert.AreEqual(PetSkillStyle.Px("sb_lv_bottom_rem"), lvRt.anchoredPosition.y, 0.5f, "bottom = 정본 .1rem");
+            Assert.IsNull(sb.SlotLv(Host.Skills.Rules.MaxActive - 1), "빈 슬롯엔 Lv 라벨 없음");
             Assert.IsNull(sb.SlotId(Host.Skills.Rules.MaxActive - 1), "새 게임은 마지막 슬롯이 빈 원");
             bool auto = SaveIo.State.AutoCast;
             sb.AutoButton.onClick.Invoke();

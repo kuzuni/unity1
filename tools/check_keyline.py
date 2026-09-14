@@ -99,11 +99,9 @@ TABLE = {
 # ── 임자가 정해진 빈자리(자리 → 이유) — T109 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
     'Ui/OfflinePopup.cs#zzz': 'T109 ⓑ — 잠자는 z 글자 자리가 클론에 없다(T68 이 머리를 세울 때 안 옮김) · 세우면서 키라인',
-    'Ui/SkillBar.cs#sk-lv': 'T109 ⓑ — 슬롯 Lv 라벨(.skill-btn .sk-lv 2px)이 클론에 없다(SkillBar 에 lv 이름 글자 0) · 세우면서 키라인',
     'Ui/ForgeInfoPopup.cs#title': 'T109 ⓑ — h3.fi-title .11em(T99 lock 뒤)',
     'Ui/ForgeAutoPopup.cs#af-title': 'T109 ⓑ — h3.af-title .11em · .af-title 4px #fff',
     'Ui/ForgeCraftPopup.cs#title': 'T109 ⓑ — h3.sellwarn-title .11em(T99 lock 뒤)',
-    'Ui/Popups.cs@Btn': 'T109 ⓑ — .btn.btn.primary… var(--ol2) · .af-start 4px · .fi-skip 4px · .dgd-btn.silver 2px: PopupKit.Btn 라벨이 민글자',
     'Ui/PetPanel.cs#sk-lv': 'T109 ⓑ — .petd-tile .sk-lv 2.5px: 펫 미니 타일의 Lv 글자가 클론에 없다(PetPanel 에 lv 이름 글자 0) · 세우면서 키라인',
     'Ui/DungeonSheet.cs#rw-amt': 'T109 ⓑ — .rw-amt 4px #2a2018: 보상 날림의 획득량 글자가 클론에 없다(DungeonSheet 는 아이콘만 날린다) · 세우면서 키라인',
     'Ui/DungeonSheet.cs#rw-tick': 'T109 ⓑ — .rw-tick 3.5px #2a2018: 보상 날림의 체크 글자가 클론에 없다 · 세우면서 키라인',

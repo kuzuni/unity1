@@ -150,11 +150,17 @@ namespace Forge.Game.Ui
                 slot.Cd = cr;
                 SkillSpec spec = sk.Spec(id);
                 slot.CdMax = spec != null ? spec.Cd : d.Cd;
-                // T95 — 원작 기본 `.sk-lv`: 검정 알약(#17181a · radius .5rem · padding 0 .25rem) 이 오브 바닥 −.15rem 에 걸린다(스킬 격자의 «맨 글자» 규칙은 #panel-skills 전용)
+                // T109 8회차 — 전투 바 슬롯의 Lv 는 **판이 없다**: 기본 `.sk-lv`(style.css 4045 · 검정 알약)를
+                // 더 구체적인 `.skill-btn .sk-lv`(603)가 덮는다 — `background: none; border: none; padding: 0`
+                // + `-webkit-text-stroke: 2px var(--pp-line); paint-order: stroke fill` · `bottom: .1rem`.
+                // 정본 주석이 그 까닭을 적어 뒀다: «이 배지는 판이 없어 아이콘 그림 위에 바로 얹힌다 —
+                // 밝은 그림 위 흰 글자를 세우는 원본의 화법이 검정 링이다»(굵기 2px 이 상한).
+                // T95 는 기본 규칙만 읽고 알약을 세웠다 — 그 자리를 이 회차가 정본 603 으로 되돌린다(결정 288).
                 string lvText = PetSkillStyle.T("lv_short", sk.Level(id));
                 float lvH = UiCatalog.Instance.Kind(TextKind.Sub).size * PetSkillStyle.L("sb_lv_line_f");
                 float lvW = PetSkillKit.TextWidth(TextKind.Sub, lvText) + PetSkillStyle.Px("sb_lv_pad_rem") * 2f;
-                RectTransform lv = PetSkillKit.LvBadge(orbRt, lvText, lvW, lvH);
+                TextMeshProUGUI lvT = PetSkillKit.Stroked(orbRt, "sk-lv", TextKind.Sub, lvText, PetSkillStyle.C("white"), "sk_lv");
+                RectTransform lv = lvT.rectTransform;
                 UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, PetSkillStyle.Px("sb_lv_bottom_rem")), lvW, lvH);
                 slot.Lv = lv;
                 slots.Add(slot);
