@@ -9,7 +9,8 @@
     "id_z_far": 32.0,
     "id_tol_z": 0.35,
     "id_min_css_px": 6,
-    "dilate_min_buf_f": 2.0
+    "dilate_min_buf_f": 2.0,
+    "css_app_w_px": 499.0
   },
   "taps": {
     "diag_f": 0.70711,
@@ -29,6 +30,7 @@
     "id_z_far": "scene3d.js 699 — 파츠 ID 버퍼 a 채널의 깊이 스케일(8bit 를 32유닛에 펴면 양자화 0.125 로 허용오차 0.35 안)",
     "id_tol_z": "scene3d.js 712 idkey — ID 화소의 깊이와 씬 깊이가 이만큼 안에서 같아야 «보이는 표면»(언덕 뒤 펫의 유령선 방지)",
     "id_min_css_px": "scene3d.js ID_MIN_CSS_PX — 화면 지름이 이 CSS px 미만인 파츠는 ID 를 안 쓴다",
+    "css_app_w_px": "정본 앱 상자 폭(CSS px) — 클론은 화면 가로 픽셀을 이 폭으로 나눠 «CSS 화소당 버퍼 화소»(정본 devicePixelRatio 자리)를 얻는다. 499 ↔ 앱 상자 기준 1080(UiRoot) = ×2.164 는 KeylineUi.json css_px·catalog anvil_fx_px 와 같은 수(T87 결정 222).",
     "dilate_min_buf_f": "scene3d.js 672~686 — 팽창은 버퍼/CSS 비가 2 이상일 때만 건다(DPR 1 에서 켜면 2 CSS px 이 되어 얇은 파츠를 먹는다 · 실측 펫 몸통 검정 52.0%)",
     "diag_f": "scene3d.js 'ad' — 대각 탭은 거리가 √2 라 0.70711(=1/√2) 로 화소당 기울기로 환산한다",
     "r2_f": "scene3d.js 'a2' — 반경 2 탭은 거리가 2 라 0.5 로 환산한다(안 나누면 기울어진 지면이 검게 얼룩진다)",

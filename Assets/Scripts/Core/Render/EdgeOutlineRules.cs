@@ -27,6 +27,8 @@ namespace Forge.Core.Render
         public double IdMinCssPx;
         /// <summary>버퍼/CSS 비가 이 값 이상일 때만 팽창을 건다.</summary>
         public double DilateMinBufF;
+        /// <summary>정본 앱 상자 폭(CSS px) — 화면 가로 픽셀을 이것으로 나눈 것이 «CSS 화소당 버퍼 화소»(정본 devicePixelRatio 자리).</summary>
+        public double CssAppWPx;
         /// <summary>대각 탭 거리 환산(1/√2) · 반경 2 탭 거리 환산(1/2).</summary>
         public double DiagF, R2F;
         /// <summary>ID 키 = `r × IdLoF + g × IdHiF`.</summary>
@@ -45,11 +47,11 @@ namespace Forge.Core.Render
             {
                 EdgeK = t("edge_k"), NormalK = t("normal_k"), CreaseK = t("crease_k"), CreaseHystF = t("crease_hyst_f"),
                 EdgeMaxZ = t("edge_max_z"), IdZFar = t("id_z_far"), IdTolZ = t("id_tol_z"), IdMinCssPx = t("id_min_css_px"),
-                DilateMinBufF = t("dilate_min_buf_f"),
+                DilateMinBufF = t("dilate_min_buf_f"), CssAppWPx = t("css_app_w_px"),
                 DiagF = p("diag_f"), R2F = p("r2_f"), IdLoF = p("id_lo_f"), IdHiF = p("id_hi_f"),
                 LineHex = J.Str(J.Require(C, "line")),
             };
-            if (s.EdgeK <= 0 || s.CreaseK <= 0 || s.EdgeMaxZ <= 0 || s.IdZFar <= 0)
+            if (s.EdgeK <= 0 || s.CreaseK <= 0 || s.EdgeMaxZ <= 0 || s.IdZFar <= 0 || s.CssAppWPx <= 0)
                 throw new FormatException("EdgeOutlineUi 임계는 모두 양수여야 한다");
             return s;
         }
@@ -109,6 +111,12 @@ namespace Forge.Core.Render
         /// DPR 1 에서 켜면 선이 2 CSS px 이 되어 얇은 파츠를 통째로 먹는다(정본 실측: 펫 몸통 검정 52.0%).
         /// </summary>
         public static bool DilateOn(EdgeOutlineSpec s, double bufScale) { return bufScale >= s.DilateMinBufF; }
+
+        /// <summary>
+        /// 화면 가로 픽셀 → «CSS 화소당 버퍼 화소». 정본은 브라우저 `devicePixelRatio`(1 또는 2 로 스냅)로 재는데,
+        /// 클론엔 CSS 가 없으므로 **정본 앱 상자 폭**(499 CSS px)을 자로 삼는다 — 같은 뜻의 수가 된다.
+        /// </summary>
+        public static double BufScale(EdgeOutlineSpec s, double screenWidthPx) { return screenWidthPx / s.CssAppWPx; }
 
         /// <summary>지평선 컷 — `step(z0, edgeMaxZ)`. 🚨 두께 판정엔 안 쓴다(하늘 경계만 1px 이 되는 함정).</summary>
         public static bool NearCut(EdgeOutlineSpec s, double z0) { return z0 <= s.EdgeMaxZ; }
