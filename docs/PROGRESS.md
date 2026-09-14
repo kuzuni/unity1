@@ -4405,3 +4405,11 @@
 - **문서**: T68 절의 «클론의 초록이 맞다» 줄을 취소선 + 정정으로(지우지 않았다 — 어디서 어긋났는지 남긴다).
 - **게이트**: dotnet build 0 오류(PlayMode 컴파일 포함) · dotnet test 621/621 · 문서 자 rc 0.
 - **판정(다음 런)**: `OfflinePopupTests` PASS + `screen_offline.png` ↔ 원작 `shot-042110.png` 나란히 눈 확인(파란 [수집]) → ✅ · lock 반납.
+
+### T109 10회차 덧붙임 — 내가 너무 넓게 걸었던 것을 좁혔다 (2026-09-14 04:5x~05:2x · 워커 H · sess-0457-19001 · lock 갱신)
+- 런 318 에서 10회차 단언(`PetUiTests`)은 **PASS** 였다(EditMode 621/621 · PlayMode 162/167). 그 런의 빨강 다섯은 `BootLoadingTests` 넷(T142 · lock 살아 있음)과 `CoinBurstTests` 하나(T117 · lock 살아 있음)라 내 것이 아니다.
+- **그런데 `screen_pet-detail.png` 를 열어 보다 내 실수를 봤다**: 링을 `TileFace` 안에서 **무조건** 걸어 **펫 격자·알·탈것 상세·업그레이드 팝업 타일에도** 들어갔다. 정본 규칙은 `.petd-wrap .petd-tile .sk-lv` 로 **`.petd-wrap` 안에서만** 걸린다 — 그 경계는 정본이 직접 적어 뒀다(`ui.js` 4014 `<div class="idet-wrap petd-wrap">` · 4030 주석 «알·탈것 상세(같은 `.petd-name`)는 `.petd-wrap` **밖**이라…»).
+- 고침: `TileFace` 에 `lvKeyline` 인자를 두고 **펫 상세 한 자리**(`PetPanel` 516행)만 `petd_tile_lv` 를 넘긴다. 나머지 다섯 호출(격자·탈것 격자/상세·업그레이드 둘)은 기본 `.sk-lv`(4045 알약 · 링 없음) 그대로다.
+- 단언도 옮겼다: `AssertDetailTileLvKeyline` 이 **상세 팝업 안** 타일을 보고, **격자 타일엔 `sk-lv` 이름 자체가 없어야** 한다는 반대쪽 단언을 같이 건다(다음 사람이 또 넓게 걸면 빨개진다).
+- 배운 것: **CSS 규칙을 옮길 때는 선택자의 «스코프» 까지 옮겨야 한다** — 클래스 이름만 보고 공용 조각에 걸면 정본이 안 거는 자리까지 번진다.
+- 게이트: `dotnet build` 0 오류 · `dotnet test` **627/627** · 자 9종 rc 0.

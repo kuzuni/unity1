@@ -226,10 +226,18 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>펫 타일 얼굴 — 상세·업그레이드 팝업도 같은 그림(원작 `.petd-tile` · `.petup-icon`).</summary>
-        public RectTransform TileFace(Transform parent, string name, string rarity, float size, bool active, int level, bool ribbonSmall) { return TileFace(parent, name, rarity, size, active, level, ribbonSmall, null, Forge.Game.Gallery.GalleryKind.Pets); }
+        public RectTransform TileFace(Transform parent, string name, string rarity, float size, bool active, int level, bool ribbonSmall) { return TileFace(parent, name, rarity, size, active, level, ribbonSmall, null, Forge.Game.Gallery.GalleryKind.Pets, null); }
 
-        /// <summary>탈것 화면(<see cref="MountSheet"/>)도 같은 타일 — 리본 글(«탑승 중»/«장착됨»)과 종 갈래만 다르다.</summary>
-        public RectTransform TileFace(Transform parent, string name, string rarity, float size, bool active, int level, bool ribbonSmall, string ribbonText, Forge.Game.Gallery.GalleryKind kind)
+        public RectTransform TileFace(Transform parent, string name, string rarity, float size, bool active, int level, bool ribbonSmall, string ribbonText, Forge.Game.Gallery.GalleryKind kind) { return TileFace(parent, name, rarity, size, active, level, ribbonSmall, ribbonText, kind, null); }
+
+        /// <summary>
+        /// 탈것 화면(<see cref="MountSheet"/>)도 같은 타일 — 리본 글(«탑승 중»/«장착됨»)과 종 갈래만 다르다.
+        /// <paramref name="lvKeyline"/> 는 **펫 상세 팝업 타일에만** 준다(T109 10회차): 정본 규칙
+        /// `.petd-wrap .petd-tile .sk-lv`(style.css 5467)는 `.petd-wrap`(ui.js 4014 `idet-wrap petd-wrap`) **안**에서만 걸리고,
+        /// 격자·알·탈것 상세·업그레이드 팝업은 그 밖이라 기본 `.sk-lv`(4045 검정 알약 · 링 없음) 그대로다
+        /// (정본 주석 ui.js 4030 «알·탈것 상세(같은 .petd-name)는 .petd-wrap 밖이라…» 가 그 경계를 못 박는다).
+        /// </summary>
+        public RectTransform TileFace(Transform parent, string name, string rarity, float size, bool active, int level, bool ribbonSmall, string ribbonText, Forge.Game.Gallery.GalleryKind kind, string lvKeyline)
         {
             Color rc = PetSkillStyle.Rarity(Defs, rarity);
             RectTransform face = PetSkillKit.Framed(parent, "tile-face", PetSkillStyle.Mix(rc, PetSkillStyle.C("white"), PetSkillStyle.L("tile_face_mix_f")), PetSkillStyle.Px("tile_r_rem"), PetSkillKit.Line3);
@@ -250,7 +258,7 @@ namespace Forge.Game.Ui
             float lw = PetSkillKit.TextWidth(TextKind.Sub, lt) + PetSkillStyle.Rem(0.5f);
             // T109 10회차 — 정본 `.petd-wrap .petd-tile .sk-lv`(style.css 5467): 알약은 그대로 두고 글자에 2.5px 검정 링
             //   («타일 위 Lv 글자도 원본은 흰 채움 + 검정 키라인이다» — 정본 주석의 리본 글자 y=419 스캔 근거).
-            RectTransform lv = PetSkillKit.LvBadge(face, lt, lw, lvH, "petd_tile_lv");
+            RectTransform lv = PetSkillKit.LvBadge(face, lt, lw, lvH, lvKeyline);
             UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0f, PetSkillStyle.Rem(0.15f)), lw, lvH);
             return face;
         }
@@ -513,7 +521,8 @@ namespace Forge.Game.Ui
             float y = padT;
             RectTransform tilecol = UiKit.Box(c, "petd-tilecol");
             UiKit.Place(tilecol, padX, y, tile, headH);
-            RectTransform face = TileFace(tilecol, pet.Name, pet.Rarity, tile, active, pet.Level, false);
+            // 이 자리만 정본 `.petd-wrap`(ui.js 4014) 안이다 → Lv 글자에 2.5px 링(style.css 5467 · T109 10회차)
+            RectTransform face = TileFace(tilecol, pet.Name, pet.Rarity, tile, active, pet.Level, false, null, Forge.Game.Gallery.GalleryKind.Pets, "petd_tile_lv");
             UiKit.Place(face, 0f, 0f, tile, tile);
             if (pet.Stars > 0) SkillPanel.StarRow(tilecol, pet.Stars, tile, tile + PetSkillStyle.Rem(0.25f), starH);
             float bx = padX + tile + PetSkillStyle.Px("petd_head_gap_rem");

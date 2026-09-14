@@ -124,24 +124,32 @@ namespace Forge.Tests.PlayMode
         /// <summary>
         /// T109 10회차 — 정본 `.petd-wrap .petd-tile .sk-lv`(style.css 5467): **알약은 그대로** 두고 그 글자가
         /// 흰 칠 + **2.5px 검정 링**이다(폭표 `KeylineUi.px.petd_tile_lv`). 기본 `.sk-lv`(4045)만 옮겼던 자리다.
+        /// 규칙의 스코프는 `.petd-wrap`(ui.js 4014 · **펫 상세 팝업 안**)이라 격자·알·탈것 상세·업그레이드 팝업은 링이 없다.
         /// </summary>
-        static void AssertTileLvKeyline(int i)
+        static void AssertDetailTileLvKeyline(Transform popupRoot)
         {
-            UnityEngine.UI.Button tile = Sheet.Pets.PetTile(i);
-            Assert.IsNotNull(tile, "펫 타일 " + i);
+            Assert.IsNotNull(popupRoot, "펫 상세 팝업");
+            Transform tilecol = null;
+            foreach (RectTransform rt in popupRoot.GetComponentsInChildren<RectTransform>(true)) if (rt.name == "petd-tilecol") tilecol = rt;
+            Assert.IsNotNull(tilecol, "상세 타일 칸(petd-tilecol)");
             TextMeshProUGUI lv = null;
             RectTransform badge = null;
-            foreach (RectTransform rt in tile.GetComponentsInChildren<RectTransform>(true))
+            foreach (RectTransform rt in tilecol.GetComponentsInChildren<RectTransform>(true))
             {
                 if (rt.name != "sk-lv") continue;
                 lv = rt.GetComponent<TextMeshProUGUI>();
                 badge = rt.parent as RectTransform;
             }
-            Assert.IsNotNull(lv, "타일 Lv 글자(정본 이름 sk-lv)");
+            Assert.IsNotNull(lv, "상세 타일 Lv 글자(정본 이름 sk-lv)");
             Assert.AreEqual(PetSkillStyle.C("white"), lv.color, "흰 칠(정본 color:#fff)");
             Assert.Greater(lv.outlineWidth, 0f, "2.5px 검정 링(정본 -webkit-text-stroke)");
             Assert.IsNotNull(badge, "Lv 알약 상자");
             Assert.IsNotNull(badge.Find("bg"), "알약 판은 그대로다 — 정본 5467 은 background 를 끄지 않는다(전투 바 603 과 다른 자리)");
+            // 격자 타일은 `.petd-wrap` **밖**이라 링이 없다(정본 4045 그대로 · ui.js 4030 주석의 경계).
+            UnityEngine.UI.Button grid = Sheet.Pets.PetTile(0);
+            if (grid != null)
+                foreach (RectTransform rt in grid.GetComponentsInChildren<RectTransform>(true))
+                    if (rt.name == "sk-lv") Assert.Fail("격자 타일엔 링을 걸지 않는다 — 정본 규칙이 .petd-wrap 안에서만 걸린다");
         }
 
         static bool NoGraphics()
@@ -439,6 +447,7 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsTrue(Sheet.Modal.IsOpen(PetPanel.DetailModal));
             AssertTextGate("펫 상세");
+            AssertDetailTileLvKeyline(Sheet.Modal.Find(PetPanel.DetailModal).Content);   // T109 10회차 — 정본 5467 링
             Sheet.Modal.Find(PetPanel.DetailModal).Content.Find("btn-upgrade").GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
             yield return null;
             Assert.IsTrue(Sheet.Modal.IsOpen(PetUpgradePopup.ModalName), "업그레이드 팝업");
@@ -498,7 +507,6 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.AreNotEqual(active, Host.Pets.State.ActivePets.Contains(last));
             if (Host.Pets.State.ActivePets.Contains(last)) AssertRibbonInsideTile(last);
-            AssertTileLvKeyline(last);                                                  // T109 10회차 — 타일 Lv 링(정본 5467)
             Sheet.Pets.OnTogglePet(last);
             yield return null;
             Assert.AreEqual(active, Host.Pets.State.ActivePets.Contains(last));
