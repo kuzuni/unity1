@@ -298,6 +298,7 @@ namespace Forge.Game.Ui
             if (d == null) return rt;
             Color ac = ForgeUi.AgeColor(d, it.Age);
             Image f = ForgeUi.Tile(rt, "frame", ForgeUi.CellFace(ac), ForgeUi.CellLine(ac), radius, PopupKit.Line3);
+            AgePattern.Attach(rt, it.Age, cell: true, mask: false, siblingIndex: 1);   // T124 3회차 ⓑ — 정본 equipCellHTML(ui.js 3102) `.equip-cell[data-age]` 의 시대 무늬 층(.55 · 틀 위·아이콘 뒤) · 장비 시트 칸(ForgeSheet.EquipCell)과 같은 한 줄
             Image img = PopupKit.IconOr(rt, "img", ForgeUi.ItemIconKey(d, it));
             img.raycastTarget = false;
             float kk = size * PlayerInfoStyle.L("cell_ink_f");

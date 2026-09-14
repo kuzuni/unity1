@@ -6,8 +6,10 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using Forge.Core.Ui;
+using Forge.Core.Forging;
 using Forge.Game;
 using Forge.Game.Ui;
+using Forge.Game.Gallery;
 
 namespace Forge.Tests.PlayMode
 {
@@ -298,6 +300,117 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(plain, 0, "앞 다섯 시대 타일");
             h.Meta.Popups.HideAll();
             yield return null;
+        }
+
+        /// <summary>T124 3회차 ⓑ — 플레이어 정보 8칸(정본 `equipCellHTML` · ui.js 3102 `.equip-cell[data-age]`)에도 층이 선다. 뒤 다섯 시대 장비를 다섯 칸에 끼워 실제로 층이 서는 것을 보고,
+        /// 촬영 목록엔 무늬 장비를 낀 화면이 없으므로 판정 PNG 한 장(`screen_t124-cell.png`)을 굽는다(T135·T138 의 길).</summary>
+        [UnityTest]
+        public IEnumerator 플레이어_정보_장착_칸에_무늬_층이_걸리고_판정_PNG_한_장을_굽는다()
+        {
+            yield return Boot();
+            Sweep();
+            ForgeHost fh = ForgeHost.Instance;
+            MetaHost h = MetaHost.Instance;
+            string[] slots = fh.Defs.Slots;
+            var saved = new Dictionary<string, ForgeItem>();
+            var want = new Dictionary<string, string>();
+            for (int i = 0; i < slots.Length; i++)
+            {
+                string slot = slots[i];
+                saved[slot] = fh.Gear.Get(slot);
+                string age = i < PatternedAges.Length ? PatternedAges[i] : fh.Defs.Ages[0];
+                string[] weapons = slot == "weapon" ? fh.Engine.WeaponsOfAge(age) : null;
+                fh.Gear.Set(slot, new ForgeItem
+                {
+                    Slot = slot, Age = age, AgeIdx = System.Array.IndexOf(fh.Defs.Ages, age), Rarity = "common", Level = 1, Stars = 0, Name = slot,
+                    WType = weapons != null && weapons.Length > 0 ? weapons[0] : null
+                });
+                want[slot] = age;
+            }
+            fh.Push();
+            try
+            {
+                PlayerInfoPopup.Open(h);
+                yield return null; yield return null;
+                Canvas.ForceUpdateCanvases();
+                Popup p = PopupLayer.Instance.Find(PlayerInfoPopup.Name);
+                Assert.IsNotNull(p, "플레이어 정보 팝업");
+                int patterned = 0, plain = 0;
+                foreach (string slot in slots)
+                {
+                    RectTransform c = FindDeep(p.Root, "slot-" + slot);
+                    Assert.IsNotNull(c, slot + " 칸");
+                    Transform layer = c.Find("age-pattern");
+                    if (AgePattern.Has(want[slot]))
+                    {
+                        Assert.IsNotNull(layer, slot + " 칸(" + want[slot] + ")에 무늬 층");
+                        AgePattern ap = layer.GetComponent<AgePattern>();
+                        Assert.AreEqual((float)AgePattern.Spec.CellOpacity, ap.BaseOpacity, 1e-6f, "장착 칸은 filter: opacity(.55)");
+                        Assert.AreEqual(1, layer.GetSiblingIndex(), "틀 위 · 아이콘 뒤(형제 1)");
+                        patterned++;
+                    }
+                    else { Assert.IsNull(layer, slot + " 칸(" + want[slot] + ")은 민무늬"); plain++; }
+                }
+                Assert.AreEqual(System.Math.Min(PatternedAges.Length, slots.Length), patterned, "뒤 다섯 시대 칸");
+                Assert.AreEqual(slots.Length - patterned, plain, "앞 시대 칸");
+                yield return null;
+                Capture("screen_t124-cell");
+                fh.Meta.Popups.HideAll();
+                yield return null;
+            }
+            finally
+            {
+                foreach (var kv in saved) fh.Gear.Set(kv.Key, kv.Value);
+                fh.Push();
+            }
+        }
+
+        /// <summary>UI 를 한 장 그린다(T135 `DamageVignetteTests.Capture` 와 같은 길) — 눈 확인용 · 실패해도 판정을 안 흔든다.</summary>
+        static void Capture(string saveAs)
+        {
+            UiRoot root = UiRoot.Instance;
+            Canvas canvas = root.Canvas;
+            RenderMode prevMode = canvas.renderMode;
+            Camera prevCam = canvas.worldCamera;
+            float prevPlane = canvas.planeDistance;
+            RenderTexture prevActive = RenderTexture.active;
+            int w = Mathf.Max(64, Screen.width), hh = Mathf.Max(64, Screen.height);
+            RenderTexture rt = new RenderTexture(w, hh, 24, RenderTextureFormat.ARGB32);
+            GameObject camGo = new GameObject("t124-pixel-cam");
+            Camera cam = camGo.AddComponent<Camera>();
+            try
+            {
+                if (Camera.main != null) cam.CopyFrom(Camera.main);
+                cam.rect = new Rect(0f, 0f, 1f, 1f);
+                cam.targetTexture = rt;
+                cam.ResetProjectionMatrix();
+                cam.cullingMask = 1 << canvas.gameObject.layer;
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = Color.black;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                canvas.planeDistance = 1f;
+                root.Layout();
+                Canvas.ForceUpdateCanvases();
+                cam.Render();
+                RenderTexture.active = rt;
+                Texture2D tex = new Texture2D(w, hh, TextureFormat.RGB24, false);
+                tex.ReadPixels(new Rect(0f, 0f, w, hh), 0, 0);
+                tex.Apply(false);
+                try { GallerySheet.Save(tex, saveAs); } catch (System.Exception e) { Debug.Log("[T124] PNG 저장 생략: " + e.Message); }
+                Object.Destroy(tex);
+            }
+            finally
+            {
+                RenderTexture.active = prevActive;
+                canvas.renderMode = prevMode;
+                canvas.worldCamera = prevCam;
+                canvas.planeDistance = prevPlane;
+                root.Layout();
+                cam.targetTexture = null;
+                Object.Destroy(camGo);
+                Object.Destroy(rt);
+            }
         }
 
         static RectTransform FindDeep(Transform root, string name)
