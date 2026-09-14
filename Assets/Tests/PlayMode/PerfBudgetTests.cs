@@ -462,7 +462,15 @@ namespace Forge.Tests.PlayMode
             catch (Exception) { /* 자취는 보험 — 못 써도 판정은 그대로 */ }
         }
 
+        // §0-6(런 503 · 워커 C): 이 자는 오디오 베이크를 최대 BakeWaitSec(120초) 기다린 뒤에야 재는데(런 503 실측 93.1초 기다림)
+        //   그 뒤 예열 60 + 프로파일 60 + 측정 열 번 × 200 프레임 ≈ 2,100 프레임 × 벽시계 38.9ms ≈ 82초 — 합이 유니티 기본 타임아웃 180초를 넘겨
+        //   측정 도중에 «Timeout value of 180000 ms was exceeded» 로 죽었다. 상한은 «베이크 대기 + 측정 몫» 을 다 담는 값이어야 한다(판정 수치가 아니라 자의 벽시계 상한).
+        //   (dotnet 하니스의 NUnit(netstandard)에는 TimeoutAttribute 가 없다 — 유니티 안에서만 단다. CI 는 에디터 PlayMode 라 UNITY_EDITOR 다.)
+#if UNITY_EDITOR
+        [UnityTest, Timeout(600000)]
+#else
         [UnityTest]
+#endif
         public IEnumerator 전투_최대_부하_200프레임_메인스레드_예산_과_프레임당_GC()
         {
             yield return MakeLoadScene(4400);

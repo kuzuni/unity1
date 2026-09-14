@@ -90,8 +90,13 @@ namespace Forge.Tests.PlayMode
                 else Assert.IsNull(time, p.Id + " 엔 카운트다운이 없다(정본 #waypoint-pass 는 아이콘뿐)");
             }
             int ticks = w.Ticks;
-            yield return WaitMs(s.TickMs + 300);
-            Assert.Greater(w.Ticks, ticks, "정본 매초 tick 이 글자를 다시 쓴다");
+            // §0-6(런 503 · 워커 C): 정확히 tick+300ms 만 재고 단언하니 러너가 느린 런에서 «Expected greater than 1 · But was 1» 로 넘어졌다.
+            //   판정은 «매초 tick 이 글자를 다시 쓴다» 이지 «1.3초 안에 쓴다» 가 아니다 — 틱이 오를 때까지 기다리되 상한(세 틱 + 300ms)을 두어 Update 가 안 도는 병은 그대로 잡는다.
+            {
+                float t = 0f;
+                while (w.Ticks == ticks && t * 1000f < s.TickMs * 3 + 300) { t += Time.unscaledDeltaTime; yield return null; }
+            }
+            Assert.Greater(w.Ticks, ticks, "정본 매초 tick 이 글자를 다시 쓴다(세 틱 상한 안에 한 번도 안 썼다)");
             Assert.IsTrue(IsCountdownNow(w.LastCountdown));
             Capture("screen_t139-waypoints");
         }
