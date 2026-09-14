@@ -877,3 +877,40 @@ POLISH.md 를 읽고 «소품·용암 빛이 없다» 를 새 작업으로 등�
 ## 이 회차의 판정
 - 새로 캔 것: **좌초 하나**(T132 · 풀었다) · **자의 구멍 하나**(T164 · 등재).
 - **T33 은 아직 ✅ 가 아니다** — 열린 칸 13 중 **둘이 주인 몫**(T35·T106)이라 그 둘이 풀리기 전에는 «§7 전 줄 ✅» 에 닿을 수 없다.
+
+## ⓡ 13회차 — 정본 **모듈 API 전수**(ui.js 밖) · 최상위 상수 전수 (2026-09-14 · 워커 H · sess-1157-17535)
+
+> 1회차가 센 것은 `ui.js` 의 «화면을 여는 함수» 101개뿐이다(ⓒ 절). 규칙을 쥔 모듈 열다섯(`forge`·`combat`·`pets`·`skills`·
+> `mounts`·`dungeons`·`techtree`·`ascension`·`shop`·`pass`·`quests`·`league`·`chat`·`util`·`sfx`)의 메서드와, 표를 쥔 파일
+> 여섯(`gamedata`·`state`·`balance-data`·`sfx`·`bignum`·`icongen`)의 최상위 상수는 **아무도 세지 않았다**. 이 회차가 셌다.
+
+### ⓐ 규칙 모듈 메서드 **295** + `sfx` 45 = **340** — 짝 없는 것 **0**
+
+- 잣대: 정본 파일에서 `^    이름(` (모듈 객체의 메서드) 를 뽑고, 클론 `Assets/Scripts/**.cs` 의 심볼(메서드·필드·상수)과 PascalCase 로 맞댄다.
+- **Core 에 짝 289 · Game 에만 3 · 어디에도 없음 3.**
+  - **Game 에만 셋** — `U.josa`(조사 은/는·이/가) · `U.subText` · `U.subRangeText`. 셋 다 **표기 도우미**라 UI 층이 맞다.
+    `SubRangeText` 는 수를 `GameDefs.SubstatMin` 에서 읽는다(코드에 박힌 수 0 · §1 지킴).
+  - **어디에도 셋 — 전부 해명된다**: `Mounts.migrateInventory` → `MountSave.MigrateInventoryHook`(이름만 다르다 · 세이브 코덱이 JSON 단계에서 한다) ·
+    `U.sumSubs` → `Core/Gear/SubsBag`(클래스로 옮겼다) · `U.escapeHtml` → **아래 ⓒ**.
+  - `sfx` 의 `_musicTick`·`_applyModeTiming`·`_musicScheduleStep` 중 앞 둘은 **엔진 구조 차이**다 — 정본은 WebAudio 에 120ms look-ahead 로 실시간 예약하고,
+    클론은 `MusicSequencer` 가 스텝 하나를 같은 수치로 굽는다(`_musicScheduleStep` 은 그 클래스 머리 주석이 대응을 적어 두었다).
+
+### ⓑ 최상위 상수 **68** — 짝 없는 것 **0**
+
+- `gamedata` 36 · `state` 11 · `balance-data` 10 · `sfx` 5 · `bignum` 4 · `icongen` 2 를 추출 JSON(`StreamingAssets/data/*.json`) 키와 클론 심볼에 맞댔다.
+- 기계로 못 찾은 넷은 `bignum` 의 `BIG_MAX_E`·`BIG_ADD_CUTOFF`·`BIG_UNITS`·`BIG_ALPHA` 인데 `Core/BigNum.cs` 에 `MaxE`(1e308)·`AddCutoff`(17)·`Units`·`Alpha` 로 **전부 있다**(접두 `BIG_` 를 뗀 이름).
+
+### ⓒ 새로 캔 것 — 정본 `U.escapeHtml` 이 막던 구멍은 클론에서 **한 줄**이 막고 있다(자로 못 박았다)
+
+- 정본은 플레이어가 고치는 글(`S.nickname` · 채팅 문구·태그 · 리그 이름)을 DOM 에 넣기 전에 `U.escapeHtml`(util.js 27)로 꺾쇠를 죽인다 — `ui.js` 1296·4740·4859·5038·5194·5259·5263 등 **11자리**.
+- 클론에 그 함수가 없는 것은 **맞다**(HTML 이 아니다). 그런데 같은 구멍이 TMP 에 있다 — `richText` 가 켜져 있으면 닉네임 `<color=red>홍길동` 이 **글자가 아니라 태그로** 먹혀 이름이 사라지거나 색이 바뀐다.
+- 실측: 이 저장소에서 TMP 글자 부품을 만드는 자리는 **딱 하나**(`Assets/Scripts/Game/Ui/UiKit.cs:215`)이고 거기서 `richText = false`(222)를 박는다. 입력칸 둘(`ChatScreen`·`ProfilePopup` 의 `TMP_InputField`)도 그 공장이 만든 글자를 쓴다. **그래서 지금은 구멍이 없다.**
+- 다만 **아무도 그것을 지키지 않았다** — 누가 한 라벨에서 색을 갈아 끼우려고 `richText` 를 켜면 그날로 뚫린다. `tools/check_richtext.py`(이 회차 · rc 1 로 막는다)를 세웠다: ⓐ 공장이 끄고 있는가 ⓑ 공장 밖에서 TMP 를 만드는가 ⓒ 어디서든 `richText = true` 로 되켜는가. 셋 다 사본 실험으로 빨강을 확인했다(`--self-test` 7칸).
+
+### 덧 — 정본이 하나로 쥔 표기를 클론은 둘로 갈라 쥔다(지금은 같다)
+
+`U.subText` 하나가 장비·펫·탈것 서브스탯 줄을 다 그리는데(ui.js 3224·4010·5184·5689), 클론은 `ForgeUi.SubText`(장비)와 `PetSkillStyle.SubText`(펫·탈것 · 표 문구 `"{0}{1}% {2}"`)로 **둘**이다. 지금 두 출력은 글자까지 같다 — 그러나 한쪽만 고치면 장비와 펫의 같은 줄이 갈린다. 새 작업으로 등재하지 않는다(원작에 없는 것을 더하는 것이 아니고, 두 파일 다 남의 lock 자리다) — **그 둘 중 하나를 여는 회차가 합치면 된다**는 줄로 남긴다.
+
+## 이 회차의 판정
+- 새로 센 축 둘(모듈 메서드 340 · 최상위 상수 68) — **빠진 것 0**. ⓒ 절 하나를 새로 캐서 자로 막았다.
+- **T33 은 여전히 ✅ 가 아니다** — 12회차가 적은 그대로, 열린 칸의 둘(T35·T106)이 주인 몫이다.
