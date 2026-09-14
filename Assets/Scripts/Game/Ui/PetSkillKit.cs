@@ -351,6 +351,10 @@ namespace Forge.Game.Ui
                 img.sprite = sp;
                 img.preserveAspect = true;
                 img.raycastTarget = false;
+                // T332 5회차 — 정본 `.mt-face.has-thumb > img { filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)) }`(style.css 7604):
+                // **3D 스냅샷으로 바뀐 뒤에만** 접지 그림자가 진다(이모지 폴백엔 안 건다 — `.has-thumb` 가 그 가름이고, 여기선 `sp != null` 이 같은 뜻이다).
+                // 값은 장비 칸과 같은 `cell` 키다(굽기가 아니라 UI 층에서 거는 까닭은 결정 529).
+                ForgeUi.ThumbShadow(img, "cell");
             }
             else
             {

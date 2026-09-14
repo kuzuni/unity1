@@ -500,6 +500,14 @@ namespace Forge.Tests.PlayMode
                 Assert.Greater(edge, 0, kind + " «" + name + "» 썸네일에 실루엣 테두리가 있다");
                 Assert.GreaterOrEqual(edgeInk / (float)edge, 0.9f,
                     "구운 " + kind + " 그림의 실루엣 테두리가 검정이다(정본 --slot-out · T332 2회차) · 테두리 " + edge + " 중 검정 " + edgeInk + " · 불투명 " + opaque);
+
+                // T332 5회차 — 정본 `.mt-face.has-thumb > img`(7604)는 장비 칸과 **같은** 접지 그림자를 진다.
+                // 그림자는 굽는 것이 아니라 UI 층이 거는 것이라(결정 529) 실제로 얼굴을 세워 본다 — 이모지 폴백(썸네일 없음)에는 안 건다.
+                RectTransform face = PetSkillKit.PetFace(UiRoot.Instance.App, ForgeHost.Instance.Defs, name, 100f, kind);
+                Image fi = face.GetComponent<Image>();
+                Assert.IsNotNull(fi, kind + " «" + name + "» 얼굴이 3D 썸네일로 섰다(`.mt-face.has-thumb`)");
+                AssertThumbShadow(fi, "cell", kind + " 얼굴 `.mt-face.has-thumb > img`(7604)");
+                Object.Destroy(face.gameObject);
             }
         }
     }
