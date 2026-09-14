@@ -64,7 +64,7 @@ namespace Forge.Game.Ui
         static Camera cam;
         static Light key, rim;
         static readonly Vector3 Away = new Vector3(0f, -700f, 0f);
-        static bool triedInstall;
+        static bool installFailed;
 
         /// <summary>그래픽 장치 + 장비 메시 표가 있는가. 표는 아직 아무도 부팅 때 안 꽂으므로(T37 은 훅만 냈다) 스트리밍 파일이 있으면 여기서 한 번 꽂는다(에디터·PC·CI · 안드로이드·WebGL 은 부팅 로더 몫 — 없으면 실루엣).</summary>
         public static bool Available
@@ -72,11 +72,16 @@ namespace Forge.Game.Ui
             get
             {
                 if (!GallerySheet.GraphicsAvailable) return false;
-                if (GearMeshes.Installed == null && !triedInstall)
+                // 2회차 — «한 번만 시도» 가 아니라 «표가 없으면 다시 꽂는다»: PlayMode 에서 PaperdollTests 가 `GearMeshes.Uninstall()` 로 표를 뗀 뒤
+                // 그 뒤에 도는 촬영(UiShotsTests)이 여기서 영영 false 를 받아 실루엣만 찍혔다(런 339 `screen_craft-compare` 눈 확인). 실패(파일 없음·파싱 예외)만 기억한다.
+                if (GearMeshes.Installed == null && !installFailed)
                 {
-                    triedInstall = true;
-                    try { if (System.IO.File.Exists(GearMeshes.StreamingPath)) GearMeshes.LoadFromStreamingAssets().Install(); }
-                    catch (Exception ex) { Debug.LogWarning("[ItemFaces] gear-meshes 를 못 꽂았다 — 실루엣으로: " + ex.Message); }
+                    try
+                    {
+                        if (System.IO.File.Exists(GearMeshes.StreamingPath)) GearMeshes.LoadFromStreamingAssets().Install();
+                        else installFailed = true;
+                    }
+                    catch (Exception ex) { installFailed = true; Debug.LogWarning("[ItemFaces] gear-meshes 를 못 꽂았다 — 실루엣으로: " + ex.Message); }
                 }
                 return GearMeshes.Installed != null;
             }
@@ -104,7 +109,9 @@ namespace Forge.Game.Ui
             string k = Key(it);
             Sprite sp;
             if (cache.TryGetValue(k, out sp)) return sp;
-            sp = Supports(it.Slot) && Available ? Bake(defs, it, k) : null;
+            if (!Supports(it.Slot)) { cache[k] = null; return null; }
+            if (!Available) return null;   // 장치·표가 없는 «지금» 은 캐시하지 않는다 — 표가 나중에 꽂히면 그때 굽는다
+            sp = Bake(defs, it, k);
             cache[k] = sp;
             return sp;
         }
@@ -113,6 +120,7 @@ namespace Forge.Game.Ui
         {
             cache.Clear();
             queue.Clear();
+            installFailed = false;
             if (stage != null) { UnityEngine.Object.Destroy(stage); stage = null; }
             cam = null; key = null; rim = null;
         }

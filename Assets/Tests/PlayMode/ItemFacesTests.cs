@@ -8,6 +8,7 @@ using UnityEngine.TestTools;
 using Forge.Core.Data;
 using Forge.Core.Forging;
 using Forge.Game;
+using Forge.Game.Hero;
 using Forge.Game.Gallery;
 using Forge.Game.Ui;
 
@@ -221,6 +222,36 @@ namespace Forge.Tests.PlayMode
             yield return null;
             log.AssertNoRed();
             log.Dispose();
+        }
+
+        /// <summary>T122 2회차 — 런 339 실측: PaperdollTests 가 `GearMeshes.Uninstall()` 로 표를 뗀 뒤 도는 촬영이 실루엣만 찍었다(«한 번만 꽂는다» 가 영영 false). 표가 없으면 다시 꽂고, 없던 순간의 null 은 캐시에 남기지 않는다.</summary>
+        [UnityTest]
+        public IEnumerator 다른_곳이_장비_메시_표를_뗀_뒤에도_다음_Get_은_표를_다시_꽂고_굽는다()
+        {
+            yield return Boot();
+            if (!GallerySheet.GraphicsAvailable) Assert.Ignore("그래픽 장치가 없다 — 썸네일은 CI 의 유니티 잡이 본다");
+            ForgeHost h = ForgeHost.Instance;
+            GameDefs d = h.Defs;
+            Assert.IsTrue(ItemFaces.Available, "장비 메시 표(gear-meshes.json)가 꽂혀야 한다");
+            string age = d.Ages[0];
+            string wt = h.Engine.WeaponsOfAge(age)[0];
+            ForgeItem it = new ForgeItem { Slot = "weapon", WType = wt, Age = age, AgeIdx = 0, Rarity = "common" };
+
+            GearMeshes.Uninstall();
+            Assert.IsNull(GearMeshes.Installed, "뗐다");
+            Assert.IsTrue(ItemFaces.Available, "표가 없으면 다시 꽂는다(한 번만 시도하지 않는다)");
+            Assert.IsNotNull(GearMeshes.Installed, "다시 꽂혔다");
+            Sprite sp = ItemFaces.Get(d, it);
+            Assert.IsNotNull(sp, "뗀 뒤 첫 Get 도 썸네일을 준다");
+
+            // 캐시에 없는 새 키를 «표가 없는 순간» 에 물어도 null 이 캐시에 남지 않는다
+            ForgeItem it2 = new ForgeItem { Slot = "weapon", WType = wt, Age = age, AgeIdx = 0, Rarity = "rare" };
+            int before = ItemFaces.CacheCount;
+            GearMeshes.Uninstall();
+            ItemFaces.Reset();   // 무대·캐시를 비우고 «설치 실패» 기억도 지운다 — 다음 Get 이 다시 꽂는다
+            Assert.IsNotNull(ItemFaces.Get(d, it2), "Reset 뒤 첫 Get 이 표를 다시 꽂고 굽는다");
+            Assert.AreEqual(1, ItemFaces.CacheCount, "굽힌 것만 캐시에 든다 · 이전 " + before);
+            yield return null;
         }
     }
 }
