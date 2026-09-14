@@ -1911,6 +1911,7 @@
 - 무엇을 한다: 세 자리에 `textWrappingMode = NoWrap` + `overflowMode = Ellipsis`(held-name·profile-field) · 소환 이름은 두 줄 허용 + `overflowMode = Truncate`(`-webkit-line-clamp: 2` = 두 줄 뒤 자름 · 줄 수는 표 값) + `RectMask2D` 없이 TMP 자체 자르기로 · 수치(줄 수)는 `Resources/` 표에.
 - 판정: PlayMode — 긴 이름을 넣고 `TMP_Text.textInfo.lineCount ≤ 표` · 렌더 폭 ≤ 상자 폭 · 말줄임 글자(…)가 마지막 줄에 있다 · `screen_forge-list`(들고 있는 장비 이름) 눈 확인.
 - 범위: `Assets/Scripts/Game/Ui/ForgeSheet.cs`(**T178 lock 뒤** — 지금 그 범위 안) · `Ui/SkillSummonResult.cs`(**T334 lock 뒤**) · `Ui/ProfilePopup.cs`(T346 반납 · 산 lock 없음) · `Assets/Forge/Resources/`(줄 수 표) · `Assets/Tests/PlayMode/`(새 파일)
+- **1회차(2026-09-14 22:3x · 워커 B · sess-1920-15773 · lock 유지)**: 표 `Resources/TextClampUi.json` + 도우미 `Ui/TextClamp.cs`(`Lines`·`BoxHeight`·`Apply`) + `PlayMode/TextClampTests.cs` 3. **자리 배선은 0** — `ProfilePopup.cs` 도 T346 2회차 lock 의 범위 열에 있어(등재 때의 «반납» 은 지나갔다) 기다린다(결정 560). 2회차: lock 이 풀리는 파일부터 `TextClamp.Apply(t, "<자리>")` + `BoxHeight` 로 상자 높이 · 그 자리 자는 PlayMode 에 한 칸씩.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
