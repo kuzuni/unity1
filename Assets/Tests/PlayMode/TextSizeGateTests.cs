@@ -83,7 +83,8 @@ namespace Forge.Tests.PlayMode
         /// `tools/check_text_glyphs.py` 의 `KNOWN` 과 **같은 목록**이다 — 한쪽만 지우면 다른 쪽이 잡는다.
         /// 새 글자는 여기 없으니 이 단언이 빨개진다(그것이 이 막이의 일이다).
         /// </summary>
-        private const string KnownTofu = "\u23F1\u23F9\u21BB\uD83D\uDC34\uD83D\uDC3E\uD83D\uDE2D\uD83D\uDEE1";
+        /// T137 — Core 토스트 둘(🚪 U+1F6AA Dungeons.cs:237 · 🔥 U+1F525 Battle.cs:578)도 같은 목록 — 정본도 글자(dungeons.js 156 · combat.js 499) · T106.
+        private const string KnownTofu = "\u23F1\u23F9\u21BB\uD83D\uDC34\uD83D\uDC3E\uD83D\uDE2D\uD83D\uDEE1\uD83D\uDEAA\uD83D\uDD25";
 
         /// <summary>카탈로그 글꼴 자체가 한글을 쥐고 있는가(OS 폴백에 기대지 않는다 — 리눅스 CI·WebGL 에는 없다).</summary>
         [Test]
