@@ -250,6 +250,7 @@ namespace Forge.Game.Ui
         {
             float w = W * PetSkillStyle.L("equipped_w_f");
             RectTransform row = PetSkillKit.Framed(parent, "equipped-row", PetSkillStyle.C("equipped_bg"), PetSkillStyle.Px("equipped_r_rem"), PetSkillKit.Line3);
+            UiShadow.Drop(row, "equipped_lip", PetSkillStyle.Px("equipped_r_rem"));   // 정본 .equipped-row(4128) `0 .22rem 0 rgba(0,0,0,.35)`
             UiKit.Place(row, (W - w) * 0.5f, yTop, w, eqH);
             EquippedLabel(row, eqH);
             float mini = PetSkillStyle.Px("mini_skill_rem");

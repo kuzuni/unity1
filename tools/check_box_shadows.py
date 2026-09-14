@@ -53,11 +53,9 @@ SPOTS = [
 
 # 아직 안 선 자리 — 까닭과 «누가/언제» 를 같이 적는다. 서면 이 줄을 지운다(안 지우면 자가 알린다).
 KNOWN = {
-    'card_lip':      'T331 2회차 — 클론에 그림자 도우미(UiShadow)가 아직 없다 · Popups.cs 는 T333 lock 뒤',
-    'panel_lip':     'T331 2회차 — 같음(UiKit.cs 는 T106·T178·T333 lock 뒤)',
-    'qstrow_lip':    'T331 2회차 — 같음(QuestSheet.cs)',
-    'dgbanner_lip':  'T331 2회차 — 같음(DungeonSheet 쪽)',
-    'equipped_lip':  'T331 2회차 — 같음(SkillPetSheet 쪽)',
+    'card_lip':      'T331 2회차 — 도우미(UiShadow)는 섰다 · Popups.cs 가 T335·T345 산 lock 이라 배선만 남았다',
+    'panel_lip':     'T331 2회차 — 같음(UiKit.cs 는 T178·T335 산 lock)',
+    'dgbanner_lip':  'T331 2회차 — 같음(DungeonSheet.cs 는 T178 2회차 범위)',
     'topbar_drop':   'T331 3회차 — 흐린 그림자는 굽는 길(스프라이트)이 먼저 있어야 한다',
     'afcard_drop':   'T331 3회차 — 같음',
     'autodrop_drop': 'T331 3회차 — 같음',

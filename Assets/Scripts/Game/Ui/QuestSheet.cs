@@ -67,6 +67,7 @@ namespace Forge.Game.Ui
                 RectTransform row = UiKit.Box(slot, "row");
                 UiKit.Anchor(row, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, rowW, rowH);
                 PopupKit.Outlined(row, "face", done ? "quest_done_bg" : "pp_paper", rem * 0.8f, PopupKit.Line3, done ? "pp_green" : "pp_line");
+                UiShadow.Drop(row, "qstrow_lip", rem * 0.8f);   // 정본 .qst-row(2026) `0 .25rem 0 rgba(0,0,0,.3)` — 종이 카드가 한 겹 떠 있다
 
                 float padX = rem * 0.7f, padY = rem * 0.55f;
                 RectTransform icoBox = UiKit.Box(row, "icon");
