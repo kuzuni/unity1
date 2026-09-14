@@ -9,6 +9,8 @@
     "saturation_": "URP ColorAdjustments.saturation(−100~100) → 계수 1 + v/100 · 식이 정본과 같아 1.12 = +12 그대로",
     "contrast": 7,
     "contrast_": "URP ColorAdjustments.contrast(−100~100) → 계수 1 + v/100 · URP 는 ACEScc 로그 공간 중회색 기준이라 정본(sRGB .5 중심)과 식이 달라 «+7» 은 첫 값 — 세계 컷 PNG 통계로 맞춘다(결정 기록)",
+    "pixel_ratio_tol": 0.06,
+    "pixel_ratio_tol_": "화소 판정: 띠 평균 채도 켠/끈 비 ↔ css_saturate 의 허용 오차 — URP 는 채도를 톤맵(ACES) 앞 선형에서 곱하고 PNG 는 sRGB 로 재므로 1.12 가 그대로 안 나온다(런 실측으로 좁힌다)",
     "tol": 0.01,
     "tol_": "에셋 값 ↔ 표 기대값 허용 오차(에셋이 정수라 사실상 0)",
     "post_exposure_src": 0.02857,

@@ -53,6 +53,9 @@ namespace Forge.Tests.PlayMode
                     cam.rect = new Rect(0f, 0f, 1f, 1f);        // 레터박스만 걷는다(RT 가 곧 앱 상자다)
                     cam.targetTexture = rt;
                     Bootstrap.ApplyGameAreaProjection(cam);      // 게임과 같은 framing — 여기엔 캔버스가 없으니 UI 가 안 따라온다
+                    // T341 — CopyFrom 은 URP 추가 데이터를 안 옮겨 포스트(톤맵·노출·색 보정)가 꺼진 채 찍혔다(런 503 실측 · 결정 537). 게임이 보는 그대로 찍는다.
+                    var urp = camGo.GetComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>() ?? camGo.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
+                    urp.renderPostProcessing = true;
                     cam.Render();
                     RenderTexture.active = rt;
                     shot = new Texture2D(ShotW, ShotH, TextureFormat.RGB24, false);
