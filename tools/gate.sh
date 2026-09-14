@@ -49,6 +49,7 @@ block|-|TMP richText 가 글자 공장 밖에서 켜지는가 (T175)|python3 too
 block|-|이름으로 찾는 것이 빌드에도 실리는가 (T126)|python3 tools/check_shaders_included.py
 block|-|원작 소리 24종이 실제로 울리는가 (T119)|python3 tools/check_sfx_calls.py
 block|-|하니스 스텁이 실물에 없는 서명을 갖고 있나 (T174)|python3 tools/check_stub_sigs.py
+block|wwwww|정본 바깥 그림자가 클론에 서 있는가 (T331)|python3 tools/check_box_shadows.py
 block|wwwww|data/*.json ↔ 정본 (T2)|tools/check_data_sync.sh .wwwww-src
 block|wwwww|정본 -webkit-text-stroke ↔ 클론 키라인 (T109)|python3 tools/check_keyline.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 clip-path 도형 ↔ 클론이 굽는가 (T159)|python3 tools/check_clip_paths.py --css .wwwww-src/web/css/style.css
@@ -56,7 +57,7 @@ block|wwwww|정본 gradient 겹 ↔ 클론이 굽는가 (T178)|python3 tools/che
 block|wwwww|정본 letter-spacing ↔ 클론 자간 + 박힌 숫자 (T168)|python3 tools/check_letter_spacing.py --css .wwwww-src/web/css/style.css
 block|node|추출기 자기 검사 (T2)|node tools/export_data.js --self-test
 report|gh|유니티 잡이 실제로 돈 마지막 main 런이 초록인가 (T123 · §0-6 의 눈)|python3 tools/check_unity_green.py --fetch
-report|-|이 목록 ↔ ci.yml 이 부르는 이름 (T184 ⓑ · ci.yml 이 --list 를 읽게 되면 block 으로 올린다)|tools/gate.sh --check-ci
+block|-|이 목록 ↔ ci.yml 이 부르는 이름 — 막는다 (T184 ⓑ · CI 도 같은 자를 돌린다)|tools/gate.sh --check-ci
 TABLE
 
 gate_table() {

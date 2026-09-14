@@ -106,6 +106,14 @@ jobs:
 
       - name: 이름으로 찾는 것(셰이더·Resources)이 빌드에도 실리는가 — 막는다 (T126 · 조용히 null 이 되는 자리)
         run: python3 tools/check_shaders_included.py
+
+      # T184 ⓑ — §3 목록(tools/gate.sh 안 배열)과 이 파일이 갈리는 것을 **구조로** 막는다.
+      #          자를 새로 세우고 여기 두 줄을 잊으면 이 스텝이 빨개진다 — 사람 기억에 안 맡긴다.
+      #          (T175 가 check_richtext 하나를 세워 닫은 갈래가 하루 만에 둘로 다시 벌어져 있었다.)
+      - name: 게이트 자 자기 검사 (T184 `gate.sh --self-test` · 실물 컴파일 오류 주입 포함 27칸)
+        run: tools/gate.sh --self-test
+      - name: §3 게이트 목록 ↔ 이 파일이 부르는 이름 — 막는다 (T184 ⓑ)
+        run: tools/gate.sh --check-ci
       - name: 테스트 결과 Artifact
         if: always()
         uses: actions/upload-artifact@v4
