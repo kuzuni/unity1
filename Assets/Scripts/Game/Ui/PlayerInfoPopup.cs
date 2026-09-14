@@ -303,6 +303,7 @@ namespace Forge.Game.Ui
             img.raycastTarget = false;
             float kk = size * PlayerInfoStyle.L("cell_ink_f");
             UiKit.Anchor(img.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, size * PlayerInfoStyle.L("cell_ink_lift_f")), kk, kk);
+            ForgeUi.ApplyThumb(rt, ItemFaces.Get(d, it), size);   // T122 3회차 — 장비 시트 칸과 같은 정본 equipCellHTML(ui.js 3103) 의 itemImgHTML: 3D 썸네일 · 장신구는 실루엣
             ForgeUi.LvBadge(rt, it.Level, size);
             ForgeUi.StarBadge(rt, it.Stars, size);
             Button b = rt.gameObject.AddComponent<Button>();

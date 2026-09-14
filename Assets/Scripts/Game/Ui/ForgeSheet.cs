@@ -224,6 +224,7 @@ namespace Forge.Game.Ui
             Image img = PopupKit.IconOr(rt, "img", ForgeUi.ItemIconKey(d, it));
             float kk = size * 0.76f;
             UiKit.Anchor(img.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, size * 0.06f), kk, kk);
+            ForgeUi.ApplyThumb(rt, ItemFaces.Get(d, it), size);   // T122 3회차 — 정본 equipCellHTML(ui.js 3103) 의 itemImgHTML: 3D 썸네일이 있으면 그것, 없으면(장신구) 실루엣 그대로
             ForgeUi.LvBadge(rt, it.Level, size);
             ForgeUi.StarBadge(rt, it.Stars, size);
             Button b = rt.gameObject.AddComponent<Button>();

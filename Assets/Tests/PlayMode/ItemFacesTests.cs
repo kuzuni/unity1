@@ -145,6 +145,69 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(got[got.Count - 1]);
         }
 
+        /// <summary>T122 3회차 ⓐ — 정본 `equipCellHTML`(ui.js 3103 `itemImgHTML(it,'cell-img')`)이 그리는 두 자리: 장비 시트 칸(`ForgeSheet.EquipCell`)과 플레이어 정보 칸(`PlayerInfoPopup.EquipCell`).
+        /// 캡처 있는 부위는 구운 썸네일(캐시 같은 참조 · 틴트 없음 · contain), 장신구는 슬롯 실루엣 그대로(정본 폴백 순서).</summary>
+        [UnityTest]
+        public IEnumerator 장비_시트_칸과_플레이어_정보_칸의_장착_장비_그림은_구운_썸네일이고_장신구는_실루엣이다()
+        {
+            yield return Boot();
+            if (!GallerySheet.GraphicsAvailable) Assert.Ignore("그래픽 장치가 없다 — 썸네일은 CI 의 유니티 잡이 본다");
+            PlayLog log = PlayLog.Start("item-faces-cells");
+            ForgeHost h = ForgeHost.Instance;
+            GameDefs d = h.Defs;
+            Assert.IsTrue(ItemFaces.Available, "장비 메시 표(gear-meshes.json)가 꽂혀야 한다");
+            ForgeItem cur = null;
+            for (int i = 0; i < 200 && cur == null; i++) { ForgeItem it = h.Engine.RollItem(); if (ItemFaces.Supports(it.Slot)) cur = it; }
+            Assert.IsNotNull(cur, "무기·투구·갑옷 하나는 나와야 한다");
+            ForgeItem glove = new ForgeItem { Slot = "gloves", Age = d.Ages[0], AgeIdx = 0, Rarity = "common", Name = "장갑", Level = 1 };
+            h.Gear.Set(cur.Slot, cur);
+            h.Gear.Set("gloves", glove);
+            h.Push();
+            ForgeSheet.Render(h);
+            yield return null;
+            Sprite thumb = ItemFaces.Get(d, cur);
+            Assert.IsNotNull(thumb, "장착 장비의 구운 썸네일");
+            float frac = ItemFacesStyle.L("img_frac");
+
+            // ⓐ 장비 시트 칸
+            RectTransform sheet = UiRoot.Instance.Sheet;
+            Image sheetImg = CellImg(sheet, "cell-" + cur.Slot, "장비 시트 " + cur.Slot);
+            Assert.AreSame(thumb, sheetImg.sprite, "장비 시트 칸 = 그 장비의 구운 썸네일(캐시 같은 참조)");
+            Assert.AreNotSame(UiIcons.Get(ForgeUi.ItemIconKey(d, cur)), sheetImg.sprite, "아틀라스 실루엣이 아니다");
+            Assert.AreEqual(Color.white, sheetImg.color, "썸네일은 틴트 없이");
+            Assert.IsTrue(sheetImg.preserveAspect, "object-fit: contain");
+            Rect cellR = ((RectTransform)sheetImg.transform.parent).rect;
+            Assert.AreEqual(cellR.width * frac, sheetImg.rectTransform.rect.width, 0.6f, "썸네일 한 변 = 칸 × img_frac");
+            Image sheetGlove = CellImg(sheet, "cell-gloves", "장비 시트 장갑");
+            Assert.AreSame(UiIcons.Get(ForgeUi.SlotIconKey("gloves")), sheetGlove.sprite, "장신구 칸은 슬롯 실루엣 그대로(캡처 없음)");
+
+            // ⓑ 플레이어 정보 칸(정본은 같은 equipCellHTML)
+            PlayerInfoPopup.Open(MetaHost.Instance);
+            yield return null; yield return null;
+            Popup p = PopupLayer.Instance.Find(PlayerInfoPopup.Name);
+            Assert.IsNotNull(p, "플레이어 정보 팝업");
+            Image infoImg = CellImg(p.Root, "slot-" + cur.Slot, "플레이어 정보 " + cur.Slot);
+            Assert.AreSame(thumb, infoImg.sprite, "플레이어 정보 칸 = 같은 썸네일(캐시 같은 참조)");
+            Assert.AreEqual(Color.white, infoImg.color, "틴트 없이");
+            Assert.IsTrue(infoImg.preserveAspect, "contain");
+            Image infoGlove = CellImg(p.Root, "slot-gloves", "플레이어 정보 장갑");
+            Assert.AreSame(UiIcons.Get(ForgeUi.SlotIconKey("gloves")), infoGlove.sprite, "장신구 칸은 실루엣");
+            h.Meta.Popups.HideAll();
+            yield return null;
+            log.AssertNoRed();
+            log.Dispose();
+        }
+
+        private static Image CellImg(Transform root, string cellName, string label)
+        {
+            RectTransform cell = FindIn(root, cellName);
+            Assert.IsNotNull(cell, label + " 칸");
+            Transform t = cell.Find("img");
+            Image img = t != null ? t.GetComponent<Image>() : null;
+            Assert.IsNotNull(img, label + " 그림");
+            return img;
+        }
+
         private static RectTransform FindIn(Transform root, string name)
         {
             foreach (RectTransform rt in root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == name) return rt;
