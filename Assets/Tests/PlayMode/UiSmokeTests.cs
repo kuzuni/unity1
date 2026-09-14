@@ -144,6 +144,26 @@ namespace Forge.Tests.PlayMode
             Assert.IsFalse(tb.Panel("summon").gameObject.activeInHierarchy);
         }
 
+        /// <summary>T169 — 하단 네비 여섯째 칸(🐞 디버그)을 누르면 정말 디버그 패널이 열리는가: 탭 → <see cref="TabBar.OpenRequested"/> → `MetaHost.OnTab` → `OpenDebug` 한 줄 길.
+        /// 카탈로그에 칸만 넣고 배선을 잊으면 «눌러도 아무 일이 없는 칸» 이 되므로 그 길 전체를 한 번 밟는다(정본 index.html 165 · main.js 127).</summary>
+        [UnityTest]
+        public IEnumerator 디버그_탭을_누르면_디버그_패널이_열린다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!(MetaHost.Ready && MetaHost.Instance != null) && t < 15f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 15초 안에 준비되지 않았다");
+            MetaHost h = MetaHost.Instance;
+            Assert.IsFalse(h.Popups.IsOpen(DebugPanel.Name), "누르기 전에는 닫혀 있다");
+
+            UiRoot.Instance.TabBar.OnTab("debug");
+            yield return null;
+            Assert.IsTrue(h.Popups.IsOpen(DebugPanel.Name), "여섯째 칸이 디버그 패널을 연다(카탈로그 tabs 의 debug ↔ MetaHost.OnTab 배선)");
+
+            h.Popups.HideAll();
+            yield return null;
+        }
+
         /// <summary>T65 — 플레이어 정보 팝업이 정본 `renderPlayerInfo` 의 뼈대를 낸다: 장비 8칸(장비 시트 조각 · 칸마다 아이콘) · 와이드 탈것 칸 · 출전 줄(오브 또는 «없음») · 미니 씬 폴백(🛡️ + 라벨 + 웨이브 핍) · 보유 옵션 · 콘솔 빨강 0.</summary>
         [UnityTest]
         public IEnumerator 플레이어_정보_팝업은_장비_칸_탈것_와이드_칸_출전_줄_폴백_핍을_낸다()
