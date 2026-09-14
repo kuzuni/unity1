@@ -56,6 +56,8 @@ namespace UnityEngine.Rendering.Universal
     public class ColorAdjustments : VolumeComponent
     {
         public FloatParameter postExposure = new FloatParameter();
+        public ClampedFloatParameter contrast = new ClampedFloatParameter();       // T341 — 정본 #game3d contrast(1.07) 자리(진짜 URP: ClampedFloatParameter −100~100)
+        public ClampedFloatParameter saturation = new ClampedFloatParameter();     // T341 — 정본 #game3d saturate(1.12) 자리
     }
     public class Bloom : VolumeComponent
     {

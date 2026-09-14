@@ -6171,6 +6171,7 @@
 523. **소리 자는 «총계·마지막 클립» 이 아니라 «그 클립» 을 센다 — Sfx.Played 알림(2026-09-14 · §0 빨강 수리 · 워커 C · sess-1736-14395 · lock 없음)** — 런 457 `CraftRevealSfxTests` 가 «공개 카드가 뜨는 순간 소리 하나 Expected 162 But was 163» 로 빨강. 453→457 사이 코드 커밋 넷은 소리 호출을 하나도 안 더했다(diff 실측) — 카드가 뜨는 그 프레임에 배경 전투의 `Sfx.Hit`(SkillFxDirector 285)·스킬 `AnvilHit` 이 같이 울면 `PlayedCount` 가 +2 고 `LastPlayed` 도 남의 것이다. 정본 뜻(craftReveal 이 시대 인덱스로 한 번)은 그대로 두고 `Sfx` 에 `Played` 알림(클립) 한 줄을 더해 테스트가 그 클립만 센다. T119 는 ✅ · lock 없음이라 §0-6 대로 번호 없이(T119 기록 아래). 되돌리려면 그 알림 두 줄과 테스트의 tally.
 
 535. **패널 배경 흐림(`backdrop-filter: blur(4px)` · style.css 639)은 안 옮긴다(2026-09-14 · T33 19회차 · 워커 R)** — 정본 `.panel` 은 `#1c2128ee`(알파 .93) 위에 배경 흐림 4px 을 건다. 3D 가 7% 만 비치는 곳의 흐림이라 원작 PNG 에서도 눈으로 안 갈리고(T28 채점 축에 든 적이 없다), UGUI 엔 배경 흐림이 없어 옮기려면 매 프레임 RT 한 장 + 카메라 한 번(T50 예산 자가 잡을 값)이 든다 — 값 0 에 비용만 있다. 되돌리려면 T33 19회차 기록의 그 줄에서 새 번호로 등재한다.
+536. **정본 CSS 그레이드 saturate(1.12)·contrast(1.07) 는 URP ColorAdjustments «+12 · +7» 로 옮기고, 값은 에셋이 쥔다 — 채도는 식이 같아 그대로, 대비는 식이 달라 첫 값(2026-09-14 · T341 1회차 · 워커 S)** — URP `saturation` 은 «lum + (1 + v/100)·(in − lum)» 이라 CSS `saturate()` 의 휘도 보존 행렬과 같은 식 → 1.12 = +12 그대로. `contrast` 는 URP 가 ACEScc 로그 공간의 중회색을 기준으로 곱하고 CSS 는 sRGB .5 중심 선형이라 1.07 = +7 은 **첫 값**이다 — 세계 컷(`world_frame.png` · T54 결정 194 «세계만») 의 띠 y62~530 통계(평균 채도 · 휘도 표준편차)를 전(런 479 `.2559 / .3262`) ↔ 후 로 견줘 «채도·대비가 함께 오른다» 면 둔다. 수치는 `Assets/Settings/ForgeVolume.asset`(데이터)에 있고 코드엔 0 · 기대값 표 `Resources/SceneGradeUi.json` 은 자(`SceneGradeTests`)가 «씬에 선 볼륨의 프로필» 과 견주는 용도(에셋 파일을 직접 읽지 않는다). 경계는 정본과 같다 — 앱 캔버스가 ScreenSpaceOverlay 라 볼륨 밖. 되돌리려면 에셋 두 override 를 0 으로 + 표·자 삭제.
 
 513. **회차 사이 수를 견줄 때는 분모를 같이 적는다 — «평균» 은 집합이 바뀌면 다른 뜻이 된다(2026-09-14 · T185 1회차 · 워커 M · 검수 Q 등재)** — 촬영이 중간에 서서 두 장이 빠진 회차를 `ui_score` 가 «4.52 → 4.63 (+0.11) 올랐다» 로 찍었다. 빠진 둘이 평균보다 낮았을 뿐이고 **나아진 것은 없다**. 고침은 «평균을 더 잘 내는 것» 이 아니라 **말을 바꾸는 것**이었다: ⓐ 빠진 화면을 이름과 지난 점수로 먼저 말하고 ⓑ 견줌은 **공통 집합**으로만 하고 ⓒ 분모가 다른 두 수는 «참고» 로 내리되 **몇 장인지 적는다**. 규칙: **회차 사이 한 수를 찍는 자리마다 «무엇 몇 개의 수인가» 를 같이 찍는다** — 읽는 사람이 분모를 물어보러 오지 않아도 되게. 같은 구멍이 반대 방향(없던 화면이 새로 생김)에도 있었고 그쪽도 한 줄로 알린다. 되돌리려면 `score()` 의 `gone`/`fresh`/`both` 묶음.
 
@@ -6362,6 +6363,12 @@
 
 - 무엇: `Assets/Forge/Resources/SummonFxUi.json`(새 · 정본 5836~5990·7152~7190·ui.js 337~351 수치 전부 + 줄 번호) · `Assets/Scripts/Game/Ui/SummonFx.cs`(새 · 광선 z0 → 별 z15 → 천개 z20 를 형제 순서로 · 아치/빛발/스필/광선/별 굽기 · 도입(srcanopy .45s · srintro .24s)·호흡(srveil)·회전(20s→done 26s)·별(done 뒤 .6s 켜고 srstar 호흡) 시계) · `SkillSummonResult.cs` 무대판(stage)에서 `SummonFx.Build` 한 줄 + `Finish` 에서 `SetDone` · 결정 511(안 옮긴 것 셋 + 반사는 2회차).
 - 판정: PlayMode `SummonFxTests` 1(층 사다리 · 광선 190% 정사각 · one 판 천개 폭 .62·비율 3·바닥 = 그리드 위 −2.6rem · 빛발 3 · 별 24(위 12·아래 12) · done 전 알파 0 → done .6s 뒤 1) + 다음 런 소환 결과 PNG 눈 확인.
+
+### T341 1회차 기록 (2026-09-14 19:4x · 워커 S · sess-0029-41207 · lock 유지 — 유니티 런 + 세계 컷 PNG 를 본 뒤 반납)
+
+- 무엇: `Assets/Settings/ForgeVolume.asset` ColorAdjustments 의 `saturation`·`contrast` override 를 켜고 **+12 · +7**(정본 `#game3d` saturate(1.12)·contrast(1.07) · 결정 536) · `Assets/Forge/Resources/SceneGradeUi.json`(새 · 기대값 + 정본 줄 번호 + 식 차이 메모) · `Assets/Tests/PlayMode/SceneGradeTests.cs`(새 · 씬 볼륨 프로필의 두 override 켜짐·값=표 · postExposure 는 원래대로 · 앱 캔버스 ScreenSpaceOverlay = 볼륨 밖) · 하니스 스텁 `ColorAdjustments` 에 `contrast`·`saturation`(ClampedFloatParameter · 진짜 URP 표면과 같은 이름 · `check_stub_sigs --emit` 갱신).
+- 안 한 것: World.cs 는 0줄 — 노출만 정본 테마에서 매번 쓰던 길 그대로. HUD 는 정본처럼 밖이라 그대로.
+- 게이트: `tools/gate.sh` 전부 rc 0(`dotnet build` 0 오류 · `dotnet test` 642/642 · 표 자 31개 · 스텁 자 «없는 서명 0»). 판정: 다음 유니티 런 `SceneGradeTests` PASS + `world_frame.png` 띠 통계 전(런 479: 채도 .2559 · 휘도σ .3262) ↔ 후 + 눈 확인 → 그때 반납.
 
 ### T179 2회차 기록 (2026-09-14 16:4x~17:0x · 워커 S · sess-0029-41207 · **런 449 초록 → lock 반납** · 3회차 = 반사)
 

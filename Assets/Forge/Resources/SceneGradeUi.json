@@ -1,0 +1,17 @@
+{
+  "_": "ROUTINE T341 3D 뷰 색 보정 — 정본 style.css 151~153 `#game3d { filter: saturate(1.12) contrast(1.07) }`(주석: 컬러 그레이딩 · 무보정 에디터 뷰포트 인상 제거)의 URP 눈금. 값 자체는 Assets/Settings/ForgeVolume.asset(ColorAdjustments)이 쥐고, 이 표는 그 에셋이 «정본 자리» 를 그대로 갖고 있는지 PlayMode 자(SceneGradeTests)가 견주는 기대값이다. 정본은 3D 캔버스 한 장(#game3d)에만 걸고 HUD·팝업(#app)은 안 물든다 — 클론도 앱 캔버스가 ScreenSpaceOverlay 라 볼륨 밖(같은 경계).",
+  "layout": {
+    "css_saturate": 1.12,
+    "css_saturate_": "style.css 152 saturate(1.12) — 휘도 보존 행렬(out = lum + 1.12·(in − lum))",
+    "css_contrast": 1.07,
+    "css_contrast_": "style.css 152 contrast(1.07) — 0.5 중심 선형(out = (in − .5)·1.07 + .5)",
+    "saturation": 12,
+    "saturation_": "URP ColorAdjustments.saturation(−100~100) → 계수 1 + v/100 · 식이 정본과 같아 1.12 = +12 그대로",
+    "contrast": 7,
+    "contrast_": "URP ColorAdjustments.contrast(−100~100) → 계수 1 + v/100 · URP 는 ACEScc 로그 공간 중회색 기준이라 정본(sRGB .5 중심)과 식이 달라 «+7» 은 첫 값 — 세계 컷 PNG 통계로 맞춘다(결정 기록)",
+    "tol": 0.01,
+    "tol_": "에셋 값 ↔ 표 기대값 허용 오차(에셋이 정수라 사실상 0)",
+    "post_exposure_src": 0.02857,
+    "post_exposure_src_": "이미 켜져 있던 것(T9 · 정본 renderer.toneMappingExposure → log2) — 이 작업이 건드리지 않는다는 표시"
+  }
+}
