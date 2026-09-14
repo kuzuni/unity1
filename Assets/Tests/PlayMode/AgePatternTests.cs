@@ -204,24 +204,32 @@ namespace Forge.Tests.PlayMode
             h.Meta.Popups.HideAll();
             yield return null;
             // ⓑ 자동 제련(.af-age-bar) — 왼쪽 30→50% 마스크
+            //   런 299 빨강: 새 세이브는 2-10 전이라 Open 이 🔒 토스트만 내고 팝업을 안 열었다(ForgeAutoPopup.Open 24행) → ForgeUiTests 와 같이 해금하고,
+            //   제련 레벨 1 은 뒤 다섯 시대 확률이 0 이라 행 자체가 없어 헛초록이 된다 → 촬영(UiShotsTests)과 같은 29 로 올려 다섯 행이 실제로 서게 한다.
+            h.S.BestChapter = 3; h.S.BestStage = 1;
+            h.S.ForgeLevel = 29;
             h.Pull();
+            Assert.IsTrue(h.AutoForgeUnlocked, "2-10 뒤 해금");
             h.Engine.AutoForgeConfig().FilterOn = false;
             h.Push();
             ForgeAutoPopup.Open(h);
             yield return null; yield return null;
             Popup auto = h.Meta.Popups.Find(ForgeAutoPopup.Name);
             Assert.IsNotNull(auto, "자동 제련 팝업");
-            int masked = 0;
+            int masked = 0, found = 0;
             foreach (string age in PatternedAges)
             {
                 RectTransform bar = FindDeep(auto.Root, "af-age-" + age);
                 if (bar == null) continue;   // 확률 0 인 시대는 행이 없다(정본과 같다)
+                found++;
                 Transform layer = bar.Find("age-pattern");
                 Assert.IsNotNull(layer, age + " 자동 제련 막대에 무늬 층");
                 AgePattern p = layer.GetComponent<AgePattern>();
                 if (p.Layers.Length > 0) { Assert.IsTrue(p.Layers[0].Masked, age + " 자동 제련 막대는 마스크"); masked++; }
                 else Assert.IsNotNull(p.Rings, "양자 링");
             }
+            Assert.Greater(found, 0, "레벨 29 면 뒤 시대 행이 하나는 선다(런 299 촬영은 다섯 전부)");
+            Assert.Greater(masked, 0, "마스크 갈래가 한 번은 걸렸다");
             foreach (string age in h.Defs.Ages)
             {
                 if (System.Array.IndexOf(PatternedAges, age) >= 0) continue;
