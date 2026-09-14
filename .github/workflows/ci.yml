@@ -51,6 +51,12 @@ jobs:
         run: python3 tools/check_docs_intact.py --self-test
       - name: 문서가 통째로 깨졌는가 — 막는다
         run: python3 tools/check_docs_intact.py
+      # T175 — 정본 `U.escapeHtml` 자리: 글자 공장 하나(`UiKit.Text`)가 TMP richText 를 끄고, 공장 밖에서 TMP 를 만들거나 되켜는 자리가 0인가
+      #        (플레이어 닉네임·채팅의 꺾쇠가 태그로 먹히는 것을 막는다 · T33 13회차 · 결정 494). §3 에는 있었는데 CI 가 안 돌리던 자 — 여기서 막는다.
+      - name: 리치텍스트 자 자기 검사 (T175 `check_richtext.py` · 고장 주입 7칸)
+        run: python3 tools/check_richtext.py --self-test
+      - name: TMP richText 가 글자 공장 밖에서 켜지는가 — 막는다 (T175)
+        run: python3 tools/check_richtext.py
       # 아래는 «조율 결함» — 배포된 게임이 못 쓰게 되는 종류가 아니라 **보고만** 한다(빨개도 안 막는다).
       # 자기 검사(순수 함수)는 막는다 — 자가 조용히 고장 나면 «누락 0건» 만 찍는다.
       - name: 작업 상태 자 자기 검사

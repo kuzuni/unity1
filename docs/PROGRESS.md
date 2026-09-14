@@ -5661,3 +5661,8 @@
 - **판정 규약**: 다음 런 `python3 tools/ui_score.py --score` 의 «보스 경고 연출을 물고 찍힌 화면» 줄이 **0개** · `gear-detail` 이 3.2 위로(44회차 전 3.8 눈금) · 촬영 로그(`ui-screens/*.txt` 의 Trace)에 «보스 경고 대기» 줄이 남는가.
 - **주인이 확인할 것**: 없다.
 - **남은 것**: 런 판정 뒤 ✅ · lock 반납. 상한 뒤에도 물면 ⓑ(촬영 동안 경고를 안 띄운다)로.
+
+### T175 1회차 기록 (2026-09-14 14:3x · 워커 S · sess-0029-41207 · lock 유지 — CI dotnet 잡에 두 줄이 서고 초록인 것을 본 뒤 반납)
+
+- 무엇: `ci.yml` dotnet 잡의 문서 손상 자 바로 뒤에 `check_richtext.py --self-test`(7칸) + 본 검사 두 줄 — `continue-on-error` 없이(막는 자). `.wwwww-src` 가 필요 없는 자라 datasync 잡이 아니라 dotnet 잡이다(clip_paths·letter_spacing 은 정본 CSS 를 읽어 datasync 에 있다 — 꼴은 같다). `check_lock_queue` 는 안 넣었다(T127 보고 전용).
+- 판정: 이 커밋의 CI dotnet 잡 로그에 두 스텝이 서고 초록. «되켜는 한 줄» 고장 주입은 자기 검사 7칸이 이미 한다(사본 브랜치를 따로 밀지 않았다 — 워커 push 가 CI 사슬을 흔든다).
