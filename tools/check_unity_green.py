@@ -171,6 +171,28 @@ def scope_owners(fixture, progress_text):
     return out
 
 
+def history_owners(fixture, log=None):
+    """«범위» 열이 그 파일을 안 적었을 때의 **보조 증거** — 그 파일을 고쳐 온 커밋 제목의 `T<번호>`(최근 순 · T145).
+
+    왜 필요한가(실측 2026-09-14 런 313): 빨강이 `CoinBurstTests` 인데 그 파일을 «범위» 열에 적은 작업이 없어
+    자가 «못 가렸다 → 네가 고친다» 로 보냈다. 그런데 그 자리는 **T117 이 lock 을 쥔 채 그 회차에 쓰던 단언**이었다
+    (2회차 제목에 «실판매 단언» 이 적혀 있다). 범위 열을 안 적은 것은 임자의 실수지만, 자가 그 실수를
+    «주인 없는 자리» 로 뒤집으면 **남의 살아 있는 작업을 건드리게 된다** — 그 갈래를 여기서 막는다.
+
+    이력은 «누가 마지막으로 밀었나»(<see cref="pusher"/>)와 다르다: 그 **파일**을 고친 커밋만 본다."""
+    if log is None:
+        rc, out = _git(['log', '-12', '--format=%s', '--', '*/%s.cs' % fixture])
+        if rc != 0:
+            return []
+        log = out
+    seen = []
+    for line in log.split('\n'):
+        m = re.match(r'^T(\d+)\b', line.strip())
+        if m and ('T' + m.group(1)) not in seen:
+            seen.append('T' + m.group(1))
+    return seen
+
+
 def read_progress():
     try:
         return io.open(os.path.join(ROOT, 'docs', 'PROGRESS.md'), encoding='utf-8').read()
@@ -199,15 +221,18 @@ def _lock_word(alive, age):
     return 'lock %d분 전 — 90분 규약으로 **죽었다**(뺏을 수 있다)' % age
 
 
-def own_lines(fails, progress_text, sha, now=None):
+def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None):
     """빨강마다 임자 한 줄 — **빠진 테스트 파일 ↔ PROGRESS 범위 열** 로 가린다(T125).
 
     갈래 넷:
       ⓐ 범위에 그 파일을 적은 작업이 하나  → 그 작업이 임자다(lock 살았나 죽었나까지 말한다)
       ⓑ 여럿인데 **살아 있는 lock 이 하나** → 그 하나를 임자로(나머지는 곁들여 적는다)
       ⓒ 여럿이고 다 죽었거나 다 살았다     → 다 적고 눈으로 고르게 한다
-      ⓓ 아무도 그 파일을 안 적었다         → «못 가렸다» 고 **말하고** 커밋을 민 워커를 참고로만 준다
+      ⓓ 아무도 그 파일을 안 적었다         → **그 파일을 고쳐 온 커밋**(<see cref="history_owners"/>)에 산 lock 이 있으면 그의 몫(T145) ·
+                                            없으면 «못 가렸다» 고 말하고 커밋을 민 워커·이력 후보를 참고로만 준다
     """
+    hist = hist or history_owners
+    lock = lock or lock_state
     names = fixtures(fails)
     if not names:
         who = pusher(sha)
@@ -217,11 +242,24 @@ def own_lines(fails, progress_text, sha, now=None):
     for name in names:
         cands = scope_owners(name, progress_text)
         if not cands:
+            # T145 — 범위 열이 비었어도 **그 파일을 고쳐 온 작업**에 산 lock 이 있으면 그의 몫이다(남의 진행 중인 자리를 뺏지 않는다).
+            hcands = hist(name) or []
+            hstates = [(h,) + lock(h, now) for h in hcands]
+            hlive = [st for st in hstates if st[1]]
+            if hlive:
+                tid, _alive, age = hlive[0]
+                out.append('  · `%s` 의 임자: **%s** — «범위» 열엔 없지만 **그 파일을 고쳐 온 커밋**이 그 작업이고 %s. '
+                           '그의 몫이니 건드리지 말고 네 작업을 잡는다. (임자는 «범위» 열에 `%s.cs` 를 적어라 — `check_claim_scope` 가 보는 자리다.)'
+                           % (name, tid, _lock_word(True, age), name))
+                continue
             who = pusher(sha)
+            tail = ''
+            if hstates:
+                tail = ' · 그 파일을 고쳐 온 작업: %s' % ' '.join('%s(%s)' % (h, _lock_word(a, g)) for h, a, g in hstates)
             out.append('  · `%s` 의 임자: **못 가렸다** — 그 파일(`%s.cs`)을 «범위» 열에 적은 작업이 없다. '
-                       '(그 커밋을 민 워커는 %s 지만 main 은 여럿이 미는 가지라 임자가 아니다.) '
+                       '(그 커밋을 민 워커는 %s 지만 main 은 여럿이 미는 가지라 임자가 아니다.)%s '
                        'lock 을 눈으로 확인하고, 임자가 없으면 §0-6 대로 **네가 고친다**.'
-                       % (name, name, who or '못 가렸다'))
+                       % (name, name, who or '못 가렸다', tail))
             continue
         states = [(c,) + lock_state(c, now) for c in cands]
         live = [s for s in states if s[1]]
@@ -373,6 +411,22 @@ def self_test():
     eq('ⓝ 죽은 lock 은 분과 규약을 말한다', '죽었다' in _lock_word(False, 98) and '98분' in _lock_word(False, 98), True)
     eq('ⓝ 없는 lock 은 그냥 없다', _lock_word(False, None), 'lock 없다')
 
+    # ⓞ T145 — 범위 열이 비었어도 «그 파일을 고쳐 온 작업» 에 산 lock 이 있으면 그의 몫이다
+    #    (실측 2026-09-14 런 313: `CoinBurstTests` 를 아무도 범위에 안 적어 자가 «네가 고친다» 로 보냈는데
+    #     그 자리는 T117 이 lock 을 쥔 채 그 회차에 쓰던 단언이었다).
+    eq('ⓞ 이력에서 번호를 최근 순으로', history_owners('X', 'T117 2회차: …\nT109 6회차: …\nT117 1회차: …'), ['T117', 'T109'])
+    eq('ⓞ 제목이 T 로 안 시작하면 안 센다', history_owners('X', '보고함: 무엇\nMerge branch'), [])
+    live = lambda tid, now=None: (True, 7)
+    dead = lambda tid, now=None: (False, 130)
+    lines = own_lines(['FAIL A.B.NobodysTests.무엇 · Failed'], P, '', hist=lambda n: ['T117'], lock=live)
+    eq('ⓞ 산 lock 이면 그의 몫', any('**T117**' in l and '그의 몫' in l for l in lines), True)
+    eq('ⓞ 범위에 적으라고 이른다', any('«범위» 열에 `NobodysTests.cs` 를 적어라' in l for l in lines), True)
+    lines = own_lines(['FAIL A.B.NobodysTests.무엇 · Failed'], P, '', hist=lambda n: ['T117'], lock=dead)
+    eq('ⓞ 죽은 lock 이면 종전대로 네 일', any('못 가렸다' in l and '네가 고친다' in l for l in lines), True)
+    eq('ⓞ 죽은 lock 도 이력을 참고로 보인다', any('그 파일을 고쳐 온 작업: T117' in l for l in lines), True)
+    lines = own_lines(['FAIL A.B.NobodysTests.무엇 · Failed'], P, '', hist=lambda n: [], lock=dead)
+    eq('ⓞ 이력도 없으면 문구가 예전 그대로', any('못 가렸다' in l and '그 파일을 고쳐 온 작업' not in l for l in lines), True)
+
     # ⓜ 여럿이 같은 파일을 적었으면 살아 있는 lock 쪽을 고르고, 다 죽었으면 둘 다 적는다
     P2 = (P + '| T130 | 딴것 | 🔄 | s3 | `Assets/Tests/PlayMode/AgePatternTests.cs` | — |\n')
     eq('ⓜ 후보 둘', scope_owners('AgePatternTests', P2), ['T124', 'T130'])
@@ -382,7 +436,7 @@ def self_test():
         for f in fails:
             print('  · ' + f)
         return 1
-    print('✓ check_unity_green --self-test 35칸 통과')
+    print('✓ check_unity_green --self-test 42칸 통과')
     return 0
 
 
