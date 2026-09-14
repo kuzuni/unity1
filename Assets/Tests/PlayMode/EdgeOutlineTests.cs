@@ -110,6 +110,18 @@ namespace Forge.Tests.PlayMode
                 //    그래서 이 회차는 **그 칸을 리플렉션으로 켜 놓고** 재고, 원래 읽힌 값을 단언 메시지에 실어 보낸다 —
                 //    다음 런 하나로 «표가 안 실렸다» 인지 «주입점이 틀렸다» 인지 갈린다. 잰 뒤에는 원래대로 되돌린다.
                 string before = Describe(feature);
+                Debug.Log("[T147] 렌더러에 실제로 실린 값 — " + before);
+                // ⓐ **강제 전에 한 장**: 에셋 값 그대로 찍어 «손으로 쓴 YAML 이 이 패스를 세우는가» 를 로그로 남긴다.
+                //    런 371 은 강제 뒤에 초록이었으므로, 이 한 장이 단색이면 고칠 곳은 셰이더가 아니라 **에셋 칸**이다.
+                SetActive(feature, true);
+                EdgeOutlineHost.SetOn(false);
+                yield return null;
+                Texture2D asIs = Shoot(cam, rt);
+                SetActive(feature, false);
+                Debug.Log("[T147] 에셋 값 그대로 찍은 장면 — " + (Uniform(asIs) ? "통째로 단색(" + Mid(asIs) + ") · 에셋 칸이 범인이다" : "장면이 산다(" + Mid(asIs) + ") · 에셋 칸은 멀쩡하다"));
+                try { GallerySheet.Save(asIs, "screen_t147-edge-asis"); } catch (System.Exception e) { Debug.LogWarning("[T147] 진단 그림 저장 실패: " + e.Message); }
+                Object.DestroyImmediate(asIs);
+
                 object savedFetch = Get(feature, "fetchColorBuffer");
                 Set(feature, "fetchColorBuffer", true);
                 SetActive(feature, true);
