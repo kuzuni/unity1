@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Forge.Core.Forging;
 using Forge.Core.Save;
 using Forge.Game;
 using Forge.Game.Ui;
@@ -146,6 +147,40 @@ namespace Forge.Tests.PlayMode
             if (t.textInfo.characterCount < Wide.Length) Assert.AreEqual('\u2026', LastVisible(t), "잘렸으면 끝은 …");
             ProfilePopup.Close(h);
             yield return null;
+        }
+
+        /// <summary>자리 배선 — 모루 «들고 있는 장비» 이름(정본 1005 `.held-name` 한 줄 말줄임): 비교 팝업 딤을 눌러 보류 카드를 세우고 그 이름 글자를 본다.</summary>
+        [UnityTest]
+        public IEnumerator 모루_보류_카드의_이름은_한_줄_말줄임_규칙을_걸고_글자가_사라지지_않는다()
+        {
+            yield return Boot();
+            float t0 = 0f;
+            while (!ForgeHost.Ready && t0 < 20f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost 가 20초 안에 준비되지 않았다");
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Hammers = 10; h.Pull();
+            h.OnCraft();
+            float t1 = 0f;
+            while (!h.Meta.Popups.IsOpen(ForgeCraftPopup.Name) && t1 < 5f) { t1 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "비교 팝업이 떠야 한다");
+            yield return null;
+            h.OnCraftDimClick();
+            yield return null;
+            Assert.IsNotNull(h.HeldItem, "딤을 누르면 보류품");
+            Transform slot = null;
+            foreach (Transform x in UiRoot.Instance.Sheet.GetComponentsInChildren<Transform>(true)) if (x.name == "held-slot") { slot = x; break; }
+            Assert.IsNotNull(slot, "모루 자리에 보류 카드");
+            Transform nameT = null;
+            foreach (Transform x in slot.GetComponentsInChildren<Transform>(true)) if (x.name == "held-name") { nameT = x; break; }
+            Assert.IsNotNull(nameT, "보류 카드의 이름 글자(held-name)");
+            TextMeshProUGUI nm = nameT.GetComponent<TextMeshProUGUI>();
+            nm.ForceMeshUpdate();
+            Assert.AreEqual(TextWrappingModes.NoWrap, nm.textWrappingMode, "정본 white-space: nowrap");
+            Assert.AreEqual(TextOverflowModes.Ellipsis, nm.overflowMode, "정본 text-overflow: ellipsis");
+            Assert.GreaterOrEqual(nm.rectTransform.rect.height, TextClamp.LineHeight(nm) - 0.01f, "상자 높이 ≥ 실제 줄높이 — 낮으면 TMP 가 줄을 통째로 버린다(런 528)");
+            Assert.AreEqual(1, nm.textInfo.lineCount, "한 줄");
+            Assert.Greater(nm.textInfo.characterCount, 0, "이름이 통째로 사라지면 안 된다");
+            if (nm.textInfo.characterCount < h.HeldItem.Name.Length) Assert.AreEqual('\u2026', LastVisible(nm), "잘렸으면 끝은 …");
         }
     }
 }

@@ -298,7 +298,12 @@ namespace Forge.Game.Ui
                 UiKit.Anchor(img.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, rem * 0.35f), ico, ico);
                 TextMeshProUGUI nm = UiKit.Text(card, "held-name", TextKind.Sub, held.Name, "stage_ink");
                 nm.fontStyle = FontStyles.Bold;
-                UiKit.Anchor(nm.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, rem * 0.25f), w, nm.fontSize * 1.2f);
+                // T351 — 정본 1003~1006 .held-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }:
+                //   폭은 카드(= 정본 max-width 100%) · 높이는 실제 줄높이(TextClamp.BoxHeight — 1.2배 상자에 Ellipsis 를 걸면 TMP 가 줄을 통째로 버린다 · 런 528)
+                //   · 가운데 정렬이라 상자가 커진 만큼 반을 내려 글자 자리는 그대로.
+                TextClamp.Apply(nm, "held_name");
+                float nmH = TextClamp.BoxHeight(nm, "held_name"), nmOld = nm.fontSize * 1.2f;
+                UiKit.Anchor(nm.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, rem * 0.25f - (nmH - nmOld) * 0.5f), w - dg * depth, nmH);
                 TextMeshProUGUI tag = UiKit.Text(rt, "held-tag", TextKind.Sub, "보류" + (n > 1 ? " " + n : string.Empty), "pp_ink");
                 tag.fontStyle = FontStyles.Bold;
                 float tw = tag.preferredWidth + rem * 0.7f, th = tag.fontSize * 1.25f;
