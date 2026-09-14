@@ -1,0 +1,23 @@
+{
+  "_": "T156 — 제작 비교 «장착됨» 리본(정본 web/css/style.css 1801~1809 `.cmp-ribbon`). 값을 catalog.json 이 아니라 곁 표에 두는 것은 그 파일이 남의 lock 일 때가 잦기 때문이다(T65 PlayerInfoUi·T111 GearDetailUi·T98 AnvilArtUi 와 같은 길).",
+  "clip": [[0, 0], [1, 0], [0.88, 0.5], [1, 1], [0, 1]],
+  "_clip": "정본 `clip-path: polygon(0 0, 100% 0, 88% 50%, 100% 100%, 0 100%)` — 오른쪽 «<» 오목 노치. 정본 주석: «이전 값(82% 100%)은 아래쪽만 비스듬히 깎아 원본의 오목한 노치가 아니라 그냥 사다리꼴이었다(확대 크롭으로 확인)».",
+  "notch_x": 0.88,
+  "notch_y": 0.5,
+  "width_app_w": 0.203,
+  "_width": "정본 `width: calc(var(--app-w) * .203)` — 래퍼 대비 %로 주면 두 화면의 카드 폭이 달라(61.4%W vs 68.8%W) 같은 %가 다른 px 이 된다(정본 주석).",
+  "top_rem": -1.05,
+  "left_rem": -1.52,
+  "pad_top_rem": 0.15,
+  "pad_right_rem": 1.5,
+  "pad_bottom_rem": 0.15,
+  "pad_left_rem": 0.5,
+  "_pad": "정본 `padding: .15rem 1.5rem .15rem .5rem` — 오른쪽이 넓은 것은 «<» 파임 몫이다. 글자는 **가운데 정렬**(정본 `text-align: center` + 그 주석: «원본도 깃발 안에서 왼쪽에 치우쳐 있지만, 파임 몫을 오른쪽에 비워 두면 시각 중심이 원본과 같아진다»).",
+  "font_rem": 0.92,
+  "border_px": 2,
+  "border_rem": 0.125,
+  "border_add_px": 0.49,
+  "_border": "정본 `border: var(--ol2) solid var(--pp-line); border-bottom: none` · `--ol2 = min(2px, calc(.125rem + .49px))`. **아랫변이 없다** — 카드 윗변에 이어 붙는 깃발이라서다.",
+  "bake_px": 8,
+  "_bake": "폴리곤을 굽는 해상도(정규 좌표 1 = 몇 픽셀). 리본은 화면에서 ≈220×36px 이라 8이면 넉넉하다(T87 `billet_bake_px` 와 같은 뜻)."
+}
