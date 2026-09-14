@@ -79,8 +79,16 @@ namespace Forge.Game.Ui
             top = Num("pad_top_rem") * rem; bottom = Num("pad_bottom_rem") * rem;
         }
 
-        /// <summary>정본 `top: -1.05rem; left: -1.52rem` — 카드 왼쪽 위로 내민 자리.</summary>
-        public static Vector2 Offset(float rem) { return new Vector2(Num("left_rem") * rem, Num("top_rem") * rem); }
+        /// <summary>
+        /// 리본을 **안쪽 카드**에 붙일 때의 자리. 정본 `left: -1.52rem` 은 «카드 안쪽 상자» 기준인데 클론의 안쪽 여백이
+        /// 정본과 꼭 같지 않아(런 418 실측 1.58rem ↔ 정본 1.32rem) 그 값이면 깃발이 못 내밀고 변에 붙는다.
+        /// 그래서 정본이 주석에 스스로 적어 둔 합(«22.2 + 7(내밈) ≈ 2rem»)을 쓴다 — 지켜야 하는 것은 수가 아니라
+        /// **«바깥 카드에서 7 CSS px 내민다»** 는 계약이고, 그것은 자가 잰다.
+        /// </summary>
+        public static Vector2 Offset(float rem) { return new Vector2(Num("left_from_card_rem") * rem, Num("top_rem") * rem); }
+
+        /// <summary>정본이 적어 둔 **내밈** — 바깥 카드 왼쪽 변에서 이만큼(CSS px) 왼쪽으로 나와야 «깃발» 로 읽힌다.</summary>
+        public static float ProtrudeCss() { return Num("protrude_css_px"); }
 
         /// <summary>정본 `font-size: .92rem`.</summary>
         public static float FontSize(float rem) { return Num("font_rem") * rem; }

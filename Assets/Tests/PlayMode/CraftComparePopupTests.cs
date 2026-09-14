@@ -139,7 +139,14 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(outer, "바깥 카드");
             Vector3[] oc = new Vector3[4];
             outer.GetWorldCorners(oc);
-            Assert.Less(r[0].x, oc[0].x, "리본 왼쪽 끝이 카드 왼쪽 변보다 왼쪽이어야 «내민 깃발» 이다");
+            // 월드 좌표로 재므로 «기준 px → 월드» 배율을 리본 제 폭에서 뽑아 쓴다(2회차에 겪은 좌표계 함정).
+            float scale = (r[2].x - r[0].x) / RibbonArt.Width(UiKit.RefW);
+            float outWorld = oc[0].x - r[0].x;
+            Assert.Greater(outWorld, 0f, "리본 왼쪽 끝이 카드 왼쪽 변보다 왼쪽이어야 «내민 깃발» 이다 — 지금 "
+                           + (outWorld / scale).ToString("0.0") + "기준px");
+            Assert.AreEqual(RibbonArt.ProtrudeCss() * KeylineUi.CssPx * scale, outWorld, 4f * scale,
+                            "내밈은 정본이 적어 둔 7 CSS px(«22.2 + 7(내밈) ≈ 2rem») — 지금 "
+                            + (outWorld / scale / KeylineUi.CssPx).ToString("0.0") + "css px");
 
             ForgeCraftPopup.Hide(F);
             yield return null;
