@@ -1,0 +1,161 @@
+{
+  "_": "ROUTINE T134 공통 수령 연출(원작 ui.js 3563~3760 rewardBurst · css #reward-burst .rw-glow/.rw-ring/.rw-fly/.rw-amt/.rw-pop/.rw-anchor/.rw-tick/.rw-pulse · @keyframes rwGlow/rwRing/rwAmt/rwPop/rwAnchorIn/rwTickBump/rwPulse/rwPulseBand)의 수치·색·문구표. T87 lock 이 Assets/Forge/catalog.json 을 쥐고 있어 T134 몫만 여기 둔다(T117 CoinBurstUi.json 과 같은 꼴). 키 접미: _rem = 정본 rem · _px = 정본 절대 CSS px(기준 캔버스 배율은 catalog anvil_fx_px · T87 결정 222) · _ms = 벽시계 · _f = 비율 · _n = 개수 · _k = 계수 · _deg = 도. 코드에 숫자를 박지 않는다(§1).",
+  "colors": {
+    "glow": "#ffae14",
+    "glow_edge": "#ff8c0066",
+    "ring": "#ff9814",
+    "amt": "#ffd54f",
+    "stroke": "#2a2018",
+    "pop": "#ffd54f",
+    "pop_edge": "#7a5410",
+    "anchor_bg": "#1a150ded",
+    "anchor_border": "#ffd54f",
+    "tick": "#ffd54f",
+    "pulse_bright": "#ffffff"
+  },
+  "layout": {
+    "fly_ms": 820,
+    "cur_step_ms": 90,
+    "icon_step_ms": 44,
+    "icon_jitter_ms": 22,
+    "hold_icons_n": 7,
+    "hold_slack_ms": 120,
+    "count_base_n": 2,
+    "count_log_k": 1.3,
+    "count_min_n": 2,
+    "count_max_n": 7,
+    "rad_min_px": 18,
+    "rad_max_px": 40,
+    "ry_k": 0.9,
+    "ry_min_px": 10,
+    "rot_max_deg": 160,
+    "rot_mid_k": 0.3,
+    "src_y_f": 0.32,
+    "fallback_x_f": 0.5,
+    "fallback_y_f": 0.58,
+    "topbar_fallback_y_px": 10,
+    "impact_up_px": 10,
+    "impact_ms": 640,
+    "glow_anim_ms": 400,
+    "ring_anim_ms": 420,
+    "pulse_ms": 500,
+    "pulse_anim_ms": 460,
+    "land_k": 0.94,
+    "fly_slack_ms": 60,
+    "pop_sm_ms": 320,
+    "pop_sm_anim_ms": 280,
+    "pop_ms": 380,
+    "pop_anim_ms": 460,
+    "pop_after_ms": 140,
+    "pop_jitter_x_px": 8,
+    "pop_jitter_y_px": 6,
+    "tick_out_ms": 300,
+    "tick_bump_ms": 240,
+    "tick_dy_px": 22,
+    "tick_min_y_px": 20,
+    "tick_up_px": 30,
+    "tick_up_min_y_px": 8,
+    "anchor_extra_ms": 460,
+    "anchor_out_ms": 340,
+    "anchor_in_ms": 320,
+    "amt_ms": 660,
+    "amt_step_ms": 110,
+    "amt_remove_ms": 720,
+    "amt_dx_px": 64,
+    "amt_margin_px": 44,
+    "amt_dy_px": 42,
+    "amt_dy_nosrc_px": 16,
+    "amt_row_px": 30,
+    "card_top_px": 18,
+    "card_min_y_px": 16,
+    "card_inset_x_px": 26,
+    "glow_rem": 9,
+    "ring_rem": 3,
+    "ring_border_rem": 0.34,
+    "fly_ico_rem": 1.5,
+    "amt_font_rem": 1.32,
+    "amt_ico_rem": 1.25,
+    "amt_gap_rem": 0.24,
+    "amt_stroke_px": 4,
+    "pop_rem": 3.4,
+    "pop_sm_rem": 1.5,
+    "anchor_rem": 2.1,
+    "anchor_border_rem": 0.16,
+    "anchor_ico_rem": 1.2,
+    "tick_font_rem": 1.05,
+    "tick_ico_rem": 1.0,
+    "tick_gap_rem": 0.2,
+    "tick_stroke_px": 3.5,
+    "pulse_scale": 1.26,
+    "pulse_bright_f": 0.85
+  },
+  "fly_x": [
+    { "at": 0, "x": "0", "ease": [0.2, 0.8, 0.35, 1] },
+    { "at": 34, "x": "rx", "ease": [0.6, 0, 0.8, 0.4] },
+    { "at": 100, "x": "tx" }
+  ],
+  "fly_y": [
+    { "at": 0, "y": "0", "rot": "0", "scale": 0.35, "opacity": 0.2, "ease": [0.2, 0.9, 0.35, 1.1] },
+    { "at": 34, "y": "ry", "rot": "mid", "scale": 1, "opacity": 1, "ease": [0.5, 0, 0.75, 0.45] },
+    { "at": 94, "y": "ty", "rot": "rot", "scale": 0.62, "opacity": 1 },
+    { "at": 100, "y": "ty", "rot": "rot", "scale": 0.5, "opacity": 0 }
+  ],
+  "glow": [
+    { "at": 0, "scale": 0.2, "opacity": 0, "ease": [0.2, 0.8, 0.4, 1] },
+    { "at": 14, "scale": 0.8, "opacity": 1, "ease": [0.2, 0.8, 0.4, 1] },
+    { "at": 46, "scale": 1.05, "opacity": 0.95, "ease": [0.2, 0.8, 0.4, 1] },
+    { "at": 100, "scale": 1.6, "opacity": 0 }
+  ],
+  "ring": [
+    { "at": 0, "scale": 0.3, "opacity": 1, "border_rem": 0.4, "ease": [0.15, 0.7, 0.3, 1] },
+    { "at": 100, "scale": 2.1, "opacity": 0, "border_rem": 0.08 }
+  ],
+  "pop": [
+    { "at": 0, "scale": 0.2, "rot_deg": -40, "opacity": 0, "ease": [0.2, 0.8, 0.4, 1] },
+    { "at": 24, "scale": 1.12, "rot_deg": 0, "opacity": 1, "ease": [0.2, 0.8, 0.4, 1] },
+    { "at": 52, "scale": 0.98, "rot_deg": 8, "opacity": 1, "ease": [0.2, 0.8, 0.4, 1] },
+    { "at": 100, "scale": 1.4, "rot_deg": 30, "opacity": 0 }
+  ],
+  "anchor_in": [
+    { "at": 0, "scale": 0.3, "opacity": 0, "ease": [0.3, 1.5, 0.5, 1] },
+    { "at": 60, "scale": 1.14, "opacity": 1, "ease": [0.3, 1.5, 0.5, 1] },
+    { "at": 100, "scale": 1, "opacity": 1 }
+  ],
+  "amt": [
+    { "at": 0, "opacity": 0, "ty_rem": 0.6, "scale": 0.4, "ease": "ease-out" },
+    { "at": 12, "opacity": 1, "ty_rem": -0.3, "scale": 1.35, "ease": "ease-out" },
+    { "at": 24, "opacity": 1, "ty_rem": -0.45, "scale": 1, "ease": "ease-out" },
+    { "at": 68, "opacity": 1, "ty_rem": -1.4, "scale": 1, "ease": "ease-out" },
+    { "at": 100, "opacity": 0, "ty_rem": -2, "scale": 0.92 }
+  ],
+  "tick_bump": [
+    { "at": 0, "scale": 1, "ty_rem": 0, "ease": [0.3, 1.5, 0.5, 1] },
+    { "at": 40, "scale": 1.22, "ty_rem": -0.12, "ease": [0.3, 1.5, 0.5, 1] },
+    { "at": 100, "scale": 1, "ty_rem": 0 }
+  ],
+  "pulse": [
+    { "at": 0, "scale": 1, "bright": 0, "ease": [0.3, 1.4, 0.5, 1] },
+    { "at": 35, "scale": 1.26, "bright": 1, "ease": [0.3, 1.4, 0.5, 1] },
+    { "at": 100, "scale": 1, "bright": 0 }
+  ],
+  "text": {
+    "plus": "+{0}",
+    "sfx_gacha_rarity": "rare",
+    "layer": "reward-burst",
+    "topbar": "topbar",
+    "icon_fallback": "coin"
+  },
+  "currency_icon": {
+    "coins": "coin",
+    "hammers": "hammer",
+    "gems": "gem",
+    "tickets": "ticket",
+    "potions": "potion",
+    "winders": "winder",
+    "eggCurrency": "egg"
+  },
+  "currency_pill": {
+    "coins": "pill-coin",
+    "gems": "pill-gem"
+  }
+}
