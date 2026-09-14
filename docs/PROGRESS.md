@@ -4952,6 +4952,13 @@
 - **남의 파일 0줄**: 7회차가 «그 파일들은 각자 임자가 있다» 고 한 여덟(`ForgeUiTests`·`PetUiTests`·`ItemFacesTests`·`OutlineTests`·`UiShotsTests` …)을 **한 줄도 안 열었다**. 연 것은 T142 제 범위의 다섯뿐이다.
 - **게이트(로컬)**: `dotnet build` 0 오류 · `dotnet test` **646/646** · `gen_meta`·`gen_ui_catalog`·`check_docs_intact`·`check_decisions`·`check_task_rows`·`check_final_table`·`check_claim_scope`·`check_text_glyphs`·`check_sfx_calls`·`check_keyline`·`check_data_sync`·`ui_score --self-test` 전부 rc 0.
 - **판정은 다음 유니티 런**: ⓐ 새 자 PASS ⓑ **남의 픽셀 자 여덟이 이 커밋으로 새로 빨개지지 않는다**(런 359 의 빨강 하나는 T147 `EdgeOutlineTests` 몫 · 그 lock 살아 있다) ⓒ `screens` 의 `screen_boot-loading.png` 눈 확인(모루·망치·«포지 클론»·진행 막대). 셋이 서면 **T142 를 ✅ 로 닫고 lock 반납**, 하나라도 어긋나면 9회차가 잇는다.
+- **판정(런 364 · 1a29c4c · 09:3x)**: EditMode **646/646** · PlayMode **186/187** — `BootLoadingTests` **5/5 PASS**(새 자 포함) · 빨강 하나는 `EdgeOutlineTests`(T147 · lock 살아 있다) 몫이고 **남의 픽셀 자 여덟은 새로 안 빨개졌다**(ⓐⓑ 섬). ⓒ **PNG 눈 확인**: `screens` 의 `screen_boot-loading.png`(640×480) 실측 — 바탕 `#171e30` 92.5% · 모루 `#5d6a80` · 망치 머리 `#8b97ab` · 자루 `#a8794a` · 제목 `#f2e8d8` · 채움 `#e8a33d` 1.4%. 5배 확대해 보니 모루 위에 망치가 기울어 서 있고 불티 셋이 떠 있고 «포지 클론» 아래 **58% 까지 찬 주황 막대**와 «전투 준비 중…» 이 있다 — 정본 `#boot-loading` 그대로다(단색 프레임 아님 · T128 6회차의 `FlatFrameFail` 기준으로도 통과).
+- **같은 lock 안에서 이어 고친 둘(눈으로 보고 찾은 것 · §1)**: 그 PNG 에서 **모루가 그냥 사각형**이었고 **그라디언트가 없었다**(표엔 `anvil_bottom`·`hammer_head_bottom`·`hammer_haft_bottom` 이 이미 있는데 2회차 코드가 윗색만 썼다).
+  - `BootLoadingUi.json` — `anvil_clip.xy` = 정본 `clip-path: polygon(0 0, 100% 0, 82% 45%, 70% 100%, 30% 100%, 18% 45%)`(index.html 33).
+  - `Core/Ui/BootLoadingRules.cs` — `InPoly`(홀짝 규칙 = CSS `clip-path: polygon` 과 같은 셈) · `Coverage`(잔표본 덮임 = 자른 모서리가 계단이 안 되게) · `AnvilClip`. **UnityEngine 0** 이라 EditMode 가 잰다.
+  - `Ui/BootLoading.cs` — 조각 공장 `GradFace`(세로 그라디언트 + 자르개 · 색을 **값으로** 받는다 · 결정의 `Face` 갈래) + `GradSprite`(64칸 · 잔표본 4 · 같은 색·폴리곤이면 한 번만 굽는다). 모루·망치 머리·자루 셋이 이걸로 선다.
+  - 자: EditMode `모루_자르개가_허리를_자른다` 1(안·밖·모서리·자르개 없음 네 갈래) · PlayMode `오버레이가_표대로_선다` 에 단언 다섯(바닥 다리 바깥은 비고 · 다리는 차고 · 윗면은 폭 전체 · 위가 밝고 아래가 어둡다).
+- **아직 정본과 다른 한 자리(다음 회차 몫)**: 진행 막대 채움이 **단색**이다 — 정본은 `linear-gradient(90deg, #e8a33d, #ffd873)`(가로)인데 이 조각은 둥근 모서리(`border-radius: 5px`)를 9칸 슬라이스로 내고 있어 가로 그라디언트와 같이 걸려면 조각 공장을 하나 더 만들어야 한다. 바탕 `radial-gradient` 세 칸도 가운데 색 한 장으로 덮은 채다(2회차 주석). 둘 다 «있다/없다» 가 아니라 «칠이 밋밋하다» 라 화면은 이미 정본 그림이다.
 - **주인이 확인할 것**: `screens` 가지의 `screen_boot-loading.png` — 부팅 순간에 보이는 화면이다(원작 `web/index.html` 의 `#boot-loading`). 그리고 에디터 Play 첫 1~2초.
 - **정본에서 고칠 것**: 없음.
 

@@ -56,7 +56,7 @@ namespace Forge.Game.Ui
             }
         }
 
-        public static void ResetCache() { cached = null; }
+        public static void ResetCache() { cached = null; gradCache.Clear(); }
 
         /// <summary>이 덮개가 사는 **제 캔버스**(정본 `#boot-loading` 은 `#app` 밖이다 · <see cref="Begin"/> 이 세운다).
         /// 손으로 부모를 주고 세운 자리(테스트·미리보기)에서는 null 이다.</summary>
@@ -116,7 +116,7 @@ namespace Forge.Game.Ui
                          (float)spec.ForgeWPx, (float)spec.ForgeHPx);
             y += (float)(spec.ForgeHPx + spec.BoxGapPx);
 
-            Image anvil = Face(forge, "bl-anvil", Hex("anvil_top"));
+            Image anvil = GradFace(forge, "bl-anvil", Hex("anvil_top"), Hex("anvil_bottom"), spec.AnvilClip);
             UiKit.Anchor(anvil.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
                          new Vector2(0f, (float)spec.AnvilBottomPx), (float)spec.AnvilWPx, (float)spec.AnvilHPx);
             Image foot = Face(forge, "bl-anvil-foot", Hex("anvil_foot"));
@@ -127,10 +127,10 @@ namespace Forge.Game.Ui
             UiKit.Anchor(hammer, new Vector2((float)spec.HammerLeftF, 0f), new Vector2((float)spec.HammerLeftF, 0f),
                          new Vector2(0f, (float)spec.HammerBottomPx), (float)spec.HammerWPx, (float)spec.HammerHPx);
             hammer.pivot = new Vector2((float)spec.HammerPivotXF, (float)spec.HammerPivotYF);
-            Image head = Face(hammer, "head", Hex("hammer_head_top"));
+            Image head = GradFace(hammer, "head", Hex("hammer_head_top"), Hex("hammer_head_bottom"), null);
             UiKit.Anchor(head.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, -(float)spec.HammerHeadTopPx),
                          (float)spec.HammerHeadWPx, (float)spec.HammerHeadHPx);
-            Image haft = Face(hammer, "haft", Hex("hammer_haft_top"));
+            Image haft = GradFace(hammer, "haft", Hex("hammer_haft_top"), Hex("hammer_haft_bottom"), null);
             UiKit.Anchor(haft.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
                          new Vector2((float)spec.HammerHaftLeftPx, -(float)spec.HammerHaftTopPx),
                          (float)spec.HammerHaftWPx, (float)spec.HammerHaftHPx);
@@ -187,6 +187,66 @@ namespace Forge.Game.Ui
             img.color = c;
             img.raycastTarget = false;
             return img;
+        }
+
+        /// <summary>세로 그라디언트 면(정본 `linear-gradient(위, 아래)`) — <paramref name="poly"/> 가 있으면 그 안만 칠한다
+        /// (정본 `clip-path: polygon(...)` · 모루 허리). <see cref="Face"/> 와 같이 **색을 값으로** 받는다.</summary>
+        private static Image GradFace(Transform parent, string name, Color top, Color bottom, double[][] poly)
+        {
+            RectTransform rt = UiKit.Box(parent, name);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.sprite = GradSprite(top, bottom, poly);
+            img.type = Image.Type.Simple;
+            img.color = Color.white;
+            img.raycastTarget = false;
+            return img;
+        }
+
+        // 그림 한 장의 해상도와 잔표본 수 — 정본 수치가 아니라 «계단이 안 보이게» 의 그림 품질이라 표에 안 넣는다.
+        // 이 조각들의 화면 크기는 138×48(모루)·48×30(망치 머리) 안쪽이라 64칸이면 한 칸이 화면 두 픽셀보다 작다.
+        private const int GradPx = 64;
+        private const int GradSub = 4;
+
+        private static readonly Dictionary<string, Sprite> gradCache = new Dictionary<string, Sprite>();
+
+        /// <summary>세로 그라디언트(+ 자르개) 한 장을 굽는다 — 같은 색·같은 폴리곤이면 한 번만 굽는다.</summary>
+        private static Sprite GradSprite(Color top, Color bottom, double[][] poly)
+        {
+            var key = new System.Text.StringBuilder();
+            key.Append(ColorUtility.ToHtmlStringRGBA(top)).Append('|').Append(ColorUtility.ToHtmlStringRGBA(bottom));
+            if (poly != null)
+                for (int i = 0; i < poly.Length; i++)
+                    key.Append('|').Append(poly[i][0].ToString("0.####", System.Globalization.CultureInfo.InvariantCulture))
+                       .Append(',').Append(poly[i][1].ToString("0.####", System.Globalization.CultureInfo.InvariantCulture));
+            string k = key.ToString();
+            Sprite cachedSprite;
+            if (gradCache.TryGetValue(k, out cachedSprite) && cachedSprite != null) return cachedSprite;
+
+            Texture2D tex = new Texture2D(GradPx, GradPx, TextureFormat.RGBA32, false);
+            tex.name = "bl-grad";
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;
+            Color32[] px = new Color32[GradPx * GradPx];
+            double cell = 1.0 / GradPx;
+            for (int y = 0; y < GradPx; y++)
+            {
+                // 텍스처 y 는 아래에서 위로, CSS 그라디언트·clip-path 의 y 는 위에서 아래다 — 여기서 뒤집는다.
+                double fy = (GradPx - 1 - y + 0.5) / GradPx;
+                Color c = Color.Lerp(top, bottom, (float)fy);
+                for (int x = 0; x < GradPx; x++)
+                {
+                    double fx = (x + 0.5) / GradPx;
+                    Color o = c;
+                    o.a *= (float)BootLoadingSpec.Coverage(poly, fx, fy, cell, cell, GradSub);
+                    px[y * GradPx + x] = o;
+                }
+            }
+            tex.SetPixels32(px);
+            tex.Apply(false, false);
+            Sprite sp = Sprite.Create(tex, new Rect(0f, 0f, GradPx, GradPx), new Vector2(0.5f, 0.5f), 100f, 0u, SpriteMeshType.FullRect);
+            sp.name = "bl-grad";
+            gradCache[k] = sp;
+            return sp;
         }
 
         private static Image RoundFace(Transform parent, string name, Color c, float radiusPx)

@@ -37,6 +37,9 @@ namespace Forge.Core.Ui
         public double SwingMs, SparkMs, SparkDelay2Ms, SparkDelay3Ms, FillMs, FadeMs, RemoveMs;
 
         /// <summary>정본 CSS px 1 = 기준 캔버스 px 몇인가(정본 앱 폭 499 ↔ 카탈로그 reference 1080).</summary>
+        /// <summary>모루 자르개(정본 `clip-path: polygon(...)`) — 상자 안 비율 점들 · y 는 **위에서부터**(CSS 그대로).</summary>
+        public double[][] AnvilClip;
+
         /// <summary>덮개의 정렬 순서(정본 인라인 CSS `z-index: 200`) — 이 덮개는 `#app` 밖이라 앱 캔버스 위에 제 캔버스로 선다.</summary>
         public int ZIndex;
 
@@ -95,10 +98,56 @@ namespace Forge.Core.Ui
             }
 
             s.ZIndex = (int)J.Num(J.Require(root, "z_index"));
+            s.AnvilClip = ReadPoly(J.Require(J.Obj(J.Require(root, "anvil_clip")), "xy"));
 
             s.Swing = Stops(J.Require(root, "swing"), "swing");
             s.Spark = Stops(J.Require(root, "spark"), "spark");
             return s;
+        }
+
+        static double[][] ReadPoly(object arr)
+        {
+            var list = J.Arr(arr);
+            if (list.Count < 3) throw new FormatException("자르개 폴리곤은 점이 셋 이상이어야 한다(BootLoadingUi anvil_clip)");
+            var pts = new double[list.Count][];
+            for (int i = 0; i < list.Count; i++)
+            {
+                var xy = J.Arr(list[i]);
+                if (xy.Count != 2) throw new FormatException("자르개 점은 [x, y] 둘이어야 한다(BootLoadingUi anvil_clip)");
+                pts[i] = new[] { J.Num(xy[0]), J.Num(xy[1]) };
+            }
+            return pts;
+        }
+
+        /// <summary>점 (<paramref name="x"/>, <paramref name="y"/>) 이 폴리곤 안인가 — 홀짝 규칙(CSS `clip-path: polygon` 과 같다).
+        /// 좌표는 상자 안 비율이고 y 는 위에서부터다.</summary>
+        public static bool InPoly(double[][] poly, double x, double y)
+        {
+            if (poly == null) return true;
+            bool inside = false;
+            for (int i = 0, j = poly.Length - 1; i < poly.Length; j = i++)
+            {
+                double xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+                if ((yi > y) != (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+            }
+            return inside;
+        }
+
+        /// <summary>한 칸(가운데 <paramref name="cx"/>·<paramref name="cy"/> · 크기 <paramref name="w"/>×<paramref name="h"/>)이
+        /// 폴리곤에 얼마나 덮이는가(0~1) — <paramref name="sub"/>×<paramref name="sub"/> 잔표본. 자른 모서리가 계단이 되지 않게 하는 셈이다.</summary>
+        public static double Coverage(double[][] poly, double cx, double cy, double w, double h, int sub)
+        {
+            if (poly == null) return 1.0;
+            if (sub < 1) sub = 1;
+            int hit = 0;
+            for (int i = 0; i < sub; i++)
+                for (int k = 0; k < sub; k++)
+                {
+                    double x = cx + ((i + 0.5) / sub - 0.5) * w;
+                    double y = cy + ((k + 0.5) / sub - 0.5) * h;
+                    if (InPoly(poly, x, y)) hit++;
+                }
+            return hit / (double)(sub * sub);
         }
 
         static Stage[] ReadStages(object arr)

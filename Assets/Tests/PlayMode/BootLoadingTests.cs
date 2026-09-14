@@ -51,6 +51,19 @@ namespace Forge.Tests.PlayMode
                 Assert.IsNotNull(box.Find("bl-forge/bl-spark-" + i), "불티 " + i + " 이 없다");
 
             Assert.AreEqual("포지 클론", box.Find("bl-title").GetComponent<TextMeshProUGUI>().text);
+
+            // 8회차 — 모루는 정본 `clip-path: polygon(...)` 으로 허리가 잘린 그림이다(그냥 사각형이 아니다).
+            Image anvil = box.Find("bl-forge/bl-anvil").GetComponent<Image>();
+            Assert.IsNotNull(anvil.sprite, "모루에 구운 그림이 없다 — 자르개가 안 걸렸다");
+            Texture2D tex = anvil.sprite.texture;
+            int w = tex.width, h = tex.height;
+            // 텍스처 y 는 아래에서 위로 — 바닥 다리(30%~70%) 바깥은 비고, 윗면은 폭 전체가 차 있다.
+            Assert.Less(tex.GetPixel((int)(w * 0.05f), (int)(h * 0.03f)).a, 0.5f, "모루 바닥 왼쪽 바깥이 안 잘렸다");
+            Assert.Greater(tex.GetPixel((int)(w * 0.5f), (int)(h * 0.03f)).a, 0.5f, "모루 바닥 다리가 비었다");
+            Assert.Greater(tex.GetPixel((int)(w * 0.05f), (int)(h * 0.97f)).a, 0.5f, "모루 윗면은 폭 전체가 차 있어야 한다");
+            // 정본 `linear-gradient(#5d6a80, #3a4356)` — 위가 밝고 아래가 어둡다
+            Color up = tex.GetPixel(w / 2, (int)(h * 0.95f)), down = tex.GetPixel(w / 2, (int)(h * 0.55f));
+            Assert.Greater(up.r + up.g + up.b, down.r + down.g + down.b, "모루 그라디언트가 위에서 아래로 어두워져야 한다");
             Object.Destroy(bl.gameObject);
             yield return null;
         }

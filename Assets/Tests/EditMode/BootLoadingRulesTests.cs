@@ -180,5 +180,38 @@ namespace Forge.Tests
                 ""layout"":{},""times"":{},""colors"":{},""spark_move"":{},""swing"":[],""spark"":[]}";
             Assert.Throws<FormatException>(() => BootLoadingSpec.From(MiniJson.ParseObject(back)));
         }
-    }
+    
+        /// <summary>모루 자르개(정본 `clip-path: polygon(0 0, 100% 0, 82% 45%, 70% 100%, 30% 100%, 18% 45%)`)를
+        /// 홀짝 규칙으로 읽는가 — 허리가 잘려야 모루 모양이 된다.</summary>
+        [Test]
+        public void 모루_자르개가_허리를_자른다()
+        {
+            var s = S();
+            Assert.AreEqual(6, s.AnvilClip.Length, "정본 polygon 은 점 여섯이다");
+            Assert.AreEqual(0.82, s.AnvilClip[2][0], 1e-9);
+            Assert.AreEqual(0.45, s.AnvilClip[2][1], 1e-9);
+
+            // 위 띠는 폭 전체가 안이다(0 0 ~ 100% 0)
+            Assert.IsTrue(BootLoadingSpec.InPoly(s.AnvilClip, 0.05, 0.05), "모루 윗면 왼쪽 끝은 안이다");
+            Assert.IsTrue(BootLoadingSpec.InPoly(s.AnvilClip, 0.95, 0.05), "모루 윗면 오른쪽 끝은 안이다");
+            // 허리(45%)에서는 18%~82% 만 남는다
+            Assert.IsFalse(BootLoadingSpec.InPoly(s.AnvilClip, 0.05, 0.5), "허리 왼쪽 바깥은 잘린다");
+            Assert.IsFalse(BootLoadingSpec.InPoly(s.AnvilClip, 0.95, 0.5), "허리 오른쪽 바깥은 잘린다");
+            Assert.IsTrue(BootLoadingSpec.InPoly(s.AnvilClip, 0.5, 0.5), "허리 가운데는 안이다");
+            // 바닥(100%)은 30%~70% 다리만
+            Assert.IsFalse(BootLoadingSpec.InPoly(s.AnvilClip, 0.2, 0.97), "바닥 다리 바깥은 잘린다");
+            Assert.IsTrue(BootLoadingSpec.InPoly(s.AnvilClip, 0.5, 0.97), "바닥 다리 가운데는 안이다");
+
+            // 잔표본 덮임: 안은 1 · 밖은 0 · 자른 모서리는 그 사이(계단이 안 보이게 하는 셈)
+            Assert.AreEqual(1.0, BootLoadingSpec.Coverage(s.AnvilClip, 0.5, 0.5, 0.02, 0.02, 4), 1e-9);
+            Assert.AreEqual(0.0, BootLoadingSpec.Coverage(s.AnvilClip, 0.02, 0.9, 0.02, 0.02, 4), 1e-9);
+            double edge = BootLoadingSpec.Coverage(s.AnvilClip, 0.30, 0.97, 0.04, 0.04, 8);
+            Assert.Greater(edge, 0.0, "자른 모서리 칸은 반쯤 덮인다");
+            Assert.Less(edge, 1.0, "자른 모서리 칸은 반쯤 덮인다");
+
+            // 자르개가 없으면(망치 머리·자루) 온 칸이 칠해진다
+            Assert.IsTrue(BootLoadingSpec.InPoly(null, 0.0, 0.0));
+            Assert.AreEqual(1.0, BootLoadingSpec.Coverage(null, 0.5, 0.5, 0.1, 0.1, 4), 1e-9);
+        }
+}
 }
