@@ -63,7 +63,8 @@ namespace TMPro
     // ⚠ 이름은 내 기억이 아니라 **다음 CI 로그가 확인해 준다** — `TmpFontProbeTests` 가 이 세 타입의 실제 멤버를 찍는다(결정 573 의 방법).
     //   스텁 파일 자체는 유니티가 컴파일하지 않으므로 여기 적는 것만으로는 아무것도 안 깨진다. 깨질 수 있는 것은 **Assets 쪽에서 쓰는 순간**이고,
     //   그러니 자를 쓰는 워커는 그 로그 줄을 먼저 보고 쓰라(안 맞으면 이 파일만 고치면 된다).
-    public struct TMP_CharacterInfo { public char character; public int index; public bool isVisible; }
+    // T352 — 진짜 TMP_CharacterInfo 의 공개 필드 둘: origin(글자 시작 x) · xAdvance(다음 글자 시작 x). TabularSitesTests 가 숫자 칸 폭을 잰다.
+    public struct TMP_CharacterInfo { public char character; public int index; public bool isVisible; public float origin; public float xAdvance; }
     // T121 — 진짜 TMP_TextElement(글리프 참조) · TMP_Character : TMP_TextElement
     public class TMP_TextElement { public UnityEngine.TextCore.Glyph glyph { get; set; } public uint unicode { get; set; } }
     public class TMP_Character : TMP_TextElement { }

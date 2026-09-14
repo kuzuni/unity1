@@ -200,6 +200,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(ico.rectTransform, PopupKit.Rem * 0.3f, pillH * 0.1f, pillH * 0.8f, pillH * 0.8f);
                 TextMeshProUGUI t = UiKit.Text(pill, "amt", TextKind.Sub, PopupKit.Fmt(reward.ValueAt(i)), "stage_ink", TextAlignmentOptions.Left);
                 t.fontStyle = FontStyles.Bold;
+                TabularText.Apply(t);   // T352 ⓒ — 정본 8637 `.pass-cell span:not(.pass-badge) { font-variant-numeric: tabular-nums }`
                 t.rectTransform.offsetMin = new Vector2(PopupKit.Rem * 0.3f + pillH * 0.9f, 0f);
                 PopupKit.Ring(t, "pass_card", "pp_line");
             }

@@ -1,0 +1,78 @@
+using System.Collections;
+using System.Collections.Generic;
+using NUnit.Framework;
+using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+using Forge.Core.Ui;
+using Forge.Game;
+using Forge.Game.Ui;
+
+namespace Forge.Tests.PlayMode
+{
+    /// <summary>
+    /// T352 ⓒ — 정본 `tabular-nums` 여섯 자리 중 클론에 배선된 자리의 숫자가 실제로 등폭으로 그려지는가.
+    /// 판정은 «태그가 붙었다» 가 아니라 **글자 origin 의 간격** — 같은 구간의 이웃 숫자끼리 시작 x 차이가 같고, 그 값이 글꼴에서 읽은 칸(em × 글자 크기)이다.
+    /// </summary>
+    public class TabularSitesTests
+    {
+        static IEnumerator Boot()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+            float t = 0f;
+            while (!(UiRoot.Instance != null && UiRoot.Instance.App != null && MetaHost.Ready && PopupLayer.Instance != null) && t < 20f)
+            { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "메타 호스트 부팅");
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator 글꼴에서_읽은_숫자_칸은_반_em_안팎이다()
+        {
+            yield return Boot();
+            float em = TabularText.DigitEm(UiFont.Primary);
+            Assert.Greater(em, 0.3f, "가장 넓은 숫자 advance / 샘플링 크기");
+            Assert.Less(em, 1.0f, "숫자 하나가 1em 을 넘을 수 없다");
+        }
+
+        [UnityTest]
+        public IEnumerator 패스_칸의_보상_수는_숫자_구간이_등폭이다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            PassPopup.Open(h);
+            yield return null;
+            Popup p = PopupLayer.Instance.Find(PassPopup.Name);
+            Assert.IsNotNull(p, "패스 팝업이 열린다");
+
+            var amts = new List<TextMeshProUGUI>();
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true)) if (t.name == "amt") amts.Add(t);
+            Assert.Greater(amts.Count, 0, "정본 `.pass-cell span:not(.pass-badge)` — 칸마다 보상 수 span");
+
+            float em = TabularText.DigitEm(UiFont.Primary);
+            int measured = 0;
+            foreach (TextMeshProUGUI t in amts)
+            {
+                Assert.IsTrue(t.richText, t.name + " — 태그를 쓰려면 richText");
+                Assert.IsTrue(TabularNums.IsWrapped(t.text), "숫자 구간이 <mspace> 로 감싸였다: " + t.text);
+                t.ForceMeshUpdate(true, true);
+                TMP_TextInfo info = t.textInfo;
+                float cell = em * t.fontSize, tol = cell * 0.15f;
+                for (int i = 0; i + 1 < info.characterCount; i++)
+                {
+                    TMP_CharacterInfo a = info.characterInfo[i], b = info.characterInfo[i + 1];
+                    if (!char.IsDigit(a.character) || !char.IsDigit(b.character)) continue;
+                    Assert.AreEqual(cell, b.origin - a.origin, tol, "이웃 숫자의 시작 x 간격 = 칸(" + t.text + ")");
+                    measured++;
+                }
+            }
+            Assert.Greater(measured, 0, "숫자가 둘 이상 이어진 보상 수가 하나는 있어야 간격을 잰다");
+
+            PassPopup.Close(h);
+            yield return null;
+        }
+    }
+}
