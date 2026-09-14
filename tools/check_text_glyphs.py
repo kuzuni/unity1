@@ -66,17 +66,14 @@ KNOWN = {
     '🛡': 'PlayerInfoUi.json /text/shield(미니 씬이 못 설 때의 폴백) — **정본도 글자다**: `ui.js` 5153 `<div class="pinfo-preview"><span>🛡️</span>…` · T106(이모지 폴백 글꼴)',
 }
 
-ROUTE = re.compile(r'IconTextRow|IconText\.|UiText\.(?:Split|TextOnly)|Toast\(|TextOnly\(')
+ROUTE = re.compile(r'IconTextRow|IconTextStack\.|IconText\.|UiText\.(?:Split|TextOnly)|Toast\(|TextOnly\(')   # IconTextStack(T110) = 줄마다 IconTextRow · 세로 갈래도 아이콘 길
 ROUTE_CTX = 3   # 리터럴 둘레 몇 줄까지 «아이콘 길» 을 찾을까
 
 # 아이콘 표 글자를 **아이콘을 안 거치고 글자로** 세우는 것이 이미 알려진 자리(임자 있음).
 # 열쇠는 «파일 이름|리터럴» 이다 — 줄 번호로 잡으면 남이 위에 한 줄만 넣어도 어긋난다.
 LABEL_KNOWN = {
-    'ForgeCraftPopup.cs|판매 🪙 +': 'T110(T99 에서 뗌) — 정본 ui.js 의 판매 버튼 · 두 줄 라벨이라 가로 IconTextRow 로는 안 된다 · T87 lock 뒤',
-    'ForgeCraftPopup.cs|판매\\n🪙 +': '같은 자리의 두 줄 판',
-    'ForgeInfoPopup.cs|건너뛰기\\n💎 ': 'T110(T99 에서 뗌) — 건너뛰기 버튼 · 두 줄 라벨 · T87 lock 뒤',
-    'ForgeInfoPopup.cs| 업그레이드\\n🪙 ': 'T110(T99 에서 뗌) — 업그레이드 버튼 · 두 줄 라벨 · T87 lock 뒤',
     # T108 — `ForgeSheet.cs|🔒`(자동 제련 버튼 잠금) 은 아틀라스 `lock` 아이콘으로 바꿔 지웠다 · 다시 글자가 되면 «새 자리» 로 rc 1.
+    # T110 2회차 — `ForgeCraftPopup.cs|판매…🪙` 둘 · `ForgeInfoPopup.cs|건너뛰기…💎` · `…업그레이드…🪙` 넷은 IconTextStack(이모지 표 길)로 바꿔 지웠다 · 다시 글자가 되면 «새 자리» 로 rc 1.
     # T137 — Core 자리. Core 는 그리지 않으므로 «둘레에 아이콘 길» 이 있을 수 없다 — 소비처를 손으로 따라가 적는다.
     'Dungeons.cs|🔨 ': 'Core Dungeons.RewardText — Game 에 **호출 0**(DungeonSheet.RewardLine·DungeonDetailPopup.BuildRewardRow 가 제 아이콘으로 그린다) · 부르는 날 IconTextRow 로',
     'Dungeons.cs|🪙 ': '같은 RewardText(호출 0)',
@@ -248,7 +245,7 @@ def label_risk(root, font, table):
 #      Dungeons.Toast → Emit(DungeonEventKind.Toast) → DungeonSheet 86 `case DungeonEventKind.Toast: DungeonPopups.Toast(e.Text)`).
 #      Core 는 그리지 못하니 ⓐ~ⓒ 가 없다 — 받는 줄이 Game 에 없으면 그 문구는 **어디에도 안 나간다**(그것도 rc 1 이다).
 SINK_SIG = re.compile(r'\b(?:public|private|internal|protected|static|\s)*void\s+(Toast|Show)\s*\(\s*string\s')
-ROUTER = re.compile(r'IconTextRow|UiText\.Split')
+ROUTER = re.compile(r'IconTextRow|IconTextStack\.|UiText\.Split')
 FORWARD = re.compile(r'\b(?:Toast|Show)\s*\(')
 CLASS_SIG = re.compile(r'\b(?:class|struct)\s+([A-Za-z_]\w*)')
 EVENT_EMIT = re.compile(r'\bEmit\s*\(\s*([A-Za-z_]\w*)\.Toast\b')
@@ -505,6 +502,7 @@ def self_test():
     # 라벨 갈래(T100 4회차): 아이콘 표 글자를 아이콘 없이 세운 자리를 잡는가
     for code, fname, want, note in [
         ('UiKit.IconTextRow(p, "row", TextKind.Body, "🪙 +3", "ink", 0);', 'X.cs', 0, '아이콘 길이 보이면 안 센다'),
+        ('IconTextStack.ReplaceLabel(b, TextKind.Sub, "판매\\n🪙 +3", "ink", "pp_red");', 'X.cs', 0, 'T110 세로 갈래(IconTextStack)도 아이콘 길이라 안 센다'),
         ('string s = "🪙 +3";', 'X.cs', 1, '그냥 라벨이면 센다'),
         ('string s = "🔒";', 'ForgeSheet.cs', 1, '아는 자리도 목록에는 오른다(rc 는 LABEL_KNOWN 이 가른다)'),
     ]:
@@ -513,7 +511,7 @@ def self_test():
             got = len(label_risk(d, font, skip))
             if got != want:
                 print('✗ 라벨 갈래 «%s»: 기대 %d · 받은 %d' % (note, want, got)); ok = False
-    if label_key('Assets/Scripts/Game/Ui/ForgeCraftPopup.cs:69', '판매 🪙 +') not in LABEL_KNOWN:   # T108 뒤 남은 열쇠 중 하나(T110 2회차가 빼면 다른 열쇠로)
+    if label_key('Assets/Scripts/Core/Battle/Battle.cs:1', '🪙 +') not in LABEL_KNOWN:   # T110 2회차 뒤 남은 열쇠(T138 자리) — T138 이 빼면 다른 열쇠로
         print('✗ 라벨 열쇠: 파일 이름 + 리터럴로 LABEL_KNOWN 을 못 찾는다'); ok = False
 
     # T137 — Core 도 훑는다: 목록에 Core 가 있고, 둘째 폴더의 두부도 센다(고장 주입 · «Game 하나» 로 돌아가면 여기서 잡힌다)

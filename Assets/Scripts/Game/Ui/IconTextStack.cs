@@ -77,6 +77,28 @@ namespace Forge.Game.Ui
             }
         }
 
+        /// <summary>
+        /// T110 2회차 — <see cref="PopupKit.Btn"/> 이 세운 한 줄 라벨을 끄고 그 자리에 세로 갈래를 세운다(정본 `.btn` 안 `<br>`/`<small>` 두 줄 라벨:
+        /// «판매<small>coin +N</small>» · «건너뛰기<br>gem N» · «레벨 N 업그레이드<br><small>coin N · ⏱ T</small>»). 이모지는 표(`UiText`)로 아이콘이 된다.
+        /// 굵게·키라인(<see cref="KeylineUi.BtnFace"/>)은 Btn 의 라벨과 같이 걸고 마지막에 <see cref="Fit"/>. T108 <c>ForgeSheet.AutoBtn</c> 과 같은 꼴.
+        /// </summary>
+        public static RectTransform ReplaceLabel(Button b, TextKind kind, string msg, string inkKey, string faceKey)
+        {
+            RectTransform rt = b.GetComponent<RectTransform>();
+            Transform plain = rt.Find("label");
+            if (plain != null) plain.gameObject.SetActive(false);
+            RectTransform stack = Build(rt, "label-stack", kind, msg, inkKey);
+            stack.offsetMin = new Vector2(0f, UiKit.H("btn_lip"));
+            string kl = KeylineUi.BtnFace(faceKey);
+            foreach (TextMeshProUGUI t in UiKit.RowTexts(stack))
+            {
+                t.fontStyle = FontStyles.Bold;
+                if (!string.IsNullOrEmpty(kl)) PopupKit.Ring(t, kl, "pp_line");
+            }
+            Fit(stack);
+            return stack;
+        }
+
         /// <summary>줄 수(정본 `<br>` 개수 + 1).</summary>
         public static int LineCount(RectTransform stack)
         {

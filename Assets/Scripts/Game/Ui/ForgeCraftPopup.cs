@@ -70,8 +70,9 @@ namespace Forge.Game.Ui
             ForgeUi.ItemCard(lower, "new", inner - rem * 0.8f, item, newTag, cur != null ? (newIsHigher ? "up" : "down") : null, true, d, h.GearSys.ItemValue);
             RectTransform row = PopupKit.Item(lower, "row", -1f, UiKit.H("btn_h") * 1.7f + rem * 1.4f);
             float bw = (inner - rem * 0.8f - rem * 1.3f - rem * 1.9f) * 0.5f, bh = UiKit.H("btn_h") * 1.7f;
-            Button sell = PopupKit.Btn(row, "sell", "판매\n🪙 +" + NumFmt.Fmt(h.GearSys.SellPrice(item)), "pp_red", "pp_red_dk", () => h.ResolveCraft("sell"), bw, bh, "stage_ink", TextKind.Sub);
-            TwoLine(sell);
+            // T110 — 정본 ui.js 3266 `판매<small>${IconGen.img('coin')} +N</small>`: 아랫줄은 코인 **아이콘** + 수(글자 🪙 가 아니다 · 세로 갈래 IconTextStack).
+            Button sell = PopupKit.Btn(row, "sell", "", "pp_red", "pp_red_dk", () => h.ResolveCraft("sell"), bw, bh, "stage_ink", TextKind.Sub);
+            IconTextStack.ReplaceLabel(sell, TextKind.Sub, "판매\n🪙 +" + NumFmt.Fmt(h.GearSys.SellPrice(item)), "stage_ink", "pp_red");
             UiKit.Place(sell.GetComponent<RectTransform>(), rem * 0.96f, 0f, bw, bh);
             string equipLabel = "장착" + (cur != null ? "\n" + (swapped ? "다시 장착" : "기존 교체") : string.Empty);
             Button equip = PopupKit.Btn(row, "equip", equipLabel, "pp_blue", "pp_blue_dk", () => h.ResolveCraft("equip"), bw, bh, "stage_ink", TextKind.Sub);
@@ -113,7 +114,9 @@ namespace Forge.Game.Ui
             PopupKit.Label(card, "note", TextKind.Sub, "파는 쪽이 " + gap + "시대 더 최신입니다.\n같거나 이전 시대면 이 창은 뜨지 않습니다.", "pp_muted", TextAlignmentOptions.Center, true, false, PopupKit.FontSize(TextKind.Sub) * 2.8f);
             RectTransform row = PopupKit.Item(card, "row", -1f, UiKit.H("btn_h") * 1.5f);
             float bw = (w - rem * 1.8f - rem * 0.8f) * 0.5f, bh = UiKit.H("btn_h") * 1.5f;
-            Button s = PopupKit.Btn(row, "sell", "판매 🪙 +" + NumFmt.Fmt(h.GearSys.SellPrice(sold)), "pp_red", "pp_red_dk", () => h.OnSellConfirm(), bw, bh, "stage_ink", TextKind.Sub);
+            // T110 — 정본 ui.js 3865 도 `판매<small>coin +N</small>` 두 줄이다(클론은 한 줄 글자였다).
+            Button s = PopupKit.Btn(row, "sell", "", "pp_red", "pp_red_dk", () => h.OnSellConfirm(), bw, bh, "stage_ink", TextKind.Sub);
+            IconTextStack.ReplaceLabel(s, TextKind.Sub, "판매\n🪙 +" + NumFmt.Fmt(h.GearSys.SellPrice(sold)), "stage_ink", "pp_red");
             UiKit.Place(s.GetComponent<RectTransform>(), 0f, 0f, bw, bh);
             Button c = PopupKit.Btn(row, "cancel", "취소", "pp_gray", "pp_gray_dk", () => h.OnSellCancel(), bw, bh, "stage_ink", TextKind.Sub);
             UiKit.Place(c.GetComponent<RectTransform>(), bw + rem * 0.8f, 0f, bw, bh);

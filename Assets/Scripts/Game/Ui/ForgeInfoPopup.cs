@@ -110,15 +110,17 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI tt = UiKit.Text(prog, "upg-time", TextKind.Sub, NumFmt.FmtTime(remain), "stage_ink");
                 tt.fontStyle = FontStyles.Bold;
                 PopupKit.Spacer(card, rem * 0.5f);
-                Button skip = PopupKit.Btn(card, "fi-skip", "건너뛰기\n💎 " + NumFmt.Fmt(h.Engine.GemSkipCost()), "pp_gray", "pp_gray_dk", () => h.OnGemSkipForge(), inner * 0.6f, bh, "stage_ink", TextKind.Sub);
-                TwoLine(skip);
+                // T110 — 정본 ui.js 2043 `건너뛰기<br><span class="fi-skip-gem">${IconGen.img('gem')} N</span>`: 아랫줄은 젬 **아이콘** + 수(세로 갈래 IconTextStack).
+                Button skip = PopupKit.Btn(card, "fi-skip", "", "pp_gray", "pp_gray_dk", () => h.OnGemSkipForge(), inner * 0.6f, bh, "stage_ink", TextKind.Sub);
+                IconTextStack.ReplaceLabel(skip, TextKind.Sub, "건너뛰기\n💎 " + NumFmt.Fmt(h.Engine.GemSkipCost()), "stage_ink", "pp_gray");
             }
             else
             {
                 double cost = h.Engine.UpgradeCost(info), time = h.Engine.UpgradeTime(info);
                 bool poor = h.Wallet.Coins < cost;
-                Button up = PopupKit.Btn(card, "fi-upgrade", "레벨 " + (h.Forge.ForgeLevel + 1) + " 업그레이드\n🪙 " + NumFmt.Fmt(cost) + " · ⏱ " + NumFmt.FmtTime(time), "pp_blue", "pp_blue_dk", () => h.OnStartUpgrade(), inner * 0.8f, bh, "stage_ink", TextKind.Sub, poor);
-                TwoLine(up);
+                // T110 — 정본 ui.js 2047 `레벨 N 업그레이드<br><small>${IconGen.img('coin')} N · ⏱ T</small>`: 아랫줄은 코인 **아이콘** + 수 · 시간(⏱ 는 정본도 글자 · T106 몫).
+                Button up = PopupKit.Btn(card, "fi-upgrade", "", "pp_blue", "pp_blue_dk", () => h.OnStartUpgrade(), inner * 0.8f, bh, "stage_ink", TextKind.Sub, poor);
+                IconTextStack.ReplaceLabel(up, TextKind.Sub, "레벨 " + (h.Forge.ForgeLevel + 1) + " 업그레이드\n🪙 " + NumFmt.Fmt(cost) + " · ⏱ " + NumFmt.FmtTime(time), "stage_ink", "pp_blue");
             }
             PopupKit.XButton(card, () => Close(h));
         }
