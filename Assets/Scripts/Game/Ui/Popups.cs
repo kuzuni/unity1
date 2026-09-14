@@ -423,6 +423,13 @@ namespace Forge.Game.Ui
             t.rectTransform.offsetMin = new Vector2(0f, lip);
             string kl = keylineKey ?? KeylineUi.BtnFace(faceKey);
             if (!string.IsNullOrEmpty(kl) && !disabled) Ring(t, kl, "pp_line");
+            // T333 — 글자 그림자(정본 cascade 대로): 색 버튼(btn_face 표 = .primary/.on/.equip/.danger/.sell)은 카드·패널 안에서 8504 `0 1px 1px rgba(4,18,52,.62)`(0-5-0)가 8719 의 none(0-4-0)을 이겨
+            // 키라인 위에 남색 한 겹 · 색 버튼 비활성은 8727 none(0-5-0) · 그 밖(회색·종이·디버그 = .silver 계열)은 없음 · 비활성 회색은 8356 흰 엠보스 · 제 규칙이 none 인 버튼(소환 8661)은 표 btn_none_keylines.
+            bool colored = KeylineUi.BtnFace(faceKey) != null;
+            bool noneRule = !string.IsNullOrEmpty(keylineKey) && TextShadowUi.IsNoneKeyline(keylineKey);
+            if (noneRule) { }
+            else if (disabled && !colored) UiKit.TextShadow(t, "btn_label_disabled");
+            else if (!disabled && colored) UiKit.TextShadow(t, "btn_label");
             if (disabled)
             {
                 b.interactable = false;

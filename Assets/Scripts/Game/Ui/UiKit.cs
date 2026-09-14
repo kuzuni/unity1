@@ -295,6 +295,48 @@ namespace Forge.Game.Ui
             return o;
         }
 
+        /// <summary>
+        /// T333 — 정본 `text-shadow` 한 겹을 TMP 언더레이로(표 <see cref="TextShadowUi"/> · 식 <see cref="UnderlaySdf"/>). 재질의 `_GradientScale`(UiFont 가 실측 램프로 세운 값)·
+        /// `_ScaleRatioC` 와 폰트 샘플링·<c>t.fontSize</c> 를 **그 순간** 읽으니 글자 크기를 정한 뒤에 부른다. 키라인(<see cref="OutlinePx(TextMeshProUGUI, string, float)"/>)과 같은
+        /// 재질 인스턴스에 얹힌다(둘 다 쓰는 자리는 순서 무관). 표 값은 CSS px 라 <see cref="KeylineUi.CssPx"/> 로 캔버스로 환산한다.
+        /// </summary>
+        public static UnderlaySdf TextShadow(TextMeshProUGUI t, string key)
+        {
+            Material m = t.fontMaterial;
+            if (!m.HasProperty("_UnderlayColor"))
+            {
+                Debug.LogWarning("[UiKit.TextShadow] " + t.name + ": 재질에 언더레이가 없다(" + m.shader.name + ") — 그림자를 건너뛴다");
+                return new UnderlaySdf();
+            }
+            float g = m.HasProperty("_GradientScale") ? m.GetFloat("_GradientScale") : 0f;
+            float rc = m.HasProperty("_ScaleRatioC") ? m.GetFloat("_ScaleRatioC") : 0f;
+            float ps = t.font != null ? (float)t.font.faceInfo.pointSize : 0f;
+            if (g <= 0f || ps <= 0f)
+            {
+                Debug.LogWarning("[UiKit.TextShadow] " + t.name + ": 재질/폰트 값이 비어(G=" + g + " pt=" + ps + ") TMP 기본값으로 환산한다");
+                if (g <= 0f) g = 10f;
+                if (ps <= 0f) ps = 90f;
+            }
+            if (rc <= 0f) rc = 1f;   // 비율을 안 셌으면 셰이더 기본 1 — OutlinePx 의 R 읽기와 같은 갈래
+            float css = KeylineUi.CssPx;
+            UnderlaySdf u = UnderlaySdf.FromPx(TextShadowUi.Px(key, "dx_px") * css, TextShadowUi.Px(key, "dy_px") * css, TextShadowUi.Px(key, "blur_px") * css, t.fontSize, g, rc, ps);
+            if (u.Clipped) Debug.LogWarning("[UiKit.TextShadow] " + t.name + ": 그림자 «" + key + "» 가 이 글자(" + t.fontSize + "px)의 SDF 여백(단위 " + u.UnitPx.ToString("0.0") + "px)을 넘어 잘렸다");
+            m.EnableKeyword("UNDERLAY_ON");
+            m.SetColor("_UnderlayColor", TextShadowUi.C(key));
+            m.SetFloat("_UnderlayOffsetX", (float)u.OffsetX01);
+            m.SetFloat("_UnderlayOffsetY", (float)u.OffsetY01);
+            m.SetFloat("_UnderlayDilate", 0f);
+            m.SetFloat("_UnderlaySoftness", (float)u.Softness01);
+            return u;
+        }
+
+        /// <summary>그림자를 끈다(표에 없는 면 · 정본 `text-shadow: none`).</summary>
+        public static void TextShadowOff(TextMeshProUGUI t)
+        {
+            Material m = t.fontMaterial;
+            if (m.IsKeywordEnabled("UNDERLAY_ON")) m.DisableKeyword("UNDERLAY_ON");
+        }
+
         // ---- 버튼 ----
 
         /// <summary>투명 히트 영역 + Button. 겉모습(아이콘·글자)은 호출자가 자식으로 넣는다.</summary>
@@ -309,6 +351,65 @@ namespace Forge.Game.Ui
             b.targetGraphic = hit;
             if (onClick != null) b.onClick.AddListener(onClick);
             return b;
+        }
+    }
+
+    /// <summary>T333 표(<c>Assets/Forge/Resources/TextShadowUi.json</c>) — 그림자 키마다 dx·dy·blur(CSS px)·색(#RRGGBB + alpha). 수치는 코드에 안 박는다(§1).</summary>
+    public static class TextShadowUi
+    {
+        public const string ResourcePath = "TextShadowUi";
+        static JsonObject root, shadows;
+        static readonly Dictionary<string, Color> colorCache = new Dictionary<string, Color>();
+
+        static void Load()
+        {
+            if (root != null) return;
+            TextAsset ta = Resources.Load<TextAsset>(ResourcePath);
+            if (ta == null) throw new System.InvalidOperationException("Resources/" + ResourcePath + ".json 이 없다 (T333)");
+            root = MiniJson.ParseObject(ta.text);
+            shadows = J.Obj(root["shadows"]);
+        }
+        public static void Reset() { root = null; shadows = null; colorCache.Clear(); }
+
+        public static bool Has(string key) { Load(); return J.Obj(shadows[key]) != null; }
+
+        /// <summary>제 규칙이 `text-shadow: none` 인 버튼의 키라인 표 키인가(표 `btn_none_keylines`).</summary>
+        public static bool IsNoneKeyline(string keylineKey)
+        {
+            Load();
+            List<object> a = J.Arr(root["btn_none_keylines"]);
+            if (a == null) return false;
+            for (int i = 0; i < a.Count; i++) if (J.Str(a[i]) == keylineKey) return true;
+            return false;
+        }
+
+        static JsonObject Entry(string key)
+        {
+            Load();
+            JsonObject o = J.Obj(shadows[key]);
+            if (o == null) throw new KeyNotFoundException(ResourcePath + ".json 에 그림자 «" + key + "» 이 없다");
+            return o;
+        }
+
+        /// <summary>표 값(CSS px) — `dx_px` · `dy_px`(아래가 +) · `blur_px`.</summary>
+        public static float Px(string key, string field)
+        {
+            object v = Entry(key)[field];
+            if (!J.IsNum(v)) throw new KeyNotFoundException(ResourcePath + ".json «" + key + "» 에 «" + field + "» 이 없다");
+            return (float)J.Num(v);
+        }
+
+        /// <summary>색 = `color`(#RRGGBB) + `alpha`.</summary>
+        public static Color C(string key)
+        {
+            Color c;
+            if (colorCache.TryGetValue(key, out c)) return c;
+            JsonObject o = Entry(key);
+            string hex = J.Str(o["color"]);
+            if (hex == null || !ColorUtility.TryParseHtmlString(hex, out c)) throw new System.FormatException(ResourcePath + ".json «" + key + "» 의 색 «" + hex + "» 을 못 읽는다");
+            c.a = (float)J.Num(o["alpha"], 1);
+            colorCache[key] = c;
+            return c;
         }
     }
 
