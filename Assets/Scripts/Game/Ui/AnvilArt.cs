@@ -83,7 +83,9 @@ namespace Forge.Game.Ui
         {
             Load();
             RectTransform box = UiKit.Box(parent, name);
-            box.sizeDelta = new Vector2(viewW * unit, viewH * unit);
+            // ⚠ `UiKit.Box` 는 부모를 **꽉 채운다**(`Fill`) — `sizeDelta` 만 주면 «부모 폭 + 그 값» 이 되어
+            //    런 308 에서 528 이어야 할 상자가 1608(= 1080 + 528)로 섰다. 자리·크기는 `Place` 로 준다(집 규칙).
+            UiKit.Place(box, 0f, 0f, viewW * unit, viewH * unit);
             for (int i = 0; i < parts.Count; i++)
             {
                 JsonObject o = J.Obj(parts[i]);
