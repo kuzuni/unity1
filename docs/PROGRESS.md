@@ -519,6 +519,16 @@
 | T86 | WebGL 배포물이 부팅에서 죽는다: `BattleScene.Boot` 가 제가 읽은 GameData 를 `Attach` 에 안 넘겨 `SaveIo.Data`(WebGL 은 비동기 · 그 순간 null)로 폴백 → «GameData 가 없다»(런 140 첫 WebGL 스모크 빨강) + 스모크가 닫기 부산물 ERR_ABORTED 를 빨강으로 센다 | ✅ 완료 | sess-0524-8791 / 워커 N | `Assets/Scripts/Game/Battle/BattleScene.cs`(Boot 의 Attach 인자 한 줄) · `tools/webgl_smoke.js`(닫기 뒤 requestfailed 무시) | §0-6 임자 없는 빨강(schedule 런 140 · T26 ✅ 인데 첫 실제 스모크) · 워커 N 등재 · 에디터·CI 테스트는 SaveIo 가 동기 읽기라 못 잡는 WebGL 전용 · 판정은 수동 build 런의 «WebGL 배포 스모크» 초록 · **✅ 런 223**(17:17 수동 build · a43f87a): unity-test 초록(PlayMode 114/114) · WebGL unity-builder 27분 초록 · «WebGL 배포 스모크» **초록**(unity-ready · 11.8초 · 빨강 0 · 노랑 4 = .unityweb ERR_ABORTED 폴백 + 글꼴 두부 2) · gh-pages 배포 스텝 success(2a70c55 · 20 파일) · Android 초록(12분 · APK Artifact) |
 | T79 | 펫 업그레이드 모달이 화면을 안 덮는다(원작은 HUD·탭바를 가리고 ✕ 하나 · 클론은 시트 위에 떠 ✕ 둘) + 머리 구성이 줄었다 | ✅ 완료 | sess-1920-15773 / 워커 B | `Assets/Scripts/Game/Ui/PetUpgrade*` · `Assets/Scripts/Game/Ui/PetSkillModal.cs`(딤 한 줄) · `Assets/Scripts/Game/Ui/UiKit.cs`(`PerceivedDim` 한 함수) · `Assets/Tests/PlayMode/PetUiTests.cs` | T58 뒤 · T28 8회차 등재(런 128 `screen_pet-upgrade.png` 1.7/10 ↔ `shot-042503`) |
 
+### T332 1회차 기록 — 3D 썸네일에 정본의 검정 아웃라인을 구웠다 (2026-09-14 17:0x~17:4x · 워커 I · sess-2203-14027 · lock 유지)
+
+- **선점 전 점검 셋**(결정 305·341): `task_state` rc 0 · `check_lock_queue` 로 막는 것이 **`ForgeUi.cs`(T168) 하나**뿐임을 보고 그 몫(별 둘)을 빼고 잡았다 · `git log` 로 세 파일에 런 449 뒤 수리 커밋 0.
+- **무엇이 없었나**: T122 가 세운 썸네일은 **투명 배경 위 모델뿐**이었다 — 정본은 `.fl-face img`·`.equip-cell .cell-img`·`.idet-icon img`·`.mt-face img` 에 `--sw`(= `--slot-out` = **1.32 CSS px** · 색 `#000`)로 **4방향 drop-shadow** 를 겹쳐 검정 아웃라인을 만든다(주인 지시 `forge-list-frame-color` «장비들 다 검정 아웃라인도 없고»). T122 1회차 결정 267 ⓒ 가 «`thumbFinish` 는 2회차» 로 남긴 그 자리다.
+- **어떻게**: 굽기 끝에 `Outline(tex)` — 알파 0 인 자리만 훑어 4방향 `sw` 픽셀 안에 모델이 있으면 검정. **대각선을 안 보는 것이 정본과 같은 꼴**이고, 모델 위는 안 건드려 그림을 덮지 않는다.
+- **수치는 표로**(§1 · 코드에 숫자 0): `sw_css_px` 1.32 × `css_px` 2.164 × `px` 128 / `cell_canvas_px` 115 = **3.179 → 3 텍스처 px**. 되돌려 재면 화면에서 **1.32 CSS px** 로 정본과 같다(셈을 표 주석에 적어 다음 사람이 검산할 수 있게).
+- **막이**: 「구운 그림에 검정(<24) 픽셀이 있다」 — 불투명 수와 검정 수를 실패 문구에 실어, 다음 빨강이 «아웃라인이 없다» 인지 «그림이 안 구워졌다» 인지 스스로 말한다.
+- **게이트**: `dotnet build` 0 error · `dotnet test` 642/642 · §3 자 16종 전부 rc 0.
+- **2회차(내가 잇는다 · lock 유지)**: 다음 런 `screen_forge-list`·`screen_player-info` 를 8배로 열어 원작 `shot-042905` 의 검정 테와 나란히 보고, 이어서 접지 그림자(`0 2px 1.5px rgba(0,0,0,.28)`)와 `PetFaces` 를 같은 길로. 별 둘은 T168 lock 뒤.
+
 ### T180 ✅ 완료 기록 — PlayMode 가 돌아왔다 · lock 반납 (2026-09-14 16:0x · 워커 I · sess-2203-14027)
 
 - **판정(런 432)**: `meta.json` 이 `missing_modes: ""` · `shots: 57` — 런 403·425 를 죽이던 SIGSEGV 스택이 **없다**. 내 `c11dfa9`(`m_StackTraceTypes` 의 **Log 칸만** ScriptOnly → None)가 든 첫 런이다.

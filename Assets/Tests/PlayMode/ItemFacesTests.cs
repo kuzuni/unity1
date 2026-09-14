@@ -113,6 +113,19 @@ namespace Forge.Tests.PlayMode
             Assert.IsFalse(ItemFaces.Supports("gloves"));
             Assert.IsNull(ItemFaces.Get(defs, "gloves", age, 0, null, 0, "common", 0), "장신구는 캡처가 없어 실루엣 폴백");
 
+            // T332 — 정본의 검정 아웃라인(`--slot-out` 1.32 CSS px · **4방향** drop-shadow · style.css 763~770·3669)이
+            //        **구운 그림에 실제로 있는가**. 그 전에는 투명 배경 위 모델뿐이었다(T122 결정 267 ⓒ 가 남긴 자리).
+            Color32[] tp = a.texture.GetPixels32();
+            int inkEdge = 0, opaque = 0;
+            foreach (Color32 c in tp)
+            {
+                if (c.a == 0) continue;
+                opaque++;
+                if (c.r < 24 && c.g < 24 && c.b < 24) inkEdge++;
+            }
+            Assert.Greater(opaque, 0, "썸네일에 그려진 픽셀이 있다");
+            Assert.Greater(inkEdge, 0, "구운 그림에 검정 아웃라인 픽셀이 있다(정본 --slot-out · T332) · 불투명 " + opaque + " 중 검정 " + inkEdge);
+
             // 무대·리그·모델이 씬에 남지 않는다(굽고 나면 모델은 지운다)
             yield return null;
             Assert.IsNull(GameObject.Find("armor " + age + "/0"), "구운 뒤 갑옷 리그는 지운다");
