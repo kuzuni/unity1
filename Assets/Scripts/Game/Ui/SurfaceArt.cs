@@ -45,6 +45,23 @@ namespace Forge.Game.Ui
             return (float)J.Num(v);
         }
 
+        /// <summary>그 겹이 **방사형**인가(`shape: "radial"` · 정본 `radial-gradient(…)`) — 그러면 각도 대신 중심·반지름을 쓴다. T178 5회차.</summary>
+        public static bool IsRadial(string key)
+        {
+            JsonObject one = J.Obj(Table()[key]);
+            return one != null && J.Str(one["shape"]) == "radial";
+        }
+
+        /// <summary>방사형 겹의 중심·반지름(상자 비율 · CSS `radial-gradient(ellipse RX% RY% at CX% CY%, …)` 그대로).</summary>
+        public static void Ellipse(string key, out float cx, out float cy, out float rx, out float ry)
+        {
+            JsonObject one = J.Obj(Table()[key]);
+            if (one == null) throw new KeyNotFoundException(ResourcePath + ".json 에 «" + key + "» 이 없다");
+            cx = (float)J.Num(one["cx"], 0.5); cy = (float)J.Num(one["cy"], 0.5);
+            rx = (float)J.Num(one["rx"], 0.5); ry = (float)J.Num(one["ry"], 0.5);
+            if (rx <= 0f || ry <= 0f) throw new KeyNotFoundException(ResourcePath + ".json 의 «" + key + "» 반지름이 0 이다");
+        }
+
         /// <summary>그 겹의 정지점이 CSS px 인가(`unit: "px"` · 정본 `0 1px` 림) — 그러면 <see cref="Bake(string, float, float)"/> 가 자리의 선 길이로 나눈다. T178 4회차.</summary>
         public static bool PxOffsets(string key)
         {
@@ -109,6 +126,7 @@ namespace Forge.Game.Ui
             int w = Mathf.Max(8, Mathf.RoundToInt(shortSide * aspect)), h = shortSide;
             Color[] col; float[] pos;
             Stops(key, out col, out pos);
+            if (IsRadial(key)) return BakeRadial(key, name, w, h, col, pos);
             float rad = Angle(key) * Mathf.Deg2Rad;
             float dx = Mathf.Sin(rad), dy = -Mathf.Cos(rad);   // CSS: 0deg 는 위로 · y 는 아래가 +
             if (pxUnit)
@@ -121,10 +139,6 @@ namespace Forge.Game.Ui
             float len = Mathf.Abs(w * dx) + Mathf.Abs(h * dy);
             if (len <= 0f) len = 1f;
 
-            Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
-            tex.name = "sf-" + name;
-            tex.wrapMode = TextureWrapMode.Clamp;
-            tex.filterMode = FilterMode.Bilinear;
             Color32[] px = new Color32[w * h];
             float cx = w * 0.5f, cy = h * 0.5f;
             for (int y = 0; y < h; y++)
@@ -141,12 +155,49 @@ namespace Forge.Game.Ui
                         (byte)Mathf.RoundToInt(Mathf.Clamp01(c.a) * 255f));
                 }
             }
+            return Finish(name, w, h, px);
+        }
+
+        /// <summary>구운 화소를 스프라이트로(같은 키·같은 비율은 캐시).</summary>
+        static Sprite Finish(string name, int w, int h, Color32[] px)
+        {
+            Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            tex.name = "sf-" + name;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;
             tex.SetPixels32(px);
             tex.Apply(false, false);
             Sprite sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
             sp.name = tex.name;
             cache[name] = sp;
             return sp;
+        }
+
+        /// <summary>
+        /// 방사형 한 장(정본 `radial-gradient(ellipse RX% RY% at CX% CY%, …)`). 타원 좌표에서 잰 거리(0 = 중심 · 1 = 반지름 끝)를
+        /// 그대로 정지점 t 로 쓴다 — CSS 도 «반지름 = 100%» 로 잰다. 상자 밖으로 나가는 부분은 마지막 정지점 색(대개 투명)이다.
+        /// </summary>
+        static Sprite BakeRadial(string key, string name, int w, int h, Color[] col, float[] pos)
+        {
+            float cx, cy, rx, ry;
+            Ellipse(key, out cx, out cy, out rx, out ry);
+            Color32[] px = new Color32[w * h];
+            for (int y = 0; y < h; y++)
+            {
+                float py = h - 0.5f - y;                        // 텍스처는 아래가 0행 · CSS 는 위가 0
+                for (int x = 0; x < w; x++)
+                {
+                    float u = ((x + 0.5f) / w - cx) / rx;
+                    float v = (py / h - cy) / ry;
+                    Color c = Sample(col, pos, Mathf.Clamp01(Mathf.Sqrt(u * u + v * v)));
+                    px[y * w + x] = new Color32(
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.r) * 255f),
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.g) * 255f),
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.b) * 255f),
+                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.a) * 255f));
+                }
+            }
+            return Finish(name, w, h, px);
         }
 
         /// <summary>그 겹을 <paramref name="parent"/> 를 꽉 채우게 얹는다(자리·크기는 부모가 쥔다 — 겹은 layout 을 안 바꾼다).</summary>
@@ -157,8 +208,13 @@ namespace Forge.Game.Ui
             Image img = rt.gameObject.AddComponent<Image>();
             img.raycastTarget = false;
             img.type = Image.Type.Simple;
-            float rad = Angle(key) * Mathf.Deg2Rad;
-            img.sprite = Bake(key, h > 0f ? w / h : 1f, Mathf.Abs(w * Mathf.Sin(rad)) + Mathf.Abs(h * Mathf.Cos(rad)));
+            float aspect = h > 0f ? w / h : 1f;
+            if (IsRadial(key)) img.sprite = Bake(key, aspect);       // 방사형은 각도·선 길이가 없다(T178 5회차)
+            else
+            {
+                float rad = Angle(key) * Mathf.Deg2Rad;
+                img.sprite = Bake(key, aspect, Mathf.Abs(w * Mathf.Sin(rad)) + Mathf.Abs(h * Mathf.Cos(rad)));
+            }
             img.color = Color.white;
             return img;
         }

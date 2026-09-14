@@ -23,6 +23,8 @@ namespace Forge.Game.Ui
             public Image Icon;
             public TextMeshProUGUI Label;
             public GameObject XMark;
+            public GameObject Glow;      // T178 5회차 — 정본 `#tabbar button.active, #tabbar button.tab-x` 의 방사형 둘
+            public GameObject FootGlow;
         }
 
         private readonly List<string> keys = new List<string>();
@@ -105,6 +107,14 @@ namespace Forge.Game.Ui
                 xm.gameObject.SetActive(false);
                 t.XMark = xm.gameObject;
 
+                // T178 5회차 — 정본 8326: 켜진 칸(또는 ✕ 칸)에만 노란 속빛 둘이 깔린다. 만들어 두고 껐다 켠다(굽기는 키·비율당 한 번).
+                Image glow = SurfaceArt.Fill(rt, "tab-glow", "tab_active_glow", bw, bandH);
+                Image foot = SurfaceArt.Fill(rt, "tab-footglow", "tab_active_foot", bw, bandH);
+                glow.transform.SetAsFirstSibling();
+                foot.transform.SetSiblingIndex(1);
+                t.Glow = glow.gameObject; t.FootGlow = foot.gameObject;
+                t.Glow.SetActive(false); t.FootGlow.SetActive(false);
+
                 keys.Add(key);
                 tabs[key] = t;
 
@@ -171,6 +181,10 @@ namespace Forge.Game.Ui
                 t.Label.gameObject.SetActive(!isX);
                 t.XMark.SetActive(isX);
                 t.Label.color = UiKit.C(kv.Key == ActiveTab ? "tab_active" : "tab_ink");
+                // 정본은 `.active` 와 `.tab-x` **둘 다**에 같은 겹을 준다(style.css 8325 선택자 두 개).
+                bool lit = isX || kv.Key == ActiveTab;
+                if (t.Glow != null) t.Glow.SetActive(lit);
+                if (t.FootGlow != null) t.FootGlow.SetActive(lit);
             }
         }
     }

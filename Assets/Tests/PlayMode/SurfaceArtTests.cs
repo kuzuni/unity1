@@ -253,5 +253,43 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(Vector2.zero, img.rectTransform.offsetMin, "면을 꽉 채운다");
             Assert.AreEqual(Vector2.zero, img.rectTransform.offsetMax);
         }
+
+        /// <summary>T178 5회차 — 정본 `#tabbar button.active, #tabbar button.tab-x`(style.css 8325~8328)의 방사형 둘:
+        /// 켜진 칸에만 깔리고, 구운 그림이 **가운데가 밝고 가장자리가 투명한** 진짜 방사형인가(단색 판이 아니다).</summary>
+        [UnityTest]
+        public IEnumerator 켜진_탭에만_노란_방사형_둘이_깔린다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!(MetaHost.Ready && PopupLayer.Instance != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
+            TabBar tb = UiRoot.Instance.TabBar;
+            RectTransform summon = tb.ButtonOf("summon").GetComponent<RectTransform>();
+            Transform glow = FindDeep(summon, "tab-glow"), foot = FindDeep(summon, "tab-footglow");
+            Assert.IsNotNull(glow, "켜진 칸 겹 tab-glow 가 있다");
+            Assert.IsNotNull(foot, "켜진 칸 겹 tab-footglow 가 있다");
+            Assert.IsFalse(glow.gameObject.activeSelf, "홈에서는 꺼져 있다");
+
+            tb.OnTab("summon");
+            yield return null;
+            Assert.IsTrue(glow.gameObject.activeSelf, "켜진 칸(또는 ✕ 칸)에 깔린다 — 정본은 .active 와 .tab-x 둘 다에 준다");
+            Assert.IsTrue(foot.gameObject.activeSelf);
+            Transform other = FindDeep(tb.ButtonOf("shop").GetComponent<RectTransform>(), "tab-glow");
+            Assert.IsFalse(other.gameObject.activeSelf, "다른 칸은 그대로 꺼져 있다");
+
+            // 구운 그림이 방사형인가 — 가운데(중심 50%/42%)가 가장자리보다 진하다.
+            UnityEngine.UI.Image img = glow.GetComponent<UnityEngine.UI.Image>();
+            Assert.IsNotNull(img.sprite, "겹은 구운 그림이다");
+            Texture2D tex = img.sprite.texture;
+            int w = tex.width, h = tex.height;
+            float mid = tex.GetPixel(w / 2, Mathf.RoundToInt(h * 0.58f)).a;     // CSS y 42% = 텍스처 아래에서 58%
+            float corner = tex.GetPixel(1, 1).a;
+            Assert.Greater(mid, corner + 0.05f, "가운데가 모서리보다 진하다(방사형) — 단색 판이면 같다");
+            Assert.Less(corner, 0.02f, "74% 밖은 투명하다(정본 마지막 정지점 0)");
+
+            tb.CloseOpened();
+            yield return null;
+            Assert.IsFalse(glow.gameObject.activeSelf, "닫으면 다시 꺼진다");
+        }
     }
 }
