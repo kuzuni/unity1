@@ -66,7 +66,15 @@ namespace Forge.Game.Ui
         public static void OnClaim()
         {
             // 정본 techtree.js 382: 연구가 실제로 완료된 그 자리에서 `SFX.levelUp()` 이 운다(토스트 앞) · T120
-            if (Tree.Claim(Host.Now())) { Sfx.LevelUp(); AfterChange(); }
+            string done;
+            if (Tree.Claim(Host.Now(), out done))
+            {
+                Sfx.LevelUp();
+                // 정본 techtree.js 383: «🔬 <이름> <단계>단계 Lv.N 연구 완료!» — 소리 뒤에 말한다(성공 갈래 · T143 ⓑ · 실패 갈래 둘은 위에 이미 있다)
+                TechNodeDef d = Tree.Def(done);
+                DungeonPopups.Toast("🔬 " + (d != null ? d.Name : done) + " " + Tree.TierLabel(done) + "단계 Lv." + Tree.Level(done) + " 연구 완료!");
+                AfterChange();
+            }
         }
 
         static void AfterChange()

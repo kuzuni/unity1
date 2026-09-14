@@ -1215,6 +1215,7 @@
 - 무엇을 한다: ⓐ `if (!Sk.ToggleEquip(id)) { 토스트; return; }` + 문구는 `PetSkillUi.json` 에 키로(코드에 문장을 박지 않는다 · 개수는 `Sk.Rules.MaxActive`) ⓑ `Claim` 이 준 `claimedId` 로 정본과 같은 문구를 띄운다(`Claim(nowMs, out string claimedId)` 오버로드가 이미 있다) ⓒ 문구 한 줄.
 - 판정: PlayMode — 슬롯을 다 채운 상태에서 다른 스킬을 토글하면 토스트가 뜨고 장착 수는 안 변한다 · 연구를 완료 시각으로 당겨 수령하면 토스트가 뜬다 · 콘솔 빨강 0.
 - 범위: 위 표의 «범위» 칸 그대로.
+- 🔄 2026-09-14 03:4x 워커 N(sess-0524-8791) 1회차: 셋 다 한 줄 — ⓐ `SkillPanel.OnToggle` 이 bool 을 받아 `toast_skill_max`(`PetSkillUi.json` · 개수 `Sk.Rules.MaxActive`) ⓑ `TechPopups.OnClaim` 이 `Claim(now, out id)` 로 «🔬 이름 로마단계 Lv.N 연구 완료!»(소리 뒤) ⓒ `LeagueSheet` 문구를 `league.js` 64 그대로 · PlayMode `MissingToastTests` 3(결정 308). 판정은 다음 런.
 
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)

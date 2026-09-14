@@ -438,9 +438,11 @@ namespace Forge.Game.Ui
             H.Save();
         }
 
-        void OnToggle(string id)
+        /// <summary>T143 ⓐ — 정본 `ui.js` 4462 `if (!Skills.toggleEquip(id)) this.toast('스킬은 최대 N개 장착 가능합니다')`:
+        /// 슬롯이 차서 못 끼면 **말한다**(같은 화면의 펫 쪽 <see cref="PetPanel.OnTogglePet"/> 과 같은 길 · 문구는 `PetSkillUi.json`). 시험이 부르므로 public.</summary>
+        public void OnToggle(string id)
         {
-            Sk.ToggleEquip(id);
+            if (!Sk.ToggleEquip(id)) { PetSkillHost.Say(PetSkillStyle.T("toast_skill_max", Sk.Rules.MaxActive)); return; }
             H.Sync();
             H.Save();
         }

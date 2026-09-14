@@ -442,6 +442,7 @@
     "toast_slot_bought": "🥚 부화 슬롯 확장! ({0}칸)",
     "toast_pet_max": "🐾 펫은 {0}마리까지 출전할 수 있습니다 — 한 마리를 먼저 제거하세요",
     "toast_pet_missing": "해당 펫을 찾을 수 없습니다",
+    "toast_skill_max": "스킬은 최대 {0}개 장착 가능합니다",
     "toast_merge_full": "🥚 알 보관함이 가득 차 합성할 수 없습니다",
     "toast_merge_ok": "✨ 합성 성공! {0} 알 획득",
     "toast_pet_inv_full_back": "🐾 펫 보관함이 가득 찼습니다 ({0}/{1}) — 알로 되돌렸습니다",

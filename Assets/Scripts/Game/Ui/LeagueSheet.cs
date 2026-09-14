@@ -30,7 +30,7 @@ namespace Forge.Game.Ui
         private static void Ensure(MetaHost h)
         {
             LeagueEnsureResult r = h.League.Ensure(h.LeagueState, h.Wallet, h.MyCp, h.NowMs, h.TodayKey);
-            if (r.SeasonReward != null) h.Toast("🏆 리그 시즌 종료! " + r.EndedRank + "위 보상 지급");
+            if (r.SeasonReward != null) h.Toast("🏆 리그 시즌 종료! 순위 보상을 획득했습니다");   // 정본 league.js 64 그대로(순위 숫자는 원작에 없다 · T143 ⓒ)
             h.WriteStates();
         }
 
