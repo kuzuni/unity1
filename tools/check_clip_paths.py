@@ -61,10 +61,6 @@ TABLE = {
 # ── 임자가 정해진 빈자리(자리 → 이유) — T159 ⓑ 가 닫을 때마다 지운다 ──────────────────────────
 KNOWN = {
     'Ui/ForgeUi.cs@Ribbon': 'T156 — .cmp-ribbon 의 «<» 노치(그 절이 임자 · ForgeUi.cs 는 T122 lock 뒤)',
-    'Ui/LeagueSheet.cs#tail-l': 'T159 ⓑ — .league-reward-banner::before 의 V 홈',
-    'Ui/LeagueSheet.cs#tail-r': 'T159 ⓑ — .league-reward-banner::after 의 V 홈',
-    'Ui/PassPopup.cs#tail-l': 'T159 ⓑ — .pass-banner::before 의 31% V 홈',
-    'Ui/PassPopup.cs#tail-r': 'T159 ⓑ — .pass-banner::after 의 69% V 홈',
     'Ui/PassPopup.cs#price': 'T159 ⓑ — .pass-price 페넌트(아래 꼭짓점 · 두 층이 같은 clip)',
     'Ui/PassPopup.cs@Cell': 'T159 ⓑ — .pass-cell 꼬리 삼각형 넷(칸 아래 · 검정 층 + 면 층)',
     'Ui/ShopSheet.cs#tag': 'T159 ⓑ — .shop-deal-tag 제비꼬리 홈',

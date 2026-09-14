@@ -190,13 +190,11 @@ namespace Forge.Game.Ui
             float rw = UiKit.L("lgr_ribbon_w") * w;
             RectTransform ribbon = UiKit.Box(card, "ribbon");
             UiKit.Anchor(ribbon, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, rw, ribbonH);
-            float tailW = w * 0.0444f;
-            RectTransform tl = UiKit.Box(ribbon, "tail-l");
-            UiKit.Place(tl, -tailW, H * 0.009f, tailW, H * 0.0584f);
-            UiKit.Panel(tl, "bg", "lgr_ribbon_dk");
-            RectTransform tr = UiKit.Box(ribbon, "tail-r");
-            UiKit.Place(tr, rw, H * 0.009f, tailW, H * 0.0584f);
-            UiKit.Panel(tr, "bg", "lgr_ribbon_dk");
+            float tailW = w * 0.0444f, tailH = H * 0.0584f, tailY = H * 0.009f;
+            // T159 2회차 — 정본 2503~2504 은 꼬리 **바깥 변**에 절반 깊이의 V 홈을 판다(`clip-path` · 안쪽 변은 본체에 붙는 직선).
+            // 여태 `UiKit.Panel` 민무늬 직사각형이라 그 홈이 통째로 없었다. 꼭짓점은 `ClipShapeUi.json` 이 쥔다.
+            ClipShape.Face(ribbon, "tail-l", "lgr_tail_l", -tailW, tailY, tailW, tailH, "lgr_ribbon_dk");
+            ClipShape.Face(ribbon, "tail-r", "lgr_tail_r", rw, tailY, tailW, tailH, "lgr_ribbon_dk");
             PopupKit.Outlined(ribbon, "face", "lgr_ribbon", rem * 0.3f, PopupKit.Line);
             TextMeshProUGUI rt = UiKit.Text(ribbon, "text", TextKind.Body, "플래티넘 리그 보상", "stage_ink");
             rt.fontStyle = FontStyles.Bold;

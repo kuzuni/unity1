@@ -131,6 +131,11 @@ jobs:
         run: python3 tools/check_keyline.py --self-test
       - name: 정본 키라인 규칙 ↔ 클론 키라인 호출 — 막는다 (T109 · 정본이 주는데 클론이 안 부르는 자리 · KNOWN 은 T109 ⓑ 가 지운다)
         run: python3 tools/check_keyline.py --css .wwwww-src/web/css/style.css
+      # T159 — 키라인 자는 «테» 만 본다. 모양(clip-path)을 보는 자가 없어 리본 꼬리의 V 홈·페넌트 꼭짓점이 조용히 민무늬 사각형이 돼 있었다.
+      - name: 도형 자 자기 검사 (T159 `check_clip_paths.py` · 고장 주입 13칸)
+        run: python3 tools/check_clip_paths.py --self-test
+      - name: 정본 clip-path 도형 ↔ 클론이 그 자리를 굽는가 — 막는다 (T159 · KNOWN 은 T159 ⓑ 가 지운다)
+        run: python3 tools/check_clip_paths.py --css .wwwww-src/web/css/style.css
       # T119 — 소리는 PNG 에도 테스트에도 안 드러난다. 레시피(24종)만 굽고 «부르는 곳» 이 없으면 조용히 사라진다.
       - name: 소리 자 자기 검사 (T119 `check_sfx_calls.py` · 고장 주입 포함)
         run: python3 tools/check_sfx_calls.py --self-test

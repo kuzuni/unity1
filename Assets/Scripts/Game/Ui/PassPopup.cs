@@ -50,12 +50,11 @@ namespace Forge.Game.Ui
             float ribbonW = cardW + rem * 2.55f * 2f;
             RectTransform ribbon = UiKit.Box(card, "banner");
             UiKit.Anchor(ribbon, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -padTop), ribbonW, bannerH);
-            RectTransform tailL = UiKit.Box(ribbon, "tail-l");
-            UiKit.Place(tailL, 0f, rem * 0.31f, rem * 2.3f, rem * 2.44f);
-            UiKit.Panel(tailL, "bg", "pass_banner_dk");
-            RectTransform tailR = UiKit.Box(ribbon, "tail-r");
-            UiKit.Place(tailR, ribbonW - rem * 2.3f, rem * 0.31f, rem * 2.3f, rem * 2.44f);
-            UiKit.Panel(tailR, "bg", "pass_banner_dk");
+            // T159 2회차 — 정본 2722~2723 은 꼬리 바깥 변에 깊이 31% 의 V 홈을 판다(`clip-path`). 정본 주석이 실측까지 적어 뒀다:
+            // «기존 클론은 세로 중앙의 단순 ◀ 삼각형이라 꼬리까지 합친 폭이 79.16%(원본 88.32%)에 그쳤다». 여태 민무늬 직사각형이었다.
+            float tailW = rem * 2.3f, tailH = rem * 2.44f, tailY = rem * 0.31f;
+            ClipShape.Face(ribbon, "tail-l", "pass_tail_l", 0f, tailY, tailW, tailH, "pass_banner_dk");
+            ClipShape.Face(ribbon, "tail-r", "pass_tail_r", ribbonW - tailW, tailY, tailW, tailH, "pass_banner_dk");
             RectTransform band = UiKit.Box(ribbon, "band");
             UiKit.Place(band, rem * 1.44f, 0f, ribbonW - rem * 2.88f, bannerH);
             PopupKit.Outlined(band, "face", "pass_banner", rem * 0.2f, PopupKit.Line3);
