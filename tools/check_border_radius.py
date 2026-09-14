@@ -63,11 +63,6 @@ TABLE = {
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — T345 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
-    'Ui/ChatScreen.cs$chat_bubble_r_rem': 'T333 이 ChatScreen.cs 를 쥐었다 — 그 lock 뒤 T345 ⓑ(지금은 rem*0.6 리터럴)',
-    'Ui/ChatScreen.cs$chat_share_card_r_rem': 'T333 lock 뒤 T345 ⓑ(지금은 rem*0.6 · 정본은 각진 카드)',
-    'Ui/ChatScreen.cs$chat_input_r_rem': 'T333 lock 뒤 T345 ⓑ(지금은 bh*0.3)',
-    'Ui/ChatScreen.cs$chat_round_btn_r_rem': 'T333 lock 뒤 T345 ⓑ(지금은 bh*0.3)',
-    'Ui/ChatScreen.cs$chat_share_avatar_r_rem': 'T333 lock 뒤 T345 ⓑ(지금은 av*0.5 · 거의 원)',
     'Ui/ForgeInfoPopup.cs$idet_subs_r_rem': 'T339·T332 가 ForgeInfoPopup.cs 를 쥐었다 — 그 lock 뒤 T345 ⓑ(지금은 rem*0.6)',
     'Ui/ForgeInfoPopup.cs$upg_progress_r_rem': 'T339·T332 lock 뒤 T345 ⓑ(지금은 rem*0.5)',
     'Ui/ForgeAutoPopup.cs$af_spinner_r_rem': 'T339 가 ForgeAutoPopup.cs 를 쥐었다 — 그 lock 뒤 T345 ⓑ(지금은 rem*0.3)',

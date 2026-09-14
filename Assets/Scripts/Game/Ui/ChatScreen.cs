@@ -58,8 +58,10 @@ namespace Forge.Game.Ui
             Button back = UiKit.Button(bar, "close", () => Close(h));
             RectTransform brt = back.GetComponent<RectTransform>();
             UiKit.Place(brt, rem * 0.5f, (inputH - bh) * 0.5f, bw, bh);
-            UiKit.Rounded(brt, "line", "pp_line", bh * 0.3f);
-            Image bface = UiKit.Rounded(brt, "face", "pp_red", bh * 0.3f - PopupKit.Line3);
+            // T345 — 정본 3270 `.chat-input-bar .btn.round { border-radius: .35rem }`(표 `chat_round_btn_r_rem` · 전엔 높이×.3 = .52rem 이었다)
+            float backR = RadiusUi.Px("chat_round_btn_r_rem");
+            UiKit.Rounded(brt, "line", "pp_line", backR);
+            Image bface = UiKit.Rounded(brt, "face", "pp_red", Mathf.Max(1f, backR - PopupKit.Line3));
             PopupKit.Inset(bface.rectTransform, PopupKit.Line3);
             Image tri = PopupKit.Tri(brt, "tri", "stage_ink");
             float tw = UiKit.RefH * 0.0179f;
@@ -68,8 +70,10 @@ namespace Forge.Game.Ui
             float ix = rem * 0.5f + bw + rem * 0.5f;
             RectTransform ibox = UiKit.Box(bar, "input");
             UiKit.Place(ibox, ix, (inputH - bh * 1.15f) * 0.5f, w - ix - rem * 0.5f, bh * 1.15f);
-            UiKit.Rounded(ibox, "line", "pp_line", bh * 0.3f);
-            Image iface = UiKit.Rounded(ibox, "face", "pp_panel", bh * 0.3f - PopupKit.Line);
+            // T345 — 정본 3449 `.chat-input-bar input { border-radius: .3rem }`(표 `chat_input_r_rem` · 전엔 높이×.3 = .52rem)
+            float inputR = RadiusUi.Px("chat_input_r_rem");
+            UiKit.Rounded(ibox, "line", "pp_line", inputR);
+            Image iface = UiKit.Rounded(ibox, "face", "pp_panel", Mathf.Max(1f, inputR - PopupKit.Line));
             PopupKit.Inset(iface.rectTransform, PopupKit.Line);
             iface.raycastTarget = true;
             RectTransform viewport = UiKit.Box(ibox, "viewport");
@@ -213,7 +217,8 @@ namespace Forge.Game.Ui
             {
                 RectTransform card = UiKit.Box(row, "share");
                 UiKit.Place(card, x, nameH + rem * 0.2f, bubbleW, bodyH);
-                PopupKit.Outlined(card, "face", "pp_panel", rem * 0.6f, PopupKit.Line);
+                // T345 — 정본 3389 `.chat-share-card { border-radius: 0 }`(«원본 카드는 모서리가 각져 있어» · 표 `chat_share_card_r_rem` = 0 → 각진 테·면 · 전엔 .6rem)
+                RadiusUi.Outlined(card, "face", "pp_panel", "chat_share_card_r_rem", PopupKit.Line);
                 string winName = m.Win ? m.MyName : m.OppName, loseName = m.Win ? m.OppName : m.MyName;
                 string winAv = m.Win ? m.MyAvatar : m.OppAvatar, loseAv = m.Win ? m.OppAvatar : m.MyAvatar;
                 string winCp = PopupKit.Fmt(m.Win ? m.MyCp : m.OppCp), loseCp = PopupKit.Fmt(m.Win ? m.OppCp : m.MyCp);
@@ -231,7 +236,8 @@ namespace Forge.Game.Ui
             {
                 RectTransform bubble = UiKit.Box(row, "bubble");
                 UiKit.Place(bubble, x, nameH + rem * 0.2f, bubbleW, bodyH);
-                UiKit.Rounded(bubble, "bg", m.Mine ? "chat_bubble_mine" : "chat_bubble", rem * 0.6f);
+                // T345 — 정본 3371 `.chat-bubble { border-radius: .42rem }`(표 `chat_bubble_r_rem` · 전엔 .6rem)
+                RadiusUi.Rounded(bubble, "bg", m.Mine ? "chat_bubble_mine" : "chat_bubble", "chat_bubble_r_rem");
                 TextMeshProUGUI t = UiKit.Text(bubble, "text", TextKind.Sub, m.Text ?? string.Empty, "pp_ink", TextAlignmentOptions.Left);
                 // 정본 .chat-bubble { -webkit-text-stroke: .5px currentColor } — `currentColor` 라 글자색과 같은 키라인이다(색 키가 아니라 제 색).
                 UiKit.OutlinePx(t, "pp_ink", KeylineUi.Px("chat_bubble"));
@@ -248,7 +254,8 @@ namespace Forge.Game.Ui
             RectTransform side = UiKit.Box(card, name);
             UiKit.Place(side, x, 0f, w, h);
             float av = rem * 2f;
-            RectTransform tile = PopupKit.Avatar(side, "avatar", av, avatar, av * 0.5f);
+            // T345 — 정본 3401 `.chat-share-side .icon-circle.sm { border-radius: .28rem }`(.icon-circle 의 50% 를 덮는 둥근 네모 · 표 `chat_share_avatar_r_rem` · 전엔 폭×.5 = 거의 원)
+            RectTransform tile = PopupKit.Avatar(side, "avatar", av, avatar, RadiusUi.Px("chat_share_avatar_r_rem"));
             UiKit.Place(tile, rem * 0.4f, (h - av) * 0.5f, av, av);
             if (label != null)
             {

@@ -40,10 +40,24 @@ namespace Forge.Game.Ui
             return (float)RadiusRules.Px(Table.Get(key), key, PxPerRem, UiKit.RefW);
         }
 
-        /// <summary><see cref="UiKit.Rounded"/> 와 같되 반지름을 표에서 읽는다.</summary>
+        /// <summary>정본이 «각진»(0) 자리인가 — <see cref="UiShapes.RoundedMultiplier"/> 는 0 을 «배율 1 = 반지름 24px» 로 읽으므로 0 은 여기서 갈라 민판을 쓴다.</summary>
+        public static bool IsSquare(string key) { return Px(key) <= 0.01f; }
+
+        /// <summary><see cref="UiKit.Rounded"/> 와 같되 반지름을 표에서 읽는다. 표값 0(정본 `border-radius: 0`)이면 각진 <see cref="UiKit.Panel"/>.</summary>
         public static Image Rounded(Transform parent, string name, string colorKey, string key)
         {
-            return UiKit.Rounded(parent, name, colorKey, Px(key));
+            return IsSquare(key) ? UiKit.Panel(parent, name, colorKey) : UiKit.Rounded(parent, name, colorKey, Px(key));
+        }
+
+        /// <summary><see cref="PopupKit.Outlined"/> 와 같되 반지름을 표에서 읽는다 — 테(line) + 안쪽 면(face). 표값 0 이면 각진 테와 면.</summary>
+        public static Image Outlined(Transform parent, string name, string faceKey, string key, float line, string lineKey = "pp_line")
+        {
+            if (!IsSquare(key)) return PopupKit.Outlined(parent, name, faceKey, Px(key), line, lineKey);
+            RectTransform rt = UiKit.Box(parent, name);
+            UiKit.Panel(rt, "line", lineKey);
+            Image face = UiKit.Panel(rt, "face", faceKey);
+            PopupKit.Inset(face.rectTransform, line);
+            return face;
         }
     }
 }
