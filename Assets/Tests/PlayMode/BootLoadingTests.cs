@@ -112,10 +112,34 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0.88f, hammer.pivot.x, 0.001f);
             Assert.AreEqual(0.88f, hammer.pivot.y, 0.001f);
 
-            float first = hammer.localEulerAngles.z;
-            for (int i = 0; i < 20; i++) yield return null;
-            float later = hammer.localEulerAngles.z;
-            Assert.AreNotEqual(first, later, "망치가 멈춰 있다");
+            // ⚠ 20프레임의 앞뒤 두 값만 견주면 **흔들린다**(런 406 실측 빨강): 정본 `bl-swing` 은 평평한 구간이
+            //   둘이다(0~12% −52° · 38~55% 6° · `BootLoadingUi.json` swing). 배치모드 프레임이 빠르면 20프레임이
+            //   그 한 구간 안에 다 들어가 앞뒤가 같은 값이 나온다 — 망치가 멈춘 게 아니라 자가 짧게 본 것이다.
+            //   **한 주기(swing_ms)를 다 돌며** 최소·최대를 모은다 — 프레임 속도와 무관하게 같은 답이 나온다.
+            var spec = BootLoading.Spec;
+            RectTransform spark = (RectTransform)bl.transform.Find("bl-box/bl-forge/bl-spark-1");
+            Assert.IsNotNull(spark, "불티가 없다");
+            Image sparkImg = spark.GetComponent<Image>();
+
+            float degMin = float.MaxValue, degMax = float.MinValue;
+            float aMin = float.MaxValue, aMax = float.MinValue;
+            float t = 0f, span = (float)(spec.SwingMs / 1000.0) * 1.2f;
+            for (int i = 0; i < 600 && t < span; i++)
+            {
+                float deg = Mathf.DeltaAngle(0f, hammer.localEulerAngles.z);
+                degMin = Mathf.Min(degMin, deg); degMax = Mathf.Max(degMax, deg);
+                float a = sparkImg.color.a;
+                aMin = Mathf.Min(aMin, a); aMax = Mathf.Max(aMax, a);
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            // 정본 각도는 −52° ↔ 6° 를 오간다(58° 폭) — 한 주기를 다 봤으면 그 폭이 상당히 나와야 한다.
+            Assert.Greater(degMax - degMin, 10f,
+                           "망치가 한 주기(" + spec.SwingMs + "ms) 동안 " + (degMax - degMin).ToString("0.#") + "° 밖에 안 움직였다 — 멈춘 것이다");
+            // 정본 `bl-spark` 는 불투명도 0 → 1 → 0 이다 — 한 주기 안에서 켜지고 꺼져야 «깜박인다».
+            Assert.Greater(aMax - aMin, 0.2f,
+                           "불티가 한 주기 동안 불투명도 " + (aMax - aMin).ToString("0.##") + " 만 바뀌었다 — 안 깜박인다");
 
             Object.Destroy(bl.gameObject);
             yield return null;
