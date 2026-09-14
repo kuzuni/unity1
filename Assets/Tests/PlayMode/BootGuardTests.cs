@@ -58,8 +58,10 @@ namespace Forge.Tests.PlayMode
             h.S.BestChapter = 3; h.S.BestStage = 1;
             h.S.Hammers = 50;
             h.S.AutoForgeOn = true;
+            // 시대·희귀도·부위는 표에 있는 값으로(부팅 중 시트가 보류 카드를 그리므로 AgeColor 가 빈 키에 LogError 를 낸다 · 런 381) —
+            // «최소 형태» 를 깨는 것은 level·value 가 없어 NaN 인 것(정본 isForgeShaped 의 Number.isFinite 조건)
             JsonObject junk = new JsonObject();
-            junk["name"] = "junk"; junk["slot"] = h.Defs.Slots[0]; junk["level"] = 1.0;
+            junk["name"] = "junk"; junk["slot"] = h.Defs.Slots[0]; junk["age"] = h.Defs.Ages[0]; junk["rarity"] = h.Defs.Rarities[0];
             h.S.Root[ForgeSave.KeyPending] = junk;
             File.WriteAllText(SaveIo.SavePath, MiniJson.Serialize(h.S.Root));
 

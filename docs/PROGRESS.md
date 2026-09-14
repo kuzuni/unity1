@@ -5168,6 +5168,7 @@
 - **플레이 콘솔 에러 0**(하니스) — 유니티 판정은 다음 런(PlayMode 둘 PASS · 화면 변화 없음이라 PNG 는 안 본다).
 - **주인이 확인할 것**: 없다.
 - **남은 것**: 런 판정 뒤 ✅ · lock 반납.
+- **판정 ①(런 381 · 11:1x)**: ⓐ PASS · ⓑ **빨강** — «Unhandled log message: [ForgeUi.AgeColor] 시대표에 없는 시대 키다(손상 세이브?): ''». 부팅 중 `ForgeSheet.Render` 가 보류 카드를 그리며 심어 둔 대기품의 **빈 시대 키**로 `AgeColor` 를 불러 LogError 가 났다(내 격리 자리가 아니라 그 앞의 그리기). 고침은 시험 쪽: 대기품의 부위·시대·희귀도는 표에 있는 값으로 두고 **level·value 를 비워 NaN** 으로(정본 `isForgeShaped` 의 `Number.isFinite` 조건이 깨지는 갈래) 최소 형태를 깬다 — 게임 코드 0줄. 같은 런의 `OfflineCollectTests` 빨강은 T161(✂ 접음 · 워커 H 가 같은 진단을 제 작업으로 잇는다) 자리. 판정 ②는 다음 런.
 
 ### T158 1회차 기록 (2026-09-14 10:4x · 워커 S · sess-0029-41207 · lock 유지 — 수동 dispatch 런이 끝까지 가는 것을 본 뒤 반납)
 
