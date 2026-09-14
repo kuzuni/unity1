@@ -1942,7 +1942,15 @@
 - **`dotnet build`(T48 하니스)는 이 갈래를 구조적으로 못 잡는다** — 하니스는 `Assets/Scripts`·`Assets/Tests` 를 **한 덩어리**로 컴파일하므로 asmdef 경계가 없다(워커 K 가 2026-09-14 03:3x 에 «하니스가 못 잡는 갈래 ⓑ» 로 적어 둔 그 구멍 · 이번이 첫 실물).
 - 무엇을 한다: 자 `tools/check_asmdef_refs.py` — 각 `.asmdef` 아래 `.cs` 의 `using X.Y.Z;` 를 걷어 **그 네임스페이스를 주는 어셈블리가 그 asmdef 의 `references` 에 있는가**를 본다. 유니티 패키지 네임스페이스 → 어셈블리 이름은 작은 표로 쥔다(`UnityEngine.Rendering.Universal` → `Unity.RenderPipelines.Universal.Runtime` · `TMPro` → `Unity.TextMeshPro` · `UnityEngine.UI` → `UnityEngine.UI` · `UnityEngine.InputSystem` → `Unity.InputSystem` · `UnityEngine.TestTools`/`NUnit.Framework` → TestRunner 쌍 …). 표에 없는 네임스페이스는 **막지 않고 알린다**(거짓 빨강 금지 · 결정 493 꼴). `UnityEngine`·`System*` 은 엔진 기본이라 건너뛴다.
 - 판정: ⓐ 사본 실험 — 런 490 의 그 파일 + 그때의 asmdef 로 **rc 1** ⓑ 지금 저장소에서 rc 0 ⓒ `--self-test`(표에 없는 네임스페이스는 통과 · 주석·문자열 안의 `using` 은 안 센다).
-- 범위: `tools/check_asmdef_refs.py`(새) · `docs/ROUTINE.md` §3 한 줄 · `tools/gate.sh`(T184 가 세운 묶음 자 · **그 lock 뒤**)
+- 범위: `tools/check_asmdef_refs.py`(새) · `docs/ROUTINE.md`(§2 이 절) · `tools/gate.sh`(**지금 T331 lock** · 등록은 2회차)
+  - ⚠ §3 은 «목록을 이 문서에 다시 적지 않는다»(두 목록을 사람이 맞추면 갈린다 · T175)라 **§3 에 줄을 더하지 않았다** — 등록은 `tools/gate.sh` 배열 한 곳뿐이다(`ci.yml` 은 `--list` 를 읽는다).
+- 🔄 2026-09-14 20:0x 워커 I(sess-2002-19151) **1회차 — 자를 세웠다**(`tools/check_asmdef_refs.py` · 게이트 등록은 2회차):
+  - 판정 셋 다 섰다. ⓐ **런 490 사본 재현**: 그때의 `SceneGradeTests.cs` + 그때의 `Forge.Tests.PlayMode.asmdef`(`a45302d`)로 돌리니 **정확히 그 한 줄만** 잡는다(`UnityEngine.Rendering.Universal` → `Unity.RenderPipelines.Universal.Runtime` 없음). ⓑ **지금 저장소 rc 0**(asmdef 4개 · `using` 2191줄 · 빠짐 0 · 알림 0) — 워커 S 의 `a94aa757` 이 실제로 닫혔다는 독립 확인이다. ⓒ `--self-test` **20칸**.
+  - **거짓 빨강을 한 번 만들고 고쳤다**: 첫 판이 EditMode 자 51개를 «`NUnit.Framework` 참조 없음» 으로 잡았다 — 테스트 어셈블리의 NUnit 은 `references` 가 아니라 **`precompiledReferences: ["nunit.framework.dll"]` + `overrideReferences: true`** 로 문다. 표를 둘로 갈랐다(`TABLE` = 어셈블리 이름 · `PRECOMP` = dll 이름). **asmdef 자를 쓰는 사람은 이 갈래를 먼저 알아야 한다** — 안 가르면 테스트 전부가 빨개진다.
+  - 표에 없는 네임스페이스는 **막지 않고 알린다**(결정 493 꼴) · `UnityEngine*`·`UnityEditor*`·`System*`·`Unity.Profiling`(엔진 CoreModule)은 건너뛴다 · `UnityEngine.Rendering` 은 엔진 기본이라 **일부러 표에 없다**(그 아래 `…Universal` 만 URP) · `references` 가 `GUID:` 꼴이고 저장소 안에서 못 풀면 그 asmdef 는 판정을 건너뛴다(알리기만).
+  - 주석·문자열 갈래도 자기 검사가 쥔다(한 줄 주석 · 블록 주석 · 같은 줄에서 닫힌 블록 주석 뒤 · `using var` 는 문장이라 안 센다 · 별칭 `using X = A.B;` 와 `using static` 은 센다).
+  - **곁다리(남의 것 · 안 건드렸다)**: `tools/gate.sh` 53·54행이 `check_box_shadows.py` **같은 자를 두 번** 부른다(T331 산 lock · 게이트가 28 → 29 로 는 까닭).
+  - **남은 것(2회차)**: `tools/gate.sh` 배열에 한 줄(`block|-|using 한 네임스페이스를 그 asmdef 가 참조하는가 (T343)|python3 tools/check_asmdef_refs.py`) — **T331 lock 뒤**.
 
 - **검수 Q 덧붙임(2026-09-14 20:0x · sess-2000-20599 · 같은 것을 나도 등재하려다 워커 H 가 먼저 민 것을 보고 접었다 · 내 줄은 안 남겼다 — 여기에 쓸 것만 옮긴다):**
   - **표를 코드에 박지 마라(§1)** — 네임스페이스 → 어셈블리 짝은 `docs/asmdef-map.json` 한 곳에. 첫 판은 지금 쓰이는 것만이면 된다: `UnityEngine.Rendering(.Universal)` → `Unity.RenderPipelines.Core/Universal.Runtime` · `TMPro` → `Unity.TextMeshPro` · `UnityEngine.UI` → `UnityEngine.UI` · `UnityEngine.TestTools`·`UnityEditor.TestTools` → `UnityEngine/UnityEditor.TestRunner` · `NUnit.Framework` → `nunit.framework.dll`(precompiled).
