@@ -13,7 +13,7 @@ namespace Forge.Game.Ui
     /// 층 사다리(정본 5692~5697): 광선 0 · 바닥 10 · 반사 12 · 별 15 · 천개 20 · 그리드 40 — 형제 순서로 지킨다.
     /// 바닥 반사(`.sr-reflect` · 3회차): 정본 `buildSummonReflection`(ui.js 771~790)은 done 에서 그리드를 **복제**해 이름·배지를 떼고 뒤집어(scaleY −1.22 · 위 변 고정) blur 4px + 세로 마스크로 깐다.
     /// UGUI 엔 blur 도 소프트 마스크도 없고, 정본 주석대로 «blur 가 약하면 거꾸로 놓인 아이콘 줄로 읽힌다» 라 겹 복제로는 못 옮긴다 — 그래서 <see cref="BakeReflection"/> 이 복제 그리드를 임시 월드 캔버스에 세워
-    /// «1 픽셀 = blur 4px» 해상도의 RT 에 한 번 찍고(다운샘플이 곧 흐림) 상자 흐림·채도·밝기·마스크를 픽셀로 얹은 **한 장**을 뒤집힌 Image 에 건다. done **다음** 프레임에 한다(결정 516 과 같은 까닭).
+    /// «1 픽셀 = blur 4px» 해상도의 RT 에 한 번 찍고(다운샘플이 곧 흐림) 상자 흐림·채도·밝기·마스크를 픽셀로 얹은 **한 장**을 뒤집힌 Image(피벗 아래 가운데 = 이음선 · scaleY −1.22) 에 건다. done **다음** 프레임에 한다(결정 516 과 같은 까닭).
     /// ⚠ 굽기는 <see cref="Build"/> 가 아니라 **첫 Update 에서** 한다(<see cref="Bake"/>) — 팝업을 연 프레임에 픽셀 루프를 얹으면 그 프레임이 연출 창(`sr_charge_ms + sr_tail_ms` = 390ms)을
     /// 넘겨 결과가 탭보다 먼저 끝난다(런 438·444 `PetUiTests.스킬_소환…` · 결정 516). 그 전까지 Image 는 꺼 둔다(스프라이트 없는 Image 는 흰 네모를 그린다).
     /// </summary>
@@ -256,7 +256,8 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>
-        /// `.sr-reflect` 를 세운다(정본 6957~6978 · ui.js 771~790): 몸 폭 · 위 변 = 그리드 아래 − 8px(위로 겹침) · 높이 = 그리드 높이 · 피벗 위 가운데에서 scaleY(−1.22)(정본 transform-origin 55% = 위 변 고정) · z 12(바닥 다음 형제).
+        /// `.sr-reflect` 를 세운다(정본 6957~6978 · ui.js 771~790): 몸 폭 · 이음선 = 그리드 아래 − 8px(위로 겹침) · 높이 = 그리드 높이 · scaleY(−1.22)(정본 transform-origin 55% = 위 변 고정 · 아래로만 자람) · z 12(바닥 다음 형제).
+        /// ⚠ 피벗은 **아래 가운데**(0.5, 0)를 이음선에 둔다 — 음수 배율은 피벗을 중심으로 거울을 대는 것이라, 피벗을 위에 두면 상자가 **위로** 뒤집혀 천개 위에 뜬다(런 459·463: 위 변이 그리드 아래보다 749px 위). 피벗이 아래면 원본의 위(구체)가 이음선 아래 1.22배 자리로 간다 = 정본.
         /// 그림은 <see cref="BakeReflectSprite"/> 한 장 — 그래픽 장치가 없으면 상자만 서고 Image 는 꺼진 채다. 두 번 불러도 한 번만.
         /// </summary>
         public void BakeReflection()
@@ -268,7 +269,7 @@ namespace Forge.Game.Ui
             float gridTop = -grid.anchoredPosition.y;   // UiKit.Place: 위에서 잰 자리
             reflect = UiKit.Box(body, "sr-reflect");
             reflect.anchorMin = reflect.anchorMax = new Vector2(0f, 1f);
-            reflect.pivot = new Vector2(0.5f, 1f);
+            reflect.pivot = new Vector2(0.5f, 0f);   // 아래 가운데 = 이음선(위 참조)
             reflect.sizeDelta = new Vector2(body.rect.width, gh);
             reflect.anchoredPosition = new Vector2(body.rect.width * 0.5f, -(gridTop + gh - L("reflect_top_px") * cssPx));
             reflect.localScale = new Vector3(1f, -L("reflect_sy"), 1f);

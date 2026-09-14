@@ -147,6 +147,7 @@ namespace Forge.Tests.PlayMode
             Assert.Less(floor.GetSiblingIndex(), rf.GetSiblingIndex(), "바닥(10) < 반사(12)");
             Assert.Less(rf.GetSiblingIndex(), stars.GetSiblingIndex(), "반사(12) < 별(15)");
             // ⓓ 자리 — 몸 폭(left 0 · right 0) · 복제 그리드 높이 · scaleY(−1.22) · 위 변 = 그리드 아래 − 8px(위로 겹침) · 아래로만 1.22배(정본 transform-origin 55% = 위 변 고정)
+            //    런 459·463: 피벗을 위(0.5,1)에 두고 음수 배율을 걸어 상자가 위로 뒤집혔다(위 변이 그리드 아래보다 749px 위) — 피벗은 아래(0.5,0) = 이음선이어야 한다
             Assert.AreEqual(body.rect.width, rf.rect.width, 1f, "반사 폭 = 몸 폭");
             Assert.AreEqual(grid.rect.height, rf.rect.height, 1f, "반사 상자 높이 = 그리드 높이(복제)");
             Assert.AreEqual(-SummonFxStyle.L("reflect_sy"), rf.localScale.y, 1e-3f, "scaleY(−1.22)");
@@ -155,7 +156,8 @@ namespace Forge.Tests.PlayMode
             float scale = UiRoot.Instance.App.lossyScale.y;
             float gridBottom = Mathf.Min(gc[0].y, gc[1].y), rfTop = Mathf.Max(rc[0].y, rc[1].y), rfBottom = Mathf.Min(rc[0].y, rc[1].y);
             float topPx = SummonFxStyle.L("reflect_top_px") * SummonFxStyle.L("css_px");
-            Assert.AreEqual(topPx * scale, rfTop - gridBottom, 1.5f * scale + 0.5f, "반사 위 변 = 셀 줄 끝 − 8px(세계 y 로는 그리드 아래보다 위)");
+            Assert.AreEqual(topPx * scale, rfTop - gridBottom, 1.5f * scale + 0.5f, "반사 위 변 = 셀 줄 끝 − 8px(세계 y 로는 그리드 아래보다 8px 위 — 그 아래로 1.22배 · 위로 뒤집히면 749px)");
+            Assert.Less(rfBottom, gridBottom, "반사는 그리드 **아래**로 자란다(피벗 아래 가운데 = 이음선)");
             Assert.AreEqual(grid.rect.height * SummonFxStyle.L("reflect_sy") * scale, rfTop - rfBottom, 2f * scale + 0.5f, "아래로 1.22배");
             // ⓔ 그림 — 그래픽 장치가 있으면 한 장이 찍혀 있다: 구체 픽셀 > 0 · 다는 아니다 · 원본 좌표 맨 아래 줄(96~100%)은 마스크로 α 0
             Image im = rf.GetComponent<Image>();
