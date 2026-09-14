@@ -1048,9 +1048,32 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         drops = sorted(((n, base[n], cur[n]) for n in cur if n in base and cur[n] - base[n] <= -DROP_MARK),
                        key=lambda t: t[2] - t[1])
         ups = [n for n in cur if n in base and cur[n] - base[n] >= DROP_MARK]
+        # ── 화면 집합이 바뀐 회차 (T185 · 검수 Q 등재 · T28 47회차가 고쳤다) ──────────
+        # 촬영은 언제든 중간에 설 수 있다(런 432: `UiShotsTests` 가 빨강이라 두 장이 안 찍혔다).
+        # 그때 빠진 화면이 평균보다 **낮은** 것들이면 남은 화면의 평균은 저절로 오르고,
+        # 옛 코드는 그것을 «+0.11 올랐다» 로 찍었다 — 나아진 것이 아니라 **분모가 바뀐 것**이다.
+        # 그래서 ⓐ 빠진·새로 생긴 화면을 먼저 말하고 ⓑ 평균은 **공통 집합**으로 견준다.
+        names = set(n for n in base if not n.startswith("_"))
+        gone = sorted(names - set(cur))
+        fresh = sorted(set(cur) - names)
+        both = sorted(set(cur) & names)
+        if gone:
+            print(u"⚠ 촬영에서 빠진 화면 %d개 — 이번 런에 없다(점수가 아니라 **촬영**이 선 것이다): %s"
+                  % (len(gone), " · ".join(u"%s(지난 %.1f)" % (n, base[n]) for n in gone)))
+        if fresh:
+            print(u"· 새로 생긴 화면 %d개: %s" % (len(fresh), " ".join(fresh)))
         if base.get("_avg") is not None:
-            print(u"지난 회차(런 %s) 평균 %.2f → 이번 %.2f (%+.2f)"
-                  % (base.get("_run", "?"), base["_avg"], avg, avg - base["_avg"]))
+            if (gone or fresh) and both:
+                ob = sum(base[n] for n in both) / len(both)
+                nb = sum(cur[n] for n in both) / len(both)
+                print(u"공통 %d장 기준 평균 %.2f → %.2f (%+.2f) — 화면 수가 %d장 → %d장 으로 바뀌어 "
+                      u"**전체 평균끼리는 견주지 않는다**"
+                      % (len(both), ob, nb, nb - ob, len(names), len(cur)))
+                print(u"  (참고 · 분모가 다른 두 수: 지난 회차(런 %s) %d장 평균 %.2f · 이번 %d장 평균 %.2f)"
+                      % (base.get("_run", "?"), len(names), base["_avg"], len(cur), avg))
+            else:
+                print(u"지난 회차(런 %s) 평균 %.2f → 이번 %.2f (%+.2f)"
+                      % (base.get("_run", "?"), base["_avg"], avg, avg - base["_avg"]))
         hist = base.get("_hist") or []
         obase = base.get("_fp") or {}
         oband = base.get("_bands") or {}
@@ -1346,6 +1369,20 @@ def self_test():
     bright = _canvas(60, 200, (250, 250, 250))
     _fill(bright, 0, int(200 * 0.06), 60, int(200 * 0.55), (255, 28, 28))    # UI 의 ultimate 적색
     chk(bw_hit(bright)[0] < BW_ROW_FRAC, u"밝은 순적색(UI 등급색 #ff1c1c)은 연출로 안 잡는다")
+
+    # ⑫ 화면 집합이 바뀐 회차(T185) — 낮은 화면이 빠지면 «전체 평균» 은 저절로 오른다
+    b_scr = {"a": 5.0, "b": 5.0, "c": 3.0, "d": 3.5}         # 지난 회차 4장 · 평균 4.125
+    c_scr = {"a": 5.0, "b": 5.0}                              # 이번 회차 2장 · 평균 5.00
+    gone_ = sorted(set(b_scr) - set(c_scr))
+    both_ = sorted(set(b_scr) & set(c_scr))
+    ob_ = sum(b_scr[n] for n in both_) / len(both_)
+    nb_ = sum(c_scr[n] for n in both_) / len(both_)
+    whole = sum(c_scr.values()) / len(c_scr) - sum(b_scr.values()) / len(b_scr)
+    chk(gone_ == ["c", "d"], u"빠진 화면을 이름으로 집어낸다 (%s)" % gone_)
+    chk(whole > 0.5, u"낮은 둘이 빠지면 «전체 평균» 은 %+.2f 로 오른다 — 이 수를 «나아졌다» 로 읽으면 안 된다" % whole)
+    chk(abs(nb_ - ob_) < 1e-9, u"공통 집합끼리 견주면 움직임이 0 이다 (%.2f → %.2f)" % (ob_, nb_))
+    fresh_ = sorted(set({"a": 1.0, "e": 2.0}) - set(b_scr))
+    chk(fresh_ == ["e"], u"새로 생긴 화면도 집어낸다 (%s)" % fresh_)
 
     # ⑪ 팝업 카드 가로 상자(T28 46회차) — 딤이 달라도 같은 값이 나와야 한다
     dimdark = _canvas(200, 300, (0, 0, 0))          # 원작 꼴: 딤 α .988
