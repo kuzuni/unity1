@@ -1015,6 +1015,12 @@
 - **길은 이미 둘 다 나 있다**: ⓐ 펫은 `Assets/Scripts/Game/Ui/PetFaces.cs` 가 정본 `Scene3D.petThumb` 을 그대로 옮겨 뒀다(T4 `VoxelMob` 으로 종을 세우고 T5 도감 리그로 한 번 찍어 스프라이트로 캐시) ⓑ 장비 메시는 **T37 ✅**(무기 52종·투구·갑옷 · `Hero/GearMeshes.cs`)가 이미 세웠다. 즉 **새 조형이 아니라 그 둘을 잇는 일**이다.
 - 무엇을 한다: ⓐ `ItemFaces`(새 · `PetFaces` 와 같은 꼴: 캐시 키 = slot·age·ageIdx·wtype·nameIdx·rarity · 도감 리그로 한 번 찍어 `Sprite` 로 캐시 · 한 프레임에 몇 장씩) ⓑ `ForgeUi.ItemTile` 이 썸네일이 있으면 그것을, 없으면 지금 실루엣을 쓴다(정본과 같은 폴백 순서) ⓒ 목록을 닫거나 다시 그리면 남은 굽기는 멈춘다(정본 `_thumbJob`).
 - 판정: ⓐ PlayMode — 한 시대 한 부위의 다섯 칸 스프라이트가 **서로 다르다**(픽셀 해시 5개 서로 다름) · 굽는 중에도 프레임이 안 멈춘다(한 프레임 상한) ⓑ 다음 런 `screen_forge-list.png` 를 원작 `shot-042905` 와 나란히 눈 확인.
+- 🔎 **검산 실측(2026-09-14 09:1x · T28 40회차 · 워커 M · 런 359)** — ⓐ 가 화면에 섰다. 그리고 **새 결함 하나가 PNG 에만 보인다**:
+  - 좋은 소식: `screen_player-info.png` 의 장비 여덟 칸이 **3D 썸네일**로 바뀌었다(런 331 은 납작한 아이콘이었다). 등재 때 적은 «펫은 `PetFaces`, 장비 메시는 T37» 을 잇는 길이 실제로 섰다.
+  - ⚠ 그런데 그 썸네일에 **자홍(마젠타) 조각**이 있다: 같은 자리 픽셀을 세니 런 331 **0개** → 런 359 **35개**(R>180·B>180·G<120). 8배로 확대하면 투구 마루·장식 조각이 **분홍**이다 — 유니티에서 **재질이 안 물린 메시**의 색이다.
+  - 즉 굽기 리그가 T37 `GearMeshes` 의 **일부 서브메시 재질을 못 찾는다**(전체가 아니라 조각 몇). 테스트는 «썸네일이 서로 다르다» 만 보므로 **초록으로 지나간다** — 자에 «자홍 픽셀 0» 한 줄을 더하면 이 갈래가 막힌다.
+  - 목록 격자(ⓑ)는 아직이다: 런 359 의 `screen_forge-list.png` 투구 줄 다섯 칸은 **여전히 같은 그림**이다(무기 줄은 정본이 종류별 아이콘을 깔아서 원래 다르다 — 워커 I 의 09:0x 보고와 같은 결론).
+
 - 범위: `Assets/Scripts/Game/Ui/ItemFaces.cs`(새) · `Assets/Scripts/Game/Ui/ForgeUi.cs` · `Assets/Tests/PlayMode/`(새 파일 하나) · 필요하면 `Assets/Forge/Resources/`(굽기 수치표 · 새 파일).
 - 진행(2026-09-13 19:4x · 워커 B): 1회차 = `ItemFaces.cs`(굽기·캐시·펌프) + `ItemFacesUi.json` + `ItemFacesTests.cs` **새 파일만** — `ForgeUi.cs` 는 T87 범위 `Ui/Forge*` 라 그 lock 뒤 2회차(누구든). 장신구는 캡처가 없어 실루엣(결정 267).
 - 🔄 2026-09-14 05:5x 워커 T(sess-0544-27311) 2회차: B 의 lock 이 23:21 부터 6.5시간 갱신 0 이라 README 대로 인계(결정 318). T87 은 풀렸지만 호출 자리 넷 중 셋(`ForgeInfoPopup` 목록·상세 · `ForgeCraftPopup` · `ForgeSheet` 장착 셀)이 지금 T109·T98 lock 이라 **이 회차는 `ForgeUi.cs` 하나** — `ItemTile` 에 `ForgeItem` 오버로드(`ItemFaces.Get` 이 주면 썸네일 · 아니면 실루엣) + `ItemCard` 가 그것을 부른다 → `screen_craft-compare`·`screen_gear-detail` 의 카드 그림이 3D 썸네일. 단언은 `ItemFacesTests`(+1 · 비교 팝업 두 카드의 `img` 가 아틀라스가 아닌 구운 스프라이트 · 장신구는 실루엣). 목록(`screen_forge-list` · 판정 화면)·장착 셀은 **3회차**(T109·T98 뒤 · 누구든). **2회차 코드 들어감**: `ForgeUi.ItemTile(…, ForgeItem)` 오버로드 + `ApplyThumb`(타일 `img` 를 구운 스프라이트로 · 크기 = 타일 × `img_frac` 1.0 = 정본 `.fl-face img` 100%) · `ItemCard` 가 그것을 부른다 · `ItemFacesTests` +1 · dotnet 635/635. ✅ 는 런 판정(`ItemFacesTests` 3/3) + `screen_craft-compare.png`·`screen_gear-detail.png` 눈 확인 뒤(목록 화면은 3회차).
