@@ -106,17 +106,21 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 시트_제목은_정본_흰_엠보스_한_겹을_쓴다()
         {
             yield return Boot();
-            // 시트는 탭을 안 눌러도 서 있다(꺼져 있을 뿐) — 재질은 꺼진 칸에서도 읽힌다.
+            // ⚠ 시트는 **열어야 그려진다** — 런 469 에서 «탭을 안 눌러도 서 있다» 고 보고 600프레임을 기다리다 빨갰다.
+            //   상점은 자에서 여는 길이 하나(`MetaHost.OpenShop` · 촬영 자도 그 길로 연다)라 여기서 쓴다.
+            MetaHost.Instance.OpenShop();
             TextMeshProUGUI title = null;
             for (int i = 0; i < 600 && title == null; i++)
             {
-                foreach (TextMeshProUGUI t in UiRoot.Instance.App.GetComponentsInChildren<TextMeshProUGUI>(true))
-                    if (t.name == "sheet-title") { title = t; break; }
-                if (title == null) yield return null;
+                yield return null;
+                Popup sheet = MetaHost.Instance.Popups.Find(ShopSheet.Name);
+                if (sheet == null) continue;
+                foreach (TextMeshProUGUI t in sheet.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+                    if (t.name == "title") { title = t; break; }
             }
-            Assert.IsNotNull(title, "시트 제목(sheet-title)이 600프레임 안에 안 섰다");
+            Assert.IsNotNull(title, "상점 시트 제목이 600프레임 안에 안 섰다");
             Canvas.ForceUpdateCanvases();
-            AssertShadow(title, "paper_emboss", "시트 제목");
+            AssertShadow(title, "paper_emboss", "상점 시트 제목");
             // 정본 규칙의 뜻이 «흰 엠보스» 다 — 색이 어두우면 옮긴 것이 아니다.
             Color c = title.fontMaterial.GetColor("_UnderlayColor");
             Assert.Greater(c.r + c.g + c.b, 2.7f, "엠보스는 흰색이어야 한다(정본 rgba(255,255,255,.92))");
