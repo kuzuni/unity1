@@ -1095,7 +1095,8 @@
 - 클론: `Assets/Scripts` 전수에 `offline-btn`·`chest`·`ob-` 자취 **0** — 오프라인 팝업(`OfflinePopup`)은 부팅 때 `pending.Elapsed ≥ 60` 이면 자동으로 뜰 뿐(`MetaHost.cs` 152) 화면에 버튼이 없다. T132 가 «chest 한 줄» 로 적었지만 부를 버튼 자체가 없어 여기로 뗐다.
 - 무엇을 한다: HUD 왼쪽 아래에 버튼(chest 아이콘 100% + zzz 글자 + `ready` 들썩임 = 정본 `ob-bob` 키프레임 그대로) · 탭 → 정본 `onClaimOffline` 과 같은 길(`OfflinePopup`) · `ready` 판정은 정본 식(마지막 수령 뒤 60초) · 치수는 자기 표(`StaticIconsUi.json` 에 더한다 · `catalog.json` 은 T87 lock).
 - 판정: PlayMode(버튼이 있고 chest 스프라이트 · 수령 직후엔 `ready` 아님 · 탭이 팝업을 연다) + `screen_main.png` 왼쪽 아래 상자 눈 확인(§1).
-- 범위: `Assets/Scripts/Game/Ui/Hud.cs` · `Ui/OfflineButton.cs`(새) · `Ui/OfflinePopup.cs`(수령 길) · `Assets/Forge/Resources/StaticIconsUi.json`(T132 뒤) · `Assets/Tests/PlayMode/`(새 파일).
+- 범위: `Assets/Scripts/Game/Ui/OfflineButton.cs`(새 · `MetaHost.OnReady` 훅으로 밖에서 꽂는다 · T120 `HostSfx` 꼴) · `Assets/Forge/Resources/OfflineButtonUi.json`(새 · 치수·키프레임 표) · `Assets/Tests/PlayMode/OfflineButtonTests.cs`(새). `Hud.cs`·`OfflinePopup.cs`·`StaticIconsUi.json` 은 T132 lock 이라 이 회차는 안 연다(수령 길은 공개 `OfflinePopup.Show` 를 부른다).
+- 🔄 1회차 2026-09-14 00:1x 워커 A(sess-2005-27410): 범위를 «자기 파일» 로 먼저 고쳤다(규약) — 버튼·zzz·ob-bob·ready 판정·탭 → `OfflinePopup.Show` 를 새 파일 하나로.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
