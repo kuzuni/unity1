@@ -66,15 +66,21 @@ namespace Forge.Game.Ui
             return modals != null && modals.childCount > 0;
         }
 
-        /// <summary>모루 버튼(정본 `.anvil-btn`) — 장비 시트 안에서 이름으로 찾는다(없으면 null · 시트가 든 것이 held-slot 이면 없다 = 정본 «조용히 생략»).</summary>
+        /// <summary>모루 자리(정본 `.anvil-btn` — 보류 카드 `held-slot` 도 그 클래스를 함께 단다) — 장비 시트 안에서 이름으로 찾는다(둘 다 없으면 null = 정본 «조용히 생략»).</summary>
         public static RectTransform AnvilButton()
         {
             UiRoot root = UiRoot.Instance;
             if (root == null || root.Sheet == null) return null;
-            string name = CoinBurstStyle.T("anvil_btn");
+            // 정본 1575: 보류 카드도 `class="anvil-btn held-slot"` 이라 `.anvil-btn` 으로 잡힌다 — 클론은 그 자리를 «held-slot» 으로 이름 지었으니
+            // 둘 다 모루 자리로 본다(T117 2회차 · 결정 314). 1회차 주석 «held-slot 이면 없다 = 정본 조용히 생략» 은 오독이었다.
+            string name = CoinBurstStyle.T("anvil_btn"), held = CoinBurstStyle.T("held_slot");
+            RectTransform heldRt = null;
             foreach (RectTransform r in root.Sheet.GetComponentsInChildren<RectTransform>(false))
+            {
                 if (r.name == name) return r;
-            return null;
+                if (heldRt == null && r.name == held) heldRt = r;
+            }
+            return heldRt;
         }
 
         /// <summary>정본 `UI.coinBurst(total)`. 돌아오는 값 = 띄운 조각 수(가드에 걸리면 0).</summary>

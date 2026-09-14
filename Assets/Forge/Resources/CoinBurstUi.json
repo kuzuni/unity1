@@ -131,6 +131,7 @@
     "plus": "+{0}",
     "sfx_gacha_rarity": "common",
     "anvil_btn": "anvil-btn",
+    "held_slot": "held-slot",
     "icon": "coin"
   }
 }

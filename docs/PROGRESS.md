@@ -3919,6 +3919,8 @@
 - **1회차 가드의 구멍 하나(결정 310 · `CoinBurst.cs` · 내 범위)**: `Covered()` 가 `modals` 층의 **아이 수**로 팝업을 봤는데 `PopupLayer.Hide` 는 판을 `Destroy` 로 걷어 그 오브젝트가 **프레임 끝까지** 남는다 → [판매] 가 비교 팝업을 접은 바로 그 프레임(정본 3901 의 주 경로)에 «가려짐» 으로 읽혀 연출이 통째로 빠졌을 자리. 정본 `.modal:not(.hidden)` 은 클래스가 동기로 바뀌니 «열린 목록»(`PopupLayer.Open`)으로 본다 · 층이 아직 없을 때만 아이 수.
 - **테스트**: PlayMode `CoinBurstTests` +1(실판매) — 제작 → [판매](확인 팝업이 뜨면 확인) → **같은 프레임**에 `PlayCount +1` · 조각 수 = `Count(spec, 판매가)` · 라벨 전부 `+합÷개수` · 코인 입금 · 조각 비행 · 그 뒤 대기품을 세우고 `ResolvePendingCraft` 해도 분출 0(정본과 같은 «안 부르는 자리»). dotnet 621/621(PlayMode 는 컴파일만).
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` 621/621 · 문서·자 전부 rc 0.
+- **런 318(01c9993 · 내 94a1c22 포함) 판정 → 3회차(자만 + 앵커 한 갈래)**: EditMode 621/621 · PlayMode 167 중 빨강 5 = T142 `BootLoadingTests` 넷 + **내 새 단언** `CoinBurstTests.실판매_…` «Expected 5 But was 0» — `PlayCount` 단언은 지났으니 **분출은 [판매] 프레임에 실제로 돌았다**(결정 310 의 가드 수리가 맞았다). 빨강은 `LastLabels.Count` 를 같은 프레임에 센 것 — 라벨은 조각이 **착지할 때**(`Amount` 코루틴) 붙는다. 자를 «조각이 다 내려앉을 때까지 기다린 뒤 라벨 n개·값» 으로. 판매 경로의 `ForgeUiTests`·`PlaythroughTests`·`ForgeAutoLabelTests` 초록.
+- **덤(결정 314 · `CoinBurst.AnvilButton`)**: 정본 1575 보류 카드는 `class="anvil-btn held-slot"` 이라 `.anvil-btn` 셀렉터에 잡힌다 — 클론은 그 버튼 이름이 `held-slot` 이라 보류 카드가 선 채 파는 자동 경로(`PurgeNonMatchingHeld`·`AutoSeqStep`)에서 앵커를 못 찾아 연출이 조용히 빠졌을 자리. 1회차 주석 «held-slot 이면 없다 = 정본 조용히 생략» 은 오독이었다 → 둘 다 모루 자리로 본다(`CoinBurstUi.json` `held_slot`).
 - **다음 회차에 볼 것**: CI 런 — `CoinBurstTests` 3/3 · `ForgeUiTests`(판매 경로 `판매는_팝업을_닫고…`)·`PlaythroughTests`·자동 제련 자들 초록 · PNG 는 판매 «뒤» 만 찍히니 «시트 위 코인 잔재 0 · 상단바 코인» 으로 · → ✅ · lock 반납.
 
 ### T115 완료 기록 — 2회차: 눈으로 확인하고 ✅ (2026-09-13 · 워커 J · sess-1817-20699)

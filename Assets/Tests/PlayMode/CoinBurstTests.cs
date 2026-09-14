@@ -120,12 +120,16 @@ namespace Forge.Tests.PlayMode
             CoinBurstSpec s = CoinBurst.Spec;
             int n = CoinBurstRules.Count(s, price);
             Assert.AreEqual(n, cb.LastCount, "조각 수는 판매가 눈금대로");
-            Assert.AreEqual(n, cb.LastLabels.Count);
-            string want = "+" + NumFmt.Fmt(CoinBurstRules.Per(price, n));
-            foreach (string l in cb.LastLabels) Assert.AreEqual(want, l, "라벨은 전부 합÷개수");
             yield return null;
             Assert.AreEqual(coins + price, h.S.Coins, 0.5, "판매가만큼 코인이 들어갔다");
             Assert.Greater(cb.Pieces, 0, "조각이 날고 있다");
+            // 라벨은 조각이 **착지할 때** 붙는다(Amount 코루틴) — 런 318 실측: 같은 프레임에 세면 0 이다. 다 내려앉을 때까지 기다린다.
+            float tw = 0f;
+            while (cb.Pieces > 0 && tw < 6f) { tw += Time.unscaledDeltaTime; yield return null; }
+            Assert.AreEqual(0, cb.Pieces, "조각이 전부 착지했다");
+            Assert.AreEqual(n, cb.LastLabels.Count, "착지 자리마다 라벨 하나");
+            string want = "+" + NumFmt.Fmt(CoinBurstRules.Per(price, n));
+            foreach (string l in cb.LastLabels) Assert.AreEqual(want, l, "라벨은 전부 합÷개수");
             // 탭을 옮긴 정리는 정본 resolvePendingCraft 에 coinBurst 가 없다 — 대기품을 세우고 정리해도 분출 0
             yield return WaitSec(2.5f);
             h.S.Hammers = 20; h.Pull();
