@@ -123,6 +123,8 @@ namespace Forge.Game.Ui
             marquee.enableWordWrapping = false;
             marquee.overflowMode = TextOverflowModes.Overflow;
             marquee.raycastTarget = false;
+            // T168 2회차 — 정본 style.css 402 `.bw-track span { letter-spacing: .14em }`. 왼쪽 정렬이라 되밀기는 없다.
+            LetterSpacing.Apply(marquee, "bw_track_ls_em");
             UiKit.Outline(marquee, "pp_red", 0.2f);
             var trt = marquee.rectTransform;
             trt.anchorMin = new Vector2(0, 0.5f); trt.anchorMax = new Vector2(0, 0.5f); trt.pivot = new Vector2(0, 0.5f); trt.anchoredPosition = Vector2.zero;
@@ -130,6 +132,9 @@ namespace Forge.Game.Ui
             trackW = 0;
             sub = UiKit.Text(warnRoot, "bw-sub", TextKind.Body, FxRules.WarnSub, "coin", TextAlignmentOptions.Center);
             sub.raycastTarget = false;
+            // T168 2회차 — 정본 411 `.bw-sub { letter-spacing: .55em; text-indent: .55em }`: 한 글자씩 벌어지는 줄이었는데 클론은 0 이라 다닥다닥 붙어 있었다.
+            // 되밀기(text-indent)까지 옮긴다 — 자간이 마지막 글자 뒤에도 붙어 가운데 정렬이 왼쪽으로 쏠리기 때문이다.
+            LetterSpacing.Apply(sub, "bw_sub_ls_em", "bw_sub_indent_em");
             UiKit.Outline(sub, "pp_red_dk", 0.25f);
             var srt = sub.rectTransform;
             srt.anchorMin = new Vector2(0, 1 - (float)FxRules.WarnTop); srt.anchorMax = new Vector2(1, 1 - (float)FxRules.WarnTop); srt.pivot = new Vector2(0.5f, 1);
@@ -175,7 +180,9 @@ namespace Forge.Game.Ui
             bannerGroup.anchorMin = new Vector2(0, 0.5f); bannerGroup.anchorMax = new Vector2(1, 0.5f); bannerGroup.pivot = new Vector2(0.5f, 0.5f);
             bannerGroup.sizeDelta = new Vector2(0, 5f * rem); bannerGroup.anchoredPosition = Vector2.zero;
             title = UiKit.Text(bannerGroup, "title", TextKind.Title, FxRules.DeathTitle, "pp_paper", TextAlignmentOptions.Center);
-            title.characterSpacing = 32f;
+            // T168 2회차 — 여태 코드에 박혀 있던 32f 를 표로 옮긴다(§1). 근거는 정본 `scene3d.js` 17417 의 인라인
+            // `letter-spacing:.32em; padding-left:.32em` 이다 — 되밀기도 그 줄이 시켜서 같이 준다.
+            LetterSpacing.Apply(title, "death_title_ls_em", "death_title_indent_em");
             title.raycastTarget = false;
             UiKit.Outline(title, "pp_red", 0.18f);
             var t = title.rectTransform; t.anchorMin = new Vector2(0, 1); t.anchorMax = new Vector2(1, 1); t.pivot = new Vector2(0.5f, 1); t.sizeDelta = new Vector2(0, 2.2f * rem); t.anchoredPosition = Vector2.zero;
@@ -184,6 +191,7 @@ namespace Forge.Game.Ui
             var r = rule.rectTransform; r.anchorMin = new Vector2(0.5f, 1); r.anchorMax = new Vector2(0.5f, 1); r.pivot = new Vector2(0.5f, 1); r.sizeDelta = new Vector2(11f * rem, Mathf.Max(1f, 0.0625f * rem)); r.anchoredPosition = new Vector2(0, -(2.2f + 0.55f) * rem);
             dsub = UiKit.Text(bannerGroup, "sub", TextKind.Body, "", "pp_muted", TextAlignmentOptions.Center);
             dsub.raycastTarget = false;
+            LetterSpacing.Apply(dsub, "death_sub_ls_em");   // 정본 scene3d.js 17423 `letter-spacing:.06em`(되밀기는 정본에 없다)
             var s = dsub.rectTransform; s.anchorMin = new Vector2(0, 1); s.anchorMax = new Vector2(1, 1); s.pivot = new Vector2(0.5f, 1); s.sizeDelta = new Vector2(0, 1.4f * rem); s.anchoredPosition = new Vector2(0, -(2.2f + 1.1f) * rem);
             deathRoot.gameObject.SetActive(false);
         }

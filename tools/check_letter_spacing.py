@@ -47,12 +47,14 @@ TABLE = {
     '.sr-new': ['Ui/SkillSummonResult.cs$sr_new_ls_em'],
     '.sr-sub': ['Ui/SkillSummonResult.cs$sr_sub_ls_em'],
     '.sr-ok': ['Ui/SkillSummonResult.cs$sr_ok_ls_em'],
+    # 정본이 CSS 가 아니라 **JS 인라인**으로 주는 자리(사망 배너) · index.html 의 <style> 안 규칙(부팅 로딩)
+    'scene3d.js title.style': ['Ui/BattleOverlay.cs$death_title_ls_em'],
+    'scene3d.js subEl.style': ['Ui/BattleOverlay.cs$death_sub_ls_em'],
+    '#boot-loading .bl-title': ['Ui/BootLoading.cs'],
 }
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — T168 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
-    'Ui/BattleOverlay.cs$bw_track_ls_em': 'T168 ⓑ — .bw-track span .14em(마퀴 배너)',
-    'Ui/BattleOverlay.cs$bw_sub_ls_em': 'T168 ⓑ — .bw-sub .55em + text-indent(보스 경고 한글 부제 · 가장 눈에 띄는 자리)',
     'Ui/ForgeUi.cs$equip_cell_lv_ls_em': 'T168 ⓑ — .equip-cell .cell-lv .05em · ForgeUi.cs 는 T156 lock 뒤',
     'Ui/ChatScreen.cs$chat_placeholder_ls_em': 'T168 ⓑ — 입력칸 안내 글자 -.06em · ChatScreen.cs 는 T132 lock 뒤',
     'Ui/ForgeInfoPopup.cs$substat_row_ls_em': 'T168 ⓑ — .substat-row -.01em',
@@ -66,7 +68,6 @@ KNOWN = {
 
 # ── 코드에 박힌 자간(§1 «수치를 코드에 박지 않는다») — 자리 → 임자 ──────────────────────────
 HARD_KNOWN = {
-    'Ui/BattleOverlay.cs:title.characterSpacing': 'T168 ⓑ — 32f(.32em)는 정본의 .14em 도 .55em 도 아니다 · 표로 옮기며 근거를 찾는다',
 }
 
 SPACING_SET = re.compile(r'([\w\[\]\.]*?)\.?characterSpacing\s*=\s*([^;]+);')
@@ -118,6 +119,45 @@ def parse_rules(css_text):
         line = css[:m.start(1) + lead].count('\n') + 1
         out.append((line, sel, ' '.join(d.group(1).split())))
     return out
+
+
+INLINE_STYLE = re.compile(r"(\w+)\.style\.cssText\s*=\s*'([^']*)'")
+
+
+def parse_inline(js_text, label):
+    """[(줄, «<파일> <변수>.style», 값)] — 정본이 **JS 인라인**으로 주는 자간(사망 배너가 그렇다).
+
+    style.css 만 보면 이 자리들은 «정본에 규칙이 없다» 로 보여 **자가 통째로 지나간다** — T168 1회차가 그래서
+    `BattleOverlay` 의 `32f` 를 «근거 없는 수» 로 잘못 적었다(실제 근거는 `scene3d.js` 의 `letter-spacing:.32em`).
+    """
+    out = []
+    for m in INLINE_STYLE.finditer(js_text):
+        d = SPACING_DECL.search(m.group(2))
+        if not d:
+            continue
+        line = js_text[:m.start()].count('\n') + 1
+        out.append((line, '%s %s.style' % (label, m.group(1)), ' '.join(d.group(1).split())))
+    return out
+
+
+def parse_all(css_path):
+    """정본 자간 선언 전부 — `style.css` + `index.html` 의 <style> + `js/*.js` 의 인라인."""
+    rules = [('style.css', l, s, v) for l, s, v in parse_rules(_read_text(css_path))]
+    web = os.path.dirname(os.path.dirname(os.path.abspath(css_path)))
+    html = os.path.join(web, 'index.html')
+    if os.path.isfile(html):
+        rules += [('index.html', l, s, v) for l, s, v in parse_rules(_read_text(html))]
+    js_dir = os.path.join(web, 'js')
+    if os.path.isdir(js_dir):
+        for fn in sorted(os.listdir(js_dir)):
+            if fn.endswith('.js'):
+                rules += [(fn, l, s, v) for l, s, v in parse_inline(_read_text(os.path.join(js_dir, fn)), fn)]
+    return rules
+
+
+def _read_text(path):
+    with open(path, encoding='utf-8') as f:
+        return f.read()
 
 
 # ── 클론 ──────────────────────────────────────────────────────────────────────────────────
@@ -195,16 +235,16 @@ def run(css_path, game_dir, table, known, hard_known, out=print):
     if not os.path.isfile(css_path):
         out('✗ 정본 CSS 를 못 읽었다: %s (git clone --depth 1 https://github.com/kuzuni/wwwww .wwwww-src)' % css_path)
         return 2
-    rules = parse_rules(_read(css_path))
+    rules = parse_all(css_path)
     problems = 0
     seen = set()
     n_off = n_ok = n_known = 0
     known_now_ok = []
-    for line, sel, val in rules:
+    for src_name, line, sel, val in rules:
         seen.add(sel)
         if sel not in table:
             problems += 1
-            out('✗ 표에 없는 정본 자간  style.css %d  %s  { letter-spacing: %s }  → TABLE 에 짝을 더해라' % (line, sel, val))
+            out('✗ 표에 없는 정본 자간  %s %d  %s  { letter-spacing: %s }  → TABLE 에 짝을 더해라' % (src_name, line, sel, val))
             continue
         targets = table[sel]
         if isinstance(targets, str):
@@ -220,10 +260,10 @@ def run(css_path, game_dir, table, known, hard_known, out=print):
             tag = '자간 없음' if state == 'missing' else '자리 없음'
             if t in known:
                 n_known += 1
-                out('· KNOWN(%s)  %s  ← style.css %d %s { %s }  — %s' % (tag, t, line, sel, val, known[t]))
+                out('· KNOWN(%s)  %s  ← %s %d %s { %s }  — %s' % (tag, t, src_name, line, sel, val, known[t]))
             else:
                 problems += 1
-                out('✗ %s  %s  ← style.css %d  %s  { %s }  — %s' % (tag, t, line, sel, val, why))
+                out('✗ %s  %s  ← %s %d  %s  { %s }  — %s' % (tag, t, src_name, line, sel, val, why))
     for sel in table:
         if sel not in seen:
             problems += 1

@@ -1,0 +1,14 @@
+{
+  "_": "T168 — 정본 자간(letter-spacing) 표. 값은 **em** 이고 TMP `characterSpacing` 은 1/100 em 이라 환산은 `LetterSpacing.Apply` 한 군데에만 있다. 값을 catalog.json 이 아니라 곁 표에 두는 것은 그 파일이 남의 lock 일 때가 잦기 때문이다(T65·T98·T111·T156·T159 와 같은 길).",
+  "_이름": "키는 `…_ls_em`(자간) · `…_indent_em`(마지막 글자 뒤 여백을 되미는 몫)으로 끝난다 — `tools/check_letter_spacing.py` 가 그 규약으로 «이 자리가 표를 부르는가» 를 본다.",
+  "bw_track_ls_em": 0.14,
+  "_bw_track": "style.css 402 `.bw-track span { letter-spacing: .14em }` — 보스 경고 영문 마퀴.",
+  "bw_sub_ls_em": 0.55,
+  "bw_sub_indent_em": 0.55,
+  "_bw_sub": "style.css 411 `.bw-sub { letter-spacing: .55em; text-indent: .55em }` — 한글 부제. 정본 주석: «배너가 영문 마퀴라 무슨 일이 났는지는 여기서 읽힌다». 자간이 마지막 글자 **뒤에도** 붙어 가운데가 왼쪽으로 쏠리므로 같은 몫을 왼쪽에 되민다(정본이 text-indent 로 하는 것).",
+  "death_title_ls_em": 0.32,
+  "death_title_indent_em": 0.32,
+  "_death_title": "scene3d.js 17417 `letter-spacing:.32em; padding-left:.32em` — 사망 배너 제목. 정본이 CSS 가 아니라 **JS 인라인**으로 주는 자리이고, 그 줄 바로 위 주석이 되밀기의 이유를 적어 뒀다: «letter-spacing 은 마지막 글자 뒤에도 붙어 시각 중심이 왼쪽으로 쏠린다 — padding-left 로 되민다».",
+  "death_sub_ls_em": 0.06,
+  "_death_sub": "scene3d.js 17423 `letter-spacing:.06em` — 사망 배너 부제(되밀기는 정본에 없다)."
+}
