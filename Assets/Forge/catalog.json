@@ -39,7 +39,8 @@
     { "kind": "Title", "size": 60, "min": 60 },
     { "kind": "Button", "size": 44, "min": 44 },
     { "kind": "Body", "size": 40, "min": 40 },
-    { "kind": "Sub", "size": 36, "min": 36 }
+    { "kind": "Sub", "size": 36, "min": 36 },
+    { "kind": "Micro", "size": 18, "min": 18 }
   ],
   "colors": [
     { "key": "ink", "hex": "#eceff1" },

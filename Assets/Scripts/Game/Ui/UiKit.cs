@@ -11,7 +11,13 @@ using UnityEngine.UI;
 namespace Forge.Game.Ui
 {
     /// <summary>글자 종류 — 크기·하한은 카탈로그(<c>Assets/Forge/catalog.json</c> textKinds)가 쥔다. 하한: 본문 40 · 버튼 44 · 보조 36 · 제목 60(ROUTINE §1).</summary>
-    public enum TextKind { Title, Button, Body, Sub }
+    /// <summary>
+    /// 글자 종류. 하한은 ROUTINE §1(본문 40 · 버튼 44 · 보조 36 · 제목 60) — 원작 UI 가 9:16 폰에서 읽히던 크기다.
+    /// <see cref="Micro"/> 는 그 하한의 **예외 한 자리**다(T136): 정본이 `font-size: .5rem`(= 기준 캔버스 18.2px)로
+    /// 못 박아 둔 배지 글자 — 하한 36 을 주면 배지가 제 그릇(오브 지름 106px)보다 넓어져 정본과 달라진다.
+    /// **새로 쓰려면 정본 CSS 줄(=`.5rem` 급)을 근거로 대고 완료 기록에 적을 것** — 작다고 아무 데나 쓰는 종류가 아니다.
+    /// </summary>
+    public enum TextKind { Title, Button, Body, Sub, Micro }
 
     /// <summary>
     /// UI 조각 공장(ROUTINE T18). 글자는 반드시 여기서(<see cref="Text"/>) 만든다 — fontSize·색을 직접 주지 않는다.

@@ -57,6 +57,7 @@
 - 문자열 `StartsWith`·`EndsWith`·`IndexOf(string)`·`Contains(string)`·`Compare` 에는 **`StringComparison.Ordinal`** 을 준다 — 문화권 비교는 유니티(Mono)와 dotnet(ICU)이 다르게 답한다(이모지 접두가 Mono 에선 항상 true · T36 실측). dotnet 초록이 유니티 초록을 보장하지 않는 자리다.
 - 한 줄에 문장이 여럿인 코드 줄 끝에 `// 주석` 을 붙이지 않는다(뒤 문장이 주석이 된다 · dotnet 은 못 잡는다).
 - 글자 크기·색을 코드에 숫자로 박지 않는다 — `UiKit`(T18)의 종류(`TextKind`)를 준다. 하한: 본문 40 · 버튼 44 · 보조 36 · 제목 60(원작 UI 가 9:16 세로 폰에서 읽히던 크기다).
+  - **예외 한 자리 `TextKind.Micro`(18 · T136)**: 정본이 `font-size: .5rem`(= 기준 캔버스 18.2px)로 못 박은 **배지 글자**만 쓴다 — 하한 36 을 주면 배지가 제 그릇보다 넓어져 «그대로 옮기기» 가 깨진다(실측: 전투 바 오브 지름 106px ↔ 하한 36 라벨 폭 ~117px · 런 275 PNG 5배 확대). **새로 쓰려면 정본 CSS 줄을 근거로 대고 완료 기록에 적는다** — 작다고 아무 데나 쓰는 종류가 아니다.
 - **작업 완료 알림**: 작업 한 덩어리를 push 한 직후 ntfy(`CLAUDE.md`). 문구는 «무엇을 끝냈는지» 한 줄 + 커밋 7자리.
 
 ## 2. 작업 목록 (순서 고정 — lock ID = 아래 번호 · 끝내면 제목에 ✅ · 접으면 ✂/⛔)
@@ -1270,7 +1271,7 @@
 - 무엇을 한다: ⓐ Core `EdgeOutlineRules`(계수 넷·`edgeMaxZ`·`idZFar`·텍셀 · 판정식 · UnityEngine 0 · 표 `EdgeOutlineUi.json` 또는 catalog) ⓑ URP `ScriptableRendererFeature` + 풀스크린 셰이더(깊이·법선은 URP `_CameraDepthTexture`/`_CameraNormalsTexture` · 파츠 ID 는 액터 렌더러에 ID 색을 쓰는 보조 패스) — **UI 카메라/캔버스에는 안 건다**(정본도 DOM 위가 아니라 3D 캔버스 안) ⓒ 블룸+비네트는 `postOn = !mobile` 이라 모바일 클론 대상에서는 «정본이 지금 하는 것» 이 아니다 — 안 옮기고 그 판단을 결정으로 남긴다(WebGL 데스크톱 빌드까지 맞추려면 별도 등재).
 - 판정: PlayMode — 엣지 패스 on/off 두 프레임을 같은 장면에서 찍어 영웅 실루엣 둘레의 **어두운 화소 띠(≈1px)** 가 on 에만 있다(정본 판정기의 «off 프레임은 네 항을 다 끈다» 규칙 그대로) · 콘솔 빨강 0 · 프레임 예산(T44) 안 · `screen_main.png` 눈 확인(영웅·적 윤곽).
 - 범위: `Assets/Scripts/Core/Render/EdgeOutlineRules.cs`(새) · `Assets/Scripts/Game/Render/EdgeOutlineFeature.cs`(새 · Renderer Feature + Pass) · `Assets/Shaders/EdgeOutline.shader`(새) · `Assets/Forge/Resources/EdgeOutlineUi.json`(새 · `catalog.json` 이 남의 lock 이면 T65 꼴) · URP 렌더러 데이터 에셋(Feature 등록 · `Assets/Settings`) · `Assets/Tests/EditMode/EdgeOutlineRulesTests.cs`(새) · `Assets/Tests/PlayMode/EdgeOutlineTests.cs`(새).
-- 🔄 2026-09-14 워커 G(sess-0542-31207) 1회차 = **ⓐ 만**(셈·표·자): Core `EdgeOutlineRules`(네 항 + 팽창 + `cN` 가드 + `amax` 억제 + 비접촉 게이트 + 이력 + ID 가시성 검증) · 표 `Assets/Forge/Resources/EdgeOutlineUi.json`(정본 유니폼 + 줄 번호 출처) · EditMode 7칸(dotnet 641/641). **2회차는 ⓑ**(URP Feature + `EdgeOutline.shader` + ID 보조 패스 + 렌더러 데이터 등록 + PlayMode on/off 픽셀 + PNG) — 셰이더는 이 규칙을 줄 단위로 옮기고 새 셰이더 등록은 `check_shaders_included`(T126)가 본다. 함정 둘은 이미 단언에 박혔다: `edge_max_z` 는 **두께 판정에 안 끼운다** · off 프레임은 `EdgeOutlineTerms.Off` 로 **네 항을 한꺼번에** 끈다(결정 320). 블룸+비네트는 안 옮긴다(결정 319). lock 유지.
+- 🔄 2026-09-14 워커 G(sess-0542-31207) 1회차 = **ⓐ 만**(셈·표·자): Core `EdgeOutlineRules`(네 항 + 팽창 + `cN` 가드 + `amax` 억제 + 비접촉 게이트 + 이력 + ID 가시성 검증) · 표 `Assets/Forge/Resources/EdgeOutlineUi.json`(정본 유니폼 + 줄 번호 출처) · EditMode 7칸(dotnet 641/641). **2회차는 ⓑ**(URP Feature + `EdgeOutline.shader` + ID 보조 패스 + 렌더러 데이터 등록 + PlayMode on/off 픽셀 + PNG) — 셰이더는 이 규칙을 줄 단위로 옮기고 새 셰이더 등록은 `check_shaders_included`(T126)가 본다. 함정 둘은 이미 단언에 박혔다: `edge_max_z` 는 **두께 판정에 안 끼운다** · off 프레임은 `EdgeOutlineTerms.Off` 로 **네 항을 한꺼번에** 끈다(결정 320). 블룸+비네트는 안 옮긴다(결정 320). lock 유지.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

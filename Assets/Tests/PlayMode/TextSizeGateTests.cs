@@ -41,6 +41,10 @@ namespace Forge.Tests.PlayMode
             Assert.GreaterOrEqual(cat.Kind(TextKind.Body).min, 40f);
             Assert.GreaterOrEqual(cat.Kind(TextKind.Button).min, 44f);
             Assert.GreaterOrEqual(cat.Kind(TextKind.Sub).min, 36f);
+            // T136 — `Micro` 는 §1 하한의 **예외 한 자리**다: 정본이 `.5rem` 로 못 박은 배지 글자(기준 캔버스 18.2px).
+            //   그 값이 커지면 배지가 제 그릇보다 넓어지고, 더 작아지면 정본보다 작아진다 — 양쪽을 다 막는다.
+            Assert.AreEqual(18f, cat.Kind(TextKind.Micro).size, 0.5f, "Micro = 정본 .5rem(= 18.2px 기준 캔버스)");
+            Assert.AreEqual(cat.Kind(TextKind.Micro).size, cat.Kind(TextKind.Micro).min, 1e-3f, "Micro 는 크기 = 하한");
             Assert.GreaterOrEqual(cat.Kind(TextKind.Title).min, 60f);
             foreach (TextKind k in System.Enum.GetValues(typeof(TextKind)))
                 Assert.GreaterOrEqual(cat.Kind(k).size, cat.Kind(k).min, k + " 의 크기가 제 하한보다 작다");

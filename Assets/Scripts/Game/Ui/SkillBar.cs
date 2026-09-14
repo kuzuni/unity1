@@ -156,10 +156,13 @@ namespace Forge.Game.Ui
                 // 정본 주석이 그 까닭을 적어 뒀다: «이 배지는 판이 없어 아이콘 그림 위에 바로 얹힌다 —
                 // 밝은 그림 위 흰 글자를 세우는 원본의 화법이 검정 링이다»(굵기 2px 이 상한).
                 // T95 는 기본 규칙만 읽고 알약을 세웠다 — 그 자리를 이 회차가 정본 603 으로 되돌린다(결정 288).
+                // T136 — 크기도 정본대로: `.skill-btn .sk-lv { font-size: .5rem }`(style.css 605) = 기준 캔버스 18.2px.
+                //   보조(36) 를 주면 배지가 오브 지름(2.9rem = 106px)보다 넓어져 좌우로 흘러나온다(런 275 PNG 5배 확대 실측).
+                //   그 자리만 쓰는 종류가 `TextKind.Micro`(§1 하한의 예외 한 자리 · 결정 321).
                 string lvText = PetSkillStyle.T("lv_short", sk.Level(id));
-                float lvH = UiCatalog.Instance.Kind(TextKind.Sub).size * PetSkillStyle.L("sb_lv_line_f");
-                float lvW = PetSkillKit.TextWidth(TextKind.Sub, lvText) + PetSkillStyle.Px("sb_lv_pad_rem") * 2f;
-                TextMeshProUGUI lvT = PetSkillKit.Stroked(orbRt, "sk-lv", TextKind.Sub, lvText, PetSkillStyle.C("white"), "sk_lv");
+                float lvH = UiCatalog.Instance.Kind(TextKind.Micro).size * PetSkillStyle.L("sb_lv_line_f");
+                float lvW = PetSkillKit.TextWidth(TextKind.Micro, lvText) + PetSkillStyle.Px("sb_lv_pad_rem") * 2f;
+                TextMeshProUGUI lvT = PetSkillKit.Stroked(orbRt, "sk-lv", TextKind.Micro, lvText, PetSkillStyle.C("white"), "sk_lv");
                 RectTransform lv = lvT.rectTransform;
                 UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, PetSkillStyle.Px("sb_lv_bottom_rem")), lvW, lvH);
                 slot.Lv = lv;
