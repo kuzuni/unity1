@@ -224,7 +224,32 @@ namespace Forge.Tests.PlayMode
             P.Sync();
             HeroStatsGlue.Recalc();   // T77 — 펫 출전·기술 연구까지 넣은 뒤 한 번 더(정본은 펫 소환이 제 안에서 부른다)
             M.Touch(false);           // HUD 는 재계산 **뒤에** 다시 적는다
+
+            // 🖊️ T128 ⓐ — **판 서명**: 장비(위 `GearSignature`)만 고정돼도 «상단바 전투력이 런마다 올라만 간다» 는 갈래가 남는다
+            //    (검수 Q 실측 22.4m → 33m → 35.6m). 그 갈래는 `Seed()` 가 **직접 안 세운 것**(승천·퀘스트·리그·채팅 …)이
+            //    앞 테스트의 세이브에서 흘러들 때 생긴다. 사람이 PNG 를 눈으로 견주는 대신 **수로 남긴다** —
+            //    이 줄이 런마다 같으면 «상태가 같은 두 런» 이고, 다르면 그 칸이 범인을 댄다.
+            //    (초록인 런의 잡 로그에는 안 실리므로 `screens` 의 글자로도 남긴다 — T147 7회차가 알아낸 길.)
+            BoardSignature = "cp=" + NumFmt.Fmt(M.MyCp)
+                           + " ch=" + s.Chapter + "-" + s.Stage
+                           + " gear=" + F.Forge.ForgeLevel.ToString("0")
+                           + " pets=" + ps.Pets.Count + "/" + ps.Eggs.Count + "/" + ps.ActivePets.Count
+                           + " skills=" + sk.Skills.Count + "/" + sk.Equipped.Count
+                           + " coins=" + s.Coins.ToString("0") + " kills=" + s.Kills.ToString("0");
+            Trace("seed 판 · " + BoardSignature);
+            try
+            {
+                string dir = Path.Combine(Directory.GetCurrentDirectory(), GallerySheet.OutDir);
+                Directory.CreateDirectory(dir);
+                File.WriteAllText(Path.Combine(dir, "t128-board.txt"),
+                    "T128 — 촬영 판 서명(런마다 같아야 «상태가 같은 두 런» 이다)\n" + BoardSignature +
+                    "\n장비: " + GearSignature + "\n", new UTF8Encoding(false));
+            }
+            catch (Exception) { /* 자취가 촬영을 죽이지 않는다 */ }
         }
+
+        /// <summary>T128 ⓐ — 이번 촬영이 세운 판의 서명(전투력·진행·펫·스킬·재화). 런마다 같아야 대조가 성립한다.</summary>
+        private static string BoardSignature;
 
         /// <summary>
         /// T77 — 촬영 전 단언: 상단바 전투력이 **장비를 태운 값**인가. 정본 SEED 는 장비 8부위(Lv.26~27 = 시대 6~7)를 채우므로
