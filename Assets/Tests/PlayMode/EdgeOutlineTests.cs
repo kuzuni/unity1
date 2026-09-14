@@ -104,6 +104,14 @@ namespace Forge.Tests.PlayMode
                 Cube(rig.transform, new Vector3(0f, 0f, 10f), new Vector3(3f, 3f, 3f), new Color(0.85f, 0.80f, 0.55f));
                 yield return null;
 
+                // 🚨 런 364 실측: off 프레임이 **통째로 회색 128** 이었다 = 패스는 도는데 `_BlitTexture` 가 안 물렸다.
+                //    가장 그럴듯한 갈래는 «손으로 쓴 렌더러 에셋의 `fetchColorBuffer` 가 실제로는 안 실렸다» 이다
+                //    (그 칸이 꺼져 있으면 URP 는 색 복사본을 만들지 않아 재질이 안 물린 텍스처를 읽는다).
+                //    그래서 이 회차는 **그 칸을 리플렉션으로 켜 놓고** 재고, 원래 읽힌 값을 단언 메시지에 실어 보낸다 —
+                //    다음 런 하나로 «표가 안 실렸다» 인지 «주입점이 틀렸다» 인지 갈린다. 잰 뒤에는 원래대로 되돌린다.
+                string before = Describe(feature);
+                object savedFetch = Get(feature, "fetchColorBuffer");
+                Set(feature, "fetchColorBuffer", true);
                 SetActive(feature, true);
                 EdgeOutlineHost.SetOn(true);
                 yield return null;
@@ -112,6 +120,25 @@ namespace Forge.Tests.PlayMode
                 yield return null;
                 off = Shoot(cam, rt);
                 SetActive(feature, false);
+                if (savedFetch != null) Set(feature, "fetchColorBuffer", savedFetch);
+
+                // 한 런에서 둘째 갈래까지 같이 가른다: 단색이면 **주입점을 500(투명 뒤)으로 내려** 한 장 더 찍는다.
+                //    거기서 그림이 살면 «600(후처리 뒤)에서는 활성 색이 최종 타깃과 갈린다» 가 답이다.
+                string alt = "(안 쟀다)";
+                if (Uniform(off))
+                {
+                    object savedInj = Get(feature, "injectionPoint");
+                    Set(feature, "injectionPoint", 500);
+                    SetActive(feature, true);
+                    EdgeOutlineHost.SetOn(false);
+                    yield return null;
+                    Texture2D probe = Shoot(cam, rt);
+                    SetActive(feature, false);
+                    if (savedInj != null) Set(feature, "injectionPoint", savedInj);
+                    alt = Uniform(probe) ? "주입점 500 에서도 단색(" + Mid(probe) + ")" : "주입점 500 에서는 장면이 산다(" + Mid(probe) + ") — 600 이 범인";
+                    try { GallerySheet.Save(probe, "screen_t147-edge-probe500"); } catch (System.Exception e) { Debug.LogWarning("[T147] 진단 그림 저장 실패: " + e.Message); }
+                    Object.DestroyImmediate(probe);
+                }
 
                 int darkOn = Dark(on), darkOff = Dark(off);
                 try { GallerySheet.Save(on, "screen_t147-edge-on"); GallerySheet.Save(off, "screen_t147-edge-off"); }
@@ -120,8 +147,8 @@ namespace Forge.Tests.PlayMode
                 // 🚨 먼저 «입력이 물렸는가» 를 가른다. off 프레임의 셰이더는 `src` 를 그대로 돌려주므로,
                 //    그 그림이 **단색**이면 장면이 아니라 `_BlitTexture` 를 못 받은 것이다(유니티는 안 물린 텍스처에 회색 128 을 물린다).
                 //    이 한 줄이 없으면 «검정 화소 0» 이라는 증상만 남아 판정식을 뒤지게 된다(런 354 실측).
-                Assert.IsFalse(Uniform(off), "off 프레임이 통째로 단색이다(" + Mid(off) + ") — 패스는 도는데 입력(_BlitTexture)이 안 물렸다. 주입점·fetchColorBuffer 를 의심하라");
-                Assert.IsFalse(Uniform(on), "on 프레임이 통째로 단색이다(" + Mid(on) + ") — 위와 같은 갈래(입력 없음)");
+                Assert.IsFalse(Uniform(off), "off 프레임이 통째로 단색이다(" + Mid(off) + ") — 패스는 도는데 입력(_BlitTexture)이 안 물렸다. 에셋에 실린 값 «" + before + "» · 이 판은 fetchColorBuffer 를 켜 놓고 쟀다 · " + alt);
+                Assert.IsFalse(Uniform(on), "on 프레임이 통째로 단색이다(" + Mid(on) + ") — 위와 같은 갈래(입력 없음) · 에셋 값 «" + before + "»");
                 Assert.AreEqual(0, darkOff, "off 프레임에 검정 화소가 있다 — 네 항이 다 꺼지지 않았거나 장면이 원래 어둡다");
                 Assert.Greater(darkOn, 0, "on 프레임에 검정 화소가 0 — 엣지 패스가 안 돈다(렌더러 기능 등록·머티리얼·깊이 요구 확인)");
                 // 상자 둘레는 2 × (3유닛 상자의 화면 폭 + 높이) 남짓이고 선은 1~2px 이라, 화면의 한 줌이어야 한다(면이 통째로 칠해지면 임계가 틀린 것이다).
@@ -165,6 +192,39 @@ namespace Forge.Tests.PlayMode
                 }
             }
             return null;
+        }
+
+
+        /// <summary>렌더러 에셋에 **실제로 실린** 값을 한 줄로 — 손으로 쓴 YAML 이 그대로 들어갔는지 보는 자리.</summary>
+        static string Describe(object feature)
+        {
+            var sb = new System.Text.StringBuilder();
+            string[] names = { "injectionPoint", "fetchColorBuffer", "requirements", "passIndex", "bindDepthStencilAttachment", "passMaterial" };
+            for (int i = 0; i < names.Length; i++)
+            {
+                object v = Get(feature, names[i]);
+                var o = v as Object;
+                string text = v == null ? "(없음/null)" : (o != null ? o.name : v.ToString());
+                sb.Append(names[i]).Append('=').Append(text);
+                if (i < names.Length - 1) sb.Append(" · ");
+            }
+            return sb.ToString();
+        }
+
+        static object Get(object feature, string field)
+        {
+            FieldInfo f = feature != null ? feature.GetType().GetField(field, BindingFlags.Instance | BindingFlags.Public) : null;
+            return f != null ? f.GetValue(feature) : null;
+        }
+
+        static void Set(object feature, string field, object value)
+        {
+            FieldInfo f = feature != null ? feature.GetType().GetField(field, BindingFlags.Instance | BindingFlags.Public) : null;
+            if (f == null) return;
+            object v = value;
+            if (f.FieldType.IsEnum && !(value is System.Enum)) v = System.Enum.ToObject(f.FieldType, value);
+            else if (f.FieldType != typeof(object) && value != null && f.FieldType != value.GetType()) v = System.Convert.ChangeType(value, f.FieldType);
+            f.SetValue(feature, v);
         }
 
         static void SetActive(object feature, bool on)
