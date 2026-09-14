@@ -527,44 +527,59 @@ def score_screen(ref_rects, got_rects):
 # `web/ref/screens/shot-*.png` 30장은 **찍힌 시점의 원작**이다. 그 뒤 주인 지시로 정본이 바뀐 자리가 있고,
 # 그런 자리는 클론이 «정본대로» 여도 점수가 안 오른다 — 회차마다 그것을 결함으로 다시 진단하는 일을 막는다.
 STALE_REF_NOTES = [
+    (u"3D 세계 — 원작 샷엔 나무·흙길, 정본은 `SIMPLE_BG`(주인 지시) 단색 지면 — `main`·`offline`·`gear-detail` 세계 밴드는 T35 전까지 못 맞춘다",
     u"3D 세계: 원작 샷에는 나무·흙길·능선이 있다. 배포 정본은 `SIMPLE_BG: true`(주인 지시)라 단색 지면이다 "
-    u"— `main`·`offline`·`gear-detail` 의 세계 밴드는 T35(배경 복원) 전까지 못 맞춘다(결정 134).",
+    u"— `main`·`offline`·`gear-detail` 의 세계 밴드는 T35(배경 복원) 전까지 못 맞춘다(결정 134)."),
+    (u"모달 딤 — 원작 샷은 딤 α .988, 정본은 주인 지시 .5 — 팝업 화면 천장이 5점대다(원작 요소의 33~43%가 그 어두운 자리)",
     u"모달 딤: 원작 샷은 딤 α ≈ .988 시절이라 팝업 뒤가 새카맣다. 지금 정본은 주인 지시 «투명도 50%» 의 .5 다 "
     u"— 팝업 화면에서 상단바·탭바가 «보이는» 것은 결함이 아니다(T93 오진 · 결정 214). "
     u"실측(T28 18회차): 그 어두운 자리에 원작 요소의 **33~43%** 가 있다(`forge-detail` 43 · `autoforge` 38 · "
-    u"`settings` 35 · `forge-list` 33) — 이 팝업 화면들의 점수 천장은 6점대가 아니라 **5점대**다. 회차 사이 «변화» 로 읽어라.",
+    u"`settings` 35 · `forge-list` 33) — 이 팝업 화면들의 점수 천장은 6점대가 아니라 **5점대**다. 회차 사이 «변화» 로 읽어라."),
+    (u"제작 비교 버튼 — 원작은 «판매»·«장착» 한 단어, 정본은 `<small>` 로 금액·«기존 교체» — 클론의 두 줄 버튼이 정본대로",
     u"제작 비교 버튼: 원작 샷(`shot-043224`)의 버튼은 «판매»·«장착» 한 단어인데 지금 정본은 `<small>` 로 "
     u"판매액(코인+금액)과 «기존 교체»/«다시 장착» 을 단다(`ui.js` 3266·3269 — 그 코드 주석이 그 샷을 대놓고 "
-    u"«타이틀 줄 없음, 버튼 라벨은 판매/장착만» 이라 적었다). 클론의 두 줄 버튼은 **정본대로**다(T28 15회차 실측).",
+    u"«타이틀 줄 없음, 버튼 라벨은 판매/장착만» 이라 적었다). 클론의 두 줄 버튼은 **정본대로**다(T28 15회차 실측)."),
+    (u"시대 이름 — 원작 «신성한» ↔ 정본 `AGE_KR.divine = '천상'` — 클론이 맞다(이름표는 data/*.json 이라 손대기 금지)",
     u"시대 이름 «천상»: 원작 샷(`shot-042950`)은 «신성한» 인데 지금 정본 `gamedata.js` 16~19 의 "
     u"`AGE_KR.divine` 은 **«천상»** 이다(그 아래 색 주석에는 옛 이름이 남아 있다) — 클론이 정본대로다. "
-    u"이름표는 `data/*.json` 이 쥐고 있고 **손으로 고치는 것이 금지**라, 이 차이를 결함으로 읽지 마라(T28 30회차).",
+    u"이름표는 `data/*.json` 이 쥐고 있고 **손으로 고치는 것이 금지**라, 이 차이를 결함으로 읽지 마라(T28 30회차)."),
+    (u"기술 트리 행 — 원작은 2노드 행부터, 정본은 단계마다 «첫 타입 단독 → 2개씩»(주인 재지시) — 클론의 맨 위 단독 노드가 맞다",
     u"기술 트리 행 모양: 원작 샷(`shot-042546`)은 **2노드 행 셋 → 단독 행** 꼴인데 지금 정본은 단계마다 "
     u"**«첫 타입 단독 → 나머지 2개씩»**(`techtree.js` 264~286 · 2026-08-17 주인 재지시 «패턴이 단계마다 같아야 "
     u"연결선이 세로 레일이 된다»)이다 — 클론이 맨 위 단독 노드로 시작하는 것은 **정본대로**다(T28 29회차). "
     u"`style.css` 2118~2135 주석의 원작 픽셀 좌표((171,127)(324,127)…)도 그 옛 배치를 적어 둔 것이라 "
-    u"지금 화면과 안 맞는다 — 노드 자리로 점수를 쫓지 마라.",
+    u"지금 화면과 안 맞는다 — 노드 자리로 점수를 쫓지 마라."),
+    (u"아이콘 블록화 — 원작 샷의 매끈한 벡터는 블록화 이전 — 지금 정본은 주인 지시 `ui-icon-blockify` 로 칸 다운샘플+최근접 확대. 던전 배너 «뭉갬» 을 다시 그리지 마라",
     u"아이콘·던전 배너가 **뭉툭한 픽셀 블록**인 것: 원작 샷(`shot-042304`·`shot-042251`)의 매끈한 벡터 그림"
     u"(마을 실루엣·구름·쥔 망치)은 **블록화 이전 시절**이다. 지금 정본은 주인 지시 `ui-icon-blockify`"
     u"(«게임 전반 UI 아이콘을 네모네모(마크/픽셀 블록) 느낌으로»)로 `IconGen.url` 출력 직전에 칸 다운샘플 →"
     u"최근접 확대를 한다(`icongen.js` 120~132 · 690~712). 클론 아틀라스가 8px 칸으로 각진 것은 **정본대로**다"
-    u"(T28 28회차: `dg_hammer` 슬라이스를 직접 잘라 확인). 던전 배너가 «뭉갰다» 고 다시 그리지 마라.",
+    u"(T28 28회차: `dg_hammer` 슬라이스를 직접 잘라 확인). 던전 배너가 «뭉갰다» 고 다시 그리지 마라."),
+    (u"장비 상세 ✕ — 정본이 2026-08-18 에 더한 ✕ 라 클론이 맞다 — 다만 같은 화면의 카드 자리·폭은 진짜 결함이었다(T111 ✅)",
     u"장비 상세의 빨간 ✕: 원작 샷(`shot-043244`)에는 없고 클론에는 있다 — 정본이 2026-08-18 에 **더한 것**이다"
     u"(`ui.js` 3289 주석 «이 팝업만 ✕ 가 없어서 화면에 보이는 닫는 길이 하나도 없었다» · `style.css` 1733). "
     u"클론의 ✕ 가 카드 아래로 반쯤 걸치는 것도 정본대로다(T28 23회차). 다만 같은 화면의 **카드 자리·폭**은 "
-    u"진짜로 어긋나 있다(바닥 −17.8%p · 폭 +4.4%p → T111).",
+    u"진짜로 어긋나 있다(바닥 −17.8%p · 폭 +4.4%p → T111)."),
+    (u"리그 상대 이름 — 원작은 흰 글자+키라인, 정본은 민글자 — 클론이 맞다. 같은 행 전투력 숫자의 키라인은 진짜 결함(T109)",
     u"리그 «상대 선택» 상대 이름: 원작 샷(`shot-042228`)의 이름은 **흰 글자 + 검정 키라인**인데 지금 정본 "
     u"`.league-challenge-name` 은 `color: var(--pp-ink)`(#17181a) 민글자다 — 클론의 어두운 민글자가 "
     u"**정본대로**다(T28 22회차 6배 확대 실측). 같은 행에서 **전투력 숫자의 검정 키라인은 정본에도 있다**"
-    u"(`style.css` 2635 `-webkit-text-stroke: 2px`) — 그쪽은 진짜 결함이라 T109 로 뗐다.",
+    u"(`style.css` 2635 `-webkit-text-stroke: 2px`) — 그쪽은 진짜 결함이라 T109 로 뗐다."),
 ]
 
 
-def print_stale_notes():
+def print_stale_notes(full=False):
+    """«낡은 원작 샷» 목록 — 회차마다 찍히므로 기본은 **한 줄씩**이다.
+
+    여덟 항목의 본문을 매 회차 통째로 찍으니 출력이 벽이 돼 아무도 안 읽었다(T28 16회차에
+    «다음 고칠 것» 29줄을 다섯 줄로 줄인 것과 같은 이유). 자세한 근거는 `--notes` 로 본다."""
     print(u"")
-    print(u"· 원작 샷이 지금 정본과 다른 자리(클론 결함이 아니다 — 점수로 쫓지 마라):")
-    for n in STALE_REF_NOTES:
-        print(u"    – " + n)
+    print(u"· 원작 샷이 지금 정본과 다른 자리 %d개(클론 결함이 아니다 — 점수로 쫓지 마라%s):"
+          % (len(STALE_REF_NOTES), u"" if full else u" · 자세히는 `--notes`"))
+    for short, body in STALE_REF_NOTES:
+        print(u"    – " + short)
+        if full:
+            print(u"        " + body)
 
 
 # ── 회차 사이 점수 기준선 (T28 7회차 · 워커 M) ─────────────────────────────
@@ -781,7 +796,7 @@ def content_fill(img):
     return (rows[-1] - rows[0] + 1) / float(H), (cols[-1] - cols[0] + 1) / float(W)
 
 
-def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baseline=False):
+def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baseline=False, notes_full=False):
     table = load_table(table_path)
     if not table:
         print(u"✗ 판독표가 없다(%s) — 먼저 `--gen` 을 돌린다" % os.path.relpath(table_path, REPO))
@@ -902,7 +917,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             print(u"· 올라간 화면 %d개: %s" % (len(ups), " ".join(sorted(ups))))
         if not drops and not ups:
             print(u"· 지난 회차와 견줘 %.1f점 넘게 움직인 화면 없음" % DROP_MARK)
-    print_stale_notes()
+    print_stale_notes(notes_full)
     if save_baseline:
         # 런 번호는 CI 가 screens 에 같이 올린 meta.json 에서 읽는다(없으면 비운다).
         run = None
@@ -1066,8 +1081,9 @@ def self_test():
     chk(load_baseline(os.path.join(REPO, "tools", ".없는파일.json")) == {},
         u"기준선 파일이 없으면 빈 것으로 조용히 지나간다(첫 회차)")
 
-    chk(len(STALE_REF_NOTES) >= 2 and all(u"정본" in n for n in STALE_REF_NOTES),
-        u"«원작 샷이 지금 정본과 다른 자리» 주석이 살아 있다(회차마다 같은 오진을 막는다)")
+    chk(len(STALE_REF_NOTES) >= 2
+        and all(len(t) == 2 and t[0] and u"정본" in t[1] for t in STALE_REF_NOTES),
+        u"«원작 샷이 지금 정본과 다른 자리» 주석 %d개가 (한 줄, 자세히) 꼴로 살아 있다" % len(STALE_REF_NOTES))
 
     # ⑲ 뒤 배경 폭: 실측한 화면은 그 폭 안의 하락을 «회귀» 로 부르지 않는다
     chk(all(v >= DROP_MARK for v in BG_SHAKY.values()) and len(BG_SHAKY) >= 15,
@@ -1147,6 +1163,7 @@ def main():
     ap.add_argument("--only", nargs="*", help="이 화면 이름만")
     ap.add_argument("--baseline", default=BASELINE, help="지난 회차 점수 파일(회귀 대조)")
     ap.add_argument("--save-baseline", action="store_true", help="이번 점수를 기준선으로 적는다")
+    ap.add_argument("--notes", action="store_true", help="«낡은 원작 샷» 항목을 근거까지 펼쳐 찍는다")
     a = ap.parse_args()
 
     if a.self_test:
@@ -1155,10 +1172,13 @@ def main():
         for r in read_layout(png_read(a.read)):
             print(u"| %s | %.1f | %.1f | %.1f | %.1f | %s |" % (r.name, r.x, r.y, r.w, r.h, r.grid()))
         return 0
+    if a.notes and not a.score:
+        print_stale_notes(full=True)
+        return 0
     if a.gen:
         return gen(a.ref_dir, a.table, a.only)
     if a.score:
-        return score(a.table, a.shots, a.only, a.baseline, a.save_baseline)
+        return score(a.table, a.shots, a.only, a.baseline, a.save_baseline, a.notes)
     ap.print_help()
     return 0
 

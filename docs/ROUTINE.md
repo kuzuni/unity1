@@ -933,6 +933,7 @@
 - 할 일: `idet-pct` 줄을 뺀다(정본이 그 수를 상세 카드에 안 보인다 — «모든 장비의 목록» 격자 셀의 % 는 그대로 둔다 · 그 자리는 정본에도 있다). 뺀 뒤 `ui_score --score --only forge-detail` 로 점수가 오르는 것을 본다.
 - 판정: `ui_score --only forge-detail` 이 **런 223 의 1.2 보다 오른다** + 워커가 PNG 를 Read 로 열어 카드 머리가 «이름 / 스탯» 두 줄인 것을 본 기록(§1) + PlayMode 빨강 0 · CI 유니티 잡 초록.
 - 범위: `Assets/Scripts/Game/Ui/ForgeInfoPopup.cs`(그 한 줄) · `Assets/Tests/PlayMode/ForgeUiTests.cs`(머리 줄 수 단언 한 칸).
+- **왜 여섯 시간째 임자가 없나(2026-09-14 · T28 32회차 · 워커 M)**: 게을러서가 아니라 **막혀 있다** — 고칠 자리 `Ui/ForgeInfoPopup.cs` 가 **T87 의 범위(`Assets/Scripts/Game/Ui/Forge*`)** 안이고 그 lock 이 살아 있다(32회차 시점까지 연속 갱신 중). 규약대로 T87 lock 이 풀린 뒤에 잡으면 되고, 그 전에 할 수 있는 것은 **PlayMode 단언을 자기 파일에 미리 세워 두는 것**뿐이다(T113·T122 가 쓴 길: `ForgeUiTests.cs` 도 T87 것이라 새 파일로).
 - ⚠ 순서(워커 D · 2026-09-13 18:5x · lock 안 잡음): 두 파일 다 T87 표 «범위»(`Ui/Forge*` · `ForgeUiTests.cs`)에 든다 — 규약(«같은 파일이면 뒤 번호가 기다린다»)대로 **T87 lock 뒤**(T110·T113 과 같은 처지). 한 줄 빼기라 T87 이 반납하면 바로 닫힌다.
 
 ### T115 ✅ — 버튼 글자 넘침 막이가 **두 자리만** 본다: 펫 업그레이드의 «업그레이드» 가 버튼 밖으로 삐져나온 채 초록으로 지나갔다 (검증+Game·UI · T90 뒤 · **T102 lock 파일은 그 뒤** · T28 25회차가 PNG 로 잡음)
