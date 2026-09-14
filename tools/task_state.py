@@ -543,6 +543,27 @@ def row_handover_hint(rowtext, holder=None):
     return n
 
 
+CODE_DIRS = ("Assets/", "tools/")   # T160 — 이 아래를 건드린 커밋만 «코드를 만졌다» 로 센다(docs/ 만 만진 등재·판정 커밋은 안내다)
+
+
+def commit_paths(h):
+    """커밋 하나가 만진 경로 목록(T160)."""
+    return [l for l in _git(["show", "--name-only", "--format=", h]).split("\n") if l]
+
+
+def docs_only_verdict(pmark, lk, files, commits, paths_of):
+    """T160 — «⬜ 행 · lock 없음 · 코드 자취 0 · 그 번호의 커밋이 전부 문서뿐» 이면 (True, 까닭). 아니면 (None, None) 로 다음 갈래에 넘긴다.
+    순수 판정이라 자기 검사가 가짜 `paths_of` 로 잰다."""
+    if pmark != "⬜" or lk or files or not commits:
+        return None, None
+    for h, when, subj in commits:
+        if any(p.startswith(CODE_DIRS) for p in paths_of(h)):
+            return None, None
+    h, when, subj = commits[0]
+    return True, "등재·문서 커밋뿐(코드 0곳 · 커밋 %d개) — 선점해도 된다 · 먼저 읽어라: %s(%s) «%s»" % (
+        len(commits), h, when[:16], subj[:60])
+
+
 def verdict(tid, heads, rows):
     """(잡아도 되나, 한 줄 판정). «잡아도 되나» 가 거짓이면 그 회차에 그 번호를 선점하지 않는다."""
     lk = lock_of(tid)
@@ -574,6 +595,14 @@ def verdict(tid, heads, rows):
             return False, ("lock 시각은 %d분 전이라 죽었지만 **임자 %s 의 마지막 커밋이 %d분 전**이다 — "
                            "살아 있다 · 뺏지 마라(T329·T447·T465 · 그가 lock 갱신만 잊은 것이다)%s" % (lk[1], lk[0], age, where))
     files, commits = footprint(tid)
+    # T160 — **등재만 된 ⬜ 작업은 «손댄 흔적» 이 아니다.** 남이 §2·PROGRESS 에 절과 행을 적어 넣은 «등재» 커밋은
+    #   제목이 그 번호로 시작하므로 여기서 «이미 손댄 흔적 → 잡지 마라» 로 찍혔다(2026-09-14 10:4x T156 실측 · 코드 0곳 · lock 없음 · ⬜).
+    #   지시서 3 이 «선점 직전 이 자가 0» 을 요구하니, 그 절은 규약상 **영원히 아무도 못 잡는** 자리가 됐다.
+    #   문서만 만진 커밋(Assets/·tools/ 를 한 줄도 안 건드린 것)은 발자취가 아니라 안내다 — ⬜ 행 + lock 없음 + 코드 자취 0 이면 잡아도 된다.
+    #   🔄 행(누가 하다 멈춘 자리)은 그대로 «먼저 읽어라» 다 — 인수 규약(T447·T465)은 안 건드린다.
+    ok, why = docs_only_verdict(pmark, lk, files, commits, commit_paths)
+    if ok is not None:
+        return ok, why
     if commits:
         h, when, subj = commits[0]
         return False, "⚠ **이미 손댄 흔적** — 커밋 %s(%s) «%s» · 코드 %d곳. 먼저 읽어라" % (
@@ -1387,7 +1416,24 @@ def self_test():
         #   있고 없고는 트리에 달렸으니, 있는 경우에만 잰다(없으면 조용히 지나간다).
         # (같은 잣대: 번호 하나라도 «주석뿐인 파일» 을 files 에 남기면 위 clean_cases 가 먼저 잡는다.)
 
-        print("✓ task_state --self-test: 어긋난 짝을 잡고(T161) · ✅ 를 달면 조용하고 · 빈 번호는 통과하고 ·"
+        # ⓣ T160 — «등재만 된 ⬜ 작업» 은 잡아도 된다 · 코드를 만진 커밋이 하나라도 있으면 그대로 «손댄 흔적» · 🔄 행은 그대로.
+        c_doc = [("aaaaaaa", "2026-09-14T10:08:00+00:00", "T9000 등재: 새 일")]
+        c_mix = c_doc + [("bbbbbbb", "2026-09-14T10:20:00+00:00", "T9000 1회차: 자")]
+        pth = {"aaaaaaa": ["docs/ROUTINE.md", "docs/PROGRESS.md"], "bbbbbbb": ["docs/PROGRESS.md", "Assets/Tests/PlayMode/X.cs"]}
+        t160 = [
+            (("⬜", None, [], c_doc), True),
+            (("⬜", None, [], c_mix), None),
+            (("⬜", None, ["Assets/Scripts/Game/X.cs"], c_doc), None),
+            (("🔄", None, [], c_doc), None),
+            (("⬜", ("sess-0000-1", 200), [], c_doc), None),
+            (("⬜", None, [], []), None),
+        ]
+        for (pm, lk_, fl, cm), want in t160:
+            got = docs_only_verdict(pm, lk_, fl, cm, lambda h: pth[h])[0]
+            if got != want:
+                print("⛔ 자기 검사 실패(T160) — 등재만 된 ⬜ 판정: %s/%s/%s/%d커밋 → %r (기대 %r)" % (pm, lk_, fl, len(cm), got, want))
+                return 1
+        print("✓ task_state --self-test: 어긋난 짝을 잡고(T161) · **등재만 된 ⬜ 는 잡아도 되고 코드 커밋·🔄·lock 이 있으면 아니고(T160)** · ✅ 를 달면 조용하고 · 빈 번호는 통과하고 ·"
               " 같은 번호 두 제목을 잡고 · «행 없음 ↔ 접힌 행만» 을 가르고 · ⛔ 와 `\\|` 도 읽고 ·"
               " 참고 줄이 마지막 요약에도 실리고(T231) · «⬜ + 살아 있는 lock» 을 잡되 죽은 lock 은 안 잡고(T238) · **미래로 적힌 lock 을 잡되 1분 차에는 안 울고**(T294) · **본문에 ✂ 를 인용한 살아 있는 줄을 접힘으로 안 센다**(T249) · **«낡은 lock 인데 임자는 살아 있다» 를 잡되 «둘 다 낡음»·«아직 살아 있음»·«판단 못 함» 셋에는 안 울고**(T329)"
               " · **맨 위 행을 지워도 발급이 안 내려가고(옛 규칙이면 그 번호를 재발급한다) · 지워진 번호를 잡되 멀쩡한 표·구멍·git 없음 셋에는 안 울고**(T415)"
