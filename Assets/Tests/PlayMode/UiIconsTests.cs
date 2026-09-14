@@ -129,6 +129,54 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T132 2회차 — 채팅 공유 카드 오른쪽 위의 카메라 배지 `chatcam`(정본 ui.js 5271 · style.css 3433~3438: .0381W 정사각 · top −.008W · right −.030W).
+        /// 씨앗(`Chat.Seed`)이 공유 카드를 하나 끼우므로 채팅을 열기만 하면 카드가 있다(T99 `ChatShareIconTests` 와 같은 길). 자리는 카드 팝(T135 ⓑ)이 끝난 뒤 잰다.</summary>
+        [UnityTest]
+        public IEnumerator T132_공유_카드_오른쪽_위에_chatcam_배지가_카드_밖으로_걸친다()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+            float t = 0f;
+            while (!(MetaHost.Ready && PopupLayer.Instance != null) && t < 15f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 15초 안에 준비되지 않았다");
+            Assert.IsNotNull(Hud.Instance, "HUD 가 서지 않았다");
+            Hud.Instance.ChatButton.onClick.Invoke();
+            yield return null;
+            Assert.IsTrue(PopupLayer.Instance.IsOpen(ChatScreen.Name), "채팅 줄 → 전체화면 채팅");
+            CardPop.SettleAll();
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(ChatScreen.Name);
+            Assert.IsNotNull(p);
+            int cards = 0;
+            foreach (RectTransform card in p.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (card.name != "share") continue;
+                cards++;
+                Transform camTr = card.Find("cam");
+                Assert.IsNotNull(camTr, "공유 카드에 카메라 배지 칸(cam)이 없다");
+                Image cam = camTr.GetComponent<Image>();
+                Assert.IsNotNull(cam, "cam 에 Image 가 없다");
+                Assert.IsNotNull(cam.sprite, "chatcam 스프라이트가 비었다");
+                Assert.AreEqual("ico:chatcam", cam.sprite.name, "정본 ui.js 5271 = IconGen.img('chatcam')");
+                Assert.IsNull(card.GetComponent<RectMask2D>(), "정본 3392: 카드에 클리핑을 주면 배지가 잘린다");
+                RectTransform cr = cam.rectTransform;
+                float expect = StaticIconsUi.L("chat_share_cam_w_aw") * UiKit.RefW;
+                Assert.AreEqual(expect, cr.rect.width, 0.01f, "배지 폭 = .0381W");
+                Assert.AreEqual(cr.rect.width, cr.rect.height, 0.01f, "배지는 정사각");
+                Vector3[] a = new Vector3[4], b = new Vector3[4];
+                cr.GetWorldCorners(a);
+                card.GetWorldCorners(b);
+                Assert.Greater(a[1].y, b[1].y, "배지 윗변은 카드 윗변보다 위(top −.008W)");
+                Assert.Greater(a[2].x, b[2].x, "배지 오른변은 카드 오른변보다 오른쪽(right −.030W)");
+                Assert.Less(a[0].y, b[1].y, "배지 아랫부분은 카드에 걸친다");
+                Assert.Less(a[0].x, b[2].x, "배지 왼쪽은 카드 안이다");
+            }
+            Assert.GreaterOrEqual(cards, 1, "채팅 씨앗(Chat.Seed)에 공유 카드가 하나는 있어야 한다");
+            PopupLayer.Instance.Hide(ChatScreen.Name);
+            yield return null;
+        }
+
         private static Image FindImage(Transform root, string name)
         {
             foreach (Image img in root.GetComponentsInChildren<Image>(true)) if (img.name == name) return img;

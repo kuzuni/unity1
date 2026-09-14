@@ -1,16 +1,20 @@
 {
-  "_": "ROUTINE T132 정본이 아이콘으로 그리는 정적 자리의 치수표(원작 css .pass-sword · .ico.stub-ico(.wide) · .chat-preview-avatar). T87 lock 이 Assets/Forge/catalog.json 을 쥐고 있어 T132 몫만 여기 둔다(T111 GearDetailUi.json 과 같은 꼴 · T33 이 카탈로그로 합칠 수 있다) — 코드에 숫자를 박지 않는다(§1). 키 접미: _rem = rem 배수(css rem 그대로 · 음수는 css top 값) · _em = 그 글자 크기의 배수.",
+  "_": "ROUTINE T132 정본이 아이콘으로 그리는 정적 자리의 치수표(원작 css .pass-sword · .ico.stub-ico(.wide) · .chat-preview-avatar). T87 lock 이 Assets/Forge/catalog.json 을 쥐고 있어 T132 몫만 여기 둔다(T111 GearDetailUi.json 과 같은 꼴 · T33 이 카탈로그로 합칠 수 있다) — 코드에 숫자를 박지 않는다(§1). 키 접미: _rem = rem 배수(css rem 그대로 · 음수는 css top 값) · _em = 그 글자 크기의 배수 · _aw = 앱 폭(--app-w · 카탈로그 RefW) 배수(음수는 css top/right 값).",
   "layout": {
     "pass_sword_top_rem": -4.81,
     "pass_sword_w_rem": 3.72,
     "pass_sword_h_rem": 6.72,
     "stub_ico_h_em": 1.35,
     "stub_ico_w_em": 1.88,
-    "stub_ico_gap_em": 0.42
+    "stub_ico_gap_em": 0.42,
+    "chat_share_cam_w_aw": 0.0381,
+    "chat_share_cam_top_aw": -0.008,
+    "chat_share_cam_right_aw": -0.030
   },
   "_src": {
     "pass_sword_*": "style.css 2686~2700 `.pass-sword { position:absolute; top:-4.81rem; left:50%; transform:translateX(-50%); width:3.72rem; height:6.72rem }` — 원본 검 y 29.5~142.5(113px = 6.72rem) · 폭 62.5px(3.72rem · 종횡비 0.553 = 아틀라스 88×160) · ui.js 4924 `<div class=\"pass-sword\">${IconGen.img('passsword')}</div>`(리본 .pass-banner 보다 앞 = 리본이 덮는다)",
     "stub_ico_*": "style.css 1767·1770 `.ico.stub-ico { width:1.35em; height:1.35em; margin:-.32em .42em -.32em 0 }` · `.ico.stub-ico.wide { width:1.88em }`(바리케이드 ASPECT 1.39) — ui.js 1257 `${IconGen.img('barrier','stub-ico wide')}다음 업데이트에서 추가될 예정입니다.`",
+    "chat_share_cam_*": "style.css 3433~3438 `.chat-share-cam { position:absolute; top:calc(var(--app-w) * -.008); right:calc(var(--app-w) * -.030); width:calc(var(--app-w) * .0381); height:calc(var(--app-w) * .0381) }` · `.chat-share-cam .ico { width:100%; height:100% }` — ui.js 5271 `<span class=\"chat-share-cam\">${IconGen.img('chatcam')}</span>`(카드 오른쪽 위 밖으로 걸치는 정사각 배지 · 3392 주석: 카드에 overflow:hidden 을 주면 이 배지가 잘린다 · T132 2회차)",
     "chat_preview_avatar": "style.css 3232 `.chat-preview-avatar { width:1.9rem; height:1.9rem }` 은 카탈로그 chat_avatar(0.036 H) 가 이미 쥔다 — ui.js 5294 `IconGen.img('chatbubble')`"
   }
 }

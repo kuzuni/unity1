@@ -213,6 +213,13 @@ namespace Forge.Game.Ui
                 string winCp = PopupKit.Fmt(m.Win ? m.MyCp : m.OppCp), loseCp = PopupKit.Fmt(m.Win ? m.OppCp : m.MyCp);
                 Side(card, "win", 0f, bubbleW * 0.5f, bodyH, winAv, winName, winCp, "chat_share_win", "승리");
                 Side(card, "lose", bubbleW * 0.5f, bubbleW * 0.5f, bodyH, loseAv, loseName, loseCp, "chat_share_lose", null);
+                // T132 2회차 — 정본 ui.js 5271 `<span class="chat-share-cam">${IconGen.img('chatcam')}</span>` · style.css 3433~3438:
+                // 카드 오른쪽 위 **밖으로 걸치는** 정사각 배지(.0381W · top −.008W · right −.030W · 앱 폭 배수 = StaticIconsUi `_aw`).
+                // 정본은 카드에 overflow:hidden 을 일부러 안 준다(3392 주석 «주면 배지가 통째로 잘린다») — 클론 카드도 마스크가 없다.
+                float camW = StaticIconsUi.L("chat_share_cam_w_aw") * w;
+                Image cam = PopupKit.IconOr(card, "cam", "chatcam");
+                UiKit.Anchor(cam.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f),
+                    new Vector2(-StaticIconsUi.L("chat_share_cam_right_aw") * w, -StaticIconsUi.L("chat_share_cam_top_aw") * w), camW, camW);
             }
             else
             {
