@@ -46,12 +46,14 @@ namespace Forge.Tests
         public void 채움_막대는_진행률에_비례하고_0과_100_밖은_잘린다()
         {
             var s = S();
-            Assert.AreEqual(216.0, s.TrackWPx, 1e-9, "정본 .bl-track width: 216px");
+            // 표의 수는 **정본 CSS px** 이고 `css_px`(499 ↔ 1080) 를 곱해 기준 캔버스로 온다.
+            Assert.AreEqual(2.164, s.CssPx, 1e-9);
+            Assert.AreEqual(216.0 * 2.164, s.TrackWPx, 1e-6, "정본 .bl-track width: 216 CSS px");
             Assert.AreEqual(0.0, s.FillWidthPx(0), 1e-9);
-            Assert.AreEqual(108.0, s.FillWidthPx(50), 1e-9);
-            Assert.AreEqual(216.0, s.FillWidthPx(100), 1e-9);
+            Assert.AreEqual(s.TrackWPx * 0.5, s.FillWidthPx(50), 1e-6);
+            Assert.AreEqual(s.TrackWPx, s.FillWidthPx(100), 1e-6);
             Assert.AreEqual(0.0, s.FillWidthPx(-5), 1e-9, "음수는 0 으로");
-            Assert.AreEqual(216.0, s.FillWidthPx(140), 1e-9, "100 넘으면 꽉 참");
+            Assert.AreEqual(s.TrackWPx, s.FillWidthPx(140), 1e-6, "100 넘으면 꽉 참");
         }
 
         [Test]
@@ -111,6 +113,22 @@ namespace Forge.Tests
             Assert.Greater(d3x, 0.0, "s3 는 오른쪽으로");
             Assert.Less(d2y, 0.0, "둘 다 위로");
             Assert.Less(d3y, 0.0);
+        }
+
+        [Test]
+        public void 글자_크기는_환산한_뒤_종류_하한_안에_든다()
+        {
+            var s = S();
+            // 런 331 실측: 환산을 안 하면 제목 22 · 단계 12 가 그대로 나가 `TextSizeGateTests` 가 **씬 전체에서**
+            // 빨개졌다(그 자는 «활성 글자 전부» 를 본다 — 내 화면 하나가 남의 테스트 열여섯을 깼다).
+            double title = s.TitlePx, stage = s.StagePx;
+            Assert.AreEqual(22.0 * 2.164, title, 1e-6, "제목은 정본 22 CSS px");
+            Assert.AreEqual(12.0 * 2.164, stage, 1e-6, "단계 글자는 정본 12 CSS px");
+            // 카탈로그 종류 하한(Title 60 · Button 44 · Body 40 · Sub 36 · Micro 18)
+            Assert.GreaterOrEqual(title, 44.0, "제목은 Button 하한을 넘는다(Title 60 엔 못 들어간다)");
+            Assert.Less(title, 60.0, "그래서 Title 종류로 세우면 안 된다");
+            Assert.GreaterOrEqual(stage, 18.0, "단계 글자는 Micro 하한을 넘는다");
+            Assert.Less(stage, 36.0, "그래서 Sub 종류로 세우면 안 된다");
         }
 
         [Test]

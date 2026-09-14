@@ -36,6 +36,9 @@ namespace Forge.Core.Ui
         // 시각
         public double SwingMs, SparkMs, SparkDelay2Ms, SparkDelay3Ms, FillMs, FadeMs, RemoveMs;
 
+        /// <summary>정본 CSS px 1 = 기준 캔버스 px 몇인가(정본 앱 폭 499 ↔ 카탈로그 reference 1080).</summary>
+        public double CssPx;
+
         // 불티 셋의 방향(정본은 조각마다 CSS 변수 --dx/--dy)
         public double[] SparkDxPx, SparkDyPx;
 
@@ -48,32 +51,37 @@ namespace Forge.Core.Ui
             var L = J.Obj(J.Require(root, "layout"));
             var T = J.Obj(J.Require(root, "times"));
             var C = J.Obj(J.Require(root, "colors"));
-            Func<JsonObject, string, double> n = (o, k) => J.Num(J.Require(o, k));
+            Func<JsonObject, string, double> n = (o, k) => J.Num(J.Require(o, k));   // 시각·비율은 환산 안 한다
 
             var s = new BootLoadingSpec();
             s.Stages = ReadStages(J.Require(root, "stages"));
+            // 정본 CSS px → 기준 캔버스 px. 안 곱하면 글자가 §1 하한 아래로 내려가 씬 전체의 글자 자가 빨개진다(런 331).
+            s.CssPx = J.Num(J.Require(root, "css_px"));
+            if (s.CssPx <= 0) throw new FormatException("BootLoadingUi css_px 는 0 보다 커야 한다");
+            Func<JsonObject, string, double> raw = (o, k) => J.Num(J.Require(o, k));
 
-            s.BoxGapPx = n(L, "box_gap_px"); s.ForgeWPx = n(L, "forge_w_px"); s.ForgeHPx = n(L, "forge_h_px");
-            s.AnvilWPx = n(L, "anvil_w_px"); s.AnvilHPx = n(L, "anvil_h_px"); s.AnvilBottomPx = n(L, "anvil_bottom_px");
-            s.AnvilFootWPx = n(L, "anvil_foot_w_px"); s.AnvilFootHPx = n(L, "anvil_foot_h_px");
-            s.HammerWPx = n(L, "hammer_w_px"); s.HammerHPx = n(L, "hammer_h_px");
-            s.HammerLeftF = n(L, "hammer_left_f"); s.HammerBottomPx = n(L, "hammer_bottom_px");
-            s.HammerPivotXF = n(L, "hammer_pivot_x_f"); s.HammerPivotYF = n(L, "hammer_pivot_y_f");
-            s.HammerHeadWPx = n(L, "hammer_head_w_px"); s.HammerHeadHPx = n(L, "hammer_head_h_px"); s.HammerHeadTopPx = n(L, "hammer_head_top_px");
-            s.HammerHaftWPx = n(L, "hammer_haft_w_px"); s.HammerHaftHPx = n(L, "hammer_haft_h_px");
-            s.HammerHaftLeftPx = n(L, "hammer_haft_left_px"); s.HammerHaftTopPx = n(L, "hammer_haft_top_px");
-            s.SparkDPx = n(L, "spark_d_px"); s.SparkLeftF = n(L, "spark_left_f"); s.SparkBottomPx = n(L, "spark_bottom_px");
-            s.TitlePx = n(L, "title_px"); s.TitleTrackEm = n(L, "title_track_em");
-            s.TrackWPx = n(L, "track_w_px"); s.TrackHPx = n(L, "track_h_px"); s.TrackRPx = n(L, "track_r_px");
-            s.StagePx = n(L, "stage_px");
+            Func<string, double> px = k => raw(L, k) * s.CssPx;
+            s.BoxGapPx = px("box_gap_px"); s.ForgeWPx = px("forge_w_px"); s.ForgeHPx = px("forge_h_px");
+            s.AnvilWPx = px("anvil_w_px"); s.AnvilHPx = px("anvil_h_px"); s.AnvilBottomPx = px("anvil_bottom_px");
+            s.AnvilFootWPx = px("anvil_foot_w_px"); s.AnvilFootHPx = px("anvil_foot_h_px");
+            s.HammerWPx = px("hammer_w_px"); s.HammerHPx = px("hammer_h_px");
+            s.HammerLeftF = raw(L, "hammer_left_f"); s.HammerBottomPx = px("hammer_bottom_px");
+            s.HammerPivotXF = raw(L, "hammer_pivot_x_f"); s.HammerPivotYF = raw(L, "hammer_pivot_y_f");
+            s.HammerHeadWPx = px("hammer_head_w_px"); s.HammerHeadHPx = px("hammer_head_h_px"); s.HammerHeadTopPx = px("hammer_head_top_px");
+            s.HammerHaftWPx = px("hammer_haft_w_px"); s.HammerHaftHPx = px("hammer_haft_h_px");
+            s.HammerHaftLeftPx = px("hammer_haft_left_px"); s.HammerHaftTopPx = px("hammer_haft_top_px");
+            s.SparkDPx = px("spark_d_px"); s.SparkLeftF = raw(L, "spark_left_f"); s.SparkBottomPx = px("spark_bottom_px");
+            s.TitlePx = px("title_px"); s.TitleTrackEm = raw(L, "title_track_em");
+            s.TrackWPx = px("track_w_px"); s.TrackHPx = px("track_h_px"); s.TrackRPx = px("track_r_px");
+            s.StagePx = px("stage_px");
 
             s.SwingMs = n(T, "swing_ms"); s.SparkMs = n(T, "spark_ms");
             s.SparkDelay2Ms = n(T, "spark_delay2_ms"); s.SparkDelay3Ms = n(T, "spark_delay3_ms");
             s.FillMs = n(T, "fill_ms"); s.FadeMs = n(T, "fade_ms"); s.RemoveMs = n(T, "remove_ms");
 
             var M = J.Obj(J.Require(root, "spark_move"));
-            s.SparkDxPx = new[] { n(M, "dx1_px"), n(M, "dx2_px"), n(M, "dx3_px") };
-            s.SparkDyPx = new[] { n(M, "dy1_px"), n(M, "dy2_px"), n(M, "dy3_px") };
+            s.SparkDxPx = new[] { n(M, "dx1_px") * s.CssPx, n(M, "dx2_px") * s.CssPx, n(M, "dx3_px") * s.CssPx };
+            s.SparkDyPx = new[] { n(M, "dy1_px") * s.CssPx, n(M, "dy2_px") * s.CssPx, n(M, "dy3_px") * s.CssPx };
 
             s.TrackAlpha = n(C, "track_a");
             s.Colors = new OrderedMap<string>();

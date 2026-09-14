@@ -108,6 +108,13 @@ namespace Forge.Game.Ui
         private void Awake()
         {
             Instance = this;
+            // T142 — 부팅 로딩 오버레이(정본 index.html `#boot-loading`). 진행률은 그 화면이 스스로
+            // «무엇이 섰는가» 를 읽어 민다(BootLoading.Follow) — 여기서 단계마다 부르면 이 부팅이
+            // 남의 준비를 기다리게 되어 순서가 바뀐다.
+            // ⚠ 4회차에 이 줄을 넣었다가 런 331 에서 테스트 16개를 깼다 — 오버레이 때문이 아니라
+            //   그 화면의 글자가 §1 하한 아래였기 때문이다(`TextSizeGateTests` 는 씬의 **활성 글자
+            //   전부**를 본다). 6회차가 정본 CSS px 를 기준 캔버스로 환산해 고친 뒤 다시 단다.
+            BootLoading.Begin();
             StartCoroutine(Boot());
         }
 

@@ -126,7 +126,9 @@ namespace Forge.Game.Ui
             }
 
             // ── 제목 ────────────────────────────────────────────────────────────
-            TextMeshProUGUI title = UiKit.Text(box, "bl-title", TextKind.Title, "포지 클론", "ink", TextAlignmentOptions.Center);
+            // 종류는 «그 크기를 담을 수 있는 하한» 으로 고른다(§1 글자 하한 · T136 이 세운 Micro 포함).
+            //   제목 22 CSS px × 2.164 = 47.6 → Title(하한 60)엔 못 들어가고 Button(44) 에 들어간다.
+            TextMeshProUGUI title = UiKit.Text(box, "bl-title", TextKind.Button, "포지 클론", "ink", TextAlignmentOptions.Center);
             title.color = Hex("title");
             title.fontSize = (float)spec.TitlePx;
             title.fontStyle = FontStyles.Bold;
@@ -146,7 +148,8 @@ namespace Forge.Game.Ui
             y += (float)(spec.TrackHPx + spec.BoxGapPx);
 
             // ── 단계 글자 ───────────────────────────────────────────────────────
-            stageText = UiKit.Text(box, "bl-stage", TextKind.Sub, string.Empty, "ink", TextAlignmentOptions.Center);
+            // 단계 글자 12 CSS px × 2.164 = 26 → Sub(36) 아래 · Micro(18) 위다.
+            stageText = UiKit.Text(box, "bl-stage", TextKind.Micro, string.Empty, "ink", TextAlignmentOptions.Center);
             stageText.color = Hex("stage");
             stageText.fontSize = (float)spec.StagePx;
             UiKit.Anchor(stageText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -y),
