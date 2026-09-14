@@ -32,6 +32,8 @@ namespace Forge.Game.Ui
         private RectTransform under;
         private RectTransform over;
         private RectTransform toasts;
+        /// <summary>전투 토스트 레인(정본 `#toasts-combat` · T138) — **모달 아래** 형제라 팝업을 읽는 중에 끼어들지 않는다(정본 index.html 203 주석 · 사용자 지시 2026-08-18).</summary>
+        private RectTransform toastsCombat;
         private readonly List<Popup> open = new List<Popup>();
 
         /// <summary>팝업이 열리거나 닫혀 «어느 popup 탭이 ✕ 여야 하는가» 가 바뀌었다(인자 = 탭 키 또는 null).</summary>
@@ -42,6 +44,8 @@ namespace Forge.Game.Ui
         /// <summary>탭바 위 층(`aboveTabBar` 팝업이 사는 곳) — 테스트가 층 순서를 본다(T78).</summary>
         public RectTransform OverLayer { get { return over; } }
         public IReadOnlyList<Popup> Open { get { return open; } }
+        /// <summary>전투 토스트 레인 상자(테스트가 층 순서·자식을 본다 · T138).</summary>
+        public RectTransform CombatLane { get { return toastsCombat; } }
 
         public static PopupLayer Create(UiRoot root)
         {
@@ -51,10 +55,13 @@ namespace Forge.Game.Ui
             under.SetSiblingIndex(root.TabBand.GetSiblingIndex());
             RectTransform over = UiKit.Box(app, "modals-over");
             RectTransform toasts = UiKit.Box(app, "toasts");
+            RectTransform toastsCombat = UiKit.Box(app, Forge.Core.Ui.LootFeedRules.CombatBoxName(LootFeed.Spec));
+            toastsCombat.SetSiblingIndex(under.GetSiblingIndex());   // 모달 바로 아래(정본 z 19 < .modal 20)
             PopupLayer layer = under.gameObject.AddComponent<PopupLayer>();
             layer.under = under;
             layer.over = over;
             layer.toasts = toasts;
+            layer.toastsCombat = toastsCombat;
             Instance = layer;
             return layer;
         }
@@ -152,14 +159,18 @@ namespace Forge.Game.Ui
             return p;
         }
 
-        // ---- 토스트 (원작 toast · 2.6초) ----
+        // ---- 토스트 (원작 toast(msg, lane) · 2.6초) ----
 
-        public void Toast(string msg)
+        /// <summary>정본 `UI.toast(msg, lane)` — `lane == "combat"` 이면 전투 레인(모달 아래 · 정본 `#toasts-combat`), 아니면 기본 레인(팝업 위). T138 이 레인 인자를 붙였다.</summary>
+        public void Toast(string msg, string lane = null)
         {
             float w = UiKit.L("toast_w") * UiKit.RefW;
             float h = UiKit.H("toast_h");
-            RectTransform t = UiKit.Box(toasts, "toast");
-            UiKit.Anchor(t, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, UiKit.H("toast_bottom") + toastStack * h * 1.2f), w, h);
+            bool combat = Forge.Core.Ui.LootFeedRules.IsCombatLane(LootFeed.Spec, lane) && toastsCombat != null;
+            RectTransform box = combat ? toastsCombat : toasts;
+            int stack = combat ? combatStack : toastStack;
+            RectTransform t = UiKit.Box(box, "toast");
+            UiKit.Anchor(t, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, UiKit.H("toast_bottom") + stack * h * 1.2f), w, h);
             UiKit.Rounded(t, "line", "toast_line", h * 0.5f);
             Image face = UiKit.Rounded(t, "bg", "toast_bg", h * 0.5f - PopupKit.Line);
             PopupKit.Inset(face.rectTransform, PopupKit.Line);
@@ -167,19 +178,21 @@ namespace Forge.Game.Ui
             // 표에 있는 이모지는 T31 아이콘으로, 나머지는 글자로 선다. 표가 아직 안 읽혔으면 조각 하나 = 옛 모양 그대로.
             RectTransform rowRt = UiKit.IconTextRow(t, "msg-row", TextKind.Sub, msg, "ink");
             foreach (TextMeshProUGUI piece in rowRt.GetComponentsInChildren<TextMeshProUGUI>(true)) piece.fontStyle = FontStyles.Bold;
-            toastStack++;
+            if (combat) combatStack++; else toastStack++;
             LastToast = msg;
-            StartCoroutine(ToastLife(t.gameObject));
+            LastToastLane = combat ? lane : null;
+            StartCoroutine(ToastLife(t.gameObject, combat));
         }
 
-        /// <summary>마지막 토스트 문구(테스트가 본다).</summary>
+        /// <summary>마지막 토스트 문구 · 그 레인(기본이면 null)(테스트가 본다).</summary>
         public string LastToast { get; private set; }
-        private int toastStack;
+        public string LastToastLane { get; private set; }
+        private int toastStack, combatStack;
 
-        private IEnumerator ToastLife(GameObject go)
+        private IEnumerator ToastLife(GameObject go, bool combat)
         {
             yield return new WaitForSecondsRealtime(2.6f);
-            toastStack = Mathf.Max(0, toastStack - 1);
+            if (combat) combatStack = Mathf.Max(0, combatStack - 1); else toastStack = Mathf.Max(0, toastStack - 1);
             if (go != null) Destroy(go);
         }
     }

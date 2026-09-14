@@ -1,0 +1,33 @@
+{
+  "_": "ROUTINE T138 전투 전리품 레인(원작 index.html 92 #loot-feed · ui.js 1371 floatLoot · css 488~496 #loot-feed/#loot-feed div/@keyframes lootpop) + 전투 토스트 레인(index.html 203 #toasts-combat · ui.js 1435 toast(msg, lane) · css 1923~1932)의 수치·색·문구표. catalog.json 은 T87 lock 이라 T138 몫만 여기 둔다(T117·T134 와 같은 꼴). 키 접미: _rem = 정본 rem · _ms = 벽시계 · _n = 개수 · _f = 비율. 코드에 숫자를 박지 않는다(§1).",
+  "colors": {
+    "line_bg": "#00000073",
+    "text": "#eceff1"
+  },
+  "layout": {
+    "keep_max_n": 6,
+    "life_ms": 1600,
+    "right_rem": 0.6,
+    "bottom_rem": 3.4,
+    "gap_rem": 0.2,
+    "font_rem": 0.78,
+    "pad_y_rem": 0.12,
+    "pad_x_rem": 0.5,
+    "radius_rem": 1.0,
+    "lane_w_f": 0.6,
+    "toast_hide_ms": 300
+  },
+  "lootpop": [
+    { "at": 0, "opacity": 0, "ty_rem": 0.5, "ease": "ease" },
+    { "at": 12, "opacity": 1, "ty_rem": 0, "ease": "ease" },
+    { "at": 80, "opacity": 1, "ty_rem": 0, "ease": "ease" },
+    { "at": 100, "opacity": 0, "ty_rem": 0 }
+  ],
+  "text": {
+    "layer": "loot-feed",
+    "line": "loot-line",
+    "combat_lane": "combat",
+    "combat_box": "toasts-combat",
+    "font_note": "정본 .78rem 은 ROUTINE §1 보조 하한(36px)보다 작다 — T136 이 작은 종류를 더할 때까지 종류(Sub) 크기로 선다(결정 참조)"
+  }
+}
