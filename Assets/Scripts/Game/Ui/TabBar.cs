@@ -8,8 +8,10 @@ namespace Forge.Game.Ui
 {
     /// <summary>
     /// 하단 탭바(ROUTINE T18 · 원작 index.html #tabbar + ui.js onTabClick/switchTab/refreshTabX).
-    /// 탭 순서·라벨·아이콘·종류는 카탈로그 <c>tabs</c> 가 쥔다: PVP · 던전 · 소환 · 퀘스트 · 상점(디버그는 배포 탭바에서 숨긴다 — 원작 main.js).
-    /// «sheet» 탭(소환)은 흰 전체화면 시트를 토글하고, «popup» 탭(PVP·던전·퀘스트·상점)은 <see cref="OpenRequested"/> 로 뒤 작업(T21·T22)에 넘긴다.
+    /// 탭 순서·라벨·아이콘·종류는 카탈로그 <c>tabs</c> 가 쥔다: PVP · 던전 · 소환 · 퀘스트 · 상점 · **디버그**(정본 `index.html` 160~165 의 여섯 칸 그대로).
+    /// ⚠ 종전 주석은 «디버그는 배포 탭바에서 숨긴다 — 원작 main.js» 였는데 **정본은 그 반대**를 적어 두었다(main.js 127~131 🚨:
+    ///   «디버그 탭은 기본 노출이다 … 되돌리지 말 것 — 다시 숨기려면 사용자 지시가 한 번 더 있어야 한다»). 결정 52 → 497·T169 로 되돌렸다.
+    /// «sheet» 탭(소환)은 흰 전체화면 시트를 토글하고, «popup» 탭(PVP·던전·퀘스트·상점·디버그)은 <see cref="OpenRequested"/> 로 뒤 작업(T21·T22)에 넘긴다.
     /// 열린 표면이 있는 탭은 빨간 ✕ 원이 된다(누르면 닫는다).
     /// </summary>
     public sealed class TabBar : MonoBehaviour
@@ -27,7 +29,7 @@ namespace Forge.Game.Ui
         private readonly Dictionary<string, Tab> tabs = new Dictionary<string, Tab>();
         private readonly Dictionary<string, RectTransform> panels = new Dictionary<string, RectTransform>();
 
-        /// <summary>popup 탭을 눌렀다 — 인자는 탭 키(pvp · dungeon · quest · shop). 뒤 작업이 팝업을 연다.</summary>
+        /// <summary>popup 탭을 눌렀다 — 인자는 탭 키(pvp · dungeon · quest · shop · debug). 뒤 작업이 팝업을 연다.</summary>
         public event Action<string> OpenRequested;
         /// <summary>시트 탭이 바뀌었다(null = 홈으로).</summary>
         public event Action<string> Switched;

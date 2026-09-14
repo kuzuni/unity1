@@ -310,6 +310,9 @@ namespace Forge.Game.Ui
                 if (key == "shop") OpenShop();
                 else if (key == "quest") OpenQuests();
                 else if (key == "pvp") OpenLeague();
+                // T169 — 정본 하단 네비 여섯째 칸(`index.html` 165 `data-tab="debug"`). 정본 `main.js` 127~131 이 🚨 로
+                //   «기본 노출이다 · 되돌리지 말 것 — 다시 숨기려면 사용자 지시가 한 번 더 있어야 한다» 고 못 박은 자리다.
+                else if (key == "debug") OpenDebug();
             }
 
             /// <summary>탭이 바뀌면(홈 포함) 열린 팝업을 전부 접는다(원작 closeAllTabSurfaces · closeOpened).</summary>

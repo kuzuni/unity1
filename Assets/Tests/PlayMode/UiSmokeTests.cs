@@ -11,7 +11,7 @@ using Forge.Game.Ui;
 
 namespace Forge.Tests.PlayMode
 {
-    /// <summary>T18 — 부팅 씬을 열면 UI 껍데기(앱 상자 9:16 · HUD · 장비 시트 자리 · 채팅 줄 · 탭 5개)가 서고 콘솔 빨강이 0 인가. 빨간 로그는 러너가 실패시킨다.</summary>
+    /// <summary>T18 — 부팅 씬을 열면 UI 껍데기(앱 상자 9:16 · HUD · 장비 시트 자리 · 채팅 줄 · 탭 6개)가 서고 콘솔 빨강이 0 인가. 빨간 로그는 러너가 실패시킨다.</summary>
     public class UiSmokeTests
     {
         // 앞서 돈 다른 PlayMode 테스트(예: ShopUiTests 의 닉네임 변경)가 persistentDataPath 에 남긴 세이브를 SaveIo 가 부팅 때 읽으면
@@ -88,7 +88,7 @@ namespace Forge.Tests.PlayMode
 
             TabBar tb = root.TabBar;
             Assert.IsNotNull(tb);
-            CollectionAssert.AreEqual(new[] { "pvp", "dungeon", "summon", "quest", "shop" }, tb.Keys, "원작 탭 순서(주인 지시 2026-08-18)");
+            CollectionAssert.AreEqual(new[] { "pvp", "dungeon", "summon", "quest", "shop", "debug" }, tb.Keys, "원작 탭 순서·여섯 칸(정본 index.html 160~165 · 여섯째 디버그는 main.js 127 이 «기본 노출 · 되돌리지 말 것» 으로 못 박았다 — T169)");
             Assert.AreEqual("PVP", tb.Label("pvp"));
             Assert.AreEqual("던전", tb.Label("dungeon"));
             Assert.AreEqual("소환", tb.Label("summon"));

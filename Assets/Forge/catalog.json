@@ -819,7 +819,8 @@
     { "key": "dungeon", "label": "던전", "icon": "tab_dungeon", "kind": "popup" },
     { "key": "summon", "label": "소환", "icon": "tab_summon", "kind": "sheet" },
     { "key": "quest", "label": "퀘스트", "icon": "tab_quest", "kind": "popup" },
-    { "key": "shop", "label": "상점", "icon": "tab_shop", "kind": "popup" }
+    { "key": "shop", "label": "상점", "icon": "tab_shop", "kind": "popup" },
+    { "key": "debug", "label": "디버그", "icon": "tab_debug", "kind": "popup" }
   ],
   "boot": {"nickname": "용사", "stage": "쉬움 1-1", "waves": 5, "_": "부팅 첫 프레임 표시값 = 원작 state.js defaultState()·stageName(1,1,0)·Combat.totalWaves()(메인 5). 실제 상태는 T7·T13 이 Hud.Set* 로 덮는다."}
 }
