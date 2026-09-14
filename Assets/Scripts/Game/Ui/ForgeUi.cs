@@ -239,17 +239,28 @@ namespace Forge.Game.Ui
             return card;
         }
 
-        /// <summary>깃발 리본(원작 `.cmp-ribbon` — 카드 좌단 밖으로 걸친 «장착됨»).</summary>
+        /// <summary>
+        /// 깃발 리본(원작 `.cmp-ribbon` — 카드 좌단 밖으로 걸친 «장착됨»).
+        /// T156 2회차 — 둥근 사각(`PopupKit.Outlined`)을 걷고 **정본 깃발**로: 오른쪽 «&lt;» 오목 노치 + 아랫변 없는 테두리
+        /// (모양·수치는 <see cref="RibbonArt"/> 와 `Resources/RibbonUi.json` 이 쥔다).
+        /// 글자는 **가운데 정렬**이고 치우침은 비대칭 패딩(.5rem ↔ 1.5rem)이 만든다 — 정본 주석이 못 박은 자리다(결정 339).
+        /// </summary>
         public static RectTransform Ribbon(RectTransform card, string text, bool red)
         {
             float rem = PopupKit.Rem;
-            float w = UiKit.RefW * 0.203f, h = PopupKit.FontSize(TextKind.Sub) * 1.4f;
+            float pl, pr, pt, pb;
+            RibbonArt.Padding(rem, out pl, out pr, out pt, out pb);
+            float fs = PopupKit.FontSize(TextKind.Sub);
+            float w = RibbonArt.Width(UiKit.RefW), h = fs + pt + pb;
             RectTransform rt = UiKit.Box(card, "ribbon");
             rt.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
             UiKit.Place(rt, -rem * 1.2f, -h * 0.8f, w, h);
-            PopupKit.Outlined(rt, "face", "pp_paper", rem * 0.2f, PopupKit.Line);
+            RibbonArt.Build(rt, "flag", w, h, rem);
             TextMeshProUGUI t = UiKit.Text(rt, "label", TextKind.Sub, text, red ? "pp_red" : "pp_ink");
             t.fontStyle = FontStyles.Bold;
+            t.alignment = TextAlignmentOptions.Center;
+            // 정본 `padding: .15rem 1.5rem .15rem .5rem` — 오른쪽이 «&lt;» 파임 몫만큼 넓어 글자가 왼쪽으로 치우쳐 보인다.
+            UiKit.Place(t.rectTransform, pl, pt, w - pl - pr, fs);
             return rt;
         }
 

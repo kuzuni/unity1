@@ -81,5 +81,57 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsNull(F.Meta.Popups.Find(ForgeCraftPopup.Name), "닫힌다");
         }
+
+        /// <summary>
+        /// T156 2회차 — «장착됨» 리본이 **깃발**로 서는가(정본 `style.css` 1801 `.cmp-ribbon`).
+        /// 모양·꼭짓점은 `RibbonArtTests` 가 표로 보고, 여기는 **실제 팝업에 그 깃발이 걸렸는가**를 본다:
+        /// 옛 둥근 사각(`face` 한 장)이 아니라 `flag`(테두리 + 종이 두 겹)이고, 폭이 앱 폭의 20.3% 이며,
+        /// 글자는 가운데 정렬인데 **상자가 비대칭 패딩만큼 왼쪽으로 좁혀져** 있어 치우쳐 보인다(결정 339).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator T156_장착됨_리본이_오른쪽이_파인_깃발로_걸린다()
+        {
+            yield return Boot();
+            ForgeHost F = ForgeHost.Instance;
+            UiRoot root = UiRoot.Instance;
+            ForgeItem it = F.Engine.RollItem();
+            it.Subs = SubstatRoll.Roll(F.Defs, CoreRng.Mulberry(43224), 2);
+            ForgeCraftPopup.Show(F, it);
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return SettleCardPop();
+
+            Popup p = F.Meta.Popups.Find(ForgeCraftPopup.Name);
+            Assert.IsNotNull(p, "비교 팝업이 열렸다");
+            RectTransform ribbon = null;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == "ribbon") { ribbon = rt; break; }
+            Assert.IsNotNull(ribbon, "장착됨 리본");
+
+            RectTransform flag = (RectTransform)ribbon.Find("flag");
+            Assert.IsNotNull(flag, "깃발(옛 둥근 사각 한 장이면 이 칸이 없다)");
+            Assert.IsNotNull(flag.Find("line"), "테두리 면");
+            Assert.IsNotNull(flag.Find("face"), "종이 면");
+
+            Vector3[] a = new Vector3[4], r = new Vector3[4];
+            root.App.GetWorldCorners(a); ribbon.GetWorldCorners(r);
+            float appW = a[2].x - a[0].x;
+            Assert.AreEqual(0.203f, (r[2].x - r[0].x) / appW, 0.005f, "리본 폭 = 앱 폭의 20.3%(정본 `calc(var(--app-w) * .203)`)");
+
+            TMPro.TextMeshProUGUI label = ribbon.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+            Assert.IsNotNull(label, "리본 글자");
+            Assert.AreEqual(TMPro.TextAlignmentOptions.Center, label.alignment, "정본 `text-align: center` — 치우침은 정렬이 아니라 패딩이 만든다(결정 339)");
+            float rem = PopupKit.Rem, pl, pr, pt, pb;
+            RibbonArt.Padding(rem, out pl, out pr, out pt, out pb);
+            Vector3[] l = new Vector3[4];
+            label.rectTransform.GetWorldCorners(l);
+            float leftGap = l[0].x - r[0].x, rightGap = r[2].x - l[2].x;
+            Assert.AreEqual(pl, leftGap, 1.5f, "왼쪽 패딩 .5rem");
+            Assert.AreEqual(pr, rightGap, 1.5f, "오른쪽 패딩 1.5rem — «<» 파임 몫이라 왼쪽보다 넓다");
+            Assert.Greater(rightGap, leftGap, "글자 상자가 오른쪽으로 더 좁아 글자가 왼쪽으로 치우쳐 보인다(원작 그대로)");
+
+            ForgeCraftPopup.Hide(F);
+            yield return null;
+        }
     }
 }
