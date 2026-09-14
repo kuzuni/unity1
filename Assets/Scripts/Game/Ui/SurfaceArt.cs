@@ -137,5 +137,15 @@ namespace Forge.Game.Ui
             img.color = Color.white;
             return img;
         }
+
+        /// <summary>
+        /// 둥근 면(`UiKit.Rounded`·`PopupKit.Outlined` 의 face) 위에 겹을 얹는다 — 면에 <see cref="Mask"/> 를 걸어 겹이 모서리 밖으로 안 새게(정본은 `border-radius` 가 background 를 같이 자른다).
+        /// 면 그림은 그대로 보인다(`showMaskGraphic`) — 겹이 반투명한 자리에서 면 색이 비친다. T178 3회차.
+        /// </summary>
+        public static Image FillMasked(Image face, string name, string key, float w, float h)
+        {
+            if (face.GetComponent<Mask>() == null) face.gameObject.AddComponent<Mask>().showMaskGraphic = true;
+            return Fill(face.rectTransform, name, key, w, h);
+        }
     }
 }

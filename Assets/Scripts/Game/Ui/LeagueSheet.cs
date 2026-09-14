@@ -214,7 +214,8 @@ namespace Forge.Game.Ui
             RectTransform collect = UiKit.Box(card, "collect");
             float collectW = inner * 0.55f;
             UiKit.Place(collect, (cardW - collectW) * 0.5f, y, collectW, collectH);
-            PopupKit.Outlined(collect, "face", "lgr_collect", rem * 0.5f, PopupKit.Line3);
+            Image collectFace = PopupKit.Outlined(collect, "face", "lgr_collect", rem * 0.5f, PopupKit.Line3);
+            SurfaceArt.FillMasked(collectFace, "collect-grad", "lgr_collect_pill", collectW, collectH);   // 정본 .league-collect-pill linear-gradient(180deg, #e3e3e3, #c2c2c2) · T178 3회차
             TextMeshProUGUI c1 = UiKit.Text(collect, "label", TextKind.Sub, "수집까지:", "pp_ink");
             c1.fontStyle = FontStyles.Bold;
             UiKit.Place(c1.rectTransform, 0f, rem * 0.2f, collectW, collectH * 0.45f);

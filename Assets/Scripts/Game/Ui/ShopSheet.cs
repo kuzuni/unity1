@@ -178,7 +178,8 @@ namespace Forge.Game.Ui
             UiKit.Panel(tailR, "bg", "shop_banner_dk");
             RectTransform band = UiKit.Box(row, "band");
             UiKit.Place(band, bx, 0f, bw, bh);
-            PopupKit.Outlined(band, "face", "shop_banner", PopupKit.Rem * 0.3f, PopupKit.Line3);
+            Image face = PopupKit.Outlined(band, "face", "shop_banner", PopupKit.Rem * 0.3f, PopupKit.Line3);
+            SurfaceArt.FillMasked(face, "shop-banner-grad", "shop_banner", bw, bh);   // 정본 .shop-banner linear-gradient(180deg, #ffb300, #e89400) · T178 3회차
             TextMeshProUGUI t = UiKit.Text(band, "label", TextKind.Body, text, "pp_ink");
             t.fontStyle = FontStyles.Bold;
         }

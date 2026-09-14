@@ -94,5 +94,70 @@ namespace Forge.Tests.PlayMode
             finally { Object.Destroy(host.gameObject); }
             yield return null;
         }
+
+        // ── T178 3회차 — 둥근 면 위의 겹 셋(상점 배너 · 리그 수집 알약 · 플레이어 정보 미리보기) ──────────────
+
+        [UnityTest]
+        public IEnumerator 세_자리_표가_정본_각도와_정지점을_그대로_쥔다()
+        {
+            yield return Boot();
+            Assert.AreEqual(180f, SurfaceArt.Angle("shop_banner"), 1e-4f, "정본 2899 `.shop-banner` 180deg");
+            Assert.AreEqual(180f, SurfaceArt.Angle("lgr_collect_pill"), 1e-4f, "정본 2522 `.league-collect-pill` 180deg");
+            Assert.AreEqual(180f, SurfaceArt.Angle("pinfo_preview"), 1e-4f, "정본 3179 `.pinfo-preview` 180deg");
+
+            Color[] col; float[] off;
+            SurfaceArt.Stops("shop_banner", out col, out off);
+            Assert.AreEqual(2, col.Length);
+            Assert.AreEqual(255f / 255f, col[0].r, 1e-3f, "#ffb300 r"); Assert.AreEqual(179f / 255f, col[0].g, 1e-3f, "#ffb300 g");
+            Assert.AreEqual(232f / 255f, col[1].r, 1e-3f, "#e89400 r"); Assert.AreEqual(148f / 255f, col[1].g, 1e-3f, "#e89400 g");
+            SurfaceArt.Stops("lgr_collect_pill", out col, out off);
+            Assert.AreEqual(227f / 255f, col[0].r, 1e-3f, "#e3e3e3"); Assert.AreEqual(194f / 255f, col[1].r, 1e-3f, "#c2c2c2");
+            // 정지점 둘이 같은 55% — CSS 처럼 55% 앞은 첫 색 그대로 · 뒤는 끝 색 그대로(날카로운 경계)
+            SurfaceArt.Stops("pinfo_preview", out col, out off);
+            Assert.AreEqual(0.55f, off[0], 1e-4f); Assert.AreEqual(0.55f, off[1], 1e-4f);
+            Assert.AreEqual(157f / 255f, SurfaceArt.Sample(col, off, 0.5f).r, 1e-3f, "55% 앞은 #9d8256");
+            Assert.AreEqual(111f / 255f, SurfaceArt.Sample(col, off, 0.6f).r, 1e-3f, "55% 뒤는 #6f5334");
+
+            // 180deg 는 위→아래: 구운 그림의 맨 윗줄이 시작 색, 맨 아랫줄이 끝 색(텍스처는 아래가 0행)
+            Sprite sp = SurfaceArt.Bake("shop_banner", 4f);
+            Texture2D t = sp.texture;
+            Color topPx = t.GetPixel(t.width / 2, t.height - 1), botPx = t.GetPixel(t.width / 2, 0);
+            Assert.AreEqual(179f / 255f, topPx.g, 0.02f, "맨 위는 #ffb300");
+            Assert.AreEqual(148f / 255f, botPx.g, 0.02f, "맨 아래는 #e89400");
+            Sprite pv = SurfaceArt.Bake("pinfo_preview", 3f);
+            Texture2D pt = pv.texture;
+            Assert.AreEqual(157f / 255f, pt.GetPixel(pt.width / 2, pt.height - 1).r, 0.02f, "미리보기 위 톤");
+            Assert.AreEqual(111f / 255f, pt.GetPixel(pt.width / 2, 0).r, 0.02f, "미리보기 아래 톤");
+        }
+
+        static Transform FindDeep(Transform root, string name)
+        {
+            if (root.name == name) return root;
+            for (int i = 0; i < root.childCount; i++) { Transform r = FindDeep(root.GetChild(i), name); if (r != null) return r; }
+            return null;
+        }
+
+        [UnityTest]
+        public IEnumerator 상점_배너는_둥근_면_위에_마스크로_겹을_얹는다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!(MetaHost.Ready && PopupLayer.Instance != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
+            UiRoot.Instance.TabBar.OnTab("shop");
+            yield return null;
+            yield return null;
+            Transform grad = FindDeep(UiRoot.Instance.App, "shop-banner-grad");
+            Assert.IsNotNull(grad, "상점 배너의 겹(shop-banner-grad)이 섰다");
+            UnityEngine.UI.Image img = grad.GetComponent<UnityEngine.UI.Image>();
+            Assert.IsNotNull(img.sprite, "겹은 구운 그림이다(색 한 칸이 아니다)");
+            Assert.IsFalse(img.raycastTarget, "겹은 클릭을 안 먹는다");
+            Assert.AreEqual("face", grad.parent.name, "겹은 둥근 면(face)의 자식이다");
+            UnityEngine.UI.Mask mask = grad.parent.GetComponent<UnityEngine.UI.Mask>();
+            Assert.IsNotNull(mask, "면에 Mask 가 걸려 겹이 모서리 밖으로 안 샌다(정본 border-radius 가 background 를 자르는 결)");
+            Assert.IsTrue(mask.showMaskGraphic, "면 그림은 그대로 보인다");
+            Assert.AreEqual(Vector2.zero, img.rectTransform.offsetMin, "면을 꽉 채운다");
+            Assert.AreEqual(Vector2.zero, img.rectTransform.offsetMax);
+        }
     }
 }

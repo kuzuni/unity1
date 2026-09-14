@@ -235,13 +235,11 @@ namespace Forge.Game.Ui
             UiKit.Rounded(preview, "line", "pp_line", radius);
             RectTransform faceRt = UiKit.Box(preview, "face");
             PopupKit.Inset(faceRt, PopupKit.Line);
-            float split = PlayerInfoStyle.L("preview_split_f");
-            Image top = UiKit.Rounded(faceRt, "top", "pp_paper", Mathf.Max(1f, radius - PopupKit.Line));
-            top.color = PlayerInfoStyle.C("preview_top");
-            UiKit.Band(top.rectTransform, 0f, split);
-            Image bottom = UiKit.Rounded(faceRt, "bottom", "pp_paper", Mathf.Max(1f, radius - PopupKit.Line));
-            bottom.color = PlayerInfoStyle.C("preview_bottom");
-            UiKit.Band(bottom.rectTransform, split, 1f);
+            // 정본 `.pinfo-preview { background: linear-gradient(180deg, #9d8256 55%, #6f5334 55%) }` — 두 판이 아니라 겹 한 장(정지점 둘이 같은 55% 라 경계가 날카롭다 · SurfaceUi.json `pinfo_preview` · T178 3회차).
+            Image ground = UiKit.Rounded(faceRt, "ground", "pp_paper", Mathf.Max(1f, radius - PopupKit.Line));
+            UiKit.Fill(ground.rectTransform);
+            ground.color = PlayerInfoStyle.C("preview_top");
+            SurfaceArt.FillMasked(ground, "preview-grad", "pinfo_preview", w, hgt);
             float px = PlayerInfoStyle.Px("preview_pad_x_rem"), gap = PlayerInfoStyle.Px("preview_gap_rem");
             float lh = PopupKit.FontSize(TextKind.Sub) * 1.3f;
             float cy = (hgt - lh) * 0.5f;

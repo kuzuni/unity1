@@ -53,6 +53,10 @@ TABLE = {
     # T178 2회차 — 던전 배너의 비스듬한 바탕과 «왼쪽 제목 자리 스크림» 은 공용 굽기 SurfaceArt 가 표(SurfaceUi.json)대로 굽는다.
     '.dg-banner': ['Ui/DungeonSheet.cs#bg-grad'],
     '.dg-banner::before': ['Ui/DungeonSheet.cs#scrim'],
+    # T178 3회차 — 둥근 면 위는 SurfaceArt.FillMasked(면에 Mask) 로 얹는다(모서리 밖으로 안 샌다).
+    '.shop-banner': ['Ui/ShopSheet.cs#shop-banner-grad'],
+    '.league-collect-pill': ['Ui/LeagueSheet.cs#collect-grad'],
+    '.pinfo-preview': ['Ui/PlayerInfoPopup.cs#preview-grad'],
 }
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ────────────────────────────────
