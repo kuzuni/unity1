@@ -107,6 +107,18 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T128 — 이번 촬영이 세운 장비 8부위의 «시대/등급/레벨» 서명. 런마다 같아야 대조가 성립한다.</summary>
+        private static string GearSignature;
+
+        /// <summary>
+        /// T128 — 위 서명의 기대값. 촬영 난수를 고정한 뒤 **런 260·271 두 런이 글자 하나까지 같았다**(그 전에는 매 런 달랐다).
+        /// 이 단언이 빨개지는 경우는 둘뿐이다: ⓐ 촬영 난수가 다시 흔들린다(고쳐야 한다) ⓑ 정본 표(balance·gamedata)가 바뀌어
+        /// 굴림 결과가 바뀐다 — 그때는 **원작 샷과의 대조 기준이 함께 바뀐 것**이라 새 서명을 여기 적고 그 회차 기록에 이유를 남긴다.
+        /// </summary>
+        private const string GearSignatureExpected =
+            "weapon=underworld/mythic/28 helmet=multiverse/legendary/26 armor=interstellar/common/25 gloves=multiverse/common/26 "
+            + "necklace=underworld/rare/28 ring=multiverse/common/26 shoes=multiverse/legendary/26 belt=quantum/rare/27";
+
         /// <summary>원작 `shot-screens.js` 의 `SEED` — 빈 화면·잠금으로 레이아웃이 안 보이는 것을 막는 캡처용 진행 상태. 수치는 정본 그대로다(밸런스를 만들지 않는다).</summary>
         private static void Seed()
         {
@@ -154,7 +166,8 @@ namespace Forge.Tests.PlayMode
                          .Append('/').Append(it.Level.ToString("0")).Append(' ');
             }
             // 이 줄이 런마다 같아야 «상태가 같은 두 런» 이다 — 다르면 촬영 상태가 또 흔들린 것이다(T128).
-            Trace("seed 장비 · " + gearTrace.ToString().TrimEnd());
+            GearSignature = gearTrace.ToString().TrimEnd();
+            Trace("seed 장비 · " + GearSignature);
             F.Forge.UpgradeEndsAt = SaveIo.NowMs() + 96 * 60e3;   // 확률 정보 팝업 하단 진행바
             F.Push();
 
@@ -815,6 +828,9 @@ namespace Forge.Tests.PlayMode
             {
                 Seed();
                 Trace("seed ok");
+                // T128 — 촬영 상태가 런마다 같은지를 **자가 묻는다**(자취 한 줄은 사람이 봐야 하지만 이 단언은 CI 가 본다).
+                Assert.AreEqual(GearSignatureExpected, GearSignature,
+                    "촬영 장비 상태가 기준과 다르다 — 난수가 다시 흔들렸거나 정본 표가 바뀌었다(T128 · 기록을 보고 서명을 갱신하라)");
                 shots = Screens();
                 Trace("목록 " + shots.Count + "줄");
             }
