@@ -1135,7 +1135,7 @@
 - 판정: `screen_main.png` 5배 확대에서 라벨이 오브 안에 들어오고(폭 ≤ 지름) · `TextSizeGateTests` 가 새 종류를 알고 초록 · `ui_score` 의 `main` 점수가 안 내린다.
 - 범위: `Assets/Forge/catalog.json`(`textKinds` · **T87 lock 뒤**) · `Assets/Scripts/Game/Ui/UiKit.cs`·`PetSkillKit.cs`(그 종류를 쓰는 자리) · `Assets/Tests/PlayMode/TextSizeGateTests.cs` · `docs/ROUTINE.md`(§1 하한 줄).
 
-### T137 — 두부 막이가 `Assets/Scripts/Core` 를 **통째로 안 본다**: 거기 진짜 두부 둘이 초록으로 지나간다 (검증 · T89·T100·T107 뒤 · T33 6회차가 캤다)
+### T137 ✅ — 두부 막이가 `Assets/Scripts/Core` 를 **통째로 안 본다**: 거기 진짜 두부 둘이 초록으로 지나간다 (검증 · T89·T100·T107 뒤 · T33 6회차가 캤다)
 - 실측(2026-09-14 · 워커 F): `check_text_glyphs.SCAN_DIR` 은 `Assets/Scripts/Game` 하나다. `Assets/Scripts/Core` 를 같은 자로 훑으면 리터럴 **2,388줄**이 나오고, 그 안에 **글꼴에도 아이콘 표에도 없는 글자 둘**이 있다 — `Core/Dungeons/Dungeons.cs:237` 의 «🚪 진행 중이던 던전에서 나와 본대로 복귀했습니다» 와 `Core/Battle/Battle.cs:578` 의 «🔥 난이도 상승! …». 둘 다 **토스트로 화면에 나가는 문구**인데 자는 지금 rc 0 이다.
 - 같은 구멍의 둘째 겹: 아이콘 표 글자도 Core 에 **14종 22자리**가 있다(`Dungeons.cs`·`DungeonDef.cs` 의 🔨·🪙·🥚·⚔·🗝·👻·🧟…). T107 이 세운 «그 자리가 아이콘 길을 거치는가»(`label_risk`) 판정이 그 22자리에는 **한 번도 안 걸렸다**.
 - 왜 이 경계가 그어졌나: T89 가 «화면 문구는 `Game/Ui` 에 있다» 는 전제로 시작했다. 그런데 이 레포의 규약은 **수치와 문구를 Core 로 내리는 것**이라(`Core` 는 UnityEngine 참조 0), 전투·던전의 토스트 문구가 Core 에서 만들어져 `Emit`·`Toast` 로 흘러 나간다. 전제가 규약과 어긋난 자리다.
@@ -1143,6 +1143,7 @@
 - 판정: **고장 주입**(Core 에 글꼴 없는 글리프 한 자 → rc 1) · 넓힌 뒤 rc 0(둘은 KNOWN) · 자기 검사에 «Core 도 훑는다» 칸.
 - 범위: `tools/check_text_glyphs.py` · `Assets/Tests/PlayMode/TextSizeGateTests.cs`(같은 구멍인지 확인).
 - 🔄 2026-09-14 01:4x 워커 O(sess-2140-18689) 1회차: 마른 실행 실측 — Core 리터럴 2,388줄 · 두부 둘(🚪 `Dungeons.cs:237` ↔ 정본 `dungeons.js` 156 도 글자 · 🔥 `Battle.cs:578` ↔ 정본 `combat.js` 499 도 글자 → KNOWN · T106) · `label_risk` 13자리(`DungeonDef.Icon` 넷은 **아이콘 키**(데이터의 `ICON_KEY` 규칙과 같은 자리) · `RewardText` 다섯 · 전투 `Emit(Loot/Toast, tag:)` 넷은 소비처가 `DamageNumbers`(글자) 또는 **없음** = T138 몫) · 그릇 하나(`Dungeons.Toast` → `Emit(DungeonEventKind.Toast)` → `DungeonSheet.cs:86` `DungeonPopups.Toast` — 이벤트로 한 겹 미룬 전달자). 자에 ⓐ `SCAN_DIRS` 목록(Game·Core) ⓑ C# 아이콘 키 대입(`Icon = "…"`) 은 데이터 규칙대로 뺌 ⓒ 그릇 갈래 ⓓ «이벤트로 넘기고 Game 이 그릇으로 받는다» 를 코드로 확인 ⓔ 자기 검사(고장 주입 포함) · `TextSizeGateTests.KnownTofu` 도 같은 둘.
+- ✅ 결론(2026-09-14 · 런 287 · 워커 O): 자가 `SCAN_DIRS = [Game, Core]` 를 돈다(코드 7,822줄) · C# 아이콘 키 대입은 데이터 규칙대로 제외 · Core 그릇은 «이벤트로 넘기고 Game 이 그릇으로 받는가»(ⓓ · `event_received`)까지 확인 · 두부 둘(🚪·🔥)은 정본도 글자라 KNOWN(T106) · Core 라벨 9자리는 소비처를 따라가 LABEL_KNOWN(RewardText 호출 0 · 전투 넷 T138) · 자기 검사 +3(고장 주입 셋) · `TextSizeGateTests.KnownTofu` 같은 둘 · 런 287 전체 초록. 기록은 PROGRESS «T137 1회차 기록».
 
 ### T138 — 전투 화면 **전리품 줄(`#loot-feed`)과 전투 토스트 레인(`#toasts-combat`)이 자취 0** (Game·UI · T27·T22 뒤 · T33 6회차 등재)
 - 정본 ⓐ: `ui.js` 1371 `floatLoot(text)` — 화면 한쪽 레인에 줄을 쌓고 **여섯 줄이 넘으면 맨 위를 버리며**, 각 줄은 `paintIconText` 로 아이콘+글자, 1.6초 뒤 사라진다. 부르는 곳은 `combat.js` 450(코인)·454(보스 해머).
@@ -1322,5 +1323,5 @@ node tools/export_data.js --self-test                                         # 
 | (주인 지시) 백그라운드 재생 · 복귀 따라잡기 | runInBackground · OnApplicationPause 절대시각 | T88 | ✅ |
 | (주인 지시 · 원작 밖 품질 조건) SafeArea · 60fps · 실제 화면 촬영 | 모바일 상단 카메라 회피 · 프레임 예산 · 게임 화면 PNG 를 눈으로 | T45 · T44 · T27 · T50 · T64 · T73 · T74 | T45 ✅ · T44 ✅ · T27 ✅(촬영 자리 · 노치 모의는 `UiRoot.NotchSafeArea`) · T50 ✅(프레임당 관리 힙 풀링) · T64 ✅(렌더 몫은 없었다 — AudioBank 베이크 스레드 · 편집기 재질 후처리 · URP 변경 없음) · T73 ✅(AudioBank 베이크 배열 되쓰기) · T74 ✅(FxCubes 시전당 재질 되쓰기) |
 | WebGL 배포 · Android | 배포 | T26 · T86(부팅 GameData 인자) | ✅ (굽기 잡 조건 T32 ✅) · T86 ✅(런 223 스모크 초록 · gh-pages 배포) |
-| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 · T123(유니티 잡을 건너뛴 문서 런이 빨강을 덮는다) · T125(그 자의 임자 판별) · T126(빌드에 안 실리는 셰이더) · T127 · T137(Core 를 안 보던 두부 막이) | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 ✅ · T123 ✅ · T125 ✅ · T126 🔄 · T127 ✅ · T137 🔄 |
+| (원작 밖 · 도구·게이트·CI) 병렬 운영을 지키는 자들 — 원작 모듈에 안 붙지만 **여기 적는다**(안 적으면 T33 이 그 위를 지나간다 · T69) | lock·번호·문서·카탈로그·CI·진단 자 | T29 · T36 · T41 · T42 · T46 · T47 · T48 · T49 · T51 · T67 · T69 · T70 · T71 · T72 · T81 · T82 · T84 · T92 · T96 · T107 · T112 · T123(유니티 잡을 건너뛴 문서 런이 빨강을 덮는다) · T125(그 자의 임자 판별) · T126(빌드에 안 실리는 셰이더) · T127 · T137(Core 를 안 보던 두부 막이) | T29 ✅ · T36 ⛔ · T41 ✅ · T42 ✅ · T46 ✅ · T47 ✅ · T48 ✅ · T49 ✅ · T51 ✅ · T67 ✅ · T69 ✅ · T70 ✅ · T71 ✅ · T72 ⛔ · T80 ✅ · T81 ✅ · T82 ✅ · T84 ✅ · T92 ✅ · T96 ✅ · T107 ✅ · T112 ✅ · T123 ✅ · T125 ✅ · T126 🔄 · T127 ✅ · T137 ✅ |
 | `lib/three.min.js` · `anvil-*.png`(참고 이미지 · 게임이 안 읽음) · `web/TODO.md` 미완 7항목 | 옮기지 않음 | — | 해당 없음 |
