@@ -64,9 +64,15 @@ namespace Forge.Tests.PlayMode
             MetaHost h = MetaHost.Instance;
             OfflinePopup.Show(h, new OfflineReward { Elapsed = 5000, Counted = 3600, Coins = 8870, Hammers = 149.05, CoinRate = 1.13, HammerRate = 1.14 });
             yield return null;
+            // T155 빨강 수리(런 375 · 워커 H): 카드 팝(T135 ⓑ · 정본 `.modal.opening .modal-card { animation: cardpop .25s }` · scale .7 → 1)이
+            // 도는 중에 재면 카드와 그 아래 상자가 통째로 중간 배율이라 «파란 면 7.49%H» 가 그만큼 작게 나온다(런 375 실측 .070614 = 배율 .943 · 팝 33ms 쯤).
+            // 팝은 **처음 열 때만** 붙으므로(ui.js 1156) 앞 자가 이 팝업을 이미 열어 둔 런에서는 배율 1 이라 초록이었다(런 373) — 재기 전에 팝을 끝낸다(T128 ⓒ 와 같은 갈래).
+            CardPop.SettleAll();
             Canvas.ForceUpdateCanvases();
             Popup p = PopupLayer.Instance.Find(OfflinePopup.Name);
             Assert.IsNotNull(p, "오프라인 팝업");
+            RectTransform card = FindUnder(p.Root, "card");
+            Assert.AreEqual(1f, card.localScale.x, 0.001f, "잴 때 카드 팝이 끝나 있어야 한다(배율 1) — 아니면 아래 치수가 전부 그 배율만큼 어긋난다");
             Rect app = World(UiRoot.Instance.App);
             RectTransform bottom = FindUnder(p.Root, "bottom");
             RectTransform total = FindUnder(bottom, "total");
