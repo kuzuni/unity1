@@ -819,9 +819,12 @@ def content_fill(img):
 # z-index 16 이라 **팝업(20/22/40/60) 아래**에 깔린다 — 그래서 팝업 화면을 찍어도 씬 대역이
 # 통째로 붉게 나온다. 배너 바탕이 `linear-gradient(180deg,#1e0202,#5a0707 45%,#240303)` 이라
 # 그 붉음은 **어두운 순색 적색**(#5a0707 = 90,7,7)이다.
-# 실측(런 403 · `screen_gear-detail.png`): y 6~55% 의 가로줄이 **한 색으로 꽉 찬 (90,14,11)** 이고
-# 같은 런의 이웃 `craft-compare` 는 멀쩡한 딤 세계였다 — 연출이 도는 **순간**에 두 장이 걸린 것이다.
-# 이것은 UI 결함이 아니라 **촬영 타이밍**이다(T128 ⓒ 카드 팝과 같은 갈래). 회귀로 부르지 않는다.
+# 실측(런 403·413 · `screen_gear-detail.png`): y 6~55% 의 가로줄이 **한 색으로 꽉 찬 (90,14,11)** 이고
+# 같은 런의 이웃 `craft-compare` 는 멀쩡한 딤 세계였다.
+# ⚠ **우연이 아니다**(44회차 정정): 런 403(이어받은 그림)과 런 413(제 그림 60장)은 바이트가 다른 PNG 인데
+# 덮인 비가 **둘 다 84%** 이고 점수도 둘 다 3.2 다 — 촬영이 **매 런 같은 자리**에서 연출을 문다(T176).
+# 그래도 **UI 결함은 아니다**: 정본 z-index 16 이라 팝업 아래에 깔리는 것 자체는 정본대로다.
+# 회귀로 부르지 않고, 촬영을 고칠 일로 돌린다(T128 ⓒ 카드 팝과 같은 갈래).
 BW_Y0, BW_Y1 = 0.06, 0.55   # 전투 씬 대역(정본 `#game-area`)
 BW_RED_MAX = 160            # #5a0707 계열 — 밝은 순적색(#ff1c1c 등 UI 색)은 뺀다
 BW_RED_MIN = 40
@@ -940,8 +943,8 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
               % (len(bw), " ".join(u"%s %.0f%%%s" % (n, f * 100, u"" if c is None else u" %s" % (c,)) for n, f, c in bw)))
         print(u"    정본 `style.css` 337~400 그대로 연출은 씬 안(z 16)이라 팝업 아래에 깔린다 —"
               u" 팝업 화면을 찍어도 씬 대역이 통째로 붉다."
-              u" **UI 결함이 아니라 촬영 타이밍이다**(T128 ⓒ 카드 팝과 같은 갈래) — 재등재하지 마라."
-              )
+              u" **UI 결함이 아니라 촬영이 매 런 같은 자리에서 연출을 무는 것이다**(런 403·413 둘 다 84% · T176)"
+              u" — 화면을 재등재하지 말고 촬영을 고친다.")
         print(u"    이 런의 점수는 «UI 가 그만큼 망가졌다» 가 아니다 — **촬영이 어긋난 것**이라"
               u" 화면마다 재등재하지 말고 촬영을 먼저 고친다(T27·T54 갈래).")
     if not scores:
@@ -978,7 +981,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             # 튄 것을 «회귀» 로 부르지 않는다(T28 22회차 · forge-detail 1.9 가 그 꼴이었다).
             if n in bwset:
                 # 씬 대역이 통째로 붉으면 밴드가 녹아 붙는다 — 그림이 달라진 것은 맞지만 **UI 가 아니다**.
-                soft.append((n, t[1], t[2], u"보스 경고 연출을 물고 찍혔다(씬 대역 %.0f%%) — 촬영 타이밍이다"
+                soft.append((n, t[1], t[2], u"보스 경고 연출을 물고 찍혔다(씬 대역 %.0f%%) — 촬영이 물었다(T176)"
                              % (bwset[n] * 100), din, dout))
             elif med is not None and t[2] > med - DROP_MARK:
                 soft.append((n, t[1], t[2], u"최근 %d회차 중앙값 %.1f 자리다" % (len(hist), med), din, dout))
