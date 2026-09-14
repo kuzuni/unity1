@@ -565,6 +565,14 @@ STALE_REF_NOTES = [
      u"펫 업그레이드 «합칠 펫» 자리: 원작 샷(`shot-042503`)은 선택 슬롯 다섯 칸인데 지금 정본은 "
      u"`.petup-bulkrow`(`style.css` 4365 «등급별 일괄 선택 버튼 행 — 5칸 선택 슬롯 대체 (사용자 지시: **개수 제한 철폐**)»)다 "
      u"— 클론이 칩 줄을 그리는 것은 **정본대로**다(T28 33회차)."),
+    (u"장비 시대 상세 카드 — T177 로 정본 치수에 들어갔는데 점수는 2.2 → 1.1 로 **떨어졌다**. 점수로 되돌리지 마라",
+     u"T177(워커 S · 런 422)이 `forge-detail` 카드를 정본 `style.css` 3649 `width: 68.9%` 와 3714 주석의 "
+     u"«카드 25.20~72.76%H» 에 맞췄다 — 46회차 실측으로 카드 폭 73.7 → **67.8%W**, 높이 53.5 → **48.3%H** 로 "
+     u"원작(68.5 · 47.6)에 ±1%p 안에 들어왔다. 그런데 밴드 점수는 **2.2 → 1.1** 로 내려갔다. 까닭은 딤이다: "
+     u"원작은 α .988 이라 카드 바깥이 순검정이고 판독기가 카드 속을 **밴드 하나**(y 25.0 h 47.8)로 읽는데, "
+     u"클론은 주인 지시 α .5 라 같은 자리를 밴드 13개로 쪼갠다. 즉 이 화면의 점수는 카드 치수가 아니라 **딤**을 "
+     u"재고 있다. 카드가 맞는지는 «팝업 카드 가로 상자» 줄(딤과 무관한 자)로 보라 — 거기서 벗어나지 않으면 맞다.",
+     ),
     (u"리그 상대 이름 — 원작은 흰 글자+키라인, 정본은 민글자 — 클론이 맞다. 같은 행 전투력 숫자의 키라인은 진짜 결함(T109)",
     u"리그 «상대 선택» 상대 이름: 원작 샷(`shot-042228`)의 이름은 **흰 글자 + 검정 키라인**인데 지금 정본 "
     u"`.league-challenge-name` 은 `color: var(--pp-ink)`(#17181a) 민글자다 — 클론의 어두운 민글자가 "
@@ -856,6 +864,58 @@ def bw_hit(img):
     return (hit / float(tot) if tot else 0.0), rep
 
 
+# ── 팝업 카드 상자 (T28 46회차 · 워커 M) ────────────────────────────────
+# 밴드 점수는 팝업 화면에서 **딤을 재고 있다**: 원작 샷은 딤 α .988 이라 카드 바깥이 순검정이고
+# 판독기가 카드를 **밴드 하나**로 읽는데(`forge-detail` 원작 = 밴드 8개), 클론은 주인 지시 α .5 라
+# 뒤 패널이 비쳐 같은 자리가 밴드 20개로 쪼개진다. 그래서 **카드를 정본 치수로 고쳐도 점수는 내려간다**
+# (실측: T177 이 카드 폭 73.7 → 67.8%W, 높이 53.5 → 48.3%H 로 정본 실측(68.9 · 47.56)에 넣었는데
+#  `forge-detail` 은 2.2 → 1.1 로 떨어졌다 · 런 413 → 425).
+# 그 고침을 **점수로 되돌리지 않게** 딤과 무관한 자를 따로 둔다: 밝은 판(카드)의 **가로 상자**(x·w)를
+# 원작·클론 같은 규칙으로 재서 견준다. 검산: 원작 `shot-042931` 이 x 15.9 · w **68.5** 로 나오는데
+# 정본 `style.css` 3649 의 `#forge-item-modal … { width: 68.9% }` 그 값이다.
+# 🚨 **세로(y·h)는 안 낸다** — 카드 안의 어두운 띠(색 막대·아이콘 줄)에서 «카드 줄» 이 끊기는 자리가
+# 원작과 클론에서 다르다. 실측(46회차): `player-info` 는 잇는 틈(gap)을 4.5% → 9% 로 늘리면 클론만
+# y 54.2 → 14.8 로 붙고 원작은 37.8 그대로다(원작의 어두운 띠가 더 두껍다) — 어떤 틈을 골라도 두 그림이
+# 같은 규칙으로 안 잘린다. 가로는 그 영향을 안 받는다(`player-info` 는 원작·클론 둘 다 w 75.2 로 흔들림 0).
+CARD_THR = 195      # 카드 종이(원작 204·252 · 클론 240 안팎)와 딤(원작 0 · 클론 48~120)을 가른다
+CARD_FRAC = 0.35    # 그 줄의 밝은 픽셀이 가로의 이만큼이면 «카드 줄»
+CARD_GAP = 0.045    # 카드 안의 어두운 줄(글자·아이콘)이 이만큼까지 벌어져도 한 카드로 잇는다
+CARD_TOL = 3.0      # 견줌 허용치(%%p) — 밴드 점수와 같은 눈금
+
+
+def card_box(img):
+    """그림에서 가장 큰 «밝은 판»(팝업 카드)의 **가로** 상자 — (x, w) %% · 못 찾으면 None."""
+    px, W, H = img.px, img.w, img.h
+    cnt = []
+    for y in range(H):
+        n, base = 0, y * W * 3
+        for x in range(0, W, 2):
+            i = base + x * 3
+            if px[i] >= CARD_THR and px[i + 1] >= CARD_THR and px[i + 2] >= CARD_THR:
+                n += 1
+        cnt.append(n)
+    need = (W // 2) * CARD_FRAC
+    rows = [y for y in range(H) if cnt[y] >= need]
+    if not rows:
+        return None
+    g = int(H * CARD_GAP)
+    runs, st, prev = [], rows[0], rows[0]
+    for y in rows[1:]:
+        if y - prev > g:
+            runs.append((st, prev))
+            st = y
+        prev = y
+    runs.append((st, prev))
+    y0, y1 = max(runs, key=lambda r: r[1] - r[0])
+    ym = max(range(y0, y1 + 1), key=lambda y: cnt[y])
+    xs = [x for x in range(W)
+          if px[(ym * W + x) * 3] >= CARD_THR and px[(ym * W + x) * 3 + 1] >= CARD_THR
+          and px[(ym * W + x) * 3 + 2] >= CARD_THR]
+    if not xs:
+        return None
+    return (xs[0] * 100.0 / W, (xs[-1] - xs[0] + 1) * 100.0 / W)
+
+
 def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baseline=False, notes_full=False):
     table = load_table(table_path)
     if not table:
@@ -868,6 +928,8 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         return 2
     scores, missing, bad, skewed, unfilled = [], [], [], [], []
     bw = []
+    cards = []
+    refs = dict((n, r) for n, r in pairs() if r)
     meta, carried = {}, False
     mp0 = os.path.join(shots_dir, "meta.json")
     if os.path.exists(mp0):
@@ -918,6 +980,16 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         frac, rep = bw_hit(img)
         if frac >= BW_ROW_FRAC:
             bw.append((name, frac, rep))
+        rf = refs.get(name)
+        if rf:
+            rp = os.path.join(REF_DIR, rf)
+            if os.path.exists(rp):
+                try:
+                    a_box, b_box = card_box(png_read(rp)), card_box(img)
+                except (OSError, ValueError):
+                    a_box = b_box = None
+                if a_box and b_box:
+                    cards.append((name, a_box, b_box))
         got = read_layout(img, name)
         s, why = score_screen(ent["rects"], got)
         scores.append((name, s))
@@ -947,6 +1019,22 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
               u" — 화면을 재등재하지 말고 촬영을 고친다.")
         print(u"    이 런의 점수는 «UI 가 그만큼 망가졌다» 가 아니다 — **촬영이 어긋난 것**이라"
               u" 화면마다 재등재하지 말고 촬영을 먼저 고친다(T27·T54 갈래).")
+    if cards:
+        off = [(n, a, b) for n, a, b in cards
+               if max(abs(b[0] - a[0]), abs(b[1] - a[1])) > CARD_TOL]
+        print(u"  · 팝업 카드 **가로** 상자(딤과 무관한 자 · 원작 ↔ 클론 · ±%.0f%%p): 잰 화면 %d개 · 벗어난 화면 %d개"
+              % (CARD_TOL, len(cards), len(off)))
+        for n, a, b in sorted(off, key=lambda t: -max(abs(t[2][i] - t[1][i]) for i in range(2))):
+            print(u"    ✗ %-18s 원작 x%.1f w%.1f → 클론 x%.1f w%.1f  (Δ x%+.1f w%+.1f)"
+                  % (n, a[0], a[1], b[0], b[1], b[0] - a[0], b[1] - a[1]))
+        wide = [n for n, ai, bi in off if bi[1] - ai[1] > 5.0]
+        if wide:
+            print(u"    ⚠ %s 는 클론 상자가 원작보다 5%%p 넘게 **넓다** — 딤 α .5 로 비치는 **뒤 시트**를"
+                  u" 카드로 잡았을 공산이 크다(원작은 α .988 이라 그 시트가 안 보인다). 등재 전에 PNG 를 열어라."
+                  % " ".join(wide))
+        if off:
+            print(u"    이 자는 딤을 안 본다 — 밴드 점수가 내려가도 이 Δ 가 0 에 가까워졌으면 **고침이 맞다**"
+                  u"(T177 실측: 카드를 정본 치수에 넣었더니 점수는 2.2 → 1.1 로 떨어졌다).")
     if not scores:
         print(u"✗ 점수를 낸 화면이 0개다 — 클론 샷(`screen_*.png`)이 하나도 없다")
         return 2
@@ -1258,6 +1346,23 @@ def self_test():
     bright = _canvas(60, 200, (250, 250, 250))
     _fill(bright, 0, int(200 * 0.06), 60, int(200 * 0.55), (255, 28, 28))    # UI 의 ultimate 적색
     chk(bw_hit(bright)[0] < BW_ROW_FRAC, u"밝은 순적색(UI 등급색 #ff1c1c)은 연출로 안 잡는다")
+
+    # ⑪ 팝업 카드 가로 상자(T28 46회차) — 딤이 달라도 같은 값이 나와야 한다
+    dimdark = _canvas(200, 300, (0, 0, 0))          # 원작 꼴: 딤 α .988
+    _fill(dimdark, 30, 60, 170, 240, (250, 250, 250))
+    dimlite = _canvas(200, 300, (120, 120, 120))    # 클론 꼴: 딤 α .5 (뒤 시트가 비친다)
+    _fill(dimlite, 30, 60, 170, 240, (250, 250, 250))
+    ba, bb = card_box(dimdark), card_box(dimlite)
+    chk(ba is not None and abs(ba[0] - 15.0) < 1.0 and abs(ba[1] - 70.0) < 1.5,
+        u"카드 가로 상자를 제대로 읽는다 (%s)" % (ba,))
+    chk(bb == ba, u"딤 밝기가 달라도 카드 가로 상자는 같다 (%s ↔ %s)" % (ba, bb))
+    barred = _canvas(200, 300, (0, 0, 0))           # 카드 안에 어두운 띠가 있어도 가로는 안 흔들린다
+    _fill(barred, 30, 60, 170, 240, (250, 250, 250))
+    _fill(barred, 32, 120, 168, 150, (20, 20, 20))
+    bc = card_box(barred)
+    chk(bc is not None and abs(bc[1] - ba[1]) < 0.6,
+        u"카드 안 어두운 띠가 가로 상자를 안 흔든다 (%s ↔ %s)" % (ba, bc))
+    chk(card_box(_canvas(200, 300, (0, 0, 0))) is None, u"밝은 판이 없으면 카드 상자는 없다")
 
     # ⑩ 이어받은 그림은 기준선 자취에 그렇게 적힌다(T28 44회차)
     import tempfile, json as _j, codecs
