@@ -1,0 +1,25 @@
+{
+  "_": "T345 — 정본 border-radius 표(값이 코드에 박혀 정본과 어긋난 자리). 키 꼬리가 단위다: `…_r_rem` = 정본 Nrem(1rem = catalog rem_h × 앱 높이) · `…_r_w` = 정본 calc(var(--app-w) * k) 의 k(앱 폭 비율). 읽는 곳은 `RadiusUi.Px` 한 군데(Core `RadiusRules.Px`). 정본 50% 자리는 여기 없다 — `UiKit.Circle` 이 원이다.",
+  "_자": "`tools/check_border_radius.py` 가 정본 style.css 의 선언 ↔ 이 표의 값 ↔ 그 자리의 호출(`\"키\"`)을 세 겹으로 견준다. 값을 바꿀 때는 정본 줄을 먼저 본다(아래 `_…` 칸이 그 줄이다).",
+
+  "_chat_bubble": "style.css 3371 .chat-bubble — 클론 ChatScreen 말풍선(정본 .42 · 클론은 .6 이었다)",
+  "chat_bubble_r_rem": 0.42,
+  "_chat_share_card": "style.css 3389 .chat-share-card — 각진 카드(정본 주석 «원본 카드는 모서리가 각져 있어» · 클론은 .6 이었다)",
+  "chat_share_card_r_rem": 0,
+  "_chat_input": "style.css 3449 .chat-input-bar input — 입력칸 테(정본 .3 · 클론은 높이×.3 = .52 였다)",
+  "chat_input_r_rem": 0.3,
+  "_chat_round_btn": "style.css 3270 .chat-input-bar .btn.round — 입력 줄의 둥근 버튼(정본 .35 · 클론은 높이×.3 = .52 였다)",
+  "chat_round_btn_r_rem": 0.35,
+  "_chat_share_avatar": "style.css 3401 .chat-share-side .icon-circle.sm — 공유 카드 아바타(정본 .28 · .icon-circle.sm 의 50% 를 덮는다 · 클론은 폭×.5 = 거의 원이었다)",
+  "chat_share_avatar_r_rem": 0.28,
+  "_idet_subs": "style.css 3703 .idet-subs — 장비 상세 회색 판(정본 .8 · #forge-item-modal 3722 는 반지름을 안 덮는다 · 클론은 .6 이었다)",
+  "idet_subs_r_rem": 0.8,
+  "_upg_progress": "style.css 694 .upg-progress — 강화 진행 막대(정본 .55 · 클론은 .5 였다)",
+  "upg_progress_r_rem": 0.55,
+  "_af_spinner": "style.css 4783 .af-spinner — 자동 제련 스피너(정본 .45 · 클론은 .3 이었다)",
+  "af_spinner_r_rem": 0.45,
+  "_af_dd_list": "style.css 4791 .af-dd-list — 자동 제련 드롭다운 목록(정본 .45 · 클론은 .3 이었다)",
+  "af_dd_list_r_rem": 0.45,
+  "_back_btn": "style.css 5189 .btn.back-btn — 뒤로 버튼(정본 calc(var(--app-w) * .0094) · .back-btn 5178 의 .6rem 을 덮는다 · 클론은 .league-back-btn 2383 의 .45rem 을 쓰고 있었다)",
+  "back_btn_r_w": 0.0094
+}
