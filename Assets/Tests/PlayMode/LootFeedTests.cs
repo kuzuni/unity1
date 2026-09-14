@@ -54,6 +54,12 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(UiKit.Icon(line, "probe", "coin").sprite, line.Find("row").GetComponentInChildren<Image>(true).sprite, "아이콘은 T31 코인 스프라이트");
             Object.Destroy(line.Find("probe").gameObject);
             Assert.AreEqual(1, UiKit.RowTexts((RectTransform)line.Find("row")).Length); Assert.AreEqual("+3", UiKit.RowTexts((RectTransform)line.Find("row"))[0].text.Trim());
+            // 런 292 PNG: 줄이 패딩만 한 조각이었다(중첩 레이아웃 선호값 0) — 줄 크기가 아이콘+글자를 담는지 못박는다
+            float kind = PopupKit.FontSize(TextKind.Sub);
+            Assert.Greater(line.rect.width, kind * 2f, "줄 폭은 아이콘 + 글자(«+3»)보다 넓다 — 지금 " + line.rect.width);
+            Assert.Less(line.rect.width, f.Lane.rect.width, "줄은 레인 안");
+            Assert.GreaterOrEqual(line.rect.height, kind, "줄 높이 ≥ 글자 크기");
+            Assert.Less(line.rect.height, kind * 2.5f, "줄은 한 줄이다(줄바꿈 없음)");
             for (int i = 2; i <= 9; i++) LootFeed.Push("🔨 +" + i);
             yield return null;
             Assert.AreEqual(7, f.Lines, "9 줄을 붙이면 6 을 넘는 순간부터 맨 위를 버려 7 이 남는다(정본 `> 6`)");

@@ -76,20 +76,30 @@ namespace Forge.Game.Ui
             if (LootFeedRules.DropFirst(s, Lane.childCount) && Lane.childCount > 0) { Destroy(Lane.GetChild(0).gameObject); Lane.GetChild(0).SetParent(null, false); Dropped++; }
             Pushed.Add(text);
             RectTransform line = UiKit.Box(Lane, LootFeedStyle.T("line"));
-            // 알약 배경은 레이아웃 밖(배경) — PopupKit.MarkBackgrounds 와 같은 규칙
+            // 알약 배경(부모 채움) + 아이콘·글자 행. 크기는 중첩 레이아웃의 선호값에 안 기댄다 — 런 292 PNG 에서 `ContentSizeFitter` 가
+            // 안쪽 IconTextRow(레이아웃 그룹)의 선호 폭을 0 으로 받아 줄이 패딩만 한 조각으로 찍혔다. 글자 조각의 GetPreferredValues() 와
+            // 아이콘 크기(= 종류 크기)를 더해 줄 크기를 직접 재고 Place 한다(RewardBurst.LabelRow 와 같은 길).
             Image bg = UiKit.Rounded(line, "bg", "toast_bg", (float)s.RadiusRem * rem);
             bg.color = LootFeedStyle.C("line_bg");
             bg.raycastTarget = false;
-            bg.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
-            HorizontalLayoutGroup pad = line.gameObject.AddComponent<HorizontalLayoutGroup>();
-            int px = Mathf.RoundToInt((float)s.PadXRem * rem), py = Mathf.RoundToInt((float)s.PadYRem * rem);
-            pad.padding = new RectOffset(px, px, py, py);
-            pad.childControlWidth = true; pad.childControlHeight = true;
-            pad.childForceExpandWidth = false; pad.childForceExpandHeight = false;
-            ContentSizeFitter fit = line.gameObject.AddComponent<ContentSizeFitter>();
-            fit.horizontalFit = fit.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            float px = (float)s.PadXRem * rem, py = (float)s.PadYRem * rem;
             RectTransform row = UiKit.IconTextRow(line, "row", TextKind.Sub, text, "ink", TextAlignmentOptions.Right);
-            foreach (TextMeshProUGUI piece in UiKit.RowTexts(row)) { piece.fontStyle = FontStyles.Bold; piece.color = LootFeedStyle.C("text"); piece.raycastTarget = false; }
+            float size = PopupKit.FontSize(TextKind.Sub);
+            float rw = 0f, rh = size;
+            foreach (RectTransform piece in row)
+            {
+                TextMeshProUGUI tm = piece.GetComponent<TextMeshProUGUI>();
+                if (tm != null)
+                {
+                    tm.fontStyle = FontStyles.Bold; tm.color = LootFeedStyle.C("text"); tm.raycastTarget = false;
+                    Vector2 pv = tm.GetPreferredValues();
+                    rw += pv.x; rh = Mathf.Max(rh, pv.y);
+                }
+                else rw += size;   // 아이콘 조각(IconTextRow 가 LayoutElement preferredWidth = 종류 크기로 둔다)
+            }
+            float w = rw + px * 2f, h = rh + py * 2f;
+            UiKit.Place(line, 0f, 0f, w, h);          // 자리는 레인(VerticalLayoutGroup)이 다시 잡는다 · 크기만 쓴다
+            UiKit.Place(row, px, py, rw, rh);
             CanvasGroup cg = line.gameObject.AddComponent<CanvasGroup>();
             cg.blocksRaycasts = false;
             StartCoroutine(Life(s, line, row, cg, rem));

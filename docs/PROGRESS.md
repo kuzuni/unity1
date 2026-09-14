@@ -3154,6 +3154,13 @@
 - **남은 것(2회차 · T135 lock 뒤 · 누구든)**: `Battle/BattleScene.cs` 372 의 Loot 갈래(영웅 머리 위 숫자 `DamageNumbers` kind loot)를 `LootFeed.Push("🪙 +N")`·보스 해머 `"🔨 +N"` 로(정본 `combat.js` 450·454 · `DamageNumbers` 의 loot 종류는 그때 걷는다) · 전투 문구 세 자리(`combat.js` 484 첫 클리어 · 499 난이도 상승 · 566 쓰러짐)를 `Toast(msg, "combat")` 로 · 줄 글자 크기는 T136 뒤 표 `font_rem`(.78rem)으로.
 - **주인이 확인할 것**: 2회차 뒤 — 전투 중 코인·해머 획득이 영웅 머리 위 숫자가 아니라 무대 오른쪽 아래 줄로 쌓인다. 1회차는 `screen_t138-loot.png`.
 
+### T138 런 292 판정 · 2회차(수리) (2026-09-14 02:2x · 워커 S · sess-0029-41207 · lock 갱신)
+
+- **런 292(52ccec9 · 내 fdb0d9f 포함 · 런 289·290 은 뒤 push 가 취소)**: EditMode **603/603**(`LootFeedRulesTests` 3 PASS) · PlayMode 147 중 `LootFeedTests` **2/2 PASS** · 빨강 1 은 남의 자리(`EquipSwapTests` = T118 2회차 · 갓 이은 호출부).
+- **PNG 눈 확인(`screen_t138-loot.png` · 줄 일곱)**: 레인은 무대 오른쪽 아래 맞는 자리에 섰는데 **줄이 패딩만 한 가느다란 조각**(≈36×9 캔버스 px)으로 찍혔다 — `ContentSizeFitter` 가 안쪽 `IconTextRow`(중첩 `HorizontalLayoutGroup`)의 선호 폭을 0 으로 받아 알약이 글자를 못 담았다. 자는 «아이콘·글자·줄 수» 만 봐서 초록이었다(반쪽 자).
+- **수리(이 커밋)**: 중첩 레이아웃 선호값에 안 기댄다 — 글자 조각의 `GetPreferredValues()` + 아이콘 크기(종류 크기)를 더해 줄 크기를 직접 재고 `Place`(`RewardBurst.LabelRow` 와 같은 길 · 레인의 `VerticalLayoutGroup` 은 자리만 잡는다). PlayMode 단언 추가: 줄 폭 > 글자 크기×2 · < 레인 폭 · 높이 ≥ 글자 · < 2.5배(한 줄).
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` 603/603 · 자 전부 rc 0. 다음 런에서 PNG 를 다시 본다 → ✅ · lock 반납.
+
 ## 워커 결정 기록
 
 1. **틀 세우기(2026-09-12 · 착수 세션 · 계정 1)** — aaawunity 의 `docs/ROUTINE.md`·`PROGRESS.md`·`claims/README.md`·`tools/{task_state,check_task_rows,check_claim_scope,check_decisions,check_docs_intact,gen_meta}.py`·`tools/dotnet` 하니스·`ci.yml` 을 뼈대만 옮겼다(검사 자 27개 중 문서·lock 관련 여섯만 · 나머지는 필요해질 때 그 작업이 더한다). 결정 번호 동결선(`FROZEN_BELOW`)은 1 — 이 레포는 옛 겹침이 없다. 어셈블리 이름은 `Forge.Core`·`Forge.Game`·`Forge.Tests`(원작 «포지 클론»). 되돌리려면 이 커밋.
