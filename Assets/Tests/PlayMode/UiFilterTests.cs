@@ -1,5 +1,8 @@
 using System;
 using System.Collections;
+using UnityEngine.SceneManagement;
+using Forge.Game;
+using Forge.Game.Gallery;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,6 +20,84 @@ namespace Forge.Tests.PlayMode
     public class UiFilterTests
     {
         GameObject root;
+
+        static IEnumerator Boot()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null; yield return null;
+            float t = 0f;
+            while (!(ForgeHost.Ready && MetaHost.Ready && PopupLayer.Instance != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost 가 20초 안에 준비되지 않았다");
+            yield return null;
+        }
+
+        /// <summary>T134·T135 와 같은 촬영 길(캔버스를 임시 카메라로 한 판 찍는다).</summary>
+        static void Capture(string saveAs)
+        {
+            UiRoot uiRoot = UiRoot.Instance;
+            Canvas canvas = uiRoot.Canvas;
+            RenderMode prevMode = canvas.renderMode;
+            Camera prevCam = canvas.worldCamera;
+            float prevPlane = canvas.planeDistance;
+            RenderTexture prevActive = RenderTexture.active;
+            int w = Mathf.Max(64, Screen.width), h = Mathf.Max(64, Screen.height);
+            RenderTexture rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
+            GameObject camGo = new GameObject("t342-pixel-cam");
+            Camera cam = camGo.AddComponent<Camera>();
+            try
+            {
+                if (Camera.main != null) cam.CopyFrom(Camera.main);
+                cam.rect = new Rect(0f, 0f, 1f, 1f);
+                cam.targetTexture = rt;
+                cam.ResetProjectionMatrix();
+                cam.cullingMask = 1 << canvas.gameObject.layer;
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = Color.black;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = cam;
+                canvas.planeDistance = 1f;
+                uiRoot.Layout();
+                Canvas.ForceUpdateCanvases();
+                cam.Render();
+                RenderTexture.active = rt;
+                Texture2D tex = new Texture2D(w, h, TextureFormat.RGB24, false);
+                tex.ReadPixels(new Rect(0f, 0f, w, h), 0, 0);
+                tex.Apply(false);
+                try { GallerySheet.Save(tex, saveAs); } catch (Exception e) { Debug.Log("[T342] PNG 저장 생략: " + e.Message); }
+                UnityEngine.Object.Destroy(tex);
+            }
+            finally
+            {
+                RenderTexture.active = prevActive;
+                canvas.renderMode = prevMode;
+                canvas.worldCamera = prevCam;
+                canvas.planeDistance = prevPlane;
+                uiRoot.Layout();
+                cam.targetTexture = null;
+                UnityEngine.Object.Destroy(camGo);
+                UnityEngine.Object.Destroy(rt);
+            }
+        }
+
+        /// <summary>
+        /// §1 «실제 화면을 본다» — 빈 장비 칸은 **촬영된 어느 화면에도 안 나온다**(촬영 세이브가 모든 칸을 채우고 있다).
+        /// 그래서 이 자가 칸 하나를 비우고 대장간 시트를 다시 그려 **그 상태만** 한 장 남긴다 — 다음 회차가 눈으로 본다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 가_빈_장비_칸_한_장을_남긴다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            string slot = h.Defs.Slots[0];
+            var keep = h.Gear.Get(slot);
+            h.Gear.Set(slot, null);
+            ForgeSheet.Render(h);
+            yield return null; yield return null;
+            Capture("screen_t342-empty-cell");
+            h.Gear.Set(slot, keep);
+            ForgeSheet.Render(h);
+            yield return null;
+        }
 
         [SetUp] public void Up() { UiFilter.Reset(); root = new GameObject("t342"); }
         [TearDown] public void Down() { if (root != null) UnityEngine.Object.Destroy(root); UiFilter.Reset(); }
