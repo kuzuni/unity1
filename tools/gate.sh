@@ -50,6 +50,7 @@ block|-|이름으로 찾는 것이 빌드에도 실리는가 (T126)|python3 tool
 block|-|원작 소리 24종이 실제로 울리는가 (T119)|python3 tools/check_sfx_calls.py
 block|-|하니스 스텁이 실물에 없는 서명을 갖고 있나 (T174)|python3 tools/check_stub_sigs.py
 block|-|screens 장부 합치기 자 자기 검사 (T336 · CI 배포 스텝도 밀기 전에 같은 자를 돌린다)|python3 tools/screens_ledger.py --self-test
+block|-|screens 이어받기 자 자기 검사 (T347 · 부분 실패 런이 남의 그림을 지우던 자리 · CI 배포 스텝도 같은 자를 돌린다)|python3 tools/screens_carry.py --self-test
 block|wwwww|정본 바깥 그림자 61자리가 클론에 서 있는가 (T331 · 안쪽 inset 은 안 본다)|python3 tools/check_box_shadows.py
 block|-|`using` 한 네임스페이스를 그 asmdef 가 참조하는가 (T343 · 하니스가 구조적으로 못 잡는 갈래)|python3 tools/check_asmdef_refs.py
 block|wwwww|data/*.json ↔ 정본 (T2)|tools/check_data_sync.sh .wwwww-src

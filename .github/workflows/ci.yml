@@ -114,6 +114,8 @@ jobs:
       #        안 만진 push 에선 건너뛰므로 여기서도 돈다(자를 고친 커밋이 그 잡 없이 초록으로 지나가지 않게).
       - name: screens 장부 합치기 자 자기 검사 (T336 `screens_ledger.py --self-test` · 20칸)
         run: python3 tools/screens_ledger.py --self-test
+      - name: screens 이어받기 자 자기 검사 (T347 `screens_carry.py --self-test` · 12칸)
+        run: python3 tools/screens_carry.py --self-test
       - name: 게이트 자 자기 검사 (T184 `gate.sh --self-test` · 실물 컴파일 오류 주입 포함 27칸)
         run: tools/gate.sh --self-test
       - name: §3 게이트 목록 ↔ 이 파일이 부르는 이름 — 막는다 (T184 ⓑ)
@@ -428,11 +430,18 @@ jobs:
           #        같이 날아갔다(런 403 실측: 에디터가 play mode 어셈블리 재적재에서 SIGSEGV → shots 0 · 글자 자국 전멸).
           #        그 파일들은 «초록인 런의 잡 로그에는 안 실리니 글자로 남긴다» 는 바로 그 목적으로 만들어진 것이라
           #        **가장 필요한 순간에 사라지던 셈**이다. 이 런이 스스로 쓴 파일은 덮지 않는다(있으면 건너뛴다).
-          if [ "$n" = "0" ] && git fetch --depth 1 origin screens 2>/dev/null; then
-            for f in $(git ls-tree --name-only FETCH_HEAD | grep -E '[.](png|txt)$' || true); do
-              if [ -e "ui-screens/$f" ]; then continue; fi   # 이 런이 쓴 것은 안 덮는다(`set -e` 에 안 걸리게 if 로)
+          # T347 — 바깥 조건 `[ "$n" = "0" ]` 을 **걷었다**. 그것 때문에 «몇 장이라도 낸 런»(부분 실패)이 나머지를
+          #        통째로 지웠다(런 494 실물 `shots: 17 · carried: 0` ↔ 직전 런 463 은 63장 · 46장 + 글자 자국 소실).
+          #        고르기는 `tools/screens_carry.py` 가 쥔다(자기 검사 12칸) — «이 런이 쓴 것은 안 덮는다» 는 그대로이고,
+          #        이어받은 것은 `carried.txt` 에 «어느 런 것인가» 로 적어 눈 확인(§1)이 지난 그림을 이번 것으로 읽지 않게 한다.
+          carry="$GITHUB_WORKSPACE/tools/screens_carry.py"
+          python3 "$carry" --self-test || { echo "::error::screens 이어받기 자(tools/screens_carry.py) 자기 검사 실패 — 이어받기를 멈춘다(T347)"; exit 1; }
+          if git fetch --depth 1 origin screens 2>/dev/null; then
+            git show FETCH_HEAD:meta.json > prev-meta.json 2>/dev/null || : > prev-meta.json
+            for f in $(git ls-tree --name-only FETCH_HEAD | python3 "$carry" plan --dir ui-screens --names - --from-meta prev-meta.json --run "$GITHUB_RUN_NUMBER"); do
               git show "FETCH_HEAD:$f" > "ui-screens/$f" && carried=$((carried+1)) || true
             done
+            rm -f prev-meta.json
           fi
           any=$(ls -A ui-screens 2>/dev/null | grep -cv '^meta[.]json$' || true)
           echo "count=$n" >> "$GITHUB_OUTPUT"
@@ -445,7 +454,7 @@ jobs:
           if git fetch --depth 1 origin screens 2>/dev/null; then git show FETCH_HEAD:runs.jsonl > ui-screens/.runs.tmp 2>/dev/null || : > ui-screens/.runs.tmp; fi
           printf '{"sha":"%s","run":%s,"tests":"%s","missing_modes":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$miss" >> ui-screens/.runs.tmp
           tail -n 400 ui-screens/.runs.tmp > ui-screens/runs.jsonl && rm -f ui-screens/.runs.tmp
-          echo "::notice::screens — 이 런의 PNG ${n}장 · 이어받은 PNG ${carried}장 · 올릴 파일 ${any}개 · 없는 모드 XML «${miss:-없음}»"
+          echo "::notice::screens — 이 런의 PNG ${n}장 · 이어받은 파일 ${carried}개(무엇인지는 screens 의 carried.txt · T347) · 올릴 파일 ${any}개 · 없는 모드 XML «${miss:-없음}»"
       # T96 — 런 164·168: peaceiris/actions-gh-pages 의 `git push --force screens` 가 «remote: Internal Server Error» 로 거절됐다
       #       (GitHub 쪽 500 · 22분 간격 두 번 · 같은 시각 런 167 은 startup_failure). 액션은 한 번 밀고 죽어 그 문구가 잡 로그 깊숙이만 남고
       #       screens(눈 확인 §5 · T46 진단)가 멈춘다. 같은 일(고아 루트 커밋 하나 · force push)을 셸로 하고 ⓐ 15·30·45·60초 뒤 네 번 더 민다

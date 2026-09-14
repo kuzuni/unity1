@@ -1947,6 +1947,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 
 - CI 유니티 잡은 PlayMode 촬영 테스트가 남긴 `ui-screens/*.png` 를 main push 마다 `screens` 브랜치로 올린다(빨간 런이어도 · `meta.json` 의 `tests` 칸으로 빨간 런의 그림인지 안다 · PNG 0장이면 안 올린다).
 - 워커는 `git fetch origin screens && git show origin/screens:<파일>.png > /tmp/x.png` 로 받아 **Read 로 직접 본다**. 원작 시트는 `.wwwww-src/web/ref/` 와 `web/tools/shot-*.js` 가 만드는 것(원작을 node+Playwright 로 직접 찍어도 된다 — 컨테이너에 Chromium 이 있다: `/opt/pw-browsers/chromium`).
+- **`carried.txt` 를 먼저 본다(T347).** 부분 실패 런도 지난 그림을 이어받으므로 `screens` 의 파일이 **다 이번 런 것은 아니다** — `git show origin/screens:carried.txt` 에 이름이 있으면 그것은 **다른 런의 그림**이다(머리 줄에 어느 런인지 적혀 있다). 눈 확인은 이번 런이 찍은 것으로 한다.
 - ✅ 조건(UI 작업): T28 의 점수 8.0 이상. 조형 작업: 시트에서 원작과 실루엣·색이 같다(주인 눈).
 
 ## 6. 다른 계정의 워커 합류 (계정 1 = A~D · 계정 2 = E~H · 계정 3 = I~L·Q(검수) · 계정 4 = M~P · 계정 5 = R~U)
