@@ -47,6 +47,9 @@ TABLE = {
     '#stage-label': ['ring:Ui/Hud.cs#stage-label'],
     '.chat-name, .chat-tag': ['ring:Ui/ChatScreen.cs#name'],
     '.dgd-title': ['ring:Ui/DungeonDetailPopup.cs#title'],
+    # T333 4회차 조사 — 정본이 «삼각 글리프» 에 두른 8방향 1px 링(정본 주석 3281 «삼각 글리프의 검정 외곽선도 여기서 준다»).
+    #   클론의 그 삼각은 글자가 아니라 **아틀라스 아이콘**(`PopupKit.Tri` → `UiKit.Icon("tri_left")`)이라 언더레이도 SDF 스트로크도 안 닿는다 → KNOWN.
+    '.chat-input-bar .btn.danger.round': ['ring:Ui/ChatScreen.cs@Open'],
     # T333 3회차 — 8392 두 겹 중 첫 겹(읽히게 만드는 아래 1px 드롭 · 둘째 겹 글로우는 근사로 뺀다 · 표 `league_row` 주석)
     '.league-row .league-name, .league-row .league-rank, .league-score, .equipped-label + * , .chat-preview-name': [
         'Ui/LeagueSheet.cs#rank', 'Ui/LeagueSheet.cs#name',
@@ -59,6 +62,7 @@ TABLE = {
 KNOWN = {
     'Ui/ForgeInfoPopup.cs#idet-name': 'T332·T339 의 산 lock 이 쥔 파일 — 정본 8381 `.modal-card .idet-name`(장비 상세 이름) 은 그 lock 뒤',
     'Ui/QuestSheet.cs#qst-name': 'T331 산 lock + 클론에 그 이름 자리가 아직 없다 — 정본 8381 `.qst-row .qst-name`',
+    'ring:Ui/ChatScreen.cs@Open': 'T333 4회차 — 클론의 «◀» 는 글자가 아니라 아틀라스 아이콘(tri_left)이라 링을 글자에 못 두른다: 키운 삼각을 뒤에 깔아야 하고 아틀라스엔 검정 틴트 변형이 없다(정본이 안 부른다) · 길 둘 = Image.color 곱하기 / 도형 굽기 · 다음 회차',
 }
 
 SHADOW = r'UiKit\.TextShadow'

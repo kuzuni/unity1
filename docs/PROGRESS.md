@@ -6808,3 +6808,11 @@
 - **회차 첫 일(§0-6)**: 런 494 의 빨강 다섯은 전부 한 뿌리(`Texture2D.GetPixels: texture data is not readable (atlas-0)` · `UiFilter.BakeFiltered`)이고 자가 **T342**(살아 있는 lock)를 임자로 댄다 — 내 몫이 아니다.
 - **10회차**: 다음 두 런의 `t128-shots.txt` 를 `diff` 해서 ⓐ 줄이 하나도 안 다르면 이 절의 판정이 다 찼다(그때 ✅ · lock 반납) ⓑ 다르면 그 화면 이름이 범인이라 그 갈래(보스 경고·채팅 줄 같은 시간 의존)를 고정한다.
 - **주인이 확인할 것**: 없다.
+
+### T333 4회차 — 판정할 런이 아직 없다(내 3회차는 런 밖) · 남은 자리 조사 한 칸 (2026-09-14 20:4x~21:0x · 워커 L · sess-1747-19233 · lock 갱신·유지)
+
+- **회차 첫 일(§0-6)**: 런 494(`a94aa75`) 는 **PlayMode 239 중 193 빨강**이다. 뿌리는 하나 — `UiFilter.BakeFiltered` 가 아이콘 아틀라스에 `Texture2D.GetPixels` 를 걸어 «texture data is either not readable» 예외가 나고, 그것이 `ForgeSheet.EquipCell` → `ForgeHost.Boot` 코루틴을 죽여 **대장간 화면이 아예 안 서서** 그 화면을 여는 자가 줄줄이 넘어졌다. 임자는 **T342**(산 lock)이고 **이미 고쳐져 있다** — `281e02c`(지금 main 의 `ReadPixels` 는 `isReadable` 을 보고 아니면 GPU 로 베낀다). 결정 341 의 셋째 점검(`git log -- <파일>`)이 그대로 걸러 줬다 — 보고함에 겹쳐 적지 않았다. (내 T98 이 같은 함정을 이미 만났었다: «구운 텍스처는 `Apply(false, true)` 라 못 읽는다».)
+- **내 3회차 판정은 아직 못 한다**: 런 494 의 sha(`a94aa75`)가 내 `a1a4dc4` **앞**이라 이 런에는 내 변경이 안 실렸다. `TextShadowTests` 넷의 판정과 `screen_chat.png`·`screen_league.png` 눈 확인은 **다음 유니티 런**이다. lock 은 쥔 채.
+- **4회차에 한 것(게임 코드 0줄 · 조사 한 칸)**: 남은 «미정» 선택자를 파일 임자로 다시 훑었더니 지금 열 수 있는 것이 거의 없다 — `ForgeSheet`(874·954·8030) = **T342** · `Hud`(7426 `.coin-amt` · 8069 채팅 미리보기 이름) = **T331** · `QuestSheet`(2050) = **T331** · `ForgeAutoPopup`(4858·4978·5005) = **T339** · `ForgeInfoPopup`(5138·8371) = **T332·T339** · `DungeonPopups`·`DungeonClearPopup`(3890·3902·5375) = **T335** · `SkillSummonResult`(5784·6207·6495·7032·7084) = **T334** · `PlayerInfoPopup`(3179) = **T178** · `BattleOverlay`(402·411) = **T335**.
+- **열려 있는 것 하나를 끝까지 읽어 보고 이번엔 안 넣었다**: 정본 3283 `.chat-input-bar .btn.danger.round` 의 8방향 1px 검정 링은, 정본 주석(3281)이 말하듯 **«◀» 삼각 글리프의 외곽선**이다. 그런데 클론의 그 삼각은 글자가 아니라 **아틀라스 아이콘**(`PopupKit.Tri` → `UiKit.Icon("tri_left")`)이라 언더레이도 SDF 스트로크도 **닿을 데가 없다** — 키운 삼각을 뒤에 까는 길뿐이고, 아틀라스에는 검정 틴트 변형이 **없다**(T31 은 정본 `IconGen` 이 실제로 부른 틴트만 굽는데 정본은 검정 삼각을 안 부른다). 남은 길 둘(`Image.color` 로 곱하기 / 도형을 굽기)은 «아틀라스 화소를 어떻게 다루나» 인데 **바로 그 자리가 이 런의 193 빨강을 낸 길**이라, 판정할 런도 없는 회차에 손대지 않았다. 자(`check_text_shadows`)의 **KNOWN 에 임자와 길 둘을 적어** 다음 사람이 처음부터 캐지 않게 했다.
+- **게이트**: `tools/gate.sh` rc 0(막는 자 전부 · 건너뛴 자 0) · `check_text_shadows` 자기 검사 24칸 · 실물 자리 초록 13 · KNOWN 3 · 미정 31 · 문제 0.
