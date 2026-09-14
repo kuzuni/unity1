@@ -40,20 +40,26 @@ namespace Forge.Tests.PlayMode
             RectTransform card = (RectTransform)p.Root.Find("card");
             Assert.IsNotNull(card);
             yield return null;
-            // 한 프레임 뒤: 아직 도는 중 — 같은 시각의 셈과 값이 같다(경과는 러너가 쥔다)
-            Assert.IsFalse(s.Done(pop.ElapsedMs), "한 프레임(≈16ms)은 250ms 안이다 · 경과 " + pop.ElapsedMs);
-            CanvasGroup cg = card.GetComponent<CanvasGroup>();
-            Assert.IsNotNull(cg, "α 는 CanvasGroup 으로 건다");
-            Assert.AreEqual((float)s.ScaleAt(pop.ElapsedMs), card.localScale.x, 1e-3f, "scale = 표(경과 " + pop.ElapsedMs + ")");
-            Assert.AreEqual(card.localScale.x, card.localScale.y, 1e-6f, "가로세로 같은 배율");
-            Assert.AreEqual((float)s.AlphaAt(pop.ElapsedMs), cg.alpha, 1e-3f, "α = 표");
-            Assert.Less(card.localScale.x, 1f, "아직 다 안 컸다");
-            Assert.GreaterOrEqual(card.localScale.x, 0.7f, "from scale(.7) 아래로는 안 간다");
+            // 한 프레임 뒤: 보통은 아직 도는 중 — 같은 시각의 셈과 값이 같다(경과는 러너가 쥔다).
+            // T165 — 팝업을 처음 세우는 프레임은 러너에서 250ms 를 넘길 수 있다(런 390: 334.7ms · 글꼴·아틀라스·레이아웃이 한꺼번에 선다).
+            //        벽시계가 넘겼으면 중간값 단언은 잴 자리가 없다 — 남기고 건너뛴다(끝 상태·재호출 계약은 아래에서 그대로 잰다).
+            if (!s.Done(pop.ElapsedMs))
+            {
+                CanvasGroup cg = card.GetComponent<CanvasGroup>();
+                Assert.IsNotNull(cg, "α 는 CanvasGroup 으로 건다");
+                Assert.AreEqual((float)s.ScaleAt(pop.ElapsedMs), card.localScale.x, 1e-3f, "scale = 표(경과 " + pop.ElapsedMs + ")");
+                Assert.AreEqual(card.localScale.x, card.localScale.y, 1e-6f, "가로세로 같은 배율");
+                Assert.AreEqual((float)s.AlphaAt(pop.ElapsedMs), cg.alpha, 1e-3f, "α = 표");
+                Assert.Less(card.localScale.x, 1f, "아직 다 안 컸다");
+                Assert.GreaterOrEqual(card.localScale.x, 0.7f, "from scale(.7) 아래로는 안 간다");
+            }
+            else Debug.Log("[T165] 첫 프레임이 " + pop.ElapsedMs.ToString("0") + "ms 로 팝(250ms)을 넘겼다 — 중간값 단언은 건너뛴다(러너 느림 · 코드 결함 아님)");
 
-            // 열린 채 재호출 — 같은 팝업 · 러너가 새로 안 붙는다(정본 1156)
+            // 열린 채 재호출 — 같은 팝업 · 러너가 새로 안 붙는다(정본 1156) · 느린 프레임에 이미 걷혔어도 «새로 안 붙는다» 는 같다
+            int before = p.Root.GetComponents<CardPop>().Length;
             Popup again = L.Show("stub");
             Assert.AreSame(p, again);
-            Assert.AreEqual(1, p.Root.GetComponents<CardPop>().Length, "재호출은 opening 을 다시 안 붙인다");
+            Assert.AreEqual(before, p.Root.GetComponents<CardPop>().Length, "재호출은 opening 을 다시 안 붙인다");
 
             // 끝까지 돈다 → 원래 모습 · 러너와 내 CanvasGroup 은 걷힌다
             float t = 0f;
