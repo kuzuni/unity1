@@ -88,6 +88,7 @@ namespace Forge.Game.Ui
             dim.color = UiKit.PerceivedDim(dim.color);   // T94 — 정본 rgba(0,0,0,.5) 를 선형 공간에서 브라우저와 같은 밝기로(결정 191 · modal_dim_deep 도 같은 환산)
             dim.raycastTarget = true;
             open.Add(p);
+            CardPop.Begin(p.Root);   // T135 ⓑ — 정본 `.modal.opening .modal-card` cardpop: 처음 열 때만(위의 «이미 열림» 갈래는 안 거친다 = ui.js 1156)
             RaiseTabX();
             return p;
         }

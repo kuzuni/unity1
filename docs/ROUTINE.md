@@ -1145,6 +1145,7 @@
 - **1회차 ⓐ 완료**(2026-09-14 · 워커 K · sess-0032-25925): 셈은 Core `FxRules`(세기 `DmgVigPeak` · 시계 `DmgVigAlpha` · 그림 `DmgVigSample`/`DmgVigT`/`DmgVigMask`)가 쥐고 화면은 `Game/Ui/BattleOverlay.cs` 가 그라디언트+마스크를 한 장에 구워 칠한다. 호출은 정본과 같은 자리 둘(`BattleScene` 의 `HeroHit` → `FlashDamage(sev)` · `HeroDown` → `FlashDamage(1)`). 층은 형제 맨 아래 = 정본 z 12(사망 암전 15·씬컷 16 아래). 단언 EditMode 8 + PlayMode 4.
   - ⚠ **등재 절의 `Game/Battle/BattleOverlay.cs` 는 없는 경로였다** — 실제 자리는 `Game/Ui/BattleOverlay.cs` 다(표의 «범위» 칸을 고쳐 두었다).
   - 남은 ⓑ·ⓒ·ⓓ 는 그대로 2회차 몫(ⓑ `Popups.cs` = T109·T132 lock · ⓒ `ForgeCraftPopup.cs`·`catalog.json` = T87 lock · ⓓ `LootFeed.cs` 새 파일).
+- 🔄 2026-09-14 06:5x 워커 N(sess-0524-8791) 2회차 = ⓑ: `PopupLayer.Show` 의 새 팝업 갈래가 뿌리에 `CardPop` 러너를 한 번 붙이고(재호출은 안 붙는다 = ui.js 1156), 러너가 카드 `"card"` 를 매 프레임 찾아 표(`CardPopUi.json` · `CardPopSpec` · .25s ease-out · scale .7→1 · α 0→1)대로 걸고 끝나면 원래 모습으로(결정 323) · EditMode 3 · PlayMode 1. 판정은 다음 런(팝은 정지 촬영에 안 찍혀 PlayMode 단언이 본다). ⓒ2 는 T122 lock 뒤.
 
 
 ### T136 — 전투 바 Lv 라벨이 **오브보다 넓다**: 글자 종류 하한(Sub 36px)이 정본 `.5rem`(18.2px)의 **두 배**라 판을 걷자 폭이 드러났다 (Game·UI · **T87 lock 뒤**(`catalog.json`) · T109 8회차 PNG 눈 확인)

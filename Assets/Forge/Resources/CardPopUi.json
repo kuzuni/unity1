@@ -1,0 +1,17 @@
+{
+  "_": "ROUTINE T135 둘째 갈래 — 모달이 열릴 때 카드가 튀는 연출(정본 style.css 1758 `.modal.opening .modal-card { animation: cardpop .25s ease-out }` · 1759 `@keyframes cardpop { from { transform: scale(.7); opacity: 0 } to { transform: none; opacity: 1 } }` · ui.js 1245~1247 `opening` 은 처음 열 때만 붙고 300ms 뒤 떼며, 열린 채 재렌더(1156)는 다시 안 붙인다). 수치는 전부 여기서 온다(§1). 접미: _ms = 벽시계.",
+  "layout": {
+    "duration_ms": 250,
+    "opening_hold_ms": 300
+  },
+  "cardpop": [
+    { "at": 0,   "scale": 0.7, "alpha": 0, "ease": "ease-out" },
+    { "at": 100, "scale": 1.0, "alpha": 1 }
+  ],
+  "_src": {
+    "duration_ms": "css 1758 `animation: cardpop .25s ease-out` — 한 번(iteration 1 · 되풀이 없음)",
+    "cardpop": "css 1759 `from { transform: scale(.7); opacity: 0 } to { transform: none; opacity: 1 }` — 구간 이징 ease-out(cubic-bezier(0,0,.58,1))",
+    "opening_hold_ms": "ui.js 1247 `setTimeout(() => el.classList.remove('opening'), 300)` — 그 안에 재렌더돼도 카드가 다시 튀지 않는다(1156 주석 «재호출은 opening 을 다시 붙이지 않아 깜빡임이 없다»)",
+    "_origin": "CSS transform 의 기본 transform-origin 은 카드 중심 — 클론 카드(PopupKit.Card)도 피벗 .5/.5 라 같은 중심에서 커진다"
+  }
+}
