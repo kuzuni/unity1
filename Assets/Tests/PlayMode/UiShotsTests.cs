@@ -119,6 +119,15 @@ namespace Forge.Tests.PlayMode
             "weapon=underworld/mythic/28 helmet=multiverse/legendary/26 armor=interstellar/common/25 gloves=multiverse/common/26 "
             + "necklace=underworld/rare/28 ring=multiverse/common/26 shoes=multiverse/legendary/26 belt=quantum/rare/27";
 
+        /// <summary>
+        /// T128 7·8회차 — 위 <see cref="BoardSignature"/> 의 기대값. **런 469 ↔ 483 두 런이 글자 하나까지 같았다**(그 사이 main 커밋 수십 개 · 그 전에는
+        /// 검수 Q 실측으로 전투력이 22.4m → 33m → 35.6m 로 올라만 갔다). 이 단언이 빨개지는 경우는 둘뿐이다: ⓐ 촬영 판이 다시 앞 테스트에 물린다
+        /// (고쳐야 한다 — `Seed()` 가 직접 안 세우는 칸이 흘러든 것이다) ⓑ 정본 표가 바뀌어 굴림·수치가 바뀐다 — 그때는 **원작 샷과의 대조 기준이 함께
+        /// 바뀐 것**이라 새 서명을 여기 적고 그 회차 기록에 이유를 남긴다(장비 서명과 같은 규약).
+        /// </summary>
+        private const string BoardSignatureExpected =
+            "cp=94m ch=4-1 gear=29 pets=8/21/3 skills=15/3 coins=27100000 kills=48210";
+
         /// <summary>원작 `shot-screens.js` 의 `SEED` — 빈 화면·잠금으로 레이아웃이 안 보이는 것을 막는 캡처용 진행 상태. 수치는 정본 그대로다(밸런스를 만들지 않는다).</summary>
         private static void Seed()
         {
@@ -992,6 +1001,10 @@ namespace Forge.Tests.PlayMode
                 // T128 — 촬영 상태가 런마다 같은지를 **자가 묻는다**(자취 한 줄은 사람이 봐야 하지만 이 단언은 CI 가 본다).
                 Assert.AreEqual(GearSignatureExpected, GearSignature,
                     "촬영 장비 상태가 기준과 다르다 — 난수가 다시 흔들렸거나 정본 표가 바뀌었다(T128 · 기록을 보고 서명을 갱신하라)");
+                // T128 8회차 — 장비 **밖**의 판(전투력·진행·펫·스킬·재화)도 런마다 같아야 «상태가 같은 두 런» 이다.
+                //    7회차가 글자로만 남겨 런 469 ↔ 483 을 견줬고 **글자 하나까지 같았다** — 그래서 이제 CI 가 본다.
+                Assert.AreEqual(BoardSignatureExpected, BoardSignature,
+                    "촬영 판이 기준과 다르다 — 앞 테스트가 남긴 상태가 흘러들었거나 정본 표가 바뀌었다(T128 · 기록을 보고 서명을 갱신하라)");
                 shots = Screens();
                 Trace("목록 " + shots.Count + "줄");
             }
