@@ -88,6 +88,11 @@ namespace Forge.Game.Ui
                 fill.rectTransform.anchorMin = Vector2.zero;
                 fill.rectTransform.anchorMax = new Vector2((float)pct, 1f);
                 fill.rectTransform.offsetMin = fill.rectTransform.offsetMax = Vector2.zero;
+                // T178 6회차 — 정본 `.qst-bar i`(2044)·`.qst-row.done .qst-bar i`(2047)는 **두 겹**이다: 세로 색 띠 + 위 1 CSS px 흰 광택.
+                //   색 한 칸으로는 «채움이 평평해» 보인다. 상태(파랑/초록)는 정본 주석대로 **띠 키**로만 가른다 — 광택은 두 상태가 같다.
+                float fillW = bodyW * (float)pct;
+                SurfaceArt.FillMasked(fill, "qst-fill-grad", done ? "qst_bar_done_ramp" : "qst_bar_ramp", fillW, barH);
+                SurfaceArt.Fill(fill.rectTransform, "qst-fill-rim", "qst_bar_rim", fillW, barH);
                 TextMeshProUGUI progT = UiKit.Text(bar, "prog", TextKind.Sub, PopupKit.Fmt(System.Math.Min(q.Prog, q.Need)) + "/" + PopupKit.Fmt(q.Need), "pp_ink");
                 progT.fontStyle = FontStyles.Bold;
 

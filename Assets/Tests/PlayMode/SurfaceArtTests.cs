@@ -291,5 +291,35 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsFalse(glow.gameObject.activeSelf, "닫으면 다시 꺼진다");
         }
+
+        /// <summary>T178 6회차 — 퀘스트 진행 막대 채움은 **두 겹**이다(정본 2044·2047: 세로 색 띠 + 위 1 CSS px 흰 광택).
+        /// 상태(수령 전 파랑 / 수령 대기 초록)는 **띠 키로만** 갈리고 광택은 같다 — 정본 주석이 못 박은 자리다.</summary>
+        [UnityTest]
+        public IEnumerator 퀘스트_막대_채움은_띠와_광택_두_겹이다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!(MetaHost.Ready && PopupLayer.Instance != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
+            UiRoot.Instance.TabBar.OnTab("quest");
+            yield return null;
+            yield return null;
+            Transform grad = FindDeep(UiRoot.Instance.App, "qst-fill-grad");
+            Assert.IsNotNull(grad, "채움 띠(qst-fill-grad)가 섰다");
+            Transform rim = FindDeep(UiRoot.Instance.App, "qst-fill-rim");
+            Assert.IsNotNull(rim, "채움 광택(qst-fill-rim)이 섰다");
+            Assert.AreEqual("fill", grad.parent.name, "겹은 채움(fill)의 자식이다");
+            UnityEngine.UI.Image gi = grad.GetComponent<UnityEngine.UI.Image>();
+            Assert.IsNotNull(gi.sprite, "띠는 구운 그림이다(색 한 칸이 아니다)");
+            Assert.IsFalse(gi.raycastTarget);
+            UnityEngine.UI.Mask mask = grad.parent.GetComponent<UnityEngine.UI.Mask>();
+            Assert.IsNotNull(mask, "채움에 Mask — 둥근 끝 밖으로 안 샌다");
+
+            // 정본 띠는 위가 밝고 아래가 어둡다(#8fd9ff → #0288d1 · done 이면 #aef2b0 → #2e9e31).
+            Texture2D tex = gi.sprite.texture;
+            Color top = tex.GetPixel(tex.width / 2, tex.height - 2), bottom = tex.GetPixel(tex.width / 2, 1);
+            float lt = top.r + top.g + top.b, lb = bottom.r + bottom.g + bottom.b;
+            Assert.Greater(lt, lb + 0.3f, "위가 아래보다 밝다(정본 180deg 밝은 색 → 어두운 색)");
+        }
     }
 }
