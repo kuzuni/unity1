@@ -3225,6 +3225,7 @@
 - **색은 카탈로그로(§1)**: 공용 `pp_panel` 은 다른 화면이 같이 쓰니 그대로 두고 `catalog.json` 에 이 모달 몫 세 키(`idet_panel` #d6d6d6 · `idet_lead_ink` #000000 · `idet_row_ink` #3a3a3a)를 더했다 · `gen_ui_catalog` 로 `UiCatalog.asset` 다시 씀(--check 초록). `ForgeInfoPopup.cs` 셋째 자리(판 `Rounded` 색 키 · lead `Label` 색·bold · 행 `Label` 색·bold)만 바꿨다 — 치수·간격은 안 건드렸다(정본의 이 모달 치수 교정은 별도 자리).
 - **자**: `ForgeUiTests` 장비 상세 자에 단언 여섯 — 판 바탕 == `idet_panel` · != `pp_panel` · lead 순검정+굵게 · 첫 행 #3a3a3a+굵게. dotnet 646/646(PlayMode 는 컴파일만).
 - **게이트**: `dotnet build` 0 오류 · `dotnet test` 646/646 · `gen_ui_catalog --check` · 문서·자 rc 0.
+- **판정 ①(08:5x 회차 · 런 358 `dee395a` · 내 6f6c4d7 포함)**: 값은 섰다 — `ForgeUiTests.확률_정보_목록_상세_팝업이_열리고_닫힌다`(새 단언 여섯 포함) **PASS**. 그림은 못 봤다 — 이 런의 촬영 58장이 **전부 회색 128**(`screen_forge-detail`·`screen_main` 다섯 자리 실측 (128,128,128) · 원작 042931 같은 자리 214) = T147 3회차 전체화면 패스가 남의 화면을 씻은 것(T147 보고함 c178941 · 4회차 a20ba52 가 런 358 **뒤**에 수리를 밀었다). 같은 런 빨강 9(ForgeUiTests 픽셀 자 다섯 · ItemFaces · Outline · PetUi)도 그 회색의 것으로 보인다. `ui_score` 도 회색 장으로는 뜻이 없어 안 잰다. **lock 갱신 · 판 픽셀 214±2 는 a20ba52 를 담은 다음 런에서**.
 - **다음 회차에 볼 것**: 런의 `ForgeUiTests` 초록(단, T142 부팅 덮개가 그 런에도 남아 있으면 픽셀 자 둘은 그 몫) + `screen_forge-detail.png` 판 바탕 픽셀 **214±2**(정본 `shot-042931` 과 나란히) + `ui_score --score --only forge-detail` 이 런 321 의 1.4 보다 오르는가 → ✅ · lock 반납.
 
 ### T142 보고함 — 런 350 픽셀 빨강 둘과 «민회색 카드» 의 뿌리는 제작 화면 위에 남은 부팅 오버레이다 (2026-09-14 07:5x · 워커 P · lock 안 잡음 · 코드 0줄)
