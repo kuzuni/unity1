@@ -85,6 +85,10 @@ namespace Forge.Game.Ui
                 RenderTexture.active = rt;
                 tex = new Texture2D(px, px, TextureFormat.RGBA32, false);
                 tex.ReadPixels(new Rect(0, 0, px, px), 0, 0);
+                // T332 2회차 — 정본은 펫·탈것 썸네일에도 슬롯과 **같은** 검정 아웃라인을 건다
+                // (style.css 7663 `.pet-tile .tile-face .mt-face`·`.petd-tile .mt-face`·`.sk-mini .mt-face` · `--sw` 4방향 drop-shadow).
+                // 굽는 길이 같으므로 자는 하나만 둔다 — 두께 환산에 쓰는 «칸 폭» 만 펫 타일 값으로 준다.
+                ItemFaces.Outline(tex, ItemFacesStyle.L("pet_cell_canvas_px"));
                 tex.Apply();
                 tex.name = "petface:" + kind + ":" + name;
             }

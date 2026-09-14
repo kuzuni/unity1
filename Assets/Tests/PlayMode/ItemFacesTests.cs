@@ -422,5 +422,55 @@ namespace Forge.Tests.PlayMode
             log.AssertNoRed();
             log.Dispose();
         }
+
+        /// <summary>
+        /// T332 2회차 — 정본은 펫·탈것 3D 썸네일에도 슬롯과 **같은** 검정 아웃라인을 건다
+        /// (`style.css` 7663 `.pet-tile .tile-face .mt-face` · `.petd-tile .mt-face` · `.sk-mini .mt-face` · 두께 `--slot-out` · 색 `--slot-outc: #000`).
+        /// 알(egg) 은 그 목록에서 빠져 있는데(7677 주석 · 주인 지시 2026-08-19) 알은 3D 썸네일이 아니라 IconGen 아이콘이라 이 길을 안 탄다.
+        /// 이 자는 <see cref="PetFaces"/> 가 구운 그림 **가장자리에 검정이 있다**만 본다 — 자리·크기는 촬영 PNG 가 본다(§1).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 펫_탈것_썸네일에도_슬롯과_같은_검정_아웃라인이_구워진다()
+        {
+            yield return Boot();
+            float t0 = 0f;
+            while (!PetSkillHost.Ready && t0 < 20f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(PetSkillHost.Ready, "PetSkillHost 가 20초 안에 준비되지 않았다");
+            Assert.IsTrue(PetFaces.Available, "펫 썸네일 파이프라인(그래픽 장치 · 표)이 서 있다");
+            PetFaces.Reset();
+            yield return null;
+
+            GameData data = PetSkillHost.Instance.Data;
+            foreach (GalleryKind kind in new[] { GalleryKind.Pets, GalleryKind.Mounts })
+            {
+                string name = null;
+                foreach (GallerySpecies s0 in MobGallery.SpeciesOf(data, kind)) { name = s0.Name; break; }
+                Assert.IsNotNull(name, kind + " 종 표가 비어 있다");
+                Sprite sp = PetFaces.Get(name, kind);
+                Assert.IsNotNull(sp, kind + " «" + name + "» 썸네일이 구워졌다");
+                // «검정 픽셀이 있다» 만으로는 약하다 — 몸이 검은 종이면 테 없이도 통과한다.
+                // 아웃라인은 **실루엣 바깥 테두리**를 통째로 검정으로 만드므로, 투명과 맞닿은 불투명 픽셀만 세어 그 비율을 본다.
+                Texture2D tx = (Texture2D)sp.texture;
+                Color32[] px = tx.GetPixels32();
+                int w = tx.width, h = tx.height;
+                int opaque = 0, edge = 0, edgeInk = 0;
+                for (int y = 0; y < h; y++)
+                    for (int x = 0; x < w; x++)
+                    {
+                        Color32 c = px[y * w + x];
+                        if (c.a == 0) continue;
+                        opaque++;
+                        bool border = (x > 0 && px[y * w + x - 1].a == 0) || (x + 1 < w && px[y * w + x + 1].a == 0)
+                                   || (y > 0 && px[(y - 1) * w + x].a == 0) || (y + 1 < h && px[(y + 1) * w + x].a == 0);
+                        if (!border) continue;
+                        edge++;
+                        if (c.r < 24 && c.g < 24 && c.b < 24) edgeInk++;
+                    }
+                Assert.Greater(opaque, 0, kind + " «" + name + "» 썸네일에 그려진 픽셀이 있다");
+                Assert.Greater(edge, 0, kind + " «" + name + "» 썸네일에 실루엣 테두리가 있다");
+                Assert.GreaterOrEqual(edgeInk / (float)edge, 0.9f,
+                    "구운 " + kind + " 그림의 실루엣 테두리가 검정이다(정본 --slot-out · T332 2회차) · 테두리 " + edge + " 중 검정 " + edgeInk + " · 불투명 " + opaque);
+            }
+        }
     }
 }

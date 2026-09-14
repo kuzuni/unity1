@@ -240,7 +240,7 @@ namespace Forge.Game.Ui
                 RenderTexture.active = rt;
                 tex = new Texture2D(px, px, TextureFormat.RGBA32, false);
                 tex.ReadPixels(new Rect(0, 0, px, px), 0, 0);
-                Outline(tex);
+                Outline(tex, ItemFacesStyle.L("cell_canvas_px"));
                 tex.Apply();
                 tex.name = "itemface:" + k;
             }
@@ -335,14 +335,16 @@ namespace Forge.Game.Ui
         /// T332 — 정본의 **검정 아웃라인**을 구운 그림에 직접 얹는다. 정본은 CSS 필터로 건다(`style.css` 763~770 `.fl-face img`·3669 `.equip-cell .cell-img`·7663·7672):
         /// `--sw`(= `--slot-out` = `max(1px, .0825rem)` = **1.32 CSS px** · 색 `--slot-outc: #000`)만큼 **4방향**(±x · ±y)으로 drop-shadow 를 겹쳐
         /// 실루엣 둘레에 검은 띠를 만든다 — **대각선은 없다**(plus 꼴). 클론은 3D 를 텍스처로 구우므로 같은 일을 픽셀로 한다.
-        /// 두께: `sw_css_px × css_px`(정본 CSS px → 기준 캔버스 px · 결정 222) × `px / cell_canvas_px`(굽기 텍스처가 칸보다 크다) — 화면에 서면 정본과 같은 1.32 CSS px 다.
+        /// 두께: `sw_css_px × css_px`(정본 CSS px → 기준 캔버스 px · 결정 222) × `텍스처 한 변 / cellCanvasPx`(굽기 텍스처가 칸보다 크다) — 화면에 서면 정본과 같은 1.32 CSS px 다.
         /// 알파가 있는 곳은 건드리지 않는다(모델이 위다) — 빈자리에만 칠하므로 «모델을 덮는» 일이 없다.
+        /// 2회차: <see cref="PetFaces"/> 도 같은 테를 쓰므로(정본 7663 `.pet-tile .tile-face .mt-face`·`.petd-tile .mt-face`·`.sk-mini .mt-face`)
+        /// «이 썸네일이 서는 칸의 기준 캔버스 폭» 을 인자로 받는다 — 장비 칸과 펫 타일은 폭이 다르고 두께는 **화면에서** 같아야 한다.
         /// </summary>
-        static void Outline(Texture2D tex)
+        internal static void Outline(Texture2D tex, float cellCanvasPx)
         {
             int w = tex.width, h = tex.height;
-            int sw = Mathf.RoundToInt(ItemFacesStyle.L("sw_css_px") * KeylineUi.CssPx
-                                      * ItemFacesStyle.L("px") / ItemFacesStyle.L("cell_canvas_px"));
+            if (cellCanvasPx <= 0f) return;
+            int sw = Mathf.RoundToInt(ItemFacesStyle.L("sw_css_px") * KeylineUi.CssPx * w / cellCanvasPx);
             if (sw <= 0) return;
             Color32[] px = tex.GetPixels32();
             byte[] a = new byte[px.Length];
