@@ -69,9 +69,10 @@ namespace Forge.Game.Ui
 
                 // 빨간 깃발 태그(카드 바깥선보다 왼쪽에서 시작 · 폭 고정)
                 float tagW = UiKit.L("shop_tag_w") * w, tagH = UiKit.H("shop_tag_h");
-                RectTransform tag = UiKit.Box(card, "tag");
-                UiKit.Place(tag, -UiKit.L("shop_tag_left") * w, UiKit.H("shop_tag_top"), tagW, tagH);
-                UiKit.Panel(tag, "bg", "pp_red");
+                // T159 3회차 — 정본 2923 은 오른쪽에 **제비꼬리 홈**(`calc(100% - .8rem) 50%`)이 파인 깃발이다. 여태 민무늬 직사각형이었다.
+                // 깊이가 %가 아니라 절대 .8rem 이라 `ClipShape` 에 rem 을 넘겨 꼭짓점을 그 자리에서 잡는다.
+                RectTransform tag = ClipShape.Face(card, "tag", "shop_deal_tag",
+                    -UiKit.L("shop_tag_left") * w, UiKit.H("shop_tag_top"), tagW, tagH, "pp_red", PopupKit.Rem);
                 TextMeshProUGUI tagT = UiKit.Text(tag, "name", TextKind.Sub, d.Name, "stage_ink", TextAlignmentOptions.Left);
                 tagT.fontStyle = FontStyles.Bold;
                 tagT.rectTransform.offsetMin = new Vector2(w * 0.0503f, 0f);

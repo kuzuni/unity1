@@ -45,8 +45,8 @@ TABLE = {
     '.pass-banner::before': ['Ui/PassPopup.cs#tail-l'],
     '.pass-banner::after': ['Ui/PassPopup.cs#tail-r'],
     # 가격 페넌트는 두 층(검정 바깥 · 3px 안쪽 주황)이 **같은 clip** 을 쓴다 — 자리는 하나다.
-    '.pass-price': ['Ui/PassPopup.cs#price'],
-    '.pass-price::before': ['Ui/PassPopup.cs#price'],
+    '.pass-price': ['Ui/PassPopup.cs#price-line'],
+    '.pass-price::before': ['Ui/PassPopup.cs#price-face'],
     # 패스 칸 아래에 붙는 꼬리 삼각형 넷(무료·프리미엄 × 검정 층·면 층) — 클론의 칸을 세우는 곳은 Cell( 하나다.
     '.pass-cell.free::before': ['Ui/PassPopup.cs@Cell'],
     '.pass-cell.free::after': ['Ui/PassPopup.cs@Cell'],
@@ -61,9 +61,6 @@ TABLE = {
 # ── 임자가 정해진 빈자리(자리 → 이유) — T159 ⓑ 가 닫을 때마다 지운다 ──────────────────────────
 KNOWN = {
     'Ui/ForgeUi.cs@Ribbon': 'T156 — .cmp-ribbon 의 «<» 노치(그 절이 임자 · ForgeUi.cs 는 T122 lock 뒤)',
-    'Ui/PassPopup.cs#price': 'T159 ⓑ — .pass-price 페넌트(아래 꼭짓점 · 두 층이 같은 clip)',
-    'Ui/PassPopup.cs@Cell': 'T159 ⓑ — .pass-cell 꼬리 삼각형 넷(칸 아래 · 검정 층 + 면 층)',
-    'Ui/ShopSheet.cs#tag': 'T159 ⓑ — .shop-deal-tag 제비꼬리 홈',
 }
 
 # 굽는 길(결정 223 · T87 6회차 CraftFxPoly · T102 PetHatchCone · 제 손으로 굽는 Sprite.Create)

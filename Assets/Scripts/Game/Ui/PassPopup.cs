@@ -74,11 +74,16 @@ namespace Forge.Game.Ui
             Button price = UiKit.Button(desc, "price", () => h.Toast("💎 프리미엄 패스는 데모 버전에서 지원하지 않습니다"));
             RectTransform prt = price.GetComponent<RectTransform>();
             UiKit.Place(prt, inner * 0.75f - priceW * 0.5f, (descH - priceH) * 0.5f, priceW, priceH);
-            UiKit.Rounded(prt, "line", "pp_line", rem * 0.3f);
-            Image pface = UiKit.Rounded(prt, "face", "pass_price", rem * 0.2f);
-            PopupKit.Inset(pface.rectTransform, PopupKit.Line3);
+            // T159 3회차 — 정본 2739 는 둥근 사각이 아니라 **아래가 뾰족한 페넌트**(`--pen`)다. 검정 바깥 층과 3px 안쪽 주황 면이
+            // **같은 clip** 을 쓴다(정본 주석: «테두리 속성은 clip-path 에 잘려 쓸 수 없음»). 여태 둥근 사각 두 장이라 꼭짓점이 없었다.
+            ClipShape.Face(prt, "price-line", "pass_pennant", 0f, 0f, priceW, priceH, "pp_line");
+            ClipShape.Face(prt, "price-face", "pass_pennant", PopupKit.Line3, PopupKit.Line3,
+                priceW - PopupKit.Line3 * 2f, priceH - PopupKit.Line3 * 2f, "pass_price");
             TextMeshProUGUI pt = UiKit.Text(prt, "label", TextKind.Sub, h.Meta.Pass.PremiumPriceKr, "stage_ink");
             pt.fontStyle = FontStyles.Bold;
+            // 정본 `padding: .92rem 1.16rem 1.23rem` — 아래가 .31rem 넓다(꼭짓점 몫). 그 차이만큼 글자를 올려 꼭짓점과 안 겹치게 한다.
+            float penLift = (ClipShape.Num("pass_pennant", "pad_bottom_rem") - ClipShape.Num("pass_pennant", "pad_top_rem")) * rem;
+            pt.rectTransform.offsetMin = new Vector2(pt.rectTransform.offsetMin.x, pt.rectTransform.offsetMin.y + penLift);
             PopupKit.Ring(pt, "pass_card", "pp_line");
 
             // [무료 | 프리미엄] 탭 행
@@ -177,6 +182,15 @@ namespace Forge.Game.Ui
             RectTransform cell = UiKit.Box(parent, name);
             UiKit.Place(cell, x, y, w, h);
             PopupKit.Outlined(cell, "face", faceKey, UiKit.H("pass_cell_r"), PopupKit.Line3);
+            // T159 3회차 — 정본 2864~2874: 칸 **아래**(top:100%)에 꼬리 삼각형이 붙는다(검정 층 + 칸 색 면 층 · `background: inherit`).
+            // 무료 칸은 수직변이 오른쪽 · 프리미엄은 거울상. 클론엔 이 꼬리가 아예 없었다.
+            bool free = name == "free";
+            string tail = free ? "pass_cell_tail_free" : "pass_cell_tail_prem";
+            float rem0 = PopupKit.Rem, ol3 = PopupKit.Line3;
+            float tw = ClipShape.Num(tail, "w_rem") * rem0, th = ClipShape.Num(tail, "h_rem") * rem0;
+            float faceX = free ? w - tw : 0f;
+            ClipShape.Face(cell, "tail-line", tail, faceX + (free ? ol3 : -ol3), h, tw + ol3, th + ol3, "pp_line");
+            ClipShape.Face(cell, "tail-face", tail, faceX, h, tw, th, faceKey);
             for (int i = 0; i < reward.Count; i++)
             {
                 RectTransform pill = UiKit.Box(cell, "pill-" + reward.KeyAt(i));

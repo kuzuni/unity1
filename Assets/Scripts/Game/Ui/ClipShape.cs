@@ -71,11 +71,44 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>
+        /// 그 도형의 꼭짓점에, 있으면 «오른쪽에서 절대 길이로 파는 홈»(`notch_from_right_rem`)을 얹어 돌려준다.
+        /// <paramref name="rem"/> 가 0 이거나 그 수가 없으면 표의 값 그대로다(정규 % 도형).
+        /// </summary>
+        public static Vector2[] Clip(string key, float w, float rem)
+        {
+            Vector2[] p = Clip(key);
+            if (rem <= 0f || w <= 0f) return p;
+            Load();
+            JsonObject one = J.Obj(shapes[key]);
+            object d = one == null ? null : one["notch_from_right_rem"];
+            if (!J.IsNum(d)) return p;
+            int i = (int)J.Num(one["notch_index"], -1);
+            if (i < 0 || i >= p.Length)
+                throw new KeyNotFoundException(ResourcePath + ".json 의 «" + key + "» 에 «notch_index»(홈 꼭짓점 자리)가 없다");
+            p[i].x = 1f - (float)J.Num(d) * rem / w;
+            return p;
+        }
+
+        /// <summary>그 도형이 제 곁에 적어 둔 수(정본 치수 · 예: 꼬리 폭 `w_rem`).</summary>
+        public static float Num(string key, string field)
+        {
+            Load();
+            JsonObject one = J.Obj(shapes[key]);
+            object v = one == null ? null : one[field];
+            if (!J.IsNum(v)) throw new KeyNotFoundException(ResourcePath + ".json 의 «" + key + "» 에 «" + field + "» 이 없다");
+            return (float)J.Num(v);
+        }
+
+        /// <summary>
         /// 그 모양의 색면 한 장을 <paramref name="parent"/> 안에 세운다(자리·크기까지 잡는다).
         /// </summary>
         /// <param name="key">`ClipShapeUi.json` 의 도형 이름.</param>
         /// <param name="colorKey">카탈로그 색 키(§1 — 색을 코드에 박지 않는다).</param>
-        public static RectTransform Face(Transform parent, string name, string key, float x, float y, float w, float h, string colorKey)
+        /// <param name="rem">
+        /// 0 보다 크면 «오른쪽에서 **절대** 길이로 파는 홈»(`notch_from_right_rem`)을 이 rem 으로 환산해 꼭짓점을 고쳐 잡는다 —
+        /// 정본 `calc(100% - .8rem)` 꼴이다. 상자가 넓어져도 홈은 그만큼만 파여야 하므로 %로는 적을 수 없다.
+        /// </param>
+        public static RectTransform Face(Transform parent, string name, string key, float x, float y, float w, float h, string colorKey, float rem = 0f)
         {
             RectTransform box = UiKit.Box(parent, name);
             UiKit.Place(box, x, y, w, h);
@@ -84,7 +117,7 @@ namespace Forge.Game.Ui
             float bakeH = BakeH;
             float aspect = w / h;
             float bw = bakeH * aspect;
-            Vector2[] norm = Clip(key);
+            Vector2[] norm = Clip(key, w, rem);
             Vector2[] face = new Vector2[norm.Length];
             for (int i = 0; i < norm.Length; i++) face[i] = new Vector2(norm[i].x * bw, norm[i].y * bakeH);
 

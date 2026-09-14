@@ -61,43 +61,80 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(1f - pl[4].x, pr[2].x, 1e-4f, "두 꼬리는 서로 거울상이다");
         }
 
-        /// <summary>구운 픽셀이 실제로 파여 있는가 — 민무늬 사각형이면 빨강.</summary>
+        /// <summary>홈이 실제로 «파여» 있는가 — 민무늬 사각형이면 두 점이 다 안쪽이라 빨강.</summary>
+        /// <remarks>
+        /// 구운 텍스처를 읽지 않는다: <see cref="CraftFxPoly"/> 는 `Apply(false, true)` 로 굽기 때문에 그림은
+        /// GPU 로만 남아 `GetPixel` 이 던진다. 그래서 **같은 것을 꼭짓점으로** 잰다 — 굽는 입력이 그 다각형이므로
+        /// 다각형이 파여 있으면 구운 그림도 파여 있다.
+        /// </remarks>
         [UnityTest]
-        public IEnumerator 구운_면은_홈_쪽이_비고_반대쪽이_찬다()
+        public IEnumerator 홈_쪽_가운데는_도형_밖이고_반대쪽은_안이다()
         {
             yield return Boot();
 
-            RectTransform host = UiKit.Box(UiRoot.Instance.App, "t159-host");
-            try
-            {
-                // 홈이 왼쪽인 둘 · 오른쪽인 둘
-                AssertNotch("lgr_tail_l", host, true);
-                AssertNotch("pass_tail_l", host, true);
-                AssertNotch("lgr_tail_r", host, false);
-                AssertNotch("pass_tail_r", host, false);
-            }
-            finally { Object.Destroy(host.gameObject); }
-            yield return null;
+            AssertNotch("lgr_tail_l", true);
+            AssertNotch("pass_tail_l", true);
+            AssertNotch("lgr_tail_r", false);
+            AssertNotch("pass_tail_r", false);
+
+            // 가격 페넌트 — 아래 꼭짓점은 가운데에만 있다(모서리는 82% 에서 깎인다)
+            Vector2[] pen = ClipShape.Clip("pass_pennant");
+            Assert.IsTrue(Inside(pen, new Vector2(0.5f, 0.99f)), "페넌트의 아래 꼭짓점은 가운데다");
+            Assert.IsFalse(Inside(pen, new Vector2(0.03f, 0.99f)), "왼쪽 아래 모서리는 깎여 있다 — 둥근 사각이면 여기가 차 있다");
+            Assert.IsFalse(Inside(pen, new Vector2(0.97f, 0.99f)), "오른쪽 아래 모서리도 깎인다");
+
+            // 패스 칸 꼬리 — 빗변 반대쪽 절반만 남는다(무료는 오른쪽 · 프리미엄은 거울상)
+            Vector2[] tf = ClipShape.Clip("pass_cell_tail_free");
+            Assert.IsTrue(Inside(tf, new Vector2(0.9f, 0.5f)), "무료 칸 꼬리는 수직변이 오른쪽이다");
+            Assert.IsFalse(Inside(tf, new Vector2(0.1f, 0.5f)));
+            Vector2[] tp = ClipShape.Clip("pass_cell_tail_prem");
+            Assert.IsTrue(Inside(tp, new Vector2(0.1f, 0.5f)), "프리미엄 칸 꼬리는 거울상이다");
+            Assert.IsFalse(Inside(tp, new Vector2(0.9f, 0.5f)));
         }
 
-        private static void AssertNotch(string key, RectTransform host, bool notchLeft)
-        {
-            RectTransform box = ClipShape.Face(host, key, key, 0f, 0f, 60f, 64f, "pp_line");
-            Image img = box.Find("face").GetComponent<Image>();
-            Assert.IsNotNull(img.sprite, key + ": 폴리곤이 구워졌다");
-            Texture2D tex = img.sprite.texture;
-            int mid = tex.height / 2;
-            int nearLeft = Mathf.Max(0, Mathf.RoundToInt(tex.width * 0.05f));
-            int nearRight = Mathf.Min(tex.width - 1, Mathf.RoundToInt(tex.width * 0.95f));
-            float outside = tex.GetPixel(notchLeft ? nearLeft : nearRight, mid).a;
-            float inside = tex.GetPixel(notchLeft ? nearRight : nearLeft, mid).a;
-            Assert.Less(outside, 0.05f, key + ": 홈 쪽 중간 높이는 비어야 한다 — 차 있으면 민무늬 사각형이다");
-            Assert.Greater(inside, 0.95f, key + ": 본체에 붙는 쪽 중간 높이는 차 있어야 한다");
-        }
-
-        /// <summary>실물 두 화면의 꼬리 넷이 «구운 면» 인가(민무늬 판이 아니라).</summary>
+        /// <summary>제비꼬리 홈은 %가 아니라 **절대 .8rem** 이다 — 상자가 넓어져도 깊이가 그만큼이어야 한다.</summary>
         [UnityTest]
-        public IEnumerator 리그_보상과_패스의_꼬리가_구운_면이다()
+        public IEnumerator 거래_태그의_홈은_폭이_바뀌어도_같은_길이만큼_판다()
+        {
+            yield return Boot();
+
+            float rem = 10f;
+            Vector2[] narrow = ClipShape.Clip("shop_deal_tag", 100f, rem);
+            Vector2[] wide = ClipShape.Clip("shop_deal_tag", 200f, rem);
+            Assert.AreEqual(1f - 0.8f * rem / 100f, narrow[2].x, 1e-4f, "정본 `calc(100% - .8rem)`");
+            Assert.AreEqual(1f - 0.8f * rem / 200f, wide[2].x, 1e-4f, "폭이 두 배면 정규 깊이는 절반");
+            Assert.AreEqual((1f - narrow[2].x) * 100f, (1f - wide[2].x) * 200f, 1e-3f, "실제 판 길이는 둘 다 .8rem");
+            Assert.Less(narrow[2].x, 1f, "홈이 오른쪽 변보다 안쪽이어야 «제비꼬리» 다");
+            Assert.AreEqual(0.5f, narrow[2].y, 1e-4f, "홈은 세로 한가운데");
+            // rem 을 안 주면 표의 값 그대로(정규 % 도형과 같은 길)
+            Assert.AreEqual(1f, ClipShape.Clip("shop_deal_tag")[2].x, 1e-4f);
+        }
+
+        private static void AssertNotch(string key, bool notchLeft)
+        {
+            Vector2[] p = ClipShape.Clip(key);
+            Vector2 outer = new Vector2(notchLeft ? 0.05f : 0.95f, 0.5f);
+            Vector2 inner = new Vector2(notchLeft ? 0.95f : 0.05f, 0.5f);
+            Assert.IsFalse(Inside(p, outer), key + ": 홈 쪽 중간 높이는 도형 밖이어야 한다 — 안이면 민무늬 사각형이다");
+            Assert.IsTrue(Inside(p, inner), key + ": 본체에 붙는 쪽 중간 높이는 도형 안이다");
+        }
+
+        /// <summary>점이 다각형 안인가(반직선 교차 · 굽는 자가 쓰는 것과 같은 셈).</summary>
+        private static bool Inside(Vector2[] pts, Vector2 p)
+        {
+            bool inside = false;
+            for (int i = 0, j = pts.Length - 1; i < pts.Length; j = i++)
+            {
+                if ((pts[i].y > p.y) == (pts[j].y > p.y)) continue;
+                float x = (pts[j].x - pts[i].x) * (p.y - pts[i].y) / (pts[j].y - pts[i].y) + pts[i].x;
+                if (p.x < x) inside = !inside;
+            }
+            return inside;
+        }
+
+        /// <summary>실물 세 화면(리그 보상 · 패스 · 상점)의 깎인 자리가 «구운 면» 인가(민무늬 판이 아니라).</summary>
+        [UnityTest]
+        public IEnumerator 리그_패스_상점의_깎인_자리가_구운_면이다()
         {
             yield return Boot();
             MetaHost h = MetaHost.Instance;
@@ -113,7 +150,18 @@ namespace Forge.Tests.PlayMode
             yield return null;
             AssertBaked(h, PassPopup.Name, "tail-l");
             AssertBaked(h, PassPopup.Name, "tail-r");
+            // 가격 페넌트 두 층(검정 바깥 · 주황 안쪽)과 보상 칸 꼬리(검정 층 + 칸 색 면)
+            AssertBaked(h, PassPopup.Name, "price-line");
+            AssertBaked(h, PassPopup.Name, "price-face");
+            AssertBaked(h, PassPopup.Name, "tail-line");
+            AssertBaked(h, PassPopup.Name, "tail-face");
             h.Popups.Hide(PassPopup.Name);
+            yield return null;
+
+            ShopSheet.Open(h);
+            yield return null;
+            AssertBaked(h, ShopSheet.Name, "tag");
+            ShopSheet.Close(h);
             yield return null;
         }
 
