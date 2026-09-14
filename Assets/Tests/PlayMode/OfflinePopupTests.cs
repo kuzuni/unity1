@@ -123,6 +123,7 @@ namespace Forge.Tests.PlayMode
             // 수집 버튼 우상단 빨간 점(흰 테)
             RectTransform collect = Find("collect"), dot = FindUnder(collect, "dot");
             Rect rb = World(collect), rd = World(dot);
+            AssertColor(FindUnder(collect, "face").GetComponent<Image>().color, "pp_blue", "[수집] 버튼 면(정본 3548 .modal-card .btn.primary = --pp-blue · T144)");
             AssertColor(FindUnder(dot, "face").GetComponent<Image>().color, "pp_red", "빨간 점");
             AssertColor(FindUnder(dot, "line").GetComponent<Image>().color, "white", "빨간 점 테");
             Assert.Greater(rd.center.x, rb.xMax - rd.width, "점은 버튼 오른쪽 끝에");

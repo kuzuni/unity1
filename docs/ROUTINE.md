@@ -494,7 +494,7 @@
   - 정본 `.offline-top`(`style.css` 260)은 **평면 `#0e111b` 어두운 판 · 흰 글자 · 카드 높이의 42.8%** 이고 `«수집 시간:»` 은 `#ccc`, 경과 시간·요율은 `--pp-green`. 클론 `OfflinePopup.cs` 29 는 `UiKit.Panel(top, "bg", "pp_panel")`(#efefef) + `pp_ink` 검정 글자 + 제목만 `stage_ink` 흰색(밝은 판 위 흰 글자라 링에 기대 읽힌다).
   - 정본 `.offline-rate` 는 `flex-direction: column`(원형 아이콘 2.6rem **위** · `1.13/초` 글자 **아래** · 두 칸 사이 2.4rem). 클론 `Rate()` 는 원형 아이콘과 글자를 **옆으로** 붙였다.
   - 정본 수집 버튼 우상단에 `.offline-collect-dot`(`.7rem` 빨간 원 · 흰 테두리 · `style.css` 309)이 있다. 클론엔 없다.
-  - 걷어낸 것: 원작 샷의 **파란** 수집 버튼은 옛것 — 정본 `.btn.primary` 가 초록(`#1f4a2c`/`#2ea043`)이라 클론의 초록이 맞다. 합계줄 `8.87k`·`149.05` 는 정본 주석대로 **흰 칠 + 검정 링**(클론은 검정 칠 · 링 규칙은 T25 갈래).
+  - ~~걷어낸 것: 원작 샷의 **파란** 수집 버튼은 옛것 — 정본 `.btn.primary` 가 초록(`#1f4a2c`/`#2ea043`)이라 클론의 초록이 맞다~~ **정정(T144 · 2026-09-14 · 워커 O)**: 668 의 초록은 기본 규칙(0-2-0)이고 팝업 안에서는 3548 `.modal-card .btn.primary { background: var(--pp-blue) }`(0-3-0)가 덮는다 — 오프라인 카드는 `modal-card offline-card`(ui.js 5891)라 **파랑(#005dff)** 이 정본이다(307 주석 «원본 파란 면 실측» 도 같은 말). 클론도 `pp_blue`/`pp_blue_dk` 로 고쳤다. 합계줄 `8.87k`·`149.05` 는 정본 주석대로 **흰 칠 + 검정 링**(클론은 검정 칠 · 링 규칙은 T25 갈래).
 - 무엇을 한다: 머리 판을 어두운 색으로(카탈로그에 `#0e111b` 에 가까운 키가 없으면 키 하나 추가 — `catalog.json` 은 **T62 lock 이 풀린 뒤** · 그 전엔 `pp_ink`(#17181a)로 먼저) + 글자 색을 정본대로(흰 · #ccc · 초록) · 요율 칸을 세로 배치로 · 수집 버튼에 빨간 점. 수치는 `catalog.json`/`PopupKit` 에서(§1).
 - 판정: PNG 눈 확인(위 절반이 어둡다 · 요율이 아이콘 아래 · 수집 버튼 빨간 점) + PlayMode `OfflinePopupTests` 초록 + 콘솔 빨강 0. `ui_score` 는 화면 전체(3D 배경·한글 두부)를 재서 팝업 범위로는 못 닿는다(T57 결정 157 과 같은 갈래 · 런 113 실측 1.4 «짝 없음» · 결정 173) — 화면 점수는 T28 이 본다.
 - 범위: `Assets/Scripts/Game/Ui/OfflinePopup.cs` · `Assets/Forge/catalog.json`(색 키 하나 · T62 뒤) · `Assets/Tests/PlayMode/UiSmokeTests.cs`.

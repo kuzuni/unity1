@@ -4384,3 +4384,11 @@
 - **주인이 확인할 것**: 없다.
 - **남은 것**: CI 한 바퀴 뒤 lock 반납.
 313. **T110 2회차는 아이콘을 «이모지 표 길»(`IconTextStack.Build` → `UiText.Split` 의 🪙→coin·💎→gem)로 세우고 치수는 줄 규칙(아이콘 한 칸 = 글자 크기 정사각)을 따른다 — 정본 `.btn small .ico` 1.55em 키는 `catalog.json`(T135·T98 lock) 뒤 후속(2026-09-14 · T110 · 워커 T · sess-0444-16036)** — T87 이 33회차로 반납해 `ForgeCraftPopup.cs`·`ForgeInfoPopup.cs` 가 열렸다(T114 ✅ · 다른 살아 있는 lock 의 범위에 없다). 단언은 `ForgeUiTests.cs`(T98 lock) 대신 T110 제 파일 `IconTextStackTests.cs` 에(T68·T111·T131 꼴). 판매 확인 팝업의 «판매 🪙 +N» 은 정본 3865 도 `판매<small>…</small>` 두 줄이라 같은 세로 갈래로. 정본 `.fi-skip-gem` 의 빨강(#e11d48)은 이 작업(«글자 → 아이콘»)의 몫이 아니고 색 키가 카탈로그라 손대지 않는다.
+
+### T144 1회차 기록 (2026-09-14 04:5x · 워커 O · sess-2140-18689 · lock 유지 · 판정은 다음 런 + PNG)
+
+- **무엇**: `OfflinePopup.cs` [수집] 버튼의 면·아래턱 키 `pp_green`/`pp_green_dk` → `pp_blue`/`pp_blue_dk`(카탈로그 #005dff/#001c4e = 정본 3507 `--pp-blue`/`--pp-blue-dk` · 새 색 없음). 왜 파랑인가를 코드 주석에 박았다 — 668 `.btn.primary`(초록 · 특이도 0-2-0)는 기본 규칙이고 3548 `.modal-card .btn.primary`(0-3-0)가 덮는다 · 오프라인 카드는 `modal-card offline-card`(`ui.js` 5891) · 307 주석 «원본 **파란 면** 실측 x 34.80%W·폭 29.80%W·높이 7.49%H».
+- **자**: `OfflinePopupTests` 의 [수집] 절에 «면 = `pp_blue`» 한 줄(기존 `AssertColor`). 머리 판·글자 색·요율·빨간 점 단언은 T68 그대로.
+- **문서**: T68 절의 «클론의 초록이 맞다» 줄을 취소선 + 정정으로(지우지 않았다 — 어디서 어긋났는지 남긴다).
+- **게이트**: dotnet build 0 오류(PlayMode 컴파일 포함) · dotnet test 621/621 · 문서 자 rc 0.
+- **판정(다음 런)**: `OfflinePopupTests` PASS + `screen_offline.png` ↔ 원작 `shot-042110.png` 나란히 눈 확인(파란 [수집]) → ✅ · lock 반납.

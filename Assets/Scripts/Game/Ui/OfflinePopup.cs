@@ -80,7 +80,9 @@ namespace Forge.Game.Ui
             UiKit.Place(hammers.rectTransform, inner * 0.55f + ico + rem * 0.2f, 0f, inner * 0.25f, lineH);
             by += lineH + rem * 0.7f;
             float bw = inner * 0.5f, bh = UiKit.H("btn_h") * 1.2f;
-            Button collect = PopupKit.Btn(bottom, "collect", "수집", "pp_green", "pp_green_dk", () => Collect(h), bw, bh);
+            // T144 — 정본은 파랑: 668 `.btn.primary`(초록 · 0-2-0)를 3548 `.modal-card .btn.primary { background: var(--pp-blue) }`(0-3-0)가 덮고
+            //        오프라인 카드는 `modal-card offline-card`(ui.js 5891)다 · 307 주석의 «원본 파란 면 실측» 도 같은 말 · T68 의 «초록이 맞다» 는 기본 규칙만 본 오독
+            Button collect = PopupKit.Btn(bottom, "collect", "수집", "pp_blue", "pp_blue_dk", () => Collect(h), bw, bh);
             UiKit.Place(collect.GetComponent<RectTransform>(), (inner - bw) * 0.5f, by, bw, bh);
             CollectDot(collect.GetComponent<RectTransform>(), bw, rem);
             collectBtn = collect.GetComponent<RectTransform>();
