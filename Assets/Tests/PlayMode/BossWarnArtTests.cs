@@ -190,6 +190,78 @@ namespace Forge.Tests.PlayMode
             }
         }
 
+        /// <summary>
+        /// T368 2회차 — 정본 style.css 395 `.bw-hazard` 는 **−45° 되풀이 줄무늬**다
+        /// (`repeating-linear-gradient(-45deg, #ffca28 0 .55rem, #16100a .55rem 1.1rem)` · `background-size: 1.556rem`).
+        /// 클론은 **세로 대시 24개**였다 — 각도가 0 이라 화면에서 «빗금» 이 아니라 «창살» 로 보였고 색도 카탈로그 근사였다.
+        /// 여기서 재는 것 넷: ⓐ 굽은 판이 붙었는가(단색·대시 조각이 아니다) ⓑ 한 타일 가로가 정본 1.556rem 인가
+        /// ⓒ 화소가 **사선**인가(오른쪽 위로 간 화소는 같은 색 · 바로 오른쪽은 다른 색이 나온다) ⓓ 두 색이 정본 값인가.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 보스_경고_띠는_정본_사선_줄무늬다()
+        {
+            yield return Boot();
+            BattleOverlay o = BattleOverlay.Ensure();
+            o.BossWarning(2.0);
+            yield return null;
+
+            Image st = Find(o.Layer, "stripe");
+            Assert.IsNotNull(st, "구운 줄무늬 판(stripe) 이 붙었다 — 대시 조각을 늘어놓던 자리다");
+            Assert.IsNotNull(st.sprite, "줄무늬는 구워서 얹는다(단색 판이면 스프라이트가 없다)");
+            Assert.AreEqual(Image.Type.Tiled, st.type, "되풀이는 Tiled 가 맡는다(화면 폭만큼 굽지 않는다)");
+            Assert.IsFalse(st.raycastTarget, "장식은 클릭을 안 먹는다(정본 pointer-events: none 갈래)");
+
+            float rem = BattleOverlay.Rem;
+            float want = (float)Forge.Core.Ui.StripeRules.TileWidth(-45, 1.1f * rem, 1e9);
+            Assert.AreEqual(1.556f * rem, want, rem * 0.01f, "정본이 적어 둔 background-size 1.556rem 과 같은 수가 나온다");
+
+            Texture2D tex = st.sprite.texture;
+            Assert.Greater(tex.width, 1); Assert.Greater(tex.height, 1);
+            Color[] px = tex.GetPixels();
+            int W = tex.width, H = tex.height;
+
+            // ⓒ 사선인가 — «오른쪽 위로 한 칸» 이 같은 색인 화소가 대부분이어야 한다(세로 창살이면 «바로 위» 가 같다)
+            int upRightSame = 0, upSame = 0, pairs = 0;
+            for (int y = 0; y < H - 1; y++)
+                for (int x = 0; x < W - 1; x++)
+                {
+                    Color a = px[y * W + x];
+                    // 텍스처 y 는 **아래가 0** 이므로 화면의 «오른쪽 위» = 인덱스 (x+1, y+1). 정본 −45° 의 등가선이 그것이다.
+                    if (Same(a, px[(y + 1) * W + x + 1])) upRightSame++;
+                    if (Same(a, px[(y + 1) * W + x])) upSame++;
+                    pairs++;
+                }
+            Assert.Greater(pairs, 0);
+            Assert.Greater(upRightSame, upSame, "−45° 면 «비스듬한 이웃» 이 «바로 위» 보다 더 자주 같다(세로 창살이면 반대다)");
+            Assert.Greater(upRightSame / (float)pairs, 0.9f, "비스듬한 이웃은 거의 늘 같은 색이다 — 그것이 곧 45° 띠다");
+
+            // ⓓ 두 색이 정본 값인가(#ffca28 · #16100a)
+            Color ink = Hex("#FFCA28"), gap = Hex("#16100A");
+            int nInk = 0, nGap = 0, nOther = 0;
+            for (int i = 0; i < px.Length; i++)
+            {
+                if (Same(px[i], ink)) nInk++;
+                else if (Same(px[i], gap)) nGap++;
+                else nOther++;
+            }
+            Assert.AreEqual(0, nOther, "정본 두 색 말고는 안 쓴다(카탈로그 근사색이 아니다)");
+            Assert.Greater(nInk, 0, "노랑 #ffca28"); Assert.Greater(nGap, 0, "검정 #16100a");
+            Assert.AreEqual(0.5f, nInk / (float)px.Length, 0.08f, "대시 .55rem / 주기 1.1rem = 반반");
+            yield return null;
+        }
+
+        private static bool Same(Color a, Color b)
+        {
+            return Mathf.Abs(a.r - b.r) < 0.02f && Mathf.Abs(a.g - b.g) < 0.02f && Mathf.Abs(a.b - b.b) < 0.02f && Mathf.Abs(a.a - b.a) < 0.02f;
+        }
+
+        private static Color Hex(string s)
+        {
+            Color c;
+            Assert.IsTrue(ColorUtility.TryParseHtmlString(s, out c), s);
+            return c;
+        }
+
         private static Image Find(Transform root, string name)
         {
             if (root == null) return null;

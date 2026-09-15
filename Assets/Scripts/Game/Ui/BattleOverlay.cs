@@ -20,9 +20,12 @@ namespace Forge.Game.Ui
         /// <summary>원작 rem = 앱높이/844 × 16 css px → 캔버스 px.</summary>
         public static float Rem { get { return UiKit.RefH / 844f * 16f; } }
 
+        /// <summary>T368 — 보스 경고 사선 줄무늬 한 타일의 가로(캔버스 px). 정본이 `background-size: 1.556rem`(= 주기 1.1rem × √2)로 적어 둔 수를 <see cref="SurfaceArt.StripeTileWidth"/> 가 스스로 낸다.</summary>
+        static float StripeTileW { get { return SurfaceArt.StripeTileWidth("bw_hazard", 1.1f * Rem); } }
+
         RectTransform layer;
         // boss warning
-        RectTransform warnRoot; Image dim, flash, bannerBg; RectTransform banner; TextMeshProUGUI marquee; RectTransform track; TextMeshProUGUI sub; Image[] hazardDashes;
+        RectTransform warnRoot; Image dim, flash, bannerBg; RectTransform banner; TextMeshProUGUI marquee; RectTransform track; TextMeshProUGUI sub; RectTransform[] hazardTiles;
         double warnT = -1, warnDur = FxRules.BossWarnDur; float trackW;
         // death
         RectTransform deathRoot; Image cover; TextMeshProUGUI title; Image rule; TextMeshProUGUI dsub; RectTransform bannerGroup;
@@ -208,23 +211,27 @@ namespace Forge.Game.Ui
             banner.anchorMin = new Vector2(0, 1 - (float)FxRules.WarnTop); banner.anchorMax = new Vector2(1, 1 - (float)FxRules.WarnTop);
             banner.pivot = new Vector2(0.5f, 0.5f); banner.sizeDelta = new Vector2(0, bannerH); banner.anchoredPosition = Vector2.zero;
             bannerBg = UiKit.Panel(banner, "bg", "pp_red_dk"); UiKit.Fill(bannerBg.rectTransform); bannerBg.raycastTarget = false;
-            hazardDashes = new Image[24];
+            // T368 2회차 — 정본 style.css 395 `.bw-hazard` 는 **−45° 되풀이 줄무늬**다:
+            //   `repeating-linear-gradient(-45deg, #ffca28 0 .55rem, #16100a .55rem 1.1rem)` + `background-size: 1.556rem 100%`(= 1.1 × √2 · 가로축 환산 주기)
+            //   + `@keyframes bwhazard { 0 → 1.556rem }` .62s linear infinite.
+            // 클론은 **세로 대시 24개**(폭 .55rem · 피치 1.1rem)였다 — 각도가 아예 없고 색 셋(`coin`·`topbar_bg`)도 정본이 아니며 수가 코드에 박혀 있었다.
+            // 이제 한 타일을 굽고(`SurfaceArt.BakeStripe` · 셈은 Core `StripeRules`) `Tiled` 로 되풀이하며, 흐름은 한 타일만큼 밀어 준다(= background-position).
+            hazardTiles = new RectTransform[2];
+            float tileW = StripeTileW;
             for (int row = 0; row < 2; row++)
             {
-                Image band = UiKit.Panel(banner, "bw-hazard" + row, "coin");
-                band.raycastTarget = false;
-                var brt = band.rectTransform;
+                RectTransform brt = UiKit.Box(banner, "bw-hazard" + row);
                 brt.anchorMin = new Vector2(0, row == 0 ? 1 : 0); brt.anchorMax = new Vector2(1, row == 0 ? 1 : 0);
                 brt.pivot = new Vector2(0.5f, row == 0 ? 1 : 0); brt.sizeDelta = new Vector2(0, hazard); brt.anchoredPosition = Vector2.zero;
-                for (int i = 0; i < 12; i++)
-                {
-                    Image dash = UiKit.Panel(band.transform, "dash" + i, "topbar_bg");
-                    dash.raycastTarget = false;
-                    var drt = dash.rectTransform;
-                    drt.anchorMin = new Vector2(0, 0); drt.anchorMax = new Vector2(0, 1); drt.pivot = new Vector2(0, 0.5f);
-                    drt.sizeDelta = new Vector2(0.55f * rem, 0); drt.anchoredPosition = new Vector2(i * 1.1f * rem, 0);
-                    hazardDashes[row * 12 + i] = dash;
-                }
+                brt.gameObject.AddComponent<RectMask2D>();      // 흐르는 판이 띠 밖으로 새지 않게
+                RectTransform hzrt = UiKit.Box(brt, "stripe");
+                hzrt.anchorMin = new Vector2(0, 0); hzrt.anchorMax = new Vector2(1, 1);
+                hzrt.offsetMin = new Vector2(-tileW, 0); hzrt.offsetMax = new Vector2(tileW, 0);   // 양옆으로 한 타일씩 더 — 밀어도 빈자리가 안 생긴다
+                Image st = hzrt.gameObject.AddComponent<Image>();
+                st.raycastTarget = false;
+                st.type = Image.Type.Tiled;
+                st.sprite = SurfaceArt.BakeStripe("bw_hazard", 1.1f * rem, 0.55f * rem, 0f, hazard);
+                hazardTiles[row] = hzrt;
             }
             RectTransform mq = UiKit.Box(banner, "bw-marquee");
             mq.anchorMin = new Vector2(0, 0); mq.anchorMax = new Vector2(1, 1); mq.offsetMin = new Vector2(0, hazard); mq.offsetMax = new Vector2(0, -hazard);
@@ -282,9 +289,10 @@ namespace Forge.Game.Ui
             float w = trackW > 0 ? trackW : UiKit.RefW;
             float off = (float)((warnT / FxRules.WarnScrollPeriod) % 1.0) * w;
             track.anchoredPosition = new Vector2(-off, 0);
-            float hz = (float)((warnT / FxRules.WarnHazardPeriod) % 1.0) * 1.1f * Rem;
-            if (hazardDashes != null)
-                for (int i = 0; i < hazardDashes.Length; i++) { int col = i % 12; hazardDashes[i].rectTransform.anchoredPosition = new Vector2(col * 1.1f * Rem + hz - 1.1f * Rem, 0); }
+            // T368 2회차 — 정본 `@keyframes bwhazard { from 0 → to 1.556rem }`: **한 타일**만큼 흐른다(주기가 아니라 가로축 환산 폭이다).
+            float hz = (float)((warnT / FxRules.WarnHazardPeriod) % 1.0) * StripeTileW;
+            if (hazardTiles != null)
+                for (int i = 0; i < hazardTiles.Length; i++) if (hazardTiles[i] != null) hazardTiles[i].anchoredPosition = new Vector2(hz, 0);
         }
 
         // ── 사망 암전 ──

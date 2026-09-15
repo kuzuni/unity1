@@ -295,8 +295,9 @@ namespace Forge.Game.Ui
             {
                 for (int x = 0; x < w; x++)
                 {
-                    // 화소 **가운데**를 잰다 — 가장자리를 재면 주기 경계에서 한 줄이 통째로 뒤집힌다
-                    double cx = (x + 0.5) * sx, cy = (y + 0.5) * sy;
+                    // 화소 **가운데**를 잰다 — 가장자리를 재면 주기 경계에서 한 줄이 통째로 뒤집힌다.
+                    // ⚠ 유니티 텍스처의 y 는 **아래가 0** 이고 CSS 의 y 는 **위가 0** 이다 — 안 뒤집으면 −45° 가 화면에서 +45° 로 기운다(거울상).
+                    double cx = (x + 0.5) * sx, cy = (h - 1 - y + 0.5) * sy;
                     px[y * w + x] = StripeRules.IsInk(cx, cy, ang, periodCanvasPx, dashCanvasPx, phaseCanvasPx) ? inkC : gapC;
                 }
             }
