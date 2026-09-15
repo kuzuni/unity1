@@ -151,14 +151,11 @@ namespace Forge.Game.Ui
             {
                 clone.gameObject.SetActive(true);
                 clone.SetAsLastSibling();
-                // 칸에서는 안 보이던 드롭섀도(공중에 뜬 물건이라는 단서 · 정본 box-shadow 0 .35rem .6rem rgba(0,0,0,.55) — 번짐은 못 내고 판만)
-                Image sh = new GameObject(EquipSwapStyle.T("shadow"), typeof(RectTransform), typeof(Image)).GetComponent<Image>();
-                sh.transform.SetParent(clone, false);
-                sh.transform.SetAsFirstSibling();
-                sh.color = EquipSwapStyle.C("shadow");
-                sh.raycastTarget = false;
-                UiKit.Fill(sh.rectTransform);
-                sh.rectTransform.anchoredPosition = new Vector2(0f, -(float)(s.ShadowDyRem * rem));
+                // 칸에서는 안 보이던 드롭섀도(공중에 뜬 물건이라는 단서) — 정본 `.eqsw-fly-box`(style.css 7291~7292)
+                // `box-shadow: 0 .35rem .6rem rgba(0,0,0,.55)`. T117 은 **번짐을 못 내 판만** 깔았고 그 사정을 주석에 적어 뒀다.
+                // T331 3회차가 흐린 그림자를 굽는 길을 세워 이제 정본 그대로 건다 — 값은 `ShadowUi.json` 의 `eqswfly_drop`.
+                // 반지름은 날아가는 복제본이 실제로 쓰는 것을 되읽는다(복제본은 장비 칸을 그대로 Instantiate 한 것이라 상수가 없다).
+                UiShadow.Drop(clone, "eqswfly_drop");
                 StartCoroutine(Fly(s, gr.G, p, clone, (float)rem));
             }
             Sound("equipToss", Sfx.EquipToss);

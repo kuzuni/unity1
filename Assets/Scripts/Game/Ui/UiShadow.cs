@@ -149,5 +149,32 @@ namespace Forge.Game.Ui
             baked[id] = sp;
             return sp;
         }
+
+        /// <summary>
+        /// 상자가 실제로 쓰는 **둥근 모서리 반지름**을 그 그림에서 되읽는다 — 그늘도 같은 모양이라야 구석이 안 어긋난다.
+        ///
+        /// `UiKit.Rounded` 는 9-슬라이스 둥근 스프라이트에 `pixelsPerUnitMultiplier = 스프라이트 반지름 / 원하는 반지름` 을 준다.
+        /// 그래서 되읽기는 그 나눗셈을 거꾸로 하면 된다 — 스프라이트 쪽 반지름은 상수가 아니라 **스프라이트의 `border`** 에서 읽는다
+        /// (그 상수를 쥔 `UiShapes.cs` 는 남의 lock 이고, border 에서 읽으면 그 상수가 바뀌어도 따라간다).
+        /// </summary>
+        /// <returns>못 읽으면 0(각진 그늘) — 부르는 쪽이 아는 값이 있으면 그것을 직접 주는 편이 낫다.</returns>
+        public static float RadiusOf(RectTransform box)
+        {
+            if (box == null) return 0f;
+            foreach (Image img in box.GetComponentsInChildren<Image>(true))
+            {
+                if (img == null || img.sprite == null) continue;
+                if (img.transform.name == LayerName) continue;      // 내가 깐 그늘은 세지 않는다(두 번째 부름에서 자기를 읽는다)
+                if (img.type != Image.Type.Sliced) continue;
+                float spriteR = img.sprite.border.x;
+                if (spriteR <= 0f) continue;
+                float m = img.pixelsPerUnitMultiplier;
+                return m <= 0.0001f ? 0f : spriteR / m;
+            }
+            return 0f;
+        }
+
+        /// <summary>반지름을 상자에서 되읽어 거는 꼴 — 복제된 상자(정본 `.eqsw-fly-box` 처럼)에 쓴다.</summary>
+        public static Image Drop(RectTransform box, string key) { return Drop(box, key, RadiusOf(box)); }
     }
 }

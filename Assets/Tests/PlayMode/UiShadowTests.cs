@@ -125,6 +125,28 @@ namespace Forge.Tests.PlayMode
             Assert.Less(rt2.offsetMin.y + padTop, 0f, "정본만큼 아래로 — CSS 의 +y 는 화면에서 −y 다");
         }
 
+        [UnityTest]
+        public IEnumerator 반지름을_상자에서_되읽는다()
+        {
+            yield return Boot();
+            // 되읽기는 «UiKit.Rounded 가 준 배수를 거꾸로 나눈다» 이다 — 알고 만든 상자로 왕복을 잰다.
+            RectTransform box = UiKit.Box(UiRoot.Instance.App, "shadow-radius-probe");
+            UiKit.Place(box, 0f, 0f, 120f, 80f);
+            float want = 17f;
+            UiKit.Rounded(box, "face", "pp_paper", want);
+            Assert.AreEqual(want, UiShadow.RadiusOf(box), 0.01f, "상자가 쓰는 반지름을 그대로 되읽어야 한다");
+
+            // 그늘을 깐 **뒤에도** 같은 값이라야 한다 — 내가 깐 겹을 자기 자신으로 읽으면 회차마다 값이 흘러간다.
+            UiShadow.Drop(box, "qstrow_lip");
+            Assert.AreEqual(want, UiShadow.RadiusOf(box), 0.01f, "깐 그늘을 원본으로 착각하면 안 된다");
+
+            // 둥근 그림이 없는 상자는 0(각진 그늘)
+            RectTransform plain = UiKit.Box(UiRoot.Instance.App, "shadow-radius-plain");
+            UiKit.Place(plain, 0f, 0f, 40f, 40f);
+            Assert.AreEqual(0f, UiShadow.RadiusOf(plain), 1e-4f);
+            Object.Destroy(box.gameObject); Object.Destroy(plain.gameObject);
+        }
+
         [Test]
         public void 표는_딱딱한_턱_다섯과_흐린_그림자_일곱으로_갈린다()
         {
