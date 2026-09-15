@@ -268,6 +268,40 @@ namespace Forge.Tests.PlayMode
                 "NEW 알약(" + pill.ToString("0.0") + ")이 제 잉크(" + ink.ToString("0.0") + ")보다 좁다 — 접혀서 알약 밖으로 넘친다");
         }
 
+
+        /// <summary>
+        /// T334 15회차 — 사출 경로는 **전부 되짚지 않는다**(정본 `UI.SR_EJECT = 0.62` · ui.js 604).
+        ///
+        /// 정본 주석이 까닭을 이름으로 못 박았다: «벡터를 100% 되짚으면 전 셀이 한 점에서 겹쳐 나와
+        /// 5개가 한 덩어리로 보인다 — 일부(EJECT)만 되짚어 «광원 쪽에서 밀려 나온» 인상만 남긴다».
+        /// 3회차가 재는 길은 옮겼지만 그 한 줄을 빠뜨려 클론은 100% 를 되짚고 있었다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 사출_경로는_광원까지의_일부만_되짚는다()
+        {
+            yield return Boot();
+            SkillSummonResultView v = OpenHoldback();
+            float t = 0f;
+            while (v.EjectOf(0) == Vector2.zero && t < 6f) { t += Time.unscaledDeltaTime; yield return null; }
+            Vector2 ej = v.EjectOf(0);
+            Assert.AreNotEqual(Vector2.zero, ej, "사출 벡터가 안 재졌다(경과 " + t.ToString("0.00") + "초)");
+
+            Transform halo = FindDeep(v.transform, "halo");
+            Transform cell = FindDeep(v.transform, "sr-cell-0");
+            Assert.IsNotNull(halo, "광원(halo)이 없다");
+            Assert.IsNotNull(cell, "0번 셀이 없다");
+            Vector2 full = (Vector2)cell.parent.InverseTransformPoint(halo.position) - (Vector2)cell.localPosition;
+            Assert.Greater(full.magnitude, 1f, "광원과 셀이 같은 자리다 — 잴 것이 없다");
+
+            // ⓐ 이 단이 결함을 잡는 단이다 — 100% 되짚으면 여기서 빨개진다.
+            Assert.Less(ej.magnitude, full.magnitude * 0.9f,
+                "사출 벡터가 광원까지를 거의 다 되짚는다(" + (ej.magnitude / full.magnitude).ToString("0.000")
+                + ") — 정본은 SR_EJECT 만큼만 되짚는다");
+            // ⓑ 그 «일부» 는 표가 쥔다.
+            float want = full.magnitude * SummonFxStyle.L("eject_f");
+            Assert.AreEqual(want, ej.magnitude, full.magnitude * 0.02f, "되짚는 비율이 표(eject_f)와 다르다");
+        }
+
         static Transform FindDeep(Transform root, string name)
         {
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true))

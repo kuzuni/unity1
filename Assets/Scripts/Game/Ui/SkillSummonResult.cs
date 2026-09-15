@@ -955,6 +955,12 @@ namespace Forge.Game.Ui
             {
                 chargeAt = Time.unscaledTime;
                 // «슬롯 → 광원» 벡터(정본 `--dx/--dy` 는 setSummonEjectPaths 가 심어 둔다 — 클론엔 없어 여기서 잰다).
+                // ⚑ 15회차 — **62%만 되짚는다**(정본 `SR_EJECT = 0.62` · ui.js 604). 3회차가 재는 길은 옮겼지만
+                //   그 한 줄을 빠뜨려 클론은 벡터를 **100%** 되짚고 있었다. 정본 주석이 그것을 이름으로 금지한다:
+                //   «⚠️ 벡터를 100% 되짚으면 전 셀이 한 점에서 겹쳐 나와 5개가 한 덩어리로 보인다 —
+                //    일부(EJECT)만 되짚어 «광원 쪽에서 밀려 나온» 인상만 남긴다».
+                //   이 벡터를 쓰는 자리 셋(주역 등장 `srheropop` · 조연 흡기 `srinhale` · 잔상 `srghost`)이 전부 62% 벡터다.
+                float eject = SummonFxStyle.L("eject_f");
                 for (int i = 0; i < cells.Count; i++)
                 {
                     Cell c = cells[i];
@@ -962,7 +968,7 @@ namespace Forge.Game.Ui
                     // 두 자리 다 **같은 부모의 지역 좌표**로 재야 한다 — anchoredPosition 과 localPosition 은 상수만큼
                     // 어긋나 있어서(앵커·피벗) 차이(벡터)는 같지만 한쪽을 다른 쪽에서 빼면 그 상수가 섞여 들어간다.
                     c.ToLight = haloImg != null
-                        ? (Vector2)c.Root.parent.InverseTransformPoint(haloImg.rectTransform.position) - (Vector2)c.Root.localPosition
+                        ? ((Vector2)c.Root.parent.InverseTransformPoint(haloImg.rectTransform.position) - (Vector2)c.Root.localPosition) * eject
                         : Vector2.zero;
                 }
             }
@@ -1162,6 +1168,9 @@ namespace Forge.Game.Ui
 
         /// <summary>그 셀의 착지 스파크 — 자가 본다.</summary>
         public Image SparkOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Spark : null; }
+
+        /// <summary>그 셀의 «슬롯 → 광원» 사출 벡터(정본 `--dx/--dy` · 전체 벡터의 `SR_EJECT` 만큼) — 자가 본다.</summary>
+        public Vector2 EjectOf(int i) { return i >= 0 && i < cells.Count ? cells[i].ToLight : Vector2.zero; }
 
         /// <summary>셀별 재점화 플래시 — 자가 본다.</summary>
         public Image RelightOf(int i) { return i >= 0 && i < relights.Count ? relights[i] : null; }
