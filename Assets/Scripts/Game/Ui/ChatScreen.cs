@@ -243,6 +243,7 @@ namespace Forge.Game.Ui
                 UiKit.OutlinePx(t, "pp_ink", KeylineUi.Px("chat_bubble"));
                 t.outlineColor = t.color;
                 t.textWrappingMode = TextWrappingModes.Normal;
+                LineHeight.Apply(t, "chat_bubble_lh_w");   // T354 4회차 — 정본 3380 `.chat-bubble { line-height: calc(var(--app-w) * .0351) }` · 앱 폭 키의 유일한 자리(글자 크기로 나눠 배수가 된다)
                 t.rectTransform.offsetMin = new Vector2(rem * 0.5f, rem * 0.2f);
                 t.rectTransform.offsetMax = new Vector2(-rem * 0.5f, -rem * 0.2f);
             }

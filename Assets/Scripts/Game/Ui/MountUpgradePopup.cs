@@ -147,6 +147,7 @@ namespace Forge.Game.Ui
             if (pool.Count == 0)
             {
                 TextMeshProUGUI empty = PetSkillKit.Text(content, "mat-empty", TextKind.Sub, PetSkillStyle.T("mtup_empty"), PetSkillStyle.C("muted"), TextAlignmentOptions.Center, false);
+                LineHeight.Apply(empty, "mat_grid_mat_empty_lh");   // T354 4회차 — 정본 805 `.mat-grid > .mat-empty { line-height: 1.35 }`(펫 업그레이드의 같은 자리는 T359 lock 뒤)
                 UiKit.Place(empty.rectTransform, 0f, PetSkillStyle.Rem(1.1f), inner, sub * 1.5f);
                 content.sizeDelta = new Vector2(0f, gridFull);
             }

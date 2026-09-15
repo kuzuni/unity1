@@ -84,5 +84,85 @@ namespace Forge.Tests.PlayMode
             AscendPopup.Close();
             yield return null;
         }
+
+        static void AssertSpacing(TextMeshProUGUI t, string key, string what)
+        {
+            double r = LineHeight.Ratio(t, key);
+            FaceInfo f = t.font.faceInfo;
+            Assert.AreEqual(LineHeightRules.TmpLineSpacing(r, f.lineHeight, f.pointSize), t.lineSpacing, 1e-4f, what + ": lineSpacing = (표 배수 − 자산 비율) × 100");
+        }
+
+        /// <summary>T354 4회차 — 채팅 말풍선은 표 81 중 **앱 폭 키의 유일한 자리**(정본 3380 `calc(var(--app-w) * .0351)`):
+        /// 배수가 아니라 px 라 글자 크기로 나눠 배수가 되는 길(<see cref="LineHeightRules.Ratio"/>)이 실물에서 도는지 본다.</summary>
+        [UnityTest]
+        public IEnumerator 채팅_말풍선은_정본_앱폭_0351_을_글자_크기로_나눈_배수로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && PopupLayer.Instance != null && Hud.Instance != null); i++) yield return null;
+            MetaHost h = MetaHost.Instance;
+            Assert.IsNotNull(h, "MetaHost");
+            Hud.Instance.ChatButton.onClick.Invoke();
+            yield return null;
+            Assert.IsTrue(PopupLayer.Instance.IsOpen(ChatScreen.Name), "채팅 줄 → 전체화면 채팅");
+            // 두 줄 이상으로 꺾이는 긴 말을 하나 보낸다(실제 줄 간격을 재려면 둘째 줄이 있어야 한다)
+            string longText = "줄높이를 재는 긴 말이다 · 말풍선 폭을 넘겨 둘째 줄로 꺾이도록 같은 말을 되풀이한다 · 줄높이를 재는 긴 말이다 · 말풍선 폭을 넘겨 둘째 줄로 꺾이도록";
+            Assert.IsTrue(h.Chat.SendPlayer(h.ChatState, longText, h.Nickname, h.AvatarEmoji, h.Gender, h.NowMs), "플레이어 말 보내기");
+            ChatScreen.OnChanged(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(ChatScreen.Name);
+            TextMeshProUGUI mine = null; int bubbles = 0;
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name != "text" || t.transform.parent == null || t.transform.parent.name != "bubble") continue;
+                bubbles++;
+                AssertSpacing(t, "chat_bubble_lh_w", "말풍선");
+                if (t.text == longText) mine = t;
+            }
+            Assert.Greater(bubbles, 0, "말풍선이 하나는 있다");
+            Assert.IsNotNull(mine, "방금 보낸 긴 말의 말풍선");
+            double r = LineHeight.Ratio(mine, "chat_bubble_lh_w");
+            Assert.AreEqual(LineHeightRules.RatioFromPx(LineHeight.Table.Get("chat_bubble_lh_w") * UiKit.RefW, mine.fontSize), r, 1e-9, "앱 폭 × .0351 ÷ 글자 크기");
+            double measured = LineHeight.MeasuredRatio(mine);
+            Assert.Greater(mine.textInfo.lineCount, 1, "긴 말은 두 줄 이상으로 꺾인다");
+            Assert.AreEqual(r, measured, 0.02, "실제 줄 간격 = 앱 폭 배수 (자산 기본 1.448 이 아니라)");
+            ChatScreen.Close(h);
+            yield return null;
+        }
+
+        /// <summary>T354 4회차 — 탈것 업그레이드 팝업의 «재료 없음» 글(정본 805 `.mat-grid > .mat-empty { line-height: 1.35 }`):
+        /// 새 세이브에서 한 마리만 소환하면 재료 후보가 0 이라 그 글이 선다.</summary>
+        [UnityTest]
+        public IEnumerator 탈것_업그레이드_팝업의_재료_없음_글은_정본_1_35_배수로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(PetSkillHost.Ready && SkillPetSheet.Instance != null && SkillBar.Instance != null); i++) yield return null;
+            PetSkillHost host = PetSkillHost.Instance;
+            Assert.IsNotNull(host, "PetSkillHost");
+            Assert.IsNotNull(host.Mounts, "탈것");
+            while (host.SummonMult("mount") != 1) host.CycleSummonMult("mount");
+            host.Winders = 100000;
+            host.Sync();
+            yield return null;
+            MountSheet.Open();
+            yield return null;
+            Assert.IsTrue(MountSheet.IsOpen, "탈것 시트");
+            MountSheet.SummonButton.onClick.Invoke();
+            yield return null;
+            for (int k = 0; k < 4 && SkillSummonResultView.Current != null; k++) { SkillSummonResultView.Current.OnTap(); yield return null; }
+            Assert.AreEqual(1, host.Mounts.Count(), "새 세이브 · x1 소환 = 한 마리(재료 후보 0)");
+            MountSheet.OpenDetail(0);
+            yield return null;
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            sheet.Modal.Find(MountSheet.DetailModal).Content.Find("btn-upgrade").GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+            yield return null;
+            Assert.IsTrue(sheet.Modal.IsOpen(MountUpgradePopup.ModalName), "업그레이드 팝업");
+            Transform empty = Find(sheet.Modal.Find(MountUpgradePopup.ModalName).Content, "mat-empty");
+            Assert.IsNotNull(empty, "재료 없음 글(.mat-empty)");
+            AssertSpacing(empty.GetComponent<TextMeshProUGUI>(), "mat_grid_mat_empty_lh", "재료 없음 글");
+            Assert.AreEqual(1.35, LineHeight.Table.Get("mat_grid_mat_empty_lh"), 1e-9, "정본 805");
+            MountUpgradePopup.Close();
+            yield return null;
+        }
     }
 }
