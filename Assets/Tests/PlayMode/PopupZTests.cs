@@ -98,5 +98,23 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsFalse(h.Popups.IsOpen(PassPopup.Name));
         }
+
+        [UnityTest]
+        public IEnumerator 채팅_화면은_정본_z_표대로_탭바_위_층에_선다()
+        {
+            // T346 3회차 — 정본 3787 `#chat-modal { z-index: 40 }` > 탭바 30. 1회차가 «lock 뒤» 로 남긴 자리(ChatScreen.cs:30 · T345 반납으로 풀렸다).
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            Assert.IsTrue(PopupZUi.AboveTabBar(ChatScreen.Name), "표: #chat-modal 은 탭바 위");
+            Hud.Instance.ChatButton.onClick.Invoke();
+            yield return null;
+            Assert.IsTrue(h.Popups.IsOpen(ChatScreen.Name), "채팅 줄 → 전체화면 채팅");
+            AssertLayer(ChatScreen.Name);
+            Popup p = PopupLayer.Instance.Find(ChatScreen.Name);
+            Assert.Greater(p.Root.parent.GetSiblingIndex(), UiRoot.Instance.TabBand.GetSiblingIndex(), "채팅 층이 탭 띠보다 위에 그려진다(딤이 여섯 칸 네비를 덮는다)");
+            ChatScreen.Close(h);
+            yield return null;
+            Assert.IsFalse(h.Popups.IsOpen(ChatScreen.Name));
+        }
     }
 }

@@ -7359,6 +7359,14 @@
 550. **촬영 카메라에 URP 포스트를 켠다 — `Camera.CopyFrom` 은 볼륨을 안 옮기므로 PNG 는 여태 톤맵·노출·색 보정 없이 찍혔다 · T341 은 세계 컷 한 곳만 먼저 켜고 나머지 15곳은 T349 로(2026-09-14 · T341 2회차 · 워커 S)** — 런 503 실측: 볼륨 saturation +12 가 켜졌는데 `world_frame.png` 띠 채도 .2559→.2569(잡음). 씬 메인 카메라는 `m_RenderPostProcessing: 1` 이라 게임은 그레이드를 보는데, 촬영은 새 카메라 + `CopyFrom` 이라 `UniversalAdditionalCameraData` 기본값(포스트 꺼짐)으로 찍힌다. 그래서 ⓐ `WorldFrameShotTests` 의 카메라에 `renderPostProcessing = true`(그 컷은 «게임이 보는 세계» 가 목적 · T54) ⓑ 판정은 PNG 가 아니라 **자 안에서 켬/끔 두 번 그려** 띠 평균 채도 비(≈ saturate 1.12 · 허용 `pixel_ratio_tol` .06 — 톤맵 뒤라 정확히 같지 않다) 와 휘도σ 상승을 잰다(`SceneGradeTests` 둘째 자) ⓒ 나머지 촬영 자 15곳은 파일마다 남의 lock 이라 T349 로 등재. 되돌리려면 `WorldFrameShotTests` 의 두 줄과 둘째 자.
 551. **퍼프 자의 벽시계 상한은 «베이크 대기 + 측정 몫» 을 다 담아야 하고, 시간 창 단언은 «오를 때까지 + 상한» 으로 쓴다(2026-09-14 · §0-6 런 503 · 워커 C · sess-2036-34862)** — `PerfBudgetTests` 는 오디오 베이크를 최대 120초 기다린 뒤 2,100 프레임을 재는데 유니티 기본 타임아웃이 180초라 러너가 조금만 느려도(런 503: 베이크 93.1초 · 프레임 38.9ms) 측정 도중 죽는다 → `[Timeout(600000)]`(`#if UNITY_EDITOR` · 하니스 NUnit 엔 없는 속성). `WaypointsTests` 는 `tick+300ms` 고정 창 대신 «틱이 오를 때까지 · 상한 세 틱+300ms» — 판정은 그대로(Update 가 안 돌면 여전히 빨강). 두 파일 다 임자 ✅(T44·T139) · 산 lock 없음. 되돌리려면 두 자리의 주석 블록을 걷으면 된다.
 
+### T346 3회차 기록 (2026-09-15 02:4x · 워커 C · sess-2036-34862 · lock 유지 — CI 자를 본 뒤 반납) — 남은 둘 중 채팅
+
+- **고른 자리**: 1·2회차가 «T345 lock 뒤» 로 남긴 `ChatScreen.cs` — T345(나)가 02:3x 반납했고 산 lock 의 «범위» 에 그 파일이 없다. `PlayerInfoPopup.cs` 는 T178(살아 있음) 범위라 그대로 남긴다.
+- **한 줄**: `ChatScreen.Open` — `h.Popups.Show(Name)` → `Show(Name, null, PopupZUi.AboveTabBar(Name))`(정본 3787 `#chat-modal { z-index: 40 }` > 탭바 30 · 표 `PopupZUi.json` `chat` 항목 주석을 «3회차가 걸었다» 로). 수는 표에만 있다.
+- **자**: `PopupZTests` +1 `채팅_화면은_정본_z_표대로_탭바_위_층에_선다` — 표가 위라 하고 · 채팅 줄을 눌러 열면 뿌리가 `modals-over` 아래이며 `Popup.AboveTabBar` 표시가 같고 · 그 층이 탭 띠보다 뒤 형제 · 닫힘.
+- **게이트**: `dotnet build` 0 오류 · 문서·표·범위 자 rc 0. **판정(다음 런)**: `PopupZTests` 3/3 + `screen_chat.png` 하단 네비가 딤에 덮이는가(런 562 의 채팅 PNG 는 네비가 밝게 팝업 위에 있었다) → 그때 반납. 남은 하나(player-info)는 T178 lock 뒤 누구든.
+
+
 ### T346 2회차 기록 (2026-09-14 22:1x~22:2x · 워커 R · sess-2015-28206 · lock 유지 — CI 자를 본 뒤 반납) — 산 lock 없는 자리 하나 = 진행 패스
 
 - **고른 자리**: 1회차가 남긴 셋 중 `PassPopup.cs` 만 살아 있는 lock 이 안 쥔다(`ChatScreen.cs` 는 T345 · `PlayerInfoPopup.cs` 는 T178 5회차 · `check_lock_queue` 가 그 둘만 T346 의 대기로 센다). 1회차 행이 «pass 는 T345 lock 뒤» 라 적었지만 T345 의 «범위» 열엔 `PassPopup.cs` 가 없다 — 표를 믿기 전에 열을 읽었다(결정 515 의 결).

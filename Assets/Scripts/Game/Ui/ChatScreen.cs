@@ -27,7 +27,7 @@ namespace Forge.Game.Ui
         public static void Open(MetaHost h)
         {
             h.Chat.Ensure(h.ChatState, h.NowMs);
-            Popup p = h.Popups.Show(Name);
+            Popup p = h.Popups.Show(Name, null, PopupZUi.AboveTabBar(Name));   // T346 3회차 — 정본 3787 `#chat-modal { z-index: 40 }` > 탭바 30 · 층은 표 PopupZUi.json 이 정한다
             if (p.Root.childCount > 1) { RenderList(h); return; }
             float rem = PopupKit.Rem, w = UiKit.RefW;
             RectTransform card = PopupKit.Sheet(p.Root, "card", "pp_paper");
