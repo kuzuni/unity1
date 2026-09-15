@@ -434,6 +434,12 @@
     "_바탕": "상태로 갈린다(파랑 qst_bar_ramp ↔ 초록 qst_bar_done_ramp) — over_layer 한 칸으로 못 적으니 부르는 쪽(QuestSheet)이 그때의 바탕 겹을 준다(T178 10회차).",
     "_": "style.css 2044·2047 두 규칙의 첫 겹 `linear-gradient(180deg, rgba(255,255,255,.5) 0 1px, rgba(255,255,255,0) 1px)` — 채움 **위쪽** 1 CSS px 흰 광택(두 상태가 같은 값). T178 6회차."
   },
+  "shop_reward_pill": {
+    "angle_deg": 180,
+    "stops": [[0, 0, 0, 0.16], [0, 0, 0, 0.03], [255, 255, 255, 0.1], [255, 255, 255, 0.34]],
+    "offsets": [0, 0.4, 0.82, 1],
+    "_": "style.css 8235~8237 `.shop-reward-pill { background-image: linear-gradient(180deg, rgba(0,0,0,.16) 0, rgba(0,0,0,.03) 40%, rgba(255,255,255,.10) 82%, rgba(255,255,255,.34) 100%) }` — 회색 알약 위에 얹는 «오목한 홈» 겹이다(위는 그늘 · 아래는 빛). 면 색은 카탈로그 `shop_pill` 이 그대로 쥐고 이 겹이 그 위에 깔린다. 둥근 면이라 `FillMasked`(T178 3회차). T178 13회차."
+  },
   "stage_vignette": {
     "shape": "radial",
     "cx": 0.5,

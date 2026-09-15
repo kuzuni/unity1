@@ -81,6 +81,8 @@ TABLE = {
     # T178 12회차 — 정본 `#game-area::after` 의 **상시 비네트**(3D 위 · 모든 연출 아래). 클론엔 통째로 없었다
     #   (T135 의 피격 `#dmg-flash` 는 다른 자리다 — 그쪽은 맞으면 켜졌다 꺼진다).
     '#game-area::after': ['Ui/BattleOverlay.cs#vignette-grad'],
+    # T178 13회차 — 특가 카드 보상 알약의 «오목한 홈»(위 그늘 → 아래 빛 네 정지점). 클론은 단색 면 한 장이었다.
+    '.shop-reward-pill': ['Ui/ShopSheet.cs#pill-grad'],
     # T178 12회차 — 부화장 램프 빛기둥. 이미 맞게 서 있었는데 표에 없어 «미정» 으로 남아 있었다:
     #   `PetHatchCone` 이 제 메시에 위→아래 두 색을 물려 그리고(정본 180° 두 정지점 + clip-path polygon),
     #   색·꼭짓점 비율은 `PetSkillUi.json` 이 쥔다(`cone_top` #ffeb50e6 ↔ 정본 rgba(255,235,80,.9) · `cone_top_f` .38 ↔ 38%).

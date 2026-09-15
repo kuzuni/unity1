@@ -87,7 +87,10 @@ namespace Forge.Game.Ui
                     string cur = d.Reward.KeyAt(r);
                     RectTransform pill = UiKit.Box(card, "pill-" + cur);
                     UiKit.Place(pill, UiKit.L("shop_deal_pad_x") * w, py + r * (pillH + UiKit.H("shop_pill_gap")), pillW, pillH);
-                    UiKit.Rounded(pill, "bg", "shop_pill", pillH * 0.5f);
+                    Image pillFace = UiKit.Rounded(pill, "bg", "shop_pill", pillH * 0.5f);
+                    // T178 13회차 — 정본 8235 `.shop-reward-pill { background-image: linear-gradient(180deg, rgba(0,0,0,.16) 0, rgba(0,0,0,.03) 40%, rgba(255,255,255,.10) 82%, rgba(255,255,255,.34) 100%) }`.
+                    // 회색 알약 위의 «오목한 홈»(위는 그늘 · 아래는 빛) — 클론은 단색 면 한 장이었다. 둥근 면이라 마스크를 걸어 얹는다(T178 3회차).
+                    SurfaceArt.FillMasked(pillFace, "pill-grad", "shop_reward_pill", pillW, pillH);
                     Image ico = PopupKit.IconOr(pill, "ico", CurIcon(cur));
                     UiKit.Place(ico.rectTransform, rem * 0.3f, (pillH - pillH * 0.8f) * 0.5f, pillH * 0.8f, pillH * 0.8f);
                     TextMeshProUGUI amt = UiKit.Text(pill, "amt", TextKind.Sub, PopupKit.Fmt(d.Reward.ValueAt(r)), "pp_ink", TextAlignmentOptions.Left);

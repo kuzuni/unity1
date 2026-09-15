@@ -505,5 +505,30 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(corner, mid + 0.05f, "모서리는 눌린다");
         }
 
+        /// <summary>T178 13회차 — 정본 8235 `.shop-reward-pill { background-image: linear-gradient(180deg, rgba(0,0,0,.16) 0, rgba(0,0,0,.03) 40%, rgba(255,255,255,.10) 82%, rgba(255,255,255,.34) 100%) }`.
+        /// 회색 알약 위의 «오목한 홈» — 위는 그늘 · 아래는 빛. 클론은 단색 면 한 장이었다.</summary>
+        [UnityTest]
+        public IEnumerator 상점_보상_알약은_위가_그늘_아래가_빛인_네_정지점_홈을_진다()
+        {
+            yield return Boot();
+            Assert.AreEqual(180f, SurfaceArt.Angle("shop_reward_pill"), 1e-4f, "정본 8235 180deg");
+            Color[] col; float[] off;
+            SurfaceArt.Stops("shop_reward_pill", out col, out off);
+            Assert.AreEqual(4, col.Length, "정지점 넷");
+            Assert.AreEqual(0.40f, off[1], 1e-4f, "40%"); Assert.AreEqual(0.82f, off[2], 1e-4f, "82%");
+            Assert.AreEqual(0.16f, col[0].a, 1e-3f, "맨 위 검정 .16"); Assert.AreEqual(0f, col[0].r, 1e-3f, "검정");
+            Assert.AreEqual(0.34f, col[3].a, 1e-3f, "맨 아래 흰 .34"); Assert.AreEqual(1f, col[3].r, 1e-3f, "흰색");
+            // 위 절반은 **어둡게** 깔리고 아래 절반은 **밝게** 깔린다 — 그것이 «오목한 홈» 이다.
+            Assert.AreEqual(0f, SurfaceArt.Sample(col, off, 0.2f).r, 1e-3f, "20% 는 아직 그늘(검정)");
+            Assert.AreEqual(1f, SurfaceArt.Sample(col, off, 0.9f).r, 1e-3f, "90% 는 빛(흰색)");
+            Sprite sp = SurfaceArt.Bake("shop_reward_pill", 4f, 40f);
+            Texture2D t = sp.texture;
+            int x = t.width / 2;
+            Color topPx = t.GetPixel(x, t.height - 1), botPx = t.GetPixel(x, 0);
+            Assert.AreEqual(0f, topPx.r, 0.02f, "맨 윗줄은 검정 그늘");
+            Assert.AreEqual(1f, botPx.r, 0.02f, "맨 아랫줄은 흰 빛");
+            Assert.Greater(botPx.a, topPx.a, "아래 빛이 위 그늘보다 진하다(.34 > .16)");
+        }
+
     }
 }
