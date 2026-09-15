@@ -2410,6 +2410,11 @@
 - 무엇을 한다: 일곱 자리를 재고, 넘는 자리만 표 키(각 화면의 곁 표 · `catalog.json` 이 남의 lock 이면 T65 꼴)로 옮긴다.
 - 판정: 화면 PNG 실측 + 넘던 자리의 PlayMode 자.
 - 범위: `Assets/Scripts/Game/Ui/ForgeInfoPopup.cs`·`PetUpgradePopup.cs`·`MountUpgradePopup.cs`·`LeagueSheet.cs`·`ProfilePopup.cs`·`ForgeAutoPopup.cs`·`DungeonSheet.cs`(각 파일의 살아 있는 lock 뒤) · `Assets/Forge/Resources/`(곁 표) · `Assets/Tests/PlayMode/`(새 파일) · `docs/ROUTINE.md` · `docs/PROGRESS.md`
+- 🔄 **3회차(2026-09-15 22:0x · 워커 I · sess-2203-40155) — `.forge-age-list` 상한 배선**: 1회차가 표(`fl_list_max_h_f` .59)와 EditMode 자를 세웠고 2회차가 펫 재료 격자를 배선했다. 남은 이 자리의 파일 `ForgeInfoPopup.cs` 가 열려 있었다.
+  - **틀린 것은 «목록이 컸다» 가 아니라 «누가 높이를 쥐는가» 였다**: 클론은 **카드를 `fl_card_h_f` .76 으로 고정하고 목록을 그 나머지로 채웠다**(그래서 67%H). 정본은 반대로 `.fl-card` 에 높이 선언이 **없고** 상한을 **안쪽 목록**이 쥔다 — 카드는 내용만큼 자란다.
+  - 그래서 ⓐ 목록을 표의 **.59H** 로 자르고 ⓑ **카드도 그만큼 줄였다**. ⓑ 를 빼면 카드 아래에 정본에 없는 빈 자리가 남는다. `fl_card_h_f` 는 이제 «고정 높이» 가 아니라 **그 위의 공용 상한**이다(셈: .59H + 카드 안 나머지 .0886H = **.6786H**).
+  - **자**: `LayoutLimitSitesTests` 에 칸 하나 — 목록 ≤ 상한 · **상한이 실제로 작용한다**(= 상한과 같다) · 카드가 .76H 보다 작아졌다 · 카드 − 목록이 제목·패딩 몫뿐이다.
+  - **남은 하나**: `.league-list`(.542H · `LeagueSheet.cs` · **T354 산 lock**) + `min-width` 하한 넷.
 - 🔄 1회차 2026-09-15 15:1x~15:4x 워커 A(sess-2005-27410): **일곱 자리를 쟀다(런 704 screens 540×960 + 코드 셈) — 넘는 것 3 · 안 넘는 것 4.**
   | 자리 | 정본 | 클론 실측 | 판정 |
   |---|---|---|---|
