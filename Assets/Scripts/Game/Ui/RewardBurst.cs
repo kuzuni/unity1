@@ -146,6 +146,7 @@ namespace Forge.Game.Ui
             RewardBurstSpec s = Spec;
             List<RewardEntry> entries = RewardBurstRules.Entries(rewards);
             if (entries.Count == 0) return 0;
+            DimToasts(s, entries.Count);          // 정본 ui.js 3588~3593 — 떠 있던 토스트는 물러난다(T359 2회차)
             float hostW = Layer.rect.width, hostH = Layer.rect.height;
             double rem = PopupKit.Rem, cssPx = UiKit.L("anvil_fx_px");
             double sx, sy; double? srcTop;
@@ -217,6 +218,49 @@ namespace Forge.Game.Ui
         }
 
         // ---- 좌표 (층 좌표 · 왼쪽 위 원점 · 기준 캔버스 px) ----
+
+        // ── T359 2회차 — 수령 연출 동안 토스트가 물러난다 ────────────────────────────────────────────────
+        // 정본: `ui.js` 3588~3593 이 `#toasts` 에 `rw-dim` 을 걸고 «연출이 끝나는 시각»(`_toastHoldUntil`)에 뗀다.
+        // CSS 는 `#toasts { transition: opacity .25s ease-out }` · `#toasts.rw-dim { opacity: .1 }` — 두 값 다 표(OpacityUi)에 있다.
+        // 왜 이 자리인가: «+획득량» 라벨(`rw-amt`)이 토스트 글자 위에 겹쳐 인쇄되던 충돌을 정본이 이렇게 지웠다(정본 주석).
+        // 그릇(`#toasts` 레인)은 `Popups.cs` 가 세우는데 그 파일이 남의 산 lock 이라, **상자 이름을 표에 두고 여기서 찾는다**
+        // — 이름이 바뀌면 PlayMode 자가 먼저 깨진다(조용히 안 사라진다).
+        Coroutine toastDim;
+
+        void DimToasts(RewardBurstSpec s, int entries)
+        {
+            if (UiRoot.Instance == null || UiRoot.Instance.App == null) return;
+            Transform lane = UiRoot.Instance.App.Find(OpacityUi.Text("toasts_rw_dim", "box"));
+            if (lane == null) return;
+            CanvasGroup cg = lane.GetComponent<CanvasGroup>();
+            if (cg == null) cg = lane.gameObject.AddComponent<CanvasGroup>();
+            if (toastDim != null) StopCoroutine(toastDim);
+            toastDim = StartCoroutine(ToastDim(cg, RewardBurstRules.HoldMs(s, entries)));
+        }
+
+        IEnumerator ToastDim(CanvasGroup cg, double holdMs)
+        {
+            float dim = OpacityUi.A("toasts_rw_dim");
+            float fade = (float)OpacityUi.Num("toasts_rw_dim", "fade_ms") / 1000f;
+            Forge.Core.CraftFx.CssEase ease = OpacityUi.Ease("toasts_rw_dim");
+            yield return Fade(cg, 1f, dim, fade, ease);
+            float rest = (float)(holdMs / 1000.0) - fade;           // 물러나 있는 시간(연출이 끝나는 시각까지)
+            for (float t = 0f; t < rest; t += Time.unscaledDeltaTime) yield return null;
+            yield return Fade(cg, dim, 1f, fade, ease);             // 정본은 class 를 떼면 같은 transition 으로 돌아온다
+            cg.alpha = 1f;
+            toastDim = null;
+        }
+
+        static IEnumerator Fade(CanvasGroup cg, float from, float to, float sec, Forge.Core.CraftFx.CssEase ease)
+        {
+            for (float t = 0f; t < sec; t += Time.unscaledDeltaTime)
+            {
+                if (cg == null) yield break;
+                cg.alpha = Mathf.Lerp(from, to, (float)ease.Ease(t / sec));
+                yield return null;
+            }
+            if (cg != null) cg.alpha = to;
+        }
 
         void RectOf(RectTransform r, out double x, out double yTop, out double w, out double h)
         {

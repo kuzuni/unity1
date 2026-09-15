@@ -104,5 +104,43 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsFalse(AscendPopup.IsOpen);
         }
+
+        /// <summary>
+        /// T359 2회차 — 정본 `#toasts.rw-dim`: 수령 연출이 도는 동안 **떠 있던 토스트가 물러난다**(.1) 그리고 연출이 끝나면 돌아온다(1).
+        /// 시각은 벽시계라 «몇 프레임 뒤» 로 재지 않고 **닿는가/돌아오는가** 를 넉넉한 기한 안에서 본다(T360 이 가르친 자리).
+        /// 상자 이름도 표에서 읽는다 — 그릇을 세우는 `Popups.cs` 가 이름을 바꾸면 이 자가 먼저 깨진다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 수령_연출_동안_토스트가_물러났다_돌아온다()
+        {
+            yield return Boot();
+            string boxName = OpacityUi.Text("toasts_rw_dim", "box");
+            Transform lane = UiRoot.Instance.App.Find(boxName);
+            Assert.IsNotNull(lane, "정본 #toasts 레인(" + boxName + ")이 App 아래에 있어야 한다 — 이름이 바뀌면 표(OpacityUi.json 의 box)도 같이 고쳐라");
+
+            float dim = OpacityUi.A("toasts_rw_dim");
+            Assert.AreEqual(0.1f, dim, 1e-4f, "정본 style.css 7564 #toasts.rw-dim { opacity: .1 }");
+            Assert.AreEqual(1f, Alpha(lane), 1e-3f, "연출 전에는 물러나 있지 않다");
+
+            int icons = RewardBurst.Play(RewardBurst.Rewards("coins", 12), UiRoot.Instance.Sheet);
+            Assert.Greater(icons, 0, "아이콘이 떠야 연출이 도는 것이다");
+
+            float t0 = Time.realtimeSinceStartup;
+            while (Alpha(lane) > dim + 0.01f)
+            {
+                Assert.Less(Time.realtimeSinceStartup - t0, 5f, "3초 안에 토스트가 .1 로 물러나야 한다(지금 " + Alpha(lane) + ")");
+                yield return null;
+            }
+            Assert.AreEqual(dim, Alpha(lane), 0.02f, "물러난 값은 표의 .1");
+
+            float t1 = Time.realtimeSinceStartup;
+            while (Alpha(lane) < 0.99f)
+            {
+                Assert.Less(Time.realtimeSinceStartup - t1, 15f, "연출이 끝나면 토스트가 돌아와야 한다(지금 " + Alpha(lane) + ")");
+                yield return null;
+            }
+            Assert.AreEqual(1f, Alpha(lane), 1e-3f, "돌아온 값은 1");
+            Debug.Log("[T359] 토스트 물러남 왕복 " + (Time.realtimeSinceStartup - t0).ToString("0.00") + "초 · 아이콘 " + icons);
+        }
     }
 }

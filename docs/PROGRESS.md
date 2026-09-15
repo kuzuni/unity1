@@ -8156,3 +8156,16 @@
 
 602. **손으로 만든 것을 걷어 낼 때는, 그 이름을 찾는 자가 있는지 먼저 `grep` 한다.** 5회차에 T117 이 손으로 깐 그늘 겹을 공용 도우미로 바꾸면서 겹 이름이 `eqsw-shadow` → `shadow` 로 바뀌었다. 화면은 더 옳아졌는데 **이름으로 그것을 찾던 자**가 한 줄 있어 다음 런이 빨갛다(로컬 게이트는 PlayMode 를 못 돌려 못 잡는다). 걷어 내기 전에 그 이름·그 키를 저장소 전체에서 한 번 훑으면 같은 회차에 끝난다. 그리고 자를 고칠 때는 이름만 바꾸지 말고 **바뀐 내용**(여기서는 «판 → 번진 판»)을 단언에 담는다 — 안 그러면 자가 옛 사실만 지킨다(워커 E · T331 6회차).
 
+
+### T359 2회차 — 수령 연출 동안 토스트가 물러난다(정본 `#toasts.rw-dim`) (2026-09-15 04:3x~05:0x · 워커 F · sess-0027-41852 · lock 유지)
+
+- **고른 자리**: 1회차(워커 A)가 남긴 여섯 중 **산 lock 이 없는 것은 토스트 하나**였다 — `.btn.disabled`(`Popups.cs` T331) · `.cmp-card.empty`(`ForgeUi.cs` T332) · `.idet-icon.tn-dim`(`ForgeInfoPopup.cs` T28·T332) · `.ob-zzz`(`OfflineButton.cs` T355)가 다 남의 lock 이고, `.pet-tile.mat-locked` 는 1회차가 이미 표로 옮겼다(`PetUpgradePopup.cs:274`).
+- **정본**: `style.css` 7563~7564 `#toasts { transition: opacity .25s ease-out }` · `#toasts.rw-dim { opacity: .1 }` · `ui.js` 3588~3593 이 수령 연출을 시작하며 `rw-dim` 을 걸고 «연출이 끝나는 시각»(`_toastHoldUntil`)에 뗀다. 정본 주석이 까닭까지 적어 뒀다 — «+획득량» 라벨이 토스트 글자 위에 겹쳐 인쇄되던 충돌을 이렇게 지웠다.
+- **클론에 이미 있던 것**: 그 시각을 세는 셈이 **Core 에 이미 서 있었다** — `RewardBurstRules.HoldMs(s, entries)` = `entries*cur_step + 7*icon_step + fly_ms + hold_slack`(정본 `entries*90 + 7*44 + RW_FLY_MS + 120` 그대로). 세워 두고 **아무도 안 부르고 있었다**. 새 수치를 정하지 않고 그것을 불렀다.
+- **lock 을 피해 가는 길**: 그릇(`#toasts` 레인)은 `Popups.cs` 가 `App` 아래 상자로 세우는데 그 파일이 T331 산 lock 이다. 그래서 **상자 이름을 표에 두고**(`OpacityUi.json` `toasts_rw_dim.box`) `RewardBurst` 가 찾아 `CanvasGroup` 을 건다 — 남의 파일을 한 줄도 안 열고, 이름이 바뀌면 **PlayMode 자가 먼저 깨진다**(조용히 안 사라진다). 퇴장 시간·이징도 표에(`fade_ms` 250 · `ease` [0,0,.58,1] = CSS `ease-out`).
+- **얹은 것**: `Ui/RewardBurst.cs` — `Burst` 첫머리에서 `DimToasts` · 코루틴이 «내려감(.25s ease-out) → 연출이 끝날 때까지 물러나 있음 → 돌아옴(.25s)». `Ui/OpacityUi.cs` 에 곁수치를 읽는 길 셋(`Num`·`Text`·`Ease` · `Ease` 는 Core `CssEase` 로 푼다).
+- **자**: `OpacityTests` +1 — 표의 `.1` 에 닿는가 · 연출이 끝나면 1 로 돌아오는가 · 레인 이름이 표와 맞는가. **벽시계에 안 매이게** «몇 프레임 뒤» 가 아니라 «넉넉한 기한 안에 닿는가» 로 쟀다(T360 이 가르친 자리).
+- **남은 몫(3회차 누구든)**: 넷은 여전히 남의 lock 뒤 · 정본이 새 토스트를 **미루는** 쪽(`UI.toast()` 가 `_toastHoldUntil` 을 본다)은 이 축이 아니라 토스트 그릇(`Popups.cs`)의 몫이라 그 lock 이 풀리면 같은 `HoldMs` 로 이으면 된다.
+- **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 없음. 런 581 의 빨강 둘(`EquipSwapTests`·`PressFxSitesTests`)은 T331·T355 산 lock 자리다.
+
+591. **남의 lock 이 쥔 파일이 «그릇» 일 뿐이면, 그 파일을 열지 말고 그릇의 이름을 표에 두고 밖에서 건다 (2026-09-15 · T359 2회차 · 워커 F · sess-0027-41852)**: 토스트 레인은 `Popups.cs`(T331 lock)가 세우지만 거는 쪽은 `RewardBurst` 다 — 이름을 `OpacityUi.json` 에 두고 찾으면 남의 파일을 안 열고도 자리가 선다. 대신 **이름이 바뀌면 자가 먼저 깨지게** PlayMode 단언을 같이 둔다(이름으로 찾는 것을 조용히 두지 않는다).

@@ -49,6 +49,36 @@ namespace Forge.Game.Ui
             return (float)J.Num(v);
         }
 
+        /// <summary>그 알파 자리의 곁수치(`fade_ms` 처럼 알파 말고 같이 적힌 값) — 없으면 예외.</summary>
+        public static double Num(string key, string field)
+        {
+            Load();
+            JsonObject o = J.Obj(alpha[key]);
+            object v = o != null ? o[field] : null;
+            if (!J.IsNum(v)) throw new KeyNotFoundException(ResourcePath + ".json «" + key + "» 에 «" + field + "» 이 없다");
+            return J.Num(v);
+        }
+
+        /// <summary>그 알파 자리의 글자 값(`box` 처럼 이름) — 없으면 예외.</summary>
+        public static string Text(string key, string field)
+        {
+            Load();
+            JsonObject o = J.Obj(alpha[key]);
+            string v = o != null ? J.Str(o[field]) : null;
+            if (string.IsNullOrEmpty(v)) throw new KeyNotFoundException(ResourcePath + ".json «" + key + "» 에 «" + field + "» 이 없다");
+            return v;
+        }
+
+        /// <summary>그 알파 자리의 타이밍 함수(`ease` = cubic-bezier 넷) — 안 적혀 있으면 linear.</summary>
+        public static Forge.Core.CraftFx.CssEase Ease(string key)
+        {
+            Load();
+            JsonObject o = J.Obj(alpha[key]);
+            List<object> e = o != null ? J.Arr(o["ease"]) : null;
+            if (e == null || e.Count < 4) return Forge.Core.CraftFx.CssEase.Linear;
+            return new Forge.Core.CraftFx.CssEase(J.Num(e[0]), J.Num(e[1]), J.Num(e[2]), J.Num(e[3]));
+        }
+
         /// <summary>그 상자(와 자손)에 표의 알파를 건다 — 이미 CanvasGroup 이 있으면 그것의 알파를 바꾼다.</summary>
         public static CanvasGroup Apply(GameObject go, string key)
         {
