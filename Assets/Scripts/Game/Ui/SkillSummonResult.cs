@@ -50,6 +50,8 @@ namespace Forge.Game.Ui
             /// <summary>T334 7회차 — 물러남 전 이 셀 그림들의 제 색(한 번만 담는다).</summary>
             public Graphic[] Tint;
             public Color[] TintHome;
+            /// <summary>T334 12회차 — 착지 스파크(정본 `.sr-spark`) — 구체 래퍼 한가운데에 겹친다.</summary>
+            public Image Spark;
         }
 
         public static SkillSummonResultView Current { get; private set; }
@@ -664,6 +666,29 @@ namespace Forge.Game.Ui
                 LetterSpacing.Apply(rt, "sr_sub_ls_em");   // T168 3회차 — 정본 7059 `.sr-sub`
                 UiKit.Fill(rt.rectTransform);
             }
+            // ---- 착지 스파크(정본 `.sr-spark` 6463~6484 · z 2) ----
+            // 정본 주석: «링 하나로는 «내려앉았다» 만 말하고 «부딪혔다» 를 말하지 못한다 —
+            //   box-shadow 8방향 복제를 transform: scale 로 바깥으로 날린다(오프셋도 함께 확대된다)».
+            // 그래서 여기서도 복제 여덟 + 심 하나를 **한 장에** 굽고, 날리기는 판의 배율이 한다.
+            // 가산(screen)이라야 구체 위에서 «튄 빛» 으로 읽힌다 — 알파로 덮으면 구체에 흰 점을 찍은 것이 된다.
+            {
+                SummonSparkSpec ssp = SummonFxStyle.Spark;
+                float sz = PetSkillStyle.Rem((float)ssp.BoxRem);
+                RectTransform spk = UiKit.Box(wrap, "sr-spark");
+                spk.anchorMin = spk.anchorMax = new Vector2(0.5f, 0.5f);
+                spk.pivot = new Vector2(0.5f, 0.5f);
+                spk.sizeDelta = new Vector2(sz, sz);
+                spk.anchoredPosition = Vector2.zero;
+                Image si = spk.gameObject.AddComponent<Image>();
+                si.raycastTarget = false;
+                si.preserveAspect = false;
+                si.sprite = SummonFx.BakeSpark("sr-spark-" + ColorUtility.ToHtmlStringRGB(rc), rc);
+                Material sm = CraftFxPoly.Screen();
+                if (sm != null) si.material = sm;
+                si.color = new Color(1f, 1f, 1f, 0f);
+                spk.localScale = Vector3.one * (float)(ssp.Scale.Sample(0, "base", null) + ssp.Glow(tier) * ssp.Scale.Sample(0, "glow", null));
+                c.Spark = si;
+            }
             cell.localScale = Vector3.one * 0.35f;
             return c;
         }
@@ -806,6 +831,7 @@ namespace Forge.Game.Ui
             AnimateHeroRing();
             AnimateBeam();
             AnimateRelights();
+            AnimateSparks();
         }
 
         void TurnOn(Cell c)
@@ -1083,6 +1109,29 @@ namespace Forge.Game.Ui
                 ri.rectTransform.localScale = Vector3.one * (float)sc;
             }
         }
+
+        /// <summary>
+        /// 착지 스파크(정본 `srspark` .42s) — 셀이 뜬 그 순간부터 심에서 터져 바깥으로 날아가며 꺼진다.
+        /// 알파는 0→62→100 **두 구간**이고 배율은 한 구간이다(표가 트랙을 둘로 나눠 쥔다).
+        /// </summary>
+        void AnimateSparks()
+        {
+            SummonSparkSpec sp = null;
+            float tt = Time.unscaledTime;
+            for (int i = 0; i < cells.Count; i++)
+            {
+                Cell c = cells[i];
+                if (c.Spark == null || !c.On) continue;
+                if (sp == null) sp = SummonFxStyle.Spark;
+                double a, sc;
+                sp.At((tt - c.OnAt) * 1000f, RarityIdx(c.Entry.Rarity), out a, out sc);
+                c.Spark.color = new Color(1f, 1f, 1f, (float)a);
+                c.Spark.rectTransform.localScale = Vector3.one * (float)sc;
+            }
+        }
+
+        /// <summary>그 셀의 착지 스파크 — 자가 본다.</summary>
+        public Image SparkOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Spark : null; }
 
         /// <summary>셀별 재점화 플래시 — 자가 본다.</summary>
         public Image RelightOf(int i) { return i >= 0 && i < relights.Count ? relights[i] : null; }

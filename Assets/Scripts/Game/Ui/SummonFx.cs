@@ -771,6 +771,43 @@ namespace Forge.Game.Ui
             return Finish(name, NewTex(name, N, N), px);
         }
 
+        /// <summary>
+        /// 착지 스파크 판(정본 `.sr-spark` 6463~6476) — 심 하나 + `box-shadow` 복제 여덟을 **한 장에** 굽는다.
+        ///
+        /// 축 넷은 등급색(1.5rem) · 대각 넷은 흰색(1.06rem)이고, 음수 퍼짐(spread)은 복제의 반지름을 그만큼 깎는다.
+        /// 정본이 `transform: scale` 로 «오프셋도 함께 확대» 하므로 이 판은 **제자리 배치만** 굽고 날리기는 부르는 쪽의 배율이 한다.
+        /// 가장자리는 한 화소 안에서 잇는다 — 안 그러면 지름 7~8 화소짜리 점이 사각형으로 보인다.
+        /// </summary>
+        public static Sprite BakeSpark(string name, Color rc)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            SummonSparkSpec sp = SummonFxStyle.Spark;
+            int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
+            float half = (float)sp.BoxRem * 0.5f;                 // 판 한 변의 절반(rem)
+            float perRem = N * 0.5f / half;                       // rem → 화소
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            {
+                float vy = ((y + 0.5f) / N * 2f - 1f) * half;     // rem · +y 는 위(UGUI)
+                for (int x = 0; x < N; x++)
+                {
+                    float vx = ((x + 0.5f) / N * 2f - 1f) * half;
+                    float bestA = 0f; Color bestC = Color.white;
+                    for (int i = 0; i <= 8; i++)
+                    {
+                        double dx0, dy0, rr; bool rarity;
+                        sp.Dot(i, out dx0, out dy0, out rr, out rarity);
+                        float d = Mathf.Sqrt((vx - (float)dx0) * (vx - (float)dx0) + (vy - (float)dy0) * (vy - (float)dy0));
+                        float edge = 0.5f / perRem;               // 한 화소 폭으로 잇는다
+                        float a = d <= (float)rr - edge ? 1f : d >= (float)rr + edge ? 0f : 1f - (d - ((float)rr - edge)) / (2f * edge);
+                        if (a > bestA) { bestA = a; bestC = rarity ? rc : Color.white; }
+                    }
+                    px[y * N + x] = new Color(bestC.r, bestC.g, bestC.b, Mathf.Clamp01(bestA));
+                }
+            }
+            return Finish(name, NewTex(name, N, N), px);
+        }
+
         /// <summary>좁은 선 하나 — <paramref name="mid"/> 에서 1 이고 양옆 <paramref name="a"/>·<paramref name="b"/> 에서 0.</summary>
         static float Band(float t, float a, float mid, float b)
         {
@@ -823,12 +860,13 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; heroRingEase = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; heroRingEase = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
         static SummonHeroSpec hero;
         static SummonRelightSpec relight;
+        static SummonSparkSpec spark;
         /// <summary>T334 6회차 — 주역 착지의 화면 킥(표의 `hero` 절).</summary>
         /// <summary>표의 `hero` 절 수치 하나(그 절은 `layout` 밖이다).</summary>
         public static float H(string key) { Load(); return (float)J.Num(J.Require(J.Obj(root["hero"]), key)); }
@@ -856,6 +894,9 @@ namespace Forge.Game.Ui
 
         /// <summary>T334 11회차 — 셀별 광원 재점화 규칙(정본 `.sr-relight`).</summary>
         public static SummonRelightSpec Relight { get { Load(); if (relight == null) relight = SummonRelightSpec.From(root); return relight; } }
+
+        /// <summary>T334 12회차 — 착지 스파크 규칙(정본 `.sr-spark`).</summary>
+        public static SummonSparkSpec Spark { get { Load(); if (spark == null) spark = SummonSparkSpec.From(root); return spark; } }
 
         public static Color C(string key)
         {

@@ -177,5 +177,49 @@ namespace Forge.Tests.PlayMode
             for (int i = 0; i < v.RelightCount; i++)
                 Assert.AreEqual(0f, v.RelightOf(i).color.a, 1e-3f, "재점화가 안 꺼졌다 — 결과 화면 가운데에 등급색 얼룩이 남는다(" + i + "번)");
         }
+
+        /// <summary>
+        /// T334 12회차 — 착지 스파크(정본 `.sr-spark`). 정본 주석: «링 하나로는 «내려앉았다» 만 말하고
+        /// «부딪혔다» 를 말하지 못한다». 자는 ⓐ 셀이 뜰 때 터지고 ⓑ 바깥으로 날아가고 ⓒ 꺼지는지 잰다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 셀이_내려앉으면_스파크가_터져_바깥으로_날아가_꺼진다()
+        {
+            yield return Boot();
+            SkillSummonResultView v = OpenHoldback();
+            Image s0 = v.SparkOf(0), s3 = v.SparkOf(3);
+            Assert.IsNotNull(s0, "착지 스파크가 없다");
+            Assert.IsNotNull(s0.sprite, "심 + 복제 여덟을 한 장에 구운 판이라야 한다");
+            Assert.AreEqual("sr-orbwrap", s0.rectTransform.parent.name, "스파크는 구체 래퍼 안에 산다(정본 z 2)");
+            RectTransform rt = s0.rectTransform;
+            Assert.AreEqual(rt.rect.width, rt.rect.height, 0.01f, "정사각 판");
+
+            var peakA = new float[4];
+            var peakS = new float[4];
+            float t = 0f;
+            while (!v.Done && t < 12f)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    Image si = v.SparkOf(i);
+                    if (si == null) continue;
+                    if (si.color.a > peakA[i]) peakA[i] = si.color.a;
+                    float sc = si.rectTransform.localScale.x;
+                    if (si.color.a > 0f && sc > peakS[i]) peakS[i] = sc;
+                }
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.IsTrue(v.Done, "연출이 안 끝났다(경과 " + t.ToString("0.00") + "초)");
+            Assert.Greater(peakA[0], 0f, "첫 셀이 내려앉았는데 스파크가 안 터졌다");
+            Assert.Greater(peakA[3], peakA[0], "등급이 오를수록 세게 터진다(정본 calc(.45 + .55 * --glow))");
+            Assert.Greater(peakS[3], peakS[0], "등급이 오를수록 멀리 날아간다(정본 calc(1.05 + .55 * --glow))");
+            Assert.Greater(peakS[0], 0.16f, "제자리에서 안 움직였다 — 배율이 안 붙었다");
+
+            float t2 = 0f;
+            while (t2 < 1.2f) { t2 += Time.unscaledDeltaTime; yield return null; }
+            for (int i = 0; i < 4; i++)
+                Assert.AreEqual(0f, v.SparkOf(i).color.a, 1e-3f, "스파크가 안 꺼졌다 — 구체 위에 흰 점 아홉이 남는다(" + i + "번)");
+        }
     }
 }

@@ -256,6 +256,130 @@ namespace Forge.Core.Ui
     }
 
     /// <summary>
+    /// T334 12회차 — **착지 스파크**(정본 `.sr-spark` · style.css 6463~6484).
+    ///
+    /// 정본 주석: «링 하나로는 «내려앉았다» 만 말하고 «부딪혔다» 를 말하지 못한다 —
+    /// `box-shadow` 8방향 복제를 `transform: scale` 로 바깥으로 날린다(오프셋도 함께 확대된다)».
+    ///
+    /// ⚠ 알파는 0→62→100 **두 구간**으로 이징하는데 배율은 0%·100% 에만 적혀 **한 구간**이다
+    ///   (CSS 는 이징을 키프레임 «구간마다» 건다) — 그래서 트랙을 둘로 나눈다. 한 트랙에 넣으면 배율이 62% 에서 꺾인다.
+    /// ⚠ 세기 `--glow` 는 **CSS 등급 계단**(`tier.glow` · 6327~6332)이다 — 재점화(`relight`)가 쓰는
+    ///   `0.16 + tier × 0.13` 과 **다른 수**다(그쪽은 `fillSummonRelights` 가 인라인으로 심는다).
+    /// UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonSparkSpec
+    {
+        /// <summary>한 번 튀는 길이(ms · 정본 .42s).</summary>
+        public double Ms;
+        /// <summary>심 원의 지름(rem · 정본 .22rem) · 축 복제 거리(rem) · 대각 복제 거리(rem).</summary>
+        public double DotRem, AxisRem, DiagRem;
+        /// <summary>복제의 퍼짐(rem · 음수 — 복제 반지름이 그만큼 줄어든다). 위→오른쪽→아래→왼쪽 · 대각은 그 사이.</summary>
+        public double[] AxisSpreadRem, DiagSpreadRem;
+        /// <summary>굽는 판 한 변(rem) — 축 복제가 안 잘리는 가장 작은 상자.</summary>
+        public double BoxRem;
+        /// <summary>등급 계단(정본 `.sr-cell` 의 `--glow`).</summary>
+        public double[] TierGlow;
+        /// <summary>알파·배율 트랙 — 칸은 `calc(base + glow × --glow)` 그대로 둘이다.</summary>
+        public RewardBurstSpec.Track Alpha, Scale;
+
+        public static SummonSparkSpec From(JsonObject root)
+        {
+            double[] g = J.NumArr(J.Require(J.Obj(J.Require(root, "tier")), "glow"));
+            if (g == null || g.Length < 2) throw new FormatException("SummonFxUi tier: glow 는 등급 계단(둘 이상)이다");
+            for (int i = 1; i < g.Length; i++) if (g[i] < g[i - 1]) throw new FormatException("SummonFxUi tier: glow 는 등급이 오를수록 커져야 한다");
+
+            JsonObject o = J.Obj(J.Require(root, "spark"));
+            var s = new SummonSparkSpec
+            {
+                Ms = J.Num(J.Require(o, "spark_ms")),
+                DotRem = J.Num(J.Require(o, "dot_rem")),
+                AxisRem = J.Num(J.Require(o, "axis_rem")),
+                DiagRem = J.Num(J.Require(o, "diag_rem")),
+                AxisSpreadRem = J.NumArr(J.Require(o, "axis_spread_rem")),
+                DiagSpreadRem = J.NumArr(J.Require(o, "diag_spread_rem")),
+                BoxRem = J.Num(J.Require(o, "box_rem")),
+                TierGlow = g,
+            };
+            if (s.Ms <= 0) throw new FormatException("SummonFxUi spark: spark_ms 는 0보다 커야 한다");
+            if (s.DotRem <= 0 || s.AxisRem <= 0 || s.DiagRem <= 0) throw new FormatException("SummonFxUi spark: 심·거리는 0보다 커야 한다");
+            if (s.AxisSpreadRem == null || s.AxisSpreadRem.Length != 4 || s.DiagSpreadRem == null || s.DiagSpreadRem.Length != 4)
+                throw new FormatException("SummonFxUi spark: 퍼짐은 축 넷·대각 넷이다(정본 box-shadow 여덟 겹)");
+            // 퍼짐이 심 반지름보다 더 깎으면 그 복제가 사라진다 — 정본은 여덟이 다 보인다.
+            double r = s.DotRem * 0.5;
+            for (int i = 0; i < 4; i++)
+            {
+                if (r + s.AxisSpreadRem[i] <= 0 || r + s.DiagSpreadRem[i] <= 0)
+                    throw new FormatException("SummonFxUi spark: 퍼짐이 심 반지름을 다 깎았다 — 그 복제는 화면에서 사라진다");
+            }
+            // 축 복제가 판 밖으로 나가면 잘린 채 커진다(scale 은 잘린 판을 늘릴 뿐이다).
+            if (s.BoxRem < (s.AxisRem + r) * 2) throw new FormatException("SummonFxUi spark: box_rem 이 축 복제를 못 담는다");
+
+            s.Alpha = Pair(o, "srspark_a", J.NumArr(J.Require(o, "spark_ease")));
+            s.Scale = Pair(o, "srspark_s", J.NumArr(J.Require(o, "spark_ease")));
+            // 스파크는 **꺼진다** — 마지막 키가 0 이 아니면 결과 화면에 흰 점 아홉이 남는다.
+            var last = s.Alpha.Keys[s.Alpha.Keys.Length - 1];
+            if (last.Num["base"] != 0 || last.Num["glow"] != 0)
+                throw new FormatException("SummonFxUi spark: srspark_a 의 마지막 키는 알파 0 이어야 한다");
+            return s;
+        }
+
+        /// <summary>`calc(base + glow × --glow)` 꼴 트랙 하나를 읽는다.</summary>
+        static RewardBurstSpec.Track Pair(JsonObject o, string key, double[] e)
+        {
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi spark: spark_ease 는 cubic-bezier 넷이다");
+            CssEase ease = new CssEase(e[0], e[1], e[2], e[3]);
+            var list = J.List(J.Require(o, key), x => J.Obj(x));
+            if (list.Count < 2) throw new FormatException("SummonFxUi spark: " + key + " 키프레임이 둘 미만이다");
+            var keys = new RewardBurstSpec.KeyStop[list.Count];
+            double prev = -1;
+            for (int i = 0; i < list.Count; i++)
+            {
+                JsonObject k = list[i];
+                var ks = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(k, "at")), Ease = ease };
+                if (ks.At < prev) throw new FormatException("SummonFxUi spark: " + key + " 퍼센트는 오름차순이어야 한다");
+                prev = ks.At;
+                ks.Num["base"] = J.Num(J.Require(k, "base"));
+                ks.Num["glow"] = J.Num(J.Require(k, "glow"));
+                keys[i] = ks;
+            }
+            return new RewardBurstSpec.Track { Keys = keys };
+        }
+
+        /// <summary>그 등급의 세기(정본 `--glow` 계단) — 표 밖 등급은 양 끝으로 자른다.</summary>
+        public double Glow(int tier) { return TierGlow[tier < 0 ? 0 : tier >= TierGlow.Length ? TierGlow.Length - 1 : tier]; }
+
+        /// <summary>복제 여덟의 자리(rem · +y 는 **위** · UGUI 쪽이 그대로 쓴다)와 반지름(rem). 0번은 심.</summary>
+        public void Dot(int i, out double x, out double y, out double rRem, out bool rarity)
+        {
+            double r0 = DotRem * 0.5;
+            if (i <= 0) { x = 0; y = 0; rRem = r0; rarity = false; return; }
+            int k = (i - 1) / 2, odd = (i - 1) % 2;   // 정본 차례: 위 · 오른위 · 오른 · 오른아래 · 아래 · 왼아래 · 왼 · 왼위
+            if (odd == 0)
+            {
+                double[] ax = { 0, 1, 0, -1 }, ay = { 1, 0, -1, 0 };   // CSS 의 «0 -1.5rem»(위)을 +y 위로 뒤집었다
+                x = ax[k] * AxisRem; y = ay[k] * AxisRem; rRem = r0 + AxisSpreadRem[k]; rarity = true;
+            }
+            else
+            {
+                double[] dx = { 1, 1, -1, -1 }, dy = { 1, -1, -1, 1 };
+                x = dx[k] * DiagRem; y = dy[k] * DiagRem; rRem = r0 + DiagSpreadRem[k]; rarity = false;
+            }
+        }
+
+        /// <summary>셀이 뜬 뒤 <paramref name="ms"/> 지난 스파크의 불투명도·배율.</summary>
+        public void At(double ms, int tier, out double alpha, out double scale)
+        {
+            double p = ms <= 0 ? 0 : ms >= Ms ? 100 : ms / Ms * 100;
+            double g = Glow(tier);
+            alpha = Alpha.Sample(p, "base", null) + g * Alpha.Sample(p, "glow", null);
+            scale = Scale.Sample(p, "base", null) + g * Scale.Sample(p, "glow", null);
+        }
+
+        /// <summary>아직 튀는 중인가.</summary>
+        public bool Sparking(double ms) { return ms >= 0 && ms < Ms; }
+    }
+
+    /// <summary>
     /// T334 11회차 — **셀별 광원 재점화**(정본 `.sr-relight` · style.css 6364~6389 · `UI.fillSummonRelights` ui.js 638~649).
     ///
     /// 정본이 이 겹을 넣은 까닭이 주석에 실측으로 적혀 있다: 광원 ±20px 평균 휘도가 2~4번 셀이 사출되는 900ms 내내

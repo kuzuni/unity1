@@ -507,4 +507,97 @@ namespace Forge.Tests
             Assert.Throws<System.FormatException>(() => SummonRelightSpec.From(MiniJson.ParseObject(over)));
         }
     }
+
+    /// <summary>T334 12회차 — 착지 스파크(정본 `.sr-spark`)가 표대로 터져 날아가 꺼진다.</summary>
+    public class SummonSparkSpecTests
+    {
+        static SummonSparkSpec spec;
+        static SummonSparkSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonSparkSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 터져_날아가_꺼진다()
+        {
+            SummonSparkSpec s = S();
+            double a0, sc0, a1, sc1;
+            s.At(0, 5, out a0, out sc0);
+            s.At(s.Ms, 5, out a1, out sc1);
+            Assert.Greater(a0, 0.9, "신화는 거의 불투명하게 터진다(정본 .45 + .55 × 1)");
+            Assert.AreEqual(0.0, a1, 1e-9, "끝에는 꺼진다 — 안 그러면 결과 화면에 흰 점 아홉이 남는다");
+            Assert.Less(sc0, sc1, "심에서 바깥으로 날아간다");
+            Assert.AreEqual(0.16, sc0, 1e-9, "정본 0% 배율");
+        }
+
+        [Test]
+        public void 등급이_오를수록_세고_멀리_간다()
+        {
+            SummonSparkSpec s = S();
+            double aLo, sLo, aHi, sHi;
+            s.At(0, 0, out aLo, out sLo);
+            s.At(0, 5, out aHi, out sHi);
+            Assert.Greater(aHi, aLo, "정본 calc(.45 + .55 * --glow)");
+            double eLo, eHi, dummy;
+            s.At(s.Ms, 0, out dummy, out eLo);
+            s.At(s.Ms, 5, out dummy, out eHi);
+            Assert.Greater(eHi, eLo, "정본 calc(1.05 + .55 * --glow)");
+            // 등급 계단은 CSS `.sr-cell` 의 --glow 다 — 재점화가 쓰는 0.16 + tier*0.13 과 다른 수다.
+            Assert.AreEqual(0.0, s.Glow(0), 1e-9);
+            Assert.AreEqual(1.0, s.Glow(5), 1e-9);
+        }
+
+        [Test]
+        public void 복제_여덟은_축_넷이_등급색이고_대각_넷이_희다()
+        {
+            SummonSparkSpec s = S();
+            int rarity = 0, white = 0;
+            for (int i = 1; i <= 8; i++)
+            {
+                double x, y, r; bool isRc;
+                s.Dot(i, out x, out y, out r, out isRc);
+                Assert.Greater(r, 0.0, i + "번 복제가 퍼짐에 다 깎였다");
+                double d = System.Math.Sqrt(x * x + y * y);
+                if (isRc) { rarity++; Assert.AreEqual(s.AxisRem, d, 1e-9, "축 복제는 1.5rem"); }
+                else { white++; Assert.AreEqual(System.Math.Sqrt(2) * s.DiagRem, d, 1e-9, "대각 복제는 1.06rem 씩"); }
+            }
+            Assert.AreEqual(4, rarity, "축 넷이 등급색");
+            Assert.AreEqual(4, white, "대각 넷이 흰색");
+            double cx, cy, cr; bool crc;
+            s.Dot(0, out cx, out cy, out cr, out crc);
+            Assert.AreEqual(0.0, cx, 1e-9); Assert.AreEqual(0.0, cy, 1e-9);
+            Assert.AreEqual(s.DotRem * 0.5, cr, 1e-9, "심은 .22rem 지름");
+            Assert.IsFalse(crc, "심은 흰색");
+            // 판이 축 복제를 담는다 — 안 담으면 잘린 채로 커진다.
+            Assert.GreaterOrEqual(s.BoxRem, (s.AxisRem + s.DotRem * 0.5) * 2);
+        }
+
+        [Test]
+        public void 켜진_채_끝나거나_복제가_사라지는_표는_거부한다()
+        {
+            char q = '"';
+            string tier = "{" + q + "tier" + q + ":{" + q + "glow" + q + ":[0,0.16,0.3,0.55,0.8,1]}," + q + "spark" + q + ":{";
+            string body = q + "spark_ms" + q + ":420," + q + "spark_ease" + q + ":[0.14,0.82,0.3,1],"
+                + q + "dot_rem" + q + ":0.22," + q + "axis_rem" + q + ":1.5," + q + "diag_rem" + q + ":1.06," + q + "box_rem" + q + ":3.22,";
+            string sc = q + "srspark_s" + q + ":[{" + q + "at" + q + ":0," + q + "base" + q + ":0.16," + q + "glow" + q + ":0},"
+                + "{" + q + "at" + q + ":100," + q + "base" + q + ":1.05," + q + "glow" + q + ":0.55}]}}";
+            string spreadOk = q + "axis_spread_rem" + q + ":[-0.02,-0.02,-0.05,-0.02]," + q + "diag_spread_rem" + q + ":[-0.06,-0.07,-0.06,-0.07],";
+            // ⑴ 마지막 알파가 0 이 아니면 흰 점 아홉이 남는다.
+            string lit = tier + body + spreadOk
+                + q + "srspark_a" + q + ":[{" + q + "at" + q + ":0," + q + "base" + q + ":0.45," + q + "glow" + q + ":0.55},"
+                + "{" + q + "at" + q + ":100," + q + "base" + q + ":0.2," + q + "glow" + q + ":0}]," + sc;
+            Assert.Throws<System.FormatException>(() => SummonSparkSpec.From(MiniJson.ParseObject(lit)));
+            // ⑵ 퍼짐이 심 반지름을 다 깎으면 그 복제는 화면에서 사라진다.
+            string gone = tier + body
+                + q + "axis_spread_rem" + q + ":[-0.02,-0.02,-0.20,-0.02]," + q + "diag_spread_rem" + q + ":[-0.06,-0.07,-0.06,-0.07],"
+                + q + "srspark_a" + q + ":[{" + q + "at" + q + ":0," + q + "base" + q + ":0.45," + q + "glow" + q + ":0.55},"
+                + "{" + q + "at" + q + ":100," + q + "base" + q + ":0," + q + "glow" + q + ":0}]," + sc;
+            Assert.Throws<System.FormatException>(() => SummonSparkSpec.From(MiniJson.ParseObject(gone)));
+        }
+    }
 }
