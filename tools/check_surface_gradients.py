@@ -53,6 +53,8 @@ TABLE = {
     '.auto-drop-card.craft-reveal::after': ['Ui/CraftCardArt.cs@Sheen'],
     # T178 15회차 — 제작 카드 둘의 45°/−45° 교차 해칭(SurfaceUi.json stripes.cell_hatch · SurfaceArt.FillHatch · 바탕 color-mix 면 위 sRGB 합성) · `.equip-cell` 828 은 ForgeSheet lock 뒤 같은 키
     '.auto-drop-card': ['Ui/ForgeCraftPopup.cs@CraftCard'],
+    '.equip-cell': ['Ui/ForgeSheet.cs@EquipCell'],   # T178 16회차 — 828 해칭 둘(7730 이 non-egg 셀 background-image 를 덮어써도 해칭은 맨 아래 두 겹으로 남는다) · 7730 의 나머지 셋은 미정
+
     '.craft-batch .cb-card': ['Ui/ForgeCraftPopup.cs@CraftCard'],
     # ── T178 7회차 — «하드 스톱 띠»: 정본이 gradient 문법으로 적었지만 **정지점 사이에 섞임이 없는** 자리다.
     #    그림은 «가운데 11px 세로 줄» · «45° 줄무늬» 처럼 **색면 조각**이고, 클론이 조각(rect·dash)으로 그리면

@@ -84,6 +84,33 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T178 16회차 — 정본 828 `.equip-cell`: 장비 든 칸·빈 칸 둘 다 해칭이고, 탈것 칸(849 `.egg-cell` 은 제 겹 셋으로 덮는다)은 해칭이 없다.</summary>
+        [UnityTest]
+        public IEnumerator 장비_시트_칸은_든_것도_빈_것도_교차_해칭이고_탈것_칸은_아니다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            ForgeItem it = h.Engine.RollItem();
+            h.Gear.Set(it.Slot, it);
+            ForgeSheet.Render(h);
+            yield return null;
+            Transform app = UiRoot.Instance.App;
+            Transform full = FindDeep(app, "cell-" + it.Slot);
+            Assert.IsNotNull(full, "장비 든 칸 cell-" + it.Slot);
+            AssertHatched(full, "장비 든 칸");
+            string emptySlot = null;
+            foreach (string slot in h.Defs.Slots) if (h.Gear.Get(slot) == null) { emptySlot = slot; break; }
+            Assert.IsNotNull(emptySlot, "빈 칸이 하나는 있다(새 세이브)");
+            Transform empty = FindDeep(app, "cell-" + emptySlot);
+            Assert.IsNotNull(empty, "빈 칸 cell-" + emptySlot);
+            AssertHatched(empty, "빈 칸");
+            Transform egg = FindDeep(app, "egg-cell");
+            Assert.IsNotNull(egg, "탈것 칸");
+            Transform eggFace = egg.Find("frame/face");
+            Assert.IsNotNull(eggFace, "탈것 칸 면");
+            Assert.IsNull(eggFace.Find("hatch"), "탈것 칸(정본 849 .egg-cell 은 제 겹 셋)엔 해칭이 없다");
+        }
+
         [UnityTest]
         public IEnumerator 제작_결과_카드_면에_교차_해칭이_깔린다()
         {

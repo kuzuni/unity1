@@ -214,7 +214,9 @@ namespace Forge.Game.Ui
             if (it == null)
             {
                 Color face = ForgeUi.CellFace(new Color(0x6b / 255f, 0x35 / 255f, 0x38 / 255f));
-                ForgeUi.Tile(rt, "frame", face, ForgeUi.CellLine(new Color(0x6b / 255f, 0x35 / 255f, 0x38 / 255f)), size * 0.16f, PopupKit.Line3);
+                Image ef = ForgeUi.Tile(rt, "frame", face, ForgeUi.CellLine(new Color(0x6b / 255f, 0x35 / 255f, 0x38 / 255f)), size * 0.16f, PopupKit.Line3);
+                // T178 16회차 — 정본 828 `.equip-cell` 의 45°/−45° 교차 해칭(빈 칸도 같다 — 7746 은 box-shadow 만 바꾼다) · 표 stripes.cell_hatch · 면 색 위 sRGB 미리 합성.
+                SurfaceArt.FillHatch(ef, "hatch", "cell_hatch", face);
                 Image ico = PopupKit.IconOr(rt, "img", ForgeUi.SlotIconKey(slot));
                 // T342 ⓐ — 정본 style.css 862 `filter: grayscale(1) brightness(1.75) opacity(.52)`.
                 // 여태 알파(.52)만 있었다: 틴트는 곱하기라 «회색 눕히기»·«밝기 올리기» 를 못 한다(마룬 타일 위에서 형태가 안 읽힌다 —
@@ -230,6 +232,9 @@ namespace Forge.Game.Ui
             }
             Color ac = ForgeUi.AgeColor(d, it.Age);
             Image f = ForgeUi.Tile(rt, "frame", ForgeUi.CellFace(ac), ForgeUi.CellLine(ac), size * 0.16f, PopupKit.Line3);
+            // T178 16회차 — 정본 828 `.equip-cell` 교차 해칭(7730 이 non-egg 셀의 background-image 를 다섯 겹으로 덮어써도 해칭 둘은 그 목록의 맨 아래 두 겹으로 남는다).
+            //   나머지 세 겹(방사 둘 + 선형 명암)은 해칭 **위**에 알파로 얹는 자리라 타일 위 미리 합성이 안 된다 — 셀 면 통째 굽기(비타일)는 다음 회차.
+            SurfaceArt.FillHatch(f, "hatch", "cell_hatch", ForgeUi.CellFace(ac));
             AgePattern.Attach(rt, it.Age, cell: true, mask: (string)null, siblingIndex: 1);   // T124 — 정본 `.equip-cell[data-age]::before`(흐림 .55 · 썸네일 뒤) · 장착 셀은 마스크가 없다(T380 키 갈래로 옮김)
             Image img = PopupKit.IconOr(rt, "img", ForgeUi.ItemIconKey(d, it));
             float kk = size * 0.76f;
