@@ -1189,7 +1189,11 @@ namespace Forge.Tests.PlayMode
                 if (Camera.main != null) cam.CopyFrom(Camera.main);
                 // T349 — `CopyFrom` 은 URP 추가 데이터(renderPostProcessing·volumeLayerMask·antialiasing·renderShadows)를
                 //        **안 옮긴다** — 그래서 촬영 PNG 의 3D 띠가 톤맵·노출·색 보정 없이 찍혔다(런 503 실측).
-                ShotCam.CopyUrp(Camera.main, cam);
+                // §0-6 수리(워커 F · 런 562) — 다만 **이 카메라는 촬영이 아니라 자다**: UI 층만 검은 바탕에 그려
+                //        «그 칸이 칠해졌나» 를 바이트로 센다. 톤맵·노출·색 보정을 태우면 재는 값 자체가 밀린다
+                //        (런 562 실측: 순백 255 → **215** · 이 자의 «흰가» 문턱 225 가 그래서 깨졌다).
+                //        촬영 PNG 는 켠 채로 두고(그게 T349 가 고친 것이다), **재는 카메라만** 후처리를 끈다(결정 564 와 같은 결).
+                ShotCam.CopyUrp(Camera.main, cam).renderPostProcessing = false;
                 cam.rect = new Rect(0f, 0f, 1f, 1f);
                 cam.targetTexture = rt;
                 cam.ResetProjectionMatrix();
