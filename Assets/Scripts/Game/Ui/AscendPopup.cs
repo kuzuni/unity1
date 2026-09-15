@@ -147,6 +147,7 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI fe = DungeonPopups.Para(focus, "eff", TextKind.Sub, eff, "pp_ink", TextAlignmentOptions.Left);
                 UiKit.Place(fe.rectTransform, focusPad, fy, inner - focusPad * 2f, subH * 4f);
                 OpacityUi.Apply(fe.gameObject, "asc_focus_eff");   // T359 — 정본 5635 .asc-focus-eff { opacity: .9 }
+                LineHeight.Apply(fe, "asc_focus_eff_lh");   // T354 — 정본 5635 .asc-focus-eff { line-height: 1.5 }
                 y += focusH - DungeonPopups.RemL("asc_focus_mt_rem");
 
                 y += DungeonPopups.RemL("asc_focus_mt_rem");

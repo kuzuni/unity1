@@ -105,5 +105,23 @@ namespace Forge.Tests.EditMode
             Assert.AreEqual(5, ratios.Count(v => v > 1.448), "넓어지는 자리 다섯");
             Assert.AreEqual(0, ratios.Count(v => v == 1.448), "우연히 글꼴 기본과 같은 자리는 없다");
         }
-    }
+    
+        /// <summary>T354 3회차 — TMP `lineSpacing` 은 em/100 단위: 배수 r → (r − 자산 줄높이 비율) × 100.</summary>
+        [Test]
+        public void TMP_lineSpacing_은_배수와_자산_줄높이_비율의_차를_100배로_낸다()
+        {
+            // pointSize 54 · lineHeight 78.192(1.448em)
+            Assert.AreEqual(0.0, LineHeightRules.TmpLineSpacing(1.448, 78.192, 54), 1e-9, "자산 기본 줄높이면 0");
+            Assert.AreEqual(-44.8, LineHeightRules.TmpLineSpacing(1.0, 78.192, 54), 1e-9, "정본 1 이면 −44.8");
+            Assert.AreEqual(5.2, LineHeightRules.TmpLineSpacing(1.5, 78.192, 54), 1e-9, "정본 1.5 면 +5.2");
+            Assert.AreEqual(-19.8, LineHeightRules.TmpLineSpacing(1.25, 78.192, 54), 1e-9);
+            // Spacing(자산 단위) 과 같은 값의 단위 옮김
+            double sp = LineHeightRules.Spacing(1.25, 78.192, 54);
+            Assert.AreEqual(LineHeightRules.TmpLineSpacing(1.25, 78.192, 54), LineHeightRules.SpacingToTmp(sp, 54), 1e-9);
+            // 글자 크기와 무관(pointSize 만 다르게 · 비율 같음)
+            Assert.AreEqual(LineHeightRules.TmpLineSpacing(1.25, 78.192, 54), LineHeightRules.TmpLineSpacing(1.25, 144.8, 100), 1e-9);
+            Assert.Throws<FormatException>(() => LineHeightRules.TmpLineSpacing(1.2, 78.192, 0));
+            Assert.Throws<FormatException>(() => LineHeightRules.SpacingToTmp(1, 0));
+        }
+}
 }

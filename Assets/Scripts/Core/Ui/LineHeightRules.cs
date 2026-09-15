@@ -49,6 +49,23 @@ namespace Forge.Core.Ui
         }
 
         /// <summary>절대 줄높이(px) → 배수. `…_lh_rem`·`…_lh_w` 자리가 이 길로 온다.</summary>
+        /// <summary>
+        /// TMP <c>TMP_Text.lineSpacing</c> 에 넣을 값(T354 3회차). TMP 는 줄 간격을 «글꼴 자산의 줄높이 × baseScale + <c>lineSpacing</c> × currentEmScale»
+        /// 로 더하고 currentEmScale = fontSize × 0.01 이라 <c>lineSpacing</c> 의 단위는 **em/100**(100 = 글자 크기 하나)이다 — <see cref="Spacing"/>(자산 단위)과 다르다.
+        /// 그러므로 정본 배수 r 을 내려면 <c>lineSpacing = (r − faceLineHeight/facePointSize) × 100</c>. 글자 크기를 바꿔도 비율은 그대로다(양쪽에 fontSize 가 같이 걸린다).
+        /// </summary>
+        public static double TmpLineSpacing(double ratio, double faceLineHeight, double facePointSize)
+        {
+            return (ratio - FaceRatio(faceLineHeight, facePointSize)) * 100.0;
+        }
+
+        /// <summary><see cref="Spacing"/>(자산 단위) → <see cref="TmpLineSpacing"/>(em/100) — 같은 값의 단위 옮김.</summary>
+        public static double SpacingToTmp(double spacingFaceUnits, double facePointSize)
+        {
+            if (facePointSize <= 0) throw new FormatException("글꼴 pointSize 가 0 이하다: " + facePointSize);
+            return spacingFaceUnits / facePointSize * 100.0;
+        }
+
         public static double RatioFromPx(double lineHeightPx, double fontSizePx)
         {
             if (fontSizePx <= 0) throw new FormatException("글자 크기가 0 이하다: " + fontSizePx);

@@ -68,7 +68,7 @@ namespace TMPro
     // T121 — 진짜 TMP_TextElement(글리프 참조) · TMP_Character : TMP_TextElement
     public class TMP_TextElement { public UnityEngine.TextCore.Glyph glyph { get; set; } public uint unicode { get; set; } }
     public class TMP_Character : TMP_TextElement { }
-    public struct TMP_LineInfo { public int firstCharacterIndex, lastCharacterIndex, firstVisibleCharacterIndex, lastVisibleCharacterIndex, characterCount; }
+    public struct TMP_LineInfo { public int firstCharacterIndex, lastCharacterIndex, firstVisibleCharacterIndex, lastVisibleCharacterIndex, characterCount; public float baseline, ascender, descender, lineHeight, maxAdvance, width, marginLeft, marginRight;   /* T354 — 진짜 TMP_LineInfo 의 공개 필드(줄 기준선·높이 · LineHeight.MeasuredRatio 가 읽는다) */ }
     public class TMP_TextInfo
     {
         public int characterCount, lineCount, pageCount, wordCount;

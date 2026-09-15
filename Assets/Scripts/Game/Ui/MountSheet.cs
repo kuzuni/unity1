@@ -117,6 +117,7 @@ namespace Forge.Game.Ui
             {
                 TextMeshProUGUI empty = PetSkillKit.Text(content, "grid-empty", TextKind.Sub, PetSkillStyle.T("mounts_empty"), PetSkillStyle.C("muted"), TextAlignmentOptions.Center, false);
                 UiKit.Place(empty.rectTransform, 0f, PetSkillStyle.Rem(2.4f), W, starH * 1.5f);
+                LineHeight.Apply(empty, "sk_grid_grid_empty_lh");   // T354 — 정본 4030 .sk-grid .grid-empty { line-height: 1.5 } (탈것 격자도 .sk-grid · ui.js 5660)
                 y = PetSkillStyle.Rem(2.4f) * 2f + starH * 1.5f;
             }
             else
@@ -271,6 +272,7 @@ namespace Forge.Game.Ui
             {
                 TextMeshProUGUI ns = PetSkillKit.Text(c, "petd-subs", TextKind.Sub, PetSkillStyle.T("no_subs"), PetSkillStyle.C("subs_ink"), TextAlignmentOptions.Left);
                 UiKit.Place(ns.rectTransform, bx, by, bw, starH * 1.45f);
+                LineHeight.Apply(ns, "petd_subs_lh");   // T354 — 정본 5551 .petd-subs { line-height: 1.45 } (탈것 상세는 .petd-wrap 밖 · ui.js 5707)
                 line = 1;
             }
             else

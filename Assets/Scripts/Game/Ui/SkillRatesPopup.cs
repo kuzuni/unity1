@@ -155,6 +155,7 @@ namespace Forge.Game.Ui
             y += tipMy - gap;
             TextMeshProUGUI tip = PetSkillKit.Text(c, "rates-tip", TextKind.Sub, PetSkillStyle.T(kind == "pet" ? "rates_tip_pet" : kind == "mount" ? "rates_tip_mount" : "rates_tip_skill"), PetSkillStyle.C("ink"), TextAlignmentOptions.Center, false);
             UiKit.Place(tip.rectTransform, padX, y, inner, tipH);
+            LineHeight.Apply(tip, "rates_tip_lh");   // T354 — 정본 4600 .rates-tip { line-height: 1.4 }
             y += tipH + tipMy;
             float pmx = PetSkillStyle.Px("rates_prog_mx_rem");
             RectTransform prog = PetSkillKit.Gauge(c, "rates-prog", inner - pmx * 2f, progH, gRatio, gText, PetSkillStyle.C("shard_bg"), PetSkillStyle.Px("rates_prog_r_rem"), PetSkillKit.Line3, TextKind.Sub);
