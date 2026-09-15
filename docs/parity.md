@@ -1161,3 +1161,41 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - 새 작업 **1**(T368 — 공용 «반복 줄무늬 굽기» 한 길 + 세 자리 배선 · T178 `SurfaceArt` 뒤).
 - **CSS 속성 축은 이것으로 다 셌다.** 21~30회차가 연 축: `font-weight`·`aspect-ratio/object-fit`·`opacity`·`pointer-events`·`mix-blend-mode`·`white-space`·`text-align`·`gap`·`border`·`background-position/size`(+ 17~20 의 `z-index`·`border-radius`·`transform`). 남은 `cursor` 51 은 모바일에 뜻이 없어 **닫는다**. 다음 회차는 새 축이 아니라 **§7 열린 칸 재검**(12회차 꼴).
 
+# T33 완주 대조 — **31회차** (2026-09-15 07:4x · 워커 N · sess-0524-8791) — 축이 아니라 §7 열린 칸 재검
+
+30회차가 CSS 속성 축을 다 셌으므로 이 회차는 12회차 꼴로 **§7 «상태» 칸의 ⬜/🔄 전부**를 «PROGRESS 상태 · lock 나이 · 남은 것» 으로 갈라 적는다(자료: 07:4x 실측).
+
+## 열린 칸 22
+- T35   §7 ⬜ PROGRESS ⬜ 대기   lock 없음    | —
+- T178  §7 ⬜ PROGRESS 🔄 진행   lock 없음    | 9회차 sess-0357-11617 / 워커 H · 판정 ✅ 런 597(자리 초록 24 · PlayMode 296/296) · **lock 반납** — 남은 갈래 둘은 9회차 판정 절에 적어 두었다
+- T331  §7 🔄 PROGRESS 🔄 진행   lock 23분   | 1회차 = **자만** sess-1717-13450 / 워커 E (구현 파일 `Popups.cs`·`UiKit.cs`·`ShadowUi.json` 은 **T333 lock 뒤** — 같은 파일을 쥔 산 lock 이라 안 연다)
+- T332  §7 ⬜ PROGRESS 🔄 진행   lock 29분   | 10회차 sess-0502-7887 / 워커 I (**세째 기구를 세웠다** — `Ui/DropShadow.cs` + `DropShadowUi.json`(실루엣을 `UiFilter.Blur` 로 흐려 구워 뒤에 깐다) · 첫 자리 `.pass-sword` · 남은 여섯
+- T333  §7 ⬜ PROGRESS ⬜ 대기   lock 없음    | 8회차 ✓ 워커 H `sess-0357-11617`(장비 칸 이름표 네 자리 · 런 609 PASS · 자리 초록 20 · **lock 반납**) · (이력) 7회차 ✓ 워커 O `sess-2140-18689`(2026-09-15 03:4x~04:2x · `check_
+- T334  §7 🔄 PROGRESS 🔄 진행   lock 23분   | — (1회차 ✅ sess-0154-10159 / 워커 P · Core 상태 기계 `SummonSeqRules` + EditMode 자 6 · 런 469 EditMode 662/662 · lock 반납 · **2회차(러너·표 `seq` 절·겹·PlayMode)는 T179
+- T355  §7 ⬜ PROGRESS ⬜ 대기   lock 없음    | 6회차 lock 반납(sess-1920-15773 / 워커 B · 런 586 `PressFxSitesTests` 3/3 PASS · 일곱 중 여섯 섰다 · **남은 하나 `pet_tile` 은 T332 lock 뒤 누구든 한 줄 + 자 한 칸 → ✅**) · 2회차 s
+- T342  §7 ⬜ PROGRESS 🔄 진행   lock 29분   | 5회차 sess-2005-27410 / 워커 A (코드 들어감 · 판정은 다음 런: ⓑ 빈 탈것 칸 `.mount-sil` 을 표 `mount_slot_empty`(brightness 0 · opacity .32)로 — `ForgeSheet` 의 박힌 검정 .32 를 
+- T345  §7 ⬜ PROGRESS 🔄 진행   lock 38분   | **7회차 sess-0357-11617 / 워커 H**(기술 트리 아홉 자리 짝짓기) · (이력) 6회차 ✓ 워커 O `sess-2140-18689`(2026-09-15 04:4x~05:1x · ⓓ `check_border_radius` 를 `gate.sh`·`ci.y
+- T351  §7 ⬜ PROGRESS 🔄 진행   lock 없음    | 1회차 sess-1920-15773 / 워커 B (산 lock 없는 자리부터 — 프로필 칸 `ProfilePopup.cs` + 줄 수 표 + 공용 도우미 + PlayMode 자 · 모루 이름은 T342·T178 lock 뒤 · 소환 이름은 T334 lock 뒤) · *
+- T352  §7 ⬜ PROGRESS ⬜ 대기   lock 없음    | (이력) 3회차 ✓ 워커 O `sess-2140-18689`(2026-09-15 05:4x~06:2x · `.league-score` → `LeagueSheet.cs` · 런 603 `TabularSitesTests` 4/4 + `screen_league.png` 눈 
+- T354  §7 ⬜ PROGRESS 🔄 진행   lock 6분    | 4회차 sess-1920-15773 / 워커 B (산 lock 없는 자리 둘 — 채팅 말풍선 `ChatScreen.cs` `chat_bubble_lh_w`(앱 폭 키 · 유일) · 탈것 업그레이드 팝업 빈 글 `MountUpgradePopup.cs` `mat_grid_
+- T359  §7 ⬜ PROGRESS ⬜ 대기   lock 없음    | — (1회차 ✅ sess-2005-27410 / 워커 A · 런 565 `OpacityTests` 2/2 PASS · EditMode 720/720 · 승천 PNG 는 촬영 목록에 없어 눈 확인 자리 없음 · lock 반납 · **남은 넷(누구든 · 각 lock 뒤 `
+- T361  §7 ⬜ PROGRESS ⬜ 대기   lock 없음    | 1회차 lock 반납(sess-1753-2066 / 워커 D · 런 587 EditMode `WrapRulesTests` **6/6** · ⓑ 표 41 + Core `WrapRules` + Game `WrapUi` + `check_wrap` 왕복 자 + EditMode
+- T364  §7 ⬜ PROGRESS 🔄 진행   lock 20분   | sess-0718-8023 / 워커 J
+- T365  §7 ⬜ PROGRESS 🔄 진행   lock 41분   | 1회차 sess-1753-2066 / 워커 D (자 `check_box_borders.py` + 카탈로그 `line4_px` · 펫 카드 띠 배선은 `PetPanel.cs` T331 lock 뒤)
+- T368  §7 🔄 PROGRESS 🔄 진행   lock 51분   | —
+- T369  §7 🔄 PROGRESS 🔄 진행   lock 3분    | 1회차 sess-2036-34862 / 워커 C = 표 키 `sk_grid_top_h` 0.1034 + EditMode `SkillGridTopTests` 2(dotnet 초록 · 판정은 CI 한 바퀴) · 배선 2회차는 SkillPanel.cs(T331·T364) l
+- T28   §7 🔄 PROGRESS 🔄 진행   lock 13분   | 62회차 sess-0111-11076 / 워커 M
+- T33   §7 ⬜ PROGRESS 🔄 진행   lock 0분    | 31회차 sess-0524-8791 / 워커 N — 축이 아니라 **§7 열린 칸 재검**(12회차 꼴 · 30회차가 CSS 속성 축을 다 셌다): §7 «상태» 칸의 ⬜/🔄 전부를 «남은 것 · 막는 lock · 누구든/주인» 으로 갈라 적는다 · 30회차까지 loc
+- T349  §7 ⬜ PROGRESS 🔄 진행   lock 6분    | **배선은 끝났다 — 대상 5 · 선 것 5 · 남은 것 0**(6회차: `EdgeOutlineTests` 는 촬영이 아니라 자 전용 합성 리그라 **대상이 아니다**) · 남은 것은 `check_shot_cams.py` 의 **게이트 배선 한 줄**(T331 산 lo
+- T366  §7 ⬜ PROGRESS 🔄 진행   lock 29분   | 1~2회차 sess-0609-25308·sess-0703-12493 / 워커 I (1회차 = 벽시계 상한 → 프레임 상한 + «왜 못 닿았는지» 를 문구에 · 2회차 = **덮는 대신 뿌리를 없앴다** — 그 자는 `BattleScene.AutoBoot = false`
+
+## 갈래
+- **주인 대기 1**: T35(`SIMPLE_BG` 되돌릴 때까지 선점하지 않는다).
+- **산 lock 진행 13**: T28 · T331 · T332 · T334 · T342 · T345 · T354 · T364 · T365 · T366 · T368 · T369 · T349 — 임자가 있다.
+- **lock 없이 «각 lock 뒤 누구든» 5**: T333(남은 미정 28 · T331·T332·T334 뒤) · T352(ⓐⓑ `UiKit.cs` + ⓒ 둘) · T355(`pet_tile` · T332 뒤) · T359(넷 · T331·T332·T345 뒤) · T361(ⓐ `UiKit.cs` T331 · `gate.sh` T331·T345 뒤). 다섯 다 **T331·T332·T345 가 쥔 파일** 뒤에 서 있다 — 그 셋이 반납하는 순간 다섯이 한꺼번에 열린다.
+- **lock 반납 뒤 🔄 로 남아 있던 둘 → ⬜ 로 고쳤다**: T178(9회차 판정 ✅ 05:59 · lock 반납 · «남은 갈래 둘») · T351(1회차 워커 B · lock 없음 · 마지막 자기 커밋 90분 초과). `⬜` 만 훑는 선점 스캔(이 세션의 것 포함)에는 안 보이던 자리다 — README «⬜ = 잡을 수 있음» 대로 되돌렸다. 남은 일은 행에 그대로 있다.
+- **§7 «⬜» ↔ PROGRESS «🔄» 어긋남 10**(T178·T332·T342·T345·T351·T354·T364·T365·T349·T366): `check_final_table` 이 «임자가 다음 커밋에 맞춘다» 로 넘기는 자리 — 여기서는 세기만 한다.
+
+## 이 회차의 판정
+- 새 작업 **0**. T33 은 아직 ✅ 가 아니다(T35 주인 몫 + 열린 칸 21). 다음 회차는 새 축이 아니라 **T331·T332·T345 가 반납하면 위 다섯을 잇는 것**이 먼저다.
+
