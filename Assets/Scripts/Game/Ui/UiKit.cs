@@ -217,7 +217,9 @@ namespace Forge.Game.Ui
             t.fontSize = Cat.Kind(kind).size;
             t.color = C(colorKey ?? "ink");
             t.alignment = align;
-            t.textWrappingMode = TextWrappingModes.NoWrap;
+            // T361 3회차 — 정본 CSS 의 기본은 «접는다»(white-space: normal)이고 nowrap 은 예외 40 자리뿐(표 WrapUi.json · 자리 파일이 WrapUi.Apply 로 건다).
+//               기본값은 Core WrapRules.DefaultWraps 가 쥔다(전엔 NoWrap 이 박혀 있어 정본과 반대였다). 넘침 모드는 그대로(잘림·말줄임은 T351 몫).
+            t.textWrappingMode = Forge.Core.Ui.WrapRules.DefaultWraps ? TextWrappingModes.Normal : TextWrappingModes.NoWrap;
             t.overflowMode = TextOverflowModes.Overflow;
             t.richText = false;
             t.raycastTarget = false;

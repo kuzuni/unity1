@@ -88,5 +88,43 @@ namespace Forge.Tests.PlayMode
             ProfilePopup.Close(h);
             yield return null;
         }
+        /// <summary>T361 3회차 ⓐ — 공장(<c>UiKit.Text</c>)이 만든 글자는 정본대로 **기본이 접힌다**(전엔 NoWrap 이 박혀 있었다).</summary>
+        [UnityTest]
+        public IEnumerator 공장이_만든_글자는_기본이_접힌다()
+        {
+            yield return Boot();
+            RectTransform box = UiKit.Box(PopupLayer.Instance.transform, "wrap-probe-2");
+            UiKit.Place(box, 0f, 0f, 120f, 200f);
+            TextMeshProUGUI t = UiKit.Text(box, "t", TextKind.Sub, "긴 문장 하나가 상자보다 길어서 두 줄 세 줄로 접혀야 한다 긴 문장 하나가 상자보다 길다", "pp_ink");
+            Assert.AreEqual(TextWrappingModes.Normal, t.textWrappingMode, "공장 기본 = 접는다(정본 white-space 기본 normal)");
+            t.ForceMeshUpdate();
+            Assert.Greater(t.textInfo.lineCount, 1, "120px 상자의 긴 문장은 여러 줄로 선다");
+            for (int i = 0; i < t.textInfo.lineCount; i++) Assert.LessOrEqual(t.textInfo.lineInfo[i].maxAdvance, 120f + 1f, "접히면 어느 줄도 상자 폭을 안 넘는다(줄 " + i + ")");
+            Object.Destroy(box.gameObject);
+            yield return null;
+        }
+
+        /// <summary>T361 ⓒ — 확률 팝업 안내문(정본 4600 `.rates-tip` · 표 밖 자리)은 접힘이 켜져 상자 폭 안에 선다.</summary>
+        [UnityTest]
+        public IEnumerator 확률_팝업_안내문은_접혀서_상자_폭_안에_선다()
+        {
+            yield return Boot();
+            float t0 = 0f;
+            while (SkillPetSheet.Instance == null && t0 < 10f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 섰다");
+            SkillRatesPopup.Open(SkillPetSheet.Instance, "pet");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            TextMeshProUGUI tip = null;
+            foreach (TextMeshProUGUI t in UiRoot.Instance.App.GetComponentsInChildren<TextMeshProUGUI>(true))
+                if (t.name == "rates-tip") tip = t;
+            Assert.IsNotNull(tip, "안내문(rates-tip)을 못 찾았다");
+            Assert.AreEqual(TextWrappingModes.Normal, tip.textWrappingMode, "표 밖 자리는 정본 기본 = 접는다");
+            tip.ForceMeshUpdate();
+            float w = tip.rectTransform.rect.width;
+            Assert.Greater(w, 0f, "안내문 상자에 폭이 있다");
+            for (int i = 0; i < tip.textInfo.lineCount; i++) Assert.LessOrEqual(tip.textInfo.lineInfo[i].maxAdvance, w + 1f, "안내문이 상자 밖으로 가로로 안 삐져나온다(줄 " + (i + 1) + "/" + tip.textInfo.lineCount + ")");
+            yield return null;
+        }
     }
 }
