@@ -237,6 +237,7 @@ namespace Forge.Game.Ui
             if (items.Count == 0)
             {
                 TextMeshProUGUI empty = PetSkillKit.Text(content, "mat-empty", TextKind.Sub, PetSkillStyle.T("petup_empty"), PetSkillStyle.C("muted"), TextAlignmentOptions.Center, false);
+                LineHeight.Apply(empty, "mat_grid_mat_empty_lh");   // T354 6회차 — 정본 805 `.mat-grid > .mat-empty { line-height: 1.35 }`(탈것 쪽 같은 자리는 4회차 · T359 반납으로 열렸다)
                 UiKit.Place(empty.rectTransform, 0f, PetSkillStyle.Rem(1.1f), W, sub * 1.5f);
                 content.sizeDelta = new Vector2(0f, PetSkillStyle.Rem(2.2f) + sub * 1.5f);
                 return;

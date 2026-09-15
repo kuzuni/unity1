@@ -187,5 +187,51 @@ namespace Forge.Tests.PlayMode
             UiRoot.Instance.TabBar.OnTab("dungeon");
             yield return null;
         }
+
+        /// <summary>T354 6회차 — 펫 업그레이드 팝업의 «재료 없음» 글(정본 805 · 탈것 쪽과 같은 자리): 새 세이브에서 알 하나 → 부화 → 즉시 부화면
+        /// 다른 펫 0 · 알 0 이라 그 글이 선다(PetUiTests 의 길 그대로).</summary>
+        [UnityTest]
+        public IEnumerator 펫_업그레이드_팝업의_재료_없음_글은_정본_1_35_배수로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(PetSkillHost.Ready && SkillPetSheet.Instance != null && SkillBar.Instance != null); i++) yield return null;
+            PetSkillHost host = PetSkillHost.Instance;
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            yield return null;
+            sheet.Switch(SkillPetSheet.SubPets);
+            yield return null;
+            while (host.SummonMult("pet") != 1) host.CycleSummonMult("pet");
+            host.EggCurrency = 100000;
+            host.Gems = 100000;
+            host.Sync();
+            yield return null;
+            Assert.AreEqual(0, host.Pets.State.Pets.Count, "새 세이브 · 펫 0");
+            sheet.Pets.SummonButton.onClick.Invoke();
+            yield return null;
+            for (int k = 0; k < 4 && SkillSummonResultView.Current != null; k++) { SkillSummonResultView.Current.OnTap(); yield return null; }
+            Assert.AreEqual(1, host.Pets.State.Eggs.Count, "x1 소환 = 알 하나(새 세이브라 보너스 알 0)");
+            int hatching = host.Pets.State.Hatching.Count;
+            sheet.Pets.OpenEggDetail(0);
+            yield return null;
+            sheet.Modal.Find(PetPanel.DetailModal).Content.Find("btn-hatch").GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+            yield return null;
+            Assert.IsNotNull(sheet.Pets.SkipButton(hatching), "부화 칸의 스킵");
+            sheet.Pets.SkipButton(hatching).onClick.Invoke();
+            yield return null;
+            Assert.AreEqual(1, host.Pets.State.Pets.Count, "즉시 부화 → 펫 하나");
+            Assert.AreEqual(0, host.Pets.State.Eggs.Count, "알 0 → 재료 후보 0");
+            sheet.Pets.OpenPetDetail(0);
+            yield return null;
+            sheet.Modal.Find(PetPanel.DetailModal).Content.Find("btn-upgrade").GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+            yield return null;
+            Assert.IsTrue(sheet.Modal.IsOpen(PetUpgradePopup.ModalName), "업그레이드 팝업");
+            Transform empty = Find(sheet.Modal.Find(PetUpgradePopup.ModalName).Content, "mat-empty");
+            Assert.IsNotNull(empty, "재료 없음 글(.mat-empty)");
+            AssertSpacing(empty.GetComponent<TextMeshProUGUI>(), "mat_grid_mat_empty_lh", "펫 재료 없음 글");
+            PetUpgradePopup.Close();
+            yield return null;
+        }
     }
 }
