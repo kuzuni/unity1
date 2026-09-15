@@ -782,8 +782,14 @@ namespace Forge.Game.Ui
                 float soloH = sub * 1.3f + sg + sub * 1.5f + sg + ah;
                 RectTransform sb = UiKit.Box(foot, "sr-solo");
                 UiKit.Place(sb, 0f, footH - okH - gap - soloH, fw, soloH);
-                TextMeshProUGUI lt = PetSkillKit.Text(sb, "line", TextKind.Sub, line, PetSkillStyle.C("white"));
-                UiKit.Place(lt.rectTransform, 0f, 0f, fw, sub * 1.3f);
+                // ⚑ 13회차 · §1 «실제 화면을 본다» — 이 줄은 **아이콘 길을 거쳐야 한다.**
+                //   런 743 `screen_t179-summon` 을 열어 보니 «✨ 신규 스킬 획득!» 의 머리가 **두부(□)** 였다.
+                //   문구는 표(`sr_solo_skill_new`)에서 오고 정본 `TOAST_ICON` 이 «✨ → sparkle» 로 쥐고 있는데
+                //   여기서 글자 그대로 세우고 있었다 — 주인 글꼴에도 이모지 폴백에도 U+2728 이 없으니 □ 다.
+                //   `check_text_glyphs` 가 rc 0 인 까닭은 그 자가 «TOAST_ICON 에 있으면 아이콘으로 치환된다» 로 빼기 때문이고,
+                //   자기 머리 주석이 바로 그 함정을 경고한다(«표에 있다» 가 «그 자리가 아이콘을 거친다» 는 뜻이 아니다).
+                RectTransform lt = UiKit.IconTextRow(sb, "line", TextKind.Sub, line, "white");
+                UiKit.Place(lt, 0f, 0f, fw, sub * 1.3f);
                 float ow = PetSkillKit.TextWidth(TextKind.Sub, own) + PetSkillStyle.Rem(1.4f);
                 RectTransform ob = PetSkillKit.Framed(sb, "own", PetSkillStyle.C("sr_solo_own"), PetSkillStyle.Px("sr_solo_own_r_rem"), PetSkillStyle.L("line1_px"));
                 ((Image)ob.Find("line").GetComponent<Image>()).color = new Color(0.47f, 0.55f, 0.78f, 0.35f);

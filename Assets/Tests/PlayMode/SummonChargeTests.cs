@@ -221,5 +221,46 @@ namespace Forge.Tests.PlayMode
             for (int i = 0; i < 4; i++)
                 Assert.AreEqual(0f, v.SparkOf(i).color.a, 1e-3f, "스파크가 안 꺼졌다 — 구체 위에 흰 점 아홉이 남는다(" + i + "번)");
         }
+
+        /// <summary>
+        /// T334 13회차 · §1 «실제 화면을 본다» — x1 요약줄 «✨ 신규 스킬 획득!» 의 머리가 런 743 PNG 에서 **두부(□)** 였다.
+        ///
+        /// 정본 `TOAST_ICON` 이 «✨ → sparkle» 로 쥐고 있는데 클론이 글자 그대로 세우고 있었다(주인 글꼴에도
+        /// 이모지 폴백에도 U+2728 이 없다). `check_text_glyphs` 는 «표에 있으면 아이콘으로 치환된다» 로 빼므로 rc 0 이다 —
+        /// 그 자가 못 보는 자리라 이 자가 «아이콘 조각이 실제로 섰는가» 를 본다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator x1_요약줄의_이모지는_글자가_아니라_아이콘으로_선다()
+        {
+            yield return Boot();
+            var one = new List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가", IsNew = true },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", one, "common", null);
+            float t = 0f;
+            while (!v.Done && t < 12f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done, "연출이 안 끝났다(경과 " + t.ToString("0.00") + "초)");
+            yield return null;
+
+            Transform solo = v.transform.Find("sr-foot/sr-solo") ?? FindDeep(v.transform, "sr-solo");
+            Assert.IsNotNull(solo, "x1 요약 상자(sr-solo)가 없다");
+            Transform lineRow = solo.Find("line");
+            Assert.IsNotNull(lineRow, "요약 첫 줄이 없다");
+            Assert.IsNotNull(lineRow.Find("ico-1"), "«✨» 가 아이콘 조각으로 안 섰다 — 글자 그대로면 화면에 두부(□)가 뜬다");
+            var img = lineRow.Find("ico-1").GetComponent<Image>();
+            Assert.IsNotNull(img, "아이콘 조각에 그림이 없다");
+            Assert.IsNotNull(img.sprite, "T31 아틀라스의 sparkle 이 안 붙었다");
+            // 글자 조각에는 이모지가 안 남는다 — 남아 있으면 그것이 그대로 □ 다.
+            foreach (TMPro.TextMeshProUGUI tx in lineRow.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+                Assert.IsFalse(tx.text.Contains("\u2728"), "글자 조각에 U+2728 이 남았다: «" + tx.text + "»");
+        }
+
+        static Transform FindDeep(Transform root, string name)
+        {
+            foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+                if (t.name == name) return t;
+            return null;
+        }
     }
 }
