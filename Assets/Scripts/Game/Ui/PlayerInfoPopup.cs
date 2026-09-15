@@ -283,7 +283,9 @@ namespace Forge.Game.Ui
                 Color ea = PlayerInfoStyle.C("empty_age");
                 ForgeUi.Tile(rt, "frame", ForgeUi.CellFace(ea), ForgeUi.CellLine(ea), radius, PopupKit.Line3);
                 Image ico = PopupKit.IconOr(rt, "img", ForgeUi.SlotIconKey(slot));
-                ico.color = PlayerInfoStyle.C("empty_ink_alpha");
+                // T342 6회차 — 정본 862 `.equip-cell.empty .cell-img.dim { filter: grayscale(1) brightness(1.75) opacity(.52) }`: 플레이어 정보도 같은
+                //             `equipCellHTML`(ui.js 3096~3099) 이라 같은 자리다. 틴트 알파만으로는 회색·밝기를 못 낸다 — 표 FilterUi 로 굽고 .52 는 틴트 알파(ForgeSheet 와 같은 길).
+                UiFilter.ApplyColor(ico, "equip_cell_empty");
                 ico.raycastTarget = false;
                 float ek = size * PlayerInfoStyle.L("empty_ink_f");
                 UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, size * PlayerInfoStyle.L("cell_ink_lift_f")), ek, ek);
@@ -338,11 +340,8 @@ namespace Forge.Game.Ui
             }
             else
             {
-                Image sil = PopupKit.IconOr(rt, "mount-sil", "horse");
-                sil.color = PlayerInfoStyle.C("mount_sil");
-                sil.raycastTarget = false;
-                float sk = hgt * PlayerInfoStyle.L("mount_sil_f");
-                UiKit.Anchor(sil.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, hgt * PlayerInfoStyle.L("mount_sil_lift_f")), sk, sk);
+                // T342 6회차 — 정본 `ui.js` 5166 의 플레이어 정보 빈 탈것 칸은 `<div class="equip-cell egg-cell empty pinfo-mount-wide"><span class="slot-name">탈것</span></div>` 뿐이다:
+                //             장비 시트(1535)와 달리 **말 실루엣(mount-sil)이 없다**(CSS 3212 `.pinfo-mount-wide` 도 span 2 뿐). 여기 그리던 실루엣은 원작에 없던 것이라 뺐다(§1 · 결정 630).
                 TextMeshProUGUI nm = UiKit.Text(rt, "slot-name", TextKind.Sub, PlayerInfoStyle.T("mount_slot"), "stage_ink");
                 nm.fontStyle = FontStyles.Bold;
                 PopupKit.Ring(nm, "pp_line", 0.2f);

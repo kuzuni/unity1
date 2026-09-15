@@ -329,5 +329,39 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(seen, 20, "구운 그림에 보이는 화소가 거의 없다");
             Assert.AreEqual(seen, black, "brightness(0) 인데 검정이 아닌 화소가 있다");
         }
+
+        /// <summary>T342 6회차 — 플레이어 정보 팝업의 빈 장비 칸도 같은 `equipCellHTML`(ui.js 3096) 이라 정본 862 가 걸린다 · 빈 탈것 칸은 정본 5166 이
+        /// 실루엣 없이 «탈것» 글자뿐이다(장비 시트 1535 와 다르다). 칸 하나를 비우고 팝업을 열어 실물 아이콘이 걸러졌는지 + 실루엣이 없는지를 본다.</summary>
+        [UnityTest]
+        public IEnumerator 플레이어_정보의_빈_장비_칸은_걸러지고_빈_탈것_칸엔_실루엣이_없다()
+        {
+            yield return Boot();
+            ForgeHost fh = ForgeHost.Instance;
+            MetaHost h = MetaHost.Instance;
+            string slot = fh.Defs.Slots[0];
+            var keep = fh.Gear.Get(slot);
+            fh.Gear.Set(slot, null);
+            PlayerInfoPopup.Open(h);
+            yield return null; yield return null;
+            Popup p = PopupLayer.Instance.Find(PlayerInfoPopup.Name);
+            Assert.IsNotNull(p, "플레이어 정보 팝업이 열린다");
+
+            Image cell = null; bool sil = false;
+            foreach (Image img in p.Root.GetComponentsInChildren<Image>(true))
+            {
+                Transform par = img.transform.parent;
+                if (img.name == "img" && par != null && par.name == "slot-" + slot) cell = img;
+                if (img.name == "mount-sil") sil = true;
+            }
+            Assert.IsNotNull(cell, "빈 칸 slot-" + slot + " 의 아이콘 Image 를 못 찾았다 — 칸을 비웠는데 «빈 칸» 으로 안 그려졌다");
+            Assert.AreEqual(0.52f, cell.color.a, 1e-3f, "정본 opacity(.52) 는 틴트 알파");
+            Assert.IsNotNull(cell.sprite, "빈 칸 아이콘에 스프라이트가 없다");
+            StringAssert.StartsWith("filt-equip_cell_empty", cell.sprite.name, "실물 아이콘이 grayscale(1) brightness(1.75) 로 구워졌다");
+            Assert.IsFalse(sil, "정본 5166 — 플레이어 정보의 빈 탈것 칸엔 mount-sil 이 없다(원작에 없는 것을 그리지 않는다)");
+
+            PlayerInfoPopup.Close(h);
+            fh.Gear.Set(slot, keep);
+            yield return null;
+        }
 }
 }
