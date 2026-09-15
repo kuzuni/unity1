@@ -60,10 +60,11 @@ TABLE = {
     '.tech-branch-icon::before': ['Ui/TechPanel.cs@BranchCard'],
     '.tech-tree-node': ['Ui/TechPanel.cs@Node'],
     '.panel .btn.tech-tree-back': ['Ui/TechPanel.cs$tech_back_r_rem'],
-    # ⚠ 아래 셋은 **값이 이미 정본과 같은데 키 이름이 규약(`_r_rem`) 밖**이라 여기 못 건다 — 이름을 바꿀 표가 남의 lock 이다(T345 7회차 · 기록 참조):
-    #   `.tech-branch-card` 2089 .8 ↔ catalog `tb_card_radius_rem` 0.8 · `.tech-tier-tag` 2162 .35 ↔ `tt_tag_radius_rem` 0.35 ·
-    #   `.tech-prog` 4608 .5 ↔ `tech_prog_radius_rem` 0.5. catalog.json(T365 산 lock)에서 이름만 `…_r_rem` 으로 바꾸면 세 자리가 한꺼번에 초록이 된다.
-    #   값을 RadiusUi.json 에 **복사**하지 않는다 — 같은 반지름을 두 표가 쥐면 다음 사람이 어느 쪽을 고칠지 모른다(결정 기록).
+    # T345 10회차 — 7회차가 «catalog 이 열리면 이름만 바꾸면 된다» 고 남긴 셋. 값은 그때도 정본과 같았고, 이번에 **이름만** `…_r_rem` 으로 옮겨 걸었다
+    #   (값을 RadiusUi.json 에 복사하지 않는다 — 같은 반지름을 두 표가 쥐면 다음 사람이 어느 쪽을 고칠지 모른다).
+    '.tech-branch-card': ['Ui/TechPanel.cs$tb_card_r_rem@catalog.json'],
+    '.tech-tier-tag': ['Ui/TechPanel.cs$tt_tag_r_rem@catalog.json'],
+    '.tech-prog, .modal-card .tech-prog': ['Ui/TechPopups.cs$tech_prog_r_rem@catalog.json'],
     # T345 9회차 — 오프라인 팝업·이정표(산 lock 없는 세 자리). 50% 둘은 «원» 증거(@메서드) · 이정표 시간표는 곁 표(WaypointsUi.json)의 키로.
     '.offline-rate-icon': ['Ui/OfflinePopup.cs@Rate'],
     '.offline-collect-dot': ['Ui/OfflinePopup.cs@CollectDot'],
@@ -183,6 +184,10 @@ def load_table(path):
             for k2, v2 in v.items():
                 if not k2.startswith('_') and not isinstance(v2, dict):
                     out.setdefault(k2, v2)
+        elif isinstance(v, list):                    # catalog.json 꼴 — «{key, value} 목록»(T345 10회차)
+            for row in v:
+                if isinstance(row, dict) and 'key' in row and 'value' in row:
+                    out.setdefault(str(row['key']), row['value'])
         else:
             out[k] = v
     return out
@@ -222,7 +227,13 @@ def check_target(game_dir, target, table, unit, num, res_dir=None):
     other = None
     if sep == '$' and '@' in tail:
         tail, other = tail.split('@', 1)          # 키가 다른 곁 표에 있는 자리
-        table = load_table(os.path.join(res_dir or '.', other))
+        side = os.path.join(res_dir or '.', other)
+        # T345 10회차 — `catalog.json` 은 Resources 가 아니라 그 **위 폴더**(Assets/Forge)에 있고 «{key, value} 목록» 꼴이다.
+        if not os.path.isfile(side):
+            up = os.path.join(os.path.dirname(os.path.abspath(res_dir or '.')), other)
+            if os.path.isfile(up):
+                side = up
+        table = load_table(side)
         if table is None:
             return 'value', '곁 표 %s 를 못 읽었다(같은 Resources 폴더에 있어야 한다)' % other
     path = os.path.join(game_dir, file_part)

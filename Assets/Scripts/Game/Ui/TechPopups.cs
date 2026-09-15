@@ -214,7 +214,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(lead.rectTransform, pad, y, inner, subH);
                 y += subH + gap;
                 float ph = DungeonPopups.RemL("tech_prog_h_rem");
-                float pr = DungeonPopups.RemL("tech_prog_radius_rem");
+                float pr = DungeonPopups.RemL("tech_prog_r_rem");
                 RectTransform prog = UiKit.Box(card, "prog");
                 UiKit.Place(prog, pad, y, inner, ph);
                 RectTransform track = DungeonPopups.Bordered(prog, "bg", "tech_prog_bg", pr, DungeonPopups.Line3);

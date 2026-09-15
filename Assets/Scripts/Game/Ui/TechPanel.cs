@@ -177,7 +177,7 @@ namespace Forge.Game.Ui
             float line3 = UiKit.L("line3_px");
             string id = b.Id;
             RectTransform rt = UiKit.Box(body, "branch-" + id);
-            RectTransform face = DungeonPopups.Bordered(rt, "bg", "pp_paper", DungeonPopups.RemL("tb_card_radius_rem"), line3);
+            RectTransform face = DungeonPopups.Bordered(rt, "bg", "pp_paper", DungeonPopups.RemL("tb_card_r_rem"), line3);
             float headPad = DungeonPopups.RemL("tb_head_pad_rem");
             float headH = headPad * 2f + DungeonPopups.LineH(TextKind.Sub);
             Image head = UiKit.Panel(face, "head", "pp_ink");
@@ -328,7 +328,7 @@ namespace Forge.Game.Ui
                     float tx = cx - span * 0.5f - node * 0.5f - DungeonPopups.RemL("tt_tag_gap_rem") - tw;
                     RectTransform tag = UiKit.Box(content, "tier-" + row.Tier);
                     UiKit.Place(tag, tx, top + node * 0.5f - DungeonPopups.Rem(0.6f), tw, th);
-                    DungeonPopups.Bordered(tag, "bg", "pp_paper", DungeonPopups.RemL("tt_tag_radius_rem"), DungeonPopups.Line2);
+                    DungeonPopups.Bordered(tag, "bg", "pp_paper", DungeonPopups.RemL("tt_tag_r_rem"), DungeonPopups.Line2);
                     TextMeshProUGUI tt = DungeonPopups.Bold(tag, "roman", TextKind.Sub, Tree.Roman(row.Tier), "pp_ink");
                     UiKit.Fill(tt.rectTransform);
                     tag.gameObject.AddComponent<CanvasGroup>().alpha = rowDim ? UiKit.L("tt_tag_dim_alpha") : UiKit.L("tt_tag_alpha");
