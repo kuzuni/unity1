@@ -50,6 +50,14 @@ TABLE = {
     '.af-age-bar[data-age="quantum"], .fi-age-bar[data-age="quantum"], .equip-cell[data-age="quantum"]': ['Ui/AgePattern.cs@Tile'],
     # T87 28회차 — 결과 카드 광택 띠(crsheen) 는 CraftCardArt.Sheen 이 굽는다.
     '.auto-drop-card.craft-reveal::after': ['Ui/CraftCardArt.cs@Sheen'],
+    # ── T178 7회차 — «하드 스톱 띠»: 정본이 gradient 문법으로 적었지만 **정지점 사이에 섞임이 없는** 자리다.
+    #    그림은 «가운데 11px 세로 줄» · «45° 줄무늬» 처럼 **색면 조각**이고, 클론이 조각(rect·dash)으로 그리면
+    #    픽셀이 정본과 같다 — 여기에 그라디언트를 굽는 것은 같은 그림을 더 비싸게 그리는 것뿐이다.
+    #    그래서 «굽기 없음» 이 정답인 자리로 적고, 어디가 그 조각인지 줄 번호로 남긴다(다음 사람이 다시 안 세게).
+    '.pass-track': '—띠 가운데 11px 세로 레일(90deg 하드 스톱) · 클론은 `PassPopup.cs:111` 흰 트랙 + 구간마다 레일 조각으로 그린다',
+    '.pass-seg': '—띠 미도달 구간 레일(#0f121c) · 클론 `PassPopup.cs:132` `UiKit.Panel(seg, "rail", "pass_rail_dead")` · 폭은 catalog `pass_rail_w`(11px/1080)',
+    '.pass-seg.reached': '—띠 도달 구간 레일(#341cff) · 같은 줄의 `pass_rail`',
+    '.bw-hazard': '—띠 45° 위험 줄무늬(repeating · 1.1rem 주기) · 클론 `BattleOverlay.cs:211~226` 이 조각 24개(`hazardDashes`)로 그리고 흐른다',
     # T178 2회차 — 던전 배너의 비스듬한 바탕과 «왼쪽 제목 자리 스크림» 은 공용 굽기 SurfaceArt 가 표(SurfaceUi.json)대로 굽는다.
     '.dg-banner': ['Ui/DungeonSheet.cs#bg-grad'],
     '.dg-banner::before': ['Ui/DungeonSheet.cs#scrim'],
@@ -180,7 +188,7 @@ def run(css_path, game_dir, table, known, out=print, list_pending=False):
     rules = parse_rules(_read(css_path))
     problems = 0
     seen = set()
-    n_off = n_ok = n_known = 0
+    n_off = n_ok = n_known = n_stripe = 0
     pending = []          # (줄, 선택자, 속성, 겹) — 표에 없는 정본 선언
     known_now_ok = []
     checked = set()       # (선택자, 자리) — 같은 선택자의 선언이 여럿이어도 자리는 한 번만 센다
@@ -192,7 +200,13 @@ def run(css_path, game_dir, table, known, out=print, list_pending=False):
         targets = table[sel]
         if isinstance(targets, str):
             if (sel, targets) not in checked:
-                checked.add((sel, targets)); n_off += 1
+                checked.add((sel, targets))
+                # «—띠 …» 는 **하드 스톱**(정지점 사이 섞임 없음) 자리다 — 굽는 게 아니라 조각(rect·dash)으로 그리는 것이 정답이라
+                # «끄는 규칙» 과 따로 센다(T178 7회차). 그냥 «—» 는 클론에 자리가 없거나 정본이 그 겹을 끄는 규칙이다.
+                if targets.startswith('—띠'):
+                    n_stripe += 1
+                else:
+                    n_off += 1
             continue
         for t in targets:
             if (sel, t) in checked:
@@ -221,8 +235,8 @@ def run(css_path, game_dir, table, known, out=print, list_pending=False):
     if list_pending:
         for line, sel, prop, kinds in pending:
             out('· 미정  style.css %5d  %-64s %-18s %s' % (line, sel[:64], prop, kinds))
-    out('%s check_surface_gradients: 정본 겹 선언 %d(선택자 %d) · 끄는 규칙 %d · 자리 초록 %d · KNOWN 빈자리 %d · 미정 선택자 %d(선언 %d · --list 로 본다) · 문제 %d'
-        % ('✓' if problems == 0 else '✗', len(rules), len(set(r[1] for r in rules)), n_off, n_ok, n_known, len(pend_sel), len(pending), problems))
+    out('%s check_surface_gradients: 정본 겹 선언 %d(선택자 %d) · 끄는 규칙 %d · 띠(조각으로 그린다) %d · 자리 초록 %d · KNOWN 빈자리 %d · 미정 선택자 %d(선언 %d · --list 로 본다) · 문제 %d'
+        % ('✓' if problems == 0 else '✗', len(rules), len(set(r[1] for r in rules)), n_off, n_stripe, n_ok, n_known, len(pend_sel), len(pending), problems))
     return 0 if problems == 0 else 1
 
 
@@ -311,12 +325,18 @@ def self_test():
             continue
         for t in ts:
             expect('ⓘ 자리 문법 ' + t, re.match(r'^[\w/]+\.cs([#@][\w-]+)?$', t) is not None)
+    # ⓙ «—띠» 는 끄는 규칙과 따로 센다(T178 7회차 · 하드 스톱 자리는 굽지 않고 조각으로 그린다)
+    cs('class Face { static void B(Transform p){ Image a = Radial(p, "g-a", "k", null); } }')
+    rc, out = go({'.g-a': ['Ui/Face.cs#g-a'], '.g-c::before': '—띠 조각으로 그린다'}, {}, base_css)
+    expect('ⓙ 띠 따로 셈', rc == 0 and '끄는 규칙 0 · 띠(조각으로 그린다) 1' in out, out)
+    expect('ⓙ 띠 자리 초록 1', '자리 초록 1' in out, out)
+
     if fails:
         print('✗ check_surface_gradients --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  · ' + f[:400])
         return 1
-    print('✓ check_surface_gradients --self-test 18칸 통과')
+    print('✓ check_surface_gradients --self-test 20칸 통과')
     return 0
 
 
