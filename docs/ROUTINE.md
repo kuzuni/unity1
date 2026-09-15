@@ -2331,6 +2331,17 @@
 - 무엇을 한다: 일곱 자리를 재고, 넘는 자리만 표 키(각 화면의 곁 표 · `catalog.json` 이 남의 lock 이면 T65 꼴)로 옮긴다.
 - 판정: 화면 PNG 실측 + 넘던 자리의 PlayMode 자.
 - 범위: `Assets/Scripts/Game/Ui/ForgeInfoPopup.cs`·`PetUpgradePopup.cs`·`MountUpgradePopup.cs`·`LeagueSheet.cs`·`ProfilePopup.cs`·`ForgeAutoPopup.cs`·`DungeonSheet.cs`(각 파일의 살아 있는 lock 뒤) · `Assets/Forge/Resources/`(곁 표) · `Assets/Tests/PlayMode/`(새 파일) · `docs/ROUTINE.md` · `docs/PROGRESS.md`
+- 🔄 1회차 2026-09-15 15:1x~15:4x 워커 A(sess-2005-27410): **일곱 자리를 쟀다(런 704 screens 540×960 + 코드 셈) — 넘는 것 3 · 안 넘는 것 4.**
+  | 자리 | 정본 | 클론 실측 | 판정 |
+  |---|---|---|---|
+  | `.forge-age-list` max-height .59H(566px) | 상한 | 목록 상자 y150~795 ≈ **645px = 67%H**(카드 `fl_card_h_f` .76 고정 · 목록은 나머지) | **+13% 넘는다** → 키 `fl_list_max_h_f` .59(ForgeInfoUi.json) · 배선 `ForgeInfoPopup.cs` 168(T332·T359 lock 뒤) |
+  | `.mat-grid` max-height .4H(384px) — 펫 | 상한 | 격자 = 카드 나머지 ≈ y400~832 = **430px = 45%H**(재료가 두 줄을 넘을 때만 그림이 갈린다) | **+12% 넘는다(조건부)** → 키 `petup_grid_max_f` .4(PetSkillUi.json · 탈것 쪽 `mtup_grid_max_f` .4 는 이미 있었다) · 배선 `PetUpgradePopup.cs` 223(T354 lock 뒤) |
+  | `.league-list` max-height .542H(520px) | 상한 | 행 y196 ~ 발 밴드 713 = **517px = 53.9%H** | **안 넘는다**(−0.3%p · 바닥 사이 채우기가 우연히 같다) · 키 안 둠 |
+  | `.profile-card` min-width .3226W(348) | 하한 | `profile_w` .716W = **773** | 하한 위 · 키 안 둠 |
+  | `.modal-card.sheet .dg-banner .btn` min-width .1573W + 6.6px(≈184 · 92px@540) | 하한 | `dg_btn_w_rem` 4.6rem = **167(84px@540)** — 이 규칙이 `.dg-right .btn` 4.6rem 보다 특이해 이긴다 | **−9% 하한 아래** → 키 `dg_banner_btn_minw_f` .1573 + `dg_banner_btn_minw_px` 6.6(catalog.json) · 배선 `DungeonSheet.cs` 230(T331·T354 lock 뒤) |
+  | `.af-dd-list` min-width 5.4rem(197) | 하한 | 드롭다운 폭 = 스피너 폭 `inner×.36` ≈ **272(7.5rem)** | 하한 위 · 키 안 둠 |
+  | `.fi-pill` min-width 5.5rem(200) | 하한 | 알약 `inner×.4` ≈ **302(8.3rem)** · 그림 실측 165px@540 | 하한 위 · 키 안 둠(카탈로그 `pill_w_rem` 5.5 는 `DungeonPopups.Pill` 몫이라 이 자리가 아니다) |
+  EditMode `LayoutLimitsTests` 3(세 키의 값 · 펫=탈것 · 던전 하한이 종전 4.6rem 보다 넓다). `gate.sh` 막는 자 전부 rc 0. 결정 657. **2회차 = 배선 셋**(각 파일 lock 이 풀리면 누구든): `ForgeInfoPopup` 목록 높이 = min(나머지, H×`fl_list_max_h_f`) · `PetUpgradePopup` 격자 = min(나머지, H×`petup_grid_max_f`) · `DungeonSheet` 버튼 폭 = max(`dg_btn_w_rem`, W×`dg_banner_btn_minw_f` + `dg_banner_btn_minw_px`×CssPx) + PlayMode 자 + PNG 판정(목록 상자 ≤ 59%H · 던전 버튼 ≥ 17%W).
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

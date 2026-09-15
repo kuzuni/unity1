@@ -289,6 +289,7 @@
     "petup_divider_mb_rem": 0.55,
     "petup_grid_gap_y_rem": 0.75,
     "petup_grid_gap_x_rem": 0.83,
+    "petup_grid_max_f": 0.4,
     "petup_grid_pad_x_rem": 0.65,
     "petup_grid_cols": 5,
     "toast_top_f": 0.15,

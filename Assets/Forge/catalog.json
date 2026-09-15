@@ -436,6 +436,8 @@
     { "key": "dg_banner_pad_x_rem", "value": 0.7 },
     { "key": "dg_banner_radius_rem", "value": 0.8 },
     { "key": "dg_btn_w_rem",        "value": 4.6, "_": ".dg-right .btn min-width" },
+    { "key": "dg_banner_btn_minw_f", "value": 0.1573, "_": "T388 — style.css 3913 `.modal-card.sheet .dg-banner .btn { min-width: calc(var(--app-w) * .1573 + 6.6px) }` (앱 폭 비율 쪽 · 더 특이해 `.dg-right .btn` 4.6rem 을 덮는다) · 배선은 DungeonSheet.cs lock 뒤" },
+    { "key": "dg_banner_btn_minw_px", "value": 6.6, "_": "T388 — 같은 선언의 + 6.6 CSS px 쪽(캔버스 환산은 KeylineUi.CssPx)" },
     { "key": "dg_btn_h_rem",        "value": 2.4 },
     { "key": "dg_right_gap_rem",    "value": 0.3 },
     { "key": "dg_rw_icon_em",       "value": 1.62, "_": ".dg-rw" },
