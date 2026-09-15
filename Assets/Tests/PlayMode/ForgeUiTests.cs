@@ -948,9 +948,19 @@ namespace Forge.Tests.PlayMode
                 fx.SampleTo(AutoForgeFxSpec.HitMs[2]);
                 RectTransform core2 = Named(sheet, "af-core-2");
                 Assert.Greater(core2.GetComponent<Image>().color.a, 0.5f, "재는 순간 3타 코어가 밝아야 한다(접촉 프레임) — 어두우면 러너가 시각을 밀었다");
-                int area; string info;
-                int white = CountPixels(core2, delegate(Color32 c) { return c.r > 225 && c.g > 215 && c.b > 200; }, out area, out info, null);
-                Assert.Greater(white, 6, "3타 코어가 화면에 안 칠해졌다 — " + info);
+                // T360 — 절대 밝기로 재지 않는다. 코어는 `#ffffff` 를 **알파로** 얹으므로(결정 232) 화면 값은 «바탕 + 알파» 다:
+                //   바탕이 정본 값으로 어두워지자(T357·T178 8회차의 sRGB 합성) 같은 코어가 225 문턱 아래(215)로 내려와
+                //   자가 «안 칠해졌다» 고 말했다(런 565). 그래서 **켠 그림 − 끈 그림** 의 차로 본다 — 바탕이 밝든 어둡든
+                //   «코어가 밝은 화소를 더한다» 는 그대로 걸린다.
+                int area; string info, infoOff;
+                System.Func<Color32, bool> bright = delegate(Color32 c) { return c.r > 200 && c.g > 190 && c.b > 175; };
+                Image coreImg = core2.GetComponent<Image>();
+                coreImg.enabled = false;
+                int without = CountPixels(core2, bright, out area, out infoOff, null);
+                coreImg.enabled = true;
+                int with = CountPixels(core2, bright, out area, out info, null);
+                Assert.Greater(with - without, 6,
+                    "3타 코어가 화면에 화소를 안 더했다 — 켠 그림 " + with + " · 끈 그림 " + without + " · " + info);
             }
 
             fx.Stop();
@@ -1276,6 +1286,11 @@ namespace Forge.Tests.PlayMode
             bool done = false;
             ForgeCraftPopup.ShowReveal(h, item, () => { done = true; });
             yield return null;
+            // T360 — «완료 콜백은 즉시 안 터진다» 는 **여기서** 본다. 끝줄에서 보면 그 사이 자가 키프레임 다섯 자리를 재고
+            //   탈락 카드까지 돌리는 동안 **벽시계 0.56초**(`ForgeHost.RevealCardSec` · `h.Delay`)가 지나 버려, 무거운 런에서는
+            //   반드시 «But was True» 로 넘어진다(런 565 실측). 자가 보려는 것은 «Show 가 동기로 콜백을 부르지 않는다» 이지
+            //   «자가 0.56초 안에 끝난다» 가 아니다.
+            Assert.IsFalse(done, "리빌 done 은 0.56초 뒤라 Show 직후에는 아직 아니다");
 
             RectTransform card = FindByName("card");
             Assert.IsNotNull(card, "리빌 카드가 안 섰다");
@@ -1333,7 +1348,7 @@ namespace Forge.Tests.PlayMode
             Assert.Less(adc.localScale.x, peakS, "작아진다");
             ForgeCraftPopup.DismissReveal();
             yield return null;
-            Assert.IsFalse(done, "리빌 done 은 0.56초 뒤라 아직 아니다");
+            // (완료 콜백 단언은 위 `ShowReveal` 직후로 옮겼다 — T360)
         }
 
         /// <summary>
