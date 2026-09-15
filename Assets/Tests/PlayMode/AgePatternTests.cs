@@ -230,7 +230,16 @@ namespace Forge.Tests.PlayMode
                     Assert.AreEqual(1, layer.GetSiblingIndex(), age + " 층은 바탕 채움 바로 위(글자·체크 뒤)");
                     AgePattern p = layer.GetComponent<AgePattern>();
                     Assert.AreEqual(1f, p.BaseOpacity, 1e-6f, "막대는 흐림 1");
-                    foreach (var g in p.Layers) Assert.IsFalse(g.Masked, age + " 확률 정보 막대에는 마스크가 없다");
+                    // T380 2회차 — 여기가 뒤집힌 자리다. 정본 5116~5123 `.fi-age-bar::before` 도 왼쪽을 **24→46%** 로 비운다
+                    //   (자동 제련 막대 4841 의 30→50% 와 값만 다르다). 1회차까지 클론은 자동 제련 막대에만 걸어
+                    //   이 막대는 무늬가 왼쪽 아이콘·이름 뒤까지 갔다 — 그래서 이 줄은 «없다» 에서 «표의 fi_bar 값» 으로 바뀌었다.
+                    MaskSpec fim = AgePattern.Spec.Mask(AgePatternKeys.FiBar);
+                    foreach (var g in p.Layers)
+                    {
+                        Assert.IsTrue(g.Masked, age + " 확률 정보 막대도 왼쪽을 비운다(정본 .fi-age-bar::before)");
+                        Assert.AreEqual((float)fim.From, g.MaskFrom, 1e-5f, age + " 는 표의 fi_bar(.24)");
+                        Assert.AreEqual((float)fim.To, g.MaskTo, 1e-5f, age + " 는 표의 fi_bar(.46)");
+                    }
                 }
                 else Assert.IsNull(layer, age + " 는 정본에 무늬가 없다(민무늬)");
             }
@@ -330,6 +339,28 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(tiles, 0, "격자 타일");
             Assert.Greater(patterned, 0, "뒤 다섯 시대 타일");
             Assert.Greater(plain, 0, "앞 다섯 시대 타일");
+
+            // T380 2회차 — 목록 **머리 막대**도 정본 2110 에서 `fi-age-bar fl-head` 다(`.fl-head` 는 5610~5611 에서 여백·padding 만 덮고 마스크는 안 건드린다).
+            //   곧 확률 정보 팝업 막대와 **같은 24→46% 마스크**를 써야 한다 — 타일(마스크 없음)과 갈리는 자리라 같은 칸에서 같이 본다.
+            MaskSpec fim = AgePattern.Spec.Mask(AgePatternKeys.FiBar);
+            int heads = 0;
+            foreach (string age in h.Defs.Ages)
+            {
+                if (!AgePattern.Has(age)) continue;
+                RectTransform section = FindDeep(p.Root, "section-" + age);
+                RectTransform head = FindDeep(section, "head");
+                Assert.IsNotNull(head, age + " 섹션 머리 막대");
+                Transform layer = head.Find("age-pattern");
+                Assert.IsNotNull(layer, age + " 머리 막대에 무늬 층");
+                AgePattern hp = layer.GetComponent<AgePattern>();
+                foreach (var g in hp.Layers)
+                {
+                    Assert.IsTrue(g.Masked, age + " 머리 막대도 왼쪽을 비운다(정본 fi-age-bar fl-head)");
+                    Assert.AreEqual((float)fim.From, g.MaskFrom, 1e-5f, age + " 머리 막대는 표의 fi_bar(.24)");
+                }
+                heads++;
+            }
+            Assert.Greater(heads, 0, "무늬가 있는 시대의 머리 막대");
             h.Meta.Popups.HideAll();
             yield return null;
         }

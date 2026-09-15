@@ -230,7 +230,7 @@ namespace Forge.Game.Ui
             }
             Color ac = ForgeUi.AgeColor(d, it.Age);
             Image f = ForgeUi.Tile(rt, "frame", ForgeUi.CellFace(ac), ForgeUi.CellLine(ac), size * 0.16f, PopupKit.Line3);
-            AgePattern.Attach(rt, it.Age, cell: true, mask: false, siblingIndex: 1);   // T124 — 정본 `.equip-cell[data-age]::before`(흐림 .55 · 썸네일 뒤)
+            AgePattern.Attach(rt, it.Age, cell: true, mask: (string)null, siblingIndex: 1);   // T124 — 정본 `.equip-cell[data-age]::before`(흐림 .55 · 썸네일 뒤) · 장착 셀은 마스크가 없다(T380 키 갈래로 옮김)
             Image img = PopupKit.IconOr(rt, "img", ForgeUi.ItemIconKey(d, it));
             float kk = size * 0.76f;
             UiKit.Anchor(img.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, size * 0.06f), kk, kk);

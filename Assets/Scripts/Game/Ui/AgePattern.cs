@@ -42,8 +42,10 @@ namespace Forge.Game.Ui
         float pxPerRem;
 
         /// <summary>
-        /// 종전 갈래(마스크 = 자동 제련 막대이거나 없거나) — 부름 자리 셋(`ForgeUi.AgeBar`·`ForgeUi` 장착 셀·`PlayerInfoPopup`)이 남의 산 lock 뒤라 이번 회차엔 못 고친다.
-        /// 그 자리가 열리면 이 갈래를 지우고 아래 키 갈래로 부른다(T380 배선).
+        /// 종전 갈래(마스크 = 자동 제련 막대이거나 없거나) — **과도기다**. T380 2회차가 넷 중 셋을 키 갈래로 옮겼고
+        /// (`ForgeUi.AgeBar` 는 막대 종류별 키로 · `ForgeUi` 목록 타일과 `ForgeSheet` 장착 셀은 `null` 로), 남은 하나 `PlayerInfoPopup.cs:304`
+        /// (마스크 없는 장착 셀)가 그때 **T389 산 lock** 이라 못 고쳤다. 그 파일이 열리는 회차가 그 한 줄을 `mask: (string)null`
+        /// 로 바꾸고 **이 갈래를 지우면** 끝이다 — 남겨 두면 «막대 종류를 안 주고도 부를 수 있는 문» 이 계속 열려 있다.
         /// </summary>
         public static AgePattern Attach(RectTransform host, string age, bool cell = false, bool mask = false, int siblingIndex = 1)
         {

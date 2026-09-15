@@ -8,6 +8,7 @@ using Forge.Core.Data;
 using Forge.Core.Forging;
 using Forge.Core.Gear;
 using Forge.Core.Pets;
+using Forge.Core.Ui;
 
 namespace Forge.Game.Ui
 {
@@ -133,7 +134,7 @@ namespace Forge.Game.Ui
             rt.sizeDelta = new Vector2(size, size);
             Tile(rt, "frame", CellFace(ac), CellLine(ac), size * 0.16f, PopupKit.Line3);
             // T124 — 정본 `.fl-face.equip-cell[data-age]` 만 시대 무늬를 입는다(제작 카드·상세 머리 아이콘은 equip-cell 이 아니다) → 호출자가 켠다
-            if (agePattern) AgePattern.Attach(rt, age, cell: true, mask: false, siblingIndex: 1);
+            if (agePattern) AgePattern.Attach(rt, age, cell: true, mask: (string)null, siblingIndex: 1);   // 목록 타일은 셀이라 마스크가 없다(T380 키 갈래)
             Image ico = PopupKit.IconOr(rt, "img", iconKey);
             float k = size * InkFrac(inkFrac);
             UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, k, k);
@@ -341,8 +342,11 @@ namespace Forge.Game.Ui
             Color ac = AgeColor(d, age);
             RectTransform bar = PopupKit.Item(parent, name, w, h);
             Image f = Tile(bar, "bar", ac, Color.black, h * 0.25f, PopupKit.Line);
-            // T124 — 시대 무늬 층(정본 `.af-age-bar::before`·`.fi-age-bar::before` · 항성간 이상 다섯만 · 바탕 채움 바로 위 · 글자·체크 뒤) · 자동 제련 막대만 왼쪽 30→50% 마스크
-            AgePattern.Attach(bar, age, cell: false, mask: autoForge, siblingIndex: 1);
+            // T124 — 시대 무늬 층(정본 `.af-age-bar::before`·`.fi-age-bar::before` · 항성간 이상 다섯만 · 바탕 채움 바로 위 · 글자·체크 뒤).
+            // T380 2회차 — **두 막대의 마스크 값이 다르다**: 정본 4841 `.af-age-bar::before` 는 30→50%, 5116~5123 `.fi-age-bar::before` 는 **24→46%** 다.
+            //   여태 클론은 자동 제련 막대에만 마스크를 걸어 정보 팝업·목록 머리 막대는 무늬가 **왼쪽 아이콘·이름 뒤까지** 갔다.
+            //   정본 `ui.js` 2026(확률 정보)·2110(목록 머리 `fi-age-bar fl-head`)이 둘 다 `.fi-age-bar` 고 `.fl-head` 는 마스크를 안 덮는다(5610~5611).
+            AgePattern.Attach(bar, age, cell: false, mask: autoForge ? AgePatternKeys.AfBar : AgePatternKeys.FiBar, siblingIndex: 1);
             float rem = PopupKit.Rem;
             float x = rem * 0.5f;
             if (check.HasValue)
