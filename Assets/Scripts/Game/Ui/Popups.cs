@@ -437,8 +437,9 @@ namespace Forge.Game.Ui
             if (disabled)
             {
                 b.interactable = false;
-                CanvasGroup cg = rt.gameObject.AddComponent<CanvasGroup>();
-                cg.alpha = 0.45f;
+                // T359 5회차 — 정본 `style.css` **673** `.btn.disabled { … opacity: .45 … }`. 여기 숫자로 박혀 있었다(§1).
+                //   정본 `opacity` 는 **그 상자 한 겹 전체**(글자·테까지)라 CanvasGroup 한 장이 같은 뜻이다 — 값만 표로 옮긴다.
+                OpacityUi.Apply(rt.gameObject, "btn_disabled");
             }
             return b;
         }

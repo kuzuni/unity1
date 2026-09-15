@@ -111,6 +111,36 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>
+        /// T359 5회차 — 정본 `style.css` **673** `.btn.disabled { opacity: .45 }`. 공용 버튼 공장(<see cref="PopupKit.Btn"/>)이
+        /// 그 `.45` 를 숫자로 박고 있었다(§1). 정본 `opacity` 는 **그 상자 한 겹 전체**(글자·테까지)라 CanvasGroup 한 장이 같은 뜻이다.
+        /// 켜진 버튼에는 안 걸리는 것까지 같이 본다 — 정본은 `.disabled` 에만 준다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 비활성_버튼만_정본_알파_한_겹을_쓴다()
+        {
+            yield return Boot();
+            RectTransform host = UiKit.Box(UiRoot.Instance.App, "t359-btn-host");
+            UiKit.Place(host, 0f, 0f, UiKit.RefW, UiKit.RefH);
+            float w = UiKit.RefW * 0.4f, h = UiKit.RefH * 0.05f;
+
+            Button off = PopupKit.Btn(host, "btn-off", "비활성", "pp_paper", "pp_line", null, w, h, "stage_ink", TextKind.Button, true);
+            Assert.IsNotNull(off, "비활성 버튼");
+            Assert.IsFalse(off.interactable, "비활성은 눌리지 않는다");
+            CanvasGroup cg = off.GetComponent<CanvasGroup>();
+            Assert.IsNotNull(cg, "정본 .btn.disabled 의 opacity 는 버튼 한 겹에 걸린다");
+            Assert.AreEqual(OpacityUi.A("btn_disabled"), cg.alpha, 1e-4f, "정본 673 opacity .45 · 실측 " + cg.alpha);
+            Assert.AreEqual(0.45f, OpacityUi.A("btn_disabled"), 1e-6f, "표값이 정본 그대로");
+
+            Button on = PopupKit.Btn(host, "btn-on", "켜짐", "pp_paper", "pp_line", null, w, h);
+            Assert.IsTrue(on.interactable, "켜진 버튼");
+            CanvasGroup cg2 = on.GetComponent<CanvasGroup>();
+            Assert.IsTrue(cg2 == null || Mathf.Approximately(cg2.alpha, 1f), "켜진 버튼은 안 흐려진다(정본은 .disabled 에만)");
+
+            Object.Destroy(host.gameObject);
+            yield return null;
+        }
+
+        /// <summary>
         /// T359 4회차 — 정본 `style.css` **1830** `.cmp-card.empty { opacity: .7 }`. 정본 `opacity` 는 **그 상자 한 겹 전체**(테·글자까지)라
         /// CanvasGroup 한 장이 같은 뜻이다. 클론은 그 .7 을 얼굴 이미지의 알파에 숫자로 박아 두어 **글자는 안 흐려졌다** — 그것이 이 자가 막는 자리다.
         /// 값은 표에서 읽고, 채워진 카드에는 **안 걸리는 것**까지 같이 본다(정본은 `.empty` 에만 건다).
