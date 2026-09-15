@@ -296,12 +296,16 @@ namespace Forge.Game.Ui
                 for (int i = depth; i >= 1; i--)
                 {
                     Image edge = UiKit.Rounded(rt, "deck-" + i, "pp_paper", rem * 0.7f);
-                    edge.color = ForgeUi.Mix(ac, new Color(0.87f, 0.89f, 0.93f), 0.45f);
+                    // T371 2회차 — 정본 1013 `.anvil-btn.held-slot.deck { --dedge: color-mix(in srgb, var(--rc) 55%, #dfe4ec) }`.
+                    //   비율(.45 = 뒤 색 몫)과 상대색이 코드에 박혀 있었고 그 색이 #DEE3ED 로 채널마다 1 어긋나 있었다 — 둘 다 표로.
+                    edge.color = ColorMixUi.Mix("held_deck_edge", ac);
                     UiKit.Place(edge.rectTransform, dg * i, 0f, w - dg * depth, bodyH);
                 }
                 RectTransform card = UiKit.Box(rt, "card");
                 UiKit.Place(card, 0f, 0f, w - dg * depth, bodyH);
-                ForgeUi.Tile(card, "frame", ForgeUi.Mix(ac, new Color(0x17 / 255f, 0x18 / 255f, 0x1a / 255f), 0.7f), ForgeUi.CellLine(ac), rem * 0.7f, PopupKit.Line3);
+                // T371 2회차 — 정본 990 `.anvil-btn.held-slot { background: color-mix(… 30%, #17181a); border: color-mix(… 80%, #000) }`.
+                //   값은 맞았지만 비율·상대색이 코드에 박혀 있었다(§1) — 표 `ColorMixUi.json` 의 held_face·held_line 로.
+                ForgeUi.Tile(card, "frame", ColorMixUi.Mix("held_face", ac), ColorMixUi.Mix("held_line", ac), rem * 0.7f, PopupKit.Line3);
                 float ico = rem * 2.1f;
                 Image img = PopupKit.IconOr(card, "held-img", ForgeUi.ItemIconKey(h.Defs, held));
                 UiKit.Anchor(img.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, rem * 0.35f), ico, ico);
