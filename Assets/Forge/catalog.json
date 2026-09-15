@@ -362,7 +362,7 @@
     { "key": "pass_track_h", "value": 0.438, "_": "트랙 43.8%H" },
     { "key": "pass_rail_w", "value": 0.0102, "_": "레일 11px/1080" },
     { "key": "pass_label_w", "value": 0.206, "_": "마일스톤 필 20.6%W" },
-    { "key": "pass_label_h", "value": 0.0375, "_": "마일스톤 필 높이 — 원작 shot-042705 실측 18.3px/488W(T375 · 정본 style.css 2801 은 padding .1rem 0 + line-height 1 로 높이를 값으로 정한다)" },
+    { "key": "pass_label_h", "value": 0.041, "_": "마일스톤 필 **바깥 상자** 높이 — 원작 shot-042705 실측 20px/488W = 4.10%W(T375 2회차). 정본 style.css 2801 주석의 «≈18.3px» 은 **테 안쪽(잉크)** 이라 그 값을 바깥에 쓰면 필이 2px 짧아진다(런 651 실측 17~18px = 3.2%W · 창 3.6~4.0 아래)" },
     { "key": "pass_cell_pad_y_rem", "value": 0.4, "_": "보상 칸 세로 패딩 — 정본 style.css 2824 `.pass-cell { padding: .4rem .5rem }`(가로는 .5rem · 종전 클론은 세로에도 .5 를 써서 행이 .1rem×2 만큼 길었다 · T375)" },
     { "key": "pass_reward_pill_h_rem", "value": 1.16, "_": "보상 알약 높이 — 정본 2830 `.pass-cell span { padding: .1rem .6rem }` + 칸 글자 .8rem 한 줄(브라우저 기본 줄높이 ≈1.2) = .2 + .96 ≈ 1.16rem. 원작 PNG 실측으로 다듬는 것은 T375 다음 회차(T28 64회차 등재문의 ⓓ)" },
     { "key": "pass_header_h", "value": 0.0292, "_": "무료/프리미엄 탭 행 2.92%H" },

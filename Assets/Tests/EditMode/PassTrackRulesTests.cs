@@ -40,7 +40,7 @@ namespace Forge.Tests
         public void 트랙_치수_넷이_표에_있고_정본_값과_같다()
         {
             Assert.AreEqual(0.206, Layout("pass_label_w"), 1e-9, "정본 2801 `width: calc(var(--app-w) * .206)`");
-            Assert.AreEqual(0.0375, Layout("pass_label_h"), 1e-9, "원작 shot-042705 실측 18.3px/488W");
+            Assert.AreEqual(0.041, Layout("pass_label_h"), 1e-9, "원작 shot-042705 실측 20px/488W — 바깥 상자다(CSS 주석의 18.3 은 테 안쪽 잉크 · T375 2회차)");
             Assert.AreEqual(0.4, Layout("pass_cell_pad_y_rem"), 1e-9, "정본 2824 `.pass-cell { padding: .4rem .5rem }` 의 **세로**");
             Assert.Greater(Layout("pass_reward_pill_h_rem"), 0.0, "보상 알약 높이가 표에 있다");
         }
