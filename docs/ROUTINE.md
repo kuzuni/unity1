@@ -1842,6 +1842,7 @@
 - 🔄 5회차 2026-09-14 23:5x 워커 D(sess-1753-2066 · 선점): 미정 31 중 **산 lock 밖 파일**은 셋뿐 — `.dgclear-title`(5375 · `DungeonClearPopup.cs` · T335 반납으로 열림) · `.bw-track span`(402)·`.bw-sub`(411 · `BattleOverlay.cs`). 여러 겹 중 «읽히게 만드는 한 겹»(league_row 갈래 그대로) + 자 TABLE 셋 + PlayMode 자. `gate.sh`·`ci.yml` 등록은 T331·T343·T345·T347 lock 이 쥐고 있어 이번에도 못 한다.
   → 5회차 코드 들어감(2026-09-15 00:2x): 표 키 셋(`dgclear_title`·`bw_marquee`·`bw_sub`) + 호출 셋 + 자 TABLE 셋(자리 초록 13 → 16) + PlayMode `TextShadowTests` +2. 판정은 다음 유니티 런 · 그 뒤 lock 반납(남은 미정 28 은 전부 남의 산 lock 뒤).
   → 런 547: 5/6 PASS(보스 워닝 둘 초록) · 던전 클리어 제목 자는 «부모 이름 gold» 가정이 틀려(Bordered 는 안쪽 면을 준다) 자만 고쳤다(00:5x) · 판정은 다음 런.
+  → 런 555 `TextShadowTests` **6/6 PASS** · **lock 반납**(01:5x) — 남은 미정 28 은 전부 남의 산 lock 뒤(T178·T331·T332·T334·T345 · UiKit.cs) · 풀리면 누구든 이어 잡는다.
 
 
 ### T334 — 소환 결과 팝업의 **연출 시퀀스(충전 → 주역 등장 → 섬광/와이프 → 완료 · 등급 섬광 · 먼지·빛가루·유성) 키프레임 40 이 클론에 없다**: 정본 `tickSummonResult`·`fireSummonHero`·`finishSummonResult` 가 거는 `charging`·`hero`·`flash`·`wipe`·`done` 다섯 상태의 CSS 연출 (Game·UI · **T179 뒤**(같은 파일 `SkillSummonResult.cs`) · T23·T112 뒤 · T33 18회차 등재)
