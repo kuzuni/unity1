@@ -302,5 +302,32 @@ namespace Forge.Tests.PlayMode
             StringAssert.StartsWith("blur-", cone.sprite.name, "정본 선택자와 같은 이름(.hatch-cone)이면 번진다");
             StringAssert.DoesNotStartWith("blur-", other.sprite.name, "«장착됨» 라벨 홈은 정본이 그 선언을 안 건 자리다 — 번지면 안 된다");
         }
-    }
+    
+        /// <summary>T342 ⓑ(5회차) — 빈 탈것 칸의 말 실루엣: 정본 857 `brightness(0) opacity(.32)` → 구운 화소가 전부 검정이고 틴트 알파가 .32 다(새 세이브는 탈것이 0 이라 칸이 비어 있다).</summary>
+        [UnityTest]
+        public IEnumerator 빈_탈것_칸의_실루엣은_새까맣게_굽고_알파_32_다()
+        {
+            yield return Boot();
+            Image sil = null;
+            foreach (Image im in UiRoot.Instance.Sheet.GetComponentsInChildren<Image>(true))
+                if (im.name == "mount-sil" && im.transform.parent != null && im.transform.parent.name == "egg-cell") { sil = im; break; }
+            Assert.IsNotNull(sil, "빈 탈것 칸(egg-cell)의 실루엣 mount-sil 이 없다");
+            Assert.IsTrue(UiFilter.Table.Has("mount_slot_empty"), "FilterUi.json 에 mount_slot_empty 가 있다");
+            Assert.AreEqual(0.32f, sil.color.a, 1e-3f, "정본 opacity(.32) 는 틴트 알파");
+            Assert.IsNotNull(sil.sprite);
+            StringAssert.StartsWith("filt-mount_slot_empty", sil.sprite.name, "실물 아이콘이 brightness(0) 으로 구워졌다");
+            Texture2D t = sil.sprite.texture;
+            int seen = 0, black = 0;
+            for (int y = 0; y < t.height; y += 2)
+                for (int x = 0; x < t.width; x += 2)
+                {
+                    Color c = t.GetPixel(x, y);
+                    if (c.a < 0.2f) continue;
+                    seen++;
+                    if (c.r < 0.02f && c.g < 0.02f && c.b < 0.02f) black++;
+                }
+            Assert.Greater(seen, 20, "구운 그림에 보이는 화소가 거의 없다");
+            Assert.AreEqual(seen, black, "brightness(0) 인데 검정이 아닌 화소가 있다");
+        }
+}
 }

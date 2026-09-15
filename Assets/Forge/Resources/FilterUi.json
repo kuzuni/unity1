@@ -1,7 +1,7 @@
 {
   "_": "ROUTINE T342 정본 CSS `filter` 자리표 — web/css/style.css 의 선언 그대로. 셈은 Core/Ui/FilterRules.cs(명세 정의)가 쥐고, 이 표는 자리마다의 값만 쥔다(§1 «수치는 코드에 박지 않는다»). line = 정본 style.css 줄 번호(되짚는 자리). blur_px 는 CSS px 이고 명세상 «반지름» 이 아니라 가우시안 표준편차다.",
   "sites": {
-    "_": "남은 둘(mount_slot_empty 857 · summon_orb_* 6656~6665)은 그 파일이 산 lock 이라 아직 밖 — 들어오면 그때 적는다. 표 글자에 동그라미 글자를 쓰지 않는다(check_text_glyphs).",
+    "_": "남은 하나(summon_orb_* 6656~6665)는 SkillSummonResult.cs 가 산 lock(T334)이라 아직 밖 — 들어오면 그때 적는다. 표 글자에 동그라미 글자를 쓰지 않는다(check_text_glyphs).",
     "equip_cell_empty": {
       "_": ".equip-cell.empty .cell-img.dim — 마룬 타일 위에서 형태가 안 읽혀 «어두운 면 위 밝은 실루엣» 으로 뒤집은 자리(정본 주석 860~861)",
       "line": 862,
@@ -14,6 +14,7 @@
       "line": 8025,
       "blur_px": 1.2
     },
+    "mount_slot_empty": { "_": ".equip-cell.egg-cell.empty .mount-sil — 빈 탈것 칸의 말 실루엣: brightness(0) 으로 새까맣게 굽고 opacity(.32) 는 틴트 알파(정본 주석 «탑승물 실루엣 — 빈 상태 판독 단서» · ui.js 1535 IconGen.img(horse)). 5회차 · 종전엔 ForgeSheet 가 검정 .32 를 코드에 박았다", "line": 857, "brightness": 0, "opacity": 0.32 },
     "tech_node_locked": {
       "_": ".tech-tree-node.tlocked .ico, .tech-tree-node.tlocked img — 아직 못 여는 연구 노드의 그림만 반쯤 회색으로. 노드 판의 옅어짐(정본 2188·2191 의 면 색·투명도)은 이 자리가 아니다.",
       "line": 2193,

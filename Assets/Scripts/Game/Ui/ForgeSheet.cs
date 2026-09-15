@@ -249,7 +249,7 @@ namespace Forge.Game.Ui
             RectTransform rt = UiKit.Box(parent, "egg-cell");
             Image f = ForgeUi.Tile(rt, "frame", new Color(0x4f / 255f, 0xb2 / 255f, 0xee / 255f), Color.black, hgt * 0.16f, PopupKit.Line3);
             Image ico = PopupKit.IconOr(rt, "mount-sil", "horse");
-            ico.color = new Color(0f, 0f, 0f, 0.32f);
+            UiFilter.ApplyColor(ico, "mount_slot_empty");   // T342 ⓑ — 정본 857 .equip-cell.egg-cell.empty .mount-sil { filter: brightness(0) opacity(.32) } (표 FilterUi · 종전 검정 .32 박힘)
             float k = hgt * 0.55f;
             UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, hgt * 0.08f), k, k);
             TextMeshProUGUI nm = UiKit.Text(rt, "slot-name", TextKind.Sub, "탈것", "stage_ink");
