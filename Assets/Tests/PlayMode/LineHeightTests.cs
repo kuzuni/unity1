@@ -287,6 +287,9 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(1.3, LineHeight.Table.Get("league_name_lh"), 1e-9, "정본 2337 .league-name { line-height: 1.3 }");
             Assert.AreEqual(1.4, LineHeight.Table.Get("league_reward_desc_lh"), 1e-9, "정본 2514 .league-reward-desc { line-height: 1.4 }");
             Assert.AreEqual(1.3, LineHeight.Table.Get("league_challenge_name_lh"), 1e-9, "정본 2632 .league-challenge-name { line-height: 1.3 }");
+            // T354 12회차 — 스킬 상세 두 자리도 같은 칸에서 표값을 못 박는다(그 팝업을 여는 값이 커서 화면 자는 다음 회차 몫이다).
+            Assert.AreEqual(1.45, LineHeight.Table.Get("skd_desc_lh"), 1e-9, "정본 5248 .skd-desc { line-height: 1.45 }");
+            Assert.AreEqual(1.15, LineHeight.Table.Get("skd_passive_lh"), 1e-9, "정본 5255 .skd-passive { line-height: 1.15 }");
             Debug.Log("[T354] 리그 행 이름 lineSpacing " + t.lineSpacing.ToString("0.000"));
         }
     }

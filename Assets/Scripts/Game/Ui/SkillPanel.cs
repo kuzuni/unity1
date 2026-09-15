@@ -519,6 +519,7 @@ namespace Forge.Game.Ui
             TextMeshProUGUI name = PetSkillKit.Text(c, "skd-name", TextKind.Body, PetSkillStyle.T("skd_name", Defs.RarityKr.Get(d.Rarity, d.Rarity), d.Name), PetSkillStyle.C("ink"), TextAlignmentOptions.Left);
             UiKit.Place(name.rectTransform, bx, y + PetSkillStyle.Rem(0.15f), bw, nameH);
             TextMeshProUGUI dt = PetSkillKit.Text(c, "skd-desc", TextKind.Body, desc, PetSkillStyle.C("ink"), TextAlignmentOptions.TopLeft);
+            LineHeight.Apply(dt, "skd_desc_lh");   // T354 12회차 — 정본 5248 `.skd-desc { line-height: 1.45 }`(스킬 설명은 상자에서 여러 줄로 접힌다)
             dt.textWrappingMode = TextWrappingModes.Normal;
             float descH = UiCatalog.Instance.Kind(TextKind.Body).size * 1.45f * 3f;
             UiKit.Place(dt.rectTransform, bx, y + PetSkillStyle.Rem(0.15f) + nameH + PetSkillStyle.Rem(0.3f), bw, descH);
@@ -544,6 +545,7 @@ namespace Forge.Game.Ui
             UiKit.Place(pill, pmx, pillY, w - pmx * 2f, pillH);
             PetSkillKit.Fill(pill, "bg", PetSkillStyle.C("passive_bg"), PetSkillStyle.Px("skd_passive_r_rem"));
             TextMeshProUGUI pt = PetSkillKit.Text(pill, "t", TextKind.Sub, PetSkillStyle.T("skd_passive", PetSkillStyle.Fmt(pb.Atk), PetSkillStyle.Fmt(pb.Hp)), PetSkillStyle.C("ink"));
+            LineHeight.Apply(pt, "skd_passive_lh");   // T354 12회차 — 정본 5255 `.skd-passive { line-height: 1.15 }`(알약 안 글자)
             UiKit.Fill(pt.rectTransform);
             TextMeshProUGUI pl = PetSkillKit.Text(c, "skd-passive-label", TextKind.Sub, PetSkillStyle.T("skd_passive_label"), PetSkillStyle.C("ink"), TextAlignmentOptions.Left);
             UiKit.Place(pl.rectTransform, PetSkillStyle.Px("skd_passive_pad_rem"), pillY - PetSkillStyle.Rem(0.25f) - starH * 1.2f, w, starH * 1.2f);
