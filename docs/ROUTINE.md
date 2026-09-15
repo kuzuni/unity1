@@ -2245,6 +2245,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 무엇을 한다: ⓐ 자를 먼저 세운다 — `tools/check_table_scale.py`: `UiKit.L/H/C("키")` 뒤에 상수 곱·합이 붙은 자리를 세고, **허용 목록(`docs/table-scale-allow.md` · 한 줄에 «파일:줄 · 왜 기하인가»)에 없으면 빨강**. ⓑ 자리마다 정본 CSS 의 해당 값을 찾아 표 키로 옮기고 곱을 없앤다(끝난 자리는 허용 목록이 아니라 **사라진다**). ⓒ `league_row_h` 의 ×1.1 을 첫 자리로 닫는다(정본 `.league-list { gap: .6rem }` + `.league-row { padding: .18rem .5rem .42rem }` · style.css 2320·2326).
 - 판정: 자 rc 0(허용 목록 밖 0자리) · 다음 회차 `screen_league.png` 의 행 피치 **7.2~7.8%H** · `python3 tools/ui_score.py --rows league` 의 «나란히 밀린 줄» 소멸 · 각 자리는 그 화면 PNG 로 재확인.
 - 범위: `tools/check_table_scale.py`(새) · `docs/table-scale-allow.md`(새) · `Assets/Scripts/Game/Ui/LeagueSheet.cs` 외 10파일(각 산 lock 뒤 · 한 회차에 한 파일씩이어도 된다) · `Assets/Forge/catalog.json` · `Assets/Tests/EditMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 **1회차 2026-09-15 10:2x 워커 B(sess-1920-15773 · 선점)**: ⓐ 자부터 — `tools/check_table_scale.py`(`UiKit.L/H/C("키")` 뒤에 붙은 상수 곱·합 전수 · 허용 목록 밖이면 빨강 · `--self-test`) + `docs/table-scale-allow.md`(«기하» 영구 칸과 «임자 있음 · 그 lock 이 풀리면 고친다» 임시 칸 — 임시 칸의 자리는 알리되 막지 않는다 · 새로 생기는 자리만 막는다). 자리 파일 11 은 전부 남의 산 lock 뒤라 코드 0줄 · `gate.sh` 등록은 T331 lock 뒤.
 
 ### T375 — 패스 트랙의 치수 넷이 **코드에 박힌 곱셈**으로 난다: 표에 정본값 `pass_label_w 0.206` 이 있는데 `* 1.3f` 를 곱하고, 높이 셋은 글꼴에서 뽑는다 (UI · T21 뒤 · **T28 64회차 등재**)
 
