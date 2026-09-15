@@ -62,14 +62,31 @@ namespace Forge.Game.Ui
             RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_radius_rem"));
 
             float y = pad;
-            TitleText = "승천 · 보유 별 합계 " + b.Total;
+            // T398 — 정본 ui.js 5864 `<h3>${star} 승천 <small class="muted">보유 별 합계 ${star} N</small></h3>`: 제목은 **두 토막**이다 —
+            // 굵은 잉크 «승천»(1761 h3 1.15rem) + 작고 흐린 «보유 별 합계 ⭐ N»(657 .muted .78rem · 400 · #78909c) · 별 아이콘이 앞뒤로 둘.
+            // 가운뎃점 «·» 은 원작에 없다(§1). TitleText 는 자가 읽는 «글자만 이어 붙인 값» 이고 화면은 아래 한 줄(HorizontalLayoutGroup)이 세운다.
+            TitleText = "승천 보유 별 합계 " + b.Total;
             float sd = titleH * 0.8f;
             Image star = UiKit.Icon(card, "star", "star");
             UiKit.Place(star.rectTransform, pad, y + (titleH - sd) * 0.5f, sd, sd);
-            TextMeshProUGUI title = DungeonPopups.Bold(card, "title", TextKind.Button, TitleText, "pp_ink", TextAlignmentOptions.Left);
+            RectTransform titleRow = UiKit.Box(card, "title-row");
+            var titleLay = titleRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+            titleLay.childAlignment = TextAnchor.MiddleLeft;
+            titleLay.childControlWidth = true; titleLay.childControlHeight = true;
+            titleLay.childForceExpandWidth = false; titleLay.childForceExpandHeight = false;
+            titleLay.spacing = 0f;
+            TextMeshProUGUI title = DungeonPopups.Bold(titleRow, "title", TextKind.Button, "승천", "pp_ink", TextAlignmentOptions.Left);
             UiKit.OutlinePx(title, "pp_line", KeylineUi.Em("sheet_title", title.fontSize));   // 정본 3846 묶음(h3.sheet-title …) { .11em var(--pp-line) }
             UiKit.TextShadow(title, "paper_emboss");   // T333 2회차 — 정본 8381 한 벌 «밝은 종이 위 글자는 흰 엠보스»(0 1px 0 rgba(255,255,255,.92))
-            UiKit.Place(title.rectTransform, pad + sd * 1.2f, y, inner - sd * 1.2f, titleH);
+            float smallPx = title.fontSize * AscendUi.TitleSmallRatio();   // 표 AscendUi.json — .78 / 1.15
+            TextMeshProUGUI small = UiKit.Text(titleRow, "title-small", TextKind.Micro, " 보유 별 합계 ", "muted2", TextAlignmentOptions.Left);
+            small.fontSize = smallPx;
+            Image star2 = UiKit.Icon(titleRow, "star-2", "star");
+            var star2Le = star2.gameObject.AddComponent<LayoutElement>();
+            star2Le.preferredWidth = star2Le.preferredHeight = smallPx; star2Le.flexibleWidth = 0f;
+            TextMeshProUGUI smallN = UiKit.Text(titleRow, "title-small-n", TextKind.Micro, " " + b.Total, "muted2", TextAlignmentOptions.Left);
+            smallN.fontSize = smallPx;
+            UiKit.Place(titleRow, pad + sd * 1.2f, y, inner - sd * 1.2f, titleH);
             y += titleH + gap;
             TextMeshProUGUI guide = DungeonPopups.Para(card, "guide", TextKind.Sub, "라인마다 조건을 채우면 그 라인을 승천시킵니다 — 승천 횟수만큼 이후 획득물에 별이 붙습니다.", "muted2", TextAlignmentOptions.Center);
             UiKit.Place(guide.rectTransform, pad, y, inner, subH * 2f);
