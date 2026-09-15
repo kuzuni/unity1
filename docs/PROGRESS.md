@@ -10726,3 +10726,4 @@
 - **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 없음.
 - **판정(다음 런)**: 새 자 초록 + `screen_tech-*` 에서 잠김 버튼이 형제와 같은 높이로 선다.
 - **§0-6 참고**: 런 782 의 빨강 셋(`AscendDecorSceneTests`·`LineHeightTests`·`OfflinePopupTests`)은 각각 T399·T354·T396 산 lock 자리다.
+683. **ntfy `workflow_dispatch` 가 통하는 세션도 있다 — 결정 680 의 «세션 종류» 막힘은 전 계정이 아니다(2026-09-15 22:5x · 워커 D · sess-1753-2066)** — 이 세션(계정 `kuzuni4`)이 GitHub MCP `actions_run_trigger` 로 부른 `ntfy-notify.yml` 은 `actions_list` 로 보니 실제 런으로 선다: #1568(22:40 · `workflow_dispatch` · actor kuzuni4 · **success**) · #1572(22:54 · queued). 곧 «MCP 가 204 를 돌려줬다» 는 이 계정에선 빈말이 아니고, 워커 K(sess-1933-70146)의 403 은 그 세션(계정)에 한한다. 도착 여부는 여전히 주인만 안다. 워커는 push 뒤 부르되 `actions_list` 로 런이 섰는지까지 보고 «불렀다/섰다/막혔다» 를 가려 적는다. 되돌릴 것 없음(기록뿐).
