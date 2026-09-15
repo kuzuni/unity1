@@ -1143,3 +1143,21 @@ POLISH.md 를 읽고 «소품·용암 빛이 없다» 를 새 작업으로 등�
 - 새 작업 **1**(T365). 폭 단·색의 «길» 은 맞고 빠진 것은 단 하나(ol4)와 «표» 다 — 21·22·24·25 회차의 «결함 0» 과 달리 이 축은 자가 서야 닫힌다.
 - 남은 CSS 축: `background-position` 22 · `background-size` 15 · `cursor` 51(모바일 — 뜻 없음 · 닫아도 된다).
 
+# T33 완주 대조 — **30회차** (2026-09-15 06:4x · 워커 N · sess-0524-8791) — 축: `background-position` 22 + `background-size` 15
+
+CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` 로 쪼개면 **32 선언**(`position` 21 · `size` 11 · 앞 회차의 22/15 는 주석 안 선언을 셌던 것).
+
+## 갈래
+- **키프레임 12**: 시대 무늬 흐름 `gp-interstellar`·`gp-multiverse`·`gp-underworld`·`gp-divine`(4930~4939 · 8 선언) ↔ T124 `AgePatternRules.Shift` + `AgePatternUi.json` 층별 `tile_rem`·`pos_rem` ✓ · `bwhazard`(420 · 2) → 아래 ⓒ · `srsweep`(6922~6924 · 2) → T334 «40 의 무리»(25회차 귀속).
+- **시대 무늬 정적 3**: `.equip-cell[data-age]::before`(930) · `.af-age-bar::before`(4837) · `.fi-age-bar::before`(5119) 의 `--af-pat-size/pos` ↔ T124 표 ✓.
+- **덮기 6**: `.dg-banner`(1956)·`.dg-detail-hero`(2068) `cover center`(그라디언트 — 뜻 없음) · `.dg-rw-ico`(1996) `100% center` · `.ico`(7197) `contain center`(22회차 `object-fit` 과 같은 뜻 ✓).
+- **소환 스윕 1**: `.sr-orb::after` `260% 100%`(6917) → T334.
+- **남는 셋 = repeating-linear-gradient 줄무늬 — 전부 어긋난다**:
+  - ⓐ `.league-reward-tier`(2548~2555) 단 사이 **대시 구분선**(검정 3.23%W · 빈 3.02%W · 2px · 첫 단 없음) ↔ `LeagueSheet.cs:245` `UiKit.Line(row, "dash", …)` = **실선**(이름만 dash).
+  - ⓑ `#panel-skills .summon-bar::before`(4205~4214) 소환 바 위 **풀블리드 대시**(주기 19.93%W 의 반 · 높이 .225%H · x=0 에 대시 중심) ↔ `SkillPanel.cs` 소환 바에 **없음**.
+  - ⓒ `.bw-hazard`(397 + `bwhazard` 420) 보스 경고 **-45° 사선 띠**(주기 1.1rem · 가로 1.556rem · .62s 한 주기) ↔ `BattleOverlay.cs:211~228·287` **세로 대시 12개**(0.55rem/1.1rem · 코드에 박힌 수 셋) — T173 은 밝기·시각표만 판정했다.
+
+## 이 회차의 판정
+- 새 작업 **1**(T368 — 공용 «반복 줄무늬 굽기» 한 길 + 세 자리 배선 · T178 `SurfaceArt` 뒤).
+- **CSS 속성 축은 이것으로 다 셌다.** 21~30회차가 연 축: `font-weight`·`aspect-ratio/object-fit`·`opacity`·`pointer-events`·`mix-blend-mode`·`white-space`·`text-align`·`gap`·`border`·`background-position/size`(+ 17~20 의 `z-index`·`border-radius`·`transform`). 남은 `cursor` 51 은 모바일에 뜻이 없어 **닫는다**. 다음 회차는 새 축이 아니라 **§7 열린 칸 재검**(12회차 꼴).
+
