@@ -947,6 +947,111 @@ def fetch_jobs(sha):
         return None
 
 
+def classify_after(runs):
+    """
+    T356 — «유니티가 실제로 돈 마지막 런» **뒤**의 런들을 갈라 본다.
+
+    지금까지 자는 그 뒤 런이 초록으로 보이면 늘 «문서 push 라 유니티 잡이 skipped 였을 뿐» 이라고 설명했다.
+    그런데 `ci.yml` 의 `unity-test` 는 `needs: [dotnet, gate]` 라 **앞 잡이 빨가도 유니티가 skipped** 다 —
+    실측(런 540~545): 여섯 런이 다 **코드 push** 인데 `dotnet = failure` · `Unity = skipped` 였고,
+    그동안 **아무도 PlayMode 판정을 못 받았다**. «문서 push» 로 읽으면 그 막힘이 통째로 안 보인다.
+
+    runs: [{run_number, sha, jobs}] — jobs 는 parse_jobs 꼴(없으면 None).
+    돌려주는 것: (blocked, docs_only, unknown) — 각각 [{run, sha, why}] 꼴.
+      blocked   = 유니티가 안 돌았고 **앞 잡이 빨갛다**(막힌 런)
+      docs_only = 유니티가 안 돌았는데 앞 잡은 초록(진짜 문서 push)
+      unknown   = 잡을 못 읽었다
+    """
+    blocked, docs_only, unknown = [], [], []
+    for r in runs or []:
+        jobs = r.get('jobs')
+        if jobs is None:
+            unknown.append({'run': r.get('run_number'), 'sha': (r.get('sha') or '')[:7]})
+            continue
+        unity = [j for j in jobs if UNITY_JOB in j['name']]
+        ran = any(j['conclusion'] not in ('skipped', 'neutral') for j in unity)
+        if ran:
+            continue                                   # 유니티가 돈 런은 이 자의 관심 밖이다
+        reds = [j for j in jobs if UNITY_JOB not in j['name']
+                and j['conclusion'] not in ('success', 'skipped', 'neutral')]
+        if reds:
+            why = ' · '.join('%s ✗%s' % (j['short'], (' «%s»' % j['red_steps'][0]) if j['red_steps'] else '')
+                             for j in reds)
+            blocked.append({'run': r.get('run_number'), 'sha': (r.get('sha') or '')[:7], 'why': why})
+        else:
+            docs_only.append({'run': r.get('run_number'), 'sha': (r.get('sha') or '')[:7]})
+    return blocked, docs_only, unknown
+
+
+def blocked_lines(blocked, docs_only, unknown, still=True):
+    """
+    classify_after 결과 → 출력 줄(순수). 막힌 런이 있으면 **맨 위에** 설 줄들이다.
+
+    `still` = **마지막 런도 막혀 있는가**. 지나간 막힘(누가 이미 고쳤다)을 «지금 막혀 있다» 로 말하면
+    워커가 남이 끝낸 일을 다시 잡는다 — 그래서 시제를 가른다(지나간 것은 알리기만 하고 rc 를 안 올린다).
+    """
+    if not blocked:
+        return []
+    n = len(blocked)
+    if still:
+        out = ['⛔ **앞 잡이 빨개서 유니티가 아예 못 돌고 있다** — 그 뒤 런 %d개가 `dotnet`·`datasync`·`gate` 에서 멈췄고'
+               ' **마지막 런도 막혀 있다**(`ci.yml` 의 `unity-test` 는 `needs: [dotnet, gate]`).'
+               ' 그동안 **아무도 PlayMode 판정을 못 받는다**.' % n]
+    else:
+        out = ['⚠ (지나간 막힘 · 이미 풀렸다) 유니티가 실제로 돈 마지막 런 뒤에 **앞 잡이 빨개서 건너뛴 런 %d개**가 있었다'
+               ' — 그래서 그동안 PlayMode 판정이 안 나왔다. **마지막 런은 안 막혀 있다** — 누가 이미 고쳤으니 잡지 마라.' % n]
+    for b in blocked[:6]:
+        out.append('   · 런 %s (%s) — %s' % (b['run'], b['sha'], b['why']))
+    if n > 6:
+        out.append('   · … %d개 더' % (n - 6))
+    if still:
+        out.append('   ⚑ 이것이 **유니티 빨강보다 먼저**다(§1 «컴파일 파손을 남긴 채 다음 작업으로 넘어가지 않는다» ·'
+                   ' 막힌 런의 빨간 스텝 임자를 찾아 고친다 — 자기 lock 이든 남의 lock 이든).')
+    else:
+        out.append('   → 다음 유니티 런이 곧 판정을 준다 — 그때까지 lock 을 쥔 채 기다린다(§1).')
+    if docs_only:
+        out.append('   (그 밖에 진짜 문서 push 라 유니티가 건너뛴 런 %d개는 따로다.)' % len(docs_only))
+    if unknown:
+        out.append('   (잡을 못 읽은 런 %d개는 셈에서 뺐다.)' % len(unknown))
+    return out
+
+
+def still_blocked(runs, blocked):
+    """마지막으로 **판정이 난** 런이 막힌 런인가(순수). 잡을 못 읽은 런은 건너뛴다."""
+    seen = [r for r in (runs or []) if r.get('jobs') is not None]
+    if not seen or not blocked:
+        return False
+    return seen[-1].get('run_number') in [b['run'] for b in blocked]
+
+
+def fetch_runs_after(sha, limit=12):
+    """그 sha 의 CI 런 **뒤**에 온 CI 런들의 잡 목록. 못 부르면 None(조용히 건너뛴다)."""
+    try:
+        base = 'https://api.github.com/repos/%s/actions' % API_REPO
+        # 창을 넉넉히 잡는다 — 기준 런이 창 밖으로 밀리면 «막힘» 을 통째로 못 본다(실측: 12개로는 놓쳤다).
+        payload = _api_json('%s/workflows/ci.yml/runs?per_page=%d' % (base, 60))
+        runs = [r for r in payload.get('workflow_runs', []) if str(r.get('status')) == 'completed']
+        runs.sort(key=lambda r: int(r.get('run_number', 0)))
+        # 기준 sha 의 런 다음부터
+        idx = None
+        for i, r in enumerate(runs):
+            if str(r.get('head_sha', ''))[:7] == (sha or '')[:7]:
+                idx = i
+        if idx is None:
+            return None                                  # 기준 런을 창에서 못 찾았다 — 짐작하지 않는다
+        after = runs[idx + 1:]
+        out = []
+        for r in after[-limit:]:
+            try:
+                jobs = parse_jobs(_api_json('%s/runs/%s/jobs?per_page=30' % (base, r['id'])))
+            except Exception:
+                jobs = None
+            out.append({'run_number': r.get('run_number'), 'sha': r.get('head_sha'), 'jobs': jobs})
+        return out
+    except Exception:
+        return None
+
+
 def job_lines(jobs, sha, unity_red=True):
     """잡별 한 줄(T338). jobs 가 None 이면 needs 관계로 추정만(오프라인) · 유니티가 빨갈 때만 부른다."""
     s7 = (sha or '')[:7] or '?'
@@ -975,7 +1080,7 @@ def job_lines(jobs, sha, unity_red=True):
     return out
 
 
-def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None):
+def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None, blocked=None, blocks_now=True):
     """순수 판정 — (rc, 줄 목록). 네트워크·git 없이 자기 검사할 수 있게 갈라 둔다."""
     out = []
     if meta is None:
@@ -994,10 +1099,20 @@ def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None):
     if miss:
         bad.append('테스트 0개인 모드 «%s»(§1 — 빨간 테스트보다 나쁘다)' % miss)
 
+    # T356 — 막힌 런이 있으면 **맨 위**다: 유니티 빨강을 고쳐 봐야 그 판정을 받을 수 없다.
+    blk = list(blocked or [])
+    out.extend(blk)
+
     if bad:
         out.append('✗ check_unity_green: %s — %s' % (head, ' · '.join(bad)))
-        out.append('  ⚑ 이것이 이번 회차의 첫 일이다(§0-6). 그 뒤 CI 런이 «success» 로 보이더라도')
-        out.append('     그 런들은 문서 push 라 유니티 잡이 **skipped** 였을 뿐이다 — 초록이 빨강을 덮은 것이다.')
+        out.append('  ⚑ 이것이 이번 회차의 첫 일이다(§0-6).' if blk else
+                   '  ⚑ 이것이 이번 회차의 첫 일이다(§0-6). 그 뒤 CI 런이 «success» 로 보이더라도')
+        if not blk:
+            # 막힌 런을 확인하지 못했을 때만 «문서 push» 로 설명한다 — 확인했는데 막혀 있으면 위 ⛔ 가 이미 말했다.
+            out.append('     그 런들은 문서 push 라 유니티 잡이 **skipped** 였을 뿐일 수 있다 — 초록이 빨강을 덮은 것이다.'
+                       ' (앞 잡이 빨개서 못 돈 것일 수도 있다 — API 를 부를 수 있으면 자가 위에 ⛔ 로 가른다 · T356)')
+        else:
+            out.append('     ⚠ 다만 **아래 빨강은 런 %s 것**이다 — 그 뒤 런들은 위 ⛔ 대로 막혀서 안 돌았다.' % (head.split('#')[-1].split()[0] if '#' in head else '?'))
         for f in fails:
             out.append('  · ' + f)
         if own:
@@ -1010,6 +1125,10 @@ def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None):
     else:
         out.append('✓ check_unity_green: %s — 초록' % head)
         rc = 0
+        if blk and blocks_now:
+            # 마지막 유니티 런은 초록이지만 **지금** main 이 막혀 있다 — 그것이 이번 회차의 첫 일이다(rc 1).
+            out.append('  ⚑ 그래도 **지금 main 은 막혀 있다**(위 ⛔) — 그것이 이번 회차의 첫 일이다.')
+            rc = 1
 
     if anc is False:
         out.append('  ⚠ 그 sha 가 %s 의 조상이 아니다 — 다른 갈래이거나 force push 가 있었다.'
@@ -1503,6 +1622,66 @@ def self_test():
                        lock=dead_342, commit_age=age_36)
     eq('ⓧⓧⓧⓧ «런 사이» 칸의 lock 낱말도 이어 하는 중', any('이어 하는 중' in l for l in bl), True)
 
+    # ⓥ T356 — «유니티가 안 돈 뒤 런» 을 «막힌 것» 과 «진짜 문서 push» 로 가른다
+    def _jobs(dotnet, unity, step=None):
+        return [{'name': 'dotnet 컴파일', 'short': 'dotnet', 'conclusion': dotnet, 'red_steps': [step] if step else []},
+                {'name': 'Unity EditMode·PlayMode 테스트', 'short': 'unity', 'conclusion': unity, 'red_steps': []}]
+
+    blk, docs, unk = classify_after([
+        {'run_number': 540, 'sha': 'd' * 40, 'jobs': _jobs('failure', 'skipped', 'TMP richText')},
+        {'run_number': 541, 'sha': 'e' * 40, 'jobs': _jobs('failure', 'skipped', 'TMP richText')},
+        {'run_number': 546, 'sha': 'f' * 40, 'jobs': _jobs('success', 'skipped')},
+        {'run_number': 547, 'sha': '7' * 40, 'jobs': _jobs('success', 'failure')},
+        {'run_number': 548, 'sha': '8' * 40, 'jobs': None},
+    ])
+    eq('ⓥ 막힌 런 수', len(blk), 2)
+    eq('ⓥ 막힌 런 번호', [b['run'] for b in blk], [540, 541])
+    eq('ⓥ 빨간 스텝 이름을 댄다', 'TMP richText' in blk[0]['why'], True)
+    eq('ⓥ 진짜 문서 push 는 따로', [d['run'] for d in docs], [546])
+    eq('ⓥ 유니티가 돈 런은 안 센다', 547 in [b['run'] for b in blk] + [d['run'] for d in docs], False)
+    eq('ⓥ 잡을 못 읽은 런', [u['run'] for u in unk], [548])
+
+    _lines356 = blocked_lines(blk, docs, unk, True)
+    eq('ⓥ 맨 윗줄이 ⛔', _lines356[0].startswith('⛔'), True)
+    eq('ⓥ needs 를 설명한다', any('needs' in ln for ln in _lines356), True)
+    eq('ⓥ 막힌 게 없으면 한 줄도 안 낸다', blocked_lines([], docs, unk, True), [])
+
+    # ⓥ 시제 — 지나간 막힘은 «잡지 마라» 로 말하고 ⛔ 를 안 쓴다
+    _past = blocked_lines(blk, docs, unk, False)
+    eq('ⓥ 지나간 막힘은 ⛔ 가 아니다', _past[0].startswith('⛔'), False)
+    eq('ⓥ 지나간 막힘은 «잡지 마라»', any('잡지 마라' in ln for ln in _past), True)
+    eq('ⓥ 지나간 막힘엔 «네 일이다» 가 없다', any('자기 lock 이든' in ln for ln in _past), False)
+
+    _runs356 = [
+        {'run_number': 540, 'jobs': _jobs('failure', 'skipped', 'x')},
+        {'run_number': 546, 'jobs': _jobs('success', 'skipped')},
+    ]
+    eq('ⓥ 마지막 런이 안 막혔으면 still=False', still_blocked(_runs356, blk), False)
+    eq('ⓥ 마지막 런이 막혔으면 still=True',
+       still_blocked([{'run_number': 546, 'jobs': _jobs('success', 'skipped')},
+                      {'run_number': 541, 'jobs': _jobs('failure', 'skipped', 'x')}], blk), True)
+    eq('ⓥ 잡을 못 읽은 마지막 런은 건너뛴다',
+       still_blocked(_runs356 + [{'run_number': 999, 'jobs': None}], blk), False)
+
+    # ⓦ T356 — 막힌 런이 있으면 판정 줄 **위**에 서고, 마지막 유니티 런이 초록이어도 rc 1
+    rc, out = judge({'sha': 'a' * 40, 'run': 100, 'tests': 'success', 'missing_modes': ''}, True, 0, blocked=_lines356)
+    eq('ⓦ 초록인데도 rc 1', rc, 1)
+    eq('ⓦ ⛔ 가 맨 위', out[0].startswith('⛔'), True)
+    eq('ⓦ 초록 줄도 남는다', any(ln.startswith('✓') for ln in out), True)
+
+    rc, out = judge({'sha': 'a' * 40, 'run': 100, 'tests': 'success', 'missing_modes': ''}, True, 0,
+                    blocked=_past, blocks_now=False)
+    eq('ⓦ 지나간 막힘은 rc 를 안 올린다', rc, 0)
+
+    rc, out = judge({'sha': 'b' * 40, 'run': 101, 'tests': 'failure', 'missing_modes': ''}, True, 2, blocked=_lines356)
+    eq('ⓦ 빨강 + 막힘 rc', rc, 1)
+    eq('ⓦ 빨강이어도 ⛔ 가 먼저', out[0].startswith('⛔'), True)
+    eq('ⓦ 막혔으면 «문서 push 라» 로 단정하지 않는다', any('문서 push 라 유니티 잡이 **skipped** 였을 뿐이다' in ln for ln in out), False)
+
+    rc, out = judge({'sha': 'c' * 40, 'run': 102, 'tests': 'failure', 'missing_modes': ''}, True, 2)
+    eq('ⓦ 막힌 것을 못 봤으면 옛 설명을 «일 수 있다» 로 남긴다',
+       any('였을 뿐일 수 있다' in ln for ln in out), True)
+
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
         for f in fails:
@@ -1536,6 +1715,18 @@ def main(argv):
 
     meta = read_meta(ref)
     anc, n_after = behind(meta.get('sha') if meta else None)
+
+    # T356 — «유니티가 실제로 돈 마지막 런» 뒤가 **막혀 있는가**(앞 잡 빨강 → unity skipped).
+    #        API 를 못 부르면 조용히 건너뛴다(지금까지의 출력 그대로).
+    blocked, blocks_now = [], False
+    if meta and not no_api:
+        after = fetch_runs_after(str(meta.get('sha', '')))
+        if after:
+            blk, docs, unk = classify_after(after)
+            still = still_blocked(after, blk)
+            blocked = blocked_lines(blk, docs, unk, still)
+            blocks_now = still
+
     red = bool(meta) and str(meta.get('tests')) != 'success'
     fails = red_lines(ref) if red else []
     between = None
@@ -1560,7 +1751,7 @@ def main(argv):
                         touched=prod_touch(commits), missing=miss_str, runs=runs,
                         mode_logs=mode_logs, meta_run=meta.get('run'))
         between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None))
-    rc, out = judge(meta, anc, n_after, fails, own, between)
+    rc, out = judge(meta, anc, n_after, fails, own, between, blocked, blocks_now)
     for ln in out:
         print(ln)
     if meta and (red or str(meta.get('missing_modes', '') or '')):
