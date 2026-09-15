@@ -4420,6 +4420,16 @@
 
 ## 워커 결정 기록
 
+### T365 1회차 기록 (2026-09-15 05:5x~06:2x · 워커 D · sess-1753-2066 · lock 유지 · 판정은 다음 런 dotnet 잡 밖 — 자는 아직 gate.sh 밖) — 자 + ol4 키
+
+- **회차 첫 일(§0-6)**: 런 597 전체 초록(PlayMode 296 · EditMode 729) — 내 T361 자 6 포함.
+- **자 `tools/check_box_borders.py`**(T109 `check_keyline`·T331 `check_box_shadows` 꼴): 정본 `border`·`-top/-bottom/-left/-right` 선언을 걷어 **선택자×변**으로 접는다 — 쉼표 목록은 선택자마다, 같은 (선택자, 변)의 뒤 규칙이 앞을 덮는다(계단). 실물: 선언 **191** → 선택자×변 **186**(덮인 5) · 단 ol3 62 · ol2 44 · none 44 · ol1 19 · cellb 3 · ol4 1 · ol15 1 · 직접값 12 — T33 29회차의 «186 · ol3 62 · ol2 44 · none 44 · ol1 19 · cellb 3 · ol4 1 · 직접값 13» 과 **한 자리도 안 어긋난다**(29회차는 `--ol15` 하나를 직접값에 넣었다 · 선언 수 191 ↔ 184 는 29회차가 쉼표 목록을 하나로 센 차이). 폭 단·색(`--pp-line`·`--rc`·hex·rgba·color-mix)을 가르고, TABLE(선택자[|변] → `Ui/File.cs#name` = `Outlined`/`Line`/`Rounded`/`Framed`/`Orb` 호출 · `@Method` · 파일 · `—이유`)·KNOWN·미정(`--list` · 막지 않는다 · T333 `check_text_shadows` 갈래)·`--self-test` 13칸.
+- **TABLE 첫 열 자리**(전부 초록): 29회차가 실물로 연 `.sr-qty`·`.sr-dup`·`.sr-hint`(SkillSummonResult Framed) · `#topbar|bottom`(Hud Line) · `#equip-sheet|top`·`#chat-preview|top`(UiRoot Line) · `.league-row`·`.pass-banner`·`.shop-banner`(Outlined face) · `.pet-tile .tile-face`(PetPanel Framed). **KNOWN 1** = `.pet-card|left`(ol4 띠 · `PetPanel.cs` T331 lock). 미정 175 는 회차마다 표에 더한다.
+- **카탈로그 `line4_px` 8**(ol4 단 · 기준 px · 2.16배 반올림) — `catalog.json` 은 산 lock 어느 범위에도 없었다. `gen_ui_catalog` 로 다시 구워 `--check` 일치(자산은 스프라이트·글꼴만 쥐고 `layout` 은 런타임이 `catalog.json` 을 JsonUtility 로 읽는다 — 자산 diff 0 이 정상).
+- **등재문의 «`Outlined` 리터럴 일곱(0.2f~0.9f)»**: 열어 보니 전부 **반지름**(`rem * 0.8f` 등 · `Outlined(parent, name, face, radius, line)` 의 넷째 인자)이고 폭은 다 `PopupKit.Line`/`Line3` 키다 — 폭 위반 후보가 아니라 T345(border-radius)의 자리다(T345 가 RadiusUi 로 옮기는 중). 이 절의 «리터럴 일곱» 은 지운다(결정 611).
+- **못 한 것(2회차 · 각 lock 뒤)**: ⓐ 펫 카드 왼쪽 띠 자리(`PetPanel.cs` T331) ⓑ 폭 단 대조(호출의 px 인자 ↔ 단 · 자에 «기대 단» 열) ⓒ 미정 175 를 표로 ⓓ `gate.sh`·`ci.yml` 등록(T331·T354 lock).
+- **게이트**: `check_box_borders` rc 0 · `--self-test` 13칸 · `gen_ui_catalog --check` 일치 · `tools/gate.sh` 막는 자 전부 rc 0.
+
 ### T354 4회차 기록 — 산 lock 없는 자리 둘 배선: 채팅 말풍선(앱 폭 키) · 탈것 업그레이드 빈 글 (2026-09-15 05:2x~05:4x · 워커 B · sess-1920-15773 · lock 유지 · 판정은 다음 런 `LineHeightTests` 4)
 - **왜 둘뿐인가**: 3회차가 남긴 21 자리를 파일로 다시 세니 19 가 산 lock 뒤다 — T178(`DungeonSheet`·`QuestSheet`·`ShopSheet` 의 `.sheet-sub` 셋 · `LeagueSheet` 둘 · `PlayerInfoPopup`) · T331(`ForgeCraftPopup` 의 `.swc-name`·`.sellwarn-note` · `SkillPanel` 의 `.skd-*`·`.sk-mini` · `Hud` 의 `.chat-preview-lines` · `PetPanel`) · T332(`ForgeInfoPopup` 의 `.idet-*` · `ForgeUi` 의 `.cmp-sub` · `PassPopup`) · T334(`SkillSummonResult` 의 `.sr-*`) · T359(`PetUpgradePopup` 의 `.mat-empty`). 열린 것은 `ChatScreen.cs` 와 `MountUpgradePopup.cs` 둘.
 - **채팅 말풍선 `chat_bubble_lh_w`**: 정본 3380 `calc(var(--app-w) * .0351)` — 표 81 중 **앱 폭 키의 유일한 자리**라 값이 배수가 아니라 px 다. `LineHeight.Apply` 가 Core `Ratio`(앱 폭 × .0351 ÷ 글자 크기)로 배수를 낸 뒤 em/100 으로 옮긴다 — 3회차까지는 배수 키만 실물로 섰고 이 길은 EditMode 에서만 검산됐다. 자가 긴 말을 하나 보내 두 줄로 꺾고 실제 줄 간격 = 그 배수 ±.02 를 잰다.
@@ -8359,3 +8369,4 @@
 - **자**: `PlayMode/TabularSitesTests` +1 «리그_점수는_숫자_구간이_등폭이다» — 리그 시트를 열고 `score/text` 아래 글자 조각을 모아 richText·감쌈·이웃 숫자 시작 x 간격 = 글꼴 칸(em × 글자 크기 · 허용 15%) · 점수 둘 이상 · 두 자리 점수 하나 이상.
 - **게이트**: dotnet build 0 오류 · dotnet test 전부 초록 · `tools/gate.sh` rc 0.
 - **판정(다음 런)**: `TabularSitesTests` 4/4 + `screen_league.png` 8배 눈 확인(점수 열의 자릿수가 세로로 곧은가) → lock 반납 · 행 ⬜(나머지는 각 lock 뒤 누구든).
+611. **상자 테 자는 «선택자×변 최종값» 을 센다 — 쉼표 목록은 선택자마다, 같은 (선택자, 변)의 뒤 규칙이 앞을 덮는다 · 등재문의 «Outlined 리터럴 일곱» 은 반지름이라 폭 위반이 아니다(2026-09-15 · T365 1회차 · 워커 D · sess-1753-2066)** — T33 29회차가 손으로 센 186(ol3 62 · ol2 44 · none 44 · ol1 19 · cellb 3 · ol4 1 · 직접값 13)을 자가 그대로 재현했다 — 선언 수만 191 ↔ 184 로 다른데 그것은 쉼표 목록(`.a, .b { border }`)을 «선언 하나» 로 셀지 «선택자마다» 셀지의 차이라 어느 쪽도 틀리지 않았고, 자는 **자리 기준**(선택자마다)이 맞다(클론 자리도 선택자마다 하나다). 미정 175 는 막지 않는다(T333 갈래) — 186 을 한 회차에 다 짝지을 수 없고 자가 서는 것이 먼저다. 되돌리려면 새 파일 하나와 카탈로그 한 줄.

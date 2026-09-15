@@ -257,6 +257,7 @@
     { "key": "rem_h", "value": 0.018957, "_": "1rem = 16/844 앱높이 (main.js fitLayout)" },
     { "key": "line_px", "value": 2, "_": "--ol1 키라인 · 기준 캔버스 px" },
     { "key": "line3_px", "value": 6, "_": "--ol3 · 시트·패널 위 검정 테" },
+    { "key": "line4_px", "value": 8, "_": "--ol4 · 기준 px · 정본 1162 .pet-card 왼쪽 등급색 띠 한 자리(T365)" },
     { "key": "topbar_h", "value": 0.065, "_": "밴드 높이 (QA 실측 [1,0,478,58] · .5rem+4.15%H+.5rem)" },
     { "key": "topbar_pad_x", "value": 0.0202, "_": ".6rem / W" },
     { "key": "card_min_w", "value": 0.3226, "_": "프로필 카드 min-width 32.26%W" },

@@ -2063,6 +2063,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 판정: 자 rc 0(정본 186 전부 표에 · 표의 자리 전부 초록 또는 KNOWN) · `line4_px` 자리 PNG 눈 확인(`screen_pets.png` 펫 카드 왼쪽 띠 두께) · EditMode/PlayMode 자.
 - 범위: `tools/check_box_borders.py`(새) · `Assets/Forge/catalog.json`(`line4_px` 한 키 · lock 확인) · `Assets/Scripts/Game/Ui/PetPanel.cs`(펫 카드 띠 · lock 뒤) · 리터럴 일곱의 파일(잡는 사람이 «범위» 칸에 적는다) · `docs/ROUTINE.md`(§2 이 절 · §7 한 칸) · `docs/PROGRESS.md`.
 - 🔄 1회차 2026-09-15 05:5x 워커 D(sess-1753-2066 · 선점): 자 `tools/check_box_borders.py`(정본 border·-top/-bottom/-left/-right 선언 → 선택자×변 최종값(같은 선택자의 뒤 규칙이 앞을 덮음) · 폭 단 ol1~4·cellb·none·직접값 · 색 · TABLE 선택자 → 클론 자리(`Ui/File.cs#name` = `Outlined`/`Line`/`Framed`/`Orb` 호출) · KNOWN · 미정은 `--list` · `--self-test`) + 카탈로그 `line4_px` 8(ol4 단). 펫 카드 띠(`PetPanel.cs`)는 T331 lock 뒤 · `gate.sh`·`ci.yml` 등록은 T331·T354 lock 뒤.
+  → 1회차 코드 들어감(06:2x): 자 rc 0 — 선언 191 → 선택자×변 **186**(29회차 표와 같다) · 표 자리 초록 10 · KNOWN 1(펫 카드 띠) · 미정 175 · 자기 검사 13 · 카탈로그 `line4_px` 8. «Outlined 리터럴 일곱» 은 반지름(T345 자리)이라 이 절에서 뺀다. 2회차: 띠 자리(PetPanel T331 뒤) · 폭 단 대조 · 미정을 표로 · gate.sh 등록.
 
 ### T341 ✅ — 3D 뷰 전체의 **색 보정이 0** 이다: 정본 `#game3d { filter: saturate(1.12) contrast(1.07) }`(style.css 152 · 주석 «컬러 그레이딩 — 무보정 에디터 뷰포트 인상 제거») ↔ 클론 URP 볼륨 `ForgeVolume.asset` 의 ColorAdjustments 는 saturation·contrast override 가 **꺼져 있다** (Game·렌더 · T39·T97 뒤 · T33 19회차 등재)
 
