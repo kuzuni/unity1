@@ -169,7 +169,12 @@ namespace Forge.Game.Ui
             RectTransform content = PopupKit.ScrollList(scrollBox, "list", H * 0.0492f * 0.5f, 0f, rem * 0.2f);
             int stars = h.AscendCount;
             float barH = rem * 1.75f;
-            float cellGapX = W * 0.0395f, cellGapY = H * 0.0126f, gridPadX = W * 0.0249f, gridPadY = W * 0.0229f;
+            // T364 5회차 — 정본 style.css **728** `.forge-item-grid { gap: calc(var(--app-h) * .0126) calc(var(--app-w) * .0395);
+            //   padding: calc(var(--app-w) * .0229) calc(var(--app-w) * .0249) }`. 값은 맞았지만 여기 **숫자로 박혀** 있어
+            //   자도 사람도 못 보던 자리다(T364 1회차가 «맞으나 코드에 박힘» 으로 적어 둔 넷 · §1 «수치는 코드에 박지 않는다»).
+            //   ⚠ CSS `padding: A B` 는 세로 A · 가로 B 고, 여기선 **둘 다 `--app-w` 기준**이다(세로 패딩도 폭으로 잰다).
+            float cellGapX = W * ForgeInfoStyle.L("fl_grid_gap_x_w"), cellGapY = H * ForgeInfoStyle.L("fl_grid_gap_y_h");
+            float gridPadX = W * ForgeInfoStyle.L("fl_grid_pad_x_w"), gridPadY = W * ForgeInfoStyle.L("fl_grid_pad_y_w");
             float cell = (inner - gridPadX * 2f - cellGapX * 4f) / 5f;
             // T372 — 칸 아래 % 라벨은 정본 `.forge-item-cell small { font-size: .56rem }`(style.css 790 · 기준 캔버스 20.4px)다.
             //   `Sub` 하한 36 을 주면 1.76배가 되어 라벨이 칸 피치를 넘고 스물다섯이 한 줄로 붙는다(원작 shot-042905 는 다섯 덩어리 · 틈 3.12%W).
