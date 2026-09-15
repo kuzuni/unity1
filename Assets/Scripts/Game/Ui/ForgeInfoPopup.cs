@@ -81,11 +81,19 @@ namespace Forge.Game.Ui
             UiKit.Anchor(infoBtn.GetComponent<RectTransform>(), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-rem * 0.3f, 0f), ib, ib);
             PopupKit.Label(card, "sub", TextKind.Sub, "제련 확률", "pp_ink");
             RectTransform pills = PopupKit.Item(card, "pills", -1f, rem * 1.7f);
-            float pw = inner * 0.4f, ph = rem * 1.7f;
-            RectTransform cp = ForgeUi.Pill(pills, "coin", "coin", NumFmt.Fmt(h.Wallet.Coins), pw, ph);
-            UiKit.Place(cp, inner * 0.5f - pw - rem * 0.5f, 0f, pw, ph);
-            RectTransform gp = ForgeUi.Pill(pills, "gem", "gem", NumFmt.Fmt(h.Wallet.Gems), pw, ph);
-            UiKit.Place(gp, inner * 0.5f + rem * 0.5f, 0f, pw, ph);
+            // T388 4회차 — 정본 **5065~5069** `.fi-pill { display: inline-flex; … min-width: 5.5rem }`: 알약은 **내용만큼 좁아지되 5.5rem 밑으로는 안 내려간다**.
+            //   클론은 이 자리를 `inner * 0.4`(카드 안쪽 폭의 40% = 8.31rem)로 **고정**해 정본 하한의 1.51배로 섰다 — 하한을 «폭» 으로 오해한 것이 아니라 아예 안 쥐고 있었다.
+            float ph = rem * 1.7f;
+            float pillMin = rem * ForgeInfoStyle.L("fi_pill_min_w_rem");
+            RectTransform cp = ForgeUi.Pill(pills, "coin", "coin", NumFmt.Fmt(h.Wallet.Coins), pillMin, ph);
+            RectTransform gp = ForgeUi.Pill(pills, "gem", "gem", NumFmt.Fmt(h.Wallet.Gems), pillMin, ph);
+            float cw = PillWidth(cp, pillMin, ph), gw = PillWidth(gp, pillMin, ph);
+            // 정본 `.fi-pills` 는 가운데 정렬이라 **줄 전체**를 가운데에 둔다(폭이 서로 달라질 수 있다).
+            //   ⚠ 틈은 정본 5064 `gap: .8rem` 인데 클론은 1rem 이다 — 틈은 **T364 축**이라 이 회차에서 안 건드렸다(표 `_fi_pill_gap` 에 적었다).
+            float gap = rem * 1f;
+            float rowX = (inner - (cw + gap + gw)) * 0.5f;
+            UiKit.Place(cp, rowX, 0f, cw, ph);
+            UiKit.Place(gp, rowX + cw + gap, 0f, gw, ph);
             RectTransform lv = PopupKit.Item(card, "level-row", -1f, PopupKit.FontSize(TextKind.Sub) * 1.4f);
             TextMeshProUGUI lvt = UiKit.Text(lv, "text", TextKind.Sub, "레벨 " + h.Forge.ForgeLevel + "   ▶   " + (info != null ? "레벨 " + (h.Forge.ForgeLevel + 1) : "최고"), "pp_ink", TextAlignmentOptions.Right);
             lvt.fontStyle = FontStyles.Bold;
@@ -237,6 +245,18 @@ namespace Forge.Game.Ui
                 }
             }
             PopupKit.XButton(card, () => Open(h));
+        }
+
+        /// <summary>
+        /// T388 4회차 — 정본 `.fi-pill` 의 폭: **내용만큼**(inline-flex)이되 **`min-width: 5.5rem` 밑으로는 안 내려간다**(5066).
+        /// 내용 폭은 <see cref="ForgeUi.Pill"/> 이 글자 상자에 준 여백 그대로다 — 왼쪽은 아이콘 칸 `h`, 오른쪽은 `h * 0.4`.
+        /// </summary>
+        static float PillWidth(RectTransform pill, float minW, float h)
+        {
+            Transform t = pill != null ? pill.Find("amt") : null;
+            TextMeshProUGUI lbl = t != null ? t.GetComponent<TextMeshProUGUI>() : null;
+            float content = lbl != null ? h * 1.4f + lbl.preferredWidth : 0f;
+            return Mathf.Max(minW, content);
         }
 
         /// <summary>정본 hydrateForgeThumbs(ui.js 2190~2194)가 셀의 data- 로 만드는 썸네일 키 — rarity 'common' · 승천 티어 없음(stars 는 배지에만).</summary>

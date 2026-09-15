@@ -131,5 +131,57 @@ namespace Forge.Tests.PlayMode
             h.Meta.Popups.Hide(ForgeInfoPopup.Name);
             yield return null;
         }
+
+        /// <summary>
+        /// T388 4회차 — 정본 **5066** `.fi-pill { min-width: 5.5rem }`(+ `display: inline-flex` 라 내용만큼 좁아진다).
+        /// 클론은 이 자리를 `inner * 0.4`(= 8.31rem)로 **고정**해 정본 하한의 1.51배로 섰다.
+        /// 하한은 «최소» 지 «폭» 이 아니므로 **하한 이상**과 **내용이 안 잘린다**를 같이 본다 — 하한을 그냥 폭으로 박으면 큰 수에서 글자가 잘린다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 확률_정보_알약은_정본_하한_5_5rem_아래로_안_내려가고_내용을_안_자른다()
+        {
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!ForgeHost.Ready)
+            {
+                Assert.Less(Time.realtimeSinceStartup - t0, 20f, "ForgeHost 가 20초 안에 준비되지 않았다");
+                yield return null;
+            }
+            ForgeHost h = ForgeHost.Instance;
+            ForgeInfoPopup.Open(h);
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            Popup p = h.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(p, "확률 정보 팝업");
+            Transform pills = Find(p.Root, "pills");
+            Assert.IsNotNull(pills, "알약 줄(pills)");
+            Assert.AreEqual(5.5f, ForgeInfoStyle.L("fi_pill_min_w_rem"), 1e-6f, "표 = 정본 5066 5.5rem");
+            float min = PopupKit.Rem * ForgeInfoStyle.L("fi_pill_min_w_rem");
+
+            int seen = 0;
+            float total = 0f;
+            foreach (string n in new[] { "coin", "gem" })
+            {
+                RectTransform pill = (RectTransform)pills.Find(n);
+                Assert.IsNotNull(pill, n + " 알약");
+                float w = pill.rect.width;
+                Assert.GreaterOrEqual(w, min - 0.5f, n + " 알약이 정본 하한 5.5rem 밑으로 내려갔다 · 실측 " + (w / PopupKit.Rem).ToString("0.00") + "rem");
+                // 종전 꼴(= 카드 안쪽 폭의 40%)이면 이 줄이 깨진다 — 하한의 1.51배였다.
+                Assert.Less(w, min * 1.4f, n + " 알약이 정본 하한보다 한참 넓다(고정 폭을 쓰고 있다) · 실측 " + (w / PopupKit.Rem).ToString("0.00") + "rem");
+                TMPro.TextMeshProUGUI lbl = pill.Find("amt").GetComponent<TMPro.TextMeshProUGUI>();
+                Assert.IsNotNull(lbl, n + " 알약 숫자");
+                Assert.LessOrEqual(lbl.preferredWidth, lbl.rectTransform.rect.width + 0.5f, n + " 알약 숫자가 잘린다 — 하한은 «최소» 지 «폭» 이 아니다");
+                seen++; total += w;
+            }
+            Assert.AreEqual(2, seen, "코인·젬 두 알약");
+            // ⚠ 줄의 «가운데 정렬»·틈(.8rem)은 **T364 축**이라 여기서 안 잰다 — 이 칸이 보는 것은 하한 하나다.
+            RectTransform c = (RectTransform)pills.Find("coin"), g = (RectTransform)pills.Find("gem");
+            Debug.Log("[T388] 알약 " + (c.rect.width / PopupKit.Rem).ToString("0.00") + "rem · " + (g.rect.width / PopupKit.Rem).ToString("0.00") + "rem (하한 5.5 · 종전 8.31) · 줄 폭 " + (total / PopupKit.Rem).ToString("0.00") + "rem");
+
+            h.Meta.Popups.Hide(ForgeInfoPopup.Name);
+            yield return null;
+        }
     }
 }
