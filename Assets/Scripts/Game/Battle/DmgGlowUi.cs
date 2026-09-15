@@ -55,6 +55,13 @@ namespace Forge.Game.Battle
             return c;
         }
 
+        /// <summary>글로우를 끈다 — 정본에 겹이 없는 종류(일반타·영웅 피해 …). 복제 원본이 이미 언더레이를 쥐고 있던 자리를 지운다.</summary>
+        public static void Off(Material m)
+        {
+            if (m == null) return;
+            if (m.IsKeywordEnabled("UNDERLAY_ON")) m.DisableKeyword("UNDERLAY_ON");
+        }
+
         /// <summary>
         /// 공유 재질에 글로우 한 겹을 굽는다(표 px → 캔버스 px → 언더레이 값). 글자 크기가 단위를 정하므로 호출자가 그 크기의 재질마다 따로 굽는다.
         /// 재질에 언더레이가 없으면 아무것도 안 하고 빈 값을 돌린다.

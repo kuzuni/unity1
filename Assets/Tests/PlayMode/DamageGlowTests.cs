@@ -29,6 +29,7 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        // 글자는 «G» 를 붙인다 — 배경 전투가 같은 층에 띄우는 진짜 데미지 숫자(«711» 같은 수)와 이름이 겹치면 남의 글자를 재게 된다.
         private static TextMeshProUGUI Find(RectTransform layer, string text)
         {
             foreach (TextMeshProUGUI t in layer.GetComponentsInChildren<TextMeshProUGUI>(false))
@@ -64,12 +65,12 @@ namespace Forge.Tests.PlayMode
             UiRoot root = UiRoot.Instance;
             DamageNumbers.ResetMaterials();
             var nums = new DamageNumbers();
-            nums.Spawn(new Vector3(0.1f, 1.0f, 0f), "711", "dmg", 0, -40, 1);
-            nums.Spawn(new Vector3(0.2f, 1.0f, 0f), "712", "dmg-crit", 0, -40, 1);
-            nums.Spawn(new Vector3(0.3f, 1.0f, 0f), "713", "dmg-kill", 0, -40, 1);
+            nums.Spawn(new Vector3(0.1f, 1.0f, 0f), "G711", "dmg", 0, -40, 1);
+            nums.Spawn(new Vector3(0.2f, 1.0f, 0f), "G712", "dmg-crit", 0, -40, 1);
+            nums.Spawn(new Vector3(0.3f, 1.0f, 0f), "G713", "dmg-kill", 0, -40, 1);
             yield return null;
             RectTransform layer = DamageNumbers.Layer(root);
-            TextMeshProUGUI dmg = Find(layer, "711"), crit = Find(layer, "712"), kill = Find(layer, "713");
+            TextMeshProUGUI dmg = Find(layer, "G711"), crit = Find(layer, "G712"), kill = Find(layer, "G713");
             AssertGlow(crit, "dmg_crit_born", "크리 태어나는 겹(565 0%)");
             AssertGlow(kill, "dmg_kill_born", "처치 태어나는 겹(578 0%)");
             // 정본에 글로우 키프레임이 없는 등급은 언더레이가 꺼져 있다 — 없는 겹을 지어내지 않는다
@@ -89,13 +90,29 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(3, nums.Count, "셋 다 아직 살아 있다(수명 안)");
 
             // 재질은 «겹마다 하나» 를 나눠 쓴다 — 숫자마다 복제하면 초당 수십 개가 재질을 만든다(T50)
-            nums.Spawn(new Vector3(0.4f, 1.0f, 0f), "714", "dmg-crit", 0, -40, 1);
+            nums.Spawn(new Vector3(0.4f, 1.0f, 0f), "G714", "dmg-crit", 0, -40, 1);
             yield return null;
-            TextMeshProUGUI crit2 = Find(layer, "714");
+            TextMeshProUGUI crit2 = Find(layer, "G714");
             AssertGlow(crit2, "dmg_crit_born", "새 크리도 태어나는 겹");
             nums.Step(life * 0.2f);
             yield return null;
             Assert.AreSame(crit.fontSharedMaterial, crit2.fontSharedMaterial, "같은 겹·같은 크기는 재질을 나눠 쓴다");
+
+            // 풀 되쓰기 함정(수리): 글로우 숫자가 죽어 풀에 들어간 뒤 그 글자를 되쓰는 일반타는 재질을 **그 글자의 지금 재질**에서 복제한다 —
+            // 끄지 않으면 앞 숫자의 글로우가 그대로 묻는다(키라인만 덮어써 눈에 안 띄던 자리).
+            float life2 = (float)(HitRules.DmgLifeMs / 1000);
+            nums.Step(life2 * 1.1f);            // 살아 있던 넷이 전부 수명을 넘겨 풀로 간다
+            yield return null;
+            Assert.AreEqual(0, nums.Count, "넷 다 풀로 갔다");
+            Assert.Greater(nums.Pooled, 0, "풀에 글로우를 쓰던 글자가 있다");
+            nums.Spawn(new Vector3(0.15f, 1.0f, 0f), "G715", "dmg", 0, -40, 1);
+            nums.Spawn(new Vector3(0.25f, 1.0f, 0f), "G716", "dmg-hero", 0, -40, 1);
+            yield return null;
+            TextMeshProUGUI reused = Find(layer, "G715"), hero = Find(layer, "▼G716");
+            Assert.IsNotNull(reused, "되쓴 일반타 글자");
+            Assert.IsFalse(reused.fontSharedMaterial.IsKeywordEnabled("UNDERLAY_ON"), "되쓴 일반타에 앞 숫자의 글로우가 묻으면 안 된다");
+            Assert.IsNotNull(hero, "영웅 피해 글자");
+            Assert.IsFalse(hero.fontSharedMaterial.IsKeywordEnabled("UNDERLAY_ON"), "정본 .dmg-hero 의 겹은 어두운 헤일로(키라인 자 몫)라 이 축의 글로우가 아니다");
             nums.Clear();
             yield return null;
         }

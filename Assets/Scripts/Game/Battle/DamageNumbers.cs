@@ -82,7 +82,10 @@ namespace Forge.Game.Battle
             m = new Material(t.fontSharedMaterial);
             m.name = "dmg outline " + colorKey + " " + strokeKey + (glowKey != null ? " glow " + glowKey : "");
             UiKit.OutlinePx(m, t.font, t.fontSize, colorKey, KeylineUi.Px(strokeKey));
+            // ⚠ 복제 원본은 **이 글자의 지금 재질**이라, 풀에서 온 글자면 앞 숫자의 글로우가 그대로 묻어 온다(키라인은 아래에서 덮어써 안 보이던 함정).
+            //   글로우가 있는 종류는 Apply 가 값을 전부 덮고, 없는 종류(일반타·영웅 피해 …)는 여기서 꺼야 정본처럼 «겹 없음» 이 된다.
             if (glowKey != null) DmgGlowUi.Apply(m, t.font, t.fontSize, glowKey);
+            else DmgGlowUi.Off(m);
             outlineMats[key] = m;
             return m;
         }
