@@ -2,10 +2,14 @@
   "_": "ROUTINE T113 제작 비교 팝업(원작 css 1742 #craft-modal · 1748 .modal-card.wide · shot-043224)의 배치표. T87 lock 이 Assets/Forge/catalog.json 을 쥐던 때의 길(T111 GearDetailUi.json · T65 PlayerInfoUi.json 과 같은 꼴 · T33 이 카탈로그로 합칠 수 있다) — 코드에 숫자를 박지 않는다(§1). 배치 키 접미: _w = 앱 폭 분수 · _rem = 정본 rem.",
   "layout": {
     "card_w": 0.688,
-    "bottom_rem": 1.65
+    "bottom_rem": 1.65,
+    "cmp_lower_pull_rem": 0.85,
+    "cmp_row_pad_bottom_rem": 1.44
   },
   "_src": {
     "card_w": "style.css 1748 `#craft-modal .modal-card.wide { width: 68.8%; }` — 공용 .modal-card.wide 74% 가 아니다(원본 흰 본체 67.33%W + 테두리·AA 1.46%p)",
+    "cmp_lower_pull_rem": "style.css 1819 `.cmp-lower { margin: 0 -.85rem -.85rem; }` — 회색 패널이 카드 아래 패딩(1.1rem = catalog card_pad)을 .85rem 파고든다(주석 «카드 패딩 1.1rem + 테두리 3px 이므로 -.85rem 음수 마진이 인셋 7px 을 만든다») · 카드 층 아래 패딩 = card_pad − 이 값 (T390)",
+    "cmp_row_pad_bottom_rem": "style.css 1821 `.cmp-lower .row { margin: .45rem .96rem 0; padding-bottom: 1.44rem; }` — [판매][장착] 줄 아래 여백(전엔 코드에 rem × 1.4 가 박혀 있었다) (T390)",
     "bottom_rem": "style.css 1742 `#craft-modal { align-items: flex-end; padding-bottom: calc(var(--tabbar-h) + 1.65rem); }` — 카드 바닥 = 앱 바닥에서 탭바 높이(카탈로그 tabbar_top) + 1.65rem 위(원본 실측 86.90%H)"
   }
 }

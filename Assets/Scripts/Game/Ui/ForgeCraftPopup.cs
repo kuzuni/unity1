@@ -58,7 +58,11 @@ namespace Forge.Game.Ui
             float pad = UiKit.H("card_pad");
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
             UiKit.Anchor(card, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, CraftStyle.BottomPx()), w, card.sizeDelta.y);
-            PopupKit.Column(card, pad + rem * 0.5f, rem * 0.5f);
+            VerticalLayoutGroup cardLg = PopupKit.Column(card, pad + rem * 0.5f, rem * 0.5f);
+            // T390 — 정본 style.css 1819 `.cmp-lower { margin: 0 -.85rem -.85rem }`(주석 «카드 패딩 1.1rem + 테두리 3px 이므로 -.85rem 음수 마진이 인셋 7px 을 만든다»):
+            // 회색 패널이 카드의 아래 패딩(1.1rem = `card_pad`)을 .85rem 파고든다 → 카드 층의 **아래** 패딩 = card_pad − 당김(표 `cmp_lower_pull_rem`).
+            // 하단 앵커 카드라 이 여백이 곧 카드 위끝을 민다(1781 주석) — 런 723 실측 버튼 아래 여백 63px ↔ 원작 26px(+33px 이 통째로 카드 높이).
+            cardLg.padding = new RectOffset(cardLg.padding.left, cardLg.padding.right, cardLg.padding.top, Mathf.RoundToInt(pad - CraftStyle.Px("cmp_lower_pull_rem")));
             float inner = w - (pad + rem * 0.5f) * 2f;
             RectTransform curCard = ForgeUi.ItemCard(card, "cur", inner, cur, "장착됨", cur != null ? (newIsHigher ? "down" : "up") : null, false, d, h.GearSys.ItemValue);
             ForgeUi.Ribbon(curCard, "장착됨", false);
@@ -67,8 +71,11 @@ namespace Forge.Game.Ui
             Image lf = UiKit.Rounded(lower, "face", "pp_gray", rem * 0.7f);
             lf.color = new Color(0xbe / 255f, 0xbe / 255f, 0xbe / 255f);
             VerticalLayoutGroup lg = PopupKit.Column(lower, rem * 0.4f, rem * 0.45f);
+            // T390 — 정본 `.cmp-lower` 에는 padding 규칙이 없다: 패널 아래 여백은 `.row` 의 padding-bottom(아래 표) 하나뿐이라 패널 자신의 아래 패딩은 0.
+            lg.padding = new RectOffset(lg.padding.left, lg.padding.right, lg.padding.top, 0);
             ForgeUi.ItemCard(lower, "new", inner - rem * 0.8f, item, newTag, cur != null ? (newIsHigher ? "up" : "down") : null, true, d, h.GearSys.ItemValue);
-            RectTransform row = PopupKit.Item(lower, "row", -1f, UiKit.H("btn_h") * 1.7f + rem * 1.4f);
+            // T390 — 정본 1821 `.cmp-lower .row { padding-bottom: 1.44rem }`(표 `cmp_row_pad_bottom_rem` · 전엔 `rem * 1.4f` 가 박혀 있었다).
+            RectTransform row = PopupKit.Item(lower, "row", -1f, UiKit.H("btn_h") * 1.7f + CraftStyle.Px("cmp_row_pad_bottom_rem"));
             float bw = (inner - rem * 0.8f - rem * 1.3f - rem * 1.9f) * 0.5f, bh = UiKit.H("btn_h") * 1.7f;
             // T110 — 정본 ui.js 3266 `판매<small>${IconGen.img('coin')} +N</small>`: 아랫줄은 코인 **아이콘** + 수(글자 🪙 가 아니다 · 세로 갈래 IconTextStack).
             Button sell = PopupKit.Btn(row, "sell", "", "pp_red", "pp_red_dk", () => h.ResolveCraft("sell"), bw, bh, "stage_ink", TextKind.Sub);
