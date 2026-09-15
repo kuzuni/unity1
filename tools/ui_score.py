@@ -1111,6 +1111,11 @@ def rows_cmp(shots_dir, name, ref_dir=REF_DIR):
               % (len(extra), " ".join(u"%.1f" % t[0] for t in extra)))
     print(u"— 맞은 줄 %d / %d. 여기가 맞으면 **낮은 점수는 자리가 아니라 딤·글자 모양 탓**이다."
           % (len(o) - off, len(o)))
+    print(u"  ⚠ 안 맞은 줄을 바로 결함으로 읽지 마라 — 두 갈래가 섞인다(T28 60회차 전수 실측):")
+    print(u"    ⓐ **팝업 화면**은 원작 딤이 α .988 이라 카드 밖이 통째로 «한 색» 이고, 클론은 α .5 라"
+          u" 뒤 화면이 비쳐 줄이 쪼개진다 — 안 맞는 수가 부풀어 보인다(`craft-compare` 2/8 · `gear-detail` 4/9).")
+    print(u"    ⓑ **3D 세계가 든 화면**(`main`·`offline`)의 위쪽 줄은 나무·흙길 대 `SIMPLE_BG` 라 처음부터 못 맞춘다.")
+    print(u"    그 둘을 뺀 **전면 UI 화면**의 어긋남이 진짜 후보다 — 특히 같은 크기로 **여러 줄이 나란히 밀린** 것.")
     return 0
 
 
