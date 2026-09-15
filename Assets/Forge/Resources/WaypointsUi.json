@@ -10,7 +10,7 @@
     "gap_rem": 0.15,
     "time_font_rem": 0.6,
     "time_pad_x_rem": 0.35,
-    "time_radius_rem": 0.4,
+    "time_r_rem": 0.4,
     "shadow_dy_rem": 0.08,
     "shadow_blur_rem": 0.1,
     "tick_ms": 1000

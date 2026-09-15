@@ -34,7 +34,7 @@ namespace Forge.Core.Ui
             var s = new WaypointsSpec
             {
                 IconRem = n("icon_rem"), GapRem = n("gap_rem"), TimeFontRem = n("time_font_rem"), TimePadXRem = n("time_pad_x_rem"),
-                TimeRadiusRem = n("time_radius_rem"), ShadowDyRem = n("shadow_dy_rem"), ShadowBlurRem = n("shadow_blur_rem"), TickMs = n("tick_ms"),
+                TimeRadiusRem = n("time_r_rem"), ShadowDyRem = n("shadow_dy_rem"), ShadowBlurRem = n("shadow_blur_rem"), TickMs = n("tick_ms"),
             };
             if (s.IconRem <= 0 || s.TickMs <= 0) throw new FormatException("WaypointsUi: icon_rem·tick_ms 는 양수여야 한다");
             var list = new List<WaypointSpec>();

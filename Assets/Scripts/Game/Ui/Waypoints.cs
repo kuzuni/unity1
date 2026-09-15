@@ -71,6 +71,7 @@ namespace Forge.Game.Ui
             sh.useGraphicAlpha = true;
             if (p.Countdown)
             {
+                // T345 9회차 — 정본 327 `.waypoint-time { border-radius: .4rem }`. 표 키를 규약대로 `time_r_rem` 으로 옮겼다(자 `check_border_radius` 가 **키 꼬리**로 단위를 읽는다).
                 Image badge = UiKit.Rounded(rt, WaypointsStyle.T("time"), "toast_bg", (float)s.TimeRadiusRem * rem);
                 badge.color = WaypointsStyle.C("time_bg");
                 badge.raycastTarget = false;

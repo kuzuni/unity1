@@ -64,6 +64,10 @@ TABLE = {
     #   `.tech-branch-card` 2089 .8 ↔ catalog `tb_card_radius_rem` 0.8 · `.tech-tier-tag` 2162 .35 ↔ `tt_tag_radius_rem` 0.35 ·
     #   `.tech-prog` 4608 .5 ↔ `tech_prog_radius_rem` 0.5. catalog.json(T365 산 lock)에서 이름만 `…_r_rem` 으로 바꾸면 세 자리가 한꺼번에 초록이 된다.
     #   값을 RadiusUi.json 에 **복사**하지 않는다 — 같은 반지름을 두 표가 쥐면 다음 사람이 어느 쪽을 고칠지 모른다(결정 기록).
+    # T345 9회차 — 오프라인 팝업·이정표(산 lock 없는 세 자리). 50% 둘은 «원» 증거(@메서드) · 이정표 시간표는 곁 표(WaypointsUi.json)의 키로.
+    '.offline-rate-icon': ['Ui/OfflinePopup.cs@Rate'],
+    '.offline-collect-dot': ['Ui/OfflinePopup.cs@CollectDot'],
+    '.waypoint-time': ['Ui/Waypoints.cs$time_r_rem@WaypointsUi.json'],
     # T345 8회차 — 기술 노드 팝업 버튼 줄(정본이 공용 .btn 을 덮는다)
     '.tech-btns .btn': ['Ui/TechPopups.cs$tech_btn_r_rem'],
     # T345 8회차 — 7회차가 «클론 자리부터 가려야 한다» 고 남긴 둘: 정본 렌더 줄이 **0** 이다(`class="tech-node"` 가 어디에도 없고
@@ -250,6 +254,16 @@ def check_target(game_dir, target, table, unit, num, res_dir=None):
         return 'value', '표값 «%s» = %s 인데 정본은 %s 다 → 표를 정본에 맞춰라' % (tail, tv, num)
     if ('"' + tail + '"') in src:
         return 'ok', '표 키 "%s" 를 부른다%s' % (tail, (' (' + other + ')') if other else '')
+    # T345 9회차 — 표를 **Core 규칙 파일이 읽고** Game 자리는 그 값을 받아 쓰는 갈래도 있다(예: `Waypoints.cs` ← `Core/Ui/WaypointsRules.cs`).
+    #   그 자리도 «수치가 코드에 안 박혀 있다» 는 뜻은 같으므로 Core 나무에서 키를 찾으면 초록으로 본다(어디서 찾았는지 설명에 적는다).
+    core_dir = os.path.join(os.path.dirname(game_dir), 'Core')
+    if os.path.isdir(core_dir):
+        for root, _dirs, files in os.walk(core_dir):
+            for f in files:
+                if not f.endswith('.cs'):
+                    continue
+                if ('"' + tail + '"') in _read_text(os.path.join(root, f)):
+                    return 'ok', '표 키 "%s" 를 Core 규칙(%s)이 읽고 자리는 그 값을 쓴다' % (tail, f)
     return 'missing', '표 키 "%s" 를 아무 데서도 안 부른다 — 그 자리는 코드에 박힌 반지름이다(§1)' % tail
 
 
