@@ -74,5 +74,47 @@ namespace Forge.Tests.PlayMode
             PassPopup.Close(h);
             yield return null;
         }
+
+        /// <summary>T352 2회차 — 정본 8635 `.rate-bar`·`.rates-prog span { font-variant-numeric: tabular-nums }`:
+        /// 확률 팝업은 등급 여섯 줄의 확률이 **세로로 열을 이루고** 아래 게이지 글자도 숫자라, 등폭이 아니면 줄마다 소수점이 좌우로 흔들린다(정본 주석).</summary>
+        [UnityTest]
+        public IEnumerator 확률_팝업의_확률과_게이지_숫자는_등폭이다()
+        {
+            yield return Boot();
+            float t0 = 0f;
+            while (SkillPetSheet.Instance == null && t0 < 10f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 섰다");
+            SkillRatesPopup.Open(SkillPetSheet.Instance, "pet");
+            yield return null;
+            Assert.IsTrue(SkillPetSheet.Instance.Modal.IsOpen(SkillRatesPopup.ModalName), "확률 팝업이 열린다");
+
+            float em = TabularText.DigitEm(UiFont.Primary);
+            int pct = 0, gauge = 0, measured = 0;
+            foreach (TextMeshProUGUI t in UiRoot.Instance.App.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                bool isPct = t.name == "rate-pct";
+                bool isGauge = t.name == "t" && t.transform.parent != null && t.transform.parent.name == "rates-prog";
+                if (!isPct && !isGauge) continue;
+                if (!TabularNums.IsWrapped(t.text)) continue;         // 숫자가 없는 글자는 도우미가 안 건드린다
+                if (isPct) pct++; else gauge++;
+                Assert.IsTrue(t.richText, t.name + " — <mspace> 를 쓰려면 richText");
+                t.ForceMeshUpdate(true, true);
+                TMP_TextInfo info = t.textInfo;
+                float cell = em * t.fontSize, tol = cell * 0.15f;
+                for (int i = 0; i + 1 < info.characterCount; i++)
+                {
+                    TMP_CharacterInfo a = info.characterInfo[i], b = info.characterInfo[i + 1];
+                    if (!char.IsDigit(a.character) || !char.IsDigit(b.character)) continue;
+                    Assert.AreEqual(cell, b.origin - a.origin, tol, "이웃 숫자의 시작 x 간격 = 칸(" + t.text + ")");
+                    measured++;
+                }
+            }
+            Assert.Greater(pct, 0, "정본 `.rate-bar` — 등급 줄마다 확률 글자");
+            Assert.Greater(gauge, 0, "정본 `.rates-prog span` — 게이지 글자(`PetSkillKit.Gauge` 의 «t»)");
+            Assert.Greater(measured, 0, "숫자가 둘 이상 이어진 자리가 하나는 있어야 간격을 잰다");
+
+            SkillPetSheet.Instance.Modal.CloseAll();
+            yield return null;
+        }
     }
 }

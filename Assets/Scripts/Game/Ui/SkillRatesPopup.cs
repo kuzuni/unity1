@@ -132,6 +132,9 @@ namespace Forge.Game.Ui
                 double pct = rates.Get(r, 0);
                 TextMeshProUGUI pt = PetSkillKit.Text(bar, "rate-pct", TextKind.Sub, PetSkillStyle.T("rates_pct", JsNum.ToFixed(pct, 2)), PetSkillStyle.C("ink"), TextAlignmentOptions.Right);
                 UiKit.Place(pt.rectTransform, inner * 0.5f, 0f, inner * 0.5f - barPad, barH);
+                // T352 2회차 — 정본 8635 `.rate-bar { font-variant-numeric: tabular-nums }`: 등급 여섯 줄의 확률이 **세로로 열을 이룬다**.
+                //   등폭이 아니면 줄마다 «1» 과 «8» 의 폭이 달라 소수점이 좌우로 흔들린다(정본 주석 «행마다 좌우로 흔들리던 자리»).
+                TabularText.Apply(pt);
                 y += barH + gap;
             }
             y += tipMy - gap;
@@ -141,6 +144,10 @@ namespace Forge.Game.Ui
             float pmx = PetSkillStyle.Px("rates_prog_mx_rem");
             RectTransform prog = PetSkillKit.Gauge(c, "rates-prog", inner - pmx * 2f, progH, gRatio, gText, PetSkillStyle.C("shard_bg"), PetSkillStyle.Px("rates_prog_r_rem"), PetSkillKit.Line3, TextKind.Sub);
             UiKit.Place(prog, padX + pmx, y, inner - pmx * 2f, progH);
+            // T352 2회차 — 정본 8635 `.rates-prog span` 도 등폭이다(«12/50» 꼴 숫자가 채워질수록 흔들린다).
+            //   게이지 글자는 `PetSkillKit.Gauge` 가 «t» 로 세우는데 그 파일은 T332·T355 lock 이라 **안 연다** — 세워진 글자에 도우미만 건다.
+            Transform gaugeLabel = prog.Find("t");
+            if (gaugeLabel != null) TabularText.Apply(gaugeLabel.GetComponent<TextMeshProUGUI>());
         }
 
         static Button TriButton(RectTransform parent, string name, string icon, float x, float y, float w, float h, float iconH, UnityEngine.Events.UnityAction onClick)
