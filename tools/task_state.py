@@ -638,7 +638,14 @@ def verdict(tid, heads, rows):
     pn, pmark, ptext = rows.get(tid, (0, "", ""))
     if hdone or pmark == "✅":
         where = "ROUTINE 제목이" if hdone else "PROGRESS 상태가"
-        return False, "**끝난 일이다**(%s ✅) — 잡지 마라" % where
+        why = "**끝난 일이다**(%s ✅) — 잡지 마라" % where
+        # T376 — **두 자리가 어긋나면 그것을 같이 말한다.** 제목만 ✅ 이고 행이 열려 있으면
+        #   그 절에는 아직 남은 몫이 있다(실측 T349: 행이 «남은 하나 SummonFxTests 는 T334 lock 뒤»).
+        #   판정(잡아도 되나)은 **안 바꾼다** — 표시 하나로 남의 일을 잡게 하지 않는다. 바꾸는 것은 «까닭» 이다.
+        if hdone and pmark in ("\u2b1c", "\U0001f504"):
+            why += ("  ⚠ 그런데 **PROGRESS 행은 «%s» 로 열려 있다**(T376) — 둘 중 하나가 낡았다."
+                    " 그 절에 남은 몫이 있으면 **행의 «회차» 칸**이 그것을 적어 둔다(읽고 나서 정한다)." % pmark)
+        return False, why
 
     # T367 ⓐ — **✂ 로 접힌 절은 선점 대상이 아니다.** `routine_heads` 의 `closed` 는 ✅·⛔ 만 보므로(T210 이 ⛔ 를 더할 때 ✂ 는 빠졌다)
     #   접힌 절이 여기까지 내려와 «깨끗하다» 로 나갔다. 접었다 = «이미 남이 고쳤다 · 다른 번호에 흡수됐다» 는 뜻이라 ✅ 와 같은 자리다.
@@ -717,6 +724,32 @@ def mismatches(heads, rows):
         if h[1] == "":
             bad.append((tid, h[0], pn, mark, ptext[:70]))
     return bad
+
+
+def head_closed_row_open(heads, rows):
+    """**mismatches() 의 반대 방향** — 제목은 닫혀 보이는데(✅·⛔) 표는 열려 있다(⬜·🔄) (T376).
+
+    T161 이 세운 `mismatches()` 는 «표가 닫혔는데 제목이 열림» 한 방향만 본다 — 그쪽은 «끝난 일을 또 잡는»
+    선점 덫이라 일찍 막았다. 반대 방향은 여태 **어느 자도 안 봤는데**, 값은 그쪽이 더 조용히 비싸다:
+    §2 제목은 **일감을 고르는 워커가 훑는 자리**(T419)라 제목의 ✅ 하나가 그 절을 목록에서 지우고,
+    `verdict()` 까지 «끝난 일이다 — 잡지 마라» 로 못을 박는다. 표가 «🔄 · 남은 것 있음» 이라고 외쳐도
+    아무도 그 줄까지 안 간다.
+
+    실측(2026-09-15 09:3x · main): **T349** — 제목 `### T349 ✅` ↔ 행 «🔄 진행», 그 행 스스로
+    «남은 하나 `SummonFxTests` 는 T334 lock 뒤» 라고 적어 둔다. `--check` 는 «어긋남 0» 으로 초록이었다.
+
+    돌려주는 것: [(작업, 제목줄, 제목표시, 행줄, 행표시)] — 번호 순서. **막지 않는다**(결정 493).
+    """
+    out = []
+    for tid, (pn, mark, _t) in rows.items():
+        if mark not in ("⬜", "🔄"):
+            continue
+        h = heads.get(tid)
+        if not h or h[1] not in ("✅", "⛔"):
+            continue
+        out.append((tid, h[0], h[1], pn, mark))
+    out.sort(key=lambda x: int(x[0][1:]))
+    return out
 
 
 # 행 글이 «나는 그 lock 을 쥐고 있다» 고 말하는 꼴 — 실제로 쓰인 말에서 뽑았다(T453 실측 둘 다 «쥔 채»).
@@ -851,6 +884,19 @@ def cmd_check(heads, rows, dups=None, commit_age=None):
         notes.append("§2 제목이 없는 열린 작업 %s" % " ".join(headless))
         print("  §2 를 훑어 일감을 고르는 워커에게 그 절은 **없는 것**이다(T419). 고침: `docs/ROUTINE.md` §2 에 «### %s — …» 한 절을 세운다."
               % headless[0])
+
+    # ⓛ **ⓐ(mismatches)의 반대 방향 — «제목은 ✅·⛔ 인데 표는 열려 있다»** (T376 · 2026-09-15 실측 T349).
+    #    ⓐ 는 «표가 닫혔는데 제목이 열림»(= 끝난 일을 또 잡는 덫)만 본다. 반대쪽은 **있는 일을 감춘다** —
+    #    §2 제목은 일감을 고르는 워커가 훑는 자리(T419)이고 `verdict()` 도 제목의 ✅ 를 보고 «잡지 마라» 를 낸다.
+    #    ⚠ **막지 않는다**(조율 결함은 알리기만 · 결정 493) — notes 에 실어 끝줄에도 남긴다(T231).
+    hidden = head_closed_row_open(heads, rows)
+    if hidden:
+        print("· (참고 · 실패 아님) **ROUTINE §2 제목은 닫혔는데(✅·⛔) PROGRESS 행은 열려 있는 작업** — 그 절의 남은 일이 목록에서 숨는다:")
+        for tid, hn_, hg, pn_, pg in hidden:
+            print("  · %-5s ROUTINE.md:%d «%s»  ↔  PROGRESS.md:%d «%s»" % (tid, hn_, hg, pn_, pg))
+        print("  `task_state %s` 도 제목만 보고 «끝난 일이다 — 잡지 마라» 를 낸다 — 표가 맞으면 **제목에서 그 표시를 떼고**,"
+              " 제목이 맞으면 **행을 닫는다**(§4)." % hidden[0][0])
+        notes.append("제목은 닫혔는데 행은 열린 작업 %s" % " ".join(h[0] for h in hidden))
 
     # ⓖ **«⬜ 대기» 인데 그 번호의 lock 이 살아 있다** — 오늘 실제로 났다(T238 · 결정 653):
     #    `T233` 행이 «⬜ 대기 — 선점 안 됨» 인 채로 `T233.lock`(10:37)이 살아 있었고 **고침은 이미 push** 돼 있었다.
@@ -1763,6 +1809,59 @@ def self_test():
                 print("⛔ 자기 검사 실패(T370) — %s: 아무도 안 기다리는 파일을 «막고 있다» 로 냈다: %s" % (_t[:-5], _bad[:3]))
                 return 1
 
+        # ⓧ T376 — **ⓐ 의 반대 방향**: 제목은 닫혔는데(✅·⛔) 표는 열려 있다(⬜·🔄).
+        #   ⓐ 실측 꼴을 그대로 — 제목 ✅ · 행 🔄 면 잡아야 한다.
+        io.open(r, "w", encoding="utf-8").write("### T161 ✅ — 촬영 카메라\n### T162 — 다른 일\n")
+        io.open(p, "w", encoding="utf-8").write(
+            "| ID | 작업 | 상태 | SID |\n| T161 | 촬영 | 🔄 진행 · 남은 하나는 남의 lock 뒤 | |\n"
+            "| T162 | 다른 | ⬜ 대기 | |\n")
+        _h, _rw = routine_heads(r), progress_rows(p)
+        _hid = head_closed_row_open(_h, _rw)
+        if [x[0] for x in _hid] != ["T161"] or _hid[0][2] != "✅" or _hid[0][4] != "🔄":
+            print("⛔ 자기 검사 실패(T376) — «제목 ✅ · 행 🔄» 를 못 잡았다: %s" % (_hid,))
+            return 1
+        #   ⓑ ⛔ 도 닫힌 꼴이다(T210 과 같은 잣대) · ⬜ 행도 열린 꼴이다
+        io.open(r, "w", encoding="utf-8").write("### T161 ⛔ — 폐기\n")
+        io.open(p, "w", encoding="utf-8").write(
+            "| ID | 작업 | 상태 | SID |\n| T161 | 폐기 | ⬜ 대기 | |\n")
+        if [x[0] for x in head_closed_row_open(routine_heads(r), progress_rows(p))] != ["T161"]:
+            print("⛔ 자기 검사 실패(T376) — «제목 ⛔ · 행 ⬜» 를 못 잡았다")
+            return 1
+        #   ⓒ 양쪽이 맞으면 조용하다 — 그리고 **종전 방향(T161 갈래)과 서로 안 겹친다**(같은 짝을 두 번 안 찍는다)
+        io.open(r, "w", encoding="utf-8").write("### T161 ✅ — 촬영 카메라\n")
+        io.open(p, "w", encoding="utf-8").write(
+            "| ID | 작업 | 상태 | SID |\n| T161 | 촬영 | ✅ 완료 | |\n")
+        _h, _rw = routine_heads(r), progress_rows(p)
+        if head_closed_row_open(_h, _rw) or mismatches(_h, _rw):
+            print("⛔ 자기 검사 실패(T376) — 양쪽이 맞는데 걸린다(거짓 경고)")
+            return 1
+        io.open(r, "w", encoding="utf-8").write("### T161 — 촬영 카메라\n")
+        _h, _rw = routine_heads(r), progress_rows(p)
+        if head_closed_row_open(_h, _rw) or [b[0] for b in mismatches(_h, _rw)] != ["T161"]:
+            print("⛔ 자기 검사 실패(T376) — 종전 방향(표 ✅ · 제목 열림)에 새 갈래가 겹쳐 울었다")
+            return 1
+        #   ⓓ §2 에 제목이 없는 행은 이 갈래가 안 센다(그것은 ⓙ 의 몫이다)
+        io.open(r, "w", encoding="utf-8").write("### T162 — 다른 일\n")
+        io.open(p, "w", encoding="utf-8").write(
+            "| ID | 작업 | 상태 | SID |\n| T161 | 촬영 | 🔄 진행 | |\n")
+        if head_closed_row_open(routine_heads(r), progress_rows(p)):
+            print("⛔ 자기 검사 실패(T376) — 제목이 아예 없는 행을 «제목이 닫혔다» 로 셌다")
+            return 1
+        #   ⓔ `verdict()` 의 «끝난 일이다» 에 그 어긋남이 덧붙고, 판정(잡아도 되나)은 그대로 False 다
+        io.open(r, "w", encoding="utf-8").write("### T161 ✅ — 촬영 카메라\n")
+        io.open(p, "w", encoding="utf-8").write(
+            "| ID | 작업 | 상태 | SID |\n| T161 | 촬영 | 🔄 진행 | |\n")
+        _ok, _why = verdict("T161", routine_heads(r), progress_rows(p))
+        if _ok is not False or "T376" not in (_why or ""):
+            print("⛔ 자기 검사 실패(T376) — verdict 가 어긋남을 안 말했거나 판정을 바꿨다: %s / %s" % (_ok, _why))
+            return 1
+        io.open(p, "w", encoding="utf-8").write(
+            "| ID | 작업 | 상태 | SID |\n| T161 | 촬영 | ✅ 완료 | |\n")
+        _ok, _why = verdict("T161", routine_heads(r), progress_rows(p))
+        if _ok is not False or "T376" in (_why or ""):
+            print("⛔ 자기 검사 실패(T376) — 양쪽이 ✅ 인데 verdict 가 어긋남을 말했다(거짓 경고)")
+            return 1
+
         print("✓ task_state --self-test: 어긋난 짝을 잡고(T161) · **등재만 된 ⬜ 는 잡아도 되고 코드 커밋·🔄·lock 이 있으면 아니고(T160)** · **«🔄 인데 lock 없음·마지막 커밋 90분 초과» 를 참고로 찍되 산 lock·방금 커밋·✅ 는 안 찍고(T164)** · **반납한 ⬜/🔄 행은 마지막 커밋이 90분 넘게 조용하면 «이어 잡아도 된다» 고 90분 안·산 lock·✅·나이 None 은 아니고(T187)** · ✅ 를 달면 조용하고 · 빈 번호는 통과하고 ·"
               " 같은 번호 두 제목을 잡고 · «행 없음 ↔ 접힌 행만» 을 가르고 · ⛔ 와 `\\|` 도 읽고 ·"
               " 참고 줄이 마지막 요약에도 실리고(T231) · «⬜ + 살아 있는 lock» 을 잡되 죽은 lock 은 안 잡고(T238) · **미래로 적힌 lock 을 잡되 1분 차에는 안 울고**(T294) · **본문에 ✂ 를 인용한 살아 있는 줄을 접힘으로 안 센다**(T249) · **«낡은 lock 인데 임자는 살아 있다» 를 잡되 «둘 다 낡음»·«아직 살아 있음»·«판단 못 함» 셋에는 안 울고**(T329)"
@@ -1771,7 +1870,7 @@ def self_test():
               " · **«행은 «lock 쥔 채» 라는데 lock 파일이 없다» 를 칸 «머리» 로만 가려 잡고(뒤 이력의 «반납» 에 안 속는다) · ✅·⬜ 표시에는 안 울고, 판정(rc)은 안 바꾼다**(T453)"
               " · **«표에 열린 행은 있는데 §2 에 제목이 없다» 를 잡되 닫힌 행·제목이 있는 행에는 안 울고, 그 참고가 끝줄에도 실리고 rc 는 0 이다**(T466)"
               " · **제목이 그 번호로 시작해도 SID 로 «임자가 아니다» 를 가렸으면 놓고 간 진단으로 세고, 임자 것·임자를 모를 때·제목에 SID 가 없을 때 셋에는 종전대로 안 센다**(T468)"
-              " · **«임자가 살아 있다» 를 그 SID 가 **민** 커밋(제목)으로만 재고, 남의 커밋 몸통에 적힌 그 SID·빈 SID·빈 로그에는 안 속는다**(T481) · **제목이 «쓴» 번호와 «인용» 을 가르고(T0 파수꾼 포함) T415 사고 막이는 그대로 서고(T337)** · **«코드 자취» 는 코드 식별자·파일명·폴더명만 세고 주석(`//` `///` `/* */` `#` 삼중따옴표)·문자열 리터럴·문서 내용은 안 센다**(T29)")
+              " · **«임자가 살아 있다» 를 그 SID 가 **민** 커밋(제목)으로만 재고, 남의 커밋 몸통에 적힌 그 SID·빈 SID·빈 로그에는 안 속는다**(T481) · **제목이 «쓴» 번호와 «인용» 을 가르고(T0 파수꾼 포함) T415 사고 막이는 그대로 서고(T337)** · **제목은 닫혔는데(✅·⛔) 행은 열린(⬜·🔄) 짝을 잡되 양쪽이 맞으면·제목이 아예 없으면 안 울고, 종전 방향과 안 겹치고, `verdict()` 의 «끝난 일이다» 에 그 말을 덧붙이되 판정은 안 바꾼다**(T376) · **«코드 자취» 는 코드 식별자·파일명·폴더명만 세고 주석(`//` `///` `/* */` `#` 삼중따옴표)·문자열 리터럴·문서 내용은 안 센다**(T29)")
         return 0
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
