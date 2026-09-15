@@ -340,6 +340,43 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 주역_등장은_넘쳤다가_1_0_으로_정착한다()
+        {
+            // 정본 주석: «더 길고 더 크게 넘치고, 끝에서 원래 크기로 안 돌아온다(무대에 남는다)» +
+            //   «정착 스케일을 1보다 크게 두면 셀 폭을 넘는 이름판이 옆 셀 이름과 겹친다 … 큰 몸집은 등급 계단이 맡는다».
+            SummonHeroSpec s = S();
+            double bf, ty, sc, op;
+            s.HeroPopAt(0, out bf, out ty, out sc, out op);
+            Assert.AreEqual(0.0, op, 1e-9, "시작은 안 보인다");
+            Assert.Less(sc, 0.5, "아주 작게 시작한다");
+            Assert.Greater(bf, 0.0, "슬롯 → 광원 벡터에서 날아온다");
+            s.HeroPopAt(s.HeroPopMs * 0.42, out bf, out ty, out sc, out op);
+            Assert.Greater(sc, 1.2, "42% 에 크게 넘친다");
+            Assert.Less(ty, 0.0, "그 순간 살짝 떠오른다(위로)");
+            s.HeroPopAt(s.HeroPopMs, out bf, out ty, out sc, out op);
+            Assert.AreEqual(1.0, sc, 1e-9, "정착은 1.0 — 1보다 크면 이름판이 옆 셀과 겹친다(정본 실측)");
+            Assert.AreEqual(0.0, bf, 1e-9); Assert.AreEqual(0.0, ty, 1e-9);
+            Assert.IsTrue(s.HeroPopping(s.HeroPopMs - 1));
+            Assert.IsFalse(s.HeroPopping(s.HeroPopMs));
+        }
+
+        [Test]
+        public void 정착_배율이_1_이_아닌_표는_거부한다()
+        {
+            char q = '"';
+            string head = "{" + q + "hero" + q + ":{" + q + "shake_ms" + q + ":440," + q + "shake_ease" + q + ":[0.2,0.9,0.3,1],"
+                + q + "srshakehit" + q + ":[{" + q + "at" + q + ":0," + q + "tx_pct" + q + ":0," + q + "ty_pct" + q + ":0," + q + "scale" + q + ":1},"
+                + "{" + q + "at" + q + ":100," + q + "tx_pct" + q + ":0," + q + "ty_pct" + q + ":0," + q + "scale" + q + ":1}],"
+                + q + "recede_ms" + q + ":680," + q + "recede_ease" + q + ":[0.3,0.85,0.35,1],"
+                + q + "srrecede" + q + ":[{" + q + "at" + q + ":0," + q + "scale" + q + ":1," + q + "sat" + q + ":1," + q + "bright" + q + ":1},"
+                + "{" + q + "at" + q + ":100," + q + "scale" + q + ":1," + q + "sat" + q + ":1," + q + "bright" + q + ":1}],"
+                + q + "heropop_ms" + q + ":520," + q + "heropop_ease" + q + ":[0.16,1.5,0.36,1]," + q + "heropop_dy0_rem" + q + ":0.9,"
+                + q + "srheropop" + q + ":[{" + q + "at" + q + ":0," + q + "back_f" + q + ":1," + q + "ty_rem" + q + ":0.9," + q + "scale" + q + ":0.42," + q + "alpha" + q + ":0},";
+            string bad = head + "{" + q + "at" + q + ":100," + q + "back_f" + q + ":0," + q + "ty_rem" + q + ":0," + q + "scale" + q + ":1.18," + q + "alpha" + q + ":1}]}}";
+            Assert.Throws<System.FormatException>(() => SummonHeroSpec.From(MiniJson.ParseObject(bad)));
+        }
+
+        [Test]
         public void 물러난_채_굳는_표는_거부한다()
         {
             // 마지막 키가 1/1/1 이 아니면 결과 화면이 어두운 채로 굳는다.

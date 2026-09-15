@@ -269,8 +269,10 @@ namespace Forge.Core.Ui
     public sealed class SummonHeroSpec
     {
         /// <summary>한 번 흔드는 길이(ms · 정본 .44s) · 조연이 물러났다 돌아오는 길이(ms · 정본 .68s).</summary>
-        public double ShakeMs, RecedeMs;
-        public RewardBurstSpec.Track Shake, Recede;
+        public double ShakeMs, RecedeMs, HeroPopMs;
+        /// <summary>주역 등장의 0% 치우침 기본값(rem · 슬롯→광원 벡터가 없을 때 아래로).</summary>
+        public double HeroPopDy0Rem;
+        public RewardBurstSpec.Track Shake, Recede, HeroPop;
 
         public static SummonHeroSpec From(JsonObject root)
         {
@@ -328,6 +330,36 @@ namespace Forge.Core.Ui
             if (rl.Num["scale"] != 1 || rl.Num["sat"] != 1 || rl.Num["bright"] != 1)
                 throw new FormatException("SummonFxUi hero: srrecede 의 마지막 키는 제자리(1/1/1)로 돌아와야 한다");
             s.Recede = new RewardBurstSpec.Track { Keys = rkeys };
+
+            // 주역 등장 — 정본 주석: «더 길고 더 크게 넘치고, 끝에서 원래 크기로 안 돌아온다(무대에 남는다)».
+            s.HeroPopMs = J.Num(J.Require(o, "heropop_ms"));
+            if (s.HeroPopMs <= 0) throw new FormatException("SummonFxUi hero: heropop_ms 는 0보다 커야 한다");
+            s.HeroPopDy0Rem = J.Num(J.Require(o, "heropop_dy0_rem"));
+            double[] he = J.NumArr(J.Require(o, "heropop_ease"));
+            if (he == null || he.Length != 4) throw new FormatException("SummonFxUi hero: heropop_ease 는 cubic-bezier 넷이다");
+            CssEase hease = new CssEase(he[0], he[1], he[2], he[3]);
+            var hlist = J.List(J.Require(o, "srheropop"), x => J.Obj(x));
+            if (hlist.Count < 2) throw new FormatException("SummonFxUi hero: srheropop 키프레임이 둘 미만이다");
+            var hkeys = new RewardBurstSpec.KeyStop[hlist.Count];
+            prev = -1;
+            for (int i = 0; i < hlist.Count; i++)
+            {
+                JsonObject k = hlist[i];
+                var ks = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(k, "at")), Ease = hease };
+                if (ks.At < prev) throw new FormatException("SummonFxUi hero: srheropop 퍼센트는 오름차순이어야 한다");
+                prev = ks.At;
+                ks.Num["back_f"] = J.Num(J.Require(k, "back_f"));
+                ks.Num["ty_rem"] = J.Num(J.Require(k, "ty_rem"));
+                ks.Num["scale"] = J.Num(J.Require(k, "scale"));
+                ks.Num["alpha"] = J.Num(J.Require(k, "alpha"));
+                hkeys[i] = ks;
+            }
+            // ⚠ 정본이 실측으로 못 박은 자리: 정착 배율은 **1.0** 이다 — 1보다 크면 셀 폭을 넘는 이름판이 옆 셀 이름과 겹친다.
+            //   주역의 «큰 몸집» 은 등급 계단이 이미 맡는다. 표에서 그 규칙을 지킨다.
+            var hl = hkeys[hkeys.Length - 1];
+            if (hl.Num["scale"] != 1) throw new FormatException("SummonFxUi hero: srheropop 의 정착 배율은 1.0 이어야 한다(정본 6729 주석 — 이름판이 옆 셀과 겹친다)");
+            if (hl.Num["back_f"] != 0 || hl.Num["ty_rem"] != 0) throw new FormatException("SummonFxUi hero: srheropop 은 제자리에 정착해야 한다");
+            s.HeroPop = new RewardBurstSpec.Track { Keys = hkeys };
             return s;
         }
 
@@ -354,5 +386,21 @@ namespace Forge.Core.Ui
 
         /// <summary>조연이 아직 물러나 있는가.</summary>
         public bool Receding(double ms) { return ms >= 0 && ms < RecedeMs; }
+
+        /// <summary>
+        /// 착지에서 <paramref name="ms"/> 뒤 **주역** 셀의 자리·배율·불투명도.
+        /// <paramref name="backF"/> 는 «슬롯 → 광원» 벡터에 곱할 비율(정본 `--dx/--dy`) · <paramref name="tyRem"/> 은 그 위에 더하는 세로 치우침(rem · +가 아래).
+        /// </summary>
+        public void HeroPopAt(double ms, out double backF, out double tyRem, out double scale, out double alpha)
+        {
+            double p = ms <= 0 ? 0 : ms >= HeroPopMs ? 100 : ms / HeroPopMs * 100;
+            backF = HeroPop.Sample(p, "back_f", null);
+            tyRem = HeroPop.Sample(p, "ty_rem", null);
+            scale = HeroPop.Sample(p, "scale", null);
+            alpha = HeroPop.Sample(p, "alpha", null);
+        }
+
+        /// <summary>주역이 아직 등장 중인가.</summary>
+        public bool HeroPopping(double ms) { return ms >= 0 && ms < HeroPopMs; }
     }
 }

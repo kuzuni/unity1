@@ -751,8 +751,24 @@ namespace Forge.Game.Ui
                 //   광창 → 충격파 → 화면 킥을 몰아 «다른 사건» 으로 만든다»). 배율은 셀에, 채도·밝기는 그 그림들에 건다.
                 float rs = 1f;
                 if (heroFired && heroAtWall >= 0f && !c.Heroic) rs = Recede(c, (tt - heroAtWall) * 1000f);
-                c.Root.localScale = Vector3.one * s * rs;
-                c.OrbWrap.localScale = Vector3.one * c.BaseScale * (c.Heroic && heroFired ? 1.18f : 1f) * b;
+                if (c.Heroic && heroFired && heroAtWall >= 0f)
+                {
+                    // T334 8회차 — 주역은 착지에서 제 등장(정본 `srheropop`)을 새로 탄다: 정본이 `animation` 단축 속성을
+                    //   통째로 갈아 끼우므로 앞의 팝은 그 순간 사라진다. «더 길고 더 크게 넘치고, 끝에서 원래 크기로
+                    //   안 돌아온다(무대에 남는다)».
+                    SummonHeroSpec hp = SummonFxStyle.Hero;
+                    double backF, tyRem, sc, op;
+                    hp.HeroPopAt((tt - heroAtWall) * 1000f, out backF, out tyRem, out sc, out op);
+                    c.Group.alpha = (float)op;
+                    c.Root.localScale = Vector3.one * (float)sc;
+                    Vector2 back = c.ToLight * (float)backF;
+                    if (back == Vector2.zero && backF > 0f) back = new Vector2(0f, -(float)hp.HeroPopDy0Rem * PetSkillStyle.RemPx);
+                    c.Root.anchoredPosition = c.Home + back + new Vector2(0f, -(float)tyRem * PetSkillStyle.RemPx);
+                }
+                else c.Root.localScale = Vector3.one * s * rs;
+                // ⚠ 정본 6729 주석이 실측으로 못 박았다: «정착 스케일을 1보다 크게 두면 셀 폭을 넘는 이름판이 옆 셀
+                //   이름과 겹친다 … 주역의 «큰 몸집» 은 등급 계단이 이미 맡는다». 그래서 여기 배수(옛 1.18)를 뺐다.
+                c.OrbWrap.localScale = Vector3.one * c.BaseScale * b;
                 c.OrbWrap.anchoredPosition = c.OrbHome + new Vector2(0f, -ty);   // 표의 ty_rem 은 CSS 부호(음수 = 위로)
             }
         }
