@@ -58,7 +58,9 @@ namespace Forge.Game.Ui
             float bw = w * 0.0721f, bh = w * 0.0581f;
             Button back = UiKit.Button(bar, "close", () => Close(h));
             RectTransform brt = back.GetComponent<RectTransform>();
-            UiKit.Place(brt, rem * 0.5f, (inputH - bh) * 0.5f, bw, bh);
+            // T364 6회차 — 정본 3445 `.chat-input-bar { padding: … calc(var(--app-w) * .02) }` 의 **왼쪽 인셋**(주석 «좌 인셋 10px=2.00%W»).
+            // 종전 `rem * 0.5`(= 8.0px)는 앱 **높이** 기준 어림이라 화면비가 바뀌면 가로가 틀어진다(이 작업의 갈래).
+            UiKit.Place(brt, ChatUi.W("chat_bar_pad_l_w"), (inputH - bh) * 0.5f, bw, bh);
             // T345 — 정본 3270 `.chat-input-bar .btn.round { border-radius: .35rem }`(표 `chat_round_btn_r_rem` · 전엔 높이×.3 = .52rem 이었다)
             float backR = RadiusUi.Px("chat_round_btn_r_rem");
             UiKit.Rounded(brt, "line", "pp_line", backR);
@@ -72,9 +74,12 @@ namespace Forge.Game.Ui
             float tw = UiKit.RefH * 0.0179f;
             UiKit.Anchor(tri.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, tw, tw);
 
-            float ix = rem * 0.5f + bw + rem * 0.5f;
+            // T364 6회차 — 왼쪽 인셋 + 버튼 + **틈**(정본 3442 `gap: calc(var(--app-w) * .022)` · 주석 «버튼→입력칸 간격 13px=2.60%W»).
+            float ix = ChatUi.W("chat_bar_pad_l_w") + bw + ChatUi.W("chat_bar_gap_w");
             RectTransform ibox = UiKit.Box(bar, "input");
-            UiKit.Place(ibox, ix, (inputH - bh * 1.15f) * 0.5f, w - ix - rem * 0.5f, bh * 1.15f);
+            // 오른쪽 인셋도 표로(정본 3445 `calc(var(--app-w) * .024)`) — 정본 주석 3441 이 «입력칸 좌 11.82%W · 폭 85.37%W 가
+            // **자동으로 따라온다**» 고 적어 둔 자리라, 이 셋 중 하나만 어림이어도 입력칸 폭이 통째로 밀린다.
+            UiKit.Place(ibox, ix, (inputH - bh * 1.15f) * 0.5f, w - ix - ChatUi.W("chat_bar_pad_r_w"), bh * 1.15f);
             // T345 — 정본 3449 `.chat-input-bar input { border-radius: .3rem }`(표 `chat_input_r_rem` · 전엔 높이×.3 = .52rem)
             float inputR = RadiusUi.Px("chat_input_r_rem");
             UiKit.Rounded(ibox, "line", "pp_line", inputR);
@@ -191,7 +196,9 @@ namespace Forge.Game.Ui
             string avatar = share ? m.MyAvatar : m.Avatar;
             RectTransform tile = PopupKit.Avatar(row, "avatar", av, avatar, rem * 0.4f);
             UiKit.Place(tile, 0f, 0f, av, av);
-            float x = av + rem * 0.4f;
+            // T364 6회차 — 정본 3309 `.chat-row { gap: calc(var(--app-w) * .008) }`(주석 «간격 4px=0.80%W» · 499px 실측).
+            // 종전 `rem * 0.4`(= 6.4px = 1.28%W)는 2.4px 넓고 축도 높이 기준이라, 긴 이름줄에서 말풍선 우끝(정본 87.17%W)이 밀렸다.
+            float x = av + ChatUi.W("chat_row_gap_w");
             string name = share ? m.MyName : m.Name;
             RectTransform nameLine = UiKit.Box(row, "name-line");
             UiKit.Place(nameLine, x, 0f, bubbleW, nameH);
