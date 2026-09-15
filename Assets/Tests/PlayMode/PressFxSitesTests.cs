@@ -98,10 +98,21 @@ namespace Forge.Tests.PlayMode
             L.BaseY = L.Cell.anchoredPosition.y;
         }
 
-        /// <summary>위상이 목표에 닿을 때까지(상한 capMs) — 도중에 칸이 다시 서면 새 칸에서 다시 누르고(최대 여섯 번) 시계를 되돌린다.</summary>
-        private static IEnumerator SettleLive(Live L, string key, bool down, double target, double capMs)
+        /// <summary>
+        /// 위상이 목표에 닿을 때까지 **프레임을 넘긴다**(T366) — 도중에 칸이 다시 서면 새 칸에서 다시 누르고(최대 여섯 번) 셈을 되돌린다.
+        ///
+        /// 상한이 **벽시계가 아니라 프레임 수**인 까닭: 위상은 부품의 `Update()` 가 도는 **프레임**을 따라 간다.
+        /// 벽시계로 «8×ms» 를 세면 러너가 그 창 안에 프레임을 충분히 못 돌릴 때 위상이 중간에서 멈춘 채 상한이 먼저 끝나고,
+        /// 그 다음 줄의 «정확 일치» 단언이 **대신** 깨져 «왜 못 닿았는지» 가 안 남는다(런 600 실측: 잰 위상 0.673 — 예산의 1/3 이 남은 꼴이라
+        /// 상한을 넓혀도 안 닫힌다). 레포에 이미 있는 더 나은 꼴이 `SettleCardPop`(T149)이고 이것이 그 꼴이다.
+        /// 상한을 넘겼으면 **그 사실로** 실패한다 — 다음 회차가 바로 읽게 프레임 수·잰 위상·흐른 ms·표 ms·다시 선 횟수·
+        /// **그 프레임에 물건이 살아 있었는가**(`Update()` 가 아예 안 돌면 프레임을 먹어도 위상이 안 는다)를 같이 싣는다.
+        /// </summary>
+        private static IEnumerator SettleLive(Live L, string key, bool down, double target, string what)
         {
-            float t = 0f;
+            const int CapFrames = 600;
+            int n = 0;
+            float ms = 0f;
             while (true)
             {
                 if (L.Fx == null)
@@ -109,10 +120,17 @@ namespace Forge.Tests.PlayMode
                     Assert.Less(L.Restarts++, 6, "시트가 계속 다시 그려져 눌림을 못 잰다(여섯 번 넘게 새로 섰다)");
                     Refind(L, key);
                     if (down) L.Fx.Press(true);
-                    t = 0f;
+                    n = 0;
+                    ms = 0f;
                 }
-                if (System.Math.Abs(L.Fx.Phase - target) <= 1e-9 || t * 1000f >= capMs) yield break;
-                t += Time.unscaledDeltaTime;
+                if (System.Math.Abs(L.Fx.Phase - target) <= 1e-9) yield break;
+                Assert.Less(n, CapFrames,
+                    what + ": 위상이 " + CapFrames + "프레임 안에 " + target + " 에 못 닿았다 — 잰 위상 " + L.Fx.Phase
+                    + " · 그 동안 흐른 " + Mathf.RoundToInt(ms) + "ms · 표 ms " + L.Fx.Spec.Ms
+                    + " · 칸이 다시 선 횟수 " + L.Restarts
+                    + " · 물건이 살아 있었나 " + L.Fx.gameObject.activeInHierarchy);
+                n++;
+                ms += Time.unscaledDeltaTime * 1000f;
                 yield return null;
             }
         }
@@ -125,14 +143,14 @@ namespace Forge.Tests.PlayMode
             float rem = PopupKit.Rem;
             Assert.IsFalse(L.Fx.Active, "놓인 상태에서 시작");
             L.Fx.Press(true);
-            yield return SettleLive(L, key, true, 1.0, s.Ms * 8);
+            yield return SettleLive(L, key, true, 1.0, L.Name + " 누름");
             Assert.IsNotNull(L.Fx, "칸이 살아 있다");
-            Assert.AreEqual(1.0, L.Fx.Phase, 1e-6, "ms 가 지나면 위상 1(상한 8×ms 안에) — 잰 위상 " + L.Fx.Phase);
+            Assert.AreEqual(1.0, L.Fx.Phase, 1e-6, "누르면 위상 1 — 잰 위상 " + L.Fx.Phase);
             Assert.AreEqual(L.BaseY - (float)s.DyRem * rem, L.Cell.anchoredPosition.y, 0.5f, "정본 translateY(.08rem) — 놓인 자리(Place 뒤)에서 아래로");
             L.Fx.Press(false);
-            yield return SettleLive(L, key, false, 0.0, s.Ms * 8);
+            yield return SettleLive(L, key, false, 0.0, L.Name + " 뗌");
             Assert.IsNotNull(L.Fx, "칸이 살아 있다");
-            Assert.AreEqual(0.0, L.Fx.Phase, 1e-6, "떼면 위상 0(상한 8×ms 안에) — 잰 위상 " + L.Fx.Phase);
+            Assert.AreEqual(0.0, L.Fx.Phase, 1e-6, "떼면 위상 0 — 잰 위상 " + L.Fx.Phase);
             Assert.AreEqual(L.BaseY, L.Cell.anchoredPosition.y, 0.5f, "제자리로 — Place 뒤 SetBase 가 안 됐으면 (0,0) 으로 튄다");
         }
 
