@@ -121,6 +121,10 @@ namespace Forge.Game.Ui
                 if (e.kind == "sheet")
                 {
                     RectTransform p = UiKit.Box(panelHost, "panel-" + key);
+                    // 정본 `.panel`(style.css 3572) `0 -.4rem 0 rgba(0,0,0,.18)` — 시트가 **위로** 내는 턱이다
+                    // (같은 줄의 `border-top` 은 아래 `UiKit.Line(…, true)` 가 이미 긋는다). 반지름은 이 판이
+                    // 실제로 쓰는 것을 되읽는다 — 지금 클론 패널은 각지고, 정본처럼 위 모서리가 둥글어지면 저절로 따라간다.
+                    UiShadow.Drop(p, "panel_lip");
                     UiKit.Panel(p, "bg", "pp_paper");
                     UiKit.Line(p, "line", "pp_line", line3, true);
                     UiKit.Button(p, "hit", null);

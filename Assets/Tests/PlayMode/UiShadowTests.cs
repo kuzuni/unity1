@@ -200,6 +200,26 @@ namespace Forge.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator 탭_패널의_턱은_위로_뜬다()
+        {
+            yield return Boot();
+            UiRoot.Instance.TabBar.OnTab("summon");
+            yield return null;
+            RectTransform panel = null;
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+                if (rt.name.StartsWith("panel-", System.StringComparison.Ordinal) && UiShadow.Find(rt, "panel_lip") != null) { panel = rt; break; }
+            Assert.IsNotNull(panel, "탭 패널(`panel-…`)의 위턱을 못 찾았다");
+
+            var sh = (RectTransform)UiShadow.Find(panel, "panel_lip");
+            Assert.AreEqual(0, sh.GetSiblingIndex(), "턱은 패널 바탕 **뒤**에 깔린다");
+            ShadowSpec spec = UiShadow.Table.Get("panel_lip");
+            Assert.Less(spec.DyRem, 0.0, "정본 `.panel` 은 **위로** 내는 턱이다");
+            Assert.IsTrue(spec.IsHard, "흐림 0 — 굽지 않는다");
+            Assert.Greater(sh.anchoredPosition.y, 0f, "CSS 의 −y 는 화면에서 +y");
+            Assert.AreEqual(Vector2.zero, sh.sizeDelta, "패널과 같은 크기 — 자리만 다르다");
+        }
+
+        [UnityTest]
         public IEnumerator 반지름을_상자에서_되읽는다()
         {
             yield return Boot();
