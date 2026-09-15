@@ -275,9 +275,15 @@ def self_test():
     # ⓕ 판정 갈래 — 고장 주입
     saved = dict(KNOWN)
     try:
-        KNOWN.pop('card_lip')                      # 표에 있고 KNOWN 에 없고 클론에도 없다 → 빨강
-        chk('안 선 자리를 잡는다', run() == 1)
-        KNOWN.update(saved)
+        # 키를 박아 두면 그 자리가 서는 순간(KNOWN 에서 빠지는 순간) 자기 검사가 KeyError 로 죽는다 — 런 632 가 그렇게 막혔다(10회차가 card_lip 을
+        # 세우며 KNOWN 에서 뺐다). KNOWN 은 «표에 있는데 아직 안 선 자리» 의 목록이니 그중 아무 키나 뽑으면 같은 갈래가 된다.
+        hole = next(iter(KNOWN), None)
+        if hole is None:
+            chk('안 선 자리를 잡는다 (KNOWN 이 비어 주입할 자리가 없다 · 전부 섰다 — 건너뜀)', True)
+        else:
+            KNOWN.pop(hole)                        # 표에 있고 KNOWN 에 없고 클론에도 없다 → 빨강
+            chk('안 선 자리를 잡는다 (%s)' % hole, run() == 1)
+            KNOWN.update(saved)
         chk('지금 그대로면 초록', run() == 0)
     finally:
         KNOWN.clear(); KNOWN.update(saved)
