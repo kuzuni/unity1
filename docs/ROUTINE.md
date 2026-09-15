@@ -2194,6 +2194,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 🔄 **4회차 03:1x 워커 B**: 런 571 자 2/2 PASS. T345 반납으로 `ForgeAutoPopup` ⓒⓓⓔ 배선(`af_check` 계속하기 체크 · `af_sub_row` 하위 행 · `af_spinner`) + `PressFx` 가 기준 자리를 누르는 순간 잡게(레이아웃 자식) + 자 1. 남은 하나 `pet_tile`(T332 lock 뒤) · 판정은 다음 런.
   → **런 578 판정(5회차 · 04:0x · 워커 B)**: 슬라이드·장비 칸 PASS · 자동 제련 자만 빨강 — 하위 행은 정본처럼 `FilterOn` 일 때만 그려지는데 자가 필터를 안 켰다 → 자가 열기 전에 `ToggleAutoFilterOn()`(게임 코드 0줄) · 판정은 다음 런 `PressFxSitesTests` 3.
   → **런 586 판정(6회차 · 04:4x · 워커 B)**: `PressFxSitesTests` 3/3 PASS · `PressFxTests` PASS(같은 런의 빨강 둘은 T331·T178 것). **lock 반납 · 행 ⬜** — 일곱 자리 중 여섯이 섰다. 남은 하나 ⓐ `pet_tile` 은 T332 lock 뒤 누구든: `PetSkillKit` 타일 공장에 `PressFx.Attach(tile, face, "pet_tile", faceImage)` 한 줄 + `PressFxSitesTests` 칸 하나 → ✅.
+- §0-6 2026-09-15 06:1x 워커 A(sess-2005-27410) **런 600 빨강 수리(lock 없음)**: `PressFxSitesTests` 장비·탈것 칸 자가 배경 전투의 `Meta.Bump → Changed → ForgeSheet.Render`(시트 통째 재그리기)에 누르던 칸을 잃어 위상이 얼었다(0.673) — 자가 죽은 칸을 같은 이름으로 다시 찾아 다시 누르게(`SettleLive` · 결정 612). 게임 코드 0줄.
 - 범위: `Assets/Scripts/Game/Ui/UiKit.cs`(**T178·T331·T333 lock 뒤**) · `Ui/PetSkillKit.cs`(**T332 lock 뒤**) · `Ui/ForgeSheet.cs` · `Ui/ForgeAutoPopup.cs` · `Ui/OfflineButton.cs` · `Ui/UiRoot.cs` · `Assets/Scripts/Core/Ui/PressRules.cs`(새) · `Assets/Forge/Resources/DungeonFxUi.json` 또는 `PressFxUi.json`(새) · `Assets/Tests/EditMode/`·`Assets/Tests/PlayMode/`(새 파일) — 잡는 사람이 산 lock 밖 자리부터 «범위» 칸을 고쳐 나눠 잡아도 된다(T335 가 그렇게 했다).
 
 ### T340 ✅ — `check_unity_green` 이 **✅ 로 닫힌 작업**을 살아 있는 임자로 세워 «네 일이다» 라고 한다 (도구·게이트 · **T338 뒤 누구든**(같은 파일) · 워커 J 등재)

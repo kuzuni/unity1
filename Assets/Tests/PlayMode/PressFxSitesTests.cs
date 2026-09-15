@@ -71,24 +71,69 @@ namespace Forge.Tests.PlayMode
             return null;
         }
 
+        /// <summary>
+        /// 눌림을 재는 동안 살아 있는 칸 — 런 600 이 그 실물이다: 배경 전투가 `Meta.Changed`(퀘스트 Bump·자동 저장)를 부르면
+        /// `ForgeHost.OnMetaChanged → ForgeSheet.Render` 가 시트 자식을 **전부 지우고 다시 세우므로** 누르던 칸(과 그 PressFx)이 사라져
+        /// 위상이 그 자리에서 얼어붙는다(잰 위상 0.673 · Update 가 더는 안 돈다). 칸이 죽었으면 같은 이름의 새 칸을 찾아 다시 누른다 —
+        /// 판정은 «살아 있는 칸이 표대로 눌리는가» 이지 «시트가 그동안 안 다시 그려지는가» 가 아니다.
+        /// </summary>
+        private sealed class Live
+        {
+            public string Name;
+            public RectTransform Cell;
+            public PressFx Fx;
+            public float BaseY;
+            public int Restarts;
+        }
+
+        private static void Refind(Live L, string key)
+        {
+            Transform c = SheetChild(L.Name);
+            Assert.IsNotNull(c, "시트를 다시 그린 뒤에도 " + L.Name + " 이 있어야 한다");
+            L.Cell = (RectTransform)c;
+            L.Fx = L.Cell.GetComponent<PressFx>();
+            Assert.IsNotNull(L.Fx, L.Name + " 에 PressFx 가 안 붙었다");
+            Assert.AreEqual(key, L.Fx.Spec.Key, L.Name + " 의 표 키");
+            Assert.AreSame(L.Cell, L.Fx.Target, "칸 자체가 움직인다(정본 .equip-cell 에 transform)");
+            L.BaseY = L.Cell.anchoredPosition.y;
+        }
+
+        /// <summary>위상이 목표에 닿을 때까지(상한 capMs) — 도중에 칸이 다시 서면 새 칸에서 다시 누르고(최대 여섯 번) 시계를 되돌린다.</summary>
+        private static IEnumerator SettleLive(Live L, string key, bool down, double target, double capMs)
+        {
+            float t = 0f;
+            while (true)
+            {
+                if (L.Fx == null)
+                {
+                    Assert.Less(L.Restarts++, 6, "시트가 계속 다시 그려져 눌림을 못 잰다(여섯 번 넘게 새로 섰다)");
+                    Refind(L, key);
+                    if (down) L.Fx.Press(true);
+                    t = 0f;
+                }
+                if (System.Math.Abs(L.Fx.Phase - target) <= 1e-9 || t * 1000f >= capMs) yield break;
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+        }
+
         private static IEnumerator AssertPress(RectTransform cell, string key)
         {
-            PressFx fx = cell.GetComponent<PressFx>();
-            Assert.IsNotNull(fx, cell.name + " 에 PressFx 가 안 붙었다");
-            Assert.AreEqual(key, fx.Spec.Key, cell.name + " 의 표 키");
-            Assert.AreSame(cell, fx.Target, "칸 자체가 움직인다(정본 .equip-cell 에 transform)");
+            Live L = new Live { Name = cell.name };
+            Refind(L, key);
             PressSpec s = PressFx.Table.Get(key);
             float rem = PopupKit.Rem;
-            float baseY = cell.anchoredPosition.y;
-            Assert.IsFalse(fx.Active, "놓인 상태에서 시작");
-            fx.Press(true);
-            yield return Settle(fx, 1.0, s.Ms * 8);
-            Assert.AreEqual(1.0, fx.Phase, 1e-6, "ms 가 지나면 위상 1(상한 8×ms 안에) — 잰 위상 " + fx.Phase);
-            Assert.AreEqual(baseY - (float)s.DyRem * rem, cell.anchoredPosition.y, 0.5f, "정본 translateY(.08rem) — 놓인 자리(Place 뒤)에서 아래로");
-            fx.Press(false);
-            yield return Settle(fx, 0.0, s.Ms * 8);
-            Assert.AreEqual(0.0, fx.Phase, 1e-6, "떼면 위상 0(상한 8×ms 안에) — 잰 위상 " + fx.Phase);
-            Assert.AreEqual(baseY, cell.anchoredPosition.y, 0.5f, "제자리로 — Place 뒤 SetBase 가 안 됐으면 (0,0) 으로 튄다");
+            Assert.IsFalse(L.Fx.Active, "놓인 상태에서 시작");
+            L.Fx.Press(true);
+            yield return SettleLive(L, key, true, 1.0, s.Ms * 8);
+            Assert.IsNotNull(L.Fx, "칸이 살아 있다");
+            Assert.AreEqual(1.0, L.Fx.Phase, 1e-6, "ms 가 지나면 위상 1(상한 8×ms 안에) — 잰 위상 " + L.Fx.Phase);
+            Assert.AreEqual(L.BaseY - (float)s.DyRem * rem, L.Cell.anchoredPosition.y, 0.5f, "정본 translateY(.08rem) — 놓인 자리(Place 뒤)에서 아래로");
+            L.Fx.Press(false);
+            yield return SettleLive(L, key, false, 0.0, s.Ms * 8);
+            Assert.IsNotNull(L.Fx, "칸이 살아 있다");
+            Assert.AreEqual(0.0, L.Fx.Phase, 1e-6, "떼면 위상 0(상한 8×ms 안에) — 잰 위상 " + L.Fx.Phase);
+            Assert.AreEqual(L.BaseY, L.Cell.anchoredPosition.y, 0.5f, "제자리로 — Place 뒤 SetBase 가 안 됐으면 (0,0) 으로 튄다");
         }
 
         [UnityTest]
