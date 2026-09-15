@@ -62,10 +62,23 @@ namespace Forge.Tests.PlayMode
             foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
             {
                 if (rt.Find("line") == null || rt.Find("face") == null) continue;
-                if (rt.name.StartsWith("av-", System.StringComparison.Ordinal)) { picks++; Assert.AreEqual(ol2, RingWidth(rt, "아바타 고르기 " + rt.name), 0.01f); }
-                else if (rt.Find("text") != null || rt.Find("ico") != null) { fields++; Assert.AreEqual(ol2, RingWidth(rt, "프로필 칸 " + rt.name), 0.01f); }
+                if (rt.Find("text") != null || rt.Find("ico") != null) { fields++; Assert.AreEqual(ol2, RingWidth(rt, "프로필 칸 " + rt.name), 0.01f); }
             }
             Assert.Greater(fields, 0, "프로필 칸(.profile-field)을 못 찾았다");
+            // 아바타 고르기 격자(.avatar-pick-btn)는 연필(avatar-edit)을 눌러야 펼쳐진다(정본 profile.js picking 토글)
+            Button avEdit = null;
+            foreach (Button b in p.Root.GetComponentsInChildren<Button>(true)) if (b.name == "avatar-edit") avEdit = b;
+            Assert.IsNotNull(avEdit, "아바타 연필 버튼(avatar-edit)을 못 찾았다");
+            avEdit.onClick.Invoke();
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            p = PopupLayer.Instance.Find(ProfilePopup.Name);
+            Assert.IsNotNull(p, "프로필 팝업(연필 뒤)");
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.Find("line") == null || rt.Find("face") == null) continue;
+                if (rt.name.StartsWith("av-", System.StringComparison.Ordinal)) { picks++; Assert.AreEqual(ol2, RingWidth(rt, "아바타 고르기 " + rt.name), 0.01f); }
+            }
             Assert.Greater(picks, 0, "아바타 고르기 칸(.avatar-pick-btn)을 못 찾았다");
             // 설정 화면의 행 버튼(.settings-act)
             ProfilePopup.Close(h);
