@@ -1,6 +1,7 @@
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
+using Forge.Core.Ui;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Forge.Game;
@@ -375,6 +376,31 @@ namespace Forge.Tests.PlayMode
             float rimL = rimTop.r + rimTop.g + rimTop.b, bandL = bandTop.r + bandTop.g + bandTop.b;
             Assert.Greater(rimL, bandL, "흰 .5 를 얹었으니 띠보다 밝다");
             Assert.Less(rimL, 3f - 1e-3f, "그래도 순백은 아니다 — 알파 .5 를 바이트 위에서 섞은 값이다");
+        }
+
+        /// <summary>
+        /// T178 10회차 — 바탕이 **런타임 색**인 자리(등급색 위의 확률 막대처럼)는 겹 이름 대신 그 색을 준다.
+        /// 구운 판이 불투명해지고, 값은 «그 색 위에 정지점 색을 sRGB 바이트로 얹은 것» 과 같아야 한다(Core `SurfaceBlendRules`).
+        /// 이 길이 없으면 그 자리는 알파로 남아 유니티가 선형에서 섞어 정본보다 밝아진다(T357).
+        /// </summary>
+        [Test]
+        public void 바탕이_런타임_색인_겹은_그_색_위에서_sRGB_로_미리_섞인다()
+        {
+            Color baseCol = new Color32(14, 17, 27, 255);        // 어두운 바탕 — 두 길의 차가 가장 크게 벌어지는 자리
+            Sprite baked = SurfaceArt.Bake("tabbar_shade", 4f, 96f, baseCol);
+            Assert.IsNotNull(baked, "색 바탕으로 구운 판이 없다");
+            Texture2D tex = baked.texture;
+            for (int i = 0; i < 4; i++)
+            {
+                Color c = tex.GetPixel(tex.width / 2, Mathf.RoundToInt((tex.height - 1) * i / 3f));
+                Assert.AreEqual(1f, c.a, 1e-3f, "바탕을 받은 겹은 불투명하게 구워진다");
+            }
+            // 맨 윗줄(t=0) = 흰 .16 을 (14,17,27) 위에 **바이트로** 얹은 값 ≈ 53 · 선형으로 섞었다면 98 쯤이다.
+            Color top = tex.GetPixel(tex.width / 2, tex.height - 1);
+            int r8 = Mathf.RoundToInt(top.r * 255f);
+            int want = SurfaceBlendRules.OverSrgb(14, 255, 0.16);
+            Assert.AreEqual(want, r8, 3, "정본이 섞는 길(sRGB 바이트)과 같아야 한다 — 선형이면 훨씬 밝다");
+            Assert.Less(r8, 80, "선형 합성(≈98)으로 돌아가면 여기서 먼저 걸린다");
         }
 
         /// <summary>T178 9회차 — 정본 2107~2109 `.tech-branch-icon::before`: 카테고리색 원판 위에 겹 둘(왼쪽 위 방사형 광택 · 위→아래 명암)이 더 깔린다.

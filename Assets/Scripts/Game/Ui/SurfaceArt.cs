@@ -126,6 +126,33 @@ namespace Forge.Game.Ui
         /// «상태에 따라 바탕이 갈리는» 자리(퀘스트 막대의 파랑/초록 채움처럼)를 못 적는다 — 그 자리는 부르는 쪽이 그때의 바탕 키를 준다.
         /// 주면 표의 `over_layer`·`over_color` 대신 이것으로 sRGB 합성한다(정본이 섞는 길 · T357).
         /// </summary>
+        /// <summary>
+        /// T178 10회차 — 바탕이 **런타임 색**인 자리(등급색 위의 확률 막대처럼)는 겹 이름 대신 그 색을 준다.
+        /// 값은 <see cref="Bake(string,float,float,string)"/> 와 같은 길(sRGB 바이트 합성 · 불투명하게 굽는다)이다.
+        /// </summary>
+        public static Sprite Bake(string key, float aspect, float lineLenCanvasPx, Color overBaseColor)
+        {
+            if (aspect <= 0f || float.IsNaN(aspect)) aspect = 1f;
+            if (aspect > 8f) aspect = 8f;
+            Color32 b = To32(overBaseColor);
+            string name = key + "-" + aspect.ToString("0.00") + "-L" + Mathf.RoundToInt(lineLenCanvasPx)
+                        + "-C" + b.r + "_" + b.g + "_" + b.b;
+            Sprite hit;
+            if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+
+            int shortSide = Mathf.Max(8, (int)J.Num(Table()["bake_px"], 96));
+            int w = Mathf.Max(8, Mathf.RoundToInt(shortSide * aspect)), h = shortSide;
+            Color32[] px = Pixels(key, w, h, lineLenCanvasPx, 0, null, b);
+            return Finish(name, w, h, px);
+        }
+
+        static Color32 To32(Color c)
+        {
+            return new Color32((byte)Mathf.RoundToInt(Mathf.Clamp01(c.r) * 255f),
+                               (byte)Mathf.RoundToInt(Mathf.Clamp01(c.g) * 255f),
+                               (byte)Mathf.RoundToInt(Mathf.Clamp01(c.b) * 255f), 255);
+        }
+
         public static Sprite Bake(string key, float aspect, float lineLenCanvasPx, string overBaseLayer)
         {
             if (aspect <= 0f || float.IsNaN(aspect)) aspect = 1f;
@@ -138,7 +165,7 @@ namespace Forge.Game.Ui
 
             int shortSide = Mathf.Max(8, (int)J.Num(Table()["bake_px"], 96));
             int w = Mathf.Max(8, Mathf.RoundToInt(shortSide * aspect)), h = shortSide;
-            return Finish(name, w, h, Pixels(key, w, h, lineLenCanvasPx, 0, overBaseLayer));
+            return Finish(name, w, h, Pixels(key, w, h, lineLenCanvasPx, 0, overBaseLayer, null));
         }
 
         /// <summary>그 겹이 얹히는 바탕이 «이 표의 다른 겹» 인가(`over_layer`) — 그러면 그 겹을 같은 판에 먼저 굽고 위에 합성한다.</summary>
@@ -159,9 +186,9 @@ namespace Forge.Game.Ui
         /// 그 겹 한 판의 화소. 표에 바탕(`over_color`·`over_layer`)이 적힌 겹은 **정본이 섞는 길(sRGB 바이트)** 로 미리 합성해
         /// 불투명하게 돌려준다(T178 8회차 · 셈은 Core <see cref="SurfaceBlendRules"/>). 바탕이 없으면 종전처럼 알파를 그대로 둔다.
         /// </summary>
-        static Color32[] Pixels(string key, int w, int h, float lineLenCanvasPx, int depth) { return Pixels(key, w, h, lineLenCanvasPx, depth, null); }
+        static Color32[] Pixels(string key, int w, int h, float lineLenCanvasPx, int depth) { return Pixels(key, w, h, lineLenCanvasPx, depth, null, null); }
 
-        static Color32[] Pixels(string key, int w, int h, float lineLenCanvasPx, int depth, string overBaseLayer)
+        static Color32[] Pixels(string key, int w, int h, float lineLenCanvasPx, int depth, string overBaseLayer, Color32? overBaseColor)
         {
             if (depth > 4) throw new KeyNotFoundException(ResourcePath + ".json 의 «" + key + "» 바탕(over_layer)이 서로를 물고 돈다");
             Color[] col; float[] pos;
@@ -169,11 +196,24 @@ namespace Forge.Game.Ui
             Color32[] px = IsRadial(key) ? RadialPixels(key, w, h, col, pos) : LinearPixels(key, w, h, col, pos, lineLenCanvasPx);
 
             // 부르는 쪽이 준 바탕이 먼저다(T178 10회차) — 표의 `over_layer` 는 «한 값» 이라 상태로 갈리는 자리를 못 적는다.
+            if (overBaseColor.HasValue)
+            {
+                Color32 flatRt = overBaseColor.Value;
+                for (int i = 0; i < px.Length; i++)
+                {
+                    Color32 top = px[i];
+                    double aRt = top.a / 255.0;
+                    px[i] = new Color32(SurfaceBlendRules.OverSrgb(flatRt.r, top.r, aRt),
+                                        SurfaceBlendRules.OverSrgb(flatRt.g, top.g, aRt),
+                                        SurfaceBlendRules.OverSrgb(flatRt.b, top.b, aRt), 255);
+                }
+                return px;
+            }
             string overLayer = overBaseLayer ?? BaseLayer(key), overColor = overBaseLayer != null ? null : BaseColor(key);
             if (overBaseLayer != null && overBaseLayer == key)
                 throw new KeyNotFoundException(ResourcePath + ".json 의 «" + key + "» 이 제 자신을 바탕으로 받았다");
             if (overLayer == null && overColor == null) return px;
-            Color32[] under = overLayer != null ? Pixels(overLayer, w, h, lineLenCanvasPx, depth + 1) : null;
+            Color32[] under = overLayer != null ? Pixels(overLayer, w, h, lineLenCanvasPx, depth + 1, null, null) : null;
             Color32 flat = new Color32(0, 0, 0, 255);
             if (under == null)
             {
@@ -345,6 +385,17 @@ namespace Forge.Game.Ui
         public static Image Fill(RectTransform parent, string name, string key, float w, float h) { return Fill(parent, name, key, w, h, null); }
 
         /// <summary>바탕 겹을 부르는 쪽이 알려 주는 판(T178 10회차) — 상태로 바탕이 갈리는 자리(퀘스트 막대 채움 파랑/초록)가 이 길로 정본 합성을 받는다.</summary>
+        /// <summary>바탕이 **런타임 색**인 자리(등급색 위의 막대 등) — 색을 주면 같은 길로 sRGB 합성해 굽는다(T178 10회차).</summary>
+        public static Image Fill(RectTransform parent, string name, string key, float w, float h, Color overBaseColor)
+        {
+            Image img = Fill(parent, name, key, w, h, (string)null);
+            float aspect = h > 0f ? w / h : 1f;
+            float rad2 = Angle(key) * Mathf.Deg2Rad;
+            float lineLen = IsRadial(key) ? 0f : Mathf.Abs(w * Mathf.Sin(rad2)) + Mathf.Abs(h * Mathf.Cos(rad2));
+            img.sprite = Bake(key, aspect, lineLen, overBaseColor);
+            return img;
+        }
+
         public static Image Fill(RectTransform parent, string name, string key, float w, float h, string overBaseLayer)
         {
             RectTransform rt = UiKit.Box(parent, name);
