@@ -119,18 +119,26 @@ namespace Forge.Game.Ui
         /// 그 겹 한 장을 굽는다. <paramref name="lineLenCanvasPx"/> = 그 자리의 그라디언트 선 길이(캔버스 px · |W·sin각| + |H·cos각|) —
         /// 정지점이 CSS px 인 겹(`0 1px` 림)은 이것으로 나눠 0~1 로 바꾼다(T178 4회차). % 겹은 무시한다.
         /// </summary>
-        public static Sprite Bake(string key, float aspect, float lineLenCanvasPx)
+        public static Sprite Bake(string key, float aspect, float lineLenCanvasPx) { return Bake(key, aspect, lineLenCanvasPx, null); }
+
+        /// <summary>
+        /// T178 10회차 — <paramref name="overBaseLayer"/> 는 **부르는 쪽이 알려 주는 바탕 겹**이다. 표의 `over_layer` 는 한 값이라
+        /// «상태에 따라 바탕이 갈리는» 자리(퀘스트 막대의 파랑/초록 채움처럼)를 못 적는다 — 그 자리는 부르는 쪽이 그때의 바탕 키를 준다.
+        /// 주면 표의 `over_layer`·`over_color` 대신 이것으로 sRGB 합성한다(정본이 섞는 길 · T357).
+        /// </summary>
+        public static Sprite Bake(string key, float aspect, float lineLenCanvasPx, string overBaseLayer)
         {
             if (aspect <= 0f || float.IsNaN(aspect)) aspect = 1f;
             if (aspect > 8f) aspect = 8f;                      // 아주 납작한 자리도 굽는 비용을 묶는다
-            bool needLen = PxOffsets(key) || BaseLayer(key) != null;
-            string name = key + "-" + aspect.ToString("0.00") + (needLen ? "-L" + Mathf.RoundToInt(lineLenCanvasPx) : "");
+            bool needLen = PxOffsets(key) || BaseLayer(key) != null || overBaseLayer != null;
+            string name = key + "-" + aspect.ToString("0.00") + (needLen ? "-L" + Mathf.RoundToInt(lineLenCanvasPx) : "")
+                        + (overBaseLayer != null ? "-O" + overBaseLayer : "");
             Sprite hit;
             if (cache.TryGetValue(name, out hit) && hit != null) return hit;
 
             int shortSide = Mathf.Max(8, (int)J.Num(Table()["bake_px"], 96));
             int w = Mathf.Max(8, Mathf.RoundToInt(shortSide * aspect)), h = shortSide;
-            return Finish(name, w, h, Pixels(key, w, h, lineLenCanvasPx, 0));
+            return Finish(name, w, h, Pixels(key, w, h, lineLenCanvasPx, 0, overBaseLayer));
         }
 
         /// <summary>그 겹이 얹히는 바탕이 «이 표의 다른 겹» 인가(`over_layer`) — 그러면 그 겹을 같은 판에 먼저 굽고 위에 합성한다.</summary>
@@ -151,14 +159,19 @@ namespace Forge.Game.Ui
         /// 그 겹 한 판의 화소. 표에 바탕(`over_color`·`over_layer`)이 적힌 겹은 **정본이 섞는 길(sRGB 바이트)** 로 미리 합성해
         /// 불투명하게 돌려준다(T178 8회차 · 셈은 Core <see cref="SurfaceBlendRules"/>). 바탕이 없으면 종전처럼 알파를 그대로 둔다.
         /// </summary>
-        static Color32[] Pixels(string key, int w, int h, float lineLenCanvasPx, int depth)
+        static Color32[] Pixels(string key, int w, int h, float lineLenCanvasPx, int depth) { return Pixels(key, w, h, lineLenCanvasPx, depth, null); }
+
+        static Color32[] Pixels(string key, int w, int h, float lineLenCanvasPx, int depth, string overBaseLayer)
         {
             if (depth > 4) throw new KeyNotFoundException(ResourcePath + ".json 의 «" + key + "» 바탕(over_layer)이 서로를 물고 돈다");
             Color[] col; float[] pos;
             Stops(key, out col, out pos);
             Color32[] px = IsRadial(key) ? RadialPixels(key, w, h, col, pos) : LinearPixels(key, w, h, col, pos, lineLenCanvasPx);
 
-            string overLayer = BaseLayer(key), overColor = BaseColor(key);
+            // 부르는 쪽이 준 바탕이 먼저다(T178 10회차) — 표의 `over_layer` 는 «한 값» 이라 상태로 갈리는 자리를 못 적는다.
+            string overLayer = overBaseLayer ?? BaseLayer(key), overColor = overBaseLayer != null ? null : BaseColor(key);
+            if (overBaseLayer != null && overBaseLayer == key)
+                throw new KeyNotFoundException(ResourcePath + ".json 의 «" + key + "» 이 제 자신을 바탕으로 받았다");
             if (overLayer == null && overColor == null) return px;
             Color32[] under = overLayer != null ? Pixels(overLayer, w, h, lineLenCanvasPx, depth + 1) : null;
             Color32 flat = new Color32(0, 0, 0, 255);
@@ -328,7 +341,10 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>그 겹을 <paramref name="parent"/> 를 꽉 채우게 얹는다(자리·크기는 부모가 쥔다 — 겹은 layout 을 안 바꾼다).</summary>
-        public static Image Fill(RectTransform parent, string name, string key, float w, float h)
+        public static Image Fill(RectTransform parent, string name, string key, float w, float h) { return Fill(parent, name, key, w, h, null); }
+
+        /// <summary>바탕 겹을 부르는 쪽이 알려 주는 판(T178 10회차) — 상태로 바탕이 갈리는 자리(퀘스트 막대 채움 파랑/초록)가 이 길로 정본 합성을 받는다.</summary>
+        public static Image Fill(RectTransform parent, string name, string key, float w, float h, string overBaseLayer)
         {
             RectTransform rt = UiKit.Box(parent, name);
             UiKit.Fill(rt);
@@ -336,11 +352,11 @@ namespace Forge.Game.Ui
             img.raycastTarget = false;
             img.type = Image.Type.Simple;
             float aspect = h > 0f ? w / h : 1f;
-            if (IsRadial(key)) img.sprite = Bake(key, aspect);       // 방사형은 각도·선 길이가 없다(T178 5회차)
+            if (IsRadial(key)) img.sprite = Bake(key, aspect, 0f, overBaseLayer);       // 방사형은 각도·선 길이가 없다(T178 5회차)
             else
             {
                 float rad = Angle(key) * Mathf.Deg2Rad;
-                img.sprite = Bake(key, aspect, Mathf.Abs(w * Mathf.Sin(rad)) + Mathf.Abs(h * Mathf.Cos(rad)));
+                img.sprite = Bake(key, aspect, Mathf.Abs(w * Mathf.Sin(rad)) + Mathf.Abs(h * Mathf.Cos(rad)), overBaseLayer);
             }
             img.color = Color.white;
             return img;
@@ -350,10 +366,13 @@ namespace Forge.Game.Ui
         /// 둥근 면(`UiKit.Rounded`·`PopupKit.Outlined` 의 face) 위에 겹을 얹는다 — 면에 <see cref="Mask"/> 를 걸어 겹이 모서리 밖으로 안 새게(정본은 `border-radius` 가 background 를 같이 자른다).
         /// 면 그림은 그대로 보인다(`showMaskGraphic`) — 겹이 반투명한 자리에서 면 색이 비친다. T178 3회차.
         /// </summary>
-        public static Image FillMasked(Image face, string name, string key, float w, float h)
+        public static Image FillMasked(Image face, string name, string key, float w, float h) { return FillMasked(face, name, key, w, h, null); }
+
+        /// <summary>바탕 겹을 부르는 쪽이 알려 주는 판(T178 10회차).</summary>
+        public static Image FillMasked(Image face, string name, string key, float w, float h, string overBaseLayer)
         {
             if (face.GetComponent<Mask>() == null) face.gameObject.AddComponent<Mask>().showMaskGraphic = true;
-            return Fill(face.rectTransform, name, key, w, h);
+            return Fill(face.rectTransform, name, key, w, h, overBaseLayer);
         }
     }
 }

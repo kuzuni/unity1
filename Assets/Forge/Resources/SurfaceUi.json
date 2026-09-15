@@ -431,6 +431,7 @@
       1,
       1
     ],
+    "_바탕": "상태로 갈린다(파랑 qst_bar_ramp ↔ 초록 qst_bar_done_ramp) — over_layer 한 칸으로 못 적으니 부르는 쪽(QuestSheet)이 그때의 바탕 겹을 준다(T178 10회차).",
     "_": "style.css 2044·2047 두 규칙의 첫 겹 `linear-gradient(180deg, rgba(255,255,255,.5) 0 1px, rgba(255,255,255,0) 1px)` — 채움 **위쪽** 1 CSS px 흰 광택(두 상태가 같은 값). T178 6회차."
   },
   "tech_branch_gloss": {

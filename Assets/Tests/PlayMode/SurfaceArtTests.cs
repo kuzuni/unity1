@@ -361,6 +361,20 @@ namespace Forge.Tests.PlayMode
             Color top = tex.GetPixel(tex.width / 2, tex.height - 2), bottom = tex.GetPixel(tex.width / 2, 1);
             float lt = top.r + top.g + top.b, lb = bottom.r + bottom.g + bottom.b;
             Assert.Greater(lt, lb + 0.3f, "위가 아래보다 밝다(정본 180deg 밝은 색 → 어두운 색)");
+
+            // T178 10회차 — 림의 바탕은 **상태로 갈린다**(파랑 ↔ 초록)라 표의 `over_layer` 로는 못 적는다.
+            //   부르는 쪽(QuestSheet)이 그때의 바탕 겹을 주면 굽는 쪽이 정본이 섞는 길(sRGB 바이트)로 미리 합성한다 — 그러면
+            //   구운 판이 **불투명**해지고(섞을 자리가 없다) 값은 «띠 색 위에 흰 .5» 가 된다. 알파로 남아 있으면 유니티가
+            //   선형에서 섞어 정본보다 밝아진다(T357 · 탭바 98 ↔ 42 가 그 자리였다).
+            UnityEngine.UI.Image ri = rim.GetComponent<UnityEngine.UI.Image>();
+            Assert.IsNotNull(ri.sprite, "광택도 구운 그림이다");
+            Texture2D rtex = ri.sprite.texture;
+            Color rimTop = rtex.GetPixel(rtex.width / 2, rtex.height - 2);
+            Assert.AreEqual(1f, rimTop.a, 1e-3f, "바탕을 받은 겹은 불투명하게 구워진다(섞는 공간이 끼어들 자리가 없다)");
+            Color bandTop = tex.GetPixel(tex.width / 2, tex.height - 2);
+            float rimL = rimTop.r + rimTop.g + rimTop.b, bandL = bandTop.r + bandTop.g + bandTop.b;
+            Assert.Greater(rimL, bandL, "흰 .5 를 얹었으니 띠보다 밝다");
+            Assert.Less(rimL, 3f - 1e-3f, "그래도 순백은 아니다 — 알파 .5 를 바이트 위에서 섞은 값이다");
         }
 
         /// <summary>T178 9회차 — 정본 2107~2109 `.tech-branch-icon::before`: 카테고리색 원판 위에 겹 둘(왼쪽 위 방사형 광택 · 위→아래 명암)이 더 깔린다.

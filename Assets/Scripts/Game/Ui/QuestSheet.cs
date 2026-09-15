@@ -92,7 +92,9 @@ namespace Forge.Game.Ui
                 //   색 한 칸으로는 «채움이 평평해» 보인다. 상태(파랑/초록)는 정본 주석대로 **띠 키**로만 가른다 — 광택은 두 상태가 같다.
                 float fillW = bodyW * (float)pct;
                 SurfaceArt.FillMasked(fill, "qst-fill-grad", done ? "qst_bar_done_ramp" : "qst_bar_ramp", fillW, barH);
-                SurfaceArt.Fill(fill.rectTransform, "qst-fill-rim", "qst_bar_rim", fillW, barH);
+                // T178 10회차 — 림의 바탕은 **상태로 갈린다**(파랑 `qst_bar_ramp` ↔ 초록 `qst_bar_done_ramp`)라 표의 `over_layer` 한 칸으로는 못 적는다.
+                //   그래서 부르는 쪽이 그때의 바탕 겹을 알려 준다 — 그러면 굽는 쪽이 정본이 섞는 길(sRGB)로 미리 합성한다(T357 · 8회차의 사슬과 같은 값).
+                SurfaceArt.Fill(fill.rectTransform, "qst-fill-rim", "qst_bar_rim", fillW, barH, done ? "qst_bar_done_ramp" : "qst_bar_ramp");
                 TextMeshProUGUI progT = UiKit.Text(bar, "prog", TextKind.Sub, PopupKit.Fmt(System.Math.Min(q.Prog, q.Need)) + "/" + PopupKit.Fmt(q.Need), "pp_ink");
                 progT.fontStyle = FontStyles.Bold;
 
