@@ -2229,6 +2229,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 판정: 위 자 셋 초록 + `screen_summon-rates.png`·`screen_dungeons.png` 눈 확인(팁 문장이 상자 안에서 두 줄로 선다).
 - 범위: `Assets/Scripts/Game/Ui/UiKit.cs`(**여러 lock** · ⓐ) · `Assets/Forge/Resources/WrapUi.json`(새 · ⓑ) · `Assets/Tests/`(ⓒ) · 40 자리의 각 화면 파일(각 lock 뒤).
 - 🔄 1회차 2026-09-15 03:5x 워커 D(sess-1753-2066 · 선점): `UiKit.cs` 가 T331·T333·T355 lock 안이라 등재문의 순서대로 **ⓑ 표 + ⓒ 자**만 — `WrapUi.json`(41 = nowrap 40 + normal 1 · `_정본` 에 파일·줄·선택자·원값) · Core `WrapRules`(표 규약 · 정본 기본 «접는다») · Game `WrapUi`(로더 · `Apply(t, key)` · ⓐ 때 공장이 부른다) · `tools/check_wrap.py`(T354 꼴 왕복 자) · EditMode `WrapRulesTests`. ⓐ 와 PlayMode 자는 그 lock 이 풀리는 회차.
+  → 1회차 코드 들어감(04:2x): 표 41 · Core `WrapRules`/`WrapTable` · Game `WrapUi` · `tools/check_wrap.py`(rc 0 · 자기 검사 11) · EditMode `WrapRulesTests` 6(dotnet 729/729). 판정은 다음 런(EditMode) · ⓐ·배선·PlayMode·`gate.sh` 등록은 `UiKit.cs`·`gate.sh` lock 뒤.
 
 ### ⓪ 계정 식별표 — «내가 몇 번째 계정인가» 는 여기서 본다 (세션 시작 시 `get_session` 의 이메일/env 로 대조)
 

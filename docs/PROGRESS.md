@@ -4338,6 +4338,19 @@
 
 ## 워커 결정 기록
 
+### T361 1회차 기록 (2026-09-15 03:5x~04:2x · 워커 D · sess-1753-2066 · lock 유지 · 판정은 다음 런) — ⓑ 표 + ⓒ 자 · ⓐ 공장은 lock 뒤
+
+- **회차 첫 일(§0-6)**: 런 578(`f9fc02d`) 빨강 둘 — `PressFxSitesTests`(T355 산 lock) · `EquipSwapTests`(임자 없음 · 뿌리는 T331 5회차가 `eqsw-shadow` 판을 `UiShadow.Drop` 으로 바꾼 것 · T331 lock 이 살아 있어 보고함에 적고 안 건드렸다).
+- **왜 표·자만**: 등재문 ⚠ 순서 그대로 — `UiKit.cs` 가 T331·T333·T355 세 lock 안이라 ⓐ(공장 기본을 «접는다» 로 뒤집기)는 못 연다. T354 가 같은 처지에서 «1회차 = 표·셈·자» 로 간 꼴을 따랐다.
+- **ⓑ 표 `Resources/WrapUi.json`**: 정본 `style.css` 의 `white-space` **41** 선언(nowrap 40 + normal 1 = `.sr-name` 7040)을 기계로 뽑아(`tools/check_wrap.py` 의 `extract` · 주석은 같은 길이 공백으로 지워 줄 번호 보존) `sites`(키 → 낱말 그대로) + `_정본`(파일·줄·선택자·원값)으로 적었다. 키는 선택자에서 기계로(영숫자 밖 → `_` · 소문자 · 겹치면 `_N`) — 사람이 이름을 짓지 않아 자와 Core 가 같은 규칙으로 되만들 수 있다.
+- **Core `WrapRules`·`WrapTable`**(UnityEngine 0): 낱말 둘(`nowrap`·`normal`)만 받고 그 밖은 던진다 · `DefaultWraps = true`(정본 기본 = 접는다 · 표에 없는 자리의 답) · `KeyOf(selector)` · `From` 은 키 규칙·낱말·`sites` 유무를 검사한다.
+- **Game `WrapUi`**(로더 · `Apply(t, key)` = 표대로 Normal/NoWrap · 넘침 모드는 안 건드린다 — 잘림·말줄임은 T351 몫) — ⓐ 때 공장이 이것을 부르고, 그 전에도 자리 파일이 한 줄씩 부를 수 있다. 지금 읽는 곳 0(자가 «ⓐ 배선 전엔 0 이 정상» 으로 알린다).
+- **자**: `tools/check_wrap.py`(T354 꼴 왕복 — ① 개수 ② 자리마다 정본 기록 ③ 키 규칙·낱말 · `--self-test` 11칸 · `--list`) · EditMode `WrapRulesTests` 6(41 = 40 + 1 · `.sr-name` normal · 표 밖 자리(`rates_tip`·`qst_name`)는 접힌다 · 낱말 거부 · 키 규칙 = 자 규칙 · 자리마다 정본 기록 · 깨진 표 거부). PlayMode 자(«공장이 만든 글자는 기본이 접힌다» · 긴 문장 둘)는 ⓐ 와 함께.
+- **결정 601**: 정본 낱말을 표에 그대로 두고(`nowrap`/`normal` · 불 리터럴이 아니라) «접는가» 는 Core 가 낱말에서 낸다 — 정본이 낱말을 더 쓰는 날(`pre`…) 표가 먼저 운다.
+- **못 한 것**: ⓐ 공장 뒤집기 + 40 자리 배선 + PlayMode 자 + `gate.sh` 등록(`check_wrap`) — `UiKit.cs`·`gate.sh` 가 T331·T333·T355 lock 안.
+- **§7 표**: T361 을 `ui.js·style.css` 줄에 등록(자가 «이름이 없는 작업» 으로 막았다) · 같은 자가 알린 `T360 §7 🔄 ↔ PROGRESS ✅` 는 임자(G)가 닫으며 §7 을 안 맞춘 것이라 그 글자 하나만 ✅ 로(자의 «지금 고치려면» 처방).
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` 729/729(+6) · `check_wrap` rc 0 · `--self-test` 11칸 · `gen_meta` 4 · `tools/gate.sh` 막는 자 전부 rc 0.
+
 ### T355 5회차 기록 — 런 578 빨강: 자의 전제가 틀렸다(하위 행은 필터 토글이 켜져야 그려진다) (2026-09-15 04:0x · 워커 B · sess-1920-15773 · lock 유지 · 판정은 다음 유니티 런 `PressFxSitesTests` 3)
 - 런 578(`f9fc02d` · 4회차 c3080ee 실림): `PressFxSitesTests` 시트 슬라이드 PASS · 장비 칸·탈것 칸 PASS · `PressFxTests` PASS · 자동 제련 팝업 자만 «하위 행 하나 · Expected not null · But was null». 까닭은 배선이 아니라 자의 전제 — `ForgeAutoPopup.Render` 는 정본 `renderAutoForge` 처럼 **`cfg.FilterOn` 일 때만** `SubRow` 를 그리는데 새 세이브는 필터가 꺼져 있다. 스피너·체크는 찾았고 `Attach` 도 걸렸으니 4회차 배선은 그대로다.
 - 고침(자만 · 게임 코드 0줄): 팝업을 열기 전에 `h.ToggleAutoFilterOn()` 으로 필터를 켠다(`ForgeHost:625` · 세이브에 적힌다 · 자는 세이브를 지우고 부팅하니 다음 자에 안 샌다). 4회차의 «레이아웃이 놓았다(y ≠ 0)» 단언은 그대로 둔다.
@@ -8054,3 +8067,4 @@
   - T331 은 **산 lock**(31분)이라 **안 고쳤다**. 대신 그 행 «비고» 에 뿌리·줄 번호·고칠 곳을 한 줄로 적어, 그 워커가 같은 길을 다시 파지 않게 했다(그리고 «범위» 에 `EquipSwapTests.cs` 를 적으면 다음부터 자가 바로 가린다는 것도).
 - **게이트**: `tools/gate.sh` rc **0**(막는 자 전부 · 건너뛴 자 0).
 - **주인이 확인할 것**: 없다.
+601. **white-space 표는 정본 낱말(nowrap|normal)을 그대로 쥐고 «접는가» 는 Core 가 낱말에서 낸다 · 키는 선택자에서 기계로(2026-09-15 · T361 1회차 · 워커 D · sess-1753-2066)** — 불 리터럴(`wrap: false`)로 적으면 정본이 `pre`·`pre-line` 같은 낱말을 쓰기 시작해도 표가 조용히 «안 접는다» 로 뭉갠다 — 낱말을 두면 `WrapRules.Wraps` 가 모르는 낱말에서 던지고 왕복 자가 원값과 비교한다. 키를 사람이 짓지 않고 `KeyOf(selector)`(영숫자 밖 → `_` · 소문자 · 겹치면 `_N`)로 만든 까닭: 자(`check_wrap.py`)·Core·표 셋이 같은 규칙이라 정본이 선택자를 바꾸면 세 곳이 함께 운다(T354 의 `_정본` 왕복과 같은 갈래 · 이름 짓기 회의가 없다). ⓐ 공장 뒤집기는 `UiKit.cs` lock 뒤 — 그때 `UiKit.Text` 기본을 Normal 로 두고 표의 nowrap 키만 `WrapUi.Apply` 로 NoWrap 을 준다(등재문 그대로). 되돌리려면 새 파일 넷과 표.
