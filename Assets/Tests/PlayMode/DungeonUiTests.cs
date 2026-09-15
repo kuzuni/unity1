@@ -224,5 +224,30 @@ namespace Forge.Tests.PlayMode
             Assert.IsFalse(AscendPopup.IsOpen);
             AscendPopup.Close();
         }
+
+        /// <summary>
+        /// T401 1회차 — 정본 **1750** `.item-detail[data-tech-node] .btn { min-height: 3.6rem }` 은 노드 상세의 **모든** 버튼을 덮는다.
+        /// 클론은 [잠김]만 `btn_sm_h_rem`(2rem)이라 같은 팝업의 형제 버튼(3.4rem)보다 −41% 였다 — 한 키를 쓰게 맞췄다.
+        /// 마지막 −6%(표 3.4 ↔ 정본 3.6)는 `catalog.json` 이 열리는 회차 몫이라 여기서는 **형제와 같은가** 만 잰다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 기술_노드_잠김_버튼은_같은_팝업_형제와_같은_높이다()
+        {
+            yield return Boot();
+            TechTree tree = H.Tech;
+            string locked = null;
+            foreach (string id in tree.NodesOf("power")) if (!tree.IsUnlocked(id)) { locked = id; break; }
+            Assert.IsNotNull(locked, "잠긴 노드가 하나는 있다(1단계 위)");
+            TechPopups.OpenNode(locked);
+            yield return null;
+            Assert.AreEqual(TechPopups.NodeState.Locked, TechPopups.State, "잠긴 노드를 열었다");
+            RectTransform lockedBtn = DungeonPopups.Root(TechPopups.ActionButton);
+            float want = DungeonPopups.RemL("tech_btn_h_rem");
+            Assert.AreEqual(want, lockedBtn.rect.height, 0.6f,
+                "[잠김] 높이 = 형제 버튼과 같은 표 키(tech_btn_h_rem) · 전엔 btn_sm_h_rem 2rem 이라 −41% 였다");
+            Debug.Log("[T401] 잠김 버튼 높이 " + lockedBtn.rect.height.ToString("0.0") + " · 표 " + want.ToString("0.0"));
+            TechPopups.Close();
+            yield return null;
+        }
     }
 }
