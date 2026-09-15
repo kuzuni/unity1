@@ -220,7 +220,9 @@ namespace Forge.Game.Ui
             ScrollRect sr;
             RectTransform content = PetSkillKit.Scroll(c, "mat-grid", out sr);
             float gridPadX = PetSkillStyle.Px("petup_grid_pad_x_rem");
-            UiKit.Place((RectTransform)content.parent, pad + gridPadX, y, inner - gridPadX * 2f, Mathf.Max(10f, h - y - pad));
+            // T388 2회차 — 정본 802 `.mat-grid { max-height: calc(var(--app-h) * .4); overflow-y: auto }`: 격자는 카드 나머지를 채우되 표 `petup_grid_max_f`(.4H)를 못 넘는다(탈것 쪽 `mtup_grid_max_f` 와 같은 규칙 · 1회차 실측 45%H > 40%H)
+            float gridH = Mathf.Max(10f, Mathf.Min(h - y - pad, UiKit.RefH * PetSkillStyle.L("petup_grid_max_f")));
+            UiKit.Place((RectTransform)content.parent, pad + gridPadX, y, inner - gridPadX * 2f, gridH);
             BuildMatGrid(content, inner - gridPadX * 2f);
             return true;
         }

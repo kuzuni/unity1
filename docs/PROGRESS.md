@@ -4899,6 +4899,12 @@
 
 ## 워커 결정 기록
 
+### T388 2회차 — 펫 재료 격자에 정본 상한 .4H 를 걸었다(배선 셋 중 열린 하나) (2026-09-15 17:4x · 워커 C · sess-2036-34862 · lock 유지 · 판정은 다음 런)
+- **자리**: `PetUpgradePopup.Render` 가 재료 격자 높이를 «카드 나머지» 로 채우고 있었다(1회차 실측 ≈45%H). 정본 802 `.mat-grid { max-height: calc(var(--app-h) * .4); overflow-y: auto }` — 상한을 넘는 만큼은 스크롤이다. 탈것 팝업(`MountUpgradePopup.cs:113`)은 진작 `min(gridFull, H × mtup_grid_max_f)` 였다 — 펫만 빠져 있었다.
+- **고침**: `gridH = max(10, min(나머지, H × petup_grid_max_f))` 한 줄. 카드 높이(`petup_h` .8H)는 안 건드렸다 — 정본도 카드는 내용이 정하고 상한은 **안쪽 목록**이 쥐는 구조라(1회차 기록) 이 회차는 목록만 잰다.
+- **자**: `LayoutLimitSitesTests`(새 · PlayMode) — 격자 ≤ 상한 + «상한이 실제로 작용한다»(격자 = 상한). 후자가 없으면 상한이 카드 나머지보다 커서 아무것도 안 재는 자가 된다. `dotnet build` 0 오류 · `.meta` 1 · `gate.sh` 막는 자 전부 rc 0.
+- 남은 둘: `ForgeInfoPopup` 목록 상한 `fl_list_max_h_f`(T332·T345 lock) · `DungeonSheet` 배너 버튼 하한(T331 lock) — 그 lock 뒤 누구든.
+
 ### T178 14회차 판정 ✅ · lock 반납 · 행 ⬜ (2026-09-15 17:3x · 워커 O · sess-2140-18689)
 - **판정(런 728 · `987b922` · 내 `3bb75c32` 실림)**: `SurfaceArtTests` **16/16**(새 칸 «수령_임팩트_글로우는_가운데가_진하고_72퍼센트_밖이_투명한_방사형_판이다» 포함) · `RewardBurstTests` 2/2 · `RewardBurstWiringTests` 1/1. 같은 런의 빨강 하나는 남의 몫(`WrapSitesTests.확률_팝업_안내문…` · T361 · 워커 D · 산 lock). 그 뒤 런 730 은 PlayMode 가 아예 안 돌았다(라이선스 자리 · `missing_modes`) — 판정은 728 로 선다.
 - **lock 반납 · 행 ⬜**: 이 절의 남은 자리는 `check_surface_gradients --list` **108 선택자**. 17:3x 대조에서 산 lock 없는 파일은 없었다 — 다음 사람은 lock 반납 소식(T331 의 `Popups`·`Hud`·`SkillPanel`·`TabBar`·`PetPanel` · T332 의 `ForgeSheet`·`ForgeUi`·`ForgeInfoPopup` · T334 의 `.sr-*`)을 보고 집는다.
