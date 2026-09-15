@@ -362,5 +362,40 @@ namespace Forge.Tests.PlayMode
             float lt = top.r + top.g + top.b, lb = bottom.r + bottom.g + bottom.b;
             Assert.Greater(lt, lb + 0.3f, "위가 아래보다 밝다(정본 180deg 밝은 색 → 어두운 색)");
         }
+
+        /// <summary>T178 9회차 — 정본 2107~2109 `.tech-branch-icon::before`: 카테고리색 원판 위에 겹 둘(왼쪽 위 방사형 광택 · 위→아래 명암)이 더 깔린다.
+        /// 색 한 칸이면 «납작한 원» 이고, 정본 주석은 그 원판을 «빈 서류가 아니라 노드 버튼으로 읽히게» 하려고 둔 것이라 적었다.</summary>
+        [UnityTest]
+        public IEnumerator 기술_분기_원판에_광택과_명암_두_겹이_깔린다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!(MetaHost.Ready && PopupLayer.Instance != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
+            UiRoot.Instance.TabBar.OnTab("summon");
+            yield return null;
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            Assert.IsNotNull(sheet, "소환 시트");
+            sheet.Switch(SkillPetSheet.SubTech);
+            yield return null;
+            yield return null;
+
+            Transform gloss = FindDeep(UiRoot.Instance.App, "tb-icon-gloss");
+            Transform shade = FindDeep(UiRoot.Instance.App, "tb-icon-shade");
+            Assert.IsNotNull(gloss, "원판 광택(tb-icon-gloss)");
+            Assert.IsNotNull(shade, "원판 명암(tb-icon-shade)");
+            Assert.AreEqual("icon-bg", shade.parent.name, "겹 둘은 분기 원판(icon-bg)의 자식이다");
+            Assert.AreSame(shade.parent, gloss.parent);
+            Assert.IsNotNull(shade.parent.GetComponent<UnityEngine.UI.Mask>(), "원판에 Mask 가 걸려 겹이 원 밖으로 안 샌다");
+            Assert.Less(shade.GetSiblingIndex(), gloss.GetSiblingIndex(), "정본 순서 — 명암 위에 광택");
+
+            UnityEngine.UI.Image gi = gloss.GetComponent<UnityEngine.UI.Image>();
+            Assert.IsNotNull(gi.sprite, "광택은 구운 그림이다");
+            Texture2D tex = gi.sprite.texture;
+            int w = tex.width, h = tex.height;
+            float hot = tex.GetPixel(Mathf.RoundToInt(w * 0.32f), Mathf.RoundToInt(h * 0.78f)).a;   // CSS y 22% = 텍스처 아래에서 78%
+            float far = tex.GetPixel(Mathf.RoundToInt(w * 0.9f), Mathf.RoundToInt(h * 0.1f)).a;
+            Assert.Greater(hot, far + 0.1f, "정본 중심(32%/22%)이 반대쪽보다 진하다 — 방사형이다");
+        }
     }
 }

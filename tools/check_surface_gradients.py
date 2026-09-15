@@ -69,6 +69,8 @@ TABLE = {
     # T178 6회차 — 퀘스트 진행 막대 채움의 두 겹(세로 띠 + 위 1px 광택). 상태는 띠 키로만 가른다(정본 주석).
     '.qst-bar i': ['Ui/QuestSheet.cs#qst-fill-grad', 'Ui/QuestSheet.cs#qst-fill-rim'],
     '.qst-row.done .qst-bar i': ['Ui/QuestSheet.cs#qst-fill-grad', 'Ui/QuestSheet.cs#qst-fill-rim'],
+    # T178 9회차 — 기술 트리 분기 원판(카테고리색 면) 위의 겹 둘: 왼쪽 위 방사형 광택 + 세로 명암.
+    '.tech-branch-icon::before': ['Ui/TechPanel.cs#tb-icon-gloss', 'Ui/TechPanel.cs#tb-icon-shade'],
     '#tabbar': ['Ui/TabBar.cs#tabbar-grad', 'Ui/TabBar.cs#tabbar-rim'],
     # T178 5회차 — 켜진 칸(그리고 ✕ 칸)의 노란 방사형 둘. `SurfaceArt` 가 방사형을 굽고 `RefreshTabX` 가 켠다.
     '#tabbar button.active, #tabbar button.tab-x': ['Ui/TabBar.cs#tab-glow', 'Ui/TabBar.cs#tab-footglow'],

@@ -194,6 +194,15 @@ namespace Forge.Game.Ui
             float icoCy = headH + DungeonPopups.RemL("tb_icon_top_rem");
             RectTransform circle = DungeonPopups.BorderedCircle(face, "icon-bg", hasColor ? colorKey : "tech_branch_default", DungeonPopups.Line2, "pp_line");
             UiKit.Anchor(circle.parent as RectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f), new Vector2(0f, -icoCy), bgD, bgD);
+            // T178 9회차 — 정본 2107~2109: 카테고리색 원판 위에 겹 둘이 더 깔린다(왼쪽 위 방사형 광택 .5 → 0 at 55% · 위 .18 → 아래 −.16 세로 명암).
+            //   색 한 칸이면 «납작한 원» 이고 정본은 «구슬» 로 읽힌다(정본 주석 «빈 서류가 아니라 노드 버튼으로 읽히게»).
+            Image circleFace = circle.GetComponent<Image>();
+            if (circleFace != null)
+            {
+                float d = bgD - DungeonPopups.Line2 * 2f;
+                SurfaceArt.FillMasked(circleFace, "tb-icon-shade", "tech_branch_shade", d, d);
+                SurfaceArt.Fill(circle, "tb-icon-gloss", "tech_branch_gloss", d, d);
+            }
             string ik; BranchIcon.TryGetValue(id, out ik);
             Image ico = UiKit.Icon(face, "icon", ik ?? "potion");
             UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f), new Vector2(0f, -icoCy), icoD, icoD);
