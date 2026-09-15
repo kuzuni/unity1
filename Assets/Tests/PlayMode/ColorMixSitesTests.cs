@@ -45,10 +45,13 @@ namespace Forge.Tests.PlayMode
             AssertMix(ColorMixUi.Mix("held_line", rc), rc, 0.80, 0, 0, 0, "모루 카드 테(정본 990 80%)");
             AssertMix(ColorMixUi.Mix("held_deck_edge", rc), rc, 0.55, 0xdf, 0xe4, 0xec, "겹친 장 가장자리(정본 1013 55%, #dfe4ec)");
 
-            // 손으로 적었던 옛 색(#DEE3ED)과는 **다르다** — 그것이 이 회차가 고친 것이다.
-            double r, g, b;
-            Forge.Core.Ui.ColorMixRules.SrgbOpaque(rc.r * 255.0, rc.g * 255.0, rc.b * 255.0, 0.87 * 255, 0.89 * 255, 0.93 * 255, 0.55, out r, out g, out b);
-            Assert.AreNotEqual(Mathf.RoundToInt((float)r), Mathf.RoundToInt(ColorMixUi.Mix("held_deck_edge", rc).r * 255f), "옛 손입력 색이면 이 회차가 한 일이 없다");
+            // 옛 손입력 색(#DEE3ED)과의 차이는 **바이트 아래**다 — 45% 로 눌리면 0.52 라 반올림하면 같은 수가 된다(런 641 이 그것을 보여 줬다).
+            //   그러니 «섞은 뒤 색이 다르다» 가 아니라 **표가 정본 색을 그대로 쥐는가** 로 잰다(고친 것이 그것이다).
+            double r0, g0, b0;
+            Forge.Core.Ui.ColorMixRules.SrgbOpaque(rc.r * 255.0, rc.g * 255.0, rc.b * 255.0, 0.87 * 255, 0.89 * 255, 0.93 * 255, 0.55, out r0, out g0, out b0);
+            double rNew = ColorMixUi.Mix("held_deck_edge", rc).r * 255.0;
+            Assert.Greater(System.Math.Abs(r0 - rNew), 1e-6, "표를 안 고쳤으면 이 회차가 한 일이 없다(차이는 바이트 아래라도 값은 달라야 한다)");
+            Assert.Less(System.Math.Abs(r0 - rNew), 1.0, "옛 값과의 차이는 바이트 아래다 — 눈으로는 못 가린다(기록에 그대로 적었다)");
 
             // 투명과 섞는 자리(그림자)는 색이 그대로고 알파만 준다 — 정본 8538 `.equip-cell:not(.egg-cell)` 62%.
             Color sh = ColorMixUi.Mix("cell_shadow_2", rc);
@@ -71,9 +74,14 @@ namespace Forge.Tests.PlayMode
             foreach (Transform t in UiRoot.Instance.Sheet.GetComponentsInChildren<Transform>(true))
                 if (t.name == "held-img" && t.parent != null && t.parent.name == "card") { card = t.parent; break; }
             Assert.IsNotNull(card, "모루 자리에 대기품 카드가 서야 한다");
-            Image frame = card.Find("frame").GetComponent<Image>();
+            // `ForgeUi.Tile(parent, "frame", …)` 은 상자 "frame" 안에 테("line")와 면("face")을 세운다 — 색은 그 **두 자식**에 있다(런 641 NRE 가 그것이었다).
+            Transform frame = card.Find("frame");
+            Assert.IsNotNull(frame, "카드에 frame 상자가 있어야 한다");
+            Image face = frame.Find("face").GetComponent<Image>();
+            Image line = frame.Find("line").GetComponent<Image>();
             Color ac = ForgeUi.AgeColor(h.Defs, it.Age);
-            AssertMix(frame.color, ac, 0.30, 0x17, 0x18, 0x1a, "카드 면이 표대로 섞였다");
+            AssertMix(face.color, ac, 0.30, 0x17, 0x18, 0x1a, "카드 면이 표대로 섞였다(정본 990 30%, #17181a)");
+            AssertMix(line.color, ac, 0.80, 0, 0, 0, "카드 테가 표대로 섞였다(정본 990 80%, #000)");
         }
     }
 }
