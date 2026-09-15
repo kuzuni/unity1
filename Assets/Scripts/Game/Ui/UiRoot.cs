@@ -130,6 +130,7 @@ namespace Forge.Game.Ui
             OfflineButton.Ensure(this);   // T133 — 메인 오프라인 보상 버튼(정본 index.html 75 · z4 = HUD 아래 형제)
             TabBar = TabBand.gameObject.AddComponent<TabBar>();
             TabBar.Build(TabBand, PanelHost);
+            foreach (Transform c in PanelHost) PanelSlide.Attach((RectTransform)c);   // T355 ⓖ — 정본 642 .panel 슬라이드(translateY(105%) → none · .22s ease-out) · 표 panel_slide
 
             Layout();
         }

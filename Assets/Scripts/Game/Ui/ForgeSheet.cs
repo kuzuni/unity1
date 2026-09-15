@@ -93,9 +93,13 @@ namespace Forge.Game.Ui
                 int col = i % 5, row = i / 5;
                 RectTransform c = EquipCell(grid, h, slots[i], cell);
                 UiKit.Place(c, col * (cell + colGap), row * (cell + rowGap), cell, cell);
+                PressFx pc = c.GetComponent<PressFx>();
+                if (pc != null) pc.SetBase(c.anchoredPosition, c.localScale);   // T355 — 눌림의 기준 자리는 놓인 뒤
             }
             RectTransform mount = MountCell(grid, h, cell * 2f + colGap, cell);
             UiKit.Place(mount, 3 * (cell + colGap), cell + rowGap, cell * 2f + colGap, cell);
+            PressFx pm = mount.GetComponent<PressFx>();
+            if (pm != null) pm.SetBase(mount.anchoredPosition, mount.localScale);
 
             // ---- 모루 행 ----
             float rowY = padTop + cell * 2f + rowGap + rem * 0.5f;
@@ -234,6 +238,7 @@ namespace Forge.Game.Ui
             b.targetGraphic = f;
             string s = slot;
             b.onClick.AddListener(() => GearDetailPopup.Open(h, s));
+            PressFx.Attach(rt.gameObject, rt, "equip_cell", f);   // T355 ⓑ — 정본 7743·7750 .equip-cell:not(.egg-cell):active { translateY(.08rem); brightness(1.07) · .08s ease-out } · 기준 자리는 Place 뒤 SetBase
             return rt;
         }
 
@@ -253,6 +258,7 @@ namespace Forge.Game.Ui
             Button b = rt.gameObject.AddComponent<Button>();
             b.targetGraphic = f;
             b.onClick.AddListener(() => MountSheet.Open());   // 원작 `UI.openMounts()` — T20 탈것 시트(전체 모달)
+            PressFx.Attach(rt.gameObject, rt, "egg_cell", f);   // T355 ⓑ — 정본 8087 .equip-cell.egg-cell:active { translateY(.08rem); brightness(1.07) }
             return rt;
         }
 

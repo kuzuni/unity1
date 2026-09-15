@@ -70,6 +70,31 @@ namespace Forge.Core.Ui
         }
     }
 
+    /// <summary>탭 패널 슬라이드(정본 `.panel { transform: translateY(105%); transition: transform .22s ease-out }` · `.open { transform: none }`) — 표 `panel_slide`.</summary>
+    public sealed class PanelSlideSpec
+    {
+        /// <summary>닫힌 자리 = 높이의 몇 %(아래가 +).</summary>
+        public double DyPct;
+        /// <summary>슬라이드 길이(ms).</summary>
+        public double Ms;
+        public CssEase Ease;
+        public string Note;
+
+        public static PanelSlideSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "panel_slide"));
+            if (o == null) throw new FormatException("PressFxUi: panel_slide 는 객체여야 한다");
+            PanelSlideSpec s = new PanelSlideSpec { DyPct = J.Num(J.Require(o, "dy_pct")), Ms = J.Num(J.Require(o, "ms")) };
+            object e;
+            s.Ease = o.TryGet("ease", out e) ? RewardBurstSpec.EaseOf(e) : CssEase.Linear;
+            object n;
+            s.Note = o.TryGet("_", out n) ? n as string : null;
+            if (s.Ms <= 0) throw new FormatException("PressFxUi: panel_slide ms 는 0보다 커야 한다");
+            if (s.DyPct <= 0) throw new FormatException("PressFxUi: panel_slide dy_pct 는 0보다 커야 한다");
+            return s;
+        }
+    }
+
     /// <summary>
     /// 눌림 피드백의 셈(T355). CSS `transition` 은 속성이 바뀌면 «지금 값 → 목표 값» 을 같은 길이·같은 이징으로 오가므로
     /// 눌림(0→1)과 뗌(1→0)을 한 위상(phase 0~1)으로 둔다 — 중간에 떼면 그 위상에서 되돌아간다.
@@ -96,6 +121,19 @@ namespace Forge.Core.Ui
 
         /// <summary>전이가 끝나 더 갱신할 것이 없는가(위상이 목표에 닿았다).</summary>
         public static bool Settled(double phase, bool pressed) { return pressed ? phase >= 1.0 : phase <= 0.0; }
+
+        /// <summary>패널 슬라이드 — 열린 지 <paramref name="elapsedMs"/> 에서 «아직 아래에 남은 거리»(높이 단위 · 0 이면 제자리). 시작은 높이 × dy_pct/100 · ease-out 으로 0 에 닿는다.</summary>
+        public static double SlideOffset(PanelSlideSpec s, double elapsedMs, double height)
+        {
+            double full = height * s.DyPct / 100.0;
+            if (elapsedMs <= 0) return full;
+            double t = elapsedMs / s.Ms;
+            if (t >= 1) return 0;
+            return full * (1.0 - Clamp01(s.Ease.Ease(t)));
+        }
+
+        /// <summary>슬라이드가 끝났는가.</summary>
+        public static bool SlideDone(PanelSlideSpec s, double elapsedMs) { return elapsedMs >= s.Ms; }
 
         static double Clamp01(double v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
     }
