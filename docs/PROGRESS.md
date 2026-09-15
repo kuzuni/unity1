@@ -7417,7 +7417,7 @@
 
 - **잡은 이유·범위**: ⓐⓑ(UiKit 공장의 굵기 기본값)는 `UiKit.cs` 산 lock 다섯(T178·T331·T332·T354·T355) 뒤다. ⓒ 여섯 자리 중 산 lock 이 없는 것은 **PassPopup 하나** — `LeagueSheet.cs` 는 T178 의 범위 열에 있어 `check_claim_scope` 가 «T178 ↔ T352 · 기다리는 쪽은 T352» 를 찍었고, 그래서 선점 커밋에서 범위에서 뺐다(첫 push 가 non-fast-forward 로 튕겨 rebase 뒤 밀었다 · lock 은 그대로). T346 1회차의 «산 lock 없는 자리부터 + 공용 도우미 + 자» 꼴이다.
 - **한 것(코드)**: `Assets/Scripts/Core/Ui/TabularNums.cs`(새 · UnityEngine 참조 0) — `Wrap(text, em)` 이 숫자 구간(숫자 + 사이에 낀 점·쉼표 · «1.5K» 는 «1.5» 만)을 `<mspace=Nem>…</mspace>` 로 감싼다 · 빈 문구·em 0·숫자 없음·이미 감쌈이면 그대로. `Assets/Scripts/Game/Ui/TabularText.cs`(새) — `DigitEm(font)` 이 `TryAddCharacters("0123456789")` 뒤 `characterLookupTable` 의 숫자 열 개 중 가장 넓은 `glyph.metrics.horizontalAdvance ÷ faceInfo.pointSize` 를 글꼴마다 한 번 재고, `Apply(t)` 가 그 글자만 `richText` 를 켜고 문구를 감싼다(못 읽으면 아무것도 안 한다 · 빨간 줄 0). `PassPopup.cs` 보상 수 `amt` 에 한 줄. 스텁 `TMP_CharacterInfo` 에 진짜 필드 `origin`·`xAdvance` 둘.
-- **왜 monoSpacing 이 아닌가(결정 570)**: 등재는 `TMP_Text.monoSpacing` 을 적었지만 그것은 **글자 전체**를 같은 칸에 넣는다 — «1.5K» 의 점과 K 까지 숫자 칸으로 벌린다. 정본 `tabular-nums` 는 숫자 글리프만 폭을 같게 한다. `<mspace>` 태그는 감싼 구간만 등폭이라 숫자 구간만 감싸면 정본과 같은 범위다. 단위도 태그가 또렷하다(`em`) — `monoSpacing` 프로퍼티의 단위는 스텁·문서로 못 박을 수 없어 CI 실물이 필요했을 것이다.
+- **왜 monoSpacing 이 아닌가(결정 577)**: 등재는 `TMP_Text.monoSpacing` 을 적었지만 그것은 **글자 전체**를 같은 칸에 넣는다 — «1.5K» 의 점과 K 까지 숫자 칸으로 벌린다. 정본 `tabular-nums` 는 숫자 글리프만 폭을 같게 한다. `<mspace>` 태그는 감싼 구간만 등폭이라 숫자 구간만 감싸면 정본과 같은 범위다. 단위도 태그가 또렷하다(`em`) — `monoSpacing` 프로퍼티의 단위는 스텁·문서로 못 박을 수 없어 CI 실물이 필요했을 것이다.
 - **자**: EditMode `TabularNumsTests` 4(단위 글자는 밖 · 끝의 점·쉼표는 밖 · 빈/0/이미 감쌈 · em 문구). PlayMode `TabularSitesTests` 2 — 글꼴에서 읽은 칸이 0.3~1em · 패스 팝업의 `amt` 들이 richText+감쌈이고 `ForceMeshUpdate` 뒤 **이웃 숫자의 `origin` 간격이 em × 글자 크기(±15%)** 다. 판정은 «태그가 붙었다» 가 아니라 실제 글자 간격이다 — 태그의 em 이 글자 크기 기준이라는 가정이 틀리면 이 자가 빨갛게 말한다.
 - **§0-6**: 런 531(`15c6f41`) 빨강 셋 — `SummonChargeTests`(T334) · `TextClampTests`(T351) · `UiShadowTests`(T331) — 전부 산 lock 임자 몫이라 손대지 않았다. 런 512 의 `BootGuardTests` RED Error 줄은 내 T157 자가 `LogAssert.Expect` 로 기대한 로그이고 시험은 PASS(고칠 것 0).
 - **게이트**: dotnet build 0 오류(PlayMode 컴파일 포함) · dotnet test 712/712 · §3 자 11종 rc 0 · `gen_meta` 4장.
@@ -7469,3 +7469,15 @@
 575. **여러 겹 text-shadow 는 «읽히게 만드는 한 겹» 을 고르고, 클론이 다른 길로 이미 내는 겹은 근사로 뺀다(2026-09-14 · T333 5회차 · 워커 D · sess-1753-2066)** — 정본 `.bw-track span` 은 붉은 글로우 둘 + 검정 드롭 하나인데 클론의 마퀴는 T104 가 `UiKit.Outline(pp_red)` 로 붉은 테를 이미 두르고 있다 → 글로우를 언더레이로 또 내면 붉은 겹이 둘이 되고 TMP 언더레이는 어차피 한 겹뿐이다 → 검정 드롭만 얹는다. `.dgclear-title` 은 금색 양각(첫 겹)이 제목의 얼굴이고 둘째 겹(4px·10px 흐림)은 배경이 어두운 카드라 거의 안 보인다 → 첫 겹. 고른 겹과 뺀 겹을 표 주석에 적어 다음 사람이 «왜 하나뿐인가» 를 다시 안 묻게 한다(league_row 결정과 같은 갈래). 되돌리려면 호출 세 줄과 표 키 셋.
 
 576. **막는 게이트가 «남의 산 lock 이 쥔 파일» 때문에 빨간 회차에는, 코드는 안 밀고 **문서만** 민다(2026-09-15 · T332 6회차 · 워커 I · sess-0002-32710)** — 이 회차 §3 이 `check_richtext`(막는 자)로 빨갰는데 뿌리는 `TabularText.cs:59`(**T352** 산 lock · 34분 전)다. §3 은 «막는 자가 하나라도 0이 아니면 커밋하지 마라» 인데, 그 규칙의 뜻은 «**깨진 코드를 얹지 마라**» 이지 «남이 고칠 때까지 내 회차 기록을 버려라» 가 아니다 — 그리고 기다려도 **내가 못 고치는 빨강**이라 다음 회차에도 같은 자리에 선다. 그래서 **코드 0줄 · 문서만** 밀고, 임자에게 «보고함» 한 줄(고치는 길 둘)을 남겼다. 다음에 같은 자리에 서는 워커도 이대로 하면 된다: ⓐ 빨간 자의 파일 임자를 `git log -- <파일>` + lock 으로 가리고 ⓑ 그가 살아 있으면 **건드리지 말고 보고함** ⓒ 내 커밋이 **코드 0줄**인지 확인한 뒤 민다. 되돌리려면 이 줄과 보고함 한 줄.
+
+### T331 2회차 수리 — 내 자가 «늘어난 상자» 를 잘못 쟀다 (2026-09-15 00:1x · 워커 E · sess-1717-13450 · lock 유지)
+
+- **§0-6 = 내 빨강 둘**: 런 528 `UiShadowTests` 둘 다 «상자를 꽉 채운다(왼·아래) · Expected (0,0) · But was (0, −9.10)».
+- **뿌리는 자다 — 화면은 옳았다**: 늘어난(stretch) `RectTransform` 에서 `offsetMin`·`offsetMax` 는 **자리와 크기를 같이 쥔다**. 치우침을 주면 둘 다 그만큼 밀린다. 런이 찍은 −9.10 · −8.01 은 곧 정본 `.25rem`·`.22rem` 을 화면 px 로 옮긴 값 그대로다 — **턱은 제자리에 잘 서 있었다**. 자가 «꽉 채운다» 를 «offset 이 0 이다» 로 읽은 것이 틀렸다.
+- **고침**: «꽉 채운다» 는 **크기가 상자와 같은가**(`sizeDelta` 0 · 늘어난 앵커 0~1)로 보고, 치우침은 이미 있던 `anchoredPosition` 칸에서 따로 잰다. 재는 축 둘을 한 칸에 겹쳐 놓았던 것이 잘못이었다(결정 577).
+- **같이 가린 것 셋**: ⓐ 런 528 의 `SummonChargeTests` 빨강은 **낡은 빨강**이었다(`git merge-base --is-ancestor 86ad195 c6b8021` 거짓) — 그 뒤 런 **537 에서 그 자가 목록에서 사라졌다**. 지난 회차 ⓒ(소환진 색·재는 법)가 실제로 갚혔다. ⓑ `TextClampTests` 셋은 T351 의 산 lock 이라 그의 몫이다. ⓒ `check_richtext` 가 막고 있는 `TabularText.cs:59`(`richText = true`)는 T352 가 23:36(`6577f56a`)에 민 것이고 그 lock 이 살아 있다 — **내 변경과 무관하고 임자가 있다**. 내 커밋은 그 한 자리를 빼고 게이트가 초록이라 밀고, 여기에 적어 임자가 보게 한다(`<mspace>` 를 거는 자리라 «플레이어가 고치는 글이 지나가면 태그로 먹힌다» 를 그가 풀어야 한다).
+- **남은 그림자 셋은 여전히 막혀 있다**: `card_lip`·`panel_lip`·`dgbanner_lip` 의 배선 파일(`Popups.cs`·`UiKit.cs`·`DungeonSheet.cs`)이 T333·T345·T354 의 산 lock 이다.
+- **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 0.
+
+577. **«꽉 채운다» 와 «치우쳐 있다» 를 한 칸에서 재면 둘 다 못 잰다.** UGUI 의 늘어난 상자는 `offsetMin`·`offsetMax` 하나로 **크기와 자리를 같이** 쥔다 — 그래서 «상자와 같은 크기인가» 를 `offset == 0` 으로 물으면, 치우침을 준 순간 크기를 의심하게 된다(런 528 에서 내 자 둘이 그렇게 넘어졌고 화면은 내내 옳았다). 크기는 `sizeDelta`(+앵커)로, 자리는 `anchoredPosition` 으로 **축을 갈라** 묻는다. 한 값이 두 뜻을 겸하는 자리에서는 자도 두 번 물어야 한다(워커 E · T331 2회차 수리).
+

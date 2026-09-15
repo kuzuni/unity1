@@ -44,8 +44,12 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual((float)s.R, img.color.r, 1e-3f);
 
             var rt = (RectTransform)sh;
-            Assert.AreEqual(Vector2.zero, rt.offsetMin, "상자를 꽉 채운다(왼·아래)");
-            Assert.AreEqual(Vector2.zero, rt.offsetMax, "상자를 꽉 채운다(오른·위)");
+            // ⚠ 런 528 이 가르친 것: 늘어난(stretch) RectTransform 에서 `offsetMin`·`offsetMax` 는 **자리와 크기를 같이 쥔다** —
+            //    치우침을 주면 둘 다 그만큼 밀린다(실측 (0, −9.10)). 그러니 «꽉 채운다» 는 그 둘이 0 인가가 아니라
+            //    **크기가 상자와 같은가**(`sizeDelta` 0 · 늘어난 앵커)로 봐야 한다. 치우침은 아래에서 따로 잰다.
+            Assert.AreEqual(Vector2.zero, rt.anchorMin, "상자에 늘어붙는다(왼·아래 앵커)");
+            Assert.AreEqual(Vector2.one, rt.anchorMax, "상자에 늘어붙는다(오른·위 앵커)");
+            Assert.AreEqual(Vector2.zero, rt.sizeDelta, "상자와 같은 크기 — 턱은 크기가 아니라 자리만 다르다");
             double x, y;
             UiShadow.Table.OffsetPx(key, PetSkillStyle.RemPx, out x, out y);
             Assert.AreEqual((float)y, rt.anchoredPosition.y, 0.01f, "정본만큼 아래로 — CSS 의 +y 는 화면에서 −y 다");
