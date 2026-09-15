@@ -1,0 +1,11 @@
+{
+  "_": "T387 — 퀘스트 시트의 치수 중 `catalog.json` 이 못 쥐는 것. 곁 표로 두는 까닭은 그 파일이 남의 lock 일 때가 잦기 때문이다(T177 ForgeItemUi · T339 ForgeAutoUi 와 같은 꼴).",
+  "layout": {
+    "bar_h_rem": 0.95,
+    "allbar_btn_pad_x_rem": 0.6
+  },
+  "_bar_h_rem": "style.css 2039 `.qst-bar { height: .95rem }`. catalog.json 의 `quest_bar_h` 0.0152 는 주석까지 «진행 바 .8rem / H» 라 정본보다 낮고, 게다가 QuestSheet.cs 가 그 값에 `* 1.6f` 를 얹어 1.28rem 으로 그렸다. 곱을 걷고 이 표를 읽는다 — catalog.json 이 열리는 회차가 `quest_bar_h` 를 0.018009(= .95rem/H)로 고치고 이 키를 걷으면 된다.",
+  "_박힌_곱은_걷었다": "QuestSheet.cs 46·56 의 `* 1.6f`·`* 1.3f` 셋. [수령] 버튼은 정본 `.qst-right .btn`(2058)이 `min-width .9rem`·`min-height 1.9rem` 이고 글자(«수령» .78rem)+패딩이 그 하한을 못 넘으므로 하한이 곧 실제 크기다 — 표값을 그대로 쓴다.",
+  "_아직_남은_것": "없다 — 51 줄의 `btnW * 1.6f` 도 걷었다. 다만 [일괄수령]의 **높이**는 아직 [수령] 버튼의 1.9rem 을 빌려 쓴다: 정본은 «줄 높이 + .3rem×2» 인데 클론 글자가 하한(버튼 44)이라 그 셈이 1.9rem 언저리로 떨어진다. 글자 하한이 내려가는 날(T136·T372·T383 축) 이 자리도 같이 본다.",
+  "_allbar_btn_pad_x_rem": "style.css 674 `.btn.sm { padding: .3rem .6rem }` 의 가로 몫. 정본 [일괄수령]은 `.qst-allbar .btn.sm`(2020)이고 하한이 없어 **글자 폭 + 이 패딩 ×2** 가 곧 폭이다."
+}

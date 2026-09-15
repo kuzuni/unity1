@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Forge.Core.Data;
 using Forge.Core.Meta;
 
 namespace Forge.Game.Ui
@@ -43,17 +44,31 @@ namespace Forge.Game.Ui
             List<Quest> list = h.Quests.List(h.QuestState);
             int ready = h.Quests.ReadyCount(h.QuestState);
             float rowW = UiKit.L("quest_row_w") * w;
-            float btnW = UiKit.H("quest_btn_w") * 1.6f, btnH = UiKit.H("quest_btn_h") * 1.3f;
+            // T387 — 정본 `.qst-right .btn`(style.css 2058) `min-width: 3.9rem; min-height: 1.9rem`.
+            //   표가 그 수를 이미 정확히 쥐고 있다(`quest_btn_w` 0.0739 = 3.9rem/H · `quest_btn_h` 0.036 = 1.9rem/H)는데
+            //   여기서 ×1.6·×1.3 을 얹어 6.24rem·2.47rem 으로 그렸다(§1 위반). 곱을 걷는다.
+            //   정본 수는 **하한**이지만 글자(«수령» .78rem 두 자)+패딩(.4rem×2)이 3.9rem 을 못 넘어 하한이 곧 실제 크기다.
+            float btnW = UiKit.H("quest_btn_w"), btnH = UiKit.H("quest_btn_h");
 
+            string allLabel = "일괄수령" + (ready > 0 ? " (" + ready + ")" : "");
             RectTransform allBar = PopupKit.Item(content, "allbar", -1f, btnH);
             Button all = null;
-            all = PopupKit.Btn(allBar, "claim-all", "일괄수령" + (ready > 0 ? " (" + ready + ")" : ""), "pp_green", "pp_green_dk", () => OnClaimAll(h, all ? all.GetComponent<RectTransform>() : null), btnW * 1.6f, btnH, "stage_ink", TextKind.Sub, ready == 0);
-            UiKit.Anchor(all.GetComponent<RectTransform>(), new Vector2(0.5f, 0.5f), new Vector2(1f, 0.5f), new Vector2(rowW * 0.5f, 0f), btnW * 1.6f, btnH);
+            all = PopupKit.Btn(allBar, "claim-all", allLabel, "pp_green", "pp_green_dk", () => OnClaimAll(h, all ? all.GetComponent<RectTransform>() : null), btnW * 1.6f, btnH, "stage_ink", TextKind.Sub, ready == 0);
+            // T387 — [일괄수령]은 정본에서 `.qst-allbar .btn.sm`(style.css 2020·674)이고 **하한이 아예 없다**:
+            //   `flex: 0 0 auto; padding: .3rem .6rem` — 즉 **글자 폭 + 좌우 패딩**이 곧 폭이다.
+            //   클론은 그 자리에 [수령] 버튼 폭의 ×1.6 을 써 왔는데, 정본에서 두 버튼은 아무 관계도 없다.
+            //   높이는 `btnH`(1.9rem) 를 그대로 둔다 — 정본은 «줄 높이 + .3rem×2» 지만 클론 글자가 하한(버튼 44)이라
+            //   그 셈이 1.9rem 언저리로 떨어진다(글자 하한은 주인 지시라 이 작업이 못 건드린다 · T136·T372·T383 축).
+            float allPad = QuestStyle.L("allbar_btn_pad_x_rem") * rem;
+            float allW = PetSkillKit.TextWidth(TextKind.Button, allLabel) + allPad * 2f;
+            UiKit.Anchor(all.GetComponent<RectTransform>(), new Vector2(0.5f, 0.5f), new Vector2(1f, 0.5f), new Vector2(rowW * 0.5f, 0f), allW, btnH);
 
             if (list.Count == 0) PopupKit.Label(content, "empty", TextKind.Body, "퀘스트를 불러오지 못했습니다", "pp_muted");
 
             float icon = UiKit.H("quest_icon");
-            float barH = UiKit.H("quest_bar_h") * 1.6f;
+            // T387 — 정본 `.qst-bar`(2039) `height: .95rem`. catalog.json 의 `quest_bar_h` 는 «.8rem» 이라 정본보다 낮고
+            //   그 위에 ×1.6 까지 얹혀 1.28rem 으로 그렸다. 곱을 걷고 **곁 표**(`QuestUi.json` · catalog 는 T364 lock)를 읽는다.
+            float barH = QuestStyle.L("bar_h_rem") * rem;
             float rowH = rem * 0.55f * 2f + PopupKit.FontSize(TextKind.Sub) * 1.3f + barH + rem * 0.28f;
             for (int i = 0; i < list.Count; i++)
             {
@@ -140,6 +155,35 @@ namespace Forge.Game.Ui
             }
             h.Touch();
             h.Toast("📜 " + r.N + "개 수령! " + string.Join(" · ", parts.ToArray()));
+        }
+    }
+    /// <summary>
+    /// T387 — 퀘스트 시트 치수 곁 표(`Resources/QuestUi.json`). 값을 코드에 안 박는다(§1) ·
+    /// `catalog.json` 이 남의 lock 일 때가 잦아 곁 표로 둔다(T177 <see cref="ForgeItemStyle"/> · T339 <see cref="ForgeAutoStyle"/> 과 같은 꼴).
+    /// </summary>
+    public static class QuestStyle
+    {
+        public const string ResourcePath = "QuestUi";
+        static JsonObject root, layout;
+
+        static void Load()
+        {
+            if (root != null) return;
+            TextAsset ta = Resources.Load<TextAsset>(ResourcePath);
+            if (ta == null) throw new System.InvalidOperationException("Resources/" + ResourcePath + ".json 이 없다 (T387)");
+            root = MiniJson.ParseObject(ta.text);
+            layout = J.Obj(root["layout"]);
+        }
+
+        public static void Reset() { root = null; layout = null; }
+
+        /// <summary>배치 값 원문(접미가 곱할 기준을 말한다 — `_rem` 이면 rem 을 곱한다).</summary>
+        public static float L(string key)
+        {
+            Load();
+            object v = layout == null ? null : layout[key];
+            if (!J.IsNum(v)) throw new KeyNotFoundException("QuestUi.json 에 배치 값 «" + key + "» 이 없다 (T387)");
+            return (float)J.Num(v);
         }
     }
 }
