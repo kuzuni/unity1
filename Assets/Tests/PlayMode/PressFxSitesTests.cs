@@ -81,9 +81,12 @@ namespace Forge.Tests.PlayMode
         {
             yield return Boot();
             ForgeHost h = ForgeHost.Instance;
-            string slot = null;
-            foreach (string sl in h.Defs.Slots) if (h.Gear.Get(sl) != null) { slot = sl; break; }
-            Assert.IsNotNull(slot, "시드 세이브에 장착 장비가 하나는 있다(빈 칸은 버튼이 없어 눌림도 없다)");
+            // 런 559: 새 세이브는 장착 장비가 0 이라(빈 칸은 버튼이 없어 눌림도 없다) 하나 굴려 장착하고 시트를 다시 그린다.
+            Forge.Core.Forging.ForgeItem it = h.Engine.RollItem();
+            h.Gear.Set(it.Slot, it);
+            ForgeSheet.Render(h);
+            yield return null;
+            string slot = it.Slot;
             RectTransform cell = (RectTransform)SheetChild("cell-" + slot);
             Assert.IsNotNull(cell, "장비 칸 cell-" + slot);
             yield return AssertPress(cell, "equip_cell");
