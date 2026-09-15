@@ -98,11 +98,40 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(found, 0, "장착 바(`.equipped-row`)를 못 찾았다");
         }
 
-        [Test]
-        public void 흐린_그림자는_도우미가_거절한다()
+        [UnityTest]
+        public IEnumerator 상단바에는_흐린_그늘이_구워져_상자보다_넓게_깔린다()
         {
-            // 굽는 길(3회차)이 서기 전에 조용히 딱딱하게 그리면 «섰다» 로 세어져 자가 거짓 초록이 된다.
-            foreach (string k in UiShadow.Table.Keys) Assert.IsTrue(UiShadow.Table.Get(k).IsHard, k + " 는 지금 표에 딱딱한 것만 있어야 한다");
+            yield return Boot();
+            RectTransform bar = null;
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+                if (rt.name == "topbar") { bar = rt; break; }
+            Assert.IsNotNull(bar, "상단바를 못 찾았다");
+
+            Transform sh = bar.Find(UiShadow.LayerName);
+            Assert.IsNotNull(sh, "상단바에 그늘 겹이 없다(topbar_drop)");
+            Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 첫 형제라야 상단바 **뒤**에 그려진다");
+            Image img = sh.GetComponent<Image>();
+            Assert.IsNotNull(img.sprite, "흐린 그림자는 **구운 판**이라야 한다(딱딱하게 대신 그리면 안 된다)");
+            Assert.AreEqual(Color.white, img.color, "색은 구운 화소가 쥔다 — 틴트로 주면 알파가 두 번 곱해진다");
+
+            // 흐림이 잘리지 않게 상자보다 넓다 · 정본만큼 아래로 내려가 있다
+            var rt2 = (RectTransform)sh;
+            ShadowSpec s = UiShadow.Table.Get("topbar_drop");
+            double dx, dy;
+            UiShadow.Table.OffsetPx("topbar_drop", PetSkillStyle.RemPx, out dx, out dy);
+            float padTop = rt2.offsetMax.y - (float)dy, padBottom = -(rt2.offsetMin.y - (float)dy);
+            Assert.Greater(padTop, (float)s.BlurRem * PetSkillStyle.RemPx, "흐림 반지름보다 넓게 구워야 잘리지 않는다");
+            Assert.AreEqual(padTop, padBottom, 0.01f, "테두리는 사방 같다");
+            Assert.Less(rt2.offsetMin.y + padTop, 0f, "정본만큼 아래로 — CSS 의 +y 는 화면에서 −y 다");
+        }
+
+        [Test]
+        public void 표는_딱딱한_턱_다섯과_흐린_그림자_일곱으로_갈린다()
+        {
+            int hard = 0, soft = 0;
+            foreach (string k in UiShadow.Table.Keys) { if (UiShadow.Table.Get(k).IsHard) hard++; else soft++; }
+            Assert.AreEqual(5, hard);
+            Assert.AreEqual(7, soft);
         }
     }
 }

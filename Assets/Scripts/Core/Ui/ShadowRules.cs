@@ -53,7 +53,9 @@ namespace Forge.Core.Ui
                     SpreadRem = J.Num(J.Require(o, "spread_rem")),
                     R = rgba[0], G = rgba[1], B = rgba[2], A = rgba[3],
                 };
-                if (sp.BlurRem < 0 || sp.SpreadRem < 0) throw new FormatException("ShadowUi «" + kv.Key + "»: blur·spread 는 음수가 아니다");
+                // 번짐(`spread`)은 **음수가 될 수 있다** — 정본 `.pass-card` 가 `-.5rem` 으로 그늘을 안으로 줄인다.
+                // 흐림(`blur`)만 음수를 막는다(CSS 도 막는다).
+                if (sp.BlurRem < 0) throw new FormatException("ShadowUi «" + kv.Key + "»: blur 는 음수가 아니다");
                 if (sp.DxRem == 0 && sp.DyRem == 0 && sp.IsHard) throw new FormatException("ShadowUi «" + kv.Key + "»: 치우침도 흐림도 0 이면 그림자가 아니다");
                 t.spots[kv.Key] = sp;
             }
@@ -76,6 +78,47 @@ namespace Forge.Core.Ui
             ShadowSpec s = Get(key);
             x = s.DxRem * remPx;
             y = -s.DyRem * remPx;
+        }
+
+        /// <summary>CSS `blur` 반지름 → 가우시안 표준편차. CSS 규격이 «반지름의 절반» 으로 못 박은 값이다.</summary>
+        public static double SigmaOf(double blurPx) { return blurPx * 0.5; }
+
+        /// <summary>
+        /// 둥근 네모의 **부호 있는 거리**(밖이 양수 · 안이 음수) — 그림자를 굽는 자리마다 이 거리로 흐림을 푼다.
+        /// </summary>
+        /// <param name="px">상자 한가운데를 원점으로 한 자리.</param>
+        /// <param name="halfW">반너비(번짐 `spread` 를 이미 더한 값).</param>
+        /// <param name="radius">모서리 반지름(반너비·반높이보다 클 수 없다).</param>
+        public static double RoundRectDistance(double px, double py, double halfW, double halfH, double radius)
+        {
+            double r = Math.Min(radius, Math.Min(halfW, halfH));
+            double qx = Math.Abs(px) - halfW + r, qy = Math.Abs(py) - halfH + r;
+            double outX = qx > 0 ? qx : 0, outY = qy > 0 ? qy : 0;
+            double inner = Math.Min(Math.Max(qx, qy), 0);
+            return inner + Math.Sqrt(outX * outX + outY * outY) - r;
+        }
+
+        /// <summary>
+        /// 거리 <paramref name="dist"/>(밖이 양수)에서 흐린 그림자의 덮는 정도(0~1).
+        ///
+        /// 곧은 모서리를 가우시안으로 번지게 하면 정확히 **정규분포의 누적**이 된다 — 모서리 위(거리 0)에서 .5 이고
+        /// 안으로 갈수록 1, 밖으로 갈수록 0. 굽는 자리는 이 값에 색 알파를 곱하면 된다. σ 가 0이면 계단(딱딱한 턱)이다.
+        /// </summary>
+        public static double EdgeCoverage(double dist, double sigma)
+        {
+            if (sigma <= 0) return dist <= 0 ? 1 : 0;
+            return 0.5 * Erfc(dist / (sigma * Math.Sqrt(2.0)));
+        }
+
+        /// <summary>여 오차함수 `erfc` — Abramowitz &amp; Stegun 7.1.26(오차 1.5e-7 아래).</summary>
+        public static double Erfc(double x)
+        {
+            double z = Math.Abs(x);
+            double t = 1.0 / (1.0 + 0.5 * z);
+            double y = t * Math.Exp(-z * z - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 +
+                t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 +
+                t * (-0.82215223 + t * 0.17087277)))))))));
+            return x >= 0 ? y : 2.0 - y;
         }
     }
 }

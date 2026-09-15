@@ -64,6 +64,9 @@ namespace Forge.Game.Ui
             RectTransform bar = UiKit.Box(hudLayer, "topbar");
             float barH = UiKit.H("topbar_h");
             UiKit.Place(bar, 0f, 0f, w, barH);
+            // 정본 #topbar(style.css 7905) `0 .18rem .4rem rgba(0,0,0,.34)` — 상단바가 3D 화면 위에 한 겹 떠 있다.
+            // 자리를 잡은 **뒤**에 부른다(굽는 판이 상자 크기를 읽는다).
+            UiShadow.Drop(bar, "topbar_drop", 0f);
             UiKit.Panel(bar, "bg", "topbar_bg");
             UiKit.Line(bar, "line", "topbar_line", line, false);
             float padX = UiKit.W("topbar_pad_x");

@@ -20,10 +20,10 @@ namespace Forge.Tests
         }
 
         [Test]
-        public void 표는_정본_다섯_자리를_그대로_쥔다()
+        public void 표는_정본_열두_자리를_그대로_쥔다()
         {
             ShadowTable t = T();
-            Assert.AreEqual(5, t.Count);
+            Assert.AreEqual(12, t.Count, "자(check_box_shadows)가 세는 자리와 같은 수여야 한다");
             ShadowSpec q = t.Get("qstrow_lip");
             Assert.AreEqual(0.0, q.DxRem, 1e-9);
             Assert.AreEqual(0.25, q.DyRem, 1e-9, "정본 .qst-row `0 .25rem 0`");
@@ -34,10 +34,50 @@ namespace Forge.Tests
         }
 
         [Test]
-        public void 다섯_자리가_모두_딱딱한_턱이다()
+        public void 딱딱한_턱_다섯과_흐린_그림자_일곱으로_갈린다()
         {
-            // 흐린 자리는 굽는 길이 선 뒤(3회차)에 표에 담는다 — 지금 표에 섞이면 도우미가 조용히 딱딱하게 그린다.
-            foreach (string k in T().Keys) Assert.IsTrue(T().Get(k).IsHard, k + " 는 blur·spread 가 0 이어야 한다");
+            int hard = 0, soft = 0;
+            foreach (string k in T().Keys) { if (T().Get(k).IsHard) hard++; else soft++; }
+            Assert.AreEqual(5, hard, "딱딱한 턱(blur·spread 0)");
+            Assert.AreEqual(7, soft, "흐린 그림자");
+        }
+
+        [Test]
+        public void 번짐은_음수가_될_수_있고_흐림은_안_된다()
+        {
+            // 정본 `.pass-card` 는 `-.5rem` 으로 그늘을 **안으로 줄인다** — CSS 가 허락하는 자리다.
+            Assert.Less(T().Get("passcard_drop").SpreadRem, 0.0);
+            string badBlur = Json("[0,0,0,0.3]", 0.25).Replace("\"blur_rem\":0", "\"blur_rem\":-1");
+            Assert.Throws<System.FormatException>(() => ShadowTable.From(MiniJson.ParseObject(badBlur)));
+        }
+
+        [Test]
+        public void 흐림은_곧은_모서리에서_정규분포의_누적이다()
+        {
+            // CSS 규격: 흐림 반지름의 **절반**이 표준편차다. 모서리 위(거리 0)는 정확히 절반이 덮인다.
+            double sigma = ShadowTable.SigmaOf(10.0);
+            Assert.AreEqual(5.0, sigma, 1e-9);
+            Assert.AreEqual(0.5, ShadowTable.EdgeCoverage(0, sigma), 1e-6, "모서리 위는 반");
+            Assert.Greater(ShadowTable.EdgeCoverage(-sigma, sigma), 0.84, "안쪽 1σ 는 84% 위");
+            Assert.Less(ShadowTable.EdgeCoverage(sigma, sigma), 0.16, "바깥 1σ 는 16% 아래");
+            Assert.Greater(ShadowTable.EdgeCoverage(-4 * sigma, sigma), 0.999, "깊은 안쪽은 꽉 찬다");
+            Assert.Less(ShadowTable.EdgeCoverage(4 * sigma, sigma), 0.001, "먼 바깥은 0");
+            // σ 가 0 이면 계단 — 딱딱한 턱이 흐린 길로 와도 같은 그림이 된다.
+            Assert.AreEqual(1.0, ShadowTable.EdgeCoverage(-0.5, 0), 1e-9);
+            Assert.AreEqual(0.0, ShadowTable.EdgeCoverage(0.5, 0), 1e-9);
+        }
+
+        [Test]
+        public void 둥근_네모의_거리는_모서리에서_0이고_구석에서_둥글다()
+        {
+            // 100×60 상자 · 반지름 10
+            Assert.AreEqual(0.0, ShadowTable.RoundRectDistance(50, 0, 50, 30, 10), 1e-9, "오른쪽 변 위");
+            Assert.AreEqual(-10.0, ShadowTable.RoundRectDistance(40, 0, 50, 30, 10), 1e-9, "안쪽 10px");
+            Assert.AreEqual(5.0, ShadowTable.RoundRectDistance(55, 0, 50, 30, 10), 1e-9, "바깥 5px");
+            // 구석: 반지름 중심에서 r 만큼 떨어진 곳이 곧 모서리다
+            double c = ShadowTable.RoundRectDistance(40 + 10 / System.Math.Sqrt(2), 20 + 10 / System.Math.Sqrt(2), 50, 30, 10);
+            Assert.AreEqual(0.0, c, 1e-6, "둥근 구석의 대각선도 모서리 위다");
+            Assert.Greater(ShadowTable.RoundRectDistance(50, 30, 50, 30, 10), 0.0, "네모 꼭짓점은 둥근 네모 **바깥**이다");
         }
 
         [Test]

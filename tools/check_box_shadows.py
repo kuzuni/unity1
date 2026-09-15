@@ -56,13 +56,12 @@ KNOWN = {
     'card_lip':      'T331 2회차 — 도우미(UiShadow)는 섰다 · Popups.cs 가 T335·T345 산 lock 이라 배선만 남았다',
     'panel_lip':     'T331 2회차 — 같음(UiKit.cs 는 T178·T335 산 lock)',
     'dgbanner_lip':  'T331 2회차 — 같음(DungeonSheet.cs 는 T178 2회차 범위)',
-    'topbar_drop':   'T331 3회차 — 흐린 그림자는 굽는 길(스프라이트)이 먼저 있어야 한다',
-    'afcard_drop':   'T331 3회차 — 같음',
-    'autodrop_drop': 'T331 3회차 — 같음',
-    'cbcard_drop':   'T331 3회차 — 같음',
-    'passcard_drop': 'T331 3회차 — 같음',
-    'leaguefoot_up': 'T331 3회차 — 위로 뜨는 그늘(음수 y)이라 같은 굽기를 쓴다',
-    'eqswfly_drop':  'T331 3회차 — 날아가는 장비 상자(T117 연출) 쪽',
+    'afcard_drop':   'T331 4회차 — 굽는 길은 섰다 · ForgeAutoPopup.cs 가 T345 산 lock',
+    'autodrop_drop': 'T331 4회차 — 굽는 길은 섰다 · 그 카드를 세우는 자리를 아직 안 찾았다(다음 회차가 찾는다)',
+    'cbcard_drop':   'T331 4회차 — 굽는 길은 섰다 · 카드가 ForgeUi.ItemTile 이라 반지름을 그 파일에서 읽어야 한다(남의 lock)',
+    'passcard_drop': 'T331 4회차 — 굽는 길은 섰다 · PassPopup.cs 가 T352 산 lock',
+    'leaguefoot_up': 'T331 4회차 — 굽는 길은 섰다 · LeagueSheet.cs 가 T178·T333 산 lock',
+    'eqswfly_drop':  'T331 4회차 — 굽는 길은 섰다 · 날아가는 장비 상자(T117 연출) 쪽을 다음 회차가 찾는다',
 }
 
 

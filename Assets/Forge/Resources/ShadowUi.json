@@ -2,6 +2,41 @@
   "_": "T331 — 정본 `box-shadow` **바깥 그림자**의 수치표. 자(`tools/check_box_shadows.py`)가 세는 자리와 키가 같다. 길이 단위 `_rem` = 정본 rem · 색은 rgba 0~1. CSS 는 아래(+y)가 양수고 UGUI 는 위(+y)가 양수라 **거는 쪽이 부호를 뒤집는다**(도우미 UiShadow 가 한 자리에서 한다).",
   "_hard": "딱딱한 턱(`blur 0 · spread 0`) 다섯 — 원작 UI 의 «종이 카드가 한 겹 떠 있다» 를 만드는 것이 이것이다. 흐림이 없으니 같은 모양을 한 겹 뒤에 깔고 내리기만 하면 화면이 정본과 같아진다(구울 것이 없다). 흐린 일곱은 3회차(굽는 길이 먼저 있어야 한다).",
   "spots": {
+    "topbar_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.18, "blur_rem": 0.4, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.34],
+      "_": "#topbar(7905) `0 .18rem .4rem rgba(0,0,0,.34)`"
+    },
+    "autodrop_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.3, "blur_rem": 0.6, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.45],
+      "_": ".auto-drop-card(1073) `0 .3rem .6rem rgba(0,0,0,.45)`"
+    },
+    "cbcard_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.3, "blur_rem": 0.6, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.45],
+      "_": ".craft-batch .cb-card(1140) `0 .3rem .6rem rgba(0,0,0,.45)` — auto-drop-card 와 같은 값이다(정본이 한 벌로 쓴다)."
+    },
+    "afcard_drop": {
+      "dx_rem": 0.0, "dy_rem": 1.0, "blur_rem": 1.8, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.42],
+      "_": ".af-card(5030) 의 **둘째 겹** `0 1rem 1.8rem rgba(0,0,0,.42)` — 첫 겹 `0 .5rem 0 rgba(0,0,0,.25)` 은 딱딱한 턱이라 `card_lip` 과 같은 꼴이다(그 자리는 따로 건다)."
+    },
+    "passcard_drop": {
+      "dx_rem": 0.0, "dy_rem": 1.05, "blur_rem": 1.6, "spread_rem": -0.5,
+      "rgba": [0.0, 0.0, 0.0, 0.6],
+      "_": ".pass-card `0 1.05rem 1.6rem -.5rem rgba(0,0,0,.6)` — **번짐이 음수**(안으로 줄인다)인 유일한 자리다."
+    },
+    "leaguefoot_up": {
+      "dx_rem": 0.0, "dy_rem": -0.14, "blur_rem": 0.34, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.4],
+      "_": ".league-foot(2376) `0 -.14rem .34rem rgba(0,0,0,.40)` — 위로 뜨는 그늘."
+    },
+    "eqswfly_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.35, "blur_rem": 0.6, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.55],
+      "_": ".eqsw-fly-box `0 .35rem .6rem rgba(0,0,0,.55)` — 날아가는 장비 상자(T117)."
+    },
     "card_lip": {
       "dx_rem": 0.0, "dy_rem": 0.5, "blur_rem": 0.0, "spread_rem": 0.0,
       "rgba": [0.0, 0.0, 0.0, 0.25],
