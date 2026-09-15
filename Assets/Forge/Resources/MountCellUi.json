@@ -1,0 +1,19 @@
+{
+  "_": "T381 — 장비 격자·플레이어 정보의 탈것 칸에서 «탄 탈것» 을 그릴 때 쓰는 수. 정본 `ui.js` 1526~1535(대장간 시트)·5161~5165(플레이어 정보)와 `UI.MOUNT_COUNT_STYLE`(ui.js 16~18)이 출처다. 접미: _rem = 정본 rem · _f = 칸 크기 비율 · _px = 기준 캔버스 px · 색은 [R,G,B,A](0~255 · 알파 0~1). 코드에 숫자를 박지 않는다(§1).",
+
+
+  "_count_top_rem": "ui.js 16 `top:.12rem` — 여분 «+N» 배지의 위 여백",
+  "count_top_rem": 0.12,
+  "_count_right_rem": "ui.js 16 `right:.16rem`",
+  "count_right_rem": 0.16,
+  "_count_pad_x_rem": "ui.js 17 `padding:0 .22rem`",
+  "count_pad_x_rem": 0.22,
+  "_count_r_rem": "ui.js 17 `border-radius:.5rem`",
+  "count_r_rem": 0.5,
+  "_count_line_px": "ui.js 18 `border:1px` — 기준 캔버스 px 는 KeylineUi.CssPx 로 환산",
+  "count_line_px": 1,
+  "_count_bg": "ui.js 17 `background:rgba(0,0,0,.62)`",
+  "count_bg": [0, 0, 0, 0.62],
+  "_count_line": "ui.js 18 `border:1px solid rgba(255,255,255,.5)`",
+  "count_line": [255, 255, 255, 0.5]
+}

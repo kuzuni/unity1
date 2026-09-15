@@ -6,6 +6,8 @@ using Forge.Core;
 using Forge.Core.Data;
 using Forge.Core.CraftFx;
 using Forge.Core.Forging;
+using Forge.Core.Mounts;
+using Forge.Game.Gallery;
 
 namespace Forge.Game.Ui
 {
@@ -243,11 +245,32 @@ namespace Forge.Game.Ui
             return rt;
         }
 
-        /// <summary>마지막 칸 = 탈것 슬롯(T11 이 채운다 · 지금은 빈 «탈것» 칸 · 누르면 탈것 창 요청 = 소환 시트).</summary>
+        /// <summary>마지막 칸 = 탈것 슬롯 — 정본 `ui.js` 1526~1535 은 **탄 탈것이 있으면** 그 얼굴 + `Lv.N` + 여분 «+N» 을 그리고,
+        /// 없을 때만 실루엣 + «탈것» 이다(T381 1회차 · 종전 클론은 빈 갈래 하나뿐이었다). 누르면 탈것 창(원작 `UI.openMounts()`).</summary>
         static RectTransform MountCell(Transform parent, ForgeHost h, float w, float hgt)
         {
             RectTransform rt = UiKit.Box(parent, "egg-cell");
             Image f = ForgeUi.Tile(rt, "frame", new Color(0x4f / 255f, 0xb2 / 255f, 0xee / 255f), Color.black, hgt * 0.16f, PopupKit.Line3);
+
+            // T381 1회차 — 탄 탈것 갈래. 얼굴은 소환 시트와 **같은 썸네일 공장**(PetFaces · 원작 mountFace)을 부르기만 한다(그 파일은 남의 lock).
+            //   그림을 못 구우면(에디터 배치·그래픽 없음) 정본의 빈 갈래로 떨어진다 — 칸이 비어 보이는 것보다 실루엣이 낫다.
+            MountSystem ms = PetSkillHost.Instance != null ? PetSkillHost.Instance.Mounts : null;
+            Mount ridden = ms != null ? ms.RiddenInst() : null;
+            Sprite face = ridden != null ? PetFaces.Get(ridden.Name, GalleryKind.Mounts) : null;
+            if (ridden != null && face != null)
+            {
+                PopupKit.IconOr(rt, "img", "horse");                                     // 자리를 먼저 세우고(못 구웠으면 이 실루엣이 남는다)
+                ForgeUi.ApplyThumb(rt, face, hgt);                                       // 장비 칸과 **같은 깔때기** — 접지 그림자(T332)까지 그 한 곳이 건다
+                ForgeUi.LvBadge(rt, ridden.Level, hgt);                                  // 정본 1532 `<span class="cell-lv">Lv.N</span>`
+                int extra = ms.State != null && ms.State.ActiveMounts != null ? Mathf.Max(0, ms.State.ActiveMounts.Count - 1) : 0;
+                if (extra > 0) MountCountBadge(rt, extra, w);                            // 정본 1533 «+N»(UI.MOUNT_COUNT_STYLE)
+                Button rb = rt.gameObject.AddComponent<Button>();
+                rb.targetGraphic = f;
+                rb.onClick.AddListener(() => MountSheet.Open());
+                PressFx.Attach(rt.gameObject, rt, "egg_cell", f);
+                return rt;
+            }
+
             Image ico = PopupKit.IconOr(rt, "mount-sil", "horse");
             UiFilter.ApplyColor(ico, "mount_slot_empty");   // T342 ⓑ — 정본 857 .equip-cell.egg-cell.empty .mount-sil { filter: brightness(0) opacity(.32) } (표 FilterUi · 종전 검정 .32 박힘)
             float k = hgt * 0.55f;
@@ -263,6 +286,30 @@ namespace Forge.Game.Ui
             b.onClick.AddListener(() => MountSheet.Open());   // 원작 `UI.openMounts()` — T20 탈것 시트(전체 모달)
             PressFx.Attach(rt.gameObject, rt, "egg_cell", f);   // T355 ⓑ — 정본 8087 .equip-cell.egg-cell:active { translateY(.08rem); brightness(1.07) }
             return rt;
+        }
+
+        /// <summary>여분 탈것 «+N» 배지 — 정본 `UI.MOUNT_COUNT_STYLE`(ui.js 16~18 · 칸 오른쪽 위 · 검정 .62 알약에 흰 .5 테). 수는 표 `MountCellUi.json`.</summary>
+        static void MountCountBadge(RectTransform cell, int extra, float w)
+        {
+            float rem = PopupKit.Rem, css = KeylineUi.CssPx;
+            float line = MountCellUi.F("count_line_px") * css;
+            TextMeshProUGUI t = UiKit.Text(cell, "cell-count", TextKind.Sub, "+" + extra, "stage_ink");
+            t.fontStyle = FontStyles.Bold;
+            float tw = t.GetPreferredValues().x + MountCellUi.F("count_pad_x_rem") * rem * 2f;
+            float th = t.fontSize * 1.25f;                                                   // ui.js 18 line-height:1.25
+            RectTransform box = UiKit.Box(cell, "cell-count-box");
+            UiKit.Anchor(box, new Vector2(1f, 1f), new Vector2(1f, 1f),
+                new Vector2(-MountCellUi.F("count_right_rem") * rem, -MountCellUi.F("count_top_rem") * rem), tw, th);
+            float r = MountCellUi.F("count_r_rem") * rem;
+            Image rim = UiKit.Rounded(box, "line", "pp_line", r);
+            rim.color = MountCellUi.C("count_line");
+            Image bg = UiKit.Rounded(box, "bg", "pp_ink", Mathf.Max(1f, r - line));
+            bg.color = MountCellUi.C("count_bg");
+            PopupKit.Inset(bg.rectTransform, line);
+            t.transform.SetParent(box, false);
+            UiKit.Fill(t.rectTransform);
+            t.alignment = TextAlignmentOptions.Center;
+            t.raycastTarget = false;
         }
 
         /// <summary>모루 자리 — 보류 제작품이 있으면 모루 대신 그 카드(더미 두께 = HeldDeckDepth). 망치 수(원작 `small#anvil-hammers`)는 모루일 때 **받침 위**(T61 · shot-042120 실측 61%)에, 카드일 때 카드 아래에.</summary>
