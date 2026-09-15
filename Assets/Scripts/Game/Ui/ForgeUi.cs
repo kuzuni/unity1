@@ -182,12 +182,26 @@ namespace Forge.Game.Ui
                 if (sh != null) sh.enabled = false;
                 return;
             }
-            if (sh == null) sh = img.gameObject.AddComponent<Shadow>();
-            sh.enabled = true;
             Color c2 = ItemFacesStyle.C("gs_ink");
             c2.a = ItemFacesStyle.L("gs_" + key + "_a");
-            sh.effectColor = c2;
-            sh.effectDistance = new Vector2(0f, -ItemFacesStyle.L("gs_dy_css_px") * KeylineUi.CssPx);   // CSS 의 «아래로 dy» 는 유니티 UI 에서 −y
+            ImageShadow(img, 0f, ItemFacesStyle.L("gs_dy_css_px"), c2);
+        }
+
+        /// <summary>
+        /// 그림(`Image`)에 정본 `drop-shadow(dx dy 0 color)` 한 겹 — `UnityEngine.UI.Shadow` 는 그래픽 메시를 그대로 오프셋해 한 번 더 그리므로 스프라이트 알파를 그대로 따라간다.
+        /// <paramref name="dxCssPx"/>·<paramref name="dyCssPx"/> 는 **정본 CSS px** 다(캔버스 환산은 <see cref="KeylineUi.CssPx"/> · 결정 222) — CSS 의 «아래로» 는 유니티 UI 에서 −y.
+        /// ⚠ **글자에는 안 듣는다**: `Shadow` 는 `IMeshModifier` 인데 TMP 는 그 길을 안 탄다 — 글자는 `UiKit.TextShadow`(TMP 언더레이 · T333)를 쓴다(T332 7회차).
+        /// 흐림은 못 낸다(`Shadow` 에 손잡이가 없다) — 정본이 흐림 0 인 자리(별 둘)와 오프셋이 비정수라 저절로 번지는 자리(썸네일 접지)에만 쓴다.
+        /// </summary>
+        public static void ImageShadow(Image img, float dxCssPx, float dyCssPx, Color color)
+        {
+            if (img == null) return;
+            Shadow sh = null;
+            foreach (Shadow c in img.GetComponents<Shadow>()) if (c.GetType() == typeof(Shadow)) { sh = c; break; }
+            if (sh == null) sh = img.gameObject.AddComponent<Shadow>();
+            sh.enabled = true;
+            sh.effectColor = color;
+            sh.effectDistance = new Vector2(dxCssPx * KeylineUi.CssPx, -dyCssPx * KeylineUi.CssPx);
             sh.useGraphicAlpha = true;
         }
 

@@ -35,6 +35,19 @@ namespace Forge.Game.Ui
             Render();
         }
 
+        /// <summary>
+        /// T332 별 둘 — 정본 `.rate-star { … filter: drop-shadow(0 1px 0 rgba(0,0,0,.35)) }`(style.css 4602).
+        /// 정본은 별 `<img>` 들과 뒤따르는 수를 **한 `<i>` 로 묶어** 거는데(ui.js 4362~4363) 클론은 그것이 `Image` 여럿 + 글자 하나라
+        /// **기구가 갈린다**: 그림은 `ForgeUi.ImageShadow`(메시 오프셋) · 글자는 `UiKit.TextShadow`(TMP 언더레이 · T333).
+        /// `UnityEngine.UI.Shadow` 가 `IMeshModifier` 라 TMP 메시를 안 잡기 때문이다(T332 7회차). 값은 둘 다 표 `TextShadowUi.json` 의 같은 키에서 읽는다.
+        /// </summary>
+        const string StarShadowKey = "rate_star";
+
+        static void StarShadow(Image star)
+        {
+            ForgeUi.ImageShadow(star, TextShadowUi.Px(StarShadowKey, "dx_px"), TextShadowUi.Px(StarShadowKey, "dy_px"), TextShadowUi.C(StarShadowKey));
+        }
+
         public static void Step(int d)
         {
             int cur = level.HasValue ? level.Value : CurLevel;
@@ -122,10 +135,12 @@ namespace Forge.Game.Ui
                     {
                         Image star = UiKit.Icon(bar, "rate-star-" + k, "star");
                         UiKit.Place(star.rectTransform, sx + k * ss, (barH - ss) * 0.5f, ss, ss);
+                        StarShadow(star);
                     }
                     if (ascN > 5)
                     {
                         TextMeshProUGUI sn = PetSkillKit.Text(bar, "rate-star-n", TextKind.Sub, ascN.ToString(), PetSkillStyle.C("ink"), TextAlignmentOptions.Left);
+                        UiKit.TextShadow(sn, StarShadowKey);   // 정본은 별과 수를 `<i class="rate-star">` **하나로 묶어** 걸므로 수도 같은 그림자를 진다(ui.js 4363)
                         UiKit.Place(sn.rectTransform, sx + ss, 0f, inner * 0.3f, barH);
                     }
                 }

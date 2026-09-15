@@ -564,5 +564,53 @@ namespace Forge.Tests.PlayMode
             log.AssertNoRed();
             log.Dispose();
         }
+
+        /// <summary>
+        /// T332 별 둘 — 정본 `.rate-star { … filter: drop-shadow(0 1px 0 rgba(0,0,0,.35)) }`(style.css 4602 · 확률 팝업 줄의 승천 별).
+        /// 정본은 별 `&lt;img&gt;` 들과 뒤따르는 수를 **한 `&lt;i&gt;` 로 묶어** 걸므로(ui.js 4362~4363) 그림도 글자도 같은 값을 진다 —
+        /// 다만 기구가 갈린다(그림 = `UnityEngine.UI.Shadow` · 글자 = TMP 언더레이). 별은 승천 횟수가 0 이면 안 서므로 여기서 세워 준다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 확률_팝업의_별과_수가_정본_딱딱한_그림자를_진다()
+        {
+            yield return Boot();
+            PlayLog log = PlayLog.Start("item-faces-ratestar");
+            float t0 = 0f;
+            while (SkillPetSheet.Instance == null && t0 < 15f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 섰다");
+            PetSkillHost.Instance.AscState.LineAscend["pet"] = 7;   // 5 초과라 «별 하나 + 수» 꼴이 선다(ui.js 4363)
+            SkillRatesPopup.Open(SkillPetSheet.Instance, "pet");
+            yield return null;
+            Assert.IsTrue(SkillPetSheet.Instance.Modal.IsOpen(SkillRatesPopup.ModalName), "확률 팝업이 열린다");
+
+            float dx = TextShadowUi.Px("rate_star", "dx_px") * KeylineUi.CssPx;
+            float dy = TextShadowUi.Px("rate_star", "dy_px") * KeylineUi.CssPx;
+            Color want = TextShadowUi.C("rate_star");
+            int stars = 0, nums = 0;
+            foreach (Image im in UiRoot.Instance.App.GetComponentsInChildren<Image>(true))
+            {
+                if (!im.name.StartsWith("rate-star-", System.StringComparison.Ordinal)) continue;
+                stars++;
+                Shadow sh = null;
+                foreach (Shadow c in im.GetComponents<Shadow>()) if (c.GetType() == typeof(Shadow)) { sh = c; break; }
+                Assert.IsNotNull(sh, "확률 팝업 별 «" + im.name + "» 에 그림자가 걸렸다(정본 4602)");
+                Assert.AreEqual(dx, sh.effectDistance.x, 0.01f, im.name + ": 가로는 안 민다(정본 `0` 1px)");
+                Assert.AreEqual(-dy, sh.effectDistance.y, 0.01f, im.name + ": 아래로 1 CSS px(유니티 −y)");
+                Assert.AreEqual(want.a, sh.effectColor.a, 2f / 255f, im.name + ": 알파 = 표 rate_star(.35)");
+                Assert.Less(sh.effectColor.r + sh.effectColor.g + sh.effectColor.b, 0.05f, im.name + ": 검정");
+            }
+            foreach (TextMeshProUGUI t in UiRoot.Instance.App.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name != "rate-star-n") continue;
+                nums++;
+                Assert.IsTrue(t.fontMaterial.IsKeywordEnabled("UNDERLAY_ON"),
+                    "별 뒤 수도 같은 그림자를 진다 — 정본은 둘을 `<i class=\"rate-star\">` 하나로 묶는다(ui.js 4363)");
+            }
+            Assert.Greater(stars, 0, "승천 7 이면 확률 줄마다 별이 선다");
+            Assert.Greater(nums, 0, "5 초과라 별 뒤에 수가 붙는다");
+
+            log.AssertNoRed();
+            log.Dispose();
+        }
     }
 }
