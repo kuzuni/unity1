@@ -1054,13 +1054,38 @@ SHIFT_BIN = 0.5               # 밀린 크기를 이 단위로 묶어 «나란�
 SHIFT_MIN = 2                 # 같은 크기로 이만큼 밀려 있으면 등재감으로 부른다
 
 
+def app_box(img):
+    """샷 안에서 **앱**(9:16)이 차지하는 상자 — `(x0, y0, w, h)`.
+
+    🚨 원작 샷 30장은 **앱 크기가 아니다**(T28 68회차 전수): 세로/가로가 1.6112~1.8238 로 흩어져 있고
+    9:16(1.7778)인 것은 하나도 없다. 정본 `main.js` `fitLayout()` 이
+    `h = vh; w = h*9/16; if (w > vw) { w = vw; h = w*16/9 }` 라 **앱은 언제나 9:16 이고 나머지는 레터박스**다.
+    그래서 `y / 샷높이` 로 재면 원작 쪽에만 최대 **2.5%p** 의 치우침이 들어간다 — 그것은 내가
+    62~67회차에 «나란히 밀린 줄» 로 등재해 온 값(1.5~2.5%p)과 **같은 크기**다. 반드시 앱 상자로 재라.
+
+    실측 치우침 큰 것부터: `chat` −10.34%H · `pass` +2.52 · `forge-list` +2.16 · `autoforge` +1.98 ·
+    `pet-detail` +1.68 · `tech-branch` −1.67 · `settings` +1.66 … `craft-compare` +0.06(가장 작다).
+    클론 샷은 540×960 = 정확히 9:16 이라 이 함수가 그림 전체를 돌려준다(달라지는 것이 없다).
+    """
+    W, H = img.w, img.h
+    if H * 9 >= W * 16:                  # 세로가 길다 → 폭이 앱 폭 · 위아래 레터박스
+        aw, ah = W, min(H, int(round(W * 16.0 / 9.0)))
+    else:                                # 가로가 넓다 → 높이가 앱 높이 · 좌우 레터박스
+        ah, aw = H, min(W, int(round(H * 9.0 / 16.0)))
+    return ((W - aw) // 2, (H - ah) // 2, aw, ah)
+
+
 def sep_rows(img, y0=0.13, y1=0.86):
-    """가로로 거의 한 색인 줄의 묶음 — [(위 %, 아래 %)]. 행 사이 여백·구분선이 잡힌다."""
+    """가로로 거의 한 색인 줄의 묶음 — [(위 %, 아래 %)]. 행 사이 여백·구분선이 잡힌다.
+
+    ⚠ % 는 **앱 상자 기준**이다(68회차) — 원작 샷의 레터박스를 빼지 않으면 최대 2.5%p 가 치우친다.
+    """
     px, W, H = img.px, img.w, img.h
-    a, b = int(W * SEP_X0), int(W * SEP_X1)
+    ax, ay, aw, ah = app_box(img)
+    a, b = ax + int(aw * SEP_X0), ax + int(aw * SEP_X1)
     n = len(range(a, b, 2))
     ys = []
-    for y in range(int(H * y0), int(H * y1)):
+    for y in range(ay + int(ah * y0), ay + int(ah * y1)):
         base = y * W * 3
         cnt = {}
         for x in range(a, b, 2):
@@ -1077,10 +1102,10 @@ def sep_rows(img, y0=0.13, y1=0.86):
             prev = y
         else:
             if prev - st + 1 >= SEP_MIN:
-                out.append((st * 100.0 / H, (prev + 1) * 100.0 / H))
+                out.append(((st - ay) * 100.0 / ah, (prev + 1 - ay) * 100.0 / ah))
             st = prev = y
     if st is not None and prev - st + 1 >= SEP_MIN:
-        out.append((st * 100.0 / H, (prev + 1) * 100.0 / H))
+        out.append(((st - ay) * 100.0 / ah, (prev + 1 - ay) * 100.0 / ah))
     return out
 
 
@@ -1716,15 +1741,31 @@ def self_test():
 
     # ⑮ 구분선 줄 잡기(T28 59회차) — 가로로 한 색인 줄만 잡고, 글자가 든 줄은 안 잡는다
     # 진짜 화면처럼 카드가 재는 폭(16~84%)을 꽉 채우게 두고, 행마다 글자 덩이를 얹는다.
-    lst = _canvas(200, 400, (240, 240, 240))
+    # 캔버스를 **9:16**(225x400)으로 둔다 — 그래야 `app_box` 가 그림 전체를 앱으로 보고
+    # 이 칸이 «레터박스» 가 아니라 «띠 잡기» 만 잰다(68회차에 sep_rows 가 앱 기준으로 바뀌었다).
+    lst = _canvas(225, 400, (240, 240, 240))
     for y0 in (40, 140, 240, 340):                  # 글자가 든 행 넷 — 이 줄은 «한 색» 이 아니다
-        _fill(lst, 50, y0, 150, y0 + 40, (30, 30, 30))
+        _fill(lst, 56, y0, 169, y0 + 40, (30, 30, 30))
     rs = sep_rows(lst, 0.0, 1.0)
     tops = [round(a0) for a0, a1 in rs]
     chk(all(any(abs(t - g) <= 2 for t in tops) for g in (0, 20, 45, 70)),
         u"행 사이 여백 줄을 잡는다 (%s)" % tops)
     chk(not any(11 <= t <= 19 or 36 <= t <= 44 for t in tops),
         u"글자가 든 줄은 «구분선» 으로 안 잡는다 (%s)" % tops)
+
+    # ⑮-b 앱 상자(T28 68회차) — 원작 샷은 9:16 이 아니라 레터박스가 섞여 있다
+    chk(app_box(_canvas(540, 960)) == (0, 0, 540, 960),
+        u"9:16 그림은 통째로 앱이다 (클론 샷 540x960)")
+    _ab = app_box(_canvas(488, 890))                       # 실측 `pass` 원작 샷
+    chk(_ab[2] == 488 and _ab[3] == 868 and _ab[1] == 11,
+        u"세로로 긴 샷은 폭이 앱 폭이고 위아래가 레터박스다 (%s · pass 실측 488x890)" % (_ab,))
+    _ab2 = app_box(_canvas(499, 804))                      # 실측 `chat` 원작 샷
+    chk(_ab2[3] == 804 and _ab2[2] == 452 and _ab2[0] == 23,
+        u"가로로 넓은 샷은 높이가 앱 높이이고 좌우가 레터박스다 (%s · chat 실측 499x804)" % (_ab2,))
+    # 레터박스가 있으면 «같은 자리» 도 %H 가 달라진다 — 그것이 62~67회차의 밀림과 같은 크기다
+    _lb = 100.0 * (890 - 868) / 2 / 890
+    chk(1.0 < _lb < 1.5,
+        u"pass 샷의 위 여백만으로 %.2f%%p 가 치우친다 — «나란히 밀린 줄» 과 같은 크기다" % _lb)
 
     # ⑯ 나란히 밀린 줄 묶기(T28 61회차) — 흩어진 어긋남과 «같은 크기로 밀림» 을 가른다
     def _grp(ds):
