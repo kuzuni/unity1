@@ -176,6 +176,7 @@ namespace Forge.Game.Ui
             Image face = UiKit.Rounded(f, "face", "pp_panel", PopupKit.Rem * 0.4f - fieldLine);
             PopupKit.Inset(face.rectTransform, fieldLine);
             TextMeshProUGUI t = UiKit.Text(f, "text", TextKind.Sub, text, "pp_ink", TextAlignmentOptions.Left);
+            WrapUi.Apply(t, "profile_field");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 3052 `.profile-field { nowrap }`
             t.fontStyle = FontStyles.Bold;
             t.rectTransform.offsetMin = new Vector2(PopupKit.Rem * 0.55f, 0f);
             TextClamp.Apply(t, "profile_field");   // T351 — 정본 3052 .profile-field { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }

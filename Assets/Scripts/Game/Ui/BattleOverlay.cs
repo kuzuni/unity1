@@ -272,7 +272,7 @@ namespace Forge.Game.Ui
             track = UiKit.Box(mq, "bw-track");
             track.anchorMin = new Vector2(0, 0.5f); track.anchorMax = new Vector2(0, 0.5f); track.pivot = new Vector2(0, 0.5f);
             marquee = UiKit.Text(track, "text", TextKind.Title, FxRules.WarnText + FxRules.WarnText + FxRules.WarnText, "pp_paper", TextAlignmentOptions.Left);
-            marquee.enableWordWrapping = false;
+            WrapUi.Apply(marquee, "bw_track_span");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 402 `.bw-track span { nowrap }`
             marquee.overflowMode = TextOverflowModes.Overflow;
             marquee.raycastTarget = false;
             // T168 2회차 — 정본 style.css 402 `.bw-track span { letter-spacing: .14em }`. 왼쪽 정렬이라 되밀기는 없다.

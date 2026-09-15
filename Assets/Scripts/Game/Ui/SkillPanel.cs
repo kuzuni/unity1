@@ -78,6 +78,7 @@ namespace Forge.Game.Ui
             PetSkillKit.Fill(banner, "bg", PetSkillStyle.C("passive_bg"), PetSkillStyle.Px("passive_r_rem"));
             TextMeshProUGUI bt = PetSkillKit.Text(banner, "t", TextKind.Sub, PetSkillStyle.T("passive_banner", PetSkillStyle.Fmt(pb.Atk), PetSkillStyle.Fmt(pb.Hp)), PetSkillStyle.C("ink"));
             UiKit.Fill(bt.rectTransform);
+            WrapUi.Apply(bt, "passive_banner");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 4010 `.passive-banner { nowrap }`
 
             // T369 2회차 — **격자가 시작하는 자리는 쌓는 순서가 아니라 표가 쥔다**: 정본 `style.css` 4013~4015 `.sk-grid` 머리말이
             // «1행 오브 상단 92px(10.34%H)» 라고 값을 글자로 못 박아 두었다(원본 shot-042340 · 앱 496×890 · 화소 재확인 y92).
@@ -117,6 +118,8 @@ namespace Forge.Game.Ui
             UiKit.Place(UpgradeAllButton.GetComponent<RectTransform>(), ax, actY, aw1, actH);
             QuickEquipButton = PetSkillKit.PaperButton(root, "btn-quick-equip", PetSkillKit.BtnKind.Primary, PetSkillStyle.T("quick_equip"), null, false, OnQuickEquip);
             UiKit.Place(QuickEquipButton.GetComponent<RectTransform>(), ax + aw1 + ag, actY, aw2, actH);
+            // T361 2회차 — 정본 677 `.sk-action-btn { nowrap }`: 종이 버튼의 라벨(PetSkillKit 이 만든 «label»)에 표대로 건다
+            foreach (Button ab in new[] { UpgradeAllButton, QuickEquipButton }) { TextMeshProUGUI al = ab.GetComponentInChildren<TextMeshProUGUI>(true); if (al != null) WrapUi.Apply(al, "sk_action_btn"); }
 
             // ---- summon-bar ----
             RectTransform bar = UiKit.Box(root, "summon-bar");
@@ -228,6 +231,7 @@ namespace Forge.Game.Ui
                 // T90 — 원작 실측(css `#panel-skills .sk-grid .sk-lv` 주석): 잉크 세로중심 = 오브 위에서 72.9% · 잉크 폭 = 지름의 90%.
                 // 종전엔 오브 바닥에 걸쳐(중심 ≈ 82~100%) 아래가 잘려 보였다(런 148·149). 링은 원작 2px/41px ≈ 5% 꼴로 얇게.
                 TextMeshProUGUI lv = PetSkillKit.Stroked(orbRt, "sk-lv", TextKind.Body, PetSkillStyle.T("lv_short", sk.Level), PetSkillStyle.C("white"), "sk_lv");   // 정본 #panel-skills .sk-grid .sk-lv 2px
+                WrapUi.Apply(lv, "sk_lv");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 4048 `.sk-lv { nowrap }`
                 float lvH = UiCatalog.Instance.Kind(TextKind.Body).size * 1.1f;
                 UiKit.Anchor(lv.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f), new Vector2(0f, -lvCenter), orb * PetSkillStyle.L("sk_lv_w_f"), lvH);
                 // 별(있을 때만 · 줄을 차지한다)
@@ -318,6 +322,7 @@ namespace Forge.Game.Ui
             UiKit.Anchor(box, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0f, -PetSkillStyle.Rem(0.3f) + lh * 0.5f), lw, lh);
             TextMeshProUGUI t = PetSkillKit.Text(box, "t", TextKind.Sub, text, PetSkillStyle.C("ink"));
             UiKit.Fill(t.rectTransform);
+            WrapUi.Apply(t, "sk_mini_small");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 4162 `.sk-mini small { nowrap }`
         }
 
         // ---- summon-bar 조각(펫 패널도 쓴다) ----

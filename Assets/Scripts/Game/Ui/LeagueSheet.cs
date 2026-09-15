@@ -161,7 +161,7 @@ namespace Forge.Game.Ui
             // T333 3회차 — 정본 8392 는 `.league-score` 도 같은 한 겹을 받는다(알약 판 위 점수).
             // T352 3회차 — 정본 8635 `.league-score { font-variant-numeric: tabular-nums }`(주석: «세로로 열을 이루는 숫자만 등폭으로 — 행마다 좌우로 흔들리던 자리»).
             //             점수는 봇 20~200 · 내 점수라 두세 자리가 창 8행 + 발 밴드에서 세로 열을 이룬다 — 숫자 구간만 <mspace> 로(결정 570 · 칸 폭은 글꼴에서).
-            foreach (TextMeshProUGUI piece in UiKit.RowTexts(scRow)) { piece.fontStyle = FontStyles.Bold; UiKit.TextShadow(piece, "league_row"); TabularText.Apply(piece); }
+            foreach (TextMeshProUGUI piece in UiKit.RowTexts(scRow)) { WrapUi.Apply(piece, "league_score"); piece.fontStyle = FontStyles.Bold; UiKit.TextShadow(piece, "league_row"); TabularText.Apply(piece); }
             TextMeshProUGUI sv = UiKit.Text(row, "server", TextKind.Sub, "서버 " + e.Server, e.IsMe ? "stage_ink" : "league_server", TextAlignmentOptions.Right);
             // T109 5회차 — 정본 2355 `.league-row.me .league-server { max(1.2px, .1em) var(--pp-line) }`: 파란 me 행만 키라인.
             // 어두운 행의 회색 «서버 N» 은 정본도 민무늬다(2350 주석: 근흑 판 위라 검정 링이 아무것도 안 갈라 준다).
@@ -219,7 +219,7 @@ namespace Forge.Game.Ui
             y += descH + rem * 0.5f;
             RectTransform grid = UiKit.Box(card, "grid");
             UiKit.Place(grid, rem * 1.1f, y, inner - rem * 2.2f, gridH);
-            RewardGrid(grid, cur, inner - rem * 2.2f, gridRowH, "lgr_pill", "stage_ink");
+            RewardGrid(grid, cur, inner - rem * 2.2f, gridRowH, "lgr_pill", "stage_ink", "league_reward_grid_span");
             y += gridH + rem * 0.55f;
             double remain = (h.LeagueState.SeasonEndsAt - h.NowMs) / 1000;
             RectTransform collect = UiKit.Box(card, "collect");
@@ -264,18 +264,19 @@ namespace Forge.Game.Ui
                 }
                 TextMeshProUGUI lab = UiKit.Text(rk, "label", TextKind.Sub, t.Rank <= 3 ? t.Rank.ToString() : t.Label, "stage_ink");
                 lab.fontStyle = FontStyles.Bold;
+                WrapUi.Apply(lab, "league_tier_rank");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 2556 `.league-tier-rank { nowrap }`
                 PopupKit.Ring(lab, t.Rank <= 3 ? "lgr_rank_n" : "league_tier_rank", "pp_line");   // 정본 .lgr-rank-n .16rem · .league-tier-rank.text .108em
                 RectTransform g = UiKit.Box(row, "grid");
                 float gx = rem * 1.1f + rankW + rem * 0.6f;
                 UiKit.Place(g, gx, (tierH - gridH) * 0.5f, cardW - gx - rem * 1.1f, gridH);
-                RewardGrid(g, r, cardW - gx - rem * 1.1f, gridRowH, "lgr_table_pill", "pp_ink");
+                RewardGrid(g, r, cardW - gx - rem * 1.1f, gridRowH, "lgr_table_pill", "pp_ink", "league_tier_grid_span");
             }
 
             PopupKit.XButton(card, () => { h.Popups.Hide(RewardsName); Open(h); });
         }
 
         /// <summary>재화 6종 3열 pill 격자(원작 leagueRewardGrid).</summary>
-        private static void RewardGrid(RectTransform grid, Forge.Core.Data.OrderedMap<double> r, float gw, float rowH, string pillKey, string inkKey)
+        private static void RewardGrid(RectTransform grid, Forge.Core.Data.OrderedMap<double> r, float gw, float rowH, string pillKey, string inkKey, string wrapKey)
         {
             float rem = PopupKit.Rem;
             float gapX = rem * 0.5f, gapY = rem * 0.3f;
@@ -290,6 +291,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(ico.rectTransform, rem * 0.4f, rowH * 0.1f, rowH * 0.8f, rowH * 0.8f);
                 TextMeshProUGUI t = UiKit.Text(pill, "amt", TextKind.Sub, PopupKit.Fmt(r.Get(cur, 0)), inkKey, TextAlignmentOptions.Left);
                 t.fontStyle = FontStyles.Bold;
+                WrapUi.Apply(t, wrapKey);   // T361 2회차 — 정본 white-space 표(WrapUi.json) 2520 `.league-reward-grid span` · 2582 `.league-tier-grid span` 둘 다 nowrap
                 t.rectTransform.offsetMin = new Vector2(rem * 0.4f + rowH * 0.9f, 0f);
             }
         }

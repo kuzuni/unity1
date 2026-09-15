@@ -80,6 +80,7 @@ namespace Forge.Game.Ui
             {
                 label = UiKit.Text(root, "label", TextKind.Sub, string.Empty, null, TextAlignmentOptions.Left);
                 label.fontStyle = FontStyles.Bold;   // font-weight 800
+                WrapUi.Apply(label, "skill_cutin");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 1899 `#skill-cutin { nowrap }`
                 label.characterSpacing = (float)(sp.LsEm * 100.0);   // "skill_cutin_ls_em" · TMP 는 1/100 em
             }
             label.fontSize = font;

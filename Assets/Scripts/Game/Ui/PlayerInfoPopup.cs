@@ -251,6 +251,7 @@ namespace Forge.Game.Ui
             string label = h.S.StageName(SaveIo.Defs);
             TextMeshProUGUI st = UiKit.Text(preview, "stage", TextKind.Sub, label, "stage_ink", TextAlignmentOptions.Left);
             st.fontStyle = FontStyles.Bold;
+            WrapUi.Apply(sh, "pinfo_preview"); WrapUi.Apply(st, "pinfo_preview");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 3186 `.pinfo-preview { nowrap }` — 안의 글자 둘
             float stW = Mathf.Min(w - x - px, PetSkillKit.TextWidth(TextKind.Sub, label) + rem * 0.2f);
             UiKit.Place(st.rectTransform, x, cy, stW, lh);
             x += stW + gap;

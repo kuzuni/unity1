@@ -166,7 +166,7 @@ namespace Forge.Game.Ui
             t.color = CoinBurstStyle.C("amt");
             t.fontStyle = FontStyles.Bold;
             t.raycastTarget = false;
-            t.enableWordWrapping = false;
+            WrapUi.Apply(t, "coin_amt");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 7429 `.coin-amt { nowrap }`
             // T333 9회차 — 정본 7428 `.coin-amt` 8방향 검정 링(--ol max(1.4px,.075rem) · rgba(0,0,0,.92)): SDF 스트로크 한 겹(T104) · 색은 제 표(amt_outline · 알파 .92)
             UiKit.OutlinePx(t, "pp_line", (float)CoinBurstRules.AmtRingCanvasPx(s, UiKit.L("anvil_fx_px"), rem));
             t.outlineColor = CoinBurstStyle.C("amt_outline");

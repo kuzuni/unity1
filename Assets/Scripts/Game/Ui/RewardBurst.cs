@@ -546,7 +546,7 @@ namespace Forge.Game.Ui
             txt.fontStyle = FontStyles.Bold;
             txt.color = RewardBurstStyle.C(colorKey);
             txt.raycastTarget = false;
-            txt.enableWordWrapping = false;
+            WrapUi.Apply(txt, name == "rw-tick" ? "rw_tick" : "rw_amt");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 7495 `.rw-amt` · 7553 `.rw-tick` 둘 다 nowrap
             txt.alignment = TextAlignmentOptions.Left;
             UiKit.OutlinePx(txt, "pp_line", (float)(strokeCssPx * KeylineUi.CssPx));
             txt.outlineColor = RewardBurstStyle.C("stroke");
