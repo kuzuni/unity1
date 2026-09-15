@@ -222,6 +222,9 @@ namespace Forge.Game.Ui
             UiKit.Place(cell, x, y, size, cellH);
             RectTransform face = TileFace(cell, pet.Name, pet.Rarity, size, active, pet.Level, true);
             UiKit.Place(face, 0f, 0f, size, size);
+            // T355 9회차 — 정본 4304 `.pet-tile:active .tile-face { translateY(.08rem); brightness(1.07) }`(4301 .08s ease-out) · 탈것 격자(MountSheet)·펫 재료 칸과 같은 표 키.
+            //   누름은 버튼(.pet-tile)에 붙고 움직이는 것은 얼굴(.tile-face)이다.
+            PressFx.Attach(b.gameObject, face, "pet_tile", MountSheet.TileFaceImage(face));
             if (pet.Stars > 0) SkillPanel.StarRow(cell, pet.Stars, size, size + PetSkillStyle.Rem(0.1f), starH);
             return b;
         }
@@ -276,6 +279,8 @@ namespace Forge.Game.Ui
             Image ico = UiKit.Icon(cell, "egg", "egg", PetSkillStyle.RarityHex(Defs, egg.Rarity));
             float es = size * 1.19f;
             UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, (es - size) * 0.5f), es, es);
+            // T355 9회차 — 정본 4307 `.pet-tile.egg .tile-face` 는 배경·테·그림자만 지우고 :active(4304)는 그대로다 — 알 타일의 «얼굴» 은 알 그림이라 거기에 건다(8회차 알 재료 칸과 같은 꼴).
+            PressFx.Attach(b.gameObject, ico.rectTransform, "pet_tile", ico);
             TextMeshProUGUI lab = PetSkillKit.Text(cell, "tile-label", TextKind.Sub, PetSkillStyle.T("egg"), PetSkillStyle.C("ink"));
             UiKit.Place(lab.rectTransform, 0f, size + PetSkillStyle.Rem(0.1f), size, starH);
             return b;

@@ -328,5 +328,62 @@ namespace Forge.Tests.PlayMode
             ForgeAutoPopup.Close(h);
             yield return null;
         }
+        /// <summary>T355 9회차 — 펫 격자의 마지막 둘: 펫 타일(정본 4304 `.pet-tile:active .tile-face`)과 알 타일(4307 `.pet-tile.egg` 도 :active 는 그대로).
+        /// 새 세이브는 펫 0 이라 알을 하나 뽑아 알 타일부터 재고, 펫이 있으면 펫 타일도 잰다(움직이는 것은 얼굴 · 버튼이 아니다).</summary>
+        [UnityTest]
+        public IEnumerator 펫_격자_타일과_알_타일은_누르면_얼굴만_표대로_내려간다()
+        {
+            yield return Boot();
+            PetSkillHost H = PetSkillHost.Instance;
+            Assert.IsNotNull(H, "PetSkillHost");
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            yield return null;
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            Assert.IsNotNull(sheet, "소환 시트");
+            sheet.Switch(SkillPetSheet.SubPets);
+            yield return null;
+            while (H.SummonMult("pet") != 1) H.CycleSummonMult("pet");
+            H.EggCurrency = 100000;
+            H.Sync();
+            yield return null;
+            if (H.Pets.State.Eggs.Count < 1 && H.Pets.State.Pets.Count < 1)
+            {
+                sheet.Pets.SummonButton.onClick.Invoke();
+                float t0 = 0f;
+                while (H.Pets.State.Eggs.Count < 1 && t0 < 10f) { t0 += Time.unscaledDeltaTime; yield return null; }
+                Assert.GreaterOrEqual(H.Pets.State.Eggs.Count, 1, "알 하나는 나온다");
+                sheet.Modal.CloseAll();
+                sheet.Switch(SkillPetSheet.SubPets);
+                yield return null;
+            }
+            yield return null;
+
+            PressSpec s = PressFx.Table.Get("pet_tile");
+            float rem = PopupKit.Rem;
+            int measured = 0;
+            foreach (RectTransform rt in UiRoot.Instance.App.GetComponentsInChildren<RectTransform>(true))
+            {
+                bool isPet = rt.name == "pet-tile-0", isEgg = rt.name == "egg-tile-0";
+                if (!isPet && !isEgg) continue;
+                PressFx fx = rt.GetComponent<PressFx>();
+                Assert.IsNotNull(fx, rt.name + ": 정본 .pet-tile:active 자리 — 누름이 버튼에 붙는다");
+                RectTransform face = rt.Find(isPet ? "tile-face" : "egg") as RectTransform;
+                Assert.IsNotNull(face, rt.name + ": 움직이는 얼굴(" + (isPet ? ".tile-face" : "알 그림") + ")");
+                Assert.AreSame(face, fx.Target, rt.name + ": 움직이는 것은 얼굴이지 버튼이 아니다(정본 4304)");
+                float baseY = face.anchoredPosition.y;
+                Assert.IsFalse(fx.Active, rt.name + ": 놓인 상태에서 시작");
+                fx.Press(true);
+                yield return Settle(fx, 1.0, s.Ms * 6.0 + 500.0);
+                Assert.AreEqual(1.0, fx.Phase, 1e-6, rt.name + ": 누르면 위상 1 — 잰 위상 " + fx.Phase);
+                Assert.AreEqual(baseY - (float)s.DyRem * rem, face.anchoredPosition.y, 0.5f, rt.name + ": 정본 translateY(.08rem)");
+                fx.Press(false);
+                yield return Settle(fx, 0.0, s.Ms * 6.0 + 500.0);
+                Assert.AreEqual(baseY, face.anchoredPosition.y, 0.5f, rt.name + ": 제자리로");
+                measured++;
+            }
+            Assert.Greater(measured, 0, "펫 타일이나 알 타일 하나는 잰다(pet-tile-0 / egg-tile-0)");
+            yield return null;
+        }
     }
 }
