@@ -271,8 +271,7 @@ namespace Forge.Game.Ui
                     UiKit.Place(face, 0f, 0f, colW, colW);
                     if (locked)
                     {
-                        CanvasGroup cg = face.gameObject.AddComponent<CanvasGroup>();
-                        cg.alpha = 0.5f;
+                        OpacityUi.Apply(face.gameObject, "pet_tile_mat_locked");   // T359 — 정본 4385 .pet-tile.mat-locked .tile-face { opacity: .5 } (표에서)
                     }
                     if (on) Check(cell, colW, "tile_check", PetSkillStyle.Rem(0.3f));
                 }

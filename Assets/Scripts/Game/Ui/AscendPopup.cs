@@ -18,6 +18,8 @@ namespace Forge.Game.Ui
         static string curLine;
 
         public static bool IsOpen { get { return overlay != null; } }
+        /// <summary>열린 팝업의 뿌리(테스트가 자리·알파를 본다 · T359).</summary>
+        public static RectTransform Root { get { return overlay; } }
         public static string Line { get { return curLine; } }
         public static int RowCount { get; private set; }
         public static Button AscendButton { get; private set; }
@@ -96,8 +98,21 @@ namespace Forge.Game.Ui
                 float cntW = DungeonPopups.RemL("asc_cnt_w_rem");
                 TextMeshProUGUI prog = UiKit.Text(row, "prog", TextKind.Sub, label, ink, TextAlignmentOptions.Left);
                 UiKit.Place(prog.rectTransform, px + ico * 1.2f + nameW, 0f, inner - px * 2f - ico * 1.2f - nameW - cntW, rowH);
-                TextMeshProUGUI c = DungeonPopups.Bold(row, "cnt", TextKind.Sub, cnt > 0 ? "★" + cnt + (rdy ? " ▶" : "") : (rdy ? "— ▶" : "—"), ink, TextAlignmentOptions.Right);
-                UiKit.Place(c.rectTransform, inner - px - cntW, 0f, cntW, rowH);
+                OpacityUi.Apply(prog.gameObject, "asc_prog");   // T359 — 정본 5628 .asc-prog { opacity: .85 }
+                // T359 — 정본 5624 `.asc-row.ready::after { content: '▶'; font-size: .7rem; opacity: .8; margin-left: .1rem }`: 화살은 cnt 칸 뒤의 제 상자(알파 .8) —
+                //   cnt 글자에 붙이면 같은 알파가 되어 정본과 다르다. 준비 안 된 행엔 없다(::after 가 .ready 에만 있다).
+                float rem = PopupKit.Rem;
+                float arW = rdy ? OpacityUi.Rem("asc_arrow", "font_rem") * rem : 0f;
+                float arMl = rdy ? OpacityUi.Rem("asc_arrow", "ml_rem") * rem : 0f;
+                TextMeshProUGUI c = DungeonPopups.Bold(row, "cnt", TextKind.Sub, cnt > 0 ? "★" + cnt : "—", ink, TextAlignmentOptions.Right);
+                UiKit.Place(c.rectTransform, inner - px - arW - arMl - cntW, 0f, cntW, rowH);
+                if (rdy)
+                {
+                    TextMeshProUGUI ar = DungeonPopups.Bold(row, "arrow", TextKind.Sub, "▶", ink, TextAlignmentOptions.Right);
+                    ar.fontSize = OpacityUi.Rem("asc_arrow", "font_rem") * rem;
+                    UiKit.Place(ar.rectTransform, inner - px - arW, 0f, arW, rowH);
+                    OpacityUi.Apply(ar.gameObject, "asc_row_ready_arrow");
+                }
                 if (rdy) UiKit.Button(row, "hit", () => Open(l));
                 RowCount++;
                 y += rowH + rowMy * 2f;
@@ -131,6 +146,7 @@ namespace Forge.Game.Ui
                     + (line == "forge" ? "제작되는 장비" : "소환되는 " + kr) + DungeonUiHost.Josa(line == "forge" ? "장비" : kr, "이", "가") + " ★" + next + "로 나옵니다";
                 TextMeshProUGUI fe = DungeonPopups.Para(focus, "eff", TextKind.Sub, eff, "pp_ink", TextAlignmentOptions.Left);
                 UiKit.Place(fe.rectTransform, focusPad, fy, inner - focusPad * 2f, subH * 4f);
+                OpacityUi.Apply(fe.gameObject, "asc_focus_eff");   // T359 — 정본 5635 .asc-focus-eff { opacity: .9 }
                 y += focusH - DungeonPopups.RemL("asc_focus_mt_rem");
 
                 y += DungeonPopups.RemL("asc_focus_mt_rem");

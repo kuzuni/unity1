@@ -1,0 +1,108 @@
+using System.Collections;
+using System.Collections.Generic;
+using NUnit.Framework;
+using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+using Forge.Core.Save;
+using Forge.Game;
+using Forge.Game.Ui;
+
+namespace Forge.Tests.PlayMode
+{
+    /// <summary>
+    /// T359 — 정본 정적 `opacity` 표(`OpacityUi.json`)가 승천 팝업 세 자리에 걸리는가: 행 진행 글자 .85 · 준비된 행의 화살 .8(준비 안 된 행엔 없다) · 초점 효과 글줄 .9.
+    /// 값은 표에서 읽어 견준다. 자기 파일인 이유: `DungeonUiTests` 는 T24·T25 절의 자리다.
+    /// </summary>
+    public class OpacityTests
+    {
+        private static IEnumerator Boot()
+        {
+            try { if (System.IO.File.Exists(SaveIo.SavePath)) System.IO.File.Delete(SaveIo.SavePath); } catch (System.Exception) { }
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            float t = Time.realtimeSinceStartup;
+            while (!DungeonUiHost.Ready)
+            {
+                Assert.Less(Time.realtimeSinceStartup - t, 20f, "DungeonUiHost 가 20초 안에 Ready 되지 않았다");
+                yield return null;
+            }
+            yield return null;
+        }
+
+        static void Collect(Transform t, string name, List<Transform> outList)
+        {
+            if (t.name == name) outList.Add(t);
+            for (int i = 0; i < t.childCount; i++) Collect(t.GetChild(i), name, outList);
+        }
+
+        static float Alpha(Transform t)
+        {
+            CanvasGroup cg = t.GetComponent<CanvasGroup>();
+            return cg != null ? cg.alpha : 1f;
+        }
+
+        [Test]
+        public void 표는_정본_아홉_자리를_정본_값으로_쥔다()
+        {
+            OpacityUi.Reset();
+            Assert.AreEqual(0.8f, OpacityUi.A("asc_row_ready_arrow"), 1e-6f);
+            Assert.AreEqual(0.85f, OpacityUi.A("asc_prog"), 1e-6f);
+            Assert.AreEqual(0.9f, OpacityUi.A("asc_focus_eff"), 1e-6f);
+            Assert.AreEqual(0.5f, OpacityUi.A("pet_tile_mat_locked"), 1e-6f);
+            Assert.AreEqual(0.45f, OpacityUi.A("btn_disabled"), 1e-6f);
+            Assert.AreEqual(0.7f, OpacityUi.A("cmp_card_empty"), 1e-6f);
+            Assert.AreEqual(0.85f, OpacityUi.A("idet_icon_tn_dim"), 1e-6f);
+            Assert.AreEqual(0.9f, OpacityUi.A("ob_zzz"), 1e-6f);
+            Assert.AreEqual(0.1f, OpacityUi.A("toasts_rw_dim"), 1e-6f);
+            Assert.AreEqual(0.7f, OpacityUi.Rem("asc_arrow", "font_rem"), 1e-6f);
+            Assert.AreEqual(0.1f, OpacityUi.Rem("asc_arrow", "ml_rem"), 1e-6f);
+            Assert.Throws<KeyNotFoundException>(() => OpacityUi.A("없는_자리"));
+        }
+
+        [UnityTest]
+        public IEnumerator 승천_팝업의_진행_글자_화살_효과_글줄이_표_알파로_선다()
+        {
+            yield return Boot();
+            AscendPopup.Open();
+            yield return null;
+            Assert.IsTrue(AscendPopup.IsOpen);
+            RectTransform root = AscendPopup.Root;
+            Assert.IsNotNull(root);
+
+            var progs = new List<Transform>(); Collect(root, "prog", progs);
+            Assert.AreEqual(AscendPopup.RowCount, progs.Count, "행마다 진행 글자 하나");
+            foreach (Transform p in progs) Assert.AreEqual(OpacityUi.A("asc_prog"), Alpha(p), 1e-4f, "정본 .asc-prog opacity .85");
+
+            var arrows = new List<Transform>(); Collect(root, "arrow", arrows);
+            var hits = new List<Transform>(); Collect(root, "hit", hits);
+            int readyRows = 0;
+            foreach (Transform h in hits) if (h.parent != null && h.parent.name.StartsWith("row-")) readyRows++;
+            Assert.AreEqual(readyRows, arrows.Count, "화살(::after)은 준비된(.ready) 행에만 있다");
+            foreach (Transform a in arrows)
+            {
+                Assert.AreEqual(OpacityUi.A("asc_row_ready_arrow"), Alpha(a), 1e-4f, "정본 .asc-row.ready::after opacity .8");
+                TextMeshProUGUI t = a.GetComponent<TextMeshProUGUI>();
+                Assert.IsNotNull(t); Assert.AreEqual("▶", t.text);
+                Assert.AreEqual(OpacityUi.Rem("asc_arrow", "font_rem") * PopupKit.Rem, t.fontSize, 0.01f, "정본 .7rem");
+            }
+            var cnts = new List<Transform>(); Collect(root, "cnt", cnts);
+            foreach (Transform c in cnts)
+            {
+                TextMeshProUGUI t = c.GetComponent<TextMeshProUGUI>();
+                if (t != null && c.parent != null && c.parent.name.StartsWith("row-")) Assert.IsFalse(t.text.Contains("▶"), "화살은 cnt 글자에 붙이지 않는다(알파가 다르다)");
+            }
+
+            AscendPopup.Open("forge");
+            yield return null;
+            root = AscendPopup.Root;
+            var effs = new List<Transform>(); Collect(root, "eff", effs);
+            Assert.AreEqual(1, effs.Count, "초점 카드의 효과 글줄 하나");
+            Assert.AreEqual(OpacityUi.A("asc_focus_eff"), Alpha(effs[0]), 1e-4f, "정본 .asc-focus-eff opacity .9");
+            AscendPopup.Close();
+            yield return null;
+            Assert.IsFalse(AscendPopup.IsOpen);
+        }
+    }
+}
