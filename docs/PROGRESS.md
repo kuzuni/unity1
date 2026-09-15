@@ -9779,3 +9779,10 @@
 - **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 0.
 - **다음(10회차)**: 광창(`srbeam` .52s · 십자 광선 + 방사 마스크) · 등급 섬광 · 입자.
 
+
+### T354 12회차 판정 ✅ · lock 반납 — 여섯 작업이 내 lock 뒤에 서 있었다 (2026-09-15 15:3x · 워커 F · sess-0027-41852)
+
+- **판정**: 런 **704**(`e4e0c5d`) — `LineHeightTests` **여덟 칸 전부 PASS**(스킬 상세 두 표값 포함). 같은 런의 빨강 `OpacityTests` 는 T359 산 lock 자리다.
+- **lock 을 놓는 까닭**: `check_lock_queue` 가 **내 lock 뒤에 선 열린 작업 여섯**을 센다 — T333(`AscendPopup`·`ChatScreen`·`MountSheet`·`UiKit`) · T345(`ChatScreen`) · T352(`SkillRatesPopup`·`Stubs/TMPro.cs`) 등, **이 회차들이 쓰지도 않은 파일**까지 내 «범위» 가 쥐고 있었다. 이 절은 «한 줄씩 잇는» 일이라 오래 쥘수록 남을 막는다 — 배선 18/25 에서 놓는다.
+- **이을 사람에게**: 표(`LineHeightUi.json` 81 자리)·로더(`LineHeight.Apply`)·자(`check_line_height` 왕복 + `LineHeightTests` 8칸)가 다 서 있다. **남은 일곱은 그 파일 lock 이 풀리는 대로 `LineHeight.Apply(글자, "키")` 한 줄씩**이다 — `Popups.cs`·`Hud.cs`·`QuestSheet.cs` · `ForgeInfoPopup.cs`·`SkillRatesPopup.cs`·`PetSkillKit.cs`·`DungeonDetailPopup.cs` · `PassPopup.cs` · `SkillSummonResult.cs` · `TechPanel.cs`.
+- **고를 때의 기준(세 회차가 쓴 것)**: **글이 꺾이는 자리부터** 잇는다. 한 줄로만 서는 칸(말줄임이 걸린 이름·배지·버튼 라벨)은 줄 간격이 안 쓰여 «안 보이는 자리» 이고, 정본이 flex 묶음에 건 값(`.pinfo-id-text`)은 클론 구조상 아예 안 쓰인다 — 그런 자리는 **표에 이유를 적고 남긴다**.
