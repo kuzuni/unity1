@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Forge.Core.Data;
+using Forge.Core.Forging;
 using Forge.Core.Save;
 using Forge.Game;
 using Forge.Game.Ui;
@@ -105,6 +108,45 @@ namespace Forge.Tests.PlayMode
             AscendPopup.Close();
             yield return null;
             Assert.IsFalse(AscendPopup.IsOpen);
+        }
+
+        /// <summary>
+        /// T359 4회차 — 정본 `style.css` **1830** `.cmp-card.empty { opacity: .7 }`. 정본 `opacity` 는 **그 상자 한 겹 전체**(테·글자까지)라
+        /// CanvasGroup 한 장이 같은 뜻이다. 클론은 그 .7 을 얼굴 이미지의 알파에 숫자로 박아 두어 **글자는 안 흐려졌다** — 그것이 이 자가 막는 자리다.
+        /// 값은 표에서 읽고, 채워진 카드에는 **안 걸리는 것**까지 같이 본다(정본은 `.empty` 에만 건다).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 비교_카드의_빈_슬롯만_정본_알파_한_겹을_쓴다()
+        {
+            yield return Boot();
+            GameDefs d = ForgeHost.Instance != null ? ForgeHost.Instance.Defs : null;
+            Assert.IsNotNull(d, "GameDefs");
+            RectTransform host = UiKit.Box(UiRoot.Instance.App, "t359-cmp-host");
+            UiKit.Place(host, 0f, 0f, UiKit.RefW, UiKit.RefH);
+
+            float w = UiKit.RefW * 0.4f;
+            RectTransform empty = ForgeUi.ItemCard(host, "cmp-empty", w, null, null, null, false, d, null);
+            Assert.IsNotNull(empty, "빈 슬롯 카드");
+            CanvasGroup cg = empty.GetComponent<CanvasGroup>();
+            Assert.IsNotNull(cg, "정본 .cmp-card.empty 의 opacity 는 카드 한 겹에 걸린다 — CanvasGroup 이 없다(얼굴 알파에 박힌 채다)");
+            Assert.AreEqual(OpacityUi.A("cmp_card_empty"), cg.alpha, 1e-4f, "정본 .cmp-card.empty opacity .7 · 실측 " + cg.alpha);
+
+            // 글자도 같이 흐려져야 한다 — 종전 꼴(얼굴 알파만 .7)에서는 이 줄이 통과하지 못한다.
+            Transform label = empty.Find("empty");
+            Assert.IsNotNull(label, "«빈 슬롯» 글자");
+            Assert.AreSame(cg, label.GetComponentInParent<CanvasGroup>(), "글자가 그 한 겹 안에 든다");
+            Image face = empty.Find("face") != null ? empty.Find("face").GetComponent<Image>() : null;
+            Assert.IsNotNull(face, "얼굴");
+            Assert.AreEqual(1f, face.color.a, 1e-4f, "얼굴 알파에 숫자를 다시 박지 않는다(한 겹은 CanvasGroup 이 쥔다)");
+
+            // 채워진 카드에는 안 건다(정본은 `.empty` 에만).
+            ForgeItem it = new ForgeItem { Slot = "weapon", Age = d.Ages[0], AgeIdx = 0, WType = ForgeHost.Instance.Engine.WeaponsOfAge(d.Ages[0])[0], NameIdx = 0, Rarity = "common", Stars = 0, Level = 1 };
+            RectTransform full = ForgeUi.ItemCard(host, "cmp-full", w, it, null, null, false, d, null);
+            Assert.IsNotNull(full, "채워진 카드");
+            CanvasGroup cg2 = full.GetComponent<CanvasGroup>();
+            Assert.IsTrue(cg2 == null || Mathf.Approximately(cg2.alpha, 1f), "채워진 카드는 안 흐려진다(정본 .cmp-card.empty 에만 건다)");
+            Object.Destroy(host.gameObject);
+            yield return null;
         }
 
         /// <summary>

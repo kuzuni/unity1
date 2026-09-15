@@ -249,8 +249,12 @@ namespace Forge.Game.Ui
             if (item == null)
             {
                 Image face = PopupKit.Outlined(card, "face", "pp_paper", rem * 0.8f, PopupKit.Line3);
-                face.color = new Color(1f, 1f, 1f, 0.7f);
+                face.color = Color.white;
                 TextMeshProUGUI empty = UiKit.Text(card, "empty", TextKind.Sub, "빈 슬롯 — 장착 중인 장비 없음", "pp_muted");
+                // T359 4회차 — 정본 `style.css` **1830** `.cmp-card.empty { opacity: .7 }` 는 **카드 한 겹 전체**에 걸린다(테·글자까지).
+                //   클론은 그 .7 을 얼굴 이미지의 알파에 숫자로 박아 두어(§1 위반) 글자는 안 흐려졌다 — 표(`OpacityUi` `cmp_card_empty`)에서 읽어 카드에 건다.
+                //   ⚠ 이 자리에 남은 두 가지는 **다른 축**이라 안 건드렸다: 정본 `.cmp-card` 는 배경이 아예 없고(면 축) 테가 `border-style: dashed` 다(T365 테 축).
+                OpacityUi.Apply(card.gameObject, "cmp_card_empty");
                 return card;
             }
             Color ac = AgeColor(d, item.Age);

@@ -23,11 +23,11 @@
     },
     "cmp_card_empty": {
       "a": 0.7,
-      "_": "style.css 1830 .cmp-card.empty { opacity: .7 } — ForgeUi.cs:232 박힌 0.7f (T332 lock 뒤)"
+      "_": "style.css 1830 .cmp-card.empty { opacity: .7 } — 4회차에 배선했다(ForgeUi.cs 의 빈 슬롯 갈래 · 종전엔 얼굴 이미지 알파에 0.7f 가 박혀 글자는 안 흐려졌다). 정본 opacity 는 카드 한 겹 전체라 CanvasGroup 으로 건다. 남은 다른 축 둘: 정본 .cmp-card 는 배경이 없고 테가 dashed 다."
     },
     "idet_icon_tn_dim": {
       "a": 0.85,
-      "_": "style.css 2194 .idet-icon.tn-dim .ico { opacity: .85 } — ForgeInfoPopup(T332·T345·T352 lock 뒤 · grayscale 은 T342 갈래)"
+      "_": "style.css 2194 `.idet-icon.tn-dim .ico, .idet-icon.tn-dim img { filter: grayscale(.55); opacity: .85 }`. **자리 정정(4회차)**: 이 키의 클론 자리는 ForgeInfoPopup 이 아니라 **TechPopups** 다. `tn-dim` 을 붙이는 마크업은 정본 ui.js **5601** 한 곳뿐이고(연구 상세 `.idet-icon tn-bronze tn-dim` — 아직 안 열렸고 만렙도 아닌 노드), 장비 상세의 `.idet-icon`(ui.js **2244**)에는 `tn-dim` 이 아예 안 붙는다. 그래서 이 한 줄은 `TechPopups.cs` 의 그 원반이 흐려지는 갈래에 건다(T345 lock 뒤). grayscale(.55) 는 T342 갈래로 따로."
     },
     "toasts_rw_dim": {
       "a": 0.1,
