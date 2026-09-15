@@ -134,10 +134,11 @@ namespace Forge.Tests.PlayMode
             Canvas.ForceUpdateCanvases();
             Popup p = PopupLayer.Instance.Find(LeagueSheet.Name);
             Assert.IsNotNull(p, "리그 시트");
-            // 행의 테는 `PopupKit.Outlined(row, "face", …)` — 행 아래 «face» 상자가 고리(line)·안쪽 면(face)을 품는다(7회차 수리 · 6회차 자는 행 바로 아래에서 찾아 0)
+            // 행의 테는 `PopupKit.Outlined(row, "face", …)` — 행 아래 «face» 상자가 고리(line)·안쪽 면(face)을 품는다(7회차 수리 · 6회차 자는 행 바로 아래에서 찾아 0).
+            // 이름을 «face» 로 못 박는다 — 행 안의 아바타(`PopupKit.Avatar`)도 line+face 를 품는데 그 고리는 ol1 이고 자 KNOWN(`.league-avatar` · Popups.cs T331 lock)의 몫이다(8회차 수리 · 런 688 이 2.0 을 봤다).
             int rows = 0;
             foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
-                if (rt.parent != null && rt.parent.name.StartsWith("row-", System.StringComparison.Ordinal) && rt.Find("line") != null && rt.Find("face") != null) { rows++; Assert.AreEqual(ol2, RingWidth(rt, "리그 행 " + rt.parent.name), 0.01f); }
+                if (rt.name == "face" && rt.parent != null && rt.parent.name.StartsWith("row-", System.StringComparison.Ordinal) && rt.Find("line") != null && rt.Find("face") != null) { rows++; Assert.AreEqual(ol2, RingWidth(rt, "리그 행 " + rt.parent.name), 0.01f); }
             Assert.Greater(rows, 0, "리그 행(.league-row)을 못 찾았다");
             h.Popups.Hide(LeagueSheet.Name);
             yield return null;
@@ -148,7 +149,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(p, "리그 보상");
             Transform table = null;
             foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
-                if (rt.parent != null && rt.parent.name == "table" && rt.Find("line") != null && rt.Find("face") != null) table = rt;
+                if (rt.name == "face" && rt.parent != null && rt.parent.name == "table" && rt.Find("line") != null && rt.Find("face") != null) table = rt;
             Assert.IsNotNull(table, "보상 표(.league-reward-table)를 못 찾았다");
             Assert.AreEqual(ol2, RingWidth(table, "보상 표"), 0.01f);
             h.Popups.Hide(LeagueSheet.RewardsName);
