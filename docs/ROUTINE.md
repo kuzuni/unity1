@@ -1857,6 +1857,7 @@
   → 5회차 코드 들어감(2026-09-15 00:2x): 표 키 셋(`dgclear_title`·`bw_marquee`·`bw_sub`) + 호출 셋 + 자 TABLE 셋(자리 초록 13 → 16) + PlayMode `TextShadowTests` +2. 판정은 다음 유니티 런 · 그 뒤 lock 반납(남은 미정 28 은 전부 남의 산 lock 뒤).
   → 런 547: 5/6 PASS(보스 워닝 둘 초록) · 던전 클리어 제목 자는 «부모 이름 gold» 가정이 틀려(Bordered 는 안쪽 면을 준다) 자만 고쳤다(00:5x) · 판정은 다음 런.
   → 런 555 `TextShadowTests` **6/6 PASS** · **lock 반납**(01:5x) — 남은 미정 28 은 전부 남의 산 lock 뒤(T178·T331·T332·T334·T345 · UiKit.cs) · 풀리면 누구든 이어 잡는다.
+- 🔄 7회차 2026-09-15 03:4x 워커 O(sess-2140-18689 · 선점): 남은 미정 28 은 전부 남의 산 lock 뒤라 그대로 두고, 1회차가 «2회차(누구든)» 로 남긴 **자의 `gate.sh`·`ci.yml` 등록**만 — `tools/gate.sh` 표에 `block|wwwww` 한 줄 + `ci.yml` 두 스텝(`--self-test` 24칸 · 본 검사) · `gate.sh --check-ci` 막는 자 26 → 27. 두 파일은 산 lock 어느 «범위» 에도 없다(마지막 손 = T33 24회차 02:5x · 반납됨 · 결정 599). 판정 = 다음 런 gate 잡의 두 스텝 초록 · 그 뒤 lock 반납(자리 배선은 여전히 T331·T332·T334·T355 lock 뒤 누구든).
 
 
 ### T334 — 소환 결과 팝업의 **연출 시퀀스(충전 → 주역 등장 → 섬광/와이프 → 완료 · 등급 섬광 · 먼지·빛가루·유성) 키프레임 40 이 클론에 없다**: 정본 `tickSummonResult`·`fireSummonHero`·`finishSummonResult` 가 거는 `charging`·`hero`·`flash`·`wipe`·`done` 다섯 상태의 CSS 연출 (Game·UI · **T179 뒤**(같은 파일 `SkillSummonResult.cs`) · T23·T112 뒤 · T33 18회차 등재)

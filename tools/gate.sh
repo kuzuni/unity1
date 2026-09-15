@@ -60,6 +60,7 @@ block|wwwww|정본 -webkit-text-stroke ↔ 클론 키라인 (T109)|python3 tools
 block|wwwww|정본 clip-path 도형 ↔ 클론이 굽는가 (T159)|python3 tools/check_clip_paths.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 gradient 겹 ↔ 클론이 굽는가 (T178)|python3 tools/check_surface_gradients.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 letter-spacing ↔ 클론 자간 + 박힌 숫자 (T168)|python3 tools/check_letter_spacing.py --css .wwwww-src/web/css/style.css
+block|wwwww|정본 text-shadow ↔ 클론 글자 그림자(TMP Underlay) (T333 · 키라인 표의 10 은 T109 몫 · 표에 없는 선택자는 «미정» 으로 세기만 한다)|python3 tools/check_text_shadows.py --css .wwwww-src/web/css/style.css
 block|node|추출기 자기 검사 (T2)|node tools/export_data.js --self-test
 report|gh|유니티 잡이 실제로 돈 마지막 main 런이 초록인가 (T123 · §0-6 의 눈)|python3 tools/check_unity_green.py --fetch
 block|-|이 목록 ↔ ci.yml 이 부르는 이름 — 막는다 (T184 ⓑ · CI 도 같은 자를 돌린다)|tools/gate.sh --check-ci
