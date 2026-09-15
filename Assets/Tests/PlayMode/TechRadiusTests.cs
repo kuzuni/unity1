@@ -43,6 +43,14 @@ namespace Forge.Tests.PlayMode
             Assert.AreNotEqual(RadiusUi.Px("tech_back_r_rem"), shared, "덮는 값이 공용값과 같으면 이 자리는 애초에 없는 일이다");
         }
 
+        [Test]
+        public void 표의_기술_노드_버튼_값은_정본_점육rem_이고_공용_버튼값과_다르다()
+        {
+            // T345 8회차 — 정본 4612 `.tech-btns .btn { border-radius: .6rem }` 이 공용 `.btn`(663 `.55rem`)을 덮는다.
+            Assert.AreEqual(0.6f * RadiusUi.PxPerRem, RadiusUi.Px("tech_btn_r_rem"), 1e-3f, "정본 4612 .tech-btns .btn .6rem");
+            Assert.AreNotEqual(RadiusUi.Px("tech_btn_r_rem"), UiKit.L("btn_radius_rem") * RadiusUi.PxPerRem, "공용 버튼값과 같으면 이 자리는 애초에 없는 일이다");
+        }
+
         [UnityTest]
         public IEnumerator 기술_트리_뒤로_버튼은_정본_점육rem_으로_선다()
         {

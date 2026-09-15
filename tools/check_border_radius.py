@@ -64,6 +64,12 @@ TABLE = {
     #   `.tech-branch-card` 2089 .8 ↔ catalog `tb_card_radius_rem` 0.8 · `.tech-tier-tag` 2162 .35 ↔ `tt_tag_radius_rem` 0.35 ·
     #   `.tech-prog` 4608 .5 ↔ `tech_prog_radius_rem` 0.5. catalog.json(T365 산 lock)에서 이름만 `…_r_rem` 으로 바꾸면 세 자리가 한꺼번에 초록이 된다.
     #   값을 RadiusUi.json 에 **복사**하지 않는다 — 같은 반지름을 두 표가 쥐면 다음 사람이 어느 쪽을 고칠지 모른다(결정 기록).
+    # T345 8회차 — 기술 노드 팝업 버튼 줄(정본이 공용 .btn 을 덮는다)
+    '.tech-btns .btn': ['Ui/TechPopups.cs$tech_btn_r_rem'],
+    # T345 8회차 — 7회차가 «클론 자리부터 가려야 한다» 고 남긴 둘: 정본 렌더 줄이 **0** 이다(`class="tech-node"` 가 어디에도 없고
+    #   ui.js 의 `tech-node` 는 `data-tech-node` 속성과 `#tech-node-fill`·`#tech-node-time` id 뿐 · 나머지는 `web/tools/probe-*.js` 진단 도구).
+    '.tech-node': '—죽은 CSS(정본 렌더 줄 0 · 8회차에 전수로 확인)',
+    '.tech-node-bar': '—죽은 CSS(정본 렌더 줄 0 · 8회차)',
     # 죽은 CSS(정본 ui.js·index.html 에 자취 0 · 20회차 ⓡ)
     '.stat-grid': '—죽은 CSS(정본 렌더 줄 0)',
     '.hatch-slot': '—죽은 CSS(정본 렌더 줄 0)',

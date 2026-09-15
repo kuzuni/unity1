@@ -182,6 +182,7 @@ namespace Forge.Game.Ui
             }
         }
 
+        // T345 8회차 — 정본 4612 `.tech-btns .btn { border-radius: .6rem }` 이 공용 `.btn`(663 .55)을 덮는다: 이 줄의 버튼 넷만 표 `tech_btn_r_rem` 을 쓴다.
         static void RenderAction(RectTransform card, NodeState s, string id, int lv, float pad, float inner, float y)
         {
             float subH = DungeonPopups.LineH(TextKind.Sub), btnH = DungeonPopups.RemL("tech_btn_h_rem"), gap = DungeonPopups.RemL("card_gap_rem");
@@ -196,7 +197,7 @@ namespace Forge.Game.Ui
             if (s == NodeState.Locked)
             {
                 float bw = inner * UiKit.L("tech_btn_w"), bh = DungeonPopups.RemL("btn_sm_h_rem");
-                ActionButton = DungeonPopups.Pill(card, "locked", "잠김", DungeonPopups.Skin.Gray, TextKind.Button, null, -1f, false);
+                ActionButton = DungeonPopups.Pill(card, "locked", "잠김", DungeonPopups.Skin.Gray, TextKind.Button, null, RadiusUi.Px("tech_btn_r_rem"), false);
                 UiKit.Place(DungeonPopups.Root(ActionButton), cx - bw * 0.5f, y, bw, bh);
                 List<string> need = Tree.LockedBy(id);
                 var names = new List<string>();
@@ -230,13 +231,13 @@ namespace Forge.Game.Ui
                 if (ready)
                 {
                     float bw = inner * UiKit.L("tech_claim_w");
-                    ActionButton = DungeonPopups.Pill(card, "claim", "완료 · Lv." + lv + " → Lv." + (lv + 1), DungeonPopups.Skin.Blue, TextKind.Button, OnClaim);
+                    ActionButton = DungeonPopups.Pill(card, "claim", "완료 · Lv." + lv + " → Lv." + (lv + 1), DungeonPopups.Skin.Blue, TextKind.Button, OnClaim, RadiusUi.Px("tech_btn_r_rem"));
                     UiKit.Place(DungeonPopups.Root(ActionButton), cx - bw * 0.5f, y, bw, btnH);
                 }
                 else
                 {
                     float bw = inner * UiKit.L("tech_claim_w");
-                    ActionButton = DungeonPopups.Pill(card, "skip", "건너뛰기\n◆ " + NumFmt.Fmt(Tree.GemSkipCost(Host.Now())), DungeonPopups.Skin.Silver, TextKind.Button, OnGemSkip);
+                    ActionButton = DungeonPopups.Pill(card, "skip", "건너뛰기\n◆ " + NumFmt.Fmt(Tree.GemSkipCost(Host.Now())), DungeonPopups.Skin.Silver, TextKind.Button, OnGemSkip, RadiusUi.Px("tech_btn_r_rem"));
                     UiKit.Place(DungeonPopups.Root(ActionButton), cx - bw * 0.5f, y, bw, btnH);
                 }
                 return;
@@ -246,7 +247,7 @@ namespace Forge.Game.Ui
             double time = Tree.Time(id, lv + 1) ?? 0;
             bool other = Tree.ResearchingId() != null;
             bool disabled = other || Host.Potions < cost;
-            ActionButton = DungeonPopups.Pill(card, "start", "연구 시작 · 물약 " + NumFmt.Fmt(cost) + " · " + NumFmt.FmtTime(time), disabled ? DungeonPopups.Skin.Gray : DungeonPopups.Skin.Blue, TextKind.Button, OnStart, -1f, !disabled);
+            ActionButton = DungeonPopups.Pill(card, "start", "연구 시작 · 물약 " + NumFmt.Fmt(cost) + " · " + NumFmt.FmtTime(time), disabled ? DungeonPopups.Skin.Gray : DungeonPopups.Skin.Blue, TextKind.Button, OnStart, RadiusUi.Px("tech_btn_r_rem"), !disabled);
             UiKit.Place(DungeonPopups.Root(ActionButton), pad, y, inner, btnH);
             if (other)
             {

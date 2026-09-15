@@ -22,6 +22,8 @@
   "af_dd_list_r_rem": 0.45,
   "_back_btn": "style.css 5189 .btn.back-btn — 뒤로 버튼(정본 calc(var(--app-w) * .0094) · .back-btn 5178 의 .6rem 을 덮는다 · 클론은 .league-back-btn 2383 의 .45rem 을 쓰고 있었다)",
   "back_btn_r_w": 0.0094,
+  "_tech_btn": "style.css 4612 `.tech-btns .btn` — 기술 노드 팝업의 버튼 줄(정본 .6 · 공용 `.btn` 663 의 .55 를 덮는 제 규칙이다 · 클론은 catalog btn_radius_rem 을 쓰고 있었다 · T345 8회차)",
+  "tech_btn_r_rem": 0.6,
   "_tech_back": "style.css 2255 `.panel .btn.tech-tree-back` — 기술 트리 뒤로 버튼(정본 .6 · 공용 뒤로 버튼(catalog back_radius_rem .45)을 덮는 제 규칙이다 · T345 7회차)",
   "tech_back_r_rem": 0.6,
   "_tech_node_time": "style.css 2209 .tech-tree-label .tech-tree-node-time — 연구 중 남은 시간·«완료!» 배지(pp-ink 위 초록 글자 · 정본 .6 · 클론엔 면이 아예 없었다 · T345 4회차)",
