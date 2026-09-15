@@ -98,6 +98,32 @@ TABLE = {
     '.asc-focus': ['Ui/AscendPopup.cs@Open'],
     '.dgc-cell': ['Ui/DungeonClearPopup.cs@Show'],
     '.modal-card.sheet .dg-banner': ['Ui/DungeonSheet.cs@Banner'],
+    # 3회차 — 미정에서 옮긴 자리(스킬 바·서브탭·기술 트리·업그레이드 막대·아바타·통화 알약·소환 결과 발)
+    '.skill-btn': ['Ui/SkillBar.cs@Render'],
+    '.skill-btn.empty': ['Ui/SkillBar.cs@Render'],
+    '#summon-subtabs.subtab-strip|top': ['Ui/SkillPetSheet.cs@Build'],
+    '.upg-progress': ['Ui/ForgeInfoPopup.cs@RenderLevelView'],
+    '.tech-node': ['Ui/TechPanel.cs@Node'],
+    '.tech-tree-node': ['Ui/TechPanel.cs@Node'],
+    '.tech-branch-icon::before': ['Ui/TechPanel.cs@BranchCard'],
+    '.icon-circle.sm': ['Ui/TechPopups.cs@RenderNode'],
+    '.settings-toggle::after': ['Ui/Popups.cs@Toggle'],
+    '.league-avatar': ['Ui/Popups.cs@Avatar'],
+    '.league-challenge-avatar': ['Ui/Popups.cs@Avatar'],
+    '.chat-avatar': ['Ui/Popups.cs@Avatar'],
+    '.pinfo-id .avatar': ['Ui/Popups.cs@Avatar'],
+    '.pinfo-preview': ['Ui/PlayerInfoPopup.cs@Fallback'],
+    '.cur-pill': ['Ui/Hud.cs@Pill'],
+    '.qst-bar': ['Ui/QuestSheet.cs@Render'],
+    '.pass-milestone-label': ['Ui/PassPopup.cs@Render'],
+    '.petup-bulk': ['Ui/PetUpgradePopup.cs@Render'],
+    '.rates-prog': ['Ui/SkillRatesPopup.cs@Render'],
+    '.summon-bar .btn.x5-toggle': ['Ui/SkillPanel.cs@MultToggle', 'Ui/PetPanel.cs@MultToggle'],
+    '.petd-share': ['Ui/PetPanel.cs@OpenPetDetail'],
+    '.sr-ok': ['Ui/SkillSummonResult.cs@BuildFoot'],
+    '.sr-solo-own': ['Ui/SkillSummonResult.cs@BuildFoot'],
+    '.sr-again': ['Ui/SkillSummonResult.cs@BuildFoot'],
+    '.skd-btn.silver': ['Ui/Popups.cs@Btn'],
     # T365 ⓐ — 펫 카드 왼쪽 등급색 띠(1664 border-left var(--ol4)) · 클론에 pet-card 이름 0 · PetPanel.cs 는 T331·T333 lock
     '.pet-card|left': ['Ui/PetPanel.cs#pet-card'],
 }
@@ -116,6 +142,11 @@ KNOWN = {
     'Ui/ProfilePopup.cs@Field': 'T365 2회차 — `.profile-field` 3048 ol2 ↔ 클론 Field 는 `- PopupKit.Line`(ol1) · ProfilePopup.cs 는 산 lock 없음 → 3회차에 고친다',
     'Ui/ProfilePopup.cs@RenderProfile': 'T365 2회차 — `.profile-tabs` 3070 ol3 · `.avatar-pick-btn` 3063 ol2 ↔ 클론 RenderProfile 은 ol1 뿐 · ProfilePopup.cs 산 lock 없음 → 3회차',
     'Ui/ProfilePopup.cs@ActRow': 'T365 2회차 — `.settings-act` 3123 ol2 ↔ 클론 ActRow `- PopupKit.Line`(ol1) · ProfilePopup.cs 산 lock 없음 → 3회차',
+    # ── 3회차가 찾은 넷 ──
+    'Ui/PlayerInfoPopup.cs@Fallback': 'T365 3회차 — `.pinfo-preview` 3185 ol2 ↔ 클론 Fallback 은 `radius - PopupKit.Line`(ol1) · PlayerInfoPopup.cs T178·T364 lock',
+    'Ui/Hud.cs@Pill': 'T365 3회차 — `.cur-pill` 3984 ol3 pp-line 인데 클론 HUD 통화 알약은 `Rounded(pill,"bg")` 채움 한 장 — **테가 없다** · Hud.cs T331 lock',
+    'Ui/QuestSheet.cs@Render': 'T365 3회차 — `.qst-bar` 2040 ol2 인데 클론 퀘스트 막대는 `bg`+`fill` 두 채움이라 **테가 없다**(메서드 단 ol3 는 행 카드의 것) · QuestSheet.cs T178·T331 lock',
+    'Ui/PassPopup.cs@Render': 'T365 3회차 — `.pass-milestone-label` 2803 ol2 ↔ 클론 라벨 고리는 `- PopupKit.Line`(ol1)(배너 Line3 는 맞다) · PassPopup.cs T332 lock',
 }
 
 HELPERS = ('PopupKit.Outlined', 'UiKit.Line', 'PetSkillKit.Framed', 'PetSkillKit.Orb', 'DungeonPopups.Bordered', 'DungeonPopups.BorderedCircle', 'UiKit.Rounded')
@@ -314,9 +345,11 @@ def border_calls(src):
             if len(inner) < 4 or not inner[1].startswith('"'):
                 continue
             iname = inner[1].strip('"')
-            if iname not in ('face', 'bg', 'lip', 'ground', 'fill'):
+            inset = '-' in inner[3]
+            # 안쪽 면: 이름이 면 꼴(face/bg/lip/ground/fill·…-fill)이거나, 반지름이 «r - 폭» 꼴이면 짝이다(upg-fill 처럼 이름이 다른 채움도 잡는다)
+            if not (inset or iname in ('face', 'bg', 'lip', 'ground', 'fill') or iname.endswith('-fill') or iname.endswith('fill')):
                 continue
-            tail = inner[3].split('-', 1)[1] if '-' in inner[3] else None
+            tail = inner[3].split('-', 1)[1] if inset else None
             out.append((name, tier_of_expr(tail), m.start()))
         else:
             idx = WIDTH_ARG[helper]
