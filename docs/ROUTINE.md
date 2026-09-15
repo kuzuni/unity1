@@ -2003,6 +2003,7 @@
 - 할 일: ⓐ `.profile-card` 를 `UiKit.W(...)`(카탈로그 폭 비율 `profile_card_gap` = .0261)로 고친다 ⓑ 나머지 `--app-w` 14 · `--app-h` 7 자리의 클론 짝을 찾아 같은 검사를 한다(짝이 레이아웃 그룹이 아니면 «그 자리의 x 오프셋이 폭 비율인가») ⓒ 값은 카탈로그(`UiKit.W`/`H`)에서 읽는다 — 코드에 `rem * k` 로 박지 않는다.
 - 판정: ⓐ 는 PlayMode 로 «두 자식 사이가 폭의 2.61%» + `screen_profile.png` 8배 눈 확인 · ⓑ 는 자리마다 한 줄.
 - 🔄 2026-09-15 05:1x 워커 A(sess-2005-27410) **1회차 = 전수 대조**: ⓐ 는 자리 오인 — `.profile-card` 는 상단바 카드(ui.js 1293)이고 `Hud.cs:93` 이 `UiKit.W("card_gap")` .0261W 로 이미 맞다(`ProfilePopup.cs:219·372` 는 `prompt()`/`confirm()` 대화상자 · 결정 607). 22 자리 = 맞음 12 · 어긋남·박힘 4(`ForgeInfoPopup.cs:168` 박힌 값 · `PlayerInfoPopup` 장비 격자 x 격자폭×.0294/y rem · `dgd_tri_gap` .1 vs .1237 · 대장간 둘 키 없음) · 미정 6(채팅 셋 · 부화 슬롯 · 대장간 둘) — 전부 산 lock 파일이라 2회차부터. 자 `PlayMode/GapRatioTests` 2(카드 틈 = `card_gap`×W · `pip_gap`).
+  → **판정(런 #597 · a9a6793 · 전체 초록)**: `GapRatioTests` 2/2 PASS · `screen_main` 상단바 카드 틈 ≈2.6%W 눈 확인. **lock 반납 · 행 ⬜** — 2회차: `ForgeInfoPopup.cs:168` 박힌 값 · `PlayerInfoPopup` 장비 격자 .015W · `dgd_tri_gap` .1237(카탈로그) · 채팅 셋·부화 슬롯·대장간 둘(각 lock 뒤).
 - 범위: `Assets/Scripts/Game/Ui/ProfilePopup.cs` · `Assets/Forge/catalog.json`(폭 비율 키) 또는 곁 표 · `Assets/Tests/PlayMode/`(새 파일) · 나머지 자리는 **잡는 회차에 산 lock 을 보고 열 파일만 적는다**.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
