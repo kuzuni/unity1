@@ -35,7 +35,6 @@
 | `Ui/QuestSheet.cs` | `quest_btn_h` | ×1.3 | 임시 | T331 lock 뒤(46) |
 | `Ui/QuestSheet.cs` | `quest_bar_h` | ×1.6 | 임시 | T331 lock 뒤(56) |
 | `Ui/ForgeAutoPopup.cs` | `btn_h` | ×1.9 | 임시 | T331 lock 뒤 · 시작 버튼 둘(61·125) |
-| `Ui/ProfilePopup.cs` | `profile_edit` | ×1.3 | 임시 | T364 «범위»(ProfilePopup · lock 없음 — 90분 규약으로 열리면 누구든)(91) |
-| `Ui/ProfilePopup.cs` | `settings_toggle_h` | ×1.1 | 임시 | T364 «범위»(336) |
-| `Ui/ShopSheet.cs` | `shop_cur_h` | ×1.6 | 임시 | T378(누구든 · 산 lock 없음)(47) |
+| `Ui/ProfilePopup.cs` | `settings_toggle_h` | ×1.1 | 임시 | T378 3회차가 잰 값: 정본 3121 `.settings-act` 는 높이를 안 주고 `line-height 1.15rem + padding .1rem×2 + ol2(.125rem)×2 = 1.6rem`(= 0.0303H) — 지금은 토글 높이 1.35rem×1.1 = 1.485rem 이라 8% 낮다 · **새 키 `settings_act_h` 0.0303** 이 필요한데 `catalog.json` 이 T365·T375 lock(336) |
+| `Ui/ShopSheet.cs` | `shop_cur_h` | ×1.6 | 임시 | T378 3회차: 정본 `style.css` 에 `.shop-cur*` 선택자가 없다(`shop-gems`·`shop-gem-card` 뿐) — 상점 머리 통화 막대(`coin-bar`·`gem-bar`)가 정본의 어느 규칙인지(`ui.js` 상점 머리) 먼저 찾아야 표값 2.39%H 와 ×1.6 중 무엇이 정본인지 가릴 수 있다(47) |
 | `Ui/ForgeInfoPopup.cs` | `btn_h` | ×1.7 | 임시 | T332 lock 뒤(98) |
