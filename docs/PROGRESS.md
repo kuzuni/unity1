@@ -7141,6 +7141,20 @@
 - **게이트**: `--self-test` 125칸 · `dotnet build` 0 오류 · `dotnet test` **642/642** · gen_meta · gen_ui_catalog · docs_intact · task_rows · decisions · final_table · claim_scope · keyline · lock_queue 전부 rc 0 · `Assets/` 0줄.
 - **남은 것(✅ 조건)**: CI 한 바퀴(dotnet 잡) 뒤 lock 반납.
 
+### T364 2회차 기록 — ⓑ 가로 축 전수: 새 결함 둘을 찾아 적어 뒀다(고칠 파일은 다 남의 lock) (2026-09-15 07:2x~07:4x · 워커 J · sess-0718-8023 · lock 유지)
+
+- **회차 첫 일(§0-6)**: 빨강 **없다** — 런 **612 초록**(지난 회차의 603 에 이어 둘째다).
+- **왜 T364 였나**: lock 없는 열한 줄 중 일곱이 «90분 안 남의 커밋» 이고, 나머지 넷(T349·T351·T361·T364) 중 **앞 셋은 남은 몫이 통째로 막혀 있다** — T349 는 마지막 배선 `SummonFxTests`(T334) · T351 은 마지막 자리 `SkillSummonResult`(T334) · T361 은 ⓐ 가 `UiKit.cs`(T331·T354)다. T364 만 **ⓑ 가 문서로 되는** 몫이 남아 있었다.
+- **다시 셌다**: 정본에서 `gap`·`row-gap`·`column-gap` 중 `--app-*` 로 준 선언은 **21 선언 = 22 값**(`.forge-item-grid` 가 둘)이다. 그중 **가로(`--app-w`) 15** 가 이 작업이 말하는 위험한 갈래라 거기부터 하나씩 맞췄다(세로 7 은 rem 이 높이 기준이라 축이 안 어긋난다 — 뒤로 미뤘다).
+- **맞는 자리 다섯(손댈 것 없음)**: `#wave-pips` .0363 ↔ `pip_gap` .0363 · `.shop-gems` .0322 ↔ `shop_gem_gap` .0322 · `.pinfo-loadout-row` .015 ↔ `loadout_gap_w` .015 · `.slot-buy-wrap` .0184 ↔ `slot_buy_gap_w` .0184 · `.forge-item-grid` W .0395 / H .0126 ↔ `ForgeInfoPopup.cs:168`.
+- **① 새 결함 — 던전 상세 ◀ 난이도 ▶ 가 11.8px 좁다**: 정본 `.dgd-stage-row`(5304) `--app-w × **.1237**` ↔ 클론 카탈로그 `dgd_tri_gap` = **0.1**(`DungeonDetailPopup.cs:125`). 정본 주석(5300~5303)이 셈을 그대로 적어 뒀다 — «43.05px + 18.7 = 61.75px = 앱 폭의 **12.37%** · **rem 은 루트 글꼴에 매여 뷰포트가 바뀌면 목표에서 벗어나므로 `--app-w` 비율로 못박는다**». **이 작업이 말하는 바로 그 함정**이고, 클론 값 0.1 은 그 보정 **전**의 수로 보인다. 고침은 한 수(`dgd_tri_gap` → .1237)인데 `catalog.json` 이 **T365·T345 산 lock** 이다.
+- **② 새 결함 — 부화장 슬롯 구매 버튼 안쪽이 4.7px 좁다**: 정본 `.hatchery .slot-buy`(4563) `--app-w × .0143`(젬 아이콘 ↔ 값 숫자) ↔ 클론 `PetPanel.cs:358` `PetSkillStyle.Rem(**0.15f**)`. **축도 값도 다르다** — 정본 .0143 × 499 ≈ **7.1 CSS px** · 클론 0.15rem ≈ **2.4 CSS px**. §1 의 «수를 코드에 박지 않는다» 에도 걸린다. `PetPanel.cs` 는 **T331·T365 산 lock**.
+- **곁들여 적어 둔 것**: `slot_buy_gap_w` 는 **값은 맞는데 이름이 안쪽 `.slot-buy` 것처럼** 돼 있다(실제로는 바깥 `.slot-buy-wrap` 의 세로 틈이다) — ② 를 고치는 사람이 두 키를 헷갈리지 않게 절에 적었다. `ForgeInfoPopup.cs:168`·`ForgeSheet.cs:86` 은 **값이 맞지만 코드에 박혀** 있어 자가 못 본다.
+- **남은 가로 일곱**(`.chat-row`·`.chat-share-side`·`.chat-input-bar`·`.sk-grid` col·`.equipped-icon`·`.row.center`·`#panel-pets .sk-grid` col): 클론에 **같은 이름의 자리가 없다** — 절이 적어 둔 대로 레이아웃 그룹이 여섯뿐이라 선택자 단위로 안 맞는다. 그 파일들도 지금 산 lock 이다.
+- **코드 0줄**: 찾은 두 자리가 다 남의 산 lock 뒤라, 이 회차의 몫은 **찾아서 자리·수·근거를 적어 두는 것**이다. 다음 사람이 lock 이 풀리면 각각 **한 수**만 고치면 된다.
+- **게이트**: `tools/gate.sh` **rc 0**(막는 자 전부).
+- **남은 것**: ⓐ(`.profile-card` .0261) + ① + ② 는 `catalog.json`·`PetPanel.cs` lock 뒤 · 가로 일곱과 세로 일곱은 그 다음.
+
 ### T342 ⓒ 판정 초록 · lock 반납 — 잠금 노드가 화면에서도 반쯤 회색이다 (2026-09-15 05:2x · 워커 J · sess-0518-17897)
 
 - **회차 첫 일(§0-6)**: 런 589 의 빨강 둘 — `SurfaceArtTests`(T178 · 산 lock 68분)와 `PressFxSitesTests`. 뒤엣것은 자가 «임자 T355 · lock 이 없다 → **네 일이다**» 라 했지만, **이미 고쳐져 있었다**: 워커 E 가 `a9a6793b`(T331 7회차 · «§0-6 임자 없는 빨강 수리 — 누름 자는 셈이 아니라 «기다림» 이 틀렸다»)로 그 자 파일을 고쳤고 그 커밋은 **런 589 뒤**다. 결정 341 대로 **겹쳐 잡지 않았다**. (덧: T355 6회차도 런 589 뒤라, 589 는 두 수리 **앞**의 판이다.)
