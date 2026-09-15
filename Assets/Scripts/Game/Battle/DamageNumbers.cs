@@ -92,18 +92,26 @@ namespace Forge.Game.Battle
         /// <summary>테스트용 — 공유 재질 캐시를 비운다(글꼴·표가 바뀐 뒤 다시 굽게).</summary>
         public static void ResetMaterials() { outlineMats.Clear(); DmgGlowUi.Reset(); }
 
-        static void Style(string cls, out TextKind kind, out string colorKey, out string outlineKey, out string strokeKey, out Frame[] anim, out string prefix)
+        /// <summary>
+        /// T396 2회차 — 정본이 **선택자에만 리터럴로 못박은 글자 색**. 정본 509 가 그 뜻을 적어 뒀다:
+        /// «크리 위계는 '크기'가 아니라 **색·펀치**로 준다». 그래서 이 다섯은 전역 잉크 토큰으로 찍으면 안 된다 —
+        /// 종전 클론은 크리를 `cp`(#ff8a65 ↔ 정본 #ff8a1e)로, 스킬·영웅·막음·처치를 `stage_ink`(흰색)로 찍었다.
+        /// **스킬(#82b1ff)·막음(#90caf9)은 파랑·하늘색인데 흰색이었다** — 색이 곧 위계인 자리에서 위계가 통째로 없었다.
+        /// `heal`(#69f0ae)만 카탈로그 `pip_done` 이 같은 값이라 그대로 둔다(토큰을 써도 되는 자리 · T377 결정 636 과 같은 셈).
+        /// 값은 표(`Resources/PinnedColorUi.json`)가 쥐고 `tools/check_pinned_colors.py` 의 잉크 갈래가 정본과 같은지 지킨다.
+        /// </summary>
+        static void Style(string cls, out TextKind kind, out string colorKey, out string inkKey, out string outlineKey, out string strokeKey, out Frame[] anim, out string prefix)
         {
-            kind = TextKind.Body; colorKey = "stage_ink"; outlineKey = "stage_outline"; strokeKey = "float_dmg"; anim = Dmg; prefix = "";
+            kind = TextKind.Body; colorKey = "stage_ink"; inkKey = null; outlineKey = "stage_outline"; strokeKey = "float_dmg"; anim = Dmg; prefix = "";
             switch (cls)
             {
-                case "dmg-crit": kind = TextKind.Button; colorKey = "cp"; anim = Crit; break;
-                case "dmg-kill": kind = TextKind.Button; colorKey = "stage_ink"; outlineKey = "cp"; strokeKey = "float_dmg_kill"; anim = Kill; break;
-                case "dmg-skill": kind = TextKind.Button; colorKey = "stage_ink"; break;
-                case "dmg-hero": prefix = "▼"; strokeKey = "float_dmg_hero"; break;
+                case "dmg-crit": kind = TextKind.Button; inkKey = "dmg_crit_ink"; anim = Crit; break;
+                case "dmg-kill": kind = TextKind.Button; inkKey = "dmg_kill_ink"; outlineKey = "cp"; strokeKey = "float_dmg_kill"; anim = Kill; break;
+                case "dmg-skill": kind = TextKind.Button; inkKey = "dmg_skill_ink"; break;
+                case "dmg-hero": prefix = "▼"; inkKey = "dmg_hero_ink"; strokeKey = "float_dmg_hero"; break;
                 case "heal": kind = TextKind.Button; colorKey = "pip_done"; break;
                 case "loot": kind = TextKind.Button; colorKey = "coin"; break;
-                case "block": colorKey = "stage_ink"; break;
+                case "block": inkKey = "dmg_block_ink"; break;
             }
         }
 
@@ -133,10 +141,12 @@ namespace Forge.Game.Battle
                 lp.y += (float)(HitRules.DmgSlotStep * k);
             }
             lp.y = (float)Math.Min(lp.y, topFloor);
-            TextKind kind; string colorKey, outlineKey, strokeKey, prefix; Frame[] anim;
-            Style(cls, out kind, out colorKey, out outlineKey, out strokeKey, out anim, out prefix);
+            TextKind kind; string colorKey, inkKey, outlineKey, strokeKey, prefix; Frame[] anim;
+            Style(cls, out kind, out colorKey, out inkKey, out outlineKey, out strokeKey, out anim, out prefix);
             Num n = Take(layer, kind, colorKey, prefix.Length == 0 ? (text ?? string.Empty) : prefix + text);
             TextMeshProUGUI t = n.T;
+            // T396 2회차 — 못박은 잉크는 표에서(§1 — 코드에 hex 를 안 박는다). `n.Color` 를 뜨기 **전**이어야 한다(아래 151행).
+            if (inkKey != null) t.color = PinnedColorUi.C(inkKey);
             // T333 10회차 — 정본 `@keyframes dmgcrit/dmgkill` 은 **태어나는 프레임**의 겹이 다르다(561~563 «위계는 태어나는 프레임에 서 있어야 한다»).
             n.OutlineKey = outlineKey; n.StrokeKey = strokeKey;
             n.GlowCls = DmgGlowUi.Has(cls) ? cls : null;

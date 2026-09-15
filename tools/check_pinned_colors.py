@@ -52,6 +52,15 @@ KNOWN = {
 #    1회차는 **자와 셈만** 세운다: 배선할 파일(`DamageNumbers.cs` · `ChatScreen.cs` · 탭·부화·소환 …)이
 #    그때그때 남의 산 lock 이라, 자리를 하나씩 붙이는 것은 그 lock 이 풀리는 회차의 몫이다(결정 아래).
 TABLE_INK = {
+    # T396 2회차 — 전투 숫자 다섯(정본 509 «크리 위계는 '크기'가 아니라 **색·펀치**로 준다»).
+    #   클론은 크리를 `cp`(#ff8a65), 나머지를 `stage_ink`(흰색)로 찍고 있었다 — 스킬·막음은 파랑·하늘색인데 흰색이었다.
+    '.float-dmg.dmg-crit': ['Battle/DamageNumbers.cs@Style|res:PinnedColorUi:dmg_crit_ink'],
+    '.float-dmg.dmg-kill': ['Battle/DamageNumbers.cs@Style|res:PinnedColorUi:dmg_kill_ink'],
+    '.float-dmg.dmg-skill': ['Battle/DamageNumbers.cs@Style|res:PinnedColorUi:dmg_skill_ink'],
+    '.float-dmg.dmg-hero': ['Battle/DamageNumbers.cs@Style|res:PinnedColorUi:dmg_hero_ink'],
+    '.float-dmg.block': ['Battle/DamageNumbers.cs@Style|res:PinnedColorUi:dmg_block_ink'],
+    # 값이 이미 같아 토큰을 써도 되는 자리(자가 그 값을 지킨다 · T377 결정 636 과 같은 셈)
+    '.float-dmg.heal': ['Battle/DamageNumbers.cs@Style|catalog:pip_done'],
 }
 KNOWN_INK = {
 }
@@ -337,8 +346,11 @@ def self_test():
         open(os.path.join(game, 'Ui', 'A.cs'), 'w', encoding='utf-8').write(
             'class A { void Build() { var f = Rounded(p, "face", "pp_red", 1); f.color = PinnedColorUi.C("pin2_face"); }\n'
             ' void Other() { X("ok_key"); Y("bad_key"); } }\n')
-        global TABLE, KNOWN
-        saved = (TABLE, KNOWN)
+        global TABLE, KNOWN, TABLE_INK, KNOWN_INK
+        # ⚠ **잉크 표도 같이 치운다**(T396 2회차): 안 치우면 임시 CSS 에 없는 실물 선택자(`.float-dmg…`)가
+        #    «표의 선택자가 정본 목록에 없다» 로 빨개져 **자기 검사가 제 손으로 깨진다**(실제로 그랬다).
+        saved = (TABLE, KNOWN, TABLE_INK, KNOWN_INK)
+        TABLE_INK, KNOWN_INK = {}, {}
         try:
             lines = []
             TABLE = {'.pin': ['Ui/A.cs|catalog:ok_key'], '.pin2': ['Ui/A.cs#face|res:PinnedColorUi:pin2_face']}; KNOWN = {}
@@ -357,7 +369,7 @@ def self_test():
             TABLE = {}; KNOWN = {}
             eq('ⓜ CSS 없음 → rc 2', run(os.path.join(d, 'no.css'), game, cat, res, out=lines.append), 2)
         finally:
-            TABLE, KNOWN = saved
+            TABLE, KNOWN, TABLE_INK, KNOWN_INK = saved
     n = 20   # T377 14 + T396 잉크 갈래 6
     if fails:
         print('✗ check_pinned_colors --self-test 실패 %d' % len(fails))
