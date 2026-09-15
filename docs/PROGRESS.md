@@ -4480,6 +4480,14 @@
 - 게이트: `tools/gate.sh` 막는 자 전부 rc 0. 게임 코드 한 줄 · 자 +1(`LineHeightTests` 5).
 
 
+### T365 2회차 기록 (2026-09-15 06:5x~07:3x · 워커 D · sess-1753-2066 · lock 유지) — 자가 폭 단까지 견주고, 어긋난 자리 13 을 찾았다
+
+- **회차 첫 일(§0-6)**: 런 609(`f6b07d3`) 빨강 = `PressFxSitesTests`(T366 · 산 lock · 그 커밋이 이 자를 고치는 중). 내 1회차 `07dd315` 는 런 603 초록에 실렸다.
+- **자 2회차(`tools/check_box_borders.py`)**: ⓐ **폭 단 대조** — 호출의 폭 인자(`PopupKit.Line`/`Line3` · `PetSkillKit.Line2/Line3` · `line_px`·`line2_px`·`line3_px`·`line4_px`·`line1_px` · `line`/`line3` 변수)를 단으로 읽어 정본 단과 맞춘다(`cellb` → ol3 · 도우미 매개변수 `line`/`linePx`/`borderPx`/`lineW` 는 «못 읽음» 으로 판정 안 함 · `@Method` 는 본문의 단을 모아 정본 단이 그중에 있으면 맞음) ⓑ **`UiKit.Rounded` 는 짝일 때만 테** — 바깥 고리 뒤 420자 안에 안쪽 면(`face`/`bg`/`lip`/`ground`/`fill`)이 따라와야 하고 «r − 폭» 이면 그 폭이 단, 입술 꼴(반지름 따로)은 단 못 읽음 · 채움 하나(`Rounded(p,"bg",…)`)는 테가 아니다 ⓒ 메서드 본문 찾기를 고쳤다 — 줄머리 선언만 잡고(`return Name(` 같은 호출은 안 잡음) · 오버로드는 본문을 전부 잇고 · **문자열·주석 속 중괄호를 안 센다**(«{0}» 포맷 문자열이 `RenderProfile`·`TileFace` 본문을 잘라 «테 없음» 으로 찍던 것) ⓓ TABLE 12 → **58 자리**(공용 도우미 `Popups.cs@Card/Btn/BackButton/Toast/Toggle/Avatar` · 상단바·탭바·시트 한 줄 테 · 리그·패스·상점·퀘스트 카드 면 · 프로필 팝업 · 펫·스킬 타일 · 기술 트리 `Bordered`) · 자기 검사 13 → **18칸**(단 어긋남 · 단 맞음 · 짝 · 채움 · 입술).
+- **찾은 것 — 폭 단 어긋남 13(자 KNOWN 에 파일·lock 과 함께)**: ① 바닥 `.btn`(664 ol1 #444c56 · HUD·오프라인·리그 뒤로) ↔ 공용 `Btn` 은 Line3 하나(모달·패널·시트 안 3543 ol3 는 맞다) ② `.settings-toggle` ol2 ↔ `Toggle` ol1 ③ `.profile-avatar-big` ol3 ↔ `Avatar` ol1 ④ `.chat-preview-badge` **ol15**(1.5px) ↔ line_px(2) — ol15 단 키 자체가 없다 ⑤⑥⑦ `.chat-input-bar` 위 테·입력칸·위험 둥근 버튼 ol2 ↔ `ChatScreen.Open` 은 ol1/ol3 뿐 ⑧ `.league-row` ol2 ↔ `Row` ol1 ⑨ `.league-reward-table` ol2 ↔ ol1 ⑩ `.profile-field` ol2 ↔ ol1 ⑪ `.profile-tabs` ol3 ↔ ol1 ⑫ `.avatar-pick-btn` ol2 ↔ ol1 ⑬ `.settings-act` ol2 ↔ ol1. 갈래는 하나다 — **클론이 `line_px`(ol1)·`line3_px`(ol3) 둘만 쓰고 정본의 ol2(44 자리) 를 거의 안 쓴다**(`line2_px` 를 읽는 곳이 DungeonPopups·PetSkillKit 뿐). 결정 617.
+- **못 한 것(3회차)**: `ProfilePopup.cs`(산 lock 없음)의 넷(⑩~⑬)은 다음 회차에 `PopupKit.Line` → `Line2`/`Line3` 로 고친다 · `Popups.cs`(T331·T333)·`Hud.cs`(T331)·`ChatScreen.cs`(T333·T354)·`LeagueSheet.cs`(T333)의 아홉은 lock 뒤 · ol15 단(`line15_px` 3)은 카탈로그에 더할 것 · 펫 카드 띠(PetPanel T331·T333) · 미정 128 · `gate.sh` 등록(T331·T354).
+- **게이트**: `check_box_borders` rc 0(초록 45 · KNOWN 14 · 미정 128 · 문제 0) · `--self-test` 18칸 · `tools/gate.sh` 막는 자 전부 rc 0.
+
 ### T365 1회차 기록 (2026-09-15 05:5x~06:2x · 워커 D · sess-1753-2066 · lock 유지 · 판정은 다음 런 dotnet 잡 밖 — 자는 아직 gate.sh 밖) — 자 + ol4 키
 
 - **회차 첫 일(§0-6)**: 런 597 전체 초록(PlayMode 296 · EditMode 729) — 내 T361 자 6 포함.
@@ -8513,3 +8521,4 @@
 - **자**: EditMode `StripeRulesTests` **6칸**(각도 뜻 · 주기 경계 · 위상 당김 · 정본 1.556rem 재현 · 사선 띠의 등가선 · 타일 수·비율 대시·흐름 위상) · `dotnet test` **735/735**.
 - **게이트**: `tools/gate.sh` rc **0**(막는 자 전부 · 건너뛴 자 0) · `dotnet build` 0 오류 · `check_resources_json` 43개 문제 0 · `.meta` 둘 생성.
 - **2회차(자리 셋 · 각 lock 뒤)**: `LeagueSheet`(T333) 리그 보상 단 구분선 = 지금 실선 · `SkillPanel`(T331·T333) 소환 바 위 풀블리드 대시 = 지금 없음 · `BattleOverlay`(T333) 보스 경고 −45° 사선 = 지금 세로 대시 12 + 수 셋이 코드에 박혀 있다. 판정은 화소 열(대시·빈 반복 · 45° 경계) + `screen_league`·`screen_skills`·보스 경고 프레임 눈 확인.
+617. **상자 테 자는 «자리가 있는가» 만이 아니라 «폭 단이 같은가» 까지 묻는다 — 첫 실행이 클론의 «ol2 없음» 을 드러냈다(2026-09-15 · T365 2회차 · 워커 D · sess-1753-2066)** — 정본은 ol1 19 · ol2 44 · ol3 62 세 단을 쓰는데 클론은 `line_px`(ol1)·`line3_px`(ol3) 두 키로 거의 다 그리고 `line2_px` 를 읽는 곳이 둘뿐이라, 정본 ol2 자리 44 중 표에 짝지은 아홉이 전부 ol1 또는 ol3 로 어긋났다(리그 행·프로필 칸·설정 토글·채팅 입력줄…). 자리마다 키 하나를 바꾸면 되는 일이라 자에 KNOWN 으로 파일·lock 과 함께 적어 두고, 산 lock 없는 `ProfilePopup.cs` 넷부터 3회차에 고친다. `UiKit.Rounded` 를 «짝일 때만 테» 로 세는 까닭: 클론은 테를 «바깥 고리 + 안쪽 면 r − 폭» 두 장으로 그리므로 채움 한 장(`Rounded(p,"bg",…)`)까지 테로 세면 자리 없음이 숨는다. 되돌리려면 이 자 하나.
