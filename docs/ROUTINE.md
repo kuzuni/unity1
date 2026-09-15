@@ -2264,6 +2264,13 @@
 - 무엇을 한다: 아이콘을 칸 하나로 감싸 ⓐ 배율 **1.04**(수는 표 키 · 코드에 안 박는다) ⓑ 그 칸 위에 `.sr-orb` 첫 두 겹과 같은 방사형을 구운 스프라이트 한 장(α .35 · UGUI 엔 `screen` 이 없으니 더하기 합성 — T178·T342 가 쓴 길) ⓒ `DropShadowUi` 의 `.sr-ico` 키 배선.
 - 판정: PlayMode — 아이콘 칸 배율 1.04 · 얹힌 겹의 밝은 점이 구체 하이라이트(`sr-hilite` 36%/81%)와 **같은 쪽**이다 · 접지 그림자 자리를 부른다 · `screen_summon-result` 눈 확인(아이콘이 구체 면 위에 «놓여» 보이는가 · 정본 주석의 판정 문장이 그대로 자다).
 - 범위: `Assets/Scripts/Game/Ui/SkillSummonResult.cs`(**T334 lock 뒤 — 그 작업 범위 안이다**) · `Assets/Scripts/Game/Ui/SummonFx.cs`(굽기 · 같은 lock) · `Assets/Forge/Resources/SummonFxUi.json`(T179 표) · `DropShadowUi.json`(**T332 lock 뒤**) · `Assets/Tests/PlayMode/`(새 파일) · `docs/ROUTINE.md` · `docs/PROGRESS.md`
+- 🔄 **1회차 2026-09-15 13:5x 워커 L(sess-1347-341 · 선점)**: 자리 파일이 **전부** 남의 lock(`SkillSummonResult`·`SummonFx`·`SummonFxUi.json` T334 · `SurfaceArt`·`SurfaceUi.json` T178 · `DropShadowUi.json` T332)이라 **배선 0** 으로 표·셈·자만 새 파일에 세웠다(결정 655 · T351·T361·T383 1회차가 쓴 길).
+  - `Assets/Scripts/Core/Ui/OrbIconRules.cs`(새 · UnityEngine 0): 겹 상자 환산(`CentreX/Y`·`RadiusX/Y`) · 타원 거리(`EllipseT`) · 두 정지짜리 방사형 감쇠(`Falloff`) · **`ToOrbFrac`**(아이콘 기준 → 구체 기준) · `ScreenBlend`(UGUI 엔 screen 이 없어 더하기로 근사할 때 **얼마나 밝게 어긋나는지** 재려고 둔다).
+  - `Assets/Forge/Resources/OrbIconUi.json`(새) + `Assets/Scripts/Game/Ui/OrbIconUi.cs`(읽기): ⑵ `barrel_scale` **1.04** · `icon_frac_of_orb` **1/2.4** · ⑶ `overlay`(left/top −0.6 · 2.2 정사각 · α **.35** · 겹 둘). **⑴ 접지 그림자는 안 적었다** — T332 표(`DropShadowUi.json` 의 `_남은_자리`)가 이미 쥐고 있어 같은 수를 두 표에 두지 않는다.
+  - `Assets/Tests/EditMode/OrbIconRulesTests.cs`(새 · **7칸**) · dotnet **768/768**.
+  - **셈이 잡아낸 것(배선 회차가 꼭 읽어라)**: 정본의 `−60%`·`220%` 는 **아이콘 한 변** 기준이라 정본 비율(구체의 1/2.4)에서는 첫 겹이 구체 위 **21.6%** 에 와 구체 하이라이트 **19%** 와 맞는다. 그런데 클론은 아이콘을 칸의 **0.62** 로 놓아서(`SkillSummonResult` 507 `isz = cw * 0.62`) 같은 수를 그대로 옮기면 **7.7%** — **11%p 어긋난다**. 겹은 **구체 기준**으로 놓아야 한다(`ToOrbFrac`).
+  - 2회차(각 lock 뒤 · 누구든): 아이콘을 칸으로 감싸 `BarrelScale` · 그 위에 겹 스프라이트 한 장(`SurfaceArt` 방사형 길 재사용) · `DropShadowUi` 의 `.sr-ico` 키 배선 · PlayMode 자(배율 1.04 · 밝은 점이 `sr-hilite` 와 같은 쪽 · `screen_summon-result` 눈 확인).
+
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

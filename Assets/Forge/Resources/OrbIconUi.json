@@ -1,0 +1,32 @@
+{
+  "_정본": "web/css/style.css 6509~6547 «아이콘 조명 통합» — 비평가 B 여섯째 «아이콘이 구체 조명을 안 받아 스티커로 읽힌다» 의 처방 3겹.",
+  "_겹_셋": "첫째 = 접지 그림자 · 둘째 = 약 4% 배럴 스케일 · 셋째 = 구체 스페큘러를 아이콘 위에 한 겹 더(screen · 알파 .35).",
+  "_첫째_겹은_여기_없다": "첫째 겹(접지 그림자) `0 3px 5px rgba(0,0,0,.55)`(6521) 는 T332 표(DropShadowUi.json 의 «_남은_자리») 가 이미 쥐고 있다 — 같은 수를 두 표에 적지 않는다.",
+  "_왜_새_표인가": "자리 표 SummonFxUi.json 은 T179·T334 lock · 겹 표 SurfaceUi.json 은 T178 lock 이라 1회차가 못 연다(결정 538 의 길 — 기다리는 대신 새 파일). 배선하는 회차가 이 표를 그대로 쓸지 옮길지 정한다.",
+
+  "barrel_scale": 1.04,
+  "_barrel_scale": "`.sr-ico { transform: scale(1.04) }`(6522) — 구면에 얹힌 것은 가운데가 미세하게 부푼다는 둘째 겹.",
+
+  "icon_frac_of_orb": 0.4167,
+  "_icon_frac_of_orb": "정본 `.sr-orb` 는 font-size 2.4rem 이고 `.sr-ico > .ico` 는 1em 정사각(6531) → 1/2.4. 겹을 구체 기준으로 옮길 때 쓰는 값이다(OrbIconRules.ToOrbFrac).",
+
+  "overlay": {
+    "_정본": ".sr-ico::after { left:-60%; top:-60%; width:220%; height:220%; mix-blend-mode:screen; opacity:.35 }",
+    "left": -0.6, "top": -0.6, "w": 2.2, "h": 2.2,
+    "alpha": 0.35,
+    "blend": "screen",
+    "_layers": "CSS 는 먼저 적은 겹이 위다 — 굽는 층도 그 차례로 얹는다. 두 겹 다 `.sr-orb` 의 첫 두 겹(6500~6501)과 글자 그대로 같다.",
+    "layers": [
+      {
+        "_정본": "radial-gradient(16% 13% at 36% 19%, #fff, rgba(255,255,255,0) 72%)",
+        "rx": 0.16, "ry": 0.13, "at_x": 0.36, "at_y": 0.19, "end": 0.72,
+        "hex": "#FFFFFF", "a": 1.0
+      },
+      {
+        "_정본": "radial-gradient(58% 52% at 50% 15%, rgba(255,255,255,.6), rgba(255,255,255,0) 64%)",
+        "rx": 0.58, "ry": 0.52, "at_x": 0.5, "at_y": 0.15, "end": 0.64,
+        "hex": "#FFFFFF", "a": 0.6
+      }
+    ]
+  }
+}
