@@ -160,6 +160,8 @@ namespace Forge.Game.SkillFx
         {
             if (Director == null) return;
             if (e.Kind == BattleEventKind.SkillCutin || e.Kind == BattleEventKind.SkillEffect) Handled++;
+            // T384 — 컷인 배너는 UI 층 몫(정본 `UI.skillCutin(d)` · 3D 스킬 오브젝트가 아니다): 오버레이 띠의 콜아웃에 넘긴다.
+            if (e.Kind == BattleEventKind.SkillCutin) { SkillDef cd = Director.DefById(e.Tag); if (cd != null) { Forge.Game.Ui.SkillCutin cut = Forge.Game.Ui.SkillCutin.Ensure(); if (cut != null) cut.Show(cd); } }
             Director.Handle(e);
         }
 

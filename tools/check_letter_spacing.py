@@ -36,7 +36,7 @@ TABLE = {
     '.bw-track span': ['Ui/BattleOverlay.cs$bw_track_ls_em'],
     '.bw-sub': ['Ui/BattleOverlay.cs$bw_sub_ls_em'],
     '.equip-cell .cell-lv': ['Ui/ForgeUi.cs$equip_cell_lv_ls_em'],
-    '#skill-cutin': '—클론에 스킬 컷인 자리가 아직 없다(옮길 것이면 제 번호로 등재해야 한다 · 이 절 밖)',
+    '#skill-cutin': ['Ui/SkillCutin.cs$skill_cutin_ls_em'],   # T384 — 컷인 콜아웃(표 SkillCutinUi.json layout)
     '.chat-input-bar input::placeholder': ['Ui/ChatScreen.cs$chat_placeholder_ls_em'],
     '#forge-item-modal .idet-subs .substat-row': ['Ui/ForgeInfoPopup.cs$substat_row_ls_em'],
     '.petup-selrow .btn.silver': ['Ui/PetUpgradePopup.cs$petup_sel_btn_ls_em'],

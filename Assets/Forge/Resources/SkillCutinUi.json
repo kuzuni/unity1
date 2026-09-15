@@ -1,0 +1,25 @@
+{
+  "_": "T384 — 정본 `#skill-cutin`(index.html 90 · ui.js 3759~3777 skillCutin(def) · style.css 1897~1919 + @keyframes cutin) 의 수치표. 스킬이 터질 때 캐릭터 위(게임 영역 위에서 20%)에 «아이콘 + 스킬 이름» 을 그 스킬 색으로 .8초 띄운다. 길이 단위: _rem = 정본 rem(앱높이/844×16) · _em = 글자 크기 배수 · _f = 비율 · _px = 정본 CSS px(캔버스 환산은 KeylineUi.CssPx). 코드에 수를 박지 않는다(§1). 글자 크기는 정본 주석대로 1.05rem 을 키우지 않는다(«1.7rem 중앙 배너는 워터마크로 오독»).",
+  "layout": {
+    "top_f": 0.20,
+    "font_rem": 1.05,
+    "skill_cutin_ls_em": 0.04,
+    "icon_em": 1.5,
+    "icon_gap_em": 0.3,
+    "rise_rem": 0.6,
+    "_": "top 20% · font-size 1.05rem · font-weight 800 · letter-spacing .04em · `.ico.cutin-ico { width/height 1.5em; margin: -.36em .3em -.36em 0 }`(아이콘은 줄 상자보다 커서 위아래로 .36em 삐져나온다 = 세로 가운데) · 100% 키프레임의 translateY(-.6rem)"
+  },
+  "anim": {
+    "dur_ms": 800,
+    "ease": "ease-out",
+    "opacity": [ { "at": 0, "v": 0 }, { "at": 15, "v": 1 }, { "at": 75, "v": 1 }, { "at": 100, "v": 0 } ],
+    "scale":   [ { "at": 0, "v": 0.3 }, { "at": 15, "v": 1.25 }, { "at": 30, "v": 1 }, { "at": 100, "v": 1 } ],
+    "rise_f":  [ { "at": 0, "v": 0 }, { "at": 30, "v": 0 }, { "at": 100, "v": 1 } ],
+    "_": "`#skill-cutin.play { animation: cutin .8s ease-out forwards }` · 키프레임은 속성마다 따로 보간된다(CSS): opacity 는 0/15/75/100 에만, transform(scale·translateY) 은 0/15/30/100 에만 있다 — 75% 키에 transform 이 없으니 30→100 사이를 곧장 잇고, 30% 키에 translateY 가 없으니 0 이다. 타이밍 함수는 구간마다 다시 걸린다(CssTrack.SampleEased)."
+  },
+  "glow": {
+    "text_blur_px": 10,
+    "icon_blur_px": 6,
+    "_": "글자 `text-shadow: 0 0 10px currentColor, 0 2px 5px rgba(0,0,0,.8)` · 아이콘 `filter: drop-shadow(0 0 6px currentColor) drop-shadow(0 2px 4px rgba(0,0,0,.8))`. 색은 둘 다 그 스킬 색(currentColor). TMP 언더레이는 한 겹이라 글로우(첫째)만 옮기고 둘째(검정 드롭)는 버린다 — 정본 주석이 «아이콘은 따로 안 주면 글자만 빛나고 아이콘은 죽어 보인다» 라 둘 다 준다. T333 표(TextShadowUi.json)·T332 표(DropShadowUi.json)는 산 lock 안이라 이 표가 제 값을 쥔다."
+  }
+}
