@@ -48,11 +48,8 @@ TABLE = {
 
 # 임자가 정해진 빈자리(자리 → 이유) — 배선될 때마다 지운다. 1회차는 **배선이 0 이라 전부 여기 있다**.
 KNOWN = {
-    'Ui/ForgeUi.cs$cell_face': 'T371 1회차 — 표·셈만 세웠다(배선 전). `ForgeUi.cs` 는 T332 산 lock 뒤',
-    'Ui/ForgeUi.cs$cell_line': 'T371 1회차 — 같은 파일(T332 lock)',
     'Ui/ForgeUi.cs$cell_shadow_1': 'T371 1회차 — 그림자 두 겹은 T331(box-shadow 축) 과 겹치는 자리다 — 그 lock 뒤',
     'Ui/ForgeUi.cs$cell_shadow_2': 'T371 1회차 — 같은 자리(뒤 규칙 62%)',
-    'Ui/ForgeUi.cs$cmp_img_face': 'T371 5회차 — 자리를 바로잡았다: 비교 카드의 그림 타일은 `ForgeCraftPopup` 이 아니라 `ForgeUi.ItemCard`(ui.js 3230 itemImgHTML(item, \'cmp-img\')) 안이다 · `ForgeUi.cs` 는 T332 산 lock 뒤',
     'Ui/ForgeInfoPopup.cs$idet_icon_face': 'T371 1회차 — `ForgeInfoPopup.cs` 는 T28·T332 산 lock 뒤',
     'Ui/ForgeInfoPopup.cs$idet_icon_line': 'T371 1회차 — 같은 파일',
     'Ui/PetPanel.cs$pet_tile_face': 'T371 1회차 — 클론은 이미 표(`PetSkillUi.json` `tile_face_mix_f`)로 읽는다 — 2회차에 **표 하나로 합칠지**(키 옮김) 정한다',

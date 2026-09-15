@@ -84,6 +84,38 @@ namespace Forge.Tests.PlayMode
             AssertMix(line.color, ac, 0.80, 0, 0, 0, "카드 테가 표대로 섞였다(정본 990 80%, #000)");
         }
 
+        /// <summary>T371 6회차 — 장비 칸(정본 828 `.equip-cell` 면 58% #17181a · 테 80% #000)과 비교 카드 그림 바탕(1852 `.cmp-img` 58% #17181a)이 **표에서 섞여** 나온다.
+        /// 종전 `ForgeUi.CellFace/CellLine` 은 `.42`·`.2` 를 코드에 박고 있었다(값은 같다 — 이 칸은 «표를 부르는가» 를 잰다).</summary>
+        [UnityTest]
+        public IEnumerator 장비_칸_면_테와_비교_카드_그림_바탕이_표_색으로_선다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            Forge.Core.Forging.ForgeItem it = h.Engine.RollItem();
+            h.Gear.Set(it.Slot, it);
+            ForgeSheet.Render(h);
+            yield return null;
+            Color ac = ForgeUi.AgeColor(h.Defs, it.Age);
+            Transform cell = null;
+            foreach (Transform t in UiRoot.Instance.Sheet.GetComponentsInChildren<Transform>(true)) if (t.name == "cell-" + it.Slot) { cell = t; break; }
+            Assert.IsNotNull(cell, "장비 칸 cell-" + it.Slot);
+            Transform frame = cell.Find("frame");
+            AssertMix(frame.Find("face").GetComponent<Image>().color, ac, 0.58, 0x17, 0x18, 0x1a, "장비 칸 면(정본 828 58%, #17181a)");
+            AssertMix(frame.Find("line").GetComponent<Image>().color, ac, 0.80, 0, 0, 0, "장비 칸 테(정본 828 80%, #000)");
+            AssertMix(ForgeUi.CellFace(ac), ac, 0.58, 0x17, 0x18, 0x1a, "CellFace 가 표 cell_face 를 부른다");
+            AssertMix(ForgeUi.CellLine(ac), ac, 0.80, 0, 0, 0, "CellLine 이 표 cell_line 을 부른다");
+
+            ForgeCraftPopup.Show(h, it);
+            yield return null; yield return null;
+            Popup p = h.Meta.Popups.Find(ForgeCraftPopup.Name);
+            Assert.IsNotNull(p, "비교 팝업");
+            Transform cmpFace = p.Root.Find("card/lower/new/tile/frame/face");
+            Assert.IsNotNull(cmpFace, "비교 카드(new) 그림 타일의 면");
+            AssertMix(cmpFace.GetComponent<Image>().color, ac, 0.58, 0x17, 0x18, 0x1a, "비교 카드 그림 바탕(정본 1852 .cmp-img 58%, #17181a · 표 cmp_img_face)");
+            ForgeCraftPopup.Hide(h);
+            yield return null;
+        }
+
         /// <summary>T371 3회차 — 기술 트리 분기 원판은 **가지색 원색이 아니다**: 정본 2110 바탕 `color-mix(… 78%, #fff)` · 2111 테 `color-mix(… 45%, #000)`.
         /// 클론은 둘 다 원색·공용 선색이라 힘 갈래에서 (226,87,76) ↔ 정본 (232,124,115) 로 갈려 있었다.</summary>
         [UnityTest]

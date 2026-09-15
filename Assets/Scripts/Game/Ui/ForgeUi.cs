@@ -41,10 +41,10 @@ namespace Forge.Game.Ui
         public static string AgeIconKey(string age) { return "age_" + age; }
 
         public static Color Mix(Color a, Color b, float bAmount) { return Color.Lerp(a, b, bAmount); }
-        /// <summary>장비 칸 면 = 시대색 58% + #17181a.</summary>
-        public static Color CellFace(Color age) { return Mix(age, Ink, 0.42f); }
-        /// <summary>장비 칸 테 = 시대색 80% + 검정.</summary>
-        public static Color CellLine(Color age) { return Mix(age, Color.black, 0.2f); }
+        /// <summary>장비 칸 면 — 정본 828 `.equip-cell { background: color-mix(in srgb, var(--rc) 58%, #17181a) }`. T371 6회차: 비율·상대색을 표 `ColorMixUi.json` `cell_face` 에서(전엔 `.42`·`Ink` 가 코드에 박혀 있었다 · 값은 같다).</summary>
+        public static Color CellFace(Color age) { return ColorMixUi.Mix("cell_face", age); }
+        /// <summary>장비 칸 테 — 정본 828 `border: … color-mix(in srgb, var(--rc) 80%, #000)`. T371 6회차: 표 `cell_line`(전엔 `.2` 박힘).</summary>
+        public static Color CellLine(Color age) { return ColorMixUi.Mix("cell_line", age); }
         /// <summary>확률 정보 «다음 %» 세그먼트 — 막대색의 어두운 변주.</summary>
         public static Color Darker(Color c, float k = 0.72f) { return new Color(c.r * k, c.g * k, c.b * k, 1f); }
 
@@ -274,6 +274,10 @@ namespace Forge.Game.Ui
             // 팝업 카드(cur)와 회색 하부 패널(new)이 쥔다. (T57: 여기서 흰 테를 한 겹 더 그려
             // 원작에 없는 상자가 생기고, 반대로 새 장비 카드는 판 없이 3D 배경 위에 떠 보였다.)
             RectTransform tileRt = ItemTile(card, "tile", tile, d, item);   // T122 — 정본 itemImgHTML: 3D 썸네일이 있으면 그것, 없으면 실루엣
+            // T371 6회차 — 정본 1852 `.cmp-img { background: color-mix(in srgb, var(--rc) 58%, #17181a) }`(«아이콘 배경도 시대색 통일»): 비교 카드의 그림 바탕은 제 키 `cmp_img_face` 로 받는다
+            //   (값은 장비 칸 `cell_face` 와 같지만 정본이 따로 적은 자리라 자가 따로 센다). ⚠ 정본 `.cmp-img` 의 테는 `var(--ol2) solid var(--pp-line)`(섞기 아님 · 테 축 T365 몫) — 여기서 안 건드린다.
+            Transform cmpFrame = tileRt.Find("frame");
+            if (cmpFrame != null) { Transform cf = cmpFrame.Find("face"); if (cf != null) cf.GetComponent<Image>().color = ColorMixUi.Mix("cmp_img_face", ac); }
             UiKit.Place(tileRt, rem * 0.7f, rem * 0.6f, tile, tile);
             LvBadge(tileRt, item.Level, tile);
             StarBadge(tileRt, item.Stars, tile, "cmp_star");   // T332 ⓒ — 정본 `.cmp-star`(1860)만 딱딱한 그림자 한 겹을 더 진다
