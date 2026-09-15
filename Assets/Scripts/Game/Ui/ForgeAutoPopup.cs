@@ -98,7 +98,8 @@ namespace Forge.Game.Ui
             Button sp = UiKit.Button(bottom, "af-spinner", () => ToggleDropdown(h));
             RectTransform spRt = sp.GetComponent<RectTransform>();
             UiKit.Place(spRt, inner - spW, rem * 0.15f, spW, rowH - rem * 0.3f);
-            Image spf = UiKit.Rounded(spRt, "face", "pp_line", rem * 0.3f);
+            // T345 — 정본 4783 `.af-spinner { border-radius: .45rem }`(표 `af_spinner_r_rem` · 전엔 .3rem)
+            Image spf = RadiusUi.Rounded(spRt, "face", "pp_line", "af_spinner_r_rem");
             TextMeshProUGUI spt = UiKit.Text(spRt, "value", TextKind.Sub, NumFmt.Fmt(cfg.HammersPerBatch) + (ddOpen ? "  ▼" : "  ▲"), "stage_ink", TextAlignmentOptions.Right);
             spt.fontStyle = FontStyles.Bold;
             spt.rectTransform.offsetMax = new Vector2(-rem * 0.5f, 0f);
@@ -126,7 +127,8 @@ namespace Forge.Game.Ui
                 float listH = itemH * 6f;
                 RectTransform dd = UiKit.Box(bottom, "af-dd-list");
                 UiKit.Place(dd, inner - spW, rem * 0.15f - listH, spW, listH);
-                Image ddbg = UiKit.Rounded(dd, "bg", "pp_line", rem * 0.3f);
+                // T345 — 정본 4791 `.af-dd-list { border-radius: .45rem }`(표 `af_dd_list_r_rem` · 전엔 .3rem)
+                Image ddbg = RadiusUi.Rounded(dd, "bg", "pp_line", "af_dd_list_r_rem");
                 ddbg.raycastTarget = true;
                 RectTransform ddc = PopupKit.ScrollList(dd, "items", 0f, 0f, 0f);
                 for (int n = 1; n <= max; n++)

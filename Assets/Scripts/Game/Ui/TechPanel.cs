@@ -28,6 +28,8 @@ namespace Forge.Game.Ui
         public string TitleText { get { return title != null ? title.text : null; } }
         public string PctText { get { return pct != null ? pct.text : null; } }
         public string NodeLabel(string id) { TextMeshProUGUI t; return nodeLabels.TryGetValue(id, out t) ? t.text : null; }
+        /// <summary>연구 중·완료 노드의 시간 배지(정본 `.tech-tree-node-time`) — 없으면 null(«lv/5» 는 민글자).</summary>
+        public RectTransform NodeTimePill(string id) { RectTransform r; return nodePills.TryGetValue(id, out r) ? r : null; }
         public Button NodeButton(string id) { Button b; return nodes.TryGetValue(id, out b) ? b : null; }
         public Button CardButton(string branchId) { Button b; return cards.TryGetValue(branchId, out b) ? b : null; }
 
@@ -52,6 +54,9 @@ namespace Forge.Game.Ui
         readonly Dictionary<string, TextMeshProUGUI> cardPct = new Dictionary<string, TextMeshProUGUI>();
         readonly Dictionary<string, Button> nodes = new Dictionary<string, Button>();
         readonly Dictionary<string, TextMeshProUGUI> nodeLabels = new Dictionary<string, TextMeshProUGUI>();
+        // T345 ⓒ — 연구 중·완료 노드의 시간 배지(정본 .tech-tree-node-time 알약) · 값 = (가운데 x, 위 y, 높이) — 글자가 바뀌면 폭을 다시 맞춘다
+        readonly Dictionary<string, RectTransform> nodePills = new Dictionary<string, RectTransform>();
+        readonly Dictionary<string, Vector3> nodePillPos = new Dictionary<string, Vector3>();
         readonly List<string> nodeIds = new List<string>();
         float tickAt;
 
@@ -122,7 +127,7 @@ namespace Forge.Game.Ui
         void Clear()
         {
             for (int i = body.childCount - 1; i >= 0; i--) Destroy(body.GetChild(i).gameObject);
-            cards.Clear(); cardPct.Clear(); nodes.Clear(); nodeLabels.Clear(); nodeIds.Clear();
+            cards.Clear(); cardPct.Clear(); nodes.Clear(); nodeLabels.Clear(); nodeIds.Clear(); nodePills.Clear(); nodePillPos.Clear();
             title = pct = potionLabel = gemLabel = null;
             LinkCount = 0;
         }
@@ -394,12 +399,41 @@ namespace Forge.Game.Ui
             UiKit.Anchor(face.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, ico, ico);
             if (!open && !max) rt.gameObject.AddComponent<CanvasGroup>().alpha = UiKit.L("tt_tlocked_alpha");
             string badge = ready ? "완료!" : researching ? NumFmt.FmtTime((Tree.State.Research.EndsAt - Host.Now()) / 1000) : lv + "/" + Tree.Table.MaxLevel;
-            TextMeshProUGUI label = DungeonPopups.Bold(parent, "label-" + id, TextKind.Sub, badge, ready || researching ? "pp_green_dk" : "pp_ink");
-            UiKit.Place(label.rectTransform, x - d, top + d, d * 3f, labelH);
+            TextMeshProUGUI label;
+            if (ready || researching)
+            {
+                // T345 ⓒ — 정본 2209 `.tech-tree-label .tech-tree-node-time { display: inline-block; background: var(--pp-ink); color: var(--pp-green);
+                //   border-radius: .6rem; padding: .05rem .45rem; font-weight: 800; margin-top: .1rem }`(ui.js 5420·5422 — 연구 중·완료 배지만 알약 · «lv/5» 는 민글자).
+                //   전엔 초록 민글자만 있었다(pp_green_dk). 반지름은 표 `tech_node_time_r_rem` · 여백은 catalog `tt_time_*`.
+                RectTransform pill = UiKit.Box(parent, "time-" + id);
+                Image bg = RadiusUi.Rounded(pill, "bg", "pp_ink", "tech_node_time_r_rem");
+                UiKit.Fill(bg.rectTransform);
+                label = DungeonPopups.Bold(pill, "label-" + id, TextKind.Sub, badge, "pp_green");
+                UiKit.Fill(label.rectTransform);
+                float mt = DungeonPopups.RemL("tt_time_mt_rem");
+                nodePills[id] = pill;
+                nodePillPos[id] = new Vector3(x + d * 0.5f, top + d + mt, labelH - mt);
+                PlacePill(id, badge);
+            }
+            else
+            {
+                label = DungeonPopups.Bold(parent, "label-" + id, TextKind.Sub, badge, "pp_ink");
+                UiKit.Place(label.rectTransform, x - d, top + d, d * 3f, labelH);
+            }
             string nid = id;
             nodes[id] = UiKit.Button(rt, "hit", () => TechPopups.OpenNode(nid));
             nodeLabels[id] = label;
             nodeIds.Add(id);
+        }
+
+        /// <summary>시간 배지를 글자 폭 + 정본 패딩(.45rem 양쪽)으로 노드 아래 가운데에 놓는다 — 글자가 바뀔 때마다(정본 inline-block 이 그렇게 준다).</summary>
+        void PlacePill(string id, string text)
+        {
+            RectTransform pill; Vector3 pos;
+            if (!nodePills.TryGetValue(id, out pill) || !nodePillPos.TryGetValue(id, out pos)) return;
+            float padX = DungeonPopups.RemL("tt_time_pad_x_rem");
+            float pw = PetSkillKit.TextWidth(TextKind.Sub, text) + padX * 2f;
+            UiKit.Place(pill, pos.x - pw * 0.5f, pos.y, pw, pos.z);
         }
 
         /// <summary>1초마다 — 연구 남은 시간 표기 갱신(원작 백그라운드 틱의 화면 몫). 완료로 넘어가는 순간은 다시 그린다.</summary>
@@ -418,7 +452,7 @@ namespace Forge.Game.Ui
                 {
                     string want = done ? "완료!" : NumFmt.FmtTime((Tree.State.Research.EndsAt - Host.Now()) / 1000);
                     if (done && l.text != "완료!") Render();
-                    else l.text = want;
+                    else if (l.text != want) { l.text = want; PlacePill(rid, want); }
                 }
             }
             else

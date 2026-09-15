@@ -54,7 +54,8 @@ TABLE = {
     '.substat-row': '✓정본 3708 `.idet-subs .substat-row` 가 배경·테를 걷는다(렌더 줄 ui.js 2232 는 .idet-subs 안뿐) — 클론 ForgeInfoPopup 민글자 행 그대로',
     # ⓒ 판 없음 후보 — 2회차 판정: 클론엔 이미 `MountUpgradePopup` 재료 칩이 `PetSkillKit.Framed(… mtup_chip_r_rem …)` 로 서 있다(정본 .5rem)
     '.mat-chip': ['Ui/MountUpgradePopup.cs$mtup_chip_r_rem@PetSkillUi.json'],
-    '.tech-tree-label .tech-tree-node-time': '—판 없음 후보(정본 pp-ink 위 초록 글자 .6rem · ui.js 5420) — ⓒ PNG 판정 뒤 · TechPanel.cs 는 T335·T342 lock',
+    # ⓒ-c 4회차: 클론엔 배지 면이 없었다 → TechPanel.Node 가 연구 중·완료 노드 아래에 알약(pp_ink 위 pp_green 글자 · 표 tech_node_time_r_rem .6)을 세운다
+    '.tech-tree-label .tech-tree-node-time': ['Ui/TechPanel.cs$tech_node_time_r_rem'],
     # 죽은 CSS(정본 ui.js·index.html 에 자취 0 · 20회차 ⓡ)
     '.stat-grid': '—죽은 CSS(정본 렌더 줄 0)',
     '.hatch-slot': '—죽은 CSS(정본 렌더 줄 0)',
@@ -65,8 +66,6 @@ TABLE = {
 KNOWN = {
     'Ui/ForgeInfoPopup.cs$idet_subs_r_rem': 'T339·T332 가 ForgeInfoPopup.cs 를 쥐었다 — 그 lock 뒤 T345 ⓑ(지금은 rem*0.6)',
     'Ui/ForgeInfoPopup.cs$upg_progress_r_rem': 'T339·T332 lock 뒤 T345 ⓑ(지금은 rem*0.5)',
-    'Ui/ForgeAutoPopup.cs$af_spinner_r_rem': 'T339 가 ForgeAutoPopup.cs 를 쥐었다 — 그 lock 뒤 T345 ⓑ(지금은 rem*0.3)',
-    'Ui/ForgeAutoPopup.cs$af_dd_list_r_rem': 'T339 lock 뒤 T345 ⓑ(지금은 rem*0.3)',
     'Ui/Popups.cs$back_btn_r_w': 'T331·T333·T335 가 Popups.cs 를 쥐었다 — 그 lock 뒤 T345 ⓑ(지금은 Rem*0.45 = 리그 뒤로 버튼 값)',
 }
 
