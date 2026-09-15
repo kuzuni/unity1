@@ -2069,6 +2069,14 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   - **셈이 바뀐다**: «14/15» 가 아니라 **3/15**(`UiShotsTests` + 위 둘). 나머지 열둘은 **애초에 대상이 아닐 수 있다** — 다음 회차는 자리를 늘리기 전에 «이 카메라가 3D 를 그리는가» 를 먼저 센다. 그것이 이 절의 진짜 남은 몫이다.
   - 교훈은 결정 591 — 꼴이 같다고 뜻이 같지는 않다. 게이트 rc 0 · `dotnet test` 720/720 · lock 반납.
 
+- ✅ 5회차(2026-09-15 03:3x · 워커 K · sess-0332-32310) **셈을 끝냈다 + 4회차 교훈을 자로**: 4회차가 «나머지 열둘은 애초에 대상이 아닐 수 있다 — 다음 회차가 세야 한다» 로 끝났다. 이 회차가 전수했다(`tools/check_shot_cams.py` · 새).
+  - **카메라 18 · UI 전용 12**(3D 를 한 화소도 안 그린다 — **후처리 대상이 애초에 아니다**) **· 세계를 그리는 6**.
+  - 여섯 중 **다섯은 이미 켜져 있다**: `BossWarnArtTests`·`SafeAreaTests`(4회차가 남긴 둘) · `ShotCamTests` · `SceneGradeTests`·`WorldFrameShotTests`(T341 이 손으로 `renderPostProcessing = true` · 결정 550).
+  - **남은 하나는 `EdgeOutlineTests`** 뿐이고 **일부러 안 건드렸다** — 그 자는 아웃라인 **후처리 패스 자체**를 화소로 재므로 톤맵·색 보정을 태우면 단언이 밀린다(4회차에 `ForgeUiTests` 에서 겪은 꼴). 켤지는 **그 절(T147·T330) 임자가 화소를 보고** 정한다.
+  - 즉 «3/15» 도 «14/15» 도 아니다 — **대상 6 · 선 것 5 · 남은 것 1**.
+  - **자의 규칙 하나**: UI 층만 그리는 카메라에 `renderPostProcessing` 이 켜져 있으면 **빨강**. 고치는 길 둘(`CopyUrp(...).renderPostProcessing = false` · 아예 안 부르기)을 다 받아 준다. 지금 main 에서 **어긋난 자리 0** · 자기 검사 **11칸**.
+  - **`tools/gate.sh`·`ci.yml` 배선은 T331 산 lock 뒤** — 풀리면 한 줄씩 넣으면 된다(§3 목록은 `gate.sh` 안 배열 하나다 · T184).
+
 ### T353 ✅ — 아이콘 시트가 **바이리니어**로 축소된다: 정본 `.ico`·`.ico.av-ico`·`.dg-banner` 는 `image-rendering: pixelated`(style.css 7215·7225·1959 · «최근접 축소를 강제한다 — 안 걸면 칸 단위로 끊긴 색이 다시 그라디언트가 된다») 인데 클론 `Resources/Icons/atlas-*.png.meta` 는 `filterMode: 1`(Bilinear) (Game·아이콘 · T31 뒤 · T33 22회차 등재)
 - 정본: 아이콘은 IconGen 이 «블록화»(칸 단위 색)로 그리고, 화면에선 `.ico { width: 1.45em }` 로 **축소**되는데 pixelated 가 그 축소를 최근접으로 강제해 칸 경계가 딱딱하게 남는다(정본 주석 «요건 1번이 색이 칸 단위로 끊긴다»). 배너(`.dg-banner`)도 같다.
 - 클론: `Assets/Forge/Icons/Resources/Icons/atlas-0.png`(2048×1948)·`atlas-1.png`(2048×652) · 칸 128px · `.meta` `filterMode: 1`(Bilinear) · mip 없음 → UI 에서 128 → 40~50px 로 줄 때 칸 경계가 **섞인다**(정본과 달리 부드럽다). 던전 배너는 클론이 굽는 그림(T178·T335)이라 굽는 해상도가 곧 화면 픽셀 — 그쪽은 굽기의 몫.
