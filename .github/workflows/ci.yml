@@ -194,6 +194,12 @@ jobs:
         run: python3 tools/check_border_radius.py --self-test
       - name: 정본 border-radius ↔ 클론 둥근 모서리 표값 — 막는다 (T345 · 50% 는 Circle · 알약 동치 결정 543 · 표에 없는 선택자는 «미정» 으로 세기만 한다)
         run: python3 tools/check_border_radius.py --css .wwwww-src/web/css/style.css
+      # T377 — 정본 style.css 8692 가 «전역 --pp-red 는 안 건드린다 · 버튼 규칙에만 리터럴» 이라고 까닭까지 적어 둔 자리.
+      #        토큰으로 뭉개면 화면마다 다른 빨강이 한 색이 된다(정본이 제 손으로 한 번 고친 실수를 이식이 다시 밟았다).
+      - name: 못박은 면 색 자 자기 검사 (T377 `check_pinned_colors.py` · 고장 주입 14칸)
+        run: python3 tools/check_pinned_colors.py --self-test
+      - name: 정본이 선택자에만 못박은 면 색 ↔ 클론 — 막는다 (T377 · 전역 토큰은 안 건드린다 · 표에 없는 선택자는 «미정» 으로 세기만 한다)
+        run: python3 tools/check_pinned_colors.py --css .wwwww-src/web/css/style.css
       # T331 — 정본 box-shadow 168 중 **바깥 그림자 61**(카드 아래턱·패널 위턱·상단바 그늘…)이 클론에 0 이다.
       #        안쪽 띠(inset)는 이미 `PopupKit.BottomShade` 로 서 있다 — 이 자는 **바깥** 갈래만 본다.
       - name: 그림자 자 자기 검사 (T331 `check_box_shadows.py` · 고장 주입 포함 28칸)
