@@ -9,7 +9,7 @@ namespace Forge.Game.Pets
     /// 출전 펫 한 마리의 시각(T10) — 정본 `makePetMesh`(9436 · `Mobs.build(model, {vivid:0.2})` + `userData.joints`) · `refreshPets`(9762 · 등급 스케일·CREATURE_YAW·대열 자리·위상/속도) ·
     /// `update` 펫 블록(18598 · 따라오기·바운스·sway/yaw/pitch·관절 드라이버). 조형은 T4 <see cref="VoxelMob"/> 가 표(mobs-pets.json) 그대로 세우고 관절은 표가 심어 둔 `joints` 서술을 <see cref="VoxelJoint.Set"/> 로 돌린다.
     /// 수치·식은 전부 Core <see cref="PetSceneRules"/>·<see cref="PetPose"/>·<see cref="PetFormation"/> — 여기는 값을 Transform 에 넣기만 한다(three 좌표 → <see cref="ThreeSpace"/> · 결정 4).
-    /// 정본이 펫에 안 거는 것(림 라이트 · 블롭)은 여기도 안 건다 — 승천 데코(`applyAscendDecor`)는 T37 이 무기와 함께 옮긴다.
+    /// 정본이 펫에 안 거는 것(림 라이트 · 블롭)은 여기도 안 건다. 승천 데코는 정본 9779 대로 `makePetMesh` 뒤 · **스케일 전**에 <see cref="AscendDecor.Apply"/>(T399).
     /// </summary>
     public sealed class PetView
     {
@@ -20,6 +20,8 @@ namespace Forge.Game.Pets
         public readonly Transform G;
         /// <summary>정본 `mesh`(Mobs.build 의 group) — 등급 스케일이 걸린다.</summary>
         public readonly Transform Mesh;
+        /// <summary>승천 데코 뿌리(별 0 · 6승천 순환이면 null) — 정본 `deco.userData.ascendDecorRoot`.</summary>
+        public readonly AscendDecorRoot Decor;
         public readonly double Scale, SpotX, SpotZ, Phase, Speed;
         public readonly PetMotionSpec Motion;
         public PetPose Pose { get; private set; }
@@ -33,6 +35,7 @@ namespace Forge.Game.Pets
             G = go.transform;
             Rig = VoxelMob.Build(model, 0, PetSceneRules.Vivid, G, "Mesh " + name);
             Mesh = Rig.Root.transform;
+            Decor = AscendDecor.Apply(Rig, stars);   // 정본 9779 `applyAscendDecor(mesh, p.stars, 'pet')` — 스케일 전 원본 치수 기준(T399)
             Scale = PetSceneRules.Scale(rarities, rarity);
             Mesh.localScale = Vector3.one * (float)Scale;
             Motion = PetSceneRules.MotionOf(defs, name);

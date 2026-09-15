@@ -19,6 +19,7 @@ namespace Forge.Game.Mounts
     /// 탈것 한 마리의 시각(T11) — 정본 `makeMountMesh`(9464 · `Mobs.build(model, {cell: form.saddle / model.seat, vivid: 0.2})` + 파츠 갈래 legs/head/wings/claws/tail/wheels/spinners/glow/flat) ·
     /// `refreshMount`/`refreshMountFollowers` 의 래퍼 그룹(위치·회전 = 그룹 · 배율 = 안의 메시) · `animateMountParts`(파츠 드라이버 · 탄 것과 무리가 같은 함수).
     /// 조형은 T4 <see cref="VoxelMob"/> 가 표(mobs-mounts.json) 그대로 세운다 — 칸 크기만 계열 안장 높이에서 온다(결정 19). 수치·식은 Core <see cref="MountRideRules"/>·<see cref="MountPartDriver"/>.
+    /// 승천 데코는 정본 10820·10982 대로 `makeMountMesh` 뒤 · **배율 전**에 <see cref="AscendDecor.Apply"/>(T399).
     /// 마구(등자·고삐·핸들바·크랭크)는 세우지 않는다 — 서서 타는 지금 정본도 정렬 대상에서 뺀다(«안장에 달린 장식»)이고, 유니티 조립기(T4)에 그 갈래가 없다(T11 완료 기록 참조).
     /// </summary>
     public sealed class MountView
@@ -50,6 +51,8 @@ namespace Forge.Game.Mounts
         public readonly Transform G;
         /// <summary>정본 `mesh`(Mobs.build 의 group) — 배율이 걸린다.</summary>
         public readonly Transform Mesh;
+        /// <summary>승천 데코 뿌리(별 0 · 6승천 순환이면 null) — 정본 `deco.userData.ascendDecorRoot`.</summary>
+        public readonly AscendDecorRoot Decor;
         /// <summary>정본 `sc = 1.1 + RARITIES.indexOf(rarity) * 0.1`.</summary>
         public readonly double Sc;
         public readonly bool Flat;
@@ -78,6 +81,7 @@ namespace Forge.Game.Mounts
             G = go.transform;
             Rig = VoxelMob.Build(model, MountRideRules.Cell(form, model), MountRideRules.Vivid, G, "Mesh " + slot.Name);
             Mesh = Rig.Root.transform;
+            Decor = AscendDecor.Apply(Rig, slot.Stars);   // 정본 10820·10982 `applyAscendDecor(mesh, m.stars, 'mount')` — 스케일 전(T399)
             Mesh.localScale = Vector3.one * (float)sc;
             Flat = model.Flat;
             Kind = MountPartDriver.KindOf(Flat, Rig.Wings.Count > 0, Rig.Wheels.Count > 0);

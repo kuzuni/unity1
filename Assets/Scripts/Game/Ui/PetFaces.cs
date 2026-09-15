@@ -23,14 +23,23 @@ namespace Forge.Game.Ui
 
         public static Sprite Get(string name) { return Get(name, GalleryKind.Pets); }
 
-        /// <summary>종 얼굴 — 펫은 `Pets` · 탈것은 `Mounts`(원작 `mountFace` = 같은 썸네일 파이프라인 · T20 탈것 화면).</summary>
-        public static Sprite Get(string name, GalleryKind kind)
+        /// <summary>종 얼굴 — 펫은 `Pets` · 탈것은 `Mounts`(원작 `mountFace` = 같은 썸네일 파이프라인 · T20 탈것 화면). 별 0(승천 데코 없음).</summary>
+        public static Sprite Get(string name, GalleryKind kind) { return Get(name, kind, 0); }
+
+        /// <summary>정본 `creatureThumb` 캐시 키 `kind:name:a<tier>`(9236·9242 · tier = stars % 6) — 별이 다른 같은 종은 다른 그림이다(T399).</summary>
+        public static string Key(string name, GalleryKind kind, int stars)
+        {
+            return kind + ":" + name + ":a" + AscendDecor.Tier(stars);
+        }
+
+        /// <summary>종 얼굴 + 별 수 — 정본 `petThumb(name, stars)`·`mountThumb(name, rarity, stars)`: 굽기 전에 `applyAscendDecor` 를 얹는다(T399).</summary>
+        public static Sprite Get(string name, GalleryKind kind, int stars)
         {
             if (string.IsNullOrEmpty(name)) return null;
-            string key = kind + ":" + name;
+            string key = Key(name, kind, stars);
             Sprite sp;
             if (cache.TryGetValue(key, out sp)) return sp;
-            sp = Available ? Bake(name, kind) : null;
+            sp = Available ? Bake(name, kind, stars) : null;
             cache[key] = sp;
             return sp;
         }
@@ -42,7 +51,7 @@ namespace Forge.Game.Ui
             if (stage != null) { Object.Destroy(stage); stage = null; }
         }
 
-        static Sprite Bake(string name, GalleryKind kind)
+        static Sprite Bake(string name, GalleryKind kind, int stars)
         {
             GameData data = PetSkillHost.Instance.Data;
             GallerySpecies species = null;
@@ -73,6 +82,7 @@ namespace Forge.Game.Ui
             {
                 e = MobGallery.Build(species, stage.transform);
                 e.Root.transform.localPosition = Vector3.zero;
+                if (e.Rig != null) AscendDecor.Apply(e.Rig, stars);   // 정본 9236·9242 — 썸네일도 스케일 전 원본에 데코를 얹고 경계 상자로 프레이밍한다(T399)
                 rt = RenderTexture.GetTemporary(px, px, 16, RenderTextureFormat.ARGB32);
                 RenderSettings.fog = false;
                 RenderSettings.ambientMode = AmbientMode.Trilight;
@@ -90,7 +100,7 @@ namespace Forge.Game.Ui
                 // 굽는 길이 같으므로 자는 하나만 둔다 — 두께 환산에 쓰는 «칸 폭» 만 펫 타일 값으로 준다.
                 ItemFaces.Outline(tex, ItemFacesStyle.L("pet_cell_canvas_px"));
                 tex.Apply();
-                tex.name = "petface:" + kind + ":" + name;
+                tex.name = "petface:" + Key(name, kind, stars);
             }
             catch (System.Exception ex)
             {
@@ -110,7 +120,7 @@ namespace Forge.Game.Ui
                 if (e != null && e.Root != null) Object.Destroy(e.Root);
             }
             Sprite sp = Sprite.Create(tex, new Rect(0, 0, px, px), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
-            sp.name = "petface:" + kind + ":" + name;
+            sp.name = "petface:" + Key(name, kind, stars);
             return sp;
         }
     }

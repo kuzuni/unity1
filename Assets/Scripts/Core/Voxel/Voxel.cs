@@ -225,6 +225,61 @@ namespace Forge.Core.Voxel
         }
 
         /// <summary>겉껍질만 — 6이웃 중 하나라도 빈 칸(정본 `hollow` · 반투명 파츠의 두께용).</summary>
+        // ── 정본 voxel.js 351~530 의 단면 원형 넷(T399 · 승천 데코가 쓴다) — 전부 **+y 로 쌓고 x·z 는 원점 대칭**이다 ──
+
+        /// <summary>정본 `Voxel.ellipse(rx, rz, h, {rix, riz, y0, color})` — 타원 기둥(주름 `fold` 갈래는 안 옮겼다 · 데코가 안 쓴다). rix·riz 를 주면 속을 판다.</summary>
+        public static List<VoxelCell> Ellipse(double rx, double rz, int h, int color, double rix = 0, double riz = 0, int y0 = 0)
+        {
+            var outCells = new List<VoxelCell>();
+            if (rx <= 0 || rz <= 0 || h <= 0) return outCells;
+            int mx = (int)Math.Floor(rx), mz = (int)Math.Floor(rz);
+            for (int x = -mx; x <= mx; x++)
+                for (int z = -mz; z <= mz; z++)
+                {
+                    double ox = x / rx, oz = z / rz;
+                    if (ox * ox + oz * oz > 1.0000001) continue;
+                    if (rix > 0 && riz > 0)
+                    {
+                        double ix = x / rix, iz = z / riz;
+                        if (ix * ix + iz * iz <= 1.0000001) continue;   // 속을 판 자리
+                    }
+                    for (int y = 0; y < h; y++) outCells.Add(new VoxelCell(x, y0 + y, z, color));
+                }
+            return outCells;
+        }
+
+        /// <summary>정본 `Voxel.ring(rOut, t, h)` — 큐브 링(토러스 대체). 두께 t 는 바깥 반지름에서 안쪽을 판 나머지.</summary>
+        public static List<VoxelCell> Ring(double rOut, double t, int h, int color)
+        {
+            return Ellipse(rOut, rOut, h, color, rOut - t, rOut - t);
+        }
+
+        /// <summary>정본 `Voxel.taper(r0, r1, h)` — 절두원뿔. r0(밑) → r1(위) 로 층마다 선형 보간 · 반지름 .5 미만 층은 비운다 · h ≤ 0 이면 빈 목록.</summary>
+        public static List<VoxelCell> Taper(double r0, double r1, double h, int color)
+        {
+            var outCells = new List<VoxelCell>();
+            if (!(h > 0)) return outCells;
+            int hh = Math.Max(1, (int)Math.Round(h, MidpointRounding.AwayFromZero));
+            for (int y = 0; y < hh; y++)
+            {
+                double k = hh == 1 ? 0 : (double)y / (hh - 1);
+                double rr = r0 + (r1 - r0) * k;
+                if (rr < 0.5) continue;
+                outCells.AddRange(Ellipse(rr, rr, 1, color, 0, 0, y));
+            }
+            return outCells;
+        }
+
+        /// <summary>정본 `Voxel.gem(r)` — 큐브 보석(팔면체 대체): |x|+|y|+|z| ≤ r.</summary>
+        public static List<VoxelCell> Gem(double r, int color)
+        {
+            var outCells = new List<VoxelCell>();
+            int m = (int)Math.Floor(r);
+            for (int x = -m; x <= m; x++) for (int y = -m; y <= m; y++) for (int z = -m; z <= m; z++)
+                if (Math.Abs(x) + Math.Abs(y) + Math.Abs(z) <= r) outCells.Add(new VoxelCell(x, y, z, color));
+            return outCells;
+        }
+
         public static List<VoxelCell> Hollow(IList<VoxelCell> cells)
         {
             var occ = Occupancy(cells);
