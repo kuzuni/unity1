@@ -22,15 +22,23 @@ import os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TESTS = os.path.join(ROOT, 'Assets', 'Tests', 'PlayMode')
 
-# 새 카메라를 만드는 자리 — 여기서부터 한 덩이로 읽는다
-CAM_NEW = re.compile(r'(\w+)\s*=\s*\w+\.AddComponent<Camera>\(\)')
+# 새 카메라를 만드는 자리 — 여기서부터 한 덩이로 읽는다.
+# T349 6회차 — `ShotCam.From(...)` 도 카메라를 **만드는** 자리다(제 안에서 `CopyFrom` + `CopyUrp` 를 한다).
+# 5회차 자는 `AddComponent<Camera>()` 만 봤기 때문에 **55장을 찍는 `UiShotsTests` 의 카메라가 통째로 안 보였다** —
+# 그 자리가 후처리를 끄는 줄을 잃어도 이 자는 초록이었을 것이다(그 줄이 바로 이 절이 지키려는 것이다).
+CAM_NEW = re.compile(r'(\w+)\s*=\s*(?:\w+\.AddComponent<Camera>\(\)|ShotCam\.From\s*\()')
+# `ShotCam.From` 은 제 안에서 URP 추가 데이터를 복사한다 — 부르는 쪽에 `CopyUrp` 가 없어도 «받아 켠» 것이다.
+FROM = re.compile(r'ShotCam\.From\s*\(')
 # 마스크를 «UI 층 하나로» 못 박는 꼴 (= 3D 를 안 그린다)
 UI_ONLY = re.compile(r'\.cullingMask\s*=\s*1\s*<<\s*\w+')
 # 마스크에 UI 를 **더하는** 꼴 (= 세계를 남긴다)
 MASK_ADD = re.compile(r'\.cullingMask\s*\|=')
 COPYURP = re.compile(r'ShotCam\.CopyUrp\s*\([^)]*\)')
 POST_OFF = re.compile(r'ShotCam\.CopyUrp\s*\([^)]*\)\s*\.renderPostProcessing\s*=\s*false')
-POST_OFF2 = re.compile(r'\.renderPostProcessing\s*=\s*false')
+# 따로 끄는 줄 — **그 카메라의 것**이어야 한다. 5회차 자는 이름을 안 봐서 남의 카메라(또는 아무 변수)의
+# 같은 줄 하나면 초록이 됐다(거짓 초록). 그래서 이름을 걷어 짝을 맞춘다.
+POST_FALSE = re.compile(r'(\w+)\s*\.renderPostProcessing\s*=\s*false')
+URP_DATA = 'UniversalAdditionalCameraData'
 
 
 def blocks(text):
@@ -42,11 +50,24 @@ def blocks(text):
     return out
 
 
-def classify(body):
+def aliases(body, cam):
+    """그 카메라의 URP 추가 데이터를 가리키는 이름들 — 카메라 자신 + `cam.GetComponent<…>()` · `ShotCam.CopyUrp(…, cam)` 로 받은 변수."""
+    names = {cam}
+    for m in re.finditer(r'(\w+)\s*=\s*' + re.escape(cam) + r'\s*\.GetComponent<' + URP_DATA + r'>\s*\(\)', body):
+        names.add(m.group(1))
+    for m in re.finditer(r'(\w+)\s*=\s*ShotCam\.CopyUrp\s*\([^)]*,\s*' + re.escape(cam) + r'\s*\)', body):
+        names.add(m.group(1))
+    return names
+
+
+def classify(body, cam='cam'):
     """한 덩이 → (ui_only, copyurp, post_off). 순수 함수 — 자기 검사가 이것을 잰다."""
     ui_only = bool(UI_ONLY.search(body)) and not MASK_ADD.search(body)
-    copyurp = bool(COPYURP.search(body))
-    post_off = bool(POST_OFF.search(body)) or bool(POST_OFF2.search(body))
+    copyurp = bool(COPYURP.search(body)) or bool(FROM.search(body))
+    post_off = bool(POST_OFF.search(body))
+    if not post_off:
+        mine = aliases(body, cam)
+        post_off = any(m.group(1) in mine for m in POST_FALSE.finditer(body))
     return ui_only, copyurp, post_off
 
 
@@ -62,7 +83,7 @@ def scan(path=TESTS):
             continue
         text = open(os.path.join(path, name), encoding='utf-8').read()
         for cam, body in blocks(text):
-            ui_only, copyurp, post_off = classify(body)
+            ui_only, copyurp, post_off = classify(body, cam)
             rows.append({'file': name, 'cam': cam, 'ui_only': ui_only,
                          'copyurp': copyurp, 'post_off': post_off,
                          'bad': verdict(ui_only, copyurp, post_off)})
@@ -88,7 +109,20 @@ def self_test():
     eq('ⓓ 세계를 남긴 마스크(|=) + CopyUrp = 초록', verdict(*classify(add + urp)), False)
     eq('ⓔ 마스크를 안 바꿈 + CopyUrp = 초록', verdict(*classify(urp)), False)
     eq('ⓕ UI 전용인데 |= 도 있으면 UI 전용이 아니다', classify(ui + add + urp)[0], False)
-    eq('ⓖ 따로 끈 줄도 받아 준다', verdict(*classify(ui + urp + 'd.renderPostProcessing = false;')), False)
+    # ⓖ 따로 끄는 줄은 **그 카메라의 것**일 때만 받아 준다(6회차 · 5회차는 이름을 안 봐서 남의 줄에도 초록이었다)
+    mine = 'var d = cam.GetComponent<UniversalAdditionalCameraData>();\nd.renderPostProcessing = false;'
+    eq('ⓖ 제 URP 데이터를 따로 끈 줄은 받아 준다', verdict(*classify(ui + urp + mine)), False)
+    eq('ⓖ 남의 이름으로 끈 줄은 안 받아 준다', verdict(*classify(ui + urp + 'other.renderPostProcessing = false;')), True)
+    eq('ⓖ CopyUrp 로 받은 변수도 제 것이다',
+       verdict(*classify(ui + 'var u = ShotCam.CopyUrp(Camera.main, cam);\nu.renderPostProcessing = false;')), False)
+    # ⓘ `ShotCam.From` 도 «카메라를 만들고 URP 를 받는» 자리다 — 5회차 자는 이 꼴을 통째로 못 봤다(UiShotsTests 55장)
+    frm = 'Camera cam = ShotCam.From(Camera.main, "t27-shot-cam", rt);'
+    g3 = blocks(frm + ui)
+    eq('ⓘ From 도 한 덩이로 잡는다', len(g3), 1)
+    eq('ⓘ From 의 카메라 이름', g3[0][0], 'cam')
+    eq('ⓘ From + UI 전용 + 안 끔 = 빨강', verdict(*classify(frm + ui, 'cam')), True)
+    eq('ⓘ From + UI 전용 + 제 것을 끔 = 초록', verdict(*classify(frm + ui + mine, 'cam')), False)
+    eq('ⓘ From + 세계도 그린다 = 초록', verdict(*classify(frm + add, 'cam')), False)
 
     body = 'var c = go.AddComponent<Camera>();\n' + ui + urp
     got = blocks(body)
