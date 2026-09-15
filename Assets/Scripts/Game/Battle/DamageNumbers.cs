@@ -46,6 +46,8 @@ namespace Forge.Game.Battle
         sealed class Num
         {
             public RectTransform Rt; public TextMeshProUGUI T; public UiTextKindTag Tag; public Frame[] Anim; public Vector2 Origin; public double Dx, Rise, Pop, Age; public Color Color;
+            /// <summary>T333 10회차 — 이 숫자의 글로우 종류(정본에 글로우가 없는 등급이면 null) · 지금 걸린 겹 키 · 재질을 다시 구울 때 쓰는 키라인 키 둘.</summary>
+            public string GlowCls, GlowKey, OutlineKey, StrokeKey;
         }
 
         readonly List<Num> live = new List<Num>();
@@ -71,19 +73,21 @@ namespace Forge.Game.Battle
         /// <see cref="UiKit.OutlinePx(Material, TMP_FontAsset, float, string, float)"/>(D = W · T104 식)로 얹는다 — 글자 크기마다 W 가 다르니 키에 크기가 든다.
         /// </summary>
         static readonly Dictionary<string, Material> outlineMats = new Dictionary<string, Material>();
-        static Material OutlineMaterial(TextMeshProUGUI t, string colorKey, string strokeKey)
+        /// <summary>T333 10회차 — 글로우(<see cref="DmgGlowUi"/>)까지 같은 공유 재질에 굽는다. 겹이 시간에 따라 바뀌는 등급(크리·처치)은 «겹마다 하나» 를 캐시해 두고 재질을 갈아 끼운다(인스턴스 금지 · T50).</summary>
+        static Material OutlineMaterial(TextMeshProUGUI t, string colorKey, string strokeKey, string glowKey)
         {
-            string key = colorKey + "|" + strokeKey + "|" + t.fontSize.ToString("0.##");
+            string key = colorKey + "|" + strokeKey + "|" + (glowKey ?? "-") + "|" + t.fontSize.ToString("0.##");
             Material m;
             if (outlineMats.TryGetValue(key, out m) && m != null) return m;
             m = new Material(t.fontSharedMaterial);
-            m.name = "dmg outline " + colorKey + " " + strokeKey;
+            m.name = "dmg outline " + colorKey + " " + strokeKey + (glowKey != null ? " glow " + glowKey : "");
             UiKit.OutlinePx(m, t.font, t.fontSize, colorKey, KeylineUi.Px(strokeKey));
+            if (glowKey != null) DmgGlowUi.Apply(m, t.font, t.fontSize, glowKey);
             outlineMats[key] = m;
             return m;
         }
         /// <summary>테스트용 — 공유 재질 캐시를 비운다(글꼴·표가 바뀐 뒤 다시 굽게).</summary>
-        public static void ResetMaterials() { outlineMats.Clear(); }
+        public static void ResetMaterials() { outlineMats.Clear(); DmgGlowUi.Reset(); }
 
         static void Style(string cls, out TextKind kind, out string colorKey, out string outlineKey, out string strokeKey, out Frame[] anim, out string prefix)
         {
@@ -130,7 +134,11 @@ namespace Forge.Game.Battle
             Style(cls, out kind, out colorKey, out outlineKey, out strokeKey, out anim, out prefix);
             Num n = Take(layer, kind, colorKey, prefix.Length == 0 ? (text ?? string.Empty) : prefix + text);
             TextMeshProUGUI t = n.T;
-            t.fontSharedMaterial = OutlineMaterial(t, outlineKey, strokeKey);
+            // T333 10회차 — 정본 `@keyframes dmgcrit/dmgkill` 은 **태어나는 프레임**의 겹이 다르다(561~563 «위계는 태어나는 프레임에 서 있어야 한다»).
+            n.OutlineKey = outlineKey; n.StrokeKey = strokeKey;
+            n.GlowCls = DmgGlowUi.Has(cls) ? cls : null;
+            n.GlowKey = n.GlowCls != null ? DmgGlowUi.KeyAt(n.GlowCls, 0) : null;
+            t.fontSharedMaterial = OutlineMaterial(t, outlineKey, strokeKey, n.GlowKey);
             RectTransform rt = n.Rt;
             // 가로 화면 클램프(아크가 다 흐른 뒤에도 앱 상자 안)
             float half = rt.sizeDelta.x * 0.5f * (float)pop * 0.5f;
@@ -191,6 +199,16 @@ namespace Forge.Game.Battle
             n.Rt.localRotation = Quaternion.Euler(0, 0, (float)-rot);
             // 알파는 정점색(TMP 메시 재생성 · 프레임마다 관리 할당)이 아니라 CanvasRenderer 에 — 글자 메시는 띄울 때 한 번만 만든다(T50).
             n.T.canvasRenderer.SetAlpha((float)al);
+            // T333 10회차 — 글로우 겹은 표의 단계(정본 키프레임 퍼센트)에서 갈린다. 겹마다 구운 공유 재질을 갈아 끼울 뿐이라 숫자마다 재질이 늘지 않는다.
+            if (n.GlowCls != null)
+            {
+                string gk = DmgGlowUi.KeyAt(n.GlowCls, u);
+                if (gk != n.GlowKey)
+                {
+                    n.GlowKey = gk;
+                    n.T.fontSharedMaterial = OutlineMaterial(n.T, n.OutlineKey, n.StrokeKey, gk);
+                }
+            }
         }
 
         public void Step(float dt)

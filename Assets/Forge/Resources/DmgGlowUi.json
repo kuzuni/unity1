@@ -1,0 +1,33 @@
+{
+  "_": "T333 10회차 — 데미지 숫자(정본 `.float-dmg.dmg-crit`·`.dmg-kill`)의 **글로우 한 겹** 표. 정본은 `text-shadow` 를 여러 겹 쌓고 `@keyframes dmgcrit/dmgkill` 이 태어나는 프레임에서 그 겹을 갈아 끼운다 — TMP 언더레이는 한 겹뿐이라 «읽히게 만드는 한 겹»만 옮긴다(T333 3·5회차 league_row 갈래). px = 정본 CSS px(캔버스 환산은 KeylineUi css_px · T104 규약) · dy 는 CSS 방향(아래가 +) · blur = CSS 흐림 반지름 · color = #RRGGBB + alpha. 코드에 숫자를 박지 않는다(§1).",
+  "_표_자리": "제 자리는 TextShadowUi.json 이지만 그 표가 T332 산 lock 의 «범위» 안이라 곁 표로 둔다 — T333 9회차 CoinBurstUi.json(결정 655)·T384 결정 651 과 같은 길. 그 lock 이 풀리면 두 표를 합치는 것이 맞다.",
+  "_시간": "phases 의 until_f 는 정본 키프레임 퍼센트 그대로다. 정본 아크는 .55s, 클론 수명은 HitRules.DmgLifeMs 라 길이가 다르지만 **비율**로 두면 위계가 태어나는 프레임에 그대로 선다(정본 주석 560~563 «위계는 태어나는 프레임에 서 있어야 한다»).",
+  "glows": {
+    "dmg_crit_born": {
+      "dx_px": 0, "dy_px": 0, "blur_px": 14, "color": "#ffd696", "alpha": 0.95,
+      "_": "style.css 565 `@keyframes dmgcrit 0% { text-shadow: 0 0 3px #fff, 0 0 14px rgba(255,214,150,.95), 0 2px 5px rgba(0,0,0,.6) }` — 겹 셋 중 «흰색으로 터지는 열기»(넓은 14px 따뜻한 겹)를 골랐다. 뺀 둘: 3px 흰 코어(획에 붙는 얇은 겹 · 이 자리는 SDF 스트로크 float_dmg 가 이미 쥔다)·바닥 그림자 0 2px 5px."
+    },
+    "dmg_crit_rest": {
+      "dx_px": 0, "dy_px": 0, "blur_px": 9, "color": "#ff6d00", "alpha": 0.7,
+      "_": "style.css 510 `.float-dmg.dmg-crit { text-shadow: 0 0 9px rgba(255,109,0,.7), 0 2px 5px rgba(0,0,0,.6) }` = 567 `@keyframes dmgcrit 9%` 의 값과 같다(9% 뒤로는 이 값이 끝까지 간다). 겹 둘 중 주황 글로우 — 바닥 그림자는 뺀다."
+    },
+    "dmg_kill_born": {
+      "dx_px": 0, "dy_px": 0, "blur_px": 18, "color": "#ffe096", "alpha": 0.98,
+      "_": "style.css 578 `@keyframes dmgkill 0% { text-shadow: 0 0 4px #fff, 0 0 18px rgba(255,224,150,.98), 0 0 34px rgba(255,87,34,.7), 0 2px 6px rgba(0,0,0,.6) }` — 겹 넷 중 몸통을 태우는 18px 금백 겹. 34px 주황 후광·4px 흰 코어·바닥 그림자는 뺀다."
+    },
+    "dmg_kill_rest": {
+      "dx_px": 0, "dy_px": 0, "blur_px": 26, "color": "#ffc45a", "alpha": 0.95,
+      "_": "style.css 580 `@keyframes dmgkill 7% { text-shadow: 0 0 7px #fff, 0 0 26px rgba(255,196,90,.95), 0 0 46px rgba(255,87,34,.6), 0 2px 6px rgba(0,0,0,.6) }` — 7% 뒤로는 이 값이 끝까지 간다(정본 `.dmg-kill` 제 규칙 526 의 겹 넷은 애니메이션이 덮는다). 넷 중 26px 금 겹."
+    }
+  },
+  "classes": {
+    "dmg-crit": [
+      { "until_f": 0.09, "key": "dmg_crit_born" },
+      { "until_f": 1.0, "key": "dmg_crit_rest" }
+    ],
+    "dmg-kill": [
+      { "until_f": 0.07, "key": "dmg_kill_born" },
+      { "until_f": 1.0, "key": "dmg_kill_rest" }
+    ]
+  }
+}

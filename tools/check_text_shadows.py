@@ -62,6 +62,13 @@ TABLE = {
     # T333 5회차 — 산 lock 밖 세 자리(T335 반납으로 열린 던전 클리어 제목 · 보스 워닝 마퀴·부제): 여러 겹 중 «읽히게 만드는 한 겹»(league_row 갈래)
     # T333 9회차 — 판매 코인 금액(7426 `.coin-amt` · 정본 주석 «이너=노랑 · 아웃라인=검정»): 8방향 링 → SDF 스트로크(`ring:`) · 값은 CoinBurstUi.json(amt_ring_* · 결정 655)
     '.coin-amt': ['ring:Ui/CoinBurst.cs@Amount'],
+    # T333 10회차 ⓔ — 데미지 숫자 글로우(크리·처치): 정본은 겹을 여럿 쌓고 `@keyframes` 가 **태어나는 프레임**에 다른 겹을 둔다.
+    #   TMP 언더레이는 한 겹이라 «읽히게 만드는 한 겹»만 옮기고(표 `DmgGlowUi.json`), 시간에 따른 갈아 끼움은 공유 재질 교체로 낸다(`glow:`).
+    '.float-dmg.dmg-crit': ['glow:Battle/DamageNumbers.cs@OutlineMaterial'],
+    '@keyframes dmgcrit 0%': ['glow:Battle/DamageNumbers.cs@OutlineMaterial'],
+    '@keyframes dmgcrit 9%': ['glow:Battle/DamageNumbers.cs@OutlineMaterial'],
+    '@keyframes dmgkill 0%': ['glow:Battle/DamageNumbers.cs@OutlineMaterial'],
+    '@keyframes dmgkill 7%': ['glow:Battle/DamageNumbers.cs@OutlineMaterial'],
     '.dgclear-title': ['Ui/DungeonClearPopup.cs#title'],
     '.bw-track span': ['Ui/BattleOverlay.cs#text'],
     '.bw-sub': ['Ui/BattleOverlay.cs#bw-sub'],
@@ -77,8 +84,12 @@ KNOWN = {
 SHADOW = r'UiKit\.TextShadow'
 # ⓒ 4/8방향 hard 링(정본이 text-shadow 로 흉내 낸 키라인) — 언더레이 한 겹으로는 못 내니 SDF 스트로크로 낸다(T104 `UiKit.Outline`/`OutlinePx`).
 RING = r'UiKit\.Outline(?:Px)?'
+# ⓔ 데미지 숫자 글로우(T333 10회차) — 초당 수십 개라 글자마다 재질 인스턴스를 만들 수 없어 `UiKit.TextShadow`(fontMaterial) 가 아니라
+#   공유 재질에 굽는 갈래(`DmgGlowUi.Apply` · 표 DmgGlowUi.json)로 낸다.
+GLOW = r'DmgGlowUi\.Apply'
 SHADOW_CALL = re.compile(r'\b' + SHADOW + r'\s*\(')
 RING_CALL = re.compile(r'\b' + RING + r'\s*\(')
+GLOW_CALL = re.compile(r'\b' + GLOW + r'\s*\(')
 CREATE_CALL = re.compile(r'\.(Text|Label|Bold|Stroked|IconTextRow|Btn)\s*\(\s*[^,()]+,\s*"([^"]+)"')
 ASSIGN_TAIL = re.compile(r'([\w\[\]\.]+)\s*=\s*(?:[\w!.()\[\]]+\s*\?\s*)?[\w.]*$')
 DECL = re.compile(r'(?<![\w-])text-shadow\s*:\s*([^;}]+)')
@@ -106,14 +117,45 @@ def _blank_comments(css):
     return re.sub(r'/\*.*?\*/', rep, css, flags=re.S)
 
 
+def _keyframe_ranges(css):
+    """[(시작, 끝, 이름)] — `@keyframes <이름> { … }` 의 바깥 중괄호 범위(T333 10회차).
+
+    키프레임 안의 `0%`·`9%` 같은 «선택자» 는 그것만으로 어느 애니메이션인지 모른다(`dmgcrit` 0% ↔ `dmgkill` 0%).
+    표 키가 가리키는 자리를 사람이 알아보게 `@keyframes <이름> 0%` 로 붙여 센다.
+    """
+    out = []
+    for m in re.finditer(r'@keyframes\s+([\w-]+)\s*\{', css):
+        depth = 0
+        end = len(css)
+        for j in range(m.end() - 1, len(css)):
+            if css[j] == '{':
+                depth += 1
+            elif css[j] == '}':
+                depth -= 1
+                if depth == 0:
+                    end = j
+                    break
+        out.append((m.start(), end, m.group(1)))
+    return out
+
+
 def parse_rules(css_text):
-    """[(줄, 선택자, 값)] — `text-shadow` 선언 전부(주석 속은 뺀다 · `none` 포함 · 값은 공백 하나로)."""
+    """[(줄, 선택자, 값)] — `text-shadow` 선언 전부(주석 속은 뺀다 · `none` 포함 · 값은 공백 하나로).
+
+    `@keyframes` 안의 선언은 선택자 앞에 `@keyframes <이름> ` 을 붙인다(같은 `0%` 가 애니메이션마다 다르다 · T333 10회차).
+    """
     css = _blank_comments(css_text)
+    frames = _keyframe_ranges(css)
     out = []
     for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', css):
         sel = ' '.join(m.group(1).split())
         lead = len(m.group(1)) - len(m.group(1).lstrip())
-        line = css[:m.start(1) + lead].count('\n') + 1
+        pos = m.start(1) + lead
+        line = css[:pos].count('\n') + 1
+        for a, b, name in frames:
+            if a <= pos <= b:
+                sel = '@keyframes ' + name + ' ' + sel
+                break
         for d in DECL.finditer(m.group(2)):
             out.append((line, sel, ' '.join(d.group(1).split())))
     return out
@@ -150,9 +192,17 @@ def check_target(game_dir, target):
     흉내 낸 text-shadow 는 TMP 언더레이 한 겹으로 못 내기 때문이다(T333 3회차 · 등재 절 ⓒ).
     """
     ring = target.startswith('ring:')
+    glow = target.startswith('glow:')
     if ring:
         target = target[len('ring:'):]
-    call, call_re, word = (RING, RING_CALL, '링') if ring else (SHADOW, SHADOW_CALL, '그림자')
+    elif glow:
+        target = target[len('glow:'):]
+    if ring:
+        call, call_re, word = RING, RING_CALL, '링'
+    elif glow:
+        call, call_re, word = GLOW, GLOW_CALL, '글로우'
+    else:
+        call, call_re, word = SHADOW, SHADOW_CALL, '그림자'
     file_part, sep, tail = re.match(r'([^#@]+)([#@]?)(.*)', target).groups()
     path = os.path.join(game_dir, file_part)
     if not os.path.isfile(path):
@@ -219,7 +269,7 @@ def run(css_path, game_dir, table, known, out=print, list_pending=False, keyline
                 if t in known:
                     known_now_ok.append(t)
                 continue
-            tag = ('링 없음' if t.startswith('ring:') else '그림자 없음') if state == 'missing' else '자리 없음'
+            tag = ('링 없음' if t.startswith('ring:') else '글로우 없음' if t.startswith('glow:') else '그림자 없음') if state == 'missing' else '자리 없음'
             if t in known:
                 n_known += 1
                 out('· KNOWN(%s)  %s  ← style.css %d %s { text-shadow: %s }  — %s' % (tag, t, line, sel[:70], val[:60], known[t]))
@@ -322,7 +372,7 @@ def self_test():
             expect('ⓘ 끄는 규칙 문법 ' + sel, ts.startswith('—'))
             continue
         for t in ts:
-            expect('ⓘ 자리 문법 ' + t, re.match(r'^(ring:)?[\w/]+\.cs([#@][\w-]+)?$', t) is not None)
+            expect('ⓘ 자리 문법 ' + t, re.match(r'^(ring:|glow:)?[\w/]+\.cs([#@][\w-]+)?$', t) is not None)
     expect('ⓘ check_keyline TABLE 을 읽는다', len(keyline_selectors()) >= 40, str(len(keyline_selectors())))
     # ⓙ ring: 갈래 — 링이 있으면 초록 · 언더레이만 있으면 «링 없음» · 링만 있는 자리를 언더레이로 재면 «그림자 없음»
     cs('class Face { static void R(Transform p){ var a = UiKit.Text(p, "s-e", TextKind.Body, "x"); UiKit.OutlinePx(a, "pp_line", 4f); }\n'
@@ -337,12 +387,35 @@ def self_test():
     cs('class Face { static void R(Transform p){ var a = UiKit.Text(p, "s-e", TextKind.Body, "x"); UiKit.Outline(a, "stage_outline", .25f); } }')
     rc, out = go({'.s-e': ['ring:Ui/Face.cs#s-e']}, {})
     expect('ⓚ 옛 Outline 갈래', rc == 0 and '자리 초록 1' in out, out)
+    # ⓛ glow: 갈래(T333 10회차) — 공유 재질에 굽는 `DmgGlowUi.Apply` 를 센다 · 언더레이 호출만 있으면 «글로우 없음»
+    os.makedirs(os.path.join(game, 'Battle'), exist_ok=True)
+    w(os.path.join(game, 'Battle', 'Num.cs'),
+      'class Num { static Material M(TMP_Text t, string k, string g){ var m = new Material(t.fontSharedMaterial);\n'
+      '   if (g != null) DmgGlowUi.Apply(m, t.font, t.fontSize, g); return m; }\n'
+      ' static Material N(TMP_Text t){ var m = new Material(t.fontSharedMaterial); return m; } }')
+    rc, out = go({'.s-a': ['glow:Battle/Num.cs@M']}, {}, base_css)
+    expect('ⓛ 글로우 초록', rc == 0 and '자리 초록 1' in out, out)
+    rc, out = go({'.s-a': ['glow:Battle/Num.cs@N']}, {})
+    expect('ⓛ 글로우 없는 메서드', rc == 1 and '글로우 없음' in out, out)
+    rc, out = go({'.s-a': ['Battle/Num.cs@M']}, {})
+    expect('ⓛ 글로우만 있으면 그림자 없음', rc == 1 and '그림자 없음' in out, out)
+    # ⓜ @keyframes 안의 선언은 애니메이션 이름을 달고 센다(같은 `0%` 가 여럿이다)
+    kf_css = ('@keyframes ani-a { 0% { text-shadow: 0 0 3px #fff; } 9% { text-shadow: 0 0 9px #f60; } }\n'
+              '@keyframes ani-b { 0% { transform: none; text-shadow: 0 0 4px #fff; } }\n'
+              '.s-a { text-shadow: 0 1px 1px #000; }\n')
+    kf = parse_rules(kf_css)
+    sels = [r[1] for r in kf]
+    expect('ⓜ 키프레임 이름', sels[:3] == ['@keyframes ani-a 0%', '@keyframes ani-a 9%', '@keyframes ani-b 0%'], str(sels))
+    expect('ⓜ 바깥 규칙은 그대로', sels[-1] == '.s-a', str(sels))
+    rc, out = go({'@keyframes ani-a 0%': ['glow:Battle/Num.cs@M'], '@keyframes ani-a 9%': ['glow:Battle/Num.cs@M'],
+                  '@keyframes ani-b 0%': ['glow:Battle/Num.cs@M'], '.s-a': ['glow:Battle/Num.cs@M']}, {}, kf_css)
+    expect('ⓜ 키프레임 자리도 잰다', rc == 0 and '미정 선택자 0' in out, out)
     if fails:
         print('✗ check_text_shadows --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  · ' + f[:400])
         return 1
-    print('✓ check_text_shadows --self-test 24칸 통과')
+    print('✓ check_text_shadows --self-test 29칸 통과')
     return 0
 
 
