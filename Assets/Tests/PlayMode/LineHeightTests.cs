@@ -238,5 +238,26 @@ namespace Forge.Tests.PlayMode
             PetUpgradePopup.Close();
             yield return null;
         }
+
+        /// <summary>
+        /// T354 9회차 — 상점 특가 카드의 가격 단추 라벨은 정본 2959 `.shop-price-btn { line-height: 1.15 }` 로 선다.
+        /// 산 lock 이 없는 파일만 골라 잇는 회차라, 이 자리는 `ShopSheet` 한 줄(라벨 TMP 를 꺼내 표를 건다)이다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 상점_가격_단추_라벨은_정본_1_15_배수로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(UiRoot.Instance != null && UiRoot.Instance.TabBar != null); i++) yield return null;
+            UiRoot.Instance.TabBar.OnTab("shop");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform price = Find(UiRoot.Instance.App, "price");
+            Assert.IsNotNull(price, "특가 카드의 가격 단추(price)");
+            TextMeshProUGUI t = price.GetComponentInChildren<TextMeshProUGUI>();
+            Assert.IsNotNull(t, "가격 단추 라벨");
+            AssertSpacing(t, "shop_price_btn_lh", "상점 가격 단추");
+            Assert.AreEqual(1.15, LineHeight.Table.Get("shop_price_btn_lh"), 1e-9, "정본 2959 .shop-price-btn { line-height: 1.15 }");
+            Debug.Log("[T354] 상점 가격 단추 lineSpacing " + t.lineSpacing.ToString("0.000"));
+        }
     }
 }

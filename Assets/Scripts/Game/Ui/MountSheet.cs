@@ -262,9 +262,11 @@ namespace Forge.Game.Ui
             UiKit.Place(name.rectTransform, bx, by, bw, body * 1.3f);
             by += body * 1.3f + PetSkillStyle.Rem(0.05f);
             TextMeshProUGUI st1 = PetSkillKit.Text(c, "petd-atk", TextKind.Body, PetSkillStyle.T("dmg", PetSkillStyle.Fmt(atk)), PetSkillStyle.C("black"), TextAlignmentOptions.Left);
+            LineHeight.Apply(st1, "petd_stats_lh");   // T354 9회차 — 정본 5550 `.petd-stats { line-height: 1.35 }`(탈것 상세는 `.petd-wrap` 밖이라 5420 의 1.0 이 아니다 · 같은 줄의 petd-subs 와 같은 판단)
             UiKit.Place(st1.rectTransform, bx, by, bw, body * 1.35f);
             by += body * 1.35f;
             TextMeshProUGUI st2 = PetSkillKit.Text(c, "petd-hp", TextKind.Body, PetSkillStyle.T("hp", PetSkillStyle.Fmt(hp)), PetSkillStyle.C("black"), TextAlignmentOptions.Left);
+            LineHeight.Apply(st2, "petd_stats_lh");   // T354 9회차 — 같은 줄(공격·체력 두 조각이 한 `.petd-stats` 묶음이다)
             UiKit.Place(st2.rectTransform, bx, by, bw, body * 1.35f);
             by += body * 1.35f + PetSkillStyle.Rem(0.45f);
             int line = 0;

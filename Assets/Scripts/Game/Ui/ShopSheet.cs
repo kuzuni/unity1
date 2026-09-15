@@ -105,6 +105,9 @@ namespace Forge.Game.Ui
                 Button price = null;
                 price = PopupKit.Btn(card, "price", claimed ? "수령 완료" : d.PriceKr, "pp_blue", "pp_blue_dk", () => OnClaimDeal(h, key, price ? price.GetComponent<RectTransform>() : null), priceW, priceH, "stage_ink", TextKind.Sub, claimed);
                 UiKit.Place(price.GetComponent<RectTransform>(), cardW - UiKit.L("shop_price_right") * w - priceW, cardH - UiKit.H("shop_price_bottom") - priceH, priceW, priceH);
+                // T354 9회차 — 정본 2959 `.shop-price-btn { line-height: 1.15 }`. 라벨이 두 줄로 꺾이는 값(«수령 완료» 같은 긴 문구)에서 줄 간격이 정본과 같아진다.
+                TextMeshProUGUI priceLabel = price.GetComponentInChildren<TextMeshProUGUI>();
+                if (priceLabel != null) LineHeight.Apply(priceLabel, "shop_price_btn_lh");
             }
 
             // 정본 `.shop-deals + .shop-banner` = 카드 바닥 ↔ 배너 3.08%H. 목록이 이미 넣는 것(카드 칸 안쪽 간격 + 위아래 목록 간격 둘)을 뺀다.

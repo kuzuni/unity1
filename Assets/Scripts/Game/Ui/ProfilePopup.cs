@@ -179,6 +179,7 @@ namespace Forge.Game.Ui
             t.fontStyle = FontStyles.Bold;
             t.rectTransform.offsetMin = new Vector2(PopupKit.Rem * 0.55f, 0f);
             TextClamp.Apply(t, "profile_field");   // T351 — 정본 3052 .profile-field { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+            LineHeight.Apply(t, "profile_field_lh");   // T354 9회차 — 정본 3051 같은 규칙의 `line-height: 1.32`(한 줄로 잘리는 칸이라 눈에는 안 보이지만, 표의 81 자리를 코드가 읽게 둔다)
         }
 
         /// <summary>파란 라운드 사각 편집 버튼(원작 .profile-edit-btn · 연필).</summary>

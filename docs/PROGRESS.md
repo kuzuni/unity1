@@ -9090,3 +9090,14 @@
 
 636. **«토큰과 다른 리터럴» 을 셀 때는 3자리 hex 와 대소문자를 접은 뒤 견준다 — 안 접으면 «전부 다르다» 는 가짜 셈이 나온다(2026-09-15 · T377 1회차 · 워커 N)** — 등재는 정본 리터럴 면 선언 187 중 «토큰과 같은 값 0» 이라 적었지만, `#fff` 를 `#ffffff` 로, `#E8362F` 를 소문자로 접으면 43 이 토큰과 같다. 그 43 은 토큰을 써도 되는 자리(오히려 토큰이 맞다)라 자가 빼고, 남는 143 만 «못박은 면 색» 으로 센다. 규칙: 색 비교는 정규화(6자리 · 소문자)한 뒤에만 한다 — `check_pinned_colors.pinned_faces` 가 그 한 곳이고 자기 검사 ⓑ가 지킨다. 되돌리려면 `norm_hex` 를 빼면 되지만 그러면 43 자리가 가짜로 뜬다.
 
+
+### T354 9회차 — 산 lock 이 없는 파일 셋에 줄높이 세 자리(배선 8 → 11) (2026-09-15 10:3x~11:0x · 워커 F · sess-0027-41852 · lock 유지)
+
+- **고른 자리**: 8회차가 남긴 17 중 **그 파일에 산 lock 이 없는 것**만 골랐다 — 대부분(`Popups.cs` T331 · `ForgeInfoPopup.cs`·`SkillRatesPopup.cs` T332 · `ForgeCraftPopup.cs` T377 · `LeagueSheet.cs` T378 · `TechPanel.cs`·`ForgeSheet.cs` T342)이 잠겨 있었고, 자유로운 것은 `MountSheet.cs`·`ProfilePopup.cs`·`ShopSheet.cs` 였다.
+- **잇는 자리 셋**:
+  - `.petd-stats`(정본 **5550** `line-height: 1.35`) → `MountSheet.cs` 탈것 상세의 공격·체력 두 조각. **`.petd-wrap` 밖**이라 5420 의 1.0 이 아니라 5550 의 1.35 다 — 같은 줄의 `petd-subs`(1.45)를 앞 회차가 같은 까닭으로 고른 자리라 판단을 그대로 따랐다.
+  - `.profile-field`(정본 **3051** `line-height: 1.32`) → `ProfilePopup.Field`. 이 칸은 T351 이 한 줄 말줄임을 걸어 둬서 **눈에는 안 보이는** 자리다(줄이 하나면 줄 간격이 안 쓰인다) — 그래도 표의 81 자리를 코드가 읽게 두는 것이 이 절의 일이라 걸고, «안 보이는 자리» 임을 주석에 적었다.
+  - `.shop-price-btn`(정본 **2959** `line-height: 1.15`) → `ShopSheet` 특가 카드 가격 단추 라벨(`GetComponentInChildren<TMP>` 로 꺼낸다 · 라벨이 두 줄로 꺾이는 문구에서 정본과 같아진다).
+- **자**: `LineHeightTests` +1(상점 가격 단추 — 탭을 열고 라벨의 `lineSpacing` 이 표 배수와 같은가 · 표값이 1.15 인가). 나머지 둘은 화면을 여는 값이 비싸(탈것 보유 · 프로필 팝업) 다음 회차에 자리 자를 붙이거나 `check_line_height` 의 왕복 대조에 맡긴다.
+- **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 없음. 런 647 의 빨강 셋(`BoxBorderSitesTests`·`DropShadowTests`·`PetUiTests`)은 T365·T332·T374 산 lock 자리다.
+- **남은 몫**: 배선 **11/25**(표 81 자리 중 코드가 읽는 것 11). 남은 것은 전부 남의 산 lock 뒤 — 풀리는 대로 `LineHeight.Apply` 한 줄씩이다.
