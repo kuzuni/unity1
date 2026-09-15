@@ -115,7 +115,9 @@ namespace Forge.Game.Ui
             UiKit.Place(gt.rectTransform, colW, 0f, rem * 2f, rem * 4.6f);
             Col(cmp, "kept", colW + rem * 2f, colW, "남는 것", false, kept, d);
             int gap = Array.IndexOf(d.Ages, sold.Age) - Array.IndexOf(d.Ages, kept.Age);
-            PopupKit.Label(card, "note", TextKind.Sub, "파는 쪽이 " + gap + "시대 더 최신입니다.\n같거나 이전 시대면 이 창은 뜨지 않습니다.", "pp_muted", TextAlignmentOptions.Center, true, false, PopupKit.FontSize(TextKind.Sub) * 2.8f);
+            TextMeshProUGUI note = PopupKit.Label(card, "note", TextKind.Sub, "파는 쪽이 " + gap + "시대 더 최신입니다.\n같거나 이전 시대면 이 창은 뜨지 않습니다.", "pp_muted", TextAlignmentOptions.Center, true, false, PopupKit.FontSize(TextKind.Sub) * 2.8f);
+            // T354 10회차 — 정본 2239 `.sellwarn-note { line-height: 1.35 }`. 이 글은 줄바꿈이 박혀 **두 줄**이라 줄 간격이 눈에 보이는 자리다.
+            LineHeight.Apply(note, "sellwarn_note_lh");
             RectTransform row = PopupKit.Item(card, "row", -1f, UiKit.H("btn_h") * 1.5f);
             float bw = (w - rem * 1.8f - rem * 0.8f) * 0.5f, bh = UiKit.H("btn_h") * 1.5f;
             // T110 — 정본 ui.js 3865 도 `판매<small>coin +N</small>` 두 줄이다(클론은 한 줄 글자였다).
@@ -148,6 +150,7 @@ namespace Forge.Game.Ui
             ct.color = ForgeUi.InkOf(Color.white) ;
             ct.color = (0.2126f * ac.r + 0.7152f * ac.g + 0.0722f * ac.b) > 0.5f ? Color.black : Color.white;
             TextMeshProUGUI nm = UiKit.Text(col, "name", TextKind.Sub, it.Name, "pp_ink");
+            LineHeight.Apply(nm, "swc_name_lh");   // T354 10회차 — 정본 2236 `.swc-name { line-height: 1.15; word-break: keep-all }`(긴 이름이 꺾이는 칸)
             UiKit.Place(nm.rectTransform, 0f, rem * 0.3f + lh * 2f + rem * 0.3f, w, lh);
         }
 

@@ -9242,3 +9242,14 @@
 - **lock 반납** — 남은 2회차(판매 버튼 `ForgeCraftPopup.cs` + KNOWN 둘 + `gate.sh`·`ci.yml` 등록)는 전부 T331 lock 뒤라 쥐고 있을 까닭이 없다. 표(`sell_btn_face`·`sell_btn_lip`)는 이미 있으니 그 회차는 배선 두 줄 + 등록 두 줄이다.
 - 게이트: `tools/gate.sh` 막는 자 전부 rc 0 · `check_pinned_colors` rc 0(손으로).
 
+
+### T354 9회차 판정 ✅ + 10회차 — 판매 경고 두 줄과 비교 칸 이름(배선 11 → 13) (2026-09-15 11:3x~11:5x · 워커 F · sess-0027-41852 · lock 유지)
+
+- **9회차 판정**: 런 **659**(`7d176ba`) — 새 칸 `상점_가격_단추_라벨은_정본_1_15_배수로_선다` **PASS**. 같은 런의 빨강(`BoxBorderSitesTests`)은 T365 산 lock 자리다.
+- **10회차가 고른 자리**: lock 이 돌아 `ForgeCraftPopup.cs` 가 열렸다(T377 반납). 거기 둘을 이었다 — **눈에 보이는 자리부터** 골랐다.
+  - `.sellwarn-note`(정본 **2239** `line-height: 1.35`) → 판매 경고 팝업의 안내. 이 글은 **줄바꿈이 박혀 두 줄**이라(«파는 쪽이 N시대 더 최신입니다.\n같거나 이전 시대면…») 줄 간격이 실제로 보이는 자리다.
+  - `.swc-name`(정본 **2236** `line-height: 1.15` · `word-break: keep-all`) → 비교 칸의 장비 이름(긴 이름이 꺾인다).
+- **안 고른 자리와 까닭**: `.pinfo-id-text`(1.35)는 정본이 **flex 세로 묶음**에 건 값인데 클론은 자식마다 따로 `lineH` 로 놓아 **줄 간격이 안 쓰인다**(9회차의 `profile-field` 와 같은 «안 보이는 자리») · `.chat-preview-lines`·`.anvil-btn` 은 각각 `Hud.cs`(T331)·한 줄 말줄임 칸이다. 이런 자리는 남겨 두고 **보이는 자리부터** 잇는 편이 다음 사람에게도 낫다.
+- **자**: 이번 회차는 새 PlayMode 칸을 안 붙였다 — 판매 경고 팝업을 여는 데 장비 제작·판매 흐름이 필요해 값이 크고, 표↔정본 왕복은 `check_line_height`(81 자리 전수)가 이미 막는다. **다음 회차가 붙이거나**, 그 팝업을 이미 여는 자(`ForgeUiTests` 갈래)에 한 줄 얹으면 된다.
+- **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 없음 · `check_line_height` 81 자리 그대로.
+- **남은 몫**: 배선 **13/25**. 남은 것은 `Popups.cs`·`Hud.cs`·`QuestSheet.cs`(T331) · `ForgeInfoPopup.cs`·`SkillRatesPopup.cs`·`PetSkillKit.cs`(T332) · `LeagueSheet.cs`(T368·T378) · `PassPopup.cs`(T332·T375) 뒤다.
