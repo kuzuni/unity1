@@ -130,23 +130,29 @@ TABLE = {
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ───────────────────────────────
 KNOWN = {
-    'Ui/PetPanel.cs#pet-card': 'T365 ⓐ — 정본 1664 `.pet-card { border-left: var(--ol4) solid var(--rc) }` 등급색 띠 · 카탈로그 line4_px(8)는 1회차에 더했고 자리는 PetPanel.cs(T331·T333 lock) 뒤',
-    # ── 2회차가 찾은 폭 단 어긋남 13(정본 단 ↔ 클론 단) — 파일 lock 이 풀리는 회차에 키 하나씩 바꾼다(T365 3회차 이후) ──
-    'Ui/Popups.cs@Btn': 'T365 2회차 — 바닥 버튼(`.btn` 664 ol1 #444c56 · HUD·오프라인·리그 뒤로)만 얇은 회색인데 공용 Btn 은 Line3 하나다(모달·패널·시트 안 `.btn` 3543 ol3 는 맞다) · Popups.cs T331·T333 lock — 바닥 버튼에 keyline 폭 인자를 주는 길',
-    'Ui/Popups.cs@Toggle': 'T365 2회차 — `.settings-toggle` 3108 ol2 ↔ 클론 Toggle 은 `h*0.5f - Line`(ol1) · Popups.cs lock 뒤 Line2 로',
-    'Ui/Popups.cs@Avatar': 'T365 2회차 — `.profile-avatar-big` 3002 ol3 ↔ 클론 Avatar 는 `radius - Line`(ol1) · Popups.cs lock 뒤 Line3 로(작은 아바타 .avatar 들은 ol2 — 호출부가 폭을 넘기는 길)',
-    'Ui/Hud.cs@BuildChat': 'T365 2회차 — `.chat-preview-badge` 3249 ol15(1.5px ≈ 캔버스 3px) ↔ 클론 line_px(2) · ol15 단 키가 카탈로그에 없다(line15_px 3) · Hud.cs T331 lock',
-    'Ui/ChatScreen.cs@Open': 'T365 2회차 — `.chat-input-bar` 위 테 3444 ol2 · 입력칸 3450 ol2 · 위험 둥근 버튼 3284 ol2 ↔ 클론 Open 은 Line(ol1)·Line3(ol3) 둘뿐(ol2 0) · ChatScreen.cs T333·T354 lock',
-    'Ui/LeagueSheet.cs@Row': 'T365 2회차 — `.league-row` 2524 ol2 ↔ 클론 Row 는 PopupKit.Line(ol1) · LeagueSheet.cs T333 lock',
-    'Ui/LeagueSheet.cs@RenderRewards': 'T365 2회차 — `.league-reward-table` 2537 ol2 ↔ 클론 table 은 PopupKit.Line(ol1)(수집 알약 ol3 는 맞다) · LeagueSheet.cs T333 lock',
-    'Ui/ProfilePopup.cs@Field': 'T365 2회차 — `.profile-field` 3048 ol2 ↔ 클론 Field 는 `- PopupKit.Line`(ol1) · ProfilePopup.cs 는 산 lock 없음 → 3회차에 고친다',
-    'Ui/ProfilePopup.cs@RenderProfile': 'T365 2회차 — `.profile-tabs` 3070 ol3 · `.avatar-pick-btn` 3063 ol2 ↔ 클론 RenderProfile 은 ol1 뿐 · ProfilePopup.cs 산 lock 없음 → 3회차',
-    'Ui/ProfilePopup.cs@ActRow': 'T365 2회차 — `.settings-act` 3123 ol2 ↔ 클론 ActRow `- PopupKit.Line`(ol1) · ProfilePopup.cs 산 lock 없음 → 3회차',
-    # ── 3회차가 찾은 넷 ──
-    'Ui/PlayerInfoPopup.cs@Fallback': 'T365 3회차 — `.pinfo-preview` 3185 ol2 ↔ 클론 Fallback 은 `radius - PopupKit.Line`(ol1) · PlayerInfoPopup.cs T178·T364 lock',
-    'Ui/Hud.cs@Pill': 'T365 3회차 — `.cur-pill` 3984 ol3 pp-line 인데 클론 HUD 통화 알약은 `Rounded(pill,"bg")` 채움 한 장 — **테가 없다** · Hud.cs T331 lock',
-    'Ui/QuestSheet.cs@Render': 'T365 3회차 — `.qst-bar` 2040 ol2 인데 클론 퀘스트 막대는 `bg`+`fill` 두 채움이라 **테가 없다**(메서드 단 ol3 는 행 카드의 것) · QuestSheet.cs T178·T331 lock',
-    'Ui/PassPopup.cs@Render': 'T365 3회차 — `.pass-milestone-label` 2803 ol2 ↔ 클론 라벨 고리는 `- PopupKit.Line`(ol1)(배너 Line3 는 맞다) · PassPopup.cs T332 lock',
+    # 열쇠는 «선택자[|변] → 자리» 쌍이다(2회차·3회차는 자리만 열쇠로 써서, 같은 도우미가 다른 선택자에서 맞으면 «이제 있다» 로 잘못 알렸다 · 4회차 수리). 자리만 적은 옛 열쇠도 읽는다(빈자리 판정에만 · «이제 있다» 알림은 쌍 열쇠만).
+    '.pet-card|left → Ui/PetPanel.cs#pet-card': 'T365 ⓐ — 정본 1664 `.pet-card { border-left: var(--ol4) solid var(--rc) }` 등급색 띠 · 카탈로그 line4_px(8)는 1회차에 더했고 자리는 PetPanel.cs(T331·T333 lock) 뒤',
+    '.btn → Ui/Popups.cs@Btn': 'T365 2회차 — 바닥 버튼(`.btn` 664 ol1 #444c56 · HUD·오프라인·리그 뒤로)만 얇은 회색인데 공용 Btn 은 Line3 하나다(모달·패널·시트 안 `.btn` 3543 ol3 는 맞다) · Popups.cs T331·T333 lock — 바닥 버튼에 keyline 폭 인자를 주는 길',
+    '.settings-toggle → Ui/Popups.cs@Toggle': 'T365 2회차 — `.settings-toggle` 3108 ol2 ↔ 클론 Toggle 은 `h*0.5f - Line`(ol1) · Popups.cs lock 뒤 Line2 로',
+    '.profile-avatar-big → Ui/Popups.cs@Avatar': 'T365 2회차 — `.profile-avatar-big` 3002 ol3 ↔ 클론 Avatar 는 `radius - Line`(ol1) · Popups.cs lock 뒤 Line3 로(작은 아바타 .avatar 들은 ol2 — 호출부가 폭을 넘기는 길)',
+    '.league-avatar → Ui/Popups.cs@Avatar': 'T365 2회차 — `.profile-avatar-big` 3002 ol3 ↔ 클론 Avatar 는 `radius - Line`(ol1) · Popups.cs lock 뒤 Line3 로(작은 아바타 .avatar 들은 ol2 — 호출부가 폭을 넘기는 길)',
+    '.league-challenge-avatar → Ui/Popups.cs@Avatar': 'T365 2회차 — `.profile-avatar-big` 3002 ol3 ↔ 클론 Avatar 는 `radius - Line`(ol1) · Popups.cs lock 뒤 Line3 로(작은 아바타 .avatar 들은 ol2 — 호출부가 폭을 넘기는 길)',
+    '.chat-avatar → Ui/Popups.cs@Avatar': 'T365 2회차 — `.profile-avatar-big` 3002 ol3 ↔ 클론 Avatar 는 `radius - Line`(ol1) · Popups.cs lock 뒤 Line3 로(작은 아바타 .avatar 들은 ol2 — 호출부가 폭을 넘기는 길)',
+    '.pinfo-id .avatar → Ui/Popups.cs@Avatar': 'T365 2회차 — `.profile-avatar-big` 3002 ol3 ↔ 클론 Avatar 는 `radius - Line`(ol1) · Popups.cs lock 뒤 Line3 로(작은 아바타 .avatar 들은 ol2 — 호출부가 폭을 넘기는 길)',
+    '.chat-preview-badge → Ui/Hud.cs@BuildChat': 'T365 2회차 — `.chat-preview-badge` 3249 ol15(1.5px ≈ 캔버스 3px) ↔ 클론 line_px(2) · ol15 단 키가 카탈로그에 없다(line15_px 3) · Hud.cs T331 lock',
+    '.chat-input-bar|top → Ui/ChatScreen.cs@Open': 'T365 2회차 — `.chat-input-bar` 위 테 3444 ol2 · 입력칸 3450 ol2 · 위험 둥근 버튼 3284 ol2 ↔ 클론 Open 은 Line(ol1)·Line3(ol3) 둘뿐(ol2 0) · ChatScreen.cs T333·T354 lock',
+    '.chat-input-bar input → Ui/ChatScreen.cs@Open': 'T365 2회차 — `.chat-input-bar` 위 테 3444 ol2 · 입력칸 3450 ol2 · 위험 둥근 버튼 3284 ol2 ↔ 클론 Open 은 Line(ol1)·Line3(ol3) 둘뿐(ol2 0) · ChatScreen.cs T333·T354 lock',
+    '.chat-input-bar .btn.danger.round → Ui/ChatScreen.cs@Open': 'T365 2회차 — `.chat-input-bar` 위 테 3444 ol2 · 입력칸 3450 ol2 · 위험 둥근 버튼 3284 ol2 ↔ 클론 Open 은 Line(ol1)·Line3(ol3) 둘뿐(ol2 0) · ChatScreen.cs T333·T354 lock',
+    '.league-row → Ui/LeagueSheet.cs@Row': 'T365 2회차 — `.league-row` 2524 ol2 ↔ 클론 Row 는 PopupKit.Line(ol1) · LeagueSheet.cs T333 lock',
+    '.league-reward-table → Ui/LeagueSheet.cs@RenderRewards': 'T365 2회차 — `.league-reward-table` 2537 ol2 ↔ 클론 table 은 PopupKit.Line(ol1)(수집 알약 ol3 는 맞다) · LeagueSheet.cs T333 lock',
+    '.profile-field → Ui/ProfilePopup.cs@Field': 'T365 2회차 — `.profile-field` 3048 ol2 ↔ 클론 Field 는 `- PopupKit.Line`(ol1) · ProfilePopup.cs 는 산 lock 없음 → 3회차에 고친다',
+    '.profile-tabs → Ui/ProfilePopup.cs@RenderProfile': 'T365 2회차 — `.profile-tabs` 3070 ol3 · `.avatar-pick-btn` 3063 ol2 ↔ 클론 RenderProfile 은 ol1 뿐 · ProfilePopup.cs T364 lock 뒤',
+    '.avatar-pick-btn → Ui/ProfilePopup.cs@RenderProfile': 'T365 2회차 — `.profile-tabs` 3070 ol3 · `.avatar-pick-btn` 3063 ol2 ↔ 클론 RenderProfile 은 ol1 뿐 · ProfilePopup.cs T364 lock 뒤',
+    '.settings-act → Ui/ProfilePopup.cs@ActRow': 'T365 2회차 — `.settings-act` 3123 ol2 ↔ 클론 ActRow `- PopupKit.Line`(ol1) · ProfilePopup.cs T364 lock 뒤',
+    '.pinfo-preview → Ui/PlayerInfoPopup.cs@Fallback': 'T365 3회차 — `.pinfo-preview` 3185 ol2 ↔ 클론 Fallback 은 `radius - PopupKit.Line`(ol1) · PlayerInfoPopup.cs T178·T364 lock',
+    '.cur-pill → Ui/Hud.cs@Pill': 'T365 3회차 — `.cur-pill` 3984 ol3 pp-line 인데 클론 HUD 통화 알약은 `Rounded(pill,"bg")` 채움 한 장 — **테가 없다** · Hud.cs T331 lock',
+    '.qst-bar → Ui/QuestSheet.cs@Render': 'T365 3회차 — `.qst-bar` 2040 ol2 인데 클론 퀘스트 막대는 `bg`+`fill` 두 채움이라 **테가 없다**(메서드 단 ol3 는 행 카드의 것) · QuestSheet.cs T178·T331 lock',
+    '.pass-milestone-label → Ui/PassPopup.cs@Render': 'T365 3회차 — `.pass-milestone-label` 2803 ol2 ↔ 클론 라벨 고리는 `- PopupKit.Line`(ol1)(배너 Line3 는 맞다) · PassPopup.cs T332 lock',
 }
 
 HELPERS = ('PopupKit.Outlined', 'UiKit.Line', 'PetSkillKit.Framed', 'PetSkillKit.Orb', 'DungeonPopups.Bordered', 'DungeonPopups.BorderedCircle', 'UiKit.Rounded')
@@ -413,13 +419,14 @@ def run(css_text, game_dir, table, known, out=print, list_pending=False):
             continue
         for t in targets:
             state, why = check_target(game_dir, t, css_tier(css_by_key[key]))
+            pair = key + ' → ' + t
             if state == 'ok':
                 n_ok += 1
-                if t in known:
-                    known_now_ok.append(t)
+                if pair in known:
+                    known_now_ok.append(pair)
             elif state == 'skip':
                 n_skip += 1
-            elif t in known:
+            elif pair in known or t in known:
                 n_known += 1
             else:
                 label = {'missing': '테 없음', 'absent': '자리 없음', 'tier': '단 어긋남'}[state]
@@ -501,8 +508,12 @@ namespace X {
     checks.append(('Rounded 홀로(bg 채움)는 테가 아니다', check_target(tmp, 'Ui/Ring.cs@Fill', 'ol1')[0] == 'missing'))
     checks.append(('입술 꼴(lip · 반지름 따로)은 테지만 단은 못 읽는다 → 판정 안 함', check_target(tmp, 'Ui/Ring.cs@Lip', 'ol2')[0] == 'ok'))
     logs2 = []
-    run(css, tmp, {'.a': ['Ui/Face.cs#line']}, {'Ui/Face.cs#line': 'x'}, logs2.append)
-    checks.append(('KNOWN 인데 이제 있다 → 알린다', any('이제 테가 있다' in l for l in logs2)))
+    run(css, tmp, {'.a': ['Ui/Face.cs#line']}, {'.a → Ui/Face.cs#line': 'x'}, logs2.append)
+    checks.append(('KNOWN(쌍 열쇠)인데 이제 있다 → 알린다', any('이제 테가 있다' in l for l in logs2)))
+    logs3 = []
+    # 같은 도우미(@Toast)를 두 선택자가 쓰는데 하나만 KNOWN — 맞는 쪽(.b ol1) 때문에 «이제 있다» 가 울면 안 된다(4회차 수리)
+    run(css, tmp, {'.a': ['Ui/Face.cs@Toast'], '.b': ['Ui/Face.cs@Toast']}, {'.a → Ui/Face.cs@Toast': '단 어긋남 임자 있음'}, logs3.append)
+    checks.append(('쌍 열쇠는 다른 선택자의 초록에 «이제 있다» 로 안 운다', not any('이제 테가 있다' in l for l in logs3) and any('문제 0' in l for l in logs3)))
     failed = [n for n, ok in checks if not ok]
     for n, ok in checks:
         print(('  ✓ ' if ok else '  ✗ ') + n)
