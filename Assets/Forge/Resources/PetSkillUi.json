@@ -113,6 +113,8 @@
     "sk_row_gap_h": 0.0169,
     "sk_orb_w": 0.1008,
     "sk_cell_gap_h": 0.0101,
+    "_sk_grid_top_h": "T369 — 정본 style.css 4013~4015 .sk-grid 머리말 «1행 오브 상단 92px(10.34%H)»(원본 shot-042340 · 앱 496x890 · 화소로 재확인 y92) — 패널 위끝 ↔ 1행 오브 위끝. 클론은 쌓는 순서로만 정해져 8.96%H 였다. 배선은 SkillPanel.cs(산 lock 뒤).",
+    "sk_grid_top_h": 0.1034,
     "sk_shard_h": 0.0169,
     "sk_shard_r_rem": 0.45,
     "sk_lv_center_f": 0.729,

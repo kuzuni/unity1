@@ -2130,6 +2130,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 무엇을 한다: `PetSkillUi.json` 에 `sk_grid_top_h`(= **0.1034** · 패널 위끝 ↔ 1행 오브 위끝) 를 두고 `SkillPanel.cs` 가 격자 위 여백을 그 값으로 세운다(부제 띠·패시브 배너 높이는 지금 값 그대로 두고 **틈만** 맞춘다 — 둘 다 자리가 맞기 때문이다).
 - 판정: EditMode — 표에 `sk_grid_top_h` 가 있고 0.1034 다(코드에 수 없음) · PlayMode/눈 — 다음 회차 `screen_skills.png` 의 1행 오브 위끝이 **9.9~10.7%H** · `python3 tools/ui_score.py --rows skills` 의 «나란히 밀린 줄» 이 사라진다.
 - 범위: `Assets/Forge/Resources/PetSkillUi.json` · `Assets/Scripts/Game/Ui/SkillPanel.cs`(T331 등 산 lock 뒤) · `Assets/Tests/EditMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 1회차 2026-09-15 07:4x 워커 C(sess-2036-34862): `SkillPanel.cs` 가 T331·T364 lock 안이라 등재문의 표 몫만 — `PetSkillUi.json` `layout.sk_grid_top_h` = **0.1034**(`_` 칸에 정본 4013~4015 · shot-042340 y92) + EditMode `SkillGridTopTests` 2(키가 있고 0.1034 · 890px 에서 92px 로 돌아온다). 배선(격자 위 여백을 이 값으로 · 부제 띠·패시브 배너 높이는 그대로 · 틈만) + `screen_skills.png` 9.9~10.7%H + `--rows skills` 판정은 그 lock 이 풀리면 누구든 2회차.
 
 ### T368 — 정본이 `repeating-linear-gradient` + `background-size/position` 으로 까는 **줄무늬 셋**이 클론에서 실선·없음·다른 모양이다: 리그 보상 단 **대시 구분선** · 스킬 패널 소환 바 위 **풀블리드 대시** · 보스 경고 **-45° 사선 띠** (Game·UI · T178 뒤 · **T33 30회차 등재**)
 - 실측(2026-09-15 06:4x · `docs/parity.md` 30회차 · 축 `background-position` 22 + `background-size` 15): 정적 자리 중 무늬(T124 시대 무늬 · 표에서 읽음 ✓)·덮기(`cover`·`contain` ✓)·소환 스윕(T334)을 빼면 **repeating-linear-gradient 줄무늬 셋**이 남고 셋 다 클론이 다르다.
