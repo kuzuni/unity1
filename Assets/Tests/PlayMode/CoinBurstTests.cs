@@ -53,6 +53,20 @@ namespace Forge.Tests.PlayMode
             yield return WaitSec((float)((s.DelayStepMs * 5 + s.DelayJitterMs + s.FlyMs * s.LandK) / 1000.0) + 0.3f);
             Assert.AreEqual(6, cb.LastLabels.Count, "착지 자리마다 라벨 하나");
             foreach (string l in cb.LastLabels) Assert.AreEqual("+17", l, "라벨은 전부 합÷개수(100/6 → 17) — sell-coin-split-rising");
+            // T333 9회차 — 라벨의 8방향 검정 링(정본 7428 `--ol: max(1.4px, .075rem)` · rgba(0,0,0,.92)): SDF 스트로크(T104) + 제 표 색(amt_outline)
+            TMPro.TextMeshProUGUI amt = null;
+            foreach (Transform ch in cb.Layer) if (ch.name == "coin-amt") { amt = ch.GetComponent<TMPro.TextMeshProUGUI>(); if (amt != null) break; }
+            Assert.IsNotNull(amt, "coin-amt 라벨(TMP)");
+            Assert.IsTrue(amt.fontMaterial.IsKeywordEnabled("OUTLINE_ON"), "링(SDF 스트로크)이 켜져 있다");
+            float wantPx = (float)CoinBurstRules.AmtRingCanvasPx(s, UiKit.L("anvil_fx_px"), PopupKit.Rem);
+            Assert.Greater(wantPx, 0f, "표의 링 두께(캔버스 px)");
+            Assert.Greater(amt.outlineWidth, 0f, "링 두께가 실제로 얹혔다");
+            Color oc = CoinBurstStyle.C("amt_outline");
+            Color got = amt.outlineColor;
+            Assert.AreEqual(oc.r, got.r, 1e-2f, "링 색 R(검정)");
+            Assert.AreEqual(oc.g, got.g, 1e-2f, "링 색 G");
+            Assert.AreEqual(oc.b, got.b, 1e-2f, "링 색 B");
+            Assert.AreEqual(oc.a, got.a, 1e-2f, "링 알파(.92) — 정본 --olc rgba(0,0,0,.92)");
             // 수명 끝(조각 780+154+120 · 라벨 착지+2000+60) → 다 걷힌다
             yield return WaitSec((float)((s.DelayStepMs * 5 + s.DelayJitterMs + s.FlyMs * s.LandK + s.AmtMs + s.AmtSlackMs) / 1000.0) + 0.5f);
             Assert.AreEqual(0, cb.Pieces, "조각은 다 걷혔다");

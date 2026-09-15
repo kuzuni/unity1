@@ -4777,6 +4777,12 @@
 - **축의 셈(지금까지)**: 정본 `<br>` 22 줄 · 클론 자리 21 · 화면에서 잰 자리 7 중 정본대로 5 · 어긋남 2(pass-desc · 승천 효과 — 둘 다 하한이 접는 꼴 · 둘 다 남의 lock) · 안 잰 자리 14(상태를 만들어야 열린다).
 - 게이트: `tools/gate.sh` 막는 자 전부 rc 0 · 자 자기 검사 10칸 · 실물 rc 0(KNOWN 3 줄 · 자리 2).
 
+### T333 9회차 — 판매 코인 금액 «.coin-amt» 8방향 검정 링 · 링 값의 제 자리가 남의 lock 안이면 제 표가 쥔다 (2026-09-15 13:4x · 워커 C · sess-2036-34862 · lock 유지 · 판정은 다음 런)
+- **자리**: 정본 7426~7435 `.coin-amt` — 판매 코인 착지 금액 라벨. 정본 주석이 «종전 `--olc` 참조가 미정의라 **한 겹도 안 그려지고 있었»** 던 것을 제 손으로 살린 자리(이너=노랑 · 아웃라인=검정 · 지시 slug `coin-amt-yellow-black`). 클론은 legacy `UiKit.Outline(t, "pp_line", 0.3)`(TMP 비율 0.3 — 정본에 없는 수 · §1 위반은 아니나 값의 근거가 없다)이었다.
+- **고침**: `UiKit.OutlinePx`(SDF 스트로크 · T104 = ⓒ 링 갈래) + 변당 두께 `max(1.4px, .075rem)` 를 Core `CoinBurstRules.AmtRingCanvasPx` 가 환산 뒤 견준다 · 색은 표 `amt_outline`(#000000eb = rgba(0,0,0,.92)) 로 링 색을 덮는다. 대각 .82 겹과 바닥 그림자(0 2px 4px .55)는 근사로 뺀다 — T333 3회차 league_row 갈래(여러 겹 중 «읽히게 만드는 한 겹» · 정본 주석도 «대비는 이 검정 링이 맡는다»).
+- **결정 655**: 링 두께의 제 자리는 `TextShadowUi.json` `rings`(T333 3회차 규약)지만 그 표는 지금 **T332 산 lock 의 «범위» 안**(7회차 별 둘 값)이다 — T384 결정 651(«남의 lock 안 표면 값은 제 표가 쥐고 식만 빌린다»)과 같은 길로 `CoinBurstUi.json` 이 쥔다(`amt_ring_min_px`·`amt_ring_rem` · 종전 `amt_outline_f 0.3` 삭제). T332 lock 이 풀려도 **안 옮긴다** — 이 링은 판매 연출의 제 수치라 제 표가 자연스럽다(rings 로 옮기면 두 표가 한 자리를 쥔다).
+- **자·검증**: `check_text_shadows` TABLE `'.coin-amt': ring:Ui/CoinBurst.cs@Amount` — 자리 초록 **20 → 21** · 미정 선택자 **26 → 25** · `--self-test` 24칸 · EditMode `CoinBurstRulesTests` +1 · PlayMode `CoinBurstTests` 에 링 단언 넷(OUTLINE_ON · 표 두께 > 0 · 링 색 검정 · 알파 .92). `dotnet build` 0 오류 · `test` **762/762** · `tools/gate.sh` 막는 자 전부 rc 0.
+- **남은 미정 25**: 전부 남의 산 lock 뒤 — 눈에 띄는 예외 하나 `.float-dmg.dmg-crit`(글로우 · `DamageNumbers.cs` 는 열려 있다)는 공유 재질에 언더레이를 얹고 키프레임(565~580)의 글로우 변화까지 추적해야 해 한 회차 감이다(다음에 잡는 사람 몫 · 값 표는 제 곁 표로 — catalog 은 T365 lock).
 
 ### T178 11·12회차 판정 ✅ + 13회차 — 상점 보상 알약의 «오목한 홈» (2026-09-15 13:3x~13:5x · 워커 K · sess-1132-45601 · lock 갱신 · 13회차 판정은 다음 런)
 - **판정(런 682 · `29b5df7`)**: `SurfaceArtTests` **초록** — 11회차 배너 세 정지점 · 12회차 비네트(타원 120%×95% · 정지점 · 연출 띠보다 아래 · 가운데는 안 누르고 모서리는 누른다) 다 섰다. 같은 런의 빨강 둘은 남의 몫(`BoxBorderSitesTests` T365 · `LineHeightTests` T354 · 둘 다 산 lock).
@@ -9591,3 +9597,4 @@
 - **깨진 것 없음**: 내가 걱정한 «카드가 줄며 트랙이 잘린다» 는 안 일어났다 — 런 682 의 빨강 둘은 `BoxBorderSitesTests`(T365)·`LineHeightTests`(T354)로 **남의 산 lock** 몫이고 촬영 자는 초록이다. `TableScaleSitesTests` 도 PASS.
 - **lock 반납**: 남은 22 자리는 전부 T331(18)·T332(1)·T378 자신(3)의 뒤라 내가 이어 잡을 자리가 없다. 행은 **🔄 진행**으로 둔다.
 - **주인이 확인할 것**: 없다.
+655. **링·그림자 값의 «제 자리 표» 가 남의 산 lock «범위» 안이면 그 값은 제 곁 표가 쥔다 — lock 이 풀려도 옮기지 않는다 (2026-09-15 · T333 9회차 · 워커 C · sess-2036-34862)**: 판매 코인 금액 `.coin-amt` 의 8방향 링(변당 `max(1.4px, .075rem)` · rgba(0,0,0,.92))은 T333 3회차 규약대로면 `TextShadowUi.json` `rings` 몫인데 그 표는 T332 산 lock 의 «범위» 안이다(7회차 별 둘 값). 결정 651(T384)과 같은 길로 `CoinBurstUi.json` 에 `amt_ring_min_px`·`amt_ring_rem` 을 두고 식(`UiKit.OutlinePx` = T104 SDF 스트로크)만 빌렸다 — 색은 그 표에 이미 있던 `amt_outline`(#000000eb). lock 이 풀려도 안 옮긴다: 이 값은 판매 연출의 제 수치라 제 표(`CoinBurstUi`)가 자연스럽고, `rings` 로 옮기면 한 자리를 두 표가 가리키게 된다. 종전 `amt_outline_f 0.3`(TMP 비율 · 정본에 없는 수)은 지웠다 — max 셈은 Core `CoinBurstRules.AmtRingCanvasPx`(단위 다른 두 항을 환산 뒤 견줌).

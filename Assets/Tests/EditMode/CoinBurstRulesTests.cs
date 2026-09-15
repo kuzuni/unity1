@@ -33,6 +33,18 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 금액_링은_표의_두_항을_환산해_큰_쪽이다()
+        {
+            var s = S();
+            Assert.AreEqual(1.4, s.AmtRingMinPx, 1e-12, "정본 7428 --ol 의 절대 항 1.4px");
+            Assert.AreEqual(0.075, s.AmtRingRem, 1e-12, "정본 7428 --ol 의 rem 항 .075rem");
+            // 촬영 배율 2.164 · 1rem = 36.4 캔버스 px(844 기준): 1.4×2.164 = 3.03 > .075×36.4 = 2.73 — 절대 항이 이긴다
+            Assert.AreEqual(1.4 * 2.164, CoinBurstRules.AmtRingCanvasPx(s, 2.164, 36.4), 1e-9);
+            // rem 이 충분히 크면 rem 항이 이긴다(max 의 뜻)
+            Assert.AreEqual(0.075 * 60.0, CoinBurstRules.AmtRingCanvasPx(s, 2.164, 60.0), 1e-9);
+        }
+
+        [Test]
         public void 라벨은_전부_합나누기개수_같은_값이고_JS_반올림이다()
         {
             Assert.AreEqual(17, CoinBurstRules.Per(100, 6), "16.67 → 17");

@@ -29,7 +29,9 @@
     "spin_ms": 420,
     "bounce_rem": 0.5,
     "amt_font_rem": 0.82,
-    "amt_outline_f": 0.3,
+    "_amt_ring": "T333 9회차 — 정본 style.css 7428 `.coin-amt` 의 8방향 검정 링 `--ol: max(1.4px, .075rem)`(--olc rgba(0,0,0,.92) = colors.amt_outline). 클론은 SDF 스트로크 한 겹(UiKit.OutlinePx · T104)으로 낸다 — 대각 .82 겹과 바닥 그림자 `0 2px 4px rgba(0,0,0,.55)` 는 근사로 뺀다(T333 league_row 갈래 · 결정 655). 종전 `amt_outline_f 0.3`(TMP 비율 · 정본에 없는 수)을 이 두 키가 대체한다.",
+    "amt_ring_min_px": 1.4,
+    "amt_ring_rem": 0.075,
     "origin_y_f": 0.4
   },
   "fly_y": [

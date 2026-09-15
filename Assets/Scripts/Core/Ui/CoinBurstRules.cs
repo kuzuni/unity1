@@ -15,7 +15,7 @@ namespace Forge.Core.Ui
         public double RiseMinPx, RiseMaxPx;
         public double DelayStepMs, DelayJitterMs;
         public double FlyMs, LandK, AmtMs, RemoveSlackMs, AmtSlackMs;
-        public double CoinRem, SpinMs, BounceRem, AmtFontRem, AmtOutline, OriginYF;
+        public double CoinRem, SpinMs, BounceRem, AmtFontRem, AmtRingMinPx, AmtRingRem, OriginYF;
         public double CountBase, CountLogK, CountMin, CountMax;
         public int RowsUpTo1, RowsUpTo2;
         /// <summary>날아가는 세로 키프레임(정본 `@keyframes coinFlyY`): 퍼센트 · 자리 기호(0 · rise · drop · drop-bounce) · 불투명도 · 구간 이징.</summary>
@@ -42,7 +42,7 @@ namespace Forge.Core.Ui
                 FlyMs = J.Num(J.Require(L, "fly_ms")), LandK = J.Num(J.Require(L, "land_k")), AmtMs = J.Num(J.Require(L, "amt_ms")),
                 RemoveSlackMs = J.Num(J.Require(L, "remove_slack_ms")), AmtSlackMs = J.Num(J.Require(L, "amt_slack_ms")),
                 CoinRem = J.Num(J.Require(L, "coin_rem")), SpinMs = J.Num(J.Require(L, "spin_ms")), BounceRem = J.Num(J.Require(L, "bounce_rem")),
-                AmtFontRem = J.Num(J.Require(L, "amt_font_rem")), AmtOutline = J.Num(J.Require(L, "amt_outline_f")), OriginYF = J.Num(J.Require(L, "origin_y_f")),
+                AmtFontRem = J.Num(J.Require(L, "amt_font_rem")), AmtRingMinPx = J.Num(J.Require(L, "amt_ring_min_px")), AmtRingRem = J.Num(J.Require(L, "amt_ring_rem")), OriginYF = J.Num(J.Require(L, "origin_y_f")),
                 CountBase = J.Num(J.Require(L, "count_base_n")), CountLogK = J.Num(J.Require(L, "count_log_k")), CountMin = J.Num(J.Require(L, "count_min_n")), CountMax = J.Num(J.Require(L, "count_max_n")),
                 RowsUpTo1 = J.Int(J.Require(L, "rows_upto1_n")), RowsUpTo2 = J.Int(J.Require(L, "rows_upto2_n")),
             };
@@ -94,6 +94,13 @@ namespace Forge.Core.Ui
     /// </summary>
     public static class CoinBurstRules
     {
+        /// <summary>T333 9회차 — 정본 `.coin-amt` 링의 변당 두께(캔버스 px): `max(1.4px, .075rem)`(style.css 7428).
+        /// 두 항의 단위가 달라(절대 CSS px ↔ rem) 환산을 먼저 하고 max 를 잰다 — 지금 캔버스(1rem ≈ 16.8 CSS px)에선 1.4px 쪽이 이긴다.</summary>
+        public static double AmtRingCanvasPx(CoinBurstSpec s, double cssToCanvas, double remCanvasPx)
+        {
+            return Math.Max(s.AmtRingMinPx * cssToCanvas, s.AmtRingRem * remCanvasPx);
+        }
+
         /// <summary>JS `Math.round` — 음수가 아닌 값에서 .5 는 올린다.</summary>
         public static double JsRound(double x) { return Math.Floor(x + 0.5); }
 
