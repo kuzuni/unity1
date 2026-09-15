@@ -42,10 +42,20 @@ namespace Forge.Game.Ui
         float pxPerRem;
 
         /// <summary>
-        /// 상자에 무늬 층을 깐다. <paramref name="cell"/> = 장착 셀(흐림 .55 · 정본 `filter: opacity(.55)`) / 막대(1) · <paramref name="mask"/> = 자동 제련 막대의 왼쪽 30→50% 마스크.
-        /// 무늬가 없는 시대면 null(아무것도 안 만든다). 층은 <paramref name="siblingIndex"/> 자리(기본 1 = 바탕 채움 바로 위 · 썸네일·글자 뒤).
+        /// 종전 갈래(마스크 = 자동 제련 막대이거나 없거나) — 부름 자리 셋(`ForgeUi.AgeBar`·`ForgeUi` 장착 셀·`PlayerInfoPopup`)이 남의 산 lock 뒤라 이번 회차엔 못 고친다.
+        /// 그 자리가 열리면 이 갈래를 지우고 아래 키 갈래로 부른다(T380 배선).
         /// </summary>
         public static AgePattern Attach(RectTransform host, string age, bool cell = false, bool mask = false, int siblingIndex = 1)
+        {
+            return Attach(host, age, cell, mask ? AgePatternKeys.AfBar : null, siblingIndex);
+        }
+
+        /// <summary>
+        /// 상자에 무늬 층을 깐다. <paramref name="cell"/> = 장착 셀(흐림 .55 · 정본 `filter: opacity(.55)`) / 막대(1) ·
+        /// <paramref name="mask"/> = 왼쪽 마스크를 낼 **막대 종류 표 키**(<see cref="AgePatternKeys.AfBar"/>·<see cref="AgePatternKeys.FiBar"/> · null 이면 마스크 없음 · 값은 `AgePatternUi.json` 이 낸다).
+        /// 무늬가 없는 시대면 null(아무것도 안 만든다). 층은 <paramref name="siblingIndex"/> 자리(기본 1 = 바탕 채움 바로 위 · 썸네일·글자 뒤).
+        /// </summary>
+        public static AgePattern Attach(RectTransform host, string age, bool cell, string mask, int siblingIndex = 1)
         {
             if (host == null) return null;
             AgePatternSpec s = Spec;
@@ -60,7 +70,8 @@ namespace Forge.Game.Ui
             p.Age = age; p.A = a; p.Host = host; p.Layer = layer; p.Group = g;
             p.BaseOpacity = cell ? (float)s.CellOpacity : 1f;
             p.pxPerRem = PopupKit.Rem;
-            float mFrom = mask ? (float)s.BarMaskFrom : -1f, mTo = mask ? (float)s.BarMaskTo : -1f;
+            MaskSpec ms = s.Mask(mask);
+            float mFrom = ms != null ? (float)ms.From : -1f, mTo = ms != null ? (float)ms.To : -1f;
             var list = new List<AgePatternGraphic>();
             for (int i = 0; i < a.Layers.Length; i++)
             {
@@ -143,13 +154,17 @@ namespace Forge.Game.Ui
         }
     }
 
-    /// <summary>타일 무늬 한 층 — `RawImage` 에 정본 마스크(`linear-gradient(90deg, transparent 0 30%, #000 50%)`)를 정점 알파로 얹은 것.</summary>
+    /// <summary>타일 무늬 한 층 — `RawImage` 에 정본 마스크(`linear-gradient(90deg, transparent 0 X%, #000 Y%)` · 막대 종류마다 값이 다르다 · T380)를 정점 알파로 얹은 것.</summary>
     [RequireComponent(typeof(CanvasRenderer))]
     public sealed class AgePatternGraphic : RawImage
     {
         float maskFrom = -1f, maskTo = -1f;
         public void SetMask(float from, float to) { maskFrom = from; maskTo = to; SetVerticesDirty(); }
         public bool Masked { get { return maskFrom >= 0f && maskTo > maskFrom; } }
+        /// <summary>마스크가 시작하는 가로 비율(정본 `transparent 0 X%` 의 X) — 마스크가 없으면 −1.</summary>
+        public float MaskFrom { get { return maskFrom; } }
+        /// <summary>마스크가 다 차는 가로 비율(정본 `#000 Y%` 의 Y) — 마스크가 없으면 −1.</summary>
+        public float MaskTo { get { return maskTo; } }
 
         protected override void OnPopulateMesh(VertexHelper vh)
         {
@@ -184,6 +199,9 @@ namespace Forge.Game.Ui
         AgeSpec a; float pxPerRem, phaseRem, maskFrom = -1f, maskTo = -1f; int segments = 48;
         public float PhaseRem { get { return phaseRem; } }
         public int RingCount { get; private set; }
+        /// <summary>막대 마스크 한 벌(없으면 −1) — 무늬 층과 같은 값이 걸린다.</summary>
+        public float MaskFrom { get { return maskFrom; } }
+        public float MaskTo { get { return maskTo; } }
 
         public void Setup(AgeSpec spec, float pxPerRem, int segments, float mFrom, float mTo)
         {

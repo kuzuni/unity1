@@ -32,6 +32,29 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 두_막대의_왼쪽_마스크는_정본대로_서로_다른_값이다()
+        {
+            var s = S();
+            // 정본 `css/style.css` 4841 `.af-age-bar::before` = linear-gradient(90deg, transparent 0 30%, #000 50%)
+            MaskSpec af = s.Mask(AgePatternKeys.AfBar);
+            Assert.IsNotNull(af, "자동 제련 막대 마스크가 표에 있다");
+            Assert.AreEqual(0.30, af.From, 1e-9, "af 막대는 30% 까지 비운다");
+            Assert.AreEqual(0.50, af.To, 1e-9, "af 막대는 50% 에서 다 찬다");
+            // 정본 `css/style.css` 5122 `.fi-age-bar::before` = transparent 0 24%, #000 46% — 아이콘·이름이 앉는 왼쪽이 af 보다 좁다
+            MaskSpec fi = s.Mask(AgePatternKeys.FiBar);
+            Assert.IsNotNull(fi, "정보 팝업 막대 마스크가 표에 있다(T380)");
+            Assert.AreEqual(0.24, fi.From, 1e-9, "fi 막대는 24% 까지 비운다");
+            Assert.AreEqual(0.46, fi.To, 1e-9, "fi 막대는 46% 에서 다 찬다");
+            Assert.AreNotEqual(af.From, fi.From, "두 막대의 값이 같다고 베끼지 말 것 — 정본이 다르게 적었다");
+            // 번지는 폭도 다르다 — af 20%p ↔ fi 22%p(정본이 막대마다 따로 적은 값이라 «한쪽을 옮겨 쓰기» 가 안 된다)
+            Assert.AreEqual(0.20, af.To - af.From, 1e-9, "af 막대가 번지는 폭");
+            Assert.AreEqual(0.22, fi.To - fi.From, 1e-9, "fi 막대가 번지는 폭");
+            Assert.IsNull(s.Mask(null), "마스크 없는 자리(장착 셀)");
+            Assert.IsNull(s.Mask("cell_opacity"), "짝(_to_f)이 없는 키는 마스크가 아니다");
+            Assert.AreEqual(2, s.BarMasks.Count, "표에 있는 막대 종류는 둘");
+        }
+
+        [Test]
         public void 진행은_linear_또는_steps_7_end_이고_한_주기가_지나면_타일_한_칸_만큼_옮겨_있다()
         {
             var s = S();

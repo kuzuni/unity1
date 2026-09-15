@@ -1,9 +1,11 @@
 {
- "_": "ROUTINE T124 시대 무늬(항성간 이상 다섯 · 원작 css/style.css 918~935 · 4834~4842 · 4869~4975 · 주인 지시 grade-pattern-animation)의 수치·색표. T87 lock 이 catalog.json 을 쥐고 있어 T124 몫만 여기 둔다(T65 PlayerInfoUi.json 과 같은 꼴). 단위: _rem = 정본 rem · _f = 비율 · _s = 초(벽시계) · svg_px = 정본 인라인 SVG 의 viewBox 픽셀(타일이 tile_rem 으로 늘어난다). 색은 정본 rgba 를 #RRGGBBAA 로(.3→4d · .42→6b · .23→3b · .26→42). 코드에 숫자를 박지 않는다(§1).",
+ "_": "ROUTINE T124 시대 무늬(항성간 이상 다섯 · 원작 css/style.css 918~935 · 4834~4842 · 4869~4975 · 주인 지시 grade-pattern-animation)의 수치·색표. T87 lock 이 catalog.json 을 쥐고 있어 T124 몫만 여기 둔다(T65 PlayerInfoUi.json 과 같은 꼴). 단위: _rem = 정본 rem · _f = 비율 · _s = 초(벽시계) · svg_px = 정본 인라인 SVG 의 viewBox 픽셀(타일이 tile_rem 으로 늘어난다). 색은 정본 rgba 를 #RRGGBBAA 로(.3→4d · .42→6b · .23→3b · .26→42). 코드에 숫자를 박지 않는다(§1). 막대 마스크는 «막대 종류_mask_from_f/_to_f» 한 벌씩 — af_bar = 자동 제련 행(.af-age-bar::before 30→50%) · fi_bar = 대장간 정보 팝업(.fi-age-bar::before 24→46%). 정본이 두 막대에 다른 값을 적었다(T380).",
  "layout": {
   "cell_opacity_f": 0.55,
-  "bar_mask_from_f": 0.3,
-  "bar_mask_to_f": 0.5,
+  "af_bar_mask_from_f": 0.3,
+  "af_bar_mask_to_f": 0.5,
+  "fi_bar_mask_from_f": 0.24,
+  "fi_bar_mask_to_f": 0.46,
   "ease_in_out": [
    0.42,
    0,

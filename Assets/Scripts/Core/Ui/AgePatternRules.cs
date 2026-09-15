@@ -12,13 +12,19 @@ namespace Forge.Core.Ui
     /// </summary>
     public sealed class AgePatternSpec
     {
-        public double CellOpacity, BarMaskFrom, BarMaskTo;
+        public double CellOpacity;
+        /// <summary>막대 종류별 왼쪽 마스크(정본 `linear-gradient(90deg, transparent 0 X%, #000 Y%)`) — 표의 «&lt;종류&gt;_mask_from_f/_to_f» 한 벌이 한 칸이다. 키 = `af_bar`(자동 제련 행) · `fi_bar`(대장간 정보 팝업).</summary>
+        public readonly Dictionary<string, MaskSpec> BarMasks = new Dictionary<string, MaskSpec>();
         public CssEase EaseInOut;
         public int Supersample, RingSegments;
         public readonly Dictionary<string, AgeSpec> Ages = new Dictionary<string, AgeSpec>();
 
         public bool Has(string age) { return age != null && Ages.ContainsKey(age); }
+        /// <summary>막대 마스크 한 벌 — 없는 키(장착 셀처럼 마스크가 없는 자리)면 null.</summary>
+        public MaskSpec Mask(string bar) { MaskSpec m; return bar != null && BarMasks.TryGetValue(bar, out m) ? m : null; }
         public AgeSpec Get(string age) { AgeSpec a; return age != null && Ages.TryGetValue(age, out a) ? a : null; }
+
+        const string MaskFromSuffix = "_mask_from_f", MaskToSuffix = "_mask_to_f";
 
         public static AgePatternSpec From(JsonObject root)
         {
@@ -26,15 +32,38 @@ namespace Forge.Core.Ui
             var s = new AgePatternSpec
             {
                 CellOpacity = J.Num(J.Require(L, "cell_opacity_f")),
-                BarMaskFrom = J.Num(J.Require(L, "bar_mask_from_f")), BarMaskTo = J.Num(J.Require(L, "bar_mask_to_f")),
                 Supersample = J.Int(J.Require(L, "supersample_n")), RingSegments = J.Int(J.Require(L, "ring_segments_n")),
             };
             var e = J.NumArr(J.Require(L, "ease_in_out"));
             s.EaseInOut = new CssEase(e[0], e[1], e[2], e[3]);
+            // 마스크는 «막대 종류» 로 열려 있다 — 표에 «<종류>_mask_from_f» 가 늘면 짝(_to_f)까지 한 칸으로 읽는다(정본이 막대마다 다른 값을 적는다 · T380).
+            for (int i = 0; i < L.Keys.Count; i++)
+            {
+                string k = L.Keys[i];
+                if (!k.EndsWith(MaskFromSuffix, StringComparison.Ordinal)) continue;
+                string bar = k.Substring(0, k.Length - MaskFromSuffix.Length);
+                s.BarMasks[bar] = new MaskSpec(J.Num(L[k]), J.Num(J.Require(L, bar + MaskToSuffix)));
+            }
             var ages = J.Obj(J.Require(root, "ages"));
             foreach (string key in ages.Keys) s.Ages[key] = AgeSpec.From(key, J.Obj(ages[key]));
             return s;
         }
+    }
+
+    /// <summary>막대 종류 키(표의 «&lt;종류&gt;_mask_from_f/_to_f» 앞머리) — 정본이 두 막대에 다른 마스크를 적었다(T380).</summary>
+    public static class AgePatternKeys
+    {
+        /// <summary>자동 제련 행 막대 — 정본 `.af-age-bar::before` 30→50%.</summary>
+        public const string AfBar = "af_bar";
+        /// <summary>대장간 정보 팝업 막대 — 정본 `.fi-age-bar::before` 24→46%.</summary>
+        public const string FiBar = "fi_bar";
+    }
+
+    /// <summary>막대 왼쪽 마스크 한 벌 — 정본 `linear-gradient(90deg, transparent 0 From, #000 To)`. 비율(0~1)이다.</summary>
+    public sealed class MaskSpec
+    {
+        public readonly double From, To;
+        public MaskSpec(double from, double to) { From = from; To = to; }
     }
 
     public sealed class AgeSpec

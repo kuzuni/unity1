@@ -158,7 +158,7 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual((float)s.CellOpacity * (float)AgePatternRules.Pulse(s, cell.A, 0), cell.Group.alpha, 1e-5f, "filter: opacity(.55) × 반짝임");
             Assert.AreEqual(1, cell.Layer.GetSiblingIndex(), "바탕 채움 바로 위(썸네일·글자 뒤)");
             RectTransform bar = Host("t124-bar", 600f, 60f);
-            AgePattern m = AgePattern.Attach(bar, "underworld", cell: false, mask: true);
+            AgePattern m = AgePattern.Attach(bar, "underworld", false, AgePatternKeys.AfBar);
             m.Manual = true; m.Tick(0);
             Assert.IsTrue(m.Layers[0].Masked, "마스크 갈래");
             // 마스크는 정점 알파 0·0·1·1 (x 0 · 30% · 50% · 100%) — AgePatternGraphic.OnPopulateMesh 가 건다
@@ -168,6 +168,38 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(cr);
             Assert.AreEqual(1f, m.Group.alpha / (float)AgePatternRules.Pulse(s, m.A, 0), 1e-4f, "막대는 흐림 1");
             Object.DestroyImmediate(host.gameObject); Object.DestroyImmediate(bar.gameObject);
+            Sweep();
+        }
+
+        [UnityTest]
+        public IEnumerator 정보_팝업_막대는_자동_제련_막대와_다른_24에서_46_마스크다()
+        {
+            yield return Boot();
+            Sweep();
+            AgePatternSpec s = AgePattern.Spec;
+            MaskSpec af = s.Mask(AgePatternKeys.AfBar), fi = s.Mask(AgePatternKeys.FiBar);
+            RectTransform info = Host("t380-fi", 600f, 60f);
+            AgePattern p = AgePattern.Attach(info, "underworld", false, AgePatternKeys.FiBar);
+            Assert.IsTrue(p.Layers[0].Masked, "정보 팝업 막대도 왼쪽을 비운다(정본 .fi-age-bar::before)");
+            Assert.AreEqual((float)fi.From, p.Layers[0].MaskFrom, 1e-5f, "표의 fi_bar 값 그대로");
+            Assert.AreEqual((float)fi.To, p.Layers[0].MaskTo, 1e-5f, "표의 fi_bar 값 그대로");
+
+            RectTransform auto = Host("t380-af", 600f, 60f);
+            AgePattern q = AgePattern.Attach(auto, "underworld", false, AgePatternKeys.AfBar);
+            Assert.AreEqual((float)af.From, q.Layers[0].MaskFrom, 1e-5f, "자동 제련 막대는 종전 값 그대로");
+            Assert.AreNotEqual(q.Layers[0].MaskFrom, p.Layers[0].MaskFrom, "두 막대는 같은 값이 아니다");
+
+            // 링 메시(양자)도 같은 한 벌을 받는다 — 무늬 층과 링이 어긋나면 왼쪽이 반만 지워진다
+            RectTransform ring = Host("t380-ring", 600f, 60f);
+            AgePattern r = AgePattern.Attach(ring, "quantum", false, AgePatternKeys.FiBar);
+            Assert.AreEqual((float)fi.From, r.Rings.MaskFrom, 1e-5f, "링도 fi_bar 마스크");
+            Assert.AreEqual((float)fi.To, r.Rings.MaskTo, 1e-5f, "링도 fi_bar 마스크");
+
+            // 장착 셀(마스크 없음)은 그대로 — 키가 null 이면 아무것도 안 건다
+            RectTransform cell = Host("t380-cell", 120f, 120f);
+            AgePattern c = AgePattern.Attach(cell, "underworld", true, null);
+            Assert.IsFalse(c.Layers[0].Masked, "장착 셀은 마스크가 없다");
+            foreach (RectTransform h in new[] { info, auto, ring, cell }) Object.DestroyImmediate(h.gameObject);
             Sweep();
         }
 
