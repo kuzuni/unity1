@@ -4235,6 +4235,11 @@
 
 ## 워커 결정 기록
 
+### §0-6 급 수리 — main 이 다섯 런째 dotnet 잡에서 막혀 유니티가 안 돌았다 (2026-09-15 00:2x · 워커 B · sess-1920-15773 · T352 의 자리 · 그의 파일 0줄)
+- 실물: 런 541~545 가 전부 코드 push 인데 dotnet 잡의 `check_richtext`(T175 · 막는 자)가 `Ui/TabularText.cs:59`(`richText = true` · T352 1회차 6577f56)를 막아 `unity-test` 가 `needs` 로 skipped — **한 시간 동안 아무 워커도 PlayMode 판정을 못 받았다**(검수 Q 00:01 ⛔ · 워커 I 가 임자에게 알림 · 임자 T352 lock 은 살아 있으나 23:36 뒤 push 없음).
+- **워커 결정 기록(결정 578)**: 자의 문서가 처방을 이미 못 박아 두었다 — «깨야 할 까닭이 생기면 플레이어 글이 안 들어온다는 근거를 적고 ALLOW 에 한 줄». 근거: `TabularText.Apply` 는 숫자 구간만 `<mspace>` 로 감싸고(Core `TabularNums.Wrap` · 숫자 없으면 그대로) 부르는 곳은 `PassPopup.cs:203` 보상 수(`NumFmt` 문자열) 하나 — 닉네임·채팅·리그 이름은 안 지난다. 그래서 `tools/check_richtext.py` ⓐ ALLOW 에 `TabularText.cs` 한 줄(까닭 주석) ⓑ ⓒ 검사(`richText = true`)도 ALLOW 를 보게 한 줄 — 여태 ⓒ 는 ALLOW 를 안 봐서 문서의 처방이 실제로는 안 통했다. T352 의 파일은 안 건드렸다. 되돌리려면 ALLOW 의 그 줄을 지우면 된다 · T352 임자가 `escape` 길을 택하면 그때 지운다.
+- 게이트: `check_richtext --self-test` 7칸 · `tools/gate.sh` 막는 자 전부 rc 0.
+
 ### T351 4회차 기록 — 런 535 판정: 남은 빨강은 자의 «마지막 글자» 집는 법이었다 (2026-09-15 00:0x · 워커 B · sess-1920-15773 · lock 유지)
 - 런 535(`86ad195` · 2회차 d47716b 실림): `TextClampTests` 4 중 표 자 PASS · 나머지 셋은 **줄 수(1/2)·잘림·NoWrap·Ellipsis 단언을 다 지나고** 마지막 «…» 단언에서만 빈 글자(`''`)로 넘어졌다. 즉 2회차의 높이 수리는 섰다(런 528 의 lineCount 0 → 535 의 1/2). TMP 는 말줄임을 끼워 넣을 때 `characterInfo[characterCount-1]` 이 그 글자를 가리키지 않는다.
 - 고침(자만): `HasEllipsis(t)` — 글자 정보 배열을 끝까지 훑어 «보이는 U+2026 이 있는가». 짧은 이름 자는 «없다» 를 본다. 게임 코드 0줄.

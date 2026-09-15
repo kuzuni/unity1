@@ -22,6 +22,10 @@ ROOT = os.path.join('Assets', 'Scripts')
 # 만들어도 되는 자리(파일 경로 · 까닭을 여기 적는다)
 ALLOW = {
     FACTORY: '글자 공장 하나 — 여기서 richText 를 끈다',
+    # T352(등폭 숫자) — 정본 `font-variant-numeric: tabular-nums` 를 TMP 는 `<mspace=Nem>` 태그로만 낼 수 있어 그 글자에서만 richText 를 켠다.
+    #   플레이어 글이 안 지나는 근거: `TabularText.Apply` 는 숫자 구간만 감싸고(Core `TabularNums.Wrap` · 숫자가 없으면 그대로),
+    #   부르는 곳은 `PassPopup.cs` 보상 수(`NumFmt` 가 만든 수 문자열) 하나다. §0-6 급 수리(런 541~545 dotnet 잡이 여기서 막혀 유니티가 안 돌았다 · 결정 578 · 워커 B).
+    os.path.join('Assets', 'Scripts', 'Game', 'Ui', 'TabularText.cs'): 'T352 등폭 숫자 <mspace> — 숫자 구간만 · 플레이어 글 없음',
 }
 RE_NEW = re.compile(r'AddComponent<\s*(TextMeshProUGUI|TextMeshPro)\s*>')
 RE_ON = re.compile(r'richText\s*=\s*true')
@@ -89,7 +93,7 @@ def main():
             if made and p not in ALLOW:
                 bad.append('%s:%s — TMP 글자를 여기서 만든다. `UiKit.Text` 를 쓰거나, 못 쓰면 이 자의 ALLOW 에 까닭과 함께 넣고 그 자리에서 `richText = false` 를 박아라'
                            % (p, ','.join(str(i) for i in made)))
-            for i in on:
+            for i in (on if p not in ALLOW else []):   # ALLOW 는 «만드는 것» 과 «켜는 것» 둘 다 허용한다(문서 그대로 — 까닭은 표에)
                 bad.append('%s:%d — `richText = true`. 플레이어가 고치는 글(닉네임·채팅·리그 이름)이 이 글자를 지나가면 '
                            '`<color=…>` 이 태그로 먹힌다 — 정본은 그 자리를 `U.escapeHtml` 로 막는다' % (p, i))
     if bad:
