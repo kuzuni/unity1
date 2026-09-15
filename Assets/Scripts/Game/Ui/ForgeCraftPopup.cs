@@ -169,7 +169,9 @@ namespace Forge.Game.Ui
         static RectTransform CraftCard(Transform parent, ForgeHost h, ForgeItem it, float size)
         {
             // T122 ⓑ — 정본 buildCraftCard 도 itemImgHTML(3D 썸네일 · 없으면 실루엣)로 그린다: ForgeItem 오버로드(2회차)가 그 폴백 순서를 쥔다
-            RectTransform tile = ForgeUi.ItemTile(parent, "card", size, h.Defs, it, 0.9f);
+            // T382 — 정본 buildCraftCard(ui.js 1918)·cb-card(1972)는 둘 다 itemImgHTML(it, 'adc-img cell-img') = 슬롯과 같은 fit-ink(THUMB_INK .76 · 3145).
+            //        여기 박혀 있던 .9(T19 첫 커밋 · 결정 없음)는 썸네일 없는 슬롯(실루엣)의 잉크를 18% 키웠다 — 인수를 걷어 ItemTile 기본(.76)으로. 3D 썸네일은 ApplyThumb 가 표 img_frac 로 잡는다.
+            RectTransform tile = ForgeUi.ItemTile(parent, "card", size, h.Defs, it);
             return tile;
         }
 
