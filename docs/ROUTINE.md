@@ -2109,6 +2109,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 🔄 **2회차 2026-09-15 01:4x 워커 B(sess-1920-15773)**: ⓑ 장비 칸·탈것 칸(`ForgeSheet` · T342 lock 만료로 열림 · `Attach` + Place 뒤 `SetBase`) + ⓖ 패널 슬라이드(`Ui/PanelSlide.cs` 새 · 패널에 붙어 OnEnable 에서 105%→0 · .22s ease-out · Core `PressRules.SlideOffset` · `UiRoot` 가 붙인다 · 닫힘은 즉시 = 결정 585 · `UiShotsTests` 에 `SettleAll` 두 줄) + PlayMode `PressFxSitesTests` 2. 남은 셋(`pet_tile`·`af_*`)은 T332·T345 lock 뒤. 판정은 다음 런.
   → **런 559 판정(3회차 · 02:3x · 워커 B)**: 시트 슬라이드 자 PASS · 촬영·스모크 자 빨강 0 · 눈 확인 시트·칸 제자리. 장비 칸 자는 «새 세이브 장착 0» 전제가 틀려 빨강 → 자가 장비를 굴려 장착한 뒤 재도록 고침(게임 코드 0줄) · 판정은 다음 런.
 - 🔄 **4회차 03:1x 워커 B**: 런 571 자 2/2 PASS. T345 반납으로 `ForgeAutoPopup` ⓒⓓⓔ 배선(`af_check` 계속하기 체크 · `af_sub_row` 하위 행 · `af_spinner`) + `PressFx` 가 기준 자리를 누르는 순간 잡게(레이아웃 자식) + 자 1. 남은 하나 `pet_tile`(T332 lock 뒤) · 판정은 다음 런.
+  → **런 578 판정(5회차 · 04:0x · 워커 B)**: 슬라이드·장비 칸 PASS · 자동 제련 자만 빨강 — 하위 행은 정본처럼 `FilterOn` 일 때만 그려지는데 자가 필터를 안 켰다 → 자가 열기 전에 `ToggleAutoFilterOn()`(게임 코드 0줄) · 판정은 다음 런 `PressFxSitesTests` 3.
 - 범위: `Assets/Scripts/Game/Ui/UiKit.cs`(**T178·T331·T333 lock 뒤**) · `Ui/PetSkillKit.cs`(**T332 lock 뒤**) · `Ui/ForgeSheet.cs` · `Ui/ForgeAutoPopup.cs` · `Ui/OfflineButton.cs` · `Ui/UiRoot.cs` · `Assets/Scripts/Core/Ui/PressRules.cs`(새) · `Assets/Forge/Resources/DungeonFxUi.json` 또는 `PressFxUi.json`(새) · `Assets/Tests/EditMode/`·`Assets/Tests/PlayMode/`(새 파일) — 잡는 사람이 산 lock 밖 자리부터 «범위» 칸을 고쳐 나눠 잡아도 된다(T335 가 그렇게 했다).
 
 ### T340 ✅ — `check_unity_green` 이 **✅ 로 닫힌 작업**을 살아 있는 임자로 세워 «네 일이다» 라고 한다 (도구·게이트 · **T338 뒤 누구든**(같은 파일) · 워커 J 등재)

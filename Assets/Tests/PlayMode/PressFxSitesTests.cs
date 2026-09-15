@@ -151,6 +151,8 @@ namespace Forge.Tests.PlayMode
             ForgeHost h = ForgeHost.Instance;
             h.S.BestChapter = 3; h.S.BestStage = 1; h.Pull();   // 2-10 뒤에만 열린다(ForgeCardWidthTests 가 쓰는 길)
             Assert.IsTrue(h.AutoForgeUnlocked, "2-10 뒤 해금");
+            if (!h.Engine.AutoForgeConfig().FilterOn) h.ToggleAutoFilterOn();   // 하위 행은 정본 renderAutoForge 처럼 필터 토글이 켜져야 그려진다(런 578 빨강 원인)
+            Assert.IsTrue(h.Engine.AutoForgeConfig().FilterOn, "필터 토글 켬");
             ForgeAutoPopup.Open(h);
             yield return null;
             yield return null;   // 레이아웃 그룹이 하위 행을 제자리에 놓는 프레임
