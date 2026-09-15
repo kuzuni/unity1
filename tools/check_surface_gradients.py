@@ -78,6 +78,14 @@ TABLE = {
     '.rate-bar': ['Ui/SkillRatesPopup.cs#rate-enamel', 'Ui/SkillRatesPopup.cs#rate-rim'],
     # T178 11회차 — 보스 경고 배너 **면**(180° 3정지점 · 가운데 45% 가 가장 밝은 핏빛). 클론은 `pp_red_dk` 단색 한 장이었다.
     '.bw-banner': ['Ui/BattleOverlay.cs#bw-banner-grad'],
+    # T178 12회차 — 정본 `#game-area::after` 의 **상시 비네트**(3D 위 · 모든 연출 아래). 클론엔 통째로 없었다
+    #   (T135 의 피격 `#dmg-flash` 는 다른 자리다 — 그쪽은 맞으면 켜졌다 꺼진다).
+    '#game-area::after': ['Ui/BattleOverlay.cs#vignette-grad'],
+    # T178 12회차 — 부화장 램프 빛기둥. 이미 맞게 서 있었는데 표에 없어 «미정» 으로 남아 있었다:
+    #   `PetHatchCone` 이 제 메시에 위→아래 두 색을 물려 그리고(정본 180° 두 정지점 + clip-path polygon),
+    #   색·꼭짓점 비율은 `PetSkillUi.json` 이 쥔다(`cone_top` #ffeb50e6 ↔ 정본 rgba(255,235,80,.9) · `cone_top_f` .38 ↔ 38%).
+    '.hatch-cone': ['Ui/PetPanel.cs#hatch-cone'],
+    '.hatch-cone.dim': ['Ui/PetPanel.cs#hatch-cone'],
 }
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ────────────────────────────────
@@ -89,7 +97,9 @@ BAKE = (r'CraftFxPoly\.Bake\w*|AgePattern\.Tile|RadialSprite|VigSprite|GradSprit
         r'|SurfaceArt\.\w+|UiKit\.Surface\w*|Sprite\.Create|Texture2D')   # `new Texture2D(` = 제 손으로 굽는 자리
 BAKE_CALL = re.compile(r'\b(?:' + BAKE + r')\s*\(')
 # 겹을 **제 손으로** 굽는 공장(이 호출 자체가 곧 겹이다) — `Radial(warnRoot, "bw-dim", …)` · `GradFace(root, "bg", …)`
-FACTORY = r'Radial|GradFace|SurfaceArt\.\w+|UiKit\.Surface\w*'
+FACTORY = r'Radial|GradFace|SurfaceArt\.\w+|UiKit\.Surface\w*|PetHatchCone\.Add'
+#   `PetHatchCone.Add` — 제 메시에 **위→아래 두 색**을 직접 물려 그리는 공장이다(스프라이트를 안 굽는다).
+#   정본 `.hatch-cone` 이 `linear-gradient(180deg, …)` + `clip-path` 로 적어 둔 그 그림이라 «굽는 길» 과 같은 자리다(T178 12회차).
 SHAPE_FACTORY = re.compile(r'^(?:' + FACTORY + r')$')
 CREATE_CALL = re.compile(r'([\w.]+)\s*\(\s*[^,()]+,\s*"([^"]+)"')
 ASSIGN_TAIL = re.compile(r'([\w\[\]\.]+)\s*=\s*(?:[\w!.()\[\]]+\s*\?\s*)?[\w.]*$')

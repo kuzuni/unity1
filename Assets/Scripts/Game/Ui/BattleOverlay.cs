@@ -71,9 +71,37 @@ namespace Forge.Game.Ui
             rt.SetSiblingIndex(root.HudLayer.GetSiblingIndex() + 1);
             var o = rt.gameObject.AddComponent<BattleOverlay>();
             o.layer = rt;
+            o.StageVignette(root);
             Instance = o;
             return o;
         }
+
+        /// <summary>
+        /// T178 12회차 — 정본 `style.css` 147~150 `#game-area::after` 의 **상시 비네트**.
+        /// 정본 주석: «비네트 포스트 — 화면 가장자리를 살짝 눌러 시선을 중앙 전투 라인으로 모음».
+        /// 클론엔 이 겹이 통째로 없었다(T135 의 피격 `#dmg-flash` 는 **다른 자리** — 그쪽은 맞으면 켜졌다 꺼진다).
+        ///
+        /// 자리: 정본은 `#game-area` 안 `z-index: 1` 이라 3D(`#game3d`) **위** · `#fx-layer`·`#boss-warning` **아래**다.
+        /// 그래서 오버레이 띠(`layer`)의 **자식이 아니라 그 바로 앞 형제**로 둔다 — 띠 안의 맨 아래 자리는
+        /// 이미 임자가 있고(피격 비네트 `DamageVignetteTests` · 스킬 섬광 `SkillFlashTests` 가 «맨 아래» 를 단언한다),
+        /// 거기 끼우면 남의 자를 깨뜨린다. 띠 밖 형제로 두면 상단바·시트를 안 덮는 것은 같은 `UiKit.Band` 가 보장한다.
+        /// 값은 표(`Resources/SurfaceUi.json` `stage_vignette`)가 쥔다.
+        /// </summary>
+        void StageVignette(UiRoot root)
+        {
+            if (vignetteBand != null) return;
+            RectTransform band = UiKit.Box(root.App, "stage-vignette");
+            UiKit.Band(band, UiKit.L("topbar_h"), UiKit.L("sheet_top"));
+            band.SetSiblingIndex(layer.GetSiblingIndex());          // 띠 바로 앞 = 3D 위 · 모든 연출 아래
+            // 높이는 `rect` 대신 표에서 센다 — 방금 만든 상자는 레이아웃 전이라 `rect.height` 가 0 이다(비율만 쓰면 굽는 타원이 납작해진다).
+            float w = UiKit.RefW, h = UiKit.RefH * (UiKit.L("sheet_top") - UiKit.L("topbar_h"));
+            SurfaceArt.Fill(band, "vignette-grad", "stage_vignette", w, h);
+            vignetteBand = band;
+        }
+
+        RectTransform vignetteBand;
+        /// <summary>상시 비네트 띠 — 테스트가 자리·겹을 본다(T178 12회차).</summary>
+        public RectTransform StageVignetteBand { get { return vignetteBand; } }
 
         void Awake() { Instance = this; }
         void OnDestroy() { if (Instance == this) Instance = null; }

@@ -434,6 +434,16 @@
     "_바탕": "상태로 갈린다(파랑 qst_bar_ramp ↔ 초록 qst_bar_done_ramp) — over_layer 한 칸으로 못 적으니 부르는 쪽(QuestSheet)이 그때의 바탕 겹을 준다(T178 10회차).",
     "_": "style.css 2044·2047 두 규칙의 첫 겹 `linear-gradient(180deg, rgba(255,255,255,.5) 0 1px, rgba(255,255,255,0) 1px)` — 채움 **위쪽** 1 CSS px 흰 광택(두 상태가 같은 값). T178 6회차."
   },
+  "stage_vignette": {
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": 0.42,
+    "rx": 1.2,
+    "ry": 0.95,
+    "stops": [[8, 10, 16, 0], [8, 10, 16, 0.28]],
+    "offsets": [0.62, 1],
+    "_": "style.css 147~150 `#game-area::after { background: radial-gradient(ellipse 120% 95% at 50% 42%, transparent 62%, rgba(8,10,16,0.28) 100%) }` — 정본 주석 «비네트 포스트 — 화면 가장자리를 살짝 눌러 시선을 중앙 전투 라인으로 모음». **상시** 겹이다(T135 의 피격 `#dmg-flash` 와 다른 자리). `transparent` 는 CSS 가 프리멀티플라이드로 섞으므로 검정이 아니라 **같은 색의 알파 0**(8,10,16,0)으로 적는다 — `tab_active_glow` 가 세운 규약과 같다. T178 12회차."
+  },
   "bw_banner": {
     "angle_deg": 180,
     "stops": [[30, 2, 2, 1], [90, 7, 7, 1], [36, 3, 3, 1]],

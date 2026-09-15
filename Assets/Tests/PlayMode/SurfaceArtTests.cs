@@ -468,5 +468,42 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(1f, top.a, 1e-3f, "면이라 불투명하다");
         }
 
+        /// <summary>T178 12회차 — 정본 147~150 `#game-area::after { background: radial-gradient(ellipse 120% 95% at 50% 42%, transparent 62%, rgba(8,10,16,.28) 100%) }`.
+        /// 정본 주석 «비네트 포스트 — 화면 가장자리를 살짝 눌러 시선을 중앙 전투 라인으로 모음». 클론엔 이 **상시** 겹이 통째로 없었다.</summary>
+        [UnityTest]
+        public IEnumerator 무대_띠_위에_상시_비네트가_가운데는_비우고_가장자리만_누른다()
+        {
+            yield return Boot();
+            Assert.IsTrue(SurfaceArt.IsRadial("stage_vignette"), "정본 147 은 radial-gradient 다");
+            float cx, cy, rx, ry;
+            SurfaceArt.Ellipse("stage_vignette", out cx, out cy, out rx, out ry);
+            Assert.AreEqual(0.5f, cx, 1e-4f, "at 50%"); Assert.AreEqual(0.42f, cy, 1e-4f, "at 42%");
+            Assert.AreEqual(1.20f, rx, 1e-4f, "ellipse 120%"); Assert.AreEqual(0.95f, ry, 1e-4f, "95%");
+            Color[] col; float[] off;
+            SurfaceArt.Stops("stage_vignette", out col, out off);
+            Assert.AreEqual(0.62f, off[0], 1e-4f, "62% 까지는 비어 있다");
+            Assert.AreEqual(0f, col[0].a, 1e-4f, "`transparent` — 프리멀티플라이드라 같은 색의 알파 0 이다");
+            Assert.AreEqual(0.28f, col[1].a, 1e-3f, "가장자리 알파 .28");
+            Assert.AreEqual(8f / 255f, col[1].r, 1e-3f, "rgba(8,10,16,…) r");
+            Assert.AreEqual(16f / 255f, col[1].b, 1e-3f, "rgba(8,10,16,…) b");
+
+            BattleOverlay ov = BattleOverlay.Ensure();
+            Assert.IsNotNull(ov, "오버레이");
+            RectTransform band = ov.StageVignetteBand;
+            Assert.IsNotNull(band, "상시 비네트 띠가 선다");
+            // 정본 z-index 1 — 3D 위 · `#fx-layer`·`#boss-warning` 아래. 그래서 연출 띠 **바로 앞 형제**다.
+            Assert.AreEqual(ov.Layer.parent, band.parent, "연출 띠와 같은 부모");
+            Assert.Less(band.GetSiblingIndex(), ov.Layer.GetSiblingIndex(), "연출 띠보다 아래 — 암전·씬컷·보스 워닝이 위로 온다");
+            Transform grad = band.Find("vignette-grad");
+            Assert.IsNotNull(grad, "구운 겹이 깔린다");
+            UnityEngine.UI.Image gi = grad.GetComponent<UnityEngine.UI.Image>();
+            Assert.IsNotNull(gi.sprite, "구운 그림이다");
+            Texture2D t = gi.sprite.texture;
+            float mid = t.GetPixel(t.width / 2, Mathf.RoundToInt(t.height * 0.58f)).a;   // CSS y 42% = 텍스처 아래에서 58%
+            float corner = t.GetPixel(2, 2).a;
+            Assert.Less(mid, 0.01f, "가운데(50%/42%)는 안 누른다 — 전투 라인이 그대로 보인다");
+            Assert.Greater(corner, mid + 0.05f, "모서리는 눌린다");
+        }
+
     }
 }
