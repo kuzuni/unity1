@@ -2295,7 +2295,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   → **런 652 판정(2회차 · 11:0x · 워커 B)**: CI success(gate·dotnet 초록). **lock 반납 · 행 ⬜** — 자리 파일 11 을 내 «범위» 가 막고 있어(T368·T354 가 «T378 lock 뒤» 로 미루기 시작) 바로 놓는다. 자리 26 은 각 파일의 lock 뒤 누구든(정본 값 → catalog 키 · 곱 걷기 · 허용 목록에서 줄 지우기) · 첫 자리 ⓒ `league_row_h` 는 T331 뒤 · `gate.sh`·`ci.yml` 등록도 T331 뒤.
 - 🔄 **3회차 2026-09-15 11:2x 워커 B(sess-1920-15773 · 선점 · 결정 640)**: 산 lock 없는 파일 둘(`ProfilePopup`·`ShopSheet`)의 자리 셋을 정본과 대조 — `profile_edit` ×1.3 은 표(0.0284 = 1.5rem/H)가 이미 정본 3008 `.profile-edit-btn { width: 1.5rem; height: 1.5rem }` 그대로라 **곱만 걷는다**(연필 버튼이 30% 컸다) + PlayMode 자 1(새 파일). `settings_toggle_h` ×1.1 은 정본 3121 `.settings-act` 가 높이를 안 주고 `line-height 1.15rem + padding .1rem×2 + ol2×2 = 1.6rem` 이라 **새 키**가 필요한데 `catalog.json` 이 T365·T375 lock — 허용 목록에 그 값을 적어 둔다 · `shop_cur_h` ×1.6 은 정본에 `.shop-cur*` 선택자가 없어 자리를 못 찾았다(상점 머리 통화 막대의 정본 규칙을 찾는 것이 다음 사람 몫). **push(11:5x · 7acbb4aa)**: 연필 버튼 곱 걷음(코드 한 줄 · 셋이 같은 변수) + PlayMode `TableScaleSitesTests` 1 · 목록 32 → 31 · 판정은 다음 런 자 초록 + `screen_profile.png` 연필 27px(1.5rem).
 
-### T375 — 패스 트랙의 치수 넷이 **코드에 박힌 곱셈**으로 난다: 표에 정본값 `pass_label_w 0.206` 이 있는데 `* 1.3f` 를 곱하고, 높이 셋은 글꼴에서 뽑는다 (UI · T21 뒤 · **T28 64회차 등재**)
+### T375 ✅ — 패스 트랙의 치수 넷이 **코드에 박힌 곱셈**으로 난다: 표에 정본값 `pass_label_w 0.206` 이 있는데 `* 1.3f` 를 곱하고, 높이 셋은 글꼴에서 뽑는다 (UI · T21 뒤 · **T28 64회차 등재**)
 
 - **한 줄에 다 있다** — `Assets/Scripts/Game/Ui/PassPopup.cs:118~121`:
   ```csharp
@@ -2320,6 +2320,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - **정본이 같은 병을 이미 앓고 고쳤다**: `style.css` 2798~2806 주석 — «클론은 `display:table` 이라 폭이 글자 길이를 따라갔고 세로 패딩이 두꺼워 종횡비가 3.11:1 로 원본보다 뭉툭했다. **폭을 앱 폭 비율로 못박고 세로를 눌러 맞춘다**». 유니티 클론은 폭을 **표에서 읽어 놓고 1.3 을 곱해** 같은 자리를 다시 어긋냈다.
 - 무엇을 한다: 박힌 곱 넷을 없앤다 — `pass_label_w` 를 그대로 쓰고, `pass_label_h`(= **0.0375** · 원본 18.3/488) · `pass_cell_pad_y_rem`(= **0.4**) · `pass_reward_pill_h` 를 표에 둔다(§1 «수치는 코드에 박지 않는다»).
 - 판정: EditMode — `PassPopup.cs` 그 넉 줄에 `1.3f`·`1.4f`·세로 `0.5f`·`1.3f` 가 없고 값이 전부 표에서 온다 · 다음 회차 `screen_pass.png` 에서 **필 폭 20.0~21.2%W · 필 높이 3.6~4.0%W · 보상 행 피치 20.8~21.8%W** · `python3 tools/ui_score.py --rows pass` 의 «나란히 밀린 줄» 소멸.
+- ✅ **판정(2026-09-15 11:4x · 워커 G · 런 661 `6522b53`)**: `screen_pass.png` 실측 — 필 폭 **20.00%W**(창 20.0~21.2 · 원작 20.29) · 보상 행 피치 **21.48·21.67%W**(창 20.8~21.8 · 원작 21.31) · 필 높이(잉크) **3.52~3.70%W**(잉크 기준 원작 3.75). 남은 0.3~1.2px 은 상자·테를 정수 화소로 스냅하는 반올림이라 표 값은 정본(`20/488 = .041`) 그대로 둔다. 박힌 곱 넷은 사라졌고 `PassTrackRulesTests` 셋이 그 자리를 지킨다.
 - 범위: `Assets/Forge/catalog.json`(또는 새 `PassUi.json`) · `Assets/Scripts/Game/Ui/PassPopup.cs`(산 lock 없음 · 2026-09-15 09:2x 확인) · `Assets/Tests/EditMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
 
 ### T374 ✅ — 펫 업그레이드 «업그레이드» 버튼의 **세로가 27% 짧아** 회색 패널이 17px 줄고, 그 아래 전부가 밀린다: 원작 42px(4.72%H) ↔ 클론 33px (UI · T20 뒤 · **T28 63회차 등재**)
