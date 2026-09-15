@@ -146,5 +146,47 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(line1, ((RectTransform)deckGap).anchoredPosition.x - ((RectTransform)deckEdge).anchoredPosition.x, 0.01f,
                 "단면은 틈보다 1 CSS px 왼쪽이다(정본 calc(var(--dg) * i − 1px))");
         }
+
+        /// <summary>T371 5회차 — 정본 1063 `.auto-drop-card` · 1131 `.craft-batch .cb-card` 는 면 `color-mix(… 58%, #17181a)` · 테 `… 80%, #000`.
+        /// `CraftCard` 가 `ItemTile`(ForgeUi.CellFace/CellLine · 비율 박힘) 위에 표 색을 덮는다 — 묶음 카드판을 띄워 frame 의 두 자식 색을 정본 바이트로 잰다.</summary>
+        [UnityTest]
+        public IEnumerator 제작_묶음_카드와_리빌_카드는_표_색으로_선다()
+        {
+            yield return Boot();
+            float t0 = 0f;
+            while (!ForgeHost.Ready && t0 < 20f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost");
+            ForgeHost F = ForgeHost.Instance;
+            Color rc = new Color(0.8f, 0.5f, 0.2f);
+            AssertMix(ColorMixUi.Mix("batch_card_face", rc), rc, 0.58, 0x17, 0x18, 0x1a, "묶음 카드 면(정본 1131 58%, #17181a)");
+            AssertMix(ColorMixUi.Mix("batch_card_line", rc), rc, 0.80, 0, 0, 0, "묶음 카드 테(정본 1131 80%, #000)");
+            AssertMix(ColorMixUi.Mix("drop_card_face", rc), rc, 0.58, 0x17, 0x18, 0x1a, "탈락·리빌 카드 면(정본 1063 58%, #17181a)");
+            AssertMix(ColorMixUi.Mix("drop_card_line", rc), rc, 0.80, 0, 0, 0, "탈락·리빌 카드 테(정본 1063 80%, #000)");
+
+            var items = new System.Collections.Generic.List<Forge.Core.Forging.ForgeItem>();
+            for (int i = 0; i < 2; i++) items.Add(F.Engine.RollItem());
+            ForgeCraftPopup.ShowBatch(F, items, () => { });
+            yield return null; yield return null;
+            Transform batch = UiRoot.Instance.App.Find("craft-batch");
+            Assert.IsNotNull(batch, "묶음 겹(craft-batch)이 떴다");
+            int seen = 0;
+            for (int i = 0; i < items.Count; i++)
+            {
+                Transform card = null;
+                foreach (Transform t in batch.GetComponentsInChildren<Transform>(true)) if (t.name == "cb-card-" + i) { card = t; break; }
+                Assert.IsNotNull(card, "cb-card-" + i);
+                Transform frame = card.Find("frame");
+                Assert.IsNotNull(frame, "카드의 frame");
+                Image face = frame.Find("face").GetComponent<Image>();
+                Image line = frame.Find("line").GetComponent<Image>();
+                Color ac = ForgeUi.AgeColor(F.Defs, items[i].Age);
+                AssertMix(face.color, ac, 0.58, 0x17, 0x18, 0x1a, "묶음 카드 면이 표대로 섞였다");
+                AssertMix(line.color, ac, 0.80, 0, 0, 0, "묶음 카드 테가 표대로 섞였다");
+                seen++;
+            }
+            Assert.AreEqual(items.Count, seen);
+            ForgeCraftPopup.DismissBatch();
+            yield return null;
+        }
     }
 }

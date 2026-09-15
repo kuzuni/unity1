@@ -166,13 +166,27 @@ namespace Forge.Game.Ui
             return rt;
         }
 
-        static RectTransform CraftCard(Transform parent, ForgeHost h, ForgeItem it, float size)
+        static RectTransform CraftCard(Transform parent, ForgeHost h, ForgeItem it, float size, string faceKey, string lineKey)
         {
             // T122 ⓑ — 정본 buildCraftCard 도 itemImgHTML(3D 썸네일 · 없으면 실루엣)로 그린다: ForgeItem 오버로드(2회차)가 그 폴백 순서를 쥔다
             // T382 — 정본 buildCraftCard(ui.js 1918)·cb-card(1972)는 둘 다 itemImgHTML(it, 'adc-img cell-img') = 슬롯과 같은 fit-ink(THUMB_INK .76 · 3145).
             //        여기 박혀 있던 .9(T19 첫 커밋 · 결정 없음)는 썸네일 없는 슬롯(실루엣)의 잉크를 18% 키웠다 — 인수를 걷어 ItemTile 기본(.76)으로. 3D 썸네일은 ApplyThumb 가 표 img_frac 로 잡는다.
             RectTransform tile = ForgeUi.ItemTile(parent, "card", size, h.Defs, it);
+            // T371 5회차 — 정본 1063 `.auto-drop-card` · 1131 `.craft-batch .cb-card { background: color-mix(in srgb, var(--rc) 58%, #17181a); border: … 80%, #000 }`:
+            //   ItemTile 은 ForgeUi.CellFace/CellLine(비율이 코드에 박힘 · T332 lock)로 칠하므로 부르는 쪽이 표 `ColorMixUi.json` 으로 덮는다(2회차 모루 카드와 같은 길 · §1).
+            MixFrame(tile, ForgeUi.AgeColor(h.Defs, it.Age), faceKey, lineKey);
             return tile;
+        }
+
+        /// <summary>T371 — `ForgeUi.Tile(…, "frame", …)` 이 세운 테(line)·면(face) 두 자식의 색을 표 키로 덮는다.</summary>
+        static void MixFrame(RectTransform tile, Color ac, string faceKey, string lineKey)
+        {
+            Transform frame = tile != null ? tile.Find("frame") : null;
+            if (frame == null) return;
+            Transform f = frame.Find("face"), l = frame.Find("line");
+            Image face = f != null ? f.GetComponent<Image>() : null, line = l != null ? l.GetComponent<Image>() : null;
+            if (face != null) face.color = ColorMixUi.Mix(faceKey, ac);
+            if (line != null) line.color = ColorMixUi.Mix(lineKey, ac);
         }
 
         /// <summary>정본 `AGES.indexOf(item.age)` — 표에 없는 시대는 −1(정본과 같다 · `Sfx.CraftReveal` 이 0 으로 받는다).</summary>
@@ -197,7 +211,7 @@ namespace Forge.Game.Ui
             Vector2 a = AnvilTop();
             // 링(`crring`)이 카드 **뒤**라 먼저 만든다 — 정본은 `box-shadow` 라 그림 바깥으로 퍼진다.
             Image ring = UiKit.Rounded(reveal, "cr-ring", "pp_line", size * 0.16f);
-            RectTransform card = CraftCard(reveal, h, item, size);
+            RectTransform card = CraftCard(reveal, h, item, size, "drop_card_face", "drop_card_line");   // 정본 1063 .auto-drop-card(.craft-reveal 도 같은 클래스)
             // 광택(`crsheen`) — 정본 `.craft-reveal { overflow: hidden }` + `::after { inset: 0 }` 이라
             // 카드 폭만 한 마스크 상자 안에서 띠가 −130% → 150% 로 쓸린다.
             RectTransform mask = UiKit.Box(card, "cr-sheen-box");
@@ -222,7 +236,7 @@ namespace Forge.Game.Ui
             reveal = Overlay("auto-drop-card");
             float size = PopupKit.Rem * 3.7f;
             Vector2 a = AnvilTop();
-            RectTransform card = CraftCard(reveal, h, item, size);
+            RectTransform card = CraftCard(reveal, h, item, size, "drop_card_face", "drop_card_line");   // 정본 1063 .auto-drop-card(.craft-reveal 도 같은 클래스)
             // 정본 .auto-drop-card(style.css 1073) `0 .3rem .6rem rgba(0,0,0,.45)` — 모루 위에 뜬 카드라 흐린 그늘이 진다.
             // 반지름은 같은 줄의 `border-radius: .7rem`. 연출(CraftCardFx)이 이 상자를 움직여도 그늘은 자식이라 같이 간다.
             UiShadow.Drop(card, "autodrop_drop", PopupKit.Rem * 0.7f);
@@ -261,7 +275,7 @@ namespace Forge.Game.Ui
             UiKit.Anchor(grid, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, gw, gh);
             for (int i = 0; i < items.Count; i++)
             {
-                RectTransform card = CraftCard(grid, h, items[i], size);
+                RectTransform card = CraftCard(grid, h, items[i], size, "batch_card_face", "batch_card_line");   // 정본 1131 .craft-batch .cb-card
                 card.name = "cb-card-" + i;
                 UiKit.Place(card, (i % cols) * (size + gap), (i / cols) * (size + gap), size, size);
                 // 정본 `.craft-batch .cb-card`(style.css 1140) `0 .3rem .6rem rgba(0,0,0,.45)` — 자동 폐기 카드와 같은 그늘이다.
