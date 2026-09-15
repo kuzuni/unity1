@@ -74,6 +74,47 @@ namespace Forge.Game.Ui
             sr.SetSiblingIndex(ir.GetSiblingIndex());                                        // 그림 **뒤**에 그린다
             return sh;
         }
+
+        /// <summary>
+        /// T332 14회차 — 그림이 **한 장이 아닌 자리**(여러 겹으로 그린 그림)에 같은 그림자를 건다.
+        /// 정본 `filter: drop-shadow` 는 그 요소가 그린 **전부를 한 덩어리로** 보고 바깥 윤곽에만 그림자를 주므로,
+        /// 부르는 쪽이 그 덩어리의 **실루엣 한 장**(<paramref name="silhouette"/> · 예: <see cref="AnvilArt.Silhouette"/>)을 주면
+        /// 나머지는 <see cref="Apply"/> 와 똑같다. 겹마다 따로 걸면 안쪽 경계마다 검은 띠가 생겨 정본과 다른 그림이 된다.
+        /// </summary>
+        public static Image ApplyGroup(RectTransform box, Sprite silhouette, string key, string shName)
+        {
+            if (box == null || silhouette == null || string.IsNullOrEmpty(shName)) return null;
+            Rect r = box.rect;
+            if (r.width <= 1f || r.height <= 1f) return null;
+            Transform parent = box.parent;
+            if (parent == null) return null;
+
+            float css = KeylineUi.CssPx;
+            double sigmaCanvas = DropShadowUi.Px(key, "blur_px") * 0.5f * css;              // 반지름 → σ (CSS drop-shadow)
+            double sigmaBaked = FilterRules.BakeSigmaPx(sigmaCanvas, silhouette.textureRect.height, r.height);
+            Sprite sp = sigmaBaked > 0
+                ? UiFilter.Blur(silhouette, sigmaBaked, key + "-" + Mathf.RoundToInt((float)(sigmaBaked * 100)), Mathf.Max(r.width, r.height))
+                : silhouette;
+
+            Transform old = parent.Find(shName);
+            Image sh = old != null ? old.GetComponent<Image>() : null;
+            if (sh == null)
+            {
+                RectTransform nb = UiKit.Box(parent, shName);
+                sh = nb.gameObject.AddComponent<Image>();
+                sh.raycastTarget = false;
+            }
+            sh.sprite = sp;
+            sh.type = Image.Type.Simple;
+            sh.color = DropShadowUi.C(key);
+            RectTransform sr = sh.rectTransform;
+            sr.anchorMin = box.anchorMin; sr.anchorMax = box.anchorMax; sr.pivot = box.pivot;
+            sr.sizeDelta = box.sizeDelta;
+            sr.anchoredPosition = box.anchoredPosition
+                                  + new Vector2(DropShadowUi.Px(key, "dx_px") * css, -DropShadowUi.Px(key, "dy_px") * css);
+            sr.SetSiblingIndex(box.GetSiblingIndex());                                       // 그림 **뒤**에
+            return sh;
+        }
     }
 
     /// <summary>T332 표(<c>Assets/Forge/Resources/DropShadowUi.json</c>) — 그림자 키마다 dx·dy·blur(정본 CSS px)·색(#RRGGBB + alpha). 수치는 코드에 안 박는다(§1).</summary>

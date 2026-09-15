@@ -127,6 +127,68 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>
+        /// <summary>
+        /// T332 14회차 — 정본 `style.css` **985** `.anvil-btn { filter: drop-shadow(0 .18rem .12rem rgba(0,0,0,.35)) }`.
+        /// 이 자리는 앞의 둘과 다르다: **그림이 한 장이 아니다**(정본 SVG 폴리곤 21겹). 정본 filter 는 요소가 그린 전부를
+        /// 한 덩어리로 보고 바깥 윤곽에만 그림자를 주므로 겹마다 걸면 안쪽 경계마다 검은 띠가 생긴다 — 그래서 겹들의
+        /// 알파 **합집합** 한 장(<see cref="AnvilArt.Silhouette"/>)에 건다. 그 합집합이 «정말 합집합인가» 까지 같이 본다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 모루_버튼은_겹이_아니라_실루엣_한_장에_흐린_그림자를_진다()
+        {
+            yield return Boot();
+            PlayLog log = PlayLog.Start("drop-shadow-anvil");
+            float t = 0f;
+            while (!ForgeHost.Ready && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost 가 20초 안에 준비되지 않았다");
+            yield return null;
+
+            Transform art = FindIn(UiRoot.Instance.App, "anvil-art");
+            Assert.IsNotNull(art, "모루 그림(anvil-art) — 장비 시트가 보이고 보류 카드가 없어야 한다");
+            Transform sh = art.parent.Find(DropShadow.Name + ":anvil");
+            Assert.IsNotNull(sh, "모루 뒤에 흐린 그림자를 깔았다(정본 985)");
+            Assert.Less(sh.GetSiblingIndex(), art.GetSiblingIndex(), "그림자는 모루 **뒤**에 그린다");
+
+            Image si = sh.GetComponent<Image>();
+            Assert.IsNotNull(si, "그림자 그림");
+            Assert.IsNotNull(si.sprite, "그림자도 그림이 있다(흐려 구운 실루엣)");
+
+            float css = KeylineUi.CssPx;
+            Vector2 d = ((RectTransform)sh).anchoredPosition - ((RectTransform)art).anchoredPosition;
+            Assert.AreEqual(DropShadowUi.Px("anvil_btn", "dx_px") * css, d.x, 0.01f, "가로 오프셋 0(정본 985 의 첫 값)");
+            Assert.AreEqual(-DropShadowUi.Px("anvil_btn", "dy_px") * css, d.y, 0.01f, "세로 오프셋 = 표 dy(.18rem) 만큼 **아래**");
+            Color want = DropShadowUi.C("anvil_btn");
+            Assert.AreEqual(want.a, si.color.a, 2f / 255f, "알파 = 표 anvil_btn(.35)");
+            Assert.Less(si.color.r + si.color.g + si.color.b, 0.05f, "색은 검정");
+            Assert.AreEqual(((RectTransform)art).sizeDelta, ((RectTransform)sh).sizeDelta, "그림자 상자 = 모루 상자");
+
+            // ⓑ 겹마다 걸지 **않았다** — 21겹 중 어느 것도 제 그림자를 갖고 있지 않다.
+            int per = 0;
+            foreach (Transform c in art.GetComponentsInChildren<Transform>(true))
+                if (c.name.StartsWith(DropShadow.Name + ":")) per++;
+            Assert.AreEqual(0, per, "겹마다 그림자를 걸면 안쪽 경계마다 검은 띠가 생긴다 — 합집합 한 장만 건다");
+
+            // ⓒ 실루엣이 정말 «합집합» 인가 — 받침(anv-base)의 한가운데가 실루엣 안에서 불투명해야 한다.
+            Sprite sil = AnvilArt.Silhouette();
+            Assert.IsNotNull(sil, "실루엣");
+            Assert.AreSame(sil, AnvilArt.Silhouette(), "한 번만 굽는다(캐시)");
+            Rect bb = AnvilArt.PartBounds("anv-base");
+            Texture2D st = sil.texture;
+            int px = Mathf.Clamp(Mathf.RoundToInt(bb.center.x / AnvilArt.ViewW * st.width), 0, st.width - 1);
+            int py = Mathf.Clamp(Mathf.RoundToInt((1f - bb.center.y / AnvilArt.ViewH) * st.height), 0, st.height - 1);
+            Assert.Greater(st.GetPixel(px, py).a, 0.9f, "받침 한가운데는 실루엣 안(합집합이 채워졌다) · 자리 " + px + "," + py);
+            // 실루엣이 «판 전체» 도 «빈 판» 도 아니다 — 합집합이 정말 모루 모양으로 찼는지 덮인 넓이로 본다.
+            Color[] all = st.GetPixels();
+            int on = 0;
+            for (int i = 0; i < all.Length; i++) if (all[i].a > 0.5f) on++;
+            float cov = (float)on / all.Length;
+            Assert.Greater(cov, 0.15f, "실루엣이 비어 있다 — 덮인 넓이 " + cov.ToString("0.000"));
+            Assert.Less(cov, 0.9f, "실루엣이 viewBox 를 통째로 덮었다(합집합이 아니라 판이 됐다) — 덮인 넓이 " + cov.ToString("0.000"));
+
+            log.AssertNoRed();
+            log.Dispose();
+        }
+
         /// «번짐이 실제로 걸렸다» 를 재는 자리 — 구운 판의 한 변이 **줄인 원본보다 커널 반경만큼 넓은가**.
         ///
         /// ⚠ «구운 사본이 **원본 스프라이트**보다 넓다» 로 재면 틀린다(런 641 실측 · 원본 160 ↔ 구운 것 54):

@@ -1,6 +1,7 @@
 {
   "_": "T98 — 모루 그림. 정본 web/js/ui.js 2387 `ANVIL_SVG`(viewBox 132×86)의 `d` 문자열을 **한 글자도 안 바꾸고** 옮겼다. 클론은 Core SvgPath 로 펴서 CraftFxPoly 로 굽는다. 값을 catalog.json 이 아니라 곁 표에 두는 것은 그 파일이 T108 lock 이기 때문이다(T65 PlayerInfoUi·T111 GearDetailUi 와 같은 길).",
   "view": [132, 86],
+  "silhouette_bake_px": 2, "_silhouette_bake_px": "T332 14회차 — `AnvilArt.Silhouette()` 이 겹들의 알파 합집합을 굽는 해상도(viewBox 한 단위당 픽셀). 겹 그림 자체는 `billet_bake_px`(8)로 굽지만 이 판은 **곧 흐려질 그림자**라 선명할 까닭이 없다 — 2 면 viewBox 132×86 이 264×172 이고, 화면에 서는 모루(≈255 캔버스 px 폭)보다 넉넉하다. 해상도를 8 로 올리면 픽셀 × 폴리곤 × 변이 곱해져 한 번 굽는 값이 열여섯 배가 된다.", 
   "curve_samples": 8,
   "stroke": { "color": "#170d0b", "width": 3 },
   "grads": {

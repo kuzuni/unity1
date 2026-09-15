@@ -414,6 +414,9 @@ namespace Forge.Game.Ui
             // 겹 순서·꼭짓점·획(#170d0b 3)·상판 위 어휘(스텝·하디 홀·프리첼 홀)는 전부 표가 쥔다 — 여기는 자리와 크기만 준다.
             RectTransform art = AnvilArt.Build(rt, "anvil-art", u);
             UiKit.Place(art, ox, oy, vbW * u, vbH * u);
+            // T332 14회차 — 정본 style.css **985** `.anvil-btn { filter: drop-shadow(0 .18rem .12rem rgba(0,0,0,.35)) }`.
+            //   버튼이 그린 **전부가 한 덩어리**라 겹마다 걸면 안쪽 경계마다 검은 띠가 생긴다 — 겹들의 알파 합집합 한 장에 건다.
+            DropShadow.ApplyGroup(art, AnvilArt.Silhouette(), "anvil_btn", DropShadow.Name + ":anvil");
             UnityEngine.Rect ab = AnvilArt.PartBounds("anv-base");
             UnityEngine.Rect bas = new UnityEngine.Rect(ox + ab.x * u, oy + ab.y * u, ab.width * u, ab.height * u);
             DrawBillet(rt, ox, oy, u, vbW, vbH);

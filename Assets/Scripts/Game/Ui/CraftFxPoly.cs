@@ -342,6 +342,66 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>점이 폴리곤 안인가(짝홀 규칙 · 볼록·오목 무관).</summary>
+        /// <summary>
+        /// T332 14회차 — 폴리곤 **여럿의 합집합**을 한 장으로 굽는다(흰색 · 알파 = 덮인 넓이). 정본 `filter: drop-shadow` 는
+        /// 요소가 그린 **전부를 한 덩어리로** 보고 바깥 윤곽에만 그림자를 주므로, 겹으로 그린 그림(모루 SVG 21겹)의 그림자는
+        /// 겹마다 걸면 안 되고 이 합집합 한 장에 걸어야 한다 — 겹마다 걸면 안쪽 경계마다 검은 띠가 생긴다.
+        ///
+        /// ⚠ <see cref="Bake"/> 가 구운 조각들의 알파를 **읽어서** 합치는 길은 못 쓴다: 그 자는 `Apply(false, true)` 로
+        /// 텍스처를 **못 읽게** 잠근다(GPU 메모리 절약). 그래서 여기서 한 번 더 래스터화하되 <paramref name="ppu"/> 를 낮게 받는다 —
+        /// 이 판은 곧 흐려질 그림자라 선명할 까닭이 없고, 해상도를 그대로 쓰면 픽셀 × 폴리곤 × 변이 곱해져 너무 비싸다.
+        /// 굽는 판은 **읽을 수 있게 남긴다**(<see cref="UiFilter.Blur"/> 가 알파를 읽어야 한다).
+        /// </summary>
+        public static Sprite BakeUnion(string name, IList<Vector2[]> polys, Rect view, float ppu, int super)
+        {
+            Sprite hit;
+            if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            if (polys == null || polys.Count == 0 || view.width <= 0f || view.height <= 0f) return null;
+
+            int w = Mathf.Max(2, Mathf.CeilToInt(view.width * ppu));
+            int h = Mathf.Max(2, Mathf.CeilToInt(view.height * ppu));
+            int sup = Mathf.Max(1, super);
+            Rect[] bb = new Rect[polys.Count];
+            for (int i = 0; i < polys.Count; i++) bb[i] = Bounds(polys[i]);
+
+            Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            tex.name = name;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;
+            Color32[] px = new Color32[w * h];
+            float inv = 1f / sup;
+            int n = sup * sup;
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    int cover = 0;
+                    for (int sy = 0; sy < sup; sy++)
+                    {
+                        for (int sx = 0; sx < sup; sx++)
+                        {
+                            // 텍스처는 아래가 0행이고 SVG 는 위가 0 이라 y 를 뒤집는다(<see cref="Bake"/> 와 같은 약속).
+                            float ux = view.xMin + (x + (sx + 0.5f) * inv) / w * view.width;
+                            float uy = view.yMin + (1f - (y + (sy + 0.5f) * inv) / h) * view.height;
+                            Vector2 p = new Vector2(ux, uy);
+                            for (int i = 0; i < polys.Count; i++)
+                            {
+                                if (p.x < bb[i].xMin || p.x > bb[i].xMax || p.y < bb[i].yMin || p.y > bb[i].yMax) continue;
+                                if (Inside(polys[i], p)) { cover++; break; }
+                            }
+                        }
+                    }
+                    px[y * w + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(255f * cover / n));
+                }
+            }
+            tex.SetPixels32(px);
+            tex.Apply(false, false);          // 읽을 수 있게 남긴다 — 흐리는 자가 알파를 읽는다
+            Sprite sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+            sp.name = name;
+            cache[name] = sp;
+            return sp;
+        }
+
         private static bool Inside(Vector2[] pts, Vector2 p)
         {
             bool inside = false;

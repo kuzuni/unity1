@@ -150,6 +150,64 @@ namespace Forge.Game.Ui
             return box;
         }
 
+        private static Sprite silhouette;
+
+        /// <summary>
+        /// T332 14회차 — 모루 그림 **전체의 실루엣** 한 장(흰색 · 알파 = 겹들의 합집합). 정본 `style.css` **985**
+        /// `.anvil-btn { filter: drop-shadow(0 .18rem .12rem rgba(0,0,0,.35)) }` 은 «버튼이 그린 전부» 를 한 덩어리로 보고
+        /// 그 **바깥 윤곽**에만 그림자를 준다 — 겹마다 따로 걸면 안쪽 경계마다 검은 띠가 생겨 정본과 다른 그림이 된다.
+        ///
+        /// 꼭짓점은 <see cref="Build"/> 와 **같은 표·같은 자**(`SvgPath.Flatten` · 같은 `curve_samples`)에서 나오고,
+        /// 획(`stroke`)도 Build 와 똑같이 «절반만 부풀린 면» 으로 같이 넣는다 — 그것이 바깥 윤곽을 정한다.
+        /// 타원 겹은 폴리곤으로 표본해 같은 합집합에 넣는다. 굽는 해상도는 표(`silhouette_bake_px`)가 쥔다 —
+        /// 이 판은 곧 흐려질 그림자라 선명할 까닭이 없다(§1: 수치는 코드에 안 박는다).
+        /// </summary>
+        public static Sprite Silhouette()
+        {
+            Load();
+            if (silhouette != null) return silhouette;
+            List<Vector2[]> polys = new List<Vector2[]>();
+            for (int i = 0; i < parts.Count; i++)
+            {
+                JsonObject o = J.Obj(parts[i]);
+                List<object> el = J.Arr(o["ellipse"]);
+                if (el != null)
+                {
+                    polys.Add(EllipsePoly((float)J.Num(el[0]), (float)J.Num(el[1]), (float)J.Num(el[2]), (float)J.Num(el[3])));
+                    continue;
+                }
+                Vector2[] pts = V2(SvgPath.Flatten(J.Str(o["d"]), samples));
+                float sw = (float)J.Num(o["stroke"], 0);
+                if (sw > 0) polys.Add(CraftFxPoly.Inflate(pts, sw * 0.5f));
+                polys.Add(pts);
+            }
+            silhouette = CraftFxPoly.BakeUnion("anvil-silhouette", polys, new Rect(0f, 0f, viewW, viewH),
+                                               BakePx(), 2);
+            return silhouette;
+        }
+
+        /// <summary>실루엣을 굽는 해상도(viewBox 한 단위당 픽셀) — 표 `silhouette_bake_px`.</summary>
+        private static float BakePx()
+        {
+            Load();
+            object v = root["silhouette_bake_px"];
+            if (!J.IsNum(v)) throw new KeyNotFoundException(ResourcePath + ".json 에 «silhouette_bake_px» 가 없다 (T332)");
+            return (float)J.Num(v);
+        }
+
+        /// <summary>타원 겹을 합집합에 넣으려고 폴리곤으로 표본한다 — 표본 수는 곡선과 같은 `curve_samples`.</summary>
+        private static Vector2[] EllipsePoly(float cx, float cy, float rx, float ry)
+        {
+            int n = Mathf.Max(8, samples);
+            Vector2[] v = new Vector2[n];
+            for (int i = 0; i < n; i++)
+            {
+                float a = Mathf.PI * 2f * i / n;
+                v[i] = new Vector2(cx + Mathf.Cos(a) * rx, cy + Mathf.Sin(a) * ry);
+            }
+            return v;
+        }
+
         private static Vector2[] V2(double[][] pts)
         {
             Vector2[] v = new Vector2[pts.Length];
