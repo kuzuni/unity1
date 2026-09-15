@@ -22,8 +22,16 @@ namespace Forge.Game.Ui
     /// </summary>
     public static class DropShadow
     {
-        /// <summary>깔아 둔 그림자의 이름 — 다시 부르면 그것을 되쓴다.</summary>
+        /// <summary>깔아 둔 그림자 이름의 **머리** — 실제 이름은 <see cref="NameFor"/> 가 그림 이름을 붙여 만든다.</summary>
         public const string Name = "drop-shadow";
+
+        /// <summary>
+        /// 그 그림의 그림자 이름. **한 부모 아래 그림이 여럿일 수 있어** 이름에 그림 이름을 붙인다 —
+        /// 런 631 이 그 실물이다: 던전 보상 알약은 아이콘 서넛이 **같은 알약을 부모로** 쓰는데 이름이 하나뿐이면
+        /// 뒤 아이콘이 앞 아이콘의 그림자를 **제 자리로 옮겨 가** 첫 아이콘의 그림자가 127px 옆에 가 있었다.
+        /// (`.pass-sword` 는 아이콘이 하나라 그 자리에서는 안 드러났다.)
+        /// </summary>
+        public static string NameFor(Image img) { return img == null ? Name : Name + ":" + img.name; }
 
         /// <summary>
         /// <paramref name="img"/> 뒤에 표 <paramref name="key"/> 의 그림자를 깐다(이미 있으면 갱신).
@@ -45,11 +53,12 @@ namespace Forge.Game.Ui
                 ? UiFilter.Blur(img.sprite, sigmaBaked, key + "-" + Mathf.RoundToInt((float)(sigmaBaked * 100)), Mathf.Max(r.width, r.height))
                 : img.sprite;
 
-            Transform old = parent.Find(Name);
+            string shName = NameFor(img);
+            Transform old = parent.Find(shName);
             Image sh = old != null ? old.GetComponent<Image>() : null;
             if (sh == null)
             {
-                RectTransform box = UiKit.Box(parent, Name);
+                RectTransform box = UiKit.Box(parent, shName);
                 sh = box.gameObject.AddComponent<Image>();
                 sh.raycastTarget = false;
             }

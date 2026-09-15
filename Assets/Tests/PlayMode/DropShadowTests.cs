@@ -59,7 +59,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(p, "진행 패스 팝업이 열린다");
             Transform sword = FindIn(p.Root, "pass-sword");
             Assert.IsNotNull(sword, "패스 검");
-            Transform sh = sword.parent.Find(DropShadow.Name);
+            Transform sh = sword.parent.Find(DropShadow.NameFor(sword.GetComponent<Image>()));
             Assert.IsNotNull(sh, "검 뒤에 흐린 그림자를 깔았다(정본 2698)");
 
             Image si = sh.GetComponent<Image>();
@@ -110,7 +110,7 @@ namespace Forge.Tests.PlayMode
             {
                 if (!ico.name.StartsWith("ico-", System.StringComparison.Ordinal)) continue;
                 seen++;
-                Transform sh = ico.transform.parent.Find(DropShadow.Name);
+                Transform sh = ico.transform.parent.Find(DropShadow.NameFor(ico));   // 한 부모 아래 아이콘이 여럿이라 이름이 갈린다(런 631)
                 Assert.IsNotNull(sh, ico.name + " 뒤에 검정 윤곽을 깔았다(정본 5335)");
                 Vector2 d = ((RectTransform)sh).anchoredPosition - ico.rectTransform.anchoredPosition;
                 Assert.AreEqual(0f, d.x, 0.01f, "정본은 가로로 안 민다(0 0 1.2px)");
