@@ -185,10 +185,19 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>«위 상자 한 줄 + 아래 상자 한 줄» = 정본 `<br>` 두 줄.</summary>
+        /// <summary>
+        /// «위 상자» 는 정본이 `white-space` 를 안 준 자리라(접는다가 기본 · T361) **상자에 들어가면** 한 줄이고, 넘치면 정본도 접는다 —
+        /// 리그·도전 행의 이름이 그렇다(NAME_POOL 의 «BlandBuddy22667» 이 §1 글자 하한(Sub 36px · 정본 .85rem 의 2.3배) 아래서 칸을 넘친다 · 런 752).
+        /// 정본 `&lt;br&gt;` 의 계약은 «아래 상자가 위 상자 **아래 새 줄**에 선다» 이지 «위 글이 늘 한 줄» 이 아니다(T383 §0-6 수리 · 결정 673).
+        /// </summary>
         static void SplitTwoLines(Transform root, string top, string bottom, string what)
         {
             TextMeshProUGUI a = TextIn(root, top, what), b = TextIn(root, bottom, what);
-            Assert.AreEqual(1, Lines(a), what + ": «" + a.text + "» 은 한 줄");
+            Canvas.ForceUpdateCanvases();
+            a.ForceMeshUpdate();
+            bool fits = a.preferredWidth <= a.rectTransform.rect.width + 0.5f;
+            if (fits) Assert.AreEqual(1, Lines(a), what + ": «" + a.text + "» 은 상자에 들어가므로 한 줄");
+            else Assert.GreaterOrEqual(Lines(a), 1, what + ": «" + a.text + "» 은 상자(" + a.rectTransform.rect.width.ToString("0") + "px)를 넘쳐 정본처럼 접힌다(white-space 기본)");
             Assert.AreEqual(1, Lines(b), what + ": «" + b.text + "» 은 한 줄");
             Assert.Greater(a.rectTransform.position.y, b.rectTransform.position.y, what + ": «" + top + "» 이 «" + bottom + "» 위에 선다(정본 <br> 의 위아래)");
         }
