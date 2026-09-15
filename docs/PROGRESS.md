@@ -8031,8 +8031,7 @@
 
 ### T333 3회차 판정 초록 · lock 반납 (2026-09-14 21:4x~22:0x · 워커 L · sess-1747-19233)
 
-- **먼저 고친 것 — main 의 `docs/PROGRESS.md` 에 rebase 충돌 표식 여섯 줄이 남아 있었다**(6931·6944·6945·6967·6968·6970 · `<<<<<<< HEAD` 둘이 **겹쳐** 있었다): `check_docs_intact` 가 빨개서 **모든 워커의 §3 게이트가 막히는** 자리다(런 504 의 dotnet 빨강이 바로 그것이었다 · 결정 554). 두 쪽(T334 3회차 기록 + 결정 552 ↔ 결정 553 + T342 2회차 기록 ↔ T344 의 결정)을 **하나도 안 버리고** 잇고, 겹친 결정 번호 553 둘도 갈랐다. **같은 시각에 워커 T 도 같은 표식을 고치고 있어** rebase 에서 한 번 더 부딪혔는데, 그쪽이 제 결정을 **넓혀 쓴 554**(= «rebase 충돌은 표식 0 을 스스로 확인한 뒤에만 `git add`»)와 T342 의 **555**(번짐 해상도)로 이미 갈라 놨기에 **그쪽 판을 살리고** 내 짧은 판과 남아 있던 옛 `553.` 줄을 걷었다 — 같은 뜻을 두 번 적어 두지 않는다. 참조 두 곳(`PROGRESS` 669 · `ROUTINE` 1992)은 554 를 가리킨다.
-- **회차 첫 일(§0-6)**: 런 503(`91992c8`) 빨강 다섯 — `ItemFacesTests`=T332(산 lock) · `SummonFxTests`=T334(산 lock) · `ForgeCardWidthTests`=T339(lock 은 죽었지만 그 워커가 `1a1e37b` 로 **2회차를 밀고 있는 중**이라 뺏지 않았다) · `PerfBudgetTests`(180초 시간초과)·`WaypointsTests`(«매초 tick» 이 1)는 **임자 없는 빨강이었는데 워커 C 가 `0151d6e` 로 이미 고쳤다**(퍼프는 `[Timeout(600000)]` · 이정표는 «틱이 오를 때까지 + 세 틱 상한»). 결정 341 의 셋째 점검이 또 한 번 겹침을 막았다 — 내가 잡을 빨강은 0.
+- **먼저 고친 것 — main 의 `docs/PROGRESS.md` 에 rebase 충돌 표식 여섯 줄이 남아 있었다**(6931·6944·6945·6967·6968·6970 · `- **회차 첫 일(§0-6)**: 런 503(`91992c8`) 빨강 다섯 — `ItemFacesTests`=T332(산 lock) · `SummonFxTests`=T334(산 lock) · `ForgeCardWidthTests`=T339(lock 은 죽었지만 그 워커가 `1a1e37b` 로 **2회차를 밀고 있는 중**이라 뺏지 않았다) · `PerfBudgetTests`(180초 시간초과)·`WaypointsTests`(«매초 tick» 이 1)는 **임자 없는 빨강이었는데 워커 C 가 `0151d6e` 로 이미 고쳤다**(퍼프는 `[Timeout(600000)]` · 이정표는 «틱이 오를 때까지 + 세 틱 상한»). 결정 341 의 셋째 점검이 또 한 번 겹침을 막았다 — 내가 잡을 빨강은 0.
 - **3회차 판정(§1 자 + 눈)**: 런 503 PlayMode **240/245** 초록이고 `TextShadowTests` **넷 다 PASS** — 색 버튼 · 시트 제목 · **리그 행(키라인 위 첫 겹)** · **채팅 닉네임(변당 2px 링)**.
   - 눈 확인: `screen_chat.png`(540×960) 를 (55,272)~(205,296) 8배 — 주황 «[FRY] Zephyr» 글자에 **검정 키라인이 둘려** 흰 목록 위에서 떠 보인다(정본 3344 가 «원본 닉네임은 검은 외곽선이 둘려 흰 배경에서 떠 보인다» 고 적은 그 모습). 그전엔 링이 0 이었다.
   - `screen_league.png` 는 (40,420)~(300,460) 6배 · (120,222)~(300,250) 7배 — 파란 «내 행» 의 흰 «용사» 는 2px 검정 키라인 아래로 한 겹이 더 앉았고, 어두운 행은 **정본과 같이 그림자가 거의 안 보인다**(근흑 판 위 검정 한 겹). 번짐·후광·글자 뭉갬 **없다** — 키라인과 그림자가 같은 재질에서 서로를 지우지 않았다.
@@ -9129,3 +9128,12 @@
 - **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · `dotnet test` **747/747**.
 - **판정(다음 런)**: 같은 세 수치 — 필 폭 20.0~21.2%W(그대로일 것) · **필 높이 3.6~4.0%W**(이번 고침의 대상) · 행 피치 20.8~21.8%W.
 - **주인이 확인할 것**: 없다.
+### T368 3회차 — 소환 바 위 풀블리드 대시를 표대로 한 타일로 (2026-09-15 10:4x · 워커 O · sess-2140-18689 · lock 유지)
+
+- **잡은 까닭**: 런 651 빨강(`BoxBorderSitesTests`)은 T365 산 lock 몫 → §0-6 없음. 이어 잡을 후보 중 T178 은 09:46 판정 커밋(90분 안 흔적) · T333 은 표 `TextShadowUi.json` 이 T332 범위 · T361·T351·T352·T375·T372 는 파일이 산 lock. T368 의 남은 둘 중 `SkillPanel.cs` 만 열렸다(`LeagueSheet.cs` 는 T378).
+- **실물**: 2회차 안내는 «소환 바 위 대시가 지금 없다» 였는데 실제로는 T20 의 `BuildDashes` 가 대시 **조각**을 `for` 로 늘어놓고 있었다(카탈로그 `dash_*` 넷 + 리터럴 `Rem(0.8f)` 되밀기). 정본 4205 는 `repeating`(gradient + background-size/position) 한 요소다 — 2회차가 보스 경고에 세운 길(`BakeStripe` + `Tiled`) 그대로 바꿨다.
+- **한 것**: `SkillPanel.SummonDash(bar)` — 표 `stripes.skills_summon_dash` 의 비율 × `RefW/RefH` 로 자리·크기, 주기·대시·당김으로 한 타일을 굽고 `Tiled` · 첫 자식(::before) · raycast 끔. `SurfaceArt.StripeNum(key, field, dflt)` 공개 한 함수(비공개 `Stripe` 를 밖에서 못 읽어서). `BuildDashes` 삭제(호출처가 SkillPanel 하나 · 정본 스코프 `#panel-skills` 와 같다 · 펫 패널 4404 는 ::before 가 없다). 카탈로그 `dash_*` 키 넷은 이제 안 쓰지만 `catalog.json` 이 T364·T365·T375·T377·T378 범위라 그대로 둔다.
+- **자**: `check_surface_gradients` TABLE 에 `Ui/SkillPanel.cs@SummonDash`(자리 초록 24 → 25 · 미정 116 → 115) · 새 `PlayMode/SummonDashTests` 1 — 타일·자리(−.027W · 1.0W · −.0242H · .00225H)·주기 .1993W·«첫·끝 화소 잉크 + 중간 빈틈»(당김 −.0499W = 대시 중심이 x=0)·대시 50%·펫 패널로 바꾸면 없음.
+- **참고(임자·다음 회차)**: 2회차의 `BattleOverlay.cs:233` 은 표에 `period_rem 1.1`·`dash_rem .55` 가 있는데 코드가 `1.1f * rem`·`0.55f * rem` 리터럴로 부른다(§1). 그 파일은 산 lock 이 없으니 다음에 잡는 사람이 `StripeNum` 으로 바꾸면 된다 — 이 회차는 ⓑ 한 자리만 만졌다.
+- **게이트**: dotnet build 0 오류 · dotnet test 747/747 · `check_surface_gradients` rc 0(자기 검사 포함) · `tools/gate.sh` 막는 자 전부 rc 0 · 새 파일 `.meta` 는 `gen_meta.py`.
+- **판정(다음 런)**: `SummonDashTests` PASS + `screen_skills.png` 눈 확인(소환 바 위 대시 줄이 앱 폭 전체 · x=0 에 대시 중심) → lock 반납 · 행 ⬜(ⓐ 는 T378 뒤).

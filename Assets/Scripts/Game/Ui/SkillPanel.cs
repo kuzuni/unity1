@@ -51,7 +51,6 @@ namespace Forge.Game.Ui
             PetSkillKit.Clear(root);
             cellButtons.Clear();
             float W = root.rect.width > 0f ? root.rect.width : UiKit.RefW - PetSkillStyle.Px("pad_rem") * 2f;
-            float appW = UiKit.RefW;
             float gap = PetSkillStyle.Px("gap_rem");
             float y = 0f;
 
@@ -115,7 +114,7 @@ namespace Forge.Game.Ui
             // ---- summon-bar ----
             RectTransform bar = UiKit.Box(root, "summon-bar");
             UiKit.Place(bar, 0f, barY, W, barH);
-            BuildDashes(bar, W, appW);
+            SummonDash(bar);   // T368 3회차 — 정본 4205 `#panel-skills .summon-bar::before` 풀블리드 대시 줄(표 skills_summon_dash · 구운 타일 한 장)
             float padRem = PetSkillStyle.Px("pad_rem");
             // back-btn
             BackButton = BackButtonAt(bar, PetSkillStyle.Px("back_left_w") - padRem, barH - PetSkillStyle.Px("back_bottom_h") - PetSkillStyle.Px("back_h"));
@@ -316,18 +315,26 @@ namespace Forge.Game.Ui
 
         // ---- summon-bar 조각(펫 패널도 쓴다) ----
 
-        public static void BuildDashes(RectTransform bar, float W, float appW)
+        /// <summary>T368 3회차 — 정본 style.css 4205 `#panel-skills .summon-bar::before`: 소환 바 **위** 풀블리드 대시 줄 한 장(스코프가 #panel-skills 라 펫 패널(4404)은 안 그린다).
+        /// 수는 전부 표 `SurfaceUi.json` stripes.skills_summon_dash 의 **앱 폭/높이 비율**이라 RefW·RefH 를 곱한다(rem 으로 옮기면 T364 가 잡은 함정 · 정본 2547 주석).
+        /// 절대 배치 기준이 소환 바의 패딩 상자라 `left_w`(−.027W) 만큼 되밀어 `width_w`(1.0W) 로 앱 폭 전체 · `top_h`(−.0242H) 위에 `height_h`(.00225H) 두께 ·
+        /// 한 타일(주기 `period_w` · 대시 `dash_ratio` · 당김 `phase_w` = 반 대시라 x=0 에 대시 중심)을 굽고 `Tiled` 로 되풀이한다 — 종전(T20)엔 대시 조각을 늘어놓았고 왼쪽 되밀기가 리터럴 .8rem 이었다.</summary>
+        public static Image SummonDash(RectTransform bar)
         {
-            float seg = PetSkillStyle.Px("dash_seg_w");
-            float h = Mathf.Max(2f, PetSkillStyle.Px("dash_h"));
-            float top = -PetSkillStyle.Px("dash_top_h");
-            float shift = -PetSkillStyle.Px("dash_shift_w");
-            float left = -PetSkillStyle.Rem(0.8f) + PetSkillStyle.Px("pad_rem");
-            for (float x = shift; x < appW; x += seg)
-            {
-                Image d = UiKit.Panel(bar, "dash", "pp_line");
-                UiKit.Place(d.rectTransform, x - left, top, seg * 0.5f, h);
-            }
+            const string key = "skills_summon_dash";
+            float period = SurfaceArt.StripeNum(key, "period_w", 0f) * UiKit.RefW;
+            float dash = (float)Forge.Core.Ui.StripeRules.DashFromRatio(period, SurfaceArt.StripeNum(key, "dash_ratio", 0.5f));
+            float phase = SurfaceArt.StripeNum(key, "phase_w", 0f) * UiKit.RefW;
+            float x = SurfaceArt.StripeNum(key, "left_w", 0f) * UiKit.RefW, w = SurfaceArt.StripeNum(key, "width_w", 1f) * UiKit.RefW;
+            float yTop = SurfaceArt.StripeNum(key, "top_h", 0f) * UiKit.RefH, h = Mathf.Max(1f, SurfaceArt.StripeNum(key, "height_h", 0f) * UiKit.RefH);
+            RectTransform rt = UiKit.Box(bar, "summon-dash");
+            rt.SetAsFirstSibling();                                   // ::before — 바의 다른 조각보다 뒤(자리는 바 밖 위쪽이라 겹치지 않는다)
+            UiKit.Place(rt, x, yTop, w, h);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.raycastTarget = false;                                // pointer-events: none
+            img.type = Image.Type.Tiled;
+            img.sprite = SurfaceArt.BakeStripe(key, period, dash, phase, h);
+            return img;
         }
 
         public static Button BackButtonAt(RectTransform bar, float x, float yTop, UnityEngine.Events.UnityAction onBack = null)

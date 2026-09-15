@@ -71,6 +71,7 @@ TABLE = {
     '.qst-row.done .qst-bar i': ['Ui/QuestSheet.cs#qst-fill-grad', 'Ui/QuestSheet.cs#qst-fill-rim'],
     # T178 9회차 — 기술 트리 분기 원판(카테고리색 면) 위의 겹 둘: 왼쪽 위 방사형 광택 + 세로 명암.
     '.tech-branch-icon::before': ['Ui/TechPanel.cs#tb-icon-gloss', 'Ui/TechPanel.cs#tb-icon-shade'],
+    '#panel-skills .summon-bar::before': ['Ui/SkillPanel.cs@SummonDash'],   # T368 3회차 — 되풀이 대시 한 타일(SurfaceArt.BakeStripe · 표 stripes.skills_summon_dash)
     '#tabbar': ['Ui/TabBar.cs#tabbar-grad', 'Ui/TabBar.cs#tabbar-rim'],
     # T178 5회차 — 켜진 칸(그리고 ✕ 칸)의 노란 방사형 둘. `SurfaceArt` 가 방사형을 굽고 `RefreshTabX` 가 켠다.
     '#tabbar button.active, #tabbar button.tab-x': ['Ui/TabBar.cs#tab-glow', 'Ui/TabBar.cs#tab-footglow'],

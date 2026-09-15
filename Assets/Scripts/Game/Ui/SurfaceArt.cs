@@ -298,6 +298,13 @@ namespace Forge.Game.Ui
             return UiKit.C(s);
         }
 
+        /// <summary>T368 3회차 — 줄무늬 표 한 칸의 수(없으면 <paramref name="dflt"/>). 표의 수는 앱 폭/높이 비율이라 부르는 쪽이 RefW·RefH 를 곱한다.</summary>
+        public static float StripeNum(string key, string field, float dflt)
+        {
+            JsonObject one = Stripe(key);
+            return (float)J.Num(one[field], dflt);        // 없는 키는 null → 기본값(각도 등 다른 칸과 같은 길)
+        }
+
         /// <summary>정본이 «가로축으로 환산한 한 주기»(`.bw-hazard` 의 background-size)라고 적어 둔 그 폭 — 캔버스 px. 셈은 Core <see cref="StripeRules.TileWidth"/>.</summary>
         public static float StripeTileWidth(string key, float periodCanvasPx)
         {
