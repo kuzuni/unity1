@@ -43,6 +43,21 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+
+        /// <summary>
+        /// 위상이 목표에 **닿을 때까지** 기다린다(상한을 둔다) — 벽시계로 «딱 ms» 를 재면 프레임 한 칸에 걸린다.
+        ///
+        /// 런 589 가 그 실물이다: `WaitMs(s.Ms * 2)` 뒤에 위상이 `0.99988` 이었다. 셈(<see cref="PressRules.Phase"/>)은
+        /// `t >= 1` 이면 **정확히** 1 을 내주므로 틀린 것은 셈이 아니라 «누른 프레임의 델타부터 세는» 기다림이었다 —
+        /// 코루틴은 누르기 **전에** 이미 흐른 그 프레임을 제 몫으로 세고, 부품은 누른 **다음** 프레임부터 센다.
+        /// 판정은 «ms 가 지나면 위상 1» 이지 «정확히 2×ms 창에서 1» 이 아니다 — 상한을 넉넉히 두고 상태를 기다린다.
+        /// </summary>
+        private static IEnumerator Settle(PressFx fx, double target, double capMs)
+        {
+            float t = 0f;
+            while (System.Math.Abs(fx.Phase - target) > 1e-9 && t * 1000f < capMs) { t += Time.unscaledDeltaTime; yield return null; }
+        }
+
         private static IEnumerator WaitMs(double ms)
         {
             float t = 0f;
@@ -67,12 +82,12 @@ namespace Forge.Tests.PlayMode
             float baseY = cell.anchoredPosition.y;
             Assert.IsFalse(fx.Active, "놓인 상태에서 시작");
             fx.Press(true);
-            yield return WaitMs(s.Ms * 2);
-            Assert.AreEqual(1.0, fx.Phase, 1e-6, "ms 가 지나면 위상 1");
+            yield return Settle(fx, 1.0, s.Ms * 8);
+            Assert.AreEqual(1.0, fx.Phase, 1e-6, "ms 가 지나면 위상 1(상한 8×ms 안에) — 잰 위상 " + fx.Phase);
             Assert.AreEqual(baseY - (float)s.DyRem * rem, cell.anchoredPosition.y, 0.5f, "정본 translateY(.08rem) — 놓인 자리(Place 뒤)에서 아래로");
             fx.Press(false);
-            yield return WaitMs(s.Ms * 2);
-            Assert.AreEqual(0.0, fx.Phase, 1e-6);
+            yield return Settle(fx, 0.0, s.Ms * 8);
+            Assert.AreEqual(0.0, fx.Phase, 1e-6, "떼면 위상 0(상한 8×ms 안에) — 잰 위상 " + fx.Phase);
             Assert.AreEqual(baseY, cell.anchoredPosition.y, 0.5f, "제자리로 — Place 뒤 SetBase 가 안 됐으면 (0,0) 으로 튄다");
         }
 
@@ -118,8 +133,12 @@ namespace Forge.Tests.PlayMode
             float mid = panel.anchoredPosition.y;
             Assert.Greater(mid, below, "올라오는 중");
             Assert.Less(mid, ps.BasePos.y, "아직 제자리 전");
-            yield return WaitMs(s.Ms * 1.5);
-            Assert.IsFalse(ps.Sliding, "ms 가 지나면 끝");
+            // 같은 덫(위 Settle 주석) — «딱 ms» 로 재지 말고 **끝날 때까지** 기다리되 상한을 둔다.
+            {
+                float t2 = 0f;
+                while (ps.Sliding && t2 * 1000f < s.Ms * 8) { t2 += Time.unscaledDeltaTime; yield return null; }
+            }
+            Assert.IsFalse(ps.Sliding, "ms 가 지나면 끝(상한 8×ms 안에)");
             Assert.AreEqual(ps.BasePos.y, panel.anchoredPosition.y, 0.5f, "정본 .open { transform: none }");
 
             tb.OnTab("summon");
