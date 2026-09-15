@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Forge.Core.CraftFx;
 using Forge.Core.Data;
 
 namespace Forge.Core.Ui
@@ -252,5 +253,67 @@ namespace Forge.Core.Ui
             Phase(elapsedMs, index, out tyRem, out scaleAdd);
             tyRem *= w; scaleAdd *= w;
         }
+    }
+
+    /// <summary>
+    /// T334 6회차 — 주역 착지의 **화면 킥**(정본 `srshakehit` · style.css 5675~5684).
+    ///
+    /// 정본 주석이 두 가지를 못 박았다: ⓐ «최고 등급 착지 — 앞의 것보다 짧고 세게» ⓑ «화면 킥은 **홀드백 여부와 무관하게**
+    /// 주역 비트(`.hero`)에 건다» — 즉 섬광(`flash`)이든 와이프(`wipe`)든 판은 똑같이 흔들린다.
+    ///
+    /// ⚠ 치우침은 `translate3d` 의 **퍼센트**다 — 판 제 크기 기준이지 화면 기준이 아니다. CSS 의 +y 는 아래라 거는 쪽이 뒤집는다.
+    /// ⚠ `.hero` 자체에는 **시간 제한이 없다**(`fireSummonHero` 는 클래스만 붙이고 `done` 까지 둔다) — 길이는 이 애니메이션이 쥔다.
+    ///    결정 534 가 «주역 비트 길이 미정» 으로 남겨 둔 것의 답이 이것이다: 그런 값은 정본에 없다.
+    /// UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonHeroSpec
+    {
+        /// <summary>한 번 흔드는 길이(ms · 정본 .44s).</summary>
+        public double ShakeMs;
+        public RewardBurstSpec.Track Shake;
+
+        public static SummonHeroSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "hero"));
+            var s = new SummonHeroSpec { ShakeMs = J.Num(J.Require(o, "shake_ms")) };
+            if (s.ShakeMs <= 0) throw new FormatException("SummonFxUi hero: shake_ms 는 0보다 커야 한다");
+            double[] e = J.NumArr(J.Require(o, "shake_ease"));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi hero: shake_ease 는 cubic-bezier 넷이다");
+            CssEase ease = new CssEase(e[0], e[1], e[2], e[3]);
+
+            var list = J.List(J.Require(o, "srshakehit"), x => J.Obj(x));
+            if (list.Count < 2) throw new FormatException("SummonFxUi hero: srshakehit 키프레임이 둘 미만이다");
+            var keys = new RewardBurstSpec.KeyStop[list.Count];
+            double prev = -1;
+            for (int i = 0; i < list.Count; i++)
+            {
+                JsonObject k = list[i];
+                var ks = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(k, "at")), Ease = ease };
+                if (ks.At < prev) throw new FormatException("SummonFxUi hero: 퍼센트는 오름차순이어야 한다");
+                prev = ks.At;
+                ks.Num["tx_pct"] = J.Num(J.Require(k, "tx_pct"));
+                ks.Num["ty_pct"] = J.Num(J.Require(k, "ty_pct"));
+                ks.Num["scale"] = J.Num(J.Require(k, "scale"));
+                keys[i] = ks;
+            }
+            // 흔들기는 **제자리에서 시작해 제자리로 돌아온다** — 양 끝이 0 이 아니면 판이 튄 채로 남는다.
+            if (keys[0].Num["tx_pct"] != 0 || keys[0].Num["ty_pct"] != 0) throw new FormatException("SummonFxUi hero: 첫 키는 제자리여야 한다");
+            var last = keys[keys.Length - 1];
+            if (last.Num["tx_pct"] != 0 || last.Num["ty_pct"] != 0 || last.Num["scale"] != 1) throw new FormatException("SummonFxUi hero: 마지막 키는 제자리로 돌아와야 한다");
+            s.Shake = new RewardBurstSpec.Track { Keys = keys };
+            return s;
+        }
+
+        /// <summary>착지에서 <paramref name="ms"/> 뒤 판의 치우침(판 크기의 비율 · +y 는 **아래**)과 배율. 끝나면 제자리.</summary>
+        public void At(double ms, out double txF, out double tyF, out double scale)
+        {
+            double p = ms <= 0 ? 0 : ms >= ShakeMs ? 100 : ms / ShakeMs * 100;
+            txF = Shake.Sample(p, "tx_pct", null) / 100.0;
+            tyF = Shake.Sample(p, "ty_pct", null) / 100.0;
+            scale = Shake.Sample(p, "scale", null);
+        }
+
+        /// <summary>아직 흔드는 중인가.</summary>
+        public bool Kicking(double ms) { return ms >= 0 && ms < ShakeMs; }
     }
 }

@@ -265,4 +265,67 @@ namespace Forge.Tests
             Assert.Throws<System.FormatException>(() => SummonIdleSpec.From(MiniJson.ParseObject(bad)));
         }
     }
+
+    /// <summary>T334 6회차 — 주역 착지의 화면 킥이 표대로 서고 **제자리에서 시작해 제자리로 돌아온다**.</summary>
+    public class SummonHeroSpecTests
+    {
+        static SummonHeroSpec spec;
+        static SummonHeroSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonHeroSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 제자리에서_시작해_제자리로_돌아온다()
+        {
+            SummonHeroSpec s = S();
+            double tx, ty, sc;
+            s.At(0, out tx, out ty, out sc);
+            Assert.AreEqual(0.0, tx, 1e-9); Assert.AreEqual(0.0, ty, 1e-9); Assert.AreEqual(1.0, sc, 1e-9);
+            s.At(s.ShakeMs, out tx, out ty, out sc);
+            Assert.AreEqual(0.0, tx, 1e-9); Assert.AreEqual(0.0, ty, 1e-9); Assert.AreEqual(1.0, sc, 1e-9);
+            s.At(s.ShakeMs * 5, out tx, out ty, out sc);
+            Assert.AreEqual(0.0, tx, 1e-9, "다 흔든 뒤에도 제자리(정본 both 필의 마지막 키가 «없음»)");
+        }
+
+        [Test]
+        public void 첫_흔들림이_가장_세고_점점_잦아든다()
+        {
+            // 정본 주석: «최고 등급 착지 — 앞의 것보다 짧고 세게». 12% 가 정점이고 뒤로 갈수록 폭이 준다.
+            SummonHeroSpec s = S();
+            double a, b, c, tx, ty, sc;
+            s.At(s.ShakeMs * 0.12, out tx, out ty, out sc); a = System.Math.Abs(tx) + System.Math.Abs(ty);
+            s.At(s.ShakeMs * 0.28, out tx, out ty, out sc); b = System.Math.Abs(tx) + System.Math.Abs(ty);
+            s.At(s.ShakeMs * 0.46, out tx, out ty, out sc); c = System.Math.Abs(tx) + System.Math.Abs(ty);
+            Assert.Greater(a, b); Assert.Greater(b, c);
+            s.At(s.ShakeMs * 0.12, out tx, out ty, out sc);
+            Assert.Greater(sc, 1.0, "정점에서는 살짝 커진다");
+        }
+
+        [Test]
+        public void 흔드는_중인가를_길이로_가른다()
+        {
+            SummonHeroSpec s = S();
+            Assert.IsTrue(s.Kicking(0));
+            Assert.IsTrue(s.Kicking(s.ShakeMs - 1));
+            Assert.IsFalse(s.Kicking(s.ShakeMs), "길이를 넘으면 끝");
+            Assert.IsFalse(s.Kicking(-1));
+        }
+
+        [Test]
+        public void 제자리로_안_돌아오는_표는_거부한다()
+        {
+            // 마지막 키가 0 이 아니면 판이 튄 채로 남는다 — 표에서 막는다.
+            char q = '"';
+            string bad = "{" + q + "hero" + q + ":{" + q + "shake_ms" + q + ":440," + q + "shake_ease" + q + ":[0.2,0.9,0.3,1],"
+                + q + "srshakehit" + q + ":[{" + q + "at" + q + ":0," + q + "tx_pct" + q + ":0," + q + "ty_pct" + q + ":0," + q + "scale" + q + ":1},"
+                + "{" + q + "at" + q + ":100," + q + "tx_pct" + q + ":1," + q + "ty_pct" + q + ":0," + q + "scale" + q + ":1}]}}";
+            Assert.Throws<System.FormatException>(() => SummonHeroSpec.From(MiniJson.ParseObject(bad)));
+        }
+    }
 }

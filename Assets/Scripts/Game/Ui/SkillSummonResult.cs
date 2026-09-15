@@ -83,6 +83,10 @@ namespace Forge.Game.Ui
         /// <summary>T334 3회차 — 주역 와이프(정본 `.sr-wipe` · 홀드백이 **없는** 주역에서만). 가산 혼합이라 씬을 안 죽인다.</summary>
         Image wipe;
         float wipeAt = -1f;
+        /// <summary>T334 6회차 — 화면 킥(정본 `srshakehit`)이 시작한 시각 · 흔들 판과 그 제자리.</summary>
+        float kickAt = -1f;
+        RectTransform wrap;
+        Vector2 wrapHome;
         float flashAt = -1f;
         /// <summary>T334 3회차 ⓑ — 충전 구간이 움직이는 것들: 소환진·중앙 광원·비네트(정본 `.sr-floor`·`.sr-halo`·`.sr-wrap::before`).</summary>
         Image floorImg, haloImg, vigImg;
@@ -257,6 +261,7 @@ namespace Forge.Game.Ui
             float W = UiKit.RefW, Hh = UiKit.RefH;
             RectTransform c = handle.Content;
             UiKit.Fill(c);
+            wrap = c; wrapHome = c.anchoredPosition;   // 정본 `.sr-wrap` — 주역 착지에 이 판이 흔들린다
 
             // ---- 배경(남색 방사 → 검정) ----
             Image bg = UiKit.Panel(c, "bg", "pp_line");
@@ -697,6 +702,7 @@ namespace Forge.Game.Ui
             AnimateCharge();
             AnimateFlash();
             AnimateWipe();
+            AnimateKick();
         }
 
         void TurnOn(Cell c)
@@ -853,6 +859,27 @@ namespace Forge.Game.Ui
             return new Color(c.r + (1f - c.r) * amt, c.g + (1f - c.g) * amt, c.b + (1f - c.b) * amt, c.a);
         }
 
+
+        /// <summary>
+        /// 주역 착지의 화면 킥(정본 `srshakehit` · 5675~5684) — 판을 제 크기의 비율만큼 흔든다.
+        /// 치우침이 퍼센트라 화면 크기가 달라져도 같은 세기로 읽힌다. 끝나면 제자리(정본 `both` 필의 마지막 키가 «없음» 이다).
+        /// </summary>
+        void AnimateKick()
+        {
+            if (wrap == null || kickAt < 0f) return;
+            SummonHeroSpec sp = SummonFxStyle.Hero;
+            double ms = (Time.unscaledTime - kickAt) * 1000f;
+            double tx, ty, sc;
+            sp.At(ms, out tx, out ty, out sc);
+            Rect r = wrap.rect;
+            wrap.anchoredPosition = wrapHome + new Vector2((float)(tx * r.width), -(float)(ty * r.height));   // CSS 의 +y 는 아래
+            wrap.localScale = Vector3.one * (float)sc;
+            if (!sp.Kicking(ms)) kickAt = -1f;      // 다 흔들었으면 손을 뗀다(아이들이 이 판을 다시 안 잡는다)
+        }
+
+        /// <summary>화면 킥이 도는 중인가 — 자가 본다.</summary>
+        public bool Kicking { get { return kickAt >= 0f; } }
+
         void FireHero()
         {
             if (heroFired) return;
@@ -873,6 +900,8 @@ namespace Forge.Game.Ui
                     wr.pivot = HeroPivot(wr, cells[heroIdx].Root);
                 wipeAt = Time.unscaledTime;
             }
+            // 정본 5675: 화면 킥은 **홀드백 여부와 무관하게** `.hero` 에 건다 — 섬광이든 와이프든 판은 똑같이 흔들린다.
+            kickAt = Time.unscaledTime;
             var g = PetSkillHost.SfxGacha;
             if (g != null) g(best);
         }

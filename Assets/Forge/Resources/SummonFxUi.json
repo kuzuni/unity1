@@ -196,6 +196,19 @@
     "wipe_scale1_f": 2.2,
     "_wipe": "정본 `.sr-wipe`(style.css 6184~6198) 그대로 — 방사 그라디언트 네 스톱(흰 0% → 등급색 24% → 흰 .34 52% → 투명 82%) · `mix-blend-mode: screen`(가산) · `srwipe .47s` 는 불투명도 0 → .98(15% ≈ 70ms 정점) → 0, 배율 .55 → 1.12 → 2.2. 정본 주석: «정점을 70ms 안에 세운다 — 450ms 에 걸쳐 +32% 는 상승이 아니라 서서히 밝아지는 배경이다»."
   },
+  "hero": {
+    "shake_ms": 440.0,
+    "shake_ease": [0.2, 0.9, 0.3, 1.0],
+    "srshakehit": [
+      { "at": 0.0,   "tx_pct": 0.0,   "ty_pct": 0.0,   "scale": 1.0 },
+      { "at": 12.0,  "tx_pct": -0.85, "ty_pct": 1.15,  "scale": 1.02 },
+      { "at": 28.0,  "tx_pct": 0.72,  "ty_pct": -0.8,  "scale": 1.014 },
+      { "at": 46.0,  "tx_pct": -0.44, "ty_pct": 0.46,  "scale": 1.007 },
+      { "at": 68.0,  "tx_pct": 0.22,  "ty_pct": -0.22, "scale": 1.0 },
+      { "at": 100.0, "tx_pct": 0.0,   "ty_pct": 0.0,   "scale": 1.0 }
+    ],
+    "_": "정본 `#summon-result-modal.flash .sr-wrap, #summon-result-modal.hero .sr-wrap { animation: srshakehit .44s cubic-bezier(.2,.9,.3,1) both }`(style.css 5675~5684). 주석: «최고 등급 착지 — 앞의 것보다 짧고 세게. **화면 킥은 홀드백 여부와 무관하게 주역 비트(.hero)에 건다**». 치우침은 `translate3d` 의 **퍼센트**라 판 제 크기 기준이고, CSS 의 +y 는 아래다. `.hero` 는 `done` 까지 붙어 있고 **시간 제한이 없다** — 길이는 겹마다 제 애니메이션이 쥔다(결정 534 가 미뤄 둔 «주역 비트 길이» 의 답: 그런 값은 정본에 없다)."
+  },
   "idle": {
     "idle_ms": 2600.0,
     "delay_step_ms": 210.0,
