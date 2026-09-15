@@ -525,7 +525,7 @@
 | T25 | Core 상점 · 패스 · 퀘스트 · 리그 | ✅ 완료 | sess-1847-30503 / 워커 L | `Assets/Scripts/Core/Meta/` · `Assets/Tests/EditMode/MetaTests.cs` · `tools/export_data.js`(shop·pass·quests·league·chat 표 추출 한 갈래) · `tools/check_data_sync.sh`(파일 목록) · `Assets/StreamingAssets/data/meta.json`(+.meta · 추출기로만) | `meta.json`(추출기 10번째 · 특가 3·젬 팩 4·패스 마일스톤 16·퀘스트 정의 14·리그 상수 6+이름 20+순위 보상 21행·채팅 줄 24+장문 3·아바타 24·진행 상수) · `MetaTable`(7표) · `IRewardWallet`(키 지갑 · `SaveStateWallet` 로 T13 세이브에 꽂음) · `DailyReset`(09:00 키 · JS toDateString 꼴) · `Shop`(일 1회 특가 · 젬 가드) · `Pass`(절대 챕터 도달 · 무료만) · `Quests`(고정 14 · tier 상승 · bump/claim/claimAll · 만렙 필터 · 젬 대체) · `League`(봇 20 · 안정 랭킹 · 승률 식 · 티켓·시즌 정산 · 보상 표) · `Chat`(인물 해시 · 시드 18 · 틱 · 공유 카드) · EditMode 56(원작 벡터: 퀘스트 tier 5줄×14 · 승률 5 · 인물 6 · 순위 보상 12) · dotnet 345 |
 | T26 | WebGL 템플릿 · 배포 스모크 · Android 잡 | ✅ 완료 | sess-1824-31207 / 워커 N | `Assets/WebGLTemplates/` · `tools/webgl_smoke.js` · `.github/workflows/ci.yml`(빌드 잡 부분만) · `ProjectSettings/ProjectSettings.asset`(webGLTemplate · 압축 폴백 · Android 식별자 칸만) | 템플릿 `Forge`(원작 fitLayout 9:16 상자 + #boot-loading 모루 오버레이 · `data-forge-ready` · `forgeSignal()`) · 스모크(Playwright · 콘솔 빨강 0 · self-test 6) · ci.yml 스모크→gh-pages · Android APK Artifact · gzip+압축 폴백 · dotnet 없음(C# 0줄) → CI 초록 확인 뒤 lock 반납 |
 | T27 | PlayMode 스모크·플레이 봇·촬영 | ✅ 완료 | sess-2050-9969 / 워커 L | `Assets/Tests/PlayMode/PlaythroughTests.cs` · `UiShotsTests.cs` · `PlayLog.cs` | **CI 런 83 유니티 잡 초록**(`UiShotsTests` PASS · `PlaythroughTests` PASS · 전 잡 success) · `PlayLog`(빨강 수집기 · 화면 이름) · 정본 `shot-screens.js` SCREENS 화면 31줄 = 원작 30장 전부 열림 + 노치 1장 · `screens` 브랜치에 `screen_*.png` 31장 + 짝 표 `screens.json`(T28 이 읽는다) · 플레이 봇 한 판(스폰 22 · 처치 17 · 펫 1 · 스킬 2 · 던전 클리어 · 빨강 0) · dotnet 471 |
-| T28 | 원작 대조 회차 (`docs/ref-layout.md` · `tools/ui_score.py`) | 🔄 진행 | 58회차 sess-0111-11076 / 워커 M | `docs/ref-layout.md` · `tools/ui_score.py` · `docs/ui-score-baseline.json`(회차 사이 점수) · `docs/ROUTINE.md`(§2 재등재) · `docs/PROGRESS.md` | **58회차**: 런 571 평균 **4.24**(+0.05 · 진짜 회귀 0) · **T357 ✅**(워커 G 가 내 등재의 뿌리 «포스트» 를 수로 부정하고 «CSS 알파 겹을 선형 공간에서 섞던 것» 을 찾았다) · 남은 탭바 램프를 다시 재어 **정본 8317~8325 의 금속 밴드 그대로**임을 확인하고 «원작 샷이 정본과 다른 자리» **열두째 줄**로 못 박았다(원작 통짜 `(14,17,27)` ↔ 클론 `(39,41,50)→(25,27,37)→(11,14,22)`) · 한 x 만 찍으면 활성 탭 글자를 바탕으로 착각한다는 것도 그 줄에 적었다(내가 53·54회차에 그렇게 짚었다) |
+| T28 | 원작 대조 회차 (`docs/ref-layout.md` · `tools/ui_score.py`) | 🔄 진행 | 59회차 sess-0111-11076 / 워커 M | `docs/ref-layout.md` · `tools/ui_score.py` · `docs/ui-score-baseline.json`(회차 사이 점수) · `docs/ROUTINE.md`(§2 재등재) · `docs/PROGRESS.md` | **59회차**: 런 578 평균 **4.16**(−0.08 · 진짜 회귀 0 · `settings` 흔들림뿐) · `league-challenge`(3.9)를 정본 먼저로 봤는데 **자리는 맞았다** — 목록 다섯 줄의 구분선이 원작 40.5·50.2·60.1·70.0·79.8 ↔ 클론 40.8·50.6·60.3·70.1·79.9 로 **Δ ≤ 0.4%p** 다. **등재하지 않았고**, 그 견줌을 자에 넣었다 — `--rows <화면>` 이 «가로로 한 색인 줄»(행 여백·구분선) 자리를 딤과 무관하게 대조한다(9/9 맞음) · 자기 검사 53 → **55칸** |
 | T29 | `task_state.py` «코드 자취» 오탐(주석 미래 참조·도구 픽스처) 제외 | ✅ 완료 | sess-1858-659 / 워커 H | `tools/task_state.py` | `code_mentions`: 주석·문자열 리터럴·문서 내용 제외 · 자기 검사 ⓜ 18케이스 · T7·T9·T13·T14·T25 자취 0곳 · 워커 K 등재(2026-09-12) |
 | T30 | 사운드 이식: 효과음 24종(+합성 프리미티브 6) + 음악 4모드·레이어 6종 (`sfx.js` 코드 합성 그대로 · 오디오 파일 0) | ✅ 완료 | sess-1914-20666 / 워커 R | `Assets/Scripts/Core/Audio/`(SfxTable.cs · Voice.cs · SfxSynth.cs · SfxRecipes.cs · MusicSequencer.cs · Dsp.cs · SynthRenderer.cs) · `Assets/Scripts/Game/Audio/`(AudioBank.cs · Sfx.cs · Music.cs) · `Assets/StreamingAssets/data/sfx.json` · `tools/export_data.js`(sfx 갈래만) · `tools/check_data_sync.sh`(FILES 에 sfx.json 한 단어) · `tools/sfx_vectors.js` · `Assets/Tests/EditMode/Vectors/t30-sfx.json` · `Assets/Tests/EditMode/AudioTests.cs` · `Assets/Tests/PlayMode/AudioSmokeTests.cs` | Core/Audio 7파일(순수 DSP · 엔진 참조 0 · 표 `sfx.json` 11번째) · Game/Audio 3파일(백그라운드 렌더 → AudioClip) · 정본 그래프 벡터 49사례 + 음악 4모드 1,104보이스 전부 일치 · EditMode 9 · PlayMode 1 · dotnet 418(리베이스 뒤 · T30 단독 368) |
 | T31 | 아이콘·아바타 이식: `icongen.js` 아이콘 136종 + `avatars.js` 아바타 24종(= `IconGen.draw` 키 160 · 제목의 «523» 은 그리기 도우미까지 센 수) → Chromium 래스터 아틀라스 + `UiIcons.Get` | ✅ 완료 | sess-1900-14706 / 워커 U | `tools/export_icons.js` · `tools/check_icons_sync.sh` · `Assets/Forge/Icons/` · `Assets/Scripts/Core/Ui/IconAtlas.cs`(순수 표 · dotnet 검증) · `Assets/Scripts/Game/Ui/UiIcons.cs` · `Assets/Scripts/Game/Ui/UiKit.cs`(Icon 한 갈래만) · `.github/workflows/ci.yml`(datasync 잡의 아이콘 검사 한 줄만) · `Assets/Tests/EditMode/IconAtlasTests.cs` · `Assets/Tests/PlayMode/UiIconsTests.cs` · `docs/assets-map.md` · `docs/ROUTINE.md`(§1 아틀라스 예외 한 줄) | 키 170(아이콘 136 · 아바타 24 · tint 변형 10 = 등급색 알 6·체크·파란 삼각형 2·기술 발바닥) · 아틀라스 2장(2048×1948 · 2048×652 · PNG 총 172KB) · Chromium `--dump-dom` 한 번(의존성 0 · 5초 · 결정론) · `UiIcons.Get(name,tint)`·`Skill/Tab/Avatar` · `UiKit.Icon` 이 아틀라스 우선 · EditMode 7 + PlayMode 3 · dotnet 296/296 · CI `datasync` 잡이 러너 Chrome 으로 재추출 대조 |
@@ -1852,6 +1852,27 @@
 - **기준선을 런 205(4.70)로 갱신** · **게이트**: `ui_score --self-test` 20칸 · `check_text_glyphs` rc 0(아직 못 보는 자리는 T107) · 파이썬 자 여덟 전부 rc 0 · `docs/` 만(유니티·도구 0줄).
 - **주인이 확인할 것**: `screens` 의 `screen_craft-compare.png` 빨간 «판매» 버튼 — 둘째 줄이 «□ +23» 이다(코인 그림이어야 한다).
 - **남은 것(22회차)**: T107·T103·T105 가 든 런으로 재채점 · 다음은 `league-challenge`(2.7)를 본다.
+
+### T28 59회차 기록 — 점수 3.9 인 화면의 **자리는 맞았다**: 등재하지 않고 그 견줌을 자에 넣었다 (2026-09-15 · 워커 M · sess-0111-11076)
+
+- **채점(런 578 · `f9fc02d` · `shots:69 carried:0`)**: 평균 **4.16 / 10**(58회차 4.24 · −0.08) · 진짜 회귀 0. 내려간 하나는 `settings` 인데 지문이 «안 0.1 · 뒤 0.1» 이고 «흔들리는 화면» 줄이 같이 찍혔다 — 자가 제 몫을 했다.
+- **`league-challenge`(3.9)를 정본 먼저로 — 57회차에 적어 둔 대로 `--behind` 부터**: `--behind league-challenge league` 가 **뒤가 비치는 줄 0/16** 이라, 이 화면에 보이는 것은 전부 제가 그린 것이다(전면 시트라 그렇다). 헛다리 하나를 먼저 잘랐다.
+- **그리고 «자리가 틀렸나» 를 딤과 무관하게 쟀다 — 맞았다**:
+  | | 원작 | 클론 | Δ |
+  |---|---|---|---|
+  | 목록 구분선 1 | 40.5~43.6 | 40.8~43.6 | **+0.4** |
+  | 2 | 50.2~53.5 | 50.6~52.9 | **+0.4** |
+  | 3 | 60.1~63.3 | 60.3~62.7 | **+0.2** |
+  | 4 | 70.0~73.2 | 70.1~72.8 | **+0.1** |
+  | 5 | 79.8~83.3 | 79.9~82.6 | **+0.1** |
+  머리 쪽 넷도 ±1.5%p 안이다. **아홉 줄 전부 맞는다.** 그러니 3.9 라는 점수는 **자리가 아니라 딤·글자 모양** 탓이다 — 밴드 점수가 이 화면에서 무엇을 재고 있는지(정주기 둘째 줄)와 같은 이야기다.
+- **등재하지 않았다**: 근거가 «점수가 낮다» 뿐이면 등재가 아니다(결정 504·588 의 결). 대신 **그 견줌을 자에 넣었다** — `--rows <화면>` 이 «가로로 거의 한 색인 줄»(행 사이 여백·구분선)을 원작·클론에서 같은 규칙으로 잡아 자리를 견준다. 딤이 밝기를 반씩 깎아도 «한 색인가» 는 안 바뀌므로 **딤과 무관**하다.
+  - 자기 검사 53 → **55칸**(행 여백 줄을 잡는다 · 글자가 든 줄은 안 잡는다). 첫 판 자기 검사가 빨갰는데 **자가 아니라 내 모형 그림이 틀린 것**이었다(카드가 재는 폭을 안 채웠다) — 고쳐서 초록.
+  - 이제 목록·시트 화면은 «점수 3점대» 를 보면 **`--rows` 부터** 돌리면 된다: 줄이 맞으면 자리가 아니라 다른 것이고, 어긋나면 그 자리가 바로 등재감이다.
+- **기준선**: 런 578 · 평균 4.16.
+- **게이트**: `--self-test` **55칸** · 파이썬 자 다섯 rc 0 · `dotnet build` 0 오류 · `dotnet test` 720/720.
+- **남은 것(60회차)**: `--rows` 를 낮은 화면들에 한 번씩 돌려 «자리가 어긋난 화면» 만 추린다 — 그 목록이 다음 등재 후보다. 먼저 `forge-list`(3.3)·`tech-branch`(2.9).
+- **주인이 확인할 것**: 없다.
 
 ### T28 58회차 기록 — 두 회차 짚었던 탭바 램프가 **정본대로**였다: 뿌리도 내 진단이 아니었다 (2026-09-15 · 워커 M · sess-0111-11076)
 

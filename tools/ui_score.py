@@ -1030,6 +1030,90 @@ def behind(shots_dir, front_name, back_name):
     return 0
 
 
+# ── 구분선 줄 대조 (T28 59회차 · 워커 M) ─────────────────────────────────
+# 밴드 점수는 팝업·목록 화면에서 딤과 글자 모양에 눌려 «자리가 맞는데도» 3점대에 머문다.
+# 그런데 목록 화면이 정말 어긋났는지는 **가로로 거의 한 색인 줄**(행 사이 여백·구분선)의 자리만
+# 견주면 곧장 나온다 — 딤이 밝기를 반씩 깎아도 «한 색인가» 는 안 바뀌기 때문이다.
+# 실측(런 578 `league-challenge`): 목록 다섯 줄의 구분선이 원작 40.5·50.2·60.1·70.0·79.8 ↔
+# 클론 40.8·50.6·60.3·70.1·79.9 로 **Δ ≤ 0.6%p** 다 — 점수는 3.9 지만 **줄 자리는 맞다**.
+# 그래서 «점수가 낮다» 를 «자리가 틀렸다» 로 읽지 않게 이 자를 따로 둔다.
+SEP_X0, SEP_X1 = 0.16, 0.84   # 카드 안쪽만 본다(바깥은 딤)
+SEP_SAME = 0.92               # 그 줄의 표본 중 이만큼이 같은 색이면 «구분선 줄»
+SEP_MIN = 3                   # 이만큼 이어져야 한 줄로 센다(px)
+SEP_TOL = 1.5                 # 원작 ↔ 클론 허용 어긋남(%p)
+
+
+def sep_rows(img, y0=0.13, y1=0.86):
+    """가로로 거의 한 색인 줄의 묶음 — [(위 %, 아래 %)]. 행 사이 여백·구분선이 잡힌다."""
+    px, W, H = img.px, img.w, img.h
+    a, b = int(W * SEP_X0), int(W * SEP_X1)
+    n = len(range(a, b, 2))
+    ys = []
+    for y in range(int(H * y0), int(H * y1)):
+        base = y * W * 3
+        cnt = {}
+        for x in range(a, b, 2):
+            i = base + x * 3
+            k = (px[i] // 8, px[i + 1] // 8, px[i + 2] // 8)
+            cnt[k] = cnt.get(k, 0) + 1
+        if cnt and max(cnt.values()) >= n * SEP_SAME:
+            ys.append(y)
+    out, st, prev = [], None, None
+    for y in ys:
+        if st is None:
+            st = prev = y
+        elif y == prev + 1:
+            prev = y
+        else:
+            if prev - st + 1 >= SEP_MIN:
+                out.append((st * 100.0 / H, (prev + 1) * 100.0 / H))
+            st = prev = y
+    if st is not None and prev - st + 1 >= SEP_MIN:
+        out.append((st * 100.0 / H, (prev + 1) * 100.0 / H))
+    return out
+
+
+def rows_cmp(shots_dir, name, ref_dir=REF_DIR):
+    """`--rows <화면>` — 원작 ↔ 클론의 구분선 줄 자리를 견준다(딤과 무관)."""
+    refs = dict((n, r) for n, r in pairs() if r)
+    rf = refs.get(name)
+    cp = os.path.join(shots_dir, "screen_%s.png" % name)
+    rp = os.path.join(ref_dir, rf) if rf else None
+    if not rf or not os.path.exists(rp):
+        print(u"✗ 원작 짝을 못 찾았다: %s" % name)
+        return 2
+    if not os.path.exists(cp):
+        print(u"✗ 클론 샷이 없다: %s" % cp)
+        return 2
+    o, c = sep_rows(png_read(rp)), sep_rows(png_read(cp))
+    print(u"«%s» 구분선 줄 — 원작 %d개 · 클론 %d개 (허용 ±%.1f%%p · 딤과 무관)"
+          % (name, len(o), len(c), SEP_TOL))
+    used, off = set(), 0
+    for a0, a1 in o:
+        best, bi = None, -1
+        for i, (b0, b1) in enumerate(c):
+            if i in used:
+                continue
+            d = abs(b0 - a0)
+            if best is None or d < best:
+                best, bi = d, i
+        if bi >= 0 and best <= SEP_TOL:
+            used.add(bi)
+            print(u"   ✓ 원작 %5.1f~%5.1f ↔ 클론 %5.1f~%5.1f  (Δ %+.1f)"
+                  % (a0, a1, c[bi][0], c[bi][1], c[bi][0] - a0))
+        else:
+            off += 1
+            near = u"" if bi < 0 else u" · 가장 가까운 클론 줄 %.1f(Δ %+.1f)" % (c[bi][0], c[bi][0] - a0)
+            print(u"   ✗ 원작 %5.1f~%5.1f 에 맞는 클론 줄이 없다%s" % (a0, a1, near))
+    extra = [c[i] for i in range(len(c)) if i not in used]
+    if extra:
+        print(u"   · 원작에 없는 클론 줄 %d개: %s"
+              % (len(extra), " ".join(u"%.1f" % t[0] for t in extra)))
+    print(u"— 맞은 줄 %d / %d. 여기가 맞으면 **낮은 점수는 자리가 아니라 딤·글자 모양 탓**이다."
+          % (len(o) - off, len(o)))
+    return 0
+
+
 def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baseline=False, notes_full=False):
     table = load_table(table_path)
     if not table:
@@ -1556,6 +1640,18 @@ def self_test():
         u"앞 화면이 제 손으로 그린 줄은 그 밖이다 (%s)" % [round(r, 2) for r in dn])
     chk(behind_ratio(fr, _canvas(60, 60)) == [], u"크기가 다르면 비를 안 낸다")
 
+    # ⑮ 구분선 줄 잡기(T28 59회차) — 가로로 한 색인 줄만 잡고, 글자가 든 줄은 안 잡는다
+    # 진짜 화면처럼 카드가 재는 폭(16~84%)을 꽉 채우게 두고, 행마다 글자 덩이를 얹는다.
+    lst = _canvas(200, 400, (240, 240, 240))
+    for y0 in (40, 140, 240, 340):                  # 글자가 든 행 넷 — 이 줄은 «한 색» 이 아니다
+        _fill(lst, 50, y0, 150, y0 + 40, (30, 30, 30))
+    rs = sep_rows(lst, 0.0, 1.0)
+    tops = [round(a0) for a0, a1 in rs]
+    chk(all(any(abs(t - g) <= 2 for t in tops) for g in (0, 20, 45, 70)),
+        u"행 사이 여백 줄을 잡는다 (%s)" % tops)
+    chk(not any(11 <= t <= 19 or 36 <= t <= 44 for t in tops),
+        u"글자가 든 줄은 «구분선» 으로 안 잡는다 (%s)" % tops)
+
     # ⑫ 화면 집합이 바뀐 회차(T185) — 낮은 화면이 빠지면 «전체 평균» 은 저절로 오른다
     b_scr = {"a": 5.0, "b": 5.0, "c": 3.0, "d": 3.5}         # 지난 회차 4장 · 평균 4.125
     c_scr = {"a": 5.0, "b": 5.0}                              # 이번 회차 2장 · 평균 5.00
@@ -1626,6 +1722,7 @@ def main():
     ap.add_argument("--baseline", default=BASELINE, help="지난 회차 점수 파일(회귀 대조)")
     ap.add_argument("--save-baseline", action="store_true", help="이번 점수를 기준선으로 적는다")
     ap.add_argument("--notes", action="store_true", help="«낡은 원작 샷» 항목을 근거까지 펼쳐 찍는다")
+    ap.add_argument("--rows", metavar="화면", help="원작 ↔ 클론의 구분선 줄 자리를 견준다(딤과 무관)")
     ap.add_argument("--behind", nargs=2, metavar=("앞", "뒤"),
                     help="앞 화면의 가로줄이 뒤 화면을 딤으로 비치는지 밝기비로 가른다(T358 ✂)")
     a = ap.parse_args()
@@ -1634,6 +1731,8 @@ def main():
         return self_test()
     if a.behind:
         return behind(a.shots, a.behind[0], a.behind[1])
+    if a.rows:
+        return rows_cmp(a.shots, a.rows, a.ref_dir)
     if a.read:
         for r in read_layout(png_read(a.read)):
             print(u"| %s | %.1f | %.1f | %.1f | %.1f | %s |" % (r.name, r.x, r.y, r.w, r.h, r.grid()))
