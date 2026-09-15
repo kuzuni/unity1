@@ -580,6 +580,7 @@
 - **자**: TABLE `.tech-tree-node-time` → `Ui/TechPanel.cs$tech_node_time_r_rem` · KNOWN 에서 ForgeAutoPopup 둘 삭제 → 자리 초록 **9** · KNOWN **3** · 대조 안 함 3 · 문제 0.
 - **게이트**: `dotnet build` 0 오류 · `gen_ui_catalog`(catalog.json 세 항목 · 키 중복 0 · asset 그대로) · meta · 키라인·표면 겹·자간·sfx·자원 JSON·글자 자 rc 0.
 - **남은 것**: ⓑ `ForgeInfoPopup` 둘(T332) · `Popups` 뒤로 버튼(T331·T333) · ⓓ `gate.sh`(T331·T343·T347)·`ci.yml`(T331·T347). **판정(다음 런)**: `ChatRadiusTests` 2 · `TechNodeTimeTests` 1 PASS + `screen_chat.png`(공유 카드 각짐)·기술 트리 PNG(연구 중이면 배지).
+- **판정(2026-09-15 01:4x · 런 554 · `353ceb6`)**: `TechNodeTimeTests` **1/1** PASS · `ChatRadiusTests` 값 자 PASS · 화면 자 **NRE(93줄)** — 공유 카드의 테·면은 `RadiusUi.Outlined(card, "face", …)` 가 만든 상자 `face` **아래** `line`·`face` 인데 자가 `share` 바로 아래에서 찾았다(`PopupKit.Outlined` 와 같은 계층 · 게임 코드는 맞다). 5회차에 자의 그 두 줄만 고쳤다. `screen_chat.png` 눈 확인 ✓: 공유 카드 각짐 · 말풍선 .42 · 아바타 둥근 네모(.28) · 입력칸 .3 · 뒤로 버튼 .35. 판정은 다음 런의 `ChatRadiusTests` 2/2.
 
 
 ### T345 3회차 기록 — ⓑ 채팅 다섯 자리를 표로 · 반지름 0 은 각진 판 (2026-09-14 23:4x · 워커 C · sess-2036-34862 · lock 유지)

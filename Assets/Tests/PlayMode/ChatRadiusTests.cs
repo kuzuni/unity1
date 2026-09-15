@@ -90,7 +90,10 @@ namespace Forge.Tests.PlayMode
                 else if (rt.name == "share")
                 {
                     cards++;
-                    Image line = rt.Find("line").GetComponent<Image>(), face = rt.Find("face").GetComponent<Image>();
+                    // RadiusUi.Outlined(card, "face", …) 는 PopupKit.Outlined 와 같은 계층 — 상자 «face» 아래에 테 «line» 과 안쪽 면 «face» (런 554 의 NRE 는 이 한 단계를 빼먹은 자 탓)
+                    Transform box = rt.Find("face");
+                    Assert.IsNotNull(box, "공유 카드의 테·면 상자(face)");
+                    Image line = box.Find("line").GetComponent<Image>(), face = box.Find("face").GetComponent<Image>();
                     Assert.AreNotEqual(UiShapes.Rounded, line.sprite, "공유 카드 테는 각져야 한다(정본 border-radius: 0)");
                     Assert.AreNotEqual(UiShapes.Rounded, face.sprite, "공유 카드 면은 각져야 한다(정본 border-radius: 0)");
                     foreach (string sideName in new[] { "win", "lose" })
