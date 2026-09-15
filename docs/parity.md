@@ -1023,3 +1023,26 @@ POLISH.md 를 읽고 «소품·용암 빛이 없다» 를 새 작업으로 등�
 - **등재: T352**(ⓑ 기본값 뒤집기 + ⓒ 등폭 숫자). 이 축에서 나온 결함은 그 하나다.
 - **등재 안 함**: 굵기 단 추가·Black 자면 도입 — 정본이 그리지 않는 것이다(위 ⓐ).
 - 이 회차가 남긴 규칙: **«정본 CSS 의 선언 수» 를 세기 전에 그 선언이 실제로 그려지는지 정본 주석에서 확인한다** — 이 축은 235 중 228 이 «적혀 있지만 한 단» 이었다.
+
+## ⓧ 22회차 — 정본 **`aspect-ratio` 21 + `object-fit` 9** 전수 (2026-09-15 · 워커 J · sess-0218-10672)
+
+«그림·상자 모양» 축. 클론에 `AspectRatioFitter` 가 **0 건**이라 첫눈엔 «비율을 지키는 장치가 없다» 로 보였지만, 클론은 **상자 크기를 계산해서** 비율을 낸다 — 자리마다 실제로 확인했다.
+
+### ⓐ `object-fit` 9 — **결함 0**(그중 하나는 죽은 CSS)
+- `contain` **8** ↔ 클론 `UiKit.Icon` 의 기본이 `preserveAspect = true`(= contain). 자리: `.fl-face img`(756) · `.auto-drop-card .adc-img`(1081) · `.craft-batch .cb-card .adc-img`(1147) · `.cmp-img`(1856) · `.equip-cell .cell-img`(1875) · `.idet-icon img`(3696) · `.sr-ico > .mt-face > img`(6535) · `.mt-face.has-thumb > img`(7603).
+- `cover` **1**(`.pinfo-preview.shot img` 5557)은 **죽은 CSS** 다 — `ui.js` 5147·5153 은 `.pinfo-preview scene`(살아 있는 캔버스) 아니면 민 `.pinfo-preview` 만 낸다. 정본 주석도 «정지 스냅샷 `<img>` 를 대체하는 살아 있는 캔버스» 라 적어 뒀다. UGUI 에 cover 대응이 없다는 이유로 등재할 뻔한 자리인데 **정본이 안 그린다**(T135 ⛔ 의 교훈).
+- 클론에서 `preserveAspect = false`(= 늘림)인 **12 자리를 전부 열어 봤다**: 그림자 판(`UiShadow`) · 장착 판(`SkillPanel` `sk-eqplate`) · 글로/헤일로/비네트/소환진/그림자(`SkillSummonResult` 6) · 부화 원뿔(`PetHatchCone`) · 던전 배너 그림(`DungeonSheet`·`DungeonDetailPopup`). 앞 열은 **연출 겹**이고, 던전 배너는 정본에 `object-fit` 이 **없다** — 늘림이 틀렸다는 근거가 없다.
+
+### ⓑ `aspect-ratio` 21 — **결함 0**
+- **정사각(`1`) 13 자리**는 클론이 `UiKit.Place(rt, x, y, t, t)` 꼴로 **구성상 정사각**이다(실측: `ForgeUi` 248 · `ForgeInfoPopup` 310 · `MountSheet` 255 · `PetPanel` 528 …).
+- `.modal-card.sheet .dg-banner` **3.45/1** ↔ 클론 `DungeonSheet` 163~164 `bh = bw / UiKit.L("dg_banner_aspect")` · 카탈로그 `dg_banner_aspect = **3.45**`.
+- `.sr-canopy` 족 **2.5 · 3 · 3.9** ↔ `SummonFxUi.json` 의 `canopy_aspect 2.5` · `canopy_one_aspect 3.0` · `canopy_compact_aspect 3.9`.
+- `.sr-floor` **2.6(one) · 2.5(그 밖)** ↔ `SkillSummonResult` 346 `fw / (one ? 2.6f : 2.5f)`.
+- 기본 선언 `.sr-canopy 3.1`·`.sr-floor 3.1` 은 **정본에서도 안 쓰인다** — `.one` 과 `:not(.one)` 두 덮어쓰기가 늘 하나는 맞아 기본까지 안 내려간다.
+
+### 남긴 것(등재 아님 · 임자 몫)
+`.sr-floor` 의 두 비율 **2.6·2.5 가 표가 아니라 코드에 박혀 있다**(`SkillSummonResult` 346). 같은 파일의 `.sr-canopy` 는 표(`SummonFxUi.json`)로 갔으므로 **한 파일 안에서 갈래가 둘**이다. 그 파일은 지금 **T334 산 lock** 이라 안 건드렸다 — 임자가 마무리할 때 같이 표로 옮기면 된다.
+
+### 이 회차의 판정
+- **새 작업 0**. 이 축은 이미 옮겨져 있다.
+- 21회차(`font-weight`)에 이어 **두 축 연속 «결함 0»** 이다. 남은 CSS 축 중 큰 것: `pointer-events` 74 · `cursor` 51 · `white-space` 41 · `background-position` 22 · `background-size` 15 — 다음 회차가 고른다.

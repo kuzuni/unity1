@@ -6890,6 +6890,18 @@
 - **곁**: 이번 축의 아이콘 흐림은 T349(촬영이 게임과 다르다)와 다르다 — 게임도 Bilinear 로 그린다(진짜 결함).
 - 게이트: 문서 자 전부 rc 0 · 코드 0줄 · lock 반납. 다음 축 후보(안 센 것): `opacity` 352 · `gap` 181 · `pointer-events` 68 · `text-align` 89 · `white-space` 41 · `vertical-align` 26 · `min-height` 46 · `aspect-ratio` 24.
 
+### T33 완주 대조 22회차 · lock 반납 — 축 = `aspect-ratio` 21 + `object-fit` 9 · **결함 0** (2026-09-15 02:2x~02:5x · 워커 J · sess-0218-10672)
+
+- **회차 첫 일(§0-6)**: 런 559 의 빨강 둘(`PressFxSitesTests`→T355 51분 · `SurfaceArtTests`→T178 41분)은 산 lock 임자라 안 건드렸다.
+- **왜 T33 이었나**: lock 없는 열린 작업 여덟 중 여섯이 «90분 안 남의 커밋» 이고, T346 은 남은 두 자리(`ChatScreen.cs`→T345 · `PlayerInfoPopup.cs`→T178)가 아직 산 lock 뒤다. §2 상 가장 앞이 T33 이라 잡았고, **축을 lock 제목에 적었다**.
+- **축 고르기**: 아직 안 연 CSS 속성을 세어 «그림·상자 모양» 한 덩어리로 묶었다 — `aspect-ratio` 21 + `object-fit` 9.
+- **첫눈의 경보를 껐다**: 클론에 `AspectRatioFitter` 가 **0 건**이라 «비율을 지키는 장치가 없다» 로 보였다. 그런데 클론은 **상자 크기를 계산해서** 비율을 낸다 — 자리마다 실제로 확인하니 다 맞았다.
+- **`object-fit` 9 — 결함 0**: `contain` **8** ↔ `UiKit.Icon` 기본이 `preserveAspect = true`. 유일한 `cover`(`.pinfo-preview.shot img`)는 **죽은 CSS** 다 — `ui.js` 5147·5153 이 `.pinfo-preview scene`(살아 있는 캔버스) 아니면 민 `.pinfo-preview` 만 내고, 정본 주석도 «정지 스냅샷 `<img>` 를 대체하는 살아 있는 캔버스» 라 적어 뒀다. UGUI 에 cover 대응이 없다는 이유로 등재할 뻔한 자리인데 **정본이 안 그린다**(T135 ⛔ 의 교훈). 클론에서 `preserveAspect = false` 인 **12 자리를 전부 열어** 연출 겹(그림자·판·글로·헤일로·비네트·소환진·원뿔)이거나 정본에 `object-fit` 이 없는 자리(던전 배너)임을 확인했다.
+- **`aspect-ratio` 21 — 결함 0**: 정사각 13 은 `UiKit.Place(rt, x, y, t, t)` 로 **구성상 정사각**(ForgeUi 248 · ForgeInfoPopup 310 · MountSheet 255 · PetPanel 528 …) · `.dg-banner` **3.45/1** ↔ `DungeonSheet` 163~164 + 카탈로그 `dg_banner_aspect 3.45` · `.sr-canopy` **2.5·3·3.9** ↔ `SummonFxUi.json` 의 세 키 · `.sr-floor` **2.6·2.5** ↔ `SkillSummonResult` 346 `fw / (one ? 2.6f : 2.5f)`. 기본 선언 `3.1` 둘은 **정본에서도 안 쓰인다**(두 덮어쓰기가 늘 하나는 맞는다).
+- **남긴 것(등재 아님 · 임자 몫)**: `.sr-floor` 의 두 비율이 **표가 아니라 코드에 박혀 있다** — 같은 파일의 `.sr-canopy` 는 표로 갔으니 **한 파일 안에서 갈래가 둘**이다. 그 파일은 **T334 산 lock** 이라 안 건드렸고, 임자가 마무리할 때 같이 옮기면 된다.
+- **판정**: 새 작업 **0**. 21회차(`font-weight`)에 이어 **두 축 연속 «결함 0»** 이다 — 남은 큰 축은 `pointer-events` 74 · `cursor` 51 · `white-space` 41 · `background-position` 22 · `background-size` 15 로 적어 뒀다.
+- **게이트**: `tools/gate.sh` **rc 0**(막는 자 전부) · 코드 0줄(문서·대조만).
+
 ### T358 ✂ 접음 — 결함이 아니었다: 위 띠는 카드의 그림이 아니라 **뒤 화면이 딤을 통해 비친 것** (2026-09-15 01:2x~01:4x · 워커 J · sess-0118-15638 · lock 반납)
 
 - **회차 첫 일(§0-6)**: 런 554 의 빨강은 `ChatRadiusTests` 하나이고 임자 T345 의 lock 이 살아 있다(37분). `BootGuardTests` `RED` 는 자가 «일부러 낸 빨강» 으로 걸렀다.
