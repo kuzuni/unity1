@@ -56,6 +56,9 @@ TABLE = {
         # `.league-score` 는 아이콘+수 두 조각(`UiKit.RowTexts`)이라 «이름 → 변수» 꼬리로는 못 좇는다 — 그 행을 세우는 메서드로 센다
         'Ui/LeagueSheet.cs@Row',
     ],
+    # T333 8회차 — 장비 칸 이름표 두 자리(빈 칸 라벨): 알 칸은 클래스 셋이라 8030(둘)을 특이도로 이긴다 — 표 키가 둘로 갈린다
+    '.equip-cell .slot-name': ['Ui/PlayerInfoPopup.cs@EquipCell', 'Ui/ForgeSheet.cs@EquipCell'],
+    '.equip-cell.egg-cell .slot-name': ['Ui/PlayerInfoPopup.cs@MountWide', 'Ui/ForgeSheet.cs@MountCell'],
     # T333 5회차 — 산 lock 밖 세 자리(T335 반납으로 열린 던전 클리어 제목 · 보스 워닝 마퀴·부제): 여러 겹 중 «읽히게 만드는 한 겹»(league_row 갈래)
     '.dgclear-title': ['Ui/DungeonClearPopup.cs#title'],
     '.bw-track span': ['Ui/BattleOverlay.cs#text'],

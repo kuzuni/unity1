@@ -222,6 +222,7 @@ namespace Forge.Game.Ui
                 UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, size * 0.06f), k, k);
                 TextMeshProUGUI nm = UiKit.Text(rt, "slot-name", TextKind.Sub, d.SlotKr.Get(slot, slot), "pp_muted");
                 nm.fontStyle = FontStyles.Bold;
+                UiKit.TextShadow(nm, "slot_name");            // T333 8회차 — 정본 8030 `.equip-cell .slot-name` 두 겹 중 첫째(아래 1px 드롭 · 표 slot_name)
                 UiKit.Anchor(nm.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, size * 0.05f), size, nm.fontSize * 1.2f);
                 return rt;
             }
@@ -254,6 +255,8 @@ namespace Forge.Game.Ui
             TextMeshProUGUI nm = UiKit.Text(rt, "slot-name", TextKind.Sub, "탈것", "stage_ink");
             nm.fontStyle = FontStyles.Bold;
             PopupKit.Ring(nm, "pp_line", 0.2f);
+            // T333 8회차 — 정본 874 `.equip-cell.egg-cell .slot-name`(표 slot_name_egg · 위 EquipCell 과 다른 키인 까닭은 특이도다)
+            UiKit.TextShadow(nm, "slot_name_egg");
             UiKit.Anchor(nm.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, hgt * 0.06f), w, nm.fontSize * 1.2f);
             Button b = rt.gameObject.AddComponent<Button>();
             b.targetGraphic = f;

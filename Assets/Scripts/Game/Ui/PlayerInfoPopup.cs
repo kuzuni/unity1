@@ -290,6 +290,7 @@ namespace Forge.Game.Ui
                 string kr = d != null && d.SlotKr != null ? d.SlotKr.Get(slot, slot) : slot;
                 TextMeshProUGUI nm = UiKit.Text(rt, "slot-name", TextKind.Sub, kr, "pp_muted");
                 nm.fontStyle = FontStyles.Bold;
+                UiKit.TextShadow(nm, "slot_name");            // T333 8회차 — 정본 8030 `.equip-cell .slot-name` 두 겹 중 첫째(아래 1px 드롭 · 표 slot_name)
                 UiKit.Anchor(nm.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, size * PlayerInfoStyle.L("empty_name_y_f")), size, nm.fontSize * 1.2f);
                 return rt;
             }
@@ -345,6 +346,8 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI nm = UiKit.Text(rt, "slot-name", TextKind.Sub, PlayerInfoStyle.T("mount_slot"), "stage_ink");
                 nm.fontStyle = FontStyles.Bold;
                 PopupKit.Ring(nm, "pp_line", 0.2f);
+                // T333 8회차 — 알 칸은 정본 874 `.equip-cell.egg-cell .slot-name`(클래스 셋)이 8030(둘)을 특이도로 이긴다: 딱딱한 아래 1px(표 slot_name_egg) · 링 위에 겹친다
+                UiKit.TextShadow(nm, "slot_name_egg");
                 UiKit.Anchor(nm.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, hgt * PlayerInfoStyle.L("mount_name_y_f")), w, nm.fontSize * 1.2f);
             }
             Button b = rt.gameObject.AddComponent<Button>();

@@ -250,5 +250,34 @@ namespace Forge.Tests.PlayMode
             Assert.Less(sub.fontMaterial.GetFloat("_UnderlayOffsetY"), 0f, "부제: 아래로(CSS 0 2px)");
             yield return null;
         }
+
+        /// <summary>T333 8회차 — 빈 장비 칸의 이름표: 정본 8030 `.equip-cell .slot-name` ↔ 874 `.equip-cell.egg-cell .slot-name`.
+        /// 알 칸(탈것)은 클래스 셋이라 8030(둘)을 **특이도로** 이겨 딱딱한 한 겹(흐림 0)을 받는다 — 두 자리가 같은 키를 쓰면 그 갈림이 사라진다.</summary>
+        [UnityTest]
+        public IEnumerator 빈_장비_칸_이름표는_드롭을_받고_알_칸은_딱딱한_한_겹을_받는다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            PlayerInfoPopup.Open(h);
+            yield return null;
+            yield return null;
+            Popup p = PopupLayer.Instance.Find(PlayerInfoPopup.Name);
+            Assert.IsNotNull(p, "플레이어 정보 팝업이 안 열렸다");
+
+            int plain = 0, egg = 0;
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name != "slot-name" || t.transform.parent == null) continue;
+                bool isEgg = t.transform.parent.name == "egg-cell";
+                AssertShadow(t, isEgg ? "slot_name_egg" : "slot_name", (isEgg ? "알 칸" : "빈 장비 칸") + " 이름표");
+                Assert.Less(t.fontMaterial.GetFloat("_UnderlayOffsetY"), 0f, "정본 둘 다 아래로 1px");
+                if (isEgg) { egg++; Assert.AreEqual(0f, t.fontMaterial.GetFloat("_UnderlaySoftness"), 1e-4f, "알 칸은 흐림 0(정본 874 `0 1px 0`)"); }
+                else { plain++; Assert.Greater(t.fontMaterial.GetFloat("_UnderlaySoftness"), 0f, "빈 칸은 흐림 2px(정본 8030 `0 1px 2px`)"); }
+            }
+            Assert.Greater(plain, 0, "빈 장비 칸 이름표를 못 찾았다(첫 세이브는 칸이 비어 있다)");
+            Assert.AreEqual(1, egg, "탈것 칸은 하나다");
+            PlayerInfoPopup.Close(h);
+            yield return null;
+        }
     }
 }
