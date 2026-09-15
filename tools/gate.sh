@@ -38,7 +38,7 @@ block|-|Resources 표가 전부 읽히는가 + .meta 짝 (T182)|python3 tools/ch
 block|-|문서가 통째로 깨졌는가 (T47)|python3 tools/check_docs_intact.py
 report|-|결정 번호 겹침 (T42)|python3 tools/check_decisions.py
 report|-|PROGRESS 표 행 어긋남 (T70)|python3 tools/check_task_rows.py
-report|-|ROUTINE §2 제목 ↔ PROGRESS 상태 · 번호 중복 (T29)|python3 tools/task_state.py --check
+block|-|ROUTINE §2 제목 ↔ PROGRESS 상태 · 번호 중복 (T29 · ⛔ 선점 덫은 rc 1 이라 막는다 · ⚠ 참고는 rc 0 · T403)|python3 tools/task_state.py --check
 report|-|산 lock 이 «범위» 밖 파일을 쥐고 있는가 (T71)|python3 tools/check_claim_scope.py
 report|-|§7 완결 대조표 ↔ PROGRESS 상태 (T49)|python3 tools/check_final_table.py
 report|-|내 lock 뒤에 선 작업 (T127 · rc 늘 0)|python3 tools/check_lock_queue.py

@@ -2599,6 +2599,7 @@
 - 범위: `tools/gate.sh`(한 줄) · `tools/task_state.py`(`--self-test` 한 칸) · `docs/ROUTINE.md`(§2 이 절 · §3 그 줄의 `block` 표시 · §7 한 칸) · `docs/PROGRESS.md`. **`.github/workflows/ci.yml` 은 ⓑ 를 하기로 정한 회차에만 연다.**
 - 판정: ⓐ 지금 main 에서 `bash tools/gate.sh` 가 **rc 1** 로 끝나고 마지막 줄이 «막는 자 전부 rc 0» 이 **아니게** 된다(T398 표시가 붙기 전까지) ⓑ T398 제목에 ✅ 를 붙이면 다시 rc 0 ⓒ 고장 주입: 아무 닫힌 작업의 §2 표시를 지우면 게이트가 **막는다** ⓓ `--self-test` 새 칸 통과.
 - ⚠ **이 절이 고치는 것은 «자» 가 아니라 «자를 어디에 꽂았는가» 다** — T175(`check_richtext` 가 §3 에만 있고 CI 밖) · T370(다 만들어 놓고 §3·CI 밖에 선 자 둘) · T184(«말로 있는 규칙은 샌다») 와 같은 자리다.
+- 🔄 **1회차 2026-09-15 23:1x 워커 A(sess-2005-27410)**: ⓐ `tools/gate.sh` 41행 `report` → **`block`**(설명에 «⛔ 선점 덫은 rc 1 이라 막는다 · ⚠ 참고는 rc 0» 을 붙였다 · 자는 안 고쳤다) · ⓒ `task_state --self-test` 에 칸 하나 — 임시 짝 파일로 «제목 ✅ · 행 🔄»(⚠ 만) 을 `cmd_check` 에 넣으면 **rc 0**, «제목 표시 없음 · 행 ✅»(⛔) 을 넣으면 **rc 1 이고 출력에 «선점 덫» 이 선다** 를 박았다 · **판정 ⓐ 는 그대로 못 봤다** — 등재 뒤 T398 제목에 ✅ 가 이미 붙어(2574행) main 은 조용하다 · 대신 **ⓒ 고장 주입**: `### T1 ✅` 제목의 ✅ 를 지우니 `--check` rc 1 · 그 한 줄만 넣은 표(`GATE_TABLE_FILE`)로 `gate.sh` 가 **rc 1 «막는 자 1 가 0이 아니다»** · 되돌리니 rc 0 — 곧 막는다 · ⓓ `--self-test` 통과 · `gate.sh --check-ci` 33 전부 CI 안 · `gate.sh --self-test` 27/27 · 작업 트리 `bash tools/gate.sh` 막는 자 전부 rc 0(유니티 빨강 하나는 T354 LineHeightTests · 남의 자) · **ⓑ `ci.yml` 74~76행은 등재대로 한 회차 지켜본 뒤** — CI 판정 뒤 lock 반납·2회차는 ⓑ 판단 한 줄.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
@@ -2612,7 +2613,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   - `tools/gate.sh --list` 자 이름만 (CI 가 읽을 자리)
   - `tools/gate.sh --check-ci` 이 목록 ↔ `.github/workflows/ci.yml` 대조
   - `tools/gate.sh --self-test` 자기 검사 27칸 (Core 에 컴파일 오류 한 줄을 실제로 넣어 본다)
-- `block` 은 rc 를 센다 · `report` 는 알리기만 한다(`ci.yml` 의 `continue-on-error` 와 같은 자리 · T127 이 rc 0 으로 고정한 `check_lock_queue` 포함).
+- `block` 은 rc 를 센다 · `report` 는 알리기만 한다(`ci.yml` 의 `continue-on-error` 와 같은 자리 · T127 이 rc 0 으로 고정한 `check_lock_queue` 포함). **`task_state --check` 는 T403 이 `block` 으로 올렸다** — ⛔ 선점 덫(PROGRESS 닫힘 ↔ §2 제목 표시 없음)이면 rc 1 이라 커밋이 막히고, ⚠ 참고만이면 rc 0 이다.
 - **준비물이 없으면 `SKIP` 으로 찍고 빨강으로 안 센다** — 그러면 꼬리에 «건너뛴 자 N» 이 붙는다. 그 사실을 **완료 기록에 적고**, 그때는 CI 해당 잡이 초록인 것을 본 뒤 lock 을 반납한다.
   - `dotnet` 이 없는 컨테이너(클라우드 세션은 대개 없다)에서는 먼저 `apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y dotnet-sdk-8.0` 을 시도한다(약 2분 · 결정 10 · PPA 403 경고는 무시).
   - 정본 대조 자들은 `.wwwww-src` 가 있어야 돈다(§0-3 의 `git clone --depth 1 https://github.com/kuzuni/wwwww .wwwww-src`).
