@@ -43,6 +43,7 @@ namespace Forge.Game.Ui
             Image sword = PopupKit.IconOr(card, "pass-sword", "passsword");
             UiKit.Anchor(sword.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
                 new Vector2(0f, -StaticIconsUi.Rem("pass_sword_top_rem")), StaticIconsUi.Rem("pass_sword_w_rem"), StaticIconsUi.Rem("pass_sword_h_rem"));
+            DropShadow.Apply(sword, "pass_sword");   // T332 — 정본 2698 `drop-shadow(.14rem .18rem .16rem rgba(0,0,0,.45))` · 자리를 잡은 **뒤**에 부른다
             float inner = cardW - PopupKit.Line3 * 2f;
             float padX = rem * 1.1f;
 

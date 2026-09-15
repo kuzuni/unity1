@@ -1,0 +1,8 @@
+{
+  "_": "ROUTINE T332 — 정본 `filter: drop-shadow(dx dy blur color)` 중 **흐림이 있는** 자리의 수치표. 흐림이 0 인 자리(별 둘)는 `TextShadowUi.json` 이, 3D 썸네일 접지 그림자는 `ItemFacesUi.json` 의 gs_* 가 쥔다 — 기구가 달라 표가 갈린다(글자=TMP 언더레이 · 그림 오프셋=UnityEngine.UI.Shadow · 실루엣 흐림=여기). 길이는 전부 **정본 CSS px**(rem 은 16 을 곱해 적는다) · 캔버스 환산은 KeylineUi.CssPx(결정 222).",
+  "shadows": {
+    "pass_sword": { "dx_px": 2.24, "dy_px": 2.88, "blur_px": 2.56, "color": "#000000", "alpha": 0.45,
+      "_": "style.css 2698 `.pass-sword { … filter: drop-shadow(.14rem .18rem .16rem rgba(0,0,0,.45)) }` — 진행 패스 카드 위에 꽂힌 검. rem 16 이라 .14rem = 2.24 · .18rem = 2.88 · .16rem = 2.56 CSS px. **가로 오프셋이 있는 유일한 자리**다(나머지는 전부 dx 0)." }
+  },
+  "_남은_자리": "T332 9회차가 센 일곱 중 여섯은 아직 안 적었다 — 자리 파일이 남의 lock 이라 값만 미리 적어 두면 «표에 있는데 아무도 안 쓴다» 가 된다. 여는 회차가 그때 적는다: .anvil-btn(985 · 0 .18rem .12rem rgba(0,0,0,.35)) · .dg-rw .dg-rw-ico(1997 · 0 .10em .16em rgba(0,0,0,.55) · em 이라 글자 크기에 걸린다) · .sr-ico(6521 · 0 3px 5px rgba(0,0,0,.55)) · .pet-tile.egg .tile-face(4307) · .hatch-cell .hatch-egg(4518) · .dgd-reward-pill .ico(5335 · 오프셋 0 짜리 «테» 꼴)."
+}
