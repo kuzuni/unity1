@@ -56,6 +56,14 @@ TABLE = {
     '.mat-chip': ['Ui/MountUpgradePopup.cs$mtup_chip_r_rem@PetSkillUi.json'],
     # ⓒ-c 4회차: 클론엔 배지 면이 없었다 → TechPanel.Node 가 연구 중·완료 노드 아래에 알약(pp_ink 위 pp_green 글자 · 표 tech_node_time_r_rem .6)을 세운다
     '.tech-tree-label .tech-tree-node-time': ['Ui/TechPanel.cs$tech_node_time_r_rem'],
+    # T345 7회차 — 기술 트리 아홉 자리. 정본 50% 둘은 «원» 증거(@메서드) · 뒤로 버튼은 정본이 공용 규칙을 덮으므로 표 키를 새로 냈다.
+    '.tech-branch-icon::before': ['Ui/TechPanel.cs@BranchCard'],
+    '.tech-tree-node': ['Ui/TechPanel.cs@Node'],
+    '.panel .btn.tech-tree-back': ['Ui/TechPanel.cs$tech_back_r_rem'],
+    # ⚠ 아래 셋은 **값이 이미 정본과 같은데 키 이름이 규약(`_r_rem`) 밖**이라 여기 못 건다 — 이름을 바꿀 표가 남의 lock 이다(T345 7회차 · 기록 참조):
+    #   `.tech-branch-card` 2089 .8 ↔ catalog `tb_card_radius_rem` 0.8 · `.tech-tier-tag` 2162 .35 ↔ `tt_tag_radius_rem` 0.35 ·
+    #   `.tech-prog` 4608 .5 ↔ `tech_prog_radius_rem` 0.5. catalog.json(T365 산 lock)에서 이름만 `…_r_rem` 으로 바꾸면 세 자리가 한꺼번에 초록이 된다.
+    #   값을 RadiusUi.json 에 **복사**하지 않는다 — 같은 반지름을 두 표가 쥐면 다음 사람이 어느 쪽을 고칠지 모른다(결정 기록).
     # 죽은 CSS(정본 ui.js·index.html 에 자취 0 · 20회차 ⓡ)
     '.stat-grid': '—죽은 CSS(정본 렌더 줄 0)',
     '.hatch-slot': '—죽은 CSS(정본 렌더 줄 0)',
@@ -70,7 +78,8 @@ KNOWN = {
 }
 
 RADIUS_DECL = re.compile(r'(?<![\w-])border-radius\s*:\s*([^;}]+)')
-EVIDENCE = re.compile(r'\bCircle\s*\(|\bRadiusUi\s*\.\s*(?:Px|Rounded)\s*\(|"[a-z][a-z0-9_]*_r_(?:rem|w)"')
+# `BorderedCircle(`(테 원 + 면 원 · DungeonPopups)도 원이다 — T345 7회차: 기술 트리 분기 원판·노드가 그 길로 선다.
+EVIDENCE = re.compile(r'\b(?:Bordered)?Circle\s*\(|\bRadiusUi\s*\.\s*(?:Px|Rounded)\s*\(|"[a-z][a-z0-9_]*_r_(?:rem|w)"')
 REM = re.compile(r'^(-?\d*\.?\d+)rem$')
 APPW = re.compile(r'^calc\(\s*var\(\s*--app-w\s*\)\s*\*\s*(-?\d*\.?\d+)\s*\)$')
 PX = re.compile(r'^(-?\d*\.?\d+)px$')

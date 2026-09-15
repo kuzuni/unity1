@@ -130,12 +130,14 @@ namespace Forge.Game.Ui
         public static RectTransform Root(Button b) { return b.transform.parent as RectTransform; }
 
         /// <summary>원작 .league-back-btn.sheet-back-btn — 시트 왼쪽 아래 빨간 ◀ (2.1×1.75rem · 아래 그림자 .36rem).</summary>
-        public static Button BackButton(RectTransform parent, Action onClick)
+        /// <param name="radiusKey">모서리 반지름을 덮는 표(<see cref="RadiusUi"/>) 키 — 정본이 그 화면에만 따로 준 값이 있을 때만 준다
+        /// (T345 7회차: 정본 2255 `.panel .btn.tech-tree-back` .6rem 이 공용 뒤로 버튼을 덮는다). null 이면 종전대로 catalog `back_radius_rem`.</param>
+        public static Button BackButton(RectTransform parent, Action onClick, string radiusKey = null)
         {
             float w = RemL("back_w_rem"), h = RemL("back_h_rem");
             RectTransform rt = UiKit.Box(parent, "back-btn");
             UiKit.Anchor(rt, Vector2.zero, Vector2.zero, new Vector2(RemL("back_left_rem"), RemL("back_bottom_rem")), w, h);
-            float r = RemL("back_radius_rem");
+            float r = radiusKey != null ? RadiusUi.Px(radiusKey) : RemL("back_radius_rem");
             RectTransform face = Bordered(rt, "bg", "pp_red", r, Line3);
             BottomShade(face, "pp_red_dk", RemL("back_shadow_rem"), Mathf.Max(0f, r - Line3));
             Image ico = UiKit.Icon(rt, "ico", "tri_left");

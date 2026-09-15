@@ -169,7 +169,7 @@ namespace Forge.Game.Ui
                 RectTransform card = BranchCard(b, cw, chh);
                 UiKit.Place(card, mx + (i % 2) * (cw + gx), y + (i / 2) * (chh + gy), cw, chh);
             }
-            DungeonPopups.BackButton(body, () => UiRoot.Instance.TabBar.Switch(null));
+            DungeonPopups.BackButton(body, () => UiRoot.Instance.TabBar.Switch(null), "tech_back_r_rem");   // T345 7회차 — 정본 2255 `.panel .btn.tech-tree-back` .6rem(공용 .45 를 덮는다)
         }
 
         RectTransform BranchCard(TechBranch b, float cw, float chh)
@@ -334,7 +334,7 @@ namespace Forge.Game.Ui
                 }
             }
 
-            DungeonPopups.BackButton(body, ShowOverview);
+            DungeonPopups.BackButton(body, ShowOverview, "tech_back_r_rem");   // T345 7회차 — 같은 정본 규칙(가지 화면의 뒤로 버튼도 .tech-tree-back 이다)
         }
 
         void VLine(RectTransform parent, string colorKey, float x, float y1, float y2, float w)

@@ -8261,6 +8261,19 @@
 - **등재**: `T361` (⬜ 대기) — 고치는 길은 «공장의 기본을 뒤집고 정본이 못 박은 40 자리만 표로 `NoWrap`». ⚠ `UiKit.cs` 는 지금 T331·T333·T355 가 물고 있어 **공장 뒤집기는 그 파일이 빌 때** 잡아야 한다(표·자는 먼저 세워도 된다).
 - **결정 600 으로 일반화했다**: 굵기(T352)에 이어 **두 번째로 같은 꼴**이다 — 새 축을 훑을 때는 선언을 한 줄씩 대조하기 전에 «정본의 기본값» 과 «클론 공장의 기본» 을 먼저 견준다.
 - **게이트**: 문서만 · `tools/gate.sh` 막는 자 전부 rc 0. **lock 반납**(다음 축은 누구나 — 후보: `gap` 181 · `text-align` 89 · `vertical-align` 26).
+### T345 7회차 — 기술 트리 둥근 모서리 아홉 자리: 셋을 초록으로, 하나는 정본이 공용을 덮는 값이었다 (2026-09-15 07:0x~07:4x · 워커 H · sess-0357-11617 · lock 유지)
+
+- **센 것**: 정본 `style.css` 의 기술 트리 `border-radius` **아홉 자리**(2089 `.tech-branch-card` .8 · 2104 `.tech-branch-icon::before` 50% · 2162 `.tech-tier-tag` .35 · 2182 `.tech-tree-node` 50% · 2255 `.panel .btn.tech-tree-back` .6 · 3129 `.tech-node` .6 · 3134 `.tech-node-bar` .2 · 4608 `.tech-prog` .5 · 4612 `.tech-btns .btn` .6).
+- **초록 셋**:
+  - `.tech-branch-icon::before`·`.tech-tree-node`(둘 다 **50% = 원**) → `Ui/TechPanel.cs@BranchCard`·`@Node`. 자의 «원» 증거에 **`BorderedCircle(` 를 더했다** — 테 원 + 면 원을 한 번에 세우는 공용 함수인데 `\bCircle\(` 가 단어 경계 때문에 못 봤다(`Node` 는 곁의 표 키 하나 덕에 우연히 통과하고 있었다 — 그 우연도 이제 필요 없다).
+  - `.panel .btn.tech-tree-back` → **값이 실제로 달랐다**: 정본 .6rem 인데 클론은 공용 뒤로 버튼(catalog `back_radius_rem` **.45**)을 그대로 썼다. 정본은 이 선택자로 공용 규칙을 **덮는다**. 고침은 «깔때기에 인자 하나» — `DungeonPopups.BackButton(parent, onClick, radiusKey = null)` 에 표 키 인자를 달고 기술 트리의 두 자리만 `tech_back_r_rem`(표 `RadiusUi.json` .6)을 준다. **던전 시트 등 다른 부르는 쪽은 한 글자도 안 바뀐다.**
+- **못 건 셋과 그 까닭(다음 사람이 5분이면 끝낸다)**: `.tech-branch-card`(정본 .8 ↔ catalog `tb_card_radius_rem` **0.8**) · `.tech-tier-tag`(.35 ↔ `tt_tag_radius_rem` **0.35**) · `.tech-prog`(.5 ↔ `tech_prog_radius_rem` **0.5**) — **값은 이미 정본과 같다**. 자에 못 건 것은 오직 **키 이름이 규약(`…_r_rem`) 밖**이기 때문이고, 이름을 바꿀 표 `Assets/Forge/catalog.json` 이 **T365 산 lock** 이다. catalog 가 열리면 이름만 바꿔(부르는 쪽 세 줄 포함) 세 자리가 한꺼번에 초록이 된다. 자 TABLE 그 자리에 주석으로 박아 뒀다.
+- **판단 하나(기록)**: 그 셋의 값을 내 표(`RadiusUi.json`)로 **복사하지 않았다**. 복사하면 같은 반지름을 표 둘이 쥐게 되고 다음 사람이 어느 쪽을 고쳐야 할지 모른다 — 규약 위반은 «값» 이 아니라 «이름» 이므로 이름을 고칠 수 있는 사람이 고치는 것이 맞다.
+- **남은 셋**(`.tech-node` 3129 · `.tech-node-bar` 3134 · `.tech-btns .btn` 4612): 정본 주석이 «진행 바 카드(마운트 소환 레벨 등에도 공용)» 라 적은 묶음이라 **클론 자리가 어디인지부터** 가려야 한다(기술 노드 팝업 `TechPopups` 인지 탈것 쪽인지). 이 회차 범위 밖으로 두고 미정에 남긴다.
+- **잰 것**: `check_border_radius` **자리 초록 9 → 12 · 미정 205 → 202 · 문제 0** · `--self-test` 24칸 · 고장 주입(두 부르는 쪽의 키를 함께 지움) **rc 1** → 되돌리면 **rc 0**. ⚠ 한 자리만 지우면 안 잡힌다 — 자는 «파일 안 어딘가에서 그 키를 부르는가» 를 보기 때문이다(자의 granularity 이고, 그것이 곧 «한 파일 = 한 자리» 규약이다).
+- **PlayMode 새 파일**(`TechRadiusTests`): ⓐ 표값이 정본 .6rem 이고 **공용값(.45)과 다르다** ⓑ 기술 트리를 열어 뒤로 버튼 `bg` 의 9-슬라이스 배율이 표값과 같고 공용값과 다르다.
+- **판정 조건**: 다음 런의 그 두 칸 초록 + `screen_tech-branch.png` 뒤로 버튼 모서리 눈 확인.
+
 ### T333 8회차 판정 ✅ — 런 609 에서 장비 칸 이름표 칸이 PASS · lock 반납 (2026-09-15 07:0x · 워커 H · sess-0357-11617)
 
 - **자**: 런 **609**(`f6b07d3`) — `TextShadowTests.빈_장비_칸_이름표는_드롭을_받고_알_칸은_딱딱한_한_겹을_받는다` **PASS**(EditMode 729/729 · PlayMode 302 중 빨강 1 은 `PressFxSitesTests`(T366 산 lock)라 이 절과 무관하다). 자리 초록 **20** · 미정 26.
