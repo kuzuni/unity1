@@ -207,6 +207,22 @@
       { "at": 68.0,  "tx_pct": 0.22,  "ty_pct": -0.22, "scale": 1.0 },
       { "at": 100.0, "tx_pct": 0.0,   "ty_pct": 0.0,   "scale": 1.0 }
     ],
+    "beam_ms": 520.0,
+    "beam_ease": [0.1, 0.8, 0.3, 1.0],
+    "srbeam": [
+      { "at": 0.0,   "alpha": 0.0,  "scale": 0.16, "rot_deg": -9.0 },
+      { "at": 24.0,  "alpha": 0.95, "scale": 1.05, "rot_deg": 0.0 },
+      { "at": 100.0, "alpha": 0.0,  "scale": 2.1,  "rot_deg": 9.0 }
+    ],
+    "beam_line0": 0.47,
+    "beam_line1": 0.50,
+    "beam_line2": 0.53,
+    "beam_mask0": 0.0,
+    "beam_mask1": 0.42,
+    "beam_mask1_a": 0.5,
+    "beam_mask2": 0.76,
+    "hilite_luma": [222.0, 246.0, 248.0, 250.0, 252.0, 254.0],
+    "_beam": "정본 `.sr-cell.heroic .sr-beam`(style.css 6740~6752) — 십자 광창. 가로는 흰 선, 세로는 `--rc-lite`(등급 하이라이트) 선이고 둘 다 47%→50%→53% 로 좁다. 거기에 `radial-gradient(closest-side, 검정 0%, rgba(0,0,0,.5) 42%, 투명 76%)` 마스크를 씌워 가운데만 남긴다. `srbeam .52s`: 알파 0 → .95(24%) → 0 · 배율 .16 → 1.05 → 2.1 · 회전 −9° → 0° → 9°. `--rc-lite` 는 `srHilite(rc, tier)`(ui.js 194~210) — **등급이 오를수록 하이라이트가 밝아지게 목표 휘도로 역산**한다(`hilite_luma` 계단 · 정본 주석: «색상(hue)은 몸통 40% 스톱이 지킨다»).",
     "heroring_ms": 620.0,
     "heroring_ease": [0.08, 0.72, 0.3, 1.0],
     "heroring_a0": 0.95,

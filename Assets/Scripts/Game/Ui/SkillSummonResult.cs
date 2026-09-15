@@ -91,6 +91,8 @@ namespace Forge.Game.Ui
         /// <summary>T334 9회차 — 주역 충격파 링(정본 `.sr-cell.heroic::after`)과 그 최대 배율(정본 `--ringmax` · 배치마다 다르다).</summary>
         Image heroRing;
         float ringMax = 3.2f;
+        /// <summary>T334 10회차 — 주역 광창(정본 `.sr-beam`) · 클론에 없던 겹이다.</summary>
+        Image heroBeam;
         /// <summary>주역이 착지한 벽시계 시각(물러남·킥이 같이 쓴다).</summary>
         float heroAtWall = -1f;
         RectTransform wrap;
@@ -444,6 +446,22 @@ namespace Forge.Game.Ui
                 Material rm = CraftFxPoly.Screen();
                 if (rm != null) heroRing.material = rm;
                 heroRing.color = new Color(1f, 1f, 1f, 0f);
+                // 광창(정본 `.sr-beam`) — 셀 가운데에 폭 100% 정사각. 링과 달리 셀 **앞**에 뜬다(정본은 `::after` 가 아니라 제 요소다).
+                RectTransform bm = UiKit.Box(hc, "sr-beam");
+                bm.anchorMin = bm.anchorMax = new Vector2(0.5f, 0.5f);
+                bm.pivot = new Vector2(0.5f, 0.5f);
+                bm.sizeDelta = new Vector2(cw, cw);
+                bm.anchoredPosition = Vector2.zero;
+                heroBeam = bm.gameObject.AddComponent<Image>();
+                heroBeam.raycastTarget = false;
+                int tier = RarityIdx(best);
+                double amt = SummonFxStyle.Hero.HiliteAmount(rcr.r * 255.0, rcr.g * 255.0, rcr.b * 255.0, tier);
+                Color lite = Shade(rcr, (float)amt);   // 정본 srHilite — 목표 휘도까지 흰 쪽으로 당긴다
+                heroBeam.sprite = SummonFx.BakeBeam("sr-beam-" + ColorUtility.ToHtmlStringRGB(lite), lite);
+                Material bmat = CraftFxPoly.Screen();
+                if (bmat != null) heroBeam.material = bmat;
+                heroBeam.color = new Color(1f, 1f, 1f, 0f);
+
                 ringMax = heroRow ? SummonFxStyle.H("ringmax_herorow")
                     : (!mid && !dense ? SummonFxStyle.H("ringmax_stage") : SummonFxStyle.H("ringmax_default"));
             }
@@ -741,6 +759,7 @@ namespace Forge.Game.Ui
             AnimateWipe();
             AnimateKick();
             AnimateHeroRing();
+            AnimateBeam();
         }
 
         void TurnOn(Cell c)
@@ -979,6 +998,25 @@ namespace Forge.Game.Ui
             heroRing.color = new Color(1f, 1f, 1f, Mathf.Lerp(a0, 0f, k));
             heroRing.rectTransform.localScale = Vector3.one * Mathf.Lerp(s0, ringMax, k);
         }
+
+
+        /// <summary>
+        /// 주역 광창(정본 `srbeam` .52s) — 알파 0 → .95(24%) → 0 · 배율 .16 → 1.05 → 2.1 · 회전 −9° → 0° → 9°.
+        /// 떠올랐다 **사라진다**(표가 그것을 강제한다) — 안 그러면 결과 화면에 빛기둥이 남는다.
+        /// </summary>
+        void AnimateBeam()
+        {
+            if (heroBeam == null || heroAtWall < 0f) return;
+            SummonHeroSpec sp = SummonFxStyle.Hero;
+            double a, sc, rot;
+            sp.BeamAt((Time.unscaledTime - heroAtWall) * 1000f, out a, out sc, out rot);
+            heroBeam.color = new Color(1f, 1f, 1f, (float)a);
+            heroBeam.rectTransform.localScale = Vector3.one * (float)sc;
+            heroBeam.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -(float)rot);   // CSS 의 +각은 시계 방향
+        }
+
+        /// <summary>주역 광창 — 자가 본다.</summary>
+        public Image HeroBeam { get { return heroBeam; } }
 
         void FireHero()
         {

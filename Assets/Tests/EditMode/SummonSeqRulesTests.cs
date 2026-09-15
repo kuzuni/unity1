@@ -361,6 +361,36 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 광창은_떠올랐다_사라지고_돌면서_커진다()
+        {
+            SummonHeroSpec s = S();
+            double a0, sc0, r0, a1, sc1, r1, a2, sc2, r2;
+            s.BeamAt(0, out a0, out sc0, out r0);
+            s.BeamAt(s.BeamMs * 0.24, out a1, out sc1, out r1);
+            s.BeamAt(s.BeamMs, out a2, out sc2, out r2);
+            Assert.AreEqual(0.0, a0, 1e-9, "안 보이게 시작");
+            Assert.Greater(a1, 0.9, "24% 가 정점");
+            Assert.AreEqual(0.0, a2, 1e-9, "사라진다 — 안 그러면 빛기둥이 남는다");
+            Assert.Less(sc0, sc1); Assert.Less(sc1, sc2, "내내 커진다");
+            Assert.Less(r0, r2, "−9° 에서 9° 로 돈다");
+            Assert.IsTrue(s.Beaming(s.BeamMs - 1));
+            Assert.IsFalse(s.Beaming(s.BeamMs));
+        }
+
+        [Test]
+        public void 하이라이트는_등급이_오를수록_더_희게_당긴다()
+        {
+            // 정본 srHilite: 색을 등급마다 새로 고르지 않고 «목표 휘도까지 당기는 양» 만 등급으로 가른다.
+            SummonHeroSpec s = S();
+            // 궁극의(#ff1c1c) 로 잰다 — 낮은 등급일수록 덜 당긴다.
+            double lo = s.HiliteAmount(255, 28, 28, 0), hi = s.HiliteAmount(255, 28, 28, 5);
+            Assert.Greater(hi, lo, "등급이 오를수록 더 희게 당긴다");
+            Assert.GreaterOrEqual(lo, 0.0); Assert.LessOrEqual(hi, 1.0);
+            // 이미 아주 밝은 색은 더 당길 것이 거의 없다.
+            Assert.Less(s.HiliteAmount(250, 250, 250, 0), s.HiliteAmount(60, 60, 60, 0));
+        }
+
+        [Test]
         public void 정착_배율이_1_이_아닌_표는_거부한다()
         {
             char q = '"';

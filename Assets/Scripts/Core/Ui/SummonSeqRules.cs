@@ -269,10 +269,12 @@ namespace Forge.Core.Ui
     public sealed class SummonHeroSpec
     {
         /// <summary>한 번 흔드는 길이(ms · 정본 .44s) · 조연이 물러났다 돌아오는 길이(ms · 정본 .68s).</summary>
-        public double ShakeMs, RecedeMs, HeroPopMs;
+        public double ShakeMs, RecedeMs, HeroPopMs, BeamMs;
         /// <summary>주역 등장의 0% 치우침 기본값(rem · 슬롯→광원 벡터가 없을 때 아래로).</summary>
         public double HeroPopDy0Rem;
-        public RewardBurstSpec.Track Shake, Recede, HeroPop;
+        public RewardBurstSpec.Track Shake, Recede, HeroPop, Beam;
+        /// <summary>등급별 하이라이트 목표 휘도(정본 `SR_HILITE_LUMA`).</summary>
+        public double[] HiliteLuma;
 
         public static SummonHeroSpec From(JsonObject root)
         {
@@ -360,6 +362,37 @@ namespace Forge.Core.Ui
             if (hl.Num["scale"] != 1) throw new FormatException("SummonFxUi hero: srheropop 의 정착 배율은 1.0 이어야 한다(정본 6729 주석 — 이름판이 옆 셀과 겹친다)");
             if (hl.Num["back_f"] != 0 || hl.Num["ty_rem"] != 0) throw new FormatException("SummonFxUi hero: srheropop 은 제자리에 정착해야 한다");
             s.HeroPop = new RewardBurstSpec.Track { Keys = hkeys };
+
+            // 광창 — 정본 `srbeam`. 십자 광선이 돌며 커지다 사라진다.
+            s.BeamMs = J.Num(J.Require(o, "beam_ms"));
+            if (s.BeamMs <= 0) throw new FormatException("SummonFxUi hero: beam_ms 는 0보다 커야 한다");
+            double[] be = J.NumArr(J.Require(o, "beam_ease"));
+            if (be == null || be.Length != 4) throw new FormatException("SummonFxUi hero: beam_ease 는 cubic-bezier 넷이다");
+            CssEase bease = new CssEase(be[0], be[1], be[2], be[3]);
+            var blist = J.List(J.Require(o, "srbeam"), x => J.Obj(x));
+            if (blist.Count < 2) throw new FormatException("SummonFxUi hero: srbeam 키프레임이 둘 미만이다");
+            var bkeys = new RewardBurstSpec.KeyStop[blist.Count];
+            prev = -1;
+            for (int i = 0; i < blist.Count; i++)
+            {
+                JsonObject k = blist[i];
+                var ks = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(k, "at")), Ease = bease };
+                if (ks.At < prev) throw new FormatException("SummonFxUi hero: srbeam 퍼센트는 오름차순이어야 한다");
+                prev = ks.At;
+                ks.Num["alpha"] = J.Num(J.Require(k, "alpha"));
+                ks.Num["scale"] = J.Num(J.Require(k, "scale"));
+                ks.Num["rot_deg"] = J.Num(J.Require(k, "rot_deg"));
+                bkeys[i] = ks;
+            }
+            // 광창은 **떠올랐다 사라진다** — 양 끝이 0 이 아니면 결과 화면에 빛기둥이 남는다.
+            if (bkeys[0].Num["alpha"] != 0 || bkeys[bkeys.Length - 1].Num["alpha"] != 0)
+                throw new FormatException("SummonFxUi hero: srbeam 은 알파 0 에서 시작해 0 으로 사라져야 한다");
+            s.Beam = new RewardBurstSpec.Track { Keys = bkeys };
+
+            double[] hl2 = J.NumArr(J.Require(o, "hilite_luma"));
+            if (hl2 == null || hl2.Length < 2) throw new FormatException("SummonFxUi hero: hilite_luma 는 등급 계단(둘 이상)이다");
+            for (int i = 1; i < hl2.Length; i++) if (hl2[i] < hl2[i - 1]) throw new FormatException("SummonFxUi hero: hilite_luma 는 등급이 오를수록 밝아져야 한다(정본 «등급이 올라갈수록 하이라이트가 밝아지게»)");
+            s.HiliteLuma = hl2;
             return s;
         }
 
@@ -402,5 +435,31 @@ namespace Forge.Core.Ui
 
         /// <summary>주역이 아직 등장 중인가.</summary>
         public bool HeroPopping(double ms) { return ms >= 0 && ms < HeroPopMs; }
+
+        /// <summary>착지에서 <paramref name="ms"/> 뒤 광창의 불투명도·배율·회전(도).</summary>
+        public void BeamAt(double ms, out double alpha, out double scale, out double rotDeg)
+        {
+            double p = ms <= 0 ? 0 : ms >= BeamMs ? 100 : ms / BeamMs * 100;
+            alpha = Beam.Sample(p, "alpha", null);
+            scale = Beam.Sample(p, "scale", null);
+            rotDeg = Beam.Sample(p, "rot_deg", null);
+        }
+
+        /// <summary>광창이 아직 도는 중인가.</summary>
+        public bool Beaming(double ms) { return ms >= 0 && ms < BeamMs; }
+
+        /// <summary>
+        /// 등급 하이라이트(정본 `srHilite`) — 그 색을 **흰 쪽으로 얼마나 당길지**(0~1).
+        ///
+        /// 정본 주석: «등급이 올라갈수록 하이라이트가 밝아지게 **목표 휘도로 역산**한다 … 색상(hue)은 몸통 40% 스톱이 지킨다».
+        /// 그래서 색을 등급마다 새로 고르지 않고 **원래 색에서 목표 휘도까지 당기는 양**만 등급으로 가른다.
+        /// </summary>
+        public double HiliteAmount(double r255, double g255, double b255, int tier)
+        {
+            double luma = r255 * 0.299 + g255 * 0.587 + b255 * 0.114;
+            double want = HiliteLuma[tier < 0 ? 0 : tier >= HiliteLuma.Length ? HiliteLuma.Length - 1 : tier];
+            double amt = (want - luma) / Math.Max(1, 255 - luma);
+            return amt < 0 ? 0 : amt > 1 ? 1 : amt;
+        }
     }
 }

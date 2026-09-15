@@ -704,6 +704,48 @@ namespace Forge.Game.Ui
         /// <summary>표의 `hero` 절 수치 하나(그 절은 `layout` 밖에 있다).</summary>
         static float HL(string key) { return (float)J.Num(J.Require(J.Obj(SummonFxStyle.Root["hero"]), key)); }
 
+
+        /// <summary>
+        /// 주역 광창(정본 `.sr-cell.heroic .sr-beam` · style.css 6740~6746) — **십자 광선**.
+        /// 가로는 흰 선, 세로는 등급 하이라이트(`--rc-lite`) 선이고 둘 다 47%→50%→53% 로 좁다.
+        /// 거기에 `radial-gradient(closest-side, 검정 0%, rgba(0,0,0,.5) 42%, 투명 76%)` 마스크를 씌워 가운데만 남긴다.
+        /// 두 선은 정본에서 배경 두 겹이 겹치는 것이라 **더해서** 굽는다(가산 혼합은 거는 쪽이 준다).
+        /// </summary>
+        public static Sprite BakeBeam(string name, Color lite)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
+            float l0 = HL("beam_line0"), l1 = HL("beam_line1"), l2 = HL("beam_line2");
+            float m0 = HL("beam_mask0"), m1 = HL("beam_mask1"), m1a = HL("beam_mask1_a"), m2 = HL("beam_mask2");
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            {
+                float fy = (y + 0.5f) / N;
+                for (int x = 0; x < N; x++)
+                {
+                    float fx = (x + 0.5f) / N;
+                    // 가로 선(세로 좌표가 가운데일 때 진하다) · 세로 선(가로 좌표가 가운데일 때)
+                    float hA = Band(fy, l0, l1, l2), vA = Band(fx, l0, l1, l2);
+                    float u = fx * 2f - 1f, v = fy * 2f - 1f;
+                    float r = Mathf.Sqrt(u * u + v * v);
+                    float mask = r <= m0 ? 1f : r < m1 ? Ramp(r, m0, 1f, m1, m1a) : Ramp(r, m1, m1a, m2, 0f);
+                    if (r > m2) mask = 0f;
+                    // 두 선을 더한다(정본은 배경 두 겹 · 겹치는 가운데가 가장 밝다)
+                    float a = Mathf.Clamp01(hA + vA) * mask;
+                    Color c = hA + vA <= 0.0001f ? Color.white : Color.Lerp(lite, Color.white, hA / Mathf.Max(0.0001f, hA + vA));
+                    px[y * N + x] = new Color(c.r, c.g, c.b, a);
+                }
+            }
+            return Finish(name, NewTex(name, N, N), px);
+        }
+
+        /// <summary>좁은 선 하나 — <paramref name="mid"/> 에서 1 이고 양옆 <paramref name="a"/>·<paramref name="b"/> 에서 0.</summary>
+        static float Band(float t, float a, float mid, float b)
+        {
+            if (t <= a || t >= b) return 0f;
+            return t < mid ? Ramp(t, a, 0f, mid, 1f) : Ramp(t, mid, 1f, b, 0f);
+        }
+
         public static Sprite BakeStar(string name, float sz, float box)
         {
             Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
