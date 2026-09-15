@@ -2195,6 +2195,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   → 2회차 코드 들어감(07:3x): 폭 단 대조 + Rounded 짝 판정 + 본문 찾기 수리 · TABLE 58 · 자기 검사 18 · **어긋난 자리 13**(정본 ol2 ↔ 클론 ol1/ol3 — 클론에 ol2 가 거의 없다 · 결정 617) 을 KNOWN 에 파일·lock 과 함께. 3회차: `ProfilePopup.cs` 넷 수리(산 lock 없음) · `line15_px` · 나머지는 각 lock 뒤.
   → 3회차(08:1x): 표 58 → 84 · 미정 103 · 결함 +4(HUD 통화 알약·퀘스트 막대는 **테 자체가 없다**) = 누계 17 · **lock 반납 · 행 ⬜** — 수리 자리 여덟 파일이 전부 산 lock 안이라 «풀리는 파일부터 누구든»(자 KNOWN 줄이 자리·정본 줄·바꿀 키를 댄다 · 결정 622).
 - 🔄 4회차 2026-09-15 09:5x 워커 D(sess-1753-2066 · 재선점): T364 반납으로 `ProfilePopup.cs`·`ChatScreen.cs` 가 산 lock 밖 — 자 KNOWN 의 여섯(프로필 칸·아바타 고르기·설정 행 버튼 = ol2 · 채팅 입력줄 위 테·입력칸·둥근 버튼 = ol2)을 `line_px`/`line3_px` → `line2_px` 로 + PlayMode `BoxBorderSitesTests`. `.profile-tabs` 는 탭 버튼이 `Panel` 을 Line3 만큼 안쪽에 두는 꼴이라 자가 못 읽었을 뿐 맞다 → 표에서 «—» 로. task_state 의 «잡지 마라» 는 내 08:5x 자 수리 커밋(같은 SID) 때문이라 잡았다.
+  → 4회차 코드 들어감(10:2x): 여섯 자리 `line2_px` 로 · `.profile-tabs` 는 맞았다(표 `—`) · 자 초록 69 · KNOWN 15 · PlayMode `BoxBorderSitesTests` 2 · 결함 누계 16 중 남은 10 은 T331·T342·T332 lock 뒤. 판정은 다음 런.
 
 ### T375 — 패스 트랙의 치수 넷이 **코드에 박힌 곱셈**으로 난다: 표에 정본값 `pass_label_w 0.206` 이 있는데 `* 1.3f` 를 곱하고, 높이 셋은 글꼴에서 뽑는다 (UI · T21 뒤 · **T28 64회차 등재**)
 

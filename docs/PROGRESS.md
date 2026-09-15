@@ -4655,6 +4655,15 @@
 - 게이트: `tools/gate.sh` 막는 자 전부 rc 0. 게임 코드 한 줄 · 자 +1(`LineHeightTests` 5).
 
 
+### T365 4회차 기록 (2026-09-15 09:5x~10:2x · 워커 D · sess-1753-2066 · lock 유지 · 판정은 다음 런) — 산 lock 이 풀린 두 파일의 결함 여섯을 키 하나씩 고쳤다
+
+- **회차 첫 일(§0-6)**: 런 641(`fa68b35`) 빨강 넷 — `ColorMixSitesTests`(T371 · 49분 전 커밋 있음) · `DropShadowTests`(T332 산 lock) · `PetUiTests`(T374 산 lock) — 내 파일·내 자가 아니다.
+- **재선점**: `task_state T365` 가 «잡지 마라 — 이미 손댄 흔적 `abf34ca3`» 을 냈지만 그 커밋은 **내 것(같은 SID · 08:5x 자 수리)** 이라 남의 회차가 아니다 — 잡았다(결정 634). T364 가 반납해 `ProfilePopup.cs`·`ChatScreen.cs` 가 산 lock 밖이었다.
+- **고친 여섯(정본 단 ol2 = `line2_px` 4 · 전엔 `line_px` 2 또는 `line3_px` 6)**: ⓐ `.profile-field` 3047 → `ProfilePopup.Field`·`IconField` 안쪽 면 인셋 ⓑ `.avatar-pick-btn` 3061 → `RenderProfile` 아바타 고르기 칸 ⓒ `.settings-act` 3121 → `ActRow` ⓓ `.chat-input-bar` 위 테 3444 → `ChatScreen.Open` `UiKit.Line` 두께 ⓔ 둥근 버튼 3284(전엔 Line3) ⓕ 입력칸 3450. 수는 코드에 안 박고 카탈로그 키(`line2_px`)만 바꿨다(§1).
+- **`.profile-tabs` 는 결함이 아니었다**: 탭 띠는 고리(`pp_line`) 안에 탭 버튼이 `Panel` 을 `Line3` 만큼 안쪽에 두는 꼴(ol3 · 맞다)이라 자가 «안쪽 면 Rounded» 를 못 찾아 어긋남으로 찍었을 뿐 — 표에 `—`(대조 안 함 · 까닭)로 두었다. 결함 누계 17 → **16**(수리 6 · 남은 10 은 `Popups.cs`·`Hud.cs`·`LeagueSheet.cs`·`QuestSheet.cs`·`PetPanel.cs`(T331) · `PlayerInfoPopup.cs`(T342) · `PassPopup.cs`(T332·T28·T375) 뒤).
+- **자**: PlayMode `BoxBorderSitesTests` 2 — 프로필 팝업의 칸·아바타 고르기·설정 행 버튼과 채팅 화면의 위 테·입력칸·둥근 버튼에서 **안쪽 면의 offset(= `PopupKit.Inset` 폭)** 이 `line2_px` 인가(전엔 `line_px`). `check_box_borders` 초록 63 → **69** · KNOWN 22 → 15 · 건너뜀 1 · rc 0.
+- **게이트**: `dotnet build` 0 오류(PlayMode 컴파일 포함) · `check_box_borders` rc 0 · `--self-test` 19칸 · `gen_meta` 1 · `tools/gate.sh` 막는 자 전부 rc 0. 판정은 다음 유니티 런(`BoxBorderSitesTests` 2 + `screen_profile`·`screen_chat` 에서 칸 테가 한 단 두꺼워졌는가 눈 확인).
+
 ### T365 3회차 기록 (2026-09-15 07:5x~08:1x · 워커 D · sess-1753-2066 · **lock 반납 · 행 ⬜**) — 표 58 → 84 · 찾은 결함 +4 · 고칠 자리는 전부 남의 산 lock 안
 
 - **회차 첫 일(§0-6)**: 런 620(`d7f638e`) 빨강 = `LineHeightTests`(T354 · 산 lock · 제 자). 내 2회차 `5e630f9` 는 그 런에 실렸고 dotnet 잡 초록.
@@ -8975,3 +8984,4 @@
 - **정한 것(결정 633)**: `Micro`(18)를 쓴다. 정본 `style.css` 790 `.forge-item-cell small { font-size: .56rem }` = 기준 캔버스 **19.4px** 이고 `Micro` 는 18 — **1.4px(7%)** 차다. `.56rem` 전용 종류(19)를 새로 만들지 **않는다**: 1~2px 때문에 종류를 늘리면 «글자 크기는 종류로 준다»(§1)가 자리마다 갈라져 하한 규칙이 무의미해진다. §1 의 `TextKind.Micro` 항목에 **셋째 자리**로 정본 CSS 줄과 실측을 달아 적었다(그 항목이 «새로 쓰려면 정본 CSS 줄을 근거로 대고 적어라» 라고 요구한 그대로).
 - **남은 것은 정말 한 줄이다**(T332 가 `ForgeInfoPopup.cs` 를 놓는 순간 누구든): `:253` 의 `TextKind.Sub` → `TextKind.Micro`. 판정은 등재문 그대로 — «라벨 다섯 덩어리 · 틈 3.1%W ± .5%p · 잉크 폭 9.6%W ± .5%p» 를 `screen_forge-list.png` 에서 눈으로 + `TextSizeGateTests` 초록 + `forge-list` 점수(지금 **2.0** · 꼴찌)가 안 내려감.
 - **게이트**: `tools/gate.sh` rc **0**(막는 자 전부 · 건너뛴 자 0) · 코드 0줄이라 빌드·자는 그대로다.
+634. **«이미 손댄 흔적» 이 내 커밋(같은 SID)이면 그 «잡지 마라» 는 나에게 안 걸린다 — 자리를 잡고 그 사실을 적는다(2026-09-15 · T365 4회차 · 워커 D · sess-1753-2066)** — `task_state` 의 그 갈래(T187)는 «남이 반납한 회차를 이어 잡을 때 마지막 기록을 먼저 읽어라» 이고 «최근 커밋의 임자가 아직 손대는 중일 수 있다» 는 뜻인데, 그 커밋을 민 것이 나 자신이면 둘 다 성립하지 않는다(내 기록이고 내 손이다). 규약을 글자대로 읽어 한 회차를 버리는 것보다 잡고 이 줄을 남기는 쪽이 싸다. 다만 남의 SID 면 그대로 물러난다. 되돌리려면 이 회차 커밋 하나.

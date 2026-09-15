@@ -53,7 +53,8 @@ namespace Forge.Game.Ui
             bar.anchoredPosition = new Vector2(0f, bottom);
             bar.sizeDelta = new Vector2(0f, inputH);
             UiKit.Panel(bar, "bg", "pp_paper");
-            UiKit.Line(bar, "line", "pp_line", PopupKit.Line, true);
+            float barLine = UiKit.L("line2_px");   // T365 4회차 — 정본 3444 `.chat-input-bar { border-top: var(--ol2) solid #000 }` = ol2(전엔 ol1)
+            UiKit.Line(bar, "line", "pp_line", barLine, true);
             float bw = w * 0.0721f, bh = w * 0.0581f;
             Button back = UiKit.Button(bar, "close", () => Close(h));
             RectTransform brt = back.GetComponent<RectTransform>();
@@ -61,8 +62,9 @@ namespace Forge.Game.Ui
             // T345 — 정본 3270 `.chat-input-bar .btn.round { border-radius: .35rem }`(표 `chat_round_btn_r_rem` · 전엔 높이×.3 = .52rem 이었다)
             float backR = RadiusUi.Px("chat_round_btn_r_rem");
             UiKit.Rounded(brt, "line", "pp_line", backR);
-            Image bface = UiKit.Rounded(brt, "face", "pp_red", Mathf.Max(1f, backR - PopupKit.Line3));
-            PopupKit.Inset(bface.rectTransform, PopupKit.Line3);
+            // T365 4회차 — 정본 3284 `.chat-input-bar .btn.danger.round { border: var(--ol2) … }` = ol2(전엔 Line3 = ol3)
+            Image bface = UiKit.Rounded(brt, "face", "pp_red", Mathf.Max(1f, backR - barLine));
+            PopupKit.Inset(bface.rectTransform, barLine);
             Image tri = PopupKit.Tri(brt, "tri", "stage_ink");
             float tw = UiKit.RefH * 0.0179f;
             UiKit.Anchor(tri.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, tw, tw);
@@ -73,8 +75,9 @@ namespace Forge.Game.Ui
             // T345 — 정본 3449 `.chat-input-bar input { border-radius: .3rem }`(표 `chat_input_r_rem` · 전엔 높이×.3 = .52rem)
             float inputR = RadiusUi.Px("chat_input_r_rem");
             UiKit.Rounded(ibox, "line", "pp_line", inputR);
-            Image iface = UiKit.Rounded(ibox, "face", "pp_panel", Mathf.Max(1f, inputR - PopupKit.Line));
-            PopupKit.Inset(iface.rectTransform, PopupKit.Line);
+            // T365 4회차 — 정본 3450 `.chat-input-bar input { border: var(--ol2) … }` = ol2(전엔 ol1)
+            Image iface = UiKit.Rounded(ibox, "face", "pp_panel", Mathf.Max(1f, inputR - barLine));
+            PopupKit.Inset(iface.rectTransform, barLine);
             iface.raycastTarget = true;
             RectTransform viewport = UiKit.Box(ibox, "viewport");
             PopupKit.Inset(viewport, rem * 0.4f);

@@ -131,8 +131,9 @@ namespace Forge.Game.Ui
                     RectTransform rt = b.GetComponent<RectTransform>();
                     UiKit.Place(rt, pad + (i % cols) * (cell + gap), y + (i / cols) * (cell + gap), cell, cell);
                     UiKit.Rounded(rt, "line", on ? "pp_blue" : "pp_line", rem * 0.4f);
-                    Image face = UiKit.Rounded(rt, "face", on ? "avatar_pick_on" : "avatar_bg", rem * 0.4f - PopupKit.Line);
-                    PopupKit.Inset(face.rectTransform, PopupKit.Line);
+                    float pickLine = UiKit.L("line2_px");   // T365 4회차 — 정본 3061 `.avatar-pick-btn { border: var(--ol2) … }` = ol2(전엔 ol1)
+                    Image face = UiKit.Rounded(rt, "face", on ? "avatar_pick_on" : "avatar_bg", rem * 0.4f - pickLine);
+                    PopupKit.Inset(face.rectTransform, pickLine);
                     RectTransform tile = PopupKit.Avatar(rt, "tile", cell * 0.8f, e, rem * 0.3f);
                     UiKit.Anchor(tile, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, cell * 0.8f, cell * 0.8f);
                 }
@@ -158,8 +159,9 @@ namespace Forge.Game.Ui
             RectTransform f = UiKit.Box(card, name);
             UiKit.Place(f, x, y, w, h);
             UiKit.Rounded(f, "line", "pp_line", PopupKit.Rem * 0.4f);
-            Image face = UiKit.Rounded(f, "face", "pp_panel", PopupKit.Rem * 0.4f - PopupKit.Line);
-            PopupKit.Inset(face.rectTransform, PopupKit.Line);
+            float fieldLine = UiKit.L("line2_px");   // T365 4회차 — 정본 3047 `.profile-field { border: var(--ol2) … }` = ol2(전엔 line_px = ol1)
+            Image face = UiKit.Rounded(f, "face", "pp_panel", PopupKit.Rem * 0.4f - fieldLine);
+            PopupKit.Inset(face.rectTransform, fieldLine);
             float em = PersonIcons.Px("profile_gender_em", PopupKit.FontSize(TextKind.Sub));
             Image ico = UiKit.Icon(f, "ico", iconKey);
             UiKit.Anchor(ico.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(PopupKit.Rem * 0.55f, 0f), em, em);
@@ -170,8 +172,9 @@ namespace Forge.Game.Ui
             RectTransform f = UiKit.Box(card, name);
             UiKit.Place(f, x, y, w, h);
             UiKit.Rounded(f, "line", "pp_line", PopupKit.Rem * 0.4f);
-            Image face = UiKit.Rounded(f, "face", "pp_panel", PopupKit.Rem * 0.4f - PopupKit.Line);
-            PopupKit.Inset(face.rectTransform, PopupKit.Line);
+            float fieldLine = UiKit.L("line2_px");   // T365 4회차 — 정본 3047 `.profile-field { border: var(--ol2) … }` = ol2(전엔 line_px = ol1)
+            Image face = UiKit.Rounded(f, "face", "pp_panel", PopupKit.Rem * 0.4f - fieldLine);
+            PopupKit.Inset(face.rectTransform, fieldLine);
             TextMeshProUGUI t = UiKit.Text(f, "text", TextKind.Sub, text, "pp_ink", TextAlignmentOptions.Left);
             t.fontStyle = FontStyles.Bold;
             t.rectTransform.offsetMin = new Vector2(PopupKit.Rem * 0.55f, 0f);
@@ -335,8 +338,9 @@ namespace Forge.Game.Ui
             RectTransform rt = b.GetComponent<RectTransform>();
             UiKit.Anchor(rt, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-PopupKit.Rem * 1.95f, 0f), bw, bh);
             UiKit.Rounded(rt, "line", "pp_line", PopupKit.Rem * 0.5f);
-            Image face = UiKit.Rounded(rt, "face", "pp_paper", PopupKit.Rem * 0.5f - PopupKit.Line);
-            PopupKit.Inset(face.rectTransform, PopupKit.Line);
+            float actLine = UiKit.L("line2_px");   // T365 4회차 — 정본 3121 `.settings-act { border: var(--ol2) … }` = ol2(전엔 ol1)
+            Image face = UiKit.Rounded(rt, "face", "pp_paper", PopupKit.Rem * 0.5f - actLine);
+            PopupKit.Inset(face.rectTransform, actLine);
             TextMeshProUGUI t = UiKit.Text(rt, "label", TextKind.Sub, act, inkKey);
             t.fontStyle = FontStyles.Bold;
         }
