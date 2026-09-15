@@ -114,6 +114,9 @@ namespace Forge.Game.Ui
             return c;
         }
 
+        /// <summary>그 배치 키가 표에 있는가 — «있으면 쓰고 없으면 기본값» 갈래가 예외 없이 묻는 자리(T401 2회차).</summary>
+        public bool HasLayout(string key) { return key != null && layoutMap.ContainsKey(key); }
+
         /// <summary>배치 비율(앱 폭·높이에 대한 분수 · 또는 기준 px). 키가 없으면 예외.</summary>
         public float Layout(string key)
         {

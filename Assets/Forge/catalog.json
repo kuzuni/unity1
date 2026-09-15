@@ -443,6 +443,8 @@
     { "key": "dg_rw_icon_em",       "value": 1.62, "_": ".dg-rw" },
     { "key": "back_w_rem",          "value": 2.1, "_": ".league-back-btn" },
     { "key": "back_h_rem",          "value": 1.75 },
+    { "key": "tech_back_w_rem",     "value": 2.5, "_": "정본 2255 .panel .btn.tech-tree-back { width: 2.5rem } — 기술 트리 전용 치수. DungeonPopups.BackButton 이 반지름 키(tech_back_r_rem)와 같은 앞자리를 보고 함께 읽는다(T401 2회차)" },
+    { "key": "tech_back_h_rem",     "value": 2.5, "_": "정본 2255 같은 규칙의 height·min-height 2.5rem — 리그 뒤로(2.1×1.75)와 달리 정사각이다" },
     { "key": "back_radius_rem",     "value": 0.45 },
     { "key": "back_left_rem",       "value": 0.7, "_": ".sheet-back-btn left" },
     { "key": "back_bottom_rem",     "value": 0.8, "_": ".modal-card.sheet .sheet-back-btn bottom(탭바 위)" },

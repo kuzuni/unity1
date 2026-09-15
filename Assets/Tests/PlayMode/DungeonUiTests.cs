@@ -249,5 +249,31 @@ namespace Forge.Tests.PlayMode
             TechPopups.Close();
             yield return null;
         }
+
+        /// <summary>
+        /// T401 2회차 — 정본 **2255** `.panel .btn.tech-tree-back { width: 2.5rem; height: 2.5rem }`: 기술 트리 뒤로 버튼은 **정사각**이다.
+        /// 클론은 리그 뒤로 버튼 치수(2.1×1.75rem)를 공용해 가로로 납작했다. 부르는 쪽이 남의 lock 이라 **반지름 키의 앞자리**로 치수 키를 함께 읽게 했으니,
+        /// 이 자는 «그 규칙이 실제로 먹었는가» 를 잰다(다른 화면의 뒤로 버튼은 종전 치수 그대로여야 한다).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 기술_트리_뒤로_버튼은_정본_2_5rem_정사각이다()
+        {
+            yield return Boot();
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
+            TechPanel.OpenTechTree();
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            RectTransform back = null;
+            foreach (RectTransform rt in TechPanel.Instance.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "back-btn") { back = rt; break; }
+            Assert.IsNotNull(back, "기술 트리 뒤로 버튼(back-btn)");
+            float want = DungeonPopups.RemL("tech_back_w_rem");
+            Assert.AreEqual(2.5, UiKit.L("tech_back_w_rem"), 1e-6, "정본 2255 width 2.5rem");
+            Assert.AreEqual(2.5, UiKit.L("tech_back_h_rem"), 1e-6, "정본 2255 height·min-height 2.5rem");
+            Assert.AreEqual(want, back.rect.width, 0.6f, "가로 = tech_back_w_rem × rem");
+            Assert.AreEqual(want, back.rect.height, 0.6f, "세로도 같다 — 정사각(전엔 2.1×1.75 로 납작했다)");
+            Debug.Log("[T401] 기술 뒤로 버튼 " + back.rect.width.ToString("0.0") + "×" + back.rect.height.ToString("0.0"));
+        }
     }
 }

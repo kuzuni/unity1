@@ -132,9 +132,27 @@ namespace Forge.Game.Ui
         /// <summary>원작 .league-back-btn.sheet-back-btn — 시트 왼쪽 아래 빨간 ◀ (2.1×1.75rem · 아래 그림자 .36rem).</summary>
         /// <param name="radiusKey">모서리 반지름을 덮는 표(<see cref="RadiusUi"/>) 키 — 정본이 그 화면에만 따로 준 값이 있을 때만 준다
         /// (T345 7회차: 정본 2255 `.panel .btn.tech-tree-back` .6rem 이 공용 뒤로 버튼을 덮는다). null 이면 종전대로 catalog `back_radius_rem`.</param>
+        /// <summary>
+        /// T401 2회차 — **치수도 반지름 키를 따라간다**: 정본 2255 `.panel .btn.tech-tree-back` 은 리그 뒤로 버튼(2.1×1.75rem)과 달리 제 규칙으로
+        /// `width: 2.5rem; height: 2.5rem` 을 따로 준다. 부르는 쪽(`TechPanel.cs`)은 지금 남의 산 lock 이라 인수를 더 받을 수 없어,
+        /// **이미 넘어오는 반지름 키의 앞자리**(`tech_back_r_rem` → `tech_back_w_rem`·`tech_back_h_rem`)를 함께 본다 — 둘 다 표에 있을 때만 쓰고
+        /// 없으면 종전 기본값이다(다른 부르는 쪽은 한 글자도 안 달라진다).
+        /// </summary>
+        static bool SizeKeysFor(string radiusKey, out float w, out float h)
+        {
+            w = h = 0f;
+            if (radiusKey == null || !radiusKey.EndsWith("_r_rem")) return false;
+            string stem = radiusKey.Substring(0, radiusKey.Length - "_r_rem".Length);
+            string wk = stem + "_w_rem", hk = stem + "_h_rem";
+            if (!UiCatalog.Instance.HasLayout(wk) || !UiCatalog.Instance.HasLayout(hk)) return false;
+            w = RemL(wk); h = RemL(hk);
+            return true;
+        }
+
         public static Button BackButton(RectTransform parent, Action onClick, string radiusKey = null)
         {
-            float w = RemL("back_w_rem"), h = RemL("back_h_rem");
+            float w, h;
+            if (!SizeKeysFor(radiusKey, out w, out h)) { w = RemL("back_w_rem"); h = RemL("back_h_rem"); }
             RectTransform rt = UiKit.Box(parent, "back-btn");
             UiKit.Anchor(rt, Vector2.zero, Vector2.zero, new Vector2(RemL("back_left_rem"), RemL("back_bottom_rem")), w, h);
             float r = radiusKey != null ? RadiusUi.Px(radiusKey) : RemL("back_radius_rem");

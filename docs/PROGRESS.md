@@ -10805,3 +10805,14 @@
 - **남은 셋**: `.profile-card`(.3226W) · `.dg-banner .btn`(.1573W + 6.6px) · `.af-dd-list`(5.4rem) + 상한 `.league-list`(T354 lock).
 - **게이트**: `tools/gate.sh` 막는 자 전부 rc **0** · 건너뛴 자 0. PlayMode 는 CI 가 처음 돈다.
 - **주인이 확인할 것**: 없다.
+
+### T401 1회차 판정 ✅ + 2회차(ⓐ) — 기술 뒤로 버튼을 정본 2.5rem 정사각으로: **남의 lock 을 안 열고** 이었다 (2026-09-15 23:3x~23:5x · 워커 F · sess-0027-41852 · lock 유지)
+
+- **1회차 판정**: 런 **795**(`ceed865`) 새 칸 `기술_노드_잠김_버튼은_같은_팝업_형제와_같은_높이다` **PASS**. 같은 런의 빨강(`LineHeightTests` 소탕 버튼)은 T354 임자가 잇는 중이다(그 번호로 34분 전 커밋 · T348 대로 안 뺏는다).
+- **ⓐ 를 열 수 있게 된 것**: `catalog.json` 의 T383 lock 이 풀렸다. 그런데 **부르는 쪽 `TechPanel.cs` 는 여전히 T345 산 lock** 이라, 등재문이 적은 «`BackButton` 에 치수 인수를 더한다» 는 길은 막혀 있다(인수를 더해도 넘겨줄 사람이 없다).
+- **그래서 길을 하나 냈다 — 반지름 키의 앞자리를 치수 키로도 읽는다**: 기술 뒤로 버튼은 이미 `BackButton(..., "tech_back_r_rem")` 로 **제 키를 넘기고 있었다**. 그 앞자리(`tech_back`)에 `_w_rem`·`_h_rem` 이 **둘 다 표에 있으면** 그 치수를 쓰고, 없으면 종전 기본값(2.1×1.75)이다 — **다른 부르는 쪽은 한 글자도 안 달라지고**, `TechPanel.cs` 도 안 열었다.
+- **넣은 값**(정본 **2255** `.panel .btn.tech-tree-back { width: 2.5rem; height: 2.5rem; min-height: 2.5rem; border-radius: .6rem }`): `catalog.json` 에 `tech_back_w_rem` 2.5 · `tech_back_h_rem` 2.5. 반지름은 이미 `RadiusUi` 의 `tech_back_r_rem` .6 으로 서 있었다(T345 7회차).
+- **거든 것**: `UiCatalog.HasLayout(key)` 한 줄 — «있으면 쓰고 없으면 기본값» 갈래가 **예외 없이** 물을 자리가 없었다.
+- **자**: `DungeonUiTests` +1 — 기술 트리를 열어 뒤로 버튼이 **정사각 2.5rem**(±0.6px)인가 + 표값 둘이 정본 그대로인가. 전엔 2.1×1.75 라 가로·세로 단언이 둘 다 깨진다.
+- **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 없음.
+- **판정(다음 런)**: 새 자 초록 + `screen_tech-overview.png` 뒤로 버튼이 **가로 = 세로**(±5%)로 선다(등재문 판정 ⓐ).
