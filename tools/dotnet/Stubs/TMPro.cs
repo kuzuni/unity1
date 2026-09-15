@@ -19,6 +19,11 @@ namespace TMPro
     public class TMP_FontAsset : ScriptableObject
     {
         public Material material;
+        // T352 4회차 — 진짜 TMP_FontAsset 의 공개 필드(TMP 3.2). 진짜 굵은 판이 없는 글꼴에 `FontStyles.Bold` 를 주면
+        //   TMP 는 획을 두껍게 하고(`boldStyle`) **글자마다 `boldSpacing`/100 em 만큼 자간을 더한다** — 즉 굵기가 폭을 바꾼다.
+        //   브라우저(정본)는 굵기를 흉내 낼 때 자폭을 안 늘리므로 이 값이 곧 «클론만 무는 폭» 이다.
+        public float boldSpacing = 7f;
+        public float boldStyle = 0.75f;
         // T207 ① — 런타임 폰트 애셋 만들기(에디터 없이 굽는 길). 진짜 TMP 의 서명 그대로다:
         //   public static TMP_FontAsset CreateFontAsset(Font font)   (기본 = sampling 90 · padding 9 · SDFAA · 1024² · Dynamic)
         public static TMP_FontAsset CreateFontAsset(Font font) { return font != null ? CreateInstance<TMP_FontAsset>() : null; }

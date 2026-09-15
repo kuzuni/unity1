@@ -3242,6 +3242,13 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 🔄 3회차 2026-09-15 05:4x 워커 O(sess-2140-18689 · 선점) = ⓒ 의 남은 셋 중 **산 lock 밖 자리 하나** — 정본 8635 `.league-score` → `LeagueSheet.cs` 점수 조각(상자 `score` 안 IconTextRow `text`)에 `TabularText.Apply` 한 줄(2회차 `SkillRatesPopup` 과 같은 길 · 게임 코드 1줄) + `PlayMode/TabularSitesTests` +1(창 8행 + 내 행 점수의 이웃 숫자 간격 = 글꼴 칸). 나머지: ⓐⓑ `UiKit.cs`(T178·T331·T354 lock) · `.qst-reward`(`QuestSheet.cs` · T331) · `.forge-item-cell small`(`ForgeInfoPopup.cs` · T332·T359) 는 그 lock 뒤 누구든. 판정 = 다음 런 자 4/4 + `screen_league.png` 눈 확인(점수 열이 세로로 곧은가).
   → **판정(런 603 · `07dd315b` · 유니티 전체 초록 · 내 커밋 `0531d03e` 실림)**: `TabularSitesTests` **4/4 PASS**(리그 점수 칸 포함) · `screen_league.png` 점수 열 3배 눈 확인 — 65·57·51·50·46·34·33·50 의 십의 자리·일의 자리가 행마다 같은 x 에 서고 별도 한 열(세로로 곧다). **lock 반납 · 행 ⬜**(06:2x) — 나머지 ⓐⓑ `UiKit.cs`(T178 반납 · T331·T354 lock) · `.qst-reward`(T331) · `.forge-item-cell small`(T332·T359) 는 각 lock 뒤 누구든.
 
+- 🔄 **4회차 2026-09-15 23:5x 워커 L(sess-2347-341 · 선점)** — **굵기는 색이 아니라 «폭» 도 바꾼다**(이 축에 없던 갈래를 더한다).
+  - 진짜 굵은 판이 없는 글꼴에 `FontStyles.Bold` 를 주면 TMP 는 획을 두껍게 하고(`boldStyle`) **글자마다 `boldSpacing`/100 em 만큼 자간을 더한다**. 브라우저(정본)는 굵기를 흉내 낼 때 **자폭을 안 늘린다**(획을 번지게 한다) — 그러니 그 자간은 **클론만 무는 폭 비용**이고, 정본이 `font-weight` **225 자리**를 bold 로 두는 이 이식에서는 **글자 하한(T136)과 겹쳐 쌓인다**.
+  - **실제로 물린 자리 하나 — T397**: 리그 도전 행 이름 «BlandBuddy22667» 은 `hmtx` 실측 민 자폭 합 **8.534em** 이라 36px 에서 **307.2px**, 칸 **330.2** 에 **든다**. 그런데 굵기 자간 **+1.05em**(15자 × .07em)이 붙어 **345.0px** 이 되어 접힌다. 칸을 정본대로 342.1 로 넓혀도 못 담는다.
+  - 한 일: `Assets/Tests/PlayMode/BoldWidthTests.cs`(새 1칸) — 글꼴의 `boldSpacing` 을 읽고 같은 글·같은 크기로 민 글자와 굵은 글자의 `preferredWidth` 를 재서 **늘어난 폭이 `boldSpacing` 이 말하는 값과 같은지** 못박는다(±25%). 진단은 `ui-screens/t352-bold.txt`(T121 `FontBakeTests` 가 쓴 길). `tools/dotnet/Stubs/TMPro.cs` 에 `boldSpacing`·`boldStyle` 두 필드(진짜 TMP 3.2 의 공개 필드).
+  - ⚠ **이 자는 고치는 자가 아니다** — «굵으면 넓어진다» 는 지금 사실을 수로 남겨 둘 뿐이다. 고치는 길은 둘: ⓐ **진짜 굵은 판을 붙인다**(폴백 표에 Bold 애셋 → TMP 가 자간 대신 그 판을 쓴다) ⓑ **`boldSpacing` 을 0 으로 둔다**(획만 두껍게 · 정본 브라우저와 같은 셈). **둘 중 무엇을 고를지는 굵기 공장(`UiKit.Text`)을 여는 회차가 정한다** — 그때 이 자의 단언도 같이 뒤집는다(그 뒤집힘이 곧 «고쳐졌다» 의 증거다).
+  - `UiKit.cs`·`LeagueSheet.cs`·`QuestSheet.cs`·`ForgeInfoPopup.cs` 는 전부 T331·T388·T345 lock 이라 이 회차는 **화면 코드 0줄**이다.
+
 ### T360 ✅ — `ForgeUiTests` 두 자가 **벽시계에 매여** 빨갛다: 하나는 0.56초 타이머가 자 도중에 터지고, 하나는 «순백 코어» 를 절대 밝기로 잰다 (검증·게이트 · §0-6 임자 없는 빨강 · 워커 G 등재 · 런 565 실측)
 
 - 빨강 둘(런 565 `3e0923d` · 그 파일을 «범위» 로 쥔 **산 lock 이 없다** · 고쳐 온 작업은 전부 ✅):
