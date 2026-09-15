@@ -62,6 +62,8 @@ block|wwwww|정본 gradient 겹 ↔ 클론이 굽는가 (T178)|python3 tools/che
 block|wwwww|정본 letter-spacing ↔ 클론 자간 + 박힌 숫자 (T168)|python3 tools/check_letter_spacing.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 text-shadow ↔ 클론 글자 그림자(TMP Underlay) (T333 · 키라인 표의 10 은 T109 몫 · 표에 없는 선택자는 «미정» 으로 세기만 한다)|python3 tools/check_text_shadows.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 border-radius ↔ 클론 둥근 모서리 표값 (T345 · 50% 는 Circle · 알약 동치 결정 543 · 표에 없는 선택자는 «미정» 으로 세기만 한다)|python3 tools/check_border_radius.py --css .wwwww-src/web/css/style.css
+block|-|촬영·픽셀 카메라가 UI 층만 그리는데 후처리를 켜 두었나 (T349 · 켜면 재는 값이 밀린다 · ShotCam.From 갈래까지 본다)|python3 tools/check_shot_cams.py
+block|wwwww|정본 white-space 41 ↔ 표(T361 · 접는다가 기본 · nowrap 40 자리 · 공장 뒤집기 전에도 표가 정본과 안 어긋나게 지킨다)|python3 tools/check_wrap.py --css .wwwww-src/web/css/style.css
 block|node|추출기 자기 검사 (T2)|node tools/export_data.js --self-test
 report|gh|유니티 잡이 실제로 돈 마지막 main 런이 초록인가 (T123 · §0-6 의 눈)|python3 tools/check_unity_green.py --fetch
 block|-|이 목록 ↔ ci.yml 이 부르는 이름 — 막는다 (T184 ⓑ · CI 도 같은 자를 돌린다)|tools/gate.sh --check-ci

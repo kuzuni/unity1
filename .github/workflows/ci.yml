@@ -200,6 +200,20 @@ jobs:
         run: python3 tools/check_box_shadows.py --self-test
       - name: 정본 바깥 그림자가 클론에 서 있는가 — 막는다 (T331 · 아직 안 선 자리는 KNOWN 에 까닭과 다음 회차를 적는다)
         run: python3 tools/check_box_shadows.py
+      # T349 — 촬영·픽셀 카메라가 UI 층만 그리는데 URP 후처리(톤맵 T1 · 노출 T9 · 색 보정 T341)를 켜 두면
+      #        얻는 것은 0이고 **재는 값만 밀린다**(런 562 실측: 순백 255 → 215). 3D 를 그리는 카메라는 켜는 것이 맞다 — 안 센다.
+      #        6회차가 `ShotCam.From` 갈래(55장을 찍는 UiShotsTests 의 카메라)와 «남의 이름으로 끈 줄» 구멍 둘을 막았다.
+      - name: 촬영 카메라 자 자기 검사 (T349 `check_shot_cams.py` · 고장 주입 18칸)
+        run: python3 tools/check_shot_cams.py --self-test
+      - name: UI 층만 그리는 카메라에 후처리가 켜져 있나 — 막는다 (T349)
+        run: python3 tools/check_shot_cams.py
+      # T361 — 줄바꿈의 기본값이 정본과 반대다(정본은 «접는다 + nowrap 40 예외», 클론 글자 공장은 «안 접는다»).
+      #        1회차가 표(WrapUi.json 41)와 자를 세웠고 배선(ⓐ)은 UiKit.cs 의 산 lock 뒤다 — 자는 그 전에도 표가
+      #        정본과 어긋나지 않게 지킨다(어긋남 0 · 그 절 임자가 아니라 지나가던 T349 임자가 등록 · 결정 599).
+      - name: 줄바꿈 자 자기 검사 (T361 `check_wrap.py` · 고장 주입 11칸)
+        run: python3 tools/check_wrap.py --self-test
+      - name: 정본 white-space 41 ↔ 표 — 막는다 (T361)
+        run: python3 tools/check_wrap.py --css .wwwww-src/web/css/style.css
 
       # T343 — `using` 한 네임스페이스를 그 asmdef 가 참조하는가. dotnet 하니스(T48)는 Assets 를 한 덩어리로
       #        컴파일해 **asmdef 경계가 없다** — 런 490·492 가 두 모드를 통째로 잃은 갈래를 구조적으로 못 잡는다.
