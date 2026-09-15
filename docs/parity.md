@@ -1385,3 +1385,63 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - 새 작업 **1**(T396 — T377 의 자에 잉크 갈래를 더하고 23 색을 자리 전용 키로 · 24 색은 자리 짝을 표에). 면 색(T377)과 같은 병이 글자 색에 그대로 있다.
 - **글자 축 넷이 다 셌다**: `font-size`(36) · `font-weight`(21 → T352) · `line-height`(T354) · `letter-spacing`(T168) · `color`(37) · `text-shadow`(T333) · `text-align`(27) · `white-space`(26). 남은 CSS 축은 배치(`padding` 216 · `margin` 144 · `width` 321 · `height` 267 · `inset` 60)뿐인데 그것은 T28 채점표(30장 PNG 대조)가 화면 단위로 잰다 — 새 축을 열기보다 §7 열린 칸을 잇는 편이 먼저다.
 
+# T33 완주 대조 — **37회차** (2026-09-15 21:4x~22:0x · 워커 O · sess-2140-18689) — 축: 정적 `min-height` 41 · `max-width` 8
+
+35회차가 «세다 만 형제 축» 으로 남긴 둘. 주석은 줄 번호를 보존하며 걷고 `@keyframes`·`@media` 밖만 셌다(둘 다 안 0). 1rem = 16/844 앱높이 = 1.896%H.
+
+## `min-height` 41 — **0 이 열**
+`min-height: 0` 열(`#game-area`·`.lgr-card`·`#player-info-modal .modal-card.wide`·`.summon-sub`·`.grid-scroll`·`#panel-skills .sk-action-btn`(677 의 2rem 을 스킬 화면에서 끈다)·`.fi-card`·`.pinfo-preview.scene`·`.sr-body`·`.sr-grid.one .sr-name`)은 35회차의 `min-width: 0` 과 같은 «flex 자식이 줄어들 수 있게» 스위치 — UGUI 엔 대응이 없는 것이 맞다.
+
+남은 **31**:
+
+| 정본 | 선택자 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 2058 | `.qst-right .btn` | 1.9rem | `quest_btn_h` .036(=1.9rem/H) · T387 ✅ | ✓ |
+| 2411 | `.league-actions .btn.primary` | 3.6rem | `league_challenge_h` .0682(=3.6rem/H) | ✓ |
+| 2439 | `.dg-right .btn` | 2.4rem | 35회차 `dg_btn_w_rem` 짝 · 높이는 `btn_h` 2.4rem | ✓ |
+| 2916 | `.shop-deal-card` | .1528H | `shop_deal_h` .1528 | ✓ |
+| 3179 | `.pinfo-preview` | 7.6rem | `PlayerInfoUi preview_min_h_rem` 7.6(`Mathf.Max` 하한) | ✓ |
+| 4441 | `.hatchery` | 10.5rem | `PetSkillUi hatchery_min_rem` 10.5 | ✓ |
+| 4366 | `.petup-bulkrow` | 2rem | `petup_bulk_min_rem` 2.0 — 단 `Mathf.Max(표, sub × 1.4f)` 의 `1.4f` 는 박힌 곱 | ✓(곱은 → T402) |
+| 4612 | `.tech-btns .btn` | 3.4rem | `tech_btn_h_rem` 3.4 | ✓ |
+| 4619 | `.tn-claim` | 3.4rem | 같은 `tech_btn_h_rem` | ✓ |
+| 5237 | `.skd-card` | 20rem | `skd_min_h_rem` 20 | ✓ |
+| 5279 | `.dgd-card` | .496H | `dgd_card_minh` .496 | ✓ |
+| 5355 | `.dgd-btns .btn` | 3.4rem | `dgd_btn_h_rem` 3.4 | ✓ |
+| 5393 | `.dgclear-btn` | 3rem | `dgc_btn_h_rem` 3 | ✓ |
+| 5419 | `.petd-wrap .petd-btn` | 3.75rem | `petd_btn_h_rem` 3.75 | ✓ |
+| 5639 | `.asc-btns .btn` | 2.9rem | `asc_btn_h_rem` 2.9 | ✓ |
+| 5791 | `.sr-again` | 2.3rem | `sr_again_h_rem` 2.3 | ✓ |
+| 7108 | `.sr-foot` | 4.9rem | `sr_foot_min_rem` 4.9(`Mathf.Max` 하한) | ✓ |
+| 7139 | `.sr-ok` | 3rem | `sr_ok_h_rem` 3 | ✓ |
+| 677 | `.sk-action-btn` | 2rem | `PetSkillUi action_h` .0483H(=2.55rem · 원작 샷 실측값 · 하한 2rem 위) | ✓(하한 위) |
+| 3227 | `#chat-preview` | 1.6rem | 띠 `tabbar_top − chat_top` = .0538H = 2.84rem(하한 위) | ✓(하한 위) |
+| 3214 | `.pinfo-subs-list` | 3.2rem | 남은 칸 채우기(`Mathf.Max(lineH, …)`) — T388 이 잰 «남은 칸» 갈래 | 셈 |
+| 5054 | `.fi-card .fi-rows` | 3rem | 시대 수 × (막대 1.75rem + .18rem) ≥ 9rem | 셈(하한 위) |
+| 1830 | `.cmp-card.empty` | 4rem | `ItemCard` 의 `Mathf.Max(타일 + 1.2rem, 글자 + 1.4rem)` — 타일이 4rem 을 넘는다 | 셈 |
+| 4229 | `.summon-bar .btn.big` | .0764H | `SummonBtn` 높이 = 소환 바 셈(`x5_*` 키) — 자리 파일 T331 | 셈 |
+| 3565 | `.modal-card > .row .btn:not(.sm):not(.xs)` | 2.9rem | 클론 공용 `btn_h` 2.4rem 에 곱 — `ForgeCraftPopup.cs:119·120` `× 1.5` = **3.6rem(+24%)** | **✗ → T378 임시 목록의 그 줄(정본 값을 T378 절에 적었다)** |
+| 3566 | `#craft-modal .row .btn` | 4.2rem | `ForgeCraftPopup.cs:71·72` `btn_h × 1.7` = 4.08rem(−3%) | ✓(값) · 곱은 T378 |
+| 4816 | `.af-start` | 4.45rem | `ForgeAutoPopup.cs:125` `btn_h × 1.9` = 4.56rem(+2.5%) | ✓(값) · 곱은 T378 |
+| 2626 | `.league-challenge-row .btn.sm` | 2.9rem | `LeagueSheet.cs:337` `rem * 2.9f` — 값은 맞고 **코드에 박혔다** | ✗ → T402 |
+| 4516 | `.hatch-cell.empty` | 8.6rem | `PetPanel.cs` `PetSkillStyle.Rem(8.6f)` — 값은 맞고 **코드에 박혔다** | ✗ → T402 |
+| 2255 | `.panel .btn.tech-tree-back` | **2.5rem(폭·높이·하한 셋 다 2.5rem 정사각)** | `DungeonPopups.BackButton` 이 **리그 뒤로 버튼 치수**(`back_w_rem` 2.1 «.league-back-btn» · `back_h_rem` 1.75)를 그대로 쓴다 — 정본은 이 버튼에 제 규칙을 따로 줬다 | **✗ → T401 ⓐ** |
+| 1750 | `.item-detail[data-tech-node] .btn` | 3.6rem | 준비·연구 중 버튼은 `tech_btn_h_rem` 3.4(−6%) ✓ · **잠김 버튼**(`ui.js` 5572 `btn sm primary disabled` · 같은 규칙이 덮는다)은 `btn_sm_h_rem` **2rem(−44%)** | **✗ → T401 ⓑ** |
+
+**뒤로 버튼 실측**(클론 런 774 `screen_tech-overview.png` 540×960 ↔ 원작 `ref/screens/shot-042546.png` 505×883 · 2배 눈): 클론 ≈36×30px(6.7%W × **3.1%H** = `back_w/h_rem` 2.1×1.75 그대로) · 원작 ≈33×32px(6.5%W × **3.7%H** ≈ 1.9~2rem **정사각**) · 정본 CSS 2.5rem = 4.7%H. 클론은 원작보다 낮고 납작하며(가로 > 세로) 정본 규칙(정사각)과도 다르다 — 옮길 값은 정본 CSS(§1 «옮기는 것은 원작이 지금 하는 것»)이고, 원작 샷과의 차이(+1%p)는 T28 갈래.
+
+## `max-width` 8
+| 정본 | 선택자 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 3862 | `.modal-card.sheet .sheet-sub` | 74% | `sheet_sub_maxw` .74 | ✓ |
+| 1003 | `.held-name` | 100% | T351 말줄임(`TextClamp`) | ✓ |
+| 1126 | `.craft-batch .cb-grid` | 92% | 격자 폭 = 열 × 카드 + 틈(`CraftUi`) — 92% 상한과 같은지는 안 쟀다 | 셈(T371·T382 갈래) |
+| 6782·6794 | `.sr-cell.heroic .sr-name` | min(12rem, 66vw) | T334 «40 의 무리» 장부 | 임자 |
+| 7059 · 7084 | `.sr-sub` · `.sr-grid.one .sr-name` | 100% | T334 | 임자 |
+
+## 이 회차가 남긴 규칙
+**하한(`min-*`)은 «값이 같다» 로 끝나지 않는다 — 같은 파일에서 그 값이 표에서 오는지까지 본다.** 31 중 셋(`.hatch-cell.empty`·`.league-challenge-row .btn.sm`·`.petup-bulkrow` 의 곱)은 값이 정본과 같아 «맞다» 로 보이지만 수가 코드에 박혀 있다(§1). 35회차의 «덮는 규칙을 먼저 걷어라» 는 이번엔 반대로 쓰였다 — `.item-detail[data-tech-node] .btn` 은 `.btn.sm` 을 **덮어서** 잠김 버튼에도 3.6rem 이 걸린다.
+
+## 이 회차의 판정
+- 새 작업 **2**: **T401**(기술 트리 뒤로 버튼 2.5rem 정사각 + 잠긴 노드 버튼 3.6rem — `TechPanel`·`TechPopups`·`DungeonPopups` · T345·T178 lock 뒤) · **T402**(정본 하한 값이 코드에 박힌 셋 → 표 · 각 파일 lock 뒤). T378 절에 «정본이 그 버튼에 준 높이» 셋(2.9 · 4.2 · 4.45rem)을 적어 뒀다.
+- 남은 축: `animation-delay` 42 · `content` 171 · `background-position` 22 · `background-size` 15.
