@@ -202,13 +202,19 @@ namespace Forge.Game.Ui
             return t;
         }
 
-        /// <summary>★N 배지(타일 바닥에 반쯤 걸침).</summary>
-        public static TextMeshProUGUI StarBadge(RectTransform tile, int stars, float size)
+        /// <summary>
+        /// ★N 배지(타일 바닥에 반쯤 걸침). 링(8방 키라인)은 정본 `.equip-cell .cell-star`(style.css 954~962)라 **모든 자리가 쓴다**.
+        /// <paramref name="shadowKey"/> 는 그 위에 한 겹 더 얹는 **딱딱한 그림자**(T332 ⓒ) — 정본이 그것을 거는 자리는
+        /// 제작 비교 카드의 `.cmp-star`(1860 · `drop-shadow(0 1px 0 rgba(0,0,0,.4))`) **하나뿐**이라 호출자가 켠다.
+        /// 장비 칸·플레이어 정보 칸의 별은 정본에 그 한 겹이 없다(링만) — 기본값 `null` 이 그 뜻이다.
+        /// </summary>
+        public static TextMeshProUGUI StarBadge(RectTransform tile, int stars, float size, string shadowKey = null)
         {
             if (stars <= 0) return null;
             TextMeshProUGUI t = UiKit.Text(tile, "star", TextKind.Sub, "★" + (stars > 1 ? stars.ToString() : string.Empty), "coin");
             t.fontStyle = FontStyles.Bold;
             PopupKit.Ring(t, "pp_line", 0.25f);
+            if (!string.IsNullOrEmpty(shadowKey)) UiKit.TextShadow(t, shadowKey);   // 글자라 TMP 언더레이(T333) — `UnityEngine.UI.Shadow` 는 TMP 메시를 안 잡는다
             UiKit.Anchor(t.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), Vector2.zero, size, t.fontSize * 1.2f);
             return t;
         }
@@ -241,7 +247,7 @@ namespace Forge.Game.Ui
             RectTransform tileRt = ItemTile(card, "tile", tile, d, item);   // T122 — 정본 itemImgHTML: 3D 썸네일이 있으면 그것, 없으면 실루엣
             UiKit.Place(tileRt, rem * 0.7f, rem * 0.6f, tile, tile);
             LvBadge(tileRt, item.Level, tile);
-            StarBadge(tileRt, item.Stars, tile);
+            StarBadge(tileRt, item.Stars, tile, "cmp_star");   // T332 ⓒ — 정본 `.cmp-star`(1860)만 딱딱한 그림자 한 겹을 더 진다
             if (isNew)
             {
                 TextMeshProUGUI nt = UiKit.Text(card, "newtag", TextKind.Sub, tag, "pp_red");

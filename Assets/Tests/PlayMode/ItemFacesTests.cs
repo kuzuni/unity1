@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Forge.Core.Data;
@@ -509,6 +510,59 @@ namespace Forge.Tests.PlayMode
                 AssertThumbShadow(fi, "cell", kind + " 얼굴 `.mt-face.has-thumb > img`(7604)");
                 Object.Destroy(face.gameObject);
             }
+        }
+
+        /// <summary>
+        /// T332 ⓒ — 정본은 **제작 비교 카드의 별에만** 딱딱한 그림자 한 겹을 더 얹는다
+        /// (`style.css` 1860~1862 `.cmp-star { … filter: drop-shadow(0 1px 0 rgba(0,0,0,.4)) }`).
+        /// 장비 칸의 별(`.equip-cell .cell-star` 954~962)은 **8방 링뿐**이라 그 한 겹이 없다 — 둘을 한 자에서 나란히 본다.
+        /// 글자라 `UnityEngine.UI.Shadow`(메시 오프셋)가 아니라 **TMP 언더레이**(T333 `UiKit.TextShadow`)로 건다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 비교_카드의_별만_정본_딱딱한_그림자_한_겹을_더_진다()
+        {
+            yield return Boot();
+            PlayLog log = PlayLog.Start("item-faces-star");
+            ForgeHost h = ForgeHost.Instance;
+            ForgeItem it = null;
+            for (int i = 0; i < 200 && it == null; i++) { ForgeItem r = h.Engine.RollItem(); if (ItemFaces.Supports(r.Slot)) it = r; }
+            Assert.IsNotNull(it, "무기·투구·갑옷 하나는 나와야 한다");
+            it.Stars = 2;                                  // 별이 0 이면 배지 자체가 안 선다
+
+            // ⓐ 비교 카드 — 그림자 한 겹이 있다
+            ForgeCraftPopup.Show(h, it);
+            yield return null; yield return null;
+            Popup p = h.Meta.Popups.Find(ForgeCraftPopup.Name);
+            Assert.IsNotNull(p, "비교 팝업이 열려 있다");
+            RectTransform card = FindIn(p.Root, "new");
+            Assert.IsNotNull(card, "새 장비 카드");
+            Transform st = card.Find("tile/star");
+            Assert.IsNotNull(st, "별 배지(★N)");
+            TextMeshProUGUI star = st.GetComponent<TextMeshProUGUI>();
+            Material m = star.fontMaterial;
+            Assert.IsTrue(m.IsKeywordEnabled("UNDERLAY_ON"), "비교 카드 별: 언더레이가 켜졌다(정본 1860 drop-shadow)");
+            Assert.Less(m.GetFloat("_UnderlayOffsetY"), 0f, "CSS 의 «아래로 1px» 은 TMP 에서 음수 오프셋이다");
+            Assert.AreEqual(0f, m.GetFloat("_UnderlayOffsetX"), 1e-4, "정본은 가로로 안 민다(`0` 1px)");
+            Assert.AreEqual(0f, m.GetFloat("_UnderlaySoftness"), 1e-4, "흐림 0 — 딱딱한 한 겹이다");
+            Color want = TextShadowUi.C("cmp_star"), got = m.GetColor("_UnderlayColor");
+            Assert.AreEqual(want.a, got.a, 2f / 255f, "그림자 알파 = 정본 .4(표 cmp_star)");
+            Assert.Less(got.r + got.g + got.b, 0.05f, "그림자 색은 검정");
+
+            // ⓑ 장비 칸의 별 — 정본엔 그 한 겹이 **없다**(링만)
+            ForgeCraftPopup.Hide(h);
+            h.Gear.Set(it.Slot, it);
+            h.Push();
+            ForgeSheet.Render(h);
+            yield return null;
+            RectTransform cell = FindIn(UiRoot.Instance.Sheet, "cell-" + it.Slot);
+            Assert.IsNotNull(cell, "장비 시트 칸");
+            Transform cs = cell.Find("star");
+            Assert.IsNotNull(cs, "장비 칸 별 배지");
+            Assert.IsFalse(cs.GetComponent<TextMeshProUGUI>().fontMaterial.IsKeywordEnabled("UNDERLAY_ON"),
+                "장비 칸 별은 8방 링뿐이다(정본 954~962) — 여기에 그림자를 더하면 정본에 없는 겹이 생긴다");
+
+            log.AssertNoRed();
+            log.Dispose();
         }
     }
 }

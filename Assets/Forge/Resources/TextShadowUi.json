@@ -1,6 +1,10 @@
 {
   "_": "T333 — 정본 style.css 의 `text-shadow`(키라인 표 밖 44) 를 옮긴 글자 그림자 표. TMP 언더레이 한 겹(UiKit.TextShadow · 식은 Core UnderlaySdf). px = 정본 CSS px(캔버스로 넘길 때 KeylineUi css_px 2.164 를 곱한다 · T104 규약) · dy 는 CSS 방향(아래가 +) · blur = CSS 흐림 반지름 · color = #RRGGBB + alpha. 코드에 숫자를 박지 않는다(§1). catalog.json 은 T87 lock 이라 자기 표(T65 PlayerInfoUi 꼴).",
   "shadows": {
+    "cmp_star": { "dx_px": 0, "dy_px": 1, "blur_px": 0, "color": "#000000", "alpha": 0.4,
+      "_": "T332 별 둘 — style.css 1860~1862 `.cmp-star { … filter: drop-shadow(0 1px 0 rgba(0,0,0,**.4**)) }`(제작 비교 카드의 승천 별). 흐림 0 = 딱딱한 한 겹. ⚠ T332 등재문은 이 값을 «.35» 로 적었는데 **.4 다**(그 «.35» 는 아래 `rate_star` 쪽이다)." },
+    "rate_star": { "dx_px": 0, "dy_px": 1, "blur_px": 0, "color": "#000000", "alpha": 0.35,
+      "_": "T332 별 둘 — style.css 4602 `.rate-star { font-style: normal; font-size: .8em; filter: drop-shadow(0 1px 0 rgba(0,0,0,**.35**)) }`(확률 팝업 줄의 별). 클론에선 `SkillRatesPopup.cs:123` 의 **`Image`**(`UiKit.Icon`)라 TMP 언더레이가 아니라 `UnityEngine.UI.Shadow` 로 건다 — 값만 여기 같이 두는 까닭은 **둘이 정본에서 같은 `drop-shadow` 한 줄**이라 표를 쪼개면 다음 사람이 헤매기 때문이다(T332 6회차 결정)." },
     "btn_label": {
       "dx_px": 0,
       "dy_px": 1,
