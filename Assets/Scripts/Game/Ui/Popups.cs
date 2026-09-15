@@ -207,6 +207,8 @@ namespace Forge.Game.Ui
         public static float FontSize(TextKind k) { return UiCatalog.Instance.Kind(k).size; }
         public static float Line { get { return UiKit.L("line_px"); } }
         public static float Line3 { get { return UiKit.L("line3_px"); } }
+        /// <summary>정본 --ol2(4px) — 설정 토글·작은 아바타·리그 행 같은 «중간 단» 테(T365 10회차).</summary>
+        public static float Line2 { get { return UiKit.L("line2_px"); } }
         /// <summary>탭바 위쪽 y(앱 위에서 · 기준 px).</summary>
         public static float TabTop { get { return UiKit.L("tabbar_top") * UiKit.RefH; } }
 
@@ -505,11 +507,15 @@ namespace Forge.Game.Ui
             RectTransform rt = b.GetComponent<RectTransform>();
             Size(rt, w, h);
             UiKit.Rounded(rt, "line", "pp_line", h * 0.5f);
-            Image face = UiKit.Rounded(rt, "face", on ? "pp_blue" : "pp_gray", h * 0.5f - Line);
-            Inset(face.rectTransform, Line);
-            float k = h - Line * 4f;
-            Image knob = UiKit.Circle(rt, "knob", "pp_paper");
-            UiKit.Anchor(knob.rectTransform, new Vector2(on ? 1f : 0f, 0.5f), new Vector2(on ? 1f : 0f, 0.5f), new Vector2(on ? -Line * 2f : Line * 2f, 0f), k, k);
+            // T365 10회차 — 정본 3108 `.settings-toggle { border: var(--ol2) … }` = ol2(전엔 ol1)
+            Image face = UiKit.Rounded(rt, "face", on ? "pp_blue" : "pp_gray", h * 0.5f - Line2);
+            Inset(face.rectTransform, Line2);
+            float k = h - Line2 * 4f;
+            // T365 10회차 — 정본 3113 `.settings-toggle::after { border: var(--ol1) solid var(--pp-line) }`: 손잡이도 검정 고리(ol1) + 흰 면(전엔 흰 원 한 장)
+            Image knob = UiKit.Rounded(rt, "knob", "pp_line", k * 0.5f);
+            UiKit.Anchor(knob.rectTransform, new Vector2(on ? 1f : 0f, 0.5f), new Vector2(on ? 1f : 0f, 0.5f), new Vector2(on ? -Line2 * 2f : Line2 * 2f, 0f), k, k);
+            Image knobFace = UiKit.Rounded(knob.transform, "face", "pp_paper", k * 0.5f - Line);
+            Inset(knobFace.rectTransform, Line);
             return b;
         }
 
@@ -540,12 +546,15 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>아바타 타일(흰 면 + 검정 테) + T31 `UiIcons.Avatar(emoji)` 도트 초상(아틀라스에 없으면 빈 흰 타일).</summary>
-        public static RectTransform Avatar(Transform parent, string name, float size, string emoji, float radius)
+        public static RectTransform Avatar(Transform parent, string name, float size, string emoji, float radius, float line = -1f)
         {
             RectTransform rt = Item(parent, name, size, size);
+            // T365 10회차 — 정본 작은 아바타(.avatar · .league-avatar 2316 · .league-challenge-avatar · .chat-avatar · .pinfo-id .avatar)는 전부 ol2,
+            //   프로필 큰 아바타(.profile-avatar-big 3002)만 ol3 — 기본 Line2, 호출부가 폭을 주면 그 폭(전엔 모두 ol1).
+            float ln = line > 0f ? line : Line2;
             UiKit.Rounded(rt, "line", "pp_line", radius);
-            Image face = UiKit.Rounded(rt, "face", "avatar_bg", Mathf.Max(1f, radius - Line));
-            Inset(face.rectTransform, Line);
+            Image face = UiKit.Rounded(rt, "face", "avatar_bg", Mathf.Max(1f, radius - ln));
+            Inset(face.rectTransform, ln);
             Sprite portrait = UiIcons.Avatar(emoji);
             if (portrait != null)
             {

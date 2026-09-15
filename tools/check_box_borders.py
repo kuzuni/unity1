@@ -58,7 +58,7 @@ TABLE = {
     '.league-back-btn': ['Ui/Popups.cs@BackButton'],
     '.toast': ['Ui/Popups.cs@Toast'],
     '.settings-toggle': ['Ui/Popups.cs@Toggle'],
-    '.profile-avatar-big': ['Ui/Popups.cs@Avatar'],
+    '.profile-avatar-big': ['—Popups.Avatar 의 폭은 호출부 인수(ProfilePopup 이 PopupKit.Line3 를 준다 · 10회차) — 자는 인수 이름만 봐서 못 읽고 PlayMode BoxBorderSitesTests 가 ol3 를 지킨다'],
     # 상단바 카드·아바타·채팅 배지(Hud) · 채팅 화면(ChatScreen)
     '.profile-card': ['Ui/Hud.cs@Build'],
     '.profile-card .avatar': ['Ui/Hud.cs@Build'],
@@ -107,13 +107,13 @@ TABLE = {
     '.tech-tree-node': ['Ui/TechPanel.cs@Node'],
     '.tech-branch-icon::before': ['Ui/TechPanel.cs@BranchCard'],
     '.icon-circle.sm': ['Ui/TechPopups.cs@RenderNode'],
-    '.settings-toggle::after': ['Ui/Popups.cs@Toggle'],
+    '.settings-toggle::after': ['Ui/Popups.cs#knob'],   # 10회차 — 손잡이 고리(ol1) · 토글 몸통(ol2)과 따로 센다
     '.league-avatar': ['Ui/Popups.cs@Avatar'],
     '.league-challenge-avatar': ['Ui/Popups.cs@Avatar'],
     '.chat-avatar': ['Ui/Popups.cs@Avatar'],
     '.pinfo-id .avatar': ['Ui/Popups.cs@Avatar'],
     '.pinfo-preview': ['Ui/PlayerInfoPopup.cs@Fallback'],
-    '.cur-pill': ['Ui/Hud.cs@Pill'],
+    '.cur-pill': ['Ui/DungeonPopups.cs@CurPill'],   # 10회차 — 정본 .cur-pill 은 시트 머리(펫·리그·상점 ui.js 3968·4298·4988)이지 HUD 윗줄(.currency-pills .pill)이 아니다 · 클론 CurPill 은 Bordered Line3 = ol3
     '.qst-bar': ['Ui/QuestSheet.cs@Render'],
     '.pass-milestone-label': ['Ui/PassPopup.cs@Render'],
     '.petup-bulk': ['Ui/PetUpgradePopup.cs@Render'],
@@ -125,29 +125,20 @@ TABLE = {
     '.sr-again': ['Ui/SkillSummonResult.cs@BuildFoot'],
     '.skd-btn.silver': ['Ui/Popups.cs@Btn'],
     # T365 ⓐ — 펫 카드 왼쪽 등급색 띠(1664 border-left var(--ol4)) · 클론에 pet-card 이름 0 · PetPanel.cs 는 T331·T333 lock
-    '.pet-card|left': ['Ui/PetPanel.cs#pet-card'],
+    '.pet-card|left': ['—정본 ui.js·index.html 에 .pet-card 쓰임 없음(죽은 CSS · 10회차) · line4_px 키는 그대로 둔다'],
 }
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ───────────────────────────────
 KNOWN = {
     # 열쇠는 «선택자[|변] → 자리» 쌍이다(2회차·3회차는 자리만 열쇠로 써서, 같은 도우미가 다른 선택자에서 맞으면 «이제 있다» 로 잘못 알렸다 · 4회차 수리). 자리만 적은 옛 열쇠도 읽는다(빈자리 판정에만 · «이제 있다» 알림은 쌍 열쇠만).
-    '.pet-card|left → Ui/PetPanel.cs#pet-card': 'T365 ⓐ — 정본 1664 `.pet-card { border-left: var(--ol4) solid var(--rc) }` 등급색 띠 · 카탈로그 line4_px(8)는 1회차에 더했고 자리는 PetPanel.cs(T331·T333 lock) 뒤',
     '.btn → Ui/Popups.cs@Btn': 'T365 2회차 — 바닥 버튼(`.btn` 664 ol1 #444c56 · HUD·오프라인·리그 뒤로)만 얇은 회색인데 공용 Btn 은 Line3 하나다(모달·패널·시트 안 `.btn` 3543 ol3 는 맞다) · Popups.cs T331·T333 lock — 바닥 버튼에 keyline 폭 인자를 주는 길',
-    '.settings-toggle → Ui/Popups.cs@Toggle': 'T365 2회차 — `.settings-toggle` 3108 ol2 ↔ 클론 Toggle 은 `h*0.5f - Line`(ol1) · Popups.cs lock 뒤 Line2 로',
-    '.profile-avatar-big → Ui/Popups.cs@Avatar': 'T365 2회차 — `.profile-avatar-big` 3002 ol3 ↔ 클론 Avatar 는 `radius - Line`(ol1) · Popups.cs lock 뒤 Line3 로(작은 아바타 .avatar 들은 ol2 — 호출부가 폭을 넘기는 길)',
-    '.league-avatar → Ui/Popups.cs@Avatar': 'T365 2회차 — `.profile-avatar-big` 3002 ol3 ↔ 클론 Avatar 는 `radius - Line`(ol1) · Popups.cs lock 뒤 Line3 로(작은 아바타 .avatar 들은 ol2 — 호출부가 폭을 넘기는 길)',
-    '.league-challenge-avatar → Ui/Popups.cs@Avatar': 'T365 2회차 — `.profile-avatar-big` 3002 ol3 ↔ 클론 Avatar 는 `radius - Line`(ol1) · Popups.cs lock 뒤 Line3 로(작은 아바타 .avatar 들은 ol2 — 호출부가 폭을 넘기는 길)',
-    '.chat-avatar → Ui/Popups.cs@Avatar': 'T365 2회차 — `.profile-avatar-big` 3002 ol3 ↔ 클론 Avatar 는 `radius - Line`(ol1) · Popups.cs lock 뒤 Line3 로(작은 아바타 .avatar 들은 ol2 — 호출부가 폭을 넘기는 길)',
-    '.pinfo-id .avatar → Ui/Popups.cs@Avatar': 'T365 2회차 — `.profile-avatar-big` 3002 ol3 ↔ 클론 Avatar 는 `radius - Line`(ol1) · Popups.cs lock 뒤 Line3 로(작은 아바타 .avatar 들은 ol2 — 호출부가 폭을 넘기는 길)',
     '.chat-preview-badge → Ui/Hud.cs@BuildChat': 'T365 2회차 — `.chat-preview-badge` 3249 ol15(1.5px ≈ 캔버스 3px) ↔ 클론 line_px(2) · ol15 단 키가 카탈로그에 없다(line15_px 3) · Hud.cs T331 lock',
-    '.cur-pill → Ui/Hud.cs@Pill': 'T365 3회차 — `.cur-pill` 3984 ol3 pp-line 인데 클론 HUD 통화 알약은 `Rounded(pill,"bg")` 채움 한 장 — **테가 없다** · Hud.cs T331 lock',
-    '.qst-bar → Ui/QuestSheet.cs@Render': 'T365 3회차 — `.qst-bar` 2040 ol2 인데 클론 퀘스트 막대는 `bg`+`fill` 두 채움이라 **테가 없다**(메서드 단 ol3 는 행 카드의 것) · QuestSheet.cs T178·T331 lock',
     '.pass-milestone-label → Ui/PassPopup.cs@Render': 'T365 3회차 — `.pass-milestone-label` 2803 ol2 ↔ 클론 라벨 고리는 `- PopupKit.Line`(ol1)(배너 Line3 는 맞다) · PassPopup.cs T332 lock',
 }
 
-HELPERS = ('PopupKit.Outlined', 'UiKit.Line', 'PetSkillKit.Framed', 'PetSkillKit.Orb', 'DungeonPopups.Bordered', 'DungeonPopups.BorderedCircle', 'UiKit.Rounded')
+HELPERS = ('PopupKit.Outlined', 'UiKit.Line', 'PetSkillKit.Framed', 'PetSkillKit.Orb', 'DungeonPopups.Bordered', 'DungeonPopups.BorderedCircle', 'UiKit.Rounded', 'Bordered', 'BorderedCircle')   # 맨 이름 둘은 DungeonPopups 제 안의 호출(10회차 · CurPill)
 # 도우미별 폭 인자 자리(0부터 · 이름 인자는 1) — Rounded 는 짝(안쪽 면의 «r - 폭»)에서 읽는다
-WIDTH_ARG = {'PopupKit.Outlined': 4, 'UiKit.Line': 3, 'PetSkillKit.Framed': 4, 'PetSkillKit.Orb': 3, 'DungeonPopups.Bordered': 4, 'DungeonPopups.BorderedCircle': 3}
+WIDTH_ARG = {'PopupKit.Outlined': 4, 'UiKit.Line': 3, 'PetSkillKit.Framed': 4, 'PetSkillKit.Orb': 3, 'DungeonPopups.Bordered': 4, 'DungeonPopups.BorderedCircle': 3, 'Bordered': 4, 'BorderedCircle': 3}
 CALL_RE = re.compile(r'\b(' + '|'.join(re.escape(h) for h in HELPERS) + r')\s*\(')
 TIER_PATTERNS = [
     ('ol4', re.compile(r'line4_px')),

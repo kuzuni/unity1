@@ -182,5 +182,50 @@ namespace Forge.Tests.PlayMode
             }
             finally { PlayerInfoPopup.PreviewStart = saved; }
         }
+        /// <summary>T365 10회차 — T331 범위 축소로 열린 자리: 설정 토글(정본 3108 ol2) · 프로필 큰 아바타(3002 ol3) · 리그 행 아바타(작은 아바타 ol2) · 퀘스트 막대(2040 ol2 · 전엔 테 없음).</summary>
+        [UnityTest]
+        public IEnumerator 설정_토글과_아바타_둘과_퀘스트_막대의_테는_정본_단이다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            float ol2 = UiKit.L("line2_px"), ol3 = UiKit.L("line3_px");
+            ProfilePopup.Open(h);
+            yield return null;
+            Popup p = PopupLayer.Instance.Find(ProfilePopup.Name);
+            Assert.IsNotNull(p, "프로필");
+            Transform big = null;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "avatar" && rt.Find("line") != null && rt.Find("face") != null) { big = rt; break; }
+            Assert.IsNotNull(big, "프로필 큰 아바타(.profile-avatar-big)");
+            Assert.AreEqual(ol3, RingWidth(big, "큰 아바타"), 0.01f);
+            ProfilePopup.SwitchView(h, "settings");
+            yield return null;
+            p = PopupLayer.Instance.Find(ProfilePopup.Name);
+            int toggles = 0;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+                if (rt.Find("knob") != null && rt.Find("line") != null && rt.Find("face") != null) { toggles++; Assert.AreEqual(ol2, RingWidth(rt, "설정 토글 " + rt.name), 0.01f); }
+            Assert.Greater(toggles, 0, "설정 토글(.settings-toggle)을 못 찾았다");
+            ProfilePopup.Close(h);
+            yield return null;
+            LeagueSheet.Open(h);
+            yield return null;
+            p = PopupLayer.Instance.Find(LeagueSheet.Name);
+            int avatars = 0;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "avatar" && rt.parent != null && rt.parent.name.StartsWith("row-", System.StringComparison.Ordinal) && rt.Find("line") != null && rt.Find("face") != null) { avatars++; Assert.AreEqual(ol2, RingWidth(rt, "리그 행 아바타"), 0.01f); }
+            Assert.Greater(avatars, 0, "리그 행 아바타(.league-avatar)를 못 찾았다");
+            h.Popups.Hide(LeagueSheet.Name);
+            yield return null;
+            QuestSheet.Open(h);
+            yield return null;
+            p = PopupLayer.Instance.Find(QuestSheet.Name);
+            Assert.IsNotNull(p, "퀘스트 시트");
+            int bars = 0;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "bar" && rt.Find("line") != null && rt.Find("face") != null) { bars++; Assert.AreEqual(ol2, RingWidth(rt, "퀘스트 막대"), 0.01f); }
+            Assert.Greater(bars, 0, "퀘스트 막대(.qst-bar)를 못 찾았다");
+            h.Popups.Hide(QuestSheet.Name);
+            yield return null;
+        }
     }
 }

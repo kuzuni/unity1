@@ -88,7 +88,7 @@ namespace Forge.Game.Ui
             y += titleH + rem * 0.2f;
 
             float av = UiKit.L("profile_avatar") * w;
-            RectTransform avatar = PopupKit.Avatar(card, "avatar", av, h.AvatarEmoji, RadiusUi.Px("profile_avatar_big_r_rem"));   // T345 11회차 — 정본 2997 `.profile-avatar-big` .5rem(값은 맞았고 수만 표로)
+            RectTransform avatar = PopupKit.Avatar(card, "avatar", av, h.AvatarEmoji, RadiusUi.Px("profile_avatar_big_r_rem"), PopupKit.Line3);   // T345 11회차 — 정본 2997 `.profile-avatar-big` .5rem(값은 맞았고 수만 표로)
             UiKit.Place(avatar, pad, y, av, av);
             float edit = UiKit.H("profile_edit");   // T378 3회차 — 정본 3008 `.profile-edit-btn { width: 1.5rem; height: 1.5rem }` = 표 0.0284 그대로 · 여태 ×1.3 이 얹혀 30% 컸다
             Button avEdit = EditButton(card, "avatar-edit", () => { picking = !picking; Render(h); });

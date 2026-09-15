@@ -98,18 +98,23 @@ namespace Forge.Game.Ui
 
                 RectTransform bar = UiKit.Box(row, "bar");
                 UiKit.Place(bar, bodyX, padY + PopupKit.FontSize(TextKind.Sub) * 1.3f + rem * 0.28f, bodyW, barH);
-                UiKit.Rounded(bar, "bg", "quest_bar_bg", barH * 0.5f);
-                Image fill = UiKit.Rounded(bar, "fill", done ? "quest_bar_done" : "quest_bar", barH * 0.5f);
+                // T365 10회차 — 정본 2040 `.qst-bar { border: var(--ol2) solid var(--pp-line); overflow: hidden }` — 검정 고리 + 안쪽 면(bg·fill 은 면 안에서 채운다 · 전엔 테가 없었다)
+                float barLine = UiKit.L("line2_px");
+                UiKit.Rounded(bar, "line", "pp_line", barH * 0.5f);
+                RectTransform barFace = UiKit.Box(bar, "face");
+                PopupKit.Inset(barFace, barLine);
+                UiKit.Rounded(barFace, "bg", "quest_bar_bg", barH * 0.5f - UiKit.L("line2_px"));   // 자가 단을 읽게 키를 그대로
+                Image fill = UiKit.Rounded(barFace, "fill", done ? "quest_bar_done" : "quest_bar", barH * 0.5f - barLine);
                 fill.rectTransform.anchorMin = Vector2.zero;
                 fill.rectTransform.anchorMax = new Vector2((float)pct, 1f);
                 fill.rectTransform.offsetMin = fill.rectTransform.offsetMax = Vector2.zero;
                 // T178 6회차 — 정본 `.qst-bar i`(2044)·`.qst-row.done .qst-bar i`(2047)는 **두 겹**이다: 세로 색 띠 + 위 1 CSS px 흰 광택.
                 //   색 한 칸으로는 «채움이 평평해» 보인다. 상태(파랑/초록)는 정본 주석대로 **띠 키**로만 가른다 — 광택은 두 상태가 같다.
-                float fillW = bodyW * (float)pct;
+                float fillW = (bodyW - barLine * 2f) * (float)pct;
                 SurfaceArt.FillMasked(fill, "qst-fill-grad", done ? "qst_bar_done_ramp" : "qst_bar_ramp", fillW, barH);
                 // T178 10회차 — 림의 바탕은 **상태로 갈린다**(파랑 `qst_bar_ramp` ↔ 초록 `qst_bar_done_ramp`)라 표의 `over_layer` 한 칸으로는 못 적는다.
                 //   그래서 부르는 쪽이 그때의 바탕 겹을 알려 준다 — 그러면 굽는 쪽이 정본이 섞는 길(sRGB)로 미리 합성한다(T357 · 8회차의 사슬과 같은 값).
-                SurfaceArt.Fill(fill.rectTransform, "qst-fill-rim", "qst_bar_rim", fillW, barH, done ? "qst_bar_done_ramp" : "qst_bar_ramp");
+                SurfaceArt.Fill(fill.rectTransform, "qst-fill-rim", "qst_bar_rim", fillW, barH - barLine * 2f, done ? "qst_bar_done_ramp" : "qst_bar_ramp");
                 TextMeshProUGUI progT = UiKit.Text(bar, "prog", TextKind.Sub, PopupKit.Fmt(System.Math.Min(q.Prog, q.Need)) + "/" + PopupKit.Fmt(q.Need), "pp_ink");
                 progT.fontStyle = FontStyles.Bold;
 
