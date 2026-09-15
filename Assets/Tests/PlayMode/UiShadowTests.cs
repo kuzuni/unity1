@@ -144,6 +144,35 @@ namespace Forge.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator 리그_발판의_그늘은_위로_뜬다()
+        {
+            yield return Boot();
+            LeagueSheet.Open(MetaHost.Instance);
+            yield return null;
+            yield return null;
+            RectTransform foot = null;
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+                if (rt.name == "foot" && rt.Find(UiShadow.LayerName) != null) { foot = rt; break; }
+            Assert.IsNotNull(foot, "리그 발판(`foot`)의 그늘을 못 찾았다 — 상자 크기가 아직 0 이면 굽기가 조용히 건너뛴다");
+
+            var rt2 = (RectTransform)foot.Find(UiShadow.LayerName);
+            Assert.AreEqual(0, rt2.GetSiblingIndex(), "그늘은 발판 바탕 **뒤**에 깔린다");
+            ShadowSpec s = UiShadow.Table.Get("leaguefoot_up");
+            Assert.Less(s.DyRem, 0.0, "정본 `.league-foot` 은 **위로** 뜨는 그늘이다");
+            Assert.IsFalse(s.IsHard, "그리고 흐리다 — 구운 판이라야 한다");
+            Assert.IsNotNull(rt2.GetComponent<Image>().sprite, "구운 판");
+
+            // 위로 뜬다 = 구운 판의 가운데가 상자 위쪽으로 밀려 있다(넓힘을 뺀 순수 치우침이 양수).
+            double dx, dy;
+            UiShadow.Table.OffsetPx("leaguefoot_up", PetSkillStyle.RemPx, out dx, out dy);
+            Assert.Greater(dy, 0f, "CSS 의 −y 는 화면에서 +y");
+            float pad = rt2.offsetMax.y - (float)dy;
+            Assert.Greater(pad, (float)s.BlurRem * PetSkillStyle.RemPx, "흐림 반지름보다 넓게 구웠다");
+            LeagueSheet.Close(MetaHost.Instance);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator 반지름을_상자에서_되읽는다()
         {
             yield return Boot();

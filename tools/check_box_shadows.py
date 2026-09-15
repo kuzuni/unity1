@@ -57,7 +57,6 @@ KNOWN = {
     'panel_lip':     'T331 2회차 — 같음(UiKit.cs 는 T178·T335 산 lock)',
     'afcard_drop':   'T331 4회차 — 굽는 길은 섰다 · ForgeAutoPopup.cs 가 T345 산 lock',
     'passcard_drop': 'T331 4회차 — 굽는 길은 섰다 · PassPopup.cs 가 T352 산 lock',
-    'leaguefoot_up': 'T331 4회차 — 굽는 길은 섰다 · LeagueSheet.cs 가 T178·T333 산 lock',
 }
 
 

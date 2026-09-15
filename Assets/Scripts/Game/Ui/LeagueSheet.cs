@@ -98,6 +98,10 @@ namespace Forge.Game.Ui
             // 회색(다크 전환) 밴드: 내 행 + ◀ · [도전]
             RectTransform foot = UiKit.Box(sheet, "foot");
             UiKit.Band(foot, UiKit.L("league_foot_top"), 1f);
+            // 정본 `.league-foot`(style.css 2376) `0 -.14rem .34rem rgba(0,0,0,.40)` — **위로** 뜨는 그늘이다.
+            // 정본 주석: «리스트 쪽으로 떨어지는 그림자 — 밴드가 위에 얹힌 판». 밴드라 모서리는 각지다(반지름 0).
+            // 그늘은 발판의 첫 자식이라 발판 제 바탕 뒤에 깔리고, 위로 삐져나온 만큼이 리스트 위에 얹힌다.
+            UiShadow.Drop(foot, "leaguefoot_up", 0f);
             UiKit.Panel(foot, "bg", "league_foot");
             UiKit.Line(foot, "line", "pp_line", PopupKit.Line3, true);
             LeagueEntry me = null;
