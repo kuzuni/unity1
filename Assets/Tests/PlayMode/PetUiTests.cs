@@ -176,9 +176,9 @@ namespace Forge.Tests.PlayMode
             {
                 int uiLayer = canvas.gameObject.layer;
                 if (Camera.main != null) cam.CopyFrom(Camera.main);
-                // T349 — `CopyFrom` 은 URP 추가 데이터(renderPostProcessing·volumeLayerMask·antialiasing·renderShadows)를
-                //        **안 옮긴다** — 그래서 촬영 PNG 의 3D 띠가 톤맵·노출·색 보정 없이 찍혔다(런 503 실측).
-                ShotCam.CopyUrp(Camera.main, cam);
+                // T349 4회차 — 이 카메라는 `cullingMask` 가 **UI 층 하나**다(3D 를 한 화소도 안 그린다).
+                //        여기에 URP 포스트를 켜면 **UI 가 톤맵·색 보정에 물든다** — 정본은 `filter` 를 `#game3d` 에만 걸고
+                //        HUD·패널·팝업에는 안 건다(T357). 3회차에 켰다가 순백 코어가 rgb 215 로 내려가 이 자가 빨갰다.
                 cam.rect = new Rect(0f, 0f, 1f, 1f);
                 cam.targetTexture = rt;
                 cam.ResetProjectionMatrix();

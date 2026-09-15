@@ -2050,11 +2050,18 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 범위: `Assets/Tests/PlayMode/`(촬영 자 15개 · 각 파일의 산 lock 뒤 · 새 도우미 파일 하나) · `docs/ROUTINE.md`(§2 이 절 · §7 한 칸) · `docs/PROGRESS.md`.
 - 1회차(2026-09-14 21:5x · 워커 O · sess-2140-18689): 도우미 `Ui/ShotCam.cs`(`From` = CopyFrom + rect + RT + URP 추가 데이터 복사 · `CopyUrp` · `SameUrp`) + `ShotCamTests` 둘(«CopyFrom 만 하면 잃는다» · «From 은 같다») — 새 파일 둘 · 남의 파일 0줄. 배선(열여섯 자리 · 각 lock 뒤)은 2회차부터. 판정은 다음 유니티 런.
 - 1회차 판정(2026-09-14 22:2x · 워커 O): 런 512 `ShotCamTests` **2/2 PASS** · lock 반납. **결정 559** — 배선은 «화면을 남기는 촬영 자»(`UiShotsTests` · T128 lock 뒤)에 먼저, 색 절댓값을 재는 픽셀 자 열셋은 각 임자가 값을 다시 재며 한 자씩(포스트가 색을 바꿔 한꺼번에 걸면 거짓 빨강 여덟). `WorldFrameShotTests` 의 손 켬은 `CopyUrp` 한 줄로 바꿀 수 있다(뜻은 같다).
-- ✅ 3회차(2026-09-15 01:3x · 워커 K · sess-0133-7279) **산 lock 이 없는 열셋을 한 번에 배선**: `AgePatternTests` · `BootLoadingTests` · `BossWarnArtTests` · `CraftRevealSeamTests` · `DamageVignetteTests` · `ForgeUiTests` · `LootFeedTests` · `OutlineTests` · `PetUiTests` · `RewardBurstTests` · `SafeAreaTests` · `UiFilterTests` · `WaypointsTests`.
+- ⚠ 3회차(2026-09-15 01:3x · 워커 K · sess-0133-7279) **산 lock 이 없는 열셋을 한 번에 배선** — **4회차가 열하나를 되돌렸다(아래)**: `AgePatternTests` · `BootLoadingTests` · `BossWarnArtTests` · `CraftRevealSeamTests` · `DamageVignetteTests` · `ForgeUiTests` · `LootFeedTests` · `OutlineTests` · `PetUiTests` · `RewardBurstTests` · `SafeAreaTests` · `UiFilterTests` · `WaypointsTests`.
   - **부르는 꼴이 하나라 기계로 골랐다**: 열넷 중 열셋이 `if (Camera.main != null) cam.CopyFrom(Camera.main);` 한 줄이고 `SafeAreaTests` 만 `cam.CopyFrom(Camera.main);`(T54 되돌림 주석 아래) 이다 — 그 하나는 손으로 넣었다. 각 자리에 `ShotCam.CopyUrp(Camera.main, cam)` 한 줄과 «왜» 두 줄을 붙였다(값은 **하나도 안 정한다** — 게임 카메라가 켜 둔 것을 그대로 따라간다 · §1).
   - **`SummonFxTests` 는 뺐다** — **T334 산 lock**(14분)이다. 남은 배선은 그 하나뿐이니 T334 임자가 제 회차에 한 줄 넣으면 15/15 다.
   - 자 자체는 안 건드렸다(단언·framing·cullingMask 그대로) — **촬영이 무엇을 보는가만** 바뀐다.
   - 게이트: `tools/gate.sh` rc 0 · `dotnet test` **720/720**. 판정은 다음 런의 PNG(3D 띠에 톤맵·색 보정이 실리는가) — 2회차가 `WorldFrameShotTests` 에서 화소로 이미 확인한 것과 같은 꼴이다.
+
+- ✅ 4회차(2026-09-15 02:3x · 워커 K · sess-0232-14999) **§0-6 = 내 3회차 회귀 수리**: 런 562 의 `ForgeUiTests.접지_그림자와_순백_코어…` 가 «순백 코어 0픽셀 · 가장 밝은 화소 **rgb 215,215,214**» 로 넘어졌다 — ACES 톤맵이 흰색을 내린 값이다.
+  - **뿌리**: 3회차가 배선한 열셋 중 **열하나는 `cullingMask` 가 UI 층 하나**다(3D 를 한 화소도 안 그린다). 거기에 포스트를 켜면 **얻는 것은 0이고 UI 만 물든다** — 정본은 `filter` 를 `#game3d` 에만 걸고 HUD·패널·팝업에는 안 건다(**T357** 이 등재한 그 규칙이다).
+  - **되돌린 열하나**: `AgePatternTests` · `BootLoadingTests` · `CraftRevealSeamTests` · `DamageVignetteTests` · `ForgeUiTests` · `LootFeedTests` · `OutlineTests` · `PetUiTests` · `RewardBurstTests` · `UiFilterTests` · `WaypointsTests`. 지운 자리마다 **왜 여기는 켜면 안 되는가**를 세 줄로 남겼다(안 적으면 다음 사람이 «빠뜨렸네» 하고 다시 켠다).
+  - **남긴 둘은 3D 를 실제로 그린다**: `BossWarnArtTests`(`cullingMask |=` 로 세계를 남긴다) · `SafeAreaTests`(마스크를 안 바꿔 메인 것을 그대로 쓴다). 둘 다 런 562 초록.
+  - **셈이 바뀐다**: «14/15» 가 아니라 **3/15**(`UiShotsTests` + 위 둘). 나머지 열둘은 **애초에 대상이 아닐 수 있다** — 다음 회차는 자리를 늘리기 전에 «이 카메라가 3D 를 그리는가» 를 먼저 센다. 그것이 이 절의 진짜 남은 몫이다.
+  - 교훈은 결정 591 — 꼴이 같다고 뜻이 같지는 않다. 게이트 rc 0 · `dotnet test` 720/720 · lock 반납.
 
 ### T353 ✅ — 아이콘 시트가 **바이리니어**로 축소된다: 정본 `.ico`·`.ico.av-ico`·`.dg-banner` 는 `image-rendering: pixelated`(style.css 7215·7225·1959 · «최근접 축소를 강제한다 — 안 걸면 칸 단위로 끊긴 색이 다시 그라디언트가 된다») 인데 클론 `Resources/Icons/atlas-*.png.meta` 는 `filterMode: 1`(Bilinear) (Game·아이콘 · T31 뒤 · T33 22회차 등재)
 - 정본: 아이콘은 IconGen 이 «블록화»(칸 단위 색)로 그리고, 화면에선 `.ico { width: 1.45em }` 로 **축소**되는데 pixelated 가 그 축소를 최근접으로 강제해 칸 경계가 딱딱하게 남는다(정본 주석 «요건 1번이 색이 칸 단위로 끊긴다»). 배너(`.dg-banner`)도 같다.
