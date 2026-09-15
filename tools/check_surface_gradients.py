@@ -44,6 +44,7 @@ TABLE = {
     '.bw-flash': ['Ui/BattleOverlay.cs#bw-flash'],
     # T135 — 피격 붉은 비네트(정본 #dmg-flash 의 radial + mask) → VigSprite.
     '#dmg-flash': ['Ui/BattleOverlay.cs@VigSprite'],
+    '.rw-glow': ['Ui/RewardBurst.cs@GlowFx'],   # T178 14회차 — 수령 임팩트 글로우(방사형 · SurfaceUi.json rw_glow · 박동은 RewardBurstUi.json glow)
     # T124 — 시대 무늬 셋(--af-pat 사용자 속성)은 AgePattern.Tile 이 굽는다.
     '.af-age-bar[data-age="interstellar"], .fi-age-bar[data-age="interstellar"], .equip-cell[data-age="interstellar"]': ['Ui/AgePattern.cs@Tile'],
     '.af-age-bar[data-age="multiverse"], .fi-age-bar[data-age="multiverse"], .equip-cell[data-age="multiverse"]': ['Ui/AgePattern.cs@Tile'],

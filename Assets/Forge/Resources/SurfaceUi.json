@@ -345,6 +345,46 @@
     ],
     "_": "style.css 8327 같은 규칙의 둘째 겹 `radial-gradient(86% 46% at 50% 100%, rgba(255,213,79,.30) 0, rgba(255,213,79,0) 72%)` — 아래 가장자리에서 올라오는 빛. T178 5회차."
   },
+  "rw_glow": {
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": 0.5,
+    "rx": 0.7071,
+    "ry": 0.7071,
+    "stops": [
+      [
+        255,
+        174,
+        20,
+        1
+      ],
+      [
+        255,
+        150,
+        10,
+        0.9
+      ],
+      [
+        255,
+        140,
+        0,
+        0.4
+      ],
+      [
+        255,
+        140,
+        0,
+        0
+      ]
+    ],
+    "offsets": [
+      0,
+      0.3,
+      0.56,
+      0.72
+    ],
+    "_": "style.css 7460 `.rw-glow { background: radial-gradient(circle, rgba(255,174,20,1) 0%, rgba(255,150,10,.9) 30%, rgba(255,140,0,.4) 56%, transparent 72%) }` — 수령 임팩트 글로우(9rem 정사각 원판). `circle` 의 기본 크기 farthest-corner = 정사각 반대각 절반 = 변의 .7071 이라 rx·ry 가 그 수다. 마지막 정지점 `transparent` 는 앞 색의 알파 0(CSS 는 미리 곱한 알파로 잇는다 — 색은 안 바뀌고 알파만 꺼진다). 크기·박동(scale .2→1.6 · 알파)은 RewardBurstUi.json glow 가 쥔다. T178 14회차."
+  },
   "qst_bar_ramp": {
     "angle_deg": 180,
     "stops": [

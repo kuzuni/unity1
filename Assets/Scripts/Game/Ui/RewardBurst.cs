@@ -318,11 +318,15 @@ namespace Forge.Game.Ui
         IEnumerator GlowFx(RewardBurstSpec s, double cx, double cy, double rem)
         {
             Impacts++;
-            Image g = UiKit.Circle(Layer, "rw-glow", "coin");
-            g.color = RewardBurstStyle.C("glow");
+            // T178 14회차 — 정본 7460 `.rw-glow { background: radial-gradient(circle, #ffae14 0, rgba(255,150,10,.9) 30%, rgba(255,140,0,.4) 56%, transparent 72%) }`:
+            // 단색 원 한 장이 아니라 **가운데가 진하고 72% 밖은 투명한 방사형 판**이다(SurfaceUi.json `rw_glow` · 정사각이라 비율 1). 박동(scale·알파)은 그대로 위에 탄다.
+            RectTransform gb = UiKit.Box(Layer, "rw-glow");
+            Image g = gb.gameObject.AddComponent<Image>();
+            g.sprite = SurfaceArt.Bake("rw_glow", 1f);
+            g.color = Color.white;
             g.raycastTarget = false;
             double size = s.GlowRem * rem;
-            Center(g.rectTransform, cx, cy, size, size);
+            Center(gb, cx, cy, size, size);
             yield return Run(0, s.GlowAnimMs, s.ImpactMs, g.gameObject, pct =>
             {
                 double sc, a; RewardBurstRules.Glow(s, pct, out sc, out a);

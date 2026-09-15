@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using Forge.Core.Ui;
@@ -528,6 +529,45 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0f, topPx.r, 0.02f, "맨 윗줄은 검정 그늘");
             Assert.AreEqual(1f, botPx.r, 0.02f, "맨 아랫줄은 흰 빛");
             Assert.Greater(botPx.a, topPx.a, "아래 빛이 위 그늘보다 진하다(.34 > .16)");
+        }
+
+        /// <summary>T178 14회차 — 수령 임팩트 글로우 `.rw-glow`(정본 7460)는 단색 원이 아니라 **방사형 판**이다:
+        /// 가운데 #ffae14 알파 1 · 56% 에서 알파 .4 · 72% 밖은 투명(`circle` 의 반지름 = 정사각 반대각 절반 · SurfaceUi.json `rw_glow`).</summary>
+        [UnityTest]
+        public IEnumerator 수령_임팩트_글로우는_가운데가_진하고_72퍼센트_밖이_투명한_방사형_판이다()
+        {
+            yield return Boot();
+            var rewards = new Dictionary<string, double> { { "coins", 100 } };
+            int n = RewardBurst.Play(rewards, UiRoot.Instance.Sheet);
+            Assert.Greater(n, 0, "수령 연출이 섰다");
+            yield return null;
+            RewardBurst rb = RewardBurst.Instance;
+            Assert.IsNotNull(rb, "연출 층");
+            Transform glow = FindDeep(rb.Layer, "rw-glow");
+            Assert.IsNotNull(glow, "임팩트 글로우 rw-glow 가 층에 있다");
+            RectTransform grt = (RectTransform)glow;
+            Assert.AreEqual(grt.sizeDelta.x, grt.sizeDelta.y, 0.01f, "정본 9rem 정사각(circle 은 그 위에 선다)");
+            UnityEngine.UI.Image img = glow.GetComponent<UnityEngine.UI.Image>();
+            Assert.IsNotNull(img, "Image");
+            Assert.IsNotNull(img.sprite, "겹은 구운 그림이다 — 단색 원(UiKit.Circle) 이 아니다");
+            Texture2D tex = img.sprite.texture;
+            int w = tex.width, h = tex.height;
+            Color mid = tex.GetPixel(w / 2, h / 2), corner = tex.GetPixel(1, 1);
+            Assert.AreEqual(1f, mid.r, 0.02f, "가운데 #ffae14 — R");
+            Assert.AreEqual(174f / 255f, mid.g, 0.03f, "가운데 #ffae14 — G");
+            Assert.AreEqual(20f / 255f, mid.b, 0.03f, "가운데 #ffae14 — B");
+            Assert.AreEqual(1f, mid.a, 0.02f, "가운데 알파 1");
+            Assert.Less(corner.a, 0.02f, "모서리(반대각 = 반지름 100%) 는 72% 밖이라 투명하다");
+            // 56% 정지점: 가운데에서 오른쪽으로 .56 × 반지름(.7071 × 변) — 알파 .4 ± 화소 하나의 기울기.
+            int x56 = Mathf.RoundToInt((0.5f + 0.56f * 0.7071f) * w - 0.5f);
+            Color p56 = tex.GetPixel(x56, h / 2);
+            Assert.AreEqual(0.4f, p56.a, 0.08f, "56% 정지점의 알파 .4 (rgba(255,140,0,.4))");
+            Assert.AreEqual(140f / 255f, p56.g, 0.04f, "56% 정지점의 G = 140");
+            // 30% 정지점: 알파 .9 · G 150.
+            int x30 = Mathf.RoundToInt((0.5f + 0.30f * 0.7071f) * w - 0.5f);
+            Color p30 = tex.GetPixel(x30, h / 2);
+            Assert.AreEqual(0.9f, p30.a, 0.06f, "30% 정지점의 알파 .9");
+            Assert.AreEqual(1f, img.color.r, 1e-3f, "그림 위 색은 흰색(박동은 알파만 만진다) — 표 색을 두 번 곱하지 않는다");
         }
 
     }

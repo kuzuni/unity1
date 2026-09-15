@@ -4876,6 +4876,13 @@
 
 ## 워커 결정 기록
 
+### T178 14회차 — 수령 임팩트 글로우 `.rw-glow` 를 정본 방사형 판으로 (2026-09-15 16:4x · 워커 O · sess-2140-18689 · lock 유지 · 판정은 다음 런)
+- **자리 고르기**: 13회차 판정이 남긴 «`--list` 109 · 산 lock 없는 파일부터». 109 를 파일로 갈라 산 lock 아홉(T28·T331·T332·T334·T361·T364·T368·T382·T383·T387)의 «범위» 와 대조하니 열린 것은 `RewardBurst.cs`(T359 가 16:0x 에 반납) 하나 — `.rw-glow`(7460). 나머지는 `.sr-*`(T334) · `Popups`·`Hud`·`SkillPanel`·`QuestSheet`·`LeagueSheet`·`TabBar`·`PetPanel`·`EquipSwapFx`(T331) · `ForgeSheet`·`ForgeUi`·`ForgeInfoPopup`·`DungeonDetailPopup`·`PetSkillKit`(T332) · `ForgeCraftPopup`(T331·T382) · `ForgeAutoPopup`(T388 이 방금 반납했으나 그 절의 2회차가 그 파일을 «범위» 로 적어 뒀다 — 안 건드림).
+- **정본**: `.rw-glow { width: 9rem; height: 9rem; border-radius: 50%; background: radial-gradient(circle, rgba(255,174,20,1) 0%, rgba(255,150,10,.9) 30%, rgba(255,140,0,.4) 56%, transparent 72%) }` + 주석 «흰 종이 위에서도 읽히려면 심이 진해야 한다 — 채도 높은 주황금 심 + 빠른 소멸». 클론은 `UiKit.Circle(Layer, "rw-glow", "coin")` 에 `glow`(#ffae14) 단색 — 심과 테가 같은 알파라 «심» 이 없었다.
+- **고침**: `SurfaceUi.json` `rw_glow`(radial · 중심 .5/.5 · **rx·ry .7071** — CSS `circle` 의 기본 크기 farthest-corner 는 정사각에서 반대각 절반 = 변 × .7071 · 정지점 0/.30/.56/.72 · `transparent` 는 앞 색(255,140,0) 알파 0 — CSS 는 미리 곱한 알파로 잇는다) · `GlowFx`: `UiKit.Box` + `Image.sprite = SurfaceArt.Bake("rw_glow", 1f)`(정사각이라 비율 1 · 방사형은 선 길이 없음) · 색 흰색 · 박동(scale .2→1.6 · 알파)은 종전 `RewardBurstRules.Glow` 그대로 위에 탄다. `RewardBurstUi.json` 의 `glow`/`glow_edge` 색 칸은 T134 표라 안 건드렸다(이제 `glow` 를 부르는 코드는 없다 — 그 절이 걷을 몫).
+- **자**: `check_surface_gradients` TABLE `'.rw-glow': ['Ui/RewardBurst.cs@GlowFx']` → **자리 초록 30 → 31 · 미정 108** · `SurfaceArtTests` +1 «수령_임팩트_글로우는_가운데가_진하고_72퍼센트_밖이_투명한_방사형_판이다»(`RewardBurst.Play` 뒤 층에서 `rw-glow` 를 찾아 구운 화소를 잰다 — 가운데 (255,174,20,1) · 30% 알파 .9 · 56% 알파 .4/G 140 · 모서리 알파 0 · 정사각 · Image 색 흰색).
+- 게이트: `tools/gate.sh` 막는 자 전부 rc 0(아래 줄에 실제 결과). 판정 = 다음 런 `SurfaceArtTests` 초록.
+
 ### T368 4회차 — 보스 경고 빗금의 박힌 rem 셋을 표 `bw_hazard` 로 (2026-09-15 16:4x · 워커 C · sess-2036-34862 · lock 유지 · 판정은 다음 런)
 - **자리**: 3회차 판정 줄이 «누구든 한 줄» 로 남긴 것 — `BattleOverlay.cs` 의 `1.1f * Rem`(타일 폭) · `0.5f * rem`(띠 두께) · `BakeStripe(…, 1.1f * rem, 0.55f * rem, …)`(주기·대시). 표 `SurfaceUi.json` `stripes.bw_hazard` 엔 `period_rem 1.1`·`dash_rem .55`·`height_rem .5` 가 2회차부터 있었는데 코드는 그 표를 색·각도만 읽고 치수는 리터럴로 들고 있었다(§1).
 - **고침**: `HazardRem(field)` 도우미 하나 — `SurfaceArt.StripeNum("bw_hazard", field, NaN)` 이 NaN 이면 던진다(기본값으로 가리면 표가 비어도 화면이 그럴싸해 자가 못 잡는다). 세 자리가 그것을 부른다. 표·화면 변화 0 · 자 `BossWarnArtTests` +단언 넷(표값 셋 · 띠 두께 = 표 × rem).
