@@ -26,6 +26,17 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T364 §0-6 급 수리(런 762) — 카드 팝(T135 `cardpop` · .25s ease-out · scale .7 → 1)이 끝날 때까지 프레임을 넘긴다.
+        /// 채팅도 `Popups` 가 처음 열 때 `CardPop.Begin` 을 거는 모달이라, 열고 두 프레임 뒤에 재면 입력칸 폭이 **연출 중간값**으로 나온다
+        /// (런 762 실측: 86.19%W 가 84.23%W · 셋 틈은 ±1.5px 안이라 통과 — 전체가 한 비율로 줄었다). 시간을 어림하지 않는다: 러너는 끝나면
+        /// 카드를 scale 1 로 돌리고 스스로 사라진다(T149 `GearDetailTests.SettleCardPop` 과 같은 자 · 결정 277 갈래).</summary>
+        static IEnumerator SettleCardPop()
+        {
+            for (int i = 0; i < 600 && Object.FindObjectsByType<CardPop>(FindObjectsSortMode.None).Length > 0; i++)
+                yield return null;
+            Assert.AreEqual(0, Object.FindObjectsByType<CardPop>(FindObjectsSortMode.None).Length, "카드 팝이 600프레임 안에 안 끝났다(T149)");
+        }
+
         static Transform FindActive(Transform root, string name)
         {
             if (!root.gameObject.activeInHierarchy) return null;
@@ -53,6 +64,7 @@ namespace Forge.Tests.PlayMode
             Hud.Instance.ChatButton.onClick.Invoke();
             yield return null; yield return null;
             Assert.IsTrue(PopupLayer.Instance.IsOpen(ChatScreen.Name), "채팅 줄 → 전체화면 채팅");
+            yield return SettleCardPop();   // T149 갈래 — 팝이 도는 동안 재면 폭이 연출 중간값이다(런 762)
             Canvas.ForceUpdateCanvases();
 
             RectTransform app = (RectTransform)UiRoot.Instance.App;
