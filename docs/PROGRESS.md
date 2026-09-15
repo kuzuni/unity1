@@ -9444,3 +9444,13 @@
 - **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · `dotnet build` 0 오류 · `dotnet test` **756/756**.
 - **판정(다음 런)**: `screen_pass.png` 에서 ⓐ 리본 높이 ≈ **4.6%H**(전 5.99) ⓑ 무료/프리미엄 머리 행 ≈ **2.9%H**(전 4.38) ⓒ 가격 페넌트 폭 ≈ **16.0%W**(전 19.2) · `TableScaleSitesTests` 초록 · 카드 전체 높이가 줄어 트랙이 잘리지 않는가(가장 큰 위험 — 잘리면 다음 회차가 `pass_track_h` 를 본다).
 - **주인이 확인할 것**: 없다.
+### T379 1회차 — 공유 카드 한 쪽을 정본대로 세로 3단·가운데 정렬로 (2026-09-15 12:4x · 워커 O · sess-2140-18689 · lock 유지)
+
+- **잡은 까닭**: 런 672 빨강 둘은 T365·T381 산 lock 몫 · 런 674 의 문서 파손(다른 워커의 rebase 표식)은 이미 남이 고쳤다 → §0-6 없음. 열린 후보 중 `ChatScreen.cs` 에 산 lock 이 없어(T354·T377 반납) T379 를 잡았다.
+- **정본**: `style.css` 3396~3398 `.chat-share-side { flex-direction:column; align-items:center; gap: .010W; padding: .014W .3rem .016W }` · 3402 타일 `.0882W` · 3424 `.chat-share-label { left:50%; transform:translateX(-50%); bottom: -.020W }`(타일 하단 모서리에 걸터앉는다 — 정본 주석 3416~3421). `ui.js` 5261~5265 는 타일 → `<small>` 이름 → `<small>` 전투력 순.
+- **클론(전)**: 아바타를 왼쪽 세로 가운데, 이름·전투력을 그 오른쪽에, 라벨은 한 쪽 바닥 왼쪽에 — 상자 방향 자체가 달랐다(T364 4회차가 gap 축 밖이라 등재).
+- **한 것**: `Side` 재작성(세로 쌓임 · 세 단 x 중심 = 한 쪽 가운데 · 전투력은 아이콘+수 묶음을 `preferredWidth` 로 재어 가운데) · 라벨을 타일 기준 절대 배치 + 타일 위에 겹침 · 공유 행 높이 `rem*4.2` 박힘 → `ShareBodyH()`(위 패딩 + 타일 + 틈 + 이름 줄 + 틈 + 전투력 줄 + 아래 패딩). 표 `StaticIconsUi.json` 에 키 여섯(`chat_share_tile_aw` .0882 · `_side_gap_aw` .010 · `_side_pad_top_aw` .014 · `_side_pad_bot_aw` .016 · `_side_pad_x_rem` .3 · `_label_bottom_aw` .020 · `_src` 에 정본 줄). 이름·색·키라인 키는 그대로.
+- **자**: 새 `PlayMode/ChatShareLayoutTests` 1 — 세 단 x 중심 · 타일 위 = 패딩 · 이름 = 타일 + gap · 전투력 = 이름 + gap · 라벨 아래끝 = 타일 아래끝 + .020W · 진 쪽엔 라벨 없음 · 카드 높이 = 쌓임 · 표값 = 정본값.
+- **게이트**: dotnet build 0 오류 · dotnet test 756/756 · `check_resources_json` 46 표 · `tools/gate.sh` 막는 자 전부 rc 0 · 새 파일 `.meta` 는 `gen_meta.py`.
+- **참고(색 · 이 회차 밖)**: 정본 한 쪽 배경 `#39ab36`/`#cecece` 와 이름 검정·전투력·라벨 주황 `#ff880f` 는 클론이 다르다(쪽 배경 없음 · 초록/회색 키를 글자 색으로). 리터럴 색 축(T377) 몫으로 넘긴다.
+- **판정(다음 런)**: `ChatShareLayoutTests` PASS + `screen_chat.png` 눈 확인(공유 카드 한 쪽이 타일·이름·전투력 세로 · «승리» 가 타일 아래 모서리) → lock 반납 · 행 ⬜.

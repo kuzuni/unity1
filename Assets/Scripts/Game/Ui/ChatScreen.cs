@@ -185,7 +185,7 @@ namespace Forge.Game.Ui
             float nameH = PopupKit.FontSize(TextKind.Sub) * 1.3f;
             bool share = m.Type == ChatMessage.TypeShare;
             float bubbleW = UiKit.L("chat_bubble_w") * w;
-            float bodyH = share ? rem * 4.2f : Mathf.Max(nameH, EstimateLines(m.Text, bubbleW) * PopupKit.FontSize(TextKind.Sub) * 1.25f + rem * 0.6f);
+            float bodyH = share ? ShareBodyH() : Mathf.Max(nameH, EstimateLines(m.Text, bubbleW) * PopupKit.FontSize(TextKind.Sub) * 1.25f + rem * 0.6f);   // T379 — 공유 카드는 한 쪽의 세로 쌓임이 높이를 정한다(종전 rem*4.2 박힘)
             float rowH = nameH + rem * 0.2f + bodyH;
             RectTransform row = PopupKit.Item(parent, "msg", -1f, rowH);
             string avatar = share ? m.MyAvatar : m.Avatar;
@@ -255,35 +255,62 @@ namespace Forge.Game.Ui
             }
         }
 
+        /// <summary>
+        /// T379 — 정본 style.css 3396 `.chat-share-side { display:flex; flex-direction:column; align-items:center; gap: calc(var(--app-w) * .010);
+        /// padding: calc(var(--app-w) * .014) .3rem calc(var(--app-w) * .016) }`: **세로 3단 · 가운데 정렬** — 아바타 타일(3402 `.icon-circle.sm` .0882W 정사각) → `<small>` 이름 → `<small>` 전투력(power 아이콘 + 수).
+        /// «승리» 라벨(3424 `.chat-share-label`)은 절대 배치라 세로를 안 먹고 타일 하단 모서리에 걸터앉는다(`left:50%; bottom: calc(var(--app-w) * -.020)` = 라벨 아래끝이 타일 아래끝보다 .020W 아래).
+        /// 치수는 전부 앱 폭 배수(표 StaticIconsUi `_aw` · 정본 주석 «가로 치수라 rem 금지» 갈래). 종전(T25)엔 «아바타 왼쪽 + 글 오른쪽» 가로 배치였고 라벨은 한 쪽 상자의 바닥 왼쪽이었다.
+        /// </summary>
         private static void Side(RectTransform card, string name, float x, float w, float h, string avatar, string who, string cp, string colorKey, string label)
         {
-            float rem = PopupKit.Rem;
+            float rem = PopupKit.Rem, aw = UiKit.RefW;
             RectTransform side = UiKit.Box(card, name);
             UiKit.Place(side, x, 0f, w, h);
-            float av = rem * 2f;
-            // T345 — 정본 3401 `.chat-share-side .icon-circle.sm { border-radius: .28rem }`(.icon-circle 의 50% 를 덮는 둥근 네모 · 표 `chat_share_avatar_r_rem` · 전엔 폭×.5 = 거의 원)
-            RectTransform tile = PopupKit.Avatar(side, "avatar", av, avatar, RadiusUi.Px("chat_share_avatar_r_rem"));
-            UiKit.Place(tile, rem * 0.4f, (h - av) * 0.5f, av, av);
+            float tile = StaticIconsUi.L("chat_share_tile_aw") * aw;
+            float padT = StaticIconsUi.L("chat_share_side_pad_top_aw") * aw, padX = StaticIconsUi.L("chat_share_side_pad_x_rem") * rem;
+            float gap = StaticIconsUi.L("chat_share_side_gap_aw") * aw;
+            float lineH = PopupKit.FontSize(TextKind.Sub) * 1.2f;
+            float cx = w * 0.5f, innerW = w - padX * 2f;
+            float y = padT;
+            // 1단 — 아바타 타일(정본 3401 `.icon-circle.sm { border-radius: .28rem }` · 표 chat_share_avatar_r_rem · T345)
+            RectTransform tileRt = PopupKit.Avatar(side, "avatar", tile, avatar, RadiusUi.Px("chat_share_avatar_r_rem"));
+            UiKit.Place(tileRt, cx - tile * 0.5f, y, tile, tile);
             if (label != null)
             {
                 TextMeshProUGUI lb = UiKit.Text(side, "label", TextKind.Sub, label, colorKey);
                 lb.fontStyle = FontStyles.Bold;
                 UiKit.OutlinePx(lb, "pp_line", KeylineUi.Px("chat_share_label"));   // 정본 .chat-share-label { var(--ol2) #000 }
-                UiKit.Place(lb.rectTransform, 0f, h - PopupKit.FontSize(TextKind.Sub) * 1.2f, av + rem * 0.8f, PopupKit.FontSize(TextKind.Sub) * 1.2f);
+                float lbW = Mathf.Max(lb.preferredWidth + rem * 0.4f, tile);
+                float lbBottom = y + tile + StaticIconsUi.L("chat_share_label_bottom_aw") * aw;
+                UiKit.Place(lb.rectTransform, cx - lbW * 0.5f, lbBottom - lineH, lbW, lineH);
+                lb.transform.SetAsLastSibling();   // 타일 위에 겹쳐 그린다(오버레이)
             }
-            float tx = rem * 0.4f + av + rem * 0.3f;
-            TextMeshProUGUI n = UiKit.Text(side, "name", TextKind.Sub, who ?? string.Empty, "pp_ink", TextAlignmentOptions.Left);
+            y += tile + gap;
+            // 2단 — 이름(정본 `.chat-share-side small { font-weight: 800 }` · 색은 3399 `color: #000`)
+            TextMeshProUGUI n = UiKit.Text(side, "name", TextKind.Sub, who ?? string.Empty, "pp_ink");
             n.fontStyle = FontStyles.Bold;
-            UiKit.Place(n.rectTransform, tx, h * 0.15f, w - tx, h * 0.35f);
-            // T99 — 정본 `ui.js` 5264·5269: `<small>${IconGen.img('power')} ${U.fmt(cp)}</small>` — 전투력은 «⚔» 글자가 아니라
-            // `power` 아이콘 + 수다(글꼴에 ⚔ 가 없어 □ 로 찍히던 자리 · HUD `cp` 줄·리그 도전 행과 같은 길). 아이콘 한 칸은 글자 크기의 정사각.
-            float cpH = h * 0.35f, cpIco = Mathf.Min(PopupKit.FontSize(TextKind.Sub), cpH);
-            Image cpI = PopupKit.IconOr(side, "cp-ico", "power");
-            UiKit.Place(cpI.rectTransform, tx, h * 0.5f + (cpH - cpIco) * 0.5f, cpIco, cpIco);
+            UiKit.Place(n.rectTransform, padX, y, innerW, lineH);
+            y += lineH + gap;
+            // 3단 — T99 — 정본 `ui.js` 5264·5269: `<small>${IconGen.img('power')} ${U.fmt(cp)}</small>` — «⚔» 글자가 아니라 `power` 아이콘 + 수(아이콘 한 칸은 글자 크기의 정사각).
+            //        아이콘과 수를 한 묶음으로 재어 가운데에 놓는다(정본 align-items:center · 글자 폭은 TMP preferredWidth).
+            float cpIco = PopupKit.FontSize(TextKind.Sub), cpGap = rem * 0.15f;
             TextMeshProUGUI c = UiKit.Text(side, "cp", TextKind.Sub, cp, colorKey, TextAlignmentOptions.Left);
             c.fontStyle = FontStyles.Bold;
             UiKit.OutlinePx(c, "pp_line", KeylineUi.Px("chat_share_small"));   // 정본 .chat-share-side small:last-child { var(--ol2) #000 }
-            UiKit.Place(c.rectTransform, tx + cpIco + rem * 0.15f, h * 0.5f, w - tx - cpIco - rem * 0.15f, cpH);
+            float cpTextW = Mathf.Clamp(c.preferredWidth, 1f, innerW - cpIco - cpGap);
+            float groupW = cpIco + cpGap + cpTextW, gx = cx - groupW * 0.5f;
+            Image cpI = PopupKit.IconOr(side, "cp-ico", "power");
+            UiKit.Place(cpI.rectTransform, gx, y + (lineH - cpIco) * 0.5f, cpIco, cpIco);
+            UiKit.Place(c.rectTransform, gx + cpIco + cpGap, y, cpTextW, lineH);
+        }
+
+        /// <summary>T379 — 공유 카드 한 쪽의 세로 쌓임 = 위 패딩 + 타일 + 틈 + 이름 줄 + 틈 + 전투력 줄 + 아래 패딩(정본 3396~3398 · 라벨은 절대 배치라 세로를 안 먹는다).
+        /// 정본 실측은 95px(18.8%W)이고 클론은 §1 글자 하한(Sub 36)으로 줄이 더 높아 그보다 큰 것이 맞다 — 값을 박지 않고 쌓임으로 셈한다.</summary>
+        public static float ShareBodyH()
+        {
+            float aw = UiKit.RefW, lineH = PopupKit.FontSize(TextKind.Sub) * 1.2f;
+            return StaticIconsUi.L("chat_share_side_pad_top_aw") * aw + StaticIconsUi.L("chat_share_tile_aw") * aw
+                 + StaticIconsUi.L("chat_share_side_gap_aw") * aw * 2f + lineH * 2f + StaticIconsUi.L("chat_share_side_pad_bot_aw") * aw;
         }
 
         /// <summary>말풍선 줄 수 어림(글자당 폭 ≈ 0.6em · 한글은 1em) — 레이아웃 전에 행 높이를 잡기 위한 것.</summary>
