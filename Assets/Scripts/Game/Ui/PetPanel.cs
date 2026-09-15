@@ -252,6 +252,8 @@ namespace Forge.Game.Ui
                 float rw = PetSkillKit.TextWidth(TextKind.Sub, rb) + PetSkillStyle.Rem(0.5f);
                 RectTransform ribbon = PetSkillKit.LvBadge(face, rb, rw, lvH);
                 ribbon.name = "sk-ribbon";
+                TextMeshProUGUI rbT = ribbon.GetComponentInChildren<TextMeshProUGUI>(true);
+                if (rbT != null) WrapUi.Apply(rbT, "sk_ribbon");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 4075 `.sk-ribbon { nowrap }`
                 // 정본 `.sk-ribbon{top:-.2rem}` = 리본 **윗변**이 면 위 .2rem — pivot 을 윗변에 둔다(가운데를 두면 반이 면 밖으로 나가 첫 행이 grid-scroll 마스크에 잘린다 · T102)
                 UiKit.Anchor(ribbon, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, PetSkillStyle.Rem(0.2f)), rw, lvH);
             }
@@ -348,6 +350,7 @@ namespace Forge.Game.Ui
                 float total = labH + gapY + lh;
                 float by = rowY + (cellH - total) * 0.5f + PetSkillStyle.Px("slot_buy_top_w");
                 TextMeshProUGUI lab = PetSkillKit.Stroked(hatch, "slot-buy-label", TextKind.Sub, PetSkillStyle.T("slot_plus"), PetSkillStyle.C("white"), "slot_buy_label");   // 정본 .slot-buy-label var(--ol3)
+                WrapUi.Apply(lab, "slot_buy_label");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 4558 `.slot-buy-label { nowrap }`
                 UiKit.Place(lab.rectTransform, bx - lw * 0.5f, by, lw * 2f, labH);
                 SlotBuyButton = PetSkillKit.PaperButton(hatch, "slot-buy", PetSkillKit.BtnKind.Gray, string.Empty, null, false, OnBuySlot, PetSkillStyle.Rem(0.55f));
                 RectTransform br = SlotBuyButton.GetComponent<RectTransform>();
@@ -404,6 +407,7 @@ namespace Forge.Game.Ui
             UiKit.Place(ei.rectTransform, (w - egg) * 0.5f, ey, egg, egg);
             float th = UiCatalog.Instance.Kind(TextKind.Sub).size * 1.2f;
             TextMeshProUGUI time = PetSkillKit.Stroked(cell, "hatch-time", TextKind.Sub, PetSkillStyle.FmtTime((h.EndsAt - H.Now()) / 1000), PetSkillStyle.C("white"), "hatch_time");   // 정본 .hatch-cell .hatch-time var(--ol3)
+            WrapUi.Apply(time, "hatch_cell_hatch_time");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 4525 `.hatch-cell .hatch-time { nowrap }`
             UiKit.Place(time.rectTransform, -w * 0.25f, ey + egg + PetSkillStyle.Px("hatch_time_top_rem"), w * 1.5f, th);
             hatchTimes.Add(time);
             // 💎 스킵(xs · 오른쪽 위)

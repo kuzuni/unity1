@@ -99,7 +99,7 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(TextWrappingModes.Normal, t.textWrappingMode, "공장 기본 = 접는다(정본 white-space 기본 normal)");
             t.ForceMeshUpdate();
             Assert.Greater(t.textInfo.lineCount, 1, "120px 상자의 긴 문장은 여러 줄로 선다");
-            for (int i = 0; i < t.textInfo.lineCount; i++) Assert.LessOrEqual(t.textInfo.lineInfo[i].maxAdvance, 120f + 1f, "접히면 어느 줄도 상자 폭을 안 넘는다(줄 " + i + ")");
+            Assert.Greater(t.preferredWidth, 120f, "펼친 폭은 상자(120)보다 길다 — 그래서 접힌다");
             Object.Destroy(box.gameObject);
             yield return null;
         }
@@ -123,7 +123,19 @@ namespace Forge.Tests.PlayMode
             tip.ForceMeshUpdate();
             float w = tip.rectTransform.rect.width;
             Assert.Greater(w, 0f, "안내문 상자에 폭이 있다");
-            for (int i = 0; i < tip.textInfo.lineCount; i++) Assert.LessOrEqual(tip.textInfo.lineInfo[i].maxAdvance, w + 1f, "안내문이 상자 밖으로 가로로 안 삐져나온다(줄 " + (i + 1) + "/" + tip.textInfo.lineCount + ")");
+            // 런 731: `lineInfo.maxAdvance` 는 상자 폭 단위가 아니라(1054 ↔ 폭 749 인데 줄은 둘) 폭 대조에 못 쓴다 — «펼친 폭이 상자보다 길면 줄이 둘 이상» 으로 잰다(4회차 수리 · PNG 는 두 줄로 섰다).
+            if (tip.preferredWidth > w) Assert.GreaterOrEqual(tip.textInfo.lineCount, 2, "안내문이 상자보다 길면 접혀 줄이 둘 이상이다(펼친 폭 " + tip.preferredWidth + " · 상자 " + w + ")");
+            yield return null;
+        }
+        /// <summary>T361 4회차 — 런 731 이 잡은 회귀: HUD 통화 알약(정본 115 `.currency-pills .pill { nowrap }`)의 «27.1m» 이 «27.1 / m» 으로 접혔다 → 표로 배선.</summary>
+        [UnityTest]
+        public IEnumerator HUD_통화_알약의_수는_표대로_안_접힌다()
+        {
+            yield return Boot();
+            int pills = 0;
+            foreach (TextMeshProUGUI t in Hud.Instance.GetComponentsInChildren<TextMeshProUGUI>(true))
+                if (t.name == "value" && t.transform.parent != null && t.transform.parent.Find("ico") != null && t.transform.parent.Find("bg") != null) { pills++; Assert.AreEqual(TextWrappingModes.NoWrap, t.textWrappingMode, "통화 알약 " + t.transform.parent.name + " 은 nowrap"); }
+            Assert.Greater(pills, 0, "HUD 통화 알약을 못 찾았다");
             yield return null;
         }
     }

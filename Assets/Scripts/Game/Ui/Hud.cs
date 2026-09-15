@@ -148,6 +148,7 @@ namespace Forge.Game.Ui
             UiKit.Place(img.rectTransform, (padL - ico) * 0.5f, (ph - ico) * 0.5f, ico, ico);
             TextMeshProUGUI t = UiKit.Text(pill, "value", TextKind.Sub, "0", colorKey, TextAlignmentOptions.Right);
             t.fontStyle = FontStyles.Bold;
+            WrapUi.Apply(t, "currency_pills_pill");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 115 `.currency-pills .pill { nowrap }` — 런 731 에서 «27.1m» 이 «27.1 / m» 으로 접혔다
             UiKit.Place(t.rectTransform, padL, 0f, pw - padL - padR, ph);
             return t;
         }
@@ -212,11 +213,11 @@ namespace Forge.Game.Ui
             // 그래서 칸은 **띠 전체 높이**로 주고 위/아래 정렬로 두 줄 자리를 낸다 — 글꼴 줄높이가 바뀌어도 안 무너진다.
             chatName = UiKit.Text(band, "chat-preview-name", TextKind.Sub, string.Empty, "chat_name", TextAlignmentOptions.TopLeft);
             chatName.fontStyle = FontStyles.Bold;
-            chatName.textWrappingMode = TextWrappingModes.NoWrap;   // 정본 `.chat-preview-name { white-space: nowrap }`
+            WrapUi.Apply(chatName, "chat_preview_name");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 3252 `.chat-preview-name { nowrap }`(전엔 박힘)
             chatName.overflowMode = TextOverflowModes.Ellipsis;     // 정본 `text-overflow: ellipsis`(가로)
             UiKit.Place(chatName.rectTransform, tx, padY, tw, bandH - padY * 2f);
             chat = UiKit.Text(band, "chat-preview-msg", TextKind.Sub, string.Empty, "chat_ink", TextAlignmentOptions.BottomLeft);
-            chat.textWrappingMode = TextWrappingModes.NoWrap;
+            WrapUi.Apply(chat, "chat_preview_msg");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 3253 `.chat-preview-msg { nowrap }`(전엔 박힘)
             chat.overflowMode = TextOverflowModes.Ellipsis;
             UiKit.Place(chat.rectTransform, tx, padY, tw, bandH - padY * 2f);
         }

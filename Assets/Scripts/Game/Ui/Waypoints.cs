@@ -78,6 +78,7 @@ namespace Forge.Game.Ui
                 UiKit.Anchor(badge.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -(icon + (float)s.GapRem * rem)), icon, 0f);
                 // 정본 .6rem · 800 — 크기는 §1 하한 아래라 종류(Sub)로(T136 이 작은 종류를 더하면 표 time_font_rem 으로)
                 TextMeshProUGUI t = UiKit.Text(badge.transform, "text", TextKind.Sub, string.Empty, null, TextAlignmentOptions.Center);
+                WrapUi.Apply(t, "waypoint_time");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 329 `.waypoint-time { nowrap }`
                 t.color = WaypointsStyle.C("time_ink");
                 t.fontStyle = FontStyles.Bold;
                 t.raycastTarget = false;

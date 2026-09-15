@@ -205,6 +205,7 @@ namespace Forge.Game.Ui
             Image img = UiKit.Icon(rt, "ico", iconKey);
             UiKit.Place(img.rectTransform, padX, (h - ico) * 0.5f, ico, ico);
             label = Bold(rt, "num", TextKind.Sub, text, "white", TextAlignmentOptions.Left);
+            WrapUi.Apply(label, "cur_pill");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 3985 `.cur-pill { nowrap }`
             UiKit.Place(label.rectTransform, padX + ico + padX * 0.4f, 0f, w - padX * 2f - ico, h);
             return rt;
         }
