@@ -2569,6 +2569,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 무엇을 한다: ⓐ `tb_card_h_rem` **9.6 → 8.30**(= 정본 15.73%H) ⓑ 헤더 높이를 글꼴이 아니라 표(`tb_head_h_rem` = 3.15 × 844/1600 = **1.66**)에서 읽는다 — 그래야 아이콘의 3.9rem 예산이 지켜진다.
 - 판정: EditMode — `tb_card_h_rem` 이 8.30 이고 헤더 높이가 표에서 온다 · 다음 회차 `screen_tech-overview.png` 에서 **카드 높이 15.2~16.3%H · 헤더 2.9~3.5%H · 2행 상단 31.0~32.2%H** · `python3 tools/ui_score.py --rows tech-overview` 의 «나란히 밀린 줄» 소멸.
 - 범위: `Assets/Forge/catalog.json`(`tb_card_h_rem` · 새 키 `tb_head_h_rem`) · `Assets/Scripts/Game/Ui/TechPanel.cs`(산 lock 없음 · 2026-09-15 18:3x 확인) · `Assets/Tests/EditMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 1회차 2026-09-15 19:1x 워커 A(sess-2005-27410): ⓐ `catalog.json` `tb_card_h_rem` **9.6 → 8.30**(= 15.73%H × 844/1600 · 주석에 계약 줄) ⓑ 새 키 `tb_head_h_rem` **1.66**(= 3.15%H) · `TechPanel.cs` 헤더 높이를 `LineH(Sub)` 글꼴 셈 대신 표에서 읽는다(`headPad` 변수는 헤더 안에 든 값이라 걷었다 · 패딩 키는 표에 그대로) · EditMode `TechCardHeightTests` 2(8.30 ↔ 15.73%H · 1.66 ↔ 3.15%H · 헤더+아이콘 자리(1.66+2.2+3.7 = 7.56rem) ≤ 카드 8.30 · 종전 9.6 보다 작다). `gate.sh` 막는 자 전부 rc 0. 판정(PNG 카드 15.2~16.3%H · 헤더 2.9~3.5%H · 2행 상단 31.0~32.2%H · `--rows tech-overview`)은 CI 한 바퀴 뒤. 결정 669: `TechPanel.cs`·`catalog.json` 을 «범위» 로 적은 산 lock(T28·T345·T378·T383·T390)이 있으나 실제 편집 중인 줄이 아니라(T28 은 채점 회차 · T345 는 «판 없음이 맞을 때만» 조건부) 결정 628 의 길로 잡았다 — 같은 키·같은 줄이면 여전히 기다린다.
 
 ### T390 — 제작 비교 팝업의 **버튼 아래 여백이 2.4배**(원작 26px ↔ 클론 63px)라 하단 앵커 카드가 33px 커지고 위끝이 3.8%p 떠 있다 (UI · T113·T110 뒤 · **T28 72회차 등재**)
 

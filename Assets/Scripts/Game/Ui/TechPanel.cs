@@ -178,8 +178,9 @@ namespace Forge.Game.Ui
             string id = b.Id;
             RectTransform rt = UiKit.Box(body, "branch-" + id);
             RectTransform face = DungeonPopups.Bordered(rt, "bg", "pp_paper", DungeonPopups.RemL("tb_card_r_rem"), line3);
-            float headPad = DungeonPopups.RemL("tb_head_pad_rem");
-            float headH = headPad * 2f + DungeonPopups.LineH(TextKind.Sub);
+            // T394 — 정본 계약(style.css 2072~2087) «헤더 3.15%H» = 표 `tb_head_h_rem`. 글꼴 줄 상자(`LineH(Sub)` = 크기×1.25)에서 뽑으면 정본 .82rem 의 1.65배라
+            //   헤더가 4.27%H 로 자라 카드(표로 고정)의 아이콘 예산 3.9rem 을 먹는다 — 정본이 🚨 로 못 박은 자리(2096~2099). 패딩 `tb_head_pad_rem` 은 그 안에 든다.
+            float headH = DungeonPopups.RemL("tb_head_h_rem");
             Image head = UiKit.Panel(face, "head", "pp_ink");
             UiKit.Place(head.rectTransform, 0f, 0f, cw - line3 * 2f, headH);
             UiKit.Line(head.rectTransform, "line", "pp_line", line3, false);
