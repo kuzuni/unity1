@@ -1199,3 +1199,25 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 ## 이 회차의 판정
 - 새 작업 **0**. T33 은 아직 ✅ 가 아니다(T35 주인 몫 + 열린 칸 21). 다음 회차는 새 축이 아니라 **T331·T332·T345 가 반납하면 위 다섯을 잇는 것**이 먼저다.
 
+## 31회차 — 정본 **`text-align` 89 + `ui.js` 인라인 7** 전수 (2026-09-15 · 워커 J · sess-0918-28910)
+
+축을 고른 까닭: 클론 글자 공장 `UiKit.Text` 의 기본이 **`Center`** 인데 CSS 기본은 **left(start)** 라, T352(굵기)·T361(줄바꿈)과 **같은 «기본값 부호» 갈래**로 보였다. 그 둘은 실제 결함이었다.
+
+### 정본 분포
+`style.css` **89 선언** — `center` **61** · `left` **25** · `right` **3**. (`ui.js` 인라인 7 은 같은 세 값이다.)
+
+### 가운데가 **아닌** 28 자리 — 27 은 살아 있고 1 은 죽은 CSS
+`.stat-grid div:nth-child(even)`(1686 · `right`)는 **`ui.js`·`index.html` 어디에도 없다** — 정본이 안 그린다(T135 ⛔ 의 꼴). 나머지 27(`left` 24 · `right` 3)은 전부 렌더 줄이 있다.
+
+### 클론 — «기본값 부호» 가설은 여기선 **안 선다**
+- 클론은 `TextAlignmentOptions.Left` **111** · `Right` **23** 을 쓴다 — 정본의 25·3 보다 **훨씬 많다**. 까닭은 단순하다: **CSS `text-align` 은 상속**이라 컨테이너 한 줄이 자손 글자를 다 덮지만, 클론은 글자마다 공장에 인자를 준다. 그러니 «선언 수» 로는 두 쪽을 못 견준다.
+- 정본 `left`·`right` 를 가진 화면 파일마다 클론에 그 호출이 있다: `QuestSheet` 2 · `LeagueSheet` 7/1 · `PassPopup` 1 · `ForgeAutoPopup` 4/2 · `ForgeInfoPopup` 4/1 · `AscendPopup` 4/2 · `ShopSheet` 3/1 · `ProfilePopup` 5 · `PetPanel` 10/1 · `SkillPanel` 6/1 · `DungeonSheet` 2/1 · `ChatScreen` 6/1 · `PlayerInfoPopup` Right 4.
+- **한 번 헛짚었다**: `.tb-list`(2245 · `left`)를 보고 `TechPanel.cs` 를 열었더니 `Left`·`Right` 가 **0** 이라 «기술 화면이 통째로 가운데다» 로 보였다. 그러나 `.tb-list` 는 기술 트리 화면이 아니라 **«총 보너스» 팝업**(`ui.js` `openTechBonuses` 5540)이고, 클론에서는 **`TechPopups.cs`** 가 그린다 — 거기 `Left` 6 · `Right` 1 로 **제대로 있다**.
+
+### 이 회차가 남긴 규칙
+**선택자를 클론 파일에 맞출 때 «화면 이름» 으로 짐작하지 마라 — 정본 `ui.js` 에서 그 선택자를 내는 함수를 먼저 찾아라.** (`.tb-list` → `openTechBonuses` → `TechPopups.cs`. 파일 이름이 닮았다고 `TechPanel.cs` 를 열면 없는 결함을 만든다.)
+
+### 이 회차의 판정
+- **새 작업 0 · 결함 0**(죽은 CSS 1 자리 제외).
+- 21(`font-weight`)·22(`aspect-ratio`+`object-fit`)·24(`pointer-events`)에 이어 **네 축째 «결함 0»** 이다. «CSS 선언을 세는» 축은 거의 바닥났다고 본다 — 남은 큰 것은 `align-items` 178 · `justify-content` 124 · `flex-direction` 82 인데 **선언 수로 셀 축이 아니다**(클론은 레이아웃 그룹이 여섯뿐 · T364 가 적어 둔 사정과 같다). `cursor` 51 은 폰 화면이라 애초에 해당이 없다.
+- 다음 사람에게: 남은 값어치는 **축 세기보다 «화면을 눈으로 보고 어긋난 데를 찾는» 쪽**(T28 회차)에 있을 것이다.

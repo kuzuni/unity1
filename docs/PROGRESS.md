@@ -7304,6 +7304,18 @@
 - **게이트**: `--self-test` 125칸 · `dotnet build` 0 오류 · `dotnet test` **642/642** · gen_meta · gen_ui_catalog · docs_intact · task_rows · decisions · final_table · claim_scope · keyline · lock_queue 전부 rc 0 · `Assets/` 0줄.
 - **남은 것(✅ 조건)**: CI 한 바퀴(dotnet 잡) 뒤 lock 반납.
 
+### T33 완주 대조 31회차 · lock 반납 — 축 = `text-align` 89 · **결함 0** (2026-09-15 09:2x~09:4x · 워커 J · sess-0918-28910)
+
+- **회차 첫 일(§0-6)**: 런 635 의 빨강은 `DropShadowTests` 하나이고 임자 T332 의 lock 이 살아 있다(11분).
+- **왜 T33 이었나**: lock 없는 열린 열여섯 줄 중 `task_state` 가 «잡아도 된다» 로 연 것은 다섯(T33·T333·T351·T352·T355)뿐이고, 그중 **넷은 알맹이 파일이 막혀 있다** — T333·T352·T355 는 `UiKit.cs`(T178·T331) · T351 은 마지막 자리 `SkillSummonResult`(T334). 실제로 손댈 수 있는 것은 T33 하나였다.
+- **축을 고른 까닭**: 클론 공장 `UiKit.Text` 의 기본이 **`Center`** 인데 CSS 기본은 **left** 라, 실제 결함이었던 T352(굵기)·T361(줄바꿈)과 **같은 «기본값 부호» 갈래**로 보였다.
+- **가설이 안 섰다(그리고 그 까닭이 이 회차의 값이다)**: 클론은 `Left` **111** · `Right` **23** 으로 정본(25·3)보다 **훨씬 많다**. **CSS `text-align` 은 상속**이라 컨테이너 한 줄이 자손을 다 덮지만 클론은 글자마다 공장에 인자를 준다 — 그러니 **«선언 수» 로는 두 쪽을 못 견준다**. 굵기·줄바꿈과 달리 이 축은 «기본값» 이 아니라 «자리마다 주는가» 의 문제이고, 자리마다 주고 있었다.
+- **가운데가 아닌 28 자리**: **27 은 살아 있고** 그 화면 파일마다 클론에 `Left`·`Right` 호출이 있다(QuestSheet 2 · LeagueSheet 7/1 · PassPopup 1 · ForgeAutoPopup 4/2 · ForgeInfoPopup 4/1 · AscendPopup 4/2 · ShopSheet 3/1 · ProfilePopup 5 · PetPanel 10/1 · SkillPanel 6/1 · DungeonSheet 2/1 · ChatScreen 6/1 · PlayerInfoPopup 4). **1(`.stat-grid div:nth-child(even)`)은 죽은 CSS** — `ui.js`·`index.html` 어디에도 없다.
+- **⚠ 한 번 헛짚었고 스스로 잡았다**: `.tb-list`(left)를 보고 `TechPanel.cs` 를 열었더니 `Left`·`Right` 가 **0** 이라 «기술 화면이 통째로 가운데다» 로 보였다. 정본 `ui.js` 를 따라가 보니 `.tb-list` 는 기술 트리 화면이 아니라 **«총 보너스» 팝업**(`openTechBonuses` 5540)이고, 클론은 **`TechPopups.cs`** 가 그린다 — 거기 `Left` 6 · `Right` 1 로 제대로 있다. **파일 이름이 닮았다고 열면 없는 결함을 만든다.**
+- **규칙 하나**(parity.md 에 적었다): **선택자를 클론 파일에 맞출 때 «화면 이름» 으로 짐작하지 말고 정본 `ui.js` 에서 그 선택자를 내는 함수를 먼저 찾아라.**
+- **판정**: 새 작업 **0**. 21·22·24 에 이어 **네 축째 결함 0** 이다. «CSS 선언을 세는» 축은 거의 바닥났다 — 남은 큰 것(`align-items` 178 · `justify-content` 124 · `flex-direction` 82)은 **선언 수로 셀 축이 아니고**(클론은 레이아웃 그룹이 여섯뿐), `cursor` 51 은 폰 화면이라 해당이 없다. **다음 값어치는 축 세기보다 «화면을 눈으로 보는» 쪽**(T28 회차)에 있다고 적어 뒀다.
+- **게이트**: `tools/gate.sh` **rc 0** · 코드 0줄(문서·대조만).
+
 ### T364 3회차 기록 — 내가 2회차에 적은 둘을 **정정했다** · lock 반납 (2026-09-15 08:2x~08:4x · 워커 J · sess-0818-31289)
 
 - **회차 첫 일(§0-6)**: 빨강 **없다** — 런 **623 초록**(603·612 에 이어 셋째).
