@@ -111,7 +111,7 @@ namespace Forge.Game.Ui
 
         public static void Open(MetaHost h)
         {
-            h.Popups.Show(Name);
+            h.Popups.Show(Name, null, PopupZUi.AboveTabBar(Name));   // T346 4회차 — 정본 3782 `#player-info-modal { z-index: 40 }` > 탭바 30 · 층은 표 PopupZUi.json 이 정한다
             Render(h);
         }
 

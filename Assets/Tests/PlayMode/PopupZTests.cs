@@ -116,5 +116,23 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsFalse(h.Popups.IsOpen(ChatScreen.Name));
         }
+
+        [UnityTest]
+        public IEnumerator 플레이어_정보_팝업은_정본_z_표대로_탭바_위_층에_선다()
+        {
+            // T346 4회차 — 정본 3782 `#player-info-modal { z-index: 40 }` > 탭바 30. 1회차가 «T178 lock 뒤» 로 남긴 마지막 자리(PlayerInfoPopup.cs:114).
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            Assert.IsTrue(PopupZUi.AboveTabBar(PlayerInfoPopup.Name), "표: #player-info-modal 은 탭바 위");
+            PlayerInfoPopup.Open(h);
+            yield return null;
+            Assert.IsTrue(h.Popups.IsOpen(PlayerInfoPopup.Name), "플레이어 정보 팝업이 열린다");
+            AssertLayer(PlayerInfoPopup.Name);
+            Popup p = PopupLayer.Instance.Find(PlayerInfoPopup.Name);
+            Assert.Greater(p.Root.parent.GetSiblingIndex(), UiRoot.Instance.TabBand.GetSiblingIndex(), "플레이어 정보 층이 탭 띠보다 위에 그려진다(딤이 여섯 칸 네비를 덮는다)");
+            PlayerInfoPopup.Close(h);
+            yield return null;
+            Assert.IsFalse(h.Popups.IsOpen(PlayerInfoPopup.Name));
+        }
     }
 }

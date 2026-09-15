@@ -4,7 +4,7 @@
   "modals": {
     "offline":          { "z": 40, "_": "style.css 3781~3783 #offline-modal … { z-index: 40 }" },
     "profile":          { "z": 40, "_": "style.css 3782 #profile-modal (같은 규칙)" },
-    "player-info":      { "z": 40, "_": "style.css 3782 #player-info-modal (같은 규칙 · 자리는 T178 lock 뒤)" },
+    "player-info":      { "z": 40, "_": "style.css 3782 #player-info-modal (같은 규칙 · 4회차가 PlayerInfoPopup.Open 에 걸었다)" },
     "pass":             { "z": 40, "_": "style.css 3781 #pass-modal (같은 규칙 · 2회차가 PassPopup.Open 에 걸었다)" },
     "chat":             { "z": 40, "_": "style.css 3787 #chat-modal { z-index: 40 } (3회차가 ChatScreen.Open 에 걸었다)" },
     "forge-info":       { "z": 40, "_": "style.css 3782 #forge-info-modal — 클론은 이미 true (T78)" },
