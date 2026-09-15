@@ -628,6 +628,7 @@ namespace Forge.Game.Ui
                     ((Image)qb.Find("line").GetComponent<Image>()).color = rc;
                     UiKit.Anchor(qb, new Vector2(0.95f, 0.06f), new Vector2(1f, 0f), Vector2.zero, bw, bh);
                     TextMeshProUGUI qt = PetSkillKit.Text(qb, "t", TextKind.Sub, q, PetSkillStyle.C("white"));
+                    Shrink(qb, qt, PetSkillStyle.Rem(0.6f), bh);
                     UiKit.Fill(qt.rectTransform);
                 }
                 if (!string.IsNullOrEmpty(e.Extra))
@@ -637,6 +638,8 @@ namespace Forge.Game.Ui
                     ((Image)db.Find("line").GetComponent<Image>()).color = PetSkillStyle.C("sr_hilite");
                     UiKit.Anchor(db, new Vector2(0.06f, 0.93f), new Vector2(0f, 1f), Vector2.zero, bw, bh);
                     TextMeshProUGUI dt = PetSkillKit.Text(db, "t", TextKind.Sub, e.Extra, PetSkillStyle.C("white"));
+                    WrapUi.Apply(dt, "sr_dup");   // T361 배선 — 이 파일이 내 lock 뒤라 3회차가 못 걸었다(결정 661)
+                    Shrink(db, dt, PetSkillStyle.Rem(0.6f), bh);
                     UiKit.Fill(dt.rectTransform);
                 }
                 if (e.IsNew)
@@ -647,6 +650,7 @@ namespace Forge.Game.Ui
                     UiKit.Anchor(nb, new Vector2(0.93f, 0.92f), new Vector2(1f, 1f), Vector2.zero, bw, bh);
                     TextMeshProUGUI nt = PetSkillKit.Text(nb, "t", TextKind.Sub, nw, PetSkillStyle.C("white"));
                     LetterSpacing.Apply(nt, "sr_new_ls_em");   // T168 3회차 — 정본 6980 `.sr-new`
+                    Shrink(nb, nt, PetSkillStyle.Rem(0.52f), bh);   // 자간까지 먹인 **뒤** 잰다
                     UiKit.Fill(nt.rectTransform);
                 }
                 // 이름판 · 등급 칩
@@ -656,6 +660,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(nameBox, (cw - nw2) * 0.5f, ny, nw2, nameH);
                 PetSkillKit.Fill(nameBox, "bg", PetSkillStyle.C("sr_name_bg"), PetSkillStyle.Px("sr_name_r_rem"));
                 TextMeshProUGUI nt2 = PetSkillKit.Text(nameBox, "t", TextKind.Sub, e.Name, PetSkillStyle.C("white"));
+                WrapUi.Apply(nt2, "sr_name");   // 정본 `.sr-name` 은 **접는다**(두 줄까지 · style.css 7032~7036)
                 UiKit.Fill(nt2.rectTransform);
                 float sy = ny + nameH + PetSkillStyle.Px("sr_sub_mt_rem");
                 float rkW = PetSkillKit.TextWidth(TextKind.Sub, e.Sub) + PetSkillStyle.Px("sr_rk_pad_x_rem") * 2f;
@@ -664,6 +669,7 @@ namespace Forge.Game.Ui
                 PetSkillKit.Fill(rk, "bg", rc, PetSkillStyle.Px("sr_rk_r_rem"));
                 TextMeshProUGUI rt = PetSkillKit.Text(rk, "t", TextKind.Sub, e.Sub, ChipInk(rc));
                 LetterSpacing.Apply(rt, "sr_sub_ls_em");   // T168 3회차 — 정본 7059 `.sr-sub`
+                WrapUi.Apply(rt, "sr_sub");   // 정본 nowrap
                 UiKit.Fill(rt.rectTransform);
             }
             // ---- 착지 스파크(정본 `.sr-spark` 6463~6484 · z 2) ----
@@ -691,6 +697,24 @@ namespace Forge.Game.Ui
             }
             cell.localScale = Vector3.one * 0.35f;
             return c;
+        }
+
+        /// <summary>
+        /// 배지 알약을 **제 글자에 맞춰 줄인다**(정본은 `position: absolute` + `padding` 이라 폭이 잉크에 딱 맞는 shrink-to-fit 이다).
+        ///
+        /// ⚑ 13회차 판정(런 754 `screen_t179-summon` 8배 확대)에서 나온 자리다: «NEW» 가 «NE / W» 로 **접혀 알약 밖으로 넘쳤다**.
+        /// 까닭은 알약 폭을 <see cref="PetSkillKit.TextWidth"/>(ASCII 를 한 자 .58em 로 어림하는 자)로 잡는데
+        /// 대문자 N·E·W 의 실제 폭이 그보다 훨씬 넓고(자간 .04em 도 안 센다), T361 3회차가 줄바꿈 기본값을
+        /// 정본대로 «접는다» 로 뒤집으면서 그 어림이 **넘침에서 접힘으로** 바뀐 것이다(결정 661 이 예고한 자리).
+        /// 어림을 고치는 대신(그 자는 이 파일 밖이고 다른 자리까지 한꺼번에 움직인다) **정본의 shrink-to-fit 을 그대로 옮긴다** —
+        /// 글자를 세운 뒤(자간까지 먹인 뒤) 제 선호 폭을 재어 알약을 그 폭으로 다시 앉힌다. 상자가 잉크보다 넓으니 접힐 일이 없다.
+        /// </summary>
+        static void Shrink(RectTransform pill, TextMeshProUGUI t, float padX, float h)
+        {
+            Vector2 pv = t.GetPreferredValues();
+            float w = pv.x + padX;
+            if (w <= pill.sizeDelta.x) return;   // 어림이 이미 넉넉하면 그대로 둔다(자리가 안 움직인다)
+            pill.sizeDelta = new Vector2(w, h);
         }
 
         /// <summary>원작 chipFill — 등급색 필 위에 검정/흰색 중 대비 큰 쪽.</summary>

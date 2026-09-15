@@ -254,6 +254,18 @@ namespace Forge.Tests.PlayMode
             // 글자 조각에는 이모지가 안 남는다 — 남아 있으면 그것이 그대로 □ 다.
             foreach (TMPro.TextMeshProUGUI tx in lineRow.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
                 Assert.IsFalse(tx.text.Contains("\u2728"), "글자 조각에 U+2728 이 남았다: «" + tx.text + "»");
+
+            // ⚑ 14회차 — 같은 PNG 에서 나온 둘째 자리: «NEW» 배지가 «NE / W» 로 접혀 알약 밖으로 넘쳤다.
+            //   정본 `.sr-new` 는 shrink-to-fit(absolute + padding)이라 폭이 잉크에 딱 맞아 접힐 수가 없다.
+            //   자는 그 계약을 그대로 잰다 — **알약이 제 글자보다 넓다**.
+            Transform nb = FindDeep(v.transform, "sr-new");
+            Assert.IsNotNull(nb, "NEW 배지가 없다");
+            TMPro.TextMeshProUGUI nt = nb.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+            Assert.IsNotNull(nt, "NEW 배지에 글자가 없다");
+            float ink = nt.GetPreferredValues().x;
+            float pill = ((RectTransform)nb).rect.width;
+            Assert.GreaterOrEqual(pill, ink,
+                "NEW 알약(" + pill.ToString("0.0") + ")이 제 잉크(" + ink.ToString("0.0") + ")보다 좁다 — 접혀서 알약 밖으로 넘친다");
         }
 
         static Transform FindDeep(Transform root, string name)
