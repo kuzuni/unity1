@@ -164,5 +164,28 @@ namespace Forge.Tests.PlayMode
             MountUpgradePopup.Close();
             yield return null;
         }
+
+        /// <summary>T354 5회차 — 던전 시트의 안내 두 줄(정본 3854 `.sheet-sub { line-height: 1.4 }` · ui.js 4543): 폭 `sheet_sub_maxw` 안에서 둘째 줄로 꺾이므로 실제 줄 간격도 잰다.</summary>
+        [UnityTest]
+        public IEnumerator 던전_시트_안내_두_줄은_정본_1_4_배수로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(DungeonSheet.Instance != null && UiRoot.Instance != null && UiRoot.Instance.TabBar != null); i++) yield return null;
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
+            Assert.IsTrue(DungeonSheet.Instance.IsOpen, "던전 시트");
+            Canvas.ForceUpdateCanvases();
+            Transform sub = Find(DungeonSheet.Instance.transform, "sub");
+            Assert.IsNotNull(sub, "안내 글(.sheet-sub)");
+            TextMeshProUGUI t = sub.GetComponent<TextMeshProUGUI>();
+            AssertSpacing(t, "sheet_sub_lh", "던전 안내");
+            double r = LineHeight.Table.Get("sheet_sub_lh");
+            Assert.AreEqual(1.4, r, 1e-9, "정본 3854");
+            double measured = LineHeight.MeasuredRatio(t);
+            Assert.Greater(t.textInfo.lineCount, 1, "안내는 두 줄로 꺾인다(폭 sheet_sub_maxw)");
+            Assert.AreEqual(r, measured, 0.02, "실제 줄 간격 = 1.4 (자산 기본 1.448 이 아니라)");
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
+        }
     }
 }
