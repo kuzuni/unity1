@@ -739,6 +739,38 @@ namespace Forge.Game.Ui
             return Finish(name, NewTex(name, N, N), px);
         }
 
+        /// <summary>
+        /// 셀별 광원 재점화 판(정본 `.sr-relight` 6377~6383) —
+        /// `radial-gradient(closest-side, var(--rc-lite) 0%, var(--rc) 30%, rgba(0,0,0,0) 70%)` 한 장.
+        ///
+        /// CSS 가 투명으로 잇는 마지막 구간은 **미리 곱한 알파**로 보간한다 — 색은 등급색 그대로 두고 알파만 떨어뜨린다
+        /// (색을 검정으로 끌면 가산 혼합에서 «까맣게 죽은 테» 가 한 겹 생긴다). 정사각 판이라 `closest-side` = 반지름 = 반 변.
+        /// 정본 `filter: blur(3px)` 는 따로 안 먹인다 — 이 감쇠가 이미 매끈해 3px 가우시안이 프로필을 1% 미만으로 바꾼다(표 `_` 참조).
+        /// </summary>
+        public static Sprite BakeRelight(string name, Color rc, Color lite)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            SummonRelightSpec sp = SummonFxStyle.Relight;
+            int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
+            float s0 = (float)sp.StopLite, s1 = (float)sp.StopRc, s2 = (float)sp.StopOut;
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            {
+                float v = (y + 0.5f) / N * 2f - 1f;
+                for (int x = 0; x < N; x++)
+                {
+                    float u = (x + 0.5f) / N * 2f - 1f;
+                    float r = Mathf.Sqrt(u * u + v * v);          // 1 = 변의 한가운데(= closest-side 반지름)
+                    Color c; float a;
+                    if (r <= s1) { c = Color.Lerp(lite, rc, s1 <= s0 ? 1f : Mathf.Clamp01((r - s0) / (s1 - s0))); a = 1f; }
+                    else { c = rc; a = Ramp(r, s1, 1f, s2, 0f); }
+                    if (r > s2) a = 0f;
+                    px[y * N + x] = new Color(c.r, c.g, c.b, Mathf.Clamp01(a));
+                }
+            }
+            return Finish(name, NewTex(name, N, N), px);
+        }
+
         /// <summary>좁은 선 하나 — <paramref name="mid"/> 에서 1 이고 양옆 <paramref name="a"/>·<paramref name="b"/> 에서 0.</summary>
         static float Band(float t, float a, float mid, float b)
         {
@@ -791,11 +823,12 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; heroRingEase = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; heroRingEase = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
         static SummonHeroSpec hero;
+        static SummonRelightSpec relight;
         /// <summary>T334 6회차 — 주역 착지의 화면 킥(표의 `hero` 절).</summary>
         /// <summary>표의 `hero` 절 수치 하나(그 절은 `layout` 밖이다).</summary>
         public static float H(string key) { Load(); return (float)J.Num(J.Require(J.Obj(root["hero"]), key)); }
@@ -820,6 +853,9 @@ namespace Forge.Game.Ui
         public static SummonIdleSpec Idle { get { Load(); if (idle == null) idle = SummonIdleSpec.From(root); return idle; } }
         /// <summary>T334 3회차 ⓑ — 충전 구간 키프레임 넷(Core 가 쥔 셈 · 표의 `charge` 절).</summary>
         public static SummonChargeSpec Charge { get { Load(); if (charge == null) charge = SummonChargeSpec.From(root); return charge; } }
+
+        /// <summary>T334 11회차 — 셀별 광원 재점화 규칙(정본 `.sr-relight`).</summary>
+        public static SummonRelightSpec Relight { get { Load(); if (relight == null) relight = SummonRelightSpec.From(root); return relight; } }
 
         public static Color C(string key)
         {

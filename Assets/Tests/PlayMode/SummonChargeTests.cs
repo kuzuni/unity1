@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Forge.Game;
@@ -118,6 +119,63 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(rc.r, v.FloorColor.r, 0.02f, "done 에서 소환진이 등급색으로 물든다");
             Assert.AreEqual(rc.b, v.FloorColor.b, 0.02f);
             if (onIdx >= 0) Assert.AreEqual(0f, v.CellPulledIn(onIdx), 1e-3f, "조연 셀도 제자리로");
+        }
+
+        /// <summary>
+        /// T334 11회차 — 셀별 광원 재점화(정본 `.sr-relight` · style.css 6364~6389).
+        ///
+        /// 정본이 이 겹을 넣은 근거가 실측이다: 2~4번 셀이 사출되는 900ms 내내 광원 ±20px 평균 휘도가
+        /// **시작 프레임 baseline 보다 낮아** 나머지 셀이 «꺼진 광원에서 튀어나오는 물체» 로 읽혔다.
+        /// 그래서 자도 «판이 있다» 가 아니라 ⓐ 셀이 뜰 때 **켜졌다가** ⓑ 다시 **꺼지고**
+        /// ⓒ 등급이 높을수록 **세고** ⓓ 자리가 **셀이 아니라 광원 한 점**임을 잰다(정본 주석이 못 박은 함정).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 셀이_뜰_때마다_광원이_그_등급색으로_다시_켜진다()
+        {
+            yield return Boot();
+            SkillSummonResultView v = OpenHoldback();
+            Assert.AreEqual(4, v.RelightCount, "셀마다 하나씩 있어야 한다(정본 fillSummonRelights 는 _srDelays 를 그대로 훑는다)");
+
+            Image r0 = v.RelightOf(0), r3 = v.RelightOf(3);
+            Assert.IsNotNull(r0, "재점화 판이 없다");
+            Assert.IsNotNull(r0.sprite, "구운 방사 판 한 장이라야 한다");
+            RectTransform rt0 = r0.rectTransform;
+            Assert.AreEqual(rt0.rect.width, rt0.rect.height, 0.01f, "정사각(정본 width == height · closest-side)");
+            Assert.AreEqual("sr-relights", rt0.parent.name, "셀 안이 아니라 제 층에 산다(정본 ⚠ «셀 안에 넣으면 배율·비행·opacity 가 곱해져 광원에 서지 못한다»)");
+
+            // 자리 — 넷이 **한 점**(광원)에 겹쳐 있다. 셀 자리면 넷이 흩어진다.
+            for (int i = 1; i < v.RelightCount; i++)
+                Assert.AreEqual(r0.transform.position, v.RelightOf(i).transform.position, "재점화는 셀 자리가 아니라 광원 한 점에 선다");
+
+            // 사다리 — 격자 **바로 아래**(정본 z: 소환진 10 · 천개 20 · 재점화 26 · 격자 40).
+            Transform host = rt0.parent, deck = host.parent;
+            Transform gridT = deck.Find("sr-grid");
+            if (gridT != null)
+                Assert.AreEqual(gridT.GetSiblingIndex() - 1, host.GetSiblingIndex(), "재점화는 격자 바로 아래에 깔린다");
+
+            var peak = new float[v.RelightCount];
+            float t = 0f;
+            while (!v.Done && t < 12f)
+            {
+                for (int i = 0; i < v.RelightCount; i++)
+                {
+                    Image ri = v.RelightOf(i);
+                    if (ri != null && ri.color.a > peak[i]) peak[i] = ri.color.a;
+                }
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.IsTrue(v.Done, "연출이 안 끝났다(경과 " + t.ToString("0.00") + "초)");
+
+            Assert.Greater(peak[0], 0f, "첫 셀이 떴는데 광원이 안 켜졌다 — 이 겹이 고치려는 바로 그 증상이다");
+            Assert.Greater(peak[3], peak[0], "등급이 오를수록 세게 켜진다(정본 --glow = 0.16 + tier * 0.13)");
+            Assert.LessOrEqual(peak[3], 1f, "가산 판의 정점 알파가 1을 넘으면 광원이 하얗게 타 등급색 구분이 무너진다");
+
+            // 꺼진다 — 정본 키프레임의 100% 는 알파 0 이다. 마지막 셀의 .34s 가 지나도록 더 돌린다.
+            float t2 = 0f;
+            while (t2 < 1.2f) { t2 += Time.unscaledDeltaTime; yield return null; }
+            for (int i = 0; i < v.RelightCount; i++)
+                Assert.AreEqual(0f, v.RelightOf(i).color.a, 1e-3f, "재점화가 안 꺼졌다 — 결과 화면 가운데에 등급색 얼룩이 남는다(" + i + "번)");
         }
     }
 }

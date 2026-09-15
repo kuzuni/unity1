@@ -93,6 +93,8 @@ namespace Forge.Game.Ui
         float ringMax = 3.2f;
         /// <summary>T334 10회차 — 주역 광창(정본 `.sr-beam`) · 클론에 없던 겹이다.</summary>
         Image heroBeam;
+        /// <summary>T334 11회차 — 셀마다 하나씩 광원 자리에서 켜지는 재점화 플래시(정본 `.sr-relight`).</summary>
+        readonly List<Image> relights = new List<Image>();
         /// <summary>주역이 착지한 벽시계 시각(물러남·킥이 같이 쓴다).</summary>
         float heroAtWall = -1f;
         RectTransform wrap;
@@ -419,6 +421,49 @@ namespace Forge.Game.Ui
                 var orbSz = new List<float>(cells.Count);
                 foreach (Cell cc in cells) orbSz.Add(cc.BaseScale);
                 fx.SetReflectSource(grid, orbSz);
+            }
+
+            // ---- 셀별 광원 재점화(정본 `.sr-relights`/`.sr-relight` 6364~6389) ----
+            // 정본 실측이 이 겹의 근거다: 2~4번 셀이 사출되는 900ms 내내 광원 ±20px 평균 휘도가 45.1~55.2 로
+            // **시작 프레임 baseline 53.3 보다도 낮았다** — 빛 → 아이템의 인과가 첫 셀과 주역에만 걸려 있었다.
+            // 그래서 셀이 뜰 때마다 광원 자리(= `.sr-wrap` 중심)에 그 셀 등급색으로 짧은 플래시를 한 번 켠다.
+            // ⚠ 정본 주석: 이 층을 **셀 안에 넣으면 안 된다** — 셀의 배율·비행 이동·`opacity:0` 이 전부 곱해져
+            //    광원에 서지도 제 밝기로 켜지지도 않는다. 그래서 여기서도 셀이 아니라 판(`body`)에 붙이고
+            //    자리는 `wrap` 의 한가운데를 그대로 받는다(정본 «광원 좌표가 그냥 가운데»).
+            // ⚠ 사다리(정본 z): 소환진 10 · 천개 20 · **재점화 26** · 충격파 30 · 격자 40 — 그래서 격자 **바로 아래**에 끼운다.
+            //    (`SummonFx.Build` 의 겹들이 뒤에 붙으므로 여기서 자리를 정해야 한다.)
+            if (grid != null && cells.Count > 0)
+            {
+                SummonRelightSpec rsp = SummonFxStyle.Relight;
+                float rw = Mathf.Min(PetSkillStyle.Rem((float)rsp.WRem), (float)rsp.WVwF * W);
+                RectTransform gp = (RectTransform)grid.parent;   // 넘치는 판은 그리드가 스크롤 뷰포트 안에 있다
+                RectTransform host = UiKit.Box(gp, "sr-relights");
+                UiKit.Fill(host);
+                host.SetSiblingIndex(grid.GetSiblingIndex());   // 언제나 그리드 **바로 아래**
+                for (int i = 0; i < cells.Count; i++)
+                {
+                    Entry e = cells[i].Entry;
+                    Color rc = PetSkillStyle.Rarity(Defs, e.Rarity);
+                    int tier = RarityIdx(e.Rarity);
+                    double amt = SummonFxStyle.Hero.HiliteAmount(rc.r * 255.0, rc.g * 255.0, rc.b * 255.0, tier);
+                    Color lite = Shade(rc, (float)amt);   // 정본 `--rc-lite` = srHilite(rc, tier)
+                    RectTransform rt = UiKit.Box(host, "sr-relight");
+                    rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                    rt.pivot = new Vector2(0.5f, 0.5f);
+                    rt.sizeDelta = new Vector2(rw, rw);
+                    rt.anchoredPosition = Vector2.zero;
+                    rt.position = wrap.TransformPoint(wrap.rect.center);   // 광원 = wrap 한가운데
+                    Image ri = rt.gameObject.AddComponent<Image>();
+                    ri.raycastTarget = false;
+                    ri.preserveAspect = false;
+                    ri.sprite = SummonFx.BakeRelight(
+                        "sr-relight-" + ColorUtility.ToHtmlStringRGB(rc) + "-" + ColorUtility.ToHtmlStringRGB(lite), rc, lite);
+                    Material rmat = CraftFxPoly.Screen();   // ⚠ 가산이라야 이웃을 «밝힌다»(정본 주석 · 알파 오버레이는 탁하게 죽인다)
+                    if (rmat != null) ri.material = rmat;
+                    ri.color = new Color(1f, 1f, 1f, 0f);
+                    ri.rectTransform.localScale = Vector3.one * (float)SummonFxStyle.Relight.Relight.Sample(0, "scale", null);
+                    relights.Add(ri);
+                }
             }
 
             // ---- 섬광 ----
@@ -760,6 +805,7 @@ namespace Forge.Game.Ui
             AnimateKick();
             AnimateHeroRing();
             AnimateBeam();
+            AnimateRelights();
         }
 
         void TurnOn(Cell c)
@@ -1014,6 +1060,35 @@ namespace Forge.Game.Ui
             heroBeam.rectTransform.localScale = Vector3.one * (float)sc;
             heroBeam.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -(float)rot);   // CSS 의 +각은 시계 방향
         }
+
+        /// <summary>
+        /// 셀별 광원 재점화(정본 `srrelight` .34s) — 셀이 뜬 그 순간부터 광원 자리에서 켜졌다 꺼진다.
+        /// 정본은 인라인 `animation-delay` 로 시각을 주지만 그 지연은 곧 «그 셀이 뜨는 시각» 이라, 여기서는
+        /// 셀의 점등 시각(<c>OnAt</c>)에서 잰다 — 탭 건너뛰기로 셀이 한꺼번에 떠도 인과가 안 끊긴다.
+        /// </summary>
+        void AnimateRelights()
+        {
+            if (relights.Count == 0) return;
+            SummonRelightSpec sp = SummonFxStyle.Relight;
+            float tt = Time.unscaledTime;
+            for (int i = 0; i < relights.Count && i < cells.Count; i++)
+            {
+                Image ri = relights[i];
+                if (ri == null) continue;
+                Cell c = cells[i];
+                if (!c.On) continue;
+                double a, sc;
+                sp.At((tt - c.OnAt) * 1000f, RarityIdx(c.Entry.Rarity), out a, out sc);
+                ri.color = new Color(1f, 1f, 1f, (float)a);
+                ri.rectTransform.localScale = Vector3.one * (float)sc;
+            }
+        }
+
+        /// <summary>셀별 재점화 플래시 — 자가 본다.</summary>
+        public Image RelightOf(int i) { return i >= 0 && i < relights.Count ? relights[i] : null; }
+
+        /// <summary>재점화 플래시 수 — 자가 본다.</summary>
+        public int RelightCount { get { return relights.Count; } }
 
         /// <summary>주역 광창 — 자가 본다.</summary>
         public Image HeroBeam { get { return heroBeam; } }

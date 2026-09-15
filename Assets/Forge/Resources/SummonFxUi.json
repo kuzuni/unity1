@@ -266,6 +266,26 @@
     "weight": [0.7, 0.82, 1.0, 1.24, 1.5, 1.8],
     "_": "정본 `#summon-result-modal.done .sr-cell.on .sr-orbwrap { animation: srbreath 2.6s ease-in-out infinite; animation-delay: calc(var(--i) * .21s) }`(style.css 6885~6888) + `@keyframes srbreath`(6902~6906): 50% 에 `translateY(-.16rem × --idle)` · `scale(… × (1 + .055 × --idle))`. `--idle` 은 등급 계단(6327~6332 · 일반 .7 · 희귀한 .82 · 서사시 1 · 전설 1.24 · 궁극의 1.5 · 신화 1.8)이다. 정본 주석: «예전엔 전 등급이 똑같이 -.16rem / ×1.055 였고 실측상 등급 간 차이는 광채에서만 나왔다 — 즉 위계가 구조가 아니라 부산물이었다. `--idle` 로 호흡 자체를 계단화해 최고 등급이 가장 크게 숨쉰다»."
   },
+  "relight": {
+    "relight_ms": 340.0,
+    "relight_ease": [0.1, 0.9, 0.3, 1.0],
+    "w_rem": 9.0,
+    "w_vw_f": 0.38,
+    "stop_lite": 0.0,
+    "stop_rc": 0.30,
+    "stop_out": 0.70,
+    "blur_px": 3.0,
+    "glow_base": 0.16,
+    "glow_step": 0.13,
+    "a_base": 0.55,
+    "a_glow": 0.42,
+    "srrelight": [
+      { "at": 0.0,   "alpha_f": 0.0, "scale": 0.28 },
+      { "at": 24.0,  "alpha_f": 1.0, "scale": 1.0 },
+      { "at": 100.0, "alpha_f": 0.0, "scale": 1.46 }
+    ],
+    "_": "정본 `.sr-relight`(style.css 6377~6389) + `@keyframes srrelight` + `UI.fillSummonRelights`(ui.js 638~649). «셀이 뜰 때마다 광원 자리(= `.sr-wrap` 중심)에 그 셀 등급색으로 짧은 플래시를 켠다» — 정본 실측(광원 ±20px 평균 휘도): 2~4번 셀이 사출되는 900ms 내내 45.1~55.2 로 시작 프레임 baseline 53.3 보다도 낮아 «꺼진 광원에서 튀어나오는 물체» 로 읽혔다(인과가 첫 셀과 주역에만 걸려 있었다). 크기 `min(9rem, 38vw)` · 바탕 `radial-gradient(closest-side, var(--rc-lite) 0%, var(--rc) 30%, rgba(0,0,0,0) 70%)` · `filter: blur(3px)` · `mix-blend-mode: screen`. ⚠ 정본 주석 둘: (1) 이 층을 셀 **안**에 넣으면 래퍼 배율·비행 이동·`opacity:0` 이 전부 곱해져 광원에 서지도 제 밝기로 켜지지도 않는다(실측 baseline 대비 1.04~1.19배로 헛돌았다) — `.sr-wrap` 직속이라야 광원 좌표가 그냥 «가운데» 다. (2) 가산(screen)이라야 이웃을 **밝힌다** — 알파 오버레이로 덮으면 오히려 탁하게 죽여 등급색 구분이 무너진다(6차에 `.sr-flash` 가 밟은 함정). 키프레임 0% 알파 0 배율 .28 → 24% 알파 `calc(.55 + .42 * var(--glow))` 배율 1 → 100% 알파 0 배율 1.46 · 길이 .34s · `cubic-bezier(.1,.9,.3,1)`. `--glow` 는 CSS 등급 계단(6327~6332)이 아니라 fillSummonRelights 가 심는 `(0.16 + tier * 0.13)` 이다 — 그래서 glow_base·glow_step 으로 적는다. `--rc-lite` 는 `srHilite(rc, tier)`(= `hero.hilite_luma` 로 역산하는 그 색) 그대로다. 알파는 표에 **비율**(alpha_f 0→1→0)로 적고 정점값(a_base + a_glow × glow)을 곱한다 — 정점이 상수라 보간 결과가 정본과 같고 «등급마다 다른 것은 세기뿐» 이 표에 남는다. blur_px 3 은 굽는 판에 따로 안 먹인다: 이 판은 이미 0→70% 가 매끈한 방사 감쇠라 3px 가우시안이 프로필을 1% 미만으로 바꾼다(지름 ~328 기준 캔버스 px)."
+  },
   "charge": {
     "charge_ms": 280.0,
     "tick_steps": 9.0,

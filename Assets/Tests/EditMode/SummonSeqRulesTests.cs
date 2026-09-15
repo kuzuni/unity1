@@ -431,4 +431,80 @@ namespace Forge.Tests
             Assert.Throws<System.FormatException>(() => SummonHeroSpec.From(MiniJson.ParseObject(bad)));
         }
     }
+
+    /// <summary>T334 11회차 — 셀별 광원 재점화(정본 `.sr-relight`)가 표대로 켜졌다 꺼지고 **등급이 오를수록 세다**.</summary>
+    public class SummonRelightSpecTests
+    {
+        static SummonRelightSpec spec;
+        static SummonRelightSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonRelightSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 켜졌다_꺼지고_커지며_사라진다()
+        {
+            SummonRelightSpec s = S();
+            double a0, sc0, aPk, scPk, a1, sc1;
+            s.At(0, 5, out a0, out sc0);
+            s.At(s.Ms * 0.24, 5, out aPk, out scPk);
+            s.At(s.Ms, 5, out a1, out sc1);
+            Assert.AreEqual(0.0, a0, 1e-9, "재점화는 꺼진 채로 시작한다");
+            Assert.AreEqual(0.0, a1, 1e-9, "재점화는 꺼진 채로 끝난다 — 안 그러면 결과 화면 가운데에 등급색 얼룩이 남는다");
+            Assert.Greater(aPk, 0.5, "24% 에 정점 — 정본 calc(.55 + .42 * --glow)");
+            Assert.Less(sc0, scPk, "작게 시작해");
+            Assert.Less(scPk, sc1, "끝까지 커지며 퍼진다");
+        }
+
+        [Test]
+        public void 등급이_오를수록_세게_켜진다()
+        {
+            SummonRelightSpec s = S();
+            double lo, hi, dummy;
+            s.At(s.Ms * 0.24, 0, out lo, out dummy);
+            s.At(s.Ms * 0.24, 5, out hi, out dummy);
+            Assert.Greater(hi, lo, "정본 fillSummonRelights 의 --glow = 0.16 + tier * 0.13");
+            Assert.LessOrEqual(hi, 1.0, "가산 판의 정점 알파가 1을 넘으면 광원이 하얗게 탄다");
+            Assert.AreEqual(s.GlowBase, s.Glow(0), 1e-9);
+            Assert.AreEqual(s.GlowBase + 3 * s.GlowStep, s.Glow(3), 1e-9);
+        }
+
+        [Test]
+        public void 켜진_채로_끝나는_표는_거부한다()
+        {
+            // 마지막 키의 알파가 0 이 아니면 결과 화면 가운데에 등급색 얼룩이 남는다 — 표에서 막는다.
+            char q = '"';
+            string bad = "{" + q + "relight" + q + ":{" + q + "relight_ms" + q + ":340," + q + "relight_ease" + q + ":[0.1,0.9,0.3,1],"
+                + q + "w_rem" + q + ":9," + q + "w_vw_f" + q + ":0.38," + q + "stop_lite" + q + ":0," + q + "stop_rc" + q + ":0.3,"
+                + q + "stop_out" + q + ":0.7," + q + "blur_px" + q + ":3," + q + "glow_base" + q + ":0.16," + q + "glow_step" + q + ":0.13,"
+                + q + "a_base" + q + ":0.55," + q + "a_glow" + q + ":0.42,"
+                + q + "srrelight" + q + ":[{" + q + "at" + q + ":0," + q + "alpha_f" + q + ":0," + q + "scale" + q + ":0.28},"
+                + "{" + q + "at" + q + ":100," + q + "alpha_f" + q + ":1," + q + "scale" + q + ":1.46}]}}";
+            Assert.Throws<System.FormatException>(() => SummonRelightSpec.From(MiniJson.ParseObject(bad)));
+        }
+
+        [Test]
+        public void 뒤집힌_정지점과_넘치는_알파를_거부한다()
+        {
+            char q = '"';
+            string head = "{" + q + "relight" + q + ":{" + q + "relight_ms" + q + ":340," + q + "relight_ease" + q + ":[0.1,0.9,0.3,1],"
+                + q + "w_rem" + q + ":9," + q + "w_vw_f" + q + ":0.38," + q + "blur_px" + q + ":3,"
+                + q + "glow_base" + q + ":0.16," + q + "glow_step" + q + ":0.13,";
+            string tail = q + "srrelight" + q + ":[{" + q + "at" + q + ":0," + q + "alpha_f" + q + ":0," + q + "scale" + q + ":0.28},"
+                + "{" + q + "at" + q + ":100," + q + "alpha_f" + q + ":0," + q + "scale" + q + ":1.46}]}}";
+            // 정지점이 뒤집히면 심지가 테두리에 서고 광원이 «도넛» 이 된다.
+            string flip = head + q + "stop_lite" + q + ":0.5," + q + "stop_rc" + q + ":0.3," + q + "stop_out" + q + ":0.7,"
+                + q + "a_base" + q + ":0.55," + q + "a_glow" + q + ":0.42," + tail;
+            Assert.Throws<System.FormatException>(() => SummonRelightSpec.From(MiniJson.ParseObject(flip)));
+            // 최고 등급에서 정점 알파가 1을 넘으면 등급색 구분이 하얗게 탄다.
+            string over = head + q + "stop_lite" + q + ":0," + q + "stop_rc" + q + ":0.3," + q + "stop_out" + q + ":0.7,"
+                + q + "a_base" + q + ":0.8," + q + "a_glow" + q + ":0.42," + tail;
+            Assert.Throws<System.FormatException>(() => SummonRelightSpec.From(MiniJson.ParseObject(over)));
+        }
+    }
 }

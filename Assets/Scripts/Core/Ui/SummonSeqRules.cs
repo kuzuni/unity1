@@ -256,6 +256,105 @@ namespace Forge.Core.Ui
     }
 
     /// <summary>
+    /// T334 11회차 — **셀별 광원 재점화**(정본 `.sr-relight` · style.css 6364~6389 · `UI.fillSummonRelights` ui.js 638~649).
+    ///
+    /// 정본이 이 겹을 넣은 까닭이 주석에 실측으로 적혀 있다: 광원 ±20px 평균 휘도가 2~4번 셀이 사출되는 900ms 내내
+    /// **45.1~55.2** 로 시작 프레임 baseline 53.3 보다도 낮았다 — 인과(빛 → 아이템)가 첫 셀과 주역에만 걸려 있어
+    /// 나머지는 «꺼진 광원에서 튀어나오는 물체» 로 읽혔다. 그래서 셀이 뜰 때마다 **광원 자리**에 그 셀 등급색으로
+    /// 짧은 플래시를 한 번 켠다.
+    ///
+    /// ⚠ 세기(`--glow`)는 CSS 의 등급 계단(6327~6332)이 아니라 `fillSummonRelights` 가 심는 `0.16 + tier × 0.13` 이다.
+    /// ⚠ 알파는 표에 **비율**(0 → 1 → 0)로 있고 정점값 `a_base + a_glow × glow` 를 곱한다 — 정점이 상수라 보간 결과는 정본과 같다.
+    /// 수치는 표(`SummonFxUi.json` `relight` 절)가 쥔다. UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonRelightSpec
+    {
+        /// <summary>한 번 켜졌다 꺼지는 길이(ms · 정본 .34s).</summary>
+        public double Ms;
+        /// <summary>판 크기 — `min(w_rem rem, w_vw_f × 앱 폭)`(정본 `min(9rem, 38vw)`).</summary>
+        public double WRem, WVwF;
+        /// <summary>바탕 방사 그라디언트의 정지점(가운데 하이라이트색 · 등급색 · 투명).</summary>
+        public double StopLite, StopRc, StopOut;
+        /// <summary>정본 `filter: blur(3px)` — 굽는 쪽이 이미 매끈한 감쇠라 참고값으로만 둔다.</summary>
+        public double BlurPx;
+        /// <summary>세기 계단(정본 `fillSummonRelights` 의 `0.16 + tier × 0.13`).</summary>
+        public double GlowBase, GlowStep;
+        /// <summary>정점 알파 = <see cref="ABase"/> + <see cref="AGlow"/> × glow(정본 `calc(.55 + .42 * var(--glow))`).</summary>
+        public double ABase, AGlow;
+        public RewardBurstSpec.Track Relight;
+
+        public static SummonRelightSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "relight"));
+            var s = new SummonRelightSpec
+            {
+                Ms = J.Num(J.Require(o, "relight_ms")),
+                WRem = J.Num(J.Require(o, "w_rem")),
+                WVwF = J.Num(J.Require(o, "w_vw_f")),
+                StopLite = J.Num(J.Require(o, "stop_lite")),
+                StopRc = J.Num(J.Require(o, "stop_rc")),
+                StopOut = J.Num(J.Require(o, "stop_out")),
+                BlurPx = J.Num(J.Require(o, "blur_px")),
+                GlowBase = J.Num(J.Require(o, "glow_base")),
+                GlowStep = J.Num(J.Require(o, "glow_step")),
+                ABase = J.Num(J.Require(o, "a_base")),
+                AGlow = J.Num(J.Require(o, "a_glow")),
+            };
+            if (s.Ms <= 0) throw new FormatException("SummonFxUi relight: relight_ms 는 0보다 커야 한다");
+            if (s.WRem <= 0 || s.WVwF <= 0) throw new FormatException("SummonFxUi relight: 판 크기는 0보다 커야 한다");
+            // 그라디언트 정지점은 가운데에서 바깥으로 간다 — 뒤집히면 심지가 테두리에 서고 광원이 «도넛» 이 된다.
+            if (!(s.StopLite < s.StopRc && s.StopRc < s.StopOut)) throw new FormatException("SummonFxUi relight: 정지점은 stop_lite < stop_rc < stop_out 이어야 한다");
+            if (s.StopOut > 1) throw new FormatException("SummonFxUi relight: stop_out 은 판 반지름의 비율(1 이하)이다");
+            // 최고 등급에서도 가산 판의 정점 알파는 1을 넘지 않는다(정본 .55 + .42 = .97).
+            if (s.ABase < 0 || s.AGlow < 0 || s.ABase + s.AGlow > 1) throw new FormatException("SummonFxUi relight: a_base + a_glow 는 0~1 이어야 한다");
+
+            double[] e = J.NumArr(J.Require(o, "relight_ease"));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi relight: relight_ease 는 cubic-bezier 넷이다");
+            CssEase ease = new CssEase(e[0], e[1], e[2], e[3]);
+            var list = J.List(J.Require(o, "srrelight"), x => J.Obj(x));
+            if (list.Count < 2) throw new FormatException("SummonFxUi relight: srrelight 키프레임이 둘 미만이다");
+            var keys = new RewardBurstSpec.KeyStop[list.Count];
+            double prev = -1;
+            for (int i = 0; i < list.Count; i++)
+            {
+                JsonObject k = list[i];
+                var ks = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(k, "at")), Ease = ease };
+                if (ks.At < prev) throw new FormatException("SummonFxUi relight: 퍼센트는 오름차순이어야 한다");
+                prev = ks.At;
+                ks.Num["alpha_f"] = J.Num(J.Require(k, "alpha_f"));
+                ks.Num["scale"] = J.Num(J.Require(k, "scale"));
+                keys[i] = ks;
+            }
+            // 재점화는 **켜졌다 꺼진다** — 양 끝이 0 이 아니면 결과 화면 가운데에 등급색 얼룩이 남는다.
+            if (keys[0].Num["alpha_f"] != 0 || keys[keys.Length - 1].Num["alpha_f"] != 0)
+                throw new FormatException("SummonFxUi relight: srrelight 는 알파 0 에서 시작해 0 으로 꺼져야 한다");
+            s.Relight = new RewardBurstSpec.Track { Keys = keys };
+            return s;
+        }
+
+        /// <summary>그 등급의 세기(정본 `--glow`) — 0~1 로 자른다.</summary>
+        public double Glow(int tier)
+        {
+            double g = GlowBase + (tier < 0 ? 0 : tier) * GlowStep;
+            return g < 0 ? 0 : g > 1 ? 1 : g;
+        }
+
+        /// <summary>그 등급 플래시의 정점 알파(정본 `calc(.55 + .42 * var(--glow))`).</summary>
+        public double PeakAlpha(int tier) { return ABase + AGlow * Glow(tier); }
+
+        /// <summary>셀이 뜬 뒤 <paramref name="ms"/> 지난 재점화 플래시의 불투명도·배율. 끝나면 꺼진 채로 남는다.</summary>
+        public void At(double ms, int tier, out double alpha, out double scale)
+        {
+            double p = ms <= 0 ? 0 : ms >= Ms ? 100 : ms / Ms * 100;
+            alpha = Relight.Sample(p, "alpha_f", null) * PeakAlpha(tier);
+            scale = Relight.Sample(p, "scale", null);
+        }
+
+        /// <summary>아직 켜져 있는가.</summary>
+        public bool Lit(double ms) { return ms >= 0 && ms < Ms; }
+    }
+
+    /// <summary>
     /// T334 6회차 — 주역 착지의 **화면 킥**(정본 `srshakehit` · style.css 5675~5684).
     ///
     /// 정본 주석이 두 가지를 못 박았다: ⓐ «최고 등급 착지 — 앞의 것보다 짧고 세게» ⓑ «화면 킥은 **홀드백 여부와 무관하게**
