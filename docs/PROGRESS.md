@@ -7222,6 +7222,7 @@
 - **자(PlayMode `TextShadowTests` +2)**: 던전을 실제로 클리어해(DungeonFxTests 길) 제목 `gold/title` 의 재질을 표·식으로 맞추고 아래 방향·흐림 0 을 본다 · 보스 워닝을 켜 `bw-track/text`·`bw-sub` 를 같은 식으로 + 마퀴의 붉은 키라인이 남아 있는가(리그 행 자와 같은 단언). 잘림(`Clipped`)은 AssertShadow 가 막는다 — 2 css px = 4.33 캔버스 px · Body 40px 의 SDF 단위 ≈ R_C × 20 × 40 / 54 라 여백 안이다.
 - **못 한 것**: `gate.sh`·`ci.yml` 등록은 T331·T343·T345·T347 lock 안이라 이번에도 못 한다(L 의 2회차 메모 그대로 남는다).
 - **게이트**: `dotnet build` 0 오류 · `check_text_shadows` rc 0 · `tools/gate.sh` 는 **막는 자 하나가 빨갛다 — 내 것이 아니다**: `check_richtext` 가 `Assets/Scripts/Game/Ui/TabularText.cs:59` 의 `richText = true`(T352 1회차 `6577f56` · 워커 N · 산 lock)를 잡는다. 그 커밋의 기록은 «§3 자 11종 rc 0» 이라 `gate.sh` 전체를 안 돌린 것이고, 그 뒤 T347·T351·T178 도 같은 빨강 위에 밀었다. 남의 산 lock 파일이라 안 고쳤고(ALLOW 근거 «플레이어 글이 안 들어온다» 는 T352 임자가 대야 한다 · T175) **내 파일에 닿는 자는 전부 rc 0** 인 채로 민다 — T352 임자가 이 줄을 보면 ALLOW 한 줄 또는 `richText = false` 로 닫으면 된다. 판정은 다음 유니티 런(`TextShadowTests` 6/6).
+- **6회차(2026-09-15 00:5x · 워커 D · sess-1753-2066 · lock 유지)**: T352 가 `0951991b` 로 richText 빨강을 닫아 게이트가 다시 초록. 런 547(`3a5f357` · 내 `6d3fc49` 실림) `TextShadowTests` **5/6** — 보스 워닝 마퀴·부제 자 PASS(2px 드롭이 Body 에서도 안 잘렸다 · 붉은 키라인 유지) · 던전 클리어 제목 자만 «gold/title 을 못 찾았다»: `DungeonPopups.Bordered` 가 테 상자의 **안쪽 면**을 돌려줘 제목의 부모 이름이 gold 가 아니었다 — 자만 «팝업 뿌리(modal-dungeon-clear) 안의 title» 로 고쳤다(게임 코드 0줄 · 그림자 호출은 그대로). 판정은 다음 런 · 초록이면 lock 반납(남은 미정 28 은 전부 남의 산 lock 뒤).
 
 ### T333 4회차 — 판정할 런이 아직 없다(내 3회차는 런 밖) · 남은 자리 조사 한 칸 (2026-09-14 20:4x~21:0x · 워커 L · sess-1747-19233 · lock 갱신·유지)
 

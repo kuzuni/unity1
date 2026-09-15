@@ -208,10 +208,14 @@ namespace Forge.Tests.PlayMode
             h.Dungeons.OnClear();
             yield return null;
             Assert.IsTrue(DungeonClearPopup.IsOpen, "onClear → showDungeonClear");
+            // 런 547 수리: `DungeonPopups.Bordered` 는 테 상자(gold)의 **안쪽 면**을 돌려주므로 제목의 부모 이름은 gold 가 아니다 — 팝업 뿌리 안의 «title» 로 찾는다.
+            Transform root = null;
+            foreach (Transform tr in UiRoot.Instance.App.GetComponentsInChildren<Transform>(true)) if (tr.name == "modal-dungeon-clear") { root = tr; break; }
+            Assert.IsNotNull(root, "클리어 팝업 뿌리(modal-dungeon-clear)를 못 찾았다");
             TextMeshProUGUI title = null;
-            foreach (TextMeshProUGUI t in UiRoot.Instance.App.GetComponentsInChildren<TextMeshProUGUI>(true))
-                if (t.name == "title" && t.transform.parent != null && t.transform.parent.name == "gold") { title = t; break; }
-            Assert.IsNotNull(title, "클리어 팝업 제목(gold/title)을 못 찾았다");
+            foreach (TextMeshProUGUI t in root.GetComponentsInChildren<TextMeshProUGUI>(true)) if (t.name == "title") { title = t; break; }
+            Assert.IsNotNull(title, "클리어 팝업 제목(title)을 못 찾았다");
+            Assert.AreEqual("클리어!", title.text, "정본 showDungeonClear 의 제목");
             AssertShadow(title, "dgclear_title", "던전 클리어 제목");
             Assert.Less(title.fontMaterial.GetFloat("_UnderlayOffsetY"), 0f, "양각은 아래로(CSS 0 2px)");
             Assert.AreEqual(0f, title.fontMaterial.GetFloat("_UnderlaySoftness"), 1e-6, "하드 겹(흐림 0)");
