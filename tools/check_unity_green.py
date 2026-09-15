@@ -540,6 +540,26 @@ def test_files_of(files):
     return out
 
 
+def window_owners(commits, lock=None, now=None):
+    """«런 사이» 창의 코드 커밋 중 **산 lock 을 쥔 작업 번호** — 새 것부터, 겹치면 하나만 (T363).
+
+    §0-6: «한 커밋이 남의 자 여럿을 깨뜨리면 그 자들에 산 lock 이 없어 «네 일이다» 로 보이지만
+    그것은 **그 커밋 임자의 몫**이다.» 그 문장을 <see cref="own_lines"/> 가 쓰려면 창을 알아야 한다."""
+    lock = lock or lock_state
+    out = []
+    for _sha, title, _files in (commits or []):
+        m = re.match(r'^T(\d+)\b', title or '')
+        if not m:
+            continue
+        tid = 'T' + m.group(1)
+        if tid in [t for t, _a in out]:
+            continue
+        alive, age = lock(tid, now)
+        if alive:
+            out.append((tid, age))
+    return out
+
+
 def between_lines(commits, fails_fixtures, green, lock=None, now=None, no_ledger=False, commit_age=None):
     """순수 — «런 사이» 문구(T148). commits = [(sha, 제목, 파일)] 새 것부터 · green = (sha, run) 또는 (None, None).
 
@@ -740,7 +760,7 @@ def ledger_note(runs, missing, look=8):
 
 
 def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None, touched=None, missing='', runs=None,
-              passed=None, expected=None, mode_logs=None, meta_run=None, commit_age=None):
+              passed=None, expected=None, mode_logs=None, meta_run=None, commit_age=None, window=None):
     """빨강마다 임자 한 줄 — **빠진 테스트 파일 ↔ PROGRESS 범위 열** 로 가린다(T125).
 
     갈래 넷:
@@ -795,6 +815,7 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
     err = err or {}
     passed = passed or set()
     expected = expected or set()
+    window = window or []
     out = []
     for name in names:
         # ⓡ T188 — RED 만 있고 FAIL 이 없는 자는 **넘어지지 않았다**(다음 줄이 PASS 다).
@@ -865,10 +886,16 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
                 if hdone and len(hdone) == len(hstates):
                     tail += (' — 전부 닫힌 절이라 지금 빨강의 임자가 아니다 · **아래 «런 사이» 칸의 산 lock 커밋**(그 창에서 코드를 민 작업)이'
                              ' 먼저다(T340 · 실측 런 479: 그것이 T330 이었다).')
+            # T363 — 범위에도 이력에도 임자가 없을 때, 창에 **산 lock 커밋**이 있으면 그쪽이 먼저다(§0-6).
+            close = ('lock 을 눈으로 확인하고, 임자가 없으면 §0-6 대로 **네가 고친다**.')
+            if window:
+                close = ('**«네 일» 이라고 하기 전에**: «런 사이» 칸에 **산 lock 을 쥔 커밋**이 있다 — %s. §0-6 은 '
+                         '«한 커밋이 남의 자 여럿을 깨뜨리면 그 자들에 산 lock 이 없어 «네 일이다» 로 보이지만 '
+                         '그것은 **그 커밋 임자의 몫**» 이라 말한다. **그 줄을 먼저 보고**, 거기서도 아니면 네 일이다.'
+                         % ' '.join('%s(%s)' % (t, _lock_word(True, a)) for t, a in window[:4]))
             out.append('  · `%s` 의 임자: **못 가렸다** — 그 파일(`%s.cs`)을 «범위» 열에 적은 **살아 있는** 작업이 없다. '
-                       '(그 커밋을 민 워커는 %s 지만 main 은 여럿이 미는 가지라 임자가 아니다.)%s '
-                       'lock 을 눈으로 확인하고, 임자가 없으면 §0-6 대로 **네가 고친다**.%s'
-                       % (name, name, who or '못 가렸다', tail, dead_note))
+                       '(그 커밋을 민 워커는 %s 지만 main 은 여럿이 미는 가지라 임자가 아니다.)%s %s%s'
+                       % (name, name, who or '못 가렸다', tail, close, dead_note))
             continue
         states = [(c,) + lock(c, now) for c in cands]   # T153 — 주입한 lock 을 쓴다(여기만 모듈 lock_state 를 불러 자기 검사가 안 닿았다)
         live = [s for s in states if s[1]]
@@ -1682,6 +1709,23 @@ def self_test():
     eq('ⓦ 막힌 것을 못 봤으면 옛 설명을 «일 수 있다» 로 남긴다',
        any('였을 뿐일 수 있다' in ln for ln in out), True)
 
+    # ⓨ T363 — «못 가렸다» 줄이 제 «런 사이» 안내를 «네가 고친다» 로 덮어쓰던 것.
+    WC = [('a' * 7, 'T331 5회차: 그림자를 공용으로', ['Assets/Scripts/Game/Ui/EquipSwapFx.cs']),
+          ('b' * 7, 'T999 문서만', ['docs/PROGRESS.md']),
+          ('c' * 7, '제목이 T 로 안 시작', ['x.cs']),
+          ('d' * 7, 'T331 4회차: 같은 번호 두 번', ['y.cs'])]
+    only331 = lambda t, n=None: (t == 'T331', 61 if t == 'T331' else None)
+    eq('ⓨ 창에서 산 lock 번호만 뽑고 겹치면 하나다', window_owners(WC, lock=only331), [('T331', 61)])
+    eq('ⓨ 산 lock 이 없으면 빈 목록', window_owners(WC, lock=lambda t, n=None: (False, 200)), [])
+    eq('ⓨ 창이 비면 빈 목록', window_owners([], lock=only331), [])
+    P_NO = P + '| T118 | 옛 작업 | ✅ | s0 | `Assets/Tests/PlayMode/EquipSwapTests.cs` | — |\n'
+    plain = own_lines(['FAIL A.B.EquipSwapTests.무엇 · Failed'], P_NO, 'e' * 40, lock=dead, hist=lambda n: [])
+    eq('ⓨ 창이 비면 종전 문구 그대로', any('**네가 고친다**' in l for l in plain), True)
+    withw = own_lines(['FAIL A.B.EquipSwapTests.무엇 · Failed'], P_NO, 'e' * 40, lock=dead, hist=lambda n: [],
+                      window=[('T331', 61)])
+    eq('ⓨ 창에 산 lock 이 있으면 «네가 고친다» 를 안 쓴다', any('**네가 고친다**' in l for l in withw), False)
+    eq('ⓨ 그 번호를 줄 안에서 바로 댄다', any('T331' in l and '그 커밋 임자의 몫' in l for l in withw), True)
+
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
         for f in fails:
@@ -1747,7 +1791,7 @@ def main(argv):
         miss_str = str(meta.get('missing_modes', '') or '')
         mode_logs = {x.strip(): read_mode_log(ref, x.strip()) for x in miss_str.split(',') if x.strip()}
         own = own_lines(fails, read_progress(), cur, err=err, passed=red_only(fails),
-                        expected=expected_reds(text),
+                        expected=expected_reds(text), window=window_owners(commits),
                         touched=prod_touch(commits), missing=miss_str, runs=runs,
                         mode_logs=mode_logs, meta_run=meta.get('run'))
         between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None))
