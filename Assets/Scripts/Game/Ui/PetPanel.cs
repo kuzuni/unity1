@@ -355,7 +355,9 @@ namespace Forge.Game.Ui
                 float ico = PetSkillStyle.Px("slot_buy_icon_w");
                 string cost = JsNum.ToString(P.SlotCost());
                 float tw = PetSkillKit.TextWidth(TextKind.Sub, cost);
-                float g = PetSkillStyle.Rem(0.15f);
+                // T364 6회차 — 정본 4563 `.hatchery .slot-buy { gap: calc(var(--app-w) * .0143) }`(젬 ↔ 빨강 숫자).
+                // 종전 `Rem(0.15f)`(= 5.46px@1080)는 정본(15.44px)의 3분의 1이라 알약 안이 촘촘했다 — 축도 앱 높이 기준이었다.
+                float g = PetSkillStyle.Px("slot_buy_ico_gap_w");
                 float cx = (lw - ico - g - tw) * 0.5f;
                 Image gi = UiKit.Icon(br, "ico", "gem");
                 UiKit.Place(gi.rectTransform, cx, (lh - ico) * 0.5f, ico, ico);
