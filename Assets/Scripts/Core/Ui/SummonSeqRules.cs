@@ -256,6 +256,101 @@ namespace Forge.Core.Ui
     }
 
     /// <summary>
+    /// T334 15회차 — **비행 잔상**(정본 `.sr-ghost` · style.css 6448~6474).
+    ///
+    /// 정본 주석: «팝이 아래에서 올라오는데 궤적이 없으면 «순간이동 후 튕김» 으로 보인다» ·
+    /// «잔상은 «아래에서 솟은 자국» 이 아니라 **비행 경로에 끌리는 꼬리** 다 — 셀이 광원 쪽에서 날아오므로
+    /// 잔상은 그 뒤쪽(광원 쪽)에 남아 따라붙는다. 셀 안에 있어서 셀의 이동이 이미 곱해진 상태라,
+    /// 여기서는 «뒤처진 만큼» 만 더 민다».
+    ///
+    /// ⚠ **제 길이가 없다** — `animation: srghost var(--pop)` 이라 그 셀의 팝 길이(등급 계단)를 그대로 쓴다.
+    ///   그래서 <see cref="At"/> 가 길이를 인자로 받는다.
+    /// ⚠ 치우침은 `--dx/--dy` 에 곱하는 비율이고 그 벡터는 **전체가 아니라 `SR_EJECT` 를 곱한 것**이다(`layout.eject_f`).
+    /// ⚠ 꼬리 마디의 76% 를 줄이지 말 것 — 정본이 «비행 창(0→76%)에 맞춰 다시 찍었다» 고 적어 뒀다
+    ///   (예전엔 55% 에 사그라들어 늘어난 비행의 뒷부분에 꼬리가 없었다).
+    /// UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonGhostSpec
+    {
+        /// <summary>바탕 방사 그라디언트의 정지점(가운데 하이라이트색 · 등급색 · 투명).</summary>
+        public double StopLite, StopRc, StopOut;
+        /// <summary>정본 `filter: blur(6px)` — 굽는 쪽이 이미 매끈한 감쇠라 참고값으로만 둔다.</summary>
+        public double BlurPx;
+        /// <summary>등급 계단(정본 `--glow` · `tier.glow`).</summary>
+        public double[] TierGlow;
+        public RewardBurstSpec.Track Ghost;
+
+        public static SummonGhostSpec From(JsonObject root)
+        {
+            double[] g = J.NumArr(J.Require(J.Obj(J.Require(root, "tier")), "glow"));
+            if (g == null || g.Length < 2) throw new FormatException("SummonFxUi tier: glow 는 등급 계단(둘 이상)이다");
+
+            JsonObject o = J.Obj(J.Require(root, "ghost"));
+            var s = new SummonGhostSpec
+            {
+                StopLite = J.Num(J.Require(o, "stop_lite")),
+                StopRc = J.Num(J.Require(o, "stop_rc")),
+                StopOut = J.Num(J.Require(o, "stop_out")),
+                BlurPx = J.Num(J.Require(o, "blur_px")),
+                TierGlow = g,
+            };
+            if (!(s.StopLite < s.StopRc && s.StopRc < s.StopOut)) throw new FormatException("SummonFxUi ghost: 정지점은 stop_lite < stop_rc < stop_out 이어야 한다");
+            if (s.StopOut > 1) throw new FormatException("SummonFxUi ghost: stop_out 은 판 반지름의 비율(1 이하)이다");
+
+            double[] e = J.NumArr(J.Require(o, "ghost_ease"));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi ghost: ghost_ease 는 cubic-bezier 넷이다");
+            CssEase ease = new CssEase(e[0], e[1], e[2], e[3]);
+            var list = J.List(J.Require(o, "srghost"), x => J.Obj(x));
+            if (list.Count < 2) throw new FormatException("SummonFxUi ghost: srghost 키프레임이 둘 미만이다");
+            var keys = new RewardBurstSpec.KeyStop[list.Count];
+            double prev = -1;
+            for (int i = 0; i < list.Count; i++)
+            {
+                JsonObject k = list[i];
+                var ks = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(k, "at")), Ease = ease };
+                if (ks.At < prev) throw new FormatException("SummonFxUi ghost: 퍼센트는 오름차순이어야 한다");
+                prev = ks.At;
+                ks.Num["back_f"] = J.Num(J.Require(k, "back_f"));
+                ks.Num["scale"] = J.Num(J.Require(k, "scale"));
+                ks.Num["a_base"] = J.Num(J.Require(k, "a_base"));
+                ks.Num["a_glow"] = J.Num(J.Require(k, "a_glow"));
+                keys[i] = ks;
+            }
+            // 꼬리는 **본체를 따라잡고 사라진다** — 마지막 키가 제자리·알파 0 이 아니면 결과 화면에 흐린 원이 남는다.
+            var last = keys[keys.Length - 1];
+            if (last.Num["back_f"] != 0 || last.Num["a_base"] != 0 || last.Num["a_glow"] != 0 || last.Num["scale"] != 1)
+                throw new FormatException("SummonFxUi ghost: srghost 의 마지막 키는 제자리(치우침 0 · 배율 1)에서 알파 0 이어야 한다");
+            // 꼬리는 **광원 쪽으로만** 뒤처진다 — 비율이 음수면 진행 방향 앞에 서서 «앞서 나간 잔상» 이 된다.
+            // 그리고 뒤처진 정도는 줄어들기만 한다(따라붙는다).
+            double p0 = keys[0].Num["back_f"];
+            if (p0 <= 0) throw new FormatException("SummonFxUi ghost: 첫 키의 치우침은 0보다 커야 한다(꼬리가 광원 쪽에 남는다)");
+            for (int i = 1; i < keys.Length; i++)
+                if (keys[i].Num["back_f"] > keys[i - 1].Num["back_f"]) throw new FormatException("SummonFxUi ghost: 꼬리는 따라붙기만 한다 — 치우침이 커지면 안 된다");
+            s.Ghost = new RewardBurstSpec.Track { Keys = keys };
+            return s;
+        }
+
+        /// <summary>그 등급의 세기(정본 `--glow` 계단).</summary>
+        public double Glow(int tier) { return TierGlow[tier < 0 ? 0 : tier >= TierGlow.Length ? TierGlow.Length - 1 : tier]; }
+
+        /// <summary>
+        /// 셀이 뜬 뒤 <paramref name="ms"/> 지난 잔상의 치우침 비율·배율·불투명도.
+        /// <paramref name="popMs"/> 는 **그 셀의 팝 길이**다(정본 `var(--pop)`).
+        /// <paramref name="backF"/> 는 «슬롯 → 광원» 사출 벡터(`--dx/--dy`)에 곱할 비율.
+        /// </summary>
+        public void At(double ms, double popMs, int tier, out double backF, out double scale, out double alpha)
+        {
+            double p = popMs <= 0 || ms >= popMs ? 100 : ms <= 0 ? 0 : ms / popMs * 100;
+            backF = Ghost.Sample(p, "back_f", null);
+            scale = Ghost.Sample(p, "scale", null);
+            alpha = Ghost.Sample(p, "a_base", null) + Glow(tier) * Ghost.Sample(p, "a_glow", null);
+        }
+
+        /// <summary>아직 꼬리가 남아 있는가.</summary>
+        public bool Trailing(double ms, double popMs) { return ms >= 0 && ms < popMs; }
+    }
+
+    /// <summary>
     /// T334 12회차 — **착지 스파크**(정본 `.sr-spark` · style.css 6463~6484).
     ///
     /// 정본 주석: «링 하나로는 «내려앉았다» 만 말하고 «부딪혔다» 를 말하지 못한다 —

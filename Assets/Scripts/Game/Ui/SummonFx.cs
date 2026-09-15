@@ -749,10 +749,30 @@ namespace Forge.Game.Ui
         /// </summary>
         public static Sprite BakeRelight(string name, Color rc, Color lite)
         {
-            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
             SummonRelightSpec sp = SummonFxStyle.Relight;
+            return BakeRadial(name, rc, lite, (float)sp.StopLite, (float)sp.StopRc, (float)sp.StopOut);
+        }
+
+        /// <summary>
+        /// 비행 잔상 판(정본 `.sr-ghost` 6448~6452) — 같은 `radial-gradient(closest-side …)` 문법에 정지점만 다르다(0 / 52% / 74%).
+        /// 정본 `filter: blur(6px)` 는 따로 안 먹인다(재점화와 같은 까닭 — 감쇠가 이미 매끈하다 · 표 `_` 참조).
+        /// </summary>
+        public static Sprite BakeGhost(string name, Color rc, Color lite)
+        {
+            SummonGhostSpec sp = SummonFxStyle.Ghost;
+            return BakeRadial(name, rc, lite, (float)sp.StopLite, (float)sp.StopRc, (float)sp.StopOut);
+        }
+
+        /// <summary>
+        /// `radial-gradient(closest-side, lite 0%, rc <s1>, rgba(0,0,0,0) <s2>)` 한 장 — 재점화·잔상이 같이 쓴다.
+        ///
+        /// CSS 가 투명으로 잇는 마지막 구간은 **미리 곱한 알파**로 보간한다 — 색은 등급색 그대로 두고 알파만 떨어뜨린다
+        /// (색을 검정으로 끌면 가산 혼합에서 «까맣게 죽은 테» 가 한 겹 생긴다). 정사각 판이라 `closest-side` = 반지름 = 반 변.
+        /// </summary>
+        static Sprite BakeRadial(string name, Color rc, Color lite, float s0, float s1, float s2)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
             int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
-            float s0 = (float)sp.StopLite, s1 = (float)sp.StopRc, s2 = (float)sp.StopOut;
             var px = new Color32[N * N];
             for (int y = 0; y < N; y++)
             {
@@ -860,13 +880,14 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; heroRingEase = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; heroRingEase = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
         static SummonHeroSpec hero;
         static SummonRelightSpec relight;
         static SummonSparkSpec spark;
+        static SummonGhostSpec ghost;
         /// <summary>T334 6회차 — 주역 착지의 화면 킥(표의 `hero` 절).</summary>
         /// <summary>표의 `hero` 절 수치 하나(그 절은 `layout` 밖이다).</summary>
         public static float H(string key) { Load(); return (float)J.Num(J.Require(J.Obj(root["hero"]), key)); }
@@ -897,6 +918,9 @@ namespace Forge.Game.Ui
 
         /// <summary>T334 12회차 — 착지 스파크 규칙(정본 `.sr-spark`).</summary>
         public static SummonSparkSpec Spark { get { Load(); if (spark == null) spark = SummonSparkSpec.From(root); return spark; } }
+
+        /// <summary>T334 15회차 — 비행 잔상 규칙(정본 `.sr-ghost`).</summary>
+        public static SummonGhostSpec Ghost { get { Load(); if (ghost == null) ghost = SummonGhostSpec.From(root); return ghost; } }
 
         public static Color C(string key)
         {

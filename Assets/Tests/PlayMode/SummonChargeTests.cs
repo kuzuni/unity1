@@ -302,6 +302,60 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(want, ej.magnitude, full.magnitude * 0.02f, "되짚는 비율이 표(eject_f)와 다르다");
         }
 
+
+        /// <summary>
+        /// T334 15회차 ⓑ — 비행 잔상(정본 `.sr-ghost`)이 셀 **뒤**(z 0)에서 광원 쪽으로 뒤처졌다가 따라붙어 사라진다.
+        ///
+        /// 정본 주석: «잔상은 «아래에서 솟은 자국» 이 아니라 **비행 경로에 끌리는 꼬리** 다 — 셀이 광원 쪽에서
+        /// 날아오므로 잔상은 그 뒤쪽(광원 쪽)에 남아 따라붙는다». 그래서 자는 «움직였다» 가 아니라
+        /// **«어느 쪽으로»** 를 잰다 — 치우침이 그 셀의 사출 벡터와 **같은 방향**이어야 한다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 잔상은_셀_뒤에서_광원_쪽에_뒤처졌다가_따라붙어_사라진다()
+        {
+            yield return Boot();
+            SkillSummonResultView v = OpenHoldback();
+            Image g0 = v.GhostOf(0);
+            Assert.IsNotNull(g0, "비행 잔상이 없다");
+            Assert.IsNotNull(g0.sprite, "구운 방사 판 한 장이라야 한다");
+            Assert.AreEqual(0, g0.transform.GetSiblingIndex(), "잔상은 구체 **뒤**에 깔린다(정본 z 0)");
+            Assert.AreEqual("sr-orbwrap", g0.rectTransform.parent.name, "잔상은 셀 안에 산다(셀의 이동이 이미 곱해진 자리)");
+
+            float peakA = 0f, bestDot = 0f, farthest = 0f;
+            float t = 0f;
+            while (!v.Done && t < 12f)
+            {
+                Image gi = v.GhostOf(0);
+                if (gi != null && gi.color.a > 0f)
+                {
+                    if (gi.color.a > peakA) peakA = gi.color.a;
+                    Vector2 off = gi.rectTransform.anchoredPosition;
+                    Vector2 ej = v.EjectOf(0);
+                    if (off.magnitude > farthest)
+                    {
+                        farthest = off.magnitude;
+                        bestDot = ej.sqrMagnitude > 0f ? Vector2.Dot(off.normalized, ej.normalized) : 0f;
+                    }
+                }
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.IsTrue(v.Done, "연출이 안 끝났다(경과 " + t.ToString("0.00") + "초)");
+            Assert.Greater(peakA, 0f, "첫 셀이 날아왔는데 꼬리가 안 켜졌다");
+            Assert.Greater(farthest, 0f, "꼬리가 제자리에만 있었다 — 궤적이 안 남는다");
+            Assert.Greater(bestDot, 0.9f,
+                "꼬리가 사출 벡터와 다른 쪽으로 밀렸다(코사인 " + bestDot.ToString("0.00") + ") — 정본은 «광원 쪽 뒤» 다");
+
+            float t2 = 0f;
+            while (t2 < 1.2f) { t2 += Time.unscaledDeltaTime; yield return null; }
+            for (int i = 0; i < 4; i++)
+            {
+                Image gi = v.GhostOf(i);
+                Assert.AreEqual(0f, gi.color.a, 1e-3f, "꼬리가 안 꺼졌다 — 결과 화면에 흐린 원이 남는다(" + i + "번)");
+                Assert.AreEqual(Vector2.zero, gi.rectTransform.anchoredPosition, "꼬리가 본체 자리로 안 돌아왔다(" + i + "번)");
+            }
+        }
+
         static Transform FindDeep(Transform root, string name)
         {
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true))

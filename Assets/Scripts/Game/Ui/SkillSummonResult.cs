@@ -52,6 +52,8 @@ namespace Forge.Game.Ui
             public Color[] TintHome;
             /// <summary>T334 12회차 — 착지 스파크(정본 `.sr-spark`) — 구체 래퍼 한가운데에 겹친다.</summary>
             public Image Spark;
+            /// <summary>T334 15회차 — 비행 잔상(정본 `.sr-ghost`) — 구체 **뒤**(z 0)에 깔리는 흐린 복제.</summary>
+            public Image Ghost;
         }
 
         public static SkillSummonResultView Current { get; private set; }
@@ -672,6 +674,26 @@ namespace Forge.Game.Ui
                 WrapUi.Apply(rt, "sr_sub");   // 정본 nowrap
                 UiKit.Fill(rt.rectTransform);
             }
+            // ---- 비행 잔상(정본 `.sr-ghost` 6448~6474 · z 0) ----
+            // 정본 주석: «팝이 아래에서 올라오는데 궤적이 없으면 «순간이동 후 튕김» 으로 보인다» ·
+            //   «잔상은 «아래에서 솟은 자국» 이 아니라 **비행 경로에 끌리는 꼬리** 다 — 셀이 광원 쪽에서 날아오므로
+            //    잔상은 그 뒤쪽(광원 쪽)에 남아 따라붙는다. 셀 안에 있어서 셀의 이동이 이미 곱해진 상태라,
+            //    여기서는 «뒤처진 만큼» 만 더 민다» — 그래서 이 판은 셀 **안**(구체 래퍼)에 산다(스파크·재점화와 다른 자리다).
+            // 상자는 `inset: 0`(래퍼와 같은 칸) · 구체 **뒤**라 맨 앞 형제로 넣는다.
+            {
+                RectTransform gh = UiKit.Box(wrap, "sr-ghost");
+                UiKit.Fill(gh);
+                gh.SetAsFirstSibling();
+                Image gi = gh.gameObject.AddComponent<Image>();
+                gi.raycastTarget = false;
+                gi.preserveAspect = false;
+                double gamt = SummonFxStyle.Hero.HiliteAmount(rc.r * 255.0, rc.g * 255.0, rc.b * 255.0, tier);
+                Color glite = Shade(rc, (float)gamt);   // 정본 `--rc-lite`
+                gi.sprite = SummonFx.BakeGhost(
+                    "sr-ghost-" + ColorUtility.ToHtmlStringRGB(rc) + "-" + ColorUtility.ToHtmlStringRGB(glite), rc, glite);
+                gi.color = new Color(1f, 1f, 1f, 0f);
+                c.Ghost = gi;
+            }
             // ---- 착지 스파크(정본 `.sr-spark` 6463~6484 · z 2) ----
             // 정본 주석: «링 하나로는 «내려앉았다» 만 말하고 «부딪혔다» 를 말하지 못한다 —
             //   box-shadow 8방향 복제를 transform: scale 로 바깥으로 날린다(오프셋도 함께 확대된다)».
@@ -862,6 +884,7 @@ namespace Forge.Game.Ui
             AnimateBeam();
             AnimateRelights();
             AnimateSparks();
+            AnimateGhosts();
         }
 
         void TurnOn(Cell c)
@@ -1165,6 +1188,32 @@ namespace Forge.Game.Ui
                 c.Spark.rectTransform.localScale = Vector3.one * (float)sc;
             }
         }
+
+        /// <summary>
+        /// 비행 잔상(정본 `srghost` · 길이는 그 셀의 `var(--pop)`) — 셀이 날아온 **뒤쪽**(광원 쪽)에 남아 따라붙는다.
+        ///
+        /// 잔상은 셀 안에 있어 셀의 이동이 이미 곱해져 있다 — 그래서 여기서는 «뒤처진 만큼» 만 더 민다(정본 주석 그대로).
+        /// 미는 방향은 «슬롯 → 광원» 사출 벡터(`--dx/--dy` · `SR_EJECT` 를 이미 곱한 값)다.
+        /// </summary>
+        void AnimateGhosts()
+        {
+            SummonGhostSpec sp = null;
+            float tt = Time.unscaledTime;
+            for (int i = 0; i < cells.Count; i++)
+            {
+                Cell c = cells[i];
+                if (c.Ghost == null || !c.On) continue;
+                if (sp == null) sp = SummonFxStyle.Ghost;
+                double back, sc, a;
+                sp.At((tt - c.OnAt) * 1000f, c.Pop * 1000f, RarityIdx(c.Entry.Rarity), out back, out sc, out a);
+                c.Ghost.color = new Color(1f, 1f, 1f, (float)a);
+                c.Ghost.rectTransform.localScale = Vector3.one * (float)sc;
+                c.Ghost.rectTransform.anchoredPosition = c.ToLight * (float)back;
+            }
+        }
+
+        /// <summary>그 셀의 비행 잔상 — 자가 본다.</summary>
+        public Image GhostOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Ghost : null; }
 
         /// <summary>그 셀의 착지 스파크 — 자가 본다.</summary>
         public Image SparkOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Spark : null; }

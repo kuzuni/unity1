@@ -600,4 +600,80 @@ namespace Forge.Tests
             Assert.Throws<System.FormatException>(() => SummonSparkSpec.From(MiniJson.ParseObject(gone)));
         }
     }
+
+    /// <summary>T334 15회차 — 비행 잔상(정본 `.sr-ghost`)이 광원 쪽에 뒤처졌다가 따라붙어 사라진다.</summary>
+    public class SummonGhostSpecTests
+    {
+        static SummonGhostSpec spec;
+        static SummonGhostSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonGhostSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 뒤처졌다가_따라붙어_사라진다()
+        {
+            SummonGhostSpec s = S();
+            const double pop = 440;   // 전설 셀의 팝 길이 — 잔상은 제 길이가 없고 이것을 그대로 쓴다
+            double b0, sc0, a0, bMid, scMid, aMid, b1, sc1, a1;
+            s.At(0, pop, 5, out b0, out sc0, out a0);
+            s.At(pop * 0.4, pop, 5, out bMid, out scMid, out aMid);
+            s.At(pop, pop, 5, out b1, out sc1, out a1);
+            Assert.Greater(b0, 0.0, "꼬리는 광원 쪽에 뒤처져 시작한다");
+            Assert.Less(bMid, b0, "따라붙는다");
+            Assert.AreEqual(0.0, b1, 1e-9, "끝에는 본체 자리에 겹친다");
+            Assert.AreEqual(1.0, sc1, 1e-9, "끝 배율은 제자리");
+            Assert.Greater(a0, 0.0);
+            Assert.AreEqual(0.0, a1, 1e-9, "꺼진다 — 안 그러면 결과 화면에 흐린 원이 남는다");
+        }
+
+        [Test]
+        public void 길이는_제_것이_없고_셀의_팝을_따른다()
+        {
+            SummonGhostSpec s = S();
+            // 같은 «진행 비율» 이면 길이가 달라도 같은 값이 나온다 — 그것이 `var(--pop)` 계약이다.
+            double bA, scA, aA, bB, scB, aB;
+            s.At(320 * 0.5, 320, 3, out bA, out scA, out aA);
+            s.At(520 * 0.5, 520, 3, out bB, out scB, out aB);
+            Assert.AreEqual(bA, bB, 1e-9);
+            Assert.AreEqual(aA, aB, 1e-9);
+            // 그리고 길이를 넘기면 끝난 자리에 머문다.
+            double b1, sc1, a1;
+            s.At(9999, 320, 3, out b1, out sc1, out a1);
+            Assert.AreEqual(0.0, a1, 1e-9);
+        }
+
+        [Test]
+        public void 등급이_오를수록_짙다()
+        {
+            SummonGhostSpec s = S();
+            double b, sc, aLo, aHi;
+            s.At(0, 400, 0, out b, out sc, out aLo);
+            s.At(0, 400, 5, out b, out sc, out aHi);
+            Assert.Greater(aHi, aLo, "정본 calc(.42 + .4 * --glow)");
+            Assert.LessOrEqual(aHi, 1.0);
+        }
+
+        [Test]
+        public void 앞서_나가거나_남아_굳는_표는_거부한다()
+        {
+            char q = '"';
+            string head = "{" + q + "tier" + q + ":{" + q + "glow" + q + ":[0,0.16,0.3,0.55,0.8,1]}," + q + "ghost" + q + ":{"
+                + q + "stop_lite" + q + ":0," + q + "stop_rc" + q + ":0.52," + q + "stop_out" + q + ":0.74," + q + "blur_px" + q + ":6,"
+                + q + "ghost_ease" + q + ":[0,0,0.58,1]," + q + "srghost" + q + ":[";
+            string k0 = "{" + q + "at" + q + ":0," + q + "back_f" + q + ":0.58," + q + "scale" + q + ":1.06," + q + "a_base" + q + ":0.42," + q + "a_glow" + q + ":0.4}";
+            // ⑴ 꼬리가 진행 방향 앞으로 가면 «앞서 나간 잔상» 이 된다.
+            string ahead = head + k0 + ",{" + q + "at" + q + ":50," + q + "back_f" + q + ":0.9," + q + "scale" + q + ":1.02," + q + "a_base" + q + ":0.2," + q + "a_glow" + q + ":0.2},"
+                + "{" + q + "at" + q + ":100," + q + "back_f" + q + ":0," + q + "scale" + q + ":1," + q + "a_base" + q + ":0," + q + "a_glow" + q + ":0}]}}";
+            Assert.Throws<System.FormatException>(() => SummonGhostSpec.From(MiniJson.ParseObject(ahead)));
+            // ⑵ 마지막이 안 꺼지면 결과 화면에 흐린 원이 남는다.
+            string lit = head + k0 + ",{" + q + "at" + q + ":100," + q + "back_f" + q + ":0," + q + "scale" + q + ":1," + q + "a_base" + q + ":0.1," + q + "a_glow" + q + ":0}]}}";
+            Assert.Throws<System.FormatException>(() => SummonGhostSpec.From(MiniJson.ParseObject(lit)));
+        }
+    }
 }
