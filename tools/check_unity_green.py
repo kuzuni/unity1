@@ -1041,6 +1041,74 @@ def fetch_jobs(sha):
         return None
 
 
+def unity_verdict(unity_jobs):
+    """유니티 잡들의 결론 → **판정**(`'success'`/`'failure'`) 또는 None (순수 · T373).
+
+    `skipped`·`neutral` 은 안 돈 것이고 `cancelled`·`timed_out` 은 **돌다 만 것**이다 — 둘 다 판정이 아니다.
+    (실측 2026-09-15: 런 621·625·629 가 `cancelled` 인데 옛 코드는 그것을 «돌았다» 로 삼켰다.)
+    한 런에 유니티 잡이 여럿이면 **빨강 하나가 판정**이다(§1 — 하나라도 빨가면 그 런은 빨갛다).
+    """
+    conc = [j['conclusion'] for j in (unity_jobs or [])]
+    if 'failure' in conc:
+        return 'failure'
+    if 'success' in conc:
+        return 'success'
+    return None
+
+
+def newer_verdict(runs):
+    """장부(`screens:meta.json`)보다 **뒤**에 온 런 중 유니티가 실제로 **판정을 낸 마지막 런**(순수 · T373).
+
+    왜 있나 — §0-6 의 첫 일이 이 자의 첫 문장 위에 선다. 그런데 장부는 유니티 잡이 **자기 것을 적을 때만**
+    갱신되므로, 빨강이 이미 닫힌 뒤에도 몇 분~몇십 분 낡은 채로 남는다. 실측(2026-09-15 08:0x):
+    장부는 런 620(`d7f638e` failure)인데 같은 순간 런 623(`55c4c8a`)이 유니티를 실제로 돌려 `success` 였고
+    그 빨강은 이미 닫혀 있었다 — 자는 그 런을 손에 쥐고도(`fetch_runs_after` 가 받아 왔다)
+    `classify_after` 의 «돈 런은 관심 밖» 갈래에서 **버렸다**. 그래서 워커들이 남이 끝낸 일을 첫 일로 받았다.
+
+    runs: [{run_number, sha, jobs}] — `fetch_runs_after` 꼴(run_number 오름차순).
+    돌려주는 것: {'run', 'sha'(7자리), 'full'(전체 sha), 'verdict'} 또는 None(판정 낸 런이 하나도 없음).
+    """
+    best = None
+    for r in runs or []:
+        jobs = r.get('jobs')
+        if jobs is None:
+            continue
+        v = unity_verdict([j for j in jobs if UNITY_JOB in j['name']])
+        if v is None:
+            continue
+        full = str(r.get('sha') or '')
+        best = {'run': r.get('run_number'), 'sha': full[:7], 'full': full, 'verdict': v}
+    return best
+
+
+def _run_gt(a, b):
+    """런 번호 비교(순수) — 둘 다 수로 읽힐 때만 «a 가 더 새롭다» 라고 말한다."""
+    try:
+        return int(a) > int(b)
+    except (TypeError, ValueError):
+        return False
+
+
+def stale_lines(meta_run, nv, red):
+    """«장부가 낡았다» 를 **맨 위에** 세우는 줄(순수 · T373). nv 가 장부보다 새롭지 않으면 빈 목록."""
+    if not nv or not _run_gt(nv.get('run'), meta_run):
+        return []
+    if nv['verdict'] == 'success':
+        out = ['⚑ **장부가 낡았다** — `screens:meta.json` 은 런 #%s 인데, 그 뒤 런 **#%s (%s)** 에서'
+               ' 유니티가 **실제로 돌아 초록**이다.' % (meta_run, nv['run'], nv['sha'])]
+        if red:
+            out.append('   → 장부에 적힌 빨강은 **이미 닫혔다** — 그것을 «이번 회차의 첫 일» 로 내주지 않는다'
+                       '(남이 끝낸 일을 다시 잡는 자리다 · T153 과 같은 갈래).')
+        out.append('   (장부는 유니티 잡이 **제 것을 적을 때만** 갱신된다 — 배포가 한 발 늦으면 늘 이만큼 낡는다.)')
+        return out
+    out = ['⚑ **장부가 낡았다** — `screens:meta.json` 은 런 #%s 인데, 그 뒤 런 **#%s (%s)** 에서'
+           ' 유니티가 **실제로 돌아 빨갛다**. 지금 빨강은 그 런 것이다.' % (meta_run, nv['run'], nv['sha'])]
+    if red:
+        out.append('   ⚠ 아래 빨간 자 이름·임자 줄은 **런 #%s(장부) 것**이라 지금 빨강과 다를 수 있다'
+                   ' — 런 #%s 의 잡 로그를 먼저 본다.' % (meta_run, nv['run']))
+    return out
+
+
 def classify_after(runs):
     """
     T356 — «유니티가 실제로 돈 마지막 런» **뒤**의 런들을 갈라 본다.
@@ -1063,9 +1131,11 @@ def classify_after(runs):
             unknown.append({'run': r.get('run_number'), 'sha': (r.get('sha') or '')[:7]})
             continue
         unity = [j for j in jobs if UNITY_JOB in j['name']]
-        ran = any(j['conclusion'] not in ('skipped', 'neutral') for j in unity)
-        if ran:
-            continue                                   # 유니티가 돈 런은 이 자의 관심 밖이다
+        # T373 — «돌았다» 와 «판정을 냈다» 는 다르다. `cancelled`·`timed_out` 은 돌다 만 것이라
+        #        판정이 아니지만, 앞 잡이 멈춰 세운 것도 아니라 «막힘»·«문서 push» 어느 칸에도 안 넣는다.
+        if unity_verdict(unity) is not None or any(
+                j['conclusion'] not in ('skipped', 'neutral') for j in unity):
+            continue                                   # 유니티가 돌았거나 돌다 만 런은 이 자의 관심 밖이다
         reds = [j for j in jobs if UNITY_JOB not in j['name']
                 and j['conclusion'] not in ('success', 'skipped', 'neutral')]
         if reds:
@@ -1174,7 +1244,8 @@ def job_lines(jobs, sha, unity_red=True):
     return out
 
 
-def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None, blocked=None, blocks_now=True):
+def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None, blocked=None, blocks_now=True,
+          newer=None):
     """순수 판정 — (rc, 줄 목록). 네트워크·git 없이 자기 검사할 수 있게 갈라 둔다."""
     out = []
     if meta is None:
@@ -1196,6 +1267,18 @@ def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None, blocke
     # T356 — 막힌 런이 있으면 **맨 위**다: 유니티 빨강을 고쳐 봐야 그 판정을 받을 수 없다.
     blk = list(blocked or [])
     out.extend(blk)
+
+    # T373 — 장부보다 **뒤**에 유니티가 실제로 판정을 낸 런이 있으면 그 런이 «지금» 이다.
+    #        장부의 빨강은 이미 닫혔을 수 있고, 그것을 «이번 회차의 첫 일» 로 내주면 남이 끝낸 일을 다시 잡는다.
+    nv = newer if (newer and _run_gt(newer.get('run'), run)) else None
+    if nv:
+        out.extend(stale_lines(run, nv, bool(bad)))
+        head = '유니티 잡이 **실제로 돈** 마지막 main 런 = #%s (%s · **장부 #%s 보다 새롭다**)' % (
+            nv['run'], nv['sha'], run)
+        if nv['verdict'] == 'success':
+            bad = []                       # 장부의 빨강은 닫혔다 — 초록 갈래로 간다
+        elif not bad:
+            bad = ['판정 «failure»']       # 장부는 초록인데 그 뒤 런이 빨갛다
 
     if bad:
         out.append('✗ check_unity_green: %s — %s' % (head, ' · '.join(bad)))
@@ -1776,6 +1859,63 @@ def self_test():
     eq('ⓦ 막힌 것을 못 봤으면 옛 설명을 «일 수 있다» 로 남긴다',
        any('였을 뿐일 수 있다' in ln for ln in out), True)
 
+    # ⓐⓒ T373 — 장부보다 **새로운, 유니티가 실제로 판정을 낸 런**을 손에 쥐고도 버리던 자리.
+    #      실측(2026-09-15 08:0x): 장부 = 런 620 `failure` · 같은 순간 런 623 이 실제로 돌아 `success`.
+    eq('ⓐⓒ success·failure 만 판정이다', [unity_verdict([{'conclusion': c} for c in cs]) for cs in
+                                    (['success'], ['failure'], ['skipped'], ['neutral'], ['cancelled'], ['timed_out'], [])],
+       ['success', 'failure', None, None, None, None, None])
+    eq('ⓐⓒ 한 런에 빨강이 하나라도 있으면 빨강',
+       unity_verdict([{'conclusion': 'success'}, {'conclusion': 'failure'}]), 'failure')
+
+    _after373 = [
+        {'run_number': 621, 'sha': '1' * 40, 'jobs': _jobs('success', 'cancelled')},
+        {'run_number': 622, 'sha': '2' * 40, 'jobs': _jobs('success', 'skipped')},
+        {'run_number': 623, 'sha': '3' * 40, 'jobs': _jobs('success', 'success')},
+        {'run_number': 624, 'sha': '4' * 40, 'jobs': _jobs('success', 'skipped')},
+    ]
+    _nv = newer_verdict(_after373)
+    eq('ⓐⓒ 뒤 런에서 판정을 낸 마지막 런을 집는다', (_nv['run'], _nv['verdict']), (623, 'success'))
+    eq('ⓐⓒ 전체 sha 도 같이 쥔다(커밋 셈을 다시 재려고)', _nv['full'], '3' * 40)
+    eq('ⓐⓒ 판정 낸 런이 없으면 None', newer_verdict(_after373[:2] + _after373[3:]), None)
+    eq('ⓐⓒ 잡을 못 읽은 런은 건너뛴다', newer_verdict([{'run_number': 9, 'sha': 'z' * 40, 'jobs': None}]), None)
+    eq('ⓐⓒ 빈 목록도 조용하다', newer_verdict([]), None)
+
+    # `cancelled`·`timed_out` 은 «돌다 만 것» — 막힘도 문서 push 도 아니다(어느 칸에도 안 들어간다)
+    _b373, _d373, _u373 = classify_after(_after373)
+    eq('ⓐⓒ cancelled 는 막힘이 아니다', 621 in [b['run'] for b in _b373], False)
+    eq('ⓐⓒ cancelled 는 문서 push 도 아니다', 621 in [d['run'] for d in _d373], False)
+    eq('ⓐⓒ 진짜 문서 push 둘은 그대로', [d['run'] for d in _d373], [622, 624])
+
+    # 낡은 장부 + 뒤 런 초록 → «첫 일» 로 안 내준다(rc 0)
+    rc, out = judge({'sha': 'd' * 40, 'run': 620, 'tests': 'failure', 'missing_modes': ''}, True, 0,
+                    fails=['FAIL A.B.LineHeightTests.무엇 · Failed'], newer=_nv)
+    eq('ⓐⓒ 낡은 빨강은 rc 0', rc, 0)
+    eq('ⓐⓒ 맨 위에 «장부가 낡았다»', out[0].startswith('⚑ **장부가 낡았다**'), True)
+    eq('ⓐⓒ «이미 닫혔다» 를 말한다', any('이미 닫혔다' in ln for ln in out), True)
+    eq('ⓐⓒ «⚑ 이것이 이번 회차의 첫 일이다» 를 안 찍는다',
+       any(ln.strip().startswith('⚑ 이것이 이번 회차의 첫 일이다') for ln in out), False)
+    eq('ⓐⓒ ✗ 줄 자체가 없다', any(ln.startswith('✗') for ln in out), False)
+    eq('ⓐⓒ 새 런 번호로 머리를 고쳐 적는다', any('#623' in ln and '장부 #620 보다 새롭다' in ln for ln in out), True)
+
+    # 낡은 장부 + 뒤 런 빨강 → 장부가 초록이어도 빨강이다
+    _nvF = {'run': 623, 'sha': '3' * 7, 'full': '3' * 40, 'verdict': 'failure'}
+    rc, out = judge({'sha': 'd' * 40, 'run': 620, 'tests': 'success', 'missing_modes': ''}, True, 0, newer=_nvF)
+    eq('ⓐⓒ 장부 초록 + 뒤 런 빨강 = rc 1', rc, 1)
+    eq('ⓐⓒ 그 빨강이 런 623 것이라고 말한다', any('#623' in ln and '빨갛다' in ln for ln in out), True)
+
+    # 장부가 더 새롭거나 같으면 한 줄도 안 뜬다 — 종전 출력 그대로
+    eq('ⓐⓒ 장부가 더 새로우면 조용하다', stale_lines(700, _nv, True), [])
+    eq('ⓐⓒ 같은 런이면 조용하다', stale_lines(623, _nv, True), [])
+    eq('ⓐⓒ 번호를 못 읽으면 조용하다', stale_lines('?', _nv, True), [])
+    rc, out = judge({'sha': 'd' * 40, 'run': 700, 'tests': 'failure', 'missing_modes': ''}, True, 0,
+                    fails=['FAIL A.B.C.무엇 · Failed'], newer=_nv)
+    eq('ⓐⓒ 장부가 더 새로우면 종전대로 «첫 일»',
+       any(ln.strip().startswith('⚑ 이것이 이번 회차의 첫 일이다') for ln in out), True)
+    eq('ⓐⓒ 장부가 더 새로우면 rc 1 그대로', rc, 1)
+    rc0, out0 = judge({'sha': 'd' * 40, 'run': 620, 'tests': 'failure', 'missing_modes': ''}, True, 0,
+                      fails=['FAIL A.B.C.무엇 · Failed'])
+    eq('ⓐⓒ newer 를 안 주면 옛 출력 그대로', (rc0, out0[0].startswith('✗')), (1, True))
+
     # ⓨ T363 — «못 가렸다» 줄이 제 «런 사이» 안내를 «네가 고친다» 로 덮어쓰던 것.
     WC = [('a' * 7, 'T331 5회차: 그림자를 공용으로', ['Assets/Scripts/Game/Ui/EquipSwapFx.cs']),
           ('b' * 7, 'T999 문서만', ['docs/PROGRESS.md']),
@@ -1863,7 +2003,7 @@ def main(argv):
 
     # T356 — «유니티가 실제로 돈 마지막 런» 뒤가 **막혀 있는가**(앞 잡 빨강 → unity skipped).
     #        API 를 못 부르면 조용히 건너뛴다(지금까지의 출력 그대로).
-    blocked, blocks_now = [], False
+    blocked, blocks_now, nv = [], False, None
     if meta and not no_api:
         after = fetch_runs_after(str(meta.get('sha', '')))
         if after:
@@ -1871,6 +2011,13 @@ def main(argv):
             still = still_blocked(after, blk)
             blocked = blocked_lines(blk, docs, unk, still)
             blocks_now = still
+            # T373 — 그 창 안에 «유니티가 실제로 판정을 낸» 더 새로운 런이 있으면 장부가 낡은 것이다.
+            nv = newer_verdict(after)
+            if nv and _run_gt(nv.get('run'), meta.get('run')):
+                # 쌓인 커밋 셈도 **그 런** 기준으로 다시 잰다 — 낡은 장부 기준이면 부풀려 말한다.
+                a2, n2 = behind(nv.get('full'))
+                if a2 is not None:
+                    anc, n_after = a2, n2
 
     red = bool(meta) and str(meta.get('tests')) != 'success'
     fails = red_lines(ref) if red else []
@@ -1896,7 +2043,7 @@ def main(argv):
                         touched=prod_touch(commits), missing=miss_str, runs=runs,
                         mode_logs=mode_logs, meta_run=meta.get('run'))
         between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None))
-    rc, out = judge(meta, anc, n_after, fails, own, between, blocked, blocks_now)
+    rc, out = judge(meta, anc, n_after, fails, own, between, blocked, blocks_now, newer=nv)
     for ln in out:
         print(ln)
     if meta and (red or str(meta.get('missing_modes', '') or '')):
