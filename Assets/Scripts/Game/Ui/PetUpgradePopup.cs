@@ -130,7 +130,10 @@ namespace Forge.Game.Ui
             float icon = inner * PetSkillStyle.L("petup_icon_w_f");
             float headH = Mathf.Max(icon, body * 1.3f + body * 1.35f * 2f);
             float xpH = PetSkillStyle.Px("petup_xp_h_rem"), xpMy = PetSkillStyle.Px("petup_xp_my_rem");
-            float selH = Mathf.Max(sub * 1.3f, UiCatalog.Instance.Kind(TextKind.Button).size * 1.5f);
+            // 정본 `.petup-selrow`(style.css 4361~4363)는 `align-items: center` 행이라 행 높이 = «업그레이드» 버튼 높이(원작 shot-042503 42px = 4.72%H).
+            // 정본은 폭(`petup_sel_btn_w`)만 못 박고 높이는 글자 줄 상자가 정하게 두는데, TMP 의 줄 상자가 브라우저 `normal` 보다 좁아 33px 로 줄었다(T374).
+            // 그래서 높이도 표(`petup_sel_btn_h`)로 못 박는다 — 패딩·글꼴은 그대로(다른 버튼까지 흔들린다).
+            float selH = PetSkillStyle.Px("petup_sel_btn_h");
             float panelH = ppad + headH + xpMy + xpH + xpMy + selH + ppad;
             RectTransform panel = PetSkillKit.Framed(c, "petup-panel", PetSkillStyle.C("petup_panel"), PetSkillStyle.Px("petup_panel_r_rem"), PetSkillKit.Line3);
             UiKit.Place(panel, pad, y, inner, panelH);

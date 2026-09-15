@@ -2195,7 +2195,8 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - **표에 높이 키가 없다**: `Assets/Forge/Resources/PetSkillUi.json` `layout` 에 `petup_sel_btn_w 0.1525` 는 있는데 높이는 없다 — 글자 배치가 정하는 대로 나온다(§1 사각지대).
 - 무엇을 한다: `petup_sel_btn_h` = **0.0472**(원작 42/889 · 높이 분수) 를 표에 두고 그 버튼에 걸어 못 박는다. 패딩·글꼴은 건드리지 않는다(다른 버튼까지 흔들린다).
 - 판정: EditMode — 표에 `petup_sel_btn_h` 가 있고 코드에 수가 없다 · 다음 회차 `screen_pet-upgrade.png` 에서 버튼 바깥 상자 **4.4~5.0%H** · 패널 바닥 **32~34%H** · `python3 tools/ui_score.py --rows pet-upgrade` 의 «나란히 밀린 줄» 이 사라진다.
-- 범위: `Assets/Forge/Resources/PetSkillUi.json` · `Assets/Scripts/Game/Ui/PetSkillModal.cs`(또는 `PetSkillKit.cs` · 각 lock 뒤) · `Assets/Tests/EditMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 범위: `Assets/Forge/Resources/PetSkillUi.json` · `Assets/Scripts/Game/Ui/PetUpgradePopup.cs`(버튼을 세우는 자리 — `PetSkillModal.cs`·`PetSkillKit.cs` 는 안 연다) · `Assets/Tests/EditMode/PetUpgradeButtonTests.cs` · `Assets/Tests/PlayMode/PetUiTests.cs`(단언 한 줄) · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 1회차 2026-09-15 09:1x 워커 A(sess-2005-27410): 버튼을 세우는 자리는 `PetSkillModal`·`PetSkillKit` 이 아니라 `PetUpgradePopup.cs` 133 이었다 — `selH = max(Sub×1.3, Button×1.5)`(= 66 = 33px@960) 가 «업그레이드» 버튼과 선택 행의 높이를 정하고 있었다. `PetSkillUi.json` `layout.petup_sel_btn_h` = **0.0472**(42/889) 를 두고 `selH = Px("petup_sel_btn_h")`(= 90.6 = 45.3px@960 · 기대 45.4) 로 바꿨다 — 패딩·글꼴·폭은 그대로. EditMode `PetUpgradeButtonTests` 2(키가 있고 0.0472 · 889px 에서 42px · 폭 키 불변) + PlayMode `PetUiTests` 에 «`btn-confirm` 세로 = 표» 단언 한 줄. `dotnet build`·`test` 초록 · 판정(PNG 4.4~5.0%H · 패널 바닥 32~34%H · `--rows pet-upgrade`)은 CI 한 바퀴 뒤. `PetSkillUi.json` 은 T369 lock 범위지만 그 손질(55c4c8a6)은 이미 밀렸고 남은 몫은 `SkillPanel.cs` 뿐이라 다른 키 하나를 더했다(결정 628).
 
 ### T369 — 스킬 격자가 통째로 **13px 위**에 붙어 있다: 정본이 제 주석에 못 박은 «1행 오브 상단 **10.34%H**» ↔ 클론 **8.96%H** (UI · T20 뒤 · **T28 62회차 등재**)
 

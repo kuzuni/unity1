@@ -474,6 +474,9 @@ namespace Forge.Tests.PlayMode
             AssertTextGate("펫 업그레이드");
             // T79 — 모달이 앱 상자를 덮고 탭바 위에 그려진다(원작 #pet-upgrade-modal z40 > 탭바 z30) · 딤은 정본 .5 의 선형 공간 환산값 · ✕ 는 카드 것 하나(탭바 ✕ 는 딤 아래 원작 그대로)
             PetSkillModal.Handle up = Sheet.Modal.Find(PetUpgradePopup.ModalName);
+            // T374 — «업그레이드» 버튼 바깥 상자의 세로는 표 `petup_sel_btn_h`(원작 42px = 4.72%H)다. 글자 줄 상자에 맡기면 33px 로 줄어 패널 아래가 통째로 밀렸다(런 623).
+            RectTransform confirmRt = up.Content.Find("btn-confirm").GetComponent<RectTransform>();
+            Assert.AreEqual(PetSkillStyle.Px("petup_sel_btn_h"), confirmRt.rect.height, 0.5f, "«업그레이드» 버튼 세로 = 표 petup_sel_btn_h");
 
             // T115 — 넘침 막이를 **이 화면의 버튼 전부**로 넓힌다. T90 이 세운 막이는 스킬 서브시트의 버튼 둘만 재서,
             // 펫 업그레이드의 «업그레이드» 가 버튼 밖으로 삐져나온 채 초록으로 지나갔다(런 224 PNG 실측).

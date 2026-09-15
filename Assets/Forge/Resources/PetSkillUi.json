@@ -277,6 +277,7 @@
     "petup_xp_r_rem": 0.6,
     "petup_xp_my_rem": 0.6,
     "petup_sel_btn_w": 0.1525,
+    "petup_sel_btn_h": 0.0472,
     "petup_sel_btn_ls_em": -0.02,
     "petup_sel_btn_r_rem": 0.55,
     "petup_bulk_mx_rem": 0.6,
