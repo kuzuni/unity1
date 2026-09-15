@@ -90,7 +90,7 @@ namespace Forge.Game.Ui
                 RectTransform cell = UiKit.Box(gold, "cell-" + cells[i].Key);
                 cellRts.Add(cell);
                 UiKit.Place(cell, cx + i * (cellW + cgap), y, cellW, cellH);
-                DungeonPopups.Bordered(cell, "bg", "dgclear_cell", DungeonPopups.RemL("dgc_cell_radius_rem"), DungeonPopups.Line2, "dgclear_cell_border");
+                DungeonPopups.Bordered(cell, "bg", "dgclear_cell", DungeonPopups.RemL("dgc_cell_r_rem"), DungeonPopups.Line2, "dgclear_cell_border");
                 Image img = UiKit.Icon(cell, "ico", cells[i].Key);
                 UiKit.Place(img.rectTransform, (cellW - ico) * 0.5f, cellPad, ico, ico);
                 TextMeshProUGUI amt = DungeonPopups.Bold(cell, "amt", TextKind.Sub, "+" + NumFmt.Fmt(cells[i].Value), "dgclear_amt");

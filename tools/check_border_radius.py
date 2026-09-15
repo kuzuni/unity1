@@ -65,6 +65,10 @@ TABLE = {
     '.tech-branch-card': ['Ui/TechPanel.cs$tb_card_r_rem@catalog.json'],
     '.tech-tier-tag': ['Ui/TechPanel.cs$tt_tag_r_rem@catalog.json'],
     '.tech-prog, .modal-card .tech-prog': ['Ui/TechPopups.cs$tech_prog_r_rem@catalog.json'],
+    # T345 12회차 — 승천 팝업 둘 · 던전 클리어 칸 하나(값은 이미 정본과 같았고 catalog 키 이름만 규약 밖이었다 · 10회차와 같은 갈래)
+    '.asc-row': ['Ui/AscendPopup.cs$asc_row_r_rem@catalog.json'],
+    '.asc-focus': ['Ui/AscendPopup.cs$asc_focus_r_rem@catalog.json'],
+    '.dgc-cell': ['Ui/DungeonClearPopup.cs$dgc_cell_r_rem@catalog.json'],
     # T345 11회차 — 프로필 팝업 세 자리(값은 이미 정본과 같았고 **수가 코드에 박혀** 있었다 · §1)
     '.profile-avatar-big': ['Ui/ProfilePopup.cs$profile_avatar_big_r_rem'],
     '.profile-edit-btn': ['Ui/ProfilePopup.cs$profile_edit_r_rem'],

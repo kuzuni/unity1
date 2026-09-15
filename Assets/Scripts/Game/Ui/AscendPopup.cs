@@ -84,7 +84,7 @@ namespace Forge.Game.Ui
                 int cnt = asc.Count(st, l);
                 RectTransform row = UiKit.Box(card, "row-" + l);
                 UiKit.Place(row, pad, y + rowMy, inner, rowH);
-                UiKit.Rounded(row, "bg", rdy ? "asc_ready" : "pp_panel", DungeonPopups.RemL("asc_row_radius_rem"));
+                UiKit.Rounded(row, "bg", rdy ? "asc_ready" : "pp_panel", DungeonPopups.RemL("asc_row_r_rem"));
                 string ink = rdy ? "white" : "pp_ink";
                 float px = DungeonPopups.RemL("asc_row_pad_x_rem");
                 float ico = subH * 0.9f;
@@ -124,7 +124,7 @@ namespace Forge.Game.Ui
                 y += DungeonPopups.RemL("asc_focus_mt_rem");
                 RectTransform focus = UiKit.Box(card, "focus");
                 UiKit.Place(focus, pad, y, inner, focusH - DungeonPopups.RemL("asc_focus_mt_rem"));
-                DungeonPopups.Bordered(focus, "bg", "pp_sheet", DungeonPopups.RemL("asc_focus_radius_rem"), DungeonPopups.Line3);
+                DungeonPopups.Bordered(focus, "bg", "pp_sheet", DungeonPopups.RemL("asc_focus_r_rem"), DungeonPopups.Line3);
                 float fy = focusPad;
                 float fi = DungeonPopups.RemL("asc_icon_rem");
                 string ik; LineIcon.TryGetValue(line, out ik);
