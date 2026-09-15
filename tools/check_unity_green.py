@@ -380,6 +380,57 @@ def split_done(cands, status, lock, now=None):
 
 
 
+COMMON_STEMS = {'Ui', 'Forge', 'Core', 'Game', 'Fx', 'Meta', 'Pet', 'Boot', 'Play', 'Test', 'Tests'}
+
+
+def stem_of(fixture):
+    """자 이름에서 꼬리(`Tests`)를 뗀 줄기 — `EquipSwapTests` → `EquipSwap`."""
+    return fixture[:-5] if fixture.endswith('Tests') else fixture
+
+
+def stem_owners(fixture, progress_text, lock=None, now=None):
+    """
+    T362 — **자 이름 ↔ 파일 이름 짝**으로 임자를 한 칸 더 가린다.
+
+    왜: 범위 열은 «내가 여는 파일» 을 적는 자리라 **자 파일을 안 적는 작업이 많다**. 그런데 자 이름과
+    그 작업이 여는 파일은 대개 **같은 줄기**다 — 런 578 의 `EquipSwapTests` 빨강이 그랬다: 범위엔 그 자가
+    없었지만 T331 이 `EquipSwapFx.cs` 를 적고 lock 을 쥔 채 그 회차에 그 파일을 고치고 있었다.
+    자는 «못 가렸다 → 네가 고친다» 로 보냈고 사람이 손으로 되짚어 T331 을 찾아냈다.
+
+    ⚠ 줄기가 짧거나 흔한 말(`Ui`·`Forge`·`Core`…)이면 **안 쓴다** — `PressFxSitesTests` 의 `Press` 같은 것이
+       남의 파일에 마구 걸린다. 그리고 **산 lock 이 있는 작업만** 후보로 본다(죽은 lock 은 이 칸의 근거가 못 된다).
+
+    돌려주는 것: [(작업번호, 그 작업이 범위에 적은 같은 줄기 파일)] — 없으면 빈 목록.
+    """
+    lock = lock or lock_state
+    stem = stem_of(fixture)
+    if len(stem) <= 3 or stem in COMMON_STEMS:
+        return []
+    # 줄기로 시작하는 «파일 이름»(경로 구분자·따옴표·공백 뒤) — 자 파일 자신은 빼고 센다
+    needle = re.compile(r'(?<![0-9A-Za-z_])(' + re.escape(stem) + r'[0-9A-Za-z_]*\.cs)\b')
+    out = []
+    for line in progress_text.split('\n'):
+        if not line.startswith('| T'):
+            continue
+        # ⚠ **«범위» 칸만** 본다(cells[4]). 줄 전체를 훑으면 **설명 칸에 인용된 파일 이름**까지 걸린다 —
+        #    실측: 이 작업(T362)의 등재문이 `EquipSwapFx.cs` 를 인용해서 제가 제 짝으로 잡혔다.
+        cells = [c.strip() for c in line.strip().strip('|').split('|')]
+        if len(cells) < 5:
+            continue
+        m = re.fullmatch(r'T(\d+)', cells[0])
+        if not m:
+            continue
+        tid = 'T' + m.group(1)
+        files = [f for f in needle.findall(cells[4]) if f != fixture + '.cs']
+        if not files:
+            continue
+        alive, _age = lock(tid, now)
+        if not alive:
+            continue
+        out.append((tid, files[0]))
+    return out
+
+
 def scope_owners_split(fixture, progress_text):
     """그 파일을 «범위» 로 적은 작업을 **살아 있는 후보 ↔ 죽은 행**으로 가른다(T162).
 
@@ -875,6 +926,22 @@ def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=Non
                            '그의 몫이니 건드리지 말고 네 작업을 잡는다. (임자는 «범위» 열에 `%s.cs` 를 적어라 — `check_claim_scope` 가 보는 자리다.)'
                            % (name, tid, _lock_word(True, age), name) + dead_note)
                 continue
+            # T362 — 범위에도 이력에도 없을 때 **자 이름 ↔ 파일 이름 짝**을 한 칸 더 본다.
+            #        런 578 실측: `EquipSwapTests` 의 임자는 `EquipSwapFx.cs` 를 범위에 적고 lock 을 쥔 T331 이었는데
+            #        자는 «못 가렸다 → 네가 고친다» 로 보냈다(사람이 손으로 되짚어 찾았다).
+            spair = stem_owners(name, progress_text, lock=lock, now=now)
+            if spair:
+                tid, fname = spair[0]
+                _a, sage = lock(tid, now)
+                rest = ''
+                if len(spair) > 1:
+                    rest = ' · 같은 줄기의 다른 산 lock: %s' % ' '.join('%s(%s)' % (t, f) for t, f in spair[1:])
+                out.append('  · `%s` 의 임자: **%s** — «범위» 열엔 그 자가 없지만 **자 이름과 같은 줄기의 파일** `%s` 를 '
+                           '범위로 적고 %s. 자는 대개 제가 세우는 파일과 이름을 나눠 쓴다 — 그의 몫이니 건드리지 말고 네 작업을 잡는다. '
+                           '(임자는 «범위» 열에 `%s.cs` 도 적어라 — `check_claim_scope` 가 보는 자리다.)%s%s'
+                           % (name, tid, fname, _lock_word(True, sage), name, rest, dead_note))
+                continue
+
             who = pusher(sha)
             tail = ''
             if hstates:
@@ -1725,6 +1792,40 @@ def self_test():
                       window=[('T331', 61)])
     eq('ⓨ 창에 산 lock 이 있으면 «네가 고친다» 를 안 쓴다', any('**네가 고친다**' in l for l in withw), False)
     eq('ⓨ 그 번호를 줄 안에서 바로 댄다', any('T331' in l and '그 커밋 임자의 몫' in l for l in withw), True)
+
+    # ⓨ T362 — 자 이름 ↔ 파일 이름 짝
+    eq('ⓨ 줄기는 꼬리를 뗀다', stem_of('EquipSwapTests'), 'EquipSwap')
+    eq('ⓨ 꼬리가 없으면 그대로', stem_of('Foo'), 'Foo')
+
+    prog362 = ('| T331 | 그림자 | 🔄 진행 | sess-x | `Assets/Scripts/Game/Ui/EquipSwapFx.cs` · `Ui/Popups.cs` | 비고 |\n'
+               '| T400 | 남 | 🔄 진행 | sess-y | `Assets/Scripts/Game/Ui/OtherThing.cs` | 비고 |\n')
+    live331 = lambda t, n=None: (t == 'T331', 15)
+    got = stem_owners('EquipSwapTests', prog362, lock=live331)
+    eq('ⓨ 같은 줄기 + 산 lock 을 집어낸다', got, [('T331', 'EquipSwapFx.cs')])
+    eq('ⓨ 죽은 lock 은 안 센다', stem_owners('EquipSwapTests', prog362, lock=lambda t, n=None: (False, 200)), [])
+    eq('ⓨ 줄기가 흔한 말이면 안 쓴다', stem_owners('UiTests', prog362, lock=live331), [])
+    eq('ⓨ 줄기가 짧으면 안 쓴다', stem_owners('FxTests', prog362, lock=live331), [])
+    eq('ⓨ 설명 칸에 인용된 이름은 안 센다(«범위» 칸만 본다)',
+       stem_owners('EquipSwapTests',
+                   '| T362 | 등재문이 `EquipSwapFx.cs` 를 인용한다 | 🔄 | s | `tools/check_unity_green.py` | 비고 |\n',
+                   lock=live331 if False else (lambda t, n=None: (True, 5))), [])
+    eq('ⓨ 제 자 파일은 짝으로 안 센다',
+       stem_owners('EquipSwapTests',
+                   '| T331 | x | 🔄 | s | `Assets/Tests/PlayMode/EquipSwapTests.cs` | 비고 |\n',
+                   lock=live331), [])
+
+    # 사다리에서 실제로 그 줄이 나오는가 — 범위에도 이력에도 없을 때
+    lines362 = own_lines(['FAIL Forge.Tests.PlayMode.EquipSwapTests.어쩌고 · Failed'], prog362, 'f' * 40,
+                         hist=lambda n: [], lock=live331)
+    eq('ⓨ 사다리가 T331 을 댄다', any('**T331**' in l for l in lines362), True)
+    eq('ⓨ 근거가 되는 파일 이름을 댄다', any('EquipSwapFx.cs' in l for l in lines362), True)
+    eq('ⓨ «못 가렸다» 로 안 끝난다', any('못 가렸다' in l for l in lines362), False)
+    eq('ⓨ «범위 열에 적어라» 를 남긴다', any('범위» 열에 `EquipSwapTests.cs` 도 적어라' in l for l in lines362), True)
+
+    # 줄기가 흔하면 옛 갈래(못 가렸다)로 그대로 간다
+    lines_common = own_lines(['FAIL Forge.Tests.PlayMode.UiTests.어쩌고 · Failed'], prog362, 'f' * 40,
+                             hist=lambda n: [], lock=live331)
+    eq('ⓨ 흔한 줄기는 옛 갈래 그대로', any('못 가렸다' in l for l in lines_common), True)
 
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
