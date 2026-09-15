@@ -1347,3 +1347,24 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 ### 이 회차의 판정
 - **새 작업 2(T387·T388) · 결함 2 · 죽은 선언 3.**
 - 못 센 형제 축: `min-height` **41**(값 `0` 여덟을 빼면 33) · `max-width` 7. 그 밖: `animation-delay` 42 · `content` 171.
+
+# T33 완주 대조 — **36회차** (2026-09-15 17:3x · 워커 N · sess-0524-8791) — 축: 정적 `font-size` 365 선언
+
+글자 축 넷 중 셋(`font-weight` T352 · `line-height` T354 · `letter-spacing` T168)은 임자가 있고 **`font-size` 만 아무도 안 셌다**. 주석을 걷고 `@keyframes`·`@media` 를 뺀 정적 선언 **365**(rem 350 · cqi 5 · em 4 · 0/inherit 4 · calc 2) · **서로 다른 값 71**. 정본 1rem = 16/844 앱높이(`main.js fitLayout` · 카탈로그 `rem_h` .018957) = 기준 캔버스 1920 의 **36.4px**.
+
+## 값 분포(rem 350)
+- ≤.6rem 23 · .6~.8rem **122** · .8~1.0rem **105** · 1.0~1.2rem 42 · 1.2~1.5rem 35 · >1.5rem 23. 상위: `.8rem`×33 · `.78rem`×27 · `.82rem`×24 · `1.05rem`×20 · `.85rem`×16 · `.72rem`×15 · `.95rem`×13 · `.74rem`×12 · `1rem`×12.
+- 클론 종류표 `catalog.json textKinds`: `Title` 60(1.65rem) · `Button` 44(1.21rem) · `Body` 40(1.10rem) · `Sub` 36(.99rem) · `Micro` 18(.49rem) — 호출 521(Sub 372 · Body 70 · Title 41 · Button 29 · Micro 9) + 표에서 px 를 받는 자리 9(`TextSizeUi`·`BootLoading`·`CoinBurst`·`RewardBurst`·`SkillCutin`·`AscendPopup`).
+
+## 갈래
+- **≤1.0rem 250 자리(68%)** — §1 «하한: 본문 40 · 버튼 44 · 보조 36 · 제목 60(원작 UI 가 9:16 세로 폰에서 읽히던 크기)» 가 **일부러** 키우는 자리다. 이 축이 «결함» 으로 세지 않는다. 정본이 못박아 하한을 깨야 하는 자리는 예외 칸(`Micro` 18 · T136 · `TextSizeUi` 표 · T372·T383)이 이미 받는다.
+- **하한 위 115 자리**:
+  - 이모지·아이콘 **글리프 크기 58**(`.anvil-btn` 4.4rem · `.sr-orb` 6.2/3.2/2.4 · `.league-emblem` 3.3 · `#tabbar button` 2.6 · `.tile-face`·`.icon-circle`·`.cell-img.emoji`·`.waypoint-icon`·`.offline-rate-icon` …) — 클론은 아틀라스 아이콘을 **자리 크기**로 세우므로 글자 크기가 아니다(T31·T89).
+  - **1.0~1.2rem 42**(1.05rem=38px ×20 · 1.15rem=42px ×8 …) — `Sub` 36·`Body` 40 안에 ±6% 로 든다.
+  - **1.22~1.5rem 문자 14** — `Button` 44 가 맞는 여섯(`.tb-title` 46 · `.af-start` 47 · `.lgr-rank-n` 44 · `.float-dmg.dmg-kill` 47 · `#craft-modal .row .btn` 44 · `.rw-amt` 48 은 표) · `Title` 60 이 맞는 셋(`.profile-title`·`.dgd-keys`·`.bw-track span` 55) · **벌어지는 넷**: `.shop-gem-amt` 49 → `ShopSheet.cs` `Sub` 36(**−27%**) · `.rates-head h3` 47 → `SkillRatesPopup.cs` `Title` 60(**+28%**) · `.af-title` 46 → `ForgeAutoPopup.cs` `Title` 60(**+30%**) · `.league-tier-rank` 47 / `.text` 54 → `LeagueSheet.cs`(종류 못 읽음 · 잡는 사람이 확인) · `.sr-grid.one .sr-name` 46 → `SkillSummonResult.cs`(못 읽음).
+  - **>1.5rem 문자 2**(`.dgclear-title` 1.7rem=62 · `.sr-title` 1.6rem=58) ↔ `Title` 60 ✓.
+
+## 이 회차의 판정
+- 새 작업 **1**(T391 — 종류표에 ≈48px(1.3rem) 단 하나 + 넷 배선 + 자). §1 하한 «위» 라 하한과 부딪치지 않는다 — 하한은 «작게 그리지 말라» 이지 «크게 그려라» 가 아니다.
+- 글자 축 중 남은 것: `color` 325(T377 의 자는 **면** 색만 본다 — 글자 색 리터럴은 아직) — 다음 회차.
+
