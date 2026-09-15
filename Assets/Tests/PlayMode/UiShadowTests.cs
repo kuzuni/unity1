@@ -126,6 +126,24 @@ namespace Forge.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator 던전_배너에도_정본_턱이_깔린다()
+        {
+            yield return Boot();
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
+            yield return null;
+            int found = 0;
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+            {
+                if (!rt.name.StartsWith("dg-", System.StringComparison.Ordinal)) continue;
+                if (rt.Find(UiShadow.LayerName) == null) continue;
+                AssertLip(rt, "dgbanner_lip");
+                found++;
+            }
+            Assert.Greater(found, 0, "던전 배너(`dg-…`)에 그늘이 한 장도 없다");
+        }
+
+        [UnityTest]
         public IEnumerator 반지름을_상자에서_되읽는다()
         {
             yield return Boot();

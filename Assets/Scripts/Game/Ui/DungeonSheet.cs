@@ -169,6 +169,9 @@ namespace Forge.Game.Ui
                 DungeonDef d = DungeonDefs.All[i];
                 RectTransform b = Banner(d, bw, bh);
                 UiKit.Place(b, (W - bw) * 0.5f, y, bw, bh);
+                // 정본 `.modal-card.sheet .dg-banner`(style.css 3875) `0 .25rem 0 rgba(0,0,0,.3)` — 배너가 시트 위에 한 겹 떠 있다.
+                // 자리를 잡은 **뒤**에 부른다(그늘이 상자 크기를 읽는다) · 반지름은 배너 테와 같은 표값.
+                UiShadow.Drop(b, "dgbanner_lip", DungeonPopups.RemL("dg_banner_radius_rem"));
                 banners.Add(b);
                 y += bh + gap;
             }
