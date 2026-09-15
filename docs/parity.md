@@ -1368,3 +1368,20 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - 새 작업 **1**(T391 — 종류표에 ≈48px(1.3rem) 단 하나 + 넷 배선 + 자). §1 하한 «위» 라 하한과 부딪치지 않는다 — 하한은 «작게 그리지 말라» 이지 «크게 그려라» 가 아니다.
 - 글자 축 중 남은 것: `color` 325(T377 의 자는 **면** 색만 본다 — 글자 색 리터럴은 아직) — 다음 회차.
 
+# T33 완주 대조 — **37회차** (2026-09-15 19:3x · 워커 N · sess-0524-8791) — 축: 글자 `color` 322 선언
+
+36회차가 남긴 마지막 글자 축. 주석을 걷고 `@keyframes`·`@media` 를 뺀 정적 `color` **322**. 정본 토큰 15 · 클론 카탈로그 `colors` 168.
+
+## 갈래
+- 토큰 `var(--…)` **94**(`--pp-ink` · `--pp-muted` · `--pp-line` …) — 클론 카탈로그 키가 그대로 받는 자리.
+- 리터럴이되 **토큰과 같은 값 125** — 토큰을 써도 되는 자리(T377 결정 636 의 셈 · 6자리·소문자로 접어 견줌).
+- **토큰과 다른 리터럴 98(54 색)** — «토큰으로 뭉개지 말라» 자리(정본 8692 의 뜻). 값이 클론에 있는가로 갈랐다:
+  - 카탈로그에 같은 hex **24 색**: `#ffd54f` `dgclear_title` ×14 · `#90a4ae` `debug_muted` ×9 · `#ff880f` `chat_name` ×6 · `#eceff1` `ink` ×5 · `#78909c` `muted2` ×3 · `#ffb300` `shop_banner` ×3 · `#3a3a3a` `idet_row_ink` ×3 · `#1fa64a` `tb_val` · `#7b7b7b` `btn_disabled_ink` · `#ff8a65` `cp` · `#ff8a80` `gem` · `#cccccc` `settings_odd` · `#69f0ae` `pip_done` · `#f59e0b` `league_cp` · `#dd3333` `settings_act_danger` · `#545454` `chat_time` … — 키는 있다 · **자리마다 그 키를 쓰는지**는 자가 봐야 한다.
+  - 곁 표에 같은 hex **7 색**: `#eaf6ff`(`OfflineButtonUi`) · `#546e7a`·`#d9d9d9`·`#8b96b5`·`#6f6f6f`·`#dfe7ff`·`#2a1c04`(`PetSkillUi`).
+  - **어디에도 없는 23 색 · 28 자리**(= 클론이 반드시 다른 색으로 그리는 자리): 전투 숫자 다섯(`.float-dmg.dmg-crit` #ff8a1e · `.dmg-kill` #fff3c4 · `.dmg-skill` #82b1ff · `.dmg-hero` #fff2f4 · `.block` #90caf9) · `.subtab-strip button.active` #7ee2a8 · `.btn.primary small` #7ee2a8 · `.fl-face[data-asc]::after` #ff8801 · `.equip-cell .slot-name` #d8caca · `.hatch-slot.buy` #cbb6f5 · `.modal-card .sub` #81d4fa · `.league-row.me .league-server` #dce6ff · `.league-collect-pill b` #1d8f3c · `.chat-preview-msg` #6d6a63/#aab3c0 · `.chat-input-bar input::placeholder` #6b6b6b · `#equip-sheet .forge-time` #6d6a63 · `#chat-preview` #1b1b1b/#eef1f5 · `.chat-preview-name` #eef1f5 · `.hatchery .slot-buy b` #e8112d · `.af-check.on` #23c552 · `.fi-skip-gem`·`.summon-cost b` #e11d48 · `.sr-solo-line` #e8eeff · `.sr-dup` #dfeaff · `.dg-banner .btn.disabled` #3d434a.
+- rgba 2 · inherit 1 · 기타 2 — 뜻 없음.
+
+## 이 회차의 판정
+- 새 작업 **1**(T396 — T377 의 자에 잉크 갈래를 더하고 23 색을 자리 전용 키로 · 24 색은 자리 짝을 표에). 면 색(T377)과 같은 병이 글자 색에 그대로 있다.
+- **글자 축 넷이 다 셌다**: `font-size`(36) · `font-weight`(21 → T352) · `line-height`(T354) · `letter-spacing`(T168) · `color`(37) · `text-shadow`(T333) · `text-align`(27) · `white-space`(26). 남은 CSS 축은 배치(`padding` 216 · `margin` 144 · `width` 321 · `height` 267 · `inset` 60)뿐인데 그것은 T28 채점표(30장 PNG 대조)가 화면 단위로 잰다 — 새 축을 열기보다 §7 열린 칸을 잇는 편이 먼저다.
+
