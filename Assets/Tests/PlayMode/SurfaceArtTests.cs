@@ -384,9 +384,12 @@ namespace Forge.Tests.PlayMode
             Transform shade = FindDeep(UiRoot.Instance.App, "tb-icon-shade");
             Assert.IsNotNull(gloss, "원판 광택(tb-icon-gloss)");
             Assert.IsNotNull(shade, "원판 명암(tb-icon-shade)");
-            Assert.AreEqual("icon-bg", shade.parent.name, "겹 둘은 분기 원판(icon-bg)의 자식이다");
+            // 원판은 두 겹 구조다 — 바깥 `icon-bg`(테두리 색 원) 안에 `face`(바탕색 원)가 테두리 두께만큼 들어앉는다(DungeonPopups.BorderedCircle).
+            // 정본도 겹을 `background` 로 얹고 `border` 는 그 밖이라, 겹은 **면(face)** 에 깔려야 테두리를 안 덮는다.
+            Assert.AreEqual("face", shade.parent.name, "겹 둘은 원판 면(face)의 자식이다 — 테두리(icon-bg)를 안 덮는다");
+            Assert.AreEqual("icon-bg", shade.parent.parent.name, "그 면의 부모가 분기 원판이다");
             Assert.AreSame(shade.parent, gloss.parent);
-            Assert.IsNotNull(shade.parent.GetComponent<UnityEngine.UI.Mask>(), "원판에 Mask 가 걸려 겹이 원 밖으로 안 샌다");
+            Assert.IsNotNull(shade.parent.GetComponent<UnityEngine.UI.Mask>(), "면에 Mask 가 걸려 겹이 원 밖으로 안 샌다");
             Assert.Less(shade.GetSiblingIndex(), gloss.GetSiblingIndex(), "정본 순서 — 명암 위에 광택");
 
             UnityEngine.UI.Image gi = gloss.GetComponent<UnityEngine.UI.Image>();
