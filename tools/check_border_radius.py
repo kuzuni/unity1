@@ -65,6 +65,10 @@ TABLE = {
     '.tech-branch-card': ['Ui/TechPanel.cs$tb_card_r_rem@catalog.json'],
     '.tech-tier-tag': ['Ui/TechPanel.cs$tt_tag_r_rem@catalog.json'],
     '.tech-prog, .modal-card .tech-prog': ['Ui/TechPopups.cs$tech_prog_r_rem@catalog.json'],
+    # T345 13회차 — 상점 화면 셋(값은 이미 정본과 같았고 수가 코드에 박혀 있었다 · §1)
+    '.shop-deal-card': ['Ui/ShopSheet.cs$shop_deal_card_r_rem'],
+    '.shop-gem-card': ['Ui/ShopSheet.cs$shop_gem_card_r_rem'],
+    '.shop-banner': ['Ui/ShopSheet.cs$shop_banner_r_rem'],
     # T345 12회차 — 승천 팝업 둘 · 던전 클리어 칸 하나(값은 이미 정본과 같았고 catalog 키 이름만 규약 밖이었다 · 10회차와 같은 갈래)
     '.asc-row': ['Ui/AscendPopup.cs$asc_row_r_rem@catalog.json'],
     '.asc-focus': ['Ui/AscendPopup.cs$asc_focus_r_rem@catalog.json'],
