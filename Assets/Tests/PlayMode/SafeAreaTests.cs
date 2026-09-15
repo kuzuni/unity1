@@ -159,6 +159,9 @@ namespace Forge.Tests.PlayMode
             {
                 // T54 3회차 되돌림 — 옛 길(카메라 하나 · 전체 rect). 띠 rect 는 URP 가 세계를 안 그렸다(런 116).
                 cam.CopyFrom(Camera.main);
+                // T349 — `CopyFrom` 은 URP 추가 데이터(renderPostProcessing·volumeLayerMask·antialiasing·renderShadows)를
+                //        **안 옮긴다** — 그래서 촬영 PNG 의 3D 띠가 톤맵·노출·색 보정 없이 찍혔다(런 503 실측).
+                ShotCam.CopyUrp(Camera.main, cam);
                 cam.rect = new Rect(0f, 0f, 1f, 1f);
                 cam.targetTexture = rt;
                 // T54 7회차: `Camera.CopyFrom` 은 **커스텀 투영 행렬까지 복사한다**(런 139 실측 — 6회차에서 이 자리의

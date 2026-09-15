@@ -1187,6 +1187,9 @@ namespace Forge.Tests.PlayMode
             {
                 int uiLayer = canvas.gameObject.layer;
                 if (Camera.main != null) cam.CopyFrom(Camera.main);
+                // T349 — `CopyFrom` 은 URP 추가 데이터(renderPostProcessing·volumeLayerMask·antialiasing·renderShadows)를
+                //        **안 옮긴다** — 그래서 촬영 PNG 의 3D 띠가 톤맵·노출·색 보정 없이 찍혔다(런 503 실측).
+                ShotCam.CopyUrp(Camera.main, cam);
                 cam.rect = new Rect(0f, 0f, 1f, 1f);
                 cam.targetTexture = rt;
                 cam.ResetProjectionMatrix();
