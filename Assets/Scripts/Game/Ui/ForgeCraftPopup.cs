@@ -218,6 +218,9 @@ namespace Forge.Game.Ui
             float size = PopupKit.Rem * 3.7f;
             Vector2 a = AnvilTop();
             RectTransform card = CraftCard(reveal, h, item, size);
+            // 정본 .auto-drop-card(style.css 1073) `0 .3rem .6rem rgba(0,0,0,.45)` — 모루 위에 뜬 카드라 흐린 그늘이 진다.
+            // 반지름은 같은 줄의 `border-radius: .7rem`. 연출(CraftCardFx)이 이 상자를 움직여도 그늘은 자식이라 같이 간다.
+            UiShadow.Drop(card, "autodrop_drop", PopupKit.Rem * 0.7f);
             CraftCardFx.Play(card, CraftCardFx.Mode.AutoDrop, a, size, null, Color.clear);
             h.Delay(ForgeHost.AutoCardSec, () => { DismissReveal(); done(); });
         }

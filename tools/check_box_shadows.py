@@ -57,11 +57,10 @@ KNOWN = {
     'panel_lip':     'T331 2회차 — 같음(UiKit.cs 는 T178·T335 산 lock)',
     'dgbanner_lip':  'T331 2회차 — 같음(DungeonSheet.cs 는 T178 2회차 범위)',
     'afcard_drop':   'T331 4회차 — 굽는 길은 섰다 · ForgeAutoPopup.cs 가 T345 산 lock',
-    'autodrop_drop': 'T331 4회차 — 굽는 길은 섰다 · 그 카드를 세우는 자리를 아직 안 찾았다(다음 회차가 찾는다)',
     'cbcard_drop':   'T331 4회차 — 굽는 길은 섰다 · 카드가 ForgeUi.ItemTile 이라 반지름을 그 파일에서 읽어야 한다(남의 lock)',
     'passcard_drop': 'T331 4회차 — 굽는 길은 섰다 · PassPopup.cs 가 T352 산 lock',
     'leaguefoot_up': 'T331 4회차 — 굽는 길은 섰다 · LeagueSheet.cs 가 T178·T333 산 lock',
-    'eqswfly_drop':  'T331 4회차 — 굽는 길은 섰다 · 날아가는 장비 상자(T117 연출) 쪽을 다음 회차가 찾는다',
+    'eqswfly_drop':  'T331 5회차 — 자리는 EquipSwapFx.cs:154(T117 이 «번짐은 못 내고 판만» 이라 적고 손으로 깐 겹이 있다 · 표에 shadow_blur_rem 까지 적혀 있다). 굽는 길이 섰으니 바꾸면 되는데, 날아가는 복제본의 **모서리 반지름**을 그 파일에서 못 읽는다 — 틀린 반지름으로 깔면 구석이 어긋난다. 반지름을 어디서 읽을지 정하고 바꾼다.',
 }
 
 
