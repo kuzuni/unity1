@@ -115,9 +115,13 @@ namespace Forge.Game.Ui
             int bestAbs = h.S.BestAbsChapter(SaveIo.Defs);
             int bestStage = h.S.BestStage;
             float railW = UiKit.L("pass_rail_w") * w;
-            float labelW = UiKit.L("pass_label_w") * w * 1.3f, labelH = PopupKit.FontSize(TextKind.Sub) * 1.4f;
-            float cellPad = rem * 0.5f;
-            float pillH = PopupKit.FontSize(TextKind.Sub) * 1.3f;
+            // T375 — 박힌 곱 넷을 걷었다(§1 «수치는 코드에 박지 않는다»). 정본은 이 넷을 전부 **값으로** 정해 둔다:
+            //   필 폭 `calc(var(--app-w) * .206)`(style.css 2801) · 필 높이는 `padding .1rem 0 + line-height 1`(같은 줄 · 원작 실측 18.3/488W)
+            //   칸 패딩 `.4rem .5rem`(2824 — 세로와 가로가 **다르다**) · 보상 알약 `padding .1rem .6rem` + 한 줄(2830).
+            //   종전 클론은 폭에 ×1.3 을 곱하고 높이 셋을 글꼴에서 뽑아, 필이 +26% 넓고 보상 행 피치가 +10% 였다(T28 64회차 실측).
+            float labelW = UiKit.L("pass_label_w") * w, labelH = UiKit.L("pass_label_h") * w;
+            float cellPadY = rem * UiKit.L("pass_cell_pad_y_rem"), cellPadX = rem * 0.5f;
+            float pillH = rem * UiKit.L("pass_reward_pill_h_rem");
             List<PassMilestone> ms = h.Meta.Pass.Milestones;
             for (int i = 0; i < ms.Count; i++)
             {
@@ -126,7 +130,7 @@ namespace Forge.Game.Ui
                 bool reached = h.Pass.Reached(m.Stage, bestAbs, bestStage);
                 bool claimed = h.Pass.Claimed(h.PassState, m.Stage);
                 int lines = Mathf.Max(m.Free.Count, m.Premium.Count);
-                float cellH = cellPad * 2f + lines * pillH + (lines - 1) * rem * 0.18f;
+                float cellH = cellPadY * 2f + lines * pillH + (lines - 1) * rem * 0.18f;
                 float segH = rem * 0.63f + labelH + rem * 1.03f + cellH + rem * 0.2f;
                 RectTransform seg = PopupKit.Item(content, "seg-" + m.Stage, -1f, segH);
                 // 가운데 레일(도달 = 파랑 · 미도달 = 죽은 색)
@@ -149,7 +153,7 @@ namespace Forge.Game.Ui
                 float gap = rem * 1.6f;
                 float cellW = (inner - gap) * 0.5f - rem * 0.2f;
                 string stage = m.Stage;
-                RectTransform freeCell = Cell(seg, "free", rem * 0.2f + PopupKit.Line3 * 0f, rowY, cellW, cellH, claimed || reached ? "pass_cell_lit" : "pass_cell", m.Free, claimed || reached ? "pass_pill_lit" : "pass_pill", pillH, cellPad);
+                RectTransform freeCell = Cell(seg, "free", rem * 0.2f + PopupKit.Line3 * 0f, rowY, cellW, cellH, claimed || reached ? "pass_cell_lit" : "pass_cell", m.Free, claimed || reached ? "pass_pill_lit" : "pass_pill", pillH, cellPadX, cellPadY);
                 if (claimed)
                 {
                     float badge = rem * 1.45f;
@@ -168,7 +172,7 @@ namespace Forge.Game.Ui
                     Button b = UiKit.Button(freeCell, "claim", () => OnClaim(h, stage, freeCell));   // 정본 5004 from = 그 칸(cell)
                     b.transform.SetAsLastSibling();
                 }
-                RectTransform premCell = Cell(seg, "premium", cellW + gap + rem * 0.2f, rowY, cellW, cellH, "pass_cell", m.Premium, "pass_pill", pillH, cellPad);
+                RectTransform premCell = Cell(seg, "premium", cellW + gap + rem * 0.2f, rowY, cellW, cellH, "pass_cell", m.Premium, "pass_pill", pillH, cellPadX, cellPadY);
                 Image lockIco = PopupKit.IconOr(premCell, "lock", "lock");
                 UiKit.Anchor(lockIco.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-rem * 0.35f, -rem * 0.3f), rem, rem);
                 UiKit.Button(premCell, "hit", () => h.Toast("💎 프리미엄 패스는 데모 버전에서 지원하지 않습니다")).transform.SetAsLastSibling();
@@ -178,7 +182,7 @@ namespace Forge.Game.Ui
             PopupKit.XButton(card, () => Close(h));
         }
 
-        private static RectTransform Cell(Transform parent, string name, float x, float y, float w, float h, string faceKey, OrderedMap<double> reward, string pillKey, float pillH, float pad)
+        private static RectTransform Cell(Transform parent, string name, float x, float y, float w, float h, string faceKey, OrderedMap<double> reward, string pillKey, float pillH, float padX, float padY)
         {
             RectTransform cell = UiKit.Box(parent, name);
             UiKit.Place(cell, x, y, w, h);
@@ -195,7 +199,7 @@ namespace Forge.Game.Ui
             for (int i = 0; i < reward.Count; i++)
             {
                 RectTransform pill = UiKit.Box(cell, "pill-" + reward.KeyAt(i));
-                UiKit.Place(pill, pad, pad + i * (pillH + PopupKit.Rem * 0.18f), w * 0.85f - pad, pillH);
+                UiKit.Place(pill, padX, padY + i * (pillH + PopupKit.Rem * 0.18f), w * 0.85f - padX, pillH);
                 UiKit.Rounded(pill, "bg", pillKey, pillH * 0.5f);
                 Image ico = PopupKit.IconOr(pill, "ico", ShopSheet.CurIcon(reward.KeyAt(i)));
                 UiKit.Place(ico.rectTransform, PopupKit.Rem * 0.3f, pillH * 0.1f, pillH * 0.8f, pillH * 0.8f);
