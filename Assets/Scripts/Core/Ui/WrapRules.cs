@@ -45,28 +45,36 @@ namespace Forge.Core.Ui
         }
     }
 
-    /// <summary>`WrapUi.json` `sites` — 자리 키 → 낱말(nowrap|normal). `_` 로 시작하는 칸은 설명이다.</summary>
+    /// <summary>`WrapUi.json` `sites` — 자리 키 → 낱말(nowrap|normal). `_` 로 시작하는 칸은 설명이다.
+    /// `clone_nowrap`(선택) — **정본은 접는 자리지만 클론에서만 안 접어야 하는 예외**(행 높이가 고정이고 글자 하한이 정본보다 커
+    /// 정본 폭의 한 줄 글이 접혀 아래 줄을 덮는 자리 · T361 6회차 · 결정 673). `sites` 와 따로 세고(`Count` 는 정본 41 그대로) 자리마다 `_클론` 에 까닭을 적는다.</summary>
     public sealed class WrapTable
     {
         readonly Dictionary<string, string> map = new Dictionary<string, string>(StringComparer.Ordinal);
+        readonly Dictionary<string, string> clone = new Dictionary<string, string>(StringComparer.Ordinal);
 
         public int Count { get { return map.Count; } }
+        /// <summary>클론 쪽 예외 자리 수(`clone_nowrap`).</summary>
+        public int CloneCount { get { return clone.Count; } }
         public IEnumerable<string> Keys { get { return map.Keys; } }
-        public bool Has(string key) { return map.ContainsKey(key); }
+        public bool Has(string key) { return map.ContainsKey(key) || clone.ContainsKey(key); }
+        public bool IsCloneException(string key) { return clone.ContainsKey(key); }
 
         /// <summary>표 낱말 그대로(nowrap|normal).</summary>
         public string Mode(string key)
         {
             string v;
-            if (!map.TryGetValue(key, out v)) throw new FormatException("WrapUi 에 없는 자리다: " + key);
+            if (!map.TryGetValue(key, out v) && !clone.TryGetValue(key, out v)) throw new FormatException("WrapUi 에 없는 자리다: " + key);
             return v;
         }
 
-        /// <summary>그 자리가 접는가 — 표에 없는 자리는 정본 기본(<see cref="WrapRules.DefaultWraps"/>).</summary>
+        /// <summary>그 자리가 접는가 — 정본 표(`sites`) → 클론 예외(`clone_nowrap`) → 정본 기본(<see cref="WrapRules.DefaultWraps"/>).</summary>
         public bool Wraps(string key)
         {
             string v;
-            return map.TryGetValue(key, out v) ? WrapRules.Wraps(v) : WrapRules.DefaultWraps;
+            if (map.TryGetValue(key, out v)) return WrapRules.Wraps(v);
+            if (clone.TryGetValue(key, out v)) return WrapRules.Wraps(v);
+            return WrapRules.DefaultWraps;
         }
 
         public int CountOf(string mode)
@@ -95,6 +103,22 @@ namespace Forge.Core.Ui
                 t.map[k] = v;
             }
             if (t.map.Count == 0) throw new FormatException("WrapUi 에 자리가 하나도 없다");
+            object co;
+            if (root.TryGet("clone_nowrap", out co))
+            {
+                JsonObject cl = J.Obj(co);
+                if (cl == null) throw new FormatException("WrapUi 의 clone_nowrap 이 «상자» 가 아니다");
+                foreach (var kv in cl)
+                {
+                    string k = kv.Key;
+                    if (k.Length > 0 && k[0] == '_') continue;
+                    string v = J.Str(kv.Value);
+                    if (v != WrapRules.NoWrap) throw new FormatException("WrapUi clone_nowrap «" + k + "» 는 nowrap 만 된다(정본이 접는 자리를 클론이 안 접는 예외다)");
+                    if (k != WrapRules.KeyOf(k)) throw new FormatException("WrapUi 키가 규칙(영숫자·`_`·소문자) 밖이다: " + k);
+                    if (t.map.ContainsKey(k)) throw new FormatException("WrapUi clone_nowrap «" + k + "» 는 이미 정본 표(sites)에 있다");
+                    t.clone[k] = v;
+                }
+            }
             return t;
         }
     }

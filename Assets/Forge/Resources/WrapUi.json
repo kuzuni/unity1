@@ -86,5 +86,12 @@
     "coin_amt": "nowrap",
     "rw_amt": "nowrap",
     "rw_tick": "nowrap"
+  },
+  "_클론": "clone_nowrap — 정본은 접는 자리(white-space 선언 없음 = normal)지만 클론에서만 안 접어야 하는 예외. 까닭은 둘뿐이다: 행 높이가 고정이라 못 자라고, 글자 하한(주인 지시)이 정본보다 커 정본 폭에서 한 줄이던 글이 접혀 아래 줄을 덮는다. 자리마다 정본 줄과 까닭을 적는다 · 정본 표(sites 41)와 따로 센다 · T361 6회차 · 결정 673.",
+  "_클론_자리": {
+    "league_challenge_name": "style.css:2632  .league-challenge-name  → (선언 없음 · flex:1 · 정본은 접는다) — 클론 도전 행은 높이가 고정이고 이름 칸이 rowH×0.4 라, 하한 글자로 «BlandBuddy22667» 같은 이름이 두 줄이 되며 전투력 줄을 덮는다(런 752 BrLinesTests). 정본 <br> 구조(이름 위 · 전투력 아래 · 각 한 줄)를 지키려면 안 접는다."
+  },
+  "clone_nowrap": {
+    "league_challenge_name": "nowrap"
   }
 }

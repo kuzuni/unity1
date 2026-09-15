@@ -93,5 +93,20 @@ namespace Forge.Tests.EditMode
             WrapTable ok = WrapTable.From(MiniJson.ParseObject("{\"sites\": {\"a\": \"nowrap\", \"_note\": \"x\"}}"));
             Assert.AreEqual(1, ok.Count, "`_` 칸은 설명");
         }
+        /// <summary>T361 6회차 — 클론 쪽 예외(`clone_nowrap`): 정본은 접는 자리지만 클론 고정 높이 행 + 글자 하한 때문에 안 접는다. 정본 표 41 과 따로 센다.</summary>
+        [Test]
+        public void 클론_예외_칸은_안_접고_정본_표_41_과_따로_센다()
+        {
+            WrapTable t = Table_();
+            Assert.AreEqual(41, t.Count, "정본 표는 그대로 41");
+            Assert.GreaterOrEqual(t.CloneCount, 1, "클론 예외가 하나는 있다(league_challenge_name)");
+            Assert.IsTrue(t.IsCloneException("league_challenge_name"));
+            Assert.IsFalse(t.Wraps("league_challenge_name"), "클론 예외 자리는 안 접는다");
+            Assert.AreEqual(WrapRules.NoWrap, t.Mode("league_challenge_name"));
+            Assert.IsFalse(t.IsCloneException("coin_amt"), "정본 표 자리는 예외가 아니다");
+            JsonObject root = Root_();
+            object co; Assert.IsTrue(root.TryGet("clone_nowrap", out co));
+            foreach (var kv in J.Obj(co)) if (!kv.Key.StartsWith("_")) Assert.IsTrue(J.Obj(root["_클론_자리"]).Has(kv.Key), "예외 자리마다 «_클론_자리» 에 정본 줄·까닭이 있다: " + kv.Key);
+        }
     }
 }

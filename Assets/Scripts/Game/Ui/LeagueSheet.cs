@@ -351,6 +351,7 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI nm = UiKit.Text(row, "name", TextKind.Sub, o.Bot.Name, "pp_ink", TextAlignmentOptions.Left);
                 nm.fontStyle = FontStyles.Bold;
                 LineHeight.Apply(nm, "league_challenge_name_lh");   // T354 11회차 — 정본 2632 `.league-challenge-name { line-height: 1.3 }`
+                WrapUi.Apply(nm, "league_challenge_name");   // T361 6회차 — 표 clone_nowrap: 정본은 접지만 클론 고정 행 + 글자 하한이라 안 접는다(런 752 BrLinesTests «BlandBuddy22667» 두 줄)
                 UiKit.Place(nm.rectTransform, nx, rowH * 0.12f, nw, rowH * 0.4f);
                 // 원작 `.league-challenge-name small` = IconGen.img('power') + 전투력 — 글자 «⚔» 가 아니라 T31 아이콘(T58 · 글꼴에 없는 글자는 □ 로 찍힌다)
                 float cpH = rowH * 0.4f, cpIco = cpH * 0.9f;
