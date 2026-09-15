@@ -964,6 +964,61 @@ def card_box(img):
     return (xs[0] * 100.0 / W, (xs[-1] - xs[0] + 1) * 100.0 / W)
 
 
+# ── «이 띠가 뒤 화면이 비치는 것인가» (T28 57회차 · 워커 M · T358 ✂ 에서 배운 것) ─────
+# 클론 딤은 주인 지시 α .5 라 팝업 화면에 **뒤 화면이 절반 밝기로 비친다**. 그것을 «팝업이 그린 것»
+# 으로 잘못 읽으면 없는 결함을 등재하게 된다 — 56회차에 내가 그렇게 T358 을 냈고 워커 J 가 접었다.
+# 그때 내가 한 검산은 «카드 밖 한 점(x 3%)이 통짜 딤이다» 였는데, 그 자리는 **뒤 화면의 빈 여백**이라
+# 딤만 남는 자리였다. 한 점의 **부재**로는 아무것도 못 가린다.
+# 옳은 검산은 **뒤로 의심되는 화면의 PNG 와 픽셀로 견주는 것**이다 — 워커 J 가 그렇게 갈랐다:
+# 위 띠는 `screen_dungeons.png` 대비 밝기비 **0.467~0.489**(= .5 딤) · 아래 띠는 **2.17**(상관없음).
+# 그래서 그 검산을 자에 넣는다: `--behind <앞> <뒤>` 가 가로줄마다 밝기비 중앙값을 찍는다.
+BEHIND_LO, BEHIND_HI = 0.42, 0.58   # 이 사이면 «뒤 화면이 α .5 딤으로 비친다»
+
+
+def behind_ratio(front, back, rows=24):
+    """두 그림의 «가로줄 밝기비» 중앙값 목록 — (y%%, 비, 표본수). 비가 ≈0.5 면 뒤가 비치는 것이다."""
+    out = []
+    W, H = front.w, front.h
+    if back.w != W or back.h != H:
+        return out
+    fg, bg = front.gray(), back.gray()
+    for k in range(rows):
+        y = int((k + 0.5) * H / rows)
+        base = y * W
+        rs = []
+        for x in range(0, W, 4):
+            b = bg[base + x]
+            if b >= 24:                      # 뒤가 캄캄한 자리는 비가 의미 없다
+                rs.append(fg[base + x] / float(b))
+        if len(rs) >= 8:
+            rs.sort()
+            out.append((y * 100.0 / H, rs[len(rs) // 2], len(rs)))
+    return out
+
+
+def behind(shots_dir, front_name, back_name):
+    """`--behind 앞 뒤` — 앞 화면의 각 가로줄이 뒤 화면을 딤으로 비친 것인지 수로 가른다."""
+    fp = os.path.join(shots_dir, "screen_%s.png" % front_name)
+    bp = os.path.join(shots_dir, "screen_%s.png" % back_name)
+    for q in (fp, bp):
+        if not os.path.exists(q):
+            print(u"✗ 그림이 없다: %s" % q)
+            return 2
+    rows = behind_ratio(png_read(fp), png_read(bp))
+    if not rows:
+        print(u"✗ 두 그림의 크기가 다르다 — 같은 런의 같은 앱 상자여야 한다")
+        return 2
+    print(u"«%s» 의 가로줄이 «%s» 를 딤으로 비치는가 — 비가 %.2f~%.2f 면 그렇다(클론 딤 α .5)"
+          % (front_name, back_name, BEHIND_LO, BEHIND_HI))
+    for y, r, n in rows:
+        mark = u"← 뒤가 비친다" if BEHIND_LO <= r <= BEHIND_HI else u""
+        print(u"   y %5.1f%%  비 %5.2f  (표본 %d) %s" % (y, r, n, mark))
+    hit = [t for t in rows if BEHIND_LO <= t[1] <= BEHIND_HI]
+    print(u"— 뒤가 비치는 줄 %d / %d. **그 줄에 보이는 것은 앞 화면이 그린 것이 아니다**"
+          u" — 등재하기 전에 이것부터 보라(T358 ✂)." % (len(hit), len(rows)))
+    return 0
+
+
 def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baseline=False, notes_full=False):
     table = load_table(table_path)
     if not table:
@@ -1475,6 +1530,21 @@ def self_test():
     chk(not _flaps([5.0, 5.0, 5.0]), u"안 움직인 자취도 «흔들린다» 가 아니다")
     chk(not _flaps([5.0, 5.3, 5.1]), u"문턱(%.1f) 안쪽 오르내림은 안 센다" % DROP_MARK)
 
+    # ⑭ «뒤 화면이 비치는가» 밝기비(T28 57회차 · T358 ✂ 에서 배운 것)
+    bk = _canvas(120, 200, (200, 200, 200))
+    _fill(bk, 10, 20, 110, 90, (120, 160, 240))
+    fr = _canvas(120, 200, (100, 100, 100))          # 위 절반 = 뒤 화면의 딱 절반 밝기
+    _fill(fr, 10, 20, 110, 90, (60, 80, 120))
+    _fill(fr, 0, 120, 120, 200, (250, 250, 250))     # 아래 절반 = 앞 화면이 제 손으로 그린 것
+    rs = behind_ratio(fr, bk, rows=8)
+    up = [r for y, r, n in rs if y < 45]
+    dn = [r for y, r, n in rs if y > 60]
+    chk(up and all(BEHIND_LO <= r <= BEHIND_HI for r in up),
+        u"뒤 화면이 α .5 로 비치는 줄은 비가 %.2f~%.2f 안이다 (%s)" % (BEHIND_LO, BEHIND_HI, [round(r, 2) for r in up]))
+    chk(dn and all(r > BEHIND_HI for r in dn),
+        u"앞 화면이 제 손으로 그린 줄은 그 밖이다 (%s)" % [round(r, 2) for r in dn])
+    chk(behind_ratio(fr, _canvas(60, 60)) == [], u"크기가 다르면 비를 안 낸다")
+
     # ⑫ 화면 집합이 바뀐 회차(T185) — 낮은 화면이 빠지면 «전체 평균» 은 저절로 오른다
     b_scr = {"a": 5.0, "b": 5.0, "c": 3.0, "d": 3.5}         # 지난 회차 4장 · 평균 4.125
     c_scr = {"a": 5.0, "b": 5.0}                              # 이번 회차 2장 · 평균 5.00
@@ -1545,10 +1615,14 @@ def main():
     ap.add_argument("--baseline", default=BASELINE, help="지난 회차 점수 파일(회귀 대조)")
     ap.add_argument("--save-baseline", action="store_true", help="이번 점수를 기준선으로 적는다")
     ap.add_argument("--notes", action="store_true", help="«낡은 원작 샷» 항목을 근거까지 펼쳐 찍는다")
+    ap.add_argument("--behind", nargs=2, metavar=("앞", "뒤"),
+                    help="앞 화면의 가로줄이 뒤 화면을 딤으로 비치는지 밝기비로 가른다(T358 ✂)")
     a = ap.parse_args()
 
     if a.self_test:
         return self_test()
+    if a.behind:
+        return behind(a.shots, a.behind[0], a.behind[1])
     if a.read:
         for r in read_layout(png_read(a.read)):
             print(u"| %s | %.1f | %.1f | %.1f | %.1f | %s |" % (r.name, r.x, r.y, r.w, r.h, r.grid()))
