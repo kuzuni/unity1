@@ -9737,3 +9737,12 @@
 - **자**: 그 팝업을 여는 값이 커(스킬 보유·상세 열기) 화면 자는 안 붙이고, **표값 두 개를 리그 칸에서 정본 줄 번호와 함께 못 박았다**(1.45·1.15). 화면 자는 다음 회차나, 그 팝업을 이미 여는 자(`SkillPanel` 갈래)에 한 줄 얹으면 된다.
 - **게이트**: `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 없음 · `check_line_height` 81 자리 그대로.
 - **남은 몫**: 배선 **18/25**. 남은 것은 `Popups.cs`·`Hud.cs`·`QuestSheet.cs`(T331·T333·T345·T359) · `ForgeInfoPopup.cs`·`SkillRatesPopup.cs`·`PetSkillKit.cs`·`DungeonDetailPopup.cs`(T332) · `PassPopup.cs`(T383) · `SkillSummonResult.cs`(T334·T385) · `TechPanel.cs`(T345) 뒤다.
+
+### T359 5회차 — **내 자가 낸 빨강 수리**: `Outlined` 이 두 겹이라 «얼굴» 을 한 겹 위에서 찾고 있었다 (2026-09-15 15:0x~15:2x · 워커 I · sess-1504-30218 · lock 유지)
+
+- **§0-6 = 내 몫이다**: 런 **#701**(`85ca6bb`) 빨강 둘 중 하나가 4회차가 붙인 `OpacityTests.비교_카드의_빈_슬롯만_정본_알파_한_겹을_쓴다` 다(다른 하나 `ColorMixSitesTests` 는 T371 산 lock). 실패 원문은 `screens` 브랜치의 `playmode-red.txt` **397~403** 에서 읽었다 — «얼굴 / Expected: not null / But was: null / OpacityTests.cs:**139**».
+- **고친 것은 자 쪽이다(프로덕션 배선은 옳았다)**: 139행 앞의 단언 셋 — CanvasGroup 이 선다 · 표값 .7 이다 · 글자가 그 한 겹 안에 든다 — 은 **CI 에서 이미 통과했다**. 넘어진 것은 그다음 «얼굴 알파가 1 인가» 를 볼 때 `empty.Find("face")` 가 **Image 없는 상자**를 준 것이다: `PopupKit.Outlined`(Popups.cs 370~377)은 «상자 `face` → 그 안에 `line` + `face`(Image)» 로 **두 겹**을 세운다. 안쪽까지 내려가 찾게 고쳤고, 그 구조를 주석 한 줄로 박았다.
+- **곁들여 고친 것 — 아직 안 터졌던 두 번째 덫**: 같은 칸의 «채워진 카드에는 안 걸린다» 갈래가 `ForgeUi.ItemCard(..., d, **null**)` 로 `value` 를 안 주고 손으로 지은 `ForgeItem`(이름·주스탯·서브 없음)을 넘기고 있었다. 그 갈래는 `NumFmt.Fmt(value(item))`(ForgeUi.cs 282)을 부르므로 139행을 넘어갔다면 **NRE 로 다시 빨갰다**. 엔진이 굴린 진짜 아이템(`Engine.RollItem()`)과 실제 값 함수(`GearSys.ItemValue` — 정본 호출부 셋이 쓰는 그것)로 바꿨다.
+- **배운 것**: 남의 공장 함수가 만든 나무를 `Find(이름)` 으로 짚을 때는 **그 함수를 열어 겹 수를 본다**. 이름이 같은 겹이 둘이면(`face`/`face`) 바깥이 먼저 잡혀 조용히 null 을 낸다.
+- **게이트**: `tools/gate.sh` 막는 자 전부 rc **0** · 건너뛴 자 0.
+- **주인이 확인할 것**: 없다.

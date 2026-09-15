@@ -119,6 +119,12 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 비교_카드의_빈_슬롯만_정본_알파_한_겹을_쓴다()
         {
             yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!ForgeHost.Ready)
+            {
+                Assert.Less(Time.realtimeSinceStartup - t0, 20f, "ForgeHost 가 20초 안에 준비되지 않았다");
+                yield return null;
+            }
             GameDefs d = ForgeHost.Instance != null ? ForgeHost.Instance.Defs : null;
             Assert.IsNotNull(d, "GameDefs");
             RectTransform host = UiKit.Box(UiRoot.Instance.App, "t359-cmp-host");
@@ -135,13 +141,18 @@ namespace Forge.Tests.PlayMode
             Transform label = empty.Find("empty");
             Assert.IsNotNull(label, "«빈 슬롯» 글자");
             Assert.AreSame(cg, label.GetComponentInParent<CanvasGroup>(), "글자가 그 한 겹 안에 든다");
-            Image face = empty.Find("face") != null ? empty.Find("face").GetComponent<Image>() : null;
-            Assert.IsNotNull(face, "얼굴");
+            // `PopupKit.Outlined` 은 «상자 face / 안에 line + face(Image)» 로 두 겹이다 — 바깥 `face` 는 민 Box 라 Image 가 없다(런 701 이 여기서 빨갰다).
+            Transform faceBox = empty.Find("face");
+            Assert.IsNotNull(faceBox, "얼굴 상자");
+            Image face = faceBox.Find("face") != null ? faceBox.Find("face").GetComponent<Image>() : null;
+            Assert.IsNotNull(face, "얼굴 이미지(PopupKit.Outlined 의 안쪽 face)");
             Assert.AreEqual(1f, face.color.a, 1e-4f, "얼굴 알파에 숫자를 다시 박지 않는다(한 겹은 CanvasGroup 이 쥔다)");
 
-            // 채워진 카드에는 안 건다(정본은 `.empty` 에만).
-            ForgeItem it = new ForgeItem { Slot = "weapon", Age = d.Ages[0], AgeIdx = 0, WType = ForgeHost.Instance.Engine.WeaponsOfAge(d.Ages[0])[0], NameIdx = 0, Rarity = "common", Stars = 0, Level = 1 };
-            RectTransform full = ForgeUi.ItemCard(host, "cmp-full", w, it, null, null, false, d, null);
+            // 채워진 카드에는 안 건다(정본은 `.empty` 에만). 아이템은 **엔진이 굴린 진짜**를 쓴다 —
+            //   손으로 지은 레코드는 `Name`·`Main`·`Subs` 가 비어 채워진 갈래가 그리다 넘어진다(4회차 런 701 이 그렇게 빨갰다).
+            ForgeItem it = ForgeHost.Instance.Engine.RollItem();
+            Assert.IsNotNull(it, "엔진이 아이템을 굴린다");
+            RectTransform full = ForgeUi.ItemCard(host, "cmp-full", w, it, null, null, false, d, ForgeHost.Instance.GearSys.ItemValue);
             Assert.IsNotNull(full, "채워진 카드");
             CanvasGroup cg2 = full.GetComponent<CanvasGroup>();
             Assert.IsTrue(cg2 == null || Mathf.Approximately(cg2.alpha, 1f), "채워진 카드는 안 흐려진다(정본 .cmp-card.empty 에만 건다)");
