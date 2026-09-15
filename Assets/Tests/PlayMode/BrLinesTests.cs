@@ -134,7 +134,7 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
-        /// <summary>정본 5848~5849 «…됩니다<br>· ⚠ 보유 중인 기존 …<br>· 이후 새로 …» — 승천 초점 카드 효과 글줄 세 줄. 런 688: 클론은 넷(KNOWN) — 잰 값을 기록하고 하한만 막는다.</summary>
+        /// <summary>정본 5848~5849 «…됩니다<br>· ⚠ 보유 중인 기존 …<br>· 이후 새로 …» — 승천 초점 카드 효과 글줄 세 줄(5회차: Micro + 표 크기 .76rem).</summary>
         [UnityTest]
         public IEnumerator 승천_효과_글줄은_정본대로_세_줄이다()
         {
@@ -145,10 +145,9 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(eff, "효과 글줄(eff)");
             TextMeshProUGUI t = eff.GetComponent<TextMeshProUGUI>();
             int n = Lines(t);
-            // 런 688 실측 **4줄**(정본 3): 셋째 항목 «· 이후 새로 제작되는 장비가 ★1로 나옵니다» 가 하한(Sub 36 ≈ .988rem ↔ 정본 .asc-focus-eff .76rem · 5635)에 밀려
-            // 한 번 더 접힌다 — 이 축의 발견이다(check_br_lines.py KNOWN 5848·5849 · AscendPopup.cs 는 T333·T354 lock 뒤). 고치기 전까지는 «정본보다 적지 않다» 만 막고 실제 줄 수를 남긴다.
-            Debug.Log("[T383] 승천 효과 글줄 lineCount=" + n + " (정본 3) «" + t.text.Replace("\n", "⏎") + "»");
-            Assert.GreaterOrEqual(n, 3, "정본 5848·5849 = 세 줄보다 적을 수는 없다 — 실제 " + n);
+            // 런 688 은 **4줄**이었다(하한 Sub 36 이 셋째 항목을 접었다) — 5회차가 종류 Micro + 표 크기(정본 .76rem · TextSizeUi)로 고쳐 정본 세 줄로 돌아온다.
+            Assert.AreEqual(3, n, "정본 5848·5849 = 세 줄 — 실제 «" + t.text.Replace("\n", "⏎") + "»");
+            Assert.AreEqual(TextSizeUi.Px("asc_focus_eff"), t.fontSize, 0.5f, "크기는 표(정본 .76rem)에서 — 하한 36 이 아니다");
             AscendPopup.Close();
             yield return null;
         }

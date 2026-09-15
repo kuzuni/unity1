@@ -144,7 +144,10 @@ namespace Forge.Game.Ui
                 string wipe = line == "forge" ? "(착용 장비 전부)" : line == "pet" ? "(출전 포함, 알은 유지)" : "(장착 포함)";
                 string eff = "· " + resetKr + "됩니다\n· ⚠ 보유 중인 기존 " + kr + wipe + DungeonUiHost.Josa(kr, "이", "가") + " 전부 사라집니다\n· 이후 새로 "
                     + (line == "forge" ? "제작되는 장비" : "소환되는 " + kr) + DungeonUiHost.Josa(line == "forge" ? "장비" : kr, "이", "가") + " ★" + next + "로 나옵니다";
-                TextMeshProUGUI fe = DungeonPopups.Para(focus, "eff", TextKind.Sub, eff, "pp_ink", TextAlignmentOptions.Left);
+                // T383 5회차 — 정본 5635 `.asc-focus-eff { font-size: .76rem }`: 하한 `Sub`(36 ≈ .99rem)로 찍으면 셋째 항목이 접혀 정본 `<br>` 세 줄이 네 줄이 된다(런 688).
+                // 결정 633 대로 새 종류 없이 예외 칸 `Micro` 를 쓰되 크기는 표(TextSizeUi · 정본 .76rem)에서 — §1 예외 넷째 자리.
+                TextMeshProUGUI fe = DungeonPopups.Para(focus, "eff", TextKind.Micro, eff, "pp_ink", TextAlignmentOptions.Left);
+                TextSizeUi.Apply(fe, "asc_focus_eff");
                 UiKit.Place(fe.rectTransform, focusPad, fy, inner - focusPad * 2f, subH * 4f);
                 OpacityUi.Apply(fe.gameObject, "asc_focus_eff");   // T359 — 정본 5635 .asc-focus-eff { opacity: .9 }
                 LineHeight.Apply(fe, "asc_focus_eff_lh");   // T354 — 정본 5635 .asc-focus-eff { line-height: 1.5 }
