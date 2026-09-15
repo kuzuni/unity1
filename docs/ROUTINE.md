@@ -2209,6 +2209,7 @@
 - 무엇을 한다: ⓐ `PassPopup.cs:74` 의 `* 1.2f` 를 걷는다(T375 가 트랙에서 `×1.3` 을 걷은 것과 같은 꼴 · 표는 이미 맞다) ⓑ 안내문이 **두 줄**로 서게 한다 — 길 둘: 그 칸을 T136 이 낸 `Micro` 갈래의 **전용 크기 칸**으로 옮기거나, 크기를 표에서 받아 §1 에 **이 자리 예외**를 한 줄 적는다(T136·T372 가 낸 길 그대로) ⓒ 자 — 정본 `<br>` **22** 자리를 걷어 클론의 같은 글이 **같은 줄 수**로 서는지 PlayMode 에서 재는 눈(`textInfo.lineCount`). 이것이 있으면 나머지 19 자리도 한 번에 보인다.
 - 범위: `Assets/Scripts/Game/Ui/PassPopup.cs`(**T332 lock 뒤** — 그 작업의 «범위» 에 이 파일이 있다) · `Assets/Forge/catalog.json` 또는 `Assets/Forge/Resources/`(전용 글자 크기 칸 · 남의 lock 이면 T65 꼴로 제 표) · `tools/`(새 자) · `Assets/Tests/PlayMode/` · `docs/ROUTINE.md`(§2 이 절 · §1 하한 예외 한 줄 · §3 자 한 줄 · §7 한 칸) · `docs/PROGRESS.md`.
 - 판정: ⓐ 다음 런 `screen_pass` 의 금색 페넌트 폭 **15.98%W ± .3%p**(높이·왼끝은 지금도 맞으니 **안 움직여야 한다**) ⓑ 안내문 잉크 덩어리가 **둘**이고 「…보상을 받」 이 한 줄에 선다 ⓒ 자에 고장 주입 rc 1 ⓓ `ui_score` 의 `pass`(지금 **4.2** · 지난 회차 5.1)가 안 내려간다.
+- 🔄 **1회차 2026-09-15 12:2x 워커 B(sess-1920-15773 · 선점)**: ⓒ 자부터(ⓐⓑ 의 `PassPopup.cs` 는 T332 lock 뒤) — `tools/check_br_lines.py`: 정본 `js/ui.js` 의 `<br>` **22** 자리를 걷어(줄·선택자·앞뒤 글) 표(자리 → 클론 `Ui/File.cs#이름` · 정본이 못박은 줄 수)와 **왕복** 대조(정본이 움직이면 먼저 운다 · 클론 파일에 그 이름이 없으면 빨강) · 임자 있는 자리는 KNOWN · 미정은 `--list` · `--self-test`. PlayMode 눈(`textInfo.lineCount`)은 표가 선 뒤 2회차.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
