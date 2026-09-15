@@ -2867,6 +2867,12 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   → **런 586 판정(6회차 · 04:4x · 워커 B)**: `PressFxSitesTests` 3/3 PASS · `PressFxTests` PASS(같은 런의 빨강 둘은 T331·T178 것). **lock 반납 · 행 ⬜** — 일곱 자리 중 여섯이 섰다. 남은 하나 ⓐ `pet_tile` 은 T332 lock 뒤 누구든: `PetSkillKit` 타일 공장에 `PressFx.Attach(tile, face, "pet_tile", faceImage)` 한 줄 + `PressFxSitesTests` 칸 하나 → ✅.
 - §0-6 2026-09-15 06:1x 워커 A(sess-2005-27410) **런 600 빨강 수리(lock 없음)**: `PressFxSitesTests` 장비·탈것 칸 자가 배경 전투의 `Meta.Bump → Changed → ForgeSheet.Render`(시트 통째 재그리기)에 누르던 칸을 잃어 위상이 얼었다(0.673) — 자가 죽은 칸을 같은 이름으로 다시 찾아 다시 누르게(`SettleLive` · 결정 612). 게임 코드 0줄. → 런 620 `PressFxSitesTests` 3/3 PASS(수리 2 a4b61b83 — 찾는 범위를 칸의 캔버스 뿌리로).
 - 범위: `Assets/Scripts/Game/Ui/UiKit.cs`(**T178·T331·T333 lock 뒤**) · `Ui/PetSkillKit.cs`(**T332 lock 뒤**) · `Ui/ForgeSheet.cs` · `Ui/ForgeAutoPopup.cs` · `Ui/OfflineButton.cs` · `Ui/UiRoot.cs` · `Assets/Scripts/Core/Ui/PressRules.cs`(새) · `Assets/Forge/Resources/DungeonFxUi.json` 또는 `PressFxUi.json`(새) · `Assets/Tests/EditMode/`·`Assets/Tests/PlayMode/`(새 파일) — 잡는 사람이 산 lock 밖 자리부터 «범위» 칸을 고쳐 나눠 잡아도 된다(T335 가 그렇게 했다).
+- 🔄 **7회차(2026-09-15 19:0x · 워커 I · sess-1903-25607) — 남은 ⓐ `pet_tile` 은 «한 자리» 가 아니라 **다섯 자리**였다(자리 정정 + 둘 배선)**:
+  - 6회차가 «`PetSkillKit` 타일 공장에 한 줄» 로 남겼는데 **그 공장이 아니다**. `PetSkillKit.Framed` 는 부름이 **26곳**인 민 상자 공장이고(스킬·알·상세·업그레이드까지), 정본 `:active` 는 `.pet-tile`(버튼)에만 걸린다.
+  - 정본에서 `class="pet-tile"` 을 걷으니 **다섯**이다 — `ui.js` **3938**(펫 격자) · **3948**(알 `.pet-tile.egg`) · **4152**(업그레이드 펫 재료) · **4162**(업그레이드 알 재료) · **5646**(탈것 격자). 클론 자리는 `PetPanel.cs`(앞 둘 · **T361 산 lock**) · `PetUpgradePopup.cs`(가운데 둘) · `MountSheet.cs`(탈것).
+  - **이번 회차에 배선한 둘**: `MountSheet.TileAt`(탈것 격자) · `PetUpgradePopup`(펫 재료 칸). **남은 셋**은 `PetPanel.cs`(펫 격자·알)와 `PetUpgradePopup` 의 알 재료 칸 — 앞 둘은 T361 lock 뒤, 알 재료 칸은 알 갈래를 여는 회차가 같이 넣는다.
+  - **이 자리는 앞의 여섯과 «움직이는 쪽» 이 다르다**: 정본이 누름을 거는 것은 `.pet-tile`(버튼)인데 움직이는 것은 그 안의 `.tile-face` 다 — 그래서 `PressFx` 는 버튼에 붙고 **target 은 얼굴**이다. 기존 `AssertPress` 는 «누름을 쥔 칸» 자리를 재므로 이 자리에 그대로 못 쓴다(자를 따로 썼다).
+  - **자**: `PressFxSitesTests` 에 칸 하나 — 탈것 격자 타일을 눌러 **얼굴만** `.08rem` 내려가고 떼면 돌아오는지.
 
 ### T340 ✅ — `check_unity_green` 이 **✅ 로 닫힌 작업**을 살아 있는 임자로 세워 «네 일이다» 라고 한다 (도구·게이트 · **T338 뒤 누구든**(같은 파일) · 워커 J 등재)
 - 실측(2026-09-14 19:2x · 런 **479**): 빨강 `PerfBudgetTests.부하_장면_드로우콜…` 에 자가 «임자 후보 여럿: T44(lock 없다) T50(lock 없다) T64(lock 없다) — **산 lock 이 하나도 없다 → §0-6 대로 네 일이다**» 를 냈다. 그런데 **셋 다 `✅ 완료`** 다. 진짜 임자는 **T330**(산 lock 21분 · 결정 532 로 **이미 고치는 중**)이고, 자 제 «런 사이» 칸에도 T330 커밋 둘이 그대로 찍혀 있다.

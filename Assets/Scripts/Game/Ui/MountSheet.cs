@@ -143,8 +143,18 @@ namespace Forge.Game.Ui
             UiKit.Place(cell, x, y, size, cellH);
             RectTransform face = sheet.Pets.TileFace(cell, mt.Name, mt.Rarity, size, active, mt.Level, true, Ribbon(i), GalleryKind.Mounts);
             UiKit.Place(face, 0f, 0f, size, size);
+            // T355 ⓐ — 정본 4304 `.pet-tile:active .tile-face { transform: translateY(.08rem); filter: brightness(1.07) }`(4301 `transition: .08s ease-out`).
+            //   탈것 격자도 정본에서 **같은 `.pet-tile`** 이다(ui.js 5646) — 펫 격자(3938)와 한 규칙을 나눠 쓴다.
+            PressFx.Attach(b.gameObject, face, "pet_tile", TileFaceImage(face));
             if (mt.Stars > 0) SkillPanel.StarRow(cell, mt.Stars, size, size + PetSkillStyle.Rem(0.1f), starH);
             return b;
+        }
+
+        /// <summary>타일 얼굴의 색면(`PetSkillKit.Framed` 의 안쪽 «face») — 눌림이 밝히는 겹이다(정본 `filter: brightness`).</summary>
+        internal static Image TileFaceImage(RectTransform face)
+        {
+            Transform f = face != null ? face.Find("face") : null;
+            return f != null ? f.GetComponent<Image>() : null;
         }
 
         static void BuildBar(RectTransform parent, float W, float barY, float barH, float pad)

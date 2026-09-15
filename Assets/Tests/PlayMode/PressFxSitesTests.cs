@@ -191,6 +191,65 @@ namespace Forge.Tests.PlayMode
             yield return AssertPress(egg, "egg_cell");
         }
 
+        /// <summary>
+        /// T355 ⓐ — 정본 **4304** `.pet-tile:active .tile-face { transform: translateY(.08rem); filter: brightness(1.07) }`
+        /// (**4301** `transition: transform .08s ease-out, filter .08s`). 여섯 자리가 선 뒤 하나 남아 있던 자리다.
+        ///
+        /// ⚠ 이 자리는 앞의 것들과 **움직이는 쪽이 다르다**: 정본이 누름을 거는 것은 `.pet-tile`(버튼)인데 움직이는 것은
+        /// 그 안의 `.tile-face` 다. 그래서 `PressFx` 는 버튼에 붙고 **target 은 얼굴**이다 — 버튼 자리를 재면 안 움직인 것으로 보인다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 탈것_격자_타일은_누르면_얼굴만_표대로_내려간다()
+        {
+            yield return Boot();
+            PetSkillHost H = PetSkillHost.Instance;
+            Assert.IsNotNull(H, "PetSkillHost");
+            while (H.SummonMult("mount") != 1) H.CycleSummonMult("mount");
+            H.Winders = 100000;
+            H.Sync();
+            yield return null;
+            MountSheet.Open();
+            yield return null;
+            Assert.IsTrue(MountSheet.IsOpen, "탈것 시트");
+            if (H.Mounts.Count() < 1)
+            {
+                MountSheet.SummonButton.onClick.Invoke();
+                float t0 = 0f;
+                while (H.Mounts.Count() < 1 && t0 < 10f) { t0 += Time.unscaledDeltaTime; yield return null; }
+                Assert.GreaterOrEqual(H.Mounts.Count(), 1, "탈것 하나는 나온다");
+                MountSheet.Open();
+                yield return null;
+            }
+            yield return null;
+
+            RectTransform tile = null;
+            foreach (RectTransform rt in UiRoot.Instance.App.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "mount-tile-0") { tile = rt; break; }
+            Assert.IsNotNull(tile, "탈것 격자 첫 타일(mount-tile-0)");
+
+            PressFx fx = tile.GetComponent<PressFx>();
+            Assert.IsNotNull(fx, "정본 .pet-tile:active 자리 — 누름이 버튼에 붙는다");
+            RectTransform face = tile.Find("tile-face") as RectTransform;
+            Assert.IsNotNull(face, "타일 얼굴(.tile-face)");
+            Assert.AreSame(face, fx.Target, "움직이는 것은 얼굴이지 버튼이 아니다(정본 4304)");
+
+            PressSpec s = PressFx.Table.Get("pet_tile");
+            float rem = PopupKit.Rem;
+            float baseY = face.anchoredPosition.y;
+            Assert.IsFalse(fx.Active, "놓인 상태에서 시작");
+            fx.Press(true);
+            yield return Settle(fx, 1.0, s.Ms * 6.0 + 500.0);
+            Assert.AreEqual(1.0, fx.Phase, 1e-6, "누르면 위상 1 — 잰 위상 " + fx.Phase);
+            Assert.AreEqual(baseY - (float)s.DyRem * rem, face.anchoredPosition.y, 0.5f, "정본 translateY(.08rem) — 얼굴이 놓인 자리에서 아래로");
+            fx.Press(false);
+            yield return Settle(fx, 0.0, s.Ms * 6.0 + 500.0);
+            Assert.AreEqual(0.0, fx.Phase, 1e-6, "떼면 위상 0 — 잰 위상 " + fx.Phase);
+            Assert.AreEqual(baseY, face.anchoredPosition.y, 0.5f, "제자리로");
+
+            MountSheet.Close();
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator 소환_시트는_열릴_때_아래에서_미끄러져_올라오고_표의_ms_안에_제자리에_선다()
         {

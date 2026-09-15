@@ -275,6 +275,9 @@ namespace Forge.Game.Ui
                     bool locked = P.State.ActivePets.Contains(idx);
                     RectTransform face = sheet.Pets.TileFace(cell, p.Name, p.Rarity, colW, locked, p.Level, true);
                     UiKit.Place(face, 0f, 0f, colW, colW);
+                    // T355 ⓐ — 정본 4304 `.pet-tile:active .tile-face { translateY(.08rem); brightness(1.07) }`(4301 `transition: .08s ease-out`).
+                    //   업그레이드 재료 칸도 정본에서 **같은 `.pet-tile`** 이다(ui.js 4152) — 잠긴 칸(`mat-locked`)에도 정본은 이 규칙을 안 뺀다.
+                    PressFx.Attach(b.gameObject, face, "pet_tile", MountSheet.TileFaceImage(face));
                     if (locked)
                     {
                         OpacityUi.Apply(face.gameObject, "pet_tile_mat_locked");   // T359 — 정본 4385 .pet-tile.mat-locked .tile-face { opacity: .5 } (표에서)
