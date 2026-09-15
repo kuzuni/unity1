@@ -128,6 +128,57 @@ namespace Forge.Tests.PlayMode
 
         /// <summary>
         /// <summary>
+        /// T332 15회차 — 정본 `style.css` **1993~1998** `.dg-rw .dg-rw-ico { … filter: drop-shadow(0 .10em .16em rgba(0,0,0,.55)) }`
+        /// — 던전 배너 왼쪽 위 보상 아이콘. **이 자리는 길이가 `em`** 이라 앞의 것들과 다르다: `em` 은 그 요소의 글자 크기라
+        /// 화면이 아니라 **상자 크기에 걸린다**. 슬롯 `.dg-rw` 가 1.62em 사각(1992)이고 아이콘이 그 100% 를 채우므로
+        /// 1em = 상자/1.62 — 표는 `_px` 가 아니라 `_f`(상자 비율)로 적고 `DropShadowUi.Len` 이 푼다.
+        /// 그래서 이 자는 «표대로인가» 만이 아니라 **«상자가 커지면 그림자도 같이 커지는가»** 를 같이 본다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 던전_배너_보상_아이콘의_그림자는_상자_비율로_선다()
+        {
+            yield return Boot();
+            PlayLog log = PlayLog.Start("drop-shadow-dgrw");
+            ForgeHost h = ForgeHost.Instance;
+            h.S.BestChapter = 5; h.S.BestStage = 1; h.Pull();
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
+            yield return null;
+
+            Image ico = null;
+            foreach (Image im in UiRoot.Instance.App.GetComponentsInChildren<Image>(true))
+                if (im.name.StartsWith("rw-", System.StringComparison.Ordinal) && im.gameObject.activeInHierarchy) { ico = im; break; }
+            Assert.IsNotNull(ico, "던전 배너 보상 아이콘(rw-*)");
+
+            Transform sh = ico.transform.parent.Find(DropShadow.NameFor(ico));
+            Assert.IsNotNull(sh, ico.name + " 뒤에 그림자를 깔았다(정본 1993~1998)");
+            Assert.Less(sh.GetSiblingIndex(), ico.transform.GetSiblingIndex(), "그림자는 아이콘 **뒤**에");
+            Image si = sh.GetComponent<Image>();
+            Assert.IsNotNull(si.sprite, "그림자도 그림이 있다(흐려 구운 사본)");
+
+            float box = Mathf.Max(ico.rectTransform.rect.width, ico.rectTransform.rect.height);
+            Assert.Greater(box, 1f, "아이콘 상자");
+            Vector2 d = ((RectTransform)sh).anchoredPosition - ico.rectTransform.anchoredPosition;
+            Assert.AreEqual(0f, d.x, 0.01f, "정본은 가로로 안 민다(0 .10em .16em)");
+            Assert.AreEqual(-DropShadowUi.Len("dg_rw_ico", "dy", box), d.y, 0.01f,
+                "세로 오프셋 = 상자 × .0617(= .10em ÷ 1.62) 만큼 **아래** · 상자 " + box.ToString("0.0"));
+            Assert.AreEqual(DropShadowUi.C("dg_rw_ico").a, si.color.a, 2f / 255f, "알파 = 표(.55)");
+            Assert.Less(si.color.r + si.color.g + si.color.b, 0.05f, "색은 검정");
+            AssertBlurred(ico, si, ico.name);
+
+            // 상자 비율 갈래가 정말 «상자에 걸리는가» — 표를 직접 풀어 두 배 상자면 두 배가 되는지 본다.
+            //   (CSS px 갈래였다면 이 둘이 같아 버린다 — 그것이 `em` 을 px 로 굳혔을 때 생기는 병이다.)
+            Assert.AreEqual(DropShadowUi.Len("dg_rw_ico", "dy", box) * 2f, DropShadowUi.Len("dg_rw_ico", "dy", box * 2f), 1e-4f,
+                "em 자리는 상자에 비례한다");
+            Assert.IsTrue(DropShadowUi.HasField("dg_rw_ico", "dy_f"), "표가 `_f`(상자 비율)로 적혀 있다");
+            Assert.IsFalse(DropShadowUi.HasField("dg_rw_ico", "dy_px"), "CSS px 로 굳히지 않았다");
+            Assert.IsTrue(DropShadowUi.HasField("pass_sword", "dy_px"), "rem 자리는 그대로 CSS px");
+
+            log.AssertNoRed();
+            log.Dispose();
+        }
+
+        /// <summary>
         /// T332 14회차 — 정본 `style.css` **985** `.anvil-btn { filter: drop-shadow(0 .18rem .12rem rgba(0,0,0,.35)) }`.
         /// 이 자리는 앞의 둘과 다르다: **그림이 한 장이 아니다**(정본 SVG 폴리곤 21겹). 정본 filter 는 요소가 그린 전부를
         /// 한 덩어리로 보고 바깥 윤곽에만 그림자를 주므로 겹마다 걸면 안쪽 경계마다 검은 띠가 생긴다 — 그래서 겹들의

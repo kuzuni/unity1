@@ -264,6 +264,9 @@ namespace Forge.Game.Ui
                     Egg e = P.State.Eggs[idx];
                     Image ico = UiKit.Icon(cell, "egg", "egg", PetSkillStyle.RarityHex(Defs, e.Rarity));
                     UiKit.Place(ico.rectTransform, 0f, 0f, colW, colW);
+                    // T355 ⓐ — 정본 4304 `.pet-tile:active .tile-face { translateY(.08rem); brightness(1.07) }` 는 **알 칸에도** 걸린다
+                    //   (4307 `.pet-tile.egg .tile-face` 는 배경·테·그림자만 지운다 · `:active` 규칙은 안 지운다). 알 칸의 «얼굴» 은 이 그림이다.
+                    PressFx.Attach(b.gameObject, ico.rectTransform, "pet_tile", ico);
                     TextMeshProUGUI lab = PetSkillKit.Text(cell, "tile-label", TextKind.Sub, PetSkillStyle.T("egg"), PetSkillStyle.C("ink"));
                     UiKit.Place(lab.rectTransform, 0f, colW + PetSkillStyle.Rem(0.1f), colW, sub);
                     if (on) Check(cell, colW, "tile_check_egg", PetSkillStyle.Px("tile_r_rem"));

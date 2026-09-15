@@ -210,6 +210,10 @@ namespace Forge.Game.Ui
                 {
                     Image img = UiKit.Icon(rt, "rw-" + rw[i], rw[i]);
                     UiKit.Place(img.rectTransform, x, padY + (nameH - ico) * 0.5f, ico, ico);
+                    // T332 15회차 — 정본 1993~1998 `.dg-rw .dg-rw-ico { filter: drop-shadow(0 .10em .16em rgba(0,0,0,.55)) }`.
+                    //   정본 주석(1988~1991)이 구실을 적어 뒀다: 흰 원형 판을 걷고 아이콘을 슬롯 가득 키운 대신 «판독은 아이콘 키라인 + 드롭섀도가 보증한다».
+                    //   길이가 `em` 이라 표는 **상자 비율**(`_f`)로 적는다 — 슬롯 `.dg-rw` 가 1.62em 이고 아이콘이 그 100% 라 1em = 상자/1.62 다.
+                    DropShadow.Apply(img, "dg_rw_ico");
                     x += ico * 0.62f;
                 }
             x += ico * 0.6f;

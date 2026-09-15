@@ -46,8 +46,9 @@ namespace Forge.Game.Ui
             Transform parent = ir.parent;
             if (parent == null) return null;
 
-            float css = KeylineUi.CssPx;
-            double sigmaCanvas = DropShadowUi.Px(key, "blur_px") * 0.5f * css;              // 반지름 → σ
+            // 길이는 표가 푼다 — 정본이 `px`·`rem` 으로 적은 자리는 CSS px, **`em`** 으로 적은 자리는 상자 비율이다(T332 15회차).
+            float boxPx = Mathf.Max(r.width, r.height);
+            double sigmaCanvas = DropShadowUi.Len(key, "blur", boxPx) * 0.5f;               // 반지름 → σ
             double sigmaBaked = FilterRules.BakeSigmaPx(sigmaCanvas, img.sprite.textureRect.height, r.height);
             Sprite sp = sigmaBaked > 0
                 ? UiFilter.Blur(img.sprite, sigmaBaked, key + "-" + Mathf.RoundToInt((float)(sigmaBaked * 100)), Mathf.Max(r.width, r.height))
@@ -70,7 +71,7 @@ namespace Forge.Game.Ui
             sr.anchorMin = ir.anchorMin; sr.anchorMax = ir.anchorMax; sr.pivot = ir.pivot;
             sr.sizeDelta = ir.sizeDelta;
             sr.anchoredPosition = ir.anchoredPosition
-                                  + new Vector2(DropShadowUi.Px(key, "dx_px") * css, -DropShadowUi.Px(key, "dy_px") * css);
+                                  + new Vector2(DropShadowUi.Len(key, "dx", boxPx), -DropShadowUi.Len(key, "dy", boxPx));
             sr.SetSiblingIndex(ir.GetSiblingIndex());                                        // 그림 **뒤**에 그린다
             return sh;
         }
@@ -151,6 +152,20 @@ namespace Forge.Game.Ui
             object v = Entry(key)[field];
             if (!J.IsNum(v)) throw new KeyNotFoundException(ResourcePath + ".json «" + key + "» 에 «" + field + "» 이 없다");
             return (float)J.Num(v);
+        }
+
+        /// <summary>그 키가 그 칸을 갖고 있나 — «CSS px 갈래»(`*_px`)와 «상자 비율 갈래»(`*_f`)를 가르는 데 쓴다.</summary>
+        public static bool HasField(string key, string field) { return J.IsNum(Entry(key)[field]); }
+
+        /// <summary>
+        /// 그 길이를 **캔버스 px** 로 푼다. 정본이 `px`·`rem` 으로 적은 자리는 표의 `<이름>_px`(정본 CSS px)에 `KeylineUi.CssPx` 를 곱하고,
+        /// **`em` 으로 적은 자리**는 표의 `<이름>_f`(그림 상자에 대한 비율)에 <paramref name="boxPx"/> 를 곱한다.
+        /// `em` 은 «그 요소의 글자 크기» 라 화면 크기가 아니라 **상자 크기에 걸리는 값**이다 — CSS px 로 적으면 그 자리가 커질 때 그림자만 안 커진다.
+        /// </summary>
+        public static float Len(string key, string name, float boxPx)
+        {
+            if (HasField(key, name + "_f")) return Px(key, name + "_f") * boxPx;
+            return Px(key, name + "_px") * KeylineUi.CssPx;
         }
 
         /// <summary>색 = `color`(#RRGGBB) + `alpha`.</summary>
