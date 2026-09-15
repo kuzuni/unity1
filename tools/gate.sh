@@ -46,6 +46,8 @@ block|-|원작 대조 자 자기 검사 (T28)|python3 tools/ui_score.py --self-t
 block|-|화면 문구의 글자가 글꼴에 다 있는가 — 새 두부 □ (T89)|python3 tools/check_text_glyphs.py
 block|-|MonoBehaviour 가 유니티 «메시지» 이름을 다른 뜻으로 쓰는가 (T171)|python3 tools/check_unity_messages.py
 block|-|TMP richText 가 글자 공장 밖에서 켜지는가 (T175)|python3 tools/check_richtext.py
+block|-|클릭 막이 자 자기 검사 (T33 24회차 `check_raycast.py --self-test` · 10칸)|python3 tools/check_raycast.py --self-test
+block|-|클릭 막이 자 (T33 24회차 · 정본 pointer-events 68 ↔ 공장 밖 Image 의 raycastTarget)|python3 tools/check_raycast.py
 block|-|이름으로 찾는 것이 빌드에도 실리는가 (T126)|python3 tools/check_shaders_included.py
 block|-|원작 소리 24종이 실제로 울리는가 (T119)|python3 tools/check_sfx_calls.py
 block|-|하니스 스텁이 실물에 없는 서명을 갖고 있나 (T174)|python3 tools/check_stub_sigs.py
