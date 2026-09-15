@@ -40,11 +40,12 @@ TABLE = {
     # 이미 맞던 자리 둘(등재문이 «같이 깨뜨리지 마라» 고 적은 것) — 자가 그 값을 지킨다
     '.league-reward-banner': ['Ui/LeagueSheet.cs|catalog:lgr_ribbon'],
     '.petd-wrap .petd-btn.danger': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:pp_red'],   # 5435 · PetSkillUi pp_red = #f2191d(전역 pp_red 와 다른 값 — 이미 맞다)
+    # T377 3회차 — 판매 버튼 둘(비교 팝업 · 판매 경고)의 면(8686 `#ff1017` · 턱 `#4e0507` 은 box-shadow 라 이 자의 «면» 목록엔 없다 — PlayMode 자가 잰다)
+    '.btn.btn.danger.danger': ['Ui/ForgeCraftPopup.cs@PinSell|res:PinnedColorUi:sell_btn_face'],
+    '.btn.btn.sell.sell': ['Ui/ForgeCraftPopup.cs@PinSell|res:PinnedColorUi:sell_btn_face'],
 }
 # 임자가 정해진 빈자리(파일 lock 뒤) — 붙이면 여기서 지운다
 KNOWN = {
-    '.btn.btn.danger.danger': 'T377 2회차 — 판매 버튼 `ForgeCraftPopup.cs:74·122` 는 T331 lock 뒤 · 표 키 `sell_btn_face`/`sell_btn_lip` 는 PinnedColorUi.json 에 이미 있다',
-    '.btn.btn.sell.sell': 'T377 2회차 — 위와 같은 규칙(8686)',
 }
 
 HEX = re.compile(r'#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b')
