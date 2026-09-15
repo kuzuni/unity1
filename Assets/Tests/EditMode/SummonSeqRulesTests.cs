@@ -676,4 +676,70 @@ namespace Forge.Tests
             Assert.Throws<System.FormatException>(() => SummonGhostSpec.From(MiniJson.ParseObject(lit)));
         }
     }
+
+    /// <summary>T334 16회차 — 등급 챕터 펄스(정본 `.sr-tierpulse`)가 예고로 서서 달아올랐다 식는다.</summary>
+    public class SummonTierBreakSpecTests
+    {
+        static SummonTierBreakSpec spec;
+        static SummonTierBreakSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonTierBreakSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 달아올랐다_식는다()
+        {
+            SummonTierBreakSpec s = S();
+            Assert.AreEqual(0.0, s.AlphaAt(0, 5), 1e-9, "꺼진 채로 시작한다");
+            Assert.Greater(s.AlphaAt(s.PulseMs * 0.2, 5), 0.0, "20% 에 정점");
+            Assert.AreEqual(0.0, s.AlphaAt(s.PulseMs, 5), 1e-9, "식는다 — 안 그러면 화면이 등급색으로 물든 채 굳는다");
+            Assert.AreEqual(0.0, s.AlphaAt(9999, 5), 1e-9, "끝난 뒤에도 꺼져 있다");
+        }
+
+        [Test]
+        public void 세기는_재점화나_CSS_계단이_아니라_제_수다()
+        {
+            SummonTierBreakSpec s = S();
+            // 정본 fillSummonTierBreaks 의 `0.15 + tier * 0.04` — 이 겹만의 수다.
+            Assert.AreEqual(s.PkBase, s.Pk(0), 1e-9);
+            Assert.AreEqual(s.PkBase + 5 * s.PkStep, s.Pk(5), 1e-9);
+            Assert.Greater(s.AlphaAt(s.PulseMs * 0.2, 5), s.AlphaAt(s.PulseMs * 0.2, 0), "등급이 오를수록 세다");
+            Assert.LessOrEqual(s.Pk(5), 1.0, "가산 판의 정점이 1을 넘으면 화면이 하얗게 탄다");
+        }
+
+        [Test]
+        public void 예고는_경계_셀보다_앞서되_충전보다_앞서지_않는다()
+        {
+            SummonTierBreakSpec s = S();
+            const double charge = 280;
+            // 한참 뒤에 뜨는 경계 — 반 박자 앞이다.
+            Assert.AreEqual(2000 - s.LeadMs, s.BreakAt(2000, charge), 1e-9);
+            // 충전 직후에 뜨는 경계 — 충전 끝보다 앞으로는 안 당긴다(정본 Math.max).
+            Assert.AreEqual(charge, s.BreakAt(charge + 10, charge), 1e-9);
+            Assert.AreEqual(charge, s.BreakAt(0, charge), 1e-9);
+        }
+
+        [Test]
+        public void 물든_채_굳거나_뒤집힌_정지점을_거부한다()
+        {
+            char q = '"';
+            string head = "{" + q + "tierbreak" + q + ":{" + q + "break_lead_ms" + q + ":160," + q + "pulse_ms" + q + ":540,"
+                + q + "pulse_ease" + q + ":[0,0,0.58,1]," + q + "inset_f" + q + ":-0.02,"
+                + q + "pulse_rx" + q + ":1.2," + q + "pulse_ry" + q + ":0.9," + q + "pulse_cx" + q + ":0.5," + q + "pulse_cy" + q + ":0.42,";
+            string pk = q + "pk_base" + q + ":0.15," + q + "pk_step" + q + ":0.04,";
+            string ok = q + "srtierpulse" + q + ":[{" + q + "at" + q + ":0," + q + "f" + q + ":0},{" + q + "at" + q + ":20," + q + "f" + q + ":1},{" + q + "at" + q + ":100," + q + "f" + q + ":0}]}}";
+            // ⑴ 마지막이 0 이 아니면 화면이 물든 채 굳는다.
+            string lit = head + q + "stop_lite" + q + ":0," + q + "stop_rc" + q + ":0.3," + q + "stop_out" + q + ":0.64," + pk
+                + q + "srtierpulse" + q + ":[{" + q + "at" + q + ":0," + q + "f" + q + ":0},{" + q + "at" + q + ":100," + q + "f" + q + ":1}]}}";
+            Assert.Throws<System.FormatException>(() => SummonTierBreakSpec.From(MiniJson.ParseObject(lit)));
+            // ⑵ 정지점이 뒤집히면 심지가 테두리에 선다.
+            string flip = head + q + "stop_lite" + q + ":0.5," + q + "stop_rc" + q + ":0.3," + q + "stop_out" + q + ":0.64," + pk + ok;
+            Assert.Throws<System.FormatException>(() => SummonTierBreakSpec.From(MiniJson.ParseObject(flip)));
+        }
+    }
 }

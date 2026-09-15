@@ -256,6 +256,112 @@ namespace Forge.Core.Ui
     }
 
     /// <summary>
+    /// T334 16회차 — **등급 챕터 펄스**(정본 `.sr-tierpulse` · style.css 6402~6416 · `fillSummonTierBreaks` ui.js 690~700).
+    ///
+    /// 대량 판(&gt;10셀)의 등급 경계 정지(`SR_TIER_PAUSE_MS`)를 채우는 예고다. 정본이 링(`.sr-tierflash`) 말고
+    /// **전화면 펄스**를 따로 둔 까닭을 주석이 실측으로 적었다: «링만으로는 화면 평균 휘도가 안 움직인다 —
+    /// 면적이 작은 층은 아무리 밝아도 중반 진폭 계측에 안 잡힌다. 챕터가 바뀌는 순간 화면 전체가
+    /// 그 등급색으로 한 번 달아올랐다 식는다».
+    ///
+    /// ⚠ 세기 `--pk` 는 **셋째 수**다 — CSS 등급 계단(`tier.glow`)도, 재점화의 `0.16 + tier × 0.13` 도 아닌
+    ///   `fillSummonTierBreaks` 의 `0.15 + tier × 0.04` 다. 같은 이름의 «등급 세기» 가 겹마다 다르다.
+    /// ⚠ 시각은 경계 셀의 등장보다 <see cref="LeadMs"/> **앞**이되 충전 끝보다 앞서지 않는다
+    ///   (정본 «예고 → 그 등급 등장» 의 인과).
+    /// UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonTierBreakSpec
+    {
+        /// <summary>경계 셀 등장보다 얼마나 앞서 켜는가(ms · 정본 160).</summary>
+        public double LeadMs;
+        /// <summary>한 번 달아올랐다 식는 길이(ms · 정본 .54s).</summary>
+        public double PulseMs;
+        /// <summary>판을 화면 밖으로 얼마나 물리는가(비율 · 정본 `inset: -2%`).</summary>
+        public double InsetF;
+        /// <summary>바탕 타원 그라디언트의 반지름·중심(비율 · 정본 `120% 90% at 50% 42%`).</summary>
+        public double Rx, Ry, Cx, Cy;
+        /// <summary>정지점(가운데 하이라이트색 · 등급색 · 투명).</summary>
+        public double StopLite, StopRc, StopOut;
+        /// <summary>정점 세기(정본 `--pk` = <see cref="PkBase"/> + 등급 × <see cref="PkStep"/>).</summary>
+        public double PkBase, PkStep;
+        public RewardBurstSpec.Track Pulse;
+
+        public static SummonTierBreakSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "tierbreak"));
+            var s = new SummonTierBreakSpec
+            {
+                LeadMs = J.Num(J.Require(o, "break_lead_ms")),
+                PulseMs = J.Num(J.Require(o, "pulse_ms")),
+                InsetF = J.Num(J.Require(o, "inset_f")),
+                Rx = J.Num(J.Require(o, "pulse_rx")),
+                Ry = J.Num(J.Require(o, "pulse_ry")),
+                Cx = J.Num(J.Require(o, "pulse_cx")),
+                Cy = J.Num(J.Require(o, "pulse_cy")),
+                StopLite = J.Num(J.Require(o, "stop_lite")),
+                StopRc = J.Num(J.Require(o, "stop_rc")),
+                StopOut = J.Num(J.Require(o, "stop_out")),
+                PkBase = J.Num(J.Require(o, "pk_base")),
+                PkStep = J.Num(J.Require(o, "pk_step")),
+            };
+            if (s.PulseMs <= 0) throw new FormatException("SummonFxUi tierbreak: pulse_ms 는 0보다 커야 한다");
+            if (s.LeadMs < 0) throw new FormatException("SummonFxUi tierbreak: 예고는 앞서는 것이다 — break_lead_ms 는 0 이상이다");
+            if (s.Rx <= 0 || s.Ry <= 0) throw new FormatException("SummonFxUi tierbreak: 타원 반지름은 0보다 커야 한다");
+            if (s.InsetF > 0) throw new FormatException("SummonFxUi tierbreak: inset_f 는 화면 밖으로 무는 값(0 이하)이다");
+            if (!(s.StopLite < s.StopRc && s.StopRc < s.StopOut)) throw new FormatException("SummonFxUi tierbreak: 정지점은 stop_lite < stop_rc < stop_out 이어야 한다");
+            if (s.PkBase < 0 || s.PkStep < 0) throw new FormatException("SummonFxUi tierbreak: 세기는 음수가 아니다");
+
+            double[] e = J.NumArr(J.Require(o, "pulse_ease"));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi tierbreak: pulse_ease 는 cubic-bezier 넷이다");
+            CssEase ease = new CssEase(e[0], e[1], e[2], e[3]);
+            var list = J.List(J.Require(o, "srtierpulse"), x => J.Obj(x));
+            if (list.Count < 2) throw new FormatException("SummonFxUi tierbreak: srtierpulse 키프레임이 둘 미만이다");
+            var keys = new RewardBurstSpec.KeyStop[list.Count];
+            double prev = -1;
+            for (int i = 0; i < list.Count; i++)
+            {
+                JsonObject k = list[i];
+                var ks = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(k, "at")), Ease = ease };
+                if (ks.At < prev) throw new FormatException("SummonFxUi tierbreak: 퍼센트는 오름차순이어야 한다");
+                prev = ks.At;
+                ks.Num["f"] = J.Num(J.Require(k, "f"));
+                keys[i] = ks;
+            }
+            // 펄스는 **달아올랐다 식는다** — 양 끝이 0 이 아니면 화면이 등급색으로 물든 채 굳는다.
+            if (keys[0].Num["f"] != 0 || keys[keys.Length - 1].Num["f"] != 0)
+                throw new FormatException("SummonFxUi tierbreak: srtierpulse 는 0 에서 시작해 0 으로 식어야 한다");
+            s.Pulse = new RewardBurstSpec.Track { Keys = keys };
+            return s;
+        }
+
+        /// <summary>그 등급의 정점 세기(정본 `--pk`) — 0~1 로 자른다.</summary>
+        public double Pk(int tier)
+        {
+            double v = PkBase + (tier < 0 ? 0 : tier) * PkStep;
+            return v < 0 ? 0 : v > 1 ? 1 : v;
+        }
+
+        /// <summary>
+        /// 등급 경계가 **켜지는 시각**(ms · 모달이 열린 때부터) — 경계 셀의 등장보다 <see cref="LeadMs"/> 앞이되
+        /// 충전이 끝나기 전으로는 당기지 않는다(정본 `Math.max(SR_CHARGE_MS, d - 160)`).
+        /// </summary>
+        public double BreakAt(double cellDelayMs, double chargeMs)
+        {
+            double t = cellDelayMs - LeadMs;
+            return t < chargeMs ? chargeMs : t;
+        }
+
+        /// <summary>켜진 뒤 <paramref name="ms"/> 지난 펄스의 불투명도.</summary>
+        public double AlphaAt(double ms, int tier)
+        {
+            double p = ms <= 0 ? 0 : ms >= PulseMs ? 100 : ms / PulseMs * 100;
+            return Pulse.Sample(p, "f", null) * Pk(tier);
+        }
+
+        /// <summary>아직 달아올라 있는가.</summary>
+        public bool Pulsing(double ms) { return ms >= 0 && ms < PulseMs; }
+    }
+
+    /// <summary>
     /// T334 15회차 — **비행 잔상**(정본 `.sr-ghost` · style.css 6448~6474).
     ///
     /// 정본 주석: «팝이 아래에서 올라오는데 궤적이 없으면 «순간이동 후 튕김» 으로 보인다» ·

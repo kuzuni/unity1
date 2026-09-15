@@ -764,6 +764,40 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>
+        /// 등급 챕터 펄스 판(정본 `.sr-tierpulse` 6402~6412) —
+        /// `radial-gradient(120% 90% at 50% 42%, var(--rc-lite) 0%, var(--rc) 30%, rgba(0,0,0,0) 64%)` 한 장.
+        ///
+        /// 재점화·잔상과 달리 **타원**이고 중심이 위쪽(42%)이라 `BakeRadial` 과 따로 굽는다.
+        /// CSS 는 위에서 아래로 — 구운 판은 아래에서 위로(UGUI)라 y 를 뒤집는다(`BakeVig` 와 같은 자리).
+        /// 마지막 구간은 색을 등급색으로 둔 채 알파만 떨어뜨린다(미리 곱한 알파 · `BakeRadial` 과 같은 까닭).
+        /// </summary>
+        public static Sprite BakeTierPulse(string name, Color rc, Color lite)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            SummonTierBreakSpec sp = SummonFxStyle.TierBreak;
+            int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
+            float rx = (float)sp.Rx, ry = (float)sp.Ry, cx = (float)sp.Cx, cy = (float)sp.Cy;
+            float s0 = (float)sp.StopLite, s1 = (float)sp.StopRc, s2 = (float)sp.StopOut;
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            {
+                float fy = 1f - (y + 0.5f) / N;                 // CSS 의 +y 는 아래
+                for (int x = 0; x < N; x++)
+                {
+                    float fx = (x + 0.5f) / N;
+                    float u = (fx - cx) / rx, v = (fy - cy) / ry;
+                    float r = Mathf.Sqrt(u * u + v * v);        // 1 = 그라디언트의 바깥 끝
+                    Color c; float a;
+                    if (r <= s1) { c = Color.Lerp(lite, rc, s1 <= s0 ? 1f : Mathf.Clamp01((r - s0) / (s1 - s0))); a = 1f; }
+                    else { c = rc; a = Ramp(r, s1, 1f, s2, 0f); }
+                    if (r > s2) a = 0f;
+                    px[y * N + x] = new Color(c.r, c.g, c.b, Mathf.Clamp01(a));
+                }
+            }
+            return Finish(name, NewTex(name, N, N), px);
+        }
+
+        /// <summary>
         /// `radial-gradient(closest-side, lite 0%, rc <s1>, rgba(0,0,0,0) <s2>)` 한 장 — 재점화·잔상이 같이 쓴다.
         ///
         /// CSS 가 투명으로 잇는 마지막 구간은 **미리 곱한 알파**로 보간한다 — 색은 등급색 그대로 두고 알파만 떨어뜨린다
@@ -880,7 +914,7 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; heroRingEase = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; heroRingEase = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
@@ -888,6 +922,7 @@ namespace Forge.Game.Ui
         static SummonRelightSpec relight;
         static SummonSparkSpec spark;
         static SummonGhostSpec ghost;
+        static SummonTierBreakSpec tierBreak;
         /// <summary>T334 6회차 — 주역 착지의 화면 킥(표의 `hero` 절).</summary>
         /// <summary>표의 `hero` 절 수치 하나(그 절은 `layout` 밖이다).</summary>
         public static float H(string key) { Load(); return (float)J.Num(J.Require(J.Obj(root["hero"]), key)); }
@@ -921,6 +956,9 @@ namespace Forge.Game.Ui
 
         /// <summary>T334 15회차 — 비행 잔상 규칙(정본 `.sr-ghost`).</summary>
         public static SummonGhostSpec Ghost { get { Load(); if (ghost == null) ghost = SummonGhostSpec.From(root); return ghost; } }
+
+        /// <summary>T334 16회차 — 등급 챕터 펄스 규칙(정본 `.sr-tierpulse`).</summary>
+        public static SummonTierBreakSpec TierBreak { get { Load(); if (tierBreak == null) tierBreak = SummonTierBreakSpec.From(root); return tierBreak; } }
 
         public static Color C(string key)
         {

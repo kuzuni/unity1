@@ -62,6 +62,9 @@ namespace Forge.Game.Ui
         PetSkillModal.Handle handle;
         readonly List<Cell> cells = new List<Cell>();
         readonly List<float> delays = new List<float>();
+        /// <summary>T334 16회차 — 등급 챕터 경계(정본 `_srTierBreaks`): 켜지는 시각(ms)과 그 등급.</summary>
+        struct TierBreak { public float At; public int Tier; public Color Rc, Lite; public Image Pulse; }
+        readonly List<TierBreak> tierBreaks = new List<TierBreak>();
         List<Entry> entries;
         List<Entry> rollList;
         int rolls;
@@ -545,9 +548,58 @@ namespace Forge.Game.Ui
                 {
                     bool boundary = i > 0 && RarityIdx(entries[i].Rarity) > RarityIdx(entries[i - 1].Rarity);
                     if (boundary) acc += pause;
-                    delays.Add(charge + Mathf.Floor(i / (float)cols) * rowMs + (i % cols) * stag + acc + (holdback && i == n - 1 ? hold : 0f));
+                    float dNow = charge + Mathf.Floor(i / (float)cols) * rowMs + (i % cols) * stag + acc + (holdback && i == n - 1 ? hold : 0f);
+                    if (boundary)
+                    {
+                        // 정본 `_srTierBreaks` — «플래시는 첫 셀보다 반 박자 앞 · «예고 → 그 등급 등장» 의 인과가 서게».
+                        SummonTierBreakSpec tb = SummonFxStyle.TierBreak;
+                        int bt = RarityIdx(entries[i].Rarity);
+                        Color brc = PetSkillStyle.Rarity(Defs, entries[i].Rarity);
+                        double bamt = SummonFxStyle.Hero.HiliteAmount(brc.r * 255.0, brc.g * 255.0, brc.b * 255.0, bt);
+                        tierBreaks.Add(new TierBreak
+                        {
+                            At = (float)tb.BreakAt(dNow, charge),
+                            Tier = bt,
+                            Rc = brc,
+                            Lite = Shade(brc, (float)bamt),
+                        });
+                    }
+                    delays.Add(dNow);
                 }
             }
+            // ---- 등급 챕터 펄스(정본 `.sr-tierbreaks`/`.sr-tierpulse` 6391~6416) ----
+            // 대량 판(>10셀)의 등급 경계 정지를 채우는 예고다. 정본이 링 말고 **전화면 펄스**를 따로 둔 까닭이
+            // 주석에 실측으로 있다: «링만으로는 화면 평균 휘도가 안 움직인다 — 면적이 작은 층은 아무리 밝아도
+            // 중반 진폭 계측에 안 잡힌다. 챕터가 바뀌는 순간 화면 전체가 그 등급색으로 한 번 달아올랐다 식는다».
+            // ⚠ 이 판은 **화면 크기**라야 뜻이 산다 — 그래서 재점화(격자 바로 아래)와 달리 `wrap` 직속으로 두고
+            //    `body` **앞** 형제에 끼운다(사다리에서 소환진보다 뒤로 내려가지만, 가산 한 겹이라 그 차이보다
+            //    «화면 전체» 가 훨씬 크다 · 정본 z 27).
+            if (tierBreaks.Count > 0)
+            {
+                SummonTierBreakSpec tb = SummonFxStyle.TierBreak;
+                RectTransform tbHost = UiKit.Box(c, "sr-tierbreaks");
+                UiKit.Fill(tbHost);
+                tbHost.SetSiblingIndex(body.GetSiblingIndex());
+                float grow = -(float)tb.InsetF;   // 정본 `inset: -2%` — 화면 밖으로 문다
+                for (int i = 0; i < tierBreaks.Count; i++)
+                {
+                    TierBreak b = tierBreaks[i];
+                    RectTransform pr = UiKit.Box(tbHost, "sr-tierpulse");
+                    UiKit.Fill(pr);
+                    pr.localScale = Vector3.one * (1f + grow * 2f);
+                    Image pi = pr.gameObject.AddComponent<Image>();
+                    pi.raycastTarget = false;
+                    pi.preserveAspect = false;
+                    pi.sprite = SummonFx.BakeTierPulse(
+                        "sr-tierpulse-" + ColorUtility.ToHtmlStringRGB(b.Rc) + "-" + ColorUtility.ToHtmlStringRGB(b.Lite), b.Rc, b.Lite);
+                    Material pm = CraftFxPoly.Screen();
+                    if (pm != null) pi.material = pm;
+                    pi.color = new Color(1f, 1f, 1f, 0f);
+                    b.Pulse = pi;
+                    tierBreaks[i] = b;
+                }
+            }
+
             var sc = PetSkillHost.SfxSummonCharge;
             if (sc != null) sc(best);
             start = Time.unscaledTime;
@@ -885,6 +937,7 @@ namespace Forge.Game.Ui
             AnimateRelights();
             AnimateSparks();
             AnimateGhosts();
+            AnimateTierBreaks();
         }
 
         void TurnOn(Cell c)
@@ -1211,6 +1264,32 @@ namespace Forge.Game.Ui
                 c.Ghost.rectTransform.anchoredPosition = c.ToLight * (float)back;
             }
         }
+
+        /// <summary>
+        /// 등급 챕터 펄스(정본 `srtierpulse` .54s) — 경계마다 화면 전체가 그 등급색으로 한 번 달아올랐다 식는다.
+        /// 시각은 모달이 열린 때부터의 절대 시각(경계 셀보다 반 박자 앞)이라 `start` 에서 잰다.
+        /// </summary>
+        void AnimateTierBreaks()
+        {
+            if (tierBreaks.Count == 0) return;
+            SummonTierBreakSpec sp = SummonFxStyle.TierBreak;
+            float ms = (Time.unscaledTime - start) * 1000f;
+            for (int i = 0; i < tierBreaks.Count; i++)
+            {
+                TierBreak b = tierBreaks[i];
+                if (b.Pulse == null) continue;
+                b.Pulse.color = new Color(1f, 1f, 1f, (float)sp.AlphaAt(ms - b.At, b.Tier));
+            }
+        }
+
+        /// <summary>등급 챕터 펄스 수 — 자가 본다.</summary>
+        public int TierBreakCount { get { return tierBreaks.Count; } }
+
+        /// <summary>그 경계의 펄스 판 — 자가 본다.</summary>
+        public Image TierPulseOf(int i) { return i >= 0 && i < tierBreaks.Count ? tierBreaks[i].Pulse : null; }
+
+        /// <summary>그 경계가 켜지는 시각(ms · 모달이 열린 때부터) — 자가 본다.</summary>
+        public float TierBreakAt(int i) { return i >= 0 && i < tierBreaks.Count ? tierBreaks[i].At : -1f; }
 
         /// <summary>그 셀의 비행 잔상 — 자가 본다.</summary>
         public Image GhostOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Ghost : null; }

@@ -356,6 +356,61 @@ namespace Forge.Tests.PlayMode
             }
         }
 
+
+        /// <summary>
+        /// T334 16회차 — 등급 챕터 펄스(정본 `.sr-tierpulse`)는 **대량 판(&gt;10셀)의 등급 경계**에만 선다.
+        ///
+        /// 정본 주석이 이 겹의 존재 이유를 실측으로 적었다: «링만으로는 화면 평균 휘도가 안 움직인다 —
+        /// 챕터가 바뀌는 순간 화면 전체가 그 등급색으로 한 번 달아올랐다 식는다». 그래서 자도
+        /// «판이 있다» 가 아니라 ⓐ 경계 수 ⓑ 예고가 경계 셀보다 **앞선다** ⓒ 등급이 오를수록 세다 ⓓ 식는다 를 잰다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 등급_경계마다_화면이_그_등급색으로_한_번_달아오른다()
+        {
+            yield return Boot();
+            var many = new List<SkillSummonResultView.Entry>();
+            string[] rar = { "common", "common", "common", "common", "common", "common",
+                             "rare", "rare", "rare", "rare", "ultimate", "ultimate" };
+            for (int i = 0; i < rar.Length; i++)
+                many.Add(new SkillSummonResultView.Entry { Key = "sk:x" + i, IconKey = "sk_fireball", Rarity = rar[i], Name = "가" + i });
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", many, "ultimate", null);
+
+            Assert.AreEqual(2, v.TierBreakCount, "등급이 두 번 바뀐다(일반 → 희귀 → 궁극)");
+            Assert.Greater(v.TierBreakAt(0), 0f, "첫 경계 시각이 안 잡혔다");
+            Assert.Greater(v.TierBreakAt(1), v.TierBreakAt(0), "경계는 차례대로 온다");
+            Image p0 = v.TierPulseOf(0), p1 = v.TierPulseOf(1);
+            Assert.IsNotNull(p0, "챕터 펄스 판이 없다");
+            Assert.IsNotNull(p0.sprite, "구운 타원 판 한 장이라야 한다");
+
+            // 화면 크기라야 뜻이 산다 — 격자가 아니라 판 전체를 덮는다(정본 inset -2%).
+            Transform grid = FindDeep(v.transform, "sr-grid");
+            Assert.IsNotNull(grid);
+            Assert.Greater(p0.rectTransform.rect.width, ((RectTransform)grid).rect.width,
+                "챕터 펄스가 격자보다 좁다 — «화면 전체가 달아오른다» 가 안 된다");
+
+            var peak = new float[2];
+            float t = 0f;
+            while (!v.Done && t < 20f)
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    Image pi = v.TierPulseOf(i);
+                    if (pi != null && pi.color.a > peak[i]) peak[i] = pi.color.a;
+                }
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.IsTrue(v.Done, "연출이 안 끝났다(경과 " + t.ToString("0.00") + "초)");
+            Assert.Greater(peak[0], 0f, "첫 챕터가 안 달아올랐다");
+            Assert.Greater(peak[1], peak[0], "등급이 오를수록 세다(정본 --pk = .15 + tier * .04)");
+            Assert.LessOrEqual(peak[1], 1f, "가산 판의 정점이 1을 넘으면 화면이 하얗게 탄다");
+
+            float t2 = 0f;
+            while (t2 < 1.2f) { t2 += Time.unscaledDeltaTime; yield return null; }
+            for (int i = 0; i < 2; i++)
+                Assert.AreEqual(0f, v.TierPulseOf(i).color.a, 1e-3f, "챕터 펄스가 안 식었다 — 화면이 등급색으로 물든 채 굳는다(" + i + "번)");
+        }
+
         static Transform FindDeep(Transform root, string name)
         {
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
