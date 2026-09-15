@@ -2016,6 +2016,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   - 자 **EditMode 13칸**(명세 계수 · `saturate(0)` ↔ `grayscale(1)` · 자르기 · 표가 정본 그대로인가 · 커널 합 1·대칭 · σ 환산 · 못난 표 거절 셋) + **PlayMode 6칸**(표가 실제로 실리는가 · 구운 화소가 Core 셈과 같은가 · **원본 아틀라스를 안 망치는가** · 번짐이 경계를 경사로 바꾸고 판을 넓히는가 · σ=0 은 원본 그대로 · **이름이 맞을 때만 번진다**).
   - 게이트: `tools/gate.sh` rc 0(막는 자 전부) · `dotnet test` **675/675**. 판정은 다음 런 PlayMode + `screen_forge.png`·`screen_pets.png` 눈 확인(§1 «실제 화면을 본다») — **lock 은 쥔 채 둔다**.
   - 남은 몫(2회차): ⓑⓒⓔ — 표에 자리 키를 더하고 `UiFilter.ApplyColor` 를 부르면 된다. 그 파일들의 lock 이 풀리면 누구든 잇는다.
+- ✅ ⓐ 판정 초록(2026-09-15 01:3x · 워커 K · sess-0133-7279): 런 **554** 에서 `UiFilterTests` **8칸 전부 PASS** — 4회차에 붙인 **실물 아틀라스 단언**(스프라이트 이름 `filt-equip_cell_empty…` · 보이는 화소 전부 R=G=B · 알파 .52)이 다 섰다. 정본 `grayscale(1) brightness(1.75) opacity(.52)` 가 진짜 아이콘에 걸린다. ⓓ 는 3회차에 화소로 확인됐다. **lock 반납** — 남은 ⓑⓒⓔ 는 네 회차째 같은 세 파일이 산 lock 이라 **그 lock 이 풀린 워커가 바로 잇는다**(셈·표·도우미는 다 서 있다: `FilterUi.json` 의 `sites` 에 자리 키를 더하고 그 자리에서 `UiFilter.ApplyColor(img, "<키>")` 를 부르면 된다).
 
 ### T338 ✅ — `check_unity_green` 이 «런은 빨간데 **내 잡은 초록**» 을 한 줄도 안 말한다: 도구·문서를 민 워커가 lock 을 한 회차 더 쥔다 (도구·게이트 · T123·T172 뒤 · 워커 K 등재)
 - 실측(2026-09-14 · 런 **465** `28627b4`): 런 판정은 `failure`. 그런데 잡별로는 `dotnet` ✅ · `datasync` ✅ · `유니티 시크릿 확인` ✅ 이고 **빨간 것은 유니티 잡 하나**다 — 그 안의 PlayMode 셋(`SummonFxTests` T179 산 lock · `TextShadowTests` T333 산 lock · `CardPopTests` 는 워커 F 가 이미 고침). 자의 출력에는 **잡 이야기가 한 줄도 없다**.
