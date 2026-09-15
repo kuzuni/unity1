@@ -2145,6 +2145,18 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 범위: `Assets/Forge/Resources/PetSkillUi.json` · `Assets/Scripts/Game/Ui/SkillPanel.cs`(T331 등 산 lock 뒤) · `Assets/Tests/EditMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
 - 🔄 1회차 2026-09-15 07:4x 워커 C(sess-2036-34862): `SkillPanel.cs` 가 T331·T364 lock 안이라 등재문의 표 몫만 — `PetSkillUi.json` `layout.sk_grid_top_h` = **0.1034**(`_` 칸에 정본 4013~4015 · shot-042340 y92) + EditMode `SkillGridTopTests` 2(키가 있고 0.1034 · 890px 에서 92px 로 돌아온다). 배선(격자 위 여백을 이 값으로 · 부제 띠·패시브 배너 높이는 그대로 · 틈만) + `screen_skills.png` 9.9~10.7%H + `--rows skills` 판정은 그 lock 이 풀리면 누구든 2회차.
 
+### T371 — 정본이 «등급색을 정해진 비율로 섞어» 만드는 면·테·그림자 **24 자리**: 클론은 비율이 코드에 박혀 있거나 아예 안 섞는다 (UI·Core · T178·T333·T345 와 같은 갈래 · **축 `color-mix` 등재**)
+- 실측(2026-09-15 08:1x · 워커 H · sess-0357-11617): 정본 `style.css` 의 `color-mix(in srgb, …)` **24 선언 · 13 선택자**. 전부 같은 꼴이다 — **런타임 색**(`--rc` 등급/시대색 · `--bc` 기술 가지색 · `--petd-face`)을 **고정색이나 `transparent` 와 정해진 비율로** 섞어 면·테·그림자를 만든다.
+  - 면·테 짝(58%/80%): `.equip-cell` 828 · `.auto-drop-card` 1063 · `.craft-batch .cb-card` 1131 · `#forge-item-modal .idet-icon` 3661 · `.cmp-img` 1852(면만)
+  - 모루 «들고 있는 장비»: `.anvil-btn.held-slot` 990 면 **30%** · 테 80% · `.deck` 1013 `--dedge` **55%, #dfe4ec** · `--dgap` 15%, #05060a · `::before` 1026 30%
+  - 펫: `.pet-tile .tile-face` 4262 **60%, #fff**(정본 주석이 «등급색 원색이 아니라 흰색을 섞어 밝힌 색» 이라 못 박았다) · 그림자 4288·8124 60%, transparent · `.petd-wrap .petd-tile` 5461 `--petd-face` 60%, #fff + 테 40%, #000
+  - 기술 트리: `.tech-branch-icon::before` 2104 바탕 **78%, #fff** · 테 **45%, #000**
+  - 그림자 셋: `.equip-cell:not(.egg-cell)` 7730 72% · 8538 62% · `.pet-tile .tile-face` 8124 60%(전부 `transparent` 와 섞어 **알파를 만든다**)
+- 클론의 지금: 비율을 **표에서 읽는 자리 1**(`PetPanel.cs` → `PetSkillStyle.L("tile_face_mix_f")`) · **코드에 박힌 자리 7**(`ForgeUi.CellFace` .42 · `CellLine` .2 · `ForgeSheet` .45·.7 · `SkillSummonResult` .24·.62·.3 — §1 «수치는 코드에 박지 않는다» 위반) · **아예 안 섞는 자리 2**(`TechPanel` 분기 원판 바탕·테가 등급색 원색 — 힘 갈래 실측 정본 `(232,124,115)` ↔ 클론 `(226,87,76)`) · 바탕색 손입력 오차 1(클론 `(0.87,0.89,0.93)` = `#DEE3ED` ↔ 정본 `#dfe4ec`).
+- 무엇을 한다: ⓐ Core 에 `ColorMixRules`(CSS `in srgb` = **sRGB 바이트에서 선형보간** · `transparent` 와 섞으면 알파가 준다 · 결정 584·586 이 세운 공간과 같다 · UnityEngine 0) ⓑ 비율·상대색을 표 `ColorMixUi.json` 으로(키 꼬리 `_mix_f` = 앞 색의 비율) ⓒ 자 `tools/check_color_mix.py` — 정본 선언 ↔ 표값 ↔ 그 자리가 표 키를 부르는가 세 겹(T333·T345 자와 같은 꼴) ⓓ 배선은 각 파일의 **산 lock 뒤** 회차마다.
+- 판정: 자 고장 주입(표 키를 안 부르면 rc 1) + PlayMode(섞은 색이 정본 바이트와 ±1) + `screen_forge-list`·`screen_tech-branch` 8배 눈 확인.
+- 범위: `tools/check_color_mix.py`(새) · `Assets/Scripts/Core/Ui/ColorMixRules.cs`(새) · `Assets/Forge/Resources/ColorMixUi.json`(새) · `Assets/Tests/` · 배선 파일은 회차마다 표 «범위» 에 더해 적는다.
+
 ### T368 — 정본이 `repeating-linear-gradient` + `background-size/position` 으로 까는 **줄무늬 셋**이 클론에서 실선·없음·다른 모양이다: 리그 보상 단 **대시 구분선** · 스킬 패널 소환 바 위 **풀블리드 대시** · 보스 경고 **-45° 사선 띠** (Game·UI · T178 뒤 · **T33 30회차 등재**)
 - 실측(2026-09-15 06:4x · `docs/parity.md` 30회차 · 축 `background-position` 22 + `background-size` 15): 정적 자리 중 무늬(T124 시대 무늬 · 표에서 읽음 ✓)·덮기(`cover`·`contain` ✓)·소환 스윕(T334)을 빼면 **repeating-linear-gradient 줄무늬 셋**이 남고 셋 다 클론이 다르다.
   - ⓐ `.league-reward-tier`(style.css 2548~2555): 단(tier) 사이 **대시 줄** — `repeating-linear-gradient(to right, var(--pp-line) 0 calc(var(--app-w)*.0323), transparent … calc(var(--app-w)*.0625))` · `background-size: 100% 2px` · 첫 단은 없음. 클론 `LeagueSheet.cs:245` 는 이름만 `dash` 인 **실선** `UiKit.Line`.
