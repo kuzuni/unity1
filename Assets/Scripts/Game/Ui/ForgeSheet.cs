@@ -252,15 +252,16 @@ namespace Forge.Game.Ui
             RectTransform rt = UiKit.Box(parent, "egg-cell");
             Image f = ForgeUi.Tile(rt, "frame", new Color(0x4f / 255f, 0xb2 / 255f, 0xee / 255f), Color.black, hgt * 0.16f, PopupKit.Line3);
 
-            // T381 1회차 — 탄 탈것 갈래. 얼굴은 소환 시트와 **같은 썸네일 공장**(PetFaces · 원작 mountFace)을 부르기만 한다(그 파일은 남의 lock).
-            //   그림을 못 구우면(에디터 배치·그래픽 없음) 정본의 빈 갈래로 떨어진다 — 칸이 비어 보이는 것보다 실루엣이 낫다.
+            // T381 1회차 — 탄 탈것 갈래. 갈래를 가르는 것은 **상태 하나**(탄 탈것이 있는가)다 — 정본 1529 도 `activeMount ? … : …` 로 그렇게 가른다.
+            //   2회차 수리: 처음엔 «썸네일을 구웠는가» 까지 갈래 조건에 넣었다가, 굽기가 안 되는 자리(CI)에서 이 갈래가 통째로 안 돌았다(런 675 Skipped).
+            //   얼굴은 소환 시트와 **같은 썸네일 공장**(PetFaces · 원작 mountFace)을 부르기만 하고(그 파일은 남의 lock), 못 구우면 아이콘이 그대로 남는다.
             MountSystem ms = PetSkillHost.Instance != null ? PetSkillHost.Instance.Mounts : null;
             Mount ridden = ms != null ? ms.RiddenInst() : null;
-            Sprite face = ridden != null ? PetFaces.Get(ridden.Name, GalleryKind.Mounts) : null;
-            if (ridden != null && face != null)
+            if (ridden != null)
             {
-                PopupKit.IconOr(rt, "img", "horse");                                     // 자리를 먼저 세우고(못 구웠으면 이 실루엣이 남는다)
-                ForgeUi.ApplyThumb(rt, face, hgt);                                       // 장비 칸과 **같은 깔때기** — 접지 그림자(T332)까지 그 한 곳이 건다
+                Sprite face = PetFaces.Get(ridden.Name, GalleryKind.Mounts);
+                PopupKit.IconOr(rt, "img", "horse");                                     // 자리를 먼저 세우고(못 구웠으면 이 아이콘이 남는다 · 정본 mountFace 도 그림 전엔 글리프다)
+                ForgeUi.ApplyThumb(rt, face, hgt);                                       // 장비 칸과 **같은 깔때기** — null 이면 조용히 건너뛴다(접지 그림자 T332 도 그 한 곳이 건다)
                 ForgeUi.LvBadge(rt, ridden.Level, hgt);                                  // 정본 1532 `<span class="cell-lv">Lv.N</span>`
                 int extra = ms.State != null && ms.State.ActiveMounts != null ? Mathf.Max(0, ms.State.ActiveMounts.Count - 1) : 0;
                 if (extra > 0) MountCountBadge(rt, extra, w);                            // 정본 1533 «+N»(UI.MOUNT_COUNT_STYLE)

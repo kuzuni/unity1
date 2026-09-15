@@ -67,10 +67,11 @@ namespace Forge.Tests.PlayMode
 
             Transform cell = Cell();
             Assert.IsNotNull(cell, "탈것 칸(egg-cell)");
-            if (cell.Find("mount-sil") != null && cell.Find("img") == null)
-                Assert.Ignore("이 환경에선 탈것 얼굴을 못 굽는다(PetFaces.Available false) — 정본의 빈 갈래로 떨어지는 것이 설계다");
-
-            Assert.IsNotNull(cell.Find("img"), "탄 탈것은 얼굴을 그린다(정본 mountFace)");
+            // 갈래를 가르는 것은 **상태 하나**다 — 썸네일을 못 굽는 자리(CI)에서도 이 갈래가 돌아야 한다(런 675 에서 통째로 Skipped 였던 자리).
+            Transform img = cell.Find("img");
+            Assert.IsNotNull(img, "탄 탈것은 얼굴 자리를 그린다(정본 mountFace · 못 구우면 아이콘이 남는다)");
+            Sprite baked = Forge.Game.Ui.PetFaces.Get(ms.RiddenInst().Name, Forge.Game.Gallery.GalleryKind.Mounts);
+            if (baked != null) Assert.AreSame(baked, img.GetComponent<Image>().sprite, "구운 썸네일이 있으면 그것으로 갈아 끼운다");
             Transform lv = cell.Find("lv");
             Assert.IsNotNull(lv, "탄 탈것은 Lv 배지를 그린다(정본 1532 .cell-lv)");
             StringAssert.Contains("Lv", lv.GetComponent<TextMeshProUGUI>().text);
