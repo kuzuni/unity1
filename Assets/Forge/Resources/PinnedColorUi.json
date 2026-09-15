@@ -1,0 +1,8 @@
+{
+  "_": "ROUTINE T377 — 정본 style.css 가 «토큰으로 뭉개지 말라» 고 선택자에만 리터럴로 못박은 면 색(8692 의 까닭: 전역 --pp-red 는 안 건드린다). catalog.json 이 T365·T375·T378 lock 이라 T65 꼴로 여기 둔다(T33 또는 다음 회차가 catalog 로 합칠 수 있다). 값은 정본 리터럴 그대로 · tools/check_pinned_colors.py 가 정본과 같은지 지킨다. 코드에 숫자를 박지 않는다(§1).",
+  "colors": {
+    "chat_back_face": "#ff1017",
+    "sell_btn_face": "#ff1017",
+    "sell_btn_lip": "#4e0507"
+  }
+}
