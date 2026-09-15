@@ -44,7 +44,8 @@ namespace Forge.Game.Ui
             title.fontStyle = FontStyles.Bold;
             PopupKit.Ring(title, "sheet_title", "pp_line");   // 정본 h2.sheet-title .11em
             UiKit.TextShadow(title, "paper_emboss");   // T333 2회차 — 정본 8381 한 벌 «밝은 종이 위 글자는 흰 엠보스»(0 1px 0 rgba(255,255,255,.92))
-            float curW = UiKit.L("shop_cur_w") * w, curH = UiKit.H("shop_cur_h") * 1.6f;
+            // T378 6회차 — 정본 3968~3975 `.shop-sheet .sheet-head .cur-pill { width: .155W; height: .0239H }` = 표 `shop_cur_w`·`shop_cur_h` 그대로(전엔 높이에 ×1.6 이 얹혀 3.82%H 였다)
+            float curW = UiKit.L("shop_cur_w") * w, curH = UiKit.H("shop_cur_h");
             CurBar(head, "coin-bar", "coin", PopupKit.Fmt(h.S.Coins), UiKit.L("shop_banner_x") * w, curW, curH, h);
             CurBar(head, "gem-bar", "gem", PopupKit.Fmt(h.S.Gems), w * 0.866f - curW, curW, curH, h);
 

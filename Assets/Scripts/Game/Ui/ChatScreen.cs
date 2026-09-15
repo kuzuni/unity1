@@ -38,7 +38,8 @@ namespace Forge.Game.Ui
             listBox.anchorMin = new Vector2(0f, 0f);
             listBox.anchorMax = new Vector2(1f, 1f);
             listBox.offsetMin = new Vector2(0f, bottom + inputH);
-            listBox.offsetMax = new Vector2(0f, -UiKit.H("topbar_h") * 0.3f);
+            // T378 6회차 — 정본 3265 `.chat-card { padding: 0 }` · 3294 `.chat-list { padding: 0 }`: 목록은 카드 위끝에서 바로 시작한다(모달 z 40 이 상단바 z 5 를 덮는다) — 전엔 상단바 높이×0.3 의 근거 없는 인셋이 있었다
+            listBox.offsetMax = new Vector2(0f, 0f);
             list = PopupKit.ScrollList(listBox, "list", rem * 0.41f, rem * 0.5f, rem * 0.5f, TextAnchor.LowerLeft);
             // ScrollRect 는 list-box 가 아니라 ScrollList 가 그 안에 세운 «list» 상자(content 의 부모)에 붙는다 —
             // 옛 코드는 list-box 에서 찾아 늘 null 이었고 그래서 «바닥으로» 가 한 번도 안 돌았다(런 179 채팅 샷 · 런 186 NRE).
