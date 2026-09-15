@@ -207,4 +207,62 @@ namespace Forge.Tests
             Assert.Throws<System.FormatException>(() => SummonChargeSpec.From(MiniJson.ParseObject(bad)));
         }
     }
+
+    /// <summary>T334 5회차 — 완료 뒤 아이들 호흡이 표대로 서고 **등급이 오를수록 크게 숨쉰다**(정본 «위계가 구조여야 한다»).</summary>
+    public class SummonIdleSpecTests
+    {
+        static SummonIdleSpec spec;
+        static SummonIdleSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonIdleSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 등급이_오를수록_크게_숨쉰다()
+        {
+            SummonIdleSpec s = S();
+            double lowTy, lowAdd, hiTy, hiAdd;
+            s.At(s.IdleMs * 0.5, 0, 0, out lowTy, out lowAdd);
+            s.At(s.IdleMs * 0.5, 0, s.Tier.Length - 1, out hiTy, out hiAdd);
+            Assert.Greater(hiAdd, lowAdd, "최고 등급이 가장 크게 부푼다");
+            Assert.Less(hiTy, lowTy, "그리고 더 높이 뜬다(음수가 더 크다)");
+            Assert.AreEqual(s.ScaleF * s.Weight(s.Tier.Length - 1), hiAdd, 1e-9, "정점 = scale_f × 등급 무게");
+        }
+
+        [Test]
+        public void 정점은_한가운데고_양_끝은_제자리다()
+        {
+            SummonIdleSpec s = S();
+            double ty, add;
+            Assert.AreEqual(0.0, s.Phase(0, 0, out ty, out add), 1e-9, "0% 는 제자리");
+            Assert.AreEqual(1.0, s.Phase(s.IdleMs * 0.5, 0, out ty, out add), 1e-9, "50% 가 정점");
+            Assert.AreEqual(0.0, s.Phase(s.IdleMs, 0, out ty, out add), 1e-9, "100% 는 다시 제자리");
+        }
+
+        [Test]
+        public void 셀마다_늦게_시작해_물결이_된다()
+        {
+            SummonIdleSpec s = S();
+            double ty0, a0, ty1, a1;
+            s.At(s.DelayStepMs, 0, 2, out ty0, out a0);
+            s.At(s.DelayStepMs, 1, 2, out ty1, out a1);
+            Assert.AreNotEqual(a0, a1, "같은 시각에 이웃 셀이 같은 자리면 물결이 아니다");
+            Assert.AreEqual(0.0, a1, 1e-9, "둘째 셀은 그 시각에 막 시작한다(지연 .21s)");
+        }
+
+        [Test]
+        public void 계단이_뒤집힌_표는_거부한다()
+        {
+            // 위계는 부산물이 아니라 **구조**여야 한다 — 표가 그 순서를 깨면 자가 막는다.
+            char q = '"';
+            string bad = "{" + q + "idle" + q + ":{" + q + "idle_ms" + q + ":2600," + q + "delay_step_ms" + q + ":210,"
+                + q + "ty_rem" + q + ":-0.16," + q + "scale_f" + q + ":0.055," + q + "weight" + q + ":[1.0,0.5]}}";
+            Assert.Throws<System.FormatException>(() => SummonIdleSpec.From(MiniJson.ParseObject(bad)));
+        }
+    }
 }

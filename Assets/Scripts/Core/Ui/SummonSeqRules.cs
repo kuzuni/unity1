@@ -192,4 +192,65 @@ namespace Forge.Core.Ui
             return TickA0 + (TickA1 - TickA0) * step;
         }
     }
+
+    /// <summary>
+    /// T334 5회차 — 연출이 끝난 뒤(`#summon-result-modal.done`) 셀이 도는 **아이들 호흡**(정본 `srbreath` · style.css 6885~6906).
+    ///
+    /// 정본이 이 구간을 고쳐 쓴 까닭이 주석에 있다: «예전엔 전 등급이 똑같이 −.16rem / ×1.055 였고 실측상 등급 간 차이는
+    /// 광채에서만 나왔다 — 즉 **위계가 구조가 아니라 부산물**이었다. `--idle` 로 호흡 자체를 계단화해 최고 등급이 가장 크게 숨쉰다».
+    /// 그래서 진폭은 등급마다 다른 무게(<see cref="Weight"/>)를 탄다. 셀마다 `i × .21s` 씩 늦게 시작해 물결이 된다.
+    /// UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonIdleSpec
+    {
+        /// <summary>한 번 숨쉬는 길이(ms · 정본 2.6s) · 셀 사이 지연(ms · 정본 .21s).</summary>
+        public double IdleMs, DelayStepMs;
+        /// <summary>정점에서 뜨는 거리(rem · 정본 −.16rem — 음수 = 위로) · 배율 증가분(정본 .055).</summary>
+        public double TyRem, ScaleF;
+        /// <summary>등급 계단(정본 `--idle`).</summary>
+        public double[] Tier;
+
+        public static SummonIdleSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "idle"));
+            double[] w = J.NumArr(J.Require(o, "weight"));
+            if (w == null || w.Length < 2) throw new FormatException("SummonFxUi idle: weight 는 등급 계단(둘 이상)이다");
+            for (int i = 1; i < w.Length; i++) if (w[i] < w[i - 1]) throw new FormatException("SummonFxUi idle: weight 는 등급이 오를수록 커져야 한다(위계가 구조여야 한다 — 정본 주석)");
+            var s = new SummonIdleSpec
+            {
+                IdleMs = J.Num(J.Require(o, "idle_ms")),
+                DelayStepMs = J.Num(J.Require(o, "delay_step_ms")),
+                TyRem = J.Num(J.Require(o, "ty_rem")),
+                ScaleF = J.Num(J.Require(o, "scale_f")),
+                Tier = w,
+            };
+            if (s.IdleMs <= 0) throw new FormatException("SummonFxUi idle: idle_ms 는 0보다 커야 한다");
+            if (s.TyRem > 0) throw new FormatException("SummonFxUi idle: ty_rem 은 위로 뜨는 값(음수)이다");
+            return s;
+        }
+
+        /// <summary>그 등급의 무게 — 표 밖 등급은 양 끝으로 자른다.</summary>
+        public double Weight(int tier) { return Tier[tier < 0 ? 0 : tier >= Tier.Length ? Tier.Length - 1 : tier]; }
+
+        /// <summary>
+        /// 셀 <paramref name="index"/>(등급 <paramref name="tier"/>)의 지금 호흡 — 0(제자리) ↔ 1(정점) 사이의 진행.
+        /// 정본은 `ease-in-out` 무한 왕복이라 코사인 한 번으로 같아진다.
+        /// </summary>
+        public double Phase(double elapsedMs, int index, out double tyRem, out double scaleAdd)
+        {
+            double t = elapsedMs - index * DelayStepMs;
+            double u = t <= 0 ? 0 : (t % IdleMs) / IdleMs;
+            double k = 0.5 - 0.5 * Math.Cos(u * Math.PI * 2.0);
+            tyRem = TyRem * k; scaleAdd = ScaleF * k;
+            return k;
+        }
+
+        /// <summary>그 셀의 지금 뜬 거리(rem)와 배율 증가분 — 등급 무게를 태운 값.</summary>
+        public void At(double elapsedMs, int index, int tier, out double tyRem, out double scaleAdd)
+        {
+            double w = Weight(tier);
+            Phase(elapsedMs, index, out tyRem, out scaleAdd);
+            tyRem *= w; scaleAdd *= w;
+        }
+    }
 }

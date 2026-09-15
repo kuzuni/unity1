@@ -45,6 +45,8 @@ namespace Forge.Game.Ui
             public bool Heroic;
             /// <summary>T334 3회차 ⓑ — 흡기 전 제자리(anchoredPosition)와 «슬롯 → 광원» 벡터(정본 `--dx/--dy`).</summary>
             public Vector2 Home, ToLight;
+            /// <summary>T334 5회차 — 아이들 호흡 전 구체 래퍼의 제자리.</summary>
+            public Vector2 OrbHome;
         }
 
         public static SkillSummonResultView Current { get; private set; }
@@ -476,6 +478,7 @@ namespace Forge.Game.Ui
             wrap.pivot = new Vector2(0.5f, 0.5f);
             wrap.anchoredPosition = new Vector2(cw * 0.5f, -cw * 0.5f);
             c.OrbWrap = wrap;
+            c.OrbHome = wrap.anchoredPosition;
             // 광채(고등급) · 그림자 · 구체 · 하이라이트
             if (Hi(e.Rarity) || peer)
             {
@@ -722,8 +725,20 @@ namespace Forge.Game.Ui
                 float s = t >= 1f ? 1f : Mathf.Lerp(0.35f, 1f, EaseOutBack(t));
                 c.Group.alpha = Mathf.Clamp01(t * 3f);
                 c.Root.localScale = Vector3.one * s;
-                float b = done && t >= 1f ? 1f + 0.025f * Mathf.Sin((tt - i * 0.21f) * 2.4f) : 1f;
+                // T334 5회차 — 아이들 호흡은 **등급에 가중**된다(정본 `--idle` 계단 · style.css 6327~6332).
+                //   정본 주석: «예전엔 전 등급이 똑같이 −.16rem / ×1.055 였고 실측상 등급 간 차이는 광채에서만 나왔다 —
+                //   즉 위계가 구조가 아니라 부산물이었다». 수치는 표(`SummonFxUi.json` 의 `idle` 절)가 쥔다.
+                float b = 1f, ty = 0f;
+                if (done && t >= 1f && doneAt >= 0f)
+                {
+                    SummonIdleSpec sp = SummonFxStyle.Idle;
+                    double tyRem, add;
+                    sp.At((tt - doneAt) * 1000f, i, RarityIdx(c.Entry.Rarity), out tyRem, out add);
+                    b = 1f + (float)add;
+                    ty = (float)tyRem * PetSkillStyle.RemPx;
+                }
                 c.OrbWrap.localScale = Vector3.one * c.BaseScale * (c.Heroic && heroFired ? 1.18f : 1f) * b;
+                c.OrbWrap.anchoredPosition = c.OrbHome + new Vector2(0f, -ty);   // 표의 ty_rem 은 CSS 부호(음수 = 위로)
             }
         }
 
@@ -898,9 +913,12 @@ namespace Forge.Game.Ui
             if (t >= 1f) flashAt = -1f;
         }
 
+        float doneAt = -1f;
+
         void Finish()
         {
             done = true;
+            doneAt = Time.unscaledTime;
             if (fx != null) fx.SetDone();   // T179 — 정본 #summon-result-modal.done: 별 켜기 · 광선 done 마스크
             // 소환진이 등급색으로 물드는 것은 **이 순간뿐**이다(정본 ui.js 551~552 · style.css 7182~7185) — 알파도 .2 → .26.
             if (floorImg != null)

@@ -713,9 +713,12 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; }
 
         static SummonChargeSpec charge;
+        static SummonIdleSpec idle;
+        /// <summary>T334 5회차 — 완료 뒤 아이들 호흡(표의 `idle` 절).</summary>
+        public static SummonIdleSpec Idle { get { Load(); if (idle == null) idle = SummonIdleSpec.From(root); return idle; } }
         /// <summary>T334 3회차 ⓑ — 충전 구간 키프레임 넷(Core 가 쥔 셈 · 표의 `charge` 절).</summary>
         public static SummonChargeSpec Charge { get { Load(); if (charge == null) charge = SummonChargeSpec.From(root); return charge; } }
 

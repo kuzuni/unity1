@@ -196,6 +196,14 @@
     "wipe_scale1_f": 2.2,
     "_wipe": "정본 `.sr-wipe`(style.css 6184~6198) 그대로 — 방사 그라디언트 네 스톱(흰 0% → 등급색 24% → 흰 .34 52% → 투명 82%) · `mix-blend-mode: screen`(가산) · `srwipe .47s` 는 불투명도 0 → .98(15% ≈ 70ms 정점) → 0, 배율 .55 → 1.12 → 2.2. 정본 주석: «정점을 70ms 안에 세운다 — 450ms 에 걸쳐 +32% 는 상승이 아니라 서서히 밝아지는 배경이다»."
   },
+  "idle": {
+    "idle_ms": 2600.0,
+    "delay_step_ms": 210.0,
+    "ty_rem": -0.16,
+    "scale_f": 0.055,
+    "weight": [0.7, 0.82, 1.0, 1.24, 1.5, 1.8],
+    "_": "정본 `#summon-result-modal.done .sr-cell.on .sr-orbwrap { animation: srbreath 2.6s ease-in-out infinite; animation-delay: calc(var(--i) * .21s) }`(style.css 6885~6888) + `@keyframes srbreath`(6902~6906): 50% 에 `translateY(-.16rem × --idle)` · `scale(… × (1 + .055 × --idle))`. `--idle` 은 등급 계단(6327~6332 · 일반 .7 · 희귀한 .82 · 서사시 1 · 전설 1.24 · 궁극의 1.5 · 신화 1.8)이다. 정본 주석: «예전엔 전 등급이 똑같이 -.16rem / ×1.055 였고 실측상 등급 간 차이는 광채에서만 나왔다 — 즉 위계가 구조가 아니라 부산물이었다. `--idle` 로 호흡 자체를 계단화해 최고 등급이 가장 크게 숨쉰다»."
+  },
   "charge": {
     "charge_ms": 280.0,
     "tick_steps": 9.0,
