@@ -6927,6 +6927,17 @@
 - **게이트**: `--self-test` 125칸 · `dotnet build` 0 오류 · `dotnet test` **642/642** · gen_meta · gen_ui_catalog · docs_intact · task_rows · decisions · final_table · claim_scope · keyline · lock_queue 전부 rc 0 · `Assets/` 0줄.
 - **남은 것(✅ 조건)**: CI 한 바퀴(dotnet 잡) 뒤 lock 반납.
 
+### T342 2회차 기록 — ⓒ 연구 잠금 노드: 판만 옅었고 **그림이 안 누웠다** (2026-09-15 03:2x~03:4x · 워커 J · sess-0318-4452 · lock 유지)
+
+- **회차 첫 일(§0-6)**: 런 571 의 빨강은 `ForgeUiTests` 하나이고 임자 T360 의 lock 이 살아 있다(23분). `BootGuardTests` `RED` 는 자가 «일부러 낸 빨강» 으로 걸렀다.
+- **왜 T342 였나**: lock 없는 열린 아홉 중 일곱이 «90분 안 남의 커밋» 이고, 남은 둘(T342 102분 · T351 142분)에서 §2 상 앞이 T342 다. 네 갈래 중 **열려 있는 파일은 ⓒ 하나**였다(ⓑ `PlayerInfoPopup.cs` T178·T346 · ⓔ `SkillSummonResult.cs` T334 · ⓐ 나머지 `ForgeSheet.cs` T355). 1회차(워커 K)가 세운 표·도우미가 이미 있어 **그 자리만 이어 붙였다**.
+- **무엇이 틀렸나**: 정본 `.tech-tree-node.tlocked .ico, … img { filter: grayscale(.55) }`(style.css 2193) 인데 클론은 `TechPanel` 400 의 `CanvasGroup.alpha = tt_tlocked_alpha` **하나뿐**이었다. 그것은 **판이 옅어지는 것**이고 정본이 말하는 «그림이 반쯤 회색으로 눕는 것» 이 아니다. 둘은 다른 효과다 — 틴트는 곱하기라 **채도를 원리상 못 낮춘다**(1회차가 ⓐ 에서 같은 것을 밝혔다).
+- **한 것**: `FilterUi.json` 에 자리 `tech_node_locked`(줄 2193 · `grayscale 0.55`)를 더하고, `TechPanel` 이 잠금 노드 얼굴에 `UiFilter.ApplyColor(face, "tech_node_locked")` 를 건다. 표의 «남은 셋» 쪽지도 «남은 둘» 로 줄였다.
+- **안 건드린 것 — 알파**: 이 자리엔 정본에 `opacity` 가 없다. 노드 판의 옅어짐은 정본 2188·2191 의 **면 색·투명도**이지 `filter` 가 아니라서, 기존 `tt_tlocked_alpha` 를 그대로 뒀다. 자에도 그 단언을 박았다(`img.color.a == 1`).
+- **자 +3**: EditMode 2 — 표가 정본 그대로(줄 2193 · `.55` · 밝기·알파·번짐 **없음**) · «반쯤 회색» 이 채널 폭을 **정확히 (1 − .55) 배**로 줄인다(색 방향은 남는다). PlayMode 1 — 구운 화소가 `FilterRules` 셈과 같고 틴트 알파는 1 그대로.
+- **게이트**: `dotnet build` 0 오류 · `dotnet test` **723/723** · `tools/gate.sh` **rc 0**(막는 자 33 전부).
+- **남은 것(✅ 조건)**: 다음 런 `UiFilterTests` 초록 + `screen_tech.png` 눈 확인(잠금 노드 **그림**이 반쯤 회색인가). 그리고 ⓐ 나머지·ⓑ·ⓔ 는 그 파일 lock 이 풀린 뒤.
+
 ### T33 완주 대조 22회차 · lock 반납 — 축 = `line-height` 81 + `image-rendering: pixelated` 3 (2026-09-14 22:3x~23:0x · 워커 S · sess-0029-41207)
 
 - ⚠ **정정**: 커밋 `4fe5a23`(제목 «22회차 · lock 반납»)은 **lock 삭제뿐**이다 — 등재 스크립트가 §7 중간 열 단언에서 멈췄는데 뒤 줄이 `&&` 로 묶여 있지 않아 lock 삭제·커밋만 지나갔다(T165·bbc74e5 와 같은 실수 · 세 번째 — 이제 스크립트를 파일로 두고 `python3 파일 && …` 로만 묶는다). 등재·기록은 이 커밋이다.

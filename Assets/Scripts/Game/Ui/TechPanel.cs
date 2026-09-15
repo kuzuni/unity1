@@ -397,7 +397,14 @@ namespace Forge.Game.Ui
             float ico = d * UiKit.L("tt_icon");
             Image face = max ? UiKit.Icon(rt, "face", "check") : TechIcon(rt, "face", id);
             UiKit.Anchor(face.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, ico, ico);
-            if (!open && !max) rt.gameObject.AddComponent<CanvasGroup>().alpha = UiKit.L("tt_tlocked_alpha");
+            if (!open && !max)
+            {
+                rt.gameObject.AddComponent<CanvasGroup>().alpha = UiKit.L("tt_tlocked_alpha");
+                // T342 ⓒ — 정본 `.tech-tree-node.tlocked .ico, … img { filter: grayscale(.55) }`(style.css 2193).
+                //          판의 옅어짐(위 알파)과 **다른 것**이다: 그림만 반쯤 회색으로 눕는다. 틴트는 곱하기라 채도를 못 낮춘다 —
+                //          그래서 1회차가 세운 굽는 도우미로 스프라이트 사본을 만든다(자리 키가 곧 표의 줄이다).
+                UiFilter.ApplyColor(face, "tech_node_locked");
+            }
             string badge = ready ? "완료!" : researching ? NumFmt.FmtTime((Tree.State.Research.EndsAt - Host.Now()) / 1000) : lv + "/" + Tree.Table.MaxLevel;
             TextMeshProUGUI label;
             if (ready || researching)

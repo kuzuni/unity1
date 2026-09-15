@@ -72,6 +72,30 @@ namespace Forge.Tests.EditMode
         }
 
         [Test]
+        public void 표가_정본_그대로다_연구_잠금_노드()
+        {
+            FilterSpec f = Site("tech_node_locked");
+            Assert.AreEqual(2193, f.Line, "정본 style.css 줄 번호");
+            Assert.IsTrue(f.HasGrayscale); Assert.AreEqual(0.55, f.Grayscale, 1e-12);
+            Assert.IsFalse(f.HasBrightness, "이 자리엔 밝기가 없다 — 판의 옅어짐은 filter 가 아니다(정본 2188·2191)");
+            Assert.IsFalse(f.HasOpacity, "알파는 노드 판이 쥔다(클론 `tt_tlocked_alpha`)");
+            Assert.IsFalse(f.HasBlur);
+        }
+
+        [Test]
+        public void 반쯤_회색은_원본과_완전_회색_사이에_선다()
+        {
+            // grayscale(.55) 는 «절반쯤» 이다 — 다 눕지도, 그대로 두지도 않는다.
+            double r = 0.80, g = 0.20, b = 0.20;
+            FilterRules.Apply(Site("tech_node_locked"), ref r, ref g, ref b);
+            Assert.Greater(r, g, "채도가 남아 색 방향은 그대로다");
+            double spread = r - g;
+            Assert.Less(spread, 0.60, "원본 폭(0.60)보다 좁다");
+            Assert.Greater(spread, 0.0, "완전 회색(0)은 아니다");
+            Assert.AreEqual(0.60 * (1.0 - 0.55), spread, 1e-9, "폭이 정확히 (1 − .55) 배로 줄어든다");
+        }
+
+        [Test]
         public void 표가_정본_그대로다_부화_원뿔()
         {
             FilterSpec f = Site("hatch_cone");

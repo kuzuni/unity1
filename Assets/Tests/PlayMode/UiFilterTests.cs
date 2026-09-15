@@ -186,6 +186,27 @@ namespace Forge.Tests.PlayMode
         }
 
         [Test]
+        public void 다_연구_잠금_노드는_반쯤_회색으로_눕고_알파는_안_건드린다()
+        {
+            Color src = new Color(0.80f, 0.20f, 0.20f, 1f);
+            var img = new GameObject("ico", typeof(RectTransform)).AddComponent<Image>();
+            img.transform.SetParent(root.transform, false);
+            img.sprite = Solid(src);
+            img.color = Color.white;
+
+            UiFilter.ApplyColor(img, "tech_node_locked");
+
+            Color got = img.sprite.texture.GetPixel(4, 4);
+            Assert.Greater(got.r, got.g, "grayscale(.55) — 다 눕지 않는다(색 방향은 남는다)");
+            Assert.Less(got.r - got.g, src.r - src.g, "그래도 원본보다는 좁다");
+            Assert.AreEqual(1f, img.color.a, 1e-4f, "이 자리엔 opacity 가 없다 — 판의 옅어짐은 노드가 쥔다");
+
+            double r = src.r, g = src.g, b = src.b;
+            FilterRules.Apply(UiFilter.Table.Get("tech_node_locked"), ref r, ref g, ref b);
+            Assert.AreEqual((float)r, got.r, 2e-2f, "Core 셈과 구운 화소가 같다");
+        }
+
+        [Test]
         public void 가_원본_스프라이트를_안_망친다()
         {
             var img = new GameObject("img", typeof(RectTransform)).AddComponent<Image>();
