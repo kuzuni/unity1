@@ -25,12 +25,18 @@ namespace Forge.Core.Ui
         /// <summary>이미 감싼 문구인가(두 번 감싸지 않는다).</summary>
         public static bool IsWrapped(string text) { return text != null && text.IndexOf(OpenHead, System.StringComparison.Ordinal) >= 0; }
 
+        /// <summary>
+        /// 꺾쇠가 든 문구인가 — 정본 `U.escapeHtml`(util.js 27) 이 막는 바로 그 글자다. 이런 문구는 **감싸지 않는다**(그래서 부르는 쪽이 richText 를 켤 일도 없다):
+        /// TMP 는 `&lt;` 없이는 어떤 태그도 못 만드니, «꺾쇠 없는 문구에만 켠다» 가 «플레이어 글이 태그로 먹히는 구멍» 을 통째로 막는다(check_richtext ALLOW 의 근거 · 결정 579).
+        /// </summary>
+        public static bool HasTagChars(string text) { return text != null && (text.IndexOf('<') >= 0 || text.IndexOf('>') >= 0); }
+
         static bool Digit(char c) { return c >= '0' && c <= '9'; }
 
-        /// <summary>문구의 숫자 구간마다 <c>&lt;mspace=Nem&gt;…&lt;/mspace&gt;</c> 를 두른다. em ≤ 0 · 빈 문구 · 숫자 없음 · 이미 감쌈이면 그대로 돌려준다.</summary>
+        /// <summary>문구의 숫자 구간마다 <c>&lt;mspace=Nem&gt;…&lt;/mspace&gt;</c> 를 두른다. em ≤ 0 · 빈 문구 · 숫자 없음 · 이미 감쌈 · 꺾쇠 든 문구면 그대로(같은 참조를) 돌려준다.</summary>
         public static string Wrap(string text, double em)
         {
-            if (string.IsNullOrEmpty(text) || em <= 0 || IsWrapped(text)) return text;
+            if (string.IsNullOrEmpty(text) || em <= 0 || IsWrapped(text) || HasTagChars(text)) return text;
             string open = OpenHead + EmText(em) + OpenTail;
             var sb = new StringBuilder(text.Length + 32);
             int i = 0, n = text.Length;

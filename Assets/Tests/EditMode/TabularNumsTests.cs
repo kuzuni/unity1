@@ -38,6 +38,17 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 꺾쇠가_든_문구는_감싸지_않는다_정본_escapeHtml_의_자리()
+        {
+            // check_richtext(T175) 의 ALLOW 근거 — 플레이어 글(닉네임·채팅)에 <color=…> 가 있어도 태그가 되지 않는다: 감싸지 않으니 richText 도 켜지지 않는다
+            string nick = "<color=red>12</color>";
+            Assert.AreSame(nick, TabularNums.Wrap(nick, Em));
+            Assert.AreSame("a>1", TabularNums.Wrap("a>1", Em));
+            Assert.IsTrue(TabularNums.HasTagChars("<b>"));
+            Assert.IsFalse(TabularNums.HasTagChars("1.5K"));
+        }
+
+        [Test]
         public void em_은_불변_문화권_소수_셋째_자리까지다()
         {
             Assert.AreEqual("0.6", TabularNums.EmText(0.6));

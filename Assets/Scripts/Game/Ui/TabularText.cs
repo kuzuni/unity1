@@ -10,7 +10,9 @@ namespace Forge.Game.Ui
     /// 글꼴마다 한 번만 재고, 숫자 글리프가 아직 아틀라스에 없으면 <c>TryAddCharacters</c> 로 먼저 굽는다(동적 아틀라스 · UiKit.MeasureAlphaTexels 와 같은 길).
     /// 못 읽으면(글꼴 없음 · 글리프 없음) 0 을 돌려주고 <see cref="Apply"/> 는 아무것도 안 한다 — 빨간 줄은 안 남긴다(정본도 폰트가 등폭 숫자를 못 주면 그냥 비례로 그린다).
     /// </para>
-    /// 태그를 쓰므로 그 글자만 <c>richText</c> 를 켠다(<c>UiKit.Text</c> 의 기본은 끔 — 숫자 문구에는 태그로 오독될 글자가 없다).
+    /// 태그를 쓰므로 그 글자만 <c>richText</c> 를 켠다(<c>UiKit.Text</c> 의 기본은 끔). 켜는 조건이 곧 보호다: <see cref="Forge.Core.Ui.TabularNums.Wrap"/> 은
+    /// **꺾쇠(`&lt;` `&gt;`)가 든 문구를 감싸지 않으므로** 감싸진 뒤에만 켜는 이 글자에는 태그가 될 수 있는 글자가 없다 — 정본 `U.escapeHtml` 이 막던 구멍(T175 · check_richtext)을
+    /// 같은 자리에서 막는다(결정 579 · 그 자의 ALLOW 에 이 파일이 있다 — 워커 B 의 §0-6 급 수리 02f7326b · 결정 578).
     /// </summary>
     public static class TabularText
     {
@@ -54,10 +56,11 @@ namespace Forge.Game.Ui
             if (t == null) return;
             float em = DigitEm(t.font);
             if (em <= 0f) return;
-            string wrapped = Forge.Core.Ui.TabularNums.Wrap(t.text, em);
-            if (ReferenceEquals(wrapped, t.text)) return;
-            t.richText = true;
+            string raw = t.text;
+            string wrapped = Forge.Core.Ui.TabularNums.Wrap(raw, em);
+            if (ReferenceEquals(wrapped, raw)) return;                 // 숫자 없음 · 이미 감쌈 · 꺾쇠 든 글(플레이어 글) — 켜지 않는다
             t.text = wrapped;
+            t.richText = true;                                          // check_richtext ALLOW — 꺾쇠 없는 문구에만 닿는다(위 주석)
         }
 
         /// <summary>자용 — 글꼴 폭 캐시를 비운다.</summary>
