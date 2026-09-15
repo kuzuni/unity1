@@ -62,7 +62,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(c.Label.fontMaterial.IsKeywordEnabled("UNDERLAY_ON"), "글자 글로우(text-shadow 0 0 10px currentColor)");
             Assert.AreEqual(want.r, c.Label.fontMaterial.GetColor("_UnderlayColor").r, 1e-3f, "글로우 색 = 스킬 색");
             Assert.IsNotNull(c.Icon); Assert.IsTrue(c.Icon.gameObject.activeSelf, "아이콘");
-            Assert.AreEqual("sk_" + def.Id, c.Icon.sprite.name, "IconGen.skill(def.id) = 아틀라스 sk_<id>");
+            Assert.AreSame(UiIcons.Skill(def.Id), c.Icon.sprite, "IconGen.skill(def.id) = 아틀라스 sk_<id>(런 688: 아틀라스 스프라이트 이름은 키에 꼬리가 붙어 문자열로 비교하지 않는다)");
             Assert.AreEqual((float)(sp.IconEm * c.Label.fontSize), c.Icon.rectTransform.rect.width, 0.5f, ".ico.cutin-ico 1.5em 정사각");
             Assert.IsNotNull(c.IconGlow); Assert.IsTrue(c.IconGlow.gameObject.activeSelf, "아이콘 글로우(drop-shadow 0 0 6px currentColor)");
             Assert.AreEqual(want.r, c.IconGlow.color.r, 1e-3f, "아이콘 글로우 색 = 스킬 색");
