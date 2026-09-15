@@ -65,6 +65,10 @@ TABLE = {
     '.tech-branch-card': ['Ui/TechPanel.cs$tb_card_r_rem@catalog.json'],
     '.tech-tier-tag': ['Ui/TechPanel.cs$tt_tag_r_rem@catalog.json'],
     '.tech-prog, .modal-card .tech-prog': ['Ui/TechPopups.cs$tech_prog_r_rem@catalog.json'],
+    # T345 15회차 — 정본이 **0(각진)** 으로 못 박은 자리: 클론도 민 상자라 맞다(모서리를 만들 조각이 아예 없다)
+    '.dgd-card .dg-detail-hero': '✓정본 5280 `.dgd-card .dg-detail-hero { border-radius: 0 }` — 클론 `DungeonDetailPopup` 113 의 hero 는 민 상자 + 아이콘이라 둥근 조각이 없다(15회차 눈으로 확인)',
+    # T345 15회차 — 팝업 닫기 ✕(정본 50% = 원 · 공용 DungeonPopups.XButton 가 BorderedCircle 로 세운다)
+    '.x-btn': ['Ui/DungeonPopups.cs@XButton'],
     # T345 14회차 — 팝업 카드(정본이 **뒤 규칙으로 덮은** 값 1.1rem · 클론은 1.0 이었다) + 던전 상세 둘
     '.modal-card': ['Ui/AscendPopup.cs$card_r_rem@catalog.json'],
     '.dgd-reward-pill': ['Ui/DungeonDetailPopup.cs$dgd_pill_r_rem@catalog.json'],
