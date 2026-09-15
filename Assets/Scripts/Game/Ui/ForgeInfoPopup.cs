@@ -16,6 +16,10 @@ namespace Forge.Game.Ui
     public static class ForgeInfoPopup
     {
         public const string Name = "forge-info", ItemName = "forge-item";
+
+        /// <summary>T372 — 「모든 장비의 목록」 칸 아래 «0.0000%» 라벨의 글자 종류. 정본 `.forge-item-cell small { font-size: .56rem }`(style.css 790 · 기준 캔버스 20.4px)이라
+        /// §1 하한 `Sub`(36)로 찍으면 1.76배가 되어 라벨이 칸 피치를 넘는다. 결정 633 대로 **새 종류를 만들지 않고** 하한의 예외 한 자리 `Micro`(18)를 쓴다(§1 셋째 자리).</summary>
+        public const TextKind PctKind = TextKind.Micro;
         static string view = "level";
         static string detailAge, detailSlot;
         static int detailVariant;
@@ -167,7 +171,10 @@ namespace Forge.Game.Ui
             float barH = rem * 1.75f;
             float cellGapX = W * 0.0395f, cellGapY = H * 0.0126f, gridPadX = W * 0.0249f, gridPadY = W * 0.0229f;
             float cell = (inner - gridPadX * 2f - cellGapX * 4f) / 5f;
-            float labelH = PopupKit.FontSize(TextKind.Sub) * 1.2f;
+            // T372 — 칸 아래 % 라벨은 정본 `.forge-item-cell small { font-size: .56rem }`(style.css 790 · 기준 캔버스 20.4px)다.
+            //   `Sub` 하한 36 을 주면 1.76배가 되어 라벨이 칸 피치를 넘고 스물다섯이 한 줄로 붙는다(원작 shot-042905 는 다섯 덩어리 · 틈 3.12%W).
+            //   결정 633: 새 종류를 만들지 않고 §1 하한의 예외 한 자리 `Micro`(18)를 쓴다 — 정본 20.4 와 2.4px 차라 칸 안에 든다.
+            float labelH = PopupKit.FontSize(PctKind) * 1.2f;
             float cellH = cell + H * 0.0069f + labelH;
             // T122 ⓑ — 정본 hydrateForgeThumbs(ui.js 2183): 목록을 다시 그리면 이전 굽기 작업은 스스로 멈춘다(_thumbJob) · 한 프레임 몇 장씩(펌프)
             int thumbJob = ItemFaces.NewJob();
@@ -250,8 +257,11 @@ namespace Forge.Game.Ui
                 PopupKit.Ring(st, "pp_line", 0.25f);
                 UiKit.Anchor(st.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), Vector2.zero, size, st.fontSize * 1.2f);
             }
-            TextMeshProUGUI l = UiKit.Text(rt, "pct", TextKind.Sub, pct.ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture) + "%", "pp_ink");
-            l.fontStyle = FontStyles.Bold;
+            TextMeshProUGUI l = UiKit.Text(rt, "pct", PctKind, pct.ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture) + "%", "pp_ink");
+            // T372 — 굵기도 정본 렌더 결과를 따른다. 790 은 `font-weight: 800` 이지만 style.css **8633**
+            //   `.rates-tip, .pass-desc, .forge-item-cell small, .league-server { font-weight: 500 }` 이 같은 특정도로 뒤에 와서 이긴다.
+            //   그 줄의 정본 주석이 까닭을 댄다 — 폴백 sans 는 regular/bold 두 축뿐이라 500 은 **보통 굵기로 내려간다**.
+            //   (§1 «정본대로 = 렌더 결과» · 굵기는 잉크 폭을 함께 쥐고 있어 이 자리 판정에 바로 들어간다.)
             l.enableAutoSizing = false;
             UiKit.Place(l.rectTransform, -size * 0.3f, size + UiKit.RefH * 0.0069f, size * 1.6f, labelH);
             Button b = rt.gameObject.AddComponent<Button>();
