@@ -51,6 +51,9 @@ TABLE = {
     '.af-age-bar[data-age="quantum"], .fi-age-bar[data-age="quantum"], .equip-cell[data-age="quantum"]': ['Ui/AgePattern.cs@Tile'],
     # T87 28회차 — 결과 카드 광택 띠(crsheen) 는 CraftCardArt.Sheen 이 굽는다.
     '.auto-drop-card.craft-reveal::after': ['Ui/CraftCardArt.cs@Sheen'],
+    # T178 15회차 — 제작 카드 둘의 45°/−45° 교차 해칭(SurfaceUi.json stripes.cell_hatch · SurfaceArt.FillHatch · 바탕 color-mix 면 위 sRGB 합성) · `.equip-cell` 828 은 ForgeSheet lock 뒤 같은 키
+    '.auto-drop-card': ['Ui/ForgeCraftPopup.cs@CraftCard'],
+    '.craft-batch .cb-card': ['Ui/ForgeCraftPopup.cs@CraftCard'],
     # ── T178 7회차 — «하드 스톱 띠»: 정본이 gradient 문법으로 적었지만 **정지점 사이에 섞임이 없는** 자리다.
     #    그림은 «가운데 11px 세로 줄» · «45° 줄무늬» 처럼 **색면 조각**이고, 클론이 조각(rect·dash)으로 그리면
     #    픽셀이 정본과 같다 — 여기에 그라디언트를 굽는 것은 같은 그림을 더 비싸게 그리는 것뿐이다.

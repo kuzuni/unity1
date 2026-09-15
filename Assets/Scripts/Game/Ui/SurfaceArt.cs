@@ -351,6 +351,60 @@ namespace Forge.Game.Ui
             return Finish(name, w, h, px);
         }
 
+        /// <summary>
+        /// T178 15회차 — **교차 해칭 한 타일**(정본 828·1063·1131 `repeating-linear-gradient(45deg, rgba(0,0,0,.13) 0 2px, transparent 2px 12px)` + 같은 −45deg):
+        /// 표 `stripes.<key>` 의 `angle_deg`·`period_css_px`·`dash_css_px`·`ink`·`ink_alpha` 로 한 타일(가로 p÷|sinθ| · 세로 p÷|cosθ| · 셈은 Core <see cref="StripeRules.HatchTile"/>)을 굽고
+        /// 되풀이는 <see cref="Image.Type.Tiled"/> 가 맡는다. 바탕(<paramref name="baseColor"/> · 그 카드의 `color-mix` 면 색)을 알므로 정본이 섞는 길(<see cref="SurfaceBlendRules.OverSrgb"/> · 겹마다 한 번)로
+        /// **미리 합성해 불투명하게** 굽는다 — Linear 색공간에서 알파 .13 검정을 그대로 얹으면 6% 만 어두워져 빗금이 반쯤 사라진다(T178 8회차·T357 과 같은 까닭).
+        /// </summary>
+        public static Sprite BakeHatch(string key, Color baseColor)
+        {
+            JsonObject one = Stripe(key);
+            double ang = J.Num(one["angle_deg"], 45);
+            float cssPx = CssPx;
+            double period = J.Num(one["period_css_px"], 0) * cssPx, dash = J.Num(one["dash_css_px"], 0) * cssPx;
+            if (period <= 0 || dash <= 0) throw new KeyNotFoundException(ResourcePath + ".json stripes." + key + " 에 period_css_px·dash_css_px 가 없다 (T178)");
+            Color ink = StripeColor(one["ink"]);
+            double a = J.Num(one["ink_alpha"], ink.a);
+            double tw, th;
+            StripeRules.HatchTile(ang, period, period * 64.0, out tw, out th);
+            int w = Mathf.Max(2, Mathf.RoundToInt((float)tw)), h = Mathf.Max(2, Mathf.RoundToInt((float)th));
+            int up = Mathf.Max(1, Mathf.CeilToInt(16f / Mathf.Min(w, h)));
+            w *= up; h *= up;
+            Color32 b = Byte4(baseColor), ik = Byte4(ink);
+            string name = "hatch-" + key + "-" + w + "x" + h + "-" + b.r + "." + b.g + "." + b.b;
+            Sprite hit;
+            if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            // 겹 수(0·1·2)마다 한 번씩 정본 길로 섞은 바이트 — 격자점(두 겹)은 두 번 곱해진다
+            Color32[] lv = new Color32[3];
+            lv[0] = new Color32(b.r, b.g, b.b, 255);
+            for (int n = 1; n < 3; n++)
+                lv[n] = new Color32(SurfaceBlendRules.OverSrgb(lv[n - 1].r, ik.r, a), SurfaceBlendRules.OverSrgb(lv[n - 1].g, ik.g, a), SurfaceBlendRules.OverSrgb(lv[n - 1].b, ik.b, a), 255);
+            double sx = tw / w, sy = th / h;
+            Color32[] px = new Color32[w * h];
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    double cx = (x + 0.5) * sx, cy = (h - 1 - y + 0.5) * sy;      // 화소 가운데 · 텍스처 y 는 아래가 0(BakeStripe 와 같다)
+                    px[y * w + x] = lv[StripeRules.HatchLayers(cx, cy, ang, period, dash)];
+                }
+            return Finish(name, w, h, px);
+        }
+
+        /// <summary>둥근 면 위에 교차 해칭을 얹는다 — 면에 <see cref="Mask"/>(정본은 `border-radius` 가 background 를 같이 자른다) · 되풀이는 `Tiled`. 면 색이 곧 바탕이라 불투명 타일이 면을 덮는다.</summary>
+        public static Image FillHatch(Image face, string name, string key, Color baseColor)
+        {
+            if (face.GetComponent<Mask>() == null) face.gameObject.AddComponent<Mask>().showMaskGraphic = true;
+            RectTransform rt = UiKit.Box(face.rectTransform, name);
+            UiKit.Fill(rt);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.type = Image.Type.Tiled;
+            img.sprite = BakeHatch(key, baseColor);
+            img.color = Color.white;
+            return img;
+        }
+
         static Sprite Finish(string name, int w, int h, Color32[] px)
         {
             Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false);

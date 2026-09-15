@@ -62,6 +62,32 @@ namespace Forge.Core.Ui
             return w > cap ? cap : w;
         }
 
+        /// <summary>
+        /// T178 15회차 — **교차 해칭**(정본 `.equip-cell`·`.auto-drop-card`·`.craft-batch .cb-card` 828·1063·1131):
+        /// `repeating-linear-gradient(45deg, rgba(0,0,0,.13) 0 2px, transparent 2px 12px)` 와 같은 −45deg 한 겹이 **겹쳐** 깔린다.
+        /// 그 화소를 덮는 겹의 수(0·1·2) — 두 겹이 다 덮는 격자점은 어두움이 두 번 곱해진다(브라우저는 위 겹을 아래 결과 위에 또 섞는다).
+        /// </summary>
+        public static int HatchLayers(double x, double y, double angleDeg, double period, double dash)
+        {
+            int n = 0;
+            if (IsInk(x, y, angleDeg, period, dash, 0)) n++;
+            if (IsInk(x, y, -angleDeg, period, dash, 0)) n++;
+            return n;
+        }
+
+        /// <summary>
+        /// 교차 해칭 **한 타일**의 가로·세로(캔버스 px) — 축이 θ 만큼 기울면 가로 주기는 p ÷ |sinθ|, 세로 주기는 p ÷ |cosθ| 라
+        /// 그 둘을 한 변으로 한 판은 상하좌우로 이어 붙여도 이음새가 없다(45° 면 둘 다 p√2 = 정본 1.556 꼴의 그 수). 축이 한 방향에 붙으면 <paramref name="cap"/> 에서 멎는다.
+        /// </summary>
+        public static void HatchTile(double angleDeg, double period, double cap, out double w, out double h)
+        {
+            double ax, ay;
+            Axis(angleDeg, out ax, out ay);
+            double sx = Math.Abs(ax), sy = Math.Abs(ay);
+            w = sx < 1e-6 ? cap : Math.Min(cap, period / sx);
+            h = sy < 1e-6 ? cap : Math.Min(cap, period / sy);
+        }
+
         /// <summary>한 주기 판을 가로로 몇 번 되풀이해 그 폭을 채우나(타일 수 · 1 이상).</summary>
         public static int TileCount(double widthPx, double tileWidthPx)
         {

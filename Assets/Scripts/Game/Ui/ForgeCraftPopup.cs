@@ -196,7 +196,12 @@ namespace Forge.Game.Ui
             RectTransform tile = ForgeUi.ItemTile(parent, "card", size, h.Defs, it);
             // T371 5회차 — 정본 1063 `.auto-drop-card` · 1131 `.craft-batch .cb-card { background: color-mix(in srgb, var(--rc) 58%, #17181a); border: … 80%, #000 }`:
             //   ItemTile 은 ForgeUi.CellFace/CellLine(비율이 코드에 박힘 · T332 lock)로 칠하므로 부르는 쪽이 표 `ColorMixUi.json` 으로 덮는다(2회차 모루 카드와 같은 길 · §1).
-            MixFrame(tile, ForgeUi.AgeColor(h.Defs, it.Age), faceKey, lineKey);
+            Color ac = ForgeUi.AgeColor(h.Defs, it.Age);
+            MixFrame(tile, ac, faceKey, lineKey);
+            // T178 15회차 — 정본 1063·1131 은 그 면 위에 `.equip-cell`(828) 과 같은 **45°/−45° 교차 해칭**(rgba(0,0,0,.13) 2px / 12px 주기)을 두 겹 깐다(주석 «장비 슬롯과 똑같이 … 해칭 배경을 그대로 옮겼다»).
+            //   표 `SurfaceUi.json` stripes.cell_hatch · 바탕이 곧 이 면의 color-mix 색이라 그 색 위에 미리 합성해 굽고 둥근 면이 마스크한다.
+            Transform hf = tile != null ? tile.Find("frame/face") : null;
+            if (hf != null) SurfaceArt.FillHatch(hf.GetComponent<Image>(), "hatch", "cell_hatch", ColorMixUi.Mix(faceKey, ac));
             return tile;
         }
 
