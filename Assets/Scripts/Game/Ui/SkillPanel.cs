@@ -78,7 +78,14 @@ namespace Forge.Game.Ui
             PetSkillKit.Fill(banner, "bg", PetSkillStyle.C("passive_bg"), PetSkillStyle.Px("passive_r_rem"));
             TextMeshProUGUI bt = PetSkillKit.Text(banner, "t", TextKind.Sub, PetSkillStyle.T("passive_banner", PetSkillStyle.Fmt(pb.Atk), PetSkillStyle.Fmt(pb.Hp)), PetSkillStyle.C("ink"));
             UiKit.Fill(bt.rectTransform);
-            y += bh + gap;
+
+            // T369 2회차 — **격자가 시작하는 자리는 쌓는 순서가 아니라 표가 쥔다**: 정본 `style.css` 4013~4015 `.sk-grid` 머리말이
+            // «1행 오브 상단 92px(10.34%H)» 라고 값을 글자로 못 박아 두었다(원본 shot-042340 · 앱 496×890 · 화소 재확인 y92).
+            // 클론은 머리·배너를 쌓은 나머지로만 정해져 8.96%H 였다(−13px · 부제 띠 ↔ 오브 틈이 정본 21px ↔ 클론 9px).
+            // 표값은 **화면 위끝** 기준이고 이 패널은 시트 padding 만큼 내려와 앉으므로 그만큼 뺀 자리가 지역 y 다.
+            // 머리·배너의 높이는 건드리지 않는다(둘 다 자리가 맞다 · 틈만 맞춘다).
+            // (종전 `y += bh + gap` 은 이 한 줄이 덮어쓰므로 지웠다 — 두 자리가 다투면 나중 것이 이기는 줄을 남기지 않는다.)
+            y = PetSkillStyle.Px("sk_grid_top_h") - PetSkillStyle.Px("pad_rem");
 
             // ---- 아래부터 위로 자리 잡기: summon-bar · 버튼 행 · 장착됨 행 ----
             float barH = PetSkillStyle.Px("bar_h");
