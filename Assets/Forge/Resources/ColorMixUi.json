@@ -14,8 +14,6 @@
   "held_deck_edge": { "mix_f": 0.55, "with": "#dfe4ec" },
   "_held_deck_gap": "style.css 1013 `--dgap` — 장 사이 틈",
   "held_deck_gap": { "mix_f": 0.15, "with": "#05060a" },
-  "_held_deck_before": "style.css 1026 `.deck::before` background",
-  "held_deck_before": { "mix_f": 0.3, "with": "#17181a" },
   "_drop_card_face": "style.css 1063 `.auto-drop-card` background",
   "drop_card_face": { "mix_f": 0.58, "with": "#17181a" },
   "_drop_card_line": "style.css 1063 `.auto-drop-card` border",

@@ -28,9 +28,10 @@ TABLE = {
     ('.anvil-btn.held-slot', 'border'): ['Ui/ForgeSheet.cs$held_line'],
     ('.anvil-btn.held-slot.deck', '--dedge'): ['Ui/ForgeSheet.cs$held_deck_edge'],
     ('.anvil-btn.held-slot.deck', '--dgap'): ['Ui/ForgeSheet.cs$held_deck_gap'],
-    ('.anvil-btn.held-slot.deck::before', 'background'): ['Ui/ForgeSheet.cs$held_deck_before'],
-    ('.auto-drop-card', 'background'): ['Ui/ForgeAutoDrop.cs$drop_card_face'],
-    ('.auto-drop-card', 'border'): ['Ui/ForgeAutoDrop.cs$drop_card_line'],
+    # 정본 `.deck::before` 는 **덱의 앞면**이고 값이 `.held-slot` 면(30%, #17181a)과 같다 — 클론도 같은 한 장이라 같은 키를 가리킨다(T371 4회차).
+    ('.anvil-btn.held-slot.deck::before', 'background'): ['Ui/ForgeSheet.cs$held_face'],
+    ('.auto-drop-card', 'background'): ['Ui/ForgeCraftPopup.cs$drop_card_face'],
+    ('.auto-drop-card', 'border'): ['Ui/ForgeCraftPopup.cs$drop_card_line'],
     ('.craft-batch .cb-card', 'background'): ['Ui/ForgeCraftPopup.cs$batch_card_face'],
     ('.craft-batch .cb-card', 'border'): ['Ui/ForgeCraftPopup.cs$batch_card_line'],
     ('.cmp-img', 'background'): ['Ui/ForgeCraftPopup.cs$cmp_img_face'],
@@ -40,8 +41,8 @@ TABLE = {
     ('#forge-item-modal .idet-icon', 'border-color'): ['Ui/ForgeInfoPopup.cs$idet_icon_line'],
     ('.pet-tile .tile-face', 'background'): ['Ui/PetPanel.cs$pet_tile_face'],
     ('.pet-tile .tile-face', 'box-shadow'): ['Ui/PetPanel.cs$pet_tile_shadow', 'Ui/PetPanel.cs$pet_tile_shadow_2'],
-    ('.petd-wrap .petd-tile', '--petd-face'): ['Ui/PetDetailPopup.cs$petd_face'],
-    ('.petd-wrap .petd-tile', 'border'): ['Ui/PetDetailPopup.cs$petd_line'],
+    ('.petd-wrap .petd-tile', '--petd-face'): ['Ui/PetPanel.cs$petd_face'],
+    ('.petd-wrap .petd-tile', 'border'): ['Ui/PetPanel.cs$petd_line'],
     ('.equip-cell:not(.egg-cell)', 'box-shadow'): ['Ui/ForgeUi.cs$cell_shadow_1', 'Ui/ForgeUi.cs$cell_shadow_2'],
 }
 
@@ -51,10 +52,8 @@ KNOWN = {
     'Ui/ForgeUi.cs$cell_line': 'T371 1회차 — 같은 파일(T332 lock)',
     'Ui/ForgeUi.cs$cell_shadow_1': 'T371 1회차 — 그림자 두 겹은 T331(box-shadow 축) 과 겹치는 자리다 — 그 lock 뒤',
     'Ui/ForgeUi.cs$cell_shadow_2': 'T371 1회차 — 같은 자리(뒤 규칙 62%)',
-    'Ui/ForgeSheet.cs$held_deck_gap': 'T371 1회차 — 클론에 그 자리(장 사이 틈 색)가 아직 없다',
-    'Ui/ForgeSheet.cs$held_deck_before': 'T371 1회차 — 배선 전',
-    'Ui/ForgeAutoDrop.cs$drop_card_face': 'T371 1회차 — 클론 파일 이름이 다를 수 있다(자동 제련 낙하 카드) · 2회차에 자리부터 가린다',
-    'Ui/ForgeAutoDrop.cs$drop_card_line': 'T371 1회차 — 같은 자리',
+    'Ui/ForgeCraftPopup.cs$drop_card_face': 'T371 4회차 — 자리를 가렸다: 낙하 카드도 `ForgeCraftPopup.CraftCard` 가 세운다(T331 산 lock 뒤)',
+    'Ui/ForgeCraftPopup.cs$drop_card_line': 'T371 4회차 — 같은 자리(T331 lock)',
     'Ui/ForgeCraftPopup.cs$batch_card_face': 'T371 1회차 — 배선 전',
     'Ui/ForgeCraftPopup.cs$batch_card_line': 'T371 1회차 — 배선 전',
     'Ui/ForgeCraftPopup.cs$cmp_img_face': 'T371 1회차 — 배선 전',
@@ -63,8 +62,8 @@ KNOWN = {
     'Ui/PetPanel.cs$pet_tile_face': 'T371 1회차 — 클론은 이미 표(`PetSkillUi.json` `tile_face_mix_f`)로 읽는다 — 2회차에 **표 하나로 합칠지**(키 옮김) 정한다',
     'Ui/PetPanel.cs$pet_tile_shadow': 'T371 1회차 — 그림자(알파를 만드는 섞기) · T331 축과 겹친다',
     'Ui/PetPanel.cs$pet_tile_shadow_2': 'T371 1회차 — 같은 자리(뒤 규칙)',
-    'Ui/PetDetailPopup.cs$petd_face': 'T371 1회차 — 배선 전(정본은 이 값을 다음 줄 테에 다시 쓴다 · 사슬)',
-    'Ui/PetDetailPopup.cs$petd_line': 'T371 1회차 — 앞 색이 --rc 가 아니라 바로 위 --petd-face 다 — 셈을 잇는 자리',
+    'Ui/PetPanel.cs$petd_face': 'T371 4회차 — 자리를 가렸다: 펫 상세 타일도 `PetPanel.TileFace` 가 세운다(T331·T365 산 lock 뒤) · 정본은 이 값을 다음 줄 테에 다시 쓴다(사슬)',
+    'Ui/PetPanel.cs$petd_line': 'T371 4회차 — 같은 파일(T331·T365 lock) · 앞 색이 --rc 가 아니라 바로 위 --petd-face 다 — 셈을 잇는 자리',
 }
 
 MIX = 'color-mix('

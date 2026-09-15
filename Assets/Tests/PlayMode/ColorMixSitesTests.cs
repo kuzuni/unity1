@@ -112,5 +112,39 @@ namespace Forge.Tests.PlayMode
             AssertMix(rim.color, bc, 0.45, 0, 0, 0, "원판 테(정본 2111 45%, #000)");
             Assert.Greater(face.color.g * 255.0, bc.g * 255.0 + 20, "흰색을 섞었으니 원색보다 밝다(원색이면 이 회차가 한 일이 없다)");
         }
+
+        /// <summary>T371 4회차 — 보류가 여럿이면 «겹쳐 쌓인 덱» 이고, 정본 1039~1050 은 겹마다 **두 장**을 깐다:
+        /// `dg*i` 자리에 어두운 틈(`--dgap` 15%, #05060a) · 그 위 `dg*i − 1px` 에 밝은 단면(`--dedge` 55%, #dfe4ec).
+        /// 뒤 장이 오른쪽 1px 만 드러나 겹 사이에 어두운 선이 남는다 — 클론은 밝은 단면만 깔아 그 선이 없었다.</summary>
+        [UnityTest]
+        public IEnumerator 겹쳐_쌓인_덱은_겹마다_밝은_단면과_어두운_틈_두_장이다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            // 덱은 «보류가 둘 이상» 일 때만 선다(HeldDeckDepth) — 대기품 하나 + 대기열 둘로 세 장을 만든다.
+            h.SetPendingCraft(h.Engine.RollItem());
+            for (int i = 0; i < 2; i++) h.AutoQueue.Add(h.Engine.RollItem());
+            ForgeSheet.Render(h);
+            yield return null;
+            if (ForgeHost.HeldDeckDepth(h.HeldCount) < 1)
+                Assert.Ignore("이 세이브에선 덱이 안 선다(보류 " + h.HeldCount + "장 · 덱은 둘부터) — 잴 자리가 없다");
+
+            Transform deckEdge = null, deckGap = null;
+            foreach (Transform t in UiRoot.Instance.Sheet.GetComponentsInChildren<Transform>(true))
+            {
+                if (t.name == "deck-1") deckEdge = t;
+                else if (t.name == "deck-gap-1") deckGap = t;
+            }
+            Assert.IsNotNull(deckGap, "겹마다 어두운 틈 장이 있어야 한다(정본 --dgap)");
+            Assert.IsNotNull(deckEdge, "겹마다 밝은 단면 장이 있어야 한다(정본 --dedge)");
+
+            Color ac = ForgeUi.AgeColor(h.Defs, h.Pending.Age);
+            AssertMix(deckGap.GetComponent<Image>().color, ac, 0.15, 0x05, 0x06, 0x0a, "겹 사이 어두운 틈");
+            AssertMix(deckEdge.GetComponent<Image>().color, ac, 0.55, 0xdf, 0xe4, 0xec, "겹 단면");
+            Assert.Greater(deckEdge.GetSiblingIndex(), deckGap.GetSiblingIndex(), "단면이 틈 위에 깔려 틈은 오른쪽 1px 만 드러난다");
+            float line1 = UiKit.L("line_px");
+            Assert.AreEqual(line1, ((RectTransform)deckGap).anchoredPosition.x - ((RectTransform)deckEdge).anchoredPosition.x, 0.01f,
+                "단면은 틈보다 1 CSS px 왼쪽이다(정본 calc(var(--dg) * i − 1px))");
+        }
     }
 }

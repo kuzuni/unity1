@@ -293,13 +293,19 @@ namespace Forge.Game.Ui
                 int depth = ForgeHost.HeldDeckDepth(n);
                 Color ac = ForgeUi.AgeColor(h.Defs, held.Age);
                 float dg = rem * 0.21f;
+                // T371 4회차 — 정본 1039~1050: 겹마다 **두 장**이다 — `dg*i` 자리에 어두운 틈(`--dgap` 15%, #05060a) · 그 위 `dg*i − 1px` 자리에
+                //   밝은 단면(`--dedge`). 뒤 장이 오른쪽 1px 만 드러나 «단면 + 어두운 선» 이 되고, 그것이 정본 주석이 말한 «에지가 여러 겹 보이는
+                //   세로 줄무늬» 다. 클론은 밝은 단면만 깔아 겹 사이 선이 없었다(어두운 시대색에서 줄이 통째로 사라진다 — 정본이 겪고 적어 둔 그 병).
+                float line1 = UiKit.L("line_px");
                 for (int i = depth; i >= 1; i--)
                 {
+                    Image gap = UiKit.Rounded(rt, "deck-gap-" + i, "pp_paper", rem * 0.7f);
+                    gap.color = ColorMixUi.Mix("held_deck_gap", ac);
+                    UiKit.Place(gap.rectTransform, dg * i, 0f, w - dg * depth, bodyH);
                     Image edge = UiKit.Rounded(rt, "deck-" + i, "pp_paper", rem * 0.7f);
-                    // T371 2회차 — 정본 1013 `.anvil-btn.held-slot.deck { --dedge: color-mix(in srgb, var(--rc) 55%, #dfe4ec) }`.
-                    //   비율(.45 = 뒤 색 몫)과 상대색이 코드에 박혀 있었고 그 색이 #DEE3ED 로 채널마다 1 어긋나 있었다 — 둘 다 표로.
+                    // T371 2회차 — 정본 1013 `--dedge: color-mix(in srgb, var(--rc) 55%, #dfe4ec)`(비율·상대색이 코드에 박혀 있었다).
                     edge.color = ColorMixUi.Mix("held_deck_edge", ac);
-                    UiKit.Place(edge.rectTransform, dg * i, 0f, w - dg * depth, bodyH);
+                    UiKit.Place(edge.rectTransform, dg * i - line1, 0f, w - dg * depth, bodyH);
                 }
                 RectTransform card = UiKit.Box(rt, "card");
                 UiKit.Place(card, 0f, 0f, w - dg * depth, bodyH);
