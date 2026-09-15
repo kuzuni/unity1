@@ -261,7 +261,13 @@ namespace Forge.Game.Ui
             {
                 Sprite face = PetFaces.Get(ridden.Name, GalleryKind.Mounts);
                 PopupKit.IconOr(rt, "img", "horse");                                     // 자리를 먼저 세우고(못 구웠으면 이 아이콘이 남는다 · 정본 mountFace 도 그림 전엔 글리프다)
-                ForgeUi.ApplyThumb(rt, face, hgt);                                       // 장비 칸과 **같은 깔때기** — null 이면 조용히 건너뛴다(접지 그림자 T332 도 그 한 곳이 건다)
+                // T381 3회차 — **상자는 셀이 아니라 «셀 바깥 사각형»** 이다. 정본 `style.css` 1869~1877 `.equip-cell .cell-img` 는
+                //   `left/top: -cellb · width/height: calc(100% + 2*cellb)`(cellb = `round(down, var(--ol3), 1px)` = 셀 테 두께)로
+                //   **테 두께만큼 밖으로** 깔리고, 그 안의 그림은 7616 `.equip-cell .cell-img.mt-face.has-thumb > img { width:100%; height:100% }` 로 상자를 꽉 채운다.
+                //   정본 주석(1866~1868)이 그 까닭을 못 박아 뒀다 — 옛 값(74% + 하단 패딩)은 «화면 잉크가 18%밖에 안 됐다».
+                //   ⚠ 탈것 칸의 얼굴은 `fit-ink` 가 **아니다**(`creatureFace` 가 낸 `<img>` 에 그 클래스가 없다 · `fitThumbs` 는 `img.fit-ink` 만 만진다) —
+                //   곧 잉크 정규화 없이 **상자 크기가 곧 얼굴 크기**다. 종전 `hgt` 는 테 두께 두 배만큼(≈9.1%) 작았다.
+                ForgeUi.ApplyThumb(rt, face, hgt + PopupKit.Line3 * 2f);                 // 장비 칸과 **같은 깔때기** — null 이면 조용히 건너뛴다(접지 그림자 T332 도 그 한 곳이 건다)
                 ForgeUi.LvBadge(rt, ridden.Level, hgt);                                  // 정본 1532 `<span class="cell-lv">Lv.N</span>`
                 int extra = ms.State != null && ms.State.ActiveMounts != null ? Mathf.Max(0, ms.State.ActiveMounts.Count - 1) : 0;
                 if (extra > 0) MountCountBadge(rt, extra, w);                            // 정본 1533 «+N»(UI.MOUNT_COUNT_STYLE)

@@ -72,6 +72,18 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(img, "탄 탈것은 얼굴 자리를 그린다(정본 mountFace · 못 구우면 아이콘이 남는다)");
             Sprite baked = Forge.Game.Ui.PetFaces.Get(ms.RiddenInst().Name, Forge.Game.Gallery.GalleryKind.Mounts);
             if (baked != null) Assert.AreSame(baked, img.GetComponent<Image>().sprite, "구운 썸네일이 있으면 그것으로 갈아 끼운다");
+            // T381 3회차 — 얼굴 상자는 **셀 바깥 사각형**이다(정본 1869~1877 `.equip-cell .cell-img`: 테 두께만큼 밖으로 · `100% + 2*cellb`).
+            //   탈것 얼굴은 `fit-ink` 가 아니라 잉크 정규화가 없으므로 **상자 크기가 곧 얼굴 크기**다 — 종전 값은 테 두께 두 배만큼 작았다.
+            //   `ApplyThumb` 는 구운 썸네일이 있을 때만 크기를 다시 잡으므로 그 갈래에서만 잰다(CI 에서 못 굽는 자리가 있다 · 2회차).
+            if (baked != null)
+            {
+                RectTransform cellRt = (RectTransform)cell;
+                RectTransform imgRt = (RectTransform)img;
+                float want = cellRt.rect.height + Forge.Game.Ui.PopupKit.Line3 * 2f;
+                Assert.AreEqual(want, imgRt.rect.height, 0.6f, "얼굴 상자 = 셀 높이 + 테 두께 두 배(정본 cell-img)");
+                Assert.AreEqual(want, imgRt.rect.width, 0.6f, "정사각 상자다(정본도 같은 값을 폭·높이에 준다)");
+                Assert.Greater(imgRt.rect.height, cellRt.rect.height, "셀보다 커야 한다 — 테 위로 걸친다");
+            }
             Transform lv = cell.Find("lv");
             Assert.IsNotNull(lv, "탄 탈것은 Lv 배지를 그린다(정본 1532 .cell-lv)");
             StringAssert.Contains("Lv", lv.GetComponent<TextMeshProUGUI>().text);
