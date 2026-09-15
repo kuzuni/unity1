@@ -135,5 +135,37 @@ namespace Forge.Tests.PlayMode
             tb.OnTab("summon");
             yield return null;
         }
+
+        static RectTransform FindIn(Transform root, string name, bool prefix = false)
+        {
+            foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+                if (prefix ? t.name.StartsWith(name, System.StringComparison.Ordinal) : t.name == name) return (RectTransform)t;
+            return null;
+        }
+
+        /// <summary>ⓒⓓⓔ 자동 제련 팝업 — 스피너(5011 .1rem) · 계속하기 체크(4982 .06rem) · 하위 행(5002 .06rem · 레이아웃 자식이라 기준 자리는 누르는 순간).</summary>
+        [UnityTest]
+        public IEnumerator 자동_제련_팝업의_스피너_체크_하위_행은_누르면_표대로_내려가고_떼면_놓인_자리로_온다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.S.BestChapter = 3; h.S.BestStage = 1; h.Pull();   // 2-10 뒤에만 열린다(ForgeCardWidthTests 가 쓰는 길)
+            Assert.IsTrue(h.AutoForgeUnlocked, "2-10 뒤 해금");
+            ForgeAutoPopup.Open(h);
+            yield return null;
+            yield return null;   // 레이아웃 그룹이 하위 행을 제자리에 놓는 프레임
+            Popup p = h.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(p, "자동 제련 팝업이 열린다");
+            RectTransform sp = FindIn(p.Root, "af-spinner");
+            RectTransform ck = FindIn(p.Root, "af-check-continue");
+            RectTransform row = FindIn(p.Root, "af-sub-", true);
+            Assert.IsNotNull(sp, "스피너"); Assert.IsNotNull(ck, "계속하기 체크"); Assert.IsNotNull(row, "하위 행 하나");
+            yield return AssertPress(sp, "af_spinner");
+            yield return AssertPress(ck, "af_check");
+            Assert.AreNotEqual(0f, row.anchoredPosition.y, "레이아웃이 행을 놓았다(0 이면 아직 안 놓인 것)");
+            yield return AssertPress(row, "af_sub_row");
+            ForgeAutoPopup.Close(h);
+            yield return null;
+        }
     }
 }

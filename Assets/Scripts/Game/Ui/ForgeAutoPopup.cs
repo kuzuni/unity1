@@ -100,6 +100,7 @@ namespace Forge.Game.Ui
             UiKit.Place(spRt, inner - spW, rem * 0.15f, spW, rowH - rem * 0.3f);
             // T345 — 정본 4783 `.af-spinner { border-radius: .45rem }`(표 `af_spinner_r_rem` · 전엔 .3rem)
             Image spf = RadiusUi.Rounded(spRt, "face", "pp_line", "af_spinner_r_rem");
+            PressFx.Attach(sp.gameObject, spRt, "af_spinner", spf);   // T355 ⓔ — 정본 5009·5011 .af-spinner:active { translateY(.1rem) · .07s ease-out }
             TextMeshProUGUI spt = UiKit.Text(spRt, "value", TextKind.Sub, NumFmt.Fmt(cfg.HammersPerBatch) + (ddOpen ? "  ▼" : "  ▲"), "stage_ink", TextAlignmentOptions.Right);
             spt.fontStyle = FontStyles.Bold;
             spt.rectTransform.offsetMax = new Vector2(-rem * 0.5f, 0f);
@@ -110,7 +111,8 @@ namespace Forge.Game.Ui
             Button ck = UiKit.Button(bottom, "af-check-continue", () => h.ToggleStopOnTarget());
             RectTransform ckRt = ck.GetComponent<RectTransform>();
             UiKit.Place(ckRt, inner - cb, rowH + (rowH - cb) * 0.5f, cb, cb);
-            ForgeUi.Tile(ckRt, "box", cfg.StopOnTarget ? Color.black : new Color(0.14f, 0.77f, 0.32f, 1f), Color.black, cb * 0.2f, PopupKit.Line);
+            Image ckf = ForgeUi.Tile(ckRt, "box", cfg.StopOnTarget ? Color.black : new Color(0.14f, 0.77f, 0.32f, 1f), Color.black, cb * 0.2f, PopupKit.Line);
+            PressFx.Attach(ck.gameObject, ckRt, "af_check", ckf);   // T355 ⓒ — 정본 4974·4982 .af-check:active { translateY(.06rem); brightness(1.12) · .07s }(계속하기 체크 = ui.js 2318)
             if (!cfg.StopOnTarget)
             {
                 Image mk = PopupKit.IconOr(ckRt, "mark", "check");
@@ -164,6 +166,7 @@ namespace Forge.Game.Ui
             Button b = row.gameObject.AddComponent<Button>();
             b.targetGraphic = face;
             b.onClick.AddListener(() => onClick());
+            PressFx.Attach(row.gameObject, row, "af_sub_row", face);   // T355 ⓓ — 정본 5000·5002 .af-sub-row:active { translateY(.06rem); brightness(.97) · .07s } · 행은 레이아웃 자식이라 기준 자리는 누르는 순간 잡힌다
         }
     }
 

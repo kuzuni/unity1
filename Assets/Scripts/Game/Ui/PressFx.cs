@@ -77,6 +77,14 @@ namespace Forge.Game.Ui
         void Begin(bool down)
         {
             if (pressed == down) return;
+            // T355 2회차 — 기준 자리는 «놓인 상태에서 누르는 순간» 다시 잡는다: 레이아웃 그룹 자식(자동 제련 하위 행)은 Attach 때 (0,0) 이었다가
+            //   첫 프레임 뒤에야 제자리에 놓이고, 칸도 Place 뒤에 옮겨진다 — 그때의 값이 정본 `transform: none` 이다. 눌린·되돌아가는 중엔 안 잡는다.
+            if (down && !Active && Target != null)
+            {
+                basePos = Target.anchoredPosition;
+                baseScale = Target.localScale;
+                if (tint != null) baseColor = tint.color;
+            }
             pressed = down;
             from = phase;
             elapsedMs = 0;
