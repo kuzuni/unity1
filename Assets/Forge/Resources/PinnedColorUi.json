@@ -8,7 +8,8 @@
     "dmg_kill_ink": "#fff3c4",
     "dmg_skill_ink": "#82b1ff",
     "dmg_hero_ink": "#fff2f4",
-    "dmg_block_ink": "#90caf9"
+    "dmg_block_ink": "#90caf9",
+    "offline_sub_ink": "#cccccc"
   },
   "_잉크": "T396 — 정본이 «색·펀치로 위계를 준다» 며 선택자에만 리터럴로 못박은 **글자 색**. 전투 숫자 다섯이 그 묶음이다(style.css 508 크리 · 511 처치 · 526 스킬 · 527 영웅 피해 · 550 막음). 클론은 전역 잉크 토큰으로 찍고 있었다 — 스킬(#82b1ff)·막음(#90caf9)은 파랑·하늘색인데 흰색(stage_ink)이었다. `.float-dmg.heal`(#69f0ae)은 카탈로그 `pip_done` 이 같은 값이라 그대로 둔다(토큰을 써도 되는 자리)."
 }

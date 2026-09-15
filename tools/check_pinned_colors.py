@@ -61,11 +61,17 @@ TABLE_INK = {
     '.float-dmg.block': ['Battle/DamageNumbers.cs@Style|res:PinnedColorUi:dmg_block_ink'],
     # 값이 이미 같아 토큰을 써도 되는 자리(자가 그 값을 지킨다 · T377 결정 636 과 같은 셈)
     '.float-dmg.heal': ['Battle/DamageNumbers.cs@Style|catalog:pip_done'],
+    # T396 3회차 — 산 lock 이 없는 파일 셋. 둘은 이미 맞았고(자가 그 값을 지킨다) 하나는 근사였다.
+    '.bw-sub': ['Ui/BattleOverlay.cs|catalog:coin'],                        # 정본 409 #ffd54f ↔ 카탈로그 coin 같은 값
+    '.waypoint-time': ['Ui/Waypoints.cs|res:WaypointsUi:time_ink'],         # 정본 326 #ffd54f ↔ WaypointsUi.time_ink 같은 값
+    '.offline-sub': ['Ui/OfflinePopup.cs|res:PinnedColorUi:offline_sub_ink'],   # 정본 267 #ccc ↔ 클론은 pp_gray(#c4c4c4) 였다
 }
 KNOWN_INK = {
 }
 
 HEX = re.compile(r'#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b')
+# `@keyframes` 단계 — `0%` · `12.5%` · `from` · `to` · 쉼표로 묶인 것(`0%, 40%`). 선택자가 아니다(T396 3회차).
+STEP_SEL = re.compile(r'^(?:\d+(?:\.\d+)?%|from|to)(?:\s*,\s*(?:\d+(?:\.\d+)?%|from|to))*$')
 
 
 def norm_hex(h):
@@ -100,6 +106,12 @@ def pinned_decls(css_text, props):
     for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', css):
         sel_raw = ' '.join(m.group(1).split())
         if sel_raw.startswith('@') or 'keyframes' in sel_raw:
+            continue
+        # ⚠ `@keyframes` 의 **단계**(`0%` · `from` · `to`)는 선택자가 아니다(T396 3회차).
+        #    바깥 블록 `@keyframes name { … }` 은 위에서 걸러지지만, 이 정규식은 **안쪽 블록**을 따로 물어
+        #    `0% { color: #ff8a1e }` 를 «선택자 0%» 로 셌다 — 그것은 «못박은 색» 이 아니라 **연출 중간값**(T173·T334 축)이고,
+        #    고칠 자리가 없어 «미정» 에 영원히 남는다(실측: 잉크 105 중 둘이 `@keyframes dmgcrit` 의 0%·9% 였다).
+        if STEP_SEL.match(sel_raw):
             continue
         line = css[:m.start()].count('\n') + 1
         for d in m.group(2).split(';'):
@@ -336,6 +348,21 @@ def self_test():
        (inks.get('.both', (0, None))[1], ifaces.get('.both', (0, None))[1]), ('#7ee2a8', '#ff1017'))
     eq('ⓘ 잉크만 있는 자리는 면 목록에 없다', '.crit' in ifaces, False)
     eq('ⓙ 값 정규화·줄 번호', (inks['.crit'][1], inks['.crit'][0] > 0), ('#ff8a1e', True))
+
+    # ⓚ T396 3회차 — `@keyframes` 의 **단계**는 선택자가 아니다. 바깥 블록은 이미 걸러지지만
+    #    안쪽 블록(`0% { … }`)이 따로 물려 «선택자 0%» 로 세어지던 자리다(실측: `@keyframes dmgcrit` 의 0%·9%).
+    kf_css = '''@keyframes dmgcrit {
+  0%   { color: #ff8a1e; }
+  12.5% { background: #123456; }
+  from, to { color: #abcdef; }
+}
+.real { color: #ff8a1e; }
+'''
+    kf_ink = pinned_inks(kf_css); kf_face = pinned_faces(kf_css)
+    eq('ⓚ 키프레임 단계는 잉크로 안 센다', sorted(kf_ink), ['.real'])
+    eq('ⓚ 키프레임 단계는 면으로도 안 센다', sorted(kf_face), [])
+    eq('ⓚ `from, to` 묶음도 안 센다', 'from, to' in kf_ink, False)
+    eq('ⓚ 진짜 선택자는 그대로 선다', kf_ink['.real'][1], '#ff8a1e')
     with tempfile.TemporaryDirectory() as d:
         cssp = os.path.join(d, 'style.css'); open(cssp, 'w', encoding='utf-8').write(css)
         game = os.path.join(d, 'game'); os.makedirs(os.path.join(game, 'Ui'))
@@ -370,7 +397,7 @@ def self_test():
             eq('ⓜ CSS 없음 → rc 2', run(os.path.join(d, 'no.css'), game, cat, res, out=lines.append), 2)
         finally:
             TABLE, KNOWN, TABLE_INK, KNOWN_INK = saved
-    n = 20   # T377 14 + T396 잉크 갈래 6
+    n = 24   # T377 14 + T396 잉크 갈래 6 + 키프레임 단계 막이 4
     if fails:
         print('✗ check_pinned_colors --self-test 실패 %d' % len(fails))
         for f in fails:

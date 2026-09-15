@@ -41,12 +41,16 @@ namespace Forge.Game.Ui
             float lineH = PopupKit.FontSize(TextKind.Sub) * 1.3f;
             TextMeshProUGUI subL = UiKit.Text(top, "sub", TextKind.Sub, "수집 시간:", SubInkKey, TextAlignmentOptions.Right);
             subL.fontStyle = FontStyles.Bold;
+            // T396 3회차 — 정본 267 `.offline-sub { color: #ccc }` 는 **선택자에 못박은 잉크**다. 종전 클론은 전역 `pp_gray`(#c4c4c4)로
+            //   «가장 가까운 토큰» 을 골라 찍고 있었다(이 파일의 옛 주석이 그 바꿔치기를 그대로 적어 뒀다). 값은 표가 쥔다(§1).
+            subL.color = PinnedColorUi.C(SubPinnedInk);
             UiKit.Place(subL.rectTransform, 0f, y, inner * 0.45f, lineH);
             counted = UiKit.Text(top, "counted", TextKind.Sub, string.Empty, GreenKey, TextAlignmentOptions.Left);
             counted.fontStyle = FontStyles.Bold;
             UiKit.Place(counted.rectTransform, inner * 0.47f, y, inner * 0.3f, lineH);
             max = UiKit.Text(top, "max", TextKind.Sub, string.Empty, SubInkKey, TextAlignmentOptions.Left);
             max.fontStyle = FontStyles.Bold;
+            max.color = PinnedColorUi.C(SubPinnedInk);   // 같은 줄의 짝 — 정본도 한 선택자(.offline-sub)가 둘을 덮는다
             UiKit.Place(max.rectTransform, inner * 0.77f, y, inner * 0.23f, lineH);
             y += lineH + rem * 1.2f;
             // 요율 둘 — 세로(아이콘 위 · 글자 아래) · 두 칸 사이 2.4rem · 행 전체를 가운데에
@@ -102,8 +106,10 @@ namespace Forge.Game.Ui
         /// <summary>정본 `.offline-top` — 카드 높이의 42.80%(원본 헤더 23.27%H / 카드 콘텐츠 54.37%H). 어두운 판 `#0e111b` 은 카탈로그에 가장 가까운 `pp_ink`(T62 lock 뒤 키 추가).</summary>
         public const float TopFrac = 0.4280f;
         public const string TopFaceKey = "pp_ink";
-        /// <summary>정본 `.offline-sub` 글자 `#ccc` → `pp_gray`(#c4c4c4).</summary>
+        /// <summary>정본 `.offline-sub` 글자 — 종류·하한을 위해 남겨 둔 **카탈로그 폴백** 키(값은 아래 못박은 잉크가 덮는다).</summary>
         public const string SubInkKey = "pp_gray";
+        /// <summary>T396 3회차 — 정본 267 `.offline-sub { color: #ccc }` 를 그대로 쥔 표 키(`PinnedColorUi.json`). 전엔 `pp_gray`(#c4c4c4)로 근사했다.</summary>
+        public const string SubPinnedInk = "offline_sub_ink";
         /// <summary>정본 `--pp-green`(시간·요율·해머 원판) = 카탈로그 `offline_green`.</summary>
         public const string GreenKey = "offline_green";
         /// <summary>정본 `.offline-collect-dot` — .7rem 빨간 원 · 흰 테(`--ol2`) · 버튼 우상단(top/right −.3rem).</summary>
