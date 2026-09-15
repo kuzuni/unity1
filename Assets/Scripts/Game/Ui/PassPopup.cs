@@ -32,9 +32,13 @@ namespace Forge.Game.Ui
             float w = UiKit.RefW, H = UiKit.RefH;
             float cardW = UiKit.L("pass_card_w") * w;
             float padTop = UiKit.H("pass_pad_top"), padBottom = UiKit.H("pass_pad_bottom");
-            float bannerH = UiKit.H("pass_banner_h") * 1.3f;
+            // T378 5회차 — 표에 **원작 실측**(리본 41px/890 = 4.61%H)이 이미 들어 있는데 코드가 ×1.3 을 얹고 있었다.
+            //   정본 `.pass-banner`(style.css 2705~2713)는 높이를 안 주고 `padding .49rem .5rem` + `font-size 1.05rem/line-height 1.15` 로 **내용이 정한다** —
+            //   클론은 그 결과 높이를 표로 받으므로 곱을 얹을 자리가 없다.
+            float bannerH = UiKit.H("pass_banner_h");
             float descH = PopupKit.FontSize(TextKind.Sub) * 2.8f;
-            float headerH = UiKit.H("pass_header_h") * 1.5f;
+            // T378 5회차 — 정본 `.pass-header-row span`(2764~2765)은 `padding .2rem 0 · line-height 1` 이라 역시 내용이 높이를 정한다. 표값 2.92%H 가 그 실측이다.
+            float headerH = UiKit.H("pass_header_h");
             float trackH = UiKit.H("pass_track_h");
             float cardH = padTop + bannerH + rem * 1.19f + descH + rem * 1.31f + headerH + trackH + padBottom;
             RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "pass_bg", rem);
@@ -71,7 +75,8 @@ namespace Forge.Game.Ui
             d.fontStyle = FontStyles.Bold;
             d.textWrappingMode = TextWrappingModes.Normal;
             UiKit.Place(d.rectTransform, 0f, 0f, inner * 0.5f, descH);
-            float priceW = UiKit.L("pass_price_w") * w * 1.2f, priceH = UiKit.H("pass_price_h");
+            // T378 5회차 — 가격 페넌트(정본 2739 `.pass-price`)는 `width: fit-content` 라 폭이 글자에서 나고, 표의 15.98%W 가 그 원작 실측이다. ×1.2 는 클론이 얹은 곱이다.
+            float priceW = UiKit.L("pass_price_w") * w, priceH = UiKit.H("pass_price_h");
             Button price = UiKit.Button(desc, "price", () => h.Toast("💎 프리미엄 패스는 데모 버전에서 지원하지 않습니다"));
             RectTransform prt = price.GetComponent<RectTransform>();
             UiKit.Place(prt, inner * 0.75f - priceW * 0.5f, (descH - priceH) * 0.5f, priceW, priceH);

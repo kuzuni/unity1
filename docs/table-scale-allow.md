@@ -28,9 +28,6 @@
 | `Ui/LeagueSheet.cs` | `lc_pill_w` | ×1.3 | 임시 | T331 lock 뒤(321 · `* w * 1.3f`) |
 | `Ui/ForgeCraftPopup.cs` | `btn_h` | ×1.7 | 임시 | T331 lock 뒤 · 큰 버튼 둘(71·72) — 정본이 그 버튼에 준 높이와 대조 |
 | `Ui/ForgeCraftPopup.cs` | `btn_h` | ×1.5 | 임시 | T331 lock 뒤 · 버튼 둘(119·120) |
-| `Ui/PassPopup.cs` | `pass_banner_h` | ×1.3 | 임시 | T375 lock 뒤(35) |
-| `Ui/PassPopup.cs` | `pass_header_h` | ×1.5 | 임시 | T375 lock 뒤(37) |
-| `Ui/PassPopup.cs` | `pass_price_w` | ×1.2 | 임시 | T375 lock 뒤(74 · `* w * 1.2f`) |
 | `Ui/QuestSheet.cs` | `quest_btn_w` | ×1.6 | 임시 | T331 lock 뒤(46) |
 | `Ui/QuestSheet.cs` | `quest_btn_h` | ×1.3 | 임시 | T331 lock 뒤(46) |
 | `Ui/QuestSheet.cs` | `quest_bar_h` | ×1.6 | 임시 | T331 lock 뒤(56) |
