@@ -116,5 +116,45 @@ namespace Forge.Tests.PlayMode
             SkillPetSheet.Instance.Modal.CloseAll();
             yield return null;
         }
+
+        /// <summary>T352 3회차 — 정본 8635 `.league-score { font-variant-numeric: tabular-nums }`:
+        /// 랭킹 창 8행 + 발 밴드의 내 행 점수가 세로 열을 이루므로(정본 주석 «행마다 좌우로 흔들리던 자리») 숫자 구간이 등폭이어야 한다.
+        /// 자리는 `LeagueSheet` 행의 상자 «score» 안 IconTextRow «text» 의 글자 조각 — 봇 점수 20~200 이라 이웃 숫자가 있다.</summary>
+        [UnityTest]
+        public IEnumerator 리그_점수는_숫자_구간이_등폭이다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            h.OpenLeague();
+            yield return null;
+            Popup p = PopupLayer.Instance.Find(LeagueSheet.Name);
+            Assert.IsNotNull(p, "리그 시트가 열린다");
+
+            float em = TabularText.DigitEm(UiFont.Primary);
+            int scores = 0, measured = 0;
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                Transform tp = t.transform.parent;
+                if (tp == null || tp.name != "text" || tp.parent == null || tp.parent.name != "score") continue;   // 상자 «score» → IconTextRow «text» → 글자 조각
+                if (!TabularNums.IsWrapped(t.text)) continue;         // 아이콘 조각 옆의 빈 글자 등은 도우미가 안 건드린다
+                scores++;
+                Assert.IsTrue(t.richText, "점수 «" + t.text + "» — <mspace> 를 쓰려면 richText");
+                t.ForceMeshUpdate(true, true);
+                TMP_TextInfo info = t.textInfo;
+                float cell = em * t.fontSize, tol = cell * 0.15f;
+                for (int i = 0; i + 1 < info.characterCount; i++)
+                {
+                    TMP_CharacterInfo a = info.characterInfo[i], b = info.characterInfo[i + 1];
+                    if (!char.IsDigit(a.character) || !char.IsDigit(b.character)) continue;
+                    Assert.AreEqual(cell, b.origin - a.origin, tol, "이웃 숫자의 시작 x 간격 = 칸(" + t.text + ")");
+                    measured++;
+                }
+            }
+            Assert.Greater(scores, 1, "정본 `.league-score` — 랭킹 행마다 점수(창 8행 + 발 밴드의 내 행)");
+            Assert.Greater(measured, 0, "두 자리 이상 점수가 하나는 있어야 간격을 잰다(봇 점수 20~200)");
+
+            LeagueSheet.Close(h);
+            yield return null;
+        }
     }
 }

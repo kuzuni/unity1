@@ -154,7 +154,9 @@ namespace Forge.Game.Ui
             // 클론은 «★»(U+2605) 글자로 찍어 글꼴에 없어 □ 였다 — 표의 ⭐ 를 써서 같은 `star` 아이콘 + 수로 세운다.
             RectTransform scRow = UiKit.IconTextRow(score, "text", TextKind.Sub, "⭐ " + PopupKit.Fmt(e.Score), "stage_ink");
             // T333 3회차 — 정본 8392 는 `.league-score` 도 같은 한 겹을 받는다(알약 판 위 점수).
-            foreach (TextMeshProUGUI piece in UiKit.RowTexts(scRow)) { piece.fontStyle = FontStyles.Bold; UiKit.TextShadow(piece, "league_row"); }
+            // T352 3회차 — 정본 8635 `.league-score { font-variant-numeric: tabular-nums }`(주석: «세로로 열을 이루는 숫자만 등폭으로 — 행마다 좌우로 흔들리던 자리»).
+            //             점수는 봇 20~200 · 내 점수라 두세 자리가 창 8행 + 발 밴드에서 세로 열을 이룬다 — 숫자 구간만 <mspace> 로(결정 570 · 칸 폭은 글꼴에서).
+            foreach (TextMeshProUGUI piece in UiKit.RowTexts(scRow)) { piece.fontStyle = FontStyles.Bold; UiKit.TextShadow(piece, "league_row"); TabularText.Apply(piece); }
             TextMeshProUGUI sv = UiKit.Text(row, "server", TextKind.Sub, "서버 " + e.Server, e.IsMe ? "stage_ink" : "league_server", TextAlignmentOptions.Right);
             // T109 5회차 — 정본 2355 `.league-row.me .league-server { max(1.2px, .1em) var(--pp-line) }`: 파란 me 행만 키라인.
             // 어두운 행의 회색 «서버 N» 은 정본도 민무늬다(2350 주석: 근흑 판 위라 검정 링이 아무것도 안 갈라 준다).
