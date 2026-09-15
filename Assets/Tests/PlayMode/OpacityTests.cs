@@ -54,7 +54,9 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0.45f, OpacityUi.A("btn_disabled"), 1e-6f);
             Assert.AreEqual(0.7f, OpacityUi.A("cmp_card_empty"), 1e-6f);
             Assert.AreEqual(0.85f, OpacityUi.A("idet_icon_tn_dim"), 1e-6f);
-            Assert.AreEqual(0.9f, OpacityUi.A("ob_zzz"), 1e-6f);
+            // T359 3회차 — `ob_zzz` 는 표에서 걷었다: 정본 232 `.ob-zzz i` 는 `opacity: 0` + 애니메이션이고 `.9` 는
+            //   242~247 `@media (prefers-reduced-motion: reduce)` 안의 갈래다(클론은 이미 매 프레임 애니메이션을 돈다).
+            Assert.Throws<KeyNotFoundException>(() => OpacityUi.A("ob_zzz"), "정적값이 아니라 걷은 키다");
             Assert.AreEqual(0.1f, OpacityUi.A("toasts_rw_dim"), 1e-6f);
             Assert.AreEqual(0.7f, OpacityUi.Rem("asc_arrow", "font_rem"), 1e-6f);
             Assert.AreEqual(0.1f, OpacityUi.Rem("asc_arrow", "ml_rem"), 1e-6f);

@@ -1,15 +1,51 @@
 {
   "_": "T359 — 정본 style.css 의 정적 opacity(연출 @keyframes 밖 · 0/1 뺀 20 자리 중 표로 안 읽히던 아홉) 표. 키 = 클론 자리 · a = 알파(0~1). 거는 도우미는 Ui/OpacityUi(CanvasGroup 알파). catalog.json 에 이미 있는 넷(dg_locked_alpha · tt_tag_alpha · tt_tag_dim_alpha · tt_tlocked_alpha)은 그대로 거기서 읽는다 · catalog.json 은 T345 lock 이라 곁 표(T65 PlayerInfoUi 꼴). 수치는 코드에 안 박는다(§1).",
   "alpha": {
-    "asc_row_ready_arrow": { "a": 0.8,  "_": "style.css 5624 .asc-row.ready::after { content: '▶'; font-size: .7rem; opacity: .8; margin-left: .1rem } — AscendPopup 행 화살(1회차)" },
-    "asc_prog":            { "a": 0.85, "_": "style.css 5628 .asc-prog { opacity: .85 } — AscendPopup 행 진행 글자(1회차)" },
-    "asc_focus_eff":       { "a": 0.9,  "_": "style.css 5635 .asc-focus-eff { opacity: .9 } — AscendPopup 초점 효과 글줄(1회차)" },
-    "pet_tile_mat_locked": { "a": 0.5,  "_": "style.css 4385 .pet-tile.mat-locked .tile-face { opacity: .5 } — PetUpgradePopup 출전 중 펫 타일(1회차 · 박힌 0.5f 를 표로)" },
-    "btn_disabled":        { "a": 0.45, "_": "style.css 673 .btn.disabled { opacity: .45 } — Popups.cs:437 박힌 0.45f (T331·T345 lock 뒤)" },
-    "cmp_card_empty":      { "a": 0.7,  "_": "style.css 1830 .cmp-card.empty { opacity: .7 } — ForgeUi.cs:232 박힌 0.7f (T332 lock 뒤)" },
-    "idet_icon_tn_dim":    { "a": 0.85, "_": "style.css 2194 .idet-icon.tn-dim .ico { opacity: .85 } — ForgeInfoPopup(T332·T345·T352 lock 뒤 · grayscale 은 T342 갈래)" },
-    "ob_zzz":              { "a": 0.9,  "_": "style.css 232 .ob-zzz i { opacity: 0; animation: ob-zzz 2.7s … } — 정적값은 0 이고, .9 는 keyframes 의 정점이 아니라 **243 의 @media (prefers-reduced-motion: reduce) 에서 애니메이션을 끄고 세우는 값**이다(정점은 1 · 16~70%). 유니티에는 그 OS 신호가 없어 이 레포는 그 갈래를 안 옮긴다(결정 263 · EquipSwapFx·AgePattern 도 같다) — 그러니 여기 걸 자리가 없다. 움직이는 쪽은 OfflineButtonRules 가 돈다. 참고로만 둔다(2회차가 이유를 바로잡았다)" },
-    "toasts_rw_dim":       { "a": 0.1,  "fade_ms": 250, "ease": [0, 0, 0.58, 1], "box": "toasts", "_": "style.css 7563~7564 #toasts { transition: opacity .25s ease-out } · #toasts.rw-dim { opacity: .1 } — 보상 수령 연출 동안 떠 있던 토스트가 물러난다(ui.js 3588~3593). 거는 쪽은 RewardBurst(2회차) — 그릇은 Popups.cs 가 App 아래 box 이름으로 세우고 그 파일은 T331 lock 이라, 이름을 여기 표에 두고 RewardBurst 가 찾는다(이름이 바뀌면 PlayMode 자가 먼저 깨진다). 물러나 있는 시간은 Core RewardBurstRules.HoldMs(정본 entries*90 + 7*44 + RW_FLY_MS + 120)." }
+    "asc_row_ready_arrow": {
+      "a": 0.8,
+      "_": "style.css 5624 .asc-row.ready::after { content: '▶'; font-size: .7rem; opacity: .8; margin-left: .1rem } — AscendPopup 행 화살(1회차)"
+    },
+    "asc_prog": {
+      "a": 0.85,
+      "_": "style.css 5628 .asc-prog { opacity: .85 } — AscendPopup 행 진행 글자(1회차)"
+    },
+    "asc_focus_eff": {
+      "a": 0.9,
+      "_": "style.css 5635 .asc-focus-eff { opacity: .9 } — AscendPopup 초점 효과 글줄(1회차)"
+    },
+    "pet_tile_mat_locked": {
+      "a": 0.5,
+      "_": "style.css 4385 .pet-tile.mat-locked .tile-face { opacity: .5 } — PetUpgradePopup 출전 중 펫 타일(1회차 · 박힌 0.5f 를 표로)"
+    },
+    "btn_disabled": {
+      "a": 0.45,
+      "_": "style.css 673 .btn.disabled { opacity: .45 } — Popups.cs:437 박힌 0.45f (T331·T345 lock 뒤)"
+    },
+    "cmp_card_empty": {
+      "a": 0.7,
+      "_": "style.css 1830 .cmp-card.empty { opacity: .7 } — ForgeUi.cs:232 박힌 0.7f (T332 lock 뒤)"
+    },
+    "idet_icon_tn_dim": {
+      "a": 0.85,
+      "_": "style.css 2194 .idet-icon.tn-dim .ico { opacity: .85 } — ForgeInfoPopup(T332·T345·T352 lock 뒤 · grayscale 은 T342 갈래)"
+    },
+    "toasts_rw_dim": {
+      "a": 0.1,
+      "fade_ms": 250,
+      "ease": [
+        0,
+        0,
+        0.58,
+        1
+      ],
+      "box": "toasts",
+      "_": "style.css 7563~7564 #toasts { transition: opacity .25s ease-out } · #toasts.rw-dim { opacity: .1 } — 보상 수령 연출 동안 떠 있던 토스트가 물러난다(ui.js 3588~3593). 거는 쪽은 RewardBurst(2회차) — 그릇은 Popups.cs 가 App 아래 box 이름으로 세우고 그 파일은 T331 lock 이라, 이름을 여기 표에 두고 RewardBurst 가 찾는다(이름이 바뀌면 PlayMode 자가 먼저 깨진다). 물러나 있는 시간은 Core RewardBurstRules.HoldMs(정본 entries*90 + 7*44 + RW_FLY_MS + 120)."
+    }
   },
-  "asc_arrow": { "font_rem": 0.7, "ml_rem": 0.1, "_": "style.css 5624 .asc-row.ready::after — 화살 글자 크기 .7rem · 왼쪽 여백 .1rem (catalog.json 은 T345 lock 이라 여기)" }
+  "asc_arrow": {
+    "font_rem": 0.7,
+    "ml_rem": 0.1,
+    "_": "style.css 5624 .asc-row.ready::after — 화살 글자 크기 .7rem · 왼쪽 여백 .1rem (catalog.json 은 T345 lock 이라 여기)"
+  },
+  "_걷은_것": "T359 3회차 — `ob_zzz`(.9) 를 **걷었다**. 등재의 «없는 여섯» 에 들어 있었지만 정본 `style.css` 232 의 `.ob-zzz i` 는 `opacity: **0**` + `animation: ob-zzz 2.7s ease-out infinite` 이고, `.9` 는 **242~247 `@media (prefers-reduced-motion: reduce)`** 안의 «애니메이션을 끄는 대신 보이게 두는» 갈래다. 클론 `OfflineButton` 은 이미 `OfflineButtonRules.Zzz` 로 매 프레임 애니메이션을 돌리므로 **맞게 옮겨져 있고**, 여기에 정적 알파 .9 를 얹었으면 «늘 90%로 켜진 zzz» 라는 새 결함이 생겼을 자리다. 정적 opacity 자리는 20 이 아니라 **19** 다(T33 23회차 셈 정정 · 결정 참조)."
 }
