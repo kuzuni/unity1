@@ -1,0 +1,295 @@
+{
+  "meta": {
+    "note": "정본 shop.js·pass.js·quests.js·league.js·chat.js 의 표 + state.js 진행 상수 + icongen.js 아바타. REWARD_BY_RANK 는 League.rewardForRank(1..21) 을 평가한 표(21 = 21위 이하). 함수 안 리터럴(봇 cp 배율·승률 식·채팅 시드 수)은 표가 아니라 여기 없다 — Core/Meta 가 정본 줄을 달아 식으로 옮긴다.",
+    "source": ["util.js", "bignum.js", "balance-data.js", "gamedata.js", "icongen.js", "state.js", "shop.js", "pass.js", "quests.js", "league.js", "chat.js"]
+  },
+  "state": { "CHAPTERS_PER_CYCLE": 25, "STAGES_PER_CHAPTER": 10, "DIFFICULTY_NAMES": ["", "어려움", "매우 어려움", "헬"], "MAX_DIFFICULTY": 3 },
+  "avatars": {
+    "DEFAULT_AVATAR": "🛡️",
+    "AVATAR_POOL": ["🛡️", "🧑‍🚀", "🧑‍✈️", "🧑‍🌾", "🧑‍🎤", "🧑‍🎨", "🧑‍🔬", "🧑‍🚒", "🤠", "🥋", "🥷", "🧙", "🧛", "🧟", "🧝", "🦸", "🐲", "🦖", "🐺", "🦊", "🐯", "👽", "🎃", "👑"]
+  },
+  "shop": {
+    "DEALS": [
+      {
+        "key": "tech",
+        "name": "기술 거래",
+        "icon": "🔧",
+        "reward": { "potions": 150, "hammers": 300 },
+        "priceKR": "₩2,800"
+      },
+      {
+        "key": "pet",
+        "name": "펫 거래",
+        "icon": "🐾",
+        "reward": { "eggCurrency": 660, "hammers": 200 },
+        "priceKR": "₩9,500"
+      },
+      {
+        "key": "mount",
+        "name": "탈것 거래",
+        "icon": "⚙️",
+        "reward": { "winders": 2150, "hammers": 4000 },
+        "priceKR": "₩69,000"
+      }
+    ],
+    "GEM_PACKS": [
+      { "gems": 60, "priceKR": "₩2,800" },
+      { "gems": 220, "priceKR": "₩9,500" },
+      { "gems": 800, "priceKR": "₩34,500" },
+      { "gems": 3300, "priceKR": "₩140,000" }
+    ]
+  },
+  "pass": {
+    "MILESTONES": [
+      {
+        "stage": "1-5",
+        "free": { "coins": 500, "hammers": 50 },
+        "premium": { "coins": 500, "gems": 5 }
+      },
+      {
+        "stage": "1-10",
+        "free": { "hammers": 100, "coins": 300 },
+        "premium": { "hammers": 150, "gems": 5 }
+      },
+      {
+        "stage": "2-5",
+        "free": { "tickets": 20, "hammers": 100 },
+        "premium": { "tickets": 25, "gems": 8 }
+      },
+      {
+        "stage": "2-10",
+        "free": { "potions": 30, "hammers": 100 },
+        "premium": { "potions": 40, "gems": 8 }
+      },
+      {
+        "stage": "3-5",
+        "free": { "coins": 1500, "hammers": 150 },
+        "premium": { "coins": 2000, "gems": 10 }
+      },
+      {
+        "stage": "3-10",
+        "free": { "hammers": 300, "coins": 900 },
+        "premium": { "hammers": 400, "gems": 10 }
+      },
+      {
+        "stage": "4-5",
+        "free": { "eggCurrency": 80, "hammers": 200 },
+        "premium": { "eggCurrency": 110, "gems": 15 }
+      },
+      {
+        "stage": "4-10",
+        "free": { "winders": 40, "hammers": 200 },
+        "premium": { "winders": 55, "gems": 15 }
+      },
+      {
+        "stage": "5-5",
+        "free": { "coins": 4000, "hammers": 300 },
+        "premium": { "coins": 5500, "gems": 20 }
+      },
+      {
+        "stage": "5-10",
+        "free": { "hammers": 800, "coins": 2500 },
+        "premium": { "hammers": 1100, "gems": 20 }
+      },
+      {
+        "stage": "6-5",
+        "free": { "potions": 100, "hammers": 400 },
+        "premium": { "potions": 140, "gems": 25 }
+      },
+      {
+        "stage": "6-10",
+        "free": { "tickets": 80, "hammers": 400 },
+        "premium": { "tickets": 110, "gems": 25 }
+      },
+      {
+        "stage": "7-5",
+        "free": { "coins": 9000, "hammers": 600 },
+        "premium": { "coins": 12000, "gems": 30 }
+      },
+      {
+        "stage": "8-5",
+        "free": { "hammers": 1800, "coins": 6000 },
+        "premium": { "hammers": 2500, "gems": 35 }
+      },
+      {
+        "stage": "9-5",
+        "free": { "eggCurrency": 300, "hammers": 900 },
+        "premium": { "eggCurrency": 420, "gems": 40 }
+      },
+      {
+        "stage": "10-5",
+        "free": { "coins": 20000, "hammers": 1300 },
+        "premium": { "coins": 28000, "gems": 50 }
+      }
+    ],
+    "PREMIUM_PRICE_KR": "₩13,900"
+  },
+  "quests": {
+    "STEP_CAP": 20,
+    "DEFS": [
+      {
+        "id": "craft",
+        "icon": "hammer",
+        "text": "장비 제작",
+        "need": 10,
+        "step": 3,
+        "rw": { "cur": "coins", "amt": 400 }
+      },
+      {
+        "id": "sellGear",
+        "icon": "coin",
+        "text": "장비 판매",
+        "need": 8,
+        "step": 2,
+        "rw": { "cur": "hammers", "amt": 6 }
+      },
+      {
+        "id": "equipGear",
+        "icon": "hammer",
+        "text": "장비 장착",
+        "need": 4,
+        "step": 1,
+        "rw": { "cur": "coins", "amt": 600 }
+      },
+      {
+        "id": "coinSpend",
+        "icon": "coin",
+        "text": "코인 소비",
+        "need": 2000,
+        "step": 800,
+        "rw": { "cur": "hammers", "amt": 10 },
+        "unit": ""
+      },
+      {
+        "id": "upgradeStart",
+        "icon": "coin",
+        "text": "대장간 강화 시작",
+        "need": 1,
+        "step": 1,
+        "rw": { "cur": "coins", "amt": 600 }
+      },
+      {
+        "id": "gearUpgrade",
+        "icon": "hammer",
+        "text": "대장간 강화 완료",
+        "need": 1,
+        "step": 1,
+        "rw": { "cur": "hammers", "amt": 10 }
+      },
+      {
+        "id": "skillSummon",
+        "icon": "ticket",
+        "text": "스킬 소환",
+        "need": 5,
+        "step": 2,
+        "rw": { "cur": "tickets", "amt": 12 }
+      },
+      {
+        "id": "techDone",
+        "icon": "potion",
+        "text": "기술 연구 완료",
+        "need": 1,
+        "step": 1,
+        "rw": { "cur": "potions", "amt": 4 }
+      },
+      {
+        "id": "petHatch",
+        "icon": "egg",
+        "text": "알 부화",
+        "need": 3,
+        "step": 1,
+        "rw": { "cur": "eggCurrency", "amt": 15 }
+      },
+      {
+        "id": "petMerge",
+        "icon": "egg",
+        "text": "펫 합성",
+        "need": 1,
+        "step": 1,
+        "rw": { "cur": "eggCurrency", "amt": 25 }
+      },
+      {
+        "id": "mountSummon",
+        "icon": "winder",
+        "text": "탈것 소환",
+        "need": 3,
+        "step": 1,
+        "rw": { "cur": "winders", "amt": 60 }
+      },
+      {
+        "id": "mountMerge",
+        "icon": "winder",
+        "text": "탈것 흡수 강화",
+        "need": 1,
+        "step": 1,
+        "rw": { "cur": "winders", "amt": 10 }
+      },
+      {
+        "id": "dungeonClear",
+        "icon": "potion",
+        "text": "던전 완료",
+        "need": 1,
+        "step": 1,
+        "rw": { "cur": "potions", "amt": 3 }
+      },
+      {
+        "id": "keySpend",
+        "icon": "key",
+        "text": "던전 열쇠 사용",
+        "need": 2,
+        "step": 1,
+        "rw": { "cur": "potions", "amt": 4 }
+      }
+    ],
+    "CUR_KR": { "coins": "코인", "hammers": "해머", "gems": "젬", "tickets": "티켓", "winders": "태엽", "eggCurrency": "깨진 알", "potions": "물약" },
+    "NO_GEM_FALLBACK": "hammers",
+    "FORGE_LOCKED": ["coinSpend", "upgradeStart", "gearUpgrade"]
+  },
+  "league": {
+    "TICKET_MAX": 5,
+    "BOT_COUNT": 20,
+    "CHALLENGE_COUNT": 5,
+    "SEASON_MS": 259200000,
+    "START_SCORE": 50,
+    "NAME_POOL": ["loui", "Sarah21", "Robson", "EN", "Asteryth", "BlandBuddy22667", "moonzzanf", "Kite", "Draven", "Yumi", "Torval", "Pixelbee", "Nova", "Rax", "Sable", "Junho", "Milkteeth", "Orin", "Zephyr", "Quill"],
+    "REWARD_TIERS": [
+      { "label": "1위", "rank": 1 },
+      { "label": "2위", "rank": 2 },
+      { "label": "3위", "rank": 3 },
+      { "label": "4-5", "rank": 5 },
+      { "label": "6-10", "rank": 10 },
+      { "label": "11-20", "rank": 20 },
+      { "label": "21위 이하", "rank": 21 }
+    ],
+    "REWARD_BY_RANK": [
+      { "rank": 1, "mult": 3, "hammers": 900, "coins": 18000, "tickets": 120, "eggCurrency": 360, "potions": 450, "winders": 180 },
+      { "rank": 2, "mult": 2.4, "hammers": 720, "coins": 14400, "tickets": 96, "eggCurrency": 288, "potions": 360, "winders": 144 },
+      { "rank": 3, "mult": 2, "hammers": 600, "coins": 12000, "tickets": 80, "eggCurrency": 240, "potions": 300, "winders": 120 },
+      { "rank": 4, "mult": 1.6, "hammers": 480, "coins": 9600, "tickets": 64, "eggCurrency": 192, "potions": 240, "winders": 96 },
+      { "rank": 5, "mult": 1.6, "hammers": 480, "coins": 9600, "tickets": 64, "eggCurrency": 192, "potions": 240, "winders": 96 },
+      { "rank": 6, "mult": 1.2, "hammers": 360, "coins": 7200, "tickets": 48, "eggCurrency": 144, "potions": 180, "winders": 72 },
+      { "rank": 7, "mult": 1.2, "hammers": 360, "coins": 7200, "tickets": 48, "eggCurrency": 144, "potions": 180, "winders": 72 },
+      { "rank": 8, "mult": 1.2, "hammers": 360, "coins": 7200, "tickets": 48, "eggCurrency": 144, "potions": 180, "winders": 72 },
+      { "rank": 9, "mult": 1.2, "hammers": 360, "coins": 7200, "tickets": 48, "eggCurrency": 144, "potions": 180, "winders": 72 },
+      { "rank": 10, "mult": 1.2, "hammers": 360, "coins": 7200, "tickets": 48, "eggCurrency": 144, "potions": 180, "winders": 72 },
+      { "rank": 11, "mult": 1, "hammers": 300, "coins": 6000, "tickets": 40, "eggCurrency": 120, "potions": 150, "winders": 60 },
+      { "rank": 12, "mult": 1, "hammers": 300, "coins": 6000, "tickets": 40, "eggCurrency": 120, "potions": 150, "winders": 60 },
+      { "rank": 13, "mult": 1, "hammers": 300, "coins": 6000, "tickets": 40, "eggCurrency": 120, "potions": 150, "winders": 60 },
+      { "rank": 14, "mult": 1, "hammers": 300, "coins": 6000, "tickets": 40, "eggCurrency": 120, "potions": 150, "winders": 60 },
+      { "rank": 15, "mult": 1, "hammers": 300, "coins": 6000, "tickets": 40, "eggCurrency": 120, "potions": 150, "winders": 60 },
+      { "rank": 16, "mult": 1, "hammers": 300, "coins": 6000, "tickets": 40, "eggCurrency": 120, "potions": 150, "winders": 60 },
+      { "rank": 17, "mult": 1, "hammers": 300, "coins": 6000, "tickets": 40, "eggCurrency": 120, "potions": 150, "winders": 60 },
+      { "rank": 18, "mult": 1, "hammers": 300, "coins": 6000, "tickets": 40, "eggCurrency": 120, "potions": 150, "winders": 60 },
+      { "rank": 19, "mult": 1, "hammers": 300, "coins": 6000, "tickets": 40, "eggCurrency": 120, "potions": 150, "winders": 60 },
+      { "rank": 20, "mult": 1, "hammers": 300, "coins": 6000, "tickets": 40, "eggCurrency": 120, "potions": 150, "winders": 60 },
+      { "rank": 21, "mult": 0.6, "hammers": 180, "coins": 3600, "tickets": 24, "eggCurrency": 72, "potions": 90, "winders": 36 }
+    ]
+  },
+  "chat": {
+    "MAX_MESSAGES": 60,
+    "CLAN_TAGS": ["C", "KO", "FRY", "MELK", "LGBT", "ZX", "GG", "EU", "NA", ""],
+    "NAMES": ["Pirimid", "Imax", "Bearopotamus", "Jennzee", "MilkMessiah", "Draven", "Nova", "Sable", "Kite", "Zephyr", "Torval", "Rax", "Orin", "Quill", "Yumi", "moonzzanf", "loui", "Robson"],
+    "LINES": ["gg", "anyone farming chapter 5?", "오늘 던전 열쇠 다 씀 ㅠㅠ", "누구 대장간 레벨 몇이에요?", "hello everyone, hope you all are good", "good evening", "lol nice pull", "방금 전설 떴다!!", "didn't they just merge servers?", "how's it going", "기술 트리 몇 렙까지 밈?", "gl hf", "이 게임 오토포지 진짜 편하네요", "anyone want to trade tickets?", "보스 너무 세다 ㅋㅋ", "welcome new players!", "물약 파밍 어디가 제일 좋아요?", "nice base", "server 8 is so quiet today", "승천 별 몇개 모았어요?", "brb", "need more hammers 😭", "오늘도 화이팅!", "anyone in a clan?"],
+    "LONG_LINES": ["Didnt they just merge 7 w quite a few? Maybe server 7 could merge with us or something", "오토포지 필터 설정 어떻게 하는 게 제일 효율 좋아요? 지금은 희귀 이상만 남기고 다 파는 중인데 이게 맞나 싶네요", "anyone know if the ascension reset keeps your tech tree levels? i dont wanna lose 3 days of progress"]
+  }
+}
