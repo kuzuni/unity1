@@ -69,6 +69,13 @@ namespace Forge.Tests.PlayMode
             return new Rect(c[0].x, c[0].y, c[2].x - c[0].x, c[2].y - c[0].y);
         }
 
+        /// <summary>T396 3회차 — **못박은 잉크**(정본이 선택자에만 리터럴로 준 값)는 카탈로그가 아니라 곁 표가 쥔다.</summary>
+        private static void AssertPinnedColor(Color got, string key, string what)
+        {
+            Color want = PinnedColorUi.C(key);
+            Assert.Less(Mathf.Abs(got.r - want.r) + Mathf.Abs(got.g - want.g) + Mathf.Abs(got.b - want.b), 0.02f, what + " 색이 표 «" + key + "» 가 아니다: " + got);
+        }
+
         private static void AssertColor(Color got, string key, string what)
         {
             Color want = UiKit.C(key);
@@ -96,7 +103,9 @@ namespace Forge.Tests.PlayMode
 
             // 글자 색 — 제목 흰 · «수집 시간:» 회색 · 시간 초록
             AssertColor(FindUnder(top, "title").GetComponent<TextMeshProUGUI>().color, "stage_ink", "제목");
-            AssertColor(FindUnder(top, "sub").GetComponent<TextMeshProUGUI>().color, OfflinePopup.SubInkKey, "«수집 시간:»");
+            // T396 3회차 — 정본 267 `.offline-sub { color: #ccc }` 는 **선택자에 못박은 잉크**다. 종전 이 줄은 클론이 고른 «가장 가까운 토큰»
+            //   `pp_gray`(#c4c4c4)를 단언해 **근사를 못 박고 있었다** — 정본 값으로 옮기니 이 자가 빨개졌다(런 786). 표 키로 바꾼다.
+            AssertPinnedColor(FindUnder(top, "sub").GetComponent<TextMeshProUGUI>().color, OfflinePopup.SubPinnedInk, "«수집 시간:»");
             TextMeshProUGUI counted = FindUnder(top, "counted").GetComponent<TextMeshProUGUI>();
             AssertColor(counted.color, OfflinePopup.GreenKey, "수집 시간 수치");
             Assert.AreEqual("1시 0분", counted.text, "3600초 = 원작 fmtTime «1시 0분»");
