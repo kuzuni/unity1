@@ -725,6 +725,52 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 링은_퍼질수록_얇아지고_번지며_사라진다()
+        {
+            SummonTierBreakSpec s = S();
+            double a0, sc0, b0, bl0, aPk, scPk, bPk, blPk, a1, sc1, b1, bl1;
+            s.FlashAt(0, out a0, out sc0, out b0, out bl0);
+            s.FlashAt(s.FlashMs * 0.16, out aPk, out scPk, out bPk, out blPk);
+            s.FlashAt(s.FlashMs, out a1, out sc1, out b1, out bl1);
+            Assert.AreEqual(0.0, a0, 1e-9, "꺼진 채로 시작한다");
+            Assert.Greater(aPk, 0.5, "16% 에 정점");
+            Assert.AreEqual(0.0, a1, 1e-9, "사라진다 — 안 그러면 결과 화면에 등급색 테가 남는다");
+            Assert.Greater(sc1, sc0, "퍼진다");
+            Assert.Less(b1, b0, "퍼질수록 얇아진다(정본 «하드엣지 고정 굵기는 그래픽 스탬프다»)");
+            Assert.Greater(bl1, bl0, "퍼질수록 번진다");
+        }
+
+        [Test]
+        public void 구운_판은_단계로_갈아_끼운다()
+        {
+            SummonTierBreakSpec s = S();
+            Assert.GreaterOrEqual(s.FlashSteps, 2, "한 장으로는 «굵기가 변한다» 를 못 옮긴다");
+            Assert.AreEqual(0, s.StepOf(0));
+            Assert.AreEqual(s.FlashSteps - 1, s.StepOf(s.FlashMs));
+            Assert.AreEqual(s.FlashSteps - 1, s.StepOf(s.FlashMs * 9), "끝난 뒤에도 마지막 판에 머문다");
+            // 단계마다 굵기가 실제로 다르다 — 같으면 계단을 둔 뜻이 없다.
+            double a, sc, bFirst, bl, bLast;
+            s.FlashAt(s.StepMid(0), out a, out sc, out bFirst, out bl);
+            s.FlashAt(s.StepMid(s.FlashSteps - 1), out a, out sc, out bLast, out bl);
+            Assert.Greater(bFirst, bLast);
+            for (int k = 0; k < s.FlashSteps; k++)
+            {
+                double mid = s.StepMid(k);
+                Assert.AreEqual(k, s.StepOf(mid), k + "번 판의 대표 시각이 제 단계에 안 든다");
+            }
+        }
+
+        [Test]
+        public void 심지는_켜졌다_중반에_꺼진다()
+        {
+            SummonTierBreakSpec s = S();
+            Assert.AreEqual(0.0, s.WickAt(0), 1e-9);
+            Assert.Greater(s.WickAt(s.FlashMs * 0.14), 0.5, "14% 에 정점(정본 .85)");
+            Assert.AreEqual(0.0, s.WickAt(s.FlashMs * 0.5), 1e-9, "정본은 45% 에 이미 꺼진다 — 확장 중반에 큰 얼룩이 되지 않게");
+            Assert.AreEqual(0.0, s.WickAt(s.FlashMs), 1e-9);
+        }
+
+        [Test]
         public void 물든_채_굳거나_뒤집힌_정지점을_거부한다()
         {
             char q = '"';

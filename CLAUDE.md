@@ -22,6 +22,7 @@ GitHub MCP → actions_run_trigger
   «Dispatching, enabling or disabling workflows and deleting workflow runs, logs or artifacts are **not permitted for this session type**»(`docs.anthropic.com/en/docs/claude-code/github-actions`).
   곧 **계정 권한 문제가 아니라 세션 종류의 문제**라 «Claude GitHub App 에 Actions 권한을 켜면 된다» 는 길은 **이 자리에선 안 열린다**(wwwww 쪽 워크플로도 같은 막힘이다).
   남는 길은 하나 — **Secret `NTFY_TOPIC` 등록**(그러면 main CI 가 완료마다 **스스로** 쏜다 · 워커가 부를 필요가 없다). 그때까지 워커는 «알림 못 보냄» 을 **보고에 솔직히 적는다**(보냈다고 적지 않는다).
+- ✅ **바로잡음 — 막힘은 «세션마다» 다르다(워커 E 실측 2026-09-15 23:1x · 결정 684 · 워커 H 도 같은 것을 봤다)**: 위 결정 680 은 «세션 종류의 문제» 로 일반화했는데, **GitHub MCP `actions_run_trigger`(`method: run_workflow`)로 부르면 이 계정·이 세션에서는 실제로 런이 생긴다.** 증거 — `ntfy-notify.yml` 런 **#1577·#1578** 이 `event: workflow_dispatch` · `conclusion: success` 이고 행위자가 계정 2(`kuzuni2`)다. 곧 결정 680 이 본 것은 **REST 로 친 그 세션의 막힘**이지 모든 워커의 막힘이 아니다. ⇒ **규칙**: ⓐ 먼저 MCP 로 부른다. ⓑ 부른 뒤 `actions_list`(`list_workflow_runs` · `ntfy-notify.yml`)로 **런이 생겼는지 확인하고** 보고에 «쐈다 + 런 번호» 로 적는다 — «쐈다» 만 적으면 결정 680 의 세션에서는 거짓이 된다. ⓒ 프록시가 «not permitted for this session type» 으로 막으면 **그때** «알림 못 보냄» 을 적는다(막혔다고 미리 적지 않는다).
 - ⚠ Claude 앱 푸시(`PushNotification`)와 Routine 완료 알림은 **도착하지 않는다**(2026-08-21 실측). 알림 경로는 ntfy 하나.
 - 문구는 한 줄로 **무엇을 끝냈는지**(«작업 완료» 는 정보가 0이다).
 

@@ -63,7 +63,7 @@ namespace Forge.Game.Ui
         readonly List<Cell> cells = new List<Cell>();
         readonly List<float> delays = new List<float>();
         /// <summary>T334 16회차 — 등급 챕터 경계(정본 `_srTierBreaks`): 켜지는 시각(ms)과 그 등급.</summary>
-        struct TierBreak { public float At; public int Tier; public Color Rc, Lite; public Image Pulse; }
+        struct TierBreak { public float At; public int Tier; public Color Rc, Lite; public Image Pulse, Ring, Wick; public Sprite[] Steps; }
         readonly List<TierBreak> tierBreaks = new List<TierBreak>();
         List<Entry> entries;
         List<Entry> rollList;
@@ -596,6 +596,51 @@ namespace Forge.Game.Ui
                     if (pm != null) pi.material = pm;
                     pi.color = new Color(1f, 1f, 1f, 0f);
                     b.Pulse = pi;
+
+                    // 링(정본 `.sr-tierflash`) — 광원 한가운데에 선다. 테 굵기·번짐이 시간에 따라 줄고 번지므로
+                    // 단계마다 다른 판을 미리 굽고 갈아 끼운다(정본 «퍼질수록 얇아지고 번진다 · 하드엣지 고정 굵기는 그래픽 스탬프다»).
+                    float rw = Mathf.Min(PetSkillStyle.Rem((float)tb.FlashWRem), (float)tb.FlashWVwF * W);
+                    RectTransform rr2 = UiKit.Box(tbHost, "sr-tierflash");
+                    rr2.anchorMin = rr2.anchorMax = new Vector2(0.5f, 0.5f);
+                    rr2.pivot = new Vector2(0.5f, 0.5f);
+                    rr2.sizeDelta = new Vector2(rw, rw);
+                    rr2.anchoredPosition = Vector2.zero;
+                    rr2.position = wrap.TransformPoint(wrap.rect.center);   // 광원 = wrap 한가운데(재점화와 같은 계약)
+                    Image ri2 = rr2.gameObject.AddComponent<Image>();
+                    ri2.raycastTarget = false;
+                    ri2.preserveAspect = false;
+                    string rk = ColorUtility.ToHtmlStringRGB(b.Rc);
+                    b.Steps = new Sprite[tb.FlashSteps];
+                    float half = rw * 0.5f;
+                    for (int k = 0; k < tb.FlashSteps; k++)
+                    {
+                        double ka, ksc, kb, kblur;
+                        tb.FlashAt(tb.StepMid(k), out ka, out ksc, out kb, out kblur);
+                        // 판 반지름에 대한 비율로 바꾼다 — 배율은 거는 쪽이 따로 곱한다.
+                        float bandF = PetSkillStyle.Rem((float)kb) / half;
+                        float softF = (float)kblur / half;
+                        float glowF = PetSkillStyle.Rem((float)tb.RingGlowRem) / half;
+                        b.Steps[k] = SummonFx.BakeTierRing("sr-tierflash-" + rk + "-" + k, b.Rc, bandF, softF, glowF);
+                    }
+                    ri2.sprite = b.Steps[0];
+                    Material rm2 = CraftFxPoly.Screen();
+                    if (rm2 != null) ri2.material = rm2;
+                    ri2.color = new Color(1f, 1f, 1f, 0f);
+                    b.Ring = ri2;
+
+                    // 심지(정본 `::after`) — 링 안쪽 여백만큼 들어가 앉고 부모 배율을 그대로 받는다.
+                    RectTransform wk = UiKit.Box(rr2, "sr-tierwick");
+                    float ins = (float)tb.WickInsetF;
+                    UiKit.Anchor(wk, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, rw * (1f - ins * 2f), rw * (1f - ins * 2f));
+                    Image wi = wk.gameObject.AddComponent<Image>();
+                    wi.raycastTarget = false;
+                    wi.preserveAspect = false;
+                    wi.sprite = SummonFx.BakeTierWick("sr-tierwick-" + rk + "-" + ColorUtility.ToHtmlStringRGB(b.Lite), b.Rc, b.Lite);
+                    Material wm = CraftFxPoly.Screen();
+                    if (wm != null) wi.material = wm;
+                    wi.color = new Color(1f, 1f, 1f, 0f);
+                    b.Wick = wi;
+
                     tierBreaks[i] = b;
                 }
             }
@@ -1278,12 +1323,30 @@ namespace Forge.Game.Ui
             {
                 TierBreak b = tierBreaks[i];
                 if (b.Pulse == null) continue;
-                b.Pulse.color = new Color(1f, 1f, 1f, (float)sp.AlphaAt(ms - b.At, b.Tier));
+                float e = ms - b.At;
+                b.Pulse.color = new Color(1f, 1f, 1f, (float)sp.AlphaAt(e, b.Tier));
+                if (b.Ring != null)
+                {
+                    double a, sc, br, bl;
+                    sp.FlashAt(e, out a, out sc, out br, out bl);
+                    b.Ring.color = new Color(1f, 1f, 1f, (float)a);
+                    b.Ring.rectTransform.localScale = Vector3.one * (float)sc;
+                    // 테 굵기·번짐은 구운 판이 쥔다 — 단계가 바뀔 때만 갈아 끼운다(프레임마다 굽지 않는다).
+                    Sprite want = b.Steps[sp.StepOf(e)];
+                    if (b.Ring.sprite != want) b.Ring.sprite = want;
+                }
+                if (b.Wick != null) b.Wick.color = new Color(1f, 1f, 1f, (float)sp.WickAt(e));
             }
         }
 
         /// <summary>등급 챕터 펄스 수 — 자가 본다.</summary>
         public int TierBreakCount { get { return tierBreaks.Count; } }
+
+        /// <summary>그 경계의 챕터 링 — 자가 본다.</summary>
+        public Image TierRingOf(int i) { return i >= 0 && i < tierBreaks.Count ? tierBreaks[i].Ring : null; }
+
+        /// <summary>그 경계의 심지 — 자가 본다.</summary>
+        public Image TierWickOf(int i) { return i >= 0 && i < tierBreaks.Count ? tierBreaks[i].Wick : null; }
 
         /// <summary>그 경계의 펄스 판 — 자가 본다.</summary>
         public Image TierPulseOf(int i) { return i >= 0 && i < tierBreaks.Count ? tierBreaks[i].Pulse : null; }

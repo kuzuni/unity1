@@ -388,7 +388,16 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(p0.rectTransform.rect.width, ((RectTransform)grid).rect.width,
                 "챕터 펄스가 격자보다 좁다 — «화면 전체가 달아오른다» 가 안 된다");
 
+            // 링(정본 `.sr-tierflash`)과 그 심지 — 펄스와 같은 경계에 한 쌍으로 선다.
+            Image r0 = v.TierRingOf(0), w0 = v.TierWickOf(0);
+            Assert.IsNotNull(r0, "챕터 링이 없다");
+            Assert.IsNotNull(r0.sprite, "구운 고리 판이 없다");
+            Assert.IsNotNull(w0, "링 심지가 없다 — 정본 «링만 있으면 «테두리 원» 이다»");
+            Assert.AreEqual(r0.rectTransform.rect.width, r0.rectTransform.rect.height, 0.01f, "정사각 판");
+
             var peak = new float[2];
+            float ringPeak = 0f, ringWide = 0f, wickPeak = 0f;
+            var seen = new List<Sprite>();
             float t = 0f;
             while (!v.Done && t < 20f)
             {
@@ -397,6 +406,16 @@ namespace Forge.Tests.PlayMode
                     Image pi = v.TierPulseOf(i);
                     if (pi != null && pi.color.a > peak[i]) peak[i] = pi.color.a;
                 }
+                Image ri = v.TierRingOf(0);
+                if (ri != null && ri.color.a > 0f)
+                {
+                    if (ri.color.a > ringPeak) ringPeak = ri.color.a;
+                    float sc = ri.rectTransform.localScale.x;
+                    if (sc > ringWide) ringWide = sc;
+                    if (ri.sprite != null && !seen.Contains(ri.sprite)) seen.Add(ri.sprite);
+                }
+                Image wi = v.TierWickOf(0);
+                if (wi != null && wi.color.a > wickPeak) wickPeak = wi.color.a;
                 t += Time.unscaledDeltaTime;
                 yield return null;
             }
@@ -405,10 +424,21 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(peak[1], peak[0], "등급이 오를수록 세다(정본 --pk = .15 + tier * .04)");
             Assert.LessOrEqual(peak[1], 1f, "가산 판의 정점이 1을 넘으면 화면이 하얗게 탄다");
 
+            Assert.Greater(ringPeak, 0f, "챕터 링이 안 켜졌다");
+            Assert.Greater(ringWide, 1f, "링이 셀 경계를 넘어 안 퍼졌다");
+            Assert.Greater(wickPeak, 0f, "심지가 안 켜졌다 — 중심이 달아올라야 광원 문법에 앉는다");
+            // ⓐ 이 단이 «한 장을 배율로 날리기» 와 «단계마다 갈아 끼우기» 를 가른다.
+            Assert.Greater(seen.Count, 1,
+                "링이 처음부터 끝까지 **같은 판**이었다(" + seen.Count + "장) — 테 굵기가 안 변했다는 뜻이다(정본 «하드엣지 고정 굵기는 그래픽 스탬프다»)");
+
             float t2 = 0f;
             while (t2 < 1.2f) { t2 += Time.unscaledDeltaTime; yield return null; }
             for (int i = 0; i < 2; i++)
+            {
                 Assert.AreEqual(0f, v.TierPulseOf(i).color.a, 1e-3f, "챕터 펄스가 안 식었다 — 화면이 등급색으로 물든 채 굳는다(" + i + "번)");
+                Assert.AreEqual(0f, v.TierRingOf(i).color.a, 1e-3f, "챕터 링이 안 사라졌다(" + i + "번)");
+                Assert.AreEqual(0f, v.TierWickOf(i).color.a, 1e-3f, "심지가 안 꺼졌다(" + i + "번)");
+            }
         }
 
         static Transform FindDeep(Transform root, string name)

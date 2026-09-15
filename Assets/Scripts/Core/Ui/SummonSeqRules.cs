@@ -330,6 +330,7 @@ namespace Forge.Core.Ui
             if (keys[0].Num["f"] != 0 || keys[keys.Length - 1].Num["f"] != 0)
                 throw new FormatException("SummonFxUi tierbreak: srtierpulse 는 0 에서 시작해 0 으로 식어야 한다");
             s.Pulse = new RewardBurstSpec.Track { Keys = keys };
+            ReadFlash(s, o);
             return s;
         }
 
@@ -359,6 +360,107 @@ namespace Forge.Core.Ui
 
         /// <summary>아직 달아올라 있는가.</summary>
         public bool Pulsing(double ms) { return ms >= 0 && ms < PulseMs; }
+
+        // ── 17회차: 챕터 **링**(정본 `.sr-tierflash`)과 그 심지(`::after`) ──────────────────
+
+        /// <summary>링이 퍼지는 길이(ms · 정본 .56s).</summary>
+        public double FlashMs;
+        /// <summary>링 판 크기 — `min(w_rem rem, w_vw_f × 앱 폭)`(정본 `min(11rem, 46vw)`).</summary>
+        public double FlashWRem, FlashWVwF;
+        /// <summary>테 굵기·번짐이 **다른 판을 몇 장 구워 갈아 끼우는가**(정본의 연속 변화를 계단으로 근사한다 · 결정 663 과 같은 길).</summary>
+        public int FlashSteps;
+        /// <summary>링 둘레의 번짐(rem · 정본 `box-shadow 0 0 .9rem`).</summary>
+        public double RingGlowRem;
+        /// <summary>심지의 안쪽 여백(비율 · 정본 `inset: 18%`)과 정지점·번짐.</summary>
+        public double WickInsetF, WickStopLite, WickStopRc, WickStopOut, WickBlurPx;
+        public RewardBurstSpec.Track FlashAlpha, FlashGeom, Wick;
+
+        static RewardBurstSpec.Track Ramp(JsonObject o, string key, CssEase ease, string[] fields, string who)
+        {
+            var list = J.List(J.Require(o, key), x => J.Obj(x));
+            if (list.Count < 2) throw new FormatException("SummonFxUi " + who + ": " + key + " 키프레임이 둘 미만이다");
+            var keys = new RewardBurstSpec.KeyStop[list.Count];
+            double prev = -1;
+            for (int i = 0; i < list.Count; i++)
+            {
+                JsonObject k = list[i];
+                var ks = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(k, "at")), Ease = ease };
+                if (ks.At < prev) throw new FormatException("SummonFxUi " + who + ": " + key + " 퍼센트는 오름차순이어야 한다");
+                prev = ks.At;
+                for (int f = 0; f < fields.Length; f++) ks.Num[fields[f]] = J.Num(J.Require(k, fields[f]));
+                keys[i] = ks;
+            }
+            return new RewardBurstSpec.Track { Keys = keys };
+        }
+
+        static void ReadFlash(SummonTierBreakSpec s, JsonObject o)
+        {
+            s.FlashMs = J.Num(J.Require(o, "flash_ms"));
+            if (s.FlashMs <= 0) throw new FormatException("SummonFxUi tierbreak: flash_ms 는 0보다 커야 한다");
+            s.FlashWRem = J.Num(J.Require(o, "flash_w_rem"));
+            s.FlashWVwF = J.Num(J.Require(o, "flash_w_vw_f"));
+            if (s.FlashWRem <= 0 || s.FlashWVwF <= 0) throw new FormatException("SummonFxUi tierbreak: 링 크기는 0보다 커야 한다");
+            s.FlashSteps = (int)J.Num(J.Require(o, "flash_steps"));
+            if (s.FlashSteps < 2) throw new FormatException("SummonFxUi tierbreak: flash_steps 가 2보다 작으면 «굵기가 변한다» 가 안 보인다");
+            s.RingGlowRem = J.Num(J.Require(o, "ring_glow_rem"));
+            s.WickInsetF = J.Num(J.Require(o, "wick_inset_f"));
+            if (s.WickInsetF < 0 || s.WickInsetF >= 0.5) throw new FormatException("SummonFxUi tierbreak: wick_inset_f 는 0~0.5 안이다");
+            s.WickStopLite = J.Num(J.Require(o, "wick_stop_lite"));
+            s.WickStopRc = J.Num(J.Require(o, "wick_stop_rc"));
+            s.WickStopOut = J.Num(J.Require(o, "wick_stop_out"));
+            if (!(s.WickStopLite < s.WickStopRc && s.WickStopRc < s.WickStopOut)) throw new FormatException("SummonFxUi tierbreak: 심지 정지점은 lite < rc < out 이어야 한다");
+            s.WickBlurPx = J.Num(J.Require(o, "wick_blur_px"));
+
+            double[] fe = J.NumArr(J.Require(o, "flash_ease"));
+            if (fe == null || fe.Length != 4) throw new FormatException("SummonFxUi tierbreak: flash_ease 는 cubic-bezier 넷이다");
+            CssEase fease = new CssEase(fe[0], fe[1], fe[2], fe[3]);
+            s.FlashAlpha = Ramp(o, "srtierflash_a", fease, new[] { "f" }, "tierbreak");
+            s.FlashGeom = Ramp(o, "srtierflash_g", fease, new[] { "scale", "border_rem", "blur_px" }, "tierbreak");
+            s.Wick = Ramp(o, "srtierwick", fease, new[] { "f" }, "tierbreak");
+
+            // 링은 **떠올랐다 사라진다** — 양 끝이 0 이 아니면 결과 화면에 등급색 테가 남는다.
+            if (s.FlashAlpha.Keys[0].Num["f"] != 0 || s.FlashAlpha.Keys[s.FlashAlpha.Keys.Length - 1].Num["f"] != 0)
+                throw new FormatException("SummonFxUi tierbreak: srtierflash_a 는 0 에서 시작해 0 으로 사라져야 한다");
+            if (s.Wick.Keys[0].Num["f"] != 0 || s.Wick.Keys[s.Wick.Keys.Length - 1].Num["f"] != 0)
+                throw new FormatException("SummonFxUi tierbreak: srtierwick 은 0 에서 시작해 0 으로 사라져야 한다");
+            // 정본이 못 박은 압력파 문법: **퍼질수록 얇아지고 번진다**. 굵기가 커지면 «그래픽 스탬프» 가 된다.
+            var g0 = s.FlashGeom.Keys[0];
+            var g1 = s.FlashGeom.Keys[s.FlashGeom.Keys.Length - 1];
+            if (g1.Num["scale"] <= g0.Num["scale"]) throw new FormatException("SummonFxUi tierbreak: 링은 퍼져야 한다(배율이 커진다)");
+            if (g1.Num["border_rem"] >= g0.Num["border_rem"]) throw new FormatException("SummonFxUi tierbreak: 링은 퍼질수록 **얇아져야** 한다(정본 «하드엣지 고정 굵기는 그래픽 스탬프다»)");
+            if (g1.Num["blur_px"] <= g0.Num["blur_px"]) throw new FormatException("SummonFxUi tierbreak: 링은 퍼질수록 **번져야** 한다");
+        }
+
+        /// <summary>켜진 뒤 <paramref name="ms"/> 지난 링의 불투명도·배율·테 굵기(rem)·번짐(px).</summary>
+        public void FlashAt(double ms, out double alpha, out double scale, out double borderRem, out double blurPx)
+        {
+            double p = ms <= 0 ? 0 : ms >= FlashMs ? 100 : ms / FlashMs * 100;
+            alpha = FlashAlpha.Sample(p, "f", null);
+            scale = FlashGeom.Sample(p, "scale", null);
+            borderRem = FlashGeom.Sample(p, "border_rem", null);
+            blurPx = FlashGeom.Sample(p, "blur_px", null);
+        }
+
+        /// <summary>켜진 뒤 <paramref name="ms"/> 지난 심지의 불투명도.</summary>
+        public double WickAt(double ms)
+        {
+            double p = ms <= 0 ? 0 : ms >= FlashMs ? 100 : ms / FlashMs * 100;
+            return Wick.Sample(p, "f", null);
+        }
+
+        /// <summary>
+        /// 그 시각에 쓸 **구운 판의 번호**(0 ~ <see cref="FlashSteps"/>−1) — 테 굵기·번짐은 판마다 다르고 단계 경계에서 갈아 끼운다.
+        /// 굽는 쪽이 그 번호의 «대표 시각» 을 <see cref="StepMid"/> 로 받아 그때의 굵기로 굽는다.
+        /// </summary>
+        public int StepOf(double ms)
+        {
+            double p = ms <= 0 ? 0 : ms >= FlashMs ? 1 : ms / FlashMs;
+            int k = (int)(p * FlashSteps);
+            return k < 0 ? 0 : k >= FlashSteps ? FlashSteps - 1 : k;
+        }
+
+        /// <summary>그 단계의 대표 시각(ms · 단계 한가운데).</summary>
+        public double StepMid(int step) { return FlashMs * (step + 0.5) / FlashSteps; }
     }
 
     /// <summary>

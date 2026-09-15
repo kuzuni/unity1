@@ -764,6 +764,53 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>
+        /// 등급 챕터 링 한 단계(정본 `.sr-tierflash` 6417~6427) — **테 굵기·번짐이 다른 판을 단계마다 따로 굽는다.**
+        ///
+        /// 정본 주석이 압력파 문법을 못 박았다: «퍼질수록 얇아지고(border-width 내림) 번진다(blur 오름).
+        /// 하드엣지 고정 굵기는 «그래픽 스탬프» 다». 그런데 `transform: scale` 은 테 굵기까지 같이 키우므로
+        /// **한 장을 배율로 날려서는 그 문법을 못 옮긴다** — 그래서 단계마다 판을 갈아 끼운다(결정 663 과 같은 길).
+        ///
+        /// <paramref name="bandF"/> 는 판 반지름에 대한 테 굵기 비율 · <paramref name="softF"/> 는 같은 자로 잰 번짐 폭이다.
+        /// 링 둘레의 `box-shadow 0 0 .9rem` 은 바깥쪽 감쇠 꼬리로 같이 굽는다(따로 한 겹을 두면 두 번 가산된다).
+        /// </summary>
+        public static Sprite BakeTierRing(string name, Color rc, float bandF, float softF, float glowF)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
+            float outer = 1f;                                   // 테의 바깥 끝 = 판의 변 한가운데
+            float inner = Mathf.Max(0.02f, outer - Mathf.Max(1e-4f, bandF));
+            float soft = Mathf.Max(0.5f / N, softF);            // 적어도 한 화소는 잇는다
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            {
+                float v = (y + 0.5f) / N * 2f - 1f;
+                for (int x = 0; x < N; x++)
+                {
+                    float u = (x + 0.5f) / N * 2f - 1f;
+                    float r = Mathf.Sqrt(u * u + v * v);
+                    float a;
+                    if (r < inner - soft) a = 0f;                               // 고리 안쪽은 비어 있다
+                    else if (r < inner) a = Ramp(r, inner - soft, 0f, inner, 1f);
+                    else if (r <= outer) a = 1f;
+                    else a = Ramp(r, outer, 1f, outer + glowF, 0f);             // box-shadow 의 바깥 꼬리
+                    if (r > outer + glowF) a = 0f;
+                    px[y * N + x] = new Color(rc.r, rc.g, rc.b, Mathf.Clamp01(a));
+                }
+            }
+            return Finish(name, NewTex(name, N, N), px);
+        }
+
+        /// <summary>
+        /// 챕터 링의 **심지**(정본 `.sr-tierflash::after` 6434~6441) — 정지점만 다른 같은 방사 문법이라 <see cref="BakeRadial"/> 을 나눠 쓴다.
+        /// 정본 주석: «링만 있으면 «테두리 원» 이고, 중심이 그 등급색으로 한 번 달아올라야 광원 문법에 앉는다».
+        /// </summary>
+        public static Sprite BakeTierWick(string name, Color rc, Color lite)
+        {
+            SummonTierBreakSpec sp = SummonFxStyle.TierBreak;
+            return BakeRadial(name, rc, lite, (float)sp.WickStopLite, (float)sp.WickStopRc, (float)sp.WickStopOut);
+        }
+
+        /// <summary>
         /// 등급 챕터 펄스 판(정본 `.sr-tierpulse` 6402~6412) —
         /// `radial-gradient(120% 90% at 50% 42%, var(--rc-lite) 0%, var(--rc) 30%, rgba(0,0,0,0) 64%)` 한 장.
         ///

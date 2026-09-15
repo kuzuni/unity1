@@ -340,6 +340,33 @@
     "stop_out": 0.64,
     "pk_base": 0.15,
     "pk_step": 0.04,
+    "flash_ms": 560.0,
+    "flash_ease": [0.12, 0.7, 0.22, 1.0],
+    "flash_w_rem": 11.0,
+    "flash_w_vw_f": 0.46,
+    "flash_steps": 6,
+    "ring_glow_rem": 0.9,
+    "srtierflash_a": [
+      { "at": 0.0,   "f": 0.0 },
+      { "at": 16.0,  "f": 0.88 },
+      { "at": 100.0, "f": 0.0 }
+    ],
+    "srtierflash_g": [
+      { "at": 0.0,   "scale": 0.24, "border_rem": 0.38, "blur_px": 0.0 },
+      { "at": 100.0, "scale": 3.0,  "border_rem": 0.05, "blur_px": 2.8 }
+    ],
+    "wick_inset_f": 0.18,
+    "wick_stop_lite": 0.0,
+    "wick_stop_rc": 0.40,
+    "wick_stop_out": 0.72,
+    "wick_blur_px": 2.0,
+    "srtierwick": [
+      { "at": 0.0,   "f": 0.0 },
+      { "at": 14.0,  "f": 0.85 },
+      { "at": 45.0,  "f": 0.0 },
+      { "at": 100.0, "f": 0.0 }
+    ],
+    "_flash": "정본 `.sr-tierflash`(6417~6427) + `::after` 심지(6434~6441) + `@keyframes srtierflash`(6448~6452)·`srtierwick`(6442~6447). 링: `min(11rem, 46vw)` 정사각 · `border .34rem solid var(--rc)` · `box-shadow 0 0 .9rem var(--rc)` · `mix-blend-mode: screen` · `.56s cubic-bezier(.12,.7,.22,1)`. 키프레임 0% 알파 0 배율 .24 테 .38rem 흐림 0 -> 16% 알파 .88 -> 100% 알파 0 배율 3.0 테 .05rem 흐림 2.8px. 정본 주석: «충격파(srshock)와 같은 압력파 문법: 퍼질수록 얇아지고(border-width 내림) 번진다(blur 오름). 하드엣지 고정 굵기는 «그래픽 스탬프» 다». ⚠ 그래서 **한 장을 배율로 날릴 수가 없다** — 배율은 테 굵기까지 같이 키운다. `flash_steps` 단계만큼 **테 굵기·번짐이 다른 판을 미리 구워** 단계 경계에서 갈아 끼운다(결정 663 과 같은 길). ⚠ 알파는 0->16->100 **두 구간**이고 배율·테·흐림은 0%·100% 에만 적혀 **한 구간**이다(CSS 는 이징을 키프레임 구간마다 건다) — 그래서 트랙을 둘로 나눈다. 심지(`::after`): `inset 18%` · `radial-gradient(closest-side, var(--rc-lite) 0%, var(--rc) 40%, rgba(0,0,0,0) 72%)` · `blur(2px)` · `srtierwick` 0 -> 14% .85 -> 45% 0 -> 100% 0. 정본 주석: «링만 있으면 «테두리 원» 이고, 중심이 그 등급색으로 한 번 달아올라야 재점화·수렴 빛과 같은 광원 문법에 앉는다. 심지는 부모 배율을 그대로 곱해 커진다 — 확장 중반에 큰 얼룩이 되지 않게 자체 불투명도로 45% 지점까지만 살린다».",
     "srtierpulse": [
       { "at": 0.0,   "f": 0.0 },
       { "at": 20.0,  "f": 1.0 },
