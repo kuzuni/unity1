@@ -80,16 +80,26 @@ namespace Forge.Tests.PlayMode
         private sealed class Live
         {
             public string Name;
+            /// <summary>찾는 범위 — 처음 칸의 캔버스 뿌리(시트 칸은 장비 시트 · 자동 제련 팝업의 행은 팝업 층 — 런 606: 시트만 뒤지면 팝업 자리를 못 찾는다).</summary>
+            public Transform Scope;
             public RectTransform Cell;
             public PressFx Fx;
             public float BaseY;
             public int Restarts;
         }
 
+        /// <summary>범위 안에서 같은 이름 + 같은 표 키의 PressFx 를 쥔 칸을 찾는다(재그리기 뒤엔 새 칸).</summary>
+        private static Transform FindPressed(Transform scope, string name, string key)
+        {
+            foreach (PressFx f in scope.GetComponentsInChildren<PressFx>(true))
+                if (f != null && f.name == name && f.Spec != null && f.Spec.Key == key) return f.transform;
+            return null;
+        }
+
         private static void Refind(Live L, string key)
         {
-            Transform c = SheetChild(L.Name);
-            Assert.IsNotNull(c, "시트를 다시 그린 뒤에도 " + L.Name + " 이 있어야 한다");
+            Transform c = FindPressed(L.Scope, L.Name, key);
+            Assert.IsNotNull(c, "다시 그린 뒤에도 " + L.Name + "(" + key + ") 이 있어야 한다");
             L.Cell = (RectTransform)c;
             L.Fx = L.Cell.GetComponent<PressFx>();
             Assert.IsNotNull(L.Fx, L.Name + " 에 PressFx 가 안 붙었다");
@@ -137,8 +147,9 @@ namespace Forge.Tests.PlayMode
 
         private static IEnumerator AssertPress(RectTransform cell, string key)
         {
-            Live L = new Live { Name = cell.name };
+            Live L = new Live { Name = cell.name, Scope = cell.root };
             Refind(L, key);
+            Assert.AreSame(cell, L.Cell, "처음엔 건네받은 칸 그대로");
             PressSpec s = PressFx.Table.Get(key);
             float rem = PopupKit.Rem;
             Assert.IsFalse(L.Fx.Active, "놓인 상태에서 시작");
