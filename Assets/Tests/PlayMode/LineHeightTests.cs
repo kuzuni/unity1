@@ -195,11 +195,15 @@ namespace Forge.Tests.PlayMode
         {
             yield return Boot();
             for (int i = 0; i < 600 && !(DungeonSheet.Instance != null && UiRoot.Instance != null && UiRoot.Instance.TabBar != null); i++) yield return null;
+            // 새 세이브로는 그 던전이 잠겨 팝업이 안 선다 — `DropShadowTests` 처럼 진행도를 먼저 올린다(런 790: «소탕 버튼 상자» 가 null 이었다).
+            ForgeHost fh = ForgeHost.Instance;
+            fh.S.BestChapter = 5; fh.S.BestStage = 1; fh.Pull();
             UiRoot.Instance.TabBar.OnTab("dungeon");
             yield return null;
             Assert.IsTrue(DungeonSheet.Instance.IsOpen, "던전 시트");
             DungeonDetailPopup.Open("hammer");   // 다른 자들이 쓰는 던전 id 그대로
             yield return null; yield return null;
+            Assert.IsTrue(DungeonDetailPopup.IsOpen, "던전 상세가 열린다");
             Canvas.ForceUpdateCanvases();
             // ⚠ `DungeonDetailPopup.SweepButton` 은 **정적 참조**라 팝업이 다시 서면 죽은 객체를 가리킨다
             //   (런 782: `MissingReferenceException` — C# 참조는 null 이 아니어서 IsNotNull 을 통과한 뒤 `.transform` 에서 터졌다).
