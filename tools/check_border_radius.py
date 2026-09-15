@@ -65,6 +65,10 @@ TABLE = {
     '.tech-branch-card': ['Ui/TechPanel.cs$tb_card_r_rem@catalog.json'],
     '.tech-tier-tag': ['Ui/TechPanel.cs$tt_tag_r_rem@catalog.json'],
     '.tech-prog, .modal-card .tech-prog': ['Ui/TechPopups.cs$tech_prog_r_rem@catalog.json'],
+    # T345 11회차 — 프로필 팝업 세 자리(값은 이미 정본과 같았고 **수가 코드에 박혀** 있었다 · §1)
+    '.profile-avatar-big': ['Ui/ProfilePopup.cs$profile_avatar_big_r_rem'],
+    '.profile-edit-btn': ['Ui/ProfilePopup.cs$profile_edit_r_rem'],
+    '.avatar-pick-btn': ['Ui/ProfilePopup.cs$avatar_pick_r_rem'],
     # T345 9회차 — 오프라인 팝업·이정표(산 lock 없는 세 자리). 50% 둘은 «원» 증거(@메서드) · 이정표 시간표는 곁 표(WaypointsUi.json)의 키로.
     '.offline-rate-icon': ['Ui/OfflinePopup.cs@Rate'],
     '.offline-collect-dot': ['Ui/OfflinePopup.cs@CollectDot'],

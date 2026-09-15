@@ -86,7 +86,7 @@ namespace Forge.Game.Ui
             y += titleH + rem * 0.2f;
 
             float av = UiKit.L("profile_avatar") * w;
-            RectTransform avatar = PopupKit.Avatar(card, "avatar", av, h.AvatarEmoji, rem * 0.5f);
+            RectTransform avatar = PopupKit.Avatar(card, "avatar", av, h.AvatarEmoji, RadiusUi.Px("profile_avatar_big_r_rem"));   // T345 11회차 — 정본 2997 `.profile-avatar-big` .5rem(값은 맞았고 수만 표로)
             UiKit.Place(avatar, pad, y, av, av);
             float edit = UiKit.H("profile_edit");   // T378 3회차 — 정본 3008 `.profile-edit-btn { width: 1.5rem; height: 1.5rem }` = 표 0.0284 그대로 · 여태 ×1.3 이 얹혀 30% 컸다
             Button avEdit = EditButton(card, "avatar-edit", () => { picking = !picking; Render(h); });
@@ -130,9 +130,9 @@ namespace Forge.Game.Ui
                     Button b = UiKit.Button(card, "av-" + i, () => OnPickAvatar(h, e));
                     RectTransform rt = b.GetComponent<RectTransform>();
                     UiKit.Place(rt, pad + (i % cols) * (cell + gap), y + (i / cols) * (cell + gap), cell, cell);
-                    UiKit.Rounded(rt, "line", on ? "pp_blue" : "pp_line", rem * 0.4f);
+                    UiKit.Rounded(rt, "line", on ? "pp_blue" : "pp_line", RadiusUi.Px("avatar_pick_r_rem"));   // T345 11회차 — 같은 정본 줄(3062)의 테
                     float pickLine = UiKit.L("line2_px");   // T365 4회차 — 정본 3061 `.avatar-pick-btn { border: var(--ol2) … }` = ol2(전엔 ol1)
-                    Image face = UiKit.Rounded(rt, "face", on ? "avatar_pick_on" : "avatar_bg", rem * 0.4f - pickLine);
+                    Image face = UiKit.Rounded(rt, "face", on ? "avatar_pick_on" : "avatar_bg", RadiusUi.Px("avatar_pick_r_rem") - pickLine);   // T345 11회차 — 정본 3062 `.avatar-pick-btn` .4rem
                     PopupKit.Inset(face.rectTransform, pickLine);
                     RectTransform tile = PopupKit.Avatar(rt, "tile", cell * 0.8f, e, rem * 0.3f);
                     UiKit.Anchor(tile, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, cell * 0.8f, cell * 0.8f);
@@ -188,7 +188,7 @@ namespace Forge.Game.Ui
         {
             Button b = UiKit.Button(card, name, onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
-            UiKit.Rounded(rt, "line", "pp_line", PopupKit.Rem * 0.38f);
+            UiKit.Rounded(rt, "line", "pp_line", RadiusUi.Px("profile_edit_r_rem"));   // T345 11회차 — 정본 3007 `.profile-edit-btn` .38rem(안쪽 면·아래턱 0.3 은 클론이 만든 겹이라 그대로)
             Image lip = UiKit.Rounded(rt, "lip", "pp_blue_dk", PopupKit.Rem * 0.3f);
             PopupKit.Inset(lip.rectTransform, PopupKit.Line);
             Image face = UiKit.Rounded(rt, "face", "pp_blue", PopupKit.Rem * 0.3f);
