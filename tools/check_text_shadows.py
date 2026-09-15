@@ -62,6 +62,15 @@ TABLE = {
     # T333 5회차 — 산 lock 밖 세 자리(T335 반납으로 열린 던전 클리어 제목 · 보스 워닝 마퀴·부제): 여러 겹 중 «읽히게 만드는 한 겹»(league_row 갈래)
     # T333 9회차 — 판매 코인 금액(7426 `.coin-amt` · 정본 주석 «이너=노랑 · 아웃라인=검정»): 8방향 링 → SDF 스트로크(`ring:`) · 값은 CoinBurstUi.json(amt_ring_* · 결정 655)
     '.coin-amt': ['ring:Ui/CoinBurst.cs@Amount'],
+    # T333 11회차 — «이미 굽고 있는데 자가 못 보던» 세 자리(게임 코드 0줄 · 자의 눈만 넓혔다 · 결정 668)
+    #   ⓔ 스킬 컷인 이름줄: 정본 1897 `0 0 10px currentColor` 를 T384 가 이미 언더레이로 굽는다(색 = 그 스킬 색 · 표 SkillCutinUi.json `glow.text_blur_px` 10).
+    #      둘째 겹(0 2px 5px 검정)은 언더레이 한 겹 규약대로 뺀 자리다.
+    '#skill-cutin': ['glow:Ui/SkillCutin.cs@Show'],
+    #   ⓒ 별 배지 둘(정본이 4/8방향 hard 링으로 낸 자리): 링은 `PopupKit.Ring`(= UiKit.Outline 래퍼)로 이미 서 있다.
+    #      ⚠ 폭은 아직 **옛 비율 0.25**(TMP 여백 배수)이고 정본은 `--ol`·1px 다 — 그 px 화는 `ForgeUi.cs`·`ForgeInfoPopup.cs` 가
+    #      T332 산 lock 이라 다음 회차 몫이다(9회차 `.coin-amt` 와 같은 길 · 절의 «남은 것» 에 적었다).
+    '.equip-cell .cell-star': ['ring:Ui/ForgeUi.cs@StarBadge'],
+    '.fl-face[data-asc]:not([data-asc=""])::after': ['ring:Ui/ForgeInfoPopup.cs#asc'],
     # T333 10회차 ⓔ — 데미지 숫자 글로우(크리·처치): 정본은 겹을 여럿 쌓고 `@keyframes` 가 **태어나는 프레임**에 다른 겹을 둔다.
     #   TMP 언더레이는 한 겹이라 «읽히게 만드는 한 겹»만 옮기고(표 `DmgGlowUi.json`), 시간에 따른 갈아 끼움은 공유 재질 교체로 낸다(`glow:`).
     '.float-dmg.dmg-crit': ['glow:Battle/DamageNumbers.cs@OutlineMaterial'],
@@ -83,10 +92,12 @@ KNOWN = {
 
 SHADOW = r'UiKit\.TextShadow'
 # ⓒ 4/8방향 hard 링(정본이 text-shadow 로 흉내 낸 키라인) — 언더레이 한 겹으로는 못 내니 SDF 스트로크로 낸다(T104 `UiKit.Outline`/`OutlinePx`).
-RING = r'UiKit\.Outline(?:Px)?'
+# 도우미로 한 번 감싼 호출도 같은 것으로 센다 — `PopupKit.Ring` 은 `UiKit.Outline`/`OutlinePx` 한 줄 래퍼다(T333 11회차).
+RING = r'(?:UiKit\.Outline(?:Px)?|PopupKit\.Ring)'
 # ⓔ 데미지 숫자 글로우(T333 10회차) — 초당 수십 개라 글자마다 재질 인스턴스를 만들 수 없어 `UiKit.TextShadow`(fontMaterial) 가 아니라
 #   공유 재질에 굽는 갈래(`DmgGlowUi.Apply` · 표 DmgGlowUi.json)로 낸다.
-GLOW = r'DmgGlowUi\.Apply'
+#   컷인은 제 파일 안에서 같은 일을 하는 도우미(`SkillCutin.ApplyTextGlow`)를 부른다 — 이름으로 같이 센다(T333 11회차).
+GLOW = r'(?:DmgGlowUi\.Apply|ApplyTextGlow)'
 SHADOW_CALL = re.compile(r'\b' + SHADOW + r'\s*\(')
 RING_CALL = re.compile(r'\b' + RING + r'\s*\(')
 GLOW_CALL = re.compile(r'\b' + GLOW + r'\s*\(')
@@ -387,6 +398,12 @@ def self_test():
     cs('class Face { static void R(Transform p){ var a = UiKit.Text(p, "s-e", TextKind.Body, "x"); UiKit.Outline(a, "stage_outline", .25f); } }')
     rc, out = go({'.s-e': ['ring:Ui/Face.cs#s-e']}, {})
     expect('ⓚ 옛 Outline 갈래', rc == 0 and '자리 초록 1' in out, out)
+    # ⓝ 도우미 래퍼도 센다(T333 11회차) — PopupKit.Ring 은 UiKit.Outline 한 줄 래퍼다
+    cs('class Face { static void W(Transform p){ var a = UiKit.Text(p, "s-e", TextKind.Body, "x"); PopupKit.Ring(a, "pp_line", 0.25f); } }')
+    rc, out = go({'.s-e': ['ring:Ui/Face.cs#s-e']}, {}, base_css)
+    expect('ⓝ 래퍼 링 초록', rc == 0 and '자리 초록 1' in out, out)
+    rc, out = go({'.s-e': ['Ui/Face.cs#s-e']}, {})
+    expect('ⓝ 래퍼 링을 그림자로 재면 빨강', rc == 1 and '그림자 없음' in out, out)
     # ⓛ glow: 갈래(T333 10회차) — 공유 재질에 굽는 `DmgGlowUi.Apply` 를 센다 · 언더레이 호출만 있으면 «글로우 없음»
     os.makedirs(os.path.join(game, 'Battle'), exist_ok=True)
     w(os.path.join(game, 'Battle', 'Num.cs'),
@@ -415,7 +432,7 @@ def self_test():
         for f in fails:
             print('  · ' + f[:400])
         return 1
-    print('✓ check_text_shadows --self-test 29칸 통과')
+    print('✓ check_text_shadows --self-test 31칸 통과')
     return 0
 
 
