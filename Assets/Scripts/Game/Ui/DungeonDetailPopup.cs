@@ -169,8 +169,22 @@ namespace Forge.Game.Ui
             UiKit.Place(DungeonPopups.Root(SweepButton), mx, by, bw, btnH);
             EnterButton = DungeonPopups.Pill(card, "enter", "입장", canEnter ? DungeonPopups.Skin.DgdSilver : DungeonPopups.Skin.Gray, TextKind.Button, Enter, br, canEnter);
             UiKit.Place(DungeonPopups.Root(EnterButton), mx + bw + bgap, by, bw, btnH);
+            // T354 14회차 — 정본 5356 `.dgd-btn { line-height: 1.25 }`. 왼쪽 버튼 라벨은 «이전 스테이지 / 소탕» **두 줄**이라
+            // 줄 간격이 눈에 보이는 자리다(오른쪽 «입장» 은 한 줄이라 안 보이지만, 정본은 클래스에 걸었으므로 둘 다 건다).
+            // 라벨을 만드는 `DungeonPopups.Pill` 은 남의 산 lock(T345)이라 **여기서 그 자식을 집어** 건다 — 그 파일은 안 건드린다.
+            ApplyBtnLineHeight(SweepButton);
+            ApplyBtnLineHeight(EnterButton);
 
             DungeonPopups.XButton(card, Close);
+        }
+
+        /// <summary>알약 버튼의 라벨(`DungeonPopups.Pill` 이 «label» 로 세운다)에 정본 줄 간격을 건다 — 없으면 조용히 지나간다.</summary>
+        static void ApplyBtnLineHeight(Button b)
+        {
+            if (b == null) return;
+            Transform t = DungeonPopups.Root(b).Find("label");
+            TextMeshProUGUI tm = t != null ? t.GetComponent<TextMeshProUGUI>() : null;
+            if (tm != null) LineHeight.Apply(tm, "dgd_btn_lh");
         }
 
         /// <summary>«보상: 🔨302 🪙27.1k» — 원작 Dungeons.rewardText 의 이모지를 아이콘으로(iconizeHTML). 글자 판(그림 없이)도 돌려준다.</summary>

@@ -188,6 +188,30 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T354 14회차 — 던전 상세의 왼쪽 버튼 라벨 «이전 스테이지 / 소탕»(정본 5356 `.dgd-btn { line-height: 1.25 }`).
+        /// 라벨을 만드는 `DungeonPopups.Pill` 은 T345 산 lock 이라 `DungeonDetailPopup` 이 그 자식을 집어 건다 — 두 줄이라 눈에 보이는 자리다.</summary>
+        [UnityTest]
+        public IEnumerator 던전_상세_소탕_버튼_라벨은_정본_1_25_배수로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(DungeonSheet.Instance != null && UiRoot.Instance != null && UiRoot.Instance.TabBar != null); i++) yield return null;
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
+            Assert.IsTrue(DungeonSheet.Instance.IsOpen, "던전 시트");
+            DungeonDetailPopup.Open("hammer");   // 다른 자들이 쓰는 던전 id 그대로
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Assert.IsNotNull(DungeonDetailPopup.SweepButton, "소탕 버튼");
+            Transform lab = DungeonPopups.Root(DungeonDetailPopup.SweepButton).Find("label");
+            Assert.IsNotNull(lab, "그 버튼의 라벨");
+            TextMeshProUGUI t = lab.GetComponent<TextMeshProUGUI>();
+            AssertSpacing(t, "dgd_btn_lh", "던전 상세 소탕 버튼");
+            double r = LineHeight.Table.Get("dgd_btn_lh");
+            Assert.AreEqual(1.25, r, 1e-9, "정본 5356");
+            Assert.Greater(t.textInfo.lineCount, 1, "«이전 스테이지 / 소탕» 은 두 줄이다");
+            Assert.AreEqual(r, LineHeight.MeasuredRatio(t), 0.02, "실제 줄 간격 = 1.25(자산 기본 1.448 이 아니라)");
+        }
+
         /// <summary>T354 6회차 — 펫 업그레이드 팝업의 «재료 없음» 글(정본 805 · 탈것 쪽과 같은 자리): 새 세이브에서 알 하나 → 부화 → 즉시 부화면
         /// 다른 펫 0 · 알 0 이라 그 글이 선다(PetUiTests 의 길 그대로).</summary>
         [UnityTest]
