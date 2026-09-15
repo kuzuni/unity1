@@ -74,13 +74,29 @@ namespace Forge.Tests.PlayMode
                 else
                 {
                     sil++;
-                    Assert.AreEqual(0.76f, img.sizeDelta.x / size, 0.005f, "실루엣 카드 — 정본 THUMB_INK .76(슬롯과 같다) · 종전 .9");
+                    // T382 2회차 — 기대값도 **표에서** 읽는다(종전엔 자가 .76 을 도로 박고 있었다 · §1).
+                    Assert.AreEqual(ItemFacesStyle.L("thumb_ink_f"), img.sizeDelta.x / size, 0.005f, "실루엣 카드 — 정본 THUMB_INK .76(슬롯과 같다) · 종전 .9");
                 }
             }
             Assert.Greater(sil, 0, "실루엣 갈래를 하나는 쟀다");
 
             ForgeCraftPopup.DismissBatch();
             yield return null;
+        }
+
+        /// <summary>
+        /// T382 2회차 — 그 `.76` 이 **표에서** 오는가. 정본 `ui.js` **3145** `THUMB_INK: 0.76` 이 `ForgeUi.ItemTile` 의 **기본 인수**에 숫자로 박혀 있었다.
+        /// C# 기본 인수는 상수만 되므로 표식(<see cref="ForgeUi.InkFromTable"/>)을 두고 <see cref="ForgeUi.InkFrac"/> 가 푼다 — 그 두 갈래를 다 묻는다.
+        /// </summary>
+        [Test]
+        public void 잉크_비율은_표에서_오고_호출자가_준_값은_그대로_쓴다()
+        {
+            ItemFacesStyle.Reset();
+            Assert.AreEqual(0.76f, ItemFacesStyle.L("thumb_ink_f"), 1e-6f, "정본 ui.js 3145 THUMB_INK: 0.76");
+            Assert.Less(ForgeUi.InkFromTable, 0f, "표식은 음수여야 «호출자가 준 값» 과 안 겹친다");
+            Assert.AreEqual(ItemFacesStyle.L("thumb_ink_f"), ForgeUi.InkFrac(ForgeUi.InkFromTable), 1e-6f, "안 주면 표값");
+            Assert.AreEqual(0.8f, ForgeUi.InkFrac(0.8f), 1e-6f, "준 값은 그대로(목록 .fl-face 자리)");
+            Assert.AreEqual(0f, ForgeUi.InkFrac(0f), 1e-6f, "0 은 표식이 아니다(음수만 표식)");
         }
 
         static Transform FindDeep(Transform root, string name)

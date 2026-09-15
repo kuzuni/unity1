@@ -116,8 +116,17 @@ namespace Forge.Game.Ui
             return f;
         }
 
-        /// <summary>장비 아이콘 타일(시대색 프레임 + 아이콘 · 잉크 76%). 반환 = 타일 루트.</summary>
-        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, string age, string iconKey, float inkFrac = 0.76f, bool agePattern = false)
+        /// <summary>
+        /// T382 — 잉크 비율을 «안 주면 표에서» 받는 표식. C# 기본 인수는 **상수만** 되므로 숫자를 못 넣는다(§1 «수치는 코드에 박지 않는다»).
+        /// 그래서 기본은 음수 표식이고, 실제 값은 <see cref="InkFrac"/> 가 `ItemFacesUi.json` `thumb_ink_f`(정본 `ui.js` 3145 `THUMB_INK: 0.76`)에서 읽는다.
+        /// </summary>
+        public const float InkFromTable = -1f;
+
+        /// <summary>잉크 비율을 풀어 준다 — 음수(<see cref="InkFromTable"/>)면 표값, 아니면 호출자가 준 값(정본이 그 자리만 달리 주는 곳: 목록 `.fl-face` .8).</summary>
+        public static float InkFrac(float inkFrac) { return inkFrac < 0f ? ItemFacesStyle.L("thumb_ink_f") : inkFrac; }
+
+        /// <summary>장비 아이콘 타일(시대색 프레임 + 아이콘 · 잉크 비율은 표 `thumb_ink_f`). 반환 = 타일 루트.</summary>
+        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, string age, string iconKey, float inkFrac = InkFromTable, bool agePattern = false)
         {
             Color ac = AgeColor(d, age);
             RectTransform rt = UiKit.Box(parent, name);
@@ -126,7 +135,7 @@ namespace Forge.Game.Ui
             // T124 — 정본 `.fl-face.equip-cell[data-age]` 만 시대 무늬를 입는다(제작 카드·상세 머리 아이콘은 equip-cell 이 아니다) → 호출자가 켠다
             if (agePattern) AgePattern.Attach(rt, age, cell: true, mask: false, siblingIndex: 1);
             Image ico = PopupKit.IconOr(rt, "img", iconKey);
-            float k = size * inkFrac;
+            float k = size * InkFrac(inkFrac);
             UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, k, k);
             return rt;
         }
@@ -135,7 +144,7 @@ namespace Forge.Game.Ui
         /// T122 — 정본 `itemImgHTML(item)`: `Scene3D.itemThumb(item)` 이 있으면 3D 썸네일 <img>(타일 100% · object-fit contain), 없으면 슬롯 플레이스홀더.
         /// 동기 호출도 정본 그대로(비교·상세 카드는 한두 장 · 키 단위 캐시). 목록처럼 많은 칸은 <see cref="ItemFaces.Request"/> 로 프레임마다 받아 <see cref="ApplyThumb"/> 로 갈아 끼운다.
         /// </summary>
-        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, ForgeItem it, float inkFrac = 0.76f, bool agePattern = false)
+        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, ForgeItem it, float inkFrac = InkFromTable, bool agePattern = false)
         {
             RectTransform rt = ItemTile(parent, name, size, d, it.Age, ItemIconKey(d, it), inkFrac, agePattern);
             ApplyThumb(rt, ItemFaces.Get(d, it), size);

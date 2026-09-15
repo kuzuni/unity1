@@ -20,10 +20,12 @@
     "pet_cell_canvas_px": 94.6,
     "gs_dy_css_px": 2,
     "gs_cell_a": 0.35,
-    "gs_list_a": 0.28
+    "gs_list_a": 0.28, "thumb_ink_f": 0.76
   },
   "colors": { "rim": "#cfe4ff", "sw_ink": "#000000", "gs_ink": "#000000" },
   "_src": {
+    "thumb_ink_f": "T382 2회차 — 정본 `ui.js` **3145** `THUMB_INK: 0.76` 과 **3194** `const k = Math.min(3.2, this.THUMB_INK / Math.max(0.05, fill))`. 곧 «잉크가 프레임의 76% 를 차지하도록» 맞추는 그 비율이다. 정본 주석이 값의 내력까지 적어 두었다 — 원본 0.83 을 주인 지시(2026-08-18 «약간만 줄여»)로 0.76 으로 내렸고, «되올리려면 지시 철회가 먼저다». 클론은 이 값을 `ForgeUi.ItemTile` 의 **기본 인수**에 숫자로 박고 있었다(C# 기본 인수는 상수만 되므로 음수 표식으로 «표에서 읽어라» 를 나타낸다).",
+   
     "px": "정본 itemThumbInit `setSize(96, 96)` — 목록 셀 46px 기준. 클론 캔버스(1080 폭)의 셀은 ≈115px 라 펫 얼굴(PetSkillUi face_thumb_px 128)과 같은 128 로 굽는다(늘려도 뭉개지지 않게).",
     "fov": "PerspectiveCamera(35, 1, 0.01, 200)",
     "dir": "ITEM_THUMB_DIR {x:1.0, y:0.55, z:2.3} — 고정 3/4 시선(three 좌표 · 유니티는 z 를 뒤집는다 · 결정 4)",
