@@ -76,6 +76,14 @@
       "color": "#000000",
       "alpha": 0.86,
       "_": "style.css 874 `.equip-cell.egg-cell .slot-name { color: #fff; text-shadow: 0 1px 0 rgba(0,0,0,.86), 0 0 3px rgba(0,0,0,.55) }` — 알 칸(탈것)은 클래스 셋이라 8030(둘)을 특이도로 이긴다. 두 겹 중 첫째(딱딱한 아래 1px). 정본 주석 870~873 이 이 자리에서 `var(--olc)` 를 쓰면 선언 전체가 무효가 된다고 못 박아 리터럴 검정을 쓴다 — 표도 리터럴로 적는다(T333 8회차)"
+    },
+    "pinfo_preview": {
+      "dx_px": 0,
+      "dy_px": 1,
+      "blur_px": 2,
+      "color": "#000000",
+      "alpha": 0.5,
+      "_": "style.css 3179~3187 `.pinfo-preview { … color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.5) }` — 플레이어 정보 **폴백** 미리보기(미니 씬이 못 설 때) 안 글자 둘(🛡️ 방패 · 스테이지 라벨). 한 겹이라 그대로. 방패는 이모지 폴백 글꼴의 서브메시라 본 재질의 언더레이가 안 닿는다(근사 · 라벨이 읽히는 겹) · T333 12회차"
     }
   },
   "btn_none_keylines": [

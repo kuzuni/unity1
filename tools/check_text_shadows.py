@@ -78,6 +78,8 @@ TABLE = {
     '@keyframes dmgcrit 9%': ['glow:Battle/DamageNumbers.cs@OutlineMaterial'],
     '@keyframes dmgkill 0%': ['glow:Battle/DamageNumbers.cs@OutlineMaterial'],
     '@keyframes dmgkill 7%': ['glow:Battle/DamageNumbers.cs@OutlineMaterial'],
+    # T333 12회차 — 플레이어 정보 폴백 미리보기(3179 `.pinfo-preview` · 한 겹 0 1px 2px .5): 안의 글자 둘(방패 이모지 · 스테이지 라벨) — 파일·표 둘 다 산 lock 밖이 된 회차에 닫았다
+    '.pinfo-preview': ['Ui/PlayerInfoPopup.cs#shield', 'Ui/PlayerInfoPopup.cs#stage'],
     '.dgclear-title': ['Ui/DungeonClearPopup.cs#title'],
     '.bw-track span': ['Ui/BattleOverlay.cs#text'],
     '.bw-sub': ['Ui/BattleOverlay.cs#bw-sub'],

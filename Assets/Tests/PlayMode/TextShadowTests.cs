@@ -253,6 +253,38 @@ namespace Forge.Tests.PlayMode
 
         /// <summary>T333 8회차 — 빈 장비 칸의 이름표: 정본 8030 `.equip-cell .slot-name` ↔ 874 `.equip-cell.egg-cell .slot-name`.
         /// 알 칸(탈것)은 클래스 셋이라 8030(둘)을 **특이도로** 이겨 딱딱한 한 겹(흐림 0)을 받는다 — 두 자리가 같은 키를 쓰면 그 갈림이 사라진다.</summary>
+        /// <summary>T333 12회차 — 정본 3187 `.pinfo-preview { text-shadow: 0 1px 2px rgba(0,0,0,.5) }`: 폴백 미리보기 안 스테이지 라벨이 표 `pinfo_preview` 한 겹을 받는다.
+        /// 미니 씬이 서면 폴백이 안 그려지므로(정본도 같다) 이 자에서만 미니 씬 시작을 떼어 폴백을 강제한다(BoxBorderSitesTests 와 같은 길).</summary>
+        [UnityTest]
+        public IEnumerator 플레이어_정보_폴백_미리보기_글자는_정본_아래_1px_흐림_2px_한_겹을_쓴다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            var saved = PlayerInfoPopup.PreviewStart;
+            PlayerInfoPopup.PreviewStart = null;
+            try
+            {
+                PlayerInfoPopup.Open(h);
+                yield return null;
+                Canvas.ForceUpdateCanvases();
+                Popup p = PopupLayer.Instance.Find(PlayerInfoPopup.Name);
+                Assert.IsNotNull(p, "플레이어 정보");
+                Transform preview = null;
+                foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+                    if (rt.name == "preview" && rt.Find("stage") != null) preview = rt;
+                Assert.IsNotNull(preview, "폴백 미리보기(.pinfo-preview)를 못 찾았다");
+                TextMeshProUGUI stage = preview.Find("stage").GetComponent<TextMeshProUGUI>();
+                Assert.IsNotNull(stage, "스테이지 라벨");
+                AssertShadow(stage, "pinfo_preview", "폴백 미리보기 스테이지 라벨");
+                Assert.AreEqual(1f, TextShadowUi.Px("pinfo_preview", "dy_px"), 1e-6f, "정본 0 1px 2px — dy 1");
+                Assert.AreEqual(2f, TextShadowUi.Px("pinfo_preview", "blur_px"), 1e-6f, "정본 0 1px 2px — 흐림 2");
+                Assert.AreEqual(0.5f, TextShadowUi.C("pinfo_preview").a, 2f / 255f, "정본 rgba(0,0,0,.5)");
+                h.Popups.Hide(PlayerInfoPopup.Name);
+                yield return null;
+            }
+            finally { PlayerInfoPopup.PreviewStart = saved; }
+        }
+
         [UnityTest]
         public IEnumerator 빈_장비_칸_이름표는_드롭을_받고_알_칸은_딱딱한_한_겹을_받는다()
         {

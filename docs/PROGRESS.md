@@ -5084,6 +5084,11 @@
 - **왜 났나**: 3회차가 `.offline-sub` 를 정본 값(**#ccc** = 0.800)으로 옮겼는데, 그 자는 클론이 고른 «가장 가까운 토큰» `pp_gray`(**#c4c4c4** = 0.769)를 단언하고 있었다 — **자가 근사를 못 박고 있었던 것**이다. 값을 정본으로 옮기는 회차가 오면 반드시 빨개지는 꼴이고, 그 회차가 나였다.
 - **고침**: 그 자에 `AssertPinnedColor`(곁 표 `PinnedColorUi` 를 보는 도우미)를 더하고 **그 한 줄만** `OfflinePopup.SubPinnedInk` 로 옮겼다. **단언을 약하게 만들지 않았다** — 여전히 ±0.02 로 값을 못 박고, 보는 표가 카탈로그에서 곁 표로 바뀐 것뿐이다. 같은 자의 나머지 줄은 그대로 `UiKit.C` 를 쓴다(`OfflinePopupTests.cs` 는 산 lock 0).
 - 같은 런의 다른 빨강 둘은 남의 몫(`AscendDecorSceneTests` T399 · `LineHeightTests` T354 · 둘 다 산 lock). 게이트: 막는 자 전부 rc 0 · `dotnet build` 0 Error.
+### T333 12회차 — 플레이어 정보 폴백 미리보기 «.pinfo-preview» 글자 그림자: 표와 자리가 같은 회차에 열려 제 표에 넣었다 (2026-09-15 22:3x · 워커 C · sess-2036-34862 · lock 유지 · 판정은 다음 런)
+- **자리**: 정본 3179~3187 `.pinfo-preview`(미니 씬이 못 설 때의 폴백 판) 안 글자 둘 — 🛡️ 방패 + 스테이지 라벨 — 에 `text-shadow: 0 1px 2px rgba(0,0,0,.5)` 한 겹. 4~11회차가 «`PlayerInfoPopup.cs` T178 lock 뒤» 로 미뤄 온 자리인데 이번 회차에 T178 도 T332(제 표 `TextShadowUi.json` 을 쥐던 lock)도 풀려 있었다.
+- **고침**: 표 `shadows.pinfo_preview`(dx 0 · dy 1 · blur 2 · #000 .5 · 정본 줄을 `_` 에) + `Fallback` 에서 `UiKit.TextShadow(sh/st, "pinfo_preview")`. 결정 655·651 의 «제 표가 남의 lock 이면 곁 표» 갈래는 이번엔 필요 없었다 — 제 표가 열렸으니 제 자리에 둔다.
+- **근사 하나**: 방패 이모지는 TMP 폴백 글꼴(T106)의 서브메시로 그려져 본 재질의 언더레이가 안 닿는다 — 정본 브라우저는 이모지에도 그림자를 그린다. 읽히는 겹은 라벨 쪽이라 그대로 두고 표 `_` 에 적었다(이모지 서브메시에 언더레이를 주려면 폴백 글꼴 재질까지 만져야 하고 그것은 T106 축).
+- **자·검증**: `check_text_shadows` 자리 초록 **29 → 31** · 미정 **18 → 17** · `--self-test` 31칸 · `check_resources_json` 55 표 문제 0 · PlayMode `TextShadowTests` +1(BoxBorderSitesTests 의 «미니 씬 시작을 떼어 폴백 강제» 길) · `dotnet build` 0 오류 · `gate.sh` 막는 자 전부 rc 0.
 
 ### T371 6회차 — `ForgeUi.cs` 의 KNOWN 셋 배선: 장비 칸 면·테(828)와 비교 카드 그림 바탕(1852)을 표 `ColorMixUi` 로 · 자리 초록 11 → 14 · KNOWN 12 → 9 (2026-09-15 22:2x~22:3x · 워커 B · sess-1920-15773 · lock 유지 · 판정은 다음 런)
 - **자리**: `ForgeUi.cs` 가 산 lock 어느 «범위» 에도 없는 시각(T359 반납). 1회차가 «표·셈만 세웠다(배선 전)» 로 남긴 `cell_face`·`cell_line` — `CellFace(age) = Mix(age, Ink, .42)`·`CellLine(age) = Mix(age, black, .2)` 는 **값은 정본과 같았고 비율·상대색이 코드에 박힌 것**이 결함이다(§1). 둘을 `ColorMixUi.Mix("cell_face"|"cell_line", age)` 로 — 부르는 자리 넷(`ForgeSheet.EquipCell` 둘 · `ForgeUi.ItemTile` · `PlayerInfoPopup` 둘)이 한꺼번에 표를 탄다(화면 값 변화 0 · `Color.Lerp` 와 sRGB 바이트 섞기가 같은 수).

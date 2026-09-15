@@ -252,6 +252,8 @@ namespace Forge.Game.Ui
             TextMeshProUGUI st = UiKit.Text(preview, "stage", TextKind.Sub, label, "stage_ink", TextAlignmentOptions.Left);
             st.fontStyle = FontStyles.Bold;
             WrapUi.Apply(sh, "pinfo_preview"); WrapUi.Apply(st, "pinfo_preview");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 3186 `.pinfo-preview { nowrap }` — 안의 글자 둘
+            // T333 12회차 — 정본 3187 `.pinfo-preview { text-shadow: 0 1px 2px rgba(0,0,0,.5) }`: 안의 글자 둘에 한 겹(표 TextShadowUi.json `pinfo_preview`) · 방패 이모지는 폴백 글꼴 서브메시라 본 재질의 언더레이가 안 닿는다(근사)
+            UiKit.TextShadow(sh, "pinfo_preview"); UiKit.TextShadow(st, "pinfo_preview");
             float stW = Mathf.Min(w - x - px, PetSkillKit.TextWidth(TextKind.Sub, label) + rem * 0.2f);
             UiKit.Place(st.rectTransform, x, cy, stW, lh);
             x += stW + gap;
