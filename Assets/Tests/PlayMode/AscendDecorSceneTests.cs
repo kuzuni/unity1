@@ -60,15 +60,25 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(8, cat.Decor.GetComponentsInChildren<AscendDecorTag>(true).Length, "밴드 1 + 가시 6 + 룬 1 = 8 조각");
             Assert.IsNull(dog.Decor, "별 0 은 데코 없음"); Assert.IsNull(AscendDecor.Of(dog.Mesh));
             Assert.IsNull(bear.Decor, "6승천은 0승천 디자인으로 순환 — 데코 없음");
-            // 데코 조각이 몸 안쪽이 아니라 몸 둘레에 있다 — 밴드 칸의 로컬 x 범위가 몸 폭보다 넓다(r×1.05)
-            var mfs = new List<MeshFilter>(cat.Rig.Meshes);
-            double[] min, max;
-            Assert.IsTrue(AscendDecor.LocalBoundsThree(cat.Mesh, mfs, out min, out max));
+            // 데코 조각이 몸 안쪽이 아니라 몸 둘레에 있다 — 밴드 칸의 로컬 x 범위가 몸 폭보다 넓다(r×1.05).
+            // 경계 상자는 **얹던 순간(정지 자세)** 의 것(뿌리에 적어 둔다) — PetParty.Refresh 가 세운 직후 Step 으로 관절을 돌리므로
+            // 지금 다시 재면 몇 mm 다르다(런 782 · 0.1939 ↔ 0.1961). 정본도 부른 순간의 bbox 를 쓰고 그 뒤 안 옮긴다.
+            double[] min = cat.Decor.BoundsMin, max = cat.Decor.BoundsMax;
+            Assert.IsNotNull(min); Assert.IsNotNull(max);
             double r = System.Math.Max(max[0] - min[0], max[2] - min[2]) * 0.5;
+            Assert.AreEqual(r, cat.Decor.R, 1e-9, "r = max(sx, sz) / 2");
+            Assert.Greater(r, 0, "몸 경계 상자");
             Transform band = cat.Decor.transform.Find("band");
             Bounds bb = band.GetComponent<MeshFilter>().sharedMesh.bounds;
             Assert.Greater(bb.extents.x, r * 0.9f, "밴드 반지름 ≈ r×1.05 — 몸 둘레를 두른다");
-            Assert.AreEqual((float)(min[1] + (max[1] - min[1]) * 0.55), band.localPosition.y, 1e-4f, "bandY = min.y + h×.55");
+            Assert.AreEqual(min[1] + (max[1] - min[1]) * 0.55, cat.Decor.BandY, 1e-9, "bandY = min.y + h×.55");
+            Assert.AreEqual((float)cat.Decor.BandY, band.localPosition.y, 1e-5f, "밴드는 bandY 에 선다");
+            // 정지 자세로 돌려 다시 재면 얹던 순간과 같은 상자다(관절만 돌았을 뿐 몸은 그대로)
+            foreach (var j in cat.Rig.Joints) j.Set(j.Base);
+            var mfs = new List<MeshFilter>(cat.Rig.Meshes);
+            double[] min2, max2;
+            Assert.IsTrue(AscendDecor.LocalBoundsThree(cat.Mesh, mfs, out min2, out max2));
+            Assert.AreEqual(max[1] - min[1], max2[1] - min2[1], 0.02, "정지 자세 높이 ≈ 얹던 순간의 높이");
         }
 
         [UnityTest]

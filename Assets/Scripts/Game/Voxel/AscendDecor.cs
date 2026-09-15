@@ -13,6 +13,9 @@ namespace Forge.Game.Voxel
     public sealed class AscendDecorRoot : MonoBehaviour
     {
         public int Tier;
+        /// <summary>얹을 때 잰 몸의 경계 상자(three 좌표 · 뿌리 로컬 · **정지 자세**) 와 그로부터 셈한 r·bandY — 정본도 `applyAscendDecor` 를 부른 그 순간의 bbox 다(그 뒤 관절이 돌아도 데코는 안 옮긴다).</summary>
+        public double[] BoundsMin, BoundsMax;
+        public double R, BandY;
         /// <summary>얹힌 층의 수(서로 다른 Layer) — 정본 «누적 단조 계약»(probe-ascend-tiers): tier 와 같다.</summary>
         public int LayerCount
         {
@@ -83,7 +86,7 @@ namespace Forge.Game.Voxel
             var go = new GameObject(RootName);
             go.transform.SetParent(root, false);
             AscendDecorRoot deco = go.AddComponent<AscendDecorRoot>();
-            deco.Tier = tier;
+            deco.Tier = tier; deco.BoundsMin = min; deco.BoundsMax = max; deco.R = plan.R; deco.BandY = plan.BandY;
             bool linear = QualitySettings.activeColorSpace == ColorSpace.Linear;
             for (int i = 0; i < plan.Pieces.Count; i++)
             {
