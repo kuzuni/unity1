@@ -50,6 +50,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -1023,6 +1024,59 @@ def cmd_list(heads, rows):
     return 0
 
 
+
+def blockers_behind(tid, rows_text=None, stale_hours=3.0):
+    """
+    T370 — **이 lock 뒤에 선 열린 작업**과 «내가 한 번도 안 연 파일» — `check_lock_queue`(T127)의 셈을 **그대로 빌린다**.
+
+    왜 여기냐: 그 보고는 **모든 lock 을 한꺼번에** 늘어놓아서, 제 차례의 워커는 남의 줄 사이에서 제 것을 못 집는다.
+    정체를 풀 수 있는 사람은 **lock 을 쥔 그 사람 하나**이고, 그가 제 회차에 실제로 돌리는 것은 `task_state <제 번호>` 다.
+    실측(2026-09-15 07:3x): `gate.sh` 를 «범위» 로 적은 산 lock 넷 중 **둘은 그 파일을 한 번도 안 고쳤고**,
+    그 탓에 **다 만들어진 자 둘**(`check_shot_cams`·`check_wrap`)이 §3·CI 밖에 그대로 서 있었다.
+
+    돌려주는 것: (기다리는 [(작업, [파일…])…], 내가 안 연 [(파일, 몇 시간째|None)…]) — 못 재면 (None, None).
+    """
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import check_lock_queue as Q
+    except Exception:
+        return None, None
+    try:
+        text = rows_text if rows_text is not None else io.open(PROGRESS, encoding="utf-8").read()
+        qrows = Q.progress_rows(text)
+        files = Q.tracked_files()
+        if not files:
+            return None, None
+        locks = {}
+        for name in os.listdir(CLAIMS):
+            if name.endswith(".lock"):
+                t = name[:-5]
+                lk = lock_of(t)
+                if lk and lk[1] < STALE_MIN:
+                    locks[t] = lk
+        if tid not in locks:
+            return [], []                      # 내 lock 이 살아 있지 않으면 «뒤에 선 작업» 이라는 말 자체가 없다
+        waiting = dict(Q.queue(locks, qrows, files)).get(tid, [])
+        if not waiting:
+            return [], []
+        # ⚠ **남을 막고 있는 파일만** 본다. 내 범위에 있어도 아무도 안 기다리는 파일은 여기서 말할 일이 아니다 —
+        #   이 칸의 쓸모는 «이것을 빼면 몇 개가 풀린다» 이므로, 안 풀리는 것을 같이 늘어놓으면 그 말이 묽어진다.
+        blocking = set()
+        for _other, shared in waiting:
+            blocking.update(shared)
+        now = time.time()
+        cold = []
+        for path in sorted(blocking):
+            t_touch = Q.last_touch(tid, path)
+            if t_touch is None:
+                cold.append((path, None))
+            elif Q.hours(now - t_touch) >= stale_hours:
+                cold.append((path, Q.hours(now - t_touch)))
+        return waiting, cold
+    except Exception:
+        return None, None
+
+
 def cmd_one(tid, heads, rows):
     hn, hdone, htext = heads.get(tid, (0, False, "(ROUTINE §2 에 없다)"))
     pn, pmark, ptext = rows.get(tid, (0, "", "(PROGRESS 표에 없다)"))
@@ -1050,6 +1104,22 @@ def cmd_one(tid, heads, rows):
     if pmark == "🔄" and lk is None and says_holds_lock(tid, ptext):
         print("  ⚠ 행은 «lock 쥔 채» 라는데 **그 lock 파일이 없다** — 행과 `docs/claims/` 가 어긋난다(T453).")
         print("      임자가 고른다: 확인이 남았으면 lock 을 다시 잡고(결정 429), 일부러 반납한 것이면 행의 «쥔 채» 를 지운다.")
+    # T370 — **내 lock 뒤에 선 작업**. 이 정체를 풀 수 있는 사람은 lock 을 쥔 나뿐이고,
+    #   `check_lock_queue` 의 같은 보고는 모든 lock 을 한꺼번에 늘어놓아 제 것을 못 집는다.
+    waiting, cold = blockers_behind(tid)
+    if waiting:
+        print("  ⚠ **내 lock 뒤에 열린 작업 %d개가 서 있다**(T370 · 셈은 `check_lock_queue` 와 같다):" % len(waiting))
+        for other, shared in waiting[:6]:
+            print("      · %-6s ← %s" % (other, " · ".join(shared[:4])))
+        if len(waiting) > 6:
+            print("      · … %d개 더" % (len(waiting) - 6))
+        if cold:
+            print("    ⌛ 그중 **남을 막고 있는데 내가 안 연 파일**(빼면 바로 풀린다):")
+            for path, hrs in cold[:6]:
+                print("      · %s — %s" % (path, "한 번도 안 만졌다" if hrs is None else "%.1f시간째 안 건드림" % hrs))
+        print("    → **더 안 열 파일이면 PROGRESS «범위» 칸에서 빼고 push 해라 — 그 작업들이 바로 풀린다**"
+              "(`docs/claims/README.md` 둘째 길 · 결정 543: 범위 칸은 «지금 여는 파일» 이다).")
+
     holder = lk[0] if lk else None
     hos = handovers(tid, holder=holder)
     hint = row_handover_hint(ptext, holder)
@@ -1673,10 +1743,30 @@ def self_test():
                 print("⛔ 자기 검사 실패(T367) — %s 의 까닭에 «%s» 가 없다: %s" % (tid367, want_why, got_why))
                 return 1
 
+        # ⓦ T370 — «내 lock 뒤에 선 작업» 칸
+        #   ⓐ lock 이 없는 번호엔 아예 안 뜬다(빈 목록)
+        if blockers_behind("T%d" % 9999)[0] != []:
+            print("⛔ 자기 검사 실패(T370) — lock 없는 번호에 «뒤에 선 작업» 을 냈다")
+            return 1
+        #   ⓑ 실물에서 «안 연 파일» 은 반드시 «남을 막는 파일» 의 부분집합이다(칸의 쓸모가 거기서 온다)
+        for _t in sorted(os.listdir(CLAIMS)) if os.path.isdir(CLAIMS) else []:
+            if not _t.endswith(".lock"):
+                continue
+            _w, _c = blockers_behind(_t[:-5])
+            if _w is None:
+                break                      # git 이 없다 — 이 조각은 건너뛴다(거짓 빨강 금지 · 결정 493)
+            _blk = set()
+            for _o, _sh in _w:
+                _blk.update(_sh)
+            _bad = [f for f, _h in _c if f not in _blk]
+            if _bad:
+                print("⛔ 자기 검사 실패(T370) — %s: 아무도 안 기다리는 파일을 «막고 있다» 로 냈다: %s" % (_t[:-5], _bad[:3]))
+                return 1
+
         print("✓ task_state --self-test: 어긋난 짝을 잡고(T161) · **등재만 된 ⬜ 는 잡아도 되고 코드 커밋·🔄·lock 이 있으면 아니고(T160)** · **«🔄 인데 lock 없음·마지막 커밋 90분 초과» 를 참고로 찍되 산 lock·방금 커밋·✅ 는 안 찍고(T164)** · **반납한 ⬜/🔄 행은 마지막 커밋이 90분 넘게 조용하면 «이어 잡아도 된다» 고 90분 안·산 lock·✅·나이 None 은 아니고(T187)** · ✅ 를 달면 조용하고 · 빈 번호는 통과하고 ·"
               " 같은 번호 두 제목을 잡고 · «행 없음 ↔ 접힌 행만» 을 가르고 · ⛔ 와 `\\|` 도 읽고 ·"
               " 참고 줄이 마지막 요약에도 실리고(T231) · «⬜ + 살아 있는 lock» 을 잡되 죽은 lock 은 안 잡고(T238) · **미래로 적힌 lock 을 잡되 1분 차에는 안 울고**(T294) · **본문에 ✂ 를 인용한 살아 있는 줄을 접힘으로 안 센다**(T249) · **«낡은 lock 인데 임자는 살아 있다» 를 잡되 «둘 다 낡음»·«아직 살아 있음»·«판단 못 함» 셋에는 안 울고**(T329)"
-              " · **✂ 로 접힌 절과 두 문서에 없는 번호를 «선점하지 마라» 로 내주되 본문 인용 ✂·멀쩡한 절은 그대로 두고(T367)** · **맨 위 행을 지워도 발급이 안 내려가고(옛 규칙이면 그 번호를 재발급한다) · 지워진 번호를 잡되 멀쩡한 표·구멍·git 없음 셋에는 안 울고**(T415)"
+              " · **lock 을 쥔 임자에게 «내 뒤에 선 작업» 과 «남을 막는데 내가 안 연 파일» 을 제 회차에 보여 주고, lock 없는 번호엔 안 뜬다(T370)** · **✂ 로 접힌 절과 두 문서에 없는 번호를 «선점하지 마라» 로 내주되 본문 인용 ✂·멀쩡한 절은 그대로 두고(T367)** · **맨 위 행을 지워도 발급이 안 내려가고(옛 규칙이면 그 번호를 재발급한다) · 지워진 번호를 잡되 멀쩡한 표·구멍·git 없음 셋에는 안 울고**(T415)"
               " · **«남이 놓고 간 진단» 을 남의 SID·SID 없는 «워커 X» 둘 다로 세되 임자 자신의 것은 안 세고, 그 셈이 «거친 것» 임을 갈래로 박아 둔다**(T446) · **«낡은 lock 인데 임자는 살아 있다» 를 요약뿐 아니라 `verdict()`(선점 직전 단일 조회)에서도 막고, «둘 다 낡음»·«판단 못 함» 둘에는 종전대로 잡게 둔다(T447)** · **그 막음이 «발자취가 있는» 절 — 곧 인수가 실제로 나는 유일한 꼴 — 에서도 판정 줄에 서고(T465), 임자의 마지막 커밋이 딴 절이면 그 번호까지 말한다**"
               " · **«행은 «lock 쥔 채» 라는데 lock 파일이 없다» 를 칸 «머리» 로만 가려 잡고(뒤 이력의 «반납» 에 안 속는다) · ✅·⬜ 표시에는 안 울고, 판정(rc)은 안 바꾼다**(T453)"
               " · **«표에 열린 행은 있는데 §2 에 제목이 없다» 를 잡되 닫힌 행·제목이 있는 행에는 안 울고, 그 참고가 끝줄에도 실리고 rc 는 0 이다**(T466)"
