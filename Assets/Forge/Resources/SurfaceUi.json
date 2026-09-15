@@ -480,5 +480,41 @@
       1
     ],
     "_": "style.css 2109 같은 규칙의 둘째 겹 `linear-gradient(180deg, rgba(255,255,255,.18) 0, rgba(0,0,0,.16) 100%)` — 위가 밝고 아래가 어두운 구슬 명암(면 색은 카테고리색 그대로). T178 9회차."
+  },
+  "_stripes": "T368 — 정본 `repeating-linear-gradient` 줄무늬 셋. 여기 수는 «앱 폭/높이 비율» 이다(정본 2547 주석 «가로 치수라 rem 금지 — 루트 폰트가 높이 기준이다» · T364 가 수로 잡은 함정). 호출자가 RefW·RefH 를 곱해 캔버스 px 로 바꿔 `StripeRules` 에 넘긴다. `angle_deg` 는 CSS 뜻 그대로(0 = 위 · 90 = 오른쪽) · `dash_ratio` 는 주기 안 앞 색의 비율 · `phase_w` 는 background-position 의 축 당김.",
+  "stripes": {
+    "league_tier_dash": {
+      "angle_deg": 90,
+      "period_w": 0.0625,
+      "dash_w": 0.0323,
+      "ink": "pp_line",
+      "gap": null,
+      "band_css_px": 2,
+      "_": "style.css 2548 `.league-reward-tier` — 리그 보상 단 사이 대시 구분선. 정본 주석 실측: 대시 ≈16px / 간격 ≈15px(주기 31px = 6.25%W) · 표 흰 영역 좌끝부터 꽉 차게 · 두께 2px · `:first-child` 는 안 그린다(background-image: none)."
+    },
+    "skills_summon_dash": {
+      "angle_deg": 90,
+      "period_w": 0.1993,
+      "dash_ratio": 0.5,
+      "phase_w": -0.0499,
+      "ink": "pp_line",
+      "gap": null,
+      "left_w": -0.027,
+      "width_w": 1.0,
+      "top_h": -0.0242,
+      "height_h": 0.00225,
+      "_": "style.css 4205 `#panel-skills .summon-bar::before` — 소환 바 위 풀블리드 대시. 절대 배치 기준이 소환 바 패딩 상자라 왼쪽으로 되밀어 폭을 앱 폭 전체로 만든다 · phase 는 «반 대시만큼 당겨 x=0 에 대시 중심을 맞춘다»(정본 주석) · 스코프가 #panel-skills 라 펫·탈것 소환 바는 안 건드린다."
+    },
+    "bw_hazard": {
+      "angle_deg": -45,
+      "period_rem": 1.1,
+      "dash_rem": 0.55,
+      "ink": "#FFCA28",
+      "gap": "#16100A",
+      "height_rem": 0.5,
+      "tile_w_rem": 1.556,
+      "scroll_sec": 0.62,
+      "_": "style.css 395 `.bw-hazard` — 보스 경고 띠의 -45° 사선 줄무늬. 정본이 `background-size: 1.556rem`(= 1.1 × √2)로 «가로축 환산 주기» 를 적어 뒀다(StripeRules.TileWidth 가 같은 수를 낸다) · @keyframes bwhazard 가 .62s linear infinite 로 한 타일만큼 흐른다 · 이 자리만 세로(rem) 치수다 — 정본이 rem 으로 못 박았다."
+    }
   }
 }

@@ -220,6 +220,76 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>구운 화소를 스프라이트로(같은 키·같은 비율은 캐시).</summary>
+        // ---- T368 되풀이 줄무늬(repeating-linear-gradient) ----
+
+        /// <summary>그 줄무늬 표 절(`stripes`)을 꺼낸다.</summary>
+        static JsonObject Stripe(string key)
+        {
+            JsonObject st = J.Obj(Table()["stripes"]);
+            JsonObject one = st == null ? null : J.Obj(st[key]);
+            if (one == null) throw new KeyNotFoundException(ResourcePath + ".json 의 «stripes» 에 «" + key + "» 이 없다");
+            return one;
+        }
+
+        /// <summary>표의 색 칸 — `#RRGGBB` 리터럴이면 그대로, 그 밖이면 카탈로그 키, 비어 있으면 투명(정본의 `transparent`).</summary>
+        static Color StripeColor(object v)
+        {
+            string s = J.Str(v);
+            if (string.IsNullOrEmpty(s)) return new Color(0f, 0f, 0f, 0f);
+            if (s[0] == '#')
+            {
+                Color c;
+                if (ColorUtility.TryParseHtmlString(s, out c)) return c;
+                throw new KeyNotFoundException(ResourcePath + ".json 의 줄무늬 색 «" + s + "» 을 못 읽는다");
+            }
+            return UiKit.C(s);
+        }
+
+        /// <summary>정본이 «가로축으로 환산한 한 주기»(`.bw-hazard` 의 background-size)라고 적어 둔 그 폭 — 캔버스 px. 셈은 Core <see cref="StripeRules.TileWidth"/>.</summary>
+        public static float StripeTileWidth(string key, float periodCanvasPx)
+        {
+            JsonObject one = Stripe(key);
+            double ang = J.Num(one["angle_deg"], 90);
+            return (float)StripeRules.TileWidth(ang, periodCanvasPx, periodCanvasPx * 64.0);
+        }
+
+        /// <summary>
+        /// 줄무늬 **한 타일**을 굽는다 — 되풀이는 <see cref="Image.type"/> `Tiled` 가 맡는다(판을 화면 폭만큼 굽지 않는다).
+        /// <paramref name="periodCanvasPx"/>·<paramref name="dashCanvasPx"/>·<paramref name="phaseCanvasPx"/> 는 호출자가 앱 폭/높이 비율을 곱해 넘긴 캔버스 px 이고,
+        /// <paramref name="heightCanvasPx"/> 는 띠 두께다. 기울어진 줄무늬(−45°)는 타일 가로가 주기 ÷ |sinθ| 로 늘어난다(정본 1.556rem 과 같은 수).
+        /// </summary>
+        public static Sprite BakeStripe(string key, float periodCanvasPx, float dashCanvasPx, float phaseCanvasPx, float heightCanvasPx)
+        {
+            JsonObject one = Stripe(key);
+            double ang = J.Num(one["angle_deg"], 90);
+            Color ink = StripeColor(one["ink"]), gap = StripeColor(one["gap"]);
+
+            int shortSide = Mathf.Max(8, (int)J.Num(Table()["bake_px"], 96));
+            double tileW = StripeRules.TileWidth(ang, periodCanvasPx, periodCanvasPx * 64.0);
+            // 굽는 판: 세로는 띠 두께에 맞추되 최소 한 줄 · 가로는 한 타일을 캔버스 px 그대로(작으면 정수배로 키워 계단을 줄인다)
+            int h = Mathf.Clamp(Mathf.RoundToInt(heightCanvasPx), 1, shortSide * 4);
+            int w = Mathf.Max(2, Mathf.RoundToInt((float)tileW));
+            int up = Mathf.Max(1, Mathf.CeilToInt(16f / w));      // 아주 좁은 타일은 정수배로 굽는다(주기가 안 어긋난다)
+            w *= up; h = Mathf.Max(1, h * up);
+            string name = "stripe-" + key + "-" + w + "x" + h + "-" + Mathf.RoundToInt(dashCanvasPx * 10f) + "-" + Mathf.RoundToInt(phaseCanvasPx * 10f);
+            Sprite hit;
+            if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+
+            double sx = tileW / w, sy = heightCanvasPx <= 0f ? 1.0 : heightCanvasPx / h;
+            Color32 inkC = ink, gapC = gap;
+            Color32[] px = new Color32[w * h];
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    // 화소 **가운데**를 잰다 — 가장자리를 재면 주기 경계에서 한 줄이 통째로 뒤집힌다
+                    double cx = (x + 0.5) * sx, cy = (y + 0.5) * sy;
+                    px[y * w + x] = StripeRules.IsInk(cx, cy, ang, periodCanvasPx, dashCanvasPx, phaseCanvasPx) ? inkC : gapC;
+                }
+            }
+            return Finish(name, w, h, px);
+        }
+
         static Sprite Finish(string name, int w, int h, Color32[] px)
         {
             Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
