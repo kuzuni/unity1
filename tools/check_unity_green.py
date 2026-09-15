@@ -101,6 +101,66 @@ def red_text(ref=REF):
     return out if rc == 0 else ''
 
 
+# T386 — 장부 머리의 «건너뜀» 칸. CI 가 `#   건너뜀 <이름> :: <사유>` 로 한 줄씩 박는다(ci.yml ⓑ).
+#        사유가 `KNOWN T<번호>` 로 시작하면 «남의 산 lock 뒤라 지금 못 고치는 자리» 다(§1) — rc 는 안 바꾸고
+#        이름과 번호를 판정 줄 옆에 남긴다. 그 번호가 **이미 닫혀 있으면**(✅·⛔·✂) 접어 둘 까닭이 사라진 것이라 rc 1 로 운다.
+SKIP_LINE = re.compile(r'^#\s*건너뜀\s+(\S+)\s*::\s*(.*)$')
+KNOWN_ID = re.compile(r'T(\d+)')
+# 닫힌 행 — `DONE_MARKS`(T340 · ✅ 하나)와 달리 여기선 ⛔·✂ 도 «접어 둘 까닭이 사라진» 쪽이다.
+CLOSED_MARKS = ('✅', '⛔', '✂')
+
+
+def skip_name(full):
+    """`Forge.Tests.PlayMode.BrLinesTests.승천_효과_글줄…` → `BrLinesTests.승천_효과_글줄…`(자.칸 두 토막)."""
+    parts = (full or '').split('.')
+    return '.'.join(parts[-2:]) if len(parts) >= 2 else (full or '?')
+
+
+def skips(text):
+    """`playmode-red.txt` 머리의 «건너뜀» 줄 → [(이름, 사유)]. 없으면 빈 목록."""
+    out = []
+    for ln in (text or '').split('\n'):
+        m = SKIP_LINE.match(ln.strip())
+        if m:
+            out.append((m.group(1).strip(), m.group(2).strip()))
+    return out
+
+
+def skip_note(sk, status=None):
+    """T386 — (줄 목록, 이제 켜야 할 번호 목록).
+
+    «KNOWN T…» 사유만 «남은 일» 로 센다 — 환경 사유(그래픽 장치 없음 따위)는 남은 일이 아니다.
+    `status` 는 <see cref="row_status"/> 의 표(번호 → 상태). 닫힌 번호를 대고 있는 건너뜀은 **되살릴 때**다."""
+    known, envs, stale = [], [], []
+    for name, why in sk or []:
+        if why.startswith('KNOWN'):
+            ids = ['T' + n for n in KNOWN_ID.findall(why)]
+            known.append((name, why, ids))
+            for t in ids:
+                if status and any(mk in status.get(t, '') for mk in CLOSED_MARKS) and t not in stale:
+                    stale.append(t)
+        else:
+            envs.append((name, why))
+    lines = []
+    if known:
+        ids = []
+        for _, _, xs in known:
+            for t in xs:
+                if t not in ids:
+                    ids.append(t)
+        lines.append('  · **남은 일 %d** — %s lock 뒤라 접어 둔 자리다(§1 · 빨강이 아니다):'
+                     % (len(known), ' · '.join(ids) or '번호 없음'))
+        for name, why, _ in known:
+            lines.append('    - %s — %s' % (skip_name(name), why))
+    if envs:
+        lines.append('  · 건너뜀 %d 은 환경 사유다(남은 일이 아니다): %s'
+                     % (len(envs), ' · '.join(skip_name(n) for n, _ in envs)))
+    if stale:
+        lines.append('  ⚑ **이제 켜라** — %s 는 이미 닫힌 행인데(✅·⛔·✂) 그 번호를 대고 접혀 있는 자가 있다.'
+                     ' 접어 둘 까닭이 사라졌으니 `Assert.Ignore` 를 걷고 그 자리를 세운다(T386 ⓒ).' % ' · '.join(stale))
+    return lines, stale
+
+
 def error_paths(text):
     """{픽스처: [Assets/… 경로]} — 빨강 본문이 댄 **제 것이 아닌** 파일.
 
@@ -1245,7 +1305,7 @@ def job_lines(jobs, sha, unity_red=True):
 
 
 def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None, blocked=None, blocks_now=True,
-          newer=None):
+          newer=None, skipped=None):
     """순수 판정 — (rc, 줄 목록). 네트워크·git 없이 자기 검사할 수 있게 갈라 둔다."""
     out = []
     if meta is None:
@@ -1305,6 +1365,14 @@ def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None, blocke
         if blk and blocks_now:
             # 마지막 유니티 런은 초록이지만 **지금** main 이 막혀 있다 — 그것이 이번 회차의 첫 일이다(rc 1).
             out.append('  ⚑ 그래도 **지금 main 은 막혀 있다**(위 ⛔) — 그것이 이번 회차의 첫 일이다.')
+            rc = 1
+
+    # T386 — «건너뜀» 칸. 남의 산 lock 뒤라 지금 못 고치는 자리는 빨강이 아니라 **남은 일**이다(§1).
+    #        판정(초록/빨강)은 안 바꾸되 이름·번호를 남기고, 그 번호가 이미 닫혔으면 rc 1 «이제 켜라» 로 운다.
+    if skipped:
+        sk_lines, stale = skipped
+        out.extend(list(sk_lines))
+        if stale:
             rc = 1
 
     if anc is False:
@@ -1967,6 +2035,47 @@ def self_test():
                              hist=lambda n: [], lock=live331)
     eq('ⓨ 흔한 줄기는 옛 갈래 그대로', any('못 가렸다' in l for l in lines_common), True)
 
+    # ⓩ T386 — 장부의 «건너뜀» 칸: 남의 lock 뒤라 접어 둔 자리는 **빨강이 아니라 남은 일**이고,
+    #        그 번호가 닫히면 «이제 켜라» 로 운다(접어 두기가 영원히 숨는 길이 되는 것을 막는 유일한 장치).
+    txt386 = ('#   playmode-results.xml: 전부 342 · 초록 340 · 빨강 0 · 건너뜀 2\n'
+              '#   건너뜀 Forge.Tests.PlayMode.BrLinesTests.승천_효과_글줄은_정본대로_세_줄이다'
+              ' :: KNOWN T333·T354 lock 뒤 — 하한 탓에 4줄\n'
+              '#   건너뜀 Forge.Tests.PlayMode.EdgeOutlineTests.가장자리 :: 그래픽 장치가 없다\n'
+              '── Forge.Tests.PlayMode.AgePatternTests.무늬\nPASS Forge.Tests.PlayMode.AgePatternTests.무늬\n')
+    sk386 = skips(txt386)
+    eq('ⓩ 건너뜀 두 줄을 읽는다', len(sk386), 2)
+    eq('ⓩ 이름과 사유를 가른다', sk386[0][1].startswith('KNOWN T333'), True)
+    eq('ⓩ FAIL·PASS 줄은 건너뜀이 아니다', [n for n, _ in sk386 if 'AgePattern' in n], [])
+
+    open333 = {'T333': '⬜ 대기', 'T354': '🔄 진행'}
+    ln386, stale386 = skip_note(sk386, open333)
+    eq('ⓩ 열린 번호면 켜라고 안 한다', stale386, [])
+    eq('ⓩ 남은 일 수는 KNOWN 만 센다', any('**남은 일 1**' in l for l in ln386), True)
+    eq('ⓩ 번호를 둘 다 댄다', any('T333 · T354' in l for l in ln386), True)
+    eq('ⓩ 환경 사유는 따로 적는다', any('환경 사유' in l for l in ln386), True)
+    eq('ⓩ 이름은 자.칸 두 토막', any('BrLinesTests.승천_효과_글줄은_정본대로_세_줄이다' in l for l in ln386), True)
+
+    green386 = {'sha': 'c' * 40, 'run': 700, 'tests': 'success', 'missing_modes': ''}
+    rc386, out386 = judge(green386, True, 0, skipped=(ln386, stale386))
+    eq('ⓩ 접어 둔 자리는 초록을 안 깬다', rc386, 0)
+    eq('ⓩ 초록 줄 옆에 남은 일이 선다', any('남은 일 1' in l for l in out386), True)
+
+    closed333 = {'T333': '✅ 완료', 'T354': '🔄 진행'}
+    ln_stale, stale_ids = skip_note(sk386, closed333)
+    eq('ⓩ 닫힌 번호를 집는다', stale_ids, ['T333'])
+    eq('ⓩ «이제 켜라» 를 적는다', any('이제 켜라' in l for l in ln_stale), True)
+    rc_stale, out_stale = judge(green386, True, 0, skipped=(ln_stale, stale_ids))
+    eq('ⓩ 닫힌 번호를 대고 접혀 있으면 rc 1', rc_stale, 1)
+    eq('ⓩ 그래도 판정 줄 자체는 초록', any(l.startswith('✓ check_unity_green') for l in out_stale), True)
+
+    # 접힌 것이 환경 사유뿐이면 한 줄도 «남은 일» 로 안 센다
+    env_only = skip_note([('Forge.Tests.PlayMode.EdgeOutlineTests.가', '그래픽 장치가 없다')], open333)
+    # 환경 사유 줄 자체가 «남은 일이 아니다» 라고 적으므로 머리표(`**남은 일 N**`)로 가른다
+    eq('ⓩ 환경 사유만이면 남은 일 0', any('**남은 일' in l for l in env_only[0]), False)
+    eq('ⓩ 환경 사유만이면 rc 0', judge(green386, True, 0, skipped=env_only)[0], 0)
+    eq('ⓩ 건너뜀이 없으면 종전 출력 그대로', judge(green386, True, 0, skipped=([], []))[1],
+       judge(green386, True, 0)[1])
+
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
         for f in fails:
@@ -2043,7 +2152,9 @@ def main(argv):
                         touched=prod_touch(commits), missing=miss_str, runs=runs,
                         mode_logs=mode_logs, meta_run=meta.get('run'))
         between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None))
-    rc, out = judge(meta, anc, n_after, fails, own, between, blocked, blocks_now, newer=nv)
+    # T386 — 장부 머리의 «건너뜀» 줄은 빨간 런이 아니어도 읽는다(초록 런에도 «남은 일» 이 있을 수 있다).
+    sk = skip_note(skips(red_text(ref)), row_status(read_progress()))
+    rc, out = judge(meta, anc, n_after, fails, own, between, blocked, blocks_now, newer=nv, skipped=sk)
     for ln in out:
         print(ln)
     if meta and (red or str(meta.get('missing_modes', '') or '')):
