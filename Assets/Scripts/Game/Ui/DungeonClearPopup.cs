@@ -46,9 +46,9 @@ namespace Forge.Game.Ui
             float cellH = cellPad * 2f + ico + DungeonPopups.Rem(0.3f) + DungeonPopups.LineH(TextKind.Sub);
             float btnH = DungeonPopups.RemL("dgc_btn_h_rem");
             float ch = pad * 2f + titleH + gap + subH + gap + cellH + gap + btnH;
-            RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_radius_rem"));
+            RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_r_rem"));
             // 원작 .dgclear-card 는 테 색이 금색(#ffd54f) — 바깥 테를 그 색으로 덧그린다.
-            RectTransform gold = DungeonPopups.Bordered(card, "gold", "pp_paper", DungeonPopups.RemL("card_radius_rem"), DungeonPopups.Line3, "dgclear_title");
+            RectTransform gold = DungeonPopups.Bordered(card, "gold", "pp_paper", DungeonPopups.RemL("card_r_rem"), DungeonPopups.Line3, "dgclear_title");
 
             float y = pad;
             Title = "클리어!";

@@ -125,7 +125,7 @@ namespace Forge.Game.Ui
             float descH = researching ? 0f : cw * UiKit.L("idet_subs_mt") + cw * UiKit.L("idet_subs_pad") * 2f + subH * 2f;
             float actionH = ActionHeight(State);
             float ch = pad * 2f + headH + descH + actionH + DungeonPopups.RemL("card_gap_rem");
-            RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_radius_rem"));
+            RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_r_rem"));
 
             // 머리: 청동 원 아이콘(lv/5 배지) + 이름 · 단계 · 총합 · (레벨당 · 이 노드)
             float y = pad;
@@ -272,7 +272,7 @@ namespace Forge.Game.Ui
             float rowH = DungeonPopups.LineH(TextKind.Sub) + DungeonPopups.RemL("tbn_row_pad_rem") * 2f;
             float listH = Mathf.Min(H * UiKit.L("tbn_list_maxh"), Mathf.Max(rowH, lines.Count * rowH));
             float ch = pad * 2f + titleH + DungeonPopups.RemL("card_gap_rem") + listH;
-            RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_radius_rem"));
+            RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_r_rem"));
             TextMeshProUGUI t = DungeonPopups.Bold(card, "title", TextKind.Button, "총 보너스", "pp_ink");
             UiKit.Place(t.rectTransform, 0f, pad, cw, titleH);
             float y = pad + titleH + DungeonPopups.RemL("card_gap_rem");

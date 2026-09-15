@@ -98,7 +98,7 @@ namespace Forge.Game.Ui
             overlay = DungeonPopups.Overlay("modal-dungeon-detail");
             float cw = W * UiKit.L("dgd_card_w");
             float heroH = H * UiKit.L("dgd_hero_h");
-            float radius = DungeonPopups.RemL("card_radius_rem");
+            float radius = DungeonPopups.RemL("card_r_rem");
             float triD = H * UiKit.L("dgd_tri");
             float stageRowH = DungeonPopups.LineH(TextKind.Sub) + DungeonPopups.LineH(TextKind.Body);
             float pillH = DungeonPopups.LineH(TextKind.Sub) + DungeonPopups.RemL("dgd_pill_pad_rem") * 2f;
@@ -142,7 +142,7 @@ namespace Forge.Game.Ui
             float pw = cw * UiKit.L("dgd_pill_w");
             RectTransform pill = UiKit.Box(card, "reward-pill");
             UiKit.Place(pill, (cw - pw) * 0.5f, y, pw, pillH);
-            UiKit.Rounded(pill, "bg", "dgd_pill", DungeonPopups.RemL("dgd_pill_radius_rem"));
+            UiKit.Rounded(pill, "bg", "dgd_pill", DungeonPopups.RemL("dgd_pill_r_rem"));
             RewardText = BuildRewardRow(pill, dg.Rewards(curId, curStage), pw, pillH);
             y += pillH + DungeonPopups.RemL("dgd_pill_mb_rem");
 
@@ -162,7 +162,7 @@ namespace Forge.Game.Ui
             float bgap = cw * UiKit.L("dgd_btn_gap");
             float bw = (cw - mx * 2f - bgap) * 0.5f;
             float by = ch - DungeonPopups.RemL("dgd_btn_mb_rem") - btnH;
-            float br = DungeonPopups.RemL("dgd_btn_radius_rem");
+            float br = DungeonPopups.RemL("dgd_btn_r_rem");
             bool canSweep = keys > 0 && best >= 1;
             bool canEnter = keys > 0;
             SweepButton = DungeonPopups.Pill(card, "sweep", "이전 스테이지\n소탕", canSweep ? DungeonPopups.Skin.DgdSilver : DungeonPopups.Skin.Gray, TextKind.Button, Sweep, br, canSweep);

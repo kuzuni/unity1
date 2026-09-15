@@ -65,6 +65,10 @@ TABLE = {
     '.tech-branch-card': ['Ui/TechPanel.cs$tb_card_r_rem@catalog.json'],
     '.tech-tier-tag': ['Ui/TechPanel.cs$tt_tag_r_rem@catalog.json'],
     '.tech-prog, .modal-card .tech-prog': ['Ui/TechPopups.cs$tech_prog_r_rem@catalog.json'],
+    # T345 14회차 — 팝업 카드(정본이 **뒤 규칙으로 덮은** 값 1.1rem · 클론은 1.0 이었다) + 던전 상세 둘
+    '.modal-card': ['Ui/AscendPopup.cs$card_r_rem@catalog.json'],
+    '.dgd-reward-pill': ['Ui/DungeonDetailPopup.cs$dgd_pill_r_rem@catalog.json'],
+    '.dgd-btn': ['Ui/DungeonDetailPopup.cs$dgd_btn_r_rem@catalog.json'],
     # T345 13회차 — 상점 화면 셋(값은 이미 정본과 같았고 수가 코드에 박혀 있었다 · §1)
     '.shop-deal-card': ['Ui/ShopSheet.cs$shop_deal_card_r_rem'],
     '.shop-gem-card': ['Ui/ShopSheet.cs$shop_gem_card_r_rem'],
@@ -306,12 +310,22 @@ def run(css_path, game_dir, table_path, table_map, known, out=print, list_undeci
     n_ok = n_known = n_verified = n_off = 0
     undecided = []
     known_now_ok = []
+    # T345 14회차 — **캐스케이드**: 같은 선택자에 `border-radius` 선언이 여럿이면 화면에 서는 것은 **마지막 것**이다
+    #   (정본 `.modal-card` 는 1752 에서 `1rem`, 3515 에서 `1.1rem` — 뒤가 이긴다). 그러니 표와 견줄 때도 마지막 선언만 본다.
+    last = {}
+    for line, sel, val in rules:
+        last[sel] = (line, val)
+    checked = set()
     for line, sel, val in rules:
         seen.add(sel)
-        unit, num = css_value(val)
         if sel not in table_map:
             undecided.append((line, sel, val))
             continue
+        if sel in checked:
+            continue
+        checked.add(sel)
+        line, val = last[sel]                     # 캐스케이드 — 뒤 규칙이 이긴다
+        unit, num = css_value(val)
         targets = table_map[sel]
         if isinstance(targets, str):
             if targets.startswith('✓'):

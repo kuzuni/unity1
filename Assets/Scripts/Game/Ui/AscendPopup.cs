@@ -59,7 +59,7 @@ namespace Forge.Game.Ui
             float focusPad = DungeonPopups.RemL("asc_focus_pad_rem");
             float focusH = line != null ? DungeonPopups.RemL("asc_focus_mt_rem") + focusPad * 2f + DungeonPopups.RemL("asc_icon_rem") + DungeonPopups.LineH(TextKind.Body) + subH + subH * 4f : 0f;
             float ch = pad * 2f + titleH + gap + subH * 2f + gap + rowsH + focusH + DungeonPopups.RemL("asc_focus_mt_rem") + btnH;
-            RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_radius_rem"));
+            RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_r_rem"));
 
             float y = pad;
             // T398 — 정본 ui.js 5864 `<h3>${star} 승천 <small class="muted">보유 별 합계 ${star} N</small></h3>`: 제목은 **두 토막**이다 —
