@@ -201,8 +201,12 @@ namespace Forge.Tests.PlayMode
             DungeonDetailPopup.Open("hammer");   // 다른 자들이 쓰는 던전 id 그대로
             yield return null; yield return null;
             Canvas.ForceUpdateCanvases();
-            Assert.IsNotNull(DungeonDetailPopup.SweepButton, "소탕 버튼");
-            Transform lab = DungeonPopups.Root(DungeonDetailPopup.SweepButton).Find("label");
+            // ⚠ `DungeonDetailPopup.SweepButton` 은 **정적 참조**라 팝업이 다시 서면 죽은 객체를 가리킨다
+            //   (런 782: `MissingReferenceException` — C# 참조는 null 이 아니어서 IsNotNull 을 통과한 뒤 `.transform` 에서 터졌다).
+            //   그래서 **살아 있는 나무에서** 찾는다(`DropShadowTests` 가 쓰는 길).
+            Transform sweep = Find(UiRoot.Instance.App, "sweep");
+            Assert.IsNotNull(sweep, "소탕 버튼 상자");
+            Transform lab = Find(sweep, "label");
             Assert.IsNotNull(lab, "그 버튼의 라벨");
             TextMeshProUGUI t = lab.GetComponent<TextMeshProUGUI>();
             AssertSpacing(t, "dgd_btn_lh", "던전 상세 소탕 버튼");
