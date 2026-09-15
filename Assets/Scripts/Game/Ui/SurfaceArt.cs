@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Forge.Core.Data;
+using Forge.Core.Ui;
 
 namespace Forge.Game.Ui
 {
@@ -16,6 +17,11 @@ namespace Forge.Game.Ui
     /// 각도는 **CSS 의 뜻 그대로**다: 0deg 가 위로, 90deg 가 오른쪽. 방향 벡터는 (sinθ, −cosθ)(y 아래가 +)이고
     /// 그라디언트 선 길이는 `|W·sinθ| + |H·cosθ|` — 그래서 0%·100% 정지점이 양 끝 모서리에 닿는다(CSS 규격).
     /// 각도가 **비율을 타므로** 정사각에 구워 늘리면 120° 가 다른 각이 된다 — 그 자리의 실제 비율로 굽는다(T156 `RibbonArt` 와 같은 까닭).
+    ///
+    /// **섞는 공간**(T178 8회차 · T357 이 수로 밝힌 것): 브라우저는 `rgba(…, .16)` 겹을 **sRGB 바이트 위에서** 섞고, 이 프로젝트는 Linear 색공간이라
+    /// 유니티가 같은 알파를 **선형 값 위에서** 섞는다 — 어두운 바탕일수록 결과가 훨씬 밝게 나온다(런 537 탭바 실측 98/71/53/19/9 ↔ 정본 42/28/25/17/10).
+    /// 그래서 **바탕을 아는 겹**은 표에 `over_color`(카탈로그 색 키) 또는 `over_layer`(이 표의 다른 겹 키)를 적어 두고, 여기서 <see cref="SurfaceBlendRules.OverSrgb"/> 로
+    /// **미리 합성해 불투명하게** 굽는다. 불투명한 화소는 섞이지 않으므로 화면에 정본 바이트가 그대로 나온다. 바탕을 모르는 자리는 종전대로 알파로 얹는다.
     ///
     /// 굽은 그림은 `Apply(false, false)` 로 **읽을 수 있게** 남긴다(PlayMode 자가 «어느 쪽이 짙은가» 를 픽셀로 잰다 · T173 과 같은 길).
     /// </summary>
@@ -117,19 +123,69 @@ namespace Forge.Game.Ui
         {
             if (aspect <= 0f || float.IsNaN(aspect)) aspect = 1f;
             if (aspect > 8f) aspect = 8f;                      // 아주 납작한 자리도 굽는 비용을 묶는다
-            bool pxUnit = PxOffsets(key);
-            string name = key + "-" + aspect.ToString("0.00") + (pxUnit ? "-L" + Mathf.RoundToInt(lineLenCanvasPx) : "");
+            bool needLen = PxOffsets(key) || BaseLayer(key) != null;
+            string name = key + "-" + aspect.ToString("0.00") + (needLen ? "-L" + Mathf.RoundToInt(lineLenCanvasPx) : "");
             Sprite hit;
             if (cache.TryGetValue(name, out hit) && hit != null) return hit;
 
             int shortSide = Mathf.Max(8, (int)J.Num(Table()["bake_px"], 96));
             int w = Mathf.Max(8, Mathf.RoundToInt(shortSide * aspect)), h = shortSide;
+            return Finish(name, w, h, Pixels(key, w, h, lineLenCanvasPx, 0));
+        }
+
+        /// <summary>그 겹이 얹히는 바탕이 «이 표의 다른 겹» 인가(`over_layer`) — 그러면 그 겹을 같은 판에 먼저 굽고 위에 합성한다.</summary>
+        static string BaseLayer(string key)
+        {
+            JsonObject one = J.Obj(Table()[key]);
+            return one == null ? null : J.Str(one["over_layer"]);
+        }
+
+        /// <summary>그 겹이 얹히는 바탕이 «카탈로그 단색» 인가(`over_color`).</summary>
+        static string BaseColor(string key)
+        {
+            JsonObject one = J.Obj(Table()[key]);
+            return one == null ? null : J.Str(one["over_color"]);
+        }
+
+        /// <summary>
+        /// 그 겹 한 판의 화소. 표에 바탕(`over_color`·`over_layer`)이 적힌 겹은 **정본이 섞는 길(sRGB 바이트)** 로 미리 합성해
+        /// 불투명하게 돌려준다(T178 8회차 · 셈은 Core <see cref="SurfaceBlendRules"/>). 바탕이 없으면 종전처럼 알파를 그대로 둔다.
+        /// </summary>
+        static Color32[] Pixels(string key, int w, int h, float lineLenCanvasPx, int depth)
+        {
+            if (depth > 4) throw new KeyNotFoundException(ResourcePath + ".json 의 «" + key + "» 바탕(over_layer)이 서로를 물고 돈다");
             Color[] col; float[] pos;
             Stops(key, out col, out pos);
-            if (IsRadial(key)) return BakeRadial(key, name, w, h, col, pos);
+            Color32[] px = IsRadial(key) ? RadialPixels(key, w, h, col, pos) : LinearPixels(key, w, h, col, pos, lineLenCanvasPx);
+
+            string overLayer = BaseLayer(key), overColor = BaseColor(key);
+            if (overLayer == null && overColor == null) return px;
+            Color32[] under = overLayer != null ? Pixels(overLayer, w, h, lineLenCanvasPx, depth + 1) : null;
+            Color32 flat = new Color32(0, 0, 0, 255);
+            if (under == null)
+            {
+                Color c = UiKit.C(overColor);
+                flat = new Color32((byte)Mathf.RoundToInt(Mathf.Clamp01(c.r) * 255f),
+                                   (byte)Mathf.RoundToInt(Mathf.Clamp01(c.g) * 255f),
+                                   (byte)Mathf.RoundToInt(Mathf.Clamp01(c.b) * 255f), 255);
+            }
+            for (int i = 0; i < px.Length; i++)
+            {
+                Color32 top = px[i], bottom = under != null ? under[i] : flat;
+                double a = top.a / 255.0;
+                px[i] = new Color32(SurfaceBlendRules.OverSrgb(bottom.r, top.r, a),
+                                    SurfaceBlendRules.OverSrgb(bottom.g, top.g, a),
+                                    SurfaceBlendRules.OverSrgb(bottom.b, top.b, a), 255);
+            }
+            return px;
+        }
+
+        /// <summary>곧은 겹 한 판(각도·정지점 그대로 · `unit: "px"` 인 겹은 자리의 선 길이로 나눈다).</summary>
+        static Color32[] LinearPixels(string key, int w, int h, Color[] col, float[] pos, float lineLenCanvasPx)
+        {
             float rad = Angle(key) * Mathf.Deg2Rad;
             float dx = Mathf.Sin(rad), dy = -Mathf.Cos(rad);   // CSS: 0deg 는 위로 · y 는 아래가 +
-            if (pxUnit)
+            if (PxOffsets(key))
             {
                 // CSS px → 선 길이의 분수. 자리 길이를 모르면(0) 굽는 판의 길이를 쓴다(림이 굵게 나오지만 안 사라진다).
                 float realLen = lineLenCanvasPx > 0f ? lineLenCanvasPx : Mathf.Abs(w * dx) + Mathf.Abs(h * dy);
@@ -148,14 +204,19 @@ namespace Forge.Game.Ui
                 {
                     float t = 0.5f + ((x + 0.5f - cx) * dx + (py - cy) * dy) / len;
                     Color c = Sample(col, pos, Mathf.Clamp01(t));
-                    px[y * w + x] = new Color32(
-                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.r) * 255f),
-                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.g) * 255f),
-                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.b) * 255f),
-                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.a) * 255f));
+                    px[y * w + x] = Byte4(c);
                 }
             }
-            return Finish(name, w, h, px);
+            return px;
+        }
+
+        static Color32 Byte4(Color c)
+        {
+            return new Color32(
+                (byte)Mathf.RoundToInt(Mathf.Clamp01(c.r) * 255f),
+                (byte)Mathf.RoundToInt(Mathf.Clamp01(c.g) * 255f),
+                (byte)Mathf.RoundToInt(Mathf.Clamp01(c.b) * 255f),
+                (byte)Mathf.RoundToInt(Mathf.Clamp01(c.a) * 255f));
         }
 
         /// <summary>구운 화소를 스프라이트로(같은 키·같은 비율은 캐시).</summary>
@@ -177,7 +238,7 @@ namespace Forge.Game.Ui
         /// 방사형 한 장(정본 `radial-gradient(ellipse RX% RY% at CX% CY%, …)`). 타원 좌표에서 잰 거리(0 = 중심 · 1 = 반지름 끝)를
         /// 그대로 정지점 t 로 쓴다 — CSS 도 «반지름 = 100%» 로 잰다. 상자 밖으로 나가는 부분은 마지막 정지점 색(대개 투명)이다.
         /// </summary>
-        static Sprite BakeRadial(string key, string name, int w, int h, Color[] col, float[] pos)
+        static Color32[] RadialPixels(string key, int w, int h, Color[] col, float[] pos)
         {
             float cx, cy, rx, ry;
             Ellipse(key, out cx, out cy, out rx, out ry);
@@ -190,14 +251,10 @@ namespace Forge.Game.Ui
                     float u = ((x + 0.5f) / w - cx) / rx;
                     float v = (py / h - cy) / ry;
                     Color c = Sample(col, pos, Mathf.Clamp01(Mathf.Sqrt(u * u + v * v)));
-                    px[y * w + x] = new Color32(
-                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.r) * 255f),
-                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.g) * 255f),
-                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.b) * 255f),
-                        (byte)Mathf.RoundToInt(Mathf.Clamp01(c.a) * 255f));
+                    px[y * w + x] = Byte4(c);
                 }
             }
-            return Finish(name, w, h, px);
+            return px;
         }
 
         /// <summary>그 겹을 <paramref name="parent"/> 를 꽉 채우게 얹는다(자리·크기는 부모가 쥔다 — 겹은 layout 을 안 바꾼다).</summary>

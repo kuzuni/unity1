@@ -194,11 +194,12 @@ namespace Forge.Tests.PlayMode
             UnityEngine.UI.Image gi = grad.GetComponent<UnityEngine.UI.Image>();
             Assert.IsNotNull(gi.sprite, "구운 그림"); Assert.IsFalse(gi.raycastTarget, "클릭 안 먹음");
             Assert.AreEqual(Vector2.zero, gi.rectTransform.offsetMin); Assert.AreEqual(Vector2.zero, gi.rectTransform.offsetMax);
-            // 구운 밴드: 위 줄이 아래 줄보다 밝다(흰 .16 ↔ 검 .38)
+            // 구운 밴드: 위 줄이 아래 줄보다 밝다(흰 .16 ↔ 검 .38) · 바탕을 아는 겹이라 **미리 합성해 불투명**(T178 8회차)
             Color32[] px = gi.sprite.texture.GetPixels32(); int W = gi.sprite.texture.width, H = gi.sprite.texture.height;
             Color32 top = px[(H - 1) * W + W / 2], bot = px[W / 2];
             Assert.Greater(top.r, bot.r, "위는 흰 기 · 아래는 검");
-            Assert.Greater(bot.a, top.a, "아래가 더 진하다(.38 > .16)");
+            Assert.AreEqual(255, top.a, "바탕(tabbar_bg)을 알아 미리 합성했다 — 알파로 남기면 유니티가 선형에서 섞어 정본보다 밝다");
+            Assert.AreEqual(255, bot.a, "아래 줄도 불투명");
 
             // ⓑ 확률 막대 — 소환 시트의 [확률] 팝업을 열어 rate-bar-<등급> 의 둥근 면(face) 위에 Mask 로 겹 둘
             float t = 0f;
@@ -229,6 +230,42 @@ namespace Forge.Tests.PlayMode
             Debug.Log("[T178] 탭바 겹 " + W + "×" + H + " · 확률 막대 림 " + rw + "×" + rh);
             SkillPetSheet.Instance.Modal.CloseAll();
             yield return null;
+        }
+
+        /// <summary>
+        /// T178 8회차 — 정본은 알파 겹을 **sRGB 바이트 위에서** 섞는다(브라우저 규칙). 이 프로젝트는 Linear 색공간이라
+        /// 알파를 그대로 남기면 유니티가 **선형 값 위에서** 섞어 어두운 바탕에서 훨씬 밝아진다(T357 이 런 537 탭바에서 실측: 98/71/53/19/9 ↔ 정본 42/28/25/17/10).
+        /// 그래서 바탕을 아는 겹은 표(`over_color`·`over_layer`)를 따라 **미리 합성해 불투명하게** 굽는다 — 이 자는 그 값이 정본 셈과 같은지를 바이트로 잰다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 바탕을_아는_겹은_정본처럼_sRGB_바이트_위에서_미리_섞인다()
+        {
+            yield return Boot();
+            // 탭바 바탕 #0e111b = (14, 17, 27) · 겹 정지점 (255,255,255,.16) 0% → (0,0,0,.38) 100%
+            Sprite shade = SurfaceArt.Bake("tabbar_shade", 1080f / 176f, 176f);
+            Color32[] sp = shade.texture.GetPixels32();
+            int W = shade.texture.width, H = shade.texture.height;
+            Color32 top = sp[(H - 1) * W + W / 2], bot = sp[W / 2];
+            // 정본 셈: dst*(1−a) + src*a 를 **바이트 위에서** — 위 14*.84+255*.16 = 53 · 아래 14*.62 = 9
+            Assert.AreEqual(53, top.r, 3, "위 줄 r = 14*(1-.16) + 255*.16");
+            Assert.AreEqual(55, top.g, 3, "위 줄 g = 17*(1-.16) + 255*.16");
+            Assert.AreEqual(63, top.b, 3, "위 줄 b = 27*(1-.16) + 255*.16");
+            Assert.AreEqual(9, bot.r, 3, "아래 줄 r = 14*(1-.38)");
+            Assert.AreEqual(17, bot.b, 3, "아래 줄 b = 27*(1-.38)");
+            Assert.AreEqual(255, top.a); Assert.AreEqual(255, bot.a);
+            // 선형에서 섞었다면 위 줄 r 이 90 을 넘는다 — 그 값이 아니어야 한다(회귀의 눈)
+            Assert.Less(top.r, 80, "선형 합성(≈98)으로 돌아가면 이 단언이 먼저 깨진다");
+
+            // 림은 겹 사슬(over_layer: tabbar_shade) — 투명한 자리는 아래 겹 값 그대로 · 맨 아래 1px 줄만 밝다
+            Sprite rim = SurfaceArt.Bake("tabbar_rim", 1080f / 176f, 176f);
+            Color32[] rp = rim.texture.GetPixels32();
+            Assert.AreEqual(W, rim.texture.width); Assert.AreEqual(H, rim.texture.height);
+            Color32 rMid = rp[(H / 2) * W + W / 2], sMid = sp[(H / 2) * W + W / 2];
+            Assert.AreEqual(sMid.r, rMid.r, 1, "림이 없는 자리는 아래 겹(밴드) 값 그대로여야 한다 — 사슬이 끊기면 바탕색이 밴드를 덮는다");
+            Assert.AreEqual(sMid.b, rMid.b, 1);
+            Assert.AreEqual(255, rMid.a, "림도 불투명하게 구워 위에 덮는다");
+            Assert.Greater(rp[W / 2].r, sp[W / 2].r, "맨 아래 1px 줄은 흰 .12 가 얹혀 밴드보다 밝다");
+            Debug.Log("[T178] 미리 합성 탭바 위(" + top.r + "," + top.g + "," + top.b + ") 아래(" + bot.r + "," + bot.g + "," + bot.b + ") 림 아래줄 r " + rp[W / 2].r);
         }
 
         [UnityTest]
