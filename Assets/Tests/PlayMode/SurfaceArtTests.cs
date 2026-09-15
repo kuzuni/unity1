@@ -165,16 +165,20 @@ namespace Forge.Tests.PlayMode
             Color bottom = SurfaceArt.Sample(col, off, 1f);
             Assert.AreEqual(0.30f, bottom.a, 1e-3f); Assert.AreEqual(0f, bottom.r, 1e-3f, "아래는 검 .30");
 
-            // px 림 — 선 길이 100 캔버스 px 자리에 구우면 1 CSS px(=css_px 캔버스 px)만 밝다: 0deg 는 아래가 시작이라 맨 아래 줄 α ≈ .12 · 가운데 줄 0
+            // px 림 — 선 길이 100 캔버스 px 자리에 구우면 1 CSS px(=css_px 캔버스 px)만 밝다: 0deg 는 아래가 시작이라 맨 아래 줄만 흰 줄이다.
+            // T178 8회차부터 이 겹은 바탕(밴드)을 알아 **미리 합성해 불투명**으로 구워진다 — 그래서 두께를 알파가 아니라 «아래 겹보다 밝은 줄» 로 잰다.
             Sprite rim = SurfaceArt.Bake("tabbar_rim", 4f, 100f);
+            Sprite band = SurfaceArt.Bake("tabbar_shade", 4f, 100f);
             Texture2D tx = rim.texture;
-            Color32[] px = tx.GetPixels32();
+            Color32[] px = tx.GetPixels32(), bp = band.texture.GetPixels32();
             int W = tx.width, H = tx.height;
-            Assert.Greater(px[W / 2].a, 20, "맨 아래 줄(0deg 의 시작)에 림 .12 (≈31/255)");
-            Assert.AreEqual(0, px[(H / 2) * W + W / 2].a, "가운데 줄은 투명");
-            Assert.AreEqual(0, px[(H - 1) * W + W / 2].a, "맨 위 줄은 투명");
+            Assert.AreEqual(W, band.texture.width); Assert.AreEqual(H, band.texture.height);
+            Assert.AreEqual(255, px[W / 2].a, "미리 합성한 겹은 불투명하다(정본은 sRGB 에서 섞는다 · 결정 586)");
+            Assert.Greater(px[W / 2].r - bp[W / 2].r, 10, "맨 아래 줄(0deg 의 시작)에 흰 림 .12 가 얹혀 밴드보다 밝다");
+            Assert.AreEqual(bp[(H / 2) * W + W / 2].r, px[(H / 2) * W + W / 2].r, 1, "가운데 줄엔 림이 없다 — 아래 겹 값 그대로");
+            Assert.AreEqual(bp[(H - 1) * W + W / 2].r, px[(H - 1) * W + W / 2].r, 1, "맨 위 줄도 아래 겹 값 그대로");
             float k = SurfaceArt.CssPx / 100f;
-            int litRows = 0; for (int y = 0; y < H; y++) if (px[y * W + W / 2].a > 10) litRows++;
+            int litRows = 0; for (int y = 0; y < H; y++) if (px[y * W + W / 2].r - bp[y * W + W / 2].r > 3) litRows++;
             Assert.LessOrEqual(litRows, Mathf.CeilToInt(k * H) + 1, "림 두께 = 1 CSS px 를 선 길이로 나눈 몫(판 96줄 중 " + (k * H).ToString("0.0") + "줄)");
             Assert.GreaterOrEqual(litRows, 1);
         }
