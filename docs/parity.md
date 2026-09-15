@@ -1071,3 +1071,19 @@ POLISH.md 를 읽고 «소품·용암 빛이 없다» 를 새 작업으로 등�
 - **새 작업 0**. 세 축 연속 «결함 0»(21·22·24). 다만 이 축은 21·22 와 달리 «정책이 코드에 서 있다» 를 자로 남겼다.
 - 남은 CSS 축(22회차 목록에서 이것을 뺀 것): `cursor` 51(모바일 — 뜻 없음 · 닫아도 된다) · `white-space` 41(nowrap 40 · normal 1 — 클론 공장 기본이 `NoWrap` 이라 부호가 같다 · 접히는 자리 19곳은 T351 이 잰다) · `background-position` 22 · `background-size` 15 · `mix-blend-mode` 18(전부 `screen` — `CraftFxPoly.Screen` 재질 한 길 · 18 자리 대조는 다음 회차) — 다음 회차가 고른다.
 
+# T33 완주 대조 — **25회차** (2026-09-15 03:3x · 워커 N · sess-0524-8791) — 축: `mix-blend-mode` 18 선언
+
+24회차가 «남은 큰 축» 으로 센 것. 정본 `style.css` 의 `mix-blend-mode` 는 **18 선언 · 전부 `screen`**(밝게 섞기 — 검정은 사라지고 밝은 빛만 얹힌다). 클론의 같은 길은 하나다: `CraftFxPoly.Screen()`(T173) = `Forge/UiScreen` 재질(`Blend OneMinusDstColor One` · 알파만큼 프리멀티플라이).
+
+## 정본 18 자리 ↔ 클론
+- ① **보스 경고 섬광 1** — `.bw-flash`(239) ↔ `BattleOverlay.cs:204` `Radial(... CraftFxPoly.Screen())` ✓.
+- ② **모루 타격 연출 5** — `.af-bloom`(998) · `.af-flash`(1013) · `.af-heat`(1027) ↔ `ForgeSheet.cs:551`(`DrawImpactGradient` 세 겹 전부 Screen) ✓ · `.af-star`(1057) ↔ 676 ✓ · `.af-core`(1078) ↔ 432(`DrawImpactEllipse(... screen: true)`) ✓.
+- ③ **소환 결과 연출 12** — `.sr-wipe`(4252) ↔ `SkillSummonResult.cs:403` Screen ✓ **하나뿐**. 나머지 열하나:
+  - **`.sr-flash`(4238) — 있는데 재질이 없다**: `SkillSummonResult.cs:386` 이 `UiKit.Panel(c, "sr-flash", "pp_line")` 로 세워 **보통 알파**로 그린다. 정본은 등급색 섬광을 screen 으로 얹어 아래 셀이 검게 죽지 않는다.
+  - **열 겹은 아직 안 섰다**(`SummonFx.cs` 는 `material` 을 0곳 쓴다 · 이름 grep 0): `.sr-canopy b::after`(4063 · `srsweep`) · `.sr-orbwrap::after`(4370) · `.sr-relight`(4380 · `srrelight`) · `.sr-tierpulse`(4396) · `.sr-tierflash`(4409) · `.sr-spark`(4458 · `srspark`) · `.sr-ico::after`(4508) · `.sr-cell.peer.on::after`(4624 · `srheroring`) · `.sr-beam`(4650 · `srbeam`) · `#summon-result-modal.hero .sr-cell.heroic::after`(4666 · `srheroring`). 그 키프레임 열은 **T334 의 «40 의 무리» 장부(ⓑ 주역 · ⓒ 등급 섬광 · ⓓ 완료)에 이미 전부 있다** — 세우는 일은 그 절의 몫이고, 이 축이 더하는 것은 «세울 때 screen 재질» 한 줄이다.
+
+## 이 회차의 판정
+- **결함 11 · 새 번호 0**: 전부 소환 결과 연출(`SkillSummonResult.cs`·`SummonFx.cs` · T334·T342 산 lock)이라 **T334 절에 한 줄로 귀속**했다(T359 가 `.sr-*` opacity 여섯을 같은 절에 넘긴 전례) — `sr-flash` 재질 한 줄 + 열 겹은 설 때 `CraftFxPoly.Screen()`(`sr-wipe` 꼴 · 재질 못 찾으면 보통 알파). 판정 자리는 T334 의 `screen_summon-result` 눈 확인에 «섬광 프레임에서 아래 셀이 검게 안 죽는가» 를 더하면 된다.
+- 모루·보스 경고 여섯은 이미 맞다 — T173 이 길을 내고 T155(모루 연출)가 그대로 썼다.
+- 남은 CSS 축(24회차 목록에서 이것을 뺀 것): `white-space` 41 · `background-position` 22 · `background-size` 15 · `cursor` 51(모바일 — 뜻 없음). `white-space` 는 클론 공장 기본이 `NoWrap` 이라 nowrap 40 과 부호가 같고 «접히는 자리» 는 T351 이 잰다 — 다음 회차가 «normal 1 + 접히는 19곳» 만 보면 된다.
+
