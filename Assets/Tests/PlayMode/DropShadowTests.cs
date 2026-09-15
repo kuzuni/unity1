@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Forge.Core.Save;
 using Forge.Game;
+using Forge.Core.Ui;
 using Forge.Game.Ui;
 
 namespace Forge.Tests.PlayMode
@@ -76,8 +77,7 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(want.a, si.color.a, 2f / 255f, "알파 = 표 pass_sword(.45)");
             Assert.Less(si.color.r + si.color.g + si.color.b, 0.05f, "색은 검정");
 
-            // 흐림이 실제로 걸렸는가 — 구운 사본은 커널 반경만큼 테두리가 넓어진다(UiFilter.Blur 주석).
-            Assert.Greater(si.sprite.rect.width, swi.sprite.rect.width, "흐린 사본은 번짐이 안 잘리게 원본보다 넓게 구워진다");
+            AssertBlurred(swi, si, "패스 검");
 
             PassPopup.Close(h);
             yield return null;
@@ -116,7 +116,7 @@ namespace Forge.Tests.PlayMode
                 Assert.AreEqual(0f, d.x, 0.01f, "정본은 가로로 안 민다(0 0 1.2px)");
                 Assert.AreEqual(0f, d.y, 0.01f, "정본은 세로로도 안 민다 — 그림자가 아니라 **윤곽**이다");
                 Image si = sh.GetComponent<Image>();
-                Assert.Greater(si.sprite.rect.width, ico.sprite.rect.width, "번짐이 실제로 걸렸다(구운 사본이 원본보다 넓다)");
+                AssertBlurred(ico, si, ico.name);
                 Assert.AreEqual(DropShadowUi.C("dgd_reward_pill_ico").a, si.color.a, 2f / 255f, "알파 = 표(.9)");
                 Assert.Less(si.color.r + si.color.g + si.color.b, 0.05f, "색은 검정");
             }
@@ -124,6 +124,27 @@ namespace Forge.Tests.PlayMode
 
             log.AssertNoRed();
             log.Dispose();
+        }
+
+        /// <summary>
+        /// «번짐이 실제로 걸렸다» 를 재는 자리 — 구운 판의 한 변이 **줄인 원본보다 커널 반경만큼 넓은가**.
+        ///
+        /// ⚠ «구운 사본이 **원본 스프라이트**보다 넓다» 로 재면 틀린다(런 641 실측 · 원본 160 ↔ 구운 것 54):
+        /// <see cref="UiFilter.Blur"/> 는 **화면에 설 크기까지만 굽는다**(`FilterRules.BlurBakeSide` · 커널이 제곱으로 비싸지지 않게).
+        /// 그러니 아틀라스 아이콘처럼 원본이 화면보다 크면 구운 판은 **원본보다 작다** — 그래도 번짐은 제대로 걸린 것이다.
+        /// 옳은 잣대는 «그 해상도로 줄인 원본» 이고, 거기에 `2 × 커널 반경` 이 더 붙는다.
+        /// </summary>
+        private static void AssertBlurred(Image sharp, Image shadow, string what)
+        {
+            Rect box = sharp.rectTransform.rect;
+            float sw = sharp.sprite.textureRect.width, sh2 = sharp.sprite.textureRect.height;
+            float srcMax = Mathf.Max(sw, sh2);
+            int side = FilterRules.BlurBakeSide(srcMax, Mathf.Max(box.width, box.height));
+            float shrink = (side > 0 && side < srcMax) ? side / srcMax : 1f;
+            float w0 = Mathf.Max(2f, Mathf.Round(sw * shrink));
+            Assert.Greater(shadow.sprite.rect.width, w0,
+                what + ": 번짐이 실제로 걸렸다 — 구운 판(" + shadow.sprite.rect.width + ")이 그 해상도로 줄인 원본("
+                + w0 + " · 원본 " + sw + " × 줄임 " + shrink.ToString("0.000") + ")보다 커널 반경만큼 넓다");
         }
 
         private static Transform FindIn(Transform root, string name)
