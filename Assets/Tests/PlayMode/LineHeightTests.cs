@@ -259,5 +259,28 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(1.15, LineHeight.Table.Get("shop_price_btn_lh"), 1e-9, "정본 2959 .shop-price-btn { line-height: 1.15 }");
             Debug.Log("[T354] 상점 가격 단추 lineSpacing " + t.lineSpacing.ToString("0.000"));
         }
+
+        /// <summary>
+        /// T354 11회차 — 리그 목록 행의 이름은 정본 2337 `.league-name { line-height: 1.3 }` 로 선다.
+        /// 목록은 탭만 열면 서므로 이 축에서 가장 싸게 잴 수 있는 자리다(보상 카드 안내 1.4 · 도전 행 이름 1.3 은 같은 회차의 다른 두 줄).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 리그_행_이름은_정본_1_3_배수로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(UiRoot.Instance != null && UiRoot.Instance.TabBar != null); i++) yield return null;
+            UiRoot.Instance.TabBar.OnTab("league");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform name = Find(UiRoot.Instance.App, "name");
+            Assert.IsNotNull(name, "리그 행 이름(name)");
+            TextMeshProUGUI t = name.GetComponent<TextMeshProUGUI>();
+            Assert.IsNotNull(t, "이름은 글자 하나다");
+            AssertSpacing(t, "league_name_lh", "리그 행 이름");
+            Assert.AreEqual(1.3, LineHeight.Table.Get("league_name_lh"), 1e-9, "정본 2337 .league-name { line-height: 1.3 }");
+            Assert.AreEqual(1.4, LineHeight.Table.Get("league_reward_desc_lh"), 1e-9, "정본 2514 .league-reward-desc { line-height: 1.4 }");
+            Assert.AreEqual(1.3, LineHeight.Table.Get("league_challenge_name_lh"), 1e-9, "정본 2632 .league-challenge-name { line-height: 1.3 }");
+            Debug.Log("[T354] 리그 행 이름 lineSpacing " + t.lineSpacing.ToString("0.000"));
+        }
     }
 }

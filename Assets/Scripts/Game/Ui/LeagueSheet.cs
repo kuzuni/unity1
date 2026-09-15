@@ -137,6 +137,7 @@ namespace Forge.Game.Ui
             float scoreW = UiKit.L("league_score_w") * w, scoreH = UiKit.H("league_score_h") * 1.6f;
             float nameW = rowW - x - scoreW - rem * 1.2f;
             TextMeshProUGUI nm = UiKit.Text(row, "name", TextKind.Sub, e.Name, "stage_ink", TextAlignmentOptions.Left);
+            LineHeight.Apply(nm, "league_name_lh");   // T354 11회차 — 정본 2337 `.league-name { line-height: 1.3 }`(긴 이름이 칸에서 꺾인다)
             nm.fontStyle = FontStyles.Bold;
             UiKit.OutlinePx(nm, "pp_line", KeylineUi.Px("league_row_text"));   // T109 5회차 — 정본 8403 `.league-row .league-name { 2px var(--pp-line) }`
             UiKit.TextShadow(nm, "league_row");   // T333 3회차 — 정본 8392 첫 겹
@@ -213,6 +214,7 @@ namespace Forge.Game.Ui
             TextMeshProUGUI desc = UiKit.Text(card, "desc", TextKind.Sub, "현재 순위(" + myRank + ")를 유지하면 시즌 종료 시\n다음 보상을 받을 수 있습니다:", "stage_ink");
             desc.fontStyle = FontStyles.Bold;
             desc.textWrappingMode = TextWrappingModes.Normal;
+            LineHeight.Apply(desc, "league_reward_desc_lh");   // T354 11회차 — 정본 2514 `.league-reward-desc { line-height: 1.4 }`(줄바꿈이 박혀 두 줄 · 접히면 더)
             UiKit.Place(desc.rectTransform, rem * 1.1f, y, inner - rem * 2.2f, descH);
             y += descH + rem * 0.5f;
             RectTransform grid = UiKit.Box(card, "grid");
@@ -346,6 +348,7 @@ namespace Forge.Game.Ui
                 float nw = rowW - nx - btnW - rem * 1.2f;
                 TextMeshProUGUI nm = UiKit.Text(row, "name", TextKind.Sub, o.Bot.Name, "pp_ink", TextAlignmentOptions.Left);
                 nm.fontStyle = FontStyles.Bold;
+                LineHeight.Apply(nm, "league_challenge_name_lh");   // T354 11회차 — 정본 2632 `.league-challenge-name { line-height: 1.3 }`
                 UiKit.Place(nm.rectTransform, nx, rowH * 0.12f, nw, rowH * 0.4f);
                 // 원작 `.league-challenge-name small` = IconGen.img('power') + 전투력 — 글자 «⚔» 가 아니라 T31 아이콘(T58 · 글꼴에 없는 글자는 □ 로 찍힌다)
                 float cpH = rowH * 0.4f, cpIco = cpH * 0.9f;
