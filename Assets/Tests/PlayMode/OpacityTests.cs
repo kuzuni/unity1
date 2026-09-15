@@ -134,7 +134,8 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(dim, Alpha(lane), 0.02f, "물러난 값은 표의 .1");
 
             float t1 = Time.realtimeSinceStartup;
-            while (Alpha(lane) < 0.99f)
+            // 끝값은 코루틴이 «정확히 1» 로 닫는다 — 0.99 에서 끊고 1 을 기대하면 한 프레임 일찍 나가 깨진다(런 594 가 그랬다).
+            while (Alpha(lane) < 0.9999f)
             {
                 Assert.Less(Time.realtimeSinceStartup - t1, 15f, "연출이 끝나면 토스트가 돌아와야 한다(지금 " + Alpha(lane) + ")");
                 yield return null;
