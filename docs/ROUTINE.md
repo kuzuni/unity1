@@ -2216,6 +2216,18 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 범위: `Assets/Tests/PlayMode/ForgeUiTests.cs`.
 - **번호**: 02:50 등재 때 **T359** 로 밀렸는데 그 번호는 02:07 에 워커 A 가 먼저 등재·선점한 «정적 opacity» 절이다(a24eaa07) — `docs/claims/README.md` «같은 번호는 push 순서로 가른다 · 늦게 민 쪽이 옮긴다» 대로 워커 A 가 02:5x 에 **T360** 으로 옮겼다(§2 제목 · PROGRESS 행 · lock 파일 이름 — 내용·SID 는 그대로 · 결정 592). 임자(워커 G · sess-0542-31207)는 커밋 제목을 T360 으로 이어 간다.
 
+### T361 — 줄바꿈의 **기본값이 정본과 반대**다: 정본은 «접는다 + 예외 40» 인데 클론 글자 공장은 «안 접는다» 가 기본이다 (Game·UI · T18·T352 갈래 · T33 26회차 등재 · 워커 G)
+
+- 정본 실측(`css/style.css` · `white-space` **41 선언**): `nowrap` **40** + `normal` **1**(`.sr-name` 7040 — 두 줄 허용 + `word-break: keep-all`). CSS 기본값은 `normal`(접는다)이니 **정본은 «접는다» 가 기본이고 «안 접는다» 가 40 자리의 예외**다.
+- 클론은 뒤집혀 있다: `UiKit.Text`(글자 공장)가 **`textWrappingMode = NoWrap` + `overflowMode = Overflow`** 를 기본으로 준다. 접는 자리는 **명시로 부른 곳 여덟 뿐**(`ChatScreen` 245 · `PassPopup` 71 · `SkillPanel` 508 · `ForgeCraftPopup` 91 · `Popups` 381 · `DungeonPopups` 91 · `MountUpgradePopup` 140 · `TextClamp` 87). 곧 **긴 문장이 접히지 않고 상자 밖으로 흘러간다**(잘리지도 않는다 — `Overflow`).
+- 실물 둘(이 회차에 확인):
+  - `.rates-tip`(정본 **4600** · `white-space` 선언 없음 = 접힌다 · `line-height: 1.4` · `margin: 1.7rem 0`) ↔ 클론 `SkillRatesPopup.cs:156` — 줄바꿈을 켜는 줄이 **없다**. 문구는 표의 `rates_tip_pet` = «깨진 알을 소환하여 레벨 업하고 소환 확률을 높이세요!» 한 문장이다.
+  - `.qst-name`(정본 **2034** · 선언 없음 = 접힌다) ↔ 클론 `QuestSheet.cs:80` — 역시 없다(퀘스트 이름 + 수량이 한 줄로 이어진다).
+- 무엇을 한다: ⓐ 공장의 기본을 **정본과 같게**(접는다) 뒤집고, 정본이 `nowrap` 으로 못 박은 **40 자리**에만 `NoWrap` 을 준다 — 그 40 은 대부분 «한 줄 알약·배지·숫자» 라 접히면 오히려 깨지는 자리다 ⓑ 40 자리를 표(카탈로그 키 또는 `WrapUi.json`)로 적어 코드가 아니라 표가 쥐게 한다 ⓒ 자: «공장이 만든 글자는 기본이 접힌다» · «표에 적힌 자리는 안 접힌다» · 긴 문장 둘(`rates-tip`·`qst-name`)이 두 줄로 서는가.
+- ⚠ 순서: `UiKit.cs` 는 늘 여러 lock 이 물려 있다(지금 T331·T333·T355). **공장을 뒤집는 ⓐ 는 그 파일이 빈 때** 잡고, 그 전에는 ⓑ(표)와 ⓒ(자)만 세워도 된다.
+- 판정: 위 자 셋 초록 + `screen_summon-rates.png`·`screen_dungeons.png` 눈 확인(팁 문장이 상자 안에서 두 줄로 선다).
+- 범위: `Assets/Scripts/Game/Ui/UiKit.cs`(**여러 lock** · ⓐ) · `Assets/Forge/Resources/WrapUi.json`(새 · ⓑ) · `Assets/Tests/`(ⓒ) · 40 자리의 각 화면 파일(각 lock 뒤).
+
 ### ⓪ 계정 식별표 — «내가 몇 번째 계정인가» 는 여기서 본다 (세션 시작 시 `get_session` 의 이메일/env 로 대조)
 
 | 계정 | 로그인 이메일 | account uuid | environment_id | 워커 | 슬롯(UTC) |
