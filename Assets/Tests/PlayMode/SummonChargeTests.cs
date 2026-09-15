@@ -108,6 +108,13 @@ namespace Forge.Tests.PlayMode
             float t2 = 0f;
             while (!v.Done && t2 < 6f) { t2 += Time.unscaledDeltaTime; yield return null; }
             Assert.IsTrue(v.Done);
+            // T334 9회차 — 주역 충격파 링(정본 `.sr-cell.heroic::after`)은 셀 **뒤**에 폭 100% 정사각으로 깔린다.
+            Assert.IsNotNull(v.HeroRing, "주역 충격파 링이 없다");
+            Assert.AreEqual(0, v.HeroRing.transform.GetSiblingIndex(), "링은 셀 뒤(z −1)에 그려진다");
+            Assert.IsNotNull(v.HeroRing.sprite, "구운 고리 한 장");
+            var rr = (RectTransform)v.HeroRing.transform;
+            Assert.AreEqual(rr.rect.width, rr.rect.height, 0.01f, "정사각(aspect-ratio: 1)");
+            Assert.Greater(v.RingMax, 1f, "최대 배율은 배치마다 다르되 1보다 크다(셀 경계를 넘어 퍼진다)");
             Assert.AreEqual(rc.r, v.FloorColor.r, 0.02f, "done 에서 소환진이 등급색으로 물든다");
             Assert.AreEqual(rc.b, v.FloorColor.b, 0.02f);
             if (onIdx >= 0) Assert.AreEqual(0f, v.CellPulledIn(onIdx), 1e-3f, "조연 셀도 제자리로");

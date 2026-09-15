@@ -88,6 +88,9 @@ namespace Forge.Game.Ui
         float wipeAt = -1f;
         /// <summary>T334 6회차 — 화면 킥(정본 `srshakehit`)이 시작한 시각 · 흔들 판과 그 제자리.</summary>
         float kickAt = -1f;
+        /// <summary>T334 9회차 — 주역 충격파 링(정본 `.sr-cell.heroic::after`)과 그 최대 배율(정본 `--ringmax` · 배치마다 다르다).</summary>
+        Image heroRing;
+        float ringMax = 3.2f;
         /// <summary>주역이 착지한 벽시계 시각(물러남·킥이 같이 쓴다).</summary>
         float heroAtWall = -1f;
         RectTransform wrap;
@@ -121,6 +124,11 @@ namespace Forge.Game.Ui
         ///    화면에서는 «붉은 판이 흰 쪽으로 씻긴다» 로 보인다. 합은 그 두 갈래를 다 담는다.
         /// </summary>
         public float FloorBright { get { if (floorImg == null) return -1f; Color c = floorImg.color; return c.r + c.g + c.b; } }
+        /// <summary>주역 충격파 링 — 자가 본다.</summary>
+        public Image HeroRing { get { return heroRing; } }
+        /// <summary>그 링의 최대 배율(정본 `--ringmax` · 배치마다 다르다).</summary>
+        public float RingMax { get { return ringMax; } }
+
         /// <summary>룬 눈금 띠(정본 `.sr-floor::after`)의 지금 불투명도 — 없으면 −1.</summary>
         public float TickAlpha { get { return tickImg != null ? tickImg.color.a : -1f; } }
         /// <summary>룬 눈금 띠가 구운 판을 쥐고 있는가(원판을 늘려 쓰면 눈금 굵기가 각도마다 달라진다).</summary>
@@ -416,6 +424,30 @@ namespace Forge.Game.Ui
             flash.color = new Color(1f, 1f, 1f, 0f);
             flash.raycastTarget = false;
 
+            // ---- 주역 충격파 링(정본 `.sr-cell.heroic::after` 6754~6764) ----
+            // 셀 **뒤**(z-index −1)에 폭 100% 정사각으로, 셀 위 가운데에 깔린다. 가산 혼합(screen)이라 와이프와 같은 재질.
+            // 최대 배율은 배치마다 다르다(정본 `--ringmax`): 주역 단독 행 2.4 · 민 무대 격자 1.8 · 그 밖 3.2.
+            if (heroIdx >= 0 && heroIdx < cells.Count && cells[heroIdx].Root != null)
+            {
+                RectTransform hc = cells[heroIdx].Root;
+                float cw = hc.rect.width;
+                RectTransform rr = UiKit.Box(hc, "sr-heroring");
+                rr.anchorMin = new Vector2(0.5f, 1f); rr.anchorMax = new Vector2(0.5f, 1f);
+                rr.pivot = new Vector2(0.5f, 1f);
+                rr.sizeDelta = new Vector2(cw, cw);
+                rr.anchoredPosition = Vector2.zero;
+                rr.SetAsFirstSibling();
+                heroRing = rr.gameObject.AddComponent<Image>();
+                heroRing.raycastTarget = false;
+                Color rcr = PetSkillStyle.Rarity(Defs, best);
+                heroRing.sprite = SummonFx.BakeHeroRing("sr-heroring-" + ColorUtility.ToHtmlStringRGB(rcr), rcr);
+                Material rm = CraftFxPoly.Screen();
+                if (rm != null) heroRing.material = rm;
+                heroRing.color = new Color(1f, 1f, 1f, 0f);
+                ringMax = heroRow ? SummonFxStyle.H("ringmax_herorow")
+                    : (!mid && !dense ? SummonFxStyle.H("ringmax_stage") : SummonFxStyle.H("ringmax_default"));
+            }
+
             // ---- 주역 와이프(정본 `.sr-wipe` 6184~6198) ----
             // 정본이 이 겹을 따로 둔 까닭이 주석에 있다: 홀드백이 없는 대량 소환에 **전 화면 섬광을 쓰면 안 된다**
             // — «x75 는 위쪽 20셀이 같이 하얗게 떠 등급 구분이 무너진다». 그래서 주역 셀 중심에서 번지는
@@ -708,6 +740,7 @@ namespace Forge.Game.Ui
             AnimateFlash();
             AnimateWipe();
             AnimateKick();
+            AnimateHeroRing();
         }
 
         void TurnOn(Cell c)
@@ -928,6 +961,23 @@ namespace Forge.Game.Ui
                 c.Tint[i].color = Brighten(h, (float)br, (float)sat, h.a);
             }
             return (float)sc;
+        }
+
+
+        /// <summary>
+        /// 주역 충격파 링(정본 `srheroring` .62s) — 알파 .95 → 0, 배율 .5 → `--ringmax`.
+        /// 정본이 «일반 착지 링과 **별개 레이어**» 라 적어 둔 겹이라 셀의 다른 연출과 따로 돈다.
+        /// </summary>
+        void AnimateHeroRing()
+        {
+            if (heroRing == null || heroAtWall < 0f) return;
+            float ms = (Time.unscaledTime - heroAtWall) * 1000f;
+            float dur = SummonFxStyle.H("heroring_ms");
+            float u = dur <= 0f ? 1f : Mathf.Clamp01(ms / dur);
+            float k = (float)SummonFxStyle.HeroRingEase.Ease(u);
+            float a0 = SummonFxStyle.H("heroring_a0"), s0 = SummonFxStyle.H("heroring_scale0");
+            heroRing.color = new Color(1f, 1f, 1f, Mathf.Lerp(a0, 0f, k));
+            heroRing.rectTransform.localScale = Vector3.one * Mathf.Lerp(s0, ringMax, k);
         }
 
         void FireHero()

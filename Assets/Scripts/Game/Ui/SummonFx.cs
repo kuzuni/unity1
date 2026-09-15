@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Forge.Core.Data;
+using Forge.Core.CraftFx;
 using Forge.Core.Ui;
 using Forge.Game.Gallery;
 
@@ -668,6 +669,41 @@ namespace Forge.Game.Ui
             return Finish(name, NewTex(name, W, H), px);
         }
 
+
+        /// <summary>
+        /// 주역 충격파 링(정본 `#summon-result-modal.hero .sr-cell.heroic::after` · style.css 6754~6760).
+        /// `radial-gradient(closest-side, 투명 58%, 등급색 74%, 흰 .85 82%, 투명 94%)` — 가운데가 빈 **고리**다.
+        /// 정본은 `mix-blend-mode: screen`(가산)이라 거는 쪽이 가산 재질을 준다(와이프와 같은 길).
+        /// </summary>
+        public static Sprite BakeHeroRing(string name, Color rc)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
+            float s0 = HL("heroring_stop0"), s1 = HL("heroring_stop1"), s2 = HL("heroring_stop2"), s3 = HL("heroring_stop3");
+            float wa = HL("heroring_white_a");
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            {
+                float v = (y + 0.5f) / N * 2f - 1f;
+                for (int x = 0; x < N; x++)
+                {
+                    float u = (x + 0.5f) / N * 2f - 1f;
+                    float r = Mathf.Sqrt(u * u + v * v);
+                    float a; Color c;
+                    if (r <= s0) { a = 0f; c = rc; }
+                    else if (r <= s1) { a = Ramp(r, s0, 0f, s1, 1f); c = rc; }
+                    else if (r <= s2) { a = Ramp(r, s1, 1f, s2, wa); c = Color.Lerp(rc, Color.white, Ramp(r, s1, 0f, s2, 1f)); }
+                    else { a = Ramp(r, s2, wa, s3, 0f); c = Color.white; }
+                    if (r > s3) a = 0f;
+                    px[y * N + x] = new Color(c.r, c.g, c.b, Mathf.Clamp01(a));
+                }
+            }
+            return Finish(name, NewTex(name, N, N), px);
+        }
+
+        /// <summary>표의 `hero` 절 수치 하나(그 절은 `layout` 밖에 있다).</summary>
+        static float HL(string key) { return (float)J.Num(J.Require(J.Obj(SummonFxStyle.Root["hero"]), key)); }
+
         public static Sprite BakeStar(string name, float sz, float box)
         {
             Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
@@ -713,12 +749,30 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; heroRingEase = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
         static SummonHeroSpec hero;
         /// <summary>T334 6회차 — 주역 착지의 화면 킥(표의 `hero` 절).</summary>
+        /// <summary>표의 `hero` 절 수치 하나(그 절은 `layout` 밖이다).</summary>
+        public static float H(string key) { Load(); return (float)J.Num(J.Require(J.Obj(root["hero"]), key)); }
+
+        static CssEase heroRingEase;
+        /// <summary>충격파의 이징(정본 `cubic-bezier(.08,.72,.3,1)`).</summary>
+        public static CssEase HeroRingEase
+        {
+            get
+            {
+                if (heroRingEase == null)
+                {
+                    double[] e = J.NumArr(J.Require(J.Obj(Root["hero"]), "heroring_ease"));
+                    heroRingEase = new CssEase(e[0], e[1], e[2], e[3]);
+                }
+                return heroRingEase;
+            }
+        }
+
         public static SummonHeroSpec Hero { get { Load(); if (hero == null) hero = SummonHeroSpec.From(root); return hero; } }
         /// <summary>T334 5회차 — 완료 뒤 아이들 호흡(표의 `idle` 절).</summary>
         public static SummonIdleSpec Idle { get { Load(); if (idle == null) idle = SummonIdleSpec.From(root); return idle; } }
