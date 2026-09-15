@@ -186,5 +186,65 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(names, 1, "채팅 목록의 닉네임을 못 찾았다");
             yield return null;
         }
+        /// <summary>
+        /// T333 5회차 — 정본 5375 `.dgclear-title { text-shadow: 0 2px 0 #b8860b, 0 4px 10px rgba(0,0,0,.55) }` 의 첫 겹(금색 양각). 던전을 실제로 클리어해
+        /// 팝업을 띄우고(DungeonFxTests 와 같은 길) 제목 글자의 재질을 표(`dgclear_title`)와 식으로 맞춘다. T168 의 자간과 같은 글자에 얹힌다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 던전_클리어_제목은_정본_금색_양각_한_겹을_쓴다()
+        {
+            yield return Boot();
+            float w = 0f;
+            while (!DungeonUiHost.Ready && w < 20f) { w += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(DungeonUiHost.Ready, "DungeonUiHost 가 20초 안에 준비되지 않았다");
+            DungeonUiHost h = DungeonUiHost.Instance;
+            h.S.BestChapter = 5; h.S.BestStage = 1;
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
+            DungeonDetailPopup.Open("hammer");
+            yield return null;
+            DungeonDetailPopup.Enter();
+            yield return null;
+            h.Dungeons.OnClear();
+            yield return null;
+            Assert.IsTrue(DungeonClearPopup.IsOpen, "onClear → showDungeonClear");
+            TextMeshProUGUI title = null;
+            foreach (TextMeshProUGUI t in UiRoot.Instance.App.GetComponentsInChildren<TextMeshProUGUI>(true))
+                if (t.name == "title" && t.transform.parent != null && t.transform.parent.name == "gold") { title = t; break; }
+            Assert.IsNotNull(title, "클리어 팝업 제목(gold/title)을 못 찾았다");
+            AssertShadow(title, "dgclear_title", "던전 클리어 제목");
+            Assert.Less(title.fontMaterial.GetFloat("_UnderlayOffsetY"), 0f, "양각은 아래로(CSS 0 2px)");
+            Assert.AreEqual(0f, title.fontMaterial.GetFloat("_UnderlaySoftness"), 1e-6, "하드 겹(흐림 0)");
+            DungeonClearPopup.Close();
+            yield return null;
+        }
+
+        /// <summary>
+        /// T333 5회차 — 보스 워닝: 정본 402 `.bw-track span`(세 겹) · 411 `.bw-sub`(두 겹) 중 «아래 2px 검정 하드 드롭» 한 겹. 마퀴는 T104 의 붉은 키라인과
+        /// 같은 재질에 얹히므로 키라인이 남아 있어야 한다(리그 행 자와 같은 단언).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 보스_워닝_마퀴와_부제는_정본_아래_2px_검정_한_겹을_쓴다()
+        {
+            Forge.Game.Battle.BattleScene.AutoBoot = false;
+            yield return Boot();
+            BattleOverlay ov = BattleOverlay.Ensure();
+            Assert.IsNotNull(ov, "오버레이가 없다");
+            ov.BossWarning(2.0);
+            yield return null;
+            TextMeshProUGUI marquee = null, sub = null;
+            foreach (TextMeshProUGUI t in ov.Layer.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name == "text" && t.transform.parent != null && t.transform.parent.name == "bw-track") marquee = t;
+                else if (t.name == "bw-sub") sub = t;
+            }
+            Assert.IsNotNull(marquee, "마퀴 글자(bw-track/text)를 못 찾았다");
+            Assert.IsNotNull(sub, "부제(bw-sub)를 못 찾았다");
+            AssertShadow(marquee, "bw_marquee", "보스 워닝 마퀴");
+            Assert.Greater(marquee.outlineWidth, 0f, "마퀴: 붉은 키라인(T104)이 그림자에 지워지면 안 된다");
+            AssertShadow(sub, "bw_sub", "보스 워닝 부제");
+            Assert.Less(sub.fontMaterial.GetFloat("_UnderlayOffsetY"), 0f, "부제: 아래로(CSS 0 2px)");
+            yield return null;
+        }
     }
 }

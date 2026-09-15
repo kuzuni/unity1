@@ -32,6 +32,30 @@
       "color": "#000000",
       "alpha": 0.75,
       "_": "style.css 8392 `.league-row .league-name, .league-row .league-rank, .league-score, .equipped-label + *, .chat-preview-name { text-shadow: 0 1px 1px rgba(0,0,0,.75), 0 0 6px rgba(0,0,0,.35) }` — 두 겹이다. TMP 언더레이는 한 겹뿐이라 **읽히게 만드는 첫 겹**(아래 1px 드롭)만 낸다: 둘째 겹은 반지름 6px 알파 .35 의 바깥 글로우로, 정본에서도 검정 판 위에서는 거의 안 보인다(T333 3회차 · 근사 기록)."
+    },
+    "dgclear_title": {
+      "dx_px": 0,
+      "dy_px": 2,
+      "blur_px": 0,
+      "color": "#B8860B",
+      "alpha": 1.0,
+      "_": "style.css 5375 `.dgclear-title { text-shadow: 0 2px 0 #b8860b, 0 4px 10px rgba(0,0,0,.55) }` — 두 겹 중 **첫 겹**(금색 하드 엠보스 · 제목이 «양각» 으로 읽히는 겹)만 낸다. 둘째 겹(4px 아래 10px 흐림 검정 .55)은 근사로 뺀다(league_row 갈래 · T333 5회차)"
+    },
+    "bw_marquee": {
+      "dx_px": 0,
+      "dy_px": 2,
+      "blur_px": 0,
+      "color": "#000000",
+      "alpha": 0.86,
+      "_": "style.css 402 `.bw-track span { text-shadow: 0 0 .45rem #ff1744, 0 0 1.2rem #ff1744, 0 2px 0 rgba(0,0,0,.86) }` — 세 겹 중 **읽히게 만드는 겹**(아래 2px 검정 하드 드롭)만 낸다. 붉은 글로우 두 겹(.45rem·1.2rem)은 클론이 이미 `UiKit.Outline(pp_red)` 로 붉은 테를 두르고 있어 근사(T333 5회차)"
+    },
+    "bw_sub": {
+      "dx_px": 0,
+      "dy_px": 2,
+      "blur_px": 0,
+      "color": "#000000",
+      "alpha": 0.86,
+      "_": "style.css 411 `.bw-sub { text-shadow: 0 0 .6rem rgba(255,23,68,.95), 0 2px 0 rgba(0,0,0,.86) }` — 두 겹 중 둘째(아래 2px 검정 하드 드롭). 붉은 글로우(.6rem)는 근사로 뺀다(T333 5회차)"
     }
   },
   "btn_none_keylines": [

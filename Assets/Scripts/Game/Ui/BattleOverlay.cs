@@ -238,12 +238,14 @@ namespace Forge.Game.Ui
             // T168 2회차 — 정본 style.css 402 `.bw-track span { letter-spacing: .14em }`. 왼쪽 정렬이라 되밀기는 없다.
             LetterSpacing.Apply(marquee, "bw_track_ls_em");
             UiKit.Outline(marquee, "pp_red", 0.2f);
+            UiKit.TextShadow(marquee, "bw_marquee");   // T333 5회차 — 정본 402 `.bw-track span` 셋째 겹 `0 2px 0 rgba(0,0,0,.86)`(붉은 글로우 둘은 위 붉은 테가 근사)
             var trt = marquee.rectTransform;
             trt.anchorMin = new Vector2(0, 0.5f); trt.anchorMax = new Vector2(0, 0.5f); trt.pivot = new Vector2(0, 0.5f); trt.anchoredPosition = Vector2.zero;
             trt.sizeDelta = new Vector2(UiKit.RefW * 6, textH);
             trackW = 0;
             sub = UiKit.Text(warnRoot, "bw-sub", TextKind.Body, FxRules.WarnSub, "coin", TextAlignmentOptions.Center);
             sub.raycastTarget = false;
+            UiKit.TextShadow(sub, "bw_sub");   // T333 5회차 — 정본 411 `.bw-sub` 둘째 겹 `0 2px 0 rgba(0,0,0,.86)`(붉은 글로우는 근사로 뺀다)
             // T168 2회차 — 정본 411 `.bw-sub { letter-spacing: .55em; text-indent: .55em }`: 한 글자씩 벌어지는 줄이었는데 클론은 0 이라 다닥다닥 붙어 있었다.
             // 되밀기(text-indent)까지 옮긴다 — 자간이 마지막 글자 뒤에도 붙어 가운데 정렬이 왼쪽으로 쏠리기 때문이다.
             LetterSpacing.Apply(sub, "bw_sub_ls_em", "bw_sub_indent_em");

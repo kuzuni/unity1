@@ -56,6 +56,10 @@ TABLE = {
         # `.league-score` 는 아이콘+수 두 조각(`UiKit.RowTexts`)이라 «이름 → 변수» 꼬리로는 못 좇는다 — 그 행을 세우는 메서드로 센다
         'Ui/LeagueSheet.cs@Row',
     ],
+    # T333 5회차 — 산 lock 밖 세 자리(T335 반납으로 열린 던전 클리어 제목 · 보스 워닝 마퀴·부제): 여러 겹 중 «읽히게 만드는 한 겹»(league_row 갈래)
+    '.dgclear-title': ['Ui/DungeonClearPopup.cs#title'],
+    '.bw-track span': ['Ui/BattleOverlay.cs#text'],
+    '.bw-sub': ['Ui/BattleOverlay.cs#bw-sub'],
 }
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ────────────────────────────────
