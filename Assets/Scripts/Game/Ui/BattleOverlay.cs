@@ -211,6 +211,11 @@ namespace Forge.Game.Ui
             banner.anchorMin = new Vector2(0, 1 - (float)FxRules.WarnTop); banner.anchorMax = new Vector2(1, 1 - (float)FxRules.WarnTop);
             banner.pivot = new Vector2(0.5f, 0.5f); banner.sizeDelta = new Vector2(0, bannerH); banner.anchoredPosition = Vector2.zero;
             bannerBg = UiKit.Panel(banner, "bg", "pp_red_dk"); UiKit.Fill(bannerBg.rectTransform); bannerBg.raycastTarget = false;
+            // T178 11회차 — 정본 style.css 390 `.bw-banner { background: linear-gradient(180deg, #1e0202, #5a0707 45%, #240303) }`.
+            // 클론은 `pp_red_dk` **단색 한 장**이라 띠가 납작했다 — 정본은 가운데(45%)가 가장 밝은 핏빛이고 위·아래 끝이 거의 검정이라
+            // 띠가 가운데서 부풀어 오른 것처럼 보인다. 값은 표(`Resources/SurfaceUi.json` `bw_banner`)가 쥔다(§1 — 코드에 안 박는다).
+            // 단색 판은 그대로 둔다 — 겹이 불투명이라 안 비치지만, 표가 없으면(`Bake` 가 null) 그 판이 바탕으로 남는다(`shop_banner` 와 같은 길).
+            SurfaceArt.Fill(banner, "bw-banner-grad", "bw_banner", UiKit.RefW, bannerH);
             // T368 2회차 — 정본 style.css 395 `.bw-hazard` 는 **−45° 되풀이 줄무늬**다:
             //   `repeating-linear-gradient(-45deg, #ffca28 0 .55rem, #16100a .55rem 1.1rem)` + `background-size: 1.556rem 100%`(= 1.1 × √2 · 가로축 환산 주기)
             //   + `@keyframes bwhazard { 0 → 1.556rem }` .62s linear infinite.

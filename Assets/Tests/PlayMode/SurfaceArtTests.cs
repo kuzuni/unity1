@@ -440,5 +440,33 @@ namespace Forge.Tests.PlayMode
             float far = tex.GetPixel(Mathf.RoundToInt(w * 0.9f), Mathf.RoundToInt(h * 0.1f)).a;
             Assert.Greater(hot, far + 0.1f, "정본 중심(32%/22%)이 반대쪽보다 진하다 — 방사형이다");
         }
+        /// <summary>T178 11회차 — 정본 390 `.bw-banner { background: linear-gradient(180deg, #1e0202, #5a0707 45%, #240303) }`.
+        /// 클론은 `pp_red_dk` **단색 한 장**이라 띠가 납작했다 — 정본은 가운데가 가장 밝아 부풀어 오른 것처럼 보인다.</summary>
+        [UnityTest]
+        public IEnumerator 보스_경고_배너는_가운데가_가장_밝은_세_정지점_겹을_진다()
+        {
+            yield return Boot();
+            Assert.AreEqual(180f, SurfaceArt.Angle("bw_banner"), 1e-4f, "정본 390 180deg");
+            Color[] col; float[] off;
+            SurfaceArt.Stops("bw_banner", out col, out off);
+            Assert.AreEqual(3, col.Length, "정지점 셋");
+            Assert.AreEqual(0.45f, off[1], 1e-4f, "가운데 정지점은 45%");
+            Assert.AreEqual(30f / 255f, col[0].r, 1e-3f, "#1e0202");
+            Assert.AreEqual(90f / 255f, col[1].r, 1e-3f, "#5a0707");
+            Assert.AreEqual(36f / 255f, col[2].r, 1e-3f, "#240303");
+            Assert.Greater(col[1].r, col[0].r + 0.1f, "가운데가 위 끝보다 밝다");
+            Assert.Greater(col[1].r, col[2].r + 0.1f, "가운데가 아래 끝보다 밝다");
+            // 180deg 는 위→아래 — 구운 그림의 맨 윗줄이 첫 색이고, 45% 자리가 가장 밝다(텍스처는 아래가 0행).
+            Sprite sp = SurfaceArt.Bake("bw_banner", 8f, 100f);
+            Texture2D t = sp.texture;
+            int x = t.width / 2;
+            Color top = t.GetPixel(x, t.height - 1), mid = t.GetPixel(x, Mathf.RoundToInt(t.height * 0.55f)), bot = t.GetPixel(x, 0);
+            Assert.AreEqual(30f / 255f, top.r, 0.02f, "맨 위는 #1e0202");
+            Assert.AreEqual(36f / 255f, bot.r, 0.02f, "맨 아래는 #240303");
+            Assert.Greater(mid.r, top.r + 0.1f, "45% 줄이 위 끝보다 밝다");
+            Assert.Greater(mid.r, bot.r + 0.1f, "45% 줄이 아래 끝보다 밝다");
+            Assert.AreEqual(1f, top.a, 1e-3f, "면이라 불투명하다");
+        }
+
     }
 }
