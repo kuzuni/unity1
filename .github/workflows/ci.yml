@@ -325,6 +325,13 @@ jobs:
           projectPath: .
           testMode: all
           artifactsPath: unity-test-results
+          # T392 — 커버리지 계측을 끈다. 러너의 `coverageEnabled` 기본값이 true 라 `-enableCodeCoverage`·`-coverageOptions`·
+          #        `-coverageResultsPath` 셋이 우리가 안 적어도 붙고, 런 730 은 **어셈블리 리로드 한가운데** 그 계측
+          #        (`ScriptingCoverage::FilterRecordedMethods` → `InitializeCoreScriptingClasses` → `RequireType` 실패 →
+          #        그 실패를 찍으며 `ExtractStackTrace`)에서 SIGSEGV 로 죽어 PlayMode 가 통째로 안 돌았다(런 403·425 와 같은 자리 ·
+          #        T171·T180). 러너 제 설명이 «Some Unity versions/configurations fail or crash with this on» 이라고 적어 뒀다.
+          #        잃는 것은 없다 — `com.unity.testtools.codecoverage` 는 manifest 에 없고 CodeCoverage/ 산출물을 읽는 스텝도 없다.
+          coverageEnabled: false
           # 빈 값으로 «명시» 해야 체크 런을 안 만든다(안 적으면 러너가 제 토큰을 채워 checks:write 없이 죽는다 · aaawunity T295).
           githubToken: ''
       # 잡 로그는 MCP/웹에서 **꼬리 5000줄**만 보인다 — PlayMode XML 앞부분(B~S 픽스처)이 잘려 «어느 테스트가 빨간가» 를 못 읽고, 아티팩트 zip 은
