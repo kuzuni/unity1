@@ -629,6 +629,45 @@ namespace Forge.Game.Ui
             return Finish(name, NewTex(name, N, N), px);
         }
 
+
+        /// <summary>
+        /// 소환진의 룬 눈금 띠(정본 `.sr-floor::after` 5822~5830) — 9°마다 1.1° 짜리 선을 **링 바로 위 좁은 띠**에만 얹는다.
+        ///
+        /// 정본은 원뿔 그라디언트에 방사 마스크를 씌운다. 여기서는 굽는 판 한 장에 둘을 한꺼번에 푼다 —
+        /// 화소마다 ⓐ 타원 좌표의 각도로 «눈금 안인가» 를 보고 ⓑ 같은 좌표의 반지름으로 마스크(87→93→99→100%)를 곱한다.
+        /// 판은 소환진과 같은 비율(타원)로 굽는다 — 원판을 늘려 쓰면 눈금이 옆으로 퍼져 굵기가 각도마다 달라진다.
+        ///
+        /// ⚠ 정본 주석이 못 박은 것: 이 띠를 **넓히거나 돌리지 말 것**(«긁힌 자국» · «타원 위를 도는 붓질»). 움직임은 호흡뿐이다.
+        /// 색·알파는 부르는 쪽이 준다(`.done` 에서 등급 파생색으로 승격한다 · ui.js 550).
+        /// </summary>
+        public static Sprite BakeFloorTicks(string name, float w, float h)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            int W = Mathf.Max(16, Mathf.RoundToInt(L("bake_px") * Mathf.Max(1f, w / Mathf.Max(1f, h))));
+            int H = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
+            float every = L("floor_tick_every_deg"), wide = L("floor_tick_deg");
+            float m0 = L("floor_tick_mask0"), m1 = L("floor_tick_mask1"), m2 = L("floor_tick_mask2"), m3 = L("floor_tick_mask3");
+            var px = new Color32[W * H];
+            for (int y = 0; y < H; y++)
+            {
+                float v = (y + 0.5f) / H * 2f - 1f;
+                for (int x = 0; x < W; x++)
+                {
+                    float u = (x + 0.5f) / W * 2f - 1f;
+                    float r = Mathf.Sqrt(u * u + v * v);                  // 타원 좌표라 1 이 곧 가장자리다
+                    float mask = r <= m0 ? 0f
+                        : r < m1 ? Ramp(r, m0, 0f, m1, 1f)
+                        : r <= m2 ? 1f
+                        : Ramp(r, m2, 1f, m3, 0f);
+                    if (r > m3) mask = 0f;
+                    float deg = Mathf.Repeat(Mathf.Atan2(v, u) * Mathf.Rad2Deg, 360f);
+                    float a = Mathf.Repeat(deg, every) < wide ? mask : 0f;
+                    px[y * W + x] = new Color(1f, 1f, 1f, Mathf.Clamp01(a));
+                }
+            }
+            return Finish(name, NewTex(name, W, H), px);
+        }
+
         public static Sprite BakeStar(string name, float sz, float box)
         {
             Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;

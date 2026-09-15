@@ -84,6 +84,9 @@ namespace Forge.Game.Ui
         float flashAt = -1f;
         /// <summary>T334 3회차 ⓑ — 충전 구간이 움직이는 것들: 소환진·중앙 광원·비네트(정본 `.sr-floor`·`.sr-halo`·`.sr-wrap::before`).</summary>
         Image floorImg, haloImg, vigImg;
+        /// <summary>T334 4회차 — 소환진의 룬 눈금 띠(정본 `.sr-floor::after`). 충전 중엔 `steps(9)` 로 점등하고 그 밖에는 느리게 호흡한다.</summary>
+        Image tickImg;
+        Color tickBase;
         Color floorBase, haloBase;
         Vector3 floorHome;
         float chargeAt = -1f;
@@ -107,6 +110,11 @@ namespace Forge.Game.Ui
         ///    화면에서는 «붉은 판이 흰 쪽으로 씻긴다» 로 보인다. 합은 그 두 갈래를 다 담는다.
         /// </summary>
         public float FloorBright { get { if (floorImg == null) return -1f; Color c = floorImg.color; return c.r + c.g + c.b; } }
+        /// <summary>룬 눈금 띠(정본 `.sr-floor::after`)의 지금 불투명도 — 없으면 −1.</summary>
+        public float TickAlpha { get { return tickImg != null ? tickImg.color.a : -1f; } }
+        /// <summary>룬 눈금 띠가 구운 판을 쥐고 있는가(원판을 늘려 쓰면 눈금 굵기가 각도마다 달라진다).</summary>
+        public bool TickBaked { get { return tickImg != null && tickImg.sprite != null; } }
+
         /// <summary>소환진의 지금 색 — 등급색으로 물들었는지 자가 본다(정본은 `.done` 에서만 물든다).</summary>
         public Color FloorColor { get { return floorImg != null ? floorImg.color : Color.clear; } }
 
@@ -346,6 +354,15 @@ namespace Forge.Game.Ui
                     UiKit.Anchor(floor.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -totalH * 0.5f + PetSkillStyle.Rem(1.4f)), fw, fw / (one ? 2.6f : 2.5f));
                     floor.transform.SetAsFirstSibling();
                     floorImg = floor; floorBase = floor.color; floorHome = floor.rectTransform.localScale;
+                    // 룬 눈금 띠 — 소환진 위에 같은 상자로 얹는다(정본은 `::after` 라 같은 자리·같은 크기다).
+                    RectTransform tickRt = UiKit.Box(floor.rectTransform, "sr-floor-ticks");
+                    UiKit.Fill(tickRt);
+                    tickImg = tickRt.gameObject.AddComponent<Image>();
+                    tickImg.sprite = SummonFx.BakeFloorTicks("sr-floor-ticks", fw, fw / (one ? 2.6f : 2.5f));
+                    tickImg.preserveAspect = false;
+                    tickImg.raycastTarget = false;
+                    tickBase = SummonFxStyle.C("floor_line");
+                    tickImg.color = tickBase;
                     // T179 — 연출 겹(정본 sr-canopy 아치+빛발+스필 · sr-rays · sr-stars · ui.js 491~494: canopy = stage · compact = herorow) — 그리드 위 밴드·배경·별
                     fx = SummonFx.Build(body, floor.rectTransform, (bodyH - totalH) * 0.5f, gw, one, heroRow);
                 }
@@ -673,6 +690,7 @@ namespace Forge.Game.Ui
                 if (seq.Done) Finish();
             }
             AnimateCells();
+            AnimateTicks();
             AnimateCharge();
             AnimateFlash();
             AnimateWipe();
@@ -791,6 +809,35 @@ namespace Forge.Game.Ui
                 Mathf.Clamp01(alpha));
         }
 
+
+        /// <summary>
+        /// 룬 눈금 띠 — 충전 구간에서는 `srtickup`(steps(9) · .45 → 1), 그 밖에는 `srfloorbreath`(4.2s · .5 ↔ .9).
+        /// 정본이 «움직임은 호흡뿐» 이라 못 박은 자리라 돌리지도 넓히지도 않는다.
+        /// </summary>
+        void AnimateTicks()
+        {
+            if (tickImg == null) return;
+            float a;
+            if (seq != null && seq.Charging && chargeAt >= 0f)
+            {
+                a = (float)SummonFxStyle.Charge.TickAlpha((Time.unscaledTime - chargeAt) * 1000f);
+            }
+            else
+            {
+                float per = SummonFxStyle.L("floor_breath_s"), lo = SummonFxStyle.L("floor_breath_a_lo"), hi = SummonFxStyle.L("floor_breath_a_hi");
+                float t = per <= 0f ? 0f : Mathf.Repeat(Time.unscaledTime - start, per) / per;   // start 는 이미 초다(ms 로 나누지 않는다)
+                float k = 0.5f - 0.5f * Mathf.Cos(t * Mathf.PI * 2f);      // ease-in-out 왕복(0 → 1 → 0)
+                a = Mathf.Lerp(lo, hi, k);
+            }
+            tickImg.color = new Color(tickBase.r, tickBase.g, tickBase.b, tickBase.a * a);
+        }
+
+        /// <summary>정본 `srShade(hex, amt)` — 양수면 흰 쪽으로 amt 만큼 띄운다(`c + (255-c)*amt`).</summary>
+        static Color Shade(Color c, float amt)
+        {
+            return new Color(c.r + (1f - c.r) * amt, c.g + (1f - c.g) * amt, c.b + (1f - c.b) * amt, c.a);
+        }
+
         void FireHero()
         {
             if (heroFired) return;
@@ -861,6 +908,14 @@ namespace Forge.Game.Ui
                 Color rc = PetSkillStyle.Rarity(Defs, best);
                 floorImg.color = new Color(rc.r, rc.g, rc.b, SummonFxStyle.L("floor_done_a"));
                 floorBase = floorImg.color;
+                if (tickImg != null)
+                {
+                    // 정본 ui.js 548~551: 선은 **등급색 원본이 아니라 밝게 띄운 파생색**이다 —
+                    // «배경까지 그 등급색으로 물든 뒤라 원색 그대로는 배경에 묻혀 소환진이 사라진다».
+                    Color lr = Shade(rc, SummonFxStyle.L("floor_line_hi_shade_f"));
+                    tickBase = new Color(lr.r, lr.g, lr.b, SummonFxStyle.L("floor_line_hi_a"));
+                    tickImg.color = tickBase;
+                }
             }
             if (hint != null) hint.SetActive(false);
             if (ok != null) ok.SetActive(true);

@@ -67,6 +67,7 @@ namespace Forge.Tests.PlayMode
 
             // ⓑ 구간 안에서 값이 **자란다** — 한 프레임도 같은 그림이 아니다.
             var vig = new List<float>();
+            var tickSeen = new List<float>();
             var bright = new List<float>();
             float floorMax = 0f, pulled = 0f, haloMin = 2f, haloMax = -1f, brightMax = -1f;
             int onIdx = -1;
@@ -80,6 +81,7 @@ namespace Forge.Tests.PlayMode
                 haloMin = Mathf.Min(haloMin, v.HaloAlpha);
                 haloMax = Mathf.Max(haloMax, v.HaloAlpha);
                 if (onIdx >= 0) pulled = Mathf.Max(pulled, v.CellPulledIn(onIdx));
+                if (tickSeen.Count == 0 || Mathf.Abs(tickSeen[tickSeen.Count - 1] - v.TickAlpha) > 1e-4f) tickSeen.Add(v.TickAlpha);
                 t += Time.unscaledDeltaTime;
                 yield return null;
             }
@@ -91,6 +93,9 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(floorMax, 1.03f, "소환진이 부풀지 않았다");
             Assert.Greater(haloMax - haloMin, 0.1f, "중앙 광원이 뛰지 않았다 — «축적» 이 안 읽힌다");
             Assert.Greater(pulled, 0.5f, "정착한 조연 셀이 광원 쪽으로 안 빨려들었다(정본 srinhale)");
+            // 룬 눈금(정본 `.sr-floor::after`)은 충전 구간에서 `steps(9)` 로 점등한다 — 계단이라 «자랐다» 가 아니라 «칸이 여럿» 을 본다.
+            Assert.IsTrue(v.TickBaked, "룬 눈금은 구운 판이라야 한다(원판을 늘려 쓰면 굵기가 각도마다 달라진다)");
+            Assert.GreaterOrEqual(tickSeen.Count, 2, "충전 구간에서 눈금 불투명도가 한 칸도 안 올랐다");
 
             // ⓒ 구간이 끝나면(주역 착지) 겹은 제자리 — 정본이 `.charging` 클래스를 떼는 것과 같다.
             while (!v.Hero && t < 10f) { t += Time.unscaledDeltaTime; yield return null; }
