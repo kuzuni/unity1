@@ -32,6 +32,13 @@ namespace Forge.Tests.PlayMode
 
         private static IEnumerator Boot()
         {
+            // T366 2회차 — **펄럭임의 뿌리를 없앤다**: 배경 전투가 `Meta.Changed`(퀘스트 Bump·자동 저장)를 부르면
+            // `ForgeHost.OnMetaChanged → ForgeSheet.Render`(와 자동 제련 팝업 다시 그리기)가 누르던 칸과 그 `PressFx` 를
+            // 지우고 새로 세워, 위상이 그 자리에서 얼어붙는다(런 600 «잰 위상 0.673» · 런 609 «af-spinner 이 없다»).
+            // 지금까지 세 회차가 **다시 찾아 다시 누르는** 길로 덮었지만, 그 길은 «몇 번까지 다시 서도 되는가» 를 계속 늘려야 한다.
+            // 이 자는 **눌림만** 본다 — 집에 이미 있는 길로 전투를 안 띄우면(다섯 자가 쓰는 꼴 · 읽히면 기본값으로 돌아온다)
+            // 다시 그릴 까닭 자체가 없어지고, `Live`/`Refind` 는 그대로 두어 **만약을 위한 그물**로만 남는다.
+            Forge.Game.Battle.BattleScene.AutoBoot = false;
             DeleteSave();
             SceneManager.LoadScene("SampleScene");
             yield return null;
