@@ -85,6 +85,47 @@ namespace Forge.Tests.PlayMode
             log.Dispose();
         }
 
+        /// <summary>
+        /// 정본 `style.css` 5335 `.dgd-reward-pill .ico { filter: drop-shadow(0 0 1.2px rgba(0,0,0,.9)) }`
+        /// — 던전 상세 보상 알약의 아이콘. **오프셋이 0** 이라 그림자가 아니라 **검정 윤곽**이다(정본 주석: 회색 알약 면 위에서
+        /// 흰 아이콘이 «검정 윤곽으로 판과 갈라진다»). 같은 기구로 내되 **dx·dy 가 0 인 것**과 **번짐이 실제로 걸린 것**을 같이 본다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 던전_보상_알약의_아이콘은_오프셋_0_짜리_검정_윤곽을_진다()
+        {
+            yield return Boot();
+            PlayLog log = PlayLog.Start("drop-shadow-dgd");
+            ForgeHost h = ForgeHost.Instance;
+            h.S.BestChapter = 5; h.S.BestStage = 1; h.Pull();
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
+            DungeonDetailPopup.Open("hammer");
+            yield return null;
+            Assert.IsTrue(DungeonDetailPopup.IsOpen, "던전 상세가 열린다");
+
+            Transform pill = FindIn(UiRoot.Instance.App, "reward-pill");
+            Assert.IsNotNull(pill, "보상 알약");
+            int seen = 0;
+            foreach (Image ico in pill.GetComponentsInChildren<Image>(true))
+            {
+                if (!ico.name.StartsWith("ico-", System.StringComparison.Ordinal)) continue;
+                seen++;
+                Transform sh = ico.transform.parent.Find(DropShadow.Name);
+                Assert.IsNotNull(sh, ico.name + " 뒤에 검정 윤곽을 깔았다(정본 5335)");
+                Vector2 d = ((RectTransform)sh).anchoredPosition - ico.rectTransform.anchoredPosition;
+                Assert.AreEqual(0f, d.x, 0.01f, "정본은 가로로 안 민다(0 0 1.2px)");
+                Assert.AreEqual(0f, d.y, 0.01f, "정본은 세로로도 안 민다 — 그림자가 아니라 **윤곽**이다");
+                Image si = sh.GetComponent<Image>();
+                Assert.Greater(si.sprite.rect.width, ico.sprite.rect.width, "번짐이 실제로 걸렸다(구운 사본이 원본보다 넓다)");
+                Assert.AreEqual(DropShadowUi.C("dgd_reward_pill_ico").a, si.color.a, 2f / 255f, "알파 = 표(.9)");
+                Assert.Less(si.color.r + si.color.g + si.color.b, 0.05f, "색은 검정");
+            }
+            Assert.Greater(seen, 0, "보상 알약에 아이콘이 하나는 있다");
+
+            log.AssertNoRed();
+            log.Dispose();
+        }
+
         private static Transform FindIn(Transform root, string name)
         {
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true)) if (t.name == name) return t;

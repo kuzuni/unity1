@@ -197,6 +197,7 @@ namespace Forge.Game.Ui
                 int i = parts[k];
                 Image img = UiKit.Icon(pill, "ico-" + keys[i], icons[i]);
                 UiKit.Place(img.rectTransform, x, y + (lh - ico) * 0.5f, ico, ico);
+                DropShadow.Apply(img, "dgd_reward_pill_ico");   // T332 — 정본 5335 `drop-shadow(0 0 1.2px rgba(0,0,0,.9))`: 오프셋 0 이라 «검정 윤곽» 이다(회색 알약 위에서 흰 아이콘이 묻히지 않게) · 자리를 잡은 뒤에 부른다
                 x += ico;
                 string v = NumFmt.Fmt(vals[i]);
                 float vw = v.Length * lh * 0.5f + lh * 0.3f;
