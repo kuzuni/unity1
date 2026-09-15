@@ -1076,6 +1076,53 @@ def sep_rows(img, y0=0.13, y1=0.86):
     return out
 
 
+def _align(o, c):
+    """원작 줄 ↔ 클론 줄을 **차례를 지켜** 짝짓는다 — [(원작 i, 클론 j 또는 -1)].
+
+    🚫 되풀이하지 마라: 62회차까지 여기는 «제일 가까운 클론 줄» 을 하나씩 집어 가는
+    탐욕 짝짓기였다. 줄이 통째로 조금 밀린 화면에서 이것은 **차례를 어겨** 원작 n 번
+    줄을 클론 n+1 번 줄에 붙이고, 남은 클론 첫 줄을 «원작에 없는 줄» 로 버린다.
+    그래서 실제로는 −1.4%p 인 밀림이 «나란히 −4.0%p 세 줄» 이라는 가짜 등재감으로
+    나왔다(`skills` 3줄 · `skill-detail` 2줄 · 62회차 실측). 자가 진단(⑯-b)이 그 짝을
+    그대로 들고 있으니, 탐욕으로 되돌리면 빨갛게 된다.
+
+    값은 둘 다 위에서 아래로 정렬돼 있으므로 차례를 지키는 최소비용 짝짓기(DP)면 된다.
+    `SHIFT_MAX` 보다 먼 짝은 아예 짝으로 치지 않고, 건너뛰기 삯도 같은 값으로 둔다 —
+    그래야 «가까운 짝이 있으면 붙이고, 없으면 버린다» 가 된다.
+    """
+    n, m = len(o), len(c)
+    INF = float("inf")
+    # d[i][j] = 원작 i개 · 클론 j개까지 맞춘 최소 삯
+    d = [[INF] * (m + 1) for _ in range(n + 1)]
+    bk = [[None] * (m + 1) for _ in range(n + 1)]
+    d[0][0] = 0.0
+    for i in range(n + 1):
+        for j in range(m + 1):
+            if d[i][j] == INF:
+                continue
+            if i < n and d[i][j] + SHIFT_MAX < d[i + 1][j]:      # 원작 줄 버리기
+                d[i + 1][j] = d[i][j] + SHIFT_MAX
+                bk[i + 1][j] = (i, j, -1)
+            if j < m and d[i][j] + SHIFT_MAX < d[i][j + 1]:      # 클론 줄 버리기
+                d[i][j + 1] = d[i][j] + SHIFT_MAX
+                bk[i][j + 1] = (i, j, -2)
+            if i < n and j < m:
+                gap = abs(c[j][0] - o[i][0])
+                if gap < SHIFT_MAX and d[i][j] + gap < d[i + 1][j + 1]:
+                    d[i + 1][j + 1] = d[i][j] + gap
+                    bk[i + 1][j + 1] = (i, j, j)
+    out, i, j = [], n, m
+    while i or j:
+        pi, pj, tag = bk[i][j]
+        if tag >= 0:
+            out.append((pi, tag))
+        elif tag == -1:
+            out.append((pi, -1))
+        i, j = pi, pj
+    out.reverse()
+    return out
+
+
 def rows_cmp(shots_dir, name, ref_dir=REF_DIR):
     """`--rows <화면>` — 원작 ↔ 클론의 구분선 줄 자리를 견준다(딤과 무관)."""
     refs = dict((n, r) for n, r in pairs() if r)
@@ -1092,23 +1139,19 @@ def rows_cmp(shots_dir, name, ref_dir=REF_DIR):
     print(u"«%s» 구분선 줄 — 원작 %d개 · 클론 %d개 (허용 ±%.1f%%p · 딤과 무관)"
           % (name, len(o), len(c), SEP_TOL))
     used, off, shifted = set(), 0, []
-    for a0, a1 in o:
-        best, bi = None, -1
-        for i, (b0, b1) in enumerate(c):
-            if i in used:
-                continue
-            d = abs(b0 - a0)
-            if best is None or d < best:
-                best, bi = d, i
-        if bi >= 0 and best <= SEP_TOL:
+    for oi, bi in _align(o, c):          # 차례를 지켜 짝짓는다(62회차 — 탐욕 금지)
+        a0, a1 = o[oi]
+        if bi >= 0:
             used.add(bi)
+            gap = c[bi][0] - a0
+        if bi >= 0 and abs(gap) <= SEP_TOL:
             print(u"   ✓ 원작 %5.1f~%5.1f ↔ 클론 %5.1f~%5.1f  (Δ %+.1f)"
-                  % (a0, a1, c[bi][0], c[bi][1], c[bi][0] - a0))
+                  % (a0, a1, c[bi][0], c[bi][1], gap))
         else:
             off += 1
-            if bi >= 0 and best <= SHIFT_MAX:
-                shifted.append((a0, c[bi][0] - a0))
-            near = u"" if bi < 0 else u" · 가장 가까운 클론 줄 %.1f(Δ %+.1f)" % (c[bi][0], c[bi][0] - a0)
+            if bi >= 0:
+                shifted.append((a0, gap))
+            near = u"" if bi < 0 else u" · 짝은 클론 줄 %.1f(Δ %+.1f)" % (c[bi][0], gap)
             print(u"   ✗ 원작 %5.1f~%5.1f 에 맞는 클론 줄이 없다%s" % (a0, a1, near))
     # ── 나란히 밀린 줄 (T28 61회차) ──────────────────────────────────────
     # 안 맞은 줄이 흩어져 있으면 얇은 선·글자 잡음이고, **여러 줄이 같은 크기로 밀려 있으면**
@@ -1687,6 +1730,23 @@ def self_test():
         u"흩어진 어긋남은 묶이지 않는다")
     chk(_grp([(10.0, 2.4), (20.0, 2.6)]) == [2.5],
         u"0.5 단위로 묶어 2.4·2.6 을 한 묶음으로 본다 (실측 `pass`)")
+
+    # ⑯-b 차례를 지키는 짝짓기(T28 62회차) — 탐욕 짝짓기가 지어내던 가짜 «−4%p» 를 막는다
+    # `skills` 실측 그대로: 원작 줄 여섯이 −1.3~−1.9%p 씩 나란히 밀려 있고 클론에 한 줄이 더 없다.
+    o_ = [(16.5, 17.0), (18.8, 20.2), (26.4, 26.9), (28.7, 30.1), (36.4, 36.7), (38.5, 56.6)]
+    c_ = [(14.6, 15.1), (17.5, 19.1), (24.6, 25.1), (27.5, 29.2), (34.7, 35.0), (37.8, 60.4)]
+    pr_ = _align(o_, c_)
+    chk(pr_ == [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)],
+        u"나란히 밀린 줄은 차례대로 짝짓는다 (%s)" % pr_)
+    ds_ = [c_[j][0] - o_[i][0] for i, j in pr_]
+    chk(max(ds_) < 0 and min(ds_) > -2.0,
+        u"그 짝의 어긋남은 전부 −1.3~−1.9%%p 다 — 탐욕이 지어내던 «−4.0» 이 아니다 (%s)"
+        % [round(d, 1) for d in ds_])
+    chk(_align([(10.0, 11.0)], [(30.0, 31.0)]) == [(0, -1)],
+        u"SHIFT_MAX 보다 멀면 짝을 안 짓는다")
+    chk([j for i, j in _align([(10.0, 11.0), (20.0, 21.0)],
+                              [(9.5, 10.5), (14.0, 15.0), (20.5, 21.5)])] == [0, 2],
+        u"가운데 낀 클론 줄은 건너뛰고 차례를 지킨다")
 
     # ⑫ 화면 집합이 바뀐 회차(T185) — 낮은 화면이 빠지면 «전체 평균» 은 저절로 오른다
     b_scr = {"a": 5.0, "b": 5.0, "c": 3.0, "d": 3.5}         # 지난 회차 4장 · 평균 4.125
