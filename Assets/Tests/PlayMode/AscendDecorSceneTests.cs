@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Forge.Core.Mounts;
 using Forge.Core.Pets;
 using Forge.Game.Battle;
 using Forge.Game.Gallery;
@@ -17,6 +18,7 @@ namespace Forge.Tests.PlayMode
     /// <summary>
     /// T399 — 승천 데코가 정본의 세 자리(전투 펫 9779 · 전투 탈것 10820/10982 · 얼굴 썸네일 9236/9242)에 실제로 서는가:
     /// 별 3 펫은 데코 층 3(마커 1·2·3) · 별 0 은 없음 · 별 6 은 순환이라 없음 · 탈것 별 5 는 층 5 · 얼굴 캐시 키에 `:a<tier>` · 데코는 스케일 전 원본 위(몸 메시 뿌리의 자식).
+    /// 2회차: 별을 안 준 얼굴 호출은 정본 `mountFace`/`petFace` 대로 같은 이름의 보유 개체에서 별을 찾는다(`PetFaces.StarsOf`).
     /// </summary>
     public class AscendDecorSceneTests
     {
@@ -118,6 +120,38 @@ namespace Forge.Tests.PlayMode
             int diff = 0;
             for (int i = 0; i < t0.Length; i++) if (t0[i].r != t3[i].r || t0[i].g != t3[i].g || t0[i].b != t3[i].b || t0[i].a != t3[i].a) diff++;
             Assert.Greater(diff, 0, "별 3 얼굴은 별 0 얼굴과 화소가 다르다(데코가 찍혔다)");
+        }
+
+        [UnityTest]
+        public IEnumerator 별을_안_준_얼굴_호출은_보유_개체의_별을_이름으로_찾는다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (PetSkillHost.Instance == null && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            PetSkillHost h = PetSkillHost.Instance;
+            Assert.IsNotNull(h, "PetSkillHost");
+            Assert.IsNotNull(h.Pets); Assert.IsNotNull(h.Mounts);
+            // 정본 2160 petFace: `S.pets.find(p => p.name === name).stars` · 2139 mountFace: `S.mounts.find(...)` — 첫 개체
+            h.Pets.State.Pets.Insert(0, new Pet { Name = "Cat", Rarity = "common", Stars = 4 });
+            h.Pets.State.Pets.Add(new Pet { Name = "Cat", Rarity = "common", Stars = 1 });
+            h.Mounts.State.Mounts.Insert(0, new Mount { Name = "Pony", Rarity = "epic", Stars = 2 });
+            try
+            {
+                Assert.AreEqual(4, PetFaces.StarsOf("Cat", GalleryKind.Pets), "같은 이름 첫 개체의 별");
+                Assert.AreEqual(2, PetFaces.StarsOf("Pony", GalleryKind.Mounts));
+                Assert.AreEqual(0, PetFaces.StarsOf("Pony", GalleryKind.Pets), "종류가 다르면 못 찾는다(펫 목록에 Pony 없음)");
+                Assert.AreEqual(0, PetFaces.StarsOf("없는종", GalleryKind.Mounts));
+                Assert.AreEqual(0, PetFaces.StarsOf(null, GalleryKind.Pets));
+                if (!PetFaces.Available) { Debug.Log("[AscendDecorSceneTests] 그래픽 장치 없음 — 별 찾기만 쟀다"); yield break; }
+                Assert.AreSame(PetFaces.Get("Cat", GalleryKind.Pets, 4), PetFaces.Get("Cat", GalleryKind.Pets), "별 없이 부르면 보유 별 4 의 그림(같은 캐시)");
+                Assert.AreSame(PetFaces.Get("Pony", GalleryKind.Mounts, 2), PetFaces.Get("Pony", GalleryKind.Mounts));
+                Assert.AreEqual("petface:Pets:Cat:a4", PetFaces.Get("Cat", GalleryKind.Pets).name);
+            }
+            finally
+            {
+                h.Pets.State.Pets.RemoveAll(p => p.Name == "Cat" && (p.Stars == 4 || p.Stars == 1));
+                h.Mounts.State.Mounts.RemoveAll(m => m.Name == "Pony" && m.Stars == 2);
+            }
         }
     }
 }

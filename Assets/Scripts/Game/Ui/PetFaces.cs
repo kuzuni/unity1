@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Forge.Core.Data;
+using Forge.Core.Mounts;
+using Forge.Core.Pets;
 using Forge.Game.Gallery;
 using Forge.Game.Voxel;
 
@@ -23,8 +25,28 @@ namespace Forge.Game.Ui
 
         public static Sprite Get(string name) { return Get(name, GalleryKind.Pets); }
 
-        /// <summary>종 얼굴 — 펫은 `Pets` · 탈것은 `Mounts`(원작 `mountFace` = 같은 썸네일 파이프라인 · T20 탈것 화면). 별 0(승천 데코 없음).</summary>
-        public static Sprite Get(string name, GalleryKind kind) { return Get(name, kind, 0); }
+        /// <summary>
+        /// 종 얼굴 — 펫은 `Pets` · 탈것은 `Mounts`(원작 `mountFace` = 같은 썸네일 파이프라인 · T20 탈것 화면).
+        /// 별을 안 준 호출은 정본 `ui.js` 2139 `mountFace`·2160 `petFace` 대로 **같은 이름의 보유 개체에서 별을 찾는다**(<see cref="StarsOf"/> · T399 2회차) —
+        /// 개체를 쥔 호출부는 <see cref="Get(string, GalleryKind, int)"/> 로 직접 넘긴다.
+        /// </summary>
+        public static Sprite Get(string name, GalleryKind kind) { return Get(name, kind, StarsOf(name, kind)); }
+
+        /// <summary>정본 2139 `S.mounts.find(m => m.name === name).stars` · 2160 `S.pets.find(p => p.name === name).stars` — 보유 목록의 같은 이름 첫 개체의 별(없으면 0 · 호스트가 없으면 0).</summary>
+        public static int StarsOf(string name, GalleryKind kind)
+        {
+            PetSkillHost h = PetSkillHost.Instance;
+            if (h == null || string.IsNullOrEmpty(name)) return 0;
+            if (kind == GalleryKind.Mounts)
+            {
+                if (h.Mounts == null || h.Mounts.State == null || h.Mounts.State.Mounts == null) return 0;
+                foreach (Mount m in h.Mounts.State.Mounts) if (m != null && m.Name == name) return m.Stars;
+                return 0;
+            }
+            if (h.Pets == null || h.Pets.State == null || h.Pets.State.Pets == null) return 0;
+            foreach (Pet p in h.Pets.State.Pets) if (p != null && p.Name == name) return p.Stars;
+            return 0;
+        }
 
         /// <summary>정본 `creatureThumb` 캐시 키 `kind:name:a<tier>`(9236·9242 · tier = stars % 6) — 별이 다른 같은 종은 다른 그림이다(T399).</summary>
         public static string Key(string name, GalleryKind kind, int stars)
