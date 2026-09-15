@@ -268,11 +268,18 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 리그_행_이름은_정본_1_3_배수로_선다()
         {
             yield return Boot();
-            for (int i = 0; i < 600 && !(UiRoot.Instance != null && UiRoot.Instance.TabBar != null); i++) yield return null;
-            UiRoot.Instance.TabBar.OnTab("league");
+            for (int i = 0; i < 600 && !(MetaHost.Ready && UiRoot.Instance != null && UiRoot.Instance.TabBar != null); i++) yield return null;
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
+            // 🚨 리그는 «pvp» 탭이 연다 — `OnTab("league")` 은 **없는 키**라 던진다(런 680 에서 내가 그렇게 깨뜨렸다 ·
+            //    `ShopUiTests` 가 같은 자리에 주석까지 남겨 뒀다 · 런 191 실측). 여는 길은 `MetaHost.OpenLeague()` 다.
+            MetaHost.Instance.OpenLeague();
             yield return null;
             Canvas.ForceUpdateCanvases();
-            Transform name = Find(UiRoot.Instance.App, "name");
+            // 리그 **시트 뿌리 아래**에서만 찾는다 — 앱 전체를 뒤지면 다른 화면의 «name» 이 먼저 잡힌다.
+            Popup lp = MetaHost.Instance.Popups.Find(LeagueSheet.Name);
+            Assert.IsNotNull(lp, "리그 시트");
+            Assert.IsTrue(lp.IsOpen, "리그 시트가 열려 있다");
+            Transform name = Find(lp.Root, "name");
             Assert.IsNotNull(name, "리그 행 이름(name)");
             TextMeshProUGUI t = name.GetComponent<TextMeshProUGUI>();
             Assert.IsNotNull(t, "이름은 글자 하나다");
