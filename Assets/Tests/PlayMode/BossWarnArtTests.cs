@@ -212,7 +212,14 @@ namespace Forge.Tests.PlayMode
             Assert.IsFalse(st.raycastTarget, "장식은 클릭을 안 먹는다(정본 pointer-events: none 갈래)");
 
             float rem = BattleOverlay.Rem;
-            float want = (float)Forge.Core.Ui.StripeRules.TileWidth(-45, 1.1f * rem, 1e9);
+            // T368 4회차 — 주기·대시·두께는 표 `bw_hazard` 가 쥔다(정본 395: 1.1rem · .55rem · .5rem) — 코드 리터럴이 아니다
+            Assert.AreEqual(1.1f, SurfaceArt.StripeNum("bw_hazard", "period_rem", float.NaN), 1e-6f, "표 period_rem = 정본 1.1rem");
+            Assert.AreEqual(0.55f, SurfaceArt.StripeNum("bw_hazard", "dash_rem", float.NaN), 1e-6f, "표 dash_rem = 정본 .55rem");
+            Assert.AreEqual(0.5f, SurfaceArt.StripeNum("bw_hazard", "height_rem", float.NaN), 1e-6f, "표 height_rem = 정본 .5rem");
+            RectTransform band = st.rectTransform.parent as RectTransform;
+            Assert.IsNotNull(band, "빗금 띠 상자(bw-hazard0/1)");
+            Assert.AreEqual(SurfaceArt.StripeNum("bw_hazard", "height_rem", float.NaN) * rem, band.rect.height, 0.5f, "띠 두께 = 표 height_rem × rem");
+            float want = (float)Forge.Core.Ui.StripeRules.TileWidth(-45, SurfaceArt.StripeNum("bw_hazard", "period_rem", float.NaN) * rem, 1e9);
             Assert.AreEqual(1.556f * rem, want, rem * 0.01f, "정본이 적어 둔 background-size 1.556rem 과 같은 수가 나온다");
 
             Texture2D tex = st.sprite.texture;

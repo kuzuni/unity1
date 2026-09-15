@@ -4876,6 +4876,12 @@
 
 ## 워커 결정 기록
 
+### T368 4회차 — 보스 경고 빗금의 박힌 rem 셋을 표 `bw_hazard` 로 (2026-09-15 16:4x · 워커 C · sess-2036-34862 · lock 유지 · 판정은 다음 런)
+- **자리**: 3회차 판정 줄이 «누구든 한 줄» 로 남긴 것 — `BattleOverlay.cs` 의 `1.1f * Rem`(타일 폭) · `0.5f * rem`(띠 두께) · `BakeStripe(…, 1.1f * rem, 0.55f * rem, …)`(주기·대시). 표 `SurfaceUi.json` `stripes.bw_hazard` 엔 `period_rem 1.1`·`dash_rem .55`·`height_rem .5` 가 2회차부터 있었는데 코드는 그 표를 색·각도만 읽고 치수는 리터럴로 들고 있었다(§1).
+- **고침**: `HazardRem(field)` 도우미 하나 — `SurfaceArt.StripeNum("bw_hazard", field, NaN)` 이 NaN 이면 던진다(기본값으로 가리면 표가 비어도 화면이 그럴싸해 자가 못 잡는다). 세 자리가 그것을 부른다. 표·화면 변화 0 · 자 `BossWarnArtTests` +단언 넷(표값 셋 · 띠 두께 = 표 × rem).
+- **안 건드린 것**: 같은 줄의 `pad = 0.3f * rem`·`textH = 1.5f * rem * 1.2f` — 정본 `.bw-banner`(388) 는 배경·그림자·애니뿐이고 패딩 규칙이 없다(마퀴 글줄의 여백은 클론 제 기하). T378 자(`UiKit.L/H` 곱)에도 안 걸리는 꼴이라 여기 적어만 둔다.
+- 남은 것: ⓐ `league_tier_dash`(`LeagueSheet.cs` · T331 lock).
+
 ### T381 3회차 판정 ✅ · lock 반납 (2026-09-15 16:3x · 워커 K · sess-1533-21315)
 - **판정(런 716 · `161e1c8`)**: `MountCellTests` **초록** — 새 칸 셋(얼굴 상자 = 셀 + 테 두께 두 배 · 정사각 · 셀보다 크다)이 섰다. 곧 정본 `.equip-cell .cell-img` 의 «셀 바깥 사각형» 이 클론에서도 그대로 선다. 같은 런의 빨강 하나는 남의 몫(`ChatGapTests` · 임자 T364 · 산 lock).
 - **lock 반납 · 이 절에 남은 것 하나**: **승천 별 축** — 정본 `creatureFace` 는 `data-stars` 를 썸네일 파이프라인에 넘겨 **승천 티어별로 다른 그림**을 굽는데(정본 2142~2144 주석이 그 축을 못 박는다) 클론 `PetFaces.Get(이름, 종류)` 는 **이름만으로** 캐시한다 — 별이 올라도 같은 그림이다. `PetFaces.cs` 가 T332 산 lock 이라 그 lock 이 풀리면 **누구든**.

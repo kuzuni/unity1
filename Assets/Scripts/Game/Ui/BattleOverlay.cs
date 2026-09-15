@@ -21,7 +21,14 @@ namespace Forge.Game.Ui
         public static float Rem { get { return UiKit.RefH / 844f * 16f; } }
 
         /// <summary>T368 — 보스 경고 사선 줄무늬 한 타일의 가로(캔버스 px). 정본이 `background-size: 1.556rem`(= 주기 1.1rem × √2)로 적어 둔 수를 <see cref="SurfaceArt.StripeTileWidth"/> 가 스스로 낸다.</summary>
-        static float StripeTileW { get { return SurfaceArt.StripeTileWidth("bw_hazard", 1.1f * Rem); } }
+        static float StripeTileW { get { return SurfaceArt.StripeTileWidth("bw_hazard", HazardRem("period_rem") * Rem); } }
+        /// <summary>T368 4회차 — 빗금 표(`SurfaceUi.json` `stripes.bw_hazard`)의 rem 칸(`period_rem`·`dash_rem`·`height_rem`). 정본 395 가 이 자리만 rem 으로 못 박았다 — 수는 코드에 안 박는다(§1) · 칸이 없으면 던진다(기본값으로 가리지 않는다).</summary>
+        static float HazardRem(string field)
+        {
+            float v = SurfaceArt.StripeNum("bw_hazard", field, float.NaN);
+            if (float.IsNaN(v)) throw new System.Collections.Generic.KeyNotFoundException("SurfaceUi.json stripes.bw_hazard 에 «" + field + "» 이 없다 (T368)");
+            return v;
+        }
 
         RectTransform layer;
         // boss warning
@@ -234,7 +241,8 @@ namespace Forge.Game.Ui
             dim = Radial(warnRoot, "bw-dim", "dim", null);
             flash = Radial(warnRoot, "bw-flash", "flash", CraftFxPoly.Screen());
             banner = UiKit.Box(warnRoot, "bw-banner");
-            float hazard = 0.5f * rem, pad = 0.3f * rem, textH = 1.5f * rem * 1.2f;
+            // T368 4회차 — 빗금 띠 두께는 표 `bw_hazard.height_rem`(정본 395 `.bw-hazard { height: .5rem }`) · 전엔 .5f 가 코드에 박혀 있었다
+            float hazard = HazardRem("height_rem") * rem, pad = 0.3f * rem, textH = 1.5f * rem * 1.2f;
             float bannerH = hazard * 2 + pad * 2 + textH;
             banner.anchorMin = new Vector2(0, 1 - (float)FxRules.WarnTop); banner.anchorMax = new Vector2(1, 1 - (float)FxRules.WarnTop);
             banner.pivot = new Vector2(0.5f, 0.5f); banner.sizeDelta = new Vector2(0, bannerH); banner.anchoredPosition = Vector2.zero;
@@ -263,7 +271,7 @@ namespace Forge.Game.Ui
                 Image st = hzrt.gameObject.AddComponent<Image>();
                 st.raycastTarget = false;
                 st.type = Image.Type.Tiled;
-                st.sprite = SurfaceArt.BakeStripe("bw_hazard", 1.1f * rem, 0.55f * rem, 0f, hazard);
+                st.sprite = SurfaceArt.BakeStripe("bw_hazard", HazardRem("period_rem") * rem, HazardRem("dash_rem") * rem, 0f, hazard);   // T368 4회차 — 주기·대시도 표에서(전엔 1.1f·.55f 리터럴)
                 hazardTiles[row] = hzrt;
             }
             RectTransform mq = UiKit.Box(banner, "bw-marquee");
