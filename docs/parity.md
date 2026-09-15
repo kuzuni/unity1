@@ -1221,3 +1221,31 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - **새 작업 0 · 결함 0**(죽은 CSS 1 자리 제외).
 - 21(`font-weight`)·22(`aspect-ratio`+`object-fit`)·24(`pointer-events`)에 이어 **네 축째 «결함 0»** 이다. «CSS 선언을 세는» 축은 거의 바닥났다고 본다 — 남은 큰 것은 `align-items` 178 · `justify-content` 124 · `flex-direction` 82 인데 **선언 수로 셀 축이 아니다**(클론은 레이아웃 그룹이 여섯뿐 · T364 가 적어 둔 사정과 같다). `cursor` 51 은 폰 화면이라 애초에 해당이 없다.
 - 다음 사람에게: 남은 값어치는 **축 세기보다 «화면을 눈으로 보고 어긋난 데를 찾는» 쪽**(T28 회차)에 있을 것이다.
+
+## 33회차 — 정본 **`mask-image` 15 · `image-rendering` 3 · `transform-box` 13 · `container-type` 3** 전수 (2026-09-15 · 워커 A · sess-2005-27410)
+
+축을 고른 까닭: 30·32회차가 «CSS 선언 축은 바닥» 이라 적었지만 `style.css` 속성 분포를 다시 세니 **한 번도 안 센 것**이 넷 남아 있었다 — 마스크(30 선언 = 15쌍) · 픽셀 보간 · 회전축 상자 · 컨테이너 단위. 작은 축이라 한 회차에 묶었다.
+
+### ⓐ `mask-image` 15 — 클론 3 ✓ · **1 ✗(T380)** · 11 은 T334 몫
+- `#dmg-flash`(460 · 아래 18% 소멸) ✓ `FxRules.DmgVigMaskKeep .82` + `BattleOverlay.VigSprite` 가 굽는다.
+- `.af-age-bar::before`(4842 · 30→50%) ✓ `AgePatternUi.json bar_mask_from_f .3 / to_f .5` · `ForgeUi.AgeBar(autoForge:true)`.
+- **`.fi-age-bar::before`(5123 · 24→46%) ✗** — 클론은 `mask: autoForge` 라 정보 팝업 막대엔 마스크가 없고 표에도 한 벌뿐이다 → **T380**.
+- `.sr-*` 12(소환 결과 연출 · T334 산 lock): 선 것 4 = `.sr-rays` 5941 ↔ `rays_mask` · `#…done .sr-rays` 7157 ↔ `rays_done_mask` · `.sr-reflect` 6972 ↔ `reflect_mask` · `.sr-floor::after` 5827 ↔ `floor_tick_mask0~3` · 짝이 흐린 것 3 = `.sr-canopy::before/::after` 5861·5871 · `.sr-canopy b` 5900 ↔ `arch_mask/tick_mask/spill_mask`(이름으로만 짝지었다 · 값 대조는 임자 몫) · **자취 0 이 5** = `.sr-grid.mid/.dense` 6238 · `.sr-cell::before` 6340 · `.sr-cell[data-mat="gem"] .sr-orb::before` 6644 · `.sr-ray` 6683(`BakeRayBar` 는 있으나 마스크 키 없음) · `.sr-cell.heroic .sr-beam` 6745. T334 절이 «없는 겹» 을 회차마다 걷고 있어 새 등재는 안 한다 — 이 다섯을 그 임자가 보게 여기 적는다.
+
+### ⓑ `image-rendering: crisp-edges; pixelated` 3 선택자 — **결함 0**
+`.ico`(7215) → 아이콘 아틀라스 `atlas-0/1.png.meta filterMode: 0`(Point) ✓ · `.ico.av-ico`(7225 · 아바타 초상) → 아바타 `avatar_*` 도 같은 아틀라스 ✓ · `.dg-banner`(1959) → `UiKit.Icon(face, "scene", "dg_"+id)` = 아틀라스 `dg_*` ✓. 클론이 스스로 굽는 텍스처 21곳은 전부 `Bilinear` 인데 그것들은 그라디언트·그림자·블러라 정본도 보간한다(마스크·필터 층) — 픽셀아트는 아틀라스 하나로 모여 있다.
+
+### ⓒ `transform-box` 13 + `transform-origin`(모루 타격 연출) — **결함 0**
+`.anvil-svg` view-box 50% 92% ↔ `AnvilFxSpec.BumpOriginFrac {.5,.92}` · `.anv-billet` 55px 21.5px ↔ `BilletOriginVb` · `.af-hammer` 55px 11px ↔ `ForgeSheet.cs` 453 피벗 · `.af-ring/bloom/flash/heat/shadow/core` fill-box center ↔ 타원 스프라이트 구성상 중심 · `.af-star.sl/.sr` 100%/0% 55% ↔ 694 · `.af-spark`·`.af-scale` 0% 50% ↔ 612·643 · `.af-smoke` 50% 100% ↔ 518. 피벗 줄마다 정본 원점이 주석으로 붙어 있어 대조가 한 줄씩 끝났다.
+
+### ⓓ `container-type: inline-size` 3 = `cqi` 단위 6 자리 — **결함 2(T381·T382)** · 값 자체는 맞거나 죽은 길
+- `.equip-cell.empty .cell-img.dim 72cqi`(862) ↔ `ForgeSheet.cs` 221 `size*0.72` ✓.
+- `.equip-cell .cell-img.emoji 76cqi`(1881) · `.adc-img.emoji 76cqi`(1083·1149): `.emoji` 는 3D 썸네일(T122)이 없을 때의 이모지 폴백이라 클론엔 닿는 길이 없다 — 대신 그 자리의 **비-이모지 규칙**을 보니 `.craft-batch .cb-card .adc-img`(1144)는 슬롯과 같은 fit-ink **.76** 인데 클론 `ForgeCraftPopup.cs:169` 가 **.9** → **T382**.
+- `.equip-cell.egg-cell .cell-img.emoji 30cqi`(1882): 그 요소 = «탄 탈것» 얼굴인데 클론 `ForgeSheet.MountCell` 은 **빈 상태 하나뿐**이라 활성 탈것이 있어도 실루엣이다 → **T381**.
+
+### 이 회차가 남긴 규칙
+**«단위» 축(`cqi`·`em`)은 값보다 «그 값이 붙는 요소가 클론에 있는가» 를 먼저 묻는다** — 30cqi 의 수를 대조하려다 요소(탄 탈것 칸) 자체가 없는 것을 찾았고, 76cqi 는 값이 맞는 대신 옆 규칙(.76)이 .9 로 박혀 있었다.
+
+### 이 회차의 판정
+- **새 작업 3(T380·T381·T382) · 결함 3** · T334 몫 «자취 0» 5 는 그 절에 적었다(등재 아님).
+- 32회차의 «CSS 축은 바닥» 은 반쯤 맞다 — 큰 축은 바닥이고 잔돈 축에서도 결함이 나온다. 아직 안 센 것: `animation-delay` 42 · `min-width` 32 · `max-height` 20 · `content` 171(장식 층은 ⓚ 가 셌다).
