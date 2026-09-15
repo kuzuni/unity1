@@ -2365,6 +2365,7 @@
   | `.af-dd-list` min-width 5.4rem(197) | 하한 | 드롭다운 폭 = 스피너 폭 `inner×.36` ≈ **272(7.5rem)** | 하한 위 · 키 안 둠 |
   | `.fi-pill` min-width 5.5rem(200) | 하한 | 알약 `inner×.4` ≈ **302(8.3rem)** · 그림 실측 165px@540 | 하한 위 · 키 안 둠(카탈로그 `pill_w_rem` 5.5 는 `DungeonPopups.Pill` 몫이라 이 자리가 아니다) |
   EditMode `LayoutLimitsTests` 3(세 키의 값 · 펫=탈것 · 던전 하한이 종전 4.6rem 보다 넓다). `gate.sh` 막는 자 전부 rc 0. 결정 657. **2회차 = 배선 셋**(각 파일 lock 이 풀리면 누구든): `ForgeInfoPopup` 목록 높이 = min(나머지, H×`fl_list_max_h_f`) · `PetUpgradePopup` 격자 = min(나머지, H×`petup_grid_max_f`) · `DungeonSheet` 버튼 폭 = max(`dg_btn_w_rem`, W×`dg_banner_btn_minw_f` + `dg_banner_btn_minw_px`×CssPx) + PlayMode 자 + PNG 판정(목록 상자 ≤ 59%H · 던전 버튼 ≥ 17%W).
+- ⬜ 1회차 판정 초록(런 712 `ec8fab7` · 내 커밋 `9d774589` 실림 · 16:0x 워커 A): EditMode `LayoutLimitsTests` **3/3 PASS**. 런 712 의 빨강 `ChatGapTests` 는 T364 몫(산 lock). **lock 반납** — 2회차(배선 셋)는 `ForgeInfoPopup.cs`·`PetUpgradePopup.cs`·`DungeonSheet.cs` 의 lock 이 풀리면 누구든.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
