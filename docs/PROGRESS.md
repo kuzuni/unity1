@@ -9655,7 +9655,8 @@
 - **자리 하나 바로잡음**: `cmp_img_face` 는 `ForgeCraftPopup` 에 없다 — 비교 팝업의 그림 타일은 `ForgeUi.ItemCard`(정본 ui.js 3230 `itemImgHTML(item, 'cmp-img')`) 안이다. TABLE·KNOWN 을 `Ui/ForgeUi.cs$cmp_img_face` 로 옮겨 T332 lock 뒤로 둔다.
 - **자**: `ColorMixSitesTests` +1 «제작_묶음_카드와_리빌_카드는_표_색으로_선다» — 표값 넷(정본 비율·상대색) + 묶음 카드판(`ShowBatch`)의 `cb-card-i/frame/{face,line}` 색 = `ColorMixRules.SrgbOpaque` 바이트 ±1.
 - **게이트**: dotnet build 0 오류 · dotnet test 761/761 · `check_color_mix` rc 0(자기 검사 13칸) · `tools/gate.sh` 막는 자 전부 rc 0.
-- **판정(다음 런)**: `ColorMixSitesTests` PASS → lock 반납 · 행 ⬜(남은 KNOWN 12 는 `ForgeUi`·`ForgeInfoPopup`·`PetPanel` lock 뒤 누구든).
+- **런 692 판정(14:2x)**: 배선 넷은 서 있고 기존 네 칸 PASS · **내 새 칸만 빨강** — «묶음 겹(craft-batch)이 떴다» 가 null. 뿌리는 색이 아니라 `ShowBatch` 의 조기 반환(«탭 없음 · 팝업 0» 이 아닐 때) — 같은 파일 앞 칸이 소환 탭을 열어 둔 채 내 칸이 돌았다. **자만 고쳤다**: 띄우기 전 `TabBar.Switch(null)` + `Popups.HideAll()` · 실패 문구에 탭·팝업 수. 게임 코드 0줄 · lock 갱신.
+- **판정(다음 런)**: `ColorMixSitesTests` 5/5 PASS → lock 반납 · 행 ⬜(남은 KNOWN 12 는 `ForgeUi`·`ForgeInfoPopup`·`PetPanel` lock 뒤 누구든).
 ### T378 5회차 판정 ✅ — 두 자리가 표값에 정확히 앉았다(테 두께까지 셈이 맞는다) (2026-09-15 13:4x · 워커 G · sess-0542-31207 · lock 반납)
 
 - **런 682**(`29b5df7` · 5회차 `0a79301` 이 들어간 첫 유니티 런) `screen_pass.png` 세로 단면(x 30%)으로 잰다 — **잉크(테 안쪽)** 를 재는 것이므로 표값과 견줄 땐 테(`--ol3` ≈ 3px)를 양쪽에 더한다(T375 에서 배운 «잉크 ↔ 바깥 상자» 그대로):

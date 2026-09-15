@@ -163,12 +163,19 @@ namespace Forge.Tests.PlayMode
             AssertMix(ColorMixUi.Mix("drop_card_face", rc), rc, 0.58, 0x17, 0x18, 0x1a, "탈락·리빌 카드 면(정본 1063 58%, #17181a)");
             AssertMix(ColorMixUi.Mix("drop_card_line", rc), rc, 0.80, 0, 0, 0, "탈락·리빌 카드 테(정본 1063 80%, #000)");
 
+            // 런 692 — `ShowBatch` 는 «탭이 없고 팝업 0»(ForgeScreenVisible) 일 때만 띄운다. 이 파일의 앞 칸이 소환 탭을 열어 두거나 부팅 팝업이 남아 있으면
+            //           조기 반환해 겹이 안 뜬다 — 대장간 화면을 먼저 보이게 한다(CraftCardInkTests 는 세이브를 지우고 부팅해 그 조건이 저절로 맞았다).
+            float t1 = 0f;
+            while (!MetaHost.Ready && t1 < 20f) { t1 += Time.unscaledDeltaTime; yield return null; }
+            if (UiRoot.Instance.TabBar.ActiveTab != null) UiRoot.Instance.TabBar.Switch(null);
+            F.Meta.Popups.HideAll();
+            yield return null; yield return null;
             var items = new System.Collections.Generic.List<Forge.Core.Forging.ForgeItem>();
             for (int i = 0; i < 2; i++) items.Add(F.Engine.RollItem());
             ForgeCraftPopup.ShowBatch(F, items, () => { });
             yield return null; yield return null;
             Transform batch = UiRoot.Instance.App.Find("craft-batch");
-            Assert.IsNotNull(batch, "묶음 겹(craft-batch)이 떴다");
+            Assert.IsNotNull(batch, "묶음 겹(craft-batch)이 떴다 — 탭 " + (UiRoot.Instance.TabBar.ActiveTab ?? "없음") + " · 열린 팝업 " + F.Meta.Popups.OpenCount);
             int seen = 0;
             for (int i = 0; i < items.Count; i++)
             {
