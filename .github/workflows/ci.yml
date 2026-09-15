@@ -331,7 +331,19 @@ jobs:
           #        그 실패를 찍으며 `ExtractStackTrace`)에서 SIGSEGV 로 죽어 PlayMode 가 통째로 안 돌았다(런 403·425 와 같은 자리 ·
           #        T171·T180). 러너 제 설명이 «Some Unity versions/configurations fail or crash with this on» 이라고 적어 뒀다.
           #        잃는 것은 없다 — `com.unity.testtools.codecoverage` 는 manifest 에 없고 CodeCoverage/ 산출물을 읽는 스텝도 없다.
-          coverageEnabled: false
+          # ⚑ T392 §0-6 급 수리(2026-09-15 18:2x · 워커 E · 결정 666 · lock 은 임자 것) — **그 입력을 도로 걷었다.**
+          #    런 739 잡 로그가 이유를 한 줄로 말한다(컨테이너에서 못 여는 자리라 GitHub API 로 읽었다 · T344):
+          #      /tmp/game-ci-cli-cache/v0.1.65/game-ci test … **--no-coverageEnabled** --coverageOptions=…
+          #      [WARN] Unknown argument: noCoverageEnabled
+          #      ##[error]Test run failed with exit code 1      ← 18ms 뒤 · 도커도 에디터도 안 뜬다
+          #    러너는 boolean false 를 `--no-<이름>` 으로 CLI 에 넘기는데 `game-ci` CLI v0.1.65(= 지금 latest)가
+          #    그 꼴을 모른다. 그래서 잡이 **시작조차 못 하고** 죽어 EditMode·PlayMode 가 **둘 다** 0개가 됐다
+          #    (런 730 의 SIGSEGV 는 PlayMode 하나만 죽였다 — 고치려던 것보다 나빠졌다). 이 상태는 플레이크가 아니라
+          #    **모든 런에 되풀이된다** — 이 레포의 유니티 검증이 통째로 멎는다.
+          #    ⇒ 되돌린 자리는 이 한 줄뿐이고 T392 의 진단(위 주석)은 그대로 둔다. 커버리지를 끄는 길은 러너 입력이
+          #      아니라 **T180 이 남긴 나머지 칸**(`ProjectSettings` 의 `m_StackTraceTypes` 에서 Error·Exception 을 None 으로)이다 —
+          #      SIGSEGV 는 계측 실패 자체가 아니라 **그 실패를 찍으며 Mono 스택을 걷는 자리**에서 났다(T392 가 읽은 스택 그대로).
+          #      러너 입력으로 다시 끄려면 `cliVersion` 이 `--no-` 꼴을 아는 판으로 올라간 뒤다(v0.1.65 는 모른다).
           # 빈 값으로 «명시» 해야 체크 런을 안 만든다(안 적으면 러너가 제 토큰을 채워 checks:write 없이 죽는다 · aaawunity T295).
           githubToken: ''
       # 잡 로그는 MCP/웹에서 **꼬리 5000줄**만 보인다 — PlayMode XML 앞부분(B~S 픽스처)이 잘려 «어느 테스트가 빨간가» 를 못 읽고, 아티팩트 zip 은
