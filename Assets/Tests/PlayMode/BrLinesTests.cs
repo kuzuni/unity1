@@ -321,6 +321,12 @@ namespace Forge.Tests.PlayMode
             {
                 if (!row.name.StartsWith("row") || !row.gameObject.activeInHierarchy || row.Find("cp-ico") == null) continue;
                 crows++;
+                // ⚑ 이 단언이 **가끔** 빨갛다면 자가 깨진 것이 아니다 — **T397** 이다.
+                //   봇 이름은 `meta.json` `league.NAME_POOL`(20개)을 `League.GenBots` 가 섞어 나눠 주는데
+                //   15자짜리 «BlandBuddy22667» 하나만 유독 길다(다음이 9자). 그것이 도전 목록에 드는 런에서만
+                //   이름이 둘째 줄로 접힌다 — 정본 2632 `.league-challenge-name` 은 **.85rem(30.9px)** 인데
+                //   클론은 하한 `TextKind.Sub`(36) 라 **1.164배**이기 때문이다(T136·T372·T383·T389 갈래).
+                //   **이 줄을 느슨하게 고치지 마라** — 정본 `<br>` 이 못박은 모양 그대로다. 고칠 자리는 `LeagueSheet.cs` 다.
                 SplitTwoLines(row, "name", "cp", "도전 행 «" + row.name + "»(정본 4859)");
                 Transform btn = row.Find("challenge");
                 Assert.IsNotNull(btn, "도전 버튼(정본 4862)");
