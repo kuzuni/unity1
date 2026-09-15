@@ -425,7 +425,11 @@ namespace Forge.Game.Ui
             float lh = PlayerInfoStyle.Px("sk_lv_h_rem");
             string txt = PlayerInfoStyle.T("lv", level);
             RectTransform lv = UiKit.Box(cell, "sk-lv");
-            TextMeshProUGUI t = PetSkillKit.Text(lv, "t", TextKind.Sub, txt, PlayerInfoStyle.C("sk_lv_ink"));
+            // T389 — 정본 `.sk-lv`(style.css **4045**)는 `font-size: .6rem`(기준 캔버스 ≈20.8px)다. §1 하한 `Sub`(36)로 찍으면
+            //   **1.73배**가 되어 여섯 라벨이 칸 피치(7.6~7.9%W)를 넘어 서로 붙는다(런 712 실측: 잉크 덩어리 원작 22 ↔ 클론 **1**).
+            //   결정 633 대로 **새 종류를 만들지 않고** 하한의 예외 한 자리 `Micro`(18)를 쓴다 — T372 가 낸 길 그대로(정본 20.8 과 2.8px 차).
+            //   ⚠ 정본 4066 `#panel-skills .sk-grid .sk-lv`(앱 폭 × .0383)는 **스킬 화면 전용**이다(4064 의 스코프 경고) — 이 자리는 기본 `.sk-lv` 를 따른다.
+            TextMeshProUGUI t = PetSkillKit.Text(lv, "t", TextKind.Micro, txt, PlayerInfoStyle.C("sk_lv_ink"));
             // 폭은 **어림(`TextWidth` 은 라틴 한 자를 0.58em 로 셈한다)이 아니라 TMP 가 실제로 잰 값**으로 잡는다(2회차 · 어림은 «Lv.20» 을 1.18배 부풀린다).
             float lw = t.preferredWidth + PlayerInfoStyle.Px("sk_lv_pad_rem") * 2f;
             UiKit.Fill(t.rectTransform);

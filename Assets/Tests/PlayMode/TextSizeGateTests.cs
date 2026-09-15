@@ -156,5 +156,43 @@ namespace Forge.Tests.PlayMode
             while (t.parent != null) { t = t.parent; s = t.name + "/" + s; }
             return s;
         }
+
+        /// <summary>
+        /// T389 — 플레이어 정보 «출전 줄» 의 Lv 라벨은 정본 `.sk-lv`(style.css 4045 · `.6rem` ≈ 기준 캔버스 20.8px)를 따른다.
+        /// §1 하한 `Sub`(36)로 찍으면 1.73배가 되어 여섯 라벨이 칸 피치를 넘어 **한 덩어리로 붙는다**(런 712: 원작 잉크 덩어리 22 ↔ 클론 1).
+        /// 그래서 하한의 예외 한 자리 `Micro`(18)를 쓴다(결정 633 · T372 와 같은 길). 이 자는 **라벨이 제 칸 안에 드는가** 를 잰다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 출전_줄_Lv_라벨은_제_칸_피치_안에_든다()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            float t0 = Time.realtimeSinceStartup;
+            while (!MetaHost.Ready) { Assert.Less(Time.realtimeSinceStartup - t0, 25f, "MetaHost 가 안 섰다"); yield return null; }
+            MetaHost h = MetaHost.Instance;
+            PlayerInfoPopup.Open(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(PlayerInfoPopup.Name);
+            Assert.IsNotNull(p, "플레이어 정보 팝업");
+
+            float pitch = (PlayerInfoStyle.L("orb_w") + PlayerInfoStyle.L("loadout_gap_w")) * UiKit.RefW;   // 정본 3208 `.sk-cell` 폭 + 3198 gap
+            int seen = 0;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name != "sk-lv") continue;
+                TextMeshProUGUI t = rt.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+                if (t == null || string.IsNullOrEmpty(t.text)) continue;
+                seen++;
+                Assert.AreEqual(UiCatalog.Instance.Kind(TextKind.Micro).size, t.fontSize, 0.5f,
+                    "출전 줄 Lv 라벨은 하한의 예외 한 자리(Micro)로 찍는다 — 정본 .6rem(4045)");
+                Assert.Less(t.preferredWidth, pitch,
+                    "라벨 폭 " + t.preferredWidth.ToString("0.0") + " 이 칸 피치 " + pitch.ToString("0.0") + " 보다 좁아야 이웃과 안 붙는다");
+            }
+            Assert.Greater(seen, 0, "출전 줄에 Lv 라벨이 하나도 없다");
+            Debug.Log("[T389] 출전 줄 Lv 라벨 " + seen + "개 · 칸 피치 " + pitch.ToString("0.0"));
+            h.Popups.Hide(PlayerInfoPopup.Name);
+            yield return null;
+        }
     }
 }
