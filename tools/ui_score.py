@@ -1041,6 +1041,9 @@ SEP_X0, SEP_X1 = 0.16, 0.84   # 카드 안쪽만 본다(바깥은 딤)
 SEP_SAME = 0.92               # 그 줄의 표본 중 이만큼이 같은 색이면 «구분선 줄»
 SEP_MIN = 3                   # 이만큼 이어져야 한 줄로 센다(px)
 SEP_TOL = 1.5                 # 원작 ↔ 클론 허용 어긋남(%p)
+SHIFT_MAX = 6.0               # 이보다 멀면 «밀린 것» 이 아니라 아예 없는 줄로 본다
+SHIFT_BIN = 0.5               # 밀린 크기를 이 단위로 묶어 «나란히» 를 찾는다
+SHIFT_MIN = 2                 # 같은 크기로 이만큼 밀려 있으면 등재감으로 부른다
 
 
 def sep_rows(img, y0=0.13, y1=0.86):
@@ -1088,7 +1091,7 @@ def rows_cmp(shots_dir, name, ref_dir=REF_DIR):
     o, c = sep_rows(png_read(rp)), sep_rows(png_read(cp))
     print(u"«%s» 구분선 줄 — 원작 %d개 · 클론 %d개 (허용 ±%.1f%%p · 딤과 무관)"
           % (name, len(o), len(c), SEP_TOL))
-    used, off = set(), 0
+    used, off, shifted = set(), 0, []
     for a0, a1 in o:
         best, bi = None, -1
         for i, (b0, b1) in enumerate(c):
@@ -1103,8 +1106,23 @@ def rows_cmp(shots_dir, name, ref_dir=REF_DIR):
                   % (a0, a1, c[bi][0], c[bi][1], c[bi][0] - a0))
         else:
             off += 1
+            if bi >= 0 and best <= SHIFT_MAX:
+                shifted.append((a0, c[bi][0] - a0))
             near = u"" if bi < 0 else u" · 가장 가까운 클론 줄 %.1f(Δ %+.1f)" % (c[bi][0], c[bi][0] - a0)
             print(u"   ✗ 원작 %5.1f~%5.1f 에 맞는 클론 줄이 없다%s" % (a0, a1, near))
+    # ── 나란히 밀린 줄 (T28 61회차) ──────────────────────────────────────
+    # 안 맞은 줄이 흩어져 있으면 얇은 선·글자 잡음이고, **여러 줄이 같은 크기로 밀려 있으면**
+    # 그 위 어딘가가 짧거나 길다는 뜻이다 — 그것이 진짜 등재감이다(실측: `main` 의 −1.9·−1.8 짝).
+    if shifted:
+        groups = {}
+        for a0, d in shifted:
+            groups.setdefault(round(d / SHIFT_BIN) * SHIFT_BIN, []).append((a0, d))
+        for k in sorted(groups, key=lambda k: -len(groups[k])):
+            g = groups[k]
+            if len(g) >= SHIFT_MIN:
+                print(u"   ⇒ **나란히 밀린 줄 %d개** — 전부 %+.1f%%p 언저리다(%s). "
+                      u"흩어진 어긋남과 달리 이것은 «그 위 어딘가가 짧다/길다» 는 뜻이라 **등재감**이다."
+                      % (len(g), k, " · ".join(u"원작 %.1f(%+.1f)" % t for t in g)))
     extra = [c[i] for i in range(len(c)) if i not in used]
     if extra:
         print(u"   · 원작에 없는 클론 줄 %d개: %s"
@@ -1656,6 +1674,19 @@ def self_test():
         u"행 사이 여백 줄을 잡는다 (%s)" % tops)
     chk(not any(11 <= t <= 19 or 36 <= t <= 44 for t in tops),
         u"글자가 든 줄은 «구분선» 으로 안 잡는다 (%s)" % tops)
+
+    # ⑯ 나란히 밀린 줄 묶기(T28 61회차) — 흩어진 어긋남과 «같은 크기로 밀림» 을 가른다
+    def _grp(ds):
+        g = {}
+        for a0, d in ds:
+            g.setdefault(round(d / SHIFT_BIN) * SHIFT_BIN, []).append((a0, d))
+        return sorted((k for k in g if len(g[k]) >= SHIFT_MIN), key=lambda k: -len(g[k]))
+    chk(_grp([(30.3, -1.8), (65.5, -1.8), (74.1, -1.8)]) == [-2.0],
+        u"같은 크기로 세 줄이 밀리면 한 묶음이다 (실측 `main` −1.8)")
+    chk(_grp([(10.0, -1.7), (20.0, 0.9), (30.0, 4.3)]) == [],
+        u"흩어진 어긋남은 묶이지 않는다")
+    chk(_grp([(10.0, 2.4), (20.0, 2.6)]) == [2.5],
+        u"0.5 단위로 묶어 2.4·2.6 을 한 묶음으로 본다 (실측 `pass`)")
 
     # ⑫ 화면 집합이 바뀐 회차(T185) — 낮은 화면이 빠지면 «전체 평균» 은 저절로 오른다
     b_scr = {"a": 5.0, "b": 5.0, "c": 3.0, "d": 3.5}         # 지난 회차 4장 · 평균 4.125

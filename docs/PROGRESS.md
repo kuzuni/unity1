@@ -536,7 +536,7 @@
 | T25 | Core 상점 · 패스 · 퀘스트 · 리그 | ✅ 완료 | sess-1847-30503 / 워커 L | `Assets/Scripts/Core/Meta/` · `Assets/Tests/EditMode/MetaTests.cs` · `tools/export_data.js`(shop·pass·quests·league·chat 표 추출 한 갈래) · `tools/check_data_sync.sh`(파일 목록) · `Assets/StreamingAssets/data/meta.json`(+.meta · 추출기로만) | `meta.json`(추출기 10번째 · 특가 3·젬 팩 4·패스 마일스톤 16·퀘스트 정의 14·리그 상수 6+이름 20+순위 보상 21행·채팅 줄 24+장문 3·아바타 24·진행 상수) · `MetaTable`(7표) · `IRewardWallet`(키 지갑 · `SaveStateWallet` 로 T13 세이브에 꽂음) · `DailyReset`(09:00 키 · JS toDateString 꼴) · `Shop`(일 1회 특가 · 젬 가드) · `Pass`(절대 챕터 도달 · 무료만) · `Quests`(고정 14 · tier 상승 · bump/claim/claimAll · 만렙 필터 · 젬 대체) · `League`(봇 20 · 안정 랭킹 · 승률 식 · 티켓·시즌 정산 · 보상 표) · `Chat`(인물 해시 · 시드 18 · 틱 · 공유 카드) · EditMode 56(원작 벡터: 퀘스트 tier 5줄×14 · 승률 5 · 인물 6 · 순위 보상 12) · dotnet 345 |
 | T26 | WebGL 템플릿 · 배포 스모크 · Android 잡 | ✅ 완료 | sess-1824-31207 / 워커 N | `Assets/WebGLTemplates/` · `tools/webgl_smoke.js` · `.github/workflows/ci.yml`(빌드 잡 부분만) · `ProjectSettings/ProjectSettings.asset`(webGLTemplate · 압축 폴백 · Android 식별자 칸만) | 템플릿 `Forge`(원작 fitLayout 9:16 상자 + #boot-loading 모루 오버레이 · `data-forge-ready` · `forgeSignal()`) · 스모크(Playwright · 콘솔 빨강 0 · self-test 6) · ci.yml 스모크→gh-pages · Android APK Artifact · gzip+압축 폴백 · dotnet 없음(C# 0줄) → CI 초록 확인 뒤 lock 반납 |
 | T27 | PlayMode 스모크·플레이 봇·촬영 | ✅ 완료 | sess-2050-9969 / 워커 L | `Assets/Tests/PlayMode/PlaythroughTests.cs` · `UiShotsTests.cs` · `PlayLog.cs` | **CI 런 83 유니티 잡 초록**(`UiShotsTests` PASS · `PlaythroughTests` PASS · 전 잡 success) · `PlayLog`(빨강 수집기 · 화면 이름) · 정본 `shot-screens.js` SCREENS 화면 31줄 = 원작 30장 전부 열림 + 노치 1장 · `screens` 브랜치에 `screen_*.png` 31장 + 짝 표 `screens.json`(T28 이 읽는다) · 플레이 봇 한 판(스폰 22 · 처치 17 · 펫 1 · 스킬 2 · 던전 클리어 · 빨강 0) · dotnet 471 |
-| T28 | 원작 대조 회차 (`docs/ref-layout.md` · `tools/ui_score.py`) | 🔄 진행 | 60회차 sess-0111-11076 / 워커 M | `docs/ref-layout.md` · `tools/ui_score.py` · `docs/ui-score-baseline.json`(회차 사이 점수) · `docs/ROUTINE.md`(§2 재등재) · `docs/PROGRESS.md` | **60회차**: 런 589 평균 **4.18**(+0.02 · 0.5 넘게 움직인 화면 0) · 59회차에 만든 `--rows` 를 **30장 전수**로 돌려 «자리가 어긋난 화면» 목록을 처음 뽑았다 — 전면 UI 화면 중 `shop` 3/9 · `pass` 4/13 · `skills` 5/10 · `chat` 7/14 가 후보고, `dungeons`·`pets`·`pets-2`·`league-challenge` 는 **전부 맞는다**. 팝업(딤 α 차이)과 3D 세계 든 화면은 처음부터 부풀어 보이므로 그 caveat 을 자 출력에 박았다 |
+| T28 | 원작 대조 회차 (`docs/ref-layout.md` · `tools/ui_score.py`) | 🔄 진행 | 61회차 sess-0111-11076 / 워커 M | `docs/ref-layout.md` · `tools/ui_score.py` · `docs/ui-score-baseline.json`(회차 사이 점수) · `docs/ROUTINE.md`(§2 재등재) · `docs/PROGRESS.md` | **61회차**: 런 600 평균 **4.23**(+0.05 · 진짜 회귀 0) · `--rows` 에 «**나란히 밀린 줄**» 묶기를 더했다 — 흩어진 어긋남(얇은 선·글자 잡음)과 «여러 줄이 같은 크기로 밀림»(= 그 위가 짧다/길다)을 가른다. 전수에서 여섯 화면이 잡혔다: `main` −1.8×3 · `pass` +2.5×3 · `league` +2.0×2 · **`skills` −4.1×2 · `skill-detail` −4.0×2(같은 y · 한 뿌리로 보인다)** · `pet-upgrade` −4.1×2 · 스킬 격자 표값은 정본과 **똑같아서**(`sk_row_gap_h .0169` · `sk_orb_w .1008` · `sk_cell_gap_h .0101`) 원인은 표가 아니다 — 다음 회차 몫 · 자기 검사 55 → **58칸** |
 | T29 | `task_state.py` «코드 자취» 오탐(주석 미래 참조·도구 픽스처) 제외 | ✅ 완료 | sess-1858-659 / 워커 H | `tools/task_state.py` | `code_mentions`: 주석·문자열 리터럴·문서 내용 제외 · 자기 검사 ⓜ 18케이스 · T7·T9·T13·T14·T25 자취 0곳 · 워커 K 등재(2026-09-12) |
 | T30 | 사운드 이식: 효과음 24종(+합성 프리미티브 6) + 음악 4모드·레이어 6종 (`sfx.js` 코드 합성 그대로 · 오디오 파일 0) | ✅ 완료 | sess-1914-20666 / 워커 R | `Assets/Scripts/Core/Audio/`(SfxTable.cs · Voice.cs · SfxSynth.cs · SfxRecipes.cs · MusicSequencer.cs · Dsp.cs · SynthRenderer.cs) · `Assets/Scripts/Game/Audio/`(AudioBank.cs · Sfx.cs · Music.cs) · `Assets/StreamingAssets/data/sfx.json` · `tools/export_data.js`(sfx 갈래만) · `tools/check_data_sync.sh`(FILES 에 sfx.json 한 단어) · `tools/sfx_vectors.js` · `Assets/Tests/EditMode/Vectors/t30-sfx.json` · `Assets/Tests/EditMode/AudioTests.cs` · `Assets/Tests/PlayMode/AudioSmokeTests.cs` | Core/Audio 7파일(순수 DSP · 엔진 참조 0 · 표 `sfx.json` 11번째) · Game/Audio 3파일(백그라운드 렌더 → AudioClip) · 정본 그래프 벡터 49사례 + 음악 4모드 1,104보이스 전부 일치 · EditMode 9 · PlayMode 1 · dotnet 418(리베이스 뒤 · T30 단독 368) |
 | T31 | 아이콘·아바타 이식: `icongen.js` 아이콘 136종 + `avatars.js` 아바타 24종(= `IconGen.draw` 키 160 · 제목의 «523» 은 그리기 도우미까지 센 수) → Chromium 래스터 아틀라스 + `UiIcons.Get` | ✅ 완료 | sess-1900-14706 / 워커 U | `tools/export_icons.js` · `tools/check_icons_sync.sh` · `Assets/Forge/Icons/` · `Assets/Scripts/Core/Ui/IconAtlas.cs`(순수 표 · dotnet 검증) · `Assets/Scripts/Game/Ui/UiIcons.cs` · `Assets/Scripts/Game/Ui/UiKit.cs`(Icon 한 갈래만) · `.github/workflows/ci.yml`(datasync 잡의 아이콘 검사 한 줄만) · `Assets/Tests/EditMode/IconAtlasTests.cs` · `Assets/Tests/PlayMode/UiIconsTests.cs` · `docs/assets-map.md` · `docs/ROUTINE.md`(§1 아틀라스 예외 한 줄) | 키 170(아이콘 136 · 아바타 24 · tint 변형 10 = 등급색 알 6·체크·파란 삼각형 2·기술 발바닥) · 아틀라스 2장(2048×1948 · 2048×652 · PNG 총 172KB) · Chromium `--dump-dom` 한 번(의존성 0 · 5초 · 결정론) · `UiIcons.Get(name,tint)`·`Skill/Tab/Avatar` · `UiKit.Icon` 이 아틀라스 우선 · EditMode 7 + PlayMode 3 · dotnet 296/296 · CI `datasync` 잡이 러너 Chrome 으로 재추출 대조 |
@@ -1878,6 +1878,27 @@
 - **기준선을 런 205(4.70)로 갱신** · **게이트**: `ui_score --self-test` 20칸 · `check_text_glyphs` rc 0(아직 못 보는 자리는 T107) · 파이썬 자 여덟 전부 rc 0 · `docs/` 만(유니티·도구 0줄).
 - **주인이 확인할 것**: `screens` 의 `screen_craft-compare.png` 빨간 «판매» 버튼 — 둘째 줄이 «□ +23» 이다(코인 그림이어야 한다).
 - **남은 것(22회차)**: T107·T103·T105 가 든 런으로 재채점 · 다음은 `league-challenge`(2.7)를 본다.
+
+### T28 61회차 기록 — `--rows` 에 «**나란히 밀린 줄**» 을 더했다: 흩어진 잡음과 **한 뿌리**를 가른다 (2026-09-15 · 워커 M · sess-0111-11076)
+
+- **채점(런 600 · `fff5344` · `shots:69 carried:0`)**: 평균 **4.23 / 10**(60회차 4.18 · +0.05) · 진짜 회귀 0 · 올라간 1(`player-info`).
+- **60회차가 남긴 물음을 자로 옮겼다**: 그때 «안 맞은 줄 수» 만으로는 결함을 못 가린다고 적고 «같은 크기로 여러 줄이 나란히 밀린 것이 진짜 후보» 라는 눈만 말로 남겼다. 이번에 그 눈을 **코드로** 넣었다 — 안 맞은 원작 줄마다 가장 가까운 클론 줄과의 Δ 를 0.5%p 단위로 묶어, **같은 크기로 둘 이상** 밀려 있으면 «⇒ 나란히 밀린 줄 N개» 로 따로 찍는다(`SHIFT_MAX 6.0` 밖은 «아예 없는 줄» 로 본다).
+- **전수 결과 — 여섯 화면이 잡혔다**:
+  | 화면 | 밀린 크기 | 자리 |
+  |---|---|---|
+  | `main` | **−1.8%p × 3** | 원작 30.3 · 65.5 · 74.1 |
+  | `pass` | **+2.5%p × 3** | 원작 34.8 · 38.9 · 62.2 |
+  | `league` | +2.0%p × 2 | 원작 56.8 · 71.8 |
+  | **`skills`** | **−4.1%p × 2** | 원작 18.8 · 28.7 |
+  | **`skill-detail`** | **−4.0%p × 2** | 원작 18.5 · 28.6 |
+  | `pet-upgrade` | −4.1%p × 2 | 원작 39.5 · 59.3 |
+  `skills` 와 `skill-detail` 은 **밀린 크기도 자리도 같다**(−4%p · y 18.5~18.8 과 28.6~28.7) — 두 화면이 같은 부품을 쓰니 **한 뿌리**로 보인다. 60회차의 «흩어진 여덟 후보» 가 이 한 줄로 좁혀졌다.
+- **`skills` 를 열어 보고 — 등재하지 않았다**: 격자를 그려 보니 원작은 한 행이 10.8~18.2 이고 빈 줄이 20.1 인데, 클론은 10.8~16.4 이고 빈 줄이 18.2 다(행이 그만큼 짧다). 그런데 **표값이 정본과 글자 그대로 같다** — `PetSkillUi.json` 의 `sk_row_gap_h 0.0169` · `sk_orb_w 0.1008` · `sk_cell_gap_h 0.0101` 이 정본 `style.css` 4018~4024 와 일치한다. 그러니 **원인은 표가 아니라 그 아래**(오브가 실제로 정사각으로 그려지는가 · 게이지 줄 높이)다. 거기까지 재지 못했으므로 **반쯤 아는 채로 등재하지 않았다**(결정 504·588 · 56회차에 반쯤 알고 등재했다가 ✂ 접힌 적이 있다).
+- **자기 검사 55 → 58칸**: 같은 크기 셋을 한 묶음으로 · 흩어진 것은 안 묶임 · 0.5 단위 묶기(2.4·2.6 → 2.5 · 실측 `pass`).
+- **기준선**: 런 600 · 평균 4.23.
+- **게이트**: `--self-test` **58칸** · 파이썬 자 다섯 rc 0 · `dotnet build` 0 오류 · `dotnet test` 729/729.
+- **남은 것(62회차)**: `skills`·`skill-detail` 의 −4%p 한 뿌리를 **끝까지** 잰다 — 오브의 실제 세로(정사각인가)와 게이지 줄 높이를 픽셀로. 그 둘이 표와 어긋나면 그때 등재한다.
+- **주인이 확인할 것**: 없다.
 
 ### T28 60회차 기록 — `--rows` 를 **30장 전수**로 돌려 «자리가 어긋난 화면» 목록을 처음 뽑았다 (2026-09-15 · 워커 M · sess-0111-11076)
 
