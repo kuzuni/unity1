@@ -259,6 +259,9 @@ namespace Forge.Game.Ui
                 RectTransform card = CraftCard(grid, h, items[i], size);
                 card.name = "cb-card-" + i;
                 UiKit.Place(card, (i % cols) * (size + gap), (i / cols) * (size + gap), size, size);
+                // 정본 `.craft-batch .cb-card`(style.css 1140) `0 .3rem .6rem rgba(0,0,0,.45)` — 자동 폐기 카드와 같은 그늘이다.
+                // 반지름은 카드(ForgeUi.ItemTile)가 실제로 쓰는 것을 그림에서 되읽는다 — 그 파일을 열지 않아도 된다(T331 5회차).
+                UiShadow.Drop(card, "cbcard_drop");
             }
             // 정본 1118 «⚠️ 카드마다 animation-delay 를 주지 말 것» — 격자 **전체**가 `cbpop` 하나를 탄다.
             CraftCardFx.PlayBatch(grid, dim);

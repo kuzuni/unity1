@@ -76,7 +76,14 @@ namespace Forge.Tests.PlayMode
             Assert.Less(Enabled(cell), shown, "칸은 빈 소켓(내용물 감춤)");
             RectTransform fly = fx.Layer.Find("eqsw-fly") as RectTransform;
             Assert.IsNotNull(fly, "복제 타일이 층에 섰다");
-            Assert.IsNotNull(fly.Find("eqsw-shadow"), "공중에 뜬 물건의 드롭섀도");
+            // T331 5회차부터 이 그늘은 손으로 깐 판이 아니라 **정본 번짐을 구운 판**이다(정본 `.eqsw-fly-box` 7291~7292).
+            // 겹 이름도 그때 `UiShadow` 의 공용 이름으로 바뀌었다 — 그래서 여기서 그 이름으로 찾는다.
+            Transform sh = fly.Find(UiShadow.LayerName);
+            Assert.IsNotNull(sh, "공중에 뜬 물건의 드롭섀도");
+            Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 첫 형제라야 복제 타일 **뒤**에 그려진다");
+            UnityEngine.UI.Image shi = sh.GetComponent<UnityEngine.UI.Image>();
+            Assert.IsNotNull(shi, "그늘은 그림 한 장이다");
+            Assert.IsNotNull(shi.sprite, "번진 판이라야 한다 — T117 이 «번짐은 못 내고 판만» 이라 적어 두었던 자리다");
             Assert.IsNull(fly.GetComponent<Button>(), "복제는 버튼이 아니다");
             // 딸깍(130ms) → 착지(522ms): 소리 순서 던짐 → 딸깍 → 착지
             yield return WaitMs(EquipSwapRules.LandMs(s) + 120);
