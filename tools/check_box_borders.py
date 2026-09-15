@@ -140,9 +140,6 @@ KNOWN = {
     '.chat-avatar → Ui/Popups.cs@Avatar': 'T365 2회차 — `.profile-avatar-big` 3002 ol3 ↔ 클론 Avatar 는 `radius - Line`(ol1) · Popups.cs lock 뒤 Line3 로(작은 아바타 .avatar 들은 ol2 — 호출부가 폭을 넘기는 길)',
     '.pinfo-id .avatar → Ui/Popups.cs@Avatar': 'T365 2회차 — `.profile-avatar-big` 3002 ol3 ↔ 클론 Avatar 는 `radius - Line`(ol1) · Popups.cs lock 뒤 Line3 로(작은 아바타 .avatar 들은 ol2 — 호출부가 폭을 넘기는 길)',
     '.chat-preview-badge → Ui/Hud.cs@BuildChat': 'T365 2회차 — `.chat-preview-badge` 3249 ol15(1.5px ≈ 캔버스 3px) ↔ 클론 line_px(2) · ol15 단 키가 카탈로그에 없다(line15_px 3) · Hud.cs T331 lock',
-    '.league-row → Ui/LeagueSheet.cs@Row': 'T365 2회차 — `.league-row` 2524 ol2 ↔ 클론 Row 는 PopupKit.Line(ol1) · LeagueSheet.cs T333 lock',
-    '.league-reward-table → Ui/LeagueSheet.cs@RenderRewards': 'T365 2회차 — `.league-reward-table` 2537 ol2 ↔ 클론 table 은 PopupKit.Line(ol1)(수집 알약 ol3 는 맞다) · LeagueSheet.cs T333 lock',
-    '.pinfo-preview → Ui/PlayerInfoPopup.cs@Fallback': 'T365 3회차 — `.pinfo-preview` 3185 ol2 ↔ 클론 Fallback 은 `radius - PopupKit.Line`(ol1) · PlayerInfoPopup.cs T178·T364 lock',
     '.cur-pill → Ui/Hud.cs@Pill': 'T365 3회차 — `.cur-pill` 3984 ol3 pp-line 인데 클론 HUD 통화 알약은 `Rounded(pill,"bg")` 채움 한 장 — **테가 없다** · Hud.cs T331 lock',
     '.qst-bar → Ui/QuestSheet.cs@Render': 'T365 3회차 — `.qst-bar` 2040 ol2 인데 클론 퀘스트 막대는 `bg`+`fill` 두 채움이라 **테가 없다**(메서드 단 ol3 는 행 카드의 것) · QuestSheet.cs T178·T331 lock',
     '.pass-milestone-label → Ui/PassPopup.cs@Render': 'T365 3회차 — `.pass-milestone-label` 2803 ol2 ↔ 클론 라벨 고리는 `- PopupKit.Line`(ol1)(배너 Line3 는 맞다) · PassPopup.cs T332 lock',
@@ -340,7 +337,8 @@ def border_calls(src):
             n = re.search(r'UiKit\.Rounded\s*\(', look)
             if not n:
                 continue
-            inner, _ = _args(look, n.end() - 1)
+            # 인수는 창이 아니라 원문에서 읽는다 — 안쪽 호출이 창 안에서 시작해 창 밖에서 끝나면(긴 «r - 폭» 식) 창에서 읽은 인수가 잘린다(6회차 수리)
+            inner, _ = _args(src, close + n.end() - 1)
             if len(inner) < 4 or not inner[1].startswith('"'):
                 continue
             iname = inner[1].strip('"')
@@ -496,10 +494,12 @@ namespace X {
                 '    void Card(Transform p, float r) { UiKit.Rounded(p, "line", "pp_line", r); Image face = UiKit.Rounded(p, "face", "pp_paper", r - PopupKit.Line3); }\n'
                 '    void Fill(Transform p, float r) { UiKit.Rounded(p, "bg", "pp_paper", r); }\n'
                 '    void Lip(Transform p, float r) { UiKit.Rounded(p, "line", "pp_line", r); Image lip = UiKit.Rounded(p, "lip", "pp_blue", r * 0.8f); }\n'
+                '    void Far(Transform p, float r) { UiKit.Rounded(p, "line", "pp_line", r); ' + ('/* ' + '긴 주석 ' * 60 + '*/ ') + 'Image ground = UiKit.Rounded(p, "ground", "pp_paper", Mathf.Max(1f, r - UiKit.L("line2_px"))); }\n'
                 '}\n')
     checks.append(('Rounded 짝(line + face r - Line3)은 테 ol3', check_target(tmp, 'Ui/Ring.cs@Card', 'ol3')[0] == 'ok'))
     checks.append(('Rounded 홀로(bg 채움)는 테가 아니다', check_target(tmp, 'Ui/Ring.cs@Fill', 'ol1')[0] == 'missing'))
     checks.append(('입술 꼴(lip · 반지름 따로)은 테지만 단은 못 읽는다 → 판정 안 함', check_target(tmp, 'Ui/Ring.cs@Lip', 'ol2')[0] == 'ok'))
+    checks.append(('안쪽 면이 창 안에서 시작해 밖에서 끝나도 짝이고 단 ol2 를 읽는다(6회차)', check_target(tmp, 'Ui/Ring.cs@Far', 'ol2')[0] == 'ok' and check_target(tmp, 'Ui/Ring.cs@Far', 'ol1')[0] == 'tier'))
     logs2 = []
     run(css, tmp, {'.a': ['Ui/Face.cs#line']}, {'.a → Ui/Face.cs#line': 'x'}, logs2.append)
     checks.append(('KNOWN(쌍 열쇠)인데 이제 있다 → 알린다', any('이제 테가 있다' in l for l in logs2)))

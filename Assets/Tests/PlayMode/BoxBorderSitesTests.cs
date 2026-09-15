@@ -14,6 +14,7 @@ namespace Forge.Tests.PlayMode
     /// T365 4회차 — 정본 `border` 폭 단이 ol2 인 자리 여섯이 클론에서 `line2_px`(4) 로 선다(전엔 ol1 = `line_px` 2 · 둥근 버튼은 ol3 = 6).
     /// 클론의 테는 «바깥 고리 + 안쪽 면 r − 폭» 두 장이고 안쪽 면은 <c>PopupKit.Inset(face, 폭)</c> 으로 앉으므로 **안쪽 면의 offset** 이 곧 폭이다.
     /// 프로필 팝업: 칸(`.profile-field` 3047) · 아바타 고르기(`.avatar-pick-btn` 3061) · 설정 행 버튼(`.settings-act` 3121) — 채팅 화면: 입력줄 위 테(3444) · 입력칸(3450) · 둥근 버튼(3284).
+    /// 6회차: 리그 행(`.league-row` 2328) · 리그 보상 표(`.league-reward-table` 2537) · 플레이어 정보 폴백 미리보기(`.pinfo-preview` 3185).
     /// </summary>
     public class BoxBorderSitesTests
     {
@@ -121,6 +122,63 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(ol2, RingWidth(close, "둥근 버튼"), 0.01f);
             Assert.AreEqual(ol2, RingWidth(input, "입력칸"), 0.01f);
             yield return null;
+        }
+        [UnityTest]
+        public IEnumerator 리그_행과_보상_표의_테는_정본_ol2_다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            float ol2 = UiKit.L("line2_px");
+            LeagueSheet.Open(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(LeagueSheet.Name);
+            Assert.IsNotNull(p, "리그 시트");
+            int rows = 0;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name.StartsWith("row-", System.StringComparison.Ordinal) && rt.Find("line") != null && rt.Find("face") != null) { rows++; Assert.AreEqual(ol2, RingWidth(rt, "리그 행 " + rt.name), 0.01f); }
+            Assert.Greater(rows, 0, "리그 행(.league-row)을 못 찾았다");
+            h.Popups.Hide(LeagueSheet.Name);
+            yield return null;
+            LeagueSheet.OpenRewards(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            p = PopupLayer.Instance.Find(LeagueSheet.RewardsName);
+            Assert.IsNotNull(p, "리그 보상");
+            Transform table = null;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "table" && rt.Find("line") != null && rt.Find("face") != null) table = rt;
+            Assert.IsNotNull(table, "보상 표(.league-reward-table)를 못 찾았다");
+            Assert.AreEqual(ol2, RingWidth(table, "보상 표"), 0.01f);
+            h.Popups.Hide(LeagueSheet.RewardsName);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator 플레이어_정보_폴백_미리보기의_테는_정본_ol2_다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            float ol2 = UiKit.L("line2_px");
+            // 미니 씬이 서면 폴백이 안 그려지므로(정본도 같다) 이 자에서만 미니 씬 시작을 떼어 폴백을 강제한다
+            var saved = PlayerInfoPopup.PreviewStart;
+            PlayerInfoPopup.PreviewStart = null;
+            try
+            {
+                PlayerInfoPopup.Open(h);
+                yield return null;
+                Canvas.ForceUpdateCanvases();
+                Popup p = PopupLayer.Instance.Find(PlayerInfoPopup.Name);
+                Assert.IsNotNull(p, "플레이어 정보");
+                Transform preview = null;
+                foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+                    if (rt.name == "preview" && rt.Find("line") != null && rt.Find("face") != null) preview = rt;
+                Assert.IsNotNull(preview, "폴백 미리보기(.pinfo-preview)를 못 찾았다");
+                Assert.AreEqual(ol2, RingWidth(preview, "폴백 미리보기"), 0.01f);
+                h.Popups.Hide(PlayerInfoPopup.Name);
+                yield return null;
+            }
+            finally { PlayerInfoPopup.PreviewStart = saved; }
         }
     }
 }

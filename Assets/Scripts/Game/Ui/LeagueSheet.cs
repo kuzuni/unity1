@@ -122,7 +122,7 @@ namespace Forge.Game.Ui
         {
             float rem = PopupKit.Rem, w = UiKit.RefW;
             RectTransform row = PopupKit.Item(parent, "row-" + rank, -1f, rowH);
-            PopupKit.Outlined(row, "face", e.IsMe ? "pp_blue" : "league_row", rem * 0.6f, PopupKit.Line);
+            PopupKit.Outlined(row, "face", e.IsMe ? "pp_blue" : "league_row", rem * 0.6f, UiKit.L("line2_px"));   // T365 6회차 — 정본 2328 `.league-row` ol2(전엔 ol1)
             float x = rem * 0.5f;
             TextMeshProUGUI rk = UiKit.Text(row, "rank", TextKind.Body, rank.ToString(), "stage_ink");
             rk.fontStyle = FontStyles.Bold;
@@ -236,7 +236,7 @@ namespace Forge.Game.Ui
             // 흰 보상 표(카드 좌우 꽉)
             RectTransform table = UiKit.Box(card, "table");
             UiKit.Place(table, 0f, y, cardW, tableH);
-            PopupKit.Outlined(table, "face", "pp_paper", rem * 0.7f, PopupKit.Line);
+            PopupKit.Outlined(table, "face", "pp_paper", rem * 0.7f, UiKit.L("line2_px"));   // T365 6회차 — 정본 2537 `.league-reward-table` ol2(전엔 ol1)
             RectTransform rows = PopupKit.ScrollList(table, "rows", 0f, 0f, rem * 0.3f);
             float tierH = UiKit.H("lgr_tier_h") * 1.15f;
             float rankW = UiKit.H("lgr_rank_w") * 1.5f;

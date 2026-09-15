@@ -2264,6 +2264,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 🔄 4회차 2026-09-15 09:5x 워커 D(sess-1753-2066 · 재선점): T364 반납으로 `ProfilePopup.cs`·`ChatScreen.cs` 가 산 lock 밖 — 자 KNOWN 의 여섯(프로필 칸·아바타 고르기·설정 행 버튼 = ol2 · 채팅 입력줄 위 테·입력칸·둥근 버튼 = ol2)을 `line_px`/`line3_px` → `line2_px` 로 + PlayMode `BoxBorderSitesTests`. `.profile-tabs` 는 탭 버튼이 `Panel` 을 Line3 만큼 안쪽에 두는 꼴이라 자가 못 읽었을 뿐 맞다 → 표에서 «—» 로. task_state 의 «잡지 마라» 는 내 08:5x 자 수리 커밋(같은 SID) 때문이라 잡았다.
   → 4회차 코드 들어감(10:2x): 여섯 자리 `line2_px` 로 · `.profile-tabs` 는 맞았다(표 `—`) · 자 초록 69 · KNOWN 15 · PlayMode `BoxBorderSitesTests` 2 · 결함 누계 16 중 남은 10 은 T331·T342·T332 lock 뒤. 판정은 다음 런.
   → 5회차(11:0x): 런 651 빨강 1 = 내 자(프로필 자가 연필 `avatar-edit` 을 안 누르고 `av-*` 를 찾아 0) → 자만 수리(연필 누른 뒤 세기) · 코드는 맞았다 · `screen_profile`·`screen_chat` 눈 확인 ✓(칸·입력줄·둥근 버튼 테 한 단 두꺼움). 판정은 다음 런 2/2 → 초록이면 lock 반납.
+  → 6회차(12:0x): 5회차 판정 ✓(런 661 2/2) · 열린 `LeagueSheet.cs`(리그 행 2328 · 보상 표 2537)·`PlayerInfoPopup.cs`(폴백 미리보기 3185) 셋을 `line2_px` 로(결정 644 · 최근 회차 줄 기준) + 자 수리(안쪽 면 인수를 창이 아니라 원문에서 · 자기 검사 20) · 초록 72 · KNOWN 12 · PlayMode 자 4. 남은 7 은 T331(Popups·Hud·QuestSheet·PetPanel)·T332(PassPopup) 뒤. 판정은 다음 런.
 
 ### T378 — **«표값 × 박힌 상수» 축**: `UiKit.L/H("키") * 1.x f` 가 **28자리**다 — 표에는 정본값이 맞게 들어 있는데 코드가 거기에 곱을 얹어 화면만 어긋난다 (UI · T375 와 같은 갈래 · **T28 65회차 등재**)
 

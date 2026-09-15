@@ -232,11 +232,12 @@ namespace Forge.Game.Ui
         {
             float rem = PopupKit.Rem;
             float radius = PlayerInfoStyle.Px("preview_radius_rem");
+            // 테 폭은 정본 3185 `.pinfo-preview { border: var(--ol2) … }` = line2_px(T365 6회차 · 전엔 ol1)
             UiKit.Rounded(preview, "line", "pp_line", radius);
             RectTransform faceRt = UiKit.Box(preview, "face");
-            PopupKit.Inset(faceRt, PopupKit.Line);
+            PopupKit.Inset(faceRt, UiKit.L("line2_px"));
             // 정본 `.pinfo-preview { background: linear-gradient(180deg, #9d8256 55%, #6f5334 55%) }` — 두 판이 아니라 겹 한 장(정지점 둘이 같은 55% 라 경계가 날카롭다 · SurfaceUi.json `pinfo_preview` · T178 3회차).
-            Image ground = UiKit.Rounded(faceRt, "ground", "pp_paper", Mathf.Max(1f, radius - PopupKit.Line));
+            Image ground = UiKit.Rounded(faceRt, "ground", "pp_paper", Mathf.Max(1f, radius - UiKit.L("line2_px")));
             UiKit.Fill(ground.rectTransform);
             ground.color = PlayerInfoStyle.C("preview_top");
             SurfaceArt.FillMasked(ground, "preview-grad", "pinfo_preview", w, hgt);
