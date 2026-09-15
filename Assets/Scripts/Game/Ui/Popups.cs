@@ -243,6 +243,10 @@ namespace Forge.Game.Ui
             Image hit = rt.gameObject.AddComponent<Image>();
             hit.color = new Color(0f, 0f, 0f, 0f);
             hit.raycastTarget = true;
+            // 정본 `.modal-card`(style.css 3518) `0 .5rem 0 rgba(0,0,0,.25)` — 모든 모달 카드가 같이 쓰는 아래턱이다.
+            // 딱딱한 턱이라 굽지 않고 같은 모양 한 겹을 뒤에 깔기만 한다 — 상자에 늘어붙으므로
+            // 아래 `ContentSizeFitter` 로 높이가 나중에 정해지는 카드에서도 따라간다.
+            UiShadow.Drop(rt, "card_lip", radius);
             UiKit.Rounded(rt, "line", lineKey, radius);
             Image face = UiKit.Rounded(rt, "face", faceKey, Mathf.Max(1f, radius - Line3));
             Inset(face.rectTransform, Line3);

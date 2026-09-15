@@ -53,9 +53,7 @@ SPOTS = [
 
 # 아직 안 선 자리 — 까닭과 «누가/언제» 를 같이 적는다. 서면 이 줄을 지운다(안 지우면 자가 알린다).
 KNOWN = {
-    'card_lip':      'T331 2회차 — 도우미(UiShadow)는 섰다 · Popups.cs 가 T335·T345 산 lock 이라 배선만 남았다',
     'panel_lip':     'T331 2회차 — 같음(UiKit.cs 는 T178·T335 산 lock)',
-    'afcard_drop':   'T331 4회차 — 굽는 길은 섰다 · ForgeAutoPopup.cs 가 T345 산 lock',
     'passcard_drop': 'T331 4회차 — 굽는 길은 섰다 · PassPopup.cs 가 T352 산 lock',
 }
 

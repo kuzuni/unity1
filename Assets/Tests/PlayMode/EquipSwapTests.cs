@@ -78,7 +78,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(fly, "복제 타일이 층에 섰다");
             // T331 5회차부터 이 그늘은 손으로 깐 판이 아니라 **정본 번짐을 구운 판**이다(정본 `.eqsw-fly-box` 7291~7292).
             // 겹 이름도 그때 `UiShadow` 의 공용 이름으로 바뀌었다 — 그래서 여기서 그 이름으로 찾는다.
-            Transform sh = fly.Find(UiShadow.LayerName);
+            Transform sh = UiShadow.Find(fly, "eqswfly_drop");
             Assert.IsNotNull(sh, "공중에 뜬 물건의 드롭섀도");
             Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 첫 형제라야 복제 타일 **뒤**에 그려진다");
             UnityEngine.UI.Image shi = sh.GetComponent<UnityEngine.UI.Image>();

@@ -47,6 +47,10 @@ namespace Forge.Game.Ui
             float cardH, cardY;
             PopupKit.FitBetweenBars(H * ForgeAutoStyle.L("card_h_f"), out cardH, out cardY);   // T78 — ✕ 가 탭바에 가리지 않게
             RectTransform card = PopupKit.Card(root, "card", w, cardH, "pp_paper", rem * 1.1f, "pp_line", cardY);
+            // 정본 `.af-card`(style.css 5030)는 그림자가 **둘**이다 — 주석 그대로 «공용 아래턱(0 .5rem 0)에
+            // 은은한 앰비언트를 더해 팝업이 화면에서 떠 보이게». 아래턱은 위 `PopupKit.Card` 가 이미 깔았고
+            // 여기서는 그 뒤에 흐린 겹 하나를 더 깐다(CSS 목록의 뒤쪽이 아래로 간다 — 나중에 깐 것이 더 뒤다).
+            UiShadow.Drop(card, "afcard_drop", rem * 1.1f);
             TextMeshProUGUI title = UiKit.Text(card, "af-title", TextKind.Title, "자동 제련", "pp_ink");
             title.fontStyle = FontStyles.Bold;
             // T109 11회차 — 정본 style.css 3846 `h3.af-title { -webkit-text-stroke: .11em var(--pp-line) }`(5033 `.af-title 4px #fff` 는 특이도가 낮아 진다 · ui.js 2302 는 h3).

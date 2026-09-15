@@ -32,7 +32,7 @@ namespace Forge.Tests.PlayMode
 
         static void AssertLip(RectTransform box, string key)
         {
-            Transform sh = box.Find(UiShadow.LayerName);
+            Transform sh = UiShadow.Find(box, key);
             Assert.IsNotNull(sh, box.name + " 에 그늘 겹이 없다(" + key + ")");
             Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 첫 형제라야 대상 **뒤**에 그려진다");
             Image img = sh.GetComponent<Image>();
@@ -107,7 +107,7 @@ namespace Forge.Tests.PlayMode
                 if (rt.name == "topbar") { bar = rt; break; }
             Assert.IsNotNull(bar, "상단바를 못 찾았다");
 
-            Transform sh = bar.Find(UiShadow.LayerName);
+            Transform sh = UiShadow.Find(bar, "topbar_drop");
             Assert.IsNotNull(sh, "상단바에 그늘 겹이 없다(topbar_drop)");
             Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 첫 형제라야 상단바 **뒤**에 그려진다");
             Image img = sh.GetComponent<Image>();
@@ -136,7 +136,7 @@ namespace Forge.Tests.PlayMode
             foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
             {
                 if (!rt.name.StartsWith("dg-", System.StringComparison.Ordinal)) continue;
-                if (rt.Find(UiShadow.LayerName) == null) continue;
+                if (UiShadow.Find(rt, "dgbanner_lip") == null) continue;
                 AssertLip(rt, "dgbanner_lip");
                 found++;
             }
@@ -152,10 +152,10 @@ namespace Forge.Tests.PlayMode
             yield return null;
             RectTransform foot = null;
             foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
-                if (rt.name == "foot" && rt.Find(UiShadow.LayerName) != null) { foot = rt; break; }
+                if (rt.name == "foot" && UiShadow.Find(rt, "leaguefoot_up") != null) { foot = rt; break; }
             Assert.IsNotNull(foot, "리그 발판(`foot`)의 그늘을 못 찾았다 — 상자 크기가 아직 0 이면 굽기가 조용히 건너뛴다");
 
-            var rt2 = (RectTransform)foot.Find(UiShadow.LayerName);
+            var rt2 = (RectTransform)UiShadow.Find(foot, "leaguefoot_up");
             Assert.AreEqual(0, rt2.GetSiblingIndex(), "그늘은 발판 바탕 **뒤**에 깔린다");
             ShadowSpec s = UiShadow.Table.Get("leaguefoot_up");
             Assert.Less(s.DyRem, 0.0, "정본 `.league-foot` 은 **위로** 뜨는 그늘이다");
@@ -169,6 +169,33 @@ namespace Forge.Tests.PlayMode
             float pad = rt2.offsetMax.y - (float)dy;
             Assert.Greater(pad, (float)s.BlurRem * PetSkillStyle.RemPx, "흐림 반지름보다 넓게 구웠다");
             LeagueSheet.Close(MetaHost.Instance);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator 자동_제련_카드는_턱과_앰비언트_두_겹을_쥔다()
+        {
+            yield return Boot();
+            // 정본 `.af-card`(5030)는 그림자가 둘이다 — 공용 아래턱 + 앰비언트. 한 이름으로 깔면 뒤엣것이 앞엣것을 덮는다.
+            ForgeHost fh = ForgeHost.Instance;
+            fh.S.BestChapter = 3; fh.S.BestStage = 1; fh.Pull();   // 2-10 해금 뒤라야 팝업이 연다(다른 자들과 같은 길)
+            ForgeAutoPopup.Open(fh);
+            yield return null;
+            yield return null;
+            RectTransform card = null;
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+                if (rt.name == "card" && UiShadow.Find(rt, "afcard_drop") != null) { card = rt; break; }
+            Assert.IsNotNull(card, "자동 제련 카드의 앰비언트 겹을 못 찾았다");
+
+            Transform lip = UiShadow.Find(card, "card_lip");
+            Transform amb = UiShadow.Find(card, "afcard_drop");
+            Assert.IsNotNull(lip, "공용 아래턱도 같이 있어야 한다(둘이 겹친다)");
+            Assert.AreNotSame(lip, amb, "두 겹은 서로 다른 것이다 — 이름이 하나면 뒤엣것이 앞엣것을 덮는다");
+            Assert.Less(amb.GetSiblingIndex(), lip.GetSiblingIndex(), "CSS 목록의 뒤쪽(앰비언트)이 더 뒤에 그려진다");
+            Assert.IsTrue(UiShadow.Table.Get("card_lip").IsHard, "아래턱은 딱딱하다");
+            Assert.IsFalse(UiShadow.Table.Get("afcard_drop").IsHard, "앰비언트는 흐리다");
+            Assert.IsNotNull(amb.GetComponent<Image>().sprite, "흐린 겹은 구운 판");
+            ForgeAutoPopup.Close(fh);
             yield return null;
         }
 

@@ -24,8 +24,18 @@ namespace Forge.Game.Ui
     public static class UiShadow
     {
         public const string ResourcePath = "ShadowUi";
-        /// <summary>그늘 겹의 이름 — 자·테스트가 이 이름으로 찾는다.</summary>
+        /// <summary>그늘 겹 이름의 앞머리 — 실제 이름은 «앞머리-자리키» 다(<see cref="Layer"/>).</summary>
         public const string LayerName = "shadow";
+
+        /// <summary>
+        /// 그 자리의 그늘 겹 이름. **자리마다 다른 이름**을 쓰는 까닭: 정본은 한 상자에 그림자를 **여럿** 걸 수 있다
+        /// (`.af-card` 가 «공용 아래턱 + 앰비언트» 둘이다 — style.css 5030 · 주석이 그 뜻을 적어 뒀다).
+        /// 이름이 하나면 두 번째가 첫 번째를 덮어써 조용히 한 겹만 남는다.
+        /// </summary>
+        public static string Layer(string key) { return LayerName + "-" + key; }
+
+        /// <summary>그 상자에 걸린 그 자리의 그늘(없으면 null) — 자가 이것으로 찾는다.</summary>
+        public static Transform Find(RectTransform box, string key) { return box == null ? null : box.Find(Layer(key)); }
 
         static ShadowTable table;
 
@@ -57,8 +67,8 @@ namespace Forge.Game.Ui
             ShadowSpec s = Table.Get(key);
             if (!s.IsHard) return Blur(box, key, radiusPx);
 
-            Transform had = box.Find(LayerName);
-            Image img = had != null ? had.GetComponent<Image>() : UiKit.Rounded(box, LayerName, "pp_line", radiusPx);
+            Transform had = box.Find(Layer(key));
+            Image img = had != null ? had.GetComponent<Image>() : UiKit.Rounded(box, Layer(key), "pp_line", radiusPx);
             img.rectTransform.SetAsFirstSibling();
             UiKit.Fill(img.rectTransform);
             img.raycastTarget = false;
@@ -90,11 +100,11 @@ namespace Forge.Game.Ui
             float blur = (float)s.BlurRem * rem, spread = (float)s.SpreadRem * rem;
             float pad = Mathf.Ceil(blur * 2f + Mathf.Max(0f, spread)) + 2f;   // 2σ 면 화소로 0 이다(누적 0.1% 아래)
 
-            Transform had = box.Find(LayerName);
+            Transform had = box.Find(Layer(key));
             Image img = had != null ? had.GetComponent<Image>() : null;
             if (img == null)
             {
-                RectTransform rt = UiKit.Box(box, LayerName);
+                RectTransform rt = UiKit.Box(box, Layer(key));
                 img = rt.gameObject.AddComponent<Image>();
             }
             img.rectTransform.SetAsFirstSibling();
@@ -164,7 +174,7 @@ namespace Forge.Game.Ui
             foreach (Image img in box.GetComponentsInChildren<Image>(true))
             {
                 if (img == null || img.sprite == null) continue;
-                if (img.transform.name == LayerName) continue;      // 내가 깐 그늘은 세지 않는다(두 번째 부름에서 자기를 읽는다)
+                if (img.transform.name.StartsWith(LayerName, StringComparison.Ordinal)) continue;   // 내가 깐 그늘은 세지 않는다(두 번째 부름에서 자기를 읽는다)
                 if (img.type != Image.Type.Sliced) continue;
                 float spriteR = img.sprite.border.x;
                 if (spriteR <= 0f) continue;
