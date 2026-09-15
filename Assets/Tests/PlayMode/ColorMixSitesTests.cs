@@ -83,5 +83,34 @@ namespace Forge.Tests.PlayMode
             AssertMix(face.color, ac, 0.30, 0x17, 0x18, 0x1a, "카드 면이 표대로 섞였다(정본 990 30%, #17181a)");
             AssertMix(line.color, ac, 0.80, 0, 0, 0, "카드 테가 표대로 섞였다(정본 990 80%, #000)");
         }
+
+        /// <summary>T371 3회차 — 기술 트리 분기 원판은 **가지색 원색이 아니다**: 정본 2110 바탕 `color-mix(… 78%, #fff)` · 2111 테 `color-mix(… 45%, #000)`.
+        /// 클론은 둘 다 원색·공용 선색이라 힘 갈래에서 (226,87,76) ↔ 정본 (232,124,115) 로 갈려 있었다.</summary>
+        [UnityTest]
+        public IEnumerator 기술_분기_원판은_흰색을_섞어_밝힌_가지색으로_선다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!(MetaHost.Ready && UiRoot.Instance != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
+            UiRoot.Instance.TabBar.OnTab("summon");
+            yield return null;
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            Assert.IsNotNull(sheet, "소환 시트");
+            sheet.Switch(SkillPetSheet.SubTech);
+            yield return null;
+            yield return null;
+
+            Transform disc = null;
+            foreach (Transform x in UiRoot.Instance.App.GetComponentsInChildren<Transform>(true))
+                if (x.name == "icon-bg" && x.Find("face") != null) { disc = x; break; }
+            Assert.IsNotNull(disc, "분기 원판(icon-bg)");
+            Image rim = disc.GetComponent<Image>();
+            Image face = disc.Find("face").GetComponent<Image>();
+            Color bc = UiKit.C("tech_branch_power");                      // 첫 가지(힘) — catalog 의 --bc 짝
+            AssertMix(face.color, bc, 0.78, 0xff, 0xff, 0xff, "원판 바탕(정본 2110 78%, #fff)");
+            AssertMix(rim.color, bc, 0.45, 0, 0, 0, "원판 테(정본 2111 45%, #000)");
+            Assert.Greater(face.color.g * 255.0, bc.g * 255.0 + 20, "흰색을 섞었으니 원색보다 밝다(원색이면 이 회차가 한 일이 없다)");
+        }
     }
 }

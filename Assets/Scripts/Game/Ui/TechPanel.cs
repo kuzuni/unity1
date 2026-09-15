@@ -194,11 +194,17 @@ namespace Forge.Game.Ui
             float icoCy = headH + DungeonPopups.RemL("tb_icon_top_rem");
             RectTransform circle = DungeonPopups.BorderedCircle(face, "icon-bg", hasColor ? colorKey : "tech_branch_default", DungeonPopups.Line2, "pp_line");
             UiKit.Anchor(circle.parent as RectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f), new Vector2(0f, -icoCy), bgD, bgD);
+            // T371 3회차 — 정본 2110~2111: 원판은 가지색 **원색이 아니다** — 바탕 `color-mix(in srgb, var(--bc) 78%, #fff)` · 테 `color-mix(… 45%, #000)`.
+            //   클론은 둘 다 원색·공용 선색이라 힘 갈래에서 (226,87,76) ↔ 정본 (232,124,115) 로 갈렸다. 비율·상대색은 표 `ColorMixUi.json` 이 쥔다(§1).
+            Color branchColor = UiKit.C(hasColor ? colorKey : "tech_branch_default");
+            Image circleRim = (circle.parent as RectTransform).GetComponent<Image>();
+            if (circleRim != null) circleRim.color = ColorMixUi.Mix("tech_branch_line", branchColor);
             // T178 9회차 — 정본 2107~2109: 카테고리색 원판 위에 겹 둘이 더 깔린다(왼쪽 위 방사형 광택 .5 → 0 at 55% · 위 .18 → 아래 −.16 세로 명암).
             //   색 한 칸이면 «납작한 원» 이고 정본은 «구슬» 로 읽힌다(정본 주석 «빈 서류가 아니라 노드 버튼으로 읽히게»).
             Image circleFace = circle.GetComponent<Image>();
             if (circleFace != null)
             {
+                circleFace.color = ColorMixUi.Mix("tech_branch_face", branchColor);   // T371 3회차 — 정본 2110 바탕(흰색을 섞어 밝힌 가지색)
                 float d = bgD - DungeonPopups.Line2 * 2f;
                 SurfaceArt.FillMasked(circleFace, "tb-icon-shade", "tech_branch_shade", d, d);
                 SurfaceArt.Fill(circle, "tb-icon-gloss", "tech_branch_gloss", d, d);

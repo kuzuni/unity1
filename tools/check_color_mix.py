@@ -58,8 +58,6 @@ KNOWN = {
     'Ui/ForgeCraftPopup.cs$batch_card_face': 'T371 1회차 — 배선 전',
     'Ui/ForgeCraftPopup.cs$batch_card_line': 'T371 1회차 — 배선 전',
     'Ui/ForgeCraftPopup.cs$cmp_img_face': 'T371 1회차 — 배선 전',
-    'Ui/TechPanel.cs$tech_branch_face': 'T371 1회차 — **아예 안 섞는 자리**(등급색 원색). T178 9회차가 겹 둘을 깐 그 원판이다',
-    'Ui/TechPanel.cs$tech_branch_line': 'T371 1회차 — 같은 원판의 테(클론은 공용 pp_line)',
     'Ui/ForgeInfoPopup.cs$idet_icon_face': 'T371 1회차 — `ForgeInfoPopup.cs` 는 T28·T332 산 lock 뒤',
     'Ui/ForgeInfoPopup.cs$idet_icon_line': 'T371 1회차 — 같은 파일',
     'Ui/PetPanel.cs$pet_tile_face': 'T371 1회차 — 클론은 이미 표(`PetSkillUi.json` `tile_face_mix_f`)로 읽는다 — 2회차에 **표 하나로 합칠지**(키 옮김) 정한다',
