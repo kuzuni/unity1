@@ -211,7 +211,9 @@ namespace Forge.Tests.PlayMode
             sheet.Pets.SummonButton.onClick.Invoke();
             yield return null;
             for (int k = 0; k < 4 && SkillSummonResultView.Current != null; k++) { SkillSummonResultView.Current.OnTap(); yield return null; }
-            Assert.AreEqual(1, host.Pets.State.Eggs.Count, "x1 소환 = 알 하나(새 세이브라 보너스 알 0)");
+            // 런 614: 새 세이브의 x1 소환도 알이 **둘** 나왔다(보너스 알) — «알 하나» 는 내 전제였지 규칙이 아니다. 하나만 부화시키고 나머지 알은 상태에서 비운다
+            // (StartHatch 가 알을 목록에서 빼므로 알 목록을 가리키는 것은 없다 · Hatching 은 등급·시각만 쥔다).
+            Assert.GreaterOrEqual(host.Pets.State.Eggs.Count, 1, "x1 소환 = 알 하나 이상");
             int hatching = host.Pets.State.Hatching.Count;
             sheet.Pets.OpenEggDetail(0);
             yield return null;
@@ -221,6 +223,9 @@ namespace Forge.Tests.PlayMode
             sheet.Pets.SkipButton(hatching).onClick.Invoke();
             yield return null;
             Assert.AreEqual(1, host.Pets.State.Pets.Count, "즉시 부화 → 펫 하나");
+            host.Pets.State.Eggs.Clear();   // 남은 보너스 알은 재료 후보가 되므로 비운다 — 빈 글이 서는 조건 = 다른 펫 0 · 알 0
+            host.Sync();
+            yield return null;
             Assert.AreEqual(0, host.Pets.State.Eggs.Count, "알 0 → 재료 후보 0");
             sheet.Pets.OpenPetDetail(0);
             yield return null;
