@@ -48,6 +48,14 @@ TABLE = {
 KNOWN = {
 }
 
+# ── T396 — «못박은 **잉크** 색»(`color`)의 선택자 ↔ 클론 자리. 자리 꼴은 위 TABLE 과 **같다**.
+#    1회차는 **자와 셈만** 세운다: 배선할 파일(`DamageNumbers.cs` · `ChatScreen.cs` · 탭·부화·소환 …)이
+#    그때그때 남의 산 lock 이라, 자리를 하나씩 붙이는 것은 그 lock 이 풀리는 회차의 몫이다(결정 아래).
+TABLE_INK = {
+}
+KNOWN_INK = {
+}
+
 HEX = re.compile(r'#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b')
 
 
@@ -62,12 +70,23 @@ def strip_comments(css):
     return re.sub(r'/\*.*?\*/', lambda m: '\n' * m.group(0).count('\n'), css, flags=re.S)
 
 
-def pinned_faces(css_text):
-    """정본에서 «리터럴 hex 면 색 · 토큰과 다른 값» 을 걷는다 → {selector: (line, hex)} (뒤 규칙이 앞을 덮는다)."""
+# 걷는 속성 — 면(T377)과 **잉크**(T396). 잉크를 면과 **한 목록에 섞지 않는다**: 같은 선택자가 둘 다
+# 못박을 수 있고(예: 알약이 바탕과 글자를 같이 준다) 그러면 뒤가 앞을 덮어 한 자리가 통째로 사라진다.
+FACE_PROPS = r'(?:background|background-color)'
+INK_PROPS = r'color'
+
+
+def pinned_decls(css_text, props):
+    """정본에서 «리터럴 hex · 토큰과 다른 값» 선언을 걷는다 → {selector: (line, hex)} (뒤 규칙이 앞을 덮는다).
+
+    `props` 는 속성 이름 정규식이다 — 선언 **머리**에서만 맞춘다(`\s*<props>\s*:`). 그래서
+    `background-color` 는 잉크(`color`)로 안 새고 `border-color`·`-webkit-text-stroke` 도 안 걸린다.
+    """
     css = strip_comments(css_text)
     tokens = set()
     for m in re.finditer(r'--[a-z0-9-]+\s*:\s*(#[0-9a-fA-F]{3,6})\b', css):
         tokens.add(norm_hex(m.group(1)))
+    rx = re.compile(r'\s*' + props + r'\s*:\s*(#[0-9a-fA-F]{3,6})\b')
     out = {}
     for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', css):
         sel_raw = ' '.join(m.group(1).split())
@@ -75,7 +94,7 @@ def pinned_faces(css_text):
             continue
         line = css[:m.start()].count('\n') + 1
         for d in m.group(2).split(';'):
-            mm = re.match(r'\s*(?:background|background-color)\s*:\s*(#[0-9a-fA-F]{3,6})\b', d)
+            mm = rx.match(d)
             if not mm:
                 continue
             h = norm_hex(mm.group(1))
@@ -84,6 +103,16 @@ def pinned_faces(css_text):
             for sel in [s.strip() for s in sel_raw.split(',') if s.strip()]:
                 out[sel] = (line, h)
     return out
+
+
+def pinned_faces(css_text):
+    """«못박은 면 색»(T377) — `background`/`background-color` 리터럴."""
+    return pinned_decls(css_text, FACE_PROPS)
+
+
+def pinned_inks(css_text):
+    """«못박은 잉크 색»(T396) — `color` 리터럴. 전투 숫자 다섯·하위 탭 켜짐 글자·채팅 미리보기 … 가 여기 있다."""
+    return pinned_decls(css_text, INK_PROPS)
 
 
 def _find_hex(obj, key):
@@ -169,14 +198,52 @@ def check_site(site, game, catalog, resdir):
     return True, None
 
 
+def _judge(kind, table, known, decls, game, catalog, resdir, bad, list_all, out):
+    """한 갈래(면·잉크)를 대조한다 — (자리 초록, KNOWN, 미정 수). `bad` 에 어긋난 것을 쌓는다(순수하지 않은 것은 출력뿐)."""
+    ok_n = known_n = 0
+    for sel, sites in table.items():
+        if sel not in decls:
+            bad.append('표의 선택자 «%s» 가 정본의 «못박은 %s» 목록에 없다(리터럴이 아니거나 토큰과 같은 값이 됐다) — 표를 고쳐라' % (sel, kind))
+            continue
+        line, want = decls[sel]
+        for site in sites:
+            ok, why = check_site(site, game, catalog, resdir)
+            if not ok:
+                bad.append('%s(%d) → %s' % (sel, line, why)); continue
+            if site.startswith('—'):
+                ok_n += 1; continue
+            source, key = site.split('|', 1)[1].rsplit(':', 1)
+            got = source_hex(source, key, catalog, resdir)
+            if got is None:
+                bad.append('%s(%d) → %s 에 «%s» 이 없다' % (sel, line, source, key))
+            elif got != want:
+                bad.append('%s(%d) → «%s» = %s 인데 정본은 %s — 전용 키의 값이 다르다' % (sel, line, key, got, want))
+            else:
+                ok_n += 1
+    for sel in known:
+        if sel in decls:
+            known_n += 1
+        else:
+            bad.append('KNOWN 의 «%s» 가 정본 %s 목록에 없다 — 줄을 지워라' % (sel, kind))
+    undecided = [s for s in decls if s not in table and s not in known]
+    if list_all:
+        for s in undecided:
+            out('  미정 %s %5d %-52s %s' % (kind[:2], decls[s][0], s[:52], decls[s][1]))
+    return ok_n, known_n, len(undecided)
+
+
 def run(css_path, game, catalog, resdir, list_all=False, out=print):
     try:
         with open(css_path, encoding='utf-8') as f:
-            faces = pinned_faces(f.read())
+            css_text = f.read()
+        faces = pinned_faces(css_text)
+        inks = pinned_inks(css_text)
     except OSError:
         out('✗ check_pinned_colors: 정본 CSS 를 못 읽었다 — %s' % css_path)
         return 2
-    bad, ok_n, known_n = [], 0, 0
+    bad = []
+    ink_ok, ink_known, ink_undec = _judge('잉크 색', TABLE_INK, KNOWN_INK, inks, game, catalog, resdir, bad, list_all, out)
+    ok_n, known_n = 0, 0
     for sel, sites in TABLE.items():
         if sel not in faces:
             bad.append('표의 선택자 «%s» 가 정본의 «못박은 면 색» 목록에 없다(리터럴이 아니거나 토큰과 같은 값이 됐다) — 표를 고쳐라' % sel)
@@ -204,13 +271,16 @@ def run(css_path, game, catalog, resdir, list_all=False, out=print):
     undecided = [s for s in faces if s not in TABLE and s not in KNOWN]
     if list_all:
         for s in undecided:
-            out('  미정 %5d %-56s %s' % (faces[s][0], s[:56], faces[s][1]))
+            out('  미정 면 %5d %-52s %s' % (faces[s][0], s[:52], faces[s][1]))
     if bad:
         out('✗ check_pinned_colors: %d곳' % len(bad))
         for b in bad:
             out('  · ' + b)
         return 1
-    out('✓ check_pinned_colors: 정본 «못박은 면 색» %d 선택자 · 자리 초록 %d · KNOWN %d · 미정 %d(--list)' % (len(faces), ok_n, known_n, len(undecided)))
+    out('✓ check_pinned_colors: 정본 «못박은 면 색» %d 선택자 · 자리 초록 %d · KNOWN %d · 미정 %d'
+        ' ‖ «못박은 잉크 색» %d 선택자(색 %d) · 자리 초록 %d · KNOWN %d · 미정 %d  (--list)'
+        % (len(faces), ok_n, known_n, len(undecided),
+           len(inks), len(set(v[1] for v in inks.values())), ink_ok, ink_known, ink_undec))
     return 0
 
 
@@ -236,6 +306,27 @@ def self_test():
     eq('ⓓ 값 정규화', faces['.pin'][1], '#ff1017')
     eq('ⓔ 뒤 규칙이 앞을 덮는다', faces['.over'][1], '#222222')
     eq('ⓕ 주석 안은 안 센다', '.ghost' in faces, False)
+
+    # ── T396 ⓖ~ⓙ — 잉크(`color`) 갈래. **면과 안 섞인다**: 같은 선택자가 둘 다 못박을 수 있어
+    #    한 목록에 담으면 뒤가 앞을 덮어 한 자리가 통째로 사라진다(그래서 목록을 둘로 둔다).
+    ink_css = ''':root { --ink: #eceff1; --pp-red: #e8362f; }
+.both { background: #ff1017; color: #7ee2a8; }
+.bgonly { background-color: #123456; }
+.tokink { color: var(--ink); }
+.sameink { color: #ECEFF1; }
+.borderc { border-color: #abcdef; }
+.stroke { -webkit-text-stroke: 2px #abcdef; }
+.crit { color: #ff8a1e }
+'''
+    inks = pinned_inks(ink_css)
+    ifaces = pinned_faces(ink_css)
+    eq('ⓖ `background-color` 는 잉크로 안 샌다', '.bgonly' in inks, False)
+    eq('ⓖ `border-color`·`-webkit-text-stroke` 도 안 샌다', ('.borderc' in inks, '.stroke' in inks), (False, False))
+    eq('ⓗ 토큰과 같은 잉크는 뺀다', ('.tokink' in inks, '.sameink' in inks), (False, False))
+    eq('ⓘ 한 선택자가 면·잉크를 둘 다 못박으면 **양쪽에** 선다',
+       (inks.get('.both', (0, None))[1], ifaces.get('.both', (0, None))[1]), ('#7ee2a8', '#ff1017'))
+    eq('ⓘ 잉크만 있는 자리는 면 목록에 없다', '.crit' in ifaces, False)
+    eq('ⓙ 값 정규화·줄 번호', (inks['.crit'][1], inks['.crit'][0] > 0), ('#ff8a1e', True))
     with tempfile.TemporaryDirectory() as d:
         cssp = os.path.join(d, 'style.css'); open(cssp, 'w', encoding='utf-8').write(css)
         game = os.path.join(d, 'game'); os.makedirs(os.path.join(game, 'Ui'))
@@ -267,7 +358,7 @@ def self_test():
             eq('ⓜ CSS 없음 → rc 2', run(os.path.join(d, 'no.css'), game, cat, res, out=lines.append), 2)
         finally:
             TABLE, KNOWN = saved
-    n = 14
+    n = 20   # T377 14 + T396 잉크 갈래 6
     if fails:
         print('✗ check_pinned_colors --self-test 실패 %d' % len(fails))
         for f in fails:

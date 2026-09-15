@@ -2487,6 +2487,14 @@
 - 무엇을 한다: ⓐ `tools/check_pinned_colors.py` 에 **잉크 갈래**(`color` 선언 · 같은 정규화·같은 TABLE 꼴 — `Ui/File.cs#name|source:key`)를 더한다(자기 검사 +3) ⓑ 없는 23 색은 `PinnedColorUi.json`(또는 각 화면 곁 표)에 자리 전용 키로 · 있는 24 색은 자리 짝을 표에 · 자리마다 `UiKit.Text(..., "키")`/`C("키")` 배선 ⓒ 전투 숫자 다섯은 `DamageNumbers` 의 종류별 색 표로.
 - 판정: 자 rc 0(표의 자리 전부 초록) + `screen_chat`(미리보기 이름·본문 색) · `screen_summon`(하위 탭 켜짐 글자 #7ee2a8) · 전투 숫자 프레임 화소 ±3.
 - 범위: `tools/check_pinned_colors.py` · `Assets/Forge/Resources/PinnedColorUi.json`(또는 화면 곁 표) · `Assets/Scripts/Game/Battle/DamageNumbers.cs` · `Assets/Scripts/Game/Ui/`(자리 파일 — 잡는 사람이 «범위» 칸에 적는다 · 각 lock 뒤) · `Assets/Tests/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 **1회차 2026-09-15 19:3x 워커 K(sess-1933-70146) — ⓐ 자의 잉크 갈래만**: 배선할 파일이 그때그때 남의 산 lock 이라(`DamageNumbers.cs` T333 · `ChatScreen.cs` · 탭·부화·소환 …) 이 회차는 **자와 셈**을 세운다.
+  - `pinned_decls(css, props)` 로 셈을 가르고 `pinned_faces`(T377 · `background`)와 **`pinned_inks`**(T396 · `color`)를 그 위에 얹었다. 속성은 **선언 머리에서만** 맞춘다 — 그래서 `background-color` 가 잉크로 안 새고 `border-color`·`-webkit-text-stroke` 도 안 걸린다.
+  - **목록을 둘로 둔 까닭**(결정 아래): 한 선택자가 면과 잉크를 **둘 다** 못박을 수 있다(알약이 바탕과 글자를 같이 준다). 한 목록에 담으면 뒤가 앞을 덮어 **한 자리가 통째로 사라진다** — 그래서 `TABLE`/`KNOWN` 옆에 `TABLE_INK`/`KNOWN_INK` 를 두고 요약도 «면 ‖ 잉크» 로 가른다.
+  - **내 셈**: 못박은 잉크 **105 선택자 · 52 색**(등재문의 «98 자리·54 색» 과 조금 다르다 — 나는 **토큰과 같은 값**을 뺀 뒤를 셌다. 어느 쪽도 틀리지 않았고 셈의 경계가 다르다). `--list` 가 줄 번호와 hex 까지 105줄을 그대로 내놓는다.
+  - 자기 검사 **14 → 20칸**(면·잉크가 안 섞임 · 토큰과 같은 잉크 제외 · 한 선택자가 둘 다 못박으면 **양쪽에** 선다 · 값 정규화·줄 번호). **고장 주입 확인**: `INK_PROPS` 에 `background-color` 를 더하면 ⓖ 칸이 빨개진다(결정 620).
+  - §3 게이트 줄의 이름만 «면» → «면·잉크» 로 고쳤다(자는 이미 그 줄에 걸려 있다 · `--check-ci` rc 0).
+  - **남은 것(ⓑⓒ · 각 lock 뒤 누구든)**: 값이 클론에 없는 색을 `PinnedColorUi.json` 에 담고 자리마다 `TABLE_INK` 한 줄 + 배선. 먼저 볼 묶음은 **전투 숫자 다섯**(`.float-dmg.dmg-crit/kill/skill/hero/block` · 508~) — 한 파일(`DamageNumbers.cs`)에 모여 있어 lock 하나만 풀리면 다섯이 닫힌다.
+
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

@@ -62,7 +62,7 @@ block|wwwww|정본 gradient 겹 ↔ 클론이 굽는가 (T178)|python3 tools/che
 block|wwwww|정본 letter-spacing ↔ 클론 자간 + 박힌 숫자 (T168)|python3 tools/check_letter_spacing.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 text-shadow ↔ 클론 글자 그림자(TMP Underlay) (T333 · 키라인 표의 10 은 T109 몫 · 표에 없는 선택자는 «미정» 으로 세기만 한다)|python3 tools/check_text_shadows.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 border-radius ↔ 클론 둥근 모서리 표값 (T345 · 50% 는 Circle · 알약 동치 결정 543 · 표에 없는 선택자는 «미정» 으로 세기만 한다)|python3 tools/check_border_radius.py --css .wwwww-src/web/css/style.css
-block|wwwww|정본이 선택자에만 리터럴로 못박은 면 색 ↔ 클론이 그 값을 쓰는가 (T377 · 전역 토큰은 안 건드린다 · 표에 없는 선택자는 «미정» 으로 세기만 한다)|python3 tools/check_pinned_colors.py --css .wwwww-src/web/css/style.css
+block|wwwww|정본이 선택자에만 리터럴로 못박은 면·잉크 색 ↔ 클론이 그 값을 쓰는가 (T377 면 · T396 잉크 · 전역 토큰은 안 건드린다 · 표에 없는 선택자는 «미정» 으로 세기만 한다)|python3 tools/check_pinned_colors.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 상자 테 border 186 자리 ↔ 클론 폭 단(ol1~ol4 = line_px·line2_px·line3_px·line4_px) (T365 · 임자 있는 빈자리는 KNOWN · 표에 없는 선택자는 «미정» 으로 세기만 한다)|python3 tools/check_box_borders.py --css .wwwww-src/web/css/style.css
 block|-|촬영·픽셀 카메라가 UI 층만 그리는데 후처리를 켜 두었나 (T349 · 켜면 재는 값이 밀린다 · ShotCam.From 갈래까지 본다)|python3 tools/check_shot_cams.py
 block|wwwww|정본 white-space 41 ↔ 표(T361 · 접는다가 기본 · nowrap 40 자리 · 공장 뒤집기 전에도 표가 정본과 안 어긋나게 지킨다)|python3 tools/check_wrap.py --css .wwwww-src/web/css/style.css
