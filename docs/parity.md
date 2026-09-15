@@ -1087,3 +1087,59 @@ POLISH.md 를 읽고 «소품·용암 빛이 없다» 를 새 작업으로 등�
 - 모루·보스 경고 여섯은 이미 맞다 — T173 이 길을 내고 T155(모루 연출)가 그대로 썼다.
 - 남은 CSS 축(24회차 목록에서 이것을 뺀 것): `white-space` 41 · `background-position` 22 · `background-size` 15 · `cursor` 51(모바일 — 뜻 없음). `white-space` 는 클론 공장 기본이 `NoWrap` 이라 nowrap 40 과 부호가 같고 «접히는 자리» 는 T351 이 잰다 — 다음 회차가 «normal 1 + 접히는 19곳» 만 보면 된다.
 
+# T33 완주 대조 — **29회차** (2026-09-15 05:4x · 워커 N · sess-0524-8791) — 축: 상자 `border` 184 선언
+
+어느 자도 안 보던 축이다 — `check_keyline`(T109)은 **글자** `-webkit-text-stroke` 만, `check_box_shadows`(T331)는 그림자만 본다. 상자 테는 CSS 에서 가장 흔한 «검정 키라인» 인데 폭 단·색을 짝지은 표가 없었다.
+
+## 정본 — 폭 단 넷 × 색
+- `--ol1: min(1px, calc(.0625rem + .49px))` · `--ol2` 2px · `--ol3` 3px · `--ol4` 4px(31~35) — 앱 폭 499px 기준의 **CSS px 단 넷**. `--cellb: round(down, var(--ol3), 1px)`(837·1070·1137) = ol3 을 픽셀로 내림.
+- 선언 184(`border` 157 · `-top` 15 · `-bottom` 7 · `-left` 4 · `-right` 1). 같은 선택자의 뒤 규칙이 앞을 덮는 것 5를 접으면 **선택자×변 186** — 최종 단: **ol3 62 · ol2 44 · none 44 · ol1 19 · cellb 3 · ol4 1 · 직접값 13**.
+- 색: `--pp-line`(#000) 이 ol3·ol2 의 대부분 · `#444c56`(ol1 8 + ol2 rc 폴백) · `#30363d`(ol1 5 · 상단바·탭바·던전 배너·프로필 카드) · `--rc` 등급색(펫 카드·알·소환 수량) · `rgba(255,255,255,.18~.34)`(소환 결과 힌트·빈 스킬 칸) · `#e2e0da`(`.tb-row` 밑줄) · `#d5d5d5`(`.idet-icon`) · `#7d3920`(`.tech-tree-node` .3rem) · `#3a434e`(`.dgc-cell` 2px).
+- **계단 여섯(같은 선택자를 뒤 규칙이 덮음 · 자가 이것을 모르면 앞 값을 잘못 찍는다)**:
+  - `#` 덮어쓴: 자리(앞 값 → → 값):
+  - `.modal-card` border: 1225 var(--ol2) solid → #44 → 2412 var(--ol3) solid var(--pp-line
+  - `.panel` border-top: 427 var(--ol2) solid → → 2463 var(--ol3) solid var(--pp-line
+  - `.subtab-strip` button: border 442 var(--ol1) → #444c56 → 2477 var(--ol3) solid var(--pp-line
+  - `#equip-sheet` border-top: 570 var(--ol1) solid → → 2507 var(--ol3) solid var(--pp-line
+  - `#chat-preview` border-top: 2230 var(--ol1) solid → → 2516 var(--ol2) solid var(--pp-line
+  - 그리고 **`.btn`(453 `ol1 #444c56`)** 은 선택자가 다른 `.modal-card .btn, .panel .btn, #equip-sheet .btn`(2438) 이 `ol3 pp-line` 으로 덮는다 — 바닥(HUD·오프라인·리그 뒤로) 버튼만 얇은 회색 테다.
+
+## 최종 ol1(1px) 19 자리
+- .subtab-strip button                           border          442 var(--ol1) solid #444c56       →  2477 var(--ol3) solid var(--pp-line
+- #equip-sheet                                   border-top      570 var(--ol1) solid #30363d       →  2507 var(--ol3) solid var(--pp-line
+- #chat-preview                                  border-top     2230 var(--ol1) solid #30363d       →  2516 var(--ol2) solid var(--pp-line
+- 34 border-bottom  #topbar                                            var(--ol1) solid #30363d
+- 41 border         .profile-card                                      var(--ol1) solid #30363d
+- 453 border         .btn                                               var(--ol1) solid #444c56
+- 470 border         #panel-debug input[type=number]                    var(--ol1) solid #444c56
+- 477 border         .prob-chip                                         var(--ol1) solid var(--c, #444c56)
+- 484 border         .upg-progress                                      var(--ol1) solid #444c56
+- 659 border         .info-btn                                          var(--ol1) solid #444c56
+- 1146 border         .hatch-slot                                        var(--ol1) dashed var(--rc, #444c56)
+- 1155 border         .egg-chip                                          var(--ol1) solid var(--rc, #444c56)
+- 1162 border         .pet-card                                          var(--ol1) solid #444c56
+- 1185 border-top     #tabbar                                            var(--ol1) solid #30363d
+- 1365 border         .toast                                             var(--ol1) solid #444c56
+- 1380 border         .dg-banner                                         var(--ol1) solid #30363d
+- 2153 border         .settings-toggle::after                            var(--ol1) solid var(--pp-line)
+- 2168 border         .tech-node                                         var(--ol1) solid #444c56
+- 2854 border         .sk-mini small                                     var(--ol1) solid #000
+- 4841 border         .sr-qty                                            var(--ol1) solid var(--rc)
+- 4852 border         .sr-dup                                            var(--ol1) solid rgba(255,255,255,.34)
+- 4932 border         .sr-hint                                           var(--ol1) solid rgba(255,255,255,.22)
+
+## 클론 — 길은 맞다
+- 카탈로그 `line_px` **2**(«--ol1 키라인 · 기준 캔버스 px») · `line2_px` **4** · `line3_px` **6** · `PetSkillUi.json` `line1_px` — 기준 1080px ÷ 앱 499px ≈ **2.16 배**로 1·2·3 CSS px → 2·4·6(반올림). 쓰는 곳: `UiKit.Line` 13 · `PopupKit.Outlined` 15 · `PetSkillKit.Framed/Orb`(`line1_px`·`Line2`) · `DungeonPopups.Line2/Line3`.
+- 색 키도 둘은 있다: `topbar_line` #30363d(상단바 `Hud.cs:71`·탭바 `TabBar.cs:66` = `line_px` ✓ ol1) · `toast_line` #444c56(토스트 링 = `PopupKit.Line` ✓ ol1).
+- 실물 셋을 열어 봤다 — `sr-qty`(4841 ol1 rc) · `sr-dup`(4852 ol1 흰 .34) · `sr-hint`(4932 ol1 흰 .22) ↔ `SkillSummonResult.cs:500·509·590` `Framed(..., line1_px)` + 같은 색 — **정본 그대로**.
+
+## 빠진 것 → T365
+- **ol4 단이 없다**: `.pet-card` 왼쪽 등급색 띠(1162 `border-left: var(--ol4) solid var(--rc)`) — 카탈로그에 `line4_px`(8) 키가 없고 그 자리 짝도 못 찾았다(`PetPanel.cs` 에 `pet-card` 이름 0).
+- **186 자리 표·자가 없다**: `Outlined` 호출 15 중 `Line3` 8 · `Line` 4 · **리터럴 `0.2f~0.9f` 7**(폭인지 비율인지 읽어야 한다 · §1 후보).
+- **직접값 13**은 단이 아니라 자리마다 표값 — `.tech-tree-node` .3rem · `.dgc-cell` 2px · `.sr-shock`·`.sr-tierflash`·`.rw-ring` .34rem · `.rw-anchor`·`.sr-floor::before` .16rem · `.sr-canopy::before` .08rem · `.sr-idle i` .12rem · `.petd-tile`·`.sr-solo-own`·`.sr-again` 1px · `.pass-price` 0.
+- 등재: **T365**(자 `check_box_borders` — T109·T331 꼴 · `line4_px` · 펫 카드 띠 · 리터럴 일곱 · `gate.sh`/`ci.yml` 등록).
+
+## 이 회차의 판정
+- 새 작업 **1**(T365). 폭 단·색의 «길» 은 맞고 빠진 것은 단 하나(ol4)와 «표» 다 — 21·22·24·25 회차의 «결함 0» 과 달리 이 축은 자가 서야 닫힌다.
+- 남은 CSS 축: `background-position` 22 · `background-size` 15 · `cursor` 51(모바일 — 뜻 없음 · 닫아도 된다).
+
