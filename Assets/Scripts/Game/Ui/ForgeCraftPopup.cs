@@ -169,6 +169,7 @@ namespace Forge.Game.Ui
             cf.color = ac;
             TextMeshProUGUI ct = UiKit.Text(chip, "label", TextKind.Sub, ForgeUi.AgeKr(d, it.Age), "pp_ink");
             ct.fontStyle = FontStyles.Bold;
+            WrapUi.Apply(ct, "swc_age");   // T361 7회차 — 정본 white-space 표(WrapUi.json) 2232 `.swc-age { nowrap }`
             ct.color = ForgeUi.InkOf(Color.white) ;
             ct.color = (0.2126f * ac.r + 0.7152f * ac.g + 0.0722f * ac.b) > 0.5f ? Color.black : Color.white;
             TextMeshProUGUI nm = UiKit.Text(col, "name", TextKind.Sub, it.Name, "pp_ink");

@@ -241,6 +241,7 @@ namespace Forge.Game.Ui
                 : Stroked(rt, "label", labelKind, label, ink, keylineKey ?? (kind == BtnKind.Silver ? "petup_btn_silver" : "petd_btn"));   // 정본 .petup-selrow .btn.silver 2px · .petd-wrap .petd-btn 3px(결정 268)
             if (letterSpacingEm != 0f) lt.characterSpacing = letterSpacingEm * 100f;   // TMP 는 1/100 em
             lt.textWrappingMode = TextWrappingModes.NoWrap;   // 정본 `.btn { white-space: nowrap }`
+            if (kind == BtnKind.Silver) WrapUi.Apply(lt, "petup_selrow_btn_silver");   // T361 7회차 — 정본 white-space 표(WrapUi.json) 4363 `.petup-selrow .btn.silver { nowrap }`
             if (two)
             {
                 UiKit.Band(lt.rectTransform, 0.06f, 0.56f);

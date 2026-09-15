@@ -301,6 +301,7 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI l = DungeonPopups.Bold(row, "label", TextKind.Sub, lines[i].Label, "pp_ink", TextAlignmentOptions.Left);
                 UiKit.Place(l.rectTransform, 0f, 0f, lw * 0.6f, rowH);
                 TextMeshProUGUI v = DungeonPopups.Bold(row, "val", TextKind.Sub, lines[i].Text, "tb_val", TextAlignmentOptions.Right);
+                WrapUi.Apply(v, "tb_val");   // T361 7회차 — 정본 white-space 표(WrapUi.json) 2253 `.tb-val { nowrap }`
                 UiKit.Place(v.rectTransform, lw * 0.6f, 0f, lw * 0.4f, rowH);
                 if (i < lines.Count - 1) UiKit.Line(row, "line", "tb_line", DungeonPopups.Line2, false);
             }

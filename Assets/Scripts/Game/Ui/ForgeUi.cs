@@ -219,6 +219,7 @@ namespace Forge.Game.Ui
         public static TextMeshProUGUI LvBadge(RectTransform tile, double level, float size)
         {
             TextMeshProUGUI t = UiKit.Text(tile, "lv", TextKind.Sub, "Lv. " + JsNum.ToString(level), "stage_ink");
+            WrapUi.Apply(t, "equip_cell_cell_lv");   // T361 7회차 — 정본 white-space 표(WrapUi.json) 941 `.equip-cell .cell-lv { nowrap }`
             t.fontStyle = FontStyles.Bold;
             LetterSpacing.Apply(t, "equip_cell_lv_ls_em");   // T168 4회차 — 정본 style.css 936~946 `.equip-cell .cell-lv { letter-spacing: .05em }`
             PopupKit.Ring(t, "pp_line", 0.25f);
@@ -367,6 +368,7 @@ namespace Forge.Game.Ui
             UiKit.Place(ai.rectTransform, x, (h - ico) * 0.5f, ico, ico);
             x += ico + rem * 0.35f;
             TextMeshProUGUI nm = UiKit.Text(bar, "name", TextKind.Sub, AgeKr(d, age) + (stars > 0 ? " " + Stars(stars) : string.Empty), "pp_ink", TextAlignmentOptions.Left);
+             if (!autoForge) WrapUi.Apply(nm, "fi_age_name");   // T361 7회차 — 정본 white-space 표(WrapUi.json) 5092 `.fi-age-name { nowrap }`(자동 제련 `.af-age-name` 은 정본 선언 없음)
             nm.fontStyle = FontStyles.Bold;
             UiKit.Place(nm.rectTransform, x, 0f, w * 0.5f, h);
             float segW = next != null ? w * 0.25f : 0f;

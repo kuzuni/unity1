@@ -86,6 +86,7 @@ namespace Forge.Game.Ui
             ClipShape.Face(prt, "price-face", "pass_pennant", PopupKit.Line3, PopupKit.Line3,
                 priceW - PopupKit.Line3 * 2f, priceH - PopupKit.Line3 * 2f, "pass_price");
             TextMeshProUGUI pt = UiKit.Text(prt, "label", TextKind.Sub, h.Meta.Pass.PremiumPriceKr, "stage_ink");
+            WrapUi.Apply(pt, "pass_price");   // T361 7회차 — 정본 white-space 표(WrapUi.json) 2744 `.pass-price { nowrap }`
             pt.fontStyle = FontStyles.Bold;
             // 정본 `padding: .92rem 1.16rem 1.23rem` — 아래가 .31rem 넓다(꼭짓점 몫). 그 차이만큼 글자를 올려 꼭짓점과 안 겹치게 한다.
             float penLift = (ClipShape.Num("pass_pennant", "pad_bottom_rem") - ClipShape.Num("pass_pennant", "pad_top_rem")) * rem;

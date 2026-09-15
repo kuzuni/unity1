@@ -174,7 +174,7 @@ namespace Forge.Game.Ui
         {
             Button b = PopupKit.Btn(parent, name, label, face, lip, onClick, w, h, "stage_ink", TextKind.Sub);
             TextMeshProUGUI t = b.GetComponentInChildren<TextMeshProUGUI>();
-            if (t != null) { t.textWrappingMode = TextWrappingModes.Normal; t.lineSpacing = -20f; }
+            if (t != null) { WrapUi.Apply(t, "forge_actions_btn"); t.lineSpacing = -20f; }   // T361 7회차 — 정본 white-space 표(WrapUi.json) 1637 `.forge-actions .btn { nowrap }` — 두 줄은 라벨의 \n 이 만든다(NoWrap 도 \n 은 지킨다 · 전엔 Normal 박힘)
             return b;
         }
 
@@ -375,6 +375,7 @@ namespace Forge.Game.Ui
                 //   폭은 카드(= 정본 max-width 100%) · 높이는 실제 줄높이(TextClamp.BoxHeight — 1.2배 상자에 Ellipsis 를 걸면 TMP 가 줄을 통째로 버린다 · 런 528)
                 //   · 가운데 정렬이라 상자가 커진 만큼 반을 내려 글자 자리는 그대로.
                 TextClamp.Apply(nm, "held_name");
+                WrapUi.Apply(nm, "anvil_btn_held_slot_held_name");   // T361 7회차 — 정본 white-space 표(WrapUi.json) 1005 `.anvil-btn.held-slot .held-name { nowrap }`(TextClamp 한 줄과 같은 값)
                 float nmH = TextClamp.BoxHeight(nm, "held_name"), nmOld = nm.fontSize * 1.2f;
                 UiKit.Anchor(nm.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, rem * 0.25f - (nmH - nmOld) * 0.5f), w - dg * depth, nmH);
                 TextMeshProUGUI tag = UiKit.Text(rt, "held-tag", TextKind.Sub, "보류" + (n > 1 ? " " + n : string.Empty), "pp_ink");

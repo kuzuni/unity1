@@ -3114,6 +3114,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   → 3회차 판정(런 731): 남의 줄 수 자 전부 초록 · 빨강 1 은 내 자(`maxAdvance` 오독 → 수리) · 26장 눈 확인: `summon-rates`·`dungeons` 문장이 정본대로 두 줄 · 회귀 1 = HUD 통화 알약 «27.1m» 접힘(정본 nowrap · `Hud.cs` 가 T331 12회차로 열려 표로 배선). **4회차(18:1x)** = 그 수리 + 열린 파일(Hud·Waypoints·PetPanel·DungeonPopups) 배선 8 → 읽는 곳 22 · 남은 17 은 각 lock 뒤. 판정 다음 런 5/5 → 초록이면 lock 반납.
   → 5회차(19:0x): 4회차 판정은 러너 사정(런 742 PlayMode 결과 없음 · T392)으로 대기 · 열린 `ChatScreen`(공유 카드 라벨)·`SkillPetSheet`(서브탭 라벨) 자리 2 배선 → 읽는 곳 24 · 남은 15 는 각 lock 뒤(5회차 기록에 키 → 파일). 러너가 돌아온 첫 런 5/5 + `screen_main` 알약 → 초록이면 lock 반납.
   → 6회차(20:1x): 4·5회차 판정 ✓(런 752 `WrapSitesTests` 5/5 · HUD 알약 한 줄) · 빨강 1 = `BrLinesTests` 도전 행 긴 이름 두 줄(내 몫 · 정본 2632 는 접지만 클론은 고정 행 + 글자 하한) → 표 «클론 쪽 예외» 칸 `clone_nowrap`(결정 673) + `league_challenge_name` · EditMode 자 7. 판정 다음 런 → 초록이면 lock 반납.
+  → 7회차(21:1x): 6회차 판정 ✓(런 766 377/377 · `BrLinesTests`·`WrapSitesTests` PASS · 도전 행 PNG 한 줄) · 열린 일곱 파일(PetSkillKit·PassPopup·ForgeUi·ForgeSheet·TechPanel·TechPopups·ForgeCraftPopup) 자리 9 배선 → 읽는 곳 37 · 남은 4 는 `SkillSummonResult`(T334 뒤) · 죽은 CSS 둘(`.age-row .age-tag`·`.age-pct`)은 자리 없음. 판정 다음 런 → 초록이면 lock 반납.
 
 ### T363 ✅ — `check_unity_green` 의 «못 가렸다» 줄이 **제 안내를 «네가 고친다» 로 덮어쓴다** (도구·게이트 · T148·T340 뒤 · 워커 J 등재)
 - 실측(2026-09-15 04:2x · 런 **581**): 빨강 `EquipSwapTests` 에 자가 «임자: **못 가렸다** … 임자가 없으면 §0-6 대로 **네가 고친다**» 를 냈다. 그런데 **세 줄 아래 제 «런 사이» 칸**에 `f9fc02d T331(lock 61분 전)` 이 찍혀 있고, 뿌리가 바로 그 커밋이었다 — T331 5회차가 손으로 만들던 그림자(`eqsw-shadow`)를 공용 `UiShadow.Drop`(층 이름 `shadow`)으로 바꿨는데 자는 옛 이름을 찾는다.

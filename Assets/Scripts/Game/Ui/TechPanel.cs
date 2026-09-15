@@ -445,6 +445,7 @@ namespace Forge.Game.Ui
             }
             string nid = id;
             nodes[id] = UiKit.Button(rt, "hit", () => TechPopups.OpenNode(nid));
+            WrapUi.Apply(label, "tech_tree_label");   // T361 7회차 — 정본 white-space 표(WrapUi.json) 2207 `.tech-tree-label { nowrap }`
             nodeLabels[id] = label;
             nodeIds.Add(id);
         }
