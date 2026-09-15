@@ -27,9 +27,6 @@
 | `Ui/LeagueSheet.cs` | `lc_pill_w` | ×1.3 | 임시 | T331 lock 뒤(321 · `* w * 1.3f`) |
 | `Ui/ForgeCraftPopup.cs` | `btn_h` | ×1.7 | 임시 | T331 lock 뒤 · 큰 버튼 둘(71·72) — 정본이 그 버튼에 준 높이와 대조 |
 | `Ui/ForgeCraftPopup.cs` | `btn_h` | ×1.5 | 임시 | T331 lock 뒤 · 버튼 둘(119·120) |
-| `Ui/QuestSheet.cs` | `quest_btn_w` | ×1.6 | 임시 | T331 lock 뒤(46) |
-| `Ui/QuestSheet.cs` | `quest_btn_h` | ×1.3 | 임시 | T331 lock 뒤(46) |
-| `Ui/QuestSheet.cs` | `quest_bar_h` | ×1.6 | 임시 | T331 lock 뒤(56) |
 | `Ui/ForgeAutoPopup.cs` | `btn_h` | ×1.9 | 임시 | T331 lock 뒤 · 시작 버튼 둘(61·125) |
 | `Ui/ProfilePopup.cs` | `settings_toggle_h` | ×1.1 | 임시 | T378 3회차가 잰 값: 정본 3121 `.settings-act` 는 높이를 안 주고 `line-height 1.15rem + padding .1rem×2 + ol2(.125rem)×2 = 1.6rem`(= 0.0303H) — 지금은 토글 높이 1.35rem×1.1 = 1.485rem 이라 8% 낮다 · **새 키 `settings_act_h` 0.0303** 이 필요한데 `catalog.json` 이 T365·T375 lock(336) |
 | `Ui/ForgeInfoPopup.cs` | `btn_h` | ×1.7 | 임시 | T332 lock 뒤(98) |
