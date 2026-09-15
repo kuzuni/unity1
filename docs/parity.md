@@ -1046,3 +1046,28 @@ POLISH.md 를 읽고 «소품·용암 빛이 없다» 를 새 작업으로 등�
 ### 이 회차의 판정
 - **새 작업 0**. 이 축은 이미 옮겨져 있다.
 - 21회차(`font-weight`)에 이어 **두 축 연속 «결함 0»** 이다. 남은 CSS 축 중 큰 것: `pointer-events` 74 · `cursor` 51 · `white-space` 41 · `background-position` 22 · `background-size` 15 — 다음 회차가 고른다.
+
+# T33 완주 대조 — **24회차** (2026-09-15 02:3x · 워커 N · sess-0524-8791) — 축: `pointer-events` 68 선언
+
+22회차가 «남은 큰 축» 으로 센 것 중 첫째. 정본 `style.css`(주석 걷고 `;` 로 쪼개 셈): **`pointer-events: none` 67 · `auto` 1**(`.craft-batch` 790 — none 층 안에서 다시 눌리게 되돌린 자리).
+
+## 정본이 «눌리지 않게» 둔 것 — 갈래 넷
+- ① **전면 연출 층 13**: `#game-area::after`(81) · `#fx-layer`(90) · `#boss-warning`(223) · `#dmg-flash`(295) · `#loot-feed`(318) · `.float-dmg`(328) · `#skill-cutin`(1333) · `#skill-flash`(1354) · `#toasts, #toasts-combat`(1357) · `.anvil-fx`(929) · `#equip-swap-fx`(5033) · `#coin-burst`(5110) · `#reward-burst`(5156).
+- ② **소환 결과 연출 31**: `.sr-streaks`·`.sr-floor`·`.sr-canopy`·`.sr-rays`·`.sr-halo`·`.sr-stars`·`.sr-motes`·`.sr-dust`·`.sr-near`·`.sr-charge`·`.sr-shock`·`.sr-flash`·`.sr-wipe`·`.sr-relights`·`.sr-tierbreaks`·`.sr-ghost`·`.sr-spark`·`.sr-ray`·`.sr-beam`·`.sr-idle`·`.sr-reflect` + `::before/::after` 겹 10(3898~4816).
+- ③ **장식 겹(가상 요소) 15**: `.fl-face[data-asc]::after`(539) · `.equip-cell[data-age]::before`(620) · `.auto-drop-card.craft-reveal::after`(771) · `.cmp-card.new::after`(1281) · `.dg-banner::before`(1391) · `.pass-cell::before/::after`(1962) · `.sk-orb.equipped::after`(2795) · `#panel-skills .summon-bar::before`(2867) · `.af-age-bar`·`.fi-age-bar` `::before/::after`(3300~3534) · 게이지 `::after` 넷(5980).
+- ④ **버튼 안·위의 겹 8**: `.ob-zzz`(141) · `.skill-btn .sk-cd`(415 쿨타임 막) · `.auto-drop-card`(738) · `.equip-cell .cell-img`(1311) · `.tech-tree-links`(1522) · `.sk-eqplate`(2802) · `.hatch-cone`(3072) · **`.skill-btn.empty`(3836 — 빈 스킬 칸은 버튼 자체가 안 눌린다)**.
+
+## 클론의 길 — 정책이 정본과 같다
+- 장식 그림을 만드는 공장이 전부 **`raycastTarget = false`** 로 만든다: `UiKit.Panel`(107·109 — `Rounded`·`Circle`·`Line` 이 이것을 거친다) · `UiKit.Icon`(200·205) · `ClipShape`(129) · `SurfaceArt`(265) · `PetSkillKit`(350) · 글자 `UiKit.Text`(`raycastTarget = false`). 즉 **CSS 의 «기본 auto ↔ 정본이 none 으로 끈 67»** 이 클론에서는 **«기본 false ↔ 누르는 면만 true»** 로 뒤집혀 서 있다 — 방향이 반대라서 같은 결과다(정본이 none 을 적어야 했던 자리가 클론에서는 아무것도 안 적어도 된다).
+- `true` 로 켜는 자리는 셋뿐이고 전부 «눌려야 하는 면» 이다: `UiKit.Button` 의 hit(346·348) · `Popups` 의 카드 hit(243·245)·모달 딤 mask(339·341 — 정본 `.modal` 딤도 눌러 닫는 면) · `PetSkillKit` 의 뷰 hit(315·317) · `TechPanel`·`TechPopups` 의 스크롤 뷰포트 hit(240·287). `AddComponent<Image>` 를 직접 부르면서 `raycastTarget` 을 안 적은 자리는 그 둘(뷰포트 hit)뿐이고 둘 다 켜야 하는 면이다.
+- ① 전면 연출 층: `BattleOverlay`(끔 12 자리) · `LootFeed`(`CanvasGroup.blocksRaycasts = false`) · `CoinBurst`(2) · `RewardBurst`(9) · `EquipSwapFx`(4 + 그룹) · `SummonFx`(8 + 그룹 둘) · `DungeonClearFx`(그룹) · `ForgeSheet` 망치 그룹(`.anvil-fx`) — 전부 끈다. 토스트는 `UiKit.Rounded`+`IconTextRow` 라 공장에서 꺼진다.
+- ④ `.skill-btn.empty`: `SkillBar` 117 이 빈 칸을 **`UiKit.Box`(버튼 없음)** 로 세운다 ✓. `.sk-cd`·`.sk-eqplate`·`.cell-img` 는 버튼 **안의** 자식이라 유니티에서는 켜져 있어도 클릭이 부모 `Button` 으로 올라간다(`ExecuteEvents` 버블) — 정본이 none 을 적어야 했던 까닭(DOM 은 자식이 이벤트를 먹는다)이 여기선 없다. 그래도 공장이 꺼 둔다.
+- 결함 후보로 본 것 — **0**. ①②③ 의 짝을 파일마다 확인했고 켜진 면이 하나도 없다.
+
+## 이 축을 못박는 자 — `PointerPassTests`(PlayMode · 3)
+정책은 코드가 지키지만 «연출이 떠 있는 동안 아래 버튼이 눌리는가» 는 **레이캐스트로만** 답이 난다. 앱 캔버스의 `GraphicRaycaster` 로 탭바 첫 버튼 중심에 쏜 결과의 **맨 위가 그 버튼**인가를 평시 · 보스 경고 한가운데 프레임(`BossWarning(2.0)`+`Tick(0.5)` — BossWarnArtTests 와 같은 프레임)에서 재고, 경고 층(`BattleOverlay.Layer`)과 토스트에는 **한 건도 안 걸리는가** 를 잰다(화면 가운데 한 점 더). 판정은 다음 유니티 런 — 빨강이면 그 자리가 정본 `pointer-events: none` 을 어긴 것이고 임자는 그 파일의 lock 임자(없으면 §0-6 누구든).
+
+## 이 회차의 판정
+- **새 작업 0**. 세 축 연속 «결함 0»(21·22·24). 다만 이 축은 21·22 와 달리 «정책이 코드에 서 있다» 를 자로 남겼다.
+- 남은 CSS 축(22회차 목록에서 이것을 뺀 것): `cursor` 51(모바일 — 뜻 없음 · 닫아도 된다) · `white-space` 41(nowrap 40 · normal 1 — 클론 공장 기본이 `NoWrap` 이라 부호가 같다 · 접히는 자리 19곳은 T351 이 잰다) · `background-position` 22 · `background-size` 15 · `mix-blend-mode` 18(전부 `screen` — `CraftFxPoly.Screen` 재질 한 길 · 18 자리 대조는 다음 회차) — 다음 회차가 고른다.
+
