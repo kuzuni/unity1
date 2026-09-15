@@ -335,7 +335,9 @@ namespace Forge.Game.Ui
         private static void ActRow(RectTransform list, int i, string label, string act, string inkKey, UnityEngine.Events.UnityAction onClick)
         {
             RectTransform row = SettingsRow(list, i, label);
-            float bw = PopupKit.Rem * 3.2f, bh = UiKit.H("settings_toggle_h") * 1.1f;
+            // T378 7회차 — 정본 3121~3125 `.settings-act` 는 높이 선언이 없고 line-height 1.15rem + padding .1rem×2 + ol2×2 = 1.6rem(0.0303H)이다.
+            // 전엔 토글 높이(1.35rem)×1.1 = 1.485rem 으로 8% 낮았다(«표값 × 박힌 상수» 자리 · 곁 표 ProfileUi.json).
+            float bw = PopupKit.Rem * 3.2f, bh = ProfileUi.H("settings_act_h");
             Button b = UiKit.Button(row, "act", onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
             UiKit.Anchor(rt, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-PopupKit.Rem * 1.95f, 0f), bw, bh);

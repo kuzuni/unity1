@@ -1,0 +1,7 @@
+{
+ "_": "ROUTINE T378 7회차 — 프로필·설정 팝업에서 정본이 못 박은 치수 중 catalog.json 이 남의 lock(T345·T383·T390)이라 T65 꼴로 여기 둔 곁 표(다음에 카탈로그가 열리면 합쳐도 된다). 단위: _h = 앱 높이 비율(catalog 의 rem_h 0.018957 = 1rem). 코드에 숫자를 박지 않는다(§1).",
+ "layout": {
+  "_settings_act_h": "정본 css/style.css 3121~3125 `.settings-act { border: var(--ol2) solid …; padding: .1rem .5rem; line-height: 1.15rem }` — 높이 선언이 없어 상자 높이 = line-height 1.15rem + padding .1rem×2 + ol2(2px = .125rem)×2 = 1.6rem = 0.0303H. 클론은 `settings_toggle_h`(1.35rem) × 1.1 = 1.485rem 으로 8% 낮았다(T378 3회차 실측 · 허용 목록 «임시»). 정본 3119 주석 «토글(1.35rem)보다 낮게 유지» 는 선언과 어긋난다 — 선언을 따른다(결정 658 과 같은 갈래).",
+  "settings_act_h": 0.0303
+ }
+}

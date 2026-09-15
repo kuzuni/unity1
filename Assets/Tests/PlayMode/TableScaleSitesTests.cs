@@ -96,5 +96,34 @@ namespace Forge.Tests.PlayMode
             PopupLayer.Instance.Hide(ChatScreen.Name);
             yield return null;
         }
+
+        /// <summary>7회차 — 설정 실동작 버튼(.settings-act): 정본 3121~3125 는 높이 선언 없이 line-height 1.15rem + padding .1rem×2 + ol2×2 = 1.6rem = 곁 표 `settings_act_h`(0.0303H) 그대로(전엔 토글 높이 ×1.1).</summary>
+        [UnityTest]
+        public IEnumerator 설정_실동작_버튼_높이는_곁_표_settings_act_h_그대로_1_6rem_이다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            ProfilePopup.Open(h);
+            yield return null;
+            ProfilePopup.SwitchView(h, "settings");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(ProfilePopup.Name);
+            Assert.IsNotNull(p, "프로필 팝업(설정)");
+            float expect = ProfileUi.H("settings_act_h");
+            int acts = 0;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name != "act" || rt.Find("line") == null || rt.Find("face") == null) continue;
+                acts++;
+                Assert.AreEqual(expect, rt.rect.height, 0.5f, "높이 = 곁 표 settings_act_h(곱 없이)");
+                Assert.AreEqual(PopupKit.Rem * 1.6f, rt.rect.height, 0.5f, "정본 1.6rem — 표 0.0303 이 그 값이다(1.6 × rem_h)");
+                Assert.Greater(rt.rect.height, UiKit.H("settings_toggle_h") * 1.1f + 1f, "옛 토글×1.1 높이(1.485rem)가 아니다");
+                Assert.Less(rt.rect.height, UiKit.H("settings_row_h") - 1f, "행(4.75%H) 안에 든다");
+            }
+            Assert.AreEqual(2, acts, "실동작 버튼 둘(수동 저장 · 게임 초기화)");
+            ProfilePopup.Close(h);
+            yield return null;
+        }
     }
 }
