@@ -337,5 +337,80 @@ namespace Forge.Tests.PlayMode
             PopupLayer.Instance.Hide(LeagueSheet.ChallengeName);
             yield return null;
         }
+
+        /// <summary>
+        /// T383 8회차 — 상태가 필요한 자리 셋. 정본 1506 «⭐ 승천<br>가능»(만렙 = `!info` 이고 `Ascension.ready('forge')` — FORGE_LEVEL 35 = 만렙이라 만렙이면 곧 승천 가능) ·
+        /// 2036 «승천<br><small>»(대장간 정보 · 같은 상태) · 2043 «건너뛰기<br>»(업그레이드 진행 중). 1507 «대장간<br>최고 레벨» 은 정본도 `!info && !ready` 인데
+        /// FORGE_LEVEL(35) = 만렙(35) 이라 **정본에서도 닿지 않는 갈래**다 — 상태로 못 만들고 코드 글자만 자(`check_br_lines`)가 본다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 장비_시트_대장간_버튼은_만렙이면_정본대로_승천_가능_두_줄이다()
+        {
+            yield return Boot();
+            ForgeHost fh = ForgeHost.Instance;
+            fh.Forge.UpgradeEndsAt = null;
+            fh.Forge.ForgeLevel = fh.Ascension.Table.ForgeLevel;   // 승천 도달 레벨 = 만렙(35) — DungeonUiTests 의 길
+            Assert.IsNull(fh.UpgradeInfo(), "만렙이면 다음 업그레이드가 없다(정본 `!info`)");
+            Assert.IsTrue(fh.AscendReady, "만렙이면 승천 가능(정본 Ascension.ready)");
+            ForgeSheet.Render(fh);
+            yield return null;
+            Transform fb = Find(UiRoot.Instance.Sheet.transform, "forge-btn");
+            Assert.IsNotNull(fb, "대장간 버튼(forge-btn)");
+            TextMeshProUGUI ft = fb.GetComponentInChildren<TextMeshProUGUI>(true);
+            Assert.IsNotNull(ft, "대장간 버튼 글");
+            Assert.IsTrue(ft.text.StartsWith("★ 승천", System.StringComparison.Ordinal), "정본 1506 «⭐ 승천<br>가능» 갈래 — 실제 «" + ft.text.Replace("\n", "⏎") + "»");
+            Assert.AreEqual(2, Lines(ft), "정본 1506 `<br>` = 두 줄 — 실제 «" + ft.text.Replace("\n", "⏎") + "»");
+            fh.Forge.ForgeLevel = 1;
+            ForgeSheet.Render(fh);
+            yield return null;
+        }
+
+        /// <summary>정본 2036 «⭐ 승천<br><small>대장간 Lv.35 도달 · 이후 제작 장비 ⭐N</small>» — 대장간 정보 팝업의 승천 버튼(만렙 상태).</summary>
+        [UnityTest]
+        public IEnumerator 대장간_정보_승천_버튼은_정본대로_두_줄이다()
+        {
+            yield return Boot();
+            ForgeHost fh = ForgeHost.Instance;
+            fh.Forge.UpgradeEndsAt = null;
+            fh.Forge.ForgeLevel = fh.Ascension.Table.ForgeLevel;
+            Assert.IsTrue(fh.AscendReady, "승천 가능 상태");
+            ForgeInfoPopup.Open(fh);
+            yield return null;
+            Popup p = PopupLayer.Instance.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(p, "대장간 정보 팝업");
+            Transform asc = Find(p.Root, "fi-upgrade");
+            Assert.IsNotNull(asc, "승천 버튼(fi-upgrade · 승천 갈래)");
+            TextMeshProUGUI t = asc.GetComponentInChildren<TextMeshProUGUI>(true);
+            Assert.IsNotNull(t, "승천 버튼 글");
+            Assert.IsTrue(t.text.StartsWith("★ 승천", System.StringComparison.Ordinal), "정본 2036 승천 갈래 — 실제 «" + t.text.Replace("\n", "⏎") + "»");
+            Assert.IsTrue(t.text.Contains("\n"), "코드가 두 줄을 안다: " + t.text);
+            Assert.AreEqual(2, Lines(t), "정본 2036 `<br>` = 두 줄 — 실제 «" + t.text.Replace("\n", "⏎") + "»");
+            PopupLayer.Instance.Hide(ForgeInfoPopup.Name);
+            fh.Forge.ForgeLevel = 1;
+            yield return null;
+        }
+
+        /// <summary>정본 2043 «건너뛰기<br><span class="fi-skip-gem">💎 N</span>» — 대장간 정보 팝업의 건너뛰기 버튼(업그레이드 진행 중 상태 · 아랫줄은 젬 아이콘 + 수 = 줄 갈래).</summary>
+        [UnityTest]
+        public IEnumerator 대장간_정보_건너뛰기_버튼은_정본대로_두_행이다()
+        {
+            yield return Boot();
+            ForgeHost fh = ForgeHost.Instance;
+            Assert.IsNotNull(fh.UpgradeInfo(), "새 세이브(Lv.1)는 다음 업그레이드가 있다");
+            fh.Forge.UpgradeEndsAt = SaveIo.NowMs() + 60 * 60e3;   // 진행 중(IconTextStackTests ⓒ 의 길)
+            Assert.IsTrue(fh.Upgrading, "업그레이드 진행 중 상태");
+            ForgeInfoPopup.Open(fh);
+            yield return null;
+            Popup p = PopupLayer.Instance.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(p, "대장간 정보 팝업");
+            Transform skip = Find(p.Root, "fi-skip");
+            Assert.IsNotNull(skip, "건너뛰기 버튼(fi-skip)");
+            Transform stack = Find(skip, "label-stack");
+            Assert.IsNotNull(stack, "건너뛰기 버튼의 줄 갈래(label-stack)");
+            Assert.AreEqual(2, StackRows(stack, "건너뛰기 버튼"), "정본 2043 = 두 행");
+            PopupLayer.Instance.Hide(ForgeInfoPopup.Name);
+            fh.Forge.UpgradeEndsAt = null;
+            yield return null;
+        }
     }
 }
