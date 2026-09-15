@@ -93,6 +93,7 @@ namespace Forge.Game.Ui
                 subSkins[i] = PetSkillKit.Framed(br, "active", PetSkillStyle.C("pp_blue"), PetSkillStyle.Px("subtab_btn_r_rem"), PetSkillKit.Line2);
                 UiKit.Fill(subSkins[i]);
                 subLabels[i] = PetSkillKit.Text(br, "label", TextKind.Sub, PetSkillStyle.T(SubText[i]), PetSkillStyle.C("subtab_ink"));
+                WrapUi.Apply(subLabels[i], "summon_subtabs_subtab_strip_button");   // T361 5회차 — 정본 white-space 표(WrapUi.json) 3608 `#summon-subtabs.subtab-strip button { nowrap }`
                 UiKit.Fill(subLabels[i].rectTransform);
             }
 

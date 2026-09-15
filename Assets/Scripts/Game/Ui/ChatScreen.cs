@@ -287,6 +287,7 @@ namespace Forge.Game.Ui
             {
                 TextMeshProUGUI lb = UiKit.Text(side, "label", TextKind.Sub, label, colorKey);
                 lb.fontStyle = FontStyles.Bold;
+                WrapUi.Apply(lb, "chat_share_label");   // T361 5회차 — 정본 white-space 표(WrapUi.json) 3425 `.chat-share-label { nowrap }`
                 UiKit.OutlinePx(lb, "pp_line", KeylineUi.Px("chat_share_label"));   // 정본 .chat-share-label { var(--ol2) #000 }
                 float lbW = Mathf.Max(lb.preferredWidth + rem * 0.4f, tile);
                 float lbBottom = y + tile + StaticIconsUi.L("chat_share_label_bottom_aw") * aw;
