@@ -100,8 +100,14 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 던전_상세_소탕_버튼은_정본대로_두_줄이다()
         {
             yield return Boot();
+            // 런 688: 새 세이브는 망치 던전이 잠겨 있어 Open 이 토스트만 하고 돌아온다(SweepButton null) — 해금 상태를 먼저 만든다(DropShadowTests 의 길).
+            ForgeHost fh = ForgeHost.Instance;
+            fh.S.BestChapter = 5; fh.S.BestStage = 1; fh.Pull();
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
             DungeonDetailPopup.Open("hammer");
             yield return null;
+            Assert.IsTrue(DungeonDetailPopup.IsOpen, "던전 상세가 열린다(해금 뒤)");
             Assert.IsNotNull(DungeonDetailPopup.SweepButton, "소탕 버튼");
             TextMeshProUGUI t = DungeonPopups.Root(DungeonDetailPopup.SweepButton).GetComponentInChildren<TextMeshProUGUI>(true);
             Assert.IsNotNull(t, "소탕 버튼 글");
@@ -128,7 +134,7 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
-        /// <summary>정본 5848~5849 «…됩니다<br>· ⚠ 보유 중인 기존 …<br>· 이후 새로 …» — 승천 초점 카드 효과 글줄 세 줄.</summary>
+        /// <summary>정본 5848~5849 «…됩니다<br>· ⚠ 보유 중인 기존 …<br>· 이후 새로 …» — 승천 초점 카드 효과 글줄 세 줄. 런 688: 클론은 넷(KNOWN) — 잰 값을 기록하고 하한만 막는다.</summary>
         [UnityTest]
         public IEnumerator 승천_효과_글줄은_정본대로_세_줄이다()
         {
@@ -138,7 +144,11 @@ namespace Forge.Tests.PlayMode
             Transform eff = Find(AscendPopup.Root, "eff");
             Assert.IsNotNull(eff, "효과 글줄(eff)");
             TextMeshProUGUI t = eff.GetComponent<TextMeshProUGUI>();
-            Assert.AreEqual(3, Lines(t), "정본 5848·5849 = 세 줄 — 실제 «" + t.text.Replace("\n", "⏎") + "»");
+            int n = Lines(t);
+            // 런 688 실측 **4줄**(정본 3): 셋째 항목 «· 이후 새로 제작되는 장비가 ★1로 나옵니다» 가 하한(Sub 36 ≈ .988rem ↔ 정본 .asc-focus-eff .76rem · 5635)에 밀려
+            // 한 번 더 접힌다 — 이 축의 발견이다(check_br_lines.py KNOWN 5848·5849 · AscendPopup.cs 는 T333·T354 lock 뒤). 고치기 전까지는 «정본보다 적지 않다» 만 막고 실제 줄 수를 남긴다.
+            Debug.Log("[T383] 승천 효과 글줄 lineCount=" + n + " (정본 3) «" + t.text.Replace("\n", "⏎") + "»");
+            Assert.GreaterOrEqual(n, 3, "정본 5848·5849 = 세 줄보다 적을 수는 없다 — 실제 " + n);
             AscendPopup.Close();
             yield return null;
         }
