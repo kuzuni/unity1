@@ -2870,6 +2870,19 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   → **11회차 판정(런 692 · `96229fc`)**: 수리한 리그 칸 **PASS**.
 - 🔄 12회차 2026-09-15 14:3x 워커 F(sess-0027-41852): `SkillPanel.cs`(자유)에 스킬 상세 둘 — `.skd-desc` 1.45(5248 · 여러 줄로 접히는 설명) · `.skd-passive` 1.15(5255 · 알약 안 수치). 화면 자는 그 팝업을 여는 값이 커 안 붙이고 **표값 둘을 리그 칸에서 못 박았다**. **배선 16 → 18/25**.
   → **12회차 판정(런 704 · `e4e0c5d`)**: `LineHeightTests` **8칸 전부 PASS**. **lock 반납 · 행 🔄** — `check_lock_queue` 가 내 lock 뒤에 선 열린 작업 **여섯**(T333·T345·T352 …)을 세어, 쓰지도 않은 파일까지 막고 있었다. **배선 18/25** · 남은 일곱은 그 파일 lock 이 풀리는 대로 `LineHeight.Apply` 한 줄씩이다. 고르는 기준: **글이 꺾이는 자리부터**(한 줄 칸·flex 묶음에 건 값은 «안 보이는 자리» 로 표에 이유를 적고 남긴다).
+- 🔄 **13회차 = 잡았다가 바로 반납(2026-09-15 19:2x · 워커 J · sess-1917-30285) — 대신 «남은 목록» 을 실측으로 갈아 둔다**: 12회차가 남긴 «남은 일곱» 을 믿고 «파일이 열린 둘(`.cmp-sub`·`.mat-empty`)» 로 잡았는데 **둘 다 아니었다** — `.mat-empty`(`mat_grid_mat_empty_lh`)는 **6회차에 이미 배선**돼 있고(`PetUpgradePopup.cs:245`), `.cmp-sub` 의 클론 자리는 `ForgeCraftPopup` 이 아니라 **`ForgeUi.cs:304`**(`itemCardHTML` 공용 카드 · T332 산 lock)다. 코드는 한 줄도 안 고치고 lock 을 놓았다.
+  - **표 ↔ 코드를 직접 세어 목록을 다시 만들었다**(사람이 적어 둔 수 말고): `LineHeightUi.json` 의 `*_lh` **79** 중 코드가 부르는 키 **16** · 그중 배수 1.05 초과(여러 줄로 보이는 자리) 미배선은 **아래 열둘**이고 **지금 열 수 있는 것은 0 개**다.
+    | 키 | 배수 | 클론 자리 | 막는 lock |
+    |---|---|---|---|
+    | `cmp_sub_lh` | 1.5 | `ForgeUi.cs:304`(공용 아이템 카드 서브스탯) | T332 |
+    | `idet_lead_lh` · `idet_subs_substat_row_lh` · `fi_card_fi_skip_lh` | 1.35·1.4·1.25 | `ForgeInfoPopup.cs` | T332 |
+    | `pass_desc_lh` · `pass_banner_lh` · `pass_price_lh` | 1.4·1.15·1.3 | `PassPopup.cs` | T378·T361 |
+    | `chat_preview_lines_lh` | 1.25 | `Hud.cs`(채팅 미리보기) | T331 |
+    | `sk_mini_small_lh` | 1.25 | `SkillPanel.cs` | T361 |
+    | `pinfo_subs_list_lh` | 1.2 | `PlayerInfoPopup.cs` | T361 |
+    | `petd_wrap_petd_subs_lh` | 1.19 | `PetPanel.cs` | T361 |
+    | `dgd_btn_lh` · `dgd_stage_lh` | 1.25·1.15 | `DungeonSheet.cs`·`DungeonPopups.cs` | T331·T345 |
+  - **배선 수를 고친다: 18/25 가 아니라 «부르는 키 16»** 이다(둘은 같은 자리를 두 키로 세던 셈 · 다음 사람은 이 표를 세어 쓴다). 남은 자리를 고를 때는 **정본 선택자가 아니라 클론 파일**로 확인할 것 — `.cmp-sub` 처럼 이름이 팝업을 가리켜도 실물은 공용 공장에 있을 수 있다(오늘 내가 그 함정에 빠졌다).
 - 범위: `Assets/Forge/Resources/LineHeightUi.json`(새) 또는 `TextClampUi.json`(**T351 lock 뒤**) · `Assets/Scripts/Game/Ui/TextClamp.cs`(T351) 또는 `UiKit.cs`(T178·T331·T333 lock 뒤) · 자리 파일 25곳(각 lock 뒤 · 잡는 사람이 «범위» 칸에 적는다) · `tools/check_line_height.py`(새 · 선택) · `Assets/Tests`.
 - 1회차(2026-09-14 23:3x · 워커 J · sess-2318-11672 · **표 + Core + EditMode 자만** · 배선은 `UiKit.cs` lock 셋(T178·T331·T355) 뒤라 안 열었다): `Assets/Forge/Resources/LineHeightUi.json`(새 · 자리 **81** = style.css 80 + ui.js 인라인 1 · `_정본` 에 파일·줄·선택자·원값을 그대로 담았다) · `Assets/Scripts/Core/Ui/LineHeightRules.cs`(새 · UnityEngine 0 · `Spacing(배수, faceLineHeight, facePointSize) = 배수 × pointSize − lineHeight` · rem·app-w 환산 · `LineHeightTable`) · `Assets/Tests/EditMode/LineHeightRulesTests.cs`(새 · 6). **글꼴 실측**: NotoSansKR-Forge unitsPerEm 1000 · hhea asc 1160 · desc −288 · gap 0 → 기본 **1.448em**(절에 적힌 값과 같다). **배선하면 어느 쪽으로 움직이는가**: 배수 자리 79 중 **74 가 좁아지고 다섯만 넓어진다**(1.45 ×2 · 1.5 ×3) · 가장 많은 값은 **1** 스물다섯. ⚠ 자가 내 단언 둘을 반박해 고쳤다 — «전부 좁아진다» 는 틀렸고(1.5 셋이 있다), `1` 24 와 `1.0` 1 은 같은 수라 25 다.
 - 2회차(2026-09-15 00:2x · 워커 J · sess-0018-28386 · **자만** · 배선은 `UiKit.cs` 가 아직 T331·T333 lock 이라 또 미뤘다): `tools/check_line_height.py`(새 · **왕복 대조**) — 표가 자리마다 «정본 파일·줄·선택자·원값» 을 `_정본` 에 쥐고 있으므로 닮은꼴 맞추기가 필요 없다: 정본에서 다시 뽑아 **한 자리씩** 맞춘다(① 개수 ② 파일·줄·선택자·원값이 지금 정본과 같다 ③ 키 꼬리가 단위와 맞고 수가 같다). 정본이 한 줄이라도 움직이면 먼저 운다. `--self-test` **19칸** · 실물 rc 0(81 ↔ 81). ⚠ **자가 만들자마자 제 표를 반박했다**: 주석이 `{`·`}` 를 품으면 규칙 쪼개기(`[^{}]+`)가 **주석 한가운데서** 시작해 선택자에 주석 꼬리가 붙는다(정본 5151·7067). 주석을 **같은 길이 공백**으로 먼저 지워(줄 번호 보존) 생성기와 자가 같은 파서를 쓰게 하고 표를 다시 뽑았다 — **값 81개는 그대로**, 선택자 글자만 성해졌다. `_정본` 은 이제 **안 자른다**(80자 자르기가 왕복을 깨뜨렸다). CI 배선은 `tools/gate.sh` 가 산 lock 넷 뒤라 다음 회차.
