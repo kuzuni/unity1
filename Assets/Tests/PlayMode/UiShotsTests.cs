@@ -310,6 +310,16 @@ namespace Forge.Tests.PlayMode
                 Open = delegate { M.OpenLeague(); },
                 Opened = delegate { return Popups.IsOpen(LeagueSheet.Name); }
             });
+            // T393 1회차 — **승천 팝업**: 세 절(T359 1회차 · T383 · T354)이 «촬영 목록에 없어 눈 확인 자리 없음» 으로 지나간 자리다.
+            //   정본 시트는 `ref/screens/` 가 아니라 **`ref/shots/ascend-entry-rows.png`**(430×860)에 있다 — 이 레포가 한 번도 안 본 폴더다.
+            //   ⚠ `Ref` 는 비운다: 그 칸은 `ref/screens/shot-<번호>.png` 를 가리키는 자리이고, 다른 폴더를 가리키게 하는 것은
+            //      `ui_score`·`ref-layout.md`(둘 다 T28 산 lock) 몫이라 이 회차가 못 한다 — 그림만 먼저 남긴다.
+            list.Add(new Shot
+            {
+                Name = "ascend",
+                Open = delegate { CloseAll(); AscendPopup.Open(); },
+                Opened = delegate { return AscendPopup.IsOpen; }
+            });
             list.Add(new Shot
             {
                 Name = "league-rewards", Ref = "042208",
