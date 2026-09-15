@@ -48,14 +48,21 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 채팅_틈_셋이_정본_앱_폭_비율대로_선다()
         {
             yield return Boot();
-            UiRoot.Instance.TabBar.OnTab("chat");
+            // 채팅은 **탭이 아니다** — HUD 의 채팅 줄을 눌러 전체화면 팝업으로 연다(`ChatShareIconTests` 와 같은 길).
+            // 런 712 에서 내 첫 판이 `TabBar.OnTab("chat")` 로 열려다 «모르는 탭» 으로 넘어졌다.
+            Hud.Instance.ChatButton.onClick.Invoke();
             yield return null; yield return null;
+            Assert.IsTrue(PopupLayer.Instance.IsOpen(ChatScreen.Name), "채팅 줄 → 전체화면 채팅");
             Canvas.ForceUpdateCanvases();
 
             RectTransform app = (RectTransform)UiRoot.Instance.App;
             float W = UiKit.RefW;
+            // 찾는 자리는 **채팅 팝업 안**이다(같은 이름 상자가 다른 화면에도 있다) — 앱 상자는 «가로 자리를 재는 자» 로만 쓴다.
+            Popup pop = PopupLayer.Instance.Find(ChatScreen.Name);
+            Assert.IsNotNull(pop, "채팅 팝업");
+            Transform croot = pop.Root;
 
-            Transform bar = FindActive(app, "input-bar");
+            Transform bar = FindActive(croot, "input-bar");
             Assert.IsNotNull(bar, "입력 바");
             Vector2 barX = SpanX(app, (RectTransform)bar);
             // 이름으로 찾되 **그 상자 안**에서 찾는다 — `avatar`·`close` 는 상단바·팝업에도 있는 흔한 이름이다
@@ -74,7 +81,7 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0.1182f * W, inX.x, W * 0.010f, "정본 주석 3441 «입력칸 좌 11.82%W»(선언을 따르면 11.41%W)");
             Assert.AreEqual(0.8537f * W, inX.y - inX.x, W * 0.010f, "정본 주석 3441 «입력칸 폭 85.37%W»(선언을 따르면 86.19%W)");
 
-            Transform row = FindActive(app, "msg");
+            Transform row = FindActive(croot, "msg");
             Assert.IsNotNull(row, "말풍선 줄 — 세이브에 채팅 줄이 하나도 없으면 이 자를 못 잰다");
             Transform avatar = FindActive(row, "avatar"), nameLine = FindActive(row, "name-line");
             Assert.IsNotNull(avatar, "그 줄의 아바타"); Assert.IsNotNull(nameLine, "그 줄의 이름줄");
