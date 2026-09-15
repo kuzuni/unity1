@@ -207,6 +207,15 @@
       { "at": 68.0,  "tx_pct": 0.22,  "ty_pct": -0.22, "scale": 1.0 },
       { "at": 100.0, "tx_pct": 0.0,   "ty_pct": 0.0,   "scale": 1.0 }
     ],
+    "recede_ms": 680.0,
+    "recede_ease": [0.3, 0.85, 0.35, 1.0],
+    "srrecede": [
+      { "at": 0.0,   "scale": 1.0,  "sat": 1.0,  "bright": 1.0 },
+      { "at": 18.0,  "scale": 0.94, "sat": 0.35, "bright": 0.6 },
+      { "at": 58.0,  "scale": 0.94, "sat": 0.35, "bright": 0.6 },
+      { "at": 100.0, "scale": 1.0,  "sat": 1.0,  "bright": 1.0 }
+    ],
+    "_recede": "정본 `#summon-result-modal.hero .sr-cell.on:not(.heroic) { animation: srrecede .68s cubic-bezier(.3,.85,.35,1) forwards }`(style.css 6720~6725). 절의 머리 주석이 까닭을 적어 뒀다: «같은 슬롯·같은 이징으로 등장하면 신화는 «더 큰 구슬» 일 뿐이다. **나머지를 물리고(후퇴)** 광창 → 충격파 → 화면 킥을 350ms 안에 몰아 «다른 사건» 으로 만든다». 18~58% 가 평지라 물러난 채로 머문 뒤 돌아온다.",
     "_": "정본 `#summon-result-modal.flash .sr-wrap, #summon-result-modal.hero .sr-wrap { animation: srshakehit .44s cubic-bezier(.2,.9,.3,1) both }`(style.css 5675~5684). 주석: «최고 등급 착지 — 앞의 것보다 짧고 세게. **화면 킥은 홀드백 여부와 무관하게 주역 비트(.hero)에 건다**». 치우침은 `translate3d` 의 **퍼센트**라 판 제 크기 기준이고, CSS 의 +y 는 아래다. `.hero` 는 `done` 까지 붙어 있고 **시간 제한이 없다** — 길이는 겹마다 제 애니메이션이 쥔다(결정 534 가 미뤄 둔 «주역 비트 길이» 의 답: 그런 값은 정본에 없다)."
   },
   "idle": {

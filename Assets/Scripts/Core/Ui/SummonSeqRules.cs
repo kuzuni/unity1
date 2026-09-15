@@ -268,9 +268,9 @@ namespace Forge.Core.Ui
     /// </summary>
     public sealed class SummonHeroSpec
     {
-        /// <summary>한 번 흔드는 길이(ms · 정본 .44s).</summary>
-        public double ShakeMs;
-        public RewardBurstSpec.Track Shake;
+        /// <summary>한 번 흔드는 길이(ms · 정본 .44s) · 조연이 물러났다 돌아오는 길이(ms · 정본 .68s).</summary>
+        public double ShakeMs, RecedeMs;
+        public RewardBurstSpec.Track Shake, Recede;
 
         public static SummonHeroSpec From(JsonObject root)
         {
@@ -301,6 +301,33 @@ namespace Forge.Core.Ui
             var last = keys[keys.Length - 1];
             if (last.Num["tx_pct"] != 0 || last.Num["ty_pct"] != 0 || last.Num["scale"] != 1) throw new FormatException("SummonFxUi hero: 마지막 키는 제자리로 돌아와야 한다");
             s.Shake = new RewardBurstSpec.Track { Keys = keys };
+
+            // 조연 물러남 — 정본 주석의 «나머지를 물리고(후퇴)». 18~58% 가 평지라 물러난 채로 머문다.
+            s.RecedeMs = J.Num(J.Require(o, "recede_ms"));
+            if (s.RecedeMs <= 0) throw new FormatException("SummonFxUi hero: recede_ms 는 0보다 커야 한다");
+            double[] re = J.NumArr(J.Require(o, "recede_ease"));
+            if (re == null || re.Length != 4) throw new FormatException("SummonFxUi hero: recede_ease 는 cubic-bezier 넷이다");
+            CssEase rease = new CssEase(re[0], re[1], re[2], re[3]);
+            var rlist = J.List(J.Require(o, "srrecede"), x => J.Obj(x));
+            if (rlist.Count < 2) throw new FormatException("SummonFxUi hero: srrecede 키프레임이 둘 미만이다");
+            var rkeys = new RewardBurstSpec.KeyStop[rlist.Count];
+            prev = -1;
+            for (int i = 0; i < rlist.Count; i++)
+            {
+                JsonObject k = rlist[i];
+                var ks = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(k, "at")), Ease = rease };
+                if (ks.At < prev) throw new FormatException("SummonFxUi hero: srrecede 퍼센트는 오름차순이어야 한다");
+                prev = ks.At;
+                ks.Num["scale"] = J.Num(J.Require(k, "scale"));
+                ks.Num["sat"] = J.Num(J.Require(k, "sat"));
+                ks.Num["bright"] = J.Num(J.Require(k, "bright"));
+                rkeys[i] = ks;
+            }
+            // 물러난 조연은 **반드시 제자리로 돌아온다** — 안 그러면 결과 화면이 어두운 채로 굳는다.
+            var rl = rkeys[rkeys.Length - 1];
+            if (rl.Num["scale"] != 1 || rl.Num["sat"] != 1 || rl.Num["bright"] != 1)
+                throw new FormatException("SummonFxUi hero: srrecede 의 마지막 키는 제자리(1/1/1)로 돌아와야 한다");
+            s.Recede = new RewardBurstSpec.Track { Keys = rkeys };
             return s;
         }
 
@@ -315,5 +342,17 @@ namespace Forge.Core.Ui
 
         /// <summary>아직 흔드는 중인가.</summary>
         public bool Kicking(double ms) { return ms >= 0 && ms < ShakeMs; }
+
+        /// <summary>착지에서 <paramref name="ms"/> 뒤 **조연** 셀의 배율·채도·밝기. 끝나면 제자리(1/1/1).</summary>
+        public void RecedeAt(double ms, out double scale, out double sat, out double bright)
+        {
+            double p = ms <= 0 ? 0 : ms >= RecedeMs ? 100 : ms / RecedeMs * 100;
+            scale = Recede.Sample(p, "scale", null);
+            sat = Recede.Sample(p, "sat", null);
+            bright = Recede.Sample(p, "bright", null);
+        }
+
+        /// <summary>조연이 아직 물러나 있는가.</summary>
+        public bool Receding(double ms) { return ms >= 0 && ms < RecedeMs; }
     }
 }

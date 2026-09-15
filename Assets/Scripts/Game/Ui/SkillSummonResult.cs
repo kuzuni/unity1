@@ -47,6 +47,9 @@ namespace Forge.Game.Ui
             public Vector2 Home, ToLight;
             /// <summary>T334 5회차 — 아이들 호흡 전 구체 래퍼의 제자리.</summary>
             public Vector2 OrbHome;
+            /// <summary>T334 7회차 — 물러남 전 이 셀 그림들의 제 색(한 번만 담는다).</summary>
+            public Graphic[] Tint;
+            public Color[] TintHome;
         }
 
         public static SkillSummonResultView Current { get; private set; }
@@ -85,6 +88,8 @@ namespace Forge.Game.Ui
         float wipeAt = -1f;
         /// <summary>T334 6회차 — 화면 킥(정본 `srshakehit`)이 시작한 시각 · 흔들 판과 그 제자리.</summary>
         float kickAt = -1f;
+        /// <summary>주역이 착지한 벽시계 시각(물러남·킥이 같이 쓴다).</summary>
+        float heroAtWall = -1f;
         RectTransform wrap;
         Vector2 wrapHome;
         float flashAt = -1f;
@@ -730,7 +735,6 @@ namespace Forge.Game.Ui
                 float t = (tt - c.OnAt) / c.Pop;
                 float s = t >= 1f ? 1f : Mathf.Lerp(0.35f, 1f, EaseOutBack(t));
                 c.Group.alpha = Mathf.Clamp01(t * 3f);
-                c.Root.localScale = Vector3.one * s;
                 // T334 5회차 — 아이들 호흡은 **등급에 가중**된다(정본 `--idle` 계단 · style.css 6327~6332).
                 //   정본 주석: «예전엔 전 등급이 똑같이 −.16rem / ×1.055 였고 실측상 등급 간 차이는 광채에서만 나왔다 —
                 //   즉 위계가 구조가 아니라 부산물이었다». 수치는 표(`SummonFxUi.json` 의 `idle` 절)가 쥔다.
@@ -743,6 +747,11 @@ namespace Forge.Game.Ui
                     b = 1f + (float)add;
                     ty = (float)tyRem * PetSkillStyle.RemPx;
                 }
+                // T334 7회차 — 주역이 착지하면 **조연은 물러난다**(정본 `srrecede` · 절 머리 주석: «나머지를 물리고(후퇴)
+                //   광창 → 충격파 → 화면 킥을 몰아 «다른 사건» 으로 만든다»). 배율은 셀에, 채도·밝기는 그 그림들에 건다.
+                float rs = 1f;
+                if (heroFired && heroAtWall >= 0f && !c.Heroic) rs = Recede(c, (tt - heroAtWall) * 1000f);
+                c.Root.localScale = Vector3.one * s * rs;
                 c.OrbWrap.localScale = Vector3.one * c.BaseScale * (c.Heroic && heroFired ? 1.18f : 1f) * b;
                 c.OrbWrap.anchoredPosition = c.OrbHome + new Vector2(0f, -ty);   // 표의 ty_rem 은 CSS 부호(음수 = 위로)
             }
@@ -880,6 +889,31 @@ namespace Forge.Game.Ui
         /// <summary>화면 킥이 도는 중인가 — 자가 본다.</summary>
         public bool Kicking { get { return kickAt >= 0f; } }
 
+
+        /// <summary>
+        /// 조연 셀 하나의 물러남(정본 `srrecede`) — 배율을 돌려주고 채도·밝기는 그 셀의 그림들에 건다.
+        /// 제 색은 **처음 한 번만** 담는다(매 프레임 담으면 어두워진 색이 새 «제 색» 이 되어 회차마다 더 어두워진다).
+        /// </summary>
+        float Recede(Cell c, double ms)
+        {
+            SummonHeroSpec sp = SummonFxStyle.Hero;
+            double sc, sat, br;
+            sp.RecedeAt(ms, out sc, out sat, out br);
+            if (c.Tint == null)
+            {
+                c.Tint = c.Root.GetComponentsInChildren<Graphic>(true);
+                c.TintHome = new Color[c.Tint.Length];
+                for (int i = 0; i < c.Tint.Length; i++) c.TintHome[i] = c.Tint[i].color;
+            }
+            for (int i = 0; i < c.Tint.Length; i++)
+            {
+                if (c.Tint[i] == null) continue;
+                Color h = c.TintHome[i];
+                c.Tint[i].color = Brighten(h, (float)br, (float)sat, h.a);
+            }
+            return (float)sc;
+        }
+
         void FireHero()
         {
             if (heroFired) return;
@@ -902,6 +936,7 @@ namespace Forge.Game.Ui
             }
             // 정본 5675: 화면 킥은 **홀드백 여부와 무관하게** `.hero` 에 건다 — 섬광이든 와이프든 판은 똑같이 흔들린다.
             kickAt = Time.unscaledTime;
+            heroAtWall = kickAt;
             var g = PetSkillHost.SfxGacha;
             if (g != null) g(best);
         }

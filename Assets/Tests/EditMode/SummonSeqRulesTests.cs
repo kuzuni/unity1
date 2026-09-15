@@ -318,6 +318,42 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 조연은_물러났다_머물다_돌아온다()
+        {
+            // 정본 주석: «나머지를 물리고(후퇴) … «다른 사건» 으로 만든다». 18~58% 가 평지라 물러난 채로 머문다.
+            SummonHeroSpec s = S();
+            double sc0, sa0, br0, sc1, sa1, br1, sc2, sa2, br2, sc3, sa3, br3;
+            s.RecedeAt(0, out sc0, out sa0, out br0);
+            s.RecedeAt(s.RecedeMs * 0.30, out sc1, out sa1, out br1);
+            s.RecedeAt(s.RecedeMs * 0.50, out sc2, out sa2, out br2);
+            s.RecedeAt(s.RecedeMs, out sc3, out sa3, out br3);
+            Assert.AreEqual(1.0, sc0, 1e-9, "시작은 제자리");
+            Assert.Less(sc1, 1.0, "물러난다");
+            Assert.Less(br1, 1.0, "어두워진다");
+            Assert.Less(sa1, 1.0, "채도도 빠진다");
+            Assert.AreEqual(sc1, sc2, 1e-9, "18~58% 는 평지 — 물러난 채로 머문다");
+            Assert.AreEqual(1.0, sc3, 1e-9, "끝나면 제자리");
+            Assert.AreEqual(1.0, br3, 1e-9);
+            Assert.AreEqual(1.0, sa3, 1e-9);
+            Assert.IsTrue(s.Receding(s.RecedeMs - 1));
+            Assert.IsFalse(s.Receding(s.RecedeMs));
+        }
+
+        [Test]
+        public void 물러난_채_굳는_표는_거부한다()
+        {
+            // 마지막 키가 1/1/1 이 아니면 결과 화면이 어두운 채로 굳는다.
+            char q = '"';
+            string bad = "{" + q + "hero" + q + ":{" + q + "shake_ms" + q + ":440," + q + "shake_ease" + q + ":[0.2,0.9,0.3,1],"
+                + q + "srshakehit" + q + ":[{" + q + "at" + q + ":0," + q + "tx_pct" + q + ":0," + q + "ty_pct" + q + ":0," + q + "scale" + q + ":1},"
+                + "{" + q + "at" + q + ":100," + q + "tx_pct" + q + ":0," + q + "ty_pct" + q + ":0," + q + "scale" + q + ":1}],"
+                + q + "recede_ms" + q + ":680," + q + "recede_ease" + q + ":[0.3,0.85,0.35,1],"
+                + q + "srrecede" + q + ":[{" + q + "at" + q + ":0," + q + "scale" + q + ":1," + q + "sat" + q + ":1," + q + "bright" + q + ":1},"
+                + "{" + q + "at" + q + ":100," + q + "scale" + q + ":0.9," + q + "sat" + q + ":1," + q + "bright" + q + ":1}]}}";
+            Assert.Throws<System.FormatException>(() => SummonHeroSpec.From(MiniJson.ParseObject(bad)));
+        }
+
+        [Test]
         public void 제자리로_안_돌아오는_표는_거부한다()
         {
             // 마지막 키가 0 이 아니면 판이 튄 채로 남는다 — 표에서 막는다.
