@@ -48,6 +48,14 @@ TABLE = {
     '.skill-btn.auto': ['Ui/SkillBar.cs|res:PetSkillUi:sb_auto_bg'],                          # 정본 624 #2f3a33 ↔ PetSkillUi sb_auto_bg 같은 값(이미 맞다)
     '.skill-btn.auto.on': ['Ui/SkillBar.cs|res:PetSkillUi:sb_auto_on_bg'],                    # 정본 629 #2e7d32 ↔ sb_auto_on_bg 같은 값(이미 맞다)
     # T377 5회차 — 파일이 열린 자리 둘. 둘 다 **이미 제 값**이라 자가 지키기만 한다(값이 바뀌면 여기서 빨강이 난다).
+    # T377 7회차 — 산 lock 밖 파일(Hud·TabBar·QuestSheet) 의 «못박은 면» 여섯. **여섯 다 이미 제 값**이라
+    #   고칠 코드가 0 이고, 자가 그 값을 지키기만 한다(값이 바뀌면 여기서 빨강이 난다 · 6회차와 같은 꼴).
+    '#topbar': ['Ui/Hud.cs@Build|catalog:topbar_bg'],                       # 정본 50 #1c2128(7900 의 같은 선택자는 `background-image` 만 얹는다 — 면 색은 여기가 정본이다)
+    '.profile-card': ['Ui/Hud.cs@Build|catalog:card_bg'],                   # 정본 90 #22272e
+    '.currency-pills .pill': ['Ui/Hud.cs@Pill|catalog:card_bg'],            # 정본 114 #22272e(같은 값이지만 정본이 따로 적은 자리다)
+    '.pip.boss.now': ['Ui/Hud.cs@SetWaves|catalog:pip_boss'],               # 정본 196 #ff5252
+    '#tabbar': ['Ui/TabBar.cs|catalog:tabbar_bg'],                          # 정본 1693 #0e111b(주석에 원본 실측 rgb(14,17,27) 이 적혀 있다)
+    '.qst-row.done': ['Ui/QuestSheet.cs|catalog:quest_done_bg'],            # 정본 2030 #f2fff2
     '.dgd-btn.silver': ['Ui/DungeonPopups.cs|catalog:dgd_btn'],         # 정본 5356 #a3a3a3(원본 픽셀 실측 주석) ↔ catalog dgd_btn
     '.rw-pop': ['Ui/RewardBurst.cs|res:RewardBurstUi:pop'],             # 정본 7511 #ffd54f(도착 마침표 별) ↔ RewardBurstUi colors.pop
     # T377 6회차 — 펫 업그레이드 팝업 다섯(파일이 열렸다). 다섯 다 곁 표 PetSkillUi 가 정본 리터럴을 그대로 쥐고 있어 «지키는 자» 만 붙인다.
@@ -213,6 +221,24 @@ def covers_of(sel, decls_all):
     return out
 
 
+def later_same(sel, line, decls_all):
+    """**같은 선택자**가 더 뒤에서 그 속성을 다시 세우는가 → [(선택자, 줄, 값)] · 없으면 빈 목록 (T377 7회차).
+
+    `covers_of` 는 «조상이 더 붙은 같은 꼬리»(구체성 계단)만 본다. 그런데 정본은 같은 선택자를
+    **파일 뒤에서 한 번 더** 적어 갈아끼우는 자리가 많다(화풍 갈래를 파일 끝에 몰아 둔 8000번대 · 시트 스코프 3500번대).
+    구체성이 같으면 **소스 차례로 뒤엣것이 이긴다** — 그러면 앞의 리터럴은 **한 번도 안 그려진다**.
+    실측: `.subtab-strip button.active` 654 `#1f4a2c`(초록)는 3585·3612 의 `var(--pp-blue)` 가 덮어 **파랑으로 선다**
+    (클론이 파란 것이 맞다 · T178 17회차가 그 자리 화소를 쟀다). `pinned_decls` 는 **리터럴만** 걷으므로
+    뒤가 토큰이면 덮임을 못 본다 — 그래서 값과 상관없이 세는 `all_decls` 로 다시 본다.
+    ⚠ «조상 덮개»(`covers_of`)와 달리 이쪽은 **조건 없이** 이긴다(같은 선택자라 서는 자리가 같다).
+    """
+    out = []
+    for other, oline, val in decls_all or []:
+        if other == sel and oline > line:
+            out.append((other, oline, val))
+    return out
+
+
 def pinned_faces(css_text):
     """«못박은 면 색»(T377) — `background`/`background-color` 리터럴."""
     return pinned_decls(css_text, FACE_PROPS)
@@ -334,17 +360,24 @@ def _judge(kind, table, known, decls, game, catalog, resdir, bad, list_all, out,
         else:
             bad.append('KNOWN 의 «%s» 가 정본 %s 목록에 없다 — 줄을 지워라' % (sel, kind))
     undecided = [s for s in decls if s not in table and s not in known]
-    covered = 0
+    covered = dead = 0
     for s in undecided:
-        cv = covers_of(s, decls_all or [])
-        if cv:
+        # 둘을 가른다 — **같은 선택자가 뒤에 다시**(조건 없이 이긴다 · 그 리터럴은 한 번도 안 그려진다)가 먼저고,
+        # 그 다음이 **조상이 더 붙은 같은 꼬리**(그 조상 안에서만 이긴다) — T377 7회차.
+        lt = later_same(s, decls[s][0], decls_all or [])
+        cv = [] if lt else covers_of(s, decls_all or [])
+        if lt:
+            dead += 1
+        elif cv:
             covered += 1
         if list_all:
-            if cv:
+            if lt:
+                out('  죽음 %s %5d %-52s %s  ← 같은 선택자가 %d 에 다시: %s' % (kind[:2], decls[s][0], s[:52], decls[s][1], lt[-1][1], lt[-1][2][:26]))
+            elif cv:
                 out('  덮개 %s %5d %-52s %s  ← %s(%d) %s' % (kind[:2], decls[s][0], s[:52], decls[s][1], cv[0][0][:44], cv[0][1], cv[0][2][:22]))
             else:
                 out('  미정 %s %5d %-52s %s' % (kind[:2], decls[s][0], s[:52], decls[s][1]))
-    return ok_n, known_n, len(undecided), covered
+    return ok_n, known_n, len(undecided), covered, dead
 
 
 def run(css_path, game, catalog, resdir, list_all=False, out=print):
@@ -359,7 +392,7 @@ def run(css_path, game, catalog, resdir, list_all=False, out=print):
     bad = []
     ink_all = all_decls(css_text, INK_PROPS)
     face_all = all_decls(css_text, FACE_PROPS)
-    ink_ok, ink_known, ink_undec, ink_cov = _judge('잉크 색', TABLE_INK, KNOWN_INK, inks, game, catalog, resdir, bad, list_all, out, ink_all)
+    ink_ok, ink_known, ink_undec, ink_cov, ink_dead = _judge('잉크 색', TABLE_INK, KNOWN_INK, inks, game, catalog, resdir, bad, list_all, out, ink_all)
     ok_n, known_n = 0, 0
     for sel, sites in TABLE.items():
         if sel not in faces:
@@ -386,13 +419,18 @@ def run(css_path, game, catalog, resdir, list_all=False, out=print):
         else:
             bad.append('KNOWN 의 «%s» 가 정본 목록에 없다 — 줄을 지워라' % sel)
     undecided = [s for s in faces if s not in TABLE and s not in KNOWN]
-    face_cov = 0
+    face_cov = face_dead = 0
     for s in undecided:
-        cv = covers_of(s, face_all)
-        if cv:
+        lt = later_same(s, faces[s][0], face_all)          # T377 7회차 — 같은 선택자가 뒤에 다시 서면 앞 리터럴은 죽는다
+        cv = [] if lt else covers_of(s, face_all)
+        if lt:
+            face_dead += 1
+        elif cv:
             face_cov += 1
         if list_all:
-            if cv:
+            if lt:
+                out('  죽음 면 %5d %-52s %s  ← 같은 선택자가 %d 에 다시: %s' % (faces[s][0], s[:52], faces[s][1], lt[-1][1], lt[-1][2][:26]))
+            elif cv:
                 out('  덮개 면 %5d %-52s %s  ← %s(%d) %s' % (faces[s][0], s[:52], faces[s][1], cv[0][0][:44], cv[0][1], cv[0][2][:22]))
             else:
                 out('  미정 면 %5d %-52s %s' % (faces[s][0], s[:52], faces[s][1]))
@@ -401,10 +439,11 @@ def run(css_path, game, catalog, resdir, list_all=False, out=print):
         for b in bad:
             out('  · ' + b)
         return 1
-    out('✓ check_pinned_colors: 정본 «못박은 면 색» %d 선택자 · 자리 초록 %d · KNOWN %d · 미정 %d(그중 **덮개 있음 %d**)'
-        ' ‖ «못박은 잉크 색» %d 선택자(색 %d) · 자리 초록 %d · KNOWN %d · 미정 %d(그중 **덮개 있음 %d**)  (--list)'
-        % (len(faces), ok_n, known_n, len(undecided), face_cov,
-           len(inks), len(set(v[1] for v in inks.values())), ink_ok, ink_known, ink_undec, ink_cov))
+    out('✓ check_pinned_colors: 정본 «못박은 면 색» %d 선택자 · 자리 초록 %d · KNOWN %d · 미정 %d'
+        '(그중 **죽음 %d** · 덮개 있음 %d)'
+        ' ‖ «못박은 잉크 색» %d 선택자(색 %d) · 자리 초록 %d · KNOWN %d · 미정 %d(그중 **죽음 %d** · 덮개 있음 %d)  (--list)'
+        % (len(faces), ok_n, known_n, len(undecided), face_dead, face_cov,
+           len(inks), len(set(v[1] for v in inks.values())), ink_ok, ink_known, ink_undec, ink_dead, ink_cov))
     return 0
 
 
@@ -520,7 +559,32 @@ def self_test():
     _judge('잉크 색', {}, {}, pinned_inks(cov_css), '', '', '', [], True, lines2.append, all_ink)
     eq('ⓢ --list 가 덮개를 따로 적는다', any(l.startswith('  덮개') and '.chip small' in l for l in lines2), True)
     eq('ⓣ 덮개 없는 자리는 그대로 «미정»', any(l.startswith('  미정') and '.lonely' in l for l in lines2), True)
-    n = 32   # T377 14 + T396 잉크 갈래 6 + 키프레임 단계 막이 4 + 6회차 덮개 갈래 8
+    # ── T377 7회차 — «같은 선택자가 뒤에 다시»(소스 차례로 뒤가 이긴다 · 앞 리터럴은 한 번도 안 그려진다)
+    dead_css = '''
+.subtab-strip button.active { background: #1f4a2c; color: #7ee2a8; }
+.subtab-strip button.active { background: var(--pp-blue); color: #fff; }
+.only-once { background: #123456; }
+.later-other { background: #654321; }
+.deep .later-other { background: #abcdef; }
+'''
+    dead_all = all_decls(dead_css, FACE_PROPS)
+    eq('ⓤ 같은 선택자가 뒤에 다시 서면 앞 리터럴은 죽는다',
+       [(c[1], c[2]) for c in later_same('.subtab-strip button.active', 1, dead_all)], [(2, 'var(--pp-blue)')])
+    eq('ⓥ 뒤가 토큰이어도 덮는다(리터럴만 걷는 pinned_decls 로는 못 본다)',
+       '.subtab-strip button.active' in pinned_faces(dead_css), True)
+    eq('ⓦ 한 번만 선 선택자는 안 죽는다', later_same('.only-once', 3, dead_all), [])
+    eq('ⓧ **앞**에 있는 같은 선택자는 덮개가 아니다(줄 차례를 본다)',
+       later_same('.subtab-strip button.active', 2, dead_all), [])
+    eq('ⓨ 조상이 더 붙은 것은 «같은 선택자» 가 아니다(그쪽은 covers_of 몫)',
+       later_same('.later-other', 4, dead_all), [])
+    lines3 = []
+    _judge('면 색', {}, {}, pinned_faces(dead_css), '', '', '', [], True, lines3.append, dead_all)
+    eq('ⓩ --list 가 죽은 자리를 «죽음» 으로 따로 적는다',
+       any(l.startswith('  죽음') and '.subtab-strip button.active' in l for l in lines3), True)
+    eq('ⓐⓐ 죽은 자리는 «덮개» 로도 «미정» 으로도 안 적힌다',
+       any(('.subtab-strip button.active' in l) and (l.startswith('  덮개') or l.startswith('  미정')) for l in lines3), False)
+
+    n = 39   # T377 14 + T396 잉크 갈래 6 + 키프레임 단계 막이 4 + 6회차 덮개 갈래 8 + 7회차 «같은 선택자가 뒤에 다시» 7
     if fails:
         print('✗ check_pinned_colors --self-test 실패 %d' % len(fails))
         for f in fails:

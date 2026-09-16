@@ -215,7 +215,7 @@ jobs:
         run: python3 tools/check_border_radius.py --css .wwwww-src/web/css/style.css
       # T377 — 정본 style.css 8692 가 «전역 --pp-red 는 안 건드린다 · 버튼 규칙에만 리터럴» 이라고 까닭까지 적어 둔 자리.
       #        토큰으로 뭉개면 화면마다 다른 빨강이 한 색이 된다(정본이 제 손으로 한 번 고친 실수를 이식이 다시 밟았다).
-      - name: 못박은 면 색 자 자기 검사 (T377 `check_pinned_colors.py` · 고장 주입 14칸)
+      - name: 못박은 면·잉크 색 자 자기 검사 (T377 `check_pinned_colors.py` · 39칸)
         run: python3 tools/check_pinned_colors.py --self-test
       - name: 정본이 선택자에만 못박은 면 색 ↔ 클론 — 막는다 (T377 · 전역 토큰은 안 건드린다 · 표에 없는 선택자는 «미정» 으로 세기만 한다)
         run: python3 tools/check_pinned_colors.py --css .wwwww-src/web/css/style.css
