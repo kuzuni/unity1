@@ -70,12 +70,18 @@ namespace Forge.Tests.PlayMode
             float rem = PopupKit.Rem;
             float pull = CraftStyle.Px("cmp_lower_pull_rem");
             VerticalLayoutGroup cardLg = card.GetComponent<VerticalLayoutGroup>();
-            // 내용 폭은 코드와 같은 셈(float)으로 낸다 — 층 패딩은 RectOffset(int) 라 반올림 몫(런 985 실측 0.65px)이 ±0.6 자를 넘긴다(2회차).
+            // 코드가 `cur`·`lower` 에 건네는 폭의 셈 그대로(float) — 층 패딩이 RectOffset(int) 라 아래 `contentW` 와 반올림 몫만큼 갈린다(2·3회차가 좇던 그 몫).
             float inner = CraftStyle.Px("card_w") - (UiKit.H("card_pad") + rem * 0.5f) * 2f;
-            Assert.AreEqual(card.rect.width - cardLg.padding.left - cardLg.padding.right, inner, 1.0f, "층 패딩(int)으로 센 내용 폭과 반올림 몫 안에서 같다");
+            // 층이 실제로 아이를 눕히는 폭 — 패딩이 RectOffset(int) 라 위 float 셈과 반올림 몫만큼 갈린다(런 999 실측 0.653px = 한쪽 0.327).
+            float contentW = card.rect.width - cardLg.padding.left - cardLg.padding.right;
+            Assert.AreEqual(contentW, inner, 1.0f, "층 패딩(int)으로 센 내용 폭과 반올림 몫 안에서 같다");
             // ① 패널 폭 = 내용 폭 + 당김×2 — «장착됨» 카드(cur)는 내용 폭 그대로(카드 층 패딩은 안 건드린다)
+            //    `lower` 는 LayoutElement.minWidth = panelW 가 내용 폭보다 넓어 그 값을 지킨다 → float 셈으로 잰다.
             Assert.AreEqual(inner + pull * 2f, lower.rect.width, 0.6f, "회색 패널 폭 = 카드 내용 폭 + .85rem×2");
-            Assert.AreEqual(inner, cur.rect.width, 0.6f, "장착됨 카드는 내용 폭 그대로");
+            // 4회차 — `cur` 는 다르다: preferredWidth(=inner)가 내용 폭보다 **좁아** `childForceExpandWidth` 가 내용 폭까지 늘린다.
+            //    곧 이 칸이 재야 할 것은 «float inner» 가 아니라 **층이 눕힌 그 폭**이다(런 999 는 0.653 차로 ±0.6 자를 넘겨 빨갰다 —
+            //    바로 윗줄이 같은 반올림을 1.0 으로 이미 허용하고 있었으니 자가 제 안에서 서로 어긋나 있었다). 자를 느슨하게 푸는 대신 **묻는 것을 바꾼다**.
+            Assert.AreEqual(contentW, cur.rect.width, 0.1f, "장착됨 카드는 층이 눕힌 내용 폭 그대로(카드 층 패딩을 안 건드린다)");
             // ② 실물: 카드 왼끝 → 패널 왼끝 = 카드 좌 패딩 − 당김 · 오른쪽도 같다(카드 층이 가운데 맞춰 반씩)
             float leftGap = X(lower, card, 0) - X(card, card, 0);
             float rightGap = X(card, card, 3) - X(lower, card, 3);
