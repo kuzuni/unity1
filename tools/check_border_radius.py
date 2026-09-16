@@ -65,6 +65,14 @@ TABLE = {
     '.tech-branch-card': ['Ui/TechPanel.cs$tb_card_r_rem@catalog.json'],
     '.tech-tier-tag': ['Ui/TechPanel.cs$tt_tag_r_rem@catalog.json'],
     '.tech-prog, .modal-card .tech-prog': ['Ui/TechPopups.cs$tech_prog_r_rem@catalog.json'],
+    # T345 17회차 — 웨이브 핍(정본 50% = 원) · 웹 스크롤바 손잡이 둘(클론에 그 조각이 없다)
+    #   ⚠ 핍은 `@Fallback` 으로 걸어도 **고장 주입이 안 걸린다** — 그 메서드가 미리보기 판(`preview_r_rem`)·테 때문에 이미 반지름 증거를 쥐고 있어
+    #     핍만 네모로 바꿔도 초록이 유지된다(17회차 실측). 자가 못 가르는 자리는 «초록» 이라 부르지 않고 **눈으로 확인한 ✓** 로 적는다.
+    '.pinfo-preview .pip': '✓정본 3189 `.pinfo-preview .pip { border-radius: 50% }` — 클론 `PlayerInfoPopup` 266 이 `UiKit.Circle` 로 찍는다(17회차 눈으로 확인 · 자로는 못 가른다)',
+    #   정본은 `::-webkit-scrollbar-thumb` 로 **브라우저 스크롤바**를 꾸민다. 클론의 목록은 `Popups.ScrollList`(RectMask2D + ScrollRect · 손잡이 오브젝트 0)라
+    #   꾸밀 조각 자체가 없다 — «자리 없음» 이 아니라 **해당 없음**이다(T345 17회차 · 20회차의 «죽은 CSS» 와 같은 칸에 센다).
+    '.panel::-webkit-scrollbar-thumb': '—웹 스크롤바 손잡이(클론은 ScrollRect 라 손잡이 조각이 없다)',
+    '.pinfo-subs-list::-webkit-scrollbar-thumb': '—같은 갈래(웹 스크롤바 손잡이)',
     # T345 16회차 — 아바타 둘(리터럴 → 표) · 미리보기 판(곁 표 키 이름을 규약대로)
     '.pinfo-id .avatar': ['Ui/PlayerInfoPopup.cs$pinfo_avatar_r_rem'],
     '.chat-avatar': ['Ui/ChatScreen.cs$chat_avatar_r_rem'],
