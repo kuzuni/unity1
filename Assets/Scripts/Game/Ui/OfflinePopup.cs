@@ -59,8 +59,8 @@ namespace Forge.Game.Ui
             // 글자 하한(60/36px)이 정본 rem 글자보다 커서 정본 여백(1.65rem)을 그대로 두면 행이 판 밖으로 15px 넘친다(CI 런 113) — 판 안에 붙인다
             y = Mathf.Min(y, topH - rateH - rem * 0.5f);
             float rx = (inner - (rateW * 2f + gap)) * 0.5f;
-            Rate(top, "coin", "coin", "coin", PopupKit.FmtDec(o.CoinRate) + "/초", rx, y, rateW, circle, lineH);
-            Rate(top, "hammer", "hammer", GreenKey, PopupKit.FmtDec(o.HammerRate) + "/분", rx + rateW + gap, y, rateW, circle, lineH);
+            Rate(top, "coin", "coin", PopupKit.FmtDec(o.CoinRate) + "/초", rx, y, rateW, circle, lineH);
+            Rate(top, "hammer", "hammer", PopupKit.FmtDec(o.HammerRate) + "/분", rx + rateW + gap, y, rateW, circle, lineH);
 
             RectTransform bottom = UiKit.Box(card, "bottom");
             float bottomH = cardH - topH - PopupKit.Line3 * 2f;
@@ -118,17 +118,18 @@ namespace Forge.Game.Ui
         public const float BottomPadTopRem = 1.1f, BottomPadBottomRem = 1.3f, BottomGapRem = 1.79f;
 
         /// <summary>정본 `.offline-rate`(flex column · align center · gap .3rem): 원형 아이콘 2.6rem **위**, 초록 글자 **아래**.</summary>
-        private static void Rate(Transform parent, string name, string icon, string circleKey, string text, float x, float y, float w, float circleD, float lineH)
+        private static void Rate(Transform parent, string name, string icon, string text, float x, float y, float w, float circleD, float lineH)
         {
             RectTransform box = UiKit.Box(parent, name);
             UiKit.Place(box, x, y, w, circleD + PopupKit.Rem * 0.3f + lineH);
             RectTransform circle = UiKit.Box(box, "circle");
             UiKit.Place(circle, (w - circleD) * 0.5f, 0f, circleD, circleD);
-            UiKit.Circle(circle, "line", "pp_line");
-            Image face = UiKit.Circle(circle, "face", circleKey);
-            PopupKit.Inset(face.rectTransform, UiKit.L("line2_px"));
+            // T417 — 정본 style.css 는 이 배지를 두 번 말하고 **뒤엣것이 이긴다**: 앞 272~277 이 `border: ol2 solid #000` 과 `.coin { #ffb300 }`·`.hammer { pp-green }`
+            // 색 원을 주지만 파일 끝 7268~7269(최종값)가 `background: none; border: none` 으로 끄고 `.ico { width/height: 100% }` 로 아이콘이 칸을 꽉 채운다
+            // (7262 주석 «아이콘 자체가 금속·보석 재질을 가지므로 배지 색·테두리를 빼고 꽉 채운다»). 클론은 앞 규칙에서 멈춰 line·face 두 원 + 인셋 20% 였다(런 872 —
+            // 코인 금테가 주황 면에 먹히고 정본엔 없는 초록 원이 해머 뒤에 섰다). 배지 칸(2.6rem)과 글줄 간격은 정본 272~274 그대로다.
             Image ico = PopupKit.IconOr(circle, "ico", icon);
-            PopupKit.Inset(ico.rectTransform, circleD * 0.2f);
+            PopupKit.Inset(ico.rectTransform, 0f);
             TextMeshProUGUI t = UiKit.Text(box, "text", TextKind.Sub, text, GreenKey, TextAlignmentOptions.Center);
             t.fontStyle = FontStyles.Bold;
             UiKit.Place(t.rectTransform, 0f, circleD + PopupKit.Rem * 0.3f, w, lineH);

@@ -156,5 +156,31 @@ namespace Forge.Tests.PlayMode
             log.AssertNoRed();
             log.Dispose();
         }
+        /// <summary>T417 — 정본 7268~7269(파일 끝 · 최종값) `.offline-rate-icon.coin, .hammer { background: none; border: none }` · `.ico { width/height: 100% }`:
+        /// 요율 배지에 면·테 원이 없고 아이콘이 배지 칸을 꽉 채운다(전엔 line·face 두 원 + 인셋 20% · 런 872 코인 금테가 먹히고 초록 원이 해머 뒤에 섰다).</summary>
+        [UnityTest]
+        public IEnumerator 요율_배지는_정본_최종값대로_색_원이_없고_아이콘이_칸을_꽉_채운다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            OfflinePopup.Show(h, new OfflineReward { Elapsed = 5000, Counted = 3600, Coins = 8870, Hammers = 149.05, CoinRate = 1.13, HammerRate = 1.14 });
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            foreach (string name in new[] { "coin", "hammer" })
+            {
+                RectTransform circle = FindUnder(Find(name), "circle");
+                int rings = 0;
+                foreach (Image im in circle.GetComponentsInChildren<Image>(true))
+                    if (im.name == "line" || im.name == "face") rings++;
+                Assert.AreEqual(0, rings, name + " — 정본 7268 이 끈 면·테 원이 클론에 남아 있다");
+                RectTransform ico = FindUnder(circle, "ico");
+                Assert.AreEqual(Vector2.zero, ico.offsetMin, name + " — 아이콘 인셋 0(정본 .ico 100%)");
+                Assert.AreEqual(Vector2.zero, ico.offsetMax, name + " — 아이콘 인셋 0(정본 .ico 100%)");
+                Assert.AreEqual(circle.rect.width, ico.rect.width, 0.01f, name + " — 아이콘 사각 = 배지 사각(2.6rem)");
+                Assert.AreEqual(circle.rect.height, ico.rect.height, 0.01f, name + " — 아이콘 사각 = 배지 사각(2.6rem)");
+            }
+            h.Popups.Hide(OfflinePopup.Name);
+            yield return null;
+        }
     }
 }
