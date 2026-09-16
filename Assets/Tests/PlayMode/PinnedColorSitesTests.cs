@@ -226,5 +226,30 @@ namespace Forge.Tests.PlayMode
             Assert.Less(want.b, UiKit.C("coin").b, "«한 단계 주황» 이 이 자리의 뜻이다 — 파랑이 격자 별보다 낮다");
             h.Meta.Popups.HideAll();   // 이웃 자들과 같은 길(AgePatternTests 247·282·364)
         }
+
+        /// <summary>T396 9회차 — 대장간 시트 «남은 시간». 정본 **3635** `#equip-sheet .forge-time { color: #6d6a63 }` 은
+        /// 공용 잉크가 아니라 **그 시트에서만** 쓰는 값이다 — 전역 `ink`(#eceff1)는 **어두운 판 위** 값이라
+        /// 밝은 종이 시트 위에서는 글자가 바탕에 묻는다. 표값이 정본과 같은지는 `check_pinned_colors` 가 본다.</summary>
+        [UnityTest]
+        public IEnumerator 대장간_시트_남은_시간은_밝은_종이_위라_공용_흰_잉크가_아니다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.Forge.UpgradeEndsAt = SaveIo.NowMs() + 60 * 60e3;   // 진행 중(BrLinesTests 420 의 길)
+            Assert.IsTrue(h.Upgrading, "업그레이드 진행 중 상태");
+            ForgeSheet.Render(h);
+            yield return null;
+            Transform t = FindDeep(UiRoot.Instance.Sheet, "equip-upg-time");
+            Assert.IsNotNull(t, "남은 시간 글자(equip-upg-time) — 업그레이드 중이라 선다");
+            TMPro.TextMeshProUGUI tt = t.GetComponent<TMPro.TextMeshProUGUI>();
+            Color want = PinnedColorUi.C("forge_time_ink");
+            Assert.AreEqual(want, tt.color, "남은 시간 = 표 forge_time_ink(정본 3635 #6d6a63)");
+            Assert.AreNotEqual(UiKit.C("ink"), tt.color, "전역 ink(#eceff1)가 아니다 — 그것은 어두운 판 위 값이다");
+            Assert.Less(want.r + want.g + want.b, UiKit.C("ink").r + UiKit.C("ink").g + UiKit.C("ink").b,
+                "«밝은 종이 위라 어두워야 한다» 가 이 자리의 뜻이다 — 표값이 공용 잉크만큼 밝아지면 이 줄이 먼저 깨진다");
+            h.Forge.UpgradeEndsAt = null;
+            ForgeSheet.Render(h);
+            yield return null;
+        }
     }
 }

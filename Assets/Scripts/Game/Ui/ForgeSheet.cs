@@ -136,6 +136,9 @@ namespace Forge.Game.Ui
             if (h.Upgrading)
             {
                 upgText = UiKit.Text(right, "equip-upg-time", TextKind.Sub, RemainText(h), "ink");
+                // T396 9회차 — 정본 **3635** `#equip-sheet .forge-time { color: #6d6a63 }`. 전역 `ink`(#eceff1)는 **어두운 판 위** 값이라
+                //   밝은 종이 시트 위에서는 글자가 바탕에 묻는다 — 정본이 이 한 줄을 `#equip-sheet` 로 좁혀 못박은 까닭이 그것이다.
+                upgText.color = PinnedColorUi.C("forge_time_ink");
                 upgText.fontStyle = FontStyles.Bold;
                 UiKit.Place(upgText.rectTransform, 0f, btnH + rem * 0.25f, W - padX * 2f - rx, PopupKit.FontSize(TextKind.Sub) * 1.3f);
             }

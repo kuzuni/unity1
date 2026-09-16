@@ -114,6 +114,11 @@ TABLE_INK = {
     '.ob-zzz i': ['Ui/OfflineButton.cs|res:OfflineButtonUi:zzz_ink'],                            # 정본 227 #eaf6ff ↔ OfflineButtonUi zzz_ink
     '.skill-btn.auto': ['Ui/SkillBar.cs|res:PetSkillUi:sb_auto_ink'],                            # 정본 624 #90a4ae ↔ PetSkillUi sb_auto_ink(켜짐은 white + 키라인 · 629)
     '.equip-cell .cell-star': ['Ui/ForgeUi.cs@StarBadge|catalog:coin'],                          # 정본 953 #ffd54f ↔ 카탈로그 coin 같은 값
+    # T396 9회차 — 하나는 이미 제 값이고, 하나는 «공용 잉크를 밝은 판 위에» 쓰고 있었다.
+    '#forge-item-modal .idet-subs .substat-row': ['Ui/ForgeInfoPopup.cs|catalog:idet_row_ink'],   # 정본 3731 #3a3a3a ↔ 카탈로그 idet_row_ink 같은 값(자리가 이미 그 키를 쓴다)
+    # 대장간 시트 «남은 시간» — 정본 3635 가 `#equip-sheet` 로 좁혀 #6d6a63 으로 못박았다.
+    # 클론은 전역 ink(#eceff1 · 어두운 판 위 값)로 찍어 밝은 종이 시트에서 글자가 바탕에 묻었다.
+    '#equip-sheet .forge-time': ['Ui/ForgeSheet.cs|res:PinnedColorUi:forge_time_ink'],
     # T396 8회차 — 하나는 이미 제 값이고, 하나는 «같은 그림 다른 색» 이었다.
     '.settings-act.danger': ['Ui/ProfilePopup.cs|catalog:settings_act_danger'],   # 정본 3125 #d33 ↔ 카탈로그 settings_act_danger #dd3333 같은 값(자리가 이미 그 키를 쓴다)
     # 장비 **목록** 타일의 승천 별 — 정본 784 #ff8801(주황). 격자 칸 `.equip-cell .cell-star`(953)는 #ffd54f 라 전역 coin 이 맞다(위 5회차 줄).
