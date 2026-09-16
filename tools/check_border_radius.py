@@ -37,6 +37,17 @@ TABLE_DEFAULT = os.path.join('Assets', 'Forge', 'Resources', 'RadiusUi.json')
 # ── 정본 선택자 ↔ 클론 자리 ──────────────────────────────────────────────────────────────
 TABLE = {
     # 어긋난 리터럴 열 자리(20회차 ⓡ) — 표로 옮긴다(T345 ⓑ · 각 파일의 산 lock 뒤)
+    # ── T415 2회차(2026-09-16 · 워커 J) — 스킬 화면(`SkillPanel.cs` 가 표 키를 이미 부르던 자리) ──
+    #    ⚠ 이 갈래는 **자 파일만 고친다** — 짝을 적는 일이라 그 화면 파일을 안 연다(산 lock 과 무관).
+    '.passive-banner': ['Ui/SkillPanel.cs$passive_r_rem@PetSkillUi.json'],
+    '.sk-shard': ['Ui/SkillPanel.cs$sk_shard_r_rem@PetSkillUi.json'],
+    '.equipped-row': ['Ui/SkillPanel.cs$equipped_r_rem@PetSkillUi.json'],
+    '.summon-gauge': ['Ui/SkillPanel.cs$gauge_r_rem@PetSkillUi.json'],
+    '.skd-passive': ['Ui/SkillPanel.cs$skd_passive_r_rem@PetSkillUi.json'],
+    # 표는 정본 1rem 을 그대로 쥐고, 그 값을 «알약» 으로 바꿔 쓰는 것은 호출부다
+    # (`SkillPanel.cs:371` `x5_r_rem * 0.5f + h * 0.25f` — 정본 1rem 이 1.35rem 높이 버튼에서 알약으로 읽히는 자리).
+    '.summon-bar .btn.x5-toggle': ['Ui/SkillPanel.cs$x5_r_rem@PetSkillUi.json'],
+    '#panel-skills .sk-grid .sk-lv': u'✓정본이 `border-radius: 0` 으로 **알약을 걷는다**(그 줄 머리말: «검정 알약 없이 오브 면 위에 얹힌 흰 칠 + 두꺼운 검정 링») — 클론 `SkillPanel.cs:233` 도 `PetSkillKit.Stroked` 민글자라 두르는 데가 없다',
     # ── T415 1회차(2026-09-16 · 워커 J) — 산 lock 밖 화면 넷의 짝을 걸었다 ──
     # 소환 시트 서브탭(정본은 «실버 패널 + 그 안 검은 알약 + 세그먼트» 3층이다)
     '.subtab-strip button': '—언제나 3605 `#summon-subtabs.subtab-strip button`(.42rem)이 덮는다 — `.subtab-strip` 은 `index.html` 137 한 곳뿐이고 그 하나가 `id="summon-subtabs"` 다. 650(.5rem)·3582 는 렌더에 못 닿는 값',
