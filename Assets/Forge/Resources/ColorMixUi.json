@@ -34,16 +34,12 @@
   "idet_icon_line": { "mix_f": 0.8, "with": "#000" },
   "_pet_tile_face": "style.css 4262 `.pet-tile .tile-face` background — 정본 주석 «등급색 원색이 아니라 흰색을 섞어 밝힌 색»(클론은 표 `tile_face_mix_f` 로 이미 읽는다)",
   "pet_tile_face": { "mix_f": 0.6, "with": "#fff" },
-  "_pet_tile_shadow": "style.css 4288 `.pet-tile .tile-face` box-shadow — 알파를 만드는 섞기",
-  "pet_tile_shadow": { "mix_f": 0.6, "with": "transparent" },
   "_petd_face": "style.css 5461 `.petd-wrap .petd-tile --petd-face` — 펫 상세 타일 면",
   "petd_face": { "mix_f": 0.6, "with": "#fff" },
   "_petd_line": "style.css 5461 `.petd-wrap .petd-tile` border — 앞 색이 --rc 가 아니라 **바로 위에서 만든 --petd-face** 다(사슬)",
   "petd_line": { "mix_f": 0.4, "with": "#000" },
-  "_cell_shadow_1": "style.css 7730 `.equip-cell:not(.egg-cell)` box-shadow",
-  "cell_shadow_1": { "mix_f": 0.55, "with": "transparent" },
-  "_pet_tile_shadow_2": "style.css 8124 `.pet-tile .tile-face` box-shadow(뒤 규칙)",
+  "_pet_tile_shadow_2": "style.css 8124 `.pet-tile .tile-face` box-shadow — 알파를 만드는 섞기. 정본은 4288 에서도 같은 자리를 말하지만 **뒤(8124)가 이긴다**(값은 둘 다 60%) — 앞 선언 몫이던 `pet_tile_shadow` 는 T371 8회차에 걷었다(정본이 안 그리는 겹을 표가 쥐고 있었다)",
   "pet_tile_shadow_2": { "mix_f": 0.6, "with": "transparent" },
-  "_cell_shadow_2": "style.css 8538 `.equip-cell:not(.egg-cell)` box-shadow(뒤 규칙이 7730 을 덮는다)",
+  "_cell_shadow_2": "style.css 8538 `.equip-cell:not(.egg-cell)` box-shadow — 장비 셀의 시대색 광. 정본 7730 이 같은 자리를 **55%** 로 말하지만 `box-shadow` 는 덮어쓰기라 7730 은 통째로 지고 **62%** 만 그려진다 — 앞 선언 몫이던 `cell_shadow_1` 은 T371 8회차에 걷었다",
   "cell_shadow_2": { "mix_f": 0.62, "with": "transparent" }
 }

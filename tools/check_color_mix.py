@@ -8,6 +8,11 @@
   `Ui/File.cs$키`   그 파일이 `"키"` 를 부른다(표값 = 정본 비율·상대색이어야 한다)
   KNOWN            임자가 정해진 빈자리(남의 산 lock 뒤) — 배선되면 여기서 지운다
 
+**캐스케이드(8회차)**: 같은 (선택자, 속성)에 선언이 여럿이면 화면에 서는 것은 **마지막 것 하나**다
+(`background`·`border`·`box-shadow` 는 전부 «덮어쓰기» 속성이라 앞 선언이 통째로 진다). 그러니 자리도 **하나**다 —
+앞 선언에 표 키를 따로 두면 «정본이 안 그리는 겹» 을 표가 쥐고 있게 되고, 배선하는 사람이 그것을 보고 겹을 하나 더 그린다.
+같은 병을 `tools/check_border_radius.py` 가 14회차에 고쳤다(`.modal-card` 1rem@1752 ↔ 1.1rem@3515 — 뒤가 이긴다).
+
 쓰기: python3 tools/check_color_mix.py [--list] [--self-test]
 """
 import os
@@ -20,7 +25,7 @@ CSS_DEFAULT = os.path.join('.wwwww-src', 'web', 'css', 'style.css')
 GAME_DEFAULT = os.path.join('Assets', 'Scripts', 'Game')
 TABLE_DEFAULT = os.path.join('Assets', 'Forge', 'Resources', 'ColorMixUi.json')
 
-# 정본 선택자+속성 → 클론 자리(파일$표키). 한 선택자에 선언이 둘이면(면·테) 순서대로 적는다.
+# 정본 선택자+속성 → 클론 자리(파일$표키). **한 (선택자, 속성)에 자리는 하나**다 — 선언이 여럿이면 캐스케이드가 마지막만 남긴다(8회차).
 TABLE = {
     ('.equip-cell', 'background'): ['Ui/ForgeUi.cs$cell_face'],
     ('.equip-cell', 'border'): ['Ui/ForgeUi.cs$cell_line'],
@@ -40,20 +45,20 @@ TABLE = {
     ('#forge-item-modal .idet-icon', 'background'): ['Ui/ForgeInfoPopup.cs$idet_icon_face'],
     ('#forge-item-modal .idet-icon', 'border-color'): ['Ui/ForgeInfoPopup.cs$idet_icon_line'],
     ('.pet-tile .tile-face', 'background'): ['Ui/PetPanel.cs$pet_tile_face'],
-    ('.pet-tile .tile-face', 'box-shadow'): ['Ui/PetPanel.cs$pet_tile_shadow', 'Ui/PetPanel.cs$pet_tile_shadow_2'],
+    # 정본이 4288 과 8124 에서 두 번 말한다(값은 둘 다 60%) — **8124 가 이긴다**. 4288 쪽 키(`pet_tile_shadow`)는 8회차에 걷었다.
+    ('.pet-tile .tile-face', 'box-shadow'): ['Ui/PetPanel.cs$pet_tile_shadow_2'],
     ('.petd-wrap .petd-tile', '--petd-face'): ['Ui/PetPanel.cs$petd_face'],
     ('.petd-wrap .petd-tile', 'border'): ['Ui/PetPanel.cs$petd_line'],
-    ('.equip-cell:not(.egg-cell)', 'box-shadow'): ['Ui/ForgeUi.cs$cell_shadow_1', 'Ui/ForgeUi.cs$cell_shadow_2'],
+    # 정본 7730(55%) ↔ 8538(**62%**) — `box-shadow` 는 덮어쓰기라 7730 의 시대색 광은 **안 그려진다**. 8회차에 `cell_shadow_1` 을 걷었다.
+    ('.equip-cell:not(.egg-cell)', 'box-shadow'): ['Ui/ForgeUi.cs$cell_shadow_2'],
 }
 
 # 임자가 정해진 빈자리(자리 → 이유) — 배선될 때마다 지운다. 1회차는 **배선이 0 이라 전부 여기 있다**.
 KNOWN = {
-    'Ui/ForgeUi.cs$cell_shadow_1': 'T371 1회차 — 그림자 두 겹은 T331(box-shadow 축) 과 겹치는 자리다 — 그 lock 뒤',
-    'Ui/ForgeUi.cs$cell_shadow_2': 'T371 1회차 — 같은 자리(뒤 규칙 62%)',
+    'Ui/ForgeUi.cs$cell_shadow_2': 'T371 1회차 — 장비 셀 시대색 광(정본 8538 62% · 7730 의 55% 는 뒤 규칙이 덮어 안 그려진다) · T331(box-shadow 축) lock 뒤',
     'Ui/ForgeInfoPopup.cs$idet_icon_face': 'T371 1회차 — `ForgeInfoPopup.cs` 는 T28·T332 산 lock 뒤',
     'Ui/ForgeInfoPopup.cs$idet_icon_line': 'T371 1회차 — 같은 파일',
-    'Ui/PetPanel.cs$pet_tile_shadow': 'T371 1회차 — 그림자(알파를 만드는 섞기) · T331 축과 겹친다',
-    'Ui/PetPanel.cs$pet_tile_shadow_2': 'T371 1회차 — 같은 자리(뒤 규칙)',
+    'Ui/PetPanel.cs$pet_tile_shadow_2': 'T371 1회차 — 펫 타일 그림자(정본 8124 가 4288 을 덮는다 · 값은 둘 다 60%) · T331 축과 겹친다',
 }
 
 MIX = 'color-mix('
@@ -211,23 +216,32 @@ def run(css_path, game_dir, table_path, table_map, known, out=print, list_pendin
     problems = 0
     green = 0
     pending = []
-    seen = {}
+    # **캐스케이드(8회차)**: 같은 (선택자, 속성)의 선언이 여럿이면 화면에 서는 것은 **마지막 것**이다
+    #   (`background`·`border`·`box-shadow`·사용자 변수 전부 «덮어쓰기» 속성이다 — 앞 선언은 통째로 진다).
+    #   앞 선언까지 견주면 «정본이 안 그리는 겹» 을 표가 쥐게 되고, 배선하는 사람이 그것을 보고 겹을 하나 더 그린다.
+    last = {}
+    for r in rules:
+        last[(r[1], r[2])] = r
+    checked = set()
     for line, sel, prop, _a, frac, other in rules:
         targets = table_map.get((sel, prop))
         if targets is None:
             pending.append((line, sel, prop, frac, other))
             continue
-        # 같은 (선택자, 속성)에 선언이 여럿이면(뒤 규칙이 앞을 덮는 자리) **나온 순서대로** 자리를 집는다.
-        i = seen.get((sel, prop), 0)
-        seen[(sel, prop)] = i + 1
-        target = targets[min(i, len(targets) - 1)]
+        if (sel, prop) in checked:
+            continue
+        checked.add((sel, prop))
+        line, _s, _p, _a, frac, other = last[(sel, prop)]   # 뒤 규칙이 이긴다
+        target = targets[0]
         state, why = check_target(game_dir, target, table, frac, other)
         if state == 'ok':
             green += 1
             continue
-        if target in known:
-            out('· KNOWN(%s)  %s  ← style.css %s %s { %s: … %d%% , %s }  — %s'
-                % ('배선 전' if state == 'missing' else state, target, line, sel, prop, round(frac * 100), other, known[target]))
+        # **KNOWN 은 «배선 전» 만 덮는다(8회차)** — 표값이 정본과 다른 것까지 덮으면 틀린 값이 KNOWN 뒤에 숨고,
+        #   그 lock 이 풀려 배선하는 사람이 **틀린 값을 그대로 그린다**. 같은 가름을 `check_border_radius` 가 18회차에 냈다.
+        if state == 'missing' and target in known:
+            out('· KNOWN(배선 전)  %s  ← style.css %s %s { %s: … %d%% , %s }  — %s'
+                % (target, line, sel, prop, round(frac * 100), other, known[target]))
             continue
         out('✗ %s  %s  ← style.css %s %s { %s } — %s' % (state, target, line, sel, prop, why))
         problems += 1
@@ -277,6 +291,53 @@ def self_test():
     expect('파일이 없으면 missing', check_target(d, 'Ui/None.cs$a_face', tbl, 0.58, '#17181a')[0], 'missing')
     expect('$ 가 없으면 absent', check_target(d, 'Ui/X.cs', tbl, 0.58, '#17181a')[0], 'absent')
     expect('#fff 와 #ffffff 는 같다', check_target(d, 'Ui/X.cs$a_face', {'a_face': {'mix_f': 0.58, 'with': '#FFF'}}, 0.58, '#ffffff')[0], 'ok')
+
+    # ── 캐스케이드(8회차) — 같은 (선택자, 속성) 선언이 둘이면 **뒤 것**만 견준다 ──────────────
+    #   전에는 «나온 순서대로» 자리를 집어, 앞 선언(정본이 안 그리는 겹)에도 표 키를 두어야 초록이었다.
+    css2 = """
+    .c { box-shadow: 0 0 1px color-mix(in srgb, var(--rc) 55%, transparent); }
+    .c { box-shadow: 0 0 1px color-mix(in srgb, var(--rc) 62%, transparent); }
+    """
+    cd = tempfile.mkdtemp()
+    os.makedirs(os.path.join(cd, 'Ui'))
+    with open(os.path.join(cd, 'style.css'), 'w', encoding='utf-8') as f:
+        f.write(css2)
+    with open(os.path.join(cd, 'Ui', 'C.cs'), 'w', encoding='utf-8') as f:
+        f.write('var c = ColorMixUi.Mix("c_shadow", rc);')
+    tp = os.path.join(cd, 'ColorMixUi.json')
+
+    def cascade(mix_f):
+        with open(tp, 'w', encoding='utf-8') as f:
+            json.dump({'c_shadow': {'mix_f': mix_f, 'with': 'transparent'}}, f)
+        lines = []
+        rc = run(os.path.join(cd, 'style.css'), cd, tp,
+                 {('.c', 'box-shadow'): ['Ui/C.cs$c_shadow']}, {}, out=lines.append)
+        return rc, '\n'.join(lines)
+
+    rc62, out62 = cascade(0.62)
+    expect('뒤 선언(62%)이 이긴다 → 초록', rc62, 0)
+    expect('선언 둘이어도 자리는 하나로 센다', '자리 초록 1' in out62, True)
+    rc55, out55 = cascade(0.55)
+    expect('앞 선언(55%)을 쥐면 빨강', rc55, 1)
+    expect('정본 값으로 대는 것은 뒤엣것(0.62)이다', '정본은 0.62' in out55, True)
+    expect('가리키는 줄도 뒤 선언(3줄)이다', 'style.css 3 ' in out55, True)
+
+    # KNOWN 은 «배선 전» 만 덮는다 — 표값이 틀린 것은 KNOWN 이어도 빨강이다(8회차)
+    with open(tp, 'w', encoding='utf-8') as f:
+        json.dump({'c_shadow': {'mix_f': 0.55, 'with': 'transparent'}}, f)
+    lines = []
+    rcK = run(os.path.join(cd, 'style.css'), cd, tp, {('.c', 'box-shadow'): ['Ui/C.cs$c_shadow']},
+              {'Ui/C.cs$c_shadow': '임자'}, out=lines.append)
+    expect('KNOWN 이어도 틀린 표값은 못 덮는다', rcK, 1)
+    with open(os.path.join(cd, 'Ui', 'C.cs'), 'w', encoding='utf-8') as f:
+        f.write('// 아직 안 부른다')
+    with open(tp, 'w', encoding='utf-8') as f:
+        json.dump({'c_shadow': {'mix_f': 0.62, 'with': 'transparent'}}, f)
+    lines = []
+    rcK2 = run(os.path.join(cd, 'style.css'), cd, tp, {('.c', 'box-shadow'): ['Ui/C.cs$c_shadow']},
+               {'Ui/C.cs$c_shadow': '임자'}, out=lines.append)
+    expect('KNOWN 은 «배선 전» 을 덮는다', rcK2, 0)
+    expect('그때는 KNOWN 줄로 알린다', any('KNOWN(배선 전)' in l for l in lines), True)
 
     print('%s check_color_mix --self-test %d칸 %s' % ('✓' if ok[0] == ok[1] else '✗', ok[1], '통과' if ok[0] == ok[1] else '실패'))
     return 0 if ok[0] == ok[1] else 1
