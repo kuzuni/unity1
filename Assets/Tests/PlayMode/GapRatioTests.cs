@@ -129,5 +129,31 @@ namespace Forge.Tests.PlayMode
             h.Meta.Popups.Hide(ForgeInfoPopup.Name);
             yield return null;
         }
+
+        /// <summary>T364 9회차 ⑧ — 상점 특가 카드 사이 틈(정본 2913 `.shop-deals { gap: calc(var(--app-h) * .0091) }`).
+        /// 표 `shop_deal_gap` 이 있는데 부르는 데가 0곳이라 `rem * 0.5` 로 그리던 자리다 — 표를 부르는지 화면에서 잰다.</summary>
+        [UnityTest]
+        public IEnumerator 상점_특가_카드_사이_틈은_표_shop_deal_gap_대로_선다()
+        {
+            yield return Boot();
+            UiRoot.Instance.TabBar.OnTab("shop");
+            yield return null; yield return null;
+            RectTransform list = null;
+            foreach (RectTransform rt in UiRoot.Instance.Sheet.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "list") { list = rt; break; }
+            Assert.IsNotNull(list, "상점 시트의 스크롤 목록(list)");
+            var deals = new System.Collections.Generic.List<RectTransform>();
+            foreach (RectTransform rt in list.GetComponentsInChildren<RectTransform>(true))
+                if (rt.parent == list && rt.name.StartsWith("deal-")) deals.Add(rt);
+            if (deals.Count < 2) Assert.Ignore("이 세이브의 상점에 특가 카드가 둘 미만이다 — 틈을 잴 자리가 없다");
+            deals.Sort((a, b) => World(b).yMax.CompareTo(World(a).yMax));
+            Rect app = World(UiRoot.Instance.App), a0 = World(deals[0]), a1 = World(deals[1]);
+            float gap = (a0.yMin - a1.yMax) / app.height;
+            Assert.AreEqual(0.0091f, gap, 0.002f, "특가 카드 사이 = 앱 높이 × .0091(표 shop_deal_gap) · 실측 " + gap.ToString("0.0000"));
+            // 표를 부르는지: rem*0.5(= 앱높이/844×16의 절반 ≈ .00948H)와 갈라지는 폭이라 ±0.0002 로 좁혀 한 번 더 본다
+            Assert.AreEqual(UiKit.H("shop_deal_gap"), (a0.yMin - a1.yMax), 1.2f, "실측 px = 표 shop_deal_gap × 앱 높이");
+            Debug.Log("[T364] 상점 특가 카드 틈 " + gap.ToString("0.0000") + "H · 표 " + UiKit.H("shop_deal_gap").ToString("0.00") + "px");
+            yield return null;
+        }
     }
 }

@@ -36,7 +36,10 @@ namespace Forge.Game.Ui
 
             RectTransform scrollBox = UiKit.Box(sheet, "scroll");
             UiKit.Band(scrollBox, 0f, UiKit.L("tabbar_top"));
-            RectTransform content = PopupKit.ScrollList(scrollBox, "list", rem * 0.5f, 0f, UiKit.H("sheet_pad_top"));
+            // T364 9회차 — 정본 2913 `.shop-deals { gap: calc(var(--app-h) * .0091) }`. 표 `shop_deal_gap`(0.0091)이 5회차부터 있었는데
+            //   **부르는 데가 0곳**이라 여기서 `rem * 0.5` 로 그렸다(§1 «수치는 코드에 박지 않는다»). 둘 다 앱 높이에 비례해 축은 같고
+            //   값만 9.10px ↔ 8.74px(−4%)로 달랐다 — 큰 차는 아니지만 표가 있는데 코드가 제 수를 쥐고 있던 자리다.
+            RectTransform content = PopupKit.ScrollList(scrollBox, "list", UiKit.H("shop_deal_gap"), 0f, UiKit.H("sheet_pad_top"));
 
             // ---- 머리: 코인 바 · 상점 · 젬 바 ----
             RectTransform head = PopupKit.Item(content, "head", -1f, PopupKit.FontSize(TextKind.Head) * 1.3f);
