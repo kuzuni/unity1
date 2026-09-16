@@ -144,6 +144,50 @@ def last_touch(tid, path):
     return int(out) if out else None
 
 
+RE_SID = re.compile(r'sess-\d{4}-\d+')
+
+
+def task_last_commit(tid):
+    """그 번호로 나간 **마지막 커밋**의 (시각 epoch, SID) · 없거나 SID 를 못 읽으면 (None, None).
+
+    T418 — lock 은 90분에 죽지만 **그 일은 다른 세션으로 이어지고 있을 수 있다** — 그것을 보려면 이력을 읽어야 한다.
+    """
+    try:
+        out = subprocess.check_output(
+            ['git', 'log', '-1', '--format=%ct%x09%s', '-E', '--grep=^' + tid + r'([^0-9]|$)'],
+            cwd=ROOT, stderr=subprocess.DEVNULL).decode().strip()
+    except Exception:
+        return None, None
+    if not out:
+        return None, None
+    ct, _tab, subj = out.partition('\t')
+    m = RE_SID.search(subj)
+    try:
+        return int(ct), (m.group(0) if m else None)
+    except ValueError:
+        return None, None
+
+
+def split_line(tid, lock_sid, commit_sid, commit_age_min):
+    """죽은 lock 줄에 덧붙일 한 줄 · 덧붙일 것이 없으면 None (T418 · 순수 함수).
+
+    세 갈래다 — ⓐ 그 번호가 90분 밖에도 안 움직였으면 조용히(임자가 정말 떠난 것이다)
+    ⓑ 같은 SID 가 90분 안에 움직였으면 «제 세션이 갱신만 잊은 것»
+    ⓒ **다른 SID** 가 90분 안에 움직였으면 «세션 갈림 의심» — 임자가 슬롯을 갈아타면서 새 SID 로 lock 을 안 덮은 꼴이다.
+    판정은 안 바꾼다(rc 0) — «뺏을 수 있다» 는 그대로고, **뺏는 사람이 부딪힐 것을 미리 보게** 한다.
+    """
+    if commit_sid is None or commit_age_min is None or commit_age_min >= DEAD_MIN:
+        return None
+    if commit_sid == lock_sid:
+        return ('    ↳ ⚠ 네 lock 이 아직 일하는 중이다 — 같은 SID(%s)가 %.0f분 전에 움직였다. '
+                '**타임스탬프를 갱신해 push 해라** — 그것이 «살아 있다» 의 유일한 신호다(claims/README 12행).'
+                % (commit_sid, commit_age_min))
+    return ('    ↳ ⚠ **세션 갈림 의심** — %s 는 %.0f분 전에 `%s`(lock 의 SID `%s` 가 아니다)로 움직였다. '
+            '뺏기 전에 그 커밋을 보고, 뺏거든 **그 사람의 진행 중인 파일을 깨지 마라**(T418).'
+            % (tid, commit_age_min, commit_sid, lock_sid))
+
+
+
 def tracked_files():
     try:
         out = subprocess.check_output(['git', 'ls-files'], cwd=ROOT, stderr=subprocess.DEVNULL).decode()
@@ -200,6 +244,10 @@ def main(argv):
             print('    → 더 안 열 파일이면 PROGRESS «범위» 칸에서 빼고 push 하면 그 작업들이 바로 풀린다(claims/README 둘째 길).')
     for tid, mins in sorted(dead):
         print('⚠ %s.lock 이 %.0f분 됐다 — 규약상 죽은 lock(뺏을 수 있다 · 뺏을 땐 자기 SID 로 덮어 커밋·push)' % (tid, mins))
+        ct, csid = task_last_commit(tid)
+        hint = split_line(tid, locks[tid][1], csid, None if ct is None else (now - ct) / 60.0)
+        if hint:
+            print(hint)
     print('· (보고 전용 — rc 는 늘 0이다. 범위를 줄일지는 그 lock 임자가 정한다.)')
     return 0
 
@@ -264,6 +312,23 @@ def self_test():
     # ✅ 로 적어 놓고 «CI 한 바퀴» 를 기다리며 lock 을 쥔 회차가 흔하다 — 그동안에도 그 파일은 남의 것이다.
     if [t for t, _w in queue({'T50'}, rows, files)] != ['T50']:
         print('✗ ✅ 로 적힌 작업이라도 lock 을 쥐고 있으면 그 뒤에 줄이 선다'); ok = False
+
+    # T418 — «죽은 lock 인데 그 번호는 아직 움직인다» 세 갈래(순수 함수라 git 없이 잰다).
+    if split_line('T414', 'sess-0418-15809', 'sess-0418-15809', 200.0) is not None:
+        print('✗ 세션 갈림: 그 번호가 90분 밖이면 덧줄이 없어야 한다'); ok = False
+    if split_line('T414', 'sess-0418-15809', None, 10.0) is not None:
+        print('✗ 세션 갈림: 커밋에서 SID 를 못 읽었으면 지어내지 않는다'); ok = False
+    same = split_line('T414', 'sess-0418-15809', 'sess-0418-15809', 53.0)
+    if same is None or '갱신' not in same or '세션 갈림' in same:
+        print('✗ 세션 갈림: 같은 SID 면 «네 lock 을 갱신해라» 다 — %r' % same); ok = False
+    diff = split_line('T414', 'sess-0418-15809', 'sess-0518-9931', 53.0)
+    if diff is None or '세션 갈림 의심' not in diff or 'sess-0518-9931' not in diff or 'sess-0418-15809' not in diff:
+        print('✗ 세션 갈림: 다른 SID 면 두 SID 를 다 대고 «세션 갈림 의심» 이어야 한다 — %r' % diff); ok = False
+    # 커밋 제목에서 SID 를 읽는 자리(실물 꼴 그대로).
+    if RE_SID.search('T414 2회차(T413 에서 번호 옮김): … (sess-0518-9931 · 워커 J)').group(0) != 'sess-0518-9931':
+        print('✗ 커밋 제목에서 SID 읽기'); ok = False
+    if RE_SID.search('T1 무언가 (워커 K)') is not None:
+        print('✗ SID 가 없는 제목에서 지어내면 안 된다'); ok = False
 
     print('· 지금 레포:'); main([])
     print('✓ check_lock_queue 자기 검사 통과' if ok else '✗ check_lock_queue 자기 검사 실패')
