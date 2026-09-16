@@ -47,6 +47,9 @@ TABLE = {
     '.anvil-btn.held-slot .held-tag': ['Ui/ForgeSheet.cs|res:PinnedColorUi:held_tag_face'],   # 정본 999 #f0a020 ↔ 클론은 전역 coin(#ffd54f) 이었다
     '.skill-btn.auto': ['Ui/SkillBar.cs|res:PetSkillUi:sb_auto_bg'],                          # 정본 624 #2f3a33 ↔ PetSkillUi sb_auto_bg 같은 값(이미 맞다)
     '.skill-btn.auto.on': ['Ui/SkillBar.cs|res:PetSkillUi:sb_auto_on_bg'],                    # 정본 629 #2e7d32 ↔ sb_auto_on_bg 같은 값(이미 맞다)
+    # T377 5회차 — 파일이 열린 자리 둘. 둘 다 **이미 제 값**이라 자가 지키기만 한다(값이 바뀌면 여기서 빨강이 난다).
+    '.dgd-btn.silver': ['Ui/DungeonPopups.cs|catalog:dgd_btn'],         # 정본 5356 #a3a3a3(원본 픽셀 실측 주석) ↔ catalog dgd_btn
+    '.rw-pop': ['Ui/RewardBurst.cs|res:RewardBurstUi:pop'],             # 정본 7511 #ffd54f(도착 마침표 별) ↔ RewardBurstUi colors.pop
 }
 # 임자가 정해진 빈자리(파일 lock 뒤) — 붙이면 여기서 지운다
 KNOWN = {
