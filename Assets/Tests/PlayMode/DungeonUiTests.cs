@@ -277,5 +277,50 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(want, back.rect.height, 0.6f, "세로도 같다 — 정사각(전엔 2.1×1.75 로 납작했다)");
             Debug.Log("[T401] 기술 뒤로 버튼 " + back.rect.width.ToString("0.0") + "×" + back.rect.height.ToString("0.0"));
         }
+
+        static Transform FindDeep_(Transform t, string name)
+        {
+            if (t.name == name) return t;
+            for (int i = 0; i < t.childCount; i++) { Transform r = FindDeep_(t.GetChild(i), name); if (r != null) return r; }
+            return null;
+        }
+
+        /// <summary>T409 — 정본 style.css 5338 주석: 카드의 남는 세로 공간은 «열쇠 줄 위» 와 «열쇠 줄 아래(버튼 위)» 로 반반이다(`.dgd-keys` 와 `.dgd-btns` 둘 다 margin-top: auto).
+        /// 클론은 버튼만 바닥에 붙여 남는 공간이 전부 열쇠 아래로 몰렸다(런 813 실측: 위 18px ↔ 아래 76px). 이 자는 그 두 여백의 차가 카드 높이의 2%p 안인지 잰다.</summary>
+        [UnityTest]
+        public IEnumerator 던전_상세_열쇠_줄은_남는_공간을_위아래_반반으로_가른다()
+        {
+            yield return Boot();
+            H.S.BestChapter = 5;
+            H.S.BestStage = 1;
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
+            DungeonDetailPopup.Open("hammer");
+            yield return null; yield return null;
+            Assert.IsTrue(DungeonDetailPopup.IsOpen, "던전 상세가 열린다");
+            Canvas.ForceUpdateCanvases();
+            Transform app = UiRoot.Instance.App;
+            RectTransform card = FindDeep_(app, "modal-dungeon-detail").Find("card") as RectTransform;
+            Assert.IsNotNull(card, "상세 카드");
+            RectTransform pill = card.Find("reward-pill") as RectTransform;
+            RectTransform keys = card.Find("keys") as RectTransform;
+            Transform sweepT = FindDeep_(card, "sweep");
+            Assert.IsNotNull(pill, "보상 알약"); Assert.IsNotNull(keys, "열쇠 글"); Assert.IsNotNull(sweepT, "소탕 버튼");
+            RectTransform sweep = DungeonPopups.Root(sweepT.GetComponent<UnityEngine.UI.Button>());
+            // UiKit.Place 는 좌상단 앵커 · anchoredPosition.y = −위끝
+            float pillBottom = -pill.anchoredPosition.y + pill.rect.height;
+            float keysTop = -keys.anchoredPosition.y, keysBottom = keysTop + keys.rect.height;
+            float btnTop = -sweep.anchoredPosition.y;
+            float gapTop = keysTop - pillBottom, gapBottom = btnTop - keysBottom;
+            float ch = card.rect.height;
+            Debug.Log("[T409] 카드 " + ch.ToString("0.0") + " · 알약~열쇠 " + gapTop.ToString("0.0") + " · 열쇠~버튼 " + gapBottom.ToString("0.0"));
+            // 남는 공간이 실제로 있어야 이 자가 뜻이 있다(런 813 실측 위 18 ↔ 아래 76 샷px = 남는 공간 58) — 위 여백이 고정 .55rem 보다 뚜렷이 커야 한다
+            Assert.Greater(gapTop, DungeonPopups.RemL("dgd_pill_mb_rem") + 1f, "카드 min-height(49.6%H)가 이겨 남는 공간이 생기는 자리인데 열쇠가 그 몫을 안 받았다");
+            Assert.GreaterOrEqual(gapTop, DungeonPopups.RemL("dgd_pill_mb_rem") - 0.5f, "위 여백은 정본 알약 아래 여백(.55rem) 이상");
+            Assert.GreaterOrEqual(gapBottom, DungeonPopups.RemL("dgd_keys_mb_rem") - 0.5f, "아래 여백은 정본 열쇠 아래 여백(.7rem) 이상");
+            // auto 둘 = 남는 공간 반반: 고정 여백(.55 위 · .7 아래)을 뺀 나머지가 같다 → 두 여백의 차 = .15rem 뿐이다
+            float fixedDiff = DungeonPopups.RemL("dgd_keys_mb_rem") - DungeonPopups.RemL("dgd_pill_mb_rem");
+            Assert.AreEqual(fixedDiff, gapBottom - gapTop, ch * 0.02f, "열쇠 위·아래 여백이 반반이 아니다(정본 5338: 원작 26px ↔ 27px)");
+        }
     }
 }

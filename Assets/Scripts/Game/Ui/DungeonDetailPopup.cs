@@ -146,22 +146,27 @@ namespace Forge.Game.Ui
             RewardText = BuildRewardRow(pill, dg.Rewards(curId, curStage), pw, pillH);
             y += pillH + DungeonPopups.RemL("dgd_pill_mb_rem");
 
-            // 열쇠
+            // 버튼 둘은 바닥에서 잡는다(정본 .dgd-btns margin-bottom 2.45rem) — 열쇠 줄이 그 위 남는 공간을 나눠 가져야 하므로 먼저 셈한다.
+            float by = ch - DungeonPopups.RemL("dgd_btn_mb_rem") - btnH;
+
+            // 열쇠 — 정본 style.css 5338 주석: «.dgd-btns 만 margin-top: auto 라 카드의 남는 세로 공간이 전부 열쇠 줄 아래로 몰렸다 …
+            // 열쇠 줄에도 auto 를 줘 남는 공간이 양쪽으로 갈리게 한다». `auto` 가 둘이라 남는 공간을 반반으로 가른다 —
+            // 버튼만 바닥에 붙이면 열쇠가 위로 붙는다(T409). `dgd_keys_mb_rem` 은 정본 .dgd-keys margin-bottom .7rem = 최소 아래 여백.
+            float keysFree = by - (y + keysH + DungeonPopups.RemL("dgd_keys_mb_rem"));
+            float ky = y + Mathf.Max(0f, keysFree) * 0.5f;
             KeysText = NumFmt.Fmt(keys) + "/" + DungeonRules.MaxKeys;
             float kIco = keysH * 0.8f;
             float kw = keysH * 2.6f;
             TextMeshProUGUI kt = DungeonPopups.Bold(card, "keys", TextKind.Title, KeysText, "white", TextAlignmentOptions.Left);
             UiKit.OutlinePx(kt, "pp_line", KeylineUi.Stroke("dgd_keys", kt.fontSize));   // 정본 .dgd-keys 4px
-            UiKit.Place(kt.rectTransform, cx - kw * 0.5f + kIco * 1.1f, y, kw, keysH);
+            UiKit.Place(kt.rectTransform, cx - kw * 0.5f + kIco * 1.1f, ky, kw, keysH);
             Image key = UiKit.Icon(card, "key", "key");
-            UiKit.Place(key.rectTransform, cx - kw * 0.5f, y + (keysH - kIco) * 0.5f, kIco, kIco);
-            y += keysH + DungeonPopups.RemL("dgd_keys_mb_rem");
+            UiKit.Place(key.rectTransform, cx - kw * 0.5f, ky + (keysH - kIco) * 0.5f, kIco, kIco);
 
             // 버튼 둘
             float mx = cw * UiKit.L("dgd_btn_mx");
             float bgap = cw * UiKit.L("dgd_btn_gap");
             float bw = (cw - mx * 2f - bgap) * 0.5f;
-            float by = ch - DungeonPopups.RemL("dgd_btn_mb_rem") - btnH;
             float br = DungeonPopups.RemL("dgd_btn_r_rem");
             bool canSweep = keys > 0 && best >= 1;
             bool canEnter = keys > 0;

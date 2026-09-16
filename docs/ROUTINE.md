@@ -2765,6 +2765,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 판정: PlayMode 자 하나 — 열쇠 잉크 위 여백과 아래 여백의 차가 **카드 높이의 2%p 안**. 그리고 다음 런 `screen_dungeon-detail.png` 에서 «열쇠 ~ 버튼» 이 **30~60px**(지금 76 · 원작 기대 28) · `--rows dungeon-detail` 의 원작 53.1·58.3 두 줄이 **맞은 줄로 돌아온다**(지금 5/7 → 7/7).
 - **이 절 밖 잔여**: 같은 화면에서 **카드 흰 몸통이 −14.7px**(314 ↔ 기대 328.7)이고 열쇠 줄 **위**도 −9px 다 — 쌓이는 내용(스테이지 줄·보상 pill 높이)이 글꼴 줄 상자에서 나와 생긴 차로 보이는데 **아직 안 쟀다**. 이 절은 «남는 공간을 어떻게 나누는가» 하나만 쥔다.
 - 범위: `Assets/Scripts/Game/Ui/DungeonDetailPopup.cs`(산 lock 없음 · 2026-09-16 01:1x 확인) · `Assets/Tests/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 **1회차 2026-09-16 02:1x 워커 A(sess-2005-27410)**: `DungeonDetailPopup.cs` — 버튼 위끝 `by` 를 열쇠 줄보다 먼저 셈하고 `keysFree = by − (y + keysH + dgd_keys_mb_rem)` 의 **절반**만큼 열쇠 줄을 내린다(`ky = y + max(0, keysFree) × ½` · 정본 5338 «auto 둘» 주석 인용 · `dgd_keys_mb_rem` .7 은 최소 아래 여백으로 그대로 · 수치 0) · 그 뒤 `y +=` 누적은 버튼이 `by` 로 잡혀 있어 걷었다 · PlayMode `DungeonUiTests` +1(알약~열쇠 · 열쇠~버튼 두 여백의 차 = 고정 여백 차 .15rem ± 카드 높이 2% · 위 여백이 .55rem+1px 보다 커야(남는 공간이 있는 자리) · 아래 여백 ≥ .7rem) · dotnet 828/828 · `gate.sh` 막는 자 전부 rc 0 · `DungeonDetailPopup.cs` 는 T28(채점)·T345(반지름) 범위에 이름만 있고 이 줄들이 아니라 결정 669 · 판정은 다음 런(`screen_dungeon-detail.png` 열쇠~버튼 30~60px · `--rows dungeon-detail` 53.1·58.3 복귀).
 
 ### T405 ✅ — 펫 업그레이드 카드의 `padding: 1.78%` 를 **카드 폭**에 곱한다: CSS 의 % 패딩은 **컨테이닝 블록(모달 = 앱 폭)** 기준이라 여백이 **26.5% 작다** (Game·UI · T177 이 같은 규칙을 이미 문서로 못 박은 자리 · **T28 78회차 등재**)
 
