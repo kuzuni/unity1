@@ -252,6 +252,12 @@ jobs:
         run: python3 tools/check_br_lines.py --self-test
       - name: 정본 <br> 22 자리 ↔ 클론 줄 수 — 막는다 (T383 · 화면 줄 수는 PlayMode BrLinesTests 몫)
         run: python3 tools/check_br_lines.py --ui .wwwww-src/web/js/ui.js
+      # T371 — 정본이 «등급색을 정해진 비율로 섞어» 만드는 면·테·그림자(color-mix 23) ↔ 표 ColorMixUi.json ↔ 자리 배선. 자는 3회차부터 있었고
+      #        등록만 «gate.sh·ci.yml 이 T331 범위» 로 여섯 회차 미뤄졌다 — 9회차가 gate.sh·CI 에 같이 등록(결정 599 · T383 9회차와 같은 길).
+      - name: 색 섞기 자 자기 검사 (T371 `check_color_mix.py` · 고장 주입 21칸)
+        run: python3 tools/check_color_mix.py --self-test
+      - name: 정본 color-mix 23 ↔ 표 ↔ 자리 — 막는다 (T371 · 임자 있는 빈자리는 KNOWN)
+        run: python3 tools/check_color_mix.py --css .wwwww-src/web/css/style.css
 
       # T343 — `using` 한 네임스페이스를 그 asmdef 가 참조하는가. dotnet 하니스(T48)는 Assets 를 한 덩어리로
       #        컴파일해 **asmdef 경계가 없다** — 런 490·492 가 두 모드를 통째로 잃은 갈래를 구조적으로 못 잡는다.
