@@ -322,9 +322,11 @@ namespace Forge.Tests.PlayMode
             while (Hud.Instance == null && Time.realtimeSinceStartup - t0 < 20f) yield return null;
             Assert.IsNotNull(Hud.Instance, "HUD");
             MetaHost h = MetaHost.Instance;
+            // 채팅 띠는 Hud 의 자식이 아니라 UiRoot.Chat 아래다(Hud.BuildChat(chatBand, …)) — 런 833 이 «null» 로 가르쳐 준 자리 · 띠 = ChatButton 의 부모
+            Transform band = Hud.Instance.ChatButton.transform.parent;
             TextMeshProUGUI nm = null;
-            foreach (TextMeshProUGUI t in Hud.Instance.GetComponentsInChildren<TextMeshProUGUI>(true)) if (t.name == "chat-preview-name") { nm = t; break; }
-            Assert.IsNotNull(nm, "채팅 미리보기 이름(chat-preview-name)");
+            foreach (TextMeshProUGUI t in band.GetComponentsInChildren<TextMeshProUGUI>(true)) if (t.name == "chat-preview-name") { nm = t; break; }
+            Assert.IsNotNull(nm, "채팅 미리보기 이름(chat-preview-name · 채팅 띠 = UiRoot.Chat)");
             AssertShadow(nm, "chat_preview_name", "채팅 미리보기 이름");
             Assert.AreEqual(0.5f, TextShadowUi.C("chat_preview_name").a, 1e-3f, "정본 8069 알파 .5 — 8392 묶음의 .75 가 아니다(특이도)");
 
