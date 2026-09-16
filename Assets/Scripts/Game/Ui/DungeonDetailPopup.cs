@@ -106,8 +106,10 @@ namespace Forge.Game.Ui
             float stageMt = DungeonPopups.Rem(DungeonStyle.L("dgd_stage_mt_rem")), stageMb = DungeonPopups.Rem(DungeonStyle.L("dgd_stage_mb_rem"));
             float stageLabelH = DungeonPopups.Kind(TextKind.Sub) * stageLh, stageNumH = DungeonPopups.Kind(TextKind.Title2) * stageLh;
             float stageRowH = stageLabelH + stageNumH;   // 난이도 수 = 정본 5310 `.dgd-stage b { 1.15rem }`(T404)
-            float pillH = DungeonPopups.LineH(TextKind.Sub) + DungeonPopups.RemL("dgd_pill_pad_rem") * 2f;
-            float keysH = DungeonPopups.LineH(TextKind.Title);
+            // T433 — 정본 `.ico` 는 1.45em(863·1763·2597) 이라 **아이콘이 줄 상자를 민다**: 아이콘이 든 줄의 높이를 글자 줄로 잡으면 짧다(정본 2597 이 그 예외를 따로 적어 둔 까닭).
+            //   알약 안엔 망치·코인 아이콘(정본 ui.js 4675) · 열쇠 줄은 아이콘 + 숫자(4676) — 둘 다 «글자 줄 상자 vs 아이콘 줄 상자» 중 큰 쪽(IconLineH · 표 DungeonUi.json ico_em).
+            float pillH = IconLineH(TextKind.Sub) + DungeonPopups.RemL("dgd_pill_pad_rem") * 2f;
+            float keysH = IconLineH(TextKind.Title);
             float btnH = DungeonPopups.RemL("dgd_btn_h_rem");
             float ch = Mathf.Max(H * UiKit.L("dgd_card_minh"),
                 heroH + DungeonPopups.RemL("dgd_hero_mb_rem") + stageMt + stageRowH + stageMb + pillH + DungeonPopups.RemL("dgd_pill_mb_rem")
@@ -189,6 +191,16 @@ namespace Forge.Game.Ui
             ApplyBtnLineHeight(EnterButton);
 
             DungeonPopups.XButton(card, Close);
+        }
+
+        /// <summary>T433 — 인라인 아이콘이 든 줄의 상자 높이. 정본 `.ico` 기본 1.45em(표 `ico_em`)이 기준선 위에 서서 줄 상자를 밀므로
+        /// 줄 상자 = max(글자 줄 상자 `LineH(k)`, 글자 x ico_em + 기준선 아래로 삐져나오는 몫). 아래 몫은 글꼴 자산의 descender(pointSize 비율)로 낸다 — 수를 코드에 안 박는다.</summary>
+        public static float IconLineH(TextKind k)
+        {
+            float fs = DungeonPopups.Kind(k);
+            var f = UiFont.Primary.faceInfo;
+            float below = Mathf.Abs(f.descentLine) / f.pointSize * fs;
+            return Mathf.Max(DungeonPopups.LineH(k), fs * DungeonStyle.L("ico_em") + below);
         }
 
         /// <summary>알약 버튼의 라벨(`DungeonPopups.Pill` 이 «label» 로 세운다)에 정본 줄 간격을 건다 — 없으면 조용히 지나간다.</summary>
