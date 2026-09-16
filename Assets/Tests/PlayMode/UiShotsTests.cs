@@ -229,7 +229,9 @@ namespace Forge.Tests.PlayMode
             SaveIo.State.EggCurrency = 900;
 
             // 기술 연구 진행 중(초록 배지) — 정본과 같은 노드·남은 시간
-            P.Tech.State.Research = new TechResearch("forgeTimer@1", SaveIo.NowMs() + 42 * 60e3);
+            // T427 — 나무가 둘이다: `PetSkillHost.Tech`(P · 효과 셈만 읽는다) 와 `DungeonUiHost.Tech`(D · TechPanel·TechPopups 가 읽고 저장한다).
+            //        화면이 읽는 것은 D 쪽뿐이라 샷의 상태 쓰기는 전부 D.Tech 에 한다(P.Tech 에 쓰면 화면엔 아무것도 안 남는다 — 런 943 실측).
+            D.Tech.State.Research = new TechResearch("forgeTimer@1", SaveIo.NowMs() + 42 * 60e3);
 
             // 던전 — 상세 팝업의 난이도가 원작과 같은 값(198)으로 찍히도록
             D.Dungeons.Ensure();
@@ -433,7 +435,7 @@ namespace Forge.Tests.PlayMode
                 Name = "tech-branch", Ref = "042546",
                 Open = delegate
                 {
-                    TechTree tt = P.Tech;
+                    TechTree tt = D.Tech;   // T427 — 화면이 읽는 나무(DungeonUiHost.Tech)
                     List<string> ids = tt.NodesOf("skillpet");
                     for (int i = 0; i < 7 && i < ids.Count; i++) tt.State.Tech[ids[i]] = 1;
                     if (ids.Count > 6) tt.State.Research = new TechResearch(ids[6], SaveIo.NowMs() + (13 * 60 + 30) * 60e3);
@@ -449,7 +451,7 @@ namespace Forge.Tests.PlayMode
                 Name = "tech-node", Ref = "042605",
                 Open = delegate
                 {
-                    TechTree tt = P.Tech;
+                    TechTree tt = D.Tech;   // T427 — 화면이 읽는 나무(DungeonUiHost.Tech) · P.Tech 는 다른 개체다
                     string id = tt.Nid("extraEgg", 4);
                     OpenUp(tt, id, 0);
                     tt.State.Tech[id] = 1;
@@ -458,7 +460,14 @@ namespace Forge.Tests.PlayMode
                     if (TechPanel.Instance != null) TechPanel.Instance.ShowBranch("skillpet");
                     TechPopups.OpenNode(id);
                 },
-                Opened = delegate { return TechPopups.IsNodeOpen; }
+                Opened = delegate
+                {
+                    if (!TechPopups.IsNodeOpen) return false;
+                    // T427 — 찍은 뒤 상태를 되읽어 단언한다: 원작 042605 는 «연구 진행 중» 카드다. 다른 카드가 열렸으면 조용히 찍지 않고 빨강으로 세운다.
+                    if (TechPopups.State != TechPopups.NodeState.Researching)
+                        throw new Exception("tech-node: 열린 카드 상태가 " + TechPopups.State + " — 원작 042605 는 연구 진행 중(Researching) 카드다(T427 · 샷이 쓴 나무와 화면이 읽는 나무가 다르면 이렇게 된다)");
+                    return true;
+                }
             });
             list.Add(new Shot
             {
