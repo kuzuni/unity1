@@ -194,5 +194,44 @@ namespace Forge.Tests.PlayMode
             LeagueSheet.Close(h);
             yield return null;
         }
+            /// <summary>T352 8회차 — 장비 목록 칸 아래 «0.0000%» 라벨(정본 8635 `.forge-item-cell small { font-variant-numeric: tabular-nums }` · 790 `.56rem`):
+        /// 다섯 열 스물다섯 칸이라 % 가 세로로 열을 이루는 자리 — ⓒ 여섯 중 마지막(파일이 T396 반납으로 열렸다). 열기는 `PinnedColorSitesTests` 의 채비 그대로.</summary>
+        [UnityTest]
+        public IEnumerator 장비_목록_칸_아래_확률_라벨은_숫자_구간이_등폭이다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h, "ForgeHost");
+            ForgeInfoPopup.OpenList(h);
+            yield return null; yield return null;
+            Popup p = PopupLayer.Instance.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(p, "모든 장비의 목록 팝업이 열린다");
+
+            float em = TabularText.DigitEm(UiFont.Primary);
+            int labels = 0, measured = 0;
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name != "pct") continue;
+                labels++;
+                Assert.IsTrue(TabularNums.IsWrapped(t.text), "% 라벨 «" + t.text + "» 가 <mspace> 로 감싸여 있지 않다");
+                Assert.IsTrue(t.richText, "% 라벨 «" + t.text + "» — <mspace> 를 쓰려면 richText");
+                if (measured > 0) continue;   // 스물다섯 칸 전부 재면 느리다 — 한 칸의 간격이 표본
+                t.ForceMeshUpdate(true, true);
+                TMP_TextInfo info = t.textInfo;
+                float cellW = em * t.fontSize, tol = cellW * 0.15f;
+                for (int i = 0; i + 1 < info.characterCount; i++)
+                {
+                    TMP_CharacterInfo a = info.characterInfo[i], b = info.characterInfo[i + 1];
+                    if (!char.IsDigit(a.character) || !char.IsDigit(b.character)) continue;
+                    Assert.AreEqual(cellW, b.origin - a.origin, tol, "이웃 숫자의 시작 x 간격 = 칸(" + t.text + ")");
+                    measured++;
+                }
+            }
+            Assert.Greater(labels, 0, "정본 `.forge-item-cell small` — 칸마다 % 라벨 하나");
+            Assert.Greater(measured, 0, "«0.0000%» 엔 이웃 숫자 쌍이 있다");
+
+            PopupLayer.Instance.Hide(ForgeInfoPopup.Name);
+            yield return null;
+        }
     }
 }

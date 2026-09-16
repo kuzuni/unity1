@@ -296,6 +296,7 @@ namespace Forge.Game.Ui
                 UiKit.Anchor(st.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), Vector2.zero, size, st.fontSize * 1.2f);
             }
             TextMeshProUGUI l = UiKit.Text(rt, "pct", PctKind, pct.ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture) + "%", "pp_ink");
+            TabularText.Apply(l);   // T352 8회차 — 정본 8635 `.forge-item-cell small { font-variant-numeric: tabular-nums }`: 다섯 열 스물다섯 칸의 % 가 세로로 열을 이룬다 — 숫자 구간만 <mspace>(결정 570 · 칸 폭은 글꼴에서) · ⓒ 여섯 중 마지막 자리(T396 반납으로 열렸다)
             // T372 — 굵기도 정본 렌더 결과를 따른다. 790 은 `font-weight: 800` 이지만 style.css **8633**
             //   `.rates-tip, .pass-desc, .forge-item-cell small, .league-server { font-weight: 500 }` 이 같은 특정도로 뒤에 와서 이긴다.
             //   그 줄의 정본 주석이 까닭을 댄다 — 폴백 sans 는 regular/bold 두 축뿐이라 500 은 **보통 굵기로 내려간다**.
