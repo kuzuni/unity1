@@ -244,8 +244,14 @@ namespace Forge.Tests.PlayMode
                 yield return null;
             }
             ForgeHost h = ForgeHost.Instance;
+            // 6회차 런 827 빨강의 뿌리 — 자동 제련은 **2-10 도달 뒤에만** 열린다(`ForgeAutoPopup.Open` 24행이 잠기면 🔒 토스트만 내고 돌아간다).
+            //   새 세이브로 그냥 부르면 팝업이 안 서고 `Popups.Find` 가 null 이라 그다음 줄이 NRE 로 넘어진다(`ForgeCardWidthTests`·`PressFxSitesTests` 가 쓰는 길을 그대로 따른다).
+            h.S.BestChapter = 3; h.S.BestStage = 1; h.Pull();
+            Assert.IsTrue(h.AutoForgeUnlocked, "2-10 뒤 해금");
             ForgeAutoPopup.Open(h);
             yield return null;
+            Popup ap = h.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(ap, "자동 제련 팝업이 열린다(해금 전이면 토스트만 나온다)");
             ForgeAutoPopup.ToggleDropdown(h);
             yield return null;
             Canvas.ForceUpdateCanvases();

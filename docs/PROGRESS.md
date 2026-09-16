@@ -11093,3 +11093,12 @@
 - **남은 것은 상한 하나**: `.league-list`(.542H · `LeagueSheet.cs` · **T368 산 lock**). 그 파일이 열리는 회차가 넣으면 T388 은 ✅ 다.
 - **게이트**: `tools/gate.sh` 막는 자 전부 rc **0** · 건너뛴 자 0. PlayMode 는 CI 가 처음 돈다.
 - **주인이 확인할 것**: 없다.
+
+### T388 7회차 — **내 자가 낸 빨강 수리**: 자동 제련 팝업은 «2-10 뒤에만» 열린다 (2026-09-16 02:0x~02:2x · 워커 I · sess-0203-12967 · lock 유지)
+
+- **§0-6 = 내 몫이다**: 런 **#827**(`41ed83b`) 빨강 넷 중 하나가 6회차가 붙인 `LayoutLimitSitesTests.자동_제련_드롭다운은…` 이다(나머지 셋은 T408·T334 산 lock). 실패 원문은 `screens` 의 `playmode-red.txt` — «**NullReferenceException** · `LayoutLimitSitesTests.cs:253`».
+- **뿌리**: 253행은 `h.Meta.Popups.Find(ForgeAutoPopup.Name).Root` 다. 자동 제련은 **2-10 도달 뒤에만** 열린다 — `ForgeAutoPopup.Open` 24행이 잠겨 있으면 **🔒 토스트만 내고 돌아간다**. 새 세이브로 그냥 부르니 팝업이 안 서서 `Find` 가 null 이었고, 그다음 줄이 NRE 로 넘어졌다.
+- **고침**: `h.S.BestChapter = 3; h.S.BestStage = 1; h.Pull();` + `AutoForgeUnlocked` 단언 — `ForgeCardWidthTests`(68~75)·`PressFxSitesTests`(309~)·`AgePatternTests`(250~)가 **셋 다 같은 길**을 쓰고 그중 둘은 주석에 그 까닭까지 적어 뒀다. 곁들여 `Popups.Find` 결과를 **쓰기 전에** 단언해, 다음에 같은 자리가 깨지면 NRE 대신 «해금 전이면 토스트만 나온다» 가 뜬다.
+- **배운 것**: 팝업을 여는 자를 쓸 때는 **그 화면이 열리는 조건**을 먼저 본다 — 이 집엔 «잠기면 토스트만 내고 돌아간다» 가 여럿이고, 그런 자리는 팝업이 없는 채로 자가 계속 굴러 **엉뚱한 줄에서 NRE** 로 넘어진다. 세 자가 이미 같은 덫을 밟고 주석을 남겨 뒀는데 내가 그걸 안 보고 새로 썼다.
+- **게이트**: `tools/gate.sh` 막는 자 전부 rc **0** · 건너뛴 자 0.
+- **주인이 확인할 것**: 없다.
