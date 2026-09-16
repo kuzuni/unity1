@@ -531,6 +531,27 @@ def score_screen(ref_rects, got_rects):
     return 10.0 * ok / tot, [u"%s — %s" % (n, w) for _, n, w in worst[:5]]
 
 
+def score_ceiling(ref_rects, got_rects):
+    """이 화면에서 **닿을 수 있는 최고점**(T28 79회차 · 결정 686).
+
+    `score_screen` 의 분모에는 클론 배치와 **무관한** 두 덩어리가 들어 있다 —
+    «짝 없음»(원작에만 있는 요소 · 4실점씩)과 «군더더기»(클론에만 있는 요소 · 1실점씩).
+    둘 다 **원작 샷의 딤이 α .988 이라 카드 밖이 통짜 한 색**인 데서 주로 온다(정본 딤은 주인 지시 .5 라
+    뒤 화면이 비쳐 자가 훨씬 잘게 쪼갠다 — `STALE_REF_NOTES` 둘째 항목). 그래서 짝지은 요소의
+    x·y·w·h 가 **전부 맞아도** 그 실점은 남는다. 그 값이 이 함수다.
+
+    🚫 되풀이하지 마라: 62~78회차는 «다음 볼 화면» 을 **절대 점수가 낮은 순**으로 골랐는데,
+    그 줄의 맨 위(`craft-compare` 2.79 · `pet-upgrade` 2.03 · `forge-detail` 3.01)는
+    천장 자체가 3.6~3.8 인 화면들이라 **이미 78·53·79% 를 채운** 자리였다. 진짜 뒤처진 자리는
+    달성률(점수/천장)이 낮은 쪽이다(런 802 실측: `dungeon-detail` 3.28/6.25 = **52%** — 3점이 비어 있다).
+    """
+    pairs_, extra = match(ref_rects, got_rects)
+    m = sum(1 for _r, g in pairs_ if g is not None)
+    unmatched = len(pairs_) - m
+    tot = m * 4 + unmatched * 4 + len(extra)
+    return (10.0 * m * 4 / tot) if tot else 0.0
+
+
 # ── 원작 샷이 «지금 정본» 과 다른 자리 (T28 14회차 · 워커 M) ─────────────
 # `web/ref/screens/shot-*.png` 30장은 **찍힌 시점의 원작**이다. 그 뒤 주인 지시로 정본이 바뀐 자리가 있고,
 # 그런 자리는 클론이 «정본대로» 여도 점수가 안 오른다 — 회차마다 그것을 결함으로 다시 진단하는 일을 막는다.
@@ -1269,7 +1290,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
               u"(meta.json 이 어느 런 것인지 안 적는다)."
               % (meta.get("run", "?"), meta.get("carried")))
         print(u"    점수는 멀쩡하다(그림은 진짜다) — 다만 **런 번호를 이 그림에 붙이지 마라**.")
-    fps, bands = {}, {}
+    fps, bands, ceilings = {}, {}, {}
     suspect = [False]
     for name in [n for n, _ in pairs()]:
         if only and name not in only:
@@ -1312,13 +1333,16 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                     cards.append((name, a_box, b_box))
         got = read_layout(img, name)
         s, why = score_screen(ent["rects"], got)
+        ceil = score_ceiling(ent["rects"], got)
+        ceilings[name] = ceil
         scores.append((name, s))
         fps[name] = fingerprint(img)
         # 밴드를 몇 개로 쪼갰나 — 회차 사이에 이 수가 달라지면 «요소가 어긋났다» 가 아니라
         # **자가 화면을 다르게 쪼갠 것**이다(T28 24·27회차 실측: 잉크가 한 겹 두꺼워지면 밴드가 붙는다).
         bands[name] = sum(1 for r in got if u"블록" not in r.name)
         mark = u"✓" if s >= PASS_MARK else u"✗"
-        print(u"  %s %-18s %4.1f / 10   (원작 요소 %d)" % (mark, name, s, len(ent["rects"])))
+        print(u"  %s %-18s %4.1f / 10   (천장 %.1f · 달성 %.0f%%  · 원작 요소 %d)"
+              % (mark, name, s, ceil, (100.0 * s / ceil) if ceil else 0.0, len(ent["rects"])))
         if s < PASS_MARK:
             bad.append(name)
             for w in why:
@@ -1389,6 +1413,12 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
     avg = sum(s for _, s in scores) / len(scores)
     print(u"─" * 60)
     print(u"평균 %.2f / 10 · 화면 %d개 · %s점 미만 %d개" % (avg, len(scores), PASS_MARK, len(bad)))
+    if ceilings:
+        cav = sum(ceilings.get(n, 0.0) for n, _v in scores) / len(scores)
+        rate = 100.0 * sum((v / ceilings[n]) for n, v in scores if ceilings.get(n)) / len(scores)
+        print(u"· **자의 천장 평균 %.2f / 10 · 달성률 %.0f%%** — 10 점은 닿을 수 없는 수다"
+              u"(짝 없음·군더더기 실점은 원작 샷의 딤 α .988 탓이라 클론 배치로 안 줄어든다 · 결정 686)."
+              % (cav, rate))
     # ── 지난 회차와 대조(T28 7회차 · 워커 M): «평균이 4.23 → 1.72» 같은 회귀를 회차마다 손으로 세지 않는다.
     base = load_baseline(baseline_path)
     if base:
@@ -1509,13 +1539,19 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         save_baseline_file(baseline_path, scores, avg, run, fps, bands, carried)
         print(u"· 기준선을 %s 에 적었다(다음 회차가 이것과 견준다)" % os.path.relpath(baseline_path, REPO))
     if bad:
-        # T28 16회차(워커 M): 29개를 줄줄이 찍으면 아무도 안 읽는다 — **낮은 것 다섯**만 점수와 함께 준다.
-        low = sorted(((n, v) for n, v in scores if v < PASS_MARK), key=lambda t: t[1])[:5]
-        print(u"«다음 볼 화면»(ROUTINE §2 T28 · 낮은 것부터 · 원작 PNG 와 나란히 보고 정본 코드로 확인한 뒤 등재):")
+        # T28 16회차(워커 M): 29개를 줄줄이 찍으면 아무도 안 읽는다 — **다섯**만 준다.
+        # T28 79회차: 고르는 자를 **절대 점수 → 달성률(점수/천장)** 로 바꿨다(결정 686).
+        #   절대 점수 순서는 천장이 3점대인 화면만 계속 집어 줄다 — 그것은 자의 딸이지 클론의 딸이 아니다.
+        def _rate(t):
+            c = ceilings.get(t[0], 0.0)
+            return (t[1] / c) if c else 1.0
+        low = sorted(((n, v) for n, v in scores if v < PASS_MARK), key=_rate)[:5]
+        print(u"«다음 볼 화면»(ROUTINE §2 T28 · **달성률(점수/천장)이 낮은 것부터** · 원작 PNG 와 나란히 보고 정본 코드로 확인한 뒤 등재):")
         for n, v in low:
-            print(u"    %-18s %4.1f" % (n, v))
+            c = ceilings.get(n, 0.0)
+            print(u"    %-18s %4.1f / 천장 %4.1f  — 달성 %3.0f%%" % (n, v, c, (100.0 * v / c) if c else 0.0))
         if len(bad) > len(low):
-            print(u"    (%s점 미만 %d개 중 다섯만 적었다 — 나머지는 이 다섯이 닫힌 뒤)" % (PASS_MARK, len(bad)))
+            print(u"    (%s점 미만 %d개 중 다섯만 적었다 — **달성률이 낮은 순**이다 · 절대 점수가 아니다)" % (PASS_MARK, len(bad)))
         return 1
     return 0
 
@@ -1609,6 +1645,16 @@ def self_test():
     s3, why3 = score_screen(ra, read_layout(c))
     chk(s3 < 10.0 and any(u"원작에 없는" in w for w in why3),
         u"클론에만 있는 요소는 감점이다 (낸 점수 %.2f)" % s3)
+
+    # ⑥-b 천장: 같은 그림은 10 이고, 군더더기가 생기면 천장이 **점수와 같이** 내려간다
+    #   (달성률은 100%% 그대로 — 군더더기는 배치가 틀린 것이 아니다 · 결정 686)
+    chk(abs(score_ceiling(ra, read_layout(a)) - 10.0) < 1e-9,
+        u"천장: 같은 그림은 10.0")
+    cc = score_ceiling(ra, read_layout(c))
+    chk(cc < 10.0 and abs(cc - s3) < 1e-9,
+        u"천장: 군더더기만 늘어난 화면은 천장 = 점수다(달성률 100%%) — 천장 %.2f · 점수 %.2f" % (cc, s3))
+    chk(score_ceiling(ra, read_layout(b)) > s2,
+        u"천장: 자리가 밀린 화면은 천장이 점수보다 높다(고치면 오른다)")
 
     # ⑦ 딤 위에 뜬 모달처럼 «모든 행이 문턱을 넘는» 화면도 골짜기에서 갈린다
     d = _canvas(112, 199, (60, 60, 60))          # 딤 바탕
