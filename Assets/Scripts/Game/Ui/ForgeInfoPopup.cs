@@ -183,7 +183,9 @@ namespace Forge.Game.Ui
             UiKit.Place(title.rectTransform, pad, pad, inner, th);
             RectTransform scrollBox = UiKit.Box(card, "forge-age-list");
             UiKit.Place(scrollBox, pad, pad + th + rem * 0.4f, inner, listH);
-            RectTransform content = PopupKit.ScrollList(scrollBox, "list", H * 0.0492f * 0.5f, 0f, rem * 0.2f);
+            // T364 11회차 ⑥ — 정본 722 `.forge-age-list { gap: calc(var(--app-h) * .0492) }`: 시대 구획 **사이** 틈. 여태 같은 값에 `× 0.5` 가 붙어 절반이었다
+            //   (구획 상자는 머리 + .3rem + 격자만 담아 반틈을 메울 여백이 없다 · 정본 주석 716~721 «종전 .6rem 은 −3.8%p 라 등급 묶음이 한 덩어리로 읽혔다»). 표 ForgeInfoUi.json.
+            RectTransform content = PopupKit.ScrollList(scrollBox, "list", H * ForgeInfoStyle.L("fl_age_gap_h"), 0f, rem * 0.2f);
             int stars = h.AscendCount;
             float barH = rem * 1.75f;
             // T364 5회차 — 정본 style.css **728** `.forge-item-grid { gap: calc(var(--app-h) * .0126) calc(var(--app-w) * .0395);
@@ -197,7 +199,7 @@ namespace Forge.Game.Ui
             //   `Sub` 하한 36 을 주면 1.76배가 되어 라벨이 칸 피치를 넘고 스물다섯이 한 줄로 붙는다(원작 shot-042905 는 다섯 덩어리 · 틈 3.12%W).
             //   결정 633: 새 종류를 만들지 않고 §1 하한의 예외 한 자리 `Micro`(18)를 쓴다 — 정본 20.4 와 2.4px 차라 칸 안에 든다.
             float labelH = PopupKit.FontSize(PctKind) * 1.2f;
-            float cellH = cell + H * 0.0069f + labelH;
+            float cellH = cell + H * ForgeInfoStyle.L("fl_cell_gap_h") + labelH;   // T364 11회차 ⑦ — 정본 738 `.forge-item-cell { gap: calc(var(--app-h) * .0069) }`(셀 바닥 → % 글자) · 아래 라벨 자리와 한 키
             // T122 ⓑ — 정본 hydrateForgeThumbs(ui.js 2183): 목록을 다시 그리면 이전 굽기 작업은 스스로 멈춘다(_thumbJob) · 한 프레임 몇 장씩(펌프)
             int thumbJob = ItemFaces.NewJob();
             for (int ai = 0; ai < d.Ages.Length; ai++)
@@ -302,7 +304,7 @@ namespace Forge.Game.Ui
             //   그 줄의 정본 주석이 까닭을 댄다 — 폴백 sans 는 regular/bold 두 축뿐이라 500 은 **보통 굵기로 내려간다**.
             //   (§1 «정본대로 = 렌더 결과» · 굵기는 잉크 폭을 함께 쥐고 있어 이 자리 판정에 바로 들어간다.)
             l.enableAutoSizing = false;
-            UiKit.Place(l.rectTransform, -size * 0.3f, size + UiKit.RefH * 0.0069f, size * 1.6f, labelH);
+            UiKit.Place(l.rectTransform, -size * 0.3f, size + UiKit.RefH * ForgeInfoStyle.L("fl_cell_gap_h"), size * 1.6f, labelH);   // T364 11회차 ⑦ — 위 cellH 와 같은 키
             Button b = rt.gameObject.AddComponent<Button>();
             b.targetGraphic = face;
             b.onClick.AddListener(() => OpenDetail(h, age, slot, variant, wtype));

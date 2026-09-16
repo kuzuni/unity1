@@ -11,7 +11,9 @@
     "fl_grid_gap_x_w": 0.0395,
     "fl_grid_pad_y_w": 0.0229,
     "fl_grid_pad_x_w": 0.0249,
-    "fi_pill_min_w_rem": 5.5
+    "fi_pill_min_w_rem": 5.5,
+    "fl_age_gap_h": 0.0492,
+    "fl_cell_gap_h": 0.0069
   },
   "_fl_list_max_h": "T388 — style.css 722 `.forge-age-list { max-height: calc(var(--app-h) * .59); overflow-y: auto }`. 정본 `.fl-card` 에는 높이 선언이 없고 상한은 안쪽 목록이 쥔다. 런 704 `screen_forge-list.png`(540×960) 실측: 클론 목록 상자 y150~795 ≈ 645px = **67%H** 로 상한 .59H(566px)를 **+13% 넘는다**(카드를 `fl_card_h_f` .76 으로 고정하고 목록을 나머지로 채우기 때문). **3회차에 배선했다**(2026-09-15 · 워커 I): 목록 높이 = min(나머지, H×이 키) **에 더해 카드도 그만큼 줄인다** — 정본 `.fl-card` 는 높이 선언이 없어 내용만큼 자라므로, 목록만 자르면 카드 아래에 정본에 없는 빈 자리가 남는다. 그래서 `fl_card_h_f` .76 은 이제 «고정 높이» 가 아니라 **그 위의 공용 상한**이다(계산: 목록 .59H + 카드 안 나머지 .0886H = **.6786H**).",
   "_fi_card_w": "style.css 5043 `.fi-card { width: min(calc(var(--app-w) * .9), 22.9rem) }` — 그 줄 끝 주석이 답을 적어 뒀다: «**원본 카드 77.19%W**». 기준 캔버스에서는 **뒤쪽(22.9rem = 833.6px)이 이겨** 그 값이 된다 — 그래서 min 을 그대로 옮긴다(`.9` 만 쓰면 972px = 90%W 로 한참 넓다).",
@@ -20,5 +22,7 @@
   "_fi_pill_min_w": "T388 4회차 — style.css **5065~5069** `.fi-pill { display: inline-flex; … min-width: 5.5rem; padding: .18rem .7rem .18rem .3rem }`. 정본 알약은 **내용만큼 좁아지되 5.5rem 밑으로는 안 내려간다**(inline-flex + min-width). 클론은 그 자리를 `inner * 0.4`(= 카드 안쪽 폭의 40%)로 **고정**해 8.31rem 으로 섰다 — 정본 하한의 **1.51배**다. 내용 폭(아이콘 1.25rem + 틈 .35 + 패딩 1.0 + 숫자)이 5.5rem 을 넘는 일은 드무니 대개 이 하한이 곧 폭이다. 코드는 max(하한, 내용)으로 잰다.", 
   "_fi_pill_gap": "곁들여 — 정본 `.fi-pills { gap: .8rem }`(5064) 인데 클론은 가운데에서 좌우로 rem*0.5 씩 벌려 **1rem** 이다. 틈은 **T364 축**이라 이 회차에서 안 건드렸다.", 
   "_fl_grid": "T364 5회차 — style.css **728** `.forge-item-grid { gap: calc(var(--app-h) * .0126) calc(var(--app-w) * .0395); padding: calc(var(--app-w) * .0229) calc(var(--app-w) * .0249) }`. 값 자체는 클론이 맞게 쓰고 있었지만 `ForgeInfoPopup.cs` 안에 **숫자로 박혀** 있어 자(`GapRatioTests`)도 사람도 못 보는 자리였다(T364 1회차가 «맞으나 코드에 박힘» 으로 적어 둔 넷). CSS `padding: A B` 는 **세로 A · 가로 B** 라 위아래가 `.0229`, 좌우가 `.0249` 다 — 둘 다 `--app-w` 기준인 것에 주의(세로 패딩도 폭으로 잰다). 꼬리 `_w`/`_h` 가 곱할 기준을 말한다.",
-  "_fl_card_h": "정본 `.fl-card` 에는 높이 선언이 없다(공용 상한이 잡는다) — 클론이 쓰던 `H * 0.76` 을 그대로 표로만 옮긴다. 원작 높이는 자가 «격자가 줄을 끊어» 못 쟀다(T28 50회차) — 재는 사람이 이 값을 고친다."
+  "_fl_card_h": "정본 `.fl-card` 에는 높이 선언이 없다(공용 상한이 잡는다) — 클론이 쓰던 `H * 0.76` 을 그대로 표로만 옮긴다. 원작 높이는 자가 «격자가 줄을 끊어» 못 쟀다(T28 50회차) — 재는 사람이 이 값을 고친다.",
+  "_fl_age_gap": "T364 11회차 여섯째 항 — style.css **722** `.forge-age-list { display: flex; flex-direction: column; gap: calc(var(--app-h) * .0492); … }` — 시대 구획(머리 + 격자) **사이**의 틈. 클론은 같은 값에 `× 0.5` 를 얹어 절반(약 22 CSS px)이었다 — 구획 상자는 머리 + .3rem + 격자만 담으니 반틈을 메울 여백이 따로 없다(8회차 실측). 정본 주석(716~721): 종전 .6rem 은 -3.80%p 라 등급 묶음이 한 덩어리로 읽혔다 · 타일 개수와 무관해 판정할 수 있다.",
+  "_fl_cell_gap": "T364 11회차 일곱째 항 — style.css **738** `.forge-item-cell { … gap: calc(var(--app-h) * .0069) }`(원본 셀 바닥 -> % 글자 6px). 값은 맞았으나 `ForgeInfoPopup.cs` 두 자리(칸 높이 셈 · 라벨 자리)에 숫자로 박혀 있었다 — 한 키가 두 자리를 쥔다."
 }

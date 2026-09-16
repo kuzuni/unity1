@@ -183,5 +183,69 @@ namespace Forge.Tests.PlayMode
             Debug.Log("[T364] 상점 특가 카드 틈 " + gap.ToString("0.0000") + "H · 표 " + UiKit.H("shop_deal_gap").ToString("0.00") + "px");
             yield return null;
         }
+
+        /// <summary>T364 11회차 ⑥⑦ — 정본 722 `.forge-age-list { gap: calc(var(--app-h) * .0492) }` · 738 `.forge-item-cell { gap: calc(var(--app-h) * .0069) }`.
+        /// ⑥ 은 클론이 같은 값에 ×0.5 를 얹어 시대 구획 틈이 정본의 절반이었다(8회차 실측) · ⑦ 은 값은 맞았으나 두 자리에 숫자로 박혀 있었다.
+        /// 표 왕복 + 화면에 선 구획·칸으로 잰다(표만 물으면 배선이 끊겨도 초록이고 화면만 물으면 다시 숫자를 박아도 안 걸린다).</summary>
+        [UnityTest]
+        public IEnumerator 장비_목록의_시대_구획_틈과_칸_아래_글자_틈은_앱_높이_비율로_표에서_온다()
+        {
+            Assert.AreEqual(0.0492f, ForgeInfoStyle.L("fl_age_gap_h"), 1e-6f, "구획 사이 gap = --app-h × .0492 (style.css 722)");
+            Assert.AreEqual(0.0069f, ForgeInfoStyle.L("fl_cell_gap_h"), 1e-6f, "칸 바닥 → % 글자 = --app-h × .0069 (style.css 738)");
+
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h, "ForgeHost");
+            float t0 = Time.realtimeSinceStartup;
+            while (!ForgeHost.Ready || PopupLayer.Instance == null)
+            {
+                Assert.Less(Time.realtimeSinceStartup - t0, 20f, "ForgeHost 가 20초 안에 준비되지 않았다");
+                yield return null;
+            }
+            ForgeInfoPopup.OpenList(h);
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+
+            Popup p = h.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(p, "「모든 장비의 목록」 팝업이 열려 있다");
+            RectTransform content = null;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "content" && rt.parent != null && rt.parent.name == "list" && rt.gameObject.activeInHierarchy) { content = rt; break; }
+            Assert.IsNotNull(content, "목록 내용 칸(list/content)");
+            UnityEngine.UI.VerticalLayoutGroup lay = content.GetComponent<UnityEngine.UI.VerticalLayoutGroup>();
+            Assert.IsNotNull(lay, "목록은 세로 레이아웃");
+            Assert.AreEqual(UiKit.RefH * ForgeInfoStyle.L("fl_age_gap_h"), lay.spacing, 0.01f, "⑥ 목록 간격 = 앱 높이 × .0492 그대로(×0.5 없음)");
+
+            RectTransform s0 = null, s1 = null;
+            foreach (Transform c in content)
+            {
+                if (!c.name.StartsWith("section-")) continue;
+                if (s0 == null) s0 = (RectTransform)c; else if (s1 == null) { s1 = (RectTransform)c; break; }
+            }
+            Assert.IsNotNull(s0, "첫 시대 구획"); Assert.IsNotNull(s1, "둘째 시대 구획");
+            Rect app = World(UiRoot.Instance.App), r0 = World(s0), r1 = World(s1);
+            Assert.Greater(app.height, 0f, "앱 상자");
+            float gap = (r0.yMin - r1.yMax) / app.height;
+            Assert.AreEqual(0.0492f, gap, 0.002f, "⑥ 화면의 구획 사이 틈 = 앱 높이 × .0492 · 실측 " + gap.ToString("0.0000") + "(종전 ≈ .0246)");
+
+            RectTransform cell0 = null, pct = null;
+            foreach (RectTransform rt in s0.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "cell-0") { cell0 = rt; break; }
+            Assert.IsNotNull(cell0, "첫 칸 cell-0");
+            foreach (RectTransform rt in cell0.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "pct") { pct = rt; break; }
+            Assert.IsNotNull(pct, "칸의 % 라벨");
+            // UiKit.Place 는 좌상단 앵커 · anchoredPosition.y = −위끝 — 타일은 칸 폭만큼의 정사각(0..size) 이고 라벨은 그 아래 gap 만큼 떨어져 선다
+            float size = cell0.rect.width;
+            float labelTop = -pct.anchoredPosition.y;
+            float cellGap = (labelTop - size) / UiKit.RefH;
+            Assert.AreEqual(0.0069f, cellGap, 0.0005f, "⑦ 칸 바닥 → % 글자 = 앱 높이 × .0069 · 실측 " + cellGap.ToString("0.0000"));
+            Debug.Log("[T364] 구획 틈 " + gap.ToString("0.0000") + "H · 칸→글자 " + cellGap.ToString("0.0000") + "H");
+
+            h.Meta.Popups.Hide(ForgeInfoPopup.Name);
+            yield return null;
+        }
     }
 }
