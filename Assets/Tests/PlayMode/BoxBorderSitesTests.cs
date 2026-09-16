@@ -227,5 +227,76 @@ namespace Forge.Tests.PlayMode
             h.Popups.Hide(QuestSheet.Name);
             yield return null;
         }
+
+        static RectTransform FindDeep(Transform root, string name)
+        {
+            if (root.name == name) return root as RectTransform;
+            for (int i = 0; i < root.childCount; i++) { RectTransform r = FindDeep(root.GetChild(i), name); if (r != null) return r; }
+            return null;
+        }
+
+        /// <summary>«테 없는 검정 원판 + 흰 i» 한 자리를 끝까지 재어 본다 — 면 색을 돌려준다.</summary>
+        static Color AssertInfoButton(RectTransform btn, string what)
+        {
+            Assert.IsNotNull(btn, what + ": 정보 버튼 버튼을 못 찾았다");
+            Assert.IsNull(btn.Find("ring"), what + ": 정본은 `border: none` 이다 — 고리를 그리면 안 된다");
+            Assert.IsNull(btn.Find("line"), what + ": 정본은 `border: none` 이다 — 고리를 그리면 안 된다");
+            RectTransform face = btn.Find("face") as RectTransform;
+            Assert.IsNotNull(face, what + ": 면(face)이 없다");
+            // 고리 짝이 돌아오면 면이 `PopupKit.Inset` 으로 안으로 들어간다 — 0 이 곧 «테 없음» 이다.
+            Assert.AreEqual(0f, face.offsetMin.x, 0.01f, what + ": 면이 들어가 있다 — 고리 짝(Inset)이 돌아왔다");
+            Assert.AreEqual(0f, face.offsetMax.x, 0.01f, what + ": 면이 들어가 있다 — 고리 짝(Inset)이 돌아왔다");
+            Image fi = face.GetComponent<Image>();
+            Assert.IsNotNull(fi, what + ": 면 Image");
+            TMPro.TextMeshProUGUI g = btn.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
+            Assert.IsNotNull(g, what + ": 글자(i)");
+            Assert.AreEqual("i", g.text, what + ": 정본 글리프는 소문자 i 다(ui.js 1544·2053)");
+            Color ink = UiKit.C("pp_paper");
+            Assert.AreEqual(ink.r, g.color.r, 0.02f, what + ": 흰 i(정본 3634 `color: var(--pp-paper)` · 5061 `color: #fff`)");
+            Assert.AreEqual(ink.g, g.color.g, 0.02f, what + ": 흰 i");
+            Assert.AreEqual(ink.b, g.color.b, 0.02f, what + ": 흰 i");
+            Assert.Less(fi.color.r + fi.color.g + fi.color.b, 0.4f, what + ": 면은 검정으로 껉 참 원이다(정본 3634·5060)");
+            return fi.color;
+        }
+
+        /// <summary>
+        /// T365 13회차 — 정본은 정보 버튼 를 **두 얼굴**로 쓰고 둘 다 «검정 면 · 테 없음 · 흰 i» 다:
+        /// 장비 시트 3634(`--pp-line` = #000) · 대장간 정본 5060(#17181a). 기본 규칙 971(흰 면 + ol1 고리)은 실물에 안 선다.
+        /// 두 면을 **나란히** 본다 — 표를 한 키로 뭉뚝그리면 이 자가 먼저 넘어진다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 정보_버튼_둘은_테_없는_검정_원판에_흰_i_다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (ForgeHost.Instance == null && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h, "ForgeHost");
+            yield return null;
+
+            // ⓐ 장비 시트의 정보 버튼 (ui.js 1544 · style.css 3634)
+            Color sheetFace = AssertInfoButton(FindDeep(UiRoot.Instance.Sheet, "info-btn"), "장비 시트 정보 버튼");
+            Color wantSheet = UiKit.C(InfoButtonUi.FaceKey("info-btn"));
+            Assert.AreEqual(wantSheet.r, sheetFace.r, 0.02f, "장비 시트 정보 버튼 면 = 표값(pp_line)");
+            Assert.AreEqual(wantSheet.g, sheetFace.g, 0.02f, "장비 시트 정보 버튼 면 = 표값(pp_line)");
+            Assert.AreEqual(wantSheet.b, sheetFace.b, 0.02f, "장비 시트 정보 버튼 면 = 표값(pp_line)");
+
+            // ⓑ 대장간 정본 팝업의 정보 버튼 (ui.js 2053 · style.css 5059)
+            ForgeInfoPopup.Open(h);
+            yield return null; yield return null;
+            Popup info = h.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(info, "대장간 정본 팝업이 열렸다");
+            Color fiFace = AssertInfoButton(FindDeep(info.Root, "fi-info-btn"), "대장간 정본 정보 버튼");
+            Color wantFi = UiKit.C(InfoButtonUi.FaceKey("fi-info-btn"));
+            Assert.AreEqual(wantFi.r, fiFace.r, 0.02f, "대장간 정본 정보 버튼 면 = 표값(pp_ink)");
+            Assert.AreEqual(wantFi.g, fiFace.g, 0.02f, "대장간 정본 정보 버튼 면 = 표값(pp_ink)");
+            Assert.AreEqual(wantFi.b, fiFace.b, 0.02f, "대장간 정본 정보 버튼 면 = 표값(pp_ink)");
+
+            // 두 면은 같은 검정이 아니다 — 정본이 #000 ↔ #17181a 로 한 단 갈라 적어 둔 자리다.
+            Assert.Greater(fiFace.g + fiFace.b, sheetFace.g + sheetFace.b + 0.02f,
+                           "대장간 정보 버튼 면(#17181a)은 장비 시트 정보 버튼 면(#000)보다 살짝 밝다 — 표를 한 키로 뭉뚝그리면 여기서 넘어진다");
+            h.Meta.Popups.Hide(ForgeInfoPopup.Name);
+            yield return null;
+        }
     }
 }

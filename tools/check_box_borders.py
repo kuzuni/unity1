@@ -17,7 +17,7 @@ T365 — 정본 상자 테(`border` · `border-top/-bottom/-left/-right`) ↔ �
 폭 단도 견준다(2회차): 호출의 폭 인자(`PopupKit.Line`/`Line3` · `PetSkillKit.Line2/Line3` · `line_px`·`line2_px`·`line3_px`·`line4_px`·`line1_px` · `line`/`line3` 변수)를
 단으로 읽어 정본 단과 맞춘다(`cellb` = ol3 내림 → ol3 · 클론 line_px 2 = ol1 · line2_px 4 = ol2 · line3_px 6 = ol3 · T33 29회차). 도우미 매개변수(`line`·`linePx`·`borderPx`·`lineW`)로
 넘겨받은 폭은 «못 읽음» 으로 두고 판정하지 않는다. `UiKit.Circle` 도 **짝**일 때만 테다(12회차) — 바깥 고리 `Circle(p, "line"|"ring", …)` 뒤에 안쪽 면 `Circle(p, "face", …)` 과
-`PopupKit.Inset(face.rectTransform, <폭>)` 이 따라오는 꼴이 클론의 **둥근 테**다(오프라인 점·요율 원판·ⓘ 버튼·알 칩 …). 그 `Inset` 의 폭이 곧 단이다. `UiKit.Rounded` 는 **짝**일 때만 테다 — 바깥 `Rounded(p, "line"|…)` 뒤에 `Rounded(…, r - <폭>)` 안쪽 면이 따라오면 그 «폭» 이 단이다.
+`PopupKit.Inset(face.rectTransform, <폭>)` 이 따라오는 꼴이 클론의 **둥근 테**다(오프라인 점·요율 원판·정보 버튼 버튼·알 칩 …). 그 `Inset` 의 폭이 곧 단이다. `UiKit.Rounded` 는 **짝**일 때만 테다 — 바깥 `Rounded(p, "line"|…)` 뒤에 `Rounded(…, r - <폭>)` 안쪽 면이 따라오면 그 «폭» 이 단이다.
 `@Method` 자리는 본문 안의 단을 모두 모아 정본 단이 그중에 있으면 맞다(한 메서드가 여럿을 세운다).
 
 사용:  python3 tools/check_box_borders.py [--css <style.css>] [--game <Assets/Scripts/Game>] [--list] [--self-test]
@@ -60,14 +60,14 @@ TABLE = {
     '.toast': ['Ui/Popups.cs@Toast'],
     '.settings-toggle': ['Ui/Popups.cs@Toggle'],
     '.profile-avatar-big': ['—Popups.Avatar 의 폭은 호출부 인수(ProfilePopup 이 PopupKit.Line3 를 준다 · 10회차) — 자는 인수 이름만 봐서 못 읽고 PlayMode BoxBorderSitesTests 가 ol3 를 지킨다'],
-    # 12회차 — 둥근 테 짝(Circle+Inset)을 읽게 된 뒤 열린 자리들 · 오프라인/ⓘ/웨이브
+    # 12회차 — 둥근 테 짝(Circle+Inset)을 읽게 된 뒤 열린 자리들 · 오프라인/정보 버튼/웨이브
     '.offline-collect-dot': ['Ui/OfflinePopup.cs@CollectDot'],
     '.offline-rate-icon': ['—덮인다: 실물은 언제나 `.coin`/`.hammer`(ui.js 5896~5897)이고 7268 이 그 둘에 `border: none` 을 준다 — 274 의 ol2 #000 은 실물에 안 선다(7268 쪽 두 줄이 이 자리의 임자다)'],
     '.offline-rate-icon.coin': ['Ui/OfflinePopup.cs@Rate'],
     '.offline-rate-icon.hammer': ['Ui/OfflinePopup.cs@Rate'],
     '#offline-btn': ['—버튼 자체엔 테가 없다(정본 207 `border: none`) · 클론 `Ui/OfflineButton.cs` 도 테 호출 0 — 12회차가 전수 확인'],
     '.waypoint': ['—이정표 버튼엔 테가 없다(정본 316 `border: none`) · 클론 `Ui/Waypoints.cs` 는 시간 배지 `Rounded` 채움 하나뿐(고리 짝 아님)'],
-    '.info-btn': ['Ui/ForgeUi.cs@InfoButton'],
+    '.info-btn': ['—덮인다: 정본 마크업 세 곳이 전부 덮는 규칙 안에 있다 — `ui.js` 1544 는 `#equip-sheet` 안(3634 이 이긴다) · 2053·5459 는 `.fi-info-btn`(5059) 이다. 그래서 971 의 `--ol1` #444c56 고리는 **실물에 한 번도 안 선다** — 클론에도 그 갈래를 두지 않는다(T365 13회차 · `.offline-rate-icon` 과 같은 꺼)'],
     '#equip-sheet .info-btn': ['Ui/ForgeUi.cs@InfoButton'],
     '.fi-info-btn': ['Ui/ForgeUi.cs@InfoButton'],
     '.pip': ['Ui/Hud.cs@RebuildPips'],
@@ -150,8 +150,6 @@ KNOWN = {
     '.pass-milestone-label → Ui/PassPopup.cs@Render': 'T365 3회차 — `.pass-milestone-label` 2803 ol2 ↔ 클론 라벨 고리는 `- PopupKit.Line`(ol1)(배너 Line3 는 맞다) · PassPopup.cs T332 lock',
     '.offline-rate-icon.coin → Ui/OfflinePopup.cs@Rate': 'T365 12회차 — 정본 실물은 **테가 없다**(7268 `.offline-rate-icon.coin/.hammer { background: none; border: none }` 이 274 의 ol2 #000 을 덮는다 · ui.js 5896~5897 이 늘 그 클래스를 붙인다) ↔ 클론 `Rate()` 는 `UiKit.Circle(circle, "line", "pp_line")` + `Inset(face, line2_px)` 로 **검정 ol2 고리**를 그린다. 고칠 것: 고리·면을 걷고 아이콘만 둔다(정본은 배경도 none). OfflinePopup.cs T345 lock',
     '.offline-rate-icon.hammer → Ui/OfflinePopup.cs@Rate': 'T365 12회차 — 위와 같은 자리(같은 도우미) · 정본 7268 이 테·배경을 함께 끈다. OfflinePopup.cs T345 lock',
-    '#equip-sheet .info-btn → Ui/ForgeUi.cs@InfoButton': 'T365 12회차 — 정본은 ⓘ 를 **두 얼굴**로 쓴다: 일반 `.info-btn`(973 ol1 #444c56 · 흰 면) ↔ 장비 시트 3634 `#equip-sheet .info-btn { background: var(--pp-line); border: none; color: var(--pp-paper) }`(검정 면 · **테 없음** · 흰 i · 주석에 QA 등재 번호까지 적혀 있다). 클론 `InfoButton` 은 한 얼굴뿐이라 시트에서도 흰 면 + 검정 ol1 고리다. 고칠 것: 갈래 인수(또는 시트 전용 키)로 «검정 면 · 테 없음 · 흰 글자» 를 낸다. ForgeUi.cs T332 lock',
-    '.fi-info-btn → Ui/ForgeUi.cs@InfoButton': 'T365 12회차 — 정본 5061 `.fi-info-btn` 도 **테 없음**(검정 면 + 흰 글자 · 3634 와 같은 결) ↔ 클론은 같은 도우미라 ol1 고리가 선다. 위 줄과 한 번에 고친다. ForgeUi.cs T332 lock',
     '.pip → Ui/Hud.cs@RebuildPips': 'T365 12회차 — 정본 191 `.pip { border: var(--ol2) solid var(--pp-line) }` ↔ 클론은 고리 안 면을 `size - line * 2`(`line_px` = **ol1**)로 깎는다(`Hud.cs:301·313`). 바꿀 키: `line_px` → `line2_px`(고리 두께를 재는 자리 셋 다). Hud.cs T331 lock',
     '#wave-pips::before|top → Ui/Hud.cs@RebuildPips': 'T365 12회차 — 정본 185 는 트랙 위아래에 ol2 두 줄(`border-top`·`border-bottom`)을 준다 ↔ 클론 트랙은 `UiKit.Panel(track, "edge", "pp_line")` + 제 `Inset(core, line)`(= `line_px` ol1)이라 한 단 얇다. 바꿀 키: 같은 `line_px` → `line2_px`. Hud.cs T331 lock',
     '#wave-pips::before|bottom → Ui/Hud.cs@RebuildPips': 'T365 12회차 — 위와 같은 한 자리(트랙 한 상자가 위·아래 두 줄을 같이 낸다). Hud.cs T331 lock',

@@ -414,16 +414,23 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>작은 «i» 원 버튼(원작 `.info-btn`·`.fi-info-btn`).</summary>
+        /// <summary>
+        /// T365 13회차 — 정본은 이 버튼을 **두 얼굴**로 쓰고 둘 다 «검정으로 꽉 찬 원 · 테 없음 · 흰 소문자 i» 다:
+        /// 장비 시트 3634 `#equip-sheet .info-btn { background: var(--pp-line); border: none; color: var(--pp-paper) }` ·
+        /// 대장간 정보 5059 `.fi-info-btn { border: none; background: #17181a; color: #fff }`.
+        /// 기본 규칙 971(흰 면 + `--ol1` #444c56 고리 + #90a4ae 글자)은 **실물에 한 번도 안 선다** — 마크업 두 곳이 전부 덮인 자리다
+        /// (`ui.js` 1544 는 `#equip-sheet` 안 · 2053·5459 는 `.fi-info-btn`). 종전 클론은 그 안 서는 얼굴 하나만 그려 흑백이 뒤집혀 있었다
+        /// (정본 3630~3633 주석이 같은 사고를 «2026-08-19 QA 등재 equip-sheet-info-glyph» 로 적어 뒀다).
+        /// 부르는 쪽 파일이 대개 남의 lock 이라 색은 <b>오브젝트 이름</b>(= 정본 선택자)으로 표에서 읽는다(<see cref="InfoButtonUi"/>).
+        /// </summary>
         public static Button InfoButton(Transform parent, string name, float size, UnityEngine.Events.UnityAction onClick)
         {
             Button b = UiKit.Button(parent, name, onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(size, size);
-            UiKit.Circle(rt, "ring", "pp_line");
-            Image face = UiKit.Circle(rt, "face", "pp_paper");
-            PopupKit.Inset(face.rectTransform, PopupKit.Line);
-            TextMeshProUGUI t = UiKit.Text(rt, "glyph", TextKind.Sub, "i", "pp_ink");
-            t.fontStyle = FontStyles.Bold;
+            UiKit.Circle(rt, "face", InfoButtonUi.FaceKey(name));   // 테 없음 — 홀로 선 원판이다(고리 짝 아님)
+            TextMeshProUGUI t = UiKit.Text(rt, "glyph", TextKind.Sub, "i", InfoButtonUi.InkKey(name));
+            t.fontStyle = FontStyles.Bold;                          // 정본 3634·5062 `font-weight: 900`
             return b;
         }
     }
