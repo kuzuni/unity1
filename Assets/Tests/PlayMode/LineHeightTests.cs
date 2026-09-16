@@ -198,7 +198,11 @@ namespace Forge.Tests.PlayMode
             PassPopup.Open(MetaHost.Instance);   // 다른 자들이 쓰는 꼴(UiIconsTests)
             yield return null; yield return null;
             Canvas.ForceUpdateCanvases();
-            Transform desc = Find(UiRoot.Instance.App, "desc");
+            // T414 — `desc` 는 화면 넷(`PassPopup`·`Popups`·`LeagueSheet`·`TechPopups`)이 쓰는 이름이다.
+            //   앱 뿌리부터 찾으면 남이 열어 둔 화면의 글줄을 잰다 — **패스 팝업 뿌리**에서만 찾는다.
+            Popup pass = PopupLayer.Instance.Find(PassPopup.Name);
+            Assert.IsNotNull(pass, "패스 팝업이 안 열렸다");
+            Transform desc = Find(pass.Root, "desc");
             Assert.IsNotNull(desc, "패스 안내문(.pass-desc)");
             TextMeshProUGUI t = desc.GetComponent<TextMeshProUGUI>();
             AssertSpacing(t, "pass_desc_lh", "패스 안내문");
@@ -303,7 +307,10 @@ namespace Forge.Tests.PlayMode
             UiRoot.Instance.TabBar.OnTab("shop");
             yield return null;
             Canvas.ForceUpdateCanvases();
-            Transform price = Find(UiRoot.Instance.App, "price");
+            // T414 — `price` 는 `PassPopup` 과 `ShopSheet` 둘이 쓴다 — **상점 시트 뿌리**에서만 찾는다.
+            Popup shop = PopupLayer.Instance.Find(ShopSheet.Name);
+            Assert.IsNotNull(shop, "상점 시트가 안 열렸다");
+            Transform price = Find(shop.Root, "price");
             Assert.IsNotNull(price, "특가 카드의 가격 단추(price)");
             TextMeshProUGUI t = price.GetComponentInChildren<TextMeshProUGUI>();
             Assert.IsNotNull(t, "가격 단추 라벨");

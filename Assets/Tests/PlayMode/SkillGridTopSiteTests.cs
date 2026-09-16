@@ -34,6 +34,26 @@ namespace Forge.Tests.PlayMode
             return null;
         }
 
+        /// <summary>앱 뿌리부터 그 상자까지의 길 — 빨강이 «어느 상자를 쟀는지» 스스로 말하게 한다(T414).</summary>
+        static string Path(Transform app, Transform t)
+        {
+            string s = t.name;
+            for (Transform p = t.parent; p != null && p != app.parent; p = p.parent) s = p.name + "/" + s;
+            return s;
+        }
+
+        /// <summary>남이 열어 둔 화면을 지운다 — `UiShotsTests.CloseAll` 의 채비를 그대로 베낀 것이다(T414 · 결정 «이미 그 화면을 여는 자의 채비를 베낀다»).</summary>
+        static void CloseAll()
+        {
+            TechPopups.Close();
+            AscendPopup.Close();
+            DungeonDetailPopup.Close();
+            if (DungeonSheet.Instance != null) DungeonSheet.Instance.Close();
+            if (SkillPetSheet.Instance != null && SkillPetSheet.Instance.Modal != null) SkillPetSheet.Instance.Modal.CloseAll();
+            if (PopupLayer.Instance != null) PopupLayer.Instance.HideAll();
+            UiRoot.Instance.TabBar.CloseOpened();
+        }
+
         /// <summary>앱 위끝에서 그 상자의 위끝까지 — 기준 높이(RefH) 로 환산한 px. 촬영 해상도와 무관하게 견줄 수 있다.</summary>
         static float TopFromApp(RectTransform app, RectTransform rt)
         {
@@ -48,6 +68,10 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 첫_행_오브_위끝이_표가_쥔_정본_10_34퍼센트H_에_선다()
         {
             yield return Boot();
+            // T414 — 재기 전에 남이 열어 둔 것을 지운다. 이 자는 런 851 에 «Expected 198.53 ↔ was 288.55» 로 빨갰는데
+            //   «런 사이» 어느 커밋도 격자를 안 건드렸다: 앞선 자가 남긴 다른 화면의 `sk-orb` 를 재고 있었다.
+            CloseAll();
+            yield return null;
             UiRoot.Instance.TabBar.OnTab("summon");
             yield return null;
             SkillPetSheet sheet = SkillPetSheet.Instance;
@@ -57,13 +81,18 @@ namespace Forge.Tests.PlayMode
             Canvas.ForceUpdateCanvases();
 
             RectTransform app = (RectTransform)UiRoot.Instance.App;
-            Transform orb = FindActive(app, "sk-orb");
+            // ⚠ `sk-orb` 라는 이름은 화면 **셋**이 쓴다(격자 `SkillPanel.cs:207` · 스킬 상세 팝업 `:506` · 출전 줄 `PlayerInfoPopup.cs:425`) —
+            //   앱 뿌리부터 찾으면 남의 것을 잡는다. **스킬 패널 뿌리**에서만 찾는다(T414).
+            Transform panel = sheet.Skills != null ? sheet.Skills.transform : null;
+            Assert.IsNotNull(panel, "스킬 패널(SkillPetSheet.Skills)");
+            Transform orb = FindActive(panel, "sk-orb");
             Assert.IsNotNull(orb, "스킬 격자 첫 칸의 오브(sk-orb) — 세이브에 스킬이 하나도 없으면 이 자를 못 잰다");
             float want = PetSkillStyle.Px("sk_grid_top_h");
             float got = TopFromApp(app, (RectTransform)orb);
-            Assert.AreEqual(want, got, 2f, "정본 .sk-grid 머리말 «1행 오브 상단 10.34%H» — 표값 그대로여야 한다(종전 8.96%H)");
+            Assert.AreEqual(want, got, 2f,
+                "정본 .sk-grid 머리말 «1행 오브 상단 10.34%H» — 표값 그대로여야 한다(종전 8.96%H) · 잰 상자 = " + Path(app, orb));
 
-            Transform banner = FindActive(app, "passive-banner");
+            Transform banner = FindActive(panel, "passive-banner");
             Assert.IsNotNull(banner, "패시브 배너");
             RectTransform brt = (RectTransform)banner;
             float bannerBottom = TopFromApp(app, brt) + brt.rect.height;

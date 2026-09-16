@@ -2744,13 +2744,29 @@
 - ⚠ **T386 의 값을 깎는 절이 아니다** — 접어 두기·건너뜀 세기·«이제 켜라» 는 이번 회차에 **실물로 돌았다**(런 848: 초록 · 건너뜀 1 · 남은 일 1 이 이름과 번호까지 찍혔다). 이 절은 그 마지막 한 칸의 **부등호**를 고친다.
 - 🔄 1회차 2026-09-16 04:2x~04:4x 워커 N(sess-0524-8791 · lock 유지 · 판정은 다음 런): ⓐ `skip_note` 가 접힘 한 자리마다 댄 번호를 «닫힘·열림» 으로 갈라 **전부 닫혔을 때만** stale(any → all) ⓑ `--self-test` 두 칸 — 둘 중 하나만 닫힘 → rc 0 + «T354 이(가) 아직 열려 있다» 줄 · 둘 다 닫힘(✅·⛔) → stale 둘 + rc 1 «이제 켜라»(종전 «하나만 닫혀도 rc 1» 칸은 새 셈으로 뒤집었다) ⓒ 반쪽 닫힘 줄에 «문구에서 닫힌 번호를 지우지 마라 — 한때 막았던 기록이다» 를 같이 적는다. 자기 검사 283 → **287칸** · 지금 main(문구 «KNOWN T411» · 열림)에서 rc 0 · T386 절에 한 줄. 판정 = 다음 런 gate 잡 초록(파이썬 자뿐 · T338).
 
-### T414 — PlayMode 자 스무 자리가 **앱 트리 전체에서 이름으로** 찾는다: 같은 이름이 화면 둘에 있으면 **남의 화면을 재고도 초록**이고, 남이 팝업을 열어 둔 채 오면 **까닭 없이 빨갛다** (검증 · T340 갈래 · §0-6 실측 런 851)
+> ⚠ **번호를 옮겼다**: 04:2x 에 `T413` 으로 등재·선점했는데 워커 M 이 같은 번호를 **먼저 밀었다**(`1f5f7bc3` ↔ 내 `b5174970`). 규약대로 **늦게 민 쪽이 옮긴다** — 이 절·§7 칸·PROGRESS 행·lock 파일·자 안 주석을 전부 `T414` 로 바꿨다. `T413` 은 워커 M 의 «tech-node 머리» 절이다.
+
+### T414 — PlayMode 자 스물세 자리가 **앱 트리 전체에서 이름으로** 찾는다: 같은 이름이 화면 둘에 있으면 **남의 화면을 재고도 초록**이고, 남이 팝업을 열어 둔 채 오면 **까닭 없이 빨갛다** (검증 · T340 갈래 · §0-6 실측 런 851)
 - **실측(런 851 · 이 절을 낳은 빨강)**: `SkillGridTopSiteTests.첫_행_오브_위끝이_표가_쥔_정본_10_34퍼센트H_에_선다` 가 «Expected 198.53 ± 2 · But was **288.55**» 로 빨갛다(차 **90 ref px = 4.69%H**). 그런데 «런 사이»(직전 초록 #848 → #851)에 들어온 코드 커밋 셋 중 **스킬 격자를 건드린 것이 하나도 없다** — `SkillPanel.cs` 는 **29.9시간**, `PetSkillUi.json` 의 격자 키는 그보다 더 오래 안 바뀌었다. 워커 O 도 같은 회차에 «임자 못 가림 · 코드 창에 격자 커밋 없음» 으로 적고 지나갔다.
 - **까닭**: 그 자는 `FindActive(app, "sk-orb")` 로 **앱 뿌리부터** 이름이 같은 첫 상자를 집는다. 그런데 `sk-orb` 는 화면 **셋**이 쓴다 — `SkillPanel.cs:207`(격자 칸 · 재려던 것) · `SkillPanel.cs:506`(**스킬 상세 팝업**의 큰 오브) · `PlayerInfoPopup.cs:425`(플레이어 정보의 출전 줄). 앞선 자가 그중 하나를 **열어 둔 채** 끝나면 이 자는 그것을 재고 «격자가 90px 내려갔다» 고 운다. 곧 **빨강이 가리키는 곳과 고칠 곳이 다르다**.
-- **축(이 절이 맡는 것)**: `Assets/Tests/PlayMode` 에서 «`UiRoot.Instance.App`(또는 그 `app` 변수) 부터 이름으로 찾는» 자리 — `SkillGridTopSiteTests` 2 · `SlotBuyGapTests` 1 · `SummonDashTests` 2 · `LineHeightTests` 3 · `DropShadowTests` 3 · `DungeonFxTests` 2 · `SurfaceArtTests` 4 · `CardHatchTests` 3 = **스무 자리**. 전부가 위험한 것은 아니다 — **그 이름이 화면 하나에만 있으면 안전**하다. 가르는 자를 먼저 만들고, 겹치는 이름만 좁힌다.
+- **축(이 절이 맡는 것)**: `Assets/Tests/PlayMode` 에서 «`UiRoot.Instance.App`(또는 그 `app` 변수) 부터 이름으로 찾는» 자리 — `SkillGridTopSiteTests` 2 · `SlotBuyGapTests` 1 · `SummonDashTests` 2 · `LineHeightTests` 3 · `DropShadowTests` 3 · `DungeonFxTests` 2 · `SurfaceArtTests` 4 · `CardHatchTests` 3 = 세어 보니 **스물셋**(등재 때 대충 잡은 «스물» 을 1회차가 고쳤다). 전부가 위험한 것은 아니다 — **그 이름이 화면 하나에만 있으면 안전**하다. 가르는 자를 먼저 만들고, 겹치는 이름만 좁힌다.
 - 무엇을 한다: ⓐ **빨간 자부터**(`SkillGridTopSiteTests`) — 재기 전에 그 화면을 이미 여는 자(`UiShotsTests.CloseAll`)의 채비를 그대로 베끼고, 찾는 자리를 **그 패널 뿌리**(`SkillPetSheet.Instance.Skills.transform`)로 좁히고, 못 맞으면 **찾은 상자의 경로**를 실패 문구에 적는다(다음 빨강이 스스로 말하게) ⓑ 나머지 열여덟의 이름이 몇 화면에 있는지 세어 **겹치는 것만** 같은 길로 좁힌다 ⓒ 겹치는 이름을 **새로 만들지 않게** 하는 자 한 줄(`tools/`)을 볼지는 ⓑ 의 수를 보고 정한다.
 - 판정: ⓐ 다음 런에 그 자가 초록이거나, 빨갛더라도 **어느 상자를 쟀는지 경로가 찍힌다** ⓑ 자리마다 «이 이름은 화면 N개» 한 줄 ⓒ `tools/gate.sh` rc 0.
 - ⚠ **고칠 곳이 남의 lock 일 수 있다**: 이 절은 **자(테스트)만** 고친다. 재어 보니 진짜로 배치가 어긋난 자리가 나오면 그것은 그 화면 임자의 몫으로 적어 둔다(`SkillPanel.cs` 는 지금 **T331 산 lock**).
+- 🔄 **1회차 2026-09-16 04:3x 워커 J(sess-0418-15809) — ⓐⓑ 를 함께 했다 · 게임 코드 0줄**:
+  - **ⓑ 전수 census 먼저**(그래야 ⓐ 를 어디까지 고칠지 안다). 자가 앱 뿌리부터 이름으로 찾는 자리 **스물셋** 중 그 이름을 `Assets/Scripts/Game` 이 **두 곳 이상에서 짓는** 것 = **다섯**뿐이고 나머지 열여덟은 **한 화면만 쓴다(안전)**:
+    | 자 | 줄 | 이름 | 짓는 화면 |
+    |---|---:|---|---|
+    | `SkillGridTopSiteTests` | 60·66 | `sk-orb` | **셋** — `SkillPanel:207`(격자) · `SkillPanel:506`(스킬 상세 팝업) · `PlayerInfoPopup:425`(출전 줄) |
+    | `CardHatchTests` | 98·104 | `cell-<슬롯>` | **셋** — `ForgeSheet` · `ForgeInfoPopup` · `DungeonClearPopup` |
+    | `CardHatchTests` | 107 | `egg-cell` | **둘** — `ForgeSheet` · `PlayerInfoPopup` |
+    | `LineHeightTests` | 201 | `desc` | **넷** — `PassPopup` · `Popups` · `LeagueSheet` · `TechPopups` |
+    | `LineHeightTests` | 306 | `price` | **둘** — `PassPopup` · `ShopSheet` |
+  - **ⓐ 다섯을 다 좁혔다**(자 파일만 · 게임 코드 0줄): `SkillGridTopSiteTests` → `SkillPetSheet.Instance.Skills.transform` · `CardHatchTests` → `UiRoot.Instance.Sheet`(`ForgeSheet.Render` 가 먼저 비우고 채우는 그 뿌리) · `LineHeightTests` → `PopupLayer.Instance.Find(PassPopup.Name).Root` · `…Find(ShopSheet.Name).Root`(T364 6회차가 `ChatGapTests` 에 쓴 그 길 그대로).
+  - **빨간 자에는 두 가지를 더 얹었다**: ⓐ 재기 전에 `CloseAll()` — `UiShotsTests` 의 채비를 그대로 베꼈다(§1 «이미 그 화면을 여는 자의 채비를 베낀다») ⓑ 실패 문구에 **잰 상자의 경로**를 찍는다(`Path(app, orb)`) — 다음에 같은 빨강이 나면 «수가 틀렸나 · 남의 것을 쟀나» 를 한 줄로 가른다(`check_unity_green` 이 임자를 못 가려 워커 둘이 이미 지나간 빨강이다).
+  - **결정 699**: 배치를 쫓지 않고 **자의 찾는 자리를 좁힌** 까닭 — 좁혀도 **진짜 배치 어긋남은 그대로 빨갛다**(좁힌 뒤에도 재는 것은 여전히 그 격자다). 곧 이 고침은 **헛 빨강만 지우고 참 빨강은 못 지운다** — 되레 다음 런이 이 자가 무엇을 말하는지 처음으로 믿을 수 있게 한다.
+  - `dotnet build` 초록(자 셋 컴파일) · `tools/gate.sh` rc 0. **판정은 다음 런** — lock 은 쥔 채.
+  - **남은 것**: 열여덟은 지금 한 화면만 쓰지만 «나중에 같은 이름이 둘째 화면에 생기면» 조용히 되돌아온다. ⓒ(그 이름이 둘째 화면에 생기는 것을 막는 자 한 줄)는 **아직 안 냈다** — 겹친 것이 다섯뿐이라 자를 세울 값어치가 있는지는 다음 회차가 정한다.
 - 범위: `Assets/Tests/PlayMode/SkillGridTopSiteTests.cs`(1회차) · 나머지 자 파일은 좁히는 회차에 적는다 · `docs/ROUTINE.md`(§2 이 절) · `docs/PROGRESS.md`.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)

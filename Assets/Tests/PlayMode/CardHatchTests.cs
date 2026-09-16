@@ -94,7 +94,10 @@ namespace Forge.Tests.PlayMode
             h.Gear.Set(it.Slot, it);
             ForgeSheet.Render(h);
             yield return null;
-            Transform app = UiRoot.Instance.App;
+            // T414 — `cell-<슬롯>`·`egg-cell` 은 화면 셋(`ForgeSheet`·`ForgeInfoPopup`·`DungeonClearPopup`)과
+            //   둘(`ForgeSheet`·`PlayerInfoPopup`)이 쓰는 이름이다. 앱 뿌리부터 찾으면 남이 열어 둔 화면의 칸을 잰다 —
+            //   `ForgeSheet.Render` 가 그리는 **그 시트 뿌리**에서만 찾는다.
+            Transform app = UiRoot.Instance.Sheet;
             Transform full = FindDeep(app, "cell-" + it.Slot);
             Assert.IsNotNull(full, "장비 든 칸 cell-" + it.Slot);
             AssertHatched(full, "장비 든 칸");
