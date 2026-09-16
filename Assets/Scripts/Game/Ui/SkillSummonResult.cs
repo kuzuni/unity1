@@ -668,6 +668,11 @@ namespace Forge.Game.Ui
 
             // ---- 섬광 ----
             flash = UiKit.Panel(c, "sr-flash", "pp_line");
+            // T419 ⓐ — 정본 6148 `.sr-flash { mix-blend-mode: screen }`: 이 판은 덮는 것이 아니라 **밝힌다**.
+            //   흰색일 때는 screen ≡ 보통 알파라 안 드러나지만, 홀드백 착지에서 `flash.color` 에 **등급색**을 칠하는 순간
+            //   갈린다(정본은 그 색으로 화면을 밝히고 클론은 그 색 막을 덮었다 — 이웃 셀이 탁해진다).
+            Material fmat = CraftFxPoly.Screen();
+            if (fmat != null) flash.material = fmat;
             flash.color = new Color(1f, 1f, 1f, 0f);
             flash.raycastTarget = false;
 

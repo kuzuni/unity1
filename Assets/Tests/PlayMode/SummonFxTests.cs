@@ -239,6 +239,38 @@ namespace Forge.Tests.PlayMode
         /// 홀드백이면 전 화면 `.flash`, **아니면 `.wipe`**(주역 셀 중심 가산 원형). 전 화면 섬광을 쓰면
         /// «x75 는 위쪽 20셀이 같이 하얗게 떠 등급 구분이 무너진다» — 정본이 쓰면 안 된다고 적어 둔 자리다.</summary>
         /// <summary>
+        /// <summary>T419 ⓐ — 정본 6148 `.sr-flash { mix-blend-mode: screen }`: 홀드백 착지의 전 화면 섬광은 **밝히는 겹**이다.
+        /// 흰색일 땐 screen ≡ 보통 알파라 안 드러나지만 그 판에 **등급색**을 칠하는 순간 갈린다(정본은 밝히고, 재질이 없으면 그 색 막을 덮는다).
+        /// 그래서 «판이 있다» 가 아니라 **그 판의 셰이더**를 묻는다.</summary>
+        [UnityTest]
+        public IEnumerator 홀드백_섬광_판은_스크린_합성으로_선다()
+        {
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            while (Host.SummonMult("skill") != 1) Host.CycleSummonMult("skill");
+            Host.Tickets = 10000;
+            Host.Sync();
+            yield return null;
+            Sheet.Skills.SummonButton.onClick.Invoke();
+            yield return null;
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v, "소환 결과 창");
+            Transform f = null;
+            foreach (Transform x in v.GetComponentsInChildren<Transform>(true))
+                if (x.name == "sr-flash") { f = x; break; }
+            Assert.IsNotNull(f, "섬광 판(sr-flash)");
+            Image img = f.GetComponent<Image>();
+            Assert.IsNotNull(img, "섬광은 판 하나다");
+            Assert.IsNotNull(img.material, "섬광 판 재질 — 정본 6148 mix-blend-mode: screen");
+            Assert.AreEqual(CraftFxPoly.ScreenShaderName, img.material.shader.name,
+                "정본 6148 `.sr-flash { mix-blend-mode: screen }` — 이 레포의 그 재질(Forge/UiScreen)");
+            Assert.IsFalse(img.raycastTarget, "연출 겹은 탭을 먹지 않는다");
+            Debug.Log("[T419] 섬광 판 셰이더 " + img.material.shader.name);
+        }
+
         /// T419 1회차 — 정본 5912 `.sr-canopy b::after`: 스필(b) 위를 훑는 빛띠는 `mix-blend-mode: screen`(이 레포의 그 재질 = `Forge/UiScreen`) · opacity .9 ·
         /// srsweep 2.2s linear 무한(translateX −115% → 115%). 띠는 스필의 자식(세로 마스크·호흡을 같이 받는다) · 스필 상자 밖은 RectMask2D 가 자른다.
         /// </summary>
