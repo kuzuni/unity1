@@ -5,7 +5,9 @@ T408 — 판매 코인 연출의 **시간축**: 정본 `web/ref/shots/coinsell-<
 **자리(띠)로 좁혀** 센 곡선을 표(`Assets/Forge/Resources/CoinSellCurveUi.json`)에 쥐고, 표가 정본 프레임에서 다시 센 값과 같은지 지킨다.
 
 셈(T393 2회차의 잣대를 자리로 좁힌 것 · 등재 ⓐ):
-  · 금빛 = r>200 · 150<g<235 · b<130 · r−b>90 (표 `gold`).
+  · 금빛 = r>200 · 120<g<235 · b<130 · r−b>90 (표 `gold`). ⚠ g 하한은 **120** 이다(T411 5회차 · 결정 참조): 정본 25 프레임의 코인은 2026-08-17 의 **옛 노란 그림**이고
+    지금 정본 `icongen.js coin`(1022)과 클론 아틀라스는 몸통 #ff880f(g 136)·왕관 #ffb445 인 주황 코인이라, 150 으로는 코인 한 개가 4%(왕관)만 잡혀
+    클론이 정본 눈금에 닿을 길이 없었다. 120 이면 정본 곡선은 그대로(봉우리 860ms · 끝 2500ms · 시트 띠 값 +3~15%)이고 지금 코인은 50% 가 잡힌다.
   · 정적 바닥 = **마지막 프레임(3200ms)의 금빛 화소 집합** — 프레임마다 그 집합에 없는 화소만 «동적» 으로 센다(수를 빼는 것이 아니라 자리를 뺀다 ·
     HUD 알약·아이콘처럼 늘 있는 금빛이 빠진다).
   · 띠 셋(앱 높이 비율 · 표 `bands`): top 0~10%(HUD 코인 알약) · mid 10~56.2%(무대 — 3D 전투가 사는 곳) · bot 56.2~100%(**장비 시트 띠** — 모루가
@@ -33,7 +35,7 @@ import tempfile
 
 SHOTS_DEFAULT = os.path.join('.wwwww-src', 'web', 'ref', 'shots')
 TABLE_DEFAULT = os.path.join('Assets', 'Forge', 'Resources', 'CoinSellCurveUi.json')
-GOLD = {'r_min': 200, 'g_min': 150, 'g_max': 235, 'b_max': 130, 'rb_min': 90}
+GOLD = {'r_min': 200, 'g_min': 120, 'g_max': 235, 'b_max': 130, 'rb_min': 90}   # g 하한 120(T411 5회차): 지금 정본·클론 코인 몸통 #ff880f(g 136)까지 — 프레임의 옛 노란 코인만 세던 150 은 코인 없는 자였다
 SHEET_TOP_F = 0.562                                                      # 정본 3200ms 프레임의 장비 시트 윗선(y 480/854)
 BANDS = {'top': [0.0, 0.10], 'mid': [0.10, SHEET_TOP_F], 'bot': [SHEET_TOP_F, 1.0]}
 FLIGHT_BAND = 'bot'                                                      # 코인이 사는 띠 = 장비 시트
