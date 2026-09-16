@@ -244,7 +244,7 @@ namespace Forge.Tests.PlayMode
             bool endOk = endMs >= 0 && endMs <= refEndMs + 600;
             if (!peakOk || !endOk)
                 Assert.Ignore("KNOWN T411 — 판매 코인 연출의 시간축이 정본과 다르다(클론 mid 봉우리 " + peak.Ms + "ms " + peak.Mid + " · 끝 " + (endMs < 0 ? "없음" : endMs + "ms")
-                              + " ↔ 정본 " + refPeakMs + "ms · " + refEndMs + "ms) · 자국 ui-screens/t408-coinsell.txt · 연출 임자 몫(T117·T134·T333 갈래)");
+                              + " ↔ 정본 " + refPeakMs + "ms · " + refEndMs + "ms) · 자국 ui-screens/t408-coinsell.txt · 임자 T411 절(연출 갈래)");
         }
     }
 }
