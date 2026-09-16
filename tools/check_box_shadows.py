@@ -80,8 +80,6 @@ KNOWN = {
     # 29회차 — **값은 재 뒀고 배선만 남은** 자리들. 까닭은 전부 같다: 그 파일을 «범위» 로 쥔 **산 lock** 이 있다.
     # 그 lock 이 풀리는 회차가 `UiShadow.Drop(<상자>, "<키>", <반지름>)` 한 줄을 걸고 여기서 그 줄을 지운다.
     'fiagebar_lip':    'T331 29회차 — 값 잼 · 배선은 ForgeUi.cs(대장간 나이 막대)가 열리는 회차',
-    'techbranch_drop': 'T331 29회차 — 값 잼 · 배선은 TechPanel.cs(기술 가지 머리)가 열리는 회차',
-    'skribbon_drop':   'T331 29회차 — 값 잼 · 배선은 PetPanel.cs(스킬 리본)가 열리는 회차',
     'afknob_drop':     'T331 29회차 — 값 잼 · 배선은 Popups.cs(공용 토글 공장)가 열리는 회차',
     'infobtn_drop':    'T331 30회차 — **절반 섰다**(DungeonPopups.InfoButton) · 나머지는 ForgeUi.InfoButton 이 열리는 회차(대장간·장비 시트 · NEED 2)',
 }

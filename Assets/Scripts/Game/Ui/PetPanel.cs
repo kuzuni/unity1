@@ -268,6 +268,10 @@ namespace Forge.Game.Ui
                 if (rbT != null) WrapUi.Apply(rbT, "sk_ribbon");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 4075 `.sk-ribbon { nowrap }`
                 // 정본 `.sk-ribbon{top:-.2rem}` = 리본 **윗변**이 면 위 .2rem — pivot 을 윗변에 둔다(가운데를 두면 반이 면 밖으로 나가 첫 행이 grid-scroll 마스크에 잘린다 · T102)
                 UiKit.Anchor(ribbon, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, PetSkillStyle.Rem(0.2f)), rw, lvH);
+                // T331 33회차 — 정본 4079 `.sk-ribbon` 의 **둘째 겹** `0 .1rem .18rem rgba(0,0,0,.35)`
+                //   (첫 겹 `inset 0 1px 0 rgba(255,255,255,.25)` 은 안쪽 림라이트다 · 정본이 여기서 1px 을 썼다).
+                //   반지름은 리본이 실제로 쓰는 것을 그림에서 되읽는다(그 공장을 안 열어도 된다 · T331 5회차).
+                UiShadow.Drop(ribbon, "skribbon_drop", UiShadow.RadiusOf(ribbon), rw, lvH);
             }
             string lt = PetSkillStyle.T("lv_short", level);
             float lw = PetSkillKit.TextWidth(TextKind.Sub, lt) + PetSkillStyle.Rem(0.5f);

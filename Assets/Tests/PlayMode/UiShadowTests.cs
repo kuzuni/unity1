@@ -313,6 +313,13 @@ namespace Forge.Tests.PlayMode
             TechPanel p = TechPanel.OpenTechTree();
             yield return null;
             Assert.IsNotNull(p, "기술 판이 안 열렸다");
+            // ⚑ 33회차 — 개요의 가지 머리 원판에도 정본 그늘이 있다(2112 의 둘째 겹).
+            RectTransform disc = null;
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+                if (UiShadow.Find(rt, "techbranch_drop") != null) { disc = rt; break; }
+            Assert.IsNotNull(disc, "가지 머리 원판의 그늘이 없다");
+            Assert.AreEqual(0, UiShadow.Find(disc, "techbranch_drop").GetSiblingIndex(), "그늘은 원판보다 뒤에 깔린다");
+            Assert.IsNotNull(UiShadow.Find(disc, "techbranch_drop").GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
             // ⚑ 31회차 — 여기서 한 번 빨갰다(런 955): 정보 버튼은 **개요가 아니라 가지 화면**에서 선다
             //   (`TechPanel.RenderBranch` 가 세운다). `OpenTechTree` 는 개요로 여니 한 걸음 더 들어가야 한다.
             p.ShowBranch("power");

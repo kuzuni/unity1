@@ -195,6 +195,10 @@ namespace Forge.Game.Ui
             float icoCy = headH + DungeonPopups.RemL("tb_icon_top_rem");
             RectTransform circle = DungeonPopups.BorderedCircle(face, "icon-bg", hasColor ? colorKey : "tech_branch_default", DungeonPopups.Line2, "pp_line");
             UiKit.Anchor(circle.parent as RectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f), new Vector2(0f, -icoCy), bgD, bgD);
+            // T331 33회차 — 정본 2112 `.tech-branch-icon::before` 의 **둘째 겹** `0 .12rem .2rem rgba(0,0,0,.2)`
+            //   (첫 겹 `inset 0 -.18rem .12rem` 은 안쪽이다). 원판이라 반지름은 지름의 절반이고,
+            //   크기는 부르는 쪽이 준다(이 상자는 방금 `Anchor` 로 잡혔지만 한 줄로 못 박아 둔다 · 28회차).
+            UiShadow.Drop(circle.parent as RectTransform, "techbranch_drop", bgD * 0.5f, bgD, bgD);
             // T371 3회차 — 정본 2110~2111: 원판은 가지색 **원색이 아니다** — 바탕 `color-mix(in srgb, var(--bc) 78%, #fff)` · 테 `color-mix(… 45%, #000)`.
             //   클론은 둘 다 원색·공용 선색이라 힘 갈래에서 (226,87,76) ↔ 정본 (232,124,115) 로 갈렸다. 비율·상대색은 표 `ColorMixUi.json` 이 쥔다(§1).
             Color branchColor = UiKit.C(hasColor ? colorKey : "tech_branch_default");
