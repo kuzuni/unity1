@@ -55,72 +55,105 @@ namespace Forge.Tests.PlayMode
             return c.r > J.Num(g["r_min"]) && c.g > J.Num(g["g_min"]) && c.g < J.Num(g["g_max"]) && c.b < J.Num(g["b_max"]) && c.r - c.b > J.Num(g["rb_min"]);
         }
 
-        /// <summary>UI 층만 검정 위에 한 번 찍어 금빛 화소 자리를 돌려준다(UiShotsTests 의 ② 와 같은 길). 그래픽 장치가 없으면 null.</summary>
-        static HashSet<int> Shoot(JsonObject gold, out int w, out int h)
+        /// <summary>
+        /// 촬영 세션 — 카메라 사본·RT·캔버스 모드 전환을 **한 번만** 하고(런 821 자국: 촬영마다 만들면 한 장에 0.5~1.4초라 25 시각을 못 맞춘다)
+        /// 프레임마다 Render + ReadPixels 만 한다. 해상도는 <see cref="W"/>×<see cref="H"/> 의 절반(금빛 셈은 비율이라 충분하다).
+        /// 마스크는 «위가 0행» 인 byte[](1 = 금빛)로 쌓아 두고, 정본과 같이 **마지막 프레임을 바닥**으로 뺀다.
+        /// </summary>
+        sealed class Session
         {
-            w = W; h = H;
-            UiRoot root = UiRoot.Instance;
-            if (root == null || root.Canvas == null) return null;
-            Canvas canvas = root.Canvas;
-            RenderMode prevMode = canvas.renderMode; Camera prevCam = canvas.worldCamera; float prevPlane = canvas.planeDistance;
-            RenderTexture prevActive = RenderTexture.active;
-            RenderTexture rt = new RenderTexture(W, H, 24, RenderTextureFormat.ARGB32);
-            Camera cam = ShotCam.From(Camera.main, "t408-shot-cam", rt);
-            Texture2D tex = null;
-            try
+            public int W, H;
+            Canvas canvas; UiRoot root; Camera cam; RenderTexture rt; Texture2D tex;
+            RenderMode prevMode; Camera prevCam; float prevPlane; RenderTexture prevActive;
+            JsonObject gold;
+
+            public static Session Begin(JsonObject gold)
             {
-                int uiLayer = canvas.gameObject.layer;
-                UniversalAdditionalCameraData camUrp = cam.GetComponent<UniversalAdditionalCameraData>();
-                if (camUrp != null) camUrp.renderPostProcessing = false;
-                cam.ResetProjectionMatrix();
-                cam.cullingMask = 1 << uiLayer;
-                cam.clearFlags = CameraClearFlags.SolidColor;
-                cam.backgroundColor = Color.black;
-                canvas.renderMode = RenderMode.ScreenSpaceCamera;
-                canvas.worldCamera = cam;
-                canvas.planeDistance = 1f;
-                root.Layout();
-                Canvas.ForceUpdateCanvases();
-                cam.Render();
-                RenderTexture.active = rt;
-                tex = new Texture2D(W, H, TextureFormat.RGBA32, false);
-                tex.ReadPixels(new Rect(0, 0, W, H), 0, 0);
-                tex.Apply(false);
-                Color32[] px = tex.GetPixels32();
-                var set = new HashSet<int>();
-                for (int y = 0; y < H; y++)
-                    for (int x = 0; x < W; x++)
-                        if (Gold(px[y * W + x], gold)) set.Add((H - 1 - y) * W + x);   // 텍스처는 아래가 0행 — 위가 0 인 좌표로 저장
-                return set;
+                UiRoot root = UiRoot.Instance;
+                if (root == null || root.Canvas == null) return null;
+                Session s = new Session { root = root, canvas = root.Canvas, gold = gold, W = CoinSellCurveTests.W / 2, H = CoinSellCurveTests.H / 2 };
+                s.prevMode = s.canvas.renderMode; s.prevCam = s.canvas.worldCamera; s.prevPlane = s.canvas.planeDistance; s.prevActive = RenderTexture.active;
+                try
+                {
+                    s.rt = new RenderTexture(s.W, s.H, 24, RenderTextureFormat.ARGB32);
+                    Camera cam = ShotCam.From(Camera.main, "t408-shot-cam", s.rt);
+                    // T349 — UI 층만 그리는 카메라는 후처리를 끈다(켜면 UI 가 톤맵·색 보정에 물든다 · 결정 591) — `check_shot_cams` 가 보는 꼴 그대로.
+                    ShotCam.CopyUrp(Camera.main, cam).renderPostProcessing = false;
+                    s.cam = cam;
+                    s.cam.ResetProjectionMatrix();
+                    s.cam.cullingMask = 1 << s.canvas.gameObject.layer;
+                    s.cam.clearFlags = CameraClearFlags.SolidColor;
+                    s.cam.backgroundColor = Color.black;
+                    s.canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                    s.canvas.worldCamera = s.cam;
+                    s.canvas.planeDistance = 1f;
+                    root.Layout();
+                    Canvas.ForceUpdateCanvases();
+                    s.tex = new Texture2D(s.W, s.H, TextureFormat.RGBA32, false);
+                    return s;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning("[T408] 촬영 세션 실패: " + e.Message);
+                    s.End();
+                    return null;
+                }
             }
-            catch (System.Exception e)
+
+            /// <summary>지금 프레임의 금빛 마스크(위가 0행). 실패하면 null.</summary>
+            public byte[] Grab()
             {
-                Debug.LogWarning("[T408] 촬영 실패: " + e.Message);
-                return null;
+                try
+                {
+                    Canvas.ForceUpdateCanvases();
+                    cam.Render();
+                    RenderTexture.active = rt;
+                    tex.ReadPixels(new Rect(0, 0, W, H), 0, 0);
+                    tex.Apply(false);
+                    RenderTexture.active = prevActive;
+                    Color32[] px = tex.GetPixels32();
+                    byte[] m = new byte[W * H];
+                    for (int y = 0; y < H; y++)
+                    {
+                        int src = y * W, dst = (H - 1 - y) * W;   // 텍스처는 아래가 0행
+                        for (int x = 0; x < W; x++) if (Gold(px[src + x], gold)) m[dst + x] = 1;
+                    }
+                    return m;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning("[T408] 촬영 실패: " + e.Message);
+                    return null;
+                }
             }
-            finally
+
+            public void End()
             {
                 RenderTexture.active = prevActive;
-                canvas.renderMode = prevMode; canvas.worldCamera = prevCam; canvas.planeDistance = prevPlane;
-                root.Layout(); Canvas.ForceUpdateCanvases();
+                if (canvas != null) { canvas.renderMode = prevMode; canvas.worldCamera = prevCam; canvas.planeDistance = prevPlane; }
+                if (root != null) { root.Layout(); Canvas.ForceUpdateCanvases(); }
                 if (tex != null) Object.Destroy(tex);
                 if (cam != null) Object.Destroy(cam.gameObject);
-                rt.Release(); Object.Destroy(rt);
+                if (rt != null) { rt.Release(); Object.Destroy(rt); }
             }
         }
 
-        static Row Count(HashSet<int> pts, HashSet<int> floor, JsonObject bands, int ms, int w, int h)
+        static Row Count(byte[] m, byte[] floor, JsonObject bands, int ms, int w, int h)
         {
             Row r = new Row { Ms = ms };
             List<object> top = J.Arr(bands["top"]), mid = J.Arr(bands["mid"]), bot = J.Arr(bands["bot"]);
-            foreach (int p in pts)
+            float t0 = (float)J.Num(top[0]), t1 = (float)J.Num(top[1]), m0 = (float)J.Num(mid[0]), m1 = (float)J.Num(mid[1]), b0 = (float)J.Num(bot[0]), b1 = (float)J.Num(bot[1]);
+            for (int y = 0; y < h; y++)
             {
-                if (floor.Contains(p)) continue;
-                r.Total++;
-                float f = (p / w) / (float)h;
-                if (f >= J.Num(top[0]) && f < J.Num(top[1])) r.Top++;
-                else if (f >= J.Num(mid[0]) && f < J.Num(mid[1])) r.Mid++;
-                else if (f >= J.Num(bot[0]) && f < J.Num(bot[1])) r.Bot++;
+                float f = y / (float)h; int row = y * w;
+                for (int x = 0; x < w; x++)
+                {
+                    if (m[row + x] == 0 || floor[row + x] != 0) continue;
+                    r.Total++;
+                    if (f >= t0 && f < t1) r.Top++;
+                    else if (f >= m0 && f < m1) r.Mid++;
+                    else if (f >= b0 && f < b1) r.Bot++;
+                }
             }
             return r;
         }
@@ -152,25 +185,33 @@ namespace Forge.Tests.PlayMode
             UiRoot.Instance.Layout();
             yield return null;
             Assert.IsFalse(CoinBurst.Covered(), "메인 화면 — 팝업·탭 패널 없음");
-            int w, h;
-            HashSet<int> probe = Shoot(gold, out w, out h);
-            if (probe == null) Assert.Ignore("그래픽 장치가 없다 — 화소를 못 찍는다(-nographics)");
-
-            int n = CoinBurst.Play(100);
-            Assert.Greater(n, 0, "조각이 난다");
-            float t0 = Time.unscaledTime;
-            var shots = new List<KeyValuePair<int, HashSet<int>>>();
+            Session ses = Session.Begin(gold);
+            if (ses == null) Assert.Ignore("그래픽 장치가 없다 — 화소를 못 찍는다(-nographics)");
+            int w = ses.W, h = ses.H;
+            var shots = new List<KeyValuePair<int, byte[]>>();
             var actual = new List<int>();
-            foreach (object o in refFrames)
+            float t0;
+            try
             {
-                int ms = (int)J.Num(J.Obj(o)["ms"]);
-                while ((Time.unscaledTime - t0) * 1000f < ms) yield return null;
-                HashSet<int> s = Shoot(gold, out w, out h);
-                Assert.IsNotNull(s, "촬영 " + ms + "ms");
-                shots.Add(new KeyValuePair<int, HashSet<int>>(ms, s));
-                actual.Add(Mathf.RoundToInt((Time.unscaledTime - t0) * 1000f));
+                byte[] probe = ses.Grab();   // 세션 첫 촬영의 비용(셰이더·RT 준비)은 연출 전에 치른다
+                if (probe == null) Assert.Ignore("그래픽 장치가 없다 — 화소를 못 찍는다(-nographics)");
+                yield return null;
+                int n = CoinBurst.Play(100);
+                Assert.Greater(n, 0, "조각이 난다");
+                t0 = Time.unscaledTime;
+                foreach (object o in refFrames)
+                {
+                    int ms = (int)J.Num(J.Obj(o)["ms"]);
+                    while ((Time.unscaledTime - t0) * 1000f < ms) yield return null;
+                    int at = Mathf.RoundToInt((Time.unscaledTime - t0) * 1000f);
+                    byte[] m = ses.Grab();
+                    Assert.IsNotNull(m, "촬영 " + ms + "ms");
+                    shots.Add(new KeyValuePair<int, byte[]>(ms, m));
+                    actual.Add(at);
+                }
             }
-            HashSet<int> floor = shots[shots.Count - 1].Value;   // 정본과 같이 마지막 프레임이 바닥이다
+            finally { ses.End(); }
+            byte[] floor = shots[shots.Count - 1].Value;   // 정본과 같이 마지막 프레임이 바닥이다
             var rows = new List<Row>();
             for (int i = 0; i < shots.Count; i++) rows.Add(Count(shots[i].Value, floor, bands, shots[i].Key, w, h));
 
@@ -192,6 +233,10 @@ namespace Forge.Tests.PlayMode
             sb.AppendLine("# 클론 봉우리(mid) " + peak.Ms + "ms " + peak.Mid + " · 끝 " + (endMs < 0 ? "없음" : endMs + "ms") + " ↔ 정본 봉우리 " + refPeakMs + "ms " + (int)J.Num(t["peak_mid"]) + " · 끝 " + refEndMs + "ms");
             Record(sb.ToString());
 
+            // 표본 간격 가드 — 촬영이 느려 정본 봉우리(≤1000ms) 앞에서 표본이 400ms 넘게 벌어졌으면 이 환경에선 시간축을 못 잰다(자국은 남았다).
+            int worstGap = 0;
+            for (int i = 1; i < actual.Count && rows[i].Ms <= refEndMs; i++) worstGap = Mathf.Max(worstGap, actual[i] - actual[i - 1]);
+            if (actual[0] > 400 || worstGap > 400) Assert.Ignore("환경 — 배치모드 촬영 간격이 넓다(첫 표본 " + actual[0] + "ms · 최대 간격 " + worstGap + "ms): 시간축을 못 잰다 · 자국 t408-coinsell.txt 에 값은 남겼다");
             Assert.Greater(peak.Mid, 0, "코인이 나는 곳(mid 10~60%H)에 금빛 화소가 한 번은 뜬다");
             Assert.That(peak.Ms, Is.InRange(refPeakMs - 400, refPeakMs + 400), "mid 봉우리 시각 ≈ 정본 " + refPeakMs + "ms(±400 · 프레임 간격 최대 200ms + 배치모드 여유) — 실제 " + peak.Ms);
             Assert.GreaterOrEqual(endMs, 0, "봉우리 뒤 mid 가 봉우리의 " + (endF * 100) + "% 아래로 내려온다(연출이 끝난다)");
