@@ -953,6 +953,43 @@ def fp_diff(a, b):
     return din / (win or 1.0), dout / (wout or 1.0)
 
 
+def drop_note(din, dout, med, hist_n, cur_v, prev_v, bw=None, bg=0.0):
+    """내려간 화면 한 줄의 «왜» — `None` 을 돌려주면 **hard**(진짜 회귀)다.
+
+    ⚠ **차례가 뜻을 정한다**(T28 90회차). 옛 자는 «최근 N회차 중앙값 자리다» 를 «그림이 거의
+    같다» 보다 **먼저** 봤다. 둘 다 참일 때 사람이 받는 말은 «지난 회차가 튀었던 것이다» 하나뿐이고,
+    그 말은 **자가 흔들렸다는 사실을 감춘다**. 실측 — 런 921 → 935(그림은 930)에서 `profile` 은
+    화소 차 **0.64%** · 지문 차 **안 0.15 · 뒤 0.10**(서른한 장 중 **가장 작다**)인데 점수가
+    4.3 → 3.1 로 **−1.2** 떨어졌고 밴드가 **18 → 9** 로 갈렸다. 그런데 자가 찍은 문장은
+    «중앙값 3.2 자리다» 였다 — 지문이 이미 «그림은 그대로다» 라고 말하고 있었는데도.
+    그래서 지문 쪽을 먼저 보고, 중앙값도 참이면 **뒤에 덧붙인다**(둘 다 말한다).
+
+    ⚠ 이 손질은 **soft/hard 판정을 안 바꾼다** — 옛 차례에서 중앙값이 잡던 칸은 전부 지문 갈래로
+    옮겨가도 여전히 soft 다. 바뀌는 것은 **사람이 읽는 문장**뿐이다(점수식은 안 건드린다 · 결정 686).
+    """
+    if bw is not None:
+        # 씬 대역이 통째로 붉으면 밴드가 녹아 붙는다 — 그림이 달라진 것은 맞지만 **UI 가 아니다**.
+        return u"보스 경고 연출을 물고 찍혔다(씬 대역 %.0f%%) — 촬영이 물었다(T176)" % (bw * 100)
+    on_med = med is not None and cur_v > med - DROP_MARK
+    if din is not None and din < FP_SAME and dout < FP_SAME:
+        # 그림은 사실상 같은데 점수만 움직였다 = 밴드 경계 하나가 걸린 것(자의 흔들림).
+        why = u"그림이 거의 같다(안 %.1f · 뒤 %.1f) — 밴드 경계가 걸린 자의 흔들림이다" % (din, dout)
+        if on_med:
+            why += u" · 게다가 최근 %d회차 중앙값 %.1f 자리다" % (hist_n, med)
+        return why
+    if on_med:
+        # 자취가 3회차 이상이면 «지난 회차» 가 아니라 **중앙값**과도 견준다 — 지난 회차 하나가
+        # 튄 것을 «회귀» 로 부르지 않는다(T28 22회차 · forge-detail 1.9 가 그 꼴이었다).
+        return u"최근 %d회차 중앙값 %.1f 자리다" % (hist_n, med)
+    if din is not None and din < FP_SAME and dout > din:
+        # 지문이 «팝업 안은 그대로 · 뒤만 달라졌다» 고 말하면 코드가 아닐 공산이 크다.
+        return u"그림 안쪽은 그대로다(안 %.1f · 뒤 %.1f)" % (din, dout)
+    if din is None and prev_v is not None and abs(cur_v - prev_v) <= bg:
+        # 지문이 없는 첫 회차에만 쓰는 물러섬(실측 상한 표)
+        return u"배경만으로도 ±%.1f 움직이는 화면(지문 없음)" % bg
+    return None
+
+
 def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None, carried=False, ceilings=None):
     import json
     cur = dict((n, round(v, 1)) for n, v in scores)
@@ -1577,31 +1614,51 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                   u"**모든 화면을 한꺼번에 바꾸는 값**이 움직였는지 먼저 본다(T28 85·86회차 · 결정 712)."
                   % (len(moved), len(scores)))
 
+        # ── 자와 그림이 어긋난 회차 (T28 90회차 · 결정 729) ──────────────────
+        # 위 «전역 손질» 은 **여러 화면이 한꺼번에 움직였을 때**를 짚는다. 그런데 그 반대꼴이 있다 —
+        # **점수가 움직인 화면과 그림이 달라진 화면이 서로 다른 집합**인 회차다. 실측(런 921 → 935 ·
+        # 그림은 930 · 31장 전수): 점수가 ±0.5 넘게 움직인 **다섯**(settings −1.3 · profile −1.2 ·
+        # ascend +0.9 · player-info −0.9 · pass −0.5)은 지문 «안» 이 전부 **0.76 아래**였고,
+        # 지문 «안» 이 1.0 넘게 달라진 **넷**(shop 2.64 · craft-compare 1.51 · main 1.43 ·
+        # gear-detail 1.25)은 전부 **±0.2 안**이었다 — **두 집합이 하나도 안 겹쳤다**.
+        # 화소로도 같다: 움직인 셋은 화소 차 0.64~0.88%인데 shop 은 8.31% 를 바꾸고도 0.0 이다.
+        # 그런 회차의 «내려간 화면» 은 **고칠 곳이 아니라 밴드 쪼개짐**이다 — 그 말을 먼저 한다.
+        mv, cg = [], []
+        for n in sorted(cur):
+            if n not in base:
+                continue
+            din, _dout = fp_diff(obase.get(n), fps.get(n))
+            if abs(cur[n] - base[n]) >= DROP_MARK:
+                mv.append((n, cur[n] - base[n], din))
+            if din is not None and din >= FP_SAME:
+                cg.append((n, din, cur[n] - base[n]))
+        if (len(mv) >= 3 and len(cg) >= 3
+                and all(d is not None and d < FP_SAME for _n, _v, d in mv)
+                and all(abs(v) < DROP_MARK for _n, _d, v in cg)):
+            print(u"⚠ **이번 런은 자와 그림이 어긋났다** — 점수가 ±%.1f 넘게 움직인 화면 %d개는 "
+                  u"**전부 지문이 그대로**(안 최대 %.2f)이고, 지문 «안» 이 %.1f 넘게 달라진 화면 %d개는 "
+                  u"**전부 ±%.1f 안**이다(두 집합이 안 겹친다). 곧 이 회차의 점수 변화는 «무엇이 달라졌나» 가 "
+                  u"아니라 **밴드 쪼개짐**을 재고 있다 — 내려간 화면을 고칠 곳으로 읽지 마라(T28 90회차)."
+                  % (DROP_MARK, len(mv), max(d for _n, _v, d in mv), FP_SAME, len(cg), DROP_MARK))
+            print(u"    움직인 화면: %s" % u" · ".join(u"%s %+.1f(지문 %.2f)" % (n, v, d)
+                                                  for n, v, d in sorted(mv, key=lambda t: -abs(t[1]))))
+            print(u"    달라진 화면: %s" % u" · ".join(u"%s 지문 %.2f(%+.1f)" % (n, d, v)
+                                                  for n, d, v in sorted(cg, key=lambda t: -t[1])))
+
         hard, soft = [], []
+        bwset = dict((t[0], t[1]) for t in bw)
         for t in drops:
             n = t[0]
             din, dout = fp_diff(obase.get(n), fps.get(n))
             med = median_of(hist, n) if len(hist) >= 3 else None
-            bwset = dict((t[0], t[1]) for t in bw)
-            # 자취가 3회차 이상이면 «지난 회차» 가 아니라 **중앙값**과도 견준다 — 지난 회차 하나가
-            # 튄 것을 «회귀» 로 부르지 않는다(T28 22회차 · forge-detail 1.9 가 그 꼴이었다).
-            if n in bwset:
-                # 씬 대역이 통째로 붉으면 밴드가 녹아 붙는다 — 그림이 달라진 것은 맞지만 **UI 가 아니다**.
-                soft.append((n, t[1], t[2], u"보스 경고 연출을 물고 찍혔다(씬 대역 %.0f%%) — 촬영이 물었다(T176)"
-                             % (bwset[n] * 100), din, dout))
-            elif med is not None and t[2] > med - DROP_MARK:
-                soft.append((n, t[1], t[2], u"최근 %d회차 중앙값 %.1f 자리다" % (len(hist), med), din, dout))
-            elif din is not None and din < FP_SAME and dout < FP_SAME:
-                # 그림은 사실상 같은데 점수만 움직였다 = 밴드 경계 하나가 걸린 것(자의 흔들림).
-                soft.append((n, t[1], t[2], u"그림이 거의 같다(안 %.1f · 뒤 %.1f) — 밴드 경계가 걸린 자의 흔들림이다" % (din, dout), din, dout))
-            elif din is not None and din < FP_SAME and dout > din:
-                # 지문이 «팝업 안은 그대로 · 뒤만 달라졌다» 고 말하면 코드가 아닐 공산이 크다.
-                soft.append((n, t[1], t[2], u"그림 안쪽은 그대로다(안 %.1f · 뒤 %.1f)" % (din, dout), din, dout))
-            elif din is None and abs(t[2] - t[1]) <= BG_SHAKY.get(n, 0.0):
-                # 지문이 없는 첫 회차에만 쓰는 물러섬(실측 상한 표)
-                soft.append((n, t[1], t[2], u"배경만으로도 ±%.1f 움직이는 화면(지문 없음)" % BG_SHAKY.get(n, 0.0), None, None))
-            else:
+            why = drop_note(din, dout, med, len(hist), t[2], t[1],
+                            bw=bwset.get(n), bg=BG_SHAKY.get(n, 0.0))
+            if why is None:
                 hard.append((n, t[1], t[2], din, dout))
+            elif din is None:
+                soft.append((n, t[1], t[2], why, None, None))
+            else:
+                soft.append((n, t[1], t[2], why, din, dout))
         if hard:
             print(u"⚠ 내려간 화면 %d개 — 그림이 실제로 달라졌다(«깬 사람» 은 이 수를 보고 찾는다):" % len(hard))
             for n, b, c, din, dout in hard:
@@ -1929,6 +1986,28 @@ def self_test():
     _fill(base_img, 8, 20, 72, 140, (230, 230, 230))
     fa = fingerprint(base_img)
     chk(fp_diff(fa, fa) == (0.0, 0.0), u"같은 그림의 지문 차는 0 이다")
+
+    # ── drop_note 의 차례 (T28 90회차) ─────────────────────────────────
+    # 실측 자리: `profile` 은 지문 0.15/0.10(서른한 장 중 가장 작다)인데 중앙값도 걸려서
+    # 옛 자는 «중앙값 자리다» 만 말했다 — 그 문장은 자가 흔들린 것을 감춘다.
+    w = drop_note(0.15, 0.10, 3.2, 6, 3.1, 4.3)
+    chk(w is not None and u"그림이 거의 같다" in w and u"중앙값 3.2" in w,
+        u"그림이 같고 중앙값도 걸리면 «그림이 거의 같다» 를 먼저 말하고 중앙값을 덧붙인다")
+    chk(w.index(u"그림이 거의 같다") < w.index(u"중앙값 3.2"),
+        u"두 까닭이 같이 참이면 지문 쪽이 앞에 선다(차례가 뜻이다)")
+    w2 = drop_note(2.4, 0.1, 3.2, 6, 3.1, 4.3)
+    chk(w2 is not None and u"그림이 거의 같다" not in w2 and u"중앙값" in w2,
+        u"그림이 달라졌는데 중앙값 자리면 중앙값만 말한다(옛 문장 그대로)")
+    chk(drop_note(0.2, 0.2, None, 0, 3.1, 4.3) is not None,
+        u"자취가 없어도 지문이 같으면 soft 다")
+    chk(drop_note(2.4, 2.4, 9.0, 6, 3.1, 4.3) is None,
+        u"그림이 달라졌고 중앙값에서도 멀면 hard(진짜 회귀)다")
+    chk(u"보스 경고" in (drop_note(2.4, 2.4, 9.0, 6, 3.1, 4.3, bw=0.6) or u""),
+        u"씬 대역이 붉으면 그 까닭이 다른 모든 갈래를 이긴다")
+    chk(u"배경만으로도" in (drop_note(None, None, None, 0, 3.1, 3.4, bg=0.4) or u""),
+        u"지문이 없는 첫 회차에는 배경 물러섬 표를 쓴다")
+    chk(drop_note(None, None, None, 0, 3.1, 4.3, bg=0.4) is None,
+        u"그 물러섬은 표의 상한을 넘으면 안 먹는다")
     inner = _canvas(80, 160, (120, 120, 120))
     _fill(inner, 8, 20, 72, 140, (230, 230, 230))
     _fill(inner, 20, 60, 60, 100, (0, 0, 0))          # 팝업 **안**만 바꾼다
