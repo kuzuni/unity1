@@ -82,15 +82,20 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(cardLg.padding.left - pull, leftGap, 1.0f, "카드 왼끝 → 패널 왼끝 = 좌 패딩 − 당김(정본 인셋 7px)");
             Assert.AreEqual(leftGap, rightGap, 1.0f, "좌우 인셋이 같다");
             Assert.Greater(leftGap, 0f, "당김이 카드 패딩을 넘지 않는다(패널이 카드 밖으로 안 나간다)");
-            // ③ 버튼 줄은 패널 안폭(패널 − .4rem×2)에서 좌우 .96rem·틈 1.3rem 을 뺀 나머지를 둘이 나눈다(정본 1821 · `.btn { flex: 1 }`)
+            // ③ 버튼 줄은 패널 안폭에서 나고, 버튼 폭은 코드와 같은 셈(패널 폭 − .8rem − 1.3rem − 1.9rem)/2 — 정본 1821 `.row { margin: … .96rem; gap: 1.3rem }` · `.btn { flex: 1 }`.
+            //    3회차 — 패널 안 패딩도 RectOffset(int) 라 «패널 − .8rem» 과 «좌우 여백이 같다» 는 1080×1920 에서 0.9·1.6px 어긋난다(반올림 + 1.9 vs .96×2). 셈을 코드와 글자 그대로 맞춘다.
+            VerticalLayoutGroup lg = lower.GetComponent<VerticalLayoutGroup>();
             float rowW = row.rect.width;
-            Assert.AreEqual(lower.rect.width - rem * 0.8f, rowW, 0.6f, "줄 폭 = 패널 폭 − 패널 안 패딩 .4rem×2");
-            float wantBw = (rowW - rem * 1.9f - rem * 1.3f) * 0.5f;
-            Assert.AreEqual(wantBw, sell.rect.width, 0.6f, "판매 폭");
-            Assert.AreEqual(wantBw, equip.rect.width, 0.6f, "장착 폭");
-            float sellL = X(sell, row, 0) - X(row, row, 0), equipR = X(row, row, 3) - X(equip, row, 3);
-            Assert.AreEqual(rem * 0.96f, sellL, 1.0f, "판매 왼끝은 줄 왼끝에서 .96rem");
-            Assert.AreEqual(sellL, equipR, 1.0f, "장착 오른 여백은 판매 왼 여백과 같다(줄이 패널 폭을 따라 넓어졌다)");
+            Assert.AreEqual(lower.rect.width - lg.padding.left - lg.padding.right, rowW, 0.6f, "줄 폭 = 패널 폭 − 패널 안 패딩(int)");
+            Assert.AreEqual(rem * 0.8f, lg.padding.left + lg.padding.right, 1.0f, "패널 안 패딩 = .4rem×2(반올림 안)");
+            float wantBw = (inner + pull * 2f - rem * 0.8f - rem * 1.3f - rem * 1.9f) * 0.5f;
+            Assert.AreEqual(wantBw, sell.rect.width, 0.6f, "판매 폭 = (패널 − .8 − 1.3 − 1.9rem)/2");
+            Assert.AreEqual(wantBw, equip.rect.width, 0.6f, "장착 폭 = 판매 폭");
+            float sellL = X(sell, row, 0) - X(row, row, 0), gap13 = X(equip, row, 0) - X(sell, row, 3), equipR = X(row, row, 3) - X(equip, row, 3);
+            Assert.AreEqual(rem * 0.96f, sellL, 0.6f, "판매 왼끝은 줄 왼끝에서 .96rem");
+            Assert.AreEqual(rem * 1.3f, gap13, 0.6f, "판매 오른끝 → 장착 왼끝 = 정본 gap 1.3rem");
+            Assert.AreEqual(rem * 0.96f, equipR, 2.0f, "장착 오른 여백도 .96rem 언저리(코드의 1.9 ↔ .96×2 = .02rem + 패딩 반올림 몫 안)");
+            Assert.Greater(sell.rect.width, (inner - rem * 4.0f) * 0.5f + pull * 0.5f, "버튼이 옛 폭((inner − 4rem)/2)보다 당김의 절반 이상 넓다 — 줄이 패널 폭을 따랐다");
             ForgeCraftPopup.Hide(F);
             yield return null;
         }
