@@ -75,8 +75,10 @@ namespace Forge.Game.Ui
             lg.padding = new RectOffset(lg.padding.left, lg.padding.right, lg.padding.top, 0);
             ForgeUi.ItemCard(lower, "new", inner - rem * 0.8f, item, newTag, cur != null ? (newIsHigher ? "up" : "down") : null, true, d, h.GearSys.ItemValue);
             // T390 — 정본 1821 `.cmp-lower .row { padding-bottom: 1.44rem }`(표 `cmp_row_pad_bottom_rem` · 전엔 `rem * 1.4f` 가 박혀 있었다).
-            RectTransform row = PopupKit.Item(lower, "row", -1f, UiKit.H("btn_h") * 1.7f + CraftStyle.Px("cmp_row_pad_bottom_rem"));
-            float bw = (inner - rem * 0.8f - rem * 1.3f - rem * 1.9f) * 0.5f, bh = UiKit.H("btn_h") * 1.7f;
+            // T378 8회차 — 정본 3566 `#craft-modal .row .btn { min-height: 4.2rem }`(border-box · 글이 그 아래라 하한이 곧 높이 · 표 `cmp_row_btn_h_rem`). 전엔 btn_h × 1.7 이 박혀 있었다.
+            float bh = CraftStyle.Px("cmp_row_btn_h_rem");
+            RectTransform row = PopupKit.Item(lower, "row", -1f, bh + CraftStyle.Px("cmp_row_pad_bottom_rem"));
+            float bw = (inner - rem * 0.8f - rem * 1.3f - rem * 1.9f) * 0.5f;
             // T110 — 정본 ui.js 3266 `판매<small>${IconGen.img('coin')} +N</small>`: 아랫줄은 코인 **아이콘** + 수(글자 🪙 가 아니다 · 세로 갈래 IconTextStack).
             Button sell = PopupKit.Btn(row, "sell", "", "pp_red", "pp_red_dk", () => h.ResolveCraft("sell"), bw, bh, "stage_ink", TextKind.Sub);
             PinSell(sell);

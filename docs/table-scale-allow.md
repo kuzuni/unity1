@@ -25,7 +25,6 @@
 | `Ui/LeagueSheet.cs` | `lgr_rank_w` | ×1.5 | 임시 | T331 lock 뒤(242) |
 | `Ui/LeagueSheet.cs` | `lc_pill_h` | ×1.4 | 임시 | T331 lock 뒤(311 · `* w * 1.4f`) |
 | `Ui/LeagueSheet.cs` | `lc_pill_w` | ×1.3 | 임시 | T331 lock 뒤(321 · `* w * 1.3f`) |
-| `Ui/ForgeCraftPopup.cs` | `btn_h` | ×1.7 | 임시 | T331 lock 뒤 · 큰 버튼 둘(71·72) — 정본이 그 버튼에 준 높이와 대조 |
-| `Ui/ForgeCraftPopup.cs` | `btn_h` | ×1.5 | 임시 | T331 lock 뒤 · 버튼 둘(119·120) |
+| `Ui/ForgeCraftPopup.cs` | `btn_h` | ×1.5 | 임시 | 판매 경고 [판매][취소](142·143) — 정본 3565 `.modal-card > .row .btn { min-height: 2.9rem }` 은 **하한**이고 실제 높이는 글(1rem + small .7rem 두 줄 + 패딩 ≈3.3rem)이 정한다 · 클론은 Sub 36px 두 줄(글자 하한 축 **T391** 뒤)이라 2.9rem 을 그대로 쓰면 글이 넘친다 · ×1.5 = 3.6rem 은 그 두 줄을 담는 값(T378 8회차 대조) · 하한 단이 서면 걷는다 |
 | `Ui/ForgeAutoPopup.cs` | `btn_h` | ×1.9 | 임시 | T331 lock 뒤 · 시작 버튼 둘(61·125) |
 | `Ui/ForgeInfoPopup.cs` | `btn_h` | ×1.7 | 임시 | T332 lock 뒤(98) |

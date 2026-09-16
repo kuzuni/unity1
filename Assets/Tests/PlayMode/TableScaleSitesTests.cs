@@ -125,5 +125,37 @@ namespace Forge.Tests.PlayMode
             ProfilePopup.Close(h);
             yield return null;
         }
+
+        /// <summary>8회차 — 제작 비교 팝업 [판매][장착]: 정본 3566 `#craft-modal .row .btn { min-height: 4.2rem }`(border-box · 글이 그 아래라 하한이 곧 높이) = 곁 표 `cmp_row_btn_h_rem` 그대로(전엔 btn_h ×1.7 = 4.08rem).</summary>
+        [UnityTest]
+        public IEnumerator 제작_비교_판매_장착_버튼_높이는_곁_표_cmp_row_btn_h_rem_그대로_4_2rem_이다()
+        {
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!ForgeHost.Ready && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            ForgeHost fh = ForgeHost.Instance;
+            Assert.IsNotNull(fh, "ForgeHost");
+            Forge.Core.Forging.ForgeItem it = fh.Engine.RollItem();
+            ForgeCraftPopup.Show(fh, it);
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(ForgeCraftPopup.Name);
+            Assert.IsNotNull(p, "제작 비교 팝업");
+            float expect = CraftStyle.Px("cmp_row_btn_h_rem");
+            Assert.AreEqual(PopupKit.Rem * 4.2f, expect, 0.01f, "표 4.2rem × rem_h");
+            int found = 0;
+            foreach (Button b in p.Root.GetComponentsInChildren<Button>(true))
+            {
+                if (b.name != "sell" && b.name != "equip") continue;
+                found++;
+                Rect r = b.GetComponent<RectTransform>().rect;
+                Assert.AreEqual(expect, r.height, 0.5f, b.name + ": 높이 = 곁 표 cmp_row_btn_h_rem(곱 없이)");
+                Assert.Greater(r.height, UiKit.H("btn_h") * 1.7f + 1f, b.name + ": 옛 btn_h×1.7(4.08rem)이 아니다");
+            }
+            Assert.AreEqual(2, found, "[판매][장착] 둘");
+            PopupLayer.Instance.Hide(ForgeCraftPopup.Name);
+            yield return null;
+        }
     }
 }
