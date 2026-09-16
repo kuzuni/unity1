@@ -50,6 +50,15 @@ TABLE = {
     # T377 5회차 — 파일이 열린 자리 둘. 둘 다 **이미 제 값**이라 자가 지키기만 한다(값이 바뀌면 여기서 빨강이 난다).
     '.dgd-btn.silver': ['Ui/DungeonPopups.cs|catalog:dgd_btn'],         # 정본 5356 #a3a3a3(원본 픽셀 실측 주석) ↔ catalog dgd_btn
     '.rw-pop': ['Ui/RewardBurst.cs|res:RewardBurstUi:pop'],             # 정본 7511 #ffd54f(도착 마침표 별) ↔ RewardBurstUi colors.pop
+    # T377 6회차 — 펫 업그레이드 팝업 다섯(파일이 열렸다). 다섯 다 곁 표 PetSkillUi 가 정본 리터럴을 그대로 쥐고 있어 «지키는 자» 만 붙인다.
+    '.petup-panel': ['Ui/PetUpgradePopup.cs|res:PetSkillUi:petup_panel'],                      # 정본 4347 #b7b7b7(회색 판)
+    '.petup-xpbar': ['Ui/PetUpgradePopup.cs|res:PetSkillUi:xpbar_bg'],                         # 정본 4350 #0d111b(검정 알약)
+    '.petup-divider': ['Ui/PetUpgradePopup.cs|res:PetSkillUi:divider'],                        # 정본 4385 #dcdcdc(2px 가름줄)
+    '.petup-selrow .btn.silver': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:silver'],      # 정본 5490 #a3a3a3 — 공용 종이 버튼의 Silver 갈래가 그 값을 쥔다
+    '.petup-selrow .btn.silver.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:silver_disabled'],   # 정본 5495 #b4b4b4(비활성은 면을 따로 준다 · opacity 로 뭉개지 않는다)
+    # 같은 회색 판 둘(정본이 두 자리에 같은 리터럴을 준다) — 클론도 한 키로 쓴다
+    '.passive-banner': ['Ui/SkillPanel.cs|res:PetSkillUi:passive_bg'],   # 정본 3998 #c9c9c9
+    '.skd-passive': ['Ui/SkillPanel.cs|res:PetSkillUi:passive_bg'],      # 정본 5252 #c9c9c9(스킬 상세의 같은 판)
 }
 # 임자가 정해진 빈자리(파일 lock 뒤) — 붙이면 여기서 지운다
 KNOWN = {
