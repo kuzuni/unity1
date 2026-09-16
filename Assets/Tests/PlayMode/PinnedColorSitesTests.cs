@@ -180,5 +180,27 @@ namespace Forge.Tests.PlayMode
             Assert.AreNotEqual(UiKit.C("chat_share_win"), winCp.color, "초록 chat_share_win 이 아니다");
             PopupLayer.Instance.Hide(ChatScreen.Name);
         }
+
+        /// <summary>T396 7회차 — 빈 장비 칸의 슬롯 이름. 정본 **866** `.equip-cell .slot-name { color: #d8caca }` 이고
+        /// 865 주석이 «라벨도 **판독 확보 대상** — #b9a8a8→#d8caca 반 단계» 로 **일부러 올린 값**임을 적어 뒀다.
+        /// 클론은 전역 `pp_muted`(#8a8a8a)라 어두운 마룬 칸 위에서 그 판독 확보가 통째로 빠져 있었다.
+        /// 표값이 정본과 같은지는 `check_pinned_colors` 가 본다 — 여기는 «자리가 그 키를 쓰는가».</summary>
+        [UnityTest]
+        public IEnumerator 빈_장비_칸_슬롯_이름은_전역_muted_가_아니라_판독을_위해_올린_밝은_잉크다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            ForgeSheet.Render(h);
+            yield return null;
+            Transform nm = FindDeep(UiRoot.Instance.Sheet, "slot-name");
+            Assert.IsNotNull(nm, "빈 장비 칸의 슬롯 이름(slot-name)");
+            TMPro.TextMeshProUGUI t = nm.GetComponent<TMPro.TextMeshProUGUI>();
+            Assert.IsNotNull(t, "슬롯 이름 글자");
+            Color want = PinnedColorUi.C("equip_slot_name_ink");
+            Assert.AreEqual(want, t.color, "슬롯 이름 = 표 equip_slot_name_ink(정본 866 #d8caca)");
+            Assert.AreNotEqual(UiKit.C("pp_muted"), t.color, "전역 pp_muted(#8a8a8a)가 아니다 — 정본이 판독을 위해 반 단계 올린 값이다");
+            Assert.Greater(want.r + want.g + want.b, UiKit.C("pp_muted").r + UiKit.C("pp_muted").g + UiKit.C("pp_muted").b,
+                "«올렸다» 가 이 자리의 뜻이다 — 표값이 전역보다 어두워지면 이 줄이 먼저 깨진다");
+        }
     }
 }

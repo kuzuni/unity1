@@ -11,9 +11,11 @@
     "dmg_block_ink": "#90caf9",
     "offline_sub_ink": "#cccccc",
     "held_tag_face": "#f0a020",
-    "chat_placeholder_ink": "#6b6b6b"
+    "chat_placeholder_ink": "#6b6b6b",
+    "equip_slot_name_ink": "#d8caca"
   },
   "_보류_태그": "T377 4회차 — 정본 style.css 999 `.anvil-btn.held-slot .held-tag { background: #f0a020 }`(모루 «보류» 배지). 클론 ForgeSheet.cs 는 전역 토큰 coin(#ffd54f)으로 찍고 있었다 — 같은 노랑 계열이라 눈에 안 띄지만 정본은 한 단계 주황인 앰버다(R 같음 · G −53 · B −79). 글자 색은 정본 #17181a ↔ 클론 pp_ink 가 같은 값이라 그대로 둔다(토큰을 써도 되는 자리).",
   "_채팅_안내글": "T396 6회차 — 정본 style.css 3452 `.chat-input-bar input::placeholder { color: #6b6b6b }`(주석: «원본 플레이스홀더는 #6B6B6B 인데 브라우저 기본 #8E8E93 이라 흐렸다»). 클론 ChatScreen 은 전역 pp_muted(#8a8a8a)로 찍고 있었다 — 정본이 일부러 진하게 못박은 자리라 전용 키로 받는다.",
+  "_빈칸_슬롯이름": "T396 7회차 — 정본 style.css 866 `.equip-cell .slot-name { color: #d8caca }` 이고 **바로 위 865 주석이 그 내력을 적어 뒀다** — «12차: 라벨도 판독 확보 대상(A/B 공통) — #b9a8a8→#d8caca **반 단계**, 스크림은 10차 일곱째 항의 text-shadow 가 이미 있다». 곧 정본이 **판독을 위해 일부러 올린 값**이다. 클론 `ForgeSheet.cs` 는 전역 `pp_muted`(#8a8a8a)로 찍고 있었다 — 어두운 마룬 칸 위에서 정본보다 **한참 어두워** 그 «판독 확보» 가 통째로 빠졌다(R +78 · G +50 · B +50). 같은 줄의 그림자 겹은 T333 8회차가 이미 `slot_name` 으로 세워 뒀다 — 색만 남아 있었다.",
   "_잉크": "T396 — 정본이 «색·펀치로 위계를 준다» 며 선택자에만 리터럴로 못박은 **글자 색**. 전투 숫자 다섯이 그 묶음이다(style.css 508 크리 · 511 처치 · 526 스킬 · 527 영웅 피해 · 550 막음). 클론은 전역 잉크 토큰으로 찍고 있었다 — 스킬(#82b1ff)·막음(#90caf9)은 파랑·하늘색인데 흰색(stage_ink)이었다. `.float-dmg.heal`(#69f0ae)은 카탈로그 `pip_done` 이 같은 값이라 그대로 둔다(토큰을 써도 되는 자리)."
 }

@@ -232,6 +232,10 @@ namespace Forge.Game.Ui
                 float k = size * 0.72f;
                 UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, size * 0.06f), k, k);
                 TextMeshProUGUI nm = UiKit.Text(rt, "slot-name", TextKind.Sub, d.SlotKr.Get(slot, slot), "pp_muted");
+                // T396 7회차 — 정본 **866** `.equip-cell .slot-name { color: #d8caca }`. 865 주석이 까닭을 적어 뒀다 —
+                //   «12차: 라벨도 판독 확보 대상(A/B 공통) — #b9a8a8→#d8caca **반 단계**». 곧 어두운 마룬 칸 위에서
+                //   글자가 읽히게 정본이 **일부러 올린 값**인데, 클론은 전역 `pp_muted`(#8a8a8a)라 한참 어두웠다.
+                nm.color = PinnedColorUi.C("equip_slot_name_ink");
                 nm.fontStyle = FontStyles.Bold;
                 UiKit.TextShadow(nm, "slot_name");            // T333 8회차 — 정본 8030 `.equip-cell .slot-name` 두 겹 중 첫째(아래 1px 드롭 · 표 slot_name)
                 UiKit.Anchor(nm.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, size * 0.05f), size, nm.fontSize * 1.2f);

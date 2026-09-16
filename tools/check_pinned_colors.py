@@ -114,6 +114,12 @@ TABLE_INK = {
     '.ob-zzz i': ['Ui/OfflineButton.cs|res:OfflineButtonUi:zzz_ink'],                            # 정본 227 #eaf6ff ↔ OfflineButtonUi zzz_ink
     '.skill-btn.auto': ['Ui/SkillBar.cs|res:PetSkillUi:sb_auto_ink'],                            # 정본 624 #90a4ae ↔ PetSkillUi sb_auto_ink(켜짐은 white + 키라인 · 629)
     '.equip-cell .cell-star': ['Ui/ForgeUi.cs@StarBadge|catalog:coin'],                          # 정본 953 #ffd54f ↔ 카탈로그 coin 같은 값
+    # T396 7회차 — 산 lock 밖 파일 셋. 둘은 **이미 제 값**(자리만 적으면 닫힌다)이고 하나는 근사였다.
+    '.tb-val': ['Ui/TechPopups.cs|catalog:tb_val'],                     # 정본 2252 #1fa64a ↔ 카탈로그 tb_val 같은 값(`_` 칸에 «.tb-val · .tn-gain» 이라 적혀 있다)
+    '.shop-sheet .shop-title': ['Ui/ShopSheet.cs|catalog:shop_title'],  # 정본 2884 #ffb300 ↔ 카탈로그 shop_title 같은 값
+    # 빈 장비 칸 슬롯 이름 — 정본 865 주석이 «판독 확보 대상 … #b9a8a8→#d8caca 반 단계» 로 **일부러 올린** 값임을 적어 뒀다.
+    # 클론은 전역 pp_muted(#8a8a8a)라 어두운 마룬 칸 위에서 그 판독 확보가 통째로 빠져 있었다.
+    '.equip-cell .slot-name': ['Ui/ForgeSheet.cs|res:PinnedColorUi:equip_slot_name_ink'],
     # 종이 버튼 비활성 글자 — 공용(8725 · #7b7b7b)은 PetSkillUi disabled_ink, **은색**(5266 `.skd-btn.silver.disabled` · 5497 `.petup-selrow .btn.silver.disabled` · #6f6f6f)은
     # 한 톤 어두운 disabled_ink2 다. 클론 PaperButton 은 종류와 무관하게 disabled_ink 로 찍고 있었다(표에 disabled_ink2 가 있었지만 쓰는 곳이 0).
     '.btn.btn.primary.primary.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink'],
