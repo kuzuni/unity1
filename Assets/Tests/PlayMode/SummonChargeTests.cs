@@ -419,6 +419,17 @@ namespace Forge.Tests.PlayMode
             var peak = new float[2];
             var seenWin = new int[2];      // 그 경계의 구간 안에 프레임이 몇 번 들어왔나
             float ringPeak = 0f, ringWide = 0f, wickPeak = 0f, worstGap = 0f;
+            // T422 — 심지(`srtierwick`)는 `flash_ms` 의 **0~45%** 만 산다(정점 14%) — 같은 칸의 링(0~100%)보다 창이 절반 이하다.
+            //   그 창에 프레임이 한 번도 안 들어오면 «안 켜졌다» 가 되는데 그것은 **게임이 아니라 런의 사정**이다(런 911 실측).
+            //   그래서 창 안 프레임을 같이 세고, 0 이면 T386 이 세운 «환경» 갈래로 접는다(값은 그대로 둔다 · 결정 677).
+            int seenWick = 0;
+            float flashMs = (float)SummonFxStyle.TierBreak.FlashMs;
+            float wickEndMs = 0f;
+            for (int k = 1; k <= 100; k++)
+            {
+                float x = flashMs * k / 100f;
+                if (SummonFxStyle.TierBreak.WickAt(x) > 0) wickEndMs = x;   // 표가 쥔 창 — 자에 수를 박지 않는다
+            }
             var seen = new List<Sprite>();
             float t = 0f;
             float pulseMs = (float)SummonFxStyle.TierBreak.PulseMs;
@@ -445,6 +456,8 @@ namespace Forge.Tests.PlayMode
                 }
                 Image wi = v.TierWickOf(0);
                 if (wi != null && wi.color.a > wickPeak) wickPeak = wi.color.a;
+                float wel = t * 1000f - v.TierBreakAt(0);
+                if (wel >= 0f && wel <= wickEndMs) seenWick++;
                 t += Time.unscaledDeltaTime;
                 yield return null;
             }
@@ -458,7 +471,12 @@ namespace Forge.Tests.PlayMode
 
             Assert.Greater(ringPeak, 0f, "챕터 링이 안 켜졌다");
             Assert.Greater(ringWide, 1f, "링이 셀 경계를 넘어 안 퍼졌다");
-            Assert.Greater(wickPeak, 0f, "심지가 안 켜졌다 — 중심이 달아올라야 광원 문법에 앉는다");
+            if (seenWick == 0)
+                Assert.Ignore("환경 — 심지 창(" + wickEndMs.ToString("0") + "ms · flash " + flashMs.ToString("0")
+                    + "ms 의 0~45%)에 프레임이 한 번도 안 들어왔다(가장 긴 프레임 " + (worstGap * 1000f).ToString("0")
+                    + "ms) — 잴 기회가 없었다(T422 · 링은 창이 " + flashMs.ToString("0") + "ms 라 같은 런에서도 잡힌다)");
+            Assert.Greater(wickPeak, 0f, "심지가 안 켜졌다 — 중심이 달아올라야 광원 문법에 앉는다(창 안 프레임 "
+                + seenWick + "번 · 가장 긴 프레임 " + (worstGap * 1000f).ToString("0") + "ms)");
             // ⓐ 이 단이 «한 장을 배율로 날리기» 와 «단계마다 갈아 끼우기» 를 가른다.
             Assert.Greater(seen.Count, 1,
                 "링이 처음부터 끝까지 **같은 판**이었다(" + seen.Count + "장) — 테 굵기가 안 변했다는 뜻이다(정본 «하드엣지 고정 굵기는 그래픽 스탬프다»)");
@@ -572,7 +590,17 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(mainPeak, 0f, "본파가 안 터졌다");
             Assert.Greater(echoPeak, 0f, "잔파가 안 터졌다");
             Assert.Greater(mainWide, 1f, "압력파가 안 퍼졌다");
-            Assert.Less(mainPeakAt, echoPeakAt, "잔파가 본파보다 먼저 정점을 찍었다 — 차례가 뒤집혔다");
+            // T422 — 두 정점이 **같은 프레임**에서 잡혔으면 그 프레임이 둘 사이(정본 .23s ↔ .30s = 70ms)보다 길었다는 뜻이다:
+            //   그때는 «차례» 를 잴 수 없으므로 프레임 시각 대신 **규칙**으로 묻는다 — Core `SummonShockSpec` 은 적재 때
+            //   `EchoDelayMs > DelayMs` 를 강제한다(어기면 FormatException). 프레임이 갈렸을 때만 종전대로 순서를 본다.
+            Assert.Greater(SummonFxStyle.Shock.EchoDelayMs, SummonFxStyle.Shock.DelayMs,
+                "정본 6141·6162 — 잔파는 본파보다 늦게 나간다(.30s ↔ .23s)");
+            if (mainPeakAt == echoPeakAt)
+                Debug.Log("[T422] 본파·잔파 정점이 한 프레임(" + mainPeakAt.ToString("0.000")
+                    + "초)에 같이 잡혔다 — 프레임이 둘 사이 " + (SummonFxStyle.Shock.EchoDelayMs - SummonFxStyle.Shock.DelayMs).ToString("0")
+                    + "ms 보다 길다: 차례는 규칙(EchoDelayMs > DelayMs)으로 판정한다");
+            else
+                Assert.Less(mainPeakAt, echoPeakAt, "잔파가 본파보다 먼저 정점을 찍었다 — 차례가 뒤집혔다");
             Assert.Greater(seen.Count, 1, "본파가 처음부터 끝까지 같은 판이었다 — 테 굵기가 안 줄었다는 뜻이다");
             // ⚑ 23회차 — 깊이 평면 셋(빛가루 18 · 먼지 48 · 보케 14 = 80)은 **끊임없이** 떠오른다.
             Assert.AreEqual(18 + 48 + 14, v.MoteCount, "정본 개수(18+48+14)와 다르다");
