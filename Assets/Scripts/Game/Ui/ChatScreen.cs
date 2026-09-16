@@ -53,7 +53,12 @@ namespace Forge.Game.Ui
             bar.pivot = new Vector2(0.5f, 0f);
             bar.anchoredPosition = new Vector2(0f, bottom);
             bar.sizeDelta = new Vector2(0f, inputH);
-            UiKit.Panel(bar, "bg", "pp_paper");
+            // T377 10회차 — 정본 3438 `.chat-input-bar { background: #0e111b }` 는 못박은 리터럴이다. 바로 위 3439 주석이 까닭까지 적었다:
+            //   «카드가 흰색이 됐으므로 밴드는 **자기 배경 #0e111b 를 직접 갖는다**». 곧 «흰 카드» 로 바뀐 뒤에도 입력 밴드만은 어둡게 남긴 자리다.
+            //   클론은 전역 `pp_paper`(#ffffff)로 찍어 밴드가 카드와 한 덩어리로 희었다(1회차 곁다리 실측 · 런 720 `screen_chat.png` 입력 바 (255,255,255)).
+            //   키 인수는 그대로 두고(키라인·글자 그림자 갈래가 «종이» 를 그 키로 가른다) 면 `Image` 색만 표로 덮는다 — 판매 버튼·뒤로 버튼과 같은 길.
+            Image barBg = UiKit.Panel(bar, "bg", "pp_paper");
+            barBg.color = PinnedColorUi.C("chat_bar_face");
             float barLine = UiKit.L("line2_px");   // T365 4회차 — 정본 3444 `.chat-input-bar { border-top: var(--ol2) solid #000 }` = ol2(전엔 ol1)
             UiKit.Line(bar, "line", "pp_line", barLine, true);
             float bw = w * 0.0721f, bh = w * 0.0581f;

@@ -12,11 +12,13 @@
     "offline_sub_ink": "#cccccc",
     "held_tag_face": "#f0a020",
     "chat_placeholder_ink": "#6b6b6b",
+    "chat_bar_face": "#0e111b",
     "equip_slot_name_ink": "#d8caca",
     "list_asc_star_ink": "#ff8801",
     "forge_time_ink": "#6d6a63"
   },
   "_보류_태그": "T377 4회차 — 정본 style.css 999 `.anvil-btn.held-slot .held-tag { background: #f0a020 }`(모루 «보류» 배지). 클론 ForgeSheet.cs 는 전역 토큰 coin(#ffd54f)으로 찍고 있었다 — 같은 노랑 계열이라 눈에 안 띄지만 정본은 한 단계 주황인 앰버다(R 같음 · G −53 · B −79). 글자 색은 정본 #17181a ↔ 클론 pp_ink 가 같은 값이라 그대로 둔다(토큰을 써도 되는 자리).",
+  "_채팅_입력바": "T377 10회차 — 정본 style.css **3438** `.chat-input-bar { background: #0e111b }` 이고 **3439 주석이 까닭을 적어 뒀다**: «카드가 흰색이 됐으므로 밴드는 자기 배경 #0e111b 를 직접 갖는다». 곧 시트가 흰 종이로 바뀐 뒤에도 입력 밴드 하나만은 어둡게 남긴 자리다. 클론 `ChatScreen.cs:56` 은 전역 `pp_paper`(#ffffff)로 찍어 밴드가 카드와 한 덩어리로 희었다 — 1회차가 곁다리로 화면에서 확인해 둔 결함이다(런 720 `screen_chat.png` 입력 바 (255,255,255)). 그 위 `.btn.danger.round`(3283)는 1회차가 이미 `chat_back_face` 로 받았다 — 같은 밴드의 두 자리다.",
   "_채팅_안내글": "T396 6회차 — 정본 style.css 3452 `.chat-input-bar input::placeholder { color: #6b6b6b }`(주석: «원본 플레이스홀더는 #6B6B6B 인데 브라우저 기본 #8E8E93 이라 흐렸다»). 클론 ChatScreen 은 전역 pp_muted(#8a8a8a)로 찍고 있었다 — 정본이 일부러 진하게 못박은 자리라 전용 키로 받는다.",
   "_빈칸_슬롯이름": "T396 7회차 — 정본 style.css 866 `.equip-cell .slot-name { color: #d8caca }` 이고 **바로 위 865 주석이 그 내력을 적어 뒀다** — «12차: 라벨도 판독 확보 대상(A/B 공통) — #b9a8a8→#d8caca **반 단계**, 스크림은 10차 일곱째 항의 text-shadow 가 이미 있다». 곧 정본이 **판독을 위해 일부러 올린 값**이다. 클론 `ForgeSheet.cs` 는 전역 `pp_muted`(#8a8a8a)로 찍고 있었다 — 어두운 마룬 칸 위에서 정본보다 **한참 어두워** 그 «판독 확보» 가 통째로 빠졌다(R +78 · G +50 · B +50). 같은 줄의 그림자 겹은 T333 8회차가 이미 `slot_name` 으로 세워 뒀다 — 색만 남아 있었다.",
   "_목록_승천별": "T396 8회차 — 정본 style.css **784** `.fl-face[data-asc]:not([data-asc=\"\"])::after { color: #ff8801 }`(장비 **목록** 타일의 승천 별). 클론 `ForgeInfoPopup.cs:289` 는 전역 `coin`(#ffd54f)으로 찍고 있었다 — **정본은 같은 별을 자리마다 다른 색으로 둔다**: 장비 **격자** 칸의 `.equip-cell .cell-star`(953)는 #ffd54f 라 `coin` 이 맞고(5회차가 그 짝을 적었다), 목록 타일은 한 단계 **주황**이다(G −77 · B −78). 5회차의 `disabled_ink`/`disabled_ink2`, T332 16회차의 «같은 알에 두 값» 과 같은 갈래 — **같은 그림이라고 같은 키가 아니다**. 검정 4방향 링은 T333 11회차가 이미 세워 뒀다.",

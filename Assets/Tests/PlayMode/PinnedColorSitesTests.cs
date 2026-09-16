@@ -251,5 +251,38 @@ namespace Forge.Tests.PlayMode
             ForgeSheet.Render(h);
             yield return null;
         }
+
+        /// <summary>T377 10회차 — 채팅 **입력 밴드**. 정본 **3438** `.chat-input-bar { background: #0e111b }` 이고 바로 위 3439 주석이
+        /// «카드가 흰색이 됐으므로 밴드는 **자기 배경 #0e111b 를 직접 갖는다**» 로 까닭을 적어 뒀다 — 시트가 흰 종이로 바뀐 뒤에도
+        /// 이 밴드 하나만은 어둡게 남긴 자리다. 클론은 전역 `pp_paper`(#ffffff)로 찍어 밴드가 카드와 한 덩어리로 희었다(런 720 실측).
+        /// 표값이 정본과 같은지는 `check_pinned_colors` 가 본다 — 여기는 «자리가 그 키를 쓰는가».</summary>
+        [UnityTest]
+        public IEnumerator 채팅_입력_밴드는_흰_종이가_아니라_자기_어두운_배경을_갖는다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!(UiRoot.Instance != null && Hud.Instance != null && PopupLayer.Instance != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsNotNull(Hud.Instance, "HUD");
+            Hud.Instance.ChatButton.onClick.Invoke();
+            yield return null; yield return null;
+            Popup pop = PopupLayer.Instance.Find(ChatScreen.Name);
+            Assert.IsNotNull(pop, "채팅 팝업");
+            Transform bar = FindActive(pop.Root, "input-bar");
+            Assert.IsNotNull(bar, "입력 바");
+            Transform bgT = bar.Find("bg");
+            Assert.IsNotNull(bgT, "입력 밴드의 면 칸(bg)");
+            Image bg = bgT.GetComponent<Image>();
+            Assert.IsNotNull(bg, "입력 밴드의 면(bg)");
+            Color want = PinnedColorUi.C("chat_bar_face");
+            Assert.AreEqual(want, bg.color, "입력 밴드 면 = 표 chat_bar_face(정본 3438 #0e111b)");
+            Assert.AreNotEqual(UiKit.C("pp_paper"), bg.color, "전역 pp_paper(#ffffff)가 아니다 — 정본이 밴드에만 따로 준 어두운 면이다");
+            Assert.Less(want.r + want.g + want.b, 1f, "«어둡다» 가 이 자리의 뜻이다 — 표값이 밝아지면 이 줄이 먼저 깨진다");
+            // 같은 밴드의 이웃 자리(1회차) — 뒤로 버튼 면은 못박은 빨강 그대로다(이 고침이 그것까지 끌고 가지 않았다는 증거)
+            Transform backT = bar.Find("close/face");
+            Assert.IsNotNull(backT, "뒤로 버튼의 면(close/face)");
+            Image back = backT.GetComponent<Image>();
+            Assert.AreEqual(PinnedColorUi.C("chat_back_face"), back.color, "뒤로 버튼 면 = 표 chat_back_face(정본 3283 #ff1017) — 안 움직였다");
+            PopupLayer.Instance.Hide(ChatScreen.Name);
+        }
     }
 }

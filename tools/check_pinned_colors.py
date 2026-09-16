@@ -85,6 +85,25 @@ TABLE = {
     # 같은 회색 판 둘(정본이 두 자리에 같은 리터럴을 준다) — 클론도 한 키로 쓴다
     '.passive-banner': ['Ui/SkillPanel.cs|res:PetSkillUi:passive_bg'],   # 정본 3998 #c9c9c9
     '.skd-passive': ['Ui/SkillPanel.cs|res:PetSkillUi:passive_bg'],      # 정본 5252 #c9c9c9(스킬 상세의 같은 판)
+    # T377 10회차 ⓐ — 채팅 입력 밴드. **토큰으로 뭉개진 자리**(고친 자리다 · 나머지는 지키는 자리다):
+    #   정본 3438 `#0e111b` + 3439 주석 «카드가 흰색이 됐으므로 밴드는 **자기 배경 #0e111b 를 직접 갖는다**» ↔ 클론은 전역 `pp_paper`(#ffffff)였다.
+    '.chat-input-bar': ['Ui/ChatScreen.cs#input-bar|res:PinnedColorUi:chat_bar_face'],
+    # T377 10회차 ⓑ — **리그 묶음 열둘**(8회차가 «큰 묶음 리그 12 는 그 lock 뒤» 로 남겨 둔 것). `LeagueSheet.cs` 가 열렸다.
+    #   열둘 다 **이미 제 값**이라 고칠 코드가 0 이고 자가 그 값을 지키기만 한다(값이 밀리면 여기서 빨강이 난다 · 7~9회차와 같은 꼴).
+    #   ⚠ 정본 주석이 두 자리에 «여기서 틀렸었다» 를 적어 뒀다: 2264 «시트 #0e111b 는 행(#05060a)보다 **밝다** — 이전 #05070f 는 명암이 뒤집혀 있었다» ·
+    #     2579 «표 안 보상 pill 은 **#bdbdbd** — 클론 #d9d9d9 는 28단계 밝아 흰 바탕에 거의 묻혔다». 값이 밀리면 그 되돌림이 조용히 되살아난다.
+    '.modal-card.sheet.league-sheet': ['Ui/LeagueSheet.cs@RenderBoard|catalog:league_bg'],        # 2266 #0e111b(랭킹 시트 · 다크 변형)
+    '.league-season-bar': ['Ui/LeagueSheet.cs@RenderBoard|catalog:league_bar'],                   # 2299 #030405
+    '.league-foot': ['Ui/LeagueSheet.cs@RenderBoard|catalog:league_foot'],                        # 2358 #1a1f2b(핀 행+도전 버튼을 받치는 밴드)
+    '.league-row': ['Ui/LeagueSheet.cs@Row|catalog:league_row'],                                  # 2320 #05060a(내 행만 pp_blue — 정본도 그렇다)
+    '.league-score': ['Ui/LeagueSheet.cs@Row|catalog:league_score'],                              # 2339 #020203(«남색 아님» 이라고 정본이 못박아 뒀다)
+    '.modal-card.wide.lgr-card': ['Ui/LeagueSheet.cs@RenderRewards|catalog:league_bg'],           # 2456 #0e111b(정본 «명암 오독 6번째 — 그라데이션이 아니라 평면»)
+    '.league-reward-banner::before': ['Ui/LeagueSheet.cs@RenderRewards|catalog:lgr_ribbon_dk'],   # 2496 #a00a0e(리본 꼬리 둘)
+    '.league-reward-banner::after': ['Ui/LeagueSheet.cs@RenderRewards|catalog:lgr_ribbon_dk'],    # 2496 #a00a0e
+    '.league-reward-grid span': ['Ui/LeagueSheet.cs@RenderRewards|catalog:lgr_pill'],             # 2515 #0a0d14(어두운 구역의 보상 pill — 판보다 살짝 어둡다)
+    '.league-tier-grid span': ['Ui/LeagueSheet.cs@RenderRewards|catalog:lgr_table_pill'],         # 2580 #bdbdbd(흰 표 안의 보상 pill)
+    '.league-challenge-row': ['Ui/LeagueSheet.cs@RenderChallenge|catalog:challenge_row'],         # 2605 #cacaca
+    '.modal-card .league-challenge-side .btn': ['Ui/LeagueSheet.cs@RenderChallenge|catalog:challenge_btn'],   # 2637 #afafaf(«플랫 — 그라디언트 아님»)
 }
 # 임자가 정해진 빈자리(파일 lock 뒤) — 붙이면 여기서 지운다
 KNOWN = {
