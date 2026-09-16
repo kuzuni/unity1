@@ -25,6 +25,13 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        [TearDown]
+        public void CleanSave()
+        {
+            PetSkillHost.SuppressSave = false;
+            try { if (System.IO.File.Exists(SaveIo.SavePath)) System.IO.File.Delete(SaveIo.SavePath); } catch (System.Exception) { }
+        }
+
         [Test]
         public void 종류표의_Head_단은_하한_위_제목_아래_48px_다()
         {
@@ -64,6 +71,44 @@ namespace Forge.Tests.PlayMode
             }
             Assert.Greater(top, 0, "1~3위 숫자 라벨"); Assert.Greater(text, 0, "4위 아래 글자 라벨");
             h.Popups.Hide(LeagueSheet.RewardsName);
+            yield return null;
+        }
+        /// <summary>T391 4회차 — 남은 셋 중 파일이 열린 둘: 확률 팝업 머리(정본 4580 `.rates-head h3` 1.3rem = 47.3px → Head 48) ·
+        /// 자동 제련 제목(정본 4695 `.af-title` 1.12rem · 5033 덮음 1.26rem = 45.9px → Button 44). 둘 다 전엔 Title 60 이었다.</summary>
+        [UnityTest]
+        public IEnumerator 확률_머리와_자동_제련_제목은_정본_크기_단으로_선다()
+        {
+            PetSkillHost.SuppressSave = true;
+            try { if (System.IO.File.Exists(SaveIo.SavePath)) System.IO.File.Delete(SaveIo.SavePath); } catch (System.Exception) { }
+            yield return Boot();
+            float t0 = 0f;
+            while (!(ForgeHost.Ready && PetSkillHost.Ready && SkillPetSheet.Instance != null) && t0 < 20f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost"); Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트");
+            float head = UiCatalog.Instance.Kind(TextKind.Head).size, btn = UiCatalog.Instance.Kind(TextKind.Button).size;
+
+            SkillRatesPopup.Open(SkillPetSheet.Instance, "pet");
+            yield return null; yield return null;
+            Assert.IsTrue(SkillPetSheet.Instance.Modal.IsOpen(SkillRatesPopup.ModalName), "확률 팝업이 열린다");
+            TextMeshProUGUI h3 = null;
+            foreach (TextMeshProUGUI t in UiRoot.Instance.App.GetComponentsInChildren<TextMeshProUGUI>(true)) if (t.name == "rates-h3") { h3 = t; break; }
+            Assert.IsNotNull(h3, "확률 머리 h3");
+            Assert.AreEqual(head, h3.fontSize, 0.01f, "정본 4580 .rates-head h3 1.3rem → Head(전엔 Title 60)");
+            SkillPetSheet.Instance.Modal.Close(SkillRatesPopup.ModalName);
+            yield return null;
+
+            // 자동 제련은 2-10 뒤에만 열린다(ForgeCardWidthTests 와 같은 길로 해금)
+            ForgeHost fh = ForgeHost.Instance;
+            fh.S.BestChapter = 3; fh.S.BestStage = 1; fh.Pull();
+            Assert.IsTrue(fh.AutoForgeUnlocked, "2-10 뒤 해금");
+            ForgeAutoPopup.Open(fh);
+            yield return null;
+            Popup p = fh.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(p, "자동 제련 팝업");
+            TextMeshProUGUI af = null;
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true)) if (t.name == "af-title") { af = t; break; }
+            Assert.IsNotNull(af, "자동 제련 제목");
+            Assert.AreEqual(btn, af.fontSize, 0.01f, "정본 5033 .af-title 1.26rem = 45.9 → Button 44(전엔 Title 60)");
+            ForgeAutoPopup.Close(fh);
             yield return null;
         }
     }

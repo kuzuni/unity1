@@ -54,6 +54,9 @@ TABLE = {
     '.shop-gem-amt': ['Ui/ShopSheet.cs#amt-row/amt'],                     # 2983 1.35rem 49.1 ↔ Head 48(−2%)
     '#craft-modal .row .btn': ['Ui/ForgeCraftPopup.cs#sell', 'Ui/ForgeCraftPopup.cs#equip'],   # 3566 1.22rem 44.4 ↔ Button 44(−1%)
     '.sheet-title': ['Ui/ShopSheet.cs#title', 'Ui/DungeonSheet.cs#title', 'Ui/LeagueSheet.cs#title'],   # 3805 1.35rem 49.1 ↔ Head 48(−2%)
+    # T391 4회차 — 파일이 열린 둘
+    '.rates-head h3': ['Ui/SkillRatesPopup.cs#rates-h3'],                # 4580 1.3rem 47.3 ↔ Head 48(+1%)
+    '.af-title': ['Ui/ForgeAutoPopup.cs#af-title'],                      # 5033 1.26rem 45.9 ↔ Button 44(−4%)
 }
 # 대조하지 않는 자리 — 이모지·아이콘 글리프 크기(클론은 아틀라스 아이콘을 자리 크기로 세운다)
 SKIP = {
@@ -80,8 +83,6 @@ SKIP = {
 # 어긋난 줄 알지만 파일이 남의 lock 이라 지금 못 고치는 자리 — 임자 번호 · 고치면 지운다
 KNOWN = {
     # T391 1회차(자만) 실측 — ⓐ 종류표에 ≈48px 단이 서고 ⓑ 자리마다 그 단으로 바꾸면 여기서 TABLE 로 옮긴다(자리 표기는 아래 그대로 쓰면 된다)
-    '.rates-head h3': 'T391 ⓑ · Ui/SkillRatesPopup.cs#rates-h3 Title 60 ↔ 47.3px(+27%) · T332 lock',
-    '.af-title': 'T391 ⓑ · Ui/ForgeAutoPopup.cs#af-title Title 60 ↔ 45.9px(+31%) · T388 lock',
     '.sr-grid.one .sr-name': 'T391 ⓑ · Ui/SkillSummonResult.cs#sr-name/t Sub 36 ↔ 45.5px(−21% · x1 소환만) · T334 lock',
 }
 

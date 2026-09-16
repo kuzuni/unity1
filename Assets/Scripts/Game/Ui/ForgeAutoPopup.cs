@@ -51,11 +51,11 @@ namespace Forge.Game.Ui
             // 은은한 앰비언트를 더해 팝업이 화면에서 떠 보이게». 아래턱은 위 `PopupKit.Card` 가 이미 깔았고
             // 여기서는 그 뒤에 흐린 겹 하나를 더 깐다(CSS 목록의 뒤쪽이 아래로 간다 — 나중에 깐 것이 더 뒤다).
             UiShadow.Drop(card, "afcard_drop", rem * 1.1f);
-            TextMeshProUGUI title = UiKit.Text(card, "af-title", TextKind.Title, "자동 제련", "pp_ink");
+            TextMeshProUGUI title = UiKit.Text(card, "af-title", TextKind.Button, "자동 제련", "pp_ink");   // T391 ⓑ — 정본 4695 `.af-title { 1.12rem }` = 40.8px(5033 덮음 1.26rem = 45.9) → Button 44(전엔 Title 60)
             title.fontStyle = FontStyles.Bold;
             // T109 11회차 — 정본 style.css 3846 `h3.af-title { -webkit-text-stroke: .11em var(--pp-line) }`(5033 `.af-title 4px #fff` 는 특이도가 낮아 진다 · ui.js 2302 는 h3).
             UiKit.OutlinePx(title, "pp_line", KeylineUi.Em("sheet_title", title.fontSize));
-            float th = PopupKit.FontSize(TextKind.Title) * 1.3f;
+            float th = PopupKit.FontSize(TextKind.Button) * 1.3f;
             UiKit.Place(title.rectTransform, pad, pad, inner, th);
 
             float bottomH = rem * 1.9f * 2f + UiKit.H("btn_h") * 1.9f + rem * 1.6f;

@@ -80,7 +80,7 @@ namespace Forge.Game.Ui
             float padX = w * PetSkillStyle.L("rates_pad_x_f"), padT = PetSkillStyle.Px("rates_pad_top_rem"), padB = PetSkillStyle.Px("rates_pad_bottom_rem");
             float gap = PetSkillStyle.Px("rates_gap_rem");
             float inner = w - padX * 2f;
-            float title = UiCatalog.Instance.Kind(TextKind.Title).size, sub = UiCatalog.Instance.Kind(TextKind.Sub).size;
+            float title = UiCatalog.Instance.Kind(TextKind.Head).size, sub = UiCatalog.Instance.Kind(TextKind.Sub).size;   // T391 ⓑ — 정본 4580 `.rates-head h3 { 1.3rem }` = 47.3px → Head 48(전엔 Title 60)
             float headH = Mathf.Max(PetSkillStyle.Px("tri_h_rem"), title * 1.15f + sub * 1.2f);
             float iH = PetSkillStyle.Px("rates_i_rem");
             float barH = PetSkillStyle.Px("rate_bar_h_rem");
@@ -103,7 +103,7 @@ namespace Forge.Game.Ui
             float tw = PetSkillStyle.Px("tri_w_rem"), th = PetSkillStyle.Px("tri_h_rem"), ti = PetSkillStyle.Px("tri_icon_h");
             PrevButton = TriButton(c, "tri-prev", "tri_left", padX, y + (headH - th) * 0.5f, tw, th, ti, () => Step(-1));
             NextButton = TriButton(c, "tri-next", "tri_right", w - padX - tw, y + (headH - th) * 0.5f, tw, th, ti, () => Step(1));
-            TextMeshProUGUI ht = PetSkillKit.Stroked(c, "rates-h3", TextKind.Title, PetSkillStyle.T("rates_level", lvl), PetSkillStyle.C("white"), "sheet_title");   // 정본 .rates-head h3 .11em
+            TextMeshProUGUI ht = PetSkillKit.Stroked(c, "rates-h3", TextKind.Head, PetSkillStyle.T("rates_level", lvl), PetSkillStyle.C("white"), "sheet_title");   // 정본 .rates-head h3 .11em
             UiKit.Place(ht.rectTransform, padX + tw, y, inner - tw * 2f, title * 1.15f);
             TextMeshProUGUI st = PetSkillKit.Text(c, "rates-sub", TextKind.Sub, PetSkillStyle.T("rates_sub"), PetSkillStyle.C("ink"));
             UiKit.Place(st.rectTransform, padX + tw, y + title * 1.15f, inner - tw * 2f, sub * 1.2f);
