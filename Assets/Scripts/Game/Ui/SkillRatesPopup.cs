@@ -90,8 +90,14 @@ namespace Forge.Game.Ui
             float tipH = sub * 1.4f;
             float progH = PetSkillStyle.Px("rates_prog_h_rem");
             float h = padT + headH + gap + iH + gap + listH + gap + tipMy + tipH + tipMy + progH + padB;
-            PetSkillModal.Handle m = sheet.Modal.Open(ModalName, wf, h, PetSkillStyle.L("rates_top_rem"));
+            // T410 — 정본 4575 `.rates-card { width: 74.35% }` 는 **흰 면**(원본 shot-042521 실측 371/499 · 검정 테는 그 바깥)이다.
+            //   `Modal.Open` 의 widthFrac 은 테(line3)까지 품은 바깥 상자라 흰 면이 좌우 line 씩(합 1.39%p) 좁았다(런 827 실측 x73~467) →
+            //   바깥 상자 = 흰 면 + 2·테 로 열고, 내용 상자는 흰 면에 맞춰 안으로 line 만큼 들인다(x 셈은 그대로 흰 면 기준 · 가운데 50%W 불변).
+            float frame = PetSkillKit.Line3;
+            PetSkillModal.Handle m = sheet.Modal.Open(ModalName, (w + frame * 2f) / UiKit.RefW, h, PetSkillStyle.L("rates_top_rem"));
             RectTransform c = m.Content;
+            c.offsetMin = new Vector2(frame, c.offsetMin.y);
+            c.offsetMax = new Vector2(-frame, c.offsetMax.y);
             float y = padT;
             // head
             float tw = PetSkillStyle.Px("tri_w_rem"), th = PetSkillStyle.Px("tri_h_rem"), ti = PetSkillStyle.Px("tri_icon_h");
