@@ -37,6 +37,22 @@ TABLE_DEFAULT = os.path.join('Assets', 'Forge', 'Resources', 'RadiusUi.json')
 # ── 정본 선택자 ↔ 클론 자리 ──────────────────────────────────────────────────────────────
 TABLE = {
     # 어긋난 리터럴 열 자리(20회차 ⓡ) — 표로 옮긴다(T345 ⓑ · 각 파일의 산 lock 뒤)
+    # ── T415 1회차(2026-09-16 · 워커 J) — 산 lock 밖 화면 넷의 짝을 걸었다 ──
+    # 소환 시트 서브탭(정본은 «실버 패널 + 그 안 검은 알약 + 세그먼트» 3층이다)
+    '.subtab-strip button': '—언제나 3605 `#summon-subtabs.subtab-strip button`(.42rem)이 덮는다 — `.subtab-strip` 은 `index.html` 137 한 곳뿐이고 그 하나가 `id="summon-subtabs"` 다. 650(.5rem)·3582 는 렌더에 못 닿는 값',
+    '#summon-subtabs.subtab-strip': u'✓정본이 `border-radius: 0` 으로 **안 두른다** — 클론 strip 도 `SkillPetSheet.cs` 의 민 `UiKit.Box` 라 두르는 데가 없다(같은 뜻)',
+    '.subtab-pill': ['Ui/SkillPetSheet.cs$subtab_pill_r_rem@PetSkillUi.json'],
+    # 소환 확률 팝업
+    '.rate-bar': ['Ui/SkillRatesPopup.cs$rate_bar_r_rem@PetSkillUi.json'],
+    '.rates-prog': ['Ui/SkillRatesPopup.cs$rates_prog_r_rem@PetSkillUi.json'],
+    '.rates-i': u'✓클론 `SkillRatesPopup.cs:115` 이 `PetSkillKit.Disc` 로 원을 깐다(정본 50%) — **자에 안 건다**: 그 자리를 감싼 `Render()` 가 팝업 전체라 표 키가 여럿 들어 있어, 원을 걷어도 증거가 남아 **초록이 유지된다**(T345 17회차 «자가 못 가르는 줄은 걸지 않는다»)',
+    # 탭바 ✕
+    '.tab-x-mark': ['Ui/TabBar.cs@Build'],
+    # 보상 연출 — 둥긂이 **구운 판 안에** 있어 `Circle(` 증거가 안 남는 자리들
+    '.rw-glow': u'✓클론 `RewardBurst.GlowFx` 는 `SurfaceArt.Bake("rw_glow", 1f)` 로 **방사형 판을 구워** 쓴다(정본 50% + radial-gradient) — 둥긂이 판 안에 있어 코드에 반지름 증거가 없다',
+    '.rw-ring': u'✓클론 `RewardBurst.RingFx` 는 `RingSprite(s)` 로 **링 판을 구워** 쓴다(정본 50% + .34rem 테) — 같은 갈래',
+    '.rw-anchor': u'✓클론 `RewardBurst.AnchorFx` 가 `UiKit.Circle` 둘(테·면)로 깐다 — 정본 `999px` 은 2.1rem 정사각이라 **원과 같은 뜻**(알약 동치 · 결정 543)',
+    '.eqsw-dust': u'✓클론 `EquipSwapFx.cs:229` 가 `UiKit.Rounded(..., h * 0.5f)` 로 **납작한 타원**을 깐다 — 정본 50% 를 세로 .34배 상자에 준 것과 같은 뜻. 자의 증거 규칙(`Circle(`·`RadiusUi.`)엔 안 걸리는 꼴이라 표 키로 안 건다',
     '.chat-bubble': ['Ui/ChatScreen.cs$chat_bubble_r_rem'],
     '.chat-share-card': ['Ui/ChatScreen.cs$chat_share_card_r_rem'],
     '.chat-input-bar input': ['Ui/ChatScreen.cs$chat_input_r_rem'],
