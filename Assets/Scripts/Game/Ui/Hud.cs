@@ -84,11 +84,13 @@ namespace Forge.Game.Ui
 
             float av = UiKit.W("avatar");
             float avR = RadiusUi.Px("topbar_avatar_r_rem");   // 정본 100 `.profile-card .avatar { border-radius: .4rem }`
+            // 정본 100 `.profile-card .avatar { border: var(--ol2) solid #000 }` — 카드(92 · ol1)와 **단이 다르다**(T365 15회차).
+            float avLine = UiKit.L("line2_px");
             Image avRing = UiKit.Rounded(card, "avatar", "pp_line", avR);
             UiKit.Place(avRing.rectTransform, 0f, (cardH - av) * 0.5f, av, av);
             avatarTile = avRing.rectTransform;
-            Image avFace = UiKit.Rounded(avRing.transform, "face", "avatar_bg", avR - line);
-            Inset(avFace.rectTransform, line);
+            Image avFace = UiKit.Rounded(avRing.transform, "face", "avatar_bg", avR - avLine);
+            Inset(avFace.rectTransform, avLine);
 
             float tx = av + UiKit.W("card_gap");
             float tw = cardW - tx - UiKit.W("card_pad_r");
@@ -298,7 +300,8 @@ namespace Forge.Game.Ui
         {
             if (total < 1) total = 1;
             if (pips.Count != total) RebuildPips(total);
-            float line = UiKit.L("line_px");
+            // 정본 189 `.pip { border: var(--ol2) solid var(--pp-line) }` — 고리 두께는 **ol2** 다(전엔 ol1 `line_px` 라 한 단 얇았다 · T365 15회차).
+            float line = UiKit.L("line2_px");
             float d = UiKit.W("pip");
             float dNow = UiKit.W("pip_now");
             for (int i = 0; i < pips.Count; i++)
@@ -351,7 +354,8 @@ namespace Forge.Game.Ui
             float rowH = UiKit.H("pips_h");
             UiKit.Anchor(pipsRow, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -UiKit.H("pips_top")), rowW, rowH);
 
-            float line = UiKit.L("line_px");
+            // 정본 185 `#wave-pips::before { border-top: var(--ol2) …; border-bottom: var(--ol2) … }` — 트랙 위·아래 두 줄도 **ol2** 다(T365 15회차).
+            float line = UiKit.L("line2_px");
             float trackH = UiKit.W("pip_track");
             track = UiKit.Box(pipsRow, "track");
             UiKit.Place(track, slot * 0.5f, (rowH - trackH) * 0.5f, rowW - slot, trackH);

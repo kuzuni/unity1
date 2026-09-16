@@ -116,7 +116,8 @@ namespace Forge.Game.Ui
             Chat = UiKit.Box(App, "chat-preview");
             UiKit.Band(Chat, chatTop, tabTop);
             UiKit.Panel(Chat, "bg", "chat_bg");
-            UiKit.Line(Chat, "line", "pp_line", line, true);
+            // 정본 3639 `#chat-preview { border-top: var(--ol2) solid var(--pp-line) }` 가 3229 의 ol1 을 덮는다(뒤 규칙이 이긴다 · T365 15회차).
+            UiKit.Line(Chat, "line", "pp_line", UiKit.L("line2_px"), true);
 
             PanelHost = UiKit.Box(App, "panels");
             UiKit.Band(PanelHost, 0f, tabTop);

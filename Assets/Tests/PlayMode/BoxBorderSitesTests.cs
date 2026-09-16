@@ -47,6 +47,52 @@ namespace Forge.Tests.PlayMode
             return frt.offsetMin.x;
         }
 
+        /// <summary>
+        /// T365 15회차 — 메인 화면의 남은 넷. 정본은 **같은 화면에서도 단이 섞인다**:
+        /// 상단바 카드(92)는 ol1 인데 그 안의 아바타(100)는 **ol2** · 웨이브 핍(189)과 트랙(185)도 **ol2** ·
+        /// 채팅 띠 위 줄은 3229 의 ol1 을 **3639 가 ol2 로 덮는다**(뒤 규칙이 이긴다).
+        /// 클론은 넷 다 `line_px`(ol1) 한 값으로 그려 한 단 얇았다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 상단바_아바타와_웨이브_핍_트랙과_채팅_띠는_카드와_달리_정본_ol2_다()
+        {
+            yield return Boot();
+            Canvas.ForceUpdateCanvases();
+            float ol1 = UiKit.L("line_px"), ol2 = UiKit.L("line2_px");
+            Assert.Greater(ol2, ol1, "ol2 는 ol1 보다 두껍다 — 아니면 이 자는 아무것도 못 가른다");
+
+            // 상단바: 카드는 ol1(정본 92) · 그 안 아바타는 ol2(정본 100)
+            GameObject card = GameObject.Find("profile-card");
+            Assert.IsNotNull(card, "프로필 카드");
+            Transform avatar = card.transform.Find("avatar");
+            Assert.IsNotNull(avatar, "카드 안 아바타 타일");
+            Assert.AreEqual(ol2, RingWidth(avatar, "상단바 아바타"), 0.01f,
+                "정본 100 `.profile-card .avatar { border: var(--ol2) solid #000 }`");
+
+            // 웨이브 핍: 고리 두께 = (고리 크기 − 면 크기) / 2
+            Hud.Instance.SetWaves(5, 2, -1);
+            yield return null;
+            GameObject row = GameObject.Find("wave-pips");
+            Assert.IsNotNull(row, "웨이브 노드 줄");
+            RectTransform ring = (RectTransform)row.transform.Find("pip-1/ring");
+            RectTransform fill = (RectTransform)row.transform.Find("pip-1/fill");
+            Assert.IsNotNull(ring, "핍 고리"); Assert.IsNotNull(fill, "핍 면");
+            Assert.AreEqual(ol2, (ring.sizeDelta.x - fill.sizeDelta.x) * 0.5f, 0.01f,
+                "정본 189 `.pip { border: var(--ol2) solid var(--pp-line) }`");
+
+            // 트랙: 흰 심(core)이 검정 판(edge) 안으로 들어간 만큼이 위·아래 두 줄의 두께다
+            RectTransform core = (RectTransform)row.transform.Find("track/core");
+            Assert.IsNotNull(core, "트랙 심(core)");
+            Assert.AreEqual(ol2, core.offsetMin.y, 0.01f,
+                "정본 185 `#wave-pips::before { border-top/bottom: var(--ol2) … }`");
+
+            // 채팅 띠 위 줄
+            Transform chatLine = UiRoot.Instance.Chat.Find("line");
+            Assert.IsNotNull(chatLine, "채팅 띠 위 줄");
+            Assert.AreEqual(ol2, ((RectTransform)chatLine).sizeDelta.y, 0.01f,
+                "정본 3639 `#chat-preview { border-top: var(--ol2) … }` 가 3229 의 ol1 을 덮는다");
+        }
+
         [UnityTest]
         public IEnumerator 프로필_칸_아바타_고르기_설정_버튼의_테는_정본_ol2_다()
         {

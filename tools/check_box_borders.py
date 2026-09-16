@@ -70,7 +70,8 @@ TABLE = {
     '.info-btn': ['—덮인다: 정본 마크업 세 곳이 전부 덮는 규칙 안에 있다 — `ui.js` 1544 는 `#equip-sheet` 안(3634 이 이긴다) · 2053·5459 는 `.fi-info-btn`(5059) 이다. 그래서 971 의 `--ol1` #444c56 고리는 **실물에 한 번도 안 선다** — 클론에도 그 갈래를 두지 않는다(T365 13회차 · `.offline-rate-icon` 과 같은 꺼)'],
     '#equip-sheet .info-btn': ['Ui/ForgeUi.cs@InfoButton'],
     '.fi-info-btn': ['Ui/ForgeUi.cs@InfoButton'],
-    '.pip': ['Ui/Hud.cs@RebuildPips'],
+    # 고리는 `RebuildPips` 가 만들고 **두께는 `SetWaves` 가 프레임마다 면 크기로** 낸다(15회차 ⑶ 꼴) — 단을 읽을 수 있는 쪽이 그 자리다.
+    '.pip': ['Ui/Hud.cs@SetWaves'],
     '#wave-pips::before|top': ['Ui/Hud.cs@RebuildPips'],
     '#wave-pips::before|bottom': ['Ui/Hud.cs@RebuildPips'],
     # 상단바 카드·아바타·채팅 배지(Hud) · 채팅 화면(ChatScreen)
@@ -149,9 +150,6 @@ KNOWN = {
     '.chat-preview-badge → Ui/Hud.cs@BuildChat': 'T365 2회차 — `.chat-preview-badge` 3249 ol15(1.5px ≈ 캔버스 3px) ↔ 클론 line_px(2) · ol15 단 키가 카탈로그에 없다(line15_px 3) · Hud.cs T331 lock',
     '.pass-milestone-label → Ui/PassPopup.cs@Render': 'T365 3회차 — `.pass-milestone-label` 2803 ol2 ↔ 클론 라벨 고리는 `- PopupKit.Line`(ol1)(배너 Line3 는 맞다) · PassPopup.cs T332 lock',
     # T365 14회차 — 오프라인 요율 원판 둘은 T417 1회차(`42083bc`)가 정본 7268 대로 색 원·테를 걷어 이제 «정본대로 테 없음» ok 다 → KNOWN 에서 걷었다(경고 줄 2 → 0 · 표 자리 초록 84 그대로).
-    '.pip → Ui/Hud.cs@RebuildPips': 'T365 12회차 — 정본 191 `.pip { border: var(--ol2) solid var(--pp-line) }` ↔ 클론은 고리 안 면을 `size - line * 2`(`line_px` = **ol1**)로 깎는다(`Hud.cs:301·313`). 바꿀 키: `line_px` → `line2_px`(고리 두께를 재는 자리 셋 다). Hud.cs T331 lock',
-    '#wave-pips::before|top → Ui/Hud.cs@RebuildPips': 'T365 12회차 — 정본 185 는 트랙 위아래에 ol2 두 줄(`border-top`·`border-bottom`)을 준다 ↔ 클론 트랙은 `UiKit.Panel(track, "edge", "pp_line")` + 제 `Inset(core, line)`(= `line_px` ol1)이라 한 단 얇다. 바꿀 키: 같은 `line_px` → `line2_px`. Hud.cs T331 lock',
-    '#wave-pips::before|bottom → Ui/Hud.cs@RebuildPips': 'T365 12회차 — 위와 같은 한 자리(트랙 한 상자가 위·아래 두 줄을 같이 낸다). Hud.cs T331 lock',
 }
 
 HELPERS = ('PopupKit.Outlined', 'UiKit.Line', 'PetSkillKit.Framed', 'PetSkillKit.Orb', 'DungeonPopups.Bordered', 'DungeonPopups.BorderedCircle', 'UiKit.Rounded', 'UiKit.Circle', 'Bordered', 'BorderedCircle')   # 맨 이름 둘은 DungeonPopups 제 안의 호출(10회차 · CurPill)
@@ -318,10 +316,26 @@ def _args(src, open_paren):
     return args, len(src)
 
 
-def tier_of_expr(expr):
+LINE_VAR = re.compile(r'\bfloat\s+(\w+)\s*=\s*(?:UiKit|PopupKit|PetSkillStyle)\.L\s*\(\s*"(line\d?_px)"\s*\)')
+
+
+def line_vars(body):
+    """`float line = UiKit.L("line2_px");` 꼴을 걷는다 — {변수: 표키}.
+
+    **왜 필요한가(15회차)**: 단 무늬의 마지막 줄이 `\bline\b` 라 **`line` 이라는 이름의 변수**면
+    그 안에 무엇이 들었든 `ol1` 로 읽혔다. 정본 ol2 자리를 ol2 로 고쳐도 자는 여전히 «ol1» 이라 보고,
+    반대로 ol1 자리를 ol2 로 잘못 바꿔도 안 운다 — 변수부터 풀어야 단을 제대로 읽는다."""
+    return {m.group(1): m.group(2) for m in LINE_VAR.finditer(body or '')}
+
+
+def tier_of_expr(expr, varmap=None):
     """폭 식 → 단('ol1'..'ol4') · 'param'(도우미 매개변수 — 판정 안 함) · None(모름)."""
     if expr is None:
         return None
+    if varmap:
+        # 변수를 먼저 그 표키로 바꾼다(길이 긴 이름부터 — `line` 이 `line2` 를 먹지 않게)
+        for var in sorted(varmap, key=len, reverse=True):
+            expr = re.sub(r'\b' + re.escape(var) + r'\b', varmap[var], expr)
     if PARAM_RE.match(expr):
         return 'param'
     for tier, rx in TIER_PATTERNS:
@@ -330,9 +344,18 @@ def tier_of_expr(expr):
     return None
 
 
+# 15회차 — UGUI 엔 border 가 없어 «고리» 는 셋 중 한 꼴로 그린다: ⑴ 도우미(Outlined·Framed…) ⑵ 고리+면+Inset ⑶ **면을 폭×2 만큼 깎기**.
+#   ⑶ 은 크기를 프레임마다 다시 주는 자리(웨이브 핍)가 쓴다 — 고리 스프라이트는 한 번 만들고 두께는 면 크기로 낸다.
+RING_SHRINK = re.compile(r'(\w+)\s*\.\s*rectTransform\s*\.\s*sizeDelta\s*=\s*new\s+Vector2\s*\(([^;]*?)\)\s*;')
+#   ⚠ **면 꼴 이름에만** 건다 — `Inset(img.rectTransform, Line * 2f)`(초상 여백)처럼 테가 아닌 인셋까지 걷으면
+#      멀쩡한 자리가 «단 어긋남» 으로 운다(15회차에 실제로 그렇게 여섯이 울었다). 고리+면 짝을 보는 다른 갈래와 같은 규율이다.
+BARE_INSET = re.compile(r'(?<![.\w])Inset\s*\(\s*(face|bg|core|fill|\w*[Ff]ace|\w*[Ff]ill)\s*\.\s*rectTransform\s*,\s*([^;)]+)\)')
+
+
 def border_calls(src):
     """[(이름, 단, 시작)] — 파일(또는 메서드 본문) 안의 테 호출 전부. Rounded 는 안쪽 면 «r - 폭» 짝이 따라올 때만."""
     out = []
+    vars_ = line_vars(src)
     for m in CALL_RE.finditer(src):
         helper = m.group(1)
         args, close = _args(src, m.end() - 1)
@@ -359,7 +382,7 @@ def border_calls(src):
             if not ins:
                 continue
             iargs, _ = _args(src, iclose + ins.end() - 1)
-            out.append((name, tier_of_expr(iargs[1]) if len(iargs) > 1 else None, m.start()))
+            out.append((name, tier_of_expr(iargs[1], vars_) if len(iargs) > 1 else None, m.start()))
             continue
         if helper == 'UiKit.Rounded':
             # 짝 판정: 바깥 고리(이름 line/outline/ring/avatar/…) 뒤 420자 안에 안쪽 면 Rounded 가 따라와야 테다.
@@ -378,10 +401,23 @@ def border_calls(src):
             if not (inset or iname in ('face', 'bg', 'lip', 'ground', 'fill') or iname.endswith('-fill') or iname.endswith('fill')):
                 continue
             tail = inner[3].split('-', 1)[1] if inset else None
-            out.append((name, tier_of_expr(tail), m.start()))
+            out.append((name, tier_of_expr(tail, vars_), m.start()))
         else:
             idx = WIDTH_ARG[helper]
-            out.append((name, tier_of_expr(args[idx]) if len(args) > idx else None, m.start()))
+            out.append((name, tier_of_expr(args[idx], vars_) if len(args) > idx else None, m.start()))
+    # ⑶ «면을 폭×2 만큼 깎아» 두께를 내는 고리 — `p.Fill.rectTransform.sizeDelta = new Vector2(size - line * 2f, …)`
+    for m in RING_SHRINK.finditer(src):
+        inner = m.group(2)
+        if '-' not in inner:
+            continue
+        t = tier_of_expr(inner.split('-', 1)[1], vars_)
+        if t:
+            out.append((m.group(1), t, m.start()))
+    # 같은 뜻의 «그 파일 제 Inset»(`PopupKit.` 이 안 붙은 갈래) — 트랙처럼 판 둘을 겹쳐 두께를 내는 자리
+    for m in BARE_INSET.finditer(src):
+        t = tier_of_expr(m.group(2), vars_)
+        if t:
+            out.append((m.group(1), t, m.start()))
     return out
 
 
@@ -551,6 +587,23 @@ namespace X {
     checks.append(('Circle 홀로(원판)는 테가 아니다', check_target(tmp, 'Ui/Dot.cs@Disc', 'ol1')[0] == 'missing'))
     checks.append(('정본이 끄는 자리(none)는 테 호출이 없어야 ok', check_target(tmp, 'Ui/Dot.cs@Bare', 'none')[0] == 'ok'))
     checks.append(('정본이 끄는 자리에 테가 있으면 «군더더기 테»', check_target(tmp, 'Ui/Dot.cs@Ring', 'none')[0] == 'extra'))
+    # 15회차 — ⑴ 지역 변수 해석 ⑵ «면을 폭×2 만큼 깎는» 고리 ⑶ 그 파일 제 `Inset`
+    with open(os.path.join(ui, 'Pip.cs'), 'w', encoding='utf-8') as f:
+        f.write('class P {\n'
+                '    void Shrink(Transform p) { float line = UiKit.L("line2_px"); ring.Ring.rectTransform.sizeDelta = new Vector2(size, size); ring.Fill.rectTransform.sizeDelta = new Vector2(size - line * 2f, size - line * 2f); }\n'
+                '    void Track(Transform p) { float line = UiKit.L("line2_px"); UiKit.Panel(t, "edge", "pp_line"); Image core = UiKit.Panel(t, "core", "pip"); Inset(core.rectTransform, line); }\n'
+                '    void Portrait(Transform p) { float line = UiKit.L("line_px"); Inset(img.rectTransform, line * 2f); }\n'
+                '}\n')
+    checks.append(('깎기 꼴 고리는 테이고 단은 변수를 풀어 읽는다(line = line2_px → ol2)',
+                   check_target(tmp, 'Ui/Pip.cs@Shrink', 'ol2')[0] == 'ok'))
+    checks.append(('그 변수가 ol1 이었으면 «단 어긋남» 이다 — 이름만 보고 ol1 로 읽지 않는다',
+                   check_target(tmp, 'Ui/Pip.cs@Shrink', 'ol3')[0] == 'tier'))
+    checks.append(('그 파일 제 Inset(면 꼴 이름)도 테다', check_target(tmp, 'Ui/Pip.cs@Track', 'ol2')[0] == 'ok'))
+    checks.append(('테가 아닌 인셋(초상 여백)은 안 센다', check_target(tmp, 'Ui/Pip.cs@Portrait', 'ol1')[0] == 'missing'))
+    checks.append(('변수 해석 — `line` 이라는 이름에 line2_px 가 들면 ol2 다',
+                   tier_of_expr('line * 2f', {'line': 'line2_px'}) == 'ol2'))
+    checks.append(('변수를 안 풀면 이름 탓에 ol1 로 읽힌다(이 회차가 고친 함정)',
+                   tier_of_expr('line * 2f') == 'ol1'))
     logs4 = []
     checks.append(('군더더기 테는 rc 1', run(css, tmp, {'.d': ['Ui/Dot.cs@Ring']}, {}, logs4.append) == 1 and any('군더더기 테' in l for l in logs4)))
     checks.append(('군더더기 테도 KNOWN 이면 rc 0', run(css, tmp, {'.d': ['Ui/Dot.cs@Ring']}, {'.d → Ui/Dot.cs@Ring': '임자 있음'}, [].append) == 0))
