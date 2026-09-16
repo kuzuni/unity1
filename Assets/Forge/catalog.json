@@ -378,6 +378,7 @@
     { "key": "league_row_h", "value": 0.0636, "_": "행 6.36%H" },
     { "key": "league_list_max_h", "value": 0.542, "_": "T388 — 정본 2320 `.league-list { max-height: calc(var(--app-h) * .542); overflow-y: auto }` · 종전 클론은 발 밴드까지 채웠다(1회차 실측 53.9%H · 우연히 상한 안) — 이제 min(바닥까지, 상한)" },
     { "key": "league_row_gap", "value": 0.0112, "_": "행 간격 10px/892" },
+    { "key": "league_list_top", "value": 0.2121, "_": "T421 — 원작 shot-042149(498×896) 첫 행 카드 위끝 21.21%H(x=59 열 스캔 y190 · style.css 2317 주석 «첫 행 21.21%H» 와 같다) · 종전 클론은 시즌 바 아래 +.4rem 흐름 셈이라 18.12%H(−3.09%H) — 머리 블록 셈을 옮기지 않고 위끝을 못 박는다" },
     { "key": "league_score_w", "value": 0.187, "_": "점수 pill 18.7%W" },
     { "key": "league_score_h", "value": 0.0257, "_": "2.57%H" },
     { "key": "league_avatar", "value": 0.0474, "_": "아바타 타일 2.5rem / H" },

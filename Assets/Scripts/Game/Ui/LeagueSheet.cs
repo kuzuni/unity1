@@ -85,7 +85,9 @@ namespace Forge.Game.Ui
             List<LeagueEntry> board = h.League.Board(h.LeagueState, h.MyCp, h.Nickname, h.AvatarEmoji);
             int myRank = h.League.MyRank(h.LeagueState, h.MyCp);
             int start = Mathf.Max(0, Mathf.Min(myRank - 4, board.Count - 8));
-            float listY = barY + barH + rem * 0.4f;
+            // T421 — 목록 위끝은 원작 실측(첫 행 카드 21.21%H · 표 league_list_top)으로 못 박는다. 종전 `barY + barH + .4rem` 흐름 셈은 시즌 바가 정본 높이로 돌아온 뒤(T378) 3.09%H 높게 섰다 —
+            //        정본 머리 블록(문장·제목·바 · 2298~2320)은 값이 셋이라 흐름으로 옮기면 어긋남이 쌓인다(T404 등재문의 함정). 시즌 바 자리는 그대로.
+            float listY = UiKit.H("league_list_top");
             float footTop = UiKit.L("league_foot_top") * H;
             float listW = UiKit.L("league_list_w") * w;
             RectTransform listBox = UiKit.Box(sheet, "list");
