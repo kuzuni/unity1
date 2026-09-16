@@ -69,6 +69,11 @@ TABLE = {
     # T377 8회차 — 산 lock 밖 파일 둘 더(둘 다 곁 표 `PetSkillUi.json` 이 정본 값을 그대로 쥐고 있다).
     '#summon-subtabs.subtab-strip': ['Ui/SkillPetSheet.cs|res:PetSkillUi:subtab_bg'],   # 3593 #afafaf(실버 패널 · 그 안의 검은 알약은 subtab_pill)
     '.mat-chip.on': ['Ui/MountUpgradePopup.cs|res:PetSkillUi:mtup_chip_on'],            # 810 #253326 · 바탕 `.mat-chip`(806)은 3527 이 흰 면으로 덮는 «덮개» 자리다
+    # T377 9회차 — 산 lock 밖 파일 둘(프로필·공용 팝업)의 «못박은 면» 넷. 넷 다 **이미 제 값**이라 고칠 코드 0줄이다.
+    '.avatar-pick-btn.on': ['Ui/ProfilePopup.cs|catalog:avatar_pick_on'],   # 3066 #dbe9ff
+    '.settings-list': ['Ui/ProfilePopup.cs|catalog:settings_even'],         # 3094 #eee — 짝수 행이 목록 바탕색을 그대로 쓴다(정본도 그렇다)
+    '.settings-row:nth-child(odd)': ['Ui/ProfilePopup.cs|catalog:settings_odd'],   # 3104 #ccc(정본 주석: 원본 shot-042744 는 rgb(204)/rgb(238) 교대)
+    '.x-btn': ['Ui/Popups.cs@XButton|catalog:tabx_bg'],                     # 3739 #f2191d
     '.dgd-btn.silver': ['Ui/DungeonPopups.cs|catalog:dgd_btn'],         # 정본 5356 #a3a3a3(원본 픽셀 실측 주석) ↔ catalog dgd_btn
     '.rw-pop': ['Ui/RewardBurst.cs|res:RewardBurstUi:pop'],             # 정본 7511 #ffd54f(도착 마침표 별) ↔ RewardBurstUi colors.pop
     # T377 6회차 — 펫 업그레이드 팝업 다섯(파일이 열렸다). 다섯 다 곁 표 PetSkillUi 가 정본 리터럴을 그대로 쥐고 있어 «지키는 자» 만 붙인다.
