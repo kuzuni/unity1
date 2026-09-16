@@ -138,6 +138,8 @@ namespace Forge.Tests.PlayMode
             yield return Boot();
             UiRoot.Instance.TabBar.OnTab("shop");
             yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
             // ⚠ 상점 시트는 `UiRoot.Sheet`(대장간 시트 자리)가 아니라 **팝업 층**이다(`PopupLayer` · `ShopSheet.Render` 가 `PopupLayer.Clear(p)` 위에 세운다).
             //   9회차 1판은 `UiRoot.Sheet` 를 뒤져 «list 없음» 으로 빨갰다 — 자리 찾기를 팝업 뿌리로 옮긴다.
             Popup sp = MetaHost.Instance.Popups.Find(ShopSheet.Name);
@@ -146,16 +148,34 @@ namespace Forge.Tests.PlayMode
             foreach (RectTransform rt in sp.Root.GetComponentsInChildren<RectTransform>(true))
                 if (rt.name == "list") { list = rt; break; }
             Assert.IsNotNull(list, "상점 시트의 스크롤 목록(list)");
+            // ⚠ `PopupKit.ScrollList(parent, "list", …)` 가 돌려주는 것은 이름이 "list" 인 상자가 아니라 **그 안의 "content"** 다
+            //   (Popups.cs 342–366 · "list" 는 RectMask2D·ScrollRect 를 달은 보기창이고 칸을 쌓는 VerticalLayoutGroup 은 "content" 에 붙는다).
+            //   9회차 2판은 `rt.parent == list` 로 걸러 특가 카드를 0장 잡았고 «둘 미만» 으로 스스로 건너뛰었다.
+            RectTransform content = (RectTransform)list.Find("content");
+            Assert.IsNotNull(content, "스크롤 목록의 내용 칸(list/content)");
+            // 10회차 — 카드는 이제 시트 열이 아니라 그 안의 전용 열("deals" · 정본 2913 `.shop-deals`)에 쌓인다.
+            RectTransform box = (RectTransform)content.Find("deals");
+            Assert.IsNotNull(box, "특가 카드 열(list/content/deals · 정본 .shop-deals)");
             var deals = new System.Collections.Generic.List<RectTransform>();
-            foreach (RectTransform rt in list.GetComponentsInChildren<RectTransform>(true))
-                if (rt.parent == list && rt.name.StartsWith("deal-")) deals.Add(rt);
-            if (deals.Count < 2) Assert.Ignore("이 세이브의 상점에 특가 카드가 둘 미만이다 — 틈을 잴 자리가 없다");
+            foreach (RectTransform rt in box.GetComponentsInChildren<RectTransform>(true))
+                if (rt.parent == box && rt.name.StartsWith("deal-")) deals.Add(rt);
+            // 표(meta.json shop.DEALS)가 특가 셋을 쥐고 `ShopSheet` 는 산 것·안 산 것 가리지 않고 세 장을 다 세운다 —
+            //   둘보다 적게 잡혔다면 세이브 탓이 아니라 자리 찾기가 틀린 것이다. 건너뛰지 않고 빨간다.
+            Assert.GreaterOrEqual(deals.Count, 2, "상점 특가 카드(deal-*)가 전용 열에 둘 이상 선다 · 실측 " + deals.Count);
             deals.Sort((a, b) => World(b).yMax.CompareTo(World(a).yMax));
             Rect app = World(UiRoot.Instance.App), a0 = World(deals[0]), a1 = World(deals[1]);
             float gap = (a0.yMin - a1.yMax) / app.height;
             Assert.AreEqual(0.0091f, gap, 0.002f, "특가 카드 사이 = 앱 높이 × .0091(표 shop_deal_gap) · 실측 " + gap.ToString("0.0000"));
             // 표를 부르는지: rem*0.5(= 앱높이/844×16의 절반 ≈ .00948H)와 갈라지는 폭이라 ±0.0002 로 좁혀 한 번 더 본다
-            Assert.AreEqual(UiKit.H("shop_deal_gap"), (a0.yMin - a1.yMax), 1.2f, "실측 px = 표 shop_deal_gap × 앱 높이");
+            float dealPx = a0.yMin - a1.yMax;
+            Assert.AreEqual(UiKit.H("shop_deal_gap"), dealPx, 1.2f, "실측 px = 표 shop_deal_gap × 앱 높이");
+            // 10회차 — **시트 열은 그 값이 아니다**: 정본 3792 `.modal-card.sheet { gap: .5rem }` · 머리 ↔ 첫 배너 사이로 재 둘을 갈라 둔다.
+            //   이 칸이 없으면 다음 사람이 두 상자를 다시 하나로 접어도 위 칸은 그대로 초록이다.
+            RectTransform head = (RectTransform)content.Find("head");
+            RectTransform banner = (RectTransform)content.Find("banner-오늘의 특가");
+            Assert.IsNotNull(head, "시트 머리(head)"); Assert.IsNotNull(banner, "첫 배너(banner-오늘의 특가)");
+            float sheetGap = World(head).yMin - World(banner).yMax;
+            Assert.AreEqual(PopupKit.Rem * 0.5f, sheetGap, 1.0f, "시트 열 간격 = .5rem(정본 3792) · 실측 " + sheetGap.ToString("0.00") + "px · 카드 열의 " + dealPx.ToString("0.00") + "px 와 다른 상자다");
             Debug.Log("[T364] 상점 특가 카드 틈 " + gap.ToString("0.0000") + "H · 표 " + UiKit.H("shop_deal_gap").ToString("0.00") + "px");
             yield return null;
         }

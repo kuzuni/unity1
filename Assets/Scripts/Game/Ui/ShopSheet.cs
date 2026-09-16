@@ -36,10 +36,10 @@ namespace Forge.Game.Ui
 
             RectTransform scrollBox = UiKit.Box(sheet, "scroll");
             UiKit.Band(scrollBox, 0f, UiKit.L("tabbar_top"));
-            // T364 9회차 — 정본 2913 `.shop-deals { gap: calc(var(--app-h) * .0091) }`. 표 `shop_deal_gap`(0.0091)이 5회차부터 있었는데
-            //   **부르는 데가 0곳**이라 여기서 `rem * 0.5` 로 그렸다(§1 «수치는 코드에 박지 않는다»). 둘 다 앱 높이에 비례해 축은 같고
-            //   값만 9.10px ↔ 8.74px(−4%)로 달랐다 — 큰 차는 아니지만 표가 있는데 코드가 제 수를 쥐고 있던 자리다.
-            RectTransform content = PopupKit.ScrollList(scrollBox, "list", UiKit.H("shop_deal_gap"), 0f, UiKit.H("sheet_pad_top"));
+            // T364 10회차 — 이 목록 간격은 정본 **3792** `.modal-card.sheet { gap: .5rem }`(시트 자체의 flex 열 · 머리·배너·안내문·카드 묶음·보석 사이)다.
+            //   9회차가 여기에 `shop_deal_gap`(.0091H)을 꽂았는데 그것은 **한 겹 안쪽** 상자(2913 `.shop-deals`)의 값이다 — 카드 사이는 맞고
+            //   시트 간격이 18.2px → 17.5px 로 같이 끌려 내려갔다(워커 O 보고 · 아래 「특가 카드」 절에서 카드만 제 열에 담는다).
+            RectTransform content = PopupKit.ScrollList(scrollBox, "list", rem * 0.5f, 0f, UiKit.H("sheet_pad_top"));
 
             // ---- 머리: 코인 바 · 상점 · 젬 바 ----
             RectTransform head = PopupKit.Item(content, "head", -1f, PopupKit.FontSize(TextKind.Head) * 1.3f);
@@ -62,12 +62,17 @@ namespace Forge.Game.Ui
             float cardX = UiKit.L("shop_banner_x") * w, cardW = UiKit.L("shop_banner_w") * w;
             float cardH = UiKit.H("shop_deal_h");
             List<ShopDeal> deals = h.Meta.Shop.Deals;
+            // T364 10회차 — 정본 2913 `.shop-deals { display:flex; flex-direction:column; gap: calc(var(--app-h) * .0091) }`.
+            //   카드 사이(.0091H = 8.74px)는 시트 간격(.5rem = 9.10px)과 **다른 상자의 값**이라 카드를 제 열에 담아야 둘 다 정본이 된다.
+            //   높이는 열이 스스로 못 재니(부모가 ContentSizeFitter 가 아니다) 칸 수로 셈해 준다: n×카드 + (n−1)×틈.
+            float dealGap = UiKit.H("shop_deal_gap");
+            RectTransform dealsBox = PopupKit.Item(content, "deals", -1f, deals.Count * cardH + Mathf.Max(0, deals.Count - 1) * dealGap);
+            PopupKit.Column(dealsBox, 0f, dealGap);
             for (int i = 0; i < deals.Count; i++)
             {
                 ShopDeal d = deals[i];
                 bool claimed = h.Shop.Claimed(h.ShopState, d.Key);
-                // 카드 사이 0.91%H 는 **목록 칸 간격이 이미 넣는다**(rem*0.5 = 0.95%H) — 칸 높이에 또 더하면 간격을 두 번 세어 카드 줄이 원작보다 벌어진다.
-                RectTransform rowBox = PopupKit.Item(content, "deal-" + d.Key, -1f, cardH);
+                RectTransform rowBox = PopupKit.Item(dealsBox, "deal-" + d.Key, -1f, cardH);
                 RectTransform card = UiKit.Box(rowBox, "card");
                 UiKit.Place(card, cardX, 0f, cardW, cardH);
                 PopupKit.Outlined(card, "face", "pp_paper", RadiusUi.Px("shop_deal_card_r_rem"), PopupKit.Line3);   // T345 13회차 — 정본 2916 `.shop-deal-card` .9rem
@@ -117,7 +122,7 @@ namespace Forge.Game.Ui
                 if (priceLabel != null) LineHeight.Apply(priceLabel, "shop_price_btn_lh");
             }
 
-            // 정본 `.shop-deals + .shop-banner` = 카드 바닥 ↔ 배너 3.08%H. 목록이 이미 넣는 것(카드 칸 안쪽 간격 + 위아래 목록 간격 둘)을 뺀다.
+            // 정본 `.shop-deals + .shop-banner` = 카드 바닥 ↔ 배너 3.08%H. 목록이 이미 넣는 것(스페이서 위아래 시트 간격 둘 = .5rem×2)을 뺀다.
             PopupKit.Spacer(content, UiKit.H("shop_deals_banner_gap") - rem);
             Banner(content, "보석");
 
