@@ -48,6 +48,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 REF = 'origin/screens'
@@ -1273,6 +1274,98 @@ def still_blocked(runs, blocked):
     return seen[-1].get('run_number') in [b['run'] for b in blocked]
 
 
+def last_green_any(runs):
+    """장부에서 **마지막 초록**(tests success · 모드 XML 다 있음) → (sha, run). 이번 런도 포함한다(T424 · `last_green` 은 이번 런 앞만 본다)."""
+    for d in reversed(runs or []):
+        if str(d.get('tests', '')) == 'success' and not str(d.get('missing_modes', '') or ''):
+            return str(d['sha']), d.get('run')
+    return None, None
+
+
+def _age_words(minutes):
+    if minutes is None:
+        return '?'
+    m = int(minutes)
+    return ('%d시간 %d분' % (m // 60, m % 60)) if m >= 60 else ('%d분' % m)
+
+
+def api_run_counts(payload_runs, limit=60):
+    """순수 — API `workflow_runs` 목록(런 단위 conclusion)을 결말별로 센다(T424).
+
+    런 단위 결말이라 «유니티 잡이 skipped 였는가» 는 못 가른다(그것은 잡 목록을 런마다 다시 불러야 안다) —
+    그래서 이 자는 «취소된 런» 만 정확히 세고 나머지는 성공/실패/그 밖으로 둔다. 취소가 곧 «대기 줄에서 갈아치워진 것» 이다
+    (ci.yml `cancel-in-progress: false` · 대기 중인 것만 뒤 push 가 갈아치운다).
+    """
+    c = {'n': 0, 'success': 0, 'failure': 0, 'cancelled': 0, 'other': 0}
+    for r in (payload_runs or [])[:limit]:
+        if str(r.get('status')) != 'completed':
+            continue
+        c['n'] += 1
+        k = str(r.get('conclusion') or '')
+        if k in ('success', 'failure', 'cancelled'):
+            c[k] += 1
+        else:
+            c['other'] += 1
+    return c
+
+
+def starve_lines(runs, cur_sha, green_age_min, n_after=None, n_code=None, api_counts=None):
+    """T424 — «유니티 판정이 굶고 있는가» 한 줄(순수 · rc 는 안 건드린다 · 보고 전용).
+
+    runs: 장부(`runs.jsonl`) · cur_sha: 장부 꼬리(유니티가 실제로 돈 마지막 런) · green_age_min: 마지막 초록 런 커밋의 나이(분 · None 이면 모름)
+    n_after/n_code: 마지막 초록 뒤 main 커밋 수 / 그중 코드 커밋 수(None 이면 못 셈) · api_counts: `api_run_counts` 꼴(None 이면 API 없음 → 그 조각만 뺀다).
+
+    왜 있나 — 실측(2026-09-16 10:0x · 검수 Q): 런 829~928 에서 유니티 초록은 #868 하나(4시간 50분 전) · 40런 중 취소 17 · 건너뜀 14 · 판정 6 · 초록 0.
+    이 자는 «⚠ 그 뒤로 main 커밋 N개» 만 찍어 **왜 N 이 크는지**(대기 줄이 갈아치워진다)도 **마지막 초록이 언제였는지**도 말하지 않았다.
+    """
+    gsha, grun = last_green_any(runs)
+    if not gsha:
+        return ['  ⚑ 굶주림(T424): 장부에 초록 유니티 런이 **하나도 없다** — §0 «내 뒤 런이 초록이면 내 확인» 을 쓸 수 있는 사람이 없다 · 내 커밋을 포함한 런의 장부에서 내 자가 PASS 면 그것이 확인이다(T338·T340).']
+    after = []
+    seen = False
+    reds = 0
+    for d in runs or []:
+        if seen:
+            after.append(d)
+            if str(d.get('tests', '')) == 'failure':
+                reds += 1
+        elif str(d.get('sha', '')) == gsha:
+            seen = True
+    head = '  ⚑ 굶주림(T424): 마지막 초록 유니티 런 **#%s**(%s) 은 **%s 전**' % (grun, gsha[:7], _age_words(green_age_min))
+    tail = []
+    if n_after is not None:
+        tail.append('그 뒤 main 커밋 %d%s' % (n_after, ('(코드 %d)' % n_code) if n_code is not None else ''))
+    tail.append('그 사이 판정 런 %d(전부 빨강)' % len(after) if after else '그 뒤 판정 런 0')
+    if api_counts and api_counts.get('n'):
+        tail.append('API 최근 %d 런 결말 — 성공 %d · 실패 %d · **취소 %d**(대기 줄에서 갈아치워진 것) · 그 밖 %d'
+                    % (api_counts['n'], api_counts['success'], api_counts['failure'], api_counts['cancelled'], api_counts['other']))
+    ln = head + ' — ' + ' · '.join(tail) + '.'
+    out = [ln]
+    if green_age_min is not None and green_age_min >= 120:
+        out.append('    → 초록이 오래 굶었다: «내 뒤 런이 초록이면 내 확인» 을 기다리지 말고, **내 커밋을 포함한 런**(`git merge-base --is-ancestor <내 커밋> <런 sha>`)의 장부에서 **내 자가 PASS** 인지로 확인한다(T338·T340 · §0). 잡을 언제 어떻게 돌릴지는 `ci.yml` 임자의 축이다.')
+    return out
+
+
+def commit_age_min(sha, now=None):
+    """그 sha 의 커밋 시각이 몇 분 전인가(git · 못 읽으면 None)."""
+    rc, out = _git(['log', '-1', '--format=%ct', sha])
+    if rc != 0:
+        return None
+    try:
+        return max(0, int(((now or time.time()) - int(out.strip())) / 60))
+    except ValueError:
+        return None
+
+
+def fetch_run_counts(limit=60):
+    """API 한 번으로 최근 CI 런의 결말을 센다(T424). 못 부르면 None(조용히 건너뛴다)."""
+    try:
+        payload = _api_json('https://api.github.com/repos/%s/actions/workflows/ci.yml/runs?per_page=%d' % (API_REPO, limit))
+        return api_run_counts(payload.get('workflow_runs', []), limit)
+    except Exception:
+        return None
+
+
 def fetch_runs_after(sha, limit=12):
     """그 sha 의 CI 런 **뒤**에 온 CI 런들의 잡 목록. 못 부르면 None(조용히 건너뛴다)."""
     try:
@@ -2127,6 +2220,27 @@ def self_test():
     eq('T416 ⓒ 새 꼴 «SKIP » 줄은 애초에 안 걸린다', any(l.startswith('SKIP') for l in kept), False)
     eq('T416 ⓓ 진짜 빨강은 그대로 남는다', sorted(l.split('.')[-1].split(' ')[0] for l in kept), ['가', '나', '라'])
 
+    # T424 — 굶주림 줄(순수 셈)
+    _ledger424 = parse_runs('\n'.join([
+        '{"sha":"%s","run":860,"tests":"failure","missing_modes":""}' % ('a' * 40),
+        '{"sha":"%s","run":868,"tests":"success","missing_modes":""}' % ('b' * 40),
+        '{"sha":"%s","run":885,"tests":"failure","missing_modes":""}' % ('c' * 40),
+        '{"sha":"%s","run":903,"tests":"failure","missing_modes":""}' % ('d' * 40),
+    ]))
+    eq('T424 ⓐ 장부의 마지막 초록(이번 런 포함)', last_green_any(_ledger424), ('b' * 40, 868))
+    _api424 = api_run_counts([{'status': 'completed', 'conclusion': 'cancelled'}] * 17
+                             + [{'status': 'completed', 'conclusion': 'success'}] * 14
+                             + [{'status': 'completed', 'conclusion': 'failure'}] * 6
+                             + [{'status': 'in_progress', 'conclusion': None}] * 3)
+    eq('T424 ⓐ API 런 결말 셈(도는 중은 안 센다)', (_api424['n'], _api424['cancelled'], _api424['success'], _api424['failure']), (37, 17, 14, 6))
+    _st = starve_lines(_ledger424, 'd' * 40, 290, 134, 39, _api424)
+    eq('T424 ⓐ 마지막 초록 런·나이·그 뒤 커밋·판정 런 수·취소 수가 한 줄에', all(x in _st[0] for x in ('#868', 'bbbbbbb', '4시간 50분', '134', '코드 39', '판정 런 2', '취소 17')), True)
+    eq('T424 ⓐ 두 시간 넘게 굶으면 T338·T340 길을 덧붙인다', len(_st) == 2 and 'T338' in _st[1], True)
+    _st2 = starve_lines(_ledger424, 'd' * 40, 30, 5, 2, None)
+    eq('T424 ⓑ API 없으면 그 조각만 뺀다(줄은 남는다)', ('API' not in _st2[0]) and ('#868' in _st2[0]) and len(_st2) == 1, True)
+    eq('T424 ⓑ 초록이 하나도 없으면 그렇게 말한다', '하나도 없다' in starve_lines(_ledger424[:1] + _ledger424[2:], 'd' * 40, None)[0], True)
+    eq('T424 ⓑ 판정은 안 건드린다(순수 줄만)', judge({'sha': 'd' * 40, 'run': 903, 'tests': 'failure', 'missing_modes': ''}, True, 0, fails=['FAIL A.B.C.무엇 · Failed'])[0], 1)
+
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))
         for f in fails:
@@ -2208,6 +2322,16 @@ def main(argv):
     rc, out = judge(meta, anc, n_after, fails, own, between, blocked, blocks_now, newer=nv, skipped=sk)
     for ln in out:
         print(ln)
+    # T424 — 굶주림 줄(보고 전용 · rc 그대로): 마지막 초록 런의 나이 · 그 뒤 커밋 · API 로 본 최근 런 결말.
+    if meta:
+        ledger = read_runs(ref) or []
+        g_sha, _ = last_green_any(ledger)
+        g_age = commit_age_min(g_sha) if g_sha else None
+        _, g_after = behind(g_sha) if g_sha else (None, None)
+        g_code = len(code_commits(g_sha, MAIN)) if (g_sha and g_after) else (0 if g_sha else None)
+        for ln in starve_lines(ledger, str(meta.get('sha', '')), g_age, g_after, g_code,
+                               None if no_api else fetch_run_counts()):
+            print(ln)
     if meta and (red or str(meta.get('missing_modes', '') or '')):
         # T338 — 남의 PlayMode 빨강이 내 dotnet·datasync·gate 초록을 덮지 않게 잡별 한 줄
         sha = str(meta.get('sha', ''))
