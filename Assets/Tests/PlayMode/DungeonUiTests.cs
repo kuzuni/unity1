@@ -345,6 +345,59 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T430 1회차 — **«연구 중» 카드는 설명 판을 지우고 그 자리를 여백 둘로 돌려준다.**
+        /// 정본 `style.css` **4633** `.item-detail.tn-researching &gt; .idet-lead { margin-top: 12.6% }` · **4635** `.item-detail.tn-researching { padding-bottom: 10.6% }` —
+        /// 그 자리 주석(4629~4632)이 «지운 만큼을 여백 둘로 되돌려 원본의 세로 리듬을 만든다» 고 적어 둔다. 클론은 지우는 쪽만 옮겨 카드가 −22% 짧았다(T28 93회차).
+        /// 재는 곳은 둘이다: (가) 머리 아래끕 → «연구 진행 중» 위끕 = 열 텀(`card_gap_rem`) **+** 카드 **안쪽** 폭×.126 · (나) 버튼 아래끕 → 카드 아래끕 = **앱 폭**×.106(밑변이 다르다 · 등재문 ⚠).
+        /// 두 값 모두 **기준 px 로 되돌려** 재다(결정 729) · 안·밖 부호는 `안쪽.yMin − 바깥.yMin`(결정 734).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 연구_중_노드_카드는_지운_판_자리를_여백_둘로_돌려준다()
+        {
+            yield return Boot();
+            TechTree tree = H.Tech;
+            string open = null;
+            foreach (string id in tree.NodesOf("power")) if (tree.IsUnlocked(id)) { open = id; break; }
+            Assert.IsNotNull(open, "열린 노드가 하나는 있다(1단계)");
+            tree.State.Research = new TechResearch(open, SaveIo.NowMs() + 60.0 * 60e3);   // 끝날 때가 멀다 = 연구 중(수령 대기 아니다)
+            TechPopups.OpenNode(open);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+            Assert.AreEqual(TechPopups.NodeState.Researching, TechPopups.State, "연구 중 카드를 열었다");
+
+            RectTransform btn = DungeonPopups.Root(TechPopups.ActionButton);
+            RectTransform card = (RectTransform)btn.parent;
+            Assert.AreEqual("card", card.name, "버튼은 노드 상세 카드의 자식이다");
+            RectTransform lead = (RectTransform)card.Find("lead");
+            RectTransform icon = (RectTransform)card.Find("icon");
+            Assert.IsNotNull(lead, "«연구 진행 중» 줄(lead)");
+            Assert.IsNotNull(icon, "머리 아이콘 상자(icon)");
+
+            Rect rc = World(card), rl = World(lead), ri = World(icon), rb = World(btn);
+            float cwRef = UiKit.RefW * UiKit.L("idet_card_w");
+            float innerRef = cwRef - cwRef * UiKit.L("idet_pad") * 2f;
+            float toRef = cwRef / rc.width;   // 세계 단위 → 기준 px (결정 729)
+
+            // (가) 머리 아래끕 → lead 위끕. 정본 `.modal-card` 는 `gap: .45rem` 인 flex 열이므로 4633 의 여백은 **그 텀 위에 더해진다**.
+            float leadGap = (ri.yMin - rl.yMax) * toRef;
+            float wantLead = DungeonPopups.RemL("card_gap_rem") + innerRef * TechStyle.L("tn_lead_mt_f");
+            Assert.AreEqual(wantLead, leadGap, 2f,
+                "머리 ↔ «연구 진행 중» = 열 텀 + 카드 **안쪽** 폭×.126(정본 4633) · 실측 " + leadGap.ToString("0.0") + "px · 표 " + wantLead.ToString("0.0") + "px");
+
+            // (나) 버튼 아래끕 → 카드 아래끕 = 카드 폭×.106(정본 4635). 종전엔 언제나 `idet_pad` 라 카드가 그만큼 짧았다.
+            float padB = (rb.yMin - rc.yMin) * toRef;
+            float wantPadB = UiKit.RefW * TechStyle.L("tn_researching_pad_b_app_f");
+            Assert.AreEqual(wantPadB, padB, 2f,
+                "버튼 아래 ↔ 카드 끝 = **앱 폭**×.106(정본 4635 · 카드 자신의 padding 이라 밑변이 앞 칸과 다르다) · 실측 " + padB.ToString("0.0") + "px · 표 " + wantPadB.ToString("0.0") + "px");
+            Assert.Greater(wantPadB, cwRef * UiKit.L("idet_pad"),
+                "연구 중 아래 여백은 보통 패딩보다 크다 — 그것이 «지운 만큼을 돌려준다» 의 뜻이다");
+            Debug.Log("[T430] 머리↔lead " + leadGap.ToString("0.0") + "px(표 " + wantLead.ToString("0.0") + ") · 카드 아래 여백 " + padB.ToString("0.0") + "px(표 " + wantPadB.ToString("0.0") + ") · 카드 높이 " + (rc.height * toRef).ToString("0.0"));
+            TechPopups.Close();
+            yield return null;
+        }
+
         private static Rect World(RectTransform rt)
         {
             Vector3[] c = new Vector3[4];

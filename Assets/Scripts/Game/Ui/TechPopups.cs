@@ -124,8 +124,12 @@ namespace Forge.Game.Ui
             float bodyH = DungeonPopups.LineH(TextKind.Body), subH = DungeonPopups.LineH(TextKind.Sub);
             float headH = Mathf.Max(icoD, bodyH + subH);   // T413 — 정본 머리는 «이름+레벨 / 총합» 두 줄이다(전엔 subH * 2 로 세 줄을 셌다)
             float descH = researching ? 0f : cw * UiKit.L("idet_subs_mt") + cw * UiKit.L("idet_subs_pad") * 2f + subH * 2f;
-            float actionH = ActionHeight(State);
-            float ch = pad * 2f + headH + descH + actionH + DungeonPopups.RemL("card_gap_rem");
+            // T430 — 정본 4629~4635 가 까닭까지 적었다: «패널을 지우면 카드가 짧아지므로 지운 만큼을 ⓐ «연구 진행 중» 위 여백과
+            //   ⓑ 카드 아래 여백으로 되돌려 원본의 세로 리듬을 만든다». 클론은 **지우는 쪽(`descH`)만** 옮겨 카드가 −22% 짧았다(T28 93회차 실측).
+            //   ⓑ = 4635 `.item-detail.tn-researching { padding-bottom: 10.6% }` — 아래 패딩만 바뀜다(위는 그대로 `pad`).
+            float padB = researching ? W * TechStyle.L("tn_researching_pad_b_app_f") : pad;   // 밑변은 **앱 폭** — 카드 자신의 padding % 라 그 컨테이닝 블록(모달)을 잰다
+            float actionH = ActionHeight(State, inner);
+            float ch = pad + padB + headH + descH + actionH + DungeonPopups.RemL("card_gap_rem");
             RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_r_rem"));
 
             // 머리: 청동 원 아이콘(lv/5 배지) + 이름 · 단계 · 총합 · (레벨당 · 이 노드)
@@ -184,9 +188,12 @@ namespace Forge.Game.Ui
             DungeonPopups.XButton(card, Close);
         }
 
-        static float ActionHeight(NodeState s)
+        static float ActionHeight(NodeState s, float inner)
         {
             float subH = DungeonPopups.LineH(TextKind.Sub), btnH = DungeonPopups.RemL("tech_btn_h_rem"), gap = DungeonPopups.RemL("card_gap_rem");
+            // T430 ⓐ — 정본 4633 `.item-detail.tn-researching > .idet-lead { margin-top: 12.6% }`. 연구 중·수령 대기에서만 걸리고,
+            //   정본 `.modal-card` 는 `gap: .45rem` 인 flex 열이라 이 여백은 **그 텀 위에 더해진다**(클론의 `card_gap_rem` 이 그 텀이다 · 두 번 세지 않는다 · 결정 728).
+            float leadMt = inner * TechStyle.L("tn_lead_mt_f");   // 밑변은 **카드 안쪽 폭** — 자식의 margin % 는 제 컨테이닝 블록의 콘텐츠 폭이다
             switch (s)
             {
                 case NodeState.Max: return subH;
@@ -194,8 +201,8 @@ namespace Forge.Game.Ui
                 //   올리고 **재는 이 줄은 옛 `btn_sm_h_rem`(2rem) 그대로** 두어, 카드는 1.6rem(= 29.1px · 샷 540×960) 짧게 서고 안내줄이 카드 밖에서 잘렸다(런 943 `screen_tech-node.png`:
                 //   안내줄 잉크 오른끝이 여섯 줄 내리 x=451 로 같고 «열립니다» 가 «열립니」 로 끊겼다 · T28 91회차 등재).
                 case NodeState.Locked: return btnH + gap + subH * 2f;
-                case NodeState.Ready: return subH + gap + DungeonPopups.RemL("tech_prog_h_rem") + DungeonPopups.RemL("tech_claim_mt_rem") + btnH;
-                case NodeState.Researching: return subH + gap + DungeonPopups.RemL("tech_prog_h_rem") + DungeonPopups.RemL("tech_claim_mt_rem") + btnH;
+                case NodeState.Ready: return leadMt + subH + gap + DungeonPopups.RemL("tech_prog_h_rem") + DungeonPopups.RemL("tech_claim_mt_rem") + btnH;
+                case NodeState.Researching: return leadMt + subH + gap + DungeonPopups.RemL("tech_prog_h_rem") + DungeonPopups.RemL("tech_claim_mt_rem") + btnH;
                 default: return btnH + gap + subH;
             }
         }
@@ -231,6 +238,8 @@ namespace Forge.Game.Ui
             if (s == NodeState.Ready || s == NodeState.Researching)
             {
                 bool ready = s == NodeState.Ready;
+                // T430 ⓐ — 4633 의 `margin-top: 12.6%`(카드 안쪽 폭 기준 · 등재문 ⚠ 줄 · 정본 셈은 표 `_tn_lead_mt` 에 적었다).
+                y += inner * TechStyle.L("tn_lead_mt_f");
                 TextMeshProUGUI lead = DungeonPopups.Bold(card, "lead", TextKind.Sub, ready ? "연구 시간 종료 — 수령 대기" : "연구 진행 중 (취소 불가)", "pp_ink");
                 UiKit.Place(lead.rectTransform, pad, y, inner, subH);
                 y += subH + gap;
