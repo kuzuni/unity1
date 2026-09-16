@@ -68,6 +68,11 @@ KNOWN = {
 #    1회차는 **자와 셈만** 세운다: 배선할 파일(`DamageNumbers.cs` · `ChatScreen.cs` · 탭·부화·소환 …)이
 #    그때그때 남의 산 lock 이라, 자리를 하나씩 붙이는 것은 그 lock 이 풀리는 회차의 몫이다(결정 아래).
 TABLE_INK = {
+    # T396 6회차 — «덮개 있음» 중 **실물이 그 조상 안에만 서는** 자리 둘(그래서 리터럴이 한 번도 안 그려진다).
+    #   `.mat-chip` 은 정본 `ui.js` 5767 이 탈것 업그레이드 팝업(5775 `<div class="modal-card wide">`) 안에서만 찍는다 —
+    #   그래서 805 #eceff1 · 812 #90a4ae 는 3523 `.modal-card .mat-chip`(var(--pp-ink)) · 3520 `.modal-card … small`(var(--pp-muted))에 늘 진다.
+    '.mat-chip': ['—덮인다: 실물은 `.modal-card wide`(ui.js 5767·5775) 안에만 선다 — 3523 이 토큰으로 덮는다(클론도 토큰 잉크가 맞다)'],
+    '.mat-chip small': ['—덮인다: 같은 까닭 · 3520 `.modal-card .mat-chip small { color: var(--pp-muted) }`(5회차가 «자리 없음» 으로 남긴 그 자리)'],
     # T396 2회차 — 전투 숫자 다섯(정본 509 «크리 위계는 '크기'가 아니라 **색·펀치**로 준다»).
     #   클론은 크리를 `cp`(#ff8a65), 나머지를 `stage_ink`(흰색)로 찍고 있었다 — 스킬·막음은 파랑·하늘색인데 흰색이었다.
     '.float-dmg.dmg-crit': ['Battle/DamageNumbers.cs@Style|res:PinnedColorUi:dmg_crit_ink'],
@@ -155,6 +160,45 @@ def pinned_decls(css_text, props):
                 continue
             for sel in [s.strip() for s in sel_raw.split(',') if s.strip()]:
                 out[sel] = (line, h)
+    return out
+
+
+def all_decls(css_text, props):
+    """그 속성을 **값과 상관없이** 세우는 규칙 전부 → [(선택자, 줄, 값)] (T396 6회차).
+
+    «못박은 색» 목록(`pinned_decls`)은 리터럴만 걷는데, **덮는 쪽은 토큰이어도 덮는다**
+    (실물: 813 `.mat-chip small { color: #b7b7b7 }` 를 3522 `.modal-card .mat-chip small { color: var(--pp-muted) }` 가 덮는다).
+    그래서 덮개를 찾을 때는 이 목록을 쓴다.
+    """
+    css = strip_comments(css_text)
+    rx = re.compile(r'\s*' + props + r'\s*:\s*([^;]+)')
+    out = []
+    for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', css):
+        sel_raw = ' '.join(m.group(1).split())
+        if sel_raw.startswith('@') or 'keyframes' in sel_raw or STEP_SEL.match(sel_raw):
+            continue
+        line = css[:m.start()].count('\n') + 1
+        for d in m.group(2).split(';'):
+            mm = rx.match(d)
+            if not mm:
+                continue
+            for sel in [x.strip() for x in sel_raw.split(',') if x.strip()]:
+                out.append((sel, line, mm.group(1).strip()))
+    return out
+
+
+def covers_of(sel, decls_all):
+    """그 선택자를 **조상 한정으로 덮는** 규칙들 → [(덮는 선택자, 줄, 값)] (T396 6회차).
+
+    잣대는 하나 — «앞에 조상이 더 붙은 같은 꼬리»(`X Y` 가 `Y` 를 덮는다 · `.modal-card .mat-chip small` ⊃ `.mat-chip small`).
+    그런 선택자는 구체성이 **엄격히 더 크므로 줄 차례와 상관없이** 그 조상 안에서는 늘 이긴다(T401 3회차·T365 12회차가 만난 그 계단).
+    ⚠ «늘 덮인다» 는 뜻이 아니다 — 그 조상 **밖**에 같은 요소가 서면 원래 선언이 산다. 그래서 자는 이것을
+    «미정» 에서 갈라 **«덮개 있음»** 으로만 적고, 실물에서 그 조상뿐인지는 그 자리를 여는 회차가 본다(결정 702 의 형제).
+    """
+    out = []
+    for other, line, val in decls_all:
+        if other != sel and other.endswith(' ' + sel):
+            out.append((other, line, val))
     return out
 
 
@@ -251,7 +295,7 @@ def check_site(site, game, catalog, resdir):
     return True, None
 
 
-def _judge(kind, table, known, decls, game, catalog, resdir, bad, list_all, out):
+def _judge(kind, table, known, decls, game, catalog, resdir, bad, list_all, out, decls_all=None):
     """한 갈래(면·잉크)를 대조한다 — (자리 초록, KNOWN, 미정 수). `bad` 에 어긋난 것을 쌓는다(순수하지 않은 것은 출력뿐)."""
     ok_n = known_n = 0
     for sel, sites in table.items():
@@ -279,10 +323,17 @@ def _judge(kind, table, known, decls, game, catalog, resdir, bad, list_all, out)
         else:
             bad.append('KNOWN 의 «%s» 가 정본 %s 목록에 없다 — 줄을 지워라' % (sel, kind))
     undecided = [s for s in decls if s not in table and s not in known]
-    if list_all:
-        for s in undecided:
-            out('  미정 %s %5d %-52s %s' % (kind[:2], decls[s][0], s[:52], decls[s][1]))
-    return ok_n, known_n, len(undecided)
+    covered = 0
+    for s in undecided:
+        cv = covers_of(s, decls_all or [])
+        if cv:
+            covered += 1
+        if list_all:
+            if cv:
+                out('  덮개 %s %5d %-52s %s  ← %s(%d) %s' % (kind[:2], decls[s][0], s[:52], decls[s][1], cv[0][0][:44], cv[0][1], cv[0][2][:22]))
+            else:
+                out('  미정 %s %5d %-52s %s' % (kind[:2], decls[s][0], s[:52], decls[s][1]))
+    return ok_n, known_n, len(undecided), covered
 
 
 def run(css_path, game, catalog, resdir, list_all=False, out=print):
@@ -295,7 +346,9 @@ def run(css_path, game, catalog, resdir, list_all=False, out=print):
         out('✗ check_pinned_colors: 정본 CSS 를 못 읽었다 — %s' % css_path)
         return 2
     bad = []
-    ink_ok, ink_known, ink_undec = _judge('잉크 색', TABLE_INK, KNOWN_INK, inks, game, catalog, resdir, bad, list_all, out)
+    ink_all = all_decls(css_text, INK_PROPS)
+    face_all = all_decls(css_text, FACE_PROPS)
+    ink_ok, ink_known, ink_undec, ink_cov = _judge('잉크 색', TABLE_INK, KNOWN_INK, inks, game, catalog, resdir, bad, list_all, out, ink_all)
     ok_n, known_n = 0, 0
     for sel, sites in TABLE.items():
         if sel not in faces:
@@ -322,18 +375,25 @@ def run(css_path, game, catalog, resdir, list_all=False, out=print):
         else:
             bad.append('KNOWN 의 «%s» 가 정본 목록에 없다 — 줄을 지워라' % sel)
     undecided = [s for s in faces if s not in TABLE and s not in KNOWN]
-    if list_all:
-        for s in undecided:
-            out('  미정 면 %5d %-52s %s' % (faces[s][0], s[:52], faces[s][1]))
+    face_cov = 0
+    for s in undecided:
+        cv = covers_of(s, face_all)
+        if cv:
+            face_cov += 1
+        if list_all:
+            if cv:
+                out('  덮개 면 %5d %-52s %s  ← %s(%d) %s' % (faces[s][0], s[:52], faces[s][1], cv[0][0][:44], cv[0][1], cv[0][2][:22]))
+            else:
+                out('  미정 면 %5d %-52s %s' % (faces[s][0], s[:52], faces[s][1]))
     if bad:
         out('✗ check_pinned_colors: %d곳' % len(bad))
         for b in bad:
             out('  · ' + b)
         return 1
-    out('✓ check_pinned_colors: 정본 «못박은 면 색» %d 선택자 · 자리 초록 %d · KNOWN %d · 미정 %d'
-        ' ‖ «못박은 잉크 색» %d 선택자(색 %d) · 자리 초록 %d · KNOWN %d · 미정 %d  (--list)'
-        % (len(faces), ok_n, known_n, len(undecided),
-           len(inks), len(set(v[1] for v in inks.values())), ink_ok, ink_known, ink_undec))
+    out('✓ check_pinned_colors: 정본 «못박은 면 색» %d 선택자 · 자리 초록 %d · KNOWN %d · 미정 %d(그중 **덮개 있음 %d**)'
+        ' ‖ «못박은 잉크 색» %d 선택자(색 %d) · 자리 초록 %d · KNOWN %d · 미정 %d(그중 **덮개 있음 %d**)  (--list)'
+        % (len(faces), ok_n, known_n, len(undecided), face_cov,
+           len(inks), len(set(v[1] for v in inks.values())), ink_ok, ink_known, ink_undec, ink_cov))
     return 0
 
 
@@ -429,7 +489,27 @@ def self_test():
             eq('ⓜ CSS 없음 → rc 2', run(os.path.join(d, 'no.css'), game, cat, res, out=lines.append), 2)
         finally:
             TABLE, KNOWN, TABLE_INK, KNOWN_INK = saved
-    n = 24   # T377 14 + T396 잉크 갈래 6 + 키프레임 단계 막이 4
+
+    # ── T396 6회차 — «덮개 있음» 갈래(조상이 더 붙은 같은 꼬리는 구체성이 커서 그 조상 안에서 늘 이긴다)
+    cov_css = ''':root { --pp-muted: #90a4ae; }
+.chip small { color: #b7b7b7; }
+.card .chip small { color: var(--pp-muted); }
+.lonely { color: #c1c1c1; }
+.lonely-ish { color: #d2d2d2; }
+.deep .lonely-ish { background: #333333; }
+'''
+    all_ink = all_decls(cov_css, INK_PROPS)
+    eq('ⓝ 덮개는 값이 토큰이어도 찾는다', [c[0] for c in covers_of('.chip small', all_ink)], ['.card .chip small'])
+    eq('ⓞ 덮개가 없으면 빈 목록', covers_of('.lonely', all_ink), [])
+    eq('ⓟ 다른 속성의 규칙은 덮개가 아니다', covers_of('.lonely-ish', all_ink), [])
+    eq('ⓠ 제 자신은 덮개가 아니다', covers_of('.card .chip small', all_ink), [])
+    eq('ⓡ 꼬리가 «겹치기만» 하는 것은 덮개가 아니다(.chip small ↔ .xchip small)',
+       covers_of('.chip small', all_decls('.xchip small { color: #111111; }', INK_PROPS)), [])
+    lines2 = []
+    _judge('잉크 색', {}, {}, pinned_inks(cov_css), '', '', '', [], True, lines2.append, all_ink)
+    eq('ⓢ --list 가 덮개를 따로 적는다', any(l.startswith('  덮개') and '.chip small' in l for l in lines2), True)
+    eq('ⓣ 덮개 없는 자리는 그대로 «미정»', any(l.startswith('  미정') and '.lonely' in l for l in lines2), True)
+    n = 32   # T377 14 + T396 잉크 갈래 6 + 키프레임 단계 막이 4 + 6회차 덮개 갈래 8
     if fails:
         print('✗ check_pinned_colors --self-test 실패 %d' % len(fails))
         for f in fails:
