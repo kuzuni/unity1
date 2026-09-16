@@ -78,6 +78,9 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(sheet, "소환 시트");
             sheet.Switch(SkillPetSheet.SubSkills);
             yield return null; yield return null;
+            // §0-6 곁 굳힘(런 851 · 워커 B · 결정 701) — 이 자는 T355 ⓖ(정본 642 `.panel` 슬라이드 translateY .22s · `PanelSlide`)보다 먼저 쓰여 세 프레임 뒤에 쟀다.
+            //   슬라이드 도중에 재면 오브가 아래에 있다 — UiShotsTests·PressFxSitesTests 와 같이 연출을 끝내고 잰다(시간을 어림하지 않는다). 위 CloseAll(T414)과는 다른 축이다.
+            PanelSlide.SettleAll();
             Canvas.ForceUpdateCanvases();
 
             RectTransform app = (RectTransform)UiRoot.Instance.App;
