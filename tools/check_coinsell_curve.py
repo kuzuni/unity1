@@ -88,7 +88,7 @@ def build_table(m):
     return {
         '_': 'ROUTINE T408 — 정본 web/ref/shots/coinsell-<ms>ms.png 25 프레임의 «금빛 화소» 를 띠(top HUD 0~10%H · mid 나는 곳 10~60%H · bot 모루 띠 60~100%H)로 좁혀 센 시간축. '
              '정적 바닥 = 마지막 프레임의 금빛 자리 집합(수가 아니라 자리를 뺀다). tools/check_coinsell_curve.py 가 정본에서 다시 세어 이 표를 지키고(--write 로 갱신), '
-             'PlayMode CoinSellCurveTests 가 클론을 같은 잣대로 잰다. 원작 PNG 는 이 레포에 없다(§1 · .wwwww-src 읽기 전용).',
+             'PlayMode CoinSellCurveTests 가 클론을 같은 셈으로 잰다. 원작 PNG 는 이 레포에 없다(§1 · .wwwww-src 읽기 전용).',
         'src_w': m['w'], 'src_h': m['h'],
         'gold': dict(GOLD),
         'bands': {k: list(v) for k, v in BANDS.items()},
