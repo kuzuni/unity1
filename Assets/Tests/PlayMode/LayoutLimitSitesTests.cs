@@ -183,5 +183,48 @@ namespace Forge.Tests.PlayMode
             h.Meta.Popups.Hide(ForgeInfoPopup.Name);
             yield return null;
         }
+
+        /// <summary>
+        /// T388 4회차 — 정본은 던전 **시트**의 배너 버튼을 더 구체적인 선택자로 덮는다: **3912~3914**
+        /// `.modal-card.sheet .dg-banner .btn { min-width: calc(var(--app-w) * .1573 + 6.6px) }` — 공용 `.dg-right .btn { min-width: 4.6rem }` 를 이긴다.
+        /// 클론엔 그 덮개가 없어 4.6rem(167.4 기준 캔버스 px)으로 서서 정본 **184.2** 보다 9% 좁았다.
+        /// `+ 6.6px` 는 정본 주석대로 **테두리 2×3px 몫**이라 rem 이 아니라 CSS px 다(화면이 커져도 테는 안 커진다) — 그 단위까지 같이 본다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 던전_시트_배너_버튼은_정본_하한_15_73퍼센트W_더하기_6_6px_다()
+        {
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!(ForgeHost.Ready && DungeonUiHost.Ready))
+            {
+                Assert.Less(Time.realtimeSinceStartup - t0, 20f, "호스트가 20초 안에 준비되지 않았다");
+                yield return null;
+            }
+            ForgeHost h = ForgeHost.Instance;
+            h.S.BestChapter = 5; h.S.BestStage = 1; h.Pull();
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            Assert.AreEqual(0.1573f, DungeonStyle.L("dgs_banner_btn_min_w_f"), 1e-6f, "표 = 정본 3913 .1573");
+            Assert.AreEqual(6.6f, DungeonStyle.L("dgs_banner_btn_min_css_px"), 1e-6f, "표 = 정본 3913 의 + 6.6px(테두리 몫)");
+            float want = UiKit.RefW * DungeonStyle.L("dgs_banner_btn_min_w_f") + DungeonStyle.L("dgs_banner_btn_min_css_px") * KeylineUi.CssPx;
+            // 공용 하한(4.6rem)보다 커야 «덮개» 가 뜻이 있다 — 안 그러면 이 자는 아무것도 안 잰다.
+            Assert.Greater(want, PopupKit.Rem * 4.6f, "시트 덮개가 공용 4.6rem 보다 넓다");
+
+            int seen = 0;
+            foreach (RectTransform rt in UiRoot.Instance.App.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name != "open" || !rt.gameObject.activeInHierarchy) continue;
+                seen++;
+                Assert.GreaterOrEqual(rt.rect.width, want - 0.5f,
+                    "[열기] 버튼이 정본 시트 하한보다 좁다 — 실측 " + (rt.rect.width / UiKit.RefW).ToString("0.0000") + "W · 기대 " + (want / UiKit.RefW).ToString("0.0000") + "W");
+                Assert.Less(rt.rect.width, want * 1.25f, "정본 하한보다 한참 넓다(다른 수를 쓰고 있다) · 실측 " + rt.rect.width.ToString("0.0"));
+            }
+            Assert.Greater(seen, 0, "열린 던전의 [열기] 버튼이 하나는 있다");
+            Debug.Log("[T388] 던전 시트 [열기] 하한 " + want.ToString("0.0") + "px(= " + (want / UiKit.RefW).ToString("0.0000") + "W · 종전 4.6rem " + (PopupKit.Rem * 4.6f).ToString("0.0") + ")");
+            yield return null;
+        }
     }
 }

@@ -231,7 +231,12 @@ namespace Forge.Game.Ui
                 UiKit.Place(lockT.rectTransform, padX + lk * 1.15f, padY + nameH, bw * 0.6f, lh);
             }
 
-            float btnW = DungeonPopups.RemL("dg_btn_w_rem"), btnH = DungeonPopups.RemL("dg_btn_h_rem");
+            // T388 4회차 — 정본은 던전 **시트**의 배너 버튼을 더 구체적인 선택자로 덮는다: **3912~3914**
+            //   `.modal-card.sheet .dg-banner .btn { min-width: calc(var(--app-w) * .1573 + 6.6px) }`(공용 `.dg-right .btn` 4.6rem 을 이긴다).
+            //   클론엔 그 덮개가 없어 4.6rem(167.4 기준 캔버스 px)으로 서서 정본 184.2 보다 **9% 좁았다**.
+            //   `+ 6.6px` 는 정본 주석대로 **테두리 2×3px 몫**이라 rem 이 아니라 CSS px 다(화면이 커져도 테는 안 커진다).
+            float btnMin = UiKit.RefW * DungeonStyle.L("dgs_banner_btn_min_w_f") + DungeonStyle.L("dgs_banner_btn_min_css_px") * KeylineUi.CssPx;
+            float btnW = Mathf.Max(DungeonPopups.RemL("dg_btn_w_rem"), btnMin), btnH = DungeonPopups.RemL("dg_btn_h_rem");
             float keysH = DungeonPopups.LineH(TextKind.Sub);
             float rightGap = DungeonPopups.RemL("dg_right_gap_rem");
             float colH = (ok ? keysH + rightGap : 0f) + btnH;
@@ -255,6 +260,36 @@ namespace Forge.Game.Ui
             UiKit.Place(DungeonPopups.Root(open), colRight - btnW, colTop + (ok ? keysH + rightGap : 0f), btnW, btnH);
             openButtons[d.Id] = open;
             return rt;
+        }
+    }
+
+    /// <summary>
+    /// T388 — 던전 화면의 곁 표(<c>Assets/Forge/Resources/DungeonUi.json</c>). 정본이 **화면 크기 비율**로 못 박은 치수를 쥔다 —
+    /// `catalog.json` 은 T345 산 lock 이라 T65(`PlayerInfoUi.json`)·T339(`ForgeInfoUi.json`)와 같은 꼴로 뗐다. 수치는 코드에 안 박는다(§1).
+    /// </summary>
+    public static class DungeonStyle
+    {
+        public const string ResourcePath = "DungeonUi";
+        static JsonObject root, layout;
+
+        static void Load()
+        {
+            if (root != null) return;
+            TextAsset ta = Resources.Load<TextAsset>(ResourcePath);
+            if (ta == null) throw new System.InvalidOperationException("Resources/" + ResourcePath + ".json 이 없다 (T388)");
+            root = MiniJson.ParseObject(ta.text);
+            layout = J.Obj(root["layout"]);
+        }
+
+        public static void Reset() { root = null; layout = null; }
+
+        /// <summary>배치 값 원문(꼬리가 곱할 기준을 말한다 — `_f` = 앱 폭 비율 · `_css_px` = 정본 CSS px).</summary>
+        public static float L(string key)
+        {
+            Load();
+            object v = layout == null ? null : layout[key];
+            if (!J.IsNum(v)) throw new System.Collections.Generic.KeyNotFoundException(ResourcePath + ".json 에 «" + key + "» 이 없다");
+            return (float)J.Num(v);
         }
     }
 }
