@@ -63,6 +63,13 @@ jobs:
         run: python3 tools/check_richtext.py --self-test
       - name: TMP richText 가 글자 공장 밖에서 켜지는가 — 막는다 (T175)
         run: python3 tools/check_richtext.py
+      # T414 — 런 851 실측: `SkillGridTopSiteTests` 가 `FindActive(app, "sk-orb")` 로 앱 뿌리부터 찾는데
+      #        그 이름을 화면 셋이 쓴다. 남이 열어 둔 화면의 상자를 재고 난 빨강이라 «런 사이» 어느 커밋도
+      #        그 화면을 안 건드려 **임자를 못 가린다**(워커 둘이 그대로 지나갔다). 겹치는 이름만 막는다.
+      - name: 자 찾는 자리 자기 검사 (T414 `check_test_scope.py` · 12칸)
+        run: python3 tools/check_test_scope.py --self-test
+      - name: PlayMode 자가 앱 뿌리부터 «화면 둘이 쓰는 이름» 으로 찾는가 — 막는다 (T414)
+        run: python3 tools/check_test_scope.py
       - name: 클릭 막이 자 자기 검사 (T33 24회차 `check_raycast.py` · 고장 주입 10칸)
         run: python3 tools/check_raycast.py --self-test
       - name: 공장 밖 Image 가 raycastTarget 을 정하는가 (T33 24회차 · 정본 pointer-events 68)

@@ -46,6 +46,7 @@ block|-|원작 대조 자 자기 검사 (T28)|python3 tools/ui_score.py --self-t
 block|-|화면 문구의 글자가 글꼴에 다 있는가 — 새 두부 □ (T89)|python3 tools/check_text_glyphs.py
 block|-|MonoBehaviour 가 유니티 «메시지» 이름을 다른 뜻으로 쓰는가 (T171)|python3 tools/check_unity_messages.py
 block|-|TMP richText 가 글자 공장 밖에서 켜지는가 (T175)|python3 tools/check_richtext.py
+block|-|PlayMode 자가 앱 뿌리부터 «화면 둘이 쓰는 이름» 으로 찾는가 (T414 · 임자를 못 가리는 빨강이 나는 길)|python3 tools/check_test_scope.py
 block|-|클릭 막이 자 자기 검사 (T33 24회차 `check_raycast.py --self-test` · 10칸)|python3 tools/check_raycast.py --self-test
 block|-|클릭 막이 자 (T33 24회차 · 정본 pointer-events 68 ↔ 공장 밖 Image 의 raycastTarget)|python3 tools/check_raycast.py
 block|-|이름으로 찾는 것이 빌드에도 실리는가 (T126)|python3 tools/check_shaders_included.py
