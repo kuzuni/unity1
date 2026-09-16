@@ -346,8 +346,29 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(bestDot, 0.9f,
                 "꼬리가 사출 벡터와 다른 쪽으로 밀렸다(코사인 " + bestDot.ToString("0.00") + ") — 정본은 «광원 쪽 뒤» 다");
 
+            // ⚑ 18회차 — 끝난 뒤의 잔잔한 고리(정본 `.sr-idle`)는 **`done` 에서만** 돈다.
+            Assert.AreEqual(2, v.IdleRingCount, "정본은 고리 둘이다");
+            Image ir0 = v.IdleRingOf(0);
+            Assert.IsNotNull(ir0, "잔잔한 고리가 없다");
+            Assert.IsNotNull(ir0.sprite, "구운 고리 판이 없다");
+
             float t2 = 0f;
-            while (t2 < 1.2f) { t2 += Time.unscaledDeltaTime; yield return null; }
+            float idlePeak = 0f, idleWide = 0f;
+            while (t2 < 1.2f)
+            {
+                for (int i = 0; i < v.IdleRingCount; i++)
+                {
+                    Image ii = v.IdleRingOf(i);
+                    if (ii == null) continue;
+                    if (ii.color.a > idlePeak) idlePeak = ii.color.a;
+                    float sc = ii.rectTransform.localScale.x;
+                    if (ii.color.a > 0f && sc > idleWide) idleWide = sc;
+                }
+                t2 += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.Greater(idlePeak, 0f, "끝난 뒤에 고리가 안 돈다 — 정본은 `.done` 에서만 켠다");
+            Assert.Greater(idleWide, 0.42f, "고리가 안 퍼졌다");
             for (int i = 0; i < 4; i++)
             {
                 Image gi = v.GhostOf(i);

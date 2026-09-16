@@ -1,6 +1,8 @@
 {
   "_": "ROUTINE T179 소환 결과 팝업의 연출 겹(정본 style.css 5836~5990 · 6957~6980 · 7152~7190 · ui.js 337~351 summonStageStars · 491 sr-canopy 마크업)의 수치표. 코드에 숫자를 박지 않는다(§1). 접미: _f = 그 폭·높이의 분수 · _rem = 정본 rem · _px = 정본 CSS px(캔버스로 넘길 때 css_px 를 곱한다) · _ms = 밀리초 · _s = 초 · _deg = 도. 1회차 = 천개(아치+빛발 3+스필)·배경 광선·별 · 3회차 = 바닥 반사(.sr-reflect · reflect_*).",
   "colors": {
+    "idle_ring": "#78a5ff66",
+    "idle_ring_": "정본 `.sr-idle i` 의 `--halo` 기본값 `rgba(120,165,255,.4)`(style.css 6939) — 16진 66 = .4.",
     "floor_fill": "#6092FF33",
     "floor_line": "#96C3FF80",
     "_floor": "정본 style.css 5809~5812 의 `.sr-floor` 기본 바탕 — `--floor-fill rgba(96,146,255,.2)` · `--floor-line rgba(150,195,255,.5)`. **소환 내내 이 푸른색이고**, 등급색으로 물드는 것은 `#summon-result-modal.done` 한 줄(7182~7185)에서다. 정본 ui.js 548 주석: «선은 등급색 원본이 아니라 밝게 띄운 파생색 — 배경까지 그 등급색으로 물든 뒤라 원색 그대로는 배경에 묻혀 소환진이 사라진다».\n\n⚠ 처음부터 등급 원색으로 칠하면 `charging` 의 `brightness` 램프가 **화면에서 안 읽힌다**: 예컨대 궁극의(#ff1c1c)는 빨강 성분이 이미 1.0 이라 CSS 도 거기서 자른다(런 512 가 내 자로 그것을 잡았다).",
@@ -325,6 +327,25 @@
       { "at": 100.0, "back_f": 0.0,  "scale": 1.0,  "a_base": 0.0,  "a_glow": 0.0 }
     ],
     "_": "정본 `.sr-ghost`(style.css 6448~6452) + `@keyframes srghost`(6458~6474). 정본 주석: «잔상(모션 스트레치) — 팝이 아래에서 올라오는데 궤적이 없으면 «순간이동 후 튕김» 으로 보인다. 본체 뒤에 세로로 늘어난 흐린 복제를 깔아 이동 흔적을 남긴다» 와 «잔상은 이제 «아래에서 솟은 자국» 이 아니라 **비행 경로에 끌리는 꼬리** 다 — 셀이 광원 쪽에서 날아오므로(--dx/--dy), 잔상은 그 뒤쪽(광원 쪽)에 남아 따라붙는다. 셀 안에 있어서 셀의 이동이 이미 곱해진 상태라, 여기서는 «뒤처진 만큼» 만 더 민다». 바탕 `radial-gradient(closest-side, var(--rc-lite) 0%, var(--rc) 52%, rgba(0,0,0,0) 74%)` · `filter: blur(6px)` · 상자는 `inset: 0`(구체 래퍼와 같은 칸) · z 0(구체 **뒤**). 길이는 제 값이 없다 — `animation: srghost var(--pop)` 이라 **그 셀의 팝 길이**(등급 계단 .32~.52s)를 그대로 쓴다. 키프레임 0/40/76/100% 의 치우침은 `--dx/--dy` 에 곱하는 비율 .58/.36/.1/0 이고(가로·세로가 같은 비율) 배율 1.06/1.05/1.02/1 · 알파 `calc(.42 + .4 * --glow)` / `calc(.34 + .3 * --glow)` / `calc(.2 + .24 * --glow)` / 0. ⚠ 정본 주석이 꼬리 마디를 «비행 창(0→76%)에 맞춰 다시 찍었다» 고 적어 뒀다 — 예전엔 55% 에 사그라들어 늘어난 비행의 뒷부분에 꼬리가 없었다. 그 76% 를 줄이지 말 것. ⚠ `--dx/--dy` 는 **전체 벡터가 아니라 `SR_EJECT`(layout.eject_f 0.62) 를 곱한 것**이다. 세기 `--glow` 는 셀 안이라 CSS 등급 계단(`tier.glow`)이다 — 재점화(`relight`)의 계단과 다른 수다. blur_px 6 은 굽는 판에 따로 안 먹인다(재점화와 같은 까닭 — 0→74% 가 이미 매끈한 방사 감쇠다)."
+  },
+  "idlering": {
+    "ring_ms": 2400.0,
+    "ring_ease": [0.0, 0.0, 0.58, 1.0],
+    "ring_n": 2,
+    "ring_delay_ms": 1200.0,
+    "w_rem": 11.0,
+    "border_rem": 0.12,
+    "glow_rem": 1.4,
+    "sridlering_a": [
+      { "at": 0.0,   "f": 0.0 },
+      { "at": 18.0,  "f": 0.62 },
+      { "at": 100.0, "f": 0.0 }
+    ],
+    "sridlering_s": [
+      { "at": 0.0,   "scale": 0.42 },
+      { "at": 100.0, "scale": 2.3 }
+    ],
+    "_": "정본 `.sr-idle`(style.css 6934~6943) + `@keyframes sridlering`(6944~6948). `#summon-result-modal.done .sr-idle { display: block }` — **끝난 뒤에만** 도는 잔잔한 고리 둘이다(`i` 두 개 · 둘째는 `animation-delay: 1.2s`). `width/height 11rem` · `border .12rem solid var(--halo)` · `box-shadow 0 0 1.4rem var(--halo)` · `sridlering 2.4s ease-out infinite` · 알파 0 -> 18% .62 -> 0 · 배율 .42 -> 2.3. ⚠ 챕터 링과 달리 **테 굵기가 안 변한다** — 그래서 한 장을 구워 배율로 날리면 그대로다(챕터 링은 굵기가 줄어 단계마다 갈아 끼워야 했다). ⚠ 알파는 0->18->100 두 구간이고 배율은 0%·100% 만이라 한 구간이다 — 트랙을 둘로 나눈다(스파크·챕터 링과 같은 자리). 색 `--halo` 의 정본 기본값은 `rgba(120,165,255,.4)` 다(`colors.idle_ring`)."
   },
   "tierbreak": {
     "break_lead_ms": 160.0,

@@ -256,6 +256,96 @@ namespace Forge.Core.Ui
     }
 
     /// <summary>
+    /// T334 — `[{at, …}]` 꼴 키프레임 목록 하나를 트랙으로 읽는 공용 조각(챕터 링·잔잔한 고리가 나눠 쓴다).
+    /// 퍼센트 오름차순과 «칸이 다 있는가» 를 여기서 한 번에 막는다. UnityEngine 참조 0.
+    /// </summary>
+    static class SummonTrack
+    {
+        internal static RewardBurstSpec.Track Ramp(JsonObject o, string key, CssEase ease, string[] fields, string who)
+        {
+            var list = J.List(J.Require(o, key), x => J.Obj(x));
+            if (list.Count < 2) throw new FormatException("SummonFxUi " + who + ": " + key + " 키프레임이 둘 미만이다");
+            var keys = new RewardBurstSpec.KeyStop[list.Count];
+            double prev = -1;
+            for (int i = 0; i < list.Count; i++)
+            {
+                JsonObject k = list[i];
+                var ks = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(k, "at")), Ease = ease };
+                if (ks.At < prev) throw new FormatException("SummonFxUi " + who + ": " + key + " 퍼센트는 오름차순이어야 한다");
+                prev = ks.At;
+                for (int f = 0; f < fields.Length; f++) ks.Num[fields[f]] = J.Num(J.Require(k, fields[f]));
+                keys[i] = ks;
+            }
+            return new RewardBurstSpec.Track { Keys = keys };
+        }
+    }
+
+    /// <summary>
+    /// T334 18회차 — **끝난 뒤의 잔잔한 고리**(정본 `.sr-idle` · style.css 6934~6948).
+    ///
+    /// `#summon-result-modal.done .sr-idle { display: block }` — 연출이 **끝난 뒤에만** 도는 고리 둘이고,
+    /// 둘째는 절반 늦게 시작해(`animation-delay: 1.2s`) 물결이 끊기지 않는다.
+    ///
+    /// ⚠ 챕터 링(`.sr-tierflash`)과 달리 **테 굵기가 안 변한다** — 그래서 한 장을 구워 배율로 날리면 그대로다.
+    ///   (챕터 링은 굵기가 줄어 단계마다 판을 갈아 끼워야 했다 · 17회차.)
+    /// UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonIdleRingSpec
+    {
+        /// <summary>한 고리가 한 번 퍼지는 길이(ms · 정본 2.4s) · 고리 사이 지연(ms · 정본 1.2s).</summary>
+        public double Ms, DelayMs;
+        /// <summary>고리 수(정본 `<i>` 둘).</summary>
+        public int Count;
+        /// <summary>판 크기·테 굵기·둘레 번짐(rem).</summary>
+        public double WRem, BorderRem, GlowRem;
+        public RewardBurstSpec.Track Alpha, Scale;
+
+        public static SummonIdleRingSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "idlering"));
+            var s = new SummonIdleRingSpec
+            {
+                Ms = J.Num(J.Require(o, "ring_ms")),
+                DelayMs = J.Num(J.Require(o, "ring_delay_ms")),
+                Count = (int)J.Num(J.Require(o, "ring_n")),
+                WRem = J.Num(J.Require(o, "w_rem")),
+                BorderRem = J.Num(J.Require(o, "border_rem")),
+                GlowRem = J.Num(J.Require(o, "glow_rem")),
+            };
+            if (s.Ms <= 0) throw new FormatException("SummonFxUi idlering: ring_ms 는 0보다 커야 한다");
+            if (s.Count < 1) throw new FormatException("SummonFxUi idlering: 고리는 하나 이상이다");
+            if (s.DelayMs < 0) throw new FormatException("SummonFxUi idlering: ring_delay_ms 는 0 이상이다");
+            if (s.WRem <= 0 || s.BorderRem <= 0) throw new FormatException("SummonFxUi idlering: 크기·테는 0보다 커야 한다");
+            if (s.BorderRem * 2 >= s.WRem) throw new FormatException("SummonFxUi idlering: 테가 판 반지름을 다 먹으면 고리가 아니라 원판이다");
+
+            double[] e = J.NumArr(J.Require(o, "ring_ease"));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi idlering: ring_ease 는 cubic-bezier 넷이다");
+            CssEase ease = new CssEase(e[0], e[1], e[2], e[3]);
+            s.Alpha = SummonTrack.Ramp(o, "sridlering_a", ease, new[] { "f" }, "idlering");
+            s.Scale = SummonTrack.Ramp(o, "sridlering_s", ease, new[] { "scale" }, "idlering");
+            // 잔잔한 고리는 **끝없이 되풀이**된다 — 양 끝이 0 이 아니면 이어 붙는 자리에서 툭 끊긴다.
+            if (s.Alpha.Keys[0].Num["f"] != 0 || s.Alpha.Keys[s.Alpha.Keys.Length - 1].Num["f"] != 0)
+                throw new FormatException("SummonFxUi idlering: sridlering_a 는 0 에서 시작해 0 으로 끝나야 한다(무한 되풀이라 이음매가 보인다)");
+            if (s.Scale.Keys[s.Scale.Keys.Length - 1].Num["scale"] <= s.Scale.Keys[0].Num["scale"])
+                throw new FormatException("SummonFxUi idlering: 고리는 퍼져야 한다");
+            return s;
+        }
+
+        /// <summary>
+        /// `done` 이 된 뒤 <paramref name="elapsedMs"/> 지난 <paramref name="index"/> 번 고리의 불투명도·배율.
+        /// 정본은 무한 되풀이라 제 지연을 뺀 뒤 길이로 나눈 나머지를 쓴다(첫 주기 전에는 꺼져 있다).
+        /// </summary>
+        public void At(double elapsedMs, int index, out double alpha, out double scale)
+        {
+            double t = elapsedMs - index * DelayMs;
+            if (t < 0) { alpha = 0; scale = Scale.Sample(0, "scale", null); return; }
+            double p = (t % Ms) / Ms * 100;
+            alpha = Alpha.Sample(p, "f", null);
+            scale = Scale.Sample(p, "scale", null);
+        }
+    }
+
+    /// <summary>
     /// T334 16회차 — **등급 챕터 펄스**(정본 `.sr-tierpulse` · style.css 6402~6416 · `fillSummonTierBreaks` ui.js 690~700).
     ///
     /// 대량 판(&gt;10셀)의 등급 경계 정지(`SR_TIER_PAUSE_MS`)를 채우는 예고다. 정본이 링(`.sr-tierflash`) 말고
@@ -375,23 +465,6 @@ namespace Forge.Core.Ui
         public double WickInsetF, WickStopLite, WickStopRc, WickStopOut, WickBlurPx;
         public RewardBurstSpec.Track FlashAlpha, FlashGeom, Wick;
 
-        static RewardBurstSpec.Track Ramp(JsonObject o, string key, CssEase ease, string[] fields, string who)
-        {
-            var list = J.List(J.Require(o, key), x => J.Obj(x));
-            if (list.Count < 2) throw new FormatException("SummonFxUi " + who + ": " + key + " 키프레임이 둘 미만이다");
-            var keys = new RewardBurstSpec.KeyStop[list.Count];
-            double prev = -1;
-            for (int i = 0; i < list.Count; i++)
-            {
-                JsonObject k = list[i];
-                var ks = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(k, "at")), Ease = ease };
-                if (ks.At < prev) throw new FormatException("SummonFxUi " + who + ": " + key + " 퍼센트는 오름차순이어야 한다");
-                prev = ks.At;
-                for (int f = 0; f < fields.Length; f++) ks.Num[fields[f]] = J.Num(J.Require(k, fields[f]));
-                keys[i] = ks;
-            }
-            return new RewardBurstSpec.Track { Keys = keys };
-        }
 
         static void ReadFlash(SummonTierBreakSpec s, JsonObject o)
         {
@@ -414,9 +487,9 @@ namespace Forge.Core.Ui
             double[] fe = J.NumArr(J.Require(o, "flash_ease"));
             if (fe == null || fe.Length != 4) throw new FormatException("SummonFxUi tierbreak: flash_ease 는 cubic-bezier 넷이다");
             CssEase fease = new CssEase(fe[0], fe[1], fe[2], fe[3]);
-            s.FlashAlpha = Ramp(o, "srtierflash_a", fease, new[] { "f" }, "tierbreak");
-            s.FlashGeom = Ramp(o, "srtierflash_g", fease, new[] { "scale", "border_rem", "blur_px" }, "tierbreak");
-            s.Wick = Ramp(o, "srtierwick", fease, new[] { "f" }, "tierbreak");
+            s.FlashAlpha = SummonTrack.Ramp(o, "srtierflash_a", fease, new[] { "f" }, "tierbreak");
+            s.FlashGeom = SummonTrack.Ramp(o, "srtierflash_g", fease, new[] { "scale", "border_rem", "blur_px" }, "tierbreak");
+            s.Wick = SummonTrack.Ramp(o, "srtierwick", fease, new[] { "f" }, "tierbreak");
 
             // 링은 **떠올랐다 사라진다** — 양 끝이 0 이 아니면 결과 화면에 등급색 테가 남는다.
             if (s.FlashAlpha.Keys[0].Num["f"] != 0 || s.FlashAlpha.Keys[s.FlashAlpha.Keys.Length - 1].Num["f"] != 0)

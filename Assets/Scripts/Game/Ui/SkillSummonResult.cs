@@ -62,6 +62,8 @@ namespace Forge.Game.Ui
         PetSkillModal.Handle handle;
         readonly List<Cell> cells = new List<Cell>();
         readonly List<float> delays = new List<float>();
+        /// <summary>T334 18회차 — 끝난 뒤의 잔잔한 고리(정본 `.sr-idle` · `.done` 에서만 돈다).</summary>
+        readonly List<Image> idleRings = new List<Image>();
         /// <summary>T334 16회차 — 등급 챕터 경계(정본 `_srTierBreaks`): 켜지는 시각(ms)과 그 등급.</summary>
         struct TierBreak { public float At; public int Tier; public Color Rc, Lite; public Image Pulse, Ring, Wick; public Sprite[] Steps; }
         readonly List<TierBreak> tierBreaks = new List<TierBreak>();
@@ -470,6 +472,32 @@ namespace Forge.Game.Ui
                     ri.color = new Color(1f, 1f, 1f, 0f);
                     ri.rectTransform.localScale = Vector3.one * (float)SummonFxStyle.Relight.Relight.Sample(0, "scale", null);
                     relights.Add(ri);
+                }
+            }
+
+            // ---- 끝난 뒤의 잔잔한 고리(정본 `.sr-idle` 6934~6948 · `.done` 에서만 보인다) ----
+            // 챕터 링과 달리 **테 굵기가 안 변하므로** 한 장을 구워 배율로 날린다(17회차의 단계 갈아 끼우기가 필요 없다).
+            {
+                SummonIdleRingSpec ir = SummonFxStyle.IdleRing;
+                float iw = PetSkillStyle.Rem((float)ir.WRem), ih = iw * 0.5f;
+                Color ic = SummonFxStyle.C("idle_ring");
+                Sprite isp = SummonFx.BakeTierRing("sr-idlering", ic,
+                    PetSkillStyle.Rem((float)ir.BorderRem) / ih, 0f, PetSkillStyle.Rem((float)ir.GlowRem) / ih);
+                for (int k = 0; k < ir.Count; k++)
+                {
+                    RectTransform rt = UiKit.Box(c, "sr-idle-" + k);
+                    rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                    rt.pivot = new Vector2(0.5f, 0.5f);
+                    rt.sizeDelta = new Vector2(iw, iw);
+                    rt.anchoredPosition = Vector2.zero;
+                    Image im = rt.gameObject.AddComponent<Image>();
+                    im.raycastTarget = false;
+                    im.preserveAspect = false;
+                    im.sprite = isp;
+                    Material imat = CraftFxPoly.Screen();
+                    if (imat != null) im.material = imat;
+                    im.color = new Color(1f, 1f, 1f, 0f);
+                    idleRings.Add(im);
                 }
             }
 
@@ -983,6 +1011,7 @@ namespace Forge.Game.Ui
             AnimateSparks();
             AnimateGhosts();
             AnimateTierBreaks();
+            AnimateIdleRings();
         }
 
         void TurnOn(Cell c)
@@ -1338,6 +1367,38 @@ namespace Forge.Game.Ui
                 if (b.Wick != null) b.Wick.color = new Color(1f, 1f, 1f, (float)sp.WickAt(e));
             }
         }
+
+        /// <summary>
+        /// 끝난 뒤의 잔잔한 고리(정본 `sridlering` 2.4s 무한) — `done` 이 된 뒤에만 돈다.
+        /// 둘째 고리는 절반 늦게 시작해 물결이 끊기지 않는다(정본 `animation-delay: 1.2s`).
+        /// </summary>
+        void AnimateIdleRings()
+        {
+            if (idleRings.Count == 0) return;
+            if (!done || doneAt < 0f)
+            {
+                for (int i = 0; i < idleRings.Count; i++)
+                    if (idleRings[i] != null && idleRings[i].color.a != 0f) idleRings[i].color = new Color(1f, 1f, 1f, 0f);
+                return;
+            }
+            SummonIdleRingSpec sp = SummonFxStyle.IdleRing;
+            float ms = (Time.unscaledTime - doneAt) * 1000f;
+            for (int i = 0; i < idleRings.Count; i++)
+            {
+                Image im = idleRings[i];
+                if (im == null) continue;
+                double a, sc;
+                sp.At(ms, i, out a, out sc);
+                im.color = new Color(1f, 1f, 1f, (float)a);
+                im.rectTransform.localScale = Vector3.one * (float)sc;
+            }
+        }
+
+        /// <summary>끝난 뒤의 잔잔한 고리 — 자가 본다.</summary>
+        public Image IdleRingOf(int i) { return i >= 0 && i < idleRings.Count ? idleRings[i] : null; }
+
+        /// <summary>그 고리 수 — 자가 본다.</summary>
+        public int IdleRingCount { get { return idleRings.Count; } }
 
         /// <summary>등급 챕터 펄스 수 — 자가 본다.</summary>
         public int TierBreakCount { get { return tierBreaks.Count; } }

@@ -788,4 +788,73 @@ namespace Forge.Tests
             Assert.Throws<System.FormatException>(() => SummonTierBreakSpec.From(MiniJson.ParseObject(flip)));
         }
     }
+
+    /// <summary>T334 18회차 — 끝난 뒤의 잔잔한 고리(정본 `.sr-idle`)가 이음매 없이 되풀이된다.</summary>
+    public class SummonIdleRingSpecTests
+    {
+        static SummonIdleRingSpec spec;
+        static SummonIdleRingSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonIdleRingSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 퍼지며_켜졌다_꺼지고_이음매가_없다()
+        {
+            SummonIdleRingSpec s = S();
+            double a0, sc0, aPk, scPk, a1, sc1;
+            s.At(0, 0, out a0, out sc0);
+            s.At(s.Ms * 0.18, 0, out aPk, out scPk);
+            s.At(s.Ms * 0.999, 0, out a1, out sc1);
+            Assert.AreEqual(0.0, a0, 1e-9, "꺼진 채로 시작한다");
+            Assert.Greater(aPk, 0.5, "18% 에 정점(정본 .62)");
+            Assert.Less(a1, 0.01, "한 주기 끝에서 거의 꺼진다 — 무한 되풀이라 이음매가 보인다");
+            Assert.Less(sc0, scPk, "퍼진다");
+            Assert.Less(scPk, sc1);
+            // 한 주기 뒤는 첫 프레임과 같다(되풀이).
+            double a2, sc2;
+            s.At(s.Ms, 0, out a2, out sc2);
+            Assert.AreEqual(a0, a2, 1e-9);
+            Assert.AreEqual(sc0, sc2, 1e-9);
+        }
+
+        [Test]
+        public void 둘째_고리는_절반_늦게_시작한다()
+        {
+            SummonIdleRingSpec s = S();
+            Assert.GreaterOrEqual(s.Count, 2, "정본은 고리 둘이다");
+            double a0, sc0, a1, sc1;
+            s.At(0, 1, out a1, out sc1);
+            Assert.AreEqual(0.0, a1, 1e-9, "제 지연 전에는 꺼져 있다");
+            // 지연만큼 지난 둘째 고리는 첫 고리의 처음과 같은 자리에 있다.
+            s.At(0, 0, out a0, out sc0);
+            double a2, sc2;
+            s.At(s.DelayMs, 1, out a2, out sc2);
+            Assert.AreEqual(a0, a2, 1e-9);
+            Assert.AreEqual(sc0, sc2, 1e-9);
+        }
+
+        [Test]
+        public void 이음매가_보이는_표와_원판이_되는_테를_거부한다()
+        {
+            char q = '"';
+            string head = "{" + q + "idlering" + q + ":{" + q + "ring_ms" + q + ":2400," + q + "ring_delay_ms" + q + ":1200,"
+                + q + "ring_n" + q + ":2," + q + "w_rem" + q + ":11," + q + "glow_rem" + q + ":1.4,"
+                + q + "ring_ease" + q + ":[0,0,0.58,1],";
+            string sc = q + "sridlering_s" + q + ":[{" + q + "at" + q + ":0," + q + "scale" + q + ":0.42},{" + q + "at" + q + ":100," + q + "scale" + q + ":2.3}]}}";
+            // ⑴ 마지막 알파가 0 이 아니면 되풀이 이음매에서 툭 끊긴다.
+            string seam = head + q + "border_rem" + q + ":0.12,"
+                + q + "sridlering_a" + q + ":[{" + q + "at" + q + ":0," + q + "f" + q + ":0},{" + q + "at" + q + ":100," + q + "f" + q + ":0.4}]," + sc;
+            Assert.Throws<System.FormatException>(() => SummonIdleRingSpec.From(MiniJson.ParseObject(seam)));
+            // ⑵ 테가 반지름을 다 먹으면 고리가 아니라 원판이다.
+            string disc = head + q + "border_rem" + q + ":9,"
+                + q + "sridlering_a" + q + ":[{" + q + "at" + q + ":0," + q + "f" + q + ":0},{" + q + "at" + q + ":100," + q + "f" + q + ":0}]," + sc;
+            Assert.Throws<System.FormatException>(() => SummonIdleRingSpec.From(MiniJson.ParseObject(disc)));
+        }
+    }
 }

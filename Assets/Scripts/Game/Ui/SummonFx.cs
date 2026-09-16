@@ -961,7 +961,7 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; heroRingEase = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; heroRingEase = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
@@ -970,6 +970,7 @@ namespace Forge.Game.Ui
         static SummonSparkSpec spark;
         static SummonGhostSpec ghost;
         static SummonTierBreakSpec tierBreak;
+        static SummonIdleRingSpec idleRing;
         /// <summary>T334 6회차 — 주역 착지의 화면 킥(표의 `hero` 절).</summary>
         /// <summary>표의 `hero` 절 수치 하나(그 절은 `layout` 밖이다).</summary>
         public static float H(string key) { Load(); return (float)J.Num(J.Require(J.Obj(root["hero"]), key)); }
@@ -1006,6 +1007,9 @@ namespace Forge.Game.Ui
 
         /// <summary>T334 16회차 — 등급 챕터 펄스 규칙(정본 `.sr-tierpulse`).</summary>
         public static SummonTierBreakSpec TierBreak { get { Load(); if (tierBreak == null) tierBreak = SummonTierBreakSpec.From(root); return tierBreak; } }
+
+        /// <summary>T334 18회차 — 끝난 뒤의 잔잔한 고리 규칙(정본 `.sr-idle`).</summary>
+        public static SummonIdleRingSpec IdleRing { get { Load(); if (idleRing == null) idleRing = SummonIdleRingSpec.From(root); return idleRing; } }
 
         public static Color C(string key)
         {
