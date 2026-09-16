@@ -3,6 +3,7 @@ using NUnit.Framework;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using UnityEngine.TestTools;
 using Forge.Core.Forging;
 using Forge.Core.Save;
@@ -290,5 +291,96 @@ namespace Forge.Tests.PlayMode
                 Assert.AreEqual(1.18, r, 0.02, "정본 7033 line-height: 1.18");
             }
         }
+        /// <summary>T423 ⓒ — 정본 주석(style.css 7032~7046)이 이름판 높이를 **고정**하는 까닭: «1줄/2줄이 섞이면 아래 등급 칩의 y 가 셀마다 어긋난다».
+        /// 열 칸 격자에 긴 이름·짧은 이름을 섞어 넣고 ⓐ 이름판 높이가 칸마다 같고(= 클램프가 재는 높이) ⓑ 줄 수는 실제로 갈리며(2 ↔ 1)
+        /// ⓒ 그래도 등급 칩의 칸 안 y 는 전부 같고 ⓓ **자란 셀·격자를 몸이 받는다**(스크롤 갈래면 content 가, 아니면 sr-body 가) 를 잰다.
+        /// 2회차가 판 높이를 52.7px → 클램프 높이로 키웠으므로 «받는 쪽» 이 같이 자라는지가 이 칸의 몫이다.</summary>
+        [UnityTest]
+        public IEnumerator 열_칸_격자에서도_이름판이_고정_높이라_등급_칩이_한_줄에_서고_몸이_받는다()
+        {
+            PetSkillHost.SuppressSave = true;
+            PetSkillHost.Seed = 20260916;
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+            Scene active = SceneManager.GetActiveScene();
+            for (int i = 0; i < 600 && !(SkillPetSheet.Instance != null && SkillPetSheet.Instance.gameObject.scene == active && PetSkillHost.Ready); i++) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            Assert.IsTrue(PetSkillHost.Ready);
+            yield return null;
+
+            // 열 칸 · 전부 common — 마지막 칸이 고등급이면 주역이 제 줄로 빠져 칸 폭이 갈린다(heroIdx). 여기서 보려는 것은 «같은 폭 칸들의 y» 다.
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>();
+            for (int i = 0; i < 10; i++)
+                list.Add(new SkillSummonResultView.Entry
+                {
+                    Key = "sk:" + i, IconKey = "sk_fireball", Rarity = "common",
+                    Name = (i % 2 == 0) ? LongName : "불",
+                });
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "common", null);
+            Assert.IsNotNull(v, "소환 결과 창이 안 열렸다");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            var plates = new System.Collections.Generic.List<RectTransform>();
+            var chips = new System.Collections.Generic.List<RectTransform>();
+            var lines = new System.Collections.Generic.List<int>();
+            var idx = new System.Collections.Generic.List<int>();
+            RectTransform grid = null, body = null;
+            foreach (Transform x in v.GetComponentsInChildren<Transform>(true))
+            {
+                if (x.name == "sr-body") { body = (RectTransform)x; continue; }
+                if (!x.name.StartsWith("sr-cell-")) continue;
+                if (grid == null) grid = (RectTransform)x.parent;
+                idx.Add(int.Parse(x.name.Substring("sr-cell-".Length)));
+                Transform p = x.Find("sr-name"), s = x.Find("sr-sub");
+                Assert.IsNotNull(p, x.name + " 의 이름판(sr-name)");
+                Assert.IsNotNull(s, x.name + " 의 등급 칩(sr-sub)");
+                plates.Add((RectTransform)p);
+                chips.Add((RectTransform)s);
+                TextMeshProUGUI t = p.Find("t").GetComponent<TextMeshProUGUI>();
+                t.ForceMeshUpdate();
+                lines.Add(t.textInfo.lineCount);
+            }
+            Assert.AreEqual(10, plates.Count, "열 칸이 다 섰다");
+            Assert.IsNotNull(body, "몸(sr-body)");
+
+            // ⓐ 판 높이는 칸마다 같고 그 값이 곧 클램프가 재는 높이다(코드에 박힌 0.62 를 걷은 뒤의 계약).
+            TextMeshProUGUI first = plates[0].Find("t").GetComponent<TextMeshProUGUI>();
+            float want = TextClamp.BoxHeight(first, "sr_name");
+            for (int i = 0; i < plates.Count; i++)
+                Assert.AreEqual(want, plates[i].rect.height, 0.6f, "이름판 높이가 칸마다 다르다(" + i + ")");
+
+            // ⓑ 줄 수는 실제로 갈린다 — 이 자가 «둘 다 2줄이라 저절로 맞은 것» 을 참으로 세지 않게.
+            for (int i = 0; i < idx.Count; i++)
+                Assert.AreEqual(idx[i] % 2 == 0 ? TextClamp.Lines("sr_name") : 1, lines[i],
+                    "칸 " + idx[i] + " 의 줄 수 — 짝수 칸은 긴 이름(두 줄) · 홀수 칸은 짧은 이름(한 줄)");
+
+            // ⓒ 그래도 등급 칩의 «칸 안 y» 는 전부 같다(정본이 높이를 고정한 까닭).
+            for (int i = 1; i < chips.Count; i++)
+                Assert.AreEqual(chips[0].anchoredPosition.y, chips[i].anchoredPosition.y, 0.01f,
+                    "등급 칩 y 가 칸마다 어긋났다(" + i + ") — 이름판이 1줄/2줄로 높이가 갈린다는 뜻");
+
+            // ⓓ 자란 셀을 격자가 받고, 격자를 몸이 받는다(넘치면 스크롤 갈래로).
+            float low = 0f;
+            foreach (Transform x in v.GetComponentsInChildren<Transform>(true))
+                if (x.name.StartsWith("sr-cell-"))
+                {
+                    RectTransform ce = (RectTransform)x;
+                    low = Mathf.Max(low, -ce.anchoredPosition.y + ce.rect.height);
+                }
+            Assert.Greater(low, 0f, "셀 바닥을 못 쟀다");
+            Assert.GreaterOrEqual(grid.rect.height + 1f, low, "격자가 셀 바닥(" + low.ToString("0.0") + ")을 못 담는다 — 판이 커진 만큼 격자가 안 자랐다");
+            ScrollRect sc = grid.GetComponentInParent<ScrollRect>();
+            if (sc == null)
+                Assert.LessOrEqual(grid.rect.height, body.rect.height + 1f,
+                    "격자(" + grid.rect.height.ToString("0.0") + ")가 몸(" + body.rect.height.ToString("0.0") + ") 밖으로 나갔는데 스크롤 갈래로 안 갔다");
+            else
+            {
+                Assert.AreSame(grid, sc.content, "스크롤 갈래면 격자가 곧 content 다");
+                Assert.LessOrEqual(sc.viewport.rect.height, sc.content.rect.height + 1f, "스크롤인데 content 가 창보다 작다");
+            }
+        }
+
     }
 }
