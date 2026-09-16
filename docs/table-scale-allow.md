@@ -16,15 +16,6 @@
 | `Ui/Hud.cs` | `line_px` | ×2 | 기하 | 테 두 겹(261) |
 | `Ui/Popups.cs` | `xbtn` | ×0.5 | 기하 | 반겹 — ✕ 버튼이 카드 모서리에 반쯤 걸친다(214) |
 | `Ui/ForgeSheet.cs` | `billet_stroke` | ×0.5 | 기하 | 반폭(406) |
-| `Ui/LeagueSheet.cs` | `league_row_h` | ×1.1 | 임시 | T331 lock 뒤 · 정본 2320 `.league-list gap .6rem` · 2326 `.league-row padding .18/.5/.42rem` — 화소까지 닫힌 첫 자리(94) |
-| `Ui/LeagueSheet.cs` | `league_bar_w` | ×1.25 | 임시 | T331 lock 뒤(72 · `* w * 1.25f`) |
-| `Ui/LeagueSheet.cs` | `league_bar_h` | ×1.6 | 임시 | T331 lock 뒤(72) |
-| `Ui/LeagueSheet.cs` | `league_score_h` | ×1.6 | 임시 | T331 lock 뒤(137) |
-| `Ui/LeagueSheet.cs` | `lgr_ribbon_h` | ×1.2 | 임시 | T331 lock 뒤(188) |
-| `Ui/LeagueSheet.cs` | `lgr_tier_h` | ×1.15 | 임시 | T331 lock 뒤(241) |
-| `Ui/LeagueSheet.cs` | `lgr_rank_w` | ×1.5 | 임시 | T331 lock 뒤(242) |
-| `Ui/LeagueSheet.cs` | `lc_pill_h` | ×1.4 | 임시 | T331 lock 뒤(311 · `* w * 1.4f`) |
-| `Ui/LeagueSheet.cs` | `lc_pill_w` | ×1.3 | 임시 | T331 lock 뒤(321 · `* w * 1.3f`) |
 | `Ui/ForgeCraftPopup.cs` | `btn_h` | ×1.5 | 임시 | 판매 경고 [판매][취소](142·143) — 정본 3565 `.modal-card > .row .btn { min-height: 2.9rem }` 은 **하한**이고 실제 높이는 글(1rem + small .7rem 두 줄 + 패딩 ≈3.3rem)이 정한다 · 클론은 Sub 36px 두 줄(글자 하한 축 **T391** 뒤)이라 2.9rem 을 그대로 쓰면 글이 넘친다 · ×1.5 = 3.6rem 은 그 두 줄을 담는 값(T378 8회차 대조) · 하한 단이 서면 걷는다 |
 | `Ui/ForgeAutoPopup.cs` | `btn_h` | ×1.9 | 임시 | T331 lock 뒤 · 시작 버튼 둘(61·125) |
 | `Ui/ForgeInfoPopup.cs` | `btn_h` | ×1.7 | 임시 | T332 lock 뒤(98) |

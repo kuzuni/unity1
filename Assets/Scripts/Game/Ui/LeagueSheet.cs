@@ -69,7 +69,7 @@ namespace Forge.Game.Ui
             UiKit.Place(title.rectTransform, 0f, titleY, w, titleH);
             PopupKit.Ring(title);
 
-            float barW = UiKit.L("league_bar_w") * w * 1.25f, barH = UiKit.H("league_bar_h") * 1.6f;
+            float barW = UiKit.L("league_bar_w") * w, barH = UiKit.H("league_bar_h");   // T378 10회차 — 정본 2308 `.league-season-bar { width: .4217W; height: .0257H }` = 표 그대로(전엔 ×1.25 · ×1.6)
             float barY = titleY + titleH + rem * 0.2f;
             Button bar = UiKit.Button(sheet, "season-bar", () => OpenRewards(h));
             RectTransform brt = bar.GetComponent<RectTransform>();
@@ -93,7 +93,7 @@ namespace Forge.Game.Ui
             float listH = Mathf.Min(footTop - listY - rem * 0.3f, UiKit.H("league_list_max_h"));
             UiKit.Place(listBox, (w - listW) * 0.5f, listY, listW, listH);
             RectTransform content = PopupKit.ScrollList(listBox, "rows", UiKit.H("league_row_gap"), 0f, 0f);
-            float rowH = UiKit.H("league_row_h") * 1.1f;
+            float rowH = UiKit.H("league_row_h");   // T378 10회차 — 정본 2320·2326(행 6.36%H + 간격 1.12%H = 원작 피치 7.48%H · 등재가 화소까지 닫은 자리 · 전엔 ×1.1 = 8.12%H)
             for (int i = start; i < Mathf.Min(board.Count, start + 8); i++)
                 Row(content, board[i], i + 1, rowH, listW);
 
@@ -136,7 +136,7 @@ namespace Forge.Game.Ui
             RectTransform avatar = PopupKit.Avatar(row, "avatar", av, e.Avatar, rem * 0.4f);
             UiKit.Place(avatar, x, (rowH - av) * 0.5f, av, av);
             x += av + rem * 0.5f;
-            float scoreW = UiKit.L("league_score_w") * w, scoreH = UiKit.H("league_score_h") * 1.6f;
+            float scoreW = UiKit.L("league_score_w") * w, scoreH = UiKit.H("league_score_h");   // T378 10회차 — 정본 2345 `.league-score { width: .187W; height: .0257H }` 고정 pill(전엔 ×1.6)
             float nameW = rowW - x - scoreW - rem * 1.2f;
             TextMeshProUGUI nm = UiKit.Text(row, "name", TextKind.Sub, e.Name, "stage_ink", TextAlignmentOptions.Left);
             LineHeight.Apply(nm, "league_name_lh");   // T354 11회차 — 정본 2337 `.league-name { line-height: 1.3 }`(긴 이름이 칸에서 꺾인다)
@@ -188,7 +188,7 @@ namespace Forge.Game.Ui
             int myRank = h.League.MyRank(h.LeagueState, h.MyCp);
             var cur = h.League.RewardForRank(myRank);
             float cardW = UiKit.L("modal_wide_w") * w;
-            float ribbonH = UiKit.H("lgr_ribbon_h") * 1.2f;
+            float ribbonH = UiKit.H("lgr_ribbon_h");   // T378 10회차 — 정본 2485 `.league-reward-banner { height: .0528H }`(전엔 ×1.2)
             float descH = PopupKit.FontSize(TextKind.Sub) * 2.9f;
             float gridRowH = PopupKit.FontSize(TextKind.Sub) * 1.5f;
             float gridH = gridRowH * 2f + rem * 0.3f;
@@ -243,8 +243,8 @@ namespace Forge.Game.Ui
             UiKit.Place(table, 0f, y, cardW, tableH);
             PopupKit.Outlined(table, "face", "pp_paper", rem * 0.7f, UiKit.L("line2_px"));   // T365 6회차 — 정본 2537 `.league-reward-table` ol2(전엔 ol1)
             RectTransform rows = PopupKit.ScrollList(table, "rows", 0f, 0f, rem * 0.3f);
-            float tierH = UiKit.H("lgr_tier_h") * 1.15f;
-            float rankW = UiKit.H("lgr_rank_w") * 1.5f;
+            float tierH = UiKit.H("lgr_tier_h");   // T378 10회차 — 정본 2540 주석 «티어 피치 8.61%H»(전엔 ×1.15 = 9.9%H · 4행 누적 +5.2%p)
+            float rankW = UiKit.H("lgr_rank_w");   // T378 10회차 — 정본 2556 `.league-tier-rank { width: 2.4rem }` = 표 0.0455H(전엔 ×1.5 = 3.6rem)
             List<LeagueRewardTier> tiers = h.Meta.League.RewardTiers;
             for (int i = 0; i < tiers.Count; i++)
             {
@@ -331,7 +331,7 @@ namespace Forge.Game.Ui
             float rem = PopupKit.Rem, w = UiKit.RefW;
             float cardW = UiKit.L("modal_wide_w") * w;
             float rowH = UiKit.L("lc_row_h") * w;
-            float pillH = UiKit.L("lc_pill_h") * w * 1.4f;
+            float pillH = UiKit.L("lc_pill_h") * w;   // T378 10회차 — 정본 2594 `.league-ticket-pill { height: .0411W }`(전엔 ×1.4)
             List<LeagueChallengeOption> list = h.League.ChallengeList(h.LeagueState);
             float cardH = rem * 1.1f + PopupKit.FontSize(TextKind.Title2) * 1.3f + PopupKit.FontSize(TextKind.Sub) * 1.5f + rem * 1.05f + pillH + rem * 1.9f + list.Count * (rowH + rem * 0.5f) + rem * 1.15f + rem * 1.1f;
             RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "pp_paper", rem);
@@ -341,7 +341,7 @@ namespace Forge.Game.Ui
             PopupKit.Label(card, "desc", TextKind.Sub, "도전 티켓은 매일 09:00에 보충됩니다!", "pp_ink", TextAlignmentOptions.Center, false, true, PopupKit.FontSize(TextKind.Sub) * 1.5f);
             PopupKit.Spacer(card, rem * 1.05f);
             RectTransform pillRow = PopupKit.Item(card, "ticket-row", -1f, pillH);
-            float pillW = UiKit.L("lc_pill_w") * w * 1.3f;
+            float pillW = UiKit.L("lc_pill_w") * w;   // T378 10회차 — 정본 2594 `.league-ticket-pill { width: .1392W }`(전엔 ×1.3)
             RectTransform pill = UiKit.Box(pillRow, "pill");
             UiKit.Anchor(pill, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, pillW, pillH);
             UiKit.Rounded(pill, "bg", "pp_ink", rem * 0.5f);

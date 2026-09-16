@@ -157,5 +157,53 @@ namespace Forge.Tests.PlayMode
             PopupLayer.Instance.Hide(ForgeCraftPopup.Name);
             yield return null;
         }
+        /// <summary>10회차 — 리그 시트·보상·도전의 아홉 자리(`LeagueSheet.cs`): 시즌 바(정본 2308 .4217W×.0257H) · 행 피치(2320·2326 6.36%H) ·
+        /// 티어 행(2540 8.61%H) · 등수 칸(2556 2.4rem) · 티켓 알약(2594 .1392W×.0411W) — 표값 그대로(전엔 ×1.1~×1.6 곱).</summary>
+        [UnityTest]
+        public IEnumerator 리그_시즌_바_행_티어_등수_티켓_알약은_표값_그대로다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            float W = UiKit.RefW;
+            LeagueSheet.Open(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(LeagueSheet.Name);
+            Assert.IsNotNull(p, "리그 시트");
+            RectTransform bar = null, pinned = null;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true)) { if (rt.name == "season-bar") bar = rt; else if (rt.name == "pinned") pinned = rt; }
+            Assert.IsNotNull(bar, "시즌 바(season-bar)"); Assert.IsNotNull(pinned, "내 행(pinned)");
+            Assert.AreEqual(UiKit.L("league_bar_w") * W, bar.rect.width, 0.5f, "시즌 바 폭 = 표 league_bar_w(곱 없이 · 정본 .4217W)");
+            Assert.AreEqual(UiKit.H("league_bar_h"), bar.rect.height, 0.5f, "시즌 바 높이 = 표 league_bar_h(정본 .0257H · 전엔 ×1.6)");
+            Assert.AreEqual(UiKit.H("league_row_h"), pinned.rect.height, 0.5f, "행 높이 = 표 league_row_h(정본 6.36%H · 전엔 ×1.1)");
+            PopupLayer.Instance.Hide(LeagueSheet.Name);
+            yield return null;
+            LeagueSheet.OpenRewards(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            p = PopupLayer.Instance.Find(LeagueSheet.RewardsName);
+            Assert.IsNotNull(p, "리그 보상");
+            int tiers = 0, ranks = 0;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name.StartsWith("tier-")) { tiers++; Assert.AreEqual(UiKit.H("lgr_tier_h"), rt.rect.height, 0.5f, rt.name + " 높이 = 표 lgr_tier_h(정본 8.61%H · 전엔 ×1.15)"); }
+                else if (rt.name == "rank" && rt.parent != null && rt.parent.name.StartsWith("tier-")) { ranks++; Assert.AreEqual(UiKit.H("lgr_rank_w"), rt.rect.width, 0.5f, "등수 칸 폭 = 표 lgr_rank_w(정본 2.4rem · 전엔 ×1.5)"); }
+            }
+            Assert.Greater(tiers, 0, "티어 행"); Assert.Greater(ranks, 0, "등수 칸");
+            PopupLayer.Instance.Hide(LeagueSheet.RewardsName);
+            yield return null;
+            LeagueSheet.OpenChallenge(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            p = PopupLayer.Instance.Find(LeagueSheet.ChallengeName);
+            Assert.IsNotNull(p, "상대 선택");
+            RectTransform pill = null;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == "pill" && rt.parent != null && rt.parent.name == "ticket-row") { pill = rt; break; }
+            Assert.IsNotNull(pill, "티켓 알약(pill)");
+            Assert.AreEqual(UiKit.L("lc_pill_w") * W, pill.rect.width, 0.5f, "티켓 알약 폭 = 표 lc_pill_w(정본 .1392W · 전엔 ×1.3)");
+            Assert.AreEqual(UiKit.L("lc_pill_h") * W, pill.rect.height, 0.5f, "티켓 알약 높이 = 표 lc_pill_h(정본 .0411W · 전엔 ×1.4)");
+            PopupLayer.Instance.Hide(LeagueSheet.ChallengeName);
+            yield return null;
+        }
     }
 }
