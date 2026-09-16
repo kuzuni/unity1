@@ -64,9 +64,15 @@ namespace Forge.Tests.PlayMode
             // 상단바: 카드는 ol1(정본 92) · 그 안 아바타는 ol2(정본 100)
             GameObject card = GameObject.Find("profile-card");
             Assert.IsNotNull(card, "프로필 카드");
+            // ⚠ 이 자리는 «고리 상자 + line/face 자식» 꼴이 아니다 — 상자 «avatar» **자체가 고리**고 그 안에 면 하나다
+            //   (`Hud.Build`: `UiKit.Rounded(card, "avatar", "pp_line", …)` + `UiKit.Rounded(avRing.transform, "face", …)`).
+            //   그래서 `RingWidth`(line+face 를 찾는다)로는 못 잰다 — 런 940 이 그렇게 빨갰다(16회차 수리).
             Transform avatar = card.transform.Find("avatar");
             Assert.IsNotNull(avatar, "카드 안 아바타 타일");
-            Assert.AreEqual(ol2, RingWidth(avatar, "상단바 아바타"), 0.01f,
+            RectTransform avFace = (RectTransform)avatar.Find("face");
+            Assert.IsNotNull(avFace, "아바타 안쪽 면(face)");
+            Assert.AreEqual(avFace.offsetMin.x, -avFace.offsetMax.x, 0.01f, "아바타 면은 좌우 같은 만큼 들어간다");
+            Assert.AreEqual(ol2, avFace.offsetMin.x, 0.01f,
                 "정본 100 `.profile-card .avatar { border: var(--ol2) solid #000 }`");
 
             // 웨이브 핍: 고리 두께 = (고리 크기 − 면 크기) / 2
