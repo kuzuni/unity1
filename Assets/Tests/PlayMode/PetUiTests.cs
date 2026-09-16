@@ -479,6 +479,17 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(PetUpgradePopup.ConfirmButton, "«업그레이드» 버튼(btn-confirm)");
             RectTransform confirmRt = PetUpgradePopup.ConfirmButton.GetComponent<RectTransform>();
             Assert.AreEqual(PetSkillStyle.Px("petup_sel_btn_h"), confirmRt.rect.height, 0.5f, "«업그레이드» 버튼 세로 = 표 petup_sel_btn_h");
+            // T405 — 카드 % 패딩(정본 4337 `.petup-card { padding: 1.78% }`)은 컨테이닝 블록(모달 = 앱 폭) 기준이다. 회색 판(petup-panel)의 왼쪽·위 여백이 그 pad 다.
+            {
+                RectTransform panel = up.Content.Find("petup-panel") as RectTransform;
+                Assert.IsNotNull(panel, "petup-panel(회색 판)");
+                float cardW = PetSkillStyle.L("petup_w_f") * UiKit.RefW;
+                float padApp = UiKit.RefW * PetSkillStyle.L("petup_pad_app_f");
+                Assert.AreEqual(padApp, panel.anchoredPosition.x, 0.1f, "판 왼쪽 여백 = 앱 폭 × petup_pad_app_f");
+                Assert.AreEqual(padApp, -panel.anchoredPosition.y, 0.1f, "판 위 여백 = 같은 pad");
+                Assert.AreEqual(cardW - padApp * 2f, panel.rect.width, 0.1f, "inner = 카드 폭 − pad×2");
+                Assert.Greater(panel.anchoredPosition.x, cardW * PetSkillStyle.L("petup_pad_app_f") + 1f, "카드 폭에 곱한 옛 값(26.5% 작다)이 아니다");
+            }
 
             // T115 — 넘침 막이를 **이 화면의 버튼 전부**로 넓힌다. T90 이 세운 막이는 스킬 서브시트의 버튼 둘만 재서,
             // 펫 업그레이드의 «업그레이드» 가 버튼 밖으로 삐져나온 채 초록으로 지나갔다(런 224 PNG 실측).

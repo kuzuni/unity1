@@ -120,7 +120,8 @@ namespace Forge.Game.Ui
             float h = PetSkillStyle.Px("petup_h");
             PetSkillModal.Handle m = sheet.Modal.Open(ModalName, wf, h, PetSkillStyle.L("petup_top_rem"), true, () => { target = -1; });
             RectTransform c = m.Content;
-            float pad = w * PetSkillStyle.L("petup_pad_f");
+            // 정본 4337 `.petup-card { padding: 1.78% }` — CSS 의 % 패딩은 컨테이닝 블록(모달 = 앱 폭) 기준이다. 카드 폭(w)에 곱하지 마라(T405 · 26.5% 작아진다).
+            float pad = UiKit.RefW * PetSkillStyle.L("petup_pad_app_f");
             float inner = w - pad * 2f;
             float y = pad;
             float sub = UiCatalog.Instance.Kind(TextKind.Sub).size, body = UiCatalog.Instance.Kind(TextKind.Body).size;
