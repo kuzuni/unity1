@@ -25,6 +25,7 @@
   },
   "sheet_top_f": 0.562,
   "flight_band": "bot",
+  "probe_total": 12345,
   "foreign_strip": [
     0.91,
     1.0

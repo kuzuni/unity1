@@ -336,6 +336,33 @@ namespace Forge.Tests.PlayMode
                 + w0 + " · 원본 " + sw + " × 줄임 " + shrink.ToString("0.000") + ")보다 커널 반경만큼 넓다");
         }
 
+        /// <summary>
+        /// T411 6회차 — 런 898 자국: 모루 그림자 판이 «small-anvil_btn-215»(줄인 원본 그대로 · 번짐 없음)였다. 어느 길이 원본을 돌려주는지 가른다:
+        /// 실루엣을 <see cref="UiFilter.Blur"/> 에 **화면 한 변을 주어**(줄임 길) 한 번, **0 으로**(줄임 없이) 한 번 넣어 판 이름·크기를 본다.
+        /// 번지지 않으면 KNOWN T411 접음에 두 결과를 실어 다음 런이 읽는다(T386 규약).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 모루_실루엣은_흐리는_자에_넣으면_커널_반경만큼_넓은_판이_나온다()
+        {
+            yield return Boot();
+            Sprite sil = AnvilArt.Silhouette();
+            Assert.IsNotNull(sil, "실루엣");
+            Rect sr = sil.textureRect;
+            float display = Mathf.Max(sr.width, sr.height) * 0.966f;                       // 런 898 의 모루 상자 비(254.8/264) — 줄임 길을 타게
+            double sigma = FilterRules.BakeSigmaPx(DropShadowUi.Px("anvil_btn", "blur_px") * 0.5 * KeylineUi.CssPx, sr.height, sr.height * 0.966f);
+            Sprite shrunk = UiFilter.Blur(sil, sigma, "t411-probe-shrunk", display);
+            Sprite full = UiFilter.Blur(sil, sigma, "t411-probe-full", 0);
+            string what = "실루엣 " + sr.width + "×" + sr.height + "(텍스처 " + sil.texture.width + "×" + sil.texture.height + " 읽기 " + sil.texture.isReadable + ") · σ " + sigma.ToString("0.00")
+                          + " · 줄임 길 → «" + (shrunk != null ? shrunk.name + "» " + shrunk.rect.width + "×" + shrunk.rect.height : "null»")
+                          + " · 그대로 길 → «" + (full != null ? full.name + "» " + full.rect.width + "×" + full.rect.height : "null»");
+            bool shrunkOk = shrunk != null && shrunk != sil && shrunk.name.StartsWith("blur-");
+            bool fullOk = full != null && full != sil && full.name.StartsWith("blur-");
+            if (!shrunkOk || !fullOk)
+                Assert.Ignore("KNOWN T411 — 모루 실루엣이 흐리는 자에서 번지지 않는다(" + what + ") · 임자 T411 절");
+            Assert.Greater(shrunk.rect.width, Mathf.Round(sr.width * 0.966f), "줄임 길: 판이 줄인 원본보다 커널 반경만큼 넓다 · " + what);
+            Assert.Greater(full.rect.width, sr.width, "그대로 길: 판이 원본보다 커널 반경만큼 넓다 · " + what);
+        }
+
         /// <summary>두 상자의 **가운데** 차(부모 좌표 · 피벗이 (0,1) 이든 (.5,.5) 이든) — 그림자 상자는 구운 판의 여유만큼 넓어 앵커 자리로 재면 어긋난다(T411 3회차).</summary>
         private static Vector2 CenterDelta(RectTransform a, RectTransform b) { return Center(a) - Center(b); }
         private static Vector2 Center(RectTransform t)

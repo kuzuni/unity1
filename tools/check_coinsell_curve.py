@@ -39,6 +39,7 @@ GOLD = {'r_min': 200, 'g_min': 120, 'g_max': 235, 'b_max': 130, 'rb_min': 90}   
 SHEET_TOP_F = 0.562                                                      # 정본 3200ms 프레임의 장비 시트 윗선(y 480/854)
 BANDS = {'top': [0.0, 0.10], 'mid': [0.10, SHEET_TOP_F], 'bot': [SHEET_TOP_F, 1.0]}
 FLIGHT_BAND = 'bot'                                                      # 코인이 사는 띠 = 장비 시트
+PROBE_TOTAL = 12345                                                      # 정본 탐침(probe-coin-overlap.js TOTALS[0] · probe-coin-total-delay.js TOTAL)의 판매 금액 — 코인 10개
 FOREIGN_STRIP = [0.91, 1.0]                                              # 탭바 띠 — 바닥 프레임과 이 띠가 절반 넘게 다르면 딴 판(옛 배치)이다
 FOREIGN_TOL = 0.5
 PIX_TOL = 30                                                             # 화소가 «다르다» = |Δr|+|Δg|+|Δb| > 30
@@ -128,6 +129,7 @@ def build_table(m):
         'bands': {k: list(v) for k, v in BANDS.items()},
         'sheet_top_f': SHEET_TOP_F,
         'flight_band': FLIGHT_BAND,
+        'probe_total': PROBE_TOTAL,
         'foreign_strip': list(FOREIGN_STRIP),
         'foreign_ms': m.get('foreign_ms', []),
         'end_f': 0.05,
@@ -157,7 +159,7 @@ def run(shots_dir, table_path, write=False, list_all=False, out=print):
         out('✗ check_coinsell_curve: 표를 못 읽었다 — %s (%s)' % (table_path, e))
         return 2
     bad = []
-    for k in ('src_w', 'src_h', 'flight_band', 'foreign_ms', 'peak_ms', 'peak_v', 'end_ms'):
+    for k in ('src_w', 'src_h', 'flight_band', 'probe_total', 'foreign_ms', 'peak_ms', 'peak_v', 'end_ms'):
         if t.get(k) != fresh[k]: bad.append('%s: 표 %r ↔ 정본 %r' % (k, t.get(k), fresh[k]))
     tf = {r['ms']: r for r in t.get('frames', [])}
     for r in fresh['frames']:

@@ -236,7 +236,8 @@ namespace Forge.Tests.PlayMode
                 byte[] probe = ses.Grab();   // 세션 첫 촬영의 비용(셰이더·RT 준비)은 연출 전에 치른다
                 if (probe == null) Assert.Ignore("그래픽 장치가 없다 — 화소를 못 찍는다(-nographics)");
                 yield return null;
-                int n = CoinBurst.Play(100);
+                // 6회차 — 정본 탐침과 같은 금액(표 probe_total 12345 · 코인 10개): 코인 수가 다르면 지연 폭(i×26ms)이 달라 봉우리 시각이 어긋난다(런 898: 여섯 개로 560ms).
+                int n = CoinBurst.Play(J.Num(t["probe_total"]));
                 Assert.Greater(n, 0, "조각이 난다");
                 t0 = Time.unscaledTime;
                 foreach (object o in refFrames)
