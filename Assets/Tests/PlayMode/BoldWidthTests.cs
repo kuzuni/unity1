@@ -18,7 +18,7 @@ namespace Forge.Tests.PlayMode
     /// 이 자는 그 비용을 **수로 못박는다**(고치는 자가 아니다 — 고침은 «진짜 굵은 판을 붙인다» 또는 «boldSpacing 0»
     /// 이고 그것은 굵기 공장을 여는 회차 몫이다). 실제로 물린 자리 하나: T397(리그 도전 행 상대 이름) —
     /// «BlandBuddy22667» 은 민 자폭 합 8.534em 이라 36px 에서 307.2px 로 칸 330.2 에 **드는데**,
-    /// 굵기 자간 +1.05em 이 붙어 **345.0px** 이 되어 접힌다.
+    /// 굵기 자간이 붙어 **342.5px**(런 809 실측)이 되어 접힌다.
     /// </summary>
     public class BoldWidthTests
     {
@@ -55,8 +55,9 @@ namespace Forge.Tests.PlayMode
 
                 float wPlain = plain.preferredWidth, wBold = bold.preferredWidth;
                 float gap = wBold - wPlain;
-                // TMP 는 `boldSpacing` 을 «em 의 1/100» 으로 읽어 글자마다 더한다.
-                float expect = fa.boldSpacing / 100f * Size * Sample.Length;
+                // TMP 는 `boldSpacing` 을 «em 의 1/100» 으로 읽어 **글자 사이**에 더한다 — 마지막 글자 뒤엔 안 붙으므로 **n−1** 이다.
+                //   (런 809 실측이 그것을 말한다: 15자에서 차 35.3 ↔ n×2.52 = 37.8 이 아니라 (n−1)×2.52 = 35.3.)
+                float expect = fa.boldSpacing / 100f * Size * (Sample.Length - 1);
 
                 StringBuilder log = new StringBuilder();
                 log.Append("# T352 4회차 — 굵기가 무는 폭\n");
@@ -74,8 +75,8 @@ namespace Forge.Tests.PlayMode
 
                 Assert.Greater(fa.boldSpacing, 0f, "이 글꼴엔 진짜 굵은 판이 없어 TMP 가 자간으로 굵기를 낸다");
                 Assert.Greater(gap, 0f, "굵게 찍으면 폭이 늘어난다 — 정본(브라우저)은 안 늘어나는 몫이다");
-                Assert.AreEqual(expect, gap, expect * 0.25f,
-                    "늘어난 폭이 boldSpacing 이 말하는 값이다(글자마다 boldSpacing/100 em) — 이 셈이 깨지면 TMP 판이 바뀐 것이다");
+                Assert.AreEqual(expect, gap, expect * 0.05f,
+                    "늘어난 폭이 boldSpacing 이 말하는 값이다(글자 사이마다 boldSpacing/100 em · n−1) — 이 셈이 깨지면 TMP 판이 바뀐 것이다");
             }
             finally { Object.DestroyImmediate(root); }
         }
