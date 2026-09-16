@@ -57,6 +57,8 @@ TABLE = {
     # T391 4회차 — 파일이 열린 둘
     '.rates-head h3': ['Ui/SkillRatesPopup.cs#rates-h3'],                # 4580 1.3rem 47.3 ↔ Head 48(+1%)
     '.af-title': ['Ui/ForgeAutoPopup.cs#af-title'],                      # 5033 1.26rem 45.9 ↔ Button 44(−4%)
+    # T391 5회차 — 마지막 KNOWN(T334 가 ✅ 로 닫혀 파일이 열렸다)
+    '.sr-grid.one .sr-name': ['Ui/SkillSummonResult.cs#sr-name/t'],      # 7084 1.25rem 45.5 ↔ Button 44(−3%) · x1 소환만(`NameKind(one)` · 그 밖은 기본 .7rem 이라 하한 Sub)
 }
 # 대조하지 않는 자리 — 이모지·아이콘 글리프 크기(클론은 아틀라스 아이콘을 자리 크기로 세운다)
 SKIP = {
@@ -82,8 +84,8 @@ SKIP = {
 }
 # 어긋난 줄 알지만 파일이 남의 lock 이라 지금 못 고치는 자리 — 임자 번호 · 고치면 지운다
 KNOWN = {
-    # T391 1회차(자만) 실측 — ⓐ 종류표에 ≈48px 단이 서고 ⓑ 자리마다 그 단으로 바꾸면 여기서 TABLE 로 옮긴다(자리 표기는 아래 그대로 쓰면 된다)
-    '.sr-grid.one .sr-name': 'T391 ⓑ · Ui/SkillSummonResult.cs#sr-name/t Sub 36 ↔ 45.5px(−21% · x1 소환만) · T334 lock',
+    # T391 1회차가 여기 둔 마지막 하나(`.sr-grid.one .sr-name`)는 **5회차가 TABLE 로 옮겼다** — T334 가 ✅ 로 닫혀 파일이 열렸다.
+    # 다음에 «남의 lock 이라 지금 못 고치는 자리» 가 생기면 같은 꼴로 적는다: '<정본 선택자>': 'T<번호> · <클론 자리> <종류> ↔ <정본 px> · <임자> lock'
 }
 
 CREATE_CALL = re.compile(r'\.(Text|Label|Bold|Stroked|IconTextRow|Btn)\s*\(\s*[^,()]+,\s*"([^"]+)"')

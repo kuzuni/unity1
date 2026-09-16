@@ -402,7 +402,12 @@ namespace Forge.Game.Ui
             else cellW = Mathf.Min(PetSkillStyle.Px("sr_cell_max_rem"), (gw - (cols - 1) * gapX - PetSkillStyle.Rem(0.4f)) / cols);
             if (dense) cols = Mathf.RoundToInt(PetSkillStyle.L("sr_dense_cols"));
             float sub = UiCatalog.Instance.Kind(TextKind.Sub).size;
-            float nameH = dense ? 0f : sub * PetSkillStyle.L("sr_name_h_em") * 0.62f;
+            // T391 5회차 — 정본 7084 `.sr-grid.one .sr-name { font-size: 1.25rem }`(= 기준 캔버스 45.5px): x1 소환의 이름만 한 단 크다.
+            //   클론은 여태 모든 셀에 `Sub` 36 을 줘서 그 자리가 **−21%** 였다(`check_text_kinds` 의 마지막 KNOWN).
+            //   판 높이도 같은 글자 크기로 낸다 — `Sub` 로 잰 판(52.7px)에 44px 글자를 넣으면 TMP 가 줄을 통째로 버린다(런 528 함정).
+            //   ⚠ 종류를 도우미로 감싸지 않는다 — `check_text_kinds` 는 **그 호출 문장 안의 `TextKind.X` 리터럴**을 읽는다(T365 15회차와 같은 갈래).
+            float nameFs = UiCatalog.Instance.Kind(one ? TextKind.Button : TextKind.Sub).size;
+            float nameH = dense ? 0f : nameFs * PetSkillStyle.L("sr_name_h_em") * 0.62f;
             float subH = dense ? 0f : sub * 1.35f;
             float cellH = cellW + (dense ? 0f : PetSkillStyle.Px("sr_name_mt_rem") + nameH + PetSkillStyle.Px("sr_sub_mt_rem") + subH);
             float heroOrb = heroRow ? Mathf.Min(PetSkillStyle.Px("sr_hero_orb_rem"), W * 0.36f) : mid ? Mathf.Min(PetSkillStyle.Px("sr_hero_mid_orb_rem"), W * 0.3f) : dense ? Mathf.Min(PetSkillStyle.Px("sr_hero_dense_orb_rem"), W * 0.24f) : cellW;
@@ -849,7 +854,8 @@ namespace Forge.Game.Ui
             int tier = RarityIdx(e.Rarity);
             Color rc = PetSkillStyle.Rarity(Defs, e.Rarity);
             float sub = UiCatalog.Instance.Kind(TextKind.Sub).size;
-            float nameH = dense ? 0f : sub * PetSkillStyle.L("sr_name_h_em") * 0.62f;
+            float nameFs = UiCatalog.Instance.Kind(one ? TextKind.Button : TextKind.Sub).size;   // T391 5회차 — 위 `Open` 과 같은 셈(정본 7084 `.sr-grid.one .sr-name` 1.25rem)
+            float nameH = dense ? 0f : nameFs * PetSkillStyle.L("sr_name_h_em") * 0.62f;
             float subH = dense ? 0f : sub * 1.35f;
             float ch = cw + (dense ? 0f : PetSkillStyle.Px("sr_name_mt_rem") + nameH + PetSkillStyle.Px("sr_sub_mt_rem") + subH);
             RectTransform cell = UiKit.Box(grid, "sr-cell-" + i);
@@ -946,7 +952,7 @@ namespace Forge.Game.Ui
                 RectTransform nameBox = UiKit.Box(cell, "sr-name");
                 UiKit.Place(nameBox, (cw - nw2) * 0.5f, ny, nw2, nameH);
                 PetSkillKit.Fill(nameBox, "bg", PetSkillStyle.C("sr_name_bg"), PetSkillStyle.Px("sr_name_r_rem"));
-                TextMeshProUGUI nt2 = PetSkillKit.Text(nameBox, "t", TextKind.Sub, e.Name, PetSkillStyle.C("white"));
+                TextMeshProUGUI nt2 = PetSkillKit.Text(nameBox, "t", one ? TextKind.Button : TextKind.Sub, e.Name, PetSkillStyle.C("white"));   // T391 5회차 — 정본 7084 x1 소환만 1.25rem(45.5) → Button 44
                 WrapUi.Apply(nt2, "sr_name");   // 정본 `.sr-name` 은 **접는다**(두 줄까지 · style.css 7032~7036)
                 // T351 5회차 — 정본 7033 `line-height: 1.18`. T354 표(`LineHeightUi.json` `sr_name_lh`)가 이 수를 쥐고 있는데
                 //   부르는 곳이 없어 클론은 글꼴 기본 줄높이(1.448em)로 그렸다 — 두 줄이 그만큼 더 벌어진다.

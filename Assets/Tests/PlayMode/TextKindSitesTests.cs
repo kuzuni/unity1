@@ -167,5 +167,50 @@ namespace Forge.Tests.PlayMode
             fh.Meta.Popups.Hide(ForgeCraftPopup.SellName);
             yield return null;
         }
+
+        /// <summary>T391 5회차 — 자의 마지막 KNOWN: x1 소환 결과의 이름(정본 7084 `.sr-grid.one .sr-name { 1.25rem }` = 45.5px → Button 44 · 여태 Sub 36 으로 −21%).
+        /// 여럿 뽑은 판은 정본이 기본 `.sr-name`(.7rem)이라 하한 `Sub` 가 맞다 — **한 개 판에서만** 한 단 크다.</summary>
+        [UnityTest]
+        public IEnumerator x1_소환_결과의_이름만_한_단_크다()
+        {
+            PetSkillHost.SuppressSave = true;
+            PetSkillHost.Seed = 20260916;
+            SceneManager.LoadScene("SampleScene");
+            yield return null; yield return null;
+            Scene active = SceneManager.GetActiveScene();
+            for (int i = 0; i < 600 && !(SkillPetSheet.Instance != null && SkillPetSheet.Instance.gameObject.scene == active && PetSkillHost.Ready); i++) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트");
+            Assert.IsTrue(PetSkillHost.Ready);
+            yield return null;
+
+            float one = NameSize(1);
+            Assert.AreEqual(UiCatalog.Instance.Kind(TextKind.Button).size, one, 0.01f, "정본 7084 .sr-grid.one .sr-name 1.25rem = 45.5px → Button 44");
+            float many = NameSize(3);
+            Assert.AreEqual(UiCatalog.Instance.Kind(TextKind.Sub).size, many, 0.01f, "여럿 판은 정본 기본 .sr-name(.7rem) — 하한 Sub 가 맞다");
+            Assert.Greater(one, many, "한 개 판이 한 단 크다");
+        }
+
+        /// <summary>소환 결과를 <paramref name="n"/> 개로 열고 첫 셀 이름 글자의 크기를 돌려준다(창은 닫는다).</summary>
+        static float NameSize(int n)
+        {
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>();
+            for (int i = 0; i < n; i++)
+                list.Add(new SkillSummonResultView.Entry { Key = "sk:" + i, IconKey = "sk_fireball", Rarity = "common", Name = "화살비" });
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "common", null);
+            Assert.IsNotNull(v, "소환 결과 창(" + n + "개)이 안 열렸다");
+            Canvas.ForceUpdateCanvases();
+            foreach (Transform x in v.GetComponentsInChildren<Transform>(true))
+                if (x.name == "sr-name")
+                {
+                    Transform t = x.Find("t");
+                    Assert.IsNotNull(t, "이름판 안의 글자");
+                    float size = t.GetComponent<TextMeshProUGUI>().fontSize;
+                    Object.Destroy(v.gameObject);
+                    return size;
+                }
+            Object.Destroy(v.gameObject);
+            Assert.Fail("이름판(sr-name)을 못 찾았다 — " + n + "개 판");
+            return 0f;
+        }
     }
 }
