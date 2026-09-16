@@ -92,6 +92,11 @@ namespace Forge.Game.Ui
                 UiKit.Anchor(br, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(i * bw, 0f), bw, activeH);
                 subSkins[i] = PetSkillKit.Framed(br, "active", PetSkillStyle.C("pp_blue"), PetSkillStyle.Px("subtab_btn_r_rem"), PetSkillKit.Line2);
                 UiKit.Fill(subSkins[i]);
+                // T178 17회차 — 정본 7969~7973 은 이 파란 면 위에 겹 둘(위 1 CSS px 흰 광택 + 세로 명암)을 얹는다.
+                //   그 규칙 머리말(7958)이 «① 파란 면(서브탭 활성) 플랫» 을 고칠 자리로 못박아 둔 곳이다.
+                //   면 색 `pp_blue` 는 곁 표에서 오므로 카탈로그 키로 못 적는다 — 굽는 쪽에 그 색을 준다(표 `_바탕`).
+                Image subFace = subSkins[i].Find("face") != null ? subSkins[i].Find("face").GetComponent<Image>() : null;
+                if (subFace != null) SurfaceArt.FillMasked(subFace, "active-grad", "subtab_active_rim", bw, activeH, PetSkillStyle.C("pp_blue"));
                 subLabels[i] = PetSkillKit.Text(br, "label", TextKind.Sub, PetSkillStyle.T(SubText[i]), PetSkillStyle.C("subtab_ink"));
                 WrapUi.Apply(subLabels[i], "summon_subtabs_subtab_strip_button");   // T361 5회차 — 정본 white-space 표(WrapUi.json) 3608 `#summon-subtabs.subtab-strip button { nowrap }`
                 UiKit.Fill(subLabels[i].rectTransform);

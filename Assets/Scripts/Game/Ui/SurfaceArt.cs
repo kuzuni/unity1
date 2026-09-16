@@ -198,14 +198,19 @@ namespace Forge.Game.Ui
             // 부르는 쪽이 준 바탕이 먼저다(T178 10회차) — 표의 `over_layer` 는 «한 값» 이라 상태로 갈리는 자리를 못 적는다.
             if (overBaseColor.HasValue)
             {
+                // 겹이 여러 장인 자리(정본이 `background-image` 에 겹을 쉼표로 쌓은 것)는 바탕 색이 **사슬 맨 아래**에 있다 —
+                // 그러니 이 겹의 `over_layer` 를 같은 색 위에 먼저 굽고 그 판을 바탕으로 삼는다(T178 17회차).
+                // 사슬이 없으면 종전대로 색 한 칸이 바탕이다(T178 10회차 · 등급색 위 막대).
+                string chain = BaseLayer(key);
+                Color32[] baseRt = chain != null ? Pixels(chain, w, h, lineLenCanvasPx, depth + 1, null, overBaseColor) : null;
                 Color32 flatRt = overBaseColor.Value;
                 for (int i = 0; i < px.Length; i++)
                 {
-                    Color32 top = px[i];
+                    Color32 top = px[i], bot = baseRt != null ? baseRt[i] : flatRt;
                     double aRt = top.a / 255.0;
-                    px[i] = new Color32(SurfaceBlendRules.OverSrgb(flatRt.r, top.r, aRt),
-                                        SurfaceBlendRules.OverSrgb(flatRt.g, top.g, aRt),
-                                        SurfaceBlendRules.OverSrgb(flatRt.b, top.b, aRt), 255);
+                    px[i] = new Color32(SurfaceBlendRules.OverSrgb(bot.r, top.r, aRt),
+                                        SurfaceBlendRules.OverSrgb(bot.g, top.g, aRt),
+                                        SurfaceBlendRules.OverSrgb(bot.b, top.b, aRt), 255);
                 }
                 return px;
             }
@@ -486,6 +491,13 @@ namespace Forge.Game.Ui
         {
             if (face.GetComponent<Mask>() == null) face.gameObject.AddComponent<Mask>().showMaskGraphic = true;
             return Fill(face.rectTransform, name, key, w, h, overBaseLayer);
+        }
+
+        /// <summary>바탕이 **런타임 색**인 둥근 면(서브탭 켜짐 칸처럼 면 색이 곁 표에서 오는 자리) — T178 17회차.</summary>
+        public static Image FillMasked(Image face, string name, string key, float w, float h, Color overBaseColor)
+        {
+            if (face.GetComponent<Mask>() == null) face.gameObject.AddComponent<Mask>().showMaskGraphic = true;
+            return Fill(face.rectTransform, name, key, w, h, overBaseColor);
         }
     }
 }

@@ -570,5 +570,57 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(1f, img.color.r, 1e-3f, "그림 위 색은 흰색(박동은 알파만 만진다) — 표 색을 두 번 곱하지 않는다");
         }
 
+        /// <summary>
+        /// T178 17회차 — 정본 7969~7973 `#summon-subtabs.subtab-strip button.active` 는 파란 면 위에 겹 둘을 쌓는다:
+        /// 위 1 CSS px 흰 광택(.50) + 세로 명암(위 흰 .26 → 46% 에서 0 → 아래 검정 .16).
+        /// 면 색이 곁 표(PetSkillUi `pp_blue`)에서 오므로 **부르는 쪽이 색을 주고** 그 색 위에 사슬로 굽는다 —
+        /// 사슬이 끊기면 윈겹만 색 위에 서고 아래 명암이 통째로 사라진다(그때 밑줄은 면 색 그대로라 이 자가 넘어진다).
+        /// </summary>
+        [Test]
+        public void 서브탭_켜진_칸은_파란_면_위에_겹_둘이_사슬로_구워진다()
+        {
+            Color face = new Color32(0, 93, 255, 255);            // PetSkillUi pp_blue #005dff
+            Sprite rim = SurfaceArt.Bake("subtab_active_rim", 3f, 48f, face);
+            Sprite shade = SurfaceArt.Bake("subtab_active_shade", 3f, 48f, face);
+            Assert.IsNotNull(rim, "윈겹을 굽는다");
+            Assert.IsNotNull(shade, "아래겹을 굽는다");
+            Texture2D tr = rim.texture, ts = shade.texture;
+            int w = tr.width, h = tr.height;
+
+            Color rimBottom = tr.GetPixel(w / 2, 0), shadeBottom = ts.GetPixel(ts.width / 2, 0);
+            Assert.AreEqual(1f, rimBottom.a, 1e-3f, "바탕을 받은 겹은 불투명하게 구워진다");
+            // 밑줄(t=1) = 검정 .16 을 면 위에 얹은 값 — 윈겹은 그 줄에서 투명하니 둘이 같아야 한다.
+            Assert.AreEqual(Mathf.RoundToInt(shadeBottom.g * 255f), Mathf.RoundToInt(rimBottom.g * 255f), 2,
+                            "윈겹의 밑줄은 아래겹과 같다 — 다르면 사슬(over_layer)이 끊겼다");
+            int wantG = SurfaceBlendRules.OverSrgb(93, 0, 0.16);
+            Assert.AreEqual(wantG, Mathf.RoundToInt(rimBottom.g * 255f), 3, "아래 검정 .16 (정본 7973) 을 sRGB 바이트로 얹은 값");
+            Assert.Less(Mathf.RoundToInt(rimBottom.g * 255f), 93 - 5, "면 색 그대로면 명암이 통째로 없는 것이다");
+
+            Color rimTop = tr.GetPixel(w / 2, h - 1), shadeTop = ts.GetPixel(ts.width / 2, ts.height - 1);
+            Assert.Greater(rimTop.r, shadeTop.r + 0.10f, "맨 윈줄은 흰 .50 광택이 더 얹혀 아래겹보다 밝다(정본 7970)");
+            Assert.Greater(shadeTop.r, 40f / 255f, "아래겹의 맨 윈줄은 흰 .26 이 얹혀 면 색(R 0)보다 밝다");
+            Assert.Greater(rimTop.r, rimBottom.r + 0.15f, "위가 밝고 아래가 어둡다 — 명암의 방향");
+        }
+
+        /// <summary>T178 17회차 — 그 겹이 실물 서브탭 켜진 칸에 서는가(색 한 칸짜리 Image 가 아니다).</summary>
+        [UnityTest]
+        public IEnumerator 소환_서브탭_켜진_칸에_굽는_겹이_실제로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(PetSkillHost.Ready && SkillPetSheet.Instance != null); i++) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 섰다");
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            yield return null;
+            Transform grad = FindDeep(UiRoot.Instance.App, "active-grad");
+            Assert.IsNotNull(grad, "서브탭 켜진 칸의 겹 «active-grad» 가 있다");
+            UnityEngine.UI.Image gi = grad.GetComponent<UnityEngine.UI.Image>();
+            Assert.IsNotNull(gi, "Image");
+            Assert.IsNotNull(gi.sprite, "겹은 구운 그림이다 — 색 한 칸짜리가 아니다");
+            Assert.AreEqual(1f, gi.color.r, 1e-3f, "그림 위 색은 흰색 — 표 색을 두 번 곱하지 않는다");
+            Assert.IsNotNull(grad.parent.GetComponent<UnityEngine.UI.Mask>(),
+                             "둥근 면에 Mask 가 걸려 겹이 모서리 밖으로 안 샌다(정본은 border-radius 가 background 를 같이 자른다)");
+        }
+
     }
 }

@@ -544,6 +544,81 @@
     ],
     "_": "style.css 2109 같은 규칙의 둘째 겹 `linear-gradient(180deg, rgba(255,255,255,.18) 0, rgba(0,0,0,.16) 100%)` — 위가 밝고 아래가 어두운 구슬 명암(면 색은 카테고리색 그대로). T178 9회차."
   },
+  "subtab_active_shade": {
+    "angle_deg": 180,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.26
+      ],
+      [
+        255,
+        255,
+        255,
+        0.1
+      ],
+      [
+        255,
+        255,
+        255,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0.06
+      ],
+      [
+        0,
+        0,
+        0,
+        0.16
+      ]
+    ],
+    "offsets": [
+      0,
+      0.4,
+      0.46,
+      0.72,
+      1
+    ],
+    "_바탕": "면 색이 곁 표(PetSkillUi `pp_blue`)에서 오는 자리라 카탈로그 키로 못 적는다 — 부르는 쪽(SkillPetSheet)이 그때의 색을 준다(T178 17회차).",
+    "_": "style.css 7971~7973 `#summon-subtabs.subtab-strip button.active` 둘째 겹 `linear-gradient(180deg, rgba(255,255,255,.26) 0, rgba(255,255,255,.10) 40%, rgba(255,255,255,0) 46%, rgba(0,0,0,.06) 72%, rgba(0,0,0,.16) 100%)` — 파란 면을 위는 밝게 아래는 어둡게 세우는 명암. 정본 7958 머리말이 이 자리를 «파란 면 플랫» 으로 못박아 둔 곳이다. T178 17회차."
+  },
+  "subtab_active_rim": {
+    "over_layer": "subtab_active_shade",
+    "unit": "px",
+    "angle_deg": 180,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.5
+      ],
+      [
+        255,
+        255,
+        255,
+        0.5
+      ],
+      [
+        255,
+        255,
+        255,
+        0
+      ]
+    ],
+    "offsets": [
+      0,
+      1,
+      1
+    ],
+    "_": "style.css 7970 같은 규칙의 첫 겹 `linear-gradient(180deg, rgba(255,255,255,.50) 0 1px, rgba(255,255,255,0) 1px)` — 위 1 CSS px 흰 광택. 아래 겹(subtab_active_shade) 위에 얹힌다. T178 17회차."
+  },
   "_stripes": "T368 — 정본 `repeating-linear-gradient` 줄무늬 셋. 여기 수는 «앱 폭/높이 비율» 이다(정본 2547 주석 «가로 치수라 rem 금지 — 루트 폰트가 높이 기준이다» · T364 가 수로 잡은 함정). 호출자가 RefW·RefH 를 곱해 캔버스 px 로 바꿔 `StripeRules` 에 넘긴다. `angle_deg` 는 CSS 뜻 그대로(0 = 위 · 90 = 오른쪽) · `dash_ratio` 는 주기 안 앞 색의 비율 · `phase_w` 는 background-position 의 축 당김.",
   "stripes": {
     "cell_hatch": {"angle_deg": 45, "period_css_px": 12, "dash_css_px": 2, "ink": "#000000", "ink_alpha": 0.13, "_": "style.css 828 `.equip-cell` · 1063 `.auto-drop-card` · 1131 `.craft-batch .cb-card` — `repeating-linear-gradient(45deg, rgba(0,0,0,.13) 0 2px, transparent 2px 12px)` 와 같은 −45deg 한 겹이 **교차**해 깔린 «장비 슬롯 해칭». 수는 정본이 CSS px 로 못박은 것이라 css_px 로 캔버스 px 가 된다 · 바탕은 그 카드의 color-mix 면(T371) 이라 굽는 쪽이 면 색을 받아 sRGB 로 미리 합성한다(T178 15회차 · 자리 = ForgeCraftPopup.CraftCard 둘 · .equip-cell 은 ForgeSheet lock 뒤)."},

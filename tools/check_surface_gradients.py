@@ -82,6 +82,9 @@ TABLE = {
     # T178 5회차 — 켜진 칸(그리고 ✕ 칸)의 노란 방사형 둘. `SurfaceArt` 가 방사형을 굽고 `RefreshTabX` 가 켠다.
     '#tabbar button.active, #tabbar button.tab-x': ['Ui/TabBar.cs#tab-glow', 'Ui/TabBar.cs#tab-footglow'],
     '.rate-bar': ['Ui/SkillRatesPopup.cs#rate-enamel', 'Ui/SkillRatesPopup.cs#rate-rim'],
+    # T178 17회차 — 서브탭 켜진 칸의 겹 둘(위 1 CSS px 흰 광택 + 세로 명암). 정본 7958 머리말이 짝은 «① 파란 면 플랫» 자리다.
+    #   면 색(pp_blue)이 곁 표에서 오므로 한 판에 사슬로 굽는다(subtab_active_rim ← subtab_active_shade ← 부르는 쪽의 색).
+    '#summon-subtabs.subtab-strip button.active': ['Ui/SkillPetSheet.cs#active-grad'],
     # T178 11회차 — 보스 경고 배너 **면**(180° 3정지점 · 가운데 45% 가 가장 밝은 핏빛). 클론은 `pp_red_dk` 단색 한 장이었다.
     '.bw-banner': ['Ui/BattleOverlay.cs#bw-banner-grad'],
     # T178 12회차 — 정본 `#game-area::after` 의 **상시 비네트**(3D 위 · 모든 연출 아래). 클론엔 통째로 없었다
