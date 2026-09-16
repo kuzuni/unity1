@@ -221,10 +221,26 @@ namespace Forge.Game.Ui
             RectTransform subsBox = UiKit.Box(card, "subs");
             UiKit.Place(subsBox, gx, y, gw, Mathf.Max(lineH, cardH - y - pad - rem * 1.5f));
             RectTransform subsList = PopupKit.ScrollList(subsBox, "list", rem * 0.1f, 0f, 0f, TextAnchor.UpperLeft);
-            if (subs == null || subs.Count == 0) PopupKit.Label(subsList, "none", TextKind.Sub, PlayerInfoStyle.T("no_subs"), "pp_muted", TextAlignmentOptions.Left);
-            else foreach (string s in subs) PopupKit.Label(subsList, "sub", TextKind.Sub, s, "pp_ink", TextAlignmentOptions.Left);
+            // T354 16회차 — 이 목록의 **줄 피치**는 정본이 못 박은 값이다: `.pinfo-subs-list`(5600) `line-height: 1.14`.
+            //   ⚠ 같은 선택자가 3217 에도 있고(1.2) 구체성이 같아 **뒤 규칙(5600)이 이긴다** — 표의 두 키 중 `pinfo_subs_list_2_lh` 가 임자다.
+            //   정본 3219 주석이 까닭을 적어 뒀다: «line-height 1.9→1.2: 원본 스탯 줄 피치 1.8%H(≈16px), 종전 2.6%H 로 목록이 9%p 비대».
+            //   클론은 `PopupKit.Label` 의 기본 줄 상자(글자 크기 × 1.3 · `Popups.cs` 는 남의 lock)를 그대로 써서 **+14%** 였다.
+            if (subs == null || subs.Count == 0) SubLine(subsList, "none", PlayerInfoStyle.T("no_subs"), "pp_muted");
+            else foreach (string s in subs) SubLine(subsList, "sub", s, "pp_ink");
 
             PopupKit.XButton(card, () => Close(h));
+        }
+
+        /// <summary>
+        /// 보유 옵션 한 줄(정본 `.pinfo-subs-list` 5600 `line-height: 1.14`) — 줄 상자 높이를 **표에서** 받는다.
+        /// `PopupKit.Label` 의 기본값(글자 × 1.3)은 공장 몫이라 여기서 덮는다(`Popups.cs` 가 열리는 회차가 공장에 옮기면 이 줄은 지워도 된다).
+        /// </summary>
+        static void SubLine(Transform parent, string name, string text, string colorKey)
+        {
+            TextMeshProUGUI t = PopupKit.Label(parent, name, TextKind.Sub, text, colorKey, TextAlignmentOptions.Left);
+            double r = LineHeight.Apply(t, "pinfo_subs_list_2_lh");
+            LayoutElement le = t.GetComponent<LayoutElement>();
+            if (le != null) { le.preferredHeight = (float)(r * t.fontSize); le.minHeight = le.preferredHeight; }
         }
 
         /// <summary>정본 폴백 `.pinfo-preview`: 마른 흙 두 톤(55%) · 검정 테 · 🛡️ · 스테이지 라벨 · 웨이브 핍(던전 중이면 없음).</summary>

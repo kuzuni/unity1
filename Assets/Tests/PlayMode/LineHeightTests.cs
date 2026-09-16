@@ -1,4 +1,6 @@
 using System.Collections;
+using UnityEngine.UI;
+using System.Collections.Generic;
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;
@@ -350,6 +352,44 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(1.45, LineHeight.Table.Get("skd_desc_lh"), 1e-9, "정본 5248 .skd-desc { line-height: 1.45 }");
             Assert.AreEqual(1.15, LineHeight.Table.Get("skd_passive_lh"), 1e-9, "정본 5255 .skd-passive { line-height: 1.15 }");
             Debug.Log("[T354] 리그 행 이름 lineSpacing " + t.lineSpacing.ToString("0.000"));
+        }
+
+        /// <summary>T354 16회차 — 플레이어 정보의 «보유 옵션» 목록은 **줄 피치**가 정본 값이다:
+        /// `.pinfo-subs-list`(5600) `line-height: 1.14`. 같은 선택자가 3217 에도 있고(1.2) 구체성이 같아 **뒤 규칙이 이긴다** —
+        /// 표의 두 키 중 임자는 `pinfo_subs_list_2_lh` 다. 클론은 `PopupKit.Label` 의 기본 줄 상자(글자 × 1.3)를 쓰고 있었다(+14%).
+        /// 정본 3219 주석이 까닭을 적어 뒀다: «1.9→1.2: 종전 2.6%H 로 목록이 9%p 비대».</summary>
+        [UnityTest]
+        public IEnumerator 플레이어_정보_보유_옵션_줄은_정본_1_14_피치로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && UiRoot.Instance != null); i++) yield return null;
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
+            MetaHost h = MetaHost.Instance;
+            var saved = PlayerInfoPopup.SubLines;
+            PlayerInfoPopup.SubLines = () => new List<string>
+                { "공격력 +12.5%", "치명타 확률 +3.1%", "체력 +8.0%", "골드 획득 +4.4%" };
+            try
+            {
+                PlayerInfoPopup.Open(h);
+                yield return null; yield return null;
+                Canvas.ForceUpdateCanvases();
+                Popup p = PopupLayer.Instance.Find(PlayerInfoPopup.Name);
+                Assert.IsNotNull(p, "플레이어 정보 팝업");
+                Transform line = Find(p.Root, "sub");
+                Assert.IsNotNull(line, "보유 옵션 줄(sub)");
+                TextMeshProUGUI t = line.GetComponent<TextMeshProUGUI>();
+                Assert.IsNotNull(t, "그 줄은 글자 하나다");
+                double want = LineHeight.Ratio(t, "pinfo_subs_list_2_lh");
+                Assert.AreEqual(1.14, LineHeight.Table.Get("pinfo_subs_list_2_lh"), 1e-9,
+                    "정본 5600 .pinfo-subs-list { line-height: 1.14 } — 3217 의 1.2 는 같은 선택자의 앞 규칙이라 진다");
+                LayoutElement le = line.GetComponent<LayoutElement>();
+                Assert.IsNotNull(le, "줄 상자 높이를 쥔 LayoutElement");
+                Assert.AreEqual((float)(want * t.fontSize), le.preferredHeight, 0.01f,
+                    "보유 옵션 줄 상자 = 표 배수 × 글자 크기(전엔 공장 기본 1.3 이었다)");
+                AssertSpacing(t, "pinfo_subs_list_2_lh", "보유 옵션 줄");
+                Debug.Log("[T354] 보유 옵션 줄 상자 " + le.preferredHeight.ToString("0.00") + "px · 글자 " + t.fontSize.ToString("0.0"));
+            }
+            finally { PlayerInfoPopup.SubLines = saved; }
         }
     }
 }
