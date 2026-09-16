@@ -238,6 +238,62 @@ namespace Forge.Tests.PlayMode
         /// <summary>T334 3회차 — 주역 와이프. 정본 `fireSummonHero` 748~757 이 못 박은 갈래다:
         /// 홀드백이면 전 화면 `.flash`, **아니면 `.wipe`**(주역 셀 중심 가산 원형). 전 화면 섬광을 쓰면
         /// «x75 는 위쪽 20셀이 같이 하얗게 떠 등급 구분이 무너진다» — 정본이 쓰면 안 된다고 적어 둔 자리다.</summary>
+        /// <summary>
+        /// T419 1회차 — 정본 5912 `.sr-canopy b::after`: 스필(b) 위를 훑는 빛띠는 `mix-blend-mode: screen`(이 레포의 그 재질 = `Forge/UiScreen`) · opacity .9 ·
+        /// srsweep 2.2s linear 무한(translateX −115% → 115%). 띠는 스필의 자식(세로 마스크·호흡을 같이 받는다) · 스필 상자 밖은 RectMask2D 가 자른다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 스필_위_빛띠는_스크린_합성으로_스필_폭을_훑는다()
+        {
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            while (Host.SummonMult("skill") != 1) Host.CycleSummonMult("skill");
+            Host.Tickets = 10000;
+            Host.Sync();
+            yield return null;
+            Sheet.Skills.SummonButton.onClick.Invoke();
+            yield return null;
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v);
+            SummonFx fx = v.Fx;
+            Assert.IsNotNull(fx, "무대판(stage)이면 연출 겹이 선다");
+            fx.Bake();
+            RectTransform spill = (RectTransform)fx.Canopy.Find("spill");
+            Assert.IsNotNull(spill, "스필(b)");
+            Assert.IsNotNull(spill.GetComponent<RectMask2D>(), "스필 상자 밖은 자른다(CSS mask-clip)");
+            Transform sw = spill.Find("sr-sweep");
+            Assert.IsNotNull(sw, "빛띠(b::after)");
+            Image img = sw.GetComponent<Image>();
+            Assert.IsNotNull(img.material, "빛띠 재질");
+            Assert.AreEqual(CraftFxPoly.ScreenShaderName, img.material.shader.name, "정본 mix-blend-mode: screen — 이 레포의 그 재질");
+            Assert.IsFalse(img.raycastTarget);
+            Assert.IsNotNull(img.sprite, "구운 띠");
+            // 띠 한 장 — 아래 행(마스크 1)의 최대 알파 = 심색 알파(.72) · 알파가 있는 화소 비율 ≈ 스톱 폭(70% − 34%)
+            Texture2D tex = img.sprite.texture;
+            int W = tex.width, H = tex.height;
+            Color32[] px = tex.GetPixels32();
+            int lit = 0; byte maxA = 0;
+            for (int x = 0; x < W; x++) { byte a = px[x].a; if (a > 0) lit++; if (a > maxA) maxA = a; }
+            float[] st = SummonFxStyle.Arr("sweep_stops");
+            Assert.AreEqual(SummonFxStyle.L("sweep_core_a") * 255f, maxA, 3f, "심(52%) 알파 .72");
+            Assert.AreEqual(st[4] - st[0], (float)lit / W, 0.06f, "띠 폭 = 34%~70%");
+            Assert.AreEqual(0, px[(H - 1) * W].a, "위 행(마스크 0)은 투명 — b 의 세로 마스크를 같이 받는다");
+            // 움직임 — 2.2s 에 −115% → 115%(스필 폭 기준) · 선형
+            yield return null;
+            float x0 = img.rectTransform.anchoredPosition.x, w = spill.rect.width, tr = SummonFxStyle.L("sweep_travel_f");
+            float t = 0f;
+            while (t < 0.3f) { t += Time.unscaledDeltaTime; yield return null; }
+            float x1 = img.rectTransform.anchoredPosition.x;
+            Assert.AreNotEqual(x0, x1, "띠가 움직인다");
+            Assert.LessOrEqual(Mathf.Abs(x0), tr * w + 1f); Assert.LessOrEqual(Mathf.Abs(x1), tr * w + 1f);
+            float per = SummonFxStyle.L("sweep_period_s"), dxExpect = 2f * tr * w * (t / per);
+            if (x1 > x0) Assert.AreEqual(dxExpect, x1 - x0, tr * w * 0.15f, "선형 속도 = 2·115%·폭 / 2.2s");
+            Assert.AreEqual(SummonFxStyle.L("sweep_a") * spill.GetComponent<Image>().color.a, img.color.a, 0.02f, "opacity .9 × b 의 호흡");
+        }
+
         [UnityTest]
         public IEnumerator 주역_와이프는_가산_혼합이고_정본_네_스톱대로_굽는다()
         {

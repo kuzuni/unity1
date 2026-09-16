@@ -42,6 +42,7 @@ namespace Forge.Game.Ui
         readonly List<Image> rayBars = new List<Image>();
         readonly List<float> rayPeriod = new List<float>(), rayDelay = new List<float>();
         Image spill;
+        Image sweep;                                   // T419 — 스필 위를 훑는 빛띠(정본 5912 `.sr-canopy b::after` · screen)
         readonly List<RectTransform> stars = new List<RectTransform>();
         readonly List<CanvasGroup> starGroups = new List<CanvasGroup>();
         readonly List<float> starDur = new List<float>(), starDelay = new List<float>();
@@ -134,6 +135,17 @@ namespace Forge.Game.Ui
             Image spill = fx.spill;
             fx.Defer(spill, () => spill.sprite = BakeSpill("sr-spill"));
             fx.spill.raycastTarget = false;
+            // T419 1회차 — 정본 5912 `.sr-canopy b::after`: 스필 상자를 2.2s 로 훑는 빛띠(100deg · 스톱 다섯 · `mix-blend-mode: screen` · opacity .9).
+            //   결정 510(T179 1회차 «screen 합성은 안 옮긴다»)을 여기서 뒤집는다 — 재질 `Forge/UiScreen`(CraftFxPoly.Screen)이 이미 열여섯 자리에 서 있다.
+            //   자식이라 b 의 세로 마스크·호흡을 같이 받는다(마스크는 띠에 미리 곱하고 호흡은 Update 가 곱한다) · b 상자 밖은 RectMask2D 가 자른다(CSS mask-clip).
+            spRt.gameObject.AddComponent<RectMask2D>();
+            RectTransform swRt = UiKit.Box(spRt, "sr-sweep");   // 이름은 `.sr-*` 접두 — «sweep» 은 던전 상세의 소탕 버튼이 쓴다(T414 검사기)
+            UiKit.Fill(swRt);
+            fx.sweep = swRt.gameObject.AddComponent<Image>();
+            Image sweep = fx.sweep;
+            fx.Defer(sweep, () => sweep.sprite = BakeSweep("sr-sweep"));
+            sweep.material = CraftFxPoly.Screen();
+            sweep.raycastTarget = false;
             // 빛발 3 — 아치에서 위로
             float bw = L("ray_w_rem") * rem;
             float hMid = (compact ? L("ray_compact_h_rem") : L("ray_h_rem")) * rem, hSide = (compact ? L("ray_compact_side_h_rem") : L("ray_side_h_rem")) * rem;
@@ -215,6 +227,13 @@ namespace Forge.Game.Ui
                 rayBars[i].rectTransform.localScale = new Vector3(1f, sy, 1f);
             }
             if (spill != null) spill.color = new Color(1f, 1f, 1f, Veil(t, L("spill_period_s"), 0f, L("veil_a_lo"), L("veil_a_hi")));
+            // 빛띠 — srsweep 2.2s linear 무한: translateX −115% → 115%(b 폭 기준) · opacity .9 × b 의 호흡(자식이라 곱해진다)
+            if (sweep != null && spill != null)
+            {
+                float ph = Mathf.Repeat(t / Mathf.Max(0.01f, L("sweep_period_s")), 1f), tr = L("sweep_travel_f");
+                sweep.rectTransform.anchoredPosition = new Vector2(Mathf.Lerp(-tr, tr, ph) * spill.rectTransform.rect.width, 0f);
+                sweep.color = new Color(1f, 1f, 1f, L("sweep_a") * spill.color.a);
+            }
             // 광선 — 도입 수축(srintro .24s 1.3→1 · α 0→) + 회전(20s · done 26s) + done 호흡
             if (rays != null)
             {
@@ -523,17 +542,62 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>스필 — 바닥 가운데의 타원 방사(58%×100%) .5→.34@42%→0 · 세로 마스크(아래 44% 1 → 74% .55 → 100% 0). 정본 5894~5903.</summary>
+        /// <summary>스필(b)의 세로 마스크 — 정본 5899 `mask-image: linear-gradient(0deg, #000 0 44%, rgba(0,0,0,.55) 74%, transparent 100%)` · <paramref name="v"/> 0 = 아래.</summary>
+        static float SpillMask(float v)
+        {
+            float mMid = L("spill_mask_mid_f"), mSolid = L("spill_mask_solid_f"), mMidA = L("spill_mask_mid_a");
+            return v < mMid ? Ramp(v, mSolid, 1f, mMid, mMidA) : Ramp(v, mMid, mMidA, 1f, 0f);
+        }
+
+        /// <summary>
+        /// T419 1회차 — 스필 위를 훑는 빛띠 한 장(정본 5912 `.sr-canopy b::after`): `linear-gradient(100deg, 투명 34%, 가장자리색 .5 48%, 심색 .72 52%, 가장자리색 .5 56%, 투명 70%)`.
+        /// 투명 스톱은 이웃 색의 알파 0(CSS 가 미리 곱한 채 섞는 것과 같은 결과). b 의 세로 마스크를 곱해 둔다(자식이라 마스크를 같이 받는다). 판은 스필과 같은 비율.
+        /// </summary>
+        public static Sprite BakeSweep(string name)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            int W = 256, H = 128;
+            Color edge = SummonFxStyle.C("sweep_edge"), core = SummonFxStyle.C("sweep_core");
+            float ea = L("sweep_edge_a"), ca = L("sweep_core_a");
+            float[] st = SummonFxStyle.Arr("sweep_stops");
+            if (st.Length != 5) throw new KeyNotFoundException("SummonFxUi.json layout.sweep_stops 는 다섯 정지점이다(투명·가장자리·심·가장자리·투명)");
+            Color[] col = { new Color(edge.r, edge.g, edge.b, 0f), new Color(edge.r, edge.g, edge.b, ea), new Color(core.r, core.g, core.b, ca), new Color(edge.r, edge.g, edge.b, ea), new Color(edge.r, edge.g, edge.b, 0f) };
+            float rad = L("sweep_angle_deg") * Mathf.Deg2Rad;
+            float dx = Mathf.Sin(rad), dy = -Mathf.Cos(rad);          // CSS: 0deg 위 · y 는 아래가 +
+            float len = Mathf.Abs(W * dx) + Mathf.Abs(H * dy), cx = W * 0.5f, cy = H * 0.5f;
+            var px = new Color32[W * H];
+            for (int y = 0; y < H; y++)
+            {
+                float v = (y + 0.5f) / H;                              // 0 = 아래
+                float mask = SpillMask(v);
+                float py = H - 0.5f - y;                               // CSS y(위가 0)
+                for (int x = 0; x < W; x++)
+                {
+                    float t = 0.5f + ((x + 0.5f - cx) * dx + (py - cy) * dy) / len;
+                    Color c = col[0];
+                    if (t > st[0])
+                    {
+                        c = col[4];
+                        for (int i = 1; i < 5; i++)
+                            if (t <= st[i]) { float span = st[i] - st[i - 1]; c = Color.Lerp(col[i - 1], col[i], span <= 0f ? 1f : (t - st[i - 1]) / span); break; }
+                    }
+                    px[y * W + x] = new Color(c.r, c.g, c.b, c.a * mask);
+                }
+            }
+            return Finish(name, NewTex(name, W, H), px);
+        }
+
         public static Sprite BakeSpill(string name)
         {
             Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
             int W = 256, H = 128;
             Color c = SummonFxStyle.C("spill");
-            float mMid = L("spill_mask_mid_f"), mSolid = L("spill_mask_solid_f"), mMidA = L("spill_mask_mid_a"), rx = L("spill_rx_f"), sa0 = L("spill_a0"), sa42 = L("spill_a42");
+            float rx = L("spill_rx_f"), sa0 = L("spill_a0"), sa42 = L("spill_a42");
             var px = new Color32[W * H];
             for (int y = 0; y < H; y++)
             {
                 float v = (y + 0.5f) / H;   // 0 = 아래
-                float mask = v < mMid ? Ramp(v, mSolid, 1f, mMid, mMidA) : Ramp(v, mMid, mMidA, 1f, 0f);
+                float mask = SpillMask(v);
                 for (int x = 0; x < W; x++)
                 {
                     float u = ((x + 0.5f) / W * 2f - 1f) / rx;
