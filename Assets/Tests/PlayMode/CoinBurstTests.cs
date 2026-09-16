@@ -56,6 +56,7 @@ namespace Forge.Tests.PlayMode
                 Transform coinT = im.transform.parent != null ? im.transform.parent.Find("coin-fly-img") : null;
                 UnityEngine.UI.Image coin = coinT != null ? coinT.GetComponent<UnityEngine.UI.Image>() : null;
                 if (coin == null || im.name != DropShadow.NameFor(coin)) continue;
+                Assert.Greater(im.rectTransform.rect.width, coin.rectTransform.rect.width, "글로우 상자는 코인 상자보다 커널 반경만큼 넓다 — 정본 drop-shadow 의 번짐은 요소 상자 밖으로 나간다(T411 3회차)");
                 glows++;
                 Assert.Less(im.transform.GetSiblingIndex(), coin.transform.GetSiblingIndex(), "글로우는 코인 뒤에 그린다");
                 Assert.AreNotEqual(coin.sprite, im.sprite, "글로우는 번지게 구운 판이다(코인 그림 그대로가 아니다)");

@@ -22,6 +22,8 @@ namespace Forge.Game.Ui
 
         static FilterTable table;
         static readonly Dictionary<string, Sprite> baked = new Dictionary<string, Sprite>(StringComparer.Ordinal);
+        /// <summary>구운 번짐 판마다 «판 ÷ 줄인 원본» 의 한 변 비(가로·세로) — 커널 반경만큼 넓혀 구웠으니 1 보다 크다(<see cref="BlurGrow"/>).</summary>
+        static readonly Dictionary<Sprite, Vector2> blurGrow = new Dictionary<Sprite, Vector2>();
 
         /// <summary>표 — 처음 부를 때 한 번 읽는다.</summary>
         public static FilterTable Table
@@ -39,7 +41,17 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>테스트가 표를 다시 읽게 한다(구운 것도 버린다).</summary>
-        public static void Reset() { table = null; baked.Clear(); }
+        public static void Reset() { table = null; baked.Clear(); blurGrow.Clear(); }
+
+        /// <summary>
+        /// <see cref="Blur"/> 가 낸 판의 키움 비(가로·세로 · «판 한 변 ÷ 줄인 원본 한 변» = 1 + 2×커널 반경/원본). 구운 판이 아니면 (1, 1).
+        /// 그림자를 원본과 **같은 상자**에 넣으면 실루엣이 이 비만큼 줄고 번짐이 상자 끝에서 잘린다 — 정본 `drop-shadow` 는 요소 상자 밖으로 번진다(T411 3회차).
+        /// </summary>
+        public static Vector2 BlurGrow(Sprite bakedSprite)
+        {
+            Vector2 g;
+            return bakedSprite != null && blurGrow.TryGetValue(bakedSprite, out g) ? g : Vector2.one;
+        }
 
         /// <summary>
         /// 색 filter(`grayscale`·`saturate`·`brightness`)를 스프라이트 화소에 구워 끼우고, `opacity` 는 틴트 알파로 준다.
@@ -148,6 +160,7 @@ namespace Forge.Game.Ui
             var sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), src.pixelsPerUnit);
             sp.name = "blur-" + keySuffix + "-" + src.name;
             baked[key] = sp;
+            blurGrow[sp] = new Vector2((float)w / w0, (float)h / h0);
             return sp;
         }
 

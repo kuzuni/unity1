@@ -69,11 +69,23 @@ namespace Forge.Game.Ui
             sh.color = DropShadowUi.C(key);
             RectTransform sr = sh.rectTransform;
             sr.anchorMin = ir.anchorMin; sr.anchorMax = ir.anchorMax; sr.pivot = ir.pivot;
-            sr.sizeDelta = ir.sizeDelta;
-            sr.anchoredPosition = ir.anchoredPosition
-                                  + new Vector2(DropShadowUi.Len(key, "dx", boxPx), -DropShadowUi.Len(key, "dy", boxPx));
+            FitPadded(sr, ir, sp, r, new Vector2(DropShadowUi.Len(key, "dx", boxPx), -DropShadowUi.Len(key, "dy", boxPx)));
             sr.SetSiblingIndex(ir.GetSiblingIndex());                                        // 그림 **뒤**에 그린다
             return sh;
+        }
+
+        /// <summary>
+        /// T411 3회차 — 그림자 상자 = 원본 상자 **+ 구운 판의 여유**(<see cref="UiFilter.BlurGrow"/> · 커널 반경만큼) · 가운데는 원본 가운데 + 오프셋.
+        /// 종전엔 원본과 같은 상자에 넣어 실루엣이 그 비만큼 줄고 번짐이 상자 끝에서 잘렸다 — 정본 `filter: drop-shadow` 는 요소 상자 **밖으로** 번진다
+        /// (나는 코인의 금색 글로우가 코인 뒤에 통째로 숨어 T408 자에 한 화소도 안 잡히던 까닭 · 런 856·868).
+        /// </summary>
+        static void FitPadded(RectTransform sr, RectTransform like, Sprite bakedSprite, Rect r, Vector2 offset)
+        {
+            Vector2 grow = UiFilter.BlurGrow(bakedSprite);
+            Vector2 extra = new Vector2(r.width * (grow.x - 1f), r.height * (grow.y - 1f));
+            sr.sizeDelta = like.sizeDelta + extra;
+            sr.anchoredPosition = like.anchoredPosition + offset
+                                  + new Vector2((0.5f - like.pivot.x) * extra.x, (0.5f - like.pivot.y) * extra.y);
         }
 
         /// <summary>
@@ -110,9 +122,7 @@ namespace Forge.Game.Ui
             sh.color = DropShadowUi.C(key);
             RectTransform sr = sh.rectTransform;
             sr.anchorMin = box.anchorMin; sr.anchorMax = box.anchorMax; sr.pivot = box.pivot;
-            sr.sizeDelta = box.sizeDelta;
-            sr.anchoredPosition = box.anchoredPosition
-                                  + new Vector2(DropShadowUi.Px(key, "dx_px") * css, -DropShadowUi.Px(key, "dy_px") * css);
+            FitPadded(sr, box, sp, r, new Vector2(DropShadowUi.Px(key, "dx_px") * css, -DropShadowUi.Px(key, "dy_px") * css));
             sr.SetSiblingIndex(box.GetSiblingIndex());                                       // 그림 **뒤**에
             return sh;
         }

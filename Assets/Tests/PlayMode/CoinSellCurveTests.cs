@@ -60,7 +60,8 @@ namespace Forge.Tests.PlayMode
 
         /// <summary>
         /// 촬영 세션 — 카메라 사본·RT·캔버스 모드 전환을 **한 번만** 하고(런 821 자국: 촬영마다 만들면 한 장에 0.5~1.4초라 25 시각을 못 맞춘다)
-        /// 프레임마다 Render + ReadPixels 만 한다. 해상도는 <see cref="W"/>×<see cref="H"/> 의 절반(금빛 셈은 비율이라 충분하다).
+        /// 프레임마다 Render + ReadPixels 만 한다. 해상도는 <see cref="W"/>×<see cref="H"/> **그대로** — 절반 RT 는 화면을 줄이는 것이 아니라
+        /// 앱의 **왼쪽 아래 1/4 을 2배로** 담았다(런 868 자국 PNG · 카메라 사본의 화소 배율은 안전 영역 540×960 그대로라) — 띠도 코인 수도 그 조각 것이었다(T411 3회차).
         /// 마스크는 «위가 0행» 인 byte[](1 = 금빛)로 쌓아 두고, 정본과 같이 **마지막 프레임을 바닥**으로 뺀다.
         /// </summary>
         sealed class Session
@@ -74,7 +75,7 @@ namespace Forge.Tests.PlayMode
             {
                 UiRoot root = UiRoot.Instance;
                 if (root == null || root.Canvas == null) return null;
-                Session s = new Session { root = root, canvas = root.Canvas, gold = gold, W = CoinSellCurveTests.W / 2, H = CoinSellCurveTests.H / 2 };
+                Session s = new Session { root = root, canvas = root.Canvas, gold = gold, W = CoinSellCurveTests.W, H = CoinSellCurveTests.H };
                 s.prevMode = s.canvas.renderMode; s.prevCam = s.canvas.worldCamera; s.prevPlane = s.canvas.planeDistance; s.prevActive = RenderTexture.active;
                 try
                 {

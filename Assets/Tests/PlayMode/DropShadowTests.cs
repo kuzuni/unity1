@@ -70,7 +70,7 @@ namespace Forge.Tests.PlayMode
             Assert.Less(sh.GetSiblingIndex(), sword.GetSiblingIndex(), "그림자는 검 **뒤**에 그린다");
 
             float css = KeylineUi.CssPx;
-            Vector2 d = ((RectTransform)sh).anchoredPosition - ((RectTransform)sword).anchoredPosition;
+            Vector2 d = CenterDelta((RectTransform)sh, (RectTransform)sword);
             Assert.AreEqual(DropShadowUi.Px("pass_sword", "dx_px") * css, d.x, 0.01f, "가로 오프셋 = 표 dx(정본 .14rem)");
             Assert.AreEqual(-DropShadowUi.Px("pass_sword", "dy_px") * css, d.y, 0.01f, "세로 오프셋 = 표 dy 만큼 **아래**(유니티 −y)");
             Color want = DropShadowUi.C("pass_sword");
@@ -112,7 +112,7 @@ namespace Forge.Tests.PlayMode
                 seen++;
                 Transform sh = ico.transform.parent.Find(DropShadow.NameFor(ico));   // 한 부모 아래 아이콘이 여럿이라 이름이 갈린다(런 631)
                 Assert.IsNotNull(sh, ico.name + " 뒤에 검정 윤곽을 깔았다(정본 5335)");
-                Vector2 d = ((RectTransform)sh).anchoredPosition - ico.rectTransform.anchoredPosition;
+                Vector2 d = CenterDelta((RectTransform)sh, ico.rectTransform);
                 Assert.AreEqual(0f, d.x, 0.01f, "정본은 가로로 안 민다(0 0 1.2px)");
                 Assert.AreEqual(0f, d.y, 0.01f, "정본은 세로로도 안 민다 — 그림자가 아니라 **윤곽**이다");
                 Image si = sh.GetComponent<Image>();
@@ -175,7 +175,7 @@ namespace Forge.Tests.PlayMode
             Assert.Less(sh.GetSiblingIndex(), egg.transform.GetSiblingIndex(), "그림자는 알 **뒤**에");
             Image si = sh.GetComponent<Image>();
             float css = KeylineUi.CssPx;
-            Vector2 d = ((RectTransform)sh).anchoredPosition - egg.rectTransform.anchoredPosition;
+            Vector2 d = CenterDelta((RectTransform)sh, egg.rectTransform);
             Assert.AreEqual(0f, d.x, 0.01f, "정본은 가로로 안 민다");
             Assert.AreEqual(-DropShadowUi.Px("pet_tile_egg", "dy_px") * css, d.y, 0.01f, "세로 오프셋 = 표 .15rem 만큼 아래");
             Assert.AreEqual(DropShadowUi.C("pet_tile_egg").a, si.color.a, 2f / 255f, "알파 = 표 pet_tile_egg(.3)");
@@ -220,7 +220,7 @@ namespace Forge.Tests.PlayMode
 
             float box = Mathf.Max(ico.rectTransform.rect.width, ico.rectTransform.rect.height);
             Assert.Greater(box, 1f, "아이콘 상자");
-            Vector2 d = ((RectTransform)sh).anchoredPosition - ico.rectTransform.anchoredPosition;
+            Vector2 d = CenterDelta((RectTransform)sh, ico.rectTransform);
             Assert.AreEqual(0f, d.x, 0.01f, "정본은 가로로 안 민다(0 .10em .16em)");
             Assert.AreEqual(-DropShadowUi.Len("dg_rw_ico", "dy", box), d.y, 0.01f,
                 "세로 오프셋 = 상자 × .0617(= .10em ÷ 1.62) 만큼 **아래** · 상자 " + box.ToString("0.0"));
@@ -267,13 +267,17 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(si.sprite, "그림자도 그림이 있다(흐려 구운 실루엣)");
 
             float css = KeylineUi.CssPx;
-            Vector2 d = ((RectTransform)sh).anchoredPosition - ((RectTransform)art).anchoredPosition;
+            Vector2 d = CenterDelta((RectTransform)sh, (RectTransform)art);
             Assert.AreEqual(DropShadowUi.Px("anvil_btn", "dx_px") * css, d.x, 0.01f, "가로 오프셋 0(정본 985 의 첫 값)");
             Assert.AreEqual(-DropShadowUi.Px("anvil_btn", "dy_px") * css, d.y, 0.01f, "세로 오프셋 = 표 dy(.18rem) 만큼 **아래**");
             Color want = DropShadowUi.C("anvil_btn");
             Assert.AreEqual(want.a, si.color.a, 2f / 255f, "알파 = 표 anvil_btn(.35)");
             Assert.Less(si.color.r + si.color.g + si.color.b, 0.05f, "색은 검정");
-            Assert.AreEqual(((RectTransform)art).sizeDelta, ((RectTransform)sh).sizeDelta, "그림자 상자 = 모루 상자");
+            // T411 3회차 — 그림자 상자 = 모루 상자 × 구운 판의 여유(커널 반경 · 번짐이 상자 끝에서 안 잘린다 · 정본 drop-shadow 는 상자 밖으로 번진다)
+            Vector2 grow = UiFilter.BlurGrow(si.sprite);
+            Assert.Greater(grow.x, 1f, "구운 판은 커널 반경만큼 넓다");
+            Assert.AreEqual(((RectTransform)art).rect.width * grow.x, ((RectTransform)sh).rect.width, 0.5f, "그림자 상자 = 모루 상자 + 구운 판의 여유(가로)");
+            Assert.AreEqual(((RectTransform)art).rect.height * grow.y, ((RectTransform)sh).rect.height, 0.5f, "그림자 상자 = 모루 상자 + 구운 판의 여유(세로)");
 
             // ⓑ 겹마다 걸지 **않았다** — 21겹 중 어느 것도 제 그림자를 갖고 있지 않다.
             int per = 0;
@@ -320,6 +324,13 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(shadow.sprite.rect.width, w0,
                 what + ": 번짐이 실제로 걸렸다 — 구운 판(" + shadow.sprite.rect.width + ")이 그 해상도로 줄인 원본("
                 + w0 + " · 원본 " + sw + " × 줄임 " + shrink.ToString("0.000") + ")보다 커널 반경만큼 넓다");
+        }
+
+        /// <summary>두 상자의 **가운데** 차(부모 좌표 · 피벗이 (0,1) 이든 (.5,.5) 이든) — 그림자 상자는 구운 판의 여유만큼 넓어 앵커 자리로 재면 어긋난다(T411 3회차).</summary>
+        private static Vector2 CenterDelta(RectTransform a, RectTransform b) { return Center(a) - Center(b); }
+        private static Vector2 Center(RectTransform t)
+        {
+            return t.anchoredPosition + new Vector2((0.5f - t.pivot.x) * t.rect.width, (0.5f - t.pivot.y) * t.rect.height);
         }
 
         private static Transform FindIn(Transform root, string name)
