@@ -1,7 +1,7 @@
 {
   "_": "ROUTINE T342 정본 CSS `filter` 자리표 — web/css/style.css 의 선언 그대로. 셈은 Core/Ui/FilterRules.cs(명세 정의)가 쥐고, 이 표는 자리마다의 값만 쥔다(§1 «수치는 코드에 박지 않는다»). line = 정본 style.css 줄 번호(되짚는 자리). blur_px 는 CSS px 이고 명세상 «반지름» 이 아니라 가우시안 표준편차다.",
   "sites": {
-    "_": "남은 하나(summon_orb_* 6656~6665)는 SkillSummonResult.cs 가 산 lock(T334)이라 아직 밖 — 들어오면 그때 적는다. 표 글자에 동그라미 글자를 쓰지 않는다(check_text_glyphs).",
+    "_": "소환 구슬 여섯(summon_orb_0~5 · 6656~6665)은 7회차에 들어왔다 — 색 한 칸에 거는 자리라 UiFilter.ApplyColor(스프라이트 굽기)가 아니라 Core FilterRules.Apply 로 구체 본체 색(림·면·하이라이트)에 건다. 표 글자에 동그라미 글자를 쓰지 않는다(check_text_glyphs).",
     "equip_cell_empty": {
       "_": ".equip-cell.empty .cell-img.dim — 마룬 타일 위에서 형태가 안 읽혀 «어두운 면 위 밝은 실루엣» 으로 뒤집은 자리(정본 주석 860~861)",
       "line": 862,
@@ -19,6 +19,12 @@
       "_": ".tech-tree-node.tlocked .ico, .tech-tree-node.tlocked img — 아직 못 여는 연구 노드의 그림만 반쯤 회색으로. 노드 판의 옅어짐(정본 2188·2191 의 면 색·투명도)은 이 자리가 아니다.",
       "line": 2193,
       "grayscale": 0.55
-    }
+    },
+    "summon_orb_0": {"_": ".sr-cell[data-tier=\"0\"] .sr-orb { filter: saturate(.62) brightness(.64) } — 소환 결과 구체 본체(림·면·하이라이트 = 정본 .sr-orb 의 배경 세 겹) · 일반 — 정본 주석 6641~6655: 쓰레기 드랍이 가장 빛나는 휘도 역전을 막는 억제 · tier 0 만 한 단 더 누른다 · 래퍼의 광채(.sr-orbwrap box-shadow)·그림자는 밖이다. 7회차", "line": 6656, "saturate": 0.62, "brightness": 0.64},
+    "summon_orb_1": {"_": ".sr-cell[data-tier=\"1\"] .sr-orb { filter: saturate(.66) brightness(.74) } — 소환 결과 구체 본체(림·면·하이라이트 = 정본 .sr-orb 의 배경 세 겹) · 희귀한 — 고유 휘도 140 이라 일반과 같은 배율로 누르면 되레 어두워진다(실측 명부 역전) · 한 단 덜 누른다 · 래퍼의 광채(.sr-orbwrap box-shadow)·그림자는 밖이다. 7회차", "line": 6657, "saturate": 0.66, "brightness": 0.74},
+    "summon_orb_2": {"_": ".sr-cell[data-tier=\"2\"] .sr-orb { filter: saturate(.95) brightness(.9) } — 소환 결과 구체 본체(림·면·하이라이트 = 정본 .sr-orb 의 배경 세 겹) · 서사시 — 쓰레기와 구분되게 덜 누른다 · 래퍼의 광채(.sr-orbwrap box-shadow)·그림자는 밖이다. 7회차", "line": 6658, "saturate": 0.95, "brightness": 0.9},
+    "summon_orb_3": {"_": ".sr-cell[data-tier=\"3\"] .sr-orb { filter: brightness(.9) saturate(1.05) } — 소환 결과 구체 본체(림·면·하이라이트 = 정본 .sr-orb 의 배경 세 겹) · 전설 — 상위 등급 안의 역전(순노랑 전설이 어두운 보라 신화보다 밝음)은 본체 밝기로 정규화 · 래퍼의 광채(.sr-orbwrap box-shadow)·그림자는 밖이다. 7회차", "line": 6663, "brightness": 0.9, "saturate": 1.05},
+    "summon_orb_4": {"_": ".sr-cell[data-tier=\"4\"] .sr-orb { filter: saturate(.88) } — 소환 결과 구체 본체(림·면·하이라이트 = 정본 .sr-orb 의 배경 세 겹) · 궁극의 — brightness 를 올리면 3스톱 그라디언트의 어두운 림이 씻겨 평면 원반이 되니 채도로만 누른다 · 래퍼의 광채(.sr-orbwrap box-shadow)·그림자는 밖이다. 7회차", "line": 6664, "saturate": 0.88},
+    "summon_orb_5": {"_": ".sr-cell[data-tier=\"5\"] .sr-orb { filter: saturate(1.08) } — 소환 결과 구체 본체(림·면·하이라이트 = 정본 .sr-orb 의 배경 세 겹) · 신화 — 파스텔 신화가 채도 높은 궁극의에게 시선에서 지던 것을 채도로 올린다 · 래퍼의 광채(.sr-orbwrap box-shadow)·그림자는 밖이다. 7회차", "line": 6665, "saturate": 1.08}
   }
 }

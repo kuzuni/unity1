@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using Forge.Game;
 using Forge.Game.Gallery;
@@ -363,5 +364,49 @@ namespace Forge.Tests.PlayMode
             fh.Gear.Set(slot, keep);
             yield return null;
         }
-}
+
+        /// <summary>T342 7회차 ⓔ — 정본 6656~6665 `.sr-cell[data-tier=N] .sr-orb { filter: saturate(·) brightness(·) }`:
+        /// 소환 결과의 구체 본체 색이 표 `summon_orb_N` 의 filter 를 거친 등급색이다(종전 «tier ≤ 1 검정 30%» 근사가 아니다).</summary>
+        [UnityTest]
+        public IEnumerator 마_소환_구슬은_등급마다_표의_filter_를_거친_색이다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            var defs = PetSkillHost.Instance.Data.Defs;
+            var list = new List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "mythic", Name = "나" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "mythic", null);
+            Assert.IsNotNull(v, "결과 연출 팝업이 서지 않았다");
+            yield return null; yield return null;
+
+            List<Color> orbs = new List<Color>();
+            foreach (Image img in v.GetComponentsInChildren<Image>(true))
+                if (img.name == "sr-orb" && img.transform.parent != null && img.transform.parent.name == "sr-orbwrap") orbs.Add(img.color);
+            Assert.AreEqual(2, orbs.Count, "구체 둘(sr-orbwrap/sr-orb)");
+            foreach (var e in list)
+            {
+                int tier = Array.IndexOf(defs.Rarities, e.Rarity);
+                Assert.GreaterOrEqual(tier, 0, e.Rarity + " 등급 번호");
+                Color rc = PetSkillStyle.Rarity(defs, e.Rarity);
+                Color want = SkillSummonResultView.OrbFilter(rc, tier);
+                Color oldApprox = tier <= 1 ? Color.Lerp(rc, Color.black, 0.3f) : rc;
+                bool found = false;
+                foreach (Color c in orbs)
+                    if (Mathf.Abs(c.r - want.r) < 1.5f / 255f && Mathf.Abs(c.g - want.g) < 1.5f / 255f && Mathf.Abs(c.b - want.b) < 1.5f / 255f) found = true;
+                Assert.IsTrue(found, e.Rarity + "(tier " + tier + ") 구체 색 = 등급색에 표 summon_orb_" + tier + " 를 건 값 " + want + " 이어야 한다 — 실물 " + string.Join(" / ", orbs.ConvertAll(c => c.ToString()).ToArray()));
+                if (tier == 0)
+                {
+                    Assert.AreNotEqual(oldApprox, want, "tier 0 은 정본 filter(saturate .62 · brightness .64)가 종전 근사(검정 30%)와 다른 값이다");
+                    Assert.Less(want.r + want.g + want.b, rc.r + rc.g + rc.b, "tier 0 은 등급색보다 어둡다");
+                }
+                if (tier == 5) Assert.AreEqual(rc.r * 0.213f + rc.g * 0.715f + rc.b * 0.072f, want.r * 0.213f + want.g * 0.715f + want.b * 0.072f, 2f / 255f, "tier 5 는 채도만 올리고 명부는 그대로");
+            }
+            yield return null;
+        }
+    }
 }

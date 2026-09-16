@@ -267,6 +267,15 @@ namespace Forge.Game.Ui
         }
 
         static int RarityIdx(string r) { return Array.IndexOf(Defs.Rarities, r); }
+        /// <summary>T342 ⓔ — 정본 `.sr-cell[data-tier=N] .sr-orb` 의 filter(표 FilterUi `summon_orb_N`)를 색 한 칸에 건다.
+        /// 스프라이트를 굽는 `UiFilter.ApplyColor` 가 아니라 Core 셈 `FilterRules.Apply` 를 바로 부른다 — 이 자리는 틴트 색이 곧 구체 색이라 그것을 걸러야 정본과 같다. 알파는 그대로.</summary>
+        public static Color OrbFilter(Color c, int tier)
+        {
+            FilterSpec f = UiFilter.Table.Get("summon_orb_" + Mathf.Clamp(tier, 0, 5));
+            double r = c.r, g = c.g, b = c.b;
+            FilterRules.Apply(f, ref r, ref g, ref b);
+            return new Color((float)r, (float)g, (float)b, c.a);
+        }
         /// <summary>순위 → 등급 이름(T334 2회차 — 상태 기계가 돌려주는 «이번 프레임 최고 순위» 를 소리 이름으로).</summary>
         static string RarityOf(int rank) { return rank >= 0 && rank < Defs.Rarities.Length ? Defs.Rarities[rank] : null; }
         static bool Hi(string r) { return r == "legendary" || r == "ultimate" || r == "mythic"; }
@@ -844,12 +853,15 @@ namespace Forge.Game.Ui
             shadow.color = new Color(0f, 0f, 0f, 0.5f);
             shadow.preserveAspect = false;
             UiKit.Anchor(shadow.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0f, -cw * 0.02f), cw * 0.74f, cw * 0.13f);
-            Image deep = PetSkillKit.Disc(wrap, "sr-orb-deep", Color.Lerp(rc, PetSkillStyle.C("sr_orb_deep"), 0.62f));
+            // T342 7회차 ⓔ — 정본 6656~6665 `.sr-cell[data-tier="N"] .sr-orb { filter: saturate(·) brightness(·) }`(표 FilterUi `summon_orb_N`):
+            //   구체 **본체**(림·면·하이라이트 = 정본 `.sr-orb` 의 배경 세 겹)의 색에 건다. 래퍼의 광채(`.sr-orbwrap` box-shadow)·그림자는 밖이다.
+            //   종전 «tier ≤ 1 이면 검정 30% 섞기» 는 이 filter 의 근사였다 — 걷는다(정본 주석 6641~6655: 휘도 역전 억제 · tier 0 만 한 단 더).
+            Image deep = PetSkillKit.Disc(wrap, "sr-orb-deep", OrbFilter(Color.Lerp(rc, PetSkillStyle.C("sr_orb_deep"), 0.62f), tier));
             UiKit.Fill(deep.rectTransform);
-            Image orb = PetSkillKit.Disc(wrap, "sr-orb", tier <= 1 ? Color.Lerp(rc, PetSkillStyle.C("black"), 0.3f) : rc);
+            Image orb = PetSkillKit.Disc(wrap, "sr-orb", OrbFilter(rc, tier));
             orb.rectTransform.offsetMin = new Vector2(cw * 0.04f, cw * 0.09f);
             orb.rectTransform.offsetMax = new Vector2(-cw * 0.09f, -cw * 0.04f);
-            Image hi = PetSkillKit.Disc(wrap, "sr-hilite", PetSkillStyle.C("sr_hilite"));
+            Image hi = PetSkillKit.Disc(wrap, "sr-hilite", OrbFilter(PetSkillStyle.C("sr_hilite"), tier));
             UiKit.Anchor(hi.rectTransform, new Vector2(0.36f, 0.81f), new Vector2(0.5f, 0.5f), Vector2.zero, cw * 0.28f, cw * 0.2f);
             // 아이콘(슬롯의 그림)
             float isz = cw * (one ? 0.62f : 0.6f);

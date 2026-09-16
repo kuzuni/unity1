@@ -181,6 +181,44 @@ namespace Forge.Tests.EditMode
         }
 
         [Test]
+        public void 표가_정본_그대로다_소환_구슬_여섯()
+        {
+            // T342 7회차 ⓔ — style.css 6656~6665 `.sr-cell[data-tier="N"] .sr-orb { filter: … }` 여섯 줄 그대로(선언 순서는 셈이 선형이라 상관없다).
+            double[][] want = { new[] { 6656.0, .62, .64 }, new[] { 6657.0, .66, .74 }, new[] { 6658.0, .95, .9 }, new[] { 6663.0, 1.05, .9 }, new[] { 6664.0, .88, -1 }, new[] { 6665.0, 1.08, -1 } };
+            for (int t = 0; t < 6; t++)
+            {
+                FilterSpec f = Site("summon_orb_" + t);
+                Assert.AreEqual((int)want[t][0], f.Line, "tier " + t + " 정본 줄");
+                Assert.IsTrue(f.HasSaturate, "tier " + t + " saturate"); Assert.AreEqual(want[t][1], f.Saturate, 1e-12, "tier " + t + " saturate 값");
+                if (want[t][2] < 0) Assert.IsFalse(f.HasBrightness, "tier " + t + " 은 brightness 가 없다");
+                else { Assert.IsTrue(f.HasBrightness, "tier " + t + " brightness"); Assert.AreEqual(want[t][2], f.Brightness, 1e-12, "tier " + t + " brightness 값"); }
+                Assert.IsFalse(f.HasGrayscale, "tier " + t + " grayscale 없음"); Assert.IsFalse(f.HasOpacity, "tier " + t + " opacity 없음"); Assert.IsFalse(f.HasBlur, "tier " + t + " blur 없음");
+            }
+        }
+
+        [Test]
+        public void 소환_구슬은_아래_등급일수록_어둡고_탁하다_명부가_안_내려간다()
+        {
+            // 정본 주석 6641~6655: 억제는 «쓰레기 드랍이 제일 빛나는 휘도 역전» 을 막는 것이고 회귀 검사는 명부 열(단조 증가)이다.
+            // saturate 는 휘도(SatLum 계수)를 보존하고 brightness 는 곱이라, 같은 색에 여섯 filter 를 걸면 명부 = 원 명부 × (.64 · .74 · .9 · .9 · 1 · 1) 로 안 내려간다.
+            double prev = -1;
+            for (int t = 0; t < 6; t++)
+            {
+                double r = 0.6, g = 0.5, b = 0.9;
+                FilterRules.Apply(Site("summon_orb_" + t), ref r, ref g, ref b);
+                double lum = FilterRules.SatLumR * r + FilterRules.SatLumG * g + FilterRules.SatLumB * b;
+                Assert.GreaterOrEqual(lum, prev - 1e-9, "tier " + t + " 명부가 아래 등급보다 낮다");
+                prev = lum;
+            }
+            double r0 = 0.6, g0 = 0.5, b0 = 0.9;
+            FilterRules.Apply(Site("summon_orb_0"), ref r0, ref g0, ref b0);
+            Assert.AreEqual((0.9 - 0.5) * 0.62 * 0.64, b0 - g0, 1e-9, "tier 0: 채널 차 = 원 차 × saturate(.62) × brightness(.64) — 채도도 밝기도 준다");
+            double r5 = 0.6, g5 = 0.5, b5 = 0.9;
+            FilterRules.Apply(Site("summon_orb_5"), ref r5, ref g5, ref b5);
+            Assert.AreEqual((0.9 - 0.5) * 1.08, b5 - g5, 1e-9, "tier 5: 채도만 1.08 배 — 밝기는 그대로");
+        }
+
+        [Test]
         public void 함수가_하나도_없는_줄은_거절한다()
         {
             var o = MiniJson.ParseObject("{\"line\": 1}");
