@@ -38,6 +38,7 @@
   ],
   "textKinds": [
     { "kind": "Title", "size": 60, "min": 60 },
+    { "kind": "Title2", "size": 42, "min": 42, "_": "T404 ⓐ — 정본 모달 제목 단 1.12~1.2rem(40.8~43.7px · 1rem = 36.4) — .fi-title 1.12 · .modal-card h3/.sellwarn-title/.league-title/.offline-total/.dgd-stage b 1.15(= 41.9) · .offline-title 1.2 — 여덟 중 다섯이 1.15rem 이라 42 · 하한이 아니라 정본 크기다 · Title 60 은 정본 어느 제목에서도 안 나오는 수였다(+37~47%) · Head 48 은 그 위 창(T391)" },
     { "kind": "Head",   "size": 48, "min": 48, "_": "T391 ⓐ — 정본 1.22~1.5rem(≈44~55px) «하한 위·제목 아래» 단(1.3rem = 47.3px · 시트 제목 .sheet-title 1.35 · 리그 단 순위 · 상점 보석 수 · 확률 머리 h3 · 자동 제련 제목) · 하한이 아니라 정본 크기다" },
     { "kind": "Button", "size": 44, "min": 44 },
     { "kind": "Body", "size": 40, "min": 40 },

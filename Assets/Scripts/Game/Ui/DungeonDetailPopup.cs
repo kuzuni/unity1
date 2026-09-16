@@ -100,7 +100,7 @@ namespace Forge.Game.Ui
             float heroH = H * UiKit.L("dgd_hero_h");
             float radius = DungeonPopups.RemL("card_r_rem");
             float triD = H * UiKit.L("dgd_tri");
-            float stageRowH = DungeonPopups.LineH(TextKind.Sub) + DungeonPopups.LineH(TextKind.Body);
+            float stageRowH = DungeonPopups.LineH(TextKind.Sub) + DungeonPopups.LineH(TextKind.Title2);   // 난이도 수 = 정본 5310 `.dgd-stage b { 1.15rem }`(T404)
             float pillH = DungeonPopups.LineH(TextKind.Sub) + DungeonPopups.RemL("dgd_pill_pad_rem") * 2f;
             float keysH = DungeonPopups.LineH(TextKind.Title);
             float btnH = DungeonPopups.RemL("dgd_btn_h_rem");
@@ -128,8 +128,8 @@ namespace Forge.Game.Ui
             StageText = DgStageText(curStage);
             TextMeshProUGUI lab = DungeonPopups.Bold(card, "stage-label", TextKind.Sub, "난이도", "pp_ink");
             UiKit.Place(lab.rectTransform, cx - labelW * 0.5f, y, labelW, DungeonPopups.LineH(TextKind.Sub));
-            TextMeshProUGUI num = DungeonPopups.Bold(card, "stage-num", TextKind.Body, StageText, "pp_ink");
-            UiKit.Place(num.rectTransform, cx - labelW * 0.5f, y + DungeonPopups.LineH(TextKind.Sub), labelW, DungeonPopups.LineH(TextKind.Body));
+            TextMeshProUGUI num = DungeonPopups.Bold(card, "stage-num", TextKind.Title2, StageText, "pp_ink");   // T404 ⓑ — 정본 5310 `.dgd-stage b { 1.15rem }` = 41.9px → Title2 42(전엔 Body 40 · −5%)
+            UiKit.Place(num.rectTransform, cx - labelW * 0.5f, y + DungeonPopups.LineH(TextKind.Sub), labelW, DungeonPopups.LineH(TextKind.Title2));
             PrevButton = DungeonPopups.TriButton(card, "prev", true, triD, () => StepStage(-1));
             UiKit.Place(DungeonPopups.Root(PrevButton), cx - labelW * 0.5f - gap * 0.5f - triD, y + (stageRowH - triD) * 0.5f, triD, triD);
             NextButton = DungeonPopups.TriButton(card, "next", false, triD, () => StepStage(1));

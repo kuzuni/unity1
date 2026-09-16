@@ -331,10 +331,10 @@ namespace Forge.Game.Ui
             float rowH = UiKit.L("lc_row_h") * w;
             float pillH = UiKit.L("lc_pill_h") * w * 1.4f;
             List<LeagueChallengeOption> list = h.League.ChallengeList(h.LeagueState);
-            float cardH = rem * 1.1f + PopupKit.FontSize(TextKind.Title) * 1.3f + PopupKit.FontSize(TextKind.Sub) * 1.5f + rem * 1.05f + pillH + rem * 1.9f + list.Count * (rowH + rem * 0.5f) + rem * 1.15f + rem * 1.1f;
+            float cardH = rem * 1.1f + PopupKit.FontSize(TextKind.Title2) * 1.3f + PopupKit.FontSize(TextKind.Sub) * 1.5f + rem * 1.05f + pillH + rem * 1.9f + list.Count * (rowH + rem * 0.5f) + rem * 1.15f + rem * 1.1f;
             RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "pp_paper", rem);
             PopupKit.Column(card, UiKit.H("card_pad"), 0f);
-            TextMeshProUGUI title = PopupKit.Label(card, "title", TextKind.Title, "상대 선택", "stage_ink");
+            TextMeshProUGUI title = PopupKit.Label(card, "title", TextKind.Title2, "상대 선택", "stage_ink");   // T404 ⓑ — 정본 2298 `.league-title { 1.15rem }` = 41.9px → Title2 42(전엔 Title 60)
             PopupKit.Ring(title);
             PopupKit.Label(card, "desc", TextKind.Sub, "도전 티켓은 매일 09:00에 보충됩니다!", "pp_ink", TextAlignmentOptions.Center, false, true, PopupKit.FontSize(TextKind.Sub) * 1.5f);
             PopupKit.Spacer(card, rem * 1.05f);

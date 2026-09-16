@@ -83,6 +83,12 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual("hammer", DungeonDetailPopup.Id);
             Assert.AreEqual(1, DungeonDetailPopup.Stage, "최고 0 → 도전 단계 1");
             Assert.AreEqual("1-1", DungeonDetailPopup.StageText, "원작 dgStageText");
+            {   // T404 ⓑ — 난이도 수(.dgd-stage b 1.15rem = 41.9px)는 모달 제목 단 Title2 42 로 선다(전엔 Body 40)
+                TMPro.TextMeshProUGUI num = null;
+                foreach (TMPro.TextMeshProUGUI t in UiRoot.Instance.App.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true)) if (t.name == "stage-num") { num = t; break; }
+                Assert.IsNotNull(num, "난이도 수(stage-num)");
+                Assert.AreEqual(UiCatalog.Instance.Kind(TextKind.Title2).size, num.fontSize, 0.01f, "정본 5310 .dgd-stage b 1.15rem → Title2");
+            }
             Assert.AreEqual("2/2", DungeonDetailPopup.KeysText, "새 세이브 열쇠 2/2");
             StringAssert.Contains("hammers", DungeonDetailPopup.RewardText, "망치 도둑 보상은 해머·코인");
             StringAssert.Contains("coins", DungeonDetailPopup.RewardText);

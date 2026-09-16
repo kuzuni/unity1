@@ -32,9 +32,9 @@ namespace Forge.Game.Ui
             UiKit.Place(top, PopupKit.Line3, PopupKit.Line3, inner, topH);
             UiKit.Panel(top, "bg", TopFaceKey);
             float y = rem * 1.3f;
-            TextMeshProUGUI title = UiKit.Text(top, "title", TextKind.Title, "오프라인 보상", "stage_ink");
+            TextMeshProUGUI title = UiKit.Text(top, "title", TextKind.Title2, "오프라인 보상", "stage_ink");   // T404 ⓑ — 정본 267 `.offline-title { font-size: 1.2rem }` = 43.7px → Title2 42(전엔 Title 60 · +37%)
             title.fontStyle = FontStyles.Bold;
-            float titleH = PopupKit.FontSize(TextKind.Title) * 1.25f;
+            float titleH = PopupKit.FontSize(TextKind.Title2) * 1.25f;
             UiKit.Place(title.rectTransform, 0f, y, inner, titleH);
             PopupKit.Ring(title, "sheet_title", "pp_line");   // 정본 .offline-title .11em
             y += titleH + rem * 0.15f;

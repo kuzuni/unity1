@@ -140,7 +140,7 @@ namespace Forge.Game.Ui
             Clear(p);
             RectTransform card = PopupKit.Card(p.Root, "card", UiKit.L("modal_card_w") * UiKit.RefW, -1f, "pp_paper", UiKit.H("card_r"));
             PopupKit.Column(card, UiKit.H("card_pad"), PopupKit.Rem * 0.45f);
-            PopupKit.Label(card, "title", TextKind.Title, title, "pp_ink");
+            PopupKit.Label(card, "title", TextKind.Title2, title, "pp_ink");   // T404 ⓑ — 정본 1761 `.modal-card h3 { 1.15rem }` = 41.9px → Title2 42(전엔 Title 60)
             PopupKit.Label(card, "desc", TextKind.Body, desc, "pp_muted", TextAlignmentOptions.Center, true);
             // T132 — 정본 ui.js 1257 `${IconGen.img('barrier', 'stub-ico wide')}다음 업데이트에서 추가될 예정입니다.` : 바리케이드가 글자 앞에 선다
             // (style.css 1767·1770: 높이 1.35em · 가로 1.88em(ASPECT 1.39) · 오른쪽 .42em). 치수는 StaticIconsUi.json(§1).

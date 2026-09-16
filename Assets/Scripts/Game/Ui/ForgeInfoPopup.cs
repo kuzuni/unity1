@@ -71,8 +71,8 @@ namespace Forge.Game.Ui
             // 클론은 같은 자로 72.1%H(내용이 정하던 값)라 표대로 고정하면 원작 쪽으로 간다. 내용이 더 짧으므로 넘침도 없다.
             RectTransform card = PopupKit.Card(root, "card", w, UiKit.RefH * ForgeInfoStyle.L("fi_card_h_f"), "pp_paper", rem * 1.1f);
             PopupKit.Column(card, pad, rem * 0.3f);
-            RectTransform head = PopupKit.Item(card, "head", -1f, PopupKit.FontSize(TextKind.Title) * 1.25f);
-            TextMeshProUGUI title = UiKit.Text(head, "title", TextKind.Title, "확률 정보", "pp_ink");
+            RectTransform head = PopupKit.Item(card, "head", -1f, PopupKit.FontSize(TextKind.Title2) * 1.25f);
+            TextMeshProUGUI title = UiKit.Text(head, "title", TextKind.Title2, "확률 정보", "pp_ink");   // T404 ⓑ — 정본 5056 `.fi-title { 1.12rem }` = 40.8px → Title2 42(전엔 Title 60 · +47%)
             title.fontStyle = FontStyles.Bold;
             // T109 14회차 — 정본 style.css 3846 의 제목 묶음에 `h3.fi-title` 이 들어 있다(`-webkit-text-stroke: .11em var(--pp-line)` · ui.js 2054). 폭은 표(sheet_title).
             UiKit.OutlinePx(title, "pp_line", KeylineUi.Em("sheet_title", title.fontSize));
