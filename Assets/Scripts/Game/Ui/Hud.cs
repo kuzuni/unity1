@@ -74,7 +74,7 @@ namespace Forge.Game.Ui
             // 프로필 카드 (아바타 타일은 알약에 걸쳐 위아래로 넘친다 — 원작 실측)
             float cardW = UiKit.W("card_min_w");
             float cardH = UiKit.H("card_h");
-            float cardR = UiKit.H("card_radius");
+            float cardR = RadiusUi.Px("topbar_card_r_rem");   // 정본 90 `.profile-card { border-radius: 1rem }`(T345 20회차 · 전엔 catalog card_radius 라 단위가 H 분수였다)
             ProfileButton = UiKit.Button(bar, "profile-card", null);
             RectTransform card = ProfileButton.GetComponent<RectTransform>();
             UiKit.Place(card, padX, (barH - cardH) * 0.5f, cardW, cardH);
@@ -83,7 +83,7 @@ namespace Forge.Game.Ui
             Inset(cardBg.rectTransform, line);
 
             float av = UiKit.W("avatar");
-            float avR = UiKit.H("avatar_radius");
+            float avR = RadiusUi.Px("topbar_avatar_r_rem");   // 정본 100 `.profile-card .avatar { border-radius: .4rem }`
             Image avRing = UiKit.Rounded(card, "avatar", "pp_line", avR);
             UiKit.Place(avRing.rectTransform, 0f, (cardH - av) * 0.5f, av, av);
             avatarTile = avRing.rectTransform;

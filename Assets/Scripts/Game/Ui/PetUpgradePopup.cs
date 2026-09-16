@@ -286,7 +286,7 @@ namespace Forge.Game.Ui
                     {
                         OpacityUi.Apply(face.gameObject, "pet_tile_mat_locked");   // T359 — 정본 4385 .pet-tile.mat-locked .tile-face { opacity: .5 } (표에서)
                     }
-                    if (on) Check(cell, colW, "tile_check", PetSkillStyle.Rem(0.3f));
+                    if (on) Check(cell, colW, "tile_check", PetSkillStyle.Px("tile_check_r_rem"));   // 정본 4378 `.pet-tile .tile-check { border-radius: .3rem }`(T345 20회차 · 값은 맞았지만 코드에 박혀 있었다)
                 }
             }
         }

@@ -475,7 +475,10 @@ namespace Forge.Game.Ui
             Button b = UiKit.Button(parent, "back-btn", onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
             Size(rt, w, h);
-            float r = Rem * 0.45f;
+            // 정본 5189 `.btn.back-btn { border-radius: calc(var(--app-w) * .0094) }` — `.back-btn`(5178) 의 .6rem 과
+            // `.btn.round`(3170) 의 50% 를 **뒤에 온 같은 특이도**가 이긴다(정본 주석: «종전 50%/.6rem 은 통짜 알약으로 읽혔다»).
+            // 클론은 리그 뒤로 버튼 값 `Rem * 0.45f` 를 쓰고 있었다 — 앱 폭 비율이라 rem 으로 적으면 비율이 다른 화면에서 어긋난다(T345 20회차).
+            float r = RadiusUi.Px("back_btn_r_w");
             UiKit.Rounded(rt, "line", "pp_line", r);
             Image lip = UiKit.Rounded(rt, "lip", "pp_red_dk", Mathf.Max(1f, r - Line3));
             Inset(lip.rectTransform, Line3);

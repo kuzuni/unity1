@@ -103,6 +103,13 @@ TABLE = {
     '.waypoint-time': ['Ui/Waypoints.cs$time_r_rem@WaypointsUi.json'],
     # T345 8회차 — 기술 노드 팝업 버튼 줄(정본이 공용 .btn 을 덮는다)
     '.tech-btns .btn': ['Ui/TechPopups.cs$tech_btn_r_rem'],
+    # T345 20회차 — **프로필·설정 팝업**(`ProfilePopup.cs`·`Popups.cs` 둘 다 산 lock 없음).
+    '.profile-field': ['Ui/ProfilePopup.cs$profile_field_r_rem'],
+    '.profile-tabs': ['Ui/ProfilePopup.cs$profile_tabs_r_rem'],
+    '.settings-act': ['Ui/ProfilePopup.cs$settings_act_r_rem'],
+    #   토글은 정본이 높이 1.35rem 에 반지름 1rem 을 준다 — 높이의 반(.675)을 넘으니 **알약**이고, 클론 `PopupKit.Toggle` 의 `h * 0.5f` 와 같은 그림이다(결정 543).
+    '.settings-toggle': '✓정본 3107 `.settings-toggle { width: 2.5rem; height: 1.35rem; border-radius: 1rem }` — 클론 `Popups.Toggle` 은 `h * 0.5f` 라 알약 동치(결정 543)',
+    '.settings-toggle::after': '✓정본 3111 `.settings-toggle::after { border-radius: 50% }` — 손잡이는 한 변 k 의 정사각이고 클론이 `k * 0.5f` 를 주니 원과 같은 그림이다(결정 543)',
     # T345 19회차 — **펫·탈것·퀘스트 화면**. T402 가 lock 을 반납해 `PetPanel.cs` 가, T331 12회차로 `QuestSheet.cs` 가 열렸다.
     #   여기 넷은 표 키가 **이미 있는데 부르는 자리만 없거나 짝을 안 적었던** 자리다 — 값은 정본과 같았다.
     '.pet-tile .tile-face': ['Ui/PetPanel.cs$tile_r_rem@PetSkillUi.json'],
@@ -117,7 +124,7 @@ TABLE = {
     #   알 재료 칸의 선택 겹은 타일과 같은 .5 라 클론이 `tile_r_rem` 을 그대로 쓴다(정본 4384 도 .5).
     '.pet-tile.egg .tile-check': ['Ui/PetUpgradePopup.cs$tile_r_rem@PetSkillUi.json'],
     #   보통 재료 칸의 선택 겹만 .3 이고 클론은 리터럴 `Rem(0.3f)` 다 — `PetUpgradePopup.cs` 가 T388 lock 뒤라 빈자리로 둔다.
-    '.pet-tile .tile-check': ['Ui/PetUpgradePopup.cs$tile_check_r_rem@PetSkillUi.json'],
+    '.pet-tile .tile-check': ['Ui/PetUpgradePopup.cs$tile_check_r_rem@PetSkillUi.json'],   # 20회차에 T388 이 반납해 열렸다
     '.qst-row': ['Ui/QuestSheet.cs$qst_row_r_rem'],
     #   진행 바는 높이 .95rem 의 반(.475)으로 그린다 — 정본 .48 과 **알약 동치**(결정 543 · 둘 다 «높이의 반» 그림이다).
     '.qst-bar': '✓정본 2038 `.qst-bar { border-radius: .48rem }` · 높이 .95rem(2039) — 클론 `QuestSheet` 103 은 `barH * 0.5f` = .475rem 이라 알약 동치(결정 543)',
@@ -133,8 +140,8 @@ TABLE = {
     '.skill-btn.auto': ['Ui/SkillBar.cs$sb_auto_r_rem@PetSkillUi.json'],
     #   상단바 프로필 카드 둘은 **값이 이미 정본과 같다**(catalog `card_radius` 0.018957 = 1rem/H · `avatar_radius` 0.0076 = .4rem/H).
     #   이름만 꼬리 규약으로 옮기면 세 겹이 서는데 `catalog.json` 이 T388·T402 lock 뒤라 이번엔 KNOWN 으로 둔다.
-    '.profile-card': ['Ui/Hud.cs$topbar_card_r_rem@catalog.json'],
-    '.profile-card .avatar': ['Ui/Hud.cs$topbar_avatar_r_rem@catalog.json'],
+    '.profile-card': ['Ui/Hud.cs$topbar_card_r_rem'],
+    '.profile-card .avatar': ['Ui/Hud.cs$topbar_avatar_r_rem'],
     # T345 8회차 — 7회차가 «클론 자리부터 가려야 한다» 고 남긴 둘: 정본 렌더 줄이 **0** 이다(`class="tech-node"` 가 어디에도 없고
     #   ui.js 의 `tech-node` 는 `data-tech-node` 속성과 `#tech-node-fill`·`#tech-node-time` id 뿐 · 나머지는 `web/tools/probe-*.js` 진단 도구).
     '.tech-node': '—죽은 CSS(정본 렌더 줄 0 · 8회차에 전수로 확인)',
@@ -149,10 +156,6 @@ TABLE = {
 KNOWN = {
     'Ui/ForgeInfoPopup.cs$idet_subs_r_rem': 'T339·T332 가 ForgeInfoPopup.cs 를 쥐었다 — 그 lock 뒤 T345 ⓑ(지금은 rem*0.6)',
     'Ui/ForgeInfoPopup.cs$upg_progress_r_rem': 'T339·T332 lock 뒤 T345 ⓑ(지금은 rem*0.5)',
-    'Ui/Popups.cs$back_btn_r_w': 'T331·T333·T335 가 Popups.cs 를 쥐었다 — 그 lock 뒤 T345 ⓑ(지금은 Rem*0.45 = 리그 뒤로 버튼 값)',
-    'Ui/Hud.cs$topbar_card_r_rem@catalog.json': 'T388·T402 가 catalog.json 을 쥐었다 — 그 lock 뒤 `card_radius`(0.018957 = 1rem/H · 값은 정본과 같다) 를 `topbar_card_r_rem` 1 로 옮긴다(T345 18회차 · `card_r_rem` 은 이미 `.modal-card` 1.1 이 쓴다)',
-    'Ui/PetUpgradePopup.cs$tile_check_r_rem@PetSkillUi.json': 'T388 이 PetUpgradePopup.cs 를 쥐었다 — 그 lock 뒤 정본 4378 `.pet-tile .tile-check` .3rem 을 표 키로(지금은 리터럴 `PetSkillStyle.Rem(0.3f)` · 값은 맞다 · T345 19회차)',
-    'Ui/Hud.cs$topbar_avatar_r_rem@catalog.json': 'T388·T402 lock 뒤 `avatar_radius`(0.0076 = .4rem/H · 값은 정본과 같다) 를 `topbar_avatar_r_rem` .4 로 옮긴다(T345 18회차)',
 }
 
 RADIUS_DECL = re.compile(r'(?<![\w-])border-radius\s*:\s*([^;}]+)')

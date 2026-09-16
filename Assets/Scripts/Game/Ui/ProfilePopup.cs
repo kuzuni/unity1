@@ -50,7 +50,7 @@ namespace Forge.Game.Ui
             float tabsH = PopupKit.FontSize(TextKind.Sub) * 1.3f + rem * 1.1f;
             RectTransform tabs = UiKit.Box(card, "tabs");
             UiKit.Anchor(tabs, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, rem * 2.2f), tabsW, tabsH);
-            UiKit.Rounded(tabs, "line", "pp_line", rem * 0.5f);
+            UiKit.Rounded(tabs, "line", "pp_line", RadiusUi.Px("profile_tabs_r_rem"));   // 정본 3068 `.profile-tabs { border-radius: .5rem }`(T345 20회차)
             Tab(tabs, "profile", "프로필", 0f, tabsW * 0.5f, tabsH, view == "profile", () => SwitchView(h, "profile"));
             Tab(tabs, "settings", "설정", tabsW * 0.5f, tabsW * 0.5f, tabsH, view == "settings", () => SwitchView(h, "settings"));
 
@@ -160,9 +160,9 @@ namespace Forge.Game.Ui
         {
             RectTransform f = UiKit.Box(card, name);
             UiKit.Place(f, x, y, w, h);
-            UiKit.Rounded(f, "line", "pp_line", PopupKit.Rem * 0.4f);
+            UiKit.Rounded(f, "line", "pp_line", RadiusUi.Px("profile_field_r_rem"));
             float fieldLine = UiKit.L("line2_px");   // T365 4회차 — 정본 3047 `.profile-field { border: var(--ol2) … }` = ol2(전엔 line_px = ol1)
-            Image face = UiKit.Rounded(f, "face", "pp_panel", PopupKit.Rem * 0.4f - fieldLine);
+            Image face = UiKit.Rounded(f, "face", "pp_panel", RadiusUi.Px("profile_field_r_rem") - fieldLine);
             PopupKit.Inset(face.rectTransform, fieldLine);
             float em = PersonIcons.Px("profile_gender_em", PopupKit.FontSize(TextKind.Sub));
             Image ico = UiKit.Icon(f, "ico", iconKey);
@@ -173,9 +173,9 @@ namespace Forge.Game.Ui
         {
             RectTransform f = UiKit.Box(card, name);
             UiKit.Place(f, x, y, w, h);
-            UiKit.Rounded(f, "line", "pp_line", PopupKit.Rem * 0.4f);
+            UiKit.Rounded(f, "line", "pp_line", RadiusUi.Px("profile_field_r_rem"));
             float fieldLine = UiKit.L("line2_px");   // T365 4회차 — 정본 3047 `.profile-field { border: var(--ol2) … }` = ol2(전엔 line_px = ol1)
-            Image face = UiKit.Rounded(f, "face", "pp_panel", PopupKit.Rem * 0.4f - fieldLine);
+            Image face = UiKit.Rounded(f, "face", "pp_panel", RadiusUi.Px("profile_field_r_rem") - fieldLine);
             PopupKit.Inset(face.rectTransform, fieldLine);
             TextMeshProUGUI t = UiKit.Text(f, "text", TextKind.Sub, text, "pp_ink", TextAlignmentOptions.Left);
             WrapUi.Apply(t, "profile_field");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 3052 `.profile-field { nowrap }`
@@ -227,8 +227,8 @@ namespace Forge.Game.Ui
             PopupKit.Label(card, "title", TextKind.Body, "새 이름을 입력하세요 (최대 12자)", "pp_ink", TextAlignmentOptions.Center, true);
             float ih = PopupKit.FontSize(TextKind.Body) * 1.6f;
             RectTransform ibox = PopupKit.Item(card, "input", -1f, ih);
-            UiKit.Rounded(ibox, "line", "pp_line", rem * 0.4f);
-            Image face = UiKit.Rounded(ibox, "face", "pp_panel", rem * 0.4f - PopupKit.Line);
+            UiKit.Rounded(ibox, "line", "pp_line", RadiusUi.Px("profile_field_r_rem"));
+            Image face = UiKit.Rounded(ibox, "face", "pp_panel", RadiusUi.Px("profile_field_r_rem") - PopupKit.Line);
             PopupKit.Inset(face.rectTransform, PopupKit.Line);
             face.raycastTarget = true;
             RectTransform viewport = UiKit.Box(ibox, "viewport");
@@ -343,9 +343,9 @@ namespace Forge.Game.Ui
             Button b = UiKit.Button(row, "act", onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
             UiKit.Anchor(rt, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-PopupKit.Rem * 1.95f, 0f), bw, bh);
-            UiKit.Rounded(rt, "line", "pp_line", PopupKit.Rem * 0.5f);
+            UiKit.Rounded(rt, "line", "pp_line", RadiusUi.Px("settings_act_r_rem"));   // 정본 3121 `.settings-act { border-radius: .5rem }`(T345 20회차)
             float actLine = UiKit.L("line2_px");   // T365 4회차 — 정본 3121 `.settings-act { border: var(--ol2) … }` = ol2(전엔 ol1)
-            Image face = UiKit.Rounded(rt, "face", "pp_paper", PopupKit.Rem * 0.5f - actLine);
+            Image face = UiKit.Rounded(rt, "face", "pp_paper", RadiusUi.Px("settings_act_r_rem") - actLine);
             PopupKit.Inset(face.rectTransform, actLine);
             TextMeshProUGUI t = UiKit.Text(rt, "label", TextKind.Sub, act, inkKey);
             t.fontStyle = FontStyles.Bold;

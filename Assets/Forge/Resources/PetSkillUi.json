@@ -127,6 +127,7 @@
     "pet_col_w": 0.102,
     "pet_col_gap_w": 0.0551,
     "tile_r_rem": 0.5,
+    "tile_check_r_rem": 0.3,
     "tile_face_mix_f": 0.6,
     "equipped_w_f": 0.74,
     "equipped_r_rem": 0.6,
