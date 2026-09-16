@@ -244,7 +244,14 @@ namespace Forge.Game.Ui
         public RectTransform TileFace(Transform parent, string name, string rarity, float size, bool active, int level, bool ribbonSmall, string ribbonText, Forge.Game.Gallery.GalleryKind kind, string lvKeyline)
         {
             Color rc = PetSkillStyle.Rarity(Defs, rarity);
-            RectTransform face = PetSkillKit.Framed(parent, "tile-face", PetSkillStyle.Mix(rc, PetSkillStyle.C("white"), PetSkillStyle.L("tile_face_mix_f")), PetSkillStyle.Px("tile_r_rem"), PetSkillKit.Line3);
+            // T371 7회차 — 면 색은 표 ColorMixUi.json 이 쥔다(전엔 PetSkillUi.json tile_face_mix_f · 값은 같다 · 표 하나로):
+            //   격자·알·탈것·업그레이드 타일 = 정본 4262 `.pet-tile .tile-face { background: color-mix(--rc 60%, #fff) }` · 테는 ol3 검정(pp_line) 그대로.
+            //   펫 상세 타일(정본 `.petd-wrap` 안 · lvKeyline 을 받는 그 자리) = 5461 `--petd-face: color-mix(--rc 60%, #fff)` 에
+            //   `border: color-mix(var(--petd-face) 40%, #000)` — 테 색이 등급색이 아니라 **바로 위에서 만든 면 색**에서 잇는 사슬이다(테 폭 1px 은 T365 축 · 여기선 색만).
+            bool petd = lvKeyline != null;
+            Color faceC = petd ? ColorMixUi.Mix("petd_face", rc) : ColorMixUi.Mix("pet_tile_face", rc);
+            RectTransform face = PetSkillKit.Framed(parent, "tile-face", faceC, PetSkillStyle.Px("tile_r_rem"), PetSkillKit.Line3);
+            if (petd) face.Find("line").GetComponent<Image>().color = ColorMixUi.Mix("petd_line", faceC);
             face.sizeDelta = new Vector2(size, size);
             RectTransform pf = PetSkillKit.PetFace(face, Defs, name, size * 0.86f, kind);
             UiKit.Anchor(pf, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, size * 0.86f, size * 0.86f);

@@ -52,11 +52,8 @@ KNOWN = {
     'Ui/ForgeUi.cs$cell_shadow_2': 'T371 1회차 — 같은 자리(뒤 규칙 62%)',
     'Ui/ForgeInfoPopup.cs$idet_icon_face': 'T371 1회차 — `ForgeInfoPopup.cs` 는 T28·T332 산 lock 뒤',
     'Ui/ForgeInfoPopup.cs$idet_icon_line': 'T371 1회차 — 같은 파일',
-    'Ui/PetPanel.cs$pet_tile_face': 'T371 1회차 — 클론은 이미 표(`PetSkillUi.json` `tile_face_mix_f`)로 읽는다 — 2회차에 **표 하나로 합칠지**(키 옮김) 정한다',
     'Ui/PetPanel.cs$pet_tile_shadow': 'T371 1회차 — 그림자(알파를 만드는 섞기) · T331 축과 겹친다',
     'Ui/PetPanel.cs$pet_tile_shadow_2': 'T371 1회차 — 같은 자리(뒤 규칙)',
-    'Ui/PetPanel.cs$petd_face': 'T371 4회차 — 자리를 가렸다: 펫 상세 타일도 `PetPanel.TileFace` 가 세운다(T331·T365 산 lock 뒤) · 정본은 이 값을 다음 줄 테에 다시 쓴다(사슬)',
-    'Ui/PetPanel.cs$petd_line': 'T371 4회차 — 같은 파일(T331·T365 lock) · 앞 색이 --rc 가 아니라 바로 위 --petd-face 다 — 셈을 잇는 자리',
 }
 
 MIX = 'color-mix('

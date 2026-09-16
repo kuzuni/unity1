@@ -227,5 +227,71 @@ namespace Forge.Tests.PlayMode
             ForgeCraftPopup.DismissBatch();
             yield return null;
         }
+
+        /// <summary>T371 7회차 — 펫 격자 타일 면(정본 4262 `--rc 60%, #fff` · 테는 ol3 검정)과 펫 상세 타일(5461 `--petd-face` 같은 섞기 · 테는 **그 면의 40%, #000** 사슬).
+        /// 새 세이브 → 알 소환 → 즉시 부화 → 펫 하나(BrLinesTests 의 길).</summary>
+        [UnityTest]
+        public IEnumerator 펫_격자_타일_면과_펫_상세_타일_면_테는_표_색으로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(PetSkillHost.Ready && SkillPetSheet.Instance != null && SkillBar.Instance != null); i++) yield return null;
+            Assert.IsTrue(PetSkillHost.Ready, "PetSkillHost");
+            PetSkillHost host = PetSkillHost.Instance;
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            yield return null;
+            sheet.Switch(SkillPetSheet.SubPets);
+            yield return null;
+            while (host.SummonMult("pet") != 1) host.CycleSummonMult("pet");
+            host.EggCurrency = 100000; host.Gems = 100000; host.Sync();
+            yield return null;
+            sheet.Pets.SummonButton.onClick.Invoke();
+            yield return null;
+            for (int k = 0; k < 4 && SkillSummonResultView.Current != null; k++) { SkillSummonResultView.Current.OnTap(); yield return null; }
+            Assert.GreaterOrEqual(host.Pets.State.Eggs.Count, 1, "x1 소환 = 알 하나 이상");
+            int hatching = host.Pets.State.Hatching.Count;
+            sheet.Pets.OpenEggDetail(0);
+            yield return null;
+            sheet.Modal.Find(PetPanel.DetailModal).Content.Find("btn-hatch").GetComponent<Button>().onClick.Invoke();
+            yield return null;
+            Assert.IsNotNull(sheet.Pets.SkipButton(hatching), "부화 칸의 스킵");
+            sheet.Pets.SkipButton(hatching).onClick.Invoke();
+            yield return null;
+            Assert.AreEqual(1, host.Pets.State.Pets.Count, "즉시 부화 → 펫 하나");
+            Color rc = PetSkillStyle.Rarity(host.Data.Defs, host.Pets.State.Pets[0].Rarity);
+            AssertMix(ColorMixUi.Mix("pet_tile_face", rc), rc, 0.60, 0xff, 0xff, 0xff, "격자 타일 면(정본 4262 60%, #fff)");
+            AssertMix(ColorMixUi.Mix("petd_face", rc), rc, 0.60, 0xff, 0xff, 0xff, "펫 상세 타일 면(정본 5461 60%, #fff)");
+
+            // 격자 타일 — 면은 표 색 · 테는 ol3 검정(pp_line)
+            sheet.Switch(SkillPetSheet.SubPets);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform grid = null;
+            foreach (Transform t in sheet.GetComponentsInChildren<Transform>(true))
+                if (t.name == "tile-face" && t.Find("face") != null && !t.IsChildOf(sheet.Modal.transform)) { grid = t; break; }
+            Assert.IsNotNull(grid, "격자의 펫 타일(tile-face)");
+            Color gridFace = grid.Find("face").GetComponent<Image>().color;
+            AssertMix(gridFace, rc, 0.60, 0xff, 0xff, 0xff, "격자 타일 면 = 표 pet_tile_face");
+            Color line = UiKit.C("pp_line");
+            Color gridLine = grid.Find("line").GetComponent<Image>().color;
+            Assert.AreEqual(line.r, gridLine.r, 1f / 255f, "격자 타일 테 = pp_line(정본 4264 var(--ol3) solid var(--pp-line))");
+            Assert.AreEqual(line.g, gridLine.g, 1f / 255f, "격자 타일 테 G");
+            Assert.AreEqual(line.b, gridLine.b, 1f / 255f, "격자 타일 테 B");
+
+            // 펫 상세 타일 — 면은 같은 섞기 · 테는 그 면의 40%, #000(사슬)
+            sheet.Pets.OpenPetDetail(0);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform content = sheet.Modal.Find(PetPanel.DetailModal).Content;
+            Transform dt = null;
+            foreach (Transform t in content.GetComponentsInChildren<Transform>(true)) if (t.name == "tile-face" && t.Find("face") != null) { dt = t; break; }
+            Assert.IsNotNull(dt, "펫 상세의 타일(tile-face)");
+            Color dFace = dt.Find("face").GetComponent<Image>().color;
+            AssertMix(dFace, rc, 0.60, 0xff, 0xff, 0xff, "펫 상세 타일 면 = 표 petd_face");
+            Color dLine = dt.Find("line").GetComponent<Image>().color;
+            AssertMix(dLine, dFace, 0.40, 0, 0, 0, "펫 상세 타일 테 = 면의 40%, #000(정본 5461 사슬)");
+            Assert.Greater(dLine.r + dLine.g + dLine.b, 0.05f, "테가 순검정이 아니다(등급색 기운이 남는다 · 정본 주석 #ff7777 × .4 = #663030)");
+        }
     }
 }
