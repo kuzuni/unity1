@@ -37,6 +37,14 @@ TABLE_DEFAULT = os.path.join('Assets', 'Forge', 'Resources', 'RadiusUi.json')
 # ── 정본 선택자 ↔ 클론 자리 ──────────────────────────────────────────────────────────────
 TABLE = {
     # 어긋난 리터럴 열 자리(20회차 ⓡ) — 표로 옮긴다(T345 ⓑ · 각 파일의 산 lock 뒤)
+    # ── T415 6회차(2026-09-16 · 워커 J) — 정본이 «안 두른다(0)» 로 못 박은 넷 + 원 하나 ──
+    #    `0` 은 «클론도 두르는 데가 없는가» 로 본다. 표 키를 걸 수 없는 값이라(자가 rem·w·px 만 견준다)
+    #    ✓ 로 갈라 두되 **클론 어디를 보고 그렇게 말하는지**를 적어 둔다.
+    '#chat-modal .modal-card.chat-card': u'✓정본이 `border-radius: 0`(전체화면 카드 · `width/height 100%` · `border: none`) — 클론 `ChatScreen.cs` 도 전체화면 카드라 두르는 데가 없다',
+    '.chat-share-side': u'✓정본이 `border-radius: 0` 이고 그 줄 주석이 까닭까지 적어 뒀다(«모서리가 각져 있어 클리핑이 필요 없다») — 클론도 민 상자',
+    '.modal-card.sheet': u'✓정본이 `border-radius: 0`(전체화면 시트) — 클론 `Popups.Sheet`(264행)는 `UiKit.Panel` 민 면 한 장이라 두르는 데가 없다',
+    '.panel': u'✓3925 가 `border-radius: 0` 으로 637(`1rem 1rem 0 0`)을 덮는다(같은 특이도 뒤가 이긴다 · T33 39회차가 같은 줄을 `overflow` 축에서 갈랐다) — 클론 `UiRoot.PanelHost` 도 민 상자이고 시트마다 제 면을 깐다',
+    '.pass-badge.check': ['Ui/PassPopup.cs#check'],
     # ── T415 5회차(2026-09-16 · 워커 J) — «클론 상자 이름» 으로 되찾은 셋 ──
     #    4회차는 «값이 같고 키 이름이 닮은 것» 으로 찾았다. 이번엔 반대로 **클론이 그 상자에 준 이름**
     #    (`"sr-ok"` 꼴)을 긁어 그 곁 네 줄 안의 반지름 키를 보았다 — 이름이 안 닮은 짝도 잡힌다.
