@@ -574,6 +574,126 @@ namespace Forge.Core.Ui
     }
 
     /// <summary>
+    /// T334 22회차 — **수렴 빛줄기**(정본 `.sr-streaks i` · style.css 5710~5726 · `UI.summonStreaks` ui.js 317~328).
+    ///
+    /// 바깥에서 광원으로 **모여드는** 막대 9~24 개. 개수도 자리도 굴림 수·번호에서 결정론으로 나온다.
+    ///
+    /// ⚠ `transform-origin: 50% 100%` + `rotate(a) translateY(-r) scaleY(s)` 라 **원점은 막대의 바깥 끝**이고
+    ///   막대는 거기서 **안쪽으로** 자란다 — 원점이 `r` 에서 <see cref="EndRem"/> 까지 다가오는 동안 길이가
+    ///   .55 → 1.5 로 늘어나는 것이 «수렴» 이다. 안팎을 뒤집으면 «퍼지는 빛» 이 된다.
+    /// ⚠ 정본 주석: «딜레이 폭은 짧게 — 셀 등장(`SR_CHARGE_MS` 240ms)까지 전부 사라져야 아이콘 줄 위에
+    ///   흰 막대가 남지 않는다(.18s + 최대 딜레이 60ms = 240ms)» — 표가 그 합을 검사한다.
+    /// UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonStreakSpec
+    {
+        public double Ms;
+        /// <summary>개수 = clamp(<see cref="NBase"/> + round(sqrt(굴림 수) × <see cref="NK"/>), <see cref="NMin"/>, <see cref="NMax"/>).</summary>
+        public int NBase, NMin, NMax;
+        public double NK;
+        /// <summary>각의 흔들림(정본 `(i % 3) * 7deg`).</summary>
+        public int AngJitMod;
+        public double AngJitDeg;
+        /// <summary>시작 거리(rem) · 길이(rem) · 지연(ms) 의 결정론 셈.</summary>
+        public double RBaseRem, LenBaseRem, LenStepRem;
+        public int RStep, RMod, LenMod, DelayStep, DelayModMs;
+        /// <summary>굵기(rem) = <see cref="WRem"/> × (1 + <see cref="WK"/> × 예고 k).</summary>
+        public double WRem, WK;
+        /// <summary>다가와 멎는 자리(rem) · 둘레 번짐(rem) · 세로 그라디언트의 가운데 정지점.</summary>
+        public double EndRem, GlowRem, GradMid;
+        public RewardBurstSpec.Track Alpha, Geom;
+
+        public static SummonStreakSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "streaks"));
+            var s = new SummonStreakSpec
+            {
+                Ms = J.Num(J.Require(o, "streak_ms")),
+                NBase = (int)J.Num(J.Require(o, "n_base")),
+                NK = J.Num(J.Require(o, "n_k")),
+                NMin = (int)J.Num(J.Require(o, "n_min")),
+                NMax = (int)J.Num(J.Require(o, "n_max")),
+                AngJitMod = (int)J.Num(J.Require(o, "ang_jit_mod")),
+                AngJitDeg = J.Num(J.Require(o, "ang_jit_deg")),
+                RBaseRem = J.Num(J.Require(o, "r_base_rem")),
+                RStep = (int)J.Num(J.Require(o, "r_step")),
+                RMod = (int)J.Num(J.Require(o, "r_mod")),
+                LenBaseRem = J.Num(J.Require(o, "len_base_rem")),
+                LenStepRem = J.Num(J.Require(o, "len_step_rem")),
+                LenMod = (int)J.Num(J.Require(o, "len_mod")),
+                DelayStep = (int)J.Num(J.Require(o, "delay_step")),
+                DelayModMs = (int)J.Num(J.Require(o, "delay_mod_ms")),
+                WRem = J.Num(J.Require(o, "w_rem")),
+                WK = J.Num(J.Require(o, "w_k")),
+                EndRem = J.Num(J.Require(o, "end_rem")),
+                GlowRem = J.Num(J.Require(o, "glow_rem")),
+                GradMid = J.Num(J.Require(o, "grad_mid")),
+            };
+            if (s.Ms <= 0) throw new FormatException("SummonFxUi streaks: streak_ms 는 0보다 커야 한다");
+            if (s.NMin < 1 || s.NMax < s.NMin) throw new FormatException("SummonFxUi streaks: 개수 범위가 뒤집혔다");
+            if (s.RMod < 1 || s.LenMod < 1 || s.DelayModMs < 1 || s.AngJitMod < 1) throw new FormatException("SummonFxUi streaks: 나머지 셈의 밑은 1 이상이다");
+            if (s.WRem <= 0) throw new FormatException("SummonFxUi streaks: 굵기는 0보다 커야 한다");
+            if (s.EndRem <= 0 || s.EndRem >= s.RBaseRem) throw new FormatException("SummonFxUi streaks: 멎는 자리는 시작 거리 **안쪽**이어야 한다(그래야 «수렴» 이다)");
+            if (s.GradMid <= 0 || s.GradMid >= 1) throw new FormatException("SummonFxUi streaks: 그라디언트 가운데 정지점은 0~1 안이다");
+
+            double[] e = J.NumArr(J.Require(o, "streak_ease"));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi streaks: streak_ease 는 cubic-bezier 넷이다");
+            CssEase ease = new CssEase(e[0], e[1], e[2], e[3]);
+            s.Alpha = SummonTrack.Ramp(o, "srstreak_a", ease, new[] { "f" }, "streaks");
+            s.Geom = SummonTrack.Ramp(o, "srstreak_g", ease, new[] { "r_f", "scale_y" }, "streaks");
+
+            // 빛줄기는 **켜졌다 꺼진다** — 안 꺼지면 아이콘 줄 위에 흰 막대가 남는다(정본이 이름으로 말한 증상).
+            if (s.Alpha.Keys[0].Num["f"] != 0 || s.Alpha.Keys[s.Alpha.Keys.Length - 1].Num["f"] != 0)
+                throw new FormatException("SummonFxUi streaks: srstreak_a 는 0 에서 시작해 0 으로 꺼져야 한다");
+            // 모여든다 — 거리 비율은 줄고 길이는 는다.
+            var g0 = s.Geom.Keys[0]; var g1 = s.Geom.Keys[s.Geom.Keys.Length - 1];
+            if (g1.Num["r_f"] >= g0.Num["r_f"]) throw new FormatException("SummonFxUi streaks: 빛줄기는 광원으로 **모여야** 한다(거리 비율이 줄어든다)");
+            if (g1.Num["scale_y"] <= g0.Num["scale_y"]) throw new FormatException("SummonFxUi streaks: 모이면서 길어져야 한다");
+            // 정본 주석의 합 — 길이 + 최대 지연이 충전 길이를 넘으면 셀 위에 막대가 남는다.
+            return s;
+        }
+
+        /// <summary>그 판의 빛줄기 수(정본 `clamp(6 + round(sqrt(rolls) * 3), 9, 24)`).</summary>
+        public int Count(int rolls)
+        {
+            double n = NBase + Math.Round(Math.Sqrt(rolls < 1 ? 1 : rolls) * NK, MidpointRounding.AwayFromZero);
+            return n < NMin ? NMin : n > NMax ? NMax : (int)n;
+        }
+
+        /// <summary>스포크 <paramref name="i"/> 의 각(도 · CSS 시계 방향) · 시작 거리(rem) · 길이(rem) · 지연(ms).</summary>
+        public void Spoke(int i, int count, out double angDeg, out double rRem, out double lenRem, out double delayMs)
+        {
+            angDeg = i * 360.0 / count + (i % AngJitMod) * AngJitDeg;
+            rRem = RBaseRem + (i * RStep) % RMod;
+            lenRem = LenBaseRem + (i % LenMod) * LenStepRem;
+            delayMs = (i * DelayStep) % DelayModMs;
+        }
+
+        /// <summary>그 판의 굵기(rem) — 예고가 굵힌다(정본 «신화 판은 빛줄기가 1.5배 굵다»).</summary>
+        public double Width(double k) { return WRem * (1 + WK * k); }
+
+        /// <summary>제 지연을 뺀 <paramref name="ms"/> 의 불투명도 · 바깥 끝 거리(rem) · 세로 배율.</summary>
+        public void At(double ms, double delayMs, double rRem, out double alpha, out double distRem, out double scaleY)
+        {
+            double t = ms - delayMs;
+            if (t < 0)
+            {
+                alpha = 0;
+                distRem = EndRem + (rRem - EndRem) * Geom.Sample(0, "r_f", null);
+                scaleY = Geom.Sample(0, "scale_y", null);
+                return;
+            }
+            double p = t >= Ms ? 100 : t / Ms * 100;
+            alpha = Alpha.Sample(p, "f", null);
+            distRem = EndRem + (rRem - EndRem) * Geom.Sample(p, "r_f", null);
+            scaleY = Geom.Sample(p, "scale_y", null);
+        }
+
+        /// <summary>마지막 스포크까지 다 꺼지는 시각(ms) — 정본은 이것이 충전 길이 안이라야 한다고 못 박았다.</summary>
+        public double AllDoneMs { get { return Ms + (DelayModMs - 1); } }
+    }
+
+    /// <summary>
     /// T334 18회차 — **끝난 뒤의 잔잔한 고리**(정본 `.sr-idle` · style.css 6934~6948).
     ///
     /// `#summon-result-modal.done .sr-idle { display: block }` — 연출이 **끝난 뒤에만** 도는 고리 둘이고,

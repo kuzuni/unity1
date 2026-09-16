@@ -1076,4 +1076,109 @@ namespace Forge.Tests
             Assert.Throws<System.FormatException>(() => SummonChargeBurstSpec.From(MiniJson.ParseObject(lit)));
         }
     }
+
+    /// <summary>T334 22회차 — 수렴 빛줄기(정본 `.sr-streaks i`)가 바깥에서 광원으로 모여든다.</summary>
+    public class SummonStreakSpecTests
+    {
+        static SummonStreakSpec spec;
+        static SummonStreakSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonStreakSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 개수는_굴림_수를_따르되_양_끝으로_잘린다()
+        {
+            SummonStreakSpec s = S();
+            Assert.AreEqual(s.NMin, s.Count(1), "x1 도 하한만큼은 선다");
+            Assert.AreEqual(s.NMax, s.Count(10000), "아무리 많아도 상한을 안 넘는다");
+            Assert.GreaterOrEqual(s.Count(25), s.Count(5), "많이 뽑을수록 촘촘하다");
+            for (int r = 1; r <= 100; r++)
+            {
+                int n = s.Count(r);
+                Assert.GreaterOrEqual(n, s.NMin); Assert.LessOrEqual(n, s.NMax);
+            }
+        }
+
+        [Test]
+        public void 바깥에서_광원으로_모여들며_길어진다()
+        {
+            SummonStreakSpec s = S();
+            double ang, r, len, d;
+            s.Spoke(0, 12, out ang, out r, out len, out d);
+            double a0, dist0, sy0, a1, dist1, sy1;
+            s.At(0, d, r, out a0, out dist0, out sy0);
+            s.At(d + s.Ms, d, r, out a1, out dist1, out sy1);
+            Assert.AreEqual(0.0, a0, 1e-9, "꺼진 채로 시작한다");
+            Assert.AreEqual(0.0, a1, 1e-9, "꺼진다 — 안 그러면 아이콘 줄 위에 흰 막대가 남는다(정본 주석)");
+            Assert.AreEqual(r, dist0, 1e-6, "시작은 제 거리에서");
+            Assert.AreEqual(s.EndRem, dist1, 1e-6, "끝은 광원 곁에서");
+            Assert.Less(dist1, dist0, "모여든다");
+            Assert.Greater(sy1, sy0, "모이면서 길어진다");
+            // 26% 에 가장 밝다.
+            double aPk, dd, ss;
+            s.At(d + s.Ms * 0.26, d, r, out aPk, out dd, out ss);
+            Assert.Greater(aPk, 0.9);
+        }
+
+        [Test]
+        public void 스포크는_한_바퀴를_고르게_나눠_선다()
+        {
+            SummonStreakSpec s = S();
+            const int n = 12;
+            var seen = new System.Collections.Generic.List<double>();
+            for (int i = 0; i < n; i++)
+            {
+                double ang, r, len, d;
+                s.Spoke(i, n, out ang, out r, out len, out d);
+                Assert.GreaterOrEqual(r, s.RBaseRem, "시작 거리는 기준 밖이다");
+                Assert.Less(r, s.RBaseRem + s.RMod);
+                Assert.GreaterOrEqual(len, s.LenBaseRem);
+                Assert.GreaterOrEqual(d, 0.0); Assert.Less(d, s.DelayModMs);
+                seen.Add(ang);
+            }
+            Assert.Greater(seen[n - 1], seen[0], "각은 번호를 따라 돈다");
+            Assert.Less(seen[n - 1], 360 + s.AngJitDeg * s.AngJitMod, "한 바퀴를 크게 넘지 않는다");
+        }
+
+        [Test]
+        public void 셀_등장까지_다_꺼진다()
+        {
+            SummonStreakSpec s = S();
+            // 정본 주석: «.18s + 최대 딜레이 60ms = 240ms» — 충전 길이(SR_CHARGE_MS)와 같아야 아이콘 줄에 막대가 안 남는다.
+            Assert.LessOrEqual(s.AllDoneMs, 240.0, "빛줄기가 셀 등장 뒤까지 남는다");
+            Assert.Greater(s.AllDoneMs, 200.0, "너무 일찍 끝나면 «모임» 이 안 읽힌다");
+        }
+
+        [Test]
+        public void 굵기는_예고에_물리고_퍼지는_표를_거부한다()
+        {
+            SummonStreakSpec s = S();
+            Assert.Greater(s.Width(1), s.Width(0), "신화 판은 빛줄기가 굵다(정본 1.5배)");
+            Assert.AreEqual(s.WRem * 1.5, s.Width(1), 1e-9);
+            char q = '"';
+            string head = "{" + q + "streaks" + q + ":{" + q + "streak_ms" + q + ":180," + q + "streak_ease" + q + ":[0.4,0.02,0.22,1],"
+                + q + "n_base" + q + ":6," + q + "n_k" + q + ":3," + q + "n_min" + q + ":9," + q + "n_max" + q + ":24,"
+                + q + "ang_jit_mod" + q + ":3," + q + "ang_jit_deg" + q + ":7," + q + "r_base_rem" + q + ":7.5,"
+                + q + "r_step" + q + ":17," + q + "r_mod" + q + ":6," + q + "len_base_rem" + q + ":2.2," + q + "len_step_rem" + q + ":0.8,"
+                + q + "len_mod" + q + ":4," + q + "delay_step" + q + ":53," + q + "delay_mod_ms" + q + ":60,"
+                + q + "w_rem" + q + ":0.15," + q + "w_k" + q + ":0.5," + q + "glow_rem" + q + ":0.4," + q + "grad_mid" + q + ":0.62,"
+                + q + "srstreak_a" + q + ":[{" + q + "at" + q + ":0," + q + "f" + q + ":0},{" + q + "at" + q + ":100," + q + "f" + q + ":0}],";
+            // ⑴ 멎는 자리가 시작 거리 밖이면 «수렴» 이 아니라 «퍼짐» 이다.
+            string out1 = head + q + "end_rem" + q + ":9,"
+                + q + "srstreak_g" + q + ":[{" + q + "at" + q + ":0," + q + "r_f" + q + ":1," + q + "scale_y" + q + ":0.55},"
+                + "{" + q + "at" + q + ":100," + q + "r_f" + q + ":0," + q + "scale_y" + q + ":1.5}]}}";
+            Assert.Throws<System.FormatException>(() => SummonStreakSpec.From(MiniJson.ParseObject(out1)));
+            // ⑵ 거리 비율이 늘면 광원에서 **멀어진다**.
+            string away = head + q + "end_rem" + q + ":1.1,"
+                + q + "srstreak_g" + q + ":[{" + q + "at" + q + ":0," + q + "r_f" + q + ":0," + q + "scale_y" + q + ":0.55},"
+                + "{" + q + "at" + q + ":100," + q + "r_f" + q + ":1," + q + "scale_y" + q + ":1.5}]}}";
+            Assert.Throws<System.FormatException>(() => SummonStreakSpec.From(MiniJson.ParseObject(away)));
+        }
+    }
 }

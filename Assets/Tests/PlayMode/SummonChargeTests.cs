@@ -497,6 +497,7 @@ namespace Forge.Tests.PlayMode
 
             float mainPeak = 0f, echoPeak = 0f, mainWide = 0f, mainPeakAt = -1f, echoPeakAt = -1f;
             float chargePeak = 0f, chargePeakAt = -1f, chargePeakScale = 0f;
+            float streakPeak = 0f, streakFar = 0f, streakNear = float.MaxValue;
             var seen = new List<Sprite>();
             float t = 0f;
             while (!v.Done && t < 12f)
@@ -510,6 +511,15 @@ namespace Forge.Tests.PlayMode
                     if (mi.sprite != null && !seen.Contains(mi.sprite)) seen.Add(mi.sprite);
                 }
                 if (ei != null && ei.color.a > echoPeak) { echoPeak = ei.color.a; echoPeakAt = t; }
+                for (int q = 0; q < v.StreakCount; q++)
+                {
+                    Image si = v.StreakOf(q);
+                    if (si == null || si.color.a <= 0f) continue;
+                    if (si.color.a > streakPeak) streakPeak = si.color.a;
+                    float d = v.StreakDist(q);
+                    if (d > streakFar) streakFar = d;
+                    if (d < streakNear) streakNear = d;
+                }
                 Image ci = v.ChargeBurst;
                 if (ci != null && ci.color.a > chargePeak)
                 {
@@ -530,6 +540,18 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(mainWide, 1f, "압력파가 안 퍼졌다");
             Assert.Less(mainPeakAt, echoPeakAt, "잔파가 본파보다 먼저 정점을 찍었다 — 차례가 뒤집혔다");
             Assert.Greater(seen.Count, 1, "본파가 처음부터 끝까지 같은 판이었다 — 테 굵기가 안 줄었다는 뜻이다");
+            // ⚑ 22회차 — 수렴 빛줄기는 바깥에서 광원으로 **모여든다**(퍼지면 반대 연출이 된다).
+            Assert.GreaterOrEqual(v.StreakCount, 9, "빛줄기가 하한보다 적다");
+            Assert.LessOrEqual(v.StreakCount, 24, "빛줄기가 상한을 넘었다");
+            Assert.IsNotNull(v.StreakOf(0));
+            Assert.IsNotNull(v.StreakOf(0).sprite, "막대 한 장을 나눠 써야 한다");
+            Assert.AreSame(v.StreakOf(0).sprite, v.StreakOf(v.StreakCount - 1).sprite, "스포크마다 따로 구우면 안 된다(결정 691)");
+            Assert.Greater(streakPeak, 0f, "빛줄기가 안 켜졌다");
+            Assert.Greater(streakFar, streakNear, "빛줄기가 광원으로 안 모여들었다(먼 " + streakFar.ToString("0")
+                + " → 가까운 " + streakNear.ToString("0") + ")");
+            for (int i = 0; i < v.StreakCount; i++)
+                Assert.AreEqual(0f, v.StreakOf(i).color.a, 1e-3f, "빛줄기가 안 꺼졌다 — 아이콘 줄 위에 흰 막대가 남는다(" + i + "번)");
+
             Assert.Greater(chargePeak, 0.5f, "빛 모임이 정점까지 안 갔다(경과 " + t.ToString("0.00") + "초)");
             Assert.Greater(chargePeakScale, 0f);
             Assert.Less(chargePeakAt, echoPeakAt, "빛 모임의 정점이 잔파보다 늦다 — 정본은 그 정점에 충격파가 나간다");

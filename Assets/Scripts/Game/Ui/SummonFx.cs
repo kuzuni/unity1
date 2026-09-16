@@ -764,6 +764,42 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>
+        /// 수렴 빛줄기 막대 **한 장**(정본 `.sr-streaks i` 5717~5718) —
+        /// 세로 그라디언트(투명 → `--pre-line` 62% → 흰색) + `box-shadow 0 0 .4rem var(--pre-glow)`.
+        ///
+        /// 9~24 스포크가 이 한 장을 나눠 쓴다(결정 691 — 굽는 장 수를 먼저 센다). 굵기·길이는 상자 크기가,
+        /// 각·거리는 자리가 쥔다. 판의 **위쪽이 바깥 끝**(원점)이고 아래로 갈수록 안쪽이라, 흰 끝이 위에 온다.
+        /// 좌우로는 둘레 번짐을 한 판에 같이 굽는다(따로 한 겹을 두면 가산이 두 번 얹힌다).
+        /// </summary>
+        public static Sprite BakeStreak(string name, Color line, Color glow, float glowF)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            SummonStreakSpec sp = SummonFxStyle.Streaks;
+            int W = Mathf.Max(8, Mathf.RoundToInt(L("bake_px") * 0.25f));
+            int H = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
+            float mid = (float)sp.GradMid;
+            float core = Mathf.Clamp01(1f - glowF);          // 심의 폭(나머지가 번짐)
+            var px = new Color32[W * H];
+            for (int y = 0; y < H; y++)
+            {
+                // 세로: 아래(0) = 안쪽 투명 · 위(1) = 바깥 끝 흰색. CSS 는 위에서 아래로라 뒤집어 읽는다.
+                float v = 1f - (y + 0.5f) / H;
+                Color c; float a;
+                // 아래 절반은 색을 그대로 둔 채 알파만 오른다(CSS 가 투명을 미리 곱한 알파로 잇는다).
+                if (v <= mid) { c = line; a = v / Mathf.Max(1e-4f, mid); }
+                else { c = Color.Lerp(line, Color.white, (v - mid) / Mathf.Max(1e-4f, 1f - mid)); a = 1f; }
+                for (int x = 0; x < W; x++)
+                {
+                    float u = Mathf.Abs((x + 0.5f) / W * 2f - 1f);   // 0 = 한가운데 · 1 = 가장자리
+                    float w = u <= core ? 1f : Ramp(u, core, 1f, 1f, 0f);
+                    Color cc = u <= core ? c : Color.Lerp(c, glow, (u - core) / Mathf.Max(1e-4f, 1f - core));
+                    px[y * W + x] = new Color(cc.r, cc.g, cc.b, Mathf.Clamp01(a * w));
+                }
+            }
+            return Finish(name, NewTex(name, W, H), px);
+        }
+
+        /// <summary>
         /// 빛 모임 판(정본 `.sr-charge` 6085~6089) — `radial-gradient(circle closest-side, …)` 다섯 정지점 **한 장**.
         ///
         /// ⚠ 정지점이 굴림 에너지에 물려 바깥으로 밀리지만 그 수는 **판마다 상수**라 한 장이면 된다
@@ -1013,7 +1049,7 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; heroRingEase = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; streaks = null; heroRingEase = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
@@ -1026,6 +1062,7 @@ namespace Forge.Game.Ui
         static SummonPreludeSpec prelude;
         static SummonShockSpec shock;
         static SummonChargeBurstSpec chargeBurst;
+        static SummonStreakSpec streaks;
         /// <summary>T334 6회차 — 주역 착지의 화면 킥(표의 `hero` 절).</summary>
         /// <summary>표의 `hero` 절 수치 하나(그 절은 `layout` 밖이다).</summary>
         public static float H(string key) { Load(); return (float)J.Num(J.Require(J.Obj(root["hero"]), key)); }
@@ -1074,6 +1111,9 @@ namespace Forge.Game.Ui
 
         /// <summary>T334 21회차 — 빛 모임 규칙(정본 `.sr-charge`).</summary>
         public static SummonChargeBurstSpec ChargeBurst { get { Load(); if (chargeBurst == null) chargeBurst = SummonChargeBurstSpec.From(root); return chargeBurst; } }
+
+        /// <summary>T334 22회차 — 수렴 빛줄기 규칙(정본 `.sr-streaks i`).</summary>
+        public static SummonStreakSpec Streaks { get { Load(); if (streaks == null) streaks = SummonStreakSpec.From(root); return streaks; } }
 
         public static Color C(string key)
         {

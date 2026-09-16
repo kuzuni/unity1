@@ -72,6 +72,9 @@ namespace Forge.Game.Ui
         /// <summary>T334 21회차 — 빛 모임(정본 `.sr-charge` · z 60 맨 위) · 등급 예고 세기.</summary>
         Image chargeBurst;
         float preK;
+        /// <summary>T334 22회차 — 수렴 빛줄기(정본 `.sr-streaks i`): 회전 홀더 · 막대 · 그 스포크의 시작 거리·지연.</summary>
+        sealed class Streak { public RectTransform Holder, Bar; public Image Img; public float RRem, DelayMs, LenPx; }
+        readonly List<Streak> streaks = new List<Streak>();
         /// <summary>T334 19회차 — 굴림 에너지(정본 `--sr-e`) — 본파의 최종 반경이 이것에 물린다.</summary>
         float srEnergy;
         /// <summary>T334 16회차 — 등급 챕터 경계(정본 `_srTierBreaks`): 켜지는 시각(ms)과 그 등급.</summary>
@@ -537,6 +540,44 @@ namespace Forge.Game.Ui
                 if (cm != null) cbi.material = cm;
                 cbi.color = new Color(1f, 1f, 1f, 0f);
                 chargeBurst = cbi;
+
+                // ---- 수렴 빛줄기(정본 `.sr-streaks i` 5710~5726 · z 60) ----
+                // 바깥에서 광원으로 **모여드는** 막대 9~24 개. 개수·각·거리·길이·지연이 전부 굴림 수와 번호에서
+                // 결정론으로 나온다(정본 `summonStreaks`). 굽는 판은 **한 장**이고 스포크는 그것을 나눠 쓴다(결정 691).
+                // ⚠ 정본 `transform-origin: 50% 100%` + `rotate(a) translateY(-r)` — **원점이 막대의 바깥 끝**이고
+                //   막대는 거기서 **안쪽으로** 자란다. 그래서 홀더를 각만큼 돌리고, 막대는 피벗을 위끝(0.5,1)에 두어
+                //   아래(= 광원 쪽)로 뻗게 한다. 안팎을 뒤집으면 «퍼지는 빛» 이 된다.
+                SummonStreakSpec stk = SummonFxStyle.Streaks;
+                Color preGlow = Color.Lerp(SummonFxStyle.C("pre_glow_base"), bc, pk);
+                preGlow.a = (float)pr.GlowAlpha(bt);
+                Sprite bar = SummonFx.BakeStreak(
+                    "sr-streak-" + ColorUtility.ToHtmlStringRGB(preLine) + "-" + ColorUtility.ToHtmlStringRGB(preGlow),
+                    preLine, preGlow, (float)(stk.GlowRem / (stk.Width(pk) * 0.5 + stk.GlowRem)));
+                int sn = stk.Count(rolls);
+                float barW = PetSkillStyle.Rem((float)stk.Width(pk));
+                for (int i = 0; i < sn; i++)
+                {
+                    double ang, rr2, len, dly;
+                    stk.Spoke(i, sn, out ang, out rr2, out len, out dly);
+                    RectTransform spk = UiKit.Box(c, "sr-streak-" + i);
+                    spk.anchorMin = spk.anchorMax = new Vector2(0.5f, 0.5f);
+                    spk.pivot = new Vector2(0.5f, 0.5f);
+                    spk.sizeDelta = Vector2.zero;
+                    spk.anchoredPosition = Vector2.zero;
+                    spk.localRotation = Quaternion.Euler(0f, 0f, -(float)ang);   // CSS 의 +각은 시계 방향
+                    RectTransform bx = UiKit.Box(spk, "bar");
+                    bx.anchorMin = bx.anchorMax = new Vector2(0.5f, 0.5f);
+                    bx.pivot = new Vector2(0.5f, 1f);                              // 위끝 = 바깥 끝 = 정본 원점
+                    bx.sizeDelta = new Vector2(barW, PetSkillStyle.Rem((float)len));
+                    Image bi = bx.gameObject.AddComponent<Image>();
+                    bi.raycastTarget = false;
+                    bi.preserveAspect = false;
+                    bi.sprite = bar;
+                    Material bm = CraftFxPoly.Screen();
+                    if (bm != null) bi.material = bm;
+                    bi.color = new Color(1f, 1f, 1f, 0f);
+                    streaks.Add(new Streak { Holder = spk, Bar = bx, Img = bi, RRem = (float)rr2, DelayMs = (float)dly, LenPx = PetSkillStyle.Rem((float)len) });
+                }
             }
 
             // ---- 끝난 뒤의 잔잔한 고리(정본 `.sr-idle` 6934~6948 · `.done` 에서만 보인다) ----
@@ -1071,6 +1112,7 @@ namespace Forge.Game.Ui
             AnimateIdleRings();
             AnimateShock();
             AnimateChargeBurst();
+            AnimateStreaks();
         }
 
         void TurnOn(Cell c)
@@ -1544,6 +1586,33 @@ namespace Forge.Game.Ui
             chargeBurst.color = new Color(1f, 1f, 1f, (float)a);
             chargeBurst.rectTransform.localScale = Vector3.one * (float)sc;
         }
+
+        /// <summary>
+        /// 수렴 빛줄기(정본 `srstreak` .18s · 스포크마다 0~59ms 지연) — 바깥 끝이 광원으로 다가오는 동안 길어진다.
+        /// 정본 주석대로 «셀 등장까지 전부 사라져야» 하므로 길이 + 최대 지연이 충전 길이 안이다.
+        /// </summary>
+        void AnimateStreaks()
+        {
+            if (streaks.Count == 0) return;
+            SummonStreakSpec sp = SummonFxStyle.Streaks;
+            float ms = (Time.unscaledTime - start) * 1000f;
+            for (int i = 0; i < streaks.Count; i++)
+            {
+                Streak st = streaks[i];
+                if (st.Img == null) continue;
+                double a, dist, sy;
+                sp.At(ms, st.DelayMs, st.RRem, out a, out dist, out sy);
+                st.Img.color = new Color(1f, 1f, 1f, (float)a);
+                st.Bar.anchoredPosition = new Vector2(0f, PetSkillStyle.Rem((float)dist));
+                st.Bar.localScale = new Vector3(1f, (float)sy, 1f);
+            }
+        }
+
+        /// <summary>수렴 빛줄기 — 자가 본다.</summary>
+        public int StreakCount { get { return streaks.Count; } }
+        public Image StreakOf(int i) { return i >= 0 && i < streaks.Count ? streaks[i].Img : null; }
+        /// <summary>그 빛줄기의 바깥 끝이 광원에서 떨어진 거리(px) — 자가 본다.</summary>
+        public float StreakDist(int i) { return i >= 0 && i < streaks.Count ? streaks[i].Bar.anchoredPosition.y : -1f; }
 
         /// <summary>빛 모임 판 · 등급 예고 세기 — 자가 본다.</summary>
         public Image ChargeBurst { get { return chargeBurst; } }
