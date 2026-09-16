@@ -311,5 +311,38 @@ namespace Forge.Tests.PlayMode
             PlayerInfoPopup.Close(h);
             yield return null;
         }
+
+        /// <summary>T333 13회차 — 정본 8069 `#chat-preview .chat-preview-name { text-shadow: 0 1px 1px rgba(0,0,0,.5) }`(8392 묶음 .75 보다 특이도가 높다) ·
+        /// 2053 `.qst-bar em { text-shadow: 0 1px 1px rgba(0,0,0,.75) }` — 둘 다 한 겹이라 그대로.</summary>
+        [UnityTest]
+        public IEnumerator HUD_채팅_미리보기_이름과_퀘스트_진행_막대_글은_정본_아래_1px_흐림_1px_한_겹을_쓴다()
+        {
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (Hud.Instance == null && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsNotNull(Hud.Instance, "HUD");
+            MetaHost h = MetaHost.Instance;
+            TextMeshProUGUI nm = null;
+            foreach (TextMeshProUGUI t in Hud.Instance.GetComponentsInChildren<TextMeshProUGUI>(true)) if (t.name == "chat-preview-name") { nm = t; break; }
+            Assert.IsNotNull(nm, "채팅 미리보기 이름(chat-preview-name)");
+            AssertShadow(nm, "chat_preview_name", "채팅 미리보기 이름");
+            Assert.AreEqual(0.5f, TextShadowUi.C("chat_preview_name").a, 1e-3f, "정본 8069 알파 .5 — 8392 묶음의 .75 가 아니다(특이도)");
+
+            QuestSheet.Open(h);
+            yield return null;
+            yield return null;
+            Popup p = PopupLayer.Instance.Find(QuestSheet.Name);
+            Assert.IsNotNull(p, "퀘스트 시트");
+            int n = 0;
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name != "prog") continue;
+                n++;
+                AssertShadow(t, "qst_bar_em", "퀘스트 진행 막대 글");
+            }
+            Assert.Greater(n, 0, "진행 막대 글(prog)이 있다");
+            h.Popups.Hide(QuestSheet.Name);
+            yield return null;
+        }
     }
 }

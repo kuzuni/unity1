@@ -213,6 +213,7 @@ namespace Forge.Game.Ui
             // 그래서 칸은 **띠 전체 높이**로 주고 위/아래 정렬로 두 줄 자리를 낸다 — 글꼴 줄높이가 바뀌어도 안 무너진다.
             chatName = UiKit.Text(band, "chat-preview-name", TextKind.Sub, string.Empty, "chat_name", TextAlignmentOptions.TopLeft);
             chatName.fontStyle = FontStyles.Bold;
+            UiKit.TextShadow(chatName, "chat_preview_name");   // T333 13회차 — 정본 8069 `#chat-preview .chat-preview-name { text-shadow: 0 1px 1px rgba(0,0,0,.5) }`(8392 묶음보다 특이도가 높다)
             WrapUi.Apply(chatName, "chat_preview_name");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 3252 `.chat-preview-name { nowrap }`(전엔 박힘)
             chatName.overflowMode = TextOverflowModes.Ellipsis;     // 정본 `text-overflow: ellipsis`(가로)
             UiKit.Place(chatName.rectTransform, tx, padY, tw, bandH - padY * 2f);

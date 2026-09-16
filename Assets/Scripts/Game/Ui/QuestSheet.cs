@@ -117,6 +117,7 @@ namespace Forge.Game.Ui
                 SurfaceArt.Fill(fill.rectTransform, "qst-fill-rim", "qst_bar_rim", fillW, barH - barLine * 2f, done ? "qst_bar_done_ramp" : "qst_bar_ramp");
                 TextMeshProUGUI progT = UiKit.Text(bar, "prog", TextKind.Sub, PopupKit.Fmt(System.Math.Min(q.Prog, q.Need)) + "/" + PopupKit.Fmt(q.Need), "pp_ink");
                 progT.fontStyle = FontStyles.Bold;
+                UiKit.TextShadow(progT, "qst_bar_em");   // T333 13회차 — 정본 2053 `.qst-bar em { text-shadow: 0 1px 1px rgba(0,0,0,.75) }`(글자 색 #fff 는 T396 잉크 축)
 
                 RectTransform right = UiKit.Box(row, "right");
                 UiKit.Place(right, rowW - padX - btnW, 0f, btnW, rowH);
