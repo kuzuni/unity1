@@ -373,7 +373,13 @@ jobs:
           #        그 값이 `environment.ts` 의 COVERAGE_ENABLED → CLI 가 들고 다니는 `dist/platforms/ubuntu/steps/test.sh` 178 의
           #        `if [ "$COVERAGE_ENABLED" = "true" ]` 까지 닿아 위 넷을 통째로 뺀다. v0.1.65 배포 바이너리로 실측했다.
           #        잃는 것은 없다 — `com.unity.testtools.codecoverage` 는 manifest 에 없고 CodeCoverage/ 를 읽는 스텝도 0이다.
-          GAME_CI_COVERAGE_ENABLED: 'false'
+          #        ⛔ **런 995 에서 이 한 줄이 잡을 더 나쁘게 만들었다 — 그래서 값만 걷고 주석은 남긴다(T435 2회차).**
+          #          러너 스텝이 **1초**(22:44:49→50)에 죽고 `unity-test-results/` 가 통째로 비어 **EditMode 까지** 0개가 됐다
+          #          (직전 런 993 은 PlayMode 하나만 죽었다 · T392 가 `coverageEnabled: false` 로 겪은 것과 같은 꼴).
+          #          컨테이너에서 v0.1.65 바이너리로 친 실측(경고 0 · 도커까지 감 · `--vvv` 가 `coverageEnabled: false`)은
+          #          **CLI 를 직접 부를 때**의 답이고, 러너가 부를 때는 다른 일이 벌어진다 — 그 «다른 일» 을 못 본 채
+          #          다시 켜지 마라. 켜려면 먼저 런 995 러너 스텝의 첫 줄들(잡 로그 105005482646)을 읽어야 한다.
+          # GAME_CI_COVERAGE_ENABLED: 'false'   ← 켜지 마라(위 ⛔)
         with:
           projectPath: .
           testMode: all

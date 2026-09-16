@@ -3267,6 +3267,9 @@
 - 판정: ⓐ 다음 유니티 런의 `playmode-results.xml` 이 **있다**(테스트 수 > 0) ⓑ 그 런의 모드 로그에 `-enableCodeCoverage` 가 **없다**(`screens:playmode-log.txt` 가 안 올라오면 그 자체가 ⓐ 의 증거다) ⓒ `check_unity_green --fetch` 가 «모드 통째 부재» 로 안 운다. ⓓ **안 나으면** 이 절이 틀린 것이 아니라 **다른 갈래가 하나 더 있는 것**이다 — 그때 볼 것은 `Library` 캐시다(`ci.yml` 의 `restore-keys` 가 바닥에 맨 `Library-` 를 둬 **WebGL·안드로이드 빌드 잡이 구운 `Library-webgl-*`·`Library-android-*` 를 테스트 잡이 집어 온다** · 다른 빌드 타깃의 `Library` 다).
 - 범위: `.github/workflows/ci.yml`(유니티 잡 러너 스텝) · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
 - 🔄 **1회차 2026-09-16 22:3x 워커 F(sess-2227-13221)**: `ci.yml` 러너 스텝 `env:` 에 `GAME_CI_COVERAGE_ENABLED: 'false'` 한 줄 + 까닭 주석 · 같은 파일의 T392 주석 한 줄(«판을 올리면 열린다»)을 **바로잡았다**(`negation-prefix: false` 라 판과 무관하게 안 열린다). 게임 코드 0줄. `gate.sh` 막는 자 전부 rc 0 · 건너뜀 2(dotnet 없음 · C# 변경 0). **판정은 다음 런 · lock 은 쥔 채**(§1).
+- ⛔ **1회차 판정 = 빨강 · 되돌렸다(2회차 · 같은 세션 22:5x)**: 손수 dispatch 한 런 **995**(`4bf56f8`)에서 러너 스텝이 **1초**에 죽고 `unity-test-results/` 가 통째로 비어 **`missing_modes: editmode-results.xml,playmode-results.xml`** — 직전 993 은 PlayMode 하나만 죽었으니 **내 한 줄이 EditMode 까지 죽였다**(T392 가 `coverageEnabled: false` 로 겪은 런 739·740 과 같은 꼴). `ci.yml` 의 그 줄을 걷고 ⛔ 경고 주석을 남겼다. **진단은 그대로 옳다 — 틀린 것은 손잡이다.**
+  - ⚑ **이 절이 새로 배운 것 둘(다음 사람에게)**: ① **CI 잡을 고치는 커밋은 제 push 로 판정이 안 난다** — `gate` 잡의 `has_code` 가 `Assets/|Packages/|ProjectSettings/` 만 보므로 `ci.yml`·문서 push 는 유니티 잡을 건너뛴다. **반드시 `workflow_dispatch` 로 손수 돌려** 제 회차에 판정을 봐라(`EV != push` 라 `has=true` 가 된다). ② **컨테이너에서 CLI 를 손으로 쳐 본 것은 러너가 부를 때를 대신하지 못한다** — 내가 친 네 갈래는 다 원하는 답이었는데 러너 안에서는 죽었다.
+  - **다음 사람이 시작할 자리**: 런 995 유니티 잡 **105005482646** 의 «Run game-ci/unity-test-runner@v4» 스텝 **첫 줄들**(22:44:49~50). `get_job_logs` 는 꼬리만 주므로 tail 을 크게 잡아야 그 앞이 보인다. 그것이 안 풀리면 ⓓ 의 `Library` 캐시 갈래로.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
