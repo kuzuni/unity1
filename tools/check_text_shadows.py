@@ -86,6 +86,14 @@ TABLE = {
     '.dgclear-title': ['Ui/DungeonClearPopup.cs#title'],
     '.bw-track span': ['Ui/BattleOverlay.cs#text'],
     '.bw-sub': ['Ui/BattleOverlay.cs#bw-sub'],
+    # T333 14회차 — «그림자가 닿을 글자가 없는» 선언 셋(대조하지 않는다 · 까닭을 여기 적는다).
+    #   ⓐⓑ 정본은 **이모지 글리프**를 `color: transparent` + `text-shadow: 0 0 0 <색>` 으로 실루엣만 남긴다(4372 주석 «이모지 → 등급색 실루엣»).
+    #      클론은 그 자리를 **아틀라스 아이콘**(`UiKit.Icon("egg"/"paw")`)으로 세우고 같은 색으로 틴트한다 — 그림은 같고 언더레이가 닿을 글자가 없다.
+    '.petup-bulk .bulk-sil': '— 클론은 글자가 아니라 아틀라스 아이콘 틴트다(PetUpgradePopup.cs bulk-sil · 꺼짐 = 등급색 · 켜짐 = 흰색) — 정본 4372 의 «투명 글자 + 0 0 0 그림자» 와 같은 그림이라 언더레이 자리가 아니다',
+    '.petup-bulk.on .bulk-sil': '— 위와 같은 자리의 켜짐 상태(정본 4375 `0 0 0 #fff`) — 클론은 같은 아이콘을 흰색으로 틴트한다',
+    #   ⓒ 정본 4378 은 ✓ 에 그림자를 주는데, 바로 아래 4383 이 그 ✓ 를 **캔버스 아이콘**(`.tile-check .ico { width: 42% }`)으로 바꿔 놓아 글자가 남아 있지 않다.
+    #      클론도 같은 꼴(`UiKit.Icon("check")` 42%)이라 그림자가 닿을 글자가 없다 — T33 36회차의 «덮는 규칙·죽은 선언을 먼저 걷어라» 와 같은 자리.
+    '.pet-tile .tile-check': '— 정본이 그 ✓ 를 캔버스 아이콘으로 바꾼 뒤(4383 `.tile-check .ico` 42%) 남은 죽은 선언이다 — 클론도 아이콘이라 글자가 없다(PetUpgradePopup.cs Check)',
 }
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ────────────────────────────────
