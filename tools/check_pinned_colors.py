@@ -56,6 +56,19 @@ TABLE = {
     '.pip.boss.now': ['Ui/Hud.cs@SetWaves|catalog:pip_boss'],               # 정본 196 #ff5252
     '#tabbar': ['Ui/TabBar.cs|catalog:tabbar_bg'],                          # 정본 1693 #0e111b(주석에 원본 실측 rgb(14,17,27) 이 적혀 있다)
     '.qst-row.done': ['Ui/QuestSheet.cs|catalog:quest_done_bg'],            # 정본 2030 #f2fff2
+    # T377 8회차 — 기술 트리 노드 원반 **여섯 상태**(정본 2182·2188·2190·2197·2198·2201). 클론 `TechPanel.Node` 가
+    #   상태마다 카탈로그 키를 고르고 값은 **여섯 다 이미 정본 그대로**다 — 자가 지키기만 한다.
+    #   ⚠ 정본 주석이 두 자리에 «여기서 틀렸었다» 를 남겨 뒀다: 2195 «클론 #c9925a 는 주황기가 빠진 탠색이었다» ·
+    #     2199 «연구 중 노드를 통째로 초록으로 칠하면 안 된다 — 초록은 아래 시간 배지 뿐이다». 값이 밀리면 여기서 빨강이 난다.
+    '.tech-tree-node': ['Ui/TechPanel.cs@Node|catalog:tech_node'],                 # 2182 #c85c34
+    '.tech-tree-node.active': ['Ui/TechPanel.cs@Node|catalog:tech_node'],          # 2197 #c85c34(같은 값이지만 정본이 따로 적은 자리)
+    '.tech-tree-node.researching': ['Ui/TechPanel.cs@Node|catalog:tech_node'],     # 2201 #c85c34
+    '.tech-tree-node.locked': ['Ui/TechPanel.cs@Node|catalog:tech_locked'],        # 2188 #f4f2ee
+    '.tech-tree-node.tlocked': ['Ui/TechPanel.cs@Node|catalog:tech_tlocked'],      # 2190 #d9d6d0
+    '.tech-tree-node.done': ['Ui/TechPanel.cs@Node|catalog:tech_done'],            # 2198 #a9793f
+    # T377 8회차 — 산 lock 밖 파일 둘 더(둘 다 곁 표 `PetSkillUi.json` 이 정본 값을 그대로 쥐고 있다).
+    '#summon-subtabs.subtab-strip': ['Ui/SkillPetSheet.cs|res:PetSkillUi:subtab_bg'],   # 3593 #afafaf(실버 패널 · 그 안의 검은 알약은 subtab_pill)
+    '.mat-chip.on': ['Ui/MountUpgradePopup.cs|res:PetSkillUi:mtup_chip_on'],            # 810 #253326 · 바탕 `.mat-chip`(806)은 3527 이 흰 면으로 덮는 «덮개» 자리다
     '.dgd-btn.silver': ['Ui/DungeonPopups.cs|catalog:dgd_btn'],         # 정본 5356 #a3a3a3(원본 픽셀 실측 주석) ↔ catalog dgd_btn
     '.rw-pop': ['Ui/RewardBurst.cs|res:RewardBurstUi:pop'],             # 정본 7511 #ffd54f(도착 마침표 별) ↔ RewardBurstUi colors.pop
     # T377 6회차 — 펫 업그레이드 팝업 다섯(파일이 열렸다). 다섯 다 곁 표 PetSkillUi 가 정본 리터럴을 그대로 쥐고 있어 «지키는 자» 만 붙인다.
