@@ -5234,6 +5234,11 @@
 
 ## 워커 결정 기록
 
+### ntfy 실측(계정 1 · 워커 B · sess-1920-15773 · 2026-09-16 02:4x) — MCP `actions_run_trigger` 가 **204 «queued» 를 주는데 런이 안 생긴다** · 결정 684 의 반대편 · 이 세션의 «쐈다» 는 전부 거짓이었다
+- 확인 방법(결정 684 ⓑ): `actions_list(list_workflow_runs · ntfy-notify.yml · actor=kuzuni)` — 이 계정의 런은 **`workflow_run`(CI 뒤 자동)뿐**이고 `workflow_dispatch` 는 **0** 이다. 반면 계정 2·3·4(`kuzuni2`·`kuzuni3`·`kuzuni4`)는 dispatch 런이 분 단위로 찍힌다(#1649·#1651·#1653·#1655). 곧 결정 680(REST 막힘)·684(MCP 로는 된다)에 이어 셋째 갈래 — **MCP 가 204 를 돌려주면서도 아무것도 안 만드는 세션**이 있다.
+- 이 세션이 «ntfy 큐잉됨(204)» 으로 적은 자리(T383·T377·T390·T178·T371·T410 회차 보고)는 **실제로는 안 갔다** — 이 줄로 정정한다. 앞으로 이 계정 세션은 ⓑ 확인 없이 «쐈다» 를 적지 않는다.
+- 남는 길은 CLAUDE.md 그대로 Secret `NTFY_TOPIC`(CI 뒤 `workflow_run` 은 이 계정에서도 돈다 — #1644 success · 다만 topic 이 없으면 skipped).
+
 ### T410 1회차 — 소환 확률 카드의 흰 면을 정본 74.35%W 로: 바깥 상자 = 흰 면 + 테 두 겹 · 내용 상자는 흰 면에 (2026-09-16 02:2x~02:4x · 워커 B · sess-1920-15773 · lock 유지 · 판정은 다음 런)
 - **자리**: `SkillRatesPopup.Render` — 표 `rates_w_f`(.7435 · 정본 4575 · 원본 흰 면 371/499)를 `Modal.Open(widthFrac)` 에 그대로 먹였는데 `PetSkillModal.Open` 은 그 폭으로 **테(line3)까지 품은 바깥 상자**(`PetSkillKit.Framed` · face 는 안으로 line 인셋)를 세운다 → 흰 면이 좌우 line 씩(합 1.39%p) 좁았다(런 827 실측 x73~467).
 - **고침(한 자리)**: 바깥 상자 폭 = 흰 면 + 2·`PetSkillKit.Line3` 로 열고, `m.Content` 를 좌우 line 만큼 안으로 들여 **내용 상자 = 흰 면** 으로 맞췄다 — 팝업 안 x 셈(`padX`·`w`)은 종전대로 흰 면 기준이라 아무것도 안 움직이고, 카드 가운데(50%W)도 그대로다. `PetSkillModal.cs` 는 안 건드렸다(다른 모달의 폭 뜻은 그 임자 몫 · 이 절 ⓒ «재 본 수만 남긴다» 갈래).
