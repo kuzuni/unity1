@@ -37,6 +37,16 @@ TABLE_DEFAULT = os.path.join('Assets', 'Forge', 'Resources', 'RadiusUi.json')
 # ── 정본 선택자 ↔ 클론 자리 ──────────────────────────────────────────────────────────────
 TABLE = {
     # 어긋난 리터럴 열 자리(20회차 ⓡ) — 표로 옮긴다(T345 ⓑ · 각 파일의 산 lock 뒤)
+    # ── T415 3회차(2026-09-16 · 워커 J) — 정본 `50%`(원) 자리를 `#이름` 꼴로 ──
+    #    2회차가 «원은 자가 못 가른다» 로 미뤄 둔 갈래다. `@메서드` 는 본문이 넓어 다른 반지름 키가
+    #    증거 노릇을 해 **원을 걷어도 초록**이었다. `#이름` 은 «그 이름 곁 6줄 안에 원 공장» 만 본다.
+    '.sk-orb': ['Ui/SkillPanel.cs#sk-orb'],
+    '.sk-eqplate': ['Ui/SkillPanel.cs#sk-eqplate'],
+    # `.sk-orb.equipped::after` 는 **안 건다** — 클론 `SkillPanel.cs:219` 이 `Disc(orbRt, "equipped")` 로 맞게 깔지만,
+    #   그 이름 곁 6줄 안(225행)에 **다른 원 공장**(`Disc(plate, "bg")`)이 있어 이 원을 걷어도 창이 그것을 집어 **초록이 유지된다**(고장 주입 실측 rc 0).
+    '.info-dot': ['Ui/SkillPanel.cs#info-dot'],
+    '.info-btn': ['Ui/DungeonPopups.cs#info-btn'],
+    '.sr-orb': ['Ui/SkillSummonResult.cs#sr-orb'],
     # ── T415 2회차(2026-09-16 · 워커 J) — 스킬 화면(`SkillPanel.cs` 가 표 키를 이미 부르던 자리) ──
     #    ⚠ 이 갈래는 **자 파일만 고친다** — 짝을 적는 일이라 그 화면 파일을 안 연다(산 lock 과 무관).
     '.passive-banner': ['Ui/SkillPanel.cs$passive_r_rem@PetSkillUi.json'],
@@ -56,9 +66,9 @@ TABLE = {
     # 소환 확률 팝업
     '.rate-bar': ['Ui/SkillRatesPopup.cs$rate_bar_r_rem@PetSkillUi.json'],
     '.rates-prog': ['Ui/SkillRatesPopup.cs$rates_prog_r_rem@PetSkillUi.json'],
-    '.rates-i': u'✓클론 `SkillRatesPopup.cs:115` 이 `PetSkillKit.Disc` 로 원을 깐다(정본 50%) — **자에 안 건다**: 그 자리를 감싼 `Render()` 가 팝업 전체라 표 키가 여럿 들어 있어, 원을 걷어도 증거가 남아 **초록이 유지된다**(T345 17회차 «자가 못 가르는 줄은 걸지 않는다»)',
+    '.rates-i': ['Ui/SkillRatesPopup.cs#rates-i'],   # 3회차 — `@Render` 는 팝업 전체라 못 갈랐다 → `#이름`(그 이름 곁 6줄 안의 원 공장)으로 날카롭게
     # 탭바 ✕
-    '.tab-x-mark': ['Ui/TabBar.cs@Build'],
+    '.tab-x-mark': ['Ui/TabBar.cs#tab-x'],   # 3회차 — `@Build` 는 탭바 전체라 못 갈랐다
     # 보상 연출 — 둥긂이 **구운 판 안에** 있어 `Circle(` 증거가 안 남는 자리들
     '.rw-glow': u'✓클론 `RewardBurst.GlowFx` 는 `SurfaceArt.Bake("rw_glow", 1f)` 로 **방사형 판을 구워** 쓴다(정본 50% + radial-gradient) — 둥긂이 판 안에 있어 코드에 반지름 증거가 없다',
     '.rw-ring': u'✓클론 `RewardBurst.RingFx` 는 `RingSprite(s)` 로 **링 판을 구워** 쓴다(정본 50% + .34rem 테) — 같은 갈래',
@@ -185,6 +195,26 @@ KNOWN = {
 
 RADIUS_DECL = re.compile(r'(?<![\w-])border-radius\s*:\s*([^;}]+)')
 # `BorderedCircle(`(테 원 + 면 원 · DungeonPopups)도 원이다 — T345 7회차: 기술 트리 분기 원판·노드가 그 길로 선다.
+# 클론이 **원**을 까는 공장들 — `UiKit.Circle` · `PetSkillKit.Disc` · `PetSkillKit.Orb`.
+# 정본 `border-radius: 50%` 자리는 «그 이름의 상자 곁에서 이 공장이 불리는가» 로 본다(T415 3회차).
+CIRCLE_FACTORY = re.compile(r'\b(?:Bordered)?Circle\s*\(|\bDisc\s*\(|\bOrb\s*\(')
+# 이름 줄에서 아래로 몇 줄까지 공장을 찾나 — 클론은 «상자를 이름으로 만들고 그 안에 면을 깐다» 라
+# 이름과 공장이 한 줄이 아닐 때가 많다(`UiKit.Button(c, "rates-i", …)` → 세 줄 뒤 `Disc(ir, "bg", …)`).
+CIRCLE_WINDOW = 6
+
+
+def circle_near(src, name):
+    """그 파일에서 `"<이름>"` 이 나오는 줄부터 CIRCLE_WINDOW 줄 안에 원 공장 호출이 있는가."""
+    lines = src.split('\n')
+    needle = '"%s"' % name
+    for i, line in enumerate(lines):
+        if needle in line:
+            for j in range(i, min(i + 1 + CIRCLE_WINDOW, len(lines))):
+                if CIRCLE_FACTORY.search(lines[j]):
+                    return True
+    return False
+
+
 EVIDENCE = re.compile(r'\b(?:Bordered)?Circle\s*\(|\bRadiusUi\s*\.\s*(?:Px|Rounded)\s*\(|"[a-z][a-z0-9_]*_r_(?:rem|w|px)"')
 REM = re.compile(r'^(-?\d*\.?\d+)rem$')
 APPW = re.compile(r'^calc\(\s*var\(\s*--app-w\s*\)\s*\*\s*(-?\d*\.?\d+)\s*\)$')
@@ -323,7 +353,7 @@ def _method_body(src, name):
 
 def check_target(game_dir, target, table, unit, num, res_dir=None):
     """(상태, 설명) — 'ok' | 'missing'(자리가 표를 안 부른다) | 'nokey'(표에 그 키가 없다) | 'value'(표값이 정본과 다르다) | 'absent'(파일·메서드 없음 · 규약 어김)."""
-    m = re.match(r'([^#@$]+)([@$]?)(.*)', target)
+    m = re.match(r'([^#@$]+)([#@$]?)(.*)', target)
     file_part, sep, tail = m.groups()
     other = None
     if sep == '$' and '@' in tail:
@@ -343,6 +373,11 @@ def check_target(game_dir, target, table, unit, num, res_dir=None):
     src = _read_text(path)
     if sep == '':
         return ('ok' if EVIDENCE.search(src) else 'missing'), '파일 전체에 둥근 모서리 증거가 없다'
+    if sep == '#':
+        if unit != 'circle':
+            return 'absent', u'`#이름` 은 정본이 **50%%(원)** 인 자리에만 쓴다(지금 정본 값: %s): %s' % (unit, tail)
+        return ('ok' if circle_near(src, tail) else 'missing'), \
+               u'`"%s"` 곁 %d줄 안에 원 공장(`Circle(`·`Disc(`·`Orb(`) 호출이 없다' % (tail, CIRCLE_WINDOW)
     if sep == '@':
         body = _method_body(src, tail)
         if body is None:
@@ -621,12 +656,29 @@ namespace X {
     # 16 정본 CSS 가 없으면 2
     if run('/nonexistent/style.css', '.', '/nonexistent.json', base, {}, out=lambda s: None) != 2:
         fails.append('정본 없음 rc 2')
+    # 20 (T415 3회차) `#이름` — 정본 50%(원) 자리를 «그 이름 곁 원 공장» 으로 본다
+    def cn(label, src, name, want):
+        if circle_near(src, name) != want:
+            fails.append(label)
+    cn('#이름: 같은 줄의 원 공장', 'var x = UiKit.Circle(p, "sk-orb");', 'sk-orb', True)
+    cn('#이름: 창 안 아래줄의 원 공장',
+       'UiKit.Button(c, "rates-i");\nvar a = 1;\nPetSkillKit.Disc(ir, "bg");', 'rates-i', True)
+    cn('#이름: 창 밖은 안 센다',
+       'UiKit.Box(c, "plain");' + '\n' * (CIRCLE_WINDOW + 2) + 'UiKit.Circle(z, "far");', 'plain', False)
+    cn('#이름: 원 공장이 없으면 못 찾는다', 'UiKit.Box(c, "plain");', 'plain', False)
+    cn('#이름: Orb·Disc 도 원 공장이다', 'PetSkillKit.Orb(cell, "sk-orb", rc);', 'sk-orb', True)
+    st20, _ = check_target('Assets/Scripts/Game', 'Ui/NoSuchFile.cs#x', {}, 'circle', None)
+    if st20 != 'absent':
+        fails.append('#이름: 없는 파일은 absent')
+    st20b, why20b = check_target('Assets/Scripts/Game', 'Ui/TabBar.cs#tab-x', {}, 'rem', None)
+    if st20b != 'absent' or '50%' not in why20b:
+        fails.append('#이름: 정본이 원이 아닌 자리에는 못 쓴다')
     if fails:
         print('✗ check_border_radius --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  - ' + f)
         return 1
-    print('✓ check_border_radius --self-test 31칸 통과')
+    print('✓ check_border_radius --self-test 38칸 통과')
     return 0
 
 
