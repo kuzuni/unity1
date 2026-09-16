@@ -135,5 +135,50 @@ namespace Forge.Tests.PlayMode
             }
             finally { Object.Destroy(box.gameObject); }
         }
+
+        static Transform FindActive(Transform root, string name)
+        {
+            if (!root.gameObject.activeInHierarchy) return null;
+            if (root.name == name) return root;
+            for (int i = 0; i < root.childCount; i++) { Transform r = FindActive(root.GetChild(i), name); if (r != null) return r; }
+            return null;
+        }
+
+        /// <summary>T396 6회차 — 정본 3452 `.chat-input-bar input::placeholder { color: #6b6b6b }`(«브라우저 기본이 흐려서» 일부러 진하게 못박은 리터럴).
+        /// 클론은 전역 `pp_muted`(#8a8a8a)로 찍고 있었다. 채팅은 탭이 아니라 HUD 채팅 줄 → 전체화면 팝업(ChatGapTests 와 같은 길).</summary>
+        [UnityTest]
+        public IEnumerator 채팅_입력칸_안내글은_전역_muted_가_아니라_못박은_진한_회색이다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!(UiRoot.Instance != null && Hud.Instance != null && PopupLayer.Instance != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsNotNull(Hud.Instance, "HUD");
+            Hud.Instance.ChatButton.onClick.Invoke();
+            yield return null; yield return null;
+            Popup pop = PopupLayer.Instance.Find(ChatScreen.Name);
+            Assert.IsNotNull(pop, "채팅 팝업");
+            Transform bar = FindActive(pop.Root, "input-bar");
+            Assert.IsNotNull(bar, "입력 바");
+            Transform ph = FindActive(bar, "placeholder");
+            Assert.IsNotNull(ph, "안내글");
+            var tm = ph.GetComponent<TMPro.TextMeshProUGUI>();
+            Color want = PinnedColorUi.C("chat_placeholder_ink");
+            Assert.AreEqual(want.r, tm.color.r, 0.02f, "안내글 R = 표 chat_placeholder_ink(정본 3452 #6b6b6b)");
+            Assert.AreEqual(want.g, tm.color.g, 0.02f, "안내글 G");
+            Assert.AreEqual(want.b, tm.color.b, 0.02f, "안내글 B");
+            Assert.AreNotEqual(UiKit.C("pp_muted"), tm.color, "전역 pp_muted(#8a8a8a) 가 아니다 — 정본이 일부러 진하게 못박은 자리(8692 «토큰을 옮기지 말 것»)");
+            // 공유 카드(정본 3409 `.chat-share-side small:last-child` · 3425 `.chat-share-label` — **양쪽** 전투력과 «승리» 가 같은 주황 #ff880f)
+            Transform win = FindActive(pop.Root, "win"), lose = FindActive(pop.Root, "lose");
+            Assert.IsNotNull(win, "공유 카드 이긴 쪽 — 세이브에 공유 카드 줄이 없으면 이 자를 못 잰다"); Assert.IsNotNull(lose, "공유 카드 진 쪽");
+            Color orange = UiKit.C("chat_name");
+            var winCp = FindActive(win, "cp").GetComponent<TMPro.TextMeshProUGUI>();
+            var loseCp = FindActive(lose, "cp").GetComponent<TMPro.TextMeshProUGUI>();
+            var winLb = FindActive(win, "label").GetComponent<TMPro.TextMeshProUGUI>();
+            Assert.AreEqual(orange, winCp.color, "이긴 쪽 전투력 = #ff880f(전엔 chat_share_win 초록)");
+            Assert.AreEqual(orange, loseCp.color, "진 쪽 전투력 = #ff880f(전엔 chat_share_lose 회색) — 정본 `.lose` 는 바탕만 다르다");
+            Assert.AreEqual(orange, winLb.color, "«승리» 라벨 = #ff880f");
+            Assert.AreNotEqual(UiKit.C("chat_share_win"), winCp.color, "초록 chat_share_win 이 아니다");
+            PopupLayer.Instance.Hide(ChatScreen.Name);
+        }
     }
 }

@@ -102,6 +102,17 @@ TABLE_INK = {
     '.btn.btn.sell.sell.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink'],
     '.petup-selrow .btn.silver.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink2'],
     '.skd-btn.silver.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink2'],   # SkillPanel 381 이 PaperButton(Silver, disabled) 로 세운다
+    # T396 6회차 — T345 반납으로 열린 파일 셋(ChatScreen · DungeonClearPopup · MountSheet). 여섯은 이미 제 값, 셋은 근사였다(안내글 · 공유 카드 주황 둘).
+    '.chat-row.mine .chat-name': ['Ui/ChatScreen.cs#name|catalog:chat_name'],                 # 정본 3323 #ff880f ↔ 카탈로그 chat_name(태그 [..] 도 같은 글자 안)
+    '.chat-tag': ['Ui/ChatScreen.cs#name|catalog:chat_name'],                                 # 정본 3324 #ff880f — 클론은 «[태그] 이름» 한 글자라 같은 자리
+    '.chat-time': ['Ui/ChatScreen.cs#time|catalog:chat_time'],                                # 정본 3359 #545454 ↔ 카탈로그 chat_time
+    '.chat-input-bar input::placeholder': ['Ui/ChatScreen.cs#placeholder|res:PinnedColorUi:chat_placeholder_ink'],   # 정본 3452 #6b6b6b ↔ 클론은 pp_muted(#8a8a8a) 였다
+    '.chat-share-side small:last-child': ['Ui/ChatScreen.cs#cp|catalog:chat_name'],            # 정본 3409 #ff880f(양쪽 전투력) ↔ 클론은 이긴 쪽 초록·진 쪽 회색이었다
+    '.chat-share-label': ['Ui/ChatScreen.cs#label|catalog:chat_name'],                        # 정본 3425 #ff880f(«승리») ↔ 클론은 chat_share_win(#35c04f) 이었다
+    '.dgclear-title': ['Ui/DungeonClearPopup.cs#title|catalog:dgclear_title'],                # 정본 5374 #ffd54f 같은 값
+    '.dgclear-sub': ['Ui/DungeonClearPopup.cs#sub|catalog:dgclear_sub'],                      # 정본 5378 #b0bec5 같은 값
+    '.dgc-amt': ['Ui/DungeonClearPopup.cs#amt|catalog:dgclear_amt'],                          # 정본 5391 #ffe082 같은 값
+    '.petd-wrap .petd-subs': ['Ui/MountSheet.cs#petd-subs|res:PetSkillUi:subs_ink'],           # 정본 5454 #3a3a3a ↔ PetSkillUi subs_ink 같은 값(PetPanel 쪽 같은 키는 그 lock 뒤)
 }
 KNOWN_INK = {
 }

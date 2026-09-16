@@ -93,6 +93,9 @@ namespace Forge.Game.Ui
             viewport.gameObject.AddComponent<RectMask2D>();
             TextMeshProUGUI txt = UiKit.Text(viewport, "text", TextKind.Sub, string.Empty, "pp_ink", TextAlignmentOptions.Left);
             TextMeshProUGUI ph = UiKit.Text(viewport, "placeholder", TextKind.Sub, "메시지 보내기...", "pp_muted", TextAlignmentOptions.Left);
+            // T396 6회차 — 정본 3452 `.chat-input-bar input::placeholder { color: #6b6b6b }` 는 «브라우저 기본 #8e8e93 이 흐려서» 일부러 진하게 못박은 리터럴이다.
+            //   전역 pp_muted(#8a8a8a)는 그보다 옅다 — 자리 전용 키(PinnedColorUi · check_pinned_colors 가 정본과 같은지 지킨다).
+            ph.color = PinnedColorUi.C("chat_placeholder_ink");
             // T168 3회차 — 정본 style.css 3460 `.chat-input-bar input::placeholder { letter-spacing: -.06em }`(음수 · 안내 글자만 좁힌다).
             // 정본 3459 주석: «굵기를 되살리고 폭은 letter-spacing 으로 원본값에 맞춘다(두 지표를 동시에 통과시키는 유일한 조합)».
             LetterSpacing.Apply(ph, "chat_placeholder_ls_em");
@@ -236,8 +239,11 @@ namespace Forge.Game.Ui
                 string winName = m.Win ? m.MyName : m.OppName, loseName = m.Win ? m.OppName : m.MyName;
                 string winAv = m.Win ? m.MyAvatar : m.OppAvatar, loseAv = m.Win ? m.OppAvatar : m.MyAvatar;
                 string winCp = PopupKit.Fmt(m.Win ? m.MyCp : m.OppCp), loseCp = PopupKit.Fmt(m.Win ? m.OppCp : m.MyCp);
-                Side(card, "win", 0f, bubbleW * 0.5f, bodyH, winAv, winName, winCp, "chat_share_win", "승리");
-                Side(card, "lose", bubbleW * 0.5f, bubbleW * 0.5f, bodyH, loseAv, loseName, loseCp, "chat_share_lose", null);
+                // T396 6회차 — 정본 3409 `.chat-share-side small:last-child { color: #ff880f }` · 3425 `.chat-share-label { color: #ff880f }`:
+                //   **양쪽** 전투력 수와 «승리» 라벨이 같은 주황(+ 검정 키라인)이다(주석 «주황 글자의 테가 갈리면 안 된다»). 전엔 이긴 쪽을 초록(chat_share_win #35c04f) ·
+                //   진 쪽을 회색(chat_share_lose #8a8a8a)으로 찍었다 — 정본엔 그런 갈래가 없다(`.lose` 는 바탕 #cecece 만). 값은 카탈로그 chat_name(#ff880f · 같은 리터럴).
+                Side(card, "win", 0f, bubbleW * 0.5f, bodyH, winAv, winName, winCp, "chat_name", "승리");
+                Side(card, "lose", bubbleW * 0.5f, bubbleW * 0.5f, bodyH, loseAv, loseName, loseCp, "chat_name", null);
                 // T132 2회차 — 정본 ui.js 5271 `<span class="chat-share-cam">${IconGen.img('chatcam')}</span>` · style.css 3433~3438:
                 // 카드 오른쪽 위 **밖으로 걸치는** 정사각 배지(.0381W · top −.008W · right −.030W · 앱 폭 배수 = StaticIconsUi `_aw`).
                 // 정본은 카드에 overflow:hidden 을 일부러 안 준다(3392 주석 «주면 배지가 통째로 잘린다») — 클론 카드도 마스크가 없다.
