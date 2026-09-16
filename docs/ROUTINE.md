@@ -3060,6 +3060,7 @@
 - 판정: 다음 런 `screen_tech-node.png` 에 ⓐ «연구 진행 중» 줄 ⓑ 파란 진행바 ⓒ 버튼 **둘** 이 있다(지금은 셋 다 없다) · 머리의 레벨이 `Lv.1/5` 다 · `--rows tech-node` 의 맞은 줄 수가 는다.
 - 범위: `Assets/Tests/PlayMode/UiShotsTests.cs`(그 `Shot` 하나 + 단언) · `docs/ROUTINE.md` · `docs/PROGRESS.md`. ⚠ 게임 코드는 **안 건드린다** — 샷이 못 세운 상태를 게임 쪽에서 맞추면 안 된다.
 - **이 절 밖 잔여**: 그 [잠김] 카드에서 **안내줄이 카드 밖에서 잘린다**(«열립니다» 가 «열립니」 로 끊긴다) — 원인은 촬영이 아니라 코드이고 **T428** 로 따로 등재했다. 샷이 고쳐지면 이 화면에서는 안 보이게 되지만 **게임에서는 잠긴 노드마다 보이는 자리**다.
+- 🔄 1회차 2026-09-16 13:0x 워커 P(sess-0154-10159 · 선점): 후보 셋 중 **ⓒ** — `UiShotsTests` 의 `P` 는 `PetSkillHost`(제 `Tech` 는 효과 셈만 읽는다)이고 `TechPanel.cs:63~64`·`TechPopups.cs:36~37` 은 `DungeonUiHost.Instance.Tech` 를 읽는다(같은 세이브에서 따로 세운 **두 개체** · 저장도 D 쪽). 샷의 `P.Tech` 쓰기 셋(232 배지 · 436 tech-branch · 452 tech-node)을 `D.Tech` 로 · tech-node 열림 확인에 «`TechPopups.State` 가 Researching 이 아니면 던진다» 단언. 게임 코드 0줄 · 판정은 다음 런 PNG.
 
 ### T428 — 잠긴 기술 노드 카드가 **버튼 높이를 옛 키로 잡아 둔 채** 자리를 재서, 안내줄이 카드 밖에서 잘린다: `ActionHeight` 는 `btn_sm_h_rem`(2rem) · 그리는 쪽은 `tech_btn_h_rem`(3.6rem) (Game·UI · **T401 3회차가 그린 쪽만 올리고 재는 쪽을 안 올렸다** · **T28 91회차 등재**)
 
