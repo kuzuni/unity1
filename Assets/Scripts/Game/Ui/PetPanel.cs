@@ -343,7 +343,7 @@ namespace Forge.Game.Ui
             float rowW = PetSkillStyle.Px("hatch_row_w");
             float rowX = PetSkillStyle.Px("hatch_row_left_w");
             float cellW = PetSkillStyle.Px("hatch_cell_w");
-            float cellH = PetSkillStyle.Rem(8.6f);
+            float cellH = PetSkillStyle.Px("hatch_cell_empty_h_rem");   // 정본 4516 .hatch-cell.empty min-height 8.6rem (T402 · 표)
             float rowY = (hatchH - cellH) * 0.5f;
             for (int i = 0; i < slots; i++)
             {

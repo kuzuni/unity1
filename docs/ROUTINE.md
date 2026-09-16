@@ -2817,6 +2817,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 무엇을 한다: 셋을 표 키(`PetSkillUi.json` `hatch_cell_empty_h_rem` 8.6 · `petup_bulk_line_k` 1.4 · `LeagueSheet` 는 `catalog.json` 또는 곁 표 `lc_btn_h_rem` 2.9)로 옮긴다 — 화면 변화 0 · 값 변화 0. T368 4회차(`bw_hazard`)의 길: 키가 없으면 던진다.
 - 판정: EditMode/PlayMode 자 한 칸(세 값이 표에서 온다 · 표를 비우면 던진다) · `tools/gate.sh` 초록 · PNG 변화 0.
 - 범위: `Assets/Scripts/Game/Ui/PetPanel.cs`(**T331 lock 뒤**) · `Ui/LeagueSheet.cs`(**T178·T331 lock 뒤**) · `Ui/PetUpgradePopup.cs`(**T354 lock 뒤**) · `Assets/Forge/Resources/PetSkillUi.json`·`catalog.json`(각 lock 확인) · `Assets/Tests/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 **1회차 2026-09-16 01:1x 워커 A(sess-2005-27410)**: 셋 다 표로 — `PetSkillUi.json` `hatch_cell_empty_h_rem` 8.6(`PetPanel.cs` `Px("hatch_cell_empty_h_rem")`) · `petup_bulk_line_k` 1.4(`PetUpgradePopup.cs` `sub × L("petup_bulk_line_k")` · 하한 `petup_bulk_min_rem` 2.0 은 그대로) · `catalog.json` `lc_btn_h_rem` 2.9(`LeagueSheet.cs` `UiKit.L("lc_btn_h_rem") × rem` · `gen_ui_catalog --check` rc 0) · 값 변화 0 · EditMode `MinHeightTableTests` 2(세 값이 표에 정본대로 · 세 파일에 옛 리터럴 `Rem(8.6f)`·`rem * 2.9f`·`sub * 1.4f` 가 없고 표 키를 읽는다) · lock 셈: `PetUpgradePopup.cs` 는 내 T405 lock 의 파일, `PetPanel.cs`·`LeagueSheet.cs` 는 T331(그림자) 범위에 이름만 있고 이 줄들이 아니라 **결정 669** · dotnet 821/821 · `gate.sh` 막는 자 전부 rc 0 · 판정은 다음 런(PNG 변화 0 · `MinHeightTableTests` 초록).
 
 ### T395 — **정본은 모달 카드를 «가운데» 두지 않는다**(✕ 를 안은 래퍼를 가운데 두고 `top` 으로 맞춘다) — 유니티는 카드를 직접 가운데 두므로 자리가 어긋난다: 베낀 것 둘 · 빠진 것 하나 (UI · T78·T85·T177 뒤 · **T28 74회차 등재 · 75회차 넓힘**)
 

@@ -176,7 +176,7 @@ namespace Forge.Game.Ui
 
             // ---- bulk row ----
             float bulkMx = PetSkillStyle.Px("petup_bulk_mx_rem"), bulkGap = PetSkillStyle.Px("petup_bulk_gap_rem");
-            float chipH = Mathf.Max(PetSkillStyle.Px("petup_bulk_min_rem"), sub * 1.4f);
+            float chipH = Mathf.Max(PetSkillStyle.Px("petup_bulk_min_rem"), sub * PetSkillStyle.L("petup_bulk_line_k"));   // 정본 4366 하한 2rem · 줄 상자 곱은 표 (T402)
             float bx = pad + bulkMx;
             float rowRight = pad + inner - bulkMx;
             float rowY = y;

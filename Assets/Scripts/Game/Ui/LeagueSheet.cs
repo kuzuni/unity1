@@ -349,7 +349,7 @@ namespace Forge.Game.Ui
             PopupKit.Spacer(card, rem * 1.9f);
 
             float av = UiKit.H("lc_avatar");
-            float btnW = UiKit.L("lc_btn_w") * w, btnH = rem * 2.9f;
+            float btnW = UiKit.L("lc_btn_w") * w, btnH = UiKit.L("lc_btn_h_rem") * rem;   // 정본 2626 .league-challenge-row .btn.sm min-height 2.9rem (T402 · 표)
             float rowW = cardW - PopupKit.Line3 * 2f - UiKit.H("card_pad") * 2f + w * 0.0185f * 2f;
             for (int i = 0; i < list.Count; i++)
             {

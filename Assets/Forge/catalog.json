@@ -392,6 +392,7 @@
     { "key": "lc_pill_h", "value": 0.0411, "_": "4.11%W → H 로 환산은 호출자" },
     { "key": "lc_row_h", "value": 0.1568, "_": "상대 행 15.68%W" },
     { "key": "lc_btn_w", "value": 0.2173, "_": "[도전] 21.73%W" },
+    { "key": "lc_btn_h_rem", "value": 2.9, "_": "T402 — 정본 style.css 2626 `.league-challenge-row .btn.sm { min-height: 2.9rem }` · 종전 LeagueSheet.cs 가 rem * 2.9f 로 박아 두던 값" },
     { "key": "lc_avatar", "value": 0.0493, "_": "2.6rem / H" },
     { "key": "profile_w", "value": 0.716, "_": "프로필 카드 71.6%W" },
     { "key": "profile_h", "value": 0.7, "_": "70%H" },
