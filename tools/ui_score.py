@@ -1347,6 +1347,42 @@ def _align(o, c):
     return out
 
 
+def rows_hit(shots_dir, name, ref_dir=REF_DIR):
+    """`--rows` 가 세는 «맞은 줄 / 원작 줄» 만 돌려준다(못 재면 `None`).
+
+    왜 필요한가(T28 97회차): `--rows` 의 결과가 **그 화면을 따로 칠 때만** 보여서, 「다음 볼 화면」을
+    따라간 사람이 «어디부터 볼까» 를 매번 다시 알아낸다. 그 한 줄을 목록에 같이 찍는다.
+
+    🚫 **«줄이 맞으니 배치는 다 맞다» 로 읽지 마라 — 97회차에 내가 그렇게 적었다가 바로 걷었다.**
+    `sep_rows` 는 **굵은 가로 구분선**만 본다. 상자 높이가 틀려도 그 차가 `margin: auto` 같은
+    데로 흡수되면 구분선은 제자리에 남는다 — 실측: `dungeon-detail` 은 줄이 **6/7** 맞는데도
+    95회차가 인라인 아이콘 줄 상자에서 **−11.4px** 을 찾아 T433 으로 등재했다. 그래서 이 표시는
+    «자리가 맞다» 가 아니라 **«61회차의 «나란히 밀린 줄» 갈래는 아니다 → 상자 높이·여백을 봐라»**
+    는 뜻이다. 실제로 이 표시가 붙은 화면 넷 중 셋(`dungeon-detail`·`tech-node`·`offline`)에
+    이미 등재된 결함이 있다.
+    """
+    refs = dict((n, r) for n, r in pairs() if r)
+    rf = refs.get(name)
+    cp = os.path.join(shots_dir, "screen_%s.png" % name)
+    rp = os.path.join(ref_dir, rf) if rf else None
+    if not rf or not os.path.exists(rp) or not os.path.exists(cp):
+        return None
+    try:
+        o, c = sep_rows(png_read(rp)), sep_rows(png_read(cp))
+    except Exception:
+        return None
+    if not o:
+        return None
+    ok = 0
+    for oi, bi in _align(o, c):
+        if bi >= 0 and abs(c[bi][0] - o[oi][0]) <= SEP_TOL:
+            ok += 1
+    return (ok, len(o))
+
+
+ROWS_OK_MIN = 0.75   # 원작 줄의 이만큼이 맞으면 «밀린 줄 갈래가 아니다» 로 적는다(97회차 실측 8/9 = .89 · 3/8 = .38 은 아니다)
+
+
 def rows_cmp(shots_dir, name, ref_dir=REF_DIR):
     """`--rows <화면>` — 원작 ↔ 클론의 구분선 줄 자리를 견준다(딤과 무관)."""
     refs = dict((n, r) for n, r in pairs() if r)
@@ -1742,6 +1778,10 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             c = _ceil_med(n); cnow = ceilings.get(n, 0.0)
             tag = (u"  ⚠ 낡은 샷 — %s" % STALE_SCREENS[n]) if n in STALE_SCREENS else u""
             note = u"" if abs(cnow - c) < 0.3 else (u"(이번 %.1f)" % cnow)
+            hit = rows_hit(shots_dir, n)
+            if hit and hit[1] and float(hit[0]) / hit[1] >= ROWS_OK_MIN:
+                tag += (u"  · ⓘ 구분선 줄은 **%d/%d 맞다** — «나란히 밀린 줄» 갈래가 아니니 "
+                        u"**상자 높이·여백**부터 봐라(T28 97회차)" % hit)
             print(u"    %-18s %4.1f / 천장 %4.1f%s  — 달성 %3.0f%%%s"
                   % (n, v, c, note, (100.0 * v / c) if c else 0.0, tag))
         if len(bad) > len(low):
@@ -1995,6 +2035,16 @@ def self_test():
     _fill(base_img, 8, 20, 72, 140, (230, 230, 230))
     fa = fingerprint(base_img)
     chk(fp_diff(fa, fa) == (0.0, 0.0), u"같은 그림의 지문 차는 0 이다")
+
+    # ── rows_hit / ROWS_OK_MIN (T28 97회차) ────────────────────────────
+    chk(0.0 < ROWS_OK_MIN < 1.0, u"«밀린 줄 갈래가 아니다» 문턱은 비율이다(0~1)")
+    chk(8.0 / 9 >= ROWS_OK_MIN and 3.0 / 8 < ROWS_OK_MIN,
+        u"97회차 실측이 그 문턱을 가른다 — `league-challenge` 8/9 는 넘고 `craft-compare` 3/8 은 못 넘는다")
+    chk(6.0 / 7 >= ROWS_OK_MIN,
+        u"🚫 이 표시는 «결함 없음» 이 아니다 — `dungeon-detail` 은 6/7 로 넘는데 T433(−11.4px)이 등재돼 있다")
+    chk(rows_hit("/없는/자리", "league-challenge") is None,
+        u"샷이 없으면 조용히 None 이다(목록을 넘어뜨리지 않는다)")
+    chk(rows_hit(".", "없는화면이름") is None, u"모르는 화면 이름도 None 이다")
 
     # ── drop_note 의 차례 (T28 90회차) ─────────────────────────────────
     # 실측 자리: `profile` 은 지문 0.15/0.10(서른한 장 중 가장 작다)인데 중앙값도 걸려서
