@@ -989,4 +989,91 @@ namespace Forge.Tests
             Assert.Throws<System.FormatException>(() => SummonShockSpec.From(MiniJson.ParseObject(early)));
         }
     }
+
+    /// <summary>T334 21회차 — 빛 모임(정본 `.sr-charge`)의 두 축이 **곱**으로 붙는다.</summary>
+    public class SummonChargeBurstSpecTests
+    {
+        static SummonChargeBurstSpec spec;
+        static SummonChargeBurstSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonChargeBurstSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 모였다_터지고_꺼진다()
+        {
+            SummonChargeBurstSpec s = S();
+            double a0, sc0, aPk, scPk, a1, sc1;
+            s.At(0, 0, 0, out a0, out sc0);
+            s.At(s.OutDelayMs, 0, 0, out aPk, out scPk);
+            s.At(s.OutDelayMs + s.OutMs, 0, 0, out a1, out sc1);
+            Assert.Less(a0, 0.2, "거의 꺼진 데서 시작한다");
+            Assert.AreEqual(1.0, aPk, 1e-6, "정점에 가득 찬다");
+            Assert.AreEqual(0.0, a1, 1e-9, "꺼진다 — 안 그러면 화면에 흰 원이 남는다");
+            Assert.Less(sc0, scPk); Assert.Less(scPk, sc1, "감쇠 구간에도 계속 퍼진다");
+        }
+
+        [Test]
+        public void 두_축은_서로_다른_이유로_커지고_곱해진다()
+        {
+            SummonChargeBurstSpec s = S();
+            double a, scBase, scK, scE, scBoth;
+            s.At(s.OutDelayMs, 0, 0, out a, out scBase);   // 일반 · x1
+            s.At(s.OutDelayMs, 1, 0, out a, out scK);      // 신화 · x1
+            s.At(s.OutDelayMs, 0, 1, out a, out scE);      // 일반 · x75
+            s.At(s.OutDelayMs, 1, 1, out a, out scBoth);   // 신화 · x75
+            Assert.Greater(scK, scBase, "등급 예고만으로도 커진다");
+            Assert.Greater(scE, scBase, "굴림 에너지만으로도 커진다");
+            // 정본 «두 축이 독립이라 곱한다» — 더하기가 아니라 곱하기다.
+            Assert.AreEqual(scBase * (scK / scBase) * (scE / scBase), scBoth, 1e-6);
+            Assert.Greater(scBoth, scK + scE - scBase - 1e-6, "곱이면 합보다 크거나 같다");
+        }
+
+        [Test]
+        public void 중간_마디의_밝기도_예고에_물린다()
+        {
+            SummonChargeBurstSpec s = S();
+            double aLo, aHi, sc;
+            s.At(s.InMs * 0.62, 0, 0, out aLo, out sc);
+            s.At(s.InMs * 0.62, 1, 0, out aHi, out sc);
+            Assert.Greater(aHi, aLo, "고등급 판은 정점 전부터 이미 달궈져 있어야 한다(정본 주석)");
+        }
+
+        [Test]
+        public void 정지점은_굴림_에너지가_바깥으로_민다()
+        {
+            SummonChargeBurstSpec s = S();
+            for (int i = 0; i < s.StopCount; i++)
+                Assert.GreaterOrEqual(s.StopOf(i, 1), s.StopOf(i, 0), i + "번 정지점이 안 밀렸다");
+            Assert.Greater(s.StopOf(s.StopCount - 1, 1), s.StopOf(s.StopCount - 1, 0), "바깥 끝은 반드시 밀린다");
+            for (int i = 1; i < s.StopCount; i++)
+                Assert.Greater(s.StopOf(i, 1), s.StopOf(i - 1, 1), "밀린 뒤에도 차례가 유지돼야 한다");
+        }
+
+        [Test]
+        public void 이음매가_어긋난_표를_거부한다()
+        {
+            char q = '"';
+            string head = "{" + q + "chargeburst" + q + ":{" + q + "in_ms" + q + ":240," + q + "in_ease" + q + ":[0.7,0,0.9,0.2],"
+                + q + "out_ms" + q + ":210," + q + "out_delay_ms" + q + ":240," + q + "out_ease" + q + ":[0.1,0.6,0.3,1],"
+                + q + "pre_sc_k" + q + ":0.22," + q + "stops" + q + ":["
+                + "{" + q + "at" + q + ":0," + q + "at_e" + q + ":0," + q + "a" + q + ":1," + q + "band" + q + ":0},"
+                + "{" + q + "at" + q + ":0.723," + q + "at_e" + q + ":0.207," + q + "a" + q + ":0," + q + "band" + q + ":3}],"
+                + q + "srcharge" + q + ":[{" + q + "at" + q + ":0," + q + "a_base" + q + ":0.06," + q + "a_k" + q + ":0," + q + "scale" + q + ":0.1," + q + "sc_k" + q + ":0," + q + "e_k" + q + ":0},"
+                + "{" + q + "at" + q + ":100," + q + "a_base" + q + ":1," + q + "a_k" + q + ":0," + q + "scale" + q + ":0.72," + q + "sc_k" + q + ":1," + q + "e_k" + q + ":0.42}],";
+            // 감쇠의 첫 키가 모임의 마지막 키와 다르면 이음매가 보인다.
+            string seam = head + q + "srchargeout" + q + ":[{" + q + "at" + q + ":0," + q + "a_base" + q + ":1," + q + "a_k" + q + ":0," + q + "scale" + q + ":0.9," + q + "sc_k" + q + ":1," + q + "e_k" + q + ":0.42},"
+                + "{" + q + "at" + q + ":100," + q + "a_base" + q + ":0," + q + "a_k" + q + ":0," + q + "scale" + q + ":2.05," + q + "sc_k" + q + ":1," + q + "e_k" + q + ":0.3}]}}";
+            Assert.Throws<System.FormatException>(() => SummonChargeBurstSpec.From(MiniJson.ParseObject(seam)));
+            // 감쇠가 안 꺼지면 화면에 흰 원이 남는다.
+            string lit = head + q + "srchargeout" + q + ":[{" + q + "at" + q + ":0," + q + "a_base" + q + ":1," + q + "a_k" + q + ":0," + q + "scale" + q + ":0.72," + q + "sc_k" + q + ":1," + q + "e_k" + q + ":0.42},"
+                + "{" + q + "at" + q + ":100," + q + "a_base" + q + ":0.3," + q + "a_k" + q + ":0," + q + "scale" + q + ":2.05," + q + "sc_k" + q + ":1," + q + "e_k" + q + ":0.3}]}}";
+            Assert.Throws<System.FormatException>(() => SummonChargeBurstSpec.From(MiniJson.ParseObject(lit)));
+        }
+    }
 }

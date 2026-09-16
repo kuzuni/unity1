@@ -69,6 +69,9 @@ namespace Forge.Game.Ui
         Sprite[] shockMainSteps, shockEchoSteps;
         Color shockLine;
         float shockHalf;
+        /// <summary>T334 21회차 — 빛 모임(정본 `.sr-charge` · z 60 맨 위) · 등급 예고 세기.</summary>
+        Image chargeBurst;
+        float preK;
         /// <summary>T334 19회차 — 굴림 에너지(정본 `--sr-e`) — 본파의 최종 반경이 이것에 물린다.</summary>
         float srEnergy;
         /// <summary>T334 16회차 — 등급 챕터 경계(정본 `_srTierBreaks`): 켜지는 시각(ms)과 그 등급.</summary>
@@ -482,6 +485,12 @@ namespace Forge.Game.Ui
                 }
             }
 
+            // ---- 빛 모임(정본 `.sr-charge` 6082~6115 · z 60 맨 위) ----
+            // 정본 주석: «정점 배율 = 등급 예고(--pre-sc) × 굴림 에너지(1 + .42 × --sr-e). **두 축이 독립이라 곱한다** —
+            //   신화가 하나 뜬 x1 과 일반만 나온 x75 가 **서로 다른 이유로** 커진다».
+            // 굽는 판은 **한 장**이다 — 정지점이 굴림 에너지에 물리지만 그 수는 판마다 상수다(결정 691).
+            // 이 블록은 충격파 뒤에 와야 한다(`preK`·`srEnergy` 를 거기서 잰다).
+
             // ---- 예고 충격파 한 쌍(정본 `.sr-shock` + `.echo` 6119~6146 · z 30) ----
             // 정본 주석 셋이 이 겹을 못 박았다: «빛이 터지는 정점(240ms)에 나가야 한다 — 0ms 에 터지면 아무것도
             //   없는 화면에서 링만 먼저 퍼진다»(지연) · «z 30 — 그리드(40)보다 **아래**다 … 압력파는 피사체 뒤에서
@@ -510,6 +519,24 @@ namespace Forge.Game.Ui
                 // 단계 판은 **쓸 때** 굽는다(챕터 링과 같은 까닭 — Open 한 프레임에 몰면 뒤 겹의 짧은 구간이 프레임 사이로 빠진다).
                 shockMain = ShockPlate(c, "sr-shock", sw, ShockStep(false, 0));
                 shockEcho = ShockPlate(c, "sr-shock-echo", sw, ShockStep(true, 0));
+
+                // 빛 모임 — 판 높이와 같은 정사각(정본 `height: 100%; aspect-ratio: 1`) · 맨 위 형제(z 60).
+                preK = pk;
+                Color preMid = Color.Lerp(SummonFxStyle.C("pre_mid_base"), bc, pk);
+                RectTransform cb = UiKit.Box(c, "sr-charge");
+                cb.anchorMin = cb.anchorMax = new Vector2(0.5f, 0.5f);
+                cb.pivot = new Vector2(0.5f, 0.5f);
+                cb.sizeDelta = new Vector2(Hh, Hh);
+                cb.anchoredPosition = Vector2.zero;
+                Image cbi = cb.gameObject.AddComponent<Image>();
+                cbi.raycastTarget = false;
+                cbi.preserveAspect = false;
+                cbi.sprite = SummonFx.BakeChargeBurst(
+                    "sr-charge-" + ColorUtility.ToHtmlStringRGB(preMid) + "-" + srEnergy.ToString("0.00"), preMid, srEnergy);
+                Material cm = CraftFxPoly.Screen();
+                if (cm != null) cbi.material = cm;
+                cbi.color = new Color(1f, 1f, 1f, 0f);
+                chargeBurst = cbi;
             }
 
             // ---- 끝난 뒤의 잔잔한 고리(정본 `.sr-idle` 6934~6948 · `.done` 에서만 보인다) ----
@@ -1043,6 +1070,7 @@ namespace Forge.Game.Ui
             AnimateTierBreaks();
             AnimateIdleRings();
             AnimateShock();
+            AnimateChargeBurst();
         }
 
         void TurnOn(Cell c)
@@ -1502,6 +1530,24 @@ namespace Forge.Game.Ui
                 if (shockEcho.sprite != w2) shockEcho.sprite = w2;
             }
         }
+
+        /// <summary>
+        /// 빛 모임(정본 `srcharge` .24s → `srchargeout` .21s @.24s) — 모달이 열린 때부터 재고, 끝나면 꺼진 채로 남는다.
+        /// 배율은 등급 예고와 굴림 에너지의 **곱**이다(정본 «두 축이 독립이라 곱한다»).
+        /// </summary>
+        void AnimateChargeBurst()
+        {
+            if (chargeBurst == null) return;
+            SummonChargeBurstSpec sp = SummonFxStyle.ChargeBurst;
+            double a, sc;
+            sp.At((Time.unscaledTime - start) * 1000f, preK, srEnergy, out a, out sc);
+            chargeBurst.color = new Color(1f, 1f, 1f, (float)a);
+            chargeBurst.rectTransform.localScale = Vector3.one * (float)sc;
+        }
+
+        /// <summary>빛 모임 판 · 등급 예고 세기 — 자가 본다.</summary>
+        public Image ChargeBurst { get { return chargeBurst; } }
+        public float PreK { get { return preK; } }
 
         /// <summary>예고 충격파 본파·잔파 — 자가 본다.</summary>
         public Image ShockMain { get { return shockMain; } }

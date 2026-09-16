@@ -496,6 +496,7 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0f, v.ShockMain.color.a, 1e-3f, "0ms 에 터지면 아무것도 없는 화면에서 링만 먼저 퍼진다");
 
             float mainPeak = 0f, echoPeak = 0f, mainWide = 0f, mainPeakAt = -1f, echoPeakAt = -1f;
+            float chargePeak = 0f, chargePeakAt = -1f, chargePeakScale = 0f;
             var seen = new List<Sprite>();
             float t = 0f;
             while (!v.Done && t < 12f)
@@ -509,14 +510,30 @@ namespace Forge.Tests.PlayMode
                     if (mi.sprite != null && !seen.Contains(mi.sprite)) seen.Add(mi.sprite);
                 }
                 if (ei != null && ei.color.a > echoPeak) { echoPeak = ei.color.a; echoPeakAt = t; }
+                Image ci = v.ChargeBurst;
+                if (ci != null && ci.color.a > chargePeak)
+                {
+                    chargePeak = ci.color.a; chargePeakAt = t;
+                    chargePeakScale = ci.rectTransform.localScale.x;
+                }
                 t += Time.unscaledDeltaTime;
                 yield return null;
             }
+            // ⚑ 21회차 — 빛 모임(정본 `.sr-charge`)은 충격파보다 **먼저** 정점을 찍는다(충격파가 그 정점에 나간다).
+            Assert.IsNotNull(v.ChargeBurst, "빛 모임 판이 없다");
+            Assert.IsNotNull(v.ChargeBurst.sprite, "구운 방사 판 한 장이라야 한다");
+            Assert.AreEqual(v.ChargeBurst.rectTransform.rect.width, v.ChargeBurst.rectTransform.rect.height, 0.01f,
+                "정사각이라야 한다(정본 `aspect-ratio: 1`)");
+
             Assert.Greater(mainPeak, 0f, "본파가 안 터졌다");
             Assert.Greater(echoPeak, 0f, "잔파가 안 터졌다");
             Assert.Greater(mainWide, 1f, "압력파가 안 퍼졌다");
             Assert.Less(mainPeakAt, echoPeakAt, "잔파가 본파보다 먼저 정점을 찍었다 — 차례가 뒤집혔다");
             Assert.Greater(seen.Count, 1, "본파가 처음부터 끝까지 같은 판이었다 — 테 굵기가 안 줄었다는 뜻이다");
+            Assert.Greater(chargePeak, 0.5f, "빛 모임이 정점까지 안 갔다(경과 " + t.ToString("0.00") + "초)");
+            Assert.Greater(chargePeakScale, 0f);
+            Assert.Less(chargePeakAt, echoPeakAt, "빛 모임의 정점이 잔파보다 늦다 — 정본은 그 정점에 충격파가 나간다");
+            Assert.AreEqual(0f, v.ChargeBurst.color.a, 1e-3f, "빛 모임이 안 꺼졌다 — 화면에 흰 원이 남는다");
             Assert.AreEqual(0f, v.ShockMain.color.a, 1e-3f, "본파가 안 사라졌다");
             Assert.AreEqual(0f, v.ShockEcho.color.a, 1e-3f, "잔파가 안 사라졌다");
 

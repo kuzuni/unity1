@@ -467,6 +467,113 @@ namespace Forge.Core.Ui
     }
 
     /// <summary>
+    /// T334 21회차 — **빛 모임**(정본 `.sr-charge` · style.css 6082~6115).
+    ///
+    /// 정본 주석이 두 가지를 못 박았다: ⑴ «정점 배율 = 등급 예고(`--pre-sc`) × 굴림 에너지(1 + .42 × `--sr-e`).
+    /// **두 축이 독립이라 곱한다** — 신화가 하나 뜬 x1 과 일반만 나온 x75 가 **서로 다른 이유로** 커진다»
+    /// ⑵ «중간 마디의 밝기도 예고에 물린다 — 고등급 판은 정점 전부터 이미 달궈져 있어야 «공개 전 예고» 가
+    /// 순수 빌드업 프레임에서도 읽힌다».
+    ///
+    /// ⚠ 움직임이 **둘이 이어 붙는다**: 모임(`srcharge` .24s) 뒤에 백색 오버슛 감쇠(`srchargeout` .21s @.24s).
+    ///   앞엣것의 길이는 `SR_CHARGE_MS`(240)와 맞물린다.
+    /// ⚠ 키마다 `sc_k`(`--pre-sc` 를 곱하는가)와 `e_k`(굴림 에너지 비율)가 **다르다** — 0% 는 둘 다 안 물리고
+    ///   마지막 out 키만 .42 가 아니라 **.3** 이다. 한 수로 묶으면 그 세 자리가 조용히 틀어진다.
+    /// UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonChargeBurstSpec
+    {
+        public double InMs, OutMs, OutDelayMs;
+        /// <summary>`--pre-sc` = 1 + <see cref="PreScK"/> × k(정본 .22).</summary>
+        public double PreScK;
+        /// <summary>그라디언트 정지점 — 자리 = `At` + `AtE` × 굴림 에너지 · 알파 `A` · 색 밴드 번호.</summary>
+        public double[] StopAt, StopAtE, StopA;
+        public int[] StopBand;
+        public RewardBurstSpec.Track In, Out;
+
+        public static SummonChargeBurstSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "chargeburst"));
+            var s = new SummonChargeBurstSpec
+            {
+                InMs = J.Num(J.Require(o, "in_ms")),
+                OutMs = J.Num(J.Require(o, "out_ms")),
+                OutDelayMs = J.Num(J.Require(o, "out_delay_ms")),
+                PreScK = J.Num(J.Require(o, "pre_sc_k")),
+            };
+            if (s.InMs <= 0 || s.OutMs <= 0) throw new FormatException("SummonFxUi chargeburst: 길이는 0보다 커야 한다");
+            if (s.OutDelayMs < 0) throw new FormatException("SummonFxUi chargeburst: out_delay_ms 는 0 이상이다");
+
+            var st = J.List(J.Require(o, "stops"), x => J.Obj(x));
+            if (st.Count < 2) throw new FormatException("SummonFxUi chargeburst: 정지점이 둘 미만이다");
+            s.StopAt = new double[st.Count]; s.StopAtE = new double[st.Count];
+            s.StopA = new double[st.Count]; s.StopBand = new int[st.Count];
+            for (int i = 0; i < st.Count; i++)
+            {
+                s.StopAt[i] = J.Num(J.Require(st[i], "at"));
+                s.StopAtE[i] = J.Num(J.Require(st[i], "at_e"));
+                s.StopA[i] = J.Num(J.Require(st[i], "a"));
+                s.StopBand[i] = (int)J.Num(J.Require(st[i], "band"));
+                if (i > 0 && s.StopAt[i] <= s.StopAt[i - 1]) throw new FormatException("SummonFxUi chargeburst: 정지점은 바깥으로 나아가야 한다");
+                if (i > 0 && s.StopAtE[i] < s.StopAtE[i - 1]) throw new FormatException("SummonFxUi chargeburst: 에너지가 밀어내는 양도 바깥일수록 커야 한다");
+            }
+            if (s.StopA[s.StopA.Length - 1] != 0) throw new FormatException("SummonFxUi chargeburst: 마지막 정지점은 투명이어야 한다");
+
+            double[] ie = J.NumArr(J.Require(o, "in_ease"));
+            double[] oe = J.NumArr(J.Require(o, "out_ease"));
+            if (ie == null || ie.Length != 4 || oe == null || oe.Length != 4) throw new FormatException("SummonFxUi chargeburst: 이징은 cubic-bezier 넷이다");
+            string[] f = { "a_base", "a_k", "scale", "sc_k", "e_k" };
+            s.In = SummonTrack.Ramp(o, "srcharge", new CssEase(ie[0], ie[1], ie[2], ie[3]), f, "chargeburst");
+            s.Out = SummonTrack.Ramp(o, "srchargeout", new CssEase(oe[0], oe[1], oe[2], oe[3]), f, "chargeburst");
+
+            // 모임은 **꺼진 데서 밝아지고** 감쇠는 **밝은 데서 꺼진다** — 뒤집히면 «빛이 모인다» 가 «빛이 꺼진다» 가 된다.
+            if (s.In.Keys[s.In.Keys.Length - 1].Num["a_base"] <= s.In.Keys[0].Num["a_base"])
+                throw new FormatException("SummonFxUi chargeburst: srcharge 는 밝아져야 한다");
+            if (s.Out.Keys[s.Out.Keys.Length - 1].Num["a_base"] != 0)
+                throw new FormatException("SummonFxUi chargeburst: srchargeout 은 0 으로 꺼져야 한다 — 안 그러면 화면에 흰 원이 남는다");
+            // 이어 붙는 자리 — 감쇠의 첫 키는 모임의 마지막 키와 같은 배율·밝기라야 이음매가 안 보인다.
+            var a = s.In.Keys[s.In.Keys.Length - 1]; var b = s.Out.Keys[0];
+            if (a.Num["scale"] != b.Num["scale"] || a.Num["sc_k"] != b.Num["sc_k"] || a.Num["e_k"] != b.Num["e_k"] || a.Num["a_base"] != b.Num["a_base"])
+                throw new FormatException("SummonFxUi chargeburst: 모임의 끝과 감쇠의 처음이 안 맞는다(이음매가 보인다)");
+            return s;
+        }
+
+        /// <summary>그 판의 정지점 자리(반지름 비율) — 굴림 에너지가 바깥으로 민다.</summary>
+        public double StopOf(int i, double energy) { return StopAt[i] + StopAtE[i] * (energy < 0 ? 0 : energy); }
+
+        /// <summary>정지점 수.</summary>
+        public int StopCount { get { return StopAt.Length; } }
+
+        /// <summary>
+        /// 모달이 열린 뒤 <paramref name="ms"/> 의 불투명도·배율.
+        /// <paramref name="k"/> 는 등급 예고(`--pre-k`) · <paramref name="energy"/> 는 굴림 에너지(`--sr-e`).
+        /// </summary>
+        public void At(double ms, double k, double energy, out double alpha, out double scale)
+        {
+            RewardBurstSpec.Track tr; double p;
+            if (ms < OutDelayMs)
+            {
+                tr = In;
+                p = ms <= 0 ? 0 : ms >= InMs ? 100 : ms / InMs * 100;
+            }
+            else
+            {
+                tr = Out;
+                double t = ms - OutDelayMs;
+                p = t >= OutMs ? 100 : t / OutMs * 100;
+            }
+            alpha = tr.Sample(p, "a_base", null) + k * tr.Sample(p, "a_k", null);
+            // 정본 «두 축이 독립이라 곱한다» — 등급 예고와 굴림 에너지는 서로 곱해진다.
+            double preSc = 1 + PreScK * k;
+            double scK = tr.Sample(p, "sc_k", null);
+            double eK = tr.Sample(p, "e_k", null);
+            scale = tr.Sample(p, "scale", null) * (scK > 0 ? preSc : 1) * (1 + eK * (energy < 0 ? 0 : energy));
+        }
+
+        /// <summary>아직 모이거나 흩어지는 중인가.</summary>
+        public bool Busy(double ms) { return ms >= 0 && ms < OutDelayMs + OutMs; }
+    }
+
+    /// <summary>
     /// T334 18회차 — **끝난 뒤의 잔잔한 고리**(정본 `.sr-idle` · style.css 6934~6948).
     ///
     /// `#summon-result-modal.done .sr-idle { display: block }` — 연출이 **끝난 뒤에만** 도는 고리 둘이고,

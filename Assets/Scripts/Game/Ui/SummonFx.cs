@@ -764,6 +764,56 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>
+        /// 빛 모임 판(정본 `.sr-charge` 6085~6089) — `radial-gradient(circle closest-side, …)` 다섯 정지점 **한 장**.
+        ///
+        /// ⚠ 정지점이 굴림 에너지에 물려 바깥으로 밀리지만 그 수는 **판마다 상수**라 한 장이면 된다
+        ///   (결정 691 — 굽는 장 수를 먼저 센다). 움직이는 것은 불투명도·배율뿐이다.
+        /// 밴드 색은 안에서 밖으로 흰색 · `burst_in1` · `burst_in2` · `--pre-mid`(등급 예고색) 넷이고
+        /// 마지막 정지점은 투명이라 그 앞 색을 그대로 둔 채 알파만 떨어진다(미리 곱한 알파 · `BakeRadial` 과 같은 까닭).
+        /// </summary>
+        public static Sprite BakeChargeBurst(string name, Color mid, float energy)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            SummonChargeBurstSpec sp = SummonFxStyle.ChargeBurst;
+            int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
+            int n = sp.StopCount;
+            var stop = new float[n]; var al = new float[n]; var col = new Color[n];
+            Color[] band = { Color.white, SummonFxStyle.C("burst_in1"), SummonFxStyle.C("burst_in2"), mid };
+            for (int i = 0; i < n; i++)
+            {
+                stop[i] = (float)sp.StopOf(i, energy);
+                al[i] = (float)sp.StopA[i];
+                int b = sp.StopBand[i];
+                col[i] = band[b < 0 ? 0 : b >= band.Length ? band.Length - 1 : b];
+            }
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            {
+                float v = (y + 0.5f) / N * 2f - 1f;
+                for (int x = 0; x < N; x++)
+                {
+                    float u = (x + 0.5f) / N * 2f - 1f;
+                    float r = Mathf.Sqrt(u * u + v * v);          // 1 = 변의 한가운데(= closest-side 반지름)
+                    Color c = col[n - 1]; float a = 0f;
+                    if (r <= stop[0]) { c = col[0]; a = al[0]; }
+                    else
+                    {
+                        for (int i = 1; i < n; i++)
+                        {
+                            if (r > stop[i]) continue;
+                            float t = stop[i] <= stop[i - 1] ? 1f : (r - stop[i - 1]) / (stop[i] - stop[i - 1]);
+                            c = Color.Lerp(col[i - 1], col[i], t);
+                            a = Mathf.Lerp(al[i - 1], al[i], t);
+                            break;
+                        }
+                    }
+                    px[y * N + x] = new Color(c.r, c.g, c.b, Mathf.Clamp01(a));
+                }
+            }
+            return Finish(name, NewTex(name, N, N), px);
+        }
+
+        /// <summary>
         /// 등급 챕터 링 한 단계(정본 `.sr-tierflash` 6417~6427) — **테 굵기·번짐이 다른 판을 단계마다 따로 굽는다.**
         ///
         /// 정본 주석이 압력파 문법을 못 박았다: «퍼질수록 얇아지고(border-width 내림) 번진다(blur 오름).
@@ -963,7 +1013,7 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; heroRingEase = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; heroRingEase = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
@@ -975,6 +1025,7 @@ namespace Forge.Game.Ui
         static SummonIdleRingSpec idleRing;
         static SummonPreludeSpec prelude;
         static SummonShockSpec shock;
+        static SummonChargeBurstSpec chargeBurst;
         /// <summary>T334 6회차 — 주역 착지의 화면 킥(표의 `hero` 절).</summary>
         /// <summary>표의 `hero` 절 수치 하나(그 절은 `layout` 밖이다).</summary>
         public static float H(string key) { Load(); return (float)J.Num(J.Require(J.Obj(root["hero"]), key)); }
@@ -1020,6 +1071,9 @@ namespace Forge.Game.Ui
 
         /// <summary>T334 19회차 — 예고 충격파 한 쌍(정본 `.sr-shock`·`.echo`).</summary>
         public static SummonShockSpec Shock { get { Load(); if (shock == null) shock = SummonShockSpec.From(root); return shock; } }
+
+        /// <summary>T334 21회차 — 빛 모임 규칙(정본 `.sr-charge`).</summary>
+        public static SummonChargeBurstSpec ChargeBurst { get { Load(); if (chargeBurst == null) chargeBurst = SummonChargeBurstSpec.From(root); return chargeBurst; } }
 
         public static Color C(string key)
         {
