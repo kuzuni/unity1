@@ -168,13 +168,43 @@ def task_last_commit(tid):
         return None, None
 
 
-def split_line(tid, lock_sid, commit_sid, commit_age_min):
-    """죽은 lock 줄에 덧붙일 한 줄 · 덧붙일 것이 없으면 None (T418 · 순수 함수).
+def sids_since(tid, lock_sid, limit=40):
+    """lock 의 SID **뒤로** 그 번호를 민 SID 들(새것부터) — 곧 **놓친 세션 경계의 수**다 (T425).
+
+    T418 은 «갈렸다» 를 보였지만 **몇 번 갈렸는지**는 안 셌다 — 한 번 놓친 것과 세 번 놓친 것은 다른 말이다
+    (실측 2026-09-16: T415 가 `sess-0618-6688` → `-0718-32224` → `-0818-3765` → `-0918-7318` 로 **셋**을 놓쳤다).
+    """
+    try:
+        out = subprocess.check_output(
+            ['git', 'log', '-%d' % limit, '--format=%s', '-E', '--grep=^' + tid + r'([^0-9]|$)'],
+            cwd=ROOT, stderr=subprocess.DEVNULL).decode()
+    except Exception:
+        return []
+    got = []
+    for subj in out.split('\n'):
+        m = RE_SID.search(subj)
+        if not m:
+            continue
+        sid = m.group(0)
+        if sid == lock_sid:
+            break
+        if sid not in got:
+            got.append(sid)
+    return got
+
+
+def split_line(tid, lock_sid, commit_sid, commit_age_min, sessions=1):
+    """죽은 lock 줄에 덧붙일 줄(들) · 덧붙일 것이 없으면 None (T418 · T425 · 순수 함수).
 
     세 갈래다 — ⓐ 그 번호가 90분 밖에도 안 움직였으면 조용히(임자가 정말 떠난 것이다)
     ⓑ 같은 SID 가 90분 안에 움직였으면 «제 세션이 갱신만 잊은 것»
     ⓒ **다른 SID** 가 90분 안에 움직였으면 «세션 갈림 의심» — 임자가 슬롯을 갈아타면서 새 SID 로 lock 을 안 덮은 꼴이다.
     판정은 안 바꾼다(rc 0) — «뺏을 수 있다» 는 그대로고, **뺏는 사람이 부딪힐 것을 미리 보게** 한다.
+
+    ⚠ T425 — ⓒ 는 **두 사람에게** 말해야 한다. T418 의 문장은 «뺏기 전에 … 뺏거든 …» 이라 **가져가려는 사람**
+    한테만 하는 말이었고, 정작 임자도 커밋 전 `gate.sh` 에서 같은 줄을 보면서 **남 얘기로 읽고 지나갔다**
+    (실측: T418 이 든 06:47 뒤에도 T415 의 세션 경계 둘이 그대로 안 덮였다). 자는 제 SID 를 모르지만
+    **그 번호를 방금 민 SID 는 안다** — 그 이름을 대고 «네가 그 SID 면 이건 네 lock 이다» 라고 부른다.
     """
     if commit_sid is None or commit_age_min is None or commit_age_min >= DEAD_MIN:
         return None
@@ -182,9 +212,13 @@ def split_line(tid, lock_sid, commit_sid, commit_age_min):
         return ('    ↳ ⚠ 네 lock 이 아직 일하는 중이다 — 같은 SID(%s)가 %.0f분 전에 움직였다. '
                 '**타임스탬프를 갱신해 push 해라** — 그것이 «살아 있다» 의 유일한 신호다(claims/README 12행).'
                 % (commit_sid, commit_age_min))
-    return ('    ↳ ⚠ **세션 갈림 의심** — %s 는 %.0f분 전에 `%s`(lock 의 SID `%s` 가 아니다)로 움직였다. '
-            '뺏기 전에 그 커밋을 보고, 뺏거든 **그 사람의 진행 중인 파일을 깨지 마라**(T418).'
-            % (tid, commit_age_min, commit_sid, lock_sid))
+    many = ('' if sessions <= 1
+            else ' · 이 lock 뒤로 세션이 **%d번** 갈렸다(%d번 다 안 덮었다)' % (sessions, sessions))
+    return ('    ↳ ⚠ **세션 갈림 의심** — %s 는 %.0f분 전에 `%s`(lock 의 SID `%s` 가 아니다)로 움직였다%s. '
+            '뺏기 전에 그 커밋을 보고, 뺏거든 **그 사람의 진행 중인 파일을 깨지 마라**(T418).\n'
+            '    ↳ 👤 **네가 `%s` 면 이건 네 lock 이다** — §0 대로 **지금 네 SID·시각으로 덮어 커밋·push 해라**(T418). '
+            '안 덮으면 90분 규약대로 남이 가져가도 할 말이 없다(T425).'
+            % (tid, commit_age_min, commit_sid, lock_sid, many, commit_sid))
 
 
 
@@ -245,7 +279,8 @@ def main(argv):
     for tid, mins in sorted(dead):
         print('⚠ %s.lock 이 %.0f분 됐다 — 규약상 죽은 lock(뺏을 수 있다 · 뺏을 땐 자기 SID 로 덮어 커밋·push)' % (tid, mins))
         ct, csid = task_last_commit(tid)
-        hint = split_line(tid, locks[tid][1], csid, None if ct is None else (now - ct) / 60.0)
+        nsid = len(sids_since(tid, locks[tid][1])) if csid and csid != locks[tid][1] else 1
+        hint = split_line(tid, locks[tid][1], csid, None if ct is None else (now - ct) / 60.0, nsid)
         if hint:
             print(hint)
     print('· (보고 전용 — rc 는 늘 0이다. 범위를 줄일지는 그 lock 임자가 정한다.)')
@@ -329,6 +364,21 @@ def self_test():
         print('✗ 커밋 제목에서 SID 읽기'); ok = False
     if RE_SID.search('T1 무언가 (워커 K)') is not None:
         print('✗ SID 가 없는 제목에서 지어내면 안 된다'); ok = False
+
+    # T425 — «세션 갈림» 줄은 **두 사람에게** 말해야 한다(뺏는 사람 + 임자) · 갈린 세션 수도 센다.
+    own = split_line('T415', 'sess-0618-6688', 'sess-0918-7318', 44.0, 3)
+    if own is None or '네가 `sess-0918-7318` 면 이건 네 lock 이다' not in own:
+        print('✗ 임자 몫: 그 SID 이름을 대고 «네 lock 이다» 라고 불러야 한다 — %r' % own); ok = False
+    if own is None or '**3번** 갈렸다' not in own:
+        print('✗ 갈린 세션 수: 셋이면 «3번» 이라 적는다 — %r' % own); ok = False
+    one = split_line('T415', 'sess-0618-6688', 'sess-0918-7318', 44.0, 1)
+    if one is None or '갈렸다' in one:
+        print('✗ 한 번만 갈렸으면 세션 수를 안 적는다 — %r' % one); ok = False
+    if one is None or '네가 `sess-0918-7318` 면' not in one:
+        print('✗ 한 번 갈렸어도 임자 몫 줄은 나온다 — %r' % one); ok = False
+    same = split_line('T415', 'sess-0618-6688', 'sess-0618-6688', 44.0, 1)
+    if same is None or '네가 `' in same or '갱신' not in same:
+        print('✗ 같은 SID 면 임자 몫 줄 대신 «네 lock 을 갱신해라» 하나다 — %r' % same); ok = False
 
     print('· 지금 레포:'); main([])
     print('✓ check_lock_queue 자기 검사 통과' if ok else '✗ check_lock_queue 자기 검사 실패')
