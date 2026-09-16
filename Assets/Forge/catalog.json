@@ -526,7 +526,7 @@
     { "key": "idet_subs_radius_rem", "value": 0.8 },
     { "key": "tech_prog_h_rem",     "value": 1.75, "_": ".tech-prog" },
     { "key": "tech_prog_r_rem", "value": 0.5 },
-    { "key": "tech_btn_h_rem",      "value": 3.4, "_": ".tech-btns .btn" },
+    { "key": "tech_btn_h_rem",      "value": 3.6, "_": "정본 1750 .item-detail[data-tech-node] .btn { min-height: 3.6rem } — 클론에서 이 키를 읽는 자리는 **노드 상세 팝업 셋뿐**이다(TechPopups 연구/완료/건너뛰기·잠김). 4612 의 .tech-btns .btn(3.4rem)보다 이 규칙이 더 구체적이라 그 자리에선 3.6 이 이긴다(T401 3회차 · 전엔 3.4 로 −6% 였다)" },
     { "key": "tech_btn_w",          "value": 0.44 },
     { "key": "tech_claim_w",        "value": 0.6, "_": ".tn-claim width 60%" },
     { "key": "tech_btns_gap_rem",   "value": 0.8 },

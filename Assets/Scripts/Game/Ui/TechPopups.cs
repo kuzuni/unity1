@@ -198,7 +198,7 @@ namespace Forge.Game.Ui
             {
                 // T401 1회차 — 정본 **1750** `.item-detail[data-tech-node] .btn { min-height: 3.6rem }` 은 노드 상세의 **모든** 버튼을 덮는다(`.btn.sm` 도).
                 //   여기만 `btn_sm_h_rem`(2rem)이라 같은 팝업의 [연구 시작]·[완료]·[건너뛰기](`tech_btn_h_rem` 3.4)보다 **−41%** 였다.
-                //   같은 자리의 형제와 한 키를 쓰게 맞춘다 — 표값 3.4 는 정본 3.6 과 −6% 다(그 마지막 6%는 `catalog.json` 이 열리는 회차 몫 · 지금 T383 lock).
+                //   같은 자리의 형제와 한 키를 쓰게 맞춘다. 그 키(`tech_btn_h_rem`)는 3회차에 **3.6**(정본 1750 그대로)으로 올렸다 — 이 키를 읽는 자리가 이 팝업 셋뿐이라 4612 의 3.4 가 아니라 1750 이 맞다.
                 float bw = inner * UiKit.L("tech_btn_w"), bh = DungeonPopups.RemL("tech_btn_h_rem");
                 ActionButton = DungeonPopups.Pill(card, "locked", "잠김", DungeonPopups.Skin.Gray, TextKind.Button, null, RadiusUi.Px("tech_btn_r_rem"), false);
                 UiKit.Place(DungeonPopups.Root(ActionButton), cx - bw * 0.5f, y, bw, bh);

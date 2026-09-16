@@ -242,6 +242,8 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.AreEqual(TechPopups.NodeState.Locked, TechPopups.State, "잠긴 노드를 열었다");
             RectTransform lockedBtn = DungeonPopups.Root(TechPopups.ActionButton);
+            Assert.AreEqual(3.6, UiKit.L("tech_btn_h_rem"), 1e-6,
+                "T401 3회차 — 정본 1750 `.item-detail[data-tech-node] .btn { min-height: 3.6rem }`(4612 의 .tech-btns .btn 3.4 보다 구체적이라 이 자리에선 이긴다)");
             float want = DungeonPopups.RemL("tech_btn_h_rem");
             Assert.AreEqual(want, lockedBtn.rect.height, 0.6f,
                 "[잠김] 높이 = 형제 버튼과 같은 표 키(tech_btn_h_rem) · 전엔 btn_sm_h_rem 2rem 이라 −41% 였다");
