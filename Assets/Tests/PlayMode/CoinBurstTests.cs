@@ -48,7 +48,25 @@ namespace Forge.Tests.PlayMode
             Assert.Less(cb.Layer.GetSiblingIndex(), root.PanelHost.GetSiblingIndex());
             yield return null;
             Assert.AreEqual(6, cb.Pieces, "조각 여섯이 층에 섰다");
-            Assert.AreEqual(6, cb.Layer.GetComponentsInChildren<UnityEngine.UI.Image>(true).Length, "코인 아이콘 여섯");
+            // T411 1회차 — 코인마다 금색 글로우 한 장이 **뒤에** 선다(정본 7394 drop-shadow · 표 DropShadowUi `coin_fly`): 그림 여섯 + 글로우 여섯
+            int coins = 0, glows = 0;
+            foreach (UnityEngine.UI.Image im in cb.Layer.GetComponentsInChildren<UnityEngine.UI.Image>(true))
+            {
+                if (im.name == "coin-fly-img") { coins++; continue; }
+                Transform coinT = im.transform.parent != null ? im.transform.parent.Find("coin-fly-img") : null;
+                UnityEngine.UI.Image coin = coinT != null ? coinT.GetComponent<UnityEngine.UI.Image>() : null;
+                if (coin == null || im.name != DropShadow.NameFor(coin)) continue;
+                glows++;
+                Assert.Less(im.transform.GetSiblingIndex(), coin.transform.GetSiblingIndex(), "글로우는 코인 뒤에 그린다");
+                Assert.AreNotEqual(coin.sprite, im.sprite, "글로우는 번지게 구운 판이다(코인 그림 그대로가 아니다)");
+                Color gc = DropShadowUi.C("coin_fly");
+                Assert.AreEqual(gc.r, im.color.r, 2f / 255f, "글로우 색 R = 정본 #ffc107"); Assert.AreEqual(gc.g, im.color.g, 2f / 255f, "G"); Assert.AreEqual(gc.b, im.color.b, 2f / 255f, "B");
+                Assert.Greater(im.color.a, 0.5f, "나는 동안 글로우 알파 ≈ .95 × 코인 알파");
+            }
+            Assert.AreEqual(6, coins, "코인 아이콘 여섯");
+            Assert.AreEqual(6, glows, "코인마다 글로우 하나");
+            Assert.AreEqual(0f, DropShadowUi.Px("coin_fly", "dx_px"), 1e-6f, "정본 0 0 .3rem — 오프셋 0");
+            Assert.AreEqual(4.8f, DropShadowUi.Px("coin_fly", "blur_px"), 1e-6f, "정본 .3rem = 4.8 CSS px(rem 16)");
             // 착지(delay ≤ 5·26+24 = 154ms · 착지 = +780·.72) 뒤 라벨 여섯 — 전부 «+17»
             yield return WaitSec((float)((s.DelayStepMs * 5 + s.DelayJitterMs + s.FlyMs * s.LandK) / 1000.0) + 0.3f);
             Assert.AreEqual(6, cb.LastLabels.Count, "착지 자리마다 라벨 하나");

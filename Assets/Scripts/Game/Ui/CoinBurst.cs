@@ -128,6 +128,10 @@ namespace Forge.Game.Ui
             Image img = UiKit.Icon(fly, "coin-fly-img", CoinBurstStyle.T("icon"));
             img.raycastTarget = false;
             UiKit.Fill(img.rectTransform);
+            // T411 1회차 — 정본 7394 `.coin-fly-img { filter: drop-shadow(0 0 .3rem rgba(255,193,7,.95)) … }`: 나는 코인의 금색 글로우(표 DropShadowUi.json `coin_fly`).
+            //   T408 실측: 나는 동안(200~560ms) 클론의 금빛이 정본의 2~3% — 코인 그림만 있고 글로우가 없어서다. 글로우는 코인과 같이 눕고(rotateY) 같이 사라진다(알파).
+            Image glow = DropShadow.Apply(img, "coin_fly");
+            float glowA = glow != null ? glow.color.a : 0f;
             double bounce = s.BounceRem * rem;
             double ms = -p.DelayMs;
             bool landed = false;
@@ -143,7 +147,9 @@ namespace Forge.Game.Ui
                 fly.anchoredPosition = new Vector2(ox - size * 0.5f + (float)x, -(oy - size * 0.5f + (float)y));
                 fly.gameObject.SetActive(ms >= 0);
                 Color col = img.color; col.a = (float)a; img.color = col;
-                img.rectTransform.localRotation = Quaternion.Euler(0f, (float)(t / s.SpinMs * 360.0), 0f);   // coinSpin — rotateY
+                Quaternion spin = Quaternion.Euler(0f, (float)(t / s.SpinMs * 360.0), 0f);   // coinSpin — rotateY
+                img.rectTransform.localRotation = spin;
+                if (glow != null) { Color gc = glow.color; gc.a = glowA * (float)a; glow.color = gc; glow.rectTransform.localRotation = spin; }
                 if (!landed && ms + p.DelayMs >= landAt)
                 {
                     landed = true;

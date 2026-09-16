@@ -2,8 +2,7 @@
   "_": "ROUTINE T117 판매 코인 분출(원작 ui.js 3472~3560 coinBurst · css .coin-fly/.coin-fly-y/.coin-fly-img/.coin-amt · @keyframes coinFlyX/coinFlyY/coinSpin/coinAmt)의 수치·색·문구표. T87 lock 이 Assets/Forge/catalog.json 을 쥐고 있어 T117 몫만 여기 둔다(T65 PlayerInfoUi.json 과 같은 꼴). 키 접미: _rem = 정본 rem · _px = 정본 절대 CSS px(기준 캔버스 배율은 catalog anvil_fx_px · T87 결정 222) · _ms = 벽시계 · _f = 비율 · _n = 개수. 코드에 숫자를 박지 않는다(§1).",
   "colors": {
     "amt": "#ffd54f",
-    "amt_outline": "#000000eb",
-    "coin_glow": "#ffc107f2"
+    "amt_outline": "#000000eb"
   },
   "layout": {
     "count_base_n": 3,
