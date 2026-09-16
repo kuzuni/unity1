@@ -69,7 +69,7 @@ namespace Forge.Game.Ui
             sh.color = DropShadowUi.C(key);
             RectTransform sr = sh.rectTransform;
             sr.anchorMin = ir.anchorMin; sr.anchorMax = ir.anchorMax; sr.pivot = ir.pivot;
-            FitPadded(sr, ir, sp, r, new Vector2(DropShadowUi.Len(key, "dx", boxPx), -DropShadowUi.Len(key, "dy", boxPx)));
+            FitPadded(sr, ir, UiFilter.BlurGrow(img.sprite, sp, boxPx), r, new Vector2(DropShadowUi.Len(key, "dx", boxPx), -DropShadowUi.Len(key, "dy", boxPx)));
             sr.SetSiblingIndex(ir.GetSiblingIndex());                                        // 그림 **뒤**에 그린다
             return sh;
         }
@@ -79,13 +79,14 @@ namespace Forge.Game.Ui
         /// 종전엔 원본과 같은 상자에 넣어 실루엣이 그 비만큼 줄고 번짐이 상자 끝에서 잘렸다 — 정본 `filter: drop-shadow` 는 요소 상자 **밖으로** 번진다
         /// (나는 코인의 금색 글로우가 코인 뒤에 통째로 숨어 T408 자에 한 화소도 안 잡히던 까닭 · 런 856·868).
         /// </summary>
-        static void FitPadded(RectTransform sr, RectTransform like, Sprite bakedSprite, Rect r, Vector2 offset)
+        /// <remarks>4회차(런 875): 피벗 보정의 부호가 뒤집혀 있었다 — 상자가 `extra` 만큼 커질 때 가운데를 지키려면 피벗점은 **(피벗 − ½)·extra** 만큼 옮긴다
+        /// (왼쪽 위 피벗 (0,1) 이면 왼쪽으로 ½·extra.x · 위로 ½·extra.y). 종전 (½ − 피벗) 은 반대로 밀어 오프셋이 `extra` 만큼 어긋났다(검 −18 · 알 −12 · 아이콘 +8·+20).</remarks>
+        static void FitPadded(RectTransform sr, RectTransform like, Vector2 grow, Rect r, Vector2 offset)
         {
-            Vector2 grow = UiFilter.BlurGrow(bakedSprite);
             Vector2 extra = new Vector2(r.width * (grow.x - 1f), r.height * (grow.y - 1f));
             sr.sizeDelta = like.sizeDelta + extra;
             sr.anchoredPosition = like.anchoredPosition + offset
-                                  + new Vector2((0.5f - like.pivot.x) * extra.x, (0.5f - like.pivot.y) * extra.y);
+                                  + new Vector2((like.pivot.x - 0.5f) * extra.x, (like.pivot.y - 0.5f) * extra.y);
         }
 
         /// <summary>
@@ -122,7 +123,7 @@ namespace Forge.Game.Ui
             sh.color = DropShadowUi.C(key);
             RectTransform sr = sh.rectTransform;
             sr.anchorMin = box.anchorMin; sr.anchorMax = box.anchorMax; sr.pivot = box.pivot;
-            FitPadded(sr, box, sp, r, new Vector2(DropShadowUi.Px(key, "dx_px") * css, -DropShadowUi.Px(key, "dy_px") * css));
+            FitPadded(sr, box, UiFilter.BlurGrow(silhouette, sp, Mathf.Max(r.width, r.height)), r, new Vector2(DropShadowUi.Px(key, "dx_px") * css, -DropShadowUi.Px(key, "dy_px") * css));
             sr.SetSiblingIndex(box.GetSiblingIndex());                                       // 그림 **뒤**에
             return sh;
         }

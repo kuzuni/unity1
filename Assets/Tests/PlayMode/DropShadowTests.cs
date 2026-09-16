@@ -274,8 +274,10 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(want.a, si.color.a, 2f / 255f, "알파 = 표 anvil_btn(.35)");
             Assert.Less(si.color.r + si.color.g + si.color.b, 0.05f, "색은 검정");
             // T411 3회차 — 그림자 상자 = 모루 상자 × 구운 판의 여유(커널 반경 · 번짐이 상자 끝에서 안 잘린다 · 정본 drop-shadow 는 상자 밖으로 번진다)
-            Vector2 grow = UiFilter.BlurGrow(si.sprite);
-            Assert.Greater(grow.x, 1f, "구운 판은 커널 반경만큼 넓다");
+            Sprite silSprite = AnvilArt.Silhouette();
+            Assert.AreNotSame(silSprite, si.sprite, "그림자 판은 실루엣을 번지게 구운 사본이다(표 blur 1.92px) — 실루엣 그대로면 번짐이 안 걸린 것");
+            Vector2 grow = UiFilter.BlurGrow(silSprite, si.sprite, Mathf.Max(((RectTransform)art).rect.width, ((RectTransform)art).rect.height));
+            Assert.Greater(grow.x, 1f, "구운 판은 커널 반경만큼 넓다 · 키움 비 " + grow);
             Assert.AreEqual(((RectTransform)art).rect.width * grow.x, ((RectTransform)sh).rect.width, 0.5f, "그림자 상자 = 모루 상자 + 구운 판의 여유(가로)");
             Assert.AreEqual(((RectTransform)art).rect.height * grow.y, ((RectTransform)sh).rect.height, 0.5f, "그림자 상자 = 모루 상자 + 구운 판의 여유(세로)");
 

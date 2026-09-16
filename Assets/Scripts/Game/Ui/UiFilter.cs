@@ -22,8 +22,6 @@ namespace Forge.Game.Ui
 
         static FilterTable table;
         static readonly Dictionary<string, Sprite> baked = new Dictionary<string, Sprite>(StringComparer.Ordinal);
-        /// <summary>구운 번짐 판마다 «판 ÷ 줄인 원본» 의 한 변 비(가로·세로) — 커널 반경만큼 넓혀 구웠으니 1 보다 크다(<see cref="BlurGrow"/>).</summary>
-        static readonly Dictionary<Sprite, Vector2> blurGrow = new Dictionary<Sprite, Vector2>();
 
         /// <summary>표 — 처음 부를 때 한 번 읽는다.</summary>
         public static FilterTable Table
@@ -41,16 +39,26 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>테스트가 표를 다시 읽게 한다(구운 것도 버린다).</summary>
-        public static void Reset() { table = null; baked.Clear(); blurGrow.Clear(); }
+        public static void Reset() { table = null; baked.Clear(); }
 
         /// <summary>
-        /// <see cref="Blur"/> 가 낸 판의 키움 비(가로·세로 · «판 한 변 ÷ 줄인 원본 한 변» = 1 + 2×커널 반경/원본). 구운 판이 아니면 (1, 1).
+        /// <see cref="Blur"/> 가 낸 판의 키움 비(가로·세로 · «판 한 변 ÷ 줄인 원본 한 변» = 1 + 2×커널 반경/원본). 번지지 않은 판(원본 그대로)이면 (1, 1).
         /// 그림자를 원본과 **같은 상자**에 넣으면 실루엣이 이 비만큼 줄고 번짐이 상자 끝에서 잘린다 — 정본 `drop-shadow` 는 요소 상자 밖으로 번진다(T411 3회차).
+        /// 사전에 기억하지 않고 **셈으로** 낸다(4회차 · 런 875): 원본·화면 한 변에서 <see cref="Blur"/> 가 줄인 원본 한 변을 같은 식으로 다시 세면 되고,
+        /// 그래야 캐시가 비워지거나 씬이 다시 실려도 답이 같다.
         /// </summary>
-        public static Vector2 BlurGrow(Sprite bakedSprite)
+        public static Vector2 BlurGrow(Sprite src, Sprite bakedSprite, double displayPx)
         {
-            Vector2 g;
-            return bakedSprite != null && blurGrow.TryGetValue(bakedSprite, out g) ? g : Vector2.one;
+            if (src == null || bakedSprite == null || bakedSprite == src) return Vector2.one;
+            Rect r = src.textureRect;
+            int w0 = Mathf.Max(1, Mathf.RoundToInt(r.width)), h0 = Mathf.Max(1, Mathf.RoundToInt(r.height));
+            int side = FilterRules.BlurBakeSide(Mathf.Max(w0, h0), displayPx);
+            if (side > 0 && side < Mathf.Max(w0, h0))
+            {
+                double shrink = (double)side / Mathf.Max(w0, h0);
+                w0 = Mathf.Max(2, Mathf.RoundToInt(w0 * (float)shrink)); h0 = Mathf.Max(2, Mathf.RoundToInt(h0 * (float)shrink));
+            }
+            return new Vector2(bakedSprite.rect.width / w0, bakedSprite.rect.height / h0);
         }
 
         /// <summary>
@@ -160,7 +168,6 @@ namespace Forge.Game.Ui
             var sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), src.pixelsPerUnit);
             sp.name = "blur-" + keySuffix + "-" + src.name;
             baked[key] = sp;
-            blurGrow[sp] = new Vector2((float)w / w0, (float)h / h0);
             return sp;
         }
 

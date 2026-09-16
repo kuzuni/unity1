@@ -53,9 +53,15 @@ namespace Forge.Tests.PlayMode
             return MiniJson.ParseObject(ta.text);
         }
 
-        static bool Gold(Color32 c, JsonObject g)
+        /// <summary>금빛 문턱 — 표를 **한 번만** 읽어 정수로 쥔다(4회차 · 런 875: 화소마다 `J.Num` 다섯 번이면 540×960 한 장에 초가 넘어 표본 간격이 1.5초로 벌어졌다).</summary>
+        sealed class GoldRule
         {
-            return c.r > J.Num(g["r_min"]) && c.g > J.Num(g["g_min"]) && c.g < J.Num(g["g_max"]) && c.b < J.Num(g["b_max"]) && c.r - c.b > J.Num(g["rb_min"]);
+            public int RMin, GMin, GMax, BMax, RbMin;
+            public static GoldRule From(JsonObject g)
+            {
+                return new GoldRule { RMin = (int)J.Num(g["r_min"]), GMin = (int)J.Num(g["g_min"]), GMax = (int)J.Num(g["g_max"]), BMax = (int)J.Num(g["b_max"]), RbMin = (int)J.Num(g["rb_min"]) };
+            }
+            public bool Is(Color32 c) { return c.r > RMin && c.g > GMin && c.g < GMax && c.b < BMax && c.r - c.b > RbMin; }
         }
 
         /// <summary>
@@ -69,13 +75,13 @@ namespace Forge.Tests.PlayMode
             public int W, H;
             Canvas canvas; UiRoot root; Camera cam; RenderTexture rt; Texture2D tex;
             RenderMode prevMode; Camera prevCam; float prevPlane; RenderTexture prevActive;
-            JsonObject gold;
+            GoldRule gold;
 
-            public static Session Begin(JsonObject gold)
+            public static Session Begin(JsonObject goldTable)
             {
                 UiRoot root = UiRoot.Instance;
                 if (root == null || root.Canvas == null) return null;
-                Session s = new Session { root = root, canvas = root.Canvas, gold = gold, W = CoinSellCurveTests.W, H = CoinSellCurveTests.H };
+                Session s = new Session { root = root, canvas = root.Canvas, gold = GoldRule.From(goldTable), W = CoinSellCurveTests.W, H = CoinSellCurveTests.H };
                 s.prevMode = s.canvas.renderMode; s.prevCam = s.canvas.worldCamera; s.prevPlane = s.canvas.planeDistance; s.prevActive = RenderTexture.active;
                 try
                 {
@@ -127,7 +133,7 @@ namespace Forge.Tests.PlayMode
                     for (int y = 0; y < H; y++)
                     {
                         int src = y * W, dst = (H - 1 - y) * W;   // 텍스처는 아래가 0행
-                        for (int x = 0; x < W; x++) if (Gold(px[src + x], gold)) m[dst + x] = 1;
+                        for (int x = 0; x < W; x++) if (gold.Is(px[src + x])) m[dst + x] = 1;
                     }
                     return m;
                 }
