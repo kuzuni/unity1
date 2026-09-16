@@ -169,7 +169,7 @@ namespace Forge.Game.Ui
             float cardH, cardY;
             // 높이는 정본에 선언이 없어(공용 상한이 잡는다) 쓰던 값을 표로만 옮겼다 — 재는 사람이 표를 고친다.
             PopupKit.FitBetweenBars(H * ForgeInfoStyle.L("fl_card_h_f"), out cardH, out cardY);   // T78 — ✕ 가 탭바에 가리지 않게
-            float th = PopupKit.FontSize(TextKind.Title) * 1.3f;
+            float th = PopupKit.FontSize(TextKind.Title2) * 1.3f;   // T404 2회차 — 정본 ui.js 2125 `<h3 class="fi-title">모든 장비의 목록</h3>` = 5056 1.12rem → Title2
             float chrome = pad * 2f + th + rem * 0.4f + PopupKit.Line3 * 2f;                      // 카드 안에서 목록이 아닌 몫(패딩·제목·틈·테)
             // T388 3회차 — 정본 **722** `.forge-age-list { max-height: calc(var(--app-h) * .59); overflow-y: auto }`.
             //   여태 클론은 **카드를 `fl_card_h_f` .76 으로 고정하고 목록을 그 나머지로 채웠다** — 그래서 목록이 67%H 로 서서 상한을 +13% 넘었다(런 704 실측).
@@ -178,7 +178,7 @@ namespace Forge.Game.Ui
             float listH = Mathf.Min(cardH - chrome, H * ForgeInfoStyle.L("fl_list_max_h_f"));
             cardH = Mathf.Min(cardH, listH + chrome);
             RectTransform card = PopupKit.Card(root, "card", w, cardH, "pp_paper", rem * 1.1f, "pp_line", cardY);
-            TextMeshProUGUI title = UiKit.Text(card, "title", TextKind.Title, "모든 장비의 목록", "pp_ink");
+            TextMeshProUGUI title = UiKit.Text(card, "title", TextKind.Title2, "모든 장비의 목록", "pp_ink");   // T404 2회차 — .fi-title 1.12rem = 40.8px → Title2 42(전엔 Title 60 · +47%)
             title.fontStyle = FontStyles.Bold;
             UiKit.Place(title.rectTransform, pad, pad, inner, th);
             RectTransform scrollBox = UiKit.Box(card, "forge-age-list");

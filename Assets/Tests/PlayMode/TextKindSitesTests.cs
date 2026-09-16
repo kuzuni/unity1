@@ -75,6 +75,42 @@ namespace Forge.Tests.PlayMode
         }
         /// <summary>T391 4회차 — 남은 셋 중 파일이 열린 둘: 확률 팝업 머리(정본 4580 `.rates-head h3` 1.3rem = 47.3px → Head 48) ·
         /// 자동 제련 제목(정본 4695 `.af-title` 1.12rem · 5033 덮음 1.26rem = 45.9px → Button 44). 둘 다 전엔 Title 60 이었다.</summary>
+        /// <summary>T404 2회차 — 모달 제목 단 Title2(1.12~1.2rem ≈ 42px)에 드는 남은 둘: «모든 장비의 목록»(ui.js 2125 `&lt;h3 class="fi-title"&gt;` · 5056 1.12rem) ·
+        /// 오프라인 합계 수 둘(`.offline-total` 305 1.15rem · 전엔 Sub 36 이라 −14%). 1회차의 다섯 자리와 같은 단.</summary>
+        [UnityTest]
+        public IEnumerator 장비_목록_제목과_오프라인_합계는_모달_제목_단으로_선다()
+        {
+            yield return Boot();
+            float t0 = 0f;
+            while (!(ForgeHost.Ready && MetaHost.Ready) && t0 < 20f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost"); Assert.IsTrue(MetaHost.Ready, "MetaHost");
+            float t2 = UiCatalog.Instance.Kind(TextKind.Title2).size;
+
+            ForgeHost fh = ForgeHost.Instance;
+            ForgeInfoPopup.OpenList(fh);
+            yield return null; yield return null;
+            Popup lp = fh.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(lp, "「모든 장비의 목록」 팝업");
+            TextMeshProUGUI lt = null;
+            foreach (TextMeshProUGUI t in lp.Root.GetComponentsInChildren<TextMeshProUGUI>(true)) if (t.name == "title" && t.text == "모든 장비의 목록") { lt = t; break; }
+            Assert.IsNotNull(lt, "목록 제목");
+            Assert.AreEqual(t2, lt.fontSize, 0.01f, "정본 <h3 class=fi-title> 1.12rem → Title2(전엔 Title 60)");
+            fh.Meta.Popups.Hide(ForgeInfoPopup.Name);
+            yield return null;
+
+            MetaHost mh = MetaHost.Instance;
+            OfflinePopup.Show(mh, new Forge.Core.Save.OfflineReward { Elapsed = 5000, Counted = 3600, Coins = 8870, Hammers = 149.05, CoinRate = 1.13, HammerRate = 1.14 });
+            yield return null; yield return null;
+            Popup op = mh.Popups.Find(OfflinePopup.Name);
+            Assert.IsNotNull(op, "오프라인 보상 팝업");
+            int seen = 0;
+            foreach (TextMeshProUGUI t in op.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+                if (t.name == "coins" || t.name == "hammers") { Assert.AreEqual(t2, t.fontSize, 0.01f, "정본 .offline-total 1.15rem → Title2(전엔 Sub 36) · " + t.name); seen++; }
+            Assert.AreEqual(2, seen, "합계 수 둘(coins · hammers)");
+            mh.Popups.Hide(OfflinePopup.Name);
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator 확률_머리와_자동_제련_제목은_정본_크기_단으로_선다()
         {

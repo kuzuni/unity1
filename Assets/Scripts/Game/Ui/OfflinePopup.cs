@@ -72,26 +72,28 @@ namespace Forge.Game.Ui
             float lip = UiKit.H("btn_lip");
             float bw = UiKit.W("offline_collect_w") + PopupKit.Line3 * 2f, bh = UiKit.H("offline_collect_h") + PopupKit.Line3 * 2f + lip;
             float padT = rem * BottomPadTopRem, padB = rem * BottomPadBottomRem, gapV = rem * BottomGapRem;
-            float blockH = lineH + gapV + bh;
+            // T404 2회차 — 정본 305 `.offline-total { font-size: 1.15rem }` = 41.9px → Title2 42(전엔 Sub 36 · −14%). 합계 줄 높이·아이콘도 그 글자 기준.
+            float totalH = PopupKit.FontSize(TextKind.Title2) * 1.3f;
+            float blockH = totalH + gapV + bh;
             float by = padT + Mathf.Max(0f, (bottomH - padT - padB - blockH) * 0.5f);
-            float ico = lineH;
+            float ico = totalH;
             RectTransform total = UiKit.Box(bottom, "total");
-            UiKit.Place(total, 0f, by, inner, lineH);
+            UiKit.Place(total, 0f, by, inner, totalH);
             Image ci = PopupKit.IconOr(total, "coin-ico", "coin");
             UiKit.Place(ci.rectTransform, inner * 0.18f, 0f, ico, ico);
             // 정본 `.offline-total { color: #fff; -webkit-text-stroke-width: .2em }` — **흰 칠 + 검정 링**이다.
             // (정본 style.css 290~296 이 «검정으로 오독하기 쉽다 · 다시 검정으로 돌리지 말 것» 이라고 못 박아 뒀다 · T109 2회차가 키라인을 붙이며 드러났다)
-            coins = UiKit.Text(total, "coins", TextKind.Sub, string.Empty, "white", TextAlignmentOptions.Left);
+            coins = UiKit.Text(total, "coins", TextKind.Title2, string.Empty, "white", TextAlignmentOptions.Left);   // 정본 .offline-total 1.15rem(T404)
             coins.fontStyle = FontStyles.Bold;
             UiKit.OutlinePx(coins, "pp_line", KeylineUi.Em("offline_total", coins.fontSize));   // 정본 .offline-total { -webkit-text-stroke: .2em var(--pp-line) }
-            UiKit.Place(coins.rectTransform, inner * 0.18f + ico + rem * 0.2f, 0f, inner * 0.25f, lineH);
+            UiKit.Place(coins.rectTransform, inner * 0.18f + ico + rem * 0.2f, 0f, inner * 0.25f, totalH);
             Image hi = PopupKit.IconOr(total, "hammer-ico", "hammer");
             UiKit.Place(hi.rectTransform, inner * 0.55f, 0f, ico, ico);
-            hammers = UiKit.Text(total, "hammers", TextKind.Sub, string.Empty, "white", TextAlignmentOptions.Left);   // 정본 .offline-total color:#fff
+            hammers = UiKit.Text(total, "hammers", TextKind.Title2, string.Empty, "white", TextAlignmentOptions.Left);   // 정본 .offline-total color:#fff · 1.15rem(T404)
             hammers.fontStyle = FontStyles.Bold;
             UiKit.OutlinePx(hammers, "pp_line", KeylineUi.Em("offline_total", hammers.fontSize));   // 정본 .offline-total(같은 줄의 두 수)
-            UiKit.Place(hammers.rectTransform, inner * 0.55f + ico + rem * 0.2f, 0f, inner * 0.25f, lineH);
-            by += lineH + gapV;
+            UiKit.Place(hammers.rectTransform, inner * 0.55f + ico + rem * 0.2f, 0f, inner * 0.25f, totalH);
+            by += totalH + gapV;
             // T144 — 정본은 파랑: 668 `.btn.primary`(초록 · 0-2-0)를 3548 `.modal-card .btn.primary { background: var(--pp-blue) }`(0-3-0)가 덮고
             //        오프라인 카드는 `modal-card offline-card`(ui.js 5891)다 · 307 주석의 «원본 파란 면 실측» 도 같은 말 · T68 의 «초록이 맞다» 는 기본 규칙만 본 오독
             Button collect = PopupKit.Btn(bottom, "collect", "수집", "pp_blue", "pp_blue_dk", () => Collect(h), bw, bh);
