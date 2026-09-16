@@ -141,7 +141,10 @@ namespace Forge.Game.Ui
                 double shrink = (double)side / Mathf.Max(w0, h0);
                 int dw = Mathf.Max(2, Mathf.RoundToInt(w0 * (float)shrink)), dh = Mathf.Max(2, Mathf.RoundToInt(h0 * (float)shrink));
                 Sprite small = Resample(src, dw, dh, keySuffix);
-                if (small != null) { src = small; r = src.textureRect; w0 = dw; h0 = dh; sigmaPx *= shrink; }
+                // ⚠ 줄인 판의 `textureRect` 가 아니라 **판 전체**(0,0,dw,dh)를 읽는다(T411 7회차 · 런 911): Tight 메시 스프라이트의 `textureRect` 는 투명 여백을 걷은
+                //    «꽉 찬 화소 상자» 라 x·y 가 0 이 아닌데 w0·h0 는 판 전체라 `ReadPixels` 의 경계 검사에 걸려 null → 번지지 않은 줄인 판을 그대로 돌려줬다
+                //    (모루 실루엣처럼 여백이 있는 그림만 · 여백 없는 아이콘은 우연히 맞았다). 줄인 판은 FullRect 로 만들지만 여기서도 상자를 못 박는다.
+                if (small != null) { src = small; r = new Rect(0f, 0f, dw, dh); w0 = dw; h0 = dh; sigmaPx *= shrink; }
             }
 
             Color[] src0 = ReadPixels(src.texture, Mathf.RoundToInt(r.x), Mathf.RoundToInt(r.y), w0, h0);
@@ -165,7 +168,7 @@ namespace Forge.Game.Ui
             var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { name = "blur-" + keySuffix, filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
             tex.SetPixels(a);
             tex.Apply(false, false);
-            var sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), src.pixelsPerUnit);
+            var sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), src.pixelsPerUnit, 0, SpriteMeshType.FullRect);   // 번진 판도 판 전체가 그림이다
             sp.name = "blur-" + keySuffix + "-" + src.name;
             baked[key] = sp;
             return sp;
@@ -240,7 +243,7 @@ namespace Forge.Game.Ui
                 var tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { name = "small-" + keySuffix, filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
                 tex.ReadPixels(new Rect(0, 0, w, h), 0, 0, false);
                 tex.Apply(false, false);
-                var sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), src.pixelsPerUnit);
+                var sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), src.pixelsPerUnit, 0, SpriteMeshType.FullRect);   // FullRect — textureRect = 판 전체(T411 7회차)
                 sp.name = tex.name;
                 baked[key] = sp;
                 return sp;

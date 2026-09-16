@@ -44,7 +44,8 @@ namespace Forge.Tests.PlayMode
         [TearDown]
         public void Clean() { UiRoot.OverrideSafeArea(null); }
 
-        sealed class Row { public int Ms, Total, Top, Mid, Bot; }
+        /// <summary>한 표본 — Ms = 표의 시각(정본 열과 나란히) · At = **실제로 찍힌 시각**(봉우리·끝 판정은 이것으로 · 7회차: 배치모드는 표본이 200~700ms 늦게 찍혀 표 시각으로 재면 «420ms 봉우리» 가 실은 593ms 였다).</summary>
+        sealed class Row { public int Ms, At, Total, Top, Mid, Bot; }
 
         static JsonObject Table()
         {
@@ -255,13 +256,13 @@ namespace Forge.Tests.PlayMode
             finally { ses.End(); }
             byte[] floor = shots[shots.Count - 1].Value;   // 정본과 같이 마지막 프레임이 바닥이다
             var rows = new List<Row>();
-            for (int i = 0; i < shots.Count; i++) rows.Add(Count(shots[i].Value, floor, bands, sheetTopF, shots[i].Key, w, h));
+            for (int i = 0; i < shots.Count; i++) { Row row = Count(shots[i].Value, floor, bands, sheetTopF, shots[i].Key, w, h); row.At = actual[i]; rows.Add(row); }
 
             // 봉우리·끝(판정 띠 = 시트) — 정본과 같은 셈(check_coinsell_curve.derive)
             Row peak = rows[0];
             foreach (Row r in rows) if (Band(r, band) > Band(peak, band)) peak = r;
             int endMs = -1;
-            foreach (Row r in rows) if (r.Ms > peak.Ms && Band(r, band) <= Band(peak, band) * endF) { endMs = r.Ms; break; }
+            foreach (Row r in rows) if (r.At > peak.At && Band(r, band) <= Band(peak, band) * endF) { endMs = r.At; break; }
 
             var sb = new StringBuilder();
             sb.AppendLine("# T408 — 판매 코인 시간축(클론 · " + W + "×" + H + " · 정적 바닥 = 마지막 프레임) ↔ 정본 표 CoinSellCurveUi.json · 판정 띠 " + band
@@ -273,7 +274,7 @@ namespace Forge.Tests.PlayMode
                 sb.AppendLine(string.Format("{0,5} {1,6} {2,6} {3,6} {4,6} {5,6} | {6,6} {7,5} {8,5} {9,5}", rows[i].Ms, actual[i], rows[i].Total, rows[i].Top, rows[i].Mid, rows[i].Bot,
                     (int)J.Num(rf["total"]), (int)J.Num(rf["top"]), (int)J.Num(rf["mid"]), (int)J.Num(rf["bot"])));
             }
-            sb.AppendLine("# 클론 봉우리(" + band + ") " + peak.Ms + "ms " + Band(peak, band) + " · 끝 " + (endMs < 0 ? "없음" : endMs + "ms") + " ↔ 정본 봉우리 " + refPeakMs + "ms " + (int)J.Num(t["peak_v"]) + " · 끝 " + refEndMs + "ms");
+            sb.AppendLine("# 클론 봉우리(" + band + ") 실제 " + peak.At + "ms(표 " + peak.Ms + ") " + Band(peak, band) + " · 끝 실제 " + (endMs < 0 ? "없음" : endMs + "ms") + " ↔ 정본 봉우리 " + refPeakMs + "ms " + (int)J.Num(t["peak_v"]) + " · 끝 " + refEndMs + "ms");
             Record(sb.ToString());
 
             // 표본 간격 가드 — 촬영이 느려 정본 봉우리(≤1000ms) 앞에서 표본이 400ms 넘게 벌어졌으면 이 환경에선 시간축을 못 잰다(자국은 남았다).
@@ -283,10 +284,10 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(Band(peak, band), 0, "코인이 사는 시트 띠(" + band + " · " + sheetTopF.ToString("0.###") + "H~)에 금빛 화소가 한 번은 뜬다");
             // 판정(정본 · 시트 띠): 봉우리 860ms(착지 + 라벨 팝) · 끝 2500ms(라벨 2000ms 가 다 스러진 뒤). 종전 «봉우리 900 · 끝 1000» 은 무대 띠의 보스 연출을 잰 것이었다(T411 2회차 · 결정 700).
             // 어긋나면 T411 로 접는다(T386 ⓒ) — 그 번호가 닫히면 이 접음을 걷는다.
-            bool peakOk = peak.Ms >= refPeakMs - 400 && peak.Ms <= refPeakMs + 400;
+            bool peakOk = peak.At >= refPeakMs - 400 && peak.At <= refPeakMs + 400;
             bool endOk = endMs >= 0 && endMs <= refEndMs + 600;
             if (!peakOk || !endOk)
-                Assert.Ignore("KNOWN T411 — 판매 코인 연출의 시간축이 정본과 다르다(클론 " + band + " 봉우리 " + peak.Ms + "ms " + Band(peak, band) + " · 끝 " + (endMs < 0 ? "없음" : endMs + "ms")
+                Assert.Ignore("KNOWN T411 — 판매 코인 연출의 시간축이 정본과 다르다(클론 " + band + " 봉우리 실제 " + peak.At + "ms " + Band(peak, band) + " · 끝 실제 " + (endMs < 0 ? "없음" : endMs + "ms")
                               + " ↔ 정본 " + refPeakMs + "ms · " + refEndMs + "ms) · 자국 ui-screens/t408-coinsell.txt · 임자 T411 절(연출 갈래)");
         }
     }
