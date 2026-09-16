@@ -76,5 +76,38 @@ namespace Forge.Tests.PlayMode
             PopupLayer.Instance.Hide(ForgeCraftPopup.SellName);
             yield return null;
         }
+
+        static Transform FindDeep(Transform root, string name)
+        {
+            if (root.name == name) return root;
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform t = FindDeep(root.GetChild(i), name);
+                if (t != null) return t;
+            }
+            return null;
+        }
+
+        /// <summary>T377 4회차 — 모루 «보류» 배지(정본 `style.css` 999 `.anvil-btn.held-slot .held-tag { background: #f0a020 }`).
+        /// 전역 노랑 토큰 `coin`(#ffd54f)과 다른 앰버라 자리 전용 키가 쥔다.</summary>
+        [UnityTest]
+        public IEnumerator 모루_보류_배지의_면은_못박은_앰버지_전역_노랑_토큰이_아니다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            ForgeItem it = h.Engine.RollItem();
+            h.SetPendingCraft(it);
+            ForgeSheet.Render(h);
+            yield return null;
+            Transform tagBox = FindDeep(UiRoot.Instance.Sheet, "held-tag-bg");
+            Assert.IsNotNull(tagBox, "보류 배지 상자(held-tag-bg) — 대기품을 세웠으니 모루 자리에 선다");
+            Image bg = tagBox.Find("bg").GetComponent<Image>();
+            Color want = PinnedColorUi.C("held_tag_face");
+            Assert.AreEqual(want, bg.color, "배지 면 = 표 held_tag_face(정본 999 #f0a020)");
+            Assert.AreNotEqual(UiKit.C("coin"), bg.color, "전역 노랑 토큰 coin(#ffd54f)이 아니다 — 정본이 선택자에만 못박은 값이다");
+            h.ClearPendingCraft();
+            ForgeSheet.Render(h);
+            yield return null;
+        }
     }
 }

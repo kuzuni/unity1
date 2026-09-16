@@ -43,6 +43,10 @@ TABLE = {
     # T377 3회차 — 판매 버튼 둘(비교 팝업 · 판매 경고)의 면(8686 `#ff1017` · 턱 `#4e0507` 은 box-shadow 라 이 자의 «면» 목록엔 없다 — PlayMode 자가 잰다)
     '.btn.btn.danger.danger': ['Ui/ForgeCraftPopup.cs@PinSell|res:PinnedColorUi:sell_btn_face'],
     '.btn.btn.sell.sell': ['Ui/ForgeCraftPopup.cs@PinSell|res:PinnedColorUi:sell_btn_face'],
+    # T377 4회차 — 산 lock 밖 자리 셋. 하나는 토큰으로 뭉개져 있었고(모루 «보류» 배지) 둘은 이미 제 값이라 자가 지키기만 한다.
+    '.anvil-btn.held-slot .held-tag': ['Ui/ForgeSheet.cs|res:PinnedColorUi:held_tag_face'],   # 정본 999 #f0a020 ↔ 클론은 전역 coin(#ffd54f) 이었다
+    '.skill-btn.auto': ['Ui/SkillBar.cs|res:PetSkillUi:sb_auto_bg'],                          # 정본 624 #2f3a33 ↔ PetSkillUi sb_auto_bg 같은 값(이미 맞다)
+    '.skill-btn.auto.on': ['Ui/SkillBar.cs|res:PetSkillUi:sb_auto_on_bg'],                    # 정본 629 #2e7d32 ↔ sb_auto_on_bg 같은 값(이미 맞다)
 }
 # 임자가 정해진 빈자리(파일 lock 뒤) — 붙이면 여기서 지운다
 KNOWN = {

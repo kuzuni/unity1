@@ -388,7 +388,9 @@ namespace Forge.Game.Ui
                 float tw = tag.preferredWidth + rem * 0.7f, th = tag.fontSize * 1.25f;
                 RectTransform tagBox = UiKit.Box(rt, "held-tag-bg");
                 UiKit.Anchor(tagBox, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f), Vector2.zero, tw, th);
-                Image tb = UiKit.Rounded(tagBox, "bg", "coin", th * 0.5f);
+                // T377 4회차 — 정본 999 는 이 배지에 `#f0a020` 을 **선택자에만** 못박았다(전역 노랑 토큰 coin #ffd54f 과 다른 앰버).
+                Image tb = UiKit.Rounded(tagBox, "bg", "pp_paper", th * 0.5f);
+                tb.color = PinnedColorUi.C("held_tag_face");
                 UiKit.Rounded(tagBox, "ring", "pp_line", th * 0.5f).transform.SetAsFirstSibling();
                 PopupKit.Inset(tb.rectTransform, PopupKit.Line);
                 tag.transform.SetParent(tagBox, false);
