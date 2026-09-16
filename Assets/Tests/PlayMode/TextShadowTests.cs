@@ -66,12 +66,22 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(m.IsKeywordEnabled("UNDERLAY_ON"), what + ": UNDERLAY_ON");
             float g = m.GetFloat("_GradientScale"), rc = m.HasProperty("_ScaleRatioC") ? m.GetFloat("_ScaleRatioC") : 0f;
             if (rc <= 0f) rc = 1f;
+            // T333 16회차 — TMP 는 언더레이 값을 넣은 **뒤** `ShaderUtilities.UpdateShaderRatios` 로 `_ScaleRatioC` 를 다시 센다:
+            //   ratio_C = (G − 1) / (G × max(1, max(|offX|, |offY|) + dilate + softness)).
+            // 그러니 «걸 때 읽은 R_C»(UiKit.TextShadow 가 식에 넣은 값)와 «지금 읽는 R_C» 는 상한을 넘긴 자리에서 그 max(1, …) 배만큼 다르다
+            // (런 987·999 실측: 제목 −0.582 기대 ↔ −0.412 실물 = 1/(0.412 + 1.0) · 정확히 그 배). 안 잘린 자리는 max 가 1 이라 같다(AssertShadow 가 초록인 까닭).
+            // 식을 되짚으려면 지금 값에서 그 배를 곱해 «걸 때의 R_C» 로 돌린다 — 재질 값(잘린 그림자의 실제 렌더 크기)은 안 건드린다(결정 738 그대로).
+            float offX = m.GetFloat("_UnderlayOffsetX"), offY = m.GetFloat("_UnderlayOffsetY"), soft = m.GetFloat("_UnderlaySoftness"), dil = m.GetFloat("_UnderlayDilate");
+            float ratioCt = Mathf.Max(1f, Mathf.Max(Mathf.Abs(offX), Mathf.Abs(offY)) + dil + soft);
+            float rcApply = rc * ratioCt;
             float css = KeylineUi.CssPx;
-            UnderlaySdf want = UnderlaySdf.FromPx(TextShadowUi.Px(key, "dx_px") * css, TextShadowUi.Px(key, "dy_px") * css, TextShadowUi.Px(key, "blur_px") * css, t.fontSize, g, rc, t.font.faceInfo.pointSize);
-            Assert.AreEqual(want.OffsetX01, m.GetFloat("_UnderlayOffsetX"), 1e-4, what + ": _UnderlayOffsetX = 식");
-            Assert.AreEqual(want.OffsetY01, m.GetFloat("_UnderlayOffsetY"), 1e-4, what + ": _UnderlayOffsetY = 식(CSS 아래 = TMP 음수)");
-            Assert.AreEqual(want.Softness01, m.GetFloat("_UnderlaySoftness"), 1e-4, what + ": _UnderlaySoftness = 흐림/단위(상한 1)");
-            Assert.Less(m.GetFloat("_UnderlayOffsetY"), 0f, what + ": 그림자는 아래로 내린다");
+            UnderlaySdf want = UnderlaySdf.FromPx(TextShadowUi.Px(key, "dx_px") * css, TextShadowUi.Px(key, "dy_px") * css, TextShadowUi.Px(key, "blur_px") * css, t.fontSize, g, rcApply, t.font.faceInfo.pointSize);
+            Assert.AreEqual(want.OffsetX01, offX, 1e-4, what + ": _UnderlayOffsetX = 식(걸 때의 R_C 로)");
+            Assert.AreEqual(want.OffsetY01, offY, 1e-4, what + ": _UnderlayOffsetY = 식(CSS 아래 = TMP 음수 · 걸 때의 R_C 로)");
+            Assert.AreEqual(want.Softness01, soft, 1e-4, what + ": _UnderlaySoftness = 흐림/단위(상한 1)");
+            if (want.Clipped) Assert.Greater(ratioCt, 1f, what + ": 잘린 자리는 TMP 가 R_C 를 줄였어야 한다(max(1, |off| + softness) > 1)");
+            else Assert.AreEqual(1f, ratioCt, 1e-6, what + ": 안 잘린 자리는 R_C 가 그대로다");
+            Assert.Less(offY, 0f, what + ": 그림자는 아래로 내린다");
             Assert.Greater(m.GetFloat("_UnderlaySoftness"), 0f, what + ": 흐림이 있는 겹이다");
             Color c = m.GetColor("_UnderlayColor"), tc = TextShadowUi.C(key);
             Assert.AreEqual(tc.r, c.r, 2f / 255f, what + ": 그림자 R"); Assert.AreEqual(tc.g, c.g, 2f / 255f, what + ": 그림자 G");
@@ -82,7 +92,7 @@ namespace Forge.Tests.PlayMode
                 UnderlaySdf.ToPx(m.GetFloat("_UnderlayOffsetX"), m.GetFloat("_UnderlayOffsetY"), m.GetFloat("_UnderlaySoftness"), want.UnitPx, out dx, out dy, out blur);
                 Assert.AreEqual(TextShadowUi.Px(key, "dy_px") * css, dy, 0.05, what + ": 되짚은 dy = 정본 px × css_px(아래로)");
             }
-            else Debug.Log("[T333] " + what + ": 정본 흐림 " + (TextShadowUi.Px(key, "blur_px") * css).ToString("0.0") + "px 이 SDF 단위 " + want.UnitPx.ToString("0.0") + "px 를 넘어 상한에서 잘린다(결정 738)");
+            else Debug.Log("[T333] " + what + ": 정본 흐림 " + (TextShadowUi.Px(key, "blur_px") * css).ToString("0.0") + "px 이 SDF 단위 " + want.UnitPx.ToString("0.0") + "px 를 넘어 상한에서 잘린다(결정 738) · TMP 가 R_C 를 " + rcApply.ToString("0.000") + " → " + rc.ToString("0.000") + " 로 줄여 실제 그림자는 그 배만큼 더 작다(16회차)");
         }
 
         private static void AssertNoShadow(TextMeshProUGUI t, string what)
