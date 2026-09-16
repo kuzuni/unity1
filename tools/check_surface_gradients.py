@@ -56,6 +56,9 @@ TABLE = {
     '.equip-cell': ['Ui/ForgeSheet.cs@EquipCell'],   # T178 16회차 — 828 해칭 둘(7730 이 non-egg 셀 background-image 를 덮어써도 해칭은 맨 아래 두 겹으로 남는다) · 7730 의 나머지 셋은 미정
 
     '.craft-batch .cb-card': ['Ui/ForgeCraftPopup.cs@CraftCard'],
+    # T178 18회차 — 7730 `.equip-cell:not(.egg-cell)` 의 위 세 겹(방사 둘 + 명암)과 8075/849 `.equip-cell.egg-cell` 세 겹은 SurfaceArt.FillFace 가 **셀 면 통째**(바탕 → 해칭 → 겹 · sRGB 차례 합성) 굽는다.
+    '.equip-cell:not(.egg-cell)': ['Ui/ForgeSheet.cs@EquipCell'],
+    '.equip-cell.egg-cell': ['Ui/ForgeSheet.cs@MountCell'],
     # ── T178 7회차 — «하드 스톱 띠»: 정본이 gradient 문법으로 적었지만 **정지점 사이에 섞임이 없는** 자리다.
     #    그림은 «가운데 11px 세로 줄» · «45° 줄무늬» 처럼 **색면 조각**이고, 클론이 조각(rect·dash)으로 그리면
     #    픽셀이 정본과 같다 — 여기에 그라디언트를 굽는 것은 같은 그림을 더 비싸게 그리는 것뿐이다.

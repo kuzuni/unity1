@@ -68,6 +68,73 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(twice, minR, what + " — 격자점은 두 번 어둡다(정본이 위 겹을 아래 결과 위에 또 섞는다)");
         }
 
+        /// <summary>
+        /// T178 18회차 — «셀 면 통째 굽기»(정본 7730·8075: 해칭 위에 방사·선형 겹을 알파로 얹는 자리) 단언.
+        /// 판은 Simple 한 장 · 전부 불투명 · 크기 = 면(캔버스 px ±2 · 해칭 주기가 안 늘어난다) · 위 행이 아래 행보다 밝다(명암 겹) · 좌상단이 우하단보다 밝다(광택 겹).
+        /// <paramref name="hatched"/> 면 가운데 행에 «±4px 이웃 최댓값보다 6 이상 어두운» 홈 화소가 ≈30%(2px/12px 두 겹) 있고, 아니면(탈것 칸) 거의 없다.
+        /// </summary>
+        static void AssertBakedFace(Transform card, string what, bool hatched)
+        {
+            Transform face = card.Find("frame/face");
+            Assert.IsNotNull(face, what + " — 면(frame/face)");
+            Assert.IsNotNull(face.GetComponent<Mask>(), what + " — 둥근 면이 마스크한다");
+            Assert.IsNull(face.Find("hatch"), what + " — 18회차부터 타일 해칭 대신 통째 판이다");
+            Transform b = face.Find("face-bake");
+            Assert.IsNotNull(b, what + " — 통째 판(face-bake)");
+            Image img = b.GetComponent<Image>();
+            Assert.AreEqual(Image.Type.Simple, img.type, what + " — 통째 판은 Simple");
+            Assert.IsNotNull(img.sprite, what + " — 구운 판");
+            Assert.IsFalse(img.raycastTarget, "겹은 클릭을 안 먹는다");
+            Texture2D tex = img.sprite.texture;
+            Rect fr = ((RectTransform)face).rect;
+            Assert.AreEqual(fr.width, tex.width, 2f, what + " — 판 가로 = 면 가로(캔버스 px)");
+            Assert.AreEqual(fr.height, tex.height, 2f, what + " — 판 세로 = 면 세로");
+            int w = tex.width, h = tex.height;
+            Color32[] px = tex.GetPixels32();
+            int opaque = 0; foreach (Color32 c in px) if (c.a == 255) opaque++;
+            Assert.AreEqual(px.Length, opaque, what + " — 미리 합성한 판은 전부 불투명");
+            // 위 1/8 ↔ 아래 1/8 행 평균 밝기(텍스처 y 는 아래가 0)
+            double top = 0, bot = 0; int band = Mathf.Max(1, h / 8);
+            for (int y = 0; y < band; y++) for (int x = 0; x < w; x++) { bot += Lum(px[y * w + x]); top += Lum(px[(h - 1 - y) * w + x]); }
+            top /= band * w; bot /= band * w;
+            Assert.Greater(top, bot + 8, what + " — 위→아래 명암(정본 위 흰 .16~.22 · 아래 검정 .22~.24): 위 " + top.ToString("0.0") + " ↔ 아래 " + bot.ToString("0.0"));
+            // 좌상단(26%,12%) 광택 ↔ 우하단
+            double tl = Lum(px[(h - 1 - (int)(h * 0.12)) * w + (int)(w * 0.26)]), br = Lum(px[(int)(h * 0.12) * w + (int)(w * 0.80)]);
+            Assert.Greater(tl, br, what + " — 좌상단 광택이 우하단보다 밝다");
+            // 해칭 — 같은 기하(표 stripes.cell_hatch · 화소 가운데 · 텍스처 y 는 아래가 0)로 겹 수(0·1·2)를 다시 세어 세 무리의 평균 밝기가
+            //   겹마다 «잉크 한 번(sRGB 바이트 위 OverSrgb)» 만큼 떨어지는지 본다 — 매끈한 겹들은 해칭 위상과 무관해 무리 평균에서 지워진다.
+            double period = SurfaceArt.StripeNum("cell_hatch", "period_css_px", 0f) * SurfaceArt.CssPx, dash = SurfaceArt.StripeNum("cell_hatch", "dash_css_px", 0f) * SurfaceArt.CssPx;
+            double ang = SurfaceArt.StripeNum("cell_hatch", "angle_deg", 45f), ia = SurfaceArt.StripeNum("cell_hatch", "ink_alpha", 0f);
+            double sx = fr.width / w, sy = fr.height / h;
+            double[] sum = new double[3]; int[] cnt = new int[3];
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    int n = StripeRules.HatchLayers((x + 0.5) * sx, (h - 1 - y + 0.5) * sy, ang, period, dash);
+                    sum[n] += Lum(px[y * w + x]); cnt[n]++;
+                }
+            if (hatched)
+            {
+                Assert.Greater(cnt[0], 0); Assert.Greater(cnt[1], 0); Assert.Greater(cnt[2], 0, what + " — 격자점(두 겹)이 있다");
+                Color32 f = face.GetComponent<Image>().color;
+                Color32 once = new Color32(SurfaceBlendRules.OverSrgb(f.r, 0, ia), SurfaceBlendRules.OverSrgb(f.g, 0, ia), SurfaceBlendRules.OverSrgb(f.b, 0, ia), 255);
+                Color32 twice = new Color32(SurfaceBlendRules.OverSrgb(once.r, 0, ia), SurfaceBlendRules.OverSrgb(once.g, 0, ia), SurfaceBlendRules.OverSrgb(once.b, 0, ia), 255);
+                double d1 = Lum(f) - Lum(once), d2 = Lum(once) - Lum(twice), tol = System.Math.Max(1.5, 0.35 * d1);
+                double m0 = sum[0] / cnt[0], m1 = sum[1] / cnt[1], m2 = sum[2] / cnt[2];
+                Assert.AreEqual(d1, m0 - m1, tol, what + " — 한 겹 자리는 빈 자리보다 잉크 한 번만큼 어둡다(" + m0.ToString("0.0") + " → " + m1.ToString("0.0") + ")");
+                Assert.AreEqual(d2, m1 - m2, tol, what + " — 격자점은 두 번 어둡다(" + m1.ToString("0.0") + " → " + m2.ToString("0.0") + ")");
+            }
+            else
+            {
+                // 탈것 칸엔 해칭이 없다 — 가운데 행이 매끈하다(이웃 화소 밝기 차 ≤ 2.5 · 겹 셋은 전부 그라디언트다)
+                int y0 = h / 2; double worst = 0;
+                for (int x = 1; x < w; x++) worst = System.Math.Max(worst, System.Math.Abs(Lum(px[y0 * w + x]) - Lum(px[y0 * w + x - 1])));
+                Assert.LessOrEqual(worst, 2.5, what + " — 해칭 없이 매끈하다(이웃 차 최대 " + worst.ToString("0.00") + ")");
+            }
+        }
+
+        static double Lum(Color32 c) { return (c.r * 299 + c.g * 587 + c.b * 114) / 1000.0; }
+
         [UnityTest]
         public IEnumerator 제작_묶음_카드_면에_교차_해칭이_깔린다()
         {
@@ -84,7 +151,10 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
-        /// <summary>T178 16회차 — 정본 828 `.equip-cell`: 장비 든 칸·빈 칸 둘 다 해칭이고, 탈것 칸(849 `.egg-cell` 은 제 겹 셋으로 덮는다)은 해칭이 없다.</summary>
+        /// <summary>
+        /// T178 16회차 — 정본 828 `.equip-cell`: 장비 든 칸·빈 칸 둘 다 해칭이고, 탈것 칸(849 `.egg-cell` 은 제 겹 셋으로 덮는다)은 해칭이 없다.
+        /// T178 18회차 — 7730 의 위 세 겹(광택·백플레이트·명암)까지 **면 통째 한 판**으로 굽고, 탈것 칸은 8075 의 세 겹(하늘색 선형 바탕·명암·광택)을 같은 길로 받는다.
+        /// </summary>
         [UnityTest]
         public IEnumerator 장비_시트_칸은_든_것도_빈_것도_교차_해칭이고_탈것_칸은_아니다()
         {
@@ -100,18 +170,47 @@ namespace Forge.Tests.PlayMode
             Transform app = UiRoot.Instance.Sheet;
             Transform full = FindDeep(app, "cell-" + it.Slot);
             Assert.IsNotNull(full, "장비 든 칸 cell-" + it.Slot);
-            AssertHatched(full, "장비 든 칸");
+            AssertBakedFace(full, "장비 든 칸", true);
             string emptySlot = null;
             foreach (string slot in h.Defs.Slots) if (h.Gear.Get(slot) == null) { emptySlot = slot; break; }
             Assert.IsNotNull(emptySlot, "빈 칸이 하나는 있다(새 세이브)");
             Transform empty = FindDeep(app, "cell-" + emptySlot);
             Assert.IsNotNull(empty, "빈 칸 cell-" + emptySlot);
-            AssertHatched(empty, "빈 칸");
+            AssertBakedFace(empty, "빈 칸", true);
             Transform egg = FindDeep(app, "egg-cell");
             Assert.IsNotNull(egg, "탈것 칸");
-            Transform eggFace = egg.Find("frame/face");
-            Assert.IsNotNull(eggFace, "탈것 칸 면");
-            Assert.IsNull(eggFace.Find("hatch"), "탈것 칸(정본 849 .egg-cell 은 제 겹 셋)엔 해칭이 없다");
+            AssertBakedFace(egg, "탈것 칸(정본 8075 .egg-cell 은 제 겹 셋 · 해칭 없음)", false);
+        }
+
+        /// <summary>T178 18회차 — 표가 정본 7730·8075 의 여섯 겹(중심·반지름·각도·정지점)을 그대로 쥔다.</summary>
+        [Test]
+        public void 장비_칸_여섯_겹_표가_정본_7730_8075_를_그대로_쥔다()
+        {
+            float cx, cy, rx, ry; Color[] col; float[] pos;
+            SurfaceArt.Ellipse("cell_gloss", out cx, out cy, out rx, out ry);
+            Assert.AreEqual(0.26f, cx, 1e-4f); Assert.AreEqual(0.12f, cy, 1e-4f); Assert.AreEqual(1.18f, rx, 1e-4f); Assert.AreEqual(0.86f, ry, 1e-4f);
+            SurfaceArt.Stops("cell_gloss", out col, out pos);
+            Assert.AreEqual(0.30f, col[0].a, 1e-4f); Assert.AreEqual(0f, col[1].a, 1e-4f); Assert.AreEqual(0.56f, pos[1], 1e-4f);
+            SurfaceArt.Ellipse("cell_plate", out cx, out cy, out rx, out ry);
+            Assert.AreEqual(0.5f, cx, 1e-4f); Assert.AreEqual(0.46f, cy, 1e-4f); Assert.AreEqual(0.62f, rx, 1e-4f); Assert.AreEqual(0.54f, ry, 1e-4f);
+            SurfaceArt.Stops("cell_plate", out col, out pos);
+            Assert.AreEqual(0.11f, col[0].a, 1e-4f); Assert.AreEqual(0.72f, pos[1], 1e-4f);
+            Assert.AreEqual(180f, SurfaceArt.Angle("cell_shade"), 1e-4f);
+            SurfaceArt.Stops("cell_shade", out col, out pos);
+            Assert.AreEqual(4, col.Length);
+            Assert.AreEqual(0.16f, col[0].a, 1e-4f); Assert.AreEqual(0.32f, pos[1], 1e-4f); Assert.AreEqual(0.06f, col[2].a, 1e-4f); Assert.AreEqual(0.64f, pos[2], 1e-4f); Assert.AreEqual(0.22f, col[3].a, 1e-4f);
+            SurfaceArt.Ellipse("egg_gloss", out cx, out cy, out rx, out ry);
+            Assert.AreEqual(0.26f, cx, 1e-4f); Assert.AreEqual(1.18f, rx, 1e-4f);
+            SurfaceArt.Stops("egg_gloss", out col, out pos);
+            Assert.AreEqual(0.34f, col[0].a, 1e-4f);
+            Assert.AreEqual(180f, SurfaceArt.Angle("egg_shade"), 1e-4f);
+            SurfaceArt.Stops("egg_shade", out col, out pos);
+            Assert.AreEqual(0.22f, col[0].a, 1e-4f); Assert.AreEqual(0.36f, pos[1], 1e-4f); Assert.AreEqual(0.08f, col[2].a, 1e-4f); Assert.AreEqual(0.66f, pos[2], 1e-4f); Assert.AreEqual(0.24f, col[3].a, 1e-4f);
+            Assert.AreEqual(180f, SurfaceArt.Angle("egg_base"), 1e-4f);
+            SurfaceArt.Stops("egg_base", out col, out pos);
+            Assert.AreEqual(3, col.Length);
+            Assert.AreEqual(new Color32(0x6c, 0xc6, 0xf7, 255), (Color32)col[0]); Assert.AreEqual(new Color32(0x4f, 0xb2, 0xee, 255), (Color32)col[1]); Assert.AreEqual(new Color32(0x3e, 0xa0, 0xe0, 255), (Color32)col[2]);
+            Assert.AreEqual(0.55f, pos[1], 1e-4f); Assert.AreEqual(1f, pos[2], 1e-4f);
         }
 
         [UnityTest]

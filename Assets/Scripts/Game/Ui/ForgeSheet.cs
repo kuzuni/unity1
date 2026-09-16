@@ -206,6 +206,11 @@ namespace Forge.Game.Ui
             return b;
         }
 
+        /// <summary>T178 18회차 — 정본 7730 `.equip-cell:not(.egg-cell)` background-image 의 위 세 겹(CSS 는 위 겹부터 적는다 → 여기는 아래 겹부터) · 표 SurfaceUi.json.</summary>
+        static readonly string[] CellFaceLayers = { "cell_shade", "cell_plate", "cell_gloss" };
+        /// <summary>T178 18회차 — 정본 8075 `.equip-cell.egg-cell` 세 겹(아래 겹부터).</summary>
+        static readonly string[] EggFaceLayers = { "egg_base", "egg_shade", "egg_gloss" };
+
         static RectTransform EquipCell(Transform parent, ForgeHost h, string slot, float size)
         {
             GameDefs d = h.Defs;
@@ -216,7 +221,9 @@ namespace Forge.Game.Ui
                 Color face = ForgeUi.CellFace(new Color(0x6b / 255f, 0x35 / 255f, 0x38 / 255f));
                 Image ef = ForgeUi.Tile(rt, "frame", face, ForgeUi.CellLine(new Color(0x6b / 255f, 0x35 / 255f, 0x38 / 255f)), size * 0.16f, PopupKit.Line3);
                 // T178 16회차 — 정본 828 `.equip-cell` 의 45°/−45° 교차 해칭(빈 칸도 같다 — 7746 은 box-shadow 만 바꾼다) · 표 stripes.cell_hatch · 면 색 위 sRGB 미리 합성.
-                SurfaceArt.FillHatch(ef, "hatch", "cell_hatch", face);
+                // T178 18회차 — 7730 `.equip-cell:not(.egg-cell)` 의 나머지 세 겹(좌상단 광택 · 백플레이트 · 위→아래 명암)은 해칭 **위**에 알파로 얹는 자리라
+                //   타일이 아니라 **면 통째 한 판**(바탕색 → 해칭 → 세 겹 · sRGB 차례 합성)으로 굽는다. 면은 테(Line3)만큼 안쪽이다.
+                SurfaceArt.FillFace(ef, "face-bake", "cell_hatch", CellFaceLayers, face, size - PopupKit.Line3 * 2f, size - PopupKit.Line3 * 2f);
                 Image ico = PopupKit.IconOr(rt, "img", ForgeUi.SlotIconKey(slot));
                 // T342 ⓐ — 정본 style.css 862 `filter: grayscale(1) brightness(1.75) opacity(.52)`.
                 // 여태 알파(.52)만 있었다: 틴트는 곱하기라 «회색 눕히기»·«밝기 올리기» 를 못 한다(마룬 타일 위에서 형태가 안 읽힌다 —
@@ -233,8 +240,8 @@ namespace Forge.Game.Ui
             Color ac = ForgeUi.AgeColor(d, it.Age);
             Image f = ForgeUi.Tile(rt, "frame", ForgeUi.CellFace(ac), ForgeUi.CellLine(ac), size * 0.16f, PopupKit.Line3);
             // T178 16회차 — 정본 828 `.equip-cell` 교차 해칭(7730 이 non-egg 셀의 background-image 를 다섯 겹으로 덮어써도 해칭 둘은 그 목록의 맨 아래 두 겹으로 남는다).
-            //   나머지 세 겹(방사 둘 + 선형 명암)은 해칭 **위**에 알파로 얹는 자리라 타일 위 미리 합성이 안 된다 — 셀 면 통째 굽기(비타일)는 다음 회차.
-            SurfaceArt.FillHatch(f, "hatch", "cell_hatch", ForgeUi.CellFace(ac));
+            // T178 18회차 — 나머지 세 겹(방사 둘 + 선형 명암)까지 **면 통째 한 판**으로(위 빈 칸과 같은 길 · 바탕 = color-mix 면 색).
+            SurfaceArt.FillFace(f, "face-bake", "cell_hatch", CellFaceLayers, ForgeUi.CellFace(ac), size - PopupKit.Line3 * 2f, size - PopupKit.Line3 * 2f);
             AgePattern.Attach(rt, it.Age, cell: true, mask: (string)null, siblingIndex: 1);   // T124 — 정본 `.equip-cell[data-age]::before`(흐림 .55 · 썸네일 뒤) · 장착 셀은 마스크가 없다(T380 키 갈래로 옮김)
             Image img = PopupKit.IconOr(rt, "img", ForgeUi.ItemIconKey(d, it));
             float kk = size * 0.76f;
@@ -255,7 +262,11 @@ namespace Forge.Game.Ui
         static RectTransform MountCell(Transform parent, ForgeHost h, float w, float hgt)
         {
             RectTransform rt = UiKit.Box(parent, "egg-cell");
-            Image f = ForgeUi.Tile(rt, "frame", new Color(0x4f / 255f, 0xb2 / 255f, 0xee / 255f), Color.black, hgt * 0.16f, PopupKit.Line3);
+            Color eggFace = new Color(0x4f / 255f, 0xb2 / 255f, 0xee / 255f);
+            Image f = ForgeUi.Tile(rt, "frame", eggFace, Color.black, hgt * 0.16f, PopupKit.Line3);
+            // T178 18회차 — 정본 8075 `.equip-cell.egg-cell`(849 를 뒤에서 덮어쓴 선언) 세 겹: 하늘색 바탕 자체가 선형(egg_base) · 위→아래 명암(egg_shade) · 좌상단 광택(egg_gloss).
+            //   해칭은 없다(정본 7729 주석 «탈것 셀은 광택 처방이 따로 있어 뺀다»). 면 통째 한 판 · 면은 테(Line3)만큼 안쪽.
+            SurfaceArt.FillFace(f, "face-bake", null, EggFaceLayers, eggFace, w - PopupKit.Line3 * 2f, hgt - PopupKit.Line3 * 2f);
 
             // T381 1회차 — 탄 탈것 갈래. 갈래를 가르는 것은 **상태 하나**(탄 탈것이 있는가)다 — 정본 1529 도 `activeMount ? … : …` 로 그렇게 가른다.
             //   2회차 수리: 처음엔 «썸네일을 구웠는가» 까지 갈래 조건에 넣었다가, 굽기가 안 되는 자리(CI)에서 이 갈래가 통째로 안 돌았다(런 675 Skipped).

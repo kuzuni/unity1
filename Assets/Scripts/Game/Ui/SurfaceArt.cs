@@ -410,6 +410,79 @@ namespace Forge.Game.Ui
             return img;
         }
 
+        /// <summary>
+        /// T178 18회차 — **셀 면 통째 굽기**. 정본 7730 `.equip-cell:not(.egg-cell)` 처럼 «되풀이 해칭 위에 방사·선형 겹을 알파로 얹는» 자리는
+        /// 타일(<see cref="BakeHatch"/>) 위에 알파 겹을 얹을 수 없다 — 이 프로젝트는 Linear 색공간이라 유니티가 선형 값 위에서 섞어 정본과 다른 색이 된다(T178 8회차·T357).
+        /// 그래서 **칸 크기 그대로 한 판**에 바탕색 → 해칭 두 겹(<paramref name="hatchKey"/> · null 이면 없음) → <paramref name="layers"/>(아래 겹부터 위 겹 순 · 표 키)를
+        /// 정본이 섞는 길(<see cref="SurfaceBlendRules.OverSrgb"/> · 겹마다 한 번)로 차례로 합성해 불투명하게 굽는다. 칸은 크기가 같아 색·크기별로 한 번만 굽는다(캐시).
+        /// 판 해상도 = 칸의 캔버스 px(해칭 주기가 늘어나지 않게 · 상한은 표 `face_px_max`).
+        /// </summary>
+        public static Sprite BakeFace(string hatchKey, string[] layers, Color baseColor, float wCanvasPx, float hCanvasPx)
+        {
+            int cap = Mathf.Max(16, (int)J.Num(Table()["face_px_max"], 512));
+            int w = Mathf.Clamp(Mathf.RoundToInt(wCanvasPx), 8, cap), h = Mathf.Clamp(Mathf.RoundToInt(hCanvasPx), 8, cap);
+            Color32 b = To32(baseColor);
+            string name = "face-" + (hatchKey ?? "-") + "-" + string.Join("+", layers) + "-" + w + "x" + h + "-" + b.r + "." + b.g + "." + b.b;
+            Sprite hit;
+            if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+
+            Color32[] px = new Color32[w * h];
+            if (hatchKey != null)
+            {
+                JsonObject one = Stripe(hatchKey);
+                double ang = J.Num(one["angle_deg"], 45), cssPx = CssPx;
+                double period = J.Num(one["period_css_px"], 0) * cssPx, dash = J.Num(one["dash_css_px"], 0) * cssPx;
+                if (period <= 0 || dash <= 0) throw new KeyNotFoundException(ResourcePath + ".json stripes." + hatchKey + " 에 period_css_px·dash_css_px 가 없다 (T178)");
+                Color32 ik = Byte4(StripeColor(one["ink"]));
+                double a = J.Num(one["ink_alpha"], StripeColor(one["ink"]).a);
+                Color32[] lv = new Color32[3];
+                lv[0] = new Color32(b.r, b.g, b.b, 255);
+                for (int n = 1; n < 3; n++)
+                    lv[n] = new Color32(SurfaceBlendRules.OverSrgb(lv[n - 1].r, ik.r, a), SurfaceBlendRules.OverSrgb(lv[n - 1].g, ik.g, a), SurfaceBlendRules.OverSrgb(lv[n - 1].b, ik.b, a), 255);
+                double sx = wCanvasPx / w, sy = hCanvasPx / h;
+                for (int y = 0; y < h; y++)
+                    for (int x = 0; x < w; x++)
+                    {
+                        double cx = (x + 0.5) * sx, cy = (h - 1 - y + 0.5) * sy;      // 화소 가운데 · 텍스처 y 는 아래가 0(BakeHatch 와 같다)
+                        px[y * w + x] = lv[StripeRules.HatchLayers(cx, cy, ang, period, dash)];
+                    }
+            }
+            else
+                for (int i = 0; i < px.Length; i++) px[i] = new Color32(b.r, b.g, b.b, 255);
+
+            foreach (string key in layers)
+            {
+                float lineLen = 0f;
+                if (!IsRadial(key))
+                {
+                    float rad = Angle(key) * Mathf.Deg2Rad;
+                    lineLen = Mathf.Abs(wCanvasPx * Mathf.Sin(rad)) + Mathf.Abs(hCanvasPx * Mathf.Cos(rad));
+                }
+                Color32[] top = Pixels(key, w, h, lineLen, 0, null, null);        // 표에 바탕이 없는 겹 = 알파 그대로
+                for (int i = 0; i < px.Length; i++)
+                {
+                    Color32 t = top[i], u = px[i];
+                    double ta = t.a / 255.0;
+                    px[i] = new Color32(SurfaceBlendRules.OverSrgb(u.r, t.r, ta), SurfaceBlendRules.OverSrgb(u.g, t.g, ta), SurfaceBlendRules.OverSrgb(u.b, t.b, ta), 255);
+                }
+            }
+            return Finish(name, w, h, px);
+        }
+
+        /// <summary>둥근 면 위에 <see cref="BakeFace"/> 한 판을 얹는다(면에 <see cref="Mask"/> · `Simple` · 클릭 안 먹음). <paramref name="w"/>·<paramref name="h"/> = 면의 캔버스 px. T178 18회차.</summary>
+        public static Image FillFace(Image face, string name, string hatchKey, string[] layers, Color baseColor, float w, float h)
+        {
+            if (face.GetComponent<Mask>() == null) face.gameObject.AddComponent<Mask>().showMaskGraphic = true;
+            RectTransform rt = UiKit.Box(face.rectTransform, name);
+            UiKit.Fill(rt);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.type = Image.Type.Simple;
+            img.sprite = BakeFace(hatchKey, layers, baseColor, w, h);
+            img.color = Color.white;
+            return img;
+        }
+
         static Sprite Finish(string name, int w, int h, Color32[] px)
         {
             Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
