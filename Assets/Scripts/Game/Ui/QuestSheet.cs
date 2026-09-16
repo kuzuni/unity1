@@ -129,6 +129,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(rwIco.rectTransform, 0f, 0f, icon * 0.6f, icon * 0.6f);
                 TextMeshProUGUI rwT = UiKit.Text(rw, "amt", TextKind.Sub, PopupKit.Fmt(q.Rw.Amt), "pp_ink", TextAlignmentOptions.Left);
                 rwT.fontStyle = FontStyles.Bold;
+                TabularText.Apply(rwT);   // T352 ⓒ 6회차 — 정본 8635 `.qst-reward { font-variant-numeric: tabular-nums }`: 행마다 세로 열을 이루는 보상 수 — 숫자 구간만 <mspace>(결정 570 · 칸 폭은 글꼴에서)
                 rwT.rectTransform.offsetMin = new Vector2(icon * 0.65f, 0f);
                 int idx = i;
                 Button claim = null;

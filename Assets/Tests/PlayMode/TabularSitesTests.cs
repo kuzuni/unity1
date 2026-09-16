@@ -120,6 +120,44 @@ namespace Forge.Tests.PlayMode
         /// <summary>T352 3회차 — 정본 8635 `.league-score { font-variant-numeric: tabular-nums }`:
         /// 랭킹 창 8행 + 발 밴드의 내 행 점수가 세로 열을 이루므로(정본 주석 «행마다 좌우로 흔들리던 자리») 숫자 구간이 등폭이어야 한다.
         /// 자리는 `LeagueSheet` 행의 상자 «score» 안 IconTextRow «text» 의 글자 조각 — 봇 점수 20~200 이라 이웃 숫자가 있다.</summary>
+        /// <summary>T352 ⓒ 6회차 — 정본 8635 `.qst-reward { font-variant-numeric: tabular-nums }`: 퀘스트 행마다 오른쪽 보상 수가 세로 열을 이룬다.
+        /// 리그 점수 칸과 같은 셈 — 상자 «reward» 안 «amt» 의 이웃 숫자 시작 x 간격 = 글꼴 숫자 칸.</summary>
+        [UnityTest]
+        public IEnumerator 퀘스트_보상_수는_숫자_구간이_등폭이다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            QuestSheet.Open(h);
+            yield return null;
+            Popup p = PopupLayer.Instance.Find(QuestSheet.Name);
+            Assert.IsNotNull(p, "퀘스트 시트가 열린다");
+
+            float em = TabularText.DigitEm(UiFont.Primary);
+            int amts = 0, measured = 0;
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name != "amt" || t.transform.parent == null || t.transform.parent.name != "reward") continue;
+                amts++;
+                Assert.IsTrue(TabularNums.IsWrapped(t.text), "보상 수 «" + t.text + "» 가 <mspace> 로 감싸여 있지 않다");
+                Assert.IsTrue(t.richText, "보상 수 «" + t.text + "» — <mspace> 를 쓰려면 richText");
+                t.ForceMeshUpdate(true, true);
+                TMP_TextInfo info = t.textInfo;
+                float cell = em * t.fontSize, tol = cell * 0.15f;
+                for (int i = 0; i + 1 < info.characterCount; i++)
+                {
+                    TMP_CharacterInfo a = info.characterInfo[i], b = info.characterInfo[i + 1];
+                    if (!char.IsDigit(a.character) || !char.IsDigit(b.character)) continue;
+                    Assert.AreEqual(cell, b.origin - a.origin, tol, "이웃 숫자의 시작 x 간격 = 칸(" + t.text + ")");
+                    measured++;
+                }
+            }
+            Assert.Greater(amts, 0, "정본 `.qst-reward` — 퀘스트 행마다 보상 수 하나");
+            Assert.Greater(measured, 0, "두 자리 이상 보상 수가 하나는 있어야 간격을 잰다");
+
+            QuestSheet.Close(h);
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator 리그_점수는_숫자_구간이_등폭이다()
         {

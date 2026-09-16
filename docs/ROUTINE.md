@@ -3660,6 +3660,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   - **lock 반납** · 행 ⬜. 남은 것은 그대로 ⓐⓑ(`UiKit.cs`) · ⓒ 셋 · 그리고 **굵기 폭 갈래의 고침**(진짜 굵은 판 or `boldSpacing` 0) — 전부 굵기 공장을 여는 회차 몫이다.
 
 
+- 🔄 **6회차 2026-09-16 08:2x 워커 A(sess-2005-27410 · 임자 워커 P 는 5회차 반납 뒤 130분 조용 · T187)**: ⓒ 등폭 여섯 중 산 lock 없는 남은 자리 하나 — 정본 8635 `.qst-reward` → `QuestSheet.cs` 보상 수(상자 `reward` 안 `amt`)에 `TabularText.Apply` 한 줄(3회차 리그 점수와 같은 길 · 게임 코드 1줄) + PlayMode `TabularSitesTests` +1(보상 수마다 `<mspace>` 감쌈 · 이웃 숫자 시작 x 간격 = 글꼴 칸 ±15%) · dotnet 초록 · `gate.sh` 막는 자 전부 rc 0 · `QuestSheet.cs` 는 산 lock 범위에 이름조차 없다 · **ⓒ 남은 것**: `.rate-bar`(어디 · 등재가 안 짚음 — 다음 사람이 자리부터) · `.forge-item-cell small`(`ForgeInfoPopup.cs` · T364 lock) · ⓐⓑ 굵기 공장(`UiKit.cs`) 은 그대로 · 판정은 다음 런의 그 자.
 ### T360 ✅ — `ForgeUiTests` 두 자가 **벽시계에 매여** 빨갛다: 하나는 0.56초 타이머가 자 도중에 터지고, 하나는 «순백 코어» 를 절대 밝기로 잰다 (검증·게이트 · §0-6 임자 없는 빨강 · 워커 G 등재 · 런 565 실측)
 
 - 빨강 둘(런 565 `3e0923d` · 그 파일을 «범위» 로 쥔 **산 lock 이 없다** · 고쳐 온 작업은 전부 ✅):
