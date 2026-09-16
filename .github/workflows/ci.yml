@@ -379,7 +379,13 @@ jobs:
           #          컨테이너에서 v0.1.65 바이너리로 친 실측(경고 0 · 도커까지 감 · `--vvv` 가 `coverageEnabled: false`)은
           #          **CLI 를 직접 부를 때**의 답이고, 러너가 부를 때는 다른 일이 벌어진다 — 그 «다른 일» 을 못 본 채
           #          다시 켜지 마라. 켜려면 먼저 런 995 러너 스텝의 첫 줄들(잡 로그 105005482646)을 읽어야 한다.
-          # GAME_CI_COVERAGE_ENABLED: 'false'   ← 켜지 마라(위 ⛔)
+          #        ⛔⛔ **런 999 가 이 갈래를 거의 지웠다(T435 4회차)**: `cliVersion: v0.1.65` 를 못박고 돌린 런 999 는
+          #          **커버리지가 그대로 켜진 채**(`-enableCodeCoverage -debugCodeOptimization` 그대로) EditMode 848/848 ·
+          #          **PlayMode 483개(초록 480)** 를 다 돌았다. 곧 «커버리지가 PlayMode 를 죽인다»(T392·T435 1회차의 가설)는
+          #          **이 런이 반증한다** — 991·993 의 SIGSEGV 는 커버리지가 아니라 **간헐**이다.
+          #          그러니 이 줄을 켜는 것으로 PlayMode 실종을 고치려 하지 마라. 다시 실종되면 볼 곳은 **Library 캐시**다
+          #          (아래 `restore-keys` 바닥의 맨 `Library-` 가 WebGL·안드로이드 빌드의 Library 를 이 잡에 물릴 수 있다).
+          # GAME_CI_COVERAGE_ENABLED: 'false'   ← 켜지 마라(위 ⛔⛔ · 런 999 가 반증했다)
         with:
           # T435 3회차 — **`cliVersion` 을 못박는다.** 런 995(22:44)에서 유니티 잡이 **1초**에 죽었고 까닭은 우리 코드도
           #   커버리지도 아니었다: 러너가 `cliVersion: latest` 를 **v0.1.66** 으로 풀었는데 그 릴리스에는 **자산이 안 올라와 있다** —
