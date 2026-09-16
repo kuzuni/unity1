@@ -49,6 +49,16 @@ namespace Forge.Tests.PlayMode
             public bool Notch;
         }
 
+        /// <summary>`Shot.Ref` 한 칸 → 정본 `web/ref/` 에서 잰 상대 경로. 숫자만이면 여태 쓰던
+        /// `screens/shot-&lt;번호&gt;.png`, 슬래시가 있으면 그 경로 그대로다(`shots/ascend-entry-rows.png` · T393 3회차).
+        /// `tools/ui_score.py` 의 `ref_rel` 과 **같은 규칙**이다 — 한쪽만 고치면 짝 표가 갈라진다.</summary>
+        internal static string RefFile(string r)
+        {
+            if (string.IsNullOrEmpty(r)) return null;
+            if (r.IndexOf('/') >= 0) return r;
+            return r.EndsWith(".png", StringComparison.Ordinal) ? "screens/" + r : "screens/shot-" + r + ".png";
+        }
+
         private const string OutPrefix = "screen_";
         /// <summary>촬영 크기 — 정확히 9:16 이라 앱 상자가 RenderTexture 를 꽉 채운다(원작 캡처 499×892 와 같은 비율 · T45 `SafeAreaTests` 540×1170 과 같은 폭).</summary>
         public const int ShotW = 540, ShotH = 960;
@@ -312,11 +322,11 @@ namespace Forge.Tests.PlayMode
             });
             // T393 1회차 — **승천 팝업**: 세 절(T359 1회차 · T383 · T354)이 «촬영 목록에 없어 눈 확인 자리 없음» 으로 지나간 자리다.
             //   정본 시트는 `ref/screens/` 가 아니라 **`ref/shots/ascend-entry-rows.png`**(430×860)에 있다 — 이 레포가 한 번도 안 본 폴더다.
-            //   ⚠ `Ref` 는 비운다: 그 칸은 `ref/screens/shot-<번호>.png` 를 가리키는 자리이고, 다른 폴더를 가리키게 하는 것은
-            //      `ui_score`·`ref-layout.md`(둘 다 T28 산 lock) 몫이라 이 회차가 못 한다 — 그림만 먼저 남긴다.
+            //   **3회차(T28 lock 이 풀렸다)**: `ui_score.ref_rel` 이 이 칸을 «`ref/` 에서 잰 상대 경로» 로 읽게 고쳤다 —
+            //      숫자만이면 여태처럼 `screens/shot-<번호>.png`, 슬래시가 있으면 `ref/` 아래 아무 폴더나 가리킨다.
             list.Add(new Shot
             {
-                Name = "ascend",
+                Name = "ascend", Ref = "shots/ascend-entry-rows.png",
                 Open = delegate { CloseAll(); AscendPopup.Open(); },
                 Opened = delegate { return AscendPopup.IsOpen; }
             });
@@ -1056,7 +1066,7 @@ namespace Forge.Tests.PlayMode
                 files.TryGetValue(s.Name, out file);
                 if (i > 0) sb.Append(",");
                 sb.Append("{\"name\":\"" + s.Name + "\",");
-                sb.Append("\"ref\":" + (s.Ref == null ? "null" : "\"shot-" + s.Ref + ".png\"") + ",");
+                sb.Append("\"ref\":" + (s.Ref == null ? "null" : "\"" + RefFile(s.Ref) + "\"") + ",");
                 sb.Append("\"file\":" + (file == null ? "null" : "\"" + OutPrefix + s.Name + ".png\"") + "}");
             }
             sb.Append("]}");
@@ -1136,7 +1146,7 @@ namespace Forge.Tests.PlayMode
                 Trace("  열림=" + opened);
                 if (!opened)
                 {
-                    if (!s.Optional) failed.Add(s.Name + ": 화면이 안 열렸다" + (s.Ref != null ? " (원작 shot-" + s.Ref + ".png)" : ""));
+                    if (!s.Optional) failed.Add(s.Name + ": 화면이 안 열렸다" + (s.Ref != null ? " (원작 " + RefFile(s.Ref) + ")" : ""));
                     continue;
                 }
 

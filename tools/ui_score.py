@@ -6,7 +6,7 @@ ROUTINE §2 T28: «화면마다 «요소 · x% · y% · w% · h%» 표를 원작
 우리 PNG 와 ±3%p 대조 → 점수. 8.0 미만이면 그 화면의 UI 작업을 «다음 고칠 것» 으로 재등재».
 
 하는 일 셋:
-  --gen    원작 샷(`.wwwww-src/web/ref/screens/shot-*.png`)을 판독해 `docs/ref-layout.md` 판독표를 만든다.
+  --gen    원작 샷(`.wwwww-src/web/ref/` 아래 · 보통 `screens/shot-*.png`)을 판독해 `docs/ref-layout.md` 판독표를 만든다.
   --score  클론 샷(`screens` 브랜치의 `ui-screens/screen_*.png`)을 같은 자로 재고 판독표와 ±3%p 대조해 점수를 낸다.
   --self-test  자기 검사.
 
@@ -31,7 +31,10 @@ import sys
 import zlib
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-REF_DIR = os.path.join(REPO, ".wwwww-src", "web", "ref", "screens")
+# 짝 표의 «원작 파일» 칸은 **이 뿌리에서 잰 상대 경로**다(`screens/shot-042120.png` · `shots/ascend-entry-rows.png`).
+# T393 3회차까지 이 값은 `ref/screens` 였고 칸에는 파일 이름만 들어가 **`ref/` 아래 다른 폴더를 못 가리켰다** —
+# 정본이 승천 화면의 시트를 `ref/shots/` 에 갖고 있는데 이 레포가 한 번도 못 본 까닭이 그것이다.
+REF_DIR = os.path.join(REPO, ".wwwww-src", "web", "ref")
 TABLE = os.path.join(REPO, "docs", "ref-layout.md")
 BASELINE = os.path.join(REPO, "docs", "ui-score-baseline.json")  # T28 회차 사이 점수(회귀 탐지 · 워커 M 7회차)
 SHOTS_JS = os.path.join(REPO, ".wwwww-src", "web", "tools", "shot-screens.js")
@@ -369,27 +372,55 @@ def read_layout(img, name="화면"):
 
 # ─────────────────────────── 짝 표 (원작 ↔ 클론) ───────────────────────────
 
+def ref_rel(raw):
+    """짝 표 «원작 파일» 칸 한 값 → `REF_DIR` 에서 잰 상대 경로(또는 None).
+
+    숫자만이면 여태 쓰던 `screens/shot-<번호>.png` 다. 슬래시나 `.png` 가 들어 있으면
+    **`ref/` 아래 아무 폴더나** 가리키는 것으로 본다(`shots/ascend-entry-rows.png` · T393 3회차)."""
+    if not raw:
+        return None
+    raw = raw.strip().strip("/")
+    if re.match(r"^\d+$", raw):
+        return "screens/shot-%s.png" % raw
+    if raw.endswith(".png"):
+        return raw if "/" in raw else "screens/" + raw
+    return None
+
+
 def pairs():
     """[(화면 이름, 원작 파일 또는 None)] — 정본 `shot-screens.js` 의 SCREENS 순서 그대로.
 
-    정본이 옆에 없으면 T27 의 `UiShotsTests.cs` 에서 같은 표를 읽는다(둘은 같아야 한다)."""
+    «원작 파일» 은 `REF_DIR`(= `.wwwww-src/web/ref`)에서 잰 **상대 경로**다.
+    정본이 옆에 없으면 T27 의 `UiShotsTests.cs` 에서 같은 표를 읽는다(둘은 같아야 한다).
+    정본에 있는 화면이 먼저 서고, **클론에만 있는 화면**(승천처럼 정본 `SCREENS` 에 줄이 없는 것)은
+    그 뒤에 `UiShotsTests.cs` 순서대로 덧댄다 — 안 덧대면 그 화면은 촬영은 되는데 채점에서 통째로 빠진다."""
+    out = []
     if os.path.exists(SHOTS_JS):
         src = open(SHOTS_JS, encoding="utf-8").read()
         i = src.find("const SCREENS = [")
         if i >= 0:
-            out = []
-            for m in re.finditer(r"^\s*\['([a-z0-9-]+)',\s*(?:'(\d+)'|null)",
+            for m in re.finditer(r"^\s*\['([a-z0-9-]+)',\s*(?:'([^']*)'|null)",
                                  src[i:], re.M):
-                out.append((m.group(1), ("shot-%s.png" % m.group(2)) if m.group(2) else None))
-            if out:
-                return out
-    if os.path.exists(SHOTS_CS):
-        src = open(SHOTS_CS, encoding="utf-8").read()
-        out = []
-        for m in re.finditer(r'Name = "([a-z0-9-]+)", Ref = (?:"(\d+)"|null)', src):
-            out.append((m.group(1), ("shot-%s.png" % m.group(2)) if m.group(2) else None))
-        return out
-    return []
+                out.append((m.group(1), ref_rel(m.group(2))))
+    cs = clone_pairs()
+    if not out:
+        return cs
+    have = set(n for n, _ in out)
+    for n, r in cs:
+        if n not in have:
+            out.append((n, r))
+    return out
+
+
+def clone_pairs():
+    """T27 `UiShotsTests.cs` 의 촬영 목록 — [(이름, 원작 파일 또는 None)]."""
+    if not os.path.exists(SHOTS_CS):
+        return []
+    src = open(SHOTS_CS, encoding="utf-8").read()
+    out = []
+    for m in re.finditer(r'Name = "([a-z0-9-]+)"(?:\s*,\s*Ref = (?:"([^"]*)"|null))?', src):
+        out.append((m.group(1), ref_rel(m.group(2))))
+    return out
 
 
 # ─────────────────────────── 판독표 (읽기 · 쓰기) ───────────────────────────
@@ -397,7 +428,8 @@ def pairs():
 HEAD = u"""# 원작 ↔ 클론 화면 비율 판독표 (T28)
 
 > **자가 만든다 — 손으로 고치지 않는다.** `python3 tools/ui_score.py --gen` 이 정본 샷
-> (`.wwwww-src/web/ref/screens/shot-*.png`)을 판독해 이 파일을 다시 쓴다.
+> (`.wwwww-src/web/ref/` 아래 — `screens/shot-*.png` 가 대부분이고 `shots/*.png` 도 짝이 될 수 있다)을
+> 판독해 이 파일을 다시 쓴다.
 > 대조는 `python3 tools/ui_score.py --score` — 클론 PNG(`ui-screens/screen_<이름>.png` ·
 > `screens` 브랜치)를 **같은 자**로 재서 이 표와 ±%(tol)s%%p 로 맞춰 보고 화면마다 10점 만점을 낸다.
 > %(pass)s 점 미만인 화면은 그 화면의 UI 작업을 «다음 고칠 것» 으로 재등재한다(ROUTINE §2 T28).
@@ -1134,6 +1166,22 @@ def app_box(img):
     return ((W - aw) // 2, (H - ah) // 2, aw, ah)
 
 
+def app_ratio(w, h):
+    """그림 크기 `(w, h)` → **앱 상자**의 세로/가로. `app_box` 와 같은 셈이라 PNG 를 안 열어도 된다.
+
+    틀을 볼 때 그림 통짜 비를 쓰면 안 된다(T393 3회차): 점수는 `app_box` 위에서 나는데 통짜 비는
+    레터박스·기기 크롬까지 세므로 둘이 어긋난다. 실제로 `chat`(원작 1.611)과 `ascend`(정본 `ref/shots`
+    기기 샷 2.000)가 통짜 비로는 «틀 불일치» 로 울었지만 앱 상자로는 각각 1.7788·1.7767 로 9:16 이다."""
+    ax, ay, aw, ah = app_box(_WH(w, h))
+    return ah / float(aw)
+
+
+class _WH(object):
+    """`app_box` 는 `w`·`h` 만 본다 — 크기만 들고 가는 자리표."""
+    __slots__ = ("w", "h")
+    def __init__(self, w, h): self.w, self.h = w, h
+
+
 def sep_rows(img, y0=0.13, y1=0.86):
     """가로로 거의 한 색인 줄의 묶음 — [(위 %, 아래 %)]. 행 사이 여백·구분선이 잡힌다.
 
@@ -1319,11 +1367,13 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             continue
         img = png_read(path)
         if ent["wh"]:
-            ra = ent["wh"][1] / float(ent["wh"][0])
-            rb = img.h / float(img.w)
+            # **앱 상자** 비로 본다 — 점수가 나는 자리와 같은 자다(T393 3회차). 그림 통짜 비로 보면
+            # 레터박스(원작 30장)와 기기 크롬(`ref/shots` 시트)까지 세어 멀쩡한 화면이 운다.
+            ra = app_ratio(ent["wh"][0], ent["wh"][1])
+            rb = app_ratio(img.w, img.h)
             if abs(ra - rb) > ra * 0.03:
                 # 틀이 다르면 같은 자리도 y%% 가 밀린다 — 점수가 아니라 **틀**이 어긋난 것이다.
-                print(u"  ⚠ %-18s 틀 불일치: 원작 세로/가로 %.3f ↔ 클론 %.3f (%dx%d) — 앱 상자를 9:16 으로 잘라 찍는다"
+                print(u"  ⚠ %-18s 틀 불일치: 원작 앱 상자 세로/가로 %.3f ↔ 클론 %.3f (그림 %dx%d) — 앱 상자를 9:16 으로 잘라 찍는다"
                       % (name, ra, rb, img.w, img.h))
                 skewed.append(name)
         fh, fw = content_fill(img)
@@ -1708,8 +1758,37 @@ def self_test():
 
     # ⑧ 짝 표가 정본·T27 어느 쪽에서든 선다
     pr = pairs()
-    chk(len(pr) >= 30 and pr[0][0] == "main" and pr[0][1] == "shot-042120.png",
-        u"짝 표 첫 줄이 main ↔ shot-042120.png 다 (줄 %d)" % len(pr))
+    chk(len(pr) >= 30 and pr[0][0] == "main" and pr[0][1] == "screens/shot-042120.png",
+        u"짝 표 첫 줄이 main ↔ screens/shot-042120.png 다 (줄 %d)" % len(pr))
+
+    # ⑧-2 «원작 파일» 칸은 `ref/` 에서 잰 상대 경로다 — 숫자만이면 여태 꼴, 경로면 그 폴더 (T393 3회차)
+    chk(ref_rel("042120") == "screens/shot-042120.png",
+        u"숫자 칸은 screens/shot-<번호>.png 로 푼다")
+    chk(ref_rel("shots/ascend-entry-rows.png") == "shots/ascend-entry-rows.png",
+        u"경로 칸은 ref/ 아래 다른 폴더를 그대로 가리킨다")
+    chk(ref_rel("shot-042120.png") == "screens/shot-042120.png",
+        u"폴더 없는 파일 이름은 여태처럼 screens/ 로 본다")
+    chk(ref_rel(None) is None and ref_rel("") is None and ref_rel("아무거나") is None,
+        u"빈 칸·모르는 꼴은 짝이 없다(None)")
+
+    # ⑧-4 틀 검사는 **앱 상자** 비로 본다 — 통짜 비로 보면 레터박스·기기 크롬이 멀쩡한 화면을 울린다
+    chk(abs(app_ratio(540, 960) - 16.0 / 9.0) < 0.001,
+        u"9:16 그림은 앱 상자도 9:16 (%.4f)" % app_ratio(540, 960))
+    chk(abs(app_ratio(430, 860) - 16.0 / 9.0) < 0.01 and abs(860 / 430.0 - 16.0 / 9.0) > 0.2,
+        u"기기 샷 430x860 은 통짜로는 2.000 인데 앱 상자는 9:16 이다 (%.4f)" % app_ratio(430, 860))
+    chk(abs(app_ratio(499, 804) - 16.0 / 9.0) < 0.01,
+        u"레터박스 낀 원작 샷도 앱 상자는 9:16 이다 (%.4f)" % app_ratio(499, 804))
+
+    # ⑧-3 정본 SCREENS 에 줄이 없는 **클론 전용 화면**도 짝 표에 선다 —
+    #      안 덧대면 촬영은 되는데 채점에서 통째로 빠진다(승천이 그랬다 · T393)
+    cs = clone_pairs()
+    if cs:
+        names = set(n for n, _ in pr)
+        chk(all(n in names for n, _ in cs),
+            u"클론 촬영 %d개가 전부 짝 표에 있다" % len(cs))
+        asc = dict(pr).get("ascend")
+        chk(asc == "shots/ascend-entry-rows.png",
+            u"승천은 정본 ref/shots 시트를 짝으로 쥔다 (%s)" % asc)
 
     # ⑯ 앱 상자 채움: 꽉 찬 그림은 1.0 에 가깝고, 위 절반만 쓰는 그림은 하한 아래다(런 108 실측 0.487)
     full = _canvas(100, 200, (8, 8, 8))
@@ -1969,7 +2048,7 @@ def main():
     ap.add_argument("--score", action="store_true", help="클론 샷을 판독표와 대조해 점수를 낸다")
     ap.add_argument("--self-test", action="store_true", help="자기 검사")
     ap.add_argument("--read", metavar="PNG", help="PNG 하나를 판독해 표 행을 찍는다")
-    ap.add_argument("--ref-dir", default=REF_DIR, help="원작 샷 폴더")
+    ap.add_argument("--ref-dir", default=REF_DIR, help="원작 샷 뿌리(`ref/` · 짝 표의 칸이 이 아래 상대 경로다)")
     ap.add_argument("--shots", default=os.path.join(REPO, "ui-screens"), help="클론 샷 폴더")
     ap.add_argument("--table", default=TABLE, help="판독표 경로")
     ap.add_argument("--only", nargs="*", help="이 화면 이름만")
