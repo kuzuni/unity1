@@ -37,6 +37,13 @@ TABLE_DEFAULT = os.path.join('Assets', 'Forge', 'Resources', 'RadiusUi.json')
 # ── 정본 선택자 ↔ 클론 자리 ──────────────────────────────────────────────────────────────
 TABLE = {
     # 어긋난 리터럴 열 자리(20회차 ⓡ) — 표로 옮긴다(T345 ⓑ · 각 파일의 산 lock 뒤)
+    # ── T415 5회차(2026-09-16 · 워커 J) — «클론 상자 이름» 으로 되찾은 셋 ──
+    #    4회차는 «값이 같고 키 이름이 닮은 것» 으로 찾았다. 이번엔 반대로 **클론이 그 상자에 준 이름**
+    #    (`"sr-ok"` 꼴)을 긁어 그 곁 네 줄 안의 반지름 키를 보았다 — 이름이 안 닮은 짝도 잡힌다.
+    '.sr-ok': ['Ui/SkillSummonResult.cs$sr_ok_r_rem@PetSkillUi.json'],
+    '.sr-sub .sr-rk': ['Ui/SkillSummonResult.cs$sr_rk_r_rem@PetSkillUi.json'],
+    # 정본 `.sr-dup`(.4rem)과 `.sr-qty`(.4rem)는 **값이 같고** 클론도 한 키로 둘을 깐다 — 짝이 맞다
+    '.sr-dup': ['Ui/SkillSummonResult.cs$sr_qty_r_rem@PetSkillUi.json'],
     # ── T415 4회차(2026-09-16 · 워커 J) — 표가 이미 «선택자 이름 그대로» 쥐고 있던 열하나 ──
     #    찾는 법: 미정 중 rem 값 하나짜리를 골라, 그 값과 **같은 값**을 가진 `*_r_rem` 키를 Resources 전체에서
     #    긁고, **키 이름에 선택자 낱말이 들어간 것**만 남겼다. 남은 것은 눈으로 한 번씩 견줬다.
