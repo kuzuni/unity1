@@ -128,6 +128,68 @@ namespace Forge.Tests.PlayMode
 
         /// <summary>
         /// <summary>
+        /// T332 16회차 — 정본이 **알 하나에 두 값**을 적은 자리: **4307** `.pet-tile.egg .tile-face { … drop-shadow(0 .15rem .1rem rgba(0,0,0,.3)) }`(펫 격자)와
+        /// **4518** `.hatch-cell .hatch-egg { … drop-shadow(0 .15rem .12rem rgba(0,0,0,.45)) }`(부화장). 같은 알인데 부화장 쪽이 **더 진하고 더 번진다** —
+        /// 부화 원뿔의 밝은 빛기둥(4515) 위에 서기 때문이다. 그래서 표에서도 **한 키로 묶지 않는다**.
+        /// 4307 의 정본 주석이 격자 알의 구실을 못박아 뒀다: «(정본이 경고 표식을 붙여 둔 줄) 알 타일은 배경·테·그림자가 전부 없는 **그림만** 칸이다» — 판이 없으니 알을 띄우는 것이 이 그림자뿐이다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 알_둘은_같은_그림인데_자리마다_다른_그림자를_진다()
+        {
+            yield return Boot();
+            PlayLog log = PlayLog.Start("drop-shadow-egg");
+            float t = 0f;
+            while (!(PetSkillHost.Instance != null && PetSkillHost.Instance.Pets != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            PetSkillHost H = PetSkillHost.Instance;
+            Assert.IsNotNull(H, "PetSkillHost");
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            yield return null;
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            Assert.IsNotNull(sheet, "소환 시트");
+            sheet.Switch(SkillPetSheet.SubPets);
+            yield return null;
+            while (H.SummonMult("pet") != 1) H.CycleSummonMult("pet");
+            H.EggCurrency = 100000;
+            H.Sync();
+            yield return null;
+            if (H.Pets.State.Eggs.Count < 1)
+            {
+                sheet.Pets.SummonButton.onClick.Invoke();
+                float t0 = 0f;
+                while (H.Pets.State.Eggs.Count < 1 && t0 < 10f) { t0 += Time.unscaledDeltaTime; yield return null; }
+                Assert.GreaterOrEqual(H.Pets.State.Eggs.Count, 1, "알 하나는 나온다");
+                sheet.Modal.CloseAll();
+                sheet.Switch(SkillPetSheet.SubPets);
+                yield return null;
+            }
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            Transform tile = FindIn(UiRoot.Instance.App, "egg-tile-0");
+            Assert.IsNotNull(tile, "펫 격자 알 칸(egg-tile-0)");
+            Image egg = tile.Find("egg") != null ? tile.Find("egg").GetComponent<Image>() : null;
+            Assert.IsNotNull(egg, "알 그림");
+            Transform sh = egg.transform.parent.Find(DropShadow.NameFor(egg));
+            Assert.IsNotNull(sh, "알 뒤에 그림자를 깔았다(정본 4307)");
+            Assert.Less(sh.GetSiblingIndex(), egg.transform.GetSiblingIndex(), "그림자는 알 **뒤**에");
+            Image si = sh.GetComponent<Image>();
+            float css = KeylineUi.CssPx;
+            Vector2 d = ((RectTransform)sh).anchoredPosition - egg.rectTransform.anchoredPosition;
+            Assert.AreEqual(0f, d.x, 0.01f, "정본은 가로로 안 민다");
+            Assert.AreEqual(-DropShadowUi.Px("pet_tile_egg", "dy_px") * css, d.y, 0.01f, "세로 오프셋 = 표 .15rem 만큼 아래");
+            Assert.AreEqual(DropShadowUi.C("pet_tile_egg").a, si.color.a, 2f / 255f, "알파 = 표 pet_tile_egg(.3)");
+            AssertBlurred(egg, si, "격자 알");
+
+            // 두 자리가 **다른 값**이다 — 한 키로 묶으면 이 줄이 깨진다.
+            Assert.AreNotEqual(DropShadowUi.Px("pet_tile_egg", "blur_px"), DropShadowUi.Px("hatch_egg", "blur_px"), "정본은 두 자리에 다른 흐림을 적었다(.1rem ↔ .12rem)");
+            Assert.Greater(DropShadowUi.C("hatch_egg").a, DropShadowUi.C("pet_tile_egg").a, "부화장 알이 더 진하다(.45 ↔ .3)");
+
+            log.AssertNoRed();
+            log.Dispose();
+        }
+
+        /// <summary>
         /// T332 15회차 — 정본 `style.css` **1993~1998** `.dg-rw .dg-rw-ico { … filter: drop-shadow(0 .10em .16em rgba(0,0,0,.55)) }`
         /// — 던전 배너 왼쪽 위 보상 아이콘. **이 자리는 길이가 `em`** 이라 앞의 것들과 다르다: `em` 은 그 요소의 글자 크기라
         /// 화면이 아니라 **상자 크기에 걸린다**. 슬롯 `.dg-rw` 가 1.62em 사각(1992)이고 아이콘이 그 100% 를 채우므로

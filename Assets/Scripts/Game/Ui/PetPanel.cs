@@ -288,6 +288,10 @@ namespace Forge.Game.Ui
             Image ico = UiKit.Icon(cell, "egg", "egg", PetSkillStyle.RarityHex(Defs, egg.Rarity));
             float es = size * 1.19f;
             UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, (es - size) * 0.5f), es, es);
+            // T332 16회차 — 정본 **4307** `.pet-tile.egg .tile-face { … filter: drop-shadow(0 .15rem .1rem rgba(0,0,0,.3)) }`.
+            //   같은 줄의 정본 주석이 까닭을 못박았다: «(정본이 경고 표식을 붙여 둔 줄) 알 타일은 배경·테·그림자가 전부 없는 **그림만** 칸이다» — 판이 없으니
+            //   알을 바닥에서 띄우는 것이 **이 그림자뿐**이다(없으면 격자에 붙어 스티커처럼 읽힌다).
+            DropShadow.Apply(ico, "pet_tile_egg");
             // T355 9회차 — 정본 4307 `.pet-tile.egg .tile-face` 는 배경·테·그림자만 지우고 :active(4304)는 그대로다 — 알 타일의 «얼굴» 은 알 그림이라 거기에 건다(8회차 알 재료 칸과 같은 꼴).
             PressFx.Attach(b.gameObject, ico.rectTransform, "pet_tile", ico);
             TextMeshProUGUI lab = PetSkillKit.Text(cell, "tile-label", TextKind.Sub, PetSkillStyle.T("egg"), PetSkillStyle.C("ink"));
@@ -419,6 +423,9 @@ namespace Forge.Game.Ui
             Image ei = UiKit.Icon(cell, "hatch-egg", "egg", PetSkillStyle.RarityHex(Defs, h.Rarity));
             float ey = top + PetSkillStyle.Rem(0.5f);
             UiKit.Place(ei.rectTransform, (w - egg) * 0.5f, ey, egg, egg);
+            // T332 16회차 — 정본 **4518** `.hatch-cell .hatch-egg { … filter: drop-shadow(0 .15rem .12rem rgba(0,0,0,.45)) }`.
+            //   격자 알(4307 · .3/.1rem)보다 **더 진하고 더 번진다** — 부화 원뿔의 밝은 빛기둥(4515) 위에 서기 때문이다. 그래서 한 키로 안 묶는다.
+            DropShadow.Apply(ei, "hatch_egg");
             float th = UiCatalog.Instance.Kind(TextKind.Sub).size * 1.2f;
             TextMeshProUGUI time = PetSkillKit.Stroked(cell, "hatch-time", TextKind.Sub, PetSkillStyle.FmtTime((h.EndsAt - H.Now()) / 1000), PetSkillStyle.C("white"), "hatch_time");   // 정본 .hatch-cell .hatch-time var(--ol3)
             WrapUi.Apply(time, "hatch_cell_hatch_time");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 4525 `.hatch-cell .hatch-time { nowrap }`
