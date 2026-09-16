@@ -117,6 +117,15 @@ TABLE = {
     '.skill-btn': ['Ui/SkillBar.cs@Render'],
     '.skill-btn.empty': ['Ui/SkillBar.cs@Render'],
     '#summon-subtabs.subtab-strip|top': ['Ui/SkillPetSheet.cs@Build'],
+    # T365 17회차 — 소환 서브탭 셋. 정본은 같은 띠 안에서 **끄고(3606) 켠다(3614)**: 비활성 칸엔 테가 없고 **활성 칸만 ol2** 다.
+    #   클론도 그대로다 — 띠(`strip`)는 채움 + 위 키라인뿐이고, 칸은 `active` 스킨(`PetSkillKit.Framed(… Line2)`)만 테를 진다.
+    '#summon-subtabs.subtab-strip button.active': ['Ui/SkillPetSheet.cs@Build'],
+    '#summon-subtabs.subtab-strip': ['—띠 자체엔 테가 없다(정본 3594 `border: none`) · 클론 `SkillPetSheet.Build` 의 띠는 채움(`bg`)과 **위 키라인 한 줄**뿐이고 그 키라인은 3943 `#summon-subtabs|top`(ol3) 이 따로 쥔다 — 이 몸통의 테 호출은 활성 칸 몫이라 «없어야 한다» 를 이 자리로는 못 가른다(17회차 눈으로 확인)'],
+    '#summon-subtabs.subtab-strip button': ['—비활성 칸엔 테가 없다(정본 3606 `border: none`) · 클론은 `subSkins[i]` 를 **활성일 때만** 켠다 — 같은 몸통에 활성 칸(ol2)이 같이 있어 «테 호출 0» 으로는 못 가른다(17회차 눈으로 확인)'],
+    # T365 17회차 — 정본이 «끈다» 고만 적은 셋. 셋 다 클론이 이미 정본대로인데, 그 몸통에 **다른 자리의 테**가 같이 있어 자로는 못 가른다.
+    '.pill-plus': ['Ui/Hud.cs@PlusBadge'],
+    '#tabbar button': ['—버튼 자체엔 테가 없다(정본 1700 `border: none`) · 클론 `TabBar.Build` 의 테 호출 둘은 **바의 위 키라인**(`UiKit.Line(band, …)` = `#tabbar` 제 테)과 **✕ 표식**(`.tab-x-mark` 의 고리 원)이라 버튼 짝이 아니다(17회차 눈으로 확인)'],
+    '.skill-btn .sk-lv': ['—Lv 배지엔 판도 테도 없다(정본 606 `background: none; border: none`) · 클론은 **T109 8회차가 알약을 걷고** `PetSkillKit.Stroked` 글자 한 장으로 돌렸다 — 같은 몸통에 오브 고리(ol3)가 있어 «테 호출 0» 으로는 못 가른다(17회차 눈으로 확인)'],
     '.upg-progress': ['Ui/ForgeInfoPopup.cs@RenderLevelView'],
     '.tech-node': ['Ui/TechPanel.cs@Node'],
     '.tech-tree-node': ['Ui/TechPanel.cs@Node'],
