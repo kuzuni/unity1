@@ -1481,3 +1481,67 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - 축의 41 자리는 **전부 표(또는 정본 값을 그대로 옮긴 Core 표 파일)가 쥔다** — 이 축에는 «코드에 박힌 수»(T402 꼴)가 **0** 이다.
 - 남은 넷은 전부 `.sr-*`(소환 결과) 이고 **T334 산 lock** 뒤다. T334 18회차가 «남은 여섯» 목록을 박아 두었는데 그 목록에 **이 셋이 없다** — `docs/ROUTINE.md` §2 T334 절에 ⚠ 보탬으로 셋을 적었다(임자의 PROGRESS 행·목록은 안 건드렸다 · 결정 675 의 길).
 - 남은 축: `content` 171 · `background-position/size`(30회차가 한 번 봤다 · 무늬·덮기 위주) · `animation-duration`.
+
+# T33 완주 대조 — **39회차** (2026-09-16 02:3x · 워커 J · sess-0221-5183) — 축: 정본이 **스크롤**로 못 박은 자리 21
+
+지금껏 센 축은 전부 «값» 이었다(크기·색·틈·지연). 이 축은 **움직임**이다 — 정본이 `overflow(-x/-y): auto|scroll` 로 «넘치면 밀어서 본다» 고 못 박은 자리가 클론에도 `ScrollRect` 로 서 있는가. 클론은 대부분을 `UiKit.Place` 로 **절대 배치**하므로 스크롤이 빠지면 «넘친 만큼 그냥 안 보인다» 가 된다(잘린 채로도 화면은 멀쩡해 보여 눈으로 못 잡는 갈래다).
+
+## 센 수
+
+`style.css` 의 `overflow*` 선언 **84** 중 값이 `auto|scroll` 인 것 **21**(나머지 63 은 `hidden`(둥근 모서리 클립)·`visible`·`overflow-wrap`). 21 = `overflow-y` 20 + `overflow-x` 1.
+
+## 갈래
+
+| 정본 자리 | 줄 | 클론 | 판정 |
+|---|---:|---|---|
+| `.forge-age-list` | 722 | `ForgeInfoPopup.cs:184` `PopupKit.ScrollList` | ✅ |
+| `.mat-grid`(재료 격자) | 802 | `MountUpgradePopup.cs:145`·`PetUpgradePopup` `PetSkillKit.Scroll` | ✅ |
+| `.tb-list`(ⓘ 총 보너스) | 2243 | `TechPopups.cs:276·290`(상한 `tbn_list_maxh` .46H) | ✅ |
+| `.league-list` | 2320 | `LeagueSheet.cs:93` | ✅ |
+| `.league-reward-table` | 2346 | `LeagueSheet.cs:242` | ✅ |
+| `.pass-track` | 1908\* | `PassPopup.cs:122` | ✅ |
+| `.settings-list` | 3093 | `ProfilePopup.cs:276·280`(상한 `settings_h` .456H) | ✅ |
+| `.pinfo-subs-list` | 2222\* | `PlayerInfoPopup.cs:223` | ✅ |
+| `.chat-list` | 2278\* | `ChatScreen.cs:43` | ✅ |
+| `.modal-card.sheet` | 3790 | `QuestSheet.cs:37`·`ShopSheet.cs:39`·`LeagueSheet.cs:93`·`DebugPanel.cs:42` | ✅ |
+| `#panel-summon > .summon-sub` | 3933 | `TechPanel.cs:259`(분기 트리) · 펫·스킬은 `.grid-scroll` 이 맡는다 | ✅ |
+| `.grid-scroll` | 3936 | `PetSkillKit.cs:325` | ✅ |
+| `#panel-debug` | 2712\* | `DebugPanel.cs:42` | ✅ |
+| `.af-scroll` | 4700 | `ForgeAutoPopup.cs:66` | ✅ |
+| `.af-dd-list` | 3274\* | `ForgeAutoPopup.cs:146` | ✅ |
+| `.sr-grid.mid, .sr-grid.dense` | 6235 | `SkillSummonResult.cs:376` — **`.mid`/`.dense` 일 때만** `PetSkillKit.Scroll`, 기본 `.sr-grid` 는 `UiKit.Box`(382) | ✅ 갈래까지 같다 |
+| `.pinfo-preview`(가로) | 3179 | 미니 씬 실패 폴백 줄(핍) · 클론에 가로 스크롤 없음 | ✓ 폴백 전용 · 핍 수가 묶여 있어 넘칠 길이 없다 |
+| **`.panel`** | 637 | — | ⛔ **죽은 선언** — 아래 규칙 |
+| **`.substat-list`** | 792 | — | ⛔ **죽은 CSS**(`js`·`index.html` 쓰임 **0** · 35회차의 상한 축 결론과 같다) |
+| **`.dungeon-list`** | 1948 | `DungeonSheet` 에 `ScrollRect` 없음 | ⛔ **상한이 덮여 죽었다** — 아래 규칙 |
+| **`.fi-card .fi-rows`** | 5054 | `ForgeInfoPopup.cs:102~103` `PopupKit.Item` + `Column`(스크롤 아님) | ⚠ **계약만 없다 · 오늘 화면엔 안 물린다** — 아래 |
+
+합 21 = ✅ 16 · ✓ 1 · ⛔ 3 · ⚠ 1. **고칠 결함 0 · 새 작업 0.**
+
+\* 줄 번호에 `*` 를 단 것은 주석을 걷어낸 본문 기준이다(주석이 긴 파일이라 원문 줄과 어긋난다) — 선택자로 찾는다.
+
+## 이 회차가 남긴 규칙 — **`overflow-y: auto` 가 적혔다고 스크롤이 아니다 · 반대로 상한이 `none` 이라고 죽은 것도 아니다**
+
+세 갈래가 다 이 파일 안에 있다:
+
+- **뒤에 온 같은 특이도가 이긴다** — `.panel`(637) 은 `overflow-y: auto` 인데 **3925 의 `.panel { … overflow: hidden }`** 이 같은 특이도 (0,1,0) 로 더 뒤에 와서 이긴다. 그래서 종이 스킨의 탭 패널은 **통째로 스크롤하지 않고**, 3934 의 정본 주석이 그 까닭을 적어 뒀다 — «펫·스킬 화면: 시트 전체 스크롤 금지 — 상단·하단은 고정, 가운데 그리드만 내부 스크롤(사용자 지시)». 클론이 패널마다 `ScrollRect` 를 안 두고 안쪽 목록에만 둔 것이 **맞다**.
+- **상한이 없으면 넘칠 일이 없다** — `.dungeon-list`(1948) 는 `max-height: calc(var(--app-h) * .6)` 로 갇혀 있지만 **유일한 쓰임이 `.modal-card.sheet` 안**이고 3871 이 `max-height: none` 으로 덮는다. 갇힌 데가 없으니 제가 넘치지 않고, 넘치는 것은 **바깥 시트**다(3790 이 `overflow-y: auto`). 클론 `DungeonSheet` 에 `ScrollRect` 가 없는 것은 그래서 결함이 아니다 — 다만 클론은 시트도 안 밀리니 **던전이 넷보다 많아지면 그때 시트 쪽에 둔다**(오늘 셈: 배너 4 × 243ref + 틈 3 × 22.6 + 머리 ≈ 1290ref ↔ 패널 ≈ 1800ref).
+- **상한이 `none` 이어도 `flex: 1` 이 고정 높이 부모 안에서 가두면 스크롤은 산다** — `.af-scroll` 은 4700 에서 상한 .42H 를 받지만 4683 `.af-card .af-scroll { flex: 1; max-height: none }` 이 특이도 (0,2,0) 로 이겨 상한을 벗는다. 그런데 `.af-card` 는 높이가 고정이라 `flex: 1` 이 곧 상한 노릇을 한다 → **스크롤은 살아 있다**. 35회차가 «상한 축»에서 이 줄을 «덮여 죽은 선언» 으로 센 것은 그 축에서는 맞고, **이 축에서는 살아 있다** — 같은 줄이 축마다 다른 답을 준다.
+
+⇒ **한 줄 요약: 스크롤 여부는 `overflow` 선언 하나로 못 읽는다 — «갇히는 높이가 있는가» 를 같이 봐야 한다.**
+
+## ⚠ `.fi-card .fi-rows` — 정본이 까닭까지 적어 둔 계약이 클론에 없다(오늘은 안 물린다)
+
+정본 5050~5053 의 주석이 사고 기록이다: «카드 높이를 고정하면 남는 세로 공간이 생기고, 카드가 flex 컬럼이라 `flex-grow` 를 가진 자식이 그걸 통째로 먹는다 — 실제로 `.fi-skip` 이 234px 로 부풀고 그만큼 막대 줄이 눌려 막대가 **17.7px** 로 찌그러졌다(원본 29px). **높이 고정과 flex 기본값은 같이 쓰면 안 된다**: 막대 줄은 «필요할 때만 줄어드는»(`0 1 auto`) **스크롤 상자**로, 막대와 버튼은 안 줄고 안 늘게 못 박는다.» 그래서 5054 `.fi-card .fi-rows { flex: 0 1 auto; min-height: 3rem; overflow-y: auto }` + 5055 `.fi-card .fi-age-bar, .fi-card .fi-skip, .fi-card .fi-upgrade { flex: none }` 한 쌍이다.
+
+클론은 카드 높이를 같은 수로 고정하고(`ForgeInfoPopup.cs:73` `UiKit.RefH * fi_card_h_f` = .8104) 막대 줄을 `PopupKit.Item(card, "rows", -1f, d.Ages.Length * (barH + rem*0.18f))` **한 덩이 고정 높이**로 넣는다 — 줄어드는 자리도, 스크롤도 없다.
+
+**오늘 화면에는 안 물린다**(런 828 `screen_forge-info.png` 540×960 화소 실측): 카드 y **92~870** = **81.0%H**(정본 .8104 그대로 ✓) · 시대 막대 열이 y **288~776** 에 **10개가 다 들어가고**(칸 ≈48.8px) 아래 버튼 줄(y784~864)까지 잘린 데가 없다. 곧 지금의 시대 10 · 버튼 구성에서는 합이 카드 안에 들어간다.
+
+**물릴 조건**을 적어 둔다(다음에 `ForgeInfoPopup.cs` 를 여는 사람 몫 · 지금은 **T388 산 lock**): 시대가 10보다 늘거나 · 승천 버튼이 한 줄 더 서거나 · 글자 하한이 올라 막대 높이(`rem*1.75`)가 커지면, 클론은 `VerticalLayoutGroup` 이 **전부를 같이 눌러** 정본이 «안 줄게» 못 박은 막대·버튼까지 찌그러뜨린다. 고침은 정본과 같은 꼴 — 막대 줄만 `PetSkillKit.Scroll` 로 바꾸고 나머지를 고정으로 둔다. 셈이 오늘 들어맞으므로 **새 작업으로 등재하지 않았다**(35·38회차의 «헛짚음» 정정이 남긴 길 — 화면에 안 보이는 것을 결함으로 세우지 않는다).
+
+## 이 회차의 판정
+
+- 축 21 = ✅ 16 · ✓ 1 · ⛔ 3(전부 정본 쪽 죽은 선언 · 클론이 안 옮긴 것이 **맞다**) · ⚠ 1(계약만 없다 · 오늘 안 물린다). **결함 0 · 새 작업 0.**
+- 클론의 스크롤 도우미 **둘**(`Popups.ScrollList`(342) · `PetSkillKit.Scroll`(315))이 **둘 다** `horizontal=false · vertical=true · MovementType.Clamped · RectMask2D` 다 — 정본 `overflow-y: auto`(세로만 · 잘라냄)와 같은 계약이라 이 축에 «가로로도 밀린다·안 잘린다» 꼴이 **0** 이다. 스크롤을 새로 다는 사람은 이 둘 중 하나를 부른다(세 번째 꼴을 만들지 않는다).
+- 남은 축: `content` 171 · `background-position/size`(30회차가 무늬·덮기 위주로 한 번 봤다) · `animation-duration` · `z-index`(겹 순서 — 클론은 `siblingIndex` 라 이 축도 «움직임» 쪽이다).
