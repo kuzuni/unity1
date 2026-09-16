@@ -185,5 +185,60 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(nm.textInfo.characterCount, 0, "이름이 통째로 사라지면 안 된다");
             if (nm.textInfo.characterCount < h.HeldItem.Name.Length) Assert.IsTrue(HasEllipsis(nm), "잘렸으면 끝은 …");
         }
+
+        /// <summary>자리 배선(T351 5회차 · 마지막 자리) — 소환 결과 셀의 이름판(정본 7041 `.sr-name { overflow: hidden }` + 7048 `.sr-name > span { -webkit-line-clamp: 2 }`).
+        /// 긴 이름을 한 칸에 넣고 ⓐ 줄 수 ≤ 표(2) · ⓑ 그린 글자가 **이름판 밖으로 안 흐른다** · ⓒ 잘렸으면 끝이 … · ⓓ 줄높이는 정본 1.18 을 본다.</summary>
+        [UnityTest]
+        public IEnumerator 소환_결과_이름판은_두_줄까지만_그리고_판_밖으로_안_흐른다()
+        {
+            PetSkillHost.SuppressSave = true;
+            PetSkillHost.Seed = 20260916;
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+            Scene active = SceneManager.GetActiveScene();
+            for (int i = 0; i < 600 && !(SkillPetSheet.Instance != null && SkillPetSheet.Instance.gameObject.scene == active && PetSkillHost.Ready); i++) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            Assert.IsTrue(PetSkillHost.Ready);
+            yield return null;
+
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = LongName },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "common", Name = "나" },
+                new SkillSummonResultView.Entry { Key = "sk:c", IconKey = "sk_fireball", Rarity = "rare", Name = "다" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "rare", null);
+            Assert.IsNotNull(v, "소환 결과 창이 안 열렸다");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            RectTransform plate = null;
+            foreach (Transform x in v.GetComponentsInChildren<Transform>(true))
+                if (x.name == "sr-name") { plate = (RectTransform)x; break; }
+            Assert.IsNotNull(plate, "셀의 이름판(sr-name)이 없다");
+            TextMeshProUGUI nt = plate.Find("t").GetComponent<TextMeshProUGUI>();
+            Assert.IsNotNull(nt, "이름판 안의 글자(t)");
+            nt.ForceMeshUpdate();
+
+            Assert.AreEqual(TextOverflowModes.Ellipsis, nt.overflowMode, "정본 7048 -webkit-line-clamp = 상자 밖은 버리고 …");
+            Assert.AreEqual(TextWrappingModes.Normal, nt.textWrappingMode, "정본 7038 white-space: normal — 두 줄까지 접는다");
+            Assert.Greater(nt.textInfo.characterCount, 0, "이름이 통째로 사라지면 안 된다(런 528 꼴)");
+            Assert.LessOrEqual(nt.textInfo.lineCount, TextClamp.Lines("sr_name"), "표 sr_name 의 줄 수를 넘지 않는다");
+            Assert.Less(nt.textInfo.characterCount, LongName.Length, "긴 이름은 잘린다");
+            Assert.IsTrue(HasEllipsis(nt), "잘린 끝에 …(U+2026)이 보인다");
+
+            // 그린 글자가 이름판 밖으로 안 흐른다 — TMP 가 실제로 그린 덩어리의 높이를 판 높이와 견준다.
+            float ink = nt.textInfo.lineInfo[0].ascender - nt.textInfo.lineInfo[nt.textInfo.lineCount - 1].descender;
+            Assert.LessOrEqual(ink, plate.rect.height + 1f,
+                "이름 잉크(" + ink.ToString("0.0") + ")가 이름판(" + plate.rect.height.ToString("0.0") + ") 밖으로 흘렀다");
+
+            // 줄높이는 정본 1.18(T354 표 sr_name_lh) — 두 줄일 때만 잰다.
+            if (nt.textInfo.lineCount >= 2)
+            {
+                double r = LineHeight.MeasuredRatio(nt);
+                Assert.AreEqual(1.18, r, 0.02, "정본 7033 line-height: 1.18");
+            }
+        }
     }
 }

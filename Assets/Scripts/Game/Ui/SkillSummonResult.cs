@@ -919,6 +919,13 @@ namespace Forge.Game.Ui
                 PetSkillKit.Fill(nameBox, "bg", PetSkillStyle.C("sr_name_bg"), PetSkillStyle.Px("sr_name_r_rem"));
                 TextMeshProUGUI nt2 = PetSkillKit.Text(nameBox, "t", TextKind.Sub, e.Name, PetSkillStyle.C("white"));
                 WrapUi.Apply(nt2, "sr_name");   // 정본 `.sr-name` 은 **접는다**(두 줄까지 · style.css 7032~7036)
+                // T351 5회차 — 정본 7033 `line-height: 1.18`. T354 표(`LineHeightUi.json` `sr_name_lh`)가 이 수를 쥐고 있는데
+                //   부르는 곳이 없어 클론은 글꼴 기본 줄높이(1.448em)로 그렸다 — 두 줄이 그만큼 더 벌어진다.
+                LineHeight.Apply(nt2, "sr_name_lh");
+                // T351 5회차 — 정본 7048 `.sr-name > span { -webkit-line-clamp: 2; overflow: hidden }` 의 마지막 자리.
+                //   여태 TMP 기본(줄바꿈 + 넘침)이라 긴 이름이 이름판 **밖으로 흘러** 아래 등급 칩·옆 셀을 덮었다.
+                //   `Ellipsis` 는 상자에 든 마지막 줄 끝에 …(U+2026)을 달고 나머지를 버린다 — 줄 수는 곧 상자 높이다.
+                TextClamp.Apply(nt2, "sr_name");
                 UiKit.Fill(nt2.rectTransform);
                 float sy = ny + nameH + PetSkillStyle.Px("sr_sub_mt_rem");
                 float rkW = PetSkillKit.TextWidth(TextKind.Sub, e.Sub) + PetSkillStyle.Px("sr_rk_pad_x_rem") * 2f;
