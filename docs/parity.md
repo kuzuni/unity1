@@ -1586,3 +1586,36 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - 축 `content` **45 전수** — 결함 0 · 새 번호 0 · 정정 하나(축 크기 171 → 45).
 - 곁다리 하나를 임자에게 넘겼다: 진행 막대 눈금 여섯 → **T178**(그 자의 미정 8812).
 - 남은 축: `background-position/size`(30회차가 무늬·덮기 위주로 한 번 봤다) · `animation-duration` · `transition`.
+
+---
+
+# T33 완주 대조 40회차 — 축 = **CSS 합성**(`mix-blend-mode` 18 · `isolation` 1 · `backdrop-filter` 1 = 20) (2026-09-16 06:4x · 워커 G · sess-0542-31207)
+
+## 왜 이 축인가
+
+이 축은 «있다/없다» 가 아니라 **합성 식**이 다르면 같은 그림을 그려도 결과가 달라지는 자리다. 정본은 스무 자리에서 그것을 못 박았고,
+그중 **18 이 `screen`**(가산에 가까운 밝히기)이다 — 어두운 판 위 빛무리·섬광·잔열이 전부 여기에 걸린다. 알파로 그리면 **밝은 곳에서 되레 어두워진다**.
+
+## 정본 전수(주석 걷고 속성 경계로 센다 · 39회차 규칙)
+
+| 값 | 수 | 자리 |
+|---|---|---|
+| `mix-blend-mode: screen` | **18** | `.bw-flash`(370) · `.anvil-fx` 다섯(`af-bloom` 1440 · `af-flash` 1460 · `af-heat` 1475 · `af-star` 1514 · `af-core` 1545) · `.sr-*` 열둘(`canopy b::after` 590x · `flash` 6148 · `wipe` 6166 · `orbwrap::after` 6354 · `relight` 6376 · `tierpulse` 6396 · `tierflash` 6413 · `spark` 6470 · `ico::after` 6538 · `cell.peer.on::after` 6704 · `beam` 6736 · `cell.heroic::after` 6752) |
+| `isolation: isolate` | 1 | `#game-area`(134) |
+| `backdrop-filter: blur(4px)` | 1 | `.panel`(634) |
+
+## 클론
+
+- 전용 셰이더 **`Forge/UiScreen`**(`CraftFxPoly.Screen()` · T173·T179 갈래)이 있고 **부름 자리 18**: `BattleOverlay` 1 · `ForgeSheet` 3(모루 FX 겹) · `SkillSummonResult` 14.
+- 짝이 선 자리 **16**: `bw-flash` · `af-bloom`/`af-flash`/`af-heat`/`af-star`/`af-core` · `sr-relight` · `sr-charge` · `sr-heroring`(= `cell.heroic::after`) · `sr-beam` · `sr-wipe` · `sr-tierpulse` · `sr-tierflash` · `sr-spark` · `sr-idle` · 착지 충격파(= `orbwrap::after`) · 아이콘 겹(= `ico::after`).
+- **✗ 둘**:
+  1. `.sr-flash`(6148) ↔ `SkillSummonResult.cs:631` — `UiKit.Panel(c, "sr-flash", "pp_line")` 뒤 알파만 움직인다. **재질이 없다.** 흰색이면 screen ≡ 보통 알파라 안 보이지만, `:1758` 이 그 판에 **등급색**을 칠한다 — 색이 들어가는 순간 둘이 갈린다(정본은 밝히고 클론은 덮는다).
+  2. 캐노피 스필(`.sr-canopy b::after` 계열 590x) ↔ `SummonFx.cs` — 이 파일에는 `material` 부름이 **0** 이다(`grep -c material` = 0). 천개·빛발·스필이 전부 보통 알파다.
+- `isolation: isolate`(134)는 **T76 이 층으로 이미 지킨다** — `DamageNumbers.Layer` 가 앱 상자의 **첫 자식** `fx-layer` 를 쓰고 시트·모달·탭바가 그 뒤 형제다(정본 `#game-area > #fx-layer` 와 같은 순서).
+- `backdrop-filter: blur(4px)`(634 `.panel`)은 **클론에 없다** — `grep -rn "backdrop"` = 0. 패널 뒤 화면이 정본에선 흐려지고 클론에선 또렷하다.
+
+## 이 회차의 판정
+
+- 축 **20 전수** — 짝 **17**(screen 16 + isolation 1) · **결함 셋** → **T419 로 등재**(ⓐ `.sr-flash` · ⓑ 캐노피 스필 · ⓒ `.panel` 뒤 흐림).
+- 셋 다 **남의 산 lock 뒤**다(`SkillSummonResult.cs`·`SummonFx.cs` = T334 · `Popups.cs` = T331) — 그 lock 이 풀리는 회차의 몫이다.
+- 남은 축: `aspect-ratio` 21 · `object-fit` 9 · `transition` 19 · `animation-timing-function` 23.
