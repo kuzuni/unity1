@@ -56,8 +56,6 @@ TABLE = {
 # 임자가 정해진 빈자리(자리 → 이유) — 배선될 때마다 지운다. 1회차는 **배선이 0 이라 전부 여기 있다**.
 KNOWN = {
     'Ui/ForgeUi.cs$cell_shadow_2': 'T371 1회차 — 장비 셀 시대색 광(정본 8538 62% · 7730 의 55% 는 뒤 규칙이 덮어 안 그려진다) · T331(box-shadow 축) lock 뒤',
-    'Ui/ForgeInfoPopup.cs$idet_icon_face': 'T371 1회차 — `ForgeInfoPopup.cs` 는 T28·T332 산 lock 뒤',
-    'Ui/ForgeInfoPopup.cs$idet_icon_line': 'T371 1회차 — 같은 파일',
     'Ui/PetPanel.cs$pet_tile_shadow_2': 'T371 1회차 — 펫 타일 그림자(정본 8124 가 4288 을 덮는다 · 값은 둘 다 60%) · T331 축과 겹친다',
 }
 

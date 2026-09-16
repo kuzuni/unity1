@@ -360,6 +360,17 @@ namespace Forge.Game.Ui
             float tile = rem * 3.6f;
             RectTransform head = PopupKit.Item(card, "idet-head", -1f, tile + rem * 0.4f);
             RectTransform t = ForgeUi.ItemTile(head, "idet-icon", tile, d, age, icon);
+            // T371 10회차 — 정본 3661 `#forge-item-modal .idet-icon { background: color-mix(in srgb, var(--rc) 58%, #17181a); border-color: color-mix(… 80%, #000) }`:
+            //   ItemTile 은 장비 칸 키(cell_face/cell_line)로 칠하고 값은 같지만, 정본이 이 팝업에만 가둔 선택자라 표 키(idet_icon_*)를 따로 쥔다 —
+            //   부르는 쪽이 덮는다(ForgeCraftPopup.MixFrame 과 같은 길 · check_color_mix 가 이 줄로 자리를 센다).
+            {
+                Color idetAc = ForgeUi.AgeColor(d, age);
+                Transform idetFrame = t.Find("frame");
+                Transform idetF = idetFrame != null ? idetFrame.Find("face") : null, idetL = idetFrame != null ? idetFrame.Find("line") : null;
+                Image idetFace = idetF != null ? idetF.GetComponent<Image>() : null, idetLine = idetL != null ? idetL.GetComponent<Image>() : null;
+                if (idetFace != null) idetFace.color = ColorMixUi.Mix("idet_icon_face", idetAc);
+                if (idetLine != null) idetLine.color = ColorMixUi.Mix("idet_icon_line", idetAc);
+            }
             ForgeUi.ApplyThumb(t, ItemFaces.Get(d, ThumbDef(age, ageIdx, slot, detailVariant, detailWtype)), tile, "");   // T122 ⓑ — 정본 2244 `idet-icon`: thumb ? <img> : 아이콘(동기 · 한 장) · T332 3회차 — `.idet-icon img`(3668)는 아웃라인만이고 접지 그림자가 없다(빈 키)
             UiKit.Place(t, 0f, rem * 0.2f, tile, tile);
             float lh = PopupKit.FontSize(TextKind.Body) * 1.3f;

@@ -293,5 +293,31 @@ namespace Forge.Tests.PlayMode
             AssertMix(dLine, dFace, 0.40, 0, 0, 0, "펫 상세 타일 테 = 면의 40%, #000(정본 5461 사슬)");
             Assert.Greater(dLine.r + dLine.g + dLine.b, 0.05f, "테가 순검정이 아니다(등급색 기운이 남는다 · 정본 주석 #ff7777 × .4 = #663030)");
         }
+
+        /// <summary>T371 10회차 — 정본 3661 `#forge-item-modal .idet-icon { background: color-mix(… 58%, #17181a); border-color: color-mix(… 80%, #000) }`:
+        /// 장비 상세 머리의 아이콘 타일 면·테. 값은 장비 칸과 같지만 정본이 이 팝업에만 가둔 선택자라 표 키(idet_icon_*)를 따로 쥔다 — 부르는 쪽이 덮는다.</summary>
+        [UnityTest]
+        public IEnumerator 장비_상세_머리_아이콘_타일_면_테는_표_idet_icon_색으로_선다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            string age = h.Defs.Ages[0];
+            string[] weapons = h.Engine.WeaponsOfAge(age);
+            Assert.Greater(weapons.Length, 0, "첫 시대 무기");
+            ForgeInfoPopup.OpenDetail(h, age, "weapon", 0, weapons[0]);
+            yield return null; yield return null;
+            Transform icon = null;
+            foreach (Transform t in UiRoot.Instance.App.GetComponentsInChildren<Transform>(true)) if (t.name == "idet-icon" && t.gameObject.activeInHierarchy) { icon = t; break; }
+            Assert.IsNotNull(icon, "장비 상세 머리 아이콘 타일(idet-icon)");
+            Transform frame = icon.Find("frame");
+            Assert.IsNotNull(frame, "타일 틀(frame)");
+            Color ac = ForgeUi.AgeColor(h.Defs, age);
+            AssertMix(frame.Find("face").GetComponent<Image>().color, ac, 0.58, 0x17, 0x18, 0x1a, "상세 아이콘 면(정본 3661 58%, #17181a · 표 idet_icon_face)");
+            AssertMix(frame.Find("line").GetComponent<Image>().color, ac, 0.80, 0, 0, 0, "상세 아이콘 테(정본 3661 80%, #000 · 표 idet_icon_line)");
+            AssertMix(ColorMixUi.Mix("idet_icon_face", ac), ac, 0.58, 0x17, 0x18, 0x1a, "표 idet_icon_face");
+            AssertMix(ColorMixUi.Mix("idet_icon_line", ac), ac, 0.80, 0, 0, 0, "표 idet_icon_line");
+            h.Meta.Popups.Hide(ForgeInfoPopup.ItemName);
+            yield return null;
+        }
     }
 }
