@@ -140,7 +140,7 @@ namespace Forge.Game.Ui
         {
             RectTransform pill = UiKit.Box(parent, name);
             UiKit.Place(pill, x, y, pw, ph);
-            UiKit.Rounded(pill, "bg", "card_bg", rem);
+            RadiusUi.Rounded(pill, "bg", "card_bg", "currency_pill_r_rem");   // 정본 115 `.currency-pills .pill { border-radius: 1rem }` — 값은 맞았지만 코드에 박혀 있었다(T345 18회차)
             float ico = UiKit.H("pill_icon");
             float padL = UiKit.W("pill_pad_l");
             float padR = UiKit.W("pill_pad_r");
@@ -311,12 +311,32 @@ namespace Forge.Game.Ui
                 float size = isNow ? dNow : d;
                 p.Ring.rectTransform.sizeDelta = new Vector2(size, size);
                 p.Fill.rectTransform.sizeDelta = new Vector2(size - line * 2f, size - line * 2f);
-                p.Ring.sprite = isBoss ? null : UiShapes.Circle;
-                p.Fill.sprite = isBoss ? null : UiShapes.Circle;
+                // 정본 189 `.pip { border-radius: 50% }` · 195 `.pip.boss { border-radius: 2px; transform: rotate(45deg) }` —
+                // 보스 핍은 «각진 마름모» 가 아니라 **모서리를 2 CSS px 만 깎은** 마름모다(T345 18회차 · 표 pip_boss_r_px).
+                float bossR = RadiusUi.Px("pip_boss_r_px");
+                PipShape(p.Ring, isBoss, bossR);
+                PipShape(p.Fill, isBoss, bossR);
                 p.Ring.transform.localRotation = isBoss ? Quaternion.Euler(0f, 0f, 45f) : Quaternion.identity;
                 p.Fill.transform.localRotation = p.Ring.transform.localRotation;
                 p.Fill.color = isBoss && isNow ? UiKit.C("pip_boss") : (isDone ? UiKit.C("pip_done") : UiKit.C("pip"));
             }
+        }
+
+        /// <summary>핍 한 조각의 모양 — 보통은 원(정본 189 `50%`) · 보스는 모서리를 <paramref name="bossRadiusPx"/> 만 깎은 네모(정본 195 `2px`)다.</summary>
+        private static void PipShape(Image img, bool isBoss, float bossRadiusPx)
+        {
+            if (isBoss)
+            {
+                img.sprite = UiShapes.Rounded;
+                img.type = Image.Type.Sliced;
+                img.preserveAspect = false;
+                img.pixelsPerUnitMultiplier = UiShapes.RoundedMultiplier(bossRadiusPx);
+                return;
+            }
+            img.sprite = UiShapes.Circle;
+            img.type = Image.Type.Simple;
+            img.preserveAspect = true;
+            img.pixelsPerUnitMultiplier = 1f;
         }
 
         private void RebuildPips(int total)

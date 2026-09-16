@@ -24,7 +24,7 @@ namespace Forge.Tests.EditMode
             Assert.GreaterOrEqual(t.Count, 10, "20회차 ⓡ 가 센 어긋난 리터럴 열 자리가 표에 있어야 한다");
             foreach (string k in t.Keys)
             {
-                Assert.IsTrue(RadiusRules.IsRadiusKey(k), "키 꼬리가 단위여야 한다(_r_rem · _r_w): " + k);
+                Assert.IsTrue(RadiusRules.IsRadiusKey(k), "키 꼬리가 단위여야 한다(_r_rem · _r_w · _r_px): " + k);
                 Assert.GreaterOrEqual(t.Get(k), 0.0, k);
             }
             Assert.IsTrue(t.Has("chat_bubble_r_rem"), "채팅 말풍선 자리");
@@ -39,6 +39,30 @@ namespace Forge.Tests.EditMode
             Assert.AreEqual(0.42 * 36.4, RadiusRules.Px(0.42, "chat_bubble_r_rem", 36.4, 474.75), 1e-9);
             Assert.AreEqual(0.0094 * 474.75, RadiusRules.Px(0.0094, "back_btn_r_w", 36.4, 474.75), 1e-9);
             Assert.AreEqual(0.0, RadiusRules.Px(0, "chat_share_card_r_rem", 36.4, 474.75), 1e-12);
+        }
+
+        /// <summary>T345 18회차 — 정본이 **절대 CSS px** 로 적은 자리(195 `.pip.boss { border-radius: 2px }`). rem 으로 바꿔 적으면 안 된다.</summary>
+        [Test]
+        public void css_px_키는_rem_이_아니라_css_px_환산비를_곱한다()
+        {
+            // cssPx = 2.164(기준 캔버스 px / CSS px · KeylineUi.CssPx 와 같은 수)
+            Assert.AreEqual(2 * 2.164, RadiusRules.Px(2, "pip_boss_r_px", 36.4, 474.75, 2.164), 1e-9);
+            Assert.IsTrue(RadiusRules.IsCssPxKey("pip_boss_r_px"));
+            Assert.IsFalse(RadiusRules.IsCssPxKey("chat_bubble_r_rem"));
+            // rem·app-w 키는 cssPx 를 줘도 제 단위를 쓴다
+            Assert.AreEqual(0.42 * 36.4, RadiusRules.Px(0.42, "chat_bubble_r_rem", 36.4, 474.75, 2.164), 1e-9);
+            Assert.AreEqual(0.0094 * 474.75, RadiusRules.Px(0.0094, "back_btn_r_w", 36.4, 474.75, 2.164), 1e-9);
+            // 환산비를 안 준 묶음으로는 못 잰다 — 조용히 rem 으로 읽히면 2px 이 2rem(≈73px)이 된다
+            Assert.Throws<FormatException>(() => RadiusRules.Px(2, "pip_boss_r_px", 36.4, 474.75));
+        }
+
+        /// <summary>표가 실제로 쥔 18회차 두 자리 — 정본 줄 그대로.</summary>
+        [Test]
+        public void 메인_화면_두_자리는_정본_값을_쥔다()
+        {
+            RadiusTable t = Table_();
+            Assert.AreEqual(1.0, t.Get("currency_pill_r_rem"), 1e-12, "정본 115 `.currency-pills .pill { border-radius: 1rem }`");
+            Assert.AreEqual(2.0, t.Get("pip_boss_r_px"), 1e-12, "정본 195 `.pip.boss { border-radius: 2px }`");
         }
 
         [Test]

@@ -34,10 +34,10 @@ namespace Forge.Game.Ui
         /// <summary>1rem 이 몇 캔버스 px 인가 — 정본 `:root` 글꼴(높이 기준)과 같은 셈(catalog `rem_h` × 앱 높이).</summary>
         public static float PxPerRem { get { return UiKit.L("rem_h") * UiKit.RefH; } }
 
-        /// <summary>표의 반지름(캔버스 px). 키 꼬리(`_r_rem`·`_r_w`)가 단위를 정한다.</summary>
+        /// <summary>표의 반지름(캔버스 px). 키 꼬리(`_r_rem`·`_r_w`·`_r_px`)가 단위를 정한다.</summary>
         public static float Px(string key)
         {
-            return (float)RadiusRules.Px(Table.Get(key), key, PxPerRem, UiKit.RefW);
+            return (float)RadiusRules.Px(Table.Get(key), key, PxPerRem, UiKit.RefW, KeylineUi.CssPx);
         }
 
         /// <summary>정본이 «각진»(0) 자리인가 — <see cref="UiShapes.RoundedMultiplier"/> 는 0 을 «배율 1 = 반지름 24px» 로 읽으므로 0 은 여기서 갈라 민판을 쓴다.</summary>

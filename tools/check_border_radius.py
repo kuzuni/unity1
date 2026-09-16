@@ -6,7 +6,7 @@ T345 — 정본 `border-radius` 선언 ↔ 클론 둥근 모서리 대조 자.
 정본 `web/css/style.css` 의 `border-radius` 선언을 전부 걷고(주석 밖 · 애니 키프레임 밖 · 20회차 파서),
 표에 짝이 적힌 자리마다 **세 겹**을 본다:
   ① 표(`Assets/Forge/Resources/RadiusUi.json`)에 그 키가 있다
-  ② 표값이 정본 값과 같다(단위는 키 꼬리 — `_r_rem` ↔ `Nrem` · `_r_w` ↔ `calc(var(--app-w) * k)`)
+  ② 표값이 정본 값과 같다(단위는 키 꼬리 — `_r_rem` ↔ `Nrem` · `_r_w` ↔ `calc(var(--app-w) * k)` · `_r_px` ↔ `Npx`(절대 CSS px) · 곁 표가 제 이름으로 쥔 `radius_rem` 도 rem 이다)
   ③ 그 자리 파일이 그 키를 부른다(`"키"` 가 파일 안에 있다) — 수치가 코드에 박혀 있으면 ③ 이 빈다
 
 왜 이 자가 있나(T33 20회차 ⓡ 실측): 표값을 읽는 자리 50여 곳은 정본과 하나도 안 어긋났는데, `rem * 0.6f` 꼴 **리터럴** 자리 열 곳이
@@ -103,6 +103,20 @@ TABLE = {
     '.waypoint-time': ['Ui/Waypoints.cs$time_r_rem@WaypointsUi.json'],
     # T345 8회차 — 기술 노드 팝업 버튼 줄(정본이 공용 .btn 을 덮는다)
     '.tech-btns .btn': ['Ui/TechPopups.cs$tech_btn_r_rem'],
+    # T345 18회차 — **메인 화면**(상단바 · 웨이브 핍 · 전리품 · 스킬 바). T331 이 12회차에 범위를 «지금 여는 파일» 로 줄이면서
+    #   `Hud.cs`·`SkillBar.cs`·`LootFeed.cs` 가 열렸다(결정 664) — 그 전까지 이 여섯은 남의 lock 뒤라 못 걸었다.
+    '.currency-pills .pill': ['Ui/Hud.cs$currency_pill_r_rem'],
+    '.pip': ['Ui/Hud.cs@RebuildPips'],
+    '.pip.boss': ['Ui/Hud.cs$pip_boss_r_px'],
+    '#loot-feed div': ['Ui/LootFeed.cs$radius_rem@LootFeedUi.json'],
+    #   정본 594 `.skill-btn { border-radius: 50% }` 의 원은 공용 오브(`PetSkillKit.Orb` = 테 원 + 면 원)가 그린다 —
+    #   `SkillBar.Build` 본문에는 `sb_auto_r_rem` 이 이미 있어 그 자리에 걸면 고장 주입이 안 걸린다(17회차 규칙).
+    '.skill-btn': ['Ui/PetSkillKit.cs@Orb'],
+    '.skill-btn.auto': ['Ui/SkillBar.cs$sb_auto_r_rem@PetSkillUi.json'],
+    #   상단바 프로필 카드 둘은 **값이 이미 정본과 같다**(catalog `card_radius` 0.018957 = 1rem/H · `avatar_radius` 0.0076 = .4rem/H).
+    #   이름만 꼬리 규약으로 옮기면 세 겹이 서는데 `catalog.json` 이 T388·T402 lock 뒤라 이번엔 KNOWN 으로 둔다.
+    '.profile-card': ['Ui/Hud.cs$topbar_card_r_rem@catalog.json'],
+    '.profile-card .avatar': ['Ui/Hud.cs$topbar_avatar_r_rem@catalog.json'],
     # T345 8회차 — 7회차가 «클론 자리부터 가려야 한다» 고 남긴 둘: 정본 렌더 줄이 **0** 이다(`class="tech-node"` 가 어디에도 없고
     #   ui.js 의 `tech-node` 는 `data-tech-node` 속성과 `#tech-node-fill`·`#tech-node-time` id 뿐 · 나머지는 `web/tools/probe-*.js` 진단 도구).
     '.tech-node': '—죽은 CSS(정본 렌더 줄 0 · 8회차에 전수로 확인)',
@@ -118,11 +132,13 @@ KNOWN = {
     'Ui/ForgeInfoPopup.cs$idet_subs_r_rem': 'T339·T332 가 ForgeInfoPopup.cs 를 쥐었다 — 그 lock 뒤 T345 ⓑ(지금은 rem*0.6)',
     'Ui/ForgeInfoPopup.cs$upg_progress_r_rem': 'T339·T332 lock 뒤 T345 ⓑ(지금은 rem*0.5)',
     'Ui/Popups.cs$back_btn_r_w': 'T331·T333·T335 가 Popups.cs 를 쥐었다 — 그 lock 뒤 T345 ⓑ(지금은 Rem*0.45 = 리그 뒤로 버튼 값)',
+    'Ui/Hud.cs$topbar_card_r_rem@catalog.json': 'T388·T402 가 catalog.json 을 쥐었다 — 그 lock 뒤 `card_radius`(0.018957 = 1rem/H · 값은 정본과 같다) 를 `topbar_card_r_rem` 1 로 옮긴다(T345 18회차 · `card_r_rem` 은 이미 `.modal-card` 1.1 이 쓴다)',
+    'Ui/Hud.cs$topbar_avatar_r_rem@catalog.json': 'T388·T402 lock 뒤 `avatar_radius`(0.0076 = .4rem/H · 값은 정본과 같다) 를 `topbar_avatar_r_rem` .4 로 옮긴다(T345 18회차)',
 }
 
 RADIUS_DECL = re.compile(r'(?<![\w-])border-radius\s*:\s*([^;}]+)')
 # `BorderedCircle(`(테 원 + 면 원 · DungeonPopups)도 원이다 — T345 7회차: 기술 트리 분기 원판·노드가 그 길로 선다.
-EVIDENCE = re.compile(r'\b(?:Bordered)?Circle\s*\(|\bRadiusUi\s*\.\s*(?:Px|Rounded)\s*\(|"[a-z][a-z0-9_]*_r_(?:rem|w)"')
+EVIDENCE = re.compile(r'\b(?:Bordered)?Circle\s*\(|\bRadiusUi\s*\.\s*(?:Px|Rounded)\s*\(|"[a-z][a-z0-9_]*_r_(?:rem|w|px)"')
 REM = re.compile(r'^(-?\d*\.?\d+)rem$')
 APPW = re.compile(r'^calc\(\s*var\(\s*--app-w\s*\)\s*\*\s*(-?\d*\.?\d+)\s*\)$')
 PX = re.compile(r'^(-?\d*\.?\d+)px$')
@@ -230,6 +246,12 @@ def key_unit(key):
         return 'rem'
     if key.endswith('_r_w'):
         return 'w'
+    # 정본이 절대 CSS px 로 적은 자리(보스 핍 2px) — 환산은 클론 `KeylineUi.CssPx` 한 군데다(T345 18회차)
+    if key.endswith('_r_px'):
+        return 'px'
+    # 자리 이름을 **표 이름**이 쥔 곁 표(`LootFeedUi.json` 의 `radius_rem` 꼴) — 꼬리는 여전히 단위다
+    if key == 'radius_rem' or key.endswith('_radius_rem'):
+        return 'rem'
     return None
 
 
@@ -253,7 +275,7 @@ def _method_body(src, name):
 
 
 def check_target(game_dir, target, table, unit, num, res_dir=None):
-    """(상태, 설명) — 'ok' | 'missing'(자리가 표를 안 부른다) | 'value'(표값이 정본과 다르다 · 표에 키가 없다) | 'absent'(파일·메서드 없음 · 규약 어김)."""
+    """(상태, 설명) — 'ok' | 'missing'(자리가 표를 안 부른다) | 'nokey'(표에 그 키가 없다) | 'value'(표값이 정본과 다르다) | 'absent'(파일·메서드 없음 · 규약 어김)."""
     m = re.match(r'([^#@$]+)([@$]?)(.*)', target)
     file_part, sep, tail = m.groups()
     other = None
@@ -281,15 +303,17 @@ def check_target(game_dir, target, table, unit, num, res_dir=None):
         return ('ok' if EVIDENCE.search(body) else 'missing'), '메서드 ' + tail + '( 본문에 둥근 모서리 증거가 없다'
     ku = key_unit(tail)
     if ku is None:
-        return 'absent', '표 키는 «_r_rem» 이나 «_r_w» 로 끝나야 한다(규약): ' + tail
+        return 'absent', '표 키는 «_r_rem» · «_r_w» · «_r_px»(또는 곁 표의 «radius_rem») 로 끝나야 한다(규약): ' + tail
     if unit == 'circle':
         return 'absent', '정본이 50%(원)인 자리는 표 키가 아니라 `Circle(` 증거(@Method)로 본다: ' + tail
-    if unit not in ('rem', 'w'):
+    if unit not in ('rem', 'w', 'px'):
         return 'absent', '자가 아직 못 견주는 정본 값(%s) — 표 키를 걸 수 없다: %s' % (unit, tail)
     if ku != unit:
         return 'value', '단위가 다르다 — 정본은 %s 인데 키 꼬리는 %s 다(%s)' % (unit, ku, tail)
     if table is None or tail not in table:
-        return 'value', '표(%s)에 «%s» 이 없다' % (other or 'RadiusUi.json', tail)
+        # T345 18회차 — «키가 아예 없다» 와 «키는 있는데 값이 정본과 다르다» 는 다른 일이다.
+        #   앞쪽만 KNOWN(임자가 정해진 빈자리)이 덮을 수 있다 — 뒤쪽을 덮으면 틀린 값이 KNOWN 뒤에 숨는다.
+        return 'nokey', '표(%s)에 «%s» 이 없다' % (other or 'RadiusUi.json', tail)
     tv = table[tail]
     if not isinstance(tv, (int, float)) or isinstance(tv, bool):
         return 'value', '표값 «%s» 이 수가 아니다: %r' % (tail, tv)
@@ -356,8 +380,8 @@ def run(css_path, game_dir, table_path, table_map, known, out=print, list_undeci
                 if t in known:
                     known_now_ok.append(t)
                 continue
-            tag = {'missing': '표를 안 부른다', 'value': '표값이 다르다', 'absent': '자리 없음'}[state]
-            if state == 'missing' and t in known:
+            tag = {'missing': '표를 안 부른다', 'nokey': '표에 키가 없다', 'value': '표값이 다르다', 'absent': '자리 없음'}[state]
+            if state in ('missing', 'nokey') and t in known:
                 n_known += 1
                 out('· KNOWN(%s)  %s  ← style.css %d %s { border-radius: %s }  — %s' % (tag, t, line, sel, val, known[t]))
             else:
@@ -524,6 +548,29 @@ namespace X {
                     ('1rem 1rem 0 0', ('other', None)), ('inherit', ('inherit', None))):
         if css_value(v) != want:
             fails.append('값 읽기 %r → %r ≠ %r' % (v, css_value(v), want))
+    # 17 (18회차) 절대 CSS px 꼬리 `_r_px` — 정본 `2px` 자리. 값이 맞으면 0 · 틀리면 1 · 꼬리가 rem 이면 «단위가 다르다»
+    css_px = '.p-px { border-radius: 2px; }\n'
+    cs_px = 'class S { void B(Transform p) { var i = RadiusUi.Rounded(p, "i", "ink", "p_r_px"); } }'
+    m_px = {'.p-px': ['Ui/Sheet.cs$p_r_px']}
+    expect('px 꼬리 초록', m_px, {}, 0, css_text=css_px, cs_text=cs_px, tbl={'p_r_px': 2})
+    expect('px 표값 다름 → 1', m_px, {}, 1, css_text=css_px, cs_text=cs_px, tbl={'p_r_px': 3},
+           want_line='표를 정본에 맞춰라')
+    expect('px 자리에 rem 꼬리 → 1', {'.p-px': ['Ui/Sheet.cs$p_r_rem']}, {}, 1,
+           css_text=css_px, cs_text=cs_px.replace('p_r_px', 'p_r_rem'), tbl={'p_r_rem': 2},
+           want_line='단위가 다르다')
+    # 18 (18회차) 자리 이름을 **표 이름**이 쥔 곁 표의 `radius_rem` 도 rem 이다(`LootFeedUi.json` 꼴)
+    css_lf = '.lf-line { border-radius: 1rem; }\n'
+    cs_lf = 'class S { void B(Transform p) { var x = UiKit.Rounded(p, "bg", "ink", (float)Rules("radius_rem") * rem); } }'
+    m_lf = {'.lf-line': ['Ui/Sheet.cs$radius_rem']}
+    expect('곁 표 radius_rem 초록', m_lf, {}, 0, css_text=css_lf, cs_text=cs_lf, tbl={'radius_rem': 1})
+    expect('곁 표 radius_rem 값 다름 → 1', m_lf, {}, 1, css_text=css_lf, cs_text=cs_lf, tbl={'radius_rem': 2},
+           want_line='표를 정본에 맞춰라')
+    # 19 (18회차) KNOWN 은 «표에 키가 없다»(임자가 아직 못 여는 곁 표)를 덮지만 «표값이 다르다» 는 못 덮는다
+    kn19 = {'Ui/Sheet.cs$c_r_w': '임자', 'Ui/Sheet.cs$e_r_rem': '임자'}
+    t19 = dict(table); del t19['c_r_w']
+    expect('KNOWN 이 빈 키를 덮는다', base, kn19, 0, tbl=t19, want_line='KNOWN(표에 키가 없다)')
+    t19b = dict(table); t19b['c_r_w'] = 0.02
+    expect('KNOWN 이어도 틀린 값은 못 덮는다 → 1', base, kn19, 1, tbl=t19b, want_line='표를 정본에 맞춰라')
     # 16 정본 CSS 가 없으면 2
     if run('/nonexistent/style.css', '.', '/nonexistent.json', base, {}, out=lambda s: None) != 2:
         fails.append('정본 없음 rc 2')
@@ -532,7 +579,7 @@ namespace X {
         for f in fails:
             print('  - ' + f)
         return 1
-    print('✓ check_border_radius --self-test 24칸 통과')
+    print('✓ check_border_radius --self-test 31칸 통과')
     return 0
 
 

@@ -1,5 +1,5 @@
 {
-  "_": "T345 — 정본 border-radius 표(값이 코드에 박혀 정본과 어긋난 자리). 키 꼬리가 단위다: `…_r_rem` = 정본 Nrem(1rem = catalog rem_h × 앱 높이) · `…_r_w` = 정본 calc(var(--app-w) * k) 의 k(앱 폭 비율). 읽는 곳은 `RadiusUi.Px` 한 군데(Core `RadiusRules.Px`). 정본 50% 자리는 여기 없다 — `UiKit.Circle` 이 원이다.",
+  "_": "T345 — 정본 border-radius 표(값이 코드에 박혀 정본과 어긋난 자리). 키 꼬리가 단위다: `…_r_rem` = 정본 Nrem(1rem = catalog rem_h × 앱 높이) · `…_r_w` = 정본 calc(var(--app-w) * k) 의 k(앱 폭 비율) · `…_r_px` = 정본이 절대 CSS px 로 적은 값(환산은 KeylineUi.CssPx). 읽는 곳은 `RadiusUi.Px` 한 군데(Core `RadiusRules.Px`). 정본 50% 자리는 여기 없다 — `UiKit.Circle` 이 원이다.",
   "_자": "`tools/check_border_radius.py` 가 정본 style.css 의 선언 ↔ 이 표의 값 ↔ 그 자리의 호출(`\"키\"`)을 세 겹으로 견준다. 값을 바꿀 때는 정본 줄을 먼저 본다(아래 `_…` 칸이 그 줄이다).",
 
   "_chat_bubble": "style.css 3371 .chat-bubble — 클론 ChatScreen 말풍선(정본 .42 · 클론은 .6 이었다)",
@@ -42,6 +42,10 @@
   "tech_btn_r_rem": 0.6,
   "_tech_back": "style.css 2255 `.panel .btn.tech-tree-back` — 기술 트리 뒤로 버튼(정본 .6 · 공용 뒤로 버튼(catalog back_radius_rem .45)을 덮는 제 규칙이다 · T345 7회차)",
   "tech_back_r_rem": 0.6,
+  "_currency_pill": "style.css 115 `.currency-pills .pill` — 상단바 코인·젬 알약(정본 1 · 클론은 리터럴 `rem` 이었다 · 값은 맞았다 · T345 18회차)",
+  "currency_pill_r_rem": 1.0,
+  "_pip_boss": "style.css 195 `.pip.boss { border-radius: 2px }` — 보스 웨이브 핍(45° 돌린 마름모). 정본이 rem 이 아니라 **절대 2px** 로 준 자리라 꼬리가 `_r_px` 다 · 클론은 `sprite = null` 인 민 네모였다(T345 18회차)",
+  "pip_boss_r_px": 2.0,
   "_tech_node_time": "style.css 2209 .tech-tree-label .tech-tree-node-time — 연구 중 남은 시간·«완료!» 배지(pp-ink 위 초록 글자 · 정본 .6 · 클론엔 면이 아예 없었다 · T345 4회차)",
   "tech_node_time_r_rem": 0.6
 }
