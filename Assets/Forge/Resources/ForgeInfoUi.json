@@ -13,8 +13,12 @@
     "fl_grid_pad_x_w": 0.0249,
     "fi_pill_min_w_rem": 5.5,
     "fl_age_gap_h": 0.0492,
-    "fl_cell_gap_h": 0.0069
+    "fl_cell_gap_h": 0.0069,
+    "fi_upgrade_pad_y_rem": 0.65,
+    "fi_skip_pad_y_rem": 0.72
   },
+  "_fi_upgrade_pad_y_rem": "T378 11회차 — style.css 5161 `.fi-upgrade { display: block; margin: .7rem auto 0; padding: .65rem 1.5rem; font-size: 1.05rem }`. 높이 선언이 없다 — 두 줄 글(제목 + small)이 높이를 정하고 line-height 도 안 주므로 normal(글꼴 자산 비율)이다. 클론 버튼 높이 = 이 세로 패딩 x 2 + Sub 두 줄의 글꼴 줄높이(ForgeInfoStyle.TwoLineBtnH). 전엔 btn_h x 1.7(4.08rem)이 코드에 박혀 있었다(T378 임시 목록).",
+  "_fi_skip_pad_y_rem": "T378 11회차 — style.css 5151 `.fi-card .fi-skip { padding: .72rem 2.2rem; line-height: 1.25; font-size: 1.16rem }`. 높이 = 이 세로 패딩 x 2 + 두 줄 x 1.25(LineHeightUi.json fi_card_fi_skip_lh) x 글자. 같은 btn_h x 1.7 을 쓰던 자리.",
   "_fl_list_max_h": "T388 — style.css 722 `.forge-age-list { max-height: calc(var(--app-h) * .59); overflow-y: auto }`. 정본 `.fl-card` 에는 높이 선언이 없고 상한은 안쪽 목록이 쥔다. 런 704 `screen_forge-list.png`(540×960) 실측: 클론 목록 상자 y150~795 ≈ 645px = **67%H** 로 상한 .59H(566px)를 **+13% 넘는다**(카드를 `fl_card_h_f` .76 으로 고정하고 목록을 나머지로 채우기 때문). **3회차에 배선했다**(2026-09-15 · 워커 I): 목록 높이 = min(나머지, H×이 키) **에 더해 카드도 그만큼 줄인다** — 정본 `.fl-card` 는 높이 선언이 없어 내용만큼 자라므로, 목록만 자르면 카드 아래에 정본에 없는 빈 자리가 남는다. 그래서 `fl_card_h_f` .76 은 이제 «고정 높이» 가 아니라 **그 위의 공용 상한**이다(계산: 목록 .59H + 카드 안 나머지 .0886H = **.6786H**).",
   "_fi_card_w": "style.css 5043 `.fi-card { width: min(calc(var(--app-w) * .9), 22.9rem) }` — 그 줄 끝 주석이 답을 적어 뒀다: «**원본 카드 77.19%W**». 기준 캔버스에서는 **뒤쪽(22.9rem = 833.6px)이 이겨** 그 값이 된다 — 그래서 min 을 그대로 옮긴다(`.9` 만 쓰면 972px = 90%W 로 한참 넓다).",
   "_fi_card_h": "style.css 5048 `height: calc(var(--app-h) * .8104)` + 경고 주석 «공용 --popup-h-max(약 77.6%H)로는 원본 높이가 안 나온다 — 원본 카드는 81.04%H(px 80~793)». T339 2회차 실측으로 확정: 원작 PNG(ref/screens/shot-042831.png · 498x881)의 카드 왼쪽 안쪽 세로줄(x=64)에서 밝은 판이 **y85~789 = 79.9%H** 로 이어진다 — CSS 주석과 맞는다. 등재의 «원작 68.90%H» 는 자의 측정 한계였다(줄마다 밝은 화소 비율로 재면 카드 안 어두운 막대·글자에 끊긴다). 같은 자로 클론은 72.1%H 였다.",

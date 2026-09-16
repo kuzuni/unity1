@@ -205,5 +205,33 @@ namespace Forge.Tests.PlayMode
             PopupLayer.Instance.Hide(LeagueSheet.ChallengeName);
             yield return null;
         }
+            /// <summary>11회차 — 확률 정보 팝업의 업그레이드 버튼(`ForgeInfoPopup.cs` · 정본 5161 `.fi-upgrade { padding: .65rem 1.5rem }` · 높이 선언 없음 = 두 줄 글이 정한다):
+        /// 높이 = 곁 표 `fi_upgrade_pad_y_rem` x 2 + Sub 두 줄의 글꼴 줄높이(`ForgeInfoStyle.TwoLineBtnH`) — 전엔 btn_h×1.7(4.08rem)이 박혀 있었다. 새 세이브는 Lv.1 이라 업그레이드 버튼이 선다.</summary>
+        [UnityTest]
+        public IEnumerator 확률_정보_업그레이드_버튼_높이는_곁_표_패딩과_두_줄_글꼴_줄높이로_선다()
+        {
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!ForgeHost.Ready && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            ForgeHost fh = ForgeHost.Instance;
+            Assert.IsNotNull(fh, "ForgeHost");
+            ForgeInfoPopup.Open(fh);
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(p, "확률 정보 팝업");
+            float expect = ForgeInfoStyle.TwoLineBtnH(TextKind.Sub, "fi_upgrade_pad_y_rem", null);
+            Assert.AreEqual(0.65f, ForgeInfoStyle.L("fi_upgrade_pad_y_rem"), 1e-6f, "정본 5161 padding .65rem");
+            Assert.Greater(expect, PopupKit.Rem * 1.3f + 2f * PopupKit.FontSize(TextKind.Sub), "패딩 두 겹 + 두 줄보다 크다(줄높이 비율 > 1)");
+            Button up = null;
+            foreach (Button b in p.Root.GetComponentsInChildren<Button>(true)) if (b.name == "fi-upgrade") { up = b; break; }
+            Assert.IsNotNull(up, "업그레이드 버튼(fi-upgrade) — 새 세이브 Lv.1");
+            Rect r = up.GetComponent<RectTransform>().rect;
+            Assert.AreEqual(expect, r.height, 0.5f, "높이 = 패딩 x 2 + 두 줄 글꼴 줄높이(곱 없이)");
+            Assert.Greater(Mathf.Abs(r.height - UiKit.H("btn_h") * 1.7f), 1f, "옛 btn_h×1.7(4.08rem)이 아니다");
+            PopupLayer.Instance.Hide(ForgeInfoPopup.Name);
+            yield return null;
+        }
     }
 }

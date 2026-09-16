@@ -107,7 +107,9 @@ namespace Forge.Game.Ui
                 ForgeUi.AgeBar(rowsBox, "age-" + age, inner, barH, d, age, Pct(curP.Get(age, 0)), info != null ? Pct(nextP.Get(age, 0)) : "—", stars);
             }
             PopupKit.Spacer(card, rem * 0.8f);
-            float bh = UiKit.H("btn_h") * 1.7f;
+            // T378 11회차 — 정본 5161 `.fi-upgrade { padding: .65rem 1.5rem; font-size: 1.05rem }` 은 높이를 안 준다: 두 줄 글(제목<br><small>)이 높이를 정한다
+            //   → 세로 패딩(표 `fi_upgrade_pad_y_rem`) x 2 + Sub 두 줄의 글꼴 줄높이(정본 line-height 미선언 = normal). 전엔 `btn_h * 1.7f` 가 박혀 있었다(T378 임시 목록의 그 자리).
+            float bh = ForgeInfoStyle.TwoLineBtnH(TextKind.Sub, "fi_upgrade_pad_y_rem", null);
             if (h.AscendReady)
             {
                 Button asc = PopupKit.Btn(card, "fi-upgrade", "★ 승천\n대장간 Lv." + (h.Ascension != null ? h.Ascension.Table.ForgeLevel : h.Forge.ForgeLevel) + " 도달 · 이후 제작 장비 ★" + (h.AscendCount + 1), "pp_blue", "pp_blue_dk",
@@ -134,7 +136,8 @@ namespace Forge.Game.Ui
                 PopupKit.Spacer(card, rem * 0.5f);
                 // T110 — 정본 ui.js 2043 `건너뛰기<br><span class="fi-skip-gem">${IconGen.img('gem')} N</span>`: 아랫줄은 젬 **아이콘** + 수(세로 갈래 IconTextStack).
                 // T109 14회차 — 정본 5150 `.fi-card .fi-skip { -webkit-text-stroke: 4px #000 }`: 회색 면은 공용 면 표(btn_face)에서 0 이라 이 자리는 제 키(fi_skip)를 넘긴다 — Btn 의 12번째 인자(자가 보는 자리)와 세로 갈래 조각 둘 다.
-                Button skip = PopupKit.Btn(card, "fi-skip", "", "pp_gray", "pp_gray_dk", () => h.OnGemSkipForge(), inner * 0.6f, bh, "stage_ink", TextKind.Sub, false, "fi_skip");
+                // T378 11회차 — 정본 5151 `.fi-card .fi-skip { padding: .72rem 2.2rem; line-height: 1.25 }`: 이 버튼은 줄높이를 준 자리라 표 `fi_card_fi_skip_lh`(1.25)로 잰다.
+                Button skip = PopupKit.Btn(card, "fi-skip", "", "pp_gray", "pp_gray_dk", () => h.OnGemSkipForge(), inner * 0.6f, ForgeInfoStyle.TwoLineBtnH(TextKind.Sub, "fi_skip_pad_y_rem", "fi_card_fi_skip_lh"), "stage_ink", TextKind.Sub, false, "fi_skip");
                 IconTextStack.ReplaceLabel(skip, TextKind.Sub, "건너뛰기\n💎 " + NumFmt.Fmt(h.Engine.GemSkipCost()), "stage_ink", "pp_gray", "fi_skip");
             }
             else
@@ -432,6 +435,17 @@ namespace Forge.Game.Ui
         public static float FiCardW(float appW, float rem)
         {
             return UnityEngine.Mathf.Min(L("fi_card_w_f") * appW, L("fi_card_w_max_rem") * rem);
+        }
+
+        /// <summary>T378 11회차 — 두 줄 버튼(제목 + small)의 높이. 정본은 높이를 안 주고 **글이 높이를 정한다**: 세로 패딩(표 `padKey` · rem) x 2 + 두 줄의 줄높이.
+        /// 줄높이는 정본이 `line-height` 를 준 자리면 그 표 키(`lhKey` · LineHeightUi.json), 안 준 자리면 normal = 글꼴 자산 비율(lineHeight ÷ pointSize).
+        /// 클론은 두 줄을 다 `k` 로 찍으므로(정본 small 은 글자 하한 §1 에 걸려 같은 단이다) 두 줄 x 그 글자 크기다.</summary>
+        public static float TwoLineBtnH(TextKind k, string padKey, string lhKey)
+        {
+            var f = UiFont.Primary.faceInfo;
+            float fs = PopupKit.FontSize(k);
+            float ratio = lhKey == null ? f.lineHeight / f.pointSize : (float)LineHeight.Table.Get(lhKey);
+            return L(padKey) * PopupKit.Rem * 2f + 2f * fs * ratio;
         }
     }
 
