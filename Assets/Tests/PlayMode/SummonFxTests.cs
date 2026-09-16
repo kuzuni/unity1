@@ -272,7 +272,8 @@ namespace Forge.Tests.PlayMode
             Assert.IsFalse(img.raycastTarget);
             Assert.IsNotNull(img.sprite, "구운 띠");
             // 띠 한 장 — 아래 행(마스크 1)의 최대 알파 = 심색 알파(.72) · 알파가 있는 화소 비율 ≈ 스톱 폭(70% − 34%)
-            Texture2D tex = img.sprite.texture;
+            // 구운 판은 Apply(…, makeNoLongerReadable) 라 CPU 로 못 읽는다(런 898 ArgumentException) — 와이프 자와 같이 GPU 에서 되읽는다.
+            Texture2D tex = Readable(img.sprite.texture);
             int W = tex.width, H = tex.height;
             Color32[] px = tex.GetPixels32();
             int lit = 0; byte maxA = 0;
