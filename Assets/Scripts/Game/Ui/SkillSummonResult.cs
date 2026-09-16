@@ -67,10 +67,12 @@ namespace Forge.Game.Ui
         /// <summary>T334 19회차 — 예고 충격파 한 쌍(정본 `.sr-shock` · `.sr-shock.echo`)과 그 단계 판.</summary>
         Image shockMain, shockEcho;
         Sprite[] shockMainSteps, shockEchoSteps;
+        Color shockLine;
+        float shockHalf;
         /// <summary>T334 19회차 — 굴림 에너지(정본 `--sr-e`) — 본파의 최종 반경이 이것에 물린다.</summary>
         float srEnergy;
         /// <summary>T334 16회차 — 등급 챕터 경계(정본 `_srTierBreaks`): 켜지는 시각(ms)과 그 등급.</summary>
-        struct TierBreak { public float At; public int Tier; public Color Rc, Lite; public Image Pulse, Ring, Wick; public Sprite[] Steps; }
+        struct TierBreak { public float At; public int Tier; public Color Rc, Lite; public Image Pulse, Ring, Wick; public Sprite[] Steps; public float Half; }
         readonly List<TierBreak> tierBreaks = new List<TierBreak>();
         List<Entry> entries;
         List<Entry> rollList;
@@ -500,24 +502,14 @@ namespace Forge.Game.Ui
                 int rolls = 0;
                 for (int q = 0; q < entries.Count; q++) rolls += entries[q].Qty < 1 ? 1 : entries[q].Qty;
                 srEnergy = (float)pr.Energy(rolls);
-                float sw = PetSkillStyle.Rem((float)sk.WRem), sh = sw * 0.5f;
+                float sw = PetSkillStyle.Rem((float)sk.WRem);
                 shockMainSteps = new Sprite[sk.Steps];
                 shockEchoSteps = new Sprite[sk.Steps];
-                string pkey = ColorUtility.ToHtmlStringRGB(preLine);
-                for (int k = 0; k < sk.Steps; k++)
-                {
-                    double a, sc2, br, bl;
-                    sk.MainAt(sk.MainStepMid(k), srEnergy, out a, out sc2, out br, out bl);
-                    shockMainSteps[k] = SummonFx.BakeTierRing("sr-shock-" + pkey + "-" + k, preLine,
-                        PetSkillStyle.Rem((float)br) / sh, (float)bl / sh,
-                        PetSkillStyle.Rem((float)sk.GlowRem) / sh, PetSkillStyle.Rem((float)sk.InsetGlowRem) / sh);
-                    sk.EchoAt(sk.EchoStepMid(k), out a, out sc2, out br, out bl);
-                    shockEchoSteps[k] = SummonFx.BakeTierRing("sr-shockecho-" + pkey + "-" + k, preLine,
-                        PetSkillStyle.Rem((float)br) / sh, (float)bl / sh,
-                        PetSkillStyle.Rem((float)sk.EchoGlowRem) / sh, 0f);   // 잔파엔 안쪽 광채가 없다
-                }
-                shockMain = ShockPlate(c, "sr-shock", sw, shockMainSteps[0]);
-                shockEcho = ShockPlate(c, "sr-shock-echo", sw, shockEchoSteps[0]);
+                shockLine = preLine;
+                shockHalf = sw * 0.5f;
+                // 단계 판은 **쓸 때** 굽는다(챕터 링과 같은 까닭 — Open 한 프레임에 몰면 뒤 겹의 짧은 구간이 프레임 사이로 빠진다).
+                shockMain = ShockPlate(c, "sr-shock", sw, ShockStep(false, 0));
+                shockEcho = ShockPlate(c, "sr-shock-echo", sw, ShockStep(true, 0));
             }
 
             // ---- 끝난 뒤의 잔잔한 고리(정본 `.sr-idle` 6934~6948 · `.done` 에서만 보인다) ----
@@ -682,20 +674,13 @@ namespace Forge.Game.Ui
                     Image ri2 = rr2.gameObject.AddComponent<Image>();
                     ri2.raycastTarget = false;
                     ri2.preserveAspect = false;
-                    string rk = ColorUtility.ToHtmlStringRGB(b.Rc);
                     b.Steps = new Sprite[tb.FlashSteps];
-                    float half = rw * 0.5f;
-                    for (int k = 0; k < tb.FlashSteps; k++)
-                    {
-                        double ka, ksc, kb, kblur;
-                        tb.FlashAt(tb.StepMid(k), out ka, out ksc, out kb, out kblur);
-                        // 판 반지름에 대한 비율로 바꾼다 — 배율은 거는 쪽이 따로 곱한다.
-                        float bandF = PetSkillStyle.Rem((float)kb) / half;
-                        float softF = (float)kblur / half;
-                        float glowF = PetSkillStyle.Rem((float)tb.RingGlowRem) / half;
-                        b.Steps[k] = SummonFx.BakeTierRing("sr-tierflash-" + rk + "-" + k, b.Rc, bandF, softF, glowF, 0f);
-                    }
-                    ri2.sprite = b.Steps[0];
+                    b.Half = rw * 0.5f;
+                    // ⚑ 19회차 판정에서 나온 자리 — 단계 판을 **여기서 다 굽지 않는다**. Open 한 프레임에 굽는 판이
+                    //   스물이 넘으면 그 프레임이 통째로 길어져(§1 60fps) 뒤 겹의 짧은 구간(챕터 펄스 .54s)이
+                    //   **프레임 사이로 빠진다** — 런 828 의 «첫 챕터가 안 달아올랐다» 가 그것이었다.
+                    //   쓰는 순간 굽고 이름으로 캐시한다(같은 등급·단계는 한 번만 구워진다).
+                    ri2.sprite = TierStep(tierBreaks.Count, 0, b);
                     Material rm2 = CraftFxPoly.Screen();
                     if (rm2 != null) ri2.material = rm2;
                     ri2.color = new Color(1f, 1f, 1f, 0f);
@@ -708,7 +693,7 @@ namespace Forge.Game.Ui
                     Image wi = wk.gameObject.AddComponent<Image>();
                     wi.raycastTarget = false;
                     wi.preserveAspect = false;
-                    wi.sprite = SummonFx.BakeTierWick("sr-tierwick-" + rk + "-" + ColorUtility.ToHtmlStringRGB(b.Lite), b.Rc, b.Lite);
+                    wi.sprite = SummonFx.BakeTierWick("sr-tierwick-" + ColorUtility.ToHtmlStringRGB(b.Rc) + "-" + ColorUtility.ToHtmlStringRGB(b.Lite), b.Rc, b.Lite);
                     Material wm = CraftFxPoly.Screen();
                     if (wm != null) wi.material = wm;
                     wi.color = new Color(1f, 1f, 1f, 0f);
@@ -1407,7 +1392,7 @@ namespace Forge.Game.Ui
                     b.Ring.color = new Color(1f, 1f, 1f, (float)a);
                     b.Ring.rectTransform.localScale = Vector3.one * (float)sc;
                     // 테 굵기·번짐은 구운 판이 쥔다 — 단계가 바뀔 때만 갈아 끼운다(프레임마다 굽지 않는다).
-                    Sprite want = b.Steps[sp.StepOf(e)];
+                    Sprite want = TierStep(i, sp.StepOf(e), b);
                     if (b.Ring.sprite != want) b.Ring.sprite = want;
                 }
                 if (b.Wick != null) b.Wick.color = new Color(1f, 1f, 1f, (float)sp.WickAt(e));
@@ -1438,6 +1423,41 @@ namespace Forge.Game.Ui
                 im.color = new Color(1f, 1f, 1f, (float)a);
                 im.rectTransform.localScale = Vector3.one * (float)sc;
             }
+        }
+
+        /// <summary>
+        /// 챕터 링의 <paramref name="k"/> 번 단계 판 — **처음 쓸 때** 굽는다(이름으로 캐시되므로 같은 등급·단계는 한 번뿐).
+        /// Open 한 프레임에 스무 장 넘게 구우면 그 프레임이 길어져 짧은 구간이 프레임 사이로 빠진다(런 828).
+        /// </summary>
+        static Sprite TierStep(int idx, int k, TierBreak b)
+        {
+            if (b.Steps[k] != null) return b.Steps[k];
+            SummonTierBreakSpec tb = SummonFxStyle.TierBreak;
+            double ka, ksc, kb, kblur;
+            tb.FlashAt(tb.StepMid(k), out ka, out ksc, out kb, out kblur);
+            // 판 반지름에 대한 비율로 바꾼다 — 배율은 거는 쪽이 따로 곱한다.
+            b.Steps[k] = SummonFx.BakeTierRing(
+                "sr-tierflash-" + ColorUtility.ToHtmlStringRGB(b.Rc) + "-" + k, b.Rc,
+                PetSkillStyle.Rem((float)kb) / b.Half, (float)kblur / b.Half,
+                PetSkillStyle.Rem((float)tb.RingGlowRem) / b.Half, 0f);
+            return b.Steps[k];
+        }
+
+        /// <summary>충격파의 <paramref name="k"/> 번 단계 판 — 처음 쓸 때 굽는다(이름으로 캐시).</summary>
+        Sprite ShockStep(bool echo, int k)
+        {
+            Sprite[] arr = echo ? shockEchoSteps : shockMainSteps;
+            if (arr[k] != null) return arr[k];
+            SummonShockSpec sk = SummonFxStyle.Shock;
+            double a, sc, br, bl;
+            if (echo) sk.EchoAt(sk.EchoStepMid(k), out a, out sc, out br, out bl);
+            else sk.MainAt(sk.MainStepMid(k), srEnergy, out a, out sc, out br, out bl);
+            arr[k] = SummonFx.BakeTierRing(
+                (echo ? "sr-shockecho-" : "sr-shock-") + ColorUtility.ToHtmlStringRGB(shockLine) + "-" + k, shockLine,
+                PetSkillStyle.Rem((float)br) / shockHalf, (float)bl / shockHalf,
+                PetSkillStyle.Rem((float)(echo ? sk.EchoGlowRem : sk.GlowRem)) / shockHalf,
+                echo ? 0f : PetSkillStyle.Rem((float)sk.InsetGlowRem) / shockHalf);   // 잔파엔 안쪽 광채가 없다
+            return arr[k];
         }
 
         /// <summary>충격파 판 한 장 — 광원 한가운데에 선다(둘은 **형제**다 · 정본 «::after 로 두면 배율이 중첩된다»).</summary>
@@ -1471,14 +1491,14 @@ namespace Forge.Game.Ui
             sp.MainAt(ms, srEnergy, out a, out sc, out br, out bl);
             shockMain.color = new Color(1f, 1f, 1f, (float)a);
             shockMain.rectTransform.localScale = Vector3.one * (float)sc;
-            Sprite w1 = shockMainSteps[sp.MainStepOf(ms)];
+            Sprite w1 = ShockStep(false, sp.MainStepOf(ms));
             if (shockMain.sprite != w1) shockMain.sprite = w1;
             if (shockEcho != null)
             {
                 sp.EchoAt(ms, out a, out sc, out br, out bl);
                 shockEcho.color = new Color(1f, 1f, 1f, (float)a);
                 shockEcho.rectTransform.localScale = Vector3.one * (float)sc;
-                Sprite w2 = shockEchoSteps[sp.EchoStepOf(ms)];
+                Sprite w2 = ShockStep(true, sp.EchoStepOf(ms));
                 if (shockEcho.sprite != w2) shockEcho.sprite = w2;
             }
         }

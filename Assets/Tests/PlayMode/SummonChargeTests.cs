@@ -417,15 +417,23 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(r0.rectTransform.rect.width, r0.rectTransform.rect.height, 0.01f, "정사각 판");
 
             var peak = new float[2];
-            float ringPeak = 0f, ringWide = 0f, wickPeak = 0f;
+            var seenWin = new int[2];      // 그 경계의 구간 안에 프레임이 몇 번 들어왔나
+            float ringPeak = 0f, ringWide = 0f, wickPeak = 0f, worstGap = 0f;
             var seen = new List<Sprite>();
             float t = 0f;
+            float pulseMs = (float)SummonFxStyle.TierBreak.PulseMs;
             while (!v.Done && t < 20f)
             {
+                if (Time.unscaledDeltaTime > worstGap) worstGap = Time.unscaledDeltaTime;
                 for (int i = 0; i < 2; i++)
                 {
                     Image pi = v.TierPulseOf(i);
-                    if (pi != null && pi.color.a > peak[i]) peak[i] = pi.color.a;
+                    if (pi == null) continue;
+                    if (pi.color.a > peak[i]) peak[i] = pi.color.a;
+                    // ⚑ 런 828 이 여기서 빨갰다 — 굽기가 Open 한 프레임에 몰려 **구간을 통째로 건너뛰었다**.
+                    //   그래서 «프레임이 구간 안에 들어오기는 했는가» 를 같이 세어 실패 문구에 싣는다.
+                    float el = t * 1000f - v.TierBreakAt(i);
+                    if (el >= 0f && el <= pulseMs) seenWin[i]++;
                 }
                 Image ri = v.TierRingOf(0);
                 if (ri != null && ri.color.a > 0f)
@@ -441,7 +449,10 @@ namespace Forge.Tests.PlayMode
                 yield return null;
             }
             Assert.IsTrue(v.Done, "연출이 안 끝났다(경과 " + t.ToString("0.00") + "초)");
-            Assert.Greater(peak[0], 0f, "첫 챕터가 안 달아올랐다");
+            Assert.Greater(seenWin[0], 0,
+                "첫 챕터의 " + pulseMs.ToString("0") + "ms 구간에 프레임이 한 번도 안 들어왔다(가장 긴 프레임 "
+                + (worstGap * 1000f).ToString("0") + "ms) — 달아올랐는지 잴 기회가 없었다는 뜻이다");
+            Assert.Greater(peak[0], 0f, "첫 챕터가 안 달아올랐다(구간 안 프레임 " + seenWin[0] + "번)");
             Assert.Greater(peak[1], peak[0], "등급이 오를수록 세다(정본 --pk = .15 + tier * .04)");
             Assert.LessOrEqual(peak[1], 1f, "가산 판의 정점이 1을 넘으면 화면이 하얗게 탄다");
 
@@ -511,14 +522,16 @@ namespace Forge.Tests.PlayMode
 
             // ⚑ 정본이 이름으로 경고한 자리 — 에너지는 **셀 수가 아니라 굴림 수**로 잰다.
             //   같은 «한 셀» 이라도 ×1 과 ×20 은 에너지가 달라야 한다.
+            // ⚑ 런 828 에서 이 단이 빨갰다 — **자의 전제가 틀렸다**: `Open` 은 «묶기 전 굴림 목록» 을 받고
+            //   `Group` 이 같은 Key 를 세어 `Qty` 를 **다시 매긴다**. 손으로 준 Qty 는 버려진다.
+            //   그러니 ×20 을 흉내 내려면 같은 Key 를 **스무 줄** 넣어야 한다(제품 쪽 «Qty 의 합» 은 옳았다).
             var one = new List<SkillSummonResultView.Entry>
             {
-                new SkillSummonResultView.Entry { Key = "sk:z", IconKey = "sk_fireball", Rarity = "common", Name = "하나", Qty = 1 },
+                new SkillSummonResultView.Entry { Key = "sk:z", IconKey = "sk_fireball", Rarity = "common", Name = "하나" },
             };
-            var many = new List<SkillSummonResultView.Entry>
-            {
-                new SkillSummonResultView.Entry { Key = "sk:z", IconKey = "sk_fireball", Rarity = "common", Name = "스물", Qty = 20 },
-            };
+            var many = new List<SkillSummonResultView.Entry>();
+            for (int k = 0; k < 20; k++)
+                many.Add(new SkillSummonResultView.Entry { Key = "sk:z", IconKey = "sk_fireball", Rarity = "common", Name = "스물" });
             v.OnTap(); v.OnTap();
             yield return null;
             SkillSummonResultView v1 = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", one, "common", null);
