@@ -70,7 +70,9 @@ namespace Forge.Tests.PlayMode
             float rem = PopupKit.Rem;
             float pull = CraftStyle.Px("cmp_lower_pull_rem");
             VerticalLayoutGroup cardLg = card.GetComponent<VerticalLayoutGroup>();
-            float inner = card.rect.width - cardLg.padding.left - cardLg.padding.right;
+            // 내용 폭은 코드와 같은 셈(float)으로 낸다 — 층 패딩은 RectOffset(int) 라 반올림 몫(런 985 실측 0.65px)이 ±0.6 자를 넘긴다(2회차).
+            float inner = CraftStyle.Px("card_w") - (UiKit.H("card_pad") + rem * 0.5f) * 2f;
+            Assert.AreEqual(card.rect.width - cardLg.padding.left - cardLg.padding.right, inner, 1.0f, "층 패딩(int)으로 센 내용 폭과 반올림 몫 안에서 같다");
             // ① 패널 폭 = 내용 폭 + 당김×2 — «장착됨» 카드(cur)는 내용 폭 그대로(카드 층 패딩은 안 건드린다)
             Assert.AreEqual(inner + pull * 2f, lower.rect.width, 0.6f, "회색 패널 폭 = 카드 내용 폭 + .85rem×2");
             Assert.AreEqual(inner, cur.rect.width, 0.6f, "장착됨 카드는 내용 폭 그대로");
