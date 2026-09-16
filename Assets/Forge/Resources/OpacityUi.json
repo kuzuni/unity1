@@ -27,7 +27,7 @@
     },
     "idet_icon_tn_dim": {
       "a": 0.85,
-      "_": "style.css 2194 `.idet-icon.tn-dim .ico, .idet-icon.tn-dim img { filter: grayscale(.55); opacity: .85 }`. **자리 정정(4회차)**: 이 키의 클론 자리는 ForgeInfoPopup 이 아니라 **TechPopups** 다. `tn-dim` 을 붙이는 마크업은 정본 ui.js **5601** 한 곳뿐이고(연구 상세 `.idet-icon tn-bronze tn-dim` — 아직 안 열렸고 만렙도 아닌 노드), 장비 상세의 `.idet-icon`(ui.js **2244**)에는 `tn-dim` 이 아예 안 붙는다. 그래서 이 한 줄은 `TechPopups.cs` 의 그 원반이 흐려지는 갈래에 건다(T345 lock 뒤). grayscale(.55) 는 T342 갈래로 따로."
+      "_": "style.css **2194** `.idet-icon.tn-dim .ico, .idet-icon.tn-dim img { filter: grayscale(.55); opacity: .85 }` — 연구 **노드 상세**의 청동 원반(붙는 조건은 ui.js **5601** `.idet-icon tn-bronze${!open && !max ? tn-dim : }`). **6회차에 배선했다**(TechPopups). 종전엔 둘이 틀렸다 — 값이 `tt_tlocked_alpha`(.72 · 그것은 **트리 노드** 값 · 정본 **2192**)였고, 그 알파를 **원반 상자 전체**에 걸었다(정본은 그 안의 `.ico`/`img` = 글리프에만 건다 · 청동 원은 안 흐려진다). 같은 줄의 grayscale(.55) 는 T342 갈래로 따로."
     },
     "toasts_rw_dim": {
       "a": 0.1,

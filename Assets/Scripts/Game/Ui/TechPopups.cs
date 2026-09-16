@@ -135,7 +135,12 @@ namespace Forge.Game.Ui
             Image face = max ? UiKit.Icon(ic, "face", "check") : TechPanel.TechIcon(ic, "face", id);
             float fd = icoD * UiKit.L("idet_icon_face");
             UiKit.Anchor(face.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, fd, fd);
-            if (!open && !max) ic.gameObject.AddComponent<CanvasGroup>().alpha = UiKit.L("tt_tlocked_alpha");
+            // T359 6회차 — 정본 **2194** `.idet-icon.tn-dim .ico, .idet-icon.tn-dim img { filter: grayscale(.55); opacity: .85 }`.
+            //   붙는 조건은 정본 `ui.js` **5601** `.idet-icon tn-bronze${!open && !max ? ' tn-dim' : ''}` 그대로다 — 여기 조건과 같다.
+            //   종전엔 **두 가지가 틀렸다**: ⓐ 값이 `tt_tlocked_alpha`(**0.72**)였는데 그것은 **트리 노드**의 값이다(정본 **2192** `.tech-tree-node.tlocked { opacity: .72 }`).
+            //     ⓑ 그 알파를 **원반 상자 전체**에 걸었는데 정본은 `.idet-icon` 자신이 아니라 그 안의 **`.ico`/`img`(= 글리프)** 에만 건다 — 청동 원은 안 흐려진다.
+            //   (같은 줄의 `grayscale(.55)` 는 **T342 축**이라 여기서 안 건드린다.)
+            if (!open && !max) OpacityUi.Apply(face.gameObject, "idet_icon_tn_dim");
             TextMeshProUGUI star = DungeonPopups.Bold(ic, "star", TextKind.Sub, lv + "/" + Tree.Table.MaxLevel, "pp_ink", TextAlignmentOptions.Left);
             UiKit.Place(star.rectTransform, icoD * 0.06f, icoD - subH * 0.4f, icoD * 1.5f, subH);
 

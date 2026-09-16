@@ -9,6 +9,7 @@ using UnityEngine.TestTools;
 using Forge.Core.Data;
 using Forge.Core.Forging;
 using Forge.Core.Save;
+using Forge.Core.Tech;
 using Forge.Game;
 using Forge.Game.Ui;
 
@@ -108,6 +109,56 @@ namespace Forge.Tests.PlayMode
             AscendPopup.Close();
             yield return null;
             Assert.IsFalse(AscendPopup.IsOpen);
+        }
+
+        /// <summary>
+        /// T359 6회차 — 정본 **2194** `.idet-icon.tn-dim .ico, .idet-icon.tn-dim img { filter: grayscale(.55); opacity: .85 }`
+        /// — 연구 **노드 상세**의 청동 원반(정본 `ui.js` **5601** `.idet-icon tn-bronze${!open &amp;&amp; !max ? ' tn-dim' : ''}`).
+        /// 종전엔 **두 가지가 틀렸다**: 값이 `tt_tlocked_alpha`(**.72** — 그것은 **트리 노드**의 값 · 정본 **2192**)였고,
+        /// 그 알파를 **원반 상자 전체**에 걸었다(정본은 그 안의 `.ico`/`img` = 글리프에만 건다 · 청동 원은 안 흐려진다).
+        /// (같은 줄의 `grayscale(.55)` 는 **T342 축**이라 여기서 안 본다.)
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 연구_노드_상세의_잠긴_원반은_글리프만_정본_알파로_흐려진다()
+        {
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!DungeonUiHost.Ready)
+            {
+                Assert.Less(Time.realtimeSinceStartup - t0, 20f, "DungeonUiHost 가 20초 안에 준비되지 않았다");
+                yield return null;
+            }
+            TechTree tree = DungeonUiHost.Instance.Tech;
+            Assert.IsNotNull(tree, "기술 트리");
+            string locked = null;
+            foreach (string id in tree.NodesOf("power")) if (!tree.IsUnlocked(id)) { locked = id; break; }
+            Assert.IsNotNull(locked, "잠긴 노드가 하나는 있다");
+            TechPopups.OpenNode(locked);
+            yield return null;
+            Assert.AreEqual(TechPopups.NodeState.Locked, TechPopups.State, "잠긴 노드를 열었다");
+            Canvas.ForceUpdateCanvases();
+
+            Transform ic = null;
+            foreach (Transform t in UiRoot.Instance.App.GetComponentsInChildren<Transform>(true))
+                if (t.name == "icon" && t.gameObject.activeInHierarchy && t.Find("face") != null) { ic = t; break; }
+            Assert.IsNotNull(ic, "노드 상세의 원반(icon)");
+            Transform face = ic.Find("face");
+            Assert.IsNotNull(face, "원반 안 글리프(face)");
+
+            Assert.AreEqual(0.85f, OpacityUi.A("idet_icon_tn_dim"), 1e-6f, "표 = 정본 2194 .85");
+            CanvasGroup fg = face.GetComponent<CanvasGroup>();
+            Assert.IsNotNull(fg, "정본은 `.ico`/`img`(글리프)에 건다 — 그 자리에 한 겹이 선다");
+            Assert.AreEqual(OpacityUi.A("idet_icon_tn_dim"), fg.alpha, 1e-4f, "글리프 알파 = 표(.85) · 실측 " + fg.alpha);
+
+            CanvasGroup icg = ic.GetComponent<CanvasGroup>();
+            Assert.IsTrue(icg == null || Mathf.Approximately(icg.alpha, 1f),
+                "원반 상자 전체를 흐리면 안 된다 — 정본 2194 는 `.idet-icon` 자신이 아니라 그 안의 글리프에만 건다(종전엔 여기에 .72 가 걸려 있었다)");
+            Assert.AreNotEqual(UiKit.L("tt_tlocked_alpha"), OpacityUi.A("idet_icon_tn_dim"),
+                "트리 노드(.72 · 정본 2192)와 상세 원반(.85 · 2194)은 다른 값이다 — 한 키로 묶으면 이 줄이 깨진다");
+            Debug.Log("[T359] 노드 상세 글리프 알파 " + fg.alpha.ToString("0.00") + "(표 .85 · 종전 원반 전체 .72)");
+
+            TechPopups.Close();
+            yield return null;
         }
 
         /// <summary>
