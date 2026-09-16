@@ -190,7 +190,10 @@ namespace Forge.Game.Ui
             switch (s)
             {
                 case NodeState.Max: return subH;
-                case NodeState.Locked: return DungeonPopups.RemL("btn_sm_h_rem") + gap + subH * 2f;
+                // T428 1회차 — **그리는 쪽(`RenderAction` 의 `bh`)과 같은 키여야 한다.** T401 3회차가 그린 쪽만 `tech_btn_h_rem`(정본 1750 `.item-detail[data-tech-node] .btn { min-height: 3.6rem }`)으로
+                //   올리고 **재는 이 줄은 옛 `btn_sm_h_rem`(2rem) 그대로** 두어, 카드는 1.6rem(= 29.1px · 샷 540×960) 짧게 서고 안내줄이 카드 밖에서 잘렸다(런 943 `screen_tech-node.png`:
+                //   안내줄 잉크 오른끝이 여섯 줄 내리 x=451 로 같고 «열립니다» 가 «열립니」 로 끊겼다 · T28 91회차 등재).
+                case NodeState.Locked: return btnH + gap + subH * 2f;
                 case NodeState.Ready: return subH + gap + DungeonPopups.RemL("tech_prog_h_rem") + DungeonPopups.RemL("tech_claim_mt_rem") + btnH;
                 case NodeState.Researching: return subH + gap + DungeonPopups.RemL("tech_prog_h_rem") + DungeonPopups.RemL("tech_claim_mt_rem") + btnH;
                 default: return btnH + gap + subH;

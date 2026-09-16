@@ -303,6 +303,53 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>
+        /// T428 1회차 — **잠긴 노드 카드가 버튼 높이를 옛 키로 재서 안내줄이 카드 밖에서 잘렸다.**
+        /// `ActionHeight(Locked)` 는 `btn_sm_h_rem`(2rem)으로 재고 `RenderAction` 은 `tech_btn_h_rem`(3.6rem)으로 그렸다 —
+        /// 카드 높이가 **1.6rem** 짧아 안내줄 상자가 카드 바닥 아래로 내려갔다(런 943 `screen_tech-node.png`: «열립니다» 가 «열립니」 로 끊긴다).
+        /// 이 자는 **재는 수와 그리는 수가 같은가** 를 화면에서 묻는다: 안내줄 아래끕이 카드 안이고, 남는 여백이 카드 패딩만큼이다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 기술_노드_잠김_카드는_안내줄까지_품고_선다()
+        {
+            yield return Boot();
+            TechTree tree = H.Tech;
+            string locked = null;
+            foreach (string id in tree.NodesOf("power")) if (!tree.IsUnlocked(id)) { locked = id; break; }
+            Assert.IsNotNull(locked, "잠긴 노드가 하나는 있다(1단계 위)");
+            TechPopups.OpenNode(locked);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+            Assert.AreEqual(TechPopups.NodeState.Locked, TechPopups.State, "잠긴 노드를 열었다");
+
+            RectTransform lockedBtn = DungeonPopups.Root(TechPopups.ActionButton);
+            RectTransform card = (RectTransform)lockedBtn.parent;
+            Assert.AreEqual("card", card.name, "[잠김] 알약은 노드 상세 카드의 자식이다");
+            RectTransform hint = (RectTransform)card.Find("hint");
+            Assert.IsNotNull(hint, "잠긴 카드의 안내줄(hint)");
+
+            Rect rc = World(card), rh = World(hint);
+            float over = rc.yMin - rh.yMin;   // 양수 = 안내줄이 카드 안
+            Assert.GreaterOrEqual(over, -0.5f,
+                "안내줄 아래끕이 카드 안이다 · 실측 여백 " + over.ToString("0.0") + "px(음수 = 카드 밖으로 튀어나왔다)");
+            // 고침 전에는 재는 수가 1.6rem 작아 이 여백이 음수였다. 또 반대로 너무 많이 남아도 안 된다 —
+            // 카드는 아래 패딩 한 칸만 남기므로(ch = … + pad * 2) 그 값에 서야 «재는 수 = 그리는 수» 가 증명된다.
+            float pad = rc.width * UiKit.L("idet_pad");
+            Assert.AreEqual(pad, over, Mathf.Max(1.5f, pad * 0.12f),
+                "남는 여백 = 카드 아래 패딩(idet_pad) · 실측 " + over.ToString("0.0") + "px · 표 " + pad.ToString("0.0") + "px");
+            Debug.Log("[T428] 잠긴 카드 여백 " + over.ToString("0.0") + "px · 패딩 " + pad.ToString("0.0") + "px · 카드 높이 " + rc.height.ToString("0.0"));
+            TechPopups.Close();
+            yield return null;
+        }
+
+        private static Rect World(RectTransform rt)
+        {
+            Vector3[] c = new Vector3[4];
+            rt.GetWorldCorners(c);
+            return new Rect(c[0].x, c[0].y, c[2].x - c[0].x, c[2].y - c[0].y);
+        }
+
+        /// <summary>
         /// T401 2회차 — 정본 **2255** `.panel .btn.tech-tree-back { width: 2.5rem; height: 2.5rem }`: 기술 트리 뒤로 버튼은 **정사각**이다.
         /// 클론은 리그 뒤로 버튼 치수(2.1×1.75rem)를 공용해 가로로 납작했다. 부르는 쪽이 남의 lock 이라 **반지름 키의 앞자리**로 치수 키를 함께 읽게 했으니,
         /// 이 자는 «그 규칙이 실제로 먹었는가» 를 잰다(다른 화면의 뒤로 버튼은 종전 치수 그대로여야 한다).

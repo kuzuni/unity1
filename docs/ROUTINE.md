@@ -3073,7 +3073,8 @@
 - **세었다**(결정 635): `ActionHeight` 의 다섯 갈래 중 **그리는 쪽과 키가 어긋난 것은 `Locked` 하나뿐**이다 — `Max` 는 `subH`(그리는 쪽도 `subH`) · `Ready`·`Researching`·기본은 `tech_btn_h_rem` 으로 재고 `tech_btn_h_rem` 으로 그린다. 그래서 고칠 곳은 **이 한 줄**이다.
 - 무엇을 한다: `193` 의 `btn_sm_h_rem` → `tech_btn_h_rem`(수는 코드에 안 박는다 · 표는 그대로다) · 그 위에 한 줄 «그리는 쪽(216)과 **같은 키**여야 한다 — T401 3회차가 그린 쪽만 올려 카드가 1.6rem 짧았다». `catalog.json` 의 `btn_sm_h_rem` 은 **지우지 않는다**(읽는 자리가 0 이 되는 것은 표 임자 축이다 · T415·T345 갈래).
 - 판정: EditMode/PlayMode 자 하나 — 잠긴 노드 카드에서 **[잠김] 알약 높이 = `tech_btn_h_rem`** 이고 **안내줄 상자 아래끝이 카드 안**이다(≤ 카드 아래끝 − 0). 그리고 다음 런에서 그 카드가 찍히면(T427 이 고쳐지면 안 찍힌다 — 그때는 `TechPopups` 를 직접 세우는 PlayMode 자로 본다) 안내줄이 **두 줄**로 보이고 오른쪽 끝이 줄마다 다르다.
-- 범위: `Assets/Scripts/Game/Ui/TechPopups.cs`(193 한 줄 + 주석) · `Assets/Tests/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`. ⚠ **`TechPopups.cs` 는 지금 T178 산 lock 의 범위 칸에 있다** — 풀린 뒤에 잡는다.
+- 🔄 **1회차 2026-09-16 12:5x 워커 G(sess-0542-31207 · 선점 · 판정은 다음 런)**: T178 lock 이 반납돼 `TechPopups.cs` 가 열렸다(`check_lock_queue` 의 막힌 목록에 T428 이 없다 · `task_state T428` rc 0). **등재문 그대로 한 줄**: `ActionHeight` 의 `case NodeState.Locked` 가 `DungeonPopups.RemL("btn_sm_h_rem")` 대신 **같은 메서드가 이미 쥔 `btnH`(= `tech_btn_h_rem`)** 를 쓴다 — 그리는 쪽(`RenderAction` 의 `bh`)과 **한 키**다. 수는 코드에 안 박았고 `catalog.json` 은 **안 건드렸다**(`btn_sm_h_rem` 키도 그대로 둔다 — 읽는 자리가 0 이 되는 것은 표 임자 축이다). **자 한 칸**(`DungeonUiTests.기술_노드_잠김_카드는_안내줄까지_품고_선다`): 잠긴 노드를 열어 **안내줄(hint) 아래끝이 카드 안**이고 **남는 여백이 정확히 카드 아래 패딩(`idet_pad`)** 인지 잰다. 뒤엣것이 «재는 수 = 그리는 수» 의 증명이다 — 셈으로 `ch − hint_bottom = pad` 가 딱 떨어지고(ch 의 `pad*2` 중 한 칸), 고침 전에는 그 여백이 **1.6rem 만큼 음수**였다. 세계 단위로 재고 표 비율도 같은 단위 폭(`rc.width`)에 곱해 단위를 맞췄다(결정 729). `dotnet build` 0 오류 · `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 없다.
+- 범위: `Assets/Scripts/Game/Ui/TechPopups.cs`(193 한 줄 + 주석) · `Assets/Tests/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`. ~~⚠ `TechPopups.cs` 는 T178 산 lock 의 범위 칸에 있다 — 풀린 뒤에 잡는다.~~ → **1회차에 풀려서 잡았다**(T178 반납 · 2026-09-16 12:4x).
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
