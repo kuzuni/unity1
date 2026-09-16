@@ -458,9 +458,11 @@ namespace Forge.Tests.PlayMode
             Transform x = FindIn(p.Root, "x-btn");
             if (x == null) return;
             Rect xr = RectOf((RectTransform)x);
-            float tabTopY = a.yMin + (1f - UiKit.L("tabbar_top")) * a.height;   // 화면 좌표는 아래가 0
-            Assert.GreaterOrEqual(xr.yMin, tabTopY - 0.5f,
-                what + ": 닫기 ✕ 아래턱이 탭바 위쪽(" + tabTopY.ToString("0.0") + ")보다 아래다 — 탭바가 ✕ 를 가린다");
+            // ⓔ T400 — 위 ⓓ 가 «탭바 위 층» 을 이미 못 박았으니 탭바는 ✕ 를 못 가린다. 정본은 자동 제련 카드만 하단을 탭바 위끝(90.25%H) 아래
+            //     91.75%H 까지 내리고 ✕ 를 z 31 로 탭바 위에 둔다(style.css 4673~4682) — 그래서 종전 «✕ 아래턱 ≥ 탭바 위쪽» 은 정본과 어긋나는 자였다
+            //     (런 859: 27.0 < 46.3 으로 빨강). 남는 위험은 **앱 상자 밖**으로 나가는 것뿐이라 그것만 잰다.
+            Assert.GreaterOrEqual(xr.yMin, a.yMin - 0.5f, what + ": 닫기 ✕ 아래턱이 앱 상자 아래(" + a.yMin.ToString("0.0") + ")로 나갔다");
+            Assert.LessOrEqual(xr.yMax, a.yMax + 0.5f, what + ": 닫기 ✕ 가 앱 상자 위로 나갔다");
         }
 
         /// <summary>월드 코너 넷 → 화면 사각형.</summary>
