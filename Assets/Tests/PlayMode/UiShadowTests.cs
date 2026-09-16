@@ -312,14 +312,20 @@ namespace Forge.Tests.PlayMode
             // `ForgeUi.InfoButton`). 지금 열린 것은 앞엣것이라 그 절반을 여기서 지킨다(자의 `NEED` 가 둘을 센다).
             TechPanel p = TechPanel.OpenTechTree();
             yield return null;
-            yield return null;
             Assert.IsNotNull(p, "기술 판이 안 열렸다");
+            // ⚑ 31회차 — 여기서 한 번 빨갰다(런 955): 정보 버튼은 **개요가 아니라 가지 화면**에서 선다
+            //   (`TechPanel.RenderBranch` 가 세운다). `OpenTechTree` 는 개요로 여니 한 걸음 더 들어가야 한다.
+            p.ShowBranch("power");
+            yield return null;
+            Assert.AreEqual(TechPanel.View.Branch, p.Current, "가지 화면이라야 정보 버튼이 선다");
+            // «버튼이 없다» 와 «그늘이 없다» 를 갈라 말한다 — 둘을 한 줄로 묶으면 다음 사람이 헛다리를 짚는다.
             RectTransform btn = null;
             foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
-                if (rt.name == "info-btn" && UiShadow.Find(rt, "infobtn_drop") != null) { btn = rt; break; }
-            Assert.IsNotNull(btn, "기술 판 정보 버튼의 그늘이 없다");
+                if (rt.name == "info-btn" && rt.GetComponentInParent<TechPanel>() != null) { btn = rt; break; }
+            Assert.IsNotNull(btn, "기술 판에 정보 버튼 자체가 없다");
 
             Transform sh = UiShadow.Find(btn, "infobtn_drop");
+            Assert.IsNotNull(sh, "기술 판 정보 버튼의 그늘이 없다");
             Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 원판보다 뒤에 깔린다");
             Assert.IsNotNull(sh.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
             Assert.Less(sh.GetComponent<Image>().rectTransform.anchoredPosition.y, 0f, "그늘이 아래로 안 내려갔다");
