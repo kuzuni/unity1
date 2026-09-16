@@ -202,5 +202,29 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(want.r + want.g + want.b, UiKit.C("pp_muted").r + UiKit.C("pp_muted").g + UiKit.C("pp_muted").b,
                 "«올렸다» 가 이 자리의 뜻이다 — 표값이 전역보다 어두워지면 이 줄이 먼저 깨진다");
         }
+
+        /// <summary>T396 8회차 — 장비 **목록** 타일의 승천 별. 정본 **784** `.fl-face[data-asc]…::after { color: #ff8801 }` 은
+        /// 격자 칸의 `.equip-cell .cell-star`(953 · #ffd54f)와 **다른 색**이다 — 정본은 같은 그림을 자리마다 다르게 둔다.
+        /// 클론은 둘 다 전역 `coin` 으로 찍고 있었다. 표값이 정본과 같은지는 `check_pinned_colors` 가 본다 — 여기는 «자리가 그 키를 쓰는가».</summary>
+        [UnityTest]
+        public IEnumerator 목록_타일의_승천_별은_격자_칸_별과_다른_주황이다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.Forge.AscendCount = 2;                       // 승천 0 이면 정본도 별을 안 만든다(`:not([data-asc=""])`)
+            ForgeInfoPopup.OpenList(h);
+            yield return null; yield return null;
+            Popup p = h.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(p, "모든 장비의 목록 팝업");
+            Transform st = FindDeep(p.Root, "asc");
+            Assert.IsNotNull(st, "목록 타일의 승천 별(asc) — 승천 2회라 선다");
+            TMPro.TextMeshProUGUI t = st.GetComponent<TMPro.TextMeshProUGUI>();
+            Assert.IsNotNull(t, "승천 별 글자");
+            Color want = PinnedColorUi.C("list_asc_star_ink");
+            Assert.AreEqual(want, t.color, "목록 별 = 표 list_asc_star_ink(정본 784 #ff8801)");
+            Assert.AreNotEqual(UiKit.C("coin"), t.color, "전역 coin(#ffd54f)이 아니다 — 그것은 격자 칸 별(953)의 값이다");
+            Assert.Less(want.b, UiKit.C("coin").b, "«한 단계 주황» 이 이 자리의 뜻이다 — 파랑이 격자 별보다 낮다");
+            h.Meta.Popups.HideAll();   // 이웃 자들과 같은 길(AgePatternTests 247·282·364)
+        }
     }
 }

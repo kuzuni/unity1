@@ -114,6 +114,11 @@ TABLE_INK = {
     '.ob-zzz i': ['Ui/OfflineButton.cs|res:OfflineButtonUi:zzz_ink'],                            # 정본 227 #eaf6ff ↔ OfflineButtonUi zzz_ink
     '.skill-btn.auto': ['Ui/SkillBar.cs|res:PetSkillUi:sb_auto_ink'],                            # 정본 624 #90a4ae ↔ PetSkillUi sb_auto_ink(켜짐은 white + 키라인 · 629)
     '.equip-cell .cell-star': ['Ui/ForgeUi.cs@StarBadge|catalog:coin'],                          # 정본 953 #ffd54f ↔ 카탈로그 coin 같은 값
+    # T396 8회차 — 하나는 이미 제 값이고, 하나는 «같은 그림 다른 색» 이었다.
+    '.settings-act.danger': ['Ui/ProfilePopup.cs|catalog:settings_act_danger'],   # 정본 3125 #d33 ↔ 카탈로그 settings_act_danger #dd3333 같은 값(자리가 이미 그 키를 쓴다)
+    # 장비 **목록** 타일의 승천 별 — 정본 784 #ff8801(주황). 격자 칸 `.equip-cell .cell-star`(953)는 #ffd54f 라 전역 coin 이 맞다(위 5회차 줄).
+    # 클론은 둘 다 coin 으로 찍고 있었다 — 같은 그림이라고 같은 키가 아니다.
+    '.fl-face[data-asc]:not([data-asc=""])::after': ['Ui/ForgeInfoPopup.cs|res:PinnedColorUi:list_asc_star_ink'],
     # T396 7회차 — 산 lock 밖 파일 셋. 둘은 **이미 제 값**(자리만 적으면 닫힌다)이고 하나는 근사였다.
     '.tb-val': ['Ui/TechPopups.cs|catalog:tb_val'],                     # 정본 2252 #1fa64a ↔ 카탈로그 tb_val 같은 값(`_` 칸에 «.tb-val · .tn-gain» 이라 적혀 있다)
     '.shop-sheet .shop-title': ['Ui/ShopSheet.cs|catalog:shop_title'],  # 정본 2884 #ffb300 ↔ 카탈로그 shop_title 같은 값

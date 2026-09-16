@@ -287,6 +287,10 @@ namespace Forge.Game.Ui
             if (stars > 0)
             {
                 TextMeshProUGUI st = UiKit.Text(tile, "asc", TextKind.Sub, ForgeUi.Stars(stars, 3), "coin");
+                // T396 8회차 — 정본 **784** `.fl-face[data-asc]…::after { color: #ff8801 }`. **정본은 같은 별을 자리마다 다른 색으로 둔다** —
+                //   격자 칸의 `.equip-cell .cell-star`(953)는 #ffd54f 라 전역 `coin` 이 맞지만(5회차가 그 짝을 적었다),
+                //   여기 **목록 타일**은 한 단계 주황이다(G −77 · B −78). 같은 그림이라고 같은 키가 아니다.
+                st.color = PinnedColorUi.C("list_asc_star_ink");
                 st.fontStyle = FontStyles.Bold;
                 PopupKit.Ring(st, "pp_line", 0.25f);
                 UiKit.Anchor(st.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), Vector2.zero, size, st.fontSize * 1.2f);
