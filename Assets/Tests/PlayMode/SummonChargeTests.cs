@@ -498,8 +498,35 @@ namespace Forge.Tests.PlayMode
             float mainPeak = 0f, echoPeak = 0f, mainWide = 0f, mainPeakAt = -1f, echoPeakAt = -1f;
             float chargePeak = 0f, chargePeakAt = -1f, chargePeakScale = 0f;
             float streakPeak = 0f, streakFar = 0f, streakNear = float.MaxValue;
-            float motePeak = 0f, moteRose = 0f;
-            var moteHome = new Dictionary<int, float>();
+            // ⚑ 24회차 — 23회차가 런 872·875 에서 같은 자리로 빨갔다: 알파는 켜졌는데 «오른 높이» 가 **정확히 0** 이었다.
+            //   둘이 같이 서려면 ⓐ 자리가 아예 안 써지거나 ⓑ 시각이 안 흐르거나 ⓒ 표본이 없어야 한다 —
+            //   그러니 «못 올랐다» 만 외치지 말고 **숫자를 들고** 울자(집·처음·폭·알파·예상값·프레임·시각 창).
+            var mq = new List<int>();
+            for (int q = 0; q < v.MoteCount; q += 7) mq.Add(q);   // 80개를 프레임마다 다 훑지 않는다(자도 60fps 를 지킨다)
+            int mn = mq.Count;
+            float[] mFirst = new float[mn], mMin = new float[mn], mMax = new float[mn], mLastA = new float[mn];
+            bool[] mSeen = new bool[mn];
+            float motePeak = 0f, moteRose = 0f, mMsFirst = -1f, mMsLast = -1f;
+            int mFrames = 0;
+            System.Action Sample = () =>
+            {
+                mFrames++;
+                mMsLast = v.ElapsedMs;
+                if (mMsFirst < 0f) mMsFirst = mMsLast;
+                for (int k = 0; k < mn; k++)
+                {
+                    Image mi2 = v.MoteOf(mq[k]);
+                    if (mi2 == null) continue;
+                    float yy = v.MoteAt(mq[k]).y;
+                    mLastA[k] = mi2.color.a;
+                    if (mi2.color.a > motePeak) motePeak = mi2.color.a;
+                    if (!mSeen[k]) { mSeen[k] = true; mFirst[k] = yy; mMin[k] = yy; mMax[k] = yy; continue; }
+                    if (yy < mMin[k]) mMin[k] = yy;
+                    if (yy > mMax[k]) mMax[k] = yy;
+                    float rose = yy - mFirst[k];
+                    if (rose > moteRose) moteRose = rose;
+                }
+            };
             var seen = new List<Sprite>();
             float t = 0f;
             while (!v.Done && t < 12f)
@@ -522,17 +549,7 @@ namespace Forge.Tests.PlayMode
                     if (d > streakFar) streakFar = d;
                     if (d < streakNear) streakNear = d;
                 }
-                for (int q = 0; q < v.MoteCount; q += 7)   // 80개를 프레임마다 다 훑지 않는다(자도 60fps 를 지킨다)
-                {
-                    Image mi2 = v.MoteOf(q);
-                    if (mi2 == null) continue;
-                    if (mi2.color.a > motePeak) motePeak = mi2.color.a;
-                    float yy = v.MoteAt(q).y;
-                    float h0;
-                    if (!moteHome.TryGetValue(q, out h0)) { moteHome[q] = yy; continue; }
-                    float rose = yy - h0;
-                    if (rose > moteRose) moteRose = rose;
-                }
+                Sample();
                 Image ci = v.ChargeBurst;
                 if (ci != null && ci.color.a > chargePeak)
                 {
@@ -542,6 +559,10 @@ namespace Forge.Tests.PlayMode
                 t += Time.unscaledDeltaTime;
                 yield return null;
             }
+            // ⚑ 24회차 — 정본은 깊이 평면을 **끝없이**(`infinite`) 돌린다 — `done` 이 됐다고 멈추지 않는다.
+            //   창이 짧아 못 본 것이 아니게 끝난 뒤에도 더 본다(이 자체가 정본 계약이다).
+            float tm = 0f;
+            while (tm < 0.6f) { Sample(); tm += Time.unscaledDeltaTime; yield return null; }
             // ⚑ 21회차 — 빛 모임(정본 `.sr-charge`)은 충격파보다 **먼저** 정점을 찍는다(충격파가 그 정점에 나간다).
             Assert.IsNotNull(v.ChargeBurst, "빛 모임 판이 없다");
             Assert.IsNotNull(v.ChargeBurst.sprite, "구운 방사 판 한 장이라야 한다");
@@ -555,8 +576,24 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(seen.Count, 1, "본파가 처음부터 끝까지 같은 판이었다 — 테 굵기가 안 줄었다는 뜻이다");
             // ⚑ 23회차 — 깊이 평면 셋(빛가루 18 · 먼지 48 · 보케 14 = 80)은 **끊임없이** 떠오른다.
             Assert.AreEqual(18 + 48 + 14, v.MoteCount, "정본 개수(18+48+14)와 다르다");
-            Assert.Greater(motePeak, 0f, "입자가 한 번도 안 켜졌다");
-            Assert.Greater(moteRose, 0f, "입자가 안 떠올랐다(자리가 안 움직였다)");
+            // 울 때 내민 숫자 — 본 것과 **표가 이러야 한다는 값**을 나란히 둔다.
+            //   알파가 예상과 같은데 폭이 0 이면 «자리만 안 써졌다» 고, 둘 다 어긋나면 «시각이 안 흐른다» 다.
+            string mdbg = "표본 " + mn + "/" + v.MoteCount + " · 프레임 " + mFrames
+                + " · " + mMsFirst.ToString("0") + "~" + mMsLast.ToString("0") + "ms";
+            for (int k = 0; k < mn; k++)
+            {
+                int q = mq[k];
+                var LL = q < 18 ? SummonFxStyle.Particles.Motes : (q < 66 ? SummonFxStyle.Particles.Dust : SummonFxStyle.Particles.Near);
+                int li = q < 18 ? q : (q < 66 ? q - 18 : q - 66);
+                double pa, ptx, pty, psc;
+                LL.At(li, mMsLast, out pa, out ptx, out pty, out psc);
+                mdbg += " | " + q + ": 집" + v.MoteHomeOf(q).y.ToString("0.0")
+                    + " 처음" + mFirst[k].ToString("0.0") + " 폭" + (mMax[k] - mMin[k]).ToString("0.00")
+                    + " a" + mLastA[k].ToString("0.000") + "(예" + pa.ToString("0.000") + ")"
+                    + " ty예" + pty.ToString("0.00");
+            }
+            Assert.Greater(motePeak, 0f, "입자가 한 번도 안 켜졌다 — " + mdbg);
+            Assert.Greater(moteRose, 0f, "입자가 안 떠올랐다(자리가 안 움직였다) — " + mdbg);
 
             // ⚑ 22회차 — 수렴 빛줄기는 바깥에서 광원으로 **모여든다**(퍼지면 반대 연출이 된다).
             Assert.GreaterOrEqual(v.StreakCount, 9, "빛줄기가 하한보다 적다");

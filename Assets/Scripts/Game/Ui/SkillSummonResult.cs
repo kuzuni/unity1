@@ -1685,6 +1685,10 @@ namespace Forge.Game.Ui
         public int MoteCount { get { return motes.Count; } }
         public Image MoteOf(int i) { return i >= 0 && i < motes.Count ? motes[i].Img : null; }
         public Vector2 MoteAt(int i) { return i >= 0 && i < motes.Count ? motes[i].Rt.anchoredPosition : Vector2.zero; }
+        /// <summary>그 점의 «집»(움직이기 전 자리) — 자가 본다(움직임을 재려면 기준이 있어야 한다).</summary>
+        public Vector2 MoteHomeOf(int i) { return i >= 0 && i < motes.Count ? motes[i].Home : Vector2.zero; }
+        /// <summary>모달이 열린 뒤 흐른 시각(ms) — 자가 본다(연출은 전부 이 하나로 돌아간다).</summary>
+        public float ElapsedMs { get { return (Time.unscaledTime - start) * 1000f; } }
 
         /// <summary>수렴 빛줄기 — 자가 본다.</summary>
         public int StreakCount { get { return streaks.Count; } }
