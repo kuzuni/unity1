@@ -62,6 +62,14 @@ TABLE = {
     # T333 13회차 — 산 lock 밖 두 자리: HUD 채팅 미리보기 이름(8069 · id 특이도로 8392 묶음을 이긴다 · 한 겹 .5) · 퀘스트 진행 막대 글(2050 · 한 겹 .75)
     '#chat-preview .chat-preview-name': ['Ui/Hud.cs#chat-preview-name'],
     '.qst-bar em': ['Ui/QuestSheet.cs#prog'],
+    # T333 14회차 — 던전 배너 제목·열쇠(3890·3902 8방 1px 순검정 = ring) · 자동 제련 스피너 글(5005 한 겹) · 아이콘 자리 넷(KNOWN)
+    '.modal-card.sheet .dg-banner .item-name': ['ring:Ui/DungeonSheet.cs#name'],
+    '.modal-card.sheet .dg-banner .dg-keys': ['ring:Ui/DungeonSheet.cs#keys'],
+    '.af-spinner': ['Ui/ForgeAutoPopup.cs#value'],
+    '.af-age-star': ['ring:Ui/ForgeAutoPopup.cs@Open'],
+    '.af-check.on': ['Ui/ForgeAutoPopup.cs#mark'],
+    '.petup-bulk .bulk-sil': ['Ui/PetUpgradePopup.cs#bulk-sil'],
+    '.pet-tile .tile-check': ['Ui/PetUpgradePopup.cs@Check'],
     # T333 5회차 — 산 lock 밖 세 자리(T335 반납으로 열린 던전 클리어 제목 · 보스 워닝 마퀴·부제): 여러 겹 중 «읽히게 만드는 한 겹»(league_row 갈래)
     # T333 9회차 — 판매 코인 금액(7426 `.coin-amt` · 정본 주석 «이너=노랑 · 아웃라인=검정»): 8방향 링 → SDF 스트로크(`ring:`) · 값은 CoinBurstUi.json(amt_ring_* · 결정 655)
     '.coin-amt': ['ring:Ui/CoinBurst.cs@Amount'],
@@ -98,6 +106,10 @@ TABLE = {
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ────────────────────────────────
 KNOWN = {
+    'ring:Ui/ForgeAutoPopup.cs@Open': 'T333 14회차 — 정본 4858 `.af-age-star` 4방 1px 링은 별 **글자**에 두른 것인데 클론의 승천 별은 아틀라스 아이콘(T58 · IconGen star)이라 글자 자리가 없다 — 아이콘엔 링을 못 두른다(`.chat-input-bar .btn.danger.round` 와 같은 갈래)',
+    'Ui/ForgeAutoPopup.cs#mark': 'T333 14회차 — 정본 4978 `.af-check.on` 의 ✓ 는 글자인데 클론은 아틀라스 아이콘(PopupKit.IconOr check)이라 언더레이가 안 닿는다 — 아이콘 자리',
+    'Ui/PetUpgradePopup.cs#bulk-sil': 'T333 14회차 — 정본 4372 `.petup-bulk .bulk-sil { color: transparent; text-shadow: 0 0 0 var(--rc) }` 는 이모지 글자를 «등급색 실루엣» 으로 만드는 꼼수 — 클론은 아틀라스 아이콘(egg/paw)에 등급색 틴트를 주어 같은 결과를 이미 낸다(그림자가 아니라 색이 목적) · 4375 `.on` 흰색도 틴트로',
+    'Ui/PetUpgradePopup.cs@Check': 'T333 14회차 — 정본 4378 `.pet-tile .tile-check` 의 ✓ 는 글자(text-shadow 0 1px 2px .5)인데 클론은 아틀라스 아이콘(UiKit.Icon check)이라 언더레이가 안 닿는다 — 아이콘 자리',
     'Ui/ForgeInfoPopup.cs#idet-name': 'T332·T339 의 산 lock 이 쥔 파일 — 정본 8381 `.modal-card .idet-name`(장비 상세 이름) 은 그 lock 뒤',
     'Ui/QuestSheet.cs#qst-name': 'T331 산 lock + 클론에 그 이름 자리가 아직 없다 — 정본 8381 `.qst-row .qst-name`',
     'ring:Ui/ChatScreen.cs@Open': 'T333 4회차 — 클론의 «◀» 는 글자가 아니라 아틀라스 아이콘(tri_left)이라 링을 글자에 못 두른다: 키운 삼각을 뒤에 깔아야 하고 아틀라스엔 검정 틴트 변형이 없다(정본이 안 부른다) · 길 둘 = Image.color 곱하기 / 도형 굽기 · 다음 회차',

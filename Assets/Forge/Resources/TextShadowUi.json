@@ -112,6 +112,14 @@
       "color": "#000000",
       "alpha": 0.75,
       "_": "style.css 2050~2053 `.qst-bar em { font-size: .62rem; font-weight: 900; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.75) }` — 퀘스트 진행 막대 위 «N/M» 글. 한 겹이라 그대로. 글자 색(정본 #fff ↔ 클론 pp_ink)은 잉크 축 T396 몫이라 여기선 그림자만. T333 13회차"
+    },
+    "af_spinner": {
+      "dx_px": 0,
+      "dy_px": 1.12,
+      "blur_px": 0,
+      "color": "#000000",
+      "alpha": 0.5,
+      "_": "style.css 5005 `.af-spinner { text-shadow: 0 .07rem 0 rgba(0,0,0,.5) }` — 망치 수 스피너 글(«N ▲»). .07rem = 1.12 CSS px(16px/rem) · 흐림 0 · 한 겹이라 그대로. T333 14회차"
     }
   },
   "btn_none_keylines": [
@@ -121,7 +129,11 @@
   "shadows_": "btn 의 «색 버튼» 은 T109 7회차와 같은 가름 — KeylineUi.json btn_face 에 든 면(pp_blue·pp_green·pp_red = 정본 .primary/.on/.equip/.danger/.sell)만 그림자 · 그 밖(회색·종이·디버그 = 정본 .silver 계열)은 없음 · 비활성은 면과 무관하게 흰 엠보스(8356)",
   "rings": {
     "chat_name": 2,
-    "chat_name_": "style.css 3344 `.chat-name, .chat-tag` 의 20겹 링 = **변당 2px 순검정**(정본 주석: «1px 8방향으로는 절반밖에 안 나오므로 2px 링을 겹쳐 두른다» · --olc 오타로 죽었던 4겹을 #000 으로 되살린 그 규칙). 링은 언더레이 한 겹으로 못 내니 UiKit.OutlinePx(SDF 스트로크 · T104)로 낸다 — 색은 카탈로그 pp_line(#000000)."
+    "chat_name_": "style.css 3344 `.chat-name, .chat-tag` 의 20겹 링 = **변당 2px 순검정**(정본 주석: «1px 8방향으로는 절반밖에 안 나오므로 2px 링을 겹쳐 두른다» · --olc 오타로 죽었던 4겹을 #000 으로 되살린 그 규칙). 링은 언더레이 한 겹으로 못 내니 UiKit.OutlinePx(SDF 스트로크 · T104)로 낸다 — 색은 카탈로그 pp_line(#000000).",
+    "dg_banner_name": 1,
+    "dg_banner_name_": "style.css 3890 `.modal-card.sheet .dg-banner .item-name { text-shadow: 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000, 1px 0 0 #000, … }` — 정본 주석 3887 «그림 위 흰 제목은 순검정 8방 외곽선으로 세운다». 변당 1 CSS px. 전엔 카탈로그 `dg_name_outline`(SDF 폭 .15 · T104 이전 갈래)이었다 — T333 14회차에 OutlinePx 로.",
+    "dg_banner_keys": 1,
+    "dg_banner_keys_": "style.css 3902 `.modal-card.sheet .dg-banner .dg-keys { text-shadow: 8방 1px #000 }` — 열쇠 «N/M» 도 같은 8방 링(3898~3900 주석 «키라인으로 옮긴다»). 변당 1 CSS px. T333 14회차."
   },
   "rings_": "T333 3회차 — 정본이 «4/8방향 hard 링» 으로 흉내 낸 text-shadow(키라인 자 표 밖 · 등재 절 셋째 갈래)의 **변당 두께**(정본 CSS px). 값은 TextShadowUi.RingPx 가 KeylineUi css_px 로 캔버스 px 로 환산한다."
 }

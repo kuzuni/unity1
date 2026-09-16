@@ -113,6 +113,7 @@ namespace Forge.Game.Ui
             PressFx.Attach(sp.gameObject, spRt, "af_spinner", spf);   // T355 ⓔ — 정본 5009·5011 .af-spinner:active { translateY(.1rem) · .07s ease-out }
             TextMeshProUGUI spt = UiKit.Text(spRt, "value", TextKind.Sub, NumFmt.Fmt(cfg.HammersPerBatch) + (ddOpen ? "  ▼" : "  ▲"), "stage_ink", TextAlignmentOptions.Right);
             spt.fontStyle = FontStyles.Bold;
+            UiKit.TextShadow(spt, "af_spinner");   // T333 14회차 — 정본 5005 `.af-spinner { text-shadow: 0 .07rem 0 rgba(0,0,0,.5) }`
             spt.rectTransform.offsetMax = new Vector2(-rem * 0.5f, 0f);
             TextMeshProUGUI cl = UiKit.Text(bottom, "continue-label", TextKind.Sub, "목표 장비를 찾으면 제련 계속하기", "pp_ink", TextAlignmentOptions.Left);
             cl.fontStyle = FontStyles.Bold;

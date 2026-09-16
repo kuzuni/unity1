@@ -218,7 +218,7 @@ namespace Forge.Game.Ui
                 }
             x += ico * 0.6f;
             TextMeshProUGUI name = DungeonPopups.Bold(rt, "name", TextKind.Body, d.Kr, "white", TextAlignmentOptions.Left);
-            UiKit.Outline(name, "pp_line", UiKit.L("dg_name_outline"));
+            UiKit.OutlinePx(name, "pp_line", TextShadowUi.RingPx("dg_banner_name"));   // T333 14회차 — 정본 3890 8방 1px 순검정 링(표 rings · 전엔 카탈로그 dg_name_outline SDF 폭 .15)
             UiKit.Place(name.rectTransform, x, padY, bw * 0.55f, nameH);
 
             if (!ok)
@@ -247,7 +247,7 @@ namespace Forge.Game.Ui
                 float kIco = keysH * 1.65f / 1.25f;
                 string kText = NumFmt.Fmt(keys) + "/" + DungeonRules.MaxKeys;
                 TextMeshProUGUI kt = DungeonPopups.Bold(rt, "keys", TextKind.Sub, kText, "dg_keys", TextAlignmentOptions.Right);
-                UiKit.Outline(kt, "pp_line", UiKit.L("dg_name_outline"));
+                UiKit.OutlinePx(kt, "pp_line", TextShadowUi.RingPx("dg_banner_keys"));   // T333 14회차 — 정본 3902 열쇠 «N/M» 도 8방 1px 링
                 float ktW = btnW * 0.6f;
                 UiKit.Place(kt.rectTransform, colRight - ktW, colTop, ktW, keysH);
                 string kIcon; KeyIcon.TryGetValue(d.Id, out kIcon);

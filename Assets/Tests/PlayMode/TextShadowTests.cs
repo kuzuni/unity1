@@ -346,5 +346,54 @@ namespace Forge.Tests.PlayMode
             h.Popups.Hide(QuestSheet.Name);
             yield return null;
         }
+
+        /// <summary>T333 14회차 — 정본 3890·3902 던전 배너 제목·열쇠의 8방 1px 순검정 링(표 rings · SDF 스트로크) · 5005 자동 제련 스피너 글 `0 .07rem 0 .5` 한 겹.</summary>
+        [UnityTest]
+        public IEnumerator 던전_배너_제목과_열쇠는_8방_1px_링을_스트로크로_내고_자동_제련_스피너_글은_아래_한_겹을_쓴다()
+        {
+            yield return Boot();
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Assert.IsNotNull(DungeonSheet.Instance, "던전 시트");
+            int names = 0, keys = 0;
+            foreach (TextMeshProUGUI t in DungeonSheet.Instance.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name != "name" && t.name != "keys") continue;
+                string key = t.name == "name" ? "dg_banner_name" : "dg_banner_keys";
+                float want = TextShadowUi.RingPx(key);
+                Assert.Greater(want, 1.5f, "표 rings(1 CSS px) × css_px(2.164) 는 1.5 캔버스 px 를 넘어야 한다");
+                Material m = t.fontMaterial;
+                OutlineSdf o = OutlineSdf.FromStroke(want, t.fontSize, m.GetFloat("_GradientScale"),
+                    m.HasProperty("_ScaleRatioA") ? m.GetFloat("_ScaleRatioA") : 1f, t.font.faceInfo.pointSize);
+                Assert.AreEqual((float)o.Width01, m.GetFloat("_OutlineWidth"), 1e-3f, "배너 «" + t.text + "»: 링 두께 = 표 × css_px 의 SDF 환산(전엔 카탈로그 dg_name_outline .15)");
+                Assert.Greater(t.outlineWidth, 0f, "배너 «" + t.text + "»: 링이 실제로 켜져야 한다");
+                Color oc = m.GetColor("_OutlineColor");
+                Assert.Less(oc.r + oc.g + oc.b, 0.1f, "배너 «" + t.text + "»: 링은 순검정(정본 #000)");
+                if (t.name == "name") names++; else keys++;
+            }
+            Assert.Greater(names, 0, "배너 제목(name)이 있다");
+            Assert.Greater(keys, 0, "배너 열쇠(keys)가 있다");
+
+            ForgeHost fh = ForgeHost.Instance;
+            fh.S.BestChapter = 3; fh.S.BestStage = 1;   // AgePatternTests 의 길 — 새 세이브는 2-10 전이라 Open 이 🔒 토스트만 낸다(런 299)
+            fh.S.ForgeLevel = 29;
+            fh.Pull();
+            Assert.IsTrue(fh.AutoForgeUnlocked, "2-10 뒤 해금");
+            ForgeAutoPopup.Open(fh);
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(p, "자동 제련 팝업");
+            TextMeshProUGUI v = null;
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true)) if (t.name == "value" && t.transform.parent != null && t.transform.parent.name == "af-spinner") { v = t; break; }
+            Assert.IsNotNull(v, "스피너 글(af-spinner/value)");
+            AssertShadow(v, "af_spinner", "자동 제련 스피너 글");
+            Assert.AreEqual(0f, v.fontMaterial.GetFloat("_UnderlaySoftness"), 1e-4f, "정본 5005 흐림 0");
+            PopupLayer.Instance.Hide(ForgeAutoPopup.Name);
+            yield return null;
+        }
     }
 }
