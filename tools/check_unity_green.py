@@ -131,14 +131,24 @@ def skip_note(sk, status=None):
 
     «KNOWN T…» 사유만 «남은 일» 로 센다 — 환경 사유(그래픽 장치 없음 따위)는 남은 일이 아니다.
     `status` 는 <see cref="row_status"/> 의 표(번호 → 상태). 닫힌 번호를 대고 있는 건너뜀은 **되살릴 때**다."""
-    known, envs, stale = [], [], []
+    known, envs, stale, partial = [], [], [], []
     for name, why in sk or []:
         if why.startswith('KNOWN'):
             ids = ['T' + n for n in KNOWN_ID.findall(why)]
             known.append((name, why, ids))
-            for t in ids:
-                if status and any(mk in status.get(t, '') for mk in CLOSED_MARKS) and t not in stale:
-                    stale.append(t)
+            # T412 — «이제 켜라» 는 그 자리가 댄 번호가 **전부** 닫혔을 때만이다(any 가 아니라 all).
+            #   한 번호라도 열려 있으면 접어 둘 까닭이 남은 것이다 — 런 848 실측: 문구 «KNOWN T411·T117·T134·T333» 에서
+            #   T411 이 열려 있는데(lock 23분) T117·T134 가 닫혔다고 울었고, 임자는 문구에서 닫힌 번호를 지우는 우회를 했다
+            #   (그러면 «한때 그 번호가 막았다» 는 기록이 사라진다). 닫힌 것과 열린 것이 섞이면 «아직 열린 번호» 를 적어 준다.
+            if status and ids:
+                closed = [t for t in ids if any(mk in status.get(t, '') for mk in CLOSED_MARKS)]
+                still = [t for t in ids if t not in closed]
+                if closed and not still:
+                    for t in closed:
+                        if t not in stale:
+                            stale.append(t)
+                elif closed and still:
+                    partial.append((name, closed, still))
         else:
             envs.append((name, why))
     lines = []
@@ -155,9 +165,13 @@ def skip_note(sk, status=None):
     if envs:
         lines.append('  · 건너뜀 %d 은 환경 사유다(남은 일이 아니다): %s'
                      % (len(envs), ' · '.join(skip_name(n) for n, _ in envs)))
+    for name, closed, still in partial:
+        lines.append('  · 접힌 채 둔다 — %s: %s 는 닫혔지만 **%s 이(가) 아직 열려 있다**(접어 둘 까닭이 남았다 ·'
+                     ' 댄 번호가 전부 닫히면 «이제 켜라» · 문구에서 닫힌 번호를 지우지 마라 — 한때 막았던 기록이다 · T412)'
+                     % (skip_name(name), ' · '.join(closed), ' · '.join(still)))
     if stale:
         lines.append('  ⚑ **이제 켜라** — %s 는 이미 닫힌 행인데(✅·⛔·✂) 그 번호를 대고 접혀 있는 자가 있다.'
-                     ' 접어 둘 까닭이 사라졌으니 `Assert.Ignore` 를 걷고 그 자리를 세운다(T386 ⓒ).' % ' · '.join(stale))
+                     ' 접어 둘 까닭이 사라졌으니 `Assert.Ignore` 를 걷고 그 자리를 세운다(T386 ⓒ · 댄 번호가 **전부** 닫혔다 · T412).' % ' · '.join(stale))
     return lines, stale
 
 
@@ -2060,12 +2074,21 @@ def self_test():
     eq('ⓩ 접어 둔 자리는 초록을 안 깬다', rc386, 0)
     eq('ⓩ 초록 줄 옆에 남은 일이 선다', any('남은 일 1' in l for l in out386), True)
 
-    closed333 = {'T333': '✅ 완료', 'T354': '🔄 진행'}
+    # T412 — 댄 번호 둘 중 하나만 닫혔으면 **안 운다**(접어 둘 까닭이 남았다) · «아직 열린 번호» 를 적어 준다
+    half333 = {'T333': '✅ 완료', 'T354': '🔄 진행'}
+    ln_half, half_ids = skip_note(sk386, half333)
+    eq('ⓩ T412 둘 중 하나만 닫히면 켜라고 안 한다', half_ids, [])
+    eq('ⓩ T412 아직 열린 번호를 적어 준다', any('T354 이(가) 아직 열려 있다' in l and 'T333 는 닫혔지만' in l for l in ln_half), True)
+    eq('ⓩ T412 반쪽은 «이제 켜라» 가 아니다', any('이제 켜라' in l and l.strip().startswith('⚑') for l in ln_half), False)
+    rc_half, _ = judge(green386, True, 0, skipped=(ln_half, half_ids))
+    eq('ⓩ T412 반쪽 닫힘은 rc 0', rc_half, 0)
+    # 댄 번호가 **전부** 닫혔을 때만 운다
+    closed333 = {'T333': '✅ 완료', 'T354': '⛔ 접음'}
     ln_stale, stale_ids = skip_note(sk386, closed333)
-    eq('ⓩ 닫힌 번호를 집는다', stale_ids, ['T333'])
+    eq('ⓩ 전부 닫힌 번호를 집는다', stale_ids, ['T333', 'T354'])
     eq('ⓩ «이제 켜라» 를 적는다', any('이제 켜라' in l for l in ln_stale), True)
     rc_stale, out_stale = judge(green386, True, 0, skipped=(ln_stale, stale_ids))
-    eq('ⓩ 닫힌 번호를 대고 접혀 있으면 rc 1', rc_stale, 1)
+    eq('ⓩ 전부 닫힌 번호를 대고 접혀 있으면 rc 1', rc_stale, 1)
     eq('ⓩ 그래도 판정 줄 자체는 초록', any(l.startswith('✓ check_unity_green') for l in out_stale), True)
 
     # 접힌 것이 환경 사유뿐이면 한 줄도 «남은 일» 로 안 센다
