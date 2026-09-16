@@ -59,26 +59,32 @@ namespace Forge.Game.Ui
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
             UiKit.Anchor(card, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, CraftStyle.BottomPx()), w, card.sizeDelta.y);
             VerticalLayoutGroup cardLg = PopupKit.Column(card, pad + rem * 0.5f, rem * 0.5f);
-            // T390 — 정본 style.css 1819 `.cmp-lower { margin: 0 -.85rem -.85rem }`(주석 «카드 패딩 1.1rem + 테두리 3px 이므로 -.85rem 음수 마진이 인셋 7px 을 만든다»):
-            // 회색 패널이 카드의 아래 패딩(1.1rem = `card_pad`)을 .85rem 파고든다 → 카드 층의 **아래** 패딩 = card_pad − 당김(표 `cmp_lower_pull_rem`).
-            // 하단 앵커 카드라 이 여백이 곧 카드 위끝을 민다(1781 주석) — 런 723 실측 버튼 아래 여백 63px ↔ 원작 26px(+33px 이 통째로 카드 높이).
-            cardLg.padding = new RectOffset(cardLg.padding.left, cardLg.padding.right, cardLg.padding.top, Mathf.RoundToInt(pad - CraftStyle.Px("cmp_lower_pull_rem")));
+            // T390·T429 — 정본 style.css 1819 `.cmp-lower { margin: 0 -.85rem -.85rem }`(주석 «카드 패딩 1.1rem + 테두리 3px 이므로 -.85rem 음수 마진이 인셋 7px 을 만든다»).
+            // 축약형은 **위 0 · 좌우 −.85rem · 아래 −.85rem** 이라 당김이 셋이고 **같은 키 하나(`cmp_lower_pull_rem`)가 세 자리를 쥔다**:
+            //   ① 아래 — 회색 패널이 카드의 아래 패딩(1.1rem = `card_pad`)을 .85rem 파고든다 → 카드 층의 **아래** 패딩 = card_pad − 당김(T390).
+            //      하단 앵커 카드라 이 여백이 곧 카드 위끝을 민다(1781 주석) — 런 723 실측 버튼 아래 여백 63px ↔ 원작 26px(+33px 이 통째로 카드 높이).
+            //   ②③ 좌우 — 패널 폭 = 내용 폭 + 당김×2 · 카드 층(UpperCenter)이 그 넘친 폭을 양쪽에 반씩 나눠 x 가 −당김 이 된다(T429 · 아래 `panelW`).
+            //      런 955 실측 카드 테 → 회색 판 틈 왼 25·오른 26 ↔ 원작 7px(x90~415) — 아래 틈만 맞고 좌우는 안 파고들고 있었다.
+            //      ⚠ 카드 층의 좌우 패딩을 줄이면 안 된다(위 «장착됨» 층까지 넓어진다 · 넓히는 것은 회색 패널 하나).
+            float pull = CraftStyle.Px("cmp_lower_pull_rem");
+            cardLg.padding = new RectOffset(cardLg.padding.left, cardLg.padding.right, cardLg.padding.top, Mathf.RoundToInt(pad - pull));
             float inner = w - (pad + rem * 0.5f) * 2f;
+            float panelW = inner + pull * 2f;
             RectTransform curCard = ForgeUi.ItemCard(card, "cur", inner, cur, "장착됨", cur != null ? (newIsHigher ? "down" : "up") : null, false, d, h.GearSys.ItemValue);
             ForgeUi.Ribbon(curCard, "장착됨", false);
 
-            RectTransform lower = PopupKit.Item(card, "lower", inner, -1f);
+            RectTransform lower = PopupKit.Item(card, "lower", panelW, -1f);   // T429 — 정본 1819 좌우 −.85rem: 내용 폭보다 당김×2 넓고 카드 층이 가운데 맞춰 양쪽 패딩을 반씩 파고든다
             Image lf = UiKit.Rounded(lower, "face", "pp_gray", rem * 0.7f);
             lf.color = new Color(0xbe / 255f, 0xbe / 255f, 0xbe / 255f);
             VerticalLayoutGroup lg = PopupKit.Column(lower, rem * 0.4f, rem * 0.45f);
             // T390 — 정본 `.cmp-lower` 에는 padding 규칙이 없다: 패널 아래 여백은 `.row` 의 padding-bottom(아래 표) 하나뿐이라 패널 자신의 아래 패딩은 0.
             lg.padding = new RectOffset(lg.padding.left, lg.padding.right, lg.padding.top, 0);
-            ForgeUi.ItemCard(lower, "new", inner - rem * 0.8f, item, newTag, cur != null ? (newIsHigher ? "up" : "down") : null, true, d, h.GearSys.ItemValue);
+            ForgeUi.ItemCard(lower, "new", panelW - rem * 0.8f, item, newTag, cur != null ? (newIsHigher ? "up" : "down") : null, true, d, h.GearSys.ItemValue);
             // T390 — 정본 1821 `.cmp-lower .row { padding-bottom: 1.44rem }`(표 `cmp_row_pad_bottom_rem` · 전엔 `rem * 1.4f` 가 박혀 있었다).
             // T378 8회차 — 정본 3566 `#craft-modal .row .btn { min-height: 4.2rem }`(border-box · 글이 그 아래라 하한이 곧 높이 · 표 `cmp_row_btn_h_rem`). 전엔 btn_h × 1.7 이 박혀 있었다.
             float bh = CraftStyle.Px("cmp_row_btn_h_rem");
             RectTransform row = PopupKit.Item(lower, "row", -1f, bh + CraftStyle.Px("cmp_row_pad_bottom_rem"));
-            float bw = (inner - rem * 0.8f - rem * 1.3f - rem * 1.9f) * 0.5f;
+            float bw = (panelW - rem * 0.8f - rem * 1.3f - rem * 1.9f) * 0.5f;   // T429 — 정본 1821 `.cmp-lower .row { margin: … .96rem; gap: 1.3rem }` · `.btn { flex: 1 }` — 줄(=패널 안폭)에서 좌우 .96rem·틈 1.3rem 을 뺀 나머지를 둘이 나눈다
             // T110 — 정본 ui.js 3266 `판매<small>${IconGen.img('coin')} +N</small>`: 아랫줄은 코인 **아이콘** + 수(글자 🪙 가 아니다 · 세로 갈래 IconTextStack).
             Button sell = PopupKit.Btn(row, "sell", "", "pp_red", "pp_red_dk", () => h.ResolveCraft("sell"), bw, bh, "stage_ink", TextKind.Button);   // T391 ⓑ — 정본 3566 `#craft-modal .row .btn { 1.22rem }` = 44.4px → Button 44(전엔 Sub 36)
             PinSell(sell);
