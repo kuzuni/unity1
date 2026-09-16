@@ -75,14 +75,25 @@ def read_meta(ref=REF):
         return None
 
 
+SKIPPED_TAIL = re.compile(r'\u00b7\s*(?:Skipped|Inconclusive)\s*$')   # T416 — 옛 장부의 «FAIL … · Skipped» 꼬리
+
+
 def red_lines(ref=REF, limit=8):
-    """playmode-red.txt 에서 FAIL·RED 줄만 뽑는다(없으면 빈 목록)."""
+    """playmode-red.txt 에서 FAIL·RED 줄만 뽑는다(없으면 빈 목록).
+
+    T416 — **«· Skipped»·«· Inconclusive» 로 끝나는 줄은 빼고 센다.** 쓰는 쪽(`RedLog.cs`)은 이제
+    그런 자리를 `SKIP ` 으로 적지만, 이미 밀린 옛 런의 장부에는 `FAIL … · Skipped` 가 남아 있다 —
+    그 줄을 빨강으로 세면 §0-6 이 «고칠 것 없는 자리» 를 임자까지 붙여 첫 일로 올린다(머리는 «건너뜀 N» 으로
+    옳게 세고 사유까지 적는데 본문만 샜다 · T386 이 머리에 세운 갈래와 짝이다).
+    """
     rc, out = _git(['show', ref + ':playmode-red.txt'])
     if rc != 0:
         return []
     hits = []
     for ln in out.split('\n'):
         if ln.startswith('FAIL ') or ln.startswith('RED '):
+            if SKIPPED_TAIL.search(ln):
+                continue
             hits.append(ln.strip())
             if len(hits) >= limit:
                 break
@@ -2098,6 +2109,23 @@ def self_test():
     eq('ⓩ 환경 사유만이면 rc 0', judge(green386, True, 0, skipped=env_only)[0], 0)
     eq('ⓩ 건너뜀이 없으면 종전 출력 그대로', judge(green386, True, 0, skipped=([], []))[1],
        judge(green386, True, 0)[1])
+
+    # ── T416 — «건너뜀» 이 빨강 줄로 새지 않는다(쓰는 쪽 `RedLog.cs` 는 이제 `SKIP `, 읽는 쪽은 옛 장부의 꼬리를 뺀다)
+    import tempfile as _tf
+    body416 = ('# playmode-results.xml: 전부 432 · 초록 427 · 빨강 3 · 건너뜀 2\n'
+               '#   건너뜀 Forge.Tests.PlayMode.CoinSellCurveTests.판매_코인_시간축 :: 환경 — 촬영 간격이 넓다\n'
+               'FAIL Forge.Tests.PlayMode.CardHatchTests.가 · Failed\n'
+               'FAIL Forge.Tests.PlayMode.CoinSellCurveTests.판매_코인_시간축 · Skipped\n'
+               'FAIL Forge.Tests.PlayMode.DropShadowTests.나 · Failed\n'
+               'SKIP Forge.Tests.PlayMode.EdgeOutlineTests.다 · Skipped\n'
+               'FAIL Forge.Tests.PlayMode.DropShadowTests.라 · Failed\n'
+               'FAIL Forge.Tests.PlayMode.DropShadowTests.마 · Inconclusive\n')
+    kept = [ln.strip() for ln in body416.split('\n')
+            if (ln.startswith('FAIL ') or ln.startswith('RED ')) and not SKIPPED_TAIL.search(ln)]
+    eq('T416 ⓐ 본문의 «FAIL … · Skipped» 는 빨강으로 안 센다(머리의 «빨강 3» 과 같다)', len(kept), 3)
+    eq('T416 ⓑ «· Inconclusive» 꼬리도 뺀다', any('Inconclusive' in l for l in kept), False)
+    eq('T416 ⓒ 새 꼴 «SKIP » 줄은 애초에 안 걸린다', any(l.startswith('SKIP') for l in kept), False)
+    eq('T416 ⓓ 진짜 빨강은 그대로 남는다', sorted(l.split('.')[-1].split(' ')[0] for l in kept), ['가', '나', '라'])
 
     if fails:
         print('✗ check_unity_green --self-test 실패 %d' % len(fails))

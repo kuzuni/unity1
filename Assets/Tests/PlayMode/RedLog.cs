@@ -71,7 +71,14 @@ namespace Forge.Tests.PlayMode
         public static void EndTest(string fullName, string status, string message, string stack)
         {
             bool passed = string.Equals(status, "Passed", StringComparison.Ordinal);
-            string head = (passed ? "PASS " : "FAIL ") + fullName + (passed ? "" : " · " + status);
+            // T416 — «Passed 가 아니면 전부 FAIL» 이 아니다: 스스로 접은 자리(`Assert.Ignore` = Skipped ·
+            //   Inconclusive)는 **빨강이 아니라 건너뜀**이다. 이 한 줄이 «FAIL … · Skipped» 를 만들어
+            //   머리(«빨강 3 · 건너뜀 1»)와 본문(빨강 넷)이 같은 파일 안에서 싸웠고, §0-6 이 그 본문을 읽어
+            //   «고칠 것 없는 자리» 를 임자까지 붙여 첫 일 목록에 올렸다(T386 이 머리에만 세워 둔 갈래를 여기서 마저 세운다).
+            bool skipped = string.Equals(status, "Skipped", StringComparison.Ordinal)
+                        || string.Equals(status, "Inconclusive", StringComparison.Ordinal);
+            string mark = passed ? "PASS " : (skipped ? "SKIP " : "FAIL ");
+            string head = mark + fullName + (passed ? "" : " · " + status);
             if (passed && string.IsNullOrEmpty(message))
             {
                 Append(head);
