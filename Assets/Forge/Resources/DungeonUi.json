@@ -1,8 +1,12 @@
 {
   "_": "T388 — 던전 화면의 치수 중 정본이 **화면 크기 비율**로 못 박은 것. `catalog.json` 은 T345 산 lock 이라 곁 표로 낸다(T65 PlayerInfoUi.json · T339 ForgeInfoUi.json 과 같은 꼴). 단위: `_f` = 앱 폭 비율 · `_css_px` = 정본 CSS px(캔버스 환산은 KeylineUi.CssPx · 결정 222).",
   "layout": {
+    "dgd_stage_mt_rem": 0.3,
+    "dgd_stage_mb_rem": 0.5,
+    "dgd_stage_lh": 1.15,
     "dgs_banner_btn_min_w_f": 0.1573,
     "dgs_banner_btn_min_css_px": 6.6
   },
-  "_dgs_banner_btn_min": "style.css **3912~3914** `.modal-card.sheet .dg-banner .btn { align-self: flex-end; min-width: calc(var(--app-w) * .1573 + 6.6px) }`. 정본 주석이 값의 내력을 적어 뒀다 — «원본(shot-042251) [열기] 파랑 **채움** 폭 15.73%W · 종전 4.2rem(70px 상자 = 64px 채움)은 −2.9%p 좁았다(probe-dungeons-px) · **채움 목표 + 테두리 2×3px 몫**을 더한 값». 그 6.6px 가 곧 테두리 몫이라 rem 이 아니라 CSS px 다(화면이 커져도 테는 안 커진다). 클론은 던전 **시트**의 배너 버튼에도 `.dg-right .btn` 의 `dg_btn_w_rem` 4.6rem(= 167.4 기준 캔버스 px)을 써서 정본 값(0.1573×1080 + 6.6×2.164 = **184.2**)보다 **9% 좁았다** — 정본은 같은 자리를 더 구체적인 선택자로 덮는데 클론엔 그 덮개가 없었다."
+  "_dgs_banner_btn_min": "style.css **3912~3914** `.modal-card.sheet .dg-banner .btn { align-self: flex-end; min-width: calc(var(--app-w) * .1573 + 6.6px) }`. 정본 주석이 값의 내력을 적어 뒀다 — «원본(shot-042251) [열기] 파랑 **채움** 폭 15.73%W · 종전 4.2rem(70px 상자 = 64px 채움)은 −2.9%p 좁았다(probe-dungeons-px) · **채움 목표 + 테두리 2×3px 몫**을 더한 값». 그 6.6px 가 곧 테두리 몫이라 rem 이 아니라 CSS px 다(화면이 커져도 테는 안 커진다). 클론은 던전 **시트**의 배너 버튼에도 `.dg-right .btn` 의 `dg_btn_w_rem` 4.6rem(= 167.4 기준 캔버스 px)을 써서 정본 값(0.1573×1080 + 6.6×2.164 = **184.2**)보다 **9% 좁았다** — 정본은 같은 자리를 더 구체적인 선택자로 덮는데 클론엔 그 덮개가 없었다.",
+  "_dgd_stage": "T426 — 던전 상세 스테이지 줄 세 값(`catalog.json` 은 T364·T365 산 lock 이라 여기 · 결정 731). style.css **5304** `.dgd-stage-row { … margin: .3rem 0 .5rem }` → `dgd_stage_mt_rem` .3 · `dgd_stage_mb_rem` .5 · **5308** `.dgd-stage { text-align: center; line-height: 1.15 }` → `dgd_stage_lh`(글자 크기 배수 · 클론 바탕 1.25 를 이 줄만 덮는다). 카드가 flex column 이라 위 .3rem 은 배너의 margin-bottom .6rem(5282)과 **안 합쳐진다** — 둘 다 더한다."
 }

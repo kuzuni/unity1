@@ -100,12 +100,17 @@ namespace Forge.Game.Ui
             float heroH = H * UiKit.L("dgd_hero_h");
             float radius = DungeonPopups.RemL("card_r_rem");
             float triD = H * UiKit.L("dgd_tri");
-            float stageRowH = DungeonPopups.LineH(TextKind.Sub) + DungeonPopups.LineH(TextKind.Title2);   // 난이도 수 = 정본 5310 `.dgd-stage b { 1.15rem }`(T404)
+            // T426 — 정본 5308 이 이 줄만 `line-height: 1.15` 로 덮는다(클론 바탕 `LineH` 는 1.25) — 바탕을 그대로 쓰면 두 줄이 벌어진다.
+            //   위 .3rem(5304 `.dgd-stage-row { margin: .3rem 0 .5rem }`)은 배너 마진 .6rem 과 **안 합쳐진다**(flex column) — 둘 다 더한다. 셋 다 곁 표 DungeonUi.json(결정 731).
+            float stageLh = DungeonStyle.L("dgd_stage_lh");
+            float stageMt = DungeonPopups.Rem(DungeonStyle.L("dgd_stage_mt_rem")), stageMb = DungeonPopups.Rem(DungeonStyle.L("dgd_stage_mb_rem"));
+            float stageLabelH = DungeonPopups.Kind(TextKind.Sub) * stageLh, stageNumH = DungeonPopups.Kind(TextKind.Title2) * stageLh;
+            float stageRowH = stageLabelH + stageNumH;   // 난이도 수 = 정본 5310 `.dgd-stage b { 1.15rem }`(T404)
             float pillH = DungeonPopups.LineH(TextKind.Sub) + DungeonPopups.RemL("dgd_pill_pad_rem") * 2f;
             float keysH = DungeonPopups.LineH(TextKind.Title);
             float btnH = DungeonPopups.RemL("dgd_btn_h_rem");
             float ch = Mathf.Max(H * UiKit.L("dgd_card_minh"),
-                heroH + DungeonPopups.RemL("dgd_hero_mb_rem") + stageRowH + DungeonPopups.RemL("card_gap_rem") + pillH + DungeonPopups.RemL("dgd_pill_mb_rem")
+                heroH + DungeonPopups.RemL("dgd_hero_mb_rem") + stageMt + stageRowH + stageMb + pillH + DungeonPopups.RemL("dgd_pill_mb_rem")
                 + keysH + DungeonPopups.RemL("dgd_keys_mb_rem") + btnH + DungeonPopups.RemL("dgd_btn_mb_rem"));
             RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, radius);
 
@@ -122,7 +127,7 @@ namespace Forge.Game.Ui
             float th = DungeonPopups.LineH(TextKind.Body);
             UiKit.Place(title.rectTransform, 0f, DungeonPopups.Rem(0.4f), cw, th);
 
-            float y = DungeonPopups.Line3 + heroH + DungeonPopups.RemL("dgd_hero_mb_rem");
+            float y = DungeonPopups.Line3 + heroH + DungeonPopups.RemL("dgd_hero_mb_rem") + stageMt;   // T426 — 배너 마진 + 줄 위 마진 .3rem
 
             // ◀ 난이도 C-S ▶
             float gap = W * UiKit.L("dgd_tri_gap");
@@ -130,16 +135,16 @@ namespace Forge.Game.Ui
             float cx = cw * 0.5f;
             StageText = DgStageText(curStage);
             TextMeshProUGUI lab = DungeonPopups.Bold(card, "stage-label", TextKind.Sub, "난이도", "pp_ink");
-            UiKit.Place(lab.rectTransform, cx - labelW * 0.5f, y, labelW, DungeonPopups.LineH(TextKind.Sub));
+            UiKit.Place(lab.rectTransform, cx - labelW * 0.5f, y, labelW, stageLabelH);   // T426 — 줄높이 1.15
             TextMeshProUGUI num = DungeonPopups.Bold(card, "stage-num", TextKind.Title2, StageText, "pp_ink");   // T404 ⓑ — 정본 5310 `.dgd-stage b { 1.15rem }` = 41.9px → Title2 42(전엔 Body 40 · −5%)
-            UiKit.Place(num.rectTransform, cx - labelW * 0.5f, y + DungeonPopups.LineH(TextKind.Sub), labelW, DungeonPopups.LineH(TextKind.Title2));
+            UiKit.Place(num.rectTransform, cx - labelW * 0.5f, y + stageLabelH, labelW, stageNumH);
             PrevButton = DungeonPopups.TriButton(card, "prev", true, triD, () => StepStage(-1));
             UiKit.Place(DungeonPopups.Root(PrevButton), cx - labelW * 0.5f - gap * 0.5f - triD, y + (stageRowH - triD) * 0.5f, triD, triD);
             NextButton = DungeonPopups.TriButton(card, "next", false, triD, () => StepStage(1));
             UiKit.Place(DungeonPopups.Root(NextButton), cx + labelW * 0.5f + gap * 0.5f, y + (stageRowH - triD) * 0.5f, triD, triD);
             DungeonPopups.Root(PrevButton).gameObject.SetActive(curStage > 1);
             DungeonPopups.Root(NextButton).gameObject.SetActive(curStage < best + 1);
-            y += stageRowH + DungeonPopups.RemL("card_gap_rem");
+            y += stageRowH + stageMb;   // T426 — 정본 5304 아래 마진 .5rem(공용 card_gap .45 가 아니다)
 
             // 보상 알약
             float pw = cw * UiKit.L("dgd_pill_w");
