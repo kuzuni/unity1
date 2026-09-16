@@ -970,6 +970,7 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI rt = PetSkillKit.Text(rk, "t", TextKind.Sub, e.Sub, ChipInk(rc));
                 LetterSpacing.Apply(rt, "sr_sub_ls_em");   // T168 3회차 — 정본 7059 `.sr-sub`
                 WrapUi.Apply(rt, "sr_sub");   // 정본 nowrap
+                WrapUi.Apply(rt, "sr_sub_sr_rk");   // T361 9회차 — 정본 7072 `.sr-sub .sr-rk { nowrap }`: 클론엔 그 span 이 따로 없고 이 글 `t` 가 곧 그것이다(칩 상자 `sr-sub` 는 제 글자가 없다) — 두 규칙이 같은 글에 내린다
                 UiKit.Fill(rt.rectTransform);
             }
             // ---- 비행 잔상(정본 `.sr-ghost` 6448~6474 · z 0) ----
