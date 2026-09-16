@@ -106,6 +106,10 @@ namespace Forge.Game.Ui
             UiKit.Place(spRt, inner - spW, rem * 0.15f, spW, rowH - rem * 0.3f);
             // T345 — 정본 4783 `.af-spinner { border-radius: .45rem }`(표 `af_spinner_r_rem` · 전엔 .3rem)
             Image spf = RadiusUi.Rounded(spRt, "face", "pp_line", "af_spinner_r_rem");
+            // T331 26회차 — 정본 5007 의 **셋째 겹** `0 .12rem 0 rgba(0,0,0,.28)`(바깥 턱).
+            //   앞의 둘은 안쪽이라 이미 서 있다(위 림라이트·아래 그늘 = `btn_lip` 관용구 갈래).
+            //   면을 세운 **뒤**에 부른다 — 그늘의 둥근 모서리를 그 면에서 되읽는다(`RadiusOf`).
+            UiShadow.Drop(spRt, "afspinner_lip");
             PressFx.Attach(sp.gameObject, spRt, "af_spinner", spf);   // T355 ⓔ — 정본 5009·5011 .af-spinner:active { translateY(.1rem) · .07s ease-out }
             TextMeshProUGUI spt = UiKit.Text(spRt, "value", TextKind.Sub, NumFmt.Fmt(cfg.HammersPerBatch) + (ddOpen ? "  ▼" : "  ▲"), "stage_ink", TextAlignmentOptions.Right);
             spt.fontStyle = FontStyles.Bold;
@@ -164,6 +168,9 @@ namespace Forge.Game.Ui
             RectTransform row = PopupKit.Item(parent, "af-sub-" + s.Key, w, hgt);
             Image face = UiKit.Rounded(row, "face", "pp_gray", hgt * 0.5f);
             face.color = new Color(0xd6 / 255f, 0xd6 / 255f, 0xd6 / 255f);
+            // T331 26회차 — 정본 4999 의 **셋째 겹** `0 .07rem .12rem rgba(0,0,0,.1)`.
+            //   표에서 가장 옅은 자리지만 정본이 이 겹으로 «얇은 카드 두께» 를 만든다(주석 4996).
+            UiShadow.Drop(row, "afsubrow_drop", hgt * 0.5f);
             float cb = hgt * 0.62f;
             RectTransform box = UiKit.Box(row, "check");
             UiKit.Place(box, rem * 0.5f, (hgt - cb) * 0.5f, cb, cb);

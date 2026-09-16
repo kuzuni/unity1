@@ -20,10 +20,13 @@ namespace Forge.Tests
         }
 
         [Test]
-        public void 표는_정본_열두_자리를_그대로_쥔다()
+        public void 표는_정본_자리를_그대로_쥔다()
         {
+            // ⚑ 26회차 — 수는 **자란다**(회차마다 «아직 안 본 자리» 에서 하나씩 표로 옮긴다).
+            //   그래서 못 박는 것은 «열둘» 이 아니라 ⓐ 자(`check_box_shadows`)의 표와 같은 수 ⓑ 값이 정본 그대로다.
+            //   자의 표를 늘리면 이 수도 같이 늘려라 — 둘이 어긋나면 한쪽이 몰래 낡은 것이다.
             ShadowTable t = T();
-            Assert.AreEqual(12, t.Count, "자(check_box_shadows)가 세는 자리와 같은 수여야 한다");
+            Assert.AreEqual(14, t.Count, "자(check_box_shadows)가 세는 자리와 같은 수여야 한다");
             ShadowSpec q = t.Get("qstrow_lip");
             Assert.AreEqual(0.0, q.DxRem, 1e-9);
             Assert.AreEqual(0.25, q.DyRem, 1e-9, "정본 .qst-row `0 .25rem 0`");
@@ -34,12 +37,13 @@ namespace Forge.Tests
         }
 
         [Test]
-        public void 딱딱한_턱_다섯과_흐린_그림자_일곱으로_갈린다()
+        public void 딱딱한_턱과_흐린_그림자로_갈린다()
         {
             int hard = 0, soft = 0;
             foreach (string k in T().Keys) { if (T().Get(k).IsHard) hard++; else soft++; }
-            Assert.AreEqual(5, hard, "딱딱한 턱(blur·spread 0)");
-            Assert.AreEqual(7, soft, "흐린 그림자");
+            Assert.AreEqual(6, hard, "딱딱한 턱(blur·spread 0) — 카드·패널·퀘스트 행·던전 배너·장착 바 + 자동 제련 스피너(26회차)");
+            Assert.AreEqual(8, soft, "흐린 그림자 — 상단바·자동 제련 카드·자동 낙하·묶음 카드·패스 카드·리그 발판·장비 교체 + 자동 제련 하위 행(26회차)");
+            Assert.AreEqual(T().Count, hard + soft, "갈래가 둘뿐이다");
         }
 
         [Test]

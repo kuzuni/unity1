@@ -232,6 +232,44 @@ namespace Forge.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator 자동_제련_팝업의_스피너와_하위_행도_제_턱을_진다()
+        {
+            yield return Boot();
+            // 정본 5007 `.af-spinner` · 4999 `.af-sub-row` — 둘 다 **안쪽 두 겹 + 바깥 한 겹**이다.
+            // 안쪽은 클론 관용구로 이미 서 있고(T163 갈래) 이 축이 받는 것은 바깥 겹 하나씩이다.
+            ForgeHost fh = ForgeHost.Instance;
+            fh.S.BestChapter = 3; fh.S.BestStage = 1; fh.Pull();
+            // 하위 행은 필터가 켜져 있을 때만 선다(정본과 같다) — 꺼져 있으면 켜고 연다.
+            if (!fh.Engine.AutoForgeConfig().FilterOn) fh.ToggleAutoFilterOn();
+            ForgeAutoPopup.Open(fh);
+            yield return null;
+            yield return null;
+            RectTransform spin = null, row = null;
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+            {
+                if (spin == null && rt.name == "af-spinner") spin = rt;
+                if (row == null && rt.name.StartsWith("af-sub-")) row = rt;
+            }
+            Assert.IsNotNull(spin, "망치 수 스피너를 못 찾았다");
+            Assert.IsNotNull(row, "필터 하위 행을 못 찾았다(자동 제련 필터가 닫혀 있으면 안 선다)");
+
+            Transform lip = UiShadow.Find(spin, "afspinner_lip");
+            Assert.IsNotNull(lip, "스피너의 바깥 턱이 없다");
+            Assert.IsTrue(UiShadow.Table.Get("afspinner_lip").IsHard, "스피너 턱은 흐림 0 이라 굽지 않는다");
+            Assert.AreEqual(0, lip.GetSiblingIndex(), "턱은 면보다 뒤에 깔린다");
+            Assert.Less(lip.GetComponent<Image>().rectTransform.anchoredPosition.y, 0f, "턱이 아래로 안 내려갔다(CSS 의 +y 는 아래다)");
+
+            Transform sh = UiShadow.Find(row, "afsubrow_drop");
+            Assert.IsNotNull(sh, "하위 행의 그늘이 없다");
+            Assert.IsFalse(UiShadow.Table.Get("afsubrow_drop").IsHard, "하위 행 그늘은 흐리다(구운 판이라야 한다)");
+            Assert.IsNotNull(sh.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
+            // 정본에서 가장 옅은 자리 — «안 보인다» 가 아니라 «두께» 다. 표값이 그대로 서야 한다.
+            Assert.AreEqual(0.1, UiShadow.Table.Get("afsubrow_drop").A, 1e-6, "표의 알파(.1)가 아니다");
+            ForgeAutoPopup.Close(fh);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator 탭_패널의_턱은_위로_뜬다()
         {
             yield return Boot();
@@ -274,12 +312,13 @@ namespace Forge.Tests.PlayMode
         }
 
         [Test]
-        public void 표는_딱딱한_턱_다섯과_흐린_그림자_일곱으로_갈린다()
+        public void 표는_딱딱한_턱과_흐린_그림자로_갈린다()
         {
+            // 수는 회차마다 자란다(26회차에 자동 제련 둘이 들어와 5+7 → 6+8) — EditMode 쪽과 같은 수를 본다.
             int hard = 0, soft = 0;
             foreach (string k in UiShadow.Table.Keys) { if (UiShadow.Table.Get(k).IsHard) hard++; else soft++; }
-            Assert.AreEqual(5, hard);
-            Assert.AreEqual(7, soft);
+            Assert.AreEqual(6, hard);
+            Assert.AreEqual(8, soft);
         }
     }
 }
