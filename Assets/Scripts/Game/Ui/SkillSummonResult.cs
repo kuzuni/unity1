@@ -152,6 +152,27 @@ namespace Forge.Game.Ui
             im.color = new Color(1f, 1f, 1f, OrbIconUi.Alpha);   // 정본 `opacity: .35` — 표값은 여기 한 번만 나온다
         }
 
+        /// <summary>
+        /// T332 17회차 ⑴ — 정본 6521 `.sr-ico { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)) }`(표 <c>DropShadowUi.json</c> `sr_ico`).
+        ///
+        /// 정본 6509~6518 주석이 처방 세 겹을 적어 뒀고(⑴ 접지 그림자 ⑵ 4% 배럴 스케일 ⑶ 구체 스페큘러 한 겹) **이것이 첫 겹**이다 —
+        /// «글리프가 구체 표면 위에 «놓인» 두께를 만든다». ⑵⑶ 은 T385 2회차가 이미 걸었다(<see cref="OrbIconSpec"/>).
+        ///
+        /// 정본은 필터를 **감싸개**(`.sr-ico`)에 걸어 그 안의 셋(스킬 `.ico` · 알 `.ico.sr-egg` · 탈것 `.mt-face` 썸네일)이 다 같은 그림자를 진다.
+        /// 클론엔 감싸개가 없으므로 **그 그림 자체**에 건다 — 같은 자리 · 같은 실루엣이다.
+        /// 탈것 썸네일이 이미 지고 있는 `.mt-face.has-thumb > img`(7604 · <see cref="ForgeUi.ThumbShadow"/>)와는 **선택자가 달라 정본에서도 함께** 걸린다.
+        ///
+        /// ⚠ 배율을 그림자에도 얹는다: CSS 는 `filter` 를 구운 **뒤** `transform: scale(1.04)` 가 그림자까지 함께 키우는데,
+        /// 클론 그림자는 아이콘의 **형제**라 아이콘의 `localScale` 이 안 따라온다.
+        /// </summary>
+        /// <remarks>이모지 폴백(정본 6538 `.mt-face:not(.has-thumb)`)은 글자라 실루엣이 없어 못 건다 — 3D 썸네일이 아직 안 구워진 순간의 자리다.</remarks>
+        static void SrIcoShadow(Image ico)
+        {
+            if (ico == null) return;
+            Image sh = DropShadow.Apply(ico, "sr_ico");
+            if (sh != null) sh.rectTransform.localScale = ico.rectTransform.localScale;
+        }
+
         /// <summary>T334 4회차 — 소환진의 룬 눈금 띠(정본 `.sr-floor::after`). 충전 중엔 `steps(9)` 로 점등하고 그 밖에는 느리게 호흡한다.</summary>
         Image tickImg;
         Color tickBase;
@@ -907,6 +928,7 @@ namespace Forge.Game.Ui
                 RectTransform pf = PetSkillKit.PetFace(wrap, Defs, e.FaceName, isz, e.FaceKind);
                 UiKit.Anchor(pf, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, isz, isz);
                 pf.localScale = Vector3.one * OrbIconUi.BarrelScale;
+                SrIcoShadow(pf.GetComponent<Image>());
             }
             else
             {
@@ -914,6 +936,7 @@ namespace Forge.Game.Ui
                 UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, isz, isz);
                 // T385 2회차 ⑵ — 정본 6522 `.sr-ico { transform: scale(1.04) }`: «구면에 얹힌 것은 가운데가 미세하게 부푼다».
                 ico.rectTransform.localScale = Vector3.one * OrbIconUi.BarrelScale;
+                SrIcoShadow(ico);
             }
             OrbIconSpec(wrap, cw);
             if (!dense)

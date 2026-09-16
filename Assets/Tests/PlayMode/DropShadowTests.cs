@@ -316,6 +316,75 @@ namespace Forge.Tests.PlayMode
             log.Dispose();
         }
 
+        /// <summary>
+        /// T332 17회차 — 정본 `style.css` **6521** `.sr-ico { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)); transform: scale(1.04) }`.
+        ///
+        /// 이 자리가 앞의 여섯과 다른 것 둘: ⓐ 길이가 `rem` 도 `em` 도 아닌 **그냥 `px`** 라 rem 16 을 안 곱한다(표가 3·5 그대로 쥔다)
+        /// ⓑ 같은 선택자에 **`transform: scale(1.04)`** 이 함께 걸려 있다 — CSS 는 `filter` 를 구운 **뒤** 변형이 그림자까지
+        /// 같이 키우는데 클론 그림자는 아이콘의 **형제**라 배율이 저절로 안 따라온다(그래서 부르는 쪽이 얹는다).
+        /// 그 둘을 다 재지 않으면 «걸긴 걸었는데 정본보다 4% 작은 그림자» 가 조용히 지나간다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 소환_결과_구슬_위_아이콘은_배럴_배율까지_탄_흐린_그림자를_진다()
+        {
+            PetSkillHost.SuppressSave = true;
+            PetSkillHost.Seed = 20260916;
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+            Scene active = SceneManager.GetActiveScene();
+            for (int i = 0; i < 600 && !(SkillPetSheet.Instance != null && SkillPetSheet.Instance.gameObject.scene == active && PetSkillHost.Ready); i++) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            Assert.IsTrue(PetSkillHost.Ready, "PetSkillHost 가 준비되지 않았다");
+            yield return null;
+
+            PlayLog log = PlayLog.Start("drop-shadow-srico");
+            var rolls = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "rare", Name = "나" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", rolls, "rare", null);
+            Assert.IsNotNull(v, "소환 결과 창이 안 열렸다");
+            yield return null;
+
+            Transform icoT = FindIn(v.transform, "sr-ico");
+            Assert.IsNotNull(icoT, "구슬 위 아이콘(sr-ico)");
+            Image ico = icoT.GetComponent<Image>();
+            Assert.IsNotNull(ico, "아이콘 그림");
+            Assert.IsNotNull(ico.sprite, "아이콘에 그림이 있다(없으면 그림자를 걸 실루엣이 없다)");
+
+            Transform sh = icoT.parent.Find(DropShadow.NameFor(ico));
+            Assert.IsNotNull(sh, "아이콘 뒤에 흐린 그림자를 깔았다(정본 6521)");
+            Assert.Less(sh.GetSiblingIndex(), icoT.GetSiblingIndex(), "그림자는 아이콘 **뒤**에 그린다");
+
+            Image si = sh.GetComponent<Image>();
+            Assert.IsNotNull(si.sprite, "그림자도 그림이 있다(흐려 구운 사본)");
+            Assert.AreNotSame(ico.sprite, si.sprite, "흐린 사본이지 원본 그대로가 아니다");
+
+            float css = KeylineUi.CssPx;
+            Vector2 d = CenterDelta((RectTransform)sh, ico.rectTransform);
+            Assert.AreEqual(0f, d.x, 0.01f, "정본은 가로로 안 민다(0 3px 5px)");
+            Assert.AreEqual(-DropShadowUi.Px("sr_ico", "dy_px") * css, d.y, 0.01f, "세로 오프셋 = 표 dy(3px) 만큼 **아래**(유니티 −y)");
+            Assert.AreEqual(DropShadowUi.C("sr_ico").a, si.color.a, 2f / 255f, "알파 = 표 sr_ico(.55)");
+            Assert.Less(si.color.r + si.color.g + si.color.b, 0.05f, "색은 검정");
+
+            // ⓐ 길이가 `px` 갈래다 — 누가 rem 로 착각해 `_f` 나 rem 곱을 넣으면 여기서 운다.
+            Assert.IsTrue(DropShadowUi.HasField("sr_ico", "dy_px"), "px 자리는 CSS px 로 적는다");
+            Assert.IsFalse(DropShadowUi.HasField("sr_ico", "dy_f"), "상자 비율(`em`) 자리가 아니다 — 정본 6521 은 `px` 다");
+            Assert.AreEqual(3f, DropShadowUi.Px("sr_ico", "dy_px"), 1e-4f, "정본 6521 의 둘째 값 3px 그대로(rem 16 을 곱하지 않는다)");
+
+            // ⓑ 배럴 배율이 그림자에도 실렸다 — 정본은 filter 를 구운 뒤 scale(1.04) 가 그림자까지 키운다.
+            Assert.AreEqual(OrbIconUi.BarrelScale, ico.rectTransform.localScale.x, 1e-4f, "아이콘은 정본 6522 의 배럴 배율을 탄다(T385 2회차)");
+            Assert.AreEqual(ico.rectTransform.localScale.x, sh.localScale.x, 1e-4f,
+                "그림자도 같은 배율 — 안 얹으면 정본보다 4% 작은 그림자가 된다(형제라 저절로 안 따라온다)");
+
+            AssertBlurred(ico, si, "소환 결과 아이콘");
+
+            log.AssertNoRed();
+            log.Dispose();
+        }
+
         /// «번짐이 실제로 걸렸다» 를 재는 자리 — 구운 판의 한 변이 **줄인 원본보다 커널 반경만큼 넓은가**.
         ///
         /// ⚠ «구운 사본이 **원본 스프라이트**보다 넓다» 로 재면 틀린다(런 641 실측 · 원본 160 ↔ 구운 것 54):
