@@ -131,7 +131,15 @@ namespace Forge.Game.Ui
             RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "pp_paper", rem);
             float pad = UiKit.H("card_pad");
             float inner = cardW - PopupKit.Line3 * 2f;
-            float lineH = PopupKit.FontSize(TextKind.Sub) * 1.25f;
+            // T354 18회차 — 정본 3155 `.pinfo-id-text { line-height: 1.35 }` 와 3178 `.pinfo-right { line-height: 1.16 }`.
+            //   클론은 두 칸을 **한 수**(글자 × 1.25 · 코드에 박힌 수)로 그렸다 — 표가 그 두 수를 쥐고 있는데 부르는 곳이 0 이었다.
+            //   ⚠ 정본은 두 칸의 **글자 크기**도 다르다(왼쪽 .9/.7/.8rem · 오른쪽 .62rem) — 클론은 §1 글자 하한 때문에 셋 다 `Sub` 다.
+            //     그 차는 글자 종류 축(T391·T404) 몫이고 이 축이 옮기는 것은 **피치 배수**다. 정본 3163~3177 주석이 오른쪽 칸을 두고
+            //     «폰트와 피치 중 하나만 만지면 안 된다 — 피치만 줄이면 잉크가 피치를 다 먹어 줄이 붙는다» 고 적어 뒀는데,
+            //     여기서 거는 1.16 은 `Sub` 잉크(≈ .88em)보다 커서 그 함정에 안 걸린다.
+            float subFs = PopupKit.FontSize(TextKind.Sub);
+            float lineH = (float)(LineHeight.Ratio(subFs, "pinfo_id_text_lh") * subFs);
+            float lineR = (float)(LineHeight.Ratio(subFs, "pinfo_right_lh") * subFs);
 
             // ---- 머리줄(.pinfo-header) ----
             float y = pad;
@@ -143,6 +151,7 @@ namespace Forge.Game.Ui
             float leftW = inner * 0.55f - tx;
             TextMeshProUGUI name = UiKit.Text(card, "name", TextKind.Sub, h.Nickname + " [무소속]", "pp_ink", TextAlignmentOptions.Left);
             name.fontStyle = FontStyles.Bold;
+            LineHeight.Apply(name, "pinfo_id_text_lh");   // 이름이 접히면 줄 간격도 정본 배수여야 한다(상자는 위에서 같은 수로 잡았다)
             UiKit.Place(name.rectTransform, tx, y, leftW, lineH);
             // T131 — 정본 ui.js 5195 `<span class="clan">${IconGen.img(S.gender === '♀' ? 'gender_f' : 'gender_m')} · 서버 1</span>`:
             // 성별은 글자 ♂/♀ 가 아니라 아이콘(CSS 3158 `.clan .ico` 1.05em · 오른쪽 여백 .05em · PersonIconsUi.json).
@@ -150,6 +159,7 @@ namespace Forge.Game.Ui
             Image clanIco = UiKit.Icon(card, "clan-ico", Chat.GenderIcon(h.Gender));
             UiKit.Place(clanIco.rectTransform, tx, y + lineH + (lineH - gEm) * 0.5f, gEm, gEm);
             TextMeshProUGUI clan = UiKit.Text(card, "clan", TextKind.Sub, " · 서버 1", "pp_muted", TextAlignmentOptions.Left);
+            LineHeight.Apply(clan, "pinfo_id_text_lh");
             UiKit.Place(clan.rectTransform, tx + gEm + gMr, y + lineH, leftW - gEm - gMr, lineH);
             // T89 — «⚔» 두부 → 정본 표의 `tm_sword` 아이콘 + 수.
             RectTransform cp = UiKit.IconTextRow(card, "cp", TextKind.Sub, "⚔ " + PopupKit.Fmt(h.MyCp), "pp_ink", TextAlignmentOptions.Left);
@@ -165,12 +175,16 @@ namespace Forge.Game.Ui
             Big hp = HeroHp != null ? HeroHp() : Big.Zero;
             float rx = inner * 0.55f, rw = inner - rx - pad - w * 0.0244f;
             TextMeshProUGUI r1 = UiKit.Text(card, "forge-lv", TextKind.Sub, "Lv. " + h.S.ForgeLevel + " 대장간" + (stars > 0 ? " ★" + PopupKit.Fmt(stars) : string.Empty), "pp_ink", TextAlignmentOptions.Right);
-            UiKit.Place(r1.rectTransform, rx, y, rw, lineH);
+            LineHeight.Apply(r1, "pinfo_right_lh");   // 정본 3178 — 오른쪽 세 줄은 제 배수다
+            UiKit.Place(r1.rectTransform, rx, y, rw, lineR);
             TextMeshProUGUI r2 = UiKit.Text(card, "atk", TextKind.Sub, PopupKit.Fmt(atk) + " 총 피해", "pp_ink", TextAlignmentOptions.Right);
-            UiKit.Place(r2.rectTransform, rx, y + lineH, rw, lineH);
+            LineHeight.Apply(r2, "pinfo_right_lh");   // 정본 3178 — 오른쪽 세 줄은 제 배수다
+            UiKit.Place(r2.rectTransform, rx, y + lineR, rw, lineR);
             TextMeshProUGUI r3 = UiKit.Text(card, "hp", TextKind.Sub, PopupKit.Fmt(hp) + " 총 체력", "pp_ink", TextAlignmentOptions.Right);
-            UiKit.Place(r3.rectTransform, rx, y + lineH * 2f, rw, lineH);
-            y += Mathf.Max(av, lineH * 3f) + PlayerInfoStyle.Px("preview_margin_rem");
+            LineHeight.Apply(r3, "pinfo_right_lh");   // 정본 3178 — 오른쪽 세 줄은 제 배수다
+            UiKit.Place(r3.rectTransform, rx, y + lineR * 2f, rw, lineR);
+            // 정본 `.pinfo-header` 는 `align-items: flex-start` 인 flex 줄이라 그 높이는 **두 칸 중 큰 쪽**이다(칸마다 피치가 다르다).
+            y += Mathf.Max(av, Mathf.Max(lineH, lineR) * 3f) + PlayerInfoStyle.Px("preview_margin_rem");
 
             // ---- 미니 씬 프리뷰(.pinfo-preview) — 미니 씬이 못 서면 정본 폴백: 🛡️ + 스테이지 라벨 + 웨이브 핍 ----
             float pvH = Mathf.Max(UiKit.L("pinfo_preview_h") * H, PlayerInfoStyle.Px("preview_min_h_rem"));
@@ -212,6 +226,7 @@ namespace Forge.Game.Ui
             if (n == 0)
             {
                 TextMeshProUGUI lo = UiKit.Text(row, "none", TextKind.Sub, PlayerInfoStyle.T("no_loadout"), "pp_muted", TextAlignmentOptions.Left);
+                // (정본이 줄높이를 못 박은 자리가 아니다 — 한 줄이 드는 상자로 머리줄 피치를 빌려 쓴다. 아래 subs 상자의 하한도 같다.)
                 UiKit.Place(lo.rectTransform, 0f, 0f, gw, lineH);
             }
             y += orb + PlayerInfoStyle.Px("subs_top_rem");

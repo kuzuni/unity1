@@ -456,5 +456,66 @@ namespace Forge.Tests.PlayMode
             UiRoot.Instance.TabBar.OnTab("summon");
             yield return null;
         }
+        /// <summary>T354 18회차 — 플레이어 정보 **머리줄 두 칸**의 줄 피치: 정본 3155 `.pinfo-id-text { line-height: 1.35 }`(왼쪽 이름·소속·전투력)과
+        /// 3178 `.pinfo-right { line-height: 1.16 }`(오른쪽 대장간·총 피해·총 체력). 클론은 두 칸을 **한 수**(글자 × 1.25 · 코드에 박힌 수)로 그렸다 —
+        /// 표가 두 수를 쥐고 있는데 부르는 곳이 0 이었다. 정본 3163~3177 주석이 오른쪽 칸을 두고 «폰트와 피치 중 하나만 만지면 안 된다» 고 경고하므로
+        /// 잉크가 피치를 넘지 않는 것까지 같이 잰다(잉크 ≤ 피치).</summary>
+        [UnityTest]
+        public IEnumerator 플레이어_정보_머리줄은_왼쪽_1_35_오른쪽_1_16_피치로_갈린다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && UiRoot.Instance != null); i++) yield return null;
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
+            MetaHost h = MetaHost.Instance;
+            PlayerInfoPopup.Open(h);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(PlayerInfoPopup.Name);
+            Assert.IsNotNull(p, "플레이어 정보 팝업");
+
+            Assert.AreEqual(1.35, LineHeight.Table.Get("pinfo_id_text_lh"), 1e-9, "정본 3155 .pinfo-id-text");
+            Assert.AreEqual(1.16, LineHeight.Table.Get("pinfo_right_lh"), 1e-9, "정본 3178 .pinfo-right");
+
+            RectTransform name = (RectTransform)Find(p.Root, "name");
+            RectTransform clan = (RectTransform)Find(p.Root, "clan");
+            RectTransform cp = (RectTransform)Find(p.Root, "cp");
+            RectTransform r1 = (RectTransform)Find(p.Root, "forge-lv");
+            RectTransform r2 = (RectTransform)Find(p.Root, "atk");
+            RectTransform r3 = (RectTransform)Find(p.Root, "hp");
+            foreach (RectTransform rt in new[] { name, clan, cp, r1, r2, r3 })
+                Assert.IsNotNull(rt, "머리줄의 여섯 줄이 다 서 있다");
+
+            TextMeshProUGUI nt = name.GetComponent<TextMeshProUGUI>();
+            float fs = nt.fontSize;
+            float wantL = (float)(LineHeight.Ratio(fs, "pinfo_id_text_lh") * fs);
+            float wantR = (float)(LineHeight.Ratio(fs, "pinfo_right_lh") * fs);
+            Assert.Greater(wantL, wantR, "왼쪽 칸이 오른쪽보다 성글다 — 한 수로 그리던 때는 둘이 같았다");
+
+            // 칸 높이 = 그 칸의 피치
+            Assert.AreEqual(wantL, name.rect.height, 0.01f, "이름 줄 상자");
+            Assert.AreEqual(wantL, cp.rect.height, 0.01f, "전투력 줄 상자");
+            Assert.AreEqual(wantR, r1.rect.height, 0.01f, "대장간 줄 상자");
+            Assert.AreEqual(wantR, r3.rect.height, 0.01f, "총 체력 줄 상자");
+
+            // 줄 사이 피치도 같은 수다(UiKit.Place 는 위끝 기준이라 y 차가 곧 피치).
+            Assert.AreEqual(wantL, name.anchoredPosition.y - clan.anchoredPosition.y, 0.01f, "이름 → 소속 피치");
+            Assert.AreEqual(wantL, clan.anchoredPosition.y - cp.anchoredPosition.y, 0.01f, "소속 → 전투력 피치");
+            Assert.AreEqual(wantR, r1.anchoredPosition.y - r2.anchoredPosition.y, 0.01f, "대장간 → 총 피해 피치");
+            Assert.AreEqual(wantR, r2.anchoredPosition.y - r3.anchoredPosition.y, 0.01f, "총 피해 → 총 체력 피치");
+
+            // 정본 주석의 함정 — 좁은 쪽(1.16) 피치가 글자 잉크보다 작으면 줄이 붙는다.
+            TextMeshProUGUI rt1 = r1.GetComponent<TextMeshProUGUI>();
+            rt1.ForceMeshUpdate();
+            float ink = rt1.textInfo.lineCount > 0
+                ? rt1.textInfo.lineInfo[0].ascender - rt1.textInfo.lineInfo[0].descender
+                : 0f;
+            Assert.Greater(ink, 0f, "오른쪽 줄의 잉크를 못 쟀다");
+            Assert.LessOrEqual(ink, wantR + 0.01f,
+                "오른쪽 피치(" + wantR.ToString("0.0") + ")가 잉크(" + ink.ToString("0.0") + ")보다 작다 — 정본 3170 주석의 «줄이 붙는다»");
+            AssertSpacing(nt, "pinfo_id_text_lh", "왼쪽 이름 줄");
+            AssertSpacing(rt1, "pinfo_right_lh", "오른쪽 대장간 줄");
+            Debug.Log("[T354] 머리줄 피치 왼 " + wantL.ToString("0.0") + "px · 오른 " + wantR.ToString("0.0") + "px · 글자 " + fs.ToString("0.0") + " · 오른쪽 잉크 " + ink.ToString("0.0"));
+        }
+
     }
 }
