@@ -204,6 +204,11 @@ namespace Forge.Game.Ui
             RectTransform rt = UiKit.Box(parent, "info-btn");
             UiKit.Anchor(rt, Vector2.one, Vector2.one, new Vector2(-RemL("info_right_rem"), -RemL("info_top_rem")), d, d);
             UiKit.Circle(rt, "bg", "info_btn");
+            // T331 30회차 — 정본 8174 `.info-btn` 의 **둘째 겹** `0 .1rem .16rem rgba(0,0,0,.38)`(첫 겹은 안쪽 림라이트).
+            //   ⚑ 이 버튼은 클론에 **공장이 둘**이다 — 여기(던전·기술 판)와 `ForgeUi.InfoButton`(대장간·장비 시트).
+            //     자의 `NEED` 가 그 둘을 세므로 한 곳만 걸린 동안은 «절반만 섰다» 로 남는다.
+            //   ⚠ 이 줄을 `"info-btn"` 과 `Circle(` **사이**에 넣지 마라 — T345 의 자가 «원 공장이 곁 6줄 안» 을 본다.
+            UiShadow.Drop(rt, "infobtn_drop", d * 0.5f);
             Bold(rt, "glyph", TextKind.Sub, "i", "white");
             return UiKit.Button(rt, "hit", () => onClick());
         }

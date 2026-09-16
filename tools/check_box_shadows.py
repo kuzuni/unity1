@@ -70,6 +70,12 @@ SPOTS = [
 ]
 
 # 아직 안 선 자리 — 까닭과 «누가/언제» 를 같이 적는다. 서면 이 줄을 지운다(안 지우면 자가 알린다).
+# 30회차 — **클론 공장이 여럿인 자리**: 정본 선택자 하나를 클론이 두 곳에서 만들면 한 곳만 걸어도
+# «호출이 있다» 가 된다(그러면 화면의 절반은 그늘이 없는데 자가 조용하다). 걸려야 하는 곳 수를 적어 둔다.
+NEED = {
+    'infobtn_drop': 2,   # `ForgeUi.InfoButton`(대장간·장비 시트) + `DungeonPopups.InfoButton`(던전 팝업)
+}
+
 KNOWN = {
     # 29회차 — **값은 재 뒀고 배선만 남은** 자리들. 까닭은 전부 같다: 그 파일을 «범위» 로 쥔 **산 lock** 이 있다.
     # 그 lock 이 풀리는 회차가 `UiShadow.Drop(<상자>, "<키>", <반지름>)` 한 줄을 걸고 여기서 그 줄을 지운다.
@@ -83,7 +89,7 @@ KNOWN = {
     'srdup_drop':      'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(중복 배지)',
     'srrk_drop':       'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(등급 꼬리표)',
     'srchip_drop':     'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(요약 칩 · 등급 4·5 도 같은 키)',
-    'infobtn_drop':    'T331 29회차 — 값 잼 · 배선은 ForgeUi.cs + DungeonPopups.cs **둘 다**(공장이 둘이다 · 하나만 걸면 반만 선다)',
+    'infobtn_drop':    'T331 30회차 — **절반 섰다**(DungeonPopups.InfoButton) · 나머지는 ForgeUi.InfoButton 이 열리는 회차(대장간·장비 시트 · NEED 2)',
 }
 
 # 표 밖 자리의 **장부**(26회차) — «이 축이 볼 자리가 아니다» 거나 «다른 길로 이미 섰다» 는 것을
@@ -236,13 +242,18 @@ def run():
         print('  · ROUTINE §0 의 방법으로 `git clone --depth 1 … .wwwww-src` 한 뒤 다시 돌린다.')
         return 0
     live = clone_keys()
-    bad, stale, standing = [], [], 0
+    bad, stale, half, standing = [], [], [], 0
     for key, sel, ln, kind in SPOTS:
         where = live.get(key)
-        if where and key in KNOWN:
+        n, need = len(where or []), NEED.get(key, 1)
+        if n >= need and key in KNOWN:
             stale.append((key, sel, where[0]))
-        elif where:
+        elif n >= need:
             standing += 1
+        elif n > 0 and key in KNOWN:
+            half.append((key, sel, n, need))          # 적어 둔 대로 아직 안 선 자리인데 **절반은 섰다**
+        elif n > 0:
+            bad.append((key, sel, ln, kind + ' · %d/%d 만 걸렸다(공장이 %d 곳이다)' % (n, need, need)))
         elif key not in KNOWN:
             bad.append((key, sel, ln, kind))
 
@@ -273,6 +284,8 @@ def run():
     gone = [k for k in ELSEWHERE if k not in set(s2 for _, s2, _, _ in unseen)]
     for k in gone:
         print('⚠ `ELSEWHERE` 에 적힌 %s 가 정본에 없다 — 표로 옮겼거나 정본이 지웠다(그 줄을 손봐라)' % k)
+    for key, sel, n, need in half:
+        print('  · **절반만 선 자리**: %s(%s) %d/%d — 나머지 공장이 열리는 회차가 마저 건다(`KNOWN` 참고)' % (key, sel, n, need))
     for key, sel, where in stale:
         print('✗ KNOWN 에 «아직 안 섰다» 로 적힌 %s(%s)가 실제로는 서 있다 — %s · 그 줄을 지워라' % (key, sel, where))
     for key, sel, ln, kind in bad:
@@ -362,6 +375,18 @@ def self_test():
     finally:
         ELSEWHERE.clear(); ELSEWHERE.update(saved_el)
     chk('되돌린 뒤엔 다시 조용하다', '.없는-선택자' not in _out())
+
+    # ⓔ-3 공장이 여럿인 자리(30회차) — 한 곳만 걸리면 «절반» 이고, 적어 두지 않았으면 빨강이다
+    saved_need = dict(NEED)
+    try:
+        out = _out()
+        chk('절반만 선 자리를 찍는다', '절반만 선 자리' in out and 'infobtn_drop' in out)
+        chk('절반이면 KNOWN 에 남는다(rc 0)', run() == 0)
+        NEED['card_lip'] = 99                     # 다 걸린 자리를 «99곳 필요» 로 속여 본다
+        chk('모자라고 KNOWN 에도 없으면 빨강', run() == 1)
+    finally:
+        NEED.clear(); NEED.update(saved_need)
+    chk('되돌리면 다시 초록', run() == 0)
 
     # ⓕ 판정 갈래 — 고장 주입
     saved = dict(KNOWN)

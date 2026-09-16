@@ -305,6 +305,28 @@ namespace Forge.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator 기술_판_정보_버튼에도_정본_그늘이_깔린다()
+        {
+            yield return Boot();
+            // 정본 8174 `.info-btn` — 클론은 이 버튼을 **두 공장**이 만든다(`DungeonPopups.InfoButton` ·
+            // `ForgeUi.InfoButton`). 지금 열린 것은 앞엣것이라 그 절반을 여기서 지킨다(자의 `NEED` 가 둘을 센다).
+            TechPanel p = TechPanel.OpenTechTree();
+            yield return null;
+            yield return null;
+            Assert.IsNotNull(p, "기술 판이 안 열렸다");
+            RectTransform btn = null;
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+                if (rt.name == "info-btn" && UiShadow.Find(rt, "infobtn_drop") != null) { btn = rt; break; }
+            Assert.IsNotNull(btn, "기술 판 정보 버튼의 그늘이 없다");
+
+            Transform sh = UiShadow.Find(btn, "infobtn_drop");
+            Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 원판보다 뒤에 깔린다");
+            Assert.IsNotNull(sh.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
+            Assert.Less(sh.GetComponent<Image>().rectTransform.anchoredPosition.y, 0f, "그늘이 아래로 안 내려갔다");
+            Assert.AreEqual(0.38, UiShadow.Table.Get("infobtn_drop").A, 1e-6, "정본 rgba(0,0,0,.38)");
+        }
+
+        [UnityTest]
         public IEnumerator 탭_패널의_턱은_위로_뜬다()
         {
             yield return Boot();
