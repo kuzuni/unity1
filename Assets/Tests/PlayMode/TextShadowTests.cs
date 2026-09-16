@@ -352,6 +352,9 @@ namespace Forge.Tests.PlayMode
         public IEnumerator 던전_배너_제목과_열쇠는_8방_1px_링을_스트로크로_내고_자동_제련_스피너_글은_아래_한_겹을_쓴다()
         {
             yield return Boot();
+            // 런 918: 열쇠 «N/M» 은 해금된 던전 배너에만 선다(DungeonSheet `if (ok)`) — 새 세이브는 전부 잠겨 keys 가 0 이었다 → 해금 상태를 먼저 만든다(BrLinesTests 의 길).
+            ForgeHost fh = ForgeHost.Instance;
+            fh.S.BestChapter = 5; fh.S.BestStage = 1; fh.Pull();
             UiRoot.Instance.TabBar.OnTab("dungeon");
             yield return null;
             yield return null;
@@ -376,7 +379,6 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(names, 0, "배너 제목(name)이 있다");
             Assert.Greater(keys, 0, "배너 열쇠(keys)가 있다");
 
-            ForgeHost fh = ForgeHost.Instance;
             fh.S.BestChapter = 3; fh.S.BestStage = 1;   // AgePatternTests 의 길 — 새 세이브는 2-10 전이라 Open 이 🔒 토스트만 낸다(런 299)
             fh.S.ForgeLevel = 29;
             fh.Pull();
