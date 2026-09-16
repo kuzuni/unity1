@@ -16,7 +16,8 @@ T365 — 정본 상자 테(`border` · `border-top/-bottom/-left/-right`) ↔ �
 표에 없는 선택자 = 미정(막지 않는다 · `--list` 로 본다 · 회차마다 표에 더한다). 빈자리 중 임자가 정해진 것은 KNOWN 에 두어 rc 0.
 폭 단도 견준다(2회차): 호출의 폭 인자(`PopupKit.Line`/`Line3` · `PetSkillKit.Line2/Line3` · `line_px`·`line2_px`·`line3_px`·`line4_px`·`line1_px` · `line`/`line3` 변수)를
 단으로 읽어 정본 단과 맞춘다(`cellb` = ol3 내림 → ol3 · 클론 line_px 2 = ol1 · line2_px 4 = ol2 · line3_px 6 = ol3 · T33 29회차). 도우미 매개변수(`line`·`linePx`·`borderPx`·`lineW`)로
-넘겨받은 폭은 «못 읽음» 으로 두고 판정하지 않는다. `UiKit.Rounded` 는 **짝**일 때만 테다 — 바깥 `Rounded(p, "line"|…)` 뒤에 `Rounded(…, r - <폭>)` 안쪽 면이 따라오면 그 «폭» 이 단이다.
+넘겨받은 폭은 «못 읽음» 으로 두고 판정하지 않는다. `UiKit.Circle` 도 **짝**일 때만 테다(12회차) — 바깥 고리 `Circle(p, "line"|"ring", …)` 뒤에 안쪽 면 `Circle(p, "face", …)` 과
+`PopupKit.Inset(face.rectTransform, <폭>)` 이 따라오는 꼴이 클론의 **둥근 테**다(오프라인 점·요율 원판·ⓘ 버튼·알 칩 …). 그 `Inset` 의 폭이 곧 단이다. `UiKit.Rounded` 는 **짝**일 때만 테다 — 바깥 `Rounded(p, "line"|…)` 뒤에 `Rounded(…, r - <폭>)` 안쪽 면이 따라오면 그 «폭» 이 단이다.
 `@Method` 자리는 본문 안의 단을 모두 모아 정본 단이 그중에 있으면 맞다(한 메서드가 여럿을 세운다).
 
 사용:  python3 tools/check_box_borders.py [--css <style.css>] [--game <Assets/Scripts/Game>] [--list] [--self-test]
@@ -59,6 +60,19 @@ TABLE = {
     '.toast': ['Ui/Popups.cs@Toast'],
     '.settings-toggle': ['Ui/Popups.cs@Toggle'],
     '.profile-avatar-big': ['—Popups.Avatar 의 폭은 호출부 인수(ProfilePopup 이 PopupKit.Line3 를 준다 · 10회차) — 자는 인수 이름만 봐서 못 읽고 PlayMode BoxBorderSitesTests 가 ol3 를 지킨다'],
+    # 12회차 — 둥근 테 짝(Circle+Inset)을 읽게 된 뒤 열린 자리들 · 오프라인/ⓘ/웨이브
+    '.offline-collect-dot': ['Ui/OfflinePopup.cs@CollectDot'],
+    '.offline-rate-icon': ['—덮인다: 실물은 언제나 `.coin`/`.hammer`(ui.js 5896~5897)이고 7268 이 그 둘에 `border: none` 을 준다 — 274 의 ol2 #000 은 실물에 안 선다(7268 쪽 두 줄이 이 자리의 임자다)'],
+    '.offline-rate-icon.coin': ['Ui/OfflinePopup.cs@Rate'],
+    '.offline-rate-icon.hammer': ['Ui/OfflinePopup.cs@Rate'],
+    '#offline-btn': ['—버튼 자체엔 테가 없다(정본 207 `border: none`) · 클론 `Ui/OfflineButton.cs` 도 테 호출 0 — 12회차가 전수 확인'],
+    '.waypoint': ['—이정표 버튼엔 테가 없다(정본 316 `border: none`) · 클론 `Ui/Waypoints.cs` 는 시간 배지 `Rounded` 채움 하나뿐(고리 짝 아님)'],
+    '.info-btn': ['Ui/ForgeUi.cs@InfoButton'],
+    '#equip-sheet .info-btn': ['Ui/ForgeUi.cs@InfoButton'],
+    '.fi-info-btn': ['Ui/ForgeUi.cs@InfoButton'],
+    '.pip': ['Ui/Hud.cs@RebuildPips'],
+    '#wave-pips::before|top': ['Ui/Hud.cs@RebuildPips'],
+    '#wave-pips::before|bottom': ['Ui/Hud.cs@RebuildPips'],
     # 상단바 카드·아바타·채팅 배지(Hud) · 채팅 화면(ChatScreen)
     '.profile-card': ['Ui/Hud.cs@Build'],
     '.profile-card .avatar': ['Ui/Hud.cs@Build'],
@@ -134,9 +148,16 @@ KNOWN = {
     '.btn → Ui/Popups.cs@Btn': 'T365 2회차 — 바닥 버튼(`.btn` 664 ol1 #444c56 · HUD·오프라인·리그 뒤로)만 얇은 회색인데 공용 Btn 은 Line3 하나다(모달·패널·시트 안 `.btn` 3543 ol3 는 맞다) · Popups.cs T331·T333 lock — 바닥 버튼에 keyline 폭 인자를 주는 길',
     '.chat-preview-badge → Ui/Hud.cs@BuildChat': 'T365 2회차 — `.chat-preview-badge` 3249 ol15(1.5px ≈ 캔버스 3px) ↔ 클론 line_px(2) · ol15 단 키가 카탈로그에 없다(line15_px 3) · Hud.cs T331 lock',
     '.pass-milestone-label → Ui/PassPopup.cs@Render': 'T365 3회차 — `.pass-milestone-label` 2803 ol2 ↔ 클론 라벨 고리는 `- PopupKit.Line`(ol1)(배너 Line3 는 맞다) · PassPopup.cs T332 lock',
+    '.offline-rate-icon.coin → Ui/OfflinePopup.cs@Rate': 'T365 12회차 — 정본 실물은 **테가 없다**(7268 `.offline-rate-icon.coin/.hammer { background: none; border: none }` 이 274 의 ol2 #000 을 덮는다 · ui.js 5896~5897 이 늘 그 클래스를 붙인다) ↔ 클론 `Rate()` 는 `UiKit.Circle(circle, "line", "pp_line")` + `Inset(face, line2_px)` 로 **검정 ol2 고리**를 그린다. 고칠 것: 고리·면을 걷고 아이콘만 둔다(정본은 배경도 none). OfflinePopup.cs T345 lock',
+    '.offline-rate-icon.hammer → Ui/OfflinePopup.cs@Rate': 'T365 12회차 — 위와 같은 자리(같은 도우미) · 정본 7268 이 테·배경을 함께 끈다. OfflinePopup.cs T345 lock',
+    '#equip-sheet .info-btn → Ui/ForgeUi.cs@InfoButton': 'T365 12회차 — 정본은 ⓘ 를 **두 얼굴**로 쓴다: 일반 `.info-btn`(973 ol1 #444c56 · 흰 면) ↔ 장비 시트 3634 `#equip-sheet .info-btn { background: var(--pp-line); border: none; color: var(--pp-paper) }`(검정 면 · **테 없음** · 흰 i · 주석에 QA 등재 번호까지 적혀 있다). 클론 `InfoButton` 은 한 얼굴뿐이라 시트에서도 흰 면 + 검정 ol1 고리다. 고칠 것: 갈래 인수(또는 시트 전용 키)로 «검정 면 · 테 없음 · 흰 글자» 를 낸다. ForgeUi.cs T332 lock',
+    '.fi-info-btn → Ui/ForgeUi.cs@InfoButton': 'T365 12회차 — 정본 5061 `.fi-info-btn` 도 **테 없음**(검정 면 + 흰 글자 · 3634 와 같은 결) ↔ 클론은 같은 도우미라 ol1 고리가 선다. 위 줄과 한 번에 고친다. ForgeUi.cs T332 lock',
+    '.pip → Ui/Hud.cs@RebuildPips': 'T365 12회차 — 정본 191 `.pip { border: var(--ol2) solid var(--pp-line) }` ↔ 클론은 고리 안 면을 `size - line * 2`(`line_px` = **ol1**)로 깎는다(`Hud.cs:301·313`). 바꿀 키: `line_px` → `line2_px`(고리 두께를 재는 자리 셋 다). Hud.cs T331 lock',
+    '#wave-pips::before|top → Ui/Hud.cs@RebuildPips': 'T365 12회차 — 정본 185 는 트랙 위아래에 ol2 두 줄(`border-top`·`border-bottom`)을 준다 ↔ 클론 트랙은 `UiKit.Panel(track, "edge", "pp_line")` + 제 `Inset(core, line)`(= `line_px` ol1)이라 한 단 얇다. 바꿀 키: 같은 `line_px` → `line2_px`. Hud.cs T331 lock',
+    '#wave-pips::before|bottom → Ui/Hud.cs@RebuildPips': 'T365 12회차 — 위와 같은 한 자리(트랙 한 상자가 위·아래 두 줄을 같이 낸다). Hud.cs T331 lock',
 }
 
-HELPERS = ('PopupKit.Outlined', 'UiKit.Line', 'PetSkillKit.Framed', 'PetSkillKit.Orb', 'DungeonPopups.Bordered', 'DungeonPopups.BorderedCircle', 'UiKit.Rounded', 'Bordered', 'BorderedCircle')   # 맨 이름 둘은 DungeonPopups 제 안의 호출(10회차 · CurPill)
+HELPERS = ('PopupKit.Outlined', 'UiKit.Line', 'PetSkillKit.Framed', 'PetSkillKit.Orb', 'DungeonPopups.Bordered', 'DungeonPopups.BorderedCircle', 'UiKit.Rounded', 'UiKit.Circle', 'Bordered', 'BorderedCircle')   # 맨 이름 둘은 DungeonPopups 제 안의 호출(10회차 · CurPill)
 # 도우미별 폭 인자 자리(0부터 · 이름 인자는 1) — Rounded 는 짝(안쪽 면의 «r - 폭»)에서 읽는다
 WIDTH_ARG = {'PopupKit.Outlined': 4, 'UiKit.Line': 3, 'PetSkillKit.Framed': 4, 'PetSkillKit.Orb': 3, 'DungeonPopups.Bordered': 4, 'DungeonPopups.BorderedCircle': 3, 'Bordered': 4, 'BorderedCircle': 3}
 CALL_RE = re.compile(r'\b(' + '|'.join(re.escape(h) for h in HELPERS) + r')\s*\(')
@@ -321,6 +342,28 @@ def border_calls(src):
         if len(args) < 2 or not args[1].startswith('"'):
             continue
         name = args[1].strip('"')
+        if helper == 'UiKit.Circle':
+            # 12회차 — 둥근 테는 «고리 Circle + 면 Circle + PopupKit.Inset(면, 폭)» 짝으로 그린다(UiKit.Rounded 짝과 같은 뜻).
+            #   바깥 이름이 고리 꼴(line/ring/outline)이 아니거나 뒤에 면+Inset 이 안 따라오면 그냥 원판이다(테가 아니다).
+            if name not in ('line', 'ring', 'outline'):
+                continue
+            look = src[close:close + 420]
+            n = re.search(r'UiKit\.Circle\s*\(', look)
+            if not n:
+                continue
+            inner, iclose = _args(src, close + n.end() - 1)
+            if len(inner) < 2 or not inner[1].startswith('"'):
+                continue
+            iname = inner[1].strip('"')
+            if not (iname in ('face', 'bg', 'fill') or iname.endswith('-face') or iname.endswith('fill')):
+                continue
+            # 폭은 그 면에 거는 Inset 에서 읽는다 — 원문에서(창 밖에서 끝나는 긴 식도 그대로 · 6회차 수리와 같은 까닭)
+            ins = re.search(r'PopupKit\.Inset\s*\(', src[iclose:iclose + 420])
+            if not ins:
+                continue
+            iargs, _ = _args(src, iclose + ins.end() - 1)
+            out.append((name, tier_of_expr(iargs[1]) if len(iargs) > 1 else None, m.start()))
+            continue
         if helper == 'UiKit.Rounded':
             # 짝 판정: 바깥 고리(이름 line/outline/ring/avatar/…) 뒤 420자 안에 안쪽 면 Rounded 가 따라와야 테다.
             # 안쪽 반지름이 «r - 폭» 이면 그 폭이 단 · 반지름을 따로 준 «입술(lip)» 꼴이면 단은 못 읽는다(None).
@@ -351,7 +394,11 @@ def css_tier(value):
 
 
 def check_target(game_dir, target, want_tier=None):
-    """(상태, 설명) — 'ok' | 'missing'(자리는 있는데 테 호출 없음) | 'absent'(요소·메서드·파일 없음) | 'tier'(단이 정본과 다름) | 'skip'."""
+    """(상태, 설명) — 'ok' | 'missing'(자리는 있는데 테 호출 없음) | 'absent'(요소·메서드·파일 없음) | 'tier'(단이 정본과 다름) | 'extra'(정본은 끄는데 클론이 그린다 · 12회차) | 'skip'.
+
+    ⚠ 정본 단이 `none` 인 자리는 **없어야 맞다** — 그래서 호출이 없으면 `ok`, 있으면 `extra` 다(11회차까지는 호출이 있으면
+    그냥 `ok` 라 «군더더기 테» 를 한 건도 못 봤다 · 오히려 KNOWN 에 적어 두면 «이제 테가 있다 → 지워라» 로 거꾸로 울었다).
+    `none` 자리는 이름(`#`)보다 **메서드(`@`)나 파일** 로 적는다 — 이름으로 적으면 «그 이름이 아예 없다» 와 «테가 없다» 를 못 가른다."""
     if target.startswith('—'):
         return 'skip', target[1:]
     file_part, sep, tail = re.match(r'([^#@]+)([#@]?)(.*)', target).groups()
@@ -372,8 +419,12 @@ def check_target(game_dir, target, want_tier=None):
         calls = border_calls(src)
         where = '파일 전체'
     if not calls:
+        if want_tier == 'none':
+            return 'ok', where + ' · 정본대로 테 없음'
         return ('absent' if sep == '#' else 'missing'), where + '에 테 호출이 없다'
     tiers = {t for _, t, _ in calls if t}
+    if want_tier == 'none':
+        return 'extra', '%s: 정본은 테를 끄는데 클론이 그린다(단 %s)' % (where, '/'.join(sorted(tiers)) if tiers else '못 읽음')
     if want_tier and want_tier.startswith('ol') and tiers and 'param' not in tiers and want_tier not in tiers:
         return 'tier', '%s: 정본 %s ↔ 클론 %s' % (where, want_tier, '/'.join(sorted(tiers)))
     return 'ok', where + ' · 단 ' + ('/'.join(sorted(tiers)) if tiers else '못 읽음')
@@ -411,7 +462,7 @@ def run(css_text, game_dir, table, known, out=print, list_pending=False):
             elif pair in known or t in known:
                 n_known += 1
             else:
-                label = {'missing': '테 없음', 'absent': '자리 없음', 'tier': '단 어긋남'}[state]
+                label = {'missing': '테 없음', 'absent': '자리 없음', 'tier': '단 어긋남', 'extra': '군더더기 테'}[state]
                 out('  ✗ %s → %s: %s(%s)' % (key, t, label, why))
                 problems += 1
     for t in known_now_ok:
@@ -491,6 +542,24 @@ namespace X {
     checks.append(('Rounded 홀로(bg 채움)는 테가 아니다', check_target(tmp, 'Ui/Ring.cs@Fill', 'ol1')[0] == 'missing'))
     checks.append(('입술 꼴(lip · 반지름 따로)은 테지만 단은 못 읽는다 → 판정 안 함', check_target(tmp, 'Ui/Ring.cs@Lip', 'ol2')[0] == 'ok'))
     checks.append(('안쪽 면이 창 안에서 시작해 밖에서 끝나도 짝이고 단 ol2 를 읽는다(6회차)', check_target(tmp, 'Ui/Ring.cs@Far', 'ol2')[0] == 'ok' and check_target(tmp, 'Ui/Ring.cs@Far', 'ol1')[0] == 'tier'))
+    # 12회차 — 둥근 테 짝(Circle + 면 + PopupKit.Inset) · 정본이 «끄는» 자리의 군더더기 테
+    with open(os.path.join(ui, 'Dot.cs'), 'w', encoding='utf-8') as f:
+        f.write('class D {\n'
+                '    void Ring(Transform p) { UiKit.Circle(p, "line", "pp_line"); Image face = UiKit.Circle(p, "face", "pp_paper"); PopupKit.Inset(face.rectTransform, UiKit.L("line2_px")); }\n'
+                '    void Disc(Transform p) { UiKit.Circle(p, "face", "pp_paper"); }\n'
+                '    void Bare(Transform p) { UiKit.Box(p, "x"); }\n'
+                '}\n')
+    checks.append(('Circle 짝(고리 + 면 + Inset)은 테이고 단은 Inset 에서 읽는다', check_target(tmp, 'Ui/Dot.cs@Ring', 'ol2')[0] == 'ok'))
+    checks.append(('Circle 짝의 단이 정본과 다르면 «단 어긋남»', check_target(tmp, 'Ui/Dot.cs@Ring', 'ol3')[0] == 'tier'))
+    checks.append(('Circle 홀로(원판)는 테가 아니다', check_target(tmp, 'Ui/Dot.cs@Disc', 'ol1')[0] == 'missing'))
+    checks.append(('정본이 끄는 자리(none)는 테 호출이 없어야 ok', check_target(tmp, 'Ui/Dot.cs@Bare', 'none')[0] == 'ok'))
+    checks.append(('정본이 끄는 자리에 테가 있으면 «군더더기 테»', check_target(tmp, 'Ui/Dot.cs@Ring', 'none')[0] == 'extra'))
+    logs4 = []
+    checks.append(('군더더기 테는 rc 1', run(css, tmp, {'.d': ['Ui/Dot.cs@Ring']}, {}, logs4.append) == 1 and any('군더더기 테' in l for l in logs4)))
+    checks.append(('군더더기 테도 KNOWN 이면 rc 0', run(css, tmp, {'.d': ['Ui/Dot.cs@Ring']}, {'.d → Ui/Dot.cs@Ring': '임자 있음'}, [].append) == 0))
+    logs5 = []
+    run(css, tmp, {'.d': ['Ui/Dot.cs@Ring']}, {'.d → Ui/Dot.cs@Ring': '임자 있음'}, logs5.append)
+    checks.append(('군더더기 테를 KNOWN 에 둬도 «이제 테가 있다» 로 거꾸로 울지 않는다', not any('이제 테가 있다' in l for l in logs5)))
     logs2 = []
     run(css, tmp, {'.a': ['Ui/Face.cs#line']}, {'.a → Ui/Face.cs#line': 'x'}, logs2.append)
     checks.append(('KNOWN(쌍 열쇠)인데 이제 있다 → 알린다', any('이제 테가 있다' in l for l in logs2)))
