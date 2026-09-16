@@ -141,8 +141,11 @@ namespace Forge.Game.Ui
             TextMeshProUGUI note = PopupKit.Label(card, "note", TextKind.Sub, "파는 쪽이 " + gap + "시대 더 최신입니다.\n같거나 이전 시대면 이 창은 뜨지 않습니다.", "pp_muted", TextAlignmentOptions.Center, true, false, PopupKit.FontSize(TextKind.Sub) * 2.8f);
             // T354 10회차 — 정본 2239 `.sellwarn-note { line-height: 1.35 }`. 이 글은 줄바꿈이 박혀 **두 줄**이라 줄 간격이 눈에 보이는 자리다.
             LineHeight.Apply(note, "sellwarn_note_lh");
-            RectTransform row = PopupKit.Item(card, "row", -1f, UiKit.H("btn_h") * 1.5f);
-            float bw = (w - rem * 1.8f - rem * 0.8f) * 0.5f, bh = UiKit.H("btn_h") * 1.5f;
+            // T378 12회차 — 정본 3565 `.modal-card > .row .btn { min-height: 2.9rem }` 은 **하한**이고 실제 높이는 글(판매 + small 두 줄 · `.btn` 663 padding .55rem)이 정한다
+            //   → 곁 표 `sellwarn_btn_pad_y_rem` x 2 + Sub 두 줄의 글꼴 줄높이 와 `sellwarn_btn_min_h_rem` 중 큰 쪽(PopupKit.TwoLineBtnH). 전엔 `btn_h * 1.5f` 가 박혀 있었다(T378 임시 목록의 그 자리).
+            float bh = PopupKit.TwoLineBtnH(TextKind.Sub, CraftStyle.Px("sellwarn_btn_pad_y_rem"), null, CraftStyle.Px("sellwarn_btn_min_h_rem"));
+            RectTransform row = PopupKit.Item(card, "row", -1f, bh);
+            float bw = (w - rem * 1.8f - rem * 0.8f) * 0.5f;
             // T110 — 정본 ui.js 3865 도 `판매<small>coin +N</small>` 두 줄이다(클론은 한 줄 글자였다).
             Button s = PopupKit.Btn(row, "sell", "", "pp_red", "pp_red_dk", () => h.OnSellConfirm(), bw, bh, "stage_ink", TextKind.Sub);
             PinSell(s);

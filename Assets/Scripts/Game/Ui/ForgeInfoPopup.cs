@@ -442,10 +442,7 @@ namespace Forge.Game.Ui
         /// 클론은 두 줄을 다 `k` 로 찍으므로(정본 small 은 글자 하한 §1 에 걸려 같은 단이다) 두 줄 x 그 글자 크기다.</summary>
         public static float TwoLineBtnH(TextKind k, string padKey, string lhKey)
         {
-            var f = UiFont.Primary.faceInfo;
-            float fs = PopupKit.FontSize(k);
-            float ratio = lhKey == null ? f.lineHeight / f.pointSize : (float)LineHeight.Table.Get(lhKey);
-            return L(padKey) * PopupKit.Rem * 2f + 2f * fs * ratio;
+            return PopupKit.TwoLineBtnH(k, L(padKey) * PopupKit.Rem, lhKey);   // 12회차에 공용 도우미로 올렸다(판매 경고 버튼도 쓴다)
         }
     }
 

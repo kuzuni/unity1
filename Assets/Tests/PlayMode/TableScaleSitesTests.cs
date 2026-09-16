@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Forge.Core.Save;
+using Forge.Core.Forging;
 using Forge.Game;
 using Forge.Game.Ui;
 
@@ -231,6 +232,41 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(expect, r.height, 0.5f, "높이 = 패딩 x 2 + 두 줄 글꼴 줄높이(곱 없이)");
             Assert.Greater(Mathf.Abs(r.height - UiKit.H("btn_h") * 1.7f), 1f, "옛 btn_h×1.7(4.08rem)이 아니다");
             PopupLayer.Instance.Hide(ForgeInfoPopup.Name);
+            yield return null;
+        }
+            /// <summary>12회차 — 판매 경고 팝업의 [판매][취소](`ForgeCraftPopup.cs` · 정본 3565 `.modal-card > .row .btn { min-height: 2.9rem }` 하한 + 663 `.btn { padding: .55rem }`):
+        /// 높이 = max(하한, 패딩 x 2 + Sub 두 줄의 글꼴 줄높이) — `PopupKit.TwoLineBtnH`. 전엔 btn_h×1.5(3.6rem)가 박혀 있었다. 여는 채비는 `BrLinesTests` 그대로.</summary>
+        [UnityTest]
+        public IEnumerator 판매_경고_판매_취소_버튼_높이는_곁_표_하한과_두_줄_글꼴_줄높이_중_큰_쪽이다()
+        {
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!ForgeHost.Ready && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            ForgeHost fh = ForgeHost.Instance;
+            Assert.IsNotNull(fh, "ForgeHost");
+            ForgeItem a = fh.Engine.RollItem(), b = fh.Engine.RollItem();
+            ForgeCraftPopup.ShowSellConfirm(fh, a, b);
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(ForgeCraftPopup.SellName);
+            Assert.IsNotNull(p, "판매 경고 팝업");
+            float minH = CraftStyle.Px("sellwarn_btn_min_h_rem"), pad = CraftStyle.Px("sellwarn_btn_pad_y_rem");
+            Assert.AreEqual(PopupKit.Rem * 2.9f, minH, 0.01f, "정본 3565 min-height 2.9rem");
+            Assert.AreEqual(PopupKit.Rem * 0.55f, pad, 0.01f, "정본 663 padding .55rem");
+            float expect = PopupKit.TwoLineBtnH(TextKind.Sub, pad, null, minH);
+            Assert.GreaterOrEqual(expect, minH, "하한보다 작지 않다");
+            int found = 0;
+            foreach (Button bt in p.Root.GetComponentsInChildren<Button>(true))
+            {
+                if (bt.name != "sell" && bt.name != "cancel") continue;
+                found++;
+                Rect r = bt.GetComponent<RectTransform>().rect;
+                Assert.AreEqual(expect, r.height, 0.5f, bt.name + ": 높이 = max(하한, 패딩 x 2 + 두 줄 줄높이)");
+                Assert.Greater(Mathf.Abs(r.height - UiKit.H("btn_h") * 1.5f), 1f, bt.name + ": 옛 btn_h×1.5(3.6rem)이 아니다");
+            }
+            Assert.AreEqual(2, found, "[판매][취소] 둘");
+            PopupLayer.Instance.Hide(ForgeCraftPopup.SellName);
             yield return null;
         }
     }

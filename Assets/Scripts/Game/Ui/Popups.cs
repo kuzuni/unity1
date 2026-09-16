@@ -205,6 +205,18 @@ namespace Forge.Game.Ui
         public static float Rem { get { return UiKit.H("rem_h"); } }
         /// <summary>글자 종류의 크기(카탈로그 textKinds) — 행 높이를 글자에 맞출 때.</summary>
         public static float FontSize(TextKind k) { return UiCatalog.Instance.Kind(k).size; }
+
+        /// <summary>T378 11·12회차 — «제목 + small» 두 줄 버튼의 높이. 정본 `.btn` 은 높이를 안 주고 **글이 높이를 정한다**:
+        /// 세로 패딩(px) x 2 + 두 줄의 줄높이 — 정본이 `line-height` 를 준 자리면 그 표 키(`lhKey` · LineHeightUi.json), 안 준 자리면 normal = 글꼴 자산 비율.
+        /// 정본이 `min-height` 를 준 자리(3565 `.modal-card > .row .btn`)는 `minH` 로 넘겨 둘 중 큰 쪽을 쓴다(border-box 하한).
+        /// 클론은 두 줄을 다 `k` 로 찍는다(정본 small 은 글자 하한 §1 에 걸려 같은 단).</summary>
+        public static float TwoLineBtnH(TextKind k, float padY, string lhKey, float minH = 0f)
+        {
+            var f = UiFont.Primary.faceInfo;
+            float fs = FontSize(k);
+            float ratio = lhKey == null ? f.lineHeight / f.pointSize : (float)LineHeight.Table.Get(lhKey);
+            return Mathf.Max(minH, padY * 2f + 2f * fs * ratio);
+        }
         public static float Line { get { return UiKit.L("line_px"); } }
         public static float Line3 { get { return UiKit.L("line3_px"); } }
         /// <summary>정본 --ol2(4px) — 설정 토글·작은 아바타·리그 행 같은 «중간 단» 테(T365 10회차).</summary>
