@@ -726,7 +726,7 @@ def mismatches(heads, rows):
     return bad
 
 
-def head_closed_row_open(heads, rows):
+def head_closed_row_open(heads, rows, age_of=None, log=None):
     """**mismatches() 의 반대 방향** — 제목은 닫혀 보이는데(✅·⛔) 표는 열려 있다(⬜·🔄) (T376).
 
     T161 이 세운 `mismatches()` 는 «표가 닫혔는데 제목이 열림» 한 방향만 본다 — 그쪽은 «끝난 일을 또 잡는»
@@ -738,7 +738,13 @@ def head_closed_row_open(heads, rows):
     실측(2026-09-15 09:3x · main): **T349** — 제목 `### T349 ✅` ↔ 행 «🔄 진행», 그 행 스스로
     «남은 하나 `SummonFxTests` 는 T334 lock 뒤» 라고 적어 둔다. `--check` 는 «어긋남 0» 으로 초록이었다.
 
-    돌려주는 것: [(작업, 제목줄, 제목표시, 행줄, 행표시)] — 번호 순서. **막지 않는다**(결정 493).
+    **T407 — 나이를 단다**: 이 어긋남이 «막 고치는 중» 이면 참고로 지나가야 맞지만(그래서 결정 493 이 안 막았다),
+    **아무도 몇 시간째 안 맞추면** 그 해석은 죽고 남는 것은 다음 사람을 잘못 돌려보내는 거짓말뿐이다
+    (실측: T389 가 넉 회차·4시간 40분 동안 그대로였고 그동안 `task_state T389` 는 «끝난 일이다 — 잡지 마라» 였다).
+    그래서 **그 번호의 마지막 커밋이 `STALE_MIN`(90분)을 넘겼으면 ⛔ 로 올린다** — 새 잣대가 아니라 이 자가 이미
+    쓰는 문턱이다(T164·T187 과 같은 값). 나이를 모르면(얕은 클론 · 커밋 없음) 올리지 않는다 — 모르는 것을 «오래됐다» 고 하지 않는다.
+
+    돌려주는 것: [(작업, 제목줄, 제목표시, 행줄, 행표시, 나이분 or None, 오래됐나)] — 번호 순서.
     """
     out = []
     for tid, (pn, mark, _t) in rows.items():
@@ -747,7 +753,8 @@ def head_closed_row_open(heads, rows):
         h = heads.get(tid)
         if not h or h[1] not in ("✅", "⛔"):
             continue
-        out.append((tid, h[0], h[1], pn, mark))
+        age = age_of(tid) if age_of is not None else task_commit_age(tid, log=log)
+        out.append((tid, h[0], h[1], pn, mark, age, age is not None and age > STALE_MIN))
     out.sort(key=lambda x: int(x[0][1:]))
     return out
 
@@ -889,14 +896,27 @@ def cmd_check(heads, rows, dups=None, commit_age=None):
     #    ⓐ 는 «표가 닫혔는데 제목이 열림»(= 끝난 일을 또 잡는 덫)만 본다. 반대쪽은 **있는 일을 감춘다** —
     #    §2 제목은 일감을 고르는 워커가 훑는 자리(T419)이고 `verdict()` 도 제목의 ✅ 를 보고 «잡지 마라» 를 낸다.
     #    ⚠ **막지 않는다**(조율 결함은 알리기만 · 결정 493) — notes 에 실어 끝줄에도 남긴다(T231).
-    hidden = head_closed_row_open(heads, rows)
+    hidden = head_closed_row_open(heads, rows, age_of=commit_age)
     if hidden:
-        print("· (참고 · 실패 아님) **ROUTINE §2 제목은 닫혔는데(✅·⛔) PROGRESS 행은 열려 있는 작업** — 그 절의 남은 일이 목록에서 숨는다:")
-        for tid, hn_, hg, pn_, pg in hidden:
-            print("  · %-5s ROUTINE.md:%d «%s»  ↔  PROGRESS.md:%d «%s»" % (tid, hn_, hg, pn_, pg))
+        stale = [h for h in hidden if h[6]]      # T407 — 90분 넘게 아무도 안 맞춘 것
+        head = ("⛔ **ROUTINE §2 제목은 닫혔는데(✅·⛔) PROGRESS 행이 열린 채 %d분째다**" % max(h[5] for h in stale)) if stale \
+            else "· (참고 · 실패 아님) **ROUTINE §2 제목은 닫혔는데(✅·⛔) PROGRESS 행은 열려 있는 작업**"
+        print("%s — 그 절의 남은 일이 목록에서 숨는다:" % head)
+        for tid, hn_, hg, pn_, pg, age, old_ in hidden:
+            print("  %s %-5s ROUTINE.md:%d «%s»  ↔  PROGRESS.md:%d «%s»%s"
+                  % ("⛔" if old_ else " ·", tid, hn_, hg, pn_, pg,
+                     ("  · 그 번호의 마지막 커밋 %d분 전" % age) if age is not None else "  · 나이 모름(얕은 클론)"))
         print("  `task_state %s` 도 제목만 보고 «끝난 일이다 — 잡지 마라» 를 낸다 — 표가 맞으면 **제목에서 그 표시를 떼고**,"
               " 제목이 맞으면 **행을 닫는다**(§4)." % hidden[0][0])
-        notes.append("제목은 닫혔는데 행은 열린 작업 %s" % " ".join(h[0] for h in hidden))
+        if stale:
+            # T407 — «막 고치는 중» 이라는 해석은 90분이면 죽는다. 그때부터는 남는 것이 «다음 사람을 잘못 돌려보내는 거짓말» 뿐이라 막는다.
+            #        문턱은 이 자가 이미 쓰는 것(STALE_MIN · docs/claims/README.md 의 90분 규약 · T164·T187 과 같은 값)이다.
+            print("  ⚑ 위 ⛔ 는 **%d분(90분 규약)을 넘겼다** — «막 고치는 중» 이 아니다. 이번 회차의 첫 일로 그 절의 회차 기록을 읽고"
+                  " 표·제목 중 **틀린 쪽**을 고쳐라(그 절의 마지막 기록이 무엇이 맞는지 안다)." % STALE_MIN)
+            rc = 1
+            notes.append("⛔ 제목↔행이 90분 넘게 어긋난 작업 %s" % " ".join(h[0] for h in stale))
+        else:
+            notes.append("제목은 닫혔는데 행은 열린 작업 %s" % " ".join(h[0] for h in hidden))
 
     # ⓖ **«⬜ 대기» 인데 그 번호의 lock 이 살아 있다** — 오늘 실제로 났다(T238 · 결정 653):
     #    `T233` 행이 «⬜ 대기 — 선점 안 됨» 인 채로 `T233.lock`(10:37)이 살아 있었고 **고침은 이미 push** 돼 있었다.
@@ -1840,6 +1860,24 @@ def self_test():
         if head_closed_row_open(_h, _rw) or [b[0] for b in mismatches(_h, _rw)] != ["T161"]:
             print("⛔ 자기 검사 실패(T376) — 종전 방향(표 ✅ · 제목 열림)에 새 갈래가 겹쳐 울었다")
             return 1
+        #   ⓒ-2 **T407 — 나이**: 같은 어긋남이라도 «막 고치는 중»(90분 안)이면 ⚠ 로 지나가고, 90분을 넘겼으면 ⛔ 로 올라간다.
+        io.open(r, "w", encoding="utf-8").write("### T161 ✅ — 촬영 카메라\n")
+        io.open(p, "w", encoding="utf-8").write(
+            "| ID | 작업 | 상태 | SID |\n| T161 | 촬영 | 🔄 진행 | |\n")
+        _h, _rw = routine_heads(r), progress_rows(p)
+        _young = head_closed_row_open(_h, _rw, age_of=lambda t: STALE_MIN - 1)
+        if not _young or _young[0][5] != STALE_MIN - 1 or _young[0][6]:
+            print("⛔ 자기 검사 실패(T407) — 90분 **안**인데 ⛔ 로 올렸다(막 고치는 중인 사람을 세운다): %s" % (_young,))
+            return 1
+        _old = head_closed_row_open(_h, _rw, age_of=lambda t: STALE_MIN + 1)
+        if not _old or not _old[0][6]:
+            print("⛔ 자기 검사 실패(T407) — 90분을 **넘겼는데** ⛔ 로 안 올렸다: %s" % (_old,))
+            return 1
+        #   나이를 모르면(얕은 클론) 올리지 않는다 — 모르는 것을 «오래됐다» 고 말하지 않는다
+        _none = head_closed_row_open(_h, _rw, age_of=lambda t: None)
+        if not _none or _none[0][5] is not None or _none[0][6]:
+            print("⛔ 자기 검사 실패(T407) — 나이를 모르는데 ⛔ 로 올렸다: %s" % (_none,))
+            return 1
         #   ⓓ §2 에 제목이 없는 행은 이 갈래가 안 센다(그것은 ⓙ 의 몫이다)
         io.open(r, "w", encoding="utf-8").write("### T162 — 다른 일\n")
         io.open(p, "w", encoding="utf-8").write(
@@ -1871,7 +1909,9 @@ def self_test():
         io.open(p, "w", encoding="utf-8").write(
             "| ID | 작업 | 상태 | SID |\n| T161 | 촬영 | 🔄 진행 | |\n")
         with contextlib.redirect_stdout(_sink):
-            _rc_warn = cmd_check(routine_heads(r), progress_rows(p))
+            # T407 — 이 칸의 전제는 «방금 그렇게 됐다»(막 고치는 중)이다. 나이 축이 생겼으므로 그 뜻을 값으로 적는다
+            #        (안 적으면 진짜 저장소의 T161 커밋 나이를 읽어 90분을 넘겨 ⛔ 로 올라간다 — 그것은 이 칸이 재려던 것이 아니다).
+            _rc_warn = cmd_check(routine_heads(r), progress_rows(p), commit_age=lambda t: 1)
         if _rc_warn != 0:
             print("⛔ 자기 검사 실패(T403) — ⚠ 참고(제목 ✅ · 행 🔄)만 있는데 --check 가 rc %s 로 막았다" % _rc_warn)
             return 1
@@ -1893,7 +1933,7 @@ def self_test():
               " · **«행은 «lock 쥔 채» 라는데 lock 파일이 없다» 를 칸 «머리» 로만 가려 잡고(뒤 이력의 «반납» 에 안 속는다) · ✅·⬜ 표시에는 안 울고, 판정(rc)은 안 바꾼다**(T453)"
               " · **«표에 열린 행은 있는데 §2 에 제목이 없다» 를 잡되 닫힌 행·제목이 있는 행에는 안 울고, 그 참고가 끝줄에도 실리고 rc 는 0 이다**(T466)"
               " · **제목이 그 번호로 시작해도 SID 로 «임자가 아니다» 를 가렸으면 놓고 간 진단으로 세고, 임자 것·임자를 모를 때·제목에 SID 가 없을 때 셋에는 종전대로 안 센다**(T468)"
-              " · **«임자가 살아 있다» 를 그 SID 가 **민** 커밋(제목)으로만 재고, 남의 커밋 몸통에 적힌 그 SID·빈 SID·빈 로그에는 안 속는다**(T481) · **⚠ 참고만이면 --check rc 0 · ⛔ 선점 덫이면 rc 1 — gate.sh 가 이 자를 막는 자로 올렸다(T403)** · **제목이 «쓴» 번호와 «인용» 을 가르고(T0 파수꾼 포함) T415 사고 막이는 그대로 서고(T337)** · **제목은 닫혔는데(✅·⛔) 행은 열린(⬜·🔄) 짝을 잡되 양쪽이 맞으면·제목이 아예 없으면 안 울고, 종전 방향과 안 겹치고, `verdict()` 의 «끝난 일이다» 에 그 말을 덧붙이되 판정은 안 바꾼다**(T376) · **«코드 자취» 는 코드 식별자·파일명·폴더명만 세고 주석(`//` `///` `/* */` `#` 삼중따옴표)·문자열 리터럴·문서 내용은 안 센다**(T29)")
+              " · **«임자가 살아 있다» 를 그 SID 가 **민** 커밋(제목)으로만 재고, 남의 커밋 몸통에 적힌 그 SID·빈 SID·빈 로그에는 안 속는다**(T481) · **⚠ 참고만이면 --check rc 0 · ⛔ 선점 덫이면 rc 1 — gate.sh 가 이 자를 막는 자로 올렸다(T403)** · **제목이 «쓴» 번호와 «인용» 을 가르고(T0 파수꾼 포함) T415 사고 막이는 그대로 서고(T337)** · **제목은 닫혔는데(✅·⛔) 행은 열린(⬜·🔄) 짝을 잡되 양쪽이 맞으면·제목이 아예 없으면 안 울고, 종전 방향과 안 겹치고, `verdict()` 의 «끝난 일이다» 에 그 말을 덧붙이되 판정은 안 바꾼다**(T376) · **그 «제목 닫힘 ↔ 행 열림» 에 나이를 달아 90분을 넘기면 ⛔ rc 1 로 올리고, 90분 안·나이 모름 둘에는 안 올린다**(T407) · **«코드 자취» 는 코드 식별자·파일명·폴더명만 세고 주석(`//` `///` `/* */` `#` 삼중따옴표)·문자열 리터럴·문서 내용은 안 센다**(T29)")
         return 0
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
