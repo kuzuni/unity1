@@ -132,7 +132,14 @@ namespace Forge.Game.Ui
                 float itemH = rem * 1.4f;
                 float listH = itemH * 6f;
                 RectTransform dd = UiKit.Box(bottom, "af-dd-list");
-                UiKit.Place(dd, inner - spW, rem * 0.15f - listH, spW, listH);
+                // T388 6회차 — 정본 **4791~4795** `.af-dd-list { position: absolute; right: 0; … min-width: 5.4rem; flex-direction: column }`:
+                //   드롭다운은 **내용만큼**(가장 넓은 단추) 넓되 **5.4rem 밑으로는 안 내려간다**. 항목이 숫자 한둘이라 사실상 그 하한이 곧 폭이다.
+                //   클론은 폭을 **스피너 폭**(`spW`)에 묶어 7.24rem 으로 섰다 — 하한을 안 쥔 것이 아니라 **엉뚱한 것에 묶여** 있었다.
+                //   오른끝은 정본 `right: 0` 대로 스피너 오른끝에 맞춘다(폭만 줄고 자리는 안 움직인다).
+                //   ⚠ 여기서 «내용» 을 따로 재지 않는 까닭: 항목은 숫자 한두 자라 정본에서도 **하한이 곧 폭**이다.
+                //     대신 자가 «항목 글자가 안 잘리는가» 를 지켜, 항목이 넓어지는 날 그 자가 먼저 빨개진다(§1 — 짐작한 여백을 코드에 박지 않는다).
+                float ddW = rem * ForgeAutoStyle.L("af_dd_min_w_rem");
+                UiKit.Place(dd, inner - ddW, rem * 0.15f - listH, ddW, listH);
                 // T345 — 정본 4791 `.af-dd-list { border-radius: .45rem }`(표 `af_dd_list_r_rem` · 전엔 .3rem)
                 Image ddbg = RadiusUi.Rounded(dd, "bg", "pp_line", "af_dd_list_r_rem");
                 ddbg.raycastTarget = true;

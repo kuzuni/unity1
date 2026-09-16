@@ -226,5 +226,56 @@ namespace Forge.Tests.PlayMode
             Debug.Log("[T388] 던전 시트 [열기] 하한 " + want.ToString("0.0") + "px(= " + (want / UiKit.RefW).ToString("0.0000") + "W · 종전 4.6rem " + (PopupKit.Rem * 4.6f).ToString("0.0") + ")");
             yield return null;
         }
+
+        /// <summary>
+        /// T388 6회차 — 정본 **4791~4795** `.af-dd-list { position: absolute; right: 0; … min-width: 5.4rem; flex-direction: column }`.
+        /// 드롭다운은 **내용만큼**(가장 넓은 단추) 넓되 5.4rem 밑으로는 안 내려간다 — 항목이 숫자 한두 자라 사실상 **하한이 곧 폭**이다.
+        /// 클론은 폭을 **스피너 폭**(`inner * 0.36` ≈ 7.24rem)에 묶어 정본보다 34% 넓었다 — 하한을 안 쥔 것이 아니라 **엉뚱한 것에 묶여** 있었다.
+        /// 그래서 ⓐ 폭이 하한이고 ⓑ 스피너보다 좁고 ⓒ **오른끝이 스피너 오른끝과 같고**(정본 `right: 0`) ⓓ 항목 글자가 안 잘리는지 본다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 자동_제련_드롭다운은_스피너_폭이_아니라_정본_하한_5_4rem_이다()
+        {
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!ForgeHost.Ready)
+            {
+                Assert.Less(Time.realtimeSinceStartup - t0, 20f, "ForgeHost 가 20초 안에 준비되지 않았다");
+                yield return null;
+            }
+            ForgeHost h = ForgeHost.Instance;
+            ForgeAutoPopup.Open(h);
+            yield return null;
+            ForgeAutoPopup.ToggleDropdown(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            Transform root = h.Meta.Popups.Find(ForgeAutoPopup.Name).Root;
+            RectTransform dd = (RectTransform)Find(root, "af-dd-list");
+            Assert.IsNotNull(dd, "드롭다운(af-dd-list) — 스피너를 눌러 열었다");
+            RectTransform sp = (RectTransform)Find(root, "af-spinner");
+            Assert.IsNotNull(sp, "스피너");
+
+            Assert.AreEqual(5.4f, ForgeAutoStyle.L("af_dd_min_w_rem"), 1e-6f, "표 = 정본 4794 5.4rem");
+            float want = PopupKit.Rem * ForgeAutoStyle.L("af_dd_min_w_rem");
+            Assert.AreEqual(want, dd.rect.width, 0.5f, "드롭다운 폭 = 정본 하한 5.4rem · 실측 " + (dd.rect.width / PopupKit.Rem).ToString("0.00") + "rem");
+            Assert.Less(dd.rect.width, sp.rect.width, "스피너 폭에 묶여 있지 않다(종전 꼴이면 같다) · 스피너 " + (sp.rect.width / PopupKit.Rem).ToString("0.00") + "rem");
+            Assert.AreEqual(sp.anchoredPosition.x + sp.rect.width, dd.anchoredPosition.x + dd.rect.width, 1f, "정본 `right: 0` — 오른끝이 스피너와 같다");
+
+            int items = 0;
+            foreach (TMPro.TextMeshProUGUI t in dd.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+            {
+                if (string.IsNullOrEmpty(t.text)) continue;
+                items++;
+                Assert.LessOrEqual(t.preferredWidth, t.rectTransform.rect.width + 0.5f, "항목 «" + t.text + "» 글자가 잘린다 — 하한이 더는 내용을 못 담는다(다음 회차가 내용을 재야 한다)");
+            }
+            Assert.Greater(items, 0, "드롭다운 항목");
+            Debug.Log("[T388] 드롭다운 " + (dd.rect.width / PopupKit.Rem).ToString("0.00") + "rem(하한 5.4 · 종전 스피너 " + (sp.rect.width / PopupKit.Rem).ToString("0.00") + ") · 항목 " + items);
+
+            ForgeAutoPopup.ToggleDropdown(h);
+            yield return null;
+            ForgeAutoPopup.Close(h);
+            yield return null;
+        }
     }
 }
