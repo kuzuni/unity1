@@ -247,5 +247,69 @@ namespace Forge.Tests.PlayMode
             h.Meta.Popups.Hide(ForgeInfoPopup.Name);
             yield return null;
         }
+
+        /// <summary>T364 12회차 ① — 던전 상세 `◀ 난이도 N ▶` 줄. 정본 5304 `.dgd-stage-row { display:flex; align-items:center; justify-content:center; gap: calc(var(--app-w) * .1237) }` ·
+        /// 4583 `.tri-btn { width: 1.77rem; height: 2.2rem }` · 5307 아이콘 4%H. 클론은 «반 틈(gap × 0.5) + 카드 폭 30% 고정 상자» 라 **모델**이 달랐다 —
+        /// 두 어긋남이 서로를 지워 한 스테이지에서만 잉크가 맞았다(3회차의 «값만 바꾸면 되레 벌어진다»). 표 왕복 + 화면에 선 상자로 둘 다 묻는다:
+        /// 틈이 **온전한지**(반틈이면 빨강) · 가운데 상자가 **글자 폭**인지(30% 고정이면 빨강) · 단추 상자가 1.77×2.2rem 인지 · 좌우 대칭인지.</summary>
+        [UnityTest]
+        public IEnumerator 던전_상세_삼각단추_틈은_앱_폭_1237_의_온전한_틈이고_가운데_상자는_글자_폭이다()
+        {
+            // 표 ↔ 정본 왕복
+            Assert.AreEqual(0.1237f, UiKit.L("dgd_tri_gap"), 1e-6f, "정본 5304 gap = calc(var(--app-w) * .1237)");
+            Assert.AreEqual(1.77f, UiKit.L("tri_btn_w_rem"), 1e-6f, "정본 4583 .tri-btn width 1.77rem");
+            Assert.AreEqual(2.2f, UiKit.L("tri_btn_h_rem"), 1e-6f, "정본 4583 .tri-btn height 2.2rem");
+            Assert.AreEqual(0.04f, UiKit.L("dgd_tri"), 1e-6f, "정본 5307 .tri-btn .ico 4%H");
+
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!DungeonUiHost.Ready)
+            {
+                Assert.Less(Time.realtimeSinceStartup - t0, 20f, "DungeonUiHost 가 20초 안에 Ready 되지 않았다");
+                yield return null;
+            }
+            // 새 세이브에선 «hammer» 가 잠겨 Open 이 토스트만 내고 돌아간다(DungeonStageRowTests 와 같은 길).
+            DungeonUiHost.Instance.S.BestChapter = 5;
+            DungeonUiHost.Instance.S.BestStage = 1;
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
+            DungeonDetailPopup.Open("hammer");
+            yield return null;
+            yield return null;
+            Assert.IsTrue(DungeonDetailPopup.IsOpen, "던전 상세가 열린다(해금 뒤)");
+            Canvas.ForceUpdateCanvases();
+
+            RectTransform card = null;
+            foreach (RectTransform rt in UiRoot.Instance.App.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "card" && rt.parent != null && rt.parent.name == "modal-dungeon-detail") { card = rt; break; }
+            Assert.IsNotNull(card, "던전 상세 카드");
+            RectTransform prev = (RectTransform)DungeonPopups.Root(DungeonDetailPopup.PrevButton);
+            RectTransform next = (RectTransform)DungeonPopups.Root(DungeonDetailPopup.NextButton);
+            TMP_Text lab = Child(card, "stage-label").GetComponent<TMP_Text>();
+            TMP_Text num = Child(card, "stage-num").GetComponent<TMP_Text>();
+            Assert.IsNotNull(lab, "「난이도」"); Assert.IsNotNull(num, "스테이지 수");
+
+            float triW = DungeonPopups.RemL("tri_btn_w_rem"), triH = DungeonPopups.RemL("tri_btn_h_rem");
+            Assert.AreEqual(triW, prev.rect.width, 0.1f, "◀ 상자 폭 = 1.77rem(정본 4583) · 아이콘(4%H)이 상자보다 넓어도 상자는 이 값이다");
+            Assert.AreEqual(triH, prev.rect.height, 0.1f, "◀ 상자 높이 = 2.2rem(정본 4583)");
+            Assert.AreEqual(triW, next.rect.width, 0.1f, "▶ 상자 폭 = 1.77rem");
+
+            // UiKit.Place 는 좌상단 앵커 — x 는 카드 안 기준 px.
+            float gapPx = UiKit.W("dgd_tri_gap");
+            float stageW = Mathf.Max(lab.preferredWidth, num.preferredWidth);
+            float cx = card.rect.width * 0.5f;
+            float leftGap = (cx - stageW * 0.5f) - (prev.anchoredPosition.x + triW);
+            float rightGap = next.anchoredPosition.x - (cx + stageW * 0.5f);
+            Assert.AreEqual(gapPx, leftGap, 0.5f, "◀ ↔ 글자 = 앱 폭 × .1237 **온전히** · 실측 " + leftGap.ToString("0.0") + "px · 반틈이면 " + (gapPx * 0.5f).ToString("0.0") + "px");
+            Assert.AreEqual(gapPx, rightGap, 0.5f, "글자 ↔ ▶ 도 같은 온전한 틈 · 실측 " + rightGap.ToString("0.0") + "px");
+            Assert.AreEqual(leftGap, rightGap, 0.5f, "좌우 대칭(정본 justify-content: center)");
+            // 가운데 상자가 «글자 폭» 인가 — 카드 폭 30% 고정 상자로 되돌아가면 삼각형이 그만큼 벌어진다.
+            float measured = (next.anchoredPosition.x - (prev.anchoredPosition.x + triW)) - gapPx * 2f;
+            Assert.AreEqual(stageW, measured, 0.5f, "가운데 자리 = 글자 폭(정본 .dgd-stage shrink-to-fit) · 실측 " + measured.ToString("0.0") + "px · 카드 폭 30% 는 " + (card.rect.width * 0.3f).ToString("0.0") + "px");
+            Assert.Less(measured, card.rect.width * 0.3f - 1f, "30% 고정 상자가 아니다");
+            Debug.Log("[T364] ◀▶ 틈 " + leftGap.ToString("0.0") + "px(= 앱 폭 × " + (leftGap / UiKit.RefW).ToString("0.0000") + ") · 가운데 글자 폭 " + stageW.ToString("0.0") + "px · 단추 상자 " + prev.rect.width.ToString("0.0") + "×" + prev.rect.height.ToString("0.0"));
+            DungeonDetailPopup.Close();
+            yield return null;
+        }
     }
 }

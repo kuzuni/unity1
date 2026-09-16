@@ -131,8 +131,14 @@ namespace Forge.Game.Ui
 
             float y = DungeonPopups.Line3 + heroH + DungeonPopups.RemL("dgd_hero_mb_rem") + stageMt;   // T426 — 배너 마진 + 줄 위 마진 .3rem
 
-            // ◀ 난이도 C-S ▶
+            // ◀ 난이도 C-S ▶ — T364 12회차: 정본 5304 는 **flex 행**이다(`display:flex; align-items:center; justify-content:center; gap: calc(var(--app-w) * .1237)`).
+            //   클론은 «반 틈(gap × 0.5) + 카드 폭 30% 고정 상자» 라 모델이 달랐다(3회차가 «값만 바꾸면 되레 벌어진다» 로 적어 둔 자리).
+            //   ⓐ 틈은 이웃 사이마다 **온전히** 걸린다 ⓑ 가운데 자식 `.dgd-stage` 는 shrink-to-fit 이라 **제 글자 폭**만 차지한다
+            //   ⓒ 삼각 단추 상자는 정본 4583 `.tri-btn { width: 1.77rem; height: 2.2rem }` 이고 아이콘(4%H · 5307)은 그 안에 가운데 —
+            //      상자보다 넓어도 잉크 중심은 안 움직인다(정본 4586~4590 «위치 계약은 .dgd-stage-row gap 이 쥔다»).
+            //   글자 **상자**는 넓게 둔다(가운데 정렬 도우미일 뿐이고 좁히면 한글이 글자 단위로 접힌다) — 자리 계약은 아래 stageW 가 쥔다.
             float gap = W * UiKit.L("dgd_tri_gap");
+            float triW = DungeonPopups.RemL("tri_btn_w_rem"), triH = DungeonPopups.RemL("tri_btn_h_rem");
             float labelW = cw * 0.3f;
             float cx = cw * 0.5f;
             StageText = DgStageText(curStage);
@@ -140,10 +146,12 @@ namespace Forge.Game.Ui
             UiKit.Place(lab.rectTransform, cx - labelW * 0.5f, y, labelW, stageLabelH);   // T426 — 줄높이 1.15
             TextMeshProUGUI num = DungeonPopups.Bold(card, "stage-num", TextKind.Title2, StageText, "pp_ink");   // T404 ⓑ — 정본 5310 `.dgd-stage b { 1.15rem }` = 41.9px → Title2 42(전엔 Body 40 · −5%)
             UiKit.Place(num.rectTransform, cx - labelW * 0.5f, y + stageLabelH, labelW, stageNumH);
+            float stageW = Mathf.Max(lab.preferredWidth, num.preferredWidth);   // 정본 `.dgd-stage` = shrink-to-fit(두 자식 중 넓은 쪽)
+            float triY = y + (stageRowH - triH) * 0.5f;                         // 정본 `align-items: center`(줄은 글자 두 줄이 더 높다)
             PrevButton = DungeonPopups.TriButton(card, "prev", true, triD, () => StepStage(-1));
-            UiKit.Place(DungeonPopups.Root(PrevButton), cx - labelW * 0.5f - gap * 0.5f - triD, y + (stageRowH - triD) * 0.5f, triD, triD);
+            UiKit.Place(DungeonPopups.Root(PrevButton), cx - stageW * 0.5f - gap - triW, triY, triW, triH);
             NextButton = DungeonPopups.TriButton(card, "next", false, triD, () => StepStage(1));
-            UiKit.Place(DungeonPopups.Root(NextButton), cx + labelW * 0.5f + gap * 0.5f, y + (stageRowH - triD) * 0.5f, triD, triD);
+            UiKit.Place(DungeonPopups.Root(NextButton), cx + stageW * 0.5f + gap, triY, triW, triH);
             DungeonPopups.Root(PrevButton).gameObject.SetActive(curStage > 1);
             DungeonPopups.Root(NextButton).gameObject.SetActive(curStage < best + 1);
             y += stageRowH + stageMb;   // T426 — 정본 5304 아래 마진 .5rem(공용 card_gap .45 가 아니다)
