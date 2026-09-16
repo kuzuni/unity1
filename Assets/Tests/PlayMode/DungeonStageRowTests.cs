@@ -45,9 +45,16 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(1.15f, DungeonStyle.L("dgd_stage_lh"), 1e-6f, "정본 5308 line-height 1.15");
 
             yield return Boot();
+            // 새 세이브에선 «hammer» 가 잠겨 Open 이 토스트만 내고 돌아간다(런 952 · 내 첫 판이 여기서 null) — DungeonUiTests 와 같은 길로 연다.
+            DungeonUiHost.Instance.S.BestChapter = 5;
+            DungeonUiHost.Instance.S.BestStage = 1;
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
             DungeonDetailPopup.Open("hammer");
             yield return null;
             yield return null;
+            Assert.IsTrue(DungeonDetailPopup.IsOpen, "던전 상세가 열린다(해금 뒤)");
+            Canvas.ForceUpdateCanvases();
             RectTransform app = UiRoot.Instance.App;
             Transform overlay = FindDeep(app, "modal-dungeon-detail");
             Assert.IsNotNull(overlay, "던전 상세 팝업");
