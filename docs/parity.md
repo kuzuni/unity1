@@ -1545,3 +1545,44 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - 축 21 = ✅ 16 · ✓ 1 · ⛔ 3(전부 정본 쪽 죽은 선언 · 클론이 안 옮긴 것이 **맞다**) · ⚠ 1(계약만 없다 · 오늘 안 물린다). **결함 0 · 새 작업 0.**
 - 클론의 스크롤 도우미 **둘**(`Popups.ScrollList`(342) · `PetSkillKit.Scroll`(315))이 **둘 다** `horizontal=false · vertical=true · MovementType.Clamped · RectMask2D` 다 — 정본 `overflow-y: auto`(세로만 · 잘라냄)와 같은 계약이라 이 축에 «가로로도 밀린다·안 잘린다» 꼴이 **0** 이다. 스크롤을 새로 다는 사람은 이 둘 중 하나를 부른다(세 번째 꼴을 만들지 않는다).
 - 남은 축: `content` 171 · `background-position/size`(30회차가 무늬·덮기 위주로 한 번 봤다) · `animation-duration` · `z-index`(겹 순서 — 클론은 `siblingIndex` 라 이 축도 «움직임» 쪽이다).
+
+# T33 완주 대조 — **39회차** (2026-09-16 04:4x · 워커 F · sess-0027-41852) — 축: `content` — **171 이 아니라 45** 다
+
+38회차가 남긴 축 둘 중 하나. 먼저 **축 크기부터 틀렸다**: 37회차가 적어 둔 «`content` 171» 은 `grep -c "content:"` 의 수라 **`justify-content`·`align-content` 까지 센 것**이다(정본 CSS 는 flex 정렬을 그만큼 쓴다). 주석을 걷고 `(?<![-\w])content\s*:` 로 세면 **45**.
+
+## 갈래 (45)
+
+| 갈래 | 수 | 무엇 | 판정 |
+|---|---:|---|---|
+| **빈 문자열** `''` | 42 | `::before`/`::after` **장식 겹**을 세우는 스위치(비네트 · 배너 겹 · 소환 연출 19 · 시대 막대 · 램프 …) | 자리 자체는 **다른 축이 이미 쥔다**(T178 표면 겹 · T331 그림자 · T334 소환 · T368 줄무늬 · T124 시대 무늬) — 이 축에서는 셈만 한다 |
+| **글자·기호** | 2 | 549 `.float-dmg.dmg-hero::before { content: '▼' }`(내가 맞은 피해 표식) · 5624 `.asc-row.ready::after { content: '▶' }` | **둘 다 클론에 있다** — `Game/Battle/DamageNumbers.cs:111` 이 `dmg-hero` 갈래에 `prefix = "▼"` · `Ui/AscendPopup.cs:128` 이 준비된 행에만 «▶»(T359 가 `OpacityUi` 로 알파까지 정본 .8) |
+| **`attr()`** | 1 | 784 `.fl-face[data-asc]:not([data-asc=""])::after { content: attr(data-asc) }` — 목록 얼굴의 승천 배지 | **있다 · 접기 규약까지 같다** — 정본 `ui.js` 2075 `ascStars = this.ageStars(3)`(0 = 없음 · N회 = ★×N · 4+ = ★N) ↔ 클론 `ForgeInfoPopup.cs:287` `ForgeUi.Stars(stars, **3**)`(같은 접기) |
+
+**이 축의 결함 0 · 새 번호 0.** 정본 777 주석이 «`content:'★'` 로 리터럴을 박지 마라 — 개수를 모른다» 고 못 박은 함정도 클론은 안 밟았다(수를 세어 접는다).
+
+## 곁들여 찾은 것 — 진행 막대 여섯의 «세그먼트 눈금» 이 통째로 없다 (임자 **T178**)
+
+빈 문자열 42 를 훑다가 8812~8818 이 눈에 걸렸다:
+
+```
+.upg-progress::after, .summon-gauge::after, .qst-bar::after,
+.summon-prog::after, .petup-xpbar::after, .rates-prog::after {
+    content: ''; inset: 0; z-index: 2;
+    background-image: repeating-linear-gradient(90deg,
+        rgba(0,0,0,0) 0 calc(var(--seg) - var(--seg-gap)),
+        var(--seg-line) calc(var(--seg) - var(--seg-gap)) var(--seg));
+}
+```
+`--seg` **.62rem**(칸 피치) · `--seg-gap` **var(--ol2)**(틈 — 테 토큰과 같은 축이라 앱이 작아지면 같이 얇아진다) · `--seg-line` **rgba(0,0,0,.58)**(하드 엣지 · 주석이 «블러 금지» 라고 적어 뒀다 · 8790~8792).
+클론은 여섯이 전부 한 공장을 쓴다 — `Ui/PetSkillKit.cs:298 Gauge()` = 홈 + 파란 채움 + 흰 글자뿐이고 **눈금 겹이 없다**. 곧 **한 자리를 고치면 여섯이 같이 선다**.
+임자는 새 번호가 아니라 **T178** 이다 — 그 절의 자(`check_surface_gradients --list`)가 이미 **8812 줄을 미정**으로 들고 있다(같은 목록의 7992 `.upg-progress, .summon-gauge, .qst-bar` 는 홈 바탕이라 다른 자리다). T178 절에 «다음 자리» 로 한 줄 적었다.
+
+## 이 회차가 남긴 규칙 — **축 크기는 `grep -c` 가 아니라 «속성 이름 경계» 로 센다**
+
+`content` 는 `justify-content`·`align-content` 의 꼬리이기도 하다. 축을 열 때 `grep -c "<속성>:"` 로 센 수는 **접두사가 붙은 다른 속성**을 같이 센다(여기서는 171 → 45 · 126 이 flex 정렬이었다). 세는 자리에 `(?<![-\w])` 를 붙이고, 주석은 먼저 걷는다(29·34회차가 이미 «주석을 걷어라» 를 남겼고 이것은 그 형제다).
+
+## 이 회차의 판정
+
+- 축 `content` **45 전수** — 결함 0 · 새 번호 0 · 정정 하나(축 크기 171 → 45).
+- 곁다리 하나를 임자에게 넘겼다: 진행 막대 눈금 여섯 → **T178**(그 자의 미정 8812).
+- 남은 축: `background-position/size`(30회차가 무늬·덮기 위주로 한 번 봤다) · `animation-duration` · `transition`.
