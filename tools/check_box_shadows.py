@@ -18,12 +18,14 @@
 ⓑ 아래 `SPOTS` 표의 자리마다 **클론 코드에 그 그림자를 실제로 거는 호출이 있는가** 를 본다.
    호출은 `UiShadow.Drop(<무엇>, "<키>")` 한 꼴이다 — 주석이 아니라 **코드**를 센다(결정 505).
 ⓒ 표에도 `KNOWN` 에도 없는 새 정본 자리가 생기면 알린다(정본이 자라면 이 축이 조용히 낡는다).
+ⓓ 그 알림 중 **«이 축이 볼 자리가 아니다» 거나 «다른 길로 이미 선»** 것은 `ELSEWHERE` 에 까닭과 함께 적어 둔다(26회차).
+   그래야 남은 ⚠ 목록이 곧 **할 일 목록**이 된다 — 적어 둔 줄이 정본에서 사라지면 그것도 알린다(낡음 막기).
 
 빨강이 되는 때
 -------------
 · 표의 자리가 «섰다» 인데 그 호출이 클론에 없다(되돌아간 자리).
 · `KNOWN` 에 적힌 자리가 실제로는 서 있다(적어 두고 안 지운 자리).
-지금은 클론에 도우미가 없어 표의 자리가 전부 `KNOWN` 이다 — **그 목록이 곧 할 일 목록**이다.
+25회차에 표의 열두 자리가 **전부 섰다**(`KNOWN` 이 비었다) — 할 일 목록은 이제 맨 아래 ⚠ «아직 안 본 자리» 줄이다(26회차 기준 16).
 """
 import os, re, sys
 
@@ -54,6 +56,40 @@ SPOTS = [
 # 아직 안 선 자리 — 까닭과 «누가/언제» 를 같이 적는다. 서면 이 줄을 지운다(안 지우면 자가 알린다).
 KNOWN = {
     # (비었다 = 표의 자리가 **전부 섰다** · T331 25회차에 마지막 하나 `passcard_drop` 이 섰다)
+}
+
+# 표 밖 자리의 **장부**(26회차) — «이 축이 볼 자리가 아니다» 거나 «다른 길로 이미 섰다» 는 것을
+# 까닭과 함께 적어 둔다. 여기 적힌 선택자는 아래 ⚠ «아직 안 본 자리» 목록에서 빠진다.
+#
+# ⚑ 26회차가 눈으로 가른 것: 자는 여태 **발광(빛)과 그림자를 한 자루에 담아** 세고 있었다.
+#   `0 0 <반지름> <색>`(치우침 0 · 색이 검정이 아니다)은 «떠 있음» 이 아니라 **빛나는 것**이라
+#   T331(«바깥 그림자가 클론에 0»)의 축이 아니다 — 그 갈래는 발광·합성 축(T419)이 본다.
+#   그리고 `<x> 0 0 0 <색>`(흐림도 번짐도 0 · 가로 치우침만)은 그림자가 아니라 **쌓인 더미의 테두리**다.
+ELSEWHERE = {
+    # ⓐ 빛이지 그림자가 아니다(치우침 0 · 색이 검정이 아니다) — 발광 축
+    '#app': '앱 틀 바깥 halo(0 0 3rem) — 빛 갈래',
+    '.pip.now': '웨이브 핍 발광(0 0 6px #fff) — 빛 갈래',
+    '.pip.boss.now': '보스 핍 발광(0 0 8px #ff5252) — 빛 갈래',
+    '.pinfo-preview .pip.now': '플레이어 정보의 같은 핍 — 빛 갈래',
+    '.bw-banner': '보스 경고 띠 발광(0 0 2.2rem) — 빛 갈래',
+    '.skill-btn.ready': '준비된 스킬 버튼 발광(0 0 8px var(--sc)) — 빛 갈래',
+    '.skill-btn.auto.on': '자동 켜진 스킬 버튼 발광 — 빛 갈래',
+    '.sk-mini': '작은 스킬 칸의 등급 발광(0 0 .5rem -.14rem) — 빛 갈래',
+    '.af-toggle.on': '켜진 토글의 초록 발광 — 빛 갈래(같은 줄의 inset 은 T163 관용구)',
+    '.hatch-lamp::after': '부화장 등불 발광 두 겹 — 빛 갈래',
+    # ⓑ 그림자가 아니라 «쌓인 더미의 테두리»(흐림 0 · 번짐 0 · 가로 치우침만) — T178 축
+    '.anvil-btn.held-slot.deck-2::before': '더미 2장째 테두리(calc(--dg) 0 0 0) — 그림자가 아니라 겹친 카드 변 · T178 축',
+    '.anvil-btn.held-slot.deck-3::before': '더미 3장째 테두리 — T178 축',
+    '.anvil-btn.held-slot.deck-4::before': '더미 4장째 테두리 — T178 축',
+    '.anvil-btn.held-slot.deck-5::before': '더미 5장째 테두리 — T178 축',
+    # ⓒ 소환 연출 — 발광이 **구운 판 안에** 들어 있다(T334 가 세운 겹 · UiShadow 를 안 쓴다)
+    '.sr-streaks i': '수렴 빛줄기의 발광은 BakeStreak 의 glow 스톱에 구워져 있다(T334 22회차)',
+    '.sr-shock': '예고 충격파의 발광은 구운 단계 판에 들어 있다(T334 19회차)',
+    '.sr-shock.echo': '잔파도 같은 판 갈래(T334 19회차)',
+    '.sr-tierflash': '챕터 링의 발광 꼬리는 BakeTierRing 의 glowF(T334 17회차)',
+    '.sr-idle i': '끝난 뒤 고리의 halo 도 같은 굽기(T334 18회차)',
+    '.sr-orbwrap': '광원 둘레 발광은 등급색 광원 판에 구워져 있다(T334 3회차 충전 3종)',
+    '.sr-canopy::before': '바닥 스필 — 지금 T419 가 쥔 자리(mix-blend-mode: screen 갈래)',
 }
 
 
@@ -194,13 +230,18 @@ def run():
     if frames:
         print('  · 키프레임 선택자 %d개는 **자리가 아니다**(`0%%`·`from`·`to` — 그 애니메이션이 걸리는 요소가 따로 있다) → 안 센다'
               % len(frames))
+    filed = sum(1 for _, s2, _, _ in unseen if s2 in ELSEWHERE)
+    if filed:
+        print('  · 표 밖이지만 **까닭을 적어 둔 자리** %d개는 안 센다(`ELSEWHERE` — 빛 갈래·더미 테두리·구운 판)' % filed)
     for main in ('hard', 'drop', 'glow'):
-        rows = by_kind.get(main)
+        rows = [r for r in by_kind.get(main, []) if r[1] not in ELSEWHERE]
         if not rows: continue
         label = {'hard': '딱딱한 턱', 'drop': '드리운 그림자', 'glow': '둘레 발광'}[main]
-        print('⚠ 표에 없는 %s %d개(알림 — 다음 회차가 표에 담는다): %s%s'
-              % (label, len(rows), ', '.join('%s(%d)' % (s, n) for n, s in rows[:5]),
-                 ' …' if len(rows) > 5 else ''))
+        print('⚠ 아직 안 본 %s %d개(알림 — 다음 회차가 하나씩 본다): %s'
+              % (label, len(rows), ', '.join('%s(%d)' % (s2, n) for n, s2 in rows)))
+    gone = [k for k in ELSEWHERE if k not in set(s2 for _, s2, _, _ in unseen)]
+    for k in gone:
+        print('⚠ `ELSEWHERE` 에 적힌 %s 가 정본에 없다 — 표로 옮겼거나 정본이 지웠다(그 줄을 손봐라)' % k)
     for key, sel, where in stale:
         print('✗ KNOWN 에 «아직 안 섰다» 로 적힌 %s(%s)가 실제로는 서 있다 — %s · 그 줄을 지워라' % (key, sel, where))
     for key, sel, ln, kind in bad:
@@ -270,6 +311,26 @@ def self_test():
     chk('호출을 센다', 'card_lip' in keys)
     chk('주석은 안 센다', 'panel_lip' not in keys)
     chk('어느 줄인지 적는다', keys['card_lip'][0].endswith(':1'))
+
+    # ⓔ-2 표 밖 장부(26회차) — 적어 둔 자리는 ⚠ 에서 빠지고, 낡으면 알린다
+    import io as _io, contextlib as _ctx
+    def _out():
+        b = _io.StringIO()
+        with _ctx.redirect_stdout(b): run()
+        return b.getvalue()
+    before = _out()
+    chk('장부에 적은 자리는 ⚠ 목록에 안 뜬다', '.skill-btn.ready' not in before and '#app' not in before)
+    chk('장부에 적힌 수를 찍는다', '까닭을 적어 둔 자리' in before)
+    saved_el = dict(ELSEWHERE)
+    try:
+        ELSEWHERE.pop('.skill-btn.ready')
+        chk('장부에서 빼면 다시 ⚠ 에 뜬다', '.skill-btn.ready' in _out())
+        ELSEWHERE.update(saved_el)
+        ELSEWHERE['.없는-선택자'] = '정본에 없다'
+        chk('정본에 없는 줄을 알린다', '`ELSEWHERE` 에 적힌 .없는-선택자' in _out())
+    finally:
+        ELSEWHERE.clear(); ELSEWHERE.update(saved_el)
+    chk('되돌린 뒤엔 다시 조용하다', '.없는-선택자' not in _out())
 
     # ⓕ 판정 갈래 — 고장 주입
     saved = dict(KNOWN)
