@@ -8,7 +8,7 @@
     "orb_default": "#cccccc", "sk_lv_bg": "#17181a", "sk_lv_ink": "#ffffff", "count_ink": "#ffffff"
   },
   "layout": {
-    "preview_min_h_rem": 7.6, "preview_split_f": 0.55, "preview_pad_x_rem": 0.5, "preview_pad_y_rem": 0.4, "preview_gap_rem": 0.4, "preview_radius_rem": 0.5, "pip_rem": 0.5, "preview_margin_rem": 0.5,
+    "preview_min_h_rem": 7.6, "preview_split_f": 0.55, "preview_pad_x_rem": 0.5, "preview_pad_y_rem": 0.4, "preview_gap_rem": 0.4, "preview_r_rem": 0.5, "pip_rem": 0.5, "preview_margin_rem": 0.5,
     "gear_pad_f": 0.0575, "gear_cols_n": 5, "gear_gap_x_f": 0.0294, "gear_gap_y_rem": 0.6, "cell_radius_f": 0.16, "cell_ink_f": 0.76, "cell_ink_lift_f": 0.06,
     "empty_ink_f": 0.72, "empty_name_y_f": 0.05, "mount_span_n": 2, "mount_sil_f": 0.55, "mount_sil_lift_f": 0.08, "mount_face_f": 0.30, "mount_name_y_f": 0.06, "mount_count_top_rem": 0.12, "mount_count_right_rem": 0.16,
     "loadout_top_rem": 1.25, "orb_w": 0.0624, "loadout_gap_w": 0.015, "sk_ico_f": 0.90, "sk_face_f": 0.83, "sk_lv_h_rem": 0.8, "sk_lv_pad_rem": 0.25, "sk_lv_drop_rem": 0.15,

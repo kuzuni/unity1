@@ -195,7 +195,7 @@ namespace Forge.Game.Ui
             float rowH = nameH + rem * 0.2f + bodyH;
             RectTransform row = PopupKit.Item(parent, "msg", -1f, rowH);
             string avatar = share ? m.MyAvatar : m.Avatar;
-            RectTransform tile = PopupKit.Avatar(row, "avatar", av, avatar, rem * 0.4f);
+            RectTransform tile = PopupKit.Avatar(row, "avatar", av, avatar, RadiusUi.Px("chat_avatar_r_rem"));   // T345 16회차 — 정본 3311 `.chat-avatar` .4rem
             UiKit.Place(tile, 0f, 0f, av, av);
             // T364 6회차 — 정본 3309 `.chat-row { gap: calc(var(--app-w) * .008) }`(주석 «간격 4px=0.80%W» · 499px 실측).
             // 종전 `rem * 0.4`(= 6.4px = 1.28%W)는 2.4px 넓고 축도 높이 기준이라, 긴 이름줄에서 말풍선 우끝(정본 87.17%W)이 밀렸다.

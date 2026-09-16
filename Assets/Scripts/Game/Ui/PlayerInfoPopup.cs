@@ -137,7 +137,7 @@ namespace Forge.Game.Ui
             float y = pad;
             float av = UiKit.H("pinfo_avatar");
             float hx = pad + w * 0.0224f;
-            RectTransform avatar = PopupKit.Avatar(card, "avatar", av, h.AvatarEmoji, rem * 0.4f);
+            RectTransform avatar = PopupKit.Avatar(card, "avatar", av, h.AvatarEmoji, RadiusUi.Px("pinfo_avatar_r_rem"));   // T345 16회차 — 정본 3151 `.pinfo-id .avatar` .4rem
             UiKit.Place(avatar, hx, y, av, av);
             float tx = hx + av + rem * 0.5f;
             float leftW = inner * 0.55f - tx;
@@ -231,7 +231,7 @@ namespace Forge.Game.Ui
         static void Fallback(RectTransform preview, MetaHost h, float w, float hgt)
         {
             float rem = PopupKit.Rem;
-            float radius = PlayerInfoStyle.Px("preview_radius_rem");
+            float radius = PlayerInfoStyle.Px("preview_r_rem");
             // 테 폭은 정본 3185 `.pinfo-preview { border: var(--ol2) … }` = line2_px(T365 6회차 · 전엔 ol1)
             UiKit.Rounded(preview, "line", "pp_line", radius);
             RectTransform faceRt = UiKit.Box(preview, "face");

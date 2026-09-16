@@ -65,6 +65,10 @@ TABLE = {
     '.tech-branch-card': ['Ui/TechPanel.cs$tb_card_r_rem@catalog.json'],
     '.tech-tier-tag': ['Ui/TechPanel.cs$tt_tag_r_rem@catalog.json'],
     '.tech-prog, .modal-card .tech-prog': ['Ui/TechPopups.cs$tech_prog_r_rem@catalog.json'],
+    # T345 16회차 — 아바타 둘(리터럴 → 표) · 미리보기 판(곁 표 키 이름을 규약대로)
+    '.pinfo-id .avatar': ['Ui/PlayerInfoPopup.cs$pinfo_avatar_r_rem'],
+    '.chat-avatar': ['Ui/ChatScreen.cs$chat_avatar_r_rem'],
+    '.pinfo-preview': ['Ui/PlayerInfoPopup.cs$preview_r_rem@PlayerInfoUi.json'],
     # T345 15회차 — 정본이 **0(각진)** 으로 못 박은 자리: 클론도 민 상자라 맞다(모서리를 만들 조각이 아예 없다)
     '.dgd-card .dg-detail-hero': '✓정본 5280 `.dgd-card .dg-detail-hero { border-radius: 0 }` — 클론 `DungeonDetailPopup` 113 의 hero 는 민 상자 + 아이콘이라 둥근 조각이 없다(15회차 눈으로 확인)',
     # T345 15회차 — 팝업 닫기 ✕(정본 50% = 원 · 공용 DungeonPopups.XButton 가 BorderedCircle 로 세운다)
