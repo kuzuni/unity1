@@ -281,6 +281,192 @@ namespace Forge.Core.Ui
     }
 
     /// <summary>
+    /// T334 19회차 ⓐ — **등급 예고의 두 수**(정본 `--pre-k` · `--sr-e` · ui.js 510~546).
+    ///
+    /// 정본 주석: «전원 일반인 판과 신화가 섞인 판의 620ms 프레임이 사실상 같은 화면이라, 원신 긴장의 원천인
+    /// «색으로 미리 알려주기» 가 통째로 없다 … `--pre-k`(0=일반 … 1=신화) 하나로 4레이어(빛 모임·빛줄기·방사선/광원·충격파)의
+    /// 색과 세기를 함께 움직인다» · «`--sr-e` 는 **셀 수가 아니라 굴림 수**로 잰다 — 대량 소환은 같은 항목을 한 셀로 묶으므로
+    /// x25 와 x75 가 똑같이 3셀이 될 수 있다. 75개를 뽑았다는 사실이 빛에 담겨야 한다».
+    ///
+    /// ⚠ 이 규칙은 **비율만** 쥔다 — 실제 색 섞기는 등급색을 아는 쪽이 한다(<see cref="SummonHeroSpec.HiliteAmount"/> 와 같은 계약).
+    /// UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonPreludeSpec
+    {
+        /// <summary>가장 높은 등급의 자리(정본 `RARITIES.length - 1`).</summary>
+        public int TierMax;
+        /// <summary>굴림 에너지의 밑(정본 75 — x75 에서 1 이 된다).</summary>
+        public double EnergyBase;
+        /// <summary>스트로크 색을 만들 때 등급색을 흰 쪽으로 당기는 양(정본 `srShade(bc, .3)`).</summary>
+        public double LineShade;
+        /// <summary>광채의 알파 = <see cref="GlowABase"/> + <see cref="GlowAK"/> × k.</summary>
+        public double GlowABase, GlowAK;
+
+        public static SummonPreludeSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "prelude"));
+            var s = new SummonPreludeSpec
+            {
+                TierMax = (int)J.Num(J.Require(o, "tier_max")),
+                EnergyBase = J.Num(J.Require(o, "energy_base")),
+                LineShade = J.Num(J.Require(o, "line_shade")),
+                GlowABase = J.Num(J.Require(o, "glow_a_base")),
+                GlowAK = J.Num(J.Require(o, "glow_a_k")),
+            };
+            if (s.TierMax < 1) throw new FormatException("SummonFxUi prelude: tier_max 는 1 이상이다");
+            if (s.EnergyBase <= 1) throw new FormatException("SummonFxUi prelude: energy_base 는 1보다 커야 한다(로그의 밑)");
+            if (s.LineShade < 0 || s.LineShade > 1) throw new FormatException("SummonFxUi prelude: line_shade 는 0~1 이다");
+            if (s.GlowABase < 0 || s.GlowABase + s.GlowAK > 1) throw new FormatException("SummonFxUi prelude: 광채 알파가 1을 넘는다");
+            return s;
+        }
+
+        /// <summary>예고 세기 k(0=일반 … 1=최고 등급) — 정본 `--pre-k`.</summary>
+        public double K(int tier)
+        {
+            double k = (double)(tier < 0 ? 0 : tier > TierMax ? TierMax : tier) / TierMax;
+            return k;
+        }
+
+        /// <summary>
+        /// 굴림 에너지(정본 `--sr-e`) — **굴림 수**의 로그 눈금. x1 에서 0 · 밑(75)에서 1.
+        /// 선형으로 두면 x1~x25 가 뭉친다는 것이 정본의 실측 근거다.
+        /// </summary>
+        public double Energy(int rolls)
+        {
+            double n = rolls < 1 ? 1 : rolls;
+            double e = Math.Log(n) / Math.Log(EnergyBase);
+            return e < 0 ? 0 : e;
+        }
+
+        /// <summary>그 판의 광채 알파(정본 `rgba(…, .8 + .18 * k)`).</summary>
+        public double GlowAlpha(int tier) { return GlowABase + GlowAK * K(tier); }
+    }
+
+    /// <summary>
+    /// T334 19회차 ⓑ — **예고 충격파 한 쌍**(정본 `.sr-shock` · `.sr-shock.echo` · style.css 6119~6146).
+    ///
+    /// 정본 주석 셋이 이 겹의 모양을 못 박았다: ⑴ «빛이 터지는 정점(240ms)에 나가야 한다 — 0ms 에 터지면
+    /// 아무것도 없는 화면에서 링만 먼저 퍼진다»(지연) ⑵ «z 30 — 그리드(40)보다 아래다 … 압력파는 피사체 뒤에서
+    /// 퍼져야 피사체가 앞에 선 것으로 읽힌다» ⑶ «압력파가 하나면 «링 애니메이션», 둘이면 «터진 것» 으로 읽힌다 —
+    /// 부모 transform 과 곱해지지 않게 **형제 요소**로 둔다».
+    ///
+    /// ⚠ 챕터 링과 같은 압력파 문법이라 **테가 줄어든다** — 한 장을 배율로 날릴 수 없다(17회차와 같은 길).
+    /// ⚠ 본파의 최종 배율만 굴림 에너지에 물린다(`3.4 × (1 + .35 × --sr-e)`) — 잔파는 안 물린다.
+    /// UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonShockSpec
+    {
+        public double Ms, DelayMs, EchoMs, EchoDelayMs;
+        /// <summary>판 크기(rem) · 둘레 광채(rem) · 안쪽 광채(rem · 잔파엔 없다) · 잔파 둘레 광채(rem).</summary>
+        public double WRem, GlowRem, InsetGlowRem, EchoGlowRem;
+        /// <summary>구워 갈아 끼울 판 수.</summary>
+        public int Steps;
+        /// <summary>최종 배율에 물리는 굴림 에너지 비율(정본 .35).</summary>
+        public double ScaleEK;
+        public RewardBurstSpec.Track Main, MainScale, Echo;
+
+        public static SummonShockSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "shock"));
+            var s = new SummonShockSpec
+            {
+                Ms = J.Num(J.Require(o, "shock_ms")),
+                DelayMs = J.Num(J.Require(o, "shock_delay_ms")),
+                EchoMs = J.Num(J.Require(o, "echo_ms")),
+                EchoDelayMs = J.Num(J.Require(o, "echo_delay_ms")),
+                WRem = J.Num(J.Require(o, "w_rem")),
+                GlowRem = J.Num(J.Require(o, "glow_rem")),
+                InsetGlowRem = J.Num(J.Require(o, "inset_glow_rem")),
+                EchoGlowRem = J.Num(J.Require(o, "echo_glow_rem")),
+                Steps = (int)J.Num(J.Require(o, "steps")),
+                ScaleEK = J.Num(J.Require(o, "scale_e_k")),
+            };
+            if (s.Ms <= 0 || s.EchoMs <= 0) throw new FormatException("SummonFxUi shock: 길이는 0보다 커야 한다");
+            if (s.DelayMs < 0 || s.EchoDelayMs < 0) throw new FormatException("SummonFxUi shock: 지연은 0 이상이다");
+            // 정본이 못 박은 차례 — 잔파는 본파를 **뒤따른다**. 앞서면 «터진 것» 이 아니라 링 둘이 된다.
+            if (s.EchoDelayMs <= s.DelayMs) throw new FormatException("SummonFxUi shock: 잔파는 본파보다 늦게 나가야 한다(정본 .23s → .30s)");
+            if (s.Steps < 2) throw new FormatException("SummonFxUi shock: steps 가 2보다 작으면 «굵기가 줄어든다» 가 안 보인다");
+            if (s.WRem <= 0) throw new FormatException("SummonFxUi shock: w_rem 은 0보다 커야 한다");
+
+            double[] e = J.NumArr(J.Require(o, "shock_ease"));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi shock: shock_ease 는 cubic-bezier 넷이다");
+            CssEase me = new CssEase(e[0], e[1], e[2], e[3]);
+            s.Main = SummonTrack.Ramp(o, "srshock", me, new[] { "f", "border_rem", "blur_px" }, "shock");
+            s.MainScale = SummonTrack.Ramp(o, "srshock_s", me, new[] { "scale" }, "shock");
+            double[] ee = J.NumArr(J.Require(o, "echo_ease"));
+            if (ee == null || ee.Length != 4) throw new FormatException("SummonFxUi shock: echo_ease 는 cubic-bezier 넷이다");
+            s.Echo = SummonTrack.Ramp(o, "srshockecho", new CssEase(ee[0], ee[1], ee[2], ee[3]),
+                new[] { "f", "scale", "border_rem", "blur_px" }, "shock");
+
+            Check(s.Main, s.MainScale, "srshock");
+            Check(s.Echo, s.Echo, "srshockecho");
+            return s;
+        }
+
+        /// <summary>압력파 문법을 표에서 막는다 — 사라지고 · 퍼지고 · 얇아지고 · 번진다.</summary>
+        static void Check(RewardBurstSpec.Track t, RewardBurstSpec.Track sc, string who)
+        {
+            var a0 = t.Keys[0]; var a1 = t.Keys[t.Keys.Length - 1];
+            if (a0.Num["f"] <= 0) throw new FormatException("SummonFxUi shock: " + who + " 는 켜진 채로 시작해야 한다");
+            if (a1.Num["f"] != 0) throw new FormatException("SummonFxUi shock: " + who + " 는 0 으로 사라져야 한다 — 안 그러면 화면에 링이 남는다");
+            if (a1.Num["border_rem"] >= a0.Num["border_rem"]) throw new FormatException("SummonFxUi shock: " + who + " 는 퍼질수록 얇아져야 한다");
+            if (a1.Num["blur_px"] <= a0.Num["blur_px"]) throw new FormatException("SummonFxUi shock: " + who + " 는 퍼질수록 번져야 한다");
+            var s0 = sc.Keys[0]; var s1 = sc.Keys[sc.Keys.Length - 1];
+            if (s1.Num["scale"] <= s0.Num["scale"]) throw new FormatException("SummonFxUi shock: " + who + " 는 퍼져야 한다");
+        }
+
+        /// <summary>모달이 열린 뒤 <paramref name="ms"/> 의 본파 — 불투명도·배율·테(rem)·번짐(px). 지연 전에는 꺼져 있다.</summary>
+        public void MainAt(double ms, double energy, out double alpha, out double scale, out double borderRem, out double blurPx)
+        {
+            double t = ms - DelayMs;
+            if (t < 0) { alpha = 0; scale = MainScale.Sample(0, "scale", null); borderRem = Main.Sample(0, "border_rem", null); blurPx = Main.Sample(0, "blur_px", null); return; }
+            double p = t >= Ms ? 100 : t / Ms * 100;
+            alpha = Main.Sample(p, "f", null);
+            borderRem = Main.Sample(p, "border_rem", null);
+            blurPx = Main.Sample(p, "blur_px", null);
+            // 최종 반경만 굴림 에너지에 물린다(정본 «75개를 뽑았는데 1개와 같은 크기로 터지면 안 된다»).
+            double s0 = MainScale.Sample(0, "scale", null);
+            double raw = MainScale.Sample(p, "scale", null);
+            double end = MainScale.Sample(100, "scale", null);
+            double grown = end * (1 + ScaleEK * (energy < 0 ? 0 : energy));
+            double u = end <= s0 ? 0 : (raw - s0) / (end - s0);
+            scale = s0 + (grown - s0) * u;
+        }
+
+        /// <summary>모달이 열린 뒤 <paramref name="ms"/> 의 잔파.</summary>
+        public void EchoAt(double ms, out double alpha, out double scale, out double borderRem, out double blurPx)
+        {
+            double t = ms - EchoDelayMs;
+            if (t < 0) { alpha = 0; scale = Echo.Sample(0, "scale", null); borderRem = Echo.Sample(0, "border_rem", null); blurPx = Echo.Sample(0, "blur_px", null); return; }
+            double p = t >= EchoMs ? 100 : t / EchoMs * 100;
+            alpha = Echo.Sample(p, "f", null);
+            scale = Echo.Sample(p, "scale", null);
+            borderRem = Echo.Sample(p, "border_rem", null);
+            blurPx = Echo.Sample(p, "blur_px", null);
+        }
+
+        /// <summary>본파의 그 시각에 쓸 구운 판 번호 · 그 판의 대표 시각(ms · 모달 기준).</summary>
+        public int MainStepOf(double ms)
+        {
+            double t = ms - DelayMs;
+            double p = t <= 0 ? 0 : t >= Ms ? 1 : t / Ms;
+            int k = (int)(p * Steps);
+            return k < 0 ? 0 : k >= Steps ? Steps - 1 : k;
+        }
+        public double MainStepMid(int step) { return DelayMs + Ms * (step + 0.5) / Steps; }
+
+        /// <summary>잔파의 그 시각에 쓸 구운 판 번호 · 그 판의 대표 시각.</summary>
+        public int EchoStepOf(double ms)
+        {
+            double t = ms - EchoDelayMs;
+            double p = t <= 0 ? 0 : t >= EchoMs ? 1 : t / EchoMs;
+            int k = (int)(p * Steps);
+            return k < 0 ? 0 : k >= Steps ? Steps - 1 : k;
+        }
+        public double EchoStepMid(int step) { return EchoDelayMs + EchoMs * (step + 0.5) / Steps; }
+    }
+
+    /// <summary>
     /// T334 18회차 — **끝난 뒤의 잔잔한 고리**(정본 `.sr-idle` · style.css 6934~6948).
     ///
     /// `#summon-result-modal.done .sr-idle { display: block }` — 연출이 **끝난 뒤에만** 도는 고리 둘이고,

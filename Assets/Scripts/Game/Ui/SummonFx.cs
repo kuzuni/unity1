@@ -773,7 +773,7 @@ namespace Forge.Game.Ui
         /// <paramref name="bandF"/> 는 판 반지름에 대한 테 굵기 비율 · <paramref name="softF"/> 는 같은 자로 잰 번짐 폭이다.
         /// 링 둘레의 `box-shadow 0 0 .9rem` 은 바깥쪽 감쇠 꼬리로 같이 굽는다(따로 한 겹을 두면 두 번 가산된다).
         /// </summary>
-        public static Sprite BakeTierRing(string name, Color rc, float bandF, float softF, float glowF)
+        public static Sprite BakeTierRing(string name, Color rc, float bandF, float softF, float glowF, float innerGlowF)
         {
             Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
             int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
@@ -789,8 +789,10 @@ namespace Forge.Game.Ui
                     float u = (x + 0.5f) / N * 2f - 1f;
                     float r = Mathf.Sqrt(u * u + v * v);
                     float a;
-                    if (r < inner - soft) a = 0f;                               // 고리 안쪽은 비어 있다
-                    else if (r < inner) a = Ramp(r, inner - soft, 0f, inner, 1f);
+                    // 고리 안쪽 — 정본 `inset 0 0 <n>rem` 이 있으면 그만큼 **안으로** 번지고, 없으면 한 화소만 잇는다.
+                    float innerStart = inner - Mathf.Max(soft, innerGlowF);
+                    if (r < innerStart) a = 0f;
+                    else if (r < inner) a = Ramp(r, innerStart, 0f, inner, 1f);
                     else if (r <= outer) a = 1f;
                     else a = Ramp(r, outer, 1f, outer + glowF, 0f);             // box-shadow 의 바깥 꼬리
                     if (r > outer + glowF) a = 0f;
@@ -961,7 +963,7 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; heroRingEase = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; heroRingEase = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
@@ -971,6 +973,8 @@ namespace Forge.Game.Ui
         static SummonGhostSpec ghost;
         static SummonTierBreakSpec tierBreak;
         static SummonIdleRingSpec idleRing;
+        static SummonPreludeSpec prelude;
+        static SummonShockSpec shock;
         /// <summary>T334 6회차 — 주역 착지의 화면 킥(표의 `hero` 절).</summary>
         /// <summary>표의 `hero` 절 수치 하나(그 절은 `layout` 밖이다).</summary>
         public static float H(string key) { Load(); return (float)J.Num(J.Require(J.Obj(root["hero"]), key)); }
@@ -1010,6 +1014,12 @@ namespace Forge.Game.Ui
 
         /// <summary>T334 18회차 — 끝난 뒤의 잔잔한 고리 규칙(정본 `.sr-idle`).</summary>
         public static SummonIdleRingSpec IdleRing { get { Load(); if (idleRing == null) idleRing = SummonIdleRingSpec.From(root); return idleRing; } }
+
+        /// <summary>T334 19회차 — 등급 예고의 두 수(정본 `--pre-k`·`--sr-e`).</summary>
+        public static SummonPreludeSpec Prelude { get { Load(); if (prelude == null) prelude = SummonPreludeSpec.From(root); return prelude; } }
+
+        /// <summary>T334 19회차 — 예고 충격파 한 쌍(정본 `.sr-shock`·`.echo`).</summary>
+        public static SummonShockSpec Shock { get { Load(); if (shock == null) shock = SummonShockSpec.From(root); return shock; } }
 
         public static Color C(string key)
         {

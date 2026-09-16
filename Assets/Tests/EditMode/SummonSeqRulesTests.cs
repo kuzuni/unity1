@@ -857,4 +857,136 @@ namespace Forge.Tests
             Assert.Throws<System.FormatException>(() => SummonIdleRingSpec.From(MiniJson.ParseObject(disc)));
         }
     }
+
+    /// <summary>T334 19회차 ⓐ — 등급 예고의 두 수(정본 `--pre-k` · `--sr-e`).</summary>
+    public class SummonPreludeSpecTests
+    {
+        static SummonPreludeSpec spec;
+        static SummonPreludeSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonPreludeSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 예고_세기는_일반_0_에서_최고_1_까지_고르게_오른다()
+        {
+            SummonPreludeSpec s = S();
+            Assert.AreEqual(0.0, s.K(0), 1e-9, "일반 판은 예전 중립값과 같아야 한다(정본 «k=0 이면 전부 예전 중립값»)");
+            Assert.AreEqual(1.0, s.K(s.TierMax), 1e-9);
+            for (int t = 1; t <= s.TierMax; t++) Assert.Greater(s.K(t), s.K(t - 1));
+            Assert.AreEqual(0.0, s.K(-3), 1e-9, "표 밖은 양 끝으로 자른다");
+            Assert.AreEqual(1.0, s.K(99), 1e-9);
+        }
+
+        [Test]
+        public void 굴림_에너지는_로그_눈금이라_x1과_x25가_안_뭉친다()
+        {
+            SummonPreludeSpec s = S();
+            Assert.AreEqual(0.0, s.Energy(1), 1e-9, "x1 은 0");
+            Assert.AreEqual(1.0, s.Energy(75), 1e-9, "밑(75)에서 1");
+            Assert.AreEqual(0.0, s.Energy(0), 1e-9, "0회도 1회로 본다");
+            double e5 = s.Energy(5), e25 = s.Energy(25);
+            Assert.AreEqual(0.37, e5, 0.01, "정본 주석의 x5 -> 0.37");
+            Assert.AreEqual(0.75, e25, 0.01, "정본 주석의 x25 -> 0.75");
+            // 선형이면 x1~x25 가 뭉친다 — 로그라 앞구간이 더 벌어진다.
+            Assert.Greater(e5 - s.Energy(1), s.Energy(75) - e25);
+        }
+
+        [Test]
+        public void 광채_알파는_1을_안_넘는다()
+        {
+            SummonPreludeSpec s = S();
+            Assert.Greater(s.GlowAlpha(s.TierMax), s.GlowAlpha(0));
+            Assert.LessOrEqual(s.GlowAlpha(s.TierMax), 1.0);
+        }
+    }
+
+    /// <summary>T334 19회차 ⓑ — 예고 충격파 한 쌍(정본 `.sr-shock` · `.echo`).</summary>
+    public class SummonShockSpecTests
+    {
+        static SummonShockSpec spec;
+        static SummonShockSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonShockSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 빛이_터지는_정점에_나가고_잔파가_뒤따른다()
+        {
+            SummonShockSpec s = S();
+            double a, sc, br, bl;
+            s.MainAt(0, 0, out a, out sc, out br, out bl);
+            Assert.AreEqual(0.0, a, 1e-9, "0ms 에 터지면 아무것도 없는 화면에서 링만 먼저 퍼진다(정본 주석)");
+            s.MainAt(s.DelayMs + 1, 0, out a, out sc, out br, out bl);
+            Assert.Greater(a, 0.5, "지연이 지나면 거의 불투명하게 터진다");
+            s.EchoAt(s.DelayMs + 1, out a, out sc, out br, out bl);
+            Assert.AreEqual(0.0, a, 1e-9, "잔파는 본파를 **뒤따른다**");
+            s.EchoAt(s.EchoDelayMs + 1, out a, out sc, out br, out bl);
+            Assert.Greater(a, 0.0);
+        }
+
+        [Test]
+        public void 퍼질수록_얇아지고_번지며_둘_다_사라진다()
+        {
+            SummonShockSpec s = S();
+            double a0, sc0, br0, bl0, a1, sc1, br1, bl1;
+            s.MainAt(s.DelayMs, 0, out a0, out sc0, out br0, out bl0);
+            s.MainAt(s.DelayMs + s.Ms, 0, out a1, out sc1, out br1, out bl1);
+            Assert.AreEqual(0.0, a1, 1e-9, "본파가 사라진다");
+            Assert.Greater(sc1, sc0); Assert.Less(br1, br0); Assert.Greater(bl1, bl0);
+            s.EchoAt(s.EchoDelayMs, out a0, out sc0, out br0, out bl0);
+            s.EchoAt(s.EchoDelayMs + s.EchoMs, out a1, out sc1, out br1, out bl1);
+            Assert.AreEqual(0.0, a1, 1e-9, "잔파도 사라진다");
+            Assert.Greater(sc1, sc0); Assert.Less(br1, br0); Assert.Greater(bl1, bl0);
+        }
+
+        [Test]
+        public void 최종_반경만_굴림_에너지에_물린다()
+        {
+            SummonShockSpec s = S();
+            double a, scLo, scHi, br, bl;
+            s.MainAt(s.DelayMs + s.Ms, 0, out a, out scLo, out br, out bl);
+            s.MainAt(s.DelayMs + s.Ms, 1, out a, out scHi, out br, out bl);
+            Assert.Greater(scHi, scLo, "75개를 뽑았는데 1개와 같은 크기로 터지면 안 된다(정본 주석)");
+            Assert.AreEqual(scLo * (1 + s.ScaleEK), scHi, 1e-6);
+            // 시작 배율은 에너지와 무관하다 — 커지는 것은 **최종 반경**이다.
+            double s0a, s0b;
+            s.MainAt(s.DelayMs, 0, out a, out s0a, out br, out bl);
+            s.MainAt(s.DelayMs, 1, out a, out s0b, out br, out bl);
+            Assert.AreEqual(s0a, s0b, 1e-9);
+            // 잔파는 안 물린다.
+            double e0, e1;
+            s.EchoAt(s.EchoDelayMs + s.EchoMs, out a, out e0, out br, out bl);
+            s.EchoAt(s.EchoDelayMs + s.EchoMs, out a, out e1, out br, out bl);
+            Assert.AreEqual(e0, e1, 1e-9);
+        }
+
+        [Test]
+        public void 잔파가_본파보다_먼저_나가는_표를_거부한다()
+        {
+            char q = '"';
+            string head = "{" + q + "shock" + q + ":{" + q + "shock_ms" + q + ":460," + q + "shock_delay_ms" + q + ":230,"
+                + q + "shock_ease" + q + ":[0.1,0.72,0.22,1]," + q + "w_rem" + q + ":9," + q + "glow_rem" + q + ":1.6,"
+                + q + "inset_glow_rem" + q + ":1.2," + q + "steps" + q + ":6," + q + "scale_e_k" + q + ":0.35,"
+                + q + "srshock" + q + ":[{" + q + "at" + q + ":0," + q + "f" + q + ":0.98," + q + "border_rem" + q + ":0.38," + q + "blur_px" + q + ":0},"
+                + "{" + q + "at" + q + ":100," + q + "f" + q + ":0," + q + "border_rem" + q + ":0.03," + q + "blur_px" + q + ":2.8}],"
+                + q + "srshock_s" + q + ":[{" + q + "at" + q + ":0," + q + "scale" + q + ":0.18},{" + q + "at" + q + ":100," + q + "scale" + q + ":3.4}],"
+                + q + "echo_ms" + q + ":390," + q + "echo_ease" + q + ":[0.12,0.7,0.22,1]," + q + "echo_glow_rem" + q + ":1.1,"
+                + q + "srshockecho" + q + ":[{" + q + "at" + q + ":0," + q + "f" + q + ":0.7," + q + "scale" + q + ":0.3," + q + "border_rem" + q + ":0.2," + q + "blur_px" + q + ":0.4},"
+                + "{" + q + "at" + q + ":100," + q + "f" + q + ":0," + q + "scale" + q + ":2.5," + q + "border_rem" + q + ":0.02," + q + "blur_px" + q + ":2.2}],";
+            // 잔파가 앞서면 «터진 것» 이 아니라 «링 둘» 이 된다.
+            string early = head + q + "echo_delay_ms" + q + ":100}}";
+            Assert.Throws<System.FormatException>(() => SummonShockSpec.From(MiniJson.ParseObject(early)));
+        }
+    }
 }

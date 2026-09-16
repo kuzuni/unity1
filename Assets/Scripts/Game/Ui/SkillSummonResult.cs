@@ -64,6 +64,11 @@ namespace Forge.Game.Ui
         readonly List<float> delays = new List<float>();
         /// <summary>T334 18회차 — 끝난 뒤의 잔잔한 고리(정본 `.sr-idle` · `.done` 에서만 돈다).</summary>
         readonly List<Image> idleRings = new List<Image>();
+        /// <summary>T334 19회차 — 예고 충격파 한 쌍(정본 `.sr-shock` · `.sr-shock.echo`)과 그 단계 판.</summary>
+        Image shockMain, shockEcho;
+        Sprite[] shockMainSteps, shockEchoSteps;
+        /// <summary>T334 19회차 — 굴림 에너지(정본 `--sr-e`) — 본파의 최종 반경이 이것에 물린다.</summary>
+        float srEnergy;
         /// <summary>T334 16회차 — 등급 챕터 경계(정본 `_srTierBreaks`): 켜지는 시각(ms)과 그 등급.</summary>
         struct TierBreak { public float At; public int Tier; public Color Rc, Lite; public Image Pulse, Ring, Wick; public Sprite[] Steps; }
         readonly List<TierBreak> tierBreaks = new List<TierBreak>();
@@ -475,6 +480,46 @@ namespace Forge.Game.Ui
                 }
             }
 
+            // ---- 예고 충격파 한 쌍(정본 `.sr-shock` + `.echo` 6119~6146 · z 30) ----
+            // 정본 주석 셋이 이 겹을 못 박았다: «빛이 터지는 정점(240ms)에 나가야 한다 — 0ms 에 터지면 아무것도
+            //   없는 화면에서 링만 먼저 퍼진다»(지연) · «z 30 — 그리드(40)보다 **아래**다 … 압력파는 피사체 뒤에서
+            //   퍼져야 피사체가 앞에 선 것으로 읽힌다» · «압력파가 하나면 «링 애니메이션», 둘이면 «터진 것» 으로
+            //   읽힌다 — 부모 transform 과 곱해지지 않게 **형제 요소**로 둔다(::after 로 두면 배율이 중첩된다)».
+            // 색은 «등급 예고»(`--pre-line`/`--pre-glow`)라 최고 등급으로 k 를 만들어 섞는다 — 등급색 원본이 아니라
+            // 중립색에서 그쪽으로 당긴 것이다(정본 «알려 주는 건 «얼마나 센 게 온다» 뿐이고 «무엇» 은 끝까지 숨는다»).
+            {
+                SummonShockSpec sk = SummonFxStyle.Shock;
+                SummonPreludeSpec pr = SummonFxStyle.Prelude;
+                int bt = RarityIdx(best);
+                float pk = (float)pr.K(bt);
+                Color bc = PetSkillStyle.Rarity(Defs, best);
+                Color preLine = Color.Lerp(SummonFxStyle.C("pre_line_base"), Shade(bc, (float)pr.LineShade), pk);
+                // ⚠ 정본이 이름으로 경고한 자리 — «**셀 수가 아니라 굴림 수**로 잰다. 대량 소환은 같은 항목을
+                //   한 셀로 묶으므로 x25 와 x75 가 똑같이 3셀이 될 수 있다. 75개를 뽑았다는 사실이 빛에 담겨야 한다».
+                //   클론에서 굴림 수는 묶기 전의 개수 = 셀마다 `Qty` 의 합이다.
+                int rolls = 0;
+                for (int q = 0; q < entries.Count; q++) rolls += entries[q].Qty < 1 ? 1 : entries[q].Qty;
+                srEnergy = (float)pr.Energy(rolls);
+                float sw = PetSkillStyle.Rem((float)sk.WRem), sh = sw * 0.5f;
+                shockMainSteps = new Sprite[sk.Steps];
+                shockEchoSteps = new Sprite[sk.Steps];
+                string pkey = ColorUtility.ToHtmlStringRGB(preLine);
+                for (int k = 0; k < sk.Steps; k++)
+                {
+                    double a, sc2, br, bl;
+                    sk.MainAt(sk.MainStepMid(k), srEnergy, out a, out sc2, out br, out bl);
+                    shockMainSteps[k] = SummonFx.BakeTierRing("sr-shock-" + pkey + "-" + k, preLine,
+                        PetSkillStyle.Rem((float)br) / sh, (float)bl / sh,
+                        PetSkillStyle.Rem((float)sk.GlowRem) / sh, PetSkillStyle.Rem((float)sk.InsetGlowRem) / sh);
+                    sk.EchoAt(sk.EchoStepMid(k), out a, out sc2, out br, out bl);
+                    shockEchoSteps[k] = SummonFx.BakeTierRing("sr-shockecho-" + pkey + "-" + k, preLine,
+                        PetSkillStyle.Rem((float)br) / sh, (float)bl / sh,
+                        PetSkillStyle.Rem((float)sk.EchoGlowRem) / sh, 0f);   // 잔파엔 안쪽 광채가 없다
+                }
+                shockMain = ShockPlate(c, "sr-shock", sw, shockMainSteps[0]);
+                shockEcho = ShockPlate(c, "sr-shock-echo", sw, shockEchoSteps[0]);
+            }
+
             // ---- 끝난 뒤의 잔잔한 고리(정본 `.sr-idle` 6934~6948 · `.done` 에서만 보인다) ----
             // 챕터 링과 달리 **테 굵기가 안 변하므로** 한 장을 구워 배율로 날린다(17회차의 단계 갈아 끼우기가 필요 없다).
             {
@@ -482,7 +527,7 @@ namespace Forge.Game.Ui
                 float iw = PetSkillStyle.Rem((float)ir.WRem), ih = iw * 0.5f;
                 Color ic = SummonFxStyle.C("idle_ring");
                 Sprite isp = SummonFx.BakeTierRing("sr-idlering", ic,
-                    PetSkillStyle.Rem((float)ir.BorderRem) / ih, 0f, PetSkillStyle.Rem((float)ir.GlowRem) / ih);
+                    PetSkillStyle.Rem((float)ir.BorderRem) / ih, 0f, PetSkillStyle.Rem((float)ir.GlowRem) / ih, 0f);
                 for (int k = 0; k < ir.Count; k++)
                 {
                     RectTransform rt = UiKit.Box(c, "sr-idle-" + k);
@@ -648,7 +693,7 @@ namespace Forge.Game.Ui
                         float bandF = PetSkillStyle.Rem((float)kb) / half;
                         float softF = (float)kblur / half;
                         float glowF = PetSkillStyle.Rem((float)tb.RingGlowRem) / half;
-                        b.Steps[k] = SummonFx.BakeTierRing("sr-tierflash-" + rk + "-" + k, b.Rc, bandF, softF, glowF);
+                        b.Steps[k] = SummonFx.BakeTierRing("sr-tierflash-" + rk + "-" + k, b.Rc, bandF, softF, glowF, 0f);
                     }
                     ri2.sprite = b.Steps[0];
                     Material rm2 = CraftFxPoly.Screen();
@@ -1012,6 +1057,7 @@ namespace Forge.Game.Ui
             AnimateGhosts();
             AnimateTierBreaks();
             AnimateIdleRings();
+            AnimateShock();
         }
 
         void TurnOn(Cell c)
@@ -1393,6 +1439,56 @@ namespace Forge.Game.Ui
                 im.rectTransform.localScale = Vector3.one * (float)sc;
             }
         }
+
+        /// <summary>충격파 판 한 장 — 광원 한가운데에 선다(둘은 **형제**다 · 정본 «::after 로 두면 배율이 중첩된다»).</summary>
+        static Image ShockPlate(RectTransform parent, string name, float w, Sprite sp)
+        {
+            RectTransform rt = UiKit.Box(parent, name);
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(w, w);
+            rt.anchoredPosition = Vector2.zero;
+            Image im = rt.gameObject.AddComponent<Image>();
+            im.raycastTarget = false;
+            im.preserveAspect = false;
+            im.sprite = sp;
+            Material m = CraftFxPoly.Screen();
+            if (m != null) im.material = m;
+            im.color = new Color(1f, 1f, 1f, 0f);
+            return im;
+        }
+
+        /// <summary>
+        /// 예고 충격파 한 쌍(정본 `srshock` .46s @.23s · `srshockecho` .39s @.30s) —
+        /// 모달이 열린 때부터 재고, 제 지연 전에는 꺼져 있다. 테 굵기·번짐은 구운 판이 쥔다(단계 경계에서만 갈아 끼운다).
+        /// </summary>
+        void AnimateShock()
+        {
+            if (shockMain == null) return;
+            SummonShockSpec sp = SummonFxStyle.Shock;
+            float ms = (Time.unscaledTime - start) * 1000f;
+            double a, sc, br, bl;
+            sp.MainAt(ms, srEnergy, out a, out sc, out br, out bl);
+            shockMain.color = new Color(1f, 1f, 1f, (float)a);
+            shockMain.rectTransform.localScale = Vector3.one * (float)sc;
+            Sprite w1 = shockMainSteps[sp.MainStepOf(ms)];
+            if (shockMain.sprite != w1) shockMain.sprite = w1;
+            if (shockEcho != null)
+            {
+                sp.EchoAt(ms, out a, out sc, out br, out bl);
+                shockEcho.color = new Color(1f, 1f, 1f, (float)a);
+                shockEcho.rectTransform.localScale = Vector3.one * (float)sc;
+                Sprite w2 = shockEchoSteps[sp.EchoStepOf(ms)];
+                if (shockEcho.sprite != w2) shockEcho.sprite = w2;
+            }
+        }
+
+        /// <summary>예고 충격파 본파·잔파 — 자가 본다.</summary>
+        public Image ShockMain { get { return shockMain; } }
+        public Image ShockEcho { get { return shockEcho; } }
+
+        /// <summary>굴림 에너지(정본 `--sr-e`) — 자가 본다.</summary>
+        public float SrEnergy { get { return srEnergy; } }
 
         /// <summary>끝난 뒤의 잔잔한 고리 — 자가 본다.</summary>
         public Image IdleRingOf(int i) { return i >= 0 && i < idleRings.Count ? idleRings[i] : null; }

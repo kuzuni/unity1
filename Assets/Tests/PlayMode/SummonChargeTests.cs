@@ -462,6 +462,75 @@ namespace Forge.Tests.PlayMode
             }
         }
 
+
+        /// <summary>
+        /// T334 19회차 — 예고 충격파 한 쌍(정본 `.sr-shock` · `.echo`).
+        ///
+        /// 정본 주석이 셋을 못 박았다: «빛이 터지는 정점에 나가야 한다 — 0ms 에 터지면 아무것도 없는 화면에서
+        /// 링만 먼저 퍼진다» · «압력파가 하나면 «링 애니메이션», 둘이면 «터진 것» 으로 읽힌다 — **형제 요소**로 둔다» ·
+        /// «최종 반경도 굴림 에너지에 물린다 — 75개를 뽑았는데 1개와 같은 크기로 터지면 안 된다».
+        /// 마지막 것이 이 자의 핵심 단이다: **굴림 수가 다른 두 판의 에너지가 다르다**(같은 셀 수여도).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 예고_충격파는_정점에_터져_잔파가_뒤따르고_굴림_수에_물린다()
+        {
+            yield return Boot();
+            SkillSummonResultView v = OpenHoldback();
+            Assert.IsNotNull(v.ShockMain, "예고 충격파 본파가 없다");
+            Assert.IsNotNull(v.ShockEcho, "잔파가 없다 — 하나면 «링 애니메이션» 으로 읽힌다");
+            Assert.AreNotSame(v.ShockMain.transform.parent, v.ShockMain.transform, "형제 계약");
+            Assert.AreSame(v.ShockMain.transform.parent, v.ShockEcho.transform.parent, "둘은 **형제**다(정본 «::after 로 두면 배율이 중첩된다»)");
+            Assert.IsNotNull(v.ShockMain.sprite);
+            // 첫 프레임에는 아직 안 터졌다 — 지연이 있다.
+            Assert.AreEqual(0f, v.ShockMain.color.a, 1e-3f, "0ms 에 터지면 아무것도 없는 화면에서 링만 먼저 퍼진다");
+
+            float mainPeak = 0f, echoPeak = 0f, mainWide = 0f, mainPeakAt = -1f, echoPeakAt = -1f;
+            var seen = new List<Sprite>();
+            float t = 0f;
+            while (!v.Done && t < 12f)
+            {
+                Image mi = v.ShockMain, ei = v.ShockEcho;
+                if (mi != null && mi.color.a > 0f)
+                {
+                    if (mi.color.a > mainPeak) { mainPeak = mi.color.a; mainPeakAt = t; }
+                    float sc = mi.rectTransform.localScale.x;
+                    if (sc > mainWide) mainWide = sc;
+                    if (mi.sprite != null && !seen.Contains(mi.sprite)) seen.Add(mi.sprite);
+                }
+                if (ei != null && ei.color.a > echoPeak) { echoPeak = ei.color.a; echoPeakAt = t; }
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.Greater(mainPeak, 0f, "본파가 안 터졌다");
+            Assert.Greater(echoPeak, 0f, "잔파가 안 터졌다");
+            Assert.Greater(mainWide, 1f, "압력파가 안 퍼졌다");
+            Assert.Less(mainPeakAt, echoPeakAt, "잔파가 본파보다 먼저 정점을 찍었다 — 차례가 뒤집혔다");
+            Assert.Greater(seen.Count, 1, "본파가 처음부터 끝까지 같은 판이었다 — 테 굵기가 안 줄었다는 뜻이다");
+            Assert.AreEqual(0f, v.ShockMain.color.a, 1e-3f, "본파가 안 사라졌다");
+            Assert.AreEqual(0f, v.ShockEcho.color.a, 1e-3f, "잔파가 안 사라졌다");
+
+            // ⚑ 정본이 이름으로 경고한 자리 — 에너지는 **셀 수가 아니라 굴림 수**로 잰다.
+            //   같은 «한 셀» 이라도 ×1 과 ×20 은 에너지가 달라야 한다.
+            var one = new List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:z", IconKey = "sk_fireball", Rarity = "common", Name = "하나", Qty = 1 },
+            };
+            var many = new List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:z", IconKey = "sk_fireball", Rarity = "common", Name = "스물", Qty = 20 },
+            };
+            v.OnTap(); v.OnTap();
+            yield return null;
+            SkillSummonResultView v1 = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", one, "common", null);
+            float e1 = v1.SrEnergy;
+            v1.OnTap(); v1.OnTap();
+            yield return null;
+            SkillSummonResultView v2 = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", many, "common", null);
+            float e2 = v2.SrEnergy;
+            Assert.AreEqual(0f, e1, 1e-4f, "×1 의 에너지는 0 이다");
+            Assert.Greater(e2, e1, "같은 한 셀이어도 ×20 은 ×1 보다 세야 한다 — 셀 수로 재면 둘이 같아진다(정본이 이름으로 경고한 자리)");
+        }
+
         static Transform FindDeep(Transform root, string name)
         {
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
