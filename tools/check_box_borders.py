@@ -148,8 +148,7 @@ KNOWN = {
     '.btn → Ui/Popups.cs@Btn': 'T365 2회차 — 바닥 버튼(`.btn` 664 ol1 #444c56 · HUD·오프라인·리그 뒤로)만 얇은 회색인데 공용 Btn 은 Line3 하나다(모달·패널·시트 안 `.btn` 3543 ol3 는 맞다) · Popups.cs T331·T333 lock — 바닥 버튼에 keyline 폭 인자를 주는 길',
     '.chat-preview-badge → Ui/Hud.cs@BuildChat': 'T365 2회차 — `.chat-preview-badge` 3249 ol15(1.5px ≈ 캔버스 3px) ↔ 클론 line_px(2) · ol15 단 키가 카탈로그에 없다(line15_px 3) · Hud.cs T331 lock',
     '.pass-milestone-label → Ui/PassPopup.cs@Render': 'T365 3회차 — `.pass-milestone-label` 2803 ol2 ↔ 클론 라벨 고리는 `- PopupKit.Line`(ol1)(배너 Line3 는 맞다) · PassPopup.cs T332 lock',
-    '.offline-rate-icon.coin → Ui/OfflinePopup.cs@Rate': 'T365 12회차 — 정본 실물은 **테가 없다**(7268 `.offline-rate-icon.coin/.hammer { background: none; border: none }` 이 274 의 ol2 #000 을 덮는다 · ui.js 5896~5897 이 늘 그 클래스를 붙인다) ↔ 클론 `Rate()` 는 `UiKit.Circle(circle, "line", "pp_line")` + `Inset(face, line2_px)` 로 **검정 ol2 고리**를 그린다. 고칠 것: 고리·면을 걷고 아이콘만 둔다(정본은 배경도 none). OfflinePopup.cs T345 lock',
-    '.offline-rate-icon.hammer → Ui/OfflinePopup.cs@Rate': 'T365 12회차 — 위와 같은 자리(같은 도우미) · 정본 7268 이 테·배경을 함께 끈다. OfflinePopup.cs T345 lock',
+    # T365 14회차 — 오프라인 요율 원판 둘은 T417 1회차(`42083bc`)가 정본 7268 대로 색 원·테를 걷어 이제 «정본대로 테 없음» ok 다 → KNOWN 에서 걷었다(경고 줄 2 → 0 · 표 자리 초록 84 그대로).
     '.pip → Ui/Hud.cs@RebuildPips': 'T365 12회차 — 정본 191 `.pip { border: var(--ol2) solid var(--pp-line) }` ↔ 클론은 고리 안 면을 `size - line * 2`(`line_px` = **ol1**)로 깎는다(`Hud.cs:301·313`). 바꿀 키: `line_px` → `line2_px`(고리 두께를 재는 자리 셋 다). Hud.cs T331 lock',
     '#wave-pips::before|top → Ui/Hud.cs@RebuildPips': 'T365 12회차 — 정본 185 는 트랙 위아래에 ol2 두 줄(`border-top`·`border-bottom`)을 준다 ↔ 클론 트랙은 `UiKit.Panel(track, "edge", "pp_line")` + 제 `Inset(core, line)`(= `line_px` ol1)이라 한 단 얇다. 바꿀 키: 같은 `line_px` → `line2_px`. Hud.cs T331 lock',
     '#wave-pips::before|bottom → Ui/Hud.cs@RebuildPips': 'T365 12회차 — 위와 같은 한 자리(트랙 한 상자가 위·아래 두 줄을 같이 낸다). Hud.cs T331 lock',
