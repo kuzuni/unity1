@@ -127,6 +127,31 @@ namespace Forge.Game.Ui
         float flashAt = -1f;
         /// <summary>T334 3회차 ⓑ — 충전 구간이 움직이는 것들: 소환진·중앙 광원·비네트(정본 `.sr-floor`·`.sr-halo`·`.sr-wrap::before`).</summary>
         Image floorImg, haloImg, vigImg;
+        /// <summary>
+        /// T385 2회차 ⑶ — 구체 스페큘러를 **아이콘 위에** 한 겹 더(정본 `.sr-ico::after` 6539~6547 · 표 <c>OrbIconUi.json</c>).
+        ///
+        /// ⚠ 상자를 **구체 기준**으로 잡는다. 정본은 «아이콘 한 변의 220%» 인데 정본 아이콘이 구체의 1/2.4 라
+        /// 그 상자가 곧 **구체의 91.7%** 다. 클론 아이콘은 구체의 0.60~0.62 라 같은 220% 를 아이콘에 곱하면
+        /// 겹이 구체의 1.32배로 부풀어 밝은 점이 구체 19% 가 아니라 7.7% 에 온다(1회차 셈이 잡은 11%p 어긋남 ·
+        /// <see cref="OrbIconRules.ToOrbFrac"/>). 그래서 «표의 상자 × 정본 아이콘 비율» 을 구체 한 변에 곱한다.
+        ///
+        /// 합성은 정본이 `mix-blend-mode: screen` 인데 UGUI 엔 그 합성이 없다 — 가산(<see cref="CraftFxPoly.Screen"/>)이
+        /// 그 근사고, 바탕이 어두울수록 둘이 가깝다(<see cref="OrbIconRules.ScreenBlend"/> 가 그 어긋남을 잰다).
+        /// </summary>
+        static void OrbIconSpec(RectTransform wrap, float cw)
+        {
+            float side = cw * (float)(OrbIconUi.Box.W * OrbIconUi.IconFracOfOrb);
+            RectTransform b = UiKit.Box(wrap, "sr-ico-spec");
+            UiKit.Anchor(b, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, side, side);
+            Image im = b.gameObject.AddComponent<Image>();
+            im.raycastTarget = false;
+            im.preserveAspect = false;
+            im.sprite = SummonFx.BakeOrbIconSpec("sr-ico-spec");
+            Material m = CraftFxPoly.Screen();
+            if (m != null) im.material = m;
+            im.color = new Color(1f, 1f, 1f, OrbIconUi.Alpha);   // 정본 `opacity: .35` — 표값은 여기 한 번만 나온다
+        }
+
         /// <summary>T334 4회차 — 소환진의 룬 눈금 띠(정본 `.sr-floor::after`). 충전 중엔 `steps(9)` 로 점등하고 그 밖에는 느리게 호흡한다.</summary>
         Image tickImg;
         Color tickBase;
@@ -869,12 +894,16 @@ namespace Forge.Game.Ui
             {
                 RectTransform pf = PetSkillKit.PetFace(wrap, Defs, e.FaceName, isz, e.FaceKind);
                 UiKit.Anchor(pf, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, isz, isz);
+                pf.localScale = Vector3.one * OrbIconUi.BarrelScale;
             }
             else
             {
                 Image ico = UiKit.Icon(wrap, "sr-ico", e.IconKey, e.IconTint);
                 UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, isz, isz);
+                // T385 2회차 ⑵ — 정본 6522 `.sr-ico { transform: scale(1.04) }`: «구면에 얹힌 것은 가운데가 미세하게 부푼다».
+                ico.rectTransform.localScale = Vector3.one * OrbIconUi.BarrelScale;
             }
+            OrbIconSpec(wrap, cw);
             if (!dense)
             {
                 float bh = sub * 1.2f;

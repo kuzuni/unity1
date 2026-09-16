@@ -864,6 +864,51 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>
+        /// T385 ⑶ — 구슬 위 아이콘에 얹는 **구체 스페큘러 한 장**(정본 `.sr-ico::after` 6539~6547).
+        ///
+        /// 정본이 주석으로 처방을 적어 둔 자리다: «아이콘이 구체 조명을 안 받아 스티커로 읽힌다 → 구체 스페큘러를
+        /// **아이콘 위에** 한 겹 더(screen · α .35)». 겹의 두 방사형은 `.sr-orb` 의 첫 두 겹(6500~6501)과 **글자 그대로 같다** —
+        /// 그래서 굽는 것도 같은 문법이다: `radial-gradient(RX% RY% at X% Y%, 색, 투명 END%)` 둘을 CSS 차례(먼저가 위)로 겹친다.
+        ///
+        /// 판의 좌표는 **겹 상자 자신**(= `::after` 의 상자)이다 — 표의 `at_x`·`rx` 는 그 상자의 비율이므로 여기서 그대로 쓴다.
+        /// 어디에 놓느냐(상자를 구체 기준으로 잡는 일)는 <c>SkillSummonResult</c> 몫이다.
+        /// 알파(`opacity: .35`)도 여기서 안 굽는다 — 부르는 쪽이 `Image.color.a` 로 건다(표값이 코드에 한 번만 나오게).
+        /// </summary>
+        public static Sprite BakeOrbIconSpec(string name)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            OrbIconUi.Layer[] ls = OrbIconUi.Layers;
+            int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px") * 0.5f));
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            {
+                // CSS 는 위가 0 이고 굽는 판은 아래가 0 이라 뒤집어 읽는다.
+                double fy = 1.0 - (y + 0.5) / N;
+                for (int x = 0; x < N; x++)
+                {
+                    double fx = (x + 0.5) / N;
+                    // 배경 겹 쌓기 — CSS 는 먼저 적은 겹이 **위**라 뒤에서부터 얹고 위 겹이 아래 겹을 덮는다.
+                    double ar = 0, ag = 0, ab = 0, aa = 0;
+                    for (int i = ls.Length - 1; i >= 0; i--)
+                    {
+                        OrbIconUi.Layer l = ls[i];
+                        double t = OrbIconRules.EllipseT(fx, fy, l.AtX, l.AtY, l.Rx, l.Ry);
+                        double a = l.A * OrbIconRules.Falloff(t, l.End);
+                        if (a <= 0) continue;
+                        double na = a + aa * (1.0 - a);
+                        if (na <= 0) continue;
+                        ar = (l.Hex.r * a + ar * aa * (1.0 - a)) / na;
+                        ag = (l.Hex.g * a + ag * aa * (1.0 - a)) / na;
+                        ab = (l.Hex.b * a + ab * aa * (1.0 - a)) / na;
+                        aa = na;
+                    }
+                    px[y * N + x] = new Color((float)ar, (float)ag, (float)ab, (float)Mathf.Clamp01((float)aa));
+                }
+            }
+            return Finish(name, NewTex(name, N, N), px);
+        }
+
+        /// <summary>
         /// 수렴 빛줄기 막대 **한 장**(정본 `.sr-streaks i` 5717~5718) —
         /// 세로 그라디언트(투명 → `--pre-line` 62% → 흰색) + `box-shadow 0 0 .4rem var(--pre-glow)`.
         ///
