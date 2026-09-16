@@ -409,8 +409,9 @@ namespace Forge.Game.Ui
                 // T377 4회차 — 정본 999 는 이 배지에 `#f0a020` 을 **선택자에만** 못박았다(전역 노랑 토큰 coin #ffd54f 과 다른 앰버).
                 Image tb = UiKit.Rounded(tagBox, "bg", "pp_paper", th * 0.5f);
                 tb.color = PinnedColorUi.C("held_tag_face");
+                // T365 20회차 — 정본 1000 `.anvil-btn.held-slot .held-tag { border: var(--ol2) solid #000 }` — 클론은 ol1 이라 한 단 얇았다.
                 UiKit.Rounded(tagBox, "ring", "pp_line", th * 0.5f).transform.SetAsFirstSibling();
-                PopupKit.Inset(tb.rectTransform, PopupKit.Line);
+                PopupKit.Inset(tb.rectTransform, PopupKit.Line2);
                 tag.transform.SetParent(tagBox, false);
                 UiKit.Fill(tag.rectTransform);
                 counter = UiKit.Box(rt, "anvil-hammers");

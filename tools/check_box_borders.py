@@ -124,6 +124,11 @@ TABLE = {
     '#summon-subtabs.subtab-strip button': ['—비활성 칸엔 테가 없다(정본 3606 `border: none`) · 클론은 `subSkins[i]` 를 **활성일 때만** 켠다 — 같은 몸통에 활성 칸(ol2)이 같이 있어 «테 호출 0» 으로는 못 가른다(17회차 눈으로 확인)'],
     # T365 17회차 — 정본이 «끈다» 고만 적은 셋. 셋 다 클론이 이미 정본대로인데, 그 몸통에 **다른 자리의 테**가 같이 있어 자로는 못 가른다.
     '.pill-plus': ['Ui/Hud.cs@PlusBadge'],
+    # T365 20회차 — 모루 자리 셋(`ForgeSheet.cs` 가 열렸다). `ForgeUi.Tile`(고리+면+Inset 을 한 번에 내는 이 레포 도우미)을
+    #   이 회차에 도우미 목록에 넣어 «보류 카드» 의 ol3 을 자가 읽게 됐다.
+    '.anvil-btn.held-slot': ['Ui/ForgeSheet.cs@AnvilSlot'],
+    '.anvil-btn': ['—모루 버튼 자체엔 테가 없다(정본 983 `border: none`) · 클론 `ForgeSheet.AnvilSlot` 의 테 호출은 **보류 카드**(`held-slot`)와 그 배지 몫이라 «테 호출 0» 으로는 못 가른다 — 같은 메서드가 두 꼴(모루/보류)을 다 낸다(20회차 눈으로 확인)'],
+    '.anvil-btn.held-slot .held-tag': ['—정본 1000 `border: var(--ol2) solid #000` · 클론은 `PopupKit.Line`(ol1)이라 한 단 얇았다 → 20회차에 `Line2` 로 고쳤다. 배지 고리는 «면 먼저, 고리 나중 + 따로 `Inset`» 꼴이라 짝 탐지가 안 잡는다 — PlayMode `BoxBorderSitesTests` 가 직접 잰다'],
     # T365 19회차 — 자동 제련 팝업의 검은 두 겹. 정본 4785·4793 은 **면 #17181a + ol3 --pp-line 테** 인데
     #   클론은 `pp_line`(#000000) 판 **한 장**이라 테가 아예 없었고 면까지 순검정이었다(`pp_ink` 가 곧 #17181a).
     #   ⚠ 자로는 **못 가른다** — 둘 다 `Render` 한 몸통 안이고 그 몸통엔 ol3 테가 여럿이라 «단 ol3» 판정이
@@ -171,9 +176,9 @@ KNOWN = {
     # T365 14회차 — 오프라인 요율 원판 둘은 T417 1회차(`42083bc`)가 정본 7268 대로 색 원·테를 걷어 이제 «정본대로 테 없음» ok 다 → KNOWN 에서 걷었다(경고 줄 2 → 0 · 표 자리 초록 84 그대로).
 }
 
-HELPERS = ('PopupKit.Outlined', 'RadiusUi.Outlined', 'UiKit.Line', 'PetSkillKit.Framed', 'PetSkillKit.Orb', 'DungeonPopups.Bordered', 'DungeonPopups.BorderedCircle', 'UiKit.Rounded', 'UiKit.Circle', 'Bordered', 'BorderedCircle')   # 맨 이름 둘은 DungeonPopups 제 안의 호출(10회차 · CurPill)
+HELPERS = ('PopupKit.Outlined', 'RadiusUi.Outlined', 'ForgeUi.Tile', 'UiKit.Line', 'PetSkillKit.Framed', 'PetSkillKit.Orb', 'DungeonPopups.Bordered', 'DungeonPopups.BorderedCircle', 'UiKit.Rounded', 'UiKit.Circle', 'Bordered', 'BorderedCircle')   # 맨 이름 둘은 DungeonPopups 제 안의 호출(10회차 · CurPill)
 # 도우미별 폭 인자 자리(0부터 · 이름 인자는 1) — Rounded 는 짝(안쪽 면의 «r - 폭»)에서 읽는다
-WIDTH_ARG = {'PopupKit.Outlined': 4, 'RadiusUi.Outlined': 4, 'UiKit.Line': 3, 'PetSkillKit.Framed': 4, 'PetSkillKit.Orb': 3, 'DungeonPopups.Bordered': 4, 'DungeonPopups.BorderedCircle': 3, 'Bordered': 4, 'BorderedCircle': 3}
+WIDTH_ARG = {'PopupKit.Outlined': 4, 'RadiusUi.Outlined': 4, 'ForgeUi.Tile': 5, 'UiKit.Line': 3, 'PetSkillKit.Framed': 4, 'PetSkillKit.Orb': 3, 'DungeonPopups.Bordered': 4, 'DungeonPopups.BorderedCircle': 3, 'Bordered': 4, 'BorderedCircle': 3}
 CALL_RE = re.compile(r'\b(' + '|'.join(re.escape(h) for h in HELPERS) + r')\s*\(')
 TIER_PATTERNS = [
     ('ol4', re.compile(r'line4_px')),

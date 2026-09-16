@@ -54,6 +54,32 @@ namespace Forge.Tests.PlayMode
         /// 클론은 넷 다 `line_px`(ol1) 한 값으로 그려 한 단 얇았다.
         /// </summary>
         /// <summary>
+        /// T365 20회차 — 모루 «보류» 배지의 테. 정본 1000 `.anvil-btn.held-slot .held-tag { border: var(--ol2) solid #000 }`
+        /// 인데 클론은 `PopupKit.Line`(ol1)이라 한 단 얇았다. 이 자리는 배지가 «면 먼저 · 고리 나중 + 따로 `Inset`» 꼴이라
+        /// `check_box_borders` 의 짝 탐지가 안 잡는다 — 그래서 여기서 직접 잰다(고리와 면의 크기 차로 폭을 읽는다).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 모루_보류_배지의_테는_정본_ol2_다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.SetPendingCraft(h.Engine.RollItem());
+            ForgeSheet.Render(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            RectTransform tagBox = null;
+            foreach (RectTransform rt in UiRoot.Instance.Sheet.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "held-tag-bg") { tagBox = rt; break; }
+            Assert.IsNotNull(tagBox, "보류 배지 상자(held-tag-bg)가 없다 — 대기품이 서야 나온다");
+            RectTransform ring = (RectTransform)tagBox.Find("ring"), face = (RectTransform)tagBox.Find("bg");
+            Assert.IsNotNull(ring, "배지 고리(ring)"); Assert.IsNotNull(face, "배지 면(bg)");
+            Assert.AreEqual(face.offsetMin.x, -face.offsetMax.x, 0.01f, "배지 면은 좌우 같은 만큼 들어간다");
+            Assert.AreEqual(UiKit.L("line2_px"), face.offsetMin.x, 0.01f,
+                "정본 1000 `.held-tag { border: var(--ol2) solid #000 }` — 전엔 ol1 이라 한 단 얇았다");
+        }
+
+        /// <summary>
         /// T365 19회차 — 자동 제련 팝업의 검은 두 자리. 정본 4785 `.af-spinner` · 4793 `.af-dd-list` 는 둘 다
         /// **면 `#17181a` + `var(--ol3) solid var(--pp-line)` 테** 인데, 클론은 `pp_line`(#000000) 판 **한 장**이라
         /// 테가 아예 없었고 면까지 순검정이었다(`pp_ink` 가 곧 정본의 #17181a).
