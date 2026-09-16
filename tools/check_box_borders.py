@@ -124,6 +124,9 @@ TABLE = {
     '#summon-subtabs.subtab-strip button': ['—비활성 칸엔 테가 없다(정본 3606 `border: none`) · 클론은 `subSkins[i]` 를 **활성일 때만** 켠다 — 같은 몸통에 활성 칸(ol2)이 같이 있어 «테 호출 0» 으로는 못 가른다(17회차 눈으로 확인)'],
     # T365 17회차 — 정본이 «끈다» 고만 적은 셋. 셋 다 클론이 이미 정본대로인데, 그 몸통에 **다른 자리의 테**가 같이 있어 자로는 못 가른다.
     '.pill-plus': ['Ui/Hud.cs@PlusBadge'],
+    # T365 18회차 — 자유 파일에 남아 있던 둘.
+    '.tb-row:last-child|bottom': ['—마지막 줄만 밑줄이 없다(정본 2252 `border-bottom: none`) · 클론 `TechPopups` 336 이 `if (i < lines.Count - 1)` 로 **마지막만 건너뛴다**(그 위 2249 `.tb-row|bottom` ol2 는 이미 초록) — 같은 몸통이 다른 줄엔 선을 그으니 «테 호출 0» 으로는 못 가른다(18회차 눈으로 확인)'],
+    '#panel-debug input[type=number]': ['—클론엔 그 자리가 없다: 디버그 패널은 **숫자 입력칸을 안 쓴다**(`DebugPanel.cs` 에 `InputField` 0 · 스테이지 이동·재화 더하기를 전부 버튼으로 낸다) — 정본 680 의 테는 클론에 짝이 없다(18회차 전수 확인)'],
     '#tabbar button': ['—버튼 자체엔 테가 없다(정본 1700 `border: none`) · 클론 `TabBar.Build` 의 테 호출 둘은 **바의 위 키라인**(`UiKit.Line(band, …)` = `#tabbar` 제 테)과 **✕ 표식**(`.tab-x-mark` 의 고리 원)이라 버튼 짝이 아니다(17회차 눈으로 확인)'],
     '.skill-btn .sk-lv': ['—Lv 배지엔 판도 테도 없다(정본 606 `background: none; border: none`) · 클론은 **T109 8회차가 알약을 걷고** `PetSkillKit.Stroked` 글자 한 장으로 돌렸다 — 같은 몸통에 오브 고리(ol3)가 있어 «테 호출 0» 으로는 못 가른다(17회차 눈으로 확인)'],
     '.upg-progress': ['Ui/ForgeInfoPopup.cs@RenderLevelView'],
