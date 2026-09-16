@@ -306,7 +306,7 @@ namespace Forge.Tests.PlayMode
         /// T428 1회차 — **잠긴 노드 카드가 버튼 높이를 옛 키로 재서 안내줄이 카드 밖에서 잘렸다.**
         /// `ActionHeight(Locked)` 는 `btn_sm_h_rem`(2rem)으로 재고 `RenderAction` 은 `tech_btn_h_rem`(3.6rem)으로 그렸다 —
         /// 카드 높이가 **1.6rem** 짧아 안내줄 상자가 카드 바닥 아래로 내려갔다(런 943 `screen_tech-node.png`: «열립니다» 가 «열립니」 로 끊긴다).
-        /// 이 자는 **재는 수와 그리는 수가 같은가** 를 화면에서 묻는다: 안내줄 아래끕이 카드 안이고, 남는 여백이 카드 패딩만큼이다.
+        /// 이 자는 **재는 수와 그리는 수가 같은가** 를 화면에서 묻는다: 안내줄 아래끝이 카드 안이고, 남는 여백이 카드 패딩만큼이다.
         /// </summary>
         [UnityTest]
         public IEnumerator 기술_노드_잠김_카드는_안내줄까지_품고_선다()
@@ -329,9 +329,12 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(hint, "잠긴 카드의 안내줄(hint)");
 
             Rect rc = World(card), rh = World(hint);
-            float over = rc.yMin - rh.yMin;   // 양수 = 안내줄이 카드 안
+            // ⚠ `World` 는 왼아래 모서리에서 재므로 `yMin` 은 **아래끝**이고, 안에 든 상자일수록 `yMin` 이 **크다**(위로 올라간다).
+            //   1판은 `rc.yMin - rh.yMin` 으로 써 부호가 반대였다 — 런 957 이 그래서 빨갔고(실측 −9.2 = 딱 패딩만큼) 그 수가 오히려 **고침이 들었다는 증거**였다.
+            //   (T413 3회차가 같은 갈래를 적어 두었다 — «Place 의 yTop 과 anchoredPosition.y 는 부호가 반대다».)
+            float over = rh.yMin - rc.yMin;   // 양수 = 안내줄이 카드 안
             Assert.GreaterOrEqual(over, -0.5f,
-                "안내줄 아래끕이 카드 안이다 · 실측 여백 " + over.ToString("0.0") + "px(음수 = 카드 밖으로 튀어나왔다)");
+                "안내줄 아래끝이 카드 안이다 · 실측 여백 " + over.ToString("0.0") + "px(음수 = 카드 밖으로 튀어나왔다)");
             // 고침 전에는 재는 수가 1.6rem 작아 이 여백이 음수였다. 또 반대로 너무 많이 남아도 안 된다 —
             // 카드는 아래 패딩 한 칸만 남기므로(ch = … + pad * 2) 그 값에 서야 «재는 수 = 그리는 수» 가 증명된다.
             float pad = rc.width * UiKit.L("idet_pad");
