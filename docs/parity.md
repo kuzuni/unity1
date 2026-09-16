@@ -1445,3 +1445,39 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 ## 이 회차의 판정
 - 새 작업 **2**: **T401**(기술 트리 뒤로 버튼 2.5rem 정사각 + 잠긴 노드 버튼 3.6rem — `TechPanel`·`TechPopups`·`DungeonPopups` · T345·T178 lock 뒤) · **T402**(정본 하한 값이 코드에 박힌 셋 → 표 · 각 파일 lock 뒤). T378 절에 «정본이 그 버튼에 준 높이» 셋(2.9 · 4.2 · 4.45rem)을 적어 뒀다.
 - 남은 축: `animation-delay` 42 · `content` 171 · `background-position` 22 · `background-size` 15.
+
+# T33 완주 대조 — **38회차** (2026-09-16 00:5x · 워커 F · sess-0027-41852) — 축: `animation-delay` 45 자리
+
+37회차가 남긴 축 셋(`animation-delay` 42 · `content` 171 · `background-position/size`) 중 첫째. 세어 보니 **45 자리**다 — `style.css` 선언 **38**(grep 39 중 하나는 주석 속 문장) · `index.html` **2**(부팅 로딩 불티) · `ui.js` 인라인 **5**(연출이 요소마다 붙여 주는 지연).
+
+## 갈래 (표가 쥐는가 · 값이 정본과 같은가)
+
+| 무리 | 자리 | 정본 | 클론이 그 값을 쥔 곳 | 판정 |
+|---|---:|---|---|---|
+| 모루 FX(`.anvil-fx`) | 26 | `calc(var(--h0/1/2) − 8·7·6·3·23·7·7ms)` · `var(--t)` ×2 · 연기 `.173/.378/.648s` | `Core/CraftFx/AutoForgeFxSpec`(`RingLeadMs 8`·`BloomLeadMs 7`·`FlashLeadMs 6`·`HeatLeadMs 3`·`ShadowLeadMs 23`·`StarLeadMs 7`(코어도 이 값)·`SparkLeadMs 8`·`SmokeDelayMs {173,378,648}`) · 불티·흑피는 조각마다 `StartMs = HitMs[h] − Lead` | ✅ 26 |
+| 오프라인 버튼 `zzz` | 2 | `.9s` · `1.8s` | `OfflineButtonUi.zzz_gap_ms` 900 → `OfflineButtonRules.DelayMs = gap × i` | ✅ |
+| 던전 클리어 칸 | 2 | `.09s` · `.18s` | `DungeonFxUi.pop_stagger_ms` | ✅ |
+| 소환 천막 셋째 광선 | 1 | `-1.2s` | `SummonFxUi.ray_side3_delay_s` −1.2 | ✅ |
+| 끝난 뒤 호흡(`srbreath`) | 1 | `calc(var(--i) * .21s)` | `SummonFxUi.idle.delay_step_ms` 210 → `SummonSeqRules`(`elapsed − index × DelayStepMs`) | ✅ |
+| 잔잔한 고리(`.sr-idle`) | 1 | `1.2s` | `SummonFxUi.idle_ring.ring_delay_ms` 1200 (T334 18회차) | ✅ |
+| 부팅 불티(`index.html`) | 2 | `.05s` · `.1s` | `BootLoadingUi.spark_delay2_ms 50`·`spark_delay3_ms 100` | ✅ |
+| 보상 수령(인라인) | 2 | `ci*90ms`(아이콘) · `ci*110ms`(획득량 라벨) | `RewardBurstUi.cur_step_ms 90`·`amt_step_ms 110` | ✅ |
+| 소환 재점등·등급 경계(인라인) | 3 | `d ms` · `b.t ms` ×2 | `SkillSummonResult` 의 `delays` 목록 · `TierBreak.At` | ✅ |
+| **끝난 뒤 광채 맥동(`srpulse`)** | 1 | 6674 `calc(.45s + var(--i) * .17s)` | **없다**(클론은 고정 `glow` 한 장 · 알파 `.35 + .1×tier`) | ⛔ |
+| **구슬 표면 스윕(`srsweep`)** | 2 | 6910 둘째 지연 · 6919 `calc(var(--i) * .29s)` | **없다** | ⛔ |
+| **입장 셰이크(`srshake`)** | 1 | 5657 `srshake .25s … both` + 6148 `animation-delay: .21s` | **없다**(클론에 있는 것은 주역 킥 `srshakehit` 뿐) | ⛔ |
+
+합 45 = ✅ 41 · ⛔ 4(겹으로는 셋).
+
+## 이 회차가 남긴 규칙 — **뒤에 온 `animation-delay` 가 앞 `animation` 단축을 늘 이기지는 않는다**
+
+6148 `.sr-wrap { animation-delay: .21s }` 은 주석이 «화면 셰이크도 정점에 맞춘다(예전엔 0ms)» 라고 적혀 있어 **주역 킥이 210ms 늦는다** 로 읽기 쉽다. 아니다 —
+킥은 5676 `#summon-result-modal.flash .sr-wrap, #summon-result-modal.hero .sr-wrap { animation: srshakehit … }` 이고 그 선택자의 구체성은 **(1,2,0)**, 6148 은 **(0,1,0)** 이다.
+단축 속성은 안 적은 칸(`animation-delay`)을 **초기값 0s 로 되돌리므로**, 구체성이 높은 5676 의 «0s» 가 6148 의 «.21s» 를 이긴다. 곧 **.21s 는 `.sr-wrap` 의 바탕 애니메이션 `srshake`(5657) 것**이다.
+⇒ 클론이 킥을 지연 0 으로 두는 것은 **맞다**(고칠 자리가 아니다). 고칠 자리는 «그 바탕 셰이크 자체가 없다» 쪽이다. T401 3회차가 `min-height` 에서 만난 것과 같은 함정이다 — **줄 번호가 큰 쪽이 아니라 구체성이 큰 쪽이 이긴다.**
+
+## 이 회차의 판정
+
+- 축의 41 자리는 **전부 표(또는 정본 값을 그대로 옮긴 Core 표 파일)가 쥔다** — 이 축에는 «코드에 박힌 수»(T402 꼴)가 **0** 이다.
+- 남은 넷은 전부 `.sr-*`(소환 결과) 이고 **T334 산 lock** 뒤다. T334 18회차가 «남은 여섯» 목록을 박아 두었는데 그 목록에 **이 셋이 없다** — `docs/ROUTINE.md` §2 T334 절에 ⚠ 보탬으로 셋을 적었다(임자의 PROGRESS 행·목록은 안 건드렸다 · 결정 675 의 길).
+- 남은 축: `content` 171 · `background-position/size`(30회차가 한 번 봤다 · 무늬·덮기 위주) · `animation-duration`.
