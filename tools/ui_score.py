@@ -593,7 +593,13 @@ STALE_REF_NOTES = [
     (u"펫 업그레이드 선택 줄 — 원작의 «선택 알 하나 + 밑줄 5칸» 은 개수 제한 시절 · 정본은 등급별 일괄 선택 칩 — 클론의 칩 줄이 맞다",
      u"펫 업그레이드 «합칠 펫» 자리: 원작 샷(`shot-042503`)은 선택 슬롯 다섯 칸인데 지금 정본은 "
      u"`.petup-bulkrow`(`style.css` 4365 «등급별 일괄 선택 버튼 행 — 5칸 선택 슬롯 대체 (사용자 지시: **개수 제한 철폐**)»)다 "
-     u"— 클론이 칩 줄을 그리는 것은 **정본대로**다(T28 33회차)."),
+     u"— 클론이 칩 줄을 그리는 것은 **정본대로**다(T28 33회차). "
+     u"**T28 81회차 실측 — 이 차이가 이 화면 점수의 거의 전부다**: 붉은 선택 표시가 원작은 "
+     u"x **46.2~53.0%W 가운데 한 덧어리**(35×33px · 선택 알)인데 클론은 x **17.2~28.3%W 왼쪽**(61×35px · `.petup-bulk.on` 칩)이다 "
+     u"— 같은 줄이 아니라 **다른 물건**이라 자가 짝을 수가 없다. 런 827 전수: 짝 22 · 짝없음 3 · **군더더기 68** 이고 "
+     u"어긋난 칸의 큰 수가 전부 그 띄(원작 22.6~33.2%H)에서 나온다(w −92.4 · −90.0 · −89.8%p … = 자리가 아니라 **엉뜬 것끼리 짝지어졌다**는 뜻). "
+     u"그 띄 밖 토막은 전부 −5px 안이다(카드 여백 −3.7 · 회색 판1 −2.4 · 어두운 줄 −3.1 · 회색 퍀2 −5.0). "
+     u"⇒ **`forge-list` 와 같이 이 화면의 자리는 T28 의 손 밖**이다 — 달성률로도 쪼지 마라."),
     (u"탭바 금속 밴드 — 원작 샷은 통짜 `(14,17,27)`, 정본은 위가 밝고 아래가 어두운 그라데이션. 클론의 램프가 맞다",
      u"정본 `style.css` **8317~8325** 가 `#tabbar` 에 `background-image: linear-gradient(0deg, rgba(255,255,255,.12) 0 1px, …), "
      u"linear-gradient(180deg, rgba(255,255,255,.16) 0, rgba(255,255,255,.03) 30%, rgba(0,0,0,.16) 64%, rgba(0,0,0,.38) 100%)` "
@@ -650,6 +656,15 @@ STALE_REF_NOTES = [
     u"같은 런의 `screen_main.png` 은 둘 다 초록이다). 팝업을 여는 순간 뒤에 서 있던 화면/시대가 달라서이고 "
     u"첫 번째 항목(3D 세계 — 원작 샷 ↔ 정본 `SIMPLE_BG`)과 같은 계열이다 — **클론 결함이 아니다**(T28 76회차 실측). 이 화면은 중앙값으로 본다."),
 ]
+
+
+# 자리를 **견줄 수 없는** 화면 — 원작 샷과 정본이 그 화면에서 서로 다른 물건을 그린다(T28 71·81회차 전수 실측).
+# «다음 볼 화면» 에서 **지우지 않고 맨 뒤로 밀며 꼬리표를 달아 둔다** — 지우면 진짜 결함이 생겨도 안 보이고,
+# 그대로 두면 달성률이 낮다는 이유로 회차마다 같은 자리를 다시 파게 된다(78·81회차가 실제로 그러였다).
+STALE_SCREENS = {
+    u"forge-list": u"원작 7행 ↔ 클론 8행(진행도 차) · 정본이 직접 «판정 대상이 아니다» 라 적었다(T28 70·71회차)",
+    u"pet-upgrade": u"원작 «선택 알 + 밑줄 5칸» ↔ 정본 «등급별 칩 줄» · 원작 22.6~33.2%H 가 통째로 다른 물건이다(T28 81회차)",
+}
 
 
 def print_stale_notes(full=False):
@@ -1544,14 +1559,25 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         #   절대 점수 순서는 천장이 3점대인 화면만 계속 집어 줄다 — 그것은 자의 딸이지 클론의 딸이 아니다.
         def _rate(t):
             c = ceilings.get(t[0], 0.0)
-            return (t[1] / c) if c else 1.0
+            # 낡은 샷 화면은 **맨 뒤로** 밀린다(지우지는 않는다 · T28 81회차).
+            base = (t[1] / c) if c else 1.0
+            return (base + 10.0) if t[0] in STALE_SCREENS else base
         low = sorted(((n, v) for n, v in scores if v < PASS_MARK), key=_rate)[:5]
         print(u"«다음 볼 화면»(ROUTINE §2 T28 · **달성률(점수/천장)이 낮은 것부터** · 원작 PNG 와 나란히 보고 정본 코드로 확인한 뒤 등재):")
         for n, v in low:
             c = ceilings.get(n, 0.0)
-            print(u"    %-18s %4.1f / 천장 %4.1f  — 달성 %3.0f%%" % (n, v, c, (100.0 * v / c) if c else 0.0))
+            tag = (u"  ⚠ 낡은 샷 — %s" % STALE_SCREENS[n]) if n in STALE_SCREENS else u""
+            print(u"    %-18s %4.1f / 천장 %4.1f  — 달성 %3.0f%%%s" % (n, v, c, (100.0 * v / c) if c else 0.0, tag))
         if len(bad) > len(low):
             print(u"    (%s점 미만 %d개 중 다섯만 적었다 — **달성률이 낮은 순**이다 · 절대 점수가 아니다)" % (PASS_MARK, len(bad)))
+        st = [n for n, _v in scores if n in STALE_SCREENS]
+        if st:
+            print(u"    ⚠ 맨 뒤로 밀어 둔 화면 %d개(낮아도 쪼지 마라 · 원작 샷과 정본이 서로 다른 물건을 그린다):" % len(st))
+            for n in st:
+                c = ceilings.get(n, 0.0)
+                v = dict(scores)[n]
+                print(u"        %-18s %4.1f / 천장 %4.1f  — 달성 %3.0f%%  · %s"
+                      % (n, v, c, (100.0 * v / c) if c else 0.0, STALE_SCREENS[n]))
         return 1
     return 0
 
@@ -1710,6 +1736,18 @@ def self_test():
     chk(len(STALE_REF_NOTES) >= 2
         and all(len(t) == 2 and t[0] and u"정본" in t[1] for t in STALE_REF_NOTES),
         u"«원작 샷이 지금 정본과 다른 자리» 주석 %d개가 (한 줄, 자세히) 꼴로 살아 있다" % len(STALE_REF_NOTES))
+
+    # ⑩-b 낡은 샷 화면 표: 이름마다 까닭이 있고, 그 화면은 «다음 볼 화면» 정렬에서 맨 뒤로 간다(T28 81회차)
+    chk(bool(STALE_SCREENS) and all(isinstance(k, type(u"")) and v for k, v in STALE_SCREENS.items()),
+        u"낡은 샷 화면 %d개가 이름·까닭 꼴로 살아 있다" % len(STALE_SCREENS))
+    _ceil = {u"a": 5.0, u"b": 5.0}
+    _sc = [(u"a", 1.0), (u"b", 4.0)]          # a 가 훨씬 낮지만 a 를 낡은 샷으로 치면
+    def _r(t, stale):
+        base = t[1] / _ceil[t[0]]
+        return (base + 10.0) if t[0] in stale else base
+    chk([n for n, _ in sorted(_sc, key=lambda t: _r(t, set()))] == [u"a", u"b"]
+        and [n for n, _ in sorted(_sc, key=lambda t: _r(t, {u"a"}))] == [u"b", u"a"],
+        u"낡은 샷 화면은 달성률이 꼴째여도 맨 뒤로 밀린다")
 
     # ⑲ 뒤 배경 폭: 실측한 화면은 그 폭 안의 하락을 «회귀» 로 부르지 않는다
     chk(all(v >= DROP_MARK for v in BG_SHAKY.values()) and len(BG_SHAKY) >= 15,
