@@ -67,15 +67,19 @@ namespace Forge.Game.Ui
             // 가운뎃점 «·» 은 원작에 없다(§1). TitleText 는 자가 읽는 «글자만 이어 붙인 값» 이고 화면은 아래 한 줄(HorizontalLayoutGroup)이 세운다.
             TitleText = "승천 보유 별 합계 " + b.Total;
             float sd = titleH * 0.8f;
-            Image star = UiKit.Icon(card, "star", "star");
-            UiKit.Place(star.rectTransform, pad, y + (titleH - sd) * 0.5f, sd, sd);
+            // T420 — 정본 5619 `.asc-card { text-align: center }`: 카드 안 글자는 제목 줄(h3)까지 **통째로 가운데**다(안쪽에서 좌우를 다시 정하는 것은 행뿐 · 5627~5629).
+            //   T398 이 세운 이 줄은 앞 별을 카드 왼쪽 여백에 못박고 `MiddleLeft` 로 몰아 제목만 −17.9%W 왼쪽이었다(런 891). 앞 별을 줄 **안** 첫 자식으로 넣고
+            //   (정본 `${star} 승천` 의 띄어쓰기 한 칸은 큰 토막 글자 앞에 그대로) 줄을 카드 안쪽 폭 전체 · 가운데 정렬로 세운다.
             RectTransform titleRow = UiKit.Box(card, "title-row");
             var titleLay = titleRow.gameObject.AddComponent<HorizontalLayoutGroup>();
-            titleLay.childAlignment = TextAnchor.MiddleLeft;
+            titleLay.childAlignment = TextAnchor.MiddleCenter;
             titleLay.childControlWidth = true; titleLay.childControlHeight = true;
             titleLay.childForceExpandWidth = false; titleLay.childForceExpandHeight = false;
             titleLay.spacing = 0f;
-            TextMeshProUGUI title = DungeonPopups.Bold(titleRow, "title", TextKind.Button, "승천", "pp_ink", TextAlignmentOptions.Left);
+            Image star = UiKit.Icon(titleRow, "star", "star");
+            var starLe = star.gameObject.AddComponent<LayoutElement>();
+            starLe.preferredWidth = starLe.preferredHeight = sd; starLe.flexibleWidth = 0f;
+            TextMeshProUGUI title = DungeonPopups.Bold(titleRow, "title", TextKind.Button, " 승천", "pp_ink", TextAlignmentOptions.Left);
             UiKit.OutlinePx(title, "pp_line", KeylineUi.Em("sheet_title", title.fontSize));   // 정본 3846 묶음(h3.sheet-title …) { .11em var(--pp-line) }
             UiKit.TextShadow(title, "paper_emboss");   // T333 2회차 — 정본 8381 한 벌 «밝은 종이 위 글자는 흰 엠보스»(0 1px 0 rgba(255,255,255,.92))
             float smallPx = title.fontSize * AscendUi.TitleSmallRatio();   // 표 AscendUi.json — .78 / 1.15
@@ -86,7 +90,7 @@ namespace Forge.Game.Ui
             star2Le.preferredWidth = star2Le.preferredHeight = smallPx; star2Le.flexibleWidth = 0f;
             TextMeshProUGUI smallN = UiKit.Text(titleRow, "title-small-n", TextKind.Micro, " " + b.Total, "muted2", TextAlignmentOptions.Left);
             smallN.fontSize = smallPx;
-            UiKit.Place(titleRow, pad + sd * 1.2f, y, inner - sd * 1.2f, titleH);
+            UiKit.Place(titleRow, pad, y, inner, titleH);   // T420 — 줄이 카드 안쪽 폭 전체를 쓰고 안의 것들이 가운데로 모인다
             y += titleH + gap;
             TextMeshProUGUI guide = DungeonPopups.Para(card, "guide", TextKind.Sub, "라인마다 조건을 채우면 그 라인을 승천시킵니다 — 승천 횟수만큼 이후 획득물에 별이 붙습니다.", "muted2", TextAlignmentOptions.Center);
             UiKit.Place(guide.rectTransform, pad, y, inner, subH * 2f);

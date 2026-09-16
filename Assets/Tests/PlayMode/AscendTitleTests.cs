@@ -82,5 +82,55 @@ namespace Forge.Tests.PlayMode
             AscendPopup.Close();
             yield return null;
         }
+
+        static Rect World(RectTransform rt)
+        {
+            Vector3[] c = new Vector3[4];
+            rt.GetWorldCorners(c);
+            return new Rect(c[0].x, c[0].y, c[2].x - c[0].x, c[2].y - c[0].y);
+        }
+
+        /// <summary>T420 — 정본 5619 `.asc-card { text-align: center }`: 제목 줄(h3)도 카드 가운데다. 앞 별은 줄 안 첫 자식이고
+        /// 제목 잉크(앞 별 왼끝 ~ 숫자 오른끝)의 중심이 카드 중심과 같다(원작 +0.12%W · 종전 클론 −17.9%W).</summary>
+        [UnityTest]
+        public IEnumerator 승천_제목_줄은_카드_가운데에_선다_앞_별도_줄_안이다()
+        {
+            yield return Boot();
+            AscendPopup.Open();
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+            Assert.IsTrue(AscendPopup.IsOpen, "승천 팝업");
+            Transform root = AscendPopup.Root;
+            RectTransform card = (RectTransform)Find(root, "card");
+            RectTransform row = (RectTransform)Find(root, "title-row");
+            Transform star = Find(root, "star");
+            RectTransform smallN = (RectTransform)Find(root, "title-small-n");
+            Assert.IsNotNull(card, "카드"); Assert.IsNotNull(row, "제목 줄"); Assert.IsNotNull(star, "앞 별"); Assert.IsNotNull(smallN, "합계 숫자");
+
+            HorizontalLayoutGroup lay = row.GetComponent<HorizontalLayoutGroup>();
+            Assert.IsNotNull(lay, "제목 줄은 가로 레이아웃");
+            Assert.AreEqual(TextAnchor.MiddleCenter, lay.childAlignment, "정본 5619 .asc-card text-align: center — 줄 안의 것들이 가운데로 모인다");
+            Assert.AreEqual(row, star.parent, "앞 별은 카드 여백이 아니라 제목 줄 안이다(정본 `${star} 승천`)");
+            Assert.AreEqual(0, star.GetSiblingIndex(), "앞 별이 줄의 첫 자식");
+
+            Rect rc = World(card), rs = World((RectTransform)star), rn = World(smallN), rr = World(row);
+            Assert.Greater(rc.width, 0f, "카드 폭");
+            float inkCenter = (rs.xMin + rn.xMax) * 0.5f;
+            float off = (inkCenter - rc.center.x) / rc.width;
+            Assert.AreEqual(0f, off, 0.01f, "제목 잉크 중심 ↔ 카드 중심 · 실측 " + (off * 100f).ToString("0.00") + "%W (원작 +0.12%W · 종전 클론 −17.9%W)");
+            Assert.AreEqual(rc.center.x, rr.center.x, rc.width * 0.01f, "제목 줄 상자도 카드 가운데(카드 안쪽 폭 전체)");
+            Assert.Greater(rs.xMin, rc.xMin, "앞 별이 카드 안에 있다");
+            Assert.Less(rn.xMax, rc.xMax, "숫자가 카드 안에 있다");
+
+            // 한 카드 안의 두 줄이 같은 규칙으로 선다 — 안내문 중심도 카드 중심
+            TextMeshProUGUI guide = Find(root, "guide").GetComponent<TextMeshProUGUI>();
+            Assert.IsNotNull(guide, "안내문");
+            Rect rg = World(guide.rectTransform);
+            Assert.AreEqual(rc.center.x, rg.center.x, rc.width * 0.01f, "안내문 상자도 카드 가운데");
+            AscendPopup.Close();
+            yield return null;
+        }
     }
 }
