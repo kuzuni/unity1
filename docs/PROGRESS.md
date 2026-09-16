@@ -5821,7 +5821,8 @@
 - **왜 지금**: 8회차가 «`PassPopup.cs` 는 T331 뒤» 로 남긴 자리인데 그 파일의 마지막 손은 T354 15회차(01:22 · 반납)고 산 lock 열둘의 최근 회차 줄 어디에도 없다(결정 644·664) — 열렸다. `task_state T383` 0.
 - **고침(6회차가 적어 둔 길 그대로)**: `TextSizeUi.json` `pass_desc` **.78rem**(정본 2734 `.pass-desc { font-size: .78rem; font-weight: 800; line-height: 1.4 }`) · `PassPopup.cs` `desc` 를 `Sub` → **`Micro` + `TextSizeUi.Apply(d, "pass_desc")`**(= 28.4px · 전엔 하한 36 이 「보상을 받」 을 반 칸 그리드에서 한 번 더 접어 세 줄 · 런 666) · `LineHeight.Apply("pass_desc_lh")` 는 T354 가 이미 걸어 둔 것이라 그대로. 상자 높이(`descH` = Sub × 2.8)는 손대지 않았다 — 카드 높이 계약(`cardH`)이 그 값을 쥐고 있고 글자는 상자 안에서 가운데라 두 줄이 그대로 앉는다.
 - **자**: `check_br_lines` KNOWN 4928 지움 → **KNOWN 0 · 문제 0**. PlayMode `BrLinesTests` **+1 칸**(`패스_안내문은_정본대로_두_줄이다` · 크기 = 표 · `Lines == 2`) → 13. §1 예외 목록 **여섯째 자리** 한 줄(정본 2734 근거).
-- **판정(다음 런)**: `BrLinesTests` 13/13 · `screen_pass` 안내문 두 줄(«보상을 받 / 으세요!») → lock 반납 · 행 ⬜. 그 뒤 남는 것 = `gate.sh`·`ci.yml` 등록(`check_br_lines` — 8회차가 «T331 뒤» 로 둔 것 · 다음 회차에 같은 손으로).
+- **ⓓ 등록(같은 회차 · 둘째 커밋)**: `check_br_lines` 를 `gate.sh` 표(block · wwwww · `--ui .wwwww-src/web/js/ui.js`)와 `ci.yml`(자기 검사 10칸 + 본 검사)에 — 8회차까지 «T331 뒤» 로 둔 자리인데 두 파일은 산 lock 어느 최근 회차 줄에도 없다(결정 599 · T333 7회차·T345 6회차와 같은 길). `gate.sh --check-ci` 막는 자 35 → **36**.
+- **판정(다음 런)**: `BrLinesTests` 13/13 · `screen_pass` 안내문 두 줄(«보상을 받 / 으세요!») · CI 새 스텝 둘 초록 → lock 반납 · 행 ⬜. 그러면 T383 의 남은 몫은 0 — ✅ 로 닫는다.
 
 ### T383 8회차 판정 ✅ · lock 반납 · 행 ⬜ — 런 790 `BrLinesTests` 12/12 PASS (2026-09-15 22:5x · 워커 P · sess-0154-10159)
 - 런 790(`0214a2d` · 내 `8de02fd4` 포함 · `merge-base --is-ancestor` 0)에서 새 칸 셋(승천 가능 두 줄 · 대장간 정보 승천 두 줄 · 건너뛰기 두 행) PASS · 기존 아홉도 PASS. 그 런의 빨강 셋(`AscendDecorSceneTests`·`LineHeightTests` 소탕 버튼·`OfflinePopupTests` 머리 판)은 각각 T399·T354·T396 의 산 lock 안이라 이 자리와 무관하다.

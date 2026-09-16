@@ -68,6 +68,7 @@ block|wwwww|정본이 선택자에만 리터럴로 못박은 면·잉크 색 ↔
 block|wwwww|정본 상자 테 border 186 자리 ↔ 클론 폭 단(ol1~ol4 = line_px·line2_px·line3_px·line4_px) (T365 · 임자 있는 빈자리는 KNOWN · 표에 없는 선택자는 «미정» 으로 세기만 한다)|python3 tools/check_box_borders.py --css .wwwww-src/web/css/style.css
 block|-|촬영·픽셀 카메라가 UI 층만 그리는데 후처리를 켜 두었나 (T349 · 켜면 재는 값이 밀린다 · ShotCam.From 갈래까지 본다)|python3 tools/check_shot_cams.py
 block|wwwww|정본 white-space 41 ↔ 표(T361 · 접는다가 기본 · nowrap 40 자리 · 공장 뒤집기 전에도 표가 정본과 안 어긋나게 지킨다)|python3 tools/check_wrap.py --css .wwwww-src/web/css/style.css
+block|wwwww|정본 <br> 22 자리 ↔ 클론이 그 줄 수를 아는가 (T383 · «한 상자» 는 \n · «상자 여럿» 은 split · 화면 줄 수는 PlayMode BrLinesTests 몫)|python3 tools/check_br_lines.py --ui .wwwww-src/web/js/ui.js
 block|node|추출기 자기 검사 (T2)|node tools/export_data.js --self-test
 report|gh|유니티 잡이 실제로 돈 마지막 main 런이 초록인가 (T123 · §0-6 의 눈)|python3 tools/check_unity_green.py --fetch
 block|-|이 목록 ↔ ci.yml 이 부르는 이름 — 막는다 (T184 ⓑ · CI 도 같은 자를 돌린다)|tools/gate.sh --check-ci
