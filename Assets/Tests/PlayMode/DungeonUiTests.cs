@@ -306,7 +306,8 @@ namespace Forge.Tests.PlayMode
             RectTransform keys = card.Find("keys") as RectTransform;
             Transform sweepT = FindDeep_(card, "sweep");
             Assert.IsNotNull(pill, "보상 알약"); Assert.IsNotNull(keys, "열쇠 글"); Assert.IsNotNull(sweepT, "소탕 버튼");
-            RectTransform sweep = DungeonPopups.Root(sweepT.GetComponent<UnityEngine.UI.Button>());
+            // «sweep» 은 DungeonPopups.Pill 이 세운 뿌리 상자(UiKit.Place 가 놓는 그것)라 그 자체가 Root 다 — 런 840: 거기서 Button 을 다시 찾아 NRE.
+            RectTransform sweep = sweepT as RectTransform;
             // UiKit.Place 는 좌상단 앵커 · anchoredPosition.y = −위끝
             float pillBottom = -pill.anchoredPosition.y + pill.rect.height;
             float keysTop = -keys.anchoredPosition.y, keysBottom = keysTop + keys.rect.height;
