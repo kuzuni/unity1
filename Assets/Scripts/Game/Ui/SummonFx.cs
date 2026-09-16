@@ -764,6 +764,42 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>
+        /// 깊이 평면의 점 한 장(정본 `.sr-motes i` 5996 · `.sr-dust i` 6019 · `.sr-near i` 6036) — 겹마다 한 장씩 굽는다.
+        ///
+        /// <paramref name="mid"/> 가 없는 겹(먼지)은 단색 원판이고, 있는 겹은 `radial-gradient(circle, 심 0%, mid <s1>, 투명 <s2>)` 다.
+        /// ⚠ 근평면은 정본이 «초점 밖이라 **테두리가 없다** — 가장자리까지 부드럽게 죽는 보케여야 «카메라에 가까운 것» 으로
+        ///   읽힌다. 선명한 점을 blur 로만 흐리면 회색 얼룩이 된다» 라고 못 박았다. 그래서 흐림을 따로 먹이지 않고
+        ///   **정지점 자체가 부드러운** 판으로 굽는다(굽는 쪽이 그 계약을 쥔다).
+        /// </summary>
+        public static Sprite BakeParticle(string name, Color core, Color mid, float s1, float s2, bool flat)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            int N = Mathf.Max(8, Mathf.RoundToInt(L("bake_px") * 0.25f));
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            {
+                float v = (y + 0.5f) / N * 2f - 1f;
+                for (int x = 0; x < N; x++)
+                {
+                    float u = (x + 0.5f) / N * 2f - 1f;
+                    float r = Mathf.Sqrt(u * u + v * v);
+                    Color c; float a;
+                    if (flat)
+                    {
+                        // 단색 원판 — 가장자리 한 화소만 잇는다.
+                        float edge = 1f / N;
+                        c = core;
+                        a = r <= 1f - edge ? core.a : r >= 1f ? 0f : Ramp(r, 1f - edge, core.a, 1f, 0f);
+                    }
+                    else if (r <= s1) { c = Color.Lerp(core, mid, s1 <= 0f ? 1f : r / s1); a = Mathf.Lerp(core.a, mid.a, s1 <= 0f ? 1f : r / s1); }
+                    else { c = mid; a = Ramp(r, s1, mid.a, s2, 0f); if (r > s2) a = 0f; }
+                    px[y * N + x] = new Color(c.r, c.g, c.b, Mathf.Clamp01(a));
+                }
+            }
+            return Finish(name, NewTex(name, N, N), px);
+        }
+
+        /// <summary>
         /// 수렴 빛줄기 막대 **한 장**(정본 `.sr-streaks i` 5717~5718) —
         /// 세로 그라디언트(투명 → `--pre-line` 62% → 흰색) + `box-shadow 0 0 .4rem var(--pre-glow)`.
         ///
@@ -1049,7 +1085,7 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; streaks = null; heroRingEase = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; streaks = null; particles = null; heroRingEase = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
@@ -1063,6 +1099,7 @@ namespace Forge.Game.Ui
         static SummonShockSpec shock;
         static SummonChargeBurstSpec chargeBurst;
         static SummonStreakSpec streaks;
+        static SummonParticleSpec particles;
         /// <summary>T334 6회차 — 주역 착지의 화면 킥(표의 `hero` 절).</summary>
         /// <summary>표의 `hero` 절 수치 하나(그 절은 `layout` 밖이다).</summary>
         public static float H(string key) { Load(); return (float)J.Num(J.Require(J.Obj(root["hero"]), key)); }
@@ -1114,6 +1151,9 @@ namespace Forge.Game.Ui
 
         /// <summary>T334 22회차 — 수렴 빛줄기 규칙(정본 `.sr-streaks i`).</summary>
         public static SummonStreakSpec Streaks { get { Load(); if (streaks == null) streaks = SummonStreakSpec.From(root); return streaks; } }
+
+        /// <summary>T334 23회차 — 깊이 평면 셋 규칙(정본 `.sr-motes`·`.sr-dust`·`.sr-near`).</summary>
+        public static SummonParticleSpec Particles { get { Load(); if (particles == null) particles = SummonParticleSpec.From(root); return particles; } }
 
         public static Color C(string key)
         {

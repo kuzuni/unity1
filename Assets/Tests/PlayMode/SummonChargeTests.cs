@@ -498,6 +498,8 @@ namespace Forge.Tests.PlayMode
             float mainPeak = 0f, echoPeak = 0f, mainWide = 0f, mainPeakAt = -1f, echoPeakAt = -1f;
             float chargePeak = 0f, chargePeakAt = -1f, chargePeakScale = 0f;
             float streakPeak = 0f, streakFar = 0f, streakNear = float.MaxValue;
+            float motePeak = 0f, moteRose = 0f;
+            var moteHome = new Dictionary<int, float>();
             var seen = new List<Sprite>();
             float t = 0f;
             while (!v.Done && t < 12f)
@@ -520,6 +522,17 @@ namespace Forge.Tests.PlayMode
                     if (d > streakFar) streakFar = d;
                     if (d < streakNear) streakNear = d;
                 }
+                for (int q = 0; q < v.MoteCount; q += 7)   // 80개를 프레임마다 다 훑지 않는다(자도 60fps 를 지킨다)
+                {
+                    Image mi2 = v.MoteOf(q);
+                    if (mi2 == null) continue;
+                    if (mi2.color.a > motePeak) motePeak = mi2.color.a;
+                    float yy = v.MoteAt(q).y;
+                    float h0;
+                    if (!moteHome.TryGetValue(q, out h0)) { moteHome[q] = yy; continue; }
+                    float rose = yy - h0;
+                    if (rose > moteRose) moteRose = rose;
+                }
                 Image ci = v.ChargeBurst;
                 if (ci != null && ci.color.a > chargePeak)
                 {
@@ -540,6 +553,11 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(mainWide, 1f, "압력파가 안 퍼졌다");
             Assert.Less(mainPeakAt, echoPeakAt, "잔파가 본파보다 먼저 정점을 찍었다 — 차례가 뒤집혔다");
             Assert.Greater(seen.Count, 1, "본파가 처음부터 끝까지 같은 판이었다 — 테 굵기가 안 줄었다는 뜻이다");
+            // ⚑ 23회차 — 깊이 평면 셋(빛가루 18 · 먼지 48 · 보케 14 = 80)은 **끊임없이** 떠오른다.
+            Assert.AreEqual(18 + 48 + 14, v.MoteCount, "정본 개수(18+48+14)와 다르다");
+            Assert.Greater(motePeak, 0f, "입자가 한 번도 안 켜졌다");
+            Assert.Greater(moteRose, 0f, "입자가 안 떠올랐다(자리가 안 움직였다)");
+
             // ⚑ 22회차 — 수렴 빛줄기는 바깥에서 광원으로 **모여든다**(퍼지면 반대 연출이 된다).
             Assert.GreaterOrEqual(v.StreakCount, 9, "빛줄기가 하한보다 적다");
             Assert.LessOrEqual(v.StreakCount, 24, "빛줄기가 상한을 넘었다");

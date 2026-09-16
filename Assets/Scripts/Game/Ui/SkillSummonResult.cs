@@ -75,6 +75,9 @@ namespace Forge.Game.Ui
         /// <summary>T334 22회차 — 수렴 빛줄기(정본 `.sr-streaks i`): 회전 홀더 · 막대 · 그 스포크의 시작 거리·지연.</summary>
         sealed class Streak { public RectTransform Holder, Bar; public Image Img; public float RRem, DelayMs, LenPx; }
         readonly List<Streak> streaks = new List<Streak>();
+        /// <summary>T334 23회차 — 깊이 평면 셋(정본 `.sr-motes` z 1 · `.sr-dust` z 35 · `.sr-near` z 42)의 점들.</summary>
+        sealed class Mote { public RectTransform Rt; public Image Img; public Vector2 Home; public int I; public SummonParticleSpec.Layer L; }
+        readonly List<Mote> motes = new List<Mote>();
         /// <summary>T334 19회차 — 굴림 에너지(정본 `--sr-e`) — 본파의 최종 반경이 이것에 물린다.</summary>
         float srEnergy;
         /// <summary>T334 16회차 — 등급 챕터 경계(정본 `_srTierBreaks`): 켜지는 시각(ms)과 그 등급.</summary>
@@ -578,6 +581,24 @@ namespace Forge.Game.Ui
                     bi.color = new Color(1f, 1f, 1f, 0f);
                     streaks.Add(new Streak { Holder = spk, Bar = bx, Img = bi, RRem = (float)rr2, DelayMs = (float)dly, LenPx = PetSkillStyle.Rem((float)len) });
                 }
+            }
+
+            // ---- 깊이 평면 셋(정본 `.sr-motes` 5992 z 1 · `.sr-dust` 6014 z 35 · `.sr-near` 6028 z 42) ----
+            // 정본 주석: «구체 **앞을** 가로지르는 요소가 NEW 배지·이름판뿐이라 화면이 한 겹으로 납작하다 …
+            //   깊이는 피사체 뒤가 아니라 **앞**에 무언가가 지날 때 생긴다» ·
+            //   «⚠ 근평면을 45 위로 올리지 말 것 — 흐린 광점이 글자 위를 지나면 라벨 가독성이 그대로 무너진다» ·
+            //   «배치는 난수 대신 **고정 수열**이다(소환할 때마다 튀지 않게)».
+            // 개체 18 + 48 + 14 = 80 · 굽는 판은 겹마다 한 장씩 **셋**(결정 691 로 미리 셌다).
+            {
+                SummonParticleSpec ps = SummonFxStyle.Particles;
+                Sprite mSp = SummonFx.BakeParticle("sr-mote", PetSkillStyle.C("white"), SummonFxStyle.C("mote_mid"), 0.42f, 0.72f, false);
+                Sprite dSp = SummonFx.BakeParticle("sr-dust", SummonFxStyle.C("dust_fill"), SummonFxStyle.C("dust_fill"), 1f, 1f, true);
+                Color nearCore = PetSkillStyle.C("white"); nearCore.a = 0.95f;
+                Sprite nSp = SummonFx.BakeParticle("sr-near", nearCore, SummonFxStyle.C("near_mid"), 0.45f, 0.78f, false);
+                // 배경(맨 뒤) · 중간(격자 앞) · 근평면(격자 앞이되 머리·발 뒤) — 사다리는 형제 차례로 옮긴다.
+                MoteLayer(c, "sr-motes", ps.Motes, mSp, W, Hh, 0);
+                MoteLayer(c, "sr-dust", ps.Dust, dSp, W, Hh, -1);
+                MoteLayer(c, "sr-near", ps.Near, nSp, W, Hh, -1);
             }
 
             // ---- 끝난 뒤의 잔잔한 고리(정본 `.sr-idle` 6934~6948 · `.done` 에서만 보인다) ----
@@ -1113,6 +1134,7 @@ namespace Forge.Game.Ui
             AnimateShock();
             AnimateChargeBurst();
             AnimateStreaks();
+            AnimateMotes();
         }
 
         void TurnOn(Cell c)
@@ -1607,6 +1629,62 @@ namespace Forge.Game.Ui
                 st.Bar.localScale = new Vector3(1f, (float)sy, 1f);
             }
         }
+
+        /// <summary>깊이 평면 한 겹을 세운다 — 자리·크기는 번호에서 결정론으로 나오고 판은 겹이 한 장을 나눠 쓴다.</summary>
+        void MoteLayer(RectTransform parent, string name, SummonParticleSpec.Layer L, Sprite sp, float w, float h, int sib)
+        {
+            RectTransform host = UiKit.Box(parent, name);
+            UiKit.Fill(host);
+            if (sib == 0) host.SetAsFirstSibling();
+            for (int i = 0; i < L.N; i++)
+            {
+                float px = (float)L.XOf(i) * w - w * 0.5f;
+                float py = L.FromBottom
+                    ? -h * 0.5f + PetSkillStyle.Rem((float)L.YRem)      // 정본 `bottom: -2rem`
+                    : h * 0.5f - (float)L.YOf(i) * h;                    // CSS 의 top% 는 위에서 아래로
+                float sz = (float)L.SizePx(i) * PetSkillStyle.RemPx / 16f;   // 정본은 px — 기준 캔버스로 옮긴다
+                RectTransform rt = UiKit.Box(host, "p" + i);
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.sizeDelta = new Vector2(sz, sz);
+                Image im = rt.gameObject.AddComponent<Image>();
+                im.raycastTarget = false;
+                im.preserveAspect = false;
+                im.sprite = sp;
+                Material m = CraftFxPoly.Screen();
+                if (m != null) im.material = m;
+                im.color = new Color(1f, 1f, 1f, 0f);
+                var mo = new Mote { Rt = rt, Img = im, Home = new Vector2(px, py), I = i, L = L };
+                rt.anchoredPosition = mo.Home;
+                motes.Add(mo);
+            }
+        }
+
+        /// <summary>
+        /// 깊이 평면 셋(정본 `srmote`·`srdust`·`srnear` · 겹마다 제 주기로 무한 되풀이) —
+        /// 겹마다 **속도와 방향이 달라야** 시차가 생긴다(정본 «같은 방향이면 두 겹이 한 겹으로 붙어 보인다»).
+        /// </summary>
+        void AnimateMotes()
+        {
+            if (motes.Count == 0) return;
+            float ms = (Time.unscaledTime - start) * 1000f;
+            for (int i = 0; i < motes.Count; i++)
+            {
+                Mote mo = motes[i];
+                if (mo.Img == null) continue;
+                double a, tx, ty, sc;
+                mo.L.At(mo.I, ms, out a, out tx, out ty, out sc);
+                mo.Img.color = new Color(1f, 1f, 1f, (float)a);
+                // CSS 의 +y 는 아래 — 여기서 한 번 뒤집는다.
+                mo.Rt.anchoredPosition = mo.Home + new Vector2(PetSkillStyle.Rem((float)tx), -PetSkillStyle.Rem((float)ty));
+                mo.Rt.localScale = Vector3.one * (float)sc;
+            }
+        }
+
+        /// <summary>깊이 평면의 점 — 자가 본다.</summary>
+        public int MoteCount { get { return motes.Count; } }
+        public Image MoteOf(int i) { return i >= 0 && i < motes.Count ? motes[i].Img : null; }
+        public Vector2 MoteAt(int i) { return i >= 0 && i < motes.Count ? motes[i].Rt.anchoredPosition : Vector2.zero; }
 
         /// <summary>수렴 빛줄기 — 자가 본다.</summary>
         public int StreakCount { get { return streaks.Count; } }

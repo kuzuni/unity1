@@ -694,6 +694,138 @@ namespace Forge.Core.Ui
     }
 
     /// <summary>
+    /// T334 23회차 — **깊이 평면 셋**(정본 `.sr-motes`(z 1) · `.sr-dust`(z 35) · `.sr-near`(z 42) · style.css 5992~6045).
+    ///
+    /// 정본 주석이 까닭과 한계를 못 박았다: «구체 **앞을** 가로지르는 요소가 NEW 배지·이름판뿐이라 화면이 한 겹으로
+    /// 납작하다 … 깊이는 피사체 뒤가 아니라 **앞**에 무언가가 지날 때 생긴다» · «⚠ 근평면을 45 위로 올리지 말 것 —
+    /// 흐린 광점이 글자 위를 지나면 라벨 가독성이 그대로 무너진다» · «중간 평면은 **느리고 옆으로도 흐른다** —
+    /// 근평면과 방향이 같으면 두 겹이 한 겹으로 붙어 보여 깊이가 안 생긴다. 시차는 속도와 방향 둘 다에서 온다» ·
+    /// «배치는 난수 대신 **고정 수열**이다(소환할 때마다 튀지 않게)».
+    ///
+    /// ⚠ 알파를 겹마다 다르게 읽는다 — 빛가루·먼지는 키 값이 곧 알파이고, 보케는 키가 **비율**이라
+    ///   개체마다 다른 `--a`(.25~.5)를 곱한다. 표에서는 개체 알파 셈(`a_base`/`a_step`/`a_mod`)이 그것을 쥔다.
+    /// UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonParticleSpec
+    {
+        /// <summary>겹 하나 — 개수와 «번호 → 자리·크기·지연·주기» 셈, 그리고 두 트랙.</summary>
+        public sealed class Layer
+        {
+            public int N, XStep, XMod, YStep, YMod, SMod, SIStep, DStep, DModMs, DurMod, AMod, BlMod;
+            public double SBasePx, SStepPx, DurBaseMs, DurStepMs, ABase, AStep, BlBasePx, YRem;
+            public double[] Xs;
+            public RewardBurstSpec.Track Alpha, Move;
+
+            /// <summary>개체 <paramref name="i"/> 의 가로 자리(판 폭의 비율 0~1).</summary>
+            public double XOf(int i) { return (Xs != null ? Xs[i % Xs.Length] : (i * XStep) % XMod) / 100.0; }
+            /// <summary>개체의 세로 자리 — <see cref="YMod"/> 가 0 이면 «아래에서 <see cref="YRem"/> rem»(정본 `bottom`)이다.</summary>
+            public bool FromBottom { get { return YMod <= 0; } }
+            public double YOf(int i) { return FromBottom ? YRem : ((i * YStep) % YMod) / 100.0; }
+            public double SizePx(int i) { return SBasePx + ((i * (SIStep > 0 ? SIStep : 1)) % SMod) * SStepPx; }
+            public double BlurPx(int i) { return BlBasePx + (BlMod > 0 ? i % BlMod : 0); }
+            public double DelayMs(int i) { return (i * DStep) % DModMs; }
+            public double DurMs(int i) { return DurBaseMs + (i % DurMod) * DurStepMs; }
+            /// <summary>
+            /// 개체의 알파 — 정본 근평면의 `--a: (25 + (i * 7) % 26) / 100`(빛가루·먼지는 늘 1).
+            /// 백분율 셈이라 정수로 돌린 뒤 100 으로 나눈다(정본이 백분율로 흩는다).
+            /// </summary>
+            public double AlphaOf(int i)
+            {
+                if (AMod <= 1) return ABase;
+                int st = (int)Math.Round(AStep * 100);
+                return ABase + ((i * st) % AMod) / 100.0;
+            }
+
+            /// <summary>제 지연·주기로 되풀이하는 <paramref name="ms"/> 의 불투명도 · 치우침(rem) · 배율.</summary>
+            public void At(int i, double ms, out double alpha, out double txRem, out double tyRem, out double scale)
+            {
+                double dur = DurMs(i);
+                double t = ms - DelayMs(i);
+                if (t < 0)
+                {
+                    alpha = 0;
+                    txRem = Move.Sample(0, "tx_rem", null); tyRem = Move.Sample(0, "ty_rem", null); scale = Move.Sample(0, "scale", null);
+                    return;
+                }
+                double p = (t % dur) / dur * 100;
+                alpha = Alpha.Sample(p, "f", null) * AlphaOf(i);
+                txRem = Move.Sample(p, "tx_rem", null);
+                tyRem = Move.Sample(p, "ty_rem", null);
+                scale = Move.Sample(p, "scale", null);
+            }
+        }
+
+        public Layer Motes, Dust, Near;
+
+        public static SummonParticleSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "particles"));
+            var s = new SummonParticleSpec
+            {
+                Motes = ReadLayer(J.Obj(J.Require(o, "motes")), "motes"),
+                Dust = ReadLayer(J.Obj(J.Require(o, "dust")), "dust"),
+                Near = ReadLayer(J.Obj(J.Require(o, "near")), "near"),
+            };
+            // 정본이 이름으로 못 박은 시차 — 중간 평면은 **옆으로도** 흐르고 근평면은 거의 수직이다.
+            // 둘이 같은 방향이면 «두 겹이 한 겹으로 붙어 보여 깊이가 안 생긴다».
+            double dustTx = s.Dust.Move.Keys[s.Dust.Move.Keys.Length - 1].Num["tx_rem"];
+            double nearTx = s.Near.Move.Keys[s.Near.Move.Keys.Length - 1].Num["tx_rem"];
+            if (dustTx * nearTx > 0) throw new FormatException("SummonFxUi particles: 중간 평면과 근평면이 같은 쪽으로 흐른다 — 시차가 안 생긴다(정본 주석)");
+            // 근평면은 가장 멀리·가장 빨리 지난다(카메라에 가깝다).
+            double nearTy = Math.Abs(s.Near.Move.Keys[s.Near.Move.Keys.Length - 1].Num["ty_rem"]);
+            double dustTy = Math.Abs(s.Dust.Move.Keys[s.Dust.Move.Keys.Length - 1].Num["ty_rem"]);
+            double moteTy = Math.Abs(s.Motes.Move.Keys[s.Motes.Move.Keys.Length - 1].Num["ty_rem"]);
+            if (!(nearTy > dustTy && dustTy > moteTy)) throw new FormatException("SummonFxUi particles: 가까운 겹일수록 더 멀리 지나야 한다(근평면 > 중간 > 배경)");
+            return s;
+        }
+
+        static Layer ReadLayer(JsonObject o, string who)
+        {
+            var L = new Layer
+            {
+                N = (int)J.Num(J.Require(o, "n")),
+                XStep = (int)J.Num(J.Require(o, "x_step")),
+                XMod = (int)J.Num(J.Require(o, "x_mod")),
+                YStep = (int)J.Num(J.Require(o, "y_step")),
+                YMod = (int)J.Num(J.Require(o, "y_mod")),
+                SBasePx = J.Num(J.Require(o, "s_base_px")),
+                SStepPx = J.Num(J.Require(o, "s_step_px")),
+                SMod = (int)J.Num(J.Require(o, "s_mod")),
+                DStep = (int)J.Num(J.Require(o, "d_step")),
+                DModMs = (int)J.Num(J.Require(o, "d_mod_ms")),
+                DurBaseMs = J.Num(J.Require(o, "dur_base_ms")),
+                DurStepMs = J.Num(J.Require(o, "dur_step_ms")),
+                DurMod = (int)J.Num(J.Require(o, "dur_mod")),
+                ABase = J.Num(J.Require(o, "a_base")),
+                AStep = J.Num(J.Require(o, "a_step")),
+                AMod = (int)J.Num(J.Require(o, "a_mod")),
+            };
+            // 없는 키는 null 이다(MiniJson 의 계약) — 겹마다 있는 칸이 달라 그렇게 읽는다.
+            if (o["xs"] != null) L.Xs = J.NumArr(o["xs"]);
+            if (o["s_i_step"] != null) L.SIStep = (int)J.Num(o["s_i_step"]);
+            if (o["y_rem"] != null) L.YRem = J.Num(o["y_rem"]);
+            if (o["bl_base_px"] != null) L.BlBasePx = J.Num(o["bl_base_px"]);
+            if (o["bl_mod"] != null) L.BlMod = (int)J.Num(o["bl_mod"]);
+            if (L.N < 1) throw new FormatException("SummonFxUi particles " + who + ": 개수는 1 이상이다");
+            if (L.XMod < 1 || L.SMod < 1 || L.DModMs < 1 || L.DurMod < 1) throw new FormatException("SummonFxUi particles " + who + ": 나머지 셈의 밑은 1 이상이다");
+            if (L.DurBaseMs <= 0) throw new FormatException("SummonFxUi particles " + who + ": 주기는 0보다 커야 한다");
+
+            double[] e = J.NumArr(J.Require(o, "ease"));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi particles " + who + ": ease 는 cubic-bezier 넷이다");
+            CssEase ease = new CssEase(e[0], e[1], e[2], e[3]);
+            L.Alpha = SummonTrack.Ramp(o, "a", ease, new[] { "f" }, "particles " + who);
+            L.Move = SummonTrack.Ramp(o, "m", ease, new[] { "tx_rem", "ty_rem", "scale" }, "particles " + who);
+            // 무한 되풀이라 양 끝이 0 이 아니면 이음매에서 툭 끊긴다.
+            if (L.Alpha.Keys[0].Num["f"] != 0 || L.Alpha.Keys[L.Alpha.Keys.Length - 1].Num["f"] != 0)
+                throw new FormatException("SummonFxUi particles " + who + ": 알파는 0 에서 시작해 0 으로 끝나야 한다(무한 되풀이)");
+            // 떠오른다 — 위로 간다(CSS 의 −y).
+            if (L.Move.Keys[L.Move.Keys.Length - 1].Num["ty_rem"] >= L.Move.Keys[0].Num["ty_rem"])
+                throw new FormatException("SummonFxUi particles " + who + ": 입자는 떠올라야 한다");
+            return L;
+        }
+    }
+
+    /// <summary>
     /// T334 18회차 — **끝난 뒤의 잔잔한 고리**(정본 `.sr-idle` · style.css 6934~6948).
     ///
     /// `#summon-result-modal.done .sr-idle { display: block }` — 연출이 **끝난 뒤에만** 도는 고리 둘이고,

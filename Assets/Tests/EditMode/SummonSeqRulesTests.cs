@@ -1181,4 +1181,116 @@ namespace Forge.Tests
             Assert.Throws<System.FormatException>(() => SummonStreakSpec.From(MiniJson.ParseObject(away)));
         }
     }
+
+    /// <summary>T334 23회차 — 깊이 평면 셋(정본 `.sr-motes`·`.sr-dust`·`.sr-near`)이 시차를 만든다.</summary>
+    public class SummonParticleSpecTests
+    {
+        static SummonParticleSpec spec;
+        static SummonParticleSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonParticleSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 겹마다_개수와_자리가_정본_수열대로다()
+        {
+            SummonParticleSpec s = S();
+            Assert.AreEqual(18, s.Motes.N); Assert.AreEqual(48, s.Dust.N); Assert.AreEqual(14, s.Near.N);
+            // 빛가루 0~2번: x = (i*37)%100 · y = (i*61)%100 · 크기 = 3 + (i*13)%5
+            Assert.AreEqual(0.00, s.Motes.XOf(0), 1e-9);
+            Assert.AreEqual(0.37, s.Motes.XOf(1), 1e-9);
+            Assert.AreEqual(0.74, s.Motes.XOf(2), 1e-9);
+            Assert.AreEqual(0.61, s.Motes.YOf(1), 1e-9);
+            Assert.AreEqual(3.0, s.Motes.SizePx(0), 1e-9);
+            Assert.AreEqual(6.0, s.Motes.SizePx(1), 1e-9);   // 3 + 13%5 = 3 + 3
+            // 근평면의 x 는 가운데로 몰린 **고정 목록**이다(정본 주석 «화면 끝만 훑으면 교차가 안 는다»).
+            Assert.AreEqual(0.50, s.Near.XOf(0), 1e-9);
+            Assert.AreEqual(0.18, s.Near.XOf(1), 1e-9);
+            // ⚑ 정본 주석은 «8~88% 중 3/4 가 22~78%» 라고 적었지만 목록을 세어 보면 **10/14**(≈71%)다 —
+            //   주석의 «3/4» 는 반올림한 말이고, 지켜야 할 계약은 ⓐ 전부 8~88% 안 ⓑ 가운데가 **과반을 훌쩍 넘는다** 다.
+            //   (이 단은 처음에 3/4 로 적었다가 자가 «40 < 42» 로 울어 실제 목록을 세어 고친 것이다.)
+            int mid = 0;
+            for (int i = 0; i < s.Near.N; i++)
+            {
+                double x = s.Near.XOf(i);
+                Assert.GreaterOrEqual(x, 0.08, i + "번이 화면 왼쪽 끝 밖이다");
+                Assert.LessOrEqual(x, 0.88, i + "번이 화면 오른쪽 끝 밖이다");
+                if (x >= 0.22 && x <= 0.78) mid++;
+            }
+            Assert.GreaterOrEqual(mid * 3, s.Near.N * 2, "근평면의 2/3 넘게는 가운데(22~78%)여야 한다 — 끝만 훑으면 개수만 늘고 교차는 안 는다");
+            Assert.IsTrue(s.Near.FromBottom, "근평면은 아래에서 올라온다(정본 `bottom: -2rem`)");
+        }
+
+        [Test]
+        public void 가까운_겹일수록_더_멀리_지난다()
+        {
+            SummonParticleSpec s = S();
+            double a, tx, ty, sc, nTy, dTy, mTy;
+            s.Near.At(0, s.Near.DurMs(0) * 0.999 + s.Near.DelayMs(0), out a, out tx, out nTy, out sc);
+            s.Dust.At(0, s.Dust.DurMs(0) * 0.999 + s.Dust.DelayMs(0), out a, out tx, out dTy, out sc);
+            s.Motes.At(0, s.Motes.DurMs(0) * 0.999 + s.Motes.DelayMs(0), out a, out tx, out mTy, out sc);
+            Assert.Less(nTy, dTy); Assert.Less(dTy, mTy, "근평면 > 중간 > 배경 순으로 멀리 간다(시차)");
+        }
+
+        [Test]
+        public void 중간_평면과_근평면은_서로_다른_쪽으로_흐른다()
+        {
+            SummonParticleSpec s = S();
+            double a, dTx, ty, sc, nTx;
+            s.Dust.At(0, s.Dust.DurMs(0) * 0.999 + s.Dust.DelayMs(0), out a, out dTx, out ty, out sc);
+            s.Near.At(0, s.Near.DurMs(0) * 0.999 + s.Near.DelayMs(0), out a, out nTx, out ty, out sc);
+            Assert.Greater(dTx, 0.0, "중간 평면은 오른쪽으로 흐른다");
+            Assert.Less(nTx, 0.0, "근평면은 왼쪽으로 스친다");
+            // 정본 «시차는 속도와 방향 둘 다에서 온다» — 같은 쪽이면 두 겹이 한 겹으로 붙어 보인다.
+            Assert.Less(dTx * nTx, 0.0);
+        }
+
+        [Test]
+        public void 무한_되풀이라_이음매가_없고_개체마다_흩어진다()
+        {
+            SummonParticleSpec s = S();
+            double a0, tx0, ty0, sc0, a1, tx1, ty1, sc1;
+            double d = s.Near.DelayMs(3), dur = s.Near.DurMs(3);
+            s.Near.At(3, d, out a0, out tx0, out ty0, out sc0);
+            s.Near.At(3, d + dur, out a1, out tx1, out ty1, out sc1);
+            Assert.AreEqual(0.0, a0, 1e-9, "꺼진 채로 한 주기를 시작한다");
+            Assert.AreEqual(a0, a1, 1e-9, "한 주기 뒤가 첫 프레임과 같다");
+            Assert.AreEqual(ty0, ty1, 1e-9);
+            // 개체마다 알파가 흩어진다(정본 근평면 `--a: (25 + (i*7)%26)/100` · .25~.5)
+            Assert.AreEqual(0.25, s.Near.AlphaOf(0), 1e-9);
+            Assert.AreEqual(0.32, s.Near.AlphaOf(1), 1e-9);
+            double lo = 1, hi = 0;
+            for (int i = 0; i < s.Near.N; i++) { double v = s.Near.AlphaOf(i); if (v < lo) lo = v; if (v > hi) hi = v; }
+            Assert.GreaterOrEqual(lo, 0.25); Assert.LessOrEqual(hi, 0.51);
+            Assert.AreEqual(1.0, s.Motes.AlphaOf(7), 1e-9, "빛가루는 개체 알파가 늘 1 이다(키 값이 곧 알파)");
+        }
+
+        [Test]
+        public void 같은_쪽으로_흐르는_표를_거부한다()
+        {
+            char q = '"';
+            string L(string n, string tx, string ty) {
+                return q + n + q + ":{" + q + "n" + q + ":4," + q + "x_step" + q + ":7," + q + "x_mod" + q + ":100,"
+                    + q + "y_step" + q + ":11," + q + "y_mod" + q + ":100," + q + "s_base_px" + q + ":3," + q + "s_step_px" + q + ":1,"
+                    + q + "s_mod" + q + ":5," + q + "d_step" + q + ":13," + q + "d_mod_ms" + q + ":1000,"
+                    + q + "dur_base_ms" + q + ":3000," + q + "dur_step_ms" + q + ":100," + q + "dur_mod" + q + ":3,"
+                    + q + "a_base" + q + ":1," + q + "a_step" + q + ":0," + q + "a_mod" + q + ":1,"
+                    + q + "ease" + q + ":[0,0,1,1],"
+                    + q + "a" + q + ":[{" + q + "at" + q + ":0," + q + "f" + q + ":0},{" + q + "at" + q + ":100," + q + "f" + q + ":0}],"
+                    + q + "m" + q + ":[{" + q + "at" + q + ":0," + q + "tx_rem" + q + ":0," + q + "ty_rem" + q + ":1," + q + "scale" + q + ":1},"
+                    + "{" + q + "at" + q + ":100," + q + "tx_rem" + q + ":" + tx + "," + q + "ty_rem" + q + ":" + ty + "," + q + "scale" + q + ":1}]}";
+            }
+            // 중간·근평면이 같은 쪽(+x)으로 흐르면 시차가 안 생긴다.
+            string same = "{" + q + "particles" + q + ":{" + L("motes", "0", "-2") + "," + L("dust", "0.9", "-3") + "," + L("near", "1.6", "-46") + "}}";
+            Assert.Throws<System.FormatException>(() => SummonParticleSpec.From(MiniJson.ParseObject(same)));
+            // 근평면이 배경보다 가까이 안 지나면 깊이가 뒤집힌다.
+            string flat = "{" + q + "particles" + q + ":{" + L("motes", "0", "-46") + "," + L("dust", "0.9", "-3") + "," + L("near", "-1.6", "-2") + "}}";
+            Assert.Throws<System.FormatException>(() => SummonParticleSpec.From(MiniJson.ParseObject(flat)));
+        }
+    }
 }
