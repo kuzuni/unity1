@@ -17,7 +17,7 @@ namespace Forge.Game.Ui
     /// 못 박아 둔 배지 글자 — 하한 36 을 주면 배지가 제 그릇(오브 지름 106px)보다 넓어져 정본과 달라진다.
     /// **새로 쓰려면 정본 CSS 줄(=`.5rem` 급)을 근거로 대고 완료 기록에 적을 것** — 작다고 아무 데나 쓰는 종류가 아니다.
     /// </summary>
-    public enum TextKind { Title, Button, Body, Sub, Micro }
+    public enum TextKind { Title, Button, Body, Sub, Micro, Head }   // Head — T391 ⓐ: 정본 1.22~1.5rem(≈48px) «하한 위·제목 아래» 단(카탈로그 textKinds)
 
     /// <summary>
     /// UI 조각 공장(ROUTINE T18). 글자는 반드시 여기서(<see cref="Text"/>) 만든다 — fontSize·색을 직접 주지 않는다.

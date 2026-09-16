@@ -61,6 +61,7 @@ block|wwwww|정본 clip-path 도형 ↔ 클론이 굽는가 (T159)|python3 tools
 block|wwwww|정본 gradient 겹 ↔ 클론이 굽는가 (T178)|python3 tools/check_surface_gradients.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 letter-spacing ↔ 클론 자간 + 박힌 숫자 (T168)|python3 tools/check_letter_spacing.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 text-shadow ↔ 클론 글자 그림자(TMP Underlay) (T333 · 키라인 표의 10 은 T109 몫 · 표에 없는 선택자는 «미정» 으로 세기만 한다)|python3 tools/check_text_shadows.py --css .wwwww-src/web/css/style.css
+block|wwwww|정본 하한 위 글자(1.22~1.5rem) 35 선택자 ↔ 클론 글자 종류 px ±12% (T391 · 글리프 자리는 SKIP · 임자 있는 빈자리는 KNOWN)|python3 tools/check_text_kinds.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 border-radius ↔ 클론 둥근 모서리 표값 (T345 · 50% 는 Circle · 알약 동치 결정 543 · 표에 없는 선택자는 «미정» 으로 세기만 한다)|python3 tools/check_border_radius.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본이 선택자에만 리터럴로 못박은 면·잉크 색 ↔ 클론이 그 값을 쓰는가 (T377 면 · T396 잉크 · 전역 토큰은 안 건드린다 · 표에 없는 선택자는 «미정» 으로 세기만 한다)|python3 tools/check_pinned_colors.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 상자 테 border 186 자리 ↔ 클론 폭 단(ol1~ol4 = line_px·line2_px·line3_px·line4_px) (T365 · 임자 있는 빈자리는 KNOWN · 표에 없는 선택자는 «미정» 으로 세기만 한다)|python3 tools/check_box_borders.py --css .wwwww-src/web/css/style.css

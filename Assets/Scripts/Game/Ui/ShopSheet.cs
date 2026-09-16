@@ -39,8 +39,8 @@ namespace Forge.Game.Ui
             RectTransform content = PopupKit.ScrollList(scrollBox, "list", rem * 0.5f, 0f, UiKit.H("sheet_pad_top"));
 
             // ---- 머리: 코인 바 · 상점 · 젬 바 ----
-            RectTransform head = PopupKit.Item(content, "head", -1f, PopupKit.FontSize(TextKind.Title) * 1.3f);
-            TextMeshProUGUI title = UiKit.Text(head, "title", TextKind.Title, "상점", "shop_title");
+            RectTransform head = PopupKit.Item(content, "head", -1f, PopupKit.FontSize(TextKind.Head) * 1.3f);
+            TextMeshProUGUI title = UiKit.Text(head, "title", TextKind.Head, "상점", "shop_title");   // T391 ⓑ — 정본 3805 `.sheet-title { 1.35rem }` = 49.1px → Head 48(전엔 Title 60)
             title.fontStyle = FontStyles.Bold;
             PopupKit.Ring(title, "sheet_title", "pp_line");   // 정본 h2.sheet-title .11em
             UiKit.TextShadow(title, "paper_emboss");   // T333 2회차 — 정본 8381 한 벌 «밝은 종이 위 글자는 흰 엠보스»(0 1px 0 rgba(255,255,255,.92))
@@ -139,7 +139,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(amtRow, 0f, amtTop, gemW, amtH);
                 Image dia = PopupKit.IconOr(amtRow, "dia", "gem");
                 UiKit.Place(dia.rectTransform, gemW * 0.18f, 0f, amtH, amtH);
-                TextMeshProUGUI amt = UiKit.Text(amtRow, "amt", TextKind.Body, PopupKit.Fmt(gp.Gems), "stage_ink", TextAlignmentOptions.Left);
+                TextMeshProUGUI amt = UiKit.Text(amtRow, "amt", TextKind.Head, PopupKit.Fmt(gp.Gems), "stage_ink", TextAlignmentOptions.Left);   // T391 ⓑ — 정본 2983 `.shop-gem-amt { 1.35rem }` = 49.1px → Head 48(전엔 Body 40)
                 amt.fontStyle = FontStyles.Bold;
                 amt.rectTransform.offsetMin = new Vector2(gemW * 0.18f + amtH * 1.08f, 0f);
                 PopupKit.Ring(amt, "shop_gem_amt", "pp_line");   // 정본 .shop-gem-amt 4px

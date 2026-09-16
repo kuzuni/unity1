@@ -38,6 +38,7 @@
   ],
   "textKinds": [
     { "kind": "Title", "size": 60, "min": 60 },
+    { "kind": "Head",   "size": 48, "min": 48, "_": "T391 ⓐ — 정본 1.22~1.5rem(≈44~55px) «하한 위·제목 아래» 단(1.3rem = 47.3px · 시트 제목 .sheet-title 1.35 · 리그 단 순위 · 상점 보석 수 · 확률 머리 h3 · 자동 제련 제목) · 하한이 아니라 정본 크기다" },
     { "kind": "Button", "size": 44, "min": 44 },
     { "kind": "Body", "size": 40, "min": 40 },
     { "kind": "Sub", "size": 36, "min": 36 },

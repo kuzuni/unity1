@@ -62,9 +62,9 @@ namespace Forge.Game.Ui
             UiKit.Anchor(em, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -UiKit.H("league_emblem_top")), emblem, emblem);
             PopupKit.IconOr(em, "img", "leagueEmblem");
 
-            float titleH = PopupKit.FontSize(TextKind.Title) * 1.3f;
+            float titleH = PopupKit.FontSize(TextKind.Head) * 1.3f;
             float titleY = UiKit.H("league_emblem_top") + emblem * 0.8f;
-            TextMeshProUGUI title = UiKit.Text(sheet, "title", TextKind.Title, "플래티넘 리그", "stage_ink");
+            TextMeshProUGUI title = UiKit.Text(sheet, "title", TextKind.Head, "플래티넘 리그", "stage_ink");   // T391 ⓑ — 정본 3805 `.sheet-title { font-size: 1.35rem }` = 49.1px → Head 48(전엔 Title 60)
             title.fontStyle = FontStyles.Bold;
             UiKit.Place(title.rectTransform, 0f, titleY, w, titleH);
             PopupKit.Ring(title);
@@ -257,7 +257,8 @@ namespace Forge.Game.Ui
                     Image badge = PopupKit.IconOr(rk, "badge", "rank" + t.Rank);
                     UiKit.Anchor(badge.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, rem * 2.15f, rem * 2.15f);
                 }
-                TextMeshProUGUI lab = UiKit.Text(rk, "label", TextKind.Sub, t.Rank <= 3 ? t.Rank.ToString() : t.Label, "stage_ink");
+                // T391 ⓑ — 정본 2573 `.lgr-rank-n { 1.22rem }`(1~3위 숫자) = 44.4px → Button 44 · 2563 `.league-tier-rank.text { 1.48rem }`(4위 아래 글자) = 53.9px → Head 48(전엔 둘 다 Sub 36)
+                TextMeshProUGUI lab = UiKit.Text(rk, "label", t.Rank > 3 ? TextKind.Head : TextKind.Button, t.Rank <= 3 ? t.Rank.ToString() : t.Label, "stage_ink");   // 한 호출 — 키라인 자(T109)·종류 자(T391)가 같은 «label» 을 읽는다
                 lab.fontStyle = FontStyles.Bold;
                 WrapUi.Apply(lab, "league_tier_rank");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 2556 `.league-tier-rank { nowrap }`
                 PopupKit.Ring(lab, t.Rank <= 3 ? "lgr_rank_n" : "league_tier_rank", "pp_line");   // 정본 .lgr-rank-n .16rem · .league-tier-rank.text .108em

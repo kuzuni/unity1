@@ -46,6 +46,14 @@ TABLE = {
     '.af-start': ['Ui/ForgeAutoPopup.cs#af-start'],                       # 4816 1.3rem 47.3 ↔ Button 44(−7%)
     '.dgd-keys': ['Ui/DungeonDetailPopup.cs#keys'],                       # 5341 1.5rem 54.6 ↔ Title 60(+10%)
     '.rw-amt': ['Ui/RewardBurst.cs#rw-amt|res:RewardBurstUi:amt_font_rem'],   # 7494 1.32rem — 표 amt_font_rem 1.32 그대로
+    # T391 2회차 — ⓐ Head 48 이 서서 ⓑ 로 옮긴 일곱(산 lock 밖 파일)
+    '.tb-title': ['Ui/TechPanel.cs#title'],                               # 2242 1.25rem 45.5 ↔ Button 44(−3%)
+    '.league-tier-rank': ['Ui/LeagueSheet.cs#table/label'],               # 2556 1.3rem 47.3 ↔ Head 48(+1%) · 첫 호출이 4위 아래 글자(Head)
+    '.league-tier-rank.text': ['Ui/LeagueSheet.cs#table/label'],          # 2563 1.48rem 53.9 ↔ Head 48(−11%)
+    '.lgr-rank-n': ['Ui/LeagueSheet.cs#table/label'],                     # 2573 1.22rem 44.4 ↔ Head 48(+8% · 코드는 1~3위에 Button 44 를 준다 — 자는 첫 호출만 읽는다)
+    '.shop-gem-amt': ['Ui/ShopSheet.cs#amt-row/amt'],                     # 2983 1.35rem 49.1 ↔ Head 48(−2%)
+    '#craft-modal .row .btn': ['Ui/ForgeCraftPopup.cs#sell', 'Ui/ForgeCraftPopup.cs#equip'],   # 3566 1.22rem 44.4 ↔ Button 44(−1%)
+    '.sheet-title': ['Ui/ShopSheet.cs#title', 'Ui/DungeonSheet.cs#title', 'Ui/LeagueSheet.cs#title'],   # 3805 1.35rem 49.1 ↔ Head 48(−2%)
 }
 # 대조하지 않는 자리 — 이모지·아이콘 글리프 크기(클론은 아틀라스 아이콘을 자리 크기로 세운다)
 SKIP = {
@@ -72,13 +80,6 @@ SKIP = {
 # 어긋난 줄 알지만 파일이 남의 lock 이라 지금 못 고치는 자리 — 임자 번호 · 고치면 지운다
 KNOWN = {
     # T391 1회차(자만) 실측 — ⓐ 종류표에 ≈48px 단이 서고 ⓑ 자리마다 그 단으로 바꾸면 여기서 TABLE 로 옮긴다(자리 표기는 아래 그대로 쓰면 된다)
-    '.tb-title': 'T391 ⓑ · Ui/TechPanel.cs#title Title 60 ↔ 45.5px(+32%) · T345 lock',
-    '.league-tier-rank': 'T391 ⓑ · Ui/LeagueSheet.cs#table/label Sub 36 ↔ 47.3px(−24%) · T331 lock',
-    '.league-tier-rank.text': 'T391 ⓑ · 같은 자리(순위 4위 아래 글자) Sub 36 ↔ 53.9px(−33%) · T331 lock',
-    '.lgr-rank-n': 'T391 ⓑ · 같은 자리(1~3위 숫자) Sub 36 ↔ 44.4px(−19%) · T331 lock',
-    '.shop-gem-amt': 'T391 ⓑ · Ui/ShopSheet.cs#amt-row/amt Body 40 ↔ 49.1px(−19%) · T333 lock',
-    '#craft-modal .row .btn': 'T391 ⓑ · Ui/ForgeCraftPopup.cs#sell·#equip Sub 36 ↔ 44.4px(−19%) · T331·T377 lock',
-    '.sheet-title': 'T391 ⓑ · Ui/ShopSheet.cs#title·Ui/DungeonSheet.cs#title·Ui/LeagueSheet.cs#title Title 60 ↔ 49.1px(+22%) · T333·T331 lock(DungeonSheet 은 열려 있으나 단 ⓐ 가 먼저다)',
     '.rates-head h3': 'T391 ⓑ · Ui/SkillRatesPopup.cs#rates-h3 Title 60 ↔ 47.3px(+27%) · T332 lock',
     '.af-title': 'T391 ⓑ · Ui/ForgeAutoPopup.cs#af-title Title 60 ↔ 45.9px(+31%) · T388 lock',
     '.sr-grid.one .sr-name': 'T391 ⓑ · Ui/SkillSummonResult.cs#sr-name/t Sub 36 ↔ 45.5px(−21% · x1 소환만) · T334 lock',

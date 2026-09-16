@@ -148,8 +148,8 @@ namespace Forge.Game.Ui
             float W = UiKit.RefW;
             float padTop = DungeonPopups.RemL("sheet_pad_top_rem");
             float y = padTop;
-            float titleH = DungeonPopups.LineH(TextKind.Title);
-            TextMeshProUGUI title = DungeonPopups.Bold(body, "title", TextKind.Title, "던전", "pp_ink");
+            float titleH = DungeonPopups.LineH(TextKind.Head);
+            TextMeshProUGUI title = DungeonPopups.Bold(body, "title", TextKind.Head, "던전", "pp_ink");   // T391 ⓑ — 정본 3805 `.sheet-title { 1.35rem }` = 49.1px → Head 48(전엔 Title 60)
             UiKit.Place(title.rectTransform, 0f, y, W, titleH);
             y += titleH + DungeonPopups.RemL("sheet_gap_rem");
 

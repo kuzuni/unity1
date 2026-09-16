@@ -80,12 +80,12 @@ namespace Forge.Game.Ui
             RectTransform row = PopupKit.Item(lower, "row", -1f, bh + CraftStyle.Px("cmp_row_pad_bottom_rem"));
             float bw = (inner - rem * 0.8f - rem * 1.3f - rem * 1.9f) * 0.5f;
             // T110 — 정본 ui.js 3266 `판매<small>${IconGen.img('coin')} +N</small>`: 아랫줄은 코인 **아이콘** + 수(글자 🪙 가 아니다 · 세로 갈래 IconTextStack).
-            Button sell = PopupKit.Btn(row, "sell", "", "pp_red", "pp_red_dk", () => h.ResolveCraft("sell"), bw, bh, "stage_ink", TextKind.Sub);
+            Button sell = PopupKit.Btn(row, "sell", "", "pp_red", "pp_red_dk", () => h.ResolveCraft("sell"), bw, bh, "stage_ink", TextKind.Button);   // T391 ⓑ — 정본 3566 `#craft-modal .row .btn { 1.22rem }` = 44.4px → Button 44(전엔 Sub 36)
             PinSell(sell);
-            IconTextStack.ReplaceLabel(sell, TextKind.Sub, "판매\n🪙 +" + NumFmt.Fmt(h.GearSys.SellPrice(item)), "stage_ink", "pp_red");
+            IconTextStack.ReplaceLabel(sell, TextKind.Button, "판매\n🪙 +" + NumFmt.Fmt(h.GearSys.SellPrice(item)), "stage_ink", "pp_red");
             UiKit.Place(sell.GetComponent<RectTransform>(), rem * 0.96f, 0f, bw, bh);
             string equipLabel = "장착" + (cur != null ? "\n" + (swapped ? "다시 장착" : "기존 교체") : string.Empty);
-            Button equip = PopupKit.Btn(row, "equip", equipLabel, "pp_blue", "pp_blue_dk", () => h.ResolveCraft("equip"), bw, bh, "stage_ink", TextKind.Sub);
+            Button equip = PopupKit.Btn(row, "equip", equipLabel, "pp_blue", "pp_blue_dk", () => h.ResolveCraft("equip"), bw, bh, "stage_ink", TextKind.Button);   // T391 ⓑ — 정본 3566 → Button 44
             TwoLine(equip);
             UiKit.Place(equip.GetComponent<RectTransform>(), rem * 0.96f + bw + rem * 1.3f, 0f, bw, bh);
             if (isMatch)

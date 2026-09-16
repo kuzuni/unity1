@@ -142,12 +142,12 @@ namespace Forge.Game.Ui
             float padX = DungeonPopups.RemL("sheet_pad_x_rem");
             RectTransform pp = DungeonPopups.CurPill(body, "pill-potion", "potion", "pill_potion", NumFmt.Fmt(Host.S.Potions), out potionLabel);
             float ph = pp.sizeDelta.y, pw = pp.sizeDelta.x;
-            float titleH = DungeonPopups.LineH(TextKind.Title);
+            float titleH = DungeonPopups.LineH(TextKind.Button);   // T391 ⓑ — 정본 2242 `.tb-title { 1.25rem }` = 45.5px → Button 44(전엔 Title 60)
             float rowH = Mathf.Max(ph, titleH);
             UiKit.Place(pp, padX, padTop + (rowH - ph) * 0.5f, pw, ph);
             RectTransform gp = DungeonPopups.CurPill(body, "pill-gem", "gem", "pill_gem", NumFmt.Fmt(Host.S.Gems), out gemLabel);
             UiKit.Place(gp, W - padX - pw, padTop + (rowH - ph) * 0.5f, pw, ph);
-            title = DungeonPopups.Bold(body, "title", TextKind.Title, text, "pp_ink");
+            title = DungeonPopups.Bold(body, "title", TextKind.Button, text, "pp_ink");
             UiKit.OutlinePx(title, "pp_line", KeylineUi.Em("sheet_title", title.fontSize));   // 정본 h3.tb-title(3846 묶음) { -webkit-text-stroke: .11em var(--pp-line) }
             UiKit.Place(title.rectTransform, padX + pw, padTop + (rowH - titleH) * 0.5f, W - (padX + pw) * 2f, titleH);
             return padTop + rowH;
