@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Forge.Core;
+using Forge.Core.Data;
 using Forge.Core.Tech;
 using Forge.Game.Audio;
 
@@ -121,7 +122,7 @@ namespace Forge.Game.Ui
             float icoD = cw * UiKit.L("idet_icon");
             float gap = cw * UiKit.L("idet_gap");
             float bodyH = DungeonPopups.LineH(TextKind.Body), subH = DungeonPopups.LineH(TextKind.Sub);
-            float headH = Mathf.Max(icoD, bodyH + subH * 2f);
+            float headH = Mathf.Max(icoD, bodyH + subH);   // T413 — 정본 머리는 «이름+레벨 / 총합» 두 줄이다(전엔 subH * 2 로 세 줄을 셌다)
             float descH = researching ? 0f : cw * UiKit.L("idet_subs_mt") + cw * UiKit.L("idet_subs_pad") * 2f + subH * 2f;
             float actionH = ActionHeight(State);
             float ch = pad * 2f + headH + descH + actionH + DungeonPopups.RemL("card_gap_rem");
@@ -149,11 +150,16 @@ namespace Forge.Game.Ui
             NameText = def.Name;
             TextMeshProUGUI name = DungeonPopups.Bold(card, "name", TextKind.Body, def.Name, "pp_ink", TextAlignmentOptions.Left);
             UiKit.Place(name.rectTransform, tx, y, tw, bodyH);
+            // T413 — 정본 `ui.js` **5603** 은 이 조각을 이름 뒤 `<small class="tn-lv">` 로 둔다: `<div class="idet-name">${name} <small class="tn-lv">${roman}단계 · Lv.${lv}/${MAX}</small></div>`.
+            //   `<small>` 은 인라인이라 **이름과 같은 줄**이고, 정본 머리는 «이름+레벨 / 총합» **두 줄**이다. 클론은 이것을 제 줄 하나로 빼서 **세 줄**이었다(머리 잉크 +17px · 런 848 실측).
+            //   틈은 정본 **3695** `.tn-lv { margin-left: .15rem }` — 표 `TechStyle` 이 쥔다. 상자 높이는 이름과 같은 `bodyH` 라 둘이 같은 줄에 가운데로 선다.
+            //   ⚠ 같은 줄의 `font-size: .72rem`(26.2px)은 §1 하한 `Sub`(36)보다 작다 — **글자 하한 축(T391·T404)** 이라 여기서 안 건드린다.
             TextMeshProUGUI lvl = DungeonPopups.Bold(card, "lv", TextKind.Sub, Tree.TierLabel(id) + "단계 · Lv." + lv + "/" + Tree.Table.MaxLevel, "pp_muted", TextAlignmentOptions.Left);
-            UiKit.Place(lvl.rectTransform, tx, y + bodyH, tw, subH);
+            float lvx = tx + name.preferredWidth + PopupKit.Rem * TechStyle.L("tn_lv_margin_left_rem");
+            UiKit.Place(lvl.rectTransform, lvx, y, Mathf.Max(0f, tx + tw - lvx), bodyH);
             MainText = "+" + NumFmt.Fmt(Tree.TotalOf(id)) + unit;
             TextMeshProUGUI main = DungeonPopups.Bold(card, "main", TextKind.Sub, MainText + "  (" + Tree.GainNote() + " +" + NumFmt.Fmt(def.Per) + unit + " · 이 노드 +" + NumFmt.Fmt(Tree.NodeTotal(id)) + unit + ")", "pp_ink", TextAlignmentOptions.Left);
-            UiKit.Place(main.rectTransform, tx, y + bodyH + subH, tw, subH);
+            UiKit.Place(main.rectTransform, tx, y + bodyH, tw, subH);   // T413 — 레벨이 이름 줄로 붙어 한 줄 올라온다
             y += headH;
 
             if (!researching)
@@ -314,6 +320,36 @@ namespace Forge.Game.Ui
                 if (i < lines.Count - 1) UiKit.Line(row, "line", "tb_line", DungeonPopups.Line2, false);
             }
             DungeonPopups.XButton(card, Close);
+        }
+    }
+
+    /// <summary>
+    /// T413 — 기술(연구) 팝업의 곁 표(<c>Assets/Forge/Resources/TechUi.json</c>). `catalog.json` 은 T345 산 lock 이라
+    /// T65(`PlayerInfoUi.json`)·T339(`ForgeInfoUi.json`)·T388(`DungeonUi.json`)과 같은 꼴로 뗐다. 수치는 코드에 안 박는다(§1).
+    /// </summary>
+    public static class TechStyle
+    {
+        public const string ResourcePath = "TechUi";
+        static JsonObject root, layout;
+
+        static void Load()
+        {
+            if (root != null) return;
+            TextAsset ta = Resources.Load<TextAsset>(ResourcePath);
+            if (ta == null) throw new System.InvalidOperationException("Resources/" + ResourcePath + ".json 이 없다 (T413)");
+            root = MiniJson.ParseObject(ta.text);
+            layout = J.Obj(root["layout"]);
+        }
+
+        public static void Reset() { root = null; layout = null; }
+
+        /// <summary>배치 값 원문(꼬리가 곱할 기준을 말한다 — `_rem` = 정본 rem).</summary>
+        public static float L(string key)
+        {
+            Load();
+            object v = layout == null ? null : layout[key];
+            if (!J.IsNum(v)) throw new System.Collections.Generic.KeyNotFoundException(ResourcePath + ".json 에 «" + key + "» 이 없다");
+            return (float)J.Num(v);
         }
     }
 }

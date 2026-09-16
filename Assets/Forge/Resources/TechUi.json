@@ -1,0 +1,8 @@
+{
+  "_": "T413 — 기술(연구) 팝업의 치수 중 `catalog.json` 이 아직 안 쥔 것. `catalog.json` 은 T345 산 lock 이라 곁 표로 낸다(T65 PlayerInfoUi.json · T339 ForgeInfoUi.json · T388 DungeonUi.json 과 같은 꼴). 단위: `_rem` = 정본 rem(기준 캔버스 환산은 PopupKit.Rem).",
+  "layout": {
+    "tn_lv_margin_left_rem": 0.15
+  },
+  "_tn_lv_margin_left": "style.css **3695** `.tn-lv { color: var(--pp-muted); font-weight: 700; font-size: .72rem; margin-left: .15rem }` — 노드 상세 머리의 «N단계 · Lv.x/y». 정본 마크업(ui.js **5603**)이 이것을 이름 뒤 `<small>` 로 두어 **같은 줄**에 붙이고, 그 `margin-left` 가 이름과의 틈이다. 클론은 이 조각을 제 줄 하나로 빼서 머리가 두 줄이 아니라 **세 줄**이었다.",
+  "_남은_것": "같은 줄의 `font-size: .72rem`(= 기준 캔버스 26.2px)은 §1 하한 `Sub`(36)보다 작다 — **글자 하한 축(T391·T404)** 이지 이 절 것이 아니다. 이 절은 «몇 줄인가» 만 고친다."
+}

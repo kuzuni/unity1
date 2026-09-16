@@ -232,6 +232,48 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>
+        /// T413 — 정본 `ui.js` **5603~5604** 는 노드 상세 머리를 **두 줄**로 둔다:
+        /// `<div class="idet-name">${name} <small class="tn-lv">${roman}단계 · Lv.x/y</small></div>` · `<div class="idet-main">+총합 <small class="tn-gain">(…)</small></div>`.
+        /// `<small>` 은 인라인이라 레벨이 **이름과 같은 줄**에 붙는다. 클론은 그것을 제 줄 하나로 빼 **세 줄**이었고, 머리 잉크가 40px 이어야 할 자리에서 61px 였다(런 848 실측 · 그 아래는 다 맞았다).
+        /// 판정은 «몇 줄인가» 다 — 이름과 레벨이 **같은 y 밴드**에 있고 레벨이 이름 **오른쪽**에 서며, 총합 줄이 그 **바로 아래**인지 본다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 기술_노드_머리는_이름과_레벨이_한_줄이고_총합이_그_아래다()
+        {
+            yield return Boot();
+            TechTree tree = H.Tech;
+            string id = tree.NodesOf("power")[0];
+            TechPopups.OpenNode(id);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            RectTransform card = null;
+            foreach (RectTransform rt in UiRoot.Instance.App.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "card" && rt.gameObject.activeInHierarchy && rt.Find("name") != null && rt.Find("lv") != null) { card = rt; break; }
+            Assert.IsNotNull(card, "노드 상세 카드");
+            RectTransform name = (RectTransform)card.Find("name"), lvl = (RectTransform)card.Find("lv"), main = (RectTransform)card.Find("main");
+            Assert.IsNotNull(name, "이름"); Assert.IsNotNull(lvl, "레벨"); Assert.IsNotNull(main, "총합");
+
+            // ⓐ 같은 줄 — 두 상자의 세로 가운데가 같다(정본 `<small>` 은 인라인이라 이름 줄 안에 있다).
+            Assert.AreEqual(name.anchoredPosition.y, lvl.anchoredPosition.y, 1f,
+                "레벨이 이름과 다른 줄에 있다(정본 5603 은 `<small>` 로 같은 줄에 둔다) · 이름 y " + name.anchoredPosition.y + " · 레벨 y " + lvl.anchoredPosition.y);
+            Assert.AreEqual(name.rect.height, lvl.rect.height, 1f, "같은 줄이면 상자 높이도 같다");
+            // ⓑ 레벨은 이름 **오른쪽** · 틈은 표(정본 3695 `.tn-lv { margin-left: .15rem }`)
+            TMPro.TextMeshProUGUI nt = name.GetComponent<TMPro.TextMeshProUGUI>();
+            Assert.IsNotNull(nt, "이름 글자");
+            float want = name.anchoredPosition.x + nt.preferredWidth + PopupKit.Rem * TechStyle.L("tn_lv_margin_left_rem");
+            Assert.AreEqual(0.15f, TechStyle.L("tn_lv_margin_left_rem"), 1e-6f, "표 = 정본 3695 .15rem");
+            Assert.AreEqual(want, lvl.anchoredPosition.x, 1f, "레벨은 이름 잉크 바로 뒤 + 표 틈 · 실측 " + lvl.anchoredPosition.x + " · 기대 " + want);
+            // ⓒ 총합은 그 **바로 아래** 한 줄 — 세 줄이면 이 거리가 두 줄만큼이다.
+            float drop = main.anchoredPosition.y - name.anchoredPosition.y;
+            Assert.Greater(drop, 0f, "총합은 이름 아래(유니티 Place 는 위에서 아래로 +y)");
+            Assert.Less(drop, name.rect.height * 1.5f, "총합이 이름에서 두 줄 아래다 — 가운데 한 줄(레벨)이 아직 끼어 있다 · 실측 " + drop);
+
+            TechPopups.Close();
+            yield return null;
+        }
+
+        /// <summary>
         /// T401 1회차 — 정본 **1750** `.item-detail[data-tech-node] .btn { min-height: 3.6rem }` 은 노드 상세의 **모든** 버튼을 덮는다.
         /// 클론은 [잠김]만 `btn_sm_h_rem`(2rem)이라 같은 팝업의 형제 버튼(3.4rem)보다 −41% 였다 — 한 키를 쓰게 맞췄다.
         /// 마지막 −6%(표 3.4 ↔ 정본 3.6)는 `catalog.json` 이 열리는 회차 몫이라 여기서는 **형제와 같은가** 만 잰다.
