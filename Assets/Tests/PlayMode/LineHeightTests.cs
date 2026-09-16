@@ -89,6 +89,24 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+
+        /// <summary>그 글자가 **실제로 그리는** 세로 구간(글자 조각의 글리프 상자 · SDF 여백 없음) — 칸 안 좌표.
+        /// 면 지표(`lineInfo.ascender`)는 글꼴 줄 상자(1.448em)라 «칠해지는 칸» 이 아니다(T354 18회차 · 결정 738).</summary>
+        static void InkSpan(TextMeshProUGUI t, out float top, out float bottom)
+        {
+            t.ForceMeshUpdate();
+            TMP_TextInfo ti = t.textInfo;
+            top = float.NegativeInfinity; bottom = float.PositiveInfinity;
+            for (int i = 0; i < ti.characterCount; i++)
+            {
+                TMP_CharacterInfo ci = ti.characterInfo[i];
+                if (!ci.isVisible) continue;
+                top = Mathf.Max(top, ci.topRight.y);
+                bottom = Mathf.Min(bottom, ci.bottomLeft.y);
+            }
+            if (top < bottom) { top = 0f; bottom = 0f; }
+        }
+
         static void AssertSpacing(TextMeshProUGUI t, string key, string what)
         {
             double r = LineHeight.Ratio(t, key);
@@ -503,17 +521,27 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(wantR, r1.anchoredPosition.y - r2.anchoredPosition.y, 0.01f, "대장간 → 총 피해 피치");
             Assert.AreEqual(wantR, r2.anchoredPosition.y - r3.anchoredPosition.y, 0.01f, "총 피해 → 총 체력 피치");
 
-            // 정본 주석의 함정 — 좁은 쪽(1.16) 피치가 글자 잉크보다 작으면 줄이 붙는다.
             TextMeshProUGUI rt1 = r1.GetComponent<TextMeshProUGUI>();
-            rt1.ForceMeshUpdate();
-            float ink = rt1.textInfo.lineCount > 0
-                ? rt1.textInfo.lineInfo[0].ascender - rt1.textInfo.lineInfo[0].descender
-                : 0f;
-            Assert.Greater(ink, 0f, "오른쪽 줄의 잉크를 못 쟀다");
-            Assert.LessOrEqual(ink, wantR + 0.01f,
-                "오른쪽 피치(" + wantR.ToString("0.0") + ")가 잉크(" + ink.ToString("0.0") + ")보다 작다 — 정본 3170 주석의 «줄이 붙는다»");
             AssertSpacing(nt, "pinfo_id_text_lh", "왼쪽 이름 줄");
             AssertSpacing(rt1, "pinfo_right_lh", "오른쪽 대장간 줄");
+
+            // 정본 주석의 함정 — 좁은 쪽(1.16) 피치가 **칠해지는 글자**보다 좁으면 «줄이 붙는다»(정본 3170).
+            // ⚠ 1회차(런 985)는 그 잉크를 `lineInfo.ascender − descender` 로 쟀다가 빨갰다: 그 둘은 **글꼴 면 지표**
+            //   (NotoSansKR 1.448em = 52.1px)라 «칠해지는 칸» 이 아니다 — 정본 주석이 잰 9.7px/12.0px 은 확대 크롭의 잉크다.
+            //   값을 낮추지 말고 **재는 법**을 고친다(결정 677): 글자 조각의 `topRight`·`bottomLeft`(SDF 여백이 안 붙은 글리프 상자)로 재고,
+            //   묻는 것도 «잉크 ≤ 피치» 가 아니라 **정본이 걱정한 그것 — 윗줄 잉크와 아랫줄 잉크가 겹치는가** 로 바꾼다.
+            TextMeshProUGUI rt2 = r2.GetComponent<TextMeshProUGUI>();
+            float t1, b1, t2, b2;
+            InkSpan(rt1, out t1, out b1);
+            InkSpan(rt2, out t2, out b2);
+            Assert.Greater(t1 - b1, 0f, "오른쪽 첫 줄의 잉크를 못 쟀다");
+            Assert.Greater(t2 - b2, 0f, "오른쪽 둘째 줄의 잉크를 못 쟀다");
+            // 두 줄은 같은 카드 안에 위끝 기준으로 놓였다 — 칸의 y 에 그 칸 안 잉크 위치를 더하면 같은 자로 잴 수 있다.
+            float bottom1 = r1.anchoredPosition.y + b1, top2 = r2.anchoredPosition.y + t2;
+            Assert.Less(top2, bottom1,
+                "오른쪽 두 줄의 잉크가 겹친다(윗줄 바닥 " + bottom1.ToString("0.0") + " ↔ 아랫줄 꼭대기 " + top2.ToString("0.0")
+                + ") — 정본 3170 주석의 «피치만 줄이면 줄이 붙는다»");
+            float ink = t1 - b1;
             Debug.Log("[T354] 머리줄 피치 왼 " + wantL.ToString("0.0") + "px · 오른 " + wantR.ToString("0.0") + "px · 글자 " + fs.ToString("0.0") + " · 오른쪽 잉크 " + ink.ToString("0.0"));
         }
 

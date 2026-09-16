@@ -3,6 +3,7 @@
 #   PlayMode `StubSigsTests` 가 이것을 읽어 ui-screens/stub-sigs.txt 로 답한다.
 # 한 줄 = <어셈블리 힌트>	<타입 전체이름>
 TMPro	TMPro.TMP_FontAsset
+TMPro	TMPro.TMP_CharacterInfo
 TMPro	TMPro.TMP_TextInfo
 TMPro	TMPro.TMP_Text
 TMPro	TMPro.TMP_Settings

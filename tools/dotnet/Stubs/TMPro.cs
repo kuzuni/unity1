@@ -69,7 +69,11 @@ namespace TMPro
     //   스텁 파일 자체는 유니티가 컴파일하지 않으므로 여기 적는 것만으로는 아무것도 안 깨진다. 깨질 수 있는 것은 **Assets 쪽에서 쓰는 순간**이고,
     //   그러니 자를 쓰는 워커는 그 로그 줄을 먼저 보고 쓰라(안 맞으면 이 파일만 고치면 된다).
     // T352 — 진짜 TMP_CharacterInfo 의 공개 필드 둘: origin(글자 시작 x) · xAdvance(다음 글자 시작 x). TabularSitesTests 가 숫자 칸 폭을 잰다.
-    public struct TMP_CharacterInfo { public char character; public int index; public bool isVisible; public float origin; public float xAdvance; }
+    public struct TMP_CharacterInfo { public char character; public int index; public bool isVisible; public float origin; public float xAdvance;
+        /* T354 18회차 — 진짜 TMP_CharacterInfo 의 공개 필드: 그 글자가 **그리는 사각형**의 네 꼭짓점(SDF 여백이 안 붙은 글리프 상자 ·
+           `vertex_*` 와 달리 패딩이 없다). 줄 사이가 붙는지(정본 3170 «피치만 줄이면 줄이 붙는다»)를 재는 자가 이것으로 잉크를 잰다 —
+           면 지표(`TMP_LineInfo.ascender/descender`)는 글꼴 줄 상자(NotoSansKR 1.448em)라 칠해지는 칸이 아니다. */
+        public UnityEngine.Vector3 bottomLeft, topLeft, topRight, bottomRight; }
     // T121 — 진짜 TMP_TextElement(글리프 참조) · TMP_Character : TMP_TextElement
     public class TMP_TextElement { public UnityEngine.TextCore.Glyph glyph { get; set; } public uint unicode { get; set; } }
     public class TMP_Character : TMP_TextElement { }
