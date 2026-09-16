@@ -132,7 +132,11 @@ namespace Forge.Game.Ui
             float y = pad;
             RectTransform ic = UiKit.Box(card, "icon");
             UiKit.Place(ic, pad, y, icoD, icoD);
-            DungeonPopups.BorderedCircle(ic, "circle", "tn_bronze", DungeonPopups.Line2, "tn_bronze_border");
+            RectTransform circleFace = DungeonPopups.BorderedCircle(ic, "circle", "tn_bronze", DungeonPopups.Line2, "tn_bronze_border");
+            // T178 19회차 — 정본 3689 `.idet-icon.tn-bronze { background: linear-gradient(160deg, #d9a066, #a5642f) }`: 청동 원은 단색이 아니라 비스듬한 겹이다.
+            //   원 면(UiKit.Circle 스프라이트)에 마스크를 걸고 그 안에 표 `tn_bronze` 겹 한 장(SurfaceArt.FillMasked) — 테(#7a4a22)는 그대로.
+            Image circleImg = circleFace.GetComponent<Image>();
+            SurfaceArt.FillMasked(circleImg, "bg-grad", "tn_bronze", icoD - DungeonPopups.Line2 * 2f, icoD - DungeonPopups.Line2 * 2f);
             Image face = max ? UiKit.Icon(ic, "face", "check") : TechPanel.TechIcon(ic, "face", id);
             float fd = icoD * UiKit.L("idet_icon_face");
             UiKit.Anchor(face.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, fd, fd);

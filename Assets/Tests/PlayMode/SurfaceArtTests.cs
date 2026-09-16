@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.UI;
 using Forge.Core.Ui;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
@@ -130,6 +131,71 @@ namespace Forge.Tests.PlayMode
             Texture2D pt = pv.texture;
             Assert.AreEqual(157f / 255f, pt.GetPixel(pt.width / 2, pt.height - 1).r, 0.02f, "미리보기 위 톤");
             Assert.AreEqual(111f / 255f, pt.GetPixel(pt.width / 2, 0).r, 0.02f, "미리보기 아래 톤");
+        }
+
+        /// <summary>
+        /// T178 19회차 — 던전 상세 hero 의 바탕 겹(정본 2060 = 목록 배너와 같은 `dg_banner` · 일러스트 **뒤**)과 기술 노드 팝업 청동 원의 겹(정본 3689 160deg #d9a066→#a5642f · 원 면 마스크 안).
+        /// 이름 «bg-grad» 는 목록 배너도 쓰므로 앱 뿌리가 아니라 **그 팝업 뿌리**의 길로 찾는다(T414).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 던전_상세_hero_바탕과_기술_노드_청동_원에_정본_겹이_선다()
+        {
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!DungeonUiHost.Ready && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(DungeonUiHost.Ready, "DungeonUiHost");
+            // 표 — 청동 원
+            Assert.AreEqual(160f, SurfaceArt.Angle("tn_bronze"), 1e-4f, "정본 3689 160deg");
+            Color[] col; float[] off;
+            SurfaceArt.Stops("tn_bronze", out col, out off);
+            Assert.AreEqual(2, col.Length);
+            Assert.AreEqual(new Color32(0xd9, 0xa0, 0x66, 255), (Color32)col[0], "#d9a066"); Assert.AreEqual(new Color32(0xa5, 0x64, 0x2f, 255), (Color32)col[1], "#a5642f");
+            Sprite bz = SurfaceArt.Bake("tn_bronze", 1f);
+            Texture2D bt = bz.texture;
+            // 160deg 는 «위 살짝 왼쪽 → 아래 살짝 오른쪽» — 맨 위 행이 밝은 청동, 맨 아래 행이 어두운 청동
+            Assert.Greater(bt.GetPixel(bt.width / 2, bt.height - 1).r, bt.GetPixel(bt.width / 2, 0).r + 0.1f, "위가 밝고 아래가 어둡다");
+
+            // 던전 상세 — hero 의 첫 자식이 바탕 겹(일러스트 뒤) · 크기 = hero
+            DungeonUiHost h = DungeonUiHost.Instance;
+            h.S.BestChapter = 5; h.S.BestStage = 1;
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null;
+            DungeonDetailPopup.Open("hammer");
+            yield return null;
+            Transform ov = FindDeep(UiRoot.Instance.App, "modal-dungeon-detail");
+            Assert.IsNotNull(ov, "던전 상세 팝업 뿌리");
+            Transform hero = ov.Find("card/hero");
+            Assert.IsNotNull(hero, "hero");
+            Transform bg = hero.Find("bg-grad");
+            Assert.IsNotNull(bg, "hero 바탕 겹(bg-grad)");
+            Assert.AreEqual(0, bg.GetSiblingIndex(), "바탕 겹은 일러스트 뒤(첫 자식)");
+            Assert.Less(bg.GetSiblingIndex(), hero.Find("scene").GetSiblingIndex(), "일러스트가 위");
+            Image bgi = bg.GetComponent<Image>();
+            Assert.IsNotNull(bgi.sprite, "구운 겹"); Assert.IsFalse(bgi.raycastTarget);
+            RectTransform hr = (RectTransform)hero, br = (RectTransform)bg;
+            Assert.AreEqual(hr.rect.width, br.rect.width, 1f, "겹 폭 = hero"); Assert.AreEqual(hr.rect.height, br.rect.height, 1f, "겹 높이 = hero");
+            Assert.AreEqual(120f, SurfaceArt.Angle("dg_banner"), 1e-4f, "정본 2060 = 1952 120deg");
+            DungeonDetailPopup.Close();
+            yield return null;
+
+            // 기술 노드 팝업 — 청동 원 면에 마스크 + 겹
+            TechPanel p = TechPanel.OpenTechTree();
+            yield return null;
+            p.ShowBranch("power");
+            yield return null;
+            TechPopups.OpenNode(p.NodeIds[0]);
+            yield return null;
+            Transform tov = FindDeep(UiRoot.Instance.App, "modal-tech-node");
+            Assert.IsNotNull(tov, "기술 노드 팝업 뿌리");
+            Transform face = tov.Find("card/icon/circle/face");
+            Assert.IsNotNull(face, "청동 원 면");
+            Assert.IsNotNull(face.GetComponent<Mask>(), "원 면이 마스크한다(정본 border-radius 50% 가 background 를 자른다)");
+            Transform g = face.Find("bg-grad");
+            Assert.IsNotNull(g, "청동 겹(bg-grad)");
+            Image gi = g.GetComponent<Image>();
+            Assert.IsNotNull(gi.sprite, "구운 겹"); Assert.IsFalse(gi.raycastTarget);
+            Assert.AreEqual("tn_bronze", gi.sprite.name.Split('-')[1], "표 tn_bronze 겹(스프라이트 이름 sf-tn_bronze-…)");
+            TechPopups.Close();
         }
 
         static Transform FindDeep(Transform root, string name)

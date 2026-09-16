@@ -112,6 +112,9 @@ namespace Forge.Game.Ui
             // 배너(그림 + 제목 오버레이) — 모서리는 카드 위쪽 둥근 반지름을 따른다.
             RectTransform hero = UiKit.Box(card, "hero");
             UiKit.Place(hero, DungeonPopups.Line3, DungeonPopups.Line3, cw - DungeonPopups.Line3 * 2f, heroH);
+            // T178 19회차 — 정본 2060 `.dg-detail-hero { background: linear-gradient(120deg, var(--bg,#444c56), #161b22) }` = 목록 배너 1952 와 같은 겹(표 dg_banner).
+            //   일러스트 **뒤**의 바탕이다(정본 주석 «목록 배너와 같은 dg_* 일러스트를 얹는다» · 그림이 없는 던전은 이것만 보인다). 여태 카드색이 비쳤다.
+            SurfaceArt.Fill(hero, "bg-grad", "dg_banner", cw - DungeonPopups.Line3 * 2f, heroH);
             Image scene = UiKit.Icon(hero, "scene", DungeonSheet.SceneIcon(d.Id));
             scene.preserveAspect = false;
             TextMeshProUGUI title = DungeonPopups.Bold(hero, "title", TextKind.Body, d.Kr, "white");

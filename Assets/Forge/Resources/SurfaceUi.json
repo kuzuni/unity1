@@ -27,6 +27,7 @@
     ],
     "_": "style.css 1952 `.dg-banner { background: linear-gradient(120deg, var(--bg, #444c56), #161b22) }` — 배너 제 바탕(일러스트가 없는 던전은 이것만 보인다). `--bg` 기본값 #444c56 = (68,76,86) · 끝 #161b22 = (22,27,34)."
   },
+  "tn_bronze": {"angle_deg": 160, "stops": [[217, 160, 102, 1], [165, 100, 47, 1]], "offsets": [0, 1], "_": "style.css 3689 `.idet-icon.tn-bronze { background: linear-gradient(160deg, #d9a066, #a5642f) }` — 기술 노드 팝업 머리의 청동 원 면(T178 19회차 · `TechPopups` 가 `UiKit.Circle` 면 위에 `FillMasked` 로 얹는다 · 테 `tn_bronze_border` #7a4a22 는 카탈로그 단색 그대로). #d9a066 = (217,160,102) · #a5642f = (165,100,47)."},
   "dg_banner_scrim": {
     "angle_deg": 90,
     "stops": [
