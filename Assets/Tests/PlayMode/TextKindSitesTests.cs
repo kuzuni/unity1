@@ -147,5 +147,25 @@ namespace Forge.Tests.PlayMode
             ForgeAutoPopup.Close(fh);
             yield return null;
         }
+        /// <summary>T404 3회차 — 여덟 중 마지막: 판매 경고 제목(정본 2219 `.sellwarn-title { 1.15rem }` = 41.9px → Title2 42 · 전엔 Body 40).</summary>
+        [UnityTest]
+        public IEnumerator 판매_경고_제목은_모달_제목_단으로_선다()
+        {
+            yield return Boot();
+            float t0 = 0f;
+            while (!(ForgeHost.Ready && MetaHost.Ready) && t0 < 20f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost");
+            ForgeHost fh = ForgeHost.Instance;
+            ForgeCraftPopup.ShowSellConfirm(fh, fh.Engine.RollItem(), fh.Engine.RollItem());
+            yield return null;
+            Popup p = fh.Meta.Popups.Find(ForgeCraftPopup.SellName);
+            Assert.IsNotNull(p, "판매 경고");
+            TextMeshProUGUI title = null;
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true)) if (t.name == "title" && t.text == "정말 판매할까요?") { title = t; break; }
+            Assert.IsNotNull(title, "판매 경고 제목");
+            Assert.AreEqual(UiCatalog.Instance.Kind(TextKind.Title2).size, title.fontSize, 0.01f, "정본 2219 .sellwarn-title 1.15rem → Title2(전엔 Body 40)");
+            fh.Meta.Popups.Hide(ForgeCraftPopup.SellName);
+            yield return null;
+        }
     }
 }

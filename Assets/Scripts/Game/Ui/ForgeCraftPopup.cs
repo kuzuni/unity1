@@ -125,7 +125,7 @@ namespace Forge.Game.Ui
             float w = UiKit.RefW * 0.76f;
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
             PopupKit.Column(card, rem * 0.9f, rem * 0.7f);
-            TextMeshProUGUI title = PopupKit.Label(card, "title", TextKind.Body, "정말 판매할까요?", "pp_ink");
+            TextMeshProUGUI title = PopupKit.Label(card, "title", TextKind.Title2, "정말 판매할까요?", "pp_ink");   // T404 ⓑ 3회차 — 정본 2219 `.sellwarn-title { font-size: 1.15rem }` = 41.9px → Title2 42(전엔 Body 40 · 여덟 중 마지막)
             // T109 13회차 — 정본 style.css 3846 의 제목 묶음에 `h3.sellwarn-title` 이 들어 있다
             // (`-webkit-text-stroke: .11em var(--pp-line)`). ui.js 3849 가 이 제목을 그 클래스로 찍는다.
             // 폭은 `KeylineUi.Em`(표 · em → px)이 낸다 — `ForgeAutoPopup` 의 af-title 과 같은 길이다.
