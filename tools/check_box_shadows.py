@@ -83,12 +83,6 @@ KNOWN = {
     'techbranch_drop': 'T331 29회차 — 값 잼 · 배선은 TechPanel.cs(기술 가지 머리)가 열리는 회차',
     'skribbon_drop':   'T331 29회차 — 값 잼 · 배선은 PetPanel.cs(스킬 리본)가 열리는 회차',
     'afknob_drop':     'T331 29회차 — 값 잼 · 배선은 Popups.cs(공용 토글 공장)가 열리는 회차',
-    'sragain_drop':    'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(다시 소환 버튼)',
-    'srnew_drop':      'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(NEW 배지)',
-    'srqty_drop':      'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(수량 배지)',
-    'srdup_drop':      'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(중복 배지)',
-    'srrk_drop':       'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(등급 꼬리표)',
-    'srchip_drop':     'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(요약 칩 · 등급 4·5 도 같은 키)',
     'infobtn_drop':    'T331 30회차 — **절반 섰다**(DungeonPopups.InfoButton) · 나머지는 ForgeUi.InfoButton 이 열리는 회차(대장간·장비 시트 · NEED 2)',
 }
 
@@ -208,6 +202,14 @@ def outer_decls(css_path=CSS):
         m = re.search(r'box-shadow\s*:\s*([^;]*)', l)
         if not m: continue
         val = m.group(1).strip()
+        # 32회차 — 정본은 겹이 많은 자리를 **여러 줄로** 적는다(`box-shadow:` 다음 줄부터 값이 온다).
+        #   한 줄만 읽으면 그 선언이 통째로 사라진다 — `;` 까지 이어 읽는다.
+        if ';' not in l:
+            j = i + 1
+            while j < len(lines) and ';' not in lines[j]:
+                val += ' ' + lines[j].strip(); j += 1
+            if j < len(lines): val += ' ' + lines[j].split(';')[0].strip()
+        val = val.strip()
         if not val or val.split()[0] == 'none': continue
         ps = parts_of(val)
         kinds = [kind_of(p) for p in ps]
@@ -375,6 +377,24 @@ def self_test():
     finally:
         ELSEWHERE.clear(); ELSEWHERE.update(saved_el)
     chk('되돌린 뒤엔 다시 조용하다', '.없는-선택자' not in _out())
+
+    # ⓔ-2.5 여러 줄로 적은 선언(32회차) — `box-shadow:` 다음 줄부터 값이 오는 꼴을 통째로 읽는가
+    import tempfile as _tf, os as _os
+    _d = _tf.mkdtemp()
+    _css = _os.path.join(_d, 'x.css')
+    open(_css, 'w', encoding='utf-8').write(
+        '.one { box-shadow: 0 .5rem 0 rgba(0,0,0,.25); }\n'
+        '.many {\n'
+        '    box-shadow:\n'
+        '        inset 0 .09rem 0 rgba(255,255,255,.34),\n'
+        '        0 .12rem 0 rgba(0,0,0,.3), 0 .2rem .4rem rgba(0,0,0,.24);\n'
+        '}\n')
+    _got = outer_decls(_css)
+    _sels = [r[1] for r in _got]
+    chk('한 줄 선언을 읽는다', '.one' in _sels)
+    chk('여러 줄 선언도 읽는다(32회차 구멍)', '.many' in _sels)
+    _many = [r for r in _got if r[1] == '.many'][0]
+    chk('여러 줄의 갈래를 다 센다', _many[3].count('inset') == 1 and 'hard' in _many[3] and 'drop' in _many[3])
 
     # ⓔ-3 공장이 여럿인 자리(30회차) — 한 곳만 걸리면 «절반» 이고, 적어 두지 않았으면 빨강이다
     saved_need = dict(NEED)

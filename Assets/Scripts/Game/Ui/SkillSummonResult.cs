@@ -923,6 +923,9 @@ namespace Forge.Game.Ui
                     TextMeshProUGUI qt = PetSkillKit.Text(qb, "t", TextKind.Sub, q, PetSkillStyle.C("white"));
                     Shrink(qb, qt, PetSkillStyle.Rem(0.6f), bh);
                     UiKit.Fill(qt.rectTransform);
+                    // T331 32회차 — 정본 7008 `.sr-qty { box-shadow: 0 .1rem .28rem rgba(0,0,0,.6) }`(겹이 하나다).
+                    //   **줄인 뒤**에 건다 — `Shrink` 가 폭을 바꾸므로 구운 판도 그 폭이라야 한다.
+                    UiShadow.Drop(qb, "srqty_drop", PetSkillStyle.Px("sr_qty_r_rem"), qb.sizeDelta.x, bh);
                 }
                 if (!string.IsNullOrEmpty(e.Extra))
                 {
@@ -934,6 +937,8 @@ namespace Forge.Game.Ui
                     WrapUi.Apply(dt, "sr_dup");   // T361 배선 — 이 파일이 내 lock 뒤라 3회차가 못 걸었다(결정 661)
                     Shrink(db, dt, PetSkillStyle.Rem(0.6f), bh);
                     UiKit.Fill(dt.rectTransform);
+                    // T331 32회차 — 정본 7029 `.sr-dup` 는 수량 배지와 **값이 같지만 선택자가 달라** 키를 나눴다.
+                    UiShadow.Drop(db, "srdup_drop", PetSkillStyle.Px("sr_qty_r_rem"), db.sizeDelta.x, bh);
                 }
                 if (e.IsNew)
                 {
@@ -945,6 +950,8 @@ namespace Forge.Game.Ui
                     LetterSpacing.Apply(nt, "sr_new_ls_em");   // T168 3회차 — 정본 6980 `.sr-new`
                     Shrink(nb, nt, PetSkillStyle.Rem(0.52f), bh);   // 자간까지 먹인 **뒤** 잰다
                     UiKit.Fill(nt.rectTransform);
+                    // T331 32회차 — 정본 6985 `.sr-new { box-shadow: 0 .12rem .3rem rgba(0,0,0,.6) }`.
+                    UiShadow.Drop(nb, "srnew_drop", PetSkillStyle.Px("sr_new_r_rem"), nb.sizeDelta.x, bh);
                 }
                 // 이름판 · 등급 칩
                 float ny = cw + PetSkillStyle.Px("sr_name_mt_rem");
@@ -966,6 +973,9 @@ namespace Forge.Game.Ui
                 float rkW = PetSkillKit.TextWidth(TextKind.Sub, e.Sub) + PetSkillStyle.Px("sr_rk_pad_x_rem") * 2f;
                 RectTransform rk = UiKit.Box(cell, "sr-sub");
                 UiKit.Place(rk, (cw - rkW) * 0.5f, sy, rkW, subH);
+                // T331 32회차 — 정본 7075 `.sr-sub .sr-rk` 의 **둘째 겹** `0 .08rem .22rem rgba(0,0,0,.5)`
+                //   (첫 겹 `0 0 0 1px` 은 번짐만 있는 테두리라 T109 축이 본다).
+                UiShadow.Drop(rk, "srrk_drop", PetSkillStyle.Px("sr_rk_r_rem"), rkW, subH);
                 PetSkillKit.Fill(rk, "bg", rc, PetSkillStyle.Px("sr_rk_r_rem"));
                 TextMeshProUGUI rt = PetSkillKit.Text(rk, "t", TextKind.Sub, e.Sub, ChipInk(rc));
                 LetterSpacing.Apply(rt, "sr_sub_ls_em");   // T168 3회차 — 정본 7059 `.sr-sub`
@@ -1073,6 +1083,9 @@ namespace Forge.Game.Ui
                 Color rc = PetSkillStyle.Rarity(Defs, list[i].Key);
                 RectTransform chip = UiKit.Box(chipRow, "sr-chip-" + list[i].Key);
                 UiKit.Place(chip, x, 0f, widths[i], chipH);
+                // T331 32회차 — 정본 7128 `.sr-chip` 의 **둘째 겹** `0 .1rem .26rem rgba(0,0,0,.55)`(첫 겹은 1px 테두리).
+                //   등급 4·5 의 `[data-tier]`(7131·7132)는 같은 두 겹에 **발광만** 더한 것이라 그늘은 이 키 하나다.
+                UiShadow.Drop(chip, "srchip_drop", PetSkillStyle.Px("sr_chip_r_rem"), widths[i], chipH);
                 PetSkillKit.Fill(chip, "bg", rc, PetSkillStyle.Px("sr_chip_r_rem"));
                 TextMeshProUGUI t = PetSkillKit.Text(chip, "t", TextKind.Sub, PetSkillStyle.T("sr_chip", Defs.RarityKr.Get(list[i].Key, list[i].Key), list[i].Value), ChipInk(rc));
                 UiKit.Fill(t.rectTransform);
@@ -1144,6 +1157,9 @@ namespace Forge.Game.Ui
                 AgainButton = UiKit.Button(sb, "sr-again", () => { Action a = repeat; Close(); if (a != null) a(); });
                 RectTransform ar = AgainButton.GetComponent<RectTransform>();
                 UiKit.Place(ar, (fw - aw) * 0.5f, sub * 1.3f + sg + sub * 1.5f + sg, aw, ah);
+                // T331 32회차 — 정본 5796 `.sr-again` 의 **둘째 겹** `0 .25rem .6rem rgba(0,0,0,.5)`
+                //   (첫 겹 `inset 0 .1rem 0 rgba(255,255,255,.14)` 은 안쪽 림라이트다).
+                UiShadow.Drop(ar, "sragain_drop", PetSkillStyle.Px("sr_again_r_rem"), aw, ah);
                 RectTransform askin = PetSkillKit.Framed(ar, "skin", PetSkillStyle.C("sr_again"), PetSkillStyle.Px("sr_again_r_rem"), PetSkillStyle.L("line1_px"));
                 UiKit.Fill(askin);
                 ((Image)askin.Find("line").GetComponent<Image>()).color = new Color(0.59f, 0.67f, 0.92f, 0.55f);
