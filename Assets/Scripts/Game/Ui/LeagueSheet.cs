@@ -89,7 +89,9 @@ namespace Forge.Game.Ui
             float footTop = UiKit.L("league_foot_top") * H;
             float listW = UiKit.L("league_list_w") * w;
             RectTransform listBox = UiKit.Box(sheet, "list");
-            UiKit.Place(listBox, (w - listW) * 0.5f, listY, listW, footTop - listY - rem * 0.3f);
+            // T388 — 정본 2320 `.league-list { max-height: calc(var(--app-h) * .542) }` 이 상한이다. 종전은 발 밴드까지 채웠다(53.9%H · 우연히 상한 안) — 상한을 표에서 읽어 잠근다.
+            float listH = Mathf.Min(footTop - listY - rem * 0.3f, UiKit.H("league_list_max_h"));
+            UiKit.Place(listBox, (w - listW) * 0.5f, listY, listW, listH);
             RectTransform content = PopupKit.ScrollList(listBox, "rows", UiKit.H("league_row_gap"), 0f, 0f);
             float rowH = UiKit.H("league_row_h") * 1.1f;
             for (int i = start; i < Mathf.Min(board.Count, start + 8); i++)

@@ -376,6 +376,7 @@
     { "key": "league_bar_h", "value": 0.0257, "_": "2.57%H" },
     { "key": "league_list_w", "value": 0.82, "_": "목록 82%W" },
     { "key": "league_row_h", "value": 0.0636, "_": "행 6.36%H" },
+    { "key": "league_list_max_h", "value": 0.542, "_": "T388 — 정본 2320 `.league-list { max-height: calc(var(--app-h) * .542); overflow-y: auto }` · 종전 클론은 발 밴드까지 채웠다(1회차 실측 53.9%H · 우연히 상한 안) — 이제 min(바닥까지, 상한)" },
     { "key": "league_row_gap", "value": 0.0112, "_": "행 간격 10px/892" },
     { "key": "league_score_w", "value": 0.187, "_": "점수 pill 18.7%W" },
     { "key": "league_score_h", "value": 0.0257, "_": "2.57%H" },

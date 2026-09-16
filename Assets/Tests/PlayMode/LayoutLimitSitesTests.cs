@@ -93,6 +93,36 @@ namespace Forge.Tests.PlayMode
         /// 정본은 반대다 — `.fl-card` 에 높이 선언이 **없고** 상한은 **안쪽 목록**이 쥔다. 그래서 목록이 상한에서 잘리는가와
         /// **카드도 그만큼 줄었는가**(안 줄이면 카드 아래에 정본에 없는 빈 자리가 남는다)를 같이 본다.
         /// </summary>
+        /// <summary>T388 8회차 — 정본 2320 `.league-list { max-height: calc(var(--app-h) * .542) }`. 클론은 발 밴드까지 채워 53.9%H 였다(1회차 실측 · 우연히 상한 안) —
+        /// 이제 상한을 표에서 읽어 잠근다. 이 자는 «표 = 정본 값» · «목록 ≤ 상한» · «목록이 발 밴드 위끝을 안 넘는다(바닥 채우기 몫도 그대로)» 를 잰다.</summary>
+        [UnityTest]
+        public IEnumerator 리그_랭킹_목록은_표_league_list_max_h_를_안_넘는다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            LeagueSheet.Open(h);
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = PopupLayer.Instance.Find(LeagueSheet.Name);
+            Assert.IsNotNull(p, "리그 시트");
+            Transform sheet = Find(p.Root, "sheet");
+            Assert.IsNotNull(sheet, "시트 판(sheet)");
+            RectTransform list = Find(sheet, "list") as RectTransform;
+            Assert.IsNotNull(list, "랭킹 목록(list)");
+            Assert.AreEqual(0.542f, UiKit.L("league_list_max_h"), 1e-6f, "표 = 정본 2320 .542");
+            float cap = UiKit.H("league_list_max_h");
+            float lh = list.rect.height;
+            Assert.LessOrEqual(lh, cap + 0.5f, "목록이 정본 상한 .542H 를 넘지 않는다 · 실측 " + (lh / UiKit.RefH).ToString("0.000") + "H");
+            // 발 밴드(league_foot_top) 위끝 − .3rem 까지가 종전 «바닥 채우기» — 상한이 그보다 크면 종전 값 그대로라 여기서도 안 넘어야 한다
+            float footTop = UiKit.L("league_foot_top") * UiKit.RefH;
+            float listBottom = -list.anchoredPosition.y + lh;   // UiKit.Place 좌상단 앵커
+            Assert.LessOrEqual(listBottom, footTop - PopupKit.Rem * 0.3f + 0.5f, "목록 아래끝이 발 밴드 위끝(−.3rem)을 넘지 않는다");
+            Debug.Log("[T388] 리그 목록 " + (lh / UiKit.RefH * 100f).ToString("0.00") + "%H · 상한 54.20%H · 발 밴드 " + (UiKit.L("league_foot_top") * 100f).ToString("0.00") + "%H");
+            LeagueSheet.Close(h);
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator 장비_목록의_안쪽_목록은_표_fl_list_max_h_f_를_안_넘고_카드도_그만큼_줄어든다()
         {
