@@ -248,12 +248,7 @@ namespace Forge.Game.Ui
                 LeagueRewardTier t = tiers[i];
                 var r = h.League.RewardForRank(t.Rank);
                 RectTransform row = PopupKit.Item(rows, "tier-" + t.Rank, -1f, tierH);
-                if (i > 0)
-                {
-                    Image line = UiKit.Line(row, "dash", "pp_line", PopupKit.Line, true);
-                    line.rectTransform.offsetMin = new Vector2(rem * 0.5f, 0f);
-                    line.rectTransform.offsetMax = new Vector2(-rem * 0.5f, 0f);
-                }
+                if (i > 0) TierDash(row);   // T368 5회차 — 정본 2548 `.league-reward-tier` 단 사이 대시 줄(`:first-child` 는 없음 · 전엔 이름만 dash 인 실선)
                 RectTransform rk = UiKit.Box(row, "rank");
                 UiKit.Place(rk, rem * 1.1f, 0f, rankW, tierH);
                 if (t.Rank <= 3)
@@ -276,6 +271,26 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>재화 6종 3열 pill 격자(원작 leagueRewardGrid).</summary>
+        /// <summary>정본 2548~2555 `.league-reward-tier { background-image: repeating-linear-gradient(to right, var(--pp-line) 0 .0323W, transparent .0323W .0625W);
+        /// background-size: 100% 2px; background-position: 0 0 }` — 단(tier) 행 위끝에 왼쪽 끝부터 꽉 차는 대시 줄. 표 `SurfaceUi.json` `stripes.league_tier_dash`
+        /// (주기·대시 = 앱 폭 비율 · 두께 = CSS px) · 한 주기를 구워 Tiled 로 되풀이한다(T368 3회차 소환 바 대시와 같은 길).</summary>
+        public static Image TierDash(RectTransform row)
+        {
+            const string key = "league_tier_dash";
+            float period = SurfaceArt.StripeNum(key, "period_w", 0f) * UiKit.RefW;
+            float dash = SurfaceArt.StripeNum(key, "dash_w", 0f) * UiKit.RefW;
+            float h = Mathf.Max(1f, SurfaceArt.StripeNum(key, "band_css_px", 2f) * KeylineUi.CssPx);
+            RectTransform rt = UiKit.Box(row, "dash");
+            rt.SetAsFirstSibling();                                   // background — 행의 다른 조각보다 뒤
+            rt.anchorMin = new Vector2(0f, 1f); rt.anchorMax = new Vector2(1f, 1f); rt.pivot = new Vector2(0f, 1f);
+            rt.offsetMin = new Vector2(0f, -h); rt.offsetMax = new Vector2(0f, 0f);   // position 0 0 · size 100% 2px
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.type = Image.Type.Tiled;
+            img.sprite = SurfaceArt.BakeStripe(key, period, dash, 0f, h);   // phase 0 — 왼쪽 끝이 대시 시작
+            return img;
+        }
+
         private static void RewardGrid(RectTransform grid, Forge.Core.Data.OrderedMap<double> r, float gw, float rowH, string pillKey, string inkKey, string wrapKey)
         {
             float rem = PopupKit.Rem;
