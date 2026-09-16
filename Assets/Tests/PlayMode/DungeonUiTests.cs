@@ -265,8 +265,10 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0.15f, TechStyle.L("tn_lv_margin_left_rem"), 1e-6f, "표 = 정본 3695 .15rem");
             Assert.AreEqual(want, lvl.anchoredPosition.x, 1f, "레벨은 이름 잉크 바로 뒤 + 표 틈 · 실측 " + lvl.anchoredPosition.x + " · 기대 " + want);
             // ⓒ 총합은 그 **바로 아래** 한 줄 — 세 줄이면 이 거리가 두 줄만큼이다.
-            float drop = main.anchoredPosition.y - name.anchoredPosition.y;
-            Assert.Greater(drop, 0f, "총합은 이름 아래(유니티 Place 는 위에서 아래로 +y)");
+            //   ⚠ `UiKit.Place(rt, x, yTop, …)` 는 `anchoredPosition.y = -yTop` 다(피벗 좌상단) — **아래로 갈수록 y 가 작아진다**.
+            //   2회차가 이 부호를 거꾸로 적어 런 872 에서 «기대 >0 · 실측 −50» 으로 넘어졌다(배치는 맞았다 · −50 = 딱 한 줄).
+            float drop = name.anchoredPosition.y - main.anchoredPosition.y;
+            Assert.Greater(drop, 0f, "총합이 이름보다 위다 · 실측 " + drop);
             Assert.Less(drop, name.rect.height * 1.5f, "총합이 이름에서 두 줄 아래다 — 가운데 한 줄(레벨)이 아직 끼어 있다 · 실측 " + drop);
 
             TechPopups.Close();
