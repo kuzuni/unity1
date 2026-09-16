@@ -60,6 +60,52 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T432 — 정본 **3060** `.profile-rank-row .btn { width: calc(var(--app-w) * .2177 + 6.6px) }` · 바로 위 주석(3058)이 «**+6.6px 는 키라인 몫**» 이라 적어 둔다.
+        /// 곧 표값 `.2177` 은 **파랑 채움** 폭(원작 042724 실측 108px)이고 상자는 그보다 키라인 두 겹만큼 넓다.
+        /// 이 칸은 **무엇의 폭인가** 를 묻는다: 면(`face`) 폭 = `RefW × .2177` · 상자 폭 = 그것 + `line3_px × 2` · 두 채움 사이 텀은 안 움직인다.
+        /// 카너스 지역 단위(`rect`)로 재다 — 표값과 같은 기준 px 단위라 되돌릴 것이 없다(결정 729).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 랭킹_버튼은_표값이_상자가_아니라_파랑_채움_폭이다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            ProfilePopup.Open(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+            Popup p = h.Popups.Find(ProfilePopup.Name);
+            Assert.IsNotNull(p, "프로필 팝업");
+            RectTransform b1 = null, b2 = null;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name == "power-rank") b1 = rt; else if (rt.name == "clan-rank") b2 = rt;
+            }
+            Assert.IsNotNull(b1, "파워 랭킹 버튼(power-rank)");
+            Assert.IsNotNull(b2, "클랜 랭킹 버튼(clan-rank)");
+            RectTransform f1 = (RectTransform)b1.Find("face"), f2 = (RectTransform)b2.Find("face");
+            Assert.IsNotNull(f1, "파랑 면(face)");
+            Assert.IsNotNull(f2, "둘째 버튼의 면");
+
+            float want = UiKit.RefW * UiKit.L("profile_rank_btn_w");
+            Assert.AreEqual(0.2177f, UiKit.L("profile_rank_btn_w"), 1e-6f, "표값은 정본 3060 그대로 .2177 — 이 절은 값이 아니라 «무엇의 폭인가» 를 고친다");
+            Assert.AreEqual(want, f1.rect.width, 1f,
+                "파랑 채움 폭 = 앱 폭 × .2177(정본의 «원본 채움 108px») · 실측 " + f1.rect.width.ToString("0.0"));
+            Assert.AreEqual(want + PopupKit.Line3 * 2f, b1.rect.width, 1f,
+                "상자 폭 = 채움 + 키라인 두 겹(정본의 +6.6px) · 실측 " + b1.rect.width.ToString("0.0"));
+            Assert.AreEqual(f1.rect.width, f2.rect.width, 0.5f, "두 버튼의 채움은 같다");
+
+            // 틈은 안 움직인다: 정본의 «채움 사이 16px» = `gap: .5rem` + 키라인 두 겹. 상자 틈은 그대로 `.5rem` 이어야 한다.
+            // ⚠ 한 자에서 **세계 좌표(`position`)와 캐너스 지역 치수(`rect`)를 섞지 않는다**(결정 729) — 둘 다 지역 단위인 `anchoredPosition`·`rect` 로만 잰다.
+            float boxGap = b2.anchoredPosition.x - (b1.anchoredPosition.x + b1.rect.width);
+            Assert.AreEqual(PopupKit.Rem * 0.5f, boxGap, 1f,
+                "상자 틈은 .5rem 그대로다 — 폭을 넓혔다고 틈까지 밀리면 정본의 «틈 16px» 이 깨진다 · 실측 " + boxGap.ToString("0.0") + "px");
+            Debug.Log("[T432] 채움 " + f1.rect.width.ToString("0.0") + "px · 상자 " + b1.rect.width.ToString("0.0") + "px · 표 " + want.ToString("0.0"));
+            ProfilePopup.Close(h);
+            yield return null;
+        }
+
         /// <summary>T395 2회차 — 리그 보상 카드도 같다: 정본 `.lgr-overlay .idet-wrap { top: .76rem }` 은 CSS 보정값이라 옮기지 않는다.
         /// 종전 `rem * 0.76f` 는 PopupKit.Card 에서 «양수 = 위» 라 부호까지 반대로 베껴져 카드가 원작보다 1%p 위였다(런 754: 18.23 ↔ 원작 19.21%H).</summary>
         [UnityTest]

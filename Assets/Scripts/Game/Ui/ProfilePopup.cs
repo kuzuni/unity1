@@ -147,7 +147,11 @@ namespace Forge.Game.Ui
             rankL.fontStyle = FontStyles.Bold;
             UiKit.Place(rankL.rectTransform, 0f, y, inner, labelH);
             y += labelH + rem * 0.35f;
-            float bw = UiKit.L("profile_rank_btn_w") * w, bh = UiKit.H("btn_h");
+            // T432 — 정본 3060 `.profile-rank-row .btn { width: calc(var(--app-w) * .2177 + 6.6px) }` · 그 위 주석(3058)이 «+6.6px 는 **키라인 몫**» 이라 적어 둔다.
+            //   곧 표값 `.2177` 은 **파랑 채움** 폭(원작 042724 실측 108px)이지 상자 폭이 아니다. `PopupKit.Btn` 은 테(`line`) 안에 면(`face`)을 `Line3` 만큼 들여 그리므로,
+            //   상자에 `.2177` 을 그대로 주면 채움이 키라인 두 겹만큼 안으로 먹힌다 — 런 968 실측 **111px**(기대 117.6 · −6.6 = `line3_px` × 2).
+            //   틈은 안 움직인다: 정본의 «틈 16px» 도 `gap: .5rem` + 키라인 두 겹이고 클론도 같은 셈이다.
+            float bw = UiKit.L("profile_rank_btn_w") * w + PopupKit.Line3 * 2f, bh = UiKit.H("btn_h");
             float bx = (inner - bw * 2f - rem * 0.5f) * 0.5f;
             Button r1 = PopupKit.Btn(card, "power-rank", "파워 랭킹", "pp_blue", "pp_blue_dk", () => h.OpenStub("파워 랭킹", "서버 내 전투력 랭킹은 준비 중입니다."), bw, bh, "stage_ink", TextKind.Sub);
             UiKit.Place(r1.GetComponent<RectTransform>(), bx, y, bw, bh);
