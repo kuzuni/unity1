@@ -501,6 +501,9 @@ namespace Forge.Game.Ui
             double size = s.AnchorRem * rem, border = s.AnchorBorderRem * rem, ico = s.AnchorIcoRem * rem;
             RectTransform an = UiKit.Box(Layer, "rw-anchor");
             Center(an, t.X, t.Y, size, size);
+            // T331 26회차 — 정본 7540 의 **둘째 겹** `0 2px 4px rgba(0,0,0,.45)`(첫 겹 `0 0 .55rem` 노랑은 빛 갈래라 이 표가 아니다).
+            //   동그란 배지라 그늘의 모서리는 반지름 = 지름의 절반이다(원판이라 `RadiusOf` 로 못 되읽는다).
+            UiShadow.Drop(an, "rwanchor_drop", (float)(size * 0.5));
             Image ring = UiKit.Circle(an, "border", "coin"); ring.color = RewardBurstStyle.C("anchor_border"); ring.raycastTarget = false; UiKit.Fill(ring.rectTransform);
             Image bg = UiKit.Circle(an, "bg", "coin"); bg.color = RewardBurstStyle.C("anchor_bg"); bg.raycastTarget = false;
             UiKit.Fill(bg.rectTransform); bg.rectTransform.offsetMin = new Vector2((float)border, (float)border); bg.rectTransform.offsetMax = new Vector2(-(float)border, -(float)border);

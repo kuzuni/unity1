@@ -54,6 +54,7 @@ SPOTS = [
     # 26회차 — 자동 제련 팝업 한 파일에 몰린 둘(손잡이 `.af-toggle .knob` 은 공장이 `Popups.cs` 라 남의 lock 뒤다)
     ('afspinner_lip', '.af-spinner',                   5007, 'hard'),
     ('afsubrow_drop', '.af-sub-row',                   4999, 'blur'),
+    ('rwanchor_drop', '.rw-anchor',                   7540, 'blur'),   # 같은 선언의 첫 겹은 빛 갈래다(26회차)
 ]
 
 # 아직 안 선 자리 — 까닭과 «누가/언제» 를 같이 적는다. 서면 이 줄을 지운다(안 지우면 자가 알린다).

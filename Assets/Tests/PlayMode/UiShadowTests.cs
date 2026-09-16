@@ -270,6 +270,35 @@ namespace Forge.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator 보상_앵커_배지도_제_그늘을_진다()
+        {
+            yield return Boot();
+            // 정본 7540 `.rw-anchor` 는 겹이 둘이다 — 노란 발광(빛 갈래)과 검정 그늘 `0 2px 4px rgba(0,0,0,.45)`.
+            // 이 축이 받는 것은 뒤엣것 하나다. 배지는 «도착 pill 이 가려졌을 때만» 서므로 시트를 열어 가린다.
+            MetaHost h = MetaHost.Instance;
+            QuestSheet.Open(h);
+            yield return null;
+            var rewards = new System.Collections.Generic.Dictionary<string, double>();
+            rewards["coins"] = 1000;
+            RewardBurst.Play(rewards, UiRoot.Instance.App);
+            yield return null;
+            RectTransform an = null;
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+                if (rt.name == "rw-anchor") { an = rt; break; }
+            Assert.IsNotNull(an, "앵커 배지가 안 섰다(시트가 코인 pill 을 안 가렸다면 이 자는 뜻이 없다)");
+
+            Transform sh = UiShadow.Find(an, "rwanchor_drop");
+            Assert.IsNotNull(sh, "앵커 배지의 그늘이 없다");
+            Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 테두리·바탕보다 뒤에 깔린다");
+            Assert.IsNotNull(sh.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
+            // 정본이 이 자리만 px 로 적었다 — 16px 기준으로 옮긴 값이 표에 있다.
+            Assert.AreEqual(0.125, UiShadow.Table.Get("rwanchor_drop").DyRem, 1e-9, "2px → .125rem");
+            Assert.AreEqual(0.25, UiShadow.Table.Get("rwanchor_drop").BlurRem, 1e-9, "4px → .25rem");
+            QuestSheet.Close(h);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator 탭_패널의_턱은_위로_뜬다()
         {
             yield return Boot();
@@ -318,7 +347,7 @@ namespace Forge.Tests.PlayMode
             int hard = 0, soft = 0;
             foreach (string k in UiShadow.Table.Keys) { if (UiShadow.Table.Get(k).IsHard) hard++; else soft++; }
             Assert.AreEqual(6, hard);
-            Assert.AreEqual(8, soft);
+            Assert.AreEqual(9, soft);
         }
     }
 }
