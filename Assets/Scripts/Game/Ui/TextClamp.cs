@@ -73,10 +73,30 @@ namespace Forge.Game.Ui
             return t.fontSize * f;
         }
 
-        /// <summary>그 자리의 글자 상자 높이 = 줄 수 × 실제 줄높이 × (1 + 여유) — Ellipsis 는 «상자 안에 든 줄» 까지만 그리므로 높이가 곧 클램프다.</summary>
+        /// <summary>
+        /// 그 글자의 **줄과 줄 사이 내려감**(pitch · px) — 첫 줄이 먹는 <see cref="LineHeight"/>(face)와 다르다.
+        /// TMP 는 «자산 줄높이 × baseScale + <c>lineSpacing</c> × em/100» 으로 내려가므로 pitch = (face비율 + lineSpacing/100) × 글자 크기다.
+        /// 줄높이를 안 건드린 글자는 <c>lineSpacing</c> 이 0 이라 pitch = face 로 종전과 같다(T423 1회차).
+        /// </summary>
+        public static float Pitch(TMP_Text t)
+        {
+            if (t == null) throw new ArgumentNullException("t");
+            return LineHeight(t) + t.lineSpacing * 0.01f * t.fontSize;
+        }
+
+        /// <summary>
+        /// 그 자리의 글자 상자 높이 — **첫 줄은 face, 둘째 줄부터 pitch**: `face + (줄 수 − 1) × pitch`, 거기에 여유를 곱한다.
+        ///
+        /// ⚠ 종전 셈은 `줄 수 × face` 였다. 줄높이를 표에서 받는 자리(T354)가 늘면서 그 둘이 갈라졌다 —
+        /// CSS 줄상자는 «`line-height` × 줄 수» 지만 **TMP 의 첫 줄은 pitch 가 아니라 face(NotoSansKR 1.448em)를 먹는다**.
+        /// 그래서 정본이 «두 줄이 딱 드는 높이» 로 적어 둔 값(`.sr-name` 2.36em = 1.18 × 2)을 그대로 상자에 주면
+        /// TMP 는 둘째 줄을 통째로 버린다(필요 높이 = 1.448 + 1.18 = 2.628em · T423 등재 실측).
+        /// 한 줄 자리(`lines: 1`)와 줄높이를 안 건 자리는 값이 **종전과 같다**.
+        /// </summary>
         public static float BoxHeight(TMP_Text t, string site)
         {
-            return Lines(site) * LineHeight(t) * (1f + SlackF());
+            int n = Lines(site);
+            return (LineHeight(t) + (n - 1) * Pitch(t)) * (1f + SlackF());
         }
 
         /// <summary>정본의 자르기 규칙을 건다: 한 줄이면 NoWrap + Ellipsis · 여러 줄이면 Normal(줄바꿈) + Ellipsis(상자 밖 줄은 버리고 …).</summary>

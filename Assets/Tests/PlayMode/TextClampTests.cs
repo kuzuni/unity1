@@ -125,6 +125,50 @@ namespace Forge.Tests.PlayMode
             finally { Object.Destroy(host.gameObject); }
         }
 
+        /// <summary>T423 1회차 — **줄높이를 표에서 받은**(T354) 두 줄 자리도 상자가 둘째 줄을 담는가.
+        /// CSS 줄상자는 «`line-height` × 줄 수» 지만 **TMP 의 첫 줄은 pitch 가 아니라 face(NotoSansKR 1.448em)를 먹는다** —
+        /// 정본 `.sr-name` 이 «두 줄이 딱 드는 높이» 로 적어 둔 2.36em(= 1.18 × 2)을 그대로 주면 TMP 는 둘째 줄을 통째로 버린다.
+        /// 그래서 <see cref="TextClamp.BoxHeight"/> 는 `face + (줄 수 − 1) × pitch` 로 잰다.</summary>
+        [UnityTest]
+        public IEnumerator 줄높이를_표에서_받은_두_줄_자리도_상자가_둘째_줄을_담는다()
+        {
+            yield return Boot();
+            RectTransform host = UiKit.Box(UiRoot.Instance.App, "t423-host");
+            try
+            {
+                float w = PopupKit.Rem * 6f;
+                UiKit.Place(host, 0f, 0f, w, PopupKit.Rem * 6f);
+                TextMeshProUGUI t = UiKit.Text(host, "t423-sr-name", TextKind.Sub, LongName, "pp_ink", TextAlignmentOptions.TopLeft);
+                TextClamp.Apply(t, "sr_name");
+                double r = LineHeight.Apply(t, "sr_name_lh");           // 정본 7033 `.sr-name { line-height: 1.18 }`
+                Assert.AreEqual(1.18, LineHeight.Table.Get("sr_name_lh"), 1e-9, "정본 7033 — 표가 그 값을 쥔다");
+
+                float face = TextClamp.LineHeight(t), pitch = TextClamp.Pitch(t);
+                Assert.AreEqual((float)(r * t.fontSize), pitch, 0.05f, "pitch = 표 배수 × 글자 크기(TMP lineSpacing 은 em/100)");
+                Assert.Less(pitch, face, "정본 1.18 은 글꼴 face 1.448 보다 좁다 — 그래서 둘이 갈린다");
+
+                float want = (face + pitch) * (1f + TextClamp.SlackF());
+                Assert.AreEqual(want, TextClamp.BoxHeight(t, "sr_name"), 0.05f, "첫 줄은 face · 둘째 줄부터 pitch");
+                float old = 2f * face * (1f + TextClamp.SlackF());
+                Assert.AreNotEqual(old, TextClamp.BoxHeight(t, "sr_name"), "종전 셈(줄 수 × face)과는 다른 값이라야 이 회차가 뜻이 있다");
+
+                UiKit.Place(t.rectTransform, 0f, 0f, w, TextClamp.BoxHeight(t, "sr_name"));
+                yield return null;
+                t.ForceMeshUpdate();
+                Assert.AreEqual(2, t.textInfo.lineCount, "줄높이를 건 뒤에도 두 줄이 그려진다(-webkit-line-clamp: 2)");
+                Assert.IsTrue(HasEllipsis(t), "둘째 줄 끝에 …(U+2026)");
+                Debug.Log("[T423] face " + face.ToString("0.0") + "px · pitch " + pitch.ToString("0.0")
+                    + "px · 상자 " + TextClamp.BoxHeight(t, "sr_name").ToString("0.0") + "px(종전 셈이면 " + old.ToString("0.0") + "px)");
+
+                // 한 줄 자리는 값이 그대로다 — 이 회차가 바꾼 것은 «둘째 줄부터» 뿐이다.
+                TextMeshProUGUI one = UiKit.Text(host, "t423-one", TextKind.Sub, "망령의 활", "pp_ink", TextAlignmentOptions.TopLeft);
+                TextClamp.Apply(one, "profile_field");
+                Assert.AreEqual(TextClamp.LineHeight(one) * (1f + TextClamp.SlackF()), TextClamp.BoxHeight(one, "profile_field"), 0.01f,
+                    "한 줄 자리는 face × (1 + 여유) 그대로");
+            }
+            finally { Object.Destroy(host.gameObject); }
+        }
+
         /// <summary>자리 배선 — 프로필 이름 칸(정본 3052 `.profile-field` 한 줄 말줄임): 닉네임은 12자 상한(ui.js 5066)이라 넓은 글자 12자로 채워 본다.</summary>
         [UnityTest]
         public IEnumerator 프로필_이름_칸은_한_줄_말줄임_규칙을_걸고_두_줄로_꺾이지_않는다()
