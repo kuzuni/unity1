@@ -1533,6 +1533,20 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             a, b = oband.get(n), bands.get(n)
             return u"" if a is None or b is None or a == b else u" · 밴드 %d → %d(자가 다르게 쪼갰다)" % (a, b)
 
+        # ── 전역 손질 알림(T28 86회차 · 결정 712) ──────────────────────────
+        # 자는 «내려간 화면» 을 «깬 사람을 찾으라» 로 올린다. 그런데 글자 자간·색 토큰처럼
+        # **모든 화면을 한꺼번에** 바꾸는 손질이 들면 그 말이 사람을 엉뚱한 데로 보낸다 —
+        # 85회차가 실제로 그랬다: `offline` −2.4 · `league-challenge` −1.2 를 «깨졌다» 로 올렸는데
+        # 두 화면 다 **글자 폭이 원작에 붙은** 옳은 고침이었다(T352 `boldSpacing 0`).
+        # 86회차 전수: 그 런에서 **35 화면 전부**가 달라졌다(11~88% 줄). 그래서 먼저 그 사실을 찍는다.
+        moved = [n for n, _v in scores
+                 if obase.get(n) and fps.get(n) and max(fp_diff(obase.get(n), fps.get(n))) >= 0.5]
+        if scores and len(moved) >= max(3, len(scores) * 0.5):
+            print(u"⚠ **이번 런은 전역 손질이다** — 화면 %d/%d 의 그림이 움직였다(지문 차 0.5 이상). "
+                  u"내려간 화면을 곧장 «깬 사람» 으로 읽지 마라: 글자 자간·색 토큰·테 두께처럼 "
+                  u"**모든 화면을 한꺼번에 바꾸는 값**이 움직였는지 먼저 본다(T28 85·86회차 · 결정 712)."
+                  % (len(moved), len(scores)))
+
         hard, soft = [], []
         for t in drops:
             n = t[0]
@@ -1827,6 +1841,13 @@ def self_test():
     # ⑩-b 낡은 샷 화면 표: 이름마다 까닭이 있고, 그 화면은 «다음 볼 화면» 정렬에서 맨 뒤로 간다(T28 81회차)
     chk(bool(STALE_SCREENS) and all(isinstance(k, type(u"")) and v for k, v in STALE_SCREENS.items()),
         u"낡은 샷 화면 %d개가 이름·까닭 꼴로 살아 있다" % len(STALE_SCREENS))
+
+    # ⑩-c 전역 손질 알림: 반수 이상의 화면이 움직이면 «깨진 화면 하나» 로 읽지 않는다(결정 712)
+    def _global_call(nscreens, nmoved):
+        return nmoved >= max(3, nscreens * 0.5)
+    chk(_global_call(30, 30) and _global_call(30, 15) and not _global_call(30, 14)
+        and not _global_call(4, 2) and _global_call(6, 3),
+        u"전역 손질 알림은 **반수 이상**(최소 셋)이 움직였을 때만 된다")
     _ceil = {u"a": 5.0, u"b": 5.0}
     _sc = [(u"a", 1.0), (u"b", 4.0)]          # a 가 훨씬 낮지만 a 를 낡은 샷으로 치면
     def _r(t, stale):
