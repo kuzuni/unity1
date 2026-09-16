@@ -1,0 +1,2 @@
+# T151 — 런 #740 (145dc5d606a646d19a659716dfbc48f8021c3941) · editmode 의 결과 XML 이 없다 · 에디터 로그 unity-test-results/editmode.log
+# 로그 파일도 없다(또는 0바이트) — 러너가 이 모드의 에디터를 띄우지도 않았다. unity-test-results/ 에 있는 것: 

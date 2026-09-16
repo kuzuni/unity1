@@ -1,0 +1,1748 @@
+# T174 — 진짜 유니티가 찍은 공개 표면. `tools/check_stub_sigs.py` 가 이것을 받아 스텁과 견준다.
+# fmt 2
+# 한 줄: «T\t<타입>[\tnotfound]» · «M\t<메서드>\t<줄인 매개변수>» · «P\t<속성·필드>»
+# 유니티 6000.3.8f1
+T	TMPro.TMP_FontAsset
+M	CreateFontAsset	string,string,int=
+M	CreateFontAsset	string,int,int,int,glyphrendermode,int,int
+M	CreateFontAsset	font
+M	CreateFontAsset	font,int,int,glyphrendermode,int,int,atlaspopulationmode=,bool=
+M	ReadFontAssetDefinition	
+M	HasCharacter	int
+M	HasCharacter	char,bool=,bool=
+M	HasCharacters	string,list<char>
+M	HasCharacters	string,uint[],bool=,bool=
+M	HasCharacters	string
+M	GetCharacters	tmp_fontasset
+M	GetCharactersArray	tmp_fontasset
+M	TryAddCharacters	uint[],bool=
+M	TryAddCharacters	uint[],uint[],bool=
+M	TryAddCharacters	string,bool=
+M	TryAddCharacters	string,string,bool=
+M	ClearFontAssetData	bool=
+M	SetDirty	
+M	CreateInstance	string
+M	CreateInstance	type
+M	CreateInstance	
+M	GetEntityId	
+M	GetInstanceID	
+M	GetHashCode	
+M	Equals	object
+M	InstantiateAsync	t
+M	InstantiateAsync	t,transform
+M	InstantiateAsync	t,vector3,quaternion
+M	InstantiateAsync	t,transform,vector3,quaternion
+M	InstantiateAsync	t,int
+M	InstantiateAsync	t,int,transform
+M	InstantiateAsync	t,int,vector3,quaternion
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,vector3,quaternion
+M	InstantiateAsync	t,int,transform,vector3,quaternion,cancellationtoken
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>,cancellationtoken
+M	InstantiateAsync	t,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>,instantiateparameters,cancellationtoken=
+M	Instantiate	object,vector3,quaternion
+M	Instantiate	object,vector3,quaternion,transform
+M	Instantiate	object
+M	Instantiate	object,scene
+M	Instantiate	t,instantiateparameters
+M	Instantiate	t,vector3,quaternion,instantiateparameters
+M	Instantiate	object,transform
+M	Instantiate	object,transform,bool
+M	Instantiate	t
+M	Instantiate	t,vector3,quaternion
+M	Instantiate	t,vector3,quaternion,transform
+M	Instantiate	t,transform
+M	Instantiate	t,transform,bool
+M	Destroy	object,float
+M	Destroy	object
+M	DestroyImmediate	object,bool
+M	DestroyImmediate	object
+M	FindObjectsOfType	type
+M	FindObjectsOfType	type,bool
+M	FindObjectsByType	type,findobjectssortmode
+M	FindObjectsByType	type,findobjectsinactive,findobjectssortmode
+M	DontDestroyOnLoad	object
+M	DestroyObject	object,float
+M	DestroyObject	object
+M	FindSceneObjectsOfType	type
+M	FindObjectsOfTypeIncludingAssets	type
+M	FindObjectsOfType	
+M	FindObjectsByType	findobjectssortmode
+M	FindObjectsOfType	bool
+M	FindObjectsByType	findobjectsinactive,findobjectssortmode
+M	FindObjectOfType	
+M	FindObjectOfType	bool
+M	FindFirstObjectByType	
+M	FindAnyObjectByType	
+M	FindFirstObjectByType	findobjectsinactive
+M	FindAnyObjectByType	findobjectsinactive
+M	FindObjectsOfTypeAll	type
+M	FindObjectOfType	type
+M	FindFirstObjectByType	type
+M	FindAnyObjectByType	type
+M	FindObjectOfType	type,bool
+M	FindFirstObjectByType	type,findobjectsinactive
+M	FindAnyObjectByType	type,findobjectsinactive
+M	ToString	
+M	Equals	object,object
+M	GetType	
+M	ReferenceEquals	object,object
+P	creationSettings
+P	sourceFontFile
+P	atlasPopulationMode
+P	glyphTable
+P	glyphLookupTable
+P	characterTable
+P	characterLookupTable
+P	atlasTexture
+P	atlasTextures
+P	atlasTextureCount
+P	isMultiAtlasTexturesEnabled
+P	getFontFeatures
+P	atlasWidth
+P	atlasHeight
+P	atlasPadding
+P	atlasRenderMode
+P	fontFeatureTable
+P	fallbackFontAssetTable
+P	fontWeightTable
+P	fontInfo
+P	version
+P	instanceID
+P	hashCode
+P	faceInfo
+P	material
+P	materialHashCode
+P	name
+P	hideFlags
+P	normalStyle
+P	normalSpacingOffset
+P	boldStyle
+P	boldSpacing
+P	italicStyle
+P	tabSize
+P	atlas
+T	TMPro.TMP_TextInfo
+M	ClearMeshInfo	bool
+M	ClearAllMeshInfo	
+M	ResetVertexLayout	bool
+M	ClearUnusedVertices	materialreference[]
+M	CopyMeshInfoVertexData	
+M	Resize	t[],int
+M	Resize	t[],int,bool
+M	Equals	object
+M	Equals	object,object
+M	GetHashCode	
+M	GetType	
+M	ToString	
+M	ReferenceEquals	object,object
+P	textComponent
+P	characterCount
+P	spriteCount
+P	spaceCount
+P	wordCount
+P	linkCount
+P	lineCount
+P	pageCount
+P	materialCount
+P	characterInfo
+P	wordInfo
+P	linkInfo
+P	lineInfo
+P	pageInfo
+P	meshInfo
+T	TMPro.TMP_Text
+M	ForceMeshUpdate	bool=,bool=
+M	UpdateGeometry	mesh,int
+M	UpdateVertexData	tmp_vertexdataupdateflags
+M	UpdateVertexData	
+M	SetVertices	vector3[]
+M	UpdateMeshPadding	
+M	CrossFadeColor	color,float,bool,bool
+M	CrossFadeAlpha	float,float,bool
+M	SetText	string
+M	SetText	string,bool=
+M	SetText	string,float
+M	SetText	string,float,float
+M	SetText	string,float,float,float
+M	SetText	string,float,float,float,float
+M	SetText	string,float,float,float,float,float
+M	SetText	string,float,float,float,float,float,float
+M	SetText	string,float,float,float,float,float,float,float
+M	SetText	string,float,float,float,float,float,float,float,float
+M	SetText	stringbuilder
+M	SetText	char[]
+M	SetText	char[],int,int
+M	SetCharArray	char[]
+M	SetCharArray	char[],int,int
+M	GetPreferredValues	
+M	GetPreferredValues	float,float
+M	GetPreferredValues	string
+M	GetPreferredValues	string,float,float
+M	GetRenderedValues	
+M	GetRenderedValues	bool
+M	GetTextInfo	string
+M	ComputeMarginSize	
+M	ClearMesh	
+M	ClearMesh	bool
+M	GetParsedText	
+M	GetModifiedMaterial	material
+M	Cull	rect,bool
+M	SetClipRect	rect,bool
+M	SetClipSoftness	vector2
+M	ParentMaskStateChanged	
+M	RecalculateClipping	
+M	RecalculateMasking	
+M	Raycast	vector2,camera
+M	SetAllDirty	
+M	SetLayoutDirty	
+M	SetVerticesDirty	
+M	SetMaterialDirty	
+M	SetRaycastDirty	
+M	OnCullingChanged	
+M	Rebuild	canvasupdate
+M	LayoutComplete	
+M	GraphicUpdateComplete	
+M	OnRebuildRequested	
+M	SetNativeSize	
+M	PixelAdjustPoint	vector2
+M	GetPixelAdjustedRect	
+M	CrossFadeColor	color,float,bool,bool,bool
+M	RegisterDirtyLayoutCallback	unityaction
+M	UnregisterDirtyLayoutCallback	unityaction
+M	RegisterDirtyVerticesCallback	unityaction
+M	UnregisterDirtyVerticesCallback	unityaction
+M	RegisterDirtyMaterialCallback	unityaction
+M	UnregisterDirtyMaterialCallback	unityaction
+M	IsActive	
+M	IsDestroyed	
+M	IsInvoking	
+M	CancelInvoke	
+M	Invoke	string,float
+M	InvokeRepeating	string,float,float
+M	CancelInvoke	string
+M	IsInvoking	string
+M	StartCoroutine	string
+M	StartCoroutine	string,object
+M	StartCoroutine	ienumerator
+M	StartCoroutine_Auto	ienumerator
+M	StopCoroutine	ienumerator
+M	StopCoroutine	coroutine
+M	StopCoroutine	string
+M	StopAllCoroutines	
+M	print	object
+M	GetComponent	type
+M	GetComponent	
+M	TryGetComponent	type,component
+M	TryGetComponent	t
+M	GetComponent	string
+M	GetComponentInChildren	type,bool
+M	GetComponentInChildren	type
+M	GetComponentInChildren	bool
+M	GetComponentInChildren	
+M	GetComponentsInChildren	type,bool
+M	GetComponentsInChildren	type
+M	GetComponentsInChildren	bool
+M	GetComponentsInChildren	bool,list<t>
+M	GetComponentsInChildren	
+M	GetComponentsInChildren	list<t>
+M	GetComponentInParent	type,bool
+M	GetComponentInParent	type
+M	GetComponentInParent	bool
+M	GetComponentInParent	
+M	GetComponentsInParent	type,bool
+M	GetComponentsInParent	type
+M	GetComponentsInParent	bool
+M	GetComponentsInParent	bool,list<t>
+M	GetComponentsInParent	
+M	GetComponents	type
+M	GetComponents	type,list<component>
+M	GetComponents	list<t>
+M	GetComponents	
+M	GetComponentIndex	
+M	CompareTag	string
+M	CompareTag	taghandle
+M	SendMessageUpwards	string,object,sendmessageoptions
+M	SendMessageUpwards	string,object
+M	SendMessageUpwards	string
+M	SendMessageUpwards	string,sendmessageoptions
+M	SendMessage	string,object
+M	SendMessage	string
+M	SendMessage	string,object,sendmessageoptions
+M	SendMessage	string,sendmessageoptions
+M	BroadcastMessage	string,object,sendmessageoptions
+M	BroadcastMessage	string,object
+M	BroadcastMessage	string
+M	BroadcastMessage	string,sendmessageoptions
+M	GetEntityId	
+M	GetInstanceID	
+M	GetHashCode	
+M	Equals	object
+M	InstantiateAsync	t
+M	InstantiateAsync	t,transform
+M	InstantiateAsync	t,vector3,quaternion
+M	InstantiateAsync	t,transform,vector3,quaternion
+M	InstantiateAsync	t,int
+M	InstantiateAsync	t,int,transform
+M	InstantiateAsync	t,int,vector3,quaternion
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,vector3,quaternion
+M	InstantiateAsync	t,int,transform,vector3,quaternion,cancellationtoken
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>,cancellationtoken
+M	InstantiateAsync	t,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>,instantiateparameters,cancellationtoken=
+M	Instantiate	object,vector3,quaternion
+M	Instantiate	object,vector3,quaternion,transform
+M	Instantiate	object
+M	Instantiate	object,scene
+M	Instantiate	t,instantiateparameters
+M	Instantiate	t,vector3,quaternion,instantiateparameters
+M	Instantiate	object,transform
+M	Instantiate	object,transform,bool
+M	Instantiate	t
+M	Instantiate	t,vector3,quaternion
+M	Instantiate	t,vector3,quaternion,transform
+M	Instantiate	t,transform
+M	Instantiate	t,transform,bool
+M	Destroy	object,float
+M	Destroy	object
+M	DestroyImmediate	object,bool
+M	DestroyImmediate	object
+M	FindObjectsOfType	type
+M	FindObjectsOfType	type,bool
+M	FindObjectsByType	type,findobjectssortmode
+M	FindObjectsByType	type,findobjectsinactive,findobjectssortmode
+M	DontDestroyOnLoad	object
+M	DestroyObject	object,float
+M	DestroyObject	object
+M	FindSceneObjectsOfType	type
+M	FindObjectsOfTypeIncludingAssets	type
+M	FindObjectsOfType	
+M	FindObjectsByType	findobjectssortmode
+M	FindObjectsOfType	bool
+M	FindObjectsByType	findobjectsinactive,findobjectssortmode
+M	FindObjectOfType	
+M	FindObjectOfType	bool
+M	FindFirstObjectByType	
+M	FindAnyObjectByType	
+M	FindFirstObjectByType	findobjectsinactive
+M	FindAnyObjectByType	findobjectsinactive
+M	FindObjectsOfTypeAll	type
+M	FindObjectOfType	type
+M	FindFirstObjectByType	type
+M	FindAnyObjectByType	type
+M	FindObjectOfType	type,bool
+M	FindFirstObjectByType	type,findobjectsinactive
+M	FindAnyObjectByType	type,findobjectsinactive
+M	ToString	
+M	Equals	object,object
+M	GetType	
+M	ReferenceEquals	object,object
+P	text
+P	textPreprocessor
+P	isRightToLeftText
+P	font
+P	fontSharedMaterial
+P	fontSharedMaterials
+P	fontMaterial
+P	fontMaterials
+P	color
+P	alpha
+P	enableVertexGradient
+P	colorGradient
+P	colorGradientPreset
+P	spriteAsset
+P	tintAllSprites
+P	styleSheet
+P	textStyle
+P	overrideColorTags
+P	faceColor
+P	outlineColor
+P	outlineWidth
+P	fontSize
+P	fontWeight
+P	pixelsPerUnit
+P	enableAutoSizing
+P	fontSizeMin
+P	fontSizeMax
+P	fontStyle
+P	isUsingBold
+P	horizontalAlignment
+P	verticalAlignment
+P	alignment
+P	characterSpacing
+P	characterHorizontalScale
+P	wordSpacing
+P	lineSpacing
+P	lineSpacingAdjustment
+P	paragraphSpacing
+P	characterWidthAdjustment
+P	textWrappingMode
+P	enableWordWrapping
+P	wordWrappingRatios
+P	overflowMode
+P	isTextOverflowing
+P	firstOverflowCharacterIndex
+P	linkedTextComponent
+P	isTextTruncated
+P	enableKerning
+P	fontFeatures
+P	extraPadding
+P	richText
+P	emojiFallbackSupport
+P	parseCtrlCharacters
+P	isOverlay
+P	isOrthographic
+P	enableCulling
+P	ignoreVisibility
+P	horizontalMapping
+P	verticalMapping
+P	mappingUvLineOffset
+P	renderMode
+P	geometrySortingOrder
+P	isTextObjectScaleStatic
+P	vertexBufferAutoSizeReduction
+P	firstVisibleCharacter
+P	maxVisibleCharacters
+P	maxVisibleWords
+P	maxVisibleLines
+P	useMaxVisibleDescender
+P	pageToDisplay
+P	margin
+P	textInfo
+P	havePropertiesChanged
+P	isUsingLegacyAnimationComponent
+P	transform
+P	rectTransform
+P	autoSizeTextContainer
+P	mesh
+P	isVolumetricText
+P	bounds
+P	textBounds
+P	flexibleHeight
+P	flexibleWidth
+P	minWidth
+P	minHeight
+P	maxWidth
+P	maxHeight
+P	preferredWidth
+P	preferredHeight
+P	renderedWidth
+P	renderedHeight
+P	layoutPriority
+P	onCullStateChanged
+P	maskable
+P	isMaskingGraphic
+P	defaultGraphicMaterial
+P	raycastTarget
+P	raycastPadding
+P	depth
+P	canvas
+P	canvasRenderer
+P	defaultMaterial
+P	material
+P	materialForRendering
+P	mainTexture
+P	destroyCancellationToken
+P	useGUILayout
+P	didStart
+P	didAwake
+P	runInEditMode
+P	enabled
+P	isActiveAndEnabled
+P	transformHandle
+P	gameObject
+P	tag
+P	rigidbody
+P	rigidbody2D
+P	camera
+P	light
+P	animation
+P	constantForce
+P	renderer
+P	audio
+P	networkView
+P	collider
+P	collider2D
+P	hingeJoint
+P	particleSystem
+P	name
+P	hideFlags
+P	MissingCharacterEventCallback
+T	TMPro.TMP_Settings
+M	DelayShowPackageImporterWindow	
+M	LoadDefaultSettings	
+M	GetSettings	
+M	GetFontAsset	
+M	GetSpriteAsset	
+M	GetStyleSheet	
+M	LoadLinebreakingRules	
+M	SetDirty	
+M	CreateInstance	string
+M	CreateInstance	type
+M	CreateInstance	
+M	GetEntityId	
+M	GetInstanceID	
+M	GetHashCode	
+M	Equals	object
+M	InstantiateAsync	t
+M	InstantiateAsync	t,transform
+M	InstantiateAsync	t,vector3,quaternion
+M	InstantiateAsync	t,transform,vector3,quaternion
+M	InstantiateAsync	t,int
+M	InstantiateAsync	t,int,transform
+M	InstantiateAsync	t,int,vector3,quaternion
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,vector3,quaternion
+M	InstantiateAsync	t,int,transform,vector3,quaternion,cancellationtoken
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>,cancellationtoken
+M	InstantiateAsync	t,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>,instantiateparameters,cancellationtoken=
+M	Instantiate	object,vector3,quaternion
+M	Instantiate	object,vector3,quaternion,transform
+M	Instantiate	object
+M	Instantiate	object,scene
+M	Instantiate	t,instantiateparameters
+M	Instantiate	t,vector3,quaternion,instantiateparameters
+M	Instantiate	object,transform
+M	Instantiate	object,transform,bool
+M	Instantiate	t
+M	Instantiate	t,vector3,quaternion
+M	Instantiate	t,vector3,quaternion,transform
+M	Instantiate	t,transform
+M	Instantiate	t,transform,bool
+M	Destroy	object,float
+M	Destroy	object
+M	DestroyImmediate	object,bool
+M	DestroyImmediate	object
+M	FindObjectsOfType	type
+M	FindObjectsOfType	type,bool
+M	FindObjectsByType	type,findobjectssortmode
+M	FindObjectsByType	type,findobjectsinactive,findobjectssortmode
+M	DontDestroyOnLoad	object
+M	DestroyObject	object,float
+M	DestroyObject	object
+M	FindSceneObjectsOfType	type
+M	FindObjectsOfTypeIncludingAssets	type
+M	FindObjectsOfType	
+M	FindObjectsByType	findobjectssortmode
+M	FindObjectsOfType	bool
+M	FindObjectsByType	findobjectsinactive,findobjectssortmode
+M	FindObjectOfType	
+M	FindObjectOfType	bool
+M	FindFirstObjectByType	
+M	FindAnyObjectByType	
+M	FindFirstObjectByType	findobjectsinactive
+M	FindAnyObjectByType	findobjectsinactive
+M	FindObjectsOfTypeAll	type
+M	FindObjectOfType	type
+M	FindFirstObjectByType	type
+M	FindAnyObjectByType	type
+M	FindObjectOfType	type,bool
+M	FindFirstObjectByType	type,findobjectsinactive
+M	FindAnyObjectByType	type,findobjectsinactive
+M	ToString	
+M	Equals	object,object
+M	GetType	
+M	ReferenceEquals	object,object
+P	version
+P	textWrappingMode
+P	enableKerning
+P	fontFeatures
+P	enableExtraPadding
+P	enableTintAllSprites
+P	enableParseEscapeCharacters
+P	enableRaycastTarget
+P	getFontFeaturesAtRuntime
+P	missingGlyphCharacter
+P	clearDynamicDataOnBuild
+P	warningsDisabled
+P	defaultFontAsset
+P	defaultFontAssetPath
+P	defaultFontSize
+P	defaultTextAutoSizingMinRatio
+P	defaultTextAutoSizingMaxRatio
+P	defaultTextMeshProTextContainerSize
+P	defaultTextMeshProUITextContainerSize
+P	autoSizeTextContainer
+P	isTextObjectScaleStatic
+P	fallbackFontAssets
+P	matchMaterialPreset
+P	hideSubTextObjects
+P	defaultSpriteAsset
+P	defaultSpriteAssetPath
+P	enableEmojiSupport
+P	missingCharacterSpriteUnicode
+P	emojiFallbackTextAssets
+P	defaultColorGradientPresetsPath
+P	defaultStyleSheet
+P	styleSheetsResourcePath
+P	leadingCharacters
+P	followingCharacters
+P	linebreakingRules
+P	useModernHangulLineBreakingRules
+P	instance
+P	name
+P	hideFlags
+P	LineBreakingTable
+T	TMPro.TextMeshPro
+M	SetMask	maskingtypes,vector4
+M	SetMask	maskingtypes,vector4,float,float
+M	SetVerticesDirty	
+M	SetLayoutDirty	
+M	SetMaterialDirty	
+M	SetAllDirty	
+M	Rebuild	canvasupdate
+M	UpdateMeshPadding	
+M	ForceMeshUpdate	bool=,bool=
+M	GetTextInfo	string
+M	ClearMesh	bool
+M	UpdateGeometry	mesh,int
+M	UpdateVertexData	tmp_vertexdataupdateflags
+M	UpdateVertexData	
+M	UpdateFontAsset	
+M	CalculateLayoutInputHorizontal	
+M	CalculateLayoutInputVertical	
+M	ComputeMarginSize	
+M	SetVertices	vector3[]
+M	CrossFadeColor	color,float,bool,bool
+M	CrossFadeAlpha	float,float,bool
+M	SetText	string
+M	SetText	string,bool=
+M	SetText	string,float
+M	SetText	string,float,float
+M	SetText	string,float,float,float
+M	SetText	string,float,float,float,float
+M	SetText	string,float,float,float,float,float
+M	SetText	string,float,float,float,float,float,float
+M	SetText	string,float,float,float,float,float,float,float
+M	SetText	string,float,float,float,float,float,float,float,float
+M	SetText	stringbuilder
+M	SetText	char[]
+M	SetText	char[],int,int
+M	SetCharArray	char[]
+M	SetCharArray	char[],int,int
+M	GetPreferredValues	
+M	GetPreferredValues	float,float
+M	GetPreferredValues	string
+M	GetPreferredValues	string,float,float
+M	GetRenderedValues	
+M	GetRenderedValues	bool
+M	ClearMesh	
+M	GetParsedText	
+M	GetModifiedMaterial	material
+M	Cull	rect,bool
+M	SetClipRect	rect,bool
+M	SetClipSoftness	vector2
+M	ParentMaskStateChanged	
+M	RecalculateClipping	
+M	RecalculateMasking	
+M	Raycast	vector2,camera
+M	SetRaycastDirty	
+M	OnCullingChanged	
+M	LayoutComplete	
+M	GraphicUpdateComplete	
+M	OnRebuildRequested	
+M	SetNativeSize	
+M	PixelAdjustPoint	vector2
+M	GetPixelAdjustedRect	
+M	CrossFadeColor	color,float,bool,bool,bool
+M	RegisterDirtyLayoutCallback	unityaction
+M	UnregisterDirtyLayoutCallback	unityaction
+M	RegisterDirtyVerticesCallback	unityaction
+M	UnregisterDirtyVerticesCallback	unityaction
+M	RegisterDirtyMaterialCallback	unityaction
+M	UnregisterDirtyMaterialCallback	unityaction
+M	IsActive	
+M	IsDestroyed	
+M	IsInvoking	
+M	CancelInvoke	
+M	Invoke	string,float
+M	InvokeRepeating	string,float,float
+M	CancelInvoke	string
+M	IsInvoking	string
+M	StartCoroutine	string
+M	StartCoroutine	string,object
+M	StartCoroutine	ienumerator
+M	StartCoroutine_Auto	ienumerator
+M	StopCoroutine	ienumerator
+M	StopCoroutine	coroutine
+M	StopCoroutine	string
+M	StopAllCoroutines	
+M	print	object
+M	GetComponent	type
+M	GetComponent	
+M	TryGetComponent	type,component
+M	TryGetComponent	t
+M	GetComponent	string
+M	GetComponentInChildren	type,bool
+M	GetComponentInChildren	type
+M	GetComponentInChildren	bool
+M	GetComponentInChildren	
+M	GetComponentsInChildren	type,bool
+M	GetComponentsInChildren	type
+M	GetComponentsInChildren	bool
+M	GetComponentsInChildren	bool,list<t>
+M	GetComponentsInChildren	
+M	GetComponentsInChildren	list<t>
+M	GetComponentInParent	type,bool
+M	GetComponentInParent	type
+M	GetComponentInParent	bool
+M	GetComponentInParent	
+M	GetComponentsInParent	type,bool
+M	GetComponentsInParent	type
+M	GetComponentsInParent	bool
+M	GetComponentsInParent	bool,list<t>
+M	GetComponentsInParent	
+M	GetComponents	type
+M	GetComponents	type,list<component>
+M	GetComponents	list<t>
+M	GetComponents	
+M	GetComponentIndex	
+M	CompareTag	string
+M	CompareTag	taghandle
+M	SendMessageUpwards	string,object,sendmessageoptions
+M	SendMessageUpwards	string,object
+M	SendMessageUpwards	string
+M	SendMessageUpwards	string,sendmessageoptions
+M	SendMessage	string,object
+M	SendMessage	string
+M	SendMessage	string,object,sendmessageoptions
+M	SendMessage	string,sendmessageoptions
+M	BroadcastMessage	string,object,sendmessageoptions
+M	BroadcastMessage	string,object
+M	BroadcastMessage	string
+M	BroadcastMessage	string,sendmessageoptions
+M	GetEntityId	
+M	GetInstanceID	
+M	GetHashCode	
+M	Equals	object
+M	InstantiateAsync	t
+M	InstantiateAsync	t,transform
+M	InstantiateAsync	t,vector3,quaternion
+M	InstantiateAsync	t,transform,vector3,quaternion
+M	InstantiateAsync	t,int
+M	InstantiateAsync	t,int,transform
+M	InstantiateAsync	t,int,vector3,quaternion
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,vector3,quaternion
+M	InstantiateAsync	t,int,transform,vector3,quaternion,cancellationtoken
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>,cancellationtoken
+M	InstantiateAsync	t,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>,instantiateparameters,cancellationtoken=
+M	Instantiate	object,vector3,quaternion
+M	Instantiate	object,vector3,quaternion,transform
+M	Instantiate	object
+M	Instantiate	object,scene
+M	Instantiate	t,instantiateparameters
+M	Instantiate	t,vector3,quaternion,instantiateparameters
+M	Instantiate	object,transform
+M	Instantiate	object,transform,bool
+M	Instantiate	t
+M	Instantiate	t,vector3,quaternion
+M	Instantiate	t,vector3,quaternion,transform
+M	Instantiate	t,transform
+M	Instantiate	t,transform,bool
+M	Destroy	object,float
+M	Destroy	object
+M	DestroyImmediate	object,bool
+M	DestroyImmediate	object
+M	FindObjectsOfType	type
+M	FindObjectsOfType	type,bool
+M	FindObjectsByType	type,findobjectssortmode
+M	FindObjectsByType	type,findobjectsinactive,findobjectssortmode
+M	DontDestroyOnLoad	object
+M	DestroyObject	object,float
+M	DestroyObject	object
+M	FindSceneObjectsOfType	type
+M	FindObjectsOfTypeIncludingAssets	type
+M	FindObjectsOfType	
+M	FindObjectsByType	findobjectssortmode
+M	FindObjectsOfType	bool
+M	FindObjectsByType	findobjectsinactive,findobjectssortmode
+M	FindObjectOfType	
+M	FindObjectOfType	bool
+M	FindFirstObjectByType	
+M	FindAnyObjectByType	
+M	FindFirstObjectByType	findobjectsinactive
+M	FindAnyObjectByType	findobjectsinactive
+M	FindObjectsOfTypeAll	type
+M	FindObjectOfType	type
+M	FindFirstObjectByType	type
+M	FindAnyObjectByType	type
+M	FindObjectOfType	type,bool
+M	FindFirstObjectByType	type,findobjectsinactive
+M	FindAnyObjectByType	type,findobjectsinactive
+M	ToString	
+M	Equals	object,object
+M	GetType	
+M	ReferenceEquals	object,object
+P	sortingLayerID
+P	sortingOrder
+P	autoSizeTextContainer
+P	textContainer
+P	transform
+P	renderer
+P	mesh
+P	meshFilter
+P	maskType
+P	text
+P	textPreprocessor
+P	isRightToLeftText
+P	font
+P	fontSharedMaterial
+P	fontSharedMaterials
+P	fontMaterial
+P	fontMaterials
+P	color
+P	alpha
+P	enableVertexGradient
+P	colorGradient
+P	colorGradientPreset
+P	spriteAsset
+P	tintAllSprites
+P	styleSheet
+P	textStyle
+P	overrideColorTags
+P	faceColor
+P	outlineColor
+P	outlineWidth
+P	fontSize
+P	fontWeight
+P	pixelsPerUnit
+P	enableAutoSizing
+P	fontSizeMin
+P	fontSizeMax
+P	fontStyle
+P	isUsingBold
+P	horizontalAlignment
+P	verticalAlignment
+P	alignment
+P	characterSpacing
+P	characterHorizontalScale
+P	wordSpacing
+P	lineSpacing
+P	lineSpacingAdjustment
+P	paragraphSpacing
+P	characterWidthAdjustment
+P	textWrappingMode
+P	enableWordWrapping
+P	wordWrappingRatios
+P	overflowMode
+P	isTextOverflowing
+P	firstOverflowCharacterIndex
+P	linkedTextComponent
+P	isTextTruncated
+P	enableKerning
+P	fontFeatures
+P	extraPadding
+P	richText
+P	emojiFallbackSupport
+P	parseCtrlCharacters
+P	isOverlay
+P	isOrthographic
+P	enableCulling
+P	ignoreVisibility
+P	horizontalMapping
+P	verticalMapping
+P	mappingUvLineOffset
+P	renderMode
+P	geometrySortingOrder
+P	isTextObjectScaleStatic
+P	vertexBufferAutoSizeReduction
+P	firstVisibleCharacter
+P	maxVisibleCharacters
+P	maxVisibleWords
+P	maxVisibleLines
+P	useMaxVisibleDescender
+P	pageToDisplay
+P	margin
+P	textInfo
+P	havePropertiesChanged
+P	isUsingLegacyAnimationComponent
+P	rectTransform
+P	isVolumetricText
+P	bounds
+P	textBounds
+P	flexibleHeight
+P	flexibleWidth
+P	minWidth
+P	minHeight
+P	maxWidth
+P	maxHeight
+P	preferredWidth
+P	preferredHeight
+P	renderedWidth
+P	renderedHeight
+P	layoutPriority
+P	onCullStateChanged
+P	maskable
+P	isMaskingGraphic
+P	defaultGraphicMaterial
+P	raycastTarget
+P	raycastPadding
+P	depth
+P	canvas
+P	canvasRenderer
+P	defaultMaterial
+P	material
+P	materialForRendering
+P	mainTexture
+P	destroyCancellationToken
+P	useGUILayout
+P	didStart
+P	didAwake
+P	runInEditMode
+P	enabled
+P	isActiveAndEnabled
+P	transformHandle
+P	gameObject
+P	tag
+P	rigidbody
+P	rigidbody2D
+P	camera
+P	light
+P	animation
+P	constantForce
+P	renderer
+P	audio
+P	networkView
+P	collider
+P	collider2D
+P	hingeJoint
+P	particleSystem
+P	name
+P	hideFlags
+T	TMPro.TMP_InputField
+M	SetTextWithoutNotify	string
+M	MoveTextEnd	bool
+M	MoveTextStart	bool
+M	MoveToEndOfLine	bool,bool
+M	MoveToStartOfLine	bool,bool
+M	OnBeginDrag	pointereventdata
+M	OnDrag	pointereventdata
+M	OnEndDrag	pointereventdata
+M	OnPointerDown	pointereventdata
+M	ProcessEvent	event
+M	OnUpdateSelected	baseeventdata
+M	OnScroll	pointereventdata
+M	ForceLabelUpdate	
+M	Rebuild	canvasupdate
+M	LayoutComplete	
+M	GraphicUpdateComplete	
+M	ActivateInputField	
+M	OnSelect	baseeventdata
+M	OnPointerClick	pointereventdata
+M	OnControlClick	
+M	ReleaseSelection	
+M	DeactivateInputField	bool=
+M	OnDeselect	baseeventdata
+M	OnSubmit	baseeventdata
+M	OnCancel	baseeventdata
+M	OnMove	axiseventdata
+M	CalculateLayoutInputHorizontal	
+M	CalculateLayoutInputVertical	
+M	SetGlobalPointSize	float
+M	SetGlobalFontAsset	tmp_fontasset
+M	AllSelectablesNoAlloc	selectable[]
+M	IsInteractable	
+M	FindSelectable	vector3
+M	FindSelectableOnLeft	
+M	FindSelectableOnRight	
+M	FindSelectableOnUp	
+M	FindSelectableOnDown	
+M	OnPointerUp	pointereventdata
+M	OnPointerEnter	pointereventdata
+M	OnPointerExit	pointereventdata
+M	Select	
+M	IsActive	
+M	IsDestroyed	
+M	IsInvoking	
+M	CancelInvoke	
+M	Invoke	string,float
+M	InvokeRepeating	string,float,float
+M	CancelInvoke	string
+M	IsInvoking	string
+M	StartCoroutine	string
+M	StartCoroutine	string,object
+M	StartCoroutine	ienumerator
+M	StartCoroutine_Auto	ienumerator
+M	StopCoroutine	ienumerator
+M	StopCoroutine	coroutine
+M	StopCoroutine	string
+M	StopAllCoroutines	
+M	print	object
+M	GetComponent	type
+M	GetComponent	
+M	TryGetComponent	type,component
+M	TryGetComponent	t
+M	GetComponent	string
+M	GetComponentInChildren	type,bool
+M	GetComponentInChildren	type
+M	GetComponentInChildren	bool
+M	GetComponentInChildren	
+M	GetComponentsInChildren	type,bool
+M	GetComponentsInChildren	type
+M	GetComponentsInChildren	bool
+M	GetComponentsInChildren	bool,list<t>
+M	GetComponentsInChildren	
+M	GetComponentsInChildren	list<t>
+M	GetComponentInParent	type,bool
+M	GetComponentInParent	type
+M	GetComponentInParent	bool
+M	GetComponentInParent	
+M	GetComponentsInParent	type,bool
+M	GetComponentsInParent	type
+M	GetComponentsInParent	bool
+M	GetComponentsInParent	bool,list<t>
+M	GetComponentsInParent	
+M	GetComponents	type
+M	GetComponents	type,list<component>
+M	GetComponents	list<t>
+M	GetComponents	
+M	GetComponentIndex	
+M	CompareTag	string
+M	CompareTag	taghandle
+M	SendMessageUpwards	string,object,sendmessageoptions
+M	SendMessageUpwards	string,object
+M	SendMessageUpwards	string
+M	SendMessageUpwards	string,sendmessageoptions
+M	SendMessage	string,object
+M	SendMessage	string
+M	SendMessage	string,object,sendmessageoptions
+M	SendMessage	string,sendmessageoptions
+M	BroadcastMessage	string,object,sendmessageoptions
+M	BroadcastMessage	string,object
+M	BroadcastMessage	string
+M	BroadcastMessage	string,sendmessageoptions
+M	GetEntityId	
+M	GetInstanceID	
+M	GetHashCode	
+M	Equals	object
+M	InstantiateAsync	t
+M	InstantiateAsync	t,transform
+M	InstantiateAsync	t,vector3,quaternion
+M	InstantiateAsync	t,transform,vector3,quaternion
+M	InstantiateAsync	t,int
+M	InstantiateAsync	t,int,transform
+M	InstantiateAsync	t,int,vector3,quaternion
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,vector3,quaternion
+M	InstantiateAsync	t,int,transform,vector3,quaternion,cancellationtoken
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>,cancellationtoken
+M	InstantiateAsync	t,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>,instantiateparameters,cancellationtoken=
+M	Instantiate	object,vector3,quaternion
+M	Instantiate	object,vector3,quaternion,transform
+M	Instantiate	object
+M	Instantiate	object,scene
+M	Instantiate	t,instantiateparameters
+M	Instantiate	t,vector3,quaternion,instantiateparameters
+M	Instantiate	object,transform
+M	Instantiate	object,transform,bool
+M	Instantiate	t
+M	Instantiate	t,vector3,quaternion
+M	Instantiate	t,vector3,quaternion,transform
+M	Instantiate	t,transform
+M	Instantiate	t,transform,bool
+M	Destroy	object,float
+M	Destroy	object
+M	DestroyImmediate	object,bool
+M	DestroyImmediate	object
+M	FindObjectsOfType	type
+M	FindObjectsOfType	type,bool
+M	FindObjectsByType	type,findobjectssortmode
+M	FindObjectsByType	type,findobjectsinactive,findobjectssortmode
+M	DontDestroyOnLoad	object
+M	DestroyObject	object,float
+M	DestroyObject	object
+M	FindSceneObjectsOfType	type
+M	FindObjectsOfTypeIncludingAssets	type
+M	FindObjectsOfType	
+M	FindObjectsByType	findobjectssortmode
+M	FindObjectsOfType	bool
+M	FindObjectsByType	findobjectsinactive,findobjectssortmode
+M	FindObjectOfType	
+M	FindObjectOfType	bool
+M	FindFirstObjectByType	
+M	FindAnyObjectByType	
+M	FindFirstObjectByType	findobjectsinactive
+M	FindAnyObjectByType	findobjectsinactive
+M	FindObjectsOfTypeAll	type
+M	FindObjectOfType	type
+M	FindFirstObjectByType	type
+M	FindAnyObjectByType	type
+M	FindObjectOfType	type,bool
+M	FindFirstObjectByType	type,findobjectsinactive
+M	FindAnyObjectByType	type,findobjectsinactive
+M	ToString	
+M	Equals	object,object
+M	GetType	
+M	ReferenceEquals	object,object
+P	shouldActivateOnSelect
+P	shouldHideMobileInput
+P	shouldHideSoftKeyboard
+P	text
+P	isFocused
+P	caretBlinkRate
+P	caretWidth
+P	textViewport
+P	textComponent
+P	placeholder
+P	verticalScrollbar
+P	scrollSensitivity
+P	caretColor
+P	customCaretColor
+P	selectionColor
+P	onEndEdit
+P	onSubmit
+P	onSelect
+P	onDeselect
+P	onTextSelection
+P	onEndTextSelection
+P	onValueChanged
+P	onTouchScreenKeyboardStatusChanged
+P	onValidateInput
+P	characterLimit
+P	pointSize
+P	fontAsset
+P	onFocusSelectAll
+P	resetOnDeActivation
+P	keepTextSelectionVisible
+P	restoreOriginalTextOnEscape
+P	isRichTextEditingAllowed
+P	contentType
+P	lineType
+P	lineLimit
+P	inputType
+P	touchScreenKeyboard
+P	keyboardType
+P	characterValidation
+P	inputValidator
+P	readOnly
+P	richText
+P	multiLine
+P	asteriskChar
+P	wasCanceled
+P	caretPosition
+P	selectionAnchorPosition
+P	selectionFocusPosition
+P	stringPosition
+P	selectionStringAnchorPosition
+P	selectionStringFocusPosition
+P	minWidth
+P	preferredWidth
+P	flexibleWidth
+P	minHeight
+P	preferredHeight
+P	flexibleHeight
+P	layoutPriority
+P	allSelectablesArray
+P	allSelectableCount
+P	allSelectables
+P	navigation
+P	transition
+P	colors
+P	spriteState
+P	animationTriggers
+P	targetGraphic
+P	interactable
+P	image
+P	animator
+P	destroyCancellationToken
+P	useGUILayout
+P	didStart
+P	didAwake
+P	runInEditMode
+P	enabled
+P	isActiveAndEnabled
+P	transform
+P	transformHandle
+P	gameObject
+P	tag
+P	rigidbody
+P	rigidbody2D
+P	camera
+P	light
+P	animation
+P	constantForce
+P	renderer
+P	audio
+P	networkView
+P	collider
+P	collider2D
+P	hingeJoint
+P	particleSystem
+P	name
+P	hideFlags
+P	isAlert
+P	ContentType
+P	InputType
+P	CharacterValidation
+P	LineType
+P	OnValidateInput
+P	SubmitEvent
+P	OnChangeEvent
+P	SelectionEvent
+P	TextSelectionEvent
+P	TouchScreenKeyboardEvent
+T	UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+M	SetRenderer	int
+M	OnValidate	
+M	OnDrawGizmos	
+M	OnDestroy	
+M	IsInvoking	
+M	CancelInvoke	
+M	Invoke	string,float
+M	InvokeRepeating	string,float,float
+M	CancelInvoke	string
+M	IsInvoking	string
+M	StartCoroutine	string
+M	StartCoroutine	string,object
+M	StartCoroutine	ienumerator
+M	StartCoroutine_Auto	ienumerator
+M	StopCoroutine	ienumerator
+M	StopCoroutine	coroutine
+M	StopCoroutine	string
+M	StopAllCoroutines	
+M	print	object
+M	GetComponent	type
+M	GetComponent	
+M	TryGetComponent	type,component
+M	TryGetComponent	t
+M	GetComponent	string
+M	GetComponentInChildren	type,bool
+M	GetComponentInChildren	type
+M	GetComponentInChildren	bool
+M	GetComponentInChildren	
+M	GetComponentsInChildren	type,bool
+M	GetComponentsInChildren	type
+M	GetComponentsInChildren	bool
+M	GetComponentsInChildren	bool,list<t>
+M	GetComponentsInChildren	
+M	GetComponentsInChildren	list<t>
+M	GetComponentInParent	type,bool
+M	GetComponentInParent	type
+M	GetComponentInParent	bool
+M	GetComponentInParent	
+M	GetComponentsInParent	type,bool
+M	GetComponentsInParent	type
+M	GetComponentsInParent	bool
+M	GetComponentsInParent	bool,list<t>
+M	GetComponentsInParent	
+M	GetComponents	type
+M	GetComponents	type,list<component>
+M	GetComponents	list<t>
+M	GetComponents	
+M	GetComponentIndex	
+M	CompareTag	string
+M	CompareTag	taghandle
+M	SendMessageUpwards	string,object,sendmessageoptions
+M	SendMessageUpwards	string,object
+M	SendMessageUpwards	string
+M	SendMessageUpwards	string,sendmessageoptions
+M	SendMessage	string,object
+M	SendMessage	string
+M	SendMessage	string,object,sendmessageoptions
+M	SendMessage	string,sendmessageoptions
+M	BroadcastMessage	string,object,sendmessageoptions
+M	BroadcastMessage	string,object
+M	BroadcastMessage	string
+M	BroadcastMessage	string,sendmessageoptions
+M	GetEntityId	
+M	GetInstanceID	
+M	GetHashCode	
+M	Equals	object
+M	InstantiateAsync	t
+M	InstantiateAsync	t,transform
+M	InstantiateAsync	t,vector3,quaternion
+M	InstantiateAsync	t,transform,vector3,quaternion
+M	InstantiateAsync	t,int
+M	InstantiateAsync	t,int,transform
+M	InstantiateAsync	t,int,vector3,quaternion
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,vector3,quaternion
+M	InstantiateAsync	t,int,transform,vector3,quaternion,cancellationtoken
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>,cancellationtoken
+M	InstantiateAsync	t,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>,instantiateparameters,cancellationtoken=
+M	Instantiate	object,vector3,quaternion
+M	Instantiate	object,vector3,quaternion,transform
+M	Instantiate	object
+M	Instantiate	object,scene
+M	Instantiate	t,instantiateparameters
+M	Instantiate	t,vector3,quaternion,instantiateparameters
+M	Instantiate	object,transform
+M	Instantiate	object,transform,bool
+M	Instantiate	t
+M	Instantiate	t,vector3,quaternion
+M	Instantiate	t,vector3,quaternion,transform
+M	Instantiate	t,transform
+M	Instantiate	t,transform,bool
+M	Destroy	object,float
+M	Destroy	object
+M	DestroyImmediate	object,bool
+M	DestroyImmediate	object
+M	FindObjectsOfType	type
+M	FindObjectsOfType	type,bool
+M	FindObjectsByType	type,findobjectssortmode
+M	FindObjectsByType	type,findobjectsinactive,findobjectssortmode
+M	DontDestroyOnLoad	object
+M	DestroyObject	object,float
+M	DestroyObject	object
+M	FindSceneObjectsOfType	type
+M	FindObjectsOfTypeIncludingAssets	type
+M	FindObjectsOfType	
+M	FindObjectsByType	findobjectssortmode
+M	FindObjectsOfType	bool
+M	FindObjectsByType	findobjectsinactive,findobjectssortmode
+M	FindObjectOfType	
+M	FindObjectOfType	bool
+M	FindFirstObjectByType	
+M	FindAnyObjectByType	
+M	FindFirstObjectByType	findobjectsinactive
+M	FindAnyObjectByType	findobjectsinactive
+M	FindObjectsOfTypeAll	type
+M	FindObjectOfType	type
+M	FindFirstObjectByType	type
+M	FindAnyObjectByType	type
+M	FindObjectOfType	type,bool
+M	FindFirstObjectByType	type,findobjectsinactive
+M	FindAnyObjectByType	type,findobjectsinactive
+M	ToString	
+M	Equals	object,object
+M	GetType	
+M	ReferenceEquals	object,object
+P	renderShadows
+P	requiresDepthOption
+P	requiresColorOption
+P	renderType
+P	cameraStack
+P	clearDepth
+P	requiresDepthTexture
+P	requiresColorTexture
+P	scriptableRenderer
+P	volumeLayerMask
+P	volumeTrigger
+P	requiresVolumeFrameworkUpdate
+P	volumeStack
+P	renderPostProcessing
+P	antialiasing
+P	antialiasingQuality
+P	taaSettings
+P	history
+P	resetHistory
+P	stopNaN
+P	dithering
+P	allowXRRendering
+P	useScreenCoordOverride
+P	screenSizeOverride
+P	screenCoordScaleBias
+P	allowHDROutput
+P	version
+P	destroyCancellationToken
+P	useGUILayout
+P	didStart
+P	didAwake
+P	runInEditMode
+P	enabled
+P	isActiveAndEnabled
+P	transform
+P	transformHandle
+P	gameObject
+P	tag
+P	rigidbody
+P	rigidbody2D
+P	camera
+P	light
+P	animation
+P	constantForce
+P	renderer
+P	audio
+P	networkView
+P	collider
+P	collider2D
+P	hingeJoint
+P	particleSystem
+P	name
+P	hideFlags
+T	UnityEngine.Rendering.Volume
+M	HasInstantiatedProfile	
+M	UpdateColliders	
+M	IsInvoking	
+M	CancelInvoke	
+M	Invoke	string,float
+M	InvokeRepeating	string,float,float
+M	CancelInvoke	string
+M	IsInvoking	string
+M	StartCoroutine	string
+M	StartCoroutine	string,object
+M	StartCoroutine	ienumerator
+M	StartCoroutine_Auto	ienumerator
+M	StopCoroutine	ienumerator
+M	StopCoroutine	coroutine
+M	StopCoroutine	string
+M	StopAllCoroutines	
+M	print	object
+M	GetComponent	type
+M	GetComponent	
+M	TryGetComponent	type,component
+M	TryGetComponent	t
+M	GetComponent	string
+M	GetComponentInChildren	type,bool
+M	GetComponentInChildren	type
+M	GetComponentInChildren	bool
+M	GetComponentInChildren	
+M	GetComponentsInChildren	type,bool
+M	GetComponentsInChildren	type
+M	GetComponentsInChildren	bool
+M	GetComponentsInChildren	bool,list<t>
+M	GetComponentsInChildren	
+M	GetComponentsInChildren	list<t>
+M	GetComponentInParent	type,bool
+M	GetComponentInParent	type
+M	GetComponentInParent	bool
+M	GetComponentInParent	
+M	GetComponentsInParent	type,bool
+M	GetComponentsInParent	type
+M	GetComponentsInParent	bool
+M	GetComponentsInParent	bool,list<t>
+M	GetComponentsInParent	
+M	GetComponents	type
+M	GetComponents	type,list<component>
+M	GetComponents	list<t>
+M	GetComponents	
+M	GetComponentIndex	
+M	CompareTag	string
+M	CompareTag	taghandle
+M	SendMessageUpwards	string,object,sendmessageoptions
+M	SendMessageUpwards	string,object
+M	SendMessageUpwards	string
+M	SendMessageUpwards	string,sendmessageoptions
+M	SendMessage	string,object
+M	SendMessage	string
+M	SendMessage	string,object,sendmessageoptions
+M	SendMessage	string,sendmessageoptions
+M	BroadcastMessage	string,object,sendmessageoptions
+M	BroadcastMessage	string,object
+M	BroadcastMessage	string
+M	BroadcastMessage	string,sendmessageoptions
+M	GetEntityId	
+M	GetInstanceID	
+M	GetHashCode	
+M	Equals	object
+M	InstantiateAsync	t
+M	InstantiateAsync	t,transform
+M	InstantiateAsync	t,vector3,quaternion
+M	InstantiateAsync	t,transform,vector3,quaternion
+M	InstantiateAsync	t,int
+M	InstantiateAsync	t,int,transform
+M	InstantiateAsync	t,int,vector3,quaternion
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,vector3,quaternion
+M	InstantiateAsync	t,int,transform,vector3,quaternion,cancellationtoken
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>,cancellationtoken
+M	InstantiateAsync	t,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>,instantiateparameters,cancellationtoken=
+M	Instantiate	object,vector3,quaternion
+M	Instantiate	object,vector3,quaternion,transform
+M	Instantiate	object
+M	Instantiate	object,scene
+M	Instantiate	t,instantiateparameters
+M	Instantiate	t,vector3,quaternion,instantiateparameters
+M	Instantiate	object,transform
+M	Instantiate	object,transform,bool
+M	Instantiate	t
+M	Instantiate	t,vector3,quaternion
+M	Instantiate	t,vector3,quaternion,transform
+M	Instantiate	t,transform
+M	Instantiate	t,transform,bool
+M	Destroy	object,float
+M	Destroy	object
+M	DestroyImmediate	object,bool
+M	DestroyImmediate	object
+M	FindObjectsOfType	type
+M	FindObjectsOfType	type,bool
+M	FindObjectsByType	type,findobjectssortmode
+M	FindObjectsByType	type,findobjectsinactive,findobjectssortmode
+M	DontDestroyOnLoad	object
+M	DestroyObject	object,float
+M	DestroyObject	object
+M	FindSceneObjectsOfType	type
+M	FindObjectsOfTypeIncludingAssets	type
+M	FindObjectsOfType	
+M	FindObjectsByType	findobjectssortmode
+M	FindObjectsOfType	bool
+M	FindObjectsByType	findobjectsinactive,findobjectssortmode
+M	FindObjectOfType	
+M	FindObjectOfType	bool
+M	FindFirstObjectByType	
+M	FindAnyObjectByType	
+M	FindFirstObjectByType	findobjectsinactive
+M	FindAnyObjectByType	findobjectsinactive
+M	FindObjectsOfTypeAll	type
+M	FindObjectOfType	type
+M	FindFirstObjectByType	type
+M	FindAnyObjectByType	type
+M	FindObjectOfType	type,bool
+M	FindFirstObjectByType	type,findobjectsinactive
+M	FindAnyObjectByType	type,findobjectsinactive
+M	ToString	
+M	Equals	object,object
+M	GetType	
+M	ReferenceEquals	object,object
+P	isGlobal
+P	profile
+P	colliders
+P	destroyCancellationToken
+P	useGUILayout
+P	didStart
+P	didAwake
+P	runInEditMode
+P	enabled
+P	isActiveAndEnabled
+P	transform
+P	transformHandle
+P	gameObject
+P	tag
+P	rigidbody
+P	rigidbody2D
+P	camera
+P	light
+P	animation
+P	constantForce
+P	renderer
+P	audio
+P	networkView
+P	collider
+P	collider2D
+P	hingeJoint
+P	particleSystem
+P	name
+P	hideFlags
+P	priority
+P	blendDistance
+P	weight
+P	sharedProfile
+T	UnityEngine.Rendering.Universal.ColorAdjustments
+M	IsActive	
+M	IsTileCompatible	
+M	TryGetRevertMethodForFieldName	serializedproperty,action<serializedproperty>
+M	GetSourceTerm	
+M	TryGetApplyMethodForFieldName	serializedproperty,action<serializedproperty>
+M	GetSourceName	component
+M	Override	volumecomponent,float
+M	SetAllOverridesTo	bool
+M	GetHashCode	
+M	AnyPropertiesIsOverridden	
+M	Release	
+M	SetDirty	
+M	CreateInstance	string
+M	CreateInstance	type
+M	CreateInstance	
+M	GetEntityId	
+M	GetInstanceID	
+M	Equals	object
+M	InstantiateAsync	t
+M	InstantiateAsync	t,transform
+M	InstantiateAsync	t,vector3,quaternion
+M	InstantiateAsync	t,transform,vector3,quaternion
+M	InstantiateAsync	t,int
+M	InstantiateAsync	t,int,transform
+M	InstantiateAsync	t,int,vector3,quaternion
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,vector3,quaternion
+M	InstantiateAsync	t,int,transform,vector3,quaternion,cancellationtoken
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>,cancellationtoken
+M	InstantiateAsync	t,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>,instantiateparameters,cancellationtoken=
+M	Instantiate	object,vector3,quaternion
+M	Instantiate	object,vector3,quaternion,transform
+M	Instantiate	object
+M	Instantiate	object,scene
+M	Instantiate	t,instantiateparameters
+M	Instantiate	t,vector3,quaternion,instantiateparameters
+M	Instantiate	object,transform
+M	Instantiate	object,transform,bool
+M	Instantiate	t
+M	Instantiate	t,vector3,quaternion
+M	Instantiate	t,vector3,quaternion,transform
+M	Instantiate	t,transform
+M	Instantiate	t,transform,bool
+M	Destroy	object,float
+M	Destroy	object
+M	DestroyImmediate	object,bool
+M	DestroyImmediate	object
+M	FindObjectsOfType	type
+M	FindObjectsOfType	type,bool
+M	FindObjectsByType	type,findobjectssortmode
+M	FindObjectsByType	type,findobjectsinactive,findobjectssortmode
+M	DontDestroyOnLoad	object
+M	DestroyObject	object,float
+M	DestroyObject	object
+M	FindSceneObjectsOfType	type
+M	FindObjectsOfTypeIncludingAssets	type
+M	FindObjectsOfType	
+M	FindObjectsByType	findobjectssortmode
+M	FindObjectsOfType	bool
+M	FindObjectsByType	findobjectsinactive,findobjectssortmode
+M	FindObjectOfType	
+M	FindObjectOfType	bool
+M	FindFirstObjectByType	
+M	FindAnyObjectByType	
+M	FindFirstObjectByType	findobjectsinactive
+M	FindAnyObjectByType	findobjectsinactive
+M	FindObjectsOfTypeAll	type
+M	FindObjectOfType	type
+M	FindFirstObjectByType	type
+M	FindAnyObjectByType	type
+M	FindObjectOfType	type,bool
+M	FindFirstObjectByType	type,findobjectsinactive
+M	FindAnyObjectByType	type,findobjectsinactive
+M	ToString	
+M	Equals	object,object
+M	GetType	
+M	ReferenceEquals	object,object
+P	displayName
+P	parameters
+P	name
+P	hideFlags
+P	postExposure
+P	contrast
+P	colorFilter
+P	hueShift
+P	saturation
+P	active
+T	UnityEngine.Rendering.Universal.Bloom
+M	IsActive	
+M	IsTileCompatible	
+M	TryGetRevertMethodForFieldName	serializedproperty,action<serializedproperty>
+M	GetSourceTerm	
+M	TryGetApplyMethodForFieldName	serializedproperty,action<serializedproperty>
+M	GetSourceName	component
+M	Override	volumecomponent,float
+M	SetAllOverridesTo	bool
+M	GetHashCode	
+M	AnyPropertiesIsOverridden	
+M	Release	
+M	SetDirty	
+M	CreateInstance	string
+M	CreateInstance	type
+M	CreateInstance	
+M	GetEntityId	
+M	GetInstanceID	
+M	Equals	object
+M	InstantiateAsync	t
+M	InstantiateAsync	t,transform
+M	InstantiateAsync	t,vector3,quaternion
+M	InstantiateAsync	t,transform,vector3,quaternion
+M	InstantiateAsync	t,int
+M	InstantiateAsync	t,int,transform
+M	InstantiateAsync	t,int,vector3,quaternion
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,vector3,quaternion
+M	InstantiateAsync	t,int,transform,vector3,quaternion,cancellationtoken
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>
+M	InstantiateAsync	t,int,transform,readonlyspan<vector3>,readonlyspan<quaternion>,cancellationtoken
+M	InstantiateAsync	t,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,vector3,quaternion,instantiateparameters,cancellationtoken=
+M	InstantiateAsync	t,int,readonlyspan<vector3>,readonlyspan<quaternion>,instantiateparameters,cancellationtoken=
+M	Instantiate	object,vector3,quaternion
+M	Instantiate	object,vector3,quaternion,transform
+M	Instantiate	object
+M	Instantiate	object,scene
+M	Instantiate	t,instantiateparameters
+M	Instantiate	t,vector3,quaternion,instantiateparameters
+M	Instantiate	object,transform
+M	Instantiate	object,transform,bool
+M	Instantiate	t
+M	Instantiate	t,vector3,quaternion
+M	Instantiate	t,vector3,quaternion,transform
+M	Instantiate	t,transform
+M	Instantiate	t,transform,bool
+M	Destroy	object,float
+M	Destroy	object
+M	DestroyImmediate	object,bool
+M	DestroyImmediate	object
+M	FindObjectsOfType	type
+M	FindObjectsOfType	type,bool
+M	FindObjectsByType	type,findobjectssortmode
+M	FindObjectsByType	type,findobjectsinactive,findobjectssortmode
+M	DontDestroyOnLoad	object
+M	DestroyObject	object,float
+M	DestroyObject	object
+M	FindSceneObjectsOfType	type
+M	FindObjectsOfTypeIncludingAssets	type
+M	FindObjectsOfType	
+M	FindObjectsByType	findobjectssortmode
+M	FindObjectsOfType	bool
+M	FindObjectsByType	findobjectsinactive,findobjectssortmode
+M	FindObjectOfType	
+M	FindObjectOfType	bool
+M	FindFirstObjectByType	
+M	FindAnyObjectByType	
+M	FindFirstObjectByType	findobjectsinactive
+M	FindAnyObjectByType	findobjectsinactive
+M	FindObjectsOfTypeAll	type
+M	FindObjectOfType	type
+M	FindFirstObjectByType	type
+M	FindAnyObjectByType	type
+M	FindObjectOfType	type,bool
+M	FindFirstObjectByType	type,findobjectsinactive
+M	FindAnyObjectByType	type,findobjectsinactive
+M	ToString	
+M	Equals	object,object
+M	GetType	
+M	ReferenceEquals	object,object
+P	displayName
+P	parameters
+P	name
+P	hideFlags
+P	skipIterations
+P	threshold
+P	intensity
+P	scatter
+P	clamp
+P	tint
+P	highQualityFiltering
+P	filter
+P	downscale
+P	maxIterations
+P	dirtTexture
+P	dirtIntensity
+P	active

@@ -1,0 +1,475 @@
+# T151 — 런 #742 (ddc4c96b70d52a3492ebdf4b0ee7b4bec1bc6a63) · playmode 의 결과 XML 이 없다 · 에디터 로그 unity-test-results/playmode.log
+# 줄 수 894 · 마지막 수정 2026-09-15T18:34:05Z
+## 원인 문구 줄(최대 60 · error|Exception|crash|Abort|Fatal|Killed|signal|license|seat|compiler errors|Shader error)
+119:[Licensing::Client] Successfully updated license, isAsync: True, time: 0.04
+140:GLX Extensions: GLX_ARB_context_flush_control GLX_ARB_create_context GLX_ARB_create_context_no_error GLX_ARB_create_context_profile GLX_ARB_fbconfig_float GLX_ARB_framebuffer_sRGB GLX_ARB_get_proc_address GLX_ARB_multisample GLX_EXT_create_context_es2_profile GLX_EXT_create_context_es_profile GLX_EXT_fbconfig_packed_float GLX_EXT_framebuffer_sRGB GLX_EXT_no_config_context GLX_EXT_texture_from_pixmap GLX_EXT_visual_info GLX_EXT_visual_rating GLX_MESA_copy_sub_buffer GLX_MESA_query_renderer GLX_OML_swap_method GLX_SGIS_multisample GLX_SGIX_fbconfig GLX_SGIX_pbuffer GLX_SGIX_visual_select_group GLX_SGI_make_current_read 
+150:rm GL_EXT_texture_swizzle GL_EXT_timer_query GL_EXT_transform_feedback GL_EXT_vertex_array_bgra GL_EXT_vertex_attrib_64bit GL_IBM_multimode_draw_arrays GL_INTEL_shader_atomic_float_minmax GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent GL_KHR_context_flush_control GL_KHR_debug GL_KHR_no_error GL_KHR_parallel_shader_compile GL_KHR_robust_buffer_access_behavior GL_KHR_robustness GL_KHR_texture_compression_astc_ldr GL_KHR_texture_compression_astc_sliced_3d GL_MESA_framebuffer_flip_y GL_MESA_pack_invert GL_MESA_shader_integer_functions GL_MESA_texture_signed_rgba GL_MESA_ycbcr_texture GL_NVX_gpu_memory_info GL_NV_conditional_render GL_NV_copy_image GL_NV_depth_clamp GL_NV_packed_depth_stencil GL_NV_shader_atomic_float GL_NV_texture_barrier GL_OES_EGL_image GL_S3_s3tc
+718:GLX Extensions: GLX_ARB_context_flush_control GLX_ARB_create_context GLX_ARB_create_context_no_error GLX_ARB_create_context_profile GLX_ARB_fbconfig_float GLX_ARB_framebuffer_sRGB GLX_ARB_get_proc_address GLX_ARB_multisample GLX_EXT_create_context_es2_profile GLX_EXT_create_context_es_profile GLX_EXT_fbconfig_packed_float GLX_EXT_framebuffer_sRGB GLX_EXT_no_config_context GLX_EXT_texture_from_pixmap GLX_EXT_visual_info GLX_EXT_visual_rating GLX_MESA_copy_sub_buffer GLX_MESA_query_renderer GLX_OML_swap_method GLX_SGIS_multisample GLX_SGIX_fbconfig GLX_SGIX_pbuffer GLX_SGIX_visual_select_group GLX_SGI_make_current_read 
+863:Caught fatal signal - signo:11 code:1 errno:0 addr:(nil)
+865:#0  0x005615155fe8ed in burst_signal_handler(int, siginfo_t*, void*)
+870:#5  0x00561515a91f13 in scripting_method_invoke(ScriptingMethodPtr, ScriptingObjectPtr, ScriptingArguments&, ScriptingExceptionPtr*, bool)
+871:#6  0x00561515a6a92c in ScriptingInvocation::Invoke(ScriptingExceptionPtr*, bool)
+872:#7  0x00561515a6aa05 in core::basic_string<char, core::StringStorageDefault<char> > ScriptingInvocation::Invoke<core::basic_string<char, core::StringStorageDefault<char> > >(ScriptingExceptionPtr*, bool)
+873:#8  0x00561515bc9805 in Scripting::UnityEngine::StackTraceUtilityProxy::ExtractStackTrace(ScriptingExceptionPtr*)
+## 머리 60줄
+[UnityConnectServicesConfig] Local config successfully read: "/usr/share/unity3d/config/services-config.json"
+[UnityConnectServicesConfig] "clientConnectTimeoutSec" was overridden with "5"
+[UnityConnectServicesConfig] "clientHandshakeTimeoutSec" was overridden with "10"
+[UnityConnectServicesConfig] Service configuration:
+    "servicesConfigBaseUrl": "",
+    "disableServicesWindow": false,
+    "disableUserLogin": false,
+    "entitlementCacheTimeoutInSeconds": 60,
+    "clientConnectTimeoutSec": 5,
+    "clientHandshakeTimeoutSec": 10,
+    "clientResolveEntitlementsTimeoutSec": 30,
+    "clientUpdateLicenseTimeoutSec": 30,
+    "licensingServiceBaseUrl": "",
+    "enableProxyAutoconfig": "false"
+
+Unity Editor version:    6000.3.8f1 (1c7db571dde0)
+Branch:                  6000.3/staging
+Build type:              Release
+Batch mode:              YES
+System name:             Linux
+Distro version:          #22-Ubuntu SMP Mon Jul 27 17:24:03 UTC 2026
+Kernel version:          6.17.0-1022-azure
+Architecture:            x86_64
+Available memory:        15989 MB
+Date:                    2026-09-15T18:32:21Z
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Channel LicenseClient-root doesn't exist
+[Licensing::Module] Successfully launched the LicensingClient (PId: 84)
+Selected window backend: (null) 
+Desktop is 1280 x 1024 @ 60 Hz
+Initialize udev device monitor.
+CreateDirectory '/root/.cache/unity3d' failed:  (current dir: /github/workspace)
+
+COMMAND LINE ARGUMENTS:
+/opt/unity/Editor/Unity
+-batchmode
+-batchmode
+-logFile
+/github/workspace/unity-test-results/playmode.log
+-projectPath
+/github/workspace/.
+-runTests
+-testPlatform
+playmode
+-testResults
+/github/workspace/unity-test-results/playmode-results.xml
+-coverageResultsPath
+/github/workspace/CodeCoverage
+-enableCodeCoverage
+-debugCodeOptimization
+-coverageOptions
+generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;dontClear
+Successfully changed project path to: /github/workspace/.
+/github/workspace
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+## 꼬리 400줄
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil.Rocks, Version=0.11.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library/PackageCache/com.unity.burst@973857688024/Unity.Burst.CodeGen/Unity.Burst.Cecil.Rocks.dll
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 850.9256ms
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/2400b0aEDbg.dag/Forge.Tests.PlayMode.dll, with 136 defines and 264 references
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 2.8897ms
+ExitCode: 0 Duration: 8s692ms
+Finished compiling graph: 1216 nodes, 25247 flattened edges (20899 ToBuild, 220 ToUse), maximum node priority 1469
+[ 535/1213  0s] WriteText Library/Bee/artifacts/2400b0aEDbg.dag/Forge.Core.rsp
+[ 536/1213  0s] WriteText Library/Bee/artifacts/2400b0aEDbg.dag/Forge.Game.rsp
+[ 586/1213  0s] WriteText Library/Bee/artifacts/2400b0aEDbg.dag/Forge.Tests.PlayMode.rsp
+[ 602/1213  0s] WriteText Library/Bee/artifacts/2400b0aEDbg.dag/Forge.Tests.EditMode.rsp
+[ 720/1213  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[ 811/1213  0s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/ACTk.Examples.Genuine.Runtime.dll (+2 others)
+[ 853/1213  1s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/CFXRRuntime.dll (+2 others)
+[ 854/1213  0s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/CFXREditor.dll (+2 others)
+[ 856/1213  0s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/CFXRDemo.dll (+2 others)
+[ 858/1213  0s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/ToonyColorsPro.Demo.Editor.dll (+2 others)
+[ 859/1213  2s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/ACTk.Editor.dll (+2 others)
+[ 860/1213  0s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/ACTk.Examples.Runtime.dll (+2 others)
+[ 861/1213  2s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/Forge.Core.dll (+2 others)
+Assets/Scripts/Core/World/GroundTexBake.cs(33,32): warning CS0414: The field 'GroundTexBake.TwoPi' is assigned but its value is never used
+[ 862/1213  0s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/ACTk.Examples.Genuine.Editor.dll (+2 others)
+[ 863/1213  0s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/AllIn1SpriteShaderAssembly.dll (+2 others)
+[ 865/1213  0s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/DOTween.Modules.dll (+2 others)
+[ 866/1213  0s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/Sirenix.OdinInspector.Modules.UnityMathematics.dll (+2 others)
+[ 884/1213  0s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/ACTk.DOTS.Examples.Runtime.dll (+2 others)
+[ 911/1213  0s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/CFXR.WelcomeScreen.dll (+2 others)
+Assets/JMO Assets/Welcome Screen/CFXR_WelcomeScreen.cs(52,13): warning CS0618: 'IStyle.unityBackgroundScaleMode' is obsolete: 'unityBackgroundScaleMode is deprecated. Use background-* properties instead.'
+[ 947/1213  0s] ILPostProcess Library/Bee/artifacts/2400b0aEDbg.dag/post-processed/Forge.Core.dll (+pdb)
+Processing assembly Library/Bee/artifacts/2400b0aEDbg.dag/Forge.Core.dll, with 136 defines and 148 references
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1195/1213  0s] CopyFiles Library/ScriptAssemblies/Forge.Core.pdb
+[1196/1213  0s] CopyFiles Library/ScriptAssemblies/Forge.Core.dll
+[1197/1213  2s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/Forge.Tests.EditMode.dll (+2 others)
+[1198/1213  3s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/Forge.Game.dll (+2 others)
+Assets/Scripts/Game/Gallery/GallerySheet.cs(159,31): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Scripts/Game/Ui/MountUpgradePopup.cs(140,13): warning CS0618: 'TMP_Text.enableWordWrapping' is obsolete: 'The enabledWordWrapping property is now obsolete. Please use the textWrappingMode property instead.'
+[1199/1213  0s] ILPostProcess Library/Bee/artifacts/2400b0aEDbg.dag/post-processed/Forge.Game.dll (+pdb)
+Processing assembly Library/Bee/artifacts/2400b0aEDbg.dag/Forge.Game.dll, with 136 defines and 289 references
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1200/1213  0s] ILPostProcess Library/Bee/artifacts/2400b0aEDbg.dag/post-processed/Forge.Tests.EditMode.dll (+pdb)
+Processing assembly Library/Bee/artifacts/2400b0aEDbg.dag/Forge.Tests.EditMode.dll, with 134 defines and 270 references
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1201/1213  0s] CopyFiles Library/ScriptAssemblies/Forge.Game.dll
+[1202/1213  0s] CopyFiles Library/ScriptAssemblies/Forge.Game.pdb
+[1203/1213  0s] CopyFiles Library/ScriptAssemblies/Forge.Tests.EditMode.pdb
+[1204/1213  0s] CopyFiles Library/ScriptAssemblies/Forge.Tests.EditMode.dll
+[1205/1213  1s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/Assembly-CSharp.dll (+2 others)
+[1206/1213  1s] ILPostProcess Library/Bee/artifacts/2400b0aEDbg.dag/post-processed/Assembly-CSharp.dll (+pdb)
+Processing assembly Library/Bee/artifacts/2400b0aEDbg.dag/Assembly-CSharp.dll, with 136 defines and 361 references
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1207/1213  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
+[1208/1213  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
+[1209/1213  2s] Csc Library/Bee/artifacts/2400b0aEDbg.dag/Forge.Tests.PlayMode.dll (+2 others)
+Assets/Tests/PlayMode/CraftRevealSfxTests.cs(55,22): warning CS0219: The variable 'doneA' is assigned but its value is never used
+Assets/Tests/PlayMode/CraftRevealSfxTests.cs(63,22): warning CS0219: The variable 'doneB' is assigned but its value is never used
+Assets/Tests/PlayMode/CraftCardInkTests.cs(52,18): warning CS0219: The variable 'done' is assigned but its value is never used
+Assets/Tests/PlayMode/UiShadowTests.cs(68,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/ToastIconTests.cs(98,32): warning CS0618: 'Object.FindObjectOfType<T>(bool)' is obsolete: 'Object.FindObjectOfType has been deprecated. Use Object.FindFirstObjectByType instead or if finding any instance is acceptable the faster Object.FindAnyObjectByType'
+Assets/Tests/PlayMode/UiShadowTests.cs(92,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(106,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(136,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(154,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(186,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(209,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+[1210/1213  0s] ILPostProcess Library/Bee/artifacts/2400b0aEDbg.dag/post-processed/Forge.Tests.PlayMode.dll (+pdb)
+Processing assembly Library/Bee/artifacts/2400b0aEDbg.dag/Forge.Tests.PlayMode.dll, with 136 defines and 264 references
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1211/1213  0s] CopyFiles Library/ScriptAssemblies/Forge.Tests.PlayMode.pdb
+[1212/1213  0s] CopyFiles Library/ScriptAssemblies/Forge.Tests.PlayMode.dll
+*** Tundra build success (8.67 seconds), 38 items updated, 1213 evaluated
+Total cache size 0
+Total cache size after purge 0, took 00:00:00.0098128
+Assets/Scripts/Core/World/GroundTexBake.cs(33,32): warning CS0414: The field 'GroundTexBake.TwoPi' is assigned but its value is never used
+Assets/JMO Assets/Welcome Screen/CFXR_WelcomeScreen.cs(52,13): warning CS0618: 'IStyle.unityBackgroundScaleMode' is obsolete: 'unityBackgroundScaleMode is deprecated. Use background-* properties instead.'
+Assets/Scripts/Game/Gallery/GallerySheet.cs(159,31): warning CS0618: 'Object.FindObjectsOfType<T>()' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Scripts/Game/Ui/MountUpgradePopup.cs(140,13): warning CS0618: 'TMP_Text.enableWordWrapping' is obsolete: 'The enabledWordWrapping property is now obsolete. Please use the textWrappingMode property instead.'
+Assets/Tests/PlayMode/CraftRevealSfxTests.cs(55,22): warning CS0219: The variable 'doneA' is assigned but its value is never used
+Assets/Tests/PlayMode/CraftRevealSfxTests.cs(63,22): warning CS0219: The variable 'doneB' is assigned but its value is never used
+Assets/Tests/PlayMode/CraftCardInkTests.cs(52,18): warning CS0219: The variable 'done' is assigned but its value is never used
+Assets/Tests/PlayMode/UiShadowTests.cs(68,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/ToastIconTests.cs(98,32): warning CS0618: 'Object.FindObjectOfType<T>(bool)' is obsolete: 'Object.FindObjectOfType has been deprecated. Use Object.FindFirstObjectByType instead or if finding any instance is acceptable the faster Object.FindAnyObjectByType'
+Assets/Tests/PlayMode/UiShadowTests.cs(92,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(106,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(136,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(154,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(186,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(209,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(68,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/ToastIconTests.cs(98,32): warning CS0618: 'Object.FindObjectOfType<T>(bool)' is obsolete: 'Object.FindObjectOfType has been deprecated. Use Object.FindFirstObjectByType instead or if finding any instance is acceptable the faster Object.FindAnyObjectByType'
+Assets/Tests/PlayMode/UiShadowTests.cs(92,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(106,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(136,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(154,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(186,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+Assets/Tests/PlayMode/UiShadowTests.cs(209,42): warning CS0618: 'Object.FindObjectsOfType<T>(bool)' is obsolete: 'Object.FindObjectsOfType has been deprecated. Use Object.FindObjectsByType instead which lets you decide whether you need the results sorted or not.  FindObjectsOfType sorts the results by InstanceID but if you do not need this using FindObjectSortMode.None is considerably faster.'
+AssetDatabase: script compilation time: 14.381481s
+Begin MonoManager ReloadAssembly
+Symbol file LoadedFromMemory is not a mono symbol file
+- Loaded All Assemblies, in  1.551 seconds
+Refreshing native plugins compatible for Editor in 3.48 ms, found 1 plugins.
+Native extension for LinuxStandalone target not found
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:False
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in 11.502 seconds
+Domain Reload Profiling: 13049ms
+	BeginReloadAssembly (252ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (15ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (56ms)
+	RebuildCommonClasses (46ms)
+	RebuildNativeTypeToScriptingClass (11ms)
+	initialDomainReloadingComplete (72ms)
+	LoadAllAssembliesAndSetupDomain (1162ms)
+		LoadAssemblies (575ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (722ms)
+			TypeCache.Refresh (543ms)
+				TypeCache.ScanAssembly (513ms)
+			BuildScriptInfoCaches (146ms)
+			ResolveRequiredComponents (27ms)
+	FinalizeReload (11506ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (10872ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (73ms)
+			SetLoadedEditorAssemblies (16ms)
+			BeforeProcessingInitializeOnLoad (480ms)
+			ProcessInitializeOnLoadAttributes (9632ms)
+			ProcessInitializeOnLoadMethodAttributes (646ms)
+			AfterProcessingInitializeOnLoad (22ms)
+			EditorAssembliesLoaded (2ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (17ms)
+Start importing Assets/Forge/Resources/VoxelLit.mat using Guid(c2b614c31ac2a9874396c1e389a78bc1) (NativeFormatImporter) -> (artifact id: '436e2295a9e77f57133a946a0a6bac50') in 0.019506218 seconds
+Start importing Assets/Forge/Resources/VoxelUnlit.mat using Guid(bdfce4d75d7fdd9d1d89e9c14f356029) (NativeFormatImporter) -> (artifact id: 'd7660c643354ad04cd33d0ef5eda43a8') in 0.001392838 seconds
+Start importing Assets/Settings/UniversalRenderer.asset using Guid(24772d8023db061eb0420c1700e381e8) (NativeFormatImporter) -> (artifact id: '178ef17078c8f0819d51de96cc4b5d0e') in 0.001226558 seconds
+Start importing Assets/Forge/Resources/DropShadowUi.json using Guid(30018b31254ee6483a467e78f57eb50f) (TextScriptImporter) -> (artifact id: 'eb4a85f8e0421d433e7073b24935930c') in 0.001382569 seconds
+Start importing Assets/Forge/Resources/SummonFxUi.json using Guid(904deb976bb774f6a0eaf2faa04c21c8) (TextScriptImporter) -> (artifact id: '3febf5a33ee7f97a0599d68d785e3db0') in 0.000874161 seconds
+Start importing Assets/Forge/Resources/WaypointsUi.json using Guid(d67201c7cdb1b5f38963293c9c5c90af) (TextScriptImporter) -> (artifact id: 'ba997394e252b8a9eaa6372c4c6ef788') in 0.000833695 seconds
+Start importing Assets/Forge/Resources/AnvilArtUi.json using Guid(194eabffef3f73e1456134a8163b15cb) (TextScriptImporter) -> (artifact id: 'a6cc2e30859ce29db5348a013aa90eb0') in 0.000854984 seconds
+Start importing Assets/Forge/Resources/DmgGlowUi.json using Guid(89a5ab0d16b073d47da53ef0f0103ddc) (TextScriptImporter) -> (artifact id: '144087355b2116a2e7d98a7fff006c46') in 0.000871335 seconds
+Start importing Assets/Forge/Resources/SurfaceUi.json using Guid(cd07c83487cfc93efa4c8e04d28c97a1) (TextScriptImporter) -> (artifact id: '4631721342a36be8ab5448ed70753084') in 0.000846769 seconds
+Start importing Assets/Forge/catalog.json using Guid(dfc9b54e3c147430ad0d1473b1ad13b1) (TextScriptImporter) -> (artifact id: 'cfe1841a6084db54a0799fd2fc1ffa6a') in 0.000865955 seconds
+Refreshing native plugins compatible for Editor in 2.63 ms, found 1 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=e200573405d3d78a092048069c3bb684): Total: 63.653 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=8 (actual=8, local cache=0, cache server=0)
+		Asset DB Process Time: managed=9 ms, native=14956 ms
+		Asset DB Callback time: managed=432 ms, native=32184 ms
+		Scripting: domain reloads=1, domain reload time=1551 ms, compile time=14383 ms, other=134 ms
+		Project Asset Count: scripts=1826, non-scripts=4299
+		Asset File Changes: new=7, changed=47, moved=0, deleted=0
+		Scan Filter Count: 1
+	InvokeCustomDependenciesCallbacks: 0.005ms
+	InvokePackagesCallback: 32174.512ms
+	ApplyChangesToAssetFolders: 0.526ms
+	Scan: 2721.504ms
+	OnSourceAssetsModified: 0.929ms
+	CategorizeAssetsWithTransientArtifact: 65.116ms
+	ProcessAssetsWithTransientArtifactChanges: 198.325ms
+	CategorizeAssets: 117.261ms
+	ImportOutOfDateAssets: 11576.004ms (-2850.636ms without children)
+		ImportManagerImport: 32.671ms (1.987ms without children)
+			ImportInProcess: 30.650ms
+			UpdateCategorizedAssets: 0.033ms
+		CompileScripts: 14383.410ms
+		ReloadNativeAssets: 4.378ms
+		UnloadImportedAssets: 1.904ms
+		ReloadImportedAssets: 0.002ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.825ms
+		InitializingProgressBar: 0.014ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.001ms
+		OnDemandSchedulerStart: 2.435ms
+	PostProcessAllAssets: 434.921ms
+	Hotreload: 8.020ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.000ms
+	UnloadStreamsBegin: 1.842ms
+	PersistCurrentRevisions: 0.390ms
+	UnloadStreamsEnd: 0.001ms
+	GenerateScriptTypeHashes: 6.458ms
+	Untracked: 16353.713ms
+
+Application.AssetDatabase Initial Refresh End
+Launched and connected shader compiler UnityShaderCompiler after 0.03 seconds
+Scanning for USB devices : 0.149ms
+Initializing Unity extensions:
+UpdateMenuTitleForLanguage: 10
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-포지 클론
+GLX Extensions: GLX_ARB_context_flush_control GLX_ARB_create_context GLX_ARB_create_context_no_error GLX_ARB_create_context_profile GLX_ARB_fbconfig_float GLX_ARB_framebuffer_sRGB GLX_ARB_get_proc_address GLX_ARB_multisample GLX_EXT_create_context_es2_profile GLX_EXT_create_context_es_profile GLX_EXT_fbconfig_packed_float GLX_EXT_framebuffer_sRGB GLX_EXT_no_config_context GLX_EXT_texture_from_pixmap GLX_EXT_visual_info GLX_EXT_visual_rating GLX_MESA_copy_sub_buffer GLX_MESA_query_renderer GLX_OML_swap_method GLX_SGIS_multisample GLX_SGIX_fbconfig GLX_SGIX_pbuffer GLX_SGIX_visual_select_group GLX_SGI_make_current_read 
+Unloading 32 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 8062 unused Assets / (3.6 MB). Loaded Objects now: 9753.
+Memory consumption went from 385.8 MB to 382.3 MB.
+Total: 59.280492 ms (FindLiveObjects: 1.215156 ms CreateObjectMapping: 1.734405 ms MarkObjects: 51.397110 ms  DeleteObjects: 4.932789 ms)
+
+
+(Unity:77): GLib-GObject-CRITICAL **: 18:33:35.365: g_object_unref: assertion 'G_IS_OBJECT (object)' failed
+Disable old input system
+[Project] Loading completed in 73.798 seconds
+	Project init time: 				70.443 seconds
+		Template init time: 		0.000 seconds
+		Package Manager init time: 		0.473 seconds
+		Asset Database init time: 		0.094 seconds
+		Global illumination init time: 	0.001 seconds
+		Assemblies load time: 			3.817 seconds
+		Unity extensions init time: 	0.014 seconds
+		Asset Database refresh time: 	63.653 seconds
+	Scene opening time: 			3.154 seconds
+##utp:{"type":"ProjectInfo","version":2,"phase":"Immediate","time":1789497215367,"processId":77,"projectLoad":73.797817513,"projectInit":70.443310745,"templateInit":0.0,"packageManagerInit":0.473131303,"assetDatabaseInit":0.094396467,"globalIlluminationInit":0.001281079,"assembliesLoad":3.817428361,"unityExtensionsInit":0.014433889,"assetDatabaseRefresh":63.653175242,"sceneOpening":3.154006496}
+##utp:{"type":"EditorInfo","version":2,"phase":"Immediate","time":1789497215367,"processId":77,"editorVersion":"6000.3.8f1 (1c7db571dde0)","branch":"6000.3/staging","buildType":"Release","platform":"Linux"}
+[Licensing::Client] Successfully resolved entitlement details
+Asset Pipeline Refresh (id=6338c699f9462481cbb1042e9ebb5590): Total: 0.643 seconds - Initiated by RefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=642 ms
+		Asset DB Callback time: managed=0 ms, native=0 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=1826, non-scripts=4299
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 1
+	InvokeCustomDependenciesCallbacks: 0.002ms
+	InvokePackagesCallback: 0.692ms
+	ApplyChangesToAssetFolders: 0.567ms
+	Scan: 556.486ms
+	OnSourceAssetsModified: 0.001ms
+	CategorizeAssetsWithTransientArtifact: 0.002ms
+	ProcessAssetsWithTransientArtifactChanges: 0.107ms
+	CategorizeAssets: 59.423ms
+	ImportOutOfDateAssets: 2.184ms (0.549ms without children)
+		CompileScripts: 0.038ms
+		ReloadNativeAssets: 0.039ms
+		UnloadImportedAssets: 0.177ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.792ms
+		InitializingProgressBar: 0.000ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
+		OnDemandSchedulerStart: 0.588ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.420ms
+	UnloadStreamsBegin: 0.076ms
+	PersistCurrentRevisions: 0.253ms
+	UnloadStreamsEnd: 0.001ms
+	Untracked: 22.764ms
+
+Asset Pipeline Refresh (id=5c6f6aec585c86fb5806a792f2bbf1f5): Total: 0.379 seconds - Initiated by RefreshV2(NoUpdateAssetOptions)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=378 ms
+		Asset DB Callback time: managed=0 ms, native=0 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=1826, non-scripts=4299
+		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Scan Filter Count: 1
+	InvokeCustomDependenciesCallbacks: 0.000ms
+	InvokePackagesCallback: 0.000ms
+	ApplyChangesToAssetFolders: 0.171ms
+	Scan: 319.308ms
+	OnSourceAssetsModified: 0.000ms
+	CategorizeAssetsWithTransientArtifact: 0.001ms
+	ProcessAssetsWithTransientArtifactChanges: 0.072ms
+	CategorizeAssets: 52.655ms
+	ImportOutOfDateAssets: 2.225ms (0.544ms without children)
+		ReloadNativeAssets: 0.026ms
+		UnloadImportedAssets: 0.178ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.969ms
+		InitializingProgressBar: 0.000ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
+		OnDemandSchedulerStart: 0.507ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.401ms
+	UnloadStreamsBegin: 0.001ms
+	PersistCurrentRevisions: 0.239ms
+	UnloadStreamsEnd: 0.001ms
+	Untracked: 3.904ms
+
+[Licensing::Client] Successfully resolved entitlement details
+Running tests for ExecutionSettings with details:
+targetPlatform = 
+playerHeartbeatTimeout = 600
+filters[0] = 
+   Filter with settings:
+   testMode = PlayMode
+   targetPlatform = 
+   testNames = null
+   groupNames = null
+   categoryNames = null
+   assemblyNames = null
+ignoreTests = {}
+featureFlags = null
+
+[Licensing::Client] Successfully resolved entitlement details
+[UnityConnectServicesConfig] config is NOT valid, switching to default
+[UnityConnectServicesConfig] Service configuration:
+    "servicesConfigBaseUrl": "",
+    "disableServicesWindow": false,
+    "disableUserLogin": false,
+    "entitlementCacheTimeoutInSeconds": 60,
+    "clientConnectTimeoutSec": 5,
+    "clientHandshakeTimeoutSec": 10,
+    "clientResolveEntitlementsTimeoutSec": 30,
+    "clientUpdateLicenseTimeoutSec": 30,
+    "licensingServiceBaseUrl": "",
+    "enableProxyAutoconfig": "false"
+
+Created GICache directory at /root/.cache/unity3d/GiCache. Took: 0.019s, timestamps: [73.810 - 73.829]
+[UnityConnectServicesConfig] Service configuration:
+    "servicesConfigBaseUrl": "",
+    "disableServicesWindow": false,
+    "disableUserLogin": false,
+    "entitlementCacheTimeoutInSeconds": 60,
+    "clientConnectTimeoutSec": 5,
+    "clientHandshakeTimeoutSec": 10,
+    "clientResolveEntitlementsTimeoutSec": 30,
+    "clientUpdateLicenseTimeoutSec": 30,
+    "licensingServiceBaseUrl": "",
+    "enableProxyAutoconfig": "false"
+
+Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 4 unused Assets / (46.9 KB). Loaded Objects now: 9795.
+Memory consumption went from 355.9 MB to 355.9 MB.
+Total: 47.941499 ms (FindLiveObjects: 0.487319 ms CreateObjectMapping: 0.455259 ms MarkObjects: 46.923720 ms  DeleteObjects: 0.074359 ms)
+
+Start importing Assets/Forge/Resources/VoxelLit.mat using Guid(c2b614c31ac2a9874396c1e389a78bc1) (NativeFormatImporter) -> (artifact id: 'ebb5dcdeebcd306eb45967ba642a3442') in 0.00148547 seconds
+Start importing Assets/Forge/Resources/VoxelUnlit.mat using Guid(bdfce4d75d7fdd9d1d89e9c14f356029) (NativeFormatImporter) -> (artifact id: '15649a0ff20637cd8022cbeb94c469a6') in 0.001139766 seconds
+Start importing Assets/Settings/UniversalRenderer.asset using Guid(24772d8023db061eb0420c1700e381e8) (NativeFormatImporter) -> (artifact id: '72f0b93c7b74149431f8337ea15e0348') in 0.001023409 seconds
+Refreshing native plugins compatible for Editor in 1.49 ms, found 1 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=0b5c8e800be1a00c8b9dc3dfb8a60b51): Total: 0.050 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Start importing Assets/InitTestScenee03bfe91-b3c5-4e60-bf5a-8ad2e55f09ac.unity using Guid(1f933f922603f5e5b9eede6ba2477307) (DefaultImporter) -> (artifact id: 'd0871f51f9bbb0d913961e65a1fc5346') in 0.001159633 seconds
+Refreshing native plugins compatible for Editor in 1.08 ms, found 1 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=928b4756a472f78b181f6a9235a58cb7): Total: 0.040 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Executing IPrebuildSetup for: Unity.PerformanceTesting.Editor.TestRunBuilder.
+SpriteAtlasPacking completed in 0.006720 sec
+Reloading assemblies for play mode.
+Reloading assemblies after forced synchronous recompile.
+Begin MonoManager ReloadAssembly
+Caught fatal signal - signo:11 code:1 errno:0 addr:(nil)
+Obtained 26 stack frames.
+#0  0x005615155fe8ed in burst_signal_handler(int, siginfo_t*, void*)
+#1  0x007f0357a12520 in (Unknown)
+#2  0x007f02e0845ea1 in (Unknown)
+#3  0x007f02e09e3d91 in (Unknown)
+#4  0x007f02e09e3cf5 in mono_runtime_invoke
+#5  0x00561515a91f13 in scripting_method_invoke(ScriptingMethodPtr, ScriptingObjectPtr, ScriptingArguments&, ScriptingExceptionPtr*, bool)
+#6  0x00561515a6a92c in ScriptingInvocation::Invoke(ScriptingExceptionPtr*, bool)
+#7  0x00561515a6aa05 in core::basic_string<char, core::StringStorageDefault<char> > ScriptingInvocation::Invoke<core::basic_string<char, core::StringStorageDefault<char> > >(ScriptingExceptionPtr*, bool)
+#8  0x00561515bc9805 in Scripting::UnityEngine::StackTraceUtilityProxy::ExtractStackTrace(ScriptingExceptionPtr*)
+#9  0x00561515a32e2b in ExtractMonoStacktrace(core::basic_string_ref<char>, core::basic_string<char, core::StringStorageDefault<char> >&, core::basic_string<char, core::StringStorageDefault<char> >&, core::basic_string<char, core::StringStorageDefault<char> > const&, int*, int*, int, EntityId, bool)
+#10 0x005615178a3e1e in DebugStringToFile(DebugStringToFileData const&)
+#11 0x00561515a71f7f in RequireType(char const*, char const*, char const*)
+#12 0x00561515bf9a81 in InitializeCoreScriptingClasses()
+#13 0x00561515bc9ca4 in GetCoreScriptingClassesPtr()
+#14 0x00561515a8c1ff in ScriptingCoverage::FilterRecordedMethods(void*, MonoMethod*)
+#15 0x007f02e09f1288 in (Unknown)
+#16 0x007f02e083c2bd in (Unknown)
+#17 0x007f02e083eab3 in (Unknown)
+#18 0x007f02e0842760 in (Unknown)
+#19 0x007f02e08c05c3 in (Unknown)
+#20 0x007f02e08c0041 in (Unknown)
+#21 0x00000041731396 in (Unknown)
+#22 0x00000041b0d9fc in (Unknown)
+#23 0x00000041af5688 in (Unknown)
+#24 0x00000041af5494 in (Unknown)
+#25 0x00000041af45fc in (Unknown)
+[40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      ALC ILPP context 1 is unloading
