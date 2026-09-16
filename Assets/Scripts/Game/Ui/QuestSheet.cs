@@ -38,7 +38,8 @@ namespace Forge.Game.Ui
 
             TextMeshProUGUI title = PopupKit.Label(content, "title", TextKind.Title, "퀘스트", "stage_ink");
             PopupKit.Ring(title, "pp_line", 0.2f);
-            PopupKit.Label(content, "sub", TextKind.Sub, "모든 퀘스트는 수령해도 같은 내용으로 반복됩니다", "quest_sub", TextAlignmentOptions.Center, true);
+            TextMeshProUGUI sub = PopupKit.Label(content, "sub", TextKind.Sub, "모든 퀘스트는 수령해도 같은 내용으로 반복됩니다", "quest_sub", TextAlignmentOptions.Center, true);
+            LineHeight.Apply(sub, "sheet_sub_lh");   // T354 17회차 — 정본 3854 `.sheet-sub { line-height: 1.4 }`(던전 시트 5회차와 같은 선택자 · T178 반납으로 파일이 열렸다 · 한 줄로 서면 눈엔 안 보이고 꺾이면 산다)
             PopupKit.Spacer(content, rem * 0.45f);
 
             List<Quest> list = h.Quests.List(h.QuestState);

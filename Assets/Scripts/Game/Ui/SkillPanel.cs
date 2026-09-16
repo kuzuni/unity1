@@ -316,13 +316,15 @@ namespace Forge.Game.Ui
 
         public static void MiniLv(RectTransform parent, string text, float mini)
         {
-            float lh = UiCatalog.Instance.Kind(TextKind.Sub).size * 1.15f;
+            // T354 17회차 — 정본 4162 `.sk-mini small { line-height: 1.25; border: var(--ol1) solid }`: 배지 높이 = 줄높이 × 글자 + 테 두 겹(종전 ×1.15 는 박힌 수였다 · 표 LineHeightUi.json sk_mini_small_lh).
+            float lh = UiCatalog.Instance.Kind(TextKind.Sub).size * (float)LineHeight.Table.Get("sk_mini_small_lh") + PetSkillStyle.L("line1_px") * 2f;
             float lw = PetSkillKit.TextWidth(TextKind.Sub, text) + PetSkillStyle.Rem(0.44f);
             RectTransform box = PetSkillKit.Framed(parent, "small", PetSkillStyle.C("white"), lh * 0.5f, PetSkillStyle.L("line1_px"));
             UiKit.Anchor(box, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0f, -PetSkillStyle.Rem(0.3f) + lh * 0.5f), lw, lh);
             TextMeshProUGUI t = PetSkillKit.Text(box, "t", TextKind.Sub, text, PetSkillStyle.C("ink"));
             UiKit.Fill(t.rectTransform);
             WrapUi.Apply(t, "sk_mini_small");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 4162 `.sk-mini small { nowrap }`
+            LineHeight.Apply(t, "sk_mini_small_lh");   // T354 17회차 — 같은 줄 4162 의 line-height 1.25 (한 줄 배지라 줄 간격은 안 보이고 위 상자 높이가 그 값을 쓴다)
         }
 
         // ---- summon-bar 조각(펫 패널도 쓴다) ----

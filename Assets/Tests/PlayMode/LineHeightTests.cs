@@ -9,6 +9,8 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Forge.Core.Save;
 using Forge.Core.Ui;
+using Forge.Core.Data;
+using Forge.Core.Skills;
 using Forge.Game;
 using Forge.Game.Ui;
 
@@ -390,6 +392,69 @@ namespace Forge.Tests.PlayMode
                 Debug.Log("[T354] 보유 옵션 줄 상자 " + le.preferredHeight.ToString("0.00") + "px · 글자 " + t.fontSize.ToString("0.0"));
             }
             finally { PlayerInfoPopup.SubLines = saved; }
+        }
+            /// <summary>T354 17회차 — 퀘스트 시트 안내(정본 3854 `.sheet-sub { line-height: 1.4 }` · 던전 5회차와 같은 선택자 · T178 반납으로 `QuestSheet.cs` 가 열렸다).
+        /// 시트 폭 안에 한 줄로 서면 줄 간격은 눈에 안 보이지만 표가 lineSpacing 을 쥔다 — 꺾이면 실제 간격도 잰다.</summary>
+        [UnityTest]
+        public IEnumerator 퀘스트_시트_안내는_정본_1_4_배수로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && MetaHost.Instance != null); i++) yield return null;
+            MetaHost h = MetaHost.Instance;
+            QuestSheet.Open(h);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = h.Popups.Find(QuestSheet.Name);
+            Assert.IsNotNull(p, "퀘스트 시트가 열려 있다");
+            Transform sub = Find(p.Root, "sub");
+            Assert.IsNotNull(sub, "안내 글(.sheet-sub)");
+            TextMeshProUGUI t = sub.GetComponent<TextMeshProUGUI>();
+            AssertSpacing(t, "sheet_sub_lh", "퀘스트 안내");
+            double r = LineHeight.Table.Get("sheet_sub_lh");
+            Assert.AreEqual(1.4, r, 1e-9, "정본 3854");
+            if (t.textInfo.lineCount > 1) Assert.AreEqual(r, LineHeight.MeasuredRatio(t), 0.02, "두 줄로 꺾이면 실제 줄 간격도 1.4");
+            h.Popups.Hide(QuestSheet.Name);
+            yield return null;
+        }
+
+        /// <summary>T354 17회차 — 장착 스킬 Lv 배지(정본 4162 `.sk-mini small { line-height: 1.25; border: var(--ol1) solid }`):
+        /// 한 줄 배지라 줄 간격은 안 보이지만 **배지 높이**가 «줄높이 × 글자 + 테 두 겹» 이라 표값이 곧 화면 치수다(종전 ×1.15 박힌 수).
+        /// 장착 목록은 `MissingToastTests` 의 채비를 베껴 세이브에 직접 넣는다.</summary>
+        [UnityTest]
+        public IEnumerator 장착_스킬_Lv_배지는_정본_1_25_줄높이로_선다()
+        {
+            PetSkillHost.SuppressSave = true;
+            yield return Boot();
+            for (int i = 0; i < 600 && !(SkillPetSheet.Instance != null && PetSkillHost.Ready && UiRoot.Instance != null && UiRoot.Instance.TabBar != null); i++) yield return null;
+            PetSkillHost host = PetSkillHost.Instance;
+            SkillSystem sk = host.Skills;
+            if (sk.State.Skills.Count == 0)
+                foreach (SkillDef d in host.Data.Defs.SkillDefs) { sk.State.Skills.Add(d.Id, new SkillEntry()); break; }
+            Assert.Greater(sk.State.Skills.Count, 0, "보유 스킬 하나");
+            string id = sk.State.Skills.KeyAt(0);
+            sk.State.Equipped.Clear();
+            sk.State.Equipped.Add(id);
+            UiRoot.Instance.TabBar.OnTab("summon");
+            yield return null;
+            SkillPetSheet.Instance.Switch(SkillPetSheet.SubSkills);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            // T414 — 「sk-mini-」 는 펫 패널도 짓는 이름이라 스킬 패널 뿌리에서만 찾는다.
+            Transform mini = Find(SkillPetSheet.Instance.Skills.transform, "sk-mini-" + id);
+            Assert.IsNotNull(mini, "장착 줄의 스킬 조각 sk-mini-" + id);
+            Transform small = mini.Find("small");
+            Assert.IsNotNull(small, "Lv 배지(.sk-mini small)");
+            TextMeshProUGUI t = small.Find("t").GetComponent<TextMeshProUGUI>();
+            AssertSpacing(t, "sk_mini_small_lh", "Lv 배지");
+            double r = LineHeight.Table.Get("sk_mini_small_lh");
+            Assert.AreEqual(1.25, r, 1e-9, "정본 4162");
+            float fs = UiCatalog.Instance.Kind(TextKind.Sub).size;
+            float expect = fs * (float)r + PetSkillStyle.L("line1_px") * 2f;
+            float got = ((RectTransform)small).rect.height;
+            Assert.AreEqual(expect, got, 0.5f, "배지 높이 = 줄높이 × 글자 + 테 두 겹");
+            Assert.Greater(Mathf.Abs(got - fs * 1.15f), 0.5f, "종전 ×1.15 박힌 수로 되돌아갔다");
+            UiRoot.Instance.TabBar.OnTab("summon");
+            yield return null;
         }
     }
 }

@@ -70,6 +70,7 @@ block|-|촬영·픽셀 카메라가 UI 층만 그리는데 후처리를 켜 두�
 block|wwwww|정본 white-space 41 ↔ 표(T361 · 접는다가 기본 · nowrap 40 자리 · 공장 뒤집기 전에도 표가 정본과 안 어긋나게 지킨다)|python3 tools/check_wrap.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 <br> 22 자리 ↔ 클론이 그 줄 수를 아는가 (T383 · «한 상자» 는 \n · «상자 여럿» 은 split · 화면 줄 수는 PlayMode BrLinesTests 몫)|python3 tools/check_br_lines.py --ui .wwwww-src/web/js/ui.js
 block|wwwww|정본 color-mix 23 ↔ 표 ColorMixUi.json ↔ 그 자리가 표 키를 부르는가 (T371 · 임자 있는 빈자리는 KNOWN · 표에 없는 선언은 «미정» 으로 세기만 한다)|python3 tools/check_color_mix.py --css .wwwww-src/web/css/style.css
+block|wwwww|정본 line-height 81 ↔ 표 LineHeightUi.json ↔ 값·줄·선택자·단위가 한 자리씩 맞는가 (T354 · 읽는 곳 수는 알리기만 · 자리 배선은 각 파일 lock 뒤)|python3 tools/check_line_height.py --css .wwwww-src/web/css/style.css
 block|node|추출기 자기 검사 (T2)|node tools/export_data.js --self-test
 report|gh|유니티 잡이 실제로 돈 마지막 main 런이 초록인가 (T123 · §0-6 의 눈)|python3 tools/check_unity_green.py --fetch
 block|-|이 목록 ↔ ci.yml 이 부르는 이름 — 막는다 (T184 ⓑ · CI 도 같은 자를 돌린다)|tools/gate.sh --check-ci
