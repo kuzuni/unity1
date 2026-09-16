@@ -166,16 +166,20 @@ namespace Forge.Tests.PlayMode
             Rect app = World(UiRoot.Instance.App), a0 = World(deals[0]), a1 = World(deals[1]);
             float gap = (a0.yMin - a1.yMax) / app.height;
             Assert.AreEqual(0.0091f, gap, 0.002f, "특가 카드 사이 = 앱 높이 × .0091(표 shop_deal_gap) · 실측 " + gap.ToString("0.0000"));
-            // 표를 부르는지: rem*0.5(= 앱높이/844×16의 절반 ≈ .00948H)와 갈라지는 폭이라 ±0.0002 로 좁혀 한 번 더 본다
-            float dealPx = a0.yMin - a1.yMax;
-            Assert.AreEqual(UiKit.H("shop_deal_gap"), dealPx, 1.2f, "실측 px = 표 shop_deal_gap × 앱 높이");
+            // 표를 부르는지: rem*0.5(= 앱높이/844×16의 절반 ≈ .00948H)와 갈라지는 폭이라 px 로 한 번 더 본다.
+            // ⚠ `GetWorldCorners` 는 **세계 단위**라 캐너스 배율(이 런에선 0.25)만큼 표값(=기준 px)과 다르다 — 런 928 이 그래서 빨갔다(4.368 ↔ 17.472 = 딱 1/4).
+            //   재 값을 **기준 px 로 되돌려** 견준다(앱 높이가 계약상 `UiKit.RefH` 에 맞게 서있으므로 비는 배율 그대로다).
+            float toRef = UiKit.RefH / app.height;
+            float dealPx = (a0.yMin - a1.yMax) * toRef;
+            //   텀은 레이아웃 간격 그대로라 재기가 정확하다 — 두 값이 0.72px 밖에 안 벌어져 틀을 ±0.4px 로 좁혀야 «표를 부른다» 가 가려지지 않는다.
+            Assert.AreEqual(UiKit.H("shop_deal_gap"), dealPx, 0.4f, "실측 px(기준 단위) = 표 shop_deal_gap × 앱 높이 · rem*0.5 는 " + (PopupKit.Rem * 0.5f).ToString("0.00") + "px 라 갈라진다");
             // 10회차 — **시트 열은 그 값이 아니다**: 정본 3792 `.modal-card.sheet { gap: .5rem }` · 머리 ↔ 첫 배너 사이로 재 둘을 갈라 둔다.
             //   이 칸이 없으면 다음 사람이 두 상자를 다시 하나로 접어도 위 칸은 그대로 초록이다.
             RectTransform head = (RectTransform)content.Find("head");
             RectTransform banner = (RectTransform)content.Find("banner-오늘의 특가");
             Assert.IsNotNull(head, "시트 머리(head)"); Assert.IsNotNull(banner, "첫 배너(banner-오늘의 특가)");
-            float sheetGap = World(head).yMin - World(banner).yMax;
-            Assert.AreEqual(PopupKit.Rem * 0.5f, sheetGap, 1.0f, "시트 열 간격 = .5rem(정본 3792) · 실측 " + sheetGap.ToString("0.00") + "px · 카드 열의 " + dealPx.ToString("0.00") + "px 와 다른 상자다");
+            float sheetGap = (World(head).yMin - World(banner).yMax) * toRef;
+            Assert.AreEqual(PopupKit.Rem * 0.5f, sheetGap, 0.4f, "시트 열 간격 = .5rem(정본 3792) · 실측 " + sheetGap.ToString("0.00") + "px · 카드 열의 " + dealPx.ToString("0.00") + "px 와 다른 상자다");
             Debug.Log("[T364] 상점 특가 카드 틈 " + gap.ToString("0.0000") + "H · 표 " + UiKit.H("shop_deal_gap").ToString("0.00") + "px");
             yield return null;
         }
