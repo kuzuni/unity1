@@ -52,6 +52,61 @@
       "rgba": [0.0, 0.0, 0.0, 0.45],
       "_": ".rw-anchor(7540) 의 **둘째 겹** `0 2px 4px rgba(0,0,0,.45)`. 두 가지를 적어 둔다 — (1) 정본이 여기서만 **px 로 적었다**(다른 자리는 rem): 16px 기준으로 옮겨 .125rem/.25rem 이다(클론 관용구와 같다 — «정본은 px · 기준 캔버스로 옮긴다»). (2) 같은 선언의 **첫 겹** `0 0 .55rem rgba(255,190,50,.6)` 은 치우침 0 에 색이 노랑이라 **빛 갈래**다(26회차가 가른 축 · 그 겹은 이 표가 아니라 발광 축이 본다)."
     },
+    "fiagebar_lip": {
+      "dx_rem": 0.0, "dy_rem": 0.1, "blur_rem": 0.0, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.22],
+      "_": ".fi-age-bar(5132) 의 **셋째 겹** `0 .1rem 0 rgba(0,0,0,.22)` — 앞의 둘은 안쪽 띠다(`inset 0 .08rem 0 rgba(255,255,255,.3)` 위 림라이트 · `inset 0 -.1rem 0 rgba(0,0,0,.2)` 아래 그늘). 흐림 0 이라 굽지 않는다."
+    },
+    "techbranch_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.12, "blur_rem": 0.2, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.2],
+      "_": ".tech-branch-icon::before(2112) 의 **둘째 겹** `0 .12rem .2rem rgba(0,0,0,.2)` — 첫 겹 `inset 0 -.18rem .12rem` 은 안쪽이다. 기술 가지 머리의 둥근 원판(3.7rem)이 판 위에 한 겹 떠 보이게 하는 그늘이다."
+    },
+    "skribbon_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.1, "blur_rem": 0.18, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.35],
+      "_": ".sk-ribbon(4079) 의 **둘째 겹** `0 .1rem .18rem rgba(0,0,0,.35)` — 첫 겹 `inset 0 1px 0 rgba(255,255,255,.25)` 은 안쪽 림라이트다(정본이 여기서 1px 을 썼다)."
+    },
+    "afknob_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.1, "blur_rem": 0.18, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.4],
+      "_": ".af-toggle .knob(4991) 의 **둘째 겹** `0 .1rem .18rem rgba(0,0,0,.4)` — 첫 겹 `inset 0 -.2rem 0 var(--pp-blue-dk)` 은 손잡이 아래의 짙은 띠(안쪽)다. 켜진 토글의 `.af-toggle.on`(4994) 초록 발광은 **빛 갈래**라 이 표가 아니다."
+    },
+    "sragain_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.25, "blur_rem": 0.6, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.5],
+      "_": ".sr-again(5796) 의 **둘째 겹** `0 .25rem .6rem rgba(0,0,0,.5)` — 첫 겹 `inset 0 .1rem 0 rgba(255,255,255,.14)` 은 안쪽이다. 소환 결과의 «다시 소환» 버튼."
+    },
+    "srnew_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.12, "blur_rem": 0.3, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.6],
+      "_": ".sr-new(6985) `0 .12rem .3rem rgba(0,0,0,.6)` — 겹이 하나다. 소환 결과 셀의 NEW 배지."
+    },
+    "srqty_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.1, "blur_rem": 0.28, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.6],
+      "_": ".sr-qty(7008) `0 .1rem .28rem rgba(0,0,0,.6)` — 겹이 하나다. 수량 배지."
+    },
+    "srdup_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.1, "blur_rem": 0.28, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.6],
+      "_": ".sr-dup(7029) `0 .1rem .28rem rgba(0,0,0,.6)` — 수량 배지와 값이 같지만 **선택자가 달라** 키를 나눈다(정본이 따로 적었으니 한쪽만 바뀌어도 자가 잡는다)."
+    },
+    "srrk_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.08, "blur_rem": 0.22, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.5],
+      "_": ".sr-sub .sr-rk(7075) 의 **둘째 겹** `0 .08rem .22rem rgba(0,0,0,.5)` — 첫 겹 `0 0 0 1px rgba(0,0,0,.45)` 은 번짐만 있는 **테두리**라 T109 축이 본다(이 자가 세는 갈래가 아니다)."
+    },
+    "srchip_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.1, "blur_rem": 0.26, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.55],
+      "_": ".sr-chip(7128) 의 **둘째 겹** `0 .1rem .26rem rgba(0,0,0,.55)` — 첫 겹은 1px 테두리(T109 축). 등급 4·5 의 `[data-tier]`(7131·7132)는 **같은 두 겹에 발광만 더한** 것이라 그늘은 이 키 하나로 선다."
+    },
+    "infobtn_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.1, "blur_rem": 0.16, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.38],
+      "_": ".info-btn(8174 · `#equip-sheet .anvil-side .info-btn` 도 같은 줄) 의 **둘째 겹** `0 .1rem .16rem rgba(0,0,0,.38)` — 첫 겹 `inset 0 1px 0 rgba(255,255,255,.14)` 은 안쪽이다. 클론은 이 버튼을 두 공장이 만든다(`ForgeUi.InfoButton` · `DungeonPopups.InfoButton`) — **둘 다** 걸어야 한 자리가 선다."
+    },
     "card_lip": {
       "dx_rem": 0.0, "dy_rem": 0.5, "blur_rem": 0.0, "spread_rem": 0.0,
       "rgba": [0.0, 0.0, 0.0, 0.25],

@@ -55,11 +55,35 @@ SPOTS = [
     ('afspinner_lip', '.af-spinner',                   5007, 'hard'),
     ('afsubrow_drop', '.af-sub-row',                   4999, 'blur'),
     ('rwanchor_drop', '.rw-anchor',                   7540, 'blur'),   # 같은 선언의 첫 겹은 빛 갈래다(26회차)
+    # 29회차 — 남은 자리의 **값을 먼저 재 뒀다**(배선은 그 파일의 lock 이 풀리는 회차가 한 줄로 건다 · KNOWN 참고)
+    ('fiagebar_lip',  '.fi-age-bar',                   5132, 'hard'),
+    ('techbranch_drop', '.tech-branch-icon::before',   2112, 'blur'),
+    ('skribbon_drop', '.sk-ribbon',                    4079, 'blur'),
+    ('afknob_drop',   '.af-toggle .knob',              4991, 'blur'),
+    ('sragain_drop',  '.sr-again',                     5796, 'blur'),
+    ('srnew_drop',    '.sr-new',                       6985, 'blur'),
+    ('srqty_drop',    '.sr-qty',                       7008, 'blur'),
+    ('srdup_drop',    '.sr-dup',                       7029, 'blur'),
+    ('srrk_drop',     '.sr-sub .sr-rk',                7075, 'blur'),
+    ('srchip_drop',   '.sr-chip',                      7128, 'blur'),
+    ('infobtn_drop',  '.info-btn, #equip-sheet .anvil-side .info-btn', 8174, 'blur'),
 ]
 
 # 아직 안 선 자리 — 까닭과 «누가/언제» 를 같이 적는다. 서면 이 줄을 지운다(안 지우면 자가 알린다).
 KNOWN = {
-    # (비었다 = 표의 자리가 **전부 섰다** · T331 25회차에 마지막 하나 `passcard_drop` 이 섰다)
+    # 29회차 — **값은 재 뒀고 배선만 남은** 자리들. 까닭은 전부 같다: 그 파일을 «범위» 로 쥔 **산 lock** 이 있다.
+    # 그 lock 이 풀리는 회차가 `UiShadow.Drop(<상자>, "<키>", <반지름>)` 한 줄을 걸고 여기서 그 줄을 지운다.
+    'fiagebar_lip':    'T331 29회차 — 값 잼 · 배선은 ForgeUi.cs(대장간 나이 막대)가 열리는 회차',
+    'techbranch_drop': 'T331 29회차 — 값 잼 · 배선은 TechPanel.cs(기술 가지 머리)가 열리는 회차',
+    'skribbon_drop':   'T331 29회차 — 값 잼 · 배선은 PetPanel.cs(스킬 리본)가 열리는 회차',
+    'afknob_drop':     'T331 29회차 — 값 잼 · 배선은 Popups.cs(공용 토글 공장)가 열리는 회차',
+    'sragain_drop':    'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(다시 소환 버튼)',
+    'srnew_drop':      'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(NEW 배지)',
+    'srqty_drop':      'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(수량 배지)',
+    'srdup_drop':      'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(중복 배지)',
+    'srrk_drop':       'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(등급 꼬리표)',
+    'srchip_drop':     'T331 29회차 — 값 잼 · 배선은 SkillSummonResult.cs 가 열리는 회차(요약 칩 · 등급 4·5 도 같은 키)',
+    'infobtn_drop':    'T331 29회차 — 값 잼 · 배선은 ForgeUi.cs + DungeonPopups.cs **둘 다**(공장이 둘이다 · 하나만 걸면 반만 선다)',
 }
 
 # 표 밖 자리의 **장부**(26회차) — «이 축이 볼 자리가 아니다» 거나 «다른 길로 이미 섰다» 는 것을
@@ -94,6 +118,9 @@ ELSEWHERE = {
     '.sr-idle i': '끝난 뒤 고리의 halo 도 같은 굽기(T334 18회차)',
     '.sr-orbwrap': '광원 둘레 발광은 등급색 광원 판에 구워져 있다(T334 3회차 충전 3종)',
     '.sr-canopy::before': '바닥 스필 — 지금 T419 가 쥔 자리(mix-blend-mode: screen 갈래)',
+    # 29회차 — 같은 그늘에 **등급 발광만 더한** 변형(그늘은 `.sr-chip` 키 하나로 선다)
+    '.sr-chip[data-tier="4"]': '`.sr-chip` 과 같은 두 겹 + 등급 발광 `0 0 .5rem var(--cb)` — 그늘은 srchip_drop 이 쥔다',
+    '.sr-chip[data-tier="5"]': '`.sr-chip` 과 같은 두 겹 + 등급 발광 `0 0 .7rem var(--cb)` — 그늘은 srchip_drop 이 쥔다',
 }
 
 

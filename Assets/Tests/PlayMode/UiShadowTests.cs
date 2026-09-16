@@ -349,11 +349,11 @@ namespace Forge.Tests.PlayMode
         [Test]
         public void 표는_딱딱한_턱과_흐린_그림자로_갈린다()
         {
-            // 수는 회차마다 자란다(26회차에 자동 제련 둘이 들어와 5+7 → 6+8) — EditMode 쪽과 같은 수를 본다.
+            // 수는 회차마다 자란다(29회차에 남은 열하나의 값을 미리 재 담아 7+19) — EditMode 쪽과 같은 수를 본다.
             int hard = 0, soft = 0;
             foreach (string k in UiShadow.Table.Keys) { if (UiShadow.Table.Get(k).IsHard) hard++; else soft++; }
-            Assert.AreEqual(6, hard);
-            Assert.AreEqual(9, soft);
+            Assert.AreEqual(7, hard);
+            Assert.AreEqual(19, soft);
         }
     }
 }
