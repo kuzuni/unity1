@@ -105,7 +105,9 @@ namespace Forge.Game.Ui
             RectTransform spRt = sp.GetComponent<RectTransform>();
             UiKit.Place(spRt, inner - spW, rem * 0.15f, spW, rowH - rem * 0.3f);
             // T345 — 정본 4783 `.af-spinner { border-radius: .45rem }`(표 `af_spinner_r_rem` · 전엔 .3rem)
-            Image spf = RadiusUi.Rounded(spRt, "face", "pp_line", "af_spinner_r_rem");
+            // T365 19회차 — 정본 4785 는 **면 `#17181a` + ol3 `--pp-line` 테** 두 겹이다. 클론은 `pp_line`(#000000) 판 **한 장**이라
+            //   테가 없고 면까지 순검정이었다 — `pp_ink` 가 곧 정본의 #17181a 다.
+            Image spf = RadiusUi.Outlined(spRt, "face", "pp_ink", "af_spinner_r_rem", PopupKit.Line3);
             // T331 26회차 — 정본 5007 의 **셋째 겹** `0 .12rem 0 rgba(0,0,0,.28)`(바깥 턱).
             //   앞의 둘은 안쪽이라 이미 서 있다(위 림라이트·아래 그늘 = `btn_lip` 관용구 갈래).
             //   면을 세운 **뒤**에 부른다 — 그늘의 둥근 모서리를 그 면에서 되읽는다(`RadiusOf`).
@@ -148,7 +150,8 @@ namespace Forge.Game.Ui
                 float ddW = rem * ForgeAutoStyle.L("af_dd_min_w_rem");
                 UiKit.Place(dd, inner - ddW, rem * 0.15f - listH, ddW, listH);
                 // T345 — 정본 4791 `.af-dd-list { border-radius: .45rem }`(표 `af_dd_list_r_rem` · 전엔 .3rem)
-                Image ddbg = RadiusUi.Rounded(dd, "bg", "pp_line", "af_dd_list_r_rem");
+                // T365 19회차 — 정본 4793 도 스피너와 같은 두 겹(면 `#17181a` + ol3 테)이다.
+                Image ddbg = RadiusUi.Outlined(dd, "bg", "pp_ink", "af_dd_list_r_rem", PopupKit.Line3);
                 ddbg.raycastTarget = true;
                 RectTransform ddc = PopupKit.ScrollList(dd, "items", 0f, 0f, 0f);
                 for (int n = 1; n <= max; n++)

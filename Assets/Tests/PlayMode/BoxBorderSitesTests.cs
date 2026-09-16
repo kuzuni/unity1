@@ -53,6 +53,52 @@ namespace Forge.Tests.PlayMode
         /// 채팅 띠 위 줄은 3229 의 ol1 을 **3639 가 ol2 로 덮는다**(뒤 규칙이 이긴다).
         /// 클론은 넷 다 `line_px`(ol1) 한 값으로 그려 한 단 얇았다.
         /// </summary>
+        /// <summary>
+        /// T365 19회차 — 자동 제련 팝업의 검은 두 자리. 정본 4785 `.af-spinner` · 4793 `.af-dd-list` 는 둘 다
+        /// **면 `#17181a` + `var(--ol3) solid var(--pp-line)` 테** 인데, 클론은 `pp_line`(#000000) 판 **한 장**이라
+        /// 테가 아예 없었고 면까지 순검정이었다(`pp_ink` 가 곧 정본의 #17181a).
+        /// 이 자리는 `check_box_borders` 로는 **못 가른다** — 둘 다 `ForgeAutoPopup.Render` 한 몸통 안이고
+        /// 그 몸통엔 ol3 테가 여럿이라 판정이 옆자리 덕인지 갈리지 않는다. 그래서 여기서 직접 잰다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 자동_제련_스피너와_드롭다운은_순검정_판이_아니라_면_더하기_ol3_테다()
+        {
+            yield return Boot();
+            ForgeHost fh = ForgeHost.Instance;
+            fh.S.BestChapter = 3; fh.S.BestStage = 1; fh.Pull();
+            ForgeAutoPopup.Open(fh);
+            yield return null;
+            ForgeAutoPopup.ToggleDropdown(fh);   // 드롭다운은 열려 있을 때만 선다
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            Popup p = fh.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(p, "자동 제련 팝업이 열려 있다");
+            float ol3 = UiKit.L("line3_px");
+            Color ink = UiKit.C("pp_ink"), line = UiKit.C("pp_line");
+
+            foreach (string what in new[] { "af-spinner", "af-dd-list" })
+            {
+                RectTransform box = null;
+                foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+                    if (rt.name == what) { box = rt; break; }
+                Assert.IsNotNull(box, what + " 를 못 찾았다");
+                // `RadiusUi.Outlined` 는 상자(face 또는 bg) 밑에 테 «line» 과 안쪽 면 «face» 를 둔다
+                Transform pair = box.Find("face") ?? box.Find("bg");
+                Assert.IsNotNull(pair, what + ": 테·면 상자");
+                Assert.AreEqual(ol3, RingWidth(pair, what), 0.01f,
+                    what + ": 정본은 ol3 테다(전엔 테가 아예 없었다)");
+                Image face = pair.Find("face").GetComponent<Image>();
+                Image ring = pair.Find("line").GetComponent<Image>();
+                Assert.AreEqual(ink.r, face.color.r, 1f / 255f, what + ": 면은 정본 #17181a(pp_ink)다 — 순검정이 아니다");
+                Assert.AreEqual(ink.g, face.color.g, 1f / 255f, what + ": 면 G");
+                Assert.AreEqual(ink.b, face.color.b, 1f / 255f, what + ": 면 B");
+                Assert.AreEqual(line.r, ring.color.r, 1f / 255f, what + ": 테는 --pp-line(순검정)이다");
+                Assert.Greater(Mathf.Abs(face.color.r - ring.color.r) + Mathf.Abs(face.color.g - ring.color.g) + Mathf.Abs(face.color.b - ring.color.b), 1f / 255f,
+                    what + ": 면과 테가 같은 색이면 두 겹을 세운 뜻이 없다");
+            }
+        }
+
         [UnityTest]
         public IEnumerator 상단바_아바타와_웨이브_핍_트랙과_채팅_띠는_카드와_달리_정본_ol2_다()
         {

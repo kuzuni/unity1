@@ -124,6 +124,13 @@ TABLE = {
     '#summon-subtabs.subtab-strip button': ['—비활성 칸엔 테가 없다(정본 3606 `border: none`) · 클론은 `subSkins[i]` 를 **활성일 때만** 켠다 — 같은 몸통에 활성 칸(ol2)이 같이 있어 «테 호출 0» 으로는 못 가른다(17회차 눈으로 확인)'],
     # T365 17회차 — 정본이 «끈다» 고만 적은 셋. 셋 다 클론이 이미 정본대로인데, 그 몸통에 **다른 자리의 테**가 같이 있어 자로는 못 가른다.
     '.pill-plus': ['Ui/Hud.cs@PlusBadge'],
+    # T365 19회차 — 자동 제련 팝업의 검은 두 겹. 정본 4785·4793 은 **면 #17181a + ol3 --pp-line 테** 인데
+    #   클론은 `pp_line`(#000000) 판 **한 장**이라 테가 아예 없었고 면까지 순검정이었다(`pp_ink` 가 곧 #17181a).
+    #   ⚠ 자로는 **못 가른다** — 둘 다 `Render` 한 몸통 안이고 그 몸통엔 ol3 테가 여럿이라 «단 ol3» 판정이
+    #      이 자리 덕인지 옆자리 덕인지 갈리지 않는다(고장 주입 셋이 전부 rc 0 이었다). 그래서 초록으로 세지 않고,
+    #      대신 **PlayMode `BoxBorderSitesTests` 가 그 자리를 직접 잰다**(고리+면 짝 · 테 폭 ol3 · 면색 pp_ink).
+    '.af-spinner': ['—정본 4785 `면 #17181a + ol3 --pp-line`. 19회차가 `RadiusUi.Outlined(… "pp_ink" … Line3)` 로 두 겹을 세웠다(전엔 `pp_line` 판 한 장이라 테가 없고 면까지 순검정이었다) — 자로는 못 가르니 PlayMode 자가 잰다'],
+    '.af-dd-list': ['—정본 4793 도 같은 두 겹. 19회차가 같이 세웠다 — 자로는 못 가르니 PlayMode 자가 잰다'],
     # T365 18회차 — 자유 파일에 남아 있던 둘.
     '.tb-row:last-child|bottom': ['—마지막 줄만 밑줄이 없다(정본 2252 `border-bottom: none`) · 클론 `TechPopups` 336 이 `if (i < lines.Count - 1)` 로 **마지막만 건너뛴다**(그 위 2249 `.tb-row|bottom` ol2 는 이미 초록) — 같은 몸통이 다른 줄엔 선을 그으니 «테 호출 0» 으로는 못 가른다(18회차 눈으로 확인)'],
     '#panel-debug input[type=number]': ['—클론엔 그 자리가 없다: 디버그 패널은 **숫자 입력칸을 안 쓴다**(`DebugPanel.cs` 에 `InputField` 0 · 스테이지 이동·재화 더하기를 전부 버튼으로 낸다) — 정본 680 의 테는 클론에 짝이 없다(18회차 전수 확인)'],
@@ -164,9 +171,9 @@ KNOWN = {
     # T365 14회차 — 오프라인 요율 원판 둘은 T417 1회차(`42083bc`)가 정본 7268 대로 색 원·테를 걷어 이제 «정본대로 테 없음» ok 다 → KNOWN 에서 걷었다(경고 줄 2 → 0 · 표 자리 초록 84 그대로).
 }
 
-HELPERS = ('PopupKit.Outlined', 'UiKit.Line', 'PetSkillKit.Framed', 'PetSkillKit.Orb', 'DungeonPopups.Bordered', 'DungeonPopups.BorderedCircle', 'UiKit.Rounded', 'UiKit.Circle', 'Bordered', 'BorderedCircle')   # 맨 이름 둘은 DungeonPopups 제 안의 호출(10회차 · CurPill)
+HELPERS = ('PopupKit.Outlined', 'RadiusUi.Outlined', 'UiKit.Line', 'PetSkillKit.Framed', 'PetSkillKit.Orb', 'DungeonPopups.Bordered', 'DungeonPopups.BorderedCircle', 'UiKit.Rounded', 'UiKit.Circle', 'Bordered', 'BorderedCircle')   # 맨 이름 둘은 DungeonPopups 제 안의 호출(10회차 · CurPill)
 # 도우미별 폭 인자 자리(0부터 · 이름 인자는 1) — Rounded 는 짝(안쪽 면의 «r - 폭»)에서 읽는다
-WIDTH_ARG = {'PopupKit.Outlined': 4, 'UiKit.Line': 3, 'PetSkillKit.Framed': 4, 'PetSkillKit.Orb': 3, 'DungeonPopups.Bordered': 4, 'DungeonPopups.BorderedCircle': 3, 'Bordered': 4, 'BorderedCircle': 3}
+WIDTH_ARG = {'PopupKit.Outlined': 4, 'RadiusUi.Outlined': 4, 'UiKit.Line': 3, 'PetSkillKit.Framed': 4, 'PetSkillKit.Orb': 3, 'DungeonPopups.Bordered': 4, 'DungeonPopups.BorderedCircle': 3, 'Bordered': 4, 'BorderedCircle': 3}
 CALL_RE = re.compile(r'\b(' + '|'.join(re.escape(h) for h in HELPERS) + r')\s*\(')
 TIER_PATTERNS = [
     ('ol4', re.compile(r'line4_px')),
