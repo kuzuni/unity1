@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -56,6 +57,32 @@ namespace Forge.Tests.PlayMode
             double dx, dy, blur;
             UnderlaySdf.ToPx(m.GetFloat("_UnderlayOffsetX"), m.GetFloat("_UnderlayOffsetY"), m.GetFloat("_UnderlaySoftness"), want.UnitPx, out dx, out dy, out blur);
             Assert.AreEqual(TextShadowUi.Px(key, "dy_px") * css, dy, 0.05, what + ": 되짚은 dy = 정본 px × css_px(아래로)");
+        }
+
+        /// <summary>T333 15회차 — 정본 흐림이 글꼴 SDF 여백(단위 px)을 넘는 자리도 잰다: 재질 값은 «식을 상한 1 에서 자른 값» 이어야 하고, 안 잘린 자리는 AssertShadow 와 같다(결정 738).</summary>
+        private static void AssertShadowMaybeClipped(TextMeshProUGUI t, string key, string what)
+        {
+            Material m = t.fontMaterial;
+            Assert.IsTrue(m.IsKeywordEnabled("UNDERLAY_ON"), what + ": UNDERLAY_ON");
+            float g = m.GetFloat("_GradientScale"), rc = m.HasProperty("_ScaleRatioC") ? m.GetFloat("_ScaleRatioC") : 0f;
+            if (rc <= 0f) rc = 1f;
+            float css = KeylineUi.CssPx;
+            UnderlaySdf want = UnderlaySdf.FromPx(TextShadowUi.Px(key, "dx_px") * css, TextShadowUi.Px(key, "dy_px") * css, TextShadowUi.Px(key, "blur_px") * css, t.fontSize, g, rc, t.font.faceInfo.pointSize);
+            Assert.AreEqual(want.OffsetX01, m.GetFloat("_UnderlayOffsetX"), 1e-4, what + ": _UnderlayOffsetX = 식");
+            Assert.AreEqual(want.OffsetY01, m.GetFloat("_UnderlayOffsetY"), 1e-4, what + ": _UnderlayOffsetY = 식(CSS 아래 = TMP 음수)");
+            Assert.AreEqual(want.Softness01, m.GetFloat("_UnderlaySoftness"), 1e-4, what + ": _UnderlaySoftness = 흐림/단위(상한 1)");
+            Assert.Less(m.GetFloat("_UnderlayOffsetY"), 0f, what + ": 그림자는 아래로 내린다");
+            Assert.Greater(m.GetFloat("_UnderlaySoftness"), 0f, what + ": 흐림이 있는 겹이다");
+            Color c = m.GetColor("_UnderlayColor"), tc = TextShadowUi.C(key);
+            Assert.AreEqual(tc.r, c.r, 2f / 255f, what + ": 그림자 R"); Assert.AreEqual(tc.g, c.g, 2f / 255f, what + ": 그림자 G");
+            Assert.AreEqual(tc.b, c.b, 2f / 255f, what + ": 그림자 B"); Assert.AreEqual(tc.a, c.a, 2f / 255f, what + ": 그림자 alpha");
+            if (!want.Clipped)
+            {
+                double dx, dy, blur;
+                UnderlaySdf.ToPx(m.GetFloat("_UnderlayOffsetX"), m.GetFloat("_UnderlayOffsetY"), m.GetFloat("_UnderlaySoftness"), want.UnitPx, out dx, out dy, out blur);
+                Assert.AreEqual(TextShadowUi.Px(key, "dy_px") * css, dy, 0.05, what + ": 되짚은 dy = 정본 px × css_px(아래로)");
+            }
+            else Debug.Log("[T333] " + what + ": 정본 흐림 " + (TextShadowUi.Px(key, "blur_px") * css).ToString("0.0") + "px 이 SDF 단위 " + want.UnitPx.ToString("0.0") + "px 를 넘어 상한에서 잘린다(결정 738)");
         }
 
         private static void AssertNoShadow(TextMeshProUGUI t, string what)
@@ -395,6 +422,56 @@ namespace Forge.Tests.PlayMode
             AssertShadow(v, "af_spinner", "자동 제련 스피너 글");
             Assert.AreEqual(0f, v.fontMaterial.GetFloat("_UnderlaySoftness"), 1e-4f, "정본 5005 흐림 0");
             PopupLayer.Instance.Hide(ForgeAutoPopup.Name);
+            yield return null;
+        }
+    
+
+        [UnityTest]
+        public IEnumerator 소환_결과의_제목_이름판_x1_요약_줄은_정본_아래_흐림_한_겹을_쓴다()
+        {
+            yield return Boot();
+            float tw = 0f;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && tw < 20f) { tw += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            var two = new List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "mythic", Name = "나" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", two, "mythic", null);
+            Assert.IsNotNull(v, "결과 연출 팝업(여럿)이 서지 않았다");
+            yield return null; yield return null;
+            int titles = 0, names = 0;
+            foreach (TextMeshProUGUI t in v.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name != "t" || t.transform.parent == null) continue;
+                string pn = t.transform.parent.name;
+                if (pn == "sr-title") { AssertShadowMaybeClipped(t, "sr_title", "소환 결과 제목(6207 검정 낙하 겹)"); titles++; }
+                else if (pn == "sr-name") { AssertShadowMaybeClipped(t, "sr_name", "이름판 글(여럿 · 7032)"); names++; }
+            }
+            Assert.AreEqual(1, titles, "제목 띠 글 하나");
+            Assert.AreEqual(2, names, "이름판 글 둘(셀마다)");
+            v.OnTap(); v.OnTap();
+            yield return null;
+
+            var one = new List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:z", IconKey = "sk_fireball", Rarity = "common", Name = "하나", IsNew = true },
+            };
+            SkillSummonResultView v1 = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", one, "common", null);
+            Assert.IsNotNull(v1, "결과 연출 팝업(x1)이 서지 않았다");
+            yield return null; yield return null;
+            int ones = 0, solos = 0;
+            foreach (TextMeshProUGUI t in v1.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                Transform p = t.transform.parent;
+                if (p == null) continue;
+                if (t.name == "t" && p.name == "sr-name") { AssertShadowMaybeClipped(t, "sr_name_one", "이름판 글(x1 · 7084)"); ones++; }
+                else if (p.name == "line" && p.parent != null && p.parent.name == "sr-solo") { AssertShadowMaybeClipped(t, "sr_solo_line", "x1 요약 줄 글 조각(5784)"); solos++; }
+            }
+            Assert.AreEqual(1, ones, "x1 이름판 글 하나");
+            Assert.GreaterOrEqual(solos, 1, "x1 요약 줄의 글 조각(아이콘 조각 사이)이 하나 이상");
+            v1.OnTap(); v1.OnTap();
             yield return null;
         }
     }

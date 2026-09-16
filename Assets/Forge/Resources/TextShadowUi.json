@@ -120,6 +120,38 @@
       "color": "#000000",
       "alpha": 0.5,
       "_": "style.css 5005 `.af-spinner { text-shadow: 0 .07rem 0 rgba(0,0,0,.5) }` — 망치 수 스피너 글(«N ▲»). .07rem = 1.12 CSS px(16px/rem) · 흐림 0 · 한 겹이라 그대로. T333 14회차"
+    },
+    "sr_title": {
+      "dx_px": 0,
+      "dy_px": 3.2,
+      "blur_px": 8.8,
+      "color": "#000000",
+      "alpha": 0.85,
+      "_": "style.css 6207~6210 `.sr-title { text-shadow: 0 0 1rem rgba(150,190,255,.8), 0 .2rem .55rem rgba(0,0,0,.85) }` — 소환 결과 제목 띠 글. 두 겹 중 **검정 낙하 겹**(.2rem = 3.2 CSS px · 흐림 .55rem = 8.8 CSS px)을 옮긴다(결정 738) — 파랑 후광(0 0 1rem)은 언더레이 한 겹으론 못 낸다. 흐림이 글꼴 SDF 여백(padding 9px@54pt)을 넘으면 재질 상한(softness 1)에서 잘린다 — 표는 정본값 그대로. T333 15회차"
+    },
+    "sr_solo_line": {
+      "dx_px": 0,
+      "dy_px": 1,
+      "blur_px": 3,
+      "color": "#000000",
+      "alpha": 0.7,
+      "_": "style.css 5784 `.sr-solo-line { font-size: .86rem; font-weight: 800; color: #e8eeff; text-shadow: 0 1px 3px rgba(0,0,0,.7) }` — x1 소환 요약 줄(«✨ 신규 스킬 획득!» 꼴 · 아이콘 조각 사이 글 조각마다). 한 겹이라 그대로. T333 15회차"
+    },
+    "sr_name": {
+      "dx_px": 0,
+      "dy_px": 1.6,
+      "blur_px": 4.8,
+      "color": "#000000",
+      "alpha": 0.95,
+      "_": "style.css 7032~7040 `.sr-name { … text-shadow: 0 .1rem .3rem rgba(0,0,0,.95) }` — 소환 결과 격자 셀의 이름판 글(여럿). .1rem = 1.6 · .3rem = 4.8 CSS px. 흐림이 SDF 여백을 넘으면 재질 상한에서 잘린다(결정 738). T333 15회차"
+    },
+    "sr_name_one": {
+      "dx_px": 0,
+      "dy_px": 1.92,
+      "blur_px": 6.4,
+      "color": "#000000",
+      "alpha": 0.95,
+      "_": "style.css 7084~7090 `.sr-grid.one .sr-name { … text-shadow: 0 .12rem .4rem rgba(0,0,0,.95) }` — x1 소환의 이름판 글(한 개 판은 글자도 한 단 크다 · T391). .12rem = 1.92 · .4rem = 6.4 CSS px. 같은 글에 x1 이면 이 키. T333 15회차"
     }
   },
   "btn_none_keylines": [

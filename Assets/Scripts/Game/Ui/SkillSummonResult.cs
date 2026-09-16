@@ -378,6 +378,7 @@ namespace Forge.Game.Ui
             Image tico = UiKit.Icon(band, "ico", kind == "pet" ? "egg" : kind == "mount" ? "winder" : "ticket");
             UiKit.Place(tico.rectTransform, PetSkillStyle.Px("sr_title_pad_x_rem"), (headH - title * 1.05f) * 0.5f, title * 1.05f, title * 1.05f);
             TextMeshProUGUI tx = PetSkillKit.Text(band, "t", TextKind.Title, tt, PetSkillStyle.C("white"), TextAlignmentOptions.Left);
+            UiKit.TextShadow(tx, "sr_title");   // T333 15회차 — 정본 6207 `.sr-title` 두 겹 중 검정 낙하 겹(0 .2rem .55rem .85 · 결정 738) · 파랑 후광 겹은 언더레이 한 겹으론 못 낸다
             LetterSpacing.Apply(tx, "sr_title_ls_em");   // T168 3회차 — 정본 style.css 6207 `.sr-title { letter-spacing: .07em }`
             UiKit.Place(tx.rectTransform, PetSkillStyle.Px("sr_title_pad_x_rem") + title * 1.2f, 0f, tw, headH);
 
@@ -965,6 +966,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(nameBox, (cw - nw2) * 0.5f, ny, nw2, nameH);
                 PetSkillKit.Fill(nameBox, "bg", PetSkillStyle.C("sr_name_bg"), PetSkillStyle.Px("sr_name_r_rem"));
                 TextMeshProUGUI nt2 = PetSkillKit.Text(nameBox, "t", one ? TextKind.Button : TextKind.Sub, e.Name, PetSkillStyle.C("white"));   // T391 5회차 — 정본 7084 x1 소환만 1.25rem(45.5) → Button 44
+                UiKit.TextShadow(nt2, one ? "sr_name_one" : "sr_name");   // T333 15회차 — 정본 7032 `.sr-name`(0 .1rem .3rem .95) · 7084 `.sr-grid.one .sr-name`(0 .12rem .4rem .95) — 같은 글에 x1 이면 뒤 규칙
                 WrapUi.Apply(nt2, "sr_name");   // 정본 `.sr-name` 은 **접는다**(두 줄까지 · style.css 7032~7036)
                 // T351 5회차 — 정본 7033 `line-height: 1.18`. T354 표(`LineHeightUi.json` `sr_name_lh`)가 이 수를 쥐고 있는데
                 //   부르는 곳이 없어 클론은 글꼴 기본 줄높이(1.448em)로 그렸다 — 두 줄이 그만큼 더 벌어진다.
@@ -1152,6 +1154,7 @@ namespace Forge.Game.Ui
                 //   `check_text_glyphs` 가 rc 0 인 까닭은 그 자가 «TOAST_ICON 에 있으면 아이콘으로 치환된다» 로 빼기 때문이고,
                 //   자기 머리 주석이 바로 그 함정을 경고한다(«표에 있다» 가 «그 자리가 아이콘을 거친다» 는 뜻이 아니다).
                 RectTransform lt = UiKit.IconTextRow(sb, "line", TextKind.Sub, line, "white");
+                foreach (TextMeshProUGUI lt_t in lt.GetComponentsInChildren<TextMeshProUGUI>(true)) UiKit.TextShadow(lt_t, "sr_solo_line");   // T333 15회차 — 정본 5784 `.sr-solo-line { text-shadow: 0 1px 3px rgba(0,0,0,.7) }` · 아이콘 조각 사이 글 조각마다
                 UiKit.Place(lt, 0f, 0f, fw, sub * 1.3f);
                 float ow = PetSkillKit.TextWidth(TextKind.Sub, own) + PetSkillStyle.Rem(1.4f);
                 RectTransform ob = PetSkillKit.Framed(sb, "own", PetSkillStyle.C("sr_solo_own"), PetSkillStyle.Px("sr_solo_own_r_rem"), PetSkillStyle.L("line1_px"));

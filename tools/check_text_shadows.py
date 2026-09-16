@@ -70,6 +70,13 @@ TABLE = {
     '.af-check.on': ['Ui/ForgeAutoPopup.cs#mark'],
     '.petup-bulk .bulk-sil': ['Ui/PetUpgradePopup.cs#bulk-sil'],
     '.pet-tile .tile-check': ['Ui/PetUpgradePopup.cs@Check'],
+    # T333 15회차 — 소환 결과 `.sr-*` 다섯: 제목(6207 두 겹 중 검정 낙하 겹 · Build) · 이름판(7032 여럿 · 7084 x1 = 같은 글 `nt2` 에 키만 갈린다 · BuildCell) ·
+    #   x1 요약 줄(5784 · BuildFoot · IconTextRow 의 글 조각마다) · 구슬(6495 `.sr-orb` 는 이모지 아이콘 글자 — 클론은 아틀라스 아이콘 · KNOWN)
+    '.sr-title': ['Ui/SkillSummonResult.cs@Build'],
+    '.sr-name': ['Ui/SkillSummonResult.cs@BuildCell'],
+    '.sr-grid.one .sr-name': ['Ui/SkillSummonResult.cs@BuildCell'],
+    '.sr-solo-line': ['Ui/SkillSummonResult.cs@BuildFoot'],
+    '.sr-orb': ['Ui/SkillSummonResult.cs#sr-ico'],
     # T333 5회차 — 산 lock 밖 세 자리(T335 반납으로 열린 던전 클리어 제목 · 보스 워닝 마퀴·부제): 여러 겹 중 «읽히게 만드는 한 겹»(league_row 갈래)
     # T333 9회차 — 판매 코인 금액(7426 `.coin-amt` · 정본 주석 «이너=노랑 · 아웃라인=검정»): 8방향 링 → SDF 스트로크(`ring:`) · 값은 CoinBurstUi.json(amt_ring_* · 결정 655)
     '.coin-amt': ['ring:Ui/CoinBurst.cs@Amount'],
@@ -112,6 +119,7 @@ KNOWN = {
     'Ui/PetUpgradePopup.cs@Check': 'T333 14회차 — 정본 4378 `.pet-tile .tile-check` 의 ✓ 는 글자(text-shadow 0 1px 2px .5)인데 클론은 아틀라스 아이콘(UiKit.Icon check)이라 언더레이가 안 닿는다 — 아이콘 자리',
     'Ui/ForgeInfoPopup.cs#idet-name': 'T332·T339 의 산 lock 이 쥔 파일 — 정본 8381 `.modal-card .idet-name`(장비 상세 이름) 은 그 lock 뒤',
     'Ui/QuestSheet.cs#qst-name': 'T331 산 lock + 클론에 그 이름 자리가 아직 없다 — 정본 8381 `.qst-row .qst-name`',
+    'Ui/SkillSummonResult.cs#sr-ico': 'T333 15회차 — 정본 6495 `.sr-orb { font-size: 2.4rem; text-shadow: 0 .12rem .3rem .7 }` 는 구슬 안 **이모지 글자**(`<i class=sr-ico>`)에 두른 그림자인데 클론의 구슬 아이콘은 아틀라스 아이콘(`UiKit.Icon` sr-ico · T385 가 조명을 따로 굽는다)이라 언더레이가 안 닿는다 — 아이콘 자리',
     'ring:Ui/ChatScreen.cs@Open': 'T333 4회차 — 클론의 «◀» 는 글자가 아니라 아틀라스 아이콘(tri_left)이라 링을 글자에 못 두른다: 키운 삼각을 뒤에 깔아야 하고 아틀라스엔 검정 틴트 변형이 없다(정본이 안 부른다) · 길 둘 = Image.color 곱하기 / 도형 굽기 · 다음 회차',
 }
 
