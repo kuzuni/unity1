@@ -563,6 +563,23 @@ def score_screen(ref_rects, got_rects):
     return 10.0 * ok / tot, [u"%s — %s" % (n, w) for _, n, w in worst[:5]]
 
 
+def ceil_median(past, cur):
+    """천장은 **자취 중앙값**으로 읽는다(T28 87회차 · 결정 722).
+
+    한 회차의 천장은 **밴드 쐅개짐이 바뀜면 통째로 흔들린다** — 런 859~898 전수에서
+    31 화면 중 **11 이 0.5 넘게** 움직였고 최악은 `offline` **4.89 → 2.75** · `profile` **4.30 → 6.23** 이다.
+    그 흔들림이 «다음 볼 화면» 의 맨 위를 뒤집어 놓으므로(87회차 실측) 자취가 셋 이상이면 중앙값을 쓴다.
+    셋 미만이면 이번 회차 값을 그대로 둔다(새 화면은 자취가 없다).
+    """
+    vs = [v for v in (past or []) if v]
+    if cur:
+        vs = vs + [cur]
+    if len(vs) < 3:
+        return cur
+    vs = sorted(vs)
+    return vs[len(vs) // 2]
+
+
 def score_ceiling(ref_rects, got_rects):
     """이 화면에서 **닿을 수 있는 최고점**(T28 79회차 · 결정 686).
 
@@ -930,7 +947,7 @@ def fp_diff(a, b):
     return din / (win or 1.0), dout / (wout or 1.0)
 
 
-def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None, carried=False):
+def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None, carried=False, ceilings=None):
     import json
     cur = dict((n, round(v, 1)) for n, v in scores)
     hist = []
@@ -945,11 +962,18 @@ def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None, carrie
             hist = []
     hist = [h for h in hist if h.get("run") != run]
     ent = {"run": run, "avg": round(avg, 2), "screens": cur}
+    if ceilings:
+        # T28 87회차(결정 722) — 천장도 자취에 남긴다. 회차 사이에 **밴드 쪼개짐이 바뀌면 천장이 통째로 흔들려서**
+        #   (런 859~898 전수: 31 화면 중 11 이 0.5 넘게 · `offline` 4.89 → 2.75 · `profile` 4.30 → 6.23)
+        #   «한 회차의 천장» 으로 고르면 그 흔들림이 목록 맨 위를 뒤집는다.
+        ent["ceilings"] = dict((k, round(v, 2)) for k, v in ceilings.items())
     if carried:
         # 이 런은 제 PNG 를 안 냈다 — 그림은 지난 런 것이다(T28 44회차). 자취에 그대로 남긴다.
         ent["carried"] = True
     hist.append(ent)
     d = {"run": run, "avg": round(avg, 2), "screens": cur, "history": hist[-HIST_KEEP:]}
+    if ceilings:
+        d["ceilings"] = dict((k, round(v, 2)) for k, v in ceilings.items())
     if carried:
         d["carried"] = True
     if fps:
@@ -1623,30 +1647,38 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
     if save_baseline:
         # 런 번호는 CI 가 screens 에 같이 올린 meta.json 에서 읽는다(없으면 비운다).
         run = meta.get("run")
-        save_baseline_file(baseline_path, scores, avg, run, fps, bands, carried)
+        save_baseline_file(baseline_path, scores, avg, run, fps, bands, carried, ceilings)
         print(u"· 기준선을 %s 에 적었다(다음 회차가 이것과 견준다)" % os.path.relpath(baseline_path, REPO))
     if bad:
         # T28 16회차(워커 M): 29개를 줄줄이 찍으면 아무도 안 읽는다 — **다섯**만 준다.
         # T28 79회차: 고르는 자를 **절대 점수 → 달성률(점수/천장)** 로 바꿨다(결정 686).
         #   절대 점수 순서는 천장이 3점대인 화면만 계속 집어 줄다 — 그것은 자의 딸이지 클론의 딸이 아니다.
+        def _ceil_med(n):
+            """이 화면의 **천장 중앙값**(자취 3회차 이상이면) — 한 회차의 천장은 밴드 쪼개짐이 바뀌면 통째로 흔들린다(결정 722)."""
+            past = [h["ceilings"][n] for h in (base.get("_hist") or [])
+                    if isinstance(h, dict) and h.get("ceilings", {}).get(n)]
+            return ceil_median(past, ceilings.get(n, 0.0))
+
         def _rate(t):
-            c = ceilings.get(t[0], 0.0)
+            c = _ceil_med(t[0])
             # 낡은 샷 화면은 **맨 뒤로** 밀린다(지우지는 않는다 · T28 81회차).
             base = (t[1] / c) if c else 1.0
             return (base + 10.0) if t[0] in STALE_SCREENS else base
         low = sorted(((n, v) for n, v in scores if v < PASS_MARK), key=_rate)[:5]
         print(u"«다음 볼 화면»(ROUTINE §2 T28 · **달성률(점수/천장)이 낮은 것부터** · 원작 PNG 와 나란히 보고 정본 코드로 확인한 뒤 등재):")
         for n, v in low:
-            c = ceilings.get(n, 0.0)
+            c = _ceil_med(n); cnow = ceilings.get(n, 0.0)
             tag = (u"  ⚠ 낡은 샷 — %s" % STALE_SCREENS[n]) if n in STALE_SCREENS else u""
-            print(u"    %-18s %4.1f / 천장 %4.1f  — 달성 %3.0f%%%s" % (n, v, c, (100.0 * v / c) if c else 0.0, tag))
+            note = u"" if abs(cnow - c) < 0.3 else (u"(이번 %.1f)" % cnow)
+            print(u"    %-18s %4.1f / 천장 %4.1f%s  — 달성 %3.0f%%%s"
+                  % (n, v, c, note, (100.0 * v / c) if c else 0.0, tag))
         if len(bad) > len(low):
             print(u"    (%s점 미만 %d개 중 다섯만 적었다 — **달성률이 낮은 순**이다 · 절대 점수가 아니다)" % (PASS_MARK, len(bad)))
         st = [n for n, _v in scores if n in STALE_SCREENS]
         if st:
             print(u"    ⚠ 맨 뒤로 밀어 둔 화면 %d개(낮아도 쪼지 마라 · 원작 샷과 정본이 서로 다른 물건을 그린다):" % len(st))
             for n in st:
-                c = ceilings.get(n, 0.0)
+                c = _ceil_med(n)
                 v = dict(scores)[n]
                 print(u"        %-18s %4.1f / 천장 %4.1f  — 달성 %3.0f%%  · %s"
                       % (n, v, c, (100.0 * v / c) if c else 0.0, STALE_SCREENS[n]))
@@ -1848,6 +1880,14 @@ def self_test():
     chk(_global_call(30, 30) and _global_call(30, 15) and not _global_call(30, 14)
         and not _global_call(4, 2) and _global_call(6, 3),
         u"전역 손질 알림은 **반수 이상**(최소 셋)이 움직였을 때만 된다")
+
+    # ⑩-d 천장은 자취 중앙값으로 읽는다 — 한 회차의 천장은 밴드 쪼개짐이 바뀌면 통째로 흔들린다(결정 722)
+    chk(ceil_median([], 5.0) == 5.0 and ceil_median([4.0], 5.0) == 5.0,
+        u"천장: 자취가 셋 미만이면 이번 회차 값을 그대로 쓴다(새 화면)")
+    chk(abs(ceil_median([2.75, 2.86, 2.83], 4.89) - 2.86) < 1e-9,
+        u"천장: 튄 한 회차(4.89)가 아니라 중앙값(2.86)을 쓴다 — `offline` 런 859~898 실측")
+    chk(abs(ceil_median([4.30, 4.28, 4.28], 6.23) - 4.30) < 1e-9,
+        u"천장: 위로 튄 회차(6.23)도 중앙값이 눌러 준다 — `profile` 실측")
     _ceil = {u"a": 5.0, u"b": 5.0}
     _sc = [(u"a", 1.0), (u"b", 4.0)]          # a 가 훨씬 낮지만 a 를 낡은 샷으로 치면
     def _r(t, stale):
