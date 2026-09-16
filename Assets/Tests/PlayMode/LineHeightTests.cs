@@ -188,6 +188,26 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T354 15회차 — 패스 팝업 안내문(정본 2734 `.pass-desc { line-height: 1.4 }`).
+        /// 정본이 `<br>` 로 나눈 **두 줄**이라 줄 간격이 눈에 보이는 자리다(T383 이 그 줄 수를 지키는 자를 따로 세워 뒀다).</summary>
+        [UnityTest]
+        public IEnumerator 패스_안내문은_정본_1_4_배수로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && UiRoot.Instance != null); i++) yield return null;
+            PassPopup.Open(MetaHost.Instance);   // 다른 자들이 쓰는 꼴(UiIconsTests)
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform desc = Find(UiRoot.Instance.App, "desc");
+            Assert.IsNotNull(desc, "패스 안내문(.pass-desc)");
+            TextMeshProUGUI t = desc.GetComponent<TextMeshProUGUI>();
+            AssertSpacing(t, "pass_desc_lh", "패스 안내문");
+            Assert.AreEqual(1.4, LineHeight.Table.Get("pass_desc_lh"), 1e-9, "정본 2734");
+            Assert.Greater(t.textInfo.lineCount, 1, "정본이 <br> 로 나눈 두 줄이다");
+            Assert.AreEqual(LineHeight.Table.Get("pass_desc_lh"), LineHeight.MeasuredRatio(t), 0.02,
+                            "실제 줄 간격 = 1.4(자산 기본 1.448 이 아니라)");
+        }
+
         /// <summary>T354 14회차 — 던전 상세의 왼쪽 버튼 라벨 «이전 스테이지 / 소탕»(정본 5356 `.dgd-btn { line-height: 1.25 }`).
         /// 라벨을 만드는 `DungeonPopups.Pill` 은 T345 산 lock 이라 `DungeonDetailPopup` 이 그 자식을 집어 건다 — 두 줄이라 눈에 보이는 자리다.</summary>
         [UnityTest]

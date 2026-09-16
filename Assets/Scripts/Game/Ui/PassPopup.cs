@@ -74,6 +74,9 @@ namespace Forge.Game.Ui
             TextMeshProUGUI d = UiKit.Text(desc, "desc", TextKind.Sub, "전투를 진행하여 보상을 받\n으세요!", "stage_ink");
             d.fontStyle = FontStyles.Bold;
             d.textWrappingMode = TextWrappingModes.Normal;
+            // T354 15회차 — 정본 2734 `.pass-desc { line-height: 1.4 }`. 이 글은 정본이 `<br>` 로 나눈 **두 줄**이라(T383)
+            // 줄 간격이 눈에 보이는 자리다 — TMP 자산 기본 1.448 이 그대로 서면 정본보다 한 줄 걸러 1.7px 씩 벌어진다.
+            LineHeight.Apply(d, "pass_desc_lh");
             UiKit.Place(d.rectTransform, 0f, 0f, inner * 0.5f, descH);
             // T378 5회차 — 가격 페넌트(정본 2739 `.pass-price`)는 `width: fit-content` 라 폭이 글자에서 나고, 표의 15.98%W 가 그 원작 실측이다. ×1.2 는 클론이 얹은 곱이다.
             float priceW = UiKit.L("pass_price_w") * w, priceH = UiKit.H("pass_price_h");
