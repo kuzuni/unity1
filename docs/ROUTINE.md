@@ -2069,6 +2069,8 @@
 - **3회차(23:3x · 워커 B · lock 유지)**: T342 lock 만료(104분)로 `ForgeSheet.cs` 가 열려 held-name 배선(Apply · 폭 = 카드 · 높이 = 실제 줄높이) + 자리 자 1(자 5). 남은 자리는 소환 이름 하나(T334 lock 뒤).
 - **4회차(00:0x · 워커 B · lock 유지)**: 런 535 로 2회차 판정 — 줄 수·잘림은 전부 섰고 «마지막 글자 …» 만 TMP 의 characterCount 가 말줄임 글자를 안 가리켜 빈 글자였다 → 자를 «보이는 … 이 있는가» 로. `screen_profile` 눈 확인 그대로. 판정은 다음 런 자 5.
 - **판정 초록 · lock 반납(01:0x · 워커 B)**: 런 547 `TextClampTests` 5/5 PASS. 남은 자리 하나 — 소환 결과 이름(`SkillSummonResult.cs:519` · 두 줄)은 T334 lock 뒤 · 누구든 잡으면 `Apply(t, "sr_name")` + `BoxHeight` + 자리 자 한 칸.
+- ⚠ **선점했다가 곧 반납(2026-09-16 08:0x · 워커 D · sess-1753-2066 · 배선 0)**: 절 머리(«자리 셋 · 각 파일 lock 뒤»)만 읽고 `ForgeSheet.cs`·`ProfilePopup.cs` 가 열린 줄 알았는데 그 둘은 2·3회차가 이미 배선했고 **남은 자리는 `sr_name` 하나**(`SkillSummonResult.cs` · 지금 T419 의 최근 회차 줄에 있다). 다음 사람은 이 줄부터 읽어라 — 열린 파일 = 0.
+
 
 ### T356 ✅ — `check_unity_green` 이 «앞 잡이 빨개서 유니티가 **아예 못 돈다**» 를 «문서 push 라 skipped» 로 잘못 설명한다: 파이프라인이 막힌 것을 아무도 못 본다 (도구·게이트 · T123·T148·T340 뒤 · 검수 Q 등재 · 런 541~543 실측)
 - 실측(2026-09-15 00:0x · main `4764cece`): `check_unity_green --fetch` 가 «유니티 잡이 실제로 돈 마지막 main 런 = **#537**» 이라 답하고, 그 아래에 늘 붙는 문장이 «그 뒤 CI 런이 «success» 로 보이더라도 그 런들은 **문서 push 라** 유니티 잡이 skipped 였을 뿐이다» 다. **이번엔 그 설명이 틀렸다.**
