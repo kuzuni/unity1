@@ -381,6 +381,15 @@ jobs:
           #          다시 켜지 마라. 켜려면 먼저 런 995 러너 스텝의 첫 줄들(잡 로그 105005482646)을 읽어야 한다.
           # GAME_CI_COVERAGE_ENABLED: 'false'   ← 켜지 마라(위 ⛔)
         with:
+          # T435 3회차 — **`cliVersion` 을 못박는다.** 런 995(22:44)에서 유니티 잡이 **1초**에 죽었고 까닭은 우리 코드도
+          #   커버리지도 아니었다: 러너가 `cliVersion: latest` 를 **v0.1.66** 으로 풀었는데 그 릴리스에는 **자산이 안 올라와 있다** —
+          #     `Downloading game-ci CLI v0.1.66 from …/releases/download/v0.1.66/game-ci-linux-x64.tar.gz`
+          #     `##[error]Unexpected HTTP response: 404`
+          #   CLI 가 아예 안 받아지니 도커도 에디터도 안 뜨고 **EditMode·PlayMode 가 둘 다 0개**가 된다(런 993 은 v0.1.65 라 EditMode 848 은 돌았다).
+          #   컨테이너에서 직접 잰 것: v0.1.63·64·65 = **200** · v0.1.66 = **404**. 곧 `latest` 를 그대로 두면 **모든 런이 이 꼴**이다.
+          #   액션 제 설명도 «pin this for reproducible test runs» 라고 적어 뒀다. 자산이 올라오면 그때 올리면 된다(급하지 않다).
+          #   ⚠ T80 의 `GH_TOKEN` 은 그대로 둔다 — 못박아도 `restoreFromCache`·다운로드 경로는 같고, 되돌리면 403 갈래가 되살아난다.
+          cliVersion: v0.1.65
           projectPath: .
           testMode: all
           artifactsPath: unity-test-results
