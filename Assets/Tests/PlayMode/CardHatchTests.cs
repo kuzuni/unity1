@@ -101,28 +101,42 @@ namespace Forge.Tests.PlayMode
             // 좌상단(26%,12%) 광택 ↔ 우하단
             double tl = Lum(px[(h - 1 - (int)(h * 0.12)) * w + (int)(w * 0.26)]), br = Lum(px[(int)(h * 0.12) * w + (int)(w * 0.80)]);
             Assert.Greater(tl, br, what + " — 좌상단 광택이 우하단보다 밝다");
-            // 해칭 — 같은 기하(표 stripes.cell_hatch · 화소 가운데 · 텍스처 y 는 아래가 0)로 겹 수(0·1·2)를 다시 세어 세 무리의 평균 밝기가
-            //   겹마다 «잉크 한 번(sRGB 바이트 위 OverSrgb)» 만큼 떨어지는지 본다 — 매끈한 겹들은 해칭 위상과 무관해 무리 평균에서 지워진다.
+            // 해칭 — 같은 기하(표 stripes.cell_hatch · 화소 가운데 · 텍스처 y 는 아래가 0)로 겹 수(0·1·2)를 다시 세어
+            //   «겹이 하나 적은 바로 옆 화소» 와의 밝기 차가 잉크 한 번(sRGB 바이트 위 OverSrgb)인지 본다.
             double period = SurfaceArt.StripeNum("cell_hatch", "period_css_px", 0f) * SurfaceArt.CssPx, dash = SurfaceArt.StripeNum("cell_hatch", "dash_css_px", 0f) * SurfaceArt.CssPx;
             double ang = SurfaceArt.StripeNum("cell_hatch", "angle_deg", 45f), ia = SurfaceArt.StripeNum("cell_hatch", "ink_alpha", 0f);
+            // 겹 수 지도 → 같은 행 ±5px 안의 «한 겹 적은» 이웃과의 밝기 차를 모은다(런 872 수리: 무리 «평균» 은 격자점이 서너 군데 격자에만 있어
+            //   명암 겹의 위치 편향을 타고 2.7 어긋났다 — 이웃 차는 5px 안에서 매끈한 겹이 1~2 밖에 안 변해 편향이 없다).
             double sx = fr.width / w, sy = fr.height / h;
+            int[] lv = new int[w * h];
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                    lv[y * w + x] = StripeRules.HatchLayers((x + 0.5) * sx, (h - 1 - y + 0.5) * sy, ang, period, dash);
             double[] sum = new double[3]; int[] cnt = new int[3];
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
                 {
-                    int n = StripeRules.HatchLayers((x + 0.5) * sx, (h - 1 - y + 0.5) * sy, ang, period, dash);
-                    sum[n] += Lum(px[y * w + x]); cnt[n]++;
+                    int n = lv[y * w + x];
+                    if (n == 0) continue;
+                    for (int k = 1; k <= 5; k++)
+                    {
+                        int xl = x - k, xr = x + k, j = -1;
+                        if (xl >= 0 && lv[y * w + xl] == n - 1) j = xl; else if (xr < w && lv[y * w + xr] == n - 1) j = xr;
+                        if (j < 0) continue;
+                        sum[n] += Lum(px[y * w + j]) - Lum(px[y * w + x]); cnt[n]++;
+                        break;
+                    }
                 }
             if (hatched)
             {
-                Assert.Greater(cnt[0], 0); Assert.Greater(cnt[1], 0); Assert.Greater(cnt[2], 0, what + " — 격자점(두 겹)이 있다");
+                Assert.Greater(cnt[1], 0, what + " — 한 겹 자리 옆에 빈 자리가 있다"); Assert.Greater(cnt[2], 0, what + " — 격자점(두 겹) 옆에 한 겹 자리가 있다");
                 Color32 f = face.GetComponent<Image>().color;
                 Color32 once = new Color32(SurfaceBlendRules.OverSrgb(f.r, 0, ia), SurfaceBlendRules.OverSrgb(f.g, 0, ia), SurfaceBlendRules.OverSrgb(f.b, 0, ia), 255);
                 Color32 twice = new Color32(SurfaceBlendRules.OverSrgb(once.r, 0, ia), SurfaceBlendRules.OverSrgb(once.g, 0, ia), SurfaceBlendRules.OverSrgb(once.b, 0, ia), 255);
-                double d1 = Lum(f) - Lum(once), d2 = Lum(once) - Lum(twice), tol = System.Math.Max(1.5, 0.35 * d1);
-                double m0 = sum[0] / cnt[0], m1 = sum[1] / cnt[1], m2 = sum[2] / cnt[2];
-                Assert.AreEqual(d1, m0 - m1, tol, what + " — 한 겹 자리는 빈 자리보다 잉크 한 번만큼 어둡다(" + m0.ToString("0.0") + " → " + m1.ToString("0.0") + ")");
-                Assert.AreEqual(d2, m1 - m2, tol, what + " — 격자점은 두 번 어둡다(" + m1.ToString("0.0") + " → " + m2.ToString("0.0") + ")");
+                double d1 = Lum(f) - Lum(once), d2 = Lum(once) - Lum(twice);
+                double m1 = sum[1] / cnt[1], m2 = sum[2] / cnt[2];
+                Assert.AreEqual(d1, m1, System.Math.Max(2.0, 0.35 * d1), what + " — 한 겹 자리는 옆 빈 자리보다 잉크 한 번만큼 어둡다(실측 차 " + m1.ToString("0.0") + ")");
+                Assert.AreEqual(d2, m2, System.Math.Max(2.0, 0.35 * d2), what + " — 격자점은 옆 한 겹 자리보다 또 한 번 어둡다(실측 차 " + m2.ToString("0.0") + ")");
             }
             else
             {
