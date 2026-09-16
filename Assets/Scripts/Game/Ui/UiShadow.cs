@@ -46,6 +46,12 @@ namespace Forge.Game.Ui
         /// </summary>
         public static void Remove(RectTransform box, string key)
         {
+            if (box != null)
+            {
+                // 아직 안 구운 예약(34회차)도 같이 걷는다 — 안 그러면 걷은 뒤에 다시 깔린다.
+                foreach (UiShadowLate late in box.GetComponents<UiShadowLate>())
+                    if (late != null && late.Waiting(key)) UnityEngine.Object.Destroy(late);
+            }
             Transform had = Find(box, key);
             if (had == null) return;
             had.SetParent(null, false);
@@ -220,5 +226,55 @@ namespace Forge.Game.Ui
 
         /// <summary>반지름을 상자에서 되읽어 거는 꼴 — 복제된 상자(정본 `.eqsw-fly-box` 처럼)에 쓴다.</summary>
         public static Image Drop(RectTransform box, string key) { return Drop(box, key, RadiusOf(box)); }
+
+        /// <summary>
+        /// 크기가 **나중에** 잡히는 상자에 건다 — 첫 유효 크기에서 한 번 굽고 스스로 사라진다(34회차).
+        ///
+        /// 공용 카드 공장(`PopupKit.Card`)은 높이를 `-1` 로 받아 `ContentSizeFitter` 가 내용으로 정하게 두는
+        /// 자리가 많다. 그런 상자는 세우는 그 프레임엔 `rect` 가 0 이라 굽는 길이 빈손으로 돌아간다(28회차).
+        /// 딱딱한 턱은 크기를 안 쓰므로 그대로 걸고, 흐린 겹만 한 프레임 미룬다.
+        /// </summary>
+        public static void DropWhenSized(RectTransform box, string key, float radiusPx)
+        {
+            if (box == null) throw new ArgumentNullException("box");
+            if (Table.Get(key).IsHard) { Drop(box, key, radiusPx); return; }
+            if (box.rect.width > 1f && box.rect.height > 1f) { Drop(box, key, radiusPx); return; }
+            UiShadowLate late = box.gameObject.AddComponent<UiShadowLate>();
+            late.Arm(key, radiusPx);
+        }
+    }
+
+    /// <summary>
+    /// <see cref="UiShadow.DropWhenSized"/> 가 다는 한 회용 부품 — 상자 크기가 잡히는 **첫 프레임**에 굽고 죽는다.
+    /// 스스로를 지우므로 화면에 남지 않고, `UiShadow.Remove` 는 이것도 같이 걷는다(굽기 전에 취소해야 하는 자리가 있다).
+    /// </summary>
+    public sealed class UiShadowLate : MonoBehaviour
+    {
+        string key;
+        float radiusPx;
+        int waited;
+
+        internal void Arm(string k, float r) { key = k; radiusPx = r; }
+
+        /// <summary>이 부품이 기다리는 키 — `Remove` 가 짝을 가른다.</summary>
+        internal bool Waiting(string k) { return key == k; }
+
+        void LateUpdate()
+        {
+            RectTransform rt = transform as RectTransform;
+            if (rt == null) { Destroy(this); return; }
+            if (rt.rect.width <= 1f || rt.rect.height <= 1f)
+            {
+                // 60프레임(1초)을 기다려도 안 잡히면 그 상자는 «크기가 없는 상자» 다 — 조용히 죽지 말고 알린다.
+                if (++waited > 60)
+                {
+                    Debug.LogWarning("UiShadow: " + key + " 를 못 구웠다 — 상자(" + name + ")의 크기가 1초가 지나도 0이다.");
+                    Destroy(this);
+                }
+                return;
+            }
+            UiShadow.Drop(rt, key, radiusPx);
+            Destroy(this);
+        }
     }
 }

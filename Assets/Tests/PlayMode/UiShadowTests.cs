@@ -340,6 +340,33 @@ namespace Forge.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator 팝업_카드는_턱_뒤에_번진_캐스트를_한_겹_더_쥔다()
+        {
+            yield return Boot();
+            // 정본 8596 — 팝업 카드는 딱딱한 턱(0 .5rem 0) **뒤에** 번진 앰비언트를 한 겹 더 깐다.
+            // 높이를 내용이 정하는 카드가 많아 굽는 겹은 한 프레임 미뤄 굽는다(`DropWhenSized`) — 그래서 두 프레임 기다린다.
+            MetaHost h = MetaHost.Instance;
+            ProfilePopup.Open(h);
+            yield return null;
+            yield return null;
+            yield return null;
+            RectTransform card = null;
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+                if (rt.name == "card" && UiShadow.Find(rt, "card_lip") != null && rt.gameObject.activeInHierarchy) { card = rt; break; }
+            Assert.IsNotNull(card, "팝업 카드를 못 찾았다");
+
+            Transform lip = UiShadow.Find(card, "card_lip");
+            Transform cast = UiShadow.Find(card, "modalcard_cast");
+            Assert.IsNotNull(cast, "앰비언트 캐스트가 없다 — 정본은 턱만으로는 «die-cut» 로 보인다고 적었다");
+            Assert.AreNotSame(lip, cast, "두 겹은 서로 다른 것이다");
+            Assert.Less(cast.GetSiblingIndex(), lip.GetSiblingIndex(), "CSS 목록의 뒤쪽(앰비언트)이 더 뒤에 그려진다");
+            Assert.IsNotNull(cast.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
+            Assert.Less(UiShadow.Table.Get("modalcard_cast").SpreadRem, 0.0, "번짐이 음수다(안으로 줄인다)");
+            ProfilePopup.Close(h);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator 탭_패널의_턱은_위로_뜬다()
         {
             yield return Boot();
@@ -388,7 +415,7 @@ namespace Forge.Tests.PlayMode
             int hard = 0, soft = 0;
             foreach (string k in UiShadow.Table.Keys) { if (UiShadow.Table.Get(k).IsHard) hard++; else soft++; }
             Assert.AreEqual(7, hard);
-            Assert.AreEqual(19, soft);
+            Assert.AreEqual(20, soft);
         }
     }
 }

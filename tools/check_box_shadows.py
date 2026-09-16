@@ -34,7 +34,9 @@ CSS = os.path.join(ROOT, '.wwwww-src', 'web', 'css', 'style.css')
 GAME = os.path.join(ROOT, 'Assets', 'Scripts', 'Game')
 
 # 클론이 그림자를 거는 유일한 길(2회차가 세운다). 주석이 아니라 이 호출을 센다.
-CALL = re.compile(r'UiShadow\.Drop\s*\(\s*[^,]+,\s*"([^"]+)"')
+# 34회차 — 거는 길이 둘이다: 바로 거는 `Drop` 과 **크기가 잡히는 첫 프레임까지 미루는** `DropWhenSized`.
+# 뒤엣것을 안 세면 «호출이 0» 이라고 거짓말을 한다(공용 카드 공장이 그 길을 쓴다).
+CALL = re.compile(r'UiShadow\.Drop(?:WhenSized)?\s*\(\s*[^,]+,\s*"([^"]+)"')
 
 # 정본 자리 ↔ 클론 키. T33 17회차가 전수해 등재한 열둘(딱딱한 아래턱 다섯 · 흐린 일곱).
 SPOTS = [
@@ -55,6 +57,7 @@ SPOTS = [
     ('afspinner_lip', '.af-spinner',                   5007, 'hard'),
     ('afsubrow_drop', '.af-sub-row',                   4999, 'blur'),
     ('rwanchor_drop', '.rw-anchor',                   7540, 'blur'),   # 같은 선언의 첫 겹은 빛 갈래다(26회차)
+    ('modalcard_cast', '.modal-card:not(.sheet):not(.pass-card)', 8596, 'blur'),   # 34회차 — 32회차가 찾아낸 여러 줄 선언
     # 29회차 — 남은 자리의 **값을 먼저 재 뒀다**(배선은 그 파일의 lock 이 풀리는 회차가 한 줄로 건다 · KNOWN 참고)
     ('fiagebar_lip',  '.fi-age-bar',                   5132, 'hard'),
     ('techbranch_drop', '.tech-branch-icon::before',   2112, 'blur'),
@@ -353,6 +356,9 @@ def self_test():
         '  void G(){ var x = 1; } }\n')
     keys = clone_keys(d)
     chk('호출을 센다', 'card_lip' in keys)
+    open(os.path.join(d, 'B.cs'), 'w', encoding='utf-8').write(
+        'class B{ void F(){ UiShadow.DropWhenSized(rt, "modalcard_cast", r); } }\n')
+    chk('미루는 꼴도 센다(34회차)', 'modalcard_cast' in clone_keys(d))
     chk('주석은 안 센다', 'panel_lip' not in keys)
     chk('어느 줄인지 적는다', keys['card_lip'][0].endswith(':1'))
 

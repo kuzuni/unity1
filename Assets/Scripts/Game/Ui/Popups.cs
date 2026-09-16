@@ -261,6 +261,13 @@ namespace Forge.Game.Ui
             // 딱딱한 턱이라 굽지 않고 같은 모양 한 겹을 뒤에 깔기만 한다 — 상자에 늘어붙으므로
             // 아래 `ContentSizeFitter` 로 높이가 나중에 정해지는 카드에서도 따라간다.
             UiShadow.Drop(rt, "card_lip", radius);
+            // T331 34회차 — 정본 8596 `.modal-card:not(.sheet):not(.pass-card)` 의 **둘째 겹**
+            //   `0 1.05rem 1.6rem -.5rem rgba(0,0,0,.55)`(앰비언트 캐스트). 정본 주석: «하드 오프셋뿐이라
+            //   die-cut 로 보인다 — 없애지 말고 그 뒤에 번진 캐스트를 한 겹 덧댄다».
+            //   ⚑ 이 공장은 높이를 `-1`(내용이 정한다)로 받는 자리가 많아 **크기가 그 프레임엔 0** 이다 —
+            //     그래서 굽는 겹은 `DropWhenSized` 로 첫 유효 크기까지 미룬다(28회차의 조용한 실패를 피한다).
+            //   ⚑ 전체화면 시트는 이 공장을 안 쓰고(`PopupKit.Sheet`) 패스 카드는 제 회차에서 걷는다(결정 719).
+            UiShadow.DropWhenSized(rt, "modalcard_cast", radius);
             UiKit.Rounded(rt, "line", lineKey, radius);
             Image face = UiKit.Rounded(rt, "face", faceKey, Mathf.Max(1f, radius - Line3));
             Inset(face.rectTransform, Line3);
