@@ -268,7 +268,13 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(TextOverflowModes.Ellipsis, nt.overflowMode, "정본 7048 -webkit-line-clamp = 상자 밖은 버리고 …");
             Assert.AreEqual(TextWrappingModes.Normal, nt.textWrappingMode, "정본 7038 white-space: normal — 두 줄까지 접는다");
             Assert.Greater(nt.textInfo.characterCount, 0, "이름이 통째로 사라지면 안 된다(런 528 꼴)");
-            Assert.LessOrEqual(nt.textInfo.lineCount, TextClamp.Lines("sr_name"), "표 sr_name 의 줄 수를 넘지 않는다");
+            // T423 2회차 — 판이 **두 줄을 담는 그릇**이 됐다: 여태 `sr_name_h_em`(2.36em)에 코드에 박힌 0.62 를 더 곱해
+            //   한 줄이 겨우 드는 판이었고(52.7px) 긴 이름은 «한 줄 + …» 로 잘렸다. 이제 판 높이는 클램프가 재는 높이다.
+            Assert.AreEqual(TextClamp.Lines("sr_name"), nt.textInfo.lineCount, "긴 이름은 정본대로 **두 줄**로 선다(표 sr_name 의 줄 수)");
+            Assert.AreEqual(TextClamp.BoxHeight(nt, "sr_name"), plate.rect.height, 0.6f,
+                "이름판 높이 = 클램프가 재는 높이(face + (줄 수−1) × pitch) — 코드에 박힌 0.62 를 걷었다");
+            Assert.AreEqual(TextClamp.BoxHeight(UiFont.Primary, nt.fontSize, "sr_name", LineHeight.Table.Get("sr_name_lh")),
+                TextClamp.BoxHeight(nt, "sr_name"), 0.2f, "글꼴로 미리 잰 높이와 글자로 잰 높이가 같다(자리 셈이 먼저 도는 곳)");
             Assert.Less(nt.textInfo.characterCount, LongName.Length, "긴 이름은 잘린다");
             Assert.IsTrue(HasEllipsis(nt), "잘린 끝에 …(U+2026)이 보인다");
 

@@ -407,7 +407,7 @@ namespace Forge.Game.Ui
             //   판 높이도 같은 글자 크기로 낸다 — `Sub` 로 잰 판(52.7px)에 44px 글자를 넣으면 TMP 가 줄을 통째로 버린다(런 528 함정).
             //   ⚠ 종류를 도우미로 감싸지 않는다 — `check_text_kinds` 는 **그 호출 문장 안의 `TextKind.X` 리터럴**을 읽는다(T365 15회차와 같은 갈래).
             float nameFs = UiCatalog.Instance.Kind(one ? TextKind.Button : TextKind.Sub).size;
-            float nameH = dense ? 0f : nameFs * PetSkillStyle.L("sr_name_h_em") * 0.62f;
+            float nameH = dense ? 0f : TextClamp.BoxHeight(UiFont.Primary, nameFs, "sr_name", LineHeight.Table.Get("sr_name_lh"));   // T423 2회차 — 판 높이는 «클램프가 재는 높이» 다(표 `sr_name_h_em` × 코드에 박힌 0.62 를 걷었다)
             float subH = dense ? 0f : sub * 1.35f;
             float cellH = cellW + (dense ? 0f : PetSkillStyle.Px("sr_name_mt_rem") + nameH + PetSkillStyle.Px("sr_sub_mt_rem") + subH);
             float heroOrb = heroRow ? Mathf.Min(PetSkillStyle.Px("sr_hero_orb_rem"), W * 0.36f) : mid ? Mathf.Min(PetSkillStyle.Px("sr_hero_mid_orb_rem"), W * 0.3f) : dense ? Mathf.Min(PetSkillStyle.Px("sr_hero_dense_orb_rem"), W * 0.24f) : cellW;
@@ -855,7 +855,7 @@ namespace Forge.Game.Ui
             Color rc = PetSkillStyle.Rarity(Defs, e.Rarity);
             float sub = UiCatalog.Instance.Kind(TextKind.Sub).size;
             float nameFs = UiCatalog.Instance.Kind(one ? TextKind.Button : TextKind.Sub).size;   // T391 5회차 — 위 `Open` 과 같은 셈(정본 7084 `.sr-grid.one .sr-name` 1.25rem)
-            float nameH = dense ? 0f : nameFs * PetSkillStyle.L("sr_name_h_em") * 0.62f;
+            float nameH = dense ? 0f : TextClamp.BoxHeight(UiFont.Primary, nameFs, "sr_name", LineHeight.Table.Get("sr_name_lh"));   // T423 2회차 — 판 높이는 «클램프가 재는 높이» 다(표 `sr_name_h_em` × 코드에 박힌 0.62 를 걷었다)
             float subH = dense ? 0f : sub * 1.35f;
             float ch = cw + (dense ? 0f : PetSkillStyle.Px("sr_name_mt_rem") + nameH + PetSkillStyle.Px("sr_sub_mt_rem") + subH);
             RectTransform cell = UiKit.Box(grid, "sr-cell-" + i);

@@ -326,6 +326,7 @@
     "sr_hero_dense_orb_rem": 5.0,
     "sr_hero_top_rem": 0.5,
     "sr_name_mt_rem": 0.5,
+    "_sr_name_h_em": "정본 7035 `.sr-name { height: 2.36em }`(= 줄높이 1.18 × 2줄) — **값은 정본 그대로 남겨 두되 읽는 곳은 없다**(T423 2회차): CSS 줄상자와 달리 TMP 는 첫 줄이 face(1.448em)를 먹어 두 줄이 서려면 2.628em 이 든다. 그래서 판 높이는 `TextClamp.BoxHeight`(face + (줄 수−1) × pitch)가 낸다.",
     "sr_name_h_em": 2.36,
     "sr_name_w_f": 0.92,
     "sr_name_r_rem": 0.3,

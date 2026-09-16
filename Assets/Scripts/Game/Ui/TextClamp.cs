@@ -99,6 +99,24 @@ namespace Forge.Game.Ui
             return (LineHeight(t) + (n - 1) * Pitch(t)) * (1f + SlackF());
         }
 
+        /// <summary>
+        /// 글자가 아직 없을 때의 상자 높이(T423 2회차) — **자리 셈을 먼저 하는 곳**(격자 칸 높이 …)이 부른다.
+        /// 위 <see cref="BoxHeight(TMP_Text,string)"/> 와 **같은 셈**이다: `face + (줄 수 − 1) × pitch`, 여유를 곱한다.
+        /// <paramref name="lineRatio"/> 는 그 자리에 걸 줄높이 배수(T354 표) — 0 이하면 글꼴 face 를 그대로 pitch 로 쓴다.
+        /// ⚠ 부르는 쪽은 **같은 배수를 글자에도 걸어야 한다**(`LineHeight.Apply`) — 안 그러면 잰 상자와 그리는 줄이 갈린다.
+        /// </summary>
+        public static float BoxHeight(TMP_FontAsset font, float fontSize, string site, double lineRatio)
+        {
+            if (fontSize <= 0f) throw new ArgumentOutOfRangeException("fontSize");
+            float f = 0f;
+            if (font != null && font.faceInfo.pointSize > 0) f = font.faceInfo.lineHeight / font.faceInfo.pointSize;
+            if (f <= 0f) f = LineHeightF();
+            float face = fontSize * f;
+            float pitch = lineRatio > 0 ? (float)(lineRatio * fontSize) : face;
+            int n = Lines(site);
+            return (face + (n - 1) * pitch) * (1f + SlackF());
+        }
+
         /// <summary>정본의 자르기 규칙을 건다: 한 줄이면 NoWrap + Ellipsis · 여러 줄이면 Normal(줄바꿈) + Ellipsis(상자 밖 줄은 버리고 …).</summary>
         public static TMP_Text Apply(TMP_Text t, string site)
         {
