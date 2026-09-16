@@ -3245,6 +3245,28 @@
 - 판정: ⓐ `screen_gear-detail.png` 이름줄 잉크 위끝이 **48~57**(지금 43.0 · 기대 53.2 · 카드 위끝 기준) ⓑ `screen_craft-compare.png` 카드 위끝이 **417~427**(지금 411 · 기대 423) ⓒ 두 화면의 **카드 폭·높이는 안 움직인다**(±3px). PlayMode 자 하나 — 두 팝업의 첫 자식 위 여백 = `card_pad + .5rem + .9rem`(±0.5px).
 - 범위: `Assets/Scripts/Game/Ui/GearDetailPopup.cs`(81) · `Assets/Scripts/Game/Ui/ForgeCraftPopup.cs`(60) · `Assets/Forge/Resources/CraftUi.json`(키 둘) · `Assets/Tests/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`. ⚠ **`ForgeCraftPopup.cs` 는 T429**(70행 회색 판 폭)**·T390**(65행 아래 패딩)**과 같은 파일**이다 — 셋이 **서로 다른 줄**이니(60 · 65 · 70) 같이 돌아도 되지만 먼저 잡는 쪽이 범위 칸에 적는다.
 
+### T435 — PlayMode 가 **또** 통째로 안 돈다: 러너가 붙이는 `-enableCodeCoverage -debugCodeOptimization` 을 끄는 길이 **하나 있는데 아무도 안 썼다** — `--no-coverageEnabled` 가 아니라 **`GAME_CI_COVERAGE_ENABLED` 환경변수**다 (도구·CI · **§0-6 임자 없는 빨강** · T392 가 «다음 판을 기다려라» 로 닫아 둔 자리의 **다른 손잡이** · 런 991·993 실측)
+
+- **증상(런 991 `0fc81e9d` · 993 `ddca53d5` — 연달아 둘)**: `missing_modes: playmode-results.xml`. §1 이 «빨간 테스트보다 나쁘다» 고 한 꼴이고 **모든 워커의 판정이 그 런부터 멎는다**. 자(`check_unity_green --fetch`)가 «최근 8런 중 2 · **연달아** — 간헐이 아니라 서 있는 파손» 으로 가른다.
+- **라이선스가 아니다**: 모드 로그(`origin/screens:playmode-log.txt` · T151) 119행 `[Licensing::Client] Successfully updated license`. 좌석 실패 문구 0. (런 991·993 을 «라이선스» 로 적은 커밋 제목 둘은 로그를 안 본 것이다.)
+- **T392·T171·T180 과 스택이 다르다 — 더 앞이다**: 에디터가 **관리 코어 어셈블리를 통째로 못 읽는다**. 로그 꼬리 400줄이 `Unable to find type [UnityEngine.CoreModule.dll]**UnityEngine.Object**` · `…MonoBehaviour` · `…Component` · `…Mesh` 를 **수백 줄** 쏟고(그 무더기의 한 줄이 여태 인용돼 온 `SetExceptionFromNative`다 — 첫 줄일 뿐 원인이 아니다), 그 끝에 `Caught fatal signal - signo:11` 이 **`ScriptingUtilityProxy::IsManagedCodeWorking`**(엔진이 부팅 직후 «관리 코드가 도나» 를 묻는 그 자리)에서 난다. 곧 **테스트는커녕 도메인이 서지도 못했다** — 그래서 빨간 테스트 이름이 하나도 없다.
+- **왜 두 번 뜨나**: 같은 로그에 `GLX Extensions` 블록이 **둘**(140행 · 689행)이다 — 에디터가 한 로그 안에서 **두 번** 뜬다. 둘째 뜀이 죽는 뜀이다.
+- **범인은 여전히 커버리지다 — 다만 «계측» 이 아니라 그것이 끌고 오는 `-debugCodeOptimization` 이다**: 같은 로그 `COMMAND LINE ARGUMENTS` 에 `-coverageResultsPath … -enableCodeCoverage -debugCodeOptimization -coverageOptions …` 가 그대로 찍혀 있다. `-debugCodeOptimization` 은 스크립트 컴파일을 디버그 판으로 바꾸므로 에디터가 **제 도메인을 다시 세운다**(둘째 뜀). `ci.yml` 은 그 넷을 한 줄도 안 적었다 — 러너가 붙인다.
+- **T392 가 남긴 «다음 판을 기다려라» 는 틀렸다(이 절이 그것을 바로잡는다)**: 러너 입력 `coverageEnabled: false` 가 `--no-coverageEnabled` 로 나가 «`[WARN] Unknown argument: noCoverageEnabled`» 로 죽은 것은 **CLI 판이 낡아서가 아니다.** `game-ci/cli` 의 `src/cli.ts` 가 `parserConfiguration({ … "**negation-prefix**": false … })` + `strict(true)` 다 — **`--no-` 꼴을 안 쓰기로 못박은 파서**라 판을 올려도 그 길은 안 열린다. (v0.1.65 의 소스에도 `coverageEnabled` 옵션은 **이미 있다** — 없는 것은 `--no-` 해석뿐이다. v0.1.66 태그는 있지만 **릴리스 자산이 없어**(`…/releases/download/v0.1.66/game-ci-linux-x64.tar.gz` → **404**) `cliVersion` 으로 못 집는다.)
+- **열려 있는 길 — CLI 가 제 주석에 적어 뒀다**: 같은 `cli.ts` 가 `.env("GAME_CI")` 를 걸고 «**Every option is also settable as `GAME_CI_<SCREAMING_SNAKE_CASE>`** … each wrapper spawns this CLI as a host child process that inherits the workflow environment, so a workflow `env:` block reaches options the wrapper's action.yml has no input for» 라고 적었다. 곧 **`GAME_CI_COVERAGE_ENABLED: 'false'`** 를 러너 스텝의 `env:` 에 놓으면 된다.
+- **실물로 재 봤다(이 컨테이너 · v0.1.65 배포 바이너리를 내려받아)**:
+  | 친 것 | 답 |
+  |---|---|
+  | `--no-coverageEnabled` | `[WARN] Unknown argument: noCoverageEnabled` — **파싱에서 죽는다**(T392 의 그 줄을 재현했다) |
+  | `GAME_CI_COVERAGE_ENABLED=false` | 경고 0 · 도커 접속까지 **끝까지 간다** |
+  | `GAME_CI_NO_SUCH_OPTION=1`(대조) | `Unknown argument: noSuchOption` — `.env("GAME_CI")` 가 **살아 있고** `coverageEnabled` 가 **선언된 옵션**임을 함께 증명한다 |
+  | `--vvv` 로 풀린 옵션 덤프 | `GAME_CI_COVERAGE_ENABLED=false` → `"coverageEnabled": **false**`(불리언) · `=true` → `true` — 문자열 «false» 가 **불리언으로 형변환된다**(아래 `=== false` 비교가 걸리는 조건) |
+- **그 값이 닿는 끝까지 읽었다**: `src/logic/unity/environment.ts` 가 `{ name: 'COVERAGE_ENABLED', value: options.coverageEnabled === false ? 'false' : 'true' }` 로 컨테이너에 넣고, 바이너리에 함께 실린 `dist/platforms/ubuntu/steps/test.sh` 178~181 이 `if [ -z "$COVERAGE_ENABLED" ] || [ "$COVERAGE_ENABLED" = "true" ]; then COVERAGE_FLAGS=(-coverageResultsPath … -enableCodeCoverage -debugCodeOptimization -coverageOptions …)` 다 — **끄면 넷이 통째로 빠진다**. 그 스크립트는 **CLI 바이너리가 들고 다니는 것**이라 에디터 도커 이미지 판과 무관하다.
+- **끄면 잃는 것이 없다**(T392 가 이미 센 것 그대로): `com.unity.testtools.codecoverage` 는 `Packages/manifest.json`·`packages-lock.json` 어디에도 없고 `CodeCoverage/` 산출물을 읽는 스텝도 0이다. 계측만 돌고 결과는 버려지고 있었다.
+- 무엇을 한다: `.github/workflows/ci.yml` 의 `game-ci/unity-test-runner@v4` 스텝 `env:` 에 **`GAME_CI_COVERAGE_ENABLED: 'false'` 한 줄**. 러너 입력 `coverageEnabled` 는 **건드리지 않는다**(그것이 `--no-` 를 낳는다). 위 T392 주석 뭉치는 그대로 두되 «판을 올리면 열린다» 한 줄만 이 절로 고쳐 적는다.
+- 판정: ⓐ 다음 유니티 런의 `playmode-results.xml` 이 **있다**(테스트 수 > 0) ⓑ 그 런의 모드 로그에 `-enableCodeCoverage` 가 **없다**(`screens:playmode-log.txt` 가 안 올라오면 그 자체가 ⓐ 의 증거다) ⓒ `check_unity_green --fetch` 가 «모드 통째 부재» 로 안 운다. ⓓ **안 나으면** 이 절이 틀린 것이 아니라 **다른 갈래가 하나 더 있는 것**이다 — 그때 볼 것은 `Library` 캐시다(`ci.yml` 의 `restore-keys` 가 바닥에 맨 `Library-` 를 둬 **WebGL·안드로이드 빌드 잡이 구운 `Library-webgl-*`·`Library-android-*` 를 테스트 잡이 집어 온다** · 다른 빌드 타깃의 `Library` 다).
+- 범위: `.github/workflows/ci.yml`(유니티 잡 러너 스텝) · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. 이 규칙은 **말로만 있던 동안 샜다**: 런 435·436 이 둘 다 `dotnet build` 에서 빨갰고 임자가 `45c03d5` 제목에 적었다 — «내 빌드 확인 줄이 오류를 삼켰다». 그래서 스무 줄을 손으로 옮겨 붙이지 않는다(T184).
