@@ -59,5 +59,26 @@ namespace Forge.Tests.PlayMode
             ProfilePopup.Close(h);
             yield return null;
         }
+
+        /// <summary>T395 2회차 — 리그 보상 카드도 같다: 정본 `.lgr-overlay .idet-wrap { top: .76rem }` 은 CSS 보정값이라 옮기지 않는다.
+        /// 종전 `rem * 0.76f` 는 PopupKit.Card 에서 «양수 = 위» 라 부호까지 반대로 베껴져 카드가 원작보다 1%p 위였다(런 754: 18.23 ↔ 원작 19.21%H).</summary>
+        [UnityTest]
+        public IEnumerator 리그_보상_카드는_정본_보정값_없이_앱_가운데에_선다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            LeagueSheet.OpenRewards(h);
+            yield return null;
+            Popup p = h.Popups.Find(LeagueSheet.RewardsName);
+            Assert.IsNotNull(p, "리그 보상 팝업");
+            RectTransform card = null;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == "card") { card = rt; break; }
+            Assert.IsNotNull(card, "카드(card)");
+            Assert.AreEqual(0f, card.anchoredPosition.y, 0.5f, "카드 세로 오프셋 0 — 정본 .76rem 은 CSS 보정값이라 옮기지 않는다(전엔 +.76rem 위)");
+            Assert.AreEqual(0.5f, card.anchorMin.y, 1e-4f); Assert.AreEqual(0.5f, card.pivot.y, 1e-4f, "가운데 앵커·피벗");
+            Assert.AreEqual(UiKit.L("modal_wide_w") * UiKit.RefW, card.rect.width, 0.5f, "카드 폭은 표(modal_wide_w)대로 — 건드리지 않는다");
+            h.Popups.Hide(LeagueSheet.RewardsName);
+            yield return null;
+        }
     }
 }

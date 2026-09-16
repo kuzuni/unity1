@@ -79,6 +79,18 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(afH, 0f, "자동 제련 카드 높이");
             // 높이는 탭바에 걸리는 몫만큼만 깎인다(T78 FitBetweenBars) — 표의 84.52%H 를 넘지는 않는다.
             Assert.LessOrEqual(afH, UiKit.RefH * ForgeAutoStyle.L("card_h_f") + 0.5f, "표의 84.52%H 가 상한이다");
+            // T400 2회차 — 정본 4675 «카드 y7.01%H · 하단 91.75%H»: 높이는 표 그대로(깎지 않는다) · 위끝은 card_top_f.
+            {
+                Assert.AreEqual(UiKit.RefH * ForgeAutoStyle.L("card_h_f"), afH, 0.5f, "카드 높이 = 표 84.52%H — T78 FitBetweenBars 깎기(76.25%H)를 걷었다");
+                Popup ap = h.Meta.Popups.Find(ForgeAutoPopup.Name);
+                Assert.IsNotNull(ap, "자동 제련 팝업");
+                RectTransform afCard = null;
+                foreach (RectTransform rt in ap.Root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == "card") { afCard = rt; break; }
+                Assert.IsNotNull(afCard, "자동 제련 카드(card)");
+                float top = UiKit.RefH * 0.5f - afCard.anchoredPosition.y - afCard.rect.height * 0.5f;   // 가운데 앵커 · 양수 = 위
+                Assert.AreEqual(UiKit.RefH * ForgeAutoStyle.L("card_top_f"), top, 0.5f, "카드 위끝 = 표 card_top_f(7.01%H) — 전엔 8.65%H");
+                Assert.Greater((top + afCard.rect.height) / UiKit.RefH, UiKit.L("tabbar_top"), "정본대로 카드 하단이 탭바 위끝보다 아래로 내려간다");
+            }
             ForgeAutoPopup.Close(h);
             yield return null;
 

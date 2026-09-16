@@ -193,7 +193,8 @@ namespace Forge.Game.Ui
             float collectH = PopupKit.FontSize(TextKind.Sub) * 3f;
             float tableH = UiKit.H("lgr_table_h");
             float cardH = ribbonH + rem * 1.2f + descH + rem * 0.5f + gridH + rem * 0.55f + collectH + rem * 0.65f + tableH + rem * 2.78f;
-            RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "league_bg", rem, "pp_line", rem * 0.76f);
+            // 정본 `.lgr-overlay .idet-wrap { top: .76rem }` 은 CSS 보정값(아래로 되돌림)이라 옮기지 않는다 — 종전 `rem * 0.76f` 는 PopupKit.Card 에서 양수 = 위라 부호까지 반대였다(T395 · 카드 위끝 18.23 → ≈19.7%H · 원작 19.21).
+            RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "league_bg", rem, "pp_line", 0f);
             float inner = cardW - PopupKit.Line3 * 2f;
 
             // 리본(카드보다 넓다)

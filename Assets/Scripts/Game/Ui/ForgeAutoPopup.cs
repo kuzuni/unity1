@@ -44,8 +44,10 @@ namespace Forge.Game.Ui
             //        min 을 그대로 옮긴다 — 기준 캔버스에서는 앞쪽이 이겨 77.19%W 다(클론은 83.70%W 였다 · 런 474 실측).
             float w = ForgeAutoStyle.CardW(W, rem), pad = rem * 0.9f;
             float inner = w - pad * 2f - PopupKit.Line3 * 2f;
-            float cardH, cardY;
-            PopupKit.FitBetweenBars(H * ForgeAutoStyle.L("card_h_f"), out cardH, out cardY);   // T78 — ✕ 가 탭바에 가리지 않게
+            // 정본 style.css 4673~4682: 이 카드만 공용 상한(--popup-h-max)을 벗기고 높이 84.52%H · 위끝 7.01%H(4675 주석 «카드 y7.01%H · 하단 91.75%H»)로 둔다 —
+            // 하단이 탭바 위끝(90.25%H)보다 아래라 T78 의 FitBetweenBars 깎기(76.25%H · 위끝 8.65%H · 런 769)는 정본과 어긋난다. 닫기 버튼은 T346 이 이미 탭바 위 층에 띄우므로 깎을 까닭이 없다(T400).
+            float cardH = H * ForgeAutoStyle.L("card_h_f");
+            float cardY = H * (0.5f - ForgeAutoStyle.L("card_top_f")) - cardH * 0.5f;   // PopupKit.Card 는 가운데 앵커 · 양수 = 위
             RectTransform card = PopupKit.Card(root, "card", w, cardH, "pp_paper", rem * 1.1f, "pp_line", cardY);
             // 정본 `.af-card`(style.css 5030)는 그림자가 **둘**이다 — 주석 그대로 «공용 아래턱(0 .5rem 0)에
             // 은은한 앰비언트를 더해 팝업이 화면에서 떠 보이게». 아래턱은 위 `PopupKit.Card` 가 이미 깔았고
