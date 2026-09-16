@@ -60,7 +60,7 @@ namespace Forge.Game.Ui
             float th = PopupKit.FontSize(TextKind.Button) * 1.3f;
             UiKit.Place(title.rectTransform, pad, pad, inner, th);
 
-            float bottomH = rem * 1.9f * 2f + UiKit.H("btn_h") * 1.9f + rem * 1.6f;
+            float bottomH = rem * 1.9f * 2f + ForgeAutoStyle.StartBtnH(rem) + rem * 1.6f;   // T378 13회차 — 버튼 높이는 정본 4816(하한·패딩) · 위아래 여백(1.5/2.09rem)은 이 축 밖이라 그대로 뒀다
             float scrollTop = pad + th + rem * 0.4f;
             float scrollH = cardH - scrollTop - bottomH - pad - PopupKit.Line3 * 2f;
             RectTransform scrollBox = UiKit.Box(card, "af-scroll");
@@ -131,7 +131,7 @@ namespace Forge.Game.Ui
                 Image mk = PopupKit.IconOr(ckRt, "mark", "check");
                 UiKit.Anchor(mk.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, cb * 0.8f, cb * 0.8f);
             }
-            float bw = inner * 0.45f, bh = UiKit.H("btn_h") * 1.9f;
+            float bw = inner * 0.45f, bh = ForgeAutoStyle.StartBtnH(rem);   // T378 13회차 — 정본 4816 `.af-start { padding: .6rem 0; min-height: 4.45rem }`(폭 45.4% 는 이 축 밖)
             Button start = PopupKit.Btn(bottom, "af-start", h.AutoOn ? "중지" : "시작", "pp_blue", "pp_blue_dk", () => h.OnToggleAutoForge(), bw, bh, "stage_ink", TextKind.Button, false, "af_start");   // T109 11회차 — 정본 5015 `.af-start { 4px #000 }`(공용 2px 대신)
             UiKit.Place(start.GetComponent<RectTransform>(), (inner - bw) * 0.5f, rowH * 2f + rem * 0.5f, bw, bh);
 
@@ -223,6 +223,14 @@ namespace Forge.Game.Ui
             object v = layout == null ? null : layout[key];
             if (!J.IsNum(v)) throw new KeyNotFoundException("ForgeAutoUi.json 에 배치 값 «" + key + "» 이 없다 (T339)");
             return (float)J.Num(v);
+        }
+
+        /// <summary>T378 13회차 — 정본 **4816** `.af-start { padding: .6rem 0; min-height: 4.45rem }`: [시작]/[중지] 버튼 높이는
+        /// **max(하한 4.45rem, 세로 패딩 × 2 + 한 줄)** 이다. 종전엔 표값 `btn_h`(2.4rem)에 코드가 `× 1.9` 를 얹어 흉내 냈다(§1 · 4.56rem).
+        /// 값 둘은 곁 표(ForgeAutoUi.json) · 셈은 공용 <see cref="PopupKit.BtnH"/>(12회차의 두 줄 갈래와 같은 식).</summary>
+        public static float StartBtnH(float rem)
+        {
+            return PopupKit.BtnH(TextKind.Button, L("af_start_pad_y_rem") * rem, null, L("af_start_min_h_rem") * rem, 1);
         }
 
         /// <summary>정본 `width: min(calc(var(--app-w) * .7719), 23rem)` 을 그대로 — 둘 중 작은 쪽이다.</summary>

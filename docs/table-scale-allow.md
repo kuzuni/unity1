@@ -16,4 +16,3 @@
 | `Ui/Hud.cs` | `line_px` | ×2 | 기하 | 테 두 겹(261) |
 | `Ui/Popups.cs` | `xbtn` | ×0.5 | 기하 | 반겹 — ✕ 버튼이 카드 모서리에 반쯤 걸친다(214) |
 | `Ui/ForgeSheet.cs` | `billet_stroke` | ×0.5 | 기하 | 반폭(406) |
-| `Ui/ForgeAutoPopup.cs` | `btn_h` | ×1.9 | 임시 | T331 lock 뒤 · 시작 버튼 둘(61·125) |

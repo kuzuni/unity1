@@ -212,10 +212,17 @@ namespace Forge.Game.Ui
         /// 클론은 두 줄을 다 `k` 로 찍는다(정본 small 은 글자 하한 §1 에 걸려 같은 단).</summary>
         public static float TwoLineBtnH(TextKind k, float padY, string lhKey, float minH = 0f)
         {
+            return BtnH(k, padY, lhKey, minH, 2);
+        }
+
+        /// <summary>T378 13회차 — 같은 식의 **줄 수 갈래**(정본 `.af-start`(4816)처럼 한 줄이면서 `min-height` + `padding` 을 함께 준 자리).
+        /// 높이 = max(하한, 세로 패딩 × 2 + 줄 수 × 줄높이) — 두 줄 갈래(<see cref="TwoLineBtnH"/>)가 쓰던 식 그대로고 줄 수만 인수로 뺐다.</summary>
+        public static float BtnH(TextKind k, float padY, string lhKey, float minH = 0f, int lines = 1)
+        {
             var f = UiFont.Primary.faceInfo;
             float fs = FontSize(k);
             float ratio = lhKey == null ? f.lineHeight / f.pointSize : (float)LineHeight.Table.Get(lhKey);
-            return Mathf.Max(minH, padY * 2f + 2f * fs * ratio);
+            return Mathf.Max(minH, padY * 2f + lines * fs * ratio);
         }
         public static float Line { get { return UiKit.L("line_px"); } }
         public static float Line3 { get { return UiKit.L("line3_px"); } }

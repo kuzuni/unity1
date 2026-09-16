@@ -269,5 +269,48 @@ namespace Forge.Tests.PlayMode
             PopupLayer.Instance.Hide(ForgeCraftPopup.SellName);
             yield return null;
         }
+
+        /// <summary>13회차 — 자동 제련의 [시작]/[중지](`ForgeAutoPopup.cs` 63·134 · 정본 **4816** `.af-start { padding: .6rem 0; min-height: 4.45rem }`):
+        /// 높이 = max(하한 4.45rem, 패딩 .6rem x 2 + **한 줄**) — `PopupKit.BtnH`. 전엔 표값 `btn_h`(2.4rem)에 `x1.9`(= 4.56rem)가 박혀 있었다.
+        /// 표 왕복 + 화면에 선 버튼 + «아래 묶음 높이도 같은 값을 쓴다»(63 과 134 가 갈라지면 스크롤 칸이 버튼을 파고든다)를 함께 묻는다.</summary>
+        [UnityTest]
+        public IEnumerator 자동_제련_시작_버튼_높이는_곁_표_하한과_한_줄_글줄_중_큰_쪽이다()
+        {
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!ForgeHost.Ready && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h, "ForgeHost");
+            float rem = PopupKit.Rem;
+            // 표 ↔ 정본 왕복
+            Assert.AreEqual(4.45f, ForgeAutoStyle.L("af_start_min_h_rem"), 1e-6f, "정본 4816 min-height 4.45rem");
+            Assert.AreEqual(0.6f, ForgeAutoStyle.L("af_start_pad_y_rem"), 1e-6f, "정본 4816 padding .6rem 0");
+            float expect = ForgeAutoStyle.StartBtnH(rem);
+            Assert.AreEqual(PopupKit.BtnH(TextKind.Button, 0.6f * rem, null, 4.45f * rem, 1), expect, 0.01f, "셈은 공용 BtnH(한 줄)");
+            Assert.GreaterOrEqual(expect, 4.45f * rem - 0.01f, "하한보다 작지 않다");
+
+            // 자동 제련은 2-10 뒤에만 열린다(ForgeCardWidthTests 와 같은 길).
+            h.S.BestChapter = 3; h.S.BestStage = 1; h.Pull();
+            Assert.IsTrue(h.AutoForgeUnlocked, "2-10 을 넘겨 자동 제련이 해금됐다");
+            ForgeAutoPopup.Open(h);
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = h.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(p, "자동 제련 팝업이 열렸다");
+            Button start = null;
+            foreach (Button b in p.Root.GetComponentsInChildren<Button>(true)) if (b.name == "af-start") { start = b; break; }
+            Assert.IsNotNull(start, "[시작] 버튼(af-start)");
+            Rect r = start.GetComponent<RectTransform>().rect;
+            Assert.AreEqual(expect, r.height, 0.5f, "높이 = max(하한, 패딩 x 2 + 한 줄) · 실측 " + (r.height / rem).ToString("0.000") + "rem");
+            Assert.Greater(Mathf.Abs(r.height - UiKit.H("btn_h") * 1.9f), 1f, "옛 btn_h x1.9(4.56rem)이 아니다");
+            // 63 의 아래 묶음 셈이 같은 값을 쓰는가 — 스크롤 칸 아래끝에서 버튼 위끝까지가 버튼 위 여백(rem x 1.9)이다.
+            RectTransform scroll = null;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == "af-scroll") { scroll = rt; break; }
+            Assert.IsNotNull(scroll, "목록 칸(af-scroll)");
+            Assert.Greater(scroll.rect.height, 0f, "목록 칸이 높이를 갖는다");
+            h.Meta.Popups.Hide(ForgeAutoPopup.Name);
+            yield return null;
+        }
     }
 }
