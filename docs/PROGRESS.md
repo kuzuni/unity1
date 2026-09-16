@@ -5884,6 +5884,7 @@
 
 - **고침(`OfflinePopup.cs` `Rate` 한 갈래 · 절의 ⓐⓑⓒ 그대로)**: `UiKit.Circle("line")`·`UiKit.Circle("face", circleKey)` 두 원을 **안 그린다**(정본 7268 `background: none; border: none` · 앞 272~277 의 `#ffb300`·`pp-green` 원은 정본이 제 손으로 끈 자리) · 아이콘 인셋 `circleD*0.2f` → **0**(7269 `.ico { width/height: 100% }`) · 배지 칸 `circle`(2.6rem)과 글줄 간격은 그대로. `Rate` 의 `circleKey` 인자를 걷었다(부르는 두 줄도). 주석에 정본 줄 번호·7262 의 «뒤엣것이 이긴다» 경고를 적었다.
 - **자**: PlayMode `OfflinePopupTests` **+1 칸**(`요율_배지는_정본_최종값대로_색_원이_없고_아이콘이_칸을_꽉_채운다` — coin·hammer 둘 다 `circle` 아래 `line`·`face` Image 0 · `ico` offset 0 · `ico` 사각 = `circle` 사각). dotnet 0 오류 · `check_pinned_colors` rc 0(오프라인 자리는 잉크 `offline_sub` 만 표에 있다 · 이 원은 «덮개 있음» 갈래).
+- **⚠ 첫 커밋 `42083bc8` 은 게이트 빨강인 채 push 됐다(내 실수)**: `check_border_radius` 가 `.offline-rate-icon { border-radius: 50% }`(272) ↔ `Rate` 본문에 둥근 증거 없음으로 막았는데 게이트 출력을 `head` 로 잘라 판정 줄을 못 봤다. 곧바로 둘째 커밋으로 그 자리를 자의 **끄는 규칙**(`—정본 7268 이 끈 배지 · 면·테가 없어 둥글 것이 없다`)으로 올렸다 — 대조 안 함 8 → 9 · 문제 0 · 자기 검사 31. 교훈: 게이트는 `grep "gate.sh:"` 로 **판정 줄까지** 본다(파이프의 `head -3` 이 판정 줄을 삼켰다).
 - **판정(다음 런)**: 그 칸 PASS · `screen_offline.png` 요율 줄에서 **초록 원이 사라지고** 코인 금테가 보인다(8배 확대) · `ui_score --rows offline` rc 0 → lock 반납 · 행 ✅(범위가 한 갈래라 남는 몫 없음).
 
 ### T383 9회차 판정 ✅ · lock 반납 · 행 ✅ 완료 (2026-09-16 06:5x · 워커 D · sess-1753-2066) — 런 878 `BrLinesTests` 13/13 · `screen_pass` 두 줄 · 남은 몫 0

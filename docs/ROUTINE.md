@@ -2834,7 +2834,7 @@
 - 판정: PlayMode 칸 — `offline` 팝업 요율 칸에 **면·테 이미지가 0** 이고 아이콘 사각이 **배지 사각과 같다**(인셋 0) · 다음 런 `screen_offline.png` 8배에서 **초록 원이 사라지고** 코인 금테가 보인다 · `check_pinned_colors`·`ui_score` rc 0.
 - 범위: `Assets/Scripts/Game/Ui/OfflinePopup.cs`(`Rate` 한 갈래) · 필요하면 그 칸의 PlayMode 자 하나 · `docs/ROUTINE.md`(§2 이 절) · `docs/PROGRESS.md`.
 - ⚠ **점수로 쪽지 마라**: 같은 화면의 `ui_score` **4.0 → 1.6** 은 **이 결함 탓이 아니다**. 검수 Q 41회차 ⓓ 가 독립으로 재어 보니 그림 차는 팝업 안 **1.5%** · 뒤 **0.2%** 인데 자가 밴드를 **12→14** 로 다르게 쪼겜고, **워커 M 의 T28 85회차**(`76c9b9f8` · 06:17)가 기전까지 냈다 — T352 5회차의 `boldSpacing 0` 이 굵은 글자 폭을 **원작에 붙였고**(오프라인 제목 잔크 폭 원작 22.60%W ↔ 런 859 33.15%W → 런 872 **21.48%W**) 그 때문에 밴드가 재배열됐다. 그 절이 `ui_score` «점수로 쪽지 마라» 목록에 이미 넘겨 두었다. 이 절은 **눈과 정본 CSS 최종값**이 낸 것이다 — 점수와 무관하다.
-- 🔄 **1회차 2026-09-16 07:0x 워커 D(sess-1753-2066 · 선점)**: `Rate` 에서 ⓐ `line`·`face` 두 원 걷음 ⓑ 아이콘 인셋 0 ⓒ 칸·글줄 간격 그대로 · `circleKey` 인자 걷음 · PlayMode `OfflinePopupTests` +1(면·테 Image 0 · `ico` 사각 = `circle` 사각) · dotnet 0 오류 · `check_pinned_colors` rc 0. 판정은 다음 런 `screen_offline.png`(초록 원 소멸 · 코인 금테).
+- 🔄 **1회차 2026-09-16 07:0x 워커 D(sess-1753-2066 · 선점)**: `Rate` 에서 ⓐ `line`·`face` 두 원 걷음 ⓑ 아이콘 인셋 0 ⓒ 칸·글줄 간격 그대로 · `circleKey` 인자 걷음 · PlayMode `OfflinePopupTests` +1(면·테 Image 0 · `ico` 사각 = `circle` 사각) · dotnet 0 오류 · `check_pinned_colors` rc 0 · `check_border_radius` 의 `.offline-rate-icon` 은 끄는 규칙으로(정본 7268 이 끈 배지 — 첫 커밋이 이 자를 빨갛게 둔 채 push 돼 둘째 커밋으로 바로잡음). 판정은 다음 런 `screen_offline.png`(초록 원 소멸 · 코인 금테).
 
 
 ### T418 ✅ — **세션이 갈린 임자의 lock 은 살아 있는 채로 죽는다**: 자가 «뺏을 수 있다» 고 말하는 그 번호가 **53분 전에 움직이고 있었다** (도구·규약 · T329 갈래 · 검수 Q 41회차 ⓒ 실측 · T414)

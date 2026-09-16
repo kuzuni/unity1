@@ -114,7 +114,7 @@ TABLE = {
     '.profile-edit-btn': ['Ui/ProfilePopup.cs$profile_edit_r_rem'],
     '.avatar-pick-btn': ['Ui/ProfilePopup.cs$avatar_pick_r_rem'],
     # T345 9회차 — 오프라인 팝업·이정표(산 lock 없는 세 자리). 50% 둘은 «원» 증거(@메서드) · 이정표 시간표는 곁 표(WaypointsUi.json)의 키로.
-    '.offline-rate-icon': ['Ui/OfflinePopup.cs@Rate'],
+    '.offline-rate-icon': '—정본 7268~7269(파일 끝 · 최종값)가 background:none·border:none 으로 끈 배지 — 면·테가 없어 둥글 것이 없다(T417 · 앞 272 의 50% 는 정본이 제 손으로 끈 자리)',
     '.offline-collect-dot': ['Ui/OfflinePopup.cs@CollectDot'],
     '.waypoint-time': ['Ui/Waypoints.cs$time_r_rem@WaypointsUi.json'],
     # T345 8회차 — 기술 노드 팝업 버튼 줄(정본이 공용 .btn 을 덮는다)
