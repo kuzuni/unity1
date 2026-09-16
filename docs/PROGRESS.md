@@ -11370,7 +11370,9 @@
 - **고침 한 줄**: 정본 2913 `.shop-deals { gap: calc(var(--app-h) * .0091) }` · 카탈로그 `shop_deal_gap` 0.0091 이 5회차부터 있었는데 **부르는 데가 0곳**이었고 `ShopSheet.cs:39` 는 `rem * 0.5` 였다 → `UiKit.H("shop_deal_gap")`.
 - **수를 정직하게**: 둘 다 앱 높이에 비례해 **축은 어긋나지 않았고**(8회차가 그렇게 적었다) 값만 **9.10px ↔ 8.74px(−4%)** 다. 화면이 확 바뀌는 고침이 아니라 **§1 «수치는 코드에 박지 않는다»** 를 갚는 자리다 — 표가 있는데 코드가 제 수를 쥐면 다음 사람이 표를 고쳐도 화면이 안 따라온다.
 - **자**: `GapRatioTests` +1 — 상점 탭을 열어 `deal-*` 카드 둘 사이를 **앱 높이 비율**로 재고(±0.002) 표값 px 과도 견준다(±1.2px). 특가 카드가 둘 미만인 세이브면 `Assert.Ignore`(§1 «지금 못 재는 자리는 접는다»).
-- **게이트**: `dotnet build` 0 오류 · `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 없다. 판정은 다음 유니티 런.
+- **게이트**: `dotnet build` 0 오류 · `tools/gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 없다.
+- **판정(런 901) = 내 자가 빨강 · 같은 회차에 수리**: 새 칸이 «상점 시트의 스크롤 목록(list) 없음» 으로 떨어졌다. 까닭은 **자리 찾기**였다 — 상점 시트는 `UiRoot.Sheet`(대장간 시트가 쓰는 자리)가 아니라 **팝업 층**이다(`ShopSheet.Render` = `PopupLayer.Clear(p)` 위 · `ShopUiTests` 도 `popups.IsOpen(ShopSheet.Name)` 로 연다). `MetaHost.Instance.Popups.Find(ShopSheet.Name).Root` 에서 찾게 고쳤다 — **게임 코드 0줄**(9회차의 배선 한 줄은 그대로다). 같은 런의 다른 빨강(`SummonFxTests.스필_위_빛띠…`)은 **T419 산 lock** 몫이다.
+- **이 회차가 남긴 규칙**: 새 화면을 재는 자를 쓸 때는 «그 화면이 **시트인가 팝업인가**» 를 먼저 본다 — 클론은 탭 시트(`UiRoot.Sheet`)와 팝업 층(`PopupLayer`)이 갈려 있고, 상점·퀘스트·리그는 **팝업**이다(`ShopUiTests` 가 이미 그 길로 연다).
 - **남은 것**: ⑥⑦(`ForgeInfoPopup.cs` · T404 lock) · ① `dgd_tri_gap`(`catalog.json` · T404 lock) · 가로 일곱(클론에 같은 이름의 자리가 없다 = 8회차 기록).
 
 ### T371 5회차 — 제작 카드 넷을 표 색으로 (2026-09-15 13:4x · 워커 O · sess-2140-18689 · lock 유지)

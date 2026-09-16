@@ -138,8 +138,12 @@ namespace Forge.Tests.PlayMode
             yield return Boot();
             UiRoot.Instance.TabBar.OnTab("shop");
             yield return null; yield return null;
+            // ⚠ 상점 시트는 `UiRoot.Sheet`(대장간 시트 자리)가 아니라 **팝업 층**이다(`PopupLayer` · `ShopSheet.Render` 가 `PopupLayer.Clear(p)` 위에 세운다).
+            //   9회차 1판은 `UiRoot.Sheet` 를 뒤져 «list 없음» 으로 빨갰다 — 자리 찾기를 팝업 뿌리로 옮긴다.
+            Popup sp = MetaHost.Instance.Popups.Find(ShopSheet.Name);
+            Assert.IsNotNull(sp, "상점 시트 팝업이 열렸다");
             RectTransform list = null;
-            foreach (RectTransform rt in UiRoot.Instance.Sheet.GetComponentsInChildren<RectTransform>(true))
+            foreach (RectTransform rt in sp.Root.GetComponentsInChildren<RectTransform>(true))
                 if (rt.name == "list") { list = rt; break; }
             Assert.IsNotNull(list, "상점 시트의 스크롤 목록(list)");
             var deals = new System.Collections.Generic.List<RectTransform>();
