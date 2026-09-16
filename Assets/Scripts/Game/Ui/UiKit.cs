@@ -444,6 +444,8 @@ namespace Forge.Game.Ui
         /// <summary>아틀라스 한 장 크기(표 `atlas_w`·`atlas_h`) — 다중 아틀라스라 넘치면 장이 는다.</summary>
         public static int AtlasW { get; private set; }
         public static int AtlasH { get; private set; }
+        /// <summary>표 `bold_spacing` — TMP 가짜 굵기가 글자 사이마다 더하는 자간(em 의 1/100 · TMP 기본 7). 정본 글꼴 스택의 진짜 굵은 판은 자간을 안 더하므로 0(T352 5회차 · T397).</summary>
+        public static float BoldSpacing { get; private set; }
         /// <summary>SDF 알파 0→1 이 몇 텍셀인가 — 굽은 직후 아틀라스에서 **직접 잰 값**(<see cref="MeasureAlphaTexels"/>). TMP 는 `_GradientScale` 을 패딩+1 로 박지만 TextCore 동적 SDF 의
         /// 램프는 굽기 값에 따라 그와 다르다(90pt·패딩 9 → 10 · 54pt·패딩 9 → 20 · 90pt·패딩 15 → 30 · 런 200·239·234 실측) — 그래서 재지 않고는 식이 안 맞는다(런 234·239 링 두 배).
         /// 굽은 뒤 재질 `_GradientScale` 을 이 값으로 세워 `OutlinePx`(재질 G 를 읽는다)·셰이더가 같은 단위를 본다. 못 재면 표 `alpha_texels`(마지막 실측)로 잇고 경고.</summary>
@@ -478,6 +480,9 @@ namespace Forge.Game.Ui
             if (sp <= 0 || pad <= 0 || w <= 0 || h <= 0 || at <= 0)
                 throw new System.InvalidOperationException(BakeResource + ".json 값이 비었다: sampling_pt=" + sp + " padding_px=" + pad + " atlas=" + w + "×" + h + " alpha_texels=" + at);
             SamplingPt = sp; PaddingPx = pad; AtlasW = w; AtlasH = h; AlphaTexelsExpected = at;
+            // T352 5회차 — 0 이 정상값이라 위의 «0 이면 던진다» 와 따로 읽는다(없으면 던진다 · TMP 기본 7 로 조용히 잇지 않는다).
+            if (!J.IsNum(o["bold_spacing"])) throw new System.InvalidOperationException(BakeResource + ".json 에 bold_spacing 이 없다 (T352)");
+            BoldSpacing = (float)J.Num(o["bold_spacing"]);
         }
 
         /// <summary>붙은 OS 폴백 글꼴 이름(없으면 null).</summary>
@@ -503,6 +508,7 @@ namespace Forge.Game.Ui
             TMP_FontAsset fa = TMP_FontAsset.CreateFontAsset(cat.font, SamplingPt, PaddingPx, GlyphRenderMode.SDFAA, AtlasW, AtlasH, AtlasPopulationMode.Dynamic, true);
             if (fa == null) throw new System.InvalidOperationException("카탈로그 글꼴로 TMP 폰트 애셋을 못 만들었다");
             fa.name = cat.font.name + " (runtime)";
+            fa.boldSpacing = BoldSpacing;   // T352 5회차 — 가짜 굵기의 글자 사이 자간을 표로(정본 진짜 굵은 판 = 자간 0 · T397 의 접힘이 이것이었다)
             Shader shader = ShipShader();
             if (shader != null && fa.material != null) fa.material.shader = shader;
             // T121 3·4회차 — 재질의 «1 알파 = 몇 텍셀» 을 아틀라스에서 잰 값으로. TMP 기본(패딩+1)은 굽기 값에 따라 실제 램프와 어긋난다(런 234·239 링 두 배 · 결정 기록).
@@ -526,6 +532,7 @@ namespace Forge.Game.Ui
                 if (em != null)
                 {
                     em.name = cat.emojiFont.name + " (emoji fallback)";
+                    em.boldSpacing = BoldSpacing;
                     if (shader != null && em.material != null) em.material.shader = shader;
                     if (em.material != null && em.material.HasProperty("_GradientScale")) em.material.SetFloat("_GradientScale", (float)ramp);
                     fa.fallbackFontAssetTable.Add(em);
@@ -541,6 +548,7 @@ namespace Forge.Game.Ui
                 TMP_FontAsset fb = TMP_FontAsset.CreateFontAsset(family, "Regular");
                 if (fb == null) continue;
                 fb.name = family + " (OS fallback)";
+                fb.boldSpacing = BoldSpacing;
                 if (shader != null && fb.material != null) fb.material.shader = shader;
                 fa.fallbackFontAssetTable.Add(fb);
                 HangulFallback = family;

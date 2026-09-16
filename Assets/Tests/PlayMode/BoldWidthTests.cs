@@ -15,8 +15,7 @@ namespace Forge.Tests.PlayMode
     /// 그러니 그 자간은 **클론만 무는 폭 비용**이고, 정본이 `font-weight` 225 자리를 bold 로 두는 이 이식에서는
     /// 글자 하한(T136)과 **겹쳐 쌓인다**.
     ///
-    /// 이 자는 그 비용을 **수로 못박는다**(고치는 자가 아니다 — 고침은 «진짜 굵은 판을 붙인다» 또는 «boldSpacing 0»
-    /// 이고 그것은 굵기 공장을 여는 회차 몫이다). 실제로 물린 자리 하나: T397(리그 도전 행 상대 이름) —
+    /// 4회차는 그 비용을 수로 못박았고(7 → +35.3px), 5회차가 굵기 공장(UiFont.Build)에서 표 `bold_spacing` 0 을 박아 걷었다 — 이 자는 이제 «0 이 서 있다» 를 지킨다. 실제로 물린 자리 하나: T397(리그 도전 행 상대 이름) —
     /// «BlandBuddy22667» 은 민 자폭 합 8.534em 이라 36px 에서 307.2px 로 칸 330.2 에 **드는데**,
     /// 굵기 자간이 붙어 **342.5px**(런 809 실측)이 되어 접힌다.
     /// </summary>
@@ -73,10 +72,13 @@ namespace Forge.Tests.PlayMode
                    .Append(wBold > 330.2f ? "넘는다(접힌다)" : "든다").Append('\n');
                 Write(log.ToString());
 
-                Assert.Greater(fa.boldSpacing, 0f, "이 글꼴엔 진짜 굵은 판이 없어 TMP 가 자간으로 굵기를 낸다");
-                Assert.Greater(gap, 0f, "굵게 찍으면 폭이 늘어난다 — 정본(브라우저)은 안 늘어나는 몫이다");
-                Assert.AreEqual(expect, gap, expect * 0.05f,
-                    "늘어난 폭이 boldSpacing 이 말하는 값이다(글자 사이마다 boldSpacing/100 em · n−1) — 이 셈이 깨지면 TMP 판이 바뀐 것이다");
+                // T352 5회차 — 굵기 공장이 표 `bold_spacing`(0)을 글꼴에 박았다: 정본 글꼴 스택의 진짜 굵은 판은 글자 사이 자간을 안 더한다.
+                //   4회차의 «7 이면 +35.3px» 단언을 뒤집는다 — 이제 굵게 찍어도 폭이 안 는다(±1px · 획만 두꺼워진다 · boldStyle).
+                Assert.AreEqual(UiFont.BoldSpacing, fa.boldSpacing, 1e-4f, "글꼴의 boldSpacing = 표 UiFontBake.json bold_spacing");
+                Assert.AreEqual(0f, fa.boldSpacing, 1e-4f, "정본 진짜 굵은 판 = 자간 0(표 값)");
+                Assert.AreEqual(expect, gap, Mathf.Max(1f, expect * 0.05f),
+                    "늘어난 폭이 boldSpacing 이 말하는 값이다(글자 사이마다 boldSpacing/100 em · n−1) — 0 이면 0(±1px)");
+                Assert.LessOrEqual(wBold, 330.2f, "T397 — «BlandBuddy22667» 굵게 찍어도 리그 도전 행 이름 칸(330.2px)에 든다");
             }
             finally { Object.DestroyImmediate(root); }
         }

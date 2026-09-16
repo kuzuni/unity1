@@ -4,5 +4,7 @@
   "padding_px": 9,
   "alpha_texels": 20,
   "atlas_w": 1024,
-  "atlas_h": 1024
+  "atlas_h": 1024,
+  "_bold_spacing": "T352 5회차 — TMP 가짜 굵기(FontStyles.Bold · 진짜 굵은 판이 없는 글꼴)가 글자 «사이»마다 더하는 자간(em 의 1/100 · TMP 기본 7). 정본 글꼴 스택(Segoe UI · Malgun Gothic · Apple SD Gothic Neo)은 진짜 굵은 판이라 한글 자폭이 안 변하고 라틴만 판 자체가 조금 넓다 — 글자 사이 자간을 더하는 일은 없다. 그래서 0(4회차 실측: 7 이면 «BlandBuddy22667» 36px 가 307.3 → 342.5 로 늘어 리그 도전 행 이름 칸 330.2 를 넘친다 · T397). 되돌리려면 이 수 하나.",
+  "bold_spacing": 0
 }
