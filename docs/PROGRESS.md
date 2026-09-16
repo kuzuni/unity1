@@ -5761,6 +5761,34 @@
 
 ## 워커 결정 기록
 
+### T435 1회차 — PlayMode 가 통째로 안 도는 까닭을 로그 꼬리에서 잡고, 아무도 안 쓴 손잡이로 껐다 (2026-09-16 22:3x~22:5x · 워커 F · sess-2227-13221)
+
+- **회차 첫 일(§0-6)**: `check_unity_green --fetch` 가 «유니티 잡이 실제로 돈 마지막 런 #993 — 테스트 0개인 모드 `playmode-results.xml` · 최근 8런 중 2 · **연달아**(991·993) — 간헐이 아니라 서 있는 파손» 으로 울었다. 산 lock 을 쥔 코드 커밋이 없다 = **임자 없는 빨강**. 그래서 이것을 회차 일로 잡았다(등재 T435).
+- **먼저 깬 것 — «라이선스» 가 아니다**: 런 991·993 을 «라이선스» 로 적은 커밋 제목이 둘 있는데, 모드 로그(`origin/screens:playmode-log.txt` · T151) 119행이 `[Licensing::Client] Successfully updated license` 다. 좌석 실패 문구 0. **로그를 열면 5초에 갈리는 갈래였다.**
+- **진짜 자리는 로그 «꼬리 400줄» 에 있었다**: 여태 워커들이 인용해 온 `Unable to find method SetExceptionFromNative in [UnityEngine.CoreModule.dll]UnityEngine.Awaitable` 은 **자가 뽑아 준 첫 원인 줄**일 뿐이고, 꼬리를 열면 같은 꼴이 **수백 줄**이다 — `Unable to find type […]**UnityEngine.Object**` · `…MonoBehaviour` · `…Component` · `…Mesh` · `…Coroutine`. 곧 **관리 코어 어셈블리가 통째로 안 읽혔다**. 그 끝에 `Caught fatal signal - signo:11` 이 **`ScriptingUtilityProxy::IsManagedCodeWorking`**(엔진이 부팅 직후 «관리 코드가 도나» 를 묻는 자리)에서 난다. **도메인이 서지도 못했다** — 그래서 빨간 테스트 이름이 하나도 없는 것이 당연하다. T392·T171·T180 의 스택(`ScriptingCoverage::FilterRecordedMethods` → `DebugStringToFile` → 스택 걷기)보다 **한참 앞**이다.
+- **왜 둘째 뜀인가**: 같은 로그에 `GLX Extensions` 블록이 **둘**(140행 · 689행)이다 — 한 로그 안에서 에디터가 **두 번** 뜨고 **둘째가 죽는다**. 그 둘째 뜀을 부르는 것이 `COMMAND LINE ARGUMENTS` 에 찍힌 **`-debugCodeOptimization`**(스크립트를 디버그 판으로 다시 컴파일 = 도메인 다시 세우기)이고, 그것은 `-enableCodeCoverage` 와 **한 묶음**으로 온다. 곧 병은 T392 가 짚은 그 병(커버리지)이 맞고, **죽는 자리만 다르다**.
+- **T392 가 닫아 둔 길을 다시 열었다 — 그 절의 «다음 판을 기다려라» 는 틀렸다**: 러너 입력 `coverageEnabled: false` 는 `--no-coverageEnabled` 로 나가 죽는데(런 739·740), 그 까닭은 «CLI v0.1.65 가 낡아서» 가 아니라 `game-ci/cli` 의 `src/cli.ts` 가 `parserConfiguration({ …, "**negation-prefix**": false, … })` + `strict(true)` 이기 때문이다 — **`--no-` 꼴을 안 쓰기로 못박은 파서**라 판을 올려도 그 길은 안 열린다. (덧: v0.1.65 **소스에도** `coverageEnabled` 옵션은 이미 있다. v0.1.66 태그는 있으나 **릴리스 자산이 404** 라 `cliVersion` 으로도 못 집는다 — 실측.)
+- **열려 있던 손잡이 — CLI 가 제 주석에 적어 뒀다**: 같은 `cli.ts` 가 `.env("GAME_CI")` 를 걸고 «Every option is also settable as `GAME_CI_<SCREAMING_SNAKE_CASE>` … each wrapper spawns this CLI as a host child process that inherits the workflow environment, so a workflow `env:` block reaches options the wrapper's action.yml has no input for» 라고 적었다. **워크플로 `env:` 한 줄이면 된다.**
+- **추측으로 안 밀었다 — 이 컨테이너에서 v0.1.65 배포 바이너리를 내려받아 네 번 쳐 봤다**:
+
+  | 친 것 | 답 |
+  |---|---|
+  | `--no-coverageEnabled` | `[WARN] Unknown argument: noCoverageEnabled` — **파싱에서 죽는다**(T392 가 본 그 줄을 재현) |
+  | `GAME_CI_COVERAGE_ENABLED=false` | 경고 0 · 도커 소켓 접속까지 **끝까지 간다** |
+  | `GAME_CI_NO_SUCH_OPTION=1`(대조) | `Unknown argument: noSuchOption` — `.env("GAME_CI")` 가 **살아 있고**, 그러므로 위가 통과한 것은 `coverageEnabled` 가 **선언된 옵션**이라는 뜻이다 |
+  | `--vvv` 옵션 덤프 | `=false` → `"coverageEnabled": **false**` · `=true` → `true` — 문자열이 **불리언으로 형변환**된다(`environment.ts` 의 `=== false` 비교가 걸리는 조건) |
+
+- **값이 닿는 끝까지 읽었다**: `src/logic/unity/environment.ts` 가 `{ name: 'COVERAGE_ENABLED', value: options.coverageEnabled === false ? 'false' : 'true' }` 로 컨테이너에 넣고, **CLI 바이너리가 들고 다니는** `dist/platforms/ubuntu/steps/test.sh` 178~181 이 `if [ -z "$COVERAGE_ENABLED" ] || [ "$COVERAGE_ENABLED" = "true" ]; then COVERAGE_FLAGS=(-coverageResultsPath … -enableCodeCoverage -debugCodeOptimization -coverageOptions …)` 다 — 끄면 **넷이 통째로 빠진다**. 스크립트가 CLI 쪽에 실려 있으므로 **에디터 도커 이미지 판과 무관**하다.
+- **고친 것**: `.github/workflows/ci.yml` 러너 스텝 `env:` 에 **`GAME_CI_COVERAGE_ENABLED: 'false'`** 한 줄 + 까닭 주석. 곁들여 같은 파일의 T392 주석 한 줄(«러너 입력으로 다시 끄려면 cliVersion 이 `--no-` 꼴을 아는 판으로 올라간 뒤다»)을 **바로잡았다** — 그 줄이 그대로면 다음 사람이 또 판 올리기를 기다린다. 러너 입력 `coverageEnabled` 는 **안 건드렸다**(그것이 `--no-` 를 낳는 자리다).
+- **잃는 것 0**(T392 가 이미 센 것 그대로 다시 확인): `com.unity.testtools.codecoverage` 는 `Packages/manifest.json`·`packages-lock.json` 어디에도 없고, 워크플로 어느 스텝도 `CodeCoverage/` 를 읽지 않는다.
+- **게이트**: `tools/gate.sh` **막는 자 44 중 전부 rc 0** · **건너뛴 자 2**(`dotnet build`·`dotnet test` — 이 컨테이너에 dotnet 이 없다 · §3). 이 커밋은 **C# 을 한 줄도 안 바꾼다**(ci.yml + 문서뿐)이라 컴파일 위험이 없고, 그래도 §3 대로 **CI dotnet 잡 초록을 본 뒤** lock 을 반납한다. 보고 자 둘: `check_unity_green`(= 이 절이 고치는 그 빨강) · `check_final_table` 의 «열림 ↔ 열림 8» 은 남의 작업 몫.
+- **판정(다음 런)**: ⓐ `playmode-results.xml` 이 **있다**(테스트 수 > 0) ⓑ 모드 로그가 아예 안 올라온다(= 실종 모드 없음)거나, 올라오면 `COMMAND LINE ARGUMENTS` 에 `-enableCodeCoverage` 가 **없다** ⓒ `check_unity_green --fetch` 가 «모드 통째 부재» 로 안 운다. **lock 은 쥔 채 종료**(§1 — CI 가 이 커밋을 한 번은 돈 뒤 반납).
+- **안 나으면 다음 갈래(다음 사람에게)**: `ci.yml` 의 `Library` 캐시다. 세 잡(`ci` 테스트 · WebGL · 안드로이드)이 모두 `restore-keys` 바닥에 **맨 `Library-`** 를 둬, 테스트 잡이 **다른 빌드 타깃(WebGL·Android)의 `Library`** 를 집어 올 수 있다. 그러면 «간헐» 도 설명된다(어느 캐시가 가장 최근이냐에 달렸다). 고침은 그 바닥 줄 하나를 빼는 것.
+- **주인이 확인할 것**: 없다. **플레이 콘솔 에러 0 확인**: 이 커밋은 게임 코드 0줄 — 확인할 화면이 없다. **ntfy**: 아래 결정 739 참조.
+
+- **결정 739 (워커 F · T435 1회차) — 커버리지를 러너 «입력» 이 아니라 «환경변수» 로 끈다**: T392 가 `coverageEnabled: false` 입력으로 껐다가 되돌린 자리다. 그 되돌림 주석은 «CLI 판이 `--no-` 를 알면 다시 쓸 수 있다» 고 적었는데, CLI 소스를 읽어 보니 `parserConfiguration` 이 `negation-prefix: false` 를 못박아 **판과 무관하게 영영 안 되는 길**이었다. 대신 같은 파일이 `.env("GAME_CI")` 로 열어 둔 `GAME_CI_COVERAGE_ENABLED` 를 쓴다 — 워크플로 `env:` 한 줄이고, 러너 입력을 안 건드리므로 `--no-` 가 아예 안 생긴다. 실물 바이너리로 네 갈래를 쳐서 확인한 뒤에 밀었다(위 표). **왜 내가 정했나**: §0-6 의 첫 일이고 판정을 모든 워커가 기다리는 자리라 주인을 기다리지 않았다(§1). **되돌리려면**: `.github/workflows/ci.yml` 러너 스텝 `env:` 의 `GAME_CI_COVERAGE_ENABLED` 한 줄을 지운다(주석 뭉치도 함께) — 그러면 즉시 종전 거동으로 돌아간다.
+
+
 ### T429 lock 반납(판정 미완 · 행 🔄) — 런 991·993 이 잇달아 PlayMode 를 못 돌렸다 (2026-09-16 19:5x · 워커 O · sess-2140-18689)
 - **런 993**(`ddca53d5` = 3회차 그대로): EditMode 848/848 · PlayMode 결과 파일 없음(라이선스 자리) — 991 에 이어 둘째. 17:46 이후 다른 워커의 코드 push 도 없어 내 커밋만 두 번 돌았고 둘 다 자리가 없었다.
 - **왜 반납하나**: §1·T338 — dotnet·gate·datasync 초록에 유니티 잡만 죽었고 CI 가 내 커밋을 한 번은 돌았다. 빈 커밋으로 CI 를 깨우지 않는다. 판정 없이 lock 을 쥐고 90분마다 갱신하는 것은 lock 큐만 흐린다.
