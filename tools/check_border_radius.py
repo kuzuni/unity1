@@ -37,6 +37,20 @@ TABLE_DEFAULT = os.path.join('Assets', 'Forge', 'Resources', 'RadiusUi.json')
 # ── 정본 선택자 ↔ 클론 자리 ──────────────────────────────────────────────────────────────
 TABLE = {
     # 어긋난 리터럴 열 자리(20회차 ⓡ) — 표로 옮긴다(T345 ⓑ · 각 파일의 산 lock 뒤)
+    # ── T415 4회차(2026-09-16 · 워커 J) — 표가 이미 «선택자 이름 그대로» 쥐고 있던 열하나 ──
+    #    찾는 법: 미정 중 rem 값 하나짜리를 골라, 그 값과 **같은 값**을 가진 `*_r_rem` 키를 Resources 전체에서
+    #    긁고, **키 이름에 선택자 낱말이 들어간 것**만 남겼다. 남은 것은 눈으로 한 번씩 견줬다.
+    '.sk-mini.square': ['Ui/PetPanel.cs$mini_r_rem@PetSkillUi.json'],
+    '.petup-panel': ['Ui/PetUpgradePopup.cs$petup_panel_r_rem@PetSkillUi.json'],
+    '.petup-xpbar': ['Ui/PetUpgradePopup.cs$petup_xp_r_rem@PetSkillUi.json'],
+    '.petup-bulk': ['Ui/PetUpgradePopup.cs$petup_bulk_r_rem@PetSkillUi.json'],
+    '.sr-solo-own': ['Ui/SkillSummonResult.cs$sr_solo_own_r_rem@PetSkillUi.json'],
+    '.sr-again': ['Ui/SkillSummonResult.cs$sr_again_r_rem@PetSkillUi.json'],
+    '.sr-new': ['Ui/SkillSummonResult.cs$sr_new_r_rem@PetSkillUi.json'],
+    '.sr-qty': ['Ui/SkillSummonResult.cs$sr_qty_r_rem@PetSkillUi.json'],
+    '.sr-name': ['Ui/SkillSummonResult.cs$sr_name_r_rem@PetSkillUi.json'],
+    '.sr-chip': ['Ui/SkillSummonResult.cs$sr_chip_r_rem@PetSkillUi.json'],
+    '.sr-hint': ['Ui/SkillSummonResult.cs$sr_hint_r_rem@PetSkillUi.json'],
     # ── T415 3회차(2026-09-16 · 워커 J) — 정본 `50%`(원) 자리를 `#이름` 꼴로 ──
     #    2회차가 «원은 자가 못 가른다» 로 미뤄 둔 갈래다. `@메서드` 는 본문이 넓어 다른 반지름 키가
     #    증거 노릇을 해 **원을 걷어도 초록**이었다. `#이름` 은 «그 이름 곁 6줄 안에 원 공장» 만 본다.
