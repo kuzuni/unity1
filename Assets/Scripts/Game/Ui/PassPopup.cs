@@ -42,6 +42,14 @@ namespace Forge.Game.Ui
             float trackH = UiKit.H("pass_track_h");
             float cardH = padTop + bannerH + rem * 1.19f + descH + rem * 1.31f + headerH + trackH + padBottom;
             RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "pass_bg", rem);
+            // T331 25회차 — 정본 8602 `.modal-card.pass-card { box-shadow: 0 1.05rem 1.6rem -.5rem rgba(0,0,0,.6) }`.
+            //   ⓐ CSS `box-shadow` 는 **겹치지 않는다** — 이 한 줄이 `.modal-card`(3518)의 딱딱한 턱 `0 .5rem 0` 을
+            //     통째로 갈아 끼운다. 정본 주석도 그 뜻을 못 박았다: «어두운 `.pass-card` 는 3차 블록이 `:not()` 으로
+            //     빼 둔 카드라 여기서도 따로 적는다 — 칠은 여전히 안 주고 **그림자만** 준다»(8592~8593).
+            //     그래서 `PopupKit.Card` 가 모든 카드에 깔아 준 턱을 이 카드에서만 걷는다(안 걷으면 두 겹이 된다).
+            //   ⓑ 번짐이 **음수**인 유일한 자리다(`-.5rem` — 판을 안으로 줄여 굽는다 · 표 `passcard_drop`).
+            UiShadow.Remove(card, "card_lip");
+            UiShadow.Drop(card, "passcard_drop", rem);
             // T132 — 정본 ui.js 4924 `<div class="pass-sword">${IconGen.img('passsword')}</div>` · style.css 2686: 카드 윗변에서 4.81rem 위 · 가운데 · 3.72×6.72rem.
             // 리본(.pass-banner)보다 먼저 세운다 — 정본 DOM 순서대로 리본이 칼자루 위를 덮는다. 치수는 StaticIconsUi.json(§1).
             Image sword = PopupKit.IconOr(card, "pass-sword", "passsword");

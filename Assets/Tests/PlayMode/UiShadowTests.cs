@@ -200,6 +200,38 @@ namespace Forge.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator 패스_카드는_공용_턱_대신_캐스트_한_겹만_쥔다()
+        {
+            yield return Boot();
+            // 정본 8602 `.modal-card.pass-card { box-shadow: 0 1.05rem 1.6rem -.5rem rgba(0,0,0,.6) }` —
+            // `.modal-card`(3518)의 딱딱한 턱을 **갈아 끼운** 자리다(CSS 그림자는 겹치지 않는다).
+            // 자동 제련 카드(둘을 겹치는 자리)와 **반대 계약**이라 둘을 같이 세워 둔다.
+            MetaHost h = MetaHost.Instance;
+            PassPopup.Open(h);
+            yield return null;
+            yield return null;
+            RectTransform card = null;
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+                if (rt.name == "card" && UiShadow.Find(rt, "passcard_drop") != null) { card = rt; break; }
+            Assert.IsNotNull(card, "패스 카드의 캐스트 겹을 못 찾았다");
+
+            Transform cast = UiShadow.Find(card, "passcard_drop");
+            Assert.IsNull(UiShadow.Find(card, "card_lip"), "공용 아래턱이 남아 있다 — 정본은 이 카드에서 그것을 갈아 끼웠다(두 겹이면 카드가 두 번 뜬다)");
+            Assert.AreEqual(0, cast.GetSiblingIndex(), "그늘은 카드의 맨 뒤에 깔린다");
+            Assert.IsFalse(UiShadow.Table.Get("passcard_drop").IsHard, "캐스트는 흐리다");
+            Assert.Less(UiShadow.Table.Get("passcard_drop").SpreadRem, 0.0, "번짐이 음수인 유일한 자리다(안으로 줄인다)");
+            Image ci = cast.GetComponent<Image>();
+            Assert.IsNotNull(ci.sprite, "흐린 겹은 구운 판이다");
+            // 판은 카드보다 넓게 굽고 그만큼 밖으로 내민다 — 안 그러면 번짐이 카드 변에서 잘린다.
+            Assert.Greater(ci.rectTransform.rect.width, card.rect.width, "구운 판이 카드보다 안 넓다 — 번짐이 잘린다");
+            Assert.Greater(ci.rectTransform.rect.height, card.rect.height, "세로도 넓어야 한다");
+            // CSS 의 +y 는 아래다 — 1.05rem 내려간 자리라야 한다.
+            Assert.Less(ci.rectTransform.anchoredPosition.y, 0f, "캐스트가 아래로 안 내려갔다");
+            PassPopup.Close(h);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator 탭_패널의_턱은_위로_뜬다()
         {
             yield return Boot();

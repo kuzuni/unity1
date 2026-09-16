@@ -46,14 +46,14 @@ SPOTS = [
     ('afcard_drop',   '.af-card',                      5030, 'blur'),
     ('autodrop_drop', '.auto-drop-card',               1073, 'blur'),
     ('cbcard_drop',   '.craft-batch .cb-card',         1140, 'blur'),
-    ('passcard_drop', '.pass-card',                    None, 'blur'),
+    ('passcard_drop', '.modal-card.pass-card',         8602, 'blur'),
     ('leaguefoot_up', '.league-foot',                  2376, 'blur'),
     ('eqswfly_drop',  '.eqsw-fly-box',                 None, 'blur'),
 ]
 
 # 아직 안 선 자리 — 까닭과 «누가/언제» 를 같이 적는다. 서면 이 줄을 지운다(안 지우면 자가 알린다).
 KNOWN = {
-    'passcard_drop': 'T331 4회차 — 굽는 길은 섰다 · PassPopup.cs 가 T352 산 lock',
+    # (비었다 = 표의 자리가 **전부 섰다** · T331 25회차에 마지막 하나 `passcard_drop` 이 섰다)
 }
 
 

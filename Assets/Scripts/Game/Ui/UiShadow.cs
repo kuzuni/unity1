@@ -37,6 +37,21 @@ namespace Forge.Game.Ui
         /// <summary>그 상자에 걸린 그 자리의 그늘(없으면 null) — 자가 이것으로 찾는다.</summary>
         public static Transform Find(RectTransform box, string key) { return box == null ? null : box.Find(Layer(key)); }
 
+        /// <summary>
+        /// 깔아 둔 겹 하나를 걷는다 — 정본이 그 자리에서 **다른 규칙으로 덮어쓴** 경우에 쓴다.
+        ///
+        /// CSS `box-shadow` 는 **겹치지 않는다**: 더 구체적인 규칙이 목록을 통째로 갈아 끼운다.
+        /// 그래서 공용 카드가 깔아 둔 턱을 그 카드에서만 걷어야 정본과 같아진다(T331 25회차 · `.pass-card` 8602).
+        /// `Destroy` 는 프레임 끝이라 그 사이 `Find` 가 아직 그것을 본다 — 트리에서 **먼저 뺀다**.
+        /// </summary>
+        public static void Remove(RectTransform box, string key)
+        {
+            Transform had = Find(box, key);
+            if (had == null) return;
+            had.SetParent(null, false);
+            UnityEngine.Object.Destroy(had.gameObject);
+        }
+
         static ShadowTable table;
 
         public static ShadowTable Table
