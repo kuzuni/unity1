@@ -109,5 +109,31 @@ namespace Forge.Tests.PlayMode
             ForgeSheet.Render(h);
             yield return null;
         }
+
+        /// <summary>T396 5회차 — 종이 버튼 비활성 글자: 공용(정본 8725 #7b7b7b · `disabled_ink`)과 **은색**(5266 `.skd-btn.silver.disabled` · 5497 `.petup-selrow .btn.silver.disabled` · #6f6f6f · `disabled_ink2`)이 다르다.
+        /// 전엔 종류와 무관하게 `disabled_ink` 였다. 표값이 정본과 같은지는 `check_pinned_colors` 가 본다 — 여기는 «자리가 그 키를 쓰는가».</summary>
+        [UnityTest]
+        public IEnumerator 은색_종이_버튼의_비활성_글자는_공용_비활성보다_한_톤_어두운_전용_잉크다()
+        {
+            yield return Boot();
+            Transform app = UiRoot.Instance.App;
+            RectTransform box = UiKit.Box(app, "t396-box");
+            try
+            {
+                Button silver = PetSkillKit.PaperButton(box, "silver-off", PetSkillKit.BtnKind.Silver, "업그레이드", null, true, () => { });
+                Button primary = PetSkillKit.PaperButton(box, "primary-off", PetSkillKit.BtnKind.Primary, "확인", null, true, () => { });
+                Button silverOn = PetSkillKit.PaperButton(box, "silver-on", PetSkillKit.BtnKind.Silver, "업그레이드", null, false, () => { });
+                yield return null;
+                var sl = silver.transform.Find("label").GetComponent<TMPro.TextMeshProUGUI>();
+                var pl = primary.transform.Find("label").GetComponent<TMPro.TextMeshProUGUI>();
+                var ol = silverOn.transform.Find("label").GetComponent<TMPro.TextMeshProUGUI>();
+                Assert.AreEqual(PetSkillStyle.C("disabled_ink2"), sl.color, "은색 비활성 = disabled_ink2(정본 5266·5497 #6f6f6f)");
+                Assert.AreEqual(PetSkillStyle.C("disabled_ink"), pl.color, "공용 비활성 = disabled_ink(정본 8725 #7b7b7b)");
+                Assert.AreNotEqual(sl.color, pl.color, "두 비활성 잉크는 다른 값이다(은색이 한 톤 어둡다)");
+                Assert.Greater(pl.color.r, sl.color.r, "은색 쪽이 더 어둡다");
+                Assert.AreEqual(PetSkillStyle.C("white"), ol.color, "활성 은색 버튼 글자는 흰색(정본 .petup-selrow .btn.silver)");
+            }
+            finally { Object.Destroy(box.gameObject); }
+        }
     }
 }

@@ -226,7 +226,10 @@ namespace Forge.Game.Ui
             if (disabled)
             {
                 bg = PetSkillStyle.C(kind == BtnKind.Gray || kind == BtnKind.Silver ? "silver_disabled" : "silver_disabled");
-                ink = PetSkillStyle.C("disabled_ink");
+                // T396 5회차 — 비활성 글자는 둘이다: 공용 `.btn.*.disabled`(정본 8725 #7b7b7b · disabled_ink) 와 **은색** 버튼
+                //   `.skd-btn.silver.disabled`(5266) · `.petup-selrow .btn.silver.disabled`(5497) 의 #6f6f6f(disabled_ink2 · 한 톤 어둡다).
+                //   전엔 종류와 무관하게 disabled_ink 였다 — 표에 disabled_ink2 가 있었지만 쓰는 곳이 0 이었다.
+                ink = PetSkillStyle.C(kind == BtnKind.Silver ? "disabled_ink2" : "disabled_ink");
             }
             Button b = UiKit.Button(parent, name, onClick);
             RectTransform rt = b.GetComponent<RectTransform>();

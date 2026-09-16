@@ -72,6 +72,22 @@ TABLE_INK = {
     '.bw-sub': ['Ui/BattleOverlay.cs|catalog:coin'],                        # 정본 409 #ffd54f ↔ 카탈로그 coin 같은 값
     '.waypoint-time': ['Ui/Waypoints.cs|res:WaypointsUi:time_ink'],         # 정본 326 #ffd54f ↔ WaypointsUi.time_ink 같은 값
     '.offline-sub': ['Ui/OfflinePopup.cs|res:PinnedColorUi:offline_sub_ink'],   # 정본 267 #ccc ↔ 클론은 pp_gray(#c4c4c4) 였다
+    # T396 5회차 — 산 lock 밖 파일의 자리 열둘. 열은 **이미 제 값**이라 자가 지키기만 하고(값이 바뀌면 여기서 빨강), 둘은 근사였다(은색 비활성).
+    '#summon-subtabs.subtab-strip button': ['Ui/SkillPetSheet.cs|res:PetSkillUi:subtab_ink'],   # 정본 3604 #d9d9d9 ↔ PetSkillUi subtab_ink 같은 값
+    '.rw-amt': ['Ui/RewardBurst.cs|res:RewardBurstUi:amt'],                                      # 정본 7491 #ffd54f ↔ RewardBurstUi colors.amt
+    '.rw-tick': ['Ui/RewardBurst.cs|res:RewardBurstUi:tick'],                                    # 정본 7550 #ffd54f ↔ RewardBurstUi colors.tick
+    '.ob-zzz i': ['Ui/OfflineButton.cs|res:OfflineButtonUi:zzz_ink'],                            # 정본 227 #eaf6ff ↔ OfflineButtonUi zzz_ink
+    '.skill-btn.auto': ['Ui/SkillBar.cs|res:PetSkillUi:sb_auto_ink'],                            # 정본 624 #90a4ae ↔ PetSkillUi sb_auto_ink(켜짐은 white + 키라인 · 629)
+    '.equip-cell .cell-star': ['Ui/ForgeUi.cs@StarBadge|catalog:coin'],                          # 정본 953 #ffd54f ↔ 카탈로그 coin 같은 값
+    # 종이 버튼 비활성 글자 — 공용(8725 · #7b7b7b)은 PetSkillUi disabled_ink, **은색**(5266 `.skd-btn.silver.disabled` · 5497 `.petup-selrow .btn.silver.disabled` · #6f6f6f)은
+    # 한 톤 어두운 disabled_ink2 다. 클론 PaperButton 은 종류와 무관하게 disabled_ink 로 찍고 있었다(표에 disabled_ink2 가 있었지만 쓰는 곳이 0).
+    '.btn.btn.primary.primary.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink'],
+    '.btn.btn.on.on.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink'],
+    '.btn.btn.equip.equip.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink'],
+    '.btn.btn.danger.danger.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink'],
+    '.btn.btn.sell.sell.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink'],
+    '.petup-selrow .btn.silver.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink2'],
+    '.skd-btn.silver.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink2'],   # SkillPanel 381 이 PaperButton(Silver, disabled) 로 세운다
 }
 KNOWN_INK = {
 }
