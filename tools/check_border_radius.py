@@ -103,6 +103,24 @@ TABLE = {
     '.waypoint-time': ['Ui/Waypoints.cs$time_r_rem@WaypointsUi.json'],
     # T345 8회차 — 기술 노드 팝업 버튼 줄(정본이 공용 .btn 을 덮는다)
     '.tech-btns .btn': ['Ui/TechPopups.cs$tech_btn_r_rem'],
+    # T345 19회차 — **펫·탈것·퀘스트 화면**. T402 가 lock 을 반납해 `PetPanel.cs` 가, T331 12회차로 `QuestSheet.cs` 가 열렸다.
+    #   여기 넷은 표 키가 **이미 있는데 부르는 자리만 없거나 짝을 안 적었던** 자리다 — 값은 정본과 같았다.
+    '.pet-tile .tile-face': ['Ui/PetPanel.cs$tile_r_rem@PetSkillUi.json'],
+    '.petd-share': ['Ui/PetPanel.cs$petd_share_r_rem@PetSkillUi.json'],
+    #   정본 5536 `.petd-tile` .55rem 은 격자 타일(.5rem)과 **다르다**. 클론은 셋 다 `tile_r_rem` .5 로 그렸고
+    #   표에 있던 `petd_tile_r_rem` .55 는 부르는 자리가 0 이었다 → 19회차가 펫·탈것 상세를 그 키로 돌렸다(화면 변화).
+    '.petd-tile': ['Ui/PetPanel.cs$petd_tile_r_rem@PetSkillUi.json', 'Ui/MountSheet.cs$petd_tile_r_rem@PetSkillUi.json'],
+    #   `.petd-btn` 은 공용 종이 버튼(`PetSkillKit.PaperButton` 의 기본 반지름 `btn_r_rem` .7)이 그린다.
+    '.petd-btn': ['Ui/PetSkillKit.cs$btn_r_rem@PetSkillUi.json'],
+    '#summon-subtabs.subtab-strip button': ['Ui/SkillPetSheet.cs$subtab_btn_r_rem@PetSkillUi.json'],
+    '.petup-selrow .btn.silver': ['Ui/PetUpgradePopup.cs$petup_sel_btn_r_rem@PetSkillUi.json'],
+    #   알 재료 칸의 선택 겹은 타일과 같은 .5 라 클론이 `tile_r_rem` 을 그대로 쓴다(정본 4384 도 .5).
+    '.pet-tile.egg .tile-check': ['Ui/PetUpgradePopup.cs$tile_r_rem@PetSkillUi.json'],
+    #   보통 재료 칸의 선택 겹만 .3 이고 클론은 리터럴 `Rem(0.3f)` 다 — `PetUpgradePopup.cs` 가 T388 lock 뒤라 빈자리로 둔다.
+    '.pet-tile .tile-check': ['Ui/PetUpgradePopup.cs$tile_check_r_rem@PetSkillUi.json'],
+    '.qst-row': ['Ui/QuestSheet.cs$qst_row_r_rem'],
+    #   진행 바는 높이 .95rem 의 반(.475)으로 그린다 — 정본 .48 과 **알약 동치**(결정 543 · 둘 다 «높이의 반» 그림이다).
+    '.qst-bar': '✓정본 2038 `.qst-bar { border-radius: .48rem }` · 높이 .95rem(2039) — 클론 `QuestSheet` 103 은 `barH * 0.5f` = .475rem 이라 알약 동치(결정 543)',
     # T345 18회차 — **메인 화면**(상단바 · 웨이브 핍 · 전리품 · 스킬 바). T331 이 12회차에 범위를 «지금 여는 파일» 로 줄이면서
     #   `Hud.cs`·`SkillBar.cs`·`LootFeed.cs` 가 열렸다(결정 664) — 그 전까지 이 여섯은 남의 lock 뒤라 못 걸었다.
     '.currency-pills .pill': ['Ui/Hud.cs$currency_pill_r_rem'],
@@ -133,6 +151,7 @@ KNOWN = {
     'Ui/ForgeInfoPopup.cs$upg_progress_r_rem': 'T339·T332 lock 뒤 T345 ⓑ(지금은 rem*0.5)',
     'Ui/Popups.cs$back_btn_r_w': 'T331·T333·T335 가 Popups.cs 를 쥐었다 — 그 lock 뒤 T345 ⓑ(지금은 Rem*0.45 = 리그 뒤로 버튼 값)',
     'Ui/Hud.cs$topbar_card_r_rem@catalog.json': 'T388·T402 가 catalog.json 을 쥐었다 — 그 lock 뒤 `card_radius`(0.018957 = 1rem/H · 값은 정본과 같다) 를 `topbar_card_r_rem` 1 로 옮긴다(T345 18회차 · `card_r_rem` 은 이미 `.modal-card` 1.1 이 쓴다)',
+    'Ui/PetUpgradePopup.cs$tile_check_r_rem@PetSkillUi.json': 'T388 이 PetUpgradePopup.cs 를 쥐었다 — 그 lock 뒤 정본 4378 `.pet-tile .tile-check` .3rem 을 표 키로(지금은 리터럴 `PetSkillStyle.Rem(0.3f)` · 값은 맞다 · T345 19회차)',
     'Ui/Hud.cs$topbar_avatar_r_rem@catalog.json': 'T388·T402 lock 뒤 `avatar_radius`(0.0076 = .4rem/H · 값은 정본과 같다) 를 `topbar_avatar_r_rem` .4 로 옮긴다(T345 18회차)',
 }
 

@@ -46,6 +46,8 @@
   "currency_pill_r_rem": 1.0,
   "_pip_boss": "style.css 195 `.pip.boss { border-radius: 2px }` — 보스 웨이브 핍(45° 돌린 마름모). 정본이 rem 이 아니라 **절대 2px** 로 준 자리라 꼬리가 `_r_px` 다 · 클론은 `sprite = null` 인 민 네모였다(T345 18회차)",
   "pip_boss_r_px": 2.0,
+  "_qst_row": "style.css 2023 `.qst-row` — 퀘스트 줄 종이 카드(정본 .8 · 클론 리터럴 `rem * 0.8f` · 값은 맞았다 · T345 19회차)",
+  "qst_row_r_rem": 0.8,
   "_tech_node_time": "style.css 2209 .tech-tree-label .tech-tree-node-time — 연구 중 남은 시간·«완료!» 배지(pp-ink 위 초록 글자 · 정본 .6 · 클론엔 면이 아예 없었다 · T345 4회차)",
   "tech_node_time_r_rem": 0.6
 }

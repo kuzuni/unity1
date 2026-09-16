@@ -241,7 +241,9 @@ namespace Forge.Game.Ui
         /// 격자·알·탈것 상세·업그레이드 팝업은 그 밖이라 기본 `.sk-lv`(4045 검정 알약 · 링 없음) 그대로다
         /// (정본 주석 ui.js 4030 «알·탈것 상세(같은 .petd-name)는 .petd-wrap 밖이라…» 가 그 경계를 못 박는다).
         /// </summary>
-        public RectTransform TileFace(Transform parent, string name, string rarity, float size, bool active, int level, bool ribbonSmall, string ribbonText, Forge.Game.Gallery.GalleryKind kind, string lvKeyline)
+        /// <param name="faceRadiusKey">얼굴 모서리 표 키 — 안 주면 격자 타일(정본 4262 `.pet-tile .tile-face` .5rem)이고,
+        /// 상세 팝업 타일은 `petd_tile_r_rem`(정본 5536 `.petd-tile` **.55rem**)을 준다(T345 19회차).</param>
+        public RectTransform TileFace(Transform parent, string name, string rarity, float size, bool active, int level, bool ribbonSmall, string ribbonText, Forge.Game.Gallery.GalleryKind kind, string lvKeyline, string faceRadiusKey = null)
         {
             Color rc = PetSkillStyle.Rarity(Defs, rarity);
             // T371 7회차 — 면 색은 표 ColorMixUi.json 이 쥔다(전엔 PetSkillUi.json tile_face_mix_f · 값은 같다 · 표 하나로):
@@ -250,7 +252,7 @@ namespace Forge.Game.Ui
             //   `border: color-mix(var(--petd-face) 40%, #000)` — 테 색이 등급색이 아니라 **바로 위에서 만든 면 색**에서 잇는 사슬이다(테 폭 1px 은 T365 축 · 여기선 색만).
             bool petd = lvKeyline != null;
             Color faceC = petd ? ColorMixUi.Mix("petd_face", rc) : ColorMixUi.Mix("pet_tile_face", rc);
-            RectTransform face = PetSkillKit.Framed(parent, "tile-face", faceC, PetSkillStyle.Px("tile_r_rem"), PetSkillKit.Line3);
+            RectTransform face = PetSkillKit.Framed(parent, "tile-face", faceC, PetSkillStyle.Px(faceRadiusKey ?? "tile_r_rem"), PetSkillKit.Line3);
             if (petd) face.Find("line").GetComponent<Image>().color = ColorMixUi.Mix("petd_line", faceC);
             face.sizeDelta = new Vector2(size, size);
             RectTransform pf = PetSkillKit.PetFace(face, Defs, name, size * 0.86f, kind);
@@ -542,7 +544,7 @@ namespace Forge.Game.Ui
             RectTransform tilecol = UiKit.Box(c, "petd-tilecol");
             UiKit.Place(tilecol, padX, y, tile, headH);
             // 이 자리만 정본 `.petd-wrap`(ui.js 4014) 안이다 → Lv 글자에 2.5px 링(style.css 5467 · T109 10회차)
-            RectTransform face = TileFace(tilecol, pet.Name, pet.Rarity, tile, active, pet.Level, false, null, Forge.Game.Gallery.GalleryKind.Pets, "petd_tile_lv");
+            RectTransform face = TileFace(tilecol, pet.Name, pet.Rarity, tile, active, pet.Level, false, null, Forge.Game.Gallery.GalleryKind.Pets, "petd_tile_lv", "petd_tile_r_rem");
             UiKit.Place(face, 0f, 0f, tile, tile);
             if (pet.Stars > 0) SkillPanel.StarRow(tilecol, pet.Stars, tile, tile + PetSkillStyle.Rem(0.25f), starH);
             float bx = padX + tile + PetSkillStyle.Px("petd_head_gap_rem");

@@ -262,7 +262,8 @@ namespace Forge.Game.Ui
             float y = padT;
             RectTransform tilecol = UiKit.Box(c, "petd-tilecol");
             UiKit.Place(tilecol, padX, y, tile, headH);
-            RectTransform face = sheet.Pets.TileFace(tilecol, mt.Name, mt.Rarity, tile, active, mt.Level, false, Ribbon(idx), GalleryKind.Mounts);
+            // 정본 5536 `.petd-tile { border-radius: .55rem }` 은 펫·알·탈것 상세 타일 셋 다에 걸린다 — 격자 타일(.5rem)과 다르다(T345 19회차)
+            RectTransform face = sheet.Pets.TileFace(tilecol, mt.Name, mt.Rarity, tile, active, mt.Level, false, Ribbon(idx), GalleryKind.Mounts, null, "petd_tile_r_rem");
             UiKit.Place(face, 0f, 0f, tile, tile);
             if (mt.Stars > 0) SkillPanel.StarRow(tilecol, mt.Stars, tile, tile + PetSkillStyle.Rem(0.25f), starH);
             float bx = padX + tile + PetSkillStyle.Px("petd_head_gap_rem");
