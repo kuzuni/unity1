@@ -71,7 +71,10 @@ namespace Forge.Game.Ui
             float y = padTop + bannerH + rem * 1.19f;
             RectTransform desc = UiKit.Box(card, "desc-row");
             UiKit.Place(desc, PopupKit.Line3, y, inner, descH);
-            TextMeshProUGUI d = UiKit.Text(desc, "desc", TextKind.Sub, "전투를 진행하여 보상을 받\n으세요!", "stage_ink");
+            // T383 9회차 — 정본 2734 `.pass-desc { font-size: .78rem }`(= 28.4px): 하한 `Sub`(36)로 찍으면 「보상을 받」 이 반 칸(inner/2)에 안 들어가
+            // 정본 `<br>` 두 줄(ui.js 4928)이 세 줄이 된다(런 666). 결정 633 대로 새 종류 없이 예외 칸 `Micro` 를 쓰되 크기는 표(TextSizeUi)에서 — §1 예외 여섯째 자리.
+            TextMeshProUGUI d = UiKit.Text(desc, "desc", TextKind.Micro, "전투를 진행하여 보상을 받\n으세요!", "stage_ink");
+            TextSizeUi.Apply(d, "pass_desc");
             d.fontStyle = FontStyles.Bold;
             d.textWrappingMode = TextWrappingModes.Normal;
             // T354 15회차 — 정본 2734 `.pass-desc { line-height: 1.4 }`. 이 글은 정본이 `<br>` 로 나눈 **두 줄**이라(T383)

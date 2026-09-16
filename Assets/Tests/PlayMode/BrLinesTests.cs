@@ -116,6 +116,26 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>정본 4928 «전투를 진행하여 보상을 받<br>으세요!» — 패스 안내문 두 줄(9회차: Micro + 표 크기 .78rem · 정본 2734).</summary>
+        [UnityTest]
+        public IEnumerator 패스_안내문은_정본대로_두_줄이다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            PassPopup.Open(h);
+            yield return null;
+            Popup p = PopupLayer.Instance.Find(PassPopup.Name);
+            Assert.IsNotNull(p, "패스 팝업");
+            Transform d = Find(p.Root, "desc");
+            Assert.IsNotNull(d, "안내 글(desc)");
+            TextMeshProUGUI t = d.GetComponent<TextMeshProUGUI>();
+            // 런 666 은 **세 줄**이었다(하한 Sub 36 이 「보상을 받」 을 반 칸에서 한 번 더 접었다) — 9회차가 종류 Micro + 표 크기(정본 .78rem · TextSizeUi)로 고쳐 정본 두 줄로 돌아온다.
+            Assert.AreEqual(TextSizeUi.Px("pass_desc"), t.fontSize, 0.5f, "크기는 표(정본 .78rem)에서 — 하한 36 이 아니다");
+            Assert.AreEqual(2, Lines(t), "정본 4928 = 두 줄 — 실제 «" + t.text.Replace("\n", "⏎") + "»");
+            PopupLayer.Instance.Hide(PassPopup.Name);
+            yield return null;
+        }
+
         /// <summary>정본 4812 «…유지하면 시즌 종료 시<br>다음 보상을 받을 수 있습니다:» — 리그 보상 안내.</summary>
         [UnityTest]
         public IEnumerator 리그_보상_안내는_정본대로_두_줄이다()

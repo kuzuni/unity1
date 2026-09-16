@@ -4,6 +4,10 @@
     "asc_focus_eff": {
       "rem": 0.76,
       "_": "style.css 5635 .asc-focus-eff { font-size: .76rem; line-height: 1.5 } — 승천 초점 카드 효과 글줄(정본 ui.js 5848·5849 <br> 세 줄 · 하한 36 이면 셋째 항목이 접혀 네 줄 · 런 688)"
+    },
+    "pass_desc": {
+      "rem": 0.78,
+      "_": "style.css 2734 .pass-desc { font-size: .78rem; font-weight: 800; line-height: 1.4 } — 패스 안내문(정본 ui.js 4928 «보상을 받<br>으세요!» 두 줄 · 하한 Sub 36 이면 「보상을 받」 이 한 번 더 접혀 세 줄 · 런 666) · T383 9회차"
     }
   }
 }
