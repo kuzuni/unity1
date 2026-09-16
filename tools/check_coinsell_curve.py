@@ -8,9 +8,15 @@ T408 — 판매 코인 연출의 **시간축**: 정본 `web/ref/shots/coinsell-<
   · 금빛 = r>200 · 150<g<235 · b<130 · r−b>90 (표 `gold`).
   · 정적 바닥 = **마지막 프레임(3200ms)의 금빛 화소 집합** — 프레임마다 그 집합에 없는 화소만 «동적» 으로 센다(수를 빼는 것이 아니라 자리를 뺀다 ·
     HUD 알약·아이콘처럼 늘 있는 금빛이 빠진다).
-  · 띠 셋(앱 높이 비율 · 표 `bands`): top 0~10%(HUD 코인 알약 — 닿는 곳) · mid 10~60%(나는 곳) · bot 60~100%(모루 띠 — 태어나는 곳 · 금액 라벨).
-  정본 실측(이 자가 표로 쓴다): mid 는 **두 물결**(200~560 · 860~940) · 봉우리 **900ms**(5944) · **1000ms 에 끝**(89) · bot 은 1000~2200ms 에
-  ≈1250 으로 평평하다(= 금액 라벨 `.coin-amt` 2000ms · 클론 `amt_ms` 2000 과 같은 뜻) · top 은 900·1100·1400ms 에 416(알약 박동).
+  · 띠 셋(앱 높이 비율 · 표 `bands`): top 0~10%(HUD 코인 알약) · mid 10~56.2%(무대 — 3D 전투가 사는 곳) · bot 56.2~100%(**장비 시트 띠** — 모루가
+    사는 곳 · 코인이 태어나 날고 착지하는 곳 · 금액 라벨). 경계 56.2% = 정본 3200ms 프레임의 시트 윗선(y 480/854).
+  · **딴 판 프레임은 뺀다**(T411 2회차 · 결정 700): 정본 25장은 두 스크립트(`probe-coin-total-delay.js` · `probe-coin-overlap.js`)가 **다른 때**에
+    찍은 것이라 셋(900·1100·1400ms)은 탭바·HUD 가 다른 옛 배치다 — 탭바 띠(표 `foreign_strip`)의 화소가 바닥 프레임과 절반 넘게 다르면 `foreign_ms`
+    로 적고 곡선에서 뺀다(그 프레임의 «top 416 알약 박동» 은 배치 차이고 «900ms mid 5944» 는 보스 빛기둥이다).
+  · 무대 띠(mid)는 곡선의 잣대가 **아니다**: 정본 프레임은 가상 시계로 연출만 멈춘 것이라 3D 전투가 실시간으로 돌고 있었다 — 40~560ms 의 mid 금빛은
+    보스 WARNING 띠(y 85~427 · 화면 가로 전체)다. 판정 띠는 `flight_band` = bot(시트 띠).
+  정본 실측(이 자가 표로 쓴다 · bot): 40ms 379 → 200ms 1300 → 420ms 1773(나는 동안) → 620~860ms 2067~2628(착지 · 라벨 팝 · **봉우리 860ms**) →
+  1000~2200ms ≈1250 평평(= 금액 라벨 `.coin-amt` 2000ms · 클론 `amt_ms` 2000 과 같은 뜻) → 2500ms 94(**끝**) → 2700ms 0.
 
 PlayMode `CoinSellCurveTests` 가 클론 프레임을 같은 잣대(같은 시각 · 같은 띠 · 같은 금빛)로 재서 `ui-screens/t408-coinsell.txt` 에 남기고
 봉우리·끝 시각을 표와 견준다 — 원작 PNG 는 이 레포에 복사하지 않는다(§1).
@@ -28,7 +34,12 @@ import tempfile
 SHOTS_DEFAULT = os.path.join('.wwwww-src', 'web', 'ref', 'shots')
 TABLE_DEFAULT = os.path.join('Assets', 'Forge', 'Resources', 'CoinSellCurveUi.json')
 GOLD = {'r_min': 200, 'g_min': 150, 'g_max': 235, 'b_max': 130, 'rb_min': 90}
-BANDS = {'top': [0.0, 0.10], 'mid': [0.10, 0.60], 'bot': [0.60, 1.0]}
+SHEET_TOP_F = 0.562                                                      # 정본 3200ms 프레임의 장비 시트 윗선(y 480/854)
+BANDS = {'top': [0.0, 0.10], 'mid': [0.10, SHEET_TOP_F], 'bot': [SHEET_TOP_F, 1.0]}
+FLIGHT_BAND = 'bot'                                                      # 코인이 사는 띠 = 장비 시트
+FOREIGN_STRIP = [0.91, 1.0]                                              # 탭바 띠 — 바닥 프레임과 이 띠가 절반 넘게 다르면 딴 판(옛 배치)이다
+FOREIGN_TOL = 0.5
+PIX_TOL = 30                                                             # 화소가 «다르다» = |Δr|+|Δg|+|Δb| > 30
 FRAME_RE = re.compile(r'coinsell-(\d+)ms\.png$')
 
 
@@ -48,6 +59,23 @@ def gold_set(path, gold=GOLD):
     return w, h, out
 
 
+def strip_pixels(path, strip=FOREIGN_STRIP):
+    """탭바 띠의 화소 목록 [(r, g, b)] — 딴 판 판별용."""
+    from PIL import Image
+    im = Image.open(path).convert('RGB'); w, h = im.size; px = im.load()
+    y0, y1 = int(h * strip[0]), int(h * strip[1])
+    return [px[x, y][:3] for y in range(y0, y1) for x in range(w)]
+
+
+def layout_diff(a, b, tol=PIX_TOL):
+    """두 띠(같은 길이)의 «다른 화소» 비율."""
+    if not a or len(a) != len(b): return 1.0
+    n = 0
+    for (r1, g1, b1), (r2, g2, b2) in zip(a, b):
+        if abs(r1 - r2) + abs(g1 - g2) + abs(b1 - b2) > tol: n += 1
+    return n / float(len(a))
+
+
 def frames(shots_dir):
     """[(ms, path)] — 시각 차례."""
     fs = []
@@ -57,23 +85,26 @@ def frames(shots_dir):
     return sorted(fs)
 
 
-def measure(shots_dir, gold=GOLD, bands=BANDS):
+def measure(shots_dir, gold=GOLD, bands=BANDS, strip=FOREIGN_STRIP):
     """정본 프레임 → {'w','h','frames':[{'ms','total','top','mid','bot'}]} · 프레임이 없으면 None."""
     fs = frames(shots_dir)
     if len(fs) < 2: return None
     w, h, floor = gold_set(fs[-1][1], gold)
-    rows = []
+    floor_strip = strip_pixels(fs[-1][1], strip)
+    rows, foreign = [], []
     for ms, p in fs:
+        if layout_diff(strip_pixels(p, strip), floor_strip) > FOREIGN_TOL:
+            foreign.append(ms); continue                         # 딴 판에서 찍힌 프레임 — 바닥이 안 맞으니 곡선에서 뺀다
         _, _, pts = gold_set(p, gold)
         dyn = pts - floor
         row = {'ms': ms, 'total': len(dyn)}
         for name, (a, b) in bands.items():
             row[name] = sum(1 for x, y in dyn if a <= y / h < b)
         rows.append(row)
-    return {'w': w, 'h': h, 'frames': rows}
+    return {'w': w, 'h': h, 'frames': rows, 'foreign_ms': foreign}
 
 
-def derive(rows, band='mid', end_f=0.05):
+def derive(rows, band=FLIGHT_BAND, end_f=0.05):
     """(봉우리 ms, 봉우리 값, 끝 ms) — 끝 = 봉우리 뒤 그 띠가 봉우리의 end_f 아래로 처음 내려가는 시각."""
     peak = max(rows, key=lambda r: r[band])
     end = None
@@ -86,15 +117,19 @@ def derive(rows, band='mid', end_f=0.05):
 def build_table(m):
     peak_ms, peak_v, end_ms = derive(m['frames'])
     return {
-        '_': 'ROUTINE T408 — 정본 web/ref/shots/coinsell-<ms>ms.png 25 프레임의 «금빛 화소» 를 띠(top HUD 0~10%H · mid 나는 곳 10~60%H · bot 모루 띠 60~100%H)로 좁혀 센 시간축. '
+        '_': 'ROUTINE T408 — 정본 web/ref/shots/coinsell-<ms>ms.png 프레임의 «금빛 화소» 를 띠(top HUD 0~10%H · mid 무대 10~56.2%H · bot 장비 시트 띠 56.2~100%H = 코인이 사는 곳)로 좁혀 센 시간축. '
              '정적 바닥 = 마지막 프레임의 금빛 자리 집합(수가 아니라 자리를 뺀다). tools/check_coinsell_curve.py 가 정본에서 다시 세어 이 표를 지키고(--write 로 갱신), '
-             'PlayMode CoinSellCurveTests 가 클론을 같은 셈으로 잰다. 원작 PNG 는 이 레포에 없다(§1 · .wwwww-src 읽기 전용).',
+             'PlayMode CoinSellCurveTests 가 클론을 같은 셈으로 잰다(클론의 시트 경계는 제 표 sheet_top). 원작 PNG 는 이 레포에 없다(§1 · .wwwww-src 읽기 전용). '
+             'T411 2회차(결정 700): 재는 띠는 bot(시트) — mid 는 실시간 3D 전투(보스 WARNING 띠·빛기둥)가 섞인 무대라 재는 자리가 아니다 · foreign_ms 는 옛 배치에서 찍힌 프레임(탭바 띠가 바닥과 다르다)이라 뺐다.',
         'src_w': m['w'], 'src_h': m['h'],
         'gold': dict(GOLD),
         'bands': {k: list(v) for k, v in BANDS.items()},
-        'flight_band': 'mid',
+        'sheet_top_f': SHEET_TOP_F,
+        'flight_band': FLIGHT_BAND,
+        'foreign_strip': list(FOREIGN_STRIP),
+        'foreign_ms': m.get('foreign_ms', []),
         'end_f': 0.05,
-        'peak_ms': peak_ms, 'peak_mid': peak_v, 'end_ms': end_ms,
+        'peak_ms': peak_ms, 'peak_v': peak_v, 'end_ms': end_ms,
         'frames': m['frames'],
     }
 
@@ -112,7 +147,7 @@ def run(shots_dir, table_path, write=False, list_all=False, out=print):
     if write:
         with open(table_path, 'w', encoding='utf-8') as f:
             json.dump(fresh, f, ensure_ascii=False, indent=2); f.write('\n')
-        out('✓ check_coinsell_curve: 표를 썼다 — %s (프레임 %d · 봉우리 %dms %d · 끝 %sms)' % (table_path, len(fresh['frames']), fresh['peak_ms'], fresh['peak_mid'], fresh['end_ms']))
+        out('✓ check_coinsell_curve: 표를 썼다 — %s (프레임 %d · 딴 판 %s · 봉우리(%s) %dms %d · 끝 %sms)' % (table_path, len(fresh['frames']), fresh['foreign_ms'], FLIGHT_BAND, fresh['peak_ms'], fresh['peak_v'], fresh['end_ms']))
         return 0
     try:
         t = load_table(table_path)
@@ -120,7 +155,7 @@ def run(shots_dir, table_path, write=False, list_all=False, out=print):
         out('✗ check_coinsell_curve: 표를 못 읽었다 — %s (%s)' % (table_path, e))
         return 2
     bad = []
-    for k in ('src_w', 'src_h', 'peak_ms', 'peak_mid', 'end_ms'):
+    for k in ('src_w', 'src_h', 'flight_band', 'foreign_ms', 'peak_ms', 'peak_v', 'end_ms'):
         if t.get(k) != fresh[k]: bad.append('%s: 표 %r ↔ 정본 %r' % (k, t.get(k), fresh[k]))
     tf = {r['ms']: r for r in t.get('frames', [])}
     for r in fresh['frames']:
@@ -137,7 +172,7 @@ def run(shots_dir, table_path, write=False, list_all=False, out=print):
         out('✗ check_coinsell_curve: 표 ↔ 정본 %d곳 (--write 로 갱신)' % len(bad))
         for b in bad[:20]: out('  · ' + b)
         return 1
-    out('✓ check_coinsell_curve: 정본 프레임 %d · 표와 같다 · 봉우리(mid) %dms %d · 끝 %sms · 띠 %s' % (len(fresh['frames']), fresh['peak_ms'], fresh['peak_mid'], fresh['end_ms'], '/'.join(BANDS)))
+    out('✓ check_coinsell_curve: 정본 프레임 %d(딴 판 %s 뺌) · 표와 같다 · 봉우리(%s) %dms %d · 끝 %sms · 띠 %s' % (len(fresh['frames']), fresh['foreign_ms'], FLIGHT_BAND, fresh['peak_ms'], fresh['peak_v'], fresh['end_ms'], '/'.join(BANDS)))
     return 0
 
 
@@ -149,31 +184,36 @@ def self_test():
     eq('ⓐ 금빛 판별', (is_gold(255, 200, 50), is_gold(255, 240, 50), is_gold(255, 200, 200), is_gold(100, 200, 50)), (True, False, False, False))
     with tempfile.TemporaryDirectory() as d:
         w, h = 40, 100
-        def frame(ms, gold_pts):
+        def frame(ms, gold_pts, tabbar=(30, 30, 30)):
             im = Image.new('RGB', (w, h), (30, 30, 30)); px = im.load()
+            for y in range(int(h * FOREIGN_STRIP[0]), h):
+                for x in range(w): px[x, y] = tabbar
             for x, y in gold_pts: px[x, y] = (255, 200, 40)
             im.save(os.path.join(d, 'coinsell-%04dms.png' % ms))
         static = {(1, 2), (2, 2)}                              # HUD 알약처럼 늘 있는 금빛(top)
         frame(40, static | {(5, 70), (6, 70)})                   # bot 2
-        frame(200, static | {(5, 30), (6, 30), (7, 30), (5, 70)})   # mid 3 · bot 1
-        frame(900, static | {(x, 30) for x in range(10)} | {(0, 5)})   # mid 10 · top 1 (봉우리)
-        frame(1000, static | {(5, 70)})                           # mid 0 → 끝
+        frame(200, static | {(5, 30), (6, 30), (7, 30), (5, 70)})   # mid 3(무대 — 잣대 아님) · bot 1
+        frame(900, static | {(x, 70) for x in range(10)} | {(0, 5)})   # bot 10 · top 1 (봉우리)
+        frame(1000, static | {(5, 30)})                           # bot 0 → 끝 (mid 1 은 무대)
+        frame(1500, static | {(x, 70) for x in range(20)}, tabbar=(90, 90, 90))   # 딴 판 — 탭바 띠가 바닥과 다르다 → 뺀다
         frame(3200, static)                                       # 마지막 = 바닥
-        eq('ⓑ 프레임 차례', [ms for ms, _ in frames(d)], [40, 200, 900, 1000, 3200])
+        eq('ⓑ 프레임 차례', [ms for ms, _ in frames(d)], [40, 200, 900, 1000, 1500, 3200])
         m = measure(d)
         rows = {r['ms']: r for r in m['frames']}
         eq('ⓒ 정적 바닥은 자리로 뺀다(마지막 프레임 동적 0)', rows[3200]['total'], 0)
-        eq('ⓓ 띠 셈', (rows[200]['mid'], rows[200]['bot'], rows[900]['top'], rows[900]['mid'], rows[40]['bot']), (3, 1, 1, 10, 2))
-        eq('ⓔ 봉우리·끝', derive(m['frames']), (900, 10, 1000))
+        eq('ⓓ 띠 셈', (rows[200]['mid'], rows[200]['bot'], rows[900]['top'], rows[900]['bot'], rows[40]['bot']), (3, 1, 1, 10, 2))
+        eq('ⓔ 봉우리·끝(bot)', derive(m['frames']), (900, 10, 1000))
+        eq('ⓜ 딴 판 프레임은 곡선에서 빠지고 foreign_ms 에 남는다', (1500 in rows, m['foreign_ms']), (False, [1500]))
+        eq('ⓝ 시트 경계는 정본 시트 윗선', (BANDS['mid'][1], BANDS['bot'][0], SHEET_TOP_F), (0.562, 0.562, 0.562))
         tp = os.path.join(d, 'tbl.json')
         lines = []
         eq('ⓕ --write → rc 0', run(d, tp, write=True, out=lines.append), 0)
         eq('ⓖ 쓴 표는 그대로 초록', run(d, tp, out=lines.append), 0)
-        t = load_table(tp); t['frames'][2]['mid'] = 9
+        t = load_table(tp); t['frames'][2]['bot'] = 9
         json.dump(t, open(tp, 'w'))
         eq('ⓗ 표값이 다르면 rc 1', run(d, tp, out=lines.append), 1)
-        eq('ⓗ 문구', any('900ms mid' in l for l in lines), True)
-        t['frames'][2]['mid'] = 10; t['peak_ms'] = 200; json.dump(t, open(tp, 'w'))
+        eq('ⓗ 문구', any('900ms bot' in l for l in lines), True)
+        t['frames'][2]['bot'] = 10; t['peak_ms'] = 200; json.dump(t, open(tp, 'w'))
         eq('ⓘ 봉우리 시각이 다르면 rc 1', run(d, tp, out=lines.append), 1)
         eq('ⓙ 표 없음 → rc 2', run(d, os.path.join(d, 'no.json'), out=lines.append), 2)
         eq('ⓚ 프레임 없음 → rc 2', run(os.path.join(d, 'nope'), tp, out=lines.append), 2)
@@ -181,7 +221,7 @@ def self_test():
         json.dump(build_table(m), open(tp, 'w'))
         run(d, tp, list_all=True, out=lines.append)
         eq('ⓛ --list 는 시각 차례로 띠 수를 준다', [l.split()[0] for l in lines if l.startswith('  ') and l.split()[0].isdigit()][:3], ['40', '200', '900'])
-    n = 14
+    n = 16
     if fails:
         print('✗ check_coinsell_curve --self-test 실패 %d' % len(fails))
         for f in fails: print('  · ' + f)

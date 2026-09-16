@@ -1,5 +1,5 @@
 {
-  "_": "ROUTINE T408 — 정본 web/ref/shots/coinsell-<ms>ms.png 25 프레임의 «금빛 화소» 를 띠(top HUD 0~10%H · mid 나는 곳 10~60%H · bot 모루 띠 60~100%H)로 좁혀 센 시간축. 정적 바닥 = 마지막 프레임의 금빛 자리 집합(수가 아니라 자리를 뺀다). tools/check_coinsell_curve.py 가 정본에서 다시 세어 이 표를 지키고(--write 로 갱신), PlayMode CoinSellCurveTests 가 클론을 같은 셈으로 잰다. 원작 PNG 는 이 레포에 없다(§1 · .wwwww-src 읽기 전용).",
+  "_": "ROUTINE T408 — 정본 web/ref/shots/coinsell-<ms>ms.png 프레임의 «금빛 화소» 를 띠(top HUD 0~10%H · mid 무대 10~56.2%H · bot 장비 시트 띠 56.2~100%H = 코인이 사는 곳)로 좁혀 센 시간축. 정적 바닥 = 마지막 프레임의 금빛 자리 집합(수가 아니라 자리를 뺀다). tools/check_coinsell_curve.py 가 정본에서 다시 세어 이 표를 지키고(--write 로 갱신), PlayMode CoinSellCurveTests 가 클론을 같은 셈으로 잰다(클론의 시트 경계는 제 표 sheet_top). 원작 PNG 는 이 레포에 없다(§1 · .wwwww-src 읽기 전용). T411 2회차(결정 700): 재는 띠는 bot(시트) — mid 는 실시간 3D 전투(보스 WARNING 띠·빛기둥)가 섞인 무대라 재는 자리가 아니다 · foreign_ms 는 옛 배치에서 찍힌 프레임(탭바 띠가 바닥과 다르다)이라 뺐다.",
   "src_w": 480,
   "src_h": 854,
   "gold": {
@@ -16,18 +16,28 @@
     ],
     "mid": [
       0.1,
-      0.6
+      0.562
     ],
     "bot": [
-      0.6,
+      0.562,
       1.0
     ]
   },
-  "flight_band": "mid",
+  "sheet_top_f": 0.562,
+  "flight_band": "bot",
+  "foreign_strip": [
+    0.91,
+    1.0
+  ],
+  "foreign_ms": [
+    900,
+    1100,
+    1400
+  ],
   "end_f": 0.05,
-  "peak_ms": 900,
-  "peak_mid": 5944,
-  "end_ms": 1000,
+  "peak_ms": 860,
+  "peak_v": 2628,
+  "end_ms": 2500,
   "frames": [
     {
       "ms": 40,
@@ -86,13 +96,6 @@
       "bot": 2628
     },
     {
-      "ms": 900,
-      "total": 7990,
-      "top": 412,
-      "mid": 5944,
-      "bot": 1634
-    },
-    {
       "ms": 940,
       "total": 4956,
       "top": 21,
@@ -114,13 +117,6 @@
       "bot": 1278
     },
     {
-      "ms": 1100,
-      "total": 1400,
-      "top": 416,
-      "mid": 466,
-      "bot": 518
-    },
-    {
       "ms": 1120,
       "total": 1625,
       "top": 17,
@@ -140,13 +136,6 @@
       "top": 1,
       "mid": 43,
       "bot": 1248
-    },
-    {
-      "ms": 1400,
-      "total": 1217,
-      "top": 416,
-      "mid": 312,
-      "bot": 489
     },
     {
       "ms": 1600,
