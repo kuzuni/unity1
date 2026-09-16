@@ -171,7 +171,9 @@ namespace Forge.Game.Ui
             face.color = new Color(0xd6 / 255f, 0xd6 / 255f, 0xd6 / 255f);
             // T331 26회차 — 정본 4999 의 **셋째 겹** `0 .07rem .12rem rgba(0,0,0,.1)`.
             //   표에서 가장 옅은 자리지만 정본이 이 겹으로 «얇은 카드 두께» 를 만든다(주석 4996).
-            UiShadow.Drop(row, "afsubrow_drop", hgt * 0.5f);
+            //   ⚑ 27회차 — 이 행은 `LayoutElement` 로 크기를 **예약만** 한 레이아웃 자식이라 이 프레임의 `rect` 는 아직 0 이다.
+            //     굽는 길이 그럴 때 조용히 빈손으로 돌아오므로(런 921 의 빨강) 크기를 직접 준다.
+            UiShadow.Drop(row, "afsubrow_drop", hgt * 0.5f, w, hgt);
             float cb = hgt * 0.62f;
             RectTransform box = UiKit.Box(row, "check");
             UiKit.Place(box, rem * 0.5f, (hgt - cb) * 0.5f, cb, cb);

@@ -260,11 +260,17 @@ namespace Forge.Tests.PlayMode
             Assert.Less(lip.GetComponent<Image>().rectTransform.anchoredPosition.y, 0f, "턱이 아래로 안 내려갔다(CSS 의 +y 는 아래다)");
 
             Transform sh = UiShadow.Find(row, "afsubrow_drop");
-            Assert.IsNotNull(sh, "하위 행의 그늘이 없다");
+            // ⚑ 27회차 — 여기서 한 번 빨갰다(런 921): 이 행은 레이아웃이 크기를 나중에 잡는 자식이라
+            //   굽는 길이 «아직 0» 을 보고 조용히 빈손으로 돌아왔다. 이제 크기를 부르는 쪽이 준다.
+            Assert.IsNotNull(sh, "하위 행의 그늘이 없다 — 레이아웃 자식이라 굽는 길에 크기를 줘야 한다");
             Assert.IsFalse(UiShadow.Table.Get("afsubrow_drop").IsHard, "하위 행 그늘은 흐리다(구운 판이라야 한다)");
             Assert.IsNotNull(sh.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
             // 정본에서 가장 옅은 자리 — «안 보인다» 가 아니라 «두께» 다. 표값이 그대로 서야 한다.
             Assert.AreEqual(0.1, UiShadow.Table.Get("afsubrow_drop").A, 1e-6, "표의 알파(.1)가 아니다");
+            // 구운 판은 행보다 넓다 — 넓지 않으면 «0 크기로 구웠다» 는 뜻이다(런 921 의 빨강이 그 갈래였다).
+            RectTransform shRt = sh.GetComponent<Image>().rectTransform;
+            Assert.Greater(shRt.rect.width, 1f, "구운 판이 0 폭이다");
+            Assert.Greater(shRt.rect.height, 1f, "구운 판이 0 높이다");
             ForgeAutoPopup.Close(fh);
             yield return null;
         }

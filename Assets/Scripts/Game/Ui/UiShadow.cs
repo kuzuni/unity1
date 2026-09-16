@@ -78,9 +78,21 @@ namespace Forge.Game.Ui
         /// <returns>깐 겹(같은 상자에 두 번 부르면 앞서 깐 것을 고쳐 준다).</returns>
         public static Image Drop(RectTransform box, string key, float radiusPx)
         {
+            return Drop(box, key, radiusPx, -1f, -1f);
+        }
+
+        /// <summary>
+        /// 크기를 **부르는 쪽이 주는** 꼴 — 레이아웃이 나중에 잡는 상자(`LayoutElement` 로 크기를 예약한
+        /// 목록 행 따위)에서 쓴다. `box.rect` 는 그 프레임엔 아직 0 이라 굽는 길이 조용히 빈손으로 돌아온다
+        /// (27회차 런 921 의 빨강 «하위 행의 그늘이 없다» 가 그것이다).
+        /// </summary>
+        /// <param name="w">상자의 폭(px · 음수면 `box.rect` 에서 읽는다).</param>
+        /// <param name="h">상자의 높이(px · 음수면 `box.rect` 에서 읽는다).</param>
+        public static Image Drop(RectTransform box, string key, float radiusPx, float w, float h)
+        {
             if (box == null) throw new ArgumentNullException("box");
             ShadowSpec s = Table.Get(key);
-            if (!s.IsHard) return Blur(box, key, radiusPx);
+            if (!s.IsHard) return Blur(box, key, radiusPx, w, h);
 
             Transform had = box.Find(Layer(key));
             Image img = had != null ? had.GetComponent<Image>() : UiKit.Rounded(box, Layer(key), "pp_line", radiusPx);
@@ -105,12 +117,19 @@ namespace Forge.Game.Ui
         /// 판은 흐림이 잘리지 않게 **테두리를 넓혀** 굽고, 그만큼 상자 밖으로 내민다. 자리와 크기를 한 자리에서
         /// 주려고 `offsetMin`·`offsetMax` 로 준다 — 늘어난 상자에서 그 둘이 **크기와 자리를 같이 쥔다**(런 528 의 교훈).
         /// </summary>
-        static Image Blur(RectTransform box, string key, float radiusPx)
+        static Image Blur(RectTransform box, string key, float radiusPx, float wantW, float wantH)
         {
             ShadowSpec s = Table.Get(key);
             float rem = PetSkillStyle.RemPx;
-            float w = box.rect.width, h = box.rect.height;
-            if (w <= 1f || h <= 1f) return null;            // 아직 레이아웃이 안 선 상자 — 부르는 쪽이 판을 세운 뒤 부른다
+            float w = wantW > 0f ? wantW : box.rect.width, h = wantH > 0f ? wantH : box.rect.height;
+            if (w <= 1f || h <= 1f)
+            {
+                // 여기서 조용히 돌아가면 **그늘이 없는 채로 화면이 선다** — 자는 «호출이 있다» 만 보므로 아무도 모른다.
+                // 그래서 소리를 낸다(경고라 자를 안 넘어뜨린다 · 런 921 이 이 자리에서 빨갰다).
+                Debug.LogWarning("UiShadow: " + key + " 를 못 구웠다 — 상자(" + box.name + ")의 크기가 아직 0이다."
+                    + " 레이아웃이 나중에 잡는 자리면 `Drop(box, key, radius, w, h)` 로 크기를 줘라.");
+                return null;
+            }
 
             float blur = (float)s.BlurRem * rem, spread = (float)s.SpreadRem * rem;
             float pad = Mathf.Ceil(blur * 2f + Mathf.Max(0f, spread)) + 2f;   // 2σ 면 화소로 0 이다(누적 0.1% 아래)
