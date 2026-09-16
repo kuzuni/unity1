@@ -154,8 +154,6 @@ TABLE = {
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — T345 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
-    'Ui/ForgeInfoPopup.cs$idet_subs_r_rem': 'T339·T332 가 ForgeInfoPopup.cs 를 쥐었다 — 그 lock 뒤 T345 ⓑ(지금은 rem*0.6)',
-    'Ui/ForgeInfoPopup.cs$upg_progress_r_rem': 'T339·T332 lock 뒤 T345 ⓑ(지금은 rem*0.5)',
 }
 
 RADIUS_DECL = re.compile(r'(?<![\w-])border-radius\s*:\s*([^;}]+)')

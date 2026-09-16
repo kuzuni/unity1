@@ -120,9 +120,11 @@ namespace Forge.Game.Ui
                 double remain = (h.Forge.UpgradeEndsAt.Value - h.Meta.NowMs) / 1000;
                 PopupKit.Label(card, "fi-upg-label", TextKind.Body, "업그레이드 진행 중....", "pp_ink");
                 RectTransform prog = PopupKit.Item(card, "fi-prog", -1f, rem * 1.6f);
-                Image track = UiKit.Rounded(prog, "track", "pp_line", rem * 0.5f);
+                // 정본 694 `.upg-progress { border-radius: .55rem }` — 클론은 .5 였다(T345 21회차 · 표 upg_progress_r_rem)
+                float progR = RadiusUi.Px("upg_progress_r_rem");
+                Image track = UiKit.Rounded(prog, "track", "pp_line", progR);
                 double frac = Math.Min(1, Math.Max(0, 1 - remain / h.Engine.UpgradeTime(info)));
-                Image fill = UiKit.Rounded(prog, "upg-fill", "pp_blue", rem * 0.5f - PopupKit.Line);
+                Image fill = UiKit.Rounded(prog, "upg-fill", "pp_blue", progR - PopupKit.Line);
                 fill.rectTransform.anchorMin = new Vector2(0f, 0f);
                 fill.rectTransform.anchorMax = new Vector2((float)frac, 1f);
                 fill.rectTransform.offsetMin = new Vector2(PopupKit.Line, PopupKit.Line);
@@ -366,7 +368,7 @@ namespace Forge.Game.Ui
             RectTransform subs = PopupKit.Item(card, "idet-subs", -1f, -1f);
             // T146 — 정본 style.css 3722~3726 `#forge-item-modal .idet-subs { background: #d6d6d6 }`: 이 모달만 공용 판(--pp-panel #efefef)을
             //   덮어썼다(정본 주석 «원본 실측 rgb(214,214,214) — --pp-panel 은 25 밝았다»). 공용 pp_panel 을 고치면 다른 화면이 따라 어두워지니 제 키로.
-            Image sbg = UiKit.Rounded(subs, "bg", "idet_panel", rem * 0.6f);
+            Image sbg = UiKit.Rounded(subs, "bg", "idet_panel", RadiusUi.Px("idet_subs_r_rem"));   // 정본 3703 `.idet-subs { border-radius: .8rem }` — 클론은 .6 이었다(#forge-item-modal 3722 는 반지름을 안 덮는다 · T345 21회차)
             // T177 — 3723 `padding: 3.3% 4% 4.4%; gap: 0`(컨테이닝 블록 = .idet-wrap)
             VerticalLayoutGroup sg = PopupKit.Column(subs, 0f, ForgeItemStyle.L("subs_gap_rem") * rem);
             int sp = Mathf.RoundToInt(ForgeItemStyle.L("subs_pad_side_wrap_f") * inner);
