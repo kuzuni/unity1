@@ -156,6 +156,9 @@ namespace Forge.Game.Ui
             float subW = W * UiKit.L("sheet_sub_maxw");
             float subH = DungeonPopups.LineH(TextKind.Sub) * 2f;
             TextMeshProUGUI sub = DungeonPopups.Para(body, "sub", TextKind.Sub, "던전 열쇠는 매일 09:00에 보충됩니다. 열쇠는 던전을 완료할 때만 소모됩니다", "pp_ink", TextAlignmentOptions.Center);
+            // T396 14회차 — 정본 3853 `.sheet-sub { color: #4a4a4a }`. 전역 `pp_ink`(#17181a)는 이 자리보다 **두 단 진하다** —
+            //   같은 선택자를 쓰는 퀘스트 시트(ui.js 4587)는 이미 그 값이었다(한 문장이 시트마다 다른 진하기로 찍히고 있었다).
+            sub.color = PinnedColorUi.C("sheet_sub_ink");
             sub.fontStyle = FontStyles.Bold;
             LineHeight.Apply(sub, "sheet_sub_lh");   // T354 5회차 — 정본 3854 `.sheet-sub { line-height: 1.4 }`(퀘스트·상점의 같은 자리는 T331·T333 lock 뒤)
             UiKit.Place(sub.rectTransform, (W - subW) * 0.5f, y, subW, subH);

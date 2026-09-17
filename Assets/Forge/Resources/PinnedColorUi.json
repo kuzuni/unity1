@@ -17,6 +17,8 @@
     "held_tag_face": "#f0a020",
     "chat_placeholder_ink": "#6b6b6b",
     "chat_bar_face": "#0e111b",
+    "_시트_부제": "T396 14회차 — 정본 3853 `.sheet-sub { color: #4a4a4a }`. 한 선택자가 **두 자리**를 덮는다(ui.js 4543 던전 시트 · 4587 퀘스트 시트 · 3862 은 폭·여백만 더한다). 퀘스트 쪽은 카탈로그 `quest_sub`(같은 값)를 쓰고 있었고 던전 쪽은 전역 `pp_ink`(#17181a)라 **같은 문장이 시트마다 다른 진하기**로 찍혔다. 한 선택자에 한 키로 모은다. ** 다음에 `catalog.json` 을 여는 사람에게: 이제 아무도 안 쓰는 `quest_sub`(149행) 줄을 지워도 된다(지금은 그 파일이 T447 산 lock 이라 못 건드린다).",
+    "sheet_sub_ink": "#4a4a4a",
     "cmp_lower_face": "#bebebe",
     "equip_slot_name_ink": "#d8caca",
     "list_asc_star_ink": "#ff8801",

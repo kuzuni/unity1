@@ -654,6 +654,37 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T396 14회차 — 정본 `3853 .sheet-sub { color: #4a4a4a }` **한 선택자가 두 시트**를 덮는다(ui.js 4543 던전 · 4587 퀘스트 ·
+        /// 3862 은 폭·여백만 더한다). 클론은 퀘스트만 제 값이었고 던전은 전역 `pp_ink`(#17181a)라 **같은 문장이 시트마다 다른 진하기**였다.
+        /// 한 선택자에 한 키(`PinnedColorUi.sheet_sub_ink`)로 모았다 — 이 칸은 «둘이 같은 값인가» 를 묻는다(하나만 고치면 여기서 운다).</summary>
+        [UnityTest]
+        public IEnumerator 던전과_퀘스트_시트의_부제는_같은_한_키에서_같은_값으로_온다()
+        {
+            yield return Boot();
+            Color want = PinnedColorUi.C("sheet_sub_ink");
+            Assert.AreNotEqual(UiKit.C("pp_ink"), want, "정본 3853 은 전역 잉크(#17181a)보다 두 단 옅다 — 그 둘이 같아지면 이 자리의 뜻이 사라진다");
+
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null; yield return null;
+            Assert.IsNotNull(DungeonSheet.Instance, "던전 시트");
+            Transform dSub = FindActive(DungeonSheet.Instance.transform, "sub");
+            Assert.IsNotNull(dSub, "던전 시트 부제(.sheet-sub)");
+            Assert.AreEqual(want, dSub.GetComponent<TMPro.TextMeshProUGUI>().color, "던전 시트 부제 = 정본 3853 #4a4a4a");
+
+            // 퀘스트 시트는 탭이 아니라 팝업이다(`QuestSheet.Open` → `Popups.Show` · BackBtnRadiusTests 와 같은 길).
+            MetaHost mh = MetaHost.Instance;
+            QuestSheet.Open(mh);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup qp = mh.Popups.Find(QuestSheet.Name);
+            Assert.IsNotNull(qp, "퀘스트 시트가 열려 있다");
+            Transform qSub = FindActive(qp.Root, "sub");
+            Assert.IsNotNull(qSub, "퀘스트 시트 부제(.sheet-sub)");
+            Assert.AreEqual(want, qSub.GetComponent<TMPro.TextMeshProUGUI>().color, "퀘스트 시트 부제 = 같은 선택자 같은 값");
+            mh.Popups.Hide(QuestSheet.Name);
+            yield return null;
+        }
+
         static System.Collections.Generic.List<Transform> AllNamed(Transform root, string name)
         {
             var found = new System.Collections.Generic.List<Transform>();

@@ -237,7 +237,21 @@ TABLE_INK = {
     #   클론에 자리가 없는 것이 **맞다** — 미정으로 두면 다음 사람이 또 «없는 자리» 를 찾는다(T371 11회차의 20분).
     '.hatch-slot.empty': ['—죽음: 정본이 `hatch-slot` 클래스를 한 번도 안 붙인다(ui.js 3926 이 `.hatch-cell` 로 갈아엎었다) — 그려지지 않는 리터럴'],
     '.hatch-slot.buy': ['—죽음: 같은 까닭(1655 · #cbb6f5) — `.slot-buy`(4566 · 살아 있다)와 **다른 자리**다'],
-    '.egg-chip small': ['—죽음: 정본이 `egg-chip` 클래스를 한 번도 안 붙인다(js/ · index.html 통틀어 0) — 그려지지 않는 리터럴'],           # 정본 5454 #3a3a3a ↔ PetSkillUi subs_ink 같은 값(PetPanel 쪽 같은 키는 그 lock 뒤)
+    '.egg-chip small': ['—죽음: 정본이 `egg-chip` 클래스를 한 번도 안 붙인다(js/ · index.html 통틀어 0) — 그려지지 않는 리터럴'],
+    # ── T396 14회차 — T178 이 24회차로 반납해 열린 파일들(TabBar · DungeonSheet · QuestSheet · ForgeUi)의 잉크 자리 여덟.
+    #   일곱은 **이미 제 값**이고, 하나(`.sheet-sub`)는 «한 선택자 두 자리» 가 시트마다 다른 키로 갈려 있었다.
+    '#tabbar button': ['Ui/TabBar.cs|catalog:tab_ink'],                          # 1699 #78909c ↔ 카탈로그 tab_ink 같은 값(짝만)
+    '#tabbar button.active': ['Ui/TabBar.cs|catalog:tab_active'],                # 1708 #ffd54f ↔ 카탈로그 tab_active 같은 값(짝만)
+    '.fi-age-star': ['Ui/ForgeUi.cs@AgeBar|res:PinnedColorUi:fi_age_star_ink'],  # 5138 #ffb300 — T377 15회차가 세운 키(같은 AgeBar 가 두 막대를 다 그린다)
+    '.af-age-star': ['Ui/ForgeUi.cs@AgeBar|res:PinnedColorUi:fi_age_star_ink'],  # 4856 #ffb300 — 자동 제련 막대도 같은 공장·같은 값(ForgeAutoPopup 77 이 autoForge: true 로 부른다)
+    '.coin-amt': ['Ui/CoinBurst.cs|res:CoinBurstUi:amt'],                        # 7415 #ffd54f ↔ CoinBurstUi colors.amt 같은 값(짝만)
+    '.modal-card.sheet .dg-banner .dg-lock': ['Ui/DungeonSheet.cs#lock-text|catalog:dg_lock'],   # 3922 #ffcdd2 ↔ 카탈로그 dg_lock 같은 값(짝만)
+    '.modal-card.sheet .dg-banner .btn.disabled': ['Ui/DungeonPopups.cs|catalog:dg_lock_open_ink'],   # 8151 #3d434a — T377 13회차가 세운 잠긴 [열기] 칩의 잉크
+    # 정본은 `.sheet-sub` 한 선택자로 **두 시트**를 덮는다(ui.js 4543 던전 · 4587 퀘스트 · 3862 은 폭·여백만).
+    #   클론은 퀘스트만 제 값(카탈로그 quest_sub #4a4a4a)이었고 던전은 전역 `pp_ink`(#17181a)라 같은 문장이 시트마다 다른 진하기였다.
+    #   한 선택자 한 키로 모았다 — `PinnedColorUi.sheet_sub_ink`(catalog.json 이 T447 산 lock 이라 곁 표에 둔다 · T65 꼴).
+    '.sheet-sub': ['Ui/DungeonSheet.cs#sub|res:PinnedColorUi:sheet_sub_ink',
+                   'Ui/QuestSheet.cs#sub|res:PinnedColorUi:sheet_sub_ink'],           # 정본 5454 #3a3a3a ↔ PetSkillUi subs_ink 같은 값(PetPanel 쪽 같은 키는 그 lock 뒤)
 }
 KNOWN_INK = {
     # T396 10회차 — 한 글자 안의 **부분 색**(<small>·<span> 조각): 클론은 그 글을 한 TMP 로 찍고 richText 를 안 켜므로(check_richtext)
@@ -373,11 +387,20 @@ def pinned_inks(css_text):
 
 
 def _find_hex(obj, key):
-    """JSON 안 어디든 "key": "#hex" — 첫 것."""
+    """JSON 안 어디든 «키 → hex» — 첫 것.
+
+    T396 14회차 — **유니티 로더가 받는 두 꼴을 다 읽는다**(`loader_hex` 와 같은 규칙):
+    홑값 `"키": "#hex"` 와 **주석 달린 객체** `"키": {"hex": "#hex", "_": "..."}`.
+    뒤엣것을 안 읽던 탓에 `fi_age_star_ink`(T333 18회차가 이웃 표 관례대로 객체로 적었다)가
+    이 자에서는 «표에 없다» 로 보였다 — 화면은 멀쩡히 그 색을 찍고 있는데도. T377 15회차가
+    로더에서 고친 것과 **같은 병의 다른 쪽**이다(그 회차는 유니티 쪽만 넓혔다).
+    """
     if isinstance(obj, dict):
         v = obj.get(key)
         if isinstance(v, str) and HEX.match(v):
             return norm_hex(v)
+        if isinstance(v, dict) and isinstance(v.get('hex'), str) and HEX.match(v['hex']):
+            return norm_hex(v['hex'])
         for x in obj.values():
             r = _find_hex(x, key)
             if r:
@@ -678,9 +701,12 @@ def self_test():
         res = os.path.join(d, 'res'); os.makedirs(res)
         cat = os.path.join(d, 'catalog.json')
         json.dump({'colors': [{'key': 'ok_key', 'hex': '#FF1017'}, {'key': 'bad_key', 'hex': '#e8362f'}]}, open(cat, 'w'))
-        json.dump({'colors': {'pin2_face': '#ff1017'}}, open(os.path.join(res, 'PinnedColorUi.json'), 'w'))
+        # T396 14회차 — 곁 표는 **두 꼴**을 쓴다: 홑값과 «주석 달린 객체»(이웃 표들의 관례 · T377 15회차가 로더에서 받아들인 그 꼴).
+        json.dump({'colors': {'pin2_face': '#ff1017',
+                              'pin3_face': {'hex': '#ff1017', '_': '주석 달린 객체 꼴'}}},
+                  open(os.path.join(res, 'PinnedColorUi.json'), 'w'))
         open(os.path.join(game, 'Ui', 'A.cs'), 'w', encoding='utf-8').write(
-            'class A { void Build() { var f = Rounded(p, "face", "pp_red", 1); f.color = PinnedColorUi.C("pin2_face"); }\n'
+            'class A { void Build() { var f = Rounded(p, "face", "pp_red", 1); f.color = PinnedColorUi.C("pin2_face"); g.color = PinnedColorUi.C("pin3_face"); }\n'
             ' void Other() { X("ok_key"); Y("bad_key"); } }\n')
         global TABLE, KNOWN, TABLE_INK, KNOWN_INK
         # ⚠ **잉크 표도 같이 치운다**(T396 2회차): 안 치우면 임시 CSS 에 없는 실물 선택자(`.float-dmg…`)가
@@ -691,6 +717,10 @@ def self_test():
             lines = []
             TABLE = {'.pin': ['Ui/A.cs|catalog:ok_key'], '.pin2': ['Ui/A.cs#face|res:PinnedColorUi:pin2_face']}; KNOWN = {}
             eq('ⓖ 맞는 자리 둘 → rc 0', run(cssp, game, cat, res, out=lines.append), 0)
+            # T396 14회차 — 곁 표의 «주석 달린 객체» 꼴도 읽는다(전엔 홑값만 읽어 그 칸이 «표에 없다» 로 보였다 —
+            #   화면은 멀쩡히 그 색을 찍는데도. T377 15회차가 유니티 로더에서 고친 것과 같은 병의 다른 쪽).
+            TABLE = {'.pin2': ['Ui/A.cs#face|res:PinnedColorUi:pin3_face']}
+            eq('ⓖ′ 곁 표의 객체 꼴 칸도 읽는다 → rc 0', run(cssp, game, cat, res, out=lines.append), 0)
             TABLE = {'.pin': ['Ui/A.cs|catalog:bad_key']}
             eq('ⓗ 값이 다르면 rc 1', run(cssp, game, cat, res, out=lines.append), 1)
             eq('ⓗ 문구', any('전용 키의 값이 다르다' in l for l in lines), True)
@@ -751,7 +781,7 @@ def self_test():
     eq('ⓐⓐ 죽은 자리는 «덮개» 로도 «미정» 으로도 안 적힌다',
        any(('.subtab-strip button.active' in l) and (l.startswith('  덮개') or l.startswith('  미정')) for l in lines3), False)
 
-    n = 39   # T377 14 + T396 잉크 갈래 6 + 키프레임 단계 막이 4 + 6회차 덮개 갈래 8 + 7회차 «같은 선택자가 뒤에 다시» 7
+    n = 40   # T377 14 + T396 잉크 갈래 6 + 키프레임 단계 막이 4 + 6회차 덮개 갈래 8 + 7회차 «같은 선택자가 뒤에 다시» 7 + 14회차 곁 표 객체 꼴 1
     if fails:
         print('✗ check_pinned_colors --self-test 실패 %d' % len(fails))
         for f in fails:
