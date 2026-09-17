@@ -245,7 +245,6 @@ TABLE = {
 # ── 임자가 정해진 빈자리(자리 → 이유) — T345 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
     # T415 8회차 — 값은 맞는 리터럴(`PetSkillStyle.Rem(0.55f)` · PetPanel.cs:377) · 키를 내고 부르게 하는 일은 PetPanel.cs 의 산 lock 뒤
-    'Ui/PetPanel.cs$slot_buy_r_rem@PetSkillUi.json': u'PetPanel.cs 는 T396 산 lock(2026-09-17 13:1x 갱신) — 그 뒤 누구든 PetSkillUi.json 에 `slot_buy_r_rem` .55 를 내고 :377 이 읽게 한다',
 }
 
 RADIUS_DECL = re.compile(r'(?<![\w-])border-radius\s*:\s*([^;}]+)')

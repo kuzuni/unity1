@@ -208,6 +208,8 @@
     "slot_buy_top_w": 0.017,
     "slot_buy_left_w": 0.0133,
     "slot_buy_icon_w": 0.0265,
+    "slot_buy_r_rem": 0.55,
+    "_slot_buy_r_rem": "T415 9회차 — 정본 css/style.css 4565 `.hatchery .slot-buy { border-radius: .55rem }`. 클론 PetPanel.cs:377 이 `PetSkillStyle.Rem(0.55f)` 로 박아 두던 값(§1 «수치는 코드에 박지 않는다») · check_border_radius 의 KNOWN 한 자리였다 — 기다리던 T396 lock 이 풀려 갚았다.",
     "_slot_buy_ico_gap_w": "T364 6회차 — 정본 css/style.css 4563 `.hatchery .slot-buy { gap: calc(var(--app-w) * .0143) }`(알약 안 젬 ↔ 빨강 숫자). 클론은 `Rem(0.15f)` = 5.46px@1080 로 박혀 있었다 — 정본은 15.44px 라 2.8배 촘촘했다. 알약 폭(slot_buy_w .1143)·젬(.0265)은 이미 표에 있었는데 그 사이 틈만 코드에 남아 있던 자리다.",
     "slot_buy_ico_gap_w": 0.0143,
     "hatch_back_left_rem": 0.55,

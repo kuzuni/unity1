@@ -374,7 +374,7 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI lab = PetSkillKit.Stroked(hatch, "slot-buy-label", TextKind.Sub, PetSkillStyle.T("slot_plus"), PetSkillStyle.C("white"), "slot_buy_label");   // 정본 .slot-buy-label var(--ol3)
                 WrapUi.Apply(lab, "slot_buy_label");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 4558 `.slot-buy-label { nowrap }`
                 UiKit.Place(lab.rectTransform, bx - lw * 0.5f, by, lw * 2f, labH);
-                SlotBuyButton = PetSkillKit.PaperButton(hatch, "slot-buy", PetSkillKit.BtnKind.Gray, string.Empty, null, false, OnBuySlot, PetSkillStyle.Rem(0.55f));
+                SlotBuyButton = PetSkillKit.PaperButton(hatch, "slot-buy", PetSkillKit.BtnKind.Gray, string.Empty, null, false, OnBuySlot, PetSkillStyle.Px("slot_buy_r_rem"));   // T415 9회차 — 정본 4565 `.hatchery .slot-buy { border-radius: .55rem }` · 표 PetSkillUi.json(종전 코드에 박힌 0.55)
                 RectTransform br = SlotBuyButton.GetComponent<RectTransform>();
                 UiKit.Place(br, bx, by + labH + gapY, lw, lh);
                 float ico = PetSkillStyle.Px("slot_buy_icon_w");

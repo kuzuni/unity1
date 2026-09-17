@@ -5239,6 +5239,13 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   - 자 `--self-test` **31칸** · `tools/gate.sh` rc 0.
 - 판정: 자 rc 0(문제 0) · `--self-test` · 그 회차가 고친 자리의 PlayMode 칸 PASS · 화면이 바뀌면 런 PNG.
 - 범위: `tools/check_border_radius.py`(자리 표) · `Assets/Forge/Resources/RadiusUi.json` · 자리 파일(잡는 사람이 «범위» 에 적는다 · 각 lock 뒤) · `Assets/Tests/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 **9회차 2026-09-17 15:5x 워커 G(sess-1242-10698 · 선점 · 범위: `Assets/Forge/Resources/PetSkillUi.json` · `Assets/Scripts/Game/Ui/PetPanel.cs` · `Assets/Tests/PlayMode/PetTileRadiusTests.cs` · `tools/check_border_radius.py`)** — **KNOWN 빈자리 1 → 0**.
+  - 남아 있던 한 자리 `.hatchery .slot-buy`(정본 **4565** `border-radius: .55rem`)는 자에 «`PetPanel.cs` 는 T396 산 lock 뒤» 로 적혀 있었는데 **그 lock 은 풀렸다**(T333 22회차가 남긴 규칙 그대로 «이유 문구를 믿지 말고 lock 을 다시 재라» 를 따랐다).
+  - 고침: 표 `PetSkillUi.json` 에 `slot_buy_r_rem` **0.55** 한 칸 + `PetPanel.cs` **377** 이 `PetSkillStyle.Rem(0.55f)`(코드에 박힌 수) → `PetSkillStyle.Px("slot_buy_r_rem")`. **값 변화 0 · 화면 변화 0** — 읽는 곳만 표로 옮겼다. 같은 파일 **200행**의 `Rem(0.55f)`(합성 버튼)는 **다른 선택자**라 안 건드렸다(자의 닻이 `:377` 하나다).
+  - 자 `PetTileRadiusTests` +2: 표 칸(`slot_buy_r_rem` = .55rem) · 화면 칸(부화장 슬롯 버튼 테의 `pixelsPerUnitMultiplier` = 그 표값).
+  - 자 상태: 자리 초록 94 → **95** · **KNOWN 빈자리 0** · 미정 96 · 문제 0 · `--self-test` **38칸**. `dotnet build` 0 오류 · `dotnet test` **850/850** · `gate.sh` 막는 자 rc 0.
+  - 판정 = 다음 런 새 칸 둘 PASS(화면이 안 바뀌므로 PNG 눈은 없다 — 값이 같다). 남은 것은 **미정 96** — 다음 사람이 `--list` 에서 산 lock 밖 자리를 골라 잇는다.
+
 
 ### T346 ✅ — 정본이 **탭바 위**에 띄우는 팝업 다섯이 클론에서는 **탭바 아래**다: `z-index` 112 전수에서 나온 다섯 자리 (Game·UI · T22·T78 뒤 · T33 18회차 등재)
 

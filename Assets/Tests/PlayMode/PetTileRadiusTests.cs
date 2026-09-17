@@ -48,6 +48,37 @@ namespace Forge.Tests.PlayMode
                 "상세 타일이 격자 타일보다 더 둥글다 — 둘이 같으면 이 회차의 고침이 되돌려진 것이다");
         }
 
+        /// <summary>T415 9회차 — 부화장 «슬롯 +1» 버튼(정본 **4565** `.hatchery .slot-buy { border-radius: .55rem }`).
+        /// 클론 `PetPanel.cs:377` 은 그 값을 `PetSkillStyle.Rem(0.55f)` 로 **코드에 박아** 뒀고(§1 위반) `check_border_radius` 의 마지막 KNOWN 빈자리였다.
+        /// 표 키 `slot_buy_r_rem` 으로 옮겼으니 **값은 그대로, 읽는 곳만 표**다 — 이 칸이 그 둘을 같이 못박는다.</summary>
+        [Test]
+        public void 표는_부화장_슬롯_버튼_모서리_55rem_을_쥔다()
+        {
+            Assert.AreEqual(0.55f * PetSkillStyle.Rem(1f), PetSkillStyle.Px("slot_buy_r_rem"), 1e-3f,
+                "정본 4565 `.hatchery .slot-buy { border-radius: .55rem }`");
+        }
+
+        [UnityTest]
+        public IEnumerator 부화장_슬롯_버튼은_표의_55rem_으로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(PetSkillHost.Ready && SkillPetSheet.Instance != null); i++) yield return null;
+            Assert.IsTrue(PetSkillHost.Ready, "PetSkillHost");
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            yield return null;
+            sheet.Switch(SkillPetSheet.SubPets);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Assert.IsNotNull(sheet.Pets.SlotBuyButton, "부화장 «슬롯 +1» 버튼(slot-buy)");
+            Image line = sheet.Pets.SlotBuyButton.transform.Find("skin/line").GetComponent<Image>();
+            Assert.AreEqual(UiShapes.Rounded, line.sprite, "슬롯 버튼 테: 둥근 9-슬라이스");
+            Assert.AreEqual(Mult("slot_buy_r_rem"), line.pixelsPerUnitMultiplier, 1e-3f,
+                "슬롯 버튼 테: 정본 4565 .55rem(표 slot_buy_r_rem) · 실측 " + line.pixelsPerUnitMultiplier.ToString("0.000"));
+            Debug.Log("[T415] slot-buy 모서리 " + PetSkillStyle.Px("slot_buy_r_rem").ToString("0.0") + "px");
+        }
+
         [UnityTest]
         public IEnumerator 격자_타일은_5rem_상세_타일은_55rem_으로_선다()
         {
