@@ -236,7 +236,8 @@ namespace Forge.Game.Ui
             List<string> subs = SubLines != null ? SubLines() : null;
             RectTransform subsBox = UiKit.Box(card, "subs");
             UiKit.Place(subsBox, gx, y, gw, Mathf.Max(lineH, cardH - y - pad - rem * 1.5f));
-            RectTransform subsList = PopupKit.ScrollList(subsBox, "list", rem * 0.1f, 0f, 0f, TextAnchor.UpperLeft);
+            // T450 — 목록 틈은 **0** 이다: 정본 `.pinfo-subs-list` 는 블록 안 글줄이라 줄 사이 추가 틈이 없다(피치 = 글자 × 1.14 뿐 · 전엔 rem*0.1 = 1.8px 을 줄마다 더해 +5%).
+            RectTransform subsList = PopupKit.ScrollList(subsBox, "list", 0f, 0f, 0f, TextAnchor.UpperLeft);
             // T354 16회차 — 이 목록의 **줄 피치**는 정본이 못 박은 값이다: `.pinfo-subs-list`(5600) `line-height: 1.14`.
             //   ⚠ 같은 선택자가 3217 에도 있고(1.2) 구체성이 같아 **뒤 규칙(5600)이 이긴다** — 표의 두 키 중 `pinfo_subs_list_2_lh` 가 임자다.
             //   정본 3219 주석이 까닭을 적어 뒀다: «line-height 1.9→1.2: 원본 스탯 줄 피치 1.8%H(≈16px), 종전 2.6%H 로 목록이 9%p 비대».
@@ -248,12 +249,15 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>
-        /// 보유 옵션 한 줄(정본 `.pinfo-subs-list` 5600 `line-height: 1.14`) — 줄 상자 높이를 **표에서** 받는다.
+        /// 보유 옵션 한 줄(정본 `.pinfo-subs-list` 5600 `font-size: .88rem; line-height: 1.14`) — 글자 크기와 줄 상자 높이를 둘 다 **표에서** 받는다.
         /// `PopupKit.Label` 의 기본값(글자 × 1.3)은 공장 몫이라 여기서 덮는다(`Popups.cs` 가 열리는 회차가 공장에 옮기면 이 줄은 지워도 된다).
+        /// T450 — 글자는 정본 .88rem(기준 캔버스 32.0px)이라 `Sub` 하한 36 아래다: 결정 633 대로 새 종류 없이 §1 예외 칸 `Micro` 를 쓰되
+        /// 크기는 표(`TextSizeUi.json` `pinfo_subs_list`)에서 — T383 이 낸 길(§1 일곱째 자리). 3217 의 .8rem 은 같은 선택자의 앞 규칙이라 진다.
         /// </summary>
         static TextMeshProUGUI SubLine(Transform parent, string name, string text, string colorKey)
         {
-            TextMeshProUGUI t = PopupKit.Label(parent, name, TextKind.Sub, text, colorKey, TextAlignmentOptions.Left);
+            TextMeshProUGUI t = PopupKit.Label(parent, name, TextKind.Micro, text, colorKey, TextAlignmentOptions.Left);
+            TextSizeUi.Apply(t, "pinfo_subs_list");
             double r = LineHeight.Apply(t, "pinfo_subs_list_2_lh");
             LayoutElement le = t.GetComponent<LayoutElement>();
             if (le != null) { le.preferredHeight = (float)(r * t.fontSize); le.minHeight = le.preferredHeight; }
