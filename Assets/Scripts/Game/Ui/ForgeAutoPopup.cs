@@ -133,7 +133,9 @@ namespace Forge.Game.Ui
             Button ck = UiKit.Button(bottom, "af-check-continue", () => h.ToggleStopOnTarget());
             RectTransform ckRt = ck.GetComponent<RectTransform>();
             UiKit.Place(ckRt, inner - cb, rowH + (rowH - cb) * 0.5f, cb, cb);
-            Color ckFace = cfg.StopOnTarget ? Color.black : new Color(0.14f, 0.77f, 0.32f, 1f);
+            // T396 10회차 — 정본 4722~4730 `.af-check { background: #17181a } .af-check.on { background: #17181a; color: #23c552 }`(주석 «켜진 상태도 배경은 검정 그대로 두고 ✓ 글리프만 초록 —
+            //   상자를 통째로 초록으로 채우던 종전 구현은 원본과 다른 물건»). 클론이 바로 그 종전 구현(켜짐 상자 초록 + 흰 ✓)이었다 → 상자는 두 상태 다 af_check_face · ✓ 만 af_check_on_ink.
+            Color ckFace = PinnedColorUi.C("af_check_face");
             Image ckf = ForgeUi.Tile(ckRt, "box", ckFace, Color.black, cb * 0.2f, PopupKit.Line);
             // T178 20회차 — 정본 4971 `.af-check { background-image: linear-gradient(180deg, rgba(255,255,255,.14) 0, rgba(255,255,255,0) 46%, rgba(0,0,0,.3) 100%) }`.
             //   바탕이 **런타임 색**(켜짐 검정 · 꺼짐 초록)이라 색을 넘겨 sRGB 로 미리 섞는다(T178 17회차 갈래 · 표에 over_color 를 안 적은 까닭).
@@ -142,6 +144,7 @@ namespace Forge.Game.Ui
             if (!cfg.StopOnTarget)
             {
                 Image mk = PopupKit.IconOr(ckRt, "mark", "check");
+                mk.color = PinnedColorUi.C("af_check_on_ink");   // T396 10회차 — 정본 4730 ✓ #23c552(ui.js 2318 tint)
                 UiKit.Anchor(mk.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, cb * 0.8f, cb * 0.8f);
             }
             float bw = inner * 0.45f, bh = ForgeAutoStyle.StartBtnH(rem);   // T378 13회차 — 정본 4816 `.af-start { padding: .6rem 0; min-height: 4.45rem }`(폭 45.4% 는 이 축 밖)
@@ -193,10 +196,11 @@ namespace Forge.Game.Ui
             float cb = hgt * 0.62f;
             RectTransform box = UiKit.Box(row, "check");
             UiKit.Place(box, rem * 0.5f, (hgt - cb) * 0.5f, cb, cb);
-            ForgeUi.Tile(box, "box", on ? new Color(0.14f, 0.77f, 0.32f, 1f) : Color.black, Color.black, cb * 0.2f, PopupKit.Line);
+            ForgeUi.Tile(box, "box", PinnedColorUi.C("af_check_face"), Color.black, cb * 0.2f, PopupKit.Line);   // T396 10회차 — 정본 4727·4730: 켜짐도 상자는 #17181a(초록 상자는 «종전 구현»)
             if (on)
             {
                 Image mk = PopupKit.IconOr(box, "mark", "check");
+                mk.color = PinnedColorUi.C("af_check_on_ink");   // T396 10회차 — ✓ 만 #23c552(ui.js 2289·2295 tint)
                 UiKit.Anchor(mk.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, cb * 0.8f, cb * 0.8f);
             }
             TextMeshProUGUI l = UiKit.Text(row, "label", TextKind.Sub, s.Label, "pp_ink", TextAlignmentOptions.Left);

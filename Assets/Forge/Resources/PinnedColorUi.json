@@ -15,7 +15,15 @@
     "chat_bar_face": "#0e111b",
     "equip_slot_name_ink": "#d8caca",
     "list_asc_star_ink": "#ff8801",
-    "forge_time_ink": "#6d6a63"
+    "forge_time_ink": "#6d6a63",
+    "chat_preview_name_ink": "#eef1f5",
+    "chat_preview_msg_ink": "#aab3c0",
+    "league_server_me_ink": "#dce6ff",
+    "league_collect_time_ink": "#1d8f3c",
+    "pinfo_subs_ink": "#3a3a3a",
+    "pinfo_cp_ink": "#ff880f",
+    "af_check_on_ink": "#23c552",
+    "af_check_face": "#17181a"
   },
   "_보류_태그": "T377 4회차 — 정본 style.css 999 `.anvil-btn.held-slot .held-tag { background: #f0a020 }`(모루 «보류» 배지). 클론 ForgeSheet.cs 는 전역 토큰 coin(#ffd54f)으로 찍고 있었다 — 같은 노랑 계열이라 눈에 안 띄지만 정본은 한 단계 주황인 앰버다(R 같음 · G −53 · B −79). 글자 색은 정본 #17181a ↔ 클론 pp_ink 가 같은 값이라 그대로 둔다(토큰을 써도 되는 자리).",
   "_채팅_입력바": "T377 10회차 — 정본 style.css **3438** `.chat-input-bar { background: #0e111b }` 이고 **3439 주석이 까닭을 적어 뒀다**: «카드가 흰색이 됐으므로 밴드는 자기 배경 #0e111b 를 직접 갖는다». 곧 시트가 흰 종이로 바뀐 뒤에도 입력 밴드 하나만은 어둡게 남긴 자리다. 클론 `ChatScreen.cs:56` 은 전역 `pp_paper`(#ffffff)로 찍어 밴드가 카드와 한 덩어리로 희었다 — 1회차가 곁다리로 화면에서 확인해 둔 결함이다(런 720 `screen_chat.png` 입력 바 (255,255,255)). 그 위 `.btn.danger.round`(3283)는 1회차가 이미 `chat_back_face` 로 받았다 — 같은 밴드의 두 자리다.",
@@ -23,5 +31,6 @@
   "_빈칸_슬롯이름": "T396 7회차 — 정본 style.css 866 `.equip-cell .slot-name { color: #d8caca }` 이고 **바로 위 865 주석이 그 내력을 적어 뒀다** — «12차: 라벨도 판독 확보 대상(A/B 공통) — #b9a8a8→#d8caca **반 단계**, 스크림은 10차 일곱째 항의 text-shadow 가 이미 있다». 곧 정본이 **판독을 위해 일부러 올린 값**이다. 클론 `ForgeSheet.cs` 는 전역 `pp_muted`(#8a8a8a)로 찍고 있었다 — 어두운 마룬 칸 위에서 정본보다 **한참 어두워** 그 «판독 확보» 가 통째로 빠졌다(R +78 · G +50 · B +50). 같은 줄의 그림자 겹은 T333 8회차가 이미 `slot_name` 으로 세워 뒀다 — 색만 남아 있었다.",
   "_목록_승천별": "T396 8회차 — 정본 style.css **784** `.fl-face[data-asc]:not([data-asc=\"\"])::after { color: #ff8801 }`(장비 **목록** 타일의 승천 별). 클론 `ForgeInfoPopup.cs:289` 는 전역 `coin`(#ffd54f)으로 찍고 있었다 — **정본은 같은 별을 자리마다 다른 색으로 둔다**: 장비 **격자** 칸의 `.equip-cell .cell-star`(953)는 #ffd54f 라 `coin` 이 맞고(5회차가 그 짝을 적었다), 목록 타일은 한 단계 **주황**이다(G −77 · B −78). 5회차의 `disabled_ink`/`disabled_ink2`, T332 16회차의 «같은 알에 두 값» 과 같은 갈래 — **같은 그림이라고 같은 키가 아니다**. 검정 4방향 링은 T333 11회차가 이미 세워 뒀다.",
   "_남은시간": "T396 9회차 — 정본 style.css **3635** `#equip-sheet .forge-time { color: #6d6a63 }`(대장간 시트 «남은 시간»). 클론 `ForgeSheet.cs:138` 은 전역 `ink`(**#eceff1** · 거의 흰색)로 찍고 있었다 — 그 자리는 **밝은 종이 시트 위**라 흰 글자가 바탕에 묻는다(R −127 · G −133 · B −142). 정본이 이 한 줄을 `#equip-sheet` 로 좁혀 못박은 까닭이 바로 그것이다(공용 잉크는 어두운 판 위 값이다).",
+  "_T396_10회차": "T396 10회차 — 산 lock 밖 파일의 잉크 자리 한 묶음(정본 리터럴 그대로): 채팅 미리보기 이름 8069 `#chat-preview .chat-preview-name { color: #eef1f5 }` · 메시지 8070 `#chat-preview .chat-preview-msg { color: #aab3c0 }`(3640 의 #2e2e2e 를 같은 선택자가 뒤에서 덮는다 · 클론은 chat_ink #2e2e2e 로 어두운 띠 위에 어두운 글자였다) · 리그 내 행 서버 2355 `.league-row.me .league-server { color: #dce6ff }`(클론 stage_ink 흰색) · 리그 수집 시간 2528 `.league-collect-pill b { color: #1d8f3c }`(클론 pp_green_dk #1f8c34 근사) · 플레이어 정보 보유 옵션 7698 `#player-info-modal .pinfo-subs-list { color: #3a3a3a }`(5600 var(--pp-ink) 를 뒤에서 덮는다 · 클론 pp_ink #17181a) · 전투력 7693 `.pinfo-id-text .cp { color: #ff880f }`(클론 pp_ink) · 자동 제련 체크 4722~4730 `.af-check { background: #17181a } .af-check.on { background: #17181a; color: #23c552 }` — 정본 주석 «켜진 상태도 배경은 검정 그대로 두고 체크 글리프만 초록 · 상자를 통째로 초록으로 채우던 종전 구현은 원본과 다른 물건» — 클론이 바로 그 종전 구현(켜짐 상자 #23c452 + 흰 체크)이었다 → 상자 af_check_face · 체크 af_check_on_ink.",
   "_잉크": "T396 — 정본이 «색·펀치로 위계를 준다» 며 선택자에만 리터럴로 못박은 **글자 색**. 전투 숫자 다섯이 그 묶음이다(style.css 508 크리 · 511 처치 · 526 스킬 · 527 영웅 피해 · 550 막음). 클론은 전역 잉크 토큰으로 찍고 있었다 — 스킬(#82b1ff)·막음(#90caf9)은 파랑·하늘색인데 흰색(stage_ink)이었다. `.float-dmg.heal`(#69f0ae)은 카탈로그 `pip_done` 이 같은 값이라 그대로 둔다(토큰을 써도 되는 자리)."
 }

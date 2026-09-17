@@ -170,6 +170,7 @@ namespace Forge.Game.Ui
             // T109 5회차 — 정본 2355 `.league-row.me .league-server { max(1.2px, .1em) var(--pp-line) }`: 파란 me 행만 키라인.
             // 어두운 행의 회색 «서버 N» 은 정본도 민무늬다(2350 주석: 근흑 판 위라 검정 링이 아무것도 안 갈라 준다).
             if (e.IsMe) UiKit.OutlinePx(sv, "pp_line", KeylineUi.Em("league_server_me", sv.fontSize));
+            if (e.IsMe) sv.color = PinnedColorUi.C("league_server_me_ink");   // T396 10회차 — 정본 2355 `.league-row.me .league-server { color: #dce6ff }`(전엔 stage_ink 흰색)
             UiKit.Place(sv.rectTransform, rowW - rem * 0.55f - scoreW * 1.2f, rowH - rem * 0.2f - PopupKit.FontSize(TextKind.Sub) * 1.1f, scoreW * 1.2f, PopupKit.FontSize(TextKind.Sub) * 1.1f);
         }
 
@@ -236,6 +237,7 @@ namespace Forge.Game.Ui
             c1.fontStyle = FontStyles.Bold;
             UiKit.Place(c1.rectTransform, 0f, rem * 0.2f, collectW, collectH * 0.45f);
             TextMeshProUGUI c2 = UiKit.Text(collect, "time", TextKind.Sub, PopupKit.FmtTime(remain), "pp_green_dk");
+            c2.color = PinnedColorUi.C("league_collect_time_ink");   // T396 10회차 — 정본 2528 `.league-collect-pill b { color: #1d8f3c }`(전엔 토큰 pp_green_dk #1f8c34 근사)
             c2.fontStyle = FontStyles.Bold;
             UiKit.Place(c2.rectTransform, 0f, collectH * 0.5f, collectW, collectH * 0.45f);
             y += collectH + rem * 0.65f;

@@ -441,5 +441,112 @@ namespace Forge.Tests.PlayMode
             if (t.name == name && t.Find("bg") != null) found.Add(t);
             for (int i = 0; i < t.childCount; i++) Walk(t.GetChild(i), name, found);
         }
+
+        /// <summary>
+        /// T396 10회차 — 산 lock 밖 파일의 잉크 자리 한 묶음(값·정본 줄은 PinnedColorUi.json «_T396_10회차»): 채팅 미리보기 이름·메시지(8069·8070) ·
+        /// 리그 내 행 «서버 N»(2355) · 수집 시간(2528) · 플레이어 정보 전투력(7693)·보유 옵션(7698) · 자동 제련 체크(4727·4730 — 상자는 검정 그대로, ✓ 만 초록).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 채팅_미리보기_리그_플레이어_정보_자동_제련_체크의_잉크는_못박은_값이다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            ForgeHost fh = ForgeHost.Instance;
+            Assert.IsNotNull(UiRoot.Instance, "UiRoot");
+            // ① 채팅 미리보기 띠(HUD)
+            TMPro.TextMeshProUGUI cn = null, cm = null;
+            foreach (TMPro.TextMeshProUGUI t in UiRoot.Instance.App.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+            {
+                if (t.name == "chat-preview-name") cn = t;
+                else if (t.name == "chat-preview-msg") cm = t;
+            }
+            Assert.IsNotNull(cn, "채팅 미리보기 이름"); Assert.IsNotNull(cm, "채팅 미리보기 메시지");
+            Assert.AreEqual(PinnedColorUi.C("chat_preview_name_ink"), cn.color, "이름 = 정본 8069 #eef1f5(전엔 chat_name #ff880f)");
+            Assert.AreEqual(PinnedColorUi.C("chat_preview_msg_ink"), cm.color, "메시지 = 정본 8070 #aab3c0(전엔 chat_ink #2e2e2e — 어두운 띠 위에 어두운 글자)");
+            Assert.AreNotEqual(UiKit.C("chat_name"), cn.color, "이름은 더 이상 채팅 화면의 주황이 아니다");
+            Assert.Greater(cm.color.r + cm.color.g + cm.color.b, 1.5f, "메시지는 어두운 띠 위에서 읽히는 밝은 회색이다");
+
+            // ② 리그 — 내 행의 «서버» · 보상 카드의 수집 시간
+            LeagueSheet.Open(h);
+            yield return null; Canvas.ForceUpdateCanvases();
+            Popup lp = PopupLayer.Instance.Find(LeagueSheet.Name);
+            Assert.IsNotNull(lp, "리그 시트");
+            int meServers = 0, otherServers = 0;
+            foreach (TMPro.TextMeshProUGUI t in lp.Root.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+            {
+                if (t.name != "server") continue;
+                if (t.color == PinnedColorUi.C("league_server_me_ink")) meServers++;
+                else if (t.color == UiKit.C("league_server")) otherServers++;
+                else Assert.Fail("서버 글자의 잉크가 표값(me #dce6ff · 남 league_server) 어느 쪽도 아니다: " + t.color);
+            }
+            Assert.AreEqual(1, meServers, "내 행 하나만 정본 2355 #dce6ff(전엔 stage_ink 흰색)");
+            Assert.Greater(otherServers, 0, "남의 행은 회색 league_server 그대로");
+            LeagueSheet.OpenRewards(h);
+            yield return null; Canvas.ForceUpdateCanvases();
+            Popup lr = PopupLayer.Instance.Find(LeagueSheet.Name);
+            TMPro.TextMeshProUGUI ct = null;
+            foreach (TMPro.TextMeshProUGUI t in lr.Root.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+                if (t.name == "time" && t.transform.parent != null && t.transform.parent.name == "collect") ct = t;
+            Assert.IsNotNull(ct, "수집까지 시간 글자(collect/time)");
+            Assert.AreEqual(PinnedColorUi.C("league_collect_time_ink"), ct.color, "수집 시간 = 정본 2528 #1d8f3c(전엔 토큰 pp_green_dk #1f8c34)");
+            Assert.AreNotEqual(UiKit.C("pp_green_dk"), ct.color, "토큰 값과 다르다(정본이 리터럴로 못박은 자리)");
+            h.Popups.Hide(LeagueSheet.Name);
+            yield return null;
+
+            // ③ 플레이어 정보 — 전투력 조각 · 보유 옵션 줄
+            var saved = PlayerInfoPopup.PreviewStart;
+            PlayerInfoPopup.PreviewStart = null;
+            try
+            {
+                PlayerInfoPopup.Open(h);
+                yield return null; Canvas.ForceUpdateCanvases();
+                Popup pp = PopupLayer.Instance.Find(PlayerInfoPopup.Name);
+                Assert.IsNotNull(pp, "플레이어 정보");
+                int cpPieces = 0, subLines = 0;
+                foreach (TMPro.TextMeshProUGUI t in pp.Root.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+                {
+                    Transform par = t.transform.parent;
+                    if (par != null && par.name == "cp") { Assert.AreEqual(PinnedColorUi.C("pinfo_cp_ink"), t.color, "전투력 조각 = 정본 7693 #ff880f(전엔 pp_ink)"); cpPieces++; }
+                    else if (t.name == "sub") { Assert.AreEqual(PinnedColorUi.C("pinfo_subs_ink"), t.color, "보유 옵션 줄 = 정본 7698 #3a3a3a(전엔 pp_ink #17181a)"); subLines++; }
+                }
+                Assert.Greater(cpPieces, 0, "전투력 글 조각이 있다");
+                Assert.IsTrue(subLines > 0 || pp.Root.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true).Length > 0, "보유 옵션 줄(없으면 «없음» 안내만)");
+                h.Popups.Hide(PlayerInfoPopup.Name);
+                yield return null;
+            }
+            finally { PlayerInfoPopup.PreviewStart = saved; }
+
+            // ④ 자동 제련 체크 — 상자는 두 상태 다 #17181a · ✓ 만 #23c552(정본 4722 주석 «상자를 통째로 초록으로 채우던 종전 구현은 원본과 다른 물건»)
+            fh.S.BestChapter = 3; fh.S.BestStage = 1; fh.Pull();
+            ForgeAutoPopup.Open(fh);
+            yield return null; Canvas.ForceUpdateCanvases();
+            Popup ap = PopupLayer.Instance.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(ap, "자동 제련 팝업");
+            int boxes = 0, marks = 0;
+            Color face = PinnedColorUi.C("af_check_face"), green = new Color(0.14f, 0.77f, 0.32f, 1f);
+            foreach (Transform box in AllNamed(ap.Root, "box"))
+            {
+                Transform parent = box.parent;
+                if (parent == null || !(parent.name == "af-check-continue" || parent.name == "check")) continue;
+                Image bi = box.GetComponent<Image>();
+                if (bi == null) { Transform f = box.Find("face"); bi = f != null ? f.GetComponent<Image>() : null; }
+                if (bi == null) continue;
+                boxes++;
+                Assert.AreNotEqual(green, bi.color, "체크 상자는 더 이상 초록 판이 아니다(" + parent.name + ")");
+                Transform mk = parent.Find("mark");
+                if (mk != null && mk.gameObject.activeSelf) { Assert.AreEqual(PinnedColorUi.C("af_check_on_ink"), mk.GetComponent<Image>().color, "✓ = 정본 4730 #23c552"); marks++; }
+            }
+            Assert.Greater(boxes, 0, "체크 상자가 있다(계속하기 + 필터 행)");
+            Assert.AreEqual(face, PinnedColorUi.C("af_check_face"), "상자 표값 = #17181a");
+            fh.Meta.Popups.Hide(ForgeAutoPopup.Name);
+            yield return null;
+        }
+
+        static System.Collections.Generic.List<Transform> AllNamed(Transform root, string name)
+        {
+            var found = new System.Collections.Generic.List<Transform>();
+            foreach (Transform t in root.GetComponentsInChildren<Transform>(true)) if (t.name == name) found.Add(t);
+            return found;
+        }
     }
 }

@@ -215,11 +215,13 @@ namespace Forge.Game.Ui
             // 그래서 칸은 **띠 전체 높이**로 주고 위/아래 정렬로 두 줄 자리를 낸다 — 글꼴 줄높이가 바뀌어도 안 무너진다.
             chatName = UiKit.Text(band, "chat-preview-name", TextKind.Sub, string.Empty, "chat_name", TextAlignmentOptions.TopLeft);
             chatName.fontStyle = FontStyles.Bold;
+            chatName.color = PinnedColorUi.C("chat_preview_name_ink");   // T396 10회차 — 정본 8069 `#chat-preview .chat-preview-name { color: #eef1f5 }`(어두운 띠 위 근백색 · 전엔 chat_name #ff880f)
             UiKit.TextShadow(chatName, "chat_preview_name");   // T333 13회차 — 정본 8069 `#chat-preview .chat-preview-name { text-shadow: 0 1px 1px rgba(0,0,0,.5) }`(8392 묶음보다 특이도가 높다)
             WrapUi.Apply(chatName, "chat_preview_name");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 3252 `.chat-preview-name { nowrap }`(전엔 박힘)
             chatName.overflowMode = TextOverflowModes.Ellipsis;     // 정본 `text-overflow: ellipsis`(가로)
             UiKit.Place(chatName.rectTransform, tx, padY, tw, bandH - padY * 2f);
             chat = UiKit.Text(band, "chat-preview-msg", TextKind.Sub, string.Empty, "chat_ink", TextAlignmentOptions.BottomLeft);
+            chat.color = PinnedColorUi.C("chat_preview_msg_ink");   // T396 10회차 — 정본 8070 `#chat-preview .chat-preview-msg { color: #aab3c0 }`(같은 선택자 3640 의 #2e2e2e 를 뒤에서 덮는다 · 전엔 그 어두운 값이 어두운 띠 위에)
             WrapUi.Apply(chat, "chat_preview_msg");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 3253 `.chat-preview-msg { nowrap }`(전엔 박힘)
             chat.overflowMode = TextOverflowModes.Ellipsis;
             UiKit.Place(chat.rectTransform, tx, padY, tw, bandH - padY * 2f);

@@ -198,12 +198,29 @@ TABLE_INK = {
     '.chat-input-bar input::placeholder': ['Ui/ChatScreen.cs#placeholder|res:PinnedColorUi:chat_placeholder_ink'],   # 정본 3452 #6b6b6b ↔ 클론은 pp_muted(#8a8a8a) 였다
     '.chat-share-side small:last-child': ['Ui/ChatScreen.cs#cp|catalog:chat_name'],            # 정본 3409 #ff880f(양쪽 전투력) ↔ 클론은 이긴 쪽 초록·진 쪽 회색이었다
     '.chat-share-label': ['Ui/ChatScreen.cs#label|catalog:chat_name'],                        # 정본 3425 #ff880f(«승리») ↔ 클론은 chat_share_win(#35c04f) 이었다
+    # T396 10회차 — 산 lock 밖 파일의 잉크 자리 한 묶음(값·까닭은 PinnedColorUi.json «_T396_10회차»).
+    '#chat-preview .chat-preview-name': ['Ui/Hud.cs#chat-preview-name|res:PinnedColorUi:chat_preview_name_ink'],   # 8069 #eef1f5 ↔ 전엔 chat_name #ff880f
+    '#chat-preview': ['Ui/Hud.cs#chat-preview-name|res:PinnedColorUi:chat_preview_name_ink'],                        # 8056 블록 #eef1f5 — 띠 안 글자는 이름·메시지 둘뿐이라 이름 자리가 그 값
+    '#chat-preview .chat-preview-msg': ['Ui/Hud.cs#chat-preview-msg|res:PinnedColorUi:chat_preview_msg_ink'],       # 8070 #aab3c0(3640 #2e2e2e 를 같은 선택자가 뒤에서 덮는다) ↔ 전엔 chat_ink #2e2e2e
+    '.league-row.me .league-server': ['Ui/LeagueSheet.cs#server|res:PinnedColorUi:league_server_me_ink'],           # 2355 #dce6ff ↔ 전엔 stage_ink
+    '.league-collect-pill b': ['Ui/LeagueSheet.cs#time|res:PinnedColorUi:league_collect_time_ink'],                # 2528 #1d8f3c ↔ 전엔 pp_green_dk #1f8c34
+    '.league-challenge-name small': ['Ui/LeagueSheet.cs#cp|catalog:challenge_cp'],                                  # 2635 #ff880f — 카탈로그 challenge_cp 가 같은 값(짝만)
+    '.league-name small': ['Ui/LeagueSheet.cs#cp|catalog:league_cp'],                                               # 2339 #f59e0b — 카탈로그 league_cp 가 같은 값(짝만 · ui.js 4740 이름 아래 <small> = 전투력)
+    '#player-info-modal .pinfo-id-text .cp': ['Ui/PlayerInfoPopup.cs#cp|res:PinnedColorUi:pinfo_cp_ink'],         # 7693 #ff880f ↔ 전엔 pp_ink
+    '#player-info-modal .pinfo-subs-list': ['Ui/PlayerInfoPopup.cs#sub|res:PinnedColorUi:pinfo_subs_ink'],         # 7698 #3a3a3a(5600 var(--pp-ink) 를 뒤에서 덮는다) ↔ 전엔 pp_ink
+    '.af-check.on': ['Ui/ForgeAutoPopup.cs#mark|res:PinnedColorUi:af_check_on_ink'],                                # 4730 ✓ #23c552 — 상자는 #17181a 그대로(전엔 상자를 초록으로 칠했다)
     '.dgclear-title': ['Ui/DungeonClearPopup.cs#title|catalog:dgclear_title'],                # 정본 5374 #ffd54f 같은 값
     '.dgclear-sub': ['Ui/DungeonClearPopup.cs#sub|catalog:dgclear_sub'],                      # 정본 5378 #b0bec5 같은 값
     '.dgc-amt': ['Ui/DungeonClearPopup.cs#amt|catalog:dgclear_amt'],                          # 정본 5391 #ffe082 같은 값
     '.petd-wrap .petd-subs': ['Ui/MountSheet.cs#petd-subs|res:PetSkillUi:subs_ink'],           # 정본 5454 #3a3a3a ↔ PetSkillUi subs_ink 같은 값(PetPanel 쪽 같은 키는 그 lock 뒤)
 }
 KNOWN_INK = {
+    # T396 10회차 — 한 글자 안의 **부분 색**(<small>·<span> 조각): 클론은 그 글을 한 TMP 로 찍고 richText 를 안 켜므로(check_richtext)
+    #   둘째 줄·조각을 따로 세워야 색이 갈린다(IconTextStack 둘째 줄 잉크 키 같은 것) — 조각 분리 몫 · 다음 회차.
+    '.fi-skip-gem': '한 버튼 글 «건너뛰기\\n💎 N» 의 아랫줄(ForgeInfoPopup.cs 141 IconTextStack.ReplaceLabel 한 잉크) — 5160 #e11d48 · 조각 분리 뒤',
+    '.tn-skip small': '한 알약 글 «건너뛰기\\n◆ N» 의 아랫줄(TechPopups.cs 270 DungeonPopups.Pill 한 잉크) — 4613 #c62828 · 조각 분리 뒤',
+    '.tn-gain': '한 줄 «+N% (…)» 안의 <small>(TechPopups 주 수치 글 한 TMP) — 3693 #1fa64a · 조각 분리 뒤',
+    '.asc-wipe-warn': '승천 안내 여러 줄 글 안의 한 줄 <span>(AscendPopup.cs 166 eff 한 TMP) — 5637 #ff6b5e · 줄 분리 뒤',
 }
 
 HEX = re.compile(r'#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b')

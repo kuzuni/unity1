@@ -166,6 +166,7 @@ namespace Forge.Game.Ui
             foreach (TextMeshProUGUI piece in UiKit.RowTexts(cp))
             {
                 piece.fontStyle = FontStyles.Bold;
+                piece.color = PinnedColorUi.C("pinfo_cp_ink");   // T396 10회차 — 정본 7693 `#player-info-modal .pinfo-id-text .cp { color: #ff880f }`(3160 var(--pp-ink) 를 뒤에서 덮는다 · 전엔 pp_ink)
                 UiKit.OutlinePx(piece, "pp_line", KeylineUi.Px("pinfo_cp"));   // 정본 #player-info-modal .pinfo-id-text .cp { 2px var(--pp-line) }
             }
             UiKit.Place(cp, tx, y + lineH * 2f, leftW, lineH);
@@ -241,7 +242,7 @@ namespace Forge.Game.Ui
             //   정본 3219 주석이 까닭을 적어 뒀다: «line-height 1.9→1.2: 원본 스탯 줄 피치 1.8%H(≈16px), 종전 2.6%H 로 목록이 9%p 비대».
             //   클론은 `PopupKit.Label` 의 기본 줄 상자(글자 크기 × 1.3 · `Popups.cs` 는 남의 lock)를 그대로 써서 **+14%** 였다.
             if (subs == null || subs.Count == 0) SubLine(subsList, "none", PlayerInfoStyle.T("no_subs"), "pp_muted");
-            else foreach (string s in subs) SubLine(subsList, "sub", s, "pp_ink");
+            else foreach (string s in subs) SubLine(subsList, "sub", s, "pp_ink").color = PinnedColorUi.C("pinfo_subs_ink");   // T396 10회차 — 정본 7698 `#player-info-modal .pinfo-subs-list { color: #3a3a3a }`(5600 var(--pp-ink) 를 뒤에서 덮는다)
 
             PopupKit.XButton(card, () => Close(h));
         }
@@ -250,12 +251,13 @@ namespace Forge.Game.Ui
         /// 보유 옵션 한 줄(정본 `.pinfo-subs-list` 5600 `line-height: 1.14`) — 줄 상자 높이를 **표에서** 받는다.
         /// `PopupKit.Label` 의 기본값(글자 × 1.3)은 공장 몫이라 여기서 덮는다(`Popups.cs` 가 열리는 회차가 공장에 옮기면 이 줄은 지워도 된다).
         /// </summary>
-        static void SubLine(Transform parent, string name, string text, string colorKey)
+        static TextMeshProUGUI SubLine(Transform parent, string name, string text, string colorKey)
         {
             TextMeshProUGUI t = PopupKit.Label(parent, name, TextKind.Sub, text, colorKey, TextAlignmentOptions.Left);
             double r = LineHeight.Apply(t, "pinfo_subs_list_2_lh");
             LayoutElement le = t.GetComponent<LayoutElement>();
             if (le != null) { le.preferredHeight = (float)(r * t.fontSize); le.minHeight = le.preferredHeight; }
+            return t;
         }
 
         /// <summary>정본 폴백 `.pinfo-preview`: 마른 흙 두 톤(55%) · 검정 테 · 🛡️ · 스테이지 라벨 · 웨이브 핍(던전 중이면 없음).</summary>
