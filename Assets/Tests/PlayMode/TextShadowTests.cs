@@ -565,5 +565,63 @@ namespace Forge.Tests.PlayMode
             }
             Assert.GreaterOrEqual(seen, 1, what + ": 시대 막대가 한 줄은 선다");
         }
+
+        /// <summary>
+        /// T333 19회차 — 정본 8381 한 벌(«밝은 종이 위 글자는 흰 엠보스» `0 1px 0 rgba(255,255,255,.92)`)의 선택자에 `.modal-card .idet-name` 이 있는데,
+        /// 그 이름은 정본에서 **세 자리**에 선다: `ui.js` **2246** 장비 상세 · **4198** 펫 강화 · **5603** 기술 노드(셋 다 `<div class="modal-card paper …">` 안).
+        /// 14~18회차의 자 표에는 장비 상세 하나만 적혀 있어 «자리 초록» 이 그 선언을 다 덮은 것처럼 보였다 — 이 자가 나머지 둘 중 잡을 수 있는 것을 지킨다
+        /// (펫 강화는 T354 산 lock 뒤라 자 KNOWN 에 임자와 함께 적어 두었다).
+        ///
+        /// ⚑ 기술 노드는 **두 조각**이다: 정본 5603 은 `<div class="idet-name">이름 <small class="tn-lv">N단계 · Lv.x/y</small></div>` 로 한 상자인데
+        /// 클론은 T413 에서 그것을 `name`·`lv` 두 조각으로 떼어 놓았다. `text-shadow` 는 상속되므로 **떼어 놓은 쪽에도 같은 겹**이 서야 정본과 같은 그림이다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 장비_상세와_기술_노드_이름도_8381_한_벌의_흰_엠보스를_진다()
+        {
+            yield return Boot();
+            float bt = 0f;
+            while (!ForgeHost.Ready && bt < 15f) { bt += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost 가 15초 안에 준비되지 않았다");
+            ForgeHost h = ForgeHost.Instance;
+
+            // ⓐ 장비 상세(`ui.js` 2246 `.idet-name`) — 목록에서 한 칸을 열어야 그려진다(ForgeUiTests 와 같은 길).
+            string age = h.Defs.Ages[0];
+            string wt = h.Engine.WeaponsOfAge(age)[0];
+            ForgeInfoPopup.OpenDetail(h, age, "weapon", 0, wt);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup item = h.Meta.Popups.Find(ForgeInfoPopup.ItemName);
+            Assert.IsNotNull(item, "장비 상세 팝업");
+            TextMeshProUGUI idet = null;
+            foreach (TextMeshProUGUI t in item.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+                if (t.name == "idet-name") { idet = t; break; }
+            Assert.IsNotNull(idet, "장비 상세 이름(idet-name)");
+            AssertShadow(idet, "paper_emboss", "장비 상세 이름");
+            Color ic = idet.fontMaterial.GetColor("_UnderlayColor");
+            Assert.Greater(ic.r + ic.g + ic.b, 2.7f, "장비 상세 이름: 엠보스는 흰색이어야 한다(정본 rgba(255,255,255,.92))");
+            ForgeInfoPopup.Close(h);
+            yield return null;
+
+            // ⓑ 기술 노드(`ui.js` 5603) — 이름과 그 안의 `<small class="tn-lv">` 둘 다.
+            float dt = 0f;
+            while (!DungeonUiHost.Ready && dt < 15f) { dt += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(DungeonUiHost.Ready, "DungeonUiHost 가 15초 안에 준비되지 않았다");
+            string id = DungeonUiHost.Instance.Tech.NodesOf("power")[0];
+            TechPopups.OpenNode(id);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            RectTransform card = null;
+            foreach (RectTransform rt in UiRoot.Instance.App.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "card" && rt.gameObject.activeInHierarchy && rt.Find("name") != null && rt.Find("lv") != null) { card = rt; break; }
+            Assert.IsNotNull(card, "기술 노드 상세 카드");
+            TextMeshProUGUI tn = card.Find("name").GetComponent<TextMeshProUGUI>();
+            TextMeshProUGUI tl = card.Find("lv").GetComponent<TextMeshProUGUI>();
+            Assert.IsNotNull(tn, "노드 이름 글자"); Assert.IsNotNull(tl, "노드 단계 글자");
+            AssertShadow(tn, "paper_emboss", "기술 노드 이름");
+            AssertShadow(tl, "paper_emboss", "기술 노드 단계(정본 5603 의 `<small>` 은 같은 `.idet-name` 안이라 같은 겹을 물려받는다)");
+            TechPopups.Close();
+            yield return null;
+        }
+
     }
 }

@@ -157,12 +157,18 @@ namespace Forge.Game.Ui
             float tw = inner - icoD - gap;
             NameText = def.Name;
             TextMeshProUGUI name = DungeonPopups.Bold(card, "name", TextKind.Body, def.Name, "pp_ink", TextAlignmentOptions.Left);
+            // T333 19회차 — 정본 8381 묶음 `.modal-card .idet-name` 은 이 조각에도 닿는다: 5601 이 이 카드를 `<div class="modal-card paper item-detail">` 로 세우고
+            //   5603 이 이름을 `<div class="idet-name">` 로 둔다. 장비 상세(`ForgeInfoPopup` idet-name)와 **같은 선언·같은 키**다.
+            UiKit.TextShadow(name, "paper_emboss");
             UiKit.Place(name.rectTransform, tx, y, tw, bodyH);
             // T413 — 정본 `ui.js` **5603** 은 이 조각을 이름 뒤 `<small class="tn-lv">` 로 둔다: `<div class="idet-name">${name} <small class="tn-lv">${roman}단계 · Lv.${lv}/${MAX}</small></div>`.
             //   `<small>` 은 인라인이라 **이름과 같은 줄**이고, 정본 머리는 «이름+레벨 / 총합» **두 줄**이다. 클론은 이것을 제 줄 하나로 빼서 **세 줄**이었다(머리 잉크 +17px · 런 848 실측).
             //   틈은 정본 **3695** `.tn-lv { margin-left: .15rem }` — 표 `TechStyle` 이 쥔다. 상자 높이는 이름과 같은 `bodyH` 라 둘이 같은 줄에 가운데로 선다.
             //   ⚠ 같은 줄의 `font-size: .72rem`(26.2px)은 §1 하한 `Sub`(36)보다 작다 — **글자 하한 축(T391·T404)** 이라 여기서 안 건드린다.
             TextMeshProUGUI lvl = DungeonPopups.Bold(card, "lv", TextKind.Sub, Tree.TierLabel(id) + "단계 · Lv." + lv + "/" + Tree.Table.MaxLevel, "pp_muted", TextAlignmentOptions.Left);
+            // T333 19회차 — `<small class="tn-lv">` 는 그 `.idet-name` **안**의 인라인 조각이라 같은 겹을 물려받는다(text-shadow 는 상속된다).
+            //   클론은 이것을 제 조각으로 떼어 놓았으니(T413) 겹도 따로 걸어야 정본과 같은 그림이 된다.
+            UiKit.TextShadow(lvl, "paper_emboss");
             float lvx = tx + name.preferredWidth + PopupKit.Rem * TechStyle.L("tn_lv_margin_left_rem");
             UiKit.Place(lvl.rectTransform, lvx, y, Mathf.Max(0f, tx + tw - lvx), bodyH);
             MainText = "+" + NumFmt.Fmt(Tree.TotalOf(id)) + unit;

@@ -42,6 +42,10 @@ TABLE = {
         'Ui/MountSheet.cs#sheet-title', 'Ui/PetPanel.cs#sheet-title', 'Ui/SkillPanel.cs#sheet-title',
         'Ui/ShopSheet.cs#title', 'Ui/AscendPopup.cs#title',
         'Ui/ForgeInfoPopup.cs#idet-name', 'Ui/QuestSheet.cs#qst-name',
+        # T333 19회차 — `.modal-card .idet-name` 은 정본에서 **세 자리**에 선다(ui.js 2246 장비 상세 · 4198 펫 강화 · 5603 기술 노드).
+        #   14~18회차의 자리 목록엔 장비 상세 하나뿐이라 «자리 초록» 이 그 선언을 다 덮은 것처럼 보였다 — 셋을 다 적어야 참이다.
+        #   기술 노드는 이름 뒤 `<small class=tn-lv>` 까지 한 `.idet-name` 안이라(5603) 클론이 떼어 놓은 `lv` 조각도 이 겹을 진다.
+        'Ui/TechPopups.cs#name', 'Ui/TechPopups.cs#lv', 'Ui/PetUpgradePopup.cs#idet-name',
     ],
     # T333 17회차 — 8371 시대 막대 글 셋(확률 정보 `.fi-*` · 자동 제련 `.af-*`). 한 함수(`ForgeUi.AgeBar`)가 두 화면을 다 세운다.
     #   ⚠ 다섯 선택자에 **`.af-age-next` 가 없다** — «다음» 칸은 확률 정보에서만 이 겹을 진다(코드가 `autoForge` 로 가른다).
@@ -76,12 +80,11 @@ TABLE = {
     '.petup-bulk .bulk-sil': ['Ui/PetUpgradePopup.cs#bulk-sil'],
     '.pet-tile .tile-check': ['Ui/PetUpgradePopup.cs@Check'],
     # T333 15회차 — 소환 결과 `.sr-*` 다섯: 제목(6207 두 겹 중 검정 낙하 겹 · Build) · 이름판(7032 여럿 · 7084 x1 = 같은 글 `nt2` 에 키만 갈린다 · BuildCell) ·
-    #   x1 요약 줄(5784 · BuildFoot · IconTextRow 의 글 조각마다) · 구슬(6495 `.sr-orb` 는 이모지 아이콘 글자 — 클론은 아틀라스 아이콘 · KNOWN)
+    #   x1 요약 줄(5784 · BuildFoot · IconTextRow 의 글 조각마다) · 구슬(6495 `.sr-orb` 는 **정본이 스스로 비운 선언**이라 아래 «죽은 선언» 으로 옮겼다 · 19회차)
     '.sr-title': ['Ui/SkillSummonResult.cs@Build'],
     '.sr-name': ['Ui/SkillSummonResult.cs@BuildCell'],
     '.sr-grid.one .sr-name': ['Ui/SkillSummonResult.cs@BuildCell'],
     '.sr-solo-line': ['Ui/SkillSummonResult.cs@BuildFoot'],
-    '.sr-orb': ['Ui/SkillSummonResult.cs#sr-ico'],
     # T333 5회차 — 산 lock 밖 세 자리(T335 반납으로 열린 던전 클리어 제목 · 보스 워닝 마퀴·부제): 여러 겹 중 «읽히게 만드는 한 겹»(league_row 갈래)
     # T333 9회차 — 판매 코인 금액(7426 `.coin-amt` · 정본 주석 «이너=노랑 · 아웃라인=검정»): 8방향 링 → SDF 스트로크(`ring:`) · 값은 CoinBurstUi.json(amt_ring_* · 결정 655)
     '.coin-amt': ['ring:Ui/CoinBurst.cs@Amount'],
@@ -114,6 +117,12 @@ TABLE = {
     #   ⓒ 정본 4378 은 ✓ 에 그림자를 주는데, 바로 아래 4383 이 그 ✓ 를 **캔버스 아이콘**(`.tile-check .ico { width: 42% }`)으로 바꿔 놓아 글자가 남아 있지 않다.
     #      클론도 같은 꼴(`UiKit.Icon("check")` 42%)이라 그림자가 닿을 글자가 없다 — T33 36회차의 «덮는 규칙·죽은 선언을 먼저 걷어라» 와 같은 자리.
     '.pet-tile .tile-check': '— 정본이 그 ✓ 를 캔버스 아이콘으로 바꾼 뒤(4383 `.tile-check .ico` 42%) 남은 죽은 선언이다 — 클론도 아이콘이라 글자가 없다(PetUpgradePopup.cs Check)',
+    #   ⓓ T333 19회차 — 구슬 그림자(6495)도 같은 갈래인데, 15회차는 그것을 «클론이 아이콘이라 못 건다» 로 읽어 KNOWN(남은 일)에 두었다.
+    #      실은 **정본에서도 이미 안 그려진다**: 6516 주석이 «이제 `.sr-ico` 안에 오는 것은 이모지 글리프가 아니라 슬롯이 쓰는 실제 노드다
+    #      (스킬 `.ico.sk-ico` · 알 `.ico.sr-egg` · 탈것 `.mt-face.sr-mt` → 3D 썸네일 `<img>`)» 라 적었고, `.ico`(7194)는 배경그림 상자다.
+    #      text-shadow 는 **글자에만** 그려지므로 상속돼도 칠할 글자가 없다 — `font-size: 2.4rem` 만 지름 기준으로 살아남았다(6519 주석).
+    #      구슬 아이콘이 실제로 지는 그림자는 6521 `.sr-ico { filter: drop-shadow(0 3px 5px rgba(0,0,0,.55)) }` 이고 그것은 T332 17회차가 이미 옮겼다(`DropShadowUi.json` `sr_ico`).
+    '.sr-orb': '— 정본이 스스로 비운 선언이다(6516 주석: `.sr-ico` 안은 이모지 글리프가 아니라 실제 노드 · `.ico` 7194 는 배경그림 상자) — 칠할 글자가 없다. 구슬 아이콘의 그림자는 6521 `filter: drop-shadow` 쪽이고 T332 17회차가 `DropShadowUi.json` `sr_ico` 로 옮겼다',
 }
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ────────────────────────────────
@@ -122,9 +131,8 @@ KNOWN = {
     'Ui/ForgeAutoPopup.cs#mark': 'T333 14회차 — 정본 4978 `.af-check.on` 의 ✓ 는 글자인데 클론은 아틀라스 아이콘(PopupKit.IconOr check)이라 언더레이가 안 닿는다 — 아이콘 자리',
     'Ui/PetUpgradePopup.cs#bulk-sil': 'T333 14회차 — 정본 4372 `.petup-bulk .bulk-sil { color: transparent; text-shadow: 0 0 0 var(--rc) }` 는 이모지 글자를 «등급색 실루엣» 으로 만드는 꼼수 — 클론은 아틀라스 아이콘(egg/paw)에 등급색 틴트를 주어 같은 결과를 이미 낸다(그림자가 아니라 색이 목적) · 4375 `.on` 흰색도 틴트로',
     'Ui/PetUpgradePopup.cs@Check': 'T333 14회차 — 정본 4378 `.pet-tile .tile-check` 의 ✓ 는 글자(text-shadow 0 1px 2px .5)인데 클론은 아틀라스 아이콘(UiKit.Icon check)이라 언더레이가 안 닿는다 — 아이콘 자리',
-    'Ui/ForgeInfoPopup.cs#idet-name': 'T332·T339 의 산 lock 이 쥔 파일 — 정본 8381 `.modal-card .idet-name`(장비 상세 이름) 은 그 lock 뒤',
     'Ui/QuestSheet.cs#qst-name': 'T331 산 lock + 클론에 그 이름 자리가 아직 없다 — 정본 8381 `.qst-row .qst-name`',
-    'Ui/SkillSummonResult.cs#sr-ico': 'T333 15회차 — 정본 6495 `.sr-orb { font-size: 2.4rem; text-shadow: 0 .12rem .3rem .7 }` 는 구슬 안 **이모지 글자**(`<i class=sr-ico>`)에 두른 그림자인데 클론의 구슬 아이콘은 아틀라스 아이콘(`UiKit.Icon` sr-ico · T385 가 조명을 따로 굽는다)이라 언더레이가 안 닿는다 — 아이콘 자리',
+    'Ui/PetUpgradePopup.cs#idet-name': 'T354 산 lock 이 쥔 파일(범위 칸에 `PetUpgradePopup.cs` 를 적어 두었다 · 규약 «같은 파일이면 뒤 번호가 기다린다») — 정본 8381 묶음이 ui.js 4198 의 펫 강화 이름(`.modal-card .petup-panel .idet-name`)에도 닿는다. 5525 는 색·스트로크만 덮지 text-shadow 를 안 덮는다 — 그 lock 이 풀리면 `UiKit.TextShadow(name, "paper_emboss")` 한 줄이다(T333 19회차 조사)',
     'ring:Ui/ChatScreen.cs@Open': 'T333 4회차 — 클론의 «◀» 는 글자가 아니라 아틀라스 아이콘(tri_left)이라 링을 글자에 못 두른다: 키운 삼각을 뒤에 깔아야 하고 아틀라스엔 검정 틴트 변형이 없다(정본이 안 부른다) · 길 둘 = Image.color 곱하기 / 도형 굽기 · 다음 회차',
 }
 

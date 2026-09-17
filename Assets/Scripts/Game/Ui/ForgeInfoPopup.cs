@@ -376,6 +376,7 @@ namespace Forge.Game.Ui
             float lh = PopupKit.FontSize(TextKind.Body) * 1.3f;
             TextMeshProUGUI nm = UiKit.Text(head, "idet-name", TextKind.Body, "[" + ForgeUi.AgeKr(d, age) + "] " + name, "pp_ink", TextAlignmentOptions.Left);
             nm.fontStyle = FontStyles.Bold;
+            UiKit.TextShadow(nm, "paper_emboss");   // T333 19회차 — 정본 8381 묶음의 `.modal-card .idet-name`(밝은 종이 위 글자는 흰 엠보스 0 1px 0 rgba(255,255,255,.92)). 14~18회차엔 T332·T339 산 lock 뒤라 KNOWN 이었다.
             UiKit.Place(nm.rectTransform, tile + rem * 0.6f, rem * 0.2f, inner - tile - rem * 0.6f, lh);
             TextMeshProUGUI mv = UiKit.Text(head, "idet-main", TextKind.Sub, NumFmt.Fmt(baseVal) + " " + ForgeUi.StatLabel(main), "pp_ink", TextAlignmentOptions.Left);
             mv.fontStyle = FontStyles.Bold;
