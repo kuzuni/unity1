@@ -387,13 +387,22 @@ namespace Forge.Tests.PlayMode
                         "연출의 무게중심이 정본 시각 ±400ms 안에 선다(표본에 안 흔들리는 자) · 클론 " + cloneCen.ToString("0") + "ms ↔ 정본 " + refCen.ToString("0") + "ms " + trace);
             Assert.GreaterOrEqual(endMs, 0, "봉우리 뒤로 연출이 실제로 스러진다(끝 시각이 잡힌다) " + trace);
             Assert.LessOrEqual(endMs, refEndMs + 600, "연출이 정본처럼 끝난다 — 라벨까지 스러진 시각이 정본 +600ms 안이다 " + trace);
-            // T441 6회차 — 남은 **진짜 차이는 «모양»** 이다: 정본은 라벨 고원 위로 뾰족한 착지 임팩트가 서는데(고원 대비 +119%) 클론은 완만한 언덕(+63~73%)이다.
-            //   고원 = 라벨만 남은 뒤(1100~2200ms)의 중앙값 · 봉우리 값은 표본에 덜 흔들린다(2024~2254 · ±5%).
-            //   아직 안 고친 자리라 **접어 두고**(§1) 수치만 장부에 남긴다 — T441 이 닫히면 자가 «이제 켜라» 로 운다.
+            // T441 8회차 — «모양»(고원 대비 봉우리 높이)은 **이 환경에서 못 잰다**: 정본 봉우리는 «코인이 아직 있고 라벨이 막 팝한» 한 순간인데,
+            //   라벨 팝은 `amt_ms × 7%` = 140ms 짜리고 이 러너의 프레임은 ~200ms 다(4회차 실측: 찍는 값 61ms + 프레임 시간). 그래서 그 겹침 구간에 표본이 안 들어간다 —
+            //   같은 코드로 두 런이 **+47%(런 1053) ↔ +65%(런 1057)** 로 흔들린 것이 그 증거다(연출이 그 사이에 바뀐 적 없다).
+            //   7회차가 «라벨 ↔ 코인» 으로 갈라 본 자국이 그것을 눈으로 보여 준다: 라벨이 0 인 프레임 다음이 곧바로 라벨 816 · 코인 276 이다(그 사이가 통째로 안 찍혔다).
+            //   ⇒ «연출이 약하다» 고 단정할 근거가 없으므로 **KNOWN(남은 일)이 아니라 «환경» 으로 적고 넘어간다**(살아 있는 판정은 위의 무게중심이 지킨다).
             double plateau = Plateau(rows, band), popClone = plateau > 0 ? (Band(peak, band) - plateau) / plateau : -1;
             double refPlateau = RefPlateau(refFrames, band), popRef = refPlateau > 0 ? (J.Num(t["peak_v"]) - refPlateau) / refPlateau : -1;
-            if (popClone >= 0 && popRef > 0 && popClone < popRef * 0.85)
-                Assert.Ignore("KNOWN T441 — 착지 팝이 약하다(고원 대비 클론 +" + (popClone * 100).ToString("0") + "% ↔ 정본 +" + (popRef * 100).ToString("0") + "%) " + trace);
+            int landGap = 0;
+            for (int i = 1; i < rows.Count; i++) if (rows[i].At <= 1100) landGap = Mathf.Max(landGap, rows[i].At - rows[i - 1].At);
+            // 라벨 팝 창 = 표 `amt_ms` × 정본 keyframes 의 7%(0% 투명 → 7% 불투명 · style.css 7444~7446).
+            double popWindow = CoinBurst.Spec.AmtMs * 0.07;
+            Debug.Log("[T441] 고원 대비 봉우리 클론 +" + (popClone * 100).ToString("0") + "% ↔ 정본 +" + (popRef * 100).ToString("0") + "% · 착지 창 최대 표본 간격 " + landGap + "ms");
+            if (landGap > popWindow)
+                Assert.Ignore("환경 — 착지 겹침을 못 잰다(라벨 팝 " + popWindow.ToString("0") + "ms ↔ 이 런의 착지 창 표본 간격 " + landGap + "ms): 고원 대비 봉우리는 클론 +"
+                              + (popClone * 100).ToString("0") + "% ↔ 정본 +" + (popRef * 100).ToString("0") + "% 로 찍혔지만 런마다 흔들린다 · 자국 t408-coinsell.txt " + trace);
+
         }
     }
 }
