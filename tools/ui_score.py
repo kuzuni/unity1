@@ -1232,6 +1232,44 @@ def card_box(img):
     return (xs[0] * 100.0 / W, (xs[-1] - xs[0] + 1) * 100.0 / W)
 
 
+CARD_TOP_TOL = 1.5      # 카드 위끝 허용 차(%p · T28 114회차 실측: 30장 중 27장이 |Δ| ≤ 1.5 · 중앙값 0.56)
+CARD_TOP_FRAC = 0.80    # 카드 가로 상자 안에서 이만큼이 «밝은 판» 이면 그 행은 카드다
+
+
+def card_top(img):
+    """팝업 카드의 **위끝**(앱 상자 기준 %%H) — 딤과 무관한 자. 못 찾으면 None.
+
+    왜 «위끝» 만인가(T28 114회차 실측): 카드의 **아래끝·높이는 못 믿는다** — 밝은 행의 가장 긴
+    구간으로 잡으면 카드 **안**의 어두운 띠(배너·목록·미리보기)에서 끊겨 `profile` −10.3 ·
+    `player-info` −17.2 · `tech-node` +14.6 처럼 엉뚱한 높이가 나온다. 반면 **위끝**은 30장 중
+    27장이 |Δ| ≤ 1.5%%p(중앙값 0.56)로 두 그림이 같은 값을 낸다.
+
+    🚫 «그림 전체에서 밝은 화소를 세는» 꼴도 못 쓴다 — 클론 딤은 α .5 라 **뒤 화면이 비쳐**
+    카드 위에서도 밝은 행이 나온다(`league-rewards` 가 그 탓에 −7.4 로 나왔다). 그래서
+    `card_box()` 가 잡은 **카드 가로 상자 안**에서만 세고, 그 폭의 80% 이상이 밝아야 카드 행으로 본다.
+    """
+    b = card_box(img)
+    if b is None:
+        return None
+    px, W, H = img.px, img.w, img.h
+    L = int(W * b[0] / 100.0)
+    R = int(W * (b[0] + b[1]) / 100.0)
+    if R - L < 8:
+        return None
+    need = (R - L) * CARD_TOP_FRAC
+    ax, ay, aw, ah = app_box(img)
+    for y in range(H):
+        n = 0
+        base = y * W * 3
+        for x in range(L, R):
+            i = base + x * 3
+            if px[i] >= CARD_THR and px[i + 1] >= CARD_THR and px[i + 2] >= CARD_THR:
+                n += 1
+        if n >= need:
+            return (y - ay) * 100.0 / ah
+    return None
+
+
 # ── «이 띠가 뒤 화면이 비치는 것인가» (T28 57회차 · 워커 M · T358 ✂ 에서 배운 것) ─────
 # 클론 딤은 주인 지시 α .5 라 팝업 화면에 **뒤 화면이 절반 밝기로 비친다**. 그것을 «팝업이 그린 것»
 # 으로 잘못 읽으면 없는 결함을 등재하게 된다 — 56회차에 내가 그렇게 T358 을 냈고 워커 J 가 접었다.
@@ -1556,6 +1594,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
     scores, missing, bad, skewed, unfilled = [], [], [], [], []
     bw = []
     cards = []
+    tops = []
     refs = dict((n, r) for n, r in pairs() if r)
     meta, carried = {}, False
     mp0 = os.path.join(shots_dir, "meta.json")
@@ -1619,6 +1658,12 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                     a_box = b_box = None
                 if a_box and b_box:
                     cards.append((name, a_box, b_box))
+                try:
+                    a_top, b_top = card_top(png_read(rp)), card_top(img)
+                except (OSError, ValueError):
+                    a_top = b_top = None
+                if a_top is not None and b_top is not None:
+                    tops.append((name, a_top, b_top))
         got = read_layout(img, name)
         s, why = score_screen(ent["rects"], got)
         ceil = score_ceiling(ent["rects"], got)
@@ -1657,6 +1702,16 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
     if cards:
         off = [(n, a, b) for n, a, b in cards
                if max(abs(b[0] - a[0]), abs(b[1] - a[1])) > CARD_TOL]
+    if tops:
+        offt = [(n, a, b) for n, a, b in tops if abs(b - a) > CARD_TOP_TOL]
+        print(u"  · 팝업 카드 **위끝**(딤과 무관한 자 · 원작 ↔ 클론 · ±%.1f%%p): 잰 화면 %d개 · 벗어난 화면 %d개"
+              % (CARD_TOP_TOL, len(tops), len(offt)))
+        for n, a, b in sorted(offt, key=lambda t: -abs(t[2] - t[1])):
+            print(u"    ✗ %-18s 원작 %.2f%%H → 클론 %.2f%%H  (Δ %+.2f%%p)" % (n, a, b, b - a))
+        if offt:
+            print(u"    ⓘ **카드가 통째로 밀린 것**이라 그 안을 아무리 재도 안 맞는다 — 먼저 이 값을 맞춰라."
+                  u" 다만 원작 샷과 클론의 **내용 줄 수가 다른 화면**(`forge-list` 등)은 카드가 내용을 따라가므로"
+                  u" 자리로 읽지 마라(T28 70·71회차).")
         print(u"  · 팝업 카드 **가로** 상자(딤과 무관한 자 · 원작 ↔ 클론 · ±%.0f%%p): 잰 화면 %d개 · 벗어난 화면 %d개"
               % (CARD_TOL, len(cards), len(off)))
         for n, a, b in sorted(off, key=lambda t: -max(abs(t[2][i] - t[1][i]) for i in range(2))):
@@ -2503,6 +2558,26 @@ def self_test():
         u"흔들리는 화면끼리도 달성률 순을 지킨다 (%s)" % u"·".join(_all[-2:]))
     chk([n for n, _v in next_screens(_cand, _rate_, lambda n: 0)][:2] == [u"가", u"나"],
         u"아무도 안 흔들리면 차례는 달성률 그대로다")
+
+    # ㉖ 카드 **위끝** 자 (T28 114회차) — 딤이 비쳐도 안 걸린다
+    def _cardimg(dim, top_y):
+        """딤 밝기 dim 위에 흰 카드를 top_y 부터 그린 9:16 그림."""
+        c = _canvas(112, 199, (dim, dim, dim))
+        _fill(c, 20, top_y, 92, 170, (250, 250, 250))
+        return c
+    _dark = _cardimg(12, 40)          # 원작 꼴(딤 α .988)
+    _lite = _cardimg(120, 40)         # 클론 꼴(딤 α .5 — 뒤 화면이 비친다)
+    _t1, _t2 = card_top(_dark), card_top(_lite)
+    chk(_t1 is not None and abs(_t1 - 100.0 * 40 / 199) < 1.0,
+        u"카드 위끝을 그린 자리에서 찾는다 (%.2f%%H · 만든 자리 %.2f)" % (_t1 or -1, 100.0 * 40 / 199))
+    chk(_t2 is not None and abs(_t2 - _t1) < 0.6,
+        u"딤이 밝아도(뒤 화면이 비쳐도) 같은 위끝을 낸다 (%.2f ↔ %.2f)" % (_t1 or -1, _t2 or -1))
+    _band = _cardimg(12, 40)
+    _fill(_band, 20, 60, 92, 90, (20, 20, 20))     # 카드 **안**의 어두운 띠(배너)
+    chk(abs((card_top(_band) or -99) - _t1) < 0.6,
+        u"카드 안 어두운 띠는 위끝을 안 흔든다 (%.2f)" % (card_top(_band) or -99))
+    chk(card_top(_canvas(112, 199, (12, 12, 12))) is None,
+        u"카드가 없으면 위끝도 없다")
 
     print(u"")
     if fail:
