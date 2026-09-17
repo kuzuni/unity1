@@ -208,7 +208,8 @@ TABLE_INK = {
     '.league-name small': ['Ui/LeagueSheet.cs#cp|catalog:league_cp'],                                               # 2339 #f59e0b — 카탈로그 league_cp 가 같은 값(짝만 · ui.js 4740 이름 아래 <small> = 전투력)
     '#player-info-modal .pinfo-id-text .cp': ['Ui/PlayerInfoPopup.cs#cp|res:PinnedColorUi:pinfo_cp_ink'],         # 7693 #ff880f ↔ 전엔 pp_ink
     '#player-info-modal .pinfo-subs-list': ['Ui/PlayerInfoPopup.cs#sub|res:PinnedColorUi:pinfo_subs_ink'],         # 7698 #3a3a3a(5600 var(--pp-ink) 를 뒤에서 덮는다) ↔ 전엔 pp_ink
-    '.af-check.on': ['Ui/ForgeAutoPopup.cs#mark|res:PinnedColorUi:af_check_on_ink'],                                # 4730 ✓ #23c552 — 상자는 #17181a 그대로(전엔 상자를 초록으로 칠했다)
+    '.af-check.on': ['Ui/ForgeAutoPopup.cs#mark|res:PinnedColorUi:af_check_on_ink',                                 # 4730 ✓ #23c552 — 상자는 #17181a 그대로(전엔 상자를 초록으로 칠했다)
+                     'Ui/ForgeUi.cs@AgeBar|res:PinnedColorUi:af_check_on_ink'],                                    # 11회차 — 시대 막대의 체크(ui.js 2289 · ForgeUi.AgeBar)도 같은 자리
     '.dgclear-title': ['Ui/DungeonClearPopup.cs#title|catalog:dgclear_title'],                # 정본 5374 #ffd54f 같은 값
     '.dgclear-sub': ['Ui/DungeonClearPopup.cs#sub|catalog:dgclear_sub'],                      # 정본 5378 #b0bec5 같은 값
     '.dgc-amt': ['Ui/DungeonClearPopup.cs#amt|catalog:dgclear_amt'],                          # 정본 5391 #ffe082 같은 값

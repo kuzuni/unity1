@@ -479,7 +479,8 @@ namespace Forge.Tests.PlayMode
                 else if (t.color == UiKit.C("league_server")) otherServers++;
                 else Assert.Fail("서버 글자의 잉크가 표값(me #dce6ff · 남 league_server) 어느 쪽도 아니다: " + t.color);
             }
-            Assert.AreEqual(1, meServers, "내 행 하나만 정본 2355 #dce6ff(전엔 stage_ink 흰색)");
+            // 11회차 — 런 1040: 내 행은 목록 안과 발 띠(고정 내 행)에 **둘** 선다(정본도 `.league-row.me` 가 두 자리) → «하나만» 이 아니라 «하나 이상».
+            Assert.GreaterOrEqual(meServers, 1, "내 행(목록 + 발 띠)의 서버 글자는 정본 2355 #dce6ff(전엔 stage_ink 흰색)");
             Assert.Greater(otherServers, 0, "남의 행은 회색 league_server 그대로");
             LeagueSheet.OpenRewards(h);
             yield return null; Canvas.ForceUpdateCanvases();
@@ -537,6 +538,7 @@ namespace Forge.Tests.PlayMode
                 if (mk != null && mk.gameObject.activeSelf) { Assert.AreEqual(PinnedColorUi.C("af_check_on_ink"), mk.GetComponent<Image>().color, "✓ = 정본 4730 #23c552"); marks++; }
             }
             Assert.Greater(boxes, 0, "체크 상자가 있다(계속하기 + 필터 행)");
+            Assert.Greater(marks, 0, "켜진 체크가 하나는 있다(시대 막대 기본 켜짐) — 그 체크가 정본 #23c552");
             Assert.AreEqual(face, PinnedColorUi.C("af_check_face"), "상자 표값 = #17181a");
             fh.Meta.Popups.Hide(ForgeAutoPopup.Name);
             yield return null;

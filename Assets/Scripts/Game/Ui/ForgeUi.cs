@@ -367,10 +367,13 @@ namespace Forge.Game.Ui
                 float cb = h * 0.62f;
                 RectTransform box = UiKit.Box(bar, "check");
                 UiKit.Place(box, x, (h - cb) * 0.5f, cb, cb);
-                Tile(box, "box", check.Value ? new Color(0.14f, 0.77f, 0.32f, 1f) : Color.black, Color.black, cb * 0.2f, PopupKit.Line);
+                // T396 11회차 — 정본 4722~4730 `.af-check { background: #17181a } .af-check.on { background: #17181a; color: #23c552 }`(주석 «켜진 상태도 배경은 검정 그대로 두고
+                //   체크 글리프만 초록 · 상자를 통째로 초록으로 채우던 종전 구현은 원본과 다른 물건»). 시대 막대의 체크도 같은 `.af-check`(ui.js 2289) — 전엔 켜짐 상자를 초록으로 칠했다.
+                Tile(box, "box", PinnedColorUi.C("af_check_face"), Color.black, cb * 0.2f, PopupKit.Line);
                 if (check.Value)
                 {
                     Image ck = PopupKit.IconOr(box, "mark", "check");
+                    ck.color = PinnedColorUi.C("af_check_on_ink");   // ✓ 만 #23c552(ui.js 2289 tint)
                     UiKit.Anchor(ck.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, cb * 0.8f, cb * 0.8f);
                 }
                 x += cb + rem * 0.4f;
