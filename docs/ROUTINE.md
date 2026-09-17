@@ -3845,6 +3845,7 @@
 - 고침 = 표 `SummonFxUi.json` 에 네 칸(`floor_w_f` .88 · `floor_aspect` 2.5 · `floor_one_w_f` .64 · `floor_one_aspect` 2.6) + 캐노피와 같은 꼴로 한 줄 읽기 + 눈금 굽기도 같은 값을 받는다. **값은 안 바뀐다**(§1 «원작에 없는 것을 더하지 않는다» — 이 회차는 자리만 옮긴다).
 - 판정: 화면이 **한 화소도 안 움직인다**(`screen_t179-summon` 앞뒤 같음) + EditMode 자 한 칸(표 왕복 네 칸) + PlayMode 자 한 칸(소환진 상자의 폭/높이 = 표값 ±1px · `one` 갈래와 그 밖 갈래 둘 다).
 - 범위: `Assets/Scripts/Game/Ui/SkillSummonResult.cs`(**산 lock 뒤**) · `Assets/Forge/Resources/SummonFxUi.json` · `Assets/Tests/EditMode/` · `Assets/Tests/PlayMode/SummonFxTests.cs` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 **1회차 선점 2026-09-17 11:4x 워커 O(sess-2140-18689)** — `SkillSummonResult.cs` 는 산 lock 밖(T333 반납 · `check_claim_scope` 겹침 = 문서 둘뿐). 표 네 칸 + 한 줄 읽기 + EditMode·PlayMode 자.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
