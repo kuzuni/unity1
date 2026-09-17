@@ -45,7 +45,10 @@ namespace Forge.Tests.PlayMode
         public void Clean() { UiRoot.OverrideSafeArea(null); }
 
         /// <summary>한 표본 — Ms = 표의 시각(정본 열과 나란히) · At = **실제로 찍힌 시각**(봉우리·끝 판정은 이것으로 · 7회차: 배치모드는 표본이 200~700ms 늦게 찍혀 표 시각으로 재면 «420ms 봉우리» 가 실은 593ms 였다).</summary>
-        sealed class Row { public int Ms, At, Total, Top, Mid, Bot; }
+        // T441 2회차 — `MinF` = 그 프레임에서 **가장 높이 뜬 금빛 화소의 행**(0 = 화면 맨 위 · 정적 바닥은 뺀 뒤).
+        //   «코인이 시트 위로 날아오르는가» 를 한 수로 적는다 — 정본 자국은 mid 띠가 3762~5045 까지 차는데 클론은 0~1 이라,
+        //   포물선이 시트 띠(0.552H~) 안에서만 논다는 뜻이다. 그 높이를 프레임마다 남겨 다음 회차가 «얼마나 낮은가» 로 잡게 한다.
+        sealed class Row { public int Ms, At, Total, Top, Mid, Bot; public float MinF = 1f; }
 
         static JsonObject Table()
         {
@@ -174,6 +177,7 @@ namespace Forge.Tests.PlayMode
                 {
                     if (m[row + x] == 0 || floor[row + x] != 0) continue;
                     r.Total++;
+                    if (f < r.MinF) r.MinF = f;   // T441 2회차 — 가장 높이 뜬 금빛 행
                     if (f >= t0 && f < t1) r.Top++;
                     else if (f >= m0 && f < m1) r.Mid++;
                     else if (f >= b0 && f < b1) r.Bot++;
@@ -267,12 +271,12 @@ namespace Forge.Tests.PlayMode
             var sb = new StringBuilder();
             sb.AppendLine("# T408 — 판매 코인 시간축(클론 · " + W + "×" + H + " · 정적 바닥 = 마지막 프레임) ↔ 정본 표 CoinSellCurveUi.json · 판정 띠 " + band
                           + "(시트 · 클론 경계 " + sheetTopF.ToString("0.###") + "H ↔ 정본 " + J.Num(t["sheet_top_f"]).ToString("0.###") + "H) · 정본 딴 판 프레임 " + J.Arr(t["foreign_ms"]).Count + "장 뺌");
-            sb.AppendLine("#   ms  실제ms  total    top    mid    bot | 정본 total   top   mid   bot");
+            sb.AppendLine("#   ms  실제ms  total    top    mid    bot  최고%H | 정본 total   top   mid   bot   (최고%H = 그 프레임에서 가장 높이 뜬 금빛 행 · 100 = 못 떴다 · T441 2회차)");
             for (int i = 0; i < rows.Count; i++)
             {
                 JsonObject rf = J.Obj(refFrames[i]);
-                sb.AppendLine(string.Format("{0,5} {1,6} {2,6} {3,6} {4,6} {5,6} | {6,6} {7,5} {8,5} {9,5}", rows[i].Ms, actual[i], rows[i].Total, rows[i].Top, rows[i].Mid, rows[i].Bot,
-                    (int)J.Num(rf["total"]), (int)J.Num(rf["top"]), (int)J.Num(rf["mid"]), (int)J.Num(rf["bot"])));
+                sb.AppendLine(string.Format("{0,5} {1,6} {2,6} {3,6} {4,6} {5,6} {10,6:0.0} | {6,6} {7,5} {8,5} {9,5}", rows[i].Ms, actual[i], rows[i].Total, rows[i].Top, rows[i].Mid, rows[i].Bot,
+                    (int)J.Num(rf["total"]), (int)J.Num(rf["top"]), (int)J.Num(rf["mid"]), (int)J.Num(rf["bot"]), rows[i].MinF * 100f));
             }
             sb.AppendLine("# 클론 봉우리(" + band + ") 실제 " + peak.At + "ms(표 " + peak.Ms + ") " + Band(peak, band) + " · 끝 실제 " + (endMs < 0 ? "없음" : endMs + "ms") + " ↔ 정본 봉우리 " + refPeakMs + "ms " + (int)J.Num(t["peak_v"]) + " · 끝 " + refEndMs + "ms");
             Record(sb.ToString());
