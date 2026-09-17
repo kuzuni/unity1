@@ -38,14 +38,12 @@ namespace Forge.Game.Battle
         public const double CssRefH = 844;
         public const int MaxLive = 40;
 
-        sealed class Frame { public double T, Dx, Rise, Scale, Alpha, Rot; public Frame(double t, double dx, double rise, double s, double a, double r) { T = t; Dx = dx; Rise = rise; Scale = s; Alpha = a; Rot = r; } }
-        static readonly Frame[] Dmg = { new Frame(0, 0, 0, 0.9, 1, 0), new Frame(0.07, 0.16, 0.36, 1.24, 1, 0), new Frame(0.34, 0.7, 1, 1, 1, 0), new Frame(0.62, 0.9, 0.78, 1, 1, 0), new Frame(1, 1, 0.68, 0.9, 0, 0) };
-        static readonly Frame[] Crit = { new Frame(0, 0, 0, 1.12, 1, -10), new Frame(0.09, 0.16, 0.34, 1.35, 1, 5), new Frame(0.26, 0.62, 1, 1.05, 1, -3), new Frame(0.60, 0.88, 0.76, 1, 1, 1), new Frame(1, 1, 0.66, 0.92, 0, 0) };
-        static readonly Frame[] Kill = { new Frame(0, 0, 0, 1.28, 1, -6), new Frame(0.07, 0.12, 0.26, 1.62, 1, 3), new Frame(0.17, 0.3, 0.52, 1.34, 1, -2), new Frame(0.30, 0.58, 0.86, 1.44, 1, 1), new Frame(0.62, 0.88, 0.94, 1.2, 1, 0), new Frame(1, 1, 0.8, 1.05, 0, 0) };
+        // T460 — 아크 키프레임(정본 @keyframes dmgrise·dmgcrit·dmgkill)은 표 `Resources/DmgArcUi.json` 이 쥔다(Core DmgArcSpec · 구간 곡선 cubic-bezier 포함).
+        //   전엔 여기 Frame[] 상수 셋에 박혀 있었고(값은 정본과 같았다) 시간축이 수명 900ms 에 늘어져 있었다 — 정본은 550ms 에 아크가 끝나고 forwards 로 머문다.
 
         sealed class Num
         {
-            public RectTransform Rt; public TextMeshProUGUI T; public UiTextKindTag Tag; public Frame[] Anim; public Vector2 Origin; public double Dx, Rise, Pop, Age; public Color Color;
+            public RectTransform Rt; public TextMeshProUGUI T; public UiTextKindTag Tag; public string Arc; public Vector2 Origin; public double Dx, Rise, Pop, Age; public Color Color;
             /// <summary>T333 10회차 — 이 숫자의 글로우 종류(정본에 글로우가 없는 등급이면 null) · 지금 걸린 겹 키 · 재질을 다시 구울 때 쓰는 키라인 키 둘.</summary>
             public string GlowCls, GlowKey, OutlineKey, StrokeKey;
             /// <summary>T440 — «내게 들어온 피해» 의 ▼ 표식(정본 `.dmg-hero::before`) · 숫자와 따로 선 작은 글자 조각(없는 종류는 꺼 둔다).</summary>
@@ -102,13 +100,13 @@ namespace Forge.Game.Battle
         /// `heal`(#69f0ae)만 카탈로그 `pip_done` 이 같은 값이라 그대로 둔다(토큰을 써도 되는 자리 · T377 결정 636 과 같은 셈).
         /// 값은 표(`Resources/PinnedColorUi.json`)가 쥐고 `tools/check_pinned_colors.py` 의 잉크 갈래가 정본과 같은지 지킨다.
         /// </summary>
-        static void Style(string cls, out TextKind kind, out string colorKey, out string inkKey, out string outlineKey, out string strokeKey, out Frame[] anim, out string prefix)
+        static void Style(string cls, out TextKind kind, out string colorKey, out string inkKey, out string outlineKey, out string strokeKey, out string arc, out string prefix)
         {
-            kind = TextKind.Body; colorKey = "stage_ink"; inkKey = null; outlineKey = "stage_outline"; strokeKey = "float_dmg"; anim = Dmg; prefix = "";
+            kind = TextKind.Body; colorKey = "stage_ink"; inkKey = null; outlineKey = "stage_outline"; strokeKey = "float_dmg"; arc = "dmg"; prefix = "";
             switch (cls)
             {
-                case "dmg-crit": kind = TextKind.Button; inkKey = "dmg_crit_ink"; anim = Crit; break;
-                case "dmg-kill": kind = TextKind.Button; inkKey = "dmg_kill_ink"; outlineKey = "cp"; strokeKey = "float_dmg_kill"; anim = Kill; break;
+                case "dmg-crit": kind = TextKind.Button; inkKey = "dmg_crit_ink"; arc = "crit"; break;
+                case "dmg-kill": kind = TextKind.Button; inkKey = "dmg_kill_ink"; outlineKey = "cp"; strokeKey = "float_dmg_kill"; arc = "kill"; break;
                 case "dmg-skill": kind = TextKind.Button; inkKey = "dmg_skill_ink"; break;
                 case "dmg-hero": prefix = "▼"; inkKey = "dmg_hero_ink"; strokeKey = "float_dmg_hero"; break;
                 case "heal": kind = TextKind.Button; colorKey = "pip_done"; break;
@@ -143,8 +141,8 @@ namespace Forge.Game.Battle
                 lp.y += (float)(HitRules.DmgSlotStep * k);
             }
             lp.y = (float)Math.Min(lp.y, topFloor);
-            TextKind kind; string colorKey, inkKey, outlineKey, strokeKey, prefix; Frame[] anim;
-            Style(cls, out kind, out colorKey, out inkKey, out outlineKey, out strokeKey, out anim, out prefix);
+            TextKind kind; string colorKey, inkKey, outlineKey, strokeKey, prefix, arc;
+            Style(cls, out kind, out colorKey, out inkKey, out outlineKey, out strokeKey, out arc, out prefix);
             // T440 — 접두 ▼ 는 숫자 문자열에 안 붙인다(같은 크기가 된다) · 아래 HeroMark 가 따로 조각으로 세운다.
             Num n = Take(layer, kind, colorKey, text ?? string.Empty);
             TextMeshProUGUI t = n.T;
@@ -162,7 +160,7 @@ namespace Forge.Game.Battle
             float pad = (float)(HitRules.DmgSidePad * k);
             float minX = layer.rect.xMin + pad + half - (float)Math.Min(0, dx * k), maxX = layer.rect.xMax - pad - half - (float)Math.Max(0, dx * k);
             if (minX <= maxX) lp.x = Mathf.Clamp(lp.x, minX, maxX);
-            n.Anim = anim; n.Origin = lp; n.Dx = dx * k; n.Rise = rise * k; n.Pop = pop; n.Age = 0; n.Color = t.color;
+            n.Arc = arc; n.Origin = lp; n.Dx = dx * k; n.Rise = rise * k; n.Pop = pop; n.Age = 0; n.Color = t.color;
             live.Add(n);
             Place(n, 0);
         }
@@ -255,11 +253,9 @@ namespace Forge.Game.Battle
 
         static void Place(Num n, double u)
         {
-            Frame[] f = n.Anim;
-            Frame a = f[0], b = f[f.Length - 1];
-            for (int i = 0; i < f.Length - 1; i++) if (u >= f[i].T && u <= f[i + 1].T) { a = f[i]; b = f[i + 1]; break; }
-            double w = b.T > a.T ? (u - a.T) / (b.T - a.T) : 0;
-            double dx = a.Dx + (b.Dx - a.Dx) * w, rise = a.Rise + (b.Rise - a.Rise) * w, sc = a.Scale + (b.Scale - a.Scale) * w, al = a.Alpha + (b.Alpha - a.Alpha) * w, rot = a.Rot + (b.Rot - a.Rot) * w;
+            // T460 — 값·구간 곡선은 표(DmgArcUi.json · Core DmgArcSpec.Sample). u 는 **아크 길이**(정본 .55s) 기준이고 1 을 넘으면 마지막 프레임(opacity 0)에 머문다(forwards).
+            double dx, rise, sc, al, rot;
+            DmgArcUi.Spec.Sample(n.Arc, u, out dx, out rise, out sc, out al, out rot);
             // CSS y 는 아래가 + · rise 는 음수(위로) → 유니티 UI 는 위가 + 이므로 부호를 뒤집는다
             n.Rt.anchoredPosition = new Vector2((float)(n.Origin.x + n.Dx * dx), (float)(n.Origin.y - n.Rise * rise));
             n.Rt.localScale = Vector3.one * (float)(n.Pop * sc);
@@ -282,6 +278,7 @@ namespace Forge.Game.Battle
         public void Step(float dt)
         {
             double life = HitRules.DmgLifeMs / 1000;
+            double arc = DmgArcUi.Spec.DurationMs / 1000;   // T460 — 정본 507 .55s: 아크는 수명(900 · scene3d.js 17340) 보다 먼저 끝나고 opacity 0 으로 머문다
             for (int i = live.Count - 1; i >= 0; i--)
             {
                 var n = live[i];
@@ -292,7 +289,7 @@ namespace Forge.Game.Battle
                     live.RemoveAt(i);
                     continue;
                 }
-                Place(n, n.Age / life);
+                Place(n, n.Age / arc);
             }
         }
 
