@@ -156,6 +156,23 @@ TABLE = {
     #   18회차에 트랙을 정본값으로 되돌리고 글자도 흰쪽(`stage_ink`)으로 같이 돌렸다(한쪽만 고치면 글자가 트랙에 묻는다).
     '.summon-gauge': ['Ui/SkillPanel.cs#summon-gauge|res:PetSkillUi:gauge_bg'],
     '.qst-bar': ['Ui/QuestSheet.cs#bg|catalog:quest_bar_bg'],
+    # ── T377 19회차 — `.cur-pill` 갈래 전수(정본이 화폐마다 다른 바탕을 못박은 일곱 자리) + 상점 시트 둘 + 퀘스트 완료 채움.
+    #   ⚑ 이 갈래는 **특이도로 한 자리가 죽는다** — 아래 `.cur-pill.coin` 줄이 그 실측이다.
+    '.shop-sheet .sheet-head .cur-pill': ['Ui/ShopSheet.cs@CurBar|catalog:shop_cur_bar'],   # 3959 #080006 — 상점 머리의 두 알약(코인·젬)을 (0,3,0) 으로 덮는다
+    '.cur-pill.ticket': ['Ui/SkillPanel.cs#pill-ticket|res:PetSkillUi:pill_ticket'],        # 3987 #2e7d32 ↔ PetSkillUi pill_ticket 같은 값(짝만 · ui.js 4298 스킬 머리)
+    '.cur-pill.potion': ['Ui/TechPanel.cs|catalog:pill_potion'],                            # 3988 #00897b ↔ 카탈로그 pill_potion 같은 값(ui.js 5390·5452 기술)
+    '.cur-pill.egg': ['Ui/PetPanel.cs#pill-egg|res:PetSkillUi:pill_egg'],                   # 4245 #b26a00 ↔ PetSkillUi pill_egg 같은 값(ui.js 3968 펫 머리)
+    '.cur-pill.winder': ['Ui/MountSheet.cs#pill-winder|res:PetSkillUi:mount_pill'],         # 4250 #2b2b2b ↔ PetSkillUi mount_pill — **이름만 다르고 값은 같다**(ui.js 5659 탈것)
+    '.cur-pill.gem': ['Ui/PetPanel.cs#pill-gem|res:PetSkillUi:pill_gem',                    # 4259 #c62828 — 펫 머리(ui.js 3970)
+                      'Ui/TechPanel.cs#pill-gem|catalog:pill_gem'],                         #   기술 머리(ui.js 5392·5454) · 두 표에 같은 값이 있다
+    # 정본에서 `.cur-pill.coin` 의 **유일한 자리**(ui.js 4988)가 `.modal-card.sheet.shop-sheet > .sheet-head` 안이다 —
+    #   3959 `.shop-sheet .sheet-head .cur-pill`(0,3,0)이 `.cur-pill.coin`(0,2,0)을 늘 이긴다. 곧 #b8860b 는 **한 번도 안 그려진다**.
+    #   클론도 같다(`ShopSheet.CurBar` 가 코인·젬 둘 다 `shop_cur_bar` = #080006 로 칠한다) — 옳게 옮겨진 것이다.
+    '.cur-pill.coin': ['—죽음: 유일한 자리(ui.js 4988)가 `.shop-sheet .sheet-head` 안이라 3959(0,3,0)가 늘 덮는다 — 정본에서도 #b8860b 는 안 그려진다'],
+    '.modal-card.sheet.shop-sheet': ['Ui/ShopSheet.cs|catalog:shop_bg'],                    # 2874 #200219 ↔ 카탈로그 shop_bg 같은 값(짝만)
+    '.shop-reward-pill': ['Ui/ShopSheet.cs|catalog:shop_pill'],                             # 2937 #c9c9c9 ↔ 카탈로그 shop_pill 같은 값(짝만)
+    '.qst-row.done .qst-bar i': ['Ui/QuestSheet.cs#fill|catalog:quest_bar_done'],           # 8807 #81e884 ↔ 카탈로그 quest_bar_done 같은 값(짝만)
+
 }
 # 임자가 정해진 빈자리(파일 lock 뒤) — 붙이면 여기서 지운다
 KNOWN = {
