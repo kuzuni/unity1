@@ -238,146 +238,96 @@ def _merge(runs, gap):
     return [(a, b) for a, b in out]
 
 
-def _row_var(img, y0, y1, x0, x1):
-    """[y0,y1) 각 행의 밝기 평균 절대편차."""
-    g, w = img.gray(), img.w
+# ─────────────────────────── 판독 원리 (T444 · 결정 778) ───────────────────────────
+# 🚫 **값 문턱을 다 걷어냈다** — 옛 자(행 얼룩 MAD 6.0 · 골짜기 `med×k`·ε 0.5 · 바탕 ±12 · 블록 8%)는 화소를
+#    ±1 만 밀어도 35장 중 24장이 조각 수를 바꿨고(T437 · `--jitter`), 여섯 자리를 하나씩 고쳐도 안 줄었다 —
+#    문턱이 열댓 곳이고 그 대부분이 칼날 위였다(흔들림 0.5 ↔ 여유 0.5). 옛 코드는 git 이력(T437 6회차까지)에 있다.
+# 지금 자는 셋으로 선다(T444 1회차 실측 35장 · 가장자리 25~35/35 · 다중 척도 17~27/35 ↔ 이것 3~4/35):
+#   ① **건너뜀 수**(정수): 한 행에서 «EDGE_STEP 칸 떨어진 화소와 밝기가 EDGE_T 넘게 다른 자리» 의 수.
+#      2칸 차인 까닭 — 체커판 ±1 은 한 칸 걸러 밀므로 이웃 차는 ±1 움직이지만 2칸 차는 같은 쪽끼리라 안 움직인다.
+#      전체 ±1 은 포화(흰 255 · 검정 0 은 안 밀린다)에서만 흔들고 그것은 흔들기 자체의 한계다(1회차 `main`·`skill-detail`).
+#   ② **그릇 수준**: 구간 안에서 FLOOR_RUN 행 이상 이어지는 값 중 최솟값 = 그 구간을 감싼 테두리 몫(목록 격자 ≈10).
+#      최솟값을 쓰면 두 행짜리 우연한 0 이 그릇이 돼 아무것도 안 갈린다(1회차 실측 `forge-list` 14~84% 한 밴드).
+#   ③ **상대 잣대**: 그릇보다 ROW_EXTRA(열은 COL_EXTRA) 많은 행·열만 «내용» — 문턱이 값이 아니라 «그릇 + 정수» 다.
+# 굵기는 옛 자와 같게 뒀다: 밴드 틈 H/100 잇기 · BAND_MAX%%H 넘는 밴드만 재귀(깊이 3) · 블록 틈 W/50 잇기 · 블록이 둘 미만이면 줄 없음.
+EDGE_STEP = 2      # 건너뜀을 재는 화소 간격(체커판 ±1 을 안 타는 최소 간격)
+EDGE_T = 24        # 이만큼 넘게 다르면 «건너뜀»(0~255 · 글자·테두리 모서리는 100 안팎 · 그라디언트 한 칸은 0~3)
+FLOOR_RUN = 3      # «그릇 수준» 은 이 행 수 이상 이어져야 그릇이다
+ROW_EXTRA = 2      # 그릇보다 이만큼 많은 행이 내용이다(테두리 한 쌍 = 2)
+COL_EXTRA = 2      # 열도 같다
+BAND_MAX = 18      # 이보다 높은(%) 밴드는 그릇 수준으로 더 가른다
+
+
+def _row_edges(img, y0, y1, x0, x1):
+    """[y0,y1) 각 행의 «건너뜀 수» — EDGE_STEP 칸 떨어진 화소와 EDGE_T 넘게 다른 자리(정수)."""
+    g, w, st, T = img.gray(), img.w, EDGE_STEP, EDGE_T
     out = []
-    n = x1 - x0
     for y in range(y0, y1):
         base = y * w
-        tot = 0
-        for x in range(x0, x1):
-            tot += g[base + x]
-        mean = tot // n
-        dev = 0
-        for x in range(x0, x1):
-            d = g[base + x] - mean
-            dev += d if d >= 0 else -d
-        out.append(dev / float(n))
-    return out
-
-
-def _band_bg(img, y0, y1, x0, x1):
-    """밴드의 «바탕» 밝기 — 8단위로 뭉친 밝기의 **이웃 셋 창** 최빈값. 여백·판 색이 잡힌다.
-
-    ⚠ **칸 하나만 세면 안 된다**(T437 3회차 실측). 바탕이 8 눈금 경계에 걸친 밴드는 표가 두 칸에
-    갈려 회차마다 1등이 뒤집히고, 그러면 바탕이 통째로 8 밝아지거나 어두워져 `_col_ink` 의 «바탕과
-    12 넘게 다른가» 가 열마다 뒤집힌다 — 자리가 **똑같은** 밴드 383개 중 블록 수가 흔들린 4개가
-    **모두** 이 뒤집힘을 달고 있었다(뒤집힌 밴드의 1등↔2등 표차 평균 6.55%% ↔ 안 뒤집힌 밴드 39.50%%).
-    그래서 칸 `k` 의 표를 `k-1·k·k+1` 로 세어 **창이 가장 무거운 칸**을 고른다 — 옆 칸으로 표가
-    넘어가도 창 합은 그대로라 뒤집히지 않는다."""
-    g, w = img.gray(), img.w
-    hist = {}
-    for y in range(y0, y1):
-        base = y * w
-        for x in range(x0, x1):
-            k = g[base + x] >> 3
-            hist[k] = hist.get(k, 0) + 1
-    k = max(hist, key=lambda k: (hist.get(k - 1, 0) + hist[k] + hist.get(k + 1, 0), -k))
-    return (k << 3) + 4
-
-
-def _col_ink(img, y0, y1, x0, x1):
-    """[x0,x1) 각 열에서 «바탕이 아닌» 픽셀 비율(0~100) — 밴드 안의 덩어리를 가른다.
-
-    열끼리 비교할 때 행 평균을 쓰면 내용이 행 평균을 끌어당겨 여백이 도리어 «내용» 으로 뒤집힌다
-    (자기 검사 ②가 그것을 잡는다) — 바탕색과의 차이로 본다."""
-    g, w = img.gray(), img.w
-    bg = _band_bg(img, y0, y1, x0, x1)
-    out = []
-    n = y1 - y0
-    for x in range(x0, x1):
         c = 0
-        for y in range(y0, y1):
-            d = g[y * w + x] - bg
-            if (d if d >= 0 else -d) > 12:
+        for x in range(x0 + st, x1):
+            d = g[base + x] - g[base + x - st]
+            if d >= T or d <= -T:
                 c += 1
-        out.append(100.0 * c / n)
+        out.append(c)
     return out
 
 
-# ⚠ 행 얼룩을 창(3·5·9)으로 **고르게 펴 보는 길은 이미 재 봤고 버렸다**(T28 24회차 실측 · 런 214↔219):
-#   회차 사이 |Δ| 합은 6.5 → 6.0 → 3.9 → 3.4 로 줄지만 평균이 4.70 → 4.34 → 4.14 → **3.80** 으로 같이 무너진다
-#   (밴드가 뭉개져 자가 재는 것이 줄어든다 · 창 3 은 최대 |Δ| 가 되레 1.3 → 2.3 으로 커졌다).
-#   경계가 걸려 점수만 튀는 회차는 «자를 무디게» 가 아니라 **지문**(안/뒤 차)으로 가른다.
-BAND_INK = 6.0     # 행 얼룩이 이보다 크면 «내용 있는 행»(255 중 · 여백·단색 바는 0~3)
-BAND_MAX = 18      # 이보다 높은(%) 밴드는 골짜기에서 더 가른다
+def _col_edges(img, y0, y1, x0, x1):
+    """[x0,x1) 각 열의 «건너뜀 수» — 그 열에 걸린 가로 건너뜀(글자·테두리의 세로 모서리) + 세로 건너뜀(가로 모서리).
 
-
-VALLEY_EPS = 0.5   # 창 최솟값과 이만큼 안이면 «같은 바닥» 으로 본다(T437 1회차 실측: 진 폭 0.006~0.819)
-
-
-def _valleys(rv, y0, y1, H, k):
-    """[y0,y1) 안에서 «골짜기» — 구간 중앙값의 k 배 이하이면서 **창 안 바닥과 같은 높이**인 자리.
-
-    UI 는 요소 사이를 여백(=행 얼룩의 골짜기)으로 가른다. 문턱만 쓰면 어두운 딤 위에 뜬 모달처럼
-    **모든 행이 문턱을 넘는** 화면이 통째로 한 밴드가 돼 대조할 것이 4값뿐이 된다(실측:
-    `shot-042905` 대장간 목록 · `shot-042744` 설정) — 골짜기로 가르면 13밴드가 선다.
-
-    🚫 **옛 꼴이 회차마다 다른 답을 냈다(T437 1·2회차)**. 옛 조건은 `seg[i] == min(창)` — **정확히**
-    같아야 컷이었고, 이긴 자리에서 `i += win` 을 건너뛰었다. 1회차 실측(런 968 ↔ 1012 · 컷이 갈린
-    여덟 화면): 없어진 컷들은 **문턱보다 4.1~42.6 단위나 아래**였고(문턱은 범인이 아니다) **창 바닥과의
-    차가 0.006~0.819**(0~255 눈금에서 0.002~0.3%)였다. `offline` y373 은 골짜기 바닥이 한 행 옆으로
-    **0.083** 옮겼을 뿐인데 컷이 사라졌고, 그 새 바닥은 옛 스캔 범위(`i < n - win`) **바로 바깥**이라
-    아예 보이지도 않았다. 곧 셋이 겹쳐 있었다 — ⓐ 평평한 바닥에서 **누가 이길지가 0.1 단위로 갈리고**
-    ⓑ **건너뛰기 때문에 순서가 결과를 정하고** ⓒ **구간 끝 `win` 행은 아무도 안 봤다**.
-
-    그래서 셋을 같이 고쳤다:
-      ⓐ `seg[i] <= 창 바닥 + VALLEY_EPS` — 바닥이 평평하면 **그 줄 전체가 후보**다.
-      ⓑ 건너뛰기를 없애고 후보를 다 모은 뒤 **가까운 것끼리(간격 ≤ win) 한 골짜기로 뭉쳐 가운데**를 자른다.
-         한 행이 흔들려도 가운데는 안 움직인다 — 그것이 이 고침의 전부다.
-      ⓒ 가장자리도 본다(창을 잘라 쓴다). 다만 구간 양끝 2행은 빈 조각이 되므로 뺀다.
-    """
-    seg = rv[y0:y1]
-    n = len(seg)
-    if n <= 4:
-        return []
-    med = sorted(seg)[n // 2]
-    thr = med * k
-    win = max(3, H // 60)
-    cand = []
-    for i in range(2, n - 2):
-        if seg[i] > thr:
-            continue
-        lo, hi = max(0, i - win), min(n, i + win + 1)
-        if seg[i] <= min(seg[lo:hi]) + VALLEY_EPS:
-            cand.append(i)
-    if not cand:
-        return []
-    out, run = [], [cand[0]]
-    for a, b in zip(cand, cand[1:]):
-        if b - a <= win:
-            run.append(b)
-        else:
-            out.append((run[0] + run[-1]) // 2)
-            run = [b]
-    out.append((run[0] + run[-1]) // 2)
+    세로 줄무늬처럼 한 열 안이 위아래로 한 값인 덩어리는 세로 건너뜀이 0 이라, 가로 건너뜀을 열에 얹어야 잡힌다."""
+    g, w, st, T = img.gray(), img.w, EDGE_STEP, EDGE_T
+    out = [0] * (x1 - x0)
+    for y in range(y0, y1):
+        base = y * w
+        for x in range(x0 + st, x1):
+            d = g[base + x] - g[base + x - st]
+            if d >= T or d <= -T:
+                out[x - x0] += 1
+    for y in range(y0 + st, y1):
+        base, up = y * w, (y - st) * w
+        for x in range(x0, x1):
+            d = g[base + x] - g[up + x]
+            if d >= T or d <= -T:
+                out[x - x0] += 1
     return out
 
 
-def _split(rv, y0, y1, H, depth=0):
+def _floor(seg, run=FLOOR_RUN):
+    """«그릇 수준» — run 칸 이상 이어지는 값 무리 중 가장 낮은 것(무리의 최댓값). 그런 무리가 없으면 최솟값."""
+    best = None
+    i, n = 0, len(seg)
+    while i < n:
+        j = i
+        while j < n and seg[j] <= seg[i]:
+            j += 1
+        if j - i >= run:
+            v = max(seg[i:j])
+            if best is None or v < best:
+                best = v
+        i = j
+    return best if best is not None else (min(seg) if seg else 0)
+
+
+def _flags(flags, min_len, gap):
+    """참인 자리의 연속 구간 — gap 이하로 떨어진 것은 잇고 min_len 미만은 버린다."""
+    runs = _merge(_runs([1 if f else 0 for f in flags], 0, 1), gap)
+    return [(a, b) for a, b in runs if b - a >= min_len]
+
+
+def _split_rows(t, y0, y1, H, depth=0):
+    """BAND_MAX%%H 를 넘는 밴드를 «그릇 + ROW_EXTRA» 넘는 행의 구간으로 가른다(틈은 잇지 않는다 — 1행 구분선에서도 갈린다)."""
     if y1 - y0 <= max(4, H * BAND_MAX // 100) or depth >= 3:
         return [(y0, y1)]
-    cuts = _valleys(rv, y0, y1, H, 0.75)
-    if not cuts:
-        cuts = _valleys(rv, y0, y1, H, 0.92)   # 얼룩이 고른 밴드의 얕은 골짜기
-    if not cuts:
-        # 골짜기가 없다 = 밴드 안이 «고른 바닥 + 봉우리» 꼴이다(딤 모달). 그 밴드의 중앙값을
-        # 바닥으로 보고 그것을 넘는 구간만 다시 집는다 — 위 단계가 화면 전체에 한 것과 같은 규칙.
-        seg = rv[y0:y1]
-        med = sorted(seg)[len(seg) // 2]
-        runs = _merge(_runs(seg, med * 1.15, max(2, H // 100)), max(2, H // 100))
-        if len(runs) < 2:
-            return [(y0, y1)]
-        out = []
-        for a, b in runs:
-            out += _split(rv, y0 + a, y0 + b, H, depth + 1)
-        return out
-    bounds = [y0] + [y0 + c for c in cuts] + [y1]
+    seg = t[y0:y1]
+    b = _floor(seg)
+    subs = _flags([v >= b + ROW_EXTRA for v in seg], max(3, H // 100), 0)
+    if len(subs) < 2:
+        return [(y0, y1)]
     out = []
-    for a, b in zip(bounds, bounds[1:]):
-        if b - a >= max(3, H // 100):
-            out += _split(rv, a, b, H, depth + 1)
+    for a, c in subs:
+        out += _split_rows(t, y0 + a, y0 + c, H, depth + 1)
     return out
 
 
@@ -387,9 +337,9 @@ def _split(rv, y0, y1, H, depth=0):
 #    같은 자를 쓴다» 고 적어 둔 것이 조용히 깨진다. T437 2·3회차가 실제로 그랬다(101·102회차 두 회차 ·
 #    T28 103회차 실측: 다시 구우니 표가 1,366 → 1,452줄로 바뀌었다). 그래서 자국을 표 머리에 박고
 #    자기 검사가 **막는다**.
-STAMP_FUNCS = ("app_box", "_runs", "_merge", "_row_var", "_band_bg", "_col_ink",
-               "_valleys", "_split", "read_layout")
-STAMP_CONSTS = ("BAND_INK", "BAND_MAX", "VALLEY_EPS", "GRID")
+STAMP_FUNCS = ("app_box", "_runs", "_merge", "_row_edges", "_col_edges", "_floor", "_flags",
+               "_split_rows", "read_layout")
+STAMP_CONSTS = ("EDGE_STEP", "EDGE_T", "FLOOR_RUN", "ROW_EXTRA", "COL_EXTRA", "BAND_MAX", "GRID")
 _DOC_Q = ('"""', "'''")
 
 
@@ -444,17 +394,21 @@ def read_layout(img, name="화면"):
     (세로/가로 1.6112~1.8238 · 9:16 인 것이 하나도 없다 · 68회차 전수) 그림 전체를 100%% 로 잡으면
     원작 쪽 세로 좌표가 최대 1.26%%p 치우친다. `app_box()` 로 앱만 떼어 그 안에서만 판독하고
     좌표도 앱 기준으로 낸다. 클론 샷은 540x960 = 정확히 9:16 이라 **아무것도 달라지지 않는다**.
+
+    판독은 위 «판독 원리» 세 줄이 전부다(T444): 건너뜀이 있는 행의 연속 = 밴드(틈 H/100 잇기) ·
+    BAND_MAX 를 넘는 밴드는 그릇 수준으로 재귀 · 밴드 안 열은 «그릇 + COL_EXTRA» 넘는 연속 = 블록.
     """
-    ax, ay, W, H = app_box(img)[0], app_box(img)[1], app_box(img)[2], app_box(img)[3]
-    rv = _row_var(img, ay, ay + H, ax, ax + W)     # 값은 앱 기준 0..H-1 로 돌아온다
+    ax, ay, W, H = app_box(img)
+    t = _row_edges(img, ay, ay + H, ax, ax + W)      # 값은 앱 기준 0..H-1 로 돌아온다
+    G = max(2, H // 100)
     bands = []
-    for a, b in _merge(_runs(rv, BAND_INK, max(2, H // 100)), max(2, H // 100)):
-        bands += _split(rv, a, b, H)
+    for a, b in _flags([v >= 1 for v in t], G, G):
+        bands += _split_rows(t, a, b, H)
     rects = []
     for bi, (y0, y1) in enumerate(bands):
         rects.append(Rect("밴드%d" % (bi + 1), 0.0, 100.0 * y0 / H, 100.0, 100.0 * (y1 - y0) / H))
-        ci_ = _col_ink(img, ay + y0, ay + y1, ax, ax + W)
-        blocks = _merge(_runs(ci_, 8.0, max(2, W // 100)), max(3, W // 50))
+        ce = _col_edges(img, ay + y0, ay + y1, ax, ax + W)
+        blocks = _flags([v >= _floor(ce) + COL_EXTRA for v in ce], max(2, W // 100), max(3, W // 50))
         if len(blocks) < 2:
             continue                      # 밴드 전체가 한 덩어리면 블록 줄은 군더더기다
         for ci, (x0, x1) in enumerate(blocks):
@@ -534,8 +488,9 @@ HEAD = u"""# 원작 ↔ 클론 화면 비율 판독표 (T28)
 > (`가로 시작~끝,세로 시작~끝`) — 판독값 자체는 0.1%% 단위로 둔다(5%% 로 양자화하면
 > 오차 2.5%%p 가 허용 오차 3%%p 를 먹는다).
 >
-> 판독 규칙: 행 얼룩(그 행 밝기의 평균 절대편차)이 문턱을 넘는 연속 구간 = **밴드**,
-> 밴드 안에서 열 얼룩으로 같은 규칙 = **블록**. 원작과 클론에 같은 자를 쓴다.
+> 판독 규칙(T444): 행의 «건너뜀 수»(2칸 떨어진 화소와 24 넘게 다른 자리의 수 · 정수)가 있는 연속 구간 = **밴드**
+> (18%% 를 넘는 밴드는 «그릇 수준 + 2» 넘는 행으로 다시 가른다), 밴드 안에서 열의 건너뜀 수로 같은 규칙 = **블록**.
+> 값 문턱이 없어 화소 ±1 에 조각 수가 안 흔들린다(옛 자 24/35 → 3~4/35). 원작과 클론에 같은 자를 쓴다.
 >
 > 판독기 자국: `%(stamp)s` — 이 표를 구운 자의 코드 해시다. 판독기를 고치면 이 값이 달라지고
 > `--self-test` 가 **막는다**(T28 103회차). 그때는 `--gen` 으로 표를 다시 구워야 원작·클론이
@@ -2448,20 +2403,38 @@ def self_test():
     finally:
         os.unlink(tmpb)
 
-    # ㉑ 밴드 «바탕» 은 8 눈금 경계에 걸려도 안 뒤집힌다 (T437 3회차)
-    #    바탕이 15·16 두 값에 반반 걸린 밴드 — 표가 한 줄만 기울어도 옛 꼴은 bg 가 12 ↔ 20 으로
-    #    통째로 8 뛰었고, 그러면 `_col_ink` 의 «바탕과 12 넘게 다른가» 가 열마다 뒤집혔다.
-    def _bgcase(lo_rows):
-        c = _canvas(40, 40, (16, 16, 16))
-        _fill(c, 0, 0, 40, lo_rows, (15, 15, 15))
-        return _band_bg(c, 0, 40, 0, 40)
-    bg_lo, bg_hi = _bgcase(21), _bgcase(19)          # 15 가 다수 ↔ 16 이 다수
-    chk(bg_lo == bg_hi,
-        u"바탕이 8 눈금 경계(15↔16)에 반반 걸려도 표가 기운 쪽을 따라 bg 가 안 뒤집힌다 (%d ↔ %d)"
-        % (bg_lo, bg_hi))
-    solid = _canvas(40, 40, (200, 200, 200))
-    chk(_band_bg(solid, 0, 40, 0, 40) == 204,
-        u"바탕이 한 칸에 몰린 밴드는 예전과 같은 값을 낸다 (%d)" % _band_bg(solid, 0, 40, 0, 40))
+    # ㉑ 판독 원리 셋 (T444 · 결정 778) — 값 문턱 대신 «정수 건너뜀 수 + 그릇 수준 + 상대 잣대»
+    #    ⓐ 2칸 차: 이웃끼리 13 씩 오르는 경사(2칸 차 26 ≥ 24)는 체커판 ±1 에 이웃 차가 12↔14 로 갈리지만 2칸 차는 그대로다.
+    ramp = _canvas(40, 40, (100, 100, 100))
+    for _x in range(10, 20):
+        _fill(ramp, _x, 0, _x + 1, 40, (100 + 13 * (_x - 9),) * 3)
+    e0 = _row_edges(ramp, 0, 40, 0, 40)
+    e1 = _row_edges(_jitter(ramp, 1, True), 0, 40, 0, 40)
+    chk(e0 == e1 and e0[0] > 0,
+        u"건너뜀 수는 체커판 ±1 에 안 움직인다 (행마다 %d · 흔든 뒤 %d)" % (e0[0], e1[0]))
+    _n1 = sum(1 for _x in range(10, 20) if abs((100 + 13 * (_x - 9)) - (100 + 13 * (_x - 10) if _x > 10 else 100)) >= 24)
+    chk(_n1 == 0 and e0[0] >= 8,
+        u"같은 경사를 이웃 차(13)로 재면 하나도 못 세지만 2칸 차(26)로는 센다 (이웃 %d · 2칸 %d)" % (_n1, e0[0]))
+    #    ⓑ 그릇 수준: 두 행짜리 0 은 그릇이 아니다 — 목록 격자 테두리 몫(10)이 그릇이다.
+    chk(_floor([0, 0] + [10] * 6 + [30, 31, 10, 10, 10, 12]) == 10,
+        u"그릇 수준은 3행 이상 이어지는 값 중 최솟값이다(두 행짜리 0 은 무시)")
+    chk(_floor([7, 5, 9]) == 5 and _floor([]) == 0,
+        u"3행짜리 무리가 없으면 최솟값 · 빈 구간은 0")
+    #    ⓒ 그릇 안 칸들: 테두리 있는 그릇(80%H) 안에 칸 넷이 있으면 그릇 한 밴드가 아니라 칸 넷으로 갈린다.
+    box = _canvas(112, 199, (30, 30, 30))
+    _fill(box, 6, 20, 106, 180, (200, 200, 200))        # 그릇(밝은 판)
+    _fill(box, 8, 22, 104, 178, (30, 30, 30))           # 그릇 안 어두운 바닥(테두리 2px 만 남는다)
+    for _k in range(4):
+        _y = 30 + _k * 38
+        _fill(box, 14, _y, 98, _y + 26, (200, 200, 200))  # 칸 테두리
+        _fill(box, 16, _y + 2, 96, _y + 24, (30, 30, 30))
+        _stripes(box, 24, _y + 8, 88, _y + 18)            # 칸 안 내용
+    _bb = [r for r in read_layout(box, u"그릇") if u"블록" not in r.name]
+    chk(len(_bb) == 4 and all(abs(r.h - 26.0 * 100 / 199) <= 1.5 for r in _bb),
+        u"그릇(80%%H) 안 칸 넷이 칸마다 갈린다 (밴드 %d · 높이 %s)" % (len(_bb), u"·".join(u"%.1f" % r.h for r in _bb)))
+    _bj = [len(read_layout(_jitter(box, _a, _c), u"그릇")) for _a, _c in JITTER_CASES]
+    chk(all(_g == len(read_layout(box, u"그릇")) for _g in _bj),
+        u"그 그림은 ±1 네 흔들기에 조각 수가 같다 (%s)" % u"·".join(str(_g) for _g in _bj))
 
     # ㉒ 판독표가 **지금 이 판독기로 구운 것**인가 (T28 103회차 · T437 4회차가 찾은 구멍)
     #    판독기를 고치고 `--gen` 을 안 돌리면 원작 쪽은 옛 자, 클론 쪽은 새 자로 재게 된다.
