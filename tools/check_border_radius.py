@@ -37,6 +37,18 @@ TABLE_DEFAULT = os.path.join('Assets', 'Forge', 'Resources', 'RadiusUi.json')
 # ── 정본 선택자 ↔ 클론 자리 ──────────────────────────────────────────────────────────────
 TABLE = {
     # 어긋난 리터럴 열 자리(20회차 ⓡ) — 표로 옮긴다(T345 ⓑ · 각 파일의 산 lock 뒤)
+    # ── T415 8회차(2026-09-17 · 워커 O) — ⓑ 갈래(자 파일만 · 결정 717): 던전 목록 배너 둘 + 부화장 넷 ──
+    #    던전 배너: 3872 `.modal-card.sheet .dg-banner { border-radius: .8rem }` 이 1949 `.dg-banner`(.7rem)를 덮는다 — ui.js 4528 이 배너를
+    #    던전 **시트 안에서만** 그리므로 화면에 서는 값은 .8 뿐이다. 클론 `DungeonSheet.cs:188` 은 catalog `dg_banner_radius_rem`(.8)을 이미 읽는다(꼬리 `_radius_rem` = rem).
+    '.modal-card.sheet .dg-banner': ['Ui/DungeonSheet.cs$dg_banner_radius_rem@catalog.json'],
+    '.dg-banner': u'✓3872 `.modal-card.sheet .dg-banner`(.8rem)이 덮는다 — ui.js 4528 이 배너를 던전 시트 안에서만 그린다 · 위 줄이 그 자리',
+    #    부화장: 뒤로 버튼은 `PetPanel.cs:350` 이 `SkillPanel.BackButtonAt` 로 세우고 그 안이 `back_r_w`(.0094W)를 읽는다 — 정본 4472 `calc(var(--app-w) * .0094)` 와 같은 값·같은 단위.
+    '.btn.round.hatch-back, .hatch-back': ['Ui/SkillPanel.cs$back_r_w@PetSkillUi.json'],
+    #    램프 갓은 네 값 반지름(`50% 50% .1rem .1rem / 100% 100% .1rem .1rem` = 반타원 돔)이라 자가 못 견준다 — 클론은 `PetHatchCone.Kind.Dome`(PetPanel.cs:405)으로 돔을 굽는다(T102).
+    '.hatch-lamp': u'✓네 값 반지름(반타원 돔) — 클론 `PetPanel.cs:405` 가 `PetHatchCone.Add(…, Kind.Dome)` 으로 같은 돔을 굽는다(T102) · 자는 한 값만 견준다',
+    '.hatch-lamp::after': ['Ui/PetPanel.cs#bulb'],   # 전구 = `PetSkillKit.Disc(lamp, "bulb", …)` 원판(정본 50%)
+    #    슬롯 구매 버튼은 `PetPanel.cs:377` 이 `PetSkillStyle.Rem(0.55f)` **리터럴**로 준다(값은 정본 .55 와 같다) — 표로 옮기는 일은 PetPanel.cs 의 산 lock(T396) 뒤 · KNOWN 에 임자와 함께.
+    '.hatchery .slot-buy': ['Ui/PetPanel.cs$slot_buy_r_rem@PetSkillUi.json'],
     # ── T415 7회차(2026-09-17 · 워커 O) — 패스 화면(`PassPopup.cs`) ──
     #    ⓐ 둘: `.pass-banner` 는 리터럴 `rem * 0.2f` 였고 `.pass-cell` 은 catalog `pass_cell_r`(0.0114H) 로 **값은 맞았지만 키 꼬리가
     #    규약 밖**이라 자가 못 봤다 — 둘 다 RadiusUi.json 키로(`catalog.json` 은 T377 산 lock · 옛 키는 부르는 데 0 · 그 lock 뒤 지운다).
@@ -232,6 +244,8 @@ TABLE = {
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — T345 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
+    # T415 8회차 — 값은 맞는 리터럴(`PetSkillStyle.Rem(0.55f)` · PetPanel.cs:377) · 키를 내고 부르게 하는 일은 PetPanel.cs 의 산 lock 뒤
+    'Ui/PetPanel.cs$slot_buy_r_rem@PetSkillUi.json': u'PetPanel.cs 는 T396 산 lock(2026-09-17 13:1x 갱신) — 그 뒤 누구든 PetSkillUi.json 에 `slot_buy_r_rem` .55 를 내고 :377 이 읽게 한다',
 }
 
 RADIUS_DECL = re.compile(r'(?<![\w-])border-radius\s*:\s*([^;}]+)')
