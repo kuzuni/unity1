@@ -60,7 +60,7 @@ namespace Forge.Tests.PlayMode
             yield return null;
             RectTransform layer = DamageNumbers.Layer(root);
             TextMeshProUGUI crit = Find(layer, "701"), kill = Find(layer, "702"), skill = Find(layer, "703");
-            TextMeshProUGUI hero = Find(layer, "▼704"), block = Find(layer, "705");
+            TextMeshProUGUI hero = Find(layer, "704"), block = Find(layer, "705");   // T440 2회차 — ▼ 는 따로 조각(mark)이라 숫자 문자열에 안 붙는다
             AssertInk(crit, "dmg_crit_ink", "크리(정본 508 #ff8a1e)");
             AssertInk(kill, "dmg_kill_ink", "처치(정본 511 #fff3c4)");
             AssertInk(skill, "dmg_skill_ink", "스킬(정본 526 #82b1ff)");
