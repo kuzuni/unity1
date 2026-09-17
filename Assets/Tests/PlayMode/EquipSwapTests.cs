@@ -232,8 +232,14 @@ namespace Forge.Tests.PlayMode
             EquipSwapSpec s = EquipSwapFx.Spec;
             Assert.IsTrue(EquipSwapFx.Play(gr));
             EquipSwapFx fx = EquipSwapFx.Instance;
-            yield return WaitMs(EquipSwapRules.LandMs(s) + 120);
-            Assert.AreEqual(1, fx.Dusts, "착지 자리에 먼지 하나");
+            // T178 26회차(§0-6 임자 없는 빨강) — **«착지 +120ms» 한 순간으로 묻지 않는다**: 이 자는 런 1100 빨강 · 1107 초록 · 1108 빨강으로 갈렸고,
+            //   그 사이 프로덕션 커밋은 `SkillSummonResult.cs`(T451) 하나뿐이라 이 연출과 닿는 줄이 0 이다 ⇒ **자의 창이 프레임보다 좁았다**.
+            //   까닭: `Play()` 가 세운 코루틴은 **다음 프레임부터** 제 시계를 재므로 Fx 시계가 자 시계보다 한 프레임 뒤진다.
+            //   배치 CI 의 한 프레임은 150~200ms 이고(T441 실측) 여유는 120ms 뿐이었다 — 뒤진 프레임이 여유보다 길면 아직 안 선 먼지를 «없다» 로 읽는다.
+            //   고침 = 먼지가 **설 때까지** 기다리되 정본이 준 창(착지 ~ 착지 + `dust_remove_ms`)을 **넘기면 빨갛다**. 잣대는 그대로다(창 안에 먼지 하나).
+            double dustWait = 0, dustDeadline = EquipSwapRules.LandMs(s) + s.DustRemoveMs;
+            while (fx.Dusts == 0 && dustWait < dustDeadline) { dustWait += Time.unscaledDeltaTime * 1000.0; yield return null; }
+            Assert.AreEqual(1, fx.Dusts, "착지 자리에 먼지 하나 — 정본 창(착지 " + EquipSwapRules.LandMs(s).ToString("0") + "ms ~ +" + s.DustRemoveMs.ToString("0") + "ms) 안에 서야 한다 · 기다린 " + dustWait.ToString("0") + "ms");
             Transform dust = fx.Layer.Find(EquipSwapStyle.T("dust"));
             Assert.IsNotNull(dust, "eqsw-dust");
             Mask mask = dust.GetComponent<Mask>();
