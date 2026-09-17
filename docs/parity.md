@@ -1767,3 +1767,44 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - 이 축은 «ms 가 표에 있는가» 만 물으면 전부 ✅ 로 읽힌다(ms 는 다 어딘가 표에 있다). **«그 값으로 무엇이 실제로 움직이는가»** 를 자리마다 코드에서 찾아야 «전이 0» 이 드러난다 — 43회차의 «이웃과 같은 길로 왔는가» 와 짝이 되는 물음이다.
 - 남은 축: `animation-duration` 3 · `animation-timing-function` 23.
 
+
+# T33 45회차 — `animation-timing-function` 23 + `animation-duration` 3 (2026-09-17 · 워커 R · sess-2015-28206)
+
+> 44회차가 «남은 축» 으로 남긴 둘. 세는 법은 39회차 규칙 그대로 — 주석을 걷고 속성 이름 경계로. 타이밍 함수 23 은 **전부 `@keyframes` 안의 구간별 이징**이다(선택자 규칙에 직접 적힌 것은 0 · `animation` 단축 속성의 이징은 이 축 밖).
+
+## `animation-timing-function` 23 + `animation-duration` 3 — 26 전수
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 6307 `@keyframes srpop` 0% | cubic-bezier(.35,0,.65,.4) · 광원 가속 | `SkillSummonResult.cs:1294` `EaseOutBack` 한 곡선 · 이동 0 | ⛔ → T458 |
+| 2 | 6314 `srpop` 30% | linear · 등속 비행(dx×.62) | 같은 자리 | ⛔ → T458 |
+| 3 | 6316 `srpop` 56% | cubic-bezier(.3,.55,.55,1) · 감속 | 같은 자리 | ⛔ → T458 |
+| 4 | 6318 `srpop` 76% | cubic-bezier(.18,1.6,.4,1) · 스프링(1+.1·over) | 같은 자리 (`.sr-ok` 7188 도 팝 없음) | ⛔ → T458 |
+| 5 | 7298 `eqswX` 0% | cubic-bezier(.12,.62,.35,1) | `EquipSwapUi.json x[0].ease` [.12,.62,.35,1] | ✅ |
+| 6 | 7308 `eqswY` 0% | cubic-bezier(.1,.72,.36,1) | `y[0].ease` | ✅ |
+| 7 | 7309 `eqswY` 26% | cubic-bezier(.58,0,.86,.36) | `y[1].ease` | ✅ |
+| 8 | 7310 `eqswY` 58% | cubic-bezier(.15,.72,.4,1) | `y[2].ease` | ✅ |
+| 9 | 7311 `eqswY` 68% | cubic-bezier(.6,0,.9,.5) | `y[3].ease` | ✅ |
+| 10 | 7312 `eqswY` 76% | cubic-bezier(.15,.72,.4,1) | `y[4].ease` | ✅ |
+| 11 | 7313 `eqswY` 82% | cubic-bezier(.6,0,.9,.5) | `y[5].ease` (87% 꼬리는 CSS 기본 `ease` = `y[6]` [.25,.1,.25,1]) | ✅ |
+| 12 | 7321 `eqswR` 0% | cubic-bezier(.1,.55,.45,1) | `r[0].ease` | ✅ |
+| 13 | 7360 `eqswSnap` 0% | cubic-bezier(.5,0,.75,.4) | `snap[0].ease` | ✅ |
+| 14 | 7362 `eqswSnap` 46% | cubic-bezier(.2,.9,.35,1) | `snap[1].ease` | ✅ |
+| 15 | 7364 `eqswSnap` 72% | cubic-bezier(.3,.7,.4,1) | `snap[2].ease` (88% 꼬리 = `snap[3]` 기본 `ease`) | ✅ |
+| 16 | 7403 `coinFlyY` 0% | cubic-bezier(.15,.7,.4,1) | `CoinBurstUi.json fly_y[0].ease` | ✅ |
+| 17 | 7404 `coinFlyY` 45% | cubic-bezier(.6,0,.85,.4) | `fly_y[1].ease` | ✅ |
+| 18 | 7405 `coinFlyY` 72% | cubic-bezier(.2,.7,.4,1) | `fly_y[2].ease` | ✅ |
+| 19 | 7406 `coinFlyY` 84% | cubic-bezier(.6,0,.9,.5) | `fly_y[3].ease` | ✅ |
+| 20 | 7445 `coinAmt` 0% | cubic-bezier(.2,.9,.3,1) | `amt[0].ease` | ✅ |
+| 21 | 7446 `coinAmt` 7% | cubic-bezier(.4,0,.5,1) | `amt[1].ease` | ✅ |
+| 22 | 7447 `coinAmt` 13% | linear | `amt[2]` ease 없음 → `CoinBurstRules.cs:75` `CssEase.Linear` | ✅ (기본값으로 맞음 · 표 `_` 에 적을 것) |
+| 23 | 7448 `coinAmt` 78% | linear | `amt[3]` ease 없음 → Linear | ✅ (같음) |
+| 24 | 5924 `.sr-canopy i:nth-child(1)` | animation-duration 3.8s | `SummonFxUi.json ray_side1_period_s` 3.8 · `SummonFx.cs:154` | ✅ |
+| 25 | 5925 `.sr-canopy i:nth-child(3)` | animation-duration 4.6s (delay −1.2s) | `ray_side3_period_s` 4.6 · `ray_side3_delay_s` −1.2 | ✅ |
+| 26 | 7532 `.rw-pop-sm` | animation-duration .28s | `RewardBurstUi.json pop_sm_anim_ms` 280 | ✅ |
+
+## 이 회차의 판정
+
+- **✅ 22 · ⛔ 4** — 결함 넷은 한 자리 한 뿌리다: 소환 결과 셀 팝 `srpop` 의 네 구간(가속 → 등속 비행 → 감속 → 스프링)과 «광원에서의 비행(`--dx/--dy`)» 이 클론에선 `EaseOutBack` 한 곡선 · 스케일만 · 상수 코드 박음이고 `.sr-ok` 의 같은 팝은 없다. 정본 주석이 «구간별 이징이 이 연출의 핵심» 이라 못 박은 자리라 값 하나가 아니라 **꼴**이 다르다 → **T458**.
+- 장비 교체·코인 두 연출은 표가 **네 수까지** 같고, 이징을 안 적은 꼬리 키프레임을 CSS 기본 `ease`(.25,.1,.25,1)로 적어 둔 것까지 맞다 — 이 축의 모범이다. 한 가지만 적어 둔다: `coinAmt` 의 `linear` 둘은 표에 값이 **없어서** 맞는다(`CssEase.Linear` 기본값) — 다음 사람이 «빠졌다» 고 `ease` 를 채우면 틀어진다 · 표 `_` 에 한 줄 적을 자리.
+- 남은 축(이번에 센 것): `animation-delay` **38** · `animation-name` 2 · `will-change` 3.
