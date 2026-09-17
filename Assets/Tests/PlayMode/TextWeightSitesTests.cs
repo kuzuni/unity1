@@ -50,8 +50,11 @@ namespace Forge.Tests.PlayMode
         {
             yield return Boot();
             TextWeightUi.Reset();
-            foreach (string k in new[] { "rates_tip", "forge_item_cell_small", "btn_small", "age_tag_small" })
-                Assert.IsTrue(TextWeightUi.HasSite(k), "표에 regular 자리 «" + k + "» 이 있다(정본 8633·667·724)");
+            foreach (string k in new[] { "rates_tip", "forge_item_cell_small", "btn_small", "pass_desc" })
+                Assert.IsTrue(TextWeightUi.HasSite(k), "표에 regular 자리 «" + k + "» 이 있다(정본 8633·667)");
+            // 11회차 — `age_tag_small` 은 «자리» 가 아니라 «죽음» 이다: 정본이 `age-tag` 클래스를 js·index.html 어디에서도 안 붙인다
+            //   (ui.js 2109 의 forge-age-section 안은 fi-age-* 와 forge-item-grid 뿐 · 클래스는 전부 리터럴).
+            Assert.IsFalse(TextWeightUi.HasSite("age_tag_small"), "age_tag_small 은 배선할 자리가 아니라 죽은 선언이다(표의 _dead 칸)");
             Assert.IsFalse(TextWeightUi.HasSite("없는_자리"), "표에 없는 자리는 없다고 답한다");
             var go = new GameObject("t");
             TextMeshProUGUI t = go.AddComponent<TextMeshProUGUI>();
@@ -61,6 +64,28 @@ namespace Forge.Tests.PlayMode
             TextWeightUi.Regular(t, "btn_small");
             Assert.IsFalse((t.fontStyle & FontStyles.Bold) != 0, "Regular() 는 Bold 비트만 걷는다");
             Object.Destroy(go);
+        }
+
+        /// <summary>T352 11회차 — **실제로 틀렸던 자리**: 패스 화면 안내문. 정본 2734 는 `font-weight: 800` 이지만
+        /// **8633** 이 같은 특정도로 뒤에 와서 `500` 으로 덮고, 폴백 sans 는 regular/bold 두 축뿐이라 500 은 **보통 굵기로 내려간다**
+        /// (정본 8624~8631 이 스스로 «한 단 내려가려면 500 이어야 한다» 고 적었다). 클론은 `FontStyles.Bold` 를 박아 두어 정본보다 굵었다.</summary>
+        [UnityTest]
+        public IEnumerator 패스_안내문은_정본_8633_대로_regular_다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            Assert.IsNotNull(h, "메타");
+            PassPopup.Open(h);   // 기존 자(BossWarnArtTests)가 쓰는 그 길
+            yield return null; yield return null;
+            Popup p = h.Popups.Find(PassPopup.Name);
+            Assert.IsNotNull(p, "패스 팝업이 열렸다");
+            Transform t = p.Root.Find("card/desc-row/desc");
+            Assert.IsNotNull(t, "안내문(card/desc-row/desc)");
+            TextMeshProUGUI d = t.GetComponent<TextMeshProUGUI>();
+            Assert.IsNotNull(d, "안내문 글자");
+            Assert.IsFalse((d.fontStyle & FontStyles.Bold) != 0,
+                "«" + d.text.Replace("\n", " ") + "» 는 regular 다 — 2734 의 800 을 8633 이 500 으로 덮고 500 은 보통 굵기로 내려간다");
+            h.Popups.Hide(PassPopup.Name);
         }
 
         /// <summary>실물 자리 — 장비 목록 칸 아래 «0.0000%» 라벨은 regular 다(정본 790 은 800 이지만 **8633** 이 500 으로 덮는다).

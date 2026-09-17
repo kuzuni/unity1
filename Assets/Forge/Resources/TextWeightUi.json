@@ -7,10 +7,11 @@
   "regular_sites": {
     "rates_tip": "style.css 8633 `.rates-tip { font-weight: 500 }` — 확률 팝업 맨 아래 안내문(클론 SkillRatesPopup.cs `rates-tip` · PetSkillKit.Text 갈래라 색 키로는 안 걸린다).",
     "forge_item_cell_small": "style.css 8633 `.forge-item-cell small { font-weight: 500 }` — 장비 목록 칸 아래 확률 라벨(클론 ForgeInfoPopup.cs).",
-    "btn_small": "style.css 667 `.btn small { font-weight: 400 }` — 버튼 아래 붙는 잔글씨(판매 +N · 장착 기존 보관 …).",
-    "age_tag_small": "style.css 724 `.forge-age-section .age-tag small { font-weight: 400 }` — 시대 막대 태그의 잔글씨."
+    "btn_small": "style.css 667 `.btn small { font-weight: 400 }` — 버튼 아래 붙는 잔글씨(판매 +N · 장착 기존 보관 …). 클론 자리는 ForgeCraftPopup.cs 의 IconTextStack 갈래다.",
+    "pass_desc": "style.css 8633 `.pass-desc { font-weight: 500 }`(2734 의 800 을 같은 특정도로 덮는다) — 패스 화면 안내문. 클론은 FontStyles.Bold 가 박혀 있어 11회차 전까지 **틀린 자리**였다."
   },
   "_dead": {
+    "age_tag_small": "style.css 724 `.forge-age-section .age-tag small { font-weight: 400 }` — **클론에 자리가 없다**: 정본이 `age-tag` 클래스를 js·index.html 어디에서도 **한 번도 안 붙인다**(ui.js 2109 의 `forge-age-section` 안은 `fi-age-bar`·`fi-age-name`·`fi-age-star`·`fi-age-cur`·`forge-item-grid` 뿐이고 클래스는 전부 리터럴이다). 11회차 실측.",
     "egg_chip_small": "style.css 1661 `.egg-chip small { font-weight: 400 }` — **클론에 자리가 없다**: 정본이 `egg-chip` 클래스를 한 번도 안 붙인다(T377 이 같은 자리를 «죽음» 으로 등록해 뒀다). 여덟 중 이 하나는 갚을 자리가 없다."
   }
 }

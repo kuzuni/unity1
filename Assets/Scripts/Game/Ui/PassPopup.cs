@@ -85,7 +85,12 @@ namespace Forge.Game.Ui
             // 정본 `<br>` 두 줄(ui.js 4928)이 세 줄이 된다(런 666). 결정 633 대로 새 종류 없이 예외 칸 `Micro` 를 쓰되 크기는 표(TextSizeUi)에서 — §1 예외 여섯째 자리.
             TextMeshProUGUI d = UiKit.Text(desc, "desc", TextKind.Micro, "전투를 진행하여 보상을 받\n으세요!", "stage_ink");
             TextSizeUi.Apply(d, "pass_desc");
-            d.fontStyle = FontStyles.Bold;
+            // T352 11회차 — **여기가 틀린 자리였다.** 정본 2734 `.pass-desc { font-weight: 800 }` 만 보면 bold 지만,
+            //   **8633** `.rates-tip, .pass-desc, .forge-item-cell small, .league-server { font-weight: 500 }` 이 **같은 특정도로 뒤에 와서 이긴다**.
+            //   그 줄의 정본 주석(8624~8631)이 까닭을 댄다 — 웹폰트 금지라 폴백 sans 는 **regular/bold 두 축**뿐이고
+            //   600·650 은 700 으로 반올림되므로 «한 단 내려가려면 **500** 이어야 한다» ⇒ 이 글은 **보통 굵기**로 내려간다.
+            //   클론은 `FontStyles.Bold` 를 박아 두어 정본보다 굵었다(§1 «정본대로 = 렌더 결과»).
+            TextWeightUi.Regular(d, "pass_desc");
             d.textWrappingMode = TextWrappingModes.Normal;
             // T354 15회차 — 정본 2734 `.pass-desc { line-height: 1.4 }`. 이 글은 정본이 `<br>` 로 나눈 **두 줄**이라(T383)
             // 줄 간격이 눈에 보이는 자리다 — TMP 자산 기본 1.448 이 그대로 서면 정본보다 한 줄 걸러 1.7px 씩 벌어진다.
