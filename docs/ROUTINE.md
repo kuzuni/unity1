@@ -4328,6 +4328,13 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   → **판정(런 978 `e33eeac6` = 내 커밋 그 자체 · 16:3x) ✅ · lock 반납 · 행 ⬜**: 런 전체 **초록**(PlayMode 475/475) · `ColorMixSitesTests` **8/8**(새 칸 «장비_상세_머리_아이콘_타일_면_테는_표_idet_icon_색으로_선다» PASS) · gate 잡 초록(`check_color_mix` 자리 초록 19 · KNOWN 2 · 문제 0). 눈 확인 자리는 없다(값이 장비 칸과 같아 화면 변화 0 · 자로 닫는다). 콘솔 에러 0(내 자 줄 RED 없음). **남은 KNOWN 2 는 그림자 둘**(`ForgeUi.cs$cell_shadow_2` · `PetPanel.cs$pet_tile_shadow_2` · box-shadow 안의 color-mix = T331 축 · `UiShadow` 가 그 색을 표에서 읽는 길이 서면 그때 누구든) — 이 절은 그 둘까지 닫혀야 ✅ 라 행은 ⬜ 로 둔다.
 
 
+
+- ✅ **11회차 2026-09-17 10:1x~10:4x 워커 E(sess-1013-30353 · 선점 · 코드 0줄 · lock 반납 · 행 ⬜) — «남은 둘은 lock 이 아니라 «일» 이 막는다» 를 실측으로 바로잡았다(결정 760)**
+  - **잡은 까닭**: 남은 **KNOWN 둘**이 «T331 lock 뒤» 로 적혀 있었고 그 lock 이 **1019분으로 죽어** 있었다 — 파일(`ForgeUi.cs`·`PetPanel.cs`)도 산 lock 어디에도 없어 «이제 닫을 수 있다» 로 보였다. 그래서 잡았다.
+  - **실측 — 걸 자리가 없다**: `check_box_shadows` 의 «**아직 안 본 드리운 그림자 15개**» 목록에 **그 두 선택자가 그대로 있다** — `.pet-tile .tile-face`(**8131**) · `.equip-cell:not(.egg-cell)`(**8539**). 곧 **바깥 광 자체가 클론에 아직 없다.** 이 자가 쥐는 것은 «그 겹의 색을 몇 %로 섞나» 이므로(표값 `0.60`·`0.62` 는 1회차부터 있다) **겹이 서기 전에는 배선할 대상이 없다**.
+  - **고친 것(코드 0줄 · 자의 문구만)**: `check_color_mix.py` 의 KNOWN 이유 둘을 «T331 lock 뒤» · «T331 축과 겹친다» → «**T331 이 그 겹을 세운 뒤**(실측: `check_box_shadows` 의 «아직 안 본» 15 에 그 줄이 있다 — lock 이 아니라 일이 막는다)» 로 바꾸고, 그 위에 **왜 lock 만 보면 헛걸음하는지**를 여섯 줄로 박았다. `--self-test` 21칸 그대로 통과.
+  - **이 축의 실제 상태**: `color-mix` **23**(키프레임 1 제외) · 표 자리 20 · **자리 초록 19** · KNOWN 2 · **미정 0**. 곧 **정본의 섞기 자리는 전수 짝지어졌고**, 남은 둘은 이 축 밖(T331)이 움직여야 열린다 — 이 절에서 «지금 할 수 있는 일» 은 0 이다.
+  - ⚑ **다음 사람에게**: 이 번호를 «⬜ 니까 잡을 수 있다» 로 집으면 나처럼 20분을 쓰고 아무것도 못 한다. **T331 이 8131·8539 에 광을 세운 회차 뒤**에 잡아라(그때는 «색을 표에서 받는 한 줄» 이다).
 ### T368 ✅ — 정본이 `repeating-linear-gradient` + `background-size/position` 으로 까는 **줄무늬 셋**이 클론에서 실선·없음·다른 모양이다: 리그 보상 단 **대시 구분선** · 스킬 패널 소환 바 위 **풀블리드 대시** · 보스 경고 **-45° 사선 띠** (Game·UI · T178 뒤 · **T33 30회차 등재**)
 - 실측(2026-09-15 06:4x · `docs/parity.md` 30회차 · 축 `background-position` 22 + `background-size` 15): 정적 자리 중 무늬(T124 시대 무늬 · 표에서 읽음 ✓)·덮기(`cover`·`contain` ✓)·소환 스윕(T334)을 빼면 **repeating-linear-gradient 줄무늬 셋**이 남고 셋 다 클론이 다르다.
   - ⓐ `.league-reward-tier`(style.css 2548~2555): 단(tier) 사이 **대시 줄** — `repeating-linear-gradient(to right, var(--pp-line) 0 calc(var(--app-w)*.0323), transparent … calc(var(--app-w)*.0625))` · `background-size: 100% 2px` · 첫 단은 없음. 클론 `LeagueSheet.cs:245` 는 이름만 `dash` 인 **실선** `UiKit.Line`.
