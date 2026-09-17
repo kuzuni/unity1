@@ -80,7 +80,10 @@ namespace Forge.Game.Ui
 
             RectTransform lower = PopupKit.Item(card, "lower", panelW, -1f);   // T429 — 정본 1819 좌우 −.85rem: 내용 폭보다 당김×2 넓고 카드 층이 가운데 맞춰 양쪽 패딩을 반씩 파고든다
             Image lf = UiKit.Rounded(lower, "face", "pp_gray", rem * 0.7f);
-            lf.color = new Color(0xbe / 255f, 0xbe / 255f, 0xbe / 255f);
+            // T377 14회차 — 정본 `style.css` **1819** `.cmp-lower { background: **#bebebe** }`(바로 위 주석이 «원본 shot-043224 실측: 색 #bebebe(190,190,190)» 라고 적어 뒀다).
+            //   값은 맞았는데 **코드에 박혀 있었다**(§1 «수치는 코드에 박지 않는다») — 자리 전용 키로 받는다. 키 인수 `pp_gray` 는 그대로 둔다:
+            //   테·반지름·그림자 축(T365·T345·T331)이 «종이/회색» 을 그 키로 가르기 때문이다(10·12·13회차와 같은 길).
+            lf.color = PinnedColorUi.C("cmp_lower_face");
             VerticalLayoutGroup lg = PopupKit.Column(lower, rem * 0.4f, rem * 0.45f);
             // T390 — 정본 `.cmp-lower` 에는 padding 규칙이 없다: 패널 아래 여백은 `.row` 의 padding-bottom(아래 표) 하나뿐이라 패널 자신의 아래 패딩은 0.
             lg.padding = new RectOffset(lg.padding.left, lg.padding.right, lg.padding.top, 0);

@@ -61,6 +61,42 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T377 14회차 — 비교 팝업의 **회색 하부 패널**. 정본 **1819** `.cmp-lower { background: **#bebebe** }` 이고
+        /// 바로 위 주석이 «원본 shot-043224 실측: 색 #bebebe(190,190,190)» 로 어디서 온 값인지 적어 뒀다.
+        /// 클론은 값은 맞게 찍고 있었지만 `ForgeCraftPopup.cs` 에 `new Color(0xbe/255f, …)` 로 **코드에 박아** 뒀다(§1 «수치는 코드에 박지 않는다») —
+        /// 자리 전용 키로 옮겼다. 표값이 정본과 같은지는 `check_pinned_colors` 가 본다 — 여기는 «자리가 그 키를 쓰는가».
+        /// ⚠ 이웃 `.cmp-card`(1815 `#ececec`)는 **클론에 자리가 없다**: 정본 1820 `.cmp-lower .cmp-card-wrap.new .cmp-card { background: transparent }` 가 그것을 덮고,
+        /// 클론의 유일한 `isNew: true` 카드가 바로 이 `lower` 안에서 서기 때문이다(`ForgeUi.cs` 281 주석이 같은 정본 줄을 이미 인용해 뒀다).
+        /// 아래 마지막 줄이 그 «없음» 을 지킨다 — 누가 새 장비 카드에 #ececec 판을 깔면 깨진다.</summary>
+        [UnityTest]
+        public IEnumerator 비교_팝업_회색_하부_패널의_면은_못박은_리터럴이다()
+        {
+            yield return Boot();
+            ForgeHost F = ForgeHost.Instance;
+            ForgeItem it = F.Engine.RollItem();
+            it.Subs = SubstatRoll.Roll(F.Defs, CoreRng.Mulberry(43224), 2);
+            ForgeCraftPopup.Show(F, it);
+            yield return null; yield return null;
+            Popup p = F.Meta.Popups.Find(ForgeCraftPopup.Name);
+            Assert.IsNotNull(p, "비교 팝업이 열렸다");
+            Transform faceT = p.Root.Find("card/lower/face");
+            Assert.IsNotNull(faceT, "회색 하부 패널의 면(card/lower/face)");
+            Image face = faceT.GetComponent<Image>();
+            Color want = PinnedColorUi.C("cmp_lower_face");
+            Assert.AreEqual(want, face.color, "하부 패널 면 = 표 cmp_lower_face(정본 1819 #bebebe)");
+            Assert.AreNotEqual(UiKit.C("pp_gray"), face.color, "전역 토큰 pp_gray 가 아니다 — 정본이 이 패널에만 따로 적은 회색이다");
+            Assert.AreNotEqual(UiKit.C("pp_paper"), face.color, "흰 종이도 아니다 — 카드(흰 판) 위에 얹힌 회색 판이 이 자리의 뜻이다");
+            // 정본 1820 이 덮어 둔 «없는 자리» — 새 장비 카드는 제 판을 깔지 않는다(#ececec 가 클론 어디에도 없어야 하는 까닭).
+            Transform newCard = p.Root.Find("card/lower/new");
+            Assert.IsNotNull(newCard, "새 장비 카드(card/lower/new)");
+            Image nf = newCard.GetComponent<Image>();
+            Assert.IsTrue(nf == null || nf.color.a < 0.01f, "새 장비 카드는 제 면이 없다(정본 1820 background: transparent) — 회색 패널이 그대로 비친다");
+            // 판을 깔았다면 «빈 슬롯» 갈래(`ForgeUi.ItemCard`)처럼 `face` 칸으로 왔을 것이다 — 그 칸이 없다는 게 «자리가 없다» 의 실제 모습이다.
+            Assert.IsNull(newCard.Find("face"), "새 장비 카드에 면 칸(face)이 아예 없다 — #ececec 를 받을 자리가 클론에 없다는 뜻");
+            ForgeCraftPopup.Hide(F);
+            yield return null;
+        }
+
         /// <summary>판매 경고(정본 ui.js 3865 `.btn.danger`).</summary>
         [UnityTest]
         public IEnumerator 판매_경고_판매_버튼의_면과_턱은_못박은_리터럴이다()

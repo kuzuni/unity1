@@ -88,6 +88,7 @@ TABLE = {
     # T377 10회차 ⓐ — 채팅 입력 밴드. **토큰으로 뭉개진 자리**(고친 자리다 · 나머지는 지키는 자리다):
     #   정본 3438 `#0e111b` + 3439 주석 «카드가 흰색이 됐으므로 밴드는 **자기 배경 #0e111b 를 직접 갖는다**» ↔ 클론은 전역 `pp_paper`(#ffffff)였다.
     '.chat-input-bar': ['Ui/ChatScreen.cs#input-bar|res:PinnedColorUi:chat_bar_face'],
+    '.cmp-lower': ['Ui/ForgeCraftPopup.cs#face|res:PinnedColorUi:cmp_lower_face'],
     # T377 11회차 — 8회차가 «채팅 4» 로 남긴 묶음. **셋 다 어긋나 있었고 원작 샷으로 화소까지 쟀다**(shot-043500 499×804):
     #   #cecece 100,343화소 · #39ab36 12,308화소 ↔ 클론 값 #f0f0f0 362 · #35c04f **0** · #8a8a8a 375 · #dbe9ff **0**.
     # T377 12회차 ⓐ — 자동 제련 **필터 토글**. 정본은 토글을 두 벌 쥔다(설정 3107 은 토큰 · 이 쪽 4759 는 **못박은 값**)인데

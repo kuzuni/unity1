@@ -17,6 +17,7 @@
     "held_tag_face": "#f0a020",
     "chat_placeholder_ink": "#6b6b6b",
     "chat_bar_face": "#0e111b",
+  "cmp_lower_face": "#bebebe",
     "equip_slot_name_ink": "#d8caca",
     "list_asc_star_ink": "#ff8801",
     "forge_time_ink": "#6d6a63",
