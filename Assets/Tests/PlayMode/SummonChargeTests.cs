@@ -565,12 +565,19 @@ namespace Forge.Tests.PlayMode
             }
             Assert.GreaterOrEqual(streakWinStart, 0f, "표의 빛줄기가 어느 순간에도 안 켜진다 — 표(streaks)가 이상하다");
             int seenStreakWin = 0;
+            // T443 — **속창**(모든 스포크가 함께 켜져 있는 구간) = [창시작 + 지연최대, 창시작 + streak_ms].
+            //   창(`streakWinStart`~`streakWinEnd`)은 «첫 스포크가 켜짐 ~ 마지막 스포크가 꺼짐» 이라 **가장자리엔 켜진 것이 거의 없다** —
+            //   거기 한 표본이 앉으면 `streakPeak` 이 0 에 가깝게 나오고, 그것은 «연출이 없다» 가 아니라 «그 순간엔 없었다» 다.
+            //   T431 의 `seenStreakWin > 0` 은 그 둘을 못 갈랐다(런 1041: 창 1~238ms 에 프레임 **1번** · 가장 긴 프레임 **237ms** — 창 하나에 표본 하나).
+            float streakCoreStart = streakWinStart + (ssp.DelayModMs - 1), streakCoreEnd = streakWinStart + (float)ssp.Ms;
+            int seenStreakCore = 0;
             float streakWorstGap = 0f;
             float t = 0f;
             while (!v.Done && t < 12f)
             {
                 if (Time.unscaledDeltaTime > streakWorstGap) streakWorstGap = Time.unscaledDeltaTime;
                 if (v.ElapsedMs >= streakWinStart && v.ElapsedMs <= streakWinEnd) seenStreakWin++;
+                if (v.ElapsedMs >= streakCoreStart && v.ElapsedMs <= streakCoreEnd) seenStreakCore++;
                 Image mi = v.ShockMain, ei = v.ShockEcho;
                 if (mi != null && mi.color.a > 0f)
                 {
@@ -653,7 +660,7 @@ namespace Forge.Tests.PlayMode
             Assert.AreSame(v.StreakOf(0).sprite, v.StreakOf(v.StreakCount - 1).sprite, "스포크마다 따로 구우면 안 된다(결정 691)");
             // T431 — 창 안에 프레임이 한 번이라도 들어왔을 때만 «켜졌나·모여들었나» 를 묻는다. 0 번이면 잴 기회가 없었던 것이라
             //   이 두 단언만 건너뛰고 나머지는 다 본 뒤 맨 끝에서 «환경» 으로 접는다(T386 갈래 · 사유에 창·프레임 수·가장 긴 프레임).
-            if (seenStreakWin > 0)
+            if (seenStreakCore > 0)   // T443 — 창이 아니라 **속창**에 표본이 들었을 때만 «켜졌나·모여들었나» 를 묻는다
             {
                 Assert.Greater(streakPeak, 0f, "빛줄기가 안 켜졌다(창 " + streakWinStart.ToString("0") + "~" + streakWinEnd.ToString("0")
                     + "ms 안 프레임 " + seenStreakWin + "번 · 가장 긴 프레임 " + (streakWorstGap * 1000f).ToString("0") + "ms)");
@@ -692,10 +699,12 @@ namespace Forge.Tests.PlayMode
             float e2 = v2.SrEnergy;
             Assert.AreEqual(0f, e1, 1e-4f, "×1 의 에너지는 0 이다");
             Assert.Greater(e2, e1, "같은 한 셀이어도 ×20 은 ×1 보다 세야 한다 — 셀 수로 재면 둘이 같아진다(정본이 이름으로 경고한 자리)");
-            if (seenStreakWin == 0)
-                Assert.Ignore("환경 — 빛줄기 창(" + streakWinStart.ToString("0") + "~" + streakWinEnd.ToString("0") + "ms · 지연 0~"
-                    + (ssp.DelayModMs - 1) + "ms + streak_ms " + ssp.Ms.ToString("0") + ")에 프레임이 한 번도 안 들어왔다(가장 긴 프레임 "
-                    + (streakWorstGap * 1000f).ToString("0") + "ms) — 잴 기회가 없었다(T431 · 나머지 단언은 전부 지났다)");
+            if (seenStreakCore == 0)
+                Assert.Ignore("환경 — 빛줄기 **속창**(" + streakCoreStart.ToString("0") + "~" + streakCoreEnd.ToString("0")
+                    + "ms · 모든 스포크가 함께 켜진 구간 · 창 전체는 " + streakWinStart.ToString("0") + "~" + streakWinEnd.ToString("0")
+                    + "ms · 지연 0~" + (ssp.DelayModMs - 1) + "ms + streak_ms " + ssp.Ms.ToString("0")
+                    + ")에 프레임이 한 번도 안 들어왔다(창 전체엔 " + seenStreakWin + "번 · 가장 긴 프레임 "
+                    + (streakWorstGap * 1000f).ToString("0") + "ms) — 잴 기회가 없었다(T443 · 나머지 단언은 전부 지났다)");
         }
 
         static Transform FindDeep(Transform root, string name)
