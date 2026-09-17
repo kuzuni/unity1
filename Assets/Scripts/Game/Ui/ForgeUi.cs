@@ -255,7 +255,15 @@ namespace Forge.Game.Ui
             float tile = rem * 3.6f;
             int subs = item != null && item.Subs != null ? item.Subs.Count : 0;
             float textH = lineH * (2 + subs);
-            float h = Mathf.Max(tile + rem * 1.2f, textH + rem * 1.4f) + (isNew ? rem * 1.2f : 0f);
+            // T434 3회차 — 카드 **안쪽** 패딩은 정본이 세 갈래로 적어 뒀고 **위는 셋 다 같다**:
+            //   바탕 `.cmp-card { padding: .9rem .7rem .7rem }`(1825) · 장착 `.cur { padding: .9rem .4rem .4rem }`(1812) · 새 장비 `.new { padding-bottom: 1.5rem }`(1815 · 위·좌우는 바탕 그대로).
+            //   클론은 글 블록을 `rem*0.6f` 에서 시작하고 높이를 `textH + rem*1.4f`(+ isNew 면 1.2)로 잡아 **위가 0.3rem 짧고 아래가 0.4~0.5rem 많았다**.
+            // ⚑ 1·2회차가 이것을 «위가 통째로 모자라다» 로 읽고 **모달 층**의 위 패딩을 키웠다가 되돌렸다(결정 753) —
+            //   두 카드가 «내용 높이 + 고정 바닥» 이라 위를 더하면 내용이 내려가는 게 아니라 **카드가 위로 자란다**.
+            //   고칠 자리는 여기(카드 **안쪽**)고, 하는 일은 더하기가 아니라 **재분배**다: 위 +0.3rem · 아래 −0.4rem(cur) / −0.5rem(new).
+            float pt = CraftStyle.Px("cmp_card_pt_rem");
+            float pb = CraftStyle.Px(isNew ? "cmp_card_pb_new_rem" : "cmp_card_pb_cur_rem");
+            float h = Mathf.Max(tile + pt + pb, textH + pt + pb);
             RectTransform card = PopupKit.Item(parent, name, w, h);
             if (item == null)
             {
@@ -278,36 +286,36 @@ namespace Forge.Game.Ui
             //   (값은 장비 칸 `cell_face` 와 같지만 정본이 따로 적은 자리라 자가 따로 센다). ⚠ 정본 `.cmp-img` 의 테는 `var(--ol2) solid var(--pp-line)`(섞기 아님 · 테 축 T365 몫) — 여기서 안 건드린다.
             Transform cmpFrame = tileRt.Find("frame");
             if (cmpFrame != null) { Transform cf = cmpFrame.Find("face"); if (cf != null) cf.GetComponent<Image>().color = ColorMixUi.Mix("cmp_img_face", ac); }
-            UiKit.Place(tileRt, rem * 0.7f, rem * 0.6f, tile, tile);
+            UiKit.Place(tileRt, rem * 0.7f, pt, tile, tile);
             LvBadge(tileRt, item.Level, tile);
             StarBadge(tileRt, item.Stars, tile, "cmp_star");   // T332 ⓒ — 정본 `.cmp-star`(1860)만 딱딱한 그림자 한 겹을 더 진다
             if (isNew)
             {
                 TextMeshProUGUI nt = UiKit.Text(card, "newtag", TextKind.Sub, tag, "pp_red");
                 nt.fontStyle = FontStyles.Bold;
-                UiKit.Place(nt.rectTransform, rem * 0.7f, rem * 0.6f + tile + rem * 0.5f, tile, lineH);
+                UiKit.Place(nt.rectTransform, rem * 0.7f, pt + tile + rem * 0.5f, tile, lineH);
             }
             float tx = rem * 0.7f + tile + rem * 0.7f;
             float tw = w - tx - rem * 0.5f;
             TextMeshProUGUI nm = UiKit.Text(card, "name", TextKind.Body, "[" + AgeKr(d, item.Age) + "] " + item.Name, "pp_ink", TextAlignmentOptions.Left);
             nm.fontStyle = FontStyles.Bold;
             nm.color = InkOf(ac);
-            UiKit.Place(nm.rectTransform, tx, rem * 0.6f, tw, lineH);
+            UiKit.Place(nm.rectTransform, tx, pt, tw, lineH);
             string arrow = arrowDir == "up" ? " ▲" : arrowDir == "down" ? " ▼" : string.Empty;
             TextMeshProUGUI st = UiKit.Text(card, "stat", TextKind.Sub, NumFmt.Fmt(value(item)) + " " + StatLabel(item.Main), "pp_ink", TextAlignmentOptions.Left);
             st.fontStyle = FontStyles.Bold;
-            UiKit.Place(st.rectTransform, tx, rem * 0.6f + lineH, tw, lineH);
+            UiKit.Place(st.rectTransform, tx, pt + lineH, tw, lineH);
             if (arrow.Length > 0)
             {
                 TextMeshProUGUI ar = UiKit.Text(card, "arrow", TextKind.Sub, arrow.Trim(), arrowDir == "up" ? "pp_green" : "pp_red", TextAlignmentOptions.Left);
                 ar.fontStyle = FontStyles.Bold;
                 float sw = st.preferredWidth;
-                UiKit.Place(ar.rectTransform, tx + sw + rem * 0.2f, rem * 0.6f + lineH, rem * 2f, lineH);
+                UiKit.Place(ar.rectTransform, tx + sw + rem * 0.2f, pt + lineH, rem * 2f, lineH);
             }
             for (int i = 0; i < subs; i++)
             {
                 TextMeshProUGUI s = UiKit.Text(card, "sub-" + i, TextKind.Sub, SubText(item.Subs[i]), "pp_ink", TextAlignmentOptions.Left);
-                UiKit.Place(s.rectTransform, tx, rem * 0.6f + lineH * (2 + i), tw, lineH);
+                UiKit.Place(s.rectTransform, tx, pt + lineH * (2 + i), tw, lineH);
             }
             return card;
         }
