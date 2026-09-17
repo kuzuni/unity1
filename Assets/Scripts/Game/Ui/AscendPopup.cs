@@ -51,7 +51,13 @@ namespace Forge.Game.Ui
             float gap = DungeonPopups.RemL("card_gap_rem");
             float titleH = DungeonPopups.LineH(TextKind.Button);
             float subH = DungeonPopups.LineH(TextKind.Sub);
-            float rowH = subH + DungeonPopups.RemL("asc_row_pad_y_rem") * 2f;
+            // T446 1회차 — 정본 7194 `.ico { width: 1.45em; height: 1.45em }` 가 승천 줄(5620 `.asc-row`)의 아이콘 둘(ui.js 5832·5834)에 걸린다.
+            //   줄 상자는 «글자 줄 ↔ 1.45em» 중 큰 쪽이다. **디센더 몫은 안 더한다** — 같은 규칙의 위아래 `margin: -.32em` 이
+            //   1.45em 을 0.81em 짜리 margin box 로 줄이고 `vertical-align: middle` 로 가운데에 걸어 세로로는 거의 안 밀기 때문이다
+            //   (T433 이 던전 알약에서 더한 그 몫과 갈리는 자리 · 표 AscendUi.json `_ico_em` 에 까닭을 적었다).
+            float icoEm = AscendUi.Num("ico_em");
+            float rowLine = Mathf.Max(subH, DungeonPopups.Kind(TextKind.Sub) * icoEm);
+            float rowH = rowLine + DungeonPopups.RemL("asc_row_pad_y_rem") * 2f;
             float rowMy = DungeonPopups.RemL("asc_row_my_rem");
             string[] lines = asc.Table.Lines;
             float rowsH = lines.Length * (rowH + rowMy * 2f);
@@ -108,7 +114,7 @@ namespace Forge.Game.Ui
                 UiKit.Rounded(row, "bg", rdy ? "asc_ready" : "pp_panel", DungeonPopups.RemL("asc_row_r_rem"));
                 string ink = rdy ? "white" : "pp_ink";
                 float px = DungeonPopups.RemL("asc_row_pad_x_rem");
-                float ico = subH * 0.9f;
+                float ico = DungeonPopups.Kind(TextKind.Sub) * icoEm;   // T446 1회차 — 정본 1.45em(종전 subH*0.9 = 1.125em 은 22% 작았다)
                 string ik; LineIcon.TryGetValue(l, out ik);
                 Image im = UiKit.Icon(row, "ico", ik ?? "star");
                 UiKit.Place(im.rectTransform, px, (rowH - ico) * 0.5f, ico, ico);

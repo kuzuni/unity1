@@ -3748,6 +3748,10 @@
 - 판정: ⓐ `screen_ascend.png` 의 줄 피치가 **5.0%H ±0.3**(지금 4.5) ⓑ 줄 안 아이콘 지름이 글자 크기의 **1.45배 ±5%**(지금 1.125배) ⓒ PlayMode 자 한 칸(줄 상자 = max(글자 줄, 아이콘 1.45em) + 패딩).
 - 범위: `Assets/Scripts/Game/Ui/AscendPopup.cs` · `Assets/Tests/PlayMode/AscendTitleTests.cs`(자 한 칸 · 이미 있는 파일) · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
 
+- 🔄 **1회차 2026-09-17 10:4x~11:1x 워커 G(sess-2242-26582 · 선점 · `AscendPopup.cs` 에 산 lock 없음)**: 등재문 그대로 아이콘을 **정본 1.45em**(style.css **7194** `.ico`)으로 키우고 줄 상자를 «글자 줄 ↔ 1.45em» 중 큰 쪽으로 잡았다(표 `AscendUi.json` `ico_em` · `AscendPopup.cs` 두 줄).
+  - ⚠ **등재문의 전제 하나를 정정한다 — 디센더 몫은 안 더한다**: 같은 `.ico` 규칙에 **위아래 `margin: -.32em`** 이 있어 1.45em 이 **0.81em 짜리 margin box** 로 줄고 `vertical-align: middle` 로 가운데에 걸린다 — 곧 정본에서도 이 아이콘은 줄을 **거의 안 민다**. T433(던전 알약)이 더한 «글꼴 디센더 몫» 을 여기 그대로 쓰면 줄 피치가 **5.39%H** 로 정본(5.0%H)을 넘는다. 등재문이 실측으로 적어 둔 **4.84%H**(= 1.45em 만 센 값)가 정본과 0.16%p 로 가장 가깝다 — 그래서 **max(글자 줄, 1.45em)** 까지만 잡았다. 까닭은 표 `_ico_em` 에 적어 뒀다.
+  - 자 `AscendTitleTests` +1(표 왕복 · 아이콘 = 글자 × 1.45 · 정사각 · 줄 상자 = max(글자 줄, 1.45em) + 패딩 × 2 · «옛 값보다 크다»).
+  - `dotnet build` 0 오류 · `dotnet test` 848/848 · `gate.sh` 막는 자 rc 0 · 건너뛴 자 없다. 판정 = 다음 런 자 PASS + `screen_ascend.png` 눈(줄 아이콘이 글자보다 확실히 크고 줄 피치가 4.5 → **4.8%H** 로 올라간다).
 ### T438 ✅ — PlayMode 통째 실종이 **되풀이되는데 아무도 «그 런이 어떤 환경이었나» 를 안 적는다**: 장부에 `sha·run·tests·missing_modes` 넷뿐이라 간헐의 짝을 맞출 자료가 0이다 (도구·CI·게이트 · T171·T180·T392·T435 의 **다섯 번째 재발** · 런 1007 실측 · §0-6 임자 없는 빨강)
 
 - **증상(되풀이)**: `missing_modes: playmode-results.xml` — EditMode 는 다 돌고 **PlayMode 만** 통째로 없다. 에디터가 관리 코어 어셈블리를 못 읽고(`Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Object` 수백 줄) `IsManagedCodeWorking` 에서 SIGSEGV 로 죽는다(T435 1회차가 로그 꼬리로 읽어 둔 그 자리). 오늘만 **991 · 993 · 1007**(995·997 은 **다른 병** — T435 가 고친 CLI 404 라 두 모드가 다 없었다). 그 사이 **999 · 1001 · 1005 는 멀쩡했다** ⇒ **간헐**이다(자도 «연달아가 아니다» 로 가른다).

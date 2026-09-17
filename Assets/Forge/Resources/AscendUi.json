@@ -1,5 +1,7 @@
 {
   "_": "ROUTINE T398 — 승천 팝업 제목 «⭐ 승천 <small class=muted>보유 별 합계 ⭐ N</small>»(정본 ui.js 5864)의 크기 표. catalog.json 이 T364 lock 이라 T65 꼴로 여기 둔다(T33 또는 다음 회차가 catalog 로 합칠 수 있다). 큰 쪽은 정본 style.css 1761 `.modal-card h3 { font-size: 1.15rem }`(클론 종류 Button 44 ≈ 1.21rem · 그대로) · 작은 쪽은 657 `.muted { font-size: .78rem; font-weight: 400; color: #78909c }` — 작은 글자 px = 큰 글자 px × (title_small_rem / title_rem). 색은 catalog `muted2`(#78909c · .muted). 수치는 여기에만 있다(§1).",
   "title_rem": 1.15,
-  "title_small_rem": 0.78
+  "title_small_rem": 0.78,
+  "ico_em": 1.45,
+  "_ico_em": "T446 — 정본 style.css **7194** `.ico { width: 1.45em; height: 1.45em; vertical-align: middle; margin: -.32em .04em -.32em 0 }`. 승천 줄(5620 `.asc-row`)의 아이콘 둘(ui.js 5832·5834)이 이 기본을 쓴다. 클론은 `subH * 0.9`(= 1.125em)로 그려 **22% 작았다**. ⚠ 줄 상자에 관해서는 T433(던전 알약)과 **다르다** — 거기선 아이콘이 줄을 밀어 «글자 줄 ↔ 아이콘 줄» 중 큰 쪽이 필요했지만, `.asc-row` 는 같은 `.ico` 의 **위아래 −.32em 마진**이 1.45em 을 0.81em 짜리 margin box 로 줄여 세로로는 거의 안 민다(`vertical-align: middle` 이라 가운데에 걸린다). 그래서 이 절은 줄 상자를 «글자 줄 ↔ 1.45em» 중 큰 쪽으로만 잡고 **글꼴 디센더 몫은 안 더한다**(T433 의 `IconLineH` 와 갈리는 자리 · 등재문의 실측 4.84%H ↔ 정본 5.0%H 가 그 값이다)."
 }

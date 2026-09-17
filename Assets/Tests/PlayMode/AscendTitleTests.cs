@@ -132,5 +132,41 @@ namespace Forge.Tests.PlayMode
             AscendPopup.Close();
             yield return null;
         }
+
+        /// <summary>T446 1회차 — 승천 줄(정본 5620 `.asc-row`)의 아이콘은 `.ico` 기본 **1.45em**(7194)이고 줄 상자는 «글자 줄 ↔ 1.45em» 중 큰 쪽이다.
+        /// 종전엔 아이콘이 `subH * 0.9`(= 1.125em)라 22% 작았고 줄 상자도 글자 줄만 셌다. 디센더 몫은 **안 더한다** — 같은 규칙의 위아래 `margin: -.32em` 이
+        /// 1.45em 을 0.81em 짜리 margin box 로 줄여 세로로는 거의 안 민다(T433 의 던전 알약과 갈리는 자리 · 표 `AscendUi.json` `_ico_em`).</summary>
+        [UnityTest]
+        public IEnumerator 승천_줄의_아이콘은_정본_1_45em_이고_줄_상자가_그것을_센다()
+        {
+            Assert.AreEqual(1.45f, AscendUi.Num("ico_em"), 1e-6f, "정본 7194 `.ico` 1.45em");
+            yield return Boot();
+            AscendPopup.Open();
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            RectTransform card = null;
+            foreach (RectTransform rt in UiRoot.Instance.App.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "card" && rt.parent != null && rt.parent.name == "modal-ascend") { card = rt; break; }
+            Assert.IsNotNull(card, "승천 카드");
+            RectTransform row = null, ico = null;
+            foreach (RectTransform rt in card.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name.StartsWith("row-", System.StringComparison.Ordinal)) { row = rt; break; }
+            Assert.IsNotNull(row, "승천 줄(row-*)");
+            foreach (RectTransform rt in row.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "ico") { ico = rt; break; }
+            Assert.IsNotNull(ico, "줄 아이콘");
+
+            float fs = DungeonPopups.Kind(TextKind.Sub), em = AscendUi.Num("ico_em");
+            Assert.AreEqual(fs * em, ico.rect.width, 0.5f, "아이콘 = 글자 × 1.45(종전 0.9 = 1.125em 이 아니다)");
+            Assert.AreEqual(ico.rect.width, ico.rect.height, 0.01f, "정사각");
+            float padY = DungeonPopups.RemL("asc_row_pad_y_rem");
+            float want = Mathf.Max(DungeonPopups.LineH(TextKind.Sub), fs * em) + padY * 2f;
+            Assert.AreEqual(want, row.rect.height, 0.5f, "줄 상자 = max(글자 줄, 1.45em) + 세로 패딩 × 2 · 실측 " + row.rect.height.ToString("0.0"));
+            Assert.Greater(row.rect.height, DungeonPopups.LineH(TextKind.Sub) + padY * 2f + 0.5f, "글자 줄만 세던 옛 값보다 크다");
+            Debug.Log("[T446] 줄 상자 " + row.rect.height.ToString("0.0") + "px · 아이콘 " + ico.rect.width.ToString("0.0") + "px(= " + (ico.rect.width / fs).ToString("0.00") + "em)");
+            AscendPopup.Close();
+            yield return null;
+        }
     }
 }
