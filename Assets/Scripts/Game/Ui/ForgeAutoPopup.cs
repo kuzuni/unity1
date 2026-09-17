@@ -160,6 +160,7 @@ namespace Forge.Game.Ui
                 Image mk = PopupKit.IconOr(ckRt, "mark", "check");
                 mk.color = PinnedColorUi.C("af_check_on_ink");   // T396 10회차 — 정본 4730 ✓ #23c552(ui.js 2318 tint)
                 UiKit.Anchor(mk.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, cb * 0.8f, cb * 0.8f);
+                IconShadow.Drop(mk, "af_check_on");   // T453 — 정본 4978 `.af-check.on { text-shadow: 0 .06rem .1rem rgba(0,0,0,.6) }`: ✓ 는 아이콘이라 사본 한 장을 번져 뒤에 깐다
             }
             float bw = inner * 0.45f, bh = ForgeAutoStyle.StartBtnH(rem);   // T378 13회차 — 정본 4816 `.af-start { padding: .6rem 0; min-height: 4.45rem }`(폭 45.4% 는 이 축 밖)
             Button start = PopupKit.Btn(bottom, "af-start", h.AutoOn ? "중지" : "시작", "pp_blue", "pp_blue_dk", () => h.OnToggleAutoForge(), bw, bh, "stage_ink", TextKind.Button, false, "af_start");   // T109 11회차 — 정본 5015 `.af-start { 4px #000 }`(공용 2px 대신)
@@ -228,6 +229,7 @@ namespace Forge.Game.Ui
                 Image mk = PopupKit.IconOr(box, "mark", "check");
                 mk.color = PinnedColorUi.C("af_check_on_ink");   // T396 10회차 — ✓ 만 #23c552(ui.js 2289·2295 tint)
                 UiKit.Anchor(mk.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, cb * 0.8f, cb * 0.8f);
+                IconShadow.Drop(mk, "af_check_on");   // T453 — 정본 4978 `.af-check.on { text-shadow: 0 .06rem .1rem rgba(0,0,0,.6) }`: ✓ 는 아이콘이라 사본 한 장을 번져 뒤에 깐다
             }
             TextMeshProUGUI l = UiKit.Text(row, "label", TextKind.Sub, s.Label, "pp_ink", TextAlignmentOptions.Left);
             l.fontStyle = FontStyles.Bold;

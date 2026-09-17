@@ -1,0 +1,27 @@
+{
+  "_": "T453 — 정본 `text-shadow` 가 «글자» 에 걸어 둔 링·그림자를, 클론이 그 자리를 아이콘(또는 다른 표의 글자)으로 세운 곳에 같은 값으로 거는 표. 꼴은 TextShadowUi.json 과 같다(rings = 변당 CSS px 오프셋 · shadows = dx·dy·blur + 색). TextShadowUi.json 이 T333 산 lock 이라 제 표로 냈다(결정 774) — 그 lock 이 풀리면 같은 칸으로 옮겨도 뜻은 같다. 수치는 코드에 안 박는다(§1).",
+  "rings": {
+    "chat_back": {
+      "offsets_px": [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]],
+      "color": "#000000",
+      "alpha": 1.0,
+      "_": "style.css 3283 `.chat-input-bar .btn.danger.round { text-shadow: -1px 0 #000, 1px 0 #000, 0 -1px #000, 0 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 }` — 채팅 [뒤로] ◀(클론은 아틀라스 아이콘 tri_left) 둘레 8방 1px 순검정. x 오른쪽 + · y 아래 +(CSS)."
+    },
+    "af_age_star": {
+      "offsets_px": [[-1, -1], [1, -1], [-1, 1], [1, 1]],
+      "color": "#17181a",
+      "alpha": 1.0,
+      "_": "style.css 4858 `.af-age-star { text-shadow: -1px -1px 0 #17181a, 1px -1px 0 #17181a, -1px 1px 0 #17181a, 1px 1px 0 #17181a }` — 자동 제련 시대 막대 ★ 의 대각 4방 1px · 색은 #17181a(카탈로그 pp_ink) — 확률 정보의 `.fi-age-star`(5138) 는 #000 이라 갈래를 둔다. 별은 글자(ForgeUi.AgeBar)라 SDF 스트로크(UiKit.OutlinePx)로 내고 두께만 이 표에서 읽는다."
+    }
+  },
+  "shadows": {
+    "af_check_on": {
+      "dx_rem": 0,
+      "dy_rem": 0.06,
+      "blur_rem": 0.1,
+      "color": "#000000",
+      "alpha": 0.6,
+      "_": "style.css 4978 `.af-check.on { text-shadow: 0 .06rem .1rem rgba(0,0,0,.6) }` — 켜진 체크표(클론은 아틀라스 아이콘 check) 아래로 .06rem 민 흐린 그림자. 셋째 값은 흐림 **반지름**(시그마 = 반지름/2 · DropShadow 와 같은 규약) · rem 은 PopupKit.Rem(캔버스 px/rem) · dy 는 CSS 방향(아래 +)."
+    }
+  }
+}

@@ -399,7 +399,10 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI star = UiKit.Text(bar, "star", TextKind.Micro, Stars(stars), "pp_ink", TextAlignmentOptions.Left);
                 TextSizeUi.Apply(star, "fi_age_star");
                 star.color = PinnedColorUi.C("fi_age_star_ink");
-                UiKit.OutlinePx(star, "pp_line", TextShadowUi.RingPx("fi_age_star"));
+                // T453 — 자동 제련 막대의 별은 정본 **4858** `.af-age-star { text-shadow: ±1px ±1px 0 #17181a ×4 }` 라 링 색이 #000(5138 `.fi-age-star`)이 아니라
+                //   #17181a(= 카탈로그 pp_ink)다. 두께는 같은 1 CSS px — 표 IconShadowUi rings.af_age_star(TextShadowUi 는 T333 산 lock 이라 제 표).
+                if (autoForge) UiKit.OutlinePx(star, "pp_ink", IconShadowUi.RingPx("af_age_star"));
+                else UiKit.OutlinePx(star, "pp_line", TextShadowUi.RingPx("fi_age_star"));
                 UiKit.Place(star.rectTransform, x + nm.preferredWidth + UiKit.L("fi_age_star_ml_rem") * rem, 0f, w * 0.5f, h);
             }
             float segW = next != null ? w * 0.25f : 0f;

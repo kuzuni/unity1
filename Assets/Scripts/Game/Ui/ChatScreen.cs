@@ -79,6 +79,9 @@ namespace Forge.Game.Ui
             Image tri = PopupKit.Tri(brt, "tri", "stage_ink");
             float tw = UiKit.RefH * 0.0179f;
             UiKit.Anchor(tri.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, tw, tw);
+            // T453 — 정본 3283 `.chat-input-bar .btn.danger.round { text-shadow: 8방 1px #000 }`(주석 3281 «삼각 글리프의 검정 외곽선도 여기서 준다»).
+            //   클론의 ◀ 는 아틀라스 아이콘이라 언더레이·SDF 스트로크가 안 닿는다 — 같은 그림을 표(IconShadowUi rings.chat_back)의 오프셋만큼 뒤에 깐다.
+            IconShadow.Ring(tri, "chat_back");
 
             // T364 6회차 — 왼쪽 인셋 + 버튼 + **틈**(정본 3442 `gap: calc(var(--app-w) * .022)` · 주석 «버튼→입력칸 간격 13px=2.60%W»).
             float ix = ChatUi.W("chat_bar_pad_l_w") + bw + ChatUi.W("chat_bar_gap_w");
