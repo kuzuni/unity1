@@ -427,6 +427,22 @@ namespace Forge.Tests.PlayMode
             };
             SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "mythic", null);
             Assert.IsNotNull(v, "결과 연출 팝업이 서지 않았다");
+
+            // T451 3회차 — **2회차의 자국이 답을 줬고, 그 답은 «내가 잰 시점이 틀렸다» 였다.**
+            //   런 1087 자국: `early`(두 프레임 뒤) = **RGBA(0.562,…) = 기대값 그대로** · `late`(가라앉은 뒤) = 0.337 · 비 = **0.5997 ≈ 0.6**.
+            //   그 곱의 정체는 정본 **6720 `@keyframes srrecede`** 다 — «주역이 착지하면 **조연은 물러난다**»(`SkillSummonResult.Recede()` 가
+            //   그 셀 아래 `Graphic` 을 전부 모아 채도·밝기를 건다 · 구체도 그 안에 있다). 곧 **제품이 옳고** 이 자가 잰 순간이 틀렸다:
+            //   ⓐ 2회차가 옮긴 «가라앉은 뒤» 는 물러남이 **끝난** 색이라 늘 어둡다(그래서 그 런이 확정적으로 빨갰다 — 흔들림이 아니라 잘못된 창이다).
+            //   ⓑ 본래의 «두 프레임 뒤» 도 창이 아니었다 — CI 프레임이 길면 그 두 프레임 사이에 물러남이 이미 시작해 **중간값**이 잡힌다.
+            //      T442 가 본 0.340 · 1회차가 본 0.398 이 그 중간값이고, 그래서 **어떤 바이트 색 × 필터와도 안 맞았던** 것이다(2회차의 셈이 맞았다).
+            //   ⇒ 이 자가 재려는 것은 «정본 filter 를 거친 **세운 색**» 이므로 **틱이 한 번도 안 돈 순간**에 읽는다(`Open` 은 동기로 세운다).
+            //      시점이 게임의 상태(«아직 주역이 안 섰다»)로 정해지므로 프레임 길이와 무관하다 — T422·T431·T436·T443 이 고친 그 병이다.
+            //      잣대(허용 오차 1.5/255 · 단언 문구)는 한 글자도 안 바꿨다(결정 748).
+            List<Color> built = Orbs(v);
+            for (int g = 0; built.Count < 2 && !v.Hero && g < 60; g++) { yield return null; built = Orbs(v); }
+            Assert.AreEqual(2, built.Count, "구체 둘(sr-orbwrap/sr-orb) — 틱이 돌기 전에 세워져 있다");
+            Assert.IsFalse(v.Hero, "아직 주역이 안 섰다 = 물러남(정본 6720 srrecede) 전이다 — 이 창에서 재야 «세운 색» 이다");
+
             yield return null; yield return null;
 
             // T451 2회차 — **두 시점을 다 잰다**. 코드를 읽으면 구체 색은 세울 때 한 번 정해지고(`SkillSummonResult.cs:946`
@@ -439,17 +455,16 @@ namespace Forge.Tests.PlayMode
             //     · 둘이 같은데 틀리다 → 세울 때 이미 틀린 것(팔레트·tier 갈래) — `NearestName` 이 무엇과 가까운지 찍는다.
             //     · 둘이 다르다 → 세운 뒤 누가 덮었거나 내가 «지어지는 중» 을 읽은 것(그 차이가 곧 증거다).
             //   단언은 **가라앉은 뒤**로 건다 — 그것이 사람이 실제로 보는 색이고(§1 «자는 게임을 잰다»), 잣대(허용 오차 1.5/255)는 그대로다.
+            // 아래 둘은 **자국 전용**이다(단언은 `built` 에 건다) — 다시 어긋나면 «어느 창에서 어긋났나» 가 한 줄로 남게.
             List<Color> early = Orbs(v);
-            Assert.AreEqual(2, early.Count, "구체 둘(sr-orbwrap/sr-orb)");
             float settle = 0f;
             while (!v.Done && settle < 12f) { settle += Time.unscaledDeltaTime; yield return null; }
             yield return null;
-            List<Color> orbs = Orbs(v);
-            Assert.AreEqual(2, orbs.Count, "가라앉은 뒤에도 구체 둘(sr-orbwrap/sr-orb)");
-            string shift = "같다";
-            for (int i = 0; i < orbs.Count && i < early.Count; i++)
-                if (Mathf.Abs(orbs[i].r - early[i].r) + Mathf.Abs(orbs[i].g - early[i].g) + Mathf.Abs(orbs[i].b - early[i].b) > 1f / 255f)
-                    shift = "**다르다** — 두 프레임 뒤 " + string.Join(" / ", early.ConvertAll(c => c.ToString()).ToArray());
+            List<Color> orbs = built;
+            string shift = string.Format("세운 뒤 {0} ‖ 두 프레임 뒤 {1} ‖ 가라앉은 뒤 {2}(물러남이 끝난 색 · 정본 6720 srrecede 가 조연을 누른다 — 어두운 것이 정상이다)",
+                string.Join(" / ", built.ConvertAll(c => c.ToString()).ToArray()),
+                string.Join(" / ", early.ConvertAll(c => c.ToString()).ToArray()),
+                string.Join(" / ", Orbs(v).ConvertAll(c => c.ToString()).ToArray()));
             foreach (var e in list)
             {
                 int tier = Array.IndexOf(defs.Rarities, e.Rarity);
@@ -477,7 +492,7 @@ namespace Forge.Tests.PlayMode
                 string near = string.Join(" ‖ ", orbs.ConvertAll(c => NearestName(defs, c)).ToArray());
                 string ratios = string.Join(" / ", orbs.ConvertAll(c => string.Format("({0:F3},{1:F3},{2:F3})",
                     rc.r > 0.001f ? c.r / rc.r : -1f, rc.g > 0.001f ? c.g / rc.g : -1f, rc.b > 0.001f ? c.b / rc.b : -1f)).ToArray());
-                string diag = string.Format(" | 가장 가까운 것: {5} | 두 시점 {6}(가라앉기까지 {7:F2}초 · Done {8}) | 정본hex {0} · rc {1} · 표 sat {2} bri {3} · 관측/rc {4}",
+                string diag = string.Format(" | 가장 가까운 것: {5} | 세 창 {6} (가라앉기까지 {7:F2}초 · Done {8}) | 정본hex {0} · rc {1} · 표 sat {2} bri {3} · 관측/rc {4}",
                     PetSkillStyle.RarityHex(defs, e.Rarity) ?? "(없다 — muted 폴백)", rc,
                     fs.HasSaturate ? fs.Saturate.ToString("F3") : "-", fs.HasBrightness ? fs.Brightness.ToString("F3") : "-", ratios, near, shift, settle, v.Done);
                 Assert.IsTrue(found, e.Rarity + "(tier " + tier + ") 구체 색 = 등급색에 표 summon_orb_" + tier + " 를 건 값 " + want + " 이어야 한다 — 실물 " + string.Join(" / ", orbs.ConvertAll(c => c.ToString()).ToArray()) + diag);
