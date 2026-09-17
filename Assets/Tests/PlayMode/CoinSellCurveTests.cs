@@ -283,12 +283,15 @@ namespace Forge.Tests.PlayMode
             if (actual[0] > 400 || worstGap > 400) Assert.Ignore("환경 — 배치모드 촬영 간격이 넓다(첫 표본 " + actual[0] + "ms · 최대 간격 " + worstGap + "ms): 시간축을 못 잰다 · 자국 t408-coinsell.txt 에 값은 남겼다");
             Assert.Greater(Band(peak, band), 0, "코인이 사는 시트 띠(" + band + " · " + sheetTopF.ToString("0.###") + "H~)에 금빛 화소가 한 번은 뜬다");
             // 판정(정본 · 시트 띠): 봉우리 860ms(착지 + 라벨 팝) · 끝 2500ms(라벨 2000ms 가 다 스러진 뒤). 종전 «봉우리 900 · 끝 1000» 은 무대 띠의 보스 연출을 잰 것이었다(T411 2회차 · 결정 700).
-            // 어긋나면 T411 로 접는다(T386 ⓒ) — 그 번호가 닫히면 이 접음을 걷는다.
-            bool peakOk = peak.At >= refPeakMs - 400 && peak.At <= refPeakMs + 400;
-            bool endOk = endMs >= 0 && endMs <= refEndMs + 600;
-            if (!peakOk || !endOk)
-                Assert.Ignore("KNOWN T411 — 판매 코인 연출의 시간축이 정본과 다르다(클론 " + band + " 봉우리 실제 " + peak.At + "ms " + Band(peak, band) + " · 끝 실제 " + (endMs < 0 ? "없음" : endMs + "ms")
-                              + " ↔ 정본 " + refPeakMs + "ms · " + refEndMs + "ms) · 자국 ui-screens/t408-coinsell.txt · 임자 T411 절(연출 갈래)");
+            // T411 8회차 — **접음을 걷고 단언으로 세웠다**: 이 자리는 T411 이 닫힐 때까지 `Assert.Ignore("KNOWN T411 …")` 로 접혀 있었는데,
+            //   그 절이 연출을 정본으로 옮겨 런 **978·1012** 에서 접히지 않고 실제로 지나갔다(§1 «그 번호가 닫히면 자가 «이제 켜라» 로 운다»).
+            //   허용은 접을 때 쓰던 창 그대로다(봉우리 ±400ms · 끝 +600ms) — 걷는 회차가 잣대까지 손대면 «무엇이 나아졌나» 를 못 가린다.
+            //   촬영이 느린 환경은 **위 표본 간격 가드**가 먼저 접으므로, 여기까지 온 런은 시간축을 잴 수 있는 런이다.
+            string trace = "(클론 " + band + " 봉우리 실제 " + peak.At + "ms " + Band(peak, band) + " · 끝 실제 " + (endMs < 0 ? "없음" : endMs + "ms")
+                           + " ↔ 정본 " + refPeakMs + "ms · " + refEndMs + "ms · 자국 ui-screens/t408-coinsell.txt)";
+            Assert.That(peak.At, Is.InRange(refPeakMs - 400, refPeakMs + 400), "코인 봉우리가 정본 시각(착지 + 라벨 팝) ±400ms 안에 선다 " + trace);
+            Assert.GreaterOrEqual(endMs, 0, "봉우리 뒤로 연출이 실제로 스러진다(끝 시각이 잡힌다) " + trace);
+            Assert.LessOrEqual(endMs, refEndMs + 600, "연출이 정본처럼 끝난다 — 라벨까지 스러진 시각이 정본 +600ms 안이다 " + trace);
         }
     }
 }

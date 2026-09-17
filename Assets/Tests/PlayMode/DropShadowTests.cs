@@ -277,14 +277,15 @@ namespace Forge.Tests.PlayMode
             Sprite silSprite = AnvilArt.Silhouette();
             Assert.AreNotSame(silSprite, si.sprite, "그림자 판은 실루엣을 번지게 구운 사본이다(표 blur 1.92px) — 실루엣 그대로면 번짐이 안 걸린 것");
             Vector2 grow = UiFilter.BlurGrow(silSprite, si.sprite, Mathf.Max(((RectTransform)art).rect.width, ((RectTransform)art).rect.height));
-            if (grow.x <= 1f)
             {
-                // T411 5회차 — 런 885: 판은 실루엣과 다른데 키움 비가 (1, 1) — 구운 판의 한 변이 «줄인 원본» 과 같다는 뜻이라 번짐이 안 걸렸거나(ReadPixels 실패 → 원본 그대로)
-                // 셈의 화면 한 변이 걸 때와 다르다. 자국을 남겨 다음 런이 가른다(T386 규약 · 임자 T411).
+                // T411 8회차 — **접음을 걷고 단언으로 세웠다**: 5회차가 런 885 에서 «판은 실루엣과 다른데 키움 비가 (1, 1)» 을 보고 KNOWN T411 로 접어 둔 자리다.
+                //   까닭은 7회차가 가렸다 — `UiFilter.Blur` 의 줄임 길이 Tight 메시 스프라이트의 `textureRect`(투명 여백을 걷은 상자)로 `ReadPixels` 를 불러
+                //   경계 검사에 걸려 null 을 받고 줄인 판을 그대로 돌려줬다. `SpriteMeshType.FullRect` + 읽는 상자 `(0,0,dw,dh)` 로 고쳐 런 **978·1012** 에서
+                //   이 자리가 접히지 않고 실제로 지나갔다. 그래서 «번짐이 걸렸다» 를 이제 **묻는다** — 접음이 남아 있으면 이 회귀가 조용히 숨는다(§1 · T386 ⓒ).
                 Rect sr = silSprite.textureRect, br = si.sprite.rect, ar = ((RectTransform)art).rect;
-                Assert.Ignore("KNOWN T411 — 모루 그림자 판의 키움 비가 1 (실루엣 " + sr.width + "×" + sr.height + " · 판 " + br.width + "×" + br.height + " «" + si.sprite.name
-                              + "» · 판 텍스처 " + (si.sprite.texture != null ? si.sprite.texture.width + "×" + si.sprite.texture.height : "없음") + " · 모루 상자 " + ar.width.ToString("0.0") + "×" + ar.height.ToString("0.0")
-                              + " · 표 blur " + DropShadowUi.Px("anvil_btn", "blur_px") + "px) · 임자 T411 절");
+                Assert.Greater(grow.x, 1f, "모루 그림자 판이 커널 반경만큼 넓다(번짐이 실제로 걸렸다) — 실루엣 " + sr.width + "×" + sr.height + " · 판 " + br.width + "×" + br.height + " «" + si.sprite.name
+                               + "» · 판 텍스처 " + (si.sprite.texture != null ? si.sprite.texture.width + "×" + si.sprite.texture.height : "없음") + " · 모루 상자 " + ar.width.ToString("0.0") + "×" + ar.height.ToString("0.0")
+                               + " · 표 blur " + DropShadowUi.Px("anvil_btn", "blur_px") + "px");
             }
             Assert.AreEqual(((RectTransform)art).rect.width * grow.x, ((RectTransform)sh).rect.width, 0.5f, "그림자 상자 = 모루 상자 + 구운 판의 여유(가로)");
             Assert.AreEqual(((RectTransform)art).rect.height * grow.y, ((RectTransform)sh).rect.height, 0.5f, "그림자 상자 = 모루 상자 + 구운 판의 여유(세로)");
@@ -408,7 +409,7 @@ namespace Forge.Tests.PlayMode
         /// <summary>
         /// T411 6회차 — 런 898 자국: 모루 그림자 판이 «small-anvil_btn-215»(줄인 원본 그대로 · 번짐 없음)였다. 어느 길이 원본을 돌려주는지 가른다:
         /// 실루엣을 <see cref="UiFilter.Blur"/> 에 **화면 한 변을 주어**(줄임 길) 한 번, **0 으로**(줄임 없이) 한 번 넣어 판 이름·크기를 본다.
-        /// 번지지 않으면 KNOWN T411 접음에 두 결과를 실어 다음 런이 읽는다(T386 규약).
+        /// 7회차가 그 까닭(Tight 메시의 `textureRect` 로 `ReadPixels` → 경계 검사 null)을 고친 뒤로 두 길 다 번진 판을 내므로, 8회차가 접음을 걷고 **단언**으로 세웠다.
         /// </summary>
         [UnityTest]
         public IEnumerator 모루_실루엣은_흐리는_자에_넣으면_커널_반경만큼_넓은_판이_나온다()
@@ -426,8 +427,10 @@ namespace Forge.Tests.PlayMode
                           + " · 그대로 길 → «" + (full != null ? full.name + "» " + full.rect.width + "×" + full.rect.height : "null»");
             bool shrunkOk = shrunk != null && shrunk != sil && shrunk.name.StartsWith("blur-");
             bool fullOk = full != null && full != sil && full.name.StartsWith("blur-");
-            if (!shrunkOk || !fullOk)
-                Assert.Ignore("KNOWN T411 — 모루 실루엣이 흐리는 자에서 번지지 않는다(" + what + ") · 임자 T411 절");
+            // T411 8회차 — **접음을 걷고 단언으로 세웠다**: 이 탐침이 6회차에 «줄임 길만 원본을 돌려준다» 를 가려 냈고 7회차가 그 까닭(Tight 메시의 `textureRect`)을 고쳤다.
+            //   런 **978·1012** 에서 두 길 다 번진 판을 낸다 — 이제 묻는다. 고침이 되돌아가면 여기가 먼저 운다(그것이 이 탐침의 구실이다).
+            Assert.IsTrue(shrunkOk, "줄임 길: 흐리는 자가 번진 새 판을 돌려준다(원본 그대로가 아니다) · " + what);
+            Assert.IsTrue(fullOk, "그대로 길: 흐리는 자가 번진 새 판을 돌려준다 · " + what);
             Assert.Greater(shrunk.rect.width, Mathf.Round(sr.width * 0.966f), "줄임 길: 판이 줄인 원본보다 커널 반경만큼 넓다 · " + what);
             Assert.Greater(full.rect.width, sr.width, "그대로 길: 판이 원본보다 커널 반경만큼 넓다 · " + what);
         }
