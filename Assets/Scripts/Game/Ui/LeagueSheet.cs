@@ -107,6 +107,10 @@ namespace Forge.Game.Ui
             // 그늘은 발판의 첫 자식이라 발판 제 바탕 뒤에 깔리고, 위로 삐져나온 만큼이 리스트 위에 얹힌다.
             UiShadow.Drop(foot, "leaguefoot_up", 0f);
             UiKit.Panel(foot, "bg", "league_foot");
+            // T178 23회차 — 정본 2361 `.league-foot { background-image: linear-gradient(180deg, rgba(255,255,255,.16) 0 1px,
+            //   rgba(255,255,255,.05) 8%, rgba(255,255,255,0) 30%, rgba(0,0,0,.22) 100%) }` — 밴드가 «위에 얹힌 판» 으로 읽히게 하는 면 겹.
+            //   바탕(2373 `#1a1f2b`)은 한 값이라 표가 `over_color` 로 미리 합성한다. 그늘·윗변 테는 바로 위·아래 줄이 이미 세운다.
+            SurfaceArt.Fill(foot, "bg-grad", "league_foot", w, H - footTop);
             UiKit.Line(foot, "line", "pp_line", PopupKit.Line3, true);
             LeagueEntry me = null;
             foreach (LeagueEntry e in board) if (e.IsMe) { me = e; break; }

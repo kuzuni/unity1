@@ -883,5 +883,69 @@ namespace Forge.Tests.PlayMode
             float p64 = t.GetPixel(x, Mathf.RoundToInt((t.height - 1) * 0.364f)).r;
             Assert.Less(p64, p45 + 0.004f, "63.6% 는 45% 보다 밝지 않다(종전엔 23 → 42 로 밝아졌다)");
         }
+
+        /// <summary>
+        /// T178 23회차 — 리그 시트 **발 밴드**의 면 겹(정본 **2361** `.league-foot`).
+        /// `linear-gradient(180deg, rgba(255,255,255,.16) **0 1px**, rgba(255,255,255,.05) **8%**, rgba(255,255,255,0) **30%**, rgba(0,0,0,.22) **100%**)` —
+        /// **한 그라디언트가 길이(px)와 백분율을 섞어 쓰는 첫 자리**다. 여태 표는 `unit: "px"`(겹 전체가 px)만 알았으므로
+        /// 이 자리는 정지점마다 단위를 적는 `units` 로 갈랐다(`SurfaceArt.PxMask`).
+        ///
+        /// ⚑ 그래서 이 자의 핵심 칸은 «방향» 이 아니라 **ⓑ 다**: 선 길이를 두 배로 늘려 다시 구우면
+        /// **px 정지점만 절반으로 줄고 % 정지점은 제자리**여야 한다. 만약 누가 `units` 를 지우고 `unit: "px"` 로 되돌리면
+        /// 8%·30%·100% 가 8·30·100 **CSS px** 이 되어 밴드 위 몇 줄에 겹이 다 몰리고, 이 칸이 먼저 운다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 리그_발_밴드에_정본_면_겹이_구워져_서고_px_정지점만_선_길이를_탄다()
+        {
+            float footH = UiKit.RefH * (1f - UiKit.L("league_foot_top"));
+            Assert.Greater(footH, 1f, "발 밴드 높이");
+
+            // ⓐ 방향 — 위 1px 흰 림에서 시작해 바닥 검정 .22 로 단조롭게 어두워진다(180deg).
+            Sprite sp = SurfaceArt.Bake("league_foot", UiKit.RefW / footH, footH);
+            Assert.IsNotNull(sp, "발 밴드 겹을 굽는다");
+            Texture2D t = sp.texture;
+            int x = t.width / 2;
+            Color top = t.GetPixel(x, t.height - 1), bot = t.GetPixel(x, 0);
+            Assert.AreEqual(1f, top.a, 1e-3f, "바탕(#1a1f2b = 표 league_foot)을 받은 겹은 불투명하게 구워진다");
+            Assert.AreEqual(1f, bot.a, 1e-3f, "아래도 불투명");
+            Assert.Greater(top.r, bot.r + 0.03f, "위가 밝고 아래가 어둡다 — 180deg 의 방향(정본 2361)");
+            float prev = 2f;
+            for (int i = 0; i <= 8; i++)
+            {
+                float v = t.GetPixel(x, Mathf.RoundToInt((t.height - 1) * (1f - i / 8f))).r;
+                Assert.Less(v, prev + 0.004f, "위에서 아래로 단조롭게 어두워진다 — " + i + "/8 에서 되밝아졌다");
+                prev = v;
+            }
+
+            // ⓑ 정지점마다 단위가 갈린다 — 선 길이를 두 배로 하면 **% 자리는 그대로**다.
+            Sprite sp2 = SurfaceArt.Bake("league_foot", UiKit.RefW / (footH * 2f), footH * 2f);
+            Assert.IsNotNull(sp2, "두 배 길이로도 굽는다");
+            Texture2D t2 = sp2.texture;
+            foreach (float f in new[] { 0.30f, 0.60f, 1.00f })
+            {
+                float a = t.GetPixel(x, Mathf.RoundToInt((t.height - 1) * (1f - f))).r;
+                float b = t2.GetPixel(t2.width / 2, Mathf.RoundToInt((t2.height - 1) * (1f - f))).r;
+                Assert.AreEqual(a, b, 0.012f, "백분율 정지점은 선 길이를 안 탄다 — " + (f * 100f) + "% 에서 " + a + " ↔ " + b);
+            }
+
+            // ⓒ 실물 — 리그 시트를 열어 발 밴드에 «bg-grad» 가 서는지.
+            yield return Boot();
+            MetaHost.Instance.OpenLeague();
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = MetaHost.Instance.Popups.Find(LeagueSheet.Name);
+            Assert.IsNotNull(p, "리그 시트가 열렸다");
+            Transform foot = FindDeep(p.Root, "foot");
+            Assert.IsNotNull(foot, "발 밴드(foot)");
+            Transform grad = FindDeep(foot, "bg-grad");
+            Assert.IsNotNull(grad, "발 밴드의 면 겹 «bg-grad» 가 선다(정본 2361 — 종전엔 단색 한 장이었다)");
+            Image gi = grad.GetComponent<Image>();
+            Assert.IsNotNull(gi, "면 겹: Image");
+            Assert.IsNotNull(gi.sprite, "면 겹은 구운 그림이다 — 색 한 칸짜리가 아니다");
+            Assert.AreEqual(1f, gi.color.r, 1e-3f, "그림 위 색은 흰색 — 표 색을 두 번 곱하지 않는다");
+            yield return null;
+        }
+
     }
 }

@@ -75,6 +75,29 @@ namespace Forge.Game.Ui
             return one != null && J.Str(one["unit"]) == "px";
         }
 
+        /// <summary>
+        /// 정지점마다 단위가 갈리는 겹(`units: ["px","px","f","f","f"]`) — CSS 는 한 그라디언트 안에서 길이와 %를 섞어 쓴다
+        /// (정본 2361 `.league-foot` 이 `… .16) 0 1px, … .05) 8%, …` 꼴이다). `unit: "px"` 은 «전부 px» 의 줄임이라 그대로 둔다(T178 4회차 자리들).
+        /// 돌려주는 것은 정지점 수만큼의 표식이고, 표에 아무것도 없으면 전부 «분수» 다. T178 23회차.
+        /// </summary>
+        public static bool[] PxMask(string key, int n)
+        {
+            bool[] m = new bool[n];
+            JsonObject one = J.Obj(Table()[key]);
+            if (one == null) return m;
+            if (J.Str(one["unit"]) == "px")
+            {
+                for (int i = 0; i < n; i++) m[i] = true;
+                return m;
+            }
+            List<object> u = J.Arr(one["units"]);
+            if (u == null) return m;
+            if (u.Count != n)
+                throw new KeyNotFoundException(ResourcePath + ".json 의 «" + key + "» units 길이가 stops 와 다르다(" + u.Count + " ↔ " + n + ")");
+            for (int i = 0; i < n; i++) m[i] = J.Str(u[i]) == "px";
+            return m;
+        }
+
         /// <summary>CSS px 하나 = 캔버스 px 몇 개(표 뿌리 `css_px`).</summary>
         public static float CssPx { get { return (float)J.Num(Table()["css_px"], 2.164); } }
 
@@ -258,12 +281,16 @@ namespace Forge.Game.Ui
         {
             float rad = Angle(key) * Mathf.Deg2Rad;
             float dx = Mathf.Sin(rad), dy = -Mathf.Cos(rad);   // CSS: 0deg 는 위로 · y 는 아래가 +
-            if (PxOffsets(key))
+            bool[] pxAt = PxMask(key, pos.Length);
+            bool anyPx = false;
+            for (int i = 0; i < pxAt.Length; i++) if (pxAt[i]) { anyPx = true; break; }
+            if (anyPx)
             {
                 // CSS px → 선 길이의 분수. 자리 길이를 모르면(0) 굽는 판의 길이를 쓴다(림이 굵게 나오지만 안 사라진다).
+                // T178 23회차 — **정지점마다** 판다: 한 그라디언트가 px 와 % 를 섞어 쓰는 자리가 있다(정본 2361 `.league-foot`).
                 float realLen = lineLenCanvasPx > 0f ? lineLenCanvasPx : Mathf.Abs(w * dx) + Mathf.Abs(h * dy);
                 float k = CssPx / Mathf.Max(1f, realLen);
-                for (int i = 0; i < pos.Length; i++) pos[i] = Mathf.Clamp01(pos[i] * k);
+                for (int i = 0; i < pos.Length; i++) if (pxAt[i]) pos[i] = Mathf.Clamp01(pos[i] * k);
             }
             float len = Mathf.Abs(w * dx) + Mathf.Abs(h * dy);
             if (len <= 0f) len = 1f;

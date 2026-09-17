@@ -85,6 +85,12 @@ TABLE = {
     # T178 3회차 — 둥근 면 위는 SurfaceArt.FillMasked(면에 Mask) 로 얹는다(모서리 밖으로 안 샌다).
     '.shop-banner': ['Ui/ShopSheet.cs#shop-banner-grad'],
     '.league-collect-pill': ['Ui/LeagueSheet.cs#collect-grad'],
+    # T178 23회차 — 리그 시트 **발 밴드**의 면 겹(2361). 한 그라디언트가 px 와 % 를 섞는 첫 자리라 표에 `units` 를 새로 뒀다.
+    '.league-foot': ['Ui/LeagueSheet.cs#bg-grad'],
+    # T178 23회차 — 단(tier) 행 위끝 대시 줄(2548 `repeating-linear-gradient`). **코드는 이미 서 있다** — T368 5회차가
+    #   `LeagueSheet.TierDash`(`SurfaceArt.BakeStripe` · 표 `stripes.league_tier_dash`)로 세웠는데 이 자 표에만 안 올라
+    #   «미정» 으로 세어지고 있었다(`#panel-skills .summon-bar::before` → `SkillPanel.cs@SummonDash` 와 같은 꼴).
+    '.league-reward-tier': ['Ui/LeagueSheet.cs@TierDash'],
     '.pinfo-preview': ['Ui/PlayerInfoPopup.cs#preview-grad'],
     # T178 4회차 — 하단 탭바 밴드(겹 둘 · 아래 1px 림은 표의 `unit: "px"`) · 스킬 확률 막대(에나멜 하이라이트 + 위 1px 림 · 둥근 면이라 FillMasked).
     # T178 6회차 — 퀘스트 진행 막대 채움의 두 겹(세로 띠 + 위 1px 광택). 상태는 띠 키로만 가른다(정본 주석).
