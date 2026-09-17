@@ -115,6 +115,12 @@ namespace Forge.Game.Ui
             Image disc = PetSkillKit.Disc(ir, "bg", PetSkillStyle.C("ink"));
             UiKit.Fill(disc.rectTransform);
             TextMeshProUGUI it = PetSkillKit.Text(ir, "t", TextKind.Sub, PetSkillStyle.T("info_i"), PetSkillStyle.C("white"));
+            // T439 — 정본 style.css 4647 `.rates-i { font-weight: 900; font-style: **italic**; font-family: Georgia, serif }`.
+            //   `PetSkillKit.Text` 이 이미 900 몫의 Bold 를 준다 — 여기서 **기울임 비트만 더한다**(`|=` 라 굵기가 안 지워진다).
+            //   ⚠ 세리프(Georgia)는 **못 낸다** — 이 레포의 글꼴은 NotoSansKR 하나뿐이고(T53) 새 글꼴을 들이는 것은 §1 이 막는다.
+            //   그래서 «기울인 산세리프 i» 까지가 이 자리가 낼 수 있는 전부다(정본 세 조건 중 둘).
+            //   TMP 가짜 기울임은 획을 기울일 뿐 자폭을 안 늘린다(가짜 굵기의 `boldSpacing` 과 다르다 · T352) — 한 글자라 이웃 자간도 없다.
+            it.fontStyle |= FontStyles.Italic;
             UiKit.Fill(it.rectTransform);
             y += iH + gap;
             // rate-list
