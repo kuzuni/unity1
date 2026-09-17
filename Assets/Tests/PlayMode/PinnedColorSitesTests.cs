@@ -370,13 +370,13 @@ namespace Forge.Tests.PlayMode
             yield return null;
             ProfilePopup.Open(h.Meta);
             yield return null;
+            // 토글은 «설정» 갈래에만 선다(`ProfilePopup.Render` 45행). 탭 단추를 이름으로 찾지 않고 그 단추가 부르는 공개 문(`SwitchView`)을 그대로 쓴다 —
+            //   런 1017 빨강: 단추 이름은 `settings` 가 아니라 **`tab-settings`**(`Tab()` 61행이 «tab-» 을 붙인다)라 이름으로 찾은 자가 null 을 물었다.
+            //   이름에 기대지 않는 쪽이 이 자가 재려는 것(«공용 도우미 기본값이 그대로인가»)과도 맞다.
+            ProfilePopup.SwitchView(h.Meta, "settings");
+            yield return null; yield return null;
             Popup sp = h.Meta.Popups.Find(ProfilePopup.Name);
             Assert.IsNotNull(sp, "프로필 팝업");
-            Transform tab = FindActive(sp.Root, "settings");   // 설정 탭(53~55행) — 토글은 그 갈래에만 선다
-            Assert.IsNotNull(tab, "설정 탭");
-            tab.GetComponent<Button>().onClick.Invoke();
-            yield return null; yield return null;
-            sp = h.Meta.Popups.Find(ProfilePopup.Name);
             Assert.AreEqual("settings", ProfilePopup.View, "설정 갈래로 바뀌었다");
             Transform st = FindActive(sp.Root, "toggle");
             Assert.IsNotNull(st, "설정 토글");
