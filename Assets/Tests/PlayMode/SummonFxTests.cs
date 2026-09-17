@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -426,6 +427,60 @@ namespace Forge.Tests.PlayMode
                 yield return null;
                 yield return null;
             }
+        }
+    
+        /// <summary>T448 — 동급(peer) 셀의 착지 링(정본 6710~6716 `.sr-cell.peer.on::after`): 동급 셀마다 셀 뒤(z −1) 폭 100% 정사각 링이 서고,
+        /// 가산(screen) 재질이며, 주역 링과 **다른 스프라이트**(정지점 60/76/84/95 · 흰 .7)다. 자기 착지 뒤 .58s 가 지나면 알파 0 · 배율 `--ringmax` 1.5.
+        /// 동급 = «주역이 아닌데 최고 등급» 이라 판을 직접 짠다(SummonChargeTests 와 같은 길) — 조연 둘 + 동급 둘 + 주역(마지막) 하나.</summary>
+        [UnityTest]
+        public IEnumerator 동급_셀은_자기_착지에_축소판_링을_한_번_돌린다()
+        {
+            yield return Boot();
+            var list = new List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "rare", Name = "나" },
+                new SkillSummonResultView.Entry { Key = "sk:c", IconKey = "sk_fireball", Rarity = "ultimate", Name = "다" },
+                new SkillSummonResultView.Entry { Key = "sk:d", IconKey = "sk_fireball", Rarity = "ultimate", Name = "라" },
+                new SkillSummonResultView.Entry { Key = "sk:e", IconKey = "sk_fireball", Rarity = "ultimate", Name = "마" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(Sheet, "skill", list, "ultimate", null);
+            yield return null;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+            Assert.AreEqual(5, v.CellCount);
+            List<Image> rings = v.PeerRings;
+            Assert.AreEqual(2, rings.Count, "최고 등급 셋 중 주역(마지막) 하나를 뺀 둘이 동급 — 링도 둘");
+            Assert.IsNotNull(v.HeroRing, "동급이 있으면 주역도 있다");
+            float smax = v.RingMaxPeer;
+            Assert.AreEqual(1.5f, smax, 1e-6f, "정본 6702 `.sr-cell.peer { --ringmax: 1.5 }`");
+            Assert.Less(smax, v.RingMax, "동급 링은 주역 링보다 작게 퍼진다(축소판)");
+            foreach (Image r in rings)
+            {
+                RectTransform rt = r.rectTransform;
+                Assert.AreEqual("sr-peerring", rt.name);
+                Assert.AreEqual(0, rt.GetSiblingIndex(), "링은 셀 뒤(z −1)");
+                Assert.AreEqual(rt.rect.width, rt.rect.height, 0.01f, "정사각(aspect-ratio: 1)");
+                Assert.AreEqual(((RectTransform)rt.parent).rect.width, rt.rect.width, 0.5f, "폭 100%");
+                Assert.IsNotNull(r.sprite, "구운 링 한 장");
+                Assert.AreNotEqual(v.HeroRing.sprite, r.sprite, "주역 링과 다른 판(정지점·흰 알파가 다르다)");
+                Assert.IsNotNull(r.material, "가산 재질");
+                Assert.AreEqual(CraftFxPoly.ScreenShaderName, r.material.shader.name, "정본 6712 mix-blend-mode: screen");
+            }
+            // 주역 셀에는 동급 링이 없다(정본 `.peer` 는 `.heroic` 과 겹치지 않는다).
+            Assert.IsNull(v.HeroRing.transform.parent.Find("sr-peerring"), "주역 셀엔 동급 링이 없다");
+            // 전부 착지하고 링 길이(.58s)가 지나면 링은 사라지고 최대 배율에 선다.
+            float t = 0f;
+            while (!v.Done && t < 15f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done, "done");
+            float wait = SummonFxStyle.H("peerring_ms") / 1000f + 0.2f;
+            for (float w = 0f; w < wait; w += Time.unscaledDeltaTime) yield return null;
+            foreach (Image r in rings)
+            {
+                Assert.AreEqual(0f, r.color.a, 1e-3f, "착지 링은 한 번 돌고 사라진다(forwards · 알파 0)");
+                Assert.AreEqual(smax, r.rectTransform.localScale.x, 1e-3f, "끝 배율 = --ringmax 1.5");
+            }
+            v.Close();
+            yield return null;
         }
     }
 }

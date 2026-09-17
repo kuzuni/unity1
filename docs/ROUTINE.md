@@ -3877,7 +3877,12 @@
 - 고침 = `sr-heroring` 이 이미 쥔 길을 그대로 한 벌 더(굽기 `SummonFx.BakeHeroRing` 에 정지점·흰 알파를 인자로 · `CraftFxPoly.Screen()` 재질 · `SetAsFirstSibling` · pivot (.5,1)) + 표 칸 여섯(`peerring_stop0~3` · `peerring_white_a` · `peerring_ms` · `ringmax_peer`) + 셀의 착지 시계에 물리기. **수치는 코드에 박지 않는다**(§1).
 - 판정: PlayMode 자 한 칸(동급 셀에 `sr-peerring` 이 서고 셰이더가 `Forge/UiScreen` · 착지 뒤 알파가 0 으로 내려간다 · 주역 링과 **다른 스프라이트**다) + `screen_t179-summon` 눈.
 - 범위: `Assets/Scripts/Game/Ui/SkillSummonResult.cs`·`Ui/SummonFx.cs`(각 **산 lock 뒤**) · `Assets/Forge/Resources/SummonFxUi.json` · `Assets/Tests/PlayMode/SummonFxTests.cs` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
-- 🔄 **1회차 선점 2026-09-17 12:4x 워커 O(sess-2140-18689)** — 두 파일 다 산 lock 밖(`check_claim_scope` 겹침 = 문서 둘뿐). 굽기 한 벌 더 + 표 칸 + 셀 착지 시계 + PlayMode 자.
+- 🔄 **1회차 push 2026-09-17 12:4x~13:0x 워커 O(sess-2140-18689 · lock 유지 · 판정은 다음 런)** — 두 파일 다 산 lock 밖(`check_claim_scope` 겹침 = 문서 둘뿐).
+  - **표**(`SummonFxUi.json` hero 절) 칸 일곱: `peerring_ms` 580 · `peerring_stop0~3` .60/.76/.84/.95 · `peerring_white_a` .7 · `ringmax_peer` 1.5 + `_peerring` 주석. 알파 .95→0 · 배율 .5→ringmax · 이징은 정본이 같은 `srheroring` 키프레임이라 `heroring_a0`·`heroring_scale0`·`heroring_ease` 를 그대로 쓴다(칸을 복사하지 않는다).
+  - **굽기**(`SummonFx.cs`): `BakeHeroRing` 의 본문을 `BakeRing(name, rc, s0..s3, wa)` 로 빼고 `BakeHeroRing`·`BakePeerRing` 이 정지점·흰 알파만 다르게 부른다(주역 판은 바이트 하나 안 바뀐다).
+  - **셀**(`SkillSummonResult.cs`): `BuildCell` 이 `peer` 면 셀 첫 자식으로 `sr-peerring`(앵커·피벗 (.5,1) · cw×cw · screen 재질 · 알파 0) · `Cell.PeerRing`. `AnimatePeerRings()` 가 셀마다 **제 착지 시각 `OnAt`** 에서 .58s 를 센다(주역 링은 `heroAtWall` = `.hero` 비트 — 정본 6706 주석의 «거는 때가 다르다»). 자가 보는 창 `PeerRings`·`RingMaxPeer`.
+  - **자**: `SummonFxTests.동급_셀은_자기_착지에_축소판_링을_한_번_돌린다` — 판을 직접 짠다(조연 둘 + ultimate 셋 → 주역 하나 · 동급 둘 · SummonChargeTests 와 같은 길): 링 둘 · 셀 뒤 z −1 · 정사각 · 폭 100% · 주역 링과 다른 스프라이트 · `Forge/UiScreen` · 주역 셀엔 없음 · done + .58s 뒤 알파 0 · 배율 1.5. `gate.sh`(dotnet build) rc 0.
+  - **안 한 것**: `--peerk`(광채 1.34)는 box-shadow 축 T331 몫 · `.sr-cell.peer .sr-orbwrap { outline }` 상시 테두리는 이 절의 등재 밖(등재문이 링만 ⛔ 로 셌다). **판정 = 다음 런** 그 칸 PASS + `SummonChargeTests` 주역 링 칸 그대로 PASS + `screen_t179-summon` 눈(동급이 나온 판이면 링은 스쳐 가 정지 샷엔 안 남는다 — 눈은 «깨진 것 없음» 까지).
 
 ### T449 ✅ — **소환진(`.sr-floor`)의 폭·비율 넷이 코드에 박혔다** — 열 줄 옆 형제 `.sr-canopy` 는 같은 꼴을 이미 표에서 읽는다 (UI · T402·T375 와 같은 꼴 · **T33 43회차 등재**)
 

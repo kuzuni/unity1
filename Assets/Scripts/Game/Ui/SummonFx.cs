@@ -741,10 +741,20 @@ namespace Forge.Game.Ui
         /// </summary>
         public static Sprite BakeHeroRing(string name, Color rc)
         {
+            return BakeRing(name, rc, HL("heroring_stop0"), HL("heroring_stop1"), HL("heroring_stop2"), HL("heroring_stop3"), HL("heroring_white_a"));
+        }
+
+        /// <summary>T448 — 동급(peer) 착지 링(정본 `.sr-cell.peer.on::after` 6710~6716): 주역 링과 같은 굽기에 정지점(60/76/84/95)·흰 띠 알파(.7)만 표의 `peerring_*` 로.</summary>
+        public static Sprite BakePeerRing(string name, Color rc)
+        {
+            return BakeRing(name, rc, HL("peerring_stop0"), HL("peerring_stop1"), HL("peerring_stop2"), HL("peerring_stop3"), HL("peerring_white_a"));
+        }
+
+        /// <summary>정본 `radial-gradient(closest-side, 투명 s0, 등급색 s1, 흰(wa) s2, 투명 s3)` 링 한 장 — 주역·동급이 정지점만 다르게 나눠 쓴다.</summary>
+        static Sprite BakeRing(string name, Color rc, float s0, float s1, float s2, float s3, float wa)
+        {
             Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
             int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
-            float s0 = HL("heroring_stop0"), s1 = HL("heroring_stop1"), s2 = HL("heroring_stop2"), s3 = HL("heroring_stop3");
-            float wa = HL("heroring_white_a");
             var px = new Color32[N * N];
             for (int y = 0; y < N; y++)
             {

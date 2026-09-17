@@ -54,6 +54,8 @@ namespace Forge.Game.Ui
             public Image Spark;
             /// <summary>T334 15회차 — 비행 잔상(정본 `.sr-ghost`) — 구체 **뒤**(z 0)에 깔리는 흐린 복제.</summary>
             public Image Ghost;
+            /// <summary>T448 — 동급(peer) 착지 링(정본 `.sr-cell.peer.on::after`) — 셀 **뒤**(z −1) 폭 100% 정사각 · 자기 착지에 한 번 돈다.</summary>
+            public Image PeerRing;
         }
 
         public static SkillSummonResultView Current { get; private set; }
@@ -203,6 +205,10 @@ namespace Forge.Game.Ui
         public Image HeroRing { get { return heroRing; } }
         /// <summary>그 링의 최대 배율(정본 `--ringmax` · 배치마다 다르다).</summary>
         public float RingMax { get { return ringMax; } }
+        /// <summary>T448 — 동급(peer) 착지 링들 — 자가 본다(동급 셀 하나에 하나).</summary>
+        public List<Image> PeerRings { get { var l = new List<Image>(); foreach (Cell c in cells) if (c.PeerRing != null) l.Add(c.PeerRing); return l; } }
+        /// <summary>그 링의 최대 배율(정본 6702 `.sr-cell.peer { --ringmax: 1.5 }`).</summary>
+        public float RingMaxPeer { get { return SummonFxStyle.H("ringmax_peer"); } }
 
         /// <summary>룬 눈금 띠(정본 `.sr-floor::after`)의 지금 불투명도 — 없으면 −1.</summary>
         public float TickAlpha { get { return tickImg != null ? tickImg.color.a : -1f; } }
@@ -902,6 +908,24 @@ namespace Forge.Game.Ui
             wrap.anchoredPosition = new Vector2(cw * 0.5f, -cw * 0.5f);
             c.OrbWrap = wrap;
             c.OrbHome = wrap.anchoredPosition;
+            // T448 — 동급(peer) 착지 링(정본 6710~6716 `.sr-cell.peer.on::after`): 주역 충격파의 축소판이되 정지점·흰 알파·길이·배율 넷이 다르고,
+            //   거는 때가 다르다 — 주역 링은 `.hero` 비트, 이 링은 **자기 착지**(.on). 셀 뒤(z −1) 폭 100% 정사각 · 가산(screen) 재질 · 알파 0 으로 두고 착지 시계가 돌린다.
+            if (peer)
+            {
+                RectTransform pr = UiKit.Box(cell, "sr-peerring");
+                pr.anchorMin = new Vector2(0.5f, 1f); pr.anchorMax = new Vector2(0.5f, 1f);
+                pr.pivot = new Vector2(0.5f, 1f);
+                pr.sizeDelta = new Vector2(cw, cw);
+                pr.anchoredPosition = Vector2.zero;
+                pr.SetAsFirstSibling();
+                Image ring = pr.gameObject.AddComponent<Image>();
+                ring.raycastTarget = false;
+                ring.sprite = SummonFx.BakePeerRing("sr-peerring-" + ColorUtility.ToHtmlStringRGB(rc), rc);
+                Material pm = CraftFxPoly.Screen();
+                if (pm != null) ring.material = pm;
+                ring.color = new Color(1f, 1f, 1f, 0f);
+                c.PeerRing = ring;
+            }
             // 광채(고등급) · 그림자 · 구체 · 하이라이트
             if (Hi(e.Rarity) || peer)
             {
@@ -1230,6 +1254,7 @@ namespace Forge.Game.Ui
             AnimateWipe();
             AnimateKick();
             AnimateHeroRing();
+            AnimatePeerRings();
             AnimateBeam();
             AnimateRelights();
             AnimateSparks();
@@ -1483,6 +1508,26 @@ namespace Forge.Game.Ui
             float a0 = SummonFxStyle.H("heroring_a0"), s0 = SummonFxStyle.H("heroring_scale0");
             heroRing.color = new Color(1f, 1f, 1f, Mathf.Lerp(a0, 0f, k));
             heroRing.rectTransform.localScale = Vector3.one * Mathf.Lerp(s0, ringMax, k);
+        }
+
+        /// <summary>
+        /// T448 — 동급(peer) 착지 링(정본 `.sr-cell.peer.on::after` · `srheroring .58s`) — 같은 키프레임(알파 .95 → 0 · 배율 .5 → `--ringmax` 1.5)을
+        /// 셀마다 **제 착지 시각**(`OnAt`)에서 센다. 주역 링과 달리 `.hero` 비트를 안 기다린다(정본 6706 주석).
+        /// </summary>
+        void AnimatePeerRings()
+        {
+            float dur = -1f, a0 = 0f, s0 = 0f, smax = 1f;
+            for (int i = 0; i < cells.Count; i++)
+            {
+                Cell c = cells[i];
+                if (c.PeerRing == null || !c.On) continue;
+                if (dur < 0f) { dur = SummonFxStyle.H("peerring_ms"); a0 = SummonFxStyle.H("heroring_a0"); s0 = SummonFxStyle.H("heroring_scale0"); smax = SummonFxStyle.H("ringmax_peer"); }
+                float ms = (Time.unscaledTime - c.OnAt) * 1000f;
+                float u = dur <= 0f ? 1f : Mathf.Clamp01(ms / dur);
+                float k = (float)SummonFxStyle.HeroRingEase.Ease(u);
+                c.PeerRing.color = new Color(1f, 1f, 1f, Mathf.Lerp(a0, 0f, k));
+                c.PeerRing.rectTransform.localScale = Vector3.one * Mathf.Lerp(s0, smax, k);
+            }
         }
 
 
