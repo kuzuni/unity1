@@ -245,7 +245,7 @@ namespace Forge.Tests.PlayMode
             int w = ses.W, h = ses.H;
             var shots = new List<KeyValuePair<int, byte[]>>();
             var actual = new List<int>();
-            float t0;
+            float t0, grabMs = 0f; int grabN = 0;
             try
             {
                 byte[] probe = ses.Grab();   // 세션 첫 촬영의 비용(셰이더·RT 준비)은 연출 전에 치른다
@@ -260,7 +260,9 @@ namespace Forge.Tests.PlayMode
                     int ms = (int)J.Num(J.Obj(o)["ms"]);
                     while ((Time.unscaledTime - t0) * 1000f < ms) yield return null;
                     int at = Mathf.RoundToInt((Time.unscaledTime - t0) * 1000f);
+                    float gt = Time.realtimeSinceStartup;
                     byte[] m = ses.Grab();
+                    grabMs += (Time.realtimeSinceStartup - gt) * 1000f; grabN++;   // T441 4회차 — 표본 간격의 정체(한 장 찍는 값)를 잰다
                     Assert.IsNotNull(m, "촬영 " + ms + "ms");
                     if (ms == pngA || ms == pngB) RecordPng(ms, ses.LastPng());
                     shots.Add(new KeyValuePair<int, byte[]>(ms, m));
@@ -289,6 +291,8 @@ namespace Forge.Tests.PlayMode
                     (int)J.Num(rf["total"]), (int)J.Num(rf["top"]), (int)J.Num(rf["mid"]), (int)J.Num(rf["bot"]), rows[i].MinF * 100f));
             }
             sb.AppendLine("# 클론 봉우리(" + band + ") 실제 " + peak.At + "ms(표 " + peak.Ms + ") " + Band(peak, band) + " · 끝 실제 " + (endMs < 0 ? "없음" : endMs + "ms") + " ↔ 정본 봉우리 " + refPeakMs + "ms " + (int)J.Num(t["peak_v"]) + " · 끝 " + refEndMs + "ms");
+            sb.AppendLine(string.Format("# 표본 간격의 정체(T441 4회차): 한 장 찍는 값 평균 {0:0} ms × {1} 장 — 이 환경의 표본 간격은 이 값이 정한다."
+                + " 정본 봉우리는 780→860→940ms 에서 2455→2743→1434 로 **80ms 폭**이라 표본이 그보다 성기면 봉우리를 스쳐 지나간다.", grabN > 0 ? grabMs / grabN : 0f, grabN));
             // T441 3회차 — «어디서 떠서 얼마나 오르나» 를 셈으로도 남긴다(화소가 못 보여 주는 자리).
             //   정본 자국은 mid(무대 띠)가 3762~5045 로 차는데 클론은 0 이다 — 포물선 꼭대기가 시트 윗선(sheetTopF)을 못 넘는다는 뜻이고,
             //   그 까닭은 «높이 값» 이 아니라 «원점» 일 수 있다(표 rise 는 정본 그대로 · CoinBurstRules 가 cssPx 를 곱한다).
