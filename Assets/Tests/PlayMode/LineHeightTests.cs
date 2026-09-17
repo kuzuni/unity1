@@ -545,5 +545,65 @@ namespace Forge.Tests.PlayMode
             Debug.Log("[T354] 머리줄 피치 왼 " + wantL.ToString("0.0") + "px · 오른 " + wantR.ToString("0.0") + "px · 글자 " + fs.ToString("0.0") + " · 오른쪽 잉크 " + ink.ToString("0.0"));
         }
 
+    
+        /// <summary>T354 20회차 — 상점 시트 안내(정본 3854 `.sheet-sub { line-height: 1.4 }` · ui.js 4960): 던전·퀘스트 시트와 같은 선택자·같은 키.</summary>
+        [UnityTest]
+        public IEnumerator 상점_시트_안내는_정본_1_4_배수로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && MetaHost.Instance != null); i++) yield return null;
+            MetaHost h = MetaHost.Instance;
+            ShopSheet.Open(h);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = h.Popups.Find(ShopSheet.Name);
+            Assert.IsNotNull(p, "상점 시트가 열려 있다");
+            Transform sub = Find(p.Root, "sub");
+            Assert.IsNotNull(sub, "안내 글(.sheet-sub)");
+            TextMeshProUGUI t = sub.GetComponent<TextMeshProUGUI>();
+            AssertSpacing(t, "sheet_sub_lh", "상점 안내");
+            Assert.AreEqual(1.4, LineHeight.Table.Get("sheet_sub_lh"), 1e-9, "정본 3854");
+            if (t.textInfo.lineCount > 1) Assert.AreEqual(1.4, LineHeight.MeasuredRatio(t), 0.02, "두 줄로 꺾이면 실제 줄 간격도 1.4");
+            h.Popups.Hide(ShopSheet.Name);
+            yield return null;
+        }
+
+        /// <summary>T354 20회차 — 장비 상세(#forge-item-modal)의 lead 와 substat 행: 정본은 같은 선택자를 두 번 적어(3680·3681 → 3726·3729) **뒤 규칙**이 산다 —
+        /// lead 1.13 · substat-row 1.21(표 `_2_lh`). lead 는 두 줄로 꺾이는 글이라 실제 줄 간격까지 잰다.</summary>
+        [UnityTest]
+        public IEnumerator 장비_상세_lead_와_substat_행은_정본_뒤_규칙_1_13_과_1_21_로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && ForgeHost.Instance == null; i++) yield return null;
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h, "ForgeHost");
+            ForgeInfoPopup.OpenList(h);
+            yield return null;
+            string age = h.Defs.Ages[0];
+            string wt = h.Engine.WeaponsOfAge(age)[0];
+            ForgeInfoPopup.OpenDetail(h, age, "weapon", 0, wt);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = h.Meta.Popups.Find(ForgeInfoPopup.ItemName);
+            Assert.IsNotNull(p, "장비 상세 팝업");
+            Transform lead = Find(p.Root, "idet-lead");
+            Assert.IsNotNull(lead, "lead(.idet-lead)");
+            TextMeshProUGUI lt = lead.GetComponent<TextMeshProUGUI>();
+            Assert.AreEqual(1.13, LineHeight.Table.Get("forge_item_modal_idet_lead_2_lh"), 1e-9, "정본 3726 — 3680 의 1.25 를 뒤 규칙이 덮는다");
+            AssertSpacing(lt, "forge_item_modal_idet_lead_2_lh", "장비 상세 lead");
+            lt.ForceMeshUpdate(true, true);
+            if (lt.textInfo.lineCount > 1) Assert.AreEqual(1.13, LineHeight.MeasuredRatio(lt), 0.02, "두 줄 lead 의 실제 줄 간격 = 1.13");
+            int rows = 0;
+            foreach (TextMeshProUGUI r in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (!r.name.StartsWith("substat-")) continue;
+                rows++;
+                AssertSpacing(r, "forge_item_modal_idet_subs_substat_row_2_lh", "substat 행 " + r.name);
+            }
+            Assert.Greater(rows, 0, "substat 행이 하나도 없다");
+            Assert.AreEqual(1.21, LineHeight.Table.Get("forge_item_modal_idet_subs_substat_row_2_lh"), 1e-9, "정본 3729 — 3681 의 1.264 를 뒤 규칙이 덮는다");
+            ForgeInfoPopup.Close(h);
+            yield return null;
+        }
     }
 }

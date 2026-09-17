@@ -406,7 +406,10 @@ namespace Forge.Game.Ui
             sg.padding = new RectOffset(sp, sp, Mathf.RoundToInt(ForgeItemStyle.L("subs_pad_top_wrap_f") * inner), Mathf.RoundToInt(ForgeItemStyle.L("subs_pad_bottom_wrap_f") * inner));
             // T146 — 정본 3707 `.idet-lead { font-weight: 800 }` + 3728 `#forge-item-modal .idet-lead { color: #000 }`(순검정 · 굵게)
             // T177 — 높이는 줄바꿈 내용대로(정본 .92rem·1.13 은 §1 하한 아래라 Sub 그대로) · 3727 `margin-bottom: .96rem` 은 여백 칸으로(gap 0)
-            PopupKit.Label(subs, "idet-lead", TextKind.Sub, "장비은(는) 아래 목록에서 2x개의 고유한 하위 스탯을 굴립니다:", "idet_lead_ink", TextAlignmentOptions.Left, true, true);
+            TextMeshProUGUI lead = PopupKit.Label(subs, "idet-lead", TextKind.Sub, "장비은(는) 아래 목록에서 2x개의 고유한 하위 스탯을 굴립니다:", "idet_lead_ink", TextAlignmentOptions.Left, true, true);
+            // T354 20회차 — 정본은 같은 선택자 `#forge-item-modal .idet-lead` 를 3680(1.25)과 3726(1.13)에 두 번 적었다 · 특이도가 같아 **뒤 규칙 1.13** 이 산다
+            //   (3707 `.idet-lead` 1.35 는 이 모달 안에서 덮인다). 표 키는 그 뒤 규칙의 `_2_lh`.
+            LineHeight.Apply(lead, "forge_item_modal_idet_lead_2_lh");
             PopupKit.Spacer(subs, ForgeItemStyle.L("lead_mb_rem") * rem).name = "idet-lead-margin";
             float rowH = ForgeItemStyle.L("row_pitch_h") * UiKit.RefH;   // 3714 «행 피치 1.93%H» — 정본이 적은 «2.47%H 로 13행 누적 +6.14%p» 병의 자리
             for (int i = 0; i < d.Substats.Count; i++)
@@ -414,6 +417,7 @@ namespace Forge.Game.Ui
                 SubstatDef s = d.Substats[i];
                 // T146 — 정본 3708 `.substat-row { font-weight: 700 }` + 3731 `#forge-item-modal .idet-subs .substat-row { color: #3a3a3a }`
                 TextMeshProUGUI row = PopupKit.Label(subs, "substat-" + s.Key, TextKind.Sub, ForgeUi.SubRangeText(d, s.Key, s.Max) + " " + s.Label, "idet_row_ink", TextAlignmentOptions.Left, false, true, rowH);
+                LineHeight.Apply(row, "forge_item_modal_idet_subs_substat_row_2_lh");   // T354 20회차 — 3681(1.264) → 3729(1.21) 뒤 규칙 · 한 줄 행이라 눈엔 안 보이고 행 피치는 `row_pitch_h` 가 쥔다
                 LetterSpacing.Apply(row, "substat_row_ls_em");   // T168 3회차 — 정본 3729 `#forge-item-modal .idet-subs .substat-row { letter-spacing: -.01em }`(음수 · 이 모달에서만 좁다)
             }
             // ✕ 는 화면당 하나다(T57): 이 팝업은 목록 팝업 **위에** 서므로 제 ✕ 를 또 달면 둘이 겹쳐 보인다
