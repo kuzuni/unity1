@@ -5322,6 +5322,8 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   - 정본 **1933** `.toast { border-radius: 2rem }`(72.8 기준px) ↔ 클론 `Popups.Toast` 는 테·면을 `h * 0.5f` 로 깐다. 상자 높이가 `toast_h` 2.2rem(**80.1px**)이라 **높이의 반 40.0 < 2rem 72.8** ⇒ CSS 가 반지름을 40.0 으로 줄인다 — **같은 그림**이다(결정 543 · `.settings-toggle`·`.qst-bar`·패스 알약 둘과 같은 판정).
   - 자는 `h * 0.5f` 같은 셈을 못 보므로 **새 자 `Assets/Tests/PlayMode/ToastRadiusTests.cs`** 가 지킨다: ⓐ `RadiusRules.IsPill(2rem, 높이)` · `Clamp(2rem, 폭, 높이) = 높이의 반` ⓑ 화면에서 토스트 테의 둥근 배수 = `RoundedMultiplier(h*0.5)`. **게임 코드 0줄**(고칠 것이 없다 — 같은 그림임을 못박는 회차다).
   - 자 상태: 자리 초록 95 · 20회차 ✓ **23** · **미정 95** · KNOWN 0 · 문제 0 · `--self-test` 38칸.
+  → **판정(런 **1108**(`cb229f1`) 장부 · 내 커밋 `db77fd5` 는 그 앞 런 **1107** 에서 초록 · 17:4x) ✅ · lock 반납 · 행 🔄 유지**: `ToastRadiusTests` **2/2 PASS**(980~983행). 그 런의 빨강 `EquipSwapTests` 는 이 절과 닿는 줄이 0 이다(§0-6 으로 따로 집었다 — 아래 T178 칸).
+    **남은 것은 미정 95** — 다음 사람이 `--list` 에서 산 lock 밖 자리를 골라 잇는다. 이 축은 KNOWN 0 · 문제 0 이라 «급한 빨강» 은 없다.
 
 
 ### T346 ✅ — 정본이 **탭바 위**에 띄우는 팝업 다섯이 클론에서는 **탭바 아래**다: `z-index` 112 전수에서 나온 다섯 자리 (Game·UI · T22·T78 뒤 · T33 18회차 등재)
