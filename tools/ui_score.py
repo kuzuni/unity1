@@ -1559,6 +1559,25 @@ def rows_cmp(shots_dir, name, ref_dir=REF_DIR):
     return 0
 
 
+def jitter_span(shots_dir, name, ref_rects):
+    """이 화면의 점수가 **±1 흔들기**에 얼마나 움직이나 — (최소, 최대) 또는 None.
+
+    🚨 «다음 볼 화면» 의 순서는 점수로 매기는데, 자가 ±1 에 흔들리는 화면은 그 순서가 **자의 딸**이다
+    (T437 6회차 실측: 35장 중 23장이 ±1 에 조각 수를 바꾼다 · `--jitter`). 그래서 맨 위 다섯에만
+    이 폭을 같이 찍는다 — 폭이 크면 «그 화면이 정말 뒤처졌나» 를 점수로 단정하지 말라는 뜻이다.
+    다섯 화면 × 네 번이라 값이 큰 `--score` 전체는 안 느려진다.
+    """
+    f = os.path.join(shots_dir, "screen_%s.png" % name)
+    if not os.path.exists(f):
+        return None
+    img = png_read(f)
+    vals = []
+    for amp, ch in JITTER_CASES:
+        v = score_screen(ref_rects, read_layout(_jitter(img, amp, ch), name))
+        vals.append(v[0] if isinstance(v, tuple) else v)
+    return (min(vals), max(vals))
+
+
 def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baseline=False, notes_full=False):
     table = load_table(table_path)
     if not table:
@@ -1922,6 +1941,10 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             c = _ceil_med(n); cnow = ceilings.get(n, 0.0)
             tag = (u"  ⚠ 낡은 샷 — %s" % STALE_SCREENS[n]) if n in STALE_SCREENS else u""
             note = u"" if abs(cnow - c) < 0.3 else (u"(이번 %.1f)" % cnow)
+            sp = jitter_span(shots_dir, n, table[n]["rects"]) if n in table else None
+            if sp and (sp[1] - sp[0]) >= 0.2:
+                tag += (u"  · ⚠ 이 점수는 **자가 흔든다** — 화소를 ±1 만 밀면 %.1f~%.1f 로 움직인다"
+                        u"(T437 ✂ · `--jitter`). 순서를 믿기 전에 원작 PNG 를 봐라" % sp)
             hit = rows_hit(shots_dir, n)
             if hit and hit[1] and float(hit[0]) / hit[1] >= ROWS_OK_MIN:
                 tag += (u"  · ⓘ 구분선 줄은 **%d/%d 맞다** — «나란히 밀린 줄» 갈래가 아니니 "
@@ -2447,6 +2470,28 @@ def self_test():
         u"흔들기는 모든 화소를 **딱 1 눈금**만 민다")
     chk(bytes(_jitter(j, 1, True).px) != bytes(_one.px),
         u"체커판 흔들기는 전체 흔들기와 다른 그림이다")
+
+    # ㉔ «다음 볼 화면» 의 흔들림 폭 (T28 106회차)
+    chk(jitter_span(os.path.join(REPO, "tools"), u"없는화면", []) is None,
+        u"샷이 없는 화면의 흔들림 폭은 None 이다")
+    _sp_dir = os.path.join(REPO, "tools", ".ui_score_span")
+    os.makedirs(_sp_dir)
+    try:
+        _sp = _canvas(112, 199, (20, 20, 20))
+        for _y0 in (30, 70, 110, 150):
+            _fill(_sp, 10, _y0, 100, _y0 + 20, (230, 230, 230))
+            _fill(_sp, 20, _y0 + 5, 45, _y0 + 15, (40, 40, 40))
+        png_write(os.path.join(_sp_dir, "screen_틀.png"), _sp)
+        _rects = read_layout(_sp, u"틀")
+        _got = jitter_span(_sp_dir, u"틀", _rects)
+        chk(_got is not None and _got[0] <= _got[1],
+            u"흔들림 폭은 (작은 값, 큰 값) 으로 온다 (%s)" % (_got,))
+        chk(_got is not None and abs(_got[1] - _got[0]) < 0.2,
+            u"또렷한 그림은 폭이 0 에 가깝다 — 경고가 안 붙는다 (%.2f)" % (_got[1] - _got[0]))
+    finally:
+        for _f in os.listdir(_sp_dir):
+            os.unlink(os.path.join(_sp_dir, _f))
+        os.rmdir(_sp_dir)
 
     print(u"")
     if fail:
