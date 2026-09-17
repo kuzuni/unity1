@@ -1,6 +1,10 @@
 {
   "_": "T383 — §1 글자 하한의 예외 칸(Micro · 결정 633)에 «정본 크기» 를 주는 표. 정본이 rem 으로 못 박은 font-size 를 자리 키 → rem 으로 적고, 도우미 Ui/TextSizeUi.Apply(t, key) 가 종류 Micro 인 글자에 px(rem × PopupKit.Rem)로 건다. 자(TextSizeGateTests)는 «종류의 하한(Micro 18)» 만 보므로 정본 크기 그대로 서고, 하한 36 이 정본이 못박은 모양(<br> 줄 수)을 깨는 자리에만 쓴다 — 새로 쓰려면 정본 CSS 줄을 근거로 대고 §1 예외 목록에 한 줄 적는다. catalog.json 은 T364·T378·T387 lock 이라 곁 표(T65 꼴).",
   "size": {
+    "btn_small": {
+      "rem": 0.7,
+      "_": "T461 — style.css **667** `.btn small { display: block; font-weight: 400; font-size: **.7rem**; color: #90a4ae }` — 버튼 둘째 줄 잔글씨(정본 `<button>판매<small>🪙 +N</small></button>` 꼴 넷 · ui.js 3266 등). 클론 `IconTextStack.ReplaceLabel` 이 둘째 줄부터 `Micro` 칸으로 찍고 크기는 **첫 줄 × (.7 / catalog `btn_font_rem` .88)** 로 준다(등재 판정 넷째 · 결정 782) — 첫 줄이 §1 하한으로 커진 만큼 잔글씨도 같은 비율로 따라가야 정본의 «본문:잔글씨 = .88:.7» 이 화면에 남는다. 절댓값 .7rem(25.5px)을 그대로 주면 첫 줄(36)과의 비 .71 이 되어 정본 .80 보다 작다. §1 예외 여덟째 자리."
+    },
     "fi_age_star": {
       "rem": 0.88,
       "_": "style.css **5138** `.fi-age-star { margin-left: .22rem; color: #ffb300; font-size: **.88rem** }` — 시대 막대의 승천 별. 기준 캔버스 **32.0px** 이라 `Sub` 하한 36 을 주면 **1.13배**가 되어 이름줄보다 커진다(정본은 별이 이름보다 **작다**). §1 의 `Micro` 예외 자리 — 근거는 이 CSS 줄이고, 크기는 이 표가 정본값 그대로 준다(넷째·여섯째 자리와 같은 길)."

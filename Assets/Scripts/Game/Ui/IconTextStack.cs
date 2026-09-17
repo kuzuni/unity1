@@ -15,8 +15,9 @@ namespace Forge.Game.Ui
     public static class IconTextStack
     {
         /// <returns>세로 상자(줄 상자 <c>"line-1"</c>·<c>"line-2"</c>… · 줄 안은 <see cref="UiKit.IconTextRow"/> 와 같이 <c>"msg"</c>·<c>"ico-N"</c>).</returns>
+        /// <param name="restKind">T461 — 둘째 줄부터 쓸 종류(정본 `<small>` 줄 = §1 예외 칸 `Micro`). null 이면 모든 줄이 <paramref name="kind"/>.</param>
         public static RectTransform Build(Transform parent, string name, TextKind kind, string msg, string colorKey = null,
-                                          TextAlignmentOptions align = TextAlignmentOptions.Center, float lineGap = 0f)
+                                          TextAlignmentOptions align = TextAlignmentOptions.Center, float lineGap = 0f, TextKind? restKind = null)
         {
             RectTransform box = UiKit.Box(parent, name);
             var lay = box.gameObject.AddComponent<VerticalLayoutGroup>();
@@ -28,7 +29,7 @@ namespace Forge.Game.Ui
             lay.spacing = lineGap;
             string[] lines = (msg ?? "").Split('\n');
             for (int i = 0; i < lines.Length; i++)
-                UiKit.IconTextRow(box, "line-" + (i + 1), kind, lines[i], colorKey, align);
+                UiKit.IconTextRow(box, "line-" + (i + 1), i > 0 && restKind.HasValue ? restKind.Value : kind, lines[i], colorKey, align);
             return box;
         }
 
@@ -88,7 +89,13 @@ namespace Forge.Game.Ui
             RectTransform rt = b.GetComponent<RectTransform>();
             Transform plain = rt.Find("label");
             if (plain != null) plain.gameObject.SetActive(false);
-            RectTransform stack = Build(rt, "label-stack", kind, msg, inkKey);
+            // T461 — 정본 667 `.btn small { font-size: .7rem }`: 둘째 줄부터는 §1 예외 칸 `Micro` 로 찍고(하한 36 아래로 내려가는 유일한 길 · 결정 633)
+            //   크기는 표 `TextSizeUi.json` `btn_small`(.7rem)을 **첫 줄 × (.7 / btn_font_rem .88)** 비율로 준다 — 첫 줄이 하한으로 커진 만큼 같이 따라가야
+            //   정본의 «본문:잔글씨» 비가 화면에 남는다(등재 판정 ⓓ · 결정 782). 수는 두 표에서만 온다.
+            RectTransform stack = Build(rt, "label-stack", kind, msg, inkKey, TextAlignmentOptions.Center, 0f, TextKind.Micro);
+            float smallRatio = TextSizeUi.Rem("btn_small") / UiKit.L("btn_font_rem");
+            float smallMin = UiCatalog.Instance.Kind(TextKind.Micro).min;
+            float firstFs = UiCatalog.Instance.Kind(kind).size;
             stack.offsetMin = new Vector2(0f, UiKit.H("btn_lip"));
             string kl = keylineKey ?? KeylineUi.BtnFace(faceKey);
             // T352 12회차 — **둘째 줄부터는 정본에서 `<small>` 이고 `.btn small`(667)이 `font-weight: 400` 을 준다.**
@@ -108,6 +115,7 @@ namespace Forge.Game.Ui
                 {
                     t.fontStyle = FontStyles.Bold;
                     if (li > 0) TextWeightUi.Regular(t, "btn_small");   // 둘째 줄부터 = 정본 `<small>` = 400
+                    if (li > 0) t.fontSize = Mathf.Max(smallMin, firstFs * smallRatio);   // T461 — 둘째 줄부터 = 정본 `.btn small` .7rem(첫 줄 비율)
                     if (!string.IsNullOrEmpty(kl)) PopupKit.Ring(t, kl, "pp_line");
                 }
                 li++;
