@@ -87,7 +87,21 @@ namespace Forge.Game.Ui
             //   켜짐이 **초록이 아니라 파랑**이라 설정 토글과 구별이 안 됐다. 자리 전용 키로 받는다(값은 카탈로그 · `check_pinned_colors` 가 지킨다).
             Button tg = PopupKit.Toggle(filterRow, "af-toggle", cfg.FilterOn, () => h.ToggleAutoFilterOn(),
                 "af_toggle_on", "af_toggle", "af_toggle_knob");
-            UiKit.Place(tg.GetComponent<RectTransform>(), inner - tw, rem * 0.15f, tw, UiKit.H("settings_toggle_h"));
+            float tgH = UiKit.H("settings_toggle_h");
+            UiKit.Place(tg.GetComponent<RectTransform>(), inner - tw, rem * 0.15f, tw, tgH);
+            // T178 22회차 — 정본 4986 `.af-toggle { background-image: linear-gradient(180deg, rgba(0,0,0,.34) 0, rgba(0,0,0,0) 55%, rgba(255,255,255,.14) 100%) }`
+            //   + 4990 `.af-toggle .knob { background-image: radial-gradient(circle at 34% 26%, …) }`. 정본 주석 4984 가 둘을 한 줄로 적었다 —
+            //   «트랙은 **파인 홈**, 노브는 **광택 구슬**». 클론은 둘 다 민무늬 단색이라 토글이 평평한 스티커였다.
+            //   ⚠ 이 겹은 **자동 제련 토글에만** 준다 — 공용 `PopupKit.Toggle` 은 설정 토글도 쓰는데 정본 3107 엔 이런 줄이 없다.
+            //   그래서 도우미를 안 건드리고 **여기서** 그 두 칸에 얹는다(T377 12회차가 색을 인수로 연 것과 같은 가르기).
+            RectTransform tgRt = tg.GetComponent<RectTransform>();
+            Image tgFace = tgRt.Find("face").GetComponent<Image>();
+            SurfaceArt.FillMasked(tgFace, "bg-grad", "af_toggle_track",
+                tw - PopupKit.Line2 * 2f, tgH - PopupKit.Line2 * 2f, tgFace.color);
+            float knobK = tgH - PopupKit.Line2 * 4f;
+            Image knobFace = tgRt.Find("knob/face").GetComponent<Image>();
+            SurfaceArt.FillMasked(knobFace, "bg-grad", "af_knob_gloss",
+                knobK - PopupKit.Line * 2f, knobK - PopupKit.Line * 2f, knobFace.color);
             if (cfg.FilterOn)
             {
                 for (int i = 0; i < d.Substats.Count; i++)
@@ -149,6 +163,13 @@ namespace Forge.Game.Ui
             }
             float bw = inner * 0.45f, bh = ForgeAutoStyle.StartBtnH(rem);   // T378 13회차 — 정본 4816 `.af-start { padding: .6rem 0; min-height: 4.45rem }`(폭 45.4% 는 이 축 밖)
             Button start = PopupKit.Btn(bottom, "af-start", h.AutoOn ? "중지" : "시작", "pp_blue", "pp_blue_dk", () => h.OnToggleAutoForge(), bw, bh, "stage_ink", TextKind.Button, false, "af_start");   // T109 11회차 — 정본 5015 `.af-start { 4px #000 }`(공용 2px 대신)
+            // T178 22회차 — 정본 5016 `.af-start { background-image: linear-gradient(180deg, …) }`: 위가 밝고 아래가 어두운 **솟은** 면
+            //   (토글 트랙의 «파인 홈» 과 정확히 반대 방향이다). 아래턱·림라이트·그림자는 T331·T355 가 이미 세웠고 여태 없던 것이 이 한 장이다.
+            //   면 바탕이 `pp_blue` 한 값이라 표가 `over_color` 로 미리 합성한다(af_spinner 와 같은 갈래).
+            //   `PopupKit.Btn` 의 면은 좌우 `Line3`, 아래로 턱(`btn_lip`)만큼 들어간 칸이다(440~452행).
+            float startLip = UiKit.H("btn_lip");
+            SurfaceArt.FillMasked(start.transform.Find("face").GetComponent<Image>(), "bg-grad", "af_start",
+                bw - PopupKit.Line3 * 2f, bh - PopupKit.Line3 * 2f - startLip);
             UiKit.Place(start.GetComponent<RectTransform>(), (inner - bw) * 0.5f, rowH * 2f + rem * 0.5f, bw, bh);
 
             if (ddOpen)
@@ -188,6 +209,11 @@ namespace Forge.Game.Ui
             RectTransform row = PopupKit.Item(parent, "af-sub-" + s.Key, w, hgt);
             Image face = UiKit.Rounded(row, "face", "pp_gray", hgt * 0.5f);
             face.color = new Color(0xd6 / 255f, 0xd6 / 255f, 0xd6 / 255f);
+            // T178 22회차 — 정본 4998 `.af-sub-row { background-image: linear-gradient(180deg, rgba(255,255,255,.75) 0, rgba(255,255,255,0) 48%, rgba(0,0,0,.07) 100%) }`.
+            //   정본 주석 4996: «위 하이라이트/아래 그늘로 **얇은 카드 두께**». 안쪽 림라이트 둘과 바깥 그림자(4999)는 T331 26회차가 세웠고
+            //   면 겹 한 장이 빠져 있었다. 바탕이 바로 위에서 코드가 준 색이라 그 색을 그대로 넘긴다.
+            //   ⚠ 이 행은 `LayoutElement` 로 크기를 **예약만** 한 레이아웃 자식이라 이 프레임의 `rect` 가 0 이다(T331 27회차) — 크기를 직접 준다.
+            SurfaceArt.FillMasked(face, "bg-grad", "af_sub_row", w, hgt, face.color);
             // T331 26회차 — 정본 4999 의 **셋째 겹** `0 .07rem .12rem rgba(0,0,0,.1)`.
             //   표에서 가장 옅은 자리지만 정본이 이 겹으로 «얇은 카드 두께» 를 만든다(주석 4996).
             //   ⚑ 27회차 — 이 행은 `LayoutElement` 로 크기를 **예약만** 한 레이아웃 자식이라 이 프레임의 `rect` 는 아직 0 이다.

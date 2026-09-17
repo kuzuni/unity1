@@ -27,11 +27,87 @@
     ],
     "_": "style.css 1952 `.dg-banner { background: linear-gradient(120deg, var(--bg, #444c56), #161b22) }` — 배너 제 바탕(일러스트가 없는 던전은 이것만 보인다). `--bg` 기본값 #444c56 = (68,76,86) · 끝 #161b22 = (22,27,34)."
   },
-  "af_spinner": {"angle_deg": 180, "stops": [[255, 255, 255, 0.17], [255, 255, 255, 0.02], [0, 0, 0, 0.34]], "offsets": [0, 0.45, 1], "over_color": "pp_ink",
-    "_": "style.css 5005 `.af-spinner { background-image: linear-gradient(180deg, rgba(255,255,255,.17) 0, rgba(255,255,255,.02) 45%, rgba(0,0,0,.34) 100%) }` — 망치 수 스피너의 «검정 금속 톤»(정본 주석: 위 림라이트 + 안쪽 아래 그늘 + 바깥 턱 · 안쪽 그늘·턱은 T331·T355 가 이미 세웠고 여기서는 **면 겹**만). 바탕은 그 면의 `pp_ink`(#17181a · T365 19회차) 라 `over_color` 로 미리 합성한다. T178 20회차"},
-  "af_check": {"angle_deg": 180, "stops": [[255, 255, 255, 0.14], [255, 255, 255, 0.0], [0, 0, 0, 0.3]], "offsets": [0, 0.46, 1],
-    "_": "style.css 4971 `.af-check { background-image: linear-gradient(180deg, rgba(255,255,255,.14) 0, rgba(255,255,255,0) 46%, rgba(0,0,0,.3) 100%) }` — «계속하기» 체크 상자(정본 주석: 눌리는 물건으로 보이게). 바탕이 **런타임 색**(꺼짐 초록 · 켜짐 검정 · ForgeAutoPopup 이 정한다)이라 `over_color` 를 안 적고 부르는 쪽이 색을 준다(T178 17회차 갈래). T178 20회차"},
-  "tn_bronze": {"angle_deg": 160, "stops": [[217, 160, 102, 1], [165, 100, 47, 1]], "offsets": [0, 1], "_": "style.css 3689 `.idet-icon.tn-bronze { background: linear-gradient(160deg, #d9a066, #a5642f) }` — 기술 노드 팝업 머리의 청동 원 면(T178 19회차 · `TechPopups` 가 `UiKit.Circle` 면 위에 `FillMasked` 로 얹는다 · 테 `tn_bronze_border` #7a4a22 는 카탈로그 단색 그대로). #d9a066 = (217,160,102) · #a5642f = (165,100,47)."},
+  "af_spinner": {
+    "angle_deg": 180,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.17
+      ],
+      [
+        255,
+        255,
+        255,
+        0.02
+      ],
+      [
+        0,
+        0,
+        0,
+        0.34
+      ]
+    ],
+    "offsets": [
+      0,
+      0.45,
+      1
+    ],
+    "over_color": "pp_ink",
+    "_": "style.css 5005 `.af-spinner { background-image: linear-gradient(180deg, rgba(255,255,255,.17) 0, rgba(255,255,255,.02) 45%, rgba(0,0,0,.34) 100%) }` — 망치 수 스피너의 «검정 금속 톤»(정본 주석: 위 림라이트 + 안쪽 아래 그늘 + 바깥 턱 · 안쪽 그늘·턱은 T331·T355 가 이미 세웠고 여기서는 **면 겹**만). 바탕은 그 면의 `pp_ink`(#17181a · T365 19회차) 라 `over_color` 로 미리 합성한다. T178 20회차"
+  },
+  "af_check": {
+    "angle_deg": 180,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.14
+      ],
+      [
+        255,
+        255,
+        255,
+        0.0
+      ],
+      [
+        0,
+        0,
+        0,
+        0.3
+      ]
+    ],
+    "offsets": [
+      0,
+      0.46,
+      1
+    ],
+    "_": "style.css 4971 `.af-check { background-image: linear-gradient(180deg, rgba(255,255,255,.14) 0, rgba(255,255,255,0) 46%, rgba(0,0,0,.3) 100%) }` — «계속하기» 체크 상자(정본 주석: 눌리는 물건으로 보이게). 바탕이 **런타임 색**(꺼짐 초록 · 켜짐 검정 · ForgeAutoPopup 이 정한다)이라 `over_color` 를 안 적고 부르는 쪽이 색을 준다(T178 17회차 갈래). T178 20회차"
+  },
+  "tn_bronze": {
+    "angle_deg": 160,
+    "stops": [
+      [
+        217,
+        160,
+        102,
+        1
+      ],
+      [
+        165,
+        100,
+        47,
+        1
+      ]
+    ],
+    "offsets": [
+      0,
+      1
+    ],
+    "_": "style.css 3689 `.idet-icon.tn-bronze { background: linear-gradient(160deg, #d9a066, #a5642f) }` — 기술 노드 팝업 머리의 청동 원 면(T178 19회차 · `TechPopups` 가 `UiKit.Circle` 면 위에 `FillMasked` 로 얹는다 · 테 `tn_bronze_border` #7a4a22 는 카탈로그 단색 그대로). #d9a066 = (217,160,102) · #a5642f = (165,100,47)."
+  },
   "dg_banner_scrim": {
     "angle_deg": 90,
     "stops": [
@@ -481,8 +557,38 @@
   },
   "shop_reward_pill": {
     "angle_deg": 180,
-    "stops": [[0, 0, 0, 0.16], [0, 0, 0, 0.03], [255, 255, 255, 0.1], [255, 255, 255, 0.34]],
-    "offsets": [0, 0.4, 0.82, 1],
+    "stops": [
+      [
+        0,
+        0,
+        0,
+        0.16
+      ],
+      [
+        0,
+        0,
+        0,
+        0.03
+      ],
+      [
+        255,
+        255,
+        255,
+        0.1
+      ],
+      [
+        255,
+        255,
+        255,
+        0.34
+      ]
+    ],
+    "offsets": [
+      0,
+      0.4,
+      0.82,
+      1
+    ],
     "_": "style.css 8235~8237 `.shop-reward-pill { background-image: linear-gradient(180deg, rgba(0,0,0,.16) 0, rgba(0,0,0,.03) 40%, rgba(255,255,255,.10) 82%, rgba(255,255,255,.34) 100%) }` — 회색 알약 위에 얹는 «오목한 홈» 겹이다(위는 그늘 · 아래는 빛). 면 색은 카탈로그 `shop_pill` 이 그대로 쥐고 이 겹이 그 위에 깔린다. 둥근 면이라 `FillMasked`(T178 3회차). T178 13회차."
   },
   "stage_vignette": {
@@ -491,14 +597,53 @@
     "cy": 0.42,
     "rx": 1.2,
     "ry": 0.95,
-    "stops": [[8, 10, 16, 0], [8, 10, 16, 0.28]],
-    "offsets": [0.62, 1],
+    "stops": [
+      [
+        8,
+        10,
+        16,
+        0
+      ],
+      [
+        8,
+        10,
+        16,
+        0.28
+      ]
+    ],
+    "offsets": [
+      0.62,
+      1
+    ],
     "_": "style.css 147~150 `#game-area::after { background: radial-gradient(ellipse 120% 95% at 50% 42%, transparent 62%, rgba(8,10,16,0.28) 100%) }` — 정본 주석 «비네트 포스트 — 화면 가장자리를 살짝 눌러 시선을 중앙 전투 라인으로 모음». **상시** 겹이다(T135 의 피격 `#dmg-flash` 와 다른 자리). `transparent` 는 CSS 가 프리멀티플라이드로 섞으므로 검정이 아니라 **같은 색의 알파 0**(8,10,16,0)으로 적는다 — `tab_active_glow` 가 세운 규약과 같다. T178 12회차."
   },
   "bw_banner": {
     "angle_deg": 180,
-    "stops": [[30, 2, 2, 1], [90, 7, 7, 1], [36, 3, 3, 1]],
-    "offsets": [0, 0.45, 1],
+    "stops": [
+      [
+        30,
+        2,
+        2,
+        1
+      ],
+      [
+        90,
+        7,
+        7,
+        1
+      ],
+      [
+        36,
+        3,
+        3,
+        1
+      ]
+    ],
+    "offsets": [
+      0,
+      0.45,
+      1
+    ],
     "_": "style.css 390 `.bw-banner { background: linear-gradient(180deg, #1e0202, #5a0707 45%, #240303) }` — 보스 경고 배너의 **면**이다. 가운데(45%)가 가장 밝은 핏빛(#5a0707=(90,7,7))이고 위·아래 끝이 거의 검정(#1e0202=(30,2,2) · #240303=(36,3,3)) — 띠가 가운데서 부풀어 오른 것처럼 보이게 하는 겹이다. 클론은 `pp_red_dk` 단색 한 장이었다(T178 11회차)."
   },
   "tech_branch_gloss": {
@@ -625,15 +770,194 @@
     "_": "style.css 7970 같은 규칙의 첫 겹 `linear-gradient(180deg, rgba(255,255,255,.50) 0 1px, rgba(255,255,255,0) 1px)` — 위 1 CSS px 흰 광택. 아래 겹(subtab_active_shade) 위에 얹힌다. T178 17회차."
   },
   "_stripes": "T368 — 정본 `repeating-linear-gradient` 줄무늬 셋. 여기 수는 «앱 폭/높이 비율» 이다(정본 2547 주석 «가로 치수라 rem 금지 — 루트 폰트가 높이 기준이다» · T364 가 수로 잡은 함정). 호출자가 RefW·RefH 를 곱해 캔버스 px 로 바꿔 `StripeRules` 에 넘긴다. `angle_deg` 는 CSS 뜻 그대로(0 = 위 · 90 = 오른쪽) · `dash_ratio` 는 주기 안 앞 색의 비율 · `phase_w` 는 background-position 의 축 당김.",
-  "cell_gloss": {"shape": "radial", "cx": 0.26, "cy": 0.12, "rx": 1.18, "ry": 0.86, "stops": [[255, 255, 255, 0.3], [255, 255, 255, 0]], "offsets": [0, 0.56], "_": "style.css 7730 `.equip-cell:not(.egg-cell)` 첫 겹 `radial-gradient(118% 86% at 26% 12%, rgba(255,255,255,.30) 0, rgba(255,255,255,0) 56%)` — 좌상단 광택(T178 18회차 · 해칭 위에 알파로 얹는 자리라 `SurfaceArt.BakeFace` 가 셀 면 통째로 굽는다)."},
-  "cell_plate": {"shape": "radial", "cx": 0.5, "cy": 0.46, "rx": 0.62, "ry": 0.54, "stops": [[255, 255, 255, 0.11], [255, 255, 255, 0]], "offsets": [0, 0.72], "_": "style.css 7731 둘째 겹 `radial-gradient(62% 54% at 50% 46%, rgba(255,255,255,.11) 0, rgba(255,255,255,0) 72%)` — 아이콘 백플레이트(정본 주석 «9차 비평가 A 결함[9] 다크 온 다크 침몰 완화»)."},
-  "cell_shade": {"angle_deg": 180, "stops": [[255, 255, 255, 0.16], [255, 255, 255, 0], [0, 0, 0, 0.06], [0, 0, 0, 0.22]], "offsets": [0, 0.32, 0.64, 1], "_": "style.css 7732 셋째 겹 `linear-gradient(180deg, rgba(255,255,255,.16) 0, rgba(255,255,255,0) 32%, rgba(0,0,0,.06) 64%, rgba(0,0,0,.22) 100%)` — 위→아래 명암. 그 아래 두 겹(45°/−45° 해칭)은 `stripes.cell_hatch`."},
-  "egg_gloss": {"shape": "radial", "cx": 0.26, "cy": 0.12, "rx": 1.18, "ry": 0.86, "stops": [[255, 255, 255, 0.34], [255, 255, 255, 0]], "offsets": [0, 0.56], "_": "style.css 8075 `.equip-cell.egg-cell` 첫 겹 `radial-gradient(118% 86% at 26% 12%, rgba(255,255,255,.34) 0, rgba(255,255,255,0) 56%)` — 849 의 같은 선택자를 8075 가 뒤에서 덮어쓴다(정본 주석 8072 «background-image 를 다시 쓰면 그 층이 통째로 사라진다»)."},
-  "egg_shade": {"angle_deg": 180, "stops": [[255, 255, 255, 0.22], [255, 255, 255, 0], [0, 0, 0, 0.08], [0, 0, 0, 0.24]], "offsets": [0, 0.36, 0.66, 1], "_": "style.css 8076 둘째 겹 `linear-gradient(180deg, rgba(255,255,255,.22) 0, rgba(255,255,255,0) 36%, rgba(0,0,0,.08) 66%, rgba(0,0,0,.24) 100%)`."},
-  "egg_base": {"angle_deg": 180, "stops": [[108, 198, 247, 1], [79, 178, 238, 1], [62, 160, 224, 1]], "offsets": [0, 0.55, 1], "_": "style.css 8078 맨 아래 겹 `linear-gradient(180deg, #6cc6f7 0%, #4fb2ee 55%, #3ea0e0 100%)` — 하늘색 바탕 자체가 그라디언트다(불투명 · 그래서 탈것 칸은 면 색이 아니라 이 겹이 바탕이다)."},
+  "cell_gloss": {
+    "shape": "radial",
+    "cx": 0.26,
+    "cy": 0.12,
+    "rx": 1.18,
+    "ry": 0.86,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.3
+      ],
+      [
+        255,
+        255,
+        255,
+        0
+      ]
+    ],
+    "offsets": [
+      0,
+      0.56
+    ],
+    "_": "style.css 7730 `.equip-cell:not(.egg-cell)` 첫 겹 `radial-gradient(118% 86% at 26% 12%, rgba(255,255,255,.30) 0, rgba(255,255,255,0) 56%)` — 좌상단 광택(T178 18회차 · 해칭 위에 알파로 얹는 자리라 `SurfaceArt.BakeFace` 가 셀 면 통째로 굽는다)."
+  },
+  "cell_plate": {
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": 0.46,
+    "rx": 0.62,
+    "ry": 0.54,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.11
+      ],
+      [
+        255,
+        255,
+        255,
+        0
+      ]
+    ],
+    "offsets": [
+      0,
+      0.72
+    ],
+    "_": "style.css 7731 둘째 겹 `radial-gradient(62% 54% at 50% 46%, rgba(255,255,255,.11) 0, rgba(255,255,255,0) 72%)` — 아이콘 백플레이트(정본 주석 «9차 비평가 A 결함[9] 다크 온 다크 침몰 완화»)."
+  },
+  "cell_shade": {
+    "angle_deg": 180,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.16
+      ],
+      [
+        255,
+        255,
+        255,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0.06
+      ],
+      [
+        0,
+        0,
+        0,
+        0.22
+      ]
+    ],
+    "offsets": [
+      0,
+      0.32,
+      0.64,
+      1
+    ],
+    "_": "style.css 7732 셋째 겹 `linear-gradient(180deg, rgba(255,255,255,.16) 0, rgba(255,255,255,0) 32%, rgba(0,0,0,.06) 64%, rgba(0,0,0,.22) 100%)` — 위→아래 명암. 그 아래 두 겹(45°/−45° 해칭)은 `stripes.cell_hatch`."
+  },
+  "egg_gloss": {
+    "shape": "radial",
+    "cx": 0.26,
+    "cy": 0.12,
+    "rx": 1.18,
+    "ry": 0.86,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.34
+      ],
+      [
+        255,
+        255,
+        255,
+        0
+      ]
+    ],
+    "offsets": [
+      0,
+      0.56
+    ],
+    "_": "style.css 8075 `.equip-cell.egg-cell` 첫 겹 `radial-gradient(118% 86% at 26% 12%, rgba(255,255,255,.34) 0, rgba(255,255,255,0) 56%)` — 849 의 같은 선택자를 8075 가 뒤에서 덮어쓴다(정본 주석 8072 «background-image 를 다시 쓰면 그 층이 통째로 사라진다»)."
+  },
+  "egg_shade": {
+    "angle_deg": 180,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.22
+      ],
+      [
+        255,
+        255,
+        255,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0.08
+      ],
+      [
+        0,
+        0,
+        0,
+        0.24
+      ]
+    ],
+    "offsets": [
+      0,
+      0.36,
+      0.66,
+      1
+    ],
+    "_": "style.css 8076 둘째 겹 `linear-gradient(180deg, rgba(255,255,255,.22) 0, rgba(255,255,255,0) 36%, rgba(0,0,0,.08) 66%, rgba(0,0,0,.24) 100%)`."
+  },
+  "egg_base": {
+    "angle_deg": 180,
+    "stops": [
+      [
+        108,
+        198,
+        247,
+        1
+      ],
+      [
+        79,
+        178,
+        238,
+        1
+      ],
+      [
+        62,
+        160,
+        224,
+        1
+      ]
+    ],
+    "offsets": [
+      0,
+      0.55,
+      1
+    ],
+    "_": "style.css 8078 맨 아래 겹 `linear-gradient(180deg, #6cc6f7 0%, #4fb2ee 55%, #3ea0e0 100%)` — 하늘색 바탕 자체가 그라디언트다(불투명 · 그래서 탈것 칸은 면 색이 아니라 이 겹이 바탕이다)."
+  },
   "stripes": {
-    "cell_hatch": {"angle_deg": 45, "period_css_px": 12, "dash_css_px": 2, "ink": "#000000", "ink_alpha": 0.13, "_": "style.css 828 `.equip-cell` · 1063 `.auto-drop-card` · 1131 `.craft-batch .cb-card` — `repeating-linear-gradient(45deg, rgba(0,0,0,.13) 0 2px, transparent 2px 12px)` 와 같은 −45deg 한 겹이 **교차**해 깔린 «장비 슬롯 해칭». 수는 정본이 CSS px 로 못박은 것이라 css_px 로 캔버스 px 가 된다 · 바탕은 그 카드의 color-mix 면(T371) 이라 굽는 쪽이 면 색을 받아 sRGB 로 미리 합성한다(T178 15회차 · 자리 = ForgeCraftPopup.CraftCard 둘 · .equip-cell 은 ForgeSheet lock 뒤)."},
-    
+    "cell_hatch": {
+      "angle_deg": 45,
+      "period_css_px": 12,
+      "dash_css_px": 2,
+      "ink": "#000000",
+      "ink_alpha": 0.13,
+      "_": "style.css 828 `.equip-cell` · 1063 `.auto-drop-card` · 1131 `.craft-batch .cb-card` — `repeating-linear-gradient(45deg, rgba(0,0,0,.13) 0 2px, transparent 2px 12px)` 와 같은 −45deg 한 겹이 **교차**해 깔린 «장비 슬롯 해칭». 수는 정본이 CSS px 로 못박은 것이라 css_px 로 캔버스 px 가 된다 · 바탕은 그 카드의 color-mix 면(T371) 이라 굽는 쪽이 면 색을 받아 sRGB 로 미리 합성한다(T178 15회차 · 자리 = ForgeCraftPopup.CraftCard 둘 · .equip-cell 은 ForgeSheet lock 뒤)."
+    },
     "league_tier_dash": {
       "angle_deg": 90,
       "period_w": 0.0625,
@@ -667,5 +991,126 @@
       "scroll_sec": 0.62,
       "_": "style.css 395 `.bw-hazard` — 보스 경고 띠의 -45° 사선 줄무늬. 정본이 `background-size: 1.556rem`(= 1.1 × √2)로 «가로축 환산 주기» 를 적어 뒀다(StripeRules.TileWidth 가 같은 수를 낸다) · @keyframes bwhazard 가 .62s linear infinite 로 한 타일만큼 흐른다 · 이 자리만 세로(rem) 치수다 — 정본이 rem 으로 못 박았다."
     }
+  },
+  "af_toggle_track": {
+    "angle_deg": 180,
+    "stops": [
+      [
+        0,
+        0,
+        0,
+        0.34
+      ],
+      [
+        0,
+        0,
+        0,
+        0.0
+      ],
+      [
+        255,
+        255,
+        255,
+        0.14
+      ]
+    ],
+    "offsets": [
+      0,
+      0.55,
+      1
+    ],
+    "_": "style.css 4986 `.af-toggle { background-image: linear-gradient(180deg, rgba(0,0,0,.34) 0, rgba(0,0,0,0) 55%, rgba(255,255,255,.14) 100%) }` — 필터 토글 트랙의 «파인 홈»(정본 주석 4984 «트랙은 파인 홈, 노브는 광택 구슬»). 위가 어둡고 아래가 밝아 **안으로 팬** 것처럼 읽힌다 — 버튼의 «솟은» 겹(af_start)과 정확히 반대 방향이다. 바탕이 런타임 색(꺼짐 af_toggle · 켜짐 af_toggle_on)이라 `over_color` 를 안 적고 부르는 쪽이 색을 준다(af_check 와 같은 갈래). ⚠ 이 겹은 **자동 제련 토글에만** 준다 — 설정 토글(3107)엔 정본에 이런 줄이 없다. T178 22회차"
+  },
+  "af_knob_gloss": {
+    "shape": "radial",
+    "cx": 0.34,
+    "cy": 0.26,
+    "rx": 0.9916,
+    "ry": 0.9916,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.6
+      ],
+      [
+        255,
+        255,
+        255,
+        0.0
+      ]
+    ],
+    "offsets": [
+      0,
+      0.54
+    ],
+    "_": "style.css 4990 `.af-toggle .knob { background-image: radial-gradient(circle at 34% 26%, rgba(255,255,255,.6) 0, rgba(255,255,255,0) 54%) }` — 노브의 «광택 구슬» 점광. `circle` 은 크기를 안 적었으므로 CSS 기본 **farthest-corner** 다: 중심 (34%,26%) 에서 가장 먼 모서리는 (100%,100%) 이라 반지름 = √(.66² + .74²) = **.9916**(노브가 정사각이라 rx=ry). 정지점 54% 는 그 반지름의 비율이다. 바탕이 런타임 색(정본 4766 `var(--pp-blue)` ↔ 설정 토글은 #fff)이라 부르는 쪽이 색을 준다. T178 22회차"
+  },
+  "af_sub_row": {
+    "angle_deg": 180,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.75
+      ],
+      [
+        255,
+        255,
+        255,
+        0.0
+      ],
+      [
+        0,
+        0,
+        0,
+        0.07
+      ]
+    ],
+    "offsets": [
+      0,
+      0.48,
+      1
+    ],
+    "_": "style.css 4998 `.af-sub-row { background-image: linear-gradient(180deg, rgba(255,255,255,.75) 0, rgba(255,255,255,0) 48%, rgba(0,0,0,.07) 100%) }` — 필터 서브옵션 행의 «얇은 카드 두께»(정본 주석 4996 «위 하이라이트/아래 그늘로 얇은 카드 두께»). 안쪽 림라이트 둘과 바깥 그림자(4999 세 겹)는 T331 26회차가 이미 세웠고, 여태 없던 것은 이 **면 겹** 한 장이다. 바탕이 코드가 직접 박은 색이라(`ForgeAutoPopup.SubRow`) 부르는 쪽이 색을 준다. T178 22회차"
+  },
+  "af_start": {
+    "angle_deg": 180,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.34
+      ],
+      [
+        255,
+        255,
+        255,
+        0.06
+      ],
+      [
+        0,
+        0,
+        0,
+        0.08
+      ],
+      [
+        0,
+        0,
+        0,
+        0.2
+      ]
+    ],
+    "offsets": [
+      0,
+      0.44,
+      0.56,
+      1
+    ],
+    "over_color": "pp_blue",
+    "_": "style.css 5016 `.af-start { background-image: linear-gradient(180deg, rgba(255,255,255,.34) 0, rgba(255,255,255,.06) 44%, rgba(0,0,0,.08) 56%, rgba(0,0,0,.2) 100%) }` — 큰 [시작]/[중지] 버튼의 **솟은** 면(위 밝고 아래 어둡다 · 트랙의 파인 홈과 반대). 아래턱(`inset 0 -.52rem var(--pp-blue-dk)`)·안쪽 림라이트·바깥 그림자는 T331·T355 몫이고 여기는 면 겹만. 바탕이 `pp_blue` 한 값이라 `over_color` 로 미리 합성한다(af_spinner 와 같은 갈래). T178 22회차"
   }
 }

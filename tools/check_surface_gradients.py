@@ -74,6 +74,13 @@ TABLE = {
     '.idet-icon.tn-bronze': ['Ui/TechPopups.cs#bg-grad'],
     # T178 20회차 — 자동 제련 팝업의 «면 겹» 둘(스피너 검정 금속 톤 · 체크 상자). 둘 다 둥근 면 위라 SurfaceArt.FillMasked.
     '.af-spinner': ['Ui/ForgeAutoPopup.cs#bg-grad'],
+    # T178 22회차 — 같은 팝업의 남은 면 겹 넷. 정본 주석 4984 가 앞 둘을 한 줄로 적어 뒀다 — «트랙은 **파인 홈**, 노브는 **광택 구슬**».
+    #   ⚠ 토글 두 겹은 **자동 제련 토글에만** 준다(공용 `PopupKit.Toggle` 은 설정 토글도 쓰는데 정본 3107 엔 이런 줄이 없다) —
+    #     그래서 도우미가 아니라 `ForgeAutoPopup` 이 그 두 칸에 얹는다.
+    '.af-toggle': ['Ui/ForgeAutoPopup.cs#bg-grad'],          # 4986 파인 홈(위 어둡고 아래 밝다)
+    '.af-toggle .knob': ['Ui/ForgeAutoPopup.cs#bg-grad'],    # 4990 광택 구슬(circle at 34% 26% · farthest-corner = .9916)
+    '.af-sub-row': ['Ui/ForgeAutoPopup.cs#bg-grad'],         # 4998 «얇은 카드 두께»(T331 26회차가 세운 세 그림자의 짝)
+    '.af-start': ['Ui/ForgeAutoPopup.cs#bg-grad'],           # 5016 솟은 면(트랙의 파인 홈과 반대 방향)
     '.af-check': ['Ui/ForgeAutoPopup.cs#bg-grad'],      # T178 19회차 — 3689 청동 원 면 위 마스크 겹(tn_bronze)
     # T178 3회차 — 둥근 면 위는 SurfaceArt.FillMasked(면에 Mask) 로 얹는다(모서리 밖으로 안 샌다).
     '.shop-banner': ['Ui/ShopSheet.cs#shop-banner-grad'],

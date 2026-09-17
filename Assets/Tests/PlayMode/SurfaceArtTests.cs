@@ -748,6 +748,87 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>
+        /// T178 22회차 — 같은 팝업의 남은 면 겹 **넷**. 정본 주석 **4984** 가 앞 둘을 한 줄로 적어 뒀다 —
+        /// «트랙은 **파인 홈**, 노브는 **광택 구슬**». 트랙(4986)은 위가 어둡고 아래가 밝아 **안으로 팬** 것처럼 읽히고,
+        /// 큰 [시작](5016)은 그 반대로 **솟는다** — 한 화면에서 두 방향이 맞부딪히는 것이 이 자리의 뜻이다.
+        /// 서브옵션 행(4998)은 정본이 «얇은 카드 두께» 라 적은 겹이고(그 세 그림자는 T331 26회차가 이미 세웠다),
+        /// 노브(4990)는 `circle` 기본 크기 **farthest-corner** 라 반지름이 √(.66²+.74²) = .9916 이다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 자동_제련_토글과_시작_버튼과_서브행에_정본_면_겹이_구워져_선다()
+        {
+            // ⓐ 트랙은 **파인 홈** — 위가 어둡고 아래가 밝다(정본 4986 · 버튼과 반대 방향)
+            Color track = new Color(0.12f, 0.16f, 0.29f, 1f);            // af_toggle(#1e2a4a) 자리
+            Sprite tk = SurfaceArt.Bake("af_toggle_track", 1f, 26f, track);
+            Assert.IsNotNull(tk, "트랙 겹을 굽는다");
+            Texture2D tt = tk.texture;
+            Color topT = tt.GetPixel(tt.width / 2, tt.height - 1), botT = tt.GetPixel(tt.width / 2, 0);
+            Assert.AreEqual(1f, topT.a, 1e-3f, "런타임 색 위에 미리 섞어 굽는다");
+            Assert.Less(topT.b, botT.b - 0.03f, "**위가 어둡고 아래가 밝다** — 파인 홈(정본 4986)");
+
+            // ⓑ 큰 [시작] 은 **솟는다** — 위가 밝고 아래가 어둡다(정본 5016 · over_color pp_blue)
+            Sprite st = SurfaceArt.Bake("af_start", 3f, 80f);
+            Assert.IsNotNull(st, "[시작] 겹을 굽는다");
+            Texture2D ts2 = st.texture;
+            Color topB = ts2.GetPixel(ts2.width / 2, ts2.height - 1), botB = ts2.GetPixel(ts2.width / 2, 0);
+            Assert.AreEqual(1f, topB.a, 1e-3f, "바탕을 받은 겹은 불투명하게 구워진다(over_color pp_blue)");
+            Assert.Greater(topB.b, botB.b + 0.03f, "위가 밝고 아래가 어둡다 — 트랙의 파인 홈과 **반대**(정본 5016)");
+
+            // ⓒ 노브 광택은 **한 점에서 퍼진다** — 왼쪽 위(34%,26%)가 가장 밝고 오른쪽 아래가 면 색이다
+            Color knob = new Color(0f, 0.36f, 1f, 1f);                   // af_toggle_knob(var(--pp-blue)) 자리
+            Sprite kn = SurfaceArt.Bake("af_knob_gloss", 1f, 24f, knob);
+            Assert.IsNotNull(kn, "노브 광택을 굽는다");
+            Texture2D tk2 = kn.texture;
+            int kw = tk2.width, kh = tk2.height;
+            Color hot = tk2.GetPixel(Mathf.RoundToInt(kw * 0.34f), Mathf.RoundToInt(kh * (1f - 0.26f)));
+            Color cold = tk2.GetPixel(Mathf.RoundToInt(kw * 0.9f), Mathf.RoundToInt(kh * 0.1f));
+            Assert.Greater(hot.r, cold.r + 0.2f, "중심 (34%,26%) 이 가장 밝다 — 광택 구슬(정본 4990)");
+            Assert.AreEqual(knob.b, cold.b, 0.04f, "54% 밖은 면 색 그대로다(반지름 .9916 의 54%)");
+
+            // ⓓ 서브 행은 위가 밝고 아래가 살짝 어둡다(정본 4998 · 아래 겹이 .07 뿐이라 창이 좁다)
+            Color row = new Color(0xd6 / 255f, 0xd6 / 255f, 0xd6 / 255f, 1f);
+            Sprite sr = SurfaceArt.Bake("af_sub_row", 3f, 30f, row);
+            Assert.IsNotNull(sr, "서브 행 겹을 굽는다");
+            Texture2D tr = sr.texture;
+            Color topR = tr.GetPixel(tr.width / 2, tr.height - 1), botR = tr.GetPixel(tr.width / 2, 0);
+            Assert.Greater(topR.r, row.r + 0.05f, "맨 윗줄은 흰 .75 가 얹혀 면 색보다 밝다");
+            Assert.Less(botR.r, row.r, "맨 아랫줄은 검정 .07 이 얹혀 면 색보다 어둡다");
+
+            // ⓔ 실물 — 네 자리가 화면에 실제로 서는가
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!ForgeHost.Ready && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h, "ForgeHost");
+            h.S.BestChapter = 3; h.S.BestStage = 1;
+            h.Engine.AutoForgeConfig().FilterOn = true;   // 서브옵션 행은 필터가 켜져야 선다
+            h.Pull();
+            ForgeAutoPopup.Open(h);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p2 = h.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(p2, "자동 제련 팝업이 열렸다");
+            Transform tgT = FindDeep(p2.Root, "af-toggle");
+            Assert.IsNotNull(tgT, "필터 토글");
+            foreach (string path in new[] { "face/bg-grad", "knob/face/bg-grad" })
+            {
+                Transform g = tgT.Find(path);
+                Assert.IsNotNull(g, "토글 " + path + " 가 선다");
+                Assert.IsNotNull(g.GetComponent<Image>().sprite, "토글 " + path + ": 구운 그림이다");
+            }
+            Transform startT = FindDeep(p2.Root, "af-start");
+            Assert.IsNotNull(startT, "[시작] 버튼");
+            Assert.IsNotNull(startT.Find("face/bg-grad"), "[시작] 면 겹이 선다");
+            Transform subT = null;
+            foreach (Transform c in p2.Root.GetComponentsInChildren<Transform>(true))
+                if (c.name.StartsWith("af-sub-", System.StringComparison.Ordinal)) { subT = c; break; }
+            Assert.IsNotNull(subT, "필터 서브옵션 행 — 필터를 켰으니 선다");
+            Assert.IsNotNull(subT.Find("face/bg-grad"), "서브 행 면 겹이 선다");
+            h.Meta.Popups.Hide(ForgeAutoPopup.Name);
+            yield return null;
+        }
+
+        /// <summary>
         /// T178 21회차 — **섞는 자리**: CSS 그라디언트의 색 보간은 «프리멀티플라이드 알파» 다(CSS Images 3).
         /// 그냥 섞으면 «투명에 가까운 흰색 → 반투명 검정» 짝에서 가운데가 **회색으로 밝아지는 띠**가 생긴다 — 브라우저엔 없는 띠다.
         /// 실측(런 1015 `screen_autoforge.png`): 정본 5005 스피너의 45%(흰 .02) ↔ 100%(검정 .34) 사이 **63.6%** 자리가
