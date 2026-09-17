@@ -947,5 +947,46 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+
+        /// <summary>
+        /// T178 24회차 — 장비 **상세** 팝업 아이콘 상자의 교차 해칭(정본 **3661** `#forge-item-modal .idet-icon`).
+        /// 정본 주석 3657 이 뜻을 적어 뒀다 — «장비 상세도 목록과 같은 언어 … 해칭 배경 + 시대색 58% 틴트 면 + 시대색 80% 테».
+        /// 면 색(color-mix)은 T371 이 이미 덮어 뒀고 **해칭 두 겹만** 없었다. 그래서 이 자는 «색» 이 아니라 «해칭이 서는가» 를 본다 —
+        /// `.equip-cell`·제작 카드와 **같은 표 키**(`cell_hatch`)를 쓰는지까지(다른 키로 갈라 놓으면 세 화면이 서로 달라진다).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 장비_상세_아이콘_상자도_목록_셀과_같은_교차_해칭을_받는다()
+        {
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!ForgeHost.Ready && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h, "ForgeHost");
+            string age = h.Defs.Ages[0];
+            string wt = h.Engine.WeaponsOfAge(age)[0];
+            ForgeInfoPopup.OpenDetail(h, age, "weapon", 0, wt);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = h.Meta.Popups.Find(ForgeInfoPopup.ItemName);
+            Assert.IsNotNull(p, "장비 상세 팝업");
+            Transform face = FindDeep(p.Root, "idet-icon");
+            Assert.IsNotNull(face, "아이콘 상자(idet-icon)");
+            Transform hf = face.Find("frame/face");
+            Assert.IsNotNull(hf, "아이콘 상자의 면(frame/face)");
+            Transform hatch = hf.Find("hatch");
+            Assert.IsNotNull(hatch, "면 위에 해칭 겹 «hatch» 가 선다(정본 3661 — 종전엔 면 색만 있었다)");
+            Image hi = hatch.GetComponent<Image>();
+            Assert.IsNotNull(hi, "해칭: Image");
+            Assert.IsNotNull(hi.sprite, "해칭은 구운 그림이다");
+            Assert.AreEqual(Image.Type.Tiled, hi.type, "해칭은 되풀이 타일이다 — 늘리면 주기가 상자 크기를 탄다");
+            Assert.IsNotNull(hf.GetComponent<Mask>(), "둥근 면에 Mask 가 걸려 해칭이 모서리 밖으로 안 샌다");
+            // 같은 표 키를 쓰는가 — `.equip-cell`·제작 카드와 한 그림이어야 한다(정본이 그렇게 적었다).
+            Color mix = ColorMixUi.Mix("idet_icon_face", ForgeUi.AgeColor(h.Defs, age));
+            Assert.AreEqual(SurfaceArt.BakeHatch("cell_hatch", mix), hi.sprite,
+                            "목록 셀·제작 카드와 **같은 키**(cell_hatch)로 구운 같은 그림이다");
+            ForgeInfoPopup.Close(h);
+            yield return null;
+        }
+
     }
 }

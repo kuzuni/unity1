@@ -370,6 +370,11 @@ namespace Forge.Game.Ui
                 Image idetFace = idetF != null ? idetF.GetComponent<Image>() : null, idetLine = idetL != null ? idetL.GetComponent<Image>() : null;
                 if (idetFace != null) idetFace.color = ColorMixUi.Mix("idet_icon_face", idetAc);
                 if (idetLine != null) idetLine.color = ColorMixUi.Mix("idet_icon_line", idetAc);
+                // T178 24회차 — 정본 **3661** `#forge-item-modal .idet-icon` 은 그 면 위에 `.equip-cell`(828)·제작 카드(1063·1131)와
+                //   **같은 45°/−45° 교차 해칭**(rgba(0,0,0,.13) 2px / 12px 주기)을 두 겹 깐다. 정본 주석(3657)이 그 뜻을 그대로 적어 뒀다 —
+                //   «장비 상세도 목록과 같은 언어 … 해칭 배경 + 시대색 58% 틴트 면 + 시대색 80% 테». 면 색(color-mix)은 바로 위 줄이 이미 세웠고
+                //   해칭만 없었다. 표 `SurfaceUi.json` stripes.cell_hatch 를 그 색 위에 미리 합성해 굽는다(ForgeCraftPopup.CraftCard 와 한 길).
+                if (idetFace != null) SurfaceArt.FillHatch(idetFace, "hatch", "cell_hatch", ColorMixUi.Mix("idet_icon_face", idetAc));
             }
             ForgeUi.ApplyThumb(t, ItemFaces.Get(d, ThumbDef(age, ageIdx, slot, detailVariant, detailWtype)), tile, "");   // T122 ⓑ — 정본 2244 `idet-icon`: thumb ? <img> : 아이콘(동기 · 한 장) · T332 3회차 — `.idet-icon img`(3668)는 아웃라인만이고 접지 그림자가 없다(빈 키)
             UiKit.Place(t, 0f, rem * 0.2f, tile, tile);

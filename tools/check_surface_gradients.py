@@ -53,6 +53,9 @@ TABLE = {
     '.auto-drop-card.craft-reveal::after': ['Ui/CraftCardArt.cs@Sheen'],
     # T178 15회차 — 제작 카드 둘의 45°/−45° 교차 해칭(SurfaceUi.json stripes.cell_hatch · SurfaceArt.FillHatch · 바탕 color-mix 면 위 sRGB 합성) · `.equip-cell` 828 은 ForgeSheet lock 뒤 같은 키
     '.auto-drop-card': ['Ui/ForgeCraftPopup.cs@CraftCard'],
+    # T178 24회차 — 장비 **상세** 팝업의 아이콘 상자도 같은 해칭 두 겹이다(정본 3657 주석 «장비 상세도 목록과 같은 언어 … 해칭 배경 + 시대색 58% 틴트 면 + 시대색 80% 테»).
+    #   면 색(color-mix)은 T371 이 이미 덮어 뒀고 해칭만 없었다 — `ForgeCraftPopup.CraftCard` 와 같은 한 줄.
+    '#forge-item-modal .idet-icon': ['Ui/ForgeInfoPopup.cs@RenderDetail'],
     '.equip-cell': ['Ui/ForgeSheet.cs@EquipCell'],   # T178 16회차 — 828 해칭 둘(7730 이 non-egg 셀 background-image 를 덮어써도 해칭은 맨 아래 두 겹으로 남는다) · 7730 의 나머지 셋은 미정
 
     '.craft-batch .cb-card': ['Ui/ForgeCraftPopup.cs@CraftCard'],
