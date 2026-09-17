@@ -45,8 +45,15 @@ namespace Forge.Tests.PlayMode
                 try { PinnedColorUi.C(kv.Key); }
                 catch (System.Exception e) { bad.Add(kv.Key + " → " + e.GetType().Name + ": " + e.Message); }
             }
-            Assert.Greater(n, 50, "표가 통째로 비지 않았다(칸 수)");
+            // ⚑ 15회차엔 여기에 `Assert.Greater(n, 50)` 이 박혀 있었고 **그 숫자가 틀려 런 #1068 을 내가 빨갛게 했다**(실제 칸은 25).
+            //   자 요약의 «147 선택자 · 자리 초록 68» 을 표 칸 수로 잘못 읽은 것이다 — 그건 **정본 선택자** 수고 이 표의 칸 수가 아니다.
+            //   ⇒ 지어낸 숫자를 쓰지 않는다(§1 과 같은 뜻이다). «비지 않았다» 는 **다른 칸들이 이미 기대는 키가 실제로 있는가** 로 센다 —
+            //   표가 빈 채로 돌아오거나 엉뚱한 파일을 읽었으면 이 키들이 없다. 표가 자라도 이 줄은 안 흔들린다.
+            // 먼저 **내용**을 본다(이것이 이 칸의 일이다) — 안전줄이 먼저 터지면 정작 쓸모 있는 문구를 못 본다.
             Assert.IsEmpty(bad, "로더가 못 읽는 칸이 있다(부르는 화면이 통째로 못 선다 · 런 #1064) — " + string.Join(" / ", bad.ToArray()));
+            Assert.Greater(n, 0, "표가 통째로 비지 않았다");
+            foreach (string must in new[] { "sell_btn_face", "chat_back_face", "fi_age_star_ink", "cmp_lower_face" })
+                Assert.IsTrue(colors.Has(must), "표에 «" + must + "» 이 있다(다른 칸들이 이미 이 키에 기댄다 — 없으면 엉뚱한 파일을 읽은 것이다)");
         }
 
         static IEnumerator Boot()
