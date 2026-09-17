@@ -484,5 +484,74 @@ namespace Forge.Tests.PlayMode
             v1.OnTap(); v1.OnTap();
             yield return null;
         }
+
+        /// <summary>
+        /// T333 17회차 — 정본 **8371** `.fi-age-name, .fi-age-cur, .fi-age-next, .af-age-name, .af-age-cur { text-shadow: 0 1px 0 rgba(255,255,255,.34) }`.
+        ///
+        /// ⚑ **선택자가 다섯이고 `.af-age-next` 만 빠져 있다** — 확률 정보(`.fi-*`)는 셋 다 이 겹을 지고 자동 제련(`.af-*`)은 **«다음» 칸만 안 진다**.
+        /// 클론은 한 함수(<see cref="ForgeUi"/>.AgeBar)가 두 화면을 다 세우므로 그 한 자리를 `autoForge` 로 가른다 —
+        /// 이 자는 **두 화면을 나란히** 보고 «자동 제련의 다음 칸에는 겹이 **없다**» 까지 못 박는다.
+        /// 한 줄로 뭉쳐 다섯을 다 걸면 정본에 없는 겹이 하나 생기는데, 그것은 «있다» 만 재는 자로는 안 걸린다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 시대_막대_글_셋은_흰_양각을_지고_자동_제련의_다음_칸만_안_진다()
+        {
+            yield return Boot();
+            PlayLog log = PlayLog.Start("text-shadow-fi-age");
+            ForgeHost h = ForgeHost.Instance;
+            float t0 = 0f;
+            while (!ForgeHost.Ready && t0 < 20f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost 가 20초 안에 준비되지 않았다");
+            // 자동 제련은 2-10 해금 + 제련 레벨이 낮으면 뒤 시대 행이 아예 안 선다(AgePatternTests 가 겪은 자리) — 둘 다 맞춰 둔다.
+            h.S.BestChapter = 3; h.S.BestStage = 1; h.S.ForgeLevel = 29; h.Pull();
+
+            ForgeInfoPopup.Open(h);
+            yield return null; yield return null;
+            Popup info = h.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(info, "확률 정보 팝업");
+            AssertAgeBar(info.Root, true, "확률 정보");
+            ForgeInfoPopup.Close(h);
+            yield return null;
+
+            Assert.IsTrue(h.AutoForgeUnlocked, "2-10 뒤 해금");
+            ForgeAutoPopup.Open(h);
+            yield return null; yield return null;
+            Popup auto = h.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(auto, "자동 제련 팝업");
+            AssertAgeBar(auto.Root, false, "자동 제련");
+
+            log.AssertNoRed();
+            log.Dispose();
+        }
+
+        /// <summary>시대 막대 하나를 집어 이름·현재는 늘, «다음» 은 <paramref name="nextHasShadow"/> 대로 본다.</summary>
+        private static void AssertAgeBar(Transform root, bool nextHasShadow, string what)
+        {
+            int seen = 0;
+            foreach (Transform bar in root.GetComponentsInChildren<Transform>(true))
+            {
+                Transform nmT = bar.Find("name"), curT = bar.Find("cur");
+                if (nmT == null || curT == null) continue;
+                TextMeshProUGUI nm = nmT.GetComponent<TextMeshProUGUI>(), cur = curT.GetComponent<TextMeshProUGUI>();
+                if (nm == null || cur == null) continue;
+                seen++;
+                AssertShadow(nm, "fi_age_line", what + " 시대 이름");
+                AssertShadow(cur, "fi_age_line", what + " 현재 %");
+                Transform nextT = bar.Find("next");
+                if (nextT != null)
+                {
+                    Transform pctT = nextT.Find("pct");
+                    if (pctT != null)
+                    {
+                        TextMeshProUGUI pct = pctT.GetComponent<TextMeshProUGUI>();
+                        if (nextHasShadow) AssertShadow(pct, "fi_age_line", what + " 다음 %");
+                        else Assert.IsFalse(pct.fontMaterial.IsKeywordEnabled("UNDERLAY_ON"),
+                                            what + " 다음 %: 정본 8371 의 다섯 선택자에 `.af-age-next` 가 **없다** — 이 칸엔 겹이 안 붙는다");
+                    }
+                }
+                break;   // 막대 하나면 규칙이 드러난다(행 수는 제련 레벨이 정한다 · 이 절의 몫이 아니다)
+            }
+            Assert.GreaterOrEqual(seen, 1, what + ": 시대 막대가 한 줄은 선다");
+        }
     }
 }

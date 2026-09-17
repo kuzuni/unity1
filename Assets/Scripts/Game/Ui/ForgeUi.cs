@@ -385,6 +385,10 @@ namespace Forge.Game.Ui
             TextMeshProUGUI nm = UiKit.Text(bar, "name", TextKind.Sub, AgeKr(d, age) + (stars > 0 ? " " + Stars(stars) : string.Empty), "pp_ink", TextAlignmentOptions.Left);
              if (!autoForge) WrapUi.Apply(nm, "fi_age_name");   // T361 7회차 — 정본 white-space 표(WrapUi.json) 5092 `.fi-age-name { nowrap }`(자동 제련 `.af-age-name` 은 정본 선언 없음)
             nm.fontStyle = FontStyles.Bold;
+            // T333 17회차 — 정본 **8371** `.fi-age-name, .fi-age-cur, .fi-age-next, .af-age-name, .af-age-cur { text-shadow: 0 1px 0 rgba(255,255,255,.34) }`.
+            //   흐림 0 인 «아래로 1px 민 흰 사본» 이라 시대 막대의 글이 판 위에 **양각**으로 앉는다(표 `fi_age_line`).
+            //   ⚠ 선택자가 **다섯**이다 — `.af-age-next` 만 빠져 있다. 아래 «다음» 칸에서 `autoForge` 로 그 한 자리를 가른다(T361 7회차가 `nowrap` 에서 같은 갈래를 이미 겪었다).
+            UiKit.TextShadow(nm, "fi_age_line");
             UiKit.Place(nm.rectTransform, x, 0f, w * 0.5f, h);
             float segW = next != null ? w * 0.25f : 0f;
             if (next != null)
@@ -396,10 +400,14 @@ namespace Forge.Game.Ui
                 PopupKit.Inset(sf.rectTransform, PopupKit.Line);
                 TextMeshProUGUI nt = UiKit.Text(seg, "pct", TextKind.Sub, next, "pp_ink", TextAlignmentOptions.Right);
                 nt.fontStyle = FontStyles.Bold;
+                // T333 17회차 — 정본 8371 의 다섯 선택자에 `.fi-age-next` 는 **있고** `.af-age-next` 는 **없다**: 자동 제련의 «다음» 칸만 이 겹을 안 진다.
+                if (!autoForge) UiKit.TextShadow(nt, "fi_age_line");
                 nt.rectTransform.offsetMax = new Vector2(-rem * 0.5f, 0f);
             }
             TextMeshProUGUI ct = UiKit.Text(bar, "cur", TextKind.Sub, cur, "pp_ink", TextAlignmentOptions.Right);
             ct.fontStyle = FontStyles.Bold;
+            UiKit.TextShadow(ct, "fi_age_line");   // T333 17회차 — 정본 8371 `.fi-age-cur`·`.af-age-cur`(둘 다 있다)
+
             UiKit.Place(ct.rectTransform, w * 0.5f, 0f, w * 0.5f - segW - rem * 0.5f, h);
             if (onClick != null)
             {

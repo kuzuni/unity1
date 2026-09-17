@@ -43,6 +43,9 @@ TABLE = {
         'Ui/ShopSheet.cs#title', 'Ui/AscendPopup.cs#title',
         'Ui/ForgeInfoPopup.cs#idet-name', 'Ui/QuestSheet.cs#qst-name',
     ],
+    # T333 17회차 — 8371 시대 막대 글 셋(확률 정보 `.fi-*` · 자동 제련 `.af-*`). 한 함수(`ForgeUi.AgeBar`)가 두 화면을 다 세운다.
+    #   ⚠ 다섯 선택자에 **`.af-age-next` 가 없다** — «다음» 칸은 확률 정보에서만 이 겹을 진다(코드가 `autoForge` 로 가른다).
+    '.fi-age-name, .fi-age-cur, .fi-age-next, .af-age-name, .af-age-cur': ['Ui/ForgeUi.cs#name', 'Ui/ForgeUi.cs#cur', 'Ui/ForgeUi.cs#pct'],
     # T333 3회차 ⓒ — 정본이 «4/8방향 hard 링» 으로 흉내 낸 것: 언더레이 한 겹으로는 못 내니 SDF 스트로크(`ring:`)로 센다
     '#stage-label': ['ring:Ui/Hud.cs#stage-label'],
     '.chat-name, .chat-tag': ['ring:Ui/ChatScreen.cs#name'],

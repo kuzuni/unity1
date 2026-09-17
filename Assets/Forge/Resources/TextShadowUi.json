@@ -49,6 +49,16 @@
       "alpha": 0.75,
       "_": "style.css 8392 `.league-row .league-name, .league-row .league-rank, .league-score, .equipped-label + *, .chat-preview-name { text-shadow: 0 1px 1px rgba(0,0,0,.75), 0 0 6px rgba(0,0,0,.35) }` — 두 겹이다. TMP 언더레이는 한 겹뿐이라 **읽히게 만드는 첫 겹**(아래 1px 드롭)만 낸다: 둘째 겹은 반지름 6px 알파 .35 의 바깥 글로우로, 정본에서도 검정 판 위에서는 거의 안 보인다(T333 3회차 · 근사 기록)."
     },
+    "fi_age_line": {
+      "dx_px": 0,
+      "dy_px": 1,
+      "blur_px": 0,
+      "color": "#ffffff",
+      "alpha": 0.34,
+      "_": "style.css **8371~8373** `.fi-age-name, .fi-age-cur, .fi-age-next, .af-age-name, .af-age-cur { text-shadow: 0 1px 0 rgba(255,255,255,.34) }` — 확률 정보·자동 제련 **시대 막대 글 셋**(이름·현재·다음)의 흰 양각 한 겹. 흐림 0 이라 «아래로 1px 민 흰 사본» 이다.",
+      "_2": "⚠ 정본 선택자에 **`.af-age-next` 가 없다** — 자동 제련의 «다음» 칸만 이 겹을 안 진다(다섯 선택자를 세어 보면 fi 셋 + af 둘). 클론은 한 함수(`ForgeUi.AgeBar`)가 두 화면을 다 세우므로 `autoForge` 로 그 한 자리를 가른다 — 한 줄로 뭉치면 정본에 없는 겹이 생긴다(T333 17회차).",
+      "_3": "곁: 같은 막대의 **별**(`.fi-age-star` 5138)은 이 겹이 아니라 **4방향 검정 링**이고 색·크기도 따로다(#ffb300 · .88rem). 클론은 별을 이름 문자열에 이어 붙여 두어 따로 못 건다 — 18회차 몫으로 절에 적어 뒀다."
+    },
     "dgclear_title": {
       "dx_px": 0,
       "dy_px": 2,
