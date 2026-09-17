@@ -1707,7 +1707,10 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         print(u"  · 팝업 카드 **위끝**(딤과 무관한 자 · 원작 ↔ 클론 · ±%.1f%%p): 잰 화면 %d개 · 벗어난 화면 %d개"
               % (CARD_TOP_TOL, len(tops), len(offt)))
         for n, a, b in sorted(offt, key=lambda t: -abs(t[2] - t[1])):
-            print(u"    ✗ %-18s 원작 %.2f%%H → 클론 %.2f%%H  (Δ %+.2f%%p)" % (n, a, b, b - a))
+            # 낡은 샷 화면은 **꼬리표를 달아 둔다**(지우지 않는다 · T28 81회차와 같은 규칙) — 안 달면
+            # 매 회차 같은 줄을 보고 같은 자리를 다시 판다(T28 120회차에 내가 그렇게 한 번 팠다).
+            note = (u"  ⚠ 낡은 샷 — %s" % STALE_SCREENS[n]) if n in STALE_SCREENS else u""
+            print(u"    ✗ %-18s 원작 %.2f%%H → 클론 %.2f%%H  (Δ %+.2f%%p)%s" % (n, a, b, b - a, note))
         if offt:
             print(u"    ⓘ **카드가 통째로 밀린 것**이라 그 안을 아무리 재도 안 맞는다 — 먼저 이 값을 맞춰라."
                   u" 다만 원작 샷과 클론의 **내용 줄 수가 다른 화면**(`forge-list` 등)은 카드가 내용을 따라가므로"
@@ -2578,6 +2581,13 @@ def self_test():
         u"카드 안 어두운 띠는 위끝을 안 흔든다 (%.2f)" % (card_top(_band) or -99))
     chk(card_top(_canvas(112, 199, (12, 12, 12))) is None,
         u"카드가 없으면 위끝도 없다")
+
+    # ㉗ «카드 위끝» 줄이 낡은 샷 화면에 꼬리표를 단다 (T28 120회차)
+    #    🚫 지우지 않는다 — 꼬리표만 단다(낡은 샷 규칙 · T28 81회차).
+    chk("forge-list" in STALE_SCREENS,
+        u"낡은 샷 표에 `forge-list` 가 있다(카드 위끝 줄이 꼬리표를 달 자리)")
+    chk(u"낡은 샷" in (u"  ⚠ 낡은 샷 — %s" % STALE_SCREENS["forge-list"]),
+        u"꼬리표 문구가 «낡은 샷» 으로 시작한다")
 
     print(u"")
     if fail:
