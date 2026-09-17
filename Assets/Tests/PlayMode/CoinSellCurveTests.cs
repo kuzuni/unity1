@@ -291,6 +291,20 @@ namespace Forge.Tests.PlayMode
                     (int)J.Num(rf["total"]), (int)J.Num(rf["top"]), (int)J.Num(rf["mid"]), (int)J.Num(rf["bot"]), rows[i].MinF * 100f));
             }
             sb.AppendLine("# 클론 봉우리(" + band + ") 실제 " + peak.At + "ms(표 " + peak.Ms + ") " + Band(peak, band) + " · 끝 실제 " + (endMs < 0 ? "없음" : endMs + "ms") + " ↔ 정본 봉우리 " + refPeakMs + "ms " + (int)J.Num(t["peak_v"]) + " · 끝 " + refEndMs + "ms");
+            // T441 5회차 — **표본 성김에 안 흔들리는 자**: 곡선의 «무게중심 시각»(Σ ms×값 / Σ 값 · 끝 2600ms 까지).
+            //   봉우리 «시각» 은 최댓값 표본 하나가 정하므로 200ms 표본에서는 런마다 튀지만(426·448·480·596ms 실측),
+            //   무게중심은 곡선 전체가 정하므로 표본이 성겨도 자리가 안 변한다. 정본 값은 표 프레임으로 같은 셈을 한다.
+            double cloneNum = 0, cloneDen = 0, refNum = 0, refDen = 0;
+            for (int i = 0; i < rows.Count; i++)
+            {
+                if (rows[i].At <= 2600) { cloneNum += (double)rows[i].At * Band(rows[i], band); cloneDen += Band(rows[i], band); }
+                JsonObject rf2 = J.Obj(refFrames[i]);
+                int rms = (int)J.Num(rf2["ms"]);
+                if (rms <= 2600) { double v = J.Num(rf2[band]); refNum += rms * v; refDen += v; }
+            }
+            sb.AppendLine(string.Format("# 무게중심(T441 5회차 · 표본 성김에 안 흔들린다): 클론 {0:0} ms(합 {1:0}) ↔ 정본 {2:0} ms(합 {3:0})"
+                + " — 봉우리 «시각» 이 런마다 튀는 것과 달리 이 수는 곡선 전체가 정한다.",
+                cloneDen > 0 ? cloneNum / cloneDen : 0, cloneDen, refDen > 0 ? refNum / refDen : 0, refDen));
             sb.AppendLine(string.Format("# 표본 간격의 정체(T441 4회차): 한 장 찍는 값 평균 {0:0} ms × {1} 장 — 이 환경의 표본 간격은 이 값이 정한다."
                 + " 정본 봉우리는 780→860→940ms 에서 2455→2743→1434 로 **80ms 폭**이라 표본이 그보다 성기면 봉우리를 스쳐 지나간다.", grabN > 0 ? grabMs / grabN : 0f, grabN));
             // T441 3회차 — «어디서 떠서 얼마나 오르나» 를 셈으로도 남긴다(화소가 못 보여 주는 자리).
