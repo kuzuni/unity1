@@ -91,10 +91,26 @@ namespace Forge.Game.Ui
             RectTransform stack = Build(rt, "label-stack", kind, msg, inkKey);
             stack.offsetMin = new Vector2(0f, UiKit.H("btn_lip"));
             string kl = keylineKey ?? KeylineUi.BtnFace(faceKey);
-            foreach (TextMeshProUGUI t in UiKit.RowTexts(stack))
+            // T352 12회차 — **둘째 줄부터는 정본에서 `<small>` 이고 `.btn small`(667)이 `font-weight: 400` 을 준다.**
+            //   이 도우미를 부르는 넷이 전부 정본의 `<button>본문<small>잔글씨</small>` 꼴이다:
+            //   `판매<small>🪙 +N</small>`(ui.js 3266 · 비교 팝업·판매 경고) · `건너뛰기<small>💎 N</small>` · `레벨 N 업그레이드<small>…</small>`.
+            //   여태는 **모든 줄에 Bold 를 박아** 잔글씨까지 굵었다 — 곧 `.btn small` 은 «남의 lock 뒤» 가 아니라
+            //   **이 공용 도우미 한 곳**이 쥐고 있던 자리였다(10·11회차가 «ForgeCraftPopup.cs 뒤» 로 적은 것을 바로잡는다).
+            //   ⚠ 링(키라인)은 줄마다 그대로 건다 — 굵기와 다른 축이다(T109).
+            //   ⚠ **줄 노드로 센다** — `UiKit.RowTexts` 는 글자를 **평평하게 전부** 주므로(한 줄에 글자가 둘이면 어긋난다)
+            //   이 파일이 65행에서 이미 쓰는 `line-` 이름 기준을 그대로 쓴다.
+            int li = 0;
+            for (int i = 0; i < stack.childCount; i++)
             {
-                t.fontStyle = FontStyles.Bold;
-                if (!string.IsNullOrEmpty(kl)) PopupKit.Ring(t, kl, "pp_line");
+                Transform line = stack.GetChild(i);
+                if (line == null || !line.name.StartsWith("line-")) continue;
+                foreach (TextMeshProUGUI t in UiKit.RowTexts(line as RectTransform))
+                {
+                    t.fontStyle = FontStyles.Bold;
+                    if (li > 0) TextWeightUi.Regular(t, "btn_small");   // 둘째 줄부터 = 정본 `<small>` = 400
+                    if (!string.IsNullOrEmpty(kl)) PopupKit.Ring(t, kl, "pp_line");
+                }
+                li++;
             }
             Fit(stack);
             return stack;

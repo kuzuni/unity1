@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Forge.Core.Forging;
 using Forge.Core.Save;
 using Forge.Game;
 using Forge.Game.Ui;
@@ -86,6 +87,41 @@ namespace Forge.Tests.PlayMode
             Assert.IsFalse((d.fontStyle & FontStyles.Bold) != 0,
                 "«" + d.text.Replace("\n", " ") + "» 는 regular 다 — 2734 의 800 을 8633 이 500 으로 덮고 500 은 보통 굵기로 내려간다");
             h.Popups.Hide(PassPopup.Name);
+        }
+
+        /// <summary>T352 12회차 — **버튼 잔글씨**. 정본은 `<button>판매<small>🪙 +N</small></button>`(ui.js 3266)이고
+        /// **667** `.btn small { font-weight: 400 }` 이 그 잔글씨만 보통 굵기로 둔다. 클론은 `IconTextStack.ReplaceLabel` 이
+        /// **모든 줄에 Bold 를 박아** 둘째 줄까지 굵었다 — 곧 이 자리는 «남의 lock 뒤» 가 아니라 **공용 도우미 한 곳**이 쥐고 있었다.
+        /// 첫 줄(본문)은 그대로 bold 여야 한다 — 두 줄의 굵기가 **서로 달라야** 정본과 같다.</summary>
+        [UnityTest]
+        public IEnumerator 버튼_잔글씨는_첫_줄과_달리_regular_다()
+        {
+            yield return Boot();
+            ForgeHost F = ForgeHost.Instance;
+            ForgeItem it = F.Engine.RollItem();
+            ForgeCraftPopup.Show(F, it);
+            yield return null; yield return null;
+            Popup p = F.Meta.Popups.Find(ForgeCraftPopup.Name);
+            Assert.IsNotNull(p, "비교 팝업이 열렸다");
+            Transform stack = p.Root.Find("card/lower/row/sell/label-stack");
+            Assert.IsNotNull(stack, "판매 버튼의 줄 상자(label-stack)");
+            var lines = new System.Collections.Generic.List<Transform>();
+            for (int i = 0; i < stack.childCount; i++)
+                if (stack.GetChild(i).name.StartsWith("line-")) lines.Add(stack.GetChild(i));
+            Assert.GreaterOrEqual(lines.Count, 2, "정본처럼 본문 + 잔글씨 두 줄이다(ui.js 3266)");
+            foreach (TextMeshProUGUI t in UiKit.RowTexts(lines[0] as RectTransform))
+                Assert.IsTrue((t.fontStyle & FontStyles.Bold) != 0, "첫 줄(«" + t.text + "»)은 bold 다 — 버튼 본문");
+            int sub = 0;
+            for (int i = 1; i < lines.Count; i++)
+                foreach (TextMeshProUGUI t in UiKit.RowTexts(lines[i] as RectTransform))
+                {
+                    sub++;
+                    Assert.IsFalse((t.fontStyle & FontStyles.Bold) != 0,
+                        "잔글씨(«" + t.text + "»)는 regular 다 — 정본 667 `.btn small { font-weight: 400 }`");
+                }
+            Assert.Greater(sub, 0, "잔글씨 줄에 글자가 있다");
+            ForgeCraftPopup.Hide(F);
+            yield return null;
         }
 
         /// <summary>실물 자리 — 장비 목록 칸 아래 «0.0000%» 라벨은 regular 다(정본 790 은 800 이지만 **8633** 이 500 으로 덮는다).
