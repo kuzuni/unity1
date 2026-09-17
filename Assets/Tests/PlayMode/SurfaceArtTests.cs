@@ -688,5 +688,63 @@ namespace Forge.Tests.PlayMode
                              "둥근 면에 Mask 가 걸려 겹이 모서리 밖으로 안 샌다(정본은 border-radius 가 background 를 같이 자른다)");
         }
 
+        /// <summary>
+        /// T178 20회차 — 자동 제련 팝업의 «면 겹» 둘. 정본 **5005** `.af-spinner`(검정 금속 톤: 위 흰 .17 → 45% 흰 .02 → 아래 검정 .34)과
+        /// **4971** `.af-check`(흰 .14 → 46% 투명 → 아래 검정 .3). 둘 다 안쪽 그늘·바깥 턱(T331)·눌림(T355)은 이미 서 있고 **면 겹만** 없던 자리다.
+        /// 스피너 바탕은 표의 `over_color`(pp_ink)로 미리 섞고, 체크 상자는 바탕이 **런타임 색**(켜짐 검정 · 꺼짐 초록)이라 부르는 쪽이 색을 준다.
+        /// 굽는 픽셀(위가 밝고 아래가 어둡다 · 불투명하게 합성됐다)과 **실물에 섰는가**(Mask · 구운 그림 · 흰 색)를 같이 묻는다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 자동_제련_스피너와_체크_상자에_정본_면_겹이_구워져_선다()
+        {
+            // ⓐ 구운 픽셀 — 스피너(바탕 pp_ink 는 표가 섞는다)
+            Sprite sp = SurfaceArt.Bake("af_spinner", 3f, 48f);
+            Assert.IsNotNull(sp, "스피너 겹을 굽는다");
+            Texture2D ts = sp.texture;
+            Color topS = ts.GetPixel(ts.width / 2, ts.height - 1), botS = ts.GetPixel(ts.width / 2, 0);
+            Assert.AreEqual(1f, topS.a, 1e-3f, "바탕을 받은 겹은 불투명하게 구워진다(over_color pp_ink)");
+            Assert.Greater(topS.r, botS.r + 0.03f, "위가 밝고 아래가 어둡다 — 180deg 의 방향(정본 5005)");
+
+            // ⓑ 구운 픽셀 — 체크 상자(바탕을 부르는 쪽이 준다 · 꺼짐 초록)
+            Color face = new Color(0.14f, 0.77f, 0.32f, 1f);
+            Sprite ck = SurfaceArt.Bake("af_check", 1f, 24f, face);
+            Assert.IsNotNull(ck, "체크 상자 겹을 굽는다");
+            Texture2D tc = ck.texture;
+            Color topC = tc.GetPixel(tc.width / 2, tc.height - 1), botC = tc.GetPixel(tc.width / 2, 0);
+            Assert.AreEqual(1f, topC.a, 1e-3f, "런타임 색 위에 sRGB 로 미리 섞어 굽는다");
+            Assert.Greater(topC.g, face.g - 0.02f, "맨 윗줄은 흰 .14 가 얹혀 면 색보다 어둡지 않다");
+            Assert.Less(botC.g, face.g - 0.05f, "맨 아랫줄은 검정 .3 이 얹혀 면 색보다 어둡다");
+            Assert.Greater(topC.g, botC.g + 0.05f, "위가 밝고 아래가 어둡다(정본 4971)");
+
+            // ⓒ 실물 — 자동 제련은 2-10 뒤에만 열린다(ForgeCardWidthTests 와 같은 길)
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!ForgeHost.Ready && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h, "ForgeHost");
+            h.S.BestChapter = 3; h.S.BestStage = 1; h.Pull();
+            Assert.IsTrue(h.AutoForgeUnlocked, "2-10 을 넘겨 자동 제련이 해금됐다");
+            ForgeAutoPopup.Open(h);
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = h.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(p, "자동 제련 팝업이 열렸다");
+
+            foreach (string host in new[] { "af-spinner", "af-check-continue" })
+            {
+                Transform ht = FindDeep(p.Root, host);
+                Assert.IsNotNull(ht, host + " 가 있다");
+                Transform grad = FindDeep(ht, "bg-grad");
+                Assert.IsNotNull(grad, host + " 의 면 겹 «bg-grad» 가 선다");
+                Image gi = grad.GetComponent<Image>();
+                Assert.IsNotNull(gi, host + ": Image");
+                Assert.IsNotNull(gi.sprite, host + ": 겹은 구운 그림이다 — 색 한 칸짜리가 아니다");
+                Assert.AreEqual(1f, gi.color.r, 1e-3f, host + ": 그림 위 색은 흰색 — 표 색을 두 번 곱하지 않는다");
+                Assert.IsNotNull(grad.parent.GetComponent<Mask>(), host + ": 둥근 면에 Mask 가 걸려 겹이 모서리 밖으로 안 샌다");
+            }
+            h.Meta.Popups.Hide(ForgeAutoPopup.Name);
+            yield return null;
+        }
     }
 }

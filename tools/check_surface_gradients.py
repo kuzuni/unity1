@@ -71,7 +71,10 @@ TABLE = {
     '.dg-banner': ['Ui/DungeonSheet.cs#bg-grad'],
     '.dg-banner::before': ['Ui/DungeonSheet.cs#scrim'],
     '.dg-detail-hero': ['Ui/DungeonDetailPopup.cs#bg-grad'],   # T178 19회차 — 2060 상세 hero 바탕 = 목록 배너와 같은 겹(dg_banner) · 일러스트 뒤
-    '.idet-icon.tn-bronze': ['Ui/TechPopups.cs#bg-grad'],      # T178 19회차 — 3689 청동 원 면 위 마스크 겹(tn_bronze)
+    '.idet-icon.tn-bronze': ['Ui/TechPopups.cs#bg-grad'],
+    # T178 20회차 — 자동 제련 팝업의 «면 겹» 둘(스피너 검정 금속 톤 · 체크 상자). 둘 다 둥근 면 위라 SurfaceArt.FillMasked.
+    '.af-spinner': ['Ui/ForgeAutoPopup.cs#bg-grad'],
+    '.af-check': ['Ui/ForgeAutoPopup.cs#bg-grad'],      # T178 19회차 — 3689 청동 원 면 위 마스크 겹(tn_bronze)
     # T178 3회차 — 둥근 면 위는 SurfaceArt.FillMasked(면에 Mask) 로 얹는다(모서리 밖으로 안 샌다).
     '.shop-banner': ['Ui/ShopSheet.cs#shop-banner-grad'],
     '.league-collect-pill': ['Ui/LeagueSheet.cs#collect-grad'],

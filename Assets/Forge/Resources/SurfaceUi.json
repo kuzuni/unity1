@@ -27,6 +27,10 @@
     ],
     "_": "style.css 1952 `.dg-banner { background: linear-gradient(120deg, var(--bg, #444c56), #161b22) }` — 배너 제 바탕(일러스트가 없는 던전은 이것만 보인다). `--bg` 기본값 #444c56 = (68,76,86) · 끝 #161b22 = (22,27,34)."
   },
+  "af_spinner": {"angle_deg": 180, "stops": [[255, 255, 255, 0.17], [255, 255, 255, 0.02], [0, 0, 0, 0.34]], "offsets": [0, 0.45, 1], "over_color": "pp_ink",
+    "_": "style.css 5005 `.af-spinner { background-image: linear-gradient(180deg, rgba(255,255,255,.17) 0, rgba(255,255,255,.02) 45%, rgba(0,0,0,.34) 100%) }` — 망치 수 스피너의 «검정 금속 톤»(정본 주석: 위 림라이트 + 안쪽 아래 그늘 + 바깥 턱 · 안쪽 그늘·턱은 T331·T355 가 이미 세웠고 여기서는 **면 겹**만). 바탕은 그 면의 `pp_ink`(#17181a · T365 19회차) 라 `over_color` 로 미리 합성한다. T178 20회차"},
+  "af_check": {"angle_deg": 180, "stops": [[255, 255, 255, 0.14], [255, 255, 255, 0.0], [0, 0, 0, 0.3]], "offsets": [0, 0.46, 1],
+    "_": "style.css 4971 `.af-check { background-image: linear-gradient(180deg, rgba(255,255,255,.14) 0, rgba(255,255,255,0) 46%, rgba(0,0,0,.3) 100%) }` — «계속하기» 체크 상자(정본 주석: 눌리는 물건으로 보이게). 바탕이 **런타임 색**(꺼짐 초록 · 켜짐 검정 · ForgeAutoPopup 이 정한다)이라 `over_color` 를 안 적고 부르는 쪽이 색을 준다(T178 17회차 갈래). T178 20회차"},
   "tn_bronze": {"angle_deg": 160, "stops": [[217, 160, 102, 1], [165, 100, 47, 1]], "offsets": [0, 1], "_": "style.css 3689 `.idet-icon.tn-bronze { background: linear-gradient(160deg, #d9a066, #a5642f) }` — 기술 노드 팝업 머리의 청동 원 면(T178 19회차 · `TechPopups` 가 `UiKit.Circle` 면 위에 `FillMasked` 로 얹는다 · 테 `tn_bronze_border` #7a4a22 는 카탈로그 단색 그대로). #d9a066 = (217,160,102) · #a5642f = (165,100,47)."},
   "dg_banner_scrim": {
     "angle_deg": 90,

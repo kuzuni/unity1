@@ -108,6 +108,10 @@ namespace Forge.Game.Ui
             // T365 19회차 — 정본 4785 는 **면 `#17181a` + ol3 `--pp-line` 테** 두 겹이다. 클론은 `pp_line`(#000000) 판 **한 장**이라
             //   테가 없고 면까지 순검정이었다 — `pp_ink` 가 곧 정본의 #17181a 다.
             Image spf = RadiusUi.Outlined(spRt, "face", "pp_ink", "af_spinner_r_rem", PopupKit.Line3);
+            // T178 20회차 — 정본 5005 의 **면 겹**(`background-image: linear-gradient(180deg, …)` · 표 SurfaceUi.json `af_spinner`).
+            //   안쪽 림라이트·그늘(5007 앞 두 겹)과 바깥 턱(셋째 겹)은 T331·T355 가 이미 세웠고, 여태 없던 것은 이 «검정 금속 톤» 한 장이다.
+            //   둥근 면이라 FillMasked(면에 Mask) — 모서리 밖으로 안 샌다. 바탕(pp_ink)은 표의 over_color 가 미리 섞는다.
+            SurfaceArt.FillMasked(spf, "bg-grad", "af_spinner", spW, rowH - rem * 0.3f);
             // T331 26회차 — 정본 5007 의 **셋째 겹** `0 .12rem 0 rgba(0,0,0,.28)`(바깥 턱).
             //   앞의 둘은 안쪽이라 이미 서 있다(위 림라이트·아래 그늘 = `btn_lip` 관용구 갈래).
             //   면을 세운 **뒤**에 부른다 — 그늘의 둥근 모서리를 그 면에서 되읽는다(`RadiusOf`).
@@ -124,7 +128,11 @@ namespace Forge.Game.Ui
             Button ck = UiKit.Button(bottom, "af-check-continue", () => h.ToggleStopOnTarget());
             RectTransform ckRt = ck.GetComponent<RectTransform>();
             UiKit.Place(ckRt, inner - cb, rowH + (rowH - cb) * 0.5f, cb, cb);
-            Image ckf = ForgeUi.Tile(ckRt, "box", cfg.StopOnTarget ? Color.black : new Color(0.14f, 0.77f, 0.32f, 1f), Color.black, cb * 0.2f, PopupKit.Line);
+            Color ckFace = cfg.StopOnTarget ? Color.black : new Color(0.14f, 0.77f, 0.32f, 1f);
+            Image ckf = ForgeUi.Tile(ckRt, "box", ckFace, Color.black, cb * 0.2f, PopupKit.Line);
+            // T178 20회차 — 정본 4971 `.af-check { background-image: linear-gradient(180deg, rgba(255,255,255,.14) 0, rgba(255,255,255,0) 46%, rgba(0,0,0,.3) 100%) }`.
+            //   바탕이 **런타임 색**(켜짐 검정 · 꺼짐 초록)이라 색을 넘겨 sRGB 로 미리 섞는다(T178 17회차 갈래 · 표에 over_color 를 안 적은 까닭).
+            SurfaceArt.FillMasked(ckf, "bg-grad", "af_check", cb - PopupKit.Line * 2f, cb - PopupKit.Line * 2f, ckFace);
             PressFx.Attach(ck.gameObject, ckRt, "af_check", ckf);   // T355 ⓒ — 정본 4974·4982 .af-check:active { translateY(.06rem); brightness(1.12) · .07s }(계속하기 체크 = ui.js 2318)
             if (!cfg.StopOnTarget)
             {
