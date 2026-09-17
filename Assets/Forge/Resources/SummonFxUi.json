@@ -51,6 +51,11 @@
     "canopy_compact_w_f": 0.64,
     "canopy_compact_aspect": 3.9,
     "canopy_compact_mb_rem": 1.5,
+    "floor_w_f": 0.88,
+    "floor_aspect": 2.5,
+    "floor_one_w_f": 0.64,
+    "floor_one_aspect": 2.6,
+    "_floor_size": "T449 — 소환진(`.sr-floor`) 상자: 폭 = 그리드 폭 × `w_f` · 높이 = 폭 / `aspect`(캐노피 `canopy_*` 와 같은 꼴 · SummonFx.cs 118~119). 정본 5800 `.sr-body.stage:not(.one) .sr-floor { width: 88%; aspect-ratio: 2.5/1 }` · 5771 `.stage.one .sr-floor { width: 64%; aspect-ratio: 2.6/1 }`. 5767 base(82%·3.1/1)는 죽은 선언(ui.js 493 이 stage 안에서만 그린다). 값은 종전 코드(`0.64f/0.88f · 2.6f/2.5f` 두 곳)와 같다 — 자리만 표로.",
     "canopy_in_ms": 450,
     "canopy_in_delay_ms": 50,
     "canopy_in_scale": 0.8,
@@ -859,6 +864,7 @@
     "_charge": "정본 `style.css` 6815~6879 그대로 — 홀드백 대기창(마지막 셀 간격 + 홀드백 = 275ms)을 덮는 .28s 램프 넷. 소환진 `srfloorcharge`(부풀다 **마지막 12%에 수축** — «안쪽으로 조인 뒤 폭발» 이라 주역 등장이 사건으로 읽힌다 · 밝기는 끝까지 오르므로 «꺼진다» 가 아니다) · 눈금 `srtickup` opacity .45 → 1 `steps(9)` · 중앙 광원 `srhalocharge`(맥동 간격 132→110→99→88→77ms 로 좁아지는 다섯 산 · 진폭을 낮추지 말 것 — 10차 비평가 A 3·B 5 가 둘 다 이 구간을 짚었다) · 비네트 `srvig` opacity 0→1 · scale 1.10→1(그라디언트 자체는 `.sr-wrap::before` 5744 의 `radial-gradient(82% 51% at 50% 44%, rgba(0,0,0,0) 12%, rgba(0,0,0,.90) 100%)` 고정 — 배경을 키프레임으로 만들면 화면에서 계단이 된다) · 정착한 조연 셀 `srinhale`(슬롯→광원 벡터 `--dx/--dy` 의 `back_f` 만큼 되돌린다 = 사출의 역재생 · scale 1→.958 · 채도·밝기도 떨어진다). 보간은 전부 linear — `ease-in` 은 앞 절반이 정지 프레임이 된다(정본이 세 번 못 박았다). 가속감은 키프레임 간격으로만 만든다."
   },
   "_src": {
+    "floor_size": "5771 .stage.one .sr-floor 64%/2.6 · 5800 .stage:not(.one) 88%/2.5 (5767 base 82%/3.1 은 죽은 선언 · ui.js 493)",
     "canopy": "5836~5846 .sr-canopy 78%/3.1 · .one 62%/3 mb -2.6rem · stage:not(.one):not(.compact) 84%/2.5 mb -2.8rem · .compact 64%/3.9 mb -1.5rem(compact = herorow · ui.js 469~473) · 도입 srcanopy .45s .05s scale(.8) translateY(-.5rem)",
     "arch": "5855~5863 ::before 타원 테 .08rem + radial closest-side 68%→88%→100% 띠 + 세로 마스크 42%→78% · 5865~5878 ::after 룬 눈금 conic 1.1°/9° · radial 86/92/99 · 세로 마스크 40%→62%(srfloorbreath 4.2s 는 안 옮김 — 한 장에 구웠다)",
     "rays_i": "5880~5892 i: bottom 56% · left 50% · .92×10.8rem · 그라디언트 0%.5 46%.34 80%.14 100%0 · blur 2.2px · srveil 3.1s / 5924~5925 1·3번째 ∓5.6rem 7.8rem 3.8s·4.6s(-1.2s) / 5847~5849 compact 5.4·3.9rem ∓4.4rem · 5926~5929 srveil  alpha .42↔.85 scaleY .84↔1.12",

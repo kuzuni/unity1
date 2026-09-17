@@ -3845,7 +3845,7 @@
 - 고침 = 표 `SummonFxUi.json` 에 네 칸(`floor_w_f` .88 · `floor_aspect` 2.5 · `floor_one_w_f` .64 · `floor_one_aspect` 2.6) + 캐노피와 같은 꼴로 한 줄 읽기 + 눈금 굽기도 같은 값을 받는다. **값은 안 바뀐다**(§1 «원작에 없는 것을 더하지 않는다» — 이 회차는 자리만 옮긴다).
 - 판정: 화면이 **한 화소도 안 움직인다**(`screen_t179-summon` 앞뒤 같음) + EditMode 자 한 칸(표 왕복 네 칸) + PlayMode 자 한 칸(소환진 상자의 폭/높이 = 표값 ±1px · `one` 갈래와 그 밖 갈래 둘 다).
 - 범위: `Assets/Scripts/Game/Ui/SkillSummonResult.cs`(**산 lock 뒤**) · `Assets/Forge/Resources/SummonFxUi.json` · `Assets/Tests/EditMode/` · `Assets/Tests/PlayMode/SummonFxTests.cs` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
-- 🔄 **1회차 선점 2026-09-17 11:4x 워커 O(sess-2140-18689)** — `SkillSummonResult.cs` 는 산 lock 밖(T333 반납 · `check_claim_scope` 겹침 = 문서 둘뿐). 표 네 칸 + 한 줄 읽기 + EditMode·PlayMode 자.
+- 🔄 **1회차 push 2026-09-17 11:4x~11:5x 워커 O(sess-2140-18689 · lock 유지 · 판정은 다음 런)** — `SkillSummonResult.cs` 는 산 lock 밖(T333 반납 · `check_claim_scope` 겹침 = 문서 둘뿐). 표 `SummonFxUi.json` layout 에 네 칸(`floor_w_f` .88 · `floor_aspect` 2.5 · `floor_one_w_f` .64 · `floor_one_aspect` 2.6 · `_floor_size` 주석 · `_src.floor_size`) · `SkillSummonResult.cs` 464~471 을 캐노피 꼴 한 줄(`fk = one ? "floor_one_" : "floor_"` · `fw = gw * L(fk+"w_f")` · `fh = fw / L(fk+"aspect")`)로 — 눈금 굽기도 같은 `fh` 를 받아 **같은 수가 코드 두 곳** 이 0 곳이 됐다. 값 불변(화면 변화 0). 자: EditMode `SummonFloorRulesTests` 2칸(네 값 = 정본 · 캐노피와 키 짝 나란) · PlayMode `SummonFxTests.소환진_상자의_폭과_비율은_표에서_온다_x1_과_x5_둘_다`(x1 = one · x5 = stage 그 밖 · 눈금 띠 = 같은 상자). `dotnet test` 포함 `gate.sh` rc 0. **판정 = 다음 런** 그 세 칸 PASS + `screen_t179-summon` 이 런 1057 그림과 같음.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

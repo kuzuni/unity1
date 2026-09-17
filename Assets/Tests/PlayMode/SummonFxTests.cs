@@ -388,5 +388,44 @@ namespace Forge.Tests.PlayMode
             }
             finally { RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rt); }
         }
-}
+
+        /// <summary>T449 — 소환진(`.sr-floor`) 상자의 폭·비율이 표(`SummonFxUi.json` floor_*)에서 온다(정본 5771 one 64%/2.6 · 5800 그 밖 88%/2.5).
+        /// 값은 종전 코드와 같으니 화면은 안 움직인다 — 자가 지키는 것은 «수가 코드에 안 박혀 있다» 다. x1(one)과 x5(stage · one 아님) 둘 다 잰다.</summary>
+        [UnityTest]
+        public IEnumerator 소환진_상자의_폭과_비율은_표에서_온다_x1_과_x5_둘_다()
+        {
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            Host.Tickets = 10000;
+            foreach (int mult in new[] { 1, 5 })
+            {
+                while (Host.SummonMult("skill") != mult) Host.CycleSummonMult("skill");
+                Host.Sync();
+                yield return null;
+                Sheet.Skills.SummonButton.onClick.Invoke();
+                yield return null;
+                SkillSummonResultView v = SkillSummonResultView.Current;
+                Assert.IsNotNull(v, "결과 연출 팝업(x" + mult + ")");
+                Assert.AreEqual(mult, v.CellCount, "x" + mult + " = 셀 " + mult);
+                SummonFx fx = v.Fx;
+                Assert.IsNotNull(fx, "무대판(stage · n<=10)이면 연출 겹이 선다");
+                RectTransform body = (RectTransform)fx.transform;
+                RectTransform grid = (RectTransform)body.Find("sr-grid"), floor = (RectTransform)body.Find("sr-floor");
+                Assert.IsNotNull(grid); Assert.IsNotNull(floor, "소환진");
+                string k = mult == 1 ? "floor_one_" : "floor_";
+                float gw = grid.rect.width;
+                Assert.AreEqual(gw * SummonFxStyle.L(k + "w_f"), floor.rect.width, 1f, "소환진 폭 = 그리드 폭 × " + k + "w_f");
+                Assert.AreEqual(floor.rect.width / SummonFxStyle.L(k + "aspect"), floor.rect.height, 1f, "소환진 높이 = 폭 / " + k + "aspect");
+                RectTransform ticks = (RectTransform)floor.Find("sr-floor-ticks");
+                Assert.IsNotNull(ticks, "룬 눈금 띠는 소환진과 같은 상자");
+                Assert.AreEqual(floor.rect.width, ticks.rect.width, 0.5f); Assert.AreEqual(floor.rect.height, ticks.rect.height, 0.5f);
+                v.Close();
+                yield return null;
+                yield return null;
+            }
+        }
+    }
 }

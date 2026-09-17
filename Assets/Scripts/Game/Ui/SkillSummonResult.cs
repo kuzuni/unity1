@@ -460,15 +460,18 @@ namespace Forge.Game.Ui
                     // 밝기 램프도 화면에서 안 읽힌다(궁극의 #ff1c1c 는 빨강이 이미 1.0 이라 CSS 도 거기서 자른다).
                     Image floor = PetSkillKit.Disc(body, "sr-floor", SummonFxStyle.C("floor_fill"));
                     floor.preserveAspect = false;
-                    float fw = gw * (one ? 0.64f : 0.88f);
-                    UiKit.Anchor(floor.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -totalH * 0.5f + PetSkillStyle.Rem(1.4f)), fw, fw / (one ? 2.6f : 2.5f));
+                    // T449 — 정본 5771 `.stage.one .sr-floor { width: 64%; aspect-ratio: 2.6/1 }` · 5800 `.stage:not(.one) { 88%; 2.5/1 }`:
+                    //   값은 같았지만 코드 두 곳에 박혀 있었다(§1) → 캐노피(SummonFx.cs 118~119)와 같은 꼴로 표 SummonFxUi.json 에서 읽는다.
+                    string fk = one ? "floor_one_" : "floor_";
+                    float fw = gw * SummonFxStyle.L(fk + "w_f"), fh = fw / SummonFxStyle.L(fk + "aspect");
+                    UiKit.Anchor(floor.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -totalH * 0.5f + PetSkillStyle.Rem(1.4f)), fw, fh);
                     floor.transform.SetAsFirstSibling();
                     floorImg = floor; floorBase = floor.color; floorHome = floor.rectTransform.localScale;
                     // 룬 눈금 띠 — 소환진 위에 같은 상자로 얹는다(정본은 `::after` 라 같은 자리·같은 크기다).
                     RectTransform tickRt = UiKit.Box(floor.rectTransform, "sr-floor-ticks");
                     UiKit.Fill(tickRt);
                     tickImg = tickRt.gameObject.AddComponent<Image>();
-                    tickImg.sprite = SummonFx.BakeFloorTicks("sr-floor-ticks", fw, fw / (one ? 2.6f : 2.5f));
+                    tickImg.sprite = SummonFx.BakeFloorTicks("sr-floor-ticks", fw, fh);
                     tickImg.preserveAspect = false;
                     tickImg.raycastTarget = false;
                     tickBase = SummonFxStyle.C("floor_line");
