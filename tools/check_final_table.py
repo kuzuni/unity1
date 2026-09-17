@@ -33,6 +33,16 @@ RE_PAIR = re.compile(r'T(\d+)\s*[·)\]]?\s*([' + GLYPHS + r'])')
 RE_TID = re.compile(r'T(\d+)')
 RE_LEAD = re.compile(r'^\s*([' + GLYPHS + r'])\s*(?:\((.*)\))?\s*$', re.S)
 
+# T452 — 표 칸은 «앞에 역슬래시가 없는 파이프» 로 가른다(`task_state.py` 67 · `check_task_rows.py` 37 과 같은 규칙).
+#   날 `split('|')` 는 설명 칸의 `\|`(escape 한 파이프 · T333·T365·T439 행이 실제로 갖고 있다)에서 칸을 하나 더 만들어
+#   상태 칸이 엉뚱한 자리가 되고 그 작업이 표에서 **사라진다**(T28 106회차가 T445 등재 때 물렸다).
+CELL = re.compile(r"(?<!\\)\|")
+
+
+def split_cells(line):
+    """표 한 줄 → 칸 목록(양끝 `|` 뺀 것 · `\|` 는 `|` 로 되돌린다)."""
+    return [c.strip().replace('\\|', '|') for c in CELL.split(line.strip().strip('|'))]
+
 
 def progress_states(text):
     """PROGRESS 표 → {번호: 표시}. 같은 번호가 두 행이면 «닫힌 쪽»(✅⛔✂)을 쥔다(표는 접힌 행을 남긴다)."""
@@ -40,7 +50,7 @@ def progress_states(text):
     for line in text.splitlines():
         if not line.startswith('| T'):
             continue
-        cells = [c.strip() for c in line.strip().strip('|').split('|')]
+        cells = split_cells(line)
         if len(cells) < 3:
             continue
         m = re.fullmatch(r'T(\d+)', cells[0])
@@ -69,7 +79,7 @@ def final_rows(text):
             break
         if not l.startswith('|'):
             continue
-        cells = [c.strip() for c in l.strip().strip('|').split('|')]
+        cells = split_cells(l)
         if len(cells) < 4 or set(cells[0]) <= set('-: '):
             continue
         if cells[0].startswith('원작'):
@@ -230,6 +240,18 @@ def self_test():
     states = progress_states(P)
     if states != {'T7': '✅', 'T8': '✅', 'T20': '🔄', 'T35': '⬜', 'T36': '⛔'}:
         print('✗ PROGRESS 읽기: ' + repr(states)); ok = False
+
+    # T452 — escape 된 파이프(`\|`)가 든 행도 상태를 읽는다(등재문의 실측 두 줄 그대로).
+    for row, note in [('| T999 | 뭐 | ✅ 완료 | — | 범위 | 고침 |', '보통 행'),
+                      ('| T999 | [가\\|나] 뭐 | ✅ 완료 | — | 범위 | 고침 |', '설명 칸에 `\\|`')]:
+        got = progress_states(row + '\n')
+        if got != {'T999': '✅'}:
+            print('✗ T452 escape 파이프(%s): %r' % (note, got)); ok = False
+    if split_cells('| a | b\\|c | d |') != ['a', 'b|c', 'd']:
+        print('✗ T452 split_cells: %r' % split_cells('| a | b\\|c | d |')); ok = False
+    fr = final_rows('## 7. x\n\n| 원작 | 무엇 | 작업 | 상태 |\n|---|---|---|---|\n| a.js | [가\\|나] | T7 | T7 ✅ |\n')
+    if fr != [(5, 'T7', 'T7 ✅')]:
+        print('✗ T452 §7 줄의 `\\|`: %r' % (fr,)); ok = False
 
     # 같은 번호가 두 행이면 닫힌 쪽을 쥔다(T22 가 실제로 그렇다).
     dup = progress_states(P + '| T22 | 화면 | ✅ 완료 | x |\n| T22 | 화면 | 🔄 진행 | x |\n')
