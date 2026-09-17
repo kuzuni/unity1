@@ -864,6 +864,37 @@ def mode_log_note(text, mode_xml, progress_text, meta_run=None, lock=None, now=N
     return out
 
 
+def env_note(recent, mode):
+    """T438 — 장부의 **환경 셋**(`cache`·`disk_mb`·`mem_mb`)을 «빠진 런 ↔ 멀쩡한 런» 으로 갈라 한 줄로.
+
+    왜: PlayMode 통째 실종은 다섯 번 재발했고(T171·T180·T392·T435) **다섯 번 다 한 런의 로그만 보고 짚어** 다 빗나갔다.
+    간헐은 여러 런을 **나란히** 놓아야 짝이 보이는데 장부에 적히는 것이 넷뿐이라 나란히 놓을 것이 없었다.
+    `ci.yml`(T438)이 이제 런마다 그 셋을 적는다 — 이 줄은 그것을 **회차마다 모든 워커가 보는 자리**에 올린다.
+    아직 그 셋이 없는 옛 줄은 조용히 건너뛴다(장부는 append-only 라 한동안 섞여 있다).
+    """
+    def facts(rows):
+        out = []
+        for d in rows:
+            c = str(d.get('cache') or '').strip()
+            if not c and d.get('disk_mb') is None:
+                continue                      # T438 이전 줄 — 잴 것이 없다
+            out.append('#%s %s · 디스크 %sMB · 메모리 %sMB'
+                       % (d.get('run'), c or '(캐시 없음)', d.get('disk_mb', '?'), d.get('mem_mb', '?')))
+        return out
+    bad = facts([d for d in recent if mode in str(d.get('missing_modes', '') or '')])
+    ok = facts([d for d in recent if mode not in str(d.get('missing_modes', '') or '')])
+    if not bad and not ok:
+        return ''
+    lines = ['\n      · 환경(T438 · 짝을 여기서 찾아라 — 캐시 키 앞자리가 `Library-webgl-`·`Library-android-` 면 **그때** `restore-keys` 바닥의 맨 `Library-` 를 걷는다):']
+    if bad:
+        lines.append('\n        · 빠진 런 — ' + ' | '.join(bad))
+    if ok:
+        lines.append('\n        · 멀쩡한 런 — ' + ' | '.join(ok))
+    if bad and ok:
+        lines.append('\n        → 두 줄에서 **다른 것 하나**를 찾으면 그것이 짝이다. 다 같으면 이 갈래(캐시·디스크·메모리)가 아니다 — 그것도 답이다(다섯 번째 헛짚기를 막는다).')
+    return ''.join(lines)
+
+
 def ledger_note(runs, missing, look=8):
     """장부(`screens/runs.jsonl`)로 «이번이 처음인가, 계속되는가» 를 센다(T172 3회차).
 
@@ -882,7 +913,7 @@ def ledger_note(runs, missing, look=8):
     hit = [str(d.get('run')) for d in recent if mode in str(d.get('missing_modes', '') or '')]
     if len(hit) <= 1:
         return ('\n    · 장부: 최근 런 %d개 중 이 모드가 빠진 것은 **이번 하나뿐**이다 — 간헐(플레이크)로 보고 '
-                '**다음 코드 push 의 런**을 기다린다. 그때 또 빠지면 그것이 §1 의 «되풀이» 다.' % len(recent))
+                '**다음 코드 push 의 런**을 기다린다. 그때 또 빠지면 그것이 §1 의 «되풀이» 다.' % len(recent) + env_note(recent, mode))
     # 연달았는가(마지막 두 개가 모두 빠졌는가)
     straight = len(recent) >= 2 and mode in str(recent[-1].get('missing_modes', '') or '') \
         and mode in str(recent[-2].get('missing_modes', '') or '')
@@ -890,10 +921,10 @@ def ledger_note(runs, missing, look=8):
         return ('\n    · 장부: 최근 런 %d개 중 %d번 빠졌고 **연달아 빠지는 중**이다(런 %s) — 간헐이 아니라 '
                 '**서 있는 파손**이다. 컴파일·라이선스 중 어느 쪽인지는 **`git show origin/screens:<모드>-log.txt`**(T151)로 본다 — '
                 '잡 로그는 컨테이너에서 못 연다(T344) · 아래 «모드 로그» 줄이 그것을 읽은 결과다 · 로그에도 근거가 없을 때만 보고함이다.'
-                % (len(recent), len(hit), ' '.join(hit)))
+                % (len(recent), len(hit), ' '.join(hit)) + env_note(recent, mode))
     return ('\n    · 장부: 최근 런 %d개 중 %d번 빠졌지만 **사이에 멀쩡한 런이 있다**(빠진 런: %s) — '
             '서 있는 파손이 아니라 **간헐**이다. §1 의 «되풀이» 로 보고 보고함에 올릴지는 '
-            '**연달아 빠질 때** 정한다(지금 주인을 부르면 헛걸음이다).' % (len(recent), len(hit), ' '.join(hit)))
+            '**연달아 빠질 때** 정한다(지금 주인을 부르면 헛걸음이다).' % (len(recent), len(hit), ' '.join(hit)) + env_note(recent, mode))
 
 
 def own_lines(fails, progress_text, sha, now=None, hist=None, lock=None, err=None, touched=None, missing='', runs=None,

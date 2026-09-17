@@ -341,7 +341,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: false
+      # T438 — `id` 는 «되살린 캐시 키» 를 장부에 적기 위한 것이다(`cache-matched-key`). PlayMode 가 통째로 사라지는 간헐(런 991·993·1007)의
+      #        짝을 맞출 자료가 장부에 하나도 없어서, 다섯 번에 걸쳐 한 런의 로그만 보고 짚은 것이 다 빗나갔다(T171·T180·T392·T435).
+      #        ⚠ 아래 `restore-keys` 바닥의 맨 `Library-` 는 **일부러 안 걷었다** — 다른 타깃(WebGL·Android)의 Library 를 물 수 있는 꼴은 맞지만
+      #        **그랬다는 증거가 아직 없다**(런 995 는 `Library-test-…` 를 되살렸다). 걷으면 그 증거가 영영 안 생긴다.
+      #        아래 장부가 `Library-webgl-`·`Library-android-` 를 **한 번이라도 찍으면** 그때 이 줄을 걷는다(T438 ⓔ).
       - uses: actions/cache@v4
+        id: librarycache
         with:
           path: Library
           key: Library-test-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
@@ -614,13 +620,20 @@ jobs:
           any=$(ls -A ui-screens 2>/dev/null | grep -cv '^meta[.]json$' || true)
           echo "count=$n" >> "$GITHUB_OUTPUT"
           echo "any=$any" >> "$GITHUB_OUTPUT"
-          printf '{"sha":"%s","run":%s,"tests":"%s","shots":%s,"carried":%s,"carry_candidates":%s,"missing_modes":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$n" "$carried" "$cand" "$miss" > ui-screens/meta.json
+          # T438 — 이 런의 **환경 셋**. 간헐(PlayMode 통째 실종)의 짝을 맞출 자료가 장부에 없어 다섯 번을 헛짚었다.
+          #   cache  — 실제로 되살린 Library 캐시 키. `Library-test-…` 인지 `Library-webgl-…`·`Library-android-…` 인지가
+          #            T435 가 근거 없이 짚은 그 갈래의 유일한 증거다(해시는 앞 8자만 — 줄이 길어지면 아무도 안 읽는다).
+          #   disk_mb·mem_mb — 관리 어셈블리가 통째로 안 읽히는 꼴은 «못 읽었다» 쪽(디스크·자원)에서도 난다.
+          cache=$(printf '%s' "${{ steps.librarycache.outputs.cache-matched-key }}" | sed -E 's/^(Library-[a-z]*-?)([0-9a-f]{8})[0-9a-f]*$/\1\2/')
+          disk_mb=$(df -Pm . 2>/dev/null | awk 'NR==2{print $4}'); case "$disk_mb" in ''|*[!0-9]*) disk_mb=0 ;; esac
+          mem_mb=$(awk '/MemAvailable/{print int($2/1024)}' /proc/meminfo 2>/dev/null); case "$mem_mb" in ''|*[!0-9]*) mem_mb=0 ;; esac
+          printf '{"sha":"%s","run":%s,"tests":"%s","shots":%s,"carried":%s,"carry_candidates":%s,"missing_modes":"%s","cache":"%s","disk_mb":%s,"mem_mb":%s}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$n" "$carried" "$cand" "$miss" "$cache" "$disk_mb" "$mem_mb" > ui-screens/meta.json
           # T148 — 런 **장부** `runs.jsonl`: 유니티 잡이 돈 런마다 한 줄을 **덧붙인다**(지난 screens 의 장부를 받아 이어 쓴다 · 꼬리 400줄).
           #        screens 는 고아 커밋 하나를 force push 하므로 meta.json 에는 이력이 없다 — `check_unity_green` 이 «직전 초록 런의 sha» 를
           #        여기서 읽어 «그 뒤 이 런에 새로 들어온 코드 커밋» 으로 남의 자 여럿을 깨뜨린 임자를 가린다. 못 받으면 이 런 한 줄로 새로 시작한다.
           : > ui-screens/.runs.tmp
           if git fetch --depth 1 origin screens 2>/dev/null; then git show FETCH_HEAD:runs.jsonl > ui-screens/.runs.tmp 2>/dev/null || : > ui-screens/.runs.tmp; fi
-          printf '{"sha":"%s","run":%s,"tests":"%s","missing_modes":"%s"}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$miss" >> ui-screens/.runs.tmp
+          printf '{"sha":"%s","run":%s,"tests":"%s","missing_modes":"%s","cache":"%s","disk_mb":%s,"mem_mb":%s}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$miss" "$cache" "$disk_mb" "$mem_mb" >> ui-screens/.runs.tmp
           tail -n 400 ui-screens/.runs.tmp > ui-screens/runs.jsonl && rm -f ui-screens/.runs.tmp
           echo "::notice::screens — 이 런의 PNG ${n}장 · 이어받은 파일 ${carried}개/후보 ${cand}개(무엇인지는 screens 의 carried.txt · T347) · 올릴 파일 ${any}개 · 없는 모드 XML «${miss:-없음}»"
       # T96 — 런 164·168: peaceiris/actions-gh-pages 의 `git push --force screens` 가 «remote: Internal Server Error» 로 거절됐다
