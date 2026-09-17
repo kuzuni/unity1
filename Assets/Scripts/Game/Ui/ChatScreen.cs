@@ -247,8 +247,12 @@ namespace Forge.Game.Ui
                 // T396 6회차 — 정본 3409 `.chat-share-side small:last-child { color: #ff880f }` · 3425 `.chat-share-label { color: #ff880f }`:
                 //   **양쪽** 전투력 수와 «승리» 라벨이 같은 주황(+ 검정 키라인)이다(주석 «주황 글자의 테가 갈리면 안 된다»). 전엔 이긴 쪽을 초록(chat_share_win #35c04f) ·
                 //   진 쪽을 회색(chat_share_lose #8a8a8a)으로 찍었다 — 정본엔 그런 갈래가 없다(`.lose` 는 바탕 #cecece 만). 값은 카탈로그 chat_name(#ff880f · 같은 리터럴).
-                Side(card, "win", 0f, bubbleW * 0.5f, bodyH, winAv, winName, winCp, "chat_name", "승리");
-                Side(card, "lose", bubbleW * 0.5f, bubbleW * 0.5f, bodyH, loseAv, loseName, loseCp, "chat_name", null);
+                // T377 11회차 — 정본은 **쪽마다 제 면**을 준다: 3397 `.chat-share-side { background: #39ab36 }`(이긴 쪽 초록) ·
+                //   3412 `.chat-share-side.lose { background: #cecece }`(진 쪽은 «말풍선과 같은 회색이라 목록에 녹아든다»).
+                //   카드 자신은 3389 `background: transparent` 다. 클론은 쪽 면을 **하나도 안 칠하고** 카드 한 장(`pp_panel` #efefef)으로 덮고 있었다 —
+                //   원작 shot-043500 에 초록 #39ab36 이 12,308화소인데 클론 값 #35c04f 는 0화소다.
+                Side(card, "win", 0f, bubbleW * 0.5f, bodyH, winAv, winName, winCp, "chat_name", "승리", "chat_share_win");
+                Side(card, "lose", bubbleW * 0.5f, bubbleW * 0.5f, bodyH, loseAv, loseName, loseCp, "chat_name", null, "chat_share_lose");
                 // T132 2회차 — 정본 ui.js 5271 `<span class="chat-share-cam">${IconGen.img('chatcam')}</span>` · style.css 3433~3438:
                 // 카드 오른쪽 위 **밖으로 걸치는** 정사각 배지(.0381W · top −.008W · right −.030W · 앱 폭 배수 = StaticIconsUi `_aw`).
                 // 정본은 카드에 overflow:hidden 을 일부러 안 준다(3392 주석 «주면 배지가 통째로 잘린다») — 클론 카드도 마스크가 없다.
@@ -262,7 +266,10 @@ namespace Forge.Game.Ui
                 RectTransform bubble = UiKit.Box(row, "bubble");
                 UiKit.Place(bubble, x, nameH + rem * 0.2f, bubbleW, bodyH);
                 // T345 — 정본 3371 `.chat-bubble { border-radius: .42rem }`(표 `chat_bubble_r_rem` · 전엔 .6rem)
-                RadiusUi.Rounded(bubble, "bg", m.Mine ? "chat_bubble_mine" : "chat_bubble", "chat_bubble_r_rem");
+                // T377 11회차 — 정본 3372 `.chat-bubble { background: #cecece }` **한 줄**이 모든 말풍선의 면이다.
+                //   `style.css` 전체에서 `.mine` 규칙은 3324(이름 색) 하나뿐이고 말풍선 면을 가르는 줄은 0 — 클론의 파란 «내 말풍선»(#dbe9ff)은
+                //   정본에 없는 갈래였다(원작 shot-043500 에 그 색 0화소 · #cecece 는 100,343화소). 양쪽 다 같은 키를 부른다(결정 747).
+                RadiusUi.Rounded(bubble, "bg", "chat_bubble", "chat_bubble_r_rem");
                 TextMeshProUGUI t = UiKit.Text(bubble, "text", TextKind.Sub, m.Text ?? string.Empty, "pp_ink", TextAlignmentOptions.Left);
                 // 정본 .chat-bubble { -webkit-text-stroke: .5px currentColor } — `currentColor` 라 글자색과 같은 키라인이다(색 키가 아니라 제 색).
                 UiKit.OutlinePx(t, "pp_ink", KeylineUi.Px("chat_bubble"));
@@ -280,11 +287,13 @@ namespace Forge.Game.Ui
         /// «승리» 라벨(3424 `.chat-share-label`)은 절대 배치라 세로를 안 먹고 타일 하단 모서리에 걸터앉는다(`left:50%; bottom: calc(var(--app-w) * -.020)` = 라벨 아래끝이 타일 아래끝보다 .020W 아래).
         /// 치수는 전부 앱 폭 배수(표 StaticIconsUi `_aw` · 정본 주석 «가로 치수라 rem 금지» 갈래). 종전(T25)엔 «아바타 왼쪽 + 글 오른쪽» 가로 배치였고 라벨은 한 쪽 상자의 바닥 왼쪽이었다.
         /// </summary>
-        private static void Side(RectTransform card, string name, float x, float w, float h, string avatar, string who, string cp, string colorKey, string label)
+        private static void Side(RectTransform card, string name, float x, float w, float h, string avatar, string who, string cp, string colorKey, string label, string faceKey)
         {
             float rem = PopupKit.Rem, aw = UiKit.RefW;
             RectTransform side = UiKit.Box(card, name);
             UiKit.Place(side, x, 0f, w, h);
+            // T377 11회차 — 쪽 제 면(정본 3397·3412). 첫 자식이라 아바타·글자 뒤에 깔린다. 정본 `border-radius: 0` 이라 각진 판이다.
+            UiKit.Panel(side, "bg", faceKey);
             float tile = StaticIconsUi.L("chat_share_tile_aw") * aw;
             float padT = StaticIconsUi.L("chat_share_side_pad_top_aw") * aw, padX = StaticIconsUi.L("chat_share_side_pad_x_rem") * rem;
             float gap = StaticIconsUi.L("chat_share_side_gap_aw") * aw;

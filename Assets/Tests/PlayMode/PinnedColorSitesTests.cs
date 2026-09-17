@@ -284,5 +284,60 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(PinnedColorUi.C("chat_back_face"), back.color, "뒤로 버튼 면 = 표 chat_back_face(정본 3283 #ff1017) — 안 움직였다");
             PopupLayer.Instance.Hide(ChatScreen.Name);
         }
+
+        /// <summary>T377 11회차 — 채팅 목록의 **못박은 면 셋**. 정본은 말풍선 면을 **한 줄**로만 주고(3372 `#cecece`)
+        /// 공유 카드는 **쪽마다 제 면**을 준다(3397 이긴 쪽 `#39ab36` · 3412 진 쪽 `#cecece` + 주석 «말풍선과 같은 회색이라 목록에 녹아든다»).
+        /// 클론은 말풍선을 #f0f0f0 으로, 내 말풍선을 정본에 없는 파랑으로 찍었고 쪽 면은 **아예 안 칠한 채** 카드 한 장을 `pp_panel` 로 덮고 있었다.
+        /// 원작 `shot-043500` 화소: #cecece 100,343 · #39ab36 12,308 ↔ 클론 값 #f0f0f0 362 · #dbe9ff **0** · #35c04f **0** · #8a8a8a 375.
+        /// 표값이 정본과 같은지는 `check_pinned_colors` 가 본다 — 여기는 «자리가 그 키를 쓰는가».</summary>
+        [UnityTest]
+        public IEnumerator 채팅_말풍선과_공유_카드_두_쪽은_저마다_못박은_면을_갖는다()
+        {
+            yield return Boot();
+            float t = 0f;
+            while (!(UiRoot.Instance != null && Hud.Instance != null && PopupLayer.Instance != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsNotNull(Hud.Instance, "HUD");
+            Hud.Instance.ChatButton.onClick.Invoke();
+            yield return null; yield return null;
+            Popup pop = PopupLayer.Instance.Find(ChatScreen.Name);
+            Assert.IsNotNull(pop, "채팅 팝업");
+
+            Color bubbleWant = UiKit.C("chat_bubble");
+            Transform bubble = FindActive(pop.Root, "bubble");
+            Assert.IsNotNull(bubble, "말풍선 — 세이브에 채팅 줄이 없으면 이 자를 못 잰다");
+            Image bubbleBg = bubble.Find("bg").GetComponent<Image>();
+            Assert.AreEqual(bubbleWant, bubbleBg.color, "말풍선 면 = catalog chat_bubble(정본 3372 #cecece)");
+            // 정본엔 «내 말풍선» 갈래가 없다(`.mine` 규칙은 이름 색 하나뿐) — 어느 말풍선을 집어도 같은 면이어야 한다.
+            foreach (Transform b in AllDeep(pop.Root, "bubble"))
+            {
+                Image bg = b.Find("bg").GetComponent<Image>();
+                Assert.AreEqual(bubbleWant, bg.color, "말풍선은 전부 같은 면이다 — 정본에 «내 말풍선» 갈래가 없다(§1)");
+            }
+
+            Transform win = FindActive(pop.Root, "win"), lose = FindActive(pop.Root, "lose");
+            Assert.IsNotNull(win, "공유 카드 이긴 쪽 — 세이브에 공유 카드 줄이 없으면 이 자를 못 잰다"); Assert.IsNotNull(lose, "공유 카드 진 쪽");
+            Image winBg = win.Find("bg").GetComponent<Image>(), loseBg = lose.Find("bg").GetComponent<Image>();
+            Assert.AreEqual(UiKit.C("chat_share_win"), winBg.color, "이긴 쪽 면 = catalog chat_share_win(정본 3397 #39ab36)");
+            Assert.AreEqual(UiKit.C("chat_share_lose"), loseBg.color, "진 쪽 면 = catalog chat_share_lose(정본 3412 #cecece)");
+            Assert.AreEqual(bubbleWant, loseBg.color, "진 쪽은 **말풍선과 같은 회색**이다 — 정본 3412 주석이 그렇게 못 박았다");
+            Assert.AreNotEqual(UiKit.C("pp_panel"), winBg.color, "이긴 쪽이 카드 한 장의 회색(pp_panel)으로 덮이지 않는다 — 정본 카드는 transparent 다");
+            Assert.Greater(winBg.color.g, winBg.color.r + 0.2f, "이긴 쪽은 초록이다(원작 반쪽 12,308화소)");
+            PopupLayer.Instance.Hide(ChatScreen.Name);
+        }
+
+        /// <summary>이름이 같은 자리를 **전부** 모은다 — «하나만 맞다» 로 지나가지 않게.</summary>
+        static System.Collections.Generic.List<Transform> AllDeep(Transform root, string name)
+        {
+            var found = new System.Collections.Generic.List<Transform>();
+            Walk(root, name, found);
+            return found;
+        }
+
+        static void Walk(Transform t, string name, System.Collections.Generic.List<Transform> found)
+        {
+            if (!t.gameObject.activeInHierarchy) return;
+            if (t.name == name && t.Find("bg") != null) found.Add(t);
+            for (int i = 0; i < t.childCount; i++) Walk(t.GetChild(i), name, found);
+        }
     }
 }

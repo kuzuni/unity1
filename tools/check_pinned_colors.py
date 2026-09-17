@@ -88,6 +88,11 @@ TABLE = {
     # T377 10회차 ⓐ — 채팅 입력 밴드. **토큰으로 뭉개진 자리**(고친 자리다 · 나머지는 지키는 자리다):
     #   정본 3438 `#0e111b` + 3439 주석 «카드가 흰색이 됐으므로 밴드는 **자기 배경 #0e111b 를 직접 갖는다**» ↔ 클론은 전역 `pp_paper`(#ffffff)였다.
     '.chat-input-bar': ['Ui/ChatScreen.cs#input-bar|res:PinnedColorUi:chat_bar_face'],
+    # T377 11회차 — 8회차가 «채팅 4» 로 남긴 묶음. **셋 다 어긋나 있었고 원작 샷으로 화소까지 쟀다**(shot-043500 499×804):
+    #   #cecece 100,343화소 · #39ab36 12,308화소 ↔ 클론 값 #f0f0f0 362 · #35c04f **0** · #8a8a8a 375 · #dbe9ff **0**.
+    '.chat-bubble': ['Ui/ChatScreen.cs#bubble|catalog:chat_bubble'],                 # 3372 #cecece — 정본은 말풍선 면을 이 한 줄로만 준다(«내 말풍선» 갈래가 없다)
+    '.chat-share-side': ['Ui/ChatScreen.cs#win|catalog:chat_share_win'],             # 3397 #39ab36(이긴 쪽 초록 반쪽) — 클론은 쪽 면을 아예 안 칠했다
+    '.chat-share-side.lose': ['Ui/ChatScreen.cs#lose|catalog:chat_share_lose'],      # 3412 #cecece — 정본 주석 «말풍선과 같은 회색이라 목록에 녹아든다»(= `chat_bubble` 과 같은 값)
     # T377 10회차 ⓑ — **리그 묶음 열둘**(8회차가 «큰 묶음 리그 12 는 그 lock 뒤» 로 남겨 둔 것). `LeagueSheet.cs` 가 열렸다.
     #   열둘 다 **이미 제 값**이라 고칠 코드가 0 이고 자가 그 값을 지키기만 한다(값이 밀리면 여기서 빨강이 난다 · 7~9회차와 같은 꼴).
     #   ⚠ 정본 주석이 두 자리에 «여기서 틀렸었다» 를 적어 뒀다: 2264 «시트 #0e111b 는 행(#05060a)보다 **밝다** — 이전 #05070f 는 명암이 뒤집혀 있었다» ·
