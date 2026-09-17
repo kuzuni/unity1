@@ -2430,11 +2430,83 @@ def self_test():
         == _strip_py(u'def f():\n    """다른 설명"""\n    return 1\n'),
         u"자국은 설명·주석만 바뀐 것에는 안 움직인다")
 
+    # ㉓ 흔들기 자가 제 노릇을 하는가 (T437 5회차 · 판정 자)
+    #    🚫 이 칸은 «자가 안 흔들린다» 를 말하지 않는다 — 진짜 화면은 24/35 가 흔들린다(그것이 T437 이다).
+    #    여기서 재는 것은 **자기 자신**: ±1 이 그림의 뜻을 안 바꾸고, 또렷한 그림에서는 조각 수가 버틴다.
+    j = _canvas(112, 199, (20, 20, 20))
+    for _y0 in (30, 70, 110, 150):
+        _fill(j, 10, _y0, 100, _y0 + 20, (230, 230, 230))
+        _fill(j, 20, _y0 + 5, 45, _y0 + 15, (40, 40, 40))
+        _fill(j, 60, _y0 + 5, 90, _y0 + 15, (40, 40, 40))
+    j_base = len(read_layout(j, u"흔들기"))
+    j_got = [len(read_layout(_jitter(j, _a, _c), u"흔들기")) for _a, _c in JITTER_CASES]
+    chk(all(g == j_base for g in j_got),
+        u"또렷한 그림은 ±1 흔들어도 조각 수가 버틴다 (%d → %s)" % (j_base, u"·".join(str(g) for g in j_got)))
+    _one = _jitter(j, 1)
+    chk(bytes(_one.px) != bytes(j.px) and max(abs(a - b) for a, b in zip(_one.px, j.px)) == 1,
+        u"흔들기는 모든 화소를 **딱 1 눈금**만 민다")
+    chk(bytes(_jitter(j, 1, True).px) != bytes(_one.px),
+        u"체커판 흔들기는 전체 흔들기와 다른 그림이다")
+
     print(u"")
     if fail:
         print(u"✗ ui_score self-test: %d/%d 칸 실패" % (len(fail), ok[0]))
         return 1
     print(u"✓ ui_score self-test 통과 (%d칸)" % ok[0])
+    return 0
+
+
+# ─────────────────────────── 흔들기 자 (T437 판정) ───────────────────────────
+# 🚨 **두 런을 견주는 것으로는 «자의 흔들림» 을 못 잰다**(T437 5회차 실측). 회차 사이에는 그림 자체가
+#    바뀐다 — «지문이 1.0 아래» 인 화면도 화소로는 3,828~95,927개가 다르고, 반대로 화소 4.1%가
+#    바뀐 `autoforge` 는 조각 수가 그대로다. 곧 «얼마나 바뀌었나» 는 «자가 흔들렸나» 를 못 가른다.
+#    그래서 **한 장을 ±1 만 흔들어** 본다 — 그림의 뜻은 하나도 안 바뀌는 크기다. 조각 수가 바뀌면
+#    그것은 **자의 흔들림**이고, 런도 촬영도 끌어들이지 않는다.
+JITTER_BASE = "24/35"      # T437 5회차 실측(런 1038) — 이 수를 줄이는 것이 T437 의 판정이다
+
+
+def _jitter(img, amp, checker=False):
+    """모든 화소(또는 체커판 반쪽)를 amp 만큼 민 그림 — 뜻은 그대로, 값만 1 눈금."""
+    px = bytearray(img.px)
+    w = img.w
+    for y in range(img.h):
+        for x in range(w):
+            if checker and ((x + y) & 1) == 0:
+                continue
+            d = (y * w + x) * 3
+            for k in range(3):
+                v = px[d + k] + amp
+                px[d + k] = 0 if v < 0 else (255 if v > 255 else v)
+    return Img(img.w, img.h, px)
+
+
+JITTER_CASES = ((1, False), (-1, False), (1, True), (-1, True))
+
+
+def jitter_report(shots_dir, only=None):
+    """화면마다 ±1 흔들어 조각 수가 버티는지 찍는다 — T437 의 판정 자."""
+    names = [n for (n, _r) in pairs()]
+    print(u"%-18s %6s %8s %8s %8s %8s" % (u"화면", u"원래", u"전체+1", u"전체-1", u"체커+1", u"체커-1"))
+    bad = tot = 0
+    worst = []
+    for n in names:
+        if only and n not in only:
+            continue
+        f = os.path.join(shots_dir, "screen_%s.png" % n)
+        if not os.path.exists(f):
+            continue
+        img = png_read(f)
+        base = len(read_layout(img, n))
+        got = [len(read_layout(_jitter(img, a, c), n)) for a, c in JITTER_CASES]
+        tot += 1
+        if any(g != base for g in got):
+            bad += 1
+            worst.append((max(abs(g - base) for g in got), n, base, got))
+        print(u"%-18s %6d %8d %8d %8d %8d" % (n, base, got[0], got[1], got[2], got[3]))
+    print(u"\n— 화소를 ±1 건드렸을 때 조각 수가 달라진 화면 **%d/%d**(T437 실측 기준선 %s)"
+          % (bad, tot, JITTER_BASE))
+    for d, n, base, got in sorted(worst, reverse=True)[:5]:
+        print(u"    가장 크게 흔들린 곳: %-18s %d → %s (±%d)" % (n, base, "·".join(str(g) for g in got), d))
     return 0
 
 
@@ -2452,6 +2524,8 @@ def main():
     ap.add_argument("--only", nargs="*", help="이 화면 이름만")
     ap.add_argument("--baseline", default=BASELINE, help="지난 회차 점수 파일(회귀 대조)")
     ap.add_argument("--save-baseline", action="store_true", help="이번 점수를 기준선으로 적는다")
+    ap.add_argument("--jitter", action="store_true",
+                    help="같은 그림을 ±1 흔들어 조각 수가 버티는지 본다(T437 판정 자)")
     ap.add_argument("--notes", action="store_true", help="«낡은 원작 샷» 항목을 근거까지 펼쳐 찍는다")
     ap.add_argument("--rows", metavar="화면", help="원작 ↔ 클론의 구분선 줄 자리를 견준다(딤과 무관)")
     ap.add_argument("--behind", nargs=2, metavar=("앞", "뒤"),
@@ -2460,6 +2534,8 @@ def main():
 
     if a.self_test:
         return self_test()
+    if a.jitter:
+        return jitter_report(a.shots, a.only)
     if a.behind:
         return behind(a.shots, a.behind[0], a.behind[1])
     if a.rows:
