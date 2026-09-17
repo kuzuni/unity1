@@ -71,7 +71,8 @@ namespace Forge.Game.Ui
             ClipShape.Face(ribbon, "tail-r", "pass_tail_r", ribbonW - tailW, tailY, tailW, tailH, "pass_banner_dk");
             RectTransform band = UiKit.Box(ribbon, "band");
             UiKit.Place(band, rem * 1.44f, 0f, ribbonW - rem * 2.88f, bannerH);
-            PopupKit.Outlined(band, "face", "pass_banner", rem * 0.2f, PopupKit.Line3);
+            // T415 7회차 — 정본 2705 `.pass-banner { border-radius: .2rem }`: 값은 맞았지만 코드에 박혀 있었다(§1) → 표 RadiusUi.json.
+            RadiusUi.Outlined(band, "face", "pass_banner", "pass_banner_r_rem", PopupKit.Line3);
             TextMeshProUGUI title = UiKit.Text(band, "title", TextKind.Title, "진행 패스", "stage_ink");
             title.fontStyle = FontStyles.Bold;
             PopupKit.Ring(title, "pass_card", "pp_line");   // 정본 .pass-card .11em(상속)
@@ -207,7 +208,9 @@ namespace Forge.Game.Ui
         {
             RectTransform cell = UiKit.Box(parent, name);
             UiKit.Place(cell, x, y, w, h);
-            PopupKit.Outlined(cell, "face", faceKey, UiKit.H("pass_cell_r"), PopupKit.Line3);
+            // T415 7회차 — 정본 2822 `.pass-cell { border-radius: .6rem }`: 종전 catalog `pass_cell_r`(0.0114H = .6rem/H)는 값은 맞았지만
+            //   키 꼬리가 반지름 규약(`_r_rem`) 밖이라 자(check_border_radius)가 못 봤다 → RadiusUi.json `pass_cell_r_rem` 으로.
+            RadiusUi.Outlined(cell, "face", faceKey, "pass_cell_r_rem", PopupKit.Line3);
             // T159 3회차 — 정본 2864~2874: 칸 **아래**(top:100%)에 꼬리 삼각형이 붙는다(검정 층 + 칸 색 면 층 · `background: inherit`).
             // 무료 칸은 수직변이 오른쪽 · 프리미엄은 거울상. 클론엔 이 꼬리가 아예 없었다.
             bool free = name == "free";

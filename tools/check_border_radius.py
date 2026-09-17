@@ -37,6 +37,18 @@ TABLE_DEFAULT = os.path.join('Assets', 'Forge', 'Resources', 'RadiusUi.json')
 # ── 정본 선택자 ↔ 클론 자리 ──────────────────────────────────────────────────────────────
 TABLE = {
     # 어긋난 리터럴 열 자리(20회차 ⓡ) — 표로 옮긴다(T345 ⓑ · 각 파일의 산 lock 뒤)
+    # ── T415 7회차(2026-09-17 · 워커 O) — 패스 화면(`PassPopup.cs`) ──
+    #    ⓐ 둘: `.pass-banner` 는 리터럴 `rem * 0.2f` 였고 `.pass-cell` 은 catalog `pass_cell_r`(0.0114H) 로 **값은 맞았지만 키 꼬리가
+    #    규약 밖**이라 자가 못 봤다 — 둘 다 RadiusUi.json 키로(`catalog.json` 은 T377 산 lock · 옛 키는 부르는 데 0 · 그 lock 뒤 지운다).
+    '.pass-banner': ['Ui/PassPopup.cs$pass_banner_r_rem'],
+    '.pass-cell': ['Ui/PassPopup.cs$pass_cell_r_rem'],
+    #    알약 동치 둘(결정 543): 정본 1rem 이 상자 반높이보다 크면 CSS 가 반높이로 줄여 «알약» 이 된다 — 클론은 그 알약을 `h * 0.5f` 로 깐다.
+    #    셈: 필 높이 = catalog `pass_label_h` .041W = 44.3px@1080 → 반 22.1 < 1rem 36.4 · 보상 알약 높이 = `pass_reward_pill_h_rem` 1.16rem → 반 .58rem < 1rem.
+    #    자로는 못 가른다(`h * 0.5f` 는 표 키가 아니다) → `PassRadiusTests` 가 `RadiusRules.IsPill(1rem, 높이)` 로 그 셈을 지킨다.
+    '.pass-milestone-label': u'✓정본 2801 1rem ↔ 클론 `PassPopup.cs` 필 `labelH * 0.5f` — 필 높이 .041W(44.3px@1080)의 반 22.1 < 1rem 36.4 라 정본도 알약(결정 543) · `PassRadiusTests` 가 IsPill 로 지킨다',
+    '.pass-cell span:not(.pass-badge)': u'✓정본 2830 1rem ↔ 클론 `PassPopup.Cell` 보상 알약 `pillH * 0.5f` — 높이 1.16rem 의 반 .58rem < 1rem 이라 정본도 알약(결정 543) · `PassRadiusTests` 가 IsPill 로 지킨다',
+    #    `.pass-price`(.3rem .3rem 0 0)·`.pass-price::before`(.2rem .2rem 0 0)는 **네 값**이라 자가 못 견준다(단위 파서가 한 값만 본다) —
+    #    클론 `ClipShape.Face` 페넌트에는 모서리 반지름이 없다(위 두 모서리 .3rem ≈ 5px@540). 미정으로 **남긴다**(접으면 자가 안 센다).
     # ── T415 6회차(2026-09-16 · 워커 J) — 정본이 «안 두른다(0)» 로 못 박은 넷 + 원 하나 ──
     #    `0` 은 «클론도 두르는 데가 없는가» 로 본다. 표 키를 걸 수 없는 값이라(자가 rem·w·px 만 견준다)
     #    ✓ 로 갈라 두되 **클론 어디를 보고 그렇게 말하는지**를 적어 둔다.

@@ -58,6 +58,10 @@
   "settings_act_r_rem": 0.5,
   "_qst_row": "style.css 2023 `.qst-row` — 퀘스트 줄 종이 카드(정본 .8 · 클론 리터럴 `rem * 0.8f` · 값은 맞았다 · T345 19회차)",
   "qst_row_r_rem": 0.8,
+  "_pass_banner": "style.css 2705 `.pass-banner` — 진행 패스 리본 밴드(정본 .2 · 클론 리터럴 `rem * 0.2f` · 값은 맞았다 · T415 7회차)",
+  "pass_banner_r_rem": 0.2,
+  "_pass_cell": "style.css 2822 `.pass-cell` — 패스 트랙 보상 칸(정본 .6 · 클론은 catalog `pass_cell_r` 0.0114H 로 값은 맞았지만 키 꼬리가 규약 밖이라 자가 못 봤다 · 그 catalog 키는 이제 부르는 데가 0 — T377 lock 뒤 지운다 · T415 7회차)",
+  "pass_cell_r_rem": 0.6,
   "_tech_node_time": "style.css 2209 .tech-tree-label .tech-tree-node-time — 연구 중 남은 시간·«완료!» 배지(pp-ink 위 초록 글자 · 정본 .6 · 클론엔 면이 아예 없었다 · T345 4회차)",
   "tech_node_time_r_rem": 0.6
 }
