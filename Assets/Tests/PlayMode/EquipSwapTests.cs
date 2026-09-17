@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using Forge.Core.Data;
 using Forge.Core.Forging;
 using Forge.Core.Ui;
 using Forge.Game;
@@ -202,5 +203,65 @@ namespace Forge.Tests.PlayMode
             foreach (Graphic g in live.GetComponentsInChildren<Graphic>(true)) if (g.transform != live && !g.enabled) hiddenAfter++;
             Assert.AreEqual(0, hiddenAfter, "칸의 내용물이 되살아났다");
         }
+
+        /// <summary>
+        /// T178 25회차 — 착지 먼지 `.eqsw-dust`(정본 7338)는 단색 알약이 아니라 **방사형 판**이다:
+        /// `radial-gradient(ellipse at 50% 62%, rgba(226,214,196,.5) 0, .22 55%, 0 78%)` 를 표 `SurfaceUi.json eqsw_dust` 로 굽고
+        /// 알약(border-radius 50%)은 **클립만** 한다(면은 안 그린다). 정본 opacity 키프레임은 겹 Image 의 알파로 돈다.
+        /// 전엔 중심 알파 .5 를 판 전체의 α 로 눌러 담아(dust_alpha_core_f) 가장자리까지 같은 진하기였다 — 그 키는 없어졌다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 착지_먼지는_알약_마스크_안에_정본_방사형_판을_굽고_알파만_돈다()
+        {
+            yield return Boot();
+            // 표 — 정본 7338 그대로(far-corner 타원 = farthest-side 종횡비 .5:.62 로 (0,0) 을 지나는 rx .7071 · ry .8768)
+            Assert.IsTrue(SurfaceArt.IsRadial("eqsw_dust"), "eqsw_dust 는 방사형");
+            float cx, cy, rx, ry; SurfaceArt.Ellipse("eqsw_dust", out cx, out cy, out rx, out ry);
+            Assert.AreEqual(0.5f, cx, 1e-4f); Assert.AreEqual(0.62f, cy, 1e-4f, "at 50% 62%");
+            Assert.AreEqual(0.7071f, rx, 1e-3f, "rx = farthest-corner"); Assert.AreEqual(0.8768f, ry, 1e-3f, "ry = rx × .62/.5");
+            Color[] cols; float[] offs; SurfaceArt.Stops("eqsw_dust", out cols, out offs);
+            Assert.AreEqual(3, offs.Length, "정지점 셋");
+            Assert.AreEqual(0f, offs[0], 1e-4f); Assert.AreEqual(0.55f, offs[1], 1e-4f); Assert.AreEqual(0.78f, offs[2], 1e-4f);
+            Assert.AreEqual(0.5f, cols[0].a, 1e-3f); Assert.AreEqual(0.22f, cols[1].a, 1e-3f); Assert.AreEqual(0f, cols[2].a, 1e-3f);
+            Assert.AreEqual(226f / 255f, cols[0].r, 1e-3f); Assert.AreEqual(214f / 255f, cols[0].g, 1e-3f); Assert.AreEqual(196f / 255f, cols[0].b, 1e-3f);
+            Assert.IsNull(J.Obj(EquipSwapStyle.Root["layout"])["dust_alpha_core_f"], "임시 키 dust_alpha_core_f 는 표에서 없어졌다(결정 776)");
+
+            string slot = ForgeHost.Instance.Defs.Slots[0];
+            EquipSwapGrabbed gr = EquipSwapFx.Grab(slot);
+            Assert.IsNotNull(gr);
+            EquipSwapSpec s = EquipSwapFx.Spec;
+            Assert.IsTrue(EquipSwapFx.Play(gr));
+            EquipSwapFx fx = EquipSwapFx.Instance;
+            yield return WaitMs(EquipSwapRules.LandMs(s) + 120);
+            Assert.AreEqual(1, fx.Dusts, "착지 자리에 먼지 하나");
+            Transform dust = fx.Layer.Find(EquipSwapStyle.T("dust"));
+            Assert.IsNotNull(dust, "eqsw-dust");
+            Mask mask = dust.GetComponent<Mask>();
+            Assert.IsNotNull(mask, "알약은 클립(Mask)이다 — 정본 border-radius 50%");
+            Assert.IsFalse(mask.showMaskGraphic, "알약 면은 안 그린다 — 정본엔 면 색이 없고 그라디언트뿐이다");
+            Transform gt = dust.Find(EquipSwapStyle.T("dust_grad"));
+            Assert.IsNotNull(gt, "겹 eqsw-dust-grad 가 알약 안에 있다");
+            Image grad = gt.GetComponent<Image>();
+            Assert.IsNotNull(grad); Assert.IsNotNull(grad.sprite, "겹은 구운 그림이다 — 단색 판이 아니다");
+            Assert.Greater(grad.color.a, 0f, "연출 중 알파 > 0"); Assert.LessOrEqual(grad.color.a, 1f);
+            Assert.AreEqual(1f, grad.color.r, 1e-3f, "그림 위 색은 흰색 — 표 색을 두 번 곱하지 않는다");
+            Texture2D tex = grad.sprite.texture;
+            int w = tex.width, h = tex.height;
+            // 텍스처는 아래가 0행 · CSS 는 위가 0 — 중심(50%, 62%) 은 y = (1 − .62)h
+            int yc = Mathf.Clamp(Mathf.RoundToInt((1f - 0.62f) * h - 0.5f), 0, h - 1);
+            Color mid = tex.GetPixel(w / 2, yc);
+            Assert.AreEqual(0.5f, mid.a, 0.04f, "중심 알파 .5");
+            Assert.AreEqual(226f / 255f, mid.r, 0.02f); Assert.AreEqual(214f / 255f, mid.g, 0.02f); Assert.AreEqual(196f / 255f, mid.b, 0.02f);
+            int x55 = Mathf.Clamp(Mathf.RoundToInt((0.5f + 0.55f * 0.7071f) * w - 0.5f), 0, w - 1);
+            Color p55 = tex.GetPixel(x55, yc);
+            Assert.AreEqual(0.22f, p55.a, 0.05f, "55% 정지점(가로로 .55 × rx) 의 알파 .22");
+            Color corner = tex.GetPixel(0, h - 1);
+            Assert.Less(corner.a, 0.02f, "(0,0) 모서리 = 반지름 100% > 78% 라 투명");
+            Color left = tex.GetPixel(0, yc);
+            Assert.Greater(left.a, 0.05f, "왼쪽 변 한가운데(u = .5/.7071 = .71) 는 아직 투명하지 않다 — 그래서 알약 클립이 정본대로 필요하다");
+            yield return WaitMs(s.DustRemoveMs + 400);
+            Assert.AreEqual(0, fx.Dusts, "먼지는 걷혔다");
+        }
+
     }
 }

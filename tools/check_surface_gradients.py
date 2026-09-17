@@ -105,6 +105,39 @@ TABLE = {
     '#tabbar': ['Ui/TabBar.cs#tabbar-grad', 'Ui/TabBar.cs#tabbar-rim'],
     # T178 5회차 — 켜진 칸(그리고 ✕ 칸)의 노란 방사형 둘. `SurfaceArt` 가 방사형을 굽고 `RefreshTabX` 가 켠다.
     '#tabbar button.active, #tabbar button.tab-x': ['Ui/TabBar.cs#tab-glow', 'Ui/TabBar.cs#tab-footglow'],
+    # T178 25회차 — 같은 선택자 `#tabbar button.active` 가 7920·8010 에도 따로 서 있다(각각 언더글로우 하나 · 플레이트+언더글로우). 셋이 다 `background-image` 라
+    #   같은 특이도의 **마지막(8326)** 이 이기고 클론은 그 8326 짝을 굽는다(5회차) — 같은 두 자리다.
+    '#tabbar button.active': ['Ui/TabBar.cs#tab-glow', 'Ui/TabBar.cs#tab-footglow'],
+    # T178 25회차 — 장비 교체 착지 먼지(정본 7338 · 방사형 타원 · 표 `eqsw_dust`). `Dust(` 코루틴이 알약 마스크 안에 `SurfaceArt.FillMasked` 로 굽는다.
+    '.eqsw-dust': ['Ui/EquipSwapFx.cs@Dust'],
+    # T178 25회차 — 소환 결과 연출(`SummonFx.cs`)의 **표에만 없던 자리들**(24회차 교훈 «미정 ≠ 클론에 없다»). 각 굽는 몸의 요약이 정본 줄을 인용하고
+    #   같은 그라디언트 문법을 푼다(T179·T419·T448·T449 가 세웠다) — 여기서는 그 짝을 표에 올렸을 뿐이다. 주역·동급 링은 `BakeRing` 한 몸을, 재점화·챕터 심지·잔상은 `BakeRadial` 한 몸을 나눠 쓴다(감싸개는 한 줄이라 굽는 호출이 없다).
+    '.sr-wrap::before': ['Ui/SummonFx.cs@BakeVig'],
+    '.sr-streaks i': ['Ui/SummonFx.cs@BakeStreak'],
+    '.sr-floor::after': ['Ui/SummonFx.cs@BakeFloorTicks'],
+    '.sr-canopy::before': ['Ui/SummonFx.cs@BakeArch'],
+    '.sr-canopy::after': ['Ui/SummonFx.cs@BakeArch'],
+    '.sr-canopy i': ['Ui/SummonFx.cs@BakeRayBar'],
+    '.sr-canopy b': ['Ui/SummonFx.cs@BakeSpill'],
+    '.sr-canopy b::after': ['Ui/SummonFx.cs@BakeSweep'],
+    '.sr-rays': ['Ui/SummonFx.cs@BakeRays'],
+    '#summon-result-modal.done .sr-rays': ['Ui/SummonFx.cs@BakeRays'],
+    '.sr-stars i': ['Ui/SummonFx.cs@BakeStar'],
+    '.sr-stars i::before, .sr-stars i::after': ['Ui/SummonFx.cs@BakeStar'],
+    '.sr-stars i::after': ['Ui/SummonFx.cs@BakeStar'],
+    '.sr-motes i': ['Ui/SummonFx.cs@BakeParticle'],
+    '.sr-near i': ['Ui/SummonFx.cs@BakeParticle'],
+    '.sr-charge': ['Ui/SummonFx.cs@BakeChargeBurst'],
+    '.sr-wipe': ['Ui/SummonFx.cs@BakeWipe'],
+    '.sr-relight': ['Ui/SummonFx.cs@BakeRadial'],
+    '.sr-tierpulse': ['Ui/SummonFx.cs@BakeTierPulse'],
+    '.sr-tierflash::after': ['Ui/SummonFx.cs@BakeRadial'],
+    '.sr-ghost': ['Ui/SummonFx.cs@BakeRadial'],
+    '.sr-cell.heroic .sr-beam': ['Ui/SummonFx.cs@BakeBeam'],
+    '#summon-result-modal.hero .sr-cell.heroic::after': ['Ui/SummonFx.cs@BakeRing'],
+    '.sr-cell.peer.on::after': ['Ui/SummonFx.cs@BakeRing'],
+    '.sr-reflect': ['Ui/SummonFx.cs@BakeReflectSprite'],
+    '.sr-ico::after': ['Ui/SummonFx.cs@BakeOrbIconSpec'],
     '.rate-bar': ['Ui/SkillRatesPopup.cs#rate-enamel', 'Ui/SkillRatesPopup.cs#rate-rim'],
     # T178 17회차 — 서브탭 켜진 칸의 겹 둘(위 1 CSS px 흰 광택 + 세로 명암). 정본 7958 머리말이 짝은 «① 파란 면 플랫» 자리다.
     #   면 색(pp_blue)이 곁 표에서 오므로 한 판에 사슬로 굽는다(subtab_active_rim ← subtab_active_shade ← 부르는 쪽의 색).
@@ -129,7 +162,7 @@ KNOWN = {
 
 # 굽는 길(결정 223)
 BAKE = (r'CraftFxPoly\.Bake\w*|AgePattern\.Tile|RadialSprite|VigSprite|GradSprite|CraftCardArt\.Sheen|Sheen'
-        r'|SurfaceArt\.\w+|UiKit\.Surface\w*|Sprite\.Create|Texture2D')   # `new Texture2D(` = 제 손으로 굽는 자리
+        r'|SurfaceArt\.\w+|UiKit\.Surface\w*|Sprite\.Create|Texture2D|NewTex')   # `new Texture2D(` = 제 손으로 굽는 자리 · `NewTex(` = SummonFx 의 텍스처 공장(Bake* 스무 자리가 다 이 길 · T178 25회차)
 BAKE_CALL = re.compile(r'\b(?:' + BAKE + r')\s*\(')
 # 겹을 **제 손으로** 굽는 공장(이 호출 자체가 곧 겹이다) — `Radial(warnRoot, "bw-dim", …)` · `GradFace(root, "bg", …)`
 FACTORY = r'Radial|GradFace|SurfaceArt\.\w+|UiKit\.Surface\w*|PetHatchCone\.Add'
@@ -183,21 +216,24 @@ def _read(path):
 
 
 def _method_body(src, name):
-    m = re.search(r'\b(?:static\s+)?[\w<>\[\],\s]+\s' + re.escape(name) + r'\s*\(', src)
-    if not m:
-        return None
-    i = src.find('{', m.end())
-    if i < 0:
-        return None
-    depth = 0
-    for j in range(i, len(src)):
-        if src[j] == '{':
-            depth += 1
-        elif src[j] == '}':
-            depth -= 1
-            if depth == 0:
-                return src[i:j + 1]
-    return src[i:]
+    # T178 25회차 — `return BakeRing(…);` 같은 **호출문**도 «낱말 공백 이름(» 꼴이라 첫 후보로 잡혔고, 그 뒤의 `{` 는 **다음 메서드의 몸**이었다
+    #   (`@BakeRing`·`@BakeRadial` 이 «겹 없음» 으로 울었다). 후보와 `{` 사이에 `;` 가 있으면 호출문이다 — 정의가 나올 때까지 넘긴다.
+    for m in re.finditer(r'\b(?:static\s+)?[\w<>\[\],\s]+\s' + re.escape(name) + r'\s*\(', src):
+        i = src.find('{', m.end())
+        if i < 0:
+            return None
+        if ';' in src[m.end():i]:
+            continue
+        depth = 0
+        for j in range(i, len(src)):
+            if src[j] == '{':
+                depth += 1
+            elif src[j] == '}':
+                depth -= 1
+                if depth == 0:
+                    return src[i:j + 1]
+        return src[i:]
+    return None
 
 
 def check_target(game_dir, target):
@@ -381,12 +417,20 @@ def self_test():
     expect('ⓙ 띠 따로 셈', rc == 0 and '끄는 규칙 0 · 띠(조각으로 그린다) 1' in out, out)
     expect('ⓙ 띠 자리 초록 1', '자리 초록 1' in out, out)
 
+    # ⓚ «@메서드» — 같은 이름의 **호출문**(`return M(`)이 정의보다 먼저 나와도 정의의 몸을 읽는다(T178 25회차 · BakeRing/BakeRadial 갈래)
+    cs('class Face { static Sprite W(){ return M(); }\n static Sprite M(){ return Sprite.Create(t, r, v); } }')
+    rc, out = go({'.g-d': ['Ui/Face.cs@M']}, {}, base_css)
+    expect('ⓚ 호출문 뒤의 정의', rc == 0 and '자리 초록 1' in out, out)
+    cs('class Face { static Sprite W(){ return M(); }\n static Sprite M(){ return Plain(); } }')
+    rc, out = go({'.g-d': ['Ui/Face.cs@M']}, {}, base_css)
+    expect('ⓚ 정의에 굽는 호출 없음 rc 1', rc == 1 and '겹 없음' in out, out)
+
     if fails:
         print('✗ check_surface_gradients --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  · ' + f[:400])
         return 1
-    print('✓ check_surface_gradients --self-test 20칸 통과')
+    print('✓ check_surface_gradients --self-test 22칸 통과')
     return 0
 
 

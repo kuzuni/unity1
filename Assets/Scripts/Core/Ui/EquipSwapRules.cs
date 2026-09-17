@@ -16,7 +16,7 @@ namespace Forge.Core.Ui
         public int TurnsMin, TurnsMax;
         public double ReachWF, ReachHF, ReachPadPx;
         public double LandDistMinW, LandDistMaxW, DropMinHF, RiseMinHF, RiseMaxHF;
-        public double RemoveSlackMs, DustMs, DustRemoveMs, DustWF, DustHF, DustYF, DustAlphaCoreF;
+        public double RemoveSlackMs, DustMs, DustRemoveMs, DustWF, DustHF, DustYF;
         public double BounceBigRem, BounceSmallRem, ShadowDyRem, ShadowBlurRem, HollowBrightnessF, HollowSaturateF;
         /// <summary>정본 키프레임 — x(`eqswX` · v = dx 비율) · y(`eqswY` · 자리 기호 + 불투명도) · r(`eqswR` · v = spin 비율) · squash(`eqswSquash` · sk 배수) · dust(`eqswDust`) · snap(`eqswSnap`).</summary>
         public KeyStop[] X, Y, R, Squash, Dust, Snap;
@@ -47,7 +47,7 @@ namespace Forge.Core.Ui
                 LandDistMinW = N(L, "land_dist_min_w"), LandDistMaxW = N(L, "land_dist_max_w"), DropMinHF = N(L, "drop_min_h_f"),
                 RiseMinHF = N(L, "rise_min_h_f"), RiseMaxHF = N(L, "rise_max_h_f"),
                 RemoveSlackMs = N(L, "remove_slack_ms"), DustMs = N(L, "dust_ms"), DustRemoveMs = N(L, "dust_remove_ms"),
-                DustWF = N(L, "dust_w_f"), DustHF = N(L, "dust_h_f"), DustYF = N(L, "dust_y_f"), DustAlphaCoreF = N(L, "dust_alpha_core_f"),
+                DustWF = N(L, "dust_w_f"), DustHF = N(L, "dust_h_f"), DustYF = N(L, "dust_y_f"),
                 BounceBigRem = N(L, "bounce_big_rem"), BounceSmallRem = N(L, "bounce_small_rem"),
                 ShadowDyRem = N(L, "shadow_dy_rem"), ShadowBlurRem = N(L, "shadow_blur_rem"),
                 HollowBrightnessF = N(L, "hollow_brightness_f"), HollowSaturateF = N(L, "hollow_saturate_f"),

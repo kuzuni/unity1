@@ -226,11 +226,17 @@ namespace Forge.Game.Ui
             Dusts++;
             float w = (float)EquipSwapRules.DustW(s, g), h = (float)EquipSwapRules.DustH(s, g);
             double cx = EquipSwapRules.DustX(g, p), cy = EquipSwapRules.DustY(s, g, p);
-            Image d = UiKit.Rounded(Layer, EquipSwapStyle.T("dust"), "pp_paper", h * 0.5f);   // 납작한 타원(색은 아래서 표값으로 덮는다)
+            // T178 25회차 — 정본 7338 `.eqsw-dust { border-radius: 50%; background: radial-gradient(ellipse at 50% 62%, rgba(226,214,196,.5) 0, .22 55%, 0 78%) }`:
+            //   알약(UiKit.Rounded)은 **클립(Mask)** 만 하고 면은 안 그린다(showMaskGraphic 0) · 그 안에 표 SurfaceUi.json `eqsw_dust` 방사형 겹을 굽는다.
+            //   전엔 단색 알약 한 장에 «중심 알파 .5» 를 판 전체의 α 로 눌러 담았다(dust_alpha_core_f) — 가장자리까지 같은 진하기라 «납작한 먼지» 가 아니라 «알약» 이었다.
+            //   정본 애니메이션(opacity·scale)은 겹 Image 의 알파와 알약의 localScale 로 — 겹 자체는 고정이다(정본 주석 «움직이는 것은 불투명도·배율뿐»).
+            Image d = UiKit.Rounded(Layer, EquipSwapStyle.T("dust"), "pp_paper", h * 0.5f);
             d.raycastTarget = false;
-            Color col = EquipSwapStyle.C("dust");
+            d.gameObject.AddComponent<Mask>().showMaskGraphic = false;
             RectTransform rt = d.rectTransform;
             rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f); rt.pivot = new Vector2(0.5f, 0.5f); rt.sizeDelta = new Vector2(w, h);
+            Image grad = SurfaceArt.FillMasked(d, EquipSwapStyle.T("dust_grad"), "eqsw_dust", w, h);
+            Color col = Color.white;
             double ms = 0, end = s.DustRemoveMs;
             while (ms < end)
             {
@@ -238,7 +244,7 @@ namespace Forge.Game.Ui
                 double a, sx, sy, ty; EquipSwapRules.Dust(s, pct, out a, out sx, out sy, out ty);
                 Put(rt, cx, cy + (ty + 50.0) / 100.0 * h);                     // translate(-50%, ty%) — 가운데 피벗이라 (ty + 50)% 만큼
                 rt.localScale = new Vector3((float)sx, (float)sy, 1f);
-                col.a = (float)(a * s.DustAlphaCoreF); d.color = col;             // 정본 radial-gradient 중심 .5 → 판 하나의 α 로
+                col.a = (float)a; grad.color = col;                                // 정본 opacity 키프레임 → 겹 Image 의 알파(판의 .5/.22/0 은 굽힌 채)
                 yield return null;
                 ms += Time.unscaledDeltaTime * 1000.0;
             }
