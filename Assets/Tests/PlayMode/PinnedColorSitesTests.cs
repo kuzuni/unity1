@@ -723,6 +723,24 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T377 20회차 — 확률 정보 [건너뛰기]의 회색. 정본은 **회색 버튼 전수 census**(원본 30장 · 주석 8755~8770)로
+        /// 공용 회색(면 163·턱 50)과 이 버튼만의 «한 단 밝은 변형»(면 **#afafaf** 175 · 턱 **#353535** 53)을 갈라 놓고,
+        /// 자기가 **버린 옛 값**(면 #c9c9c9 · 턱 #9c9c9c)까지 적어 뒀다. 클론이 쓰던 `pp_gray`(#c4c4c4)·`pp_gray_dk`(#9a9a9a)가
+        /// 바로 그 버려진 쪽이라 **아래턱 명도차가 거의 0**(정본 실측 113.6)이었다 — 이 칸은 그 명도차 계약을 묻는다.</summary>
+        [UnityTest]
+        public IEnumerator 확률_정보_건너뛰기_회색은_공용_회색과_다른_한_단_밝은_변형이다()
+        {
+            yield return Boot();
+            Color face = UiKit.C("fi_skip_face"), lip = UiKit.C("fi_skip_lip");
+            Assert.AreNotEqual(UiKit.C("pp_gray"), face, "면이 공용 pp_gray(#c4c4c4)가 아니다 — 정본이 census 로 버린 쪽이다");
+            Assert.AreNotEqual(UiKit.C("pp_gray_dk"), lip, "턱이 공용 pp_gray_dk(#9a9a9a)가 아니다");
+            // 계약은 값이 아니라 **둘의 명도차**다(정본 census 113.6/255 ≈ 0.445).
+            float lf = face.r * 0.2126f + face.g * 0.7152f + face.b * 0.0722f;
+            float ll = lip.r * 0.2126f + lip.g * 0.7152f + lip.b * 0.0722f;
+            Assert.Greater(lf - ll, 0.30f, "면 ↔ 턱 명도차 — 클론의 옛 짝(#c4c4c4/#9a9a9a)은 0.1 도 안 됐다(아래턱이 사실상 없었다)");
+            yield return null;
+        }
+
         static System.Collections.Generic.List<Transform> AllNamed(Transform root, string name)
         {
             var found = new System.Collections.Generic.List<Transform>();

@@ -137,8 +137,11 @@ namespace Forge.Game.Ui
                 // T110 — 정본 ui.js 2043 `건너뛰기<br><span class="fi-skip-gem">${IconGen.img('gem')} N</span>`: 아랫줄은 젬 **아이콘** + 수(세로 갈래 IconTextStack).
                 // T109 14회차 — 정본 5150 `.fi-card .fi-skip { -webkit-text-stroke: 4px #000 }`: 회색 면은 공용 면 표(btn_face)에서 0 이라 이 자리는 제 키(fi_skip)를 넘긴다 — Btn 의 12번째 인자(자가 보는 자리)와 세로 갈래 조각 둘 다.
                 // T378 11회차 — 정본 5151 `.fi-card .fi-skip { padding: .72rem 2.2rem; line-height: 1.25 }`: 이 버튼은 줄높이를 준 자리라 표 `fi_card_fi_skip_lh`(1.25)로 잰다.
-                Button skip = PopupKit.Btn(card, "fi-skip", "", "pp_gray", "pp_gray_dk", () => h.OnGemSkipForge(), inner * 0.6f, ForgeInfoStyle.TwoLineBtnH(TextKind.Sub, "fi_skip_pad_y_rem", "fi_card_fi_skip_lh"), "stage_ink", TextKind.Sub, false, "fi_skip");
-                IconTextStack.ReplaceLabel(skip, TextKind.Sub, "건너뛰기\n💎 " + NumFmt.Fmt(h.Engine.GemSkipCost()), "stage_ink", "pp_gray", "fi_skip");
+                // T377 20회차 — 정본 8771 `.modal-card .btn.btn.fi-skip.fi-skip { background: #afafaf; box-shadow: inset 0 -.25rem 0 #353535 }`.
+                //   정본이 회색 버튼 전수 census 로 이 하나만 «한 단 밝은 변형» 으로 못박았고, 그 주석이 **버린 옛 값**까지 적어 뒀다(면 #c9c9c9 · 턱 #9c9c9c).
+                //   클론이 쓰던 `pp_gray`(#c4c4c4)·`pp_gray_dk`(#9a9a9a)가 바로 그 버려진 쪽이라 아래턱 명도차가 거의 0 이었다(정본 실측 113.6).
+                Button skip = PopupKit.Btn(card, "fi-skip", "", "fi_skip_face", "fi_skip_lip", () => h.OnGemSkipForge(), inner * 0.6f, ForgeInfoStyle.TwoLineBtnH(TextKind.Sub, "fi_skip_pad_y_rem", "fi_card_fi_skip_lh"), "stage_ink", TextKind.Sub, false, "fi_skip");
+                IconTextStack.ReplaceLabel(skip, TextKind.Sub, "건너뛰기\n💎 " + NumFmt.Fmt(h.Engine.GemSkipCost()), "stage_ink", "fi_skip_face", "fi_skip");
             }
             else
             {

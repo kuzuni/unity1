@@ -171,7 +171,21 @@ TABLE = {
     '.cur-pill.coin': ['—죽음: 유일한 자리(ui.js 4988)가 `.shop-sheet .sheet-head` 안이라 3959(0,3,0)가 늘 덮는다 — 정본에서도 #b8860b 는 안 그려진다'],
     '.modal-card.sheet.shop-sheet': ['Ui/ShopSheet.cs|catalog:shop_bg'],                    # 2874 #200219 ↔ 카탈로그 shop_bg 같은 값(짝만)
     '.shop-reward-pill': ['Ui/ShopSheet.cs|catalog:shop_pill'],                             # 2937 #c9c9c9 ↔ 카탈로그 shop_pill 같은 값(짝만)
-    '.qst-row.done .qst-bar i': ['Ui/QuestSheet.cs#fill|catalog:quest_bar_done'],           # 8807 #81e884 ↔ 카탈로그 quest_bar_done 같은 값(짝만)
+    '.qst-row.done .qst-bar i': ['Ui/QuestSheet.cs#fill|catalog:quest_bar_done'],
+    # ── T377 20회차 — 기술 진행바 · 회색 버튼 갈래 · 죽은 선언 둘.
+    '.modal-card .tech-prog': ['Ui/TechPopups.cs#bg|catalog:tech_prog_bg'],                 # 4606 #10182b ↔ 카탈로그 tech_prog_bg 같은 값(짝만)
+    '.btn.btn.summon-btn.summon-btn:not(.ascend-ready)': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:silver'],   # 8638 #a3a3a3 ↔ BtnKind.Silver 의 silver 같은 값
+    '.petd-wrap .btn.btn.danger.danger': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:pp_red'],                    # 8696 #f2191d ↔ BtnKind.Danger 의 pp_red 같은 값
+    '.btn.btn.sr-ok.sr-ok': ['Ui/SkillSummonResult.cs|res:PetSkillUi:sr_ok'],                # 8730 #ffc93c ↔ PetSkillUi sr_ok 같은 값(짝만)
+    # 확률 정보 [건너뛰기] — 정본이 **회색 버튼 전수 census** 로 이 하나만 «한 단 밝은 변형» 으로 못박았다(8755~8770 주석).
+    #   그 주석은 자기가 **버린 옛 값**까지 적어 뒀다(면 #c9c9c9 · 턱 #9c9c9c) — 클론이 쓰던 `pp_gray`(#c4c4c4)·`pp_gray_dk`(#9a9a9a)가 그 버려진 쪽이라
+    #   아래턱 명도차가 거의 0 이었다(정본 실측 113.6). 20회차에 전용 키 둘(`fi_skip_face`·`fi_skip_lip`)로 갈라 세웠다.
+    '.modal-card .btn.btn.fi-skip.fi-skip': ['Ui/ForgeInfoPopup.cs#fi-skip|catalog:fi_skip_face'],
+    # `.tech-node-bar` 와 그 채움은 **정본이 그 클래스를 한 번도 안 붙인다**(`grep -rn tech-node-bar js/ index.html` = 0).
+    #   기술 노드 진행은 `.tech-prog`(4606 · 위 줄)로 갈아엎혔고 이 둘은 그 전 꼴의 잔재다 — 클론에 자리가 없는 것이 맞다.
+    '.tech-node-bar': ['—죽음: 정본이 `tech-node-bar` 클래스를 한 번도 안 붙인다(`.tech-prog` 로 갈아엎힌 잔재) — 그려지지 않는 리터럴'],
+    '.tech-node-bar div': ['—죽음: 같은 까닭(3134 #ffd54f) — 그 채움도 안 그려진다'],
+           # 8807 #81e884 ↔ 카탈로그 quest_bar_done 같은 값(짝만)
 
 }
 # 임자가 정해진 빈자리(파일 lock 뒤) — 붙이면 여기서 지운다
