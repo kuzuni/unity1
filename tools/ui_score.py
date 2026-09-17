@@ -381,6 +381,62 @@ def _split(rv, y0, y1, H, depth=0):
     return out
 
 
+# ─────────────────────────── 판독기 자국 ───────────────────────────
+# 🚨 **판독표(`docs/ref-layout.md`)는 이 자로 구운 것이다.** 판독기를 고치고 `--gen` 을 안 돌리면
+#    원작 쪽은 **옛 자**, 클론 쪽은 **새 자**로 재게 된다 — `read_layout` 이 제 머리에 «원작과 클론에
+#    같은 자를 쓴다» 고 적어 둔 것이 조용히 깨진다. T437 2·3회차가 실제로 그랬다(101·102회차 두 회차 ·
+#    T28 103회차 실측: 다시 구우니 표가 1,366 → 1,452줄로 바뀌었다). 그래서 자국을 표 머리에 박고
+#    자기 검사가 **막는다**.
+STAMP_FUNCS = ("app_box", "_runs", "_merge", "_row_var", "_band_bg", "_col_ink",
+               "_valleys", "_split", "read_layout")
+STAMP_CONSTS = ("BAND_INK", "BAND_MAX", "VALLEY_EPS", "GRID")
+_DOC_Q = ('"""', "'''")
+
+
+def _strip_py(src):
+    """주석·따옴표 세 개 덩어리를 걷어낸 코드 줄만 — 설명만 고쳤다고 자국이 바뀌면 안 된다."""
+    out, quote = [], None
+    for line in src.split("\n"):
+        t = line.strip()
+        if quote is not None:
+            if quote in t:
+                quote = None
+            continue
+        if not t or t.startswith("#"):
+            continue
+        for q in _DOC_Q:
+            if t.startswith(q):
+                if t.count(q) == 1:
+                    quote = q
+                t = ""
+                break
+        if t:
+            out.append(" ".join(t.split()))
+    return "\n".join(out)
+
+
+def reader_stamp():
+    """판독을 정하는 함수·상수의 **코드**만 뭉친 해시 12자리."""
+    import hashlib
+    import inspect
+    parts = [_strip_py(inspect.getsource(globals()[n])) for n in STAMP_FUNCS]
+    parts += ["%s=%r" % (n, globals()[n]) for n in STAMP_CONSTS]
+    return hashlib.sha256(u"\n".join(parts).encode("utf-8")).hexdigest()[:12]
+
+
+STAMP_RE = re.compile(r"판독기 자국:\s*`([0-9a-f]{12})`")
+
+
+def table_stamp(path):
+    """판독표 머리에 박힌 자국(없으면 None)."""
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        head = f.read(4000)
+    m = STAMP_RE.search(head)
+    return m.group(1) if m else None
+
+
 def read_layout(img, name="화면"):
     """그림 하나를 판독해 Rect 목록(밴드 + 밴드 안 블록)을 낸다 — 원작·클론에 같은 자를 쓴다.
 
@@ -480,6 +536,10 @@ HEAD = u"""# 원작 ↔ 클론 화면 비율 판독표 (T28)
 >
 > 판독 규칙: 행 얼룩(그 행 밝기의 평균 절대편차)이 문턱을 넘는 연속 구간 = **밴드**,
 > 밴드 안에서 열 얼룩으로 같은 규칙 = **블록**. 원작과 클론에 같은 자를 쓴다.
+>
+> 판독기 자국: `%(stamp)s` — 이 표를 구운 자의 코드 해시다. 판독기를 고치면 이 값이 달라지고
+> `--self-test` 가 **막는다**(T28 103회차). 그때는 `--gen` 으로 표를 다시 구워야 원작·클론이
+> 같은 자로 재진다.
 """
 
 
@@ -488,7 +548,7 @@ def gen(ref_dir, out_path, only=None, quiet=False):
     if not rows:
         print(u"✗ 짝 표를 못 찾았다 — 정본(.wwwww-src) 또는 UiShotsTests.cs 가 있어야 한다")
         return 1
-    body = [HEAD % {"tol": TOL, "pass": PASS_MARK}]
+    body = [HEAD % {"tol": TOL, "pass": PASS_MARK, "stamp": reader_stamp()}]
     n_screen = 0
     for name, ref in rows:
         if only and name not in only:
@@ -2356,6 +2416,19 @@ def self_test():
     solid = _canvas(40, 40, (200, 200, 200))
     chk(_band_bg(solid, 0, 40, 0, 40) == 204,
         u"바탕이 한 칸에 몰린 밴드는 예전과 같은 값을 낸다 (%d)" % _band_bg(solid, 0, 40, 0, 40))
+
+    # ㉒ 판독표가 **지금 이 판독기로 구운 것**인가 (T28 103회차 · T437 4회차가 찾은 구멍)
+    #    판독기를 고치고 `--gen` 을 안 돌리면 원작 쪽은 옛 자, 클론 쪽은 새 자로 재게 된다.
+    st_now, st_tab = reader_stamp(), table_stamp(TABLE)
+    chk(st_tab is not None,
+        u"판독표 머리에 판독기 자국이 박혀 있다 (%s)" % (st_tab or u"없다 — `--gen` 을 돌려라"))
+    chk(st_tab == st_now,
+        u"판독표를 구운 자국이 지금 판독기와 같다 (표 %s ↔ 자 %s)%s"
+        % (st_tab, st_now, u"" if st_tab == st_now else u" — `python3 tools/ui_score.py --gen` 으로 표를 다시 구워라"))
+    # 자국은 «설명만 고친 것» 에는 안 움직인다 — 안 그러면 주석 한 줄에 표를 다시 굽게 된다.
+    chk(_strip_py(u'def f():\n    """설명"""\n    # 주석\n    return 1\n')
+        == _strip_py(u'def f():\n    """다른 설명"""\n    return 1\n'),
+        u"자국은 설명·주석만 바뀐 것에는 안 움직인다")
 
     print(u"")
     if fail:
