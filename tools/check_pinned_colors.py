@@ -133,6 +133,12 @@ TABLE = {
     '.league-tier-grid span': ['Ui/LeagueSheet.cs@RenderRewards|catalog:lgr_table_pill'],         # 2580 #bdbdbd(흰 표 안의 보상 pill)
     '.league-challenge-row': ['Ui/LeagueSheet.cs@RenderChallenge|catalog:challenge_row'],         # 2605 #cacaca
     '.modal-card .league-challenge-side .btn': ['Ui/LeagueSheet.cs@RenderChallenge|catalog:challenge_btn'],   # 2637 #afafaf(«플랫 — 그라디언트 아님»)
+    # T377 14회차가 «클론에 없는 자리» 로 판정하고 17회차가 **정본까지 확인**해 여기 싣는다(앞의 셋과 까닭이 다르다 —
+    #   클래스를 안 붙이는 게 아니라 **더 구체적인 규칙이 유일한 자리에서 덮는다**):
+    #   1812 `.modal-card .cmp-card-wrap.new .cmp-card { background: #ececec }` ↔ **1820** `.cmp-lower .cmp-card-wrap.new .cmp-card { background: transparent }`.
+    #   `itemCardHTML` 의 call site 셋 중 `isNew: true` 는 **ui.js 3264 하나뿐이고 그것이 3263 `<div class="cmp-lower">` 안**이다
+    #   (3260·3296 은 둘 다 `false` = `.cur`). 곧 정본에서도 이 #ececec 는 **한 번도 안 그려진다**. 클론도 같다(ForgeCraftPopup.cs:87 이 `lower` 안에서 세운다).
+    '.modal-card .cmp-card-wrap.new .cmp-card': ['—죽음: 1820 `.cmp-lower .cmp-card-wrap.new .cmp-card{background:transparent}` 가 덮는다 — 정본의 유일한 `.new` 자리(ui.js 3264)가 그 `.cmp-lower`(3263) 안이라 #ececec 는 정본에서도 안 그려진다'],
 }
 # 임자가 정해진 빈자리(파일 lock 뒤) — 붙이면 여기서 지운다
 KNOWN = {
