@@ -3870,7 +3870,7 @@
 - ⚠ **글자 종류 단은 전역이다**(결정 712): `Sub` 를 통째로 줄이면 다른 화면이 다 움직인다. 고치는 사람은 **이 목록만** 정본 `.8rem` 단으로 세우거나(자리별 크기), T391·T404 가 연 «정본에 있는데 종류표에 없는 단» 갈래로 **단 하나를 더해** 쓴다. 표에 없는 수를 코드에 박지 않는다.
 - ⚠ **`PlayerInfoPopup.cs` 는 지금 T354 의 산 lock 범위일 수 있다** — 잡는 사람이 `docs/claims/T354.lock` 을 먼저 보고, 살아 있으면 그 임자에게 회차를 비워 달라고 기록에 적는다.
 - 판정: ⓐ `screen_player-info.png` 의 «보유 옵션» 줄 피치가 **1.8%H ±0.15**(지금 2.34) ⓑ 목록 맨 아래 줄 자리가 원작과 **±1.0%p** 안(지금 +2.5) ⓒ 다른 화면의 `Sub` 글자가 **안 움직인다**(전역 손질이 아니라는 증거) ⓓ PlayMode 자 한 칸.
-- 범위: `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Assets/Forge/catalog.json`(자리별 단 하나) · `Assets/Tests/PlayMode/`(자 한 칸 — 새 파일이거나 `PlayerInfoPopup` 을 이미 세우는 자에 붙인다) · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 범위: `Assets/Scripts/Game/Ui/PlayerInfoPopup.cs` · `Assets/Forge/Resources/TextSizeUi.json`(자리 키 하나 — 종류표에 단을 더하는 대신 §1 예외 칸 `Micro` + 크기표를 쓴다 · T383 이 낸 길 · 결정 633) · `Assets/Tests/PlayMode/`(자 한 칸 — 새 파일이거나 `PlayerInfoPopup` 을 이미 세우는 자에 붙인다) · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
 
 ### T452 — **`check_final_table` 만 «escape 된 `\|`» 를 모른다: 그런 줄이 든 작업은 완주 판정에서 통째로 안 보인다** (도구·게이트 · 자 셋이 같은 표를 다르게 읽는다 · T28 106·112회차 실측)
 
