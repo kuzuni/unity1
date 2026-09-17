@@ -90,6 +90,10 @@ TABLE = {
     '.league-collect-pill': ['Ui/LeagueSheet.cs#collect-grad'],
     # T178 23회차 — 리그 시트 **발 밴드**의 면 겹(2361). 한 그라디언트가 px 와 % 를 섞는 첫 자리라 표에 `units` 를 새로 뒀다.
     '.league-foot': ['Ui/LeagueSheet.cs#bg-grad'],
+    # T178 27회차 — 소환 결과 **제목 띠**(6207)와 그 위·아래 **금색 헤어라인**(6220). 둘 다 양끝 알파가 0 이라
+    #   «투명을 품은 채» 얹히는 겹이고(바탕을 미리 안 섞는다), 띠는 새 조각을 만들지 않고 그 판의 **그림을 바꿔** 세운다.
+    '.sr-title': ['Ui/SkillSummonResult.cs@Build'],
+    '.sr-title::before, .sr-title::after': ['Ui/SkillSummonResult.cs@Build'],
     # T178 23회차 — 단(tier) 행 위끝 대시 줄(2548 `repeating-linear-gradient`). **코드는 이미 서 있다** — T368 5회차가
     #   `LeagueSheet.TierDash`(`SurfaceArt.BakeStripe` · 표 `stripes.league_tier_dash`)로 세웠는데 이 자 표에만 안 올라
     #   «미정» 으로 세어지고 있었다(`#panel-skills .summon-bar::before` → `SkillPanel.cs@SummonDash` 와 같은 꼴).

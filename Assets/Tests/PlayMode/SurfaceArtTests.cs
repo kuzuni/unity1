@@ -988,5 +988,65 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+
+        /// <summary>
+        /// T178 27회차 — 소환 결과 **제목 띠**(정본 **6207**)와 그 위·아래 **금색 헤어라인**(**6220**).
+        /// 둘의 공통점이 이 자의 핵심이다 — **양끝 알파가 0** 이라 «공중에서 뚝 끊기지 않게» 사라진다(정본 주석).
+        /// 클론은 띠가 단색 한 장이라 양끝이 각졌고 헤어라인은 아예 없었다.
+        /// 그래서 «겹이 섰다» 만 보지 않고 **구운 화소의 양끝이 투명하고 가운데가 짙은가**를 본다 — 그것이 이 선언의 뜻이다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 소환_결과_제목_띠와_헤어라인은_양끝이_사라지는_가로_겹이다()
+        {
+            // ⓐ 구운 화소 — 띠: 가운데 알파 .85 · 양끝 0
+            Sprite bp = SurfaceArt.Bake("sr_title_band", 6f, 600f);
+            Assert.IsNotNull(bp, "제목 띠를 굽는다");
+            Texture2D bt = bp.texture;
+            Color mid = bt.GetPixel(bt.width / 2, bt.height / 2);
+            Color lend = bt.GetPixel(0, bt.height / 2), rend = bt.GetPixel(bt.width - 1, bt.height / 2);
+            Assert.AreEqual(0.85f, mid.a, 0.03f, "가운데 알파 = 정본 .85");
+            Assert.Less(lend.a, 0.06f, "왼쪽 끝은 사라진다(알파 0)");
+            Assert.Less(rend.a, 0.06f, "오른쪽 끝도 사라진다(알파 0)");
+            Assert.Less(mid.r + mid.g, lend.r + lend.g + 2f, "가운데는 짙은 남색이다(정본 rgba(12,20,52,·))");
+
+            // ⓑ 구운 화소 — 헤어라인: 금색(정본 rgba(255,214,120,·))이고 같은 꼴로 사라진다
+            Sprite hp = SurfaceArt.Bake("sr_title_hair", 200f, 600f);
+            Assert.IsNotNull(hp, "헤어라인을 굽는다");
+            Texture2D ht = hp.texture;
+            Color hm = ht.GetPixel(ht.width / 2, ht.height / 2), he = ht.GetPixel(0, ht.height / 2);
+            Assert.AreEqual(0.7f, hm.a, 0.03f, "가운데 알파 = 정본 .7");
+            Assert.Less(he.a, 0.06f, "헤어라인도 양끝이 사라진다");
+            Assert.Greater(hm.r, hm.b + 0.3f, "금색이다 — 붉은 쪽이 파란 쪽보다 훨씬 높다");
+
+            // ⓒ 실물 — 띠 판의 그림이 바뀌었고 헤어라인 둘이 섰다
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "common", null);
+            Assert.IsNotNull(v, "결과 연출 팝업이 서지 않았다");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform band = FindDeep(v.transform, "sr-title");
+            Assert.IsNotNull(band, "제목 띠(sr-title)");
+            Image bg = band.Find("bg") != null ? band.Find("bg").GetComponent<Image>() : null;
+            Assert.IsNotNull(bg, "띠의 판(bg)");
+            Assert.IsNotNull(bg.sprite, "띠는 구운 그림이다 — 색 한 칸짜리가 아니다(종전엔 단색이라 양끝이 각졌다)");
+            Assert.AreEqual(1f, bg.color.r, 1e-3f, "그림 위 색은 흰색 — 표 색을 두 번 곱하지 않는다");
+            foreach (string n in new[] { "hair-top", "hair-bot" })
+            {
+                Transform hr = band.Find(n);
+                Assert.IsNotNull(hr, "헤어라인 «" + n + "» 이 선다(정본 6220)");
+                Image hi = hr.GetComponent<Image>();
+                Assert.IsNotNull(hi, n + ": Image");
+                Assert.IsNotNull(hi.sprite, n + ": 구운 그림");
+            }
+            yield return null;
+        }
+
     }
 }

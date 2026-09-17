@@ -401,8 +401,26 @@ namespace Forge.Game.Ui
             float tw = PetSkillKit.TextWidth(TextKind.Title, tt) + title * 1.2f + PetSkillStyle.Px("sr_title_pad_x_rem") * 2f;
             RectTransform band = UiKit.Box(head, "sr-title");
             UiKit.Anchor(band, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, tw, headH);
+            // T178 27회차 — 정본 **6207** `.sr-title { background: linear-gradient(90deg, rgba(255,255,255,0),
+            //   rgba(12,20,52,.85) 14%, rgba(12,20,52,.85) 86%, rgba(255,255,255,0)) }` — 띠는 단색이 아니라
+            //   **양끝이 알파 0 으로 사라지는** 가로 겹이다(정본 주석의 뜻: 공중에서 뚝 끊기지 않게). 클론은 한 색이라 양끝이 각졌다.
+            //   새 조각을 얹지 않고 **그 판의 그림을 바꾼다** — 정본도 배경 하나고, «bg» 를 찾는 다른 자들이 그대로 산다.
             Image bandBg = UiKit.Panel(band, "bg", "pp_line");
-            bandBg.color = PetSkillStyle.C("sr_title_band");
+            bandBg.sprite = SurfaceArt.Bake("sr_title_band", headH > 0f ? tw / headH : 1f, tw);
+            bandBg.color = Color.white;   // 구운 그림 위에 색을 또 곱하지 않는다
+            // 정본 **6220** `.sr-title::before/::after` — 띠 위·아래 **금색 헤어라인 1 CSS px**, 좌우로 사라진다(같은 값 · 자리만 다르다).
+            float hair = Mathf.Max(1f, KeylineUi.CssPx);
+            foreach (bool top in new[] { true, false })
+            {
+                RectTransform hr = UiKit.Box(band, top ? "hair-top" : "hair-bot");
+                hr.anchorMin = new Vector2(0f, top ? 1f : 0f); hr.anchorMax = new Vector2(1f, top ? 1f : 0f);
+                hr.pivot = new Vector2(0f, top ? 1f : 0f);
+                hr.offsetMin = new Vector2(0f, top ? -hair : 0f); hr.offsetMax = new Vector2(0f, top ? 0f : hair);
+                Image hi = hr.gameObject.AddComponent<Image>();
+                hi.raycastTarget = false;
+                hi.sprite = SurfaceArt.Bake("sr_title_hair", hair > 0f ? tw / hair : 1f, tw);
+                hi.color = Color.white;
+            }
             Image tico = UiKit.Icon(band, "ico", kind == "pet" ? "egg" : kind == "mount" ? "winder" : "ticket");
             UiKit.Place(tico.rectTransform, PetSkillStyle.Px("sr_title_pad_x_rem"), (headH - title * 1.05f) * 0.5f, title * 1.05f, title * 1.05f);
             TextMeshProUGUI tx = PetSkillKit.Text(band, "t", TextKind.Title, tt, PetSkillStyle.C("white"), TextAlignmentOptions.Left);
