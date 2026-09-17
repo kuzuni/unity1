@@ -90,6 +90,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(t.Icon.rectTransform, (bw - icon) * 0.5f, yTop + padTop, icon, icon);
                 t.Label = UiKit.Text(rt, "label", TextKind.Sub, e.label, "tab_ink", TextAlignmentOptions.Center);
                 t.Label.fontStyle = FontStyles.Bold;
+                LineHeight.Apply(t.Label, "tabbar_button_span_lh");   // T354 22회차 — 정본 1707 `#tabbar button span { line-height: 1 }`(index.html 160~165 라벨은 <span>) · 1705 의 1.3 은 버튼 줄 상자 몫이라 글자 자리가 없다
                 UiKit.Place(t.Label.rectTransform, 0f, yTop + padTop + icon, bw, labelH);
 
                 RectTransform xm = UiKit.Box(rt, "tab-x");

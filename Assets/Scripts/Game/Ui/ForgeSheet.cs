@@ -177,7 +177,7 @@ namespace Forge.Game.Ui
         {
             Button b = PopupKit.Btn(parent, name, label, face, lip, onClick, w, h, "stage_ink", TextKind.Sub);
             TextMeshProUGUI t = b.GetComponentInChildren<TextMeshProUGUI>();
-            if (t != null) { WrapUi.Apply(t, "forge_actions_btn"); t.lineSpacing = -20f; }   // T361 7회차 — 정본 white-space 표(WrapUi.json) 1637 `.forge-actions .btn { nowrap }` — 두 줄은 라벨의 \n 이 만든다(NoWrap 도 \n 은 지킨다 · 전엔 Normal 박힘)
+            if (t != null) { WrapUi.Apply(t, "forge_actions_btn"); LineHeight.Apply(t, "forge_actions_btn_lh"); }   // T354 22회차 — 정본 1637 `.forge-actions .btn { line-height: 1.15 }` 를 표에서(전엔 -20f 가 코드에 박혀 있었다 · §1)   // T361 7회차 — 정본 white-space 표(WrapUi.json) 1637 `.forge-actions .btn { nowrap }` — 두 줄은 라벨의 \n 이 만든다(NoWrap 도 \n 은 지킨다 · 전엔 Normal 박힘)
             return b;
         }
 
@@ -423,6 +423,7 @@ namespace Forge.Game.Ui
             hammerText = UiKit.Text(counter, "count", TextKind.Sub, NumFmt.Fmt(h.Wallet.Hammers), "white", TextAlignmentOptions.Left);
             hammerText.fontStyle = FontStyles.Bold;
             UiKit.Outline(hammerText, "pp_line", UiKit.L("anvil_count_stroke"));
+            LineHeight.Apply(hammerText, "anvil_btn_lh");   // T354 22회차 — 정본 984 `.anvil-btn { line-height: 1.05 }` 를 `small` 이 물려받는다(1625 는 줄높이를 안 준다)
             UiKit.Anchor(hammerText.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 0.5f), new Vector2(-rem * 0.7f, 0f), w * 0.6f, counterH);
             return rt;
         }

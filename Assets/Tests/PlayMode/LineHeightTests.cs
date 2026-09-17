@@ -668,5 +668,65 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+
+        /// <summary>T354 22회차 — 장비 시트: 대장간 두 줄 버튼(정본 1637 `.forge-actions .btn { line-height: 1.15 }`)은 전에
+        /// `lineSpacing = -20f` 가 코드에 박혀 있었다(T361 7회차). 표로 옮겨 실제 줄 간격이 1.15 인지 두 줄에서 잰다.
+        /// 모루 망치 수(정본 984 `.anvil-btn { line-height: 1.05 }` 를 `small` 이 물려받는다)는 한 줄이라 lineSpacing 만 본다.</summary>
+        [UnityTest]
+        public IEnumerator 장비_시트_대장간_두_줄_버튼은_박힌_수가_아니라_표의_1_15_로_서고_모루_망치_수도_표를_읽는다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && ForgeHost.Instance == null; i++) yield return null;
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h, "ForgeHost");
+            ForgeSheet.Render(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform fb = Find(UiRoot.Instance.Sheet, "forge-btn");
+            Assert.IsNotNull(fb, "대장간 버튼(forge-btn)");
+            TextMeshProUGUI t = fb.GetComponentInChildren<TextMeshProUGUI>();
+            Assert.IsNotNull(t, "대장간 버튼 글");
+            Assert.AreEqual(1.15, LineHeight.Table.Get("forge_actions_btn_lh"), 1e-9, "정본 1637");
+            AssertSpacing(t, "forge_actions_btn_lh", "대장간 버튼");
+            Assert.AreNotEqual(-20f, t.lineSpacing, "박힌 수 -20f 가 아니다");
+            t.ForceMeshUpdate();
+            yield return null;
+            Assert.Greater(t.textInfo.lineCount, 1, "«대장간\\n레벨 N» 두 줄");
+            Assert.AreEqual(LineHeight.Table.Get("forge_actions_btn_lh"), LineHeight.MeasuredRatio(t), 0.02, "실제 줄 간격 = 1.15(자산 기본 1.448 도 -20f 의 1.248 도 아니라)");
+
+            Transform counter = Find(UiRoot.Instance.Sheet, "anvil-hammers");
+            Assert.IsNotNull(counter, "모루 망치 수 칸(anvil-hammers)");
+            Transform cnt = Find(counter, "count");
+            Assert.IsNotNull(cnt, "망치 수 글(count)");
+            Assert.AreEqual(1.05, LineHeight.Table.Get("anvil_btn_lh"), 1e-9, "정본 984");
+            AssertSpacing(cnt.GetComponent<TextMeshProUGUI>(), "anvil_btn_lh", "망치 수");
+        }
+
+        /// <summary>T354 22회차 — 탭바 라벨(정본 index.html 의 `<span>` · 1707 `line-height: 1`)과 채팅 미리보기
+        /// 두 줄(3251 `.chat-preview-lines { line-height: 1.25 }`)·뱃지(3248 `line-height: 1`)가 표를 읽는다. 셋 다 한 줄 글이라
+        /// 화면은 안 변한다 — «표를 읽는 자리» 가 서는지만 본다(9회차의 길).</summary>
+        [UnityTest]
+        public IEnumerator 탭바_라벨과_채팅_미리보기_두_줄_뱃지가_표의_줄높이를_읽는다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && Hud.Instance != null && UiRoot.Instance.TabBar != null); i++) yield return null;
+            Assert.IsNotNull(UiRoot.Instance.TabBar, "TabBar");
+            Transform label = Find(UiRoot.Instance.TabBar.transform, "label");
+            Assert.IsNotNull(label, "탭 라벨");
+            Assert.AreEqual(1.0, LineHeight.Table.Get("tabbar_button_span_lh"), 1e-9, "정본 1707");
+            AssertSpacing(label.GetComponent<TextMeshProUGUI>(), "tabbar_button_span_lh", "탭 라벨");
+
+            Transform name = Find(Hud.Instance.transform, "chat-preview-name");
+            Transform msg = Find(Hud.Instance.transform, "chat-preview-msg");
+            Transform badge = Find(Hud.Instance.transform, "chat-preview-badge");
+            Assert.IsNotNull(name, "미리보기 이름"); Assert.IsNotNull(msg, "미리보기 글"); Assert.IsNotNull(badge, "뱃지");
+            Transform n = Find(badge, "n");
+            Assert.IsNotNull(n, "뱃지 수");
+            Assert.AreEqual(1.25, LineHeight.Table.Get("chat_preview_lines_lh"), 1e-9, "정본 3251");
+            Assert.AreEqual(1.0, LineHeight.Table.Get("chat_preview_badge_lh"), 1e-9, "정본 3248");
+            AssertSpacing(name.GetComponent<TextMeshProUGUI>(), "chat_preview_lines_lh", "미리보기 이름");
+            AssertSpacing(msg.GetComponent<TextMeshProUGUI>(), "chat_preview_lines_lh", "미리보기 글");
+            AssertSpacing(n.GetComponent<TextMeshProUGUI>(), "chat_preview_badge_lh", "뱃지 수");
+        }
     }
 }
