@@ -35,6 +35,27 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 카운터_out_페이드는_정본_25s_ease_out_이고_제거는_300ms_그대로()
+        {
+            // T454 ⓓ — style.css 7558 `.rw-tick { transition: opacity .25s ease-out }` · 7571 `.rw-tick.out { opacity: 0 }` · ui.js 3727 `setTimeout(() => tick.remove(), 300)`
+            var s = S();
+            Assert.AreEqual(250, s.TickFadeMs, "표 tick_fade_ms = 정본 .25s");
+            Assert.AreEqual(300, s.TickOutMs, "제거는 그대로 300ms(ui.js 3727)");
+            Assert.Less(s.TickFadeMs, s.TickOutMs, "페이드가 제거보다 먼저 끝난다 — 250~300 은 투명한 채 사는 창");
+            Assert.AreEqual(1, RewardBurstRules.TickOutAlpha(s, 0), 1e-9, "out 직후 = 1");
+            double mid = RewardBurstRules.TickOutAlpha(s, 125);
+            Assert.Less(mid, 0.5, "ease-out 은 앞이 빨라 절반 시각엔 선형(.5)보다 더 투명하다 — " + mid);
+            Assert.Greater(mid, 0.0);
+            Assert.Greater(RewardBurstRules.TickOutAlpha(s, 50), mid, "단조 감소");
+            Assert.AreEqual(0, RewardBurstRules.TickOutAlpha(s, 250), 1e-9, "250ms 에 0");
+            Assert.AreEqual(0, RewardBurstRules.TickOutAlpha(s, 299), 1e-9, "그 뒤도 0");
+            Assert.IsFalse(RewardBurstRules.TickGone(s, 299), "299ms 엔 아직 산다(투명한 채)");
+            Assert.IsTrue(RewardBurstRules.TickGone(s, 300), "300ms 에 뗀다");
+            // ease-out(0,0,.58,1) 의 t=.5 진행도는 CSS 정의값 ≈ .80 — 그 자리 알파 ≈ .20
+            Assert.AreEqual(1 - new CssEase(0, 0, 0.58, 1).Ease(0.5), mid, 1e-9, "표 이징 = ease-out 키워드");
+        }
+
+        [Test]
         public void 수령_목록은_floor_뒤_0_초과만_순서대로()
         {
             var list = RewardBurstRules.Entries(new[] {

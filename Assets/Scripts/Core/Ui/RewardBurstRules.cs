@@ -19,6 +19,9 @@ namespace Forge.Core.Ui
         public double LandK, FlySlackMs;
         public double PopSmMs, PopSmAnimMs, PopMs, PopAnimMs, PopAfterMs, PopJitterXPx, PopJitterYPx;
         public double TickOutMs, TickBumpMs, TickDyPx, TickMinYPx, TickUpPx, TickUpMinYPx;
+        /// <summary>T454 ⓓ — 정본 7558 `.rw-tick { transition: opacity .25s ease-out }` · 7571 `.out { opacity: 0 }`: 페이드 길이·이징. 제거(<see cref="TickOutMs"/> · ui.js 3727 의 300ms)와는 다른 수다.</summary>
+        public double TickFadeMs;
+        public CssEase TickFadeEase = CssEase.Linear;
         public double AnchorExtraMs, AnchorOutMs, AnchorInMs;
         public double AmtMs, AmtStepMs, AmtRemoveMs, AmtDxPx, AmtMarginPx, AmtDyPx, AmtDyNoSrcPx, AmtRowPx;
         public double CardTopPx, CardMinYPx, CardInsetXPx;
@@ -94,7 +97,7 @@ namespace Forge.Core.Ui
                 ImpactUpPx = n("impact_up_px"), ImpactMs = n("impact_ms"), GlowAnimMs = n("glow_anim_ms"), RingAnimMs = n("ring_anim_ms"), PulseMs = n("pulse_ms"), PulseAnimMs = n("pulse_anim_ms"),
                 LandK = n("land_k"), FlySlackMs = n("fly_slack_ms"),
                 PopSmMs = n("pop_sm_ms"), PopSmAnimMs = n("pop_sm_anim_ms"), PopMs = n("pop_ms"), PopAnimMs = n("pop_anim_ms"), PopAfterMs = n("pop_after_ms"), PopJitterXPx = n("pop_jitter_x_px"), PopJitterYPx = n("pop_jitter_y_px"),
-                TickOutMs = n("tick_out_ms"), TickBumpMs = n("tick_bump_ms"), TickDyPx = n("tick_dy_px"), TickMinYPx = n("tick_min_y_px"), TickUpPx = n("tick_up_px"), TickUpMinYPx = n("tick_up_min_y_px"),
+                TickOutMs = n("tick_out_ms"), TickFadeMs = n("tick_fade_ms"), TickFadeEase = EaseOf(J.Require(L, "tick_fade_ease")), TickBumpMs = n("tick_bump_ms"), TickDyPx = n("tick_dy_px"), TickMinYPx = n("tick_min_y_px"), TickUpPx = n("tick_up_px"), TickUpMinYPx = n("tick_up_min_y_px"),
                 AnchorExtraMs = n("anchor_extra_ms"), AnchorOutMs = n("anchor_out_ms"), AnchorInMs = n("anchor_in_ms"),
                 AmtMs = n("amt_ms"), AmtStepMs = n("amt_step_ms"), AmtRemoveMs = n("amt_remove_ms"), AmtDxPx = n("amt_dx_px"), AmtMarginPx = n("amt_margin_px"), AmtDyPx = n("amt_dy_px"), AmtDyNoSrcPx = n("amt_dy_nosrc_px"), AmtRowPx = n("amt_row_px"),
                 CardTopPx = n("card_top_px"), CardMinYPx = n("card_min_y_px"), CardInsetXPx = n("card_inset_x_px"),
@@ -269,6 +272,17 @@ namespace Forge.Core.Ui
             double c = AmtEndMs(s, entries - 1);
             return Math.Max(a, Math.Max(b, c));
         }
+
+        /// <summary>T454 ⓓ — 카운터가 `.out` 을 받은 지 <paramref name="outMs"/> 에서의 불투명도: 정본 `transition: opacity .25s ease-out` 이 1 → 0 으로 간다(페이드 길이 <see cref="RewardBurstSpec.TickFadeMs"/> · 이징 표값).
+        /// 상자는 그 뒤에도 <see cref="RewardBurstSpec.TickOutMs"/>(300) 까지 산다 — 정본은 `.out` 300ms 뒤에 지우므로 250~300 은 «투명한 채 살아 있는» 창이다(<see cref="TickGone"/>).</summary>
+        public static double TickOutAlpha(RewardBurstSpec s, double outMs)
+        {
+            if (outMs <= 0) return 1;
+            if (s.TickFadeMs <= 0 || outMs >= s.TickFadeMs) return 0;
+            return 1 - s.TickFadeEase.Ease(outMs / s.TickFadeMs);
+        }
+        /// <summary>`.out` 을 받은 지 <paramref name="outMs"/> 에 상자를 지우는가(정본 ui.js 3727 `setTimeout(() => tick.remove(), 300)`).</summary>
+        public static bool TickGone(RewardBurstSpec s, double outMs) { return outMs >= s.TickOutMs; }
 
         /// <summary>착지할 때 카운터가 보이는 누적값 — `round(amt·(i+1)/n)` (마지막은 정확히 amt).</summary>
         public static double Per(double amount, int i, int n) { return JsRound(amount * (i + 1) / n); }

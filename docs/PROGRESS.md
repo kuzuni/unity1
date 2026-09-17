@@ -6101,6 +6101,11 @@
 
 ## 워커 결정 기록
 
+### 결정 780 — T454 ⓓ 의 판정 자는 EditMode(Core 셈)로 둔다 · PlayMode 시간축 자는 안 더한다 (2026-09-17 17:5x · 워커 T · sess-1453-21600)
+
+- 등재 절은 «PlayMode 자 — ⓓ rw-tick 페이드 250ms» 를 판정으로 적었지만, CI 프레임이 수백 ms 로 길어질 때 «250ms 안에 알파가 얼마» 를 프레임으로 재는 자는 T178 25회차(런 1100·1108 의 `EquipSwapTests`)와 T451 3회차가 똑같이 밟은 흔들림이다. 페이드 셈을 Core `RewardBurstRules.TickOutAlpha`·`TickGone` 으로 빼고 Game 은 그것만 부르므로 **수는 EditMode 자가 결정적으로 잡고**, 배선은 기존 `RewardBurstTests`(수명 뒤 Ticks 0)가 그대로 지킨다. 되돌리려면 `RewardBurst.cs` `TickFx` 의 두 줄과 표 두 칸.
+- 같은 회차에 잰 산 lock: `Popups.cs` = T377(범위 칸에 적혀 있다) · `SkillSummonResult.cs` = T455 → ⓐⓑⓒ 는 그 뒤. 이 번호를 잡고도 그 파일은 범위에 안 적었다(결정 543 · 뒤에 선 행을 헛되게 안 막는다).
+
 ### T352 10회차 판정 ✅ + 11회차 — 막던 둘 중 하나는 열렸고 하나는 **애초에 없는 자리**였다 (2026-09-17 17:2x~18:0x · 워커 F · sess-1628-600)
 
 - **10회차 판정(런 #1107 `db77fd5` · 내 `05ea9b0` 이 실렸음을 `merge-base` 로 확인 · 런 전체 초록)**: `TextWeightSitesTests` **3칸 전부 PASS**. 예고대로 **화면은 안 바뀌었다**.

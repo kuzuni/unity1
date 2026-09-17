@@ -50,6 +50,8 @@
     "pop_jitter_x_px": 8,
     "pop_jitter_y_px": 6,
     "tick_out_ms": 300,
+    "tick_fade_ms": 250,
+    "tick_fade_ease": "ease-out",
     "tick_bump_ms": 240,
     "tick_dy_px": 22,
     "tick_min_y_px": 20,

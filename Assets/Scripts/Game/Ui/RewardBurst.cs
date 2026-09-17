@@ -455,9 +455,10 @@ namespace Forge.Game.Ui
                 if (tick.Out)
                 {
                     if (outStart < 0) outStart = 0; else outStart += Time.unscaledDeltaTime * 1000.0;
-                    double a = 1 - Math.Min(1, outStart / s.TickOutMs);
+                    // T454 ⓓ — 정본 7558 은 `.out` 을 .25s ease-out 으로 지우고(7571 opacity 0) ui.js 3727 이 300ms 뒤 상자를 뗀다: 전엔 300 을 페이드 길이로 써 50ms 길고 선형이었다. 셈은 Core.
+                    double a = RewardBurstRules.TickOutAlpha(s, outStart);
                     Alpha(tick.Text, a); if (tick.Icon != null) Alpha(tick.Icon, a);
-                    if (outStart >= s.TickOutMs) break;
+                    if (RewardBurstRules.TickGone(s, outStart)) break;
                 }
                 yield return null;
             }
