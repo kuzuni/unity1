@@ -718,5 +718,71 @@ namespace Forge.Tests.PlayMode
                 if (t.name == name) return t;
             return null;
         }
+        /// <summary>T459 ⓧ — 정본 5657 `.sr-wrap { animation: srshake .25s … both }` + 6148 `animation-delay: .21s`: 소환이 열리면 판이 210~460ms 창에서
+        /// 한 번 흔들리고 제자리로 돌아온다(그 뒤 주역 킥 `srshakehit` 은 별개 · 지연 0 이 맞다 — T33 38회차). 창에 프레임이 안 들어오면 «환경» 으로 접는다.</summary>
+        [UnityTest]
+        public IEnumerator 소환이_열리면_판이_210ms_뒤_한_번_흔들리고_제자리로_돌아온다()
+        {
+            yield return Boot();
+            SkillSummonResultView v = OpenHoldback();
+            Transform wrap = FindDeep(v.transform, "sr-wrap");
+            RectTransform w = wrap as RectTransform;
+            Assert.IsNotNull(w, "판(sr-wrap)");
+            yield return null;
+            Vector2 home = w.anchoredPosition;
+            float t0 = Time.unscaledTime;
+            int inWin = 0, moved = 0;
+            float worst = 0f, last = Time.unscaledTime;
+            bool sawHome = false;
+            while (Time.unscaledTime - t0 < 0.62f)
+            {
+                yield return null;
+                float now = Time.unscaledTime;
+                worst = Mathf.Max(worst, now - last); last = now;
+                float ms = (now - t0) * 1000f;
+                if (ms >= 215f && ms <= 455f)
+                {
+                    inWin++;
+                    if ((w.anchoredPosition - home).sqrMagnitude > 0.01f || Mathf.Abs(w.localScale.x - 1f) > 1e-4f) moved++;
+                }
+                if (ms > 470f && !v.Kicking && (w.anchoredPosition - home).sqrMagnitude < 0.01f) sawHome = true;
+            }
+            if (inWin == 0)
+                Assert.Ignore("환경 — 입장 셰이크 창(210~460ms)에 프레임이 한 번도 안 들어왔다(가장 긴 프레임 " + (worst * 1000f).ToString("0") + "ms)");
+            Assert.Greater(moved, 0, "창 안 프레임 " + inWin + "번 중 판이 움직인 프레임이 0 — 입장 셰이크가 없다");
+            Assert.IsTrue(sawHome || v.Kicking, "셰이크가 끝나면 판이 제자리(킥이 잡기 전)");
+            Assert.IsTrue(SummonFxStyle.Enter.DelayMs > 0 && SummonFxStyle.Enter.ShakeMs > 0, "표가 쥔다");
+        }
+
+        /// <summary>T459 ⓨ — 정본 6674 `.sr-cell.hi.on .sr-orbwrap { animation: srpulse 1.6s ease-in-out infinite; animation-delay: calc(.45s + i×.17s) }`:
+        /// 고등급 셀의 광채가 켜진 뒤 1.6s 주기로 커졌다 작아지고, 조연(common)에는 광채가 없다.</summary>
+        [UnityTest]
+        public IEnumerator 고등급_셀의_광채는_켜진_뒤_1_6초_주기로_뛴다()
+        {
+            yield return Boot();
+            SkillSummonResultView v = OpenHoldback();
+            float t = 0f;
+            while (!v.Done && t < 12f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done, "소환이 12초 안에 끝난다");
+            Assert.IsNull(v.GlowOf(0), "일반 셀에는 광채가 없다(정본 .hi 만)");
+            Image g = v.GlowOf(3);
+            Assert.IsNotNull(g, "최고 등급(ultimate) 셀의 광채");
+            float lo = float.MaxValue, hi = 0f; int n = 0;
+            float t0 = Time.unscaledTime, worst = 0f, last = t0;
+            while (Time.unscaledTime - t0 < 1.75f)
+            {
+                yield return null;
+                float now = Time.unscaledTime; worst = Mathf.Max(worst, now - last); last = now;
+                float sc = g.rectTransform.localScale.x;
+                lo = Mathf.Min(lo, sc); hi = Mathf.Max(hi, sc); n++;
+            }
+            if (n < 6)
+                Assert.Ignore("환경 — 1.75초 동안 프레임이 " + n + "번뿐(가장 긴 프레임 " + (worst * 1000f).ToString("0") + "ms) — 맥동을 잴 기회가 없었다");
+            float peak = (float)SummonFxStyle.HiPulse.PeakF;
+            Assert.Greater(hi, 1f + (peak - 1f) * 0.5f, "한 주기 안에 정점의 절반은 넘는다(정점 " + peak.ToString("0.000") + " · 실측 최대 " + hi.ToString("0.000") + ")");
+            Assert.Less(lo, 1f + (peak - 1f) * 0.5f, "골도 있다(실측 최소 " + lo.ToString("0.000") + ")");
+            Assert.LessOrEqual(hi, peak + 1e-3f, "정점을 넘지 않는다");
+        }
+
     }
 }

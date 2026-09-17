@@ -45,6 +45,8 @@ namespace Forge.Game.Ui
             public bool Heroic;
             /// <summary>T334 3회차 ⓑ — 흡기 전 제자리(anchoredPosition)와 «슬롯 → 광원» 벡터(정본 `--dx/--dy`).</summary>
             public Vector2 Home, ToLight;
+            /// <summary>T459 ⓨ — 고등급 광채 원판(맥동은 이 원판의 배율).</summary>
+            public Image Glow;
             /// <summary>T334 5회차 — 아이들 호흡 전 구체 래퍼의 제자리.</summary>
             public Vector2 OrbHome;
             /// <summary>T334 7회차 — 물러남 전 이 셀 그림들의 제 색(한 번만 담는다).</summary>
@@ -116,6 +118,8 @@ namespace Forge.Game.Ui
         float wipeAt = -1f;
         /// <summary>T334 6회차 — 화면 킥(정본 `srshakehit`)이 시작한 시각 · 흔들 판과 그 제자리.</summary>
         float kickAt = -1f;
+        /// <summary>T459 ⓧ — 열린 시각(입장 셰이크의 시계 · 끝나면 −1).</summary>
+        float enterAt = -1f;
         /// <summary>T334 9회차 — 주역 충격파 링(정본 `.sr-cell.heroic::after`)과 그 최대 배율(정본 `--ringmax` · 배치마다 다르다).</summary>
         Image heroRing;
         float ringMax = 3.2f;
@@ -889,6 +893,7 @@ namespace Forge.Game.Ui
             var sc = PetSkillHost.SfxSummonCharge;
             if (sc != null) sc(best);
             start = Time.unscaledTime;
+            enterAt = start;   // T459 ⓧ — 정본 `.sr-wrap srshake` 는 열림에서 .21s 뒤 .25s 흔든다
             idx = 0;
             done = false;
             // T334 2회차 — 시각·판정을 Core 상태 기계에 넘긴다(정본 tickSummonResult 그대로).
@@ -952,6 +957,7 @@ namespace Forge.Game.Ui
                 glow.color = new Color(rc.r, rc.g, rc.b, 0.35f + 0.1f * tier);
                 float gs = cw * (1.25f + 0.1f * tier);
                 UiKit.Anchor(glow.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, gs, gs);
+                if (Hi(e.Rarity)) c.Glow = glow;   // T459 ⓨ — 정본 6674 `.sr-cell.hi.on` 만 맥동한다(동급 조연 peer 는 아니다)
             }
             Image shadow = PetSkillKit.Disc(wrap, "shadow", PetSkillStyle.C("black"));
             shadow.color = new Color(0f, 0f, 0f, 0.5f);
@@ -1271,7 +1277,9 @@ namespace Forge.Game.Ui
             AnimateCharge();
             AnimateFlash();
             AnimateWipe();
+            AnimateEnterShake();
             AnimateKick();
+            AnimateHiPulses();
             AnimateHeroRing();
             AnimatePeerRings();
             AnimateBeam();
@@ -1482,6 +1490,51 @@ namespace Forge.Game.Ui
 
         /// <summary>화면 킥이 도는 중인가 — 자가 본다.</summary>
         public bool Kicking { get { return kickAt >= 0f; } }
+
+        /// <summary>
+        /// T459 ⓧ — 열릴 때의 판 셰이크(정본 `.sr-wrap { animation: srshake .25s … both }` 5657 + `animation-delay: .21s` 6148).
+        /// 킥(`srshakehit`)이 판을 잡고 있으면 물러난다 — 정본에서도 `.hero .sr-wrap` 의 단축이 이 애니메이션을 갈아 끼운다.
+        /// </summary>
+        void AnimateEnterShake()
+        {
+            if (wrap == null || enterAt < 0f) return;
+            SummonEnterSpec sp = SummonFxStyle.Enter;
+            double ms = (Time.unscaledTime - enterAt) * 1000f;
+            if (kickAt >= 0f) { enterAt = -1f; return; }
+            if (sp.Done(ms))
+            {
+                wrap.anchoredPosition = wrapHome;
+                wrap.localScale = Vector3.one;
+                enterAt = -1f;
+                return;
+            }
+            if (!sp.Shaking(ms)) return;
+            double tx, ty, sc;
+            sp.At(ms, out tx, out ty, out sc);
+            Rect r = wrap.rect;
+            wrap.anchoredPosition = wrapHome + new Vector2((float)(tx * r.width), -(float)(ty * r.height));   // CSS 의 +y 는 아래
+            wrap.localScale = Vector3.one * (float)sc;
+        }
+
+        /// <summary>입장 셰이크가 도는 중인가 — 자가 본다.</summary>
+        public bool EnterShaking { get { return enterAt >= 0f && SummonFxStyle.Enter.Shaking((Time.unscaledTime - enterAt) * 1000f); } }
+
+        /// <summary>
+        /// T459 ⓨ — 고등급 셀 광채의 무한 맥동(정본 6674 `.sr-cell.hi.on .sr-orbwrap { animation: srpulse 1.6s ease-in-out infinite; animation-delay: calc(.45s + var(--i) * .17s) }`).
+        /// 정본은 box-shadow 두 겹의 번짐이 뛴다 — 클론은 광채 원판의 배율을 두 겹 비율의 평균으로 뛰게 한다(본체 밝기는 안 건드린다 · 정본 주석).
+        /// </summary>
+        void AnimateHiPulses()
+        {
+            SummonHiPulseSpec sp = null;
+            for (int i = 0; i < cells.Count; i++)
+            {
+                Cell c = cells[i];
+                if (c.Glow == null || !c.On) continue;
+                if (sp == null) sp = SummonFxStyle.HiPulse;
+                double ms = (Time.unscaledTime - c.OnAt) * 1000f;
+                c.Glow.rectTransform.localScale = Vector3.one * (float)sp.ScaleAt(ms, i);
+            }
+        }
 
 
         /// <summary>
@@ -1927,6 +1980,8 @@ namespace Forge.Game.Ui
                     }
 
         public Vector2 EjectOf(int i) { return i >= 0 && i < cells.Count ? cells[i].ToLight : Vector2.zero; }
+        /// <summary>T459 ⓨ — i 번째 셀의 광채 원판(고등급이 아니면 null).</summary>
+        public Image GlowOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Glow : null; }
 
         /// <summary>셀별 재점화 플래시 — 자가 본다.</summary>
         public Image RelightOf(int i) { return i >= 0 && i < relights.Count ? relights[i] : null; }

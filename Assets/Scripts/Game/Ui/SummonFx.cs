@@ -1204,10 +1204,12 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; streaks = null; particles = null; heroRingEase = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; enter = null; hipulse = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; streaks = null; particles = null; heroRingEase = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
+        static SummonEnterSpec enter;
+        static SummonHiPulseSpec hipulse;
         static SummonHeroSpec hero;
         static SummonRelightSpec relight;
         static SummonSparkSpec spark;
@@ -1241,6 +1243,10 @@ namespace Forge.Game.Ui
         public static SummonHeroSpec Hero { get { Load(); if (hero == null) hero = SummonHeroSpec.From(root); return hero; } }
         /// <summary>T334 5회차 — 완료 뒤 아이들 호흡(표의 `idle` 절).</summary>
         public static SummonIdleSpec Idle { get { Load(); if (idle == null) idle = SummonIdleSpec.From(root); return idle; } }
+        /// <summary>T459 ⓧ — 열릴 때 판 셰이크(표의 `enter` 절 · 정본 `srshake`).</summary>
+        public static SummonEnterSpec Enter { get { Load(); if (enter == null) enter = SummonEnterSpec.From(root); return enter; } }
+        /// <summary>T459 ⓨ — 고등급 셀 광채 맥동(표의 `hipulse` 절 · 정본 `srpulse`).</summary>
+        public static SummonHiPulseSpec HiPulse { get { Load(); if (hipulse == null) hipulse = SummonHiPulseSpec.From(root); return hipulse; } }
         /// <summary>T334 3회차 ⓑ — 충전 구간 키프레임 넷(Core 가 쥔 셈 · 표의 `charge` 절).</summary>
         public static SummonChargeSpec Charge { get { Load(); if (charge == null) charge = SummonChargeSpec.From(root); return charge; } }
 

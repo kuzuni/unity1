@@ -202,6 +202,114 @@ namespace Forge.Core.Ui
     /// 그래서 진폭은 등급마다 다른 무게(<see cref="Weight"/>)를 탄다. 셀마다 `i × .21s` 씩 늦게 시작해 물결이 된다.
     /// UnityEngine 참조 0.
     /// </summary>
+    /// <summary>
+    /// T459 ⓧ — 소환 결과가 **열릴 때** 판이 한 번 흔들리는 규칙(정본 `.sr-wrap` `srshake` .25s · 지연 .21s · style.css 5657·6148·5666).
+    /// 주역 착지의 킥(`SummonHeroSpec.Shake`)과 같은 꼴이지만 **열림 시각**에서 세고, 지연 안에서는 제자리다.
+    /// </summary>
+    public sealed class SummonEnterSpec
+    {
+        /// <summary>흔드는 길이(ms · 정본 .25s) · 열림 뒤 지연(ms · 정본 .21s).</summary>
+        public double ShakeMs, DelayMs;
+        public RewardBurstSpec.Track Shake;
+
+        public static SummonEnterSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "enter"));
+            var s = new SummonEnterSpec { ShakeMs = J.Num(J.Require(o, "shake_ms")), DelayMs = J.Num(J.Require(o, "shake_delay_ms")) };
+            if (s.ShakeMs <= 0) throw new FormatException("SummonFxUi enter: shake_ms 는 0보다 커야 한다");
+            if (s.DelayMs < 0) throw new FormatException("SummonFxUi enter: shake_delay_ms 는 0 이상이다");
+            double[] e = J.NumArr(J.Require(o, "shake_ease"));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi enter: shake_ease 는 cubic-bezier 넷이다");
+            CssEase ease = new CssEase(e[0], e[1], e[2], e[3]);
+            var list = J.List(J.Require(o, "srshake"), x => J.Obj(x));
+            if (list.Count < 2) throw new FormatException("SummonFxUi enter: srshake 키프레임이 둘 미만이다");
+            var keys = new RewardBurstSpec.KeyStop[list.Count];
+            double prev = -1;
+            for (int i = 0; i < list.Count; i++)
+            {
+                JsonObject k = list[i];
+                var ks = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(k, "at")), Ease = ease };
+                if (ks.At < prev) throw new FormatException("SummonFxUi enter: 퍼센트는 오름차순이어야 한다");
+                prev = ks.At;
+                ks.Num["tx_pct"] = J.Num(J.Require(k, "tx_pct"));
+                ks.Num["ty_pct"] = J.Num(J.Require(k, "ty_pct"));
+                ks.Num["scale"] = J.Num(J.Require(k, "scale"));
+                keys[i] = ks;
+            }
+            if (keys[0].Num["tx_pct"] != 0 || keys[0].Num["ty_pct"] != 0 || keys[0].Num["scale"] != 1) throw new FormatException("SummonFxUi enter: 첫 키는 제자리여야 한다");
+            var last = keys[keys.Length - 1];
+            if (last.Num["tx_pct"] != 0 || last.Num["ty_pct"] != 0 || last.Num["scale"] != 1) throw new FormatException("SummonFxUi enter: 마지막 키는 제자리로 돌아와야 한다");
+            s.Shake = new RewardBurstSpec.Track { Keys = keys };
+            return s;
+        }
+
+        /// <summary>열린 뒤 <paramref name="msSinceOpen"/> 에 판의 치우침(판 크기의 비율 · +y 는 **아래**)과 배율 — 지연 안·끝난 뒤는 제자리.</summary>
+        public void At(double msSinceOpen, out double txF, out double tyF, out double scale)
+        {
+            double ms = msSinceOpen - DelayMs;
+            double p = ms <= 0 ? 0 : ms >= ShakeMs ? 100 : ms / ShakeMs * 100;
+            txF = Shake.Sample(p, "tx_pct", null) / 100.0;
+            tyF = Shake.Sample(p, "ty_pct", null) / 100.0;
+            scale = Shake.Sample(p, "scale", null);
+        }
+
+        /// <summary>지금 흔드는 중인가(지연 뒤 · 길이 안).</summary>
+        public bool Shaking(double msSinceOpen) { return msSinceOpen >= DelayMs && msSinceOpen < DelayMs + ShakeMs; }
+        /// <summary>다 끝났나(제자리로 돌려놓고 손을 뗀다).</summary>
+        public bool Done(double msSinceOpen) { return msSinceOpen >= DelayMs + ShakeMs; }
+    }
+
+    /// <summary>
+    /// T459 ⓨ — 고등급(`hi`) 셀 광채의 무한 맥동(정본 6674 `srpulse` 1.6s ease-in-out infinite · 지연 .45s + i×.17s).
+    /// 정본은 box-shadow 두 겹의 번짐(1.1/2.3rem → 1.7/3.4rem)이 뛴다 — 클론의 광채는 원판 한 장이라 **두 겹 비율의 평균**을 배율로 쓴다.
+    /// </summary>
+    public sealed class SummonHiPulseSpec
+    {
+        public double PeriodMs, DelayBaseMs, DelayStepMs;
+        public CssEase Ease;
+        /// <summary>안·바깥 겹의 번짐(rem · [기본, 정점]).</summary>
+        public double[] InnerRem, OuterRem;
+
+        public static SummonHiPulseSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "hipulse"));
+            var s = new SummonHiPulseSpec
+            {
+                PeriodMs = J.Num(J.Require(o, "period_ms")),
+                DelayBaseMs = J.Num(J.Require(o, "delay_base_ms")),
+                DelayStepMs = J.Num(J.Require(o, "delay_step_ms")),
+                InnerRem = J.NumArr(J.Require(o, "inner_rem")),
+                OuterRem = J.NumArr(J.Require(o, "outer_rem")),
+            };
+            if (s.PeriodMs <= 0) throw new FormatException("SummonFxUi hipulse: period_ms 는 0보다 커야 한다");
+            if (s.DelayBaseMs < 0 || s.DelayStepMs < 0) throw new FormatException("SummonFxUi hipulse: 지연은 0 이상이다");
+            double[] e = J.NumArr(J.Require(o, "ease"));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi hipulse: ease 는 cubic-bezier 넷이다");
+            s.Ease = new CssEase(e[0], e[1], e[2], e[3]);
+            if (s.InnerRem == null || s.InnerRem.Length != 2 || s.OuterRem == null || s.OuterRem.Length != 2) throw new FormatException("SummonFxUi hipulse: inner_rem·outer_rem 은 [기본, 정점] 둘이다");
+            if (s.InnerRem[0] <= 0 || s.OuterRem[0] <= 0 || s.InnerRem[1] < s.InnerRem[0] || s.OuterRem[1] < s.OuterRem[0]) throw new FormatException("SummonFxUi hipulse: 정점은 기본보다 커야 한다");
+            return s;
+        }
+
+        /// <summary>i 번째 셀의 지연(ms · 정본 `.45s + i×.17s`).</summary>
+        public double DelayMs(int i) { return DelayBaseMs + DelayStepMs * (i < 0 ? 0 : i); }
+        /// <summary>정점 배율 — 두 겹 비율(정점/기본)의 평균.</summary>
+        public double PeakF { get { return ((InnerRem[1] / InnerRem[0]) + (OuterRem[1] / OuterRem[0])) * 0.5; } }
+        /// <summary>0..1 위상의 무게 — 0% 0 · 50% 1 · 100% 0(구간마다 ease-in-out).</summary>
+        public double Weight(double phase)
+        {
+            phase -= Math.Floor(phase);
+            return phase < 0.5 ? Ease.Ease(phase / 0.5) : 1.0 - Ease.Ease((phase - 0.5) / 0.5);
+        }
+        /// <summary>셀이 켜진 뒤 <paramref name="msSinceOn"/> 에 i 번째 셀 광채의 배율(지연 안이면 1).</summary>
+        public double ScaleAt(double msSinceOn, int i)
+        {
+            double t = msSinceOn - DelayMs(i);
+            if (t < 0) return 1.0;
+            return 1.0 + (PeakF - 1.0) * Weight(t / PeriodMs);
+        }
+    }
+
     public sealed class SummonIdleSpec
     {
         /// <summary>한 번 숨쉬는 길이(ms · 정본 2.6s) · 셀 사이 지연(ms · 정본 .21s).</summary>
