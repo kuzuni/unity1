@@ -667,5 +667,31 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T333 22회차 — 8383 묶음의 마지막 자리 `.qst-row .qst-name`(퀘스트 줄 이름). 14~21회차엔 «T331 산 lock + 클론에 그 이름 자리가 아직 없다» 로
+        /// KNOWN 이었는데 **둘 다 낡은 말**이었다 — 그 lock 은 죽었고 이름 자리는 `QuestSheet.cs` 99행에 처음부터 있었다(정본 클래스와 달리 «name» 이라
+        /// 자의 `#` 닻이 못 찾았을 뿐이다). 이 회차에 이름을 정본 그대로 `qst-name` 으로 부르고 겹을 물렸다.</summary>
+        [UnityTest]
+        public IEnumerator 퀘스트_줄_이름도_8383_한_벌의_흰_엠보스를_진다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            QuestSheet.Open(h);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = h.Popups.Find(QuestSheet.Name);
+            Assert.IsNotNull(p, "퀘스트 시트가 열려 있다");
+
+            int n = 0;
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name != "qst-name") continue;
+                n++;
+                AssertShadow(t, "paper_emboss", "퀘스트 줄 이름(" + t.text + ")");
+            }
+            Assert.Greater(n, 0, "퀘스트 줄 이름(정본 ui.js 4565 `.qst-name`)이 하나는 선다");
+            h.Popups.Hide(QuestSheet.Name);
+            yield return null;
+        }
+
     }
 }

@@ -127,12 +127,11 @@ TABLE = {
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ────────────────────────────────
 KNOWN = {
-    'ring:Ui/ForgeAutoPopup.cs@Open': 'T333 14회차 — 정본 4858 `.af-age-star` 4방 1px 링은 별 **글자**에 두른 것인데 클론의 승천 별은 아틀라스 아이콘(T58 · IconGen star)이라 글자 자리가 없다 — 아이콘엔 링을 못 두른다(`.chat-input-bar .btn.danger.round` 와 같은 갈래)',
-    'Ui/ForgeAutoPopup.cs#mark': 'T333 14회차 — 정본 4978 `.af-check.on` 의 ✓ 는 글자인데 클론은 아틀라스 아이콘(PopupKit.IconOr check)이라 언더레이가 안 닿는다 — 아이콘 자리',
+    'ring:Ui/ForgeAutoPopup.cs@Open': 'T453 몫(T333 21회차에 새 번호로 냈다) — 정본 4858 `.af-age-star` 4방 1px 링은 별 **글자**에 두른 것인데 클론의 승천 별은 아틀라스 아이콘(T58 · IconGen star)이라 글자 자리가 없다. **lock 이 아니라 능력이 없는 것**이다 — 고칠 길은 «같은 그림을 오프셋만큼 옮겨 뒤에 깔기»(T453 등재문)',
+    'Ui/ForgeAutoPopup.cs#mark': 'T453 몫(T333 21회차에 새 번호로 냈다) — 정본 4978 `.af-check.on` 의 ✓ 는 글자인데 클론은 아틀라스 아이콘(`PopupKit.IconOr("check")`)이라 언더레이가 안 닿는다. 흐린 그림자라 사본 한 장 + 블러(T342 `UiFilter.Blur`)가 필요하다',
     'Ui/PetUpgradePopup.cs#bulk-sil': 'T333 14회차 — 정본 4372 `.petup-bulk .bulk-sil { color: transparent; text-shadow: 0 0 0 var(--rc) }` 는 이모지 글자를 «등급색 실루엣» 으로 만드는 꼼수 — 클론은 아틀라스 아이콘(egg/paw)에 등급색 틴트를 주어 같은 결과를 이미 낸다(그림자가 아니라 색이 목적) · 4375 `.on` 흰색도 틴트로',
     'Ui/PetUpgradePopup.cs@Check': 'T333 14회차 — 정본 4378 `.pet-tile .tile-check` 의 ✓ 는 글자(text-shadow 0 1px 2px .5)인데 클론은 아틀라스 아이콘(UiKit.Icon check)이라 언더레이가 안 닿는다 — 아이콘 자리',
-    'Ui/QuestSheet.cs#qst-name': 'T331 산 lock + 클론에 그 이름 자리가 아직 없다 — 정본 8381 `.qst-row .qst-name`',
-    'ring:Ui/ChatScreen.cs@Open': 'T333 4회차 — 클론의 «◀» 는 글자가 아니라 아틀라스 아이콘(tri_left)이라 링을 글자에 못 두른다: 키운 삼각을 뒤에 깔아야 하고 아틀라스엔 검정 틴트 변형이 없다(정본이 안 부른다) · 길 둘 = Image.color 곱하기 / 도형 굽기 · 다음 회차',
+    'ring:Ui/ChatScreen.cs@Open': 'T453 몫(T333 21회차에 새 번호로 냈다) — 클론의 «◀» 는 글자가 아니라 아틀라스 아이콘(`tri_left`)이라 링을 글자에 못 두른다. 정본 3283 은 8방 1px #000',
 }
 
 SHADOW = r'UiKit\.TextShadow'

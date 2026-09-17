@@ -96,8 +96,14 @@ namespace Forge.Game.Ui
                 float bodyX = padX + icon + rem * 0.6f;
                 float rightW = btnW + rem * 0.4f;
                 float bodyW = rowW - bodyX - rightW - padX;
-                TextMeshProUGUI name = UiKit.Text(row, "name", TextKind.Sub, def.Text + " " + PopupKit.Fmt(q.Need) + unit, "pp_ink", TextAlignmentOptions.Left);
+                // T333 22회차 — 이름을 정본 클래스 그대로 «qst-name» 으로 부른다(ui.js 4565 `<div class="qst-name">`).
+                //   종전 «name» 은 화면마다 흔한 이름이라 자가 앱 뿌리에서 남의 상자를 잡을 수 있었다(T414 갈래).
+                TextMeshProUGUI name = UiKit.Text(row, "qst-name", TextKind.Sub, def.Text + " " + PopupKit.Fmt(q.Need) + unit, "pp_ink", TextAlignmentOptions.Left);
                 name.fontStyle = FontStyles.Bold;
+                // T333 22회차 — 정본 **8383** 묶음(`.qst-row .qst-name`)의 «밝은 종이 위 글자는 흰 엠보스»(`0 1px 0 rgba(255,255,255,.92)`).
+                //   14~21회차엔 «T331 산 lock + 클론에 그 이름 자리가 아직 없다» 로 KNOWN 이었는데 **둘 다 낡은 말**이었다 —
+                //   그 lock 은 죽었고 이름 자리는 99행에 처음부터 있었다(`qst-name` 이 아니라 `name` 이라 자의 `#` 닻이 못 찾았을 뿐이다).
+                UiKit.TextShadow(name, "paper_emboss");
                 UiKit.Place(name.rectTransform, bodyX, padY, bodyW, PopupKit.FontSize(TextKind.Sub) * 1.3f);
 
                 RectTransform bar = UiKit.Box(row, "bar");
