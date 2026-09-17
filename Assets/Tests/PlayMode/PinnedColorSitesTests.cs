@@ -741,6 +741,37 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T377 21회차 — 정본이 **같은 리터럴 #d6d6d6 을 두 자리**에 적었다: `731 .forge-item-grid` 와 `3724 #forge-item-modal .idet-subs`
+        /// (그 주석 «원본 실측 rgb(214,214,214) — --pp-panel(#efefef)은 25 밝았다»). 클론은 상세 판만 표 키(`idet_panel`)로 받고 **목록 격자는
+        /// `pp_gray` 로 세운 뒤 코드에서 덮어쓰고** 있었다(§1 «수치는 코드에 박지 않는다»). 이 칸은 **두 자리가 한 키에서 같은 값으로 오는가**를 묻는다.</summary>
+        [UnityTest]
+        public IEnumerator 장비_목록_격자와_상세_판은_같은_한_키에서_같은_회색으로_온다()
+        {
+            yield return Boot();
+            ForgeHost fh = ForgeHost.Instance;
+            Color want = UiKit.C("idet_panel");
+            Assert.AreNotEqual(UiKit.C("pp_gray"), want, "공용 pp_gray(#c4c4c4)가 아니다 — 정본이 이 판만 한 단 어둡게 못박았다");
+
+            // 격자는 «목록» 갈래에서만 선다(`Open` 은 level 뷰 · `OpenList` 가 list 뷰다 — 33·34행).
+            ForgeInfoPopup.OpenList(fh);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup lp = fh.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(lp, "확률 정보 팝업(목록 갈래)");
+            int grids = 0;
+            foreach (Transform g in lp.Root.GetComponentsInChildren<Transform>(true))
+            {
+                if (g.name != "forge-item-grid") continue;
+                Transform bg = g.Find("bg");
+                if (bg == null) continue;
+                grids++;
+                Assert.AreEqual(want, bg.GetComponent<Image>().color, "목록 격자 판 = 표 idet_panel(정본 731 #d6d6d6)");
+            }
+            Assert.Greater(grids, 0, "장비 목록 격자가 하나는 선다");
+            fh.Meta.Popups.Hide(ForgeInfoPopup.Name);
+            yield return null;
+        }
+
         static System.Collections.Generic.List<Transform> AllNamed(Transform root, string name)
         {
             var found = new System.Collections.Generic.List<Transform>();

@@ -245,8 +245,11 @@ namespace Forge.Game.Ui
                 UiKit.Place(bar, 0f, 0f, inner, barH);
                 RectTransform grid = UiKit.Box(section, "forge-item-grid");
                 UiKit.Place(grid, 0f, barH + rem * 0.3f, inner, gridH);
-                Image gbg = UiKit.Rounded(grid, "bg", "pp_gray", rem * 0.7f);
-                gbg.color = new Color(0xd6 / 255f, 0xd6 / 255f, 0xd6 / 255f);
+                // T377 21회차 — 정본 **731** `.forge-item-grid { background: #d6d6d6 }`. 값은 맞았지만 **코드에 박혀** 있었다
+                //   (`pp_gray`(#c4c4c4)로 세운 뒤 바로 `new Color(0xd6…)` 로 덮어쓰는 두 줄) — §1 «수치는 코드에 박지 않는다».
+                //   같은 #d6d6d6 이 이미 표에 있다: `idet_panel`(T146 이 정본 3724 `#forge-item-modal .idet-subs` 로 세운 키 ·
+                //   정본이 두 자리에 같은 리터럴을 적었고 클론도 한 키로 모은다). 공용 `pp_panel`(#efefef)이 아닌 까닭은 그 주석에 있다.
+                Image gbg = UiKit.Rounded(grid, "bg", "idet_panel", rem * 0.7f);
                 for (int i = 0; i < cells.Count; i++)
                 {
                     RectTransform c = UiKit.Box(grid, "cell-" + i);

@@ -185,6 +185,15 @@ TABLE = {
     #   기술 노드 진행은 `.tech-prog`(4606 · 위 줄)로 갈아엎혔고 이 둘은 그 전 꼴의 잔재다 — 클론에 자리가 없는 것이 맞다.
     '.tech-node-bar': ['—죽음: 정본이 `tech-node-bar` 클래스를 한 번도 안 붙인다(`.tech-prog` 로 갈아엎힌 잔재) — 그려지지 않는 리터럴'],
     '.tech-node-bar div': ['—죽음: 같은 까닭(3134 #ffd54f) — 그 채움도 안 그려진다'],
+    # ── T377 21회차 — 같은 리터럴이 정본 두 자리에 적힌 갈래 + 앞 회차가 만든 «덮개» 하나.
+    '.forge-item-grid': ['Ui/ForgeInfoPopup.cs#forge-item-grid|catalog:idet_panel'],          # 731 #d6d6d6 — 값은 맞았지만 코드에 박혀 있었다(21회차에 표 키로)
+    '#forge-item-modal .idet-subs': ['Ui/ForgeInfoPopup.cs#idet-subs|catalog:idet_panel'],    # 3724 #d6d6d6 — 정본이 같은 리터럴을 두 자리에 적었고 클론도 한 키로 모은다(T146)
+    '.tab-x-mark': ['Ui/TabBar.cs#face|catalog:tabx_bg'],                                     # 3760 #f2191d ↔ 카탈로그 tabx_bg 같은 값(짝만 · 턱은 tabx_shadow #4a0709)
+    # `.fi-card .fi-skip`(5152 #c9c9c9)은 **20회차가 세운 8771 이 덮는다** — `.modal-card .btn.btn.fi-skip.fi-skip`(0-5-0) ≫ `.fi-card .fi-skip`(0-2-0).
+    #   정본 주석 8770 이 그 관계를 스스로 적어 뒀다: «`.fi-card .fi-skip`(0-2-0)의 **나머지** 선언은 그대로 산다» — 곧 배경만 진다.
+    #   그래서 #c9c9c9 는 그려지지 않는다(정본이 census 로 버린 바로 그 값이기도 하다 · 결정 778).
+    '.fi-card .fi-skip': ['—죽음: 8771 `.modal-card .btn.btn.fi-skip.fi-skip`(0-5-0)이 배경을 덮는다 — 정본 주석 8770 이 «나머지 선언은 그대로 산다» 로 그 관계를 적어 뒀다'],
+
            # 8807 #81e884 ↔ 카탈로그 quest_bar_done 같은 값(짝만)
 
 }
