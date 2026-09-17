@@ -817,8 +817,12 @@ namespace Forge.Tests.PlayMode
             ForgeHost h = ForgeHost.Instance;
             Assert.IsNotNull(h, "ForgeHost");
             h.S.BestChapter = 3; h.S.BestStage = 1;
-            h.Engine.AutoForgeConfig().FilterOn = true;   // 서브옵션 행은 필터가 켜져야 선다
             h.Pull();
+            Assert.IsTrue(h.AutoForgeUnlocked, "2-10 을 넘겨 자동 제련이 해금됐다");
+            // 런 1048 빨강: 서브옵션 행은 필터가 켜져야 서는데 `FilterOn` 을 **`Pull` 앞에서** 켜서 세이브 값으로 다시 덮였다.
+            //   순서는 `Pull`(세이브 → 엔진) → 설정 → `Push` 다(`AgePatternTests` 250~256 · `PinnedColorSitesTests` 12회차 칸과 같은 길).
+            h.Engine.AutoForgeConfig().FilterOn = true;
+            h.Push();
             ForgeAutoPopup.Open(h);
             yield return null; yield return null;
             Canvas.ForceUpdateCanvases();
