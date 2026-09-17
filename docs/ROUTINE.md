@@ -5128,3 +5128,17 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   → **판정(런 #586 · `713069c` · 4회차 실림)**: `PopupZTests` **4/4** PASS · `screen_player-info.png` 눈 확인 — 하단 네비 여섯 칸이 딤 아래로 어두워졌다. **✅ · lock 반납** — 정본이 탭바 위에 띄우는 다섯(offline·profile·pass·chat·player-info)이 전부 표 `PopupZUi.json` 대로 위 층에 선다. 그 런의 빨강 둘(`EquipSwapTests` T331 · `SurfaceArtTests` T178)은 산 lock 임자.
 - 범위: `Assets/Scripts/Game/Ui/OfflinePopup.cs` · `Ui/ChatScreen.cs`(**T333 lock 뒤**) · `Ui/ProfilePopup.cs` · `Ui/PlayerInfoPopup.cs`(**T178 lock 뒤**) · `Ui/PassPopup.cs`(**T345 lock 뒤**) · `Assets/Scripts/Game/Ui/PopupZUi.cs`(새 · 1회차) · `Assets/Forge/Resources/PopupZUi.json`(새 · 정본 z 표 · 1회차) · `Assets/Tests/PlayMode/PopupZTests.cs`(새 · 1회차)
 
+
+
+### T451 — 소환 결과 구슬 색 자(`UiFilterTests.마_소환_구슬은…`)가 **런마다 갈린다**: 관측값이 정적 조합 어디와도 안 맞는데 자국이 «어느 칸의 구슬인지» 를 안 적는다 (자 · T442 가 닫힌 뒤 다시 선 빨강 · T422·T431·T436·T443 과 같은 갈래)
+
+- 무엇: `Assets/Tests/PlayMode/UiFilterTests.cs` 의 `마_소환_구슬은_등급마다_표의_filter_를_거친_색이다` 가 **같은 코드로 빨갛다 초록이다** 한다 — 실측 런 **1017 빨강 · 1021 초록 · 1027 빨강 · 1040 초록 · 1042 초록 · 1073 빨강**. T442 가 «제품 결함이 아니라 자의 흔들림» 으로 닫았는데(그 절의 근거: 빨간 런 이후 그 자가 재는 파일 넷에 **0 커밋**) 닫힌 뒤 또 섰고 **임자가 없다**(§0-6 이 매 회차 모든 워커에게 그 빨강을 손으로 확인시킨다).
+- 지금까지 좁힌 것(T442 1·2회차 + 이 절 1회차):
+  - ⓐ **mythic 쪽은 멀쩡하다** — 관측 비가 정본 `#aa1cff` 에 `saturate 1.08` 을 건 값과 맞는다 ⇒ 표·`FilterRules`·거는 자리는 옳다.
+  - ⓑ **common 쪽 관측값이 회차마다 다르다** — T442 때 `0.340`, 런 1073 때 `0.398`(기대 `0.562` = `#e0e0e0` × brightness .64). 팔레트 폴백 `muted #8a8a8a` × .64 = `0.3464` 와도, 두 번 건 값 `0.360` 과도 안 맞는다. **바이트 색 × 필터로는 나올 수 없는 수**다.
+  - ⓒ 코드를 읽으면 구슬 색은 **세울 때 한 번** 정해지고(`SkillSummonResult.cs:946` `Disc(wrap, "sr-orb", OrbFilter(rc, tier))`) 그 뒤 아무도 `color` 를 다시 안 쓴다 — 그러니 «시간에 따라 변하는 색» 이라면 변하는 것은 **색이 아니라 무엇을 읽었는가** 다.
+  - ⓓ 그런데 자국에 **그 칸이 없다**: 관측 색 둘만 적히고 «둘 중 어느 것이 common 칸인지 · 그 값이 어떤 정적 조합과 맞는지» 가 없다. 그래서 회차마다 워커가 관측값 하나를 손으로 되짚다 끝난다.
+- 무엇을 한다: ⓐ **자국을 스스로 답하게 한다**(1회차) — 관측 색마다 «모든 등급 × 모든 tier 의 `OrbFilter`» · 구슬 **세 겹**(본체·`sr-orb-deep`·`sr-hilite`) · 날것 · 두 번 건 것 · `muted` 폴백을 전부 재어 **가장 가까운 것을 이름으로** 찍는다(`NearestName`). 다음 빨강 한 번이면 «팔레트가 어긋났나 · 겹을 잘못 집었나 · **어느 것과도 안 맞나(= 지어지는 중인 값)**» 가 글로 나온다. ⓑ 그 답이 ⓒ(어느 것과도 안 맞음)이면 **읽는 시점**을 고친다 — `SkillSummonResultView` 에 `Done`·`Charging`·`Hero`·`Flash`·`Wipe` 가 공개로 있으니 «두 프레임» 대신 «연출이 가라앉을 때까지» 로 바꾼다(T442 8회차가 적어 둔 길 · `CraftLowerInsetTests.SettleCardPop` 과 같은 꼴).
+- 판정: 다음 빨강의 자국 한 줄(가장 가까운 것) · 그 뒤 고친 시점으로 **연달아 두 런 초록**.
+- 범위: `Assets/Tests/PlayMode/UiFilterTests.cs` (자만 · **게임 코드 0줄** — 잣대를 한 글자도 안 느슨하게 하지 않는다 · 결정 748)
+- 곁: 이 절이 닫히면 §0-6 이 매 회차 모든 워커에게 보이던 «임자 없는 빨강» 하나가 사라진다.

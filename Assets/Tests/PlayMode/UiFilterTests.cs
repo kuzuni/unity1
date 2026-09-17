@@ -8,6 +8,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.TestTools;
+using Forge.Core.Data;
 using Forge.Core.Ui;
 using Forge.Game.Ui;
 
@@ -365,6 +366,41 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T451 1회차 — 관측한 구슬 색이 **무엇과 가장 가까운가**를 이름으로 돌려준다(자국 전용 · 단언은 이것을 안 쓴다).
+        ///
+        /// 후보는 «있을 수 있는 정적 조합» 전부다: 등급 × tier 의 `OrbFilter(rc, t)`(팔레트가 어긋났거나 tier 를 잘못 집은 갈래) ·
+        /// 같은 셀의 **다른 두 겹**(`sr-orb-deep` = 등급색을 `sr_orb_deep` 쪽으로 .62 섞은 것 · `sr-hilite`) ·
+        /// 필터를 **안 건** 날것(rc) · **두 번 건** 것 · 팔레트 폴백(`muted`). 셋 다 아니면 그 말(«어느 정적 조합과도 안 맞는다»)이 곧 답이다 —
+        /// 그때는 색이 «지어지는 중이거나 지나가는 값» 이라는 뜻이고, 고칠 자리는 팔레트가 아니라 **읽는 시점**이다(T442 2회차가 셈으로 좁힌 그 결론).
+        /// </summary>
+        private static string NearestName(GameDefs defs, Color c)
+        {
+            string best = null;
+            float bestD = float.MaxValue;
+            void Try(string what, Color k)
+            {
+                float d = Mathf.Abs(c.r - k.r) + Mathf.Abs(c.g - k.g) + Mathf.Abs(c.b - k.b);
+                if (d < bestD) { bestD = d; best = what; }
+            }
+            for (int t = 0; t < defs.Rarities.Length; t++)
+            {
+                string r = defs.Rarities[t];
+                Color rc = PetSkillStyle.Rarity(defs, r);
+                for (int f = 0; f < defs.Rarities.Length; f++)
+                {
+                    Try(r + "×orb_" + f, SkillSummonResultView.OrbFilter(rc, f));
+                    Try(r + "×orb_" + f + "×2", SkillSummonResultView.OrbFilter(SkillSummonResultView.OrbFilter(rc, f), f));
+                }
+                Try(r + " 날것(필터 안 걺)", rc);
+                Try(r + " deep겹×orb_" + t, SkillSummonResultView.OrbFilter(Color.Lerp(rc, PetSkillStyle.C("sr_orb_deep"), 0.62f), t));
+                Try(r + " hilite겹×orb_" + t, SkillSummonResultView.OrbFilter(PetSkillStyle.C("sr_hilite"), t));
+            }
+            Try("muted 폴백", PetSkillStyle.C("muted"));
+            Try("muted 폴백×orb_0", SkillSummonResultView.OrbFilter(PetSkillStyle.C("muted"), 0));
+            return string.Format("{0}(빗나감 {1:F4}{2})", best, bestD, bestD < 4.5f / 255f ? "" : " — **어느 정적 조합과도 안 맞는다 = 지어지는 중인 값**");
+        }
+
         /// <summary>T342 7회차 ⓔ — 정본 6656~6665 `.sr-cell[data-tier=N] .sr-orb { filter: saturate(·) brightness(·) }`:
         /// 소환 결과의 구체 본체 색이 표 `summon_orb_N` 의 filter 를 거친 등급색이다(종전 «tier ≤ 1 검정 30%» 근사가 아니다).</summary>
         [UnityTest]
@@ -406,11 +442,18 @@ namespace Forge.Tests.PlayMode
                 //   ⇒ 남은 것은 «이 자리가 실제로 무엇을 먹었나» 인데 그것이 자국에 없다. 그래서 **자국이 스스로 답하게** 한다:
                 //      정본 hex · 그것을 판 rc · 쓴 필터 값 · 관측/rc 채널 비(比)를 함께 찍는다. 비가 곧 «무엇이 곱해졌나» 다.
                 FilterSpec fs = UiFilter.Table.Get("summon_orb_" + tier);
+                // T451 1회차 — 자국에 아직 **한 칸이 비어 있었다**: «관측 색 둘» 은 적히는데 **그 둘이 어느 칸의 구슬인지**,
+                //   그리고 **그 값이 어떤 정적 조합과 맞는지**가 없다. 그래서 회차마다 워커가 관측값 하나를 손으로 되짚다 끝난다
+                //   (T442 가 그렇게 여러 회차를 썼고 이 회차의 관측값 0.398 도 지난번 0.340 과 달라 «지어지는 중» 말고는 말이 안 된다).
+                //   ⇒ 자가 **스스로 맞춰 보게** 한다: 관측 색마다 «모든 등급 × 모든 tier 의 OrbFilter» 와 구슬 세 겹(본체·deep·hilite)을
+                //      전부 재어 **가장 가까운 것**을 이름으로 찍는다. 다음 빨강 한 번이면 «팔레트가 어긋났나 · 겹을 잘못 집었나 ·
+                //      어느 것과도 안 맞나(= 지어지는 중)» 가 글로 나온다. 잣대는 한 글자도 안 바꿨다(결정 748).
+                string near = string.Join(" ‖ ", orbs.ConvertAll(c => NearestName(defs, c)).ToArray());
                 string ratios = string.Join(" / ", orbs.ConvertAll(c => string.Format("({0:F3},{1:F3},{2:F3})",
                     rc.r > 0.001f ? c.r / rc.r : -1f, rc.g > 0.001f ? c.g / rc.g : -1f, rc.b > 0.001f ? c.b / rc.b : -1f)).ToArray());
-                string diag = string.Format(" | 정본hex {0} · rc {1} · 표 sat {2} bri {3} · 관측/rc {4}",
+                string diag = string.Format(" | 가장 가까운 것: {5} | 정본hex {0} · rc {1} · 표 sat {2} bri {3} · 관측/rc {4}",
                     PetSkillStyle.RarityHex(defs, e.Rarity) ?? "(없다 — muted 폴백)", rc,
-                    fs.HasSaturate ? fs.Saturate.ToString("F3") : "-", fs.HasBrightness ? fs.Brightness.ToString("F3") : "-", ratios);
+                    fs.HasSaturate ? fs.Saturate.ToString("F3") : "-", fs.HasBrightness ? fs.Brightness.ToString("F3") : "-", ratios, near);
                 Assert.IsTrue(found, e.Rarity + "(tier " + tier + ") 구체 색 = 등급색에 표 summon_orb_" + tier + " 를 건 값 " + want + " 이어야 한다 — 실물 " + string.Join(" / ", orbs.ConvertAll(c => c.ToString()).ToArray()) + diag);
                 if (tier == 0)
                 {
