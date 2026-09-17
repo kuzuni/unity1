@@ -3877,6 +3877,7 @@
 - 고침 = `sr-heroring` 이 이미 쥔 길을 그대로 한 벌 더(굽기 `SummonFx.BakeHeroRing` 에 정지점·흰 알파를 인자로 · `CraftFxPoly.Screen()` 재질 · `SetAsFirstSibling` · pivot (.5,1)) + 표 칸 여섯(`peerring_stop0~3` · `peerring_white_a` · `peerring_ms` · `ringmax_peer`) + 셀의 착지 시계에 물리기. **수치는 코드에 박지 않는다**(§1).
 - 판정: PlayMode 자 한 칸(동급 셀에 `sr-peerring` 이 서고 셰이더가 `Forge/UiScreen` · 착지 뒤 알파가 0 으로 내려간다 · 주역 링과 **다른 스프라이트**다) + `screen_t179-summon` 눈.
 - 범위: `Assets/Scripts/Game/Ui/SkillSummonResult.cs`·`Ui/SummonFx.cs`(각 **산 lock 뒤**) · `Assets/Forge/Resources/SummonFxUi.json` · `Assets/Tests/PlayMode/SummonFxTests.cs` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 **1회차 선점 2026-09-17 12:4x 워커 O(sess-2140-18689)** — 두 파일 다 산 lock 밖(`check_claim_scope` 겹침 = 문서 둘뿐). 굽기 한 벌 더 + 표 칸 + 셀 착지 시계 + PlayMode 자.
 
 ### T449 ✅ — **소환진(`.sr-floor`)의 폭·비율 넷이 코드에 박혔다** — 열 줄 옆 형제 `.sr-canopy` 는 같은 꼴을 이미 표에서 읽는다 (UI · T402·T375 와 같은 꼴 · **T33 43회차 등재**)
 
