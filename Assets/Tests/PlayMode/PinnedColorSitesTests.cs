@@ -484,13 +484,15 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(otherServers, 0, "남의 행은 회색 league_server 그대로");
             LeagueSheet.OpenRewards(h);
             yield return null; Canvas.ForceUpdateCanvases();
-            Popup lr = PopupLayer.Instance.Find(LeagueSheet.Name);
+            Popup lr = PopupLayer.Instance.Find(LeagueSheet.RewardsName);   // 12회차 — 보상 카드는 시트 위 별도 팝업(«league-rewards») · 런 1047 은 시트에서 찾아 null 이었다
+            Assert.IsNotNull(lr, "리그 보상 팝업");
             TMPro.TextMeshProUGUI ct = null;
             foreach (TMPro.TextMeshProUGUI t in lr.Root.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
                 if (t.name == "time" && t.transform.parent != null && t.transform.parent.name == "collect") ct = t;
             Assert.IsNotNull(ct, "수집까지 시간 글자(collect/time)");
             Assert.AreEqual(PinnedColorUi.C("league_collect_time_ink"), ct.color, "수집 시간 = 정본 2528 #1d8f3c(전엔 토큰 pp_green_dk #1f8c34)");
             Assert.AreNotEqual(UiKit.C("pp_green_dk"), ct.color, "토큰 값과 다르다(정본이 리터럴로 못박은 자리)");
+            h.Popups.Hide(LeagueSheet.RewardsName);
             h.Popups.Hide(LeagueSheet.Name);
             yield return null;
 
