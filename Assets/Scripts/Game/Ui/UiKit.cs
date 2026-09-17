@@ -216,6 +216,13 @@ namespace Forge.Game.Ui
             t.font = UiFont.Primary;
             t.fontSize = Cat.Kind(kind).size;
             t.color = C(colorKey ?? "ink");
+            // T352 ⓐ — **여기 한 줄이 이 축의 끝**이다: `t.fontStyle = TextWeightUi.RegularByColor(colorKey) ? FontStyles.Normal : FontStyles.Bold;`
+            //   정본 `style.css` 의 `font-weight` **233 선언 중 225 가 bold** 고 regular 는 **여덟뿐**이라 **기본이 bold** 여야 한다.
+            //   클론은 부호가 반대다 — 공장이 굵기를 안 주고 27개 파일 **120 자리**가 손으로 박는다(새 화면에서 잊으면 조용히 regular).
+            //   ⚑ **10회차가 일부러 안 뒤집었다**: 뒤집으면 regular 로 남아야 할 자리가 **다** 배선돼 있어야 하는데,
+            //   `.btn small`(667)은 `ForgeCraftPopup.cs`(T377 산 lock) · `.age-tag small`(724)은 `ForgeUi.cs`(T453 산 lock)에 있다.
+            //   그 둘은 지금 **공장 기본이 regular 라서 우연히 맞는** 자리다 — 배선 없이 뒤집으면 그 둘이 되레 틀린다.
+            //   ⇒ 표(`TextWeightUi.json`)와 자(`TextWeightSitesTests`)를 **먼저** 세워 뒀다. 그 둘이 열리면 이 줄 하나로 뒤집는다.
             t.alignment = align;
             // T361 3회차 — 정본 CSS 의 기본은 «접는다»(white-space: normal)이고 nowrap 은 예외 40 자리뿐(표 WrapUi.json · 자리 파일이 WrapUi.Apply 로 건다).
 //               기본값은 Core WrapRules.DefaultWraps 가 쥔다(전엔 NoWrap 이 박혀 있어 정본과 반대였다). 넘침 모드는 그대로(잘림·말줄임은 T351 몫).

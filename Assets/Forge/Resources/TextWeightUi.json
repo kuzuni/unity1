@@ -1,0 +1,16 @@
+{
+  "_": "T352 — 글자 «굵기» 축. 정본 style.css 의 font-weight 233 선언 중 225 가 bold 이고 regular 로 남는 자리는 여덟뿐이다. 그래서 공장(UiKit.Text)의 기본은 bold 고, 이 표가 «regular 로 남는 자리» 만 쥔다. 폰트 축이 둘뿐인 근거는 정본 8624~8631 이 스스로 적어 뒀다 — 웹폰트 금지라 폴백 sans 는 regular/bold 두 축이고 600·650 은 700 으로 반올림되므로 «한 단 내려가려면 500 이어야 한다». 곧 400 넷과 500 넷이 regular, 600 이상은 전부 bold 다. 수치·규칙을 코드에 박지 않는다(§1).",
+  "regular_color_keys": {
+    "pp_muted": "style.css 657 `.muted { color: #78909c; font-weight: 400 }` — 정본이 색과 굵기를 한 클래스로 묶어 둔 자리라 클론도 «그 색으로 찍는 글자» 를 regular 로 본다(클론 UiKit.Text 호출 9곳).",
+    "league_server": "style.css 8633 `.league-server { font-weight: 500 }`(앞선 선언을 덮는다) — 리그 행의 «서버 N». 클론 LeagueSheet.cs 가 이 색 키로 세운다."
+  },
+  "regular_sites": {
+    "rates_tip": "style.css 8633 `.rates-tip { font-weight: 500 }` — 확률 팝업 맨 아래 안내문(클론 SkillRatesPopup.cs `rates-tip` · PetSkillKit.Text 갈래라 색 키로는 안 걸린다).",
+    "forge_item_cell_small": "style.css 8633 `.forge-item-cell small { font-weight: 500 }` — 장비 목록 칸 아래 확률 라벨(클론 ForgeInfoPopup.cs).",
+    "btn_small": "style.css 667 `.btn small { font-weight: 400 }` — 버튼 아래 붙는 잔글씨(판매 +N · 장착 기존 보관 …).",
+    "age_tag_small": "style.css 724 `.forge-age-section .age-tag small { font-weight: 400 }` — 시대 막대 태그의 잔글씨."
+  },
+  "_dead": {
+    "egg_chip_small": "style.css 1661 `.egg-chip small { font-weight: 400 }` — **클론에 자리가 없다**: 정본이 `egg-chip` 클래스를 한 번도 안 붙인다(T377 이 같은 자리를 «죽음» 으로 등록해 뒀다). 여덟 중 이 하나는 갚을 자리가 없다."
+  }
+}

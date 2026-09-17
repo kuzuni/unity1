@@ -306,6 +306,10 @@ namespace Forge.Game.Ui
             //   `.rates-tip, .pass-desc, .forge-item-cell small, .league-server { font-weight: 500 }` 이 같은 특정도로 뒤에 와서 이긴다.
             //   그 줄의 정본 주석이 까닭을 댄다 — 폴백 sans 는 regular/bold 두 축뿐이라 500 은 **보통 굵기로 내려간다**.
             //   (§1 «정본대로 = 렌더 결과» · 굵기는 잉크 폭을 함께 쥐고 있어 이 자리 판정에 바로 들어간다.)
+            // T352 10회차 — 위 T372 주석이 댄 근거(8633 이 500 으로 덮는다 = regular)를 **표로 못 박는다**.
+            //   여태는 «공장 기본이 regular» 라서 우연히 맞던 자리다 — 공장 기본이 bold 로 뒤집히는 순간 조용히 틀린다.
+            //   지금은 값이 안 바뀌지만(이미 regular) 이 한 줄이 그 뒤집기를 안전하게 만든다.
+            TextWeightUi.Regular(l, "forge_item_cell_small");
             l.enableAutoSizing = false;
             UiKit.Place(l.rectTransform, -size * 0.3f, size + UiKit.RefH * ForgeInfoStyle.L("fl_cell_gap_h"), size * 1.6f, labelH);   // T364 11회차 ⑦ — 위 cellH 와 같은 키
             Button b = rt.gameObject.AddComponent<Button>();

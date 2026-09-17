@@ -1,0 +1,89 @@
+using System.Collections;
+using NUnit.Framework;
+using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+using Forge.Core.Save;
+using Forge.Game;
+using Forge.Game.Ui;
+
+namespace Forge.Tests.PlayMode
+{
+    /// <summary>
+    /// T352 ⓐ 10회차 — 굵기 축의 **안전망**. 정본 `style.css` 는 `font-weight` 233 선언 중 **225 가 bold** 고
+    /// regular 는 **여덟뿐**이라 공장 기본이 bold 여야 하는데, 클론은 부호가 반대다(기본 regular + 120 자리 손박음).
+    /// 그 뒤집기를 아직 **안 했다** — regular 로 남아야 할 자리 둘이 남의 산 lock 뒤라(`.btn small` `ForgeCraftPopup.cs` T377 ·
+    /// `.age-tag small` `ForgeUi.cs` T453) 배선 없이 뒤집으면 **그 둘이 되레 틀린다**.
+    /// 이 칸은 그때를 위한 자다: 지금 «우연히 맞는» 자리를 **표로 못 박아** 두어, 누가 공장 기본을 뒤집는 순간
+    /// 배선이 빠진 자리가 **조용히가 아니라 빨갛게** 드러나게 한다.
+    /// </summary>
+    public class TextWeightSitesTests
+    {
+        static IEnumerator Boot()
+        {
+            try { if (System.IO.File.Exists(SaveIo.SavePath)) System.IO.File.Delete(SaveIo.SavePath); } catch (System.Exception) { }
+            SceneManager.LoadScene("SampleScene");
+            yield return null; yield return null;
+            float t = 0f;
+            while (!(ForgeHost.Ready && MetaHost.Ready && PopupLayer.Instance != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
+        }
+
+        /// <summary>표가 실리고, 정본이 «색과 굵기를 한 클래스에 묶어 둔» 자리만 색 키로 걸린다.</summary>
+        [UnityTest]
+        public IEnumerator 굵기_표가_실리고_regular_는_정본이_묶어_둔_색_키로만_걸린다()
+        {
+            yield return Boot();
+            TextWeightUi.Reset();
+            // 정본 657 `.muted { color:#78909c; font-weight:400 }` · 8633 `.league-server { font-weight:500 }`
+            Assert.IsTrue(TextWeightUi.RegularByColor("pp_muted"), "pp_muted 는 regular(정본 657 이 색과 굵기를 한 클래스로 묶었다)");
+            Assert.IsTrue(TextWeightUi.RegularByColor("league_server"), "league_server 는 regular(정본 8633)");
+            // 그 밖의 색은 bold 쪽이다 — 정본 233 선언 중 225 가 bold 라 «기본이 bold» 가 옳은 이식이다.
+            Assert.IsFalse(TextWeightUi.RegularByColor("pp_ink"), "일반 잉크는 regular 가 아니다");
+            Assert.IsFalse(TextWeightUi.RegularByColor(null), "색 키가 없으면 regular 가 아니다");
+            Assert.IsFalse(TextWeightUi.RegularByColor("없는_키"), "표에 없는 색 키는 regular 가 아니다");
+        }
+
+        /// <summary>이름난 regular 자리 넷이 표에 있고, 없는 키는 **조용히 넘어가지 않는다**.</summary>
+        [UnityTest]
+        public IEnumerator 이름난_regular_자리는_표에_있고_없는_키는_던진다()
+        {
+            yield return Boot();
+            TextWeightUi.Reset();
+            foreach (string k in new[] { "rates_tip", "forge_item_cell_small", "btn_small", "age_tag_small" })
+                Assert.IsTrue(TextWeightUi.HasSite(k), "표에 regular 자리 «" + k + "» 이 있다(정본 8633·667·724)");
+            Assert.IsFalse(TextWeightUi.HasSite("없는_자리"), "표에 없는 자리는 없다고 답한다");
+            var go = new GameObject("t");
+            TextMeshProUGUI t = go.AddComponent<TextMeshProUGUI>();
+            t.fontStyle = FontStyles.Bold;
+            Assert.Throws<System.Collections.Generic.KeyNotFoundException>(() => TextWeightUi.Regular(t, "없는_자리"),
+                "표에 없는 자리 키로 부르면 던진다 — 오타가 조용히 regular 를 못 만들게");
+            TextWeightUi.Regular(t, "btn_small");
+            Assert.IsFalse((t.fontStyle & FontStyles.Bold) != 0, "Regular() 는 Bold 비트만 걷는다");
+            Object.Destroy(go);
+        }
+
+        /// <summary>실물 자리 — 장비 목록 칸 아래 «0.0000%» 라벨은 regular 다(정본 790 은 800 이지만 **8633** 이 500 으로 덮는다).
+        /// 지금은 공장 기본이 regular 라 «우연히» 맞는 값이지만, `ForgeInfoPopup` 이 표로 못 박아 두었으므로
+        /// 공장 기본이 bold 로 뒤집혀도 이 자리는 regular 로 남는다 — 그것을 여기서 잰다.</summary>
+        [UnityTest]
+        public IEnumerator 장비_목록_확률_라벨은_정본_8633_대로_regular_다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            ForgeInfoPopup.OpenList(h);
+            yield return null; yield return null;
+            Popup p = h.Meta.Popups.Find(ForgeInfoPopup.Name) ?? PopupLayer.Instance.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(p, "장비 목록 팝업이 열렸다");
+            int seen = 0;
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name != "pct") continue;
+                seen++;
+                Assert.IsFalse((t.fontStyle & FontStyles.Bold) != 0,
+                    "«" + t.text + "» 는 regular 다 — 정본 790 `font-weight: 800` 을 **8633** 이 500 으로 덮고, 폴백 sans 는 두 축뿐이라 500 은 보통 굵기로 내려간다");
+            }
+            Assert.Greater(seen, 0, "확률 라벨을 찾았다(자리 자체가 사라지면 이 칸이 먼저 운다)");
+        }
+    }
+}

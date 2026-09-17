@@ -4950,6 +4950,19 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   - 남은 것은 ⓐ(공장 기본 bold) · ⓑ(정본 여덟 자리 regular) · 굵기 폭 갈래(진짜 굵은 판 or `boldSpacing` 0)뿐이고 **셋 다 `Assets/Scripts/Game/Ui/UiKit.cs` 를 연다**. 그 파일은 지금 **T333 산 lock 의 «범위»** 에 이름이 올라 있다(§2 T333 범위 줄) ⇒ **이 회차엔 잡을 자리가 없다**. 코드 0줄 · lock 즉시 반납.
   - ⚑ **다음 사람에게**: 이 절을 열려면 먼저 `docs/claims/T333.lock` 을 본다. 살아 있으면 ⓐⓑ 도 굵기 폭 갈래도 못 연다 — 그때는 이 절을 건너뛰는 것이 맞다(5·6·7회차처럼 «자리 하나» 를 찾으려 해도 ⓒ 가 닫혀 남은 자리가 없다).
 
+
+- 🔄 **10회차 2026-09-17 16:3x~17:1x 워커 F(sess-1628-600 · 선점 · 판정은 다음 런)** — 8회차가 «남은 것은 ⓐⓑ · 전부 `UiKit.cs` · 누구든» 으로 남긴 자리를 잡았다(`UiKit.cs` 가 열렸다). **그런데 뒤집지 않았다 — 일부러다.**
+  - **정본이 스스로 축을 못 박아 뒀다(이 회차가 처음 인용한다)**: **8624~8631** — «웹폰트 금지(CDN 제약)라 폰트가 가변축이 없다 · 600·650 을 적어 봐야 **700 으로 반올림**돼 아무것도 안 바뀐다 · **실제로 한 단 내려가려면 500 이어야 한다**(폴백 sans 는 **regular/bold 두 축**뿐)». ⇒ 등재문의 «**여덟만 regular**» 가 **정본 주석으로 확증된다**: 400 넷(`.muted` 657 · `.btn small` 667 · `.age-tag small` 724 · `.egg-chip small` 1661) + **8633** 이 500 으로 덮는 넷(`.rates-tip`·`.pass-desc`·`.forge-item-cell small`·`.league-server`). 600 이상은 전부 bold 다.
+  - ⚑ **뒤집기를 미룬 까닭 — 뒤집으면 지금 «맞는» 자리 둘이 틀어진다**: regular 로 남아야 할 여덟 중 `.btn small` 은 `ForgeCraftPopup.cs`(**T377 산 lock**) · `.age-tag small` 은 `ForgeUi.cs`(**T453 산 lock**)에 있다. 그 둘은 **공장 기본이 regular 라서 우연히 맞는** 자리라, 배선 없이 기본만 bold 로 바꾸면 **되레 그 둘이 틀린다**. 같은 덫을 `.forge-item-cell small`(T372 가 8633 을 근거로 맞춰 둔 자리)에서 실제로 확인했다 — 그 자리도 **코드가 아무것도 안 해서** 맞고 있었다.
+  - **그래서 이 회차는 «뒤집기를 안전하게 만드는 것» 까지 했다**:
+    - ⓐ **표** `Assets/Forge/Resources/TextWeightUi.json` — regular 를 **색 키**(정본이 색과 굵기를 한 클래스에 묶은 자리: `pp_muted` 657 · `league_server` 8633)와 **자리 키**(색으로 안 걸리는 넷) 둘로 쥔다. `_dead` 칸에 `.egg-chip small` 을 적었다(T377 이 «죽음» 으로 등록한 자리 — 여덟 중 이 하나는 **갚을 자리가 없다**).
+    - ⓑ **로더** `Ui/TextWeightUi.cs` — `RegularByColor(색키)` · `HasSite(자리키)` · `Regular(글자, 자리키)`. 없는 자리 키로 부르면 **던진다**(오타가 조용히 regular 를 만들지 못하게).
+    - ⓒ **닿는 자리 배선** — `ForgeInfoPopup` 의 «0.0000%» 라벨에 `TextWeightUi.Regular(l, "forge_item_cell_small")`. **지금은 값이 안 바뀐다**(이미 regular) — 뒤집힌 뒤에도 regular 로 남게 하는 한 줄이다.
+    - ⓓ **자** `PlayMode/TextWeightSitesTests` 3칸 — 표가 실리는가 · 색 키가 정본이 묶어 둔 둘만 걸리는가 · 이름난 자리 넷이 표에 있고 없는 키는 던지는가 · **실물** 확률 라벨이 regular 인가.
+    - ⓔ `UiKit.Text` 에는 **뒤집을 그 한 줄을 주석으로 적어 뒀다**(`t.fontStyle = TextWeightUi.RegularByColor(colorKey) ? FontStyles.Normal : FontStyles.Bold;`)와 **무엇이 풀리면 뒤집는지**(T377 `ForgeCraftPopup.cs` · T453 `ForgeUi.cs`).
+  - **다음 회차가 할 일**: 그 둘이 풀리면 `.btn small`·`.age-tag small` 을 `TextWeightUi.Regular(…)` 로 배선하고 **`UiKit.cs` 한 줄을 뒤집는다**. `.pass-desc` 는 `PassPopup.cs`(T415)에 있고 **이미 `FontStyles.Bold` 가 박혀 있어 지금도 틀린 자리**다(8633 이 500 으로 덮으므로 regular 여야 한다) — 그 파일이 열리는 회차가 함께 갚는다. `PetSkillKit.Text` 는 **따로 `bold` 인자**를 받는 다른 공장이라(`rates-tip` 은 거기서 `false` 로 이미 regular) 이 축의 뒤집기와 별개로 센다.
+  - **게이트**: `gate.sh` 막는 자 **rc 0 · 건너뜀 0** · `dotnet test` **850/850** · `Forge.TestsPlay` 빌드 **0 error**. 곁: 표의 `_` 주석에 쓴 «ⓐ» 가 글꼴에 없어 **T89 가 게이트에서 막았다**(데이터 파일 문자열도 화면 문구로 본다) — 걷어냈다. 15회차의 «홑» 과 같은 덫이다.
+  - **판정(다음 런)**: `TextWeightSitesTests` 3칸 PASS + 기존 글자 자(하한·등폭·그림자) 초록 유지 — **화면은 안 바뀐다**(바뀌면 그게 결함이다 · 이 회차는 값을 하나도 안 움직였다).
 ### T360 ✅ — `ForgeUiTests` 두 자가 **벽시계에 매여** 빨갛다: 하나는 0.56초 타이머가 자 도중에 터지고, 하나는 «순백 코어» 를 절대 밝기로 잰다 (검증·게이트 · §0-6 임자 없는 빨강 · 워커 G 등재 · 런 565 실측)
 
 - 빨강 둘(런 565 `3e0923d` · 그 파일을 «범위» 로 쥔 **산 lock 이 없다** · 고쳐 온 작업은 전부 ✅):
