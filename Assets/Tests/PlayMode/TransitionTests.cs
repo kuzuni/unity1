@@ -27,11 +27,13 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>기본 레인(`toasts` · 앱 상자 아래 — 팝업 층 아래가 아니다 · 런 1131 의 빨강)의 마지막 토스트.</summary>
         static RectTransform LastToast()
         {
             RectTransform box = null;
-            foreach (RectTransform rt in PopupLayer.Instance.GetComponentsInChildren<RectTransform>(true))
-                if (rt.name == "toast" && rt.Find("line") != null) box = rt;
+            foreach (RectTransform rt in UiRoot.Instance.App.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "toast" && rt.Find("line") != null && rt.parent != null && rt.parent.name == "toasts"
+                    && (box == null || rt.GetSiblingIndex() > box.GetSiblingIndex())) box = rt;
             return box;
         }
 
