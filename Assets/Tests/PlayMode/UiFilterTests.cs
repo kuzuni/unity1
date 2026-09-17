@@ -366,6 +366,15 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T451 2회차 — 구체 본체(`sr-orbwrap/sr-orb`)의 색을 선 차례대로 모은다(두 시점을 같은 눈으로 재려고 뗐다).</summary>
+        private static List<Color> Orbs(SkillSummonResultView v)
+        {
+            List<Color> outp = new List<Color>();
+            foreach (Image img in v.GetComponentsInChildren<Image>(true))
+                if (img.name == "sr-orb" && img.transform.parent != null && img.transform.parent.name == "sr-orbwrap") outp.Add(img.color);
+            return outp;
+        }
+
         /// <summary>
         /// T451 1회차 — 관측한 구슬 색이 **무엇과 가장 가까운가**를 이름으로 돌려준다(자국 전용 · 단언은 이것을 안 쓴다).
         ///
@@ -420,10 +429,27 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(v, "결과 연출 팝업이 서지 않았다");
             yield return null; yield return null;
 
-            List<Color> orbs = new List<Color>();
-            foreach (Image img in v.GetComponentsInChildren<Image>(true))
-                if (img.name == "sr-orb" && img.transform.parent != null && img.transform.parent.name == "sr-orbwrap") orbs.Add(img.color);
-            Assert.AreEqual(2, orbs.Count, "구체 둘(sr-orbwrap/sr-orb)");
+            // T451 2회차 — **두 시점을 다 잰다**. 코드를 읽으면 구체 색은 세울 때 한 번 정해지고(`SkillSummonResult.cs:946`
+            //   `Disc(wrap, "sr-orb", OrbFilter(rc, tier))`) 그 뒤 아무도 `sr-orb` 의 `color` 를 다시 안 쓴다 — `Finish()` 가 다시 칠하는 것은
+            //   소환진(`floorImg`)·선(`tickImg`) 이고, 뒤에 붙는 겹들(`sr-ghost`·`sr-spark`…)은 **다른 이름의 형제**다.
+            //   그런데 이 자는 같은 코드로 런마다 갈렸고(1017 빨 · 1021 초 · 1027 빨 · 1040 초 · 1042 초 · 1073 빨),
+            //   관측값(0.340 → 0.398 · 기대 0.562)은 **어떤 바이트 색 × 어떤 tier 필터와도 안 맞는다**(0.398 을 .64·.74·.9·1.0 으로 나눠도
+            //   정수 바이트가 하나도 안 나온다). 그러면 남는 갈래는 «색이 변한다» 가 아니라 «**내가 그 순간 무엇을 읽었나**» 뿐이다.
+            //   ⇒ 두 프레임 뒤(`early`)와 **연출이 가라앉은 뒤**(`late`)를 나란히 재어 **자가 스스로 가르게** 한다:
+            //     · 둘이 같은데 틀리다 → 세울 때 이미 틀린 것(팔레트·tier 갈래) — `NearestName` 이 무엇과 가까운지 찍는다.
+            //     · 둘이 다르다 → 세운 뒤 누가 덮었거나 내가 «지어지는 중» 을 읽은 것(그 차이가 곧 증거다).
+            //   단언은 **가라앉은 뒤**로 건다 — 그것이 사람이 실제로 보는 색이고(§1 «자는 게임을 잰다»), 잣대(허용 오차 1.5/255)는 그대로다.
+            List<Color> early = Orbs(v);
+            Assert.AreEqual(2, early.Count, "구체 둘(sr-orbwrap/sr-orb)");
+            float settle = 0f;
+            while (!v.Done && settle < 12f) { settle += Time.unscaledDeltaTime; yield return null; }
+            yield return null;
+            List<Color> orbs = Orbs(v);
+            Assert.AreEqual(2, orbs.Count, "가라앉은 뒤에도 구체 둘(sr-orbwrap/sr-orb)");
+            string shift = "같다";
+            for (int i = 0; i < orbs.Count && i < early.Count; i++)
+                if (Mathf.Abs(orbs[i].r - early[i].r) + Mathf.Abs(orbs[i].g - early[i].g) + Mathf.Abs(orbs[i].b - early[i].b) > 1f / 255f)
+                    shift = "**다르다** — 두 프레임 뒤 " + string.Join(" / ", early.ConvertAll(c => c.ToString()).ToArray());
             foreach (var e in list)
             {
                 int tier = Array.IndexOf(defs.Rarities, e.Rarity);
@@ -451,9 +477,9 @@ namespace Forge.Tests.PlayMode
                 string near = string.Join(" ‖ ", orbs.ConvertAll(c => NearestName(defs, c)).ToArray());
                 string ratios = string.Join(" / ", orbs.ConvertAll(c => string.Format("({0:F3},{1:F3},{2:F3})",
                     rc.r > 0.001f ? c.r / rc.r : -1f, rc.g > 0.001f ? c.g / rc.g : -1f, rc.b > 0.001f ? c.b / rc.b : -1f)).ToArray());
-                string diag = string.Format(" | 가장 가까운 것: {5} | 정본hex {0} · rc {1} · 표 sat {2} bri {3} · 관측/rc {4}",
+                string diag = string.Format(" | 가장 가까운 것: {5} | 두 시점 {6}(가라앉기까지 {7:F2}초 · Done {8}) | 정본hex {0} · rc {1} · 표 sat {2} bri {3} · 관측/rc {4}",
                     PetSkillStyle.RarityHex(defs, e.Rarity) ?? "(없다 — muted 폴백)", rc,
-                    fs.HasSaturate ? fs.Saturate.ToString("F3") : "-", fs.HasBrightness ? fs.Brightness.ToString("F3") : "-", ratios, near);
+                    fs.HasSaturate ? fs.Saturate.ToString("F3") : "-", fs.HasBrightness ? fs.Brightness.ToString("F3") : "-", ratios, near, shift, settle, v.Done);
                 Assert.IsTrue(found, e.Rarity + "(tier " + tier + ") 구체 색 = 등급색에 표 summon_orb_" + tier + " 를 건 값 " + want + " 이어야 한다 — 실물 " + string.Join(" / ", orbs.ConvertAll(c => c.ToString()).ToArray()) + diag);
                 if (tier == 0)
                 {
