@@ -3334,6 +3334,27 @@
 - 범위: `tools/ui_score.py`(`_valleys`·`_split`·`read_layout` + 자기 검사) · `docs/ui-score-baseline.json`(기준선 재설정) · `docs/ROUTINE.md` · `docs/PROGRESS.md`. ⚠ **T28 의 lock 과 같은 파일이다** — T28 은 매 회차 이 자를 **읽고 돌리는데** 이 절은 그 안을 **고친다**. 잡는 사람은 T28 임자(지금 `sess-0111-11076` · 워커 M)에게 회차 하나를 비워 달라고 기록에 적고 잡는다(같은 회차에 둘이 이 파일을 열면 리베이스가 매번 부딪힌다).
 - **98회차가 미리 해 둔 것**: 기준선에 **요소 수(`elems`)를 남기고**, 회차마다 «⚠ **판독기가 화면을 다르게 읽은 화면 N개** — 그 중 M개는 지문이 그대로» 를 **내려간 화면 목록 앞에** 찍게 했다(보고 전용 · 점수식 안 건드림 · 자기 검사 97 → **99칸**). 그러니 이 절을 잡는 사람은 **첫 회차부터 그 줄을 근거로 쓸 수 있다.**
 
+### T437 — PlayMode 통째 실종이 **되풀이되는데 아무도 «그 런이 어떤 환경이었나» 를 안 적는다**: 장부에 `sha·run·tests·missing_modes` 넷뿐이라 간헐의 짝을 맞출 자료가 0이다 (도구·CI·게이트 · T171·T180·T392·T435 의 **다섯 번째 재발** · 런 1007 실측 · §0-6 임자 없는 빨강)
+
+- **증상(되풀이)**: `missing_modes: playmode-results.xml` — EditMode 는 다 돌고 **PlayMode 만** 통째로 없다. 에디터가 관리 코어 어셈블리를 못 읽고(`Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Object` 수백 줄) `IsManagedCodeWorking` 에서 SIGSEGV 로 죽는다(T435 1회차가 로그 꼬리로 읽어 둔 그 자리). 오늘만 **991 · 993 · 1007**(995·997 은 **다른 병** — T435 가 고친 CLI 404 라 두 모드가 다 없었다). 그 사이 **999 · 1001 · 1005 는 멀쩡했다** ⇒ **간헐**이다(자도 «연달아가 아니다» 로 가른다).
+- **여태 다섯 번 짚은 것이 다 빗나갔다 — 그 까닭은 «자료가 없어서» 다**:
+  | 회 | 짚은 것 | 어떻게 깨졌나 |
+  |---|---|---|
+  | T171 | `BattlePreview.Start(RectTransform)` 이름 충돌 | 고쳤는데 또 났다 |
+  | T180 | `m_StackTraceTypes` 의 Log 칸 | 또 났다(T392 가 «증상의 절반만 덮었다») |
+  | T392 | 커버리지 계측(`-enableCodeCoverage`) | **런 999 가 반증** — 커버리지 켠 채 PlayMode 483개가 다 돌았다(T435 4회차) |
+  | T435 1회차 | 커버리지가 끌고 오는 `-debugCodeOptimization` | 같은 런이 같이 반증 |
+  | T435 닫는 줄 | «다음엔 `Library` 캐시를 보라» | **내가 그 줄을 쓰면서도 근거가 없었다** — 런 995 잡 로그는 `Cache restored from key: **Library-test-**aaaa56fc…` 라 «WebGL·안드로이드 캐시를 물었다» 는 그림이 **거기선 안 보인다**(⇒ 이 절이 그 줄을 바로잡는다) |
+  다섯 번 다 **한 런의 로그**만 보고 짚었다. 간헐은 **여러 런을 나란히 놓아야** 짝이 보이는데, 장부(`runs.jsonl`)에 적히는 것은 `sha·run·tests·missing_modes` **넷뿐**이라 나란히 놓을 것이 없다.
+- **그래서 이 절은 «고치기» 가 아니라 «잴 수 있게 하기» 다**(T151·T148·T336·T347 과 같은 갈래 — 이 레포가 실종을 다룬 방식 그대로):
+  - ⓐ `ci.yml` 의 `Library` 캐시 스텝에 `id` 를 주고 **실제로 되살린 캐시 키**(`cache-matched-key`)를 잡는다. 그것이 `Library-test-…` 인지 `Library-webgl-…`·`Library-android-…` 인지가 **T435 가 근거 없이 짚은 그 갈래의 유일한 증거**다.
+  - ⓑ 러너 형편 둘 — **남은 디스크(MB)** 와 **메모리(MB)**. 관리 어셈블리가 통째로 안 읽히는 꼴은 «못 읽었다» 쪽(디스크·자원)에서도 난다.
+  - ⓒ 그 셋을 `meta.json` 과 **`runs.jsonl` 한 줄**에 함께 적는다(기존 키는 안 건드린다 · 자들은 `json.loads` + `.get()` 이라 새 키에 안 다친다 — `screens_ledger.py`·`check_unity_green.py` 둘 다 확인했다).
+  - ⓓ `check_unity_green` 의 «장부» 줄이 그 셋을 **빠진 런 ↔ 멀쩡한 런으로 갈라** 찍는다 — 회차마다 모든 워커가 보는 자리라, 짝이 있으면 **다음 사람이 그냥 읽는다**.
+- **일부러 안 하는 것**: `restore-keys` 바닥의 맨 `Library-` 는 **이번에 안 걷는다**. 걷고 싶은 마음이 들지만(다른 타깃 `Library` 를 물 수 있는 꼴은 맞다) **지금 근거가 없고**, 걷으면 ⓐ 가 모으려는 바로 그 증거가 영영 안 생긴다. **ⓐ 가 `Library-webgl-`·`Library-android-` 를 한 번이라도 찍으면 그때 한 줄로 걷는다** — 그것이 이 절이 세우려는 순서다(오늘 밤 내가 근거 없이 짚었다가 되돌린 길을 되풀이하지 않는다).
+- 판정: ⓐ 다음 런의 `screens:meta.json` 에 `cache`·`disk_mb`·`mem_mb` 가 있다 ⓑ `runs.jsonl` 새 줄에도 있다 ⓒ `check_unity_green --fetch` 가 그 셋을 장부 줄에 찍는다 ⓓ 기존 자 둘(`screens_ledger --self-test` · `check_unity_green --self-test`)이 그대로 초록.
+- 범위: `.github/workflows/ci.yml`(캐시 스텝 `id` · meta/runs 두 줄) · `tools/check_unity_green.py`(장부 줄 출력) · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. 이 규칙은 **말로만 있던 동안 샜다**: 런 435·436 이 둘 다 `dotnet build` 에서 빨갰고 임자가 `45c03d5` 제목에 적었다 — «내 빌드 확인 줄이 오류를 삼켰다». 그래서 스무 줄을 손으로 옮겨 붙이지 않는다(T184).
