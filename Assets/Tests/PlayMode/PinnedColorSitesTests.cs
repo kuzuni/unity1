@@ -398,19 +398,29 @@ namespace Forge.Tests.PlayMode
             // 새 세이브는 던전이 전부 잠겨 있다 — 그대로 열면 잠긴 갈래를 잰다(해금하면 Blue 로 바뀌어 헛초록이 된다).
             UiRoot.Instance.TabBar.OnTab("dungeon");
             yield return null; yield return null;
-            // 뿌리를 시트로 좁힌다 — «open» 은 `OfflineButton` 도 쓰는 이름이라 앱 뿌리부터 찾으면 남의 화면 상자를 잴 수 있다(T414 · `check_test_scope` 가 막는다).
-            Transform open = FindActive(UiRoot.Instance.Sheet, "open");
+            // 뿌리를 **이 화면**으로 좁힌다 — «open» 은 `OfflineButton` 도 쓰는 이름이라 앱 뿌리부터 찾으면 남의 화면 상자를 잴 수 있다(T414 · `check_test_scope` 가 막는다).
+            //   ⚠ 런 1027 빨강: `UiRoot.Instance.Sheet` 는 이 시트가 아니다 — `DungeonSheet.Install` 51행이 **`root.PanelHost`** 밑에 «sheet-dungeon» 으로 붙인다.
+            //   그 화면을 가리키는 것은 `DungeonSheet.Instance` 다(T414 가 적어 둔 «그 화면의 뿌리» 꼴 · `SkillPetSheet.Instance.…` 와 같다).
+            Assert.IsNotNull(DungeonSheet.Instance, "던전 시트");
+            Transform open = FindActive(DungeonSheet.Instance.transform, "open");
             Assert.IsNotNull(open, "잠긴 던전의 [열기] 칩");
-            Image face = open.Find("bg").GetComponent<Image>();
-            Assert.IsNotNull(face, "칩의 면(bg)");
+            // `DungeonPopups.Bordered`(53행)는 **바깥 테 `bg` 안에 면 `face`** 를 넣고, `BottomShade` 가 그 면 안에 턱 `shade` 를 깐다.
+            //   곧 이 칩의 «면» 은 `bg` 가 아니라 `bg/face` 다(`bg` 는 `pp_line` 테다).
+            Transform faceT = open.Find("bg/face");
+            Assert.IsNotNull(faceT, "칩의 면(bg/face) — 바깥 `bg` 는 테다");
+            Image face = faceT.GetComponent<Image>();
             Color wantFace = UiKit.C("dg_lock_open"), wantDk = UiKit.C("dg_lock_open_dk");
             Assert.AreEqual(wantFace, face.color, "면 = catalog dg_lock_open(정본 8151 #878e96)");
             Assert.AreNotEqual(UiKit.C("pp_gray"), face.color, "공용 pp_gray(#c4c4c4)가 아니다 — 정본이 «유령 회백» 을 고쳐 둔 자리다");
             Assert.Less(wantFace.r + wantFace.g + wantFace.b, UiKit.C("pp_gray").r + UiKit.C("pp_gray").g + UiKit.C("pp_gray").b,
                 "«확실한 비활성 칩» 이 이 자리의 뜻이다 — 표값이 공용 회색만큼 밝아지면 이 줄이 먼저 깨진다");
-            // 턱은 면보다 **어두워야** 한다(클론의 pp_gray_dk 는 면보다 밝아 뒤집혀 있었다)
-            Assert.Less(wantDk.r + wantDk.g + wantDk.b, wantFace.r + wantFace.g + wantFace.b,
-                "아래턱(정본 8152 #666d75)은 면보다 어둡다");
+            // 턱은 면보다 **어두워야** 한다(클론의 pp_gray_dk #9a9a9a 는 면 #c4c4c4 보다 밝아 뒤집혀 있었다)
+            Transform shadeT = faceT.Find("shade");
+            Assert.IsNotNull(shadeT, "칩의 아래턱(bg/face/shade)");
+            Image shade = shadeT.GetComponent<Image>();
+            Assert.AreEqual(wantDk, shade.color, "턱 = catalog dg_lock_open_dk(정본 8152 #666d75)");
+            Assert.Less(shade.color.r + shade.color.g + shade.color.b, face.color.r + face.color.g + face.color.b,
+                "아래턱은 면보다 어둡다 — 클론의 pp_gray_dk 는 면보다 밝아 뒤집혀 있었다");
             Transform lab = open.Find("label");
             Assert.IsNotNull(lab, "칩 글자");
             TMPro.TextMeshProUGUI t = lab.GetComponent<TMPro.TextMeshProUGUI>();
