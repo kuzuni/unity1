@@ -870,6 +870,13 @@ def load_baseline(path):
         except (TypeError, ValueError):
             pass
     out["_bands"] = bd
+    el = {}
+    for k, v in (d.get("elems") or {}).items():
+        try:
+            el[k] = int(v)
+        except (TypeError, ValueError):
+            pass
+    out["_elems"] = el
     return out
 
 
@@ -999,7 +1006,7 @@ def drop_note(din, dout, med, hist_n, cur_v, prev_v, bw=None, bg=0.0):
     return None
 
 
-def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None, carried=False, ceilings=None):
+def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None, carried=False, ceilings=None, elems=None):
     import json
     cur = dict((n, round(v, 1)) for n, v in scores)
     hist = []
@@ -1032,6 +1039,10 @@ def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None, carrie
         d["fingerprints"] = dict((k, fp_pack(v)) for k, v in fps.items())
     if bands:
         d["bands"] = dict((k, int(v)) for k, v in bands.items())
+    if elems:
+        # T28 98회차 — 짝짓기에 들어간 **요소 수**. 회차 사이에 이 수가 달라진 화면만 점수가 움직인다
+        #   (아래 «판독기 흔들림» 알림의 근거 · 968 ↔ 1005 전수에서 예외 0).
+        d["elems"] = dict((k, int(v)) for k, v in elems.items())
     with open(path, "w", encoding="utf-8") as f:
         f.write(json.dumps(d, ensure_ascii=False, indent=1, sort_keys=True) + "\n")
 
@@ -1473,7 +1484,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
               u"(meta.json 이 어느 런 것인지 안 적는다)."
               % (meta.get("run", "?"), meta.get("carried")))
         print(u"    점수는 멀쩡하다(그림은 진짜다) — 다만 **런 번호를 이 그림에 붙이지 마라**.")
-    fps, bands, ceilings = {}, {}, {}
+    fps, bands, ceilings, elems = {}, {}, {}, {}
     suspect = [False]
     for name in [n for n, _ in pairs()]:
         if only and name not in only:
@@ -1525,6 +1536,9 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         # 밴드를 몇 개로 쪼갰나 — 회차 사이에 이 수가 달라지면 «요소가 어긋났다» 가 아니라
         # **자가 화면을 다르게 쪼갠 것**이다(T28 24·27회차 실측: 잉크가 한 겹 두꺼워지면 밴드가 붙는다).
         bands[name] = sum(1 for r in got if u"블록" not in r.name)
+        # T28 98회차 — **요소 수**(블록까지 센 전부)도 남긴다. 밴드 수는 큰 갈래만 세는데,
+        #   점수를 실제로 흔드는 것은 **짝짓기에 들어가는 요소의 수**다(아래 «판독기 흔들림» 알림).
+        elems[name] = len(got)
         mark = u"✓" if s >= PASS_MARK else u"✗"
         print(u"  %s %-18s %4.1f / 10   (천장 %.1f · 달성 %.0f%%  · 원작 요소 %d)"
               % (mark, name, s, ceil, (100.0 * s / ceil) if ceil else 0.0, len(ent["rects"])))
@@ -1640,6 +1654,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         hist = base.get("_hist") or []
         obase = base.get("_fp") or {}
         oband = base.get("_bands") or {}
+        oelem = base.get("_elems") or {}
 
         def band_note(n):
             a, b = oband.get(n), bands.get(n)
@@ -1658,6 +1673,27 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                   u"내려간 화면을 곧장 «깬 사람» 으로 읽지 마라: 글자 자간·색 토큰·테 두께처럼 "
                   u"**모든 화면을 한꺼번에 바꾸는 값**이 움직였는지 먼저 본다(T28 85·86회차 · 결정 712)."
                   % (len(moved), len(scores)))
+
+        # ── 판독기 흔들림 (T28 98회차 · 결정 745) ────────────────────────────
+        # 90·97회차가 «점수가 그림과 어긋난다» 를 두 얼굴로 봤는데, 98회차가 그 **한 뿌리**를 찾았다:
+        # 점수를 흔드는 것은 짝짓기도 점수식도 아니고 **`read_layout` 이 화면을 몇 조각으로 읽었나**다.
+        # 런 968 ↔ 1005 전수(31장): 요소 수가 **같은 17장은 점수가 ±0.00 으로 똑같고**,
+        # 달라진 14장만 점수가 움직였다(예외 0). 그 14 중 **아홉은 지문이 1.0 아래**(그림이 그대로)다.
+        # 가장 큰 자리 — `offline` 43 → 45 개에서 원작 «밴드3»과 그 블록 넷의 짝이 통째로 갈려
+        # 짝 11 → 7 · 짝없음 4 → 8 로 **−2.17점**. 그래서 이 수를 회차마다 이름 대어 찍는다.
+        churn = []
+        for n in sorted(cur):
+            oe, ne = oelem.get(n), elems.get(n)
+            if oe and ne and oe != ne:
+                din, _d = fp_diff(obase.get(n), fps.get(n))
+                churn.append((n, oe, ne, din))
+        if churn:
+            quiet = [t for t in churn if t[3] is not None and t[3] < FP_SAME]
+            print(u"⚠ **판독기가 화면을 다르게 읽은 화면 %d개**(요소 수가 달라졌다) — 그 중 **%d개는 지문이 그대로**다. "
+                  u"점수가 움직인 화면은 거의 전부 이 목록 안에 있다(T28 98회차 전수: 요소 수가 같으면 점수도 같다 · 예외 0). "
+                  u"**고칠 곳을 찾기 전에 이 줄부터 봐라**:" % (len(churn), len(quiet)))
+            print(u"    %s" % u" · ".join(u"%s %d→%d%s" % (n, a, b, u"" if d is None else u"(지문 %.1f)" % d)
+                                          for n, a, b, d in sorted(churn, key=lambda t: -abs(t[2] - t[1]))))
 
         # ── 자와 그림이 어긋난 회차 (T28 90회차 · 결정 729) ──────────────────
         # 위 «전역 손질» 은 **여러 화면이 한꺼번에 움직였을 때**를 짚는다. 그런데 그 반대꼴이 있다 —
@@ -1755,7 +1791,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
     if save_baseline:
         # 런 번호는 CI 가 screens 에 같이 올린 meta.json 에서 읽는다(없으면 비운다).
         run = meta.get("run")
-        save_baseline_file(baseline_path, scores, avg, run, fps, bands, carried, ceilings)
+        save_baseline_file(baseline_path, scores, avg, run, fps, bands, carried, ceilings, elems)
         print(u"· 기준선을 %s 에 적었다(다음 회차가 이것과 견준다)" % os.path.relpath(baseline_path, REPO))
     if bad:
         # T28 16회차(워커 M): 29개를 줄줄이 찍으면 아무도 안 읽는다 — **다섯**만 준다.
@@ -2035,6 +2071,19 @@ def self_test():
     _fill(base_img, 8, 20, 72, 140, (230, 230, 230))
     fa = fingerprint(base_img)
     chk(fp_diff(fa, fa) == (0.0, 0.0), u"같은 그림의 지문 차는 0 이다")
+
+    # ── 요소 수 자취(T28 98회차) ───────────────────────────────────────
+    import tempfile
+    _fd, _bp = tempfile.mkstemp(suffix=".json")
+    os.close(_fd)
+    try:
+        save_baseline_file(_bp, [("a", 5.0)], 5.0, run=1, elems={"a": 43})
+        got = load_baseline(_bp)
+        chk(got.get("_elems", {}).get("a") == 43, u"요소 수는 기준선에 남고 다시 읽힌다")
+        save_baseline_file(_bp, [("a", 5.0)], 5.0, run=2)
+        chk(load_baseline(_bp).get("_elems") == {}, u"안 적은 회차의 요소 수는 빈 칸이다(옛 파일도 안 넘어진다)")
+    finally:
+        os.remove(_bp)
 
     # ── rows_hit / ROWS_OK_MIN (T28 97회차) ────────────────────────────
     chk(0.0 < ROWS_OK_MIN < 1.0, u"«밀린 줄 갈래가 아니다» 문턱은 비율이다(0~1)")
