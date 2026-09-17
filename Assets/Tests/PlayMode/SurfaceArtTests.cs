@@ -794,8 +794,24 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(topR.r, row.r + 0.05f, "맨 윗줄은 흰 .75 가 얹혀 면 색보다 밝다");
             Assert.Less(botR.r, row.r, "맨 아랫줄은 검정 .07 이 얹혀 면 색보다 어둡다");
 
-            // ⓔ 실물 — 네 자리가 화면에 실제로 서는가
+            // ⓓ' 런 1042 가 낸 빨강 17 의 자리 — **방사형 겹을 «런타임 색» 길로 얹기**.
+            //   `Fill`/`FillMasked` 의 `Color` 오버로드가 `IsRadial` 검사 **앞에서** `Angle(key)` 를 불러 터졌다(각도가 없는 겹이다).
+            //   그 길이 실제로 통하는지를 여기서 못 박는다 — 겹 하나가 팝업 전체를 못 서게 했던 자리라 «안 터진다» 만으로도 값이 있다.
             yield return Boot();
+            {
+                RectTransform probe = UiKit.Box(UiRoot.Instance.App, "t178-radial-probe");
+                try
+                {
+                    Image face = UiKit.Rounded(probe, "face", "pp_blue", 6f);
+                    Image lay = SurfaceArt.FillMasked(face, "bg-grad", "af_knob_gloss", 24f, 24f, knob);
+                    Assert.IsNotNull(lay, "방사형 겹을 런타임 색 길로 얹는다");
+                    Assert.IsNotNull(lay.sprite, "그 길로도 구운 그림이 나온다(각도를 안 묻는다)");
+                }
+                finally { Object.Destroy(probe.gameObject); }
+                yield return null;
+            }
+
+            // ⓔ 실물 — 네 자리가 화면에 실제로 서는가
             float t0 = Time.realtimeSinceStartup;
             while (!ForgeHost.Ready && Time.realtimeSinceStartup - t0 < 20f) yield return null;
             ForgeHost h = ForgeHost.Instance;

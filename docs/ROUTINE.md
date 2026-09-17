@@ -1764,6 +1764,12 @@
   - 셈: 자리 초록 **41 → 45** · 미정 선택자 98 → **94**(선언 133 → 129).
   - `dotnet build` 0 오류 · `dotnet test` **848/848** · `gate.sh` 막는 자 전부 rc 0 · **건너뛴 자 없다** · §0-6 빨강 없음(런 #1038 초록).
   - 판정(다음 런): ⓐ `SurfaceArtTests` 새 칸 PASS ⓑ `screen_autoforge.png`·`screen_autoforge-filter.png` 에서 **토글 트랙 위/아래 밝기가 뒤집혀 있고**(위가 더 어둡다) **[시작] 버튼은 그 반대**다 — 20회차가 화소로 잰 것과 같은 길.
+
+  - 🔴 **22회차 push 가 PlayMode 17 개를 빨갛게 만들었다 — 내 잘못이고 같은 세션에서 고쳤다(런 #1042 `39f777f` · 07:1x)**
+    - **증상**: 자동 제련 팝업을 여는 자가 **전부** 넘어졌다(`AgePatternTests`·`BoxBorderSitesTests`·`ForgeUiTests`·`KeylineSpotsTests`·`LayoutLimitSitesTests`·`PinnedColorSitesTests` 둘·`PressFxSitesTests`·`SurfaceArtTests` 둘·`TableScaleSitesTests`·`TextKindSitesTests`·`TextShadowTests`·`UiShadowTests` 둘·`UiShotsTests` … 17). EditMode 는 848/848 초록이었다.
+    - **뿌리 한 줄**: 자국이 그대로 댄다 — «`SurfaceUi.json` 의 «af_knob_gloss» 에 **angle_deg 가 없다**»(`SurfaceArt.Angle` 50행 ← `Fill(…, Color)` **547행** ← `FillMasked(…, Color)` 588행 ← `ForgeAutoPopup.Render` 103행). `Fill` 의 **`string overBaseLayer` 오버로드는 `IsRadial` 로 갈래를 갈라 뒀는데**(560행 · T178 5회차가 그렇게 만들었다) **`Color` 오버로드만 검사 앞에서 `Angle(key)` 를 불렀다**. 그래서 «방사형 + 런타임 색» 조합이 처음 나온 이 회차에 터졌다 — 겹 하나가 **팝업 전체를 못 서게** 했다.
+    - **고침**: `Fill(…, Color)` 를 `string` 오버로드와 같은 꼴로(방사형이면 `Angle` 을 안 부르고 `lineLen = 0`). 자 `SurfaceArtTests` 에 칸 ⓓ' 를 더해 **그 길이 통하는지**를 못 박았다(겹 하나가 팝업을 죽였던 자리라 «안 터진다» 만으로도 값이 있다).
+    - ⚑ **배운 것(이 절에 박는다)**: `SurfaceArt` 의 «바탕» 갈래는 **오버로드가 둘**이고(`string overBaseLayer` ↔ `Color overBaseColor`) **둘이 같은 길이 아니다**. 새 겹을 얹을 때 `shape: "radial"` 이면 **어느 오버로드로 부르는지** 먼저 본다. 로컬 `dotnet` 은 이 길을 못 밟는다(PlayMode 전용) — 그래서 **정본 표에 `angle_deg` 가 없는 겹을 새로 넣을 때는 자에 그 길 한 칸을 같이 넣는다**.
 - 정본은 **지금 그린다**(죽은 CSS 가 아니다): `ui.js` 491 `<div class="sr-canopy…"><i></i><i></i><i></i><b></b></div>` · 351 `<div class="sr-stars">` · 773~781 `.sr-reflect`(그리드를 복제해 바닥에 뒤집어 깐다) · `.sr-rays`. CSS 는 `style.css` 5836 대(아치는 타원 마스크의 아래 절반 · 빛발은 세로 그라디언트 막대 · 반사는 `mask-image` 로 아래가 흐려진다).
 - 클론 `Ui/SkillSummonResult.cs`(659줄)에는 **`sr-floor` 원판 한 장(알파 .22)** 뿐이다 — canopy·rays·reflect·stars 어느 것도 세우지 않는다(`grep` 0). 그래서 소환 결과가 «원판 위에 구슬» 로만 보인다.
 - 무엇을 한다: 정본 CSS 수치를 표(`Assets/Forge/Resources/SummonFxUi.json`)에 옮기고 네 겹을 세운다 — 아치·빛발은 `UiShapes`/`CraftFxPoly` 로 굽고(마스크는 스프라이트 알파), 반사는 그리드를 뒤집어 세로 마스크, 별은 `.sr-stars` 의 개수·자리 그대로.

@@ -544,8 +544,15 @@ namespace Forge.Game.Ui
         {
             Image img = Fill(parent, name, key, w, h, (string)null);
             float aspect = h > 0f ? w / h : 1f;
-            float rad2 = Angle(key) * Mathf.Deg2Rad;
-            float lineLen = IsRadial(key) ? 0f : Mathf.Abs(w * Mathf.Sin(rad2)) + Mathf.Abs(h * Mathf.Cos(rad2));
+            // T178 22회차 수리 — **방사형이면 `Angle` 을 부르지 않는다.** 이 오버로드만 `IsRadial` 검사 **앞에서** `Angle(key)` 를 불러,
+            //   `shape: "radial"` 겹(각도가 없다)을 «런타임 색» 길로 얹으면 `KeyNotFoundException` 이 터졌다 — 아래 `string` 오버로드(560행)는
+            //   처음부터 갈래를 갈라 뒀는데 이쪽만 안 갈라져 있었다. 방사형 + 런타임 색이 처음 만난 자리가 `af_knob_gloss` 다(런 1042 · 빨강 17).
+            float lineLen = 0f;
+            if (!IsRadial(key))
+            {
+                float rad2 = Angle(key) * Mathf.Deg2Rad;
+                lineLen = Mathf.Abs(w * Mathf.Sin(rad2)) + Mathf.Abs(h * Mathf.Cos(rad2));
+            }
             img.sprite = Bake(key, aspect, lineLen, overBaseColor);
             return img;
         }
