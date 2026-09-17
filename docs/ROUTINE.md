@@ -4044,6 +4044,7 @@
 - 고침: `IconTextStack.Build()` 가 **둘째 줄부터** 정본 `.btn small` 의 `.7rem` 을 쓰게 한다 — 표에 크기 칸을 하나 두고(예: `btn_small_rem` = 0.7) 코드가 그 값을 읽는다. **수를 코드에 박지 않는다.** 색(#90a4ae)은 T396 잉크 갈래가 쥐므로 이 절은 **크기만**.
 - 판정: ⓐ `--score` 의 «팝업 카드 위끝» 에서 `craft-compare` 가 **±1.5%p 안**(지금 −3.03) ⓑ 카드 높이가 **42.3%H ±0.5**(네 런 동안 그 값이었다) ⓒ 같은 도우미를 쓰는 다른 세 자리(건너뛰기·레벨업 등)의 카드 위끝이 **안 나빠진다** ⓓ PlayMode 자 한 칸(둘째 줄 글자 크기 = 첫 줄 × 0.7rem/본문rem).
 - 범위: `Assets/Scripts/Game/Ui/IconTextStack.cs` · `Assets/Forge/Resources/TextWeightUi.json` 또는 크기 표 · `Assets/Tests/PlayMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`. ⚠ `ForgeCraftPopup.cs` 는 안 건드려도 된다(공용 도우미 한 곳이 쥔다 — T352 12회차가 밝힌 것).
+- 🔄 **1회차 선점 2026-09-17 20:4x 워커 O(sess-2140-18689)** — `IconTextStack.ReplaceLabel` 둘째 줄부터 `Micro` + 크기 표(`TextSizeUi.json` `btn_small` .7rem) · 첫 줄 × (.7 / `btn_font_rem` .88) 비율(등재 ⓓ) · `Popups.cs`(`TwoLineBtnH`)·`ForgeCraftPopup.cs` 는 T377 산 lock 이라 안 연다.
 
 ### T438 ✅ — PlayMode 통째 실종이 **되풀이되는데 아무도 «그 런이 어떤 환경이었나» 를 안 적는다**: 장부에 `sha·run·tests·missing_modes` 넷뿐이라 간헐의 짝을 맞출 자료가 0이다 (도구·CI·게이트 · T171·T180·T392·T435 의 **다섯 번째 재발** · 런 1007 실측 · §0-6 임자 없는 빨강)
 
