@@ -168,5 +168,38 @@ namespace Forge.Tests.PlayMode
             AscendPopup.Close();
             yield return null;
         }
+        /// <summary>T457 — 정본 ui.js 5861~5869 `.idet-wrap`: 모달이 세로 가운데 두는 것은 «카드 + 카드 아래로 삐져나온 ✕» 덩어리다. 승천엔 다른 여덟 모달의
+        /// top 보정값이 없어 카드가 ✕ 삐져나온 몫의 **절반만큼 위**에 선다(원작 카드 가운데 48.36%H ↔ 카드만 가운데 둔 종전 클론 49.95 · 런 1107 실측).</summary>
+        [UnityTest]
+        public IEnumerator 승천_카드는_카드와_삐져나온_X_덩어리가_모달_세로_가운데다()
+        {
+            yield return Boot();
+            AscendPopup.Open();
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+            Assert.IsTrue(AscendPopup.IsOpen, "승천 팝업");
+            Transform root = AscendPopup.Root;
+            RectTransform card = (RectTransform)Find(root, "card");
+            Assert.IsNotNull(card, "카드");
+            RectTransform x = (RectTransform)Find(card, "x-btn");
+            Assert.IsNotNull(x, "✕");
+            RectTransform overlay = card.parent as RectTransform;
+            Assert.IsNotNull(overlay, "모달 겹");
+            Rect rc = World(card), rx = World(x), ro = World(overlay);
+            Assert.Greater(rc.height, 0f, "카드 높이");
+            Assert.Less(rx.yMin, rc.yMin, "✕ 가 카드 아래로 삐져나온다");
+            float overhang = rc.yMin - rx.yMin;
+            float tol = rc.height * 0.005f;
+            float lump = (rc.yMax + rx.yMin) * 0.5f;   // 덩어리(카드 위끝 ~ ✕ 아래끝)의 가운데
+            Assert.AreEqual(ro.center.y, lump, tol,
+                "«카드 + ✕» 덩어리의 가운데가 모달 가운데다 · 어긋남 " + ((lump - ro.center.y) / rc.height * 100f).ToString("0.00") + "%카드높이");
+            Assert.AreEqual(ro.center.y + overhang * 0.5f, rc.center.y, tol,
+                "카드 가운데는 삐져나온 몫의 절반만큼 위다(종전 클론은 카드 자체가 가운데였다)");
+            AscendPopup.Close();
+            yield return null;
+        }
+
     }
 }

@@ -66,6 +66,13 @@ namespace Forge.Game.Ui
             float focusH = line != null ? DungeonPopups.RemL("asc_focus_mt_rem") + focusPad * 2f + DungeonPopups.RemL("asc_icon_rem") + DungeonPopups.LineH(TextKind.Body) + subH + subH * 4f : 0f;
             float ch = pad * 2f + titleH + gap + subH * 2f + gap + rowsH + focusH + DungeonPopups.RemL("asc_focus_mt_rem") + btnH;
             RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_r_rem"));
+            // T457 — 정본 ui.js 5861~5869: 모달이 세로 가운데 두는 것은 카드가 아니라 `.idet-wrap`(카드 + 카드 아래로 삐져나온 ✕) **덩어리**다.
+            //   승천 모달엔 다른 여덟 모달이 둔 «top 보정값»(style.css 256·2456·3042·3045·3211·3720·4339·4687)이 없어, 카드는
+            //   ✕ 가 삐져나온 몫의 **절반만큼 위**에 선다 — 원작 카드 가운데 48.36%H ↔ 카드만 가운데 둔 종전 클론 49.95(차 1.59 = 삐져나온 3.28 의 절반 · 런 1107).
+            //   ✕ 는 카드 아래변에 가운데 피벗으로 걸리므로(`DungeonPopups.XButton`) 삐져나온 몫 = 지름의 절반 — 수를 박지 않고 표(`x_btn_rem`)에서 셈한다.
+            //   ⚠ 보정값을 둔 여덟 모달은 «카드 가운데» 가 맞다(T395) — 이 줄은 승천 한 자리다.
+            float xOverhang = DungeonPopups.RemL("x_btn_rem") * 0.5f;
+            card.anchoredPosition = new Vector2(card.anchoredPosition.x, xOverhang * 0.5f);
 
             float y = pad;
             // T398 — 정본 ui.js 5864 `<h3>${star} 승천 <small class="muted">보유 별 합계 ${star} N</small></h3>`: 제목은 **두 토막**이다 —
