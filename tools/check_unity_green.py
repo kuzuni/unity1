@@ -871,6 +871,10 @@ def env_note(recent, mode):
     간헐은 여러 런을 **나란히** 놓아야 짝이 보이는데 장부에 적히는 것이 넷뿐이라 나란히 놓을 것이 없었다.
     `ci.yml`(T438)이 이제 런마다 그 셋을 적는다 — 이 줄은 그것을 **회차마다 모든 워커가 보는 자리**에 올린다.
     아직 그 셋이 없는 옛 줄은 조용히 건너뛴다(장부는 append-only 라 한동안 섞여 있다).
+
+    2회차 — `cache` 는 **캐시 키가 아니라 «되살린 Library 를 누가 구웠나»**(표식 파일)다. 1회차는 키를 적으려 했는데
+    `actions/cache@v4` 가 `cache-hit` 하나만 내서 런 1014 의 장부가 `"cache":""` 로 **빈 채** 나왔다(칸만 있고 자료가 0).
+    표식이 **없는데 Library 는 있는** 런이 곧 「이 잡이 굽지 않은 Library 를 물었다」 — 그것이 T435 가 근거 없이 짚은 갈래의 증거다.
     """
     def facts(rows):
         out = []
@@ -878,14 +882,17 @@ def env_note(recent, mode):
             c = str(d.get('cache') or '').strip()
             if not c and d.get('disk_mb') is None:
                 continue                      # T438 이전 줄 — 잴 것이 없다
-            out.append('#%s %s · 디스크 %sMB · 메모리 %sMB'
-                       % (d.get('run'), c or '(캐시 없음)', d.get('disk_mb', '?'), d.get('mem_mb', '?')))
+            hit = str(d.get('cache_hit') or '').strip()
+            out.append('#%s %s%s · 디스크 %sMB · 메모리 %sMB'
+                       % (d.get('run'), c or '(빈 칸 — T438 1회차 꼴)',
+                          ' [키 적중]' if hit == 'true' else '',
+                          d.get('disk_mb', '?'), d.get('mem_mb', '?')))
         return out
     bad = facts([d for d in recent if mode in str(d.get('missing_modes', '') or '')])
     ok = facts([d for d in recent if mode not in str(d.get('missing_modes', '') or '')])
     if not bad and not ok:
         return ''
-    lines = ['\n      · 환경(T438 · 짝을 여기서 찾아라 — 캐시 키 앞자리가 `Library-webgl-`·`Library-android-` 면 **그때** `restore-keys` 바닥의 맨 `Library-` 를 걷는다):']
+    lines = ['\n      · 환경(T438 · 짝을 여기서 찾아라 — `Library` 칸이 **«표식 없음»** 이면 「이 잡이 굽지 않은 Library 를 물었다」는 뜻이고, **그때** `restore-keys` 바닥의 맨 `Library-` 를 걷는다):']
     if bad:
         lines.append('\n        · 빠진 런 — ' + ' | '.join(bad))
     if ok:

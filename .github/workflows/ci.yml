@@ -354,6 +354,30 @@ jobs:
           restore-keys: |
             Library-test-
             Library-
+      # T438 2회차 — **되살린 `Library` 의 내력**. 1회차는 `steps.librarycache.outputs.cache-matched-key` 로 캐시 키를 적으려 했는데
+      #   `actions/cache@v4` 의 `action.yml` 은 **`cache-hit` 하나만** 낸다(matched-key 는 `actions/cache/restore` 쪽이다) —
+      #   그래서 런 1014 의 장부가 `"cache":""` 로 **빈 채** 나왔다. 칸만 있고 자료가 없으면 1회차가 하려던 일이 안 된다.
+      #   ⇒ 캐시 키 대신 **표식 파일**을 쓴다: 이 잡은 `Library/.forge-cache-mark` 에 «누가 구웠나» 를 적고,
+      #     다음 런은 되살린 `Library` 에서 그 줄을 **먼저 읽어** 장부에 적는다(읽고 나서 제 것으로 덮는다 —
+      #     에디터가 그 파일을 지워도 읽은 값은 이미 출력에 담겼다).
+      #   이것이 「테스트 잡이 WebGL·안드로이드 잡의 Library 를 물었나」에 곧바로 답한다 — 그 잡들은 이 표식을 안 쓰므로
+      #   그쪽에서 온 `Library` 는 **표식이 없다**. (⚠ 이 줄이 선 **직후 몇 런**은 아직 아무도 표식을 안 구웠으니
+      #   «표식 없음» 이 정상이다 — 이 잡이 캐시를 한 번 저장한 뒤부터 참이 된다.)
+      - name: 되살린 Library 의 내력 (T438)
+        id: libmark
+        run: |
+          set -u
+          if [ ! -d Library ]; then
+            mark="(없음 — 찬 러너)"
+          elif [ -s Library/.forge-cache-mark ]; then
+            mark=$(head -c 100 Library/.forge-cache-mark | tr -d '\r\n"\\' )
+          else
+            mark="(표식 없음 — 이 잡이 굽지 않은 Library)"
+          fi
+          echo "cache=$mark" >> "$GITHUB_OUTPUT"
+          echo "::notice::T438 — 되살린 Library 내력: $mark"
+          mkdir -p Library
+          printf 'unity-test #%s %s\n' "$GITHUB_RUN_NUMBER" "$(printf '%s' "$GITHUB_SHA" | cut -c1-8)" > Library/.forge-cache-mark
       - uses: game-ci/unity-test-runner@v4
         id: tests
         env:
@@ -624,16 +648,17 @@ jobs:
           #   cache  — 실제로 되살린 Library 캐시 키. `Library-test-…` 인지 `Library-webgl-…`·`Library-android-…` 인지가
           #            T435 가 근거 없이 짚은 그 갈래의 유일한 증거다(해시는 앞 8자만 — 줄이 길어지면 아무도 안 읽는다).
           #   disk_mb·mem_mb — 관리 어셈블리가 통째로 안 읽히는 꼴은 «못 읽었다» 쪽(디스크·자원)에서도 난다.
-          cache=$(printf '%s' "${{ steps.librarycache.outputs.cache-matched-key }}" | sed -E 's/^(Library-[a-z]*-?)([0-9a-f]{8})[0-9a-f]*$/\1\2/')
+          cache="${{ steps.libmark.outputs.cache }}"
+          hit="${{ steps.librarycache.outputs.cache-hit }}"; [ -n "$hit" ] || hit=false
           disk_mb=$(df -Pm . 2>/dev/null | awk 'NR==2{print $4}'); case "$disk_mb" in ''|*[!0-9]*) disk_mb=0 ;; esac
           mem_mb=$(awk '/MemAvailable/{print int($2/1024)}' /proc/meminfo 2>/dev/null); case "$mem_mb" in ''|*[!0-9]*) mem_mb=0 ;; esac
-          printf '{"sha":"%s","run":%s,"tests":"%s","shots":%s,"carried":%s,"carry_candidates":%s,"missing_modes":"%s","cache":"%s","disk_mb":%s,"mem_mb":%s}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$n" "$carried" "$cand" "$miss" "$cache" "$disk_mb" "$mem_mb" > ui-screens/meta.json
+          printf '{"sha":"%s","run":%s,"tests":"%s","shots":%s,"carried":%s,"carry_candidates":%s,"missing_modes":"%s","cache":"%s","cache_hit":"%s","disk_mb":%s,"mem_mb":%s}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$n" "$carried" "$cand" "$miss" "$cache" "$hit" "$disk_mb" "$mem_mb" > ui-screens/meta.json
           # T148 — 런 **장부** `runs.jsonl`: 유니티 잡이 돈 런마다 한 줄을 **덧붙인다**(지난 screens 의 장부를 받아 이어 쓴다 · 꼬리 400줄).
           #        screens 는 고아 커밋 하나를 force push 하므로 meta.json 에는 이력이 없다 — `check_unity_green` 이 «직전 초록 런의 sha» 를
           #        여기서 읽어 «그 뒤 이 런에 새로 들어온 코드 커밋» 으로 남의 자 여럿을 깨뜨린 임자를 가린다. 못 받으면 이 런 한 줄로 새로 시작한다.
           : > ui-screens/.runs.tmp
           if git fetch --depth 1 origin screens 2>/dev/null; then git show FETCH_HEAD:runs.jsonl > ui-screens/.runs.tmp 2>/dev/null || : > ui-screens/.runs.tmp; fi
-          printf '{"sha":"%s","run":%s,"tests":"%s","missing_modes":"%s","cache":"%s","disk_mb":%s,"mem_mb":%s}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$miss" "$cache" "$disk_mb" "$mem_mb" >> ui-screens/.runs.tmp
+          printf '{"sha":"%s","run":%s,"tests":"%s","missing_modes":"%s","cache":"%s","cache_hit":"%s","disk_mb":%s,"mem_mb":%s}\n' "$GITHUB_SHA" "$GITHUB_RUN_NUMBER" "${{ steps.tests.outcome }}" "$miss" "$cache" "$hit" "$disk_mb" "$mem_mb" >> ui-screens/.runs.tmp
           tail -n 400 ui-screens/.runs.tmp > ui-screens/runs.jsonl && rm -f ui-screens/.runs.tmp
           echo "::notice::screens — 이 런의 PNG ${n}장 · 이어받은 파일 ${carried}개/후보 ${cand}개(무엇인지는 screens 의 carried.txt · T347) · 올릴 파일 ${any}개 · 없는 모드 XML «${miss:-없음}»"
       # T96 — 런 164·168: peaceiris/actions-gh-pages 의 `git push --force screens` 가 «remote: Internal Server Error» 로 거절됐다
