@@ -63,6 +63,7 @@ namespace Forge.Game.Ui
         SkillPetSheet sheet;
         PetSkillModal.Handle handle;
         readonly List<Cell> cells = new List<Cell>();
+        bool ejectSet;   // T455 — «슬롯 → 광원» 벡터를 잰 적이 있는가(창이 아니라 상태로 가른다).
         readonly List<float> delays = new List<float>();
         /// <summary>T334 18회차 — 끝난 뒤의 잔잔한 고리(정본 `.sr-idle` · `.done` 에서만 돈다).</summary>
         readonly List<Image> idleRings = new List<Image>();
@@ -1344,6 +1345,18 @@ namespace Forge.Game.Ui
         void AnimateCharge()
         {
             bool on = seq != null && seq.Charging;
+            // T455 — **«슬롯 → 광원» 벡터는 충전 창 안에서만 재면 안 된다.** 종전엔 아래 `if (chargeAt < 0f)` 안에서 한 번 쟀는데,
+            //   그 블록은 `Charging` 이 참인 **프레임이 실제로 들어왔을 때만** 돈다. 러너·저사양 기기처럼 프레임이 길어 그 창(수백 ms)에
+            //   한 프레임도 안 들어오면 `ToLight` 가 **영영 0 으로 남고**, 그 벡터를 쓰는 세 자리(주역 등장 `srheropop` ·
+            //   조연 흡기 `srinhale` · 잔상 `srghost`)가 전부 «광원 쪽에서 밀려 나온» 방향을 잃는다 — 자가 아니라 **화면이 조용히 틀어진다**.
+            //   (실측: 런 1102 `SummonChargeTests.사출_경로는…` 이 «사출 벡터가 안 재졌다(경과 6.03초)» 로 빨갰다. 같은 파일에
+            //    같은 사유의 «환경» 접음이 이미 둘 있다 — 그 둘은 «못 쟀다» 지만 이것은 «안 세워졌다» 라 갈래가 다르다.)
+            //   ⇒ 창과 무관하게 **첫 틱에 한 번** 잰다. 정상 흐름에서는 그 첫 틱이 곧 첫 충전 틱이라 값도 시점도 그대로다.
+            if (!ejectSet && haloImg != null && cells.Count > 0)
+            {
+                ejectSet = true;
+                MeasureEject();
+            }
             if (!on)
             {
                 if (chargeAt < 0f) return;
@@ -1357,23 +1370,7 @@ namespace Forge.Game.Ui
             if (chargeAt < 0f)
             {
                 chargeAt = Time.unscaledTime;
-                // «슬롯 → 광원» 벡터(정본 `--dx/--dy` 는 setSummonEjectPaths 가 심어 둔다 — 클론엔 없어 여기서 잰다).
-                // ⚑ 15회차 — **62%만 되짚는다**(정본 `SR_EJECT = 0.62` · ui.js 604). 3회차가 재는 길은 옮겼지만
-                //   그 한 줄을 빠뜨려 클론은 벡터를 **100%** 되짚고 있었다. 정본 주석이 그것을 이름으로 금지한다:
-                //   «⚠️ 벡터를 100% 되짚으면 전 셀이 한 점에서 겹쳐 나와 5개가 한 덩어리로 보인다 —
-                //    일부(EJECT)만 되짚어 «광원 쪽에서 밀려 나온» 인상만 남긴다».
-                //   이 벡터를 쓰는 자리 셋(주역 등장 `srheropop` · 조연 흡기 `srinhale` · 잔상 `srghost`)이 전부 62% 벡터다.
-                float eject = SummonFxStyle.L("eject_f");
-                for (int i = 0; i < cells.Count; i++)
-                {
-                    Cell c = cells[i];
-                    c.Home = c.Root.anchoredPosition;
-                    // 두 자리 다 **같은 부모의 지역 좌표**로 재야 한다 — anchoredPosition 과 localPosition 은 상수만큼
-                    // 어긋나 있어서(앵커·피벗) 차이(벡터)는 같지만 한쪽을 다른 쪽에서 빼면 그 상수가 섞여 들어간다.
-                    c.ToLight = haloImg != null
-                        ? ((Vector2)c.Root.parent.InverseTransformPoint(haloImg.rectTransform.position) - (Vector2)c.Root.localPosition) * eject
-                        : Vector2.zero;
-                }
+                if (!ejectSet) { ejectSet = true; MeasureEject(); }   // T455 — 위에서 못 쟀으면(후광이 아직 없던 첫 틱) 여기서
             }
             SummonChargeSpec sp = SummonFxStyle.Charge;
             float ms = (Time.unscaledTime - chargeAt) * 1000f;
@@ -1885,6 +1882,32 @@ namespace Forge.Game.Ui
         public Image SparkOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Spark : null; }
 
         /// <summary>그 셀의 «슬롯 → 광원» 사출 벡터(정본 `--dx/--dy` · 전체 벡터의 `SR_EJECT` 만큼) — 자가 본다.</summary>
+        /// <summary>
+        /// T455 — «슬롯 → 광원» 벡터를 한 번 잰다(정본 `--dx/--dy` 는 `setSummonEjectPaths` 가 심어 둔다 — 클론엔 없어 여기서 잰다).
+        /// 종전엔 이 셈이 «충전 창의 첫 프레임» 안에 있어서, 프레임이 길어 그 창에 한 번도 안 들어오면 벡터가 **0 으로 남았다**(T455).
+        /// 이제 부르는 쪽이 «첫 틱에 한 번» 을 맡고 이 함수는 재기만 한다 — 시점이 창이 아니라 **상태**(`ejectSet`)로 정해진다.
+        /// </summary>
+        void MeasureEject()
+        {
+                // «슬롯 → 광원» 벡터(정본 `--dx/--dy` 는 setSummonEjectPaths 가 심어 둔다 — 클론엔 없어 여기서 잰다).
+                // ⚑ 15회차 — **62%만 되짚는다**(정본 `SR_EJECT = 0.62` · ui.js 604). 3회차가 재는 길은 옮겼지만
+                //   그 한 줄을 빠뜨려 클론은 벡터를 **100%** 되짚고 있었다. 정본 주석이 그것을 이름으로 금지한다:
+                //   «⚠️ 벡터를 100% 되짚으면 전 셀이 한 점에서 겹쳐 나와 5개가 한 덩어리로 보인다 —
+                //    일부(EJECT)만 되짚어 «광원 쪽에서 밀려 나온» 인상만 남긴다».
+                //   이 벡터를 쓰는 자리 셋(주역 등장 `srheropop` · 조연 흡기 `srinhale` · 잔상 `srghost`)이 전부 62% 벡터다.
+                float eject = SummonFxStyle.L("eject_f");
+                for (int i = 0; i < cells.Count; i++)
+                {
+                    Cell c = cells[i];
+                    c.Home = c.Root.anchoredPosition;
+                    // 두 자리 다 **같은 부모의 지역 좌표**로 재야 한다 — anchoredPosition 과 localPosition 은 상수만큼
+                    // 어긋나 있어서(앵커·피벗) 차이(벡터)는 같지만 한쪽을 다른 쪽에서 빼면 그 상수가 섞여 들어간다.
+                    c.ToLight = haloImg != null
+                        ? ((Vector2)c.Root.parent.InverseTransformPoint(haloImg.rectTransform.position) - (Vector2)c.Root.localPosition) * eject
+                        : Vector2.zero;
+                }
+                    }
+
         public Vector2 EjectOf(int i) { return i >= 0 && i < cells.Count ? cells[i].ToLight : Vector2.zero; }
 
         /// <summary>셀별 재점화 플래시 — 자가 본다.</summary>

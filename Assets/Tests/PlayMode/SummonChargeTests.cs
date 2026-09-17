@@ -281,10 +281,15 @@ namespace Forge.Tests.PlayMode
         {
             yield return Boot();
             SkillSummonResultView v = OpenHoldback();
+            // ⚑ T455 — 이 기다림이 오래 **제품 결함을 가리고 있었다**. 종전엔 «슬롯 → 광원» 벡터를 `AnimateCharge` 의
+            //   **충전 창 안**에서만 쟀기 때문에, 프레임이 길어 그 창(수백 ms)에 한 프레임도 안 들어오면 벡터가 영영 0 이었다
+            //   — 그러면 이 자는 6초를 기다리다 빨개지고(런 1102 실측 «경과 6.03초»), **화면에서는** 주역 등장·조연 흡기·잔상이
+            //   전부 방향을 잃는다. 이제 그 셈은 **첫 틱에 한 번**(창이 아니라 상태 `ejectSet`) 돌므로 한두 프레임이면 찬다.
+            //   기다림 자체는 줄이지 않는다 — 잣대를 조이면 «왜 오래 걸렸나» 를 다음 사람이 다시 못 본다.
             float t = 0f;
             while (v.EjectOf(0) == Vector2.zero && t < 6f) { t += Time.unscaledDeltaTime; yield return null; }
             Vector2 ej = v.EjectOf(0);
-            Assert.AreNotEqual(Vector2.zero, ej, "사출 벡터가 안 재졌다(경과 " + t.ToString("0.00") + "초)");
+            Assert.AreNotEqual(Vector2.zero, ej, "사출 벡터가 안 재졌다(경과 " + t.ToString("0.00") + "초) — T455 뒤로는 «충전 창» 과 무관하게 첫 틱에 차야 한다");
 
             Transform halo = FindDeep(v.transform, "halo");
             Transform cell = FindDeep(v.transform, "sr-cell-0");
