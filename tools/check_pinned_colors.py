@@ -90,7 +90,25 @@ TABLE = {
     '.chat-input-bar': ['Ui/ChatScreen.cs#input-bar|res:PinnedColorUi:chat_bar_face'],
     # T377 11회차 — 8회차가 «채팅 4» 로 남긴 묶음. **셋 다 어긋나 있었고 원작 샷으로 화소까지 쟀다**(shot-043500 499×804):
     #   #cecece 100,343화소 · #39ab36 12,308화소 ↔ 클론 값 #f0f0f0 362 · #35c04f **0** · #8a8a8a 375 · #dbe9ff **0**.
-    '.chat-bubble': ['Ui/ChatScreen.cs#bubble|catalog:chat_bubble'],                 # 3372 #cecece — 정본은 말풍선 면을 이 한 줄로만 준다(«내 말풍선» 갈래가 없다)
+    # T377 12회차 ⓐ — 자동 제련 **필터 토글**. 정본은 토글을 두 벌 쥔다(설정 3107 은 토큰 · 이 쪽 4759 는 **못박은 값**)인데
+    #   클론은 공용 `PopupKit.Toggle` 한 벌로 그려 필터 토글이 설정 팔레트(`pp_gray`/`pp_blue`)로 찍히고 있었다 — 켜짐이 초록이 아니라 파랑이었다.
+    '.af-toggle': ['Ui/ForgeAutoPopup.cs#af-toggle|catalog:af_toggle'],          # 4761 #1e2a4a(꺼진 트랙)
+    '.af-toggle.on': ['Ui/ForgeAutoPopup.cs#af-toggle|catalog:af_toggle_on'],    # 4768 #35d435(켜진 트랙 · 4994 글로우도 같은 rgb)
+    # T377 12회차 ⓑ — 패스 묶음 열둘(8회차가 «패스 11» 로 적어 둔 것 · `PassPopup.cs` 가 열렸다). **열둘 다 이미 제 값**이라 자가 지키기만 한다.
+    '.modal-card.pass-card': ['Ui/PassPopup.cs@Render|catalog:pass_bg'],                       # 2645 #0e111b
+    '.pass-banner': ['Ui/PassPopup.cs@Render|catalog:pass_banner'],                            # 2700 #341cff
+    '.pass-banner::before': ['Ui/PassPopup.cs@Render|catalog:pass_banner_dk'],                 # 2713 #2112a0(리본 꼬리 둘)
+    '.pass-banner::after': ['Ui/PassPopup.cs@Render|catalog:pass_banner_dk'],                  # 2713 #2112a0
+    '.pass-price::before': ['Ui/PassPopup.cs@Render|catalog:pass_price'],                      # 2745 #ff9a00(가격 페넌트)
+    '.pass-header-row span:last-child': ['Ui/PassPopup.cs@Render|catalog:pass_tab_prem'],      # 2764 #f2a93c(프리미엄 탭)
+    '.pass-seg.reached .pass-milestone-label': ['Ui/PassPopup.cs@Render|catalog:pass_label_lit'],   # 2810 #2c3684(닿은 마일스톤 필)
+    '.pass-cell': ['Ui/PassPopup.cs@Render|catalog:pass_cell'],                                 # 2815 #0e111b
+    '.pass-cell span:not(.pass-badge)': ['Ui/PassPopup.cs@Render|catalog:pass_pill'],           # 2826 #1b2032(칸 안 보상 알약)
+    '.pass-cell.free.lit': ['Ui/PassPopup.cs@Render|catalog:pass_cell_lit'],                    # 2833 #afafaf
+    '.pass-cell.free.lit span:not(.pass-badge)': ['Ui/PassPopup.cs@Render|catalog:pass_pill_lit'],  # 2838 #8c8c8c
+    '.pass-cell.free.done': ['Ui/PassPopup.cs@Render|catalog:pass_cell_lit'],                   # 2840 #afafaf(같은 값이지만 정본이 따로 적은 자리)
+    '.pass-cell.free.done span:not(.pass-badge)': ['Ui/PassPopup.cs@Render|catalog:pass_pill_lit'],  # 2841 #8c8c8c
+    '.chat-bubble': ['Ui/ChatScreen.cs#bubble|catalog:chat_bubble'],               # 3372 #cecece — 정본은 말풍선 면을 이 한 줄로만 준다(«내 말풍선» 갈래가 없다)
     '.chat-share-side': ['Ui/ChatScreen.cs#win|catalog:chat_share_win'],             # 3397 #39ab36(이긴 쪽 초록 반쪽) — 클론은 쪽 면을 아예 안 칠했다
     '.chat-share-side.lose': ['Ui/ChatScreen.cs#lose|catalog:chat_share_lose'],      # 3412 #cecece — 정본 주석 «말풍선과 같은 회색이라 목록에 녹아든다»(= `chat_bubble` 과 같은 값)
     # T377 10회차 ⓑ — **리그 묶음 열둘**(8회차가 «큰 묶음 리그 12 는 그 lock 뒤» 로 남겨 둔 것). `LeagueSheet.cs` 가 열렸다.

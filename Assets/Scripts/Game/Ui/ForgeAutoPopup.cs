@@ -81,7 +81,12 @@ namespace Forge.Game.Ui
             fl.fontStyle = FontStyles.Bold;
             float tw = UiKit.H("settings_toggle_w");
             UiKit.Place(fl.rectTransform, 0f, 0f, inner - tw - rem * 0.5f, UiKit.H("settings_toggle_h") + rem * 0.3f);
-            Button tg = PopupKit.Toggle(filterRow, "af-toggle", cfg.FilterOn, () => h.ToggleAutoFilterOn());
+            // T377 12회차 — 정본은 이 토글을 **설정 토글과 따로** 못박아 뒀다: 4761 `.af-toggle { background: #1e2a4a }` ·
+            //   4768 `.af-toggle.on { background: #35d435 }` · 4766 `.af-toggle .knob { background: var(--pp-blue) }`.
+            //   클론은 공용 `PopupKit.Toggle` 기본값(= 설정 토글 3107 의 `pp_gray`/`pp_blue`/흰 손잡이)으로 그려,
+            //   켜짐이 **초록이 아니라 파랑**이라 설정 토글과 구별이 안 됐다. 자리 전용 키로 받는다(값은 카탈로그 · `check_pinned_colors` 가 지킨다).
+            Button tg = PopupKit.Toggle(filterRow, "af-toggle", cfg.FilterOn, () => h.ToggleAutoFilterOn(),
+                "af_toggle_on", "af_toggle", "af_toggle_knob");
             UiKit.Place(tg.GetComponent<RectTransform>(), inner - tw, rem * 0.15f, tw, UiKit.H("settings_toggle_h"));
             if (cfg.FilterOn)
             {

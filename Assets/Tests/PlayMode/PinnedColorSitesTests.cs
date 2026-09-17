@@ -325,6 +325,67 @@ namespace Forge.Tests.PlayMode
             PopupLayer.Instance.Hide(ChatScreen.Name);
         }
 
+        /// <summary>T377 12회차 — 자동 제련 **필터 토글**. 정본은 토글을 **두 벌** 쥔다: 설정 토글(3107 · `var(--pp-gray)`/`var(--pp-blue)` 토큰 · 흰 손잡이)과
+        /// 이 필터 토글(4759 · **못박은** `#1e2a4a` / 4768 `#35d435` · 손잡이 `var(--pp-blue)`). 클론은 공용 `PopupKit.Toggle` 한 벌로 그려
+        /// 필터 토글이 **설정 팔레트**로 찍히고 있었다 — 켜짐이 초록이 아니라 **파랑**이라 두 토글이 구별되지 않았다.
+        /// 표값이 정본과 같은지는 `check_pinned_colors` 가 본다 — 여기는 «자리가 그 키를 쓰는가» + «설정 토글은 안 끌려갔는가».</summary>
+        [UnityTest]
+        public IEnumerator 자동_제련_필터_토글은_설정_토글과_다른_제_색을_갖는다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            // 자동 제련은 2-10 뒤 해금이다(AgePatternTests 250 이 적어 둔 자리) — 안 열면 헛초록이 된다.
+            h.S.BestChapter = 3; h.S.BestStage = 1; h.Pull();
+            Assert.IsTrue(h.AutoForgeUnlocked, "2-10 뒤 해금");
+            h.Engine.AutoForgeConfig().FilterOn = false;
+            h.Push();
+            ForgeAutoPopup.Open(h);
+            yield return null; yield return null;
+            Popup p = h.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(p, "자동 제련 팝업");
+            Transform tg = FindActive(p.Root, "af-toggle");
+            Assert.IsNotNull(tg, "필터 토글");
+            Image off = tg.Find("face").GetComponent<Image>();
+            Assert.AreEqual(UiKit.C("af_toggle"), off.color, "꺼진 트랙 = catalog af_toggle(정본 4761 #1e2a4a)");
+            Assert.AreNotEqual(UiKit.C("pp_gray"), off.color, "설정 토글의 pp_gray 가 아니다 — 정본은 두 토글을 따로 못박아 뒀다");
+            Image knob = tg.Find("knob/face").GetComponent<Image>();
+            Assert.AreEqual(UiKit.C("af_toggle_knob"), knob.color, "손잡이 = catalog af_toggle_knob(정본 4766 var(--pp-blue))");
+            Assert.AreNotEqual(UiKit.C("pp_paper"), knob.color, "설정 토글의 흰 손잡이(3113 #fff)가 아니다");
+
+            // 켠 상태 — 정본 4768 은 **초록**이다(클론은 파랑이었다).
+            h.Engine.AutoForgeConfig().FilterOn = true;
+            h.Push();
+            ForgeAutoPopup.Render(h);
+            yield return null;
+            p = h.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Transform tgOn = FindActive(p.Root, "af-toggle");
+            Assert.IsNotNull(tgOn, "켜진 필터 토글");
+            Image on = tgOn.Find("face").GetComponent<Image>();
+            Assert.AreEqual(UiKit.C("af_toggle_on"), on.color, "켜진 트랙 = catalog af_toggle_on(정본 4768 #35d435)");
+            Assert.AreNotEqual(UiKit.C("pp_blue"), on.color, "설정 토글의 pp_blue 가 아니다");
+            Assert.Greater(on.color.g, on.color.b + 0.3f, "«초록» 이 이 자리의 뜻이다 — 파랑으로 되돌아가면 이 줄이 먼저 깨진다");
+
+            // 설정 토글은 안 끌려갔다(공용 도우미의 기본값이 그대로인가)
+            h.Meta.Popups.HideAll();
+            yield return null;
+            ProfilePopup.Open(h.Meta);
+            yield return null;
+            Popup sp = h.Meta.Popups.Find(ProfilePopup.Name);
+            Assert.IsNotNull(sp, "프로필 팝업");
+            Transform tab = FindActive(sp.Root, "settings");   // 설정 탭(53~55행) — 토글은 그 갈래에만 선다
+            Assert.IsNotNull(tab, "설정 탭");
+            tab.GetComponent<Button>().onClick.Invoke();
+            yield return null; yield return null;
+            sp = h.Meta.Popups.Find(ProfilePopup.Name);
+            Assert.AreEqual("settings", ProfilePopup.View, "설정 갈래로 바뀌었다");
+            Transform st = FindActive(sp.Root, "toggle");
+            Assert.IsNotNull(st, "설정 토글");
+            Image sf = st.Find("face").GetComponent<Image>();
+            Assert.IsTrue(sf.color == UiKit.C("pp_blue") || sf.color == UiKit.C("pp_gray"),
+                "설정 토글은 정본 3107 대로 토큰(pp_gray/pp_blue) 그대로다 — 필터 토글 고침이 이 자리를 끌고 가지 않았다");
+            h.Meta.Popups.HideAll();
+        }
+
         /// <summary>이름이 같은 자리를 **전부** 모은다 — «하나만 맞다» 로 지나가지 않게.</summary>
         static System.Collections.Generic.List<Transform> AllDeep(Transform root, string name)
         {

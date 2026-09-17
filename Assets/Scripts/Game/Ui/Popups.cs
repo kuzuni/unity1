@@ -529,7 +529,17 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>설정 토글(원작 .settings-toggle). on 이면 파랑.</summary>
-        public static Button Toggle(Transform parent, string name, bool on, UnityAction onClick)
+        /// <param name="onKey">켜진 트랙 면 키(기본 = 정본 3115 `.settings-toggle.on { background: var(--pp-blue) }`).</param>
+        /// <param name="offKey">꺼진 트랙 면 키(기본 = 정본 3109 `.settings-toggle { background: var(--pp-gray) }`).</param>
+        /// <param name="knobKey">손잡이 면 키(기본 = 정본 3113 `.settings-toggle::after { background: #fff }`).</param>
+        /// <remarks>
+        /// T377 12회차 — 정본은 토글을 **두 벌** 쥔다: 설정 토글(3107 · 토큰 회색/파랑 · 흰 손잡이)과 자동 제련 **필터 토글**(4759 ·
+        /// **못박은** `#1e2a4a` / `#35d435` · 손잡이가 `var(--pp-blue)`). 클론은 한 벌로 그려 필터 토글이 설정 팔레트로 찍히고 있었다 —
+        /// 부르는 쪽이 제 색을 줄 수 있게 열되 **기본값은 설정 토글 그대로**라 다른 자리는 한 화소도 안 움직인다.
+        /// 치수(정본 1.873×1.269rem ↔ 설정 2.5×1.35rem)는 이 축이 아니다 — 그것은 표·기하 축(T378·T402)의 몫이다.
+        /// </remarks>
+        public static Button Toggle(Transform parent, string name, bool on, UnityAction onClick,
+            string onKey = "pp_blue", string offKey = "pp_gray", string knobKey = "pp_paper")
         {
             float w = UiKit.H("settings_toggle_w"), h = UiKit.H("settings_toggle_h");
             Button b = UiKit.Button(parent, name, onClick);
@@ -537,13 +547,13 @@ namespace Forge.Game.Ui
             Size(rt, w, h);
             UiKit.Rounded(rt, "line", "pp_line", h * 0.5f);
             // T365 10회차 — 정본 3108 `.settings-toggle { border: var(--ol2) … }` = ol2(전엔 ol1)
-            Image face = UiKit.Rounded(rt, "face", on ? "pp_blue" : "pp_gray", h * 0.5f - Line2);
+            Image face = UiKit.Rounded(rt, "face", on ? onKey : offKey, h * 0.5f - Line2);
             Inset(face.rectTransform, Line2);
             float k = h - Line2 * 4f;
             // T365 10회차 — 정본 3113 `.settings-toggle::after { border: var(--ol1) solid var(--pp-line) }`: 손잡이도 검정 고리(ol1) + 흰 면(전엔 흰 원 한 장)
             Image knob = UiKit.Rounded(rt, "knob", "pp_line", k * 0.5f);
             UiKit.Anchor(knob.rectTransform, new Vector2(on ? 1f : 0f, 0.5f), new Vector2(on ? 1f : 0f, 0.5f), new Vector2(on ? -Line2 * 2f : Line2 * 2f, 0f), k, k);
-            Image knobFace = UiKit.Rounded(knob.transform, "face", "pp_paper", k * 0.5f - Line);
+            Image knobFace = UiKit.Rounded(knob.transform, "face", knobKey, k * 0.5f - Line);
             Inset(knobFace.rectTransform, Line);
             return b;
         }
