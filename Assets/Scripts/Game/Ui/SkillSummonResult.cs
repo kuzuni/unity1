@@ -1558,6 +1558,8 @@ namespace Forge.Game.Ui
             }
         }
 
+        /// <summary>T459 — 흔들리는 판(정본 `.sr-wrap` = `handle.Content`) · 자가 본다.</summary>
+        public RectTransform Wrap { get { return wrap; } }
         /// <summary>입장 셰이크가 도는 중인가 — 자가 본다.</summary>
         public bool EnterShaking { get { return enterAt >= 0f && SummonFxStyle.Enter.Shaking((Time.unscaledTime - enterAt) * 1000f); } }
 

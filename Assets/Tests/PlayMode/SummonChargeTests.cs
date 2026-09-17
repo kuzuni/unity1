@@ -725,9 +725,8 @@ namespace Forge.Tests.PlayMode
         {
             yield return Boot();
             SkillSummonResultView v = OpenHoldback();
-            Transform wrap = FindDeep(v.transform, "sr-wrap");
-            RectTransform w = wrap as RectTransform;
-            Assert.IsNotNull(w, "판(sr-wrap)");
+            RectTransform w = v.Wrap;   // 정본 `.sr-wrap` = 클론 `handle.Content`(이름이 다르다 — 런 1137 에서 이름으로 찾다 빨갰다)
+            Assert.IsNotNull(w, "판(정본 .sr-wrap · 클론 handle.Content)");
             yield return null;
             Vector2 home = w.anchoredPosition;
             float t0 = Time.unscaledTime;
