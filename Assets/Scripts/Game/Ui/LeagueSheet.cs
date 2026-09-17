@@ -341,11 +341,15 @@ namespace Forge.Game.Ui
             float rowH = UiKit.L("lc_row_h") * w;
             float pillH = UiKit.L("lc_pill_h") * w;   // T378 10회차 — 정본 2594 `.league-ticket-pill { height: .0411W }`(전엔 ×1.4)
             List<LeagueChallengeOption> list = h.League.ChallengeList(h.LeagueState);
-            float cardH = rem * 1.1f + PopupKit.FontSize(TextKind.Title2) * 1.3f + PopupKit.FontSize(TextKind.Sub) * 1.5f + rem * 1.05f + pillH + rem * 1.9f + list.Count * (rowH + rem * 0.5f) + rem * 1.15f + rem * 1.1f;
+            float cardH = rem * 1.1f + PopupKit.FontSize(TextKind.Title) * 1.3f + rem * 0.2f + PopupKit.FontSize(TextKind.Sub) * 1.5f + rem * 1.05f + pillH + rem * 1.9f + list.Count * (rowH + rem * 0.5f) + rem * 1.15f + rem * 1.1f;
             RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "pp_paper", rem);
             PopupKit.Column(card, UiKit.H("card_pad"), 0f);
-            TextMeshProUGUI title = PopupKit.Label(card, "title", TextKind.Title2, "상대 선택", "pp_ink");   // T456 — 정본 ui.js 4868 `.profile-title` → style.css 2992 `color: var(--pp-ink)`: 흰 카드 위 진한 잉크(전엔 stage_ink #fff 라 흰 위 흰 · 런 1102 실측 가장 어두운 화소 189). T404 ⓑ — 정본 2298 `.league-title { 1.15rem }` = 41.9px → Title2 42(전엔 Title 60)
+            // T462 — 이 제목은 정본 ui.js 4868 `.profile-title`(style.css 2991 `font-size: 1.5rem; margin: 0 0 .2rem`)이지 2298 `.league-title`(1.15rem · 시트 제목)이 아니다.
+            //   1.5rem = 54.6px 은 `ProfilePopup` 이 같은 선택자에 쓰는 `Title`(60 · +10% · check_text_kinds ±12% 안) 단으로 — 새 단을 더하지 않는다(T391 창 규약 · T404 Title2 는 1.15rem 단이라 그대로).
+            //   아래 마진 .2rem 은 카드 높이 셈(위 cardH)과 아래 Spacer 둘 다에 넣는다(전엔 둘 다 없었다 · 제목이 −23% 라 카드가 짧아 위끝 +2.93%p · T28 119회차).
+            TextMeshProUGUI title = PopupKit.Label(card, "title", TextKind.Title, "상대 선택", "pp_ink");   // T456 — 정본 ui.js 4868 `.profile-title` → style.css 2992 `color: var(--pp-ink)`: 흰 카드 위 진한 잉크(전엔 stage_ink #fff 라 흰 위 흰 · 런 1102 실측 가장 어두운 화소 189). T404 ⓑ — 정본 2298 `.league-title { 1.15rem }` = 41.9px → Title2 42(전엔 Title 60)
             PopupKit.Ring(title);
+            PopupKit.Spacer(card, rem * 0.2f);   // T462 — 정본 2991 `.profile-title { margin: 0 0 .2rem }`
             PopupKit.Label(card, "desc", TextKind.Sub, "도전 티켓은 매일 09:00에 보충됩니다!", "pp_ink", TextAlignmentOptions.Center, false, true, PopupKit.FontSize(TextKind.Sub) * 1.5f);
             PopupKit.Spacer(card, rem * 1.05f);
             RectTransform pillRow = PopupKit.Item(card, "ticket-row", -1f, pillH);
