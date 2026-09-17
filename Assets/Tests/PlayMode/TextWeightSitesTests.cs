@@ -30,6 +30,29 @@ namespace Forge.Tests.PlayMode
             while (!(ForgeHost.Ready && MetaHost.Ready && PopupLayer.Instance != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
         }
 
+        /// <summary>T352 13회차 — **공장 기본이 bold 다**(이 회차에 뒤집었다). 정본 `font-weight` 233 선언 중 **225 가 bold** 고
+        /// regular 는 여덟뿐이라 «기본 bold + 표가 쥔 예외» 가 옳은 부호다. 여태는 반대였다 —
+        /// 공장이 굵기를 안 줘서 **새 화면에서 손박음 한 줄을 잊으면 조용히 regular** 가 됐고 아무 자도 안 울었다.
+        /// 이 칸이 그 부호를 지킨다: 되돌리면 여기서 먼저 빨개진다.</summary>
+        [UnityTest]
+        public IEnumerator 공장이_만든_글자는_기본이_bold_고_표의_색_키만_regular_다()
+        {
+            yield return Boot();
+            var go = new GameObject("weight-probe");
+            go.AddComponent<RectTransform>();
+            TextMeshProUGUI plain = UiKit.Text(go.transform, "plain", TextKind.Body, "가", null);
+            Assert.IsTrue((plain.fontStyle & FontStyles.Bold) != 0,
+                "색 키를 안 준 글자는 **bold** 다 — 정본 233 중 225 가 bold 라 그것이 기본이다");
+            TextMeshProUGUI ink = UiKit.Text(go.transform, "ink", TextKind.Body, "가", "pp_ink");
+            Assert.IsTrue((ink.fontStyle & FontStyles.Bold) != 0, "일반 잉크도 bold 다");
+            TextMeshProUGUI muted = UiKit.Text(go.transform, "muted", TextKind.Body, "가", "pp_muted");
+            Assert.IsFalse((muted.fontStyle & FontStyles.Bold) != 0,
+                "`pp_muted` 는 regular 다 — 정본 657 `.muted { color:#78909c; font-weight:400 }` 가 색과 굵기를 한 클래스로 묶었다");
+            TextMeshProUGUI srv = UiKit.Text(go.transform, "srv", TextKind.Sub, "서버 1", "league_server");
+            Assert.IsFalse((srv.fontStyle & FontStyles.Bold) != 0, "`league_server` 는 regular 다 — 정본 8633");
+            Object.Destroy(go);
+        }
+
         /// <summary>표가 실리고, 정본이 «색과 굵기를 한 클래스에 묶어 둔» 자리만 색 키로 걸린다.</summary>
         [UnityTest]
         public IEnumerator 굵기_표가_실리고_regular_는_정본이_묶어_둔_색_키로만_걸린다()

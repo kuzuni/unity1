@@ -216,13 +216,16 @@ namespace Forge.Game.Ui
             t.font = UiFont.Primary;
             t.fontSize = Cat.Kind(kind).size;
             t.color = C(colorKey ?? "ink");
-            // T352 ⓐ — **여기 한 줄이 이 축의 끝**이다: `t.fontStyle = TextWeightUi.RegularByColor(colorKey) ? FontStyles.Normal : FontStyles.Bold;`
-            //   정본 `style.css` 의 `font-weight` **233 선언 중 225 가 bold** 고 regular 는 **여덟뿐**이라 **기본이 bold** 여야 한다.
-            //   클론은 부호가 반대다 — 공장이 굵기를 안 주고 27개 파일 **120 자리**가 손으로 박는다(새 화면에서 잊으면 조용히 regular).
-            //   ⚑ **10회차가 일부러 안 뒤집었다**: 뒤집으면 regular 로 남아야 할 자리가 **다** 배선돼 있어야 하는데,
-            //   `.btn small`(667)은 `ForgeCraftPopup.cs`(T377 산 lock) · `.age-tag small`(724)은 `ForgeUi.cs`(T453 산 lock)에 있다.
-            //   그 둘은 지금 **공장 기본이 regular 라서 우연히 맞는** 자리다 — 배선 없이 뒤집으면 그 둘이 되레 틀린다.
-            //   ⇒ 표(`TextWeightUi.json`)와 자(`TextWeightSitesTests`)를 **먼저** 세워 뒀다. 그 둘이 열리면 이 줄 하나로 뒤집는다.
+            // T352 ⓐ 13회차 — **뒤집었다.** 정본 `style.css` 의 `font-weight` **233 선언 중 225 가 bold** 고
+            //   regular 는 **여덟뿐**이라 공장 기본이 bold 여야 한다. 여태 클론은 부호가 반대여서(기본 regular +
+            //   27개 파일 120 자리 손박음) **새 화면에서 그 한 줄을 잊으면 조용히 regular** 가 됐고 아무 자도 안 울었다.
+            //   ⚑ 굵기 «단» 을 만드는 것이 아니다 — 정본 **8624~8631** 이 «폴백 sans 는 regular/bold **두 축**뿐 ·
+            //   600·650 은 700 으로 반올림 · **한 단 내려가려면 500**» 이라 적어 뒀다. on/off 가 옳은 이식이다.
+            //   regular 자리는 표(`TextWeightUi.json`)가 쥔다: 정본이 색과 굵기를 한 클래스에 묶어 둔 자리는 **색 키**로
+            //   여기서 걸리고(`.muted` 657 · `.league-server` 8633), 색으로 안 걸리는 자리는 `TextWeightUi.Regular(t, 키)` 가 되돌린다
+            //   (`pass_desc` 11회차 · `btn_small` 12회차 `IconTextStack` · `forge_item_cell_small` 10회차).
+            //   10~12회차가 여덟을 다 배선·확인한 뒤에야 이 줄을 뒤집었다(배선 없이 뒤집으면 맞던 자리가 틀어진다).
+            t.fontStyle = TextWeightUi.RegularByColor(colorKey) ? FontStyles.Normal : FontStyles.Bold;
             t.alignment = align;
             // T361 3회차 — 정본 CSS 의 기본은 «접는다»(white-space: normal)이고 nowrap 은 예외 40 자리뿐(표 WrapUi.json · 자리 파일이 WrapUi.Apply 로 건다).
 //               기본값은 Core WrapRules.DefaultWraps 가 쥔다(전엔 NoWrap 이 박혀 있어 정본과 반대였다). 넘침 모드는 그대로(잘림·말줄임은 T351 몫).

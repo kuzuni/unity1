@@ -5071,7 +5071,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   - **게이트**: `gate.sh` 막는 자 **46/46 rc 0 · 건너뜀 0** · `dotnet test` **850/850** · `Forge.TestsPlay` 빌드 **0 error**.
   - **판정(다음 런)**: 새 칸 PASS + `screen_pass.png` 안내문이 **한 톤 가늘어진다**(이 회차는 **화면이 바뀌는 고침**이다 — 10회차와 달리 안 바뀌면 그게 결함이다). ⚠ 그 글은 정본이 `<br>` 로 못 박은 **두 줄**(T383)이라 `BrLinesTests`·`TextSizeGateTests` 가 그대로 초록인지 함께 본다(가늘어지면 폭이 주는 쪽이라 줄 수는 안 는다).
   - ✅ **11회차 판정(런 #1112 `d22dde7` = 내 병합 · 런 전체 초록 · 빨강 0)**: `TextWeightSitesTests` **4칸 전부 PASS**(새 «패스 안내문» 칸 포함) · 이웃 글자 자 19칸 초록. ⚠ **눈 확인은 못 냈다** — `screens` 는 배포마다 덮어써 **직전 런 그림이 안 남아** before/after 화소 비교가 불가능하다(«가늘어졌다» 를 화소로 증명하지 못했다 · 굵기가 regular 라는 것은 런타임 자가 증명한다).
-- 🔄 **12회차 2026-09-17 18:2x~19:0x 워커 F(sess-1628-600 · 같은 lock · 판정은 다음 런)** — **10·11회차가 «남의 lock 뒤» 라고 적은 것이 틀렸다. `.btn small` 은 공용 도우미 한 곳이 쥐고 있었다.**
+- ✅ **12회차 2026-09-17 18:2x~19:0x 워커 F(sess-1628-600 · 같은 lock)** — **10·11회차가 «남의 lock 뒤» 라고 적은 것이 틀렸다. `.btn small` 은 공용 도우미 한 곳이 쥐고 있었다.**
   - **바로잡음**: 10회차는 «`.btn small` 은 `ForgeCraftPopup.cs`(T377 산 lock) 뒤라 못 한다» 로 적었고 11회차도 그대로 이었다. 그런데 그 파일을 **여는 것이 아니라 읽어** 보니, 버튼 잔글씨는 그 파일이 아니라 **`IconTextStack.ReplaceLabel`**(공용 · **lock 없음**)이 세운다 — 그것이 **모든 줄에 `FontStyles.Bold` 를 박고 있었다**(96행). 곧 막혀 있던 것이 아니라 **내가 자리를 잘못 짚고 있었다.**
   - **고침**: `ReplaceLabel` 이 **첫 줄만 bold**, **둘째 줄부터 regular**(`TextWeightUi.Regular(t, "btn_small")`). 정본 근거 — `<button>판매<small>🪙 +N</small></button>`(ui.js **3266**)에 **667** `.btn small { font-weight: 400 }`. 부르는 넷이 전부 그 꼴이다(`판매` · `건너뛰기\n💎 N` · `레벨 N 업그레이드` · 판매 경고). ⚠ 링(키라인)은 줄마다 그대로 건다 — **다른 축**이다(T109).
   - ⚠ **줄 노드로 센다**: 처음엔 `UiKit.RowTexts(stack)` 를 평평히 훑어 인덱스로 갈랐는데, 그 함수는 `GetComponentsInChildren` 이라 **한 줄에 글자가 둘이면 어긋난다**. 이 파일이 65행에서 이미 쓰는 **`line-` 이름 기준**으로 바꿨다(짐작 대신 파일이 이미 쓰는 길).
@@ -5079,6 +5079,13 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   - **여덟이 다 정리됐다**: 색 키 둘 ✓ · `rates_tip` ✓ · `forge_item_cell_small` ✓(10회차) · `pass_desc` ✓(11회차) · **`btn_small` ✓(이 회차)** · `.egg-chip small`·`.age-tag small` **죽음**. ⇒ **뒤집기를 막는 것이 이제 없다** — 다음 회차가 `UiKit.cs` 한 줄(10회차가 주석으로 적어 둔 그것)을 뒤집으면 ⓐ 가 닫힌다. 그 회차는 **화면이 크게 바뀌므로** 판정에 `screen_*` 눈 확인을 꼭 붙인다.
   - **게이트**: `gate.sh` 막는 자 **46/46 rc 0 · 건너뜀 0** · `dotnet test` **851/851** · `Forge.TestsPlay` 빌드 **0 error**.
   - **판정(다음 런)**: 새 칸 PASS + `screen_craft-compare.png` 의 [판매] 둘째 줄(🪙 +N)이 **첫 줄보다 가늘다**. 이 회차도 **화면이 바뀌는 고침**이다.
+  - ✅ **12회차 판정(런 #1119 `d3b9951` · 내 `3b7cfdd` 이 실렸다 · 런 전체 초록)**: `TextWeightSitesTests` **5칸 전부 PASS**(새 «버튼 잔글씨» 칸 포함).
+- 🔄 **13회차 = ⓐ 를 뒤집었다 2026-09-17 19:2x~20:0x 워커 F(sess-1628-600 · 같은 lock · 판정은 다음 런)** — 10~12회차가 여덟을 다 배선·확인했으므로 **`UiKit.Text` 의 기본을 bold 로 뒤집었다**. 이 축의 본론이다.
+  - **뒤집기 전에 하나를 더 찾아 고쳤다 — `PetSkillKit.Text`**: 그 공장은 **`UiKit.Text` 위에 서고**(`UiKit.Text(...)` 를 부른 뒤 색만 덮는다) `bold: false` 일 때 **Bold 를 걷지 않았다**(`if (bold) t.fontStyle = Bold;`). 뒤집기 전에는 기본이 regular 라 두 꼴이 같은 그림이었지만, **뒤집은 뒤에는 `bold: false` 로 부른 열여섯 자리가 전부 굵어진다**(`empty`·`muted`·`hint` 류 — 정본 `.muted` 657 이 400 을 주는 갈래고 `rates-tip` 8633 도 그 길이다). ⇒ `bold ? (…|Bold) : (…&~Bold)` 로 바꿨다. **이것을 안 봤으면 뒤집기가 그 열여섯을 조용히 깨뜨렸다.**
+  - **뒤집은 줄**: `t.fontStyle = TextWeightUi.RegularByColor(colorKey) ? FontStyles.Normal : FontStyles.Bold;` — 색 키가 표의 regular 갈래면 보통, 아니면 bold. 10회차가 주석으로 적어 둔 그 줄 그대로다.
+  - **자 +1**: «공장이 만든 글자는 기본이 bold 고 표의 색 키만 regular 다» — 색 키 없는 글자·`pp_ink` 는 bold · `pp_muted`·`league_server` 는 regular. **부호를 지키는 칸**이라, 누가 되돌리면 여기서 먼저 빨개진다.
+  - **게이트**: `gate.sh` 막는 자 **46/46 rc 0 · 건너뜀 0** · `dotnet test` **855/855** · `Forge.TestsPlay` 빌드 **0 error**.
+  - 🚨 **판정(다음 런) — 이 회차는 화면이 크게 바뀐다**: 공장이 만든 **모든** 글자 중 여태 손박음이 없던 것이 bold 가 된다. ⓐ `TextWeightSitesTests` 6칸 PASS ⓑ **글자 자 전부 초록 유지**(하한 `TextSizeGateTests` · 줄 수 `BrLinesTests` · 등폭 `TabularSitesTests` · 줄높이 `LineHeightTests` — 굵기는 **잉크 폭**을 바꾸므로 폭·줄 수를 재는 자가 먼저 운다) ⓒ **눈**: `screen_*` 에서 본문 잔글씨가 굵어지고 **정본이 regular 로 둔 여덟만 가늘게 남는다**. ⚠ 빨개지면 **되돌리지 말고 그 자리를 배선한다** — 부호는 정본이 정한 것이고(225/233 bold) 빨강은 «배선이 빠진 자리» 를 가리키는 것이다.
 ### T360 ✅ — `ForgeUiTests` 두 자가 **벽시계에 매여** 빨갛다: 하나는 0.56초 타이머가 자 도중에 터지고, 하나는 «순백 코어» 를 절대 밝기로 잰다 (검증·게이트 · §0-6 임자 없는 빨강 · 워커 G 등재 · 런 565 실측)
 
 - 빨강 둘(런 565 `3e0923d` · 그 파일을 «범위» 로 쥔 **산 lock 이 없다** · 고쳐 온 작업은 전부 ✅):

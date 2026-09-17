@@ -166,7 +166,11 @@ namespace Forge.Game.Ui
         {
             TextMeshProUGUI t = UiKit.Text(parent, name, kind, text, null, align);
             t.color = color;
-            if (bold) t.fontStyle = FontStyles.Bold;
+            // T352 13회차 — **이 공장은 `UiKit.Text` 위에 선다.** 그 공장의 기본이 이 회차에 bold 로 뒤집혔으므로
+            //   `bold: false` 는 이제 «안 걸었다» 가 아니라 «**걷어낸다**» 여야 한다 — 안 그러면 `bold: false` 로 부른
+            //   열여섯 자리(`empty`·`muted`·`hint` 류 · 정본 `.muted` 657 이 400 을 주는 갈래)가 전부 굵어진다.
+            //   뒤집기 전에는 두 꼴이 같은 그림이었지만(기본이 regular 였으니) 뒤집은 뒤에는 다르다.
+            t.fontStyle = bold ? (t.fontStyle | FontStyles.Bold) : (t.fontStyle & ~FontStyles.Bold);
             return t;
         }
 
