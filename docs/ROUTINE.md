@@ -3316,6 +3316,13 @@
 - 판정: ⓐ `screen_gear-detail.png` 이름줄 잉크 위끝이 **48~57**(지금 43.0 · 기대 53.2 · 카드 위끝 기준) ⓑ `screen_craft-compare.png` 카드 위끝이 **417~427**(지금 411 · 기대 423) ⓒ 두 화면의 **카드 폭·높이는 안 움직인다**(±3px). PlayMode 자 하나 — 두 팝업의 첫 자식 위 여백 = `card_pad + .5rem + .9rem`(±0.5px).
 - 범위: `Assets/Scripts/Game/Ui/GearDetailPopup.cs`(81) · `Assets/Scripts/Game/Ui/ForgeCraftPopup.cs`(60) · `Assets/Forge/Resources/CraftUi.json`(키 둘) · `Assets/Tests/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`. ⚠ **`ForgeCraftPopup.cs` 는 T429**(70행 회색 판 폭)**·T390**(65행 아래 패딩)**과 같은 파일**이다 — 셋이 **서로 다른 줄**이니(60 · 65 · 70) 같이 돌아도 되지만 먼저 잡는 쪽이 범위 칸에 적는다.
 
+- 🔄 **1회차(2026-09-17 02:0x~02:3x · 워커 H · sess-2258-11450 · lock 유지 · 판정은 다음 런)**: 등재문 그대로 표 두 키 + 두 자리 배선 + 자 하나.
+  - 표 `CraftUi.json` 에 `cmp_wrap_mt_rem` **0.5**(정본 1783) · `cmp_card_pt_rem` **0.9**(정본 1812) + `_src` 에 정본 줄·선언. **한 표에 둔 까닭**: 정본 `ui.js` 3296 이 장비 상세를 제작 비교의 위 카드와 **같은 `.cmp-wrap` 조각**으로 세우므로 값이 갈리면 두 화면이 어긋난다.
+  - 배선은 **위만** 바꿨다 — ⚠ `PopupKit.Column(rt, pad, gap)` 의 `pad` 는 `new RectOffset(p, p, p, p)` 로 **네 변에 똑같이** 걸린다(`Popups.cs` 322). 그 인자를 올려 위를 키우면 **좌우까지 커져** ⓐ 장비 상세는 바로 다음 줄의 내용 폭(`w − card_pad*2 − rem*1.2f` = 좌우 0.6rem 두 몫)이 어긋나 **카드 폭이 움직이고**(판정 ⓒ 가 «±3px» 로 막는 바로 그것) ⓑ 제작 비교는 위 «장착됨» 층이 좁아지고 `inner`(회색 패널 폭의 밑동 · T429)가 어긋난다. 그래서 두 곳 다 `cardLg.padding = new RectOffset(left, right, **새 위**, 아래)` 로 **위 한 칸만** 덮었다(제작 비교가 T390 아래 당김에 이미 쓰던 길 그대로).
+  - 자 `Assets/Tests/PlayMode/CmpCardTopPadTests.cs`(새 · `.meta` 같이) — **두 자리를 한 자에서 나란히** 본다: 표가 정본 두 값을 **따로** 쥐는가(한 어림수로 합치면 이 줄이 먼저 깨진다) · 두 화면의 위 여백 = `card_pad + .5 + .9`(±0.5px) · **좌우가 안 움직였다**(각 자리의 종전 값 그대로) · 제작 비교 **아래**는 T390·T429 의 당김 그대로 · 마지막으로 **두 화면의 위 여백이 서로 같다**(한쪽만 고치면 여기서 운다).
+  - 게이트: `dotnet build` 0 오류 · `dotnet test` **848/848** · `gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 없다 · `gen_meta` 1개 생성.
+  - **판정은 다음 런**(§1 · lock 은 쥔 채): 자 초록 + 등재문의 화면 창 ⓐ `screen_gear-detail` 이름줄 잉크 위끝 **48~57**(지금 43.0) ⓑ `screen_craft-compare` 카드 위끝 **417~427**(지금 411) ⓒ 두 화면 카드 폭·높이 ±3px.
+
 ### T436 ✅ — `MountSceneTests` 의 «돌았나» 세 줄이 **사인의 전환점에 앉는 런**에서 거짓 빨강을 낸다: `Quaternion.Angle` 이 **0.162° 아래를 통째로 0 으로** 돌려주는데 잣대가 **0.01°** 다 (도구·자 · T422·T431·T360 과 같은 갈래(런의 사정을 재는 잣대) · **§0-6 임자 없는 빨강** · 런 1001 실측 · 워커 H 등재)
 - **증상**: 런 **#1001** 에서 `MountSceneTests.사족을_타면_서서_타는_정합대로_영웅이_올라서고_무리는_뒤쪽_호에_선다` 가 «무리의 날개도 같은 함수로 돈다 · Expected: greater than 0.00999999978f · But was: **0.0f**» 로 빨갰다. 런 **999** 에는 없던 빨강이고, 런 999→1001 사이의 코드 커밋 둘(T364 `DungeonDetailPopup`·T332 `SkillSummonResult`)은 **3D 탈것을 한 줄도 안 건드린다**(`git log --name-only` 로 확인 — 바뀐 스크립트 일곱이 전부 `Ui/`). 자료도 그대로다(`mobs-mounts.json` 의 미니 드래곤 날개 `s` 는 **1·−1** · 0 이 아니다).
 - **뿌리 둘이 겹쳤다**:

@@ -78,7 +78,14 @@ namespace Forge.Game.Ui
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
             // 정본 1737: 카드 바닥을 앱 바닥에서 bottom_h(.223·H) 위에 앉힌다 — 높이는 내용을 따르고(ContentSizeFitter) 피벗이 바닥이라 위로 자란다.
             UiKit.Anchor(card, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, GearDetailStyle.Px("bottom_h")), w, card.sizeDelta.y);
-            PopupKit.Column(card, UiKit.H("card_pad") + rem * 0.6f, rem * 0.45f);
+            VerticalLayoutGroup cardLg = PopupKit.Column(card, UiKit.H("card_pad") + rem * 0.6f, rem * 0.45f);
+            // T434 — 정본은 이 카드를 **세 겹**으로 띄운다: 모달 패딩 1.1rem(`card_pad`) + `.cmp-wrap { margin-top: .5rem }`(1783) + `.cmp-card-wrap.cur .cmp-card { padding: .9rem … }`(1812) = **2.5rem**.
+            //   종전 `card_pad + rem*0.6`(1.7rem)은 뒤 두 겹을 **한 어림수로 합친 것**이라 0.8rem(=14.6px) 짧았고, 카드는 맞는데 안쪽 글자 블록만 통째로 −10~13px 위였다(T28 96회차 실측).
+            //   두 값은 `CraftUi.json` 이 쥔다 — 정본 `ui.js` 3296 이 장비 상세를, 제작 비교가 위 카드를 **같은 `.cmp-wrap` 조각**으로 세우므로 두 화면이 한 표를 나눠 쓴다.
+            // ⚠ **위만** 바꾼다: `PopupKit.Column` 의 둘째 인자는 네 변에 똑같이 걸리는데, 좌우를 키우면 바로 아래 줄의 내용 폭(`− rem * 1.2f` = 좌우 0.6rem 두 몫)이 어긋나 카드 폭이 움직인다.
+            cardLg.padding = new RectOffset(cardLg.padding.left, cardLg.padding.right,
+                                            Mathf.RoundToInt(UiKit.H("card_pad") + CraftStyle.Px("cmp_wrap_mt_rem") + CraftStyle.Px("cmp_card_pt_rem")),
+                                            cardLg.padding.bottom);
             RectTransform ic = ForgeUi.ItemCard(card, "cur", w - UiKit.H("card_pad") * 2f - rem * 1.2f, it, "장착됨", null, false, h.Defs, h.GearSys.ItemValue);
             ForgeUi.Ribbon(ic, "장착됨", false);
             PopupKit.XButton(card, () => Close(h));

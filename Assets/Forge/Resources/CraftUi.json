@@ -3,6 +3,8 @@
   "layout": {
     "card_w": 0.688,
     "bottom_rem": 1.65,
+    "cmp_wrap_mt_rem": 0.5,
+    "cmp_card_pt_rem": 0.9,
     "cmp_lower_pull_rem": 0.85,
     "cmp_row_pad_bottom_rem": 1.44,
     "cmp_row_btn_h_rem": 4.2,
@@ -13,6 +15,8 @@
     "sellwarn_btn_min_h_rem": "T378 12회차 — style.css 3565 `.modal-card > .row .btn:not(.sm):not(.xs) { min-height: 2.9rem; font-size: 1rem }` (border-box). 판매 경고 [판매][취소]의 하한 — 실제 높이는 글(판매 + small 두 줄)이 더 크면 글이 정한다(PopupKit.TwoLineBtnH 가 둘 중 큰 쪽).",
     "sellwarn_btn_pad_y_rem": "T378 12회차 — style.css 663 `.btn { padding: .55rem .8rem }`. 판매 경고 버튼의 세로 패딩(사이트 규칙이 안 덮는다) — 높이 = 이 값 x 2 + Sub 두 줄의 글꼴 줄높이(line-height 미선언 = normal)를 3565 하한과 견준다. 전엔 btn_h x 1.5 가 코드에 박혀 있었다(T378 임시 목록).",
     "card_w": "style.css 1748 `#craft-modal .modal-card.wide { width: 68.8%; }` — 공용 .modal-card.wide 74% 가 아니다(원본 흰 본체 67.33%W + 테두리·AA 1.46%p)",
+    "cmp_wrap_mt_rem": "style.css **1783** `.cmp-wrap { display: flex; flex-direction: column; gap: 0; margin-top: .5rem }` — 장비 카드를 품는 조각의 **위 바깥 여백**. 정본 `ui.js` 3296 이 장비 상세를, 제작 비교가 위 카드를 **같은 `.cmp-wrap` 조각**으로 세우므로 두 화면이 이 한 키를 나눠 쓴다.",
+    "cmp_card_pt_rem": "style.css **1812** `.cmp-card-wrap.cur .cmp-card { border: none; padding: .9rem .4rem .4rem }` 의 **위** 값. 정본의 위 여백은 세 겹이다 — 모달 패딩 1.1rem(`card_pad`) + 이 표의 `cmp_wrap_mt_rem` .5 + 이 키 .9 = **2.5rem**. 클론은 종전 «card_pad + 어림수 한 겹»(1.7·1.6rem)이라 0.8~0.9rem 짧았다(T434). ⚠ 셋째 카드(`.cmp-card-wrap.new` 1815)는 `padding-bottom: 1.5rem` 으로 **다른 값**이라 이 키가 아니다.",
     "cmp_lower_pull_rem": "style.css 1819 `.cmp-lower { margin: 0 -.85rem -.85rem; }` — 축약형은 위 0 · 좌우 -.85rem · 아래 -.85rem 이라 당김이 셋이고 이 키 하나가 세 자리를 쥔다(주석 «카드 패딩 1.1rem + 테두리 3px 이므로 -.85rem 음수 마진이 인셋 7px 을 만든다»): 아래 = 카드 층 아래 패딩 = card_pad − 이 값 (T390) · 좌우 = 회색 패널 폭 = 카드 내용 폭 + 이 값×2, 카드 층이 가운데 맞춰 x 가 −이 값 (T429 · 전엔 아래 하나만 들어와 패널이 내용 폭 그대로였다)",
     "cmp_row_pad_bottom_rem": "style.css 1821 `.cmp-lower .row { margin: .45rem .96rem 0; padding-bottom: 1.44rem; }` — [판매][장착] 줄 아래 여백(전엔 코드에 rem × 1.4 가 박혀 있었다) (T390)",
     "cmp_row_btn_h_rem": "style.css 3566 `#craft-modal .row .btn { min-height: 4.2rem; font-size: 1.22rem; line-height: 1.15 }` — [판매][장착] 버튼 높이. 전역 box-sizing: border-box 라 4.2rem 이 곧 상자 높이(글 두 줄 1.22×1.15 + .74×1.15 + 패딩 .55×2 + 테 ≈3.5rem 이 그 아래라 하한이 곧 실제). 전엔 코드에 btn_h(2.4rem) × 1.7 = 4.08rem 이 박혀 있었다(«표값 × 박힌 상수» · T378 8회차)",

@@ -67,7 +67,12 @@ namespace Forge.Game.Ui
             //      런 955 실측 카드 테 → 회색 판 틈 왼 25·오른 26 ↔ 원작 7px(x90~415) — 아래 틈만 맞고 좌우는 안 파고들고 있었다.
             //      ⚠ 카드 층의 좌우 패딩을 줄이면 안 된다(위 «장착됨» 층까지 넓어진다 · 넓히는 것은 회색 패널 하나).
             float pull = CraftStyle.Px("cmp_lower_pull_rem");
-            cardLg.padding = new RectOffset(cardLg.padding.left, cardLg.padding.right, cardLg.padding.top, Mathf.RoundToInt(pad - pull));
+            // T434 — 위 여백도 정본 **세 겹**이다: 카드 패딩 1.1rem(`card_pad`) + `.cmp-wrap { margin-top: .5rem }`(1783) + `.cmp-card-wrap.cur .cmp-card { padding: .9rem … }`(1812) = **2.5rem**.
+            //   종전 `pad + rem*0.5`(1.6rem)은 뒤 두 겹을 한 어림수로 합친 것이라 0.9rem(=16.4px) 짧았다. **이 카드는 하단 앵커**(1742 · T113)라 위 여백이 모자라면
+            //   내용이 그만큼 짧아지고 바닥이 고정이므로 **카드 위끝이 그만큼 올라간다** — T28 92회차가 «카드 위끝 −12px» 로 재고 «T429 판정 뒤에 다시 잰다» 며 미뤄 둔 그 자리다(−16.4 ↔ 잰 −12 · 부호·자릿수가 맞는다).
+            // ⚠ **위·아래만** 바꾼다: 좌우를 키우면 위 «장착됨» 층까지 좁아지고 아래 `inner`(= 회색 패널 폭의 밑동)가 어긋난다.
+            float topPad = pad + CraftStyle.Px("cmp_wrap_mt_rem") + CraftStyle.Px("cmp_card_pt_rem");
+            cardLg.padding = new RectOffset(cardLg.padding.left, cardLg.padding.right, Mathf.RoundToInt(topPad), Mathf.RoundToInt(pad - pull));
             float inner = w - (pad + rem * 0.5f) * 2f;
             float panelW = inner + pull * 2f;
             RectTransform curCard = ForgeUi.ItemCard(card, "cur", inner, cur, "장착됨", cur != null ? (newIsHigher ? "down" : "up") : null, false, d, h.GearSys.ItemValue);
