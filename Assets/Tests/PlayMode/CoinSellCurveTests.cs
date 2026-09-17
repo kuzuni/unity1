@@ -159,6 +159,14 @@ namespace Forge.Tests.PlayMode
             }
         }
 
+        /// <summary>T441 3회차 — 세계 좌표 상자(모루 원점을 %H 로 옮길 때 쓴다).</summary>
+        static Rect WorldRect(RectTransform rt)
+        {
+            Vector3[] c = new Vector3[4];
+            rt.GetWorldCorners(c);
+            return new Rect(c[0].x, c[0].y, c[2].x - c[0].x, c[2].y - c[0].y);
+        }
+
         static int Band(Row r, string band)
         {
             switch (band) { case "top": return r.Top; case "mid": return r.Mid; case "bot": return r.Bot; default: return r.Total; }
@@ -177,7 +185,9 @@ namespace Forge.Tests.PlayMode
                 {
                     if (m[row + x] == 0 || floor[row + x] != 0) continue;
                     r.Total++;
-                    if (f < r.MinF) r.MinF = f;   // T441 2회차 — 가장 높이 뜬 금빛 행
+                    // T441 3회차 — 2회차의 «최고%H» 는 매 프레임 2.9 로 굳어 있었다: 상단 HUD 코인 알약의 잔차(top 24)가 늘 맨 위라
+                    //   «코인이 얼마나 높이 떴나» 를 못 잰다. HUD 띠(top) **밖**에서만 잰다 — 그래야 무대 띠로 올라갔는지가 보인다.
+                    if (f >= m0 && f < r.MinF) r.MinF = f;
                     if (f >= t0 && f < t1) r.Top++;
                     else if (f >= m0 && f < m1) r.Mid++;
                     else if (f >= b0 && f < b1) r.Bot++;
@@ -279,6 +289,25 @@ namespace Forge.Tests.PlayMode
                     (int)J.Num(rf["total"]), (int)J.Num(rf["top"]), (int)J.Num(rf["mid"]), (int)J.Num(rf["bot"]), rows[i].MinF * 100f));
             }
             sb.AppendLine("# 클론 봉우리(" + band + ") 실제 " + peak.At + "ms(표 " + peak.Ms + ") " + Band(peak, band) + " · 끝 실제 " + (endMs < 0 ? "없음" : endMs + "ms") + " ↔ 정본 봉우리 " + refPeakMs + "ms " + (int)J.Num(t["peak_v"]) + " · 끝 " + refEndMs + "ms");
+            // T441 3회차 — «어디서 떠서 얼마나 오르나» 를 셈으로도 남긴다(화소가 못 보여 주는 자리).
+            //   정본 자국은 mid(무대 띠)가 3762~5045 로 차는데 클론은 0 이다 — 포물선 꼭대기가 시트 윗선(sheetTopF)을 못 넘는다는 뜻이고,
+            //   그 까닭은 «높이 값» 이 아니라 «원점» 일 수 있다(표 rise 는 정본 그대로 · CoinBurstRules 가 cssPx 를 곱한다).
+            RectTransform anvil = CoinBurst.AnvilButton();
+            RectTransform app = UiRoot.Instance != null ? UiRoot.Instance.App : null;
+            if (anvil != null && app != null)
+            {
+                Rect ar = WorldRect(anvil), pr = WorldRect(app);
+                // 정본 `oy = btn.top + btn.height * .4`(표 origin_y_f) — 세계 좌표는 위가 +y 라 위끝이 yMax 다.
+                float originY = ar.yMax - (float)CoinBurst.Spec.OriginYF * ar.height;
+                float originF = pr.height <= 0f ? -1f : (pr.yMax - originY) / pr.height;
+                float cssPx = UiKit.L("anvil_fx_px");                       // CoinBurst.Play 가 쓰는 그 값
+                float riseMinF = (float)CoinBurst.Spec.RiseMinPx * cssPx / UiKit.RefH;
+                float riseMaxF = (float)CoinBurst.Spec.RiseMaxPx * cssPx / UiKit.RefH;
+                sb.AppendLine(string.Format("# 원점·포물선(T441 3회차): 모루 원점 {0:0.0}%H · rise {1:0.0}~{2:0.0}%H → 꼭대기 {3:0.0}~{4:0.0}%H · 시트 윗선 {5:0.0}%H"
+                    + " — 꼭대기 %H 가 시트 윗선보다 «크면» 무대 띠로 안 올라간다(= mid 0)",
+                    originF * 100f, riseMinF * 100f, riseMaxF * 100f, (originF - riseMaxF) * 100f, (originF - riseMinF) * 100f, sheetTopF * 100f));
+            }
+            else sb.AppendLine("# 원점·포물선(T441 3회차): 모루 버튼을 못 찾았다");
             Record(sb.ToString());
 
             // 표본 간격 가드 — 촬영이 느려 정본 봉우리(≤1000ms) 앞에서 표본이 400ms 넘게 벌어졌으면 이 환경에선 시간축을 못 잰다(자국은 남았다).
