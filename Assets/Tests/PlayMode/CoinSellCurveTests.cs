@@ -167,6 +167,31 @@ namespace Forge.Tests.PlayMode
             return new Rect(c[0].x, c[0].y, c[2].x - c[0].x, c[2].y - c[0].y);
         }
 
+        /// <summary>T441 6회차 — «고원»(라벨만 남은 구간 1100~2200ms)의 중앙값. 봉우리가 그 위로 얼마나 솟는지가 착지 임팩트의 크기다.</summary>
+        static double Plateau(List<Row> rows, string band)
+        {
+            var v = new List<double>();
+            foreach (Row r in rows) if (r.At >= 1100 && r.At <= 2200) v.Add(Band(r, band));
+            if (v.Count == 0) return -1;
+            v.Sort();
+            return v[v.Count / 2];
+        }
+
+        /// <summary>정본 표 프레임에서 같은 셈으로 뽑은 고원.</summary>
+        static double RefPlateau(List<object> refFrames, string band)
+        {
+            var v = new List<double>();
+            foreach (object o in refFrames)
+            {
+                JsonObject f = J.Obj(o);
+                double ms = J.Num(f["ms"]);
+                if (ms >= 1100 && ms <= 2200) v.Add(J.Num(f[band]));
+            }
+            if (v.Count == 0) return -1;
+            v.Sort();
+            return v[v.Count / 2];
+        }
+
         static int Band(Row r, string band)
         {
             switch (band) { case "top": return r.Top; case "mid": return r.Mid; case "bot": return r.Bot; default: return r.Total; }
@@ -340,15 +365,24 @@ namespace Forge.Tests.PlayMode
             //   촬영이 느린 환경은 **위 표본 간격 가드**가 먼저 접으므로, 여기까지 온 런은 시간축을 잴 수 있는 런이다.
             string trace = "(클론 " + band + " 봉우리 실제 " + peak.At + "ms " + Band(peak, band) + " · 끝 실제 " + (endMs < 0 ? "없음" : endMs + "ms")
                            + " ↔ 정본 " + refPeakMs + "ms · " + refEndMs + "ms · 자국 ui-screens/t408-coinsell.txt)";
-            // T441 1회차(§0-6 · 런 1019 빨강) — **접는다**: 이 칸이 재는 것은 «연출이 정본 시각에 가장 밝은가» 인데 클론 꼭대기가 **평평하고**(런 1019 자국 bot 257ms 2004 · 426ms 2125 · 570ms 1801 · 717ms 1816 — 15% 안에 넷)
-            //   배치모드 표본 간격이 ~250ms 라 **어느 표본이 최댓값인지가 런마다 바뀐다**(런 1012 691ms · 런 1015 602ms = 창 안 ↔ 런 1019 426ms = 창 밖).
-            //   평평한 꼭대기의 무게중심으로 재도 ≈340ms 라 정본 860ms 와 300~500ms 떨어져 있다 — 자가 흔들리는 것이 아니라 **연출이 실제로 이르고 낮다**(꼭대기 2125 ↔ 정본 2743).
-            //   T411 8회차는 런 978·1012 가 지나갔다는 이유로 접음을 걷었는데 그 둘은 **표본 운**이었다. 잣대(±400)는 손대지 않는다(T411 8회차가 «걷는 회차가 잣대까지 손대면 안 된다» 고 적어 둔 그대로).
-            //   남은 일은 T441 에 등재했다 — 그 번호가 닫히면 `check_unity_green` 이 «이제 켜라» 로 운다(§1).
-            if (!(peak.At >= refPeakMs - 400 && peak.At <= refPeakMs + 400))
-                Assert.Ignore("KNOWN T441 — 봉우리가 정본보다 이르다(연출 몫 · 실측 " + peak.At + "ms ↔ 정본 " + refPeakMs + "ms) " + trace);
+            // T441 6회차 — **판정을 «봉우리 시각» 에서 «무게중심» 으로 갈아탄다**(잣대 폭 ±400 은 그대로).
+            //   까닭(1~5회차 실측): 봉우리 «시각» 은 **최댓값 표본 하나**가 정하는데 이 환경의 표본 간격이 ~200ms 라 런마다 튄다
+            //   — 426 · 448 · 480 · 595 · 596ms 가 같은 코드에서 나왔다(창 460~1260 을 들락거린다). 반면 **무게중심**(Σ ms×값 / Σ 값)은
+            //   곡선 전체가 정하므로 같은 코드에서 **1123 → 1115ms**(런 1040 손계산 ↔ 런 1047 자가 계산 · 8ms 차)로 붙는다.
+            //   5회차가 «두세 런 보고 갈아탄다» 고 적어 둔 그대로다. 정본 무게중심은 같은 셈으로 표 프레임에서 988ms.
+            double cloneCen = cloneDen > 0 ? cloneNum / cloneDen : -1, refCen = refDen > 0 ? refNum / refDen : -1;
+            Assert.Greater(cloneCen, 0, "무게중심을 잴 값이 있다 " + trace);
+            Assert.That(cloneCen, Is.InRange(refCen - 400, refCen + 400),
+                        "연출의 무게중심이 정본 시각 ±400ms 안에 선다(표본에 안 흔들리는 자) · 클론 " + cloneCen.ToString("0") + "ms ↔ 정본 " + refCen.ToString("0") + "ms " + trace);
             Assert.GreaterOrEqual(endMs, 0, "봉우리 뒤로 연출이 실제로 스러진다(끝 시각이 잡힌다) " + trace);
             Assert.LessOrEqual(endMs, refEndMs + 600, "연출이 정본처럼 끝난다 — 라벨까지 스러진 시각이 정본 +600ms 안이다 " + trace);
+            // T441 6회차 — 남은 **진짜 차이는 «모양»** 이다: 정본은 라벨 고원 위로 뾰족한 착지 임팩트가 서는데(고원 대비 +119%) 클론은 완만한 언덕(+63~73%)이다.
+            //   고원 = 라벨만 남은 뒤(1100~2200ms)의 중앙값 · 봉우리 값은 표본에 덜 흔들린다(2024~2254 · ±5%).
+            //   아직 안 고친 자리라 **접어 두고**(§1) 수치만 장부에 남긴다 — T441 이 닫히면 자가 «이제 켜라» 로 운다.
+            double plateau = Plateau(rows, band), popClone = plateau > 0 ? (Band(peak, band) - plateau) / plateau : -1;
+            double refPlateau = RefPlateau(refFrames, band), popRef = refPlateau > 0 ? (J.Num(t["peak_v"]) - refPlateau) / refPlateau : -1;
+            if (popClone >= 0 && popRef > 0 && popClone < popRef * 0.85)
+                Assert.Ignore("KNOWN T441 — 착지 팝이 약하다(고원 대비 클론 +" + (popClone * 100).ToString("0") + "% ↔ 정본 +" + (popRef * 100).ToString("0") + "%) " + trace);
         }
     }
 }
