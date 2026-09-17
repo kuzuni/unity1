@@ -1808,3 +1808,40 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - **✅ 22 · ⛔ 4** — 결함 넷은 한 자리 한 뿌리다: 소환 결과 셀 팝 `srpop` 의 네 구간(가속 → 등속 비행 → 감속 → 스프링)과 «광원에서의 비행(`--dx/--dy`)» 이 클론에선 `EaseOutBack` 한 곡선 · 스케일만 · 상수 코드 박음이고 `.sr-ok` 의 같은 팝은 없다. 정본 주석이 «구간별 이징이 이 연출의 핵심» 이라 못 박은 자리라 값 하나가 아니라 **꼴**이 다르다 → **T458**.
 - 장비 교체·코인 두 연출은 표가 **네 수까지** 같고, 이징을 안 적은 꼬리 키프레임을 CSS 기본 `ease`(.25,.1,.25,1)로 적어 둔 것까지 맞다 — 이 축의 모범이다. 한 가지만 적어 둔다: `coinAmt` 의 `linear` 둘은 표에 값이 **없어서** 맞는다(`CssEase.Linear` 기본값) — 다음 사람이 «빠졌다» 고 `ease` 를 채우면 틀어진다 · 표 `_` 에 한 줄 적을 자리.
 - 남은 축(이번에 센 것): `animation-delay` **38** · `animation-name` 2 · `will-change` 3.
+
+# T33 46회차 — `animation-delay` 38 **재검** + `animation-name` 2 + `will-change` 3 (2026-09-17 · 워커 U · sess-2000-73155)
+
+> 45회차가 «남은 축» 으로 `animation-delay` 38 을 적었는데 **38회차(워커 F)가 이미 닫은 축**이다(45 자리 = style.css 38 · index.html 2 · ui.js 인라인 5). 41회차가 `content` 에서 겪은 것과 같은 되풀이라 **재검**으로 적는다 — 세는 법은 39회차 규칙(주석 걷고 속성 경계) · 셈은 38회차와 한 자리도 안 다르다(style.css **38**). 여기서 새로 본 것은 하나 — 38회차가 ⛔ 4 로 T334 절에 «보탬» 으로 붙여 둔 셋이 **T334 가 ✅ 로 닫힌 뒤에도 클론에 없다**(임자 없는 결함) → **T459**.
+
+## `animation-delay` 38 — 재검(무리별)
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1~2 | 234·235 `.ob-zzz i:nth-child(2/3)` | .9s · 1.8s | `OfflineButtonUi.json zzz_gap_ms` 900 × n (`OfflineButtonRules.cs`) | ✅ |
+| 3~23 | 1434~1556 `.anvil-fx .af-ring/bloom/flash/heat/shadow/star/core .N` | `calc(var(--hN) − 8/7/6/3/23/7/7ms)` | Core `AutoForgeFxSpec` `RingLeadMs 8`·`BloomLeadMs 7`·`FlashLeadMs 6`·`HeatLeadMs 3`·`ShadowLeadMs 23`·`StarLeadMs 7`(코어도 7) — `--hN` 은 ui.js `ANVIL_HITS [300,650,1100]` 파생 = 클론 `HitMs` | ✅(38회차 그대로) |
+| 24~25 | 1585·1601 `.af-spark`·`.af-scale` | `var(--t)` = 타격 − 8ms(ui.js) | `SparkLeadMs 8` · `ScaleLagMs` | ✅ |
+| 26~28 | 1615~1617 `.af-smoke.m0~2` | .173s · .378s · .648s(절대) | `SmokeDelayMs {173,378,648}` | ✅ |
+| 29~30 | 5388·5389 `.dgc-cell:nth-child(2/3)` | .09s · .18s | `DungeonFxUi.json pop_stagger_ms` 90 | ✅ |
+| 31 | 5925 `.sr-canopy i:nth-child(3)` | −1.2s | `SummonFxUi.json ray_side3_delay_s` −1.2 | ✅(45회차) |
+| 32 | 6148 `.sr-wrap` | .21s(입장 셰이크 `srshake` 5657 의 지연) | 셰이크 자체가 클론에 없다(`srshakehit` 주역 킥만 · 지연 0 은 5676 이 이겨 **맞다**) | ⛔ → T459 ⓧ |
+| 33 | 6434 `.sr-tierflash::after` | `inherit`(부모 예고 지연) | 등급 경계 심지(`sr-tierwick`)가 섬광과 같은 시각에 선다(`tierbreak.break_lead_ms` · T431 창) | ✅ |
+| 34 | 6674 `.sr-cell.hi.on .sr-orbwrap` | `srpulse` `calc(.45s + i×.17s)` | 무한 광채 맥동이 없다(`glow` 고정 · `srtierpulse` 는 경계 한 번짜리) | ⛔ → T459 ⓨ |
+| 35 | 6887 `.done .sr-cell.on .sr-orbwrap` | `srbreath` `i×.21s` | `idle.delay_step_ms` 210 | ✅ |
+| 36 | 6910 같은 자리 `.hi.on` | `i×.21s`, `.45s + i×.17s`(둘) | 앞은 ✅ · 뒤는 34 와 같은 자리 | ⛔ → T459 ⓨ |
+| 37 | 6919 `.done .sr-cell.on .sr-orb::after` | `srsweep` `i×.29s`(3.6s 주기) | 구슬 표면 스윕이 이름도 자리도 없다(`sweep_*` 는 캐노피 5912 몫) | ⛔ → T459 ⓩ |
+| 38 | 6943 `.sr-idle i:nth-child(2)` | 1.2s | `ring_delay_ms` 1200 | ✅ |
+
+## `animation-name` 2 · `will-change` 3
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 510 `.float-dmg.dmg-crit` | `dmgcrit`(564) | `Battle/DamageNumbers.cs:110` `anim = Crit` · 겹은 `DmgGlowUi.json dmg_crit_born/rest` | ✅ 짝 · ⚠ 키프레임 수가 코드 상수(`Frame[] Crit`) → T460 |
+| 2 | 524 `.float-dmg.dmg-kill` | `dmgkill`(577) | `:111` `anim = Kill` | ✅ 짝 · ⚠ 같음 → T460 |
+| 3~5 | 7286 `.eqsw-fly` · 7388 `.coin-fly` · 7489 `.rw-fly` | `will-change: transform` | 합성 힌트 — 유니티에 대응 개념이 없다(UI 는 캔버스 배치가 정한다) | — 해당 없음 |
+
+## 이 회차의 판정
+
+- `animation-delay` **✅ 33 · ⛔ 5(한 뿌리 셋)** — 38회차의 «⛔ 4 → T334 보탬» 이 T334 ✅ 뒤에도 안 섰다. 임자 없는 결함이라 새 번호 **T459**(입장 셰이크 `srshake` · 고등급 광채 맥동 `srpulse` · 구슬 스페큘러 스윕 `srsweep` — 셋 다 «done 뒤·열릴 때 무한/한 번 도는 겹»). 38회차의 규칙(6148 `.21s` 는 주역 킥의 것이 아니다 · 클론 킥 지연 0 이 맞다)은 그대로다.
+- `animation-name` **✅ 2** (이름 짝은 섰다) · **⚠ 코드 박음 1 뿌리 → T460**(`dmg`·`dmgcrit`·`dmgkill` 아크 키프레임 수가 Game 코드 `Frame[]` 상수 — §1 «수치는 코드에 박지 않는다» · 값 대조는 그 절 1회차 몫).
+- `will-change` **3 → 해당 없음**.
+- **남은 축: 없음** — 45회차가 «남은 축» 으로 적은 셋이 이 회차로 닫혔다(그중 하나는 38회차가 이미 닫은 축). 다음 회차는 §7 표에서 ⬜ 인 줄과 «T33 이 등재한 번호들의 판정 회수» 를 본다.
