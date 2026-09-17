@@ -746,5 +746,41 @@ namespace Forge.Tests.PlayMode
             h.Meta.Popups.Hide(ForgeAutoPopup.Name);
             yield return null;
         }
+
+        /// <summary>
+        /// T178 21회차 — **섞는 자리**: CSS 그라디언트의 색 보간은 «프리멀티플라이드 알파» 다(CSS Images 3).
+        /// 그냥 섞으면 «투명에 가까운 흰색 → 반투명 검정» 짝에서 가운데가 **회색으로 밝아지는 띠**가 생긴다 — 브라우저엔 없는 띠다.
+        /// 실측(런 1015 `screen_autoforge.png`): 정본 5005 스피너의 45%(흰 .02) ↔ 100%(검정 .34) 사이 **63.6%** 자리가
+        /// 면 색 23 위에서 **42** 로 밝아져 있었다. 프리멀티플라이드로 섞으면 그 자리가 23 이라 위에서 아래로 **단조롭게** 어두워진다.
+        /// </summary>
+        [Test]
+        public void 정지점_사이는_프리멀티플라이드로_섞는다_가운데가_밝아지는_띠가_없다()
+        {
+            // ⓐ 식 자체 — 흰 .02 ↔ 검정 .34 의 한가운데
+            Color w02 = new Color(1f, 1f, 1f, 0.02f), b34 = new Color(0f, 0f, 0f, 0.34f);
+            Color mid = SurfaceArt.LerpPremul(w02, b34, 0.5f);
+            Assert.AreEqual(0.18f, mid.a, 1e-4f, "알파는 그냥 섞기와 같다");
+            Assert.Less(mid.r, 0.10f, "색은 거의 검정이다 — 그냥 섞으면 .5 회색이 된다(그것이 밝은 띠의 정체)");
+            Color same = SurfaceArt.LerpPremul(new Color(1f, 0f, 0f, 1f), new Color(0f, 0f, 1f, 1f), 0.5f);
+            Assert.AreEqual(0.5f, same.r, 1e-4f, "알파가 같으면 그냥 섞기와 똑같다(옛 자리들이 안 흔들린다)");
+
+            // ⓑ 구운 그림 — 스피너 겹은 위에서 아래로 단조롭게 어두워진다(가운데 띠가 없다)
+            Sprite sp = SurfaceArt.Bake("af_spinner", 3f, 48f);
+            Assert.IsNotNull(sp, "스피너 겹을 굽는다");
+            Texture2D t = sp.texture;
+            int x = t.width / 2;
+            float prev = t.GetPixel(x, t.height - 1).r;
+            for (int i = 1; i <= 8; i++)
+            {
+                int y = Mathf.RoundToInt((t.height - 1) * (1f - i / 8f));
+                float cur = t.GetPixel(x, y).r;
+                Assert.LessOrEqual(cur, prev + 0.004f, "위에서 아래로 단조롭게 어두워진다 — 밝아지는 칸이 있으면 그냥 섞기다(y=" + y + ")");
+                prev = cur;
+            }
+            // 45% 자리와 63.6% 자리(실측이 42 였던 곳)의 방향
+            float p45 = t.GetPixel(x, Mathf.RoundToInt((t.height - 1) * 0.55f)).r;
+            float p64 = t.GetPixel(x, Mathf.RoundToInt((t.height - 1) * 0.364f)).r;
+            Assert.Less(p64, p45 + 0.004f, "63.6% 는 45% 보다 밝지 않다(종전엔 23 → 42 로 밝아졌다)");
+        }
     }
 }

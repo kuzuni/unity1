@@ -98,7 +98,11 @@ namespace Forge.Game.Ui
             }
         }
 
-        /// <summary>정지점 사이 선형 — 첫 정지점 앞·마지막 정지점 뒤는 그 색 그대로다(CSS 와 같다).</summary>
+        /// <summary>정지점 사이 선형 — 첫 정지점 앞·마지막 정지점 뒤는 그 색 그대로다(CSS 와 같다).
+        /// ⚠ 섞기는 **프리멀티플라이드 알파**로 한다(T178 21회차 · 결정 <c>750</c>): CSS Images 3 이 그라디언트 보간을 그렇게 못 박아 뒀고,
+        /// 그냥 섞으면 «투명한 흰색 → 반투명 검정» 같은 짝에서 **가운데가 회색으로 밝아지는 띠**가 생긴다(브라우저엔 없는 띠다).
+        /// 실측(런 1015 `screen_autoforge.png` 스피너): 정본 5005 의 45%(흰 .02) → 100%(검정 .34) 사이 63.6% 자리가
+        /// 면 색 23 위에서 **42** 로 밝아져 있었다 — 프리멀티플라이드로 섞으면 같은 자리가 23 이다.</summary>
         public static Color Sample(Color[] col, float[] pos, float t)
         {
             if (t <= pos[0]) return col[0];
@@ -107,9 +111,20 @@ namespace Forge.Game.Ui
                 if (t > pos[i]) continue;
                 float span = pos[i] - pos[i - 1];
                 float k = span <= 0f ? 1f : (t - pos[i - 1]) / span;
-                return Color.Lerp(col[i - 1], col[i], k);
+                return LerpPremul(col[i - 1], col[i], k);
             }
             return col[col.Length - 1];
+        }
+
+        /// <summary>CSS 그라디언트의 색 보간 — 프리멀티플라이드 알파에서 섞고 되돌린다(알파가 같으면 그냥 섞기와 똑같다).</summary>
+        public static Color LerpPremul(Color a, Color b, float k)
+        {
+            float outA = Mathf.Lerp(a.a, b.a, k);
+            if (outA <= 1e-6f) return new Color(0f, 0f, 0f, 0f);
+            float r = Mathf.Lerp(a.r * a.a, b.r * b.a, k) / outA;
+            float g = Mathf.Lerp(a.g * a.a, b.g * b.a, k) / outA;
+            float bl = Mathf.Lerp(a.b * a.a, b.b * b.a, k) / outA;
+            return new Color(r, g, bl, outA);
         }
 
         /// <summary>그 겹 한 장을 굽는다(같은 키·같은 비율은 한 번만). `unit: "px"` 인 겹은 <see cref="Bake(string, float, float)"/> 로 선 길이를 준다.</summary>
