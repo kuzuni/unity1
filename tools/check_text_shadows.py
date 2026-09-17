@@ -132,7 +132,6 @@ KNOWN = {
     'Ui/PetUpgradePopup.cs#bulk-sil': 'T333 14회차 — 정본 4372 `.petup-bulk .bulk-sil { color: transparent; text-shadow: 0 0 0 var(--rc) }` 는 이모지 글자를 «등급색 실루엣» 으로 만드는 꼼수 — 클론은 아틀라스 아이콘(egg/paw)에 등급색 틴트를 주어 같은 결과를 이미 낸다(그림자가 아니라 색이 목적) · 4375 `.on` 흰색도 틴트로',
     'Ui/PetUpgradePopup.cs@Check': 'T333 14회차 — 정본 4378 `.pet-tile .tile-check` 의 ✓ 는 글자(text-shadow 0 1px 2px .5)인데 클론은 아틀라스 아이콘(UiKit.Icon check)이라 언더레이가 안 닿는다 — 아이콘 자리',
     'Ui/QuestSheet.cs#qst-name': 'T331 산 lock + 클론에 그 이름 자리가 아직 없다 — 정본 8381 `.qst-row .qst-name`',
-    'Ui/PetUpgradePopup.cs#idet-name': 'T354 산 lock 이 쥔 파일(범위 칸에 `PetUpgradePopup.cs` 를 적어 두었다 · 규약 «같은 파일이면 뒤 번호가 기다린다») — 정본 8381 묶음이 ui.js 4198 의 펫 강화 이름(`.modal-card .petup-panel .idet-name`)에도 닿는다. 5525 는 색·스트로크만 덮지 text-shadow 를 안 덮는다 — 그 lock 이 풀리면 `UiKit.TextShadow(name, "paper_emboss")` 한 줄이다(T333 19회차 조사)',
     'ring:Ui/ChatScreen.cs@Open': 'T333 4회차 — 클론의 «◀» 는 글자가 아니라 아틀라스 아이콘(tri_left)이라 링을 글자에 못 두른다: 키운 삼각을 뒤에 깔아야 하고 아틀라스엔 검정 틴트 변형이 없다(정본이 안 부른다) · 길 둘 = Image.color 곱하기 / 도형 굽기 · 다음 회차',
 }
 

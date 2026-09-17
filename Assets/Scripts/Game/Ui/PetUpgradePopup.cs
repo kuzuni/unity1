@@ -144,6 +144,10 @@ namespace Forge.Game.Ui
             float tx = ppad + icon + inner * PetSkillStyle.L("petup_head_gap_f");
             float tw = inner - tx - ppad;
             TextMeshProUGUI name = PetSkillKit.Stroked(panel, "idet-name", TextKind.Body, PetSkillStyle.T("pet_name", Defs.RarityKr.Get(t.Rarity, t.Rarity), Defs.PetKr.Get(t.Name, t.Name)), PetSkillStyle.Rarity(Defs, t.Rarity), "petup_name", TextAlignmentOptions.Left);   // 정본 .petup-panel .idet-name max(1.2px, .113em)
+            // T333 21회차 — 정본 **8381** 묶음의 `.modal-card .idet-name`(«밝은 종이 위 글자는 흰 엠보스» `0 1px 0 rgba(255,255,255,.92)`)이
+            //   ui.js 4198 의 이 이름에도 닿는다. 바로 위 **5525** `.petup-panel .idet-name` 은 색·스트로크만 덮고 `text-shadow` 는 안 덮는다
+            //   (특이도가 같아 뒤엣것이 이기지만, 안 적은 속성은 앞엣것이 그대로 산다) — 19회차가 조사해 둔 그 한 줄이다.
+            UiKit.TextShadow(name, "paper_emboss");
             UiKit.Place(name.rectTransform, tx, py, tw, body * 1.3f);
             TextMeshProUGUI s1 = PetSkillKit.Text(panel, "idet-atk", TextKind.Body, PetSkillStyle.T("dmg", PetSkillStyle.Fmt(atk)), PetSkillStyle.C("black"), TextAlignmentOptions.Left);
             UiKit.Place(s1.rectTransform, tx, py + body * 1.3f, tw, body * 1.35f);

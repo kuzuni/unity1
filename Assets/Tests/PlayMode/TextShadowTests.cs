@@ -623,5 +623,49 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T333 21회차 — 8381 묶음의 **셋째 `.idet-name`**: 펫 강화 팝업(`ui.js` 4198 `.modal-card .petup-panel .idet-name`).
+        /// 바로 위 5525 `.petup-panel .idet-name` 은 **색·스트로크만** 덮고 `text-shadow` 는 안 덮는다 — 특이도가 같아 뒤엣것이 이기지만
+        /// **안 적은 속성은 앞엣것이 그대로 산다**. 19회차가 «T354 lock 이 풀리면 한 줄» 로 조사해 둔 자리고, 이 회차에 그 lock 이 반납됐다.</summary>
+        [UnityTest]
+        public IEnumerator 펫_강화_이름도_8381_한_벌의_흰_엠보스를_진다()
+        {
+            yield return Boot();
+            float bt = 0f;
+            while (!(PetSkillHost.Instance != null && SkillPetSheet.Instance != null) && bt < 15f) { bt += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsNotNull(PetSkillHost.Instance, "PetSkillHost 가 15초 안에 서지 않았다");
+
+            // 새 세이브엔 펫이 없다 — 강화 팝업이 서려면 한 마리가 있어야 한다(UiShotsTests.PetsState 와 같은 길 · 한 마리면 족하다).
+            PetSkillHost ph = PetSkillHost.Instance;
+            if (ph.Pets.State.Pets.Count == 0)
+            {
+                string nm = null;
+                foreach (var kv in ph.Data.Balance.Pets.Stats)
+                    foreach (var ps in kv.Value) { nm = ps.Name; break; }
+                ph.Pets.State.Pets.Add(new Forge.Core.Pets.Pet
+                {
+                    Name = nm ?? "펫", Rarity = ph.Data.Defs.Rarities[0], Level = 3, Dupes = 0, Xp = 0, Stars = 0,
+                    Subs = ph.Pets.RollSubs()
+                });
+            }
+            UiRoot.Instance.TabBar.OnTab("summon");
+            yield return null;
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            Assert.IsNotNull(sheet, "소환 시트");
+            sheet.SubButton(SkillPetSheet.SubPets).onClick.Invoke();
+            yield return null;
+            PetUpgradePopup.Open(sheet, 0);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Assert.IsTrue(sheet.Modal.IsOpen(PetUpgradePopup.ModalName), "펫 강화 팝업이 열려 있다");
+
+            TextMeshProUGUI nm2 = null;
+            foreach (TextMeshProUGUI t in UiRoot.Instance.App.GetComponentsInChildren<TextMeshProUGUI>(true))
+                if (t.name == "idet-name" && t.gameObject.activeInHierarchy) { nm2 = t; break; }
+            Assert.IsNotNull(nm2, "펫 강화 이름(idet-name)");
+            AssertShadow(nm2, "paper_emboss", "펫 강화 이름");
+            sheet.Modal.Close(PetUpgradePopup.ModalName);
+            yield return null;
+        }
+
     }
 }
