@@ -198,6 +198,9 @@ TABLE = {
     '.profile-tabs': ['Ui/ProfilePopup.cs$profile_tabs_r_rem'],
     '.settings-act': ['Ui/ProfilePopup.cs$settings_act_r_rem'],
     #   토글은 정본이 높이 1.35rem 에 반지름 1rem 을 준다 — 높이의 반(.675)을 넘으니 **알약**이고, 클론 `PopupKit.Toggle` 의 `h * 0.5f` 와 같은 그림이다(결정 543).
+    # T415 9회차 — 토스트: 정본 2rem 이 상자 높이 2.2rem(`toast_h` .0417H = 80.1px@1920)의 반(40.0)보다 커서 CSS 가 알약으로 줄인다.
+    #   클론 `Popups.Toast` 는 테·면을 `h * 0.5f` 로 깐다 — 같은 그림이다(결정 543). 자는 그 셈을 못 보므로 `ToastRadiusTests` 가 IsPill·Clamp 로 지킨다.
+    '.toast': u'✓정본 1933 `.toast { border-radius: 2rem }`(72.8px) ↔ 클론 `Popups.cs` 토스트 `h * 0.5f`(40.0px) — 높이 2.2rem 의 반이 2rem 보다 작아 정본도 알약(결정 543) · `ToastRadiusTests` 가 IsPill 로 지킨다',
     '.settings-toggle': '✓정본 3107 `.settings-toggle { width: 2.5rem; height: 1.35rem; border-radius: 1rem }` — 클론 `Popups.Toggle` 은 `h * 0.5f` 라 알약 동치(결정 543)',
     '.settings-toggle::after': '✓정본 3111 `.settings-toggle::after { border-radius: 50% }` — 손잡이는 한 변 k 의 정사각이고 클론이 `k * 0.5f` 를 주니 원과 같은 그림이다(결정 543)',
     # T345 19회차 — **펫·탈것·퀘스트 화면**. T402 가 lock 을 반납해 `PetPanel.cs` 가, T331 12회차로 `QuestSheet.cs` 가 열렸다.
