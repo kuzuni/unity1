@@ -716,9 +716,10 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(1.0, LineHeight.Table.Get("tabbar_button_span_lh"), 1e-9, "정본 1707");
             AssertSpacing(label.GetComponent<TextMeshProUGUI>(), "tabbar_button_span_lh", "탭 라벨");
 
-            Transform name = Find(Hud.Instance.transform, "chat-preview-name");
-            Transform msg = Find(Hud.Instance.transform, "chat-preview-msg");
-            Transform badge = Find(Hud.Instance.transform, "chat-preview-badge");
+            // 런 1139: 띠는 Hud 오브젝트가 아니라 UiRoot.App 아래에 선다(PinnedColorSitesTests 531 과 같은 뿌리) — Hud 아래서 찾으면 null.
+            Transform name = Find(UiRoot.Instance.App, "chat-preview-name");
+            Transform msg = Find(UiRoot.Instance.App, "chat-preview-msg");
+            Transform badge = Find(UiRoot.Instance.App, "chat-preview-badge");
             Assert.IsNotNull(name, "미리보기 이름"); Assert.IsNotNull(msg, "미리보기 글"); Assert.IsNotNull(badge, "뱃지");
             Transform n = Find(badge, "n");
             Assert.IsNotNull(n, "뱃지 수");
