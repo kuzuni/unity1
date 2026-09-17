@@ -153,6 +153,43 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T447 2회차 — 판정 ⓒ: 버튼이 커졌는데 **카드가 안 따라 커지면** 버튼이 카드 밖으로 넘친다.
+        /// 공용 [닫기]가 든 스텁 팝업(`PopupLayer.ShowStub` · `Popups.cs` 160)은 카드 높이를 `-1f`(= 세로 줄 layout 이 정한다)로 세우므로
+        /// 상자가 2.4rem → 정본 계약(≈2.7rem)으로 커져도 카드가 그만큼 자라야 한다. 이 칸은 **그것을 화면에서 잰다**:
+        /// 버튼 아래끝이 카드 바닥 + 패딩 안이고, 위끝도 카드 안이다(캐너스 지역 좌표로만 잰다 · 결정 729).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 버튼이_정본_계약만큼_커져도_스텁_카드가_따라_커진다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            Popup p = h.Popups.ShowStub("T447", "버튼 높이가 카드를 밀어낸다면 여기서 잡힌다.");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+            RectTransform card = null, close = null;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name == "card") card = rt; else if (rt.name == "close") close = rt;
+            }
+            Assert.IsNotNull(card, "스텁 카드");
+            Assert.IsNotNull(close, "공용 [닫기] 버튼");
+            Assert.AreEqual(PopupKit.ModalBtnH, close.rect.height, 1f,
+                "[닫기]도 같은 셈이다 · 실측 " + close.rect.height.ToString("0.0"));
+
+            // 버튼 상자를 카드 지역 좌표로 옮겨 카드 안쪽(패딩 안)에 드는지 본다.
+            Vector3[] cc = new Vector3[4], bc = new Vector3[4];
+            card.GetWorldCorners(cc); close.GetWorldCorners(bc);
+            float cardBottom = cc[0].y, cardTop = cc[1].y, btnBottom = bc[0].y, btnTop = bc[1].y;
+            Assert.GreaterOrEqual(btnBottom, cardBottom - 0.5f,
+                "[닫기] 아래끝이 카드 바닥 밖으로 안 넘친다 · 버튼 " + btnBottom.ToString("0.0") + " ↔ 카드 " + cardBottom.ToString("0.0"));
+            Assert.LessOrEqual(btnTop, cardTop + 0.5f, "[닫기] 위끝도 카드 안이다");
+            Debug.Log("[T447] 스텁 카드 높이 " + card.rect.height.ToString("0.0") + "px · [닫기] " + close.rect.height.ToString("0.0"));
+            h.Popups.Hide(p);
+            yield return null;
+        }
+
         /// <summary>T395 2회차 — 리그 보상 카드도 같다: 정본 `.lgr-overlay .idet-wrap { top: .76rem }` 은 CSS 보정값이라 옮기지 않는다.
         /// 종전 `rem * 0.76f` 는 PopupKit.Card 에서 «양수 = 위» 라 부호까지 반대로 베껴져 카드가 원작보다 1%p 위였다(런 754: 18.23 ↔ 원작 19.21%H).</summary>
         [UnityTest]
