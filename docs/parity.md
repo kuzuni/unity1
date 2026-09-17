@@ -1731,3 +1731,39 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 ## 이 회차가 남긴 규칙 — **«형제가 이미 표를 쓰는가» 를 물으면 코드 박음이 한 줄로 드러난다**
 
 `.sr-floor` 와 `.sr-canopy` 는 **같은 함수 안 열 줄 거리**에 있고 둘 다 «폭 백분율 + 종횡비» 꼴이다. 그런데 캐노피는 `canopy_*_aspect` 세 칸을 표에서 읽고 바닥은 `2.6f`/`2.5f`/`0.64f`/`0.88f` 를 코드에 박았다 — **같은 꼴의 이웃**이 한쪽만 표를 쓰면 그 자리는 거의 언제나 «나중에 급히 더한 쪽» 이다. T402·T375 가 닫은 자리도 전부 그 꼴이었다. 축을 셀 때 «정본과 값이 같은가» 뒤에 **«이웃과 같은 길로 왔는가»** 를 한 번 더 묻는다.
+
+# T33 44회차 — `transition` 19 (2026-09-17 · 워커 S · sess-0029-41207)
+
+> 43회차가 «남은 축» 으로 적어 둔 셋 중 가장 큰 것. 41회차 규칙대로 §2 T33 절을 거꾸로 읽어 30회차가 `background-position/size` 를 이미 셌음을 먼저 확인했다.
+> 세는 법은 39회차 규칙 그대로 — 주석을 걷고 속성 이름 경계로. `grep -E '\btransition\s*:'` 이 19 를 뱉고 전부 선언이다(인라인 main.js `blDone` .4s 는 CSS 축이 아니다).
+
+## `transition` — 19 전수
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 213 `.ob-chest` | transform .1s ease-out | `PressFxUi.json press.offline_chest` ms 100 · `PressFx.cs` | ✅ |
+| 2 | 642 `.panel` | transform .22s ease-out (105%) | `PressFxUi.json panel_slide` ms 220 · `PanelSlide.cs` | ✅ |
+| 3 | 1936 `.toast` | all .25s (α 0→1 · translateY −.5rem→0 · `.show`) | `Popups.cs` `PopupLayer.Toast` 167~ — 세우고 2.6s 뒤 지운다 | ⛔ 전이 0 → T454 ⓐ |
+| 4 | 3113 `.settings-toggle::after` | left .15s | `Popups.cs` `PopupKit.Toggle` 570 — 닻에 바로 | ⛔ 전이 0 → T454 ⓑ |
+| 5 | 4301 `.pet-tile .tile-face` | transform .08s ease-out, filter .08s | `PressFxUi.json press.pet_tile` ms 80 | ✅ |
+| 6 | 4766 `.af-toggle .knob` | left .15s | `PopupKit.Toggle`(ForgeAutoPopup 88) | ⛔ 전이 0 → T454 ⓑ |
+| 7 | 4974 `.af-check` | transform .07s ease-out, filter .07s | `PressFxUi.json press.af_check` ms 70 | ✅ |
+| 8 | 4992 `.af-toggle .knob` | left .15s ease-out | 6 과 같은 자리 | ⛔ 전이 0 → T454 ⓑ |
+| 9 | 5000 `.af-sub-row` | transform .07s ease-out, filter .07s | `PressFxUi.json press.af_sub_row` ms 70 | ✅ |
+| 10 | 5009 `.af-spinner` | transform .07s ease-out, box-shadow .07s | `PressFxUi.json press.af_spinner` ms 70 | ✅ |
+| 11 | 5398 `.modal.dgclear-out` | background .55s ease | `DungeonFxUi.json dim_out_ms` 550 | ✅ |
+| 12 | 5655 `#summon-result-modal` | background .4s ease-out (`--bg-pre-*` 예고) | `SkillSummonResult.cs:375` glowA = Lerp(sr_bg_a, 등급색, .24) **처음부터** | ⛔ 예고 단 없음 → T454 ⓒ |
+| 13 | 5968 `.sr-stars` | opacity .6s ease-out | `SummonFxUi.json stars_fade_ms` 600 · `SummonFx.cs:259` | ✅ |
+| 14 | 7150 `#summon-result-modal.done` | background .5s ease-out (`--bg-a/b` 승격) | `Finish()` 1964~ 는 소환진만 물들인다 | ⛔ 전이 0 → T454 ⓒ |
+| 15 | 7168 `.done .sr-halo` | background .5s ease-out (`--halo`) | `SkillSummonResult.cs:378~381` halo 등급색 처음부터 | ⛔ 전이 0 → T454 ⓒ |
+| 16 | 7542 `.rw-anchor` | opacity .32s ease-out | `RewardBurstUi.json anchor_in_ms` 320 · out 340 = ui.js 3657 | ✅ |
+| 17 | 7558 `.rw-tick` | opacity .25s ease-out | `RewardBurst.cs:455~459` 가 `tick_out_ms` 300(ui.js 3727 제거 시각)을 페이드 길이로 | ⚠ 50ms 길다 → T454 ⓓ |
+| 18 | 7563 `#toasts` | opacity .25s ease-out | `OpacityUi.json toasts_rw_dim.fade_ms` 250 · `RewardBurst.cs:249` | ✅ |
+| 19 | 7743 `.equip-cell:not(.egg-cell)` | transform .08s ease-out, filter .08s | `PressFxUi.json press.equip_cell`·`egg_cell` ms 80 | ✅ |
+
+## 이 회차의 판정
+
+- **✅ 11 · ⚠ 1 · ⛔ 7** — 결함 일곱은 세 자리(토스트 등장 · 토글 손잡이 · 소환 결과 배경 두 단)로 모이고 한 뿌리다: **값은 표에 있거나 쉽게 둘 수 있는데 그 값으로 움직이는 코드가 없다.** → **T454**(ⓓ 의 50ms 도 같이).
+- 이 축은 «ms 가 표에 있는가» 만 물으면 전부 ✅ 로 읽힌다(ms 는 다 어딘가 표에 있다). **«그 값으로 무엇이 실제로 움직이는가»** 를 자리마다 코드에서 찾아야 «전이 0» 이 드러난다 — 43회차의 «이웃과 같은 길로 왔는가» 와 짝이 되는 물음이다.
+- 남은 축: `animation-duration` 3 · `animation-timing-function` 23.
+
