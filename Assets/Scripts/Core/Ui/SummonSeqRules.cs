@@ -310,6 +310,80 @@ namespace Forge.Core.Ui
         }
     }
 
+    /// <summary>
+    /// T459 ⓩ — done 뒤 구슬 표면을 훑는 스페큘러 띠(정본 6919 `.done .sr-cell.on .sr-orb::after` `srsweep` 3.6s ease-in-out infinite · 지연 i×.29s).
+    /// 띠는 구슬 폭의 size_f 배 · background-position p% 의 이동은 p × (구슬 폭 − 띠 폭)(CSS 규칙) · 알파는 34→44% 오르고 76→88% 내린다.
+    /// </summary>
+    public sealed class SummonOrbSweepSpec
+    {
+        public double PeriodMs, DelayStepMs, AngleDeg, SizeF, BandA, A, PosFromPct, PosToPct;
+        public double[] Stops, AInAt, AOutAt, PosAt;
+        public CssEase Ease;
+
+        public static SummonOrbSweepSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "orbsweep"));
+            var s = new SummonOrbSweepSpec
+            {
+                PeriodMs = J.Num(J.Require(o, "period_ms")), DelayStepMs = J.Num(J.Require(o, "delay_step_ms")),
+                AngleDeg = J.Num(J.Require(o, "angle_deg")), SizeF = J.Num(J.Require(o, "size_f")), BandA = J.Num(J.Require(o, "band_a")),
+                A = J.Num(J.Require(o, "a")), PosFromPct = J.Num(J.Require(o, "pos_from_pct")), PosToPct = J.Num(J.Require(o, "pos_to_pct")),
+                Stops = J.NumArr(J.Require(o, "stops")), AInAt = J.NumArr(J.Require(o, "a_in_at")), AOutAt = J.NumArr(J.Require(o, "a_out_at")), PosAt = J.NumArr(J.Require(o, "pos_at")),
+            };
+            if (s.PeriodMs <= 0) throw new FormatException("SummonFxUi orbsweep: period_ms 는 0보다 커야 한다");
+            if (s.DelayStepMs < 0) throw new FormatException("SummonFxUi orbsweep: delay_step_ms 는 0 이상이다");
+            if (s.SizeF <= 1) throw new FormatException("SummonFxUi orbsweep: size_f 는 1보다 커야 띠가 구슬을 가로지른다");
+            double[] e = J.NumArr(J.Require(o, "ease"));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi orbsweep: ease 는 cubic-bezier 넷이다");
+            s.Ease = new CssEase(e[0], e[1], e[2], e[3]);
+            if (s.Stops == null || s.Stops.Length != 3 || !(s.Stops[0] < s.Stops[1] && s.Stops[1] < s.Stops[2])) throw new FormatException("SummonFxUi orbsweep: stops 는 오름차순 셋이다(투명·띠·투명)");
+            if (s.AInAt == null || s.AInAt.Length != 2 || s.AOutAt == null || s.AOutAt.Length != 2 || s.PosAt == null || s.PosAt.Length != 2) throw new FormatException("SummonFxUi orbsweep: a_in_at·a_out_at·pos_at 은 [시작%, 끝%] 둘이다");
+            if (!(s.AInAt[0] < s.AInAt[1] && s.AInAt[1] <= s.AOutAt[0] && s.AOutAt[0] < s.AOutAt[1] && s.PosAt[0] < s.PosAt[1])) throw new FormatException("SummonFxUi orbsweep: 구간이 겹치거나 뒤집혔다");
+            return s;
+        }
+
+        /// <summary>i 번째 셀의 지연(ms · 정본 `i×.29s`).</summary>
+        public double DelayMs(int i) { return DelayStepMs * (i < 0 ? 0 : i); }
+
+        /// <summary>한 주기 안 퍼센트 p 의 알파(정본 opacity 키프레임 · 구간마다 ease-in-out).</summary>
+        public double OpacityAt(double p)
+        {
+            if (p < AInAt[0] || p >= AOutAt[1]) return 0;
+            if (p < AInAt[1]) return A * Ease.Ease((p - AInAt[0]) / (AInAt[1] - AInAt[0]));
+            if (p < AOutAt[0]) return A;
+            return A * (1 - Ease.Ease((p - AOutAt[0]) / (AOutAt[1] - AOutAt[0])));
+        }
+
+        /// <summary>한 주기 안 퍼센트 p 의 background-position(%) — 34→88% 사이를 한 구간으로 잇는다.</summary>
+        public double PosPctAt(double p)
+        {
+            if (p <= PosAt[0]) return PosFromPct;
+            if (p >= PosAt[1]) return PosToPct;
+            return PosFromPct + (PosToPct - PosFromPct) * Ease.Ease((p - PosAt[0]) / (PosAt[1] - PosAt[0]));
+        }
+
+        /// <summary>background-position p% 가 실제로 미는 거리(구슬 폭 배수 · CSS: p × (상자 − 그림)).</summary>
+        public double OffsetF(double posPct) { return posPct / 100.0 * (1.0 - SizeF); }
+
+        /// <summary>done 뒤 <paramref name="msSinceDone"/> 에 i 번째 구슬 띠의 알파와 왼끝 위치(구슬 폭 배수). 지연 안이면 알파 0.</summary>
+        public void At(double msSinceDone, int i, out double alpha, out double offsetF)
+        {
+            double t = msSinceDone - DelayMs(i);
+            if (t < 0) { alpha = 0; offsetF = OffsetF(PosFromPct); return; }
+            double p = (t % PeriodMs) / PeriodMs * 100.0;
+            alpha = OpacityAt(p);
+            offsetF = OffsetF(PosPctAt(p));
+        }
+
+        /// <summary>띠 그림 안 자리 t(0..1 · 그라디언트 축) 의 알파 — 40% 까지 0 · 50% 에 band_a · 60% 에 0.</summary>
+        public double BandAlpha(double t)
+        {
+            if (t <= Stops[0] || t >= Stops[2]) return 0;
+            if (t <= Stops[1]) return BandA * (t - Stops[0]) / (Stops[1] - Stops[0]);
+            return BandA * (Stops[2] - t) / (Stops[2] - Stops[1]);
+        }
+    }
+
     public sealed class SummonIdleSpec
     {
         /// <summary>한 번 숨쉬는 길이(ms · 정본 2.6s) · 셀 사이 지연(ms · 정본 .21s).</summary>

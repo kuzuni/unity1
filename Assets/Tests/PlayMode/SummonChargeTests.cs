@@ -784,5 +784,38 @@ namespace Forge.Tests.PlayMode
             Assert.LessOrEqual(hi, peak + 1e-3f, "정점을 넘지 않는다");
         }
 
+        /// <summary>T459 ⓩ — 정본 6919 `.done .sr-cell.on .sr-orb::after { animation: srsweep 3.6s ease-in-out infinite; animation-delay: calc(i × .29s) }`:
+        /// done 뒤 구슬마다 스페큘러 띠가 서고(구슬 원판의 스텐실 마스크 안), 한 주기 안에 켜졌다(.62) 꺼지며 왼쪽으로 지나간다.</summary>
+        [UnityTest]
+        public IEnumerator done_뒤_구슬_띠가_마스크_안에서_한_주기_켜졌다_꺼지며_왼쪽으로_지나간다()
+        {
+            yield return Boot();
+            SkillSummonResultView v = OpenHoldback();
+            float t = 0f;
+            while (!v.Done && t < 12f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done, "소환이 12초 안에 끝난다");
+            yield return null; yield return null;
+            Image sw = v.SweepOf(0);
+            Assert.IsNotNull(sw, "0번 구슬의 띠");
+            Assert.AreEqual("sr-orb", sw.transform.parent.name, "띠는 구슬 본체의 자식이다(마스크 안)");
+            Assert.IsNotNull(sw.transform.parent.GetComponent<Mask>(), "구슬 본체에 스텐실 마스크 — 정본 border-radius 가 잘라 주던 것");
+            Assert.IsNotNull(sw.sprite, "구운 띠 한 장");
+            float aMax = 0f, aMin = 1f, xMax = float.MinValue, xMin = float.MaxValue; int n = 0;
+            float t0 = Time.unscaledTime, worst = 0f, last = t0;
+            while (Time.unscaledTime - t0 < 3.9f)
+            {
+                yield return null;
+                float now = Time.unscaledTime; worst = Mathf.Max(worst, now - last); last = now;
+                aMax = Mathf.Max(aMax, sw.color.a); aMin = Mathf.Min(aMin, sw.color.a);
+                float x = sw.rectTransform.anchoredPosition.x; xMax = Mathf.Max(xMax, x); xMin = Mathf.Min(xMin, x); n++;
+            }
+            if (n < 8)
+                Assert.Ignore("환경 — 3.9초 동안 프레임이 " + n + "번뿐(가장 긴 프레임 " + (worst * 1000f).ToString("0") + "ms) — 스윕을 잴 기회가 없었다");
+            float a = (float)SummonFxStyle.OrbSweep.A;
+            Assert.Greater(aMax, a * 0.5f, "한 주기 안에 띠가 켜진다(정본 .62 · 실측 최대 " + aMax.ToString("0.00") + ")");
+            Assert.Less(aMin, a * 0.5f, "꺼진 때도 있다(실측 최소 " + aMin.ToString("0.00") + ")");
+            Assert.Greater(xMax - xMin, sw.rectTransform.parent.GetComponent<RectTransform>().rect.width, "띠가 구슬 폭보다 멀리 움직인다(−80% → 180%)");
+        }
+
     }
 }

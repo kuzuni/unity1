@@ -587,6 +587,32 @@ namespace Forge.Game.Ui
             return Finish(name, NewTex(name, W, H), px);
         }
 
+        /// <summary>
+        /// T459 ⓩ — 구슬 표면을 훑는 스페큘러 띠 한 장(정본 6912 `.sr-orb::after` `linear-gradient(112deg, 투명 40%, 흰 .55 50%, 투명 60%)` · `background-size 260% 100%`).
+        /// 구슬 폭 D 에 대해 (size_f × D) × D 로 굽는다 — 그라디언트 축은 CSS 규칙(0deg 위 · 시계 방향)이고 길이는 |W·sin| + |H·cos| 다(`BakeSweep` 와 같은 셈).
+        /// </summary>
+        public static Sprite BakeOrbSweep(string name, int d)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            SummonOrbSweepSpec sp = SummonFxStyle.OrbSweep;
+            int H = Mathf.Max(8, d), W = Mathf.Max(8, Mathf.RoundToInt(d * (float)sp.SizeF));
+            float rad = (float)sp.AngleDeg * Mathf.Deg2Rad;
+            float dx = Mathf.Sin(rad), dy = -Mathf.Cos(rad);          // CSS: 0deg 위 · y 는 아래가 +
+            float len = Mathf.Abs(W * dx) + Mathf.Abs(H * dy), cx = W * 0.5f, cy = H * 0.5f;
+            var px = new Color32[W * H];
+            for (int y = 0; y < H; y++)
+            {
+                float py = H - 0.5f - y;                               // CSS y(위가 0)
+                for (int x = 0; x < W; x++)
+                {
+                    float t = 0.5f + ((x + 0.5f - cx) * dx + (py - cy) * dy) / len;
+                    float a = (float)sp.BandAlpha(t);
+                    px[y * W + x] = new Color(1f, 1f, 1f, Mathf.Clamp01(a));
+                }
+            }
+            return Finish(name, NewTex(name, W, H), px);
+        }
+
         public static Sprite BakeSpill(string name)
         {
             Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
@@ -1204,12 +1230,13 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; enter = null; hipulse = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; streaks = null; particles = null; heroRingEase = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; enter = null; hipulse = null; orbsweep = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; streaks = null; particles = null; heroRingEase = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
         static SummonEnterSpec enter;
         static SummonHiPulseSpec hipulse;
+        static SummonOrbSweepSpec orbsweep;
         static SummonHeroSpec hero;
         static SummonRelightSpec relight;
         static SummonSparkSpec spark;
@@ -1247,6 +1274,8 @@ namespace Forge.Game.Ui
         public static SummonEnterSpec Enter { get { Load(); if (enter == null) enter = SummonEnterSpec.From(root); return enter; } }
         /// <summary>T459 ⓨ — 고등급 셀 광채 맥동(표의 `hipulse` 절 · 정본 `srpulse`).</summary>
         public static SummonHiPulseSpec HiPulse { get { Load(); if (hipulse == null) hipulse = SummonHiPulseSpec.From(root); return hipulse; } }
+        /// <summary>T459 ⓩ — done 뒤 구슬 스페큘러 스윕(표의 `orbsweep` 절 · 정본 `srsweep`).</summary>
+        public static SummonOrbSweepSpec OrbSweep { get { Load(); if (orbsweep == null) orbsweep = SummonOrbSweepSpec.From(root); return orbsweep; } }
         /// <summary>T334 3회차 ⓑ — 충전 구간 키프레임 넷(Core 가 쥔 셈 · 표의 `charge` 절).</summary>
         public static SummonChargeSpec Charge { get { Load(); if (charge == null) charge = SummonChargeSpec.From(root); return charge; } }
 

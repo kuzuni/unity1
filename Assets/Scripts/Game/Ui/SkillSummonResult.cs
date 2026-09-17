@@ -47,6 +47,9 @@ namespace Forge.Game.Ui
             public Vector2 Home, ToLight;
             /// <summary>T459 ⓨ — 고등급 광채 원판(맥동은 이 원판의 배율).</summary>
             public Image Glow;
+            /// <summary>T459 ⓩ — 구슬 본체와 그 위를 훑는 스페큘러 띠(done 뒤 처음 필요할 때 세운다).</summary>
+            public Image Orb, Sweep;
+            public float SweepD;
             /// <summary>T334 5회차 — 아이들 호흡 전 구체 래퍼의 제자리.</summary>
             public Vector2 OrbHome;
             /// <summary>T334 7회차 — 물러남 전 이 셀 그림들의 제 색(한 번만 담는다).</summary>
@@ -969,6 +972,7 @@ namespace Forge.Game.Ui
             Image deep = PetSkillKit.Disc(wrap, "sr-orb-deep", OrbFilter(Color.Lerp(rc, PetSkillStyle.C("sr_orb_deep"), 0.62f), tier));
             UiKit.Fill(deep.rectTransform);
             Image orb = PetSkillKit.Disc(wrap, "sr-orb", OrbFilter(rc, tier));
+            c.Orb = orb;   // T459 ⓩ
             orb.rectTransform.offsetMin = new Vector2(cw * 0.04f, cw * 0.09f);
             orb.rectTransform.offsetMax = new Vector2(-cw * 0.09f, -cw * 0.04f);
             Image hi = PetSkillKit.Disc(wrap, "sr-hilite", OrbFilter(PetSkillStyle.C("sr_hilite"), tier));
@@ -1280,6 +1284,7 @@ namespace Forge.Game.Ui
             AnimateEnterShake();
             AnimateKick();
             AnimateHiPulses();
+            AnimateOrbSweeps();
             AnimateHeroRing();
             AnimatePeerRings();
             AnimateBeam();
@@ -1514,6 +1519,43 @@ namespace Forge.Game.Ui
             Rect r = wrap.rect;
             wrap.anchoredPosition = wrapHome + new Vector2((float)(tx * r.width), -(float)(ty * r.height));   // CSS 의 +y 는 아래
             wrap.localScale = Vector3.one * (float)sc;
+        }
+
+        /// <summary>
+        /// T459 ⓩ — done 뒤 구슬 표면 스페큘러 스윕(정본 6912~6926 `#summon-result-modal.done .sr-cell.on .sr-orb::after` · `srsweep` 3.6s · 지연 i×.29s).
+        /// 정본은 `border-radius` 가 배경을 잘라 주므로 `background-position` 만 흘린다 — 클론은 구슬 원판에 스텐실 마스크(`Mask`)를 걸고 그 안에서 띠를 민다.
+        /// 띠는 처음 필요한 프레임에 한 번 세운다(구슬의 실제 폭이 서야 굽는 크기가 정해진다).
+        /// </summary>
+        void AnimateOrbSweeps()
+        {
+            if (!done || doneAt < 0f) return;
+            SummonOrbSweepSpec sp = null;
+            double ms = (Time.unscaledTime - doneAt) * 1000f;
+            for (int i = 0; i < cells.Count; i++)
+            {
+                Cell c = cells[i];
+                if (c.Orb == null || !c.On) continue;
+                if (sp == null) sp = SummonFxStyle.OrbSweep;
+                if (c.Sweep == null)
+                {
+                    float d = c.Orb.rectTransform.rect.width;
+                    if (d < 4f) continue;                              // 레이아웃이 아직 안 섰다 — 다음 프레임에
+                    int di = Mathf.RoundToInt(d);
+                    Mask mask = c.Orb.GetComponent<Mask>();
+                    if (mask == null) { mask = c.Orb.gameObject.AddComponent<Mask>(); mask.showMaskGraphic = true; }
+                    RectTransform rt = UiKit.Box(c.Orb.rectTransform, "sr-sweep");
+                    UiKit.Anchor(rt, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), Vector2.zero, d * (float)sp.SizeF, d);
+                    Image img = rt.gameObject.AddComponent<Image>();
+                    img.raycastTarget = false;
+                    img.sprite = SummonFx.BakeOrbSweep("sr-orbsweep-" + di, di);
+                    img.color = new Color(1f, 1f, 1f, 0f);
+                    c.Sweep = img; c.SweepD = d;
+                }
+                double a, off;
+                sp.At(ms, i, out a, out off);
+                c.Sweep.color = new Color(1f, 1f, 1f, (float)a);
+                c.Sweep.rectTransform.anchoredPosition = new Vector2((float)(off * c.SweepD), 0f);
+            }
         }
 
         /// <summary>입장 셰이크가 도는 중인가 — 자가 본다.</summary>
@@ -1982,6 +2024,8 @@ namespace Forge.Game.Ui
         public Vector2 EjectOf(int i) { return i >= 0 && i < cells.Count ? cells[i].ToLight : Vector2.zero; }
         /// <summary>T459 ⓨ — i 번째 셀의 광채 원판(고등급이 아니면 null).</summary>
         public Image GlowOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Glow : null; }
+        /// <summary>T459 ⓩ — i 번째 구슬의 스페큘러 띠(done 뒤 첫 프레임에 선다 · 그 전엔 null).</summary>
+        public Image SweepOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Sweep : null; }
 
         /// <summary>셀별 재점화 플래시 — 자가 본다.</summary>
         public Image RelightOf(int i) { return i >= 0 && i < relights.Count ? relights[i] : null; }

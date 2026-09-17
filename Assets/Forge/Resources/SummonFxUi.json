@@ -907,6 +907,22 @@
     "inner_rem": [1.1, 1.7],
     "outer_rem": [2.3, 3.4]
   },
+  "orbsweep": {
+    "_": "T459 스윕 — 정본 6912~6926 `#summon-result-modal.done .sr-cell.on .sr-orb::after { inset 0 · border-radius 50% · opacity 0 · background: linear-gradient(112deg, rgba(255,255,255,0) 40%, rgba(255,255,255,.55) 50%, rgba(255,255,255,0) 60%) · background-size 260% 100% · animation: srsweep 3.6s ease-in-out infinite · animation-delay: calc(var(--i, 0) * .29s) }` + `@keyframes srsweep`(6921~6925): 0·34% opacity 0 · background-position −80% → 44·76% opacity .62 → 88·100% opacity 0 · 180%. 정본 주석 «배경은 border-radius 로 잘리므로 background-position 만 흘린다(transform 으로 밀면 원 밖으로 삐져나온다)» — 클론은 구슬 원판에 스텐실 마스크를 걸고 그 안에서 띠 한 장을 민다. background-position p% 의 실제 이동 = p × (구슬 폭 − 띠 폭) = (1 − size_f) × p × 구슬 폭.",
+    "period_ms": 3600.0,
+    "delay_step_ms": 290.0,
+    "ease": [0.42, 0.0, 0.58, 1.0],
+    "angle_deg": 112.0,
+    "size_f": 2.6,
+    "stops": [0.40, 0.50, 0.60],
+    "band_a": 0.55,
+    "a": 0.62,
+    "a_in_at": [34.0, 44.0],
+    "a_out_at": [76.0, 88.0],
+    "pos_from_pct": -80.0,
+    "pos_to_pct": 180.0,
+    "pos_at": [34.0, 88.0]
+  },
   "_src": {
     "floor_size": "5771 .stage.one .sr-floor 64%/2.6 · 5800 .stage:not(.one) 88%/2.5 (5767 base 82%/3.1 은 죽은 선언 · ui.js 493)",
     "canopy": "5836~5846 .sr-canopy 78%/3.1 · .one 62%/3 mb -2.6rem · stage:not(.one):not(.compact) 84%/2.5 mb -2.8rem · .compact 64%/3.9 mb -1.5rem(compact = herorow · ui.js 469~473) · 도입 srcanopy .45s .05s scale(.8) translateY(-.5rem)",

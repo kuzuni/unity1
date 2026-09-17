@@ -75,5 +75,28 @@ namespace Forge.Tests
             h["inner_rem"] = keep2;
             Assert.DoesNotThrow(() => SummonHiPulseSpec.From(r));
         }
+        [Test]
+        public void 구슬_스윕은_3600ms_주기에_i_곱_290_지연이고_알파는_34_44_에_오르고_76_88_에_내리며_띠는_80_에서_180_으로_민다()
+        {
+            SummonOrbSweepSpec s = SummonOrbSweepSpec.From(Root());
+            Assert.AreEqual(3600.0, s.PeriodMs, 1e-9);
+            Assert.AreEqual(290.0 * 2, s.DelayMs(2), 1e-9);
+            Assert.AreEqual(0.0, s.OpacityAt(0), 1e-9); Assert.AreEqual(0.0, s.OpacityAt(34), 1e-9);
+            Assert.AreEqual(0.62, s.OpacityAt(44), 1e-9); Assert.AreEqual(0.62, s.OpacityAt(60), 1e-9); Assert.AreEqual(0.62, s.OpacityAt(76), 1e-9);
+            Assert.AreEqual(0.0, s.OpacityAt(88), 1e-9); Assert.AreEqual(0.0, s.OpacityAt(99), 1e-9);
+            double mid = s.OpacityAt(39); Assert.Greater(mid, 0.0); Assert.Less(mid, 0.62);
+            Assert.AreEqual(-80.0, s.PosPctAt(0), 1e-9); Assert.AreEqual(-80.0, s.PosPctAt(34), 1e-9);
+            Assert.AreEqual(180.0, s.PosPctAt(88), 1e-9); Assert.AreEqual(180.0, s.PosPctAt(100), 1e-9);
+            Assert.AreEqual(50.0, s.PosPctAt(61), 1e-6, "ease-in-out 의 한가운데는 절반");
+            // CSS: background-position p% 는 (상자 − 그림) × p — 그림이 260% 라 −1.6 × p
+            Assert.AreEqual(1.28, s.OffsetF(-80), 1e-9, "−80% → 띠 왼끝이 구슬 왼끝에서 +1.28 폭(오른쪽 밖)");
+            Assert.AreEqual(-2.88, s.OffsetF(180), 1e-9, "180% → −2.88 폭(왼쪽 밖) — 띠 가운데(1.3 폭)가 구슬을 오른쪽에서 왼쪽으로 지난다");
+            double a, off;
+            s.At(100, 1, out a, out off); Assert.AreEqual(0.0, a, 1e-9, "지연 안은 알파 0");
+            s.At(290 + 3600 * 0.6, 1, out a, out off); Assert.AreEqual(0.62, a, 1e-9); Assert.Greater(off, -2.88); Assert.Less(off, 1.28);
+            Assert.AreEqual(0.0, s.BandAlpha(0.40), 1e-9); Assert.AreEqual(0.55, s.BandAlpha(0.50), 1e-9); Assert.AreEqual(0.0, s.BandAlpha(0.60), 1e-9);
+            Assert.AreEqual(0.275, s.BandAlpha(0.45), 1e-9);
+        }
+
     }
 }
