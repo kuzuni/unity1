@@ -4036,6 +4036,17 @@
 - **판정**: PlayMode 자 — ⓐ 토스트 첫 프레임 α < 1 · y 가 −.5rem 쪽 · 250ms 뒤 α 1·y 0 ⓑ 토글을 누른 뒤 손잡이 x 가 150ms 동안 단조롭게 움직인다 ⓒ 소환 결과를 열자마자 `bg-a` 색 = 예고값 · done 뒤 500ms 안에 승격값(기존 `SummonFxTests`/소환 결과 자에 칸) ⓓ `rw-tick` 페이드 250ms · `screen_*` 화소는 안 움직인다(전부 시간축).
 - 범위: `Assets/Scripts/Game/Ui/Popups.cs`(ⓐⓑ · 잡는 사람이 산 lock 을 먼저 본다) · `Assets/Scripts/Game/Ui/SkillSummonResult.cs`(ⓒ · 산 lock 뒤) · `Assets/Scripts/Game/Ui/RewardBurst.cs` · `Assets/Forge/Resources/`(표) · `Assets/Tests/PlayMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
 
+### T455 — **소환 결과의 사출 벡터가 «충전 창» 에 묶여 있다: 긴 프레임 하나가 그 창(≈275ms)을 건너뛰면 벡터가 영영 안 재져 주역 등장·흡기·잔상이 세로 폴백으로 간다** (Game·UI·자 · T422·T431·T443 과 같은 갈래(런의 사정을 창이 아니라 상태로) · **§0-6 임자 없는 빨강 · 런 1102 · 워커 U 등재**)
+
+- **증상**: 런 **#1102**(476acb3) 에서 `SummonChargeTests.사출_경로는_광원까지의_일부만_되짚는다` 가 «**사출 벡터가 안 재졌다(경과 6.03초)**» 로 빨갰다. 같은 런은 러너가 아팠다 — 형제 칸 둘이 «환경 — 가장 긴 프레임 **1313ms**» · «촬영 간격 723ms» 로 접혔다. **되풀이다**: 런 1012~1017 창에서도 한 번 빨갰고(PROGRESS 6597 행 · 그때는 «다음 런이 가른다» 로 근거만 남김) 이번이 둘째라 §1 «되풀이» = 새 번호.
+- **임자가 없다**: `SummonChargeTests.cs`·`SkillSummonResult.cs` 를 «범위» 로 적은 산 lock 이 없고(T334·T422·T431·T443 다 ✅), 런 1085→1102 창의 코드 커밋 넷(T453·T415·T178·T333)은 소환 파일을 한 줄도 안 만졌다(`git diff --stat 6cab941..476acb3 -- Ui/Summon* Ui/SkillSummon*` = 0).
+- **뿌리 — 창을 프레임이 건너뛴다**: `SummonSeqRules.Tick` 은 한 프레임에 밀린 셀을 **다** 띄운다(정본 `tickSummonResult`). 홀드백에서 `Charging` 은 «`Revealed == Count-1`» 에 켜지고 주역 착지에 꺼지는데, 그 사이는 `sr_slow_step_ms 125 + sr_holdback_ms 150 = 275ms` 뿐이다. 프레임 하나가 275ms 를 넘으면 **같은 `Tick` 안에서 켜지고 꺼져** `AnimateCharge` 의 «켜진 첫 프레임»(`chargeAt < 0` → 벡터 재기 · `SkillSummonResult.cs` 1357~1376)이 한 번도 안 돈다 → `Cell.ToLight` 가 0 으로 남는다 → 주역 등장은 1322 의 세로 폴백(`HeroPopDy0Rem`)으로, 조연 흡기·잔상은 벡터 0 으로 간다. 자는 6초를 기다리다 빨개진다. **정본은 벡터를 창과 무관하게 열 때 잰다**(`ui.js` `setSummonEjectPaths` 가 `--dx/--dy` 를 심는다 · 1373 행 주석이 그것을 적어 뒀다) — 클론만 «충전이 켜진 프레임» 에 묶어 둔 것이 결함이다. 실기기에서도 그 순간 히치 하나면 사출 연출이 통째로 빠진다.
+- **무엇을 한다**(게임 코드 · 표 0 · 점수식 무관): 벡터 재기를 `AnimateCharge` 에서 떼어 **여는 뒤 첫 레이아웃이 선 프레임**에 잰다(`MeasureEject()` · 한 번만 · `Home`·halo 자리는 그때 이미 정해져 있다) — 충전 창은 시각 연출(`chargeAt`)만 쥔다. 창을 건너뛰어도 벡터는 있다.
+- **자**: `SummonChargeTests` +1 «사출 벡터는 충전 창을 안 기다린다 — 연 뒤 두 프레임이면 재져 있고 값은 `eject_f` 비율이다». 기존 칸(6초 대기)은 그대로 — 이제 둘째 프레임에 빠져나온다.
+- **판정**: 다음 런에서 그 두 칸 PASS + `screen_summon*`·소환 결과 PNG 화소 불변(벡터 값은 같고 재는 시각만 앞당긴다).
+- 범위: `Assets/Scripts/Game/Ui/SkillSummonResult.cs` · `Assets/Tests/PlayMode/SummonChargeTests.cs` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+
+
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. 이 규칙은 **말로만 있던 동안 샜다**: 런 435·436 이 둘 다 `dotnet build` 에서 빨갰고 임자가 `45c03d5` 제목에 적었다 — «내 빌드 확인 줄이 오류를 삼켰다». 그래서 스무 줄을 손으로 옮겨 붙이지 않는다(T184).
