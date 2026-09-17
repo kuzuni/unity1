@@ -5380,6 +5380,12 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   - 자 상태: 자리 초록 95 · 20회차 ✓ **23** · **미정 95** · KNOWN 0 · 문제 0 · `--self-test` 38칸.
   → **판정(런 **1108**(`cb229f1`) 장부 · 내 커밋 `db77fd5` 는 그 앞 런 **1107** 에서 초록 · 17:4x) ✅ · lock 반납 · 행 🔄 유지**: `ToastRadiusTests` **2/2 PASS**(980~983행). 그 런의 빨강 `EquipSwapTests` 는 이 절과 닿는 줄이 0 이다(§0-6 으로 따로 집었다 — 아래 T178 칸).
     **남은 것은 미정 95** — 다음 사람이 `--list` 에서 산 lock 밖 자리를 골라 잇는다. 이 축은 KNOWN 0 · 문제 0 이라 «급한 빨강» 은 없다.
+- 🔄 **11회차(같은 SID · 18:5x · 범위: `Assets/Forge/Resources/RadiusUi.json` · `Assets/Scripts/Game/Ui/LeagueSheet.cs` · `Assets/Tests/PlayMode/LeagueRadiusTests.cs`(새) · `tools/check_border_radius.py`)** — **리그 갈래 여덟 자리**(미정 95 → **87**).
+  - **표로 옮긴 다섯**(정본이 선택자마다 못 박은 값 · 클론은 `rem * 0.4f` 처럼 **코드에 박아** 뒀다 · §1): `.league-avatar` **.4rem**(2331 · `LeagueSheet.cs` 142) · `.league-score` **.5rem**(2340 · 165) · `.league-ticket-pill` **.5rem**(2591 · 355) · `.league-challenge-row` **.7rem**(2606 · 372) · `.league-challenge-avatar` **.4rem**(2627 · 373) → `RadiusUi.json` 키 다섯. **값 변화 0 · 화면 변화 0.**
+  - **알약 동치로 닫은 셋**(결정 543 · 고칠 것이 없다): `.league-season-bar` 1rem ↔ `barH * 0.5f` — 바 높이 `.0257H`(49.3px)의 반 **24.7 < 1rem 36.4** ⇒ CSS 가 알약으로 줄인다 · `.league-reward-grid span`·`.league-tier-grid span` 1rem ↔ `RewardGrid` 의 `rowH * 0.5f` — 줄 높이 `Sub 36 × 1.5 = 54`의 반 **27 < 36.4** ⇒ 같은 동치.
+  - 자 `LeagueRadiusTests`(새 · [Test] 둘): 표 다섯이 정본 값 그대로인가 · 알약 동치 셋의 셈(`RadiusRules.IsPill`).
+  - 자 상태: 자리 초록 95 → **100** · ✓ 23 → **26** · **미정 87** · KNOWN 0 · 문제 0 · `--self-test` 38칸. `dotnet build` 0 오류 · `dotnet test` **851/851** · `gate.sh` 막는 자 rc 0.
+  - 판정 = 다음 런 새 자 2/2 + 리그 화면 PNG 가 안 흔들린다(값이 같으니 안 바뀌어야 맞다).
 
 
 ### T346 ✅ — 정본이 **탭바 위**에 띄우는 팝업 다섯이 클론에서는 **탭바 아래**다: `z-index` 112 전수에서 나온 다섯 자리 (Game·UI · T22·T78 뒤 · T33 18회차 등재)

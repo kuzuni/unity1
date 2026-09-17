@@ -139,7 +139,7 @@ namespace Forge.Game.Ui
             UiKit.Place(rk.rectTransform, x, 0f, rem * 1.8f, rowH);
             x += rem * 1.8f + rem * 0.5f;
             float av = UiKit.H("league_avatar");
-            RectTransform avatar = PopupKit.Avatar(row, "avatar", av, e.Avatar, rem * 0.4f);
+            RectTransform avatar = PopupKit.Avatar(row, "avatar", av, e.Avatar, RadiusUi.Px("league_avatar_r_rem"));
             UiKit.Place(avatar, x, (rowH - av) * 0.5f, av, av);
             x += av + rem * 0.5f;
             float scoreW = UiKit.L("league_score_w") * w, scoreH = UiKit.H("league_score_h");   // T378 10회차 — 정본 2345 `.league-score { width: .187W; height: .0257H }` 고정 pill(전엔 ×1.6)
@@ -162,7 +162,7 @@ namespace Forge.Game.Ui
             UiKit.Place(cp, x, rowH * 0.5f, nameW, rowH * 0.45f);
             RectTransform score = UiKit.Box(row, "score");
             UiKit.Place(score, rowW - rem * 0.5f - scoreW, rowH * 0.12f, scoreW, scoreH);
-            UiKit.Rounded(score, "bg", "league_score", rem * 0.5f);
+            UiKit.Rounded(score, "bg", "league_score", RadiusUi.Px("league_score_r_rem"));
             // T89 — 정본 `ui.js` 4741: `<span class="league-score">${IconGen.img('star')} ${U.fmt(e.score)}</span>`.
             // 클론은 «★»(U+2605) 글자로 찍어 글꼴에 없어 □ 였다 — 표의 ⭐ 를 써서 같은 `star` 아이콘 + 수로 세운다.
             RectTransform scRow = UiKit.IconTextRow(score, "text", TextKind.Sub, "⭐ " + PopupKit.Fmt(e.Score), "stage_ink");
@@ -352,7 +352,7 @@ namespace Forge.Game.Ui
             float pillW = UiKit.L("lc_pill_w") * w;   // T378 10회차 — 정본 2594 `.league-ticket-pill { width: .1392W }`(전엔 ×1.3)
             RectTransform pill = UiKit.Box(pillRow, "pill");
             UiKit.Anchor(pill, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, pillW, pillH);
-            UiKit.Rounded(pill, "bg", "pp_ink", rem * 0.5f);
+            UiKit.Rounded(pill, "bg", "pp_ink", RadiusUi.Px("league_ticket_pill_r_rem"));
             Image tk = PopupKit.IconOr(pill, "ico", "ticket");
             UiKit.Place(tk.rectTransform, rem * 0.4f, pillH * 0.15f, pillH * 0.7f, pillH * 0.7f);
             TextMeshProUGUI tkT = UiKit.Text(pill, "text", TextKind.Sub, h.LeagueState.Tickets + "/" + h.Meta.League.TicketMax, "stage_ink");
@@ -369,8 +369,8 @@ namespace Forge.Game.Ui
                 RectTransform slot = PopupKit.Item(card, "opp-" + i, -1f, rowH + rem * 0.5f);
                 RectTransform row = UiKit.Box(slot, "row");
                 UiKit.Anchor(row, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, rowW, rowH);
-                UiKit.Rounded(row, "bg", "challenge_row", rem * 0.7f);
-                RectTransform avatar = PopupKit.Avatar(row, "avatar", av, o.Bot.Avatar, rem * 0.4f);
+                UiKit.Rounded(row, "bg", "challenge_row", RadiusUi.Px("league_challenge_row_r_rem"));
+                RectTransform avatar = PopupKit.Avatar(row, "avatar", av, o.Bot.Avatar, RadiusUi.Px("league_challenge_avatar_r_rem"));
                 UiKit.Place(avatar, rem * 0.6f, (rowH - av) * 0.5f, av, av);
                 float nx = rem * 0.6f + av + rem * 0.6f;
                 // 정본 `.league-challenge-side` 는 **세로 한 칸**(별 위 · 도전 버튼 아래)이라 이름 칸은 버튼 폭만 비우면 된다.

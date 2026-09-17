@@ -200,6 +200,17 @@ TABLE = {
     #   토글은 정본이 높이 1.35rem 에 반지름 1rem 을 준다 — 높이의 반(.675)을 넘으니 **알약**이고, 클론 `PopupKit.Toggle` 의 `h * 0.5f` 와 같은 그림이다(결정 543).
     # T415 9회차 — 토스트: 정본 2rem 이 상자 높이 2.2rem(`toast_h` .0417H = 80.1px@1920)의 반(40.0)보다 커서 CSS 가 알약으로 줄인다.
     #   클론 `Popups.Toast` 는 테·면을 `h * 0.5f` 로 깐다 — 같은 그림이다(결정 543). 자는 그 셈을 못 보므로 `ToastRadiusTests` 가 IsPill·Clamp 로 지킨다.
+    # T415 11회차 — 리그 갈래: 정본이 선택자마다 못 박은 .4/.5/.7rem 을 클론이 `rem * 0.4f` 처럼 코드에 박아 두던 자리 다섯 → 표 `RadiusUi.json` 키로.
+    '.league-avatar': ['Ui/LeagueSheet.cs$league_avatar_r_rem'],
+    '.league-score': ['Ui/LeagueSheet.cs$league_score_r_rem'],
+    '.league-ticket-pill': ['Ui/LeagueSheet.cs$league_ticket_pill_r_rem'],
+    '.league-challenge-row': ['Ui/LeagueSheet.cs$league_challenge_row_r_rem'],
+    '.league-challenge-avatar': ['Ui/LeagueSheet.cs$league_challenge_avatar_r_rem'],
+    # 알약 동치 셋(결정 543) — 정본 1rem 이 상자 반높이보다 커서 CSS 가 알약으로 줄이는 자리다.
+    #   시즌 바: 높이 .0257H = 49.3px@1920 → 반 24.7 < 1rem 36.4 · 보상/등급 격자 알약: 높이 = Sub 36 × 1.5 = 54 → 반 27 < 36.4.
+    '.league-season-bar': u'✓정본 2300 1rem ↔ 클론 `LeagueSheet.cs` 77 `barH * 0.5f`(24.7px) — 높이 .0257H 의 반이 1rem 보다 작아 정본도 알약(결정 543) · `LeagueRadiusTests` 가 IsPill 로 지킨다',
+    '.league-reward-grid span': u'✓정본 2516 1rem ↔ 클론 `LeagueSheet.RewardGrid` `rowH * 0.5f`(27px) — 줄 높이 Sub×1.5 = 54 의 반이 1rem 보다 작아 알약 동치(결정 543)',
+    '.league-tier-grid span': u'✓정본 2582 1rem ↔ 같은 `RewardGrid` 의 `rowH * 0.5f` — 같은 알약 동치(결정 543)',
     '.toast': u'✓정본 1933 `.toast { border-radius: 2rem }`(72.8px) ↔ 클론 `Popups.cs` 토스트 `h * 0.5f`(40.0px) — 높이 2.2rem 의 반이 2rem 보다 작아 정본도 알약(결정 543) · `ToastRadiusTests` 가 IsPill 로 지킨다',
     '.settings-toggle': '✓정본 3107 `.settings-toggle { width: 2.5rem; height: 1.35rem; border-radius: 1rem }` — 클론 `Popups.Toggle` 은 `h * 0.5f` 라 알약 동치(결정 543)',
     '.settings-toggle::after': '✓정본 3111 `.settings-toggle::after { border-radius: 50% }` — 손잡이는 한 변 k 의 정사각이고 클론이 `k * 0.5f` 를 주니 원과 같은 그림이다(결정 543)',
