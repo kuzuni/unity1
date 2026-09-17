@@ -32,10 +32,19 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
-        private static List<Image> Named(Transform root, string name)
+        private static List<Image> Named(Transform root, string name, string parentName = null)
         {
             List<Image> r = new List<Image>();
-            foreach (Image i in root.GetComponentsInChildren<Image>(true)) if (i.name == name) r.Add(i);
+            foreach (Image i in root.GetComponentsInChildren<Image>(true))
+                if (i.name == name && (parentName == null || (i.transform.parent != null && i.transform.parent.name == parentName))) r.Add(i);
+            return r;
+        }
+
+        /// <summary>켜진 체크표의 ✓ 둘 — 「계속하기」 상자(`af-check-continue`)와 부옵션 행의 상자(`check`). 닫기 버튼(`x-btn`)의 «mark»(xmark)는 다른 그림이라 뺀다(런 1094 가 그것을 잡았다).</summary>
+        private static List<Image> CheckMarks(Transform root)
+        {
+            List<Image> r = Named(root, "mark", "af-check-continue");
+            r.AddRange(Named(root, "mark", "check"));
             return r;
         }
 
@@ -87,13 +96,13 @@ namespace Forge.Tests.PlayMode
             yield return null; yield return null;
             Popup auto = h.Meta.Popups.Find(ForgeAutoPopup.Name);
             Assert.IsNotNull(auto, "자동 제련 팝업");
-            List<Image> marks = Named(auto.Root, "mark");
+            List<Image> marks = CheckMarks(auto.Root);
             if (marks.Count == 0)
             {
                 h.ToggleStopOnTarget();   // «계속하기» 체크를 켠다(켜졌을 때만 ✓ 가 선다)
                 yield return null; yield return null;
                 auto = h.Meta.Popups.Find(ForgeAutoPopup.Name);
-                marks = Named(auto.Root, "mark");
+                marks = CheckMarks(auto.Root);
             }
             Assert.Greater(marks.Count, 0, "켜진 ✓ 가 하나는 있어야 잰다");
             Color want = IconShadowUi.ShadowColor("af_check_on");

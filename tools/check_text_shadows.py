@@ -58,7 +58,8 @@ TABLE = {
     '.dgd-title': ['ring:Ui/DungeonDetailPopup.cs#title'],
     # T333 4회차 조사 — 정본이 «삼각 글리프» 에 두른 8방향 1px 링(정본 주석 3281 «삼각 글리프의 검정 외곽선도 여기서 준다»).
     #   클론의 그 삼각은 글자가 아니라 **아틀라스 아이콘**(`PopupKit.Tri` → `UiKit.Icon("tri_left")`)이라 언더레이도 SDF 스트로크도 안 닿는다 → KNOWN.
-    '.chat-input-bar .btn.danger.round': ['ring:Ui/ChatScreen.cs@Open'],
+    # T453 — ◀ 는 아틀라스 아이콘(`tri_left`)이라 링은 «같은 그림의 8방 사본»(`IconShadow.Ring` · 표 IconShadowUi rings.chat_back)으로 낸다
+    '.chat-input-bar .btn.danger.round': ['icon:Ui/ChatScreen.cs@Open'],
     # T333 3회차 — 8392 두 겹 중 첫 겹(읽히게 만드는 아래 1px 드롭 · 둘째 겹 글로우는 근사로 뺀다 · 표 `league_row` 주석)
     '.league-row .league-name, .league-row .league-rank, .league-score, .equipped-label + * , .chat-preview-name': [
         'Ui/LeagueSheet.cs#rank', 'Ui/LeagueSheet.cs#name',
@@ -75,8 +76,10 @@ TABLE = {
     '.modal-card.sheet .dg-banner .item-name': ['ring:Ui/DungeonSheet.cs#name'],
     '.modal-card.sheet .dg-banner .dg-keys': ['ring:Ui/DungeonSheet.cs#keys'],
     '.af-spinner': ['Ui/ForgeAutoPopup.cs#value'],
-    '.af-age-star': ['ring:Ui/ForgeAutoPopup.cs@Open'],
-    '.af-check.on': ['Ui/ForgeAutoPopup.cs#mark'],
+    # T453 — 별은 아이콘이 아니라 **글자**이고 링은 `ForgeUi.AgeBar` 가 건다(두 화면 공용 · 자동 제련만 색이 #17181a). 자리는 그 메서드다.
+    '.af-age-star': ['ring:Ui/ForgeUi.cs@AgeBar'],
+    # T453 — 켜진 체크표는 아틀라스 아이콘(`IconOr("check")`)이라 «번진 사본 한 장»(`IconShadow.Drop` · 표 shadows.af_check_on)으로 낸다(두 자리 다 `mk`)
+    '.af-check.on': ['icon:Ui/ForgeAutoPopup.cs#mark'],
     '.petup-bulk .bulk-sil': ['Ui/PetUpgradePopup.cs#bulk-sil'],
     '.pet-tile .tile-check': ['Ui/PetUpgradePopup.cs@Check'],
     # T333 15회차 — 소환 결과 `.sr-*` 다섯: 제목(6207 두 겹 중 검정 낙하 겹 · Build) · 이름판(7032 여럿 · 7084 x1 = 같은 글 `nt2` 에 키만 갈린다 · BuildCell) ·
@@ -127,11 +130,8 @@ TABLE = {
 
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ────────────────────────────────
 KNOWN = {
-    'ring:Ui/ForgeAutoPopup.cs@Open': 'T453 몫(T333 21회차에 새 번호로 냈다) — 정본 4858 `.af-age-star` 4방 1px 링은 별 **글자**에 두른 것인데 클론의 승천 별은 아틀라스 아이콘(T58 · IconGen star)이라 글자 자리가 없다. **lock 이 아니라 능력이 없는 것**이다 — 고칠 길은 «같은 그림을 오프셋만큼 옮겨 뒤에 깔기»(T453 등재문)',
-    'Ui/ForgeAutoPopup.cs#mark': 'T453 몫(T333 21회차에 새 번호로 냈다) — 정본 4978 `.af-check.on` 의 ✓ 는 글자인데 클론은 아틀라스 아이콘(`PopupKit.IconOr("check")`)이라 언더레이가 안 닿는다. 흐린 그림자라 사본 한 장 + 블러(T342 `UiFilter.Blur`)가 필요하다',
     'Ui/PetUpgradePopup.cs#bulk-sil': 'T333 14회차 — 정본 4372 `.petup-bulk .bulk-sil { color: transparent; text-shadow: 0 0 0 var(--rc) }` 는 이모지 글자를 «등급색 실루엣» 으로 만드는 꼼수 — 클론은 아틀라스 아이콘(egg/paw)에 등급색 틴트를 주어 같은 결과를 이미 낸다(그림자가 아니라 색이 목적) · 4375 `.on` 흰색도 틴트로',
     'Ui/PetUpgradePopup.cs@Check': 'T333 14회차 — 정본 4378 `.pet-tile .tile-check` 의 ✓ 는 글자(text-shadow 0 1px 2px .5)인데 클론은 아틀라스 아이콘(UiKit.Icon check)이라 언더레이가 안 닿는다 — 아이콘 자리',
-    'ring:Ui/ChatScreen.cs@Open': 'T453 몫(T333 21회차에 새 번호로 냈다) — 클론의 «◀» 는 글자가 아니라 아틀라스 아이콘(`tri_left`)이라 링을 글자에 못 두른다. 정본 3283 은 8방 1px #000',
 }
 
 SHADOW = r'UiKit\.TextShadow'
@@ -145,7 +145,11 @@ GLOW = r'(?:DmgGlowUi\.Apply|ApplyTextGlow)'
 SHADOW_CALL = re.compile(r'\b' + SHADOW + r'\s*\(')
 RING_CALL = re.compile(r'\b' + RING + r'\s*\(')
 GLOW_CALL = re.compile(r'\b' + GLOW + r'\s*\(')
-CREATE_CALL = re.compile(r'\.(Text|Label|Bold|Stroked|IconTextRow|Btn)\s*\(\s*[^,()]+,\s*"([^"]+)"')
+# T453 — 정본이 **글자**에 건 링·그림자를 클론이 **아이콘**으로 세운 자리: 같은 그림의 오프셋 사본(`IconShadow.Ring`)·번진 사본(`IconShadow.Drop`)을 뒤에 깐다.
+#   언더레이도 SDF 스트로크도 아이콘엔 안 닿으니 `icon:` 갈래로 따로 센다(채팅 ◀ · 켜진 체크표).
+ICON = r'IconShadow\.(?:Ring|Drop)'
+ICON_CALL = re.compile(r'\b' + ICON + r'\s*\(')
+CREATE_CALL = re.compile(r'\.(Text|Label|Bold|Stroked|IconTextRow|Btn|Icon|IconOr|Tri)\s*\(\s*[^,()]+,\s*"([^"]+)"')   # T453 — 아이콘 자리(`Icon`·`IconOr`·`Tri`)도 «이름 → 변수» 꼬리를 좇는다
 ASSIGN_TAIL = re.compile(r'([\w\[\]\.]+)\s*=\s*(?:[\w!.()\[\]]+\s*\?\s*)?[\w.]*$')
 DECL = re.compile(r'(?<![\w-])text-shadow\s*:\s*([^;}]+)')
 
@@ -248,14 +252,19 @@ def check_target(game_dir, target):
     """
     ring = target.startswith('ring:')
     glow = target.startswith('glow:')
+    icon = target.startswith('icon:')
     if ring:
         target = target[len('ring:'):]
     elif glow:
         target = target[len('glow:'):]
+    elif icon:
+        target = target[len('icon:'):]
     if ring:
         call, call_re, word = RING, RING_CALL, '링'
     elif glow:
         call, call_re, word = GLOW, GLOW_CALL, '글로우'
+    elif icon:
+        call, call_re, word = ICON, ICON_CALL, '아이콘 사본'
     else:
         call, call_re, word = SHADOW, SHADOW_CALL, '그림자'
     file_part, sep, tail = re.match(r'([^#@]+)([#@]?)(.*)', target).groups()
@@ -324,7 +333,7 @@ def run(css_path, game_dir, table, known, out=print, list_pending=False, keyline
                 if t in known:
                     known_now_ok.append(t)
                 continue
-            tag = ('링 없음' if t.startswith('ring:') else '글로우 없음' if t.startswith('glow:') else '그림자 없음') if state == 'missing' else '자리 없음'
+            tag = ('링 없음' if t.startswith('ring:') else '글로우 없음' if t.startswith('glow:') else '아이콘 사본 없음' if t.startswith('icon:') else '그림자 없음') if state == 'missing' else '자리 없음'
             if t in known:
                 n_known += 1
                 out('· KNOWN(%s)  %s  ← style.css %d %s { text-shadow: %s }  — %s' % (tag, t, line, sel[:70], val[:60], known[t]))
@@ -427,7 +436,7 @@ def self_test():
             expect('ⓘ 끄는 규칙 문법 ' + sel, ts.startswith('—'))
             continue
         for t in ts:
-            expect('ⓘ 자리 문법 ' + t, re.match(r'^(ring:|glow:)?[\w/]+\.cs([#@][\w-]+)?$', t) is not None)
+            expect('ⓘ 자리 문법 ' + t, re.match(r'^(ring:|glow:|icon:)?[\w/]+\.cs([#@][\w-]+)?$', t) is not None)
     expect('ⓘ check_keyline TABLE 을 읽는다', len(keyline_selectors()) >= 40, str(len(keyline_selectors())))
     # ⓙ ring: 갈래 — 링이 있으면 초록 · 언더레이만 있으면 «링 없음» · 링만 있는 자리를 언더레이로 재면 «그림자 없음»
     cs('class Face { static void R(Transform p){ var a = UiKit.Text(p, "s-e", TextKind.Body, "x"); UiKit.OutlinePx(a, "pp_line", 4f); }\n'
@@ -471,12 +480,21 @@ def self_test():
     rc, out = go({'@keyframes ani-a 0%': ['glow:Battle/Num.cs@M'], '@keyframes ani-a 9%': ['glow:Battle/Num.cs@M'],
                   '@keyframes ani-b 0%': ['glow:Battle/Num.cs@M'], '.s-a': ['glow:Battle/Num.cs@M']}, {}, kf_css)
     expect('ⓜ 키프레임 자리도 잰다', rc == 0 and '미정 선택자 0' in out, out)
+    # ⓜ icon: 갈래(T453) — 아이콘 자리(`Icon`/`IconOr`/`Tri` 로 만든 그림)에 `IconShadow.Ring/Drop` 이 닿으면 초록 · 스트로크·언더레이만 있으면 «아이콘 사본 없음» · 메서드 갈래도 같다
+    cs('class Face { static void R(Transform p){ Image i = UiKit.Icon(p, "s-e", "tri_left"); IconShadow.Ring(i, "k"); }\n'
+       ' static void S(Transform p){ Image m = PopupKit.IconOr(p, "s-b", "check"); UiKit.OutlinePx(m, "pp_line", 4f); } }')
+    rc, out = go({'.s-e': ['icon:Ui/Face.cs#s-e']}, {}, base_css)
+    expect('ⓜ 아이콘 사본 초록', rc == 0 and '자리 초록 1' in out, out)
+    rc, out = go({'.s-b, .s-c': ['icon:Ui/Face.cs#s-b']}, {})
+    expect('ⓜ 스트로크만 있으면 아이콘 사본 없음', rc == 1 and '아이콘 사본 없음' in out, out)
+    rc, out = go({'.s-e': ['icon:Ui/Face.cs@R']}, {})
+    expect('ⓜ 메서드 갈래 초록', rc == 0 and '자리 초록 1' in out, out)
     if fails:
         print('✗ check_text_shadows --self-test 실패 %d' % len(fails))
         for f in fails:
             print('  · ' + f[:400])
         return 1
-    print('✓ check_text_shadows --self-test 31칸 통과')
+    print('✓ check_text_shadows --self-test 34칸 통과')
     return 0
 
 
