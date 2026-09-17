@@ -45,11 +45,13 @@ namespace Forge.Game.Ui
             if (view == "settings") RenderSettings(h, card, inner, cardH, pad);
             else RenderProfile(h, card, inner, cardH, pad);
 
-            // [프로필 | 설정] 탭 줄(카드 바닥 위 2.2rem)
+            // [프로필 | 설정] 탭 줄 — T445: 정본 3038 `.profile-sheet .profile-tabs { margin-top: auto; margin-bottom: 2.2rem }` 은 **카드 패딩 상자 안**의 마진이라
+            //   카드 바닥에서 탭 아래끝까지 = 패딩 1.1rem(1754 · `card_pad`) + 2.2rem = **3.3rem**(정본 주석 3036 «원본은 카드 바닥까지 55px(6.2%H)»).
+            //   `PopupKit.Card` 의 RectTransform 은 테 상자라 전엔 2.2rem 만 띄워 패딩 몫 1.1rem 이 통째로 빠졌다(런 1048 실측 37px ↔ 원작 55px).
             float tabsW = (inner - pad * 2f) * UiKit.L("profile_tabs_w");
             float tabsH = PopupKit.FontSize(TextKind.Sub) * 1.3f + rem * 1.1f;
             RectTransform tabs = UiKit.Box(card, "tabs");
-            UiKit.Anchor(tabs, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, rem * 2.2f), tabsW, tabsH);
+            UiKit.Anchor(tabs, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, pad + rem * 2.2f), tabsW, tabsH);
             UiKit.Rounded(tabs, "line", "pp_line", RadiusUi.Px("profile_tabs_r_rem"));   // 정본 3068 `.profile-tabs { border-radius: .5rem }`(T345 20회차)
             Tab(tabs, "profile", "프로필", 0f, tabsW * 0.5f, tabsH, view == "profile", () => SwitchView(h, "profile"));
             Tab(tabs, "settings", "설정", tabsW * 0.5f, tabsW * 0.5f, tabsH, view == "settings", () => SwitchView(h, "settings"));

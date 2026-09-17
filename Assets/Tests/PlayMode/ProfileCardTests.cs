@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -124,6 +125,46 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0.5f, card.anchorMin.y, 1e-4f); Assert.AreEqual(0.5f, card.pivot.y, 1e-4f, "가운데 앵커·피벗");
             Assert.AreEqual(UiKit.L("modal_wide_w") * UiKit.RefW, card.rect.width, 0.5f, "카드 폭은 표(modal_wide_w)대로 — 건드리지 않는다");
             h.Popups.Hide(LeagueSheet.RewardsName);
+            yield return null;
+        }
+
+        /// <summary>
+        /// T445 — 정본 3038 `.profile-sheet .profile-tabs { margin-top: auto; margin-bottom: 2.2rem }` + 1754 `.modal-card { padding: 1.1rem }`: CSS 마진은 패딩 상자 안에
+        /// 놓이므로 탭 아래끝 → 카드 바닥 = 3.3rem(정본 주석 3036 «원본은 55px(6.2%H)»). 클론은 2.2rem 만 띄워 패딩 몫이 빠졌다(런 1048 37px ↔ 55px). 두 화면(프로필·설정) 다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 프로필과_설정의_탭_줄은_카드_바닥에서_패딩_더하기_2_2rem_위에_선다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            ProfilePopup.Open(h);
+            yield return null; Canvas.ForceUpdateCanvases();
+            Popup p = h.Popups.Find(ProfilePopup.Name);
+            Assert.IsNotNull(p, "프로필 팝업");
+            float rem = PopupKit.Rem, pad = UiKit.H("card_pad");
+            float want = pad + rem * 2.2f;
+            foreach (string view in new[] { "profile", "settings" })
+            {
+                if (view == "settings")
+                {
+                    Transform tb = p.Root.GetComponentInChildren<RectTransform>(true).GetComponentsInChildren<UnityEngine.UI.Button>(true)
+                        .FirstOrDefault(b => b.name == "tab-settings")?.transform;
+                    Assert.IsNotNull(tb, "설정 탭 버튼");
+                    tb.GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+                    yield return null; Canvas.ForceUpdateCanvases();
+                    p = h.Popups.Find(ProfilePopup.Name);
+                    Assert.IsNotNull(p, "설정 화면");
+                }
+                RectTransform card = (RectTransform)p.Root.Find("card");
+                RectTransform tabs = (RectTransform)card.Find("tabs");
+                Assert.IsNotNull(tabs, view + " — 탭 줄");
+                Assert.AreEqual(want, tabs.anchoredPosition.y, 0.5f, view + " — 탭 줄 아래끝 → 카드 바닥 = card_pad(1.1rem) + 2.2rem(정본 3038 · 55px@960 ≈ " + (want * 960f / UiKit.RefH).ToString("0.0") + ")");
+                Vector3[] cc = new Vector3[4], tc = new Vector3[4]; card.GetWorldCorners(cc); tabs.GetWorldCorners(tc);
+                float gap = card.InverseTransformPoint(tc[0]).y - card.InverseTransformPoint(cc[0]).y;
+                Assert.AreEqual(want, gap, 1.0f, view + " — 실물 틈도 같다");
+                Assert.Greater(gap, rem * 2.2f + 1f, view + " — 2.2rem 만 띄우던 옛 값보다 패딩 몫만큼 높다");
+            }
+            ProfilePopup.Close(h);
             yield return null;
         }
     }
