@@ -79,12 +79,29 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(dragon.Rig.Wings.Count, 0, "미니 드래곤은 날개"); Assert.Greater(bike.Rig.Wheels.Count, 0, "자전거는 바퀴");
             Assert.AreEqual(3, mr.transform.Find("Mounts").childCount, "탄 것 1 + 무리 2");
             // 프레임: 다리·머리가 돌고 탈것이 바운스하며 영웅이 같은 바운스·기울기(×0.6)를 받는다
-            Quaternion leg0 = m.Rig.Legs[0].Node.localRotation, wing0 = dragon.Rig.Wings[0].Node.localRotation, wheel0 = bike.Rig.Wheels[0].localRotation;
-            s.Step(0.37f);
-            mr.Step(0.37, s.Clock, true);
-            Assert.Greater(Quaternion.Angle(leg0, m.Rig.Legs[0].Node.localRotation), 0.01f, "다리 각이 시계에 따라 바뀐다");
-            Assert.Greater(Quaternion.Angle(wing0, dragon.Rig.Wings[0].Node.localRotation), 0.01f, "무리의 날개도 같은 함수로 돈다");
-            Assert.Greater(Quaternion.Angle(wheel0, bike.Rig.Wheels[0].localRotation), 0.01f, "바퀴는 dt 로 굴러간다");
+            // T436 — **한 걸음의 표본**으로 «돌았나» 를 물으면 런의 사정이 답을 뒤집는다(런 1001 실측):
+            //   ⓐ `Quaternion.Angle` 은 `dot > 1 − 1e−6` 이면 계산을 건너뛰고 **정확히 0f** 를 돌려준다 — 그 문턱이 **0.1621°** 라
+            //      잣대 «> 0.01°» 는 그 사각지대 **안**이다. 곧 이 자가 볼 수 있는 값은 «0» 아니면 «0.162° 이상» 뿐이고,
+            //      `But was: 0.0f` 는 «안 돌았다» 가 아니라 «**0.162° 보다 적게 돌았다**» 는 뜻이다(3D 코드를 뒤지면 헛걸음한다).
+            //   ⓑ 파츠 각은 사인이다 — 한 걸음의 차 = `진폭·2·sin(Δφ/2)·cos(중점)` 이라 **중점이 전환점에 앉으면 0 에 수렴**한다.
+            //      시드는 고정이지만(`Rng.Mulberry(7)`) 중점은 `BattleScene.Clock` 이 정하고, 그 시계는 `ManualStep` 을 켜기 전
+            //      부팅 프레임이 **실시간으로** 쌓은 값이라 런마다 다르다(날개 기준 런당 0.148%).
+            //   ⇒ **두 걸음을 재고 큰 쪽**을 본다. 두 중점은 정확히 Δφ 만큼 떨어져 있어(날개 3.5478 rad · π 와 0.41 rad 차)
+            //      **함께** 전환점에 앉을 수 없다 — «움직인다» 는 게임의 성질은 그대로 남고 «어느 순간에 쟀나» 만 빠진다.
+            //      뒤 단언들은 `s.Clock` 을 live 로 읽으므로 걸음 수가 늘어도 셈이 어긋나지 않는다.
+            float legMoved = 0f, wingMoved = 0f, wheelMoved = 0f;
+            for (int i = 0; i < 2; i++)
+            {
+                Quaternion leg0 = m.Rig.Legs[0].Node.localRotation, wing0 = dragon.Rig.Wings[0].Node.localRotation, wheel0 = bike.Rig.Wheels[0].localRotation;
+                s.Step(0.37f);
+                mr.Step(0.37, s.Clock, true);
+                legMoved = Mathf.Max(legMoved, Quaternion.Angle(leg0, m.Rig.Legs[0].Node.localRotation));
+                wingMoved = Mathf.Max(wingMoved, Quaternion.Angle(wing0, dragon.Rig.Wings[0].Node.localRotation));
+                wheelMoved = Mathf.Max(wheelMoved, Quaternion.Angle(wheel0, bike.Rig.Wheels[0].localRotation));
+            }
+            Assert.Greater(legMoved, 0.01f, "다리 각이 시계에 따라 바뀐다(두 걸음 중 큰 쪽 · T436)");
+            Assert.Greater(wingMoved, 0.01f, "무리의 날개도 같은 함수로 돈다(두 걸음 중 큰 쪽 · T436)");
+            Assert.Greater(wheelMoved, 0.01f, "바퀴는 dt 로 굴러간다(두 걸음 중 큰 쪽 · T436)");
             double t = MountRideRules.Time(s.Clock, 1, m.Phase);
             double bob = MountRideRules.Bob(false, t, true);
             Assert.AreEqual(m.BaseY + bob, m.Y, 1e-9, "지상형 바운스 |sin(t·4)|·0.05·1.6");
