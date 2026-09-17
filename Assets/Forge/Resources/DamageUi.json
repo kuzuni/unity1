@@ -1,0 +1,13 @@
+{
+  "_": "T440 — 전투 숫자(Battle/DamageNumbers)의 곁 표. 정본 style.css 549 `.float-dmg.dmg-hero::before { content: '▼'; font-size: .72em; margin-right: .14em; vertical-align: .04em }` — «내게 들어온 피해» 표식은 숫자 크기를 안 건드리고 기호만 작게 붙인다(546~548 주석). 값은 em(= 그 숫자의 글자 크기 배) 이라 표도 em 으로 쥔다. 코드에 숫자를 박지 않는다(§1). 글로우·잉크·키라인은 각각 DmgGlowUi.json · PinnedColorUi.json · KeylineUi.json.",
+  "layout": {
+    "hero_mark_em": 0.72,
+    "hero_mark_gap_em": 0.14,
+    "hero_mark_rise_em": 0.04
+  },
+  "_src": {
+    "hero_mark_em": "style.css 549 `font-size: .72em` — ▼ 의 글자 크기 = 숫자 글자 크기 × .72 (T440)",
+    "hero_mark_gap_em": "style.css 549 `margin-right: .14em` — ▼ 오른끝 → 숫자 잉크 왼끝 틈 = 숫자 글자 크기 × .14 (T440)",
+    "hero_mark_rise_em": "style.css 549 `vertical-align: .04em` — ▼ 를 기준선에서 숫자 글자 크기 × .04 만큼 올린다 (T440)"
+  }
+}

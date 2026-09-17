@@ -108,7 +108,7 @@ namespace Forge.Tests.PlayMode
             nums.Spawn(new Vector3(0.15f, 1.0f, 0f), "G715", "dmg", 0, -40, 1);
             nums.Spawn(new Vector3(0.25f, 1.0f, 0f), "G716", "dmg-hero", 0, -40, 1);
             yield return null;
-            TextMeshProUGUI reused = Find(layer, "G715"), hero = Find(layer, "▼G716");
+            TextMeshProUGUI reused = Find(layer, "G715"), hero = Find(layer, "G716")   /* T440 — ▼ 는 이제 따로 조각(mark)이라 숫자 문자열에 안 붙는다 */;
             Assert.IsNotNull(reused, "되쓴 일반타 글자");
             Assert.IsFalse(reused.fontSharedMaterial.IsKeywordEnabled("UNDERLAY_ON"), "되쓴 일반타에 앞 숫자의 글로우가 묻으면 안 된다");
             Assert.IsNotNull(hero, "영웅 피해 글자");

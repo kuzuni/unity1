@@ -48,6 +48,8 @@ namespace Forge.Game.Battle
             public RectTransform Rt; public TextMeshProUGUI T; public UiTextKindTag Tag; public Frame[] Anim; public Vector2 Origin; public double Dx, Rise, Pop, Age; public Color Color;
             /// <summary>T333 10회차 — 이 숫자의 글로우 종류(정본에 글로우가 없는 등급이면 null) · 지금 걸린 겹 키 · 재질을 다시 구울 때 쓰는 키라인 키 둘.</summary>
             public string GlowCls, GlowKey, OutlineKey, StrokeKey;
+            /// <summary>T440 — «내게 들어온 피해» 의 ▼ 표식(정본 `.dmg-hero::before`) · 숫자와 따로 선 작은 글자 조각(없는 종류는 꺼 둔다).</summary>
+            public TextMeshProUGUI Mark;
         }
 
         readonly List<Num> live = new List<Num>();
@@ -143,7 +145,8 @@ namespace Forge.Game.Battle
             lp.y = (float)Math.Min(lp.y, topFloor);
             TextKind kind; string colorKey, inkKey, outlineKey, strokeKey, prefix; Frame[] anim;
             Style(cls, out kind, out colorKey, out inkKey, out outlineKey, out strokeKey, out anim, out prefix);
-            Num n = Take(layer, kind, colorKey, prefix.Length == 0 ? (text ?? string.Empty) : prefix + text);
+            // T440 — 접두 ▼ 는 숫자 문자열에 안 붙인다(같은 크기가 된다) · 아래 HeroMark 가 따로 조각으로 세운다.
+            Num n = Take(layer, kind, colorKey, text ?? string.Empty);
             TextMeshProUGUI t = n.T;
             // T396 2회차 — 못박은 잉크는 표에서(§1 — 코드에 hex 를 안 박는다). `n.Color` 를 뜨기 **전**이어야 한다(아래 151행).
             if (inkKey != null) t.color = PinnedColorUi.C(inkKey);
@@ -152,6 +155,7 @@ namespace Forge.Game.Battle
             n.GlowCls = DmgGlowUi.Has(cls) ? cls : null;
             n.GlowKey = n.GlowCls != null ? DmgGlowUi.KeyAt(n.GlowCls, 0) : null;
             t.fontSharedMaterial = OutlineMaterial(t, outlineKey, strokeKey, n.GlowKey);
+            HeroMark(n, prefix, text ?? string.Empty, colorKey, outlineKey, strokeKey);
             RectTransform rt = n.Rt;
             // 가로 화면 클램프(아크가 다 흐른 뒤에도 앱 상자 안)
             float half = rt.sizeDelta.x * 0.5f * (float)pop * 0.5f;
@@ -164,6 +168,54 @@ namespace Forge.Game.Battle
         }
 
         /// <summary>풀에서 꺼내(없으면 <see cref="UiKit.Text"/> 로 한 번 만들고) 종류·색·글자를 다시 입힌다 — 종류 표식(<see cref="UiTextKindTag"/>)·글자 크기는 §1 하한 게이트가 보므로 같이 갱신한다.</summary>
+        /// <summary>
+        /// T440 — 정본 `style.css` 549 `.float-dmg.dmg-hero::before { content: '▼'; font-size: .72em; margin-right: .14em; vertical-align: .04em }`
+        /// (546~548 주석 «색·위치만으로는 소유자가 안 읽혀서 기호로 못 박는다 · **숫자 크기는 안 건드리고 기호만 작게**»). 전엔 `prefix + text` 한 문자열이라
+        /// ▼ 가 숫자와 같은 크기였고 틈도 없었다. richText 는 켜지 않는다(`tools/check_richtext.py` · T89) — 글자 조각 하나를 숫자 상자의 자식으로 세운다:
+        /// 크기 = 숫자 × `hero_mark_em` · 틈 = 숫자 × `hero_mark_gap_em` · 올림 = 숫자 × `hero_mark_rise_em`(표 `Resources/DamageUi.json`).
+        /// 정본은 «▼ + 틈 + 숫자» 한 덩어리가 원점에 가운데 서므로 숫자를 TMP `margin`(왼쪽 = 표식 폭 + 틈)으로 그 절반만큼 오른쪽에 물린다 — 자리·연출(Origin·Place)은 안 건드린다.
+        /// 표식은 숫자 상자의 자식이라 배율·회전은 따라오고, 알파는 <see cref="Place"/> 가 같이 준다. 종류가 바뀌어 풀에서 다시 나온 숫자는 표식을 끄고 margin 을 0 으로 돌린다.
+        /// </summary>
+        static void HeroMark(Num n, string prefix, string text, string colorKey, string outlineKey, string strokeKey)
+        {
+            TextMeshProUGUI t = n.T;
+            if (prefix.Length == 0)
+            {
+                if (n.Mark != null) n.Mark.gameObject.SetActive(false);
+                t.margin = Vector4.zero;
+                return;
+            }
+            float fs = t.fontSize;
+            float markFs = fs * DamageStyle.L("hero_mark_em"), gap = fs * DamageStyle.L("hero_mark_gap_em"), rise = fs * DamageStyle.L("hero_mark_rise_em");
+            float markW = ApproxWidth(markFs, prefix), numW = ApproxWidth(fs, text);
+            if (n.Mark == null)
+            {
+                // 글자는 공장(UiKit.Text)에서만 만든다(check_richtext ⓑ). 종류는 Micro — 하한 18 의 예외 칸(결정 633)이라 숫자 × .72 가 하한 게이트에 안 걸린다.
+                n.Mark = UiKit.Text(n.Rt, "mark", TextKind.Micro, prefix, colorKey);
+                RectTransform mr = n.Mark.rectTransform;
+                mr.anchorMin = mr.anchorMax = new Vector2(0.5f, 0.5f);
+                mr.pivot = new Vector2(0.5f, 0.5f);
+            }
+            TextMeshProUGUI m = n.Mark;
+            m.gameObject.SetActive(true);
+            m.text = prefix;
+            m.fontSize = markFs;
+            m.color = t.color;
+            m.fontSharedMaterial = OutlineMaterial(m, outlineKey, strokeKey, null);   // 같은 잉크·키라인(정본 ::before 는 글자 색·stroke 를 물려받는다) · 크기가 달라 재질은 따로 굽는다
+            m.rectTransform.sizeDelta = new Vector2(markW * 2f + gap, fs * 1.4f);
+            t.margin = new Vector4(markW + gap, 0f, 0f, 0f);
+            // 숫자 잉크 왼끝 = (표식 폭 + 틈)/2 − 숫자 폭/2 · 표식 가운데 = 그 왼끝 − 틈 − 표식 폭/2 = −숫자 폭/2 − 틈/2
+            m.rectTransform.anchoredPosition = new Vector2(-numW * 0.5f - gap * 0.5f, rise);
+        }
+
+        /// <summary>글자 폭 어림 — `PetSkillKit.TextWidth` 와 같은 규칙(한중일 1.0 · 공백 .3 · 그 밖 .58)을 임의 크기로.</summary>
+        public static float ApproxWidth(float size, string s)
+        {
+            float w = 0f;
+            foreach (char ch in s) w += ch > 0x2E80 ? size * 1.0f : (ch == ' ' ? size * 0.3f : size * 0.58f);
+            return w;
+        }
+
         Num Take(RectTransform layer, TextKind kind, string colorKey, string text)
         {
             Num n = null;
@@ -195,6 +247,7 @@ namespace Forge.Game.Battle
         {
             if (n.Rt == null) return;
             n.T.canvasRenderer.SetAlpha(1f);
+            if (n.Mark != null) n.Mark.canvasRenderer.SetAlpha(1f);
             n.Rt.gameObject.SetActive(false);
             pool.Push(n);
         }
@@ -212,6 +265,7 @@ namespace Forge.Game.Battle
             n.Rt.localRotation = Quaternion.Euler(0, 0, (float)-rot);
             // 알파는 정점색(TMP 메시 재생성 · 프레임마다 관리 할당)이 아니라 CanvasRenderer 에 — 글자 메시는 띄울 때 한 번만 만든다(T50).
             n.T.canvasRenderer.SetAlpha((float)al);
+            if (n.Mark != null && n.Mark.gameObject.activeSelf) n.Mark.canvasRenderer.SetAlpha((float)al);   // T440 — 표식도 같은 알파
             // T333 10회차 — 글로우 겹은 표의 단계(정본 키프레임 퍼센트)에서 갈린다. 겹마다 구운 공유 재질을 갈아 끼울 뿐이라 숫자마다 재질이 늘지 않는다.
             if (n.GlowCls != null)
             {
@@ -246,6 +300,36 @@ namespace Forge.Game.Battle
             foreach (var n in live) if (n.Rt != null) UnityEngine.Object.Destroy(n.Rt.gameObject);
             live.Clear();
             while (pool.Count > 0) { var n = pool.Pop(); if (n.Rt != null) UnityEngine.Object.Destroy(n.Rt.gameObject); }
+        }
+    }
+
+    /// <summary>
+    /// T440 — 전투 숫자의 곁 표(<c>Assets/Forge/Resources/DamageUi.json</c> `layout`). 정본 549 `.dmg-hero::before` 의 em 값 셋 — 코드에 숫자를 박지 않는다(§1).
+    /// <see cref="Forge.Game.Ui.CraftStyle"/> 와 같은 꼴.
+    /// </summary>
+    public static class DamageStyle
+    {
+        public const string ResourcePath = "DamageUi";
+        static Forge.Core.Data.JsonObject root, layout;
+
+        static void Load()
+        {
+            if (root != null) return;
+            TextAsset ta = Resources.Load<TextAsset>(ResourcePath);
+            if (ta == null) throw new InvalidOperationException("Resources/" + ResourcePath + ".json 이 없다 (T440)");
+            root = Forge.Core.Data.MiniJson.ParseObject(ta.text);
+            layout = Forge.Core.Data.J.Obj(root["layout"]);
+        }
+
+        public static void Reset() { root = null; layout = null; }
+
+        /// <summary>배치 값 원문(em 배수).</summary>
+        public static float L(string key)
+        {
+            Load();
+            object v = layout[key];
+            if (!Forge.Core.Data.J.IsNum(v)) throw new KeyNotFoundException("DamageUi.json 에 배치 값 «" + key + "» 이 없다");
+            return (float)Forge.Core.Data.J.Num(v);
         }
     }
 }

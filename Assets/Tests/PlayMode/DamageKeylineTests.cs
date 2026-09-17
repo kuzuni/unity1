@@ -64,7 +64,7 @@ namespace Forge.Tests.PlayMode
             yield return null;
             RectTransform layer = DamageNumbers.Layer(root);
             Assert.AreEqual(4, nums.Count, "넷이 살아 있다");
-            TextMeshProUGUI dmg = Find(layer, "601"), kill = Find(layer, "602"), hero = Find(layer, "▼603"), crit = Find(layer, "604");
+            TextMeshProUGUI dmg = Find(layer, "601"), kill = Find(layer, "602"), hero = Find(layer, "603")   /* T440 — ▼ 는 이제 따로 조각(mark)이라 숫자 문자열에 안 붙는다 */, crit = Find(layer, "604");
             AssertStroke(dmg, "float_dmg", "dmg(.float-dmg .6px)");
             AssertStroke(kill, "float_dmg_kill", "kill(.dmg-kill 1px)");
             AssertStroke(hero, "float_dmg_hero", "hero(.dmg-hero .55px)");
