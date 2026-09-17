@@ -170,6 +170,8 @@
   "btn_none_keylines_": "제 규칙이 text-shadow: none 인 버튼의 키라인 표 키 — style.css 8661 .btn.btn.summon-btn.summon-btn:not(.ascend-ready) { text-shadow: none }",
   "shadows_": "btn 의 «색 버튼» 은 T109 7회차와 같은 가름 — KeylineUi.json btn_face 에 든 면(pp_blue·pp_green·pp_red = 정본 .primary/.on/.equip/.danger/.sell)만 그림자 · 그 밖(회색·종이·디버그 = 정본 .silver 계열)은 없음 · 비활성은 면과 무관하게 흰 엠보스(8356)",
   "rings": {
+    "fi_age_star": 1,
+    "fi_age_star_": "style.css **5138** `.fi-age-star { text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 }` — **4방향 1px 순검정 링**(대각 넷 · 상하좌우는 없다). 링은 언더레이 한 겹으로 못 내니 `UiKit.OutlinePx`(SDF 스트로크 · T104)로 낸다 — 변당 1px.",
     "chat_name": 2,
     "chat_name_": "style.css 3344 `.chat-name, .chat-tag` 의 20겹 링 = **변당 2px 순검정**(정본 주석: «1px 8방향으로는 절반밖에 안 나오므로 2px 링을 겹쳐 두른다» · --olc 오타로 죽었던 4겹을 #000 으로 되살린 그 규칙). 링은 언더레이 한 겹으로 못 내니 UiKit.OutlinePx(SDF 스트로크 · T104)로 낸다 — 색은 카탈로그 pp_line(#000000).",
     "dg_banner_name": 1,

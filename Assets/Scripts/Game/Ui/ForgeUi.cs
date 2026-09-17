@@ -382,7 +382,10 @@ namespace Forge.Game.Ui
             Image ai = PopupKit.IconOr(bar, "ico", AgeIconKey(age));
             UiKit.Place(ai.rectTransform, x, (h - ico) * 0.5f, ico, ico);
             x += ico + rem * 0.35f;
-            TextMeshProUGUI nm = UiKit.Text(bar, "name", TextKind.Sub, AgeKr(d, age) + (stars > 0 ? " " + Stars(stars) : string.Empty), "pp_ink", TextAlignmentOptions.Left);
+            // T333 18회차 — 정본 **5138** `.fi-age-star { margin-left: .22rem; color: #ffb300; font-size: .88rem; text-shadow: -1px -1px 0 #000 ×4 }`:
+            //   별은 이름과 **다른 조각**이다(색·크기·링이 다 따로다). 클론은 «이름 ★★» 로 **한 문자열에 이어 붙여** 두어 셋 다 못 걸고 있었다.
+            //   그래서 여기서 이름과 별을 떼어 각자 세운다 — 자리는 같은 파일의 «주 수치 뒤 화살표»(`ItemCard`)가 쓰는 `preferredWidth` 길 그대로.
+            TextMeshProUGUI nm = UiKit.Text(bar, "name", TextKind.Sub, AgeKr(d, age), "pp_ink", TextAlignmentOptions.Left);
              if (!autoForge) WrapUi.Apply(nm, "fi_age_name");   // T361 7회차 — 정본 white-space 표(WrapUi.json) 5092 `.fi-age-name { nowrap }`(자동 제련 `.af-age-name` 은 정본 선언 없음)
             nm.fontStyle = FontStyles.Bold;
             // T333 17회차 — 정본 **8371** `.fi-age-name, .fi-age-cur, .fi-age-next, .af-age-name, .af-age-cur { text-shadow: 0 1px 0 rgba(255,255,255,.34) }`.
@@ -390,6 +393,15 @@ namespace Forge.Game.Ui
             //   ⚠ 선택자가 **다섯**이다 — `.af-age-next` 만 빠져 있다. 아래 «다음» 칸에서 `autoForge` 로 그 한 자리를 가른다(T361 7회차가 `nowrap` 에서 같은 갈래를 이미 겪었다).
             UiKit.TextShadow(nm, "fi_age_line");
             UiKit.Place(nm.rectTransform, x, 0f, w * 0.5f, h);
+            if (stars > 0)
+            {
+                // 크기는 `Micro` 칸 + 표(정본 .88rem = 기준 32.0px · `Sub` 하한 36 을 주면 이름줄보다 커진다 — 정본은 별이 **작다**) · 색은 자리 전용 리터럴(#ffb300) · 링은 4방향 1px 검정을 SDF 스트로크로.
+                TextMeshProUGUI star = UiKit.Text(bar, "star", TextKind.Micro, Stars(stars), "pp_ink", TextAlignmentOptions.Left);
+                TextSizeUi.Apply(star, "fi_age_star");
+                star.color = PinnedColorUi.C("fi_age_star_ink");
+                UiKit.OutlinePx(star, "pp_line", TextShadowUi.RingPx("fi_age_star"));
+                UiKit.Place(star.rectTransform, x + nm.preferredWidth + UiKit.L("fi_age_star_ml_rem") * rem, 0f, w * 0.5f, h);
+            }
             float segW = next != null ? w * 0.25f : 0f;
             if (next != null)
             {

@@ -2026,6 +2026,14 @@
   - 자 `TextShadowTests` +1칸 · `check_text_shadows` **TABLE** 에 그 선택자 한 줄 ⇒ **자리 초록 40 → 43 · 미정 2 → 1**.
   - **남은 미정 하나(18회차)** — **5138** `.fi-age-star { margin-left: .22rem; color: #ffb300; font-size: .88rem; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000 }`: **4방향 1px 검정 링**이고 **색·크기까지 따로**다. 그런데 클론은 별을 **이름 문자열에 이어 붙여** 둔다(`ForgeUi.AgeBar` 의 `AgeKr(d, age) + " " + Stars(stars)`) — 한 글 조각이라 색·크기·링을 따로 못 건다. ⇒ **별을 제 조각으로 떼는 것**이 먼저다(그러면 T377 색 축·글자 크기 축과도 짝이 맞는다). 링은 이 절이 3회차에 낸 `ring:` 길(SDF 스트로크)을 그대로 쓴다.
   - 게이트: `dotnet build` 0 오류 · `dotnet test` **848/848** · `gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 없다.
+- 🔄 **18회차(2026-09-17 09:0x~09:3x · 워커 H · sess-2258-11450 · lock 갱신·유지 · 판정은 다음 런) — 마지막 미정을 갚았다: `check_text_shadows` **미정 선택자 0**(자리 초록 43 → **44**)**.
+  - **17회차 판정 ✅**(런 **1053** = 내 커밋 · 새 자 `시대_막대_글_셋은_흰_양각을_지고_자동_제련의_다음_칸만_안_진다` **PASS** · 그 런의 유일한 빨강은 T178 산 lock 몫).
+  - **5138 `.fi-age-star` — 값이 셋인데 클론엔 조각이 하나였다**: 정본은 `margin-left: .22rem; color: **#ffb300**; font-size: **.88rem**; text-shadow: **4방향 1px 검정**` 인데 클론은 별을 **이름 문자열에 이어 붙여**(«이름 ★★») 두어 색·크기·링을 **하나도** 못 걸고 있었다. ⇒ **별을 제 조각으로 뗐다**(자리는 같은 파일의 «주 수치 뒤 화살표» 가 쓰는 `preferredWidth` 길 그대로).
+  - 표 넷에 나눠 담았다 — **기구를 따라 표를 고른다**(T385 ⑴ 과 같은 규칙): 틈 `catalog.json` `fi_age_star_ml_rem` .22 · 크기 `TextSizeUi.json` `fi_age_star` **.88rem**(= 기준 32.0px) · 색 `PinnedColorUi.json` `fi_age_star_ink` **#ffb300**(자리 전용 리터럴 · T377 갈래) · 링 `TextShadowUi.json` `rings.fi_age_star` **1**(SDF 스트로크 · 이 절 3회차의 `ring:` 길).
+  - ⚑ **§1 의 `Micro` 예외를 한 자리 더 쓴다 — 근거는 정본 CSS 줄이다**: `.88rem` = 기준 **32.0px** 라 `Sub` 하한 **36** 을 주면 **1.13배**가 되어 **별이 이름줄보다 커진다**(정본은 별이 이름보다 **작다**). 넷째·여섯째 자리와 같은 길 — `Micro` 칸 + `TextSizeUi.json` 이 정본 크기를 그대로 준다.
+  - 자 `TextShadowTests` 의 시대 막대 칸에 별 단언 넷(이름 문자열에 ★ 가 **없다** · 색이 #ffb300 · 이름보다 **작다** · 링 폭 > 0) — «떼어 놓은 것» 이 되돌아가면 먼저 운다.
+  - 게이트: `dotnet build` 0 오류 · `dotnet test` **848/848** · `check_text_shadows` **미정 0 · 문제 0** · `check_pinned_colors` 초록 · `gate.sh` 막는 자 전부 rc 0 · 건너뛴 자 없다.
+  - **닫기는 다음 회차**: 이 절은 자리 초록 44 로 «정본 선언» 쪽은 다 덮었지만 **KNOWN 빈자리 6**(남의 lock·클론에 자리가 아직 없는 것)이 남아 있다 — 판정(새 단언 넷)과 그 여섯을 같이 보고 닫는다.
 
 ### T334 ✅ — 소환 결과 팝업의 **연출 시퀀스(충전 → 주역 등장 → 섬광/와이프 → 완료 · 등급 섬광 · 먼지·빛가루·유성) 키프레임 40 이 클론에 없다**: 정본 `tickSummonResult`·`fireSummonHero`·`finishSummonResult` 가 거는 `charging`·`hero`·`flash`·`wipe`·`done` 다섯 상태의 CSS 연출 (Game·UI · **T179 뒤**(같은 파일 `SkillSummonResult.cs`) · T23·T112 뒤 · T33 18회차 등재)
 - 정본이 **지금 돈다**: `ui.js` 703~766 — 셀 등장 캐스케이드(`.on`) 중 마지막 한 칸을 남기면 `charging`(720 · 소환진이 돌고 눈금이 켜지고 비네트가 조여든다 · 정본 주석 «정지가 아니라 축적»), 주역 셀 착지에 `hero`(746 · 나머지 셀 후퇴 + 광창 버스트 + 충격파 + 화면 킥 350ms) + `flash`(747 · 뜸들인 단독 등장) 또는 `wipe`(757 · 주역 셀 중심 가산 원형 와이프), 끝에 `done`(764). 상태마다 CSS 가 키프레임을 건다(`style.css` 5666~7178 · `@keyframes sr*` **49** 중 T179 가 세우는 겹 넷의 9(`srcanopy`·`srrayspin`·`srraysbreath`·`srreflect`·`srstar`·`srbreath`·`srfloorbreath`·`srintro`·`srpop`·`srveil`)을 뺀 **40**).

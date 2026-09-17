@@ -549,6 +549,18 @@ namespace Forge.Tests.PlayMode
                                             what + " 다음 %: 정본 8371 의 다섯 선택자에 `.af-age-next` 가 **없다** — 이 칸엔 겹이 안 붙는다");
                     }
                 }
+                // T333 18회차 — 별이 있으면 **이름과 다른 조각**이어야 한다(정본 5138: 색 #ffb300 · .88rem · 4방향 1px 검정 링).
+                //   클론은 «이름 ★★» 로 한 문자열이었다 — 그러면 셋 다 못 건다. 이 줄이 그 되돌아감을 막는다.
+                Transform starT = bar.Find("star");
+                if (starT != null)
+                {
+                    TextMeshProUGUI star = starT.GetComponent<TextMeshProUGUI>();
+                    Assert.IsNotNull(star, what + ": 별 조각");
+                    Assert.IsFalse(nm.text.Contains("★"), what + ": 별이 이름 문자열에 남아 있다 — 떼어야 색·크기·링을 따로 건다");
+                    Assert.AreEqual(PinnedColorUi.C("fi_age_star_ink"), star.color, what + " 별: 정본 5138 의 리터럴 #ffb300(이름의 잉크가 아니다)");
+                    Assert.Less(star.fontSize, nm.fontSize, what + " 별: 정본은 별이 이름보다 **작다**(.88rem) — 하한 36 을 주면 되레 커진다");
+                    Assert.Greater(star.outlineWidth, 0f, what + " 별: 4방향 1px 검정 링(SDF 스트로크)");
+                }
                 break;   // 막대 하나면 규칙이 드러난다(행 수는 제련 레벨이 정한다 · 이 절의 몫이 아니다)
             }
             Assert.GreaterOrEqual(seen, 1, what + ": 시대 막대가 한 줄은 선다");
