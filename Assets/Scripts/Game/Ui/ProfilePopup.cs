@@ -153,7 +153,7 @@ namespace Forge.Game.Ui
             //   곧 표값 `.2177` 은 **파랑 채움** 폭(원작 042724 실측 108px)이지 상자 폭이 아니다. `PopupKit.Btn` 은 테(`line`) 안에 면(`face`)을 `Line3` 만큼 들여 그리므로,
             //   상자에 `.2177` 을 그대로 주면 채움이 키라인 두 겹만큼 안으로 먹힌다 — 런 968 실측 **111px**(기대 117.6 · −6.6 = `line3_px` × 2).
             //   틈은 안 움직인다: 정본의 «틈 16px» 도 `gap: .5rem` + 키라인 두 겹이고 클론도 같은 셈이다.
-            float bw = UiKit.L("profile_rank_btn_w") * w + PopupKit.Line3 * 2f, bh = UiKit.H("btn_h");
+            float bw = UiKit.L("profile_rank_btn_w") * w + PopupKit.Line3 * 2f, bh = PopupKit.ModalBtnH;
             float bx = (inner - bw * 2f - rem * 0.5f) * 0.5f;
             Button r1 = PopupKit.Btn(card, "power-rank", "파워 랭킹", "pp_blue", "pp_blue_dk", () => h.OpenStub("파워 랭킹", "서버 내 전투력 랭킹은 준비 중입니다."), bw, bh, "stage_ink", TextKind.Sub);
             UiKit.Place(r1.GetComponent<RectTransform>(), bx, y, bw, bh);
@@ -246,10 +246,10 @@ namespace Forge.Game.Ui
             input.textComponent = txt;
             input.characterLimit = 12;
             input.text = h.Nickname;
-            RectTransform btns = PopupKit.Item(card, "buttons", -1f, UiKit.H("btn_h"));
+            RectTransform btns = PopupKit.Item(card, "buttons", -1f, PopupKit.ModalBtnH);
             PopupKit.Row(btns, 0f, rem * 0.5f, TextAnchor.MiddleCenter);
-            PopupKit.Btn(btns, "cancel", "취소", "pp_gray", "pp_gray_dk", () => h.Popups.Hide("nickname"), -1f, UiKit.H("btn_h"), "pp_ink", TextKind.Sub);
-            PopupKit.Btn(btns, "ok", "확인", "pp_blue", "pp_blue_dk", () => { SetNickname(h, input.text); h.Popups.Hide("nickname"); }, -1f, UiKit.H("btn_h"), "stage_ink", TextKind.Sub);
+            PopupKit.Btn(btns, "cancel", "취소", "pp_gray", "pp_gray_dk", () => h.Popups.Hide("nickname"), -1f, PopupKit.ModalBtnH, "pp_ink", TextKind.Sub);
+            PopupKit.Btn(btns, "ok", "확인", "pp_blue", "pp_blue_dk", () => { SetNickname(h, input.text); h.Popups.Hide("nickname"); }, -1f, PopupKit.ModalBtnH, "stage_ink", TextKind.Sub);
         }
 
         public static void SetNickname(MetaHost h, string name)
@@ -387,10 +387,10 @@ namespace Forge.Game.Ui
             RectTransform card = PopupKit.Card(p.Root, "card", UiKit.L("modal_card_w") * UiKit.RefW, -1f, "pp_paper", rem);
             PopupKit.Column(card, UiKit.H("card_pad"), rem * 0.5f);
             PopupKit.Label(card, "q", TextKind.Body, "정말 처음부터 시작할까요?", "pp_ink", TextAlignmentOptions.Center, true);
-            RectTransform btns = PopupKit.Item(card, "buttons", -1f, UiKit.H("btn_h"));
+            RectTransform btns = PopupKit.Item(card, "buttons", -1f, PopupKit.ModalBtnH);
             PopupKit.Row(btns, 0f, rem * 0.5f, TextAnchor.MiddleCenter);
-            PopupKit.Btn(btns, "cancel", "취소", "pp_gray", "pp_gray_dk", () => h.Popups.Hide("confirm"), -1f, UiKit.H("btn_h"), "pp_ink", TextKind.Sub);
-            PopupKit.Btn(btns, "ok", "초기화", "pp_red", "pp_red_dk", () => { if (SaveIo.Instance != null) SaveIo.Instance.ResetGame(); }, -1f, UiKit.H("btn_h"), "stage_ink", TextKind.Sub);
+            PopupKit.Btn(btns, "cancel", "취소", "pp_gray", "pp_gray_dk", () => h.Popups.Hide("confirm"), -1f, PopupKit.ModalBtnH, "pp_ink", TextKind.Sub);
+            PopupKit.Btn(btns, "ok", "초기화", "pp_red", "pp_red_dk", () => { if (SaveIo.Instance != null) SaveIo.Instance.ResetGame(); }, -1f, PopupKit.ModalBtnH, "stage_ink", TextKind.Sub);
         }
     }
 }

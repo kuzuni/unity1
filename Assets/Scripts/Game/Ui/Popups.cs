@@ -157,7 +157,7 @@ namespace Forge.Game.Ui
             barrierLe.preferredHeight = StaticIconsUi.Em("stub_ico_h_em", soonEm);
             barrierLe.flexibleWidth = 0f;
             PopupKit.Label(soon, "soon", TextKind.Body, "다음 업데이트에서 추가될 예정입니다.", "pp_muted", TextAlignmentOptions.Center, true);
-            PopupKit.Btn(card, "close", "닫기", "pp_gray", "pp_gray_dk", () => Hide(p), -1f, UiKit.H("btn_h"), "pp_ink");
+            PopupKit.Btn(card, "close", "닫기", "pp_gray", "pp_gray_dk", () => Hide(p), -1f, PopupKit.ModalBtnH, "pp_ink");
             return p;
         }
 
@@ -223,6 +223,21 @@ namespace Forge.Game.Ui
             float fs = FontSize(k);
             float ratio = lhKey == null ? f.lineHeight / f.pointSize : (float)LineHeight.Table.Get(lhKey);
             return Mathf.Max(minH, padY * 2f + lines * fs * ratio);
+        }
+        /// <summary>T447 — 정본 `.btn`(style.css **665**)에는 **높이 규칙이 없다**: 상자 = 글자 줄 + 세로 패딩 두 겹 + 테 두 겹이고 **내용이 정한다**.
+        /// 팝업 갈래는 **3542** `.modal-card .btn, .panel .btn, #equip-sheet .btn { border: var(--ol3) solid var(--pp-line) }` 가 테를 `ol3` 로 덮는다.
+        /// 아래턱 `.22rem` 은 `inset` box-shadow 라 **상자를 안 키우고 채움을 먹는다** — 그래서 여기 안 더한다(`Btn` 이 면을 그릴 때 뺀다).
+        /// 단은 정본이 못 박은 `.88rem`(`btn_font_rem`)이다: 클론 라벨의 글자 종류와 다를 수 있지만 **정본에서 상자를 정하는 것은 규칙의 단**이다(라벨 단은 T391·T404 축).
+        /// 정본이 이 자리에 `line-height` 를 안 줬으니 normal = 글꼴 자산 비율을 쓴다(<see cref="BtnH"/> 와 한 셈).
+        /// 종전 표값 `btn_h`(2.4rem)는 근거가 없어 원작 대비 채움이 −0.65%p 였다(런 1067 실측 4.08 ↔ 3.43%H).</summary>
+        public static float ModalBtnH
+        {
+            get
+            {
+                var f = UiFont.Primary.faceInfo;
+                return Rem * UiKit.L("btn_font_rem") * (f.lineHeight / f.pointSize)
+                     + Rem * UiKit.L("btn_pad_y_rem") * 2f + Line3 * 2f;
+            }
         }
         public static float Line { get { return UiKit.L("line_px"); } }
         public static float Line3 { get { return UiKit.L("line3_px"); } }

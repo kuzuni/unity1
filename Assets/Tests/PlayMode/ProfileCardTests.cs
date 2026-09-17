@@ -107,6 +107,52 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T447 — 정본 **665** `.btn { padding: .55rem .8rem; font-size: .88rem }` + **3542** `.modal-card .btn { border: var(--ol3) … }`.
+        /// 정본에는 **버튼 높이를 못 박은 규칙이 없다** — 상자는 «글자 줄 + 세로 패딩 두 겹 + 테 두 겹» 으로 **내용이 정한다**.
+        /// 종전 클론은 표에 `btn_h` 2.4rem 한 수를 박아 뒀고(근거 없음) 그 탓에 랭킹 버튼 파랑 채움이 원작 **4.08%H** ↔ 클론 **3.43%H** 였다(런 1067 실측).
+        /// 아래턱 `.22rem` 은 `inset` 이라 상자를 안 키우고 채움을 먹으므로 **채움 = 상자 − ol3 두 겹 − 아래턱**이다.
+        /// 이 칸은 셋을 묻는다: ⓐ 표가 정본 단·패딩을 그대로 쥐는가 ⓑ 상자가 그 셈(`PopupKit.ModalBtnH`)이고 옛 한 수가 아닌가 ⓒ 파랑 채움이 원작 4.08%H 자리인가.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 랭킹_버튼_높이는_표의_한_수가_아니라_정본_계약이_셈한다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            ProfilePopup.Open(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+            Popup p = h.Popups.Find(ProfilePopup.Name);
+            Assert.IsNotNull(p, "프로필 팝업");
+            RectTransform b1 = null;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "power-rank") b1 = rt;
+            Assert.IsNotNull(b1, "파워 랭킹 버튼(power-rank)");
+            RectTransform f1 = (RectTransform)b1.Find("face");
+            Assert.IsNotNull(f1, "파랑 면(face)");
+
+            // ⓐ 표가 정본 리터럴을 그대로 쥔다(코드에 박지 않는다 · §1).
+            Assert.AreEqual(0.88f, UiKit.L("btn_font_rem"), 1e-6f, "정본 665 `.btn { font-size: .88rem }`");
+            Assert.AreEqual(0.55f, UiKit.L("btn_pad_y_rem"), 1e-6f, "정본 665 `.btn { padding: .55rem .8rem }` 의 세로 몫");
+
+            // ⓑ 상자 = 정본 계약의 셈이고, 옛 한 수(btn_h 2.4rem)가 아니다.
+            Assert.AreEqual(PopupKit.ModalBtnH, b1.rect.height, 1f,
+                "상자 높이 = 글자 줄 + .55rem 두 겹 + ol3 두 겹 · 실측 " + b1.rect.height.ToString("0.0"));
+            Assert.Greater(b1.rect.height, UiKit.H("btn_h") + 1f,
+                "옛 표값 2.4rem(" + UiKit.H("btn_h").ToString("0.0") + "px)이 아니다 — 정본 계약은 그보다 크다");
+            Assert.AreEqual(b1.rect.height - PopupKit.Line3 * 2f - UiKit.H("btn_lip"), f1.rect.height, 1f,
+                "채움 = 상자 − ol3 두 겹 − 아래턱(inset 은 상자를 안 키운다)");
+
+            // ⓒ 파랑 채움이 원작 `shot-042724` 실측 4.08%H 자리다(±0.2%p — 판정 ⓐ).
+            float fillPct = f1.rect.height / UiKit.RefH * 100f;
+            Assert.That(fillPct, Is.InRange(3.88f, 4.28f),
+                "파랑 채움 = 원작 4.08%H ±0.2 · 실측 " + fillPct.ToString("0.00") + "%H(종전 3.43)");
+            Debug.Log("[T447] 상자 " + b1.rect.height.ToString("0.0") + "px · 채움 " + f1.rect.height.ToString("0.0") + "px = " + fillPct.ToString("0.00") + "%H · 옛 btn_h " + UiKit.H("btn_h").ToString("0.0") + "px");
+            ProfilePopup.Close(h);
+            yield return null;
+        }
+
         /// <summary>T395 2회차 — 리그 보상 카드도 같다: 정본 `.lgr-overlay .idet-wrap { top: .76rem }` 은 CSS 보정값이라 옮기지 않는다.
         /// 종전 `rem * 0.76f` 는 PopupKit.Card 에서 «양수 = 위» 라 부호까지 반대로 베껴져 카드가 원작보다 1%p 위였다(런 754: 18.23 ↔ 원작 19.21%H).</summary>
         [UnityTest]

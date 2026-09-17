@@ -3820,7 +3820,17 @@
 - **범위를 세었다(결정 635·712)**: `UiKit.H("btn_h")` 를 부르는 곳은 **여덟**뿐이다 — `ProfilePopup.cs` **일곱**(랭킹 둘 · 이름/초기화 확인 팝업 버튼 줄 등) · `Popups.cs` **하나**. 전역 토큰이 아니라 **팝업 버튼 한 갈래**라 표값을 고쳐도 번지는 자리가 여덟으로 닫힌다. ⚠ 그래도 `Popups.cs` 쪽 한 자리는 다른 화면이니 고치는 사람이 **그 화면 샷도 같이 본다**.
 - 고침: `btn_h` 를 «글자 줄 + `.55rem`×2 + `ol3`×2» 로 **셈해서** 쓰거나(표에 `btn_pad_y_rem` 을 두고 코드가 더한다), 표값을 정본 계약에서 역산한 값으로 고친다. **새 수를 코드에 박지 않는다.**
 - 판정: ⓐ `screen_profile.png` 랭킹 버튼 파랑 채움이 **4.08%H ±0.2**(지금 3.43) ⓑ 같은 화면의 나머지 자리(가로 채움 117px · T432 ✅)가 **안 흔들린다** ⓒ `Popups.cs` 가 그리는 화면 샷도 버튼이 카드 밖으로 안 넘친다 ⓓ PlayMode 자 한 칸.
-- 범위: `Assets/Forge/catalog.json`(`btn_h`) · `Assets/Scripts/Game/Ui/ProfilePopup.cs` · `Assets/Scripts/Game/Ui/Popups.cs` · `Assets/Tests/PlayMode/ProfileCardTests.cs` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 범위: `Assets/Forge/catalog.json`(`btn_h`) · `Assets/Scripts/Game/Ui/ProfilePopup.cs` · `Assets/Scripts/Game/Ui/Popups.cs` · `Assets/Tests/PlayMode/ProfileCardTests.cs` · `docs/ROUTINE.md` · `docs/PROGRESS.md` · `Assets/Forge/Resources/UiCatalog.asset`(catalog.json 을 고치면 `gen_ui_catalog.py` 가 같이 쓴다) · `docs/table-scale-allow.md`(새 기하 곱 한 줄 · T378 자).
+
+- **1회차(sess-1242-10698 · 워커 G · 2026-09-17 12:4x)** — 표에 «높이 한 수» 를 두는 대신 **정본 계약을 코드가 셈하게** 했다(등재문의 두 길 중 앞엣것).
+  - **표에 정본 리터럴 둘**(`Assets/Forge/catalog.json`): `btn_font_rem` **0.88**(정본 665 `.btn { font-size: .88rem }`) · `btn_pad_y_rem` **0.55**(같은 줄 `padding: .55rem .8rem` 의 세로 몫 · 가로 짝 `btn_pad_x_rem` 0.8 은 이미 있었다). **새 수를 코드에 박지 않았다.**
+  - **셈은 한 곳**(`Ui/Popups.cs` `PopupKit.ModalBtnH`): `rem × btn_font_rem × 글꼴 줄비(1.448 · 정본이 이 자리에 line-height 를 안 줬으니 normal)` + `rem × btn_pad_y_rem × 2` + `line3_px × 2` = **98.4 기준px = 5.12%H**. 아래턱 `.22rem` 은 `inset` 이라 안 더했다(면을 그릴 때 빠진다) ⇒ 채움 = 98.4 − 12 − 8.1 = **78.4 = 4.08%H** — 원작 `shot-042724` 실측 **4.08%H** 와 **0.00%p**.
+  - **자리 여덟을 다 갈았다**: `ProfilePopup.cs` 일곱(랭킹 둘 · 이름 팝업 셋 · 초기화 확인 셋 중 겹치는 행 높이 포함) · `Popups.cs` 하나(공용 [닫기]). `UiKit.H("btn_h")` 를 읽는 **코드는 0**이 됐다.
+  - ⚑ **결정 766 — `btn_h` 키는 지우지 않고 «정본 계약이 아니다» 라고 표에 적어 둔다**: 아직 읽는 곳이 **자 넷**(`KeylineSpotsTests`·`PopupBtnKeylineTests`·`TextShadowTests` 는 합성 버튼 크기로 · `TableScaleSitesTests` 는 «옛 btn_h×1.7/1.5/1.9 가 아니다» 빗장으로) 이고 그 파일들은 이 절의 범위 밖이다. 값을 바꾸면 남의 빗장이 가리키는 «옛 값» 이 소리 없이 흔들린다 — 그래서 **값은 그대로, 뜻만 주석으로 못 박았다**. 그 자들이 제 절에서 정리되면 키가 지워진다.
+  - **자 한 칸**(`ProfileCardTests.랭킹_버튼_높이는_표의_한_수가_아니라_정본_계약이_셈한다`): ⓐ 표가 정본 리터럴 `.88`·`.55` 를 그대로 쥐는가 ⓑ 상자 = `ModalBtnH` 이고 옛 `btn_h` 보다 큰가 ⓒ 채움 = 상자 − ol3 두 겹 − 아래턱 ⓓ 채움이 **4.08%H ±0.2**.
+  - 게이트: `dotnet build` 0 오류 · `dotnet test` **850/850** · `gate.sh` 막는 자 44 중 rc 0(건너뜀 0) · `check_table_scale` 새 곱 한 줄을 «기하»(양쪽 패딩)로 등재해 초록.
+  - 판정은 다음 런: ⓐ `screen_profile.png` 랭킹 버튼 파랑 채움 **4.08%H ±0.2**(지금 3.43) ⓑ 가로 채움 117px(T432 ✅)이 안 흔들린다 ⓒ `Popups.cs` 공용 [닫기]가 든 화면에서 버튼이 카드 밖으로 안 넘친다 ⓓ 새 자 PASS.
+
 
 ### T450 — **플레이어 정보 «보유 옵션» 목록의 줄 피치가 정본이 못 박은 1.8%H 를 34% 넘는다**: 정본은 `.pinfo-subs-list` 를 `font-size: .8rem` 으로 두고 주석에 «원본 스탯 줄 피치 **1.8%H(≈16px)**» 라 실측까지 적어 뒀는데, 클론은 글자 종류 `Sub`(단 36)에 목록 틈 `rem*0.1` 을 더해 **2.34%H** 다 (UI · T354 16회차가 줄높이만 고친 자리의 **남은 절반** · T28 110회차 등재 · 런 1072 실측)
 

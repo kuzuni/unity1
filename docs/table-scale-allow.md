@@ -16,3 +16,4 @@
 | `Ui/Hud.cs` | `line_px` | ×2 | 기하 | 테 두 겹(261) |
 | `Ui/Popups.cs` | `xbtn` | ×0.5 | 기하 | 반겹 — ✕ 버튼이 카드 모서리에 반쯤 걸친다(214) |
 | `Ui/ForgeSheet.cs` | `billet_stroke` | ×0.5 | 기하 | 반폭(406) |
+| `Ui/Popups.cs` | `btn_pad_y_rem` | ×2 | 기하 | 위·아래 패딩 두 겹 — 정본 665 `.btn { padding: .55rem .8rem }` 의 세로 몫이 상자 높이에 두 번 든다(T447 · ModalBtnH · 239) |
