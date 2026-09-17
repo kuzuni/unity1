@@ -13,6 +13,7 @@
     "fly": "eqsw-fly",
     "shadow": "eqsw-shadow",
     "dust": "eqsw-dust",
+    "dust_grad": "eqsw-dust-grad",
     "snap": "eqsw-snap"
   },
   "layout": {
@@ -40,7 +41,6 @@
     "dust_w_f": 1.6,
     "dust_h_f": 0.34,
     "dust_y_f": 0.46,
-    "dust_alpha_core_f": 0.5,
     "bounce_big_rem": 0.8,
     "bounce_small_rem": 0.26,
     "shadow_dy_rem": 0.35,
