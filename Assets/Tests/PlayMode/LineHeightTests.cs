@@ -605,5 +605,68 @@ namespace Forge.Tests.PlayMode
             ForgeInfoPopup.Close(h);
             yield return null;
         }
+
+        /// <summary>T354 21회차 — 상단바 프로필 카드의 닉네임·전투력(정본 106 `.profile-info { line-height: 1.2 }` · 두 줄 세로 묶음)과
+        /// 설정 실동작 버튼 라벨(정본 3124 `.settings-act { line-height: 1.15rem }` · rem 키라 글자 크기로 나눠 배수가 된다)이 표를 읽는다.</summary>
+        [UnityTest]
+        public IEnumerator 상단바_프로필_두_줄과_설정_실동작_라벨이_표의_줄높이를_읽는다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && PopupLayer.Instance != null && Hud.Instance != null); i++) yield return null;
+            Assert.IsNotNull(Hud.Instance, "Hud");
+            Transform nick = Find(Hud.Instance.transform, "nickname");
+            Assert.IsNotNull(nick, "닉네임");
+            Transform cpRow = Find(Hud.Instance.transform, "cp");
+            Assert.IsNotNull(cpRow, "전투력 줄");
+            Transform cpv = Find(cpRow, "value");
+            Assert.IsNotNull(cpv, "전투력 수");
+            Assert.AreEqual(1.2, LineHeight.Table.Get("profile_info_lh"), 1e-9, "정본 106");
+            AssertSpacing(nick.GetComponent<TextMeshProUGUI>(), "profile_info_lh", "닉네임");
+            AssertSpacing(cpv.GetComponent<TextMeshProUGUI>(), "profile_info_lh", "전투력");
+
+            MetaHost h = MetaHost.Instance;
+            ProfilePopup.Open(h);
+            yield return null;
+            ProfilePopup.SwitchView(h, "settings");
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = h.Popups.Find(ProfilePopup.Name);
+            Assert.IsNotNull(p, "프로필 팝업");
+            int acts = 0;
+            foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (t.name != "label" || t.transform.parent == null || t.transform.parent.name != "act") continue;
+                acts++;
+                AssertSpacing(t, "settings_act_lh_rem", "설정 실동작 라벨 «" + t.text + "»");
+                // rem 키: 배수 = 1.15rem(px) ÷ 글자 크기 — 표값을 그대로 배수로 쓰면 틀린다(정본은 절대 줄높이다)
+                Assert.AreEqual(1.15 * PopupKit.Rem / t.fontSize, LineHeight.Ratio(t, "settings_act_lh_rem"), 1e-6, "rem 키의 배수");
+            }
+            Assert.Greater(acts, 0, "설정 갈래에 실동작 버튼 라벨이 하나도 없다");
+            Assert.AreEqual(1.15, LineHeight.Table.Get("settings_act_lh_rem"), 1e-9, "정본 3124 · rem");
+            ProfilePopup.Close(h);
+            yield return null;
+        }
+
+        /// <summary>T354 21회차 — 데미지 숫자 조각(정본 ui.js 18 인라인 `line-height:1.25`)은 풀에서 만들 때 표를 읽는다.</summary>
+        [UnityTest]
+        public IEnumerator 데미지_숫자_조각은_정본_인라인_1_25_를_읽는다()
+        {
+            yield return Boot();
+            UiRoot root = UiRoot.Instance;
+            Assert.IsNotNull(root, "UiRoot");
+            Forge.Game.Battle.DamageNumbers.ResetMaterials();
+            var nums = new Forge.Game.Battle.DamageNumbers();
+            nums.Spawn(new Vector3(0.1f, 1.0f, 0f), "354", "dmg-crit", 0, -40, 1);
+            yield return null;
+            RectTransform layer = Forge.Game.Battle.DamageNumbers.Layer(root);
+            TextMeshProUGUI n = null;
+            foreach (TextMeshProUGUI t in layer.GetComponentsInChildren<TextMeshProUGUI>(true)) if (t.text == "354") { n = t; break; }
+            Assert.IsNotNull(n, "숫자 조각 «354»");
+            Assert.AreEqual(1.25, LineHeight.Table.Get("ui_js_lh"), 1e-9, "정본 ui.js 18");
+            AssertSpacing(n, "ui_js_lh", "데미지 숫자");
+            nums.Clear();
+            yield return null;
+        }
+
     }
 }

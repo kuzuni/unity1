@@ -95,6 +95,7 @@ namespace Forge.Game.Ui
             float tx = av + UiKit.W("card_gap");
             float tw = cardW - tx - UiKit.W("card_pad_r");
             nickname = UiKit.Text(card, "nickname", TextKind.Sub, boot.nickname, "ink", TextAlignmentOptions.Left);
+            LineHeight.Apply(nickname, "profile_info_lh");   // T354 21회차 — 정본 106 `.profile-info { line-height: 1.2 }`(닉네임·전투력 두 줄 세로 묶음 · 각 한 줄이라 눈은 안 변한다 · 표를 읽는 자리)
             nickname.fontStyle = FontStyles.Bold;
             UiKit.Place(nickname.rectTransform, tx, 0f, tw, cardH * 0.5f);
 
@@ -104,6 +105,7 @@ namespace Forge.Game.Ui
             Image power = UiKit.Icon(cpRow, "ico", "power");
             UiKit.Place(power.rectTransform, 0f, 0f, ico, ico);
             cp = UiKit.Text(cpRow, "value", TextKind.Sub, "0", "cp", TextAlignmentOptions.Left);
+            LineHeight.Apply(cp, "profile_info_lh");         // T354 21회차 — 같은 묶음의 둘째 줄(정본 108 `.cp` 는 크기만 다르고 줄높이는 묶음 것을 물려받는다)
             cp.fontStyle = FontStyles.Bold;
             UiKit.Place(cp.rectTransform, ico + rem * 0.2f, 0f, tw - ico - rem * 0.2f, ico);
 

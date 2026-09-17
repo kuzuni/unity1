@@ -355,6 +355,7 @@ namespace Forge.Game.Ui
             PopupKit.Inset(face.rectTransform, actLine);
             TextMeshProUGUI t = UiKit.Text(rt, "label", TextKind.Sub, act, inkKey);
             t.fontStyle = FontStyles.Bold;
+            LineHeight.Apply(t, "settings_act_lh_rem");   // T354 21회차 — 정본 3124 `.settings-act { line-height: 1.15rem }`(rem 키 · 글자 크기로 나눠 배수 · 높이 계약은 T378 7회차 `settings_act_h` 가 같은 1.15rem 으로 셈한다)
         }
 
         private static void ToggleDummy(MetaHost h, string key)

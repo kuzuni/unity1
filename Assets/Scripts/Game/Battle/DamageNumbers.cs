@@ -223,6 +223,7 @@ namespace Forge.Game.Battle
             if (n == null)
             {
                 var t0 = UiKit.Text(layer, "dmg", kind, text, colorKey);
+                LineHeight.Apply(t0, "ui_js_lh");   // T354 21회차 — 정본 ui.js 18 인라인 `line-height:1.25`(데미지 숫자 조각 · 한 줄 · 풀에서 다시 나와도 lineSpacing 은 남는다)
                 var rt0 = t0.rectTransform;
                 rt0.anchorMin = rt0.anchorMax = new Vector2(0.5f, 0.5f);
                 rt0.pivot = new Vector2(0.5f, 0.5f);
