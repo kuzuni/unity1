@@ -787,6 +787,7 @@ namespace Forge.Tests.PlayMode
                 // 이 자리를 가리켜 두었다). 게임 흐름은 안 건드린다 — 촬영 자만 부른다.
                 CardPop.SettleAll();
                 PanelSlide.SettleAll();   // T355 ⓖ — 탭 패널 슬라이드(.22s)도 끝난 모습을 찍는다
+                ToastEnter.SettleAll();   // T454 ⓐ — 토스트 등장(.25s)도 끝난 모습을 찍는다
                 int uiLayer = canvas.gameObject.layer;
                 UniversalAdditionalCameraData camUrp = cam.GetComponent<UniversalAdditionalCameraData>();
 
@@ -1145,6 +1146,7 @@ namespace Forge.Tests.PlayMode
                 }
                 CardPop.SettleAll();   // T135 ⓑ·T128 ⓒ — 정지 촬영은 카드 팝(.25s)이 끝난 모습을 찍는다(런 341 은 반투명·축소 중이 찍혔다)
                 PanelSlide.SettleAll();   // T355 ⓖ — 소환 시트 슬라이드(.22s)도 끝난 모습을 찍는다
+                ToastEnter.SettleAll();   // T454 ⓐ — 토스트 등장(.25s)도 끝난 모습을 찍는다
                 yield return null;
                 yield return null;
                 if (threw) continue;

@@ -183,6 +183,8 @@ namespace Forge.Game.Ui
             if (combat) combatStack++; else toastStack++;
             LastToast = msg;
             LastToastLane = combat ? lane : null;
+            // T454 ⓐ — 정본 1936 `.toast { opacity: 0; translateY(-.5rem); transition: all .25s }` → 1938 `.show`: 위 .5rem 에서 내려오며 켜진다(값은 표 TransitionUi.json `toast_in`).
+            ToastEnter.Attach(t, "toast_in");
             StartCoroutine(ToastLife(t.gameObject, combat));
         }
 
@@ -557,7 +559,11 @@ namespace Forge.Game.Ui
             string onKey = "pp_blue", string offKey = "pp_gray", string knobKey = "pp_paper")
         {
             float w = UiKit.H("settings_toggle_w"), h = UiKit.H("settings_toggle_h");
-            Button b = UiKit.Button(parent, name, onClick);
+            // T454 ⓑ — 정본 3113·4992 `transition: left .15s`: 누르면 화면을 다시 세우는 자리라 «누른 순간의 상태» 를 열쇠(부모 이름/토글 이름)로 적어 두고,
+            //   다시 세워질 때 그것을 가져가 손잡이를 앞 닻 → 새 닻으로 미끄러뜨린다. 표 칸은 토글 이름(없으면 `toggle`) · 값은 TransitionUi.json.
+            string slideKey = parent.name + "/" + name;
+            bool? before = ToggleSlide.Take(slideKey);
+            Button b = UiKit.Button(parent, name, () => { ToggleSlide.Expect(slideKey, on); if (onClick != null) onClick(); });
             RectTransform rt = b.GetComponent<RectTransform>();
             Size(rt, w, h);
             UiKit.Rounded(rt, "line", "pp_line", h * 0.5f);
@@ -570,6 +576,8 @@ namespace Forge.Game.Ui
             UiKit.Anchor(knob.rectTransform, new Vector2(on ? 1f : 0f, 0.5f), new Vector2(on ? 1f : 0f, 0.5f), new Vector2(on ? -Line2 * 2f : Line2 * 2f, 0f), k, k);
             Image knobFace = UiKit.Rounded(knob.transform, "face", knobKey, k * 0.5f - Line);
             Inset(knobFace.rectTransform, Line);
+            if (before.HasValue && before.Value != on)
+                ToggleSlide.Begin(knob.rectTransform, TransitionUi.Table.Has(name) ? name : "toggle", before.Value ? 1f : 0f, before.Value ? -Line2 * 2f : Line2 * 2f);
             return b;
         }
 

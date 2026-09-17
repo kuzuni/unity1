@@ -1,0 +1,8 @@
+{
+  "_": "T454 — 정본 style.css 의 `transition` 을 클론이 안 옮기던 자리 표. 칸: ms = transition 길이 · ease = timing-function(정본이 안 적은 자리는 CSS 기본값 ease) · dy_rem = 시작 translateY(rem · 아래가 +). 셈은 Core TransitionRules(진행도 = ease(min(1, 지난 ms / ms))) · 거는 도우미는 Ui/Transitions(ToastEnter · ToggleSlide). 토글 칸은 토글 이름이 열쇠다(PopupKit.Toggle 이 제 이름으로 찾고 없으면 `toggle`). 수치는 코드에 안 박는다(§1).",
+  "transitions": {
+    "toast_in":  { "ms": 250, "ease": "ease",     "dy_rem": -0.5, "_": "style.css 1936 .toast { opacity: 0; transform: translateY(-.5rem); transition: all .25s } · 1938 .toast.show { opacity: 1; transform: none } — 위 .5rem 에서 내려오며 켜진다 · 길이만 있고 timing 이 없어 CSS 기본 ease" },
+    "toggle":    { "ms": 150, "ease": "ease",     "dy_rem": 0,    "_": "style.css 3113 .settings-toggle::after { transition: left .15s } — 설정 토글 손잡이(ProfilePopup 의 이름 `toggle`) · 기본 ease" },
+    "af-toggle": { "ms": 150, "ease": "ease-out", "dy_rem": 0,    "_": "style.css 4992 .af-toggle .knob { transition: left .15s ease-out } — 자동 제련 필터 토글 손잡이(ForgeAutoPopup 의 이름 `af-toggle` · 4766 의 .15s 를 4992 가 ease-out 으로 덮는다)" }
+  }
+}
