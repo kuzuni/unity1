@@ -309,6 +309,31 @@ TABLE_INK = {
     #   한 선택자 한 키로 모았다 — `PinnedColorUi.sheet_sub_ink`(catalog.json 이 T447 산 lock 이라 곁 표에 둔다 · T65 꼴).
     '.sheet-sub': ['Ui/DungeonSheet.cs#sub|res:PinnedColorUi:sheet_sub_ink',
                    'Ui/QuestSheet.cs#sub|res:PinnedColorUi:sheet_sub_ink'],           # 정본 5454 #3a3a3a ↔ PetSkillUi subs_ink 같은 값(PetPanel 쪽 같은 키는 그 lock 뒤)
+    # ── T396 15회차 — 잉크 «미정 31» 을 정본 실물(ui.js · index.html)로 갈랐다. 코드 0줄 — 표 행만.
+    #   ⓐ 죽음 아홉. 셋은 이 자가 이미 «같은 선택자가 뒤에 다시» 로 집는 것이고(3573~3584 가 토큰·#fff 로 덮는다),
+    #      여섯은 **정본 자신이 그 클래스를 한 번도 안 붙인다**(13회차의 `hatch-slot` 갈래 · `grep -rn … js/ index.html` = 0).
+    '.panel h3': ['—죽음: 3573 `.panel h3 { color: var(--pp-ink) }` 가 같은 선택자로 뒤에서 덮는다(종이 판 규칙 · 645 #90a4ae 는 한 번도 안 그려진다)'],
+    '.subtab-strip button': ['—죽음: 3581 이 같은 선택자로 뒤에서 var(--pp-ink) 로 덮는다(소환 하위 탭의 실물 잉크는 3604 `#summon-subtabs.subtab-strip button` #d9d9d9 — 5회차가 닫았다)'],
+    '.subtab-strip button.active': ['—죽음: 3584 가 같은 선택자로 뒤에서 #fff 로 덮는다(653 #7ee2a8 는 한 번도 안 그려진다 · 켜진 탭 흰 글자는 토큰 white)'],
+    '.item-stat': ['—죽음: 정본이 `item-stat` 클래스를 한 번도 안 붙인다(js/ · index.html 통틀어 0 · 3575 `.panel .item-stat` 도 같은 잔재) — 그려지지 않는 리터럴'],
+    '.age-pct': ['—죽음: 정본이 `age-pct` 클래스를 한 번도 안 붙인다 — 살아 있는 것은 `af-age-pct`(ui.js 2291 · 자동 제련 필터의 확률 글 · 제 규칙 4862) 뿐이다'],
+    '.forge-age-section .age-tag small': ['—죽음: `forge-age-section` 은 서지만(ui.js 2109) 그 안에 `age-tag` 를 한 번도 안 붙인다(js/ 통틀어 0) — 그려지지 않는 리터럴'],
+    '.stat-grid div:nth-child(even)': ['—죽음: 정본이 `stat-grid` 클래스를 한 번도 안 붙인다(js/ · index.html 0 · TODO.md 에만 남은 옛 이름) — 그려지지 않는 리터럴'],
+    '.big-stat': ['—죽음: 정본이 `big-stat` 클래스를 한 번도 안 붙인다(js/ · index.html 0) — 그려지지 않는 리터럴'],
+    '.modal-card .sub': ['—죽음: 정본이 맨 `sub` 클래스를 한 번도 안 붙인다(`class="sub"` 0 · 살아 있는 것은 `sr-sub`·`fi-sub`·`sheet-sub`·`rates-sub` 같은 제 이름들이고 제 규칙이 있다)'],
+    #   ⓑ 덮인다 여덟 — 실물이 **그 조상 안에만** 서서 리터럴이 한 번도 안 그려지는 자리(6회차 `.mat-chip` 갈래 · 하나하나 ui.js 로 확인).
+    '.info-btn': ['—덮인다: 유일한 실물(ui.js 1544)이 `#equip-sheet` 안(장비 시트 모루 왼쪽 «i») — 3629 `#equip-sheet .info-btn { color: var(--pp-paper) }` 가 늘 이긴다(InfoButtonUi.json 머리 주석이 같은 사실을 적어 뒀다)'],
+    '.forge-time': ['—덮인다: 유일한 실물(ui.js 1514 `#equip-upg-time`)이 `#equip-sheet` 안 — 3635 `#equip-sheet .forge-time` #6d6a63 이 늘 이기고 그 자리는 위 행(9회차 forge_time_ink)이 지킨다'],
+    '.dg-keys': ['—덮인다: 유일한 실물(ui.js 4534)이 던전 시트 `.dg-banner` 안 — 3896 `.modal-card.sheet .dg-banner .dg-keys { color: #fff }`(토큰 white 와 같은 값이라 «못박은» 목록 밖)가 늘 이긴다'],
+    '.chat-preview-msg': ['—덮인다: 유일한 실물(ui.js 5297)이 `#chat-preview` 안 — 3639 `#chat-preview .chat-preview-msg`(#2e2e2e · 다시 8070 #aab3c0)가 늘 이기고 그 자리는 위 행(10회차 chat_preview_msg_ink)이 지킨다'],
+    '.summon-cost b': ['—덮인다: 실물 여섯(ui.js 61 · 3981 · 3985 · 4315 · 4317 · 5665)이 전부 `.btn.big.summon-btn` 안 — 8668 `.summon-btn .summon-cost b` #f2191d 가 늘 이기고 그 자리는 위 행(cost_red)이 지킨다'],
+    '.btn.primary small': ['—덮인다: 실물 둘(ui.js 4039 펫 · 5712 탈것 «업그레이드\\nLv.N 만렙»)이 modal-card 안 — 3546 `.modal-card .btn small { color: inherit }` 가 같은 구체성(0,2,1)으로 뒤에서 이긴다(클론 IconTextStack 둘째 줄도 버튼 잉크를 물려받는다 · T461)'],
+    '.muted': ['—덮인다: 실물 29 자리(ui.js)가 전부 `.modal-card`(1256 스텁 · 3223 비교 카드 · 4166 · 4419 · 4573 · 5185 · 5194 …) 아니면 `.panel`(3952 · 3958 · 4287 · 4294 소환 판) 안 — 3520 `.modal-card .muted` 와 3575 `.panel .muted` 가 둘 다 var(--pp-muted) 로 덮는다(클론 PetSkillUi muted #8a8a8a = 그 토큰)'],
+    '.skill-btn': ['—덮인다: 656 #eceff1 을 물려받는 글자가 정본에 없다 — `.sk-lv` 는 605 #fff · `.sk-name` 은 display:none · `.sk-cd` 는 글 없는 덮개(ui.js 1484 는 height 만 만진다) · `.auto` 는 628 #90a4ae(위 행) — 클론 SkillBar 도 같은 셋으로 찍는다'],
+    #   ⓒ 짝만 셋 — 공용 비활성 버튼 글자의 **바탕 선언**(3555 · 세 종이 판). 값은 8725 의 `.btn.btn.*.disabled` 와 같은 #7b7b7b 라 PaperButton 의 같은 키가 지킨다.
+    '.modal-card .btn.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink'],
+    '.panel .btn.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink'],
+    '#equip-sheet .btn.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink'],
 }
 KNOWN_INK = {
     # T396 10회차 — 한 글자 안의 **부분 색**(<small>·<span> 조각): 클론은 그 글을 한 TMP 로 찍고 richText 를 안 켜므로(check_richtext)
@@ -317,6 +342,8 @@ KNOWN_INK = {
     '.tn-skip small': '한 알약 글 «건너뛰기\\n◆ N» 의 아랫줄(TechPopups.cs 270 DungeonPopups.Pill 한 잉크) — 4613 #c62828 · 조각 분리 뒤',
     '.tn-gain': '한 줄 «+N% (…)» 안의 <small>(TechPopups 주 수치 글 한 TMP) — 3693 #1fa64a · 조각 분리 뒤',
     '.asc-wipe-warn': '승천 안내 여러 줄 글 안의 한 줄 <span>(AscendPopup.cs 166 eff 한 TMP) — 5637 #ff6b5e · 줄 분리 뒤',
+    # T396 15회차 — 자리 자체가 클론에 아직 없다(입력칸이 서는 회차 뒤 · T169 디버그 판 갈래).
+    '#panel-debug input[type=number]': '디버그 판의 장·스테이지 숫자 입력칸(ui.js 5983 dbg-chapter · 5985 dbg-stage) — 클론 DebugPanel.cs 에 InputField 가 0 이다 · 입력칸이 서는 회차에 잉크도 같이(677 #eceff1)',
 }
 
 HEX = re.compile(r'#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b')
