@@ -187,7 +187,9 @@ namespace Forge.Tests.PlayMode
                     pieces++;
                     Assert.Greater(piece.outlineWidth, 0f, "fi-skip 조각 «" + piece.text + "»: 정본 5150 4px #000");
                     AssertLine(piece, "fi-skip");
-                    Assert.AreEqual(ref4.outlineWidth, piece.outlineWidth, 1e-5f, "fi-skip 폭 = 폭표 fi_skip(4px)");
+                    // T461 2회차 — 폭표 fi_skip 은 **px** 계약이고 SDF outlineWidth 는 px ÷ 글자 크기다(UiKit.OutlinePx). 둘째 줄이 정본 `.btn small` .7rem 로
+                    //   작아진 뒤로는(T461) 조각마다 글자 크기가 다르니 outlineWidth 가 아니라 **px 환산(outlineWidth × fontSize)** 이 같아야 한다.
+                    Assert.AreEqual(ref4.outlineWidth * ref4.fontSize, piece.outlineWidth * piece.fontSize, 1e-3f, "fi-skip 조각 «" + piece.text + "» 폭 = 폭표 fi_skip(4px · px 로 환산해 같다)");
                 }
                 Assert.Greater(pieces, 0, "건너뛰기 글자 조각");
                 Assert.AreEqual(0f, plain.outlineWidth, 1e-5f, "회색 면의 공용 버튼은 면 표대로 민글자(fi-skip 만 제 키로 4px)");

@@ -2,6 +2,7 @@
   "_": "T352 — 글자 «굵기» 축. 정본 style.css 의 font-weight 233 선언 중 225 가 bold 이고 regular 로 남는 자리는 여덟뿐이다. 그래서 공장(UiKit.Text)의 기본은 bold 고, 이 표가 «regular 로 남는 자리» 만 쥔다. 폰트 축이 둘뿐인 근거는 정본 8624~8631 이 스스로 적어 뒀다 — 웹폰트 금지라 폴백 sans 는 regular/bold 두 축이고 600·650 은 700 으로 반올림되므로 «한 단 내려가려면 500 이어야 한다». 곧 400 넷과 500 넷이 regular, 600 이상은 전부 bold 다. 수치·규칙을 코드에 박지 않는다(§1).",
   "regular_color_keys": {
     "pp_muted": "style.css 657 `.muted { color: #78909c; font-weight: 400 }` — 정본이 색과 굵기를 한 클래스로 묶어 둔 자리라 클론도 «그 색으로 찍는 글자» 를 regular 로 본다(클론 UiKit.Text 호출 9곳).",
+    "muted2": "style.css 657 `.muted { color: #78909c; font-weight: 400 }` — 클론에서 정본 `.muted` 색을 실제로 쥔 키는 **`muted2`**(catalog 160 · #78909c · 주석 «.muted»)다 · `pp_muted`(#8a8a8a)는 다른 토큰. 승천 제목 작은 토막(`<small class=muted>` · ui.js 5864)·승천 안내·기술 트리 빈 글이 이 키로 선다 — 13회차가 공장 기본을 bold 로 뒤집자 이 셋이 굵어져 `AscendTitleTests` 가 빨갰다(T461 2회차 · §0-6 · 결정 784).",
     "league_server": "style.css 8633 `.league-server { font-weight: 500 }`(앞선 선언을 덮는다) — 리그 행의 «서버 N». 클론 LeagueSheet.cs 가 이 색 키로 세운다."
   },
   "regular_sites": {
