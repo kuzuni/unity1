@@ -48,7 +48,7 @@ namespace Forge.Tests.PlayMode
         // T441 2회차 — `MinF` = 그 프레임에서 **가장 높이 뜬 금빛 화소의 행**(0 = 화면 맨 위 · 정적 바닥은 뺀 뒤).
         //   «코인이 시트 위로 날아오르는가» 를 한 수로 적는다 — 정본 자국은 mid 띠가 3762~5045 까지 차는데 클론은 0~1 이라,
         //   포물선이 시트 띠(0.552H~) 안에서만 논다는 뜻이다. 그 높이를 프레임마다 남겨 다음 회차가 «얼마나 낮은가» 로 잡게 한다.
-        sealed class Row { public int Ms, At, Total, Top, Mid, Bot; public float MinF = 1f; }
+        sealed class Row { public int Ms, At, Total, Top, Mid, Bot, Amt; public float MinF = 1f; }   // T441 7회차 — Amt = 판정 띠 안 «라벨 색» 화소(나머지가 코인이다)
 
         static JsonObject Table()
         {
@@ -80,12 +80,16 @@ namespace Forge.Tests.PlayMode
             Canvas canvas; UiRoot root; Camera cam; RenderTexture rt; Texture2D tex;
             RenderMode prevMode; Camera prevCam; float prevPlane; RenderTexture prevActive;
             GoldRule gold;
+            Color32 amtColor;
 
-            public static Session Begin(JsonObject goldTable)
+            public static Session Begin(JsonObject goldTable) { return Begin(goldTable, new Color32(0, 0, 0, 0)); }
+
+            /// <summary>T441 7회차 — 라벨 색(`CoinBurstUi.json` colors.amt)을 같이 들려 보내면 금빛 마스크가 «코인(1) ↔ 라벨(2)» 로 갈린다.</summary>
+            public static Session Begin(JsonObject goldTable, Color32 amt)
             {
                 UiRoot root = UiRoot.Instance;
                 if (root == null || root.Canvas == null) return null;
-                Session s = new Session { root = root, canvas = root.Canvas, gold = GoldRule.From(goldTable), W = CoinSellCurveTests.W, H = CoinSellCurveTests.H };
+                Session s = new Session { root = root, canvas = root.Canvas, gold = GoldRule.From(goldTable), amtColor = amt, W = CoinSellCurveTests.W, H = CoinSellCurveTests.H };
                 s.prevMode = s.canvas.renderMode; s.prevCam = s.canvas.worldCamera; s.prevPlane = s.canvas.planeDistance; s.prevActive = RenderTexture.active;
                 try
                 {
@@ -137,7 +141,14 @@ namespace Forge.Tests.PlayMode
                     for (int y = 0; y < H; y++)
                     {
                         int src = y * W, dst = (H - 1 - y) * W;   // 텍스처는 아래가 0행
-                        for (int x = 0; x < W; x++) if (gold.Is(px[src + x])) m[dst + x] = 1;
+                        for (int x = 0; x < W; x++)
+                        {
+                            Color32 c = px[src + x];
+                            if (!gold.Is(c)) continue;
+                            // T441 7회차 — 라벨(#ffd54f)과 코인 그림을 색으로 가른다: 둘 다 «금빛» 이라 합만 보면 무엇이 빠졌는지 안 보인다.
+                            bool isAmt = amtColor.a != 0 && Mathf.Abs(c.r - amtColor.r) <= 10 && Mathf.Abs(c.g - amtColor.g) <= 10 && Mathf.Abs(c.b - amtColor.b) <= 10;
+                            m[dst + x] = isAmt ? (byte)2 : (byte)1;
+                        }
                     }
                     return m;
                 }
@@ -215,7 +226,7 @@ namespace Forge.Tests.PlayMode
                     if (f >= m0 && f < r.MinF) r.MinF = f;
                     if (f >= t0 && f < t1) r.Top++;
                     else if (f >= m0 && f < m1) r.Mid++;
-                    else if (f >= b0 && f < b1) r.Bot++;
+                    else if (f >= b0 && f < b1) { r.Bot++; if (m[row + x] == 2) r.Amt++; }
                 }
             }
             return r;
@@ -265,7 +276,7 @@ namespace Forge.Tests.PlayMode
             UiRoot.Instance.Layout();
             yield return null;
             Assert.IsFalse(CoinBurst.Covered(), "메인 화면 — 팝업·탭 패널 없음");
-            Session ses = Session.Begin(gold);
+            Session ses = Session.Begin(gold, CoinBurstStyle.C("amt"));
             if (ses == null) Assert.Ignore("그래픽 장치가 없다 — 화소를 못 찍는다(-nographics)");
             int w = ses.W, h = ses.H;
             var shots = new List<KeyValuePair<int, byte[]>>();
@@ -308,12 +319,12 @@ namespace Forge.Tests.PlayMode
             var sb = new StringBuilder();
             sb.AppendLine("# T408 — 판매 코인 시간축(클론 · " + W + "×" + H + " · 정적 바닥 = 마지막 프레임) ↔ 정본 표 CoinSellCurveUi.json · 판정 띠 " + band
                           + "(시트 · 클론 경계 " + sheetTopF.ToString("0.###") + "H ↔ 정본 " + J.Num(t["sheet_top_f"]).ToString("0.###") + "H) · 정본 딴 판 프레임 " + J.Arr(t["foreign_ms"]).Count + "장 뺌");
-            sb.AppendLine("#   ms  실제ms  total    top    mid    bot  최고%H | 정본 total   top   mid   bot   (최고%H = 그 프레임에서 가장 높이 뜬 금빛 행 · 100 = 못 떴다 · T441 2회차)");
+            sb.AppendLine("#   ms  실제ms  total    top    mid    bot  라벨   코인  최고%H | 정본 total   top   mid   bot   (최고%H = 그 프레임에서 가장 높이 뜬 금빛 행 · 100 = 못 떴다 · T441 2회차)");
             for (int i = 0; i < rows.Count; i++)
             {
                 JsonObject rf = J.Obj(refFrames[i]);
-                sb.AppendLine(string.Format("{0,5} {1,6} {2,6} {3,6} {4,6} {5,6} {10,6:0.0} | {6,6} {7,5} {8,5} {9,5}", rows[i].Ms, actual[i], rows[i].Total, rows[i].Top, rows[i].Mid, rows[i].Bot,
-                    (int)J.Num(rf["total"]), (int)J.Num(rf["top"]), (int)J.Num(rf["mid"]), (int)J.Num(rf["bot"]), rows[i].MinF * 100f));
+                sb.AppendLine(string.Format("{0,5} {1,6} {2,6} {3,6} {4,6} {5,6} {11,5} {12,6} {10,6:0.0} | {6,6} {7,5} {8,5} {9,5}", rows[i].Ms, actual[i], rows[i].Total, rows[i].Top, rows[i].Mid, rows[i].Bot,
+                    (int)J.Num(rf["total"]), (int)J.Num(rf["top"]), (int)J.Num(rf["mid"]), (int)J.Num(rf["bot"]), rows[i].MinF * 100f, rows[i].Amt, rows[i].Bot - rows[i].Amt));
             }
             sb.AppendLine("# 클론 봉우리(" + band + ") 실제 " + peak.At + "ms(표 " + peak.Ms + ") " + Band(peak, band) + " · 끝 실제 " + (endMs < 0 ? "없음" : endMs + "ms") + " ↔ 정본 봉우리 " + refPeakMs + "ms " + (int)J.Num(t["peak_v"]) + " · 끝 " + refEndMs + "ms");
             // T441 5회차 — **표본 성김에 안 흔들리는 자**: 곡선의 «무게중심 시각»(Σ ms×값 / Σ 값 · 끝 2600ms 까지).
