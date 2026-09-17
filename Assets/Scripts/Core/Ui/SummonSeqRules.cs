@@ -1606,4 +1606,78 @@ namespace Forge.Core.Ui
             return amt < 0 ? 0 : amt > 1 ? 1 : amt;
         }
     }
+
+    /// <summary>
+    /// T458 — 소환 결과 **셀 팝**(정본 `srpop` · style.css 6286 · 6296~6321 · 7188 `.sr-ok`). 표 `SummonFxUi.json` 의 `pop` 절을 읽는다.
+    /// 정본 주석이 못 박은 것: «**구간별 이징이 이 연출의 핵심이다** — 백아웃 곡선은 각 구간의 이동을 앞 1/3 에서 거의 끝내 버린다 …
+    /// 비행 구간은 거의 등속으로, 스프링은 착지 구간에만» · «시작 opacity 는 0 이 아니라 .34». 키프레임마다 이징이 다르므로
+    /// <see cref="RewardBurstSpec.Track"/>(구간별 이징 보간)에 그대로 싣는다. 지속(`--pop`)은 등급표(PetSkillUi `sr_pop_<tier>`)가 쥐고
+    /// 여기는 꼴만 — 그래서 <see cref="At"/> 가 길이를 인자로 받는다. UnityEngine 참조 0.
+    /// </summary>
+    public sealed class SummonPopSpec
+    {
+        /// <summary>«슬롯 → 광원» 벡터가 없을 때 0% 의 기본 아래 치우침(rem · 정본 `var(--dy, .5rem)`).</summary>
+        public double Dy0Rem;
+        /// <summary>76% 의 `scale(1 + .1 × var(--over, 1))` 의 .1 — 등급 계단(`--over`)이 곱해진다.</summary>
+        public double ScaleOverAdd;
+        /// <summary>7188 `.done .sr-ok` 의 같은 팝 길이(ms · 정본 .32s).</summary>
+        public double OkMs;
+        /// <summary>키프레임(at · opacity · fly_f · scale · over_f · 구간 이징).</summary>
+        public RewardBurstSpec.Track Pop;
+
+        public static SummonPopSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "pop"));
+            var s = new SummonPopSpec
+            {
+                Dy0Rem = J.Num(J.Require(o, "dy0_rem")),
+                ScaleOverAdd = J.Num(J.Require(o, "scale_over_add")),
+                OkMs = J.Num(J.Require(o, "ok_ms")),
+            };
+            if (s.OkMs <= 0) throw new FormatException("SummonFxUi pop: ok_ms 는 0보다 커야 한다");
+            var list = J.List(J.Require(o, "srpop"), x => J.Obj(x));
+            if (list.Count < 2) throw new FormatException("SummonFxUi pop: srpop 키프레임이 둘 미만이다");
+            var keys = new RewardBurstSpec.KeyStop[list.Count];
+            double prev = -1;
+            for (int i = 0; i < list.Count; i++)
+            {
+                JsonObject k = list[i];
+                var ks = new RewardBurstSpec.KeyStop { At = J.Num(J.Require(k, "at")) };
+                if (ks.At < prev) throw new FormatException("SummonFxUi pop: srpop 퍼센트는 오름차순이어야 한다");
+                prev = ks.At;
+                ks.Num["opacity"] = J.Num(J.Require(k, "opacity"));
+                ks.Num["fly_f"] = J.Num(J.Require(k, "fly_f"));
+                ks.Num["scale"] = J.Num(J.Require(k, "scale"));
+                ks.Num["over_f"] = J.Num(J.Require(k, "over_f"));
+                bool last = i == list.Count - 1;
+                double[] e = J.NumArr(k["ease"]);
+                // 정본은 마지막 키를 뺀 모든 키프레임에 제 이징을 적었다 — 빠지면 «기본 ease 인지 스프링인지» 가 갈리므로 표가 적게 한다.
+                if (!last && (e == null || e.Length != 4)) throw new FormatException("SummonFxUi pop: srpop " + ks.At + "% 에 ease(cubic-bezier 넷)가 없다");
+                if (e != null && e.Length == 4) ks.Ease = new CssEase(e[0], e[1], e[2], e[3]);
+                keys[i] = ks;
+            }
+            if (keys[0].At != 0 || keys[keys.Length - 1].At != 100) throw new FormatException("SummonFxUi pop: srpop 은 0% 에서 시작해 100% 에서 끝나야 한다");
+            if (keys[0].Num["opacity"] <= 0) throw new FormatException("SummonFxUi pop: 0% opacity 는 0 보다 커야 한다(정본 주석 — 0 이면 비행의 첫 프레임이 투명해서 안 보인다)");
+            var l = keys[keys.Length - 1];
+            if (l.Num["fly_f"] != 0 || l.Num["scale"] != 1 || l.Num["over_f"] != 0) throw new FormatException("SummonFxUi pop: srpop 은 제자리·배율 1 로 정착해야 한다(정본 6729 주석 — 정착 배율이 1 보다 크면 이름판이 옆 셀과 겹친다)");
+            s.Pop = new RewardBurstSpec.Track { Keys = keys };
+            return s;
+        }
+
+        /// <summary>
+        /// 켜진 뒤 <paramref name="ms"/> 에서의 셀 상태 — <paramref name="popMs"/> 는 그 등급의 `--pop`(PetSkillUi `sr_pop_<tier>`) ·
+        /// <paramref name="over"/> 는 등급 계단 `--over`. <paramref name="flyF"/> 는 «슬롯 → 광원» 벡터에 곱할 비율(위치 = 슬롯 + 벡터 × flyF).
+        /// </summary>
+        public void At(double ms, double popMs, double over, out double flyF, out double scale, out double alpha)
+        {
+            double p = ms <= 0 || popMs <= 0 ? 0 : ms >= popMs ? 100 : ms / popMs * 100;
+            flyF = Pop.Sample(p, "fly_f", null);
+            scale = Pop.Sample(p, "scale", null) + ScaleOverAdd * over * Pop.Sample(p, "over_f", null);
+            alpha = Pop.Sample(p, "opacity", null);
+        }
+
+        /// <summary>아직 팝 중인가(정본 `forwards` — 끝나면 마지막 키에 머문다).</summary>
+        public bool Popping(double ms, double popMs) { return ms >= 0 && ms < popMs; }
+    }
+
 }

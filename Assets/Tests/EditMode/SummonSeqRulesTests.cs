@@ -1293,4 +1293,81 @@ namespace Forge.Tests
             Assert.Throws<System.FormatException>(() => SummonParticleSpec.From(MiniJson.ParseObject(flat)));
         }
     }
+
+    /// <summary>T458 — 소환 결과 셀 팝(정본 `srpop`)의 표: 네 구간 이징 · 광원에서의 비행 · .34 로 시작 · 76% 의 `1 + .1 × over` 넘침.</summary>
+    public class SummonPopSpecTests
+    {
+        static SummonPopSpec spec;
+        static SummonPopSpec S()
+        {
+            if (spec == null)
+            {
+                string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+                spec = SummonPopSpec.From(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            }
+            return spec;
+        }
+
+        [Test]
+        public void 정본_srpop_다섯_키가_그대로다_광원에서_날아와_제자리에_선다()
+        {
+            SummonPopSpec s = S();
+            Assert.AreEqual(5, s.Pop.Keys.Length, "키프레임 0·30·56·76·100");
+            double f, sc, a;
+            s.At(0, 320, 1, out f, out sc, out a);
+            Assert.AreEqual(1.0, f, 1e-9, "0% 는 광원 자리(--dx/--dy 그대로)"); Assert.AreEqual(0.3, sc, 1e-9); Assert.AreEqual(0.34, a, 1e-9, "정본 주석 — 0 이 아니라 .34");
+            s.At(320 * 0.30, 320, 1, out f, out sc, out a);
+            Assert.AreEqual(0.62, f, 1e-9, "30% 비행 .62"); Assert.AreEqual(0.44, sc, 1e-9); Assert.AreEqual(1.0, a, 1e-9);
+            s.At(320 * 0.56, 320, 1, out f, out sc, out a);
+            Assert.AreEqual(0.34, f, 1e-9, "56% .34"); Assert.AreEqual(0.72, sc, 1e-9);
+            s.At(320, 320, 1, out f, out sc, out a);
+            Assert.AreEqual(0.0, f, 1e-9, "정착 = 슬롯"); Assert.AreEqual(1.0, sc, 1e-9, "정착 배율 1(정본 6729 주석)"); Assert.AreEqual(1.0, a, 1e-9);
+            s.At(320 * 3, 320, 1, out f, out sc, out a);
+            Assert.AreEqual(1.0, sc, 1e-9, "forwards — 끝난 뒤에도 마지막 키");
+            Assert.AreEqual(0.5, s.Dy0Rem, 1e-9, "벡터가 없을 때 var(--dy, .5rem)");
+            Assert.AreEqual(320.0, s.OkMs, 1e-9, "7188 .sr-ok 팝 .32s");
+        }
+
+        [Test]
+        public void 착지_스프링은_76퍼센트에서_over_만큼_넘치고_100퍼센트에_1_로_돌아온다()
+        {
+            SummonPopSpec s = S();
+            double f, sc, a;
+            s.At(320 * 0.76, 320, 1, out f, out sc, out a);
+            Assert.AreEqual(1.1, sc, 1e-9, "scale(1 + .1 × 1)");
+            s.At(320 * 0.76, 320, 2.5, out f, out sc, out a);
+            Assert.AreEqual(1.25, sc, 1e-9, "등급 계단이 넘침을 키운다(--over 2.5)");
+            s.At(320 * 0.76, 320, 0, out f, out sc, out a);
+            Assert.AreEqual(1.0, sc, 1e-9);
+            s.At(320, 320, 2.5, out f, out sc, out a);
+            Assert.AreEqual(1.0, sc, 1e-9, "100% 는 over 와 무관하게 1");
+        }
+
+        [Test]
+        public void 비행_구간은_등속이고_출발_구간은_가속이다()
+        {
+            // 정본 주석: «위치가 시간에 비례해 움직여야 프레임에 남는다 ⇒ 비행 구간은 거의 등속으로, 스프링은 착지 구간에만».
+            SummonPopSpec s = S();
+            double f, sc, a;
+            s.At(320 * 0.43, 320, 1, out f, out sc, out a);
+            Assert.AreEqual((0.62 + 0.34) / 2, f, 1e-9, "30~56% 는 linear — 한가운데가 산술 평균");
+            s.At(320 * 0.15, 320, 1, out f, out sc, out a);
+            Assert.Greater(f, (1.0 + 0.62) / 2, "0~30% 는 가속(.35,0,.65,.4) — 한가운데서 아직 덜 갔다(fly_f 가 크다)");
+            s.At(320 * 0.66, 320, 1, out f, out sc, out a);
+            Assert.Less(f, (0.34 + 0.0) / 2, "56~76% 는 감속(.3,.55,.55,1) — 한가운데서 이미 많이 갔다");
+        }
+
+        [Test]
+        public void 팝_길이는_표가_아니라_등급이_주고_끝나면_팝_중이_아니다()
+        {
+            SummonPopSpec s = S();
+            Assert.IsTrue(s.Popping(0, 320)); Assert.IsTrue(s.Popping(319, 320));
+            Assert.IsFalse(s.Popping(320, 320)); Assert.IsFalse(s.Popping(-1, 320));
+            double f1, f2, sc, a;
+            s.At(150, 500, 1, out f1, out sc, out a);
+            s.At(96, 320, 1, out f2, out sc, out a);
+            Assert.AreEqual(f1, f2, 1e-9, "같은 30% 면 길이가 달라도 같은 자리(--pop 은 등급마다 다르다)");
+        }
+    }
+
 }

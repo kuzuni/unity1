@@ -295,6 +295,19 @@
     "_recede": "정본 `#summon-result-modal.hero .sr-cell.on:not(.heroic) { animation: srrecede .68s cubic-bezier(.3,.85,.35,1) forwards }`(style.css 6720~6725). 절의 머리 주석이 까닭을 적어 뒀다: «같은 슬롯·같은 이징으로 등장하면 신화는 «더 큰 구슬» 일 뿐이다. **나머지를 물리고(후퇴)** 광창 → 충격파 → 화면 킥을 350ms 안에 몰아 «다른 사건» 으로 만든다». 18~58% 가 평지라 물러난 채로 머문 뒤 돌아온다.",
     "_": "정본 `#summon-result-modal.flash .sr-wrap, #summon-result-modal.hero .sr-wrap { animation: srshakehit .44s cubic-bezier(.2,.9,.3,1) both }`(style.css 5675~5684). 주석: «최고 등급 착지 — 앞의 것보다 짧고 세게. **화면 킥은 홀드백 여부와 무관하게 주역 비트(.hero)에 건다**». 치우침은 `translate3d` 의 **퍼센트**라 판 제 크기 기준이고, CSS 의 +y 는 아래다. `.hero` 는 `done` 까지 붙어 있고 **시간 제한이 없다** — 길이는 겹마다 제 애니메이션이 쥔다(결정 534 가 미뤄 둔 «주역 비트 길이» 의 답: 그런 값은 정본에 없다)."
   },
+  "pop": {
+    "dy0_rem": 0.5,
+    "scale_over_add": 0.1,
+    "ok_ms": 320.0,
+    "srpop": [
+      { "at": 0.0,   "opacity": 0.34, "fly_f": 1.0,  "scale": 0.3,  "over_f": 0.0, "ease": [0.35, 0.0, 0.65, 0.4] },
+      { "at": 30.0,  "opacity": 1.0,  "fly_f": 0.62, "scale": 0.44, "over_f": 0.0, "ease": [0.0, 0.0, 1.0, 1.0] },
+      { "at": 56.0,  "opacity": 1.0,  "fly_f": 0.34, "scale": 0.72, "over_f": 0.0, "ease": [0.3, 0.55, 0.55, 1.0] },
+      { "at": 76.0,  "opacity": 1.0,  "fly_f": 0.0,  "scale": 1.0,  "over_f": 1.0, "ease": [0.18, 1.6, 0.4, 1.0] },
+      { "at": 100.0, "opacity": 1.0,  "fly_f": 0.0,  "scale": 1.0,  "over_f": 0.0 }
+    ],
+    "_": "T458 — 소환 결과 셀 팝. 정본 style.css 6286 `.sr-cell.on { animation: srpop var(--pop, .32s) cubic-bezier(.18,1.6,.4,1) forwards }` · 6296~6321 `@keyframes srpop` · 7188 `#summon-result-modal.done .sr-ok { animation: srpop .32s … both }`. 지속(`--pop`)은 등급별 PetSkillUi `sr_pop_<tier>` 가 쥐고 여기는 **꼴**만 쥔다. 키프레임마다 이징이 다르다 — 정본 주석 «구간별 이징이 이 연출의 핵심이다 … 비행 구간은 거의 등속으로, 스프링은 착지 구간에만»: 0% (.35,0,.65,.4) 광원에서 밀려 나오는 가속 · 30% linear 비행 · 56% (.3,.55,.55,1) 슬롯 감속 · 76% (.18,1.6,.4,1) 착지 스프링. `fly_f` = «슬롯 → 광원» 벡터(정본 `--dx/--dy` = ui.js setSummonEjectPaths · 클론은 T455 의 MeasureEject 가 ToLight 로 잰다)에 곱할 비율 1 → .62 → .34 → 0 · `dy0_rem` 은 벡터가 없을 때의 기본 아래 치우침(정본 `var(--dy, .5rem)`) · 76% 의 `scale(1 + .1 × var(--over, 1))` 은 `scale` + `scale_over_add` × over × `over_f`(76% 에서 1 · 100% 에서 0 이라 CSS 보간과 같다) · `opacity` 0% 가 .34 인 까닭도 정본 주석에 있다(«0 이면 비행의 첫 프레임이 투명해서 안 보인다»). `ok_ms` 는 7188 [확인] 버튼 팝 길이."
+  },
   "idle": {
     "idle_ms": 2600.0,
     "delay_step_ms": 210.0,
