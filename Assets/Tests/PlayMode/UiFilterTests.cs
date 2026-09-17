@@ -398,7 +398,20 @@ namespace Forge.Tests.PlayMode
                 bool found = false;
                 foreach (Color c in orbs)
                     if (Mathf.Abs(c.r - want.r) < 1.5f / 255f && Mathf.Abs(c.g - want.g) < 1.5f / 255f && Mathf.Abs(c.b - want.b) < 1.5f / 255f) found = true;
-                Assert.IsTrue(found, e.Rarity + "(tier " + tier + ") 구체 색 = 등급색에 표 summon_orb_" + tier + " 를 건 값 " + want + " 이어야 한다 — 실물 " + string.Join(" / ", orbs.ConvertAll(c => c.ToString()).ToArray()));
+                // T442 1회차 — 이 자는 **런마다 갈린다**(1017 빨강 · 1021 초록 · 1027 빨강). 그런데 자국이 «기대 ↔ 실물» 두 수뿐이라
+                //   회차마다 워커가 그 둘로 셈을 되짚다 끝난다(1회차가 그렇게 반나절을 썼다). 실측으로 좁힌 것:
+                //   ⓐ mythic 관측값은 정본 #aa1cff 에 saturate 1.08 을 건 값과 맞는다 ⇒ 표·FilterRules·거는 자리는 멀쩡하다.
+                //   ⓑ 회색에 saturate 는 항등이라 common 관측값은 `rc × brightness` 여야 하는데, **어떤 바이트 색에 .64 를 곱해도 0.340 이 안 나온다**
+                //      (135 → 0.339 · 136 → 0.341). 곧 «팔레트 색이 틀렸다» 도 «필터를 두 번 걸었다»(그러면 0.360)도 아니다.
+                //   ⇒ 남은 것은 «이 자리가 실제로 무엇을 먹었나» 인데 그것이 자국에 없다. 그래서 **자국이 스스로 답하게** 한다:
+                //      정본 hex · 그것을 판 rc · 쓴 필터 값 · 관측/rc 채널 비(比)를 함께 찍는다. 비가 곧 «무엇이 곱해졌나» 다.
+                FilterSpec fs = UiFilter.Table.Get("summon_orb_" + tier);
+                string ratios = string.Join(" / ", orbs.ConvertAll(c => string.Format("({0:F3},{1:F3},{2:F3})",
+                    rc.r > 0.001f ? c.r / rc.r : -1f, rc.g > 0.001f ? c.g / rc.g : -1f, rc.b > 0.001f ? c.b / rc.b : -1f)).ToArray());
+                string diag = string.Format(" | 정본hex {0} · rc {1} · 표 sat {2} bri {3} · 관측/rc {4}",
+                    PetSkillStyle.RarityHex(defs, e.Rarity) ?? "(없다 — muted 폴백)", rc,
+                    fs.HasSaturate ? fs.Saturate.ToString("F3") : "-", fs.HasBrightness ? fs.Brightness.ToString("F3") : "-", ratios);
+                Assert.IsTrue(found, e.Rarity + "(tier " + tier + ") 구체 색 = 등급색에 표 summon_orb_" + tier + " 를 건 값 " + want + " 이어야 한다 — 실물 " + string.Join(" / ", orbs.ConvertAll(c => c.ToString()).ToArray()) + diag);
                 if (tier == 0)
                 {
                     Assert.AreNotEqual(oldApprox, want, "tier 0 은 정본 filter(saturate .62 · brightness .64)가 종전 근사(검정 30%)와 다른 값이다");
