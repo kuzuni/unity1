@@ -1673,3 +1673,61 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 
 - **52 중 결함 둘(T439 · T440) · 죽은 선언 둘 · 조건부 하나.** 나머지는 클론에 실물이 있거나 클론 구조에서 필요가 없는 선언이다.
 
+
+# T33 43회차 — `aspect-ratio` 21 + `object-fit` 9 (2026-09-17 · 워커 E · sess-1119-17578)
+
+> 40회차가 «남은 축» 으로 적어 둔 둘이다(`aspect-ratio` 21 · `object-fit` 9). 41회차 규칙대로 §2 T33 절을 거꾸로 읽어 41·42회차가 이 둘을 안 건드렸음을 먼저 확인했다.
+> 세는 법은 39회차 규칙 그대로 — 주석을 걷고 속성 이름 경계(`(?<![-\w])`)로. `object-fit` 은 `grep` 이 11 을 뱉지만 둘은 `tools/probe-*.js` **주석 속 문장**이라 CSS 선언은 **9** 다.
+
+## `aspect-ratio` — 21 전수
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 829 `.equip-cell` | 1 | `ForgeSheet.cs:96` `Place(c, …, cell, cell)` | ✅ |
+| 2 | 850 `.equip-cell.egg-cell` | auto (+`grid-column: span 2`) | `ForgeSheet.cs:101` `MountCell(…, cell*2 + colGap, cell)` | ✅ 두 칸 + 틈 · 높이는 행 높이 |
+| 3 | 3064 `.avatar-pick-btn` | 1 | `ProfilePopup.cs:136` `Place(rt, …, cell, cell)` | ✅ |
+| 4 | 3684 `.idet-icon` | 1 | `ForgeInfoPopup.cs:362` `ItemTile(head, "idet-icon", tile, …)` | ✅ 한 변만 받는다 |
+| 5 | 3873 `.modal-card.sheet .dg-banner` | 3.45/1 | `DungeonSheet.cs:164~165` `bw/L("dg_banner_aspect")` · `catalog.json:443` **3.45** | ✅ 표값 |
+| 6 | 4034 `.sk-orb` | 1 | `SkillPanel.cs:208` · `:509` `Place(orbRt, …, orb, orb)` | ✅ 두 자리 |
+| 7 | 4263 `.pet-tile .tile-face` | 1 | `PetPanel.cs:257` `face.sizeDelta = (size, size)` | ✅ |
+| 8 | 4342 `.petup-icon` | 1 | `PetUpgradePopup.cs:143` `Place(face, …, icon, icon)` | ✅ |
+| 9 | 5537 `.petd-tile` | 1 | `MountSheet.cs:266` → 같은 `TileFace` | ✅ |
+| 10 | 5767 `.sr-floor` | 3.1/1 | — | ⛔ **죽은 선언** (ui.js 493: `.sr-floor` 는 `stage` 안에서만 난다 → 11·12 가 늘 이긴다) |
+| 11 | 5771 `.sr-body.stage.one .sr-floor` | 2.6/1 | `SkillSummonResult.cs:465` `fw / (one ? **2.6f** : 2.5f)` | ⚠ 값은 맞다 · **코드에 박혔다** → T449 |
+| 12 | 5800 `.sr-body.stage:not(.one) .sr-floor` | 2.5/1 | 같은 줄 | ⚠ 같음 → T449 |
+| 13 | 5837 `.sr-canopy` | 3.1/1 | — | ⛔ **죽은 선언** (ui.js 467 `const canopy = stage` → 14~16 이 늘 이긴다) |
+| 14 | 5841 `.sr-body.stage.one .sr-canopy` | 3/1 | `SummonFx.cs:119` `cw/L(k+"aspect")` · `canopy_one_aspect` **3.0** | ✅ 표값 |
+| 15 | 5843 `.stage:not(.one) .sr-canopy:not(.compact)` | 2.5/1 | `canopy_aspect` **2.5** | ✅ 표값 |
+| 16 | 5846 `.sr-canopy.compact` | 3.9/1 | `canopy_compact_aspect` **3.9** | ✅ 표값 · 특이도로 `one` 이 먼저(정본 주석 469~471 이 그렇게 적었고 클론 분기도 `one ? … : compact ? …` 다) |
+| 17 | 5932 `.sr-rays` | 1 | `SummonFx.cs:81` `Anchor(…, rw, rw)` · `rays_w_f` 1.9 | ✅ |
+| 18 | 6083 `.sr-charge` | 1 | `SkillSummonResult.cs:596` `sizeDelta = (Hh, Hh)` | ✅ 정본 줄을 주석에 적어 뒀다 |
+| 19 | 6342 `.sr-orbwrap` | 1 | `SkillSummonResult.cs:897` `Place(wrap, …, cw, cw)` | ✅ |
+| 20 | 6710 `.sr-cell.peer.on::after` | 1 | **없다** | ⛔ **결함 → T448** |
+| 21 | 6755 `#summon-result-modal.hero .sr-cell.heroic::after` | 1 | `SkillSummonResult.cs:710` `sizeDelta = (cw, cw)` · pivot (.5,1) · `SetAsFirstSibling`(z −1) · `CraftFxPoly.Screen()` | ✅ |
+
+**✅ 16 · ⛔ 죽은 선언 2 · ⚠ 코드 박음 2 · 결함 1.**
+
+## `object-fit` — 9 전수
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 756 `.fl-face img` | contain | `ForgeInfoPopup.cs:290` → `ForgeUi.ApplyThumb` | ✅ |
+| 2 | 1081 `.auto-drop-card .adc-img` | contain | `ForgeUi.cs` 카드 깔때기 → 같은 `ApplyThumb` | ✅ |
+| 3 | 1147 `.craft-batch .cb-card .adc-img` | contain | `ForgeCraftPopup.cs:325` → 같은 깔때기 | ✅ |
+| 4 | 1856 `.cmp-img` | contain | 같은 깔때기 | ✅ |
+| 5 | 1875 `.equip-cell .cell-img` | contain | `ForgeSheet.cs` → 같은 깔때기 | ✅ |
+| 6 | 3696 `.idet-icon img` | contain | `ForgeInfoPopup.cs:374` → 같은 깔때기 | ✅ |
+| 7 | 5557 `.pinfo-preview.shot img` | **cover** | — | ⛔ **죽은 선언** — `shot` 클래스를 `js/`·`index.html` 어디도 안 붙인다(정지 스냅샷 `<img>` 가 **살아 있는 캔버스**(`.scene` · ui.js 5147)로 바뀐 뒤 남은 줄) |
+| 8 | 6535 `.sr-ico > .mt-face > img` | contain | `PetSkillKit.cs:356` `PetFace` | ✅ |
+| 9 | 7603 `.mt-face.has-thumb > img` | contain | 같은 `PetFace` | ✅ |
+
+**✅ 8 · ⛔ 죽은 선언 1 · 결함 0.** `contain` 여덟이 **깔때기 둘**(`ForgeUi.ApplyThumb` · `PetSkillKit.PetFace`)로 모이고 둘 다 `preserveAspect = true` 다 — 유니티에서 그것이 `object-fit: contain` 이다. 이 축에 «자리마다 손으로 박은 것» 은 0 이다.
+
+## 이 회차의 판정
+
+- **30 전수 · 결함 하나(T448) · 표로 옮길 것 하나(T449) · 죽은 선언 셋.**
+- 유일하게 **없는 겹**은 정본 6701 이 «동급은 **세 층**으로 표식한다 — 크기(`--peersz`) · 광채(`--peerk`) · 상시 테두리 + **착지 링**» 이라 적은 그 넷째다. 클론은 크기(`sr_peer_sz` 1.13)와 정지 광채(`glow` 원판)까지 왔고 **착지 링에서 멈췄다** → T448.
+
+## 이 회차가 남긴 규칙 — **«형제가 이미 표를 쓰는가» 를 물으면 코드 박음이 한 줄로 드러난다**
+
+`.sr-floor` 와 `.sr-canopy` 는 **같은 함수 안 열 줄 거리**에 있고 둘 다 «폭 백분율 + 종횡비» 꼴이다. 그런데 캐노피는 `canopy_*_aspect` 세 칸을 표에서 읽고 바닥은 `2.6f`/`2.5f`/`0.64f`/`0.88f` 를 코드에 박았다 — **같은 꼴의 이웃**이 한쪽만 표를 쓰면 그 자리는 거의 언제나 «나중에 급히 더한 쪽» 이다. T402·T375 가 닫은 자리도 전부 그 꼴이었다. 축을 셀 때 «정본과 값이 같은가» 뒤에 **«이웃과 같은 길로 왔는가»** 를 한 번 더 묻는다.
