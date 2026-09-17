@@ -4881,6 +4881,10 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
 - 🔄 **8회차 2026-09-16 13:3x 워커 N(sess-0524-8791 · 선점)**: ⓒ 여섯 중 **마지막 자리** `.forge-item-cell small` — T396 죽은 lock 을 인수·반납해 `ForgeInfoPopup.cs` 가 열렸다 → 목록 칸 아래 «0.0000%» 라벨(`pct` · 298)에 `TabularText.Apply` 한 줄(정본 8635 · 다섯 열 스물다섯 칸의 % 가 세로로 열을 이루는 자리). PlayMode `TabularSitesTests` +1(라벨 스물다섯 전부 `<mspace>` 감쌈 · 한 칸의 이웃 숫자 간격 = 글꼴 칸 ±15%). 게임 코드 1줄 · dotnet 0 오류 · gate 막는 자 전부 rc 0. 판정은 다음 런(그 칸 PASS + `screen_forge-list` 의 % 열이 세로로 맞는가). 이로써 **ⓒ 여섯 전부** 표·자에 섰다 — 남은 것은 ⓐⓑ 굵기 공장(`UiKit.cs` · 이제 어느 산 lock 에도 없다 · 누구든).
   → **8회차 판정 ✅(런 963 · `f59f42d1` = 내 커밋) · lock 반납 · 행 ⬜**(14:3x · 워커 N): PlayMode 468 중 467 초록 — `TabularSitesTests` **6/6 PASS**(새 칸 «장비_목록_칸_아래_확률_라벨은_숫자_구간이_등폭이다» 포함) · 그 런의 빨강 1 은 `DungeonUiTests`(T428 · 임자가 이미 수리). 눈: `screen_forge-list.png`(런 963) 다섯 열 «0.0000%» 의 소수점이 열마다 같은 x 에 선다. **ⓒ 여섯 전부 닫혔다.** 남은 것은 ⓐ 공장 기본 bold · ⓑ 정본 여덟 자리 regular · 굵기 폭 갈래 — 전부 `UiKit.cs`(어느 산 lock 에도 없다 · 누구든).
 
+- ⬜ **9회차 2026-09-17 14:5x 워커 G(sess-1242-10698 · 선점 철회 · 문서만)** — **내 선점 전제가 낡았다**: «ⓒ 등폭 여섯 중 두 자리가 남았다» 고 보고 잡았는데, 그 둘은 **6회차(`.qst-reward` · `QuestSheet.cs:134`)와 8회차(`.forge-item-cell small` · `ForgeInfoPopup.cs:304`)가 이미 갚았다** — 코드에 `TabularText.Apply` 여섯 자리가 다 서 있다(`grep` 실측: `LeagueSheet`·`PassPopup`·`QuestSheet`·`SkillRatesPopup`×2·`ForgeInfoPopup`). **ⓒ 는 닫혔다.**
+  - 남은 것은 ⓐ(공장 기본 bold) · ⓑ(정본 여덟 자리 regular) · 굵기 폭 갈래(진짜 굵은 판 or `boldSpacing` 0)뿐이고 **셋 다 `Assets/Scripts/Game/Ui/UiKit.cs` 를 연다**. 그 파일은 지금 **T333 산 lock 의 «범위»** 에 이름이 올라 있다(§2 T333 범위 줄) ⇒ **이 회차엔 잡을 자리가 없다**. 코드 0줄 · lock 즉시 반납.
+  - ⚑ **다음 사람에게**: 이 절을 열려면 먼저 `docs/claims/T333.lock` 을 본다. 살아 있으면 ⓐⓑ 도 굵기 폭 갈래도 못 연다 — 그때는 이 절을 건너뛰는 것이 맞다(5·6·7회차처럼 «자리 하나» 를 찾으려 해도 ⓒ 가 닫혀 남은 자리가 없다).
+
 ### T360 ✅ — `ForgeUiTests` 두 자가 **벽시계에 매여** 빨갛다: 하나는 0.56초 타이머가 자 도중에 터지고, 하나는 «순백 코어» 를 절대 밝기로 잰다 (검증·게이트 · §0-6 임자 없는 빨강 · 워커 G 등재 · 런 565 실측)
 
 - 빨강 둘(런 565 `3e0923d` · 그 파일을 «범위» 로 쥔 **산 lock 이 없다** · 고쳐 온 작업은 전부 ✅):
