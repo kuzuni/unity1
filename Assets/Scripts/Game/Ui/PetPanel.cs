@@ -386,7 +386,9 @@ namespace Forge.Game.Ui
                 float cx = (lw - ico - g - tw) * 0.5f;
                 Image gi = UiKit.Icon(br, "ico", "gem");
                 UiKit.Place(gi.rectTransform, cx, (lh - ico) * 0.5f, ico, ico);
-                TextMeshProUGUI ct = PetSkillKit.Text(br, "cost", TextKind.Sub, cost, PetSkillStyle.C("cost_red"), TextAlignmentOptions.Left);
+                // T396 13회차 — 정본 4566 `.hatchery .slot-buy b { color: #e8112d }`. 종전엔 `cost_red`(#f2191d)를 썼는데
+                //   그 값은 소환 버튼 값(8668 `.summon-btn .summon-cost b`)의 빨강이다 — 정본이 두 자리를 **다른 리터럴**로 못박았다.
+                TextMeshProUGUI ct = PetSkillKit.Text(br, "cost", TextKind.Sub, cost, PetSkillStyle.C("slot_buy_cost_ink"), TextAlignmentOptions.Left);
                 UiKit.Place(ct.rectTransform, cx + ico + g, 0f, tw + ico, lh);
             }
         }

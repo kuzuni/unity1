@@ -214,7 +214,24 @@ TABLE_INK = {
     '.dgclear-title': ['Ui/DungeonClearPopup.cs#title|catalog:dgclear_title'],                # 정본 5374 #ffd54f 같은 값
     '.dgclear-sub': ['Ui/DungeonClearPopup.cs#sub|catalog:dgclear_sub'],                      # 정본 5378 #b0bec5 같은 값
     '.dgc-amt': ['Ui/DungeonClearPopup.cs#amt|catalog:dgclear_amt'],                          # 정본 5391 #ffe082 같은 값
-    '.petd-wrap .petd-subs': ['Ui/MountSheet.cs#petd-subs|res:PetSkillUi:subs_ink'],           # 정본 5454 #3a3a3a ↔ PetSkillUi subs_ink 같은 값(PetPanel 쪽 같은 키는 그 lock 뒤)
+    '.petd-wrap .petd-subs': ['Ui/MountSheet.cs#petd-subs|res:PetSkillUi:subs_ink'],
+    # ── T396 13회차 — 산 lock 밖 파일 셋(Hud · PetPanel · SkillPanel)의 잉크 자리 여섯 + 죽은 선언 셋.
+    #   다섯은 **이미 제 값**이라 표에 올리기만 하면 닫힌다(자가 그 값을 지킨다 — 값이 바뀌면 여기서 빨강).
+    #   하나(`.hatchery .slot-buy b`)는 «같은 그림 다른 색» 이었다: 정본은 부화장 값(#e8112d)과 소환 버튼 값(#f2191d)을
+    #   **다른 리터럴**로 못박는데 클론은 둘을 `cost_red` 한 키로 찍고 있었다(8회차 `.fl-face[data-asc]` 와 같은 갈래).
+    '.profile-info .cp': ['Ui/Hud.cs@Build|catalog:cp'],                         # 108 #ff8a65 ↔ 카탈로그 cp 같은 값(짝만)
+    '.currency-pills .pill.coin': ['Ui/Hud.cs@Build|catalog:coin'],              # 118 #ffd54f ↔ 카탈로그 coin 같은 값(짝만)
+    '.currency-pills .pill.gem': ['Ui/Hud.cs@Build|catalog:gem'],                # 119 #ff8a80 ↔ 카탈로그 gem 같은 값(짝만)
+    '.hatch-cell.empty': ['Ui/PetPanel.cs#hatch-hint|res:PetSkillUi:hatch_hint'],   # 4515 #8b96b5 ↔ PetSkillUi hatch_hint 같은 값(짝만)
+    '.hatchery .slot-buy b': ['Ui/PetPanel.cs#cost|res:PetSkillUi:slot_buy_cost_ink'],   # 4566 #e8112d ↔ 전엔 cost_red #f2191d(소환 버튼 값의 빨강)
+    '.summon-btn .summon-cost b': ['Ui/SkillPanel.cs|res:PetSkillUi:cost_red'],  # 8668 #f2191d ↔ PetSkillUi cost_red 같은 값(짝만 · 위 자리와 갈리는 쪽)
+    # 죽은 선언 셋 — 이 자의 «죽음» 갈래는 «같은 선택자가 뒤에 다시» 만 본다. 여기 셋은 그것이 아니라
+    #   **정본 자신이 그 클래스를 한 번도 안 붙인다**(`grep -rn "hatch-slot\|egg-chip" js/ index.html` = 0).
+    #   부화장이 `.hatch-slot`(1650~1655) → `.hatch-cell`(ui.js 3926) 로 갈아엎히며 남은 줄이고, `.egg-chip` 도 같다.
+    #   클론에 자리가 없는 것이 **맞다** — 미정으로 두면 다음 사람이 또 «없는 자리» 를 찾는다(T371 11회차의 20분).
+    '.hatch-slot.empty': ['—죽음: 정본이 `hatch-slot` 클래스를 한 번도 안 붙인다(ui.js 3926 이 `.hatch-cell` 로 갈아엎었다) — 그려지지 않는 리터럴'],
+    '.hatch-slot.buy': ['—죽음: 같은 까닭(1655 · #cbb6f5) — `.slot-buy`(4566 · 살아 있다)와 **다른 자리**다'],
+    '.egg-chip small': ['—죽음: 정본이 `egg-chip` 클래스를 한 번도 안 붙인다(js/ · index.html 통틀어 0) — 그려지지 않는 리터럴'],           # 정본 5454 #3a3a3a ↔ PetSkillUi subs_ink 같은 값(PetPanel 쪽 같은 키는 그 lock 뒤)
 }
 KNOWN_INK = {
     # T396 10회차 — 한 글자 안의 **부분 색**(<small>·<span> 조각): 클론은 그 글을 한 TMP 로 찍고 richText 를 안 켜므로(check_richtext)

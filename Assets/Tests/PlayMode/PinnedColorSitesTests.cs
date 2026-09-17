@@ -617,6 +617,43 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T396 13회차 — 부화장의 «빨간 숫자» 둘이 정본에선 **다른 리터럴**이다:
+        /// 칸 사기 알약 값 `4566 .hatchery .slot-buy b { color: #e8112d }` ↔ 소환 버튼 값 `8668 .summon-btn .summon-cost b { color: #f2191d }`.
+        /// 클론은 둘을 `cost_red` 한 키로 찍고 있었다. 빈 칸 안내(`4515 .hatch-cell.empty` #8b96b5)도 같은 화면이라 한 자에서 본다.</summary>
+        [UnityTest]
+        public IEnumerator 부화장_칸사기_값과_소환_버튼_값은_서로_다른_못박은_빨강이다()
+        {
+            yield return Boot();
+            Assert.AreNotEqual(PetSkillStyle.C("cost_red"), PetSkillStyle.C("slot_buy_cost_ink"),
+                               "정본은 두 자리를 다른 리터럴로 못박는다(#f2191d ↔ #e8112d) — 한 키로 합치면 이 칸이 운다");
+
+            UiRoot.Instance.TabBar.OnTab("summon");
+            yield return null;
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            Assert.IsNotNull(sheet, "소환 시트");
+            sheet.SubButton(SkillPetSheet.SubPets).onClick.Invoke();
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+
+            // 빈 칸 안내 — 새 세이브의 부화장은 칸이 다 비어 있다(항상 선다).
+            Transform hint = FindActive(sheet.transform, "hatch-hint");
+            Assert.IsNotNull(hint, "부화장 빈 칸 안내(.hatch-cell.empty)");
+            Assert.AreEqual(PetSkillStyle.C("hatch_hint"), hint.GetComponent<TMPro.TextMeshProUGUI>().color,
+                            "정본 4515 .hatch-cell.empty { color: #8b96b5 }");
+
+            // 칸 사기 알약 — 세이브에 따라 안 설 수 있다(P.CanBuySlot()). 서면 그 값이 부화장 전용 빨강이다.
+            Transform pill = FindActive(sheet.transform, "slot-buy");
+            if (pill != null)
+            {
+                Transform cost = FindActive(pill, "cost");
+                Assert.IsNotNull(cost, "칸 사기 값 글자");
+                Color got = cost.GetComponent<TMPro.TextMeshProUGUI>().color;
+                Assert.AreEqual(PetSkillStyle.C("slot_buy_cost_ink"), got, "정본 4566 .hatchery .slot-buy b { color: #e8112d }");
+                Assert.AreNotEqual(PetSkillStyle.C("cost_red"), got, "소환 버튼 값의 빨강(#f2191d)이 아니다");
+            }
+            yield return null;
+        }
+
         static System.Collections.Generic.List<Transform> AllNamed(Transform root, string name)
         {
             var found = new System.Collections.Generic.List<Transform>();

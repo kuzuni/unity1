@@ -48,6 +48,8 @@
     "ascend_a": "#4caf50",
     "ascend_b": "#2e7d32",
     "cost_red": "#f2191d",
+    "_slot_buy_cost_ink": "T396 13회차 — 정본 4566 `.hatchery .slot-buy b { color: #e8112d }`. 부화장 «칸 사기» 알약 안의 젬 값만 이 빨강이고, 소환 버튼의 값(8668 `.summon-btn .summon-cost b` #f2191d = 위 cost_red)과 **다른 색**이다. 클론은 둘을 한 키로 찍고 있었다 — 같은 «빨간 숫자» 라고 같은 키가 아니다(T396 8회차 «같은 그림 다른 색» 과 같은 갈래).",
+    "slot_buy_cost_ink": "#e8112d",
     "modal_dim": "#00000080",
     "card_shadow": "#00000040",
     "toast_bg": "#1c2128f2",
