@@ -243,7 +243,6 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(gt, "겹 eqsw-dust-grad 가 알약 안에 있다");
             Image grad = gt.GetComponent<Image>();
             Assert.IsNotNull(grad); Assert.IsNotNull(grad.sprite, "겹은 구운 그림이다 — 단색 판이 아니다");
-            Assert.Greater(grad.color.a, 0f, "연출 중 알파 > 0"); Assert.LessOrEqual(grad.color.a, 1f);
             Assert.AreEqual(1f, grad.color.r, 1e-3f, "그림 위 색은 흰색 — 표 색을 두 번 곱하지 않는다");
             Texture2D tex = grad.sprite.texture;
             int w = tex.width, h = tex.height;
@@ -259,7 +258,18 @@ namespace Forge.Tests.PlayMode
             Assert.Less(corner.a, 0.02f, "(0,0) 모서리 = 반지름 100% > 78% 라 투명");
             Color left = tex.GetPixel(0, yc);
             Assert.Greater(left.a, 0.05f, "왼쪽 변 한가운데(u = .5/.7071 = .71) 는 아직 투명하지 않다 — 그래서 알약 클립이 정본대로 필요하다");
-            yield return WaitMs(s.DustRemoveMs + 400);
+            // 알파는 «한 순간» 이 아니라 **수명 내내** 잰다(런 1100 의 빨강): 정본 키프레임이 0% 에서 opacity 0 이라 코루틴의 첫 프레임은 알파 0 이고,
+            //   CI 프레임이 길면 «착지 +120ms» 가 바로 그 프레임에 떨어진다. 18% 에서 .95 로 올랐다가 100% 에서 0 — 어느 프레임에 걸려도 최댓값은 0 보다 크다.
+            float maxA = 0f; int frames = 0;
+            while (grad != null && dust != null && frames < 600)
+            {
+                maxA = Mathf.Max(maxA, grad.color.a);
+                Assert.LessOrEqual(grad.color.a, 1f, "겹 알파는 1 을 안 넘는다");
+                frames++;
+                yield return null;
+            }
+            Assert.Greater(maxA, 0.1f, "먼지 수명 안에 겹 알파가 켜진다(정본 18% 키프레임 .95 · 어느 프레임에 걸려도 0 은 아니다) — 본 최댓값 " + maxA);
+            yield return WaitMs(400);
             Assert.AreEqual(0, fx.Dusts, "먼지는 걷혔다");
         }
 
