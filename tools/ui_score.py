@@ -1578,6 +1578,16 @@ def jitter_span(shots_dir, name, ref_rects):
     return (min(vals), max(vals))
 
 
+def next_screens(cand, rate, shaky, take=5):
+    """«다음 볼 화면» 차례 — **안 흔들리는 화면을 앞에**, 그 안에서는 달성률이 낮은 것부터.
+
+    🚫 흔들리는 화면을 **빼지 않는다**(낡은 샷 화면과 같은 규칙 · T28 81회차): 빼면 진짜 결함이
+    숨는다. 뒤로 밀 뿐이다. 왜 미나 — 자가 ±1 에 흔드는 화면은 **점수의 순서 자체가 자의 딸**이라
+    «여기가 제일 뒤처졌다» 를 못 읽는다(T437 ✂ · 런 1058 에서는 낮은 다섯이 전부 흔들렸다).
+    """
+    return sorted(cand, key=lambda t: (shaky(t[0]), rate(t)))[:take]
+
+
 def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baseline=False, notes_full=False):
     table = load_table(table_path)
     if not table:
@@ -1935,14 +1945,27 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             # 낡은 샷 화면은 **맨 뒤로** 밀린다(지우지는 않는다 · T28 81회차).
             base = (t[1] / c) if c else 1.0
             return (base + 10.0) if t[0] in STALE_SCREENS else base
-        low = sorted(((n, v) for n, v in scores if v < PASS_MARK), key=_rate)[:5]
+        cand = sorted(((n, v) for n, v in scores if v < PASS_MARK), key=_rate)[:8]
+        # T28 108회차 — **자가 흔드는 화면은 뒤로 민다(지우지는 않는다)**. 런 1058 에서는 달성률 낮은
+        #   다섯이 **전부** ±1 에 흔들려, 줄이 «먼저 볼 곳» 노릇을 못 했다. 그렇다고 지우면 진짜 결함이
+        #   숨으므로 낡은 샷 화면과 같은 규칙(81회차)을 쓴다 — **여덟을 재서 안 흔들리는 것을 앞에 세운다.**
+        spans = {}
+        for n, _v in cand:
+            spans[n] = jitter_span(shots_dir, n, table[n]["rects"]) if n in table else None
+        def _shaky(n):
+            sp = spans.get(n)
+            return 1 if (sp and (sp[1] - sp[0]) >= JITTER_WARN) else 0
+        low = next_screens(cand, _rate, _shaky)
         print(u"«다음 볼 화면»(ROUTINE §2 T28 · **달성률(점수/천장)이 낮은 것부터** · 원작 PNG 와 나란히 보고 정본 코드로 확인한 뒤 등재):")
+        if any(_shaky(n) for n, _v in cand):
+            print(u"    ⓘ **자가 ±1 에 흔드는 화면은 뒤로 밀었다**(지운 것이 아니다 · T437 ✂) — 여덟을 재서 "
+                  u"**안 흔들리는 것을 앞에** 세운다. 흔들리는 화면은 점수가 아니라 **원작 PNG 로** 판단해라.")
         for n, v in low:
             c = _ceil_med(n); cnow = ceilings.get(n, 0.0)
             tag = (u"  ⚠ 낡은 샷 — %s" % STALE_SCREENS[n]) if n in STALE_SCREENS else u""
             note = u"" if abs(cnow - c) < 0.3 else (u"(이번 %.1f)" % cnow)
-            sp = jitter_span(shots_dir, n, table[n]["rects"]) if n in table else None
-            if sp and (sp[1] - sp[0]) >= 0.2:
+            sp = spans.get(n)
+            if sp and (sp[1] - sp[0]) >= JITTER_WARN:
                 tag += (u"  · ⚠ 이 점수는 **자가 흔든다** — 화소를 ±1 만 밀면 %.1f~%.1f 로 움직인다"
                         u"(T437 ✂ · `--jitter`). 순서를 믿기 전에 원작 PNG 를 봐라" % sp)
             hit = rows_hit(shots_dir, n)
@@ -2493,6 +2516,21 @@ def self_test():
             os.unlink(os.path.join(_sp_dir, _f))
         os.rmdir(_sp_dir)
 
+    # ㉕ «다음 볼 화면» 차례 — 흔들리는 화면은 뒤로, 빼지는 않는다 (T28 108회차)
+    _cand = [(u"가", 1.0), (u"나", 2.0), (u"다", 3.0), (u"라", 4.0), (u"마", 5.0), (u"바", 6.0)]
+    _rate_ = lambda t: t[1]
+    _shaky_ = lambda n: 1 if n in (u"가", u"나") else 0
+    _ns = [n for n, _v in next_screens(_cand, _rate_, _shaky_)]
+    chk(_ns[:3] == [u"다", u"라", u"마"],
+        u"안 흔들리는 화면이 달성률 순으로 먼저 온다 (%s)" % u"·".join(_ns))
+    _all = [n for n, _v in next_screens(_cand, _rate_, _shaky_, take=len(_cand))]
+    chk(sorted(_all) == sorted(n for n, _v in _cand),
+        u"흔들리는 화면도 차례에서 **안 빠진다** — 뒤로 밀 뿐이다 (%s)" % u"·".join(_all))
+    chk(_all[-2:] == [u"가", u"나"],
+        u"흔들리는 화면끼리도 달성률 순을 지킨다 (%s)" % u"·".join(_all[-2:]))
+    chk([n for n, _v in next_screens(_cand, _rate_, lambda n: 0)][:2] == [u"가", u"나"],
+        u"아무도 안 흔들리면 차례는 달성률 그대로다")
+
     print(u"")
     if fail:
         print(u"✗ ui_score self-test: %d/%d 칸 실패" % (len(fail), ok[0]))
@@ -2507,6 +2545,7 @@ def self_test():
 #    바뀐 `autoforge` 는 조각 수가 그대로다. 곧 «얼마나 바뀌었나» 는 «자가 흔들렸나» 를 못 가른다.
 #    그래서 **한 장을 ±1 만 흔들어** 본다 — 그림의 뜻은 하나도 안 바뀌는 크기다. 조각 수가 바뀌면
 #    그것은 **자의 흔들림**이고, 런도 촬영도 끌어들이지 않는다.
+JITTER_WARN = 0.2      # 점수 폭이 이만큼이면 «자가 흔든다» 로 본다(T28 106·108회차)
 JITTER_BASE = "24/35"      # T437 5회차 실측(런 1038) — 이 수를 줄이는 것이 T437 의 판정이다
 
 
