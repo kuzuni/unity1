@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 using Forge.Core.Forging;
 using Forge.Game;
 using Forge.Game.Ui;
@@ -95,6 +96,15 @@ namespace Forge.Tests.PlayMode
 
             Assert.AreNotEqual(CraftStyle.L("cmp_card_pb_cur_rem"), CraftStyle.L("cmp_card_pb_new_rem"),
                                "정본은 두 갈래의 **아래**를 다르게 적었다(.4rem ↔ 1.5rem) — 한 키로 묶으면 안 된다");
+
+            // T434 4회차 — 두 카드를 벌리는 것은 **각자의 안쪽 패딩**이지 층의 틈이 아니다: 정본 1783 `.cmp-wrap { gap: **0** }`
+            //   (윗줄 주석 «하단 앵커라 gap 을 키우면 위 카드가 올라간다 … 안쪽 패딩으로 이미 벌어져 있으므로 0»).
+            //   `cmp_card_pt_rem`·`cmp_card_pb_*` 와 **한 벌**이라 여기서 같이 본다 — 누가 «두 카드가 붙었다» 며 틈을 되살리면 이 줄이 먼저 운다.
+            VerticalLayoutGroup wrapLg = ((RectTransform)newCard.parent.parent).GetComponent<VerticalLayoutGroup>()
+                                         ?? ((RectTransform)FindIn(root, "card")).GetComponent<VerticalLayoutGroup>();
+            Assert.IsNotNull(wrapLg, "카드 세로 층");
+            Assert.AreEqual(CraftStyle.Px("cmp_wrap_gap_rem"), wrapLg.spacing, 0.5f, "`.cmp-wrap` 의 층 틈 = 정본 gap 0 — 하단 앵커라 이 틈이 곧 카드 위끝을 민다");
+            Assert.AreEqual(0f, CraftStyle.L("cmp_wrap_gap_rem"), 1e-4f, "표도 0 이다(정본 1783)");
 
             ForgeItem item = h.Pending;
             h.ResolveCraft("equip");

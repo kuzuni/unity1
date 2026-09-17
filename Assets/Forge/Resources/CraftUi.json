@@ -3,6 +3,7 @@
   "layout": {
     "card_w": 0.688,
     "bottom_rem": 1.65,
+    "cmp_wrap_gap_rem": 0,
     "cmp_card_pt_rem": 0.9,
     "cmp_card_pb_cur_rem": 0.4,
     "cmp_card_pb_new_rem": 1.5,
@@ -16,6 +17,7 @@
     "sellwarn_btn_min_h_rem": "T378 12회차 — style.css 3565 `.modal-card > .row .btn:not(.sm):not(.xs) { min-height: 2.9rem; font-size: 1rem }` (border-box). 판매 경고 [판매][취소]의 하한 — 실제 높이는 글(판매 + small 두 줄)이 더 크면 글이 정한다(PopupKit.TwoLineBtnH 가 둘 중 큰 쪽).",
     "sellwarn_btn_pad_y_rem": "T378 12회차 — style.css 663 `.btn { padding: .55rem .8rem }`. 판매 경고 버튼의 세로 패딩(사이트 규칙이 안 덮는다) — 높이 = 이 값 x 2 + Sub 두 줄의 글꼴 줄높이(line-height 미선언 = normal)를 3565 하한과 견준다. 전엔 btn_h x 1.5 가 코드에 박혀 있었다(T378 임시 목록).",
     "card_w": "style.css 1748 `#craft-modal .modal-card.wide { width: 68.8%; }` — 공용 .modal-card.wide 74% 가 아니다(원본 흰 본체 67.33%W + 테두리·AA 1.46%p)",
+    "cmp_wrap_gap_rem": "style.css **1783** `.cmp-wrap { display: flex; flex-direction: column; **gap: 0**; margin-top: .5rem }` — 장착 카드와 회색 패널 사이 틈. **0 이다.** 정본이 바로 윗줄(1781~1782)에 까닭을 못박아 뒀다: «하단 앵커라 gap 을 키우면 위 카드가 **올라간다** — … 두 카드는 각자 **안쪽 패딩(.4rem/.9rem)**으로 이미 벌어져 있으므로 0». 클론은 `PopupKit.Column(card, …, rem * 0.5f)` 로 **0.5rem** 을 주고 있었다 — 그 0.5rem 이 곧 카드 높이라 위끝이 9.1 화면px(540×960) 떠 있었다(T434 4회차 · 3회차 뒤 남은 차 8px 과 맞는다). ⚠ 그 «안쪽 패딩» 이 바로 `cmp_card_pt_rem`·`cmp_card_pb_*` 다 — 셋이 한 벌이라 gap 만 0 으로 두고 안쪽을 안 고치면 두 카드가 붙는다.",
     "cmp_card_pt_rem": "style.css **1825~1827** `.cmp-card { … padding: **.9rem** .7rem .7rem }` — 장비 카드 **안쪽 위** 패딩. 세 갈래(바탕·cur 1812·new 1815)가 **위 값은 다 .9rem 으로 같다**(1812 는 같은 .9 를 다시 적고 1815 는 `padding-bottom` 만 덮는다). 클론 `ForgeUi.ItemCard` 는 글 블록을 `rem * 0.6f` 에서 시작해 **0.3rem 짧았다**(T434 3회차).",
     "cmp_card_pb_cur_rem": "style.css **1812** `.cmp-card-wrap.cur .cmp-card { border: none; padding: .9rem .4rem **.4rem** }` — 장착 카드(장비 상세 · 제작 비교 위 카드)의 **안쪽 아래** 패딩. 클론은 높이를 `textH + rem*1.4f` 로 잡아 아래가 1.4 − 0.6 = **0.8rem** 이었다 — 정본보다 **0.4rem 많다**.",
     "cmp_card_pb_new_rem": "style.css **1815** `.cmp-card-wrap.new .cmp-card { … padding-bottom: **1.5rem** }` — 새 장비 카드만 아래가 넓다(정본 주석 1813~1814: «원본은 새 장비 옵션 마지막 줄과 [판매][장착] 줄 사이를 5.27%H 비운다 — 새로운! 표기가 앉을 자리»). 클론은 `cur` 의 0.8rem 에 `isNew` 면 1.2rem 을 더해 **2.0rem** 이었다 — **0.5rem 많다**. ⚠ 이 값이 회색 패널 높이를 통해 **하단 앵커 카드의 위끝**을 민다(T390·T429 가 재는 자리와 같은 사슬).",

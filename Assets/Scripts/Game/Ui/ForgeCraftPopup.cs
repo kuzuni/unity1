@@ -58,7 +58,12 @@ namespace Forge.Game.Ui
             float pad = UiKit.H("card_pad");
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
             UiKit.Anchor(card, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, CraftStyle.BottomPx()), w, card.sizeDelta.y);
-            VerticalLayoutGroup cardLg = PopupKit.Column(card, pad + rem * 0.5f, rem * 0.5f);
+            // T434 4회차 — 둘째 인자(위 여백 1.6rem = 모달 패딩 1.1 + `.cmp-wrap { margin-top: .5rem }` 1783)는 **맞다**. 셋째(층 틈)가 틀렸다:
+            //   정본 1783 은 `.cmp-wrap { … **gap: 0** … }` 이고 바로 윗줄(1781~1782)이 까닭을 못박아 뒀다 —
+            //   «하단 앵커라 gap 을 키우면 위 카드가 **올라간다** … 두 카드는 각자 **안쪽 패딩(.4rem/.9rem)**으로 이미 벌어져 있으므로 0».
+            //   클론은 `rem * 0.5f` 를 줘 그만큼 카드가 길었고, 바닥이 고정이라 위끝이 9.1px(540×960) 떠 있었다 — 3회차 뒤 남은 차 8px 이 이것이다.
+            //   ⚑ 그 «안쪽 패딩» 이 3회차가 세운 `cmp_card_pt_rem`·`cmp_card_pb_*` 라 **셋이 한 벌**이다: 안쪽을 안 고친 채 gap 만 0 으로 두면 두 카드가 붙는다.
+            VerticalLayoutGroup cardLg = PopupKit.Column(card, pad + rem * 0.5f, CraftStyle.Px("cmp_wrap_gap_rem"));
             // T390·T429 — 정본 style.css 1819 `.cmp-lower { margin: 0 -.85rem -.85rem }`(주석 «카드 패딩 1.1rem + 테두리 3px 이므로 -.85rem 음수 마진이 인셋 7px 을 만든다»).
             // 축약형은 **위 0 · 좌우 −.85rem · 아래 −.85rem** 이라 당김이 셋이고 **같은 키 하나(`cmp_lower_pull_rem`)가 세 자리를 쥔다**:
             //   ① 아래 — 회색 패널이 카드의 아래 패딩(1.1rem = `card_pad`)을 .85rem 파고든다 → 카드 층의 **아래** 패딩 = card_pad − 당김(T390).
