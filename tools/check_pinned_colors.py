@@ -480,6 +480,49 @@ def _judge(kind, table, known, decls, game, catalog, resdir, bad, list_all, out,
     return ok_n, known_n, len(undecided), covered, dead
 
 
+def loader_hex(raw):
+    """유니티 로더(`PinnedColorUi.C`)가 한 칸에서 hex 를 꺼내는 **그 규칙 그대로**.
+
+    두 꼴을 받는다 — 홑값 `"키": "#hex"` 와 주석 달린 객체 `"키": {"hex": "#hex", "_": "..."}`
+    (뒤엣것이 이웃 표들의 관례다: TextShadowUi.shadows 20 · OpacityUi.alpha 8 · TextSizeUi.size 3).
+    로더가 못 읽는 꼴이면 None — 그 칸을 부르는 순간 KeyNotFoundException 이다.
+    """
+    if isinstance(raw, str):
+        return raw if HEX.match(raw) else None
+    if isinstance(raw, dict):
+        h = raw.get('hex')
+        return h if isinstance(h, str) and HEX.match(h) else None
+    return None
+
+
+def table_shape_problems(resdir):
+    """표의 **모든** 칸이 로더가 읽을 수 있는 꼴인가 (T377 15회차).
+
+    까닭 — 런 **#1064**: `fi_age_star_ink` 가 관례대로 객체로 적혔는데 로더만 홑값을 고집해
+    `PinnedColorSitesTests` 가 KeyNotFoundException 으로 넘어졌다. 그때 이 자는 **초록**이었다 —
+    그 선택자를 TABLE 에 안 갖고 있어 «미정» 으로 흘려보냈기 때문이다. 곧 **표에 오르지 않은 칸은
+    아무도 안 보고 있었다.** 그래서 여기서는 TABLE 과 무관하게 «칸이 읽히는가» 만 전수로 본다 —
+    값이 정본과 같은지는 위쪽 자리 검사 몫이다.
+    """
+    path = os.path.join(resdir, 'PinnedColorUi.json')
+    try:
+        with open(path, encoding='utf-8') as f:
+            doc = json.load(f)
+    except (OSError, ValueError) as e:
+        return ['PinnedColorUi.json 을 못 읽었다 — %s' % e]
+    colors = doc.get('colors')
+    if not isinstance(colors, dict) or not colors:
+        return ['PinnedColorUi.json 에 colors 가 없다(로더도 여기서 던진다)']
+    out = []
+    for key in sorted(colors):
+        if key.startswith('_'):
+            continue
+        if loader_hex(colors[key]) is None:
+            out.append('PinnedColorUi.json 의 «%s» 를 유니티 로더가 못 읽는다 — 홑값 "#hex" 도, '
+                       '객체의 "hex" 칸도 아니다(부르는 순간 KeyNotFoundException · 런 #1064 가 그랬다)' % key)
+    return out
+
+
 def run(css_path, game, catalog, resdir, list_all=False, out=print):
     try:
         with open(css_path, encoding='utf-8') as f:
@@ -490,6 +533,7 @@ def run(css_path, game, catalog, resdir, list_all=False, out=print):
         out('✗ check_pinned_colors: 정본 CSS 를 못 읽었다 — %s' % css_path)
         return 2
     bad = []
+    bad.extend(table_shape_problems(resdir))   # T377 15회차 — 표에 안 오른 칸까지 전수로 «읽히는가» 를 본다
     ink_all = all_decls(css_text, INK_PROPS)
     face_all = all_decls(css_text, FACE_PROPS)
     ink_ok, ink_known, ink_undec, ink_cov, ink_dead = _judge('잉크 색', TABLE_INK, KNOWN_INK, inks, game, catalog, resdir, bad, list_all, out, ink_all)

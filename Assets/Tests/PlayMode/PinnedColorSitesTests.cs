@@ -21,6 +21,34 @@ namespace Forge.Tests.PlayMode
     /// </summary>
     public class PinnedColorSitesTests
     {
+        /// <summary>T377 15회차 — **표의 모든 칸이 실제 로더로 읽히는가.** 런 **#1064** 가 이 자리를 비싸게 가르쳤다:
+        /// `fi_age_star_ink`(T333 18회차)가 이웃 표들의 관례대로 **주석 달린 객체**로 적혔는데 이 표의 로더만 홑값을 고집해
+        /// 그 칸을 부르는 순간 `KeyNotFoundException` 이 났고, 시대 막대를 세우는 화면이 통째로 못 섰다.
+        /// 그때 `check_pinned_colors` 는 **초록**이었다 — 그 선택자가 TABLE 에 없어 «미정» 으로 흘러갔기 때문이다.
+        /// 곧 **표에 오르지 않은 칸은 아무도 안 보고 있었다.** 이 칸이 그 구멍을 막는다: 자리 배선과 무관하게 전수로 부른다.
+        /// (파이썬 자도 같은 규칙을 갖지만 그것은 «모양» 만 본다 — 여기는 `ColorUtility` 까지 실제로 지난다.)</summary>
+        [UnityTest]
+        public IEnumerator 못박은_색표의_모든_칸이_로더로_읽힌다()
+        {
+            yield return Boot();
+            TextAsset ta = Resources.Load<TextAsset>(PinnedColorUi.ResourcePath);
+            Assert.IsNotNull(ta, "Resources/" + PinnedColorUi.ResourcePath + ".json");
+            Forge.Core.Data.JsonObject root = Forge.Core.Data.MiniJson.ParseObject(ta.text);
+            Forge.Core.Data.JsonObject colors = Forge.Core.Data.J.Obj(root["colors"]);
+            Assert.IsNotNull(colors, "colors 칸");
+            int n = 0;
+            var bad = new System.Collections.Generic.List<string>();
+            foreach (var kv in colors)
+            {
+                if (kv.Key.StartsWith("_")) continue;
+                n++;
+                try { PinnedColorUi.C(kv.Key); }
+                catch (System.Exception e) { bad.Add(kv.Key + " → " + e.GetType().Name + ": " + e.Message); }
+            }
+            Assert.Greater(n, 50, "표가 통째로 비지 않았다(칸 수)");
+            Assert.IsEmpty(bad, "로더가 못 읽는 칸이 있다(부르는 화면이 통째로 못 선다 · 런 #1064) — " + string.Join(" / ", bad.ToArray()));
+        }
+
         static IEnumerator Boot()
         {
             try { if (System.IO.File.Exists(SaveIo.SavePath)) System.IO.File.Delete(SaveIo.SavePath); } catch (System.Exception) { }

@@ -33,8 +33,16 @@ namespace Forge.Game.Ui
             Load();
             Color c;
             if (cache.TryGetValue(key, out c)) return c;
-            string hex = J.Str(colors[key]);
-            if (hex == null) throw new KeyNotFoundException(ResourcePath + ".json 에 색 «" + key + "» 이 없다");
+            // T377 15회차 — 칸은 **두 꼴**이다: 홑값 `"키": "#hex"` 와 **주석 달린 객체** `"키": { "hex": "#hex", "_": "정본 어디서 왔는가" }`.
+            //   뒤엣것이 이웃 표들의 관례다(`TextShadowUi.shadows` 20 · `OpacityUi.alpha` 8 · `TextSizeUi.size` 3 이 다 그 꼴) —
+            //   100 칸짜리 «이 색은 정본 몇 줄에서 왔다» 표에선 칸마다 출처를 다는 쪽이 낫다. 그런데 이 로더만 홑값을 고집해
+            //   런 **#1064** 에서 `fi_age_star_ink`(T333 18회차가 관례대로 객체로 적었다)가 KeyNotFoundException 으로 터졌다.
+            //   ⚠ 자(`check_pinned_colors`)는 그 자리를 표에 안 갖고 있어 «미정» 으로 넘겼다 — 정적 검사가 못 막는 갈래였다.
+            //   ⇒ 두 꼴을 다 읽는다. 어느 꼴로 적든 부르는 쪽은 달라지지 않는다.
+            object raw = colors[key];
+            string hex = J.Str(raw);
+            if (hex == null) { JsonObject o = J.Obj(raw); if (o != null) hex = J.Str(o["hex"]); }
+            if (hex == null) throw new KeyNotFoundException(ResourcePath + ".json 에 색 «" + key + "» 이 없다(\"#hex\" 문자열도, 객체의 \"hex\" 칸도 아니다)");
             if (!ColorUtility.TryParseHtmlString(hex, out c)) throw new FormatException(ResourcePath + ".json 의 «" + key + "» 이 색이 아니다: " + hex);
             cache[key] = c;
             return c;
