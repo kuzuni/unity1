@@ -3972,7 +3972,7 @@
   - ⚠ 사본은 **`raycastTarget = false`** 로 두고 원본 **앞이 아니라 뒤**(`SetAsFirstSibling` 또는 형제 순서)로 깐다 — 링이 아이콘을 덮으면 그림이 뭉갠다.
   - ⚠ 링 폭은 «CSS px» 다 — `KeylineUi.CssPx` 로 캔버스 px 로 바꾼다(`UnderlaySdf` 가 쓰는 그 환산 · T104).
 - 판정: `check_text_shadows` 의 KNOWN 이 **4 → 1**(남는 하나는 `Ui/QuestSheet.cs#qst-name` — 클론에 그 이름 조각 자체가 없는 **다른 갈래**다) + PlayMode 자(세 자리마다 사본 수·색·오프셋이 표값과 같다 · 원본이 맨 앞) + 눈: `screen_main`(채팅 [뒤로] ◀ 에 검정 테) · `screen_autoforge`(시대 막대 ★ 테 · 켜진 ✓ 아래 그늘).
-- 범위: `Assets/Scripts/Game/Ui/IconShadow.cs`(새) · `Assets/Scripts/Game/Ui/ChatScreen.cs` · `Assets/Scripts/Game/Ui/ForgeAutoPopup.cs` · `tools/check_text_shadows.py`(KNOWN → TABLE) · `Assets/Tests/PlayMode/TextShadowTests.cs` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 범위: `Assets/Scripts/Game/Ui/IconShadow.cs`(새) · `Assets/Scripts/Game/Ui/ChatScreen.cs` · `Assets/Scripts/Game/Ui/ForgeAutoPopup.cs` · `tools/check_text_shadows.py`(KNOWN → TABLE) · `Assets/Tests/PlayMode/TextShadowTests.cs` · `docs/ROUTINE.md` · `docs/PROGRESS.md` **1회차(워커 T)가 더 연 것**: `Assets/Scripts/Game/Ui/ForgeUi.cs`(`AgeBar` 의 ★ 링 — 별은 아이콘이 아니라 **글자**였고 링은 이미 있으되 색이 #000 이다 · 산 lock 없음) · `Assets/Forge/Resources/IconShadowUi.json`(새 · `TextShadowUi.json` 은 T333 산 lock) · `Assets/Tests/PlayMode/IconShadowTests.cs`(새 · `TextShadowTests.cs` 는 T333 이 쥔 갈래라 제 파일). `tools/check_text_shadows.py`·`TextShadowUi.json` 은 **T333 lock 뒤**(같은 파일 규약 · 뒤 번호가 기다린다).
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
