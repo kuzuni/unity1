@@ -125,7 +125,10 @@ namespace Forge.Game.Ui
                 // T178 10회차 — 림의 바탕은 **상태로 갈린다**(파랑 `qst_bar_ramp` ↔ 초록 `qst_bar_done_ramp`)라 표의 `over_layer` 한 칸으로는 못 적는다.
                 //   그래서 부르는 쪽이 그때의 바탕 겹을 알려 준다 — 그러면 굽는 쪽이 정본이 섞는 길(sRGB)로 미리 합성한다(T357 · 8회차의 사슬과 같은 값).
                 SurfaceArt.Fill(fill.rectTransform, "qst-fill-rim", "qst_bar_rim", fillW, barH - barLine * 2f, done ? "qst_bar_done_ramp" : "qst_bar_ramp");
-                TextMeshProUGUI progT = UiKit.Text(bar, "prog", TextKind.Sub, PopupKit.Fmt(System.Math.Min(q.Prog, q.Need)) + "/" + PopupKit.Fmt(q.Need), "pp_ink");
+                // T377 18회차 — 정본 2052 `.qst-bar em { color: #fff }` + 2053 의 어두운 글자 그림자. 이것은 **어두운 트랙**(7991 #262c34)을
+                //   전제로 한 짝이다. 클론은 트랙을 #dddddd(밝은 쪽)로 두고 글자를 `pp_ink`(어두운 쪽)로 맞춰 **짝은 맞지만 정본과 반대**였다 —
+                //   트랙을 정본값으로 되돌리는 같은 회차에 글자도 흰쪽으로 돌린다(한쪽만 고치면 어두운 글자가 어두운 트랙에 묻는다).
+                TextMeshProUGUI progT = UiKit.Text(bar, "prog", TextKind.Sub, PopupKit.Fmt(System.Math.Min(q.Prog, q.Need)) + "/" + PopupKit.Fmt(q.Need), "stage_ink");
                 progT.fontStyle = FontStyles.Bold;
                 UiKit.TextShadow(progT, "qst_bar_em");   // T333 13회차 — 정본 2053 `.qst-bar em { text-shadow: 0 1px 1px rgba(0,0,0,.75) }`(글자 색 #fff 는 T396 잉크 축)
 

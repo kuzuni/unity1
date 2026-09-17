@@ -143,7 +143,7 @@
     { "key": "settings_even", "hex": "#eeeeee" },
     { "key": "settings_act_danger", "hex": "#dd3333" },
     { "key": "quest_done_bg", "hex": "#f2fff2" },
-    { "key": "quest_bar_bg", "hex": "#dddddd" },
+    { "key": "quest_bar_bg", "hex": "#262c34", "_": "T377 18회차 — 정본 **7991** `.summon-gauge, .qst-bar { background-color: #262c34 }`. 2040 의 `background: #17181a` 단축을 이 줄이 뒤에서 덮고, 7992·8798 은 `background-image` 만 손대므로 **최종 트랙 색은 #262c34** 다. 정본 7989 주석이 까닭을 적어 뒀다 — «트랙 색 자체를 반 단계 밝힌다 · #262c34 위 #fff 대비 12:1»(채움 밖 흰 글자 판독). 클론은 #dddddd(밝은 트랙) + 어두운 글자로 **짝을 맞춰 틀려** 있었다 — 정본은 어두운 트랙 + 흰 글자다. 같은 7991 줄의 `.summon-gauge` 쪽(PetSkillUi.gauge_bg)은 처음부터 #262c34 였다." },
     { "key": "quest_bar", "hex": "#4fc3f7" },
     { "key": "quest_bar_done", "hex": "#81e884" },
     { "key": "quest_sub", "hex": "#4a4a4a" },

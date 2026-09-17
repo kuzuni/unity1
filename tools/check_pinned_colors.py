@@ -139,6 +139,23 @@ TABLE = {
     #   `itemCardHTML` 의 call site 셋 중 `isNew: true` 는 **ui.js 3264 하나뿐이고 그것이 3263 `<div class="cmp-lower">` 안**이다
     #   (3260·3296 은 둘 다 `false` = `.cur`). 곧 정본에서도 이 #ececec 는 **한 번도 안 그려진다**. 클론도 같다(ForgeCraftPopup.cs:87 이 `lower` 안에서 세운다).
     '.modal-card .cmp-card-wrap.new .cmp-card': ['—죽음: 1820 `.cmp-lower .cmp-card-wrap.new .cmp-card{background:transparent}` 가 덮는다 — 정본의 유일한 `.new` 자리(ui.js 3264)가 그 `.cmp-lower`(3263) 안이라 #ececec 는 정본에서도 안 그려진다'],
+
+    # ── T377 18회차 — 산 lock 밖 파일들(PetPanel · SkillPanel · AscendPopup · QuestSheet)의 면 자리 아홉.
+    #   여덟은 **이미 제 값**이고, 하나(`.qst-bar`)는 **정본과 반대로** 칠해져 있었다.
+    '.hatchery': ['Ui/PetPanel.cs|res:PetSkillUi:hatchery_bg'],                  # 4439 #1f2740 ↔ PetSkillUi hatchery_bg 같은 값(짝만)
+    '.hatch-lamp': ['Ui/PetPanel.cs#shade|res:PetSkillUi:lamp'],                 # 4480 #23252b — 갓(반타원 돔) · T102
+    '.hatch-lamp::before': ['Ui/PetPanel.cs#stem|res:PetSkillUi:lamp'],          # 4493 #23252b — 기둥(같은 값 한 키)
+    '.hatch-lamp::after': ['Ui/PetPanel.cs#bulb|res:PetSkillUi:lamp_bulb'],      # 4494 #ffe95c — 전구
+    '.equipped-row': ['Ui/PetPanel.cs#equipped-row|res:PetSkillUi:equipped_bg',  # 4124 #24262c — 펫·스킬 두 화면이 같은 조각을 쓴다
+                      'Ui/SkillPanel.cs#equipped-row|res:PetSkillUi:equipped_bg'],
+    '.sk-eqplate': ['Ui/SkillPanel.cs#sk-eqplate|res:PetSkillUi:eqplate'],       # 4091 #0b0c0e — 장착 오브 정중앙 검정 타원(T95)
+    '.asc-row.ready': ['Ui/AscendPopup.cs|catalog:asc_ready'],                   # 5621 #2f7d32 ↔ 카탈로그 asc_ready 같은 값(짝만)
+    # 정본 **7991** `.summon-gauge, .qst-bar { background-color: #262c34 }` — 한 줄이 두 자리를 덮는다.
+    #   7989 주석이 까닭을 적어 뒀다: «트랙 색 자체를 반 단계 밝힌다 · #262c34 위 #fff 대비 12:1»(채움 밖 흰 글자 판독).
+    #   `.summon-gauge` 쪽은 처음부터 맞았고 `.qst-bar` 는 **#dddddd(밝은 트랙) + 어두운 글자**로 짝을 맞춰 정본과 반대였다 —
+    #   18회차에 트랙을 정본값으로 되돌리고 글자도 흰쪽(`stage_ink`)으로 같이 돌렸다(한쪽만 고치면 글자가 트랙에 묻는다).
+    '.summon-gauge': ['Ui/SkillPanel.cs#summon-gauge|res:PetSkillUi:gauge_bg'],
+    '.qst-bar': ['Ui/QuestSheet.cs#bg|catalog:quest_bar_bg'],
 }
 # 임자가 정해진 빈자리(파일 lock 뒤) — 붙이면 여기서 지운다
 KNOWN = {

@@ -685,6 +685,44 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T377 18회차 — 정본 **7991** `.summon-gauge, .qst-bar { background-color: #262c34 }` 한 줄이 두 트랙을 덮는다.
+        /// 7989 주석이 까닭을 적어 뒀다: «트랙 색 자체를 반 단계 밝힌다 · **#262c34 위 #fff 대비 12:1**»(채움 밖 흰 글자 판독).
+        /// 클론의 퀘스트 바는 **#dddddd(밝은 트랙) + 어두운 글자**로 짝을 맞춰 **정본과 반대**였다 — 이 칸은 «어두운 트랙 위 밝은 글자» 라는
+        /// 그 계약을 묻는다(한쪽만 고치면 글자가 트랙에 묻어 여기서 먼저 운다).</summary>
+        [UnityTest]
+        public IEnumerator 퀘스트_바_트랙은_어둡고_그_위_진행_글자는_밝다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            QuestSheet.Open(h);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup p = h.Popups.Find(QuestSheet.Name);
+            Assert.IsNotNull(p, "퀘스트 시트가 열려 있다");
+
+            int rows = 0;
+            foreach (Transform bar in p.Root.GetComponentsInChildren<Transform>(true))
+            {
+                if (bar.name != "bar") continue;
+                Transform bgT = bar.Find("face/bg");
+                Transform progT = bar.Find("prog");
+                if (bgT == null || progT == null) continue;
+                rows++;
+                Color track = bgT.GetComponent<Image>().color;
+                Color ink = progT.GetComponent<TMPro.TextMeshProUGUI>().color;
+                Assert.AreEqual(UiKit.C("quest_bar_bg"), track, "트랙 = 표 quest_bar_bg(정본 7991 #262c34)");
+                Assert.AreNotEqual(UiKit.C("pp_ink"), ink, "진행 글자는 어두운 공용 잉크가 아니다(정본 2052 는 #fff)");
+                // 계약은 «어둡다/밝다» 가 아니라 **둘의 차이**다 — 정본이 12:1 대비로 적어 둔 그 판독이다.
+                float lt = track.r * 0.2126f + track.g * 0.7152f + track.b * 0.0722f;
+                float li = ink.r * 0.2126f + ink.g * 0.7152f + ink.b * 0.0722f;
+                Assert.Less(lt, 0.25f, "트랙은 어두운 쪽이다(정본 7989 «흰 글자 판독» 의 전제)");
+                Assert.Greater(li - lt, 0.5f, "글자가 트랙보다 훨씬 밝다 — 둘이 같은 쪽으로 몰리면 이 줄이 먼저 깨진다");
+            }
+            Assert.Greater(rows, 0, "퀘스트 줄의 진행 바가 하나는 선다");
+            h.Popups.Hide(QuestSheet.Name);
+            yield return null;
+        }
+
         static System.Collections.Generic.List<Transform> AllNamed(Transform root, string name)
         {
             var found = new System.Collections.Generic.List<Transform>();
