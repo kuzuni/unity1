@@ -92,6 +92,11 @@ TABLE = {
     #   #cecece 100,343화소 · #39ab36 12,308화소 ↔ 클론 값 #f0f0f0 362 · #35c04f **0** · #8a8a8a 375 · #dbe9ff **0**.
     # T377 12회차 ⓐ — 자동 제련 **필터 토글**. 정본은 토글을 두 벌 쥔다(설정 3107 은 토큰 · 이 쪽 4759 는 **못박은 값**)인데
     #   클론은 공용 `PopupKit.Toggle` 한 벌로 그려 필터 토글이 설정 팔레트(`pp_gray`/`pp_blue`)로 찍히고 있었다 — 켜짐이 초록이 아니라 파랑이었다.
+    # T377 13회차 — 던전 목록의 **잠긴** 배너 [열기] 칩. 정본 8149 주석이 까닭을 적어 뒀다 —
+    #   «배너 일러스트 위에서 «유령»으로 읽히던 **회백**을 확실한 비활성 칩으로». 클론은 공용 `Skin.Gray`(pp_gray #c4c4c4)를
+    #   그대로 써서 정본이 이미 고친 그 회백을 다시 밟고 있었다(턱 `pp_gray_dk` #9a9a9a 는 면보다 **밝아** 뒤집혀 있었다).
+    #   ⚠ 같은 규칙의 글자 `#3d434a` 는 **T396(잉크 축) 몫**이라 그 표엔 안 올렸다 — 값·배선은 이 회차가 해 뒀다(반만 옮기면 #878e96 위 #7b7b7b 라 안 읽힌다).
+    '.modal-card.sheet .dg-banner .btn.disabled': ['Ui/DungeonPopups.cs@Pill|catalog:dg_lock_open'],   # 8151 #878e96
     '.af-toggle': ['Ui/ForgeAutoPopup.cs#af-toggle|catalog:af_toggle'],          # 4761 #1e2a4a(꺼진 트랙)
     '.af-toggle.on': ['Ui/ForgeAutoPopup.cs#af-toggle|catalog:af_toggle_on'],    # 4768 #35d435(켜진 트랙 · 4994 글로우도 같은 rgb)
     # T377 12회차 ⓑ — 패스 묶음 열둘(8회차가 «패스 11» 로 적어 둔 것 · `PassPopup.cs` 가 열렸다). **열둘 다 이미 제 값**이라 자가 지키기만 한다.

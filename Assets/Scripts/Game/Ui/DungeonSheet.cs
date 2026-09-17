@@ -255,7 +255,8 @@ namespace Forge.Game.Ui
                 UiKit.Place(ki.rectTransform, colRight - ktW - kIco * 1.05f, colTop + (keysH - kIco) * 0.5f, kIco, kIco);
             }
             string id = d.Id;
-            Button open = DungeonPopups.Pill(rt, "open", "열기", ok ? DungeonPopups.Skin.Blue : DungeonPopups.Skin.Gray, TextKind.Button,
+            // T377 13회차 — 잠긴 갈래는 공용 회색이 아니라 정본이 이 자리에만 못박은 칩이다(8151 · 면 #878e96 · 턱 #666d75 · 글자 #3d434a).
+            Button open = DungeonPopups.Pill(rt, "open", "열기", ok ? DungeonPopups.Skin.Blue : DungeonPopups.Skin.DgLocked, TextKind.Button,
                 () => DungeonDetailPopup.Open(id), DungeonPopups.RemL("btn_radius_rem"), ok);
             UiKit.Place(DungeonPopups.Root(open), colRight - btnW, colTop + (ok ? keysH + rightGap : 0f), btnW, btnH);
             openButtons[d.Id] = open;

@@ -386,6 +386,37 @@ namespace Forge.Tests.PlayMode
             h.Meta.Popups.HideAll();
         }
 
+        /// <summary>T377 13회차 — 던전 목록의 **잠긴** 배너 [열기] 칩. 정본 **8151** `.modal-card.sheet .dg-banner .btn.disabled`
+        /// 는 공용 비활성과 **다른 값**을 못박는다(면 `#878e96` · 턱 `#666d75` · 글자 `#3d434a`)고, 바로 위 8149 주석이 까닭까지 적어 뒀다 —
+        /// «배너 일러스트 위에서 «유령»으로 읽히던 **회백**을 확실한 비활성 칩으로». 클론은 공용 `Skin.Gray`(`pp_gray` #c4c4c4 / `pp_gray_dk` #9a9a9a)를
+        /// 써서 정본이 이미 고친 그 회백을 다시 밟았고, **턱이 면보다 밝아 뒤집혀** 있었다. 표값은 `check_pinned_colors` 가 본다 — 여기는 «자리가 그 키를 쓰는가».</summary>
+        [UnityTest]
+        public IEnumerator 잠긴_던전_열기_칩은_공용_회색이_아니라_배너_위에서_읽히는_어두운_칩이다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            // 새 세이브는 던전이 전부 잠겨 있다 — 그대로 열면 잠긴 갈래를 잰다(해금하면 Blue 로 바뀌어 헛초록이 된다).
+            UiRoot.Instance.TabBar.OnTab("dungeon");
+            yield return null; yield return null;
+            // 뿌리를 시트로 좁힌다 — «open» 은 `OfflineButton` 도 쓰는 이름이라 앱 뿌리부터 찾으면 남의 화면 상자를 잴 수 있다(T414 · `check_test_scope` 가 막는다).
+            Transform open = FindActive(UiRoot.Instance.Sheet, "open");
+            Assert.IsNotNull(open, "잠긴 던전의 [열기] 칩");
+            Image face = open.Find("bg").GetComponent<Image>();
+            Assert.IsNotNull(face, "칩의 면(bg)");
+            Color wantFace = UiKit.C("dg_lock_open"), wantDk = UiKit.C("dg_lock_open_dk");
+            Assert.AreEqual(wantFace, face.color, "면 = catalog dg_lock_open(정본 8151 #878e96)");
+            Assert.AreNotEqual(UiKit.C("pp_gray"), face.color, "공용 pp_gray(#c4c4c4)가 아니다 — 정본이 «유령 회백» 을 고쳐 둔 자리다");
+            Assert.Less(wantFace.r + wantFace.g + wantFace.b, UiKit.C("pp_gray").r + UiKit.C("pp_gray").g + UiKit.C("pp_gray").b,
+                "«확실한 비활성 칩» 이 이 자리의 뜻이다 — 표값이 공용 회색만큼 밝아지면 이 줄이 먼저 깨진다");
+            // 턱은 면보다 **어두워야** 한다(클론의 pp_gray_dk 는 면보다 밝아 뒤집혀 있었다)
+            Assert.Less(wantDk.r + wantDk.g + wantDk.b, wantFace.r + wantFace.g + wantFace.b,
+                "아래턱(정본 8152 #666d75)은 면보다 어둡다");
+            Transform lab = open.Find("label");
+            Assert.IsNotNull(lab, "칩 글자");
+            TMPro.TextMeshProUGUI t = lab.GetComponent<TMPro.TextMeshProUGUI>();
+            Assert.AreEqual(UiKit.C("dg_lock_open_ink"), t.color, "글자 = catalog dg_lock_open_ink(정본 8151 #3d434a) — 면만 어둡게 하고 글자를 두면 안 읽힌다");
+        }
+
         /// <summary>이름이 같은 자리를 **전부** 모은다 — «하나만 맞다» 로 지나가지 않게.</summary>
         static System.Collections.Generic.List<Transform> AllDeep(Transform root, string name)
         {

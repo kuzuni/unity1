@@ -14,7 +14,7 @@ namespace Forge.Game.Ui
     /// </summary>
     public static class DungeonPopups
     {
-        public enum Skin { Blue, Red, Silver, Gray, DgdSilver }
+        public enum Skin { Blue, Red, Silver, Gray, DgdSilver, DgLocked }
 
         static readonly Vector2 Center = new Vector2(0.5f, 0.5f);
 
@@ -111,6 +111,10 @@ namespace Forge.Game.Ui
                 case Skin.Red: bg = "pp_red"; dk = "pp_red_dk"; ink = "white"; break;
                 case Skin.Silver: bg = "silver"; dk = "silver_dk"; ink = "pp_ink"; break;
                 case Skin.DgdSilver: bg = "dgd_btn"; dk = "dgd_btn_dk"; ink = "white"; break;
+                // T377 13회차 — 정본 8151 `.modal-card.sheet .dg-banner .btn.disabled`(잠긴 배너의 [열기])는 공용 비활성과 **다른 값**을 못박는다:
+                //   면 #878e96 · 턱 #666d75 · 글자 #3d434a. 8149 주석이 까닭까지 적었다 — «배너 일러스트 위에서 «유령»으로 읽히던 회백을 확실한 비활성 칩으로».
+                //   클론은 공용 `Gray`(pp_gray #c4c4c4 / pp_gray_dk #9a9a9a)를 써서 정본이 이미 고쳐 둔 그 회백을 다시 밟고 있었다(턱도 면보다 밝아 뒤집혀 있었다).
+                case Skin.DgLocked: bg = "dg_lock_open"; dk = "dg_lock_open_dk"; ink = "dg_lock_open_ink"; break;
                 default: bg = "pp_gray"; dk = "pp_gray_dk"; ink = "btn_disabled_ink"; break;
             }
             if (radiusPx < 0f) radiusPx = RemL("btn_radius_rem");
