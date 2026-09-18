@@ -1828,6 +1828,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             else:
                 print(u"지난 회차(런 %s) 평균 %.2f → 이번 %.2f (%+.2f)"
                       % (base.get("_run", "?"), base["_avg"], avg, avg - base["_avg"]))
+                print(u"  ⚠ **두 런 사이에 코드가 바뀌었는지 먼저 확인해라**(`git merge-base --is-ancestor <고침> <런 sha>`) — 런이 다르면 «흔들린다» 고 읽기 쉬운데 실은 **고침이 그 사이에 들어간 것**일 수 있다(T28 140회차가 139회차의 «새 흔들림» 을 그렇게 잘못 읽었다). 흔들림은 **같은 코드의 두 런**을 나란히 놓아야 보인다.")
         hist = base.get("_hist") or []
         obase = base.get("_fp") or {}
         oband = base.get("_bands") or {}
