@@ -287,7 +287,10 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(x, "✕");
             RectTransform overlay = card.parent as RectTransform;
             Assert.IsNotNull(overlay, "모달 겹");
-            Rect rc = World(card), rx = World(x), ro = World(overlay);
+            // T465 — 카드 rect 는 이제 패딩 상자(테가 위·아래로 line3 만큼 밖) · 정본이 가운데 두는 «카드» 는 테까지의 몸(border-box)이라 테 상자(bg)로 잰다
+            RectTransform body = (RectTransform)card.Find("bg");
+            Assert.IsNotNull(body, "카드 몸(bg · 테 상자)");
+            Rect rc = World(body), rx = World(x), ro = World(overlay);
             Assert.Greater(rc.height, 0f, "카드 높이");
             Assert.Less(rx.yMin, rc.yMin, "✕ 가 카드 아래로 삐져나온다");
             float overhang = rc.yMin - rx.yMin;

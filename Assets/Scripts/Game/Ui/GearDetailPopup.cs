@@ -77,7 +77,7 @@ namespace Forge.Game.Ui
             float w = GearDetailStyle.Px("card_w"), rem = PopupKit.Rem;
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
             // 정본 1737: 카드 바닥을 앱 바닥에서 bottom_h(.223·H) 위에 앉힌다 — 높이는 내용을 따르고(ContentSizeFitter) 피벗이 바닥이라 위로 자란다.
-            UiKit.Anchor(card, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, GearDetailStyle.Px("bottom_h")), w, card.sizeDelta.y);
+            UiKit.Anchor(card, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, GearDetailStyle.Px("bottom_h") + PopupKit.Line3), w, card.sizeDelta.y);   // T465 — bottom_h 는 카드 몸의 바닥 · rect 는 패딩 상자
             PopupKit.Column(card, UiKit.H("card_pad") + rem * 0.6f, rem * 0.45f);
             RectTransform ic = ForgeUi.ItemCard(card, "cur", w - UiKit.H("card_pad") * 2f - rem * 1.2f, it, "장착됨", null, false, h.Defs, h.GearSys.ItemValue);
             ForgeUi.Ribbon(ic, "장착됨", false);

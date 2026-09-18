@@ -127,7 +127,7 @@ namespace Forge.Game.Ui
             if (p == null) return;
             RectTransform root = PopupLayer.Clear(p);
             float rem = PopupKit.Rem, w = UiKit.RefW, H = UiKit.RefH;
-            float cardW = UiKit.L("pinfo_w") * w, cardH = UiKit.L("pinfo_h") * H;
+            float cardW = UiKit.L("pinfo_w") * w, cardH = UiKit.L("pinfo_h") * H - PopupKit.Line3 * 2f;   // T465 — 표값은 원작 카드 몸(border-box) · Card 의 h 는 패딩 상자
             RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "pp_paper", rem);
             float pad = UiKit.H("card_pad");
             float inner = cardW - PopupKit.Line3 * 2f;

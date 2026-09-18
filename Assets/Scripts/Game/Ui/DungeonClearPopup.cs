@@ -49,6 +49,7 @@ namespace Forge.Game.Ui
             RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_r_rem"));
             // 원작 .dgclear-card 는 테 색이 금색(#ffd54f) — 바깥 테를 그 색으로 덧그린다.
             RectTransform gold = DungeonPopups.Bordered(card, "gold", "pp_paper", DungeonPopups.RemL("card_r_rem"), DungeonPopups.Line3, "dgclear_title");
+            PopupKit.GrowY((RectTransform)gold.parent, DungeonPopups.Line3);   // T465 — 금테도 검정 테와 같이 카드 rect(패딩 상자) 밖에 선다
 
             float y = pad;
             Title = "클리어!";

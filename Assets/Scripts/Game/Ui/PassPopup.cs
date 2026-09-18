@@ -50,7 +50,7 @@ namespace Forge.Game.Ui
             //   ⓑ 번짐이 **음수**인 유일한 자리다(`-.5rem` — 판을 안으로 줄여 굽는다 · 표 `passcard_drop`).
             UiShadow.Remove(card, "card_lip");
             UiShadow.Remove(card, "modalcard_cast");   // 34회차 — 8602 는 **목록을 통째로** 갈아 끼운다(앰비언트도 없다)
-            UiShadow.Drop(card, "passcard_drop", rem);
+            UiShadow.Drop(card, "passcard_drop", rem, -1f, -1f, PopupKit.Line3);   // T465 — 그늘은 카드 몸(테 포함)에
             // T132 — 정본 ui.js 4924 `<div class="pass-sword">${IconGen.img('passsword')}</div>` · style.css 2686: 카드 윗변에서 4.81rem 위 · 가운데 · 3.72×6.72rem.
             // 리본(.pass-banner)보다 먼저 세운다 — 정본 DOM 순서대로 리본이 칼자루 위를 덮는다. 치수는 StaticIconsUi.json(§1).
             Image sword = PopupKit.IconOr(card, "pass-sword", "passsword");

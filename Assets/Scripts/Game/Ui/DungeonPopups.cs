@@ -40,12 +40,17 @@ namespace Forge.Game.Ui
             return rt;
         }
 
-        /// <summary>가운데 카드(흰 종이 · 검정 테 line3 · 둥근 모서리). w·h 는 기준 px.</summary>
+        /// <summary>
+        /// 가운데 카드(흰 종이 · 검정 테 line3 · 둥근 모서리). w·h 는 기준 px.
+        /// T465 — `h` 는 CSS 의 **패딩 상자**(패딩 + 내용)다: 테(`bg`)는 rect 보다 위·아래로 `Line3` 씩 밖에 서므로(`PopupKit.GrowY`)
+        /// 호출부가 `UiKit.Place(child, x, pad, …)` 로 놓는 `pad` 가 정본 `padding` 처럼 테 안쪽부터 잰다. 화면의 카드 몸은 `h + 2·Line3`.
+        /// </summary>
         public static RectTransform Card(RectTransform overlay, string name, float w, float h, float radiusPx, string bgKey = "pp_paper")
         {
             RectTransform card = UiKit.Box(overlay, name);
             UiKit.Anchor(card, Center, Center, Vector2.zero, w, h);
-            Bordered(card, "bg", bgKey, radiusPx, Line3);
+            RectTransform face = Bordered(card, "bg", bgKey, radiusPx, Line3);
+            PopupKit.GrowY((RectTransform)face.parent, Line3);
             return card;
         }
 
@@ -173,7 +178,7 @@ namespace Forge.Game.Ui
         {
             float d = RemL("x_btn_rem");
             RectTransform rt = UiKit.Box(card, "x-btn");
-            UiKit.Anchor(rt, new Vector2(0.5f, 0f), Center, Vector2.zero, d, d);
+            UiKit.Anchor(rt, new Vector2(0.5f, 0f), Center, new Vector2(0f, -Line3), d, d);   // T465 — 카드 몸(테)의 아래변 = rect 아래변 − Line3
             BorderedCircle(rt, "bg", "x_btn", Line3);
             Image mark = UiKit.Icon(rt, "mark", "xmark");
             mark.color = UiKit.C("white");

@@ -69,7 +69,7 @@ namespace Forge.Game.Ui
             // 2회차에 원작 PNG(`ref/screens/shot-042831.png`)의 카드 왼쪽 안쪽 세로줄을 직접 재니 **밝은 판이 y85~789 = 79.9%H**
             // 로 이어졌다 — CSS 주석의 «px 80~793 = 81.04%H» 와 맞고 68.90 은 자의 측정 한계였다(§4 기록 참조).
             // 클론은 같은 자로 72.1%H(내용이 정하던 값)라 표대로 고정하면 원작 쪽으로 간다. 내용이 더 짧으므로 넘침도 없다.
-            RectTransform card = PopupKit.Card(root, "card", w, UiKit.RefH * ForgeInfoStyle.L("fi_card_h_f"), "pp_paper", rem * 1.1f);
+            RectTransform card = PopupKit.Card(root, "card", w, UiKit.RefH * ForgeInfoStyle.L("fi_card_h_f") - PopupKit.Line3 * 2f, "pp_paper", rem * 1.1f);   // T465 — 표값은 카드 몸(border-box) · h 는 패딩 상자
             PopupKit.Column(card, pad, rem * 0.3f);
             RectTransform head = PopupKit.Item(card, "head", -1f, PopupKit.FontSize(TextKind.Title2) * 1.25f);
             TextMeshProUGUI title = UiKit.Text(head, "title", TextKind.Title2, "확률 정보", "pp_ink");   // T404 ⓑ — 정본 5056 `.fi-title { 1.12rem }` = 40.8px → Title2 42(전엔 Title 60 · +47%)
@@ -175,8 +175,9 @@ namespace Forge.Game.Ui
             float cardH, cardY;
             // 높이는 정본에 선언이 없어(공용 상한이 잡는다) 쓰던 값을 표로만 옮겼다 — 재는 사람이 표를 고친다.
             PopupKit.FitBetweenBars(H * ForgeInfoStyle.L("fl_card_h_f"), out cardH, out cardY);   // T78 — ✕ 가 탭바에 가리지 않게
+            cardH -= PopupKit.Line3 * 2f;   // T465 — 위 값은 카드 몸(border-box) · PopupKit.Card 의 h 는 패딩 상자
             float th = PopupKit.FontSize(TextKind.Title2) * 1.3f;   // T404 2회차 — 정본 ui.js 2125 `<h3 class="fi-title">모든 장비의 목록</h3>` = 5056 1.12rem → Title2
-            float chrome = pad * 2f + th + rem * 0.4f + PopupKit.Line3 * 2f;                      // 카드 안에서 목록이 아닌 몫(패딩·제목·틈·테)
+            float chrome = pad * 2f + th + rem * 0.4f;                      // 카드 안에서 목록이 아닌 몫(패딩·제목·틈 · T465: 테는 이제 rect 밖이라 안 센다)
             // T388 3회차 — 정본 **722** `.forge-age-list { max-height: calc(var(--app-h) * .59); overflow-y: auto }`.
             //   여태 클론은 **카드를 `fl_card_h_f` .76 으로 고정하고 목록을 그 나머지로 채웠다** — 그래서 목록이 67%H 로 서서 상한을 +13% 넘었다(런 704 실측).
             //   정본은 반대다: `.fl-card` 에 높이 선언이 **없고** 상한은 **안쪽 목록**이 쥔다(카드는 내용만큼 자란다 · `fl_card_h_f` 는 그 위의 공용 상한 노릇).

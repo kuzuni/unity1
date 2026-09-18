@@ -111,14 +111,14 @@ namespace Forge.Game.Ui
             float pillH = IconLineH(TextKind.Sub) + DungeonPopups.RemL("dgd_pill_pad_rem") * 2f;
             float keysH = IconLineH(TextKind.Title);
             float btnH = DungeonPopups.RemL("dgd_btn_h_rem");
-            float ch = Mathf.Max(H * UiKit.L("dgd_card_minh"),
+            float ch = Mathf.Max(H * UiKit.L("dgd_card_minh") - DungeonPopups.Line3 * 2f,   // T465 — 표의 min-height 는 border-box · 카드 rect 는 패딩 상자
                 heroH + DungeonPopups.RemL("dgd_hero_mb_rem") + stageMt + stageRowH + stageMb + pillH + DungeonPopups.RemL("dgd_pill_mb_rem")
                 + keysH + DungeonPopups.RemL("dgd_keys_mb_rem") + btnH + DungeonPopups.RemL("dgd_btn_mb_rem"));
             RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, radius);
 
             // 배너(그림 + 제목 오버레이) — 모서리는 카드 위쪽 둥근 반지름을 따른다.
             RectTransform hero = UiKit.Box(card, "hero");
-            UiKit.Place(hero, DungeonPopups.Line3, DungeonPopups.Line3, cw - DungeonPopups.Line3 * 2f, heroH);
+            UiKit.Place(hero, DungeonPopups.Line3, 0f, cw - DungeonPopups.Line3 * 2f, heroH);   // T465 — 카드 rect 의 위끝이 곧 테 안쪽이다(옛 Line3 보정을 걷었다)
             // T178 19회차 — 정본 2060 `.dg-detail-hero { background: linear-gradient(120deg, var(--bg,#444c56), #161b22) }` = 목록 배너 1952 와 같은 겹(표 dg_banner).
             //   일러스트 **뒤**의 바탕이다(정본 주석 «목록 배너와 같은 dg_* 일러스트를 얹는다» · 그림이 없는 던전은 이것만 보인다). 여태 카드색이 비쳤다.
             SurfaceArt.Fill(hero, "bg-grad", "dg_banner", cw - DungeonPopups.Line3 * 2f, heroH);
@@ -129,7 +129,7 @@ namespace Forge.Game.Ui
             float th = DungeonPopups.LineH(TextKind.Body);
             UiKit.Place(title.rectTransform, 0f, DungeonPopups.Rem(0.4f), cw, th);
 
-            float y = DungeonPopups.Line3 + heroH + DungeonPopups.RemL("dgd_hero_mb_rem") + stageMt;   // T426 — 배너 마진 + 줄 위 마진 .3rem
+            float y = heroH + DungeonPopups.RemL("dgd_hero_mb_rem") + stageMt;   // T426 — 배너 마진 + 줄 위 마진 .3rem · T465 — 옛 Line3 보정을 걷었다
 
             // ◀ 난이도 C-S ▶ — T364 12회차: 정본 5304 는 **flex 행**이다(`display:flex; align-items:center; justify-content:center; gap: calc(var(--app-w) * .1237)`).
             //   클론은 «반 틈(gap × 0.5) + 카드 폭 30% 고정 상자» 라 모델이 달랐다(3회차가 «값만 바꾸면 되레 벌어진다» 로 적어 둔 자리).

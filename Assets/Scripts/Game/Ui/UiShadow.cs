@@ -94,11 +94,12 @@ namespace Forge.Game.Ui
         /// </summary>
         /// <param name="w">상자의 폭(px · 음수면 `box.rect` 에서 읽는다).</param>
         /// <param name="h">상자의 높이(px · 음수면 `box.rect` 에서 읽는다).</param>
-        public static Image Drop(RectTransform box, string key, float radiusPx, float w, float h)
+        /// <param name="growY">상자보다 위·아래로 이만큼 **더 큰** 몸(border-box)에 그늘을 깐다 — T465: 팝업 카드는 rect 가 패딩 상자고 테가 세로로 `Line3` 만큼 밖에 있다.</param>
+        public static Image Drop(RectTransform box, string key, float radiusPx, float w, float h, float growY = 0f)
         {
             if (box == null) throw new ArgumentNullException("box");
             ShadowSpec s = Table.Get(key);
-            if (!s.IsHard) return Blur(box, key, radiusPx, w, h);
+            if (!s.IsHard) return Blur(box, key, radiusPx, w, h, growY);
 
             Transform had = box.Find(Layer(key));
             Image img = had != null ? had.GetComponent<Image>() : UiKit.Rounded(box, Layer(key), "pp_line", radiusPx);
@@ -109,7 +110,8 @@ namespace Forge.Game.Ui
 
             double x, y;
             Table.OffsetPx(key, PetSkillStyle.RemPx, out x, out y);
-            img.rectTransform.anchoredPosition = new Vector2((float)x, (float)y);
+            img.rectTransform.offsetMin = new Vector2((float)x, (float)y - growY);
+            img.rectTransform.offsetMax = new Vector2((float)x, (float)y + growY);
             return img;
         }
 
@@ -123,11 +125,11 @@ namespace Forge.Game.Ui
         /// 판은 흐림이 잘리지 않게 **테두리를 넓혀** 굽고, 그만큼 상자 밖으로 내민다. 자리와 크기를 한 자리에서
         /// 주려고 `offsetMin`·`offsetMax` 로 준다 — 늘어난 상자에서 그 둘이 **크기와 자리를 같이 쥔다**(런 528 의 교훈).
         /// </summary>
-        static Image Blur(RectTransform box, string key, float radiusPx, float wantW, float wantH)
+        static Image Blur(RectTransform box, string key, float radiusPx, float wantW, float wantH, float growY = 0f)
         {
             ShadowSpec s = Table.Get(key);
             float rem = PetSkillStyle.RemPx;
-            float w = wantW > 0f ? wantW : box.rect.width, h = wantH > 0f ? wantH : box.rect.height;
+            float w = wantW > 0f ? wantW : box.rect.width, h = (wantH > 0f ? wantH : box.rect.height) + growY * 2f;
             if (w <= 1f || h <= 1f)
             {
                 // 여기서 조용히 돌아가면 **그늘이 없는 채로 화면이 선다** — 자는 «호출이 있다» 만 보므로 아무도 모른다.
@@ -157,8 +159,8 @@ namespace Forge.Game.Ui
             r.anchorMin = Vector2.zero; r.anchorMax = Vector2.one;
             double dx, dy;
             Table.OffsetPx(key, rem, out dx, out dy);
-            r.offsetMin = new Vector2(-pad + (float)dx, -pad + (float)dy);
-            r.offsetMax = new Vector2(pad + (float)dx, pad + (float)dy);
+            r.offsetMin = new Vector2(-pad + (float)dx, -pad + (float)dy - growY);
+            r.offsetMax = new Vector2(pad + (float)dx, pad + (float)dy + growY);
             return img;
         }
 
@@ -234,13 +236,13 @@ namespace Forge.Game.Ui
         /// 자리가 많다. 그런 상자는 세우는 그 프레임엔 `rect` 가 0 이라 굽는 길이 빈손으로 돌아간다(28회차).
         /// 딱딱한 턱은 크기를 안 쓰므로 그대로 걸고, 흐린 겹만 한 프레임 미룬다.
         /// </summary>
-        public static void DropWhenSized(RectTransform box, string key, float radiusPx)
+        public static void DropWhenSized(RectTransform box, string key, float radiusPx, float growY = 0f)
         {
             if (box == null) throw new ArgumentNullException("box");
-            if (Table.Get(key).IsHard) { Drop(box, key, radiusPx); return; }
-            if (box.rect.width > 1f && box.rect.height > 1f) { Drop(box, key, radiusPx); return; }
+            if (Table.Get(key).IsHard) { Drop(box, key, radiusPx, -1f, -1f, growY); return; }
+            if (box.rect.width > 1f && box.rect.height > 1f) { Drop(box, key, radiusPx, -1f, -1f, growY); return; }
             UiShadowLate late = box.gameObject.AddComponent<UiShadowLate>();
-            late.Arm(key, radiusPx);
+            late.Arm(key, radiusPx, growY);
         }
     }
 
@@ -251,10 +253,10 @@ namespace Forge.Game.Ui
     public sealed class UiShadowLate : MonoBehaviour
     {
         string key;
-        float radiusPx;
+        float radiusPx, growY;
         int waited;
 
-        internal void Arm(string k, float r) { key = k; radiusPx = r; }
+        internal void Arm(string k, float r, float g = 0f) { key = k; radiusPx = r; growY = g; }
 
         /// <summary>이 부품이 기다리는 키 — `Remove` 가 짝을 가른다.</summary>
         internal bool Waiting(string k) { return key == k; }
@@ -273,7 +275,7 @@ namespace Forge.Game.Ui
                 }
                 return;
             }
-            UiShadow.Drop(rt, key, radiusPx);
+            UiShadow.Drop(rt, key, radiusPx, -1f, -1f, growY);
             Destroy(this);
         }
     }

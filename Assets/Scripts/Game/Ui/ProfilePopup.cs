@@ -36,7 +36,7 @@ namespace Forge.Game.Ui
             if (p == null) return;
             RectTransform root = PopupLayer.Clear(p);
             float rem = PopupKit.Rem, w = UiKit.RefW, H = UiKit.RefH;
-            float cardW = UiKit.L("profile_w") * w, cardH = UiKit.L("profile_h") * H;
+            float cardW = UiKit.L("profile_w") * w, cardH = UiKit.L("profile_h") * H - PopupKit.Line3 * 2f;   // T465 — 표값은 원작 카드 몸(border-box) · Card 의 h 는 패딩 상자
             // T395 — 정본 `#profile-modal .idet-wrap { top: .8rem }`(style.css 3042)은 **CSS 보정값**이다(래퍼가 ✕ 까지 끌어안은 채 세로 중앙에 놓여 카드가 위로 밀린 것을
             //   되돌리는 값 · 3039~3041 주석). `PopupKit.Card` 는 카드 자체를 가운데 두므로 그 문제가 없다 — 옮기면 카드가 .8rem 아래로 한 번 더 간다(런 743 실측 +14.5px). 옮기지 않는다.
             RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "pp_paper", rem, "pp_line", 0f);
@@ -63,7 +63,7 @@ namespace Forge.Game.Ui
         {
             Button b = UiKit.Button(tabs, "tab-" + name, onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
-            UiKit.Place(rt, x + PopupKit.Line3, PopupKit.Line3, w - PopupKit.Line3 * 1.5f, h - PopupKit.Line3 * 2f);
+            UiKit.Place(rt, x + PopupKit.Line3, 0f, w - PopupKit.Line3 * 1.5f, h - PopupKit.Line3 * 2f);   // T465 — 카드 rect 위끝이 곧 테 안쪽(옛 세로 Line3 보정을 걷었다)
             UiKit.Panel(rt, "face", on ? "pp_blue" : "pp_ink");
             TextMeshProUGUI t = UiKit.Text(rt, "label", TextKind.Sub, label, "stage_ink");
             t.fontStyle = FontStyles.Bold;

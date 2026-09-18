@@ -55,7 +55,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(card, "카드(card)");
             Assert.AreEqual(0f, card.anchoredPosition.y, 0.5f, "카드 세로 오프셋 0 — 정본 .8rem 은 CSS 보정값이라 옮기지 않는다");
             Assert.AreEqual(0.5f, card.anchorMin.y, 1e-4f); Assert.AreEqual(0.5f, card.pivot.y, 1e-4f, "가운데 앵커·피벗");
-            Assert.AreEqual(UiKit.L("profile_h") * UiKit.RefH, card.rect.height, 0.5f, "카드 높이는 표(profile_h)대로 — 건드리지 않는다");
+            Assert.AreEqual(UiKit.L("profile_h") * UiKit.RefH - PopupKit.Line3 * 2f, card.rect.height, 0.5f, "카드 rect(패딩 상자) = 표(profile_h · 카드 몸) − 테 두 겹(T465) — 표는 건드리지 않는다");
             Assert.AreEqual(UiKit.L("profile_w") * UiKit.RefW, card.rect.width, 0.5f, "카드 폭은 표(profile_w)대로");
             ProfilePopup.Close(h);
             yield return null;

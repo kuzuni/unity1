@@ -271,9 +271,27 @@ namespace Forge.Game.Ui
             rt.offsetMax = new Vector2(-px, -px);
         }
 
+        /// <summary>
+        /// T465 — 부모를 채우는 상자를 **위·아래로** `px` 만큼 더 내민다(좌우는 그대로).
+        /// 카드의 테·면·그늘이 이것으로 카드 rect(패딩 상자) 밖에 선다 — CSS `border-box` 의 테는 `padding` 바깥이다.
+        /// </summary>
+        public static void GrowY(RectTransform rt, float px)
+        {
+            rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - px);
+            rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y + px);
+        }
+
         // ---- 컨테이너 ----
 
-        /// <summary>가운데 카드(원작 .modal-card). h ≤ 0 이면 내용 높이를 따른다.</summary>
+        /// <summary>
+        /// 가운데 카드(원작 .modal-card). h ≤ 0 이면 내용 높이를 따른다.
+        /// <para>
+        /// T465 — 돌려주는 rect 는 CSS 의 **패딩 상자**다: 테(`line`)·면(`face`)·그늘은 그 rect 보다 위·아래로 `Line3` 씩 **밖에** 선다
+        /// (`GrowY`). 곧 `h` 는 «패딩 + 내용» 이고 화면의 카드 몸(border-box)은 `h + 2 × Line3` 다 — 호출부가 `UiKit.Place(child, x, pad, …)` 로 놓는
+        /// `pad` 는 정본 `padding` 처럼 **테 안쪽**부터 잰다. 원작 PNG 에서 잰 카드 높이(border-box)를 줄 땐 `2 × Line3` 를 빼서 준다.
+        /// 좌우는 옛 그대로(테가 rect 안 · 호출부가 `inner = w − 2·Line3` 로 셈한다) — 남은 몫.
+        /// </para>
+        /// </summary>
         public static RectTransform Card(Transform parent, string name, float w, float h, string faceKey, float radius, string lineKey = "pp_line", float yOffset = 0f)
         {
             RectTransform rt = UiKit.Box(parent, name);
@@ -284,17 +302,19 @@ namespace Forge.Game.Ui
             // 정본 `.modal-card`(style.css 3518) `0 .5rem 0 rgba(0,0,0,.25)` — 모든 모달 카드가 같이 쓰는 아래턱이다.
             // 딱딱한 턱이라 굽지 않고 같은 모양 한 겹을 뒤에 깔기만 한다 — 상자에 늘어붙으므로
             // 아래 `ContentSizeFitter` 로 높이가 나중에 정해지는 카드에서도 따라간다.
-            UiShadow.Drop(rt, "card_lip", radius);
+            UiShadow.Drop(rt, "card_lip", radius, -1f, -1f, Line3);   // T465 — 그늘은 카드 몸(테 포함)에 진다
             // T331 34회차 — 정본 8596 `.modal-card:not(.sheet):not(.pass-card)` 의 **둘째 겹**
             //   `0 1.05rem 1.6rem -.5rem rgba(0,0,0,.55)`(앰비언트 캐스트). 정본 주석: «하드 오프셋뿐이라
             //   die-cut 로 보인다 — 없애지 말고 그 뒤에 번진 캐스트를 한 겹 덧댄다».
             //   ⚑ 이 공장은 높이를 `-1`(내용이 정한다)로 받는 자리가 많아 **크기가 그 프레임엔 0** 이다 —
             //     그래서 굽는 겹은 `DropWhenSized` 로 첫 유효 크기까지 미룬다(28회차의 조용한 실패를 피한다).
             //   ⚑ 전체화면 시트는 이 공장을 안 쓰고(`PopupKit.Sheet`) 패스 카드는 제 회차에서 걷는다(결정 719).
-            UiShadow.DropWhenSized(rt, "modalcard_cast", radius);
-            UiKit.Rounded(rt, "line", lineKey, radius);
+            UiShadow.DropWhenSized(rt, "modalcard_cast", radius, Line3);
+            Image line = UiKit.Rounded(rt, "line", lineKey, radius);
+            GrowY(line.rectTransform, Line3);                                   // T465 — 테는 패딩 상자 밖(위·아래)
             Image face = UiKit.Rounded(rt, "face", faceKey, Mathf.Max(1f, radius - Line3));
-            Inset(face.rectTransform, Line3);
+            face.rectTransform.offsetMin = new Vector2(Line3, 0f);              // 면 = 테 안쪽 — 세로는 rect 그대로, 가로만 옛 테 몫
+            face.rectTransform.offsetMax = new Vector2(-Line3, 0f);
             if (h <= 0)
             {
                 ContentSizeFitter f = rt.gameObject.AddComponent<ContentSizeFitter>();
@@ -496,7 +516,7 @@ namespace Forge.Game.Ui
             float shadow = UiKit.H("xbtn_shadow");
             Button b = UiKit.Button(card, "x-btn", onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
-            UiKit.Anchor(rt, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0f, x * (0.5f - UiKit.L("xbtn_over"))), x, x);
+            UiKit.Anchor(rt, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0f, x * (0.5f - UiKit.L("xbtn_over")) - Line3), x, x);   // T465 — 카드 몸의 아래변은 rect 아래변보다 Line3 아래다
             rt.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
             Image sh = UiKit.Circle(rt, "shadow", "tabx_shadow");
             UiKit.Anchor(sh.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -shadow), x, x);

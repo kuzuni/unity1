@@ -82,7 +82,9 @@ namespace Forge.Game.Ui
             GameDefs d = h.Defs;
             float W = UiKit.RefW, rem = PopupKit.Rem;
             float sheetH = sheet.rect.height > 0 ? sheet.rect.height : (UiKit.L("chat_top") - UiKit.L("sheet_top")) * UiKit.RefH;
-            float padX = rem * 0.6f, padTop = rem * 0.55f;
+            // T465 — 정본 816·3629 `#equip-sheet { padding: .55rem .6rem; border-top: var(--ol3) solid }`: CSS padding 은 테 **안쪽**부터라
+            //   위 테 한 겹(`line3_px`)이 먼저 든다(옛 클론은 rect 위끝에서 .55rem 을 재 첫 칸이 테에 3px 가까이 붙었다 · T28 125회차 실측 «10 − 3 = 7»).
+            float padX = rem * 0.6f, padTop = rem * 0.55f + PopupKit.Line3;
 
             // ---- 장비 격자 ----
             float gridX = W * 0.1094f, gridW = W - gridX * 2f, colGap = W * 0.0294f, rowGap = rem * 0.6f;

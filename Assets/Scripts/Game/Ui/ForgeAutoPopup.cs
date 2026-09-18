@@ -46,13 +46,14 @@ namespace Forge.Game.Ui
             float inner = w - pad * 2f - PopupKit.Line3 * 2f;
             // 정본 style.css 4673~4682: 이 카드만 공용 상한(--popup-h-max)을 벗기고 높이 84.52%H · 위끝 7.01%H(4675 주석 «카드 y7.01%H · 하단 91.75%H»)로 둔다 —
             // 하단이 탭바 위끝(90.25%H)보다 아래라 T78 의 FitBetweenBars 깎기(76.25%H · 위끝 8.65%H · 런 769)는 정본과 어긋난다. 닫기 버튼은 T346 이 이미 탭바 위 층에 띄우므로 깎을 까닭이 없다(T400).
-            float cardH = H * ForgeAutoStyle.L("card_h_f");
-            float cardY = H * (0.5f - ForgeAutoStyle.L("card_top_f")) - cardH * 0.5f;   // PopupKit.Card 는 가운데 앵커 · 양수 = 위
+            float outerH = H * ForgeAutoStyle.L("card_h_f");
+            float cardH = outerH - PopupKit.Line3 * 2f;   // T465 — 표값은 원작 카드 몸(border-box) · Card 의 h 는 패딩 상자
+            float cardY = H * (0.5f - ForgeAutoStyle.L("card_top_f")) - outerH * 0.5f;   // PopupKit.Card 는 가운데 앵커 · 양수 = 위
             RectTransform card = PopupKit.Card(root, "card", w, cardH, "pp_paper", rem * 1.1f, "pp_line", cardY);
             // 정본 `.af-card`(style.css 5030)는 그림자가 **둘**이다 — 주석 그대로 «공용 아래턱(0 .5rem 0)에
             // 은은한 앰비언트를 더해 팝업이 화면에서 떠 보이게». 아래턱은 위 `PopupKit.Card` 가 이미 깔았고
             // 여기서는 그 뒤에 흐린 겹 하나를 더 깐다(CSS 목록의 뒤쪽이 아래로 간다 — 나중에 깐 것이 더 뒤다).
-            UiShadow.Drop(card, "afcard_drop", rem * 1.1f);
+            UiShadow.Drop(card, "afcard_drop", rem * 1.1f, -1f, -1f, PopupKit.Line3);   // T465 — 그늘은 카드 몸(테 포함)에
             TextMeshProUGUI title = UiKit.Text(card, "af-title", TextKind.Button, "자동 제련", "pp_ink");   // T391 ⓑ — 정본 4695 `.af-title { 1.12rem }` = 40.8px(5033 덮음 1.26rem = 45.9) → Button 44(전엔 Title 60)
             title.fontStyle = FontStyles.Bold;
             // T109 11회차 — 정본 style.css 3846 `h3.af-title { -webkit-text-stroke: .11em var(--pp-line) }`(5033 `.af-title 4px #fff` 는 특이도가 낮아 진다 · ui.js 2302 는 h3).
@@ -62,7 +63,7 @@ namespace Forge.Game.Ui
 
             float bottomH = rem * 1.9f * 2f + ForgeAutoStyle.StartBtnH(rem) + rem * 1.6f;   // T378 13회차 — 버튼 높이는 정본 4816(하한·패딩) · 위아래 여백(1.5/2.09rem)은 이 축 밖이라 그대로 뒀다
             float scrollTop = pad + th + rem * 0.4f;
-            float scrollH = cardH - scrollTop - bottomH - pad - PopupKit.Line3 * 2f;
+            float scrollH = cardH - scrollTop - bottomH - pad;   // T465 — cardH 가 이미 패딩 상자라 옛 테 보정을 걷었다
             RectTransform scrollBox = UiKit.Box(card, "af-scroll");
             UiKit.Place(scrollBox, pad, scrollTop, inner, scrollH);
             RectTransform content = PopupKit.ScrollList(scrollBox, "list", rem * 0.25f, 0f, rem * 0.1f, TextAnchor.UpperLeft);
@@ -114,7 +115,7 @@ namespace Forge.Game.Ui
 
             // ---- 하단: 망치 수 · 계속하기 · 시작 ----
             RectTransform bottom = UiKit.Box(card, "af-bottom");
-            UiKit.Place(bottom, pad, cardH - bottomH - pad - PopupKit.Line3, inner, bottomH);
+            UiKit.Place(bottom, pad, cardH - bottomH - pad, inner, bottomH);   // T465 — 옛 테 보정을 걷었다
             float rowH = rem * 1.9f;
             TextMeshProUGUI hl = UiKit.Text(bottom, "hammers-label", TextKind.Sub, "한 번에 사용된 망치 수", "pp_ink", TextAlignmentOptions.Left);
             hl.fontStyle = FontStyles.Bold;

@@ -57,7 +57,8 @@ namespace Forge.Game.Ui
             float w = CraftStyle.Px("card_w");
             float pad = UiKit.H("card_pad");
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
-            UiKit.Anchor(card, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, CraftStyle.BottomPx()), w, card.sizeDelta.y);
+            // T465 — 정본 padding-bottom 은 카드 **몸**(border-box)의 바닥을 띄운다 · 카드 rect 는 패딩 상자라 테 한 겹(Line3)만큼 더 올린다.
+            UiKit.Anchor(card, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, CraftStyle.BottomPx() + PopupKit.Line3), w, card.sizeDelta.y);
             // T434 4회차 — 둘째 인자(위 여백 1.6rem = 모달 패딩 1.1 + `.cmp-wrap { margin-top: .5rem }` 1783)는 **맞다**. 셋째(층 틈)가 틀렸다:
             //   정본 1783 은 `.cmp-wrap { … **gap: 0** … }` 이고 바로 윗줄(1781~1782)이 까닭을 못박아 뒀다 —
             //   «하단 앵커라 gap 을 키우면 위 카드가 **올라간다** … 두 카드는 각자 **안쪽 패딩(.4rem/.9rem)**으로 이미 벌어져 있으므로 0».

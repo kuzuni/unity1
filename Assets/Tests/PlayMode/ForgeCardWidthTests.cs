@@ -78,10 +78,10 @@ namespace Forge.Tests.PlayMode
             float afH = CardHeight(h, ForgeAutoPopup.Name);
             Assert.Greater(afH, 0f, "자동 제련 카드 높이");
             // 높이는 탭바에 걸리는 몫만큼만 깎인다(T78 FitBetweenBars) — 표의 84.52%H 를 넘지는 않는다.
-            Assert.LessOrEqual(afH, UiKit.RefH * ForgeAutoStyle.L("card_h_f") + 0.5f, "표의 84.52%H 가 상한이다");
+            Assert.LessOrEqual(afH + PopupKit.Line3 * 2f, UiKit.RefH * ForgeAutoStyle.L("card_h_f") + 0.5f, "표의 84.52%H 가 상한이다(카드 몸 = rect + 테 두 겹 · T465)");
             // T400 2회차 — 정본 4675 «카드 y7.01%H · 하단 91.75%H»: 높이는 표 그대로(깎지 않는다) · 위끝은 card_top_f.
             {
-                Assert.AreEqual(UiKit.RefH * ForgeAutoStyle.L("card_h_f"), afH, 0.5f, "카드 높이 = 표 84.52%H — T78 FitBetweenBars 깎기(76.25%H)를 걷었다");
+                Assert.AreEqual(UiKit.RefH * ForgeAutoStyle.L("card_h_f") - PopupKit.Line3 * 2f, afH, 0.5f, "카드 rect(패딩 상자) = 표 84.52%H(카드 몸) − 테 두 겹(T465) — T78 FitBetweenBars 깎기(76.25%H)를 걷었다");
                 Popup ap = h.Meta.Popups.Find(ForgeAutoPopup.Name);
                 Assert.IsNotNull(ap, "자동 제련 팝업");
                 RectTransform afCard = null;
@@ -101,7 +101,7 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(ForgeInfoStyle.FiCardW(W, rem), fiW, 0.5f, "확률 정보 — 정본 77.19%W");
             // T339 2회차 — 높이도 표대로(정본 5048 `height: calc(var(--app-h) * .8104)`).
             // 원작 PNG 실측 79.9%H(y85~789 · shot-042831) ↔ 클론은 내용이 정하던 72.1%H 였다.
-            Assert.AreEqual(UiKit.RefH * ForgeInfoStyle.L("fi_card_h_f"), CardHeight(h, ForgeInfoPopup.Name), 0.5f, "확률 정보 높이 — 정본 81.04%H");
+            Assert.AreEqual(UiKit.RefH * ForgeInfoStyle.L("fi_card_h_f") - PopupKit.Line3 * 2f, CardHeight(h, ForgeInfoPopup.Name), 0.5f, "확률 정보 rect(패딩 상자) — 정본 81.04%H(카드 몸) − 테 두 겹(T465)");
             ForgeInfoPopup.Close(h);
             yield return null;
 

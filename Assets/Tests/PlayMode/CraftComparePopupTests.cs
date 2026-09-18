@@ -64,7 +64,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(card, "카드");
             Assert.AreEqual(new Vector2(0.5f, 0f), card.anchorMin, "아래 앵커(정본 align-items: flex-end)");
             Assert.AreEqual(new Vector2(0.5f, 0f), card.pivot, "피벗 바닥 — 내용이 늘면 위로 자란다");
-            Assert.AreEqual(CraftStyle.BottomPx(), card.anchoredPosition.y, 0.5f, "바닥 띄움 = 탭바 높이 + 1.65rem(표)");
+            Assert.AreEqual(CraftStyle.BottomPx() + PopupKit.Line3, card.anchoredPosition.y, 0.5f, "바닥 띄움 = 탭바 높이 + 1.65rem(표) + 테 한 겹(T465 — 표값은 카드 몸의 바닥 · rect 는 패딩 상자)");
             yield return SettleCardPop();   // T149 — 팝이 도는 동안 재면 폭이 연출 중간값이다
             // 실측: 앱 상자 안에서 카드 바닥·폭 분수
             Vector3[] a = new Vector3[4], c = new Vector3[4];

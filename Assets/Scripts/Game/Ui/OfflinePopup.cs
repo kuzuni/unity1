@@ -24,12 +24,13 @@ namespace Forge.Game.Ui
             Popup p = h.Popups.Show(Name, null, PopupZUi.AboveTabBar(Name));   // T346 — 정본 `#offline-modal` z 40 > 탭바 30(표 PopupZUi)
             if (p.Root.childCount > 1) { Update(o); return; }
             float rem = PopupKit.Rem, w = UiKit.RefW, H = UiKit.RefH;
-            float cardW = UiKit.L("offline_w") * w, cardH = UiKit.L("offline_h") * H;
+            float cardW = UiKit.L("offline_w") * w, outerH = UiKit.L("offline_h") * H;
+            float cardH = outerH - PopupKit.Line3 * 2f;   // T465 — 표값은 원작 카드 몸(border-box) · PopupKit.Card 의 h 는 패딩 상자
             RectTransform card = PopupKit.Card(p.Root, "card", cardW, cardH, "pp_paper", rem);
             float inner = cardW - PopupKit.Line3 * 2f;
-            float topH = cardH * TopFrac;
+            float topH = outerH * TopFrac;
             RectTransform top = UiKit.Box(card, "top");
-            UiKit.Place(top, PopupKit.Line3, PopupKit.Line3, inner, topH);
+            UiKit.Place(top, PopupKit.Line3, 0f, inner, topH);
             UiKit.Panel(top, "bg", TopFaceKey);
             float y = rem * 1.3f;
             TextMeshProUGUI title = UiKit.Text(top, "title", TextKind.Title2, "오프라인 보상", "stage_ink");   // T404 ⓑ — 정본 267 `.offline-title { font-size: 1.2rem }` = 43.7px → Title2 42(전엔 Title 60 · +37%)
@@ -63,8 +64,8 @@ namespace Forge.Game.Ui
             Rate(top, "hammer", "hammer", PopupKit.FmtDec(o.HammerRate) + "/분", rx + rateW + gap, y, rateW, circle, lineH);
 
             RectTransform bottom = UiKit.Box(card, "bottom");
-            float bottomH = cardH - topH - PopupKit.Line3 * 2f;
-            UiKit.Place(bottom, PopupKit.Line3, PopupKit.Line3 + topH, inner, bottomH);
+            float bottomH = cardH - topH;
+            UiKit.Place(bottom, PopupKit.Line3, topH, inner, bottomH);
             // T155 — 정본 `.offline-bottom { padding: 1.1rem .9rem 1.3rem; justify-content: center; gap: 1.79rem }`(style.css 279~281):
             //        합계줄 + [수집] 덩어리를 흰 몸통 **세로 가운데**에 둔다(종전엔 위에서 아래로 쌓아 아래가 통째로 비었다 · 검수 Q 런 364).
             //        [수집] 은 이 버튼만의 치수 `.offline-collect-btn { width: 51.7%; height: 4.6rem }`(306) — 그 주석이 원본 파란 면을 29.80%W × 7.49%H 로 실측해 두었다.
