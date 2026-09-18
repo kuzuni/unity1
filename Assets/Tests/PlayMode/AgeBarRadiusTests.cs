@@ -52,6 +52,13 @@ namespace Forge.Tests.PlayMode
             yield return Boot();
             ForgeHost h = ForgeHost.Instance;
             Assert.IsNotNull(h);
+            // 2차 — 런 1209 빨강: 새 세이브는 2-10 전이라 `ForgeAutoPopup.Open` 이 🔒 토스트만 내고 팝업을 안 연다(ForgeHost.OnAutoForgeBtn → Open 24행) → `AgePatternTests` 와 같이 해금하고
+            //   제련 레벨을 촬영과 같은 29 로 올려 열 시대 행이 다 서게 한다(레벨 1 은 뒤 시대 확률이 0 이라 행이 없다).
+            h.S.BestChapter = 3; h.S.BestStage = 1;
+            h.S.ForgeLevel = 29;
+            h.Pull();
+            Assert.IsTrue(h.AutoForgeUnlocked, "2-10 뒤 해금");
+            h.Push();
             ForgeInfoPopup.Open(h);
             yield return null; yield return null;
             Popup info = h.Meta.Popups.Find(ForgeInfoPopup.Name);
@@ -71,7 +78,7 @@ namespace Forge.Tests.PlayMode
             h.Meta.Popups.Hide(ForgeInfoPopup.Name);
             yield return null;
 
-            h.OnAutoForgeBtn();
+            ForgeAutoPopup.Open(h);
             yield return null; yield return null;
             Popup auto = h.Meta.Popups.Find(ForgeAutoPopup.Name);
             Assert.IsNotNull(auto, "자동 제련 팝업");

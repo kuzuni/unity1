@@ -16184,3 +16184,11 @@
 - **알림**: 토픽 없음 — 못 보냄.
 - **남은 몫**: 다음 런 `screen_tech-node.png` — ⓐ 진행바 폭 65.9%W ±0.6 ⓑ 좌 인셋 5.3 ±0.5 ⓒ 청동 원 10.2 ±0.4 ⓓ 머리 인셋 2.2~2.9 ⓔ 카드 가로 상자 76.30 ±0.3 불변 ⓕ 카드 높이 +0.3%H 넘게 안 자람 ⓖ 네 상태 안 깨짐(자) + 새 칸 PASS → ✅ 면 lock 반납·§7 ✅.
 - **주인이 확인할 것**: 없다.
+
+### T415 14회차 판정 + 2차 — 런 1209 빨강 1 은 내 자(자동 제련 팝업이 해금 전이라 안 열렸다) · 자만 고침 (2026-09-18 20:3x · 워커 S · sess-0029-41207 · lock 갱신)
+
+- **런 1209**(`3a316d70` 조상 · PlayMode 592 = 초록 588 · 빨강 1 · 건너뜀 3(환경) · EditMode 876 초록). `AgeBarRadiusTests` 표값 칸 PASS · 두 팝업 칸 **FAIL**: «자동 제련 팝업 · Expected not null» — 확률 정보 막대는 다 지났고(그 앞 단언은 통과) 자동 제련 팝업이 **새 세이브(2-10 전)** 라 `ForgeAutoPopup.Open` 24행이 🔒 토스트만 내고 안 열었다. `AgePatternTests` 가 런 299 에서 같은 갈래를 겪고 «해금(BestChapter 3·BestStage 1) + 제련 레벨 29(뒤 시대 행이 서게)» 를 주석으로 남겨 뒀는데 그 줄을 안 읽고 `FindDeep` 만 베꼈다.
+- **2차**: 자만 — 부팅 뒤 해금 + 레벨 29 + `Push()` · `OnAutoForgeBtn()` 대신 `ForgeAutoPopup.Open(h)` 직접(토글 갈래 없이). 게임 코드·표 0줄 · `gate.sh` rc 0(종료 코드) · lock 갱신(20:3x).
+- 관련 자 그대로 초록: `AgePatternTests`·`ForgeUiTests`·`BoxBorderSitesTests`(두 팝업을 여는 자 35 PASS 줄).
+- 판정(다음 런): 두 칸 PASS · 빨강 0. 막대 모서리 눈 확인은 그때 `screen_autoforge`·`screen_forge-info` 로(1209 그림은 이미 새 값이지만 판정은 초록 런에서).
+- ⚠ **알림 못 보냄(토픽 모름)**.
