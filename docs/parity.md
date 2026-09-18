@@ -1901,3 +1901,50 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - `paint-order` **✅ 44(동치)** · `grid-template-columns` **✅ 18 · —죽음 4 · △ 1** · `word-break` **⛔ 3 → T466** · `text-indent` **✅ 1 · ⛔ 1 뿌리 → T467**.
 - **이 회차가 남긴 규칙** — «남은 축: 없음» 은 **정본 속성 전수와 대조표를 맞춰 본 뒤에만** 쓸 수 있는 말이다. 세는 법: 주석 걷고 `[;{]\s*(-?[a-z-]+)\s*:` 로 이름을 뽑아(`--변수` 제외) 백틱 이름이 `parity.md`·`ROUTINE.md` 에 없는 것을 고른다.
 - **남은 축**(이번에 센 것 · 이름이 대조표에 안 오른 47 중 넷을 뺀 43 · 수는 정본 선언 수): `display` 310 · `margin-left` 32 · `box-sizing` 17 · `margin-right` 15 · `-webkit-mask-image` 15 · `border-width` 14 · `align-self` 11 · `background-repeat` 11 · `padding-right` 11 · `fill` 10 · `padding-top` 8 · `border-bottom` 7 · `font-family` 6 · `scrollbar-width` 4 · `stroke` 3 · `border-style` 3 · `grid-row` 3 · 그 밖 2 이하 26(`color-scheme`·`forced-color-adjust`·`-webkit-text-stroke-width`·`outline`·`outline-offset`·`order`·`user-select`·`-webkit-line-clamp`·`mask-composite` …). ⚠ 이름이 안 올랐다고 안 본 축은 아니다 — `-webkit-mask-image` 는 T124 마스크 갈래 · `border-width` 는 T365 테 갈래 · `-webkit-line-clamp` 는 T351 이 **다른 이름**으로 이미 쥐고 있을 수 있다. 다음 회차는 그것부터 가른다.
+
+
+# T33 48회차 — 47회차가 남긴 축 43 중 자리 있는 넷: `-webkit-mask-image` 15(재검) · `border-width` 14 · `background-repeat` 11 · `box-sizing` 17 (2026-09-18 · 워커 U · sess-0559-71173)
+
+> 세는 법은 47회차 그대로(주석 걷고 속성 경계). `-webkit-mask-image` 15 는 **33회차(워커 A)가 `mask-image` 로 이미 센 15 의 접두 쌍둥이**라 재검으로 적는다(41·46회차와 같은 되풀이 — 이름이 다르면 «안 센 축» 으로 보인다).
+
+## `-webkit-mask-image` 15 — 33회차 `mask-image` 15 의 접두 쌍둥이(재검)
+
+| # | 정본 | 33회차 판정 | 지금 | 판정 |
+|---|---|---|---|---|
+| 1 | 459 `#dmg-flash` | ✓ `FxRules.DmgVigMaskKeep` | 그대로 | ✅ |
+| 2 | 4841 `.af-age-bar::before` | ✓ `AgePatternUi.json bar_mask_from_f/to_f` | 그대로 | ✅ |
+| 3 | 5122 `.fi-age-bar::before` | ✗ → T380 | **T380 ✅**(정보 팝업 막대 마스크 · `AgePatternKeys.FiBar`) | ✅ |
+| 4~15 | 5826·5860·5869·5899·5940·6237·6339·6643·6682·6744·6971·7156 `.sr-*` 12 | 선 것 4(`rays_mask`·`rays_done_mask`·`reflect_mask`·`floor_tick_mask0~3`) · 짝 흐린 것 3(캐노피) · 나머지 T334 몫 | T334 ✅ 로 닫혔고 표엔 마스크 키 **21**(`layout.arch/tick/spill/rays/rays_done/floor_tick/reflect_*` · `hero.beam_mask0~2`)이 섰다 — 5899 스필 b 는 `SummonFx.cs:545` 가 줄을 인용한다 · 6744 빔 ↔ `beam_mask` · 캐노피 5860/5869 ↔ `arch/tick_mask` 로 읽히나 **정본 줄 ↔ 키 짝을 이 회차는 안 맞췄다**(줄번호 인용이 33회차 뒤 밀려 검색이 안 잡힌다) | ✅ 4 · △ 8(짝 대조는 다음 회차 · T334 판정 회수 몫) |
+
+## `border-width` 14
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1~2 | 2908 `.shop-banner::before` · 2909 `::after` | `.95rem .85rem .95rem 0` · `.95rem 0 .95rem .85rem`(CSS 삼각형 트릭 — 위·아래 투명 .95rem + 안쪽 색 .85rem = **◀ ▶ 삼각형 꼬리** · `top: .45rem`) | `ShopSheet.cs:190~195` `tail-l`/`tail-r` = `UiKit.Panel` **직사각형**(.85rem × (bh − .5rem) · y .45rem) — 패스 배너는 T159 2회차가 `ClipShape` V 홈으로 세웠는데 상점 배너는 사각이다 | ⛔ 1 뿌리 → **T470** |
+| 3 | 3289 `.chat-input-bar .btn.danger.round` | `var(--ol1)` — 같은 블록 3284 의 `border: var(--ol2) …` 를 **뒤 선언이 덮는다**(정본 주석: «테두리도 2px 이 아니라 1px 이다») | `ChatScreen.cs:73` T365 4회차가 3284 만 보고 **ol2** 로 걸었다 · `check_box_borders` 는 `border:` 단축만 읽어 `border-width` 덮어쓰기를 못 본다 | ⛔ 1 → **T469** |
+| 4~7 | 6131~6134 `@keyframes srshock` | `.38 → .22 → .11 → .03rem` | `SummonFxUi.json shock.srshock[].border_rem` .38/.22/.11/.03 | ✅ |
+| 8 | 6139 `.sr-shock.echo` | `.16rem`(정적 · 애니메이션 전 값) | 잔파는 애니메이션 중에만 보인다(정적 값은 화면에 안 난다) | ✅(해당 없음) |
+| 9~10 | 6144·6145 `srshockecho` | `.2 → .02rem` | `shock.srshockecho[].border_rem` .2/.02 | ✅ |
+| 11~12 | 6443·6445 `srtierflash` | `.38 → .05rem` | `tierbreak.srtierflash_g[].border_rem` .38/.05 | ✅ |
+| 13~14 | 7483·7484 `rwRing` | `.4 → .08rem` | `RewardBurstUi.json ring[].border_rem` .4/.08 | ✅ |
+
+## `background-repeat` 11
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1·8·9 | 932 `.equip-cell[data-age]::before` · 4839 `.af-age-bar::before` · 5121 `.fi-age-bar::before` | `var(--af-pat-repeat, repeat)` | `AgePattern.cs:116` `wrapMode = Repeat`(T124 무늬 타일) | ✅ |
+| 2~6·10·11 | 1956 `.dg-banner` · 1996 `.dg-rw-ico` · 2068 `.dg-detail-hero` · 2553 `.league-reward-tier` · 2780 `.pass-track` · 6917 `.sr-orb::after` · 7197 `.ico` | `no-repeat` | 전부 **스프라이트 한 장**(`UiKit.Icon`/구운 판 · `Image.Type.Simple`)이라 되풀이 자체가 없다 | ✅(구조상) |
+| 7 | 4213 `#panel-skills .summon-bar::before` | `repeat-x`(대시 줄) | `SkillPanel.cs:351` 한 타일을 굽고 `Image.Type.Tiled`(자 `SummonDashTests`) | ✅ |
+
+## `box-sizing` 17
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 2 `*` | `border-box`(전역) | 클론은 모든 상자를 **명시 rect** 로 놓아(`UiKit.Place`) 상자 모델 자체가 없다 — 그 뜻이 실제로 갈리는 자리는 «테가 패딩 밖인가» 뿐이고 그것은 **T465**(팝업 카드 rect = 패딩 상자 · 진행 중)가 쥔다 | △(T465) |
+| 2~17 | 93·116·186·1803·2308·2345·2612·2804·2832·2921·2927·2940·2964·2979·3973·4009 | `border-box`(전역과 같은 값 · 재선언) | 위와 같다 — 전역 `*` 가 이미 같은 값이라 **선언으로서 새 뜻이 없다** | ✅(동치 · 해당 없음) |
+
+## 이 회차의 판정
+
+- `-webkit-mask-image` **재검 — ✅ 7 · △ 8**(sr 마스크의 정본 줄 ↔ 표 키 짝은 다음 회차) · `border-width` **✅ 12 · ⛔ 2 → T469·T470** · `background-repeat` **✅ 11** · `box-sizing` **✅ 16(동치) · △ 1(T465)**.
+- **이 회차가 남긴 규칙** — 접두 쌍둥이(`-webkit-*`)는 본 이름의 회차를 먼저 찾는다 · `border-width` 는 `border:` 단축 **뒤에 오는 덮어쓰기**로 쓰이는 속성이라 단축만 읽는 자(`check_box_borders`)는 그것을 놓친다(T469 가 자도 같이 고친다).
+- **남은 축**(43 − 4 = **39**): `display` 310 · `margin-left` 32 · `margin-right` 15 · `align-self` 11 · `padding-right` 11 · `fill` 10 · `padding-top` 8 · `border-bottom` 7 · `font-family` 6 · `scrollbar-width` 4 · `stroke` 3 · `border-style` 3 · `grid-row` 3 · 그 밖 2 이하 26.
