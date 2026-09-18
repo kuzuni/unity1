@@ -4111,7 +4111,7 @@
 - 판정: ⓐ `--score` 의 «팝업 카드 위끝» 에서 `league-challenge` 가 **±1.5%p 안**(지금 +2.20) ⓑ desc 끝 → 알약 시작 틈이 **4.19%H ±0.4**(지금 2.50) ⓒ 같은 화면 **행 피치는 안 건드린다**(9.78 그대로여도 이 절은 든다 — 위 ⚠) ⓓ 다른 팝업 카드의 위끝이 **안 움직인다**.
 - 범위: `Assets/Scripts/Game/Ui/LeagueSheet.cs` · `Assets/Tests/PlayMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
 
-### T464 ✅ · T465 ⬜ · T466 ⬜ — **승천 카드가 정본 `.modal-card` 조립을 세 자리에서 어긴다**: 안내 문단 `.muted` **.78rem** 과 줄 글자 `.asc-row` **.82rem** 을 둘 다 하한 단 `Sub`(0.99rem)로 찍고, 카드 `gap: .45rem` **여섯 자리 중 둘만** 준다 — 셋이 서로 상쇄해 카드 높이는 −1.14%H 인데 **안은 전부 어긋난다** (UI · T383·T450·T461 과 같은 «크기는 표에서» 갈래 + T463 과 같은 «카드 틈» 갈래 · T28 123회차 등재 · 런 1143 실측)
+### T464 ✅ · T465 ✅ · T466 ⬜ — **승천 카드가 정본 `.modal-card` 조립을 세 자리에서 어긴다**: 안내 문단 `.muted` **.78rem** 과 줄 글자 `.asc-row` **.82rem** 을 둘 다 하한 단 `Sub`(0.99rem)로 찍고, 카드 `gap: .45rem` **여섯 자리 중 둘만** 준다 — 셋이 서로 상쇄해 카드 높이는 −1.14%H 인데 **안은 전부 어긋난다** (UI · T383·T450·T461 과 같은 «크기는 표에서» 갈래 + T463 과 같은 «카드 틈» 갈래 · T28 123회차 등재 · 런 1143 실측)
 
 - **정본이 못 박은 것**(승천 모달은 `ui.js` **5862~5868** 이 `<div class="modal-card paper asc-card">` 안에 `<h3>` · `<p class="muted">` · `.asc-row` 넷 · `.asc-btns` **일곱 자식**을 세운다):
   - `css/style.css` **657** `.muted { color:#78909c; font-size: **.78rem**; font-weight:400 }` ← `ui.js` **5865** `<p class="muted">라인마다 …</p>`. `.modal-card .muted`(3521)는 **색만** 덮으므로 크기는 이 줄이 쥔다.
