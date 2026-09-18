@@ -328,6 +328,14 @@ TABLE_INK = {
     '.chat-preview-msg': ['—덮인다: 유일한 실물(ui.js 5297)이 `#chat-preview` 안 — 3639 `#chat-preview .chat-preview-msg`(#2e2e2e · 다시 8070 #aab3c0)가 늘 이기고 그 자리는 위 행(10회차 chat_preview_msg_ink)이 지킨다'],
     '.summon-cost b': ['—덮인다: 실물 여섯(ui.js 61 · 3981 · 3985 · 4315 · 4317 · 5665)이 전부 `.btn.big.summon-btn` 안 — 8668 `.summon-btn .summon-cost b` #f2191d 가 늘 이기고 그 자리는 위 행(cost_red)이 지킨다'],
     '.btn.primary small': ['—덮인다: 실물 둘(ui.js 4039 펫 · 5712 탈것 «업그레이드\\nLv.N 만렙»)이 modal-card 안 — 3546 `.modal-card .btn small { color: inherit }` 가 같은 구체성(0,2,1)으로 뒤에서 이긴다(클론 IconTextStack 둘째 줄도 버튼 잉크를 물려받는다 · T461)'],
+    # T396 16회차 — `.btn` 셋(660~671)의 실물 전수(ui.js 의 `btn` 클래스 자리 120 을 마운트까지 따라갔다 · 워커 T).
+    #   정본의 모든 `.btn` 은 세 종이 판 안에 선다 — 탭 패널(`#panel-summon.panel` 아래 펫·스킬·테크 · `#panel-debug.panel`) · `#equip-sheet` · 모달은 전부
+    #   `modal-card`(직접 `sheet`/`wide`/`chat-card` 이거나 `idet-wrap` 한 겹 아래 `modal-card paper …` — `*Modal.innerHTML` 33 자리 전수). 유일한 예외가
+    #   `#summon-result-modal`(474 `.sr-wrap` · modal-card 가 아니다)의 `.btn.sr-ok`(501)·`.btn.sr-again`(674)인데 둘은 제 리터럴(7138·8730 `.sr-ok` #2a1c04 · 5789 `.sr-again` #dfe7ff)이
+    #   660 을 덮는다(그 둘은 `.sr-*` 행 · T458 lock 뒤). `index.html` 정적 `.btn` 은 0(`#offline-btn` 은 제 클래스).
+    '.btn': ['—덮인다: 실물 120 자리가 전부 세 종이 판(3542 `.modal-card .btn, .panel .btn, #equip-sheet .btn { color: var(--pp-ink) }`) 안이거나 소환 결과 모달의 둘(`.sr-ok`·`.sr-again`)처럼 제 리터럴이 덮는다 — 660 #eceff1 은 한 번도 안 그려진다(클론의 종이 버튼 토큰 잉크가 맞다)'],
+    '.btn small': ['—덮인다: `.btn` 안 `<small>` 실물(4039 펫 · 4426 스킬 · 5712 탈것 «업그레이드\\nLv.N 만렙» · 3985/4317/5669 `.summon-cost`)이 전부 modal-card·panel 안 — 3546 `.modal-card .btn small, .panel .btn small, #equip-sheet .btn small { color: inherit }` 가 늘 이긴다(`.summon-cost b` 는 8669 제 행)'],
+    '.btn.on': ['—덮인다: `on` 을 받는 `.btn` 은 `.summon-bar .btn.x5-toggle`(3979 펫 · 4313 스킬 · 5664 탈것)뿐 — 5208 `.summon-bar .btn.x5-toggle.on { color: #fff }` 와 3548 `.panel .btn.on`/`.modal-card .btn.on` #fff 가 671 #ffd54f 를 늘 덮는다(클론 x5 토글의 흰 잉크가 맞다)'],
     '.muted': ['—덮인다: 실물 29 자리(ui.js)가 전부 `.modal-card`(1256 스텁 · 3223 비교 카드 · 4166 · 4419 · 4573 · 5185 · 5194 …) 아니면 `.panel`(3952 · 3958 · 4287 · 4294 소환 판) 안 — 3520 `.modal-card .muted` 와 3575 `.panel .muted` 가 둘 다 var(--pp-muted) 로 덮는다(클론 PetSkillUi muted #8a8a8a = 그 토큰)'],
     '.skill-btn': ['—덮인다: 656 #eceff1 을 물려받는 글자가 정본에 없다 — `.sk-lv` 는 605 #fff · `.sk-name` 은 display:none · `.sk-cd` 는 글 없는 덮개(ui.js 1484 는 height 만 만진다) · `.auto` 는 628 #90a4ae(위 행) — 클론 SkillBar 도 같은 셋으로 찍는다'],
     #   ⓒ 짝만 셋 — 공용 비활성 버튼 글자의 **바탕 선언**(3555 · 세 종이 판). 값은 8725 의 `.btn.btn.*.disabled` 와 같은 #7b7b7b 라 PaperButton 의 같은 키가 지킨다.
