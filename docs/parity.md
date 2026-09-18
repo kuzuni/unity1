@@ -2086,3 +2086,41 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 
 - **✅ 16 · △ 3**(결정 231 링 굵기 · T396 갈래 · 캐노피 마스크 교집합 · 게이지 위상 = 양자 무늬 파문 ✅(AgePattern)) · 새 번호 0.
 - **남은 축**(29 − 19 = **10 종**): `display` 310 · `margin-left` 32 · `margin-right` 15 · 그 밖 7(`-webkit-text-stroke-width` 2 · `color-scheme` 2 · `forced-color-adjust` 2 · `outline` 2 · `outline-offset` 2 · `order` 2 · `user-select` 1 — 이름이 대조표에 있는지 재확인 뒤 다음 회차). 47회차부터 다섯 회차로 «안 센 축 47» 이 **10** 으로 줄었다.
+
+
+# T33 52회차 — 51회차가 남긴 축 10 종 중 «그 밖 7»(13 선언)을 한 회차에 (2026-09-18 · 워커 O · sess-2140-18689)
+
+선언은 `style.css` 주석을 걷고 `(?<![\w-])<속성>\s*:` 로 걷었다(51회차와 같은 자). `-webkit-text-stroke-width` 는 단축(`-webkit-text-stroke`)과 별개 이름이라 대조표에 안 올랐지만 **T109 의 자 `check_keyline` 이 `-webkit-text-stroke(?:-width)?` 로 둘을 함께 읽는다**(그 자의 «끄는 규칙 2» 가 5505 꼴이다).
+
+## `-webkit-text-stroke-width` 2
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 305 `.offline-total` | `.2em` | `check_keyline` 자리 초록 64 안(T109 · 오프라인 총액 키라인) | ✅(T109 축이 이미 센다) |
+| 2 | 5505 `.petup-selrow .btn.silver.disabled` | `0`(끄는 규칙) | `check_keyline` «끄는 규칙 2» 중 하나 — 클론 펫 업그레이드 비활성 버튼은 키라인 0 | ✅ |
+
+## `color-scheme` 2 · `forced-color-adjust` 2 · `user-select` 1 — 브라우저 신호
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1~2 | 11 `:root, html, body` · 13 `@media (prefers-color-scheme: dark)` 안 같은 선택자 | `only light` | 정본 주석(7~10)대로 «삼성 인터넷·WebView 의 강제 다크를 끄는» 선언 — 유니티 클론엔 OS 다크 모드가 색을 뒤집는 길 자체가 없다(5회차 ⓗ · 결정 263 과 같은 갈래) | ✅(해당 없음) |
+| 3~4 | 18 `@media (forced-colors: active)` `:root` · 19 `*` | `none` · `none !important` | Windows 고대비(강제 색) 모드가 색을 덮는 것을 막는 선언 — 유니티 UI 는 그 신호를 안 받는다 | ✅(해당 없음) |
+| 5 | 40 `body` | `none` | 글자 드래그 선택 금지 — TMP 라벨은 선택이 안 되고 선택이 되는 것은 `TMP_InputField`(채팅 입력 하나)뿐이라 정본과 같다 | ✅(해당 없음) |
+
+## `order` 2
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1~2 | 3933 `#panel-summon > .summon-sub` · 3943 `#summon-subtabs` | `1` · `2`(flex column — 내용이 위 · 서브탭 띠가 아래) | `SkillPetSheet.Build` — `summon-subtabs` 띠를 패널 아래변에 앵커(0,0)로 두고 본문 `offsetMin.y = stripH` 로 그 위에 세운다 | ✅ |
+
+## `outline` 2 · `outline-offset` 2
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 6691 `.sr-cell[data-tier="5"] .sr-orbwrap` | `.12rem solid rgba(255,255,255,.34)` · offset `.12rem` | `SkillSummonResult.BuildCell` 의 `sr-orbwrap` 자식 = 광채 원판(`glow`)·그림자·하이라이트·배지 — **아웃라인 없음**(`outline` 검색 0) | ⛔ → **T475** |
+| 2 | 6704 `.sr-cell.peer .sr-orbwrap` | `.11rem solid rgba(255,255,255,.32)` · offset `.11rem` | 같은 자리 — T448 기록(ROUTINE 4404)이 «`.sr-cell.peer .sr-orbwrap { outline }` 상시 테두리는 이 절의 등재 밖» 이라 **일부러 남겨 둔** 자리다 | ⛔ → **T475** |
+
+## 이 회차의 판정
+
+- `-webkit-text-stroke-width` **✅ 2**(T109 자가 센다) · `color-scheme`·`forced-color-adjust`·`user-select` **✅ 5(해당 없음 · 브라우저 신호)** · `order` **✅ 2** · `outline`·`outline-offset` **⛔ 4 → T475**(신화·동급 구슬 래퍼의 흰 반투명 아웃라인). 새 번호 **1**.
+- **남은 축**(10 − 7 = **3 종**): `display` 310 · `margin-left` 32 · `margin-right` 15 — `margin-*` 는 50회차 패딩과 같은 «표 키가 있는가» 자로, `display` 는 «flex/grid/none 이 클론의 어떤 그릇에 대응하는가» 로 갈라야 한다(한 회차에 하나씩).
