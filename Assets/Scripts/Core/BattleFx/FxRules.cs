@@ -1,4 +1,5 @@
 using System;
+using Forge.Core.CraftFx;
 using Forge.Core.Voxel;
 
 namespace Forge.Core.BattleFx
@@ -224,6 +225,16 @@ namespace Forge.Core.BattleFx
             double k = Math.Min(1, u / 0.12);
             return k < 1 ? 1.12 * Math.Sin(k * Math.PI / 2) : 1 + 0.12 * Math.Max(0, 1 - (u - 0.12) / 0.2);
         }
+        /// <summary>T467 — 부제 자간·들여쓰기(em)의 등장 조임. 정본 431~436 `@keyframes bwsub`: 0% <paramref name="fromEm"/> → 16%(<paramref name="tightenAt"/>) <paramref name="toEm"/>, 그 뒤 정착.
+        /// 416 의 `ease-out` 은 키프레임 **구간마다** 걸리는 곡선이라 0→16% 안에서 `cubic-bezier(0,0,.58,1)` 로 보간한다. 값은 표(`LetterSpacingUi.json`)가 쥐고 여기는 셈뿐이다.</summary>
+        public static double WarnSubSpacing(double u, double fromEm, double toEm, double tightenAt)
+        {
+            if (tightenAt <= 0 || u >= tightenAt) return toEm;
+            double k = u <= 0 ? 0 : u / tightenAt;
+            return fromEm + (toEm - fromEm) * WarnSubEase.Ease(k);
+        }
+        /// <summary>CSS `ease-out` = `cubic-bezier(0, 0, .58, 1)`.</summary>
+        static readonly CssEase WarnSubEase = new CssEase(0, 0, 0.58, 1);
         public static double WarnSubAlpha(double u) { return u < WarnSubDelay ? u / WarnSubDelay : u < WarnDimHold ? 1 : Math.Max(0, 1 - (u - WarnDimHold) / (1 - WarnDimHold)); }
 
         // ── 피격 붉은 비네트(T135 ⓐ · `ui.js` 1360 `flashDamage` · `style.css` 438 `#dmg-flash` · 481 `@keyframes dmgvignette`) ──

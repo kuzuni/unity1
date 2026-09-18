@@ -69,13 +69,22 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(o);
 
             o.BossWarning(2.0);
-            yield return null;
+            // T467 — 세운 직후(동기 · 아직 한 프레임도 안 돌았다)는 정본 431 `bwsub 0%` 의 1.4em 이다. CI 첫 프레임은 길 수 있어
+            // «첫 프레임» 이 아니라 «세운 직후» 를 잰다(T178 25회차 교훈).
             TextMeshProUGUI sub = Find(o.Layer, "bw-sub");
             TextMeshProUGUI mq = Find(o.Layer, "bw-track");
             Assert.IsNotNull(sub, "보스 경고 한글 부제");
-            Assert.AreEqual(LetterSpacing.Tmp("bw_sub_ls_em"), sub.characterSpacing, 1e-3f, "정본 .55em — 한 글자씩 벌어지는 줄이다");
+            Assert.AreEqual(1.4f, LetterSpacing.Em("bw_sub_from_ls_em"), 1e-5f, "정본 431 `bwsub 0% { letter-spacing: 1.4em }`");
+            Assert.AreEqual(0.16f, LetterSpacing.Em("bw_sub_tighten_f"), 1e-5f, "정본 432 `16%` 에 정착");
+            Assert.AreEqual(LetterSpacing.Tmp("bw_sub_from_ls_em"), sub.characterSpacing, 1e-3f, "세운 직후는 넓게 벌어진 1.4em");
+            Assert.AreEqual(LetterSpacing.Em("bw_sub_from_indent_em") * sub.fontSize, sub.margin.x, 1e-2f, "되민 몫도 1.4em × 글자 크기");
+            // 16%(2s 의 .32s) 까지 단조로 조여든다 — 프레임마다 재어 «늘어난 프레임» 이 없어야 한다.
+            float prev = sub.characterSpacing; float t0 = Time.time; int frames = 0;
+            while (Time.time - t0 < 0.6f) { yield return null; frames++; Assert.LessOrEqual(sub.characterSpacing, prev + 1e-3f, "조여드는 동안 자간이 도로 늘지 않는다"); prev = sub.characterSpacing; }
+            Assert.Greater(frames, 0);
+            Assert.AreEqual(LetterSpacing.Tmp("bw_sub_ls_em"), sub.characterSpacing, 1e-3f, "정본 .55em 에 정착 — 한 글자씩 벌어지는 줄이다");
             Assert.Greater(sub.margin.x, 0f, "정본 `text-indent: .55em` — 마지막 글자 뒤 여백을 되민다");
-            Assert.AreEqual(LetterSpacing.Em("bw_sub_indent_em") * sub.fontSize, sub.margin.x, 1e-2f, "되민 몫 = 표의 em × 글자 크기");
+            Assert.AreEqual(LetterSpacing.Em("bw_sub_indent_em") * sub.fontSize, sub.margin.x, 1e-2f, "되민 몫 = 표의 em × 글자 크기(프레임마다 덮어써 누적되지 않는다)");
             if (mq != null) Assert.AreEqual(LetterSpacing.Tmp("bw_track_ls_em"), mq.characterSpacing, 1e-3f, "정본 .14em(영문 마퀴)");
 
             Assert.IsTrue(o.DeathFade("회복 후 다시 도전합니다"));

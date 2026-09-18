@@ -34,6 +34,8 @@ namespace Forge.Game.Ui
         // boss warning
         RectTransform warnRoot; Image dim, flash, bannerBg; RectTransform banner; TextMeshProUGUI marquee; RectTransform track; TextMeshProUGUI sub; RectTransform[] hazardTiles;
         double warnT = -1, warnDur = FxRules.BossWarnDur; float trackW;
+        // T467 — 부제 등장 조임(정본 431~436 `bwsub` 0% 1.4em → 16% .55em): 표값 셋과 세우기 전 왼쪽 여백.
+        float subLsFrom, subLsTo, subIndentFrom, subIndentTo, subTightenAt, subMargin0;
         // death
         RectTransform deathRoot; Image cover; TextMeshProUGUI title; Image rule; TextMeshProUGUI dsub; RectTransform bannerGroup;
         double deathT = -1;
@@ -296,7 +298,12 @@ namespace Forge.Game.Ui
             UiKit.TextShadow(sub, "bw_sub");   // T333 5회차 — 정본 411 `.bw-sub` 둘째 겹 `0 2px 0 rgba(0,0,0,.86)`(붉은 글로우는 근사로 뺀다)
             // T168 2회차 — 정본 411 `.bw-sub { letter-spacing: .55em; text-indent: .55em }`: 한 글자씩 벌어지는 줄이었는데 클론은 0 이라 다닥다닥 붙어 있었다.
             // 되밀기(text-indent)까지 옮긴다 — 자간이 마지막 글자 뒤에도 붙어 가운데 정렬이 왼쪽으로 쏠리기 때문이다.
-            LetterSpacing.Apply(sub, "bw_sub_ls_em", "bw_sub_indent_em");
+            // T467 — 정적 .55em 이 아니라 1.4em 으로 세우고 `DriveWarning` 이 16% 까지 조여 .55em 에 정착시킨다(정본 431~436 `bwsub` · 416 ease-out).
+            subLsFrom = LetterSpacing.Em("bw_sub_from_ls_em"); subLsTo = LetterSpacing.Em("bw_sub_ls_em");
+            subIndentFrom = LetterSpacing.Em("bw_sub_from_indent_em"); subIndentTo = LetterSpacing.Em("bw_sub_indent_em");
+            subTightenAt = LetterSpacing.Em("bw_sub_tighten_f");
+            subMargin0 = sub.margin.x;
+            LetterSpacing.ApplyEm(sub, subLsFrom, subIndentFrom, subMargin0);
             UiKit.Outline(sub, "pp_red_dk", 0.25f);
             var srt = sub.rectTransform;
             srt.anchorMin = new Vector2(0, 1 - (float)FxRules.WarnTop); srt.anchorMax = new Vector2(1, 1 - (float)FxRules.WarnTop); srt.pivot = new Vector2(0.5f, 1);
@@ -326,6 +333,9 @@ namespace Forge.Game.Ui
             Alpha(flash, FxRules.WarnFlash(warnT));
             banner.localScale = new Vector3(1, (float)FxRules.WarnBanner(u), 1);
             Alpha(sub, FxRules.WarnSubAlpha(u));
+            LetterSpacing.ApplyEm(sub,
+                (float)FxRules.WarnSubSpacing(u, subLsFrom, subLsTo, subTightenAt),
+                (float)FxRules.WarnSubSpacing(u, subIndentFrom, subIndentTo, subTightenAt), subMargin0);   // T467 — 자간·되밀기 둘 다 같은 곡선
             if (trackW <= 0 && marquee != null) trackW = marquee.preferredWidth / 3f;
             float w = trackW > 0 ? trackW : UiKit.RefW;
             float off = (float)((warnT / FxRules.WarnScrollPeriod) % 1.0) * w;

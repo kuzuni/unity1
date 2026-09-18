@@ -42,6 +42,17 @@ namespace Forge.Game.Ui
         /// <summary>TMP 단위(1/100 em) — 환산은 이 한 줄뿐이다.</summary>
         public static float Tmp(string key) { return Em(key) * 100f; }
 
+        /// <summary>T467 — 움직이는 자간: em 값을 바로 준다. 되밀기는 <paramref name="marginX0"/>(세우기 전 왼쪽 여백) + em×글자 크기로 **덮어써서**
+        /// 매 프레임 불러도 누적되지 않는다(<see cref="Apply"/> 는 더하기라 한 번만 부를 수 있다). 환산(×100)은 <see cref="Tmp"/> 와 같은 한 줄.</summary>
+        public static void ApplyEm(TMP_Text text, float em, float indentEm, float marginX0)
+        {
+            if (text == null) return;
+            text.characterSpacing = em * 100f;
+            Vector4 m = text.margin;
+            m.x = marginX0 + indentEm * text.fontSize;
+            text.margin = m;
+        }
+
         /// <summary>그 글자에 표의 자간을 준다. <paramref name="indentKey"/> 를 주면 같은 몫을 왼쪽 여백으로 되민다.</summary>
         public static void Apply(TMP_Text text, string key, string indentKey = null)
         {
