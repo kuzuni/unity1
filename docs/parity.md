@@ -2077,12 +2077,12 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 | 12~13 | 3218 · 3939 같은 둘 `scrollbar-color` | `rgba(0,0,0,.35) transparent` | 50회차 — 클론 스크롤바 0 | ✅(해당 없음) |
 | 14~15 | 4122 `.sk-shard em` `-webkit-background-clip`/`background-clip` | `text`(글자에 `#17181a 0~r% · #fff r%~` 두 색을 **클립** — 조각 진행률이 글자 안에서 갈린다) | `SkillPanel.cs:200` 이 `ratio` 를 셈하나 «한 글 안 부분 색» 은 T396 이 KNOWN 으로 세어 온 갈래(19·20회차가 둘씩 조각으로 옮기는 중) — 이 자리가 그 넷에 드는지는 T396 절이 가른다 | △(T396 갈래) |
 | 16 | 4429 `#panel-pets .summon-bar .btn.big` `flex-basis` | `app-w × .2837` | `PetSkillUi.json summon_btn_w` .2837 | ✅ |
-| 17~19 | 4927 `@property --gp-q` `syntax`·`inherits`·`initial-value` | `<length>` · false · 0px(게이지 줄무늬 위상) | `@keyframes` 안에 `--gp-q` 가 있다 — 4937: @keyframes gp-quantum { from { --gp-q: 0rem; } to { --gp-q: .84rem; } }   /* 링 간격 한 주기 = 파문 하나 */ → 게이지 반짝 줄무늬가 **흐른다**(클론 `PetSkillKit.Gauge` 에 그 키·겹이 없다) | ⛔ 후보 — 다음 회차가 정본 `@keyframes` 줄을 읽고 등재한다 |
+| 17~19 | 4927 `@property --gp-q` `syntax`·`inherits`·`initial-value` | `<length>` · false · 0px(게이지 줄무늬 위상) | `@keyframes` 안에 `--gp-q` 가 있다 — 4937: @keyframes gp-quantum { from { --gp-q: 0rem; } to { --gp-q: .84rem; } }   /* 링 간격 한 주기 = 파문 하나 */ → 게이지 반짝 줄무늬가 **흐른다**(클론 `PetSkillKit.Gauge` 에 그 키·겹이 없다) | ✅(위상은 정본 4937 `@keyframes gp-quantum { --gp-q: 0 → .84rem }` — 양자 시대 무늬의 파문이고 클론은 `AgePattern`(T124)이 위상을 굴리며 자 `AgePatternTests.…양자_링은_위상을_따른다` 가 지킨다) |
 | 20 | 5873 `.sr-canopy::after` `-webkit-mask-composite` | `source-in`(고리 마스크 ∩ 세로 페이드) | 48회차 △ 8 과 같은 자리 — 캐노피 `arch` 굽기(`SummonFx.cs:125`)가 두 마스크를 곱하는지는 그 회차 몫 | △ |
 | 21 | 7048 `.sr-name > span` `-webkit-box-orient` | `vertical`(+ `-webkit-line-clamp: 2`) | T351 ✅ 가 `.sr-name > span { line-clamp 2 }` 를 쥔다 | ✅ |
 | 22 | 8637 `.forge-item-cell small, .pass-cell span` `font-variant-numeric` | `tabular-nums` | 21회차 `tabular-nums` 6 자리 전수 | ✅ |
 
 ## 이 회차의 판정
 
-- **✅ 15 · △ 4**(결정 231 링 굵기 · T396 갈래 · 캐노피 마스크 교집합 · 게이지 위상 ⛔ 후보 1) · 새 번호 0.
+- **✅ 16 · △ 3**(결정 231 링 굵기 · T396 갈래 · 캐노피 마스크 교집합 · 게이지 위상 = 양자 무늬 파문 ✅(AgePattern)) · 새 번호 0.
 - **남은 축**(29 − 19 = **10 종**): `display` 310 · `margin-left` 32 · `margin-right` 15 · 그 밖 7(`-webkit-text-stroke-width` 2 · `color-scheme` 2 · `forced-color-adjust` 2 · `outline` 2 · `outline-offset` 2 · `order` 2 · `user-select` 1 — 이름이 대조표에 있는지 재확인 뒤 다음 회차). 47회차부터 다섯 회차로 «안 센 축 47» 이 **10** 으로 줄었다.
