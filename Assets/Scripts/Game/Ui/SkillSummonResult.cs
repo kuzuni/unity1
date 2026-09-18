@@ -1088,6 +1088,7 @@ namespace Forge.Game.Ui
                 PetSkillKit.Fill(rk, "bg", rc, PetSkillStyle.Px("sr_rk_r_rem"));
                 TextMeshProUGUI rt = PetSkillKit.Text(rk, "t", TextKind.Sub, e.Sub, ChipInk(rc));
                 LetterSpacing.Apply(rt, "sr_sub_ls_em");   // T168 3회차 — 정본 7059 `.sr-sub`
+                LineHeight.Apply(rt, "sr_sub_lh");   // T354 25회차 — 정본 7067 `.sr-sub { line-height: 1.25 }`(한 줄 배지 · 표를 읽는 자리)
                 WrapUi.Apply(rt, "sr_sub");   // 정본 nowrap
                 WrapUi.Apply(rt, "sr_sub_sr_rk");   // T361 9회차 — 정본 7072 `.sr-sub .sr-rk { nowrap }`: 클론엔 그 span 이 따로 없고 이 글 `t` 가 곧 그것이다(칩 상자 `sr-sub` 는 제 글자가 없다) — 두 규칙이 같은 글에 내린다
                 UiKit.Fill(rt.rectTransform);
@@ -1197,6 +1198,7 @@ namespace Forge.Game.Ui
                 UiShadow.Drop(chip, "srchip_drop", PetSkillStyle.Px("sr_chip_r_rem"), widths[i], chipH);
                 PetSkillKit.Fill(chip, "bg", rc, PetSkillStyle.Px("sr_chip_r_rem"));
                 TextMeshProUGUI t = PetSkillKit.Text(chip, "t", TextKind.Sub, PetSkillStyle.T("sr_chip", Defs.RarityKr.Get(list[i].Key, list[i].Key), list[i].Value), ChipInk(rc));
+                LineHeight.Apply(t, "sr_chip_lh");   // T354 25회차 — 정본 7127 `.sr-chip { line-height: 1.3 }`(한 줄 칩)
                 UiKit.Fill(t.rectTransform);
                 x += widths[i] + PetSkillStyle.Px("sr_chip_gap_rem");
             }

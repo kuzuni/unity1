@@ -275,7 +275,8 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI lab = UiKit.Text(rk, "label", t.Rank > 3 ? TextKind.Head : TextKind.Button, t.Rank <= 3 ? t.Rank.ToString() : t.Label, "stage_ink");   // 한 호출 — 키라인 자(T109)·종류 자(T391)가 같은 «label» 을 읽는다
                 lab.fontStyle = FontStyles.Bold;
                 WrapUi.Apply(lab, "league_tier_rank");   // T361 2회차 — 정본 white-space 표(WrapUi.json) 2556 `.league-tier-rank { nowrap }`
-                PopupKit.Ring(lab, t.Rank <= 3 ? "lgr_rank_n" : "league_tier_rank", "pp_line");   // 정본 .lgr-rank-n .16rem · .league-tier-rank.text .108em
+                PopupKit.Ring(lab, t.Rank <= 3 ? "lgr_rank_n" : "league_tier_rank", "pp_line");
+                if (t.Rank <= 3) LineHeight.Apply(lab, "lgr_rank_n_lh");   // T354 25회차 — 정본 2576 `.lgr-rank-n { line-height: 1 }`(1~3위 숫자 · 4위 아래 글자 라벨은 선언 없음)   // 정본 .lgr-rank-n .16rem · .league-tier-rank.text .108em
                 RectTransform g = UiKit.Box(row, "grid");
                 float gx = rem * 1.1f + rankW + rem * 0.6f;
                 UiKit.Place(g, gx, (tierH - gridH) * 0.5f, cardW - gx - rem * 1.1f, gridH);

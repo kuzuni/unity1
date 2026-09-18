@@ -893,5 +893,64 @@ namespace Forge.Tests.PlayMode
             Transform anvil = anvilRow != null ? anvilRow.Find("info-btn") : null;
             if (anvil != null) Assert.AreEqual(0f, anvil.Find("glyph").GetComponent<TextMeshProUGUI>().lineSpacing, 1e-4f, "모루 줄의 i(.info-btn 971)는 줄높이 선언이 없어 손대지 않는다");
         }
+
+        /// <summary>T354 25회차 — 산 lock 밖 파일의 마지막 글자 자리 넷: 소환 결과 등급 배지(정본 7067 `.sr-sub` 1.25) · 등급 칩(7127 `.sr-chip` 1.3) ·
+        /// 리그 1~3위 순위 숫자(2576 `.lgr-rank-n` 1) · 확률 팝업 ⓘ(4648 `.rates-i` 1). 넷 다 한 줄 글이라 화면은 안 변한다 — «표를 읽는 자리» 가 서는지 본다.</summary>
+        [UnityTest]
+        public IEnumerator 소환_결과_배지_칩과_리그_순위_숫자와_확률_정보_i_가_표의_줄높이를_읽는다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && SkillPetSheet.Instance != null && PetSkillHost.Ready && PopupLayer.Instance != null); i++) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트");
+            Assert.AreEqual(1.25, LineHeight.Table.Get("sr_sub_lh"), 1e-9, "정본 7067");
+            Assert.AreEqual(1.3, LineHeight.Table.Get("sr_chip_lh"), 1e-9, "정본 7127");
+            Assert.AreEqual(1.0, LineHeight.Table.Get("lgr_rank_n_lh"), 1e-9, "정본 2576");
+            Assert.AreEqual(1.0, LineHeight.Table.Get("rates_i_lh"), 1e-9, "정본 4648");
+
+            // ① 소환 결과 — 항목 둘(등급 배지 글 Sub 있음) → 셀의 sr-sub 글과 발의 등급 칩 글
+            var rolls = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가", Sub = "C", Qty = 1 },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "rare", Name = "나", Sub = "R", Qty = 1 },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", rolls, "rare", null);
+            Assert.IsNotNull(v, "소환 결과 창");
+            yield return null;
+            Transform sub = Find(v.transform, "sr-sub");
+            Assert.IsNotNull(sub, "등급 배지(sr-sub)");
+            AssertSpacing(sub.Find("t").GetComponent<TextMeshProUGUI>(), "sr_sub_lh", "등급 배지 글");
+            Transform chip = Find(v.transform, "sr-chip");
+            Assert.IsNotNull(chip, "등급 칩(sr-chip)");
+            AssertSpacing(chip.Find("t").GetComponent<TextMeshProUGUI>(), "sr_chip_lh", "등급 칩 글");
+            for (int k = 0; k < 4 && SkillSummonResultView.Current != null; k++) { SkillSummonResultView.Current.OnTap(); yield return null; }
+
+            // ② 확률 팝업 ⓘ
+            SkillRatesPopup.Open(SkillPetSheet.Instance, "skill");
+            yield return null;
+            Assert.IsTrue(SkillPetSheet.Instance.Modal.IsOpen(SkillRatesPopup.ModalName), "확률 팝업");
+            Transform ib = Find(SkillPetSheet.Instance.Modal.Find(SkillRatesPopup.ModalName).Content, "rates-i");
+            Assert.IsNotNull(ib, "ⓘ 버튼(rates-i)");
+            AssertSpacing(ib.Find("t").GetComponent<TextMeshProUGUI>(), "rates_i_lh", "ⓘ 글자");
+            SkillPetSheet.Instance.Modal.Close(SkillRatesPopup.ModalName);
+            yield return null;
+
+            // ③ 리그 보상 1~3위 순위 숫자
+            MetaHost h = MetaHost.Instance;
+            LeagueSheet.OpenRewards(h);
+            yield return null;
+            Popup p = h.Popups.Find(LeagueSheet.RewardsName);
+            Assert.IsNotNull(p, "리그 보상 팝업");
+            int seen = 0;
+            foreach (RectTransform tier in p.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (!tier.name.StartsWith("tier-")) continue;
+                int rank = int.Parse(tier.name.Substring(5));
+                if (rank > 3) continue;
+                TextMeshProUGUI n = tier.Find("rank").Find("label").GetComponent<TextMeshProUGUI>();
+                AssertSpacing(n, "lgr_rank_n_lh", tier.name + " 순위 숫자");
+                seen++;
+            }
+            Assert.AreEqual(3, seen, "1·2·3위 셋");
+        }
     }
 }

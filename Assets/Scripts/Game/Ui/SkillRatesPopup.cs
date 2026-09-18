@@ -115,6 +115,7 @@ namespace Forge.Game.Ui
             Image disc = PetSkillKit.Disc(ir, "bg", PetSkillStyle.C("ink"));
             UiKit.Fill(disc.rectTransform);
             TextMeshProUGUI it = PetSkillKit.Text(ir, "t", TextKind.Sub, PetSkillStyle.T("info_i"), PetSkillStyle.C("white"));
+            LineHeight.Apply(it, "rates_i_lh");   // T354 25회차 — 정본 4648 `.rates-i { line-height: 1 }`
             // T439 — 정본 style.css 4647 `.rates-i { font-weight: 900; font-style: **italic**; font-family: Georgia, serif }`.
             //   `PetSkillKit.Text` 이 이미 900 몫의 Bold 를 준다 — 여기서 **기울임 비트만 더한다**(`|=` 라 굵기가 안 지워진다).
             //   ⚠ 세리프(Georgia)는 **못 낸다** — 이 레포의 글꼴은 NotoSansKR 하나뿐이고(T53) 새 글꼴을 들이는 것은 §1 이 막는다.
