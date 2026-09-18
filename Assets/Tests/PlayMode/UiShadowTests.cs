@@ -375,6 +375,53 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T331 41회차 — 정본 8230 `.shop-deal-card, .shop-gem-card` 캐스트 그림자(표 shopcard_drop · 번짐 −.06rem) 는 상점 특가 카드·보석 카드 둘 다 · 8584 `.rate-bar`(표 ratebar_drop)는 확률 팝업의 등급 막대.</summary>
+        [UnityTest]
+        public IEnumerator 상점_카드_둘과_확률_팝업_막대에_정본_그늘이_깔린다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && UiRoot.Instance != null && UiRoot.Instance.TabBar != null); i++) yield return null;
+            UiRoot.Instance.TabBar.OnTab("shop");
+            yield return null; yield return null;
+            Popup sp = MetaHost.Instance.Popups.Find(ShopSheet.Name);
+            Assert.IsNotNull(sp, "상점 시트 팝업");
+            int deals = 0, gems = 0;
+            foreach (RectTransform rt in sp.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                bool deal = rt.name == "card" && rt.parent != null && rt.parent.name.StartsWith("deal-");
+                bool gem = rt.name.StartsWith("gem-") && rt.Find("face") != null;
+                if (!deal && !gem) continue;
+                Transform sh = UiShadow.Find(rt, "shopcard_drop");
+                Assert.IsNotNull(sh, rt.name + " 카드의 캐스트 그림자가 없다");
+                Assert.AreEqual(0, sh.GetSiblingIndex(), rt.name + " — 그늘은 카드 맨 뒤(면 뒤)");
+                Assert.IsNotNull(sh.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
+                if (deal) deals++; else gems++;
+            }
+            Assert.Greater(deals, 0, "특가 카드가 0 이다");
+            Assert.Greater(gems, 0, "보석 카드가 0 이다");
+            ShadowSpec sc = UiShadow.Table.Get("shopcard_drop");
+            Assert.Less(sc.SpreadRem, 0.0, "정본 번짐 −.06rem(카드보다 살짝 작은 그늘)");
+            UiRoot.Instance.TabBar.OnTab("shop");   // 다시 누르면 닫힌다
+            yield return null;
+
+            float t0 = 0f;
+            while (SkillPetSheet.Instance == null && t0 < 10f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 섰다");
+            SkillRatesPopup.Open(SkillPetSheet.Instance, "pet");
+            yield return null;
+            int bars = 0;
+            foreach (RectTransform rt in UiRoot.Instance.App.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (!rt.name.StartsWith("rate-bar-") || rt.Find("face") == null) continue;
+                Transform sh = UiShadow.Find(rt, "ratebar_drop");
+                Assert.IsNotNull(sh, rt.name + " 의 그늘이 없다");
+                Assert.AreEqual(0, sh.GetSiblingIndex(), rt.name + " — 그늘은 막대 맨 뒤(면·테 뒤)");
+                bars++;
+            }
+            Assert.Greater(bars, 0, "확률 막대(rate-bar-*)가 0 이다");
+            Assert.AreEqual(0.22, UiShadow.Table.Get("ratebar_drop").A, 1e-6, "표의 알파(.22)가 아니다");
+        }
+
         [UnityTest]
         public IEnumerator 자동_제련_카드는_턱과_앰비언트_두_겹을_쥔다()
         {
@@ -618,7 +665,7 @@ namespace Forge.Tests.PlayMode
             int hard = 0, soft = 0;
             foreach (string k in UiShadow.Table.Keys) { if (UiShadow.Table.Get(k).IsHard) hard++; else soft++; }
             Assert.AreEqual(8, hard, "40회차 자동 제련 시대 막대 턱(afagebar_lip)으로 8");
-            Assert.AreEqual(25, soft, "36회차 21 · 38회차 22 · 39회차 23 · 40회차 afstart_drop·afagebar_drop 25");
+            Assert.AreEqual(27, soft, "36회차 21 · 38회차 22 · 39회차 23 · 40회차 25 · 41회차 ratebar_drop·shopcard_drop 27");
         }
     }
 }

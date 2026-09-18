@@ -78,6 +78,7 @@ namespace Forge.Game.Ui
                 RectTransform card = UiKit.Box(rowBox, "card");
                 UiKit.Place(card, cardX, 0f, cardW, cardH);
                 PopupKit.Outlined(card, "face", "pp_paper", RadiusUi.Px("shop_deal_card_r_rem"), PopupKit.Line3);   // T345 13회차 — 정본 2916 `.shop-deal-card` .9rem
+                UiShadow.Drop(card, "shopcard_drop", RadiusUi.Px("shop_deal_card_r_rem"), cardW, cardH);   // T331 41회차 — 정본 8230 `.shop-deal-card, .shop-gem-card` 캐스트 그림자(표 shopcard_drop · 카드 맨 뒤)
 
                 // 빨간 깃발 태그(카드 바깥선보다 왼쪽에서 시작 · 폭 고정)
                 float tagW = UiKit.L("shop_tag_w") * w, tagH = UiKit.H("shop_tag_h");
@@ -142,6 +143,7 @@ namespace Forge.Game.Ui
                 RectTransform card = UiKit.Box(grid, "gem-" + i);
                 UiKit.Place(card, UiKit.L("shop_gems_x") * w + (i % cols) * (gemW + gemGap), gemsTop + (i / cols) * (gemH + gemGap), gemW, gemH);
                 PopupKit.Outlined(card, "face", "pp_paper", RadiusUi.Px("shop_gem_card_r_rem"), PopupKit.Line3);   // T345 13회차 — 정본 2971 `.shop-gem-card` .8rem
+                UiShadow.Drop(card, "shopcard_drop", RadiusUi.Px("shop_gem_card_r_rem"), gemW, gemH);   // T331 41회차 — 같은 선언(8230)의 둘째 선택자 · 보석 카드도 같은 캐스트
                 // 카드 «안쪽» 세로 배분은 정본 `.shop-gem-card` 주석의 실측 그대로다(카드 상단 기준 · 894px 캡처 기준을 %H 로):
                 // 수량 줄 +8~36px · 그림 +38~98px · 가격 버튼 +101~124px. rem 눈대중으로 두면 자가 밴드8 의 블록을 못 가른다(T75).
                 float amtTop = UiKit.H("shop_gem_amt_top"), amtH = UiKit.H("shop_gem_amt_h");

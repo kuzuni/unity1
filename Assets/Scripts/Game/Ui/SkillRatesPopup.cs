@@ -131,6 +131,8 @@ namespace Forge.Game.Ui
                 string r = rar[i];
                 RectTransform bar = PetSkillKit.Framed(c, "rate-bar-" + r, PetSkillStyle.Rarity(Defs, r), PetSkillStyle.Px("rate_bar_r_rem"), PetSkillKit.Line3);
                 UiKit.Place(bar, padX, y, inner, barH);
+                // T331 41회차 — 정본 8584 `.rate-bar` 의 드리운 그림자 `0 .08rem .1rem rgba(0,0,0,.22)`(표 ratebar_drop · «막대가 종이 위에 얹힌 판으로») · 틀 안 맨 뒤(면·테 뒤).
+                UiShadow.Drop(bar, "ratebar_drop", PetSkillStyle.Px("rate_bar_r_rem"), inner, barH);
                 // T178 4회차 — 정본 8577 `.rate-bar { background-image: … }` 등급색 면 위 겹 둘: 에나멜 하이라이트(28% 하드 스톱) + 위 1px 림. 둥근 면이라 Mask 로(3회차 길).
                 Image rateFace = bar.Find("face").GetComponent<Image>();
                 SurfaceArt.FillMasked(rateFace, "rate-enamel", "rate_bar_enamel", inner - PetSkillKit.Line3 * 2f, barH - PetSkillKit.Line3 * 2f);

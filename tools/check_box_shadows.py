@@ -59,6 +59,8 @@ SPOTS = [
     ('afstart_drop',   '.af-start',                     5019, 'blur'),   # 40회차 — 남색 rgba(20,60,140,.4) · inset 둘은 턱·림라이트(PopupKit.Btn lip · T178 면)
     ('afagebar_lip',   '.af-age-bar',                   4828, 'hard'),   # 40회차 — 같은 선언의 바깥 두 겹 중 첫(딱딱한 턱) · 둘째는 afagebar_drop
     ('afagebar_drop',  '.af-age-bar',                   4828, 'blur'),   # 40회차 — 둘째 겹(앰비언트) · 막대 뿌리의 형제(무늬 층 = 1)를 안 흔들려고 둘 다 첫 자식 «bar» 틀 안에
+    ('ratebar_drop',   '.rate-bar',                     8584, 'blur'),   # 41회차 — 확률 팝업 등급 막대(SkillRatesPopup · Framed 상자 맨 뒤)
+    ('shopcard_drop',  '.shop-deal-card, .shop-gem-card', 8230, 'blur'),   # 41회차 — 특가 카드 + 보석 카드(ShopSheet 두 공장 · NEED 2)
     # 26회차 — 자동 제련 팝업 한 파일에 몰린 둘(손잡이 `.af-toggle .knob` 은 공장이 `Popups.cs` 라 남의 lock 뒤다)
     ('afspinner_lip', '.af-spinner',                   5007, 'hard'),
     ('afsubrow_drop', '.af-sub-row',                   4999, 'blur'),
@@ -86,6 +88,7 @@ NEED = {
     'equipcell_drop': 3,   # 36·37회차 — 셋째(목록 타일)는 ForgeUi.ItemTile(T415 lock)을 안 열고 부르는 쪽 ForgeInfoPopup.Cell 에서 건다(37회차) · — `ForgeSheet.EquipCell`(장비 시트) + `PlayerInfoPopup.EquipCell`(플레이어 정보 격자) + `ForgeUi.ItemTile`(목록 타일 `.fl-face.equip-cell` · ui.js 2090 «타일은 .equip-cell CSS 를 그대로 입는다»)
     'pettile_drop': 3,   # 38회차 — 정본 `.pet-tile` 격자 셋(ui.js 3938 펫 · 4152 업그레이드 재료 · 5646 탈것) = 클론 `PetPanel.PetTileAt`·`PetUpgradePopup` 재료 격자·`MountSheet` 격자(공장 TileFace 는 상세 타일도 만들어 부르는 쪽에서 건다)
     'mountcell_drop': 2,   # 39회차 — `ForgeSheet.MountCell`(장비 시트) + `PlayerInfoPopup.MountWide`(플레이어 정보 와이드 칸 · 같은 egg-cell 마크업)
+    'shopcard_drop': 2,   # 41회차 — `ShopSheet` 특가 카드(deal-*/card) + 보석 카드(gem-*) — 정본이 한 선언에 두 선택자를 적었다
 }
 
 KNOWN = {
@@ -131,6 +134,9 @@ ELSEWHERE = {
     # 29회차 — 같은 그늘에 **등급 발광만 더한** 변형(그늘은 `.sr-chip` 키 하나로 선다)
     # 38회차 — 같은 그늘에 **선택 링만 더한** 변형(링 `0 0 0 .16rem var(--pp-blue)` 은 번짐만 있는 테두리라 그림자가 아니다)
     '.pet-tile.selected .tile-face': '`.pet-tile .tile-face` 와 같은 그늘 `0 .16rem .3rem rgba(0,0,0,.22)` + 파란 선택 링 — 그늘은 pettile_drop 이 쥔다 · 링은 선택 표시 갈래',
+    # 41회차 — 그림자가 아닌 것 둘.
+    '.sr-spark': '소환 결과 스파클 — 흐림 0 · 번짐 음수 · 흰/등급색 점을 여덟 방향 오프셋으로 찍은 **점 무리 그림**(6477 · mix-blend-mode: screen)이지 그늘이 아니다 · T334 소환 연출 갈래',
+    '.modal-card:not(.sheet):not(.pass-card):not(.lgr-card)': '7783 의 `0 .5rem 0 rgba(0,0,0,.25)` 는 3518 `.modal-card` 의 턱을 같은 값으로 다시 적은 것(나머지는 inset) — 그늘은 card_lip 이 쥔다 · 8596 과 같은 갈래(결정 719)',
     '.sr-chip[data-tier="4"]': '`.sr-chip` 과 같은 두 겹 + 등급 발광 `0 0 .5rem var(--cb)` — 그늘은 srchip_drop 이 쥔다',
     '.sr-chip[data-tier="5"]': '`.sr-chip` 과 같은 두 겹 + 등급 발광 `0 0 .7rem var(--cb)` — 그늘은 srchip_drop 이 쥔다',
 }

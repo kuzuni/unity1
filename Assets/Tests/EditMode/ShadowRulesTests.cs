@@ -26,7 +26,7 @@ namespace Forge.Tests
             //   그래서 못 박는 것은 «열둘» 이 아니라 ⓐ 자(`check_box_shadows`)의 표와 같은 수 ⓑ 값이 정본 그대로다.
             //   자의 표를 늘리면 이 수도 같이 늘려라 — 둘이 어긋나면 한쪽이 몰래 낡은 것이다.
             ShadowTable t = T();
-            Assert.AreEqual(33, t.Count, "자(check_box_shadows)가 세는 자리와 같은 수여야 한다 — 36회차 28 · 38회차 29 · 39회차 30 · 40회차 자동 제련 셋 33");
+            Assert.AreEqual(35, t.Count, "자(check_box_shadows)가 세는 자리와 같은 수여야 한다 — 36회차 28 · 38회차 29 · 39회차 30 · 40회차 33 · 41회차 확률 막대·상점 카드 35");
             ShadowSpec q = t.Get("qstrow_lip");
             Assert.AreEqual(0.0, q.DxRem, 1e-9);
             Assert.AreEqual(0.25, q.DyRem, 1e-9, "정본 .qst-row `0 .25rem 0`");
@@ -42,7 +42,7 @@ namespace Forge.Tests
             int hard = 0, soft = 0;
             foreach (string k in T().Keys) { if (T().Get(k).IsHard) hard++; else soft++; }
             Assert.AreEqual(8, hard, "딱딱한 턱(blur·spread 0) — 카드·패널·퀘스트 행·던전 배너·장착 바·자동 제련 스피너 + 대장간 나이 막대(29회차) + 자동 제련 시대 막대 턱(40회차)");
-            Assert.AreEqual(25, soft, "흐린 그림자(36회차 21 · 38회차 22 · 39회차 23 · 40회차 afstart_drop·afagebar_drop 25) — 29회차에 남은 열하나의 **값을 먼저 재** 표에 담았다(배선은 그 파일의 lock 이 풀리는 회차 · 자의 KNOWN 이 그 목록이다)");
+            Assert.AreEqual(27, soft, "흐린 그림자(36회차 21 · 38회차 22 · 39회차 23 · 40회차 25 · 41회차 ratebar_drop·shopcard_drop 27) — 29회차에 남은 열하나의 **값을 먼저 재** 표에 담았다(배선은 그 파일의 lock 이 풀리는 회차 · 자의 KNOWN 이 그 목록이다)");
             Assert.AreEqual(T().Count, hard + soft, "갈래가 둘뿐이다");
         }
 
