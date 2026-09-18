@@ -339,7 +339,8 @@
   "tier": {
     "glow": [0.0, 0.16, 0.3, 0.55, 0.8, 1.0],
     "over": [0.7, 0.8, 1.0, 1.3, 1.6, 1.9],
-    "_": "정본 `.sr-cell` 등급 계단(style.css 6327~6332) — `--glow` 0/.16/.3/.55/.8/1(일반→신화) · `--over` .7/.8/1/1.3/1.6/1.9(T458 — 착지 스프링 76% 의 `scale(1 + .1 × var(--over, 1))` 넘침 · `pop` 절이 쓴다 · `.sr-ok` 는 이 변수가 없어 기본 1). 같은 블록의 `--ray`·`--sz`·`--pop`·`--idle` 은 각각 제 겹이 쥔다(`--idle` 은 위 `idle.weight`). ⚠ `relight` 절의 세기는 **이 계단이 아니다** — `fillSummonRelights` 가 인라인으로 심는 `0.16 + tier × 0.13` 이다(그 절 `_` 참조)."
+    "ray": [0.0, 0.0, 0.16, 0.38, 0.6, 0.85],
+    "_": "정본 `.sr-cell` 등급 계단(style.css 6327~6332) — `--glow` 0/.16/.3/.55/.8/1(일반→신화) · `--over` .7/.8/1/1.3/1.6/1.9· `--ray` 0/0/.16/.38/.6/.85(T480 — 고등급 셀 회전 광선의 끝 알파 · `srrayfade` 의 `to { opacity: var(--ray) }`) (T458 — 착지 스프링 76% 의 `scale(1 + .1 × var(--over, 1))` 넘침 · `pop` 절이 쓴다 · `.sr-ok` 는 이 변수가 없어 기본 1). 같은 블록의 `--ray`·`--sz`·`--pop`·`--idle` 은 각각 제 겹이 쥔다(`--idle` 은 위 `idle.weight`). ⚠ `relight` 절의 세기는 **이 계단이 아니다** — `fillSummonRelights` 가 인라인으로 심는 `0.16 + tier × 0.13` 이다(그 절 `_` 참조)."
   },
   "spark": {
     "spark_ms": 420.0,
@@ -898,6 +899,31 @@
       { "at": 70.0,  "tx_pct": -0.16, "ty_pct": -0.2, "scale": 1.0 },
       { "at": 100.0, "tx_pct": 0.0,   "ty_pct": 0.0,  "scale": 1.0 }
     ]
+  },
+  "landring": {
+    "_": "T480 (a) — 정본 6358~6363 `.sr-orbwrap::after { inset: 0; border-radius: 50%; opacity: 0; mix-blend-mode: screen; background: radial-gradient(closest-side, 투명 62%, var(--rc) 78%, 투명 92%) }` + `.sr-cell.on .sr-orbwrap::after { animation: srring .55s ease-out forwards }` · `@keyframes srring`(6489~6492) `0% { opacity: calc(.32 + .62 × --glow); transform: scale(.65) } 100% { opacity: 0; transform: scale(calc(1.5 + .8 × --glow)) }`. **모든** 셀이 자기 착지(.on)에 구슬 둘레(래퍼 inset 0 · 정사각)에 등급색 링을 한 번 번진다(가산). 정본 주석: «3px 하드 보더는 4배 확대에서 레이더 레티클처럼 보이고 이웃 셀을 관통한다 — 감쇠하는 링으로 바꾸고 최대 반경도 등급(--glow)에 비례시켜 일반 드랍과 신화의 임팩트를 벌린다». 동급 링(peerring · 셀 뒤 z −1)·주역 링(heroring)과 **따로** 도는 셋째 링이다. `stop*` 는 closest-side 반경의 분수 · `a0 = a0_base + a0_glow × glow` · `scale1 = scale1_base + scale1_glow × glow` · glow 는 `tier.glow`.",
+    "ms": 550.0,
+    "ease": [0.0, 0.0, 0.58, 1.0],
+    "a0_base": 0.32,
+    "a0_glow": 0.62,
+    "scale0": 0.65,
+    "scale1_base": 1.5,
+    "scale1_glow": 0.8,
+    "stop0": 0.62,
+    "stop1": 0.78,
+    "stop2": 0.92
+  },
+  "ray": {
+    "_": "T480 (b) — 정본 6680~6688 `.sr-ray { position: absolute; inset: -16%; border-radius: 50%; opacity: 0; mask-image: radial-gradient(circle, #000 18%, rgba(0,0,0,.45) 40%, rgba(0,0,0,0) 62%) }` · `.sr-cell.hi .sr-ray { background: repeating-conic-gradient(var(--rc) 0deg 4deg, 투명 4deg 26deg) }` · `.sr-cell.hi.on .sr-ray { animation: srrayfade .5s ease-out forwards, srrayspin 3.6s linear infinite }` · `srrayfade { to { opacity: var(--ray) } }` · `srrayspin { to { rotate(360deg) } }`. 고등급(hi = legendary·ultimate·mythic) 셀 구슬 **뒤**(래퍼 첫 자식 · ui.js 431 마크업이 `.sr-orbwrap` 첫 줄)에서 등급색 살 열넷(360/26 ≈ 13.8)이 계속 돈다. 정본 주석(6679): «광선은 셀 폭을 크게 넘기면 옆 셀과 뭉개져 얼룩 띠가 된다 — 반경을 줄이고 가장자리를 감쇠». ⚠ 마스크는 `radial-gradient(circle, …)` 라 끝 모양 반경이 **farthest-corner**(= 반변 × √2) — `mask_stops_f` 는 그 CSS % 그대로 적고 굽는 쪽이 √2 를 곱한다(`mask_corner: true`). 끝 알파는 `tier.ray`.",
+    "inset_f": 0.16,
+    "fade_ms": 500.0,
+    "fade_ease": [0.0, 0.0, 0.58, 1.0],
+    "spin_ms": 3600.0,
+    "spoke_every_deg": 26.0,
+    "spoke_deg": 4.0,
+    "mask_corner": true,
+    "mask_stops_f": [0.18, 0.40, 0.62],
+    "mask_a": [1.0, 0.45, 0.0]
   },
   "hipulse": {
     "_": "T459 — 정본 6674 `.sr-cell.hi.on .sr-orbwrap { animation: srpulse 1.6s ease-in-out infinite; animation-delay: calc(.45s + var(--i, 0) * .17s) }` + `@keyframes srpulse`(6675~6678): 광채 box-shadow 두 겹의 번짐이 0%·100% 1.1rem/2.3rem 에서 50% 1.7rem/3.4rem 로 뛴다(정본 주석 «본체 밝기가 아니라 광채가 뛰게 — brightness 를 올리면 노란 구체가 흰색으로 클리핑돼 안의 아이콘이 지워진다» · «같은 등급이 여러 개면 셀 index 로 위상 분산»). 클론의 광채는 원판 한 장이라 두 겹 비율의 평균으로 배율을 뛰게 한다. ease-in-out = cubic-bezier(.42,0,.58,1) · 구간마다.",

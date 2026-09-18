@@ -63,6 +63,11 @@ namespace Forge.Game.Ui
             public Image PeerRing;
             /// <summary>T475 — 신화(5등급)·동급(peer) 래퍼의 흰 반투명 아웃라인(정본 6691·6704 `outline`) — 래퍼 안 · 광채 위 · 구슬 아래.</summary>
             public Image Outline;
+            /// <summary>T480 ⓐ — 일반 착지 링(정본 `.sr-orbwrap::after` · `srring`) — 래퍼 안 맨 위 · inset 0 · 자기 착지에 한 번 번진다(모든 셀).</summary>
+            public Image LandRing;
+            /// <summary>T480 ⓑ — 고등급 회전 광선(정본 `.sr-ray`) — 래퍼 첫 자식(구슬 뒤) · 폭 (1 + 2 × .16) · 착지 뒤 .5s 에 `--ray` 로 밝아지고 3.6s 에 한 바퀴 돈다.</summary>
+            public Image Ray;
+            public int Tier;
         }
 
         public static SkillSummonResultView Current { get; private set; }
@@ -233,6 +238,14 @@ namespace Forge.Game.Ui
         public List<Image> PeerRings { get { var l = new List<Image>(); foreach (Cell c in cells) if (c.PeerRing != null) l.Add(c.PeerRing); return l; } }
         /// <summary>그 링의 최대 배율(정본 6702 `.sr-cell.peer { --ringmax: 1.5 }`).</summary>
         public float RingMaxPeer { get { return SummonFxStyle.H("ringmax_peer"); } }
+        /// <summary>T480 ⓐ — 셀마다 하나인 착지 링들(셀 순서).</summary>
+        public List<Image> LandRings { get { var l = new List<Image>(); foreach (Cell c in cells) l.Add(c.LandRing); return l; } }
+        /// <summary>T480 ⓑ — 고등급 셀의 회전 광선들(셀 순서 · 고등급이 아니면 null).</summary>
+        public List<Image> Rays { get { var l = new List<Image>(); foreach (Cell c in cells) l.Add(c.Ray); return l; } }
+        /// <summary>i 번째 셀 착지 링의 끝 배율(정본 `1.5 + .8 × --glow`).</summary>
+        public float LandRingScaleEnd(int i) { SummonLandRingSpec sp = SummonFxStyle.LandRing; return (float)sp.Scale1(sp.Glow(cells[i].Tier)); }
+        /// <summary>i 번째 셀 광선의 끝 알파(정본 `--ray`).</summary>
+        public float RayAlphaEnd(int i) { SummonRaySpec sp = SummonFxStyle.Ray; return (float)sp.Ray(cells[i].Tier); }
 
         /// <summary>룬 눈금 띠(정본 `.sr-floor::after`)의 지금 불투명도 — 없으면 −1.</summary>
         public float TickAlpha { get { return tickImg != null ? tickImg.color.a : -1f; } }
@@ -959,6 +972,26 @@ namespace Forge.Game.Ui
             wrap.anchoredPosition = new Vector2(cw * 0.5f, -cw * 0.5f);
             c.OrbWrap = wrap;
             c.OrbHome = wrap.anchoredPosition;
+            c.Tier = tier;
+            // T480 ⓑ — 정본 6680~6688 `.sr-ray`(ui.js 431: 래퍼의 **첫** 자식 · 구슬 뒤): 고등급(hi) 셀에만 등급색 살 열넷이 `inset: -16%` 상자에서
+            //   착지 뒤 `.5s` 에 `--ray` 로 밝아지고 `3.6s` 에 한 바퀴(linear infinite) 돈다. 살과 방사 마스크는 한 장에 굽고(등급색마다) 회전은 상자가 한다.
+            //   정본 주석 6679: «광선은 셀 폭을 크게 넘기면 옆 셀과 뭉개져 얼룩 띠가 된다 — 반경을 줄이고 가장자리를 감쇠». 거울상(ReflectStrip)에서 뗀다(정본 777).
+            //   ⚑ 아래 잔상(`sr-ghost`) 블록이 뒤에 `SetAsFirstSibling` 하므로 최종 순서는 잔상 0 · 광선 1(정본 DOM 은 광선 → 잔상) — 둘 다 구슬 뒤라
+            //   그림은 같고, 잔상 자(T334 15회차)가 «잔상 = 첫 자식» 을 쥐고 있어 그대로 둔다(결정 804).
+            if (Hi(e.Rarity))
+            {
+                SummonRaySpec rsp = SummonFxStyle.Ray;
+                float rd = cw * (float)rsp.BoxF;
+                RectTransform rr = UiKit.Box(wrap, "sr-ray");
+                UiKit.Anchor(rr, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, rd, rd);
+                rr.SetAsFirstSibling();
+                Image ri = rr.gameObject.AddComponent<Image>();
+                ri.raycastTarget = false;
+                ri.preserveAspect = false;
+                ri.sprite = SummonFx.BakeRaySpokes("sr-ray-" + ColorUtility.ToHtmlStringRGB(rc), rc);
+                ri.color = new Color(1f, 1f, 1f, 0f);
+                c.Ray = ri;
+            }
             // T448 — 동급(peer) 착지 링(정본 6710~6716 `.sr-cell.peer.on::after`): 주역 충격파의 축소판이되 정지점·흰 알파·길이·배율 넷이 다르고,
             //   거는 때가 다르다 — 주역 링은 `.hero` 비트, 이 링은 **자기 착지**(.on). 셀 뒤(z −1) 폭 100% 정사각 · 가산(screen) 재질 · 알파 0 으로 두고 착지 시계가 돌린다.
             if (peer)
@@ -1348,6 +1381,8 @@ namespace Forge.Game.Ui
             AnimateOk();
             AnimateHeroRing();
             AnimatePeerRings();
+            AnimateLandRings();
+            AnimateRays();
             AnimateBeam();
             AnimateRelights();
             AnimateSparks();
@@ -1714,6 +1749,38 @@ namespace Forge.Game.Ui
         /// T448 — 동급(peer) 착지 링(정본 `.sr-cell.peer.on::after` · `srheroring .58s`) — 같은 키프레임(알파 .95 → 0 · 배율 .5 → `--ringmax` 1.5)을
         /// 셀마다 **제 착지 시각**(`OnAt`)에서 센다. 주역 링과 달리 `.hero` 비트를 안 기다린다(정본 6706 주석).
         /// </summary>
+        /// <summary>T480 ⓐ — 일반 착지 링(정본 `srring` .55s ease-out forwards): 자기 착지 뒤 알파 a0(glow) → 0 · 배율 .65 → 1.5 + .8 × glow · 끝나면 그대로 선다.</summary>
+        void AnimateLandRings()
+        {
+            SummonLandRingSpec sp = null;
+            for (int i = 0; i < cells.Count; i++)
+            {
+                Cell c = cells[i];
+                if (c.LandRing == null || !c.On) continue;
+                if (sp == null) sp = SummonFxStyle.LandRing;
+                double ms = (Time.unscaledTime - c.OnAt) * 1000f;
+                double a, sc;
+                sp.At(ms, sp.Glow(c.Tier), out a, out sc);
+                c.LandRing.color = new Color(1f, 1f, 1f, (float)a);
+                c.LandRing.rectTransform.localScale = Vector3.one * (float)sc;
+            }
+        }
+
+        /// <summary>T480 ⓑ — 고등급 회전 광선(정본 `srrayfade` .5s ease-out forwards + `srrayspin` 3.6s linear infinite): 알파 0 → `--ray` · 각은 계속 돈다.</summary>
+        void AnimateRays()
+        {
+            SummonRaySpec sp = null;
+            for (int i = 0; i < cells.Count; i++)
+            {
+                Cell c = cells[i];
+                if (c.Ray == null || !c.On) continue;
+                if (sp == null) sp = SummonFxStyle.Ray;
+                double ms = (Time.unscaledTime - c.OnAt) * 1000f;
+                c.Ray.color = new Color(1f, 1f, 1f, (float)sp.AlphaAt(ms, sp.Ray(c.Tier)));
+                c.Ray.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -(float)sp.AngleAt(ms));   // CSS 의 +각은 시계 방향
+            }
+        }
+
         void AnimatePeerRings()
         {
             float dur = -1f, a0 = 0f, s0 = 0f, smax = 1f;

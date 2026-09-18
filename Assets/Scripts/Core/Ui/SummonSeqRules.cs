@@ -1871,4 +1871,134 @@ namespace Forge.Core.Ui
         public bool Popping(double ms, double popMs) { return ms >= 0 && ms < popMs; }
     }
 
+
+    /// <summary>
+    /// T480 ⓐ — 일반 셀 착지 링(정본 6358~6363 `.sr-orbwrap::after` · `srring` .55s ease-out forwards).
+    /// 알파 `a0_base + a0_glow × glow` → 0 · 배율 `scale0` → `scale1_base + scale1_glow × glow`(glow = 등급 계단 `tier.glow`).
+    /// </summary>
+    public sealed class SummonLandRingSpec
+    {
+        public double Ms, A0Base, A0Glow, Scale0, Scale1Base, Scale1Glow, Stop0, Stop1, Stop2;
+        public CssEase Ease;
+        /// <summary>등급 계단 `--glow`(정본 6327~6332 · `tier.glow` · 일반→신화).</summary>
+        public double[] TierGlow;
+
+        public static SummonLandRingSpec From(JsonObject root)
+        {
+            double[] gl = J.NumArr(J.Require(J.Obj(J.Require(root, "tier")), "glow"));
+            if (gl == null || gl.Length < 2) throw new FormatException("SummonFxUi tier: glow 는 등급 계단(둘 이상)이다");
+            for (int i = 0; i < gl.Length; i++) if (gl[i] < 0 || gl[i] > 1) throw new FormatException("SummonFxUi tier: glow 는 0..1 이다");
+            JsonObject o = J.Obj(J.Require(root, "landring"));
+            var s = new SummonLandRingSpec
+            {
+                Ms = J.Num(J.Require(o, "ms")),
+                A0Base = J.Num(J.Require(o, "a0_base")), A0Glow = J.Num(J.Require(o, "a0_glow")),
+                Scale0 = J.Num(J.Require(o, "scale0")),
+                Scale1Base = J.Num(J.Require(o, "scale1_base")), Scale1Glow = J.Num(J.Require(o, "scale1_glow")),
+                Stop0 = J.Num(J.Require(o, "stop0")), Stop1 = J.Num(J.Require(o, "stop1")), Stop2 = J.Num(J.Require(o, "stop2")),
+                TierGlow = gl,
+            };
+            if (s.Ms <= 0) throw new FormatException("SummonFxUi landring: ms 는 0보다 커야 한다");
+            if (s.A0Base < 0 || s.A0Base + s.A0Glow > 1) throw new FormatException("SummonFxUi landring: 0% 알파(a0_base + a0_glow)는 0..1 이다");
+            if (s.Scale0 <= 0 || s.Scale1Base < s.Scale0 || s.Scale1Glow < 0) throw new FormatException("SummonFxUi landring: 배율은 scale0 < scale1 이다");
+            if (!(0 <= s.Stop0 && s.Stop0 < s.Stop1 && s.Stop1 < s.Stop2 && s.Stop2 <= 1)) throw new FormatException("SummonFxUi landring: 정지점은 0 ≤ stop0 < stop1 < stop2 ≤ 1 이다");
+            double[] e = J.NumArr(J.Require(o, "ease"));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi landring: ease 는 cubic-bezier 넷이다");
+            s.Ease = new CssEase(e[0], e[1], e[2], e[3]);
+            return s;
+        }
+
+        /// <summary>등급의 `--glow`(범위 밖은 끝 값).</summary>
+        public double Glow(int tier) { return TierGlow[tier < 0 ? 0 : tier >= TierGlow.Length ? TierGlow.Length - 1 : tier]; }
+        /// <summary>0% 알파 `.32 + .62 × glow`.</summary>
+        public double A0(double glow) { return A0Base + A0Glow * glow; }
+        /// <summary>100% 배율 `1.5 + .8 × glow`.</summary>
+        public double Scale1(double glow) { return Scale1Base + Scale1Glow * glow; }
+        /// <summary>켜진 뒤 <paramref name="ms"/> 의 알파·배율(forwards — 끝나면 알파 0 · 끝 배율에 머문다).</summary>
+        public void At(double ms, double glow, out double alpha, out double scale)
+        {
+            double u = ms <= 0 ? 0 : ms >= Ms ? 1 : ms / Ms;
+            double k = Ease.Ease(u);
+            alpha = A0(glow) * (1 - k);
+            scale = Scale0 + (Scale1(glow) - Scale0) * k;
+        }
+    }
+
+    /// <summary>
+    /// T480 ⓑ — 고등급 셀 회전 광선(정본 6680~6688 `.sr-ray` · `srrayfade` .5s ease-out forwards + `srrayspin` 3.6s linear infinite).
+    /// 살은 `spoke_every_deg` 마다 `spoke_deg` 폭(등급색) · 방사 마스크(farthest-corner) · 끝 알파는 등급 계단 `tier.ray`.
+    /// </summary>
+    public sealed class SummonRaySpec
+    {
+        public double InsetF, FadeMs, SpinMs, SpokeEveryDeg, SpokeDeg;
+        public bool MaskCorner;
+        public double[] MaskStopsF, MaskA;
+        public CssEase FadeEase;
+        /// <summary>등급 계단 `--ray`(정본 6327~6332 · `tier.ray` · 일반→신화).</summary>
+        public double[] TierRay;
+
+        public static SummonRaySpec From(JsonObject root)
+        {
+            double[] ry = J.NumArr(J.Require(J.Obj(J.Require(root, "tier")), "ray"));
+            if (ry == null || ry.Length < 2) throw new FormatException("SummonFxUi tier: ray 는 등급 계단(둘 이상)이다");
+            for (int i = 0; i < ry.Length; i++) if (ry[i] < 0 || ry[i] > 1) throw new FormatException("SummonFxUi tier: ray 는 0..1 이다");
+            JsonObject o = J.Obj(J.Require(root, "ray"));
+            var s = new SummonRaySpec
+            {
+                InsetF = J.Num(J.Require(o, "inset_f")),
+                FadeMs = J.Num(J.Require(o, "fade_ms")), SpinMs = J.Num(J.Require(o, "spin_ms")),
+                SpokeEveryDeg = J.Num(J.Require(o, "spoke_every_deg")), SpokeDeg = J.Num(J.Require(o, "spoke_deg")),
+                MaskCorner = J.Bool(J.Require(o, "mask_corner")),
+                MaskStopsF = J.NumArr(J.Require(o, "mask_stops_f")), MaskA = J.NumArr(J.Require(o, "mask_a")),
+                TierRay = ry,
+            };
+            if (s.InsetF < 0 || s.FadeMs <= 0 || s.SpinMs <= 0) throw new FormatException("SummonFxUi ray: inset_f ≥ 0 · fade_ms·spin_ms > 0 이다");
+            if (s.SpokeDeg <= 0 || s.SpokeEveryDeg <= s.SpokeDeg) throw new FormatException("SummonFxUi ray: 살 폭은 0 보다 크고 간격보다 작다");
+            if (s.MaskStopsF == null || s.MaskA == null || s.MaskStopsF.Length < 2 || s.MaskStopsF.Length != s.MaskA.Length) throw new FormatException("SummonFxUi ray: mask_stops_f 와 mask_a 는 같은 길이(둘 이상)다");
+            for (int i = 1; i < s.MaskStopsF.Length; i++) if (s.MaskStopsF[i] <= s.MaskStopsF[i - 1]) throw new FormatException("SummonFxUi ray: mask_stops_f 는 오름차순이다");
+            double[] e = J.NumArr(J.Require(o, "fade_ease"));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi ray: fade_ease 는 cubic-bezier 넷이다");
+            s.FadeEase = new CssEase(e[0], e[1], e[2], e[3]);
+            return s;
+        }
+
+        /// <summary>등급의 `--ray`(범위 밖은 끝 값).</summary>
+        public double Ray(int tier) { return TierRay[tier < 0 ? 0 : tier >= TierRay.Length ? TierRay.Length - 1 : tier]; }
+        /// <summary>상자 폭 = 래퍼 폭 × (1 + 2 × inset_f)(정본 `inset: -16%`).</summary>
+        public double BoxF { get { return 1 + 2 * InsetF; } }
+        /// <summary>살 개수(360 / 간격 · 정본 26° → 13.8 → 열넷).</summary>
+        public int Spokes { get { return (int)Math.Ceiling(360.0 / SpokeEveryDeg); } }
+        /// <summary>켜진 뒤 <paramref name="ms"/> 의 알파 — 0 → `--ray`(forwards).</summary>
+        public double AlphaAt(double ms, double ray)
+        {
+            double u = ms <= 0 ? 0 : ms >= FadeMs ? 1 : ms / FadeMs;
+            return ray * FadeEase.Ease(u);
+        }
+        /// <summary>켜진 뒤 <paramref name="ms"/> 의 각(도 · CSS 시계 방향 · linear infinite).</summary>
+        public double AngleAt(double ms)
+        {
+            if (ms <= 0) return 0;
+            double t = ms / SpinMs; t -= Math.Floor(t);
+            return 360.0 * t;
+        }
+        /// <summary>마스크 알파 — <paramref name="r"/> 는 반변 = 1 로 잰 반지름(`mask_corner` 면 정지점에 √2 를 곱한다).</summary>
+        public double MaskAt(double r)
+        {
+            double k = MaskCorner ? Math.Sqrt(2.0) : 1.0;
+            if (r <= MaskStopsF[0] * k) return MaskA[0];
+            for (int i = 0; i + 1 < MaskStopsF.Length; i++)
+            {
+                double a = MaskStopsF[i] * k, b = MaskStopsF[i + 1] * k;
+                if (r <= b) return MaskA[i] + (MaskA[i + 1] - MaskA[i]) * ((r - a) / (b - a));
+            }
+            return MaskA[MaskA.Length - 1];
+        }
+        /// <summary>각 <paramref name="deg"/>(0..360) 이 살 위인가.</summary>
+        public bool OnSpoke(double deg)
+        {
+            double d = deg - Math.Floor(deg / SpokeEveryDeg) * SpokeEveryDeg;
+            return d < SpokeDeg;
+        }
+    }
+
 }

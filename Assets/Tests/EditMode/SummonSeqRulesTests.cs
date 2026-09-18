@@ -1384,6 +1384,52 @@ namespace Forge.Tests
             s.At(320 * 0.76, 320, s.Over(0), out f, out sc, out a);
             Assert.AreEqual(1.07, sc, 1e-9, "일반 착지 76% = 1 + .1 × .7");
         }
-    }
+    
+        // ---- T480 — 착지 링(landring · 정본 srring) · 회전 광선(ray · 정본 srrayfade/srrayspin) ----
+        static JsonObject FxRoot()
+        {
+            string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+            return MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json")));
+        }
 
+        [Test]
+        public void 착지_링은_glow_계단으로_알파와_끝_배율을_내고_ease_out_으로_사라진다()
+        {
+            // 정본 6489~6492 `srring { 0% { opacity: calc(.32 + .62 × --glow); scale(.65) } 100% { opacity: 0; scale(calc(1.5 + .8 × --glow)) } }` · .55s ease-out.
+            SummonLandRingSpec s = SummonLandRingSpec.From(FxRoot());
+            Assert.AreEqual(550, s.Ms, 1e-9);
+            double[] glow = { 0, 0.16, 0.3, 0.55, 0.8, 1.0 };
+            for (int i = 0; i < glow.Length; i++) Assert.AreEqual(glow[i], s.Glow(i), 1e-9, "tier " + i);
+            Assert.AreEqual(0.32, s.A0(0), 1e-9, "일반 0% 알파"); Assert.AreEqual(0.94, s.A0(1), 1e-9, "신화 0% 알파");
+            Assert.AreEqual(1.5, s.Scale1(0), 1e-9, "일반 끝 배율"); Assert.AreEqual(2.3, s.Scale1(1), 1e-9, "신화 끝 배율");
+            Assert.AreEqual(0.62, s.Stop0, 1e-9); Assert.AreEqual(0.78, s.Stop1, 1e-9); Assert.AreEqual(0.92, s.Stop2, 1e-9);
+            double a, sc;
+            s.At(0, 1, out a, out sc); Assert.AreEqual(0.94, a, 1e-9); Assert.AreEqual(0.65, sc, 1e-9);
+            s.At(550, 1, out a, out sc); Assert.AreEqual(0, a, 1e-9); Assert.AreEqual(2.3, sc, 1e-9);
+            s.At(9999, 0.3, out a, out sc); Assert.AreEqual(0, a, 1e-9, "forwards"); Assert.AreEqual(1.74, sc, 1e-9, "forwards 끝 배율 1.5 + .8 × .3");
+            double a1, s1, a2, s2;
+            s.At(110, 1, out a1, out s1); s.At(275, 1, out a2, out s2);
+            Assert.Greater(a1, a2, "알파는 준다"); Assert.Less(s1, s2, "배율은 는다");
+            // ease-out(0,0,.58,1)은 앞이 빠르다 — 반(275ms)에 이미 절반 넘게 갔다.
+            Assert.Greater((s2 - 0.65) / (2.3 - 0.65), 0.5, "ease-out 은 앞이 빠르다");
+        }
+
+        [Test]
+        public void 회전_광선은_ray_계단으로_밝아지고_3600ms_에_한_바퀴_돌며_살은_26도마다_4도다()
+        {
+            // 정본 6327~6332 `--ray` 0/0/.16/.38/.6/.85 · 6680~6688 `.sr-ray`(inset −16% · 마스크 18/40/62%) · srrayfade .5s · srrayspin 3.6s.
+            SummonRaySpec s = SummonRaySpec.From(FxRoot());
+            double[] ray = { 0, 0, 0.16, 0.38, 0.6, 0.85 };
+            for (int i = 0; i < ray.Length; i++) Assert.AreEqual(ray[i], s.Ray(i), 1e-9, "tier " + i);
+            Assert.AreEqual(0.85, s.Ray(99), 1e-9); Assert.AreEqual(0, s.Ray(-1), 1e-9);
+            Assert.AreEqual(1.32, s.BoxF, 1e-9, "inset −16% → 폭 1.32");
+            Assert.AreEqual(14, s.Spokes, "360/26 → 열넷");
+            Assert.AreEqual(0, s.AlphaAt(0, 0.85), 1e-9); Assert.AreEqual(0.85, s.AlphaAt(500, 0.85), 1e-9); Assert.AreEqual(0.85, s.AlphaAt(9999, 0.85), 1e-9, "forwards");
+            Assert.AreEqual(0, s.AngleAt(0), 1e-9); Assert.AreEqual(180, s.AngleAt(1800), 1e-9); Assert.AreEqual(90, s.AngleAt(3600 + 900), 1e-9, "infinite");
+            Assert.IsTrue(s.OnSpoke(0)); Assert.IsTrue(s.OnSpoke(3.9)); Assert.IsFalse(s.OnSpoke(4.0)); Assert.IsFalse(s.OnSpoke(25.9)); Assert.IsTrue(s.OnSpoke(26.5));
+            // 마스크: circle = farthest-corner 라 정지점에 √2 — 반변 기준 r=.25 는 아직 1 · r=.877(=.62×√2) 밖은 0.
+            Assert.AreEqual(1.0, s.MaskAt(0.25), 1e-9); Assert.AreEqual(0.0, s.MaskAt(0.9), 1e-9);
+            Assert.AreEqual(0.45, s.MaskAt(0.40 * System.Math.Sqrt(2.0)), 1e-9, "40% 정지점 .45");
+        }
+    }
 }

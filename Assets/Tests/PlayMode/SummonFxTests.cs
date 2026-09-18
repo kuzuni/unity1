@@ -547,5 +547,108 @@ namespace Forge.Tests.PlayMode
             RectTransform wrap = (RectTransform)ol.transform.parent;
             Assert.AreEqual(wrap.rect.width + 2f * (off + w), ol.rectTransform.rect.width, 0.5f, "지름 = 래퍼 + 2 × (.12 + .12)rem");
         }
+    
+        /// <summary>T480 ⓐ — 일반 셀 착지 링(정본 6358~6363 `.sr-orbwrap::after` + `srring` .55s): **모든** 셀의 래퍼 안 맨 위에 inset 0 정사각 링이 서고,
+        /// 가산(screen) 재질이며 동급·주역 링과 다른 판이다. 자기 착지 뒤 .55s 가 지나면 알파 0 · 배율 `1.5 + .8 × --glow`(등급마다 다르다).</summary>
+        [UnityTest]
+        public IEnumerator 모든_셀은_자기_착지에_등급색_착지_링을_한_번_번지고_끝_배율은_glow_계단이다()
+        {
+            yield return Boot();
+            var list = new List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "rare", Name = "나" },
+                new SkillSummonResultView.Entry { Key = "sk:c", IconKey = "sk_fireball", Rarity = "ultimate", Name = "다" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(Sheet, "skill", list, "ultimate", null);
+            yield return null;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+            Assert.AreEqual(3, v.CellCount);
+            List<Image> rings = v.LandRings;
+            Assert.AreEqual(3, rings.Count);
+            for (int i = 0; i < rings.Count; i++)
+            {
+                Image r = rings[i];
+                Assert.IsNotNull(r, "셀 " + i + " 착지 링");
+                RectTransform rt = r.rectTransform;
+                Assert.AreEqual("sr-landring", rt.name);
+                RectTransform wrap = (RectTransform)rt.parent;
+                Assert.AreEqual("sr-orbwrap", wrap.name, "래퍼 안(정본 ::after)");
+                Assert.AreEqual(wrap.childCount - 1, rt.GetSiblingIndex(), "래퍼 자식 중 맨 위(::after)");
+                Assert.AreEqual(wrap.rect.width, rt.rect.width, 0.5f, "inset 0 — 폭 100%");
+                Assert.AreEqual(rt.rect.width, rt.rect.height, 0.01f, "정사각");
+                Assert.IsNotNull(r.sprite, "구운 링 한 장");
+                Assert.IsNotNull(r.material, "가산 재질");
+                Assert.AreEqual(CraftFxPoly.ScreenShaderName, r.material.shader.name, "정본 6360 mix-blend-mode: screen");
+                Assert.AreEqual(0f, r.color.a, 1e-3f, "켜지기 전엔 알파 0");
+            }
+            Assert.AreNotEqual(rings[0].sprite, v.HeroRing.sprite, "주역 링과 다른 판(정지점 62/78/92)");
+            Assert.AreEqual(1.5f, v.LandRingScaleEnd(0), 1e-4f, "일반: 1.5 + .8 × 0");
+            Assert.AreEqual(1.5f + 0.8f * 0.8f, v.LandRingScaleEnd(2), 1e-4f, "궁극: 1.5 + .8 × .8");
+            Assert.Greater(v.LandRingScaleEnd(2), v.LandRingScaleEnd(0), "임팩트는 등급에 비례한다(정본 주석)");
+            float t = 0f;
+            while (!v.Done && t < 15f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done, "done");
+            float wait = SummonFxStyle.LandRing == null ? 1f : (float)SummonFxStyle.LandRing.Ms / 1000f + 0.2f;
+            for (float w = 0f; w < wait; w += Time.unscaledDeltaTime) yield return null;
+            for (int i = 0; i < rings.Count; i++)
+            {
+                Assert.AreEqual(0f, rings[i].color.a, 1e-3f, "착지 링은 한 번 번지고 사라진다(forwards · 알파 0)");
+                Assert.AreEqual(v.LandRingScaleEnd(i), rings[i].rectTransform.localScale.x, 1e-3f, "끝 배율 = 1.5 + .8 × --glow");
+            }
+            v.Close();
+            yield return null;
+        }
+
+        /// <summary>T480 ⓑ — 고등급 셀 회전 광선(정본 6680~6688 `.sr-ray`): hi(전설·궁극·신화) 셀에만 래퍼 **첫** 자식(구슬 뒤)으로 폭 1.32 배 상자가 서고,
+        /// 착지 뒤 .5s 에 `--ray`(궁극 .6) 로 밝아진 채 머물며 각은 계속 돈다(3.6s 에 한 바퀴). 일반·희귀 셀엔 없다.</summary>
+        [UnityTest]
+        public IEnumerator 고등급_셀에만_회전_광선이_구슬_뒤에_서고_착지_뒤_ray_알파로_계속_돈다()
+        {
+            yield return Boot();
+            var list = new List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "rare", Name = "나" },
+                new SkillSummonResultView.Entry { Key = "sk:c", IconKey = "sk_fireball", Rarity = "ultimate", Name = "다" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(Sheet, "skill", list, "ultimate", null);
+            yield return null;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+            List<Image> rays = v.Rays;
+            Assert.AreEqual(3, rays.Count);
+            Assert.IsNull(rays[0], "일반 셀엔 광선이 없다(정본 `.sr-cell.hi` 만 배경을 준다)");
+            Assert.IsNull(rays[1], "희귀 셀에도 없다");
+            Image ray = rays[2];
+            Assert.IsNotNull(ray, "궁극 셀의 광선");
+            RectTransform rt = ray.rectTransform;
+            Assert.AreEqual("sr-ray", rt.name);
+            RectTransform wrap = (RectTransform)rt.parent;
+            Assert.AreEqual("sr-orbwrap", wrap.name);
+            // 정본 DOM 은 광선(431) → 잔상 순이라 둘 다 구슬 뒤다. 클론은 잔상 자(T334 15회차 · SummonChargeTests 333)가 «잔상 = 첫 자식» 을 쥐므로
+            //   광선은 그 바로 위(1)에 둔다 — 둘 다 구슬·광채 아래인 것이 정본과 같은 점이다(결정 804).
+            Assert.AreEqual(1, rt.GetSiblingIndex(), "래퍼 앞쪽 — 잔상(첫 자식) 바로 위 · 구슬 뒤(ui.js 431)");
+            Transform glowT = wrap.Find("glow");
+            Assert.IsNotNull(glowT, "궁극 셀엔 광채 원판이 있다");
+            Assert.Less(rt.GetSiblingIndex(), glowT.GetSiblingIndex(), "광선은 광채·구슬 아래");
+            Assert.AreEqual(wrap.rect.width * 1.32f, rt.rect.width, 0.5f, "inset −16% → 폭 1.32");
+            Assert.AreEqual(rt.rect.width, rt.rect.height, 0.01f, "정사각(50% 원)");
+            Assert.IsNotNull(ray.sprite, "살 + 마스크를 한 장에");
+            Assert.AreEqual(0f, ray.color.a, 1e-3f, "켜지기 전엔 알파 0");
+            Assert.AreEqual(0.6f, v.RayAlphaEnd(2), 1e-4f, "궁극 --ray .6");
+            float t = 0f;
+            while (!v.Done && t < 15f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done, "done");
+            float wait = (float)SummonFxStyle.Ray.FadeMs / 1000f + 0.2f;
+            for (float w = 0f; w < wait; w += Time.unscaledDeltaTime) yield return null;
+            Assert.AreEqual(0.6f, ray.color.a, 1e-3f, "srrayfade forwards — --ray 에 머문다");
+            float z0 = rt.localRotation.eulerAngles.z;
+            for (float w = 0f; w < 0.3f; w += Time.unscaledDeltaTime) yield return null;
+            float z1 = rt.localRotation.eulerAngles.z;
+            Assert.AreNotEqual(z0, z1, "srrayspin infinite — 각이 계속 바뀐다");
+            Assert.AreEqual(0.6f, ray.color.a, 1e-3f, "돌아도 알파는 그대로");
+            v.Close();
+            yield return null;
+        }
     }
 }

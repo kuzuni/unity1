@@ -34,8 +34,8 @@ namespace Forge.Game.Ui
         int doneFrame = -1;
         /// <summary>반사 무대(임시 월드 캔버스)를 세우는 자리 — 전장(원점 근처)·PetFaces 무대(0,−500,0)와 겹치지 않게 멀리.</summary>
         static readonly Vector3 ReflectAway = new Vector3(0f, -3000f, 0f);
-        /// <summary>복제본에서 떼는 것(정본 ui.js 777: 이름·등급·배지 — 거울상 글자는 노이즈). `.sr-ray/.sr-beam/.sr-ghost/.sr-spark` 는 클론에 없다.</summary>
-        static readonly string[] ReflectStrip = { "sr-name", "sr-sub", "sr-qty", "sr-dup", "sr-new" };
+        /// <summary>복제본에서 떼는 것(정본 ui.js 777: 이름·등급·배지 — 거울상 글자는 노이즈). `.sr-ray` 는 T480 이 세웠고 정본대로 거울상에서 뗀다(`.sr-beam/.sr-ghost/.sr-spark` 는 그 뒤 생긴 겹 — 정본 777 도 떼지만 클론은 이름이 달라 여기 안 적는다 · 그 셋은 done 뒤 알파 0 이라 거울에 안 남는다).</summary>
+        static readonly string[] ReflectStrip = { "sr-name", "sr-sub", "sr-qty", "sr-dup", "sr-new", "sr-ray" };
         CanvasGroup canopyGroup, starsGroup;
         Image raysImg;
         Sprite raysIdle, raysDone;
@@ -798,6 +798,52 @@ namespace Forge.Game.Ui
             return BakeRing(name, rc, HL("peerring_stop0"), HL("peerring_stop1"), HL("peerring_stop2"), HL("peerring_stop3"), HL("peerring_white_a"));
         }
 
+
+        /// <summary>T480 ⓐ — 일반 셀 착지 링 한 장(정본 6361 `radial-gradient(closest-side, 투명 stop0, 등급색 stop1, 투명 stop2)`) — 등급색마다 한 장.</summary>
+        public static Sprite BakeLandRing(string name, Color rc)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            SummonLandRingSpec sp = SummonFxStyle.LandRing;
+            float s0 = (float)sp.Stop0, s1 = (float)sp.Stop1, s2 = (float)sp.Stop2;
+            int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            {
+                float v = (y + 0.5f) / N * 2f - 1f;
+                for (int x = 0; x < N; x++)
+                {
+                    float u = (x + 0.5f) / N * 2f - 1f;
+                    float r = Mathf.Sqrt(u * u + v * v);
+                    float a = r <= s0 || r >= s2 ? 0f : r <= s1 ? Ramp(r, s0, 0f, s1, 1f) : Ramp(r, s1, 1f, s2, 0f);
+                    px[y * N + x] = new Color(rc.r, rc.g, rc.b, Mathf.Clamp01(a));
+                }
+            }
+            return Finish(name, NewTex(name, N, N), px);
+        }
+
+        /// <summary>T480 ⓑ — 고등급 셀 회전 광선 한 장(정본 6685 `repeating-conic-gradient(등급색 0 4deg, 투명 4deg 26deg)` × 6682 방사 마스크) — 등급색마다 한 장.
+        /// 상자는 래퍼의 (1 + 2 × inset_f) 배라 굽는 판의 반변 1 = 상자 반변 · 마스크 정지점은 farthest-corner(√2) 기준(표 `mask_corner`).</summary>
+        public static Sprite BakeRaySpokes(string name, Color rc)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            SummonRaySpec sp = SummonFxStyle.Ray;
+            int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            {
+                float v = (y + 0.5f) / N * 2f - 1f;
+                for (int x = 0; x < N; x++)
+                {
+                    float u = (x + 0.5f) / N * 2f - 1f;
+                    float r = Mathf.Sqrt(u * u + v * v);
+                    float deg = Mathf.Repeat(90f - Mathf.Atan2(v, u) * Mathf.Rad2Deg, 360f);   // CSS conic 은 12시에서 시계 방향
+                    float a = sp.OnSpoke(deg) ? (float)sp.MaskAt(r) : 0f;
+                    px[y * N + x] = new Color(rc.r, rc.g, rc.b, Mathf.Clamp01(a));
+                }
+            }
+            return Finish(name, NewTex(name, N, N), px);
+        }
+
         /// <summary>정본 `radial-gradient(closest-side, 투명 s0, 등급색 s1, 흰(wa) s2, 투명 s3)` 링 한 장 — 주역·동급이 정지점만 다르게 나눠 쓴다.</summary>
         static Sprite BakeRing(string name, Color rc, float s0, float s1, float s2, float s3, float wa)
         {
@@ -1252,12 +1298,14 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; enter = null; hipulse = null; orbsweep = null; pop = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; streaks = null; particles = null; heroRingEase = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; enter = null; hipulse = null; orbsweep = null; pop = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; streaks = null; particles = null; heroRingEase = null; landRing = null; ray = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
         static SummonEnterSpec enter;
         static SummonHiPulseSpec hipulse;
+        static SummonLandRingSpec landRing;
+        static SummonRaySpec ray;
         static SummonOrbSweepSpec orbsweep;
         static SummonPopSpec pop;
         static SummonHeroSpec hero;
@@ -1296,6 +1344,10 @@ namespace Forge.Game.Ui
         /// <summary>T459 ⓧ — 열릴 때 판 셰이크(표의 `enter` 절 · 정본 `srshake`).</summary>
         public static SummonEnterSpec Enter { get { Load(); if (enter == null) enter = SummonEnterSpec.From(root); return enter; } }
         /// <summary>T459 ⓨ — 고등급 셀 광채 맥동(표의 `hipulse` 절 · 정본 `srpulse`).</summary>
+        /// <summary>T480 ⓐ — 일반 셀 착지 링(표의 `landring` 절 · 정본 `srring`).</summary>
+        public static SummonLandRingSpec LandRing { get { Load(); if (landRing == null) landRing = SummonLandRingSpec.From(root); return landRing; } }
+        /// <summary>T480 ⓑ — 고등급 셀 회전 광선(표의 `ray` 절 · 정본 `srrayfade`·`srrayspin`).</summary>
+        public static SummonRaySpec Ray { get { Load(); if (ray == null) ray = SummonRaySpec.From(root); return ray; } }
         public static SummonHiPulseSpec HiPulse { get { Load(); if (hipulse == null) hipulse = SummonHiPulseSpec.From(root); return hipulse; } }
         /// <summary>T459 ⓩ — done 뒤 구슬 스페큘러 스윕(표의 `orbsweep` 절 · 정본 `srsweep`).</summary>
         public static SummonOrbSweepSpec OrbSweep { get { Load(); if (orbsweep == null) orbsweep = SummonOrbSweepSpec.From(root); return orbsweep; } }
