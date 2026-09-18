@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;
@@ -157,17 +158,116 @@ namespace Forge.Tests.PlayMode
                 if (rt.name == "ico") { ico = rt; break; }
             Assert.IsNotNull(ico, "줄 아이콘");
 
-            float fs = DungeonPopups.Kind(TextKind.Sub), em = AscendUi.Num("ico_em");
+            // T464 — em 의 기준은 줄 글자 = 정본 5620 `.asc-row` .82rem(표 TextSizeUi `asc_row`) · 종전 하한 `Sub`(36)가 아니다
+            float fs = TextSizeUi.Px("asc_row"), em = AscendUi.Num("ico_em");
+            TextMeshProUGUI nameT = Find(row, "name").GetComponent<TextMeshProUGUI>();
+            Assert.AreEqual(fs, nameT.fontSize, 0.01f, "줄 글자 = 표 .82rem");
             Assert.AreEqual(fs * em, ico.rect.width, 0.5f, "아이콘 = 글자 × 1.45(종전 0.9 = 1.125em 이 아니다)");
             Assert.AreEqual(ico.rect.width, ico.rect.height, 0.01f, "정사각");
             float padY = DungeonPopups.RemL("asc_row_pad_y_rem");
-            float want = Mathf.Max(DungeonPopups.LineH(TextKind.Sub), fs * em) + padY * 2f;
+            float want = Mathf.Max(fs * 1.25f, fs * em) + padY * 2f;
             Assert.AreEqual(want, row.rect.height, 0.5f, "줄 상자 = max(글자 줄, 1.45em) + 세로 패딩 × 2 · 실측 " + row.rect.height.ToString("0.0"));
-            Assert.Greater(row.rect.height, DungeonPopups.LineH(TextKind.Sub) + padY * 2f + 0.5f, "글자 줄만 세던 옛 값보다 크다");
+            Assert.Greater(row.rect.height, fs * 1.25f + padY * 2f + 0.5f, "글자 줄만 세던 옛 값보다 크다");
             Debug.Log("[T446] 줄 상자 " + row.rect.height.ToString("0.0") + "px · 아이콘 " + ico.rect.width.ToString("0.0") + "px(= " + (ico.rect.width / fs).ToString("0.00") + "em)");
             AscendPopup.Close();
             yield return null;
         }
+        /// <summary>T464 ⓐ — 승천 카드의 안내 문단(정본 657 `.muted` .78rem)과 줄 글자(5620 `.asc-row` .82rem)는 §1 예외 칸 `Micro` + 표 `TextSizeUi.json` 크기다 —
+        /// 둘 다 하한 `Sub`(36)로 찍혀 +27%·+21% 였다(런 1143 · 같은 카드 안 제목 `<small class=muted>` 와의 비 1.20 ↔ 원작 1.05). 안내 상자는 «크기 × 1.25 × 두 줄» 이고 문단은 여전히 두 줄이다.</summary>
+        [UnityTest]
+        public IEnumerator 승천_안내_문단과_줄_글자는_정본_78_82rem_이고_안내는_두_줄이다()
+        {
+            Assert.AreEqual(0.78f, TextSizeUi.Rem("asc_guide"), 1e-6f, "정본 657 .muted .78rem");
+            Assert.AreEqual(0.82f, TextSizeUi.Rem("asc_row"), 1e-6f, "정본 5620 .asc-row .82rem");
+            Assert.AreEqual(0.7f, TextSizeUi.Rem("asc_row_arrow"), 1e-6f, "정본 5624 .asc-row.ready::after .7rem");
+            Assert.Less(TextSizeUi.Px("asc_row"), UiCatalog.Instance.Kind(TextKind.Sub).min, "표값이 하한 Sub 아래라서 예외 칸이 필요한 자리다");
+            yield return Boot();
+            AscendPopup.Open();
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+            Transform root = AscendPopup.Root;
+            TextMeshProUGUI guide = Find(root, "guide").GetComponent<TextMeshProUGUI>();
+            Assert.IsNotNull(guide, "안내 문단");
+            Assert.AreEqual(TextKind.Micro, guide.GetComponent<UiTextKindTag>().Kind, "안내 문단은 예외 칸 Micro(§1 아홉째 자리)");
+            float gpx = TextSizeUi.Px("asc_guide");
+            Assert.AreEqual(gpx, guide.fontSize, 0.01f, "안내 글자 = 표 .78rem(하한 36 이 아니다)");
+            Assert.AreEqual(gpx * 1.25f * 2f, guide.rectTransform.rect.height, 0.5f, "안내 상자 = 크기 × 1.25 × 두 줄");
+            guide.ForceMeshUpdate();
+            Assert.AreEqual(2, guide.textInfo.lineCount, "정본 안내 문단은 카드 폭에서 두 줄 — 세 줄로 접히거나 한 줄로 펴지면 실패");
+
+            float rpx = TextSizeUi.Px("asc_row");
+            int rows = 0;
+            foreach (Transform row in root.GetComponentsInChildren<Transform>(true))
+            {
+                if (!row.name.StartsWith("row-", System.StringComparison.Ordinal)) continue;
+                rows++;
+                foreach (string n in new[] { "name", "prog", "cnt" })
+                {
+                    TextMeshProUGUI t = Find(row, n).GetComponent<TextMeshProUGUI>();
+                    Assert.IsNotNull(t, row.name + "/" + n);
+                    Assert.AreEqual(TextKind.Micro, t.GetComponent<UiTextKindTag>().Kind, row.name + "/" + n + " 은 예외 칸 Micro(§1 열째 자리)");
+                    Assert.AreEqual(rpx, t.fontSize, 0.01f, row.name + "/" + n + " = 표 .82rem");
+                }
+                Transform ar = Find(row, "arrow");
+                if (ar != null)
+                {
+                    TextMeshProUGUI at = ar.GetComponent<TextMeshProUGUI>();
+                    Assert.AreEqual(TextKind.Micro, at.GetComponent<UiTextKindTag>().Kind, "화살은 예외 칸 Micro(§1 열한째 자리)");
+                    Assert.AreEqual(TextSizeUi.Px("asc_row_arrow"), at.fontSize, 0.01f, "화살 = 표 .7rem");
+                }
+            }
+            Assert.AreEqual(4, rows, "줄 넷");
+            AscendPopup.Close();
+            yield return null;
+        }
+
+        /// <summary>T464 ⓑⓒ — 정본 1752~1756 `.modal-card { gap: .45rem }` 은 자식 일곱 사이 여섯 자리 전부에 든다: 줄 사이 셋과 마지막 줄 → 버튼 하나가 빠져 있었다(1.80rem).
+        /// 줄 피치 = 줄 상자 + 마진 × 2 + gap · 마지막 줄 아래변 → 버튼 위변 = 마진 + gap + `.asc-focus` margin-top(.7rem) · 카드 높이 = 그 합.</summary>
+        [UnityTest]
+        public IEnumerator 승천_줄_사이_셋과_마지막_줄_뒤에_카드_gap_이_들고_카드_높이가_그_합이다()
+        {
+            yield return Boot();
+            AscendPopup.Open();
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+            Transform root = AscendPopup.Root;
+            RectTransform card = (RectTransform)Find(root, "card");
+            Assert.IsNotNull(card, "카드");
+            var rows = new List<RectTransform>();
+            foreach (Transform t in card.GetComponentsInChildren<Transform>(true))
+                if (t.name.StartsWith("row-", System.StringComparison.Ordinal) && t.parent == card) rows.Add((RectTransform)t);
+            Assert.AreEqual(4, rows.Count, "줄 넷");
+            float gap = DungeonPopups.RemL("card_gap_rem");
+            float rowMy = DungeonPopups.RemL("asc_row_my_rem");
+            float rowH = rows[0].rect.height;
+            float pitch = rowH + rowMy * 2f + gap;
+            for (int i = 1; i < rows.Count; i++)
+            {
+                float d = rows[i - 1].anchoredPosition.y - rows[i].anchoredPosition.y;
+                Assert.AreEqual(pitch, d, 0.5f, "줄 " + i + " 피치 = 상자 + 마진 × 2 + gap(.45rem) · 실측 " + d.ToString("0.0") + " ↔ gap 없이 " + (rowH + rowMy * 2f).ToString("0.0"));
+            }
+            RectTransform close = (RectTransform)Find(card, "close");
+            Assert.IsNotNull(close, "[닫기]");
+            RectTransform last = rows[rows.Count - 1];
+            float lastBottom = -last.anchoredPosition.y + last.rect.height;
+            float btnTop = -close.anchoredPosition.y;
+            float wantGap = rowMy + gap + DungeonPopups.RemL("asc_focus_mt_rem");
+            Assert.AreEqual(wantGap, btnTop - lastBottom, 0.5f, "마지막 줄 → 버튼 = 마진 + gap + .7rem · 실측 " + (btnTop - lastBottom).ToString("0.0"));
+
+            float pad = DungeonPopups.RemL("card_pad_rem");
+            float guideH = TextSizeUi.Px("asc_guide") * 1.25f * 2f;
+            float rowsH = rows.Count * (rowH + rowMy * 2f) + (rows.Count - 1) * gap;
+            float want = pad * 2f + DungeonPopups.LineH(TextKind.Button) + gap + guideH + gap + rowsH + gap + DungeonPopups.RemL("asc_focus_mt_rem") + DungeonPopups.RemL("asc_btn_h_rem");
+            Assert.AreEqual(want, card.rect.height, 0.5f, "카드 높이 = 패딩 + 제목 + gap + 안내 두 줄 + gap + 줄 넷(사이 gap 셋) + gap + .7rem + 버튼 · 실측 " + card.rect.height.ToString("0.0"));
+            Debug.Log("[T464] 카드 " + card.rect.height.ToString("0.0") + "px = " + (card.rect.height / UiKit.RefH * 100f).ToString("0.00") + "%H · 줄 피치 " + pitch.ToString("0.0") + "px");
+            AscendPopup.Close();
+            yield return null;
+        }
+
         /// <summary>T457 — 정본 ui.js 5861~5869 `.idet-wrap`: 모달이 세로 가운데 두는 것은 «카드 + 카드 아래로 삐져나온 ✕» 덩어리다. 승천엔 다른 여덟 모달의
         /// top 보정값이 없어 카드가 ✕ 삐져나온 몫의 **절반만큼 위**에 선다(원작 카드 가운데 48.36%H ↔ 카드만 가운데 둔 종전 클론 49.95 · 런 1107 실측).</summary>
         [UnityTest]

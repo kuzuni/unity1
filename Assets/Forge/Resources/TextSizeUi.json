@@ -1,6 +1,18 @@
 {
   "_": "T383 — §1 글자 하한의 예외 칸(Micro · 결정 633)에 «정본 크기» 를 주는 표. 정본이 rem 으로 못 박은 font-size 를 자리 키 → rem 으로 적고, 도우미 Ui/TextSizeUi.Apply(t, key) 가 종류 Micro 인 글자에 px(rem × PopupKit.Rem)로 건다. 자(TextSizeGateTests)는 «종류의 하한(Micro 18)» 만 보므로 정본 크기 그대로 서고, 하한 36 이 정본이 못박은 모양(<br> 줄 수)을 깨는 자리에만 쓴다 — 새로 쓰려면 정본 CSS 줄을 근거로 대고 §1 예외 목록에 한 줄 적는다. catalog.json 은 T364·T378·T387 lock 이라 곁 표(T65 꼴).",
   "size": {
+    "asc_guide": {
+      "rem": 0.78,
+      "_": "T464 — style.css **657** `.muted { color: #78909c; font-size: **.78rem**; font-weight: 400 }` ← ui.js 5865 `<p class=\"muted\">라인마다 조건을 채우면 …</p>`(승천 카드 안내 문단 · `.modal-card .muted` 3521 은 색만 덮는다). 하한 `Sub`(36 = .989rem)로 찍으면 +27%(런 1143 · 같은 카드 안 제목 `<small class=muted>` .78 과의 비 1.20 ↔ 원작 1.05). `AscendPopup.cs` 안내 문단이 `Micro` 칸 + 이 값으로 서고 상자 높이는 «크기 × 1.25 × 두 줄» 로 센다. §1 예외 아홉째 자리."
+    },
+    "asc_row": {
+      "rem": 0.82,
+      "_": "T464 — style.css **5620** `.asc-row { … font-size: **.82rem** }` — 승천 줄의 이름·진행·횟수 셋이 다 물려받는다(5627~5629 는 폭·정렬만). 하한 `Sub` 로 찍으면 +21% 이고 아이콘(`.ico` 1.45em · AscendUi `ico_em`)의 em 기준도 이 값이다 — 줄 상자 = max(크기 × 1.25, 크기 × 1.45) + 세로 패딩 × 2. §1 예외 열째 자리."
+    },
+    "asc_row_arrow": {
+      "rem": 0.7,
+      "_": "T464 — style.css **5624** `.asc-row.ready::after { content: '▶'; font-size: **.7rem** }` — 준비된 줄 끝 화살. 종전엔 종류 `Sub` 로 만들고 `OpacityUi.json` `asc_arrow.font_rem`(같은 .7 · T359)을 덮어써 하한 아래 글자가 종류 표식과 어긋나 있었다 — 이제 `Micro` 칸 + 이 값. 화살 상자 폭·왼쪽 여백은 여전히 `asc_arrow`(font_rem·ml_rem)에서 읽는다(같은 수 · 한 곳으로 모으는 것은 OpacityUi.json 임자 회차에). §1 예외 열한째 자리."
+    },
     "btn_small": {
       "rem": 0.7,
       "_": "T461 — style.css **667** `.btn small { display: block; font-weight: 400; font-size: **.7rem**; color: #90a4ae }` — 버튼 둘째 줄 잔글씨(정본 `<button>판매<small>🪙 +N</small></button>` 꼴 넷 · ui.js 3266 등). 클론 `IconTextStack.ReplaceLabel` 이 둘째 줄부터 `Micro` 칸으로 찍고 크기는 **첫 줄 × (.7 / catalog `btn_font_rem` .88)** 로 준다(등재 판정 넷째 · 결정 782) — 첫 줄이 §1 하한으로 커진 만큼 잔글씨도 같은 비율로 따라가야 정본의 «본문:잔글씨 = .88:.7» 이 화면에 남는다. 절댓값 .7rem(25.5px)을 그대로 주면 첫 줄(36)과의 비 .71 이 되어 정본 .80 보다 작다. §1 예외 여덟째 자리."

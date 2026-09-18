@@ -56,15 +56,22 @@ namespace Forge.Game.Ui
             //   1.45em 을 0.81em 짜리 margin box 로 줄이고 `vertical-align: middle` 로 가운데에 걸어 세로로는 거의 안 밀기 때문이다
             //   (T433 이 던전 알약에서 더한 그 몫과 갈리는 자리 · 표 AscendUi.json `_ico_em` 에 까닭을 적었다).
             float icoEm = AscendUi.Num("ico_em");
-            float rowLine = Mathf.Max(subH, DungeonPopups.Kind(TextKind.Sub) * icoEm);
+            // T464 — 정본 657 `.muted { font-size: .78rem }`(안내 문단 · ui.js 5865)과 5620 `.asc-row { font-size: .82rem }`(줄 이름·진행·횟수)은 §1 하한 `Sub`(36 = .989rem)
+            //   아래다. T383·T450·T461 이 낸 길 그대로 예외 칸 `Micro` + 표 `TextSizeUi.json`(`asc_guide`·`asc_row`·`asc_row_arrow`)에서 크기를 받고, 줄 상자·안내 상자·카드 높이도
+            //   그 크기로 센다(줄 높이 = 크기 × 1.25 · `DungeonPopups.LineH` 와 같은 규약). §1 예외 아홉째~열한째 자리.
+            float guidePx = TextSizeUi.Px("asc_guide");
+            float guideH = guidePx * 1.25f;
+            float rowPx = TextSizeUi.Px("asc_row");
+            float rowLine = Mathf.Max(rowPx * 1.25f, rowPx * icoEm);
             float rowH = rowLine + DungeonPopups.RemL("asc_row_pad_y_rem") * 2f;
             float rowMy = DungeonPopups.RemL("asc_row_my_rem");
             string[] lines = asc.Table.Lines;
-            float rowsH = lines.Length * (rowH + rowMy * 2f);
+            // T464 — 정본 1752~1756 `.modal-card { gap: .45rem }` 은 자식 일곱(h3 · p · 줄 넷 · 버튼) 사이 **여섯 자리** 전부에 든다 — 줄 사이 셋 + 마지막 줄 뒤 하나가 빠져 있었다.
+            float rowsH = lines.Length * (rowH + rowMy * 2f) + (lines.Length - 1) * gap;
             float btnH = DungeonPopups.RemL("asc_btn_h_rem");
             float focusPad = DungeonPopups.RemL("asc_focus_pad_rem");
             float focusH = line != null ? DungeonPopups.RemL("asc_focus_mt_rem") + focusPad * 2f + DungeonPopups.RemL("asc_icon_rem") + DungeonPopups.LineH(TextKind.Body) + subH + subH * 4f : 0f;
-            float ch = pad * 2f + titleH + gap + subH * 2f + gap + rowsH + focusH + DungeonPopups.RemL("asc_focus_mt_rem") + btnH;
+            float ch = pad * 2f + titleH + gap + guideH * 2f + gap + rowsH + gap + focusH + DungeonPopups.RemL("asc_focus_mt_rem") + btnH;
             RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_r_rem"));
             // T457 — 정본 ui.js 5861~5869: 모달이 세로 가운데 두는 것은 카드가 아니라 `.idet-wrap`(카드 + 카드 아래로 삐져나온 ✕) **덩어리**다.
             //   승천 모달엔 다른 여덟 모달이 둔 «top 보정값»(style.css 256·2456·3042·3045·3211·3720·4339·4687)이 없어, 카드는
@@ -105,9 +112,10 @@ namespace Forge.Game.Ui
             smallN.fontSize = smallPx;
             UiKit.Place(titleRow, pad, y, inner, titleH);   // T420 — 줄이 카드 안쪽 폭 전체를 쓰고 안의 것들이 가운데로 모인다
             y += titleH + gap;
-            TextMeshProUGUI guide = DungeonPopups.Para(card, "guide", TextKind.Sub, "라인마다 조건을 채우면 그 라인을 승천시킵니다 — 승천 횟수만큼 이후 획득물에 별이 붙습니다.", "muted2", TextAlignmentOptions.Center);
-            UiKit.Place(guide.rectTransform, pad, y, inner, subH * 2f);
-            y += subH * 2f + gap;
+            TextMeshProUGUI guide = DungeonPopups.Para(card, "guide", TextKind.Micro, "라인마다 조건을 채우면 그 라인을 승천시킵니다 — 승천 횟수만큼 이후 획득물에 별이 붙습니다.", "muted2", TextAlignmentOptions.Center);
+            TextSizeUi.Apply(guide, "asc_guide");   // T464 — 정본 657 `.muted` .78rem(§1 예외 아홉째 자리)
+            UiKit.Place(guide.rectTransform, pad, y, inner, guideH * 2f);
+            y += guideH * 2f + gap;
 
             RowCount = 0;
             for (int i = 0; i < lines.Length; i++)
@@ -121,16 +129,18 @@ namespace Forge.Game.Ui
                 UiKit.Rounded(row, "bg", rdy ? "asc_ready" : "pp_panel", DungeonPopups.RemL("asc_row_r_rem"));
                 string ink = rdy ? "white" : "pp_ink";
                 float px = DungeonPopups.RemL("asc_row_pad_x_rem");
-                float ico = DungeonPopups.Kind(TextKind.Sub) * icoEm;   // T446 1회차 — 정본 1.45em(종전 subH*0.9 = 1.125em 은 22% 작았다)
+                float ico = rowPx * icoEm;   // T446 1회차 — 정본 1.45em(종전 subH*0.9 = 1.125em 은 22% 작았다) · T464 — em 의 기준은 줄 글자 .82rem
                 string ik; LineIcon.TryGetValue(l, out ik);
                 Image im = UiKit.Icon(row, "ico", ik ?? "star");
                 UiKit.Place(im.rectTransform, px, (rowH - ico) * 0.5f, ico, ico);
                 float nameW = DungeonPopups.RemL("asc_name_w_rem");
-                TextMeshProUGUI name = DungeonPopups.Bold(row, "name", TextKind.Sub, asc.Table.LineKr[l], ink, TextAlignmentOptions.Left);
+                TextMeshProUGUI name = DungeonPopups.Bold(row, "name", TextKind.Micro, asc.Table.LineKr[l], ink, TextAlignmentOptions.Left);
+                TextSizeUi.Apply(name, "asc_row");   // T464 — 정본 5620 `.asc-row` .82rem(§1 예외 열째 자리 · 줄 안 셋이 다 물려받는다)
                 UiKit.Place(name.rectTransform, px + ico * 1.2f, 0f, nameW, rowH);
                 string label = l == "forge" ? "대장간 Lv." + p.Cur + "/" + p.Max : "소환 Lv." + p.Cur + "/" + p.Max;
                 float cntW = DungeonPopups.RemL("asc_cnt_w_rem");
-                TextMeshProUGUI prog = UiKit.Text(row, "prog", TextKind.Sub, label, ink, TextAlignmentOptions.Left);
+                TextMeshProUGUI prog = UiKit.Text(row, "prog", TextKind.Micro, label, ink, TextAlignmentOptions.Left);
+                TextSizeUi.Apply(prog, "asc_row");
                 UiKit.Place(prog.rectTransform, px + ico * 1.2f + nameW, 0f, inner - px * 2f - ico * 1.2f - nameW - cntW, rowH);
                 OpacityUi.Apply(prog.gameObject, "asc_prog");   // T359 — 정본 5628 .asc-prog { opacity: .85 }
                 // T359 — 정본 5624 `.asc-row.ready::after { content: '▶'; font-size: .7rem; opacity: .8; margin-left: .1rem }`: 화살은 cnt 칸 뒤의 제 상자(알파 .8) —
@@ -138,24 +148,26 @@ namespace Forge.Game.Ui
                 float rem = PopupKit.Rem;
                 float arW = rdy ? OpacityUi.Rem("asc_arrow", "font_rem") * rem : 0f;
                 float arMl = rdy ? OpacityUi.Rem("asc_arrow", "ml_rem") * rem : 0f;
-                TextMeshProUGUI c = DungeonPopups.Bold(row, "cnt", TextKind.Sub, cnt > 0 ? "★" + cnt : "—", ink, TextAlignmentOptions.Right);
+                TextMeshProUGUI c = DungeonPopups.Bold(row, "cnt", TextKind.Micro, cnt > 0 ? "★" + cnt : "—", ink, TextAlignmentOptions.Right);
+                TextSizeUi.Apply(c, "asc_row");
                 UiKit.Place(c.rectTransform, inner - px - arW - arMl - cntW, 0f, cntW, rowH);
                 if (rdy)
                 {
-                    TextMeshProUGUI ar = DungeonPopups.Bold(row, "arrow", TextKind.Sub, "▶", ink, TextAlignmentOptions.Right);
-                    ar.fontSize = OpacityUi.Rem("asc_arrow", "font_rem") * rem;
+                    TextMeshProUGUI ar = DungeonPopups.Bold(row, "arrow", TextKind.Micro, "▶", ink, TextAlignmentOptions.Right);
+                    TextSizeUi.Apply(ar, "asc_row_arrow");   // T464 — 정본 5624 `.asc-row.ready::after` .7rem(§1 예외 열한째 자리 · 종전엔 종류 Sub 에 .7rem 을 덮어써 하한 아래였다)
                     UiKit.Place(ar.rectTransform, inner - px - arW, 0f, arW, rowH);
                     OpacityUi.Apply(ar.gameObject, "asc_row_ready_arrow");
                 }
                 if (rdy) UiKit.Button(row, "hit", () => Open(l));
                 RowCount++;
                 y += rowH + rowMy * 2f;
+                if (i < lines.Length - 1) y += gap;   // T464 — 정본 `.modal-card { gap }` 줄 사이 셋
             }
 
             AscendButton = null;
             if (line != null)
             {
-                y += DungeonPopups.RemL("asc_focus_mt_rem");
+                y += gap + DungeonPopups.RemL("asc_focus_mt_rem");   // T464 — 마지막 줄 뒤 `.modal-card { gap }` + 정본 5630 `.asc-focus { margin-top: .7rem }`
                 RectTransform focus = UiKit.Box(card, "focus");
                 UiKit.Place(focus, pad, y, inner, focusH - DungeonPopups.RemL("asc_focus_mt_rem"));
                 DungeonPopups.Bordered(focus, "bg", "pp_sheet", DungeonPopups.RemL("asc_focus_r_rem"), DungeonPopups.Line3);
@@ -199,7 +211,7 @@ namespace Forge.Game.Ui
             }
             else
             {
-                y += DungeonPopups.RemL("asc_focus_mt_rem");
+                y += gap + DungeonPopups.RemL("asc_focus_mt_rem");   // T464 — 마지막 줄 뒤 `.modal-card { gap }`
                 CloseButton = DungeonPopups.Pill(card, "close", "닫기", DungeonPopups.Skin.Silver, TextKind.Button, Close);
                 UiKit.Place(DungeonPopups.Root(CloseButton), pad, y, inner, btnH);
             }
