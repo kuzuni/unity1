@@ -30,7 +30,7 @@ namespace Forge.Game.Ui
             RectTransform root = PopupLayer.Clear(p);
             float rem = PopupKit.Rem;
             float w = UiKit.RefW, H = UiKit.RefH;
-            float cardW = UiKit.L("pass_card_w") * w;
+            float cardW = UiKit.L("pass_card_w") * w - PopupKit.Line3 * 2f;   // T473 — 표값은 카드 몸(border-box) · Card 의 w 는 패딩 상자
             float padTop = UiKit.H("pass_pad_top"), padBottom = UiKit.H("pass_pad_bottom");
             // T378 5회차 — 표에 **원작 실측**(리본 41px/890 = 4.61%H)이 이미 들어 있는데 코드가 ×1.3 을 얹고 있었다.
             //   정본 `.pass-banner`(style.css 2705~2713)는 높이를 안 주고 `padding .49rem .5rem` + `font-size 1.05rem/line-height 1.15` 로 **내용이 정한다** —
@@ -50,14 +50,14 @@ namespace Forge.Game.Ui
             //   ⓑ 번짐이 **음수**인 유일한 자리다(`-.5rem` — 판을 안으로 줄여 굽는다 · 표 `passcard_drop`).
             UiShadow.Remove(card, "card_lip");
             UiShadow.Remove(card, "modalcard_cast");   // 34회차 — 8602 는 **목록을 통째로** 갈아 끼운다(앰비언트도 없다)
-            UiShadow.Drop(card, "passcard_drop", rem, -1f, -1f, PopupKit.Line3);   // T465 — 그늘은 카드 몸(테 포함)에
+            UiShadow.Drop(card, "passcard_drop", rem, -1f, -1f, PopupKit.Line3);   // T465·T473 — 그늘은 카드 몸(테 포함 · 사방)에
             // T132 — 정본 ui.js 4924 `<div class="pass-sword">${IconGen.img('passsword')}</div>` · style.css 2686: 카드 윗변에서 4.81rem 위 · 가운데 · 3.72×6.72rem.
             // 리본(.pass-banner)보다 먼저 세운다 — 정본 DOM 순서대로 리본이 칼자루 위를 덮는다. 치수는 StaticIconsUi.json(§1).
             Image sword = PopupKit.IconOr(card, "pass-sword", "passsword");
             UiKit.Anchor(sword.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
                 new Vector2(0f, -StaticIconsUi.Rem("pass_sword_top_rem")), StaticIconsUi.Rem("pass_sword_w_rem"), StaticIconsUi.Rem("pass_sword_h_rem"));
             DropShadow.Apply(sword, "pass_sword");   // T332 — 정본 2698 `drop-shadow(.14rem .18rem .16rem rgba(0,0,0,.45))` · 자리를 잡은 **뒤**에 부른다
-            float inner = cardW - PopupKit.Line3 * 2f;
+            float inner = cardW;   // T473 — rect 가 곧 테 안쪽
             float padX = rem * 1.1f;
 
             // 리본(카드 좌우를 넘는다)
@@ -81,7 +81,7 @@ namespace Forge.Game.Ui
             // 안내문 · 가격 페넌트(2등분 그리드)
             float y = padTop + bannerH + rem * 1.19f;
             RectTransform desc = UiKit.Box(card, "desc-row");
-            UiKit.Place(desc, PopupKit.Line3, y, inner, descH);
+            UiKit.Place(desc, 0f, y, inner, descH);
             // T383 9회차 — 정본 2734 `.pass-desc { font-size: .78rem }`(= 28.4px): 하한 `Sub`(36)로 찍으면 「보상을 받」 이 반 칸(inner/2)에 안 들어가
             // 정본 `<br>` 두 줄(ui.js 4928)이 세 줄이 된다(런 666). 결정 633 대로 새 종류 없이 예외 칸 `Micro` 를 쓰되 크기는 표(TextSizeUi)에서 — §1 예외 여섯째 자리.
             TextMeshProUGUI d = UiKit.Text(desc, "desc", TextKind.Micro, "전투를 진행하여 보상을 받\n으세요!", "stage_ink");
@@ -119,7 +119,7 @@ namespace Forge.Game.Ui
             // [무료 | 프리미엄] 탭 행
             y += descH + rem * 1.31f;
             RectTransform header = UiKit.Box(card, "header");
-            UiKit.Place(header, PopupKit.Line3, y, inner, headerH);
+            UiKit.Place(header, 0f, y, inner, headerH);
             UiKit.Panel(header, "line", "pp_line");
             Image free = UiKit.Panel(header, "free", "pp_blue");
             free.rectTransform.anchorMax = new Vector2(0.5f, 1f);
@@ -139,7 +139,7 @@ namespace Forge.Game.Ui
             // 흰 트랙
             y += headerH;
             RectTransform track = UiKit.Box(card, "track");
-            UiKit.Place(track, PopupKit.Line3, y, inner, trackH);
+            UiKit.Place(track, 0f, y, inner, trackH);
             UiKit.Panel(track, "bg", "pass_track");
             RectTransform content = PopupKit.ScrollList(track, "list", 0f, 0f, 0f);
 

@@ -42,8 +42,8 @@ namespace Forge.Game.Ui
             // T339 — 여태 박혀 있던 `0.85`·`0.84` 를 정본 표로. style.css 4682
             //        `.af-card { width: min(calc(var(--app-w) * .7719), 23rem); height: calc(var(--app-h) * .8452) }`.
             //        min 을 그대로 옮긴다 — 기준 캔버스에서는 앞쪽이 이겨 77.19%W 다(클론은 83.70%W 였다 · 런 474 실측).
-            float w = ForgeAutoStyle.CardW(W, rem), pad = rem * 0.9f;
-            float inner = w - pad * 2f - PopupKit.Line3 * 2f;
+            float w = ForgeAutoStyle.CardW(W, rem) - PopupKit.Line3 * 2f, pad = rem * 0.9f;   // T473 — 표값은 정본 CSS width(border-box) · Card 의 w 는 패딩 상자
+            float inner = w - pad * 2f;
             // 정본 style.css 4673~4682: 이 카드만 공용 상한(--popup-h-max)을 벗기고 높이 84.52%H · 위끝 7.01%H(4675 주석 «카드 y7.01%H · 하단 91.75%H»)로 둔다 —
             // 하단이 탭바 위끝(90.25%H)보다 아래라 T78 의 FitBetweenBars 깎기(76.25%H · 위끝 8.65%H · 런 769)는 정본과 어긋난다. 닫기 버튼은 T346 이 이미 탭바 위 층에 띄우므로 깎을 까닭이 없다(T400).
             float outerH = H * ForgeAutoStyle.L("card_h_f");
@@ -53,7 +53,7 @@ namespace Forge.Game.Ui
             // 정본 `.af-card`(style.css 5030)는 그림자가 **둘**이다 — 주석 그대로 «공용 아래턱(0 .5rem 0)에
             // 은은한 앰비언트를 더해 팝업이 화면에서 떠 보이게». 아래턱은 위 `PopupKit.Card` 가 이미 깔았고
             // 여기서는 그 뒤에 흐린 겹 하나를 더 깐다(CSS 목록의 뒤쪽이 아래로 간다 — 나중에 깐 것이 더 뒤다).
-            UiShadow.Drop(card, "afcard_drop", rem * 1.1f, -1f, -1f, PopupKit.Line3);   // T465 — 그늘은 카드 몸(테 포함)에
+            UiShadow.Drop(card, "afcard_drop", rem * 1.1f, -1f, -1f, PopupKit.Line3);   // T465·T473 — 그늘은 카드 몸(테 포함 · 사방)에
             TextMeshProUGUI title = UiKit.Text(card, "af-title", TextKind.Button, "자동 제련", "pp_ink");   // T391 ⓑ — 정본 4695 `.af-title { 1.12rem }` = 40.8px(5033 덮음 1.26rem = 45.9) → Button 44(전엔 Title 60)
             title.fontStyle = FontStyles.Bold;
             // T109 11회차 — 정본 style.css 3846 `h3.af-title { -webkit-text-stroke: .11em var(--pp-line) }`(5033 `.af-title 4px #fff` 는 특이도가 낮아 진다 · ui.js 2302 는 h3).

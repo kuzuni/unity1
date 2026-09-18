@@ -116,7 +116,7 @@ namespace Forge.Game.Ui
 
             float W = UiKit.RefW;
             overlay = DungeonPopups.Overlay("modal-tech-node");
-            float cw = W * UiKit.L("idet_card_w");
+            float cw = W * UiKit.L("idet_card_w") - DungeonPopups.Line3 * 2f;   // T473 — 표값은 정본 CSS width(border-box) · Card 의 w 는 패딩 상자
             float pad = cw * UiKit.L("idet_pad");
             float inner = cw - pad * 2f;
             float icoD = cw * UiKit.L("idet_icon");
@@ -320,7 +320,7 @@ namespace Forge.Game.Ui
             BonusRowCount = lines.Count;
             float W = UiKit.RefW, H = UiKit.RefH;
             overlay = DungeonPopups.Overlay("modal-tech-bonuses");
-            float cw = W * UiKit.L("tbn_card_w");
+            float cw = W * UiKit.L("tbn_card_w") - DungeonPopups.Line3 * 2f;   // T473 — 같은 까닭
             float pad = DungeonPopups.RemL("card_pad_rem");
             float titleH = DungeonPopups.LineH(TextKind.Button);
             float rowH = DungeonPopups.LineH(TextKind.Sub) + DungeonPopups.RemL("tbn_row_pad_rem") * 2f;

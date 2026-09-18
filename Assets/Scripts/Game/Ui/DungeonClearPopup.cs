@@ -36,7 +36,7 @@ namespace Forge.Game.Ui
             busy = false;
             float W = UiKit.RefW;
             overlay = DungeonPopups.Overlay("modal-dungeon-clear");
-            float cw = W * UiKit.L("dgc_card_w");
+            float cw = W * UiKit.L("dgc_card_w") - DungeonPopups.Line3 * 2f;   // T473 — 표값은 정본 CSS width(border-box) · Card 의 w 는 패딩 상자
             float pad = DungeonPopups.RemL("card_pad_rem");
             float gap = DungeonPopups.RemL("dgc_gap_rem");
             float titleH = DungeonPopups.LineH(TextKind.Title);
@@ -49,7 +49,7 @@ namespace Forge.Game.Ui
             RectTransform card = DungeonPopups.Card(overlay, "card", cw, ch, DungeonPopups.RemL("card_r_rem"));
             // 원작 .dgclear-card 는 테 색이 금색(#ffd54f) — 바깥 테를 그 색으로 덧그린다.
             RectTransform gold = DungeonPopups.Bordered(card, "gold", "pp_paper", DungeonPopups.RemL("card_r_rem"), DungeonPopups.Line3, "dgclear_title");
-            PopupKit.GrowY((RectTransform)gold.parent, DungeonPopups.Line3);   // T465 — 금테도 검정 테와 같이 카드 rect(패딩 상자) 밖에 선다
+            PopupKit.Grow((RectTransform)gold.parent, DungeonPopups.Line3);   // T465·T473 — 금테도 검정 테와 같이 카드 rect(패딩 상자) 밖에 선다(사방)
 
             float y = pad;
             Title = "클리어!";

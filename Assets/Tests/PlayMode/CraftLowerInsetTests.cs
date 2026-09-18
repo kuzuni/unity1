@@ -71,7 +71,7 @@ namespace Forge.Tests.PlayMode
             float pull = CraftStyle.Px("cmp_lower_pull_rem");
             VerticalLayoutGroup cardLg = card.GetComponent<VerticalLayoutGroup>();
             // 코드가 `cur`·`lower` 에 건네는 폭의 셈 그대로(float) — 층 패딩이 RectOffset(int) 라 아래 `contentW` 와 반올림 몫만큼 갈린다(2·3회차가 좇던 그 몫).
-            float inner = CraftStyle.Px("card_w") - (UiKit.H("card_pad") + rem * 0.5f) * 2f;
+            float inner = CraftStyle.Px("card_w") - PopupKit.Line3 * 2f - (UiKit.H("card_pad") + rem * 0.5f) * 2f;   // T473 — 카드 rect = 몸 − 테 두 겹
             // 층이 실제로 아이를 눕히는 폭 — 패딩이 RectOffset(int) 라 위 float 셈과 반올림 몫만큼 갈린다(런 999 실측 0.653px = 한쪽 0.327).
             float contentW = card.rect.width - cardLg.padding.left - cardLg.padding.right;
             Assert.AreEqual(contentW, inner, 1.0f, "층 패딩(int)으로 센 내용 폭과 반올림 몫 안에서 같다");

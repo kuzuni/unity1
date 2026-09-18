@@ -62,9 +62,9 @@ namespace Forge.Game.Ui
             float rem = PopupKit.Rem;
             // T339 — 정본 style.css 5043 `.fi-card { width: min(calc(var(--app-w) * .9), 22.9rem) }` — 그 줄 주석이 답이다: «원본 카드 77.19%W».
             //        기준 캔버스에서는 **뒤쪽(22.9rem)이 이겨** 그 값이 된다(`.9` 만 쓰면 90%W 로 한참 넓다). 클론은 박힌 0.85 로 83.70%W 였다.
-            float w = ForgeInfoStyle.FiCardW(UiKit.RefW, rem);
+            float w = ForgeInfoStyle.FiCardW(UiKit.RefW, rem) - PopupKit.Line3 * 2f;   // T473 — 표값은 정본 CSS width(border-box) · Card 의 w 는 패딩 상자
             float pad = rem * 0.9f;
-            float inner = w - pad * 2f - PopupKit.Line3 * 2f;
+            float inner = w - pad * 2f;
             // 높이: 정본 5048 `height: calc(var(--app-h) * .8104)`. 1회차엔 등재의 «원작 68.90%H» 와 어긋나 보류했는데,
             // 2회차에 원작 PNG(`ref/screens/shot-042831.png`)의 카드 왼쪽 안쪽 세로줄을 직접 재니 **밝은 판이 y85~789 = 79.9%H**
             // 로 이어졌다 — CSS 주석의 «px 80~793 = 81.04%H» 와 맞고 68.90 은 자의 측정 한계였다(§4 기록 참조).
@@ -171,8 +171,8 @@ namespace Forge.Game.Ui
             float rem = PopupKit.Rem, W = UiKit.RefW, H = UiKit.RefH;
             // T339 — 정본 5606 `.fl-card { width: 71% }`(주석: «원본 shot-042905 71.3% · shot-042931 70.5% 실측»).
             //        목록 카드는 **확률 정보와 폭이 다르다**(71 ↔ 77.19) — 여태 둘 다 박힌 0.85 로 같았다.
-            float w = W * ForgeInfoStyle.L("fl_card_w_f"), pad = rem * 0.9f;
-            float inner = w - pad * 2f - PopupKit.Line3 * 2f;
+            float w = W * ForgeInfoStyle.L("fl_card_w_f") - PopupKit.Line3 * 2f, pad = rem * 0.9f;   // T473 — 같은 까닭
+            float inner = w - pad * 2f;
             float cardH, cardY;
             // 높이는 정본에 선언이 없어(공용 상한이 잡는다) 쓰던 값을 표로만 옮겼다 — 재는 사람이 표를 고친다.
             PopupKit.FitBetweenBars(H * ForgeInfoStyle.L("fl_card_h_f"), out cardH, out cardY);   // T78 — ✕ 가 탭바에 가리지 않게
@@ -363,9 +363,9 @@ namespace Forge.Game.Ui
             float rem = PopupKit.Rem;
             // T177 — 정본 3649 `#forge-item-modal .modal-card.item-detail { width: 68.9% }`(공용 modal_card_w 75% 가 아니다 · T111·T113 과 같은 병)
             //        + 3720 `padding: 1.7% 2.7%`(컨테이닝 블록 = 모달 = 앱 폭). 값은 ForgeItemUi.json.
-            float w = ForgeItemStyle.L("card_w") * UiKit.RefW;
+            float w = ForgeItemStyle.L("card_w") * UiKit.RefW - PopupKit.Line3 * 2f;   // T473 — 3649 width 는 border-box · Card 의 w 는 패딩 상자
             float padV = ForgeItemStyle.L("card_pad_v_app_f") * UiKit.RefW, pad = ForgeItemStyle.L("card_pad_h_app_f") * UiKit.RefW;
-            float inner = w - pad * 2f - PopupKit.Line3 * 2f;   // = .idet-wrap 폭(아래 %마진·%패딩의 컨테이닝 블록)
+            float inner = w - pad * 2f;   // = .idet-wrap 폭(아래 %마진·%패딩의 컨테이닝 블록)
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
             VerticalLayoutGroup cg = PopupKit.Column(card, pad, ForgeItemStyle.L("card_gap_rem") * rem);   // 3648 gap: 0
             cg.padding = new RectOffset(Mathf.RoundToInt(pad), Mathf.RoundToInt(pad), Mathf.RoundToInt(padV), Mathf.RoundToInt(padV));

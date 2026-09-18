@@ -74,7 +74,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(h.AutoForgeUnlocked, "2-10 을 넘겨 자동 제련이 해금됐다");
             ForgeAutoPopup.Open(h);
             yield return null;
-            Assert.AreEqual(ForgeAutoStyle.CardW(W, rem), CardWidth(h, ForgeAutoPopup.Name), 0.5f, "자동 제련 — 정본 77.19%W(클론은 83.70 이었다)");
+            Assert.AreEqual(ForgeAutoStyle.CardW(W, rem) - PopupKit.Line3 * 2f, CardWidth(h, ForgeAutoPopup.Name), 0.5f, "자동 제련 rect(패딩 상자) = 정본 77.19%W(카드 몸) − 테 두 겹(T473)(클론은 83.70 이었다)");
             float afH = CardHeight(h, ForgeAutoPopup.Name);
             Assert.Greater(afH, 0f, "자동 제련 카드 높이");
             // 높이는 탭바에 걸리는 몫만큼만 깎인다(T78 FitBetweenBars) — 표의 84.52%H 를 넘지는 않는다.
@@ -100,7 +100,7 @@ namespace Forge.Tests.PlayMode
             ForgeInfoPopup.Open(h);
             yield return null;
             float fiW = CardWidth(h, ForgeInfoPopup.Name);
-            Assert.AreEqual(ForgeInfoStyle.FiCardW(W, rem), fiW, 0.5f, "확률 정보 — 정본 77.19%W");
+            Assert.AreEqual(ForgeInfoStyle.FiCardW(W, rem) - PopupKit.Line3 * 2f, fiW, 0.5f, "확률 정보 rect(패딩 상자) — 정본 77.19%W(카드 몸) − 테 두 겹(T473)");
             // T339 2회차 — 높이도 표대로(정본 5048 `height: calc(var(--app-h) * .8104)`).
             // 원작 PNG 실측 79.9%H(y85~789 · shot-042831) ↔ 클론은 내용이 정하던 72.1%H 였다.
             Assert.AreEqual(UiKit.RefH * ForgeInfoStyle.L("fi_card_h_f") - PopupKit.Line3 * 2f, CardHeight(h, ForgeInfoPopup.Name), 0.5f, "확률 정보 rect(패딩 상자) — 정본 81.04%H(카드 몸) − 테 두 겹(T465)");
@@ -110,7 +110,7 @@ namespace Forge.Tests.PlayMode
             ForgeInfoPopup.OpenList(h);
             yield return null;
             float flW = CardWidth(h, ForgeInfoPopup.Name);
-            Assert.AreEqual(W * ForgeInfoStyle.L("fl_card_w_f"), flW, 0.5f, "모든 장비의 목록 — 정본 71%W");
+            Assert.AreEqual(W * ForgeInfoStyle.L("fl_card_w_f") - PopupKit.Line3 * 2f, flW, 0.5f, "모든 장비의 목록 rect — 정본 71%W(카드 몸) − 테 두 겹(T473)");
             Assert.Less(flW, fiW - 1f, "목록이 확률 정보보다 좁다 — 여태 둘이 같았다");
             ForgeInfoPopup.Close(h);
             yield return null;

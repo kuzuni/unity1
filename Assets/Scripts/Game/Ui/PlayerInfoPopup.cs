@@ -127,10 +127,10 @@ namespace Forge.Game.Ui
             if (p == null) return;
             RectTransform root = PopupLayer.Clear(p);
             float rem = PopupKit.Rem, w = UiKit.RefW, H = UiKit.RefH;
-            float cardW = UiKit.L("pinfo_w") * w, cardH = UiKit.L("pinfo_h") * H - PopupKit.Line3 * 2f;   // T465 — 표값은 원작 카드 몸(border-box) · Card 의 h 는 패딩 상자
+            float cardW = UiKit.L("pinfo_w") * w - PopupKit.Line3 * 2f, cardH = UiKit.L("pinfo_h") * H - PopupKit.Line3 * 2f;   // T465·T473 — 표값은 원작 카드 몸(border-box) · Card 의 w·h 는 패딩 상자
             RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "pp_paper", rem);
             float pad = UiKit.H("card_pad");
-            float inner = cardW - PopupKit.Line3 * 2f;
+            float inner = cardW;   // T473 — rect 가 곧 테 안쪽
             // T354 18회차 — 정본 3155 `.pinfo-id-text { line-height: 1.35 }` 와 3178 `.pinfo-right { line-height: 1.16 }`.
             //   클론은 두 칸을 **한 수**(글자 × 1.25 · 코드에 박힌 수)로 그렸다 — 표가 그 두 수를 쥐고 있는데 부르는 곳이 0 이었다.
             //   ⚠ 정본은 두 칸의 **글자 크기**도 다르다(왼쪽 .9/.7/.8rem · 오른쪽 .62rem) — 클론은 §1 글자 하한 때문에 셋 다 `Sub` 다.
@@ -199,8 +199,8 @@ namespace Forge.Game.Ui
             string[] slots = SaveIo.Data != null && SaveIo.Data.Defs != null && SaveIo.Data.Defs.Slots != null ? SaveIo.Data.Defs.Slots : new string[0];
             int cols = (int)PlayerInfoStyle.L("gear_cols_n");
             int span = (int)PlayerInfoStyle.L("mount_span_n");
-            float gx = PopupKit.Line3 + inner * PlayerInfoStyle.L("gear_pad_f");
-            float gw = inner - (gx - PopupKit.Line3) * 2f;
+            float gx = inner * PlayerInfoStyle.L("gear_pad_f");   // T473 — 옛 Line3 보정을 걷었다
+            float gw = inner - gx * 2f;
             float gapX = gw * PlayerInfoStyle.L("gear_gap_x_f"), gapY = PlayerInfoStyle.Px("gear_gap_y_rem");
             float cell = (gw - gapX * (cols - 1)) / cols;
             ForgeHost fh = ForgeHost.Instance;

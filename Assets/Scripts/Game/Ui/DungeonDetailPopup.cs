@@ -96,7 +96,7 @@ namespace Forge.Game.Ui
             float W = UiKit.RefW, H = UiKit.RefH;
 
             overlay = DungeonPopups.Overlay("modal-dungeon-detail");
-            float cw = W * UiKit.L("dgd_card_w");
+            float cw = W * UiKit.L("dgd_card_w") - DungeonPopups.Line3 * 2f;   // T473 — 표값은 정본 CSS width(border-box) · Card 의 w 는 패딩 상자
             float heroH = H * UiKit.L("dgd_hero_h");
             float radius = DungeonPopups.RemL("card_r_rem");
             float triD = H * UiKit.L("dgd_tri");
@@ -123,10 +123,10 @@ namespace Forge.Game.Ui
 
             // 배너(그림 + 제목 오버레이) — 모서리는 카드 위쪽 둥근 반지름을 따른다.
             RectTransform hero = UiKit.Box(card, "hero");
-            UiKit.Place(hero, DungeonPopups.Line3, 0f, cw - DungeonPopups.Line3 * 2f, heroH);   // T465 — 카드 rect 의 위끝이 곧 테 안쪽이다(옛 Line3 보정을 걷었다)
+            UiKit.Place(hero, 0f, 0f, cw, heroH);   // T465·T473 — 카드 rect 가 곧 테 안쪽이다(옛 Line3 보정을 세로·가로 다 걷었다)
             // T178 19회차 — 정본 2060 `.dg-detail-hero { background: linear-gradient(120deg, var(--bg,#444c56), #161b22) }` = 목록 배너 1952 와 같은 겹(표 dg_banner).
             //   일러스트 **뒤**의 바탕이다(정본 주석 «목록 배너와 같은 dg_* 일러스트를 얹는다» · 그림이 없는 던전은 이것만 보인다). 여태 카드색이 비쳤다.
-            SurfaceArt.Fill(hero, "bg-grad", "dg_banner", cw - DungeonPopups.Line3 * 2f, heroH);
+            SurfaceArt.Fill(hero, "bg-grad", "dg_banner", cw, heroH);
             Image scene = UiKit.Icon(hero, "scene", DungeonSheet.SceneIcon(d.Id));
             scene.preserveAspect = false;
             TextMeshProUGUI title = DungeonPopups.Bold(hero, "title", TextKind.Body, d.Kr, "white");

@@ -74,7 +74,7 @@ namespace Forge.Game.Ui
             Button dim = root.GetChild(0).gameObject.GetComponent<Button>() ?? root.GetChild(0).gameObject.AddComponent<Button>();
             dim.onClick.RemoveAllListeners();
             dim.onClick.AddListener(() => Close(h));
-            float w = GearDetailStyle.Px("card_w"), rem = PopupKit.Rem;
+            float w = GearDetailStyle.Px("card_w") - PopupKit.Line3 * 2f, rem = PopupKit.Rem;   // T473 — 1738 width 70% 는 border-box · Card 의 w 는 패딩 상자
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
             // 정본 1737: 카드 바닥을 앱 바닥에서 bottom_h(.223·H) 위에 앉힌다 — 높이는 내용을 따르고(ContentSizeFitter) 피벗이 바닥이라 위로 자란다.
             UiKit.Anchor(card, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, GearDetailStyle.Px("bottom_h") + PopupKit.Line3), w, card.sizeDelta.y);   // T465 — bottom_h 는 카드 몸의 바닥 · rect 는 패딩 상자

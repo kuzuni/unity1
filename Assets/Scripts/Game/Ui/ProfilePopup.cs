@@ -36,12 +36,12 @@ namespace Forge.Game.Ui
             if (p == null) return;
             RectTransform root = PopupLayer.Clear(p);
             float rem = PopupKit.Rem, w = UiKit.RefW, H = UiKit.RefH;
-            float cardW = UiKit.L("profile_w") * w, cardH = UiKit.L("profile_h") * H - PopupKit.Line3 * 2f;   // T465 — 표값은 원작 카드 몸(border-box) · Card 의 h 는 패딩 상자
+            float cardW = UiKit.L("profile_w") * w - PopupKit.Line3 * 2f, cardH = UiKit.L("profile_h") * H - PopupKit.Line3 * 2f;   // T465·T473 — 표값은 원작 카드 몸(border-box) · Card 의 w·h 는 패딩 상자
             // T395 — 정본 `#profile-modal .idet-wrap { top: .8rem }`(style.css 3042)은 **CSS 보정값**이다(래퍼가 ✕ 까지 끌어안은 채 세로 중앙에 놓여 카드가 위로 밀린 것을
             //   되돌리는 값 · 3039~3041 주석). `PopupKit.Card` 는 카드 자체를 가운데 두므로 그 문제가 없다 — 옮기면 카드가 .8rem 아래로 한 번 더 간다(런 743 실측 +14.5px). 옮기지 않는다.
             RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "pp_paper", rem, "pp_line", 0f);
             float pad = UiKit.H("card_pad");
-            float inner = cardW - PopupKit.Line3 * 2f;
+            float inner = cardW;   // T473 — rect 가 곧 테 안쪽
             if (view == "settings") RenderSettings(h, card, inner, cardH, pad);
             else RenderProfile(h, card, inner, cardH, pad);
 
@@ -228,7 +228,7 @@ namespace Forge.Game.Ui
             Popup p = h.Popups.Show("nickname");
             PopupLayer.Clear(p);
             float rem = PopupKit.Rem;
-            RectTransform card = PopupKit.Card(p.Root, "card", UiKit.L("modal_card_w") * UiKit.RefW, -1f, "pp_paper", rem);
+            RectTransform card = PopupKit.Card(p.Root, "card", UiKit.L("modal_card_w") * UiKit.RefW - PopupKit.Line3 * 2f, -1f, "pp_paper", rem);   // T473 — 표값은 정본 CSS width
             PopupKit.Column(card, UiKit.H("card_pad"), rem * 0.5f);
             PopupKit.Label(card, "title", TextKind.Body, "새 이름을 입력하세요 (최대 12자)", "pp_ink", TextAlignmentOptions.Center, true);
             float ih = PopupKit.FontSize(TextKind.Body) * 1.6f;
@@ -281,7 +281,7 @@ namespace Forge.Game.Ui
 
             float listH = UiKit.L("settings_h") * UiKit.RefH;
             RectTransform listBox = UiKit.Box(card, "list-box");
-            UiKit.Place(listBox, PopupKit.Line3, y, inner - PopupKit.Line3 * 2f, listH);
+            UiKit.Place(listBox, 0f, y, inner, listH);   // T473 — rect 가 곧 테 안쪽
             UiKit.Panel(listBox, "bg", "settings_even");
             RectTransform list = PopupKit.ScrollList(listBox, "list", 0f, 0f, 0f);
             JsonObject d = h.SettingsDummy;
@@ -385,7 +385,7 @@ namespace Forge.Game.Ui
             Popup p = h.Popups.Show("confirm");
             PopupLayer.Clear(p);
             float rem = PopupKit.Rem;
-            RectTransform card = PopupKit.Card(p.Root, "card", UiKit.L("modal_card_w") * UiKit.RefW, -1f, "pp_paper", rem);
+            RectTransform card = PopupKit.Card(p.Root, "card", UiKit.L("modal_card_w") * UiKit.RefW - PopupKit.Line3 * 2f, -1f, "pp_paper", rem);   // T473 — 표값은 정본 CSS width
             PopupKit.Column(card, UiKit.H("card_pad"), rem * 0.5f);
             PopupKit.Label(card, "q", TextKind.Body, "정말 처음부터 시작할까요?", "pp_ink", TextAlignmentOptions.Center, true);
             RectTransform btns = PopupKit.Item(card, "buttons", -1f, PopupKit.ModalBtnH);

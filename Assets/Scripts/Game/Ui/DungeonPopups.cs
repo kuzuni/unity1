@@ -42,15 +42,16 @@ namespace Forge.Game.Ui
 
         /// <summary>
         /// 가운데 카드(흰 종이 · 검정 테 line3 · 둥근 모서리). w·h 는 기준 px.
-        /// T465 — `h` 는 CSS 의 **패딩 상자**(패딩 + 내용)다: 테(`bg`)는 rect 보다 위·아래로 `Line3` 씩 밖에 서므로(`PopupKit.GrowY`)
-        /// 호출부가 `UiKit.Place(child, x, pad, …)` 로 놓는 `pad` 가 정본 `padding` 처럼 테 안쪽부터 잰다. 화면의 카드 몸은 `h + 2·Line3`.
+        /// T465·T473 — `w`·`h` 는 CSS 의 **패딩 상자**(패딩 + 내용)다: 테(`bg`)는 rect 보다 **사방** `Line3` 씩 밖에 서므로(`PopupKit.Grow`)
+        /// 호출부가 `UiKit.Place(child, pad, pad, …)` 로 놓는 `pad` 가 정본 `padding` 처럼 테 안쪽부터 잰다. 화면의 카드 몸은 `(w + 2·Line3) × (h + 2·Line3)` —
+        /// 정본 CSS `width` 나 원작에서 잰 폭을 줄 땐 `2·Line3` 를 빼서 준다.
         /// </summary>
         public static RectTransform Card(RectTransform overlay, string name, float w, float h, float radiusPx, string bgKey = "pp_paper")
         {
             RectTransform card = UiKit.Box(overlay, name);
             UiKit.Anchor(card, Center, Center, Vector2.zero, w, h);
             RectTransform face = Bordered(card, "bg", bgKey, radiusPx, Line3);
-            PopupKit.GrowY((RectTransform)face.parent, Line3);
+            PopupKit.Grow((RectTransform)face.parent, Line3);
             return card;
         }
 

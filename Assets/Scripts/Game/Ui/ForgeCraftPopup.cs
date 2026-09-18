@@ -54,7 +54,7 @@ namespace Forge.Game.Ui
             float rem = PopupKit.Rem;
             // T113 — 정본 1748: 폭은 공용 .modal-card.wide(74%) 가 아니라 68.8%W · 1742: 카드는 가운데가 아니라 **하단 앵커**
             // (padding-bottom = 탭바 높이 + 1.65rem → 카드 바닥이 앱 바닥에서 그만큼 위 · 원본 실측 86.9%H). T111 장비 상세와 같은 길(자기 표 CraftUi.json).
-            float w = CraftStyle.Px("card_w");
+            float w = CraftStyle.Px("card_w") - PopupKit.Line3 * 2f;   // T473 — 표값은 정본 CSS width(border-box) · Card 의 w 는 패딩 상자
             float pad = UiKit.H("card_pad");
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
             // T465 — 정본 padding-bottom 은 카드 **몸**(border-box)의 바닥을 띄운다 · 카드 rect 는 패딩 상자라 테 한 겹(Line3)만큼 더 올린다.
@@ -138,7 +138,7 @@ namespace Forge.Game.Ui
             RectTransform root = PopupLayer.Clear(p);
             GameDefs d = h.Defs;
             float rem = PopupKit.Rem;
-            float w = UiKit.RefW * 0.76f;
+            float w = UiKit.RefW * 0.76f - PopupKit.Line3 * 2f;   // T473 — 0.76 은 카드 몸의 폭 · Card 의 w 는 패딩 상자
             RectTransform card = PopupKit.Card(root, "card", w, -1f, "pp_paper", rem * 1.1f);
             PopupKit.Column(card, rem * 0.9f, rem * 0.7f);
             TextMeshProUGUI title = PopupKit.Label(card, "title", TextKind.Title2, "정말 판매할까요?", "pp_ink");   // T404 ⓑ 3회차 — 정본 2219 `.sellwarn-title { font-size: 1.15rem }` = 41.9px → Title2 42(전엔 Body 40 · 여덟 중 마지막)

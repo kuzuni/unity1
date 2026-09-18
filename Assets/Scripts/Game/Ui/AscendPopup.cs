@@ -45,7 +45,7 @@ namespace Forge.Game.Ui
 
             float W = UiKit.RefW;
             overlay = DungeonPopups.Overlay("modal-ascend");
-            float cw = W * UiKit.L("card_w");
+            float cw = W * UiKit.L("card_w") - DungeonPopups.Line3 * 2f;   // T473 — 표값은 정본 CSS width(border-box) · Card 의 w 는 패딩 상자
             float pad = DungeonPopups.RemL("card_pad_rem");
             float inner = cw - pad * 2f;
             float gap = DungeonPopups.RemL("card_gap_rem");

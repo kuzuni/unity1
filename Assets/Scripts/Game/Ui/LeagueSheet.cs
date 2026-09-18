@@ -195,7 +195,7 @@ namespace Forge.Game.Ui
             float rem = PopupKit.Rem, w = UiKit.RefW, H = UiKit.RefH;
             int myRank = h.League.MyRank(h.LeagueState, h.MyCp);
             var cur = h.League.RewardForRank(myRank);
-            float cardW = UiKit.L("modal_wide_w") * w;
+            float cardW = UiKit.L("modal_wide_w") * w - PopupKit.Line3 * 2f;   // T473 — 표값은 정본 CSS width(border-box) · Card 의 w 는 패딩 상자
             float ribbonH = UiKit.H("lgr_ribbon_h");   // T378 10회차 — 정본 2485 `.league-reward-banner { height: .0528H }`(전엔 ×1.2)
             float descH = PopupKit.FontSize(TextKind.Sub) * 2.9f;
             float gridRowH = PopupKit.FontSize(TextKind.Sub) * 1.5f;
@@ -205,7 +205,7 @@ namespace Forge.Game.Ui
             float cardH = ribbonH + rem * 1.2f + descH + rem * 0.5f + gridH + rem * 0.55f + collectH + rem * 0.65f + tableH + rem * 2.78f;
             // 정본 `.lgr-overlay .idet-wrap { top: .76rem }` 은 CSS 보정값(아래로 되돌림)이라 옮기지 않는다 — 종전 `rem * 0.76f` 는 PopupKit.Card 에서 양수 = 위라 부호까지 반대였다(T395 · 카드 위끝 18.23 → ≈19.7%H · 원작 19.21).
             RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "league_bg", rem, "pp_line", 0f);
-            float inner = cardW - PopupKit.Line3 * 2f;
+            float inner = cardW;   // T473 — rect 가 곧 테 안쪽
 
             // 리본(카드보다 넓다)
             float rw = UiKit.L("lgr_ribbon_w") * w;
@@ -341,7 +341,7 @@ namespace Forge.Game.Ui
             if (p == null) return;
             RectTransform root = PopupLayer.Clear(p);
             float rem = PopupKit.Rem, w = UiKit.RefW;
-            float cardW = UiKit.L("modal_wide_w") * w;
+            float cardW = UiKit.L("modal_wide_w") * w - PopupKit.Line3 * 2f;   // T473 — 같은 까닭
             float rowH = UiKit.L("lc_row_h") * w;
             float pillH = UiKit.L("lc_pill_h") * w;   // T378 10회차 — 정본 2594 `.league-ticket-pill { height: .0411W }`(전엔 ×1.4)
             List<LeagueChallengeOption> list = h.League.ChallengeList(h.LeagueState);
@@ -374,7 +374,7 @@ namespace Forge.Game.Ui
 
             float av = UiKit.H("lc_avatar");
             float btnW = UiKit.L("lc_btn_w") * w, btnH = UiKit.L("lc_btn_h_rem") * rem;   // 정본 2626 .league-challenge-row .btn.sm min-height 2.9rem (T402 · 표)
-            float rowW = cardW - PopupKit.Line3 * 2f - UiKit.H("card_pad") * 2f + w * 0.0185f * 2f;
+            float rowW = cardW - UiKit.H("card_pad") * 2f + w * 0.0185f * 2f;   // T473 — rect 가 곧 테 안쪽
             for (int i = 0; i < list.Count; i++)
             {
                 LeagueChallengeOption o = list[i];
