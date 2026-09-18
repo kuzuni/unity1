@@ -1996,3 +1996,65 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - `fill` **✅ 10**(구조 · 정지점 값은 38회차·T2 몫) · `font-family` **✅ 5 · △ 1**(`.rates-i` 세리프 — T439 의 적어 둔 한계) · `border-bottom` **✅ 7**(T365 자가 변 단위로 쥔다 — 이름이 대조표에 안 올랐을 뿐) · `align-self` **✅ 11(해당 없음)**. 새 번호 0.
 - **이 회차가 남긴 규칙** — 축 이름이 대조표에 없어도 **그 축을 변 단위·겹 단위로 쥐는 자**(`check_box_borders` 의 `|bottom` · 모루 연출의 스프라이트 스펙)가 있으면 그것을 먼저 적는다. «안 센 축» 목록은 자 목록과 맞춰 본 뒤에야 «안 본 축» 이다.
 - **남은 축**(39 − 4 = **35**): `display` 310 · `margin-left` 32 · `margin-right` 15 · `padding-right` 11 · `padding-top` 8 · `scrollbar-width` 4 · `stroke` 3 · `border-style` 3 · `grid-row` 3 · 그 밖 2 이하 26. ⚠ `margin-*`·`padding-*` 은 T378(표값 × 상수)·T28(화소) 갈래가 값으로 이미 보고 있다 — 다음 회차는 «선언 수» 가 아니라 «그 갈래가 안 본 자리» 로 가른다.
+
+
+# T33 50회차 — 남은 축 35 중 작은 여섯: `stroke` 3 · `border-style` 3 · `grid-row` 3 · `scrollbar-width` 4 · `padding-top` 8 · `padding-right` 11 (2026-09-18 · 워커 U · sess-0959-64089)
+
+> 세는 법은 47회차 그대로. `padding-*` 는 49회차가 적은 대로 «선언 수» 가 아니라 «표 키가 있는가» 로 갈랐다 — 값·자리의 화소 판정은 T378·T28 몫이라 이 회차는 목록을 남긴다.
+
+## `stroke` 3
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 1429 `.anvil-fx .af-ring` | `rgba(255,226,150,.98)` | 링은 테 스프라이트(`AnvilFx.cs`·Core `AutoForgeFxSpec`) — 색은 그 굽기의 몫(49회차 `fill` 과 같은 자리 · 값 대조는 38회차·T2) | ✅(구조) |
+| 2~3 | 2176 `.tt-link` · 2177 `.tt-link.dim` | `var(--pp-line)` · `#b9b6b0` | `TechPanel.cs:295` `dim ? "tech_link_dim" : "pp_line"` · `catalog.json tech_link_dim #b9b6b0` | ✅ |
+
+## `border-style` 3
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 1655 `.hatch-slot.buy` | `solid`(+ `#8957e5`) | 정본 실물 0 — `ui.js` 에 `hatch-slot` 이 한 번도 안 나온다(부화장은 `.hatch-cell`·`.slot-buy` 로 그린다) | —죽음 |
+| 2 | 1830 `.cmp-card.empty` | `dashed`(1826 `.cmp-card { border: var(--ol3) solid var(--pp-line) }` 의 테를 **점선**으로) | `ForgeUi.cs:270` 빈 슬롯 카드 = `PopupKit.Outlined(card, "face", "pp_paper", …, Line3)` **실선 + 종이 면** — T359 4회차 주석이 «남은 두 가지(배경 없음 · `border-style: dashed`)는 다른 축이라 안 건드렸다» 로 적어 둔 자리 · `check_box_borders` 는 `border-style` 을 안 읽는다 | ⛔ → **T472** |
+| 3 | 2906 `.shop-banner::before/::after` | `solid`(삼각형 트릭의 변) | T470 이 `ClipShape` 삼각형으로 세웠다(런 1164 ✅) | ✅ |
+
+## `grid-row` 3
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1~3 | 1670·1671·1674 `.pet-card .btn/.btn-col/.icon-circle` | `1 / span 3` | 47회차 — `.pet-card` 실물 0 | —죽음 |
+
+## `scrollbar-width` 4
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 3095 `.settings-list` | `none` | 클론 `ScrollRect` 12 곳 모두 **스크롤바 오브젝트가 없다**(`Scrollbar` 참조 0) — 숨김과 같다 | ✅ |
+| 2~4 | 3218 `.pinfo-subs-list` · 3939 `.grid-scroll` · 4795 `.af-dd-list` | `thin` | 위와 같이 스크롤바가 없다 — 정본의 «얇게» 는 데스크톱 브라우저의 트랙이고 모바일 웹뷰는 오버레이라 그리지 않는다(원작 캡처 30장에 트랙이 없다) | ✅(해당 없음) |
+
+## `padding-top` 8 · `padding-right` 11 — 표 키가 있는가
+
+| # | 정본 | 값 | 클론 표 키 | 판정 |
+|---|---|---|---|---|
+| 1~2 | 969 `.anvil-side.left` · 970 `.anvil-side.right` | `app-h × .0066` · `× .0352` | `ForgeSheet.cs:118·125` `UiKit.RefH * 0.0066f` · `* 0.0352f` — **값은 같으나 상수로 박혔다**(§1) · T378 의 자는 `표값 × 상수` 꼴만 잡아 `RefH × 상수` 는 못 본다 | △(값 ✓ · 표 없음 → T378 갈래 보탬) |
+| 3 | 3699 `.idet-title` | `.1rem` | 키 없음 | △ |
+| 4 | 5246 `.skd-body` | `.15rem` | 키 없음 | △ |
+| 5 | 5548 `.petd-body` | `.1rem` | 키 없음 | △ |
+| 6 | 5749 `.sr-head` | `2%` | `SummonFxUi.json sr_head_top_f` | ✅ |
+| 7 | 5773 `.sr-body.stage.one` | `2.5rem` | 키 없음 | △ |
+| 8 | 7111 `.sr-foot` | `.5rem` | `sr_foot_gap_rem`·`sr_foot_min_rem`(패딩 자체의 키는 아니다) | △ |
+| 9 | 1021 `.anvil-btn.held-slot.deck` | `calc(.25rem + var(--dw))` | 키 없음 | △ |
+| 10 | 1646 `#equip-sheet .forge-actions .btn` | `.2rem` | `forge_actions_btn_*` 는 줄높이·줄바꿈 키뿐 | △ |
+| 11 | 2245 `.tb-list` | `.2rem` | 키 없음 | △ |
+| 12 | 3147 `.pinfo-header` | `app-w × .0244` | 키 없음 | △ |
+| 13 | 3933 `#panel-summon > .summon-sub` | `.8rem` | 키 없음 | △ |
+| 14 | 4719 `.af-age-pct` | `.28rem` | 키 없음 | △ |
+| 15 | 4743 `.af-filter-row` | `.786rem` | 키 없음 | △ |
+| 16 | 5077 `.fi-level-row` | `.48rem` | 키 없음 | △ |
+| 17~18 | 5094 `.fi-age-cur` · 5103 `.fi-age-next` | `.55rem` · `.44rem` | 키 없음 | △ |
+| 19 | 5611 `.fl-head .fi-age-cur` | `.5rem` | 키 없음 | △ |
+
+⚠ «키 없음» 은 «틀렸다» 가 아니다 — 클론은 많은 자리를 `rem × 상수`·`%W` 로 놓고 T28 화소 자가 결과를 잰다. 이 표는 **§1 «수치는 코드에 박지 않는다» 의 남은 자리 목록**이고, 어느 것이 실제로 상수로 박혔는지는 T378 갈래가 `rem *`·`RefH *` 꼴까지 넓힌 자로 가른다(다음 회차의 한 축).
+
+## 이 회차의 판정
+
+- `stroke` **✅ 3** · `border-style` **✅ 1 · —죽음 1 · ⛔ 1 → T472** · `grid-row` **—죽음 3** · `scrollbar-width` **✅ 4** · `padding-top/right` **✅ 1 · △ 18**(표 키 없음 — T378 갈래 목록).
+- **남은 축**(35 − 6 = **29**): `display` 310 · `margin-left` 32 · `margin-right` 15 · 그 밖 2 이하 26. `margin-*` 도 위 패딩과 같은 «표 키가 있는가» 로 갈라야 한다.
