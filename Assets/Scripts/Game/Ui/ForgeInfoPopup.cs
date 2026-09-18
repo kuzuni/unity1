@@ -284,6 +284,9 @@ namespace Forge.Game.Ui
         {
             RectTransform tile = ForgeUi.ItemTile(rt, "fl-face", size, h.Defs, age, icon, 0.8f, agePattern: true);   // T124 3회차 — 정본 ui.js 2090 `fl-face equip-cell[data-age]`: 목록 타일도 시대 무늬 층(.55)을 입는다
             UiKit.Place(tile, 0f, 0f, size, size);
+            // T331 37회차 — 정본 8539 `.equip-cell:not(.egg-cell)` 의 드리운 그림자는 이 목록 타일(«.equip-cell CSS 를 그대로 입는다» · 2090)에도 든다 — 셋째 공장.
+            //   ForgeUi.ItemTile(T415 lock)을 안 열고 부르는 쪽에서 틀 상자(frame)에 건다 · 비교 카드·상세 머리의 ItemTile 은 정본이 equip-cell 이 아니라 안 건다.
+            UiShadow.Drop((RectTransform)tile.Find("frame"), "equipcell_drop", size * 0.16f, size, size);
             // T332 4회차 — 접지 그림자는 **플레이스홀더에도** 건다. 정본 선택자가 `.fl-face img, **.fl-face .ico**`(style.css 761)이고
             // 그 주석이 까닭을 댄다: «플레이스홀더 `.ico`(IconGen) 도 같이 걸어야 **하이드레이션 전후로 그림이 안 튄다**».
             // (윗줄 754 주석은 «img 에만 건다» 라고 적었지만 그 블록엔 `filter` 가 없다 — 렌더 결과는 아래 블록이 쥔다 · §1 «정본대로 = 렌더 결과» · 결정 520 ⓒ 와 같은 갈래.)

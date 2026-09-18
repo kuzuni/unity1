@@ -209,6 +209,34 @@ namespace Forge.Tests.PlayMode
             }
         }
 
+        /// <summary>T331 37회차 — 정본 2090 «목록 타일은 .equip-cell CSS 를 그대로 입는다» → 8539 의 드리운 그림자(equipcell_drop)가 «모든 장비의 목록» 타일 틀 안에도 선다(셋째 공장 · 부르는 쪽에서 건다).</summary>
+        [UnityTest]
+        public IEnumerator 장비_목록_타일에도_장비_칸_그늘이_틀_안_맨_뒤에_깔린다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            ForgeInfoPopup.OpenList(h);
+            yield return null; yield return null;
+            Popup p = h.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(p, "목록 팝업");
+            int tiles = 0;
+            foreach (RectTransform t in p.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (t.name != "fl-face") continue;
+                tiles++;
+                RectTransform frame = (RectTransform)t.Find("frame");
+                Assert.IsNotNull(frame, "목록 타일의 틀(frame)");
+                Transform sh = UiShadow.Find(frame, "equipcell_drop");
+                Assert.IsNotNull(sh, "목록 타일 틀 안에 그늘이 없다");
+                Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 틀 안 맨 뒤");
+                Assert.IsNotNull(sh.GetComponent<Image>().sprite, "구운 판");
+                if (tiles >= 12) break;
+            }
+            Assert.Greater(tiles, 0, "목록 타일(fl-face)이 0 이다");
+            ForgeInfoPopup.Close(h);
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator 자동_제련_카드는_턱과_앰비언트_두_겹을_쥔다()
         {

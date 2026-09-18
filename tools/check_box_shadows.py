@@ -78,7 +78,7 @@ SPOTS = [
 # «호출이 있다» 가 된다(그러면 화면의 절반은 그늘이 없는데 자가 조용하다). 걸려야 하는 곳 수를 적어 둔다.
 NEED = {
     'infobtn_drop': 2,   # `ForgeUi.InfoButton`(대장간·장비 시트) + `DungeonPopups.InfoButton`(던전 팝업)
-    'equipcell_drop': 3,   # 36회차 — `ForgeSheet.EquipCell`(장비 시트) + `PlayerInfoPopup.EquipCell`(플레이어 정보 격자) + `ForgeUi.ItemTile`(목록 타일 `.fl-face.equip-cell` · ui.js 2090 «타일은 .equip-cell CSS 를 그대로 입는다»)
+    'equipcell_drop': 3,   # 36·37회차 — 셋째(목록 타일)는 ForgeUi.ItemTile(T415 lock)을 안 열고 부르는 쪽 ForgeInfoPopup.Cell 에서 건다(37회차) · — `ForgeSheet.EquipCell`(장비 시트) + `PlayerInfoPopup.EquipCell`(플레이어 정보 격자) + `ForgeUi.ItemTile`(목록 타일 `.fl-face.equip-cell` · ui.js 2090 «타일은 .equip-cell CSS 를 그대로 입는다»)
 }
 
 KNOWN = {
@@ -86,7 +86,6 @@ KNOWN = {
     # 그 lock 이 풀리는 회차가 `UiShadow.Drop(<상자>, "<키>", <반지름>)` 한 줄을 걸고 여기서 그 줄을 지운다.
     'fiagebar_lip':    'T331 29회차 — 값 잼 · 배선은 ForgeUi.cs(대장간 나이 막대)가 열리는 회차',
     'afknob_drop':     'T331 29회차 — 값 잼 · 배선은 Popups.cs(공용 토글 공장)가 열리는 회차',
-    'equipcell_drop':  'T331 36회차 — **2/3 섰다**(ForgeSheet.EquipCell · PlayerInfoPopup.EquipCell · 틀 안 맨 뒤에 깐다) · 나머지 목록 타일 `.fl-face.equip-cell`(ForgeInfoPopup.cs 285 → ForgeUi.ItemTile)은 다음 회차(NEED 3)',
     'infobtn_drop':    'T331 30회차 — **절반 섰다**(DungeonPopups.InfoButton) · 나머지는 ForgeUi.InfoButton 이 열리는 회차(대장간·장비 시트 · NEED 2)',
 }
 
