@@ -237,6 +237,65 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T331 38회차 — 정본 8131 `.pet-tile .tile-face` 드리운 그림자(표 pettile_drop · `0 .16rem .3rem rgba(0,0,0,.22)`) — 펫 격자 타일의 틀 안 맨 뒤.
+        /// 펫이 없는 새 세이브라 ColorMixSitesTests 의 길(x1 소환 → 부화 → 즉시 스킵)로 펫 하나를 만든다. 알 타일(4307 none)엔 없다.</summary>
+        [UnityTest]
+        public IEnumerator 펫_격자_타일에는_흐린_그늘이_틀_안_맨_뒤에_깔리고_알_타일에는_없다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(PetSkillHost.Ready && SkillPetSheet.Instance != null && SkillBar.Instance != null); i++) yield return null;
+            Assert.IsTrue(PetSkillHost.Ready, "PetSkillHost");
+            PetSkillHost host = PetSkillHost.Instance;
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            yield return null;
+            sheet.Switch(SkillPetSheet.SubPets);
+            yield return null;
+            if (host.Pets.State.Pets.Count == 0)
+            {
+                while (host.SummonMult("pet") != 1) host.CycleSummonMult("pet");
+                host.EggCurrency = 100000; host.Gems = 100000; host.Sync();
+                yield return null;
+                sheet.Pets.SummonButton.onClick.Invoke();
+                yield return null;
+                for (int k = 0; k < 4 && SkillSummonResultView.Current != null; k++) { SkillSummonResultView.Current.OnTap(); yield return null; }
+                Assert.GreaterOrEqual(host.Pets.State.Eggs.Count, 1, "x1 소환 = 알 하나 이상");
+                int hatching = host.Pets.State.Hatching.Count;
+                sheet.Pets.OpenEggDetail(0);
+                yield return null;
+                sheet.Modal.Find(PetPanel.DetailModal).Content.Find("btn-hatch").GetComponent<Button>().onClick.Invoke();
+                yield return null;
+                Assert.IsNotNull(sheet.Pets.SkipButton(hatching), "부화 칸의 스킵");
+                sheet.Pets.SkipButton(hatching).onClick.Invoke();
+                yield return null;
+            }
+            Assert.GreaterOrEqual(host.Pets.State.Pets.Count, 1, "펫 하나 이상");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform tile = null;
+            foreach (Transform t in sheet.GetComponentsInChildren<Transform>(true))
+                if (t.name == "pet-tile-0") { tile = t; break; }
+            Assert.IsNotNull(tile, "펫 격자 타일(pet-tile-0)");
+            RectTransform face = (RectTransform)tile.Find("tile-face");
+            Assert.IsNotNull(face, "타일 얼굴(tile-face)");
+            Transform sh = UiShadow.Find(face, "pettile_drop");
+            Assert.IsNotNull(sh, "펫 타일 틀 안에 그늘이 없다");
+            Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 틀 안 맨 뒤(면·테 뒤)");
+            Assert.IsFalse(UiShadow.Table.Get("pettile_drop").IsHard, "흐림 .3rem 이라 굽는다");
+            Assert.IsNotNull(sh.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
+            Assert.AreEqual(0.22, UiShadow.Table.Get("pettile_drop").A, 1e-6, "표의 알파(.22)가 아니다");
+            Assert.IsNotNull(face.Find("face"), "이름으로 찾는 면(face)은 그대로다(PressFx 가 이 이름을 쓴다)");
+            Transform egg = null;
+            foreach (Transform t in sheet.GetComponentsInChildren<Transform>(true))
+                if (t.name == "egg-tile-0") { egg = t; break; }
+            if (egg != null)
+            {
+                RectTransform ef = egg.Find("tile-face") as RectTransform;
+                if (ef != null) Assert.IsNull(UiShadow.Find(ef, "pettile_drop"), "알 타일(4307 box-shadow: none)엔 그늘이 없다");
+            }
+        }
+
         [UnityTest]
         public IEnumerator 자동_제련_카드는_턱과_앰비언트_두_겹을_쥔다()
         {
@@ -480,7 +539,7 @@ namespace Forge.Tests.PlayMode
             int hard = 0, soft = 0;
             foreach (string k in UiShadow.Table.Keys) { if (UiShadow.Table.Get(k).IsHard) hard++; else soft++; }
             Assert.AreEqual(7, hard);
-            Assert.AreEqual(21, soft, "36회차 장비 칸 equipcell_drop 로 21");
+            Assert.AreEqual(22, soft, "36회차 equipcell_drop 21 · 38회차 pettile_drop 22");
         }
     }
 }

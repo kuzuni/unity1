@@ -282,6 +282,8 @@ namespace Forge.Game.Ui
                     Pet p = P.State.Pets[idx];
                     bool locked = P.State.ActivePets.Contains(idx);
                     RectTransform face = sheet.Pets.TileFace(cell, p.Name, p.Rarity, colW, locked, p.Level, true);
+                    // T331 38회차 — 정본 4152 재료 격자도 `.pet-tile`(selected 는 같은 그늘 + 파란 링) → 8131 의 드리운 그림자(표 pettile_drop).
+            UiShadow.Drop(face, "pettile_drop", PetSkillStyle.Px("tile_r_rem"), colW, colW);
                     UiKit.Place(face, 0f, 0f, colW, colW);
                     // T355 ⓐ — 정본 4304 `.pet-tile:active .tile-face { translateY(.08rem); brightness(1.07) }`(4301 `transition: .08s ease-out`).
                     //   업그레이드 재료 칸도 정본에서 **같은 `.pet-tile`** 이다(ui.js 4152) — 잠긴 칸(`mat-locked`)에도 정본은 이 규칙을 안 뺀다.

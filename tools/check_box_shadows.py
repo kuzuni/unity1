@@ -54,6 +54,7 @@ SPOTS = [
     ('leaguefoot_up', '.league-foot',                  2376, 'blur'),
     ('eqswfly_drop',  '.eqsw-fly-box',                 None, 'blur'),
     ('equipcell_drop', '.equip-cell:not(.egg-cell)',   8539, 'blur'),   # 36회차 — 같은 선언의 첫 바깥 겹(0 0 .46rem -.1rem color-mix 62%)은 빛 갈래(T419) · T371 KNOWN 의 «T331 뒤» 는 그 겹을 뜻한다(7738 의 앞 선언은 8539 가 덮는다)
+    ('pettile_drop',   '.pet-tile .tile-face',           8131, 'blur'),   # 38회차 — 첫 바깥 겹(0 0 .5rem -.08rem color-mix 60%)은 빛 갈래(T419) · 4262·4288 의 앞 선언은 8124 가 덮는다
     # 26회차 — 자동 제련 팝업 한 파일에 몰린 둘(손잡이 `.af-toggle .knob` 은 공장이 `Popups.cs` 라 남의 lock 뒤다)
     ('afspinner_lip', '.af-spinner',                   5007, 'hard'),
     ('afsubrow_drop', '.af-sub-row',                   4999, 'blur'),
@@ -79,6 +80,7 @@ SPOTS = [
 NEED = {
     'infobtn_drop': 2,   # `ForgeUi.InfoButton`(대장간·장비 시트) + `DungeonPopups.InfoButton`(던전 팝업)
     'equipcell_drop': 3,   # 36·37회차 — 셋째(목록 타일)는 ForgeUi.ItemTile(T415 lock)을 안 열고 부르는 쪽 ForgeInfoPopup.Cell 에서 건다(37회차) · — `ForgeSheet.EquipCell`(장비 시트) + `PlayerInfoPopup.EquipCell`(플레이어 정보 격자) + `ForgeUi.ItemTile`(목록 타일 `.fl-face.equip-cell` · ui.js 2090 «타일은 .equip-cell CSS 를 그대로 입는다»)
+    'pettile_drop': 3,   # 38회차 — 정본 `.pet-tile` 격자 셋(ui.js 3938 펫 · 4152 업그레이드 재료 · 5646 탈것) = 클론 `PetPanel.PetTileAt`·`PetUpgradePopup` 재료 격자·`MountSheet` 격자(공장 TileFace 는 상세 타일도 만들어 부르는 쪽에서 건다)
 }
 
 KNOWN = {
@@ -122,6 +124,8 @@ ELSEWHERE = {
     '.sr-orbwrap': '광원 둘레 발광은 등급색 광원 판에 구워져 있다(T334 3회차 충전 3종)',
     '.sr-canopy::before': '바닥 스필 — 지금 T419 가 쥔 자리(mix-blend-mode: screen 갈래)',
     # 29회차 — 같은 그늘에 **등급 발광만 더한** 변형(그늘은 `.sr-chip` 키 하나로 선다)
+    # 38회차 — 같은 그늘에 **선택 링만 더한** 변형(링 `0 0 0 .16rem var(--pp-blue)` 은 번짐만 있는 테두리라 그림자가 아니다)
+    '.pet-tile.selected .tile-face': '`.pet-tile .tile-face` 와 같은 그늘 `0 .16rem .3rem rgba(0,0,0,.22)` + 파란 선택 링 — 그늘은 pettile_drop 이 쥔다 · 링은 선택 표시 갈래',
     '.sr-chip[data-tier="4"]': '`.sr-chip` 과 같은 두 겹 + 등급 발광 `0 0 .5rem var(--cb)` — 그늘은 srchip_drop 이 쥔다',
     '.sr-chip[data-tier="5"]': '`.sr-chip` 과 같은 두 겹 + 등급 발광 `0 0 .7rem var(--cb)` — 그늘은 srchip_drop 이 쥔다',
 }

@@ -224,6 +224,8 @@ namespace Forge.Game.Ui
             RectTransform cell = b.GetComponent<RectTransform>();
             UiKit.Place(cell, x, y, size, cellH);
             RectTransform face = TileFace(cell, pet.Name, pet.Rarity, size, active, pet.Level, true);
+            // T331 38회차 — 정본 8131 `.pet-tile .tile-face` 의 드리운 그림자 `0 .16rem .3rem rgba(0,0,0,.22)`(표 pettile_drop · 등급색 광 겹은 T419). 공장 TileFace 는 상세 타일(.petd-tile · 규칙 없음)도 만들므로 격자 세 자리가 부르는 쪽에서 건다 · 틀 안 맨 뒤(면·테 뒤 · «face» 이름 찾기는 그대로).
+            UiShadow.Drop(face, "pettile_drop", PetSkillStyle.Px("tile_r_rem"), size, size);
             UiKit.Place(face, 0f, 0f, size, size);
             // T355 9회차 — 정본 4304 `.pet-tile:active .tile-face { translateY(.08rem); brightness(1.07) }`(4301 .08s ease-out) · 탈것 격자(MountSheet)·펫 재료 칸과 같은 표 키.
             //   누름은 버튼(.pet-tile)에 붙고 움직이는 것은 얼굴(.tile-face)이다.

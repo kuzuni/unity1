@@ -142,6 +142,8 @@ namespace Forge.Game.Ui
             RectTransform cell = b.GetComponent<RectTransform>();
             UiKit.Place(cell, x, y, size, cellH);
             RectTransform face = sheet.Pets.TileFace(cell, mt.Name, mt.Rarity, size, active, mt.Level, true, Ribbon(i), GalleryKind.Mounts);
+            // T331 38회차 — 정본 5646 탈것 격자도 `.pet-tile` 이라 8131 의 드리운 그림자(표 pettile_drop)가 같이 든다.
+            UiShadow.Drop(face, "pettile_drop", PetSkillStyle.Px("tile_r_rem"), size, size);
             UiKit.Place(face, 0f, 0f, size, size);
             // T355 ⓐ — 정본 4304 `.pet-tile:active .tile-face { transform: translateY(.08rem); filter: brightness(1.07) }`(4301 `transition: .08s ease-out`).
             //   탈것 격자도 정본에서 **같은 `.pet-tile`** 이다(ui.js 5646) — 펫 격자(3938)와 한 규칙을 나눠 쓴다.

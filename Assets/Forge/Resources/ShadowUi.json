@@ -2,6 +2,11 @@
   "_": "T331 — 정본 `box-shadow` **바깥 그림자**의 수치표. 자(`tools/check_box_shadows.py`)가 세는 자리와 키가 같다. 길이 단위 `_rem` = 정본 rem · 색은 rgba 0~1. CSS 는 아래(+y)가 양수고 UGUI 는 위(+y)가 양수라 **거는 쪽이 부호를 뒤집는다**(도우미 UiShadow 가 한 자리에서 한다).",
   "_hard": "딱딱한 턱(`blur 0 · spread 0`) 다섯 — 원작 UI 의 «종이 카드가 한 겹 떠 있다» 를 만드는 것이 이것이다. 흐림이 없으니 같은 모양을 한 겹 뒤에 깔고 내리기만 하면 화면이 정본과 같아진다(구울 것이 없다). 흐린 일곱은 3회차(굽는 길이 먼저 있어야 한다).",
   "spots": {
+    "pettile_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.16, "blur_rem": 0.3, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.22],
+      "_": ".pet-tile .tile-face(8131) `0 .16rem .3rem rgba(0,0,0,.22)`(정본 주석 «바깥 앰비언트 — 시트에서 뜬다») — 같은 선언의 첫 바깥 겹 `0 0 .5rem -.08rem color-mix(in srgb, var(--rc) 60%, transparent)` 는 등급색 빛이라 이 축이 아니다(T419) · `.pet-tile.selected .tile-face`(4320)는 같은 그늘 + 파란 선택 링 · `.pet-tile.egg`(4307)는 none · 상세 타일(.petd-tile)엔 규칙이 없다(T331 38회차)"
+    },
     "equipcell_drop": {
       "dx_rem": 0.0, "dy_rem": 0.14, "blur_rem": 0.3, "spread_rem": 0.0,
       "rgba": [0.0, 0.0, 0.0, 0.3],
