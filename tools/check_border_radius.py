@@ -270,6 +270,14 @@ TABLE = {
     '.age-bar-wrap': u'—죽은 CSS: `.age-bar-wrap`·`.age-row`·`.age-pct`·`.age-tag`(703~708)를 `ui.js`·`index.html` 어디서도 안 그린다(렌더 줄 0 · 14회차 grep) — 클론에 자리 없음',
     '.af-age-bar': ['Ui/ForgeUi.cs$af_age_bar_r_rem'],
     '.fi-age-bar': ['Ui/ForgeUi.cs$fi_age_bar_r_rem'],
+    # ── T415 15회차(2026-09-18 · 워커 O) — 14회차가 짚은 스킬 패널 다섯(2회차 갈래 · 자 파일만 · 화면 파일은 안 연다) ──
+    #    알약 동치 셋(결정 543 · 반지름 ≥ 높이/2): 정본 배지 높이는 «글자 × 줄높이(+테)» 라 rem 반지름이 반높이보다 커 **정본도 알약**이고,
+    #    클론 배지(`PetSkillKit.LvBadge` `Fill(box, "bg", ink, h * 0.5f)` · `SkillPanel.MiniLv` `Framed(…, lh * 0.5f, line1)`)도 `h * 0.5f` 알약이다 — 같은 뜻.
+    '.sk-lv': u'✓정본 4045 .5rem ↔ 배지 높이 .6rem 글자 × 보통 줄높이(≈1.2) ≈ .72rem → 반 .36 < .5 라 정본도 알약(결정 543) · 클론 `PetSkillKit.LvBadge` 가 `h * 0.5f`(펫 타일 `PetPanel.cs` 285 · 스킬 상세 `SkillPanel.cs` 531) — 스킬 격자는 4066 이 0 으로 걷는다(위 `#panel-skills .sk-grid .sk-lv` 줄)',
+    '.sk-ribbon': u'✓정본 4072 .4rem ↔ .5rem 글자 × ≈1.2 = .6rem → 반 .3 < .4 라 정본도 알약(결정 543) · 클론 `PetPanel.cs` 270 이 `LvBadge`(h * 0.5f 알약 · 이름 sk-ribbon · 그늘은 `UiShadow.RadiusOf` 로 그 반지름을 되읽는다) — 스킬 격자의 «장착됨» 은 클론이 원작 실측대로 `sk-eqplate` 타원(T95)이라 리본 자리가 없다',
+    '.sk-mini': ['Ui/SkillPanel.cs#orb'],   # 장착 아이콘 원 = `BuildEquippedRow` 의 `PetSkillKit.Orb(br, "orb", …)`(288) — `#이름` 은 그 이름 곁 6줄 안의 원 공장만 본다
+    '.sk-mini small': u'✓정본 4162 .5rem ↔ 배지 높이 .52rem × 1.25 + ol1 두 겹(≈1px) ≈ .65rem+2px → 반 ≈ .33rem+1px < .5 라 정본도 알약(결정 543) · 클론 `SkillPanel.MiniLv` 가 `Framed(…, lh * 0.5f, line1_px)` 알약',
+    '.summon-prog': u'—죽은 CSS: `.summon-prog`(4232 · 자식 4236~4237 · 겹 8813·8820)를 `index.html`·`js/*.js` 어디서도 안 그린다(렌더 줄 0 · 소환 바의 진행 게이지는 `.summon-gauge` 가 따로 있고 위 줄이 그것을 짝지었다)',
     # 죽은 CSS(정본 ui.js·index.html 에 자취 0 · 20회차 ⓡ)
     '.stat-grid': '—죽은 CSS(정본 렌더 줄 0)',
     '.hatch-slot': '—죽은 CSS(정본 렌더 줄 0)',
