@@ -729,5 +729,91 @@ namespace Forge.Tests.PlayMode
             AssertSpacing(msg.GetComponent<TextMeshProUGUI>(), "chat_preview_lines_lh", "미리보기 글");
             AssertSpacing(n.GetComponent<TextMeshProUGUI>(), "chat_preview_badge_lh", "뱃지 수");
         }
+
+        /// <summary>T354 23회차 — 패스 팝업의 나머지 다섯 글자 자리(정본 2711 `.pass-banner` 1.15 · 2743 `.pass-price` 1.3 ·
+        /// 2764~2765 `.pass-header-row span` 1·1 · 2809 `.pass-milestone-label` 1). `pass_sword_lh`(2697 · 0)는 그림이라 글자 자리가 없다.</summary>
+        [UnityTest]
+        public IEnumerator 패스_팝업의_리본_가격_탭_두_라벨_마일스톤_필은_표의_줄높이를_읽는다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && UiRoot.Instance != null); i++) yield return null;
+            PassPopup.Open(MetaHost.Instance);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup pass = PopupLayer.Instance.Find(PassPopup.Name);
+            Assert.IsNotNull(pass, "패스 팝업이 안 열렸다");
+            Transform band = Find(pass.Root, "band"); Assert.IsNotNull(band, "리본 띠");
+            Transform title = band.Find("title"); Assert.IsNotNull(title, "리본 제목(.pass-banner)");
+            Assert.AreEqual(1.15, LineHeight.Table.Get("pass_banner_lh"), 1e-9, "정본 2711");
+            AssertSpacing(title.GetComponent<TextMeshProUGUI>(), "pass_banner_lh", "리본 제목");
+            Transform price = Find(pass.Root, "price"); Assert.IsNotNull(price, "가격 페넌트");
+            Transform pl = price.Find("label"); Assert.IsNotNull(pl, "가격 글(.pass-price)");
+            Assert.AreEqual(1.3, LineHeight.Table.Get("pass_price_lh"), 1e-9, "정본 2743");
+            AssertSpacing(pl.GetComponent<TextMeshProUGUI>(), "pass_price_lh", "가격 글");
+            Transform free = Find(pass.Root, "free"), prem = Find(pass.Root, "premium");
+            Assert.IsNotNull(free, "[무료] 탭"); Assert.IsNotNull(prem, "[프리미엄] 탭");
+            Assert.AreEqual(1.0, LineHeight.Table.Get("pass_header_row_span_first_child_lh"), 1e-9, "정본 2764");
+            Assert.AreEqual(1.0, LineHeight.Table.Get("pass_header_row_span_last_child_lh"), 1e-9, "정본 2765");
+            AssertSpacing(free.Find("label").GetComponent<TextMeshProUGUI>(), "pass_header_row_span_first_child_lh", "[무료] 라벨");
+            AssertSpacing(prem.Find("label").GetComponent<TextMeshProUGUI>(), "pass_header_row_span_last_child_lh", "[프리미엄] 라벨");
+            Transform milestone = null;
+            foreach (Transform tr in pass.Root.GetComponentsInChildren<Transform>(true))
+                if (tr.name == "label" && tr.Find("text") != null) { milestone = tr.Find("text"); break; }
+            Assert.IsNotNull(milestone, "마일스톤 필 글(.pass-milestone-label)");
+            Assert.AreEqual(1.0, LineHeight.Table.Get("pass_milestone_label_lh"), 1e-9, "정본 2809");
+            AssertSpacing(milestone.GetComponent<TextMeshProUGUI>(), "pass_milestone_label_lh", "마일스톤 필 글");
+        }
+
+        /// <summary>T354 23회차 — 기술 노드 팝업의 버튼(정본 4612 `.tech-btns .btn { line-height: 1.2 }` · ui.js 5586).
+        /// 라벨은 공용 `DungeonPopups.Pill` 이 만들고 `TechPopups.BtnLh` 가 자식을 집어 건다 — [건너뛰기 ◆ N] 은 두 줄이라 눈에 보이는 자리다.</summary>
+        [UnityTest]
+        public IEnumerator 기술_노드_팝업의_버튼_라벨은_정본_1_2_배수로_선다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && UiRoot.Instance != null && UiRoot.Instance.TabBar != null); i++) yield return null;
+            TechPanel p = TechPanel.OpenTechTree();
+            yield return null;
+            Assert.IsNotNull(p, "기술 트리");
+            p.ShowBranch("power");
+            yield return null;
+            Assert.Greater(p.NodeIds.Count, 0, "노드");
+            TechPopups.OpenNode(p.NodeIds[0]);
+            yield return null;
+            Assert.IsTrue(TechPopups.IsNodeOpen, "노드 팝업");
+            Button b = TechPopups.ActionButton;
+            Assert.IsNotNull(b, "[연구 시작] 버튼");
+            Transform label = DungeonPopups.Root(b).Find("label");
+            Assert.IsNotNull(label, "버튼 라벨");
+            Assert.AreEqual(1.2, LineHeight.Table.Get("tech_btns_btn_lh"), 1e-9, "정본 4612");
+            AssertSpacing(label.GetComponent<TextMeshProUGUI>(), "tech_btns_btn_lh", "기술 버튼 라벨");
+            TechPopups.Close();
+        }
+
+        /// <summary>T354 23회차 — 제작 비교 팝업의 [장착] 두 줄 버튼(정본 3566 `#craft-modal .row .btn { line-height: 1.15 }`).
+        /// 전엔 `ForgeCraftPopup.TwoLine` 이 `lineSpacing = -20f` 를 박고 있었다(ForgeSheet 22회차와 같은 자리 · §1).</summary>
+        [UnityTest]
+        public IEnumerator 제작_비교_팝업의_장착_버튼_라벨은_정본_1_15_배수로_선다()
+        {
+            yield return Boot();
+            float t0 = 0f;
+            while (!(ForgeHost.Ready && MetaHost.Ready) && t0 < 20f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost");
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Hammers = 10; h.Pull();
+            h.OnCraft();
+            float t = 0f;
+            while (!h.Meta.Popups.IsOpen(ForgeCraftPopup.Name) && t < 8f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "제작 뒤 비교 팝업이 열린다");
+            Canvas.ForceUpdateCanvases();
+            Transform equip = Find(h.Meta.Popups.Find(ForgeCraftPopup.Name).Root, "equip");
+            Assert.IsNotNull(equip, "[장착] 버튼");
+            TextMeshProUGUI label = equip.GetComponentInChildren<TextMeshProUGUI>();
+            Assert.IsNotNull(label, "[장착] 라벨");
+            Assert.AreEqual(1.15, LineHeight.Table.Get("craft_modal_row_btn_lh"), 1e-9, "정본 3566");
+            AssertSpacing(label, "craft_modal_row_btn_lh", "[장착] 라벨");
+            Assert.AreNotEqual(-20f, label.lineSpacing, "박힌 -20f 가 아니다");
+            h.ResolveCraft("equip");
+            yield return null;
+        }
     }
 }

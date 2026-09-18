@@ -214,6 +214,17 @@ namespace Forge.Game.Ui
         }
 
         // T345 8회차 — 정본 4612 `.tech-btns .btn { border-radius: .6rem }` 이 공용 `.btn`(663 .55)을 덮는다: 이 줄의 버튼 넷만 표 `tech_btn_r_rem` 을 쓴다.
+        /// <summary>T354 23회차 — 정본 4612 `.tech-btns .btn { line-height: 1.2 }`(ui.js 5586 `.idet-btns.tech-btns` 의 [연구 시작]·[완료]·[건너뛰기 ◆ N]·[잠김]).
+        /// 라벨을 만드는 `DungeonPopups.Pill` 은 공용이라(던전은 5356 `.dgd-btn` 1.25 를 따로 쥔다) 부르는 쪽이 자식을 집어 건다(14회차 `DungeonDetailPopup` 과 같은 꼴).</summary>
+        static void BtnLh(Button b)
+        {
+            if (b == null) return;
+            Transform l = DungeonPopups.Root(b).Find("label");
+            if (l == null) return;
+            TextMeshProUGUI t = l.GetComponent<TextMeshProUGUI>();
+            if (t != null) LineHeight.Apply(t, "tech_btns_btn_lh");
+        }
+
         static void RenderAction(RectTransform card, NodeState s, string id, int lv, float pad, float inner, float y)
         {
             float subH = DungeonPopups.LineH(TextKind.Sub), btnH = DungeonPopups.RemL("tech_btn_h_rem"), gap = DungeonPopups.RemL("card_gap_rem");
@@ -232,7 +243,7 @@ namespace Forge.Game.Ui
                 //   같은 자리의 형제와 한 키를 쓰게 맞춘다. 그 키(`tech_btn_h_rem`)는 3회차에 **3.6**(정본 1750 그대로)으로 올렸다 — 이 키를 읽는 자리가 이 팝업 셋뿐이라 4612 의 3.4 가 아니라 1750 이 맞다.
                 float bw = inner * UiKit.L("tech_btn_w"), bh = DungeonPopups.RemL("tech_btn_h_rem");
                 ActionButton = DungeonPopups.Pill(card, "locked", "잠김", DungeonPopups.Skin.Gray, TextKind.Button, null, RadiusUi.Px("tech_btn_r_rem"), false);
-                UiKit.Place(DungeonPopups.Root(ActionButton), cx - bw * 0.5f, y, bw, bh);
+                BtnLh(ActionButton); UiKit.Place(DungeonPopups.Root(ActionButton), cx - bw * 0.5f, y, bw, bh);
                 List<string> need = Tree.LockedBy(id);
                 var names = new List<string>();
                 for (int i = 0; i < need.Count; i++) { TechNodeDef pd = Tree.Def(need[i]); names.Add((pd != null ? pd.Name : need[i]) + " " + Tree.Roman(Tree.TierOf(need[i])) + "단계"); }
@@ -268,13 +279,13 @@ namespace Forge.Game.Ui
                 {
                     float bw = inner * UiKit.L("tech_claim_w");
                     ActionButton = DungeonPopups.Pill(card, "claim", "완료 · Lv." + lv + " → Lv." + (lv + 1), DungeonPopups.Skin.Blue, TextKind.Button, OnClaim, RadiusUi.Px("tech_btn_r_rem"));
-                    UiKit.Place(DungeonPopups.Root(ActionButton), cx - bw * 0.5f, y, bw, btnH);
+                    BtnLh(ActionButton); UiKit.Place(DungeonPopups.Root(ActionButton), cx - bw * 0.5f, y, bw, btnH);
                 }
                 else
                 {
                     float bw = inner * UiKit.L("tech_claim_w");
                     ActionButton = DungeonPopups.Pill(card, "skip", "건너뛰기\n◆ " + NumFmt.Fmt(Tree.GemSkipCost(Host.Now())), DungeonPopups.Skin.Silver, TextKind.Button, OnGemSkip, RadiusUi.Px("tech_btn_r_rem"));
-                    UiKit.Place(DungeonPopups.Root(ActionButton), cx - bw * 0.5f, y, bw, btnH);
+                    BtnLh(ActionButton); UiKit.Place(DungeonPopups.Root(ActionButton), cx - bw * 0.5f, y, bw, btnH);
                 }
                 return;
             }
@@ -284,7 +295,7 @@ namespace Forge.Game.Ui
             bool other = Tree.ResearchingId() != null;
             bool disabled = other || Host.Potions < cost;
             ActionButton = DungeonPopups.Pill(card, "start", "연구 시작 · 물약 " + NumFmt.Fmt(cost) + " · " + NumFmt.FmtTime(time), disabled ? DungeonPopups.Skin.Gray : DungeonPopups.Skin.Blue, TextKind.Button, OnStart, RadiusUi.Px("tech_btn_r_rem"), !disabled);
-            UiKit.Place(DungeonPopups.Root(ActionButton), pad, y, inner, btnH);
+            BtnLh(ActionButton); UiKit.Place(DungeonPopups.Root(ActionButton), pad, y, inner, btnH);
             if (other)
             {
                 TextMeshProUGUI t = DungeonPopups.Bold(card, "hint", TextKind.Sub, "다른 연구가 진행 중입니다", "pp_muted");

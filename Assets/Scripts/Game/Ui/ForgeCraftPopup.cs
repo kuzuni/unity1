@@ -125,7 +125,8 @@ namespace Forge.Game.Ui
         static void TwoLine(Button b)
         {
             TextMeshProUGUI t = b.GetComponentInChildren<TextMeshProUGUI>();
-            if (t != null) { t.textWrappingMode = TextWrappingModes.Normal; t.lineSpacing = -20f; }
+            // T354 23회차 — 정본 3566 `#craft-modal .row .btn { line-height: 1.15 }` 를 표에서(전엔 -20f 가 코드에 박혀 있었다 · §1 · ForgeSheet 22회차와 같은 자리).
+            if (t != null) { t.textWrappingMode = TextWrappingModes.Normal; LineHeight.Apply(t, "craft_modal_row_btn_lh"); }
         }
 
         // ---- 판매 경고(원작 showSellConfirm — 파는 쪽이 남는 쪽보다 시대가 최신) ----

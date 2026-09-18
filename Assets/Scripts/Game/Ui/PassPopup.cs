@@ -76,6 +76,7 @@ namespace Forge.Game.Ui
             TextMeshProUGUI title = UiKit.Text(band, "title", TextKind.Title, "진행 패스", "stage_ink");
             title.fontStyle = FontStyles.Bold;
             PopupKit.Ring(title, "pass_card", "pp_line");   // 정본 .pass-card .11em(상속)
+            LineHeight.Apply(title, "pass_banner_lh");   // T354 23회차 — 정본 2711 `.pass-banner { line-height: 1.15 }`
 
             // 안내문 · 가격 페넌트(2등분 그리드)
             float y = padTop + bannerH + rem * 1.19f;
@@ -109,6 +110,7 @@ namespace Forge.Game.Ui
             TextMeshProUGUI pt = UiKit.Text(prt, "label", TextKind.Sub, h.Meta.Pass.PremiumPriceKr, "stage_ink");
             WrapUi.Apply(pt, "pass_price");   // T361 7회차 — 정본 white-space 표(WrapUi.json) 2744 `.pass-price { nowrap }`
             pt.fontStyle = FontStyles.Bold;
+            LineHeight.Apply(pt, "pass_price_lh");   // T354 23회차 — 정본 2743 `.pass-price { line-height: 1.3 }`
             // 정본 `padding: .92rem 1.16rem 1.23rem` — 아래가 .31rem 넓다(꼭짓점 몫). 그 차이만큼 글자를 올려 꼭짓점과 안 겹치게 한다.
             float penLift = (ClipShape.Num("pass_pennant", "pad_bottom_rem") - ClipShape.Num("pass_pennant", "pad_top_rem")) * rem;
             pt.rectTransform.offsetMin = new Vector2(pt.rectTransform.offsetMin.x, pt.rectTransform.offsetMin.y + penLift);
@@ -129,8 +131,10 @@ namespace Forge.Game.Ui
             prem.rectTransform.offsetMax = new Vector2(0f, -PopupKit.Line3);
             TextMeshProUGUI ft = UiKit.Text(free.transform, "label", TextKind.Sub, "무료", "stage_ink");
             ft.fontStyle = FontStyles.Bold;
+            LineHeight.Apply(ft, "pass_header_row_span_first_child_lh");   // T354 23회차 — 정본 2764 `.pass-header-row span:first-child { line-height: 1 }`
             TextMeshProUGUI prt2 = UiKit.Text(prem.transform, "label", TextKind.Sub, "프리미엄", "stage_ink");
             prt2.fontStyle = FontStyles.Bold;
+            LineHeight.Apply(prt2, "pass_header_row_span_last_child_lh");   // T354 23회차 — 정본 2765 `.pass-header-row span:last-child { line-height: 1 }`
 
             // 흰 트랙
             y += headerH;
@@ -175,6 +179,7 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI labT = UiKit.Text(lab, "text", TextKind.Sub, SaveIo.Defs.StageDifficultyLabel(c, 0) + " " + m.Stage, "stage_ink");
                 labT.fontStyle = FontStyles.Bold;
                 PopupKit.Ring(labT, "pass_card", "pp_line");
+                LineHeight.Apply(labT, "pass_milestone_label_lh");   // T354 23회차 — 정본 2809 `.pass-milestone-label { line-height: 1 }`
                 // 보상 칸 둘
                 float rowY = rem * 0.63f + labelH + rem * 1.03f;
                 float gap = rem * 1.6f;
