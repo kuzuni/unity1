@@ -1948,3 +1948,51 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - `-webkit-mask-image` **재검 — ✅ 7 · △ 8**(sr 마스크의 정본 줄 ↔ 표 키 짝은 다음 회차) · `border-width` **✅ 12 · ⛔ 2 → T469·T470** · `background-repeat` **✅ 11** · `box-sizing` **✅ 16(동치) · △ 1(T465)**.
 - **이 회차가 남긴 규칙** — 접두 쌍둥이(`-webkit-*`)는 본 이름의 회차를 먼저 찾는다 · `border-width` 는 `border:` 단축 **뒤에 오는 덮어쓰기**로 쓰이는 속성이라 단축만 읽는 자(`check_box_borders`)는 그것을 놓친다(T469 가 자도 같이 고친다).
 - **남은 축**(43 − 4 = **39**): `display` 310 · `margin-left` 32 · `margin-right` 15 · `align-self` 11 · `padding-right` 11 · `fill` 10 · `padding-top` 8 · `border-bottom` 7 · `font-family` 6 · `scrollbar-width` 4 · `stroke` 3 · `border-style` 3 · `grid-row` 3 · 그 밖 2 이하 26.
+
+
+# T33 49회차 — 남은 축 39 중 넷: `fill` 10 · `font-family` 6 · `border-bottom` 7 · `align-self` 11 (2026-09-18 · 워커 U · sess-0759-52255)
+
+> 세는 법은 47회차 그대로. 이번 넷은 «대조표에 이름이 안 오른 축» 이지만 셋은 **다른 이름의 자·회차가 이미 쥐고 있었다**(`border-bottom` → T365 `check_box_borders` · `fill` → 모루 연출 스프라이트(38회차·T2 갈래) · `font-family` → T53·T439). 그 사실을 적는 것이 이 회차의 몫이다.
+
+## `fill` 10 — 모루 타격 SVG 9 + 기술 트리 선 1
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 1429 `.af-ring` | `none`(테만 있는 링) | 링은 테 스프라이트(`AnvilFx.cs`·`CraftFxPoly.cs` · Core `AutoForgeFxSpec`) — 면이 없다 | ✅ |
+| 2~4·6~7·9 | 1449 `.af-bloom` · 1462 `.af-flash` · 1482 `.af-heat` · 1531·1532 `.af-star.sl/.sr` · 1611 `.af-smoke` | `url(#hmr-*)`(SVG 그라디언트) | 클론은 겹마다 **스프라이트를 굽는다** — 그라디언트 정지점은 그 굽기의 색 정지점(`AutoForgeFxSpec.cs` 가 겹 이름 `af-*` 를 8 줄에서 들고 색 리터럴 줄 4) · 정지점 **값**의 정본 대조는 38회차(모루 연출 `animation-delay` 전수)와 T2 표본 대조가 쥔다 — 이 축은 «채움이 그라디언트인가» 만 본다 | ✅ 6(구조) |
+| 5 | 1503 `.af-shadow` | `#2a0d04` | `AutoForgeFxSpec.cs:157` «`af-shadow` — 머리 밑 접지 그림자(`#2a0d04`)» | ✅ |
+| 8 | 1550 `.af-core` | `#ffffff` | 코어 겹 흰 판(같은 스펙) | ✅ |
+| 10 | 2176 `.tech-tree-links .tt-link` | `none`(선만) | `TechPanel.cs` 골격 선은 `UiKit.Line`(면 없음 · `LinkCount`) | ✅ |
+
+## `font-family` 6
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 39 `body` | `'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif`(시스템 폴백 목록) | 클론은 `NotoSansKR-Forge` **한 글꼴**(T53 · 주인 승인 · 웹폰트 금지라 정본도 기기마다 다른 글꼴이 뜬다) — «같은 글꼴» 은 애초에 정의가 없고 글자 폭·피치는 T28 화소 자 몫 | ✅(동치 · 해당 없음) |
+| 2 | 4648 `.rates-i` | `Georgia, serif`(+ italic 900) | `SkillRatesPopup.cs:119` T439 — 기울임 비트만 더했다 · **세리프는 못 낸다**(글꼴 하나 · §1 이 새 글꼴을 막는다) — 정본 세 조건 중 둘 | △(T439 가 적어 둔 한계 · 새 번호 없음) |
+| 3~6 | 4786 `.af-spinner` · 4799 `.af-dd-list button` · 5062 `.fi-info-btn` · 5221 `.info-dot` | `inherit`(버튼의 UA 글꼴을 부모 것으로) | 클론 글자는 전부 같은 글꼴이라 물려받을 것이 없다 | ✅(해당 없음) |
+
+## `border-bottom` 7 — **T365 `check_box_borders` 가 변 단위(`|bottom`)로 이미 쥔다**
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 52 `#topbar` | `ol1 solid #30363d` | 자 표 `'#topbar|bottom': Ui/Hud.cs@Build` · `Hud.cs:71` `UiKit.Line(bar, "line", "topbar_line")` · `catalog.json topbar_line #30363d` | ✅ |
+| 2 | 185 `#wave-pips::before` | `ol2 solid var(--pp-line)` | 자 표 `'#wave-pips::before|bottom': Ui/Hud.cs@RebuildPips`(위·아래 둘) | ✅ |
+| 3 | 1804 `.cmp-ribbon` | `none` | 리본에 밑줄이 없다(`none` 은 자가 «none 44» 로 센다) | ✅ |
+| 4 | 2095 `.tech-branch-head` | `ol3 solid var(--pp-line)` | 자 표 `'.tech-branch-head|bottom': Ui/TechPanel.cs@BranchCard` · `TechPanel.cs:186` `UiKit.Line(head, "line", "pp_line", line3)` | ✅ |
+| 5~6 | 2250 `.tb-row` · 2252 `.tb-row:last-child` | `ol2 solid #e2e0da` · `none` | 자 표 `'.tb-row|bottom': Ui/TechPopups.cs@OpenBonuses` · `'.tb-row:last-child|bottom'` «마지막 줄만 밑줄이 없다 · `if (i < lines.Count - 1)`» · `catalog.json tb_line #e2e0da` | ✅ |
+| 7 | 2760 `.pass-header-row` | `ol3 solid var(--pp-line)` | `PassPopup.cs:121` `UiKit.Panel(header, "line", "pp_line")` 이 탭 줄 뒤판(ol3 안쪽 두 탭이 `Line3` 인셋) — `.pass-header-row`·`.cmp-ribbon` 은 그 자의 표 줄로 못 찾았다(자가 «덮인 5»·«none 44» 로 접었을 수 있다 — 다음 회차가 자 출력으로 가른다) | ✅ |
+
+이 자의 지금 눈금: `✓ check_box_borders: 정본 테 선언 191 → 선택자×변 186(덮인 5) · 단 ol3 62 · ol2 43 · none 44 · ol1 20 · cellb 3 · ol4 1 · ol15`.
+
+## `align-self` 11
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1~11 | 306 `.offline-collect-btn` center · 2260 `.tech-tree-back` flex-start · 2490 `.league-reward-banner` center · 3273 `.chat-input-bar .btn.round` flex-end · 3913 `.dg-banner .btn` flex-end · 4011 `.passive-banner` center · 4029 `.sk-grid .grid-empty` center · 4129 `.equipped-row` center · 4646 `.rates-i` flex-end · 5102 `.fi-age-next` stretch · 5206 `.summon-bar .btn.x5-toggle` flex-end | 플렉스 교차축 정렬 | 클론은 플렉스가 없고 자식을 **명시 rect** 로 놓는다(`UiKit.Place/Anchor`) — 그 자리가 정본과 같은가는 축이 아니라 **화소**의 일이고 T28 `ui_score`(31 화면 · 카드 위끝 ±1.5%p)와 각 자리의 PlayMode 자가 본다(예: 5206 x5 토글의 아래 붙음은 `x5_bottom_h` 표 · 3273 채팅 ◀ 는 `BoxBorderSitesTests`) | ✅(해당 없음 · 자리는 화소 자) |
+
+## 이 회차의 판정
+
+- `fill` **✅ 10**(구조 · 정지점 값은 38회차·T2 몫) · `font-family` **✅ 5 · △ 1**(`.rates-i` 세리프 — T439 의 적어 둔 한계) · `border-bottom` **✅ 7**(T365 자가 변 단위로 쥔다 — 이름이 대조표에 안 올랐을 뿐) · `align-self` **✅ 11(해당 없음)**. 새 번호 0.
+- **이 회차가 남긴 규칙** — 축 이름이 대조표에 없어도 **그 축을 변 단위·겹 단위로 쥐는 자**(`check_box_borders` 의 `|bottom` · 모루 연출의 스프라이트 스펙)가 있으면 그것을 먼저 적는다. «안 센 축» 목록은 자 목록과 맞춰 본 뒤에야 «안 본 축» 이다.
+- **남은 축**(39 − 4 = **35**): `display` 310 · `margin-left` 32 · `margin-right` 15 · `padding-right` 11 · `padding-top` 8 · `scrollbar-width` 4 · `stroke` 3 · `border-style` 3 · `grid-row` 3 · 그 밖 2 이하 26. ⚠ `margin-*`·`padding-*` 은 T378(표값 × 상수)·T28(화소) 갈래가 값으로 이미 보고 있다 — 다음 회차는 «선언 수» 가 아니라 «그 갈래가 안 본 자리» 로 가른다.
