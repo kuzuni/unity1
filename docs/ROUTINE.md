@@ -4342,6 +4342,7 @@
 - 고침: ⓐ `AscendPopup.cs` **103** 의 `UiKit.OutlinePx(...)` 한 줄을 **걷는다**(8381 흰 엠보스 `UiKit.TextShadow(title, "paper_emboss")` 는 **그대로 둔다** — 그것은 `.modal-card h3` 라 옳게 걸린다) ⓑ **183** 의 글자 색을 `pp_ink` → **흰색**(정본 3848 `color: #fff` · 표를 쓴다면 `white`)으로 ⓒ `tools/check_keyline.py` **63~67** 의 짝을 `Ui/AscendPopup.cs#title` → **`Ui/AscendPopup.cs#focus-title`** 처럼 **한 자리만 가리키게** 하고(그러려면 183 의 노드 이름을 `focus-title` 로 바꾼다) 자가 «이 파일에 그 이름이 **몇 개**인가» 를 세게 한다 — 이름이 겹치면 통과시키지 말 것 ⓓ PlayMode 자: 승천 카드 제목에 **아웃라인이 없고**(엠보스는 있다) `.asc-focus-title` 에는 **아웃라인이 있고 색이 흰색**이다.
 - 판정(다음 런 · `ascend`): ⓐ 원작 대비 «승» 글자 상자 **3.4%W ±0.25 · 1.93%H ±0.15**(지금 4.07 / 2.19) ⓑ 카드 상자·줄 넷·닫기 버튼 **불변**(위 ⚑ 의 일곱 수가 ±0.5%p 안에 그대로) ⓒ 자 넷 초록.
 - 범위: `Assets/Scripts/Game/Ui/AscendPopup.cs` · `tools/check_keyline.py` · `Assets/Tests/PlayMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 **1회차 선점 2026-09-18 20:4x 워커 O(sess-2140-18689)** — `AscendPopup.cs`·`check_keyline.py`·`AscendTitleTests.cs` 는 산 lock(T28·T331·T415) 범위 밖(T464 에서 내가 만진 파일). 등재문대로 ⓐ 103 `OutlinePx` 걷기(엠보스는 둔다) ⓑ 183 흰 글자 ⓒ 183 노드 이름 `focus-title` + 짝표 `#focus-title` + 자가 같은 이름을 센다 ⓓ PlayMode 자 — **한 커밋**.
 
 ### T477 ✅ — **기술 노드 상세 카드(`.item-detail[data-tech-node]`)가 CSS % 의 밑변을 다섯 자리에서 한꺼번에 틀리게 잡는다**: 카드 제 `padding` 은 **앱 폭**, 카드 안 자식의 `width`·`gap`·`margin` 은 **카드 콘텐츠 폭** 이 밑변인데 클론은 다섯 개 모두 **패딩 상자 폭(`cw`)** 에 곱한다 — 진행바가 **+3.8%p** 넓고 청동 원이 **+1.3%p** 크다 (UI · **T405(펫 업그레이드 `padding: 1.78%`)와 같은 병** · T28 141회차 등재 · 런 1205 실측)
 
