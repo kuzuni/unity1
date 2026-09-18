@@ -798,6 +798,21 @@ STALE_REF_NOTES = [
 # 자리를 **견줄 수 없는** 화면 — 원작 샷과 정본이 그 화면에서 서로 다른 물건을 그린다(T28 71·81회차 전수 실측).
 # «다음 볼 화면» 에서 **지우지 않고 맨 뒤로 밀며 꼬리표를 달아 둔다** — 지우면 진짜 결함이 생겨도 안 보이고,
 # 그대로 두면 달성률이 낮다는 이유로 회차마다 같은 자리를 다시 파게 된다(78·81회차가 실제로 그러였다).
+# ── «여기까지는 이미 재 봤다» (T28 131회차 · 워커 M) ────────────────────────────
+# «다음 볼 화면» 은 달성률만 보고 줄을 세우므로, **이미 상자를 다 재서 오차가 자 안에 든 화면**도
+# 계속 맨 앞에 선다. 그러면 워커마다 같은 상자를 다시 재고 «등재할 것이 없다» 로 끝난다.
+# 그래서 «무엇을 어디까지 쟀고 얼마가 남았나» 를 화면별로 한 줄 적는다 — **뒤로 미는 것이 아니다**
+# (`STALE_SCREENS` 와 다르다). 새로 재서 다른 수가 나오면 그 줄을 고치면 된다.
+MEASURED_NOTES = {
+    u"main": u"장비 시트 상자는 다 쟀다(T28 131회차 · 런 1171): 패널 위끝 55.47 ↔ 55.52 · 칸 폭 13.43 ↔ 13.33%W · "
+             u"칸 높이 7.78 ↔ 7.40 · 줄 틈 0.90 ↔ 1.15(**클론이 정본 `.6rem` 그대로**고 원작이 더 좁다) · 피치 8.68 ↔ 8.54 — "
+             u"**남은 것은 다 0.4%H 아래**다. 이 화면 점수의 대부분은 **3D 세계 밴드**(위 «원작 샷이 다른 자리» 첫 항목)라 T35 전엔 안 움직인다",
+    u"gear-detail": u"카드 상자는 T471 로 닫혔다(T28 130·131회차 · 런 1171): 위끝 59.84 ↔ 59.69 · 높이 17.65 ↔ 17.60 · "
+                   u"아래끝 22.40 ↔ 22.60 · 리본 삐짐 0.00 ↔ −0.37%W. 카드 **안**도 물건 덩어리 64.8~74.1 ↔ 64.4~74.1 로 **+0.4%H 안**이다 — "
+                   u"남은 점수 차는 **뒤 3D 세계와 딤**이다",
+}
+
+
 STALE_SCREENS = {
     u"forge-list": u"원작 7행 ↔ 클론 8행(진행도 차) · 정본이 직접 «판정 대상이 아니다» 라 적었다(T28 70·71회차)",
     u"pet-upgrade": u"원작 «선택 알 + 밑줄 5칸» ↔ 정본 «등급별 칩 줄» · 원작 22.6~33.2%H 가 통째로 다른 물건이다(T28 81회차)",
@@ -1992,6 +2007,8 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             if sp and (sp[1] - sp[0]) >= JITTER_WARN:
                 tag += (u"  · ⚠ 이 점수는 **자가 흔든다** — 화소를 ±1 만 밀면 %.1f~%.1f 로 움직인다"
                         u"(T437 ✂ · `--jitter`). 순서를 믿기 전에 원작 PNG 를 봐라" % sp)
+            if n in MEASURED_NOTES:
+                tag += u"  · ⓘ %s" % MEASURED_NOTES[n]
             hit = rows_hit(shots_dir, n)
             if hit and hit[1] and float(hit[0]) / hit[1] >= ROWS_OK_MIN:
                 tag += (u"  · ⓘ 구분선 줄은 **%d/%d 맞다** — «나란히 밀린 줄» 갈래가 아니니 "
@@ -2192,6 +2209,11 @@ def self_test():
     chk(load_baseline(os.path.join(REPO, "tools", ".없는파일.json")) == {},
         u"기준선 파일이 없으면 빈 것으로 조용히 지나간다(첫 회차)")
 
+    chk(all(isinstance(k, type(u"")) and len(v) > 40 and (u"%H" in v or u"%W" in v)
+            for k, v in MEASURED_NOTES.items()) and set(MEASURED_NOTES) & set(dict(pairs())),
+        u"«여기까지 재 봤다» 표(MEASURED_NOTES) %d칸이 다 «잰 수» 를 들고 있고 짝 표에 있는 화면이다" % len(MEASURED_NOTES))
+    chk(not (set(MEASURED_NOTES) & set(STALE_SCREENS)),
+        u"MEASURED_NOTES 와 STALE_SCREENS 가 안 겹친다(하나는 «재 봤다» · 하나는 «뒤로 민다» — 뜻이 다르다)")
     chk(len(STALE_REF_NOTES) >= 2
         and all(len(t) == 2 and t[0] and u"정본" in t[1] for t in STALE_REF_NOTES),
         u"«원작 샷이 지금 정본과 다른 자리» 주석 %d개가 (한 줄, 자세히) 꼴로 살아 있다" % len(STALE_REF_NOTES))
