@@ -362,7 +362,6 @@ TABLE_INK = {
     #   (같은 자리 셋을 html·body 두 선택자에 다 적는다 — 둘은 같은 선언이다.)
     # ── T396 20회차 — 한 글 안 부분 색의 남은 둘: 조각을 떼지 않고 한 TMP 의 그 줄만 `LineInk`(<color> 태그 · check_richtext ALLOW)로 — 줄 수·줄높이 자와 check_br_lines 행 불변.
     '.tn-skip small': ['Ui/TechPopups.cs|res:PinnedColorUi:tn_skip_gem_ink'],       # 4613 #c62828 — [건너뛰기] 아랫줄 «◆ N»
-    '.asc-wipe-warn': ['Ui/AscendPopup.cs|res:PinnedColorUi:asc_wipe_warn_ink'],   # 5637 #ff6b5e — 효과 글줄 가운데(소멸 경고)
     'html': ['Ui/Hud.cs#nickname|catalog:ink', 'Ui/Popups.cs#msg-row|catalog:ink', 'Ui/LootFeed.cs#row|catalog:ink'],
     'body': ['Ui/Hud.cs#nickname|catalog:ink', 'Ui/Popups.cs#msg-row|catalog:ink', 'Ui/LootFeed.cs#row|catalog:ink'],
 }
@@ -373,6 +372,8 @@ KNOWN_INK = {
     #   `.tn-skip small` 은 `TechPopups.BtnLh` + LineHeightTests «기술_노드_팝업의_버튼_라벨…» 이 Pill 의 "label" 한 TMP 를 잡고,
     #   `.asc-wipe-warn` 은 LineHeightTests·BrLinesTests·OpacityTests 셋이 "eff" 한 TMP(세 줄)를 잰다 — 줄을 가르려면 그 자들을 같이 옮겨야 한다(T354 반납 뒤).
     # T396 15회차 — 자리 자체가 클론에 아직 없다(입력칸이 서는 회차 뒤 · T169 디버그 판 갈래).
+    # T396 20회차 — `.asc-wipe-warn` 은 `LineInk`(<color> 태그 · richText 켜기)로 걸었더니 런 1180 에서 TMP 가 그 세 줄 글을 **네 줄**로 접었다(같은 글에 태그만 없으면 세 줄 · BrLinesTests 빨강) — 되돌리고 KNOWN 에 둔다. 표 키 `asc_wipe_warn_ink`(#ff6b5e)는 만들어 뒀다.
+    '.asc-wipe-warn': '승천 안내 세 줄 글 안의 가운데 줄 <span>(AscendPopup.cs eff 한 TMP) — 5637 #ff6b5e · <color> 태그로 걸면 TMP 리치 파서가 네 줄로 접는다(런 1180) · 조각 분리(BrLines·LineHeight 자 셋 같이)나 파서 원인 규명이 한 회차',
     '#panel-debug input[type=number]': '디버그 판의 장·스테이지 숫자 입력칸(ui.js 5983 dbg-chapter · 5985 dbg-stage) — 클론 DebugPanel.cs 에 InputField 가 0 이다 · 입력칸이 서는 회차에 잉크도 같이(677 #eceff1)',
 }
 

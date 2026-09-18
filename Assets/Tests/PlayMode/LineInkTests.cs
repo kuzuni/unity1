@@ -52,30 +52,7 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(3, w.Split('\n').Length, "줄 수는 그대로");
         }
 
-        [UnityTest]
-        public IEnumerator 승천_효과_글줄은_가운데_줄만_경고색이고_줄_수와_줄높이는_그대로다()
-        {
-            yield return Boot();
-            AscendPopup.Open("forge");
-            yield return null;
-            Transform eff = Find(AscendPopup.Root, "eff");
-            Assert.IsNotNull(eff, "효과 글줄(eff)");
-            TextMeshProUGUI t = eff.GetComponent<TextMeshProUGUI>();
-            Assert.IsTrue(LineInk.Has(t), "가운데 줄에 색 태그가 있다: " + t.text.Replace("\n", "⏎"));
-            Assert.IsTrue(t.richText, "태그가 먹히려면 richText");
-            string[] lines = t.text.Split('\n');
-            Assert.AreEqual(3, lines.Length, "정본 5848·5849 세 줄 그대로");
-            Color warn = PinnedColorUi.C("asc_wipe_warn_ink");
-            Assert.AreEqual("#FF6B5E", "#" + ColorUtility.ToHtmlStringRGB(warn), "정본 5637 #ff6b5e");
-            Assert.IsTrue(lines[1].StartsWith("<color=#FF6B5E>") && lines[1].EndsWith("</color>"), "가운데 줄(소멸 경고)만 감싼다: " + lines[1]);
-            Assert.IsFalse(lines[0].Contains("<color") || lines[2].Contains("<color"), "첫·셋째 줄은 그대로");
-            Canvas.ForceUpdateCanvases();
-            t.ForceMeshUpdate();
-            Assert.AreEqual(3, t.textInfo.lineCount, "그려진 줄 수도 셋(태그는 줄을 안 만든다)");
-            Assert.AreEqual(LineInk.Strip(t.text).Length, t.textInfo.characterCount + 2, "태그는 글자로 안 센다(줄바꿈 둘은 안 그려진다)");
-            AscendPopup.Close();
-            yield return null;
-        }
+        // T396 20회차 — 승천 효과 글줄 칸은 뺐다: <color> 태그로 richText 를 켜자 런 1180 에서 TMP 가 세 줄 글을 네 줄로 접었다(BrLinesTests 빨강) → 자리를 되돌리고 KNOWN 으로.
 
         [UnityTest]
         public IEnumerator 기술_노드_건너뛰기_버튼은_아랫줄_젬_값만_빨강이고_줄높이_자는_그대로다()

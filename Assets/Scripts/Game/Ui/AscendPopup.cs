@@ -197,7 +197,8 @@ namespace Forge.Game.Ui
                 UiKit.Place(fe.rectTransform, focusPad, fy, inner - focusPad * 2f, subH * 4f);
                 OpacityUi.Apply(fe.gameObject, "asc_focus_eff");   // T359 — 정본 5635 .asc-focus-eff { opacity: .9 }
                 LineHeight.Apply(fe, "asc_focus_eff_lh");   // T354 — 정본 5635 .asc-focus-eff { line-height: 1.5 }
-                LineInk.Apply(fe, 1, "asc_wipe_warn_ink");   // T396 20회차 — 정본 5637 `.asc-wipe-warn { color: #ff6b5e }`: 가운데 줄(소멸 경고)만 · 한 TMP 그대로(줄 수·줄높이 자 불변)
+                // T396 20회차 — 정본 5637 `.asc-wipe-warn { color: #ff6b5e }`(가운데 줄만)은 **아직 안 건다**: `LineInk.Apply(fe, 1, "asc_wipe_warn_ink")` 로 richText 를 켜자
+                //   런 1180 에서 TMP 가 이 세 줄 글을 **네 줄**로 접었다(BrLinesTests «세 줄» 빨강 · 태그 없는 같은 글은 세 줄) — 원인(리치 파서와 한글 줄바꿈)은 다음 회차 · 자리는 KNOWN.
                 y += focusH - DungeonPopups.RemL("asc_focus_mt_rem");
 
                 y += DungeonPopups.RemL("asc_focus_mt_rem");
