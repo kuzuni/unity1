@@ -64,7 +64,7 @@ TABLE = {
         'Ui/SkillPanel.cs#sheet-title', 'Ui/PetPanel.cs#sheet-title', 'Ui/MountSheet.cs#sheet-title',
         'Ui/ForgeInfoPopup.cs#title', 'Ui/ForgeAutoPopup.cs#af-title', 'Ui/TechPanel.cs#title',
         'Ui/ForgeCraftPopup.cs#title', 'Ui/SkillRatesPopup.cs#rates-h3', 'Ui/OfflinePopup.cs#title',
-        'Ui/ProfilePopup.cs#title', 'Ui/AscendPopup.cs#title'],
+        'Ui/ProfilePopup.cs#title', 'Ui/AscendPopup.cs#focus-title'],   # T478 — 승천 카드 제목(무클래스 h3)은 이 묶음 밖 · `.asc-focus-title` 만 든다
     '.summon-sub .sheet-head .cur-pill': ['Ui/PetSkillKit.cs@Pill'],
     '#panel-skills .sk-grid .sk-lv': ['Ui/SkillPanel.cs#sk-lv'],
     '.mount-pill-row .cur-pill.winder': ['Ui/PetSkillKit.cs@Pill'],
@@ -102,6 +102,13 @@ TABLE = {
 # ── 임자가 정해진 빈자리(자리 → 이유) — T109 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
     # T109 9회차 — 7회차가 공용 Popups.cs@Btn 에 키라인(면 키 표 · 2px)을 걸자 이 셋이 «초록» 으로 보였다. 셋은 제 규칙이 따로라 실물 자리로 옮기고 임자를 적는다.
+    # T478 — 자가 «같은 이름은 전부 키라인» 을 세기 시작하자 드러난 겹친 이름 넷. 키라인이 빠진 게 아니라 **다른 규칙의 글자가 같은 이름**이다(눈으로 확인 · 2026-09-18):
+    #   리그 리본(220 · 키라인 ✓) ↔ 시즌 타이머 82 · 점수 169 · 티켓 370 / 등급 순위(275 ✓) ↔ «수집까지» 241 / 채팅 말풍선(278 ✓) ↔ 입력창 104 / 프로필·설정 제목(85·269 ✓) ↔ 이름 바꾸기 안내 233.
+    #   임자 = T479(그 파일을 여는 절이 이름을 갈라 짝표가 한 자리만 가리키게 한다 · 남의 산 lock 범위라 T478 은 안 연다). 가르면 이 줄을 지운다.
+    'Ui/LeagueSheet.cs#text': 'T479 — «text» 넷 중 리본 220 만 키라인 자리 · 이름을 갈라라',
+    'Ui/LeagueSheet.cs#label': 'T479 — «label» 둘 중 등급 순위 275 만 키라인 자리 · 이름을 갈라라',
+    'Ui/ChatScreen.cs#text': 'T479 — «text» 둘 중 말풍선 278 만 키라인 자리 · 이름을 갈라라',
+    'Ui/ProfilePopup.cs#title': 'T479 — «title» 셋 중 85·269 가 키라인 자리 · 233 은 이름 바꾸기 안내 · 이름을 갈라라',
 }
 
 KEYLINE_CALL = re.compile(r'\b(?:UiKit\.Outline|UiKit\.OutlinePx|PetSkillKit\.Stroked|PopupKit\.Ring|Stroked|Ring)\s*\(')
@@ -197,34 +204,49 @@ def check_target(game_dir, target):
         if body is None:
             return 'absent', '메서드 없음 ' + tail + '('
         return ('ok' if KEYLINE_CALL.search(body) else 'missing'), '메서드 ' + tail + '( 본문'
-    # '#name' — 그 이름으로 만든 글자
-    found = False
+    # '#name' — 그 이름으로 만든 글자. T478 — 같은 파일에 그 이름이 **여럿**이면 자리마다 따로 보고 **전부** 키라인이어야 초록이다:
+    #   전엔 첫 초록 자리에서 돌아와, 승천 팝업의 «title» 둘(카드 제목 · .asc-focus-title) 중 키라인이 틀린 쪽이 덤으로 지나갔다.
+    #   «자리» 는 문장(`;`) 단위다 — 삼항 `on ? Stroked(…"str") : Text(…"str")` 처럼 한 문장 안의 두 갈래는 한 자리(어느 갈래든 키라인이면 초록).
+    by_stmt = {}   # 문장 시작 → [(초록?, 설명)]
     for m in CREATE_CALL.finditer(src):
         if m.group(2) != tail:
             continue
-        found = True
-        if m.group(1) == 'Stroked':
-            return 'ok', '"%s" 를 Stroked 로 만든다' % tail
-        if m.group(1) == 'Btn':
-            # T109 9회차 — 공용 PopupKit.Btn 은 제 안에서 라벨을 세우고 표(btn_face)대로 키라인을 건다. 제 규칙이 따로인 버튼은
-            # 12번째 인자 keylineKey 로 폭표 키를 넘겨야 «그 자리에 그 규칙» 이다 — 인자가 없거나 "" 면 이 자리의 규칙은 안 걸린 것.
-            args = call_args(src, src.find('(', m.start()))
-            if len(args) >= BTN_KEY_ARG and re.match(r'^"[a-z][a-z0-9_]*"$', args[BTN_KEY_ARG - 1]):
-                return 'ok', '"%s" → Btn(… keylineKey %s)' % (tail, args[BTN_KEY_ARG - 1])
-            return 'missing', '"%s" 는 공용 Btn 호출인데 keylineKey(12번째 인자)가 없다 — 면 키 표의 폭만 걸린다' % tail
-        head = src[max(0, m.start() - 160):m.start()].replace('\n', ' ')
-        a = ASSIGN_TAIL.search(head)
-        if a:
-            var = a.group(1)
-            if re.search(r'\b(?:Outline|OutlinePx|Ring)\s*\(\s*' + re.escape(var) + r'\s*[,)]', src):  # labels[i] 처럼 ] 로 끝나는 변수도
-                return 'ok', '"%s" → %s 에 키라인 호출' % (tail, var)
-            # `IconTextRow` 는 «행» 을 돌려주고 글자는 그 안의 조각들이다 — `RowTexts(행)` 로 돌며 조각마다 거는 갈래(T109 ⓑ · PlayerInfoPopup #cp).
-            rt = re.search(r'RowTexts\s*\(\s*' + re.escape(var) + r'\s*\)', src)
-            if rt and re.search(r'\b(?:Outline|OutlinePx|Ring)\s*\(', src[rt.end():rt.end() + 400]):
-                return 'ok', '"%s" → RowTexts(%s) 조각마다 키라인 호출' % (tail, var)
-    if not found:
+        by_stmt.setdefault(src.rfind(';', 0, m.start()), []).append(_site_state(src, m, tail))
+    sites = [next((st for st in branches if st[0]), branches[0]) for branches in by_stmt.values()]
+    if not sites:
         return 'absent', '"%s" 이름으로 만드는 글자가 없다' % tail
-    return 'missing', '"%s" 글자에 Outline/OutlinePx/Ring 이 안 걸린다' % tail
+    bad = [why for ok, why in sites if not ok]
+    if not bad:
+        why = sites[0][1] if len(sites) == 1 else '"%s" 자리 %d개 전부 키라인' % (tail, len(sites))
+        return 'ok', why
+    if len(sites) > 1:
+        return 'missing', '"%s" 이름의 글자가 %d개인데 %d개는 키라인이 없다(%s) — 한 이름이 한 자리만 가리키게 이름을 갈라라' % (tail, len(sites), len(bad), ' · '.join(bad))
+    return 'missing', bad[0]
+
+
+def _site_state(src, m, tail):
+    """(초록?, 설명) — `.Text/.Label/.Bold/.Stroked/.IconTextRow/.Btn(parent, "tail", …)` 한 자리에 키라인이 걸렸는가."""
+    if m.group(1) == 'Stroked':
+        return True, '"%s" 를 Stroked 로 만든다' % tail
+    if m.group(1) == 'Btn':
+        # T109 9회차 — 공용 PopupKit.Btn 은 제 안에서 라벨을 세우고 표(btn_face)대로 키라인을 건다. 제 규칙이 따로인 버튼은
+        # 12번째 인자 keylineKey 로 폭표 키를 넘겨야 «그 자리에 그 규칙» 이다 — 인자가 없거나 "" 면 이 자리의 규칙은 안 걸린 것.
+        args = call_args(src, src.find('(', m.start()))
+        if len(args) >= BTN_KEY_ARG and re.match(r'^"[a-z][a-z0-9_]*"$', args[BTN_KEY_ARG - 1]):
+            return True, '"%s" → Btn(… keylineKey %s)' % (tail, args[BTN_KEY_ARG - 1])
+        return False, '"%s" 는 공용 Btn 호출인데 keylineKey(12번째 인자)가 없다 — 면 키 표의 폭만 걸린다' % tail
+    head = src[max(0, m.start() - 160):m.start()].replace('\n', ' ')
+    a = ASSIGN_TAIL.search(head)
+    if a:
+        var = a.group(1)
+        if re.search(r'\b(?:Outline|OutlinePx|Ring)\s*\(\s*' + re.escape(var) + r'\s*[,)]', src):  # labels[i] 처럼 ] 로 끝나는 변수도
+            return True, '"%s" → %s 에 키라인 호출' % (tail, var)
+        # `IconTextRow` 는 «행» 을 돌려주고 글자는 그 안의 조각들이다 — `RowTexts(행)` 로 돌며 조각마다 거는 갈래(T109 ⓑ · PlayerInfoPopup #cp).
+        rt = re.search(r'RowTexts\s*\(\s*' + re.escape(var) + r'\s*\)', src)
+        if rt and re.search(r'\b(?:Outline|OutlinePx|Ring)\s*\(', src[rt.end():rt.end() + 400]):
+            return True, '"%s" → RowTexts(%s) 조각마다 키라인 호출' % (tail, var)
+    line = src[:m.start()].count('\n') + 1
+    return False, '"%s"(%d행) 글자에 Outline/OutlinePx/Ring 이 안 걸린다' % (tail, line)
 
 
 # ── 대조 ──────────────────────────────────────────────────────────────────────────────────
@@ -378,6 +400,18 @@ namespace X {
     expect('Btn 호출인데 keylineKey 없음 → 1', t, {'Ui/Sheet.cs#plain': '임자'}, 1)
     if call_args('f(a, "x, y", g(1, 2), [3, 4], h)', 1) != ['a', '"x, y"', 'g(1, 2)', '[3, 4]', 'h']:
         fails.append('call_args: %r' % call_args('f(a, "x, y", g(1, 2), [3, 4], h)', 1))
+    # 8c T478 — 같은 이름이 둘이면 둘 다 키라인이어야 초록: 하나만 걸린 «dup» 은 1 · 둘 다 걸면 0(전엔 첫 초록 자리에서 돌아와 덤으로 지나갔다)
+    dup = cs.replace('TextMeshProUGUI pl = UiKit.Text(p, "plain", TextKind.Sub, "x", "ink");',
+                     'TextMeshProUGUI pl = UiKit.Text(p, "plain", TextKind.Sub, "x", "ink");\n'
+                     '            TextMeshProUGUI d1 = UiKit.Text(p, "dup", TextKind.Sub, "x", "ink"); PopupKit.Ring(d1, "pp_line", 0.2f);\n'
+                     '            TextMeshProUGUI d2 = UiKit.Text(p, "dup", TextKind.Sub, "x", "ink");')
+    t = dict(base); t['.e-file'] = ['Ui/Sheet.cs#dup']
+    lines = expect('같은 이름 둘 중 하나만 키라인 → 1', t, {'Ui/Sheet.cs#plain': '임자'}, 1, cs_text=dup)
+    if not any('이름을 갈라라' in l for l in lines):
+        fails.append('같은 이름 둘: «이름을 갈라라» 가 안 나온다')
+    expect('같은 이름 둘 다 키라인 → 0', t, {'Ui/Sheet.cs#plain': '임자'}, 0,
+           cs_text=dup.replace('TextMeshProUGUI d2 = UiKit.Text(p, "dup", TextKind.Sub, "x", "ink");',
+                               'TextMeshProUGUI d2 = UiKit.Text(p, "dup", TextKind.Sub, "x", "ink"); UiKit.OutlinePx(d2, "pp_line", 2f);'))
     # 9 KNOWN 인데 이제 있다 → 알리기만(rc 0)
     lines = expect('KNOWN 해소 알림', base, {'Ui/Sheet.cs#plain': '임자', 'Ui/Sheet.cs#name': '옛 임자'}, 0)
     if not any('KNOWN 인데 이제 키라인이 있다' in l for l in lines):
@@ -394,7 +428,7 @@ namespace X {
         for f in fails:
             print('  - ' + f)
         return 1
-    print('✓ check_keyline --self-test 15칸 통과')
+    print('✓ check_keyline --self-test 17칸 통과')
     return 0
 
 

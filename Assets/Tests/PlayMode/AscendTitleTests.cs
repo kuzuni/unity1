@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Forge.Core.Save;
+using Forge.Core.Ui;
 using Forge.Game;
 using Forge.Game.Ui;
 
@@ -300,6 +301,63 @@ namespace Forge.Tests.PlayMode
                 "«카드 + ✕» 덩어리의 가운데가 모달 가운데다 · 어긋남 " + ((lump - ro.center.y) / rc.height * 100f).ToString("0.00") + "%카드높이");
             Assert.AreEqual(ro.center.y + overhang * 0.5f, rc.center.y, tol,
                 "카드 가운데는 삐져나온 몫의 절반만큼 위다(종전 클론은 카드 자체가 가운데였다)");
+            AscendPopup.Close();
+            yield return null;
+        }
+
+        /// <summary>T478 — 승천 카드 제목은 정본 ui.js 5864 의 **클래스 없는 h3** 라 3846 «제목 키라인» 묶음(h2.sheet-title … .asc-focus-title 열하나)에 안 든다.
+        /// 걸리는 규칙은 8381 `.modal-card h3` 흰 엠보스 하나뿐 — 키라인(OUTLINE) 은 없고 언더레이(UNDERLAY) 는 있다(종전엔 .11em 키라인이 «승» 을 가로 +25% 세로 +20% 로 두껍게 했다).</summary>
+        [UnityTest]
+        public IEnumerator 승천_카드_제목은_키라인이_없고_흰_엠보스만_있다()
+        {
+            yield return Boot();
+            AscendPopup.Open();
+            yield return null;
+            Transform root = AscendPopup.Root;
+            Assert.IsNotNull(root, "승천 팝업");
+            TextMeshProUGUI big = Find(root, "title").GetComponent<TextMeshProUGUI>();
+            Assert.IsNotNull(big, "카드 제목 «승천»");
+            Material m = big.fontMaterial;
+            Assert.IsFalse(m.IsKeywordEnabled("OUTLINE_ON"), "정본 3846 묶음 밖 — 카드 제목에 키라인이 없다");
+            Assert.AreEqual(0f, m.HasProperty("_OutlineWidth") ? m.GetFloat("_OutlineWidth") : 0f, 1e-4f, "_OutlineWidth 0");
+            Assert.IsTrue(m.IsKeywordEnabled("UNDERLAY_ON"), "정본 8381 `.modal-card h3` 흰 엠보스는 그대로");
+            Color ink = UiKit.C("pp_ink");
+            Assert.AreEqual(ink.r, big.color.r, 0.01f); Assert.AreEqual(ink.g, big.color.g, 0.01f); Assert.AreEqual(ink.b, big.color.b, 0.01f);
+            AscendPopup.Close();
+            yield return null;
+        }
+
+        /// <summary>T478 ⓑⓒ — 라인 확인 패널 제목 `.asc-focus-title`(정본 3846~3849)은 **흰 글자 + .11em 검은 키라인**이다(종전엔 검은 글자에 검은 테).
+        /// 노드 이름은 카드 제목 «title» 과 갈라 «focus-title» — `tools/check_keyline.py` 짝표가 이 자리 하나만 가리킨다.</summary>
+        [UnityTest]
+        public IEnumerator 라인_확인_패널_제목은_흰_글자에_검은_키라인이고_이름이_카드_제목과_갈린다()
+        {
+            yield return Boot();
+            AscendPopup.Open("forge");
+            yield return null;
+            Transform root = AscendPopup.Root;
+            Assert.IsNotNull(root, "승천 팝업");
+            Transform focus = Find(root, "focus");
+            Assert.IsNotNull(focus, "라인 확인 패널(.asc-focus)");
+            Assert.IsNull(focus.Find("title"), "패널 안에 «title» 이름은 없다 — 카드 제목과 갈랐다");
+            Transform ftT = focus.Find("focus-title");
+            Assert.IsNotNull(ftT, "패널 제목 «focus-title»");
+            TextMeshProUGUI ft = ftT.GetComponent<TextMeshProUGUI>();
+            StringAssert.EndsWith("승천", ft.text.Trim(), "«<라인> 승천»");
+            Color white = UiKit.C("white");
+            Assert.AreEqual(white.r, ft.color.r, 0.01f, "정본 3848 color: #fff");
+            Assert.AreEqual(white.g, ft.color.g, 0.01f); Assert.AreEqual(white.b, ft.color.b, 0.01f);
+            Material m = ft.fontMaterial;
+            Assert.IsTrue(m.IsKeywordEnabled("OUTLINE_ON"), ".asc-focus-title 키라인 OUTLINE_ON");
+            float g = m.GetFloat("_GradientScale"), r = m.GetFloat("_ScaleRatioA"), ps = ft.font.faceInfo.pointSize;
+            OutlineSdf want = OutlineSdf.FromStroke(KeylineUi.Em("sheet_title", ft.fontSize), ft.fontSize, g, r, ps);
+            Assert.Greater(want.Width01, 0f, "표 환산 폭");
+            Assert.AreEqual((double)want.Width01, (double)m.GetFloat("_OutlineWidth"), 1e-3, "_OutlineWidth = FromStroke(sheet_title .11em × 글자 " + ft.fontSize + ")");
+            Color line = UiKit.C("pp_line"), got = m.GetColor("_OutlineColor");
+            Assert.AreEqual(line.r, got.r, 0.02f, "테 색 = pp_line"); Assert.AreEqual(line.g, got.g, 0.02f); Assert.AreEqual(line.b, got.b, 0.02f);
+            // 카드 제목과 갈린다: 같은 팝업의 «title» 은 키라인이 없다
+            TextMeshProUGUI big = Find(root, "title").GetComponent<TextMeshProUGUI>();
+            Assert.IsFalse(big.fontMaterial.IsKeywordEnabled("OUTLINE_ON"), "카드 제목엔 키라인이 없다(정본이 둘을 갈랐다)");
             AscendPopup.Close();
             yield return null;
         }

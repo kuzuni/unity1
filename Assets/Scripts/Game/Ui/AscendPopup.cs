@@ -100,8 +100,9 @@ namespace Forge.Game.Ui
             var starLe = star.gameObject.AddComponent<LayoutElement>();
             starLe.preferredWidth = starLe.preferredHeight = sd; starLe.flexibleWidth = 0f;
             TextMeshProUGUI title = DungeonPopups.Bold(titleRow, "title", TextKind.Button, " 승천", "pp_ink", TextAlignmentOptions.Left);
-            UiKit.OutlinePx(title, "pp_line", KeylineUi.Em("sheet_title", title.fontSize));   // 정본 3846 묶음(h3.sheet-title …) { .11em var(--pp-line) }
-            UiKit.TextShadow(title, "paper_emboss");   // T333 2회차 — 정본 8381 한 벌 «밝은 종이 위 글자는 흰 엠보스»(0 1px 0 rgba(255,255,255,.92))
+            // T478 — 이 제목은 정본 ui.js 5864 의 **클래스 없는 `<h3>`** 라 3846 키라인 묶음(h2.sheet-title … .asc-focus-title 열하나)에 **안 든다**(같은 팝업의 `.asc-focus-title` 만 든다 · 정본이 둘을 일부러 갈랐다).
+            //   종전엔 `OutlinePx(pp_line · sheet_title .11em)` 을 걸어 «승» 글자 상자가 원작보다 가로 +25% · 세로 +20% 였다(런 1209 · T28 142회차). 걸리는 규칙은 아래 8381 흰 엠보스 하나뿐.
+            UiKit.TextShadow(title, "paper_emboss");   // T333 2회차 — 정본 8381 `.modal-card h3` «밝은 종이 위 글자는 흰 엠보스»(0 1px 0 rgba(255,255,255,.92))
             float smallPx = title.fontSize * AscendUi.TitleSmallRatio();   // 표 AscendUi.json — .78 / 1.15
             TextMeshProUGUI small = UiKit.Text(titleRow, "title-small", TextKind.Micro, " 보유 별 합계 ", "muted2", TextAlignmentOptions.Left);
             small.fontSize = smallPx;
@@ -179,8 +180,10 @@ namespace Forge.Game.Ui
                 fy += fi;
                 string kr = asc.Table.LineKr[line];
                 int next = asc.Count(st, line) + 1;
-                TextMeshProUGUI ft = DungeonPopups.Bold(focus, "title", TextKind.Body, kr + " 승천", "pp_ink");
-                UiKit.OutlinePx(ft, "pp_line", KeylineUi.Em("sheet_title", ft.fontSize));   // 정본 .asc-focus-title { .11em var(--pp-line) }
+                // T478 — 정본 3846~3849 `.asc-focus-title { color: #fff; -webkit-text-stroke: .11em var(--pp-line) }`: **흰 글자 + 검은 테**(이 게임의 «제목» 언어)다. 종전엔 `pp_ink`
+                //   로 찍어 검은 글자에 검은 테였다(테가 글자를 먹는다). 노드 이름은 카드 제목 «title» 과 갈라 `focus-title` — `tools/check_keyline.py` 짝표가 이 자리 하나만 가리키게.
+                TextMeshProUGUI ft = DungeonPopups.Bold(focus, "focus-title", TextKind.Body, kr + " 승천", "white");
+                UiKit.OutlinePx(ft, "pp_line", KeylineUi.Em("sheet_title", ft.fontSize));   // 정본 3846 묶음 `.asc-focus-title { .11em var(--pp-line) }`
                 UiKit.Place(ft.rectTransform, 0f, fy, inner, DungeonPopups.LineH(TextKind.Body));
                 fy += DungeonPopups.LineH(TextKind.Body);
                 TextMeshProUGUI fc = UiKit.Text(focus, "cnt", TextKind.Sub, "현재 승천 " + asc.Count(st, line) + "회 → " + next + "회", "pp_ink");
