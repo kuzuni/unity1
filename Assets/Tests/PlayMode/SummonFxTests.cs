@@ -154,7 +154,9 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(-SummonFxStyle.L("reflect_sy"), rf.localScale.y, 1e-3f, "scaleY(−1.22)");
             Vector3[] gc = new Vector3[4], rc = new Vector3[4];
             grid.GetWorldCorners(gc); rf.GetWorldCorners(rc);
-            float scale = UiRoot.Instance.App.lossyScale.y;
+            // §0-6 보탬(런 1167) — 팝업은 열릴 때 `CardPop`(scale .7→1 · backOut)이 도는데 느린 러너에선 done 다음 프레임이 그 중간(1.0097)에 걸린다 —
+            //   세계 자의 배율을 앱(`App.lossyScale`)이 아니라 그리드·반사의 **부모(몸)** 의 lossyScale 로 잰다(같은 프레임 · 같은 부모 · T152 «CardPop 중간값을 재는 자» 갈래).
+            float scale = Mathf.Abs(body.lossyScale.y);
             float gridBottom = Mathf.Min(gc[0].y, gc[1].y), rfTop = Mathf.Max(rc[0].y, rc[1].y), rfBottom = Mathf.Min(rc[0].y, rc[1].y);
             float topPx = SummonFxStyle.L("reflect_top_px") * SummonFxStyle.L("css_px");
             Assert.AreEqual(topPx * scale, rfTop - gridBottom, 1.5f * scale + 0.5f, "반사 위 변 = 셀 줄 끝 − 8px(세계 y 로는 그리드 아래보다 8px 위 — 그 아래로 1.22배 · 위로 뒤집히면 749px)");

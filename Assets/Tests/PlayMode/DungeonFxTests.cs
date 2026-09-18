@@ -59,7 +59,8 @@ namespace Forge.Tests.PlayMode
             DungeonDetailPopup.Enter();
             yield return null;
             H.Dungeons.OnClear();
-            yield return null;
+            // §0-6 보탬(런 1167) — `Dungeons.Emit` 은 C# 이벤트라 이 줄에서 팝업이 이미 섰고 `BeginPop` 이 `Apply()` 로 .3 을 걸어 뒀다.
+            //   «첫 프레임» 을 한 프레임 넘긴 뒤 재면 CI 의 긴 첫 프레임(런 1167: 마지막 칸이 벌써 1.07)에 걸린다 — T152·T467 과 같은 갈래라 «세운 직후(동기)» 를 잰다.
             Assert.IsTrue(DungeonClearPopup.IsOpen, "onClear → showDungeonClear");
 
             Transform ov = FindIn(UiRoot.Instance.App, "modal-dungeon-clear");
@@ -71,12 +72,16 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(DungeonClearFx.Phase.Pop, pop.Mode);
             List<RectTransform> cells = Cells(card);
             Assert.GreaterOrEqual(cells.Count, 1, "보상 칸");
-            // 첫 프레임 — 마지막 칸은 아직 .3 근처(backwards · 칸마다 .09s 늦게)
+            // 세운 직후 — 마지막 칸은 아직 .3 근처(backwards · 칸마다 .09s 늦게)
             RectTransform last = cells[cells.Count - 1];
-            Assert.Less(last.localScale.x, 0.95f, "첫 프레임의 마지막 칸은 아직 작다(from scale .3)");
+            Assert.Less(last.localScale.x, 0.95f, "세운 직후 마지막 칸은 아직 작다(from scale .3)");
             CanvasGroup lastG = last.GetComponent<CanvasGroup>();
             Assert.IsNotNull(lastG, "칸 알파는 CanvasGroup 으로");
-            Assert.Less(lastG.alpha, 1f, "첫 프레임의 마지막 칸은 아직 투명하다");
+            Assert.Less(lastG.alpha, 1f, "세운 직후 마지막 칸은 아직 투명하다");
+            yield return null;
+            // 한 프레임 뒤 — 프레임이 얼마나 길었든 칸은 러너의 곡선 그 시각 값이다(러너가 그 사이 끝났으면 아래 while 이 «원래 크기» 로 본다)
+            if (card.GetComponent<DungeonClearFx>() != null)
+                Assert.AreEqual((float)DungeonClearFx.Spec.PopScaleAt(pop.ElapsedMs, cells.Count - 1), last.localScale.x, 1e-3f, "한 프레임 뒤 마지막 칸 = 곡선(ElapsedMs " + pop.ElapsedMs.ToString("0") + "ms)");
 
             float t0 = Time.realtimeSinceStartup;
             while (card.GetComponent<DungeonClearFx>() != null)
