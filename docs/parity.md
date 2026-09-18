@@ -1845,3 +1845,59 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - `animation-name` **✅ 2** (이름 짝은 섰다) · **⚠ 코드 박음 1 뿌리 → T460**(`dmg`·`dmgcrit`·`dmgkill` 아크 키프레임 수가 Game 코드 `Frame[]` 상수 — §1 «수치는 코드에 박지 않는다» · 값 대조는 그 절 1회차 몫).
 - `will-change` **3 → 해당 없음**.
 - **남은 축: 없음** — 45회차가 «남은 축» 으로 적은 셋이 이 회차로 닫혔다(그중 하나는 38회차가 이미 닫은 축). 다음 회차는 §7 표에서 ⬜ 인 줄과 «T33 이 등재한 번호들의 판정 회수» 를 본다.
+
+
+# T33 47회차 — 대조표가 **한 번도 안 센 축** 넷: `paint-order` 44 · `grid-template-columns` 23 · `word-break` 4 · `text-indent` 3 (2026-09-18 · 워커 U · sess-0359-69993)
+
+> 46회차가 «남은 축: 없음» 으로 닫았지만, 그 «남은 축» 은 **앞 회차들이 적어 둔 목록**이지 정본 전수가 아니었다(43회차 규칙 그대로). 이번엔 정본 `style.css` 를 주석 걷고 속성 경계로 세어 **131 종**을 뽑고, 그 이름이 `docs/parity.md`·`docs/ROUTINE.md` 어디에도 백틱으로 안 오른 것을 골랐다 — 47 종이 남는다. 그중 자리가 있는 넷을 이번에 센다(나머지는 아래 «남은 축»).
+
+## `paint-order` 44 — 전부 `stroke fill`
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1~44 | 231 `.ob-zzz i` · 304 `.offline-card` · 617 `.sk-lv` · 634 `.skill-btn.auto.on` · 1625 `.anvil-btn small` · 2357·2496·2567·2578·2635 리그 다섯 · 2685 `.pass-card` · 2935·2983 상점 둘 · 3085 `.profile-tabs button.on` · 3365 `.chat-bubble, .chat-time` · 3411·3426 공유 카드 둘 · 3623 서브탭 · 3851 제목 셋 · 3997·4069·4258·4526·4559·4663 소환 시트 여섯 · 5022·5035 자동 제련 둘 · 5156 `.fi-skip` · 5332·5346·5367 던전 셋 · 5441·5451·5467·5488·5493·5525 펫 여섯 · 7498·7556 보상 둘 · 7694 `.cp` · 8404·8408 리그 행 둘 · 8664 소환 버튼 · 8723 판매/위험 버튼 | `stroke fill`(44 전부) | 클론의 글자 링은 전부 `UiKit.OutlinePx`(TMP SDF `_OutlineWidth`) 한 길이다 — SDF 외곽선은 **면 아래**에 그려지므로 `stroke fill` 과 같은 순서다(`fill stroke` 를 낼 길 자체가 없다). 링이 **있는가**는 이 축이 아니라 `-webkit-text-stroke` 축(`check_keyline`: 정본 규칙 51 · 자리 초록 64 · 문제 0)이 쥔다 | ✅ 44(동치) |
+
+## `grid-template-columns` 23
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 703 `.age-row` | `5.2rem 1fr auto 1fr auto` | `ForgeUi.AgeBar` 는 격자가 아니라 **흐름 배치**(체크 → 아이콘 → 이름 `w×.5` → 별 → 오른쪽 `next` `w×.25`) — 열 수·순서는 같으나 첫 열 5.2rem 고정이 없다(실물 «.wwwww-src/web/js/ui.js:1 .wwwww-src/web/index.html:0») | △ 구조 다름 — 막대·필 자리는 T124·T378 실측이 이미 판정한 자리라 새 번호는 안 연다(다음 회차가 화소로 가른다) |
+| 2 | 729 `.forge-item-grid` | `repeat(5, 1fr)` | `ForgeSheet.cs:91` `(gridW − colGap×4)/5` | ✅ |
+| 3 | 798 `.check-grid` | `1fr 1fr` | 정본 실물 0(`js/`·`index.html` 에 없음) | —죽음 |
+| 4 | 802 `.mat-grid` | `repeat(5, 1fr)` | `ForgeInfoPopup.cs:204` `/5` | ✅ |
+| 5 | 827 `.equip-grid` | `repeat(5, 1fr)` | `ForgeSheet.cs:92` · `PlayerInfoPopup.cs:198` 5열 | ✅ |
+| 6 | 967 `.anvil-row` | `1fr auto 1fr` | `ForgeSheet.cs:113` `sideW = (W − pad×2 − anvilW − .8rem)/2` 대칭 · 가운데 모루 | ✅ |
+| 7 | 1127 `.craft-batch .cb-grid` | `repeat(var(--cbc, 4), 1fr)` — ui.js 1970 `≤4 → n · ≤9 → 3 · 4` | `ForgeCraftPopup.cs:319` 같은 식 | ✅ |
+| 8~9 | 1667 `.pet-card` · 1672 `.pet-card.with-icon` | `1fr auto` · `auto 1fr auto` | 정본 실물 0 | —죽음 |
+| 10 | 1682 `.stat-grid` | `auto 1fr` | 정본 실물 0 | —죽음 |
+| 11 | 2088 `.tech-branch-grid` | `1fr 1fr`(카드 셋 → 둘 + 하나) | `TechPanel.cs:170` `(i % 2)`·`(i / 2)` | ✅ |
+| 12 | 2327 `.league-row` | `1.8rem 2.5rem 1fr auto` · gap .5rem | `LeagueSheet.cs` Row: 순위 `1.8rem` → +.5rem → 아바타 `league_avatar`(H 키 · 정본 2.5rem 열) → +.5rem → 이름 나머지 → 점수 오른쪽 | ✅(아바타 열 폭 값은 T378 표값 갈래) |
+| 13 | 2515 `.league-reward-grid` | `1fr 1fr 1fr` | `LeagueSheet.cs:310` `RewardGrid` `(gw − gap×2)/3` | ✅ |
+| 14 | 2580 `.league-tier-grid` | `1fr 1fr 1fr` | `RewardGrid` 가 티어 표도 같은 `/3` 로 자른다(호출 3곳) | ✅ |
+| 15~17 | 2731 `.pass-desc-row` · 2759 `.pass-header-row` · 2815 `.pass-row` | `1fr 1fr` 셋 | `PassPopup.cs` 안내/가격 2등분 · [무료]/[프리미엄] 반반 · 보상 칸 둘 | ✅ |
+| 18 | 2967 `.shop-gems` | `1fr 1fr 1fr` | `ShopSheet.cs:133` `cols = 3` | ✅ |
+| 19 | 3061 `.avatar-pick-grid` | `repeat(6, 1fr)` | `catalog.json` `avatar_pick_cols` 6 → `ProfilePopup.cs:124` | ✅ |
+| 20 | 3069 `.profile-tabs` | `1fr 1fr` | `ProfilePopup.cs` Tab ×2 `tabsW×.5` | ✅ |
+| 21 | 3390 `.chat-share-card` | `1fr 1fr` | `ChatScreen.cs:257` Side win/lose `bubbleW×.5` | ✅ |
+| 22 | 4019 `.sk-grid` | `repeat(5, calc(var(--app-w) × .1310))` | `PetSkillUi.json` `sk_col_w` .131 | ✅ |
+| 23 | 4437 `#panel-pets .sk-grid` | `repeat(5, … × .1020)` | `pet_col_w` .102 | ✅ |
+
+## `word-break` 4
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1~3 | 2236 `.swc-name` · 3856 `.sheet-sub` · 7040 `.sr-name` | `keep-all`(한글을 **어절**에서만 꺾는다) | TMP 설정 `Assets/TextMesh Pro/Resources/TMP Settings.asset` `m_UseModernHangulLineBreakingRules: 0` = 한글을 **음절마다** 꺾는다 — 이것은 브라우저의 `word-break: normal` 과 같아 **나머지 모든 한글 자리는 맞고**, `keep-all` 을 준 이 셋만 틀린다(클론엔 이 셋을 가르는 자리가 없다 — `ForgeCraftPopup.cs:197` 주석이 keep-all 을 적고도 줄높이만 걸었다) | ⛔ 3 → **T466** |
+| 4 | 3381 `.chat-bubble` | `break-word`(넘치는 낱말을 꺾는다) | 음절 단위 꺾음은 `break-word` 를 포함한다 | ✅ |
+
+## `text-indent` 3
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 411 `.bw-sub` | `.55em`(자간 .55em 의 되밀기) | `BattleOverlay.cs:299` `LetterSpacing.Apply(sub, "bw_sub_ls_em", "bw_sub_indent_em")` .55/.55(T168 2회차) | ✅ |
+| 2~3 | 432·433 `@keyframes bwsub` 0%·16% | `1.4em → .55em`(자간·들여쓰기가 **조여들며** 켜진다 · 80% 까지 유지 · 100% 0) | 클론은 정적 .55em + 알파(`FxRules.WarnSubAlpha`)뿐 — 0~16% 의 조임(1.4em → .55em)이 없다 | ⛔ 1 뿌리 → **T467** |
+
+## 이 회차의 판정
+
+- `paint-order` **✅ 44(동치)** · `grid-template-columns` **✅ 18 · —죽음 4 · △ 1** · `word-break` **⛔ 3 → T466** · `text-indent` **✅ 1 · ⛔ 1 뿌리 → T467**.
+- **이 회차가 남긴 규칙** — «남은 축: 없음» 은 **정본 속성 전수와 대조표를 맞춰 본 뒤에만** 쓸 수 있는 말이다. 세는 법: 주석 걷고 `[;{]\s*(-?[a-z-]+)\s*:` 로 이름을 뽑아(`--변수` 제외) 백틱 이름이 `parity.md`·`ROUTINE.md` 에 없는 것을 고른다.
+- **남은 축**(이번에 센 것 · 이름이 대조표에 안 오른 47 중 넷을 뺀 43 · 수는 정본 선언 수): `display` 310 · `margin-left` 32 · `box-sizing` 17 · `margin-right` 15 · `-webkit-mask-image` 15 · `border-width` 14 · `align-self` 11 · `background-repeat` 11 · `padding-right` 11 · `fill` 10 · `padding-top` 8 · `border-bottom` 7 · `font-family` 6 · `scrollbar-width` 4 · `stroke` 3 · `border-style` 3 · `grid-row` 3 · 그 밖 2 이하 26(`color-scheme`·`forced-color-adjust`·`-webkit-text-stroke-width`·`outline`·`outline-offset`·`order`·`user-select`·`-webkit-line-clamp`·`mask-composite` …). ⚠ 이름이 안 올랐다고 안 본 축은 아니다 — `-webkit-mask-image` 는 T124 마스크 갈래 · `border-width` 는 T365 테 갈래 · `-webkit-line-clamp` 는 T351 이 **다른 이름**으로 이미 쥐고 있을 수 있다. 다음 회차는 그것부터 가른다.
