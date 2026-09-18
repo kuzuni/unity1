@@ -293,6 +293,8 @@ namespace Forge.Game.Ui
                     float bw = inner * UiKit.L("tech_claim_w");
                     ActionButton = DungeonPopups.Pill(card, "skip", "건너뛰기\n◆ " + NumFmt.Fmt(Tree.GemSkipCost(Host.Now())), DungeonPopups.Skin.Silver, TextKind.Button, OnGemSkip, RadiusUi.Px("tech_btn_r_rem"));
                     BtnLh(ActionButton); UiKit.Place(DungeonPopups.Root(ActionButton), cx - bw * 0.5f, y, bw, btnH);
+                    // T396 20회차 — 정본 4613 `.tn-skip small { color: #c62828 }`: 아랫줄 «◆ N» 만 그 리터럴(표 tn_skip_gem_ink) · 한 TMP 그대로(줄높이 자 불변).
+                    { Transform l = DungeonPopups.Root(ActionButton).Find("label"); if (l != null) LineInk.Apply(l.GetComponent<TextMeshProUGUI>(), 1, "tn_skip_gem_ink"); }
                 }
                 return;
             }

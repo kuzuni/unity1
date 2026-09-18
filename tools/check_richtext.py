@@ -30,6 +30,9 @@ ALLOW = {
     #   플레이어 글이 안 지나는 근거: 부르는 곳은 판매 경고의 카탈로그 장비 이름 · 퀘스트·상점·던전 시트의 붙박이 안내문 · 소환 결과의 데이터 이름(스킬·펫·탈것)뿐이고,
     #   `KeepAll.Apply` 는 꺾쇠(`<` `>`)가 든 글은 손대지 않는다(켜지도 않는다) — TabularText 와 같은 규약.
     os.path.join('Assets', 'Scripts', 'Game', 'Ui', 'KeepAll.cs'): 'T466 어절 감싸기 <nobr> — 표 keep_all 자리만 · 꺾쇠 든 글은 안 건드림 · 플레이어 글 없음',
+    # T396 20회차(한 글 안 부분 색) — 정본이 한 글의 **한 줄**에만 리터럴 색을 못박은 자리(4613 .tn-skip small · 5637 .asc-wipe-warn)를 TMP 는 `<color>` 태그로만 낼 수 있어 그 글자에서만 richText 를 켠다.
+    #   플레이어 글이 안 지나는 근거: 부르는 곳은 기술 노드 [건너뛰기] 라벨(붙박이 «건너뛰기» + 젬 수) · 승천 초점 효과 글줄(붙박이 문구 + 데이터 이름)뿐이고, `LineInk.Apply` 는 꺾쇠가 든 글은 손대지 않는다.
+    os.path.join('Assets', 'Scripts', 'Game', 'Ui', 'LineInk.cs'): 'T396 줄 잉크 <color> — 두 붙박이 자리만 · 꺾쇠 든 글은 안 건드림 · 플레이어 글 없음',
 }
 RE_NEW = re.compile(r'AddComponent<\s*(TextMeshProUGUI|TextMeshPro)\s*>')
 RE_ON = re.compile(r'richText\s*=\s*true')

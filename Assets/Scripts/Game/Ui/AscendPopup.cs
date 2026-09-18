@@ -197,6 +197,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(fe.rectTransform, focusPad, fy, inner - focusPad * 2f, subH * 4f);
                 OpacityUi.Apply(fe.gameObject, "asc_focus_eff");   // T359 — 정본 5635 .asc-focus-eff { opacity: .9 }
                 LineHeight.Apply(fe, "asc_focus_eff_lh");   // T354 — 정본 5635 .asc-focus-eff { line-height: 1.5 }
+                LineInk.Apply(fe, 1, "asc_wipe_warn_ink");   // T396 20회차 — 정본 5637 `.asc-wipe-warn { color: #ff6b5e }`: 가운데 줄(소멸 경고)만 · 한 TMP 그대로(줄 수·줄높이 자 불변)
                 y += focusH - DungeonPopups.RemL("asc_focus_mt_rem");
 
                 y += DungeonPopups.RemL("asc_focus_mt_rem");
