@@ -254,12 +254,12 @@ namespace Forge.Game.Ui
             float tile = rem * 3.6f;
             int subs = item != null && item.Subs != null ? item.Subs.Count : 0;
             // T476 — 정본 글 블록 `.cmp-info`(1888)는 세로 flex(gap .15rem)이고 **줄마다 제 높이**다(마크업 ui.js 3224·3236~3237 이 클래스를 직접 쓴다):
-            //   이름 `.cmp-name` 1.05rem(1889) · 주 스탯 `.cmp-stat` .95rem(1890) 은 line-height 를 안 줬으니 normal = 글꼴 자산 비율(`PopupKit.BtnH`·`ModalBtnH` 와 한 셈) ·
+            //   이름 `.cmp-name` 1.05rem(1889) · 주 스탯 `.cmp-stat` .95rem(1890) 은 line-height 를 안 줬다 — normal 은 **정본 web 실측**(표 `cmp_normal_lh` 1.34 · 3차 · 글꼴 자산 비율 1.448 로 세면
+            //   두 카드에서 +0.45rem 이라 카드 위끝이 정본보다 0.85%H 올라갔다 · 런 1197) ·
             //   옵션 `.cmp-sub` .78rem × 1.5(1894 · 표 `cmp_sub_lh`). 종전 «줄마다 Sub × 1.35 한 값»(T434)은 T474 가 691 `.item-stat` 을 이 카드로 잘못 짚은 채 남긴 셈이었다(T476 등재문).
             //   글자: 이름 38.2px 는 하한 위라 `Sub` 칸에 크기만(T468 `dgd_keys` 길) · 주 스탯 34.6px 는 하한 36 이 모양을 안 깨니 `Sub` 그대로(줄 상자만 .95 로 센다 · 결정 기록) ·
             //   화살 .82 · 옵션 .78 은 하한 아래라 `Micro` + 표 `TextSizeUi`(§1 예외 열셋째 자리 · 바로잡음).
-            var face = UiFont.Primary.faceInfo;
-            float normal = face.lineHeight / face.pointSize;
+            float normal = CraftStyle.L("cmp_normal_lh");
             float namePx = CraftStyle.Px("cmp_name_font_rem"), statPx = CraftStyle.Px("cmp_stat_font_rem"), subPx = TextSizeUi.Px("cmp_sub");
             float gap = CraftStyle.Px("cmp_info_gap_rem");
             float nameH = namePx * normal, statH = statPx * normal, subH = subPx * (float)LineHeight.Ratio(subPx, "cmp_sub_lh");

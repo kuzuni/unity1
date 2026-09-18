@@ -82,7 +82,7 @@ namespace Forge.Tests.PlayMode
         /// <summary>T476 — 이 카드의 세 글줄은 691 `.item-stat`(T474 오등재)이 아니라 마크업(ui.js 3224·3236~3237)이 직접 쓰는 `.cmp-name` 1.05(1889) · `.cmp-stat` .95(1890) ·
         /// `.cmp-stat .arrow` .82(1891) · `.cmp-sub` .78rem + line-height 1.5(1894)이고, 글 블록 `.cmp-info` 는 gap .15rem(1888)의 세로 flex 다.
         /// 글자: 이름 = 표값(하한 위 · `Sub` 칸에 크기만) · 주 스탯 = `Sub` 하한(정본 34.6 ↔ 36 · 모양을 안 깨니 예외 칸이 아니다) · 화살·옵션 = `Micro` + 표.
-        /// 피치: 이름→스탯 = 1.05 × normal + gap · 스탯→옵션 = .95 × normal + gap · 옵션 사이 = .78 × 1.5 + gap(= 1.32rem · 정본 web 실측 1.321).
+        /// 피치: 이름→스탯 = 1.05 × normal + gap · 스탯→옵션 = .95 × normal + gap · 옵션 사이 = .78 × 1.5 + gap(= 1.32rem · 정본 web 실측 1.321) · normal = 표 `cmp_normal_lh`(정본 web 실측 1.34 · 3차).
         /// 옵션 줄은 T473 이 정본대로 좁힌 폭에서도 **한 줄**(T474 가 연 자리를 안 되돌린다) · 카드 높이 = 위 패딩 + 글 블록 + 아래 패딩(글 블록이 타일보다 클 때).</summary>
         [UnityTest]
         public IEnumerator 장비_카드_세_글줄은_정본_cmp_클래스_크기고_글_블록은_gap_15_의_세로_flex_다()
@@ -113,8 +113,9 @@ namespace Forge.Tests.PlayMode
             RectTransform newCard = (RectTransform)FindIn(root, "new");
             Assert.IsNotNull(newCard, "새 장비 카드");
 
-            var face = UiFont.Primary.faceInfo;
-            float normal = face.lineHeight / face.pointSize;
+            float normal = CraftStyle.L("cmp_normal_lh");   // T476 3차 — 정본 web 실측 normal(1.34) · 자산 비율(1.448)이 아니다
+            Assert.AreEqual(1.34f, normal, 1e-6f, "정본 web 실측 normal(.cmp-name 1.359 · .cmp-stat 1.315 → 1.34)");
+            Assert.Less(normal, UiFont.Primary.faceInfo.lineHeight / UiFont.Primary.faceInfo.pointSize, "클론 글꼴 자산 비율(1.448)보다 작다 — 그 비율로 세면 카드가 정본보다 0.85%H 자란다(런 1197)");
             float namePx = CraftStyle.Px("cmp_name_font_rem"), statPx = CraftStyle.Px("cmp_stat_font_rem"), subPx = TextSizeUi.Px("cmp_sub");
             float gap = CraftStyle.Px("cmp_info_gap_rem");
             float nameH = namePx * normal, statH = statPx * normal, subH = subPx * (float)LineHeight.Ratio(subPx, "cmp_sub_lh");
