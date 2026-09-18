@@ -2253,3 +2253,69 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - `display` 밖 89 = **✅ 46**(`none` 12 + 짝 4 중 ✅ 14 · `grid` ✅ 17 · `inline-flex` ✅ 13 · `-webkit-box` 1 · 토글 짝은 위에서) · **△ 1**(703 `.age-row` — 47회차 그대로) · **—죽음 3**(`grid` 798·1666·1681) · **해당 없음 40**(reduced-motion 2 + 줄 상자 종류 38) · 결함 0 · 새 번호 0.
 - **남긴 자(결정 801)**: `display` 는 «값» 이 아니라 «상자가 있는가 · 자식이 어느 축으로 흐르는가 · 폭이 내용을 따르는가» 셋으로 가른다 — `none` 은 `SetActive`/상자 없음, `grid`/`flex` 는 자식 배치 축, `inline-*` 은 내용 폭, `block` 류는 해당 없음.
 - **남은 것**: `flex` 221(이 축 안 · 56회차). 자는 위 표 그대로 — `flex-direction: column` 80 자리(세로 흐름)를 먼저 «클론이 y 를 더해 가며 놓는가» 로 세고, 나머지 141(가로 row 기본)은 «x 를 더해 가며 놓는가·`gap` 이 표에 있는가» 로. 그것이 끝나면 **대조표가 안 센 축은 0** 이다.
+
+# T33 56회차 — `display: flex` 221 중 세로 흐름(`flex-direction: column`) 78 을 «y 를 더해 가며 놓는가» 로 (2026-09-18 · 워커 U · sess-2051-1776)
+
+55회차 자(결정 801) 그대로: `flex` 는 «자식이 어느 축으로 흐르는가» 다. 221 블록 중 같은 선택자에 `flex-direction: column` 이 선언된 것 **78**(같은 블록 안 78 · 다른 블록에서 붙는 것 0) · 나머지 **143** 은 가로(row 기본 · 57회차). 클론이 세로 흐름을 내는 길은 셋 — ⓐ `y += …` 누적(`UiKit.Place`) ⓑ `PopupKit.Column`/`VerticalLayoutGroup` ⓒ `PopupKit.ScrollList`·`PetSkillKit.Scroll`(세로 스크롤 목록). 셋 중 하나면 ✅ · 자식이 하나뿐이거나 앵커로 위/아래를 나누면 ✅(구조) · 정본에 실물이 없으면 —죽음 · 클론 자리를 못 찾으면 △.
+
+## `column` 78
+
+| # | 정본 | 클론 | 판정 |
+|---|---|---|---|
+| 1 | 41 `#app`(HUD·무대·탭바) | `UiRoot.cs` — HUD 위·시트·탭바 아래 앵커 | ✅(구조) |
+| 2 | 105 `.profile-info` | `Hud.cs:78` `profile-card` 안 글줄 — 세로 쌓기 줄을 못 찾았다 | △(미확인) |
+| 3~5 | 256 `.offline-top` · 270 `.offline-rate` · 278 `.offline-bottom` | `OfflinePopup.cs:41·56·97` `y += titleH…` · `y += lineH…` · `by += totalH + gapV` | ✅ ×3 |
+| 6 | 312 `.waypoint`(아이콘 + 배지) | `Waypoints.cs:66·80` 아이콘 상자 + 배지 글자 — 위/아래 자리 | ✅(구조) |
+| 7 | 486 `#loot-feed` | `LootFeed.cs:50` `VerticalLayoutGroup` | ✅ ⓑ |
+| 8 | 700 `.age-rows` | 정본 실물 0 | —죽음 |
+| 9 | 708 `.forge-age-list` | `ForgeInfoPopup.cs:103` `PopupKit.Column(rowsBox …)` | ✅ ⓑ |
+| 10 | 733 `.forge-item-cell`(썸네일 · Lv · ★) | `ForgeUi.cs:221~239` `lv`·`star` 를 타일 아래 앵커(`size * 0.08f`) | ✅(구조) |
+| 11 | 790 `.substat-list` | 정본 실물 0(35회차) | —죽음 |
+| 12 | 805 `.mat-chip`(아이콘 위 · 수량 아래) | `MountUpgradePopup.cs:164` 칩 — 아이콘/수량 위아래(`ForgeInfoPopup` 재료 칩도 같은 꼴) | ✅(구조) |
+| 13 | 813 `#equip-sheet`(격자 → 모루 줄 → 버튼) | `ForgeSheet.cs:90·112` `gridX/…` 뒤 `Place(anvilRow, …, rowY, …)` — 위에서 아래로 자리 | ✅ ⓐ |
+| 14 | 827 `.equip-cell` | 10번과 같은 타일 공장 | ✅(구조) |
+| 15 | 967 `.anvil-side` | `ForgeSheet.cs:119·126~134` 정보 버튼 위 · 제련 버튼 아래 | ✅(구조) |
+| 16 | 980 `.anvil-btn`(글자 + small) | `ForgeSheet.cs:178` `TwoLineBtn` — 두 줄 글(T354 `forge_actions_btn_lh`) | ✅(구조) |
+| 17 | 1647 `.hatch-slot` | 정본 실물 0 | —죽음 |
+| 18~19 | 1661 `.pet-list` · 1670 `.pet-card .btn-col` | 정본 실물 0(47회차 `.pet-card` 죽음) | —죽음 ×2 |
+| 20 | 1698 `#tabbar button`(아이콘 위 · 라벨 아래) | `TabBar.cs:89~91` `Icon` `yTop + padTop` · `Label` 아래 | ✅ ⓐ |
+| 21 | 1750 `.modal-card` | `Popups.cs:358` `PopupKit.Column` — 카드 공장(제목·본문·버튼) | ✅ ⓑ |
+| 22~23 | 1780 `.cmp-wrap` · 1882 `.cmp-info` | `ForgeCraftPopup.cs:67·88` `PopupKit.Column(card …)` · `Column(lower …)` · `:196` `col` 이름/수치 | ✅ ⓑ ×2 |
+| 24 | 1921 `#toasts, #toasts-combat` | `DungeonPopups.cs:274` 토스트 상자 한 장 — 여러 장 쌓임은 못 봤다 | △(쌓임 미확인) |
+| 25~26 | 1945 `.dungeon-list` · 2004 `.dg-info` | `DungeonSheet.cs:180` `y += bh + gap` · `:224~226` 배너 이름/설명 위아래 | ✅ ⓐ ×2 |
+| 27~29 | 2020 `.quest-list` · 2032 `.qst-body` · 2054 `.qst-right` | `QuestSheet.cs` 줄 목록 `y +=`(3) · `:136~138` `right` 안 보상 위 · 버튼 아래 | ✅ ×3 |
+| 30 | 2088 `.tech-branch-card` | `TechPanel.cs:187·251` 머리(원판·이름) 뒤 `y += ph` | ✅ ⓐ |
+| 31~32 | 2126 `.tech-tree-col` · 2179 `.tech-tree-node-col` | `TechPanel.cs` 트리 — 노드 자리 셈을 이 회차에 못 짚었다 | △(미확인) ×2 |
+| 33 | 2219 `.sellwarn-body` | 정본 실물 0(`sellwarn-card`·`-title` 만 · ui.js 3848) | —죽음 |
+| 34 | 2221 `.swc-col` | `ForgeCraftPopup.cs:143~144` 판매 경고 카드 `PopupKit.Column` | ✅ ⓑ |
+| 35 | 2242 `.tb-list` | `TechPopups.cs` 가지 목록 — 이름으로 못 찾았다 | △(미확인) |
+| 36~38 | 2315 `.league-list` · 2528 `.league-reward-table` · 2635 `.league-challenge-side` | `LeagueSheet.cs:98` `ScrollList` · `:230~255` `y +=` 뒤 `table` · `:121~123` 도전 버튼 열 | ✅ ×3 |
+| 39 | 2815 `.pass-cell` | `PassPopup.cs:120·140·154` `y +=` · 셀 패딩 표 키 | ✅ ⓐ |
+| 40~43 | 2911 `.shop-deals` · 2936 `.shop-deal-rewards` · 2943 `.shop-deal-right` · 2970 `.shop-gem-card` | `ShopSheet.cs:72` `PopupKit.Column(dealsBox …)` · `:61·128·164` `Spacer` · `:144~145` 카드 안 세로 배분 «실측 그대로» | ✅ ×4 |
+| 44~45 | 3016 `.profile-fields` · 3020 `.modal-card.wide.profile-sheet` | `ProfilePopup.cs:90·107·111` `y +=` · `fy +=` | ✅ ⓐ ×2 |
+| 46 | 3126 `.tech-node` | `TechPopups.cs:193~208·275` `y += headH` … `y += card_gap` | ✅ ⓐ |
+| 47~49 | 3154 `.pinfo-id-text` · 3208 `#player-info-modal .idet-wrap` · 3212 `… .modal-card.wide` | `PlayerInfoPopup.cs:188` `y += …` · `PetSkillModal.cs:87` «카드 + ✕ 를 세로 가운데에(원작 flex column)» | ✅ ×3 |
+| 50~52 | 3250 `.chat-preview-lines` · 3293 `.chat-list` · 3394 `.chat-share-side` | `Hud.cs:207` «이름 줄 / 메시지 줄 두 줄 — 세로 쌓기» · `ChatScreen.cs:43` `ScrollList` · `:295` `Side` 안 `y +=`(322·327) | ✅ ×3 |
+| 53~55 | 3698 `.idet-title` · 3702 `.idet-subs` · 3729 `.idet-wrap` | `TechPopups.cs:193~206` 제목 줄 · `subs` 상자 `y += sh` · `PetSkillModal.cs:87` | ✅ ×3 |
+| 56 | 3914 `.sheet .dg-banner .dg-right` | `DungeonSheet.cs:239` 배너 버튼(폭 키) — 열쇠 글자와의 위아래는 못 짚었다 | △(미확인) |
+| 57~59 | 3922 `.panel` · 3935 `.grid-scroll` · 4240 `.summon-sub.summon-visible` | `SkillPetSheet.cs` 시트 = 머리 뒤 본문 · `SkillPanel.cs:104` `PetSkillKit.Scroll("grid-scroll")` · `:72` `y += headH + gap` | ✅ ×3 |
+| 60~61 | 4031 `.sk-cell` · 4149 `.sk-mini` | `SkillPanel.cs:202·285` 칸 = 구슬 위 · 이름/Lv 아래(`PetSkillKit` 칸 공장) | ✅(구조) ×2 |
+| 62~64 | 4260 `.pet-tile` · 4473 `.hatch-cell` · 4537 `.slot-buy-wrap` | `PetPanel.cs:223` 타일(얼굴 위 · Lv 아래) · `:365~459` 램프·알·시간·버튼 위→아래 · `:379~381` 라벨 위 · 값 아래(T354 24회차) | ✅ ×3 |
+| 65 | 4591 `.rate-list` | `SkillRatesPopup.cs:110~166` `y += …`(3) | ✅ ⓐ |
+| 66~67 | 4664 `.af-card` · 4790 `.af-dd-list` | `ForgeAutoPopup.cs:52·68~69` 카드 → 스크롤 상자 `ScrollList` · `:195` 드롭다운 `ScrollList(dd, "items")` | ✅ ⓒ ×2 |
+| 68 | 5078 `.fi-rows` | `ForgeInfoPopup.cs:73·103` `PopupKit.Column` ×2 | ✅ ⓑ |
+| 69 | 5216 `.summon-info`(라벨 + 부제) | `SkillPanel.cs:426~437` 라벨·부제 두 줄(T354 `summon_info_lh`) | ✅(구조) |
+| 70~71 | 5231 `.skd-card` · 5241 `.skd-orbcol` | `SkillPanel.cs:509~534` 카드 · `orbcol` 안 `cy += starH + …` | ✅ ×2 |
+| 72 | 5278 `.dgd-card` | `DungeonDetailPopup.cs:162·170` `y += stageRowH…` · `y += pillH…` | ✅ ⓐ |
+| 73 | 5381 `.dgc-cell`(아이콘 위 · 수량 아래) | `DungeonClearPopup.cs:95~100` `ico` · `amt` · `y += cellH + gap` | ✅ ⓐ |
+| 74 | 5534 `.petd-tilecol` | `PetPanel.cs:565~568` `tilecol` 안 얼굴 타일 → 아래 글 | ✅(구조) |
+| 75 | 5656 `.sr-wrap`(천개 → 격자 → 발) | `SkillSummonResult.cs:391·465` `wrap` 안 격자 위 · `foot` 을 바닥 앵커(`Hh − padB − footH`) | ✅(구조) |
+| 76 | 5773 `.sr-solo` | `SkillSummonResult.cs:1276~1305` `sr-solo` 상자 — 요약·보유 줄 위아래 | ✅(구조) |
+| 77 | 6771 `.sr-cell.heroic`(mid/dense/herorow) | `SkillSummonResult.cs:1085~1088` 구슬 아래 `nameBox` `ny` | ✅(구조) |
+| 78 | 7105 `.sr-foot` | `SkillSummonResult.cs:465·1193·1228~1231` 발 상자 안 칩 줄 · 안내 `hintBox` 바닥 앵커 | ✅(구조) |
+
+## 이 회차의 판정
+
+- `column` 78 = **✅ 66**(ⓐ y 누적 · ⓑ Column · ⓒ ScrollList · 구조) · **△ 6**(105 `.profile-info` · 1921 토스트 쌓임 · 2126·2179 기술 트리 열 · 2242 `.tb-list` · 3914 `.dg-right` — 자리를 이 회차에 못 짚었다 · 결함이 아니라 미확인) · **—죽음 6**(700 · 790 · 1647 · 1661 · 1670 · 2219) · 결함 0 · 새 번호 0.
+- △ 6 은 57회차가 row 143 을 셀 때 같은 파일(`Hud`·`DungeonPopups`·`TechPanel`·`TechPopups`·`DungeonSheet`)을 다시 열게 되니 거기서 닫는다.
+- **남은 것**: `flex` row **143**(57회차 · «x 를 더해 가는가 · `gap` 표 키»). 그것이 끝나면 대조표가 안 센 축은 0.
