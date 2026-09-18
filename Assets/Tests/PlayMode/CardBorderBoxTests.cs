@@ -122,9 +122,9 @@ namespace Forge.Tests.PlayMode
             Rect rc = World(card), rf = World(face);
             Assert.AreEqual(rc.yMax, rf.yMax, rc.height * 0.002f, "면 위끝 = rect 위끝(테 안쪽)");
             Assert.AreEqual(rc.yMin, rf.yMin, rc.height * 0.002f, "면 아래끝 = rect 아래끝");
-            // 첫 자식(제목 줄)은 rect 위끝에서 pad — 곧 테 안쪽에서 pad(정본 padding)
-            RectTransform title = (RectTransform)Find(card, "title");
-            Assert.IsNotNull(title, "제목 줄");
+            // 첫 자식(제목 줄 `title-row` · 안의 "title" 은 HorizontalLayoutGroup 이 놓는다)은 rect 위끝에서 pad — 곧 테 안쪽에서 pad(정본 padding)
+            RectTransform title = (RectTransform)Find(card, "title-row");
+            Assert.IsNotNull(title, "제목 줄(title-row)");
             float pad = DungeonPopups.RemL("card_pad_rem");
             Assert.AreEqual(-pad, title.anchoredPosition.y, 0.5f, "제목 위끝 = rect(테 안쪽) 위끝 + pad");
             RectTransform x = (RectTransform)Find(card, "x-btn");

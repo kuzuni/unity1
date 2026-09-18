@@ -110,8 +110,8 @@ namespace Forge.Game.Ui
 
             double x, y;
             Table.OffsetPx(key, PetSkillStyle.RemPx, out x, out y);
-            img.rectTransform.offsetMin = new Vector2((float)x, (float)y - growY);
-            img.rectTransform.offsetMax = new Vector2((float)x, (float)y + growY);
+            img.rectTransform.anchoredPosition = new Vector2((float)x, (float)y);
+            img.rectTransform.sizeDelta = new Vector2(0f, growY * 2f);   // 피벗 가운데 · growY 0 이면 정확히 0(자 UiShadowTests «패널과 같은 크기»)
             return img;
         }
 

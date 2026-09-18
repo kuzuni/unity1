@@ -87,9 +87,11 @@ namespace Forge.Tests.PlayMode
                 RectTransform afCard = null;
                 foreach (RectTransform rt in ap.Root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == "card") { afCard = rt; break; }
                 Assert.IsNotNull(afCard, "자동 제련 카드(card)");
-                float top = UiKit.RefH * 0.5f - afCard.anchoredPosition.y - afCard.rect.height * 0.5f;   // 가운데 앵커 · 양수 = 위
-                Assert.AreEqual(UiKit.RefH * ForgeAutoStyle.L("card_top_f"), top, 0.5f, "카드 위끝 = 표 card_top_f(7.01%H) — 전엔 8.65%H");
-                Assert.Greater((top + afCard.rect.height) / UiKit.RefH, UiKit.L("tabbar_top"), "정본대로 카드 하단이 탭바 위끝보다 아래로 내려간다");
+                // T465 — 카드 rect 는 패딩 상자 · 표가 잰 «카드 위끝» 은 테까지의 몸(border-box)이라 rect 위끝보다 Line3 위다
+                float bodyH = afCard.rect.height + PopupKit.Line3 * 2f;
+                float top = UiKit.RefH * 0.5f - afCard.anchoredPosition.y - bodyH * 0.5f;   // 가운데 앵커 · 양수 = 위
+                Assert.AreEqual(UiKit.RefH * ForgeAutoStyle.L("card_top_f"), top, 0.5f, "카드 몸 위끝 = 표 card_top_f(7.01%H) — 전엔 8.65%H");
+                Assert.Greater((top + bodyH) / UiKit.RefH, UiKit.L("tabbar_top"), "정본대로 카드 하단이 탭바 위끝보다 아래로 내려간다");
             }
             ForgeAutoPopup.Close(h);
             yield return null;
