@@ -340,7 +340,7 @@ namespace Forge.Game.Ui
             if (d == null) return rt;
             Color ac = ForgeUi.AgeColor(d, it.Age);
             Image f = ForgeUi.Tile(rt, "frame", ForgeUi.CellFace(ac), ForgeUi.CellLine(ac), radius, PopupKit.Line3);
-            UiShadow.Drop(f.rectTransform, "equipcell_drop", radius, size, size);   // T331 36회차 — 정본 8539 `.equip-cell:not(.egg-cell)` 드리운 그림자(같은 equipCellHTML · 장비 시트 칸과 같은 자리 · 틀 안 맨 뒤)
+            UiShadow.Drop((RectTransform)f.transform.parent, "equipcell_drop", radius, size, size);   // T331 36회차 — 정본 8539 `.equip-cell:not(.egg-cell)` 드리운 그림자(같은 equipCellHTML · 장비 시트 칸과 같은 자리 · 틀 안 맨 뒤)
             AgePattern.Attach(rt, it.Age, cell: true, mask: false, siblingIndex: 1);   // T124 3회차 ⓑ — 정본 equipCellHTML(ui.js 3102) `.equip-cell[data-age]` 의 시대 무늬 층(.55 · 틀 위·아이콘 뒤) · 장비 시트 칸(ForgeSheet.EquipCell)과 같은 한 줄
             Image img = PopupKit.IconOr(rt, "img", ForgeUi.ItemIconKey(d, it));
             img.raycastTarget = false;

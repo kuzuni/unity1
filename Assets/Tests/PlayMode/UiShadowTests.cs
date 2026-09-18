@@ -195,6 +195,7 @@ namespace Forge.Tests.PlayMode
             Transform sh = UiShadow.Find(frame, "equipcell_drop");
             Assert.IsNotNull(sh, "장착 칸 틀 안에 그늘이 없다");
             Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 틀 안 맨 뒤(면·테 뒤)");
+            Assert.IsNull(UiShadow.Find((RectTransform)frame.Find("face"), "equipcell_drop"), "그늘이 면(face) 안에 있으면 면 위에 그려진다 — 런 1205 의 빨강(Tile 은 face 를 돌려준다)");
             Assert.IsFalse(UiShadow.Table.Get("equipcell_drop").IsHard, "흐림 .3rem 이라 굽는다");
             Assert.IsNotNull(sh.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
             Assert.AreEqual(0.3, UiShadow.Table.Get("equipcell_drop").A, 1e-6, "표의 알파(.30)가 아니다");
@@ -451,7 +452,7 @@ namespace Forge.Tests.PlayMode
             int hard = 0, soft = 0;
             foreach (string k in UiShadow.Table.Keys) { if (UiShadow.Table.Get(k).IsHard) hard++; else soft++; }
             Assert.AreEqual(7, hard);
-            Assert.AreEqual(20, soft);
+            Assert.AreEqual(21, soft, "36회차 장비 칸 equipcell_drop 로 21");
         }
     }
 }
