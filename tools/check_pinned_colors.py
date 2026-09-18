@@ -203,6 +203,39 @@ TABLE = {
     '.pet-card.active': ['—죽음: 정본이 `pet-card` 클래스를 한 번도 안 붙인다(js·html 0 · 펫 목록은 `.pet-cell` 격자로 갈아엎힌 잔재)'],
     '.pet-card .icon-circle': ['—죽음: 같은 까닭(1673 #161b22) — `icon-circle` 은 다른 자리에 살지만 `.pet-card` 조상이 없다'],
     '.summon-prog div': ['—죽음: 정본이 `summon-prog` 를 한 번도 안 붙인다(js·html 0 · 소환 바 진행은 `.summon-bar` 갈래) — 그려지지 않는 리터럴'],
+    # ── T377 23회차 — 자가 «죽음 7 · 덮개 있음 24» 로 갈라 둔 31 을 표 행으로(결정 799 · 코드 0줄). 실물 자리 넷은 같은 값의 카탈로그 키를 이미 읽는다.
+    '.pip.done': ['Ui/Hud.cs@SetWaves|catalog:pip_done'],                         # 192 #69f0ae — 상단바 웨이브 핍(ui.js 1346) · 플레이어 정보 미리보기 핍(5150)은 3189 가 덮는다
+    '.pass-milestone-label': ['Ui/PassPopup.cs#face|catalog:pass_label'],         # 2796 #0f121c — 안 닿은 마일스톤 라벨(닿은 것은 2810 #2c3684 가 덮는다 · 클론 pass_label_lit)
+    '.tech-prog': ['Ui/TechPopups.cs#bg|catalog:tech_prog_bg'],                   # 4606 #10182b — 같은 줄 `.modal-card .tech-prog` 도 같은 값
+    '.qst-bar i': ['Ui/QuestSheet.cs#fill|catalog:quest_bar'],                    # 8803 #4fc3f7 — 안 끝난 퀘스트의 게이지 채움(끝난 행은 2046 그라디언트 · 클론 quest_bar_done)
+    '.btn': ['—덮인다: 실물 120 자리가 전부 3542 `.modal-card .btn, .panel .btn, #equip-sheet .btn { background: var(--pp-gray) }` 안이다(T396 16회차 전수 조사 · 잉크 행과 같은 근거) — 660 #2d333b 는 한 번도 안 그려진다'],
+    '.btn.primary': ['—덮인다: 같은 까닭 — 3547 `.modal-card .btn.primary, .panel .btn.primary, #equip-sheet .btn.primary` var(--pp-blue) 가 늘 이긴다(667 #1f4a2c)'],
+    '.btn.danger': ['—덮인다: 같은 까닭 — 3551 `.modal-card .btn.danger, .panel .btn.danger, .modal-card .btn.sell` var(--pp-red) 가 늘 이긴다(670 #4a1c1c)'],
+    '.btn.on': ['—덮인다: 같은 까닭 — 3548 `.modal-card .btn.on, .panel .btn.on, #equip-sheet .btn.on` var(--pp-blue) 가 늘 이긴다(671 #4a3a10 · `on` 을 받는 실물은 소환 바 x5 토글뿐)'],
+    '.upg-progress': ['—덮인다: 실물 둘(ui.js 5577·5585)이 다 기술 노드 팝업(modal-card) 안 — 3534 `.modal-card .upg-progress` var(--pp-panel) 가 덮는다'],
+    '#upg-fill': ['—덮인다: 유일한 자리(ui.js 2042)가 `.fi-prog` 안 — 5161 `.fi-prog #upg-fill` var(--pp-blue) 가 덮는다'],
+    '#tech-node-fill': ['—덮인다: 유일한 자리(ui.js 5585)가 `.tech-prog` 안 — 4608 `.tech-prog #tech-node-fill` var(--pp-blue) 가 덮는다'],
+    '.substat-row': ['—덮인다: 유일한 자리(ui.js 2232)가 장비 상세의 `.idet-subs` 안 — 3707 `.idet-subs .substat-row { background: none }` 이 덮는다'],
+    '.mat-chip': ['—덮인다: 유일한 자리(ui.js 5767)가 `.modal-card wide` 안 — 3523 var(--pp-paper) 가 덮는다(잉크 행과 같은 까닭)'],
+    '.info-btn': ['—덮인다: 마크업 두 곳이 전부 덮인 자리(InfoButtonUi.json `_덮인다`) — 1544 는 `#equip-sheet` 안이라 3629 var(--pp-line) 이 이기고 2053·5459 는 `.fi-info-btn` 이다'],
+    '.icon-circle.sm': ['—덮인다: 실물 둘(ui.js 5262·5267)이 다 `.chat-share-side` 안 — 3399 `.chat-share-side .icon-circle.sm` #fff 가 덮는다'],
+    '.idet-icon': ['—덮인다: 2244 는 `#forge-item-modal` 안(3656 그라디언트 · 클론 ColorMixUi idet_icon_face) · 5601 은 `.idet-icon.tn-bronze`(3689 청동 그라디언트 · 클론 tn_bronze) — 3682 #e9e9e9 는 한 번도 안 그려진다'],
+    '.cur-pill': ['—덮인다: 실물 열 자리가 전부 종류 갈래(`.coin`·`.gem`·`.ticket` 3987·`.potion` 3988·`.egg` 4245·`.winder` 4250)를 달아 제 배경을 가진다 — 3982 #2b2b2b 는 `.winder` 가 같은 값으로 다시 적을 뿐 기본 규칙으론 안 그려진다'],
+    '.cmp-card-wrap.new .cmp-card': ['—죽음: 1820 `.cmp-lower .cmp-card-wrap.new .cmp-card { background: transparent }` 가 덮는다(`.modal-card …new .cmp-card` 행과 같은 까닭)'],
+    '.age-bar-wrap': ['—죽음: 정본 js·html 에 `age-bar-wrap` 0 — 그려지지 않는 리터럴(잔재)'],
+    '.stat-grid': ['—죽음: 정본 js·html 에 `stat-grid` 0'],
+    '.egg-chip': ['—죽음: 정본 js·html 에 `egg-chip` 0'],
+    '.hatch-slot': ['—죽음: 정본이 `hatch-slot` 을 한 번도 안 붙인다(ui.js 3926 `.hatch-cell`) — `.hatch-slot.empty` 행과 같은 까닭'],
+    '.pet-card': ['—죽음: 정본 js·html 에 `pet-card` 0(`.pet-card.active` 행과 같은 까닭)'],
+    '.tech-node': ['—죽음: 정본 js·html 에 `tech-node` 클래스 0(노드는 `.tech-tree-node`)'],
+    # 같은 선택자가 뒤에서 통째로 다시 적는 일곱(자가 «죽음» 으로 가른 그대로).
+    '.offline-rate-icon.coin': ['—죽음: 같은 선택자가 7266 에 다시(background: none) — 정본이 요율 배지 색 원을 끈 자리(T417)'],
+    '.subtab-strip button': ['—죽음: 같은 선택자가 3581 에 다시(var(--pp-panel))'],
+    '.subtab-strip button.active': ['—죽음: 같은 선택자가 3584 에 다시(var(--pp-blue))'],
+    '.modal-card': ['—죽음: 같은 선택자가 3512 에 다시(var(--pp-paper)) — 종이 판 갈래가 1750 #1c2128 을 통째로 갈아엎었다'],
+    '#chat-preview': ['—죽음: 같은 선택자가 3636 에 다시(#8a8a8a · 그 값은 표 chat_preview 갈래)'],
+    '.fi-pill-ico.coin': ['—죽음: 같은 선택자가 7256 에 다시(background: none)'],
+    '.fi-pill-ico.gem': ['—죽음: 같은 선택자가 7256 에 다시(background: none)'],
 
            # 8807 #81e884 ↔ 카탈로그 quest_bar_done 같은 값(짝만)
 
