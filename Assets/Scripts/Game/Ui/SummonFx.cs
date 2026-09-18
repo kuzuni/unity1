@@ -771,6 +771,28 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>T448 — 동급(peer) 착지 링(정본 `.sr-cell.peer.on::after` 6710~6716): 주역 링과 같은 굽기에 정지점(60/76/84/95)·흰 띠 알파(.7)만 표의 `peerring_*` 로.</summary>
+        /// <summary>T475 — 정본 `outline: W solid rgba(255,255,255,a); outline-offset: OFF`(6691·6704) 의 흰 고리 한 장: 반지름 <paramref name="innerF"/>~1(판 반폭 = 1 · 안쪽 = 오프셋까지 비고 바깥 변이 판 끝)
+        /// 이 알파 1 인 **하드엣지 고리**(정본 outline 은 그라디언트가 아니다) · 가장자리 한 화소만 부드럽게. 색·알파는 이미지 색으로 건다(표값).</summary>
+        public static Sprite BakeOutlineRing(string name, float innerF)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            int N = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
+            float aa = 2f / N;   // 한 화소(정규화)
+            var px = new Color32[N * N];
+            for (int y = 0; y < N; y++)
+            {
+                float v = (y + 0.5f) / N * 2f - 1f;
+                for (int x = 0; x < N; x++)
+                {
+                    float u = (x + 0.5f) / N * 2f - 1f;
+                    float r = Mathf.Sqrt(u * u + v * v);
+                    float a = Mathf.Clamp01((r - innerF) / aa) * Mathf.Clamp01((1f - r) / aa);
+                    px[y * N + x] = new Color(1f, 1f, 1f, a);
+                }
+            }
+            return Finish(name, NewTex(name, N, N), px);
+        }
+
         public static Sprite BakePeerRing(string name, Color rc)
         {
             return BakeRing(name, rc, HL("peerring_stop0"), HL("peerring_stop1"), HL("peerring_stop2"), HL("peerring_stop3"), HL("peerring_white_a"));

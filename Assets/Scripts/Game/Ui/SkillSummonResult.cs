@@ -61,6 +61,8 @@ namespace Forge.Game.Ui
             public Image Ghost;
             /// <summary>T448 — 동급(peer) 착지 링(정본 `.sr-cell.peer.on::after`) — 셀 **뒤**(z −1) 폭 100% 정사각 · 자기 착지에 한 번 돈다.</summary>
             public Image PeerRing;
+            /// <summary>T475 — 신화(5등급)·동급(peer) 래퍼의 흰 반투명 아웃라인(정본 6691·6704 `outline`) — 래퍼 안 · 광채 위 · 구슬 아래.</summary>
+            public Image Outline;
         }
 
         public static SkillSummonResultView Current { get; private set; }
@@ -983,6 +985,23 @@ namespace Forge.Game.Ui
                 float gs = cw * (1.25f + 0.1f * tier);
                 UiKit.Anchor(glow.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, gs, gs);
                 if (Hi(e.Rarity)) c.Glow = glow;   // T459 ⓨ — 정본 6674 `.sr-cell.hi.on` 만 맥동한다(동급 조연 peer 는 아니다)
+            }
+            // T475 — 정본 6691 `.sr-cell[data-tier="5"] .sr-orbwrap { outline: .12rem solid rgba(255,255,255,.34); outline-offset: .12rem }` ·
+            //   6704 `.sr-cell.peer .sr-orbwrap { outline: .11rem solid rgba(255,255,255,.32); outline-offset: .11rem }` — 래퍼 **바깥**에 오프셋만큼 띄운
+            //   흰 반투명 고리(6702 주석의 동급 표식 넷 중 «상시 테두리»). `outline` 은 상자 밖·box-shadow(광채) 위에 그려지므로 광채 다음·구슬 앞에 둔다.
+            //   신화이면서 동급이면 같은 속성을 뒤 규칙(6704)이 덮는다 — 동급 값 하나만. 래퍼 배율(아이들 호흡·맥동 아님)을 그대로 따라간다(CSS transform 도 outline 을 같이 키운다).
+            if (tier == 5 || peer)
+            {
+                string ok = peer ? "sr_peer_outline" : "sr_outline5";
+                float ow = PetSkillStyle.Px(ok + "_w_rem"), ooff = PetSkillStyle.Px(ok + "_off_rem");
+                float od = cw + 2f * (ooff + ow);
+                RectTransform orr = UiKit.Box(wrap, "sr-outline");
+                UiKit.Anchor(orr, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, od, od);
+                Image ol = orr.gameObject.AddComponent<Image>();
+                ol.raycastTarget = false;
+                ol.sprite = SummonFx.BakeOutlineRing("sr-outline-" + (cw * 0.5f + ooff).ToString("0.##") + "-" + (od * 0.5f).ToString("0.##"), (cw * 0.5f + ooff) / (od * 0.5f));
+                ol.color = new Color(1f, 1f, 1f, PetSkillStyle.L(ok + "_a"));
+                c.Outline = ol;
             }
             Image shadow = PetSkillKit.Disc(wrap, "shadow", PetSkillStyle.C("black"));
             shadow.color = new Color(0f, 0f, 0f, 0.5f);
@@ -2101,6 +2120,8 @@ namespace Forge.Game.Ui
         public Image GlowOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Glow : null; }
         /// <summary>T459 ⓩ — i 번째 구슬의 스페큘러 띠(done 뒤 첫 프레임에 선다 · 그 전엔 null).</summary>
         public Image SweepOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Sweep : null; }
+        /// <summary>T475 — i 번째 셀 래퍼의 흰 아웃라인(신화·동급이 아니면 null).</summary>
+        public Image OutlineOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Outline : null; }
 
         /// <summary>셀별 재점화 플래시 — 자가 본다.</summary>
         public Image RelightOf(int i) { return i >= 0 && i < relights.Count ? relights[i] : null; }

@@ -484,5 +484,68 @@ namespace Forge.Tests.PlayMode
             v.Close();
             yield return null;
         }
+
+        /// <summary>T475 — 정본 6704 `.sr-cell.peer .sr-orbwrap { outline: .11rem solid rgba(255,255,255,.32); outline-offset: .11rem }`: 동급 둘에만 흰 고리가 서고
+        /// 주역(ultimate · 4등급)·아래 등급엔 없다. 고리 지름 = 래퍼 + 2 × (오프셋 + 폭) · 알파 = 표.</summary>
+        [UnityTest]
+        public IEnumerator 동급_셀_래퍼에만_흰_반투명_아웃라인이_서고_주역과_아래_등급엔_없다()
+        {
+            yield return Boot();
+            var list = new List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "rare", Name = "나" },
+                new SkillSummonResultView.Entry { Key = "sk:c", IconKey = "sk_fireball", Rarity = "ultimate", Name = "다" },
+                new SkillSummonResultView.Entry { Key = "sk:d", IconKey = "sk_fireball", Rarity = "ultimate", Name = "라" },
+                new SkillSummonResultView.Entry { Key = "sk:e", IconKey = "sk_fireball", Rarity = "ultimate", Name = "마" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(Sheet, "skill", list, "ultimate", null);
+            yield return null;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+            Assert.IsNull(v.OutlineOf(0), "일반 — 고리 없음"); Assert.IsNull(v.OutlineOf(1), "희귀 — 고리 없음");
+            Assert.IsNull(v.OutlineOf(4), "주역(ultimate · 4등급)은 동급이 아니고 신화도 아니다 — 고리 없음");
+            float w = PetSkillStyle.Px("sr_peer_outline_w_rem"), off = PetSkillStyle.Px("sr_peer_outline_off_rem");
+            Assert.AreEqual(0.11f, PetSkillStyle.L("sr_peer_outline_w_rem"), 1e-6f, "정본 6704 .11rem");
+            Assert.AreEqual(0.32f, PetSkillStyle.L("sr_peer_outline_a"), 1e-6f, "정본 6704 알파 .32");
+            for (int i = 2; i <= 3; i++)
+            {
+                Image ol = v.OutlineOf(i);
+                Assert.IsNotNull(ol, "동급 " + i + " 의 고리");
+                Assert.AreEqual("sr-outline", ol.name);
+                RectTransform wrap = (RectTransform)ol.transform.parent;
+                Assert.AreEqual("sr-orbwrap", wrap.name, "고리는 래퍼의 자식(래퍼 배율을 따른다)");
+                Assert.AreEqual(wrap.rect.width + 2f * (off + w), ol.rectTransform.rect.width, 0.5f, "지름 = 래퍼 + 2 × (오프셋 + 폭)");
+                Assert.AreEqual(ol.rectTransform.rect.width, ol.rectTransform.rect.height, 0.01f, "정사각");
+                Assert.AreEqual(0.32f, ol.color.a, 1e-4f, "알파 = 표");
+                Assert.IsNotNull(ol.sprite, "구운 고리 한 장");
+                Transform glow = wrap.Find("glow"), orb = wrap.Find("sr-orb");
+                Assert.IsNotNull(glow, "동급은 광채가 있다");
+                Assert.Greater(ol.transform.GetSiblingIndex(), glow.GetSiblingIndex(), "outline 은 광채(box-shadow) 위");
+                Assert.Less(ol.transform.GetSiblingIndex(), orb.GetSiblingIndex(), "구슬 본체 아래");
+            }
+        }
+
+        /// <summary>T475 — 정본 6691 `.sr-cell[data-tier="5"] .sr-orbwrap { outline: .12rem … .34 }`: 신화 주역 하나뿐인 판에서도 고리가 선다(동급이 아니라 신화 값).</summary>
+        [UnityTest]
+        public IEnumerator 신화_셀은_동급이_아니어도_신화_값의_흰_아웃라인이_선다()
+        {
+            yield return Boot();
+            var list = new List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "mythic", Name = "나" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(Sheet, "skill", list, "mythic", null);
+            yield return null;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+            Assert.IsNull(v.OutlineOf(0), "일반 — 고리 없음");
+            Image ol = v.OutlineOf(1);
+            Assert.IsNotNull(ol, "신화 셀의 고리(6691)");
+            Assert.AreEqual(0.12f, PetSkillStyle.L("sr_outline5_w_rem"), 1e-6f, "정본 6691 .12rem");
+            Assert.AreEqual(0.34f, ol.color.a, 1e-4f, "정본 6691 알파 .34 — 동급 값(.32)이 아니다");
+            float w = PetSkillStyle.Px("sr_outline5_w_rem"), off = PetSkillStyle.Px("sr_outline5_off_rem");
+            RectTransform wrap = (RectTransform)ol.transform.parent;
+            Assert.AreEqual(wrap.rect.width + 2f * (off + w), ol.rectTransform.rect.width, 0.5f, "지름 = 래퍼 + 2 × (.12 + .12)rem");
+        }
     }
 }
