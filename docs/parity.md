@@ -2319,3 +2319,74 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - `column` 78 = **✅ 66**(ⓐ y 누적 · ⓑ Column · ⓒ ScrollList · 구조) · **△ 6**(105 `.profile-info` · 1921 토스트 쌓임 · 2126·2179 기술 트리 열 · 2242 `.tb-list` · 3914 `.dg-right` — 자리를 이 회차에 못 짚었다 · 결함이 아니라 미확인) · **—죽음 6**(700 · 790 · 1647 · 1661 · 1670 · 2219) · 결함 0 · 새 번호 0.
 - △ 6 은 57회차가 row 143 을 셀 때 같은 파일(`Hud`·`DungeonPopups`·`TechPanel`·`TechPopups`·`DungeonSheet`)을 다시 열게 되니 거기서 닫는다.
 - **남은 것**: `flex` row **143**(57회차 · «x 를 더해 가는가 · `gap` 표 키»). 그것이 끝나면 대조표가 안 센 축은 0.
+
+# T33 57회차 — `display: flex` 가로 흐름(row 기본) 143 중 앞 77(37~3198)을 «x 를 더해 가는가 · gap 표 키» 로 (2026-09-18 · 워커 R · sess-2015-28206)
+
+56회차 자(결정 801) 그대로: row 는 «자식을 x 로 이어 놓는가(ⓐ `x +=`/되셈 · ⓑ `IconTextRow` 같은 줄 도우미) · 틈이 표 키인가». 143 중 **30 개는 자식 하나를 가운데 두는 상자**(`justify-content: center; align-items: center` · gap 없음 · 아이콘 원·버튼 얼굴)라 **흐름 축이 없다** — 55회차가 `block` 을 «해당 없음» 으로 둔 것과 같은 갈래로 «가운데 놓기» 로 묶어 세고, 그 자리의 가운데 맞춤은 각 자리의 앞 회차(아이콘·버튼 눈 판정)가 이미 봤다. 나머지가 진짜 흐름이다.
+
+**앞 77 = ✅ 26 · △ 13 · —죽음 6 · ⚠ 결함 후보 2 · 가운데 놓기 30.** 뒤 66(3227~7115)은 58회차.
+
+## 흐름 47
+
+| # | 정본 | 축 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 37 `body` | jc center | `UiRoot.cs` 앱 상자를 화면 가운데(CanvasScaler · 480×854 틀) | ✅(구조) |
+| 2 | 50 `#topbar` | space-between | `Hud.cs:78` 프로필 카드 왼쪽 · `:118~119` 알약 둘 `w − inset − pillW×2 − gap` 오른쪽 끝에서 되셈 | ✅ ⓐ |
+| 3 | 90 `.profile-card` | gap .0261W | `Hud.cs:95` `tx = av + UiKit.W("card_gap")` · `:100` 이름 x | ✅ ⓐ(표 키) |
+| 5 | 113 `.currency-pills` | gap .6rem | `Hud.cs:115` `UiKit.W("pill_gap")` · `:118~119` 두 알약 x | ✅ ⓐ(표 키) |
+| 6 | 166 `#wave-pips` | gap .0363W | `Hud.cs:359·377` `pip_gap` · `i × (slot + gap)` | ✅ ⓐ(표 키) |
+| 9 | 270 `.offline-rates` | gap 2.4rem · jc center | `OfflinePopup.cs:58·62~64` `gap = rem*2.4f` · `rx = (inner − (rateW×2 + gap))/2` · 둘째 `rx + rateW + gap` — 값·가운데 맞음 · **박힘** | △(표 키 없음 · T378 갈래) |
+| 12 | 401 `.bw-track` | —(span 흐름) | `BattleOverlay.cs:282~289` 트랙 안 글 하나(문구 ×3 이어 붙임 · 왼쪽 정렬) | ✅(구조) |
+| 13 | 589 `#skill-bar` | gap .4rem | `SkillBar.cs:86` `sb_gap_rem` · `:118·128` `x` 이어 놓기 | ✅ ⓐ(표 키) |
+| 16 | 649 `.subtab-strip` | gap .4rem | `SkillPetSheet.cs:86·92` 세 칸 `bw = pillW/3` · `i × bw` — 정본 3593 `#summon-subtabs.subtab-strip { gap: 0 }` 이 덮으니 틈 0 이 맞다(649 의 .4rem 은 실물 자리에서 0 으로 덮임) | ✅ ⓐ |
+| 17 | 659 `.row` | gap .45rem · ai stretch | 여섯 자리(ui.js 3265 제작 비교 버튼 줄 · 3864 판매 경고 · 3973 시트 머리 알약 · 4307 패시브 · 5777 카드 · 5980~6003 확률 칩) — 3265 는 `ForgeCraftPopup.cs:96~105` `rem*0.96 + bw + rem*1.3`(1821 이 gap 1.3rem 으로 덮음) ✅ · 나머지 다섯 자리는 이 회차에 못 짚었다 | △(1/6 만 짚음) |
+| 18 | 684 `.prob-box` | gap .3rem | 정본 실물 0(ui.js·index.html 에 이름 없음) | —죽음 |
+| 20 | 723 `.forge-age-section .age-tag` | gap .3rem | 정본 실물 0 | —죽음 |
+| 21 | 793 `.substat-row` | space-between | 정본 실물 — ui.js 2232 `subsListHtml` 이 만들지만 그 목록 `.substat-list`(790)은 35회차가 «실물 0» 으로 봤다(만드는 함수가 안 불린다) → 같은 판정 | —죽음 |
+| 22 | 799 `.check-row` | gap .4rem | 정본 실물 0 | —죽음 |
+| 25 | 1121 `.craft-batch` | center | `ForgeCraftPopup.cs:322~330` 묶음 격자 `(i % cols) × (size + gap)` 를 판 가운데 | ✅(구조) |
+| 27 | 1629 `.forge-actions` | gap .3rem | `ForgeSheet.cs:129~137` `gap = rem*0.35f` · 자동 버튼 `btnW*1.15 + gap` — **값 .35 ↔ 정본 .3rem · 폭 배분 1.15/0.85 도 박힘** → 결함 후보(58회차가 1629~1640 원문과 PNG 로 재고 등재 여부를 정한다) | ⚠ 후보 |
+| 28 | 1656 `.egg-row` | gap .35rem · wrap | 정본 실물 0 | —죽음 |
+| 29 | 1673 `.pet-card .icon-circle` | center | 정본 실물 0(`.pet-card` 47회차 죽음) | —죽음 |
+| 30 | 1693 `#tabbar` | —(칸 균등) | `TabBar.cs:87` `i × bw` | ✅ ⓐ |
+| 31 | 1711 `.modal` | center | `PopupLayer` 가 카드를 화면 가운데(`PetSkillModal.cs:87` 등) | ✅(구조) |
+| 32 | 1825 `.cmp-card` | gap .7rem · ai flex-start | `ForgeCraftPopup.cs:169~178` 썸네일 `s` 0 · 글 열 `col` `bw + rem*0.8f`… — x 는 이어 놓지만 **틈 .8 ↔ .7rem**(박힘) — 후보로 같이 잰다 | ⚠ 후보 |
+| 35 | 1949 `.dg-banner` | gap .6rem | `DungeonSheet.cs:221~223` 아이콘 뒤 `x += ico*0.6f`… 이름/설명 — 틈이 아이콘 배율(박힘) | △(표 키 없음 · T378 갈래) |
+| 36 | 2020 `.qst-allbar` | jc flex-end | `QuestSheet.cs:57~65` `allbar` 줄에 [일괄수령] 하나 — 오른쪽 끝 정렬 자리를 이 회차에 못 짚었다 | △(미확인) |
+| 37 | 2023 `.qst-row` | gap .6rem | `QuestSheet.cs:98~99·137` 아이콘 → `bodyX` → 오른 칸 `rowW − padX − btnW`(되셈) · 줄 사이 `quest_row_gap`(세로) | ✅ ⓐ |
+| 40 | 2056 `.qst-reward` | gap .2rem | `QuestSheet.cs:138~144` 보상 상자 = 아이콘 `0f` + 수(tabular) — 틈 값을 못 짚었다 | △(미확인) |
+| 42 | 2158 `.tech-tree-row` | jc center · ai flex-start | `TechPanel.cs:283~285` 노드 x = 하나면 `cx` · 둘이면 `cx ∓ span/2`(가운데 기준 좌우) | ✅ ⓐ |
+| 45 | 2221 `.sellwarn-cmp` | gap .45rem · center | `ForgeCraftPopup.cs:143~154` 두 열 + 화살 `gt` `colW` — 틈 값을 못 짚었다 | △(미확인) |
+| 46 | 2247 `.tb-row` | space-between · baseline | `TechPopups.cs:371~374` 왼쪽 이름 · 오른쪽 `val` Right 정렬 · 줄 사이 대시 | ✅(구조) |
+| 48 | 2300 `.league-season-bar` | gap .4rem · center | `LeagueSheet.cs:75~82` 시즌 막대(글 `season-left`) — 아이콘·글 틈을 못 짚었다 | △(미확인) |
+| 50 | 2340 `.league-score` | gap .25rem · center | `LeagueSheet.cs:169` `UiKit.IconTextRow`(아이콘 + 글 줄 도우미) | ✅ ⓑ |
+| 51 | 2379 `.league-actions` | gap .5rem · center | `LeagueSheet.cs:123~126` 도전 버튼 `(w − btnW)/2` 가운데 · 뒤로 버튼 `w × .0161` 왼쪽 끝 — 정본은 둘을 가운데 묶음(gap .5rem)이라 **자리 규칙이 다르다**(값은 T89·T401 PNG 실측) — 58회차가 PNG 로 다시 본다 | △(규칙 다름 · PNG 재확인) |
+| 53 | 2449 `.lgr-overlay` | center | 보상 카드를 시트 가운데(`LeagueSheet.cs` 보상 카드 `(cardW − …)/2`) | ✅(구조) |
+| 54 | 2483 `.league-reward-banner` | gap .3rem · center | `LeagueSheet.cs:199~222` 리본(글 하나) — 아이콘 여부·틈을 못 짚었다 | △(미확인) |
+| 55 | 2548 `.league-reward-tier` | gap .6rem | `LeagueSheet.cs:264~267` 단 줄 `rk` `rem*1.1` 부터 x 이어 놓기(`lgr_rank_w`) | ✅ ⓐ |
+| 57 | 2591 `.league-ticket-pill` | gap .3rem · center | 티켓 알약(아이콘 + 수) — 자리를 못 짚었다 | △(미확인) |
+| 58 | 2606 `.league-challenge-row` | gap .6rem | `LeagueSheet.cs:386~394` 아바타 `rem*0.6` · 이름 `nx` · 버튼(`lc_btn_w`) x 이어 놓기 | ✅ ⓐ |
+| 62 | 2936 `.shop-deal-body` | gap .5rem · space-between | `ShopSheet.cs:100·115` 알약 열 `shop_deal_pad_x` 왼쪽 · 그림 `cardW − shop_art_right − artW` 오른쪽(되셈) | ✅ ⓐ(표 키) |
+| 63 | 2938 `.shop-reward-pill` | ai center | 알약 안 아이콘 + 글 — 도우미 여부를 못 짚었다 | △(미확인) |
+| 65 | 2993 `.profile-top` | gap .8rem · ai flex-start | `ProfilePopup.cs:94·99` 아바타 `pad` · `fx = pad + av + rem*0.8f`(값 맞음 · 박힘) | ✅ ⓐ(박힘) |
+| 68 | 3046 `.profile-field-row` | gap .4rem | `ProfilePopup.cs:108~110` 칸 `fw − edit − rem*0.4f` · 편집 버튼 `fx + fw − edit`(되셈 · 값 맞음 · 박힘) | ✅ ⓐ(박힘) |
+| 69 | 3057 `.profile-rank-row` | gap .5rem · center | `ProfilePopup.cs:146~156` 라벨 한 줄 뒤 버튼 — `profile_rank_gap` 은 **세로** 틈이라 가로 흐름의 증거가 아니다(T432 가 PNG 로 자리를 맞췄다) | △(미확인) |
+| 71 | 3098 `.settings-row` | space-between | 설정 행(라벨 왼 · 토글 오른) — 파일 이름으로 못 찾았다(`Popups.cs` 설정 카드?) | △(미확인) |
+| 72 | 3133 `.tech-node-head` | space-between · baseline | `TechPopups.cs:131~175` 이름 + `tn-lv` 한 줄(T413) · 오른쪽 칸 | ✅(구조) |
+| 73 | 3145 `.pinfo-header` | gap .5rem · space-between · flex-start | `PlayerInfoPopup.cs:147~187` 왼 칸 `hx`/`tx` · 오른 칸 `rx` · 187 주석 «정본 flex 줄 · 높이 = 큰 쪽» | ✅ ⓐ |
+| 74 | 3149 `.pinfo-id` | gap .5rem | `PlayerInfoPopup.cs:149~150` 아바타 뒤 `tx = hx + av + rem*0.5f`(값 맞음 · 박힘) | ✅ ⓐ(박힘) |
+| 76 | 3179 `.pinfo-preview` | gap .4rem | `PlayerInfoPopup.cs:281~307` `preview_gap_rem` · `x += … + gap` ×3 | ✅ ⓐ(표 키) |
+| 77 | 3198 `.pinfo-loadout-row` | gap .015W · wrap | `PlayerInfoPopup.cs:223·422` `loadout_gap_w` · `x += orb + gap` | ✅ ⓐ(표 키) |
+
+## 가운데 놓기 30(흐름 축 없음)
+
+100 `.profile-card .avatar` · 204 `#offline-btn` · 210 `.ob-chest` · 272 `.offline-rate-icon` · 322 `.waypoint-icon` · 594 `.skill-btn` · 601 `.skill-btn .sk-icon` · 694 `.upg-progress` · 971 `.info-btn` · 1083 `.auto-drop-card .adc-img.emoji` · 1149 `.craft-batch .cb-card .adc-img.emoji` · 1858 `.cmp-img.emoji, .cell-img.emoji` · 1879 `.cell-img.emoji` · 2031 `.qst-icon` · 2050 `.qst-bar em` · 2060 `.dg-detail-hero` · 2182 `.tech-tree-node` · 2205 `.tech-tree-label` · 2274 `.icon-circle.sm` · 2331 `.league-avatar` · 2383 `.league-back-btn` · 2571 `.league-tier-rank.badge` · 2627 `.league-challenge-avatar` · 2844 `.pass-badge` · 2923 `.shop-deal-tag` · 2985 `.shop-gem-icon` · 2997 `.profile-avatar-big` · 3007 `.profile-edit-btn` · 3062 `.avatar-pick-btn` · 3151 `.pinfo-id .avatar`
+
+## 결함 후보 2 — 58회차가 원문·PNG 로 재고 등재 여부를 정한다
+
+- 1629 `.forge-actions { gap: .3rem }` ↔ `ForgeSheet.cs:129` `gap = rem*0.35f`(+1.8px) · 버튼 폭 배분 `btnW*1.15`/`*0.85`(박힘 · 정본 1629~1640 의 `flex` 비율을 읽어야 한다).
+- 1825 `.cmp-card { gap: .7rem }` ↔ `ForgeCraftPopup.cs:171` `bw + rem*0.8f`(+3.6px · 박힘) — 카드 폭은 T473 이 정본대로 좁혔으니 이 틈이 글 열 폭을 그만큼 먹는다.
+
+## 이 회차의 △ 13
+
+자리를 못 짚은 것이지 결함이 아니다 — `.row` 나머지 다섯 자리 · 던전 배너 틈(아이콘 배율 박힘) · 퀘스트 일괄수령 정렬·보상 틈 · 판매 경고 두 열 틈 · 리그 시즌 막대·행동 줄(규칙 다름 · PNG) · 보상 리본·티켓 알약 · 상점 보상 알약 · 프로필 랭킹 줄 · 설정 행 · 오프라인 요율 틈(값 맞음 · 표 키 없음). 58회차가 뒤 66 과 함께 같은 파일에서 닫는다.
