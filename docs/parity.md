@@ -2152,3 +2152,43 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 
 - `margin-right` 15 = **✅ 10**(표 키 2 · 구조 8) · **△ 5**(113 알약 줄 · 1629 forge-actions · 1992 보상 칩 간격 · 4644 tech-prog · 5336 보상 라벨 — 50회차의 «표 키 없음» 목록에 이어 붙인다 · T378 갈래) · 새 번호 0.
 - **남은 축**(3 − 1 = **2 종**): `display` 310 · `margin-left` 32(이 회차와 같은 자로 · 한 회차).
+
+# T33 54회차 — 남은 축 2 종 중 `margin-left` 32 를 «표 키가 있는가» 자로 (2026-09-18 · 워커 U · sess-1731-79272)
+
+53회차(`margin-right` 15)와 같은 자다: 값이 **길이**면 클론 표 키가 있는가를 묻고, `auto`(flex 정렬·오른쪽 밀기·가운데)면 클론이 같은 자리를 **구조**(앵커·오른쪽 채움·가운데 셈)로 내는가를 본다. 음의 값은 «무엇을 되물리는가»(패널 패딩 · 제 폭의 절반)를 먼저 읽는다. `@keyframes`·`@media` 안 선언은 없다(32 전부 정적). 셈은 47회차 자(주석 걷고 `[;{]\s*margin-left\s*:`) — 32.
+
+## `margin-left` 32
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 979 `#equip-sheet .anvil-side .info-btn` | `calc(app-w × .109)` | `ForgeSheet.cs:119` `UiKit.Place(ib, W * 0.109f, …)` — 값은 같은데 코드에 박혔다(키 없음) | △(코드 박힘 · T378 갈래) |
+| 2 | 1629 `.forge-actions` | `calc(app-w × −.0222)` | 53회차 3번과 같은 상자 — 클론 `ForgeSheet` 에 `forge-actions` 줄 상자가 없고 버튼 둘이 제 자리로 선다(왼쪽 되물림 키 없음) | △(자리 미확인) |
+| 3 | 1891 `.cmp-stat .arrow` | `.25rem` | `CraftUi.json` `cmp_arrow_ml_rem` 0.25 | ✅ |
+| 4~5 | 2901 `.shop-banner` · 2914 `.shop-deals` | `calc(app-w × .1227 − .9rem)`(시트 패딩 .9rem 을 되물리고 12.27%W 에 세운다) | `catalog.json` `shop_banner_x` 0.1227 → `ShopSheet.cs:52·64` `UiKit.L("shop_banner_x") * w`(시트 왼끝 기준 절대 자리라 되물림 항이 필요 없다) | ✅ ✅ |
+| 6 | 2968 `.shop-gems` | `calc(app-w × .1308 − .9rem)` | `catalog.json` `shop_gems_x` 0.1308 → `ShopSheet.cs:143` | ✅ |
+| 7 | 3074 `.profile-tabs` | `auto`(`margin: 0 auto` 가운데) | `ProfilePopup.cs:54` `UiKit.Anchor(tabs, (0.5,0) …)` 가운데 앵커 | ✅(구조) |
+| 8~9 | 3337 `.chat-name-line .chat-clan` −.004 · 3341 같은 선택자 −.008 | `calc(app-w × −.004)` → 뒤 줄 `−.008` 이 덮는다 | `PersonIconsUi.json` `chat_clan_ml_w` −0.008(이긴 값 · 표 `_` 줄이 3337 덮임까지 적어 뒀다) → `ChatScreen.cs:234` | ✅(덮임 · 이긴 값을 키가 쥔다) ✅ |
+| 10 | 3360 `.chat-time` | `auto`(이름 줄에서 시각을 오른쪽 끝으로 민다) | `ChatScreen.cs:236` 시각 글자 `TextAlignmentOptions.Right` — 이름 줄 상자의 오른쪽에 붙는다 | ✅(구조) |
+| 11 | 3695 `.tn-lv` | `.15rem` | `TechUi.json` `tn_lv_margin_left_rem` 0.15 | ✅ |
+| 12 | 3862 `.modal-card.sheet .sheet-sub` | `auto`(`max-width 74%` 가운데) | 53회차 8번과 같은 자리 — `DungeonSheet.cs` `(W − subW) / 2` | ✅(구조) |
+| 13 | 3933 `#panel-summon > .summon-sub` | `−.8rem`(패널 패딩 되물림 · 풀블리드) | 53회차 9번과 같은 자리 — 풀블리드가 필요한 곳(소환 바 위 대시)은 T368 ⓑ 가 앱 폭으로 깐다 | ✅(구조) |
+| 14 | 4149 `.equipped-icons` | `auto`(«장착됨» 라벨 뒤 아이콘 묶음을 오른쪽 끝으로) | `PetPanel.cs` `BuildEquippedRow` `x = w − padX − N×mini − (N−1)×g` — 오른쪽 끝에서 되세어 놓는다 | ✅(구조) |
+| 15~16 | 4425 `#panel-skills .summon-bar > .summon-btn` · 4432 `#panel-pets …` | `auto` | 53회차 10~11번과 같은 자리 — 소환 바는 표 키의 절대 자리(미는 마진이 설 자리가 없다) | ✅(구조 · 해당 없음) |
+| 17 | 4456 `.hatch-row` | `calc(app-w × .1924 − .8rem)` | `PetSkillUi.json` `hatch_row_left_w` 0.1924(패널 왼끝 기준이라 되물림 항 불요) | ✅ |
+| 18 | 4554 `.slot-buy-wrap` | `calc(app-w × .0133)` | `PetSkillUi.json` `slot_buy_left_w` 0.0133 | ✅ |
+| 19 | 4642 `.item-detail[data-tech-node] .idet-head` | `−3.2%`(카드 패딩을 조금 되물린다) | `TechPopups.cs:120` 머리도 `pad = cw × idet_pad` 안 — 되물림 키 없음 | △ |
+| 20 | 4644 `.item-detail[data-tech-node] .tech-prog` | `1.33%` | 53회차 12번과 같은 자리 — `Place(prog, pad, …)` 좌우 카드 패딩만(키 없음) | △ |
+| 21·23 | 4859 `.af-card .fi-age-star` · 5139 `.fi-age-star` | `.22rem`(이름 뒤 시대 별) | `catalog.json` `fi_age_star_ml_rem` 0.22 → `ForgeUi.cs:427` `x + nm.preferredWidth + L("fi_age_star_ml_rem") * rem` | ✅ ✅ |
+| 22·24 | 4862 · 5142 `.fi-age-star:empty` | `0`(별이 없으면 여백도 없다) | 별이 없는 장비는 `star` 상자를 안 만든다 — 여백이 설 자리가 없다 | ✅(구조) ✅(구조) |
+| 25 | 5624 `.asc-row.ready::after` | `.1rem`(★n 뒤 ▶) | `OpacityUi.json` `asc_arrow.ml_rem` 0.1 → `AscendPopup.cs:150` `arMl = OpacityUi.Rem("asc_arrow","ml_rem") * rem` | ✅ |
+| 26 | 5714 `.sr-streaks i` | `calc(−.075rem × (1 + .5 × pre-k))` = **−폭/2**(정본 주석 «margin-left 는 항상 폭의 절반» · 폭 5713 `.15rem × (1 + .5k)`) | `SummonFxUi.json` `streaks.w_rem` 0.15 · `w_k` 0.5 가 폭을 쥐고, 빛줄기 판은 한 장(결정 691)을 **피벗 가운데**로 세운다 — «제 폭의 절반을 되물리는 마진» 은 피벗이 대신한다 | ✅(구조 · 폭 키 있음) |
+| 27~28 | 5848 `.sr-canopy.compact i:nth-child(1)` · 5849 `:nth-child(3)` | `∓4.4rem` | `SummonFxUi.json` `ray_compact_side_dx_rem` 4.4 | ✅ ✅ |
+| 29~30 | 5924 `.sr-canopy i:nth-child(1)` · 5925 `:nth-child(3)` | `∓5.6rem` | `SummonFxUi.json` `ray_side_dx_rem` 5.6 | ✅ ✅ |
+| 31~32 | 7042 `.sr-name` · 7086 `.sr-grid.one .sr-name` | `auto`(이름판 가운데) | `SkillSummonResult.cs:1086` `Place(nameBox, (cw − nw2) * 0.5f, …)` | ✅(구조) |
+
+## 이 회차의 판정
+
+- `margin-left` 32 = **✅ 28**(표 키 16 · 구조 12) · **△ 4**(979 모루 정보 버튼 `W*0.109f` 박힘 · 1629 `forge-actions` 상자 없음 · 4642 idet-head −3.2% 되물림 키 없음 · 4644 tech-prog 1.33% 키 없음 — 50·53회차의 «표 키 없음» 목록에 이어 붙인다 · T378 갈래) · 새 번호 0.
+- 53회차와 같은 상자 넷(1629 · 3862 · 3933 · 4425/4432 · 4644 · 7042/7086)은 좌·우가 같은 판정이다 — 축을 갈라 세도 답이 갈라지지 않는 것을 한 번 더 확인했다.
+- **남긴 자 하나**: «제 폭의 절반을 되물리는 음의 마진»(`margin-left: −w/2` · 5714)은 값이 아니라 **원점 옮기기**다 — 클론이 피벗을 가운데로 두면 구조 ✅ 이고, 폭 키(`w_rem`)만 있으면 된다(결정 800).
+- **남은 축**(2 − 1 = **1 종**): `display` 310 — 값 축이 아니라 «상자가 있는가·흐름(flex/grid/none)» 축이라 «표 키» 자가 안 맞는다. 다음 회차는 자를 새로 세운다: `none` 은 «클론이 그 상자를 안 만드는가/`SetActive(false)`», `flex`/`grid` 는 «자식 배치가 같은 축인가», `inline*`/`block` 은 해당 없음.
