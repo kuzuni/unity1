@@ -477,5 +477,50 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(star.anchoredPosition.x, btn.anchoredPosition.x, 1f, "별점 칸과 버튼은 같은 세로줄에 선다");
             Assert.AreEqual(star.rect.width, btn.rect.width, 1f, "별점 칸 폭은 버튼 폭과 같다(가운데 정렬 기준)");
         }
+
+        /// <summary>T470 — 정본 2906~2909 `.shop-banner::before/::after` 는 border 트릭의 ◀ ▶ 삼각형(폭 .85rem · 높이 1.9rem ·
+        /// 윗변에서 .45rem)이다. 전엔 .85rem × (bh − .5rem) 직사각형이었다 — 도형·치수·자리 셋을 표(ClipShapeUi)와 실물에서 잰다.</summary>
+        [UnityTest]
+        public IEnumerator 상점_배너의_좌우_꼬리는_정본_삼각형이고_치수와_자리가_표대로다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            ShopSheet.Open(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+
+            // 표 — 꼭짓점 셋 · 안쪽 변이 붙고 바깥 가운데가 뾰족하다
+            Vector2[] l = ClipShape.Clip("shop_tail_l");
+            Vector2[] r = ClipShape.Clip("shop_tail_r");
+            Assert.AreEqual(3, l.Length, "◀ 는 꼭짓점 셋(직사각형이면 넷)");
+            Assert.AreEqual(3, r.Length, "▶ 도 꼭짓점 셋");
+            Assert.AreEqual(0f, l[2].x, 1e-4f, "◀ 꼭짓점은 왼쪽 끝"); Assert.AreEqual(0.5f, l[2].y, 1e-4f, "세로 가운데");
+            Assert.AreEqual(1f, r[1].x, 1e-4f, "▶ 꼭짓점은 오른쪽 끝"); Assert.AreEqual(0.5f, r[1].y, 1e-4f, "세로 가운데");
+            Assert.AreEqual(0.85f, ClipShape.Num("shop_tail_l", "w_rem"), 1e-5f, "정본 .85rem");
+            Assert.AreEqual(1.9f, ClipShape.Num("shop_tail_l", "h_rem"), 1e-5f, "정본 .95rem × 2");
+            Assert.AreEqual(0.45f, ClipShape.Num("shop_tail_l", "top_rem"), 1e-5f, "정본 top .45rem");
+
+            // 실물 — 배너 «오늘의 특가» 의 두 꼬리
+            RectTransform row = null;
+            foreach (RectTransform rt in PopupLayer.Instance.Find(ShopSheet.Name).Root.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name.StartsWith("banner-")) { row = rt; break; }
+            Assert.IsNotNull(row, "상점 배너 행");
+            RectTransform band = (RectTransform)row.Find("band"), tl = (RectTransform)row.Find("tail-l"), tr = (RectTransform)row.Find("tail-r");
+            Assert.IsNotNull(band, "배너 띠(band)"); Assert.IsNotNull(tl, "왼 꼬리(tail-l)"); Assert.IsNotNull(tr, "오른 꼬리(tail-r)");
+            float rem = PopupKit.Rem;
+            Assert.AreEqual(0.85f * rem, tl.rect.width, 0.01f, "꼬리 폭 = .85rem");
+            Assert.AreEqual(1.9f * rem, tl.rect.height, 0.01f, "꼬리 높이 = 1.9rem(전엔 bh − .5rem 이었다)");
+            Assert.AreEqual(tl.rect.size, tr.rect.size, "두 꼬리는 같은 크기");
+            Assert.AreEqual(band.anchoredPosition.x, tl.anchoredPosition.x + tl.rect.width, 0.01f, "왼 꼬리의 오른 변이 배너 왼 변에 붙는다(left −.85rem)");
+            Assert.AreEqual(band.anchoredPosition.x + band.rect.width, tr.anchoredPosition.x, 0.01f, "오른 꼬리의 왼 변이 배너 오른 변에 붙는다");
+            Assert.AreEqual(band.anchoredPosition.y - 0.45f * rem, tl.anchoredPosition.y, 0.01f, "꼬리는 배너 윗변에서 .45rem 아래");
+            // 구운 도형 한 장이 있다(직사각 Panel 이 아니라 ClipShape.Face 의 «face»)
+            Transform fl = tl.Find("face"), fr = tr.Find("face");
+            Assert.IsNotNull(fl, "왼 꼬리는 ClipShape 면(face)"); Assert.IsNotNull(fr, "오른 꼬리도");
+            Assert.IsNotNull(fl.GetComponent<Image>().sprite, "구운 삼각형 그림이 있다");
+            Assert.IsNull(tl.Find("bg"), "옛 직사각 Panel(bg)은 없다");
+            Assert.AreEqual(UiKit.C("shop_banner_dk"), fl.GetComponent<Image>().color, "색은 그대로 shop_banner_dk(#a86a00)");
+        }
     }
 }

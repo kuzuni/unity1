@@ -187,12 +187,12 @@ namespace Forge.Game.Ui
             float bh = UiKit.H("shop_banner_h");
             RectTransform row = PopupKit.Item(content, "banner-" + text, -1f, bh);
             float bx = UiKit.L("shop_banner_x") * w, bw = UiKit.L("shop_banner_w") * w;
-            RectTransform tailL = UiKit.Box(row, "tail-l");
-            UiKit.Place(tailL, bx - PopupKit.Rem * 0.85f, PopupKit.Rem * 0.45f, PopupKit.Rem * 0.85f, bh - PopupKit.Rem * 0.5f);
-            UiKit.Panel(tailL, "bg", "shop_banner_dk");
-            RectTransform tailR = UiKit.Box(row, "tail-r");
-            UiKit.Place(tailR, bx + bw, PopupKit.Rem * 0.45f, PopupKit.Rem * 0.85f, bh - PopupKit.Rem * 0.5f);
-            UiKit.Panel(tailR, "bg", "shop_banner_dk");
+            // T470 — 정본 2906~2909 `.shop-banner::before/::after` 는 border 트릭의 ◀ ▶ **삼각형**(폭 .85rem · 높이 .95×2 rem · 윗변에서 .45rem)이다.
+            //   전엔 .85rem × (bh − .5rem) 직사각 Panel 이었다 — 패스 배너 꼬리(T159 2회차)와 같은 길로 ClipShape 표에서 굽는다. 치수도 표가 쥔다.
+            float tailW = ClipShape.Num("shop_tail_l", "w_rem") * PopupKit.Rem, tailH = ClipShape.Num("shop_tail_l", "h_rem") * PopupKit.Rem;
+            float tailY = ClipShape.Num("shop_tail_l", "top_rem") * PopupKit.Rem;
+            ClipShape.Face(row, "tail-l", "shop_tail_l", bx - tailW, tailY, tailW, tailH, "shop_banner_dk");
+            ClipShape.Face(row, "tail-r", "shop_tail_r", bx + bw, tailY, tailW, tailH, "shop_banner_dk");
             RectTransform band = UiKit.Box(row, "band");
             UiKit.Place(band, bx, 0f, bw, bh);
             Image face = PopupKit.Outlined(band, "face", "shop_banner", RadiusUi.Px("shop_banner_r_rem"), PopupKit.Line3);   // T345 13회차 — 정본 2899 `.shop-banner` .3rem

@@ -45,6 +45,16 @@
     "pass_tail_r": {
       "clip": [[0, 0], [1, 0], [0.69, 0.5], [1, 1], [0, 1]],
       "_": "style.css 2723 `.pass-banner::after { … 69% 50% … }` — 위 것의 거울상(깊이 31% 를 오른쪽에서 잰 값)."
+    },
+    "shop_tail_l": {
+      "clip": [[1, 0], [1, 1], [0, 0.5]],
+      "w_rem": 0.85, "h_rem": 1.9, "top_rem": 0.45,
+      "_": "T470 — style.css 2906~2908 `.shop-banner::before { left: -.85rem; top: .45rem; border-width: .95rem .85rem .95rem 0; border-color: transparent #a86a00 transparent transparent }` — CSS border 트릭의 ◀ 삼각형: 오른쪽 변(.95×2 = 1.9rem)이 배너에 붙고 왼쪽 가운데가 꼭짓점(폭 .85rem). 배너 윗변에서 .45rem 내려 붙는다. 색은 카탈로그 shop_banner_dk(#a86a00)."
+    },
+    "shop_tail_r": {
+      "clip": [[0, 0], [1, 0.5], [0, 1]],
+      "w_rem": 0.85, "h_rem": 1.9, "top_rem": 0.45,
+      "_": "T470 — style.css 2909 `.shop-banner::after { right: -.85rem; border-width: .95rem 0 .95rem .85rem; border-color: transparent transparent transparent #a86a00 }` — 위 것의 거울상 ▶(왼쪽 변이 배너에 붙고 오른쪽 가운데가 꼭짓점)."
     }
   }
 }

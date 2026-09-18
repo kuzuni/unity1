@@ -4252,6 +4252,7 @@
 - 판정: 자 초록 · `screen_shop*.png` 눈(꼬리가 뾰족하다).
 - 범위: `Assets/Scripts/Game/Ui/ShopSheet.cs` · `Assets/Forge/Resources/`(ClipShape 표) · `Assets/Tests/PlayMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
 - 🔄 **1회차 2026-09-18 06:2x 워커 R(sess-2015-28206 · 선점)**: 등재문 ⓐ~ⓒ 그대로 — ClipShape 표 두 키(T159 2회차 `pass_tail_l/r` 꼴) · `ShopSheet.Banner` 의 `tail-l`/`tail-r` 을 직사각 Panel 에서 `ClipShape.Face` 로 · 자 1. 판정 = 다음 런 자 초록 + `screen_shop*` 눈(꼬리가 뾰족하다).
+  → **1회차 push(06:3x)**: `ClipShapeUi.json` `shop_tail_l` `[[1,0],[1,1],[0,.5]]` · `shop_tail_r` `[[0,0],[1,.5],[0,1]]`(꼭짓점 셋 · 안쪽 변이 배너에 붙고 바깥 가운데가 뾰족) + 치수 `w_rem .85 · h_rem 1.9 · top_rem .45`(정본 2906~2909 그대로 · `ClipShape.Num` 으로 읽는다 — 코드에 수 0) · `ShopSheet.Banner` 두 꼬리를 `UiKit.Panel` 직사각(.85rem × (bh − .5rem))에서 `ClipShape.Face(…, "shop_banner_dk")` 로(색 키 그대로 · 높이가 «배너 − .5rem» 에서 정본 1.9rem 으로) · PlayMode `ShopUiTests.상점_배너의_좌우_꼬리는_정본_삼각형이고_치수와_자리가_표대로다`(표 꼭짓점·치수 + 실물 배너 «오늘의 특가» 의 두 꼬리 크기·붙는 자리·.45rem 내림·구운 면 존재·옛 bg 없음·색). `check_clip_paths` 문제 0(border 트릭은 clip-path 가 아니라 그 자의 우주 밖 — 이 절이 자로 지킨다) · dotnet build 0 오류 · `gate.sh` 막는 자 전부 rc 0. 판정 = 다음 런 그 칸 PASS + `screen_shop*.png` 눈(꼬리가 뾰족하다).
 
 ### T438 ✅ — PlayMode 통째 실종이 **되풀이되는데 아무도 «그 런이 어떤 환경이었나» 를 안 적는다**: 장부에 `sha·run·tests·missing_modes` 넷뿐이라 간헐의 짝을 맞출 자료가 0이다 (도구·CI·게이트 · T171·T180·T392·T435 의 **다섯 번째 재발** · 런 1007 실측 · §0-6 임자 없는 빨강)
 
