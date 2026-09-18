@@ -2192,3 +2192,64 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - 53회차와 같은 상자 넷(1629 · 3862 · 3933 · 4425/4432 · 4644 · 7042/7086)은 좌·우가 같은 판정이다 — 축을 갈라 세도 답이 갈라지지 않는 것을 한 번 더 확인했다.
 - **남긴 자 하나**: «제 폭의 절반을 되물리는 음의 마진»(`margin-left: −w/2` · 5714)은 값이 아니라 **원점 옮기기**다 — 클론이 피벗을 가운데로 두면 구조 ✅ 이고, 폭 키(`w_rem`)만 있으면 된다(결정 800).
 - **남은 축**(2 − 1 = **1 종**): `display` 310 — 값 축이 아니라 «상자가 있는가·흐름(flex/grid/none)» 축이라 «표 키» 자가 안 맞는다. 다음 회차는 자를 새로 세운다: `none` 은 «클론이 그 상자를 안 만드는가/`SetActive(false)`», `flex`/`grid` 는 «자식 배치가 같은 축인가», `inline*`/`block` 은 해당 없음.
+
+# T33 55회차 — 마지막 축 `display` 310: 자를 새로 세우고 `flex` 밖 89 를 센다 (2026-09-18 · 워커 U · sess-1913-17293)
+
+`display` 는 값 축이 아니라 **상자·흐름** 축이라 50~54회차의 «표 키가 있는가» 자가 안 맞는다. 셈은 47회차 자(주석 걷고 `[;{]\s*display\s*:`) — **310**(`@keyframes` 안 0 · `@media` 안 2). 값별: `flex` 221 · `block` 37 · `grid` 21 · `inline-flex` 13 · `none` 12(`!important` 1 포함) · `inline-block` 4 · `flow-root` 1 · `-webkit-box` 1.
+
+## 이 축의 자(결정 801)
+
+| 값 | 정본이 말하는 것 | 클론에서 묻는 것 |
+|---|---|---|
+| `none` (+ 그 짝 `block`/`flex` 토글) | 그 상자가 **없다**(자리도 안 차지한다) · 상태 클래스로 켜고 끈다 | 클론이 그 상자를 **안 만들거나 `SetActive(false)`** 하는가 · 켜는 조건이 같은가 |
+| `grid` | 자식이 **격자**로 선다 | 47회차 `grid-template-columns` 가 이미 자리마다 판정했다 — 그 행을 그대로 쓴다 |
+| `flex` · `inline-flex` | 자식이 **한 줄**(row 기본 · `flex-direction: column` 80 자리만 세로)로 흐른다 · `inline-` 은 상자 폭이 **내용만큼** | 자식을 x(또는 y)를 더해 가며 놓는가 · 칩은 폭을 내용/표 키로 재는가 |
+| `block` · `inline-block` · `flow-root` | HTML 흐름 안의 **줄 상자 종류**(span/img/small 을 블록으로) | UGUI 는 모든 상자가 제 RectTransform 이라 **해당 없음** — 단 `none` 의 짝(토글)이면 위 줄로 |
+| `-webkit-box` | `-webkit-line-clamp` 의 전제 | T351 말줄임 자(42회차 `text-overflow`)가 쥔다 |
+
+이 회차는 `flex` 221 을 빼고 **89** 를 센다(`none` 12 · `grid` 21 · `block` 37 · `inline-flex` 13 · `inline-block` 4 · `flow-root` 1 · `-webkit-box` 1). `flex` 221 은 56회차(자는 위 표 그대로 · `flex-direction: column` 80 자리를 먼저).
+
+## `none` 12 (+ 짝 토글 4)
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 363 `#app:has(> .modal:not(.hidden)) #boss-warning .bw-dim` | `none`(팝업이 열리면 보스 경고 어둠막을 뺀다) | `BattleOverlay.cs:330~331` `modal = PopupLayer.OpenCount > 0` → `Alpha(dim, modal ? 0 : WarnDim)` | ✅(구조 · 알파 0) |
+| 2 | 619 `.skill-btn .sk-name` | `none`(스킬 버튼에 이름 글자를 안 그린다 · ui.js 1470 은 넣는다) | `SkillBar.cs` 슬롯에 이름 글자 상자가 **없다** | ✅(상자 없음) |
+| 3~4 | 655 `.summon-sub` `none` · 656 `.summon-sub.summon-visible` `block` | 소환 시트 서브패널 — 고른 것만 켠다 | `SkillPetSheet.cs:114·138~139` `subRects[i].SetActive(false)` → `SetActive(on)` | ✅ ✅ |
+| 5 | 1724 `.modal.hidden, .hidden` | `none !important`(닫힌 팝업) | `Popups.cs` `PopupLayer` — 닫힌 팝업은 `SetActive(false)`/파괴(31회차·39회차가 이미 본 자리) | ✅ |
+| 6 | 3097 `.settings-list::-webkit-scrollbar` | `none`(스크롤바 안 그림) | 클론 스크롤 도우미 둘(`Popups.ScrollList`·`PetSkillKit.Scroll`)에 `Scrollbar` 가 **아예 없다**(39회차) | ✅(구조) |
+| 7~8 | 6934 `.sr-idle` `none` · 6935 `.done .sr-idle` `block` | 끝난 뒤 잔잔한 고리 | `SkillSummonResult.cs:724~752` 고리 알파 0 으로 만들고 `.done` 뒤에만 돈다(T334 18회차) | ✅ ✅ |
+| 9 | 7031 `.sr-grid.dense .sr-new, .sr-qty, .sr-dup` | `none`(빽빽한 판은 배지 셋을 뺀다) | `SkillSummonResult.cs:1039` `if (!dense) { … sr-qty · sr-dup · sr-new }` — dense 면 셋 다 안 만든다 | ✅(상자 없음) |
+| 10 | 7105 `.sr-grid.dense .sr-name, .sr-sub` | `none` | `SkillSummonResult.cs:945~947` dense 면 `nameH = subH = 0` · 이름판·부제 안 만든다 | ✅(상자 없음) |
+| 11~12 | 7139 `.sr-ok` `none` · 7188 `.done .sr-ok` `block` | [확인] 버튼은 끝나야 선다 | `SkillSummonResult.cs:1253` `ok.SetActive(false)` → `2222` `ok.SetActive(true); okAt = doneAt`(T458 팝) | ✅ ✅ |
+| 13 | 7187 `#summon-result-modal.done .sr-hint` | `none`(끝나면 안내를 뺀다) | `SkillSummonResult.cs:2221` `hint.SetActive(false)` | ✅ |
+| 14 | 7352 `.equip-cell.eqsw-hollow::before` | `none`(빈 소켓 동안 시대 무늬(4966 `::before`)를 뺀다 · 정본 주석 «칸 자체를 숨기면 구멍») | `EquipSwapFx.cs:255` `MakeHollow` — 틀(`Frame`) 하나만 남기고 자식 `Graphic` 전부 `enabled = false`(무늬 포함) | ✅(구조) |
+| 15~16 | 7372 `@media (prefers-reduced-motion) #equip-swap-fx` `none` · 7374 `.eqsw-hollow::before` `block` | OS «움직임 줄이기» 신호 | 유니티에 그 OS 신호가 없다 — `EquipSwapFx.cs:28`(결정 263) · `AgePattern.cs:16` 이 같은 판단 | — 해당 없음 ×2 |
+
+## `grid` 21 — 47회차 `grid-template-columns` 표 그대로
+
+703 `.age-row` △(흐름 배치 · 47회차 1번) · 728·802·827·967·1126·2088·2326·2515·2580·2730·2758·2815·2966·3061·3068·3390·4018 ✅ **17**(47회차 2·4·5·6·7·11·12·13·14·15~17·18·19·20·21·22번) · 798 `.check-grid` · 1666 `.pet-card` · 1681 `.stat-grid` —죽음 **3**(47회차 3·8~9·10번 — 정본 실물 0). `display: grid` 가 새로 말하는 것은 없다(열 수·폭은 그 축이 쥔다).
+
+## `inline-flex` 13 — «내용 폭 칩» 만 묻는다
+
+| # | 정본 | 클론 | 판정 |
+|---|---|---|---|
+| 1 | 116 `.currency-pills .pill` | `Hud.cs:113` `pillW = W("pill_w")` — 표 폭(정본도 재화 칸은 고정폭에 가깝다 · 53회차 1번 △ 와 같은 줄) | ✅(표 폭) |
+| 2 | 3907 `.sheet .dg-banner .dg-keys` · 3971 `.shop-sheet .cur-pill` | 재화 칩 — `DungeonSheet`·`ShopSheet.cs:52` `CurBar(… curW …)` 표 폭 | ✅ ✅ |
+| 4 | 4367 `.petup-bulk` · 5204 `.summon-bar .btn.x5-toggle` | ×N 토글 — `PetPanel`·`SkillPanel` `x5_left_*` 표 자리·폭(53회차 10~11번) | ✅ ✅ |
+| 6 | 4726 `.af-check` · 4783 `.af-spinner` | `ForgeAutoPopup` 체크 상자 `cb`(T415 13회차 `af_check_r_rem`) · 스피너 원 — 둘 다 정사각 표 크기 | ✅ ✅ |
+| 8 | 5065 `.fi-pill` · 5070 `.fi-pill-ico` | `ForgeInfoPopup.cs:84~87·266` «내용만큼이되 `min-width` 5.5rem 밑으로 안 준다»(T388 4회차 · `fi_pill_min_w_rem`) | ✅ ✅ |
+| 10 | 7495 `.rw-amt` · 7537 `.rw-anchor` · 7553 `.rw-tick` | 보상 연출 칩(`RewardBurst.cs`) — 44회차 `transition` 이 본 자리(rw-anchor 320 · rw-tick) · 글자 폭은 `TextWidth` | ✅ ×3 |
+| 13 | 7608 `.mt-inline` | 몹 얼굴 인라인 칸 — `PetSkillKit.PetFace` 정사각(43회차 `object-fit`) | ✅ |
+
+## `block` 37 · `inline-block` 4 · `flow-root` 1 · `-webkit-box` 1 = 43
+
+- **토글의 짝 4** 는 위 `none` 표에서 이미 셌다(656 · 6935 · 7188 · 7374).
+- `-webkit-box` 7048 `.sr-name > span` = `-webkit-line-clamp` 전제 → `TextClamp`(`SkillSummonResult.cs:945` `"sr_name"`) · 42회차 `text-overflow` 가 쥔다 — ✅.
+- 나머지 **38**(152 `#game3d` · 667·4613·5215 `small` · 756·1852·5557·6535·7393·7602 `img` · 1159 svg · 1822·2044·2522·2528·2803·2951·3380·3709·4619·4816·5150·5161·5309·5563·5568·6520·6531·7287·7288·7391·7395·7625 span/b/div · 124·1992·2209·7194 `inline-block` · 2790 `flow-root`)는 **HTML 줄 상자 종류**다 — UGUI 는 모든 요소가 제 `RectTransform` 이라 «블록이냐 인라인이냐» 가 없다. 그 자리의 실제 정보(폭·높이·여백)는 각 축의 회차가 이미 셌다 — **해당 없음 38**.
+
+## 이 회차의 판정
+
+- `display` 밖 89 = **✅ 46**(`none` 12 + 짝 4 중 ✅ 14 · `grid` ✅ 17 · `inline-flex` ✅ 13 · `-webkit-box` 1 · 토글 짝은 위에서) · **△ 1**(703 `.age-row` — 47회차 그대로) · **—죽음 3**(`grid` 798·1666·1681) · **해당 없음 40**(reduced-motion 2 + 줄 상자 종류 38) · 결함 0 · 새 번호 0.
+- **남긴 자(결정 801)**: `display` 는 «값» 이 아니라 «상자가 있는가 · 자식이 어느 축으로 흐르는가 · 폭이 내용을 따르는가» 셋으로 가른다 — `none` 은 `SetActive`/상자 없음, `grid`/`flex` 는 자식 배치 축, `inline-*` 은 내용 폭, `block` 류는 해당 없음.
+- **남은 것**: `flex` 221(이 축 안 · 56회차). 자는 위 표 그대로 — `flex-direction: column` 80 자리(세로 흐름)를 먼저 «클론이 y 를 더해 가며 놓는가» 로 세고, 나머지 141(가로 row 기본)은 «x 를 더해 가며 놓는가·`gap` 이 표에 있는가» 로. 그것이 끝나면 **대조표가 안 센 축은 0** 이다.
