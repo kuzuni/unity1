@@ -206,6 +206,13 @@ TABLE = {
     '.league-ticket-pill': ['Ui/LeagueSheet.cs$league_ticket_pill_r_rem'],
     '.league-challenge-row': ['Ui/LeagueSheet.cs$league_challenge_row_r_rem'],
     '.league-challenge-avatar': ['Ui/LeagueSheet.cs$league_challenge_avatar_r_rem'],
+    # T415 12회차 — 리그 넷 더(같은 갈래 · rem × 상수 → 표) + 채팅 미리보기 둘.
+    '.league-row': ['Ui/LeagueSheet.cs$league_row_r_rem'],
+    '.league-reward-banner': ['Ui/LeagueSheet.cs$lgr_banner_r_rem'],
+    '.league-collect-pill': ['Ui/LeagueSheet.cs$league_collect_pill_r_rem'],
+    '.league-reward-table': ['Ui/LeagueSheet.cs$league_reward_table_r_rem'],
+    '.chat-preview-avatar': u'✓정본 3232 .35rem ↔ 클론 `Hud.cs` 190 은 `chatbubble` 아이콘 한 장 — 정본 3235 주석대로 배경·테를 뺀 상자라 둥근 모서리가 화소로 안 난다(해당 없음 · `LeagueRadiusTests`(12회차) 가 그 사실을 적는다)',
+    '.chat-preview-badge': u'✓정본 3246 .6rem ↔ 클론 `Hud.cs` 196 `badgeH * 0.5f`(.36rem) — 뱃지 높이 .72rem 의 반이 .6rem 보다 작아 정본도 알약(결정 543) · `LeagueRadiusTests` 12회차 칸이 `RadiusRules.IsPill` 로 못박는다',
     # 알약 동치 셋(결정 543) — 정본 1rem 이 상자 반높이보다 커서 CSS 가 알약으로 줄이는 자리다.
     #   시즌 바: 높이 .0257H = 49.3px@1920 → 반 24.7 < 1rem 36.4 · 보상/등급 격자 알약: 높이 = Sub 36 × 1.5 = 54 → 반 27 < 36.4.
     '.league-season-bar': u'✓정본 2300 1rem ↔ 클론 `LeagueSheet.cs` 77 `barH * 0.5f`(24.7px) — 높이 .0257H 의 반이 1rem 보다 작아 정본도 알약(결정 543) · `LeagueRadiusTests` 가 IsPill 로 지킨다',

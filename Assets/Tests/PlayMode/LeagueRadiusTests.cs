@@ -39,5 +39,26 @@ namespace Forge.Tests.PlayMode
                 "정본 2516·2582 격자 알약 1rem ≥ 줄 높이의 반(" + (gridRowH * 0.5f).ToString("0.0") + "px) — 같은 알약 동치");
             Debug.Log("[T415] 시즌 바 " + barH.ToString("0.0") + "px · 격자 줄 " + gridRowH.ToString("0.0") + "px · 정본 1rem " + canon.ToString("0.0") + "px");
         }
+
+        /// <summary>T415 12회차 — 리그 넷 더(정본 2326 `.league-row` .6 · 2483 `.league-reward-banner` .3 · 2522 `.league-collect-pill` .5 · 2534 `.league-reward-table` .7rem)가
+        /// `rem × 상수` 에서 표로 옮겨졌다(값 그대로 · 화면 변화 0).</summary>
+        [Test]
+        public void 표는_리그_행_리본_수집_알약_보상_표_모서리_넷을_정본_값_그대로_쥔다()
+        {
+            Assert.AreEqual(0.6f * Rem, RadiusUi.Px("league_row_r_rem"), 1e-3f, "정본 2326 `.league-row { .6rem }`");
+            Assert.AreEqual(0.3f * Rem, RadiusUi.Px("lgr_banner_r_rem"), 1e-3f, "정본 2483 `.league-reward-banner { .3rem }`");
+            Assert.AreEqual(0.5f * Rem, RadiusUi.Px("league_collect_pill_r_rem"), 1e-3f, "정본 2522 `.league-collect-pill { .5rem }`");
+            Assert.AreEqual(0.7f * Rem, RadiusUi.Px("league_reward_table_r_rem"), 1e-3f, "정본 2534 `.league-reward-table { .7rem }`");
+        }
+
+        /// <summary>T415 12회차 — 채팅 미리보기 뱃지(정본 3246 `.chat-preview-badge { border-radius: .6rem }`)는 높이 .72rem 의 반(.36rem)이 .6rem 보다
+        /// 작아 정본도 알약으로 줄인다(결정 543) — 클론 `Hud.cs` 의 `badgeH * 0.5f` 가 그 동치다. 아바타(3232 .35rem)는 배경·테 없는 아이콘이라 자리가 없다.</summary>
+        [Test]
+        public void 채팅_미리보기_뱃지는_정본_06rem_이_알약으로_줄어든_자리다()
+        {
+            float canon = 0.6f * Rem, badgeH = 0.72f * Rem;
+            Assert.IsTrue(RadiusRules.IsPill(canon, badgeH), "반높이 .36rem < .6rem — 알약 동치(결정 543)");
+            Assert.Less(badgeH * 0.5f, canon, "클론이 쓰는 반높이가 정본 값보다 작다 — 그래서 반높이가 곧 정본이다");
+        }
     }
 }

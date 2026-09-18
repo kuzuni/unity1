@@ -5835,6 +5835,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   - 자 `LeagueRadiusTests`(새 · [Test] 둘): 표 다섯이 정본 값 그대로인가 · 알약 동치 셋의 셈(`RadiusRules.IsPill`).
   - 자 상태: 자리 초록 95 → **100** · ✓ 23 → **26** · **미정 87** · KNOWN 0 · 문제 0 · `--self-test` 38칸. `dotnet build` 0 오류 · `dotnet test` **851/851** · `gate.sh` 막는 자 rc 0.
   - 판정 = 다음 런 새 자 2/2 + 리그 화면 PNG 가 안 흔들린다(값이 같으니 안 바뀌어야 맞다).
+- 🔄 **12회차 2026-09-18 15:0x 워커 U(sess-1459-13738 · 죽은 lock 인수 — 워커 G 의 11회차 뒤 1214분)** — **11회차 판정 ✅**: 런 **1192**(`424c9ba` · d3b9951c 조상) `LeagueRadiusTests` 두 칸 PASS · EditMode 876/876. **12회차**: 미정 87 중 리그 넷 + 채팅 미리보기 둘 — `.league-row` 2326 .6 · `.league-reward-banner` 2483 .3 · `.league-collect-pill` 2522 .5 · `.league-reward-table` 2534 .7rem 은 `LeagueSheet.cs` 가 `rem × 상수` 로 박아 두던 값 → 표 `RadiusUi.json` 네 키(`league_row_r_rem`·`lgr_banner_r_rem`·`league_collect_pill_r_rem`·`league_reward_table_r_rem` · 값 그대로 · 화면 변화 0) · `.chat-preview-avatar` 3232 .35rem 은 정본 3235 주석대로 배경·테를 뺀 아이콘 상자라 화소가 없다(✓ 해당 없음) · `.chat-preview-badge` 3246 .6rem 은 뱃지 높이 .72rem 의 반(.36) < .6 이라 알약 동치(결정 543 · 클론 `badgeH × .5`). 자 `LeagueRadiusTests` +2([Test] · 표 넷 · 뱃지 IsPill). 자 눈금: 자리 초록 100 → **104** · ✓ 26 → **28** · 미정 87 → **81**. 게이트 `dotnet build` 0 오류 · 막는 자 전부 rc 0. 판정 = 다음 런 새 두 칸 + 리그 PNG 불변.
 
 
 ### T346 ✅ — 정본이 **탭바 위**에 띄우는 팝업 다섯이 클론에서는 **탭바 아래**다: `z-index` 112 전수에서 나온 다섯 자리 (Game·UI · T22·T78 뒤 · T33 18회차 등재)

@@ -131,7 +131,7 @@ namespace Forge.Game.Ui
         {
             float rem = PopupKit.Rem, w = UiKit.RefW;
             RectTransform row = PopupKit.Item(parent, "row-" + rank, -1f, rowH);
-            PopupKit.Outlined(row, "face", e.IsMe ? "pp_blue" : "league_row", rem * 0.6f, UiKit.L("line2_px"));   // T365 6회차 — 정본 2328 `.league-row` ol2(전엔 ol1)
+            PopupKit.Outlined(row, "face", e.IsMe ? "pp_blue" : "league_row", RadiusUi.Px("league_row_r_rem"), UiKit.L("line2_px"));   // T415 12회차 — 정본 2326 .6rem 을 표에서   // T365 6회차 — 정본 2328 `.league-row` ol2(전엔 ol1)
             float x = rem * 0.5f;
             TextMeshProUGUI rk = UiKit.Text(row, "rank", TextKind.Body, rank.ToString(), "stage_ink");
             rk.fontStyle = FontStyles.Bold;
@@ -216,7 +216,7 @@ namespace Forge.Game.Ui
             // 여태 `UiKit.Panel` 민무늬 직사각형이라 그 홈이 통째로 없었다. 꼭짓점은 `ClipShapeUi.json` 이 쥔다.
             ClipShape.Face(ribbon, "tail-l", "lgr_tail_l", -tailW, tailY, tailW, tailH, "lgr_ribbon_dk");
             ClipShape.Face(ribbon, "tail-r", "lgr_tail_r", rw, tailY, tailW, tailH, "lgr_ribbon_dk");
-            PopupKit.Outlined(ribbon, "face", "lgr_ribbon", rem * 0.3f, PopupKit.Line);
+            PopupKit.Outlined(ribbon, "face", "lgr_ribbon", RadiusUi.Px("lgr_banner_r_rem"), PopupKit.Line);   // T415 12회차 — 정본 2483 .league-reward-banner .3rem
             TextMeshProUGUI rt = UiKit.Text(ribbon, "text", TextKind.Body, "플래티넘 리그 보상", "stage_ink");
             rt.fontStyle = FontStyles.Bold;
             PopupKit.Ring(rt, "league_reward_banner", "pp_line");   // 정본 .league-reward-banner 2px
@@ -236,7 +236,7 @@ namespace Forge.Game.Ui
             RectTransform collect = UiKit.Box(card, "collect");
             float collectW = inner * 0.55f;
             UiKit.Place(collect, (cardW - collectW) * 0.5f, y, collectW, collectH);
-            Image collectFace = PopupKit.Outlined(collect, "face", "lgr_collect", rem * 0.5f, PopupKit.Line3);
+            Image collectFace = PopupKit.Outlined(collect, "face", "lgr_collect", RadiusUi.Px("league_collect_pill_r_rem"), PopupKit.Line3);   // T415 12회차 — 정본 2522 .league-collect-pill .5rem
             SurfaceArt.FillMasked(collectFace, "collect-grad", "lgr_collect_pill", collectW, collectH);   // 정본 .league-collect-pill linear-gradient(180deg, #e3e3e3, #c2c2c2) · T178 3회차
             TextMeshProUGUI c1 = UiKit.Text(collect, "label", TextKind.Sub, "수집까지:", "pp_ink");
             LineHeight.Apply(c1, "league_collect_pill_lh");   // T354 24회차 — 정본 2523 `.league-collect-pill { line-height: 1.3 }`
@@ -252,7 +252,7 @@ namespace Forge.Game.Ui
             // 흰 보상 표(카드 좌우 꽉)
             RectTransform table = UiKit.Box(card, "table");
             UiKit.Place(table, 0f, y, cardW, tableH);
-            PopupKit.Outlined(table, "face", "pp_paper", rem * 0.7f, UiKit.L("line2_px"));   // T365 6회차 — 정본 2537 `.league-reward-table` ol2(전엔 ol1)
+            PopupKit.Outlined(table, "face", "pp_paper", RadiusUi.Px("league_reward_table_r_rem"), UiKit.L("line2_px"));   // T415 12회차 — 정본 2534 .league-reward-table .7rem   // T365 6회차 — 정본 2537 `.league-reward-table` ol2(전엔 ol1)
             RectTransform rows = PopupKit.ScrollList(table, "rows", 0f, 0f, rem * 0.3f);
             float tierH = UiKit.H("lgr_tier_h");   // T378 10회차 — 정본 2540 주석 «티어 피치 8.61%H»(전엔 ×1.15 = 9.9%H · 4행 누적 +5.2%p)
             float rankW = UiKit.H("lgr_rank_w");   // T378 10회차 — 정본 2556 `.league-tier-rank { width: 2.4rem }` = 표 0.0455H(전엔 ×1.5 = 3.6rem)
