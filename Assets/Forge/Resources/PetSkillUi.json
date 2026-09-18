@@ -70,6 +70,8 @@
     "sr_solo_own": "#0a1028b3",
     "sr_again": "#2c3a70e6",
     "sr_again_ink": "#dfe7ff",
+    "sr_solo_line_ink": "#e8eeff",
+    "sr_dup_ink": "#dfeaff",
     "sr_charge": "#ffffff",
     "sr_hilite": "#ffffff80",
     "sb_bg": "#11151a",

@@ -778,5 +778,55 @@ namespace Forge.Tests.PlayMode
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true)) if (t.name == name) found.Add(t);
             return found;
         }
+
+        /// <summary>T396 17회차 — 소환 결과의 못박은 잉크 다섯(정본 5783 `.sr-solo-line` #e8eeff · 5789 `.sr-again` #dfe7ff ·
+        /// 7009 `.sr-dup` #dfeaff · 7138/8730 `.sr-ok` #2a1c04). 솔로 줄과 중복 배지는 클론이 흰색(#fff)으로 찍고 있었다 —
+        /// 정본은 살짝 푸른 흰색이라 «흰색이 아니다» 까지 묻는다(누가 편의로 white 로 되돌리면 여기서 운다).</summary>
+        [UnityTest]
+        public IEnumerator 소환_결과_솔로_줄_중복_배지_다시_소환_확인_글자는_못박은_잉크다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(SkillPetSheet.Instance != null && PetSkillHost.Ready); i++) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트");
+            var rolls = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "rare", Name = "가", IsNew = false, Qty = 1, NewQty = 0, Extra = "조각 +1" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", rolls, "rare", () => { });
+            Assert.IsNotNull(v, "소환 결과 창");
+            yield return null; yield return null;
+
+            Color white = Color.white;
+            Color solo = PetSkillStyle.C("sr_solo_line_ink"), dup = PetSkillStyle.C("sr_dup_ink"), again = PetSkillStyle.C("sr_again_ink"), ok = PetSkillStyle.C("sr_ok_ink");
+            Assert.AreEqual("#E8EEFF", "#" + ColorUtility.ToHtmlStringRGB(solo), "표 sr_solo_line_ink = 정본 5783");
+            Assert.AreEqual("#DFEAFF", "#" + ColorUtility.ToHtmlStringRGB(dup), "표 sr_dup_ink = 정본 7009");
+            Assert.AreEqual("#DFE7FF", "#" + ColorUtility.ToHtmlStringRGB(again), "표 sr_again_ink = 정본 5789");
+            Assert.AreEqual("#2A1C04", "#" + ColorUtility.ToHtmlStringRGB(ok), "표 sr_ok_ink = 정본 7138");
+
+            Transform soloBox = FindDeep(v.transform, "sr-solo");
+            Assert.IsNotNull(soloBox, "x1 요약 상자(sr-solo) — 항목 하나면 선다");
+            Transform line = FindDeep(soloBox, "line");
+            Assert.IsNotNull(line, "솔로 줄(line)");
+            var lineTexts = line.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true);
+            Assert.Greater(lineTexts.Length, 0, "솔로 줄에 글자 조각이 있다");
+            foreach (var t in lineTexts)
+            {
+                Assert.AreEqual(solo, t.color, "솔로 줄 글자 = sr_solo_line_ink");
+                Assert.AreNotEqual(white, t.color, "솔로 줄은 순백이 아니다(정본 #e8eeff)");
+            }
+            Transform dupB = FindDeep(v.transform, "sr-dup");
+            Assert.IsNotNull(dupB, "중복 배지(sr-dup) — Extra 가 있으면 선다");
+            TMPro.TextMeshProUGUI dt = dupB.Find("t").GetComponent<TMPro.TextMeshProUGUI>();
+            Assert.AreEqual(dup, dt.color, "중복 배지 글자 = sr_dup_ink");
+            Assert.AreNotEqual(white, dt.color, "중복 배지는 순백이 아니다(정본 #dfeaff)");
+            Transform okB = FindDeep(v.transform, "sr-ok");
+            Assert.IsNotNull(okB, "[확인](sr-ok)");
+            Assert.AreEqual(ok, FindDeep(okB, "t").GetComponent<TMPro.TextMeshProUGUI>().color, "[확인] 글자 = sr_ok_ink");
+            Transform againB = FindDeep(v.transform, "sr-again");
+            Assert.IsNotNull(againB, "[다시 소환](sr-again) — 항목 하나면 선다");
+            Assert.AreEqual(again, FindDeep(againB, "t").GetComponent<TMPro.TextMeshProUGUI>().color, "[다시 소환] 글자 = sr_again_ink");
+
+            for (int k = 0; k < 4 && SkillSummonResultView.Current != null; k++) { SkillSummonResultView.Current.OnTap(); yield return null; }
+        }
     }
 }

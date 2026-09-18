@@ -1040,7 +1040,7 @@ namespace Forge.Game.Ui
                     RectTransform db = PetSkillKit.Framed(wrap, "sr-dup", PetSkillStyle.C("sr_badge_bg"), PetSkillStyle.Px("sr_qty_r_rem"), PetSkillStyle.L("line1_px"));
                     ((Image)db.Find("line").GetComponent<Image>()).color = PetSkillStyle.C("sr_hilite");
                     UiKit.Anchor(db, new Vector2(0.06f, 0.93f), new Vector2(0f, 1f), Vector2.zero, bw, bh);
-                    TextMeshProUGUI dt = PetSkillKit.Text(db, "t", TextKind.Sub, e.Extra, PetSkillStyle.C("white"));
+                    TextMeshProUGUI dt = PetSkillKit.Text(db, "t", TextKind.Sub, e.Extra, PetSkillStyle.C("sr_dup_ink"));   // T396 17회차 — 정본 7009 `.sr-dup { color: #dfeaff }`(전엔 white)
                     WrapUi.Apply(dt, "sr_dup");   // T361 배선 — 이 파일이 내 lock 뒤라 3회차가 못 걸었다(결정 661)
                     Shrink(db, dt, PetSkillStyle.Rem(0.6f), bh);
                     UiKit.Fill(dt.rectTransform);
@@ -1260,7 +1260,7 @@ namespace Forge.Game.Ui
                 //   `check_text_glyphs` 가 rc 0 인 까닭은 그 자가 «TOAST_ICON 에 있으면 아이콘으로 치환된다» 로 빼기 때문이고,
                 //   자기 머리 주석이 바로 그 함정을 경고한다(«표에 있다» 가 «그 자리가 아이콘을 거친다» 는 뜻이 아니다).
                 RectTransform lt = UiKit.IconTextRow(sb, "line", TextKind.Sub, line, "white");
-                foreach (TextMeshProUGUI lt_t in lt.GetComponentsInChildren<TextMeshProUGUI>(true)) UiKit.TextShadow(lt_t, "sr_solo_line");   // T333 15회차 — 정본 5784 `.sr-solo-line { text-shadow: 0 1px 3px rgba(0,0,0,.7) }` · 아이콘 조각 사이 글 조각마다
+                foreach (TextMeshProUGUI lt_t in lt.GetComponentsInChildren<TextMeshProUGUI>(true)) { lt_t.color = PetSkillStyle.C("sr_solo_line_ink"); UiKit.TextShadow(lt_t, "sr_solo_line"); }   // T396 17회차 — 정본 5783 `.sr-solo-line { color: #e8eeff }`(전엔 white · IconTextRow 는 카탈로그 키만 받아 뒤에서 칠한다)   // T333 15회차 — 정본 5784 `.sr-solo-line { text-shadow: 0 1px 3px rgba(0,0,0,.7) }` · 아이콘 조각 사이 글 조각마다
                 UiKit.Place(lt, 0f, 0f, fw, sub * 1.3f);
                 float ow = PetSkillKit.TextWidth(TextKind.Sub, own) + PetSkillStyle.Rem(1.4f);
                 RectTransform ob = PetSkillKit.Framed(sb, "own", PetSkillStyle.C("sr_solo_own"), PetSkillStyle.Px("sr_solo_own_r_rem"), PetSkillStyle.L("line1_px"));

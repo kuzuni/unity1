@@ -342,6 +342,13 @@ TABLE_INK = {
     '.modal-card .btn.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink'],
     '.panel .btn.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink'],
     '#equip-sheet .btn.disabled': ['Ui/PetSkillKit.cs@PaperButton|res:PetSkillUi:disabled_ink'],
+    # ── T396 17회차 — 소환 결과 `.sr-*` 다섯(SkillSummonResult.cs 가 T458·T459 마감으로 열렸다). 셋은 이미 제 값(짝만),
+    #   둘(`.sr-solo-line` · `.sr-dup`)은 클론이 `white` 로 찍고 있었다 — 정본은 살짝 푸른 흰색(#e8eeff · #dfeaff)이다.
+    '.sr-solo-line': ['Ui/SkillSummonResult.cs|res:PetSkillUi:sr_solo_line_ink'],   # 5783 #e8eeff ↔ 전엔 white(IconTextRow "white")
+    '.sr-again': ['Ui/SkillSummonResult.cs|res:PetSkillUi:sr_again_ink'],           # 5789 #dfe7ff ↔ PetSkillUi sr_again_ink 같은 값(짝만)
+    '.sr-dup': ['Ui/SkillSummonResult.cs|res:PetSkillUi:sr_dup_ink'],               # 7009 #dfeaff ↔ 전엔 white
+    '.sr-ok': ['Ui/SkillSummonResult.cs|res:PetSkillUi:sr_ok_ink'],                 # 7138 #2a1c04 ↔ PetSkillUi sr_ok_ink 같은 값(짝만)
+    '.btn.btn.sr-ok.sr-ok': ['Ui/SkillSummonResult.cs|res:PetSkillUi:sr_ok_ink'],   # 8730 #2a1c04 — 같은 값을 같은 선택자 꼬리로 한 번 더(면 행의 8730 과 짝)
 }
 KNOWN_INK = {
     # T396 10회차 — 한 글자 안의 **부분 색**(<small>·<span> 조각): 클론은 그 글을 한 TMP 로 찍고 richText 를 안 켜므로(check_richtext)
