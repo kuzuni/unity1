@@ -71,7 +71,7 @@ namespace Forge.Tests.PlayMode
             root.App.GetWorldCorners(a); card.GetWorldCorners(c);
             float appW = a[2].x - a[0].x, appH = a[2].y - a[0].y;
             float bottomFrac = (a[2].y - c[0].y) / appH;   // 위에서 잰 카드 바닥
-            float widthFrac = (c[2].x - c[0].x) / appW;
+            float widthFrac = (c[2].x - c[0].x) / appW + PopupKit.Line3 * 2f / UiKit.RefW;   // T473 — 카드 rect 는 패딩 상자 · 정본 width 68.8% 는 카드 몸(테 포함)이라 테 두 겹을 더해 견준다
             Assert.AreEqual(BottomH, bottomFrac, BottomTol, "카드 바닥 = 86.9%H ±1.5(원본 shot-043224) — 지금 " + (bottomFrac * 100f).ToString("0.0") + "%");
             Assert.AreEqual(CardW, widthFrac, WTol, "카드 폭 = 68.8%W ±1(정본 1748) — 지금 " + (widthFrac * 100f).ToString("0.0") + "%");
             Assert.Greater(c[2].y - c[0].y, appH * 0.25f, "카드에 내용이 들어 높이가 있다(장착됨 카드 + 새 장비 + 버튼 줄)");

@@ -89,7 +89,9 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(app.height, 0f, "앱 상자");
 
             // ⓐ 폭 — 앱 폭의 68.9% (±1%p) · 정본 «원본 실측 339/492»
-            Assert.AreEqual(0.689f, rc.width / app.width, 0.01f, "카드 폭 = 앱 폭 × 68.9%(정본 3649 · 공용 75% 가 아니다) · 실측 " + (rc.width / app.width));
+            // T473 — 카드 rect 는 패딩 상자 · 정본 3649 width 68.9% 는 카드 몸(테 포함)이라 테 두 겹을 더해 견준다
+            float bodyW = rc.width / app.width + PopupKit.Line3 * 2f / UiKit.RefW;
+            Assert.AreEqual(0.689f, bodyW, 0.01f, "카드 몸 폭 = 앱 폭 × 68.9%(정본 3649 · 공용 75% 가 아니다) · 실측 " + bodyW);
             Assert.AreEqual(app.center.x, rc.center.x, app.width * 0.01f, "카드는 가로 가운데");
             // ⓑ 회색 판 위치 — 카드 위에서 판 위까지 = 원본 38.37 − 25.20 = 13.17%H (±1%p) · 판은 카드 안
             float panelTop = (rc.yMax - rs.yMax) / app.height;
