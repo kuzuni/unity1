@@ -1,6 +1,10 @@
 {
   "_": "T383 — §1 글자 하한의 예외 칸(Micro · 결정 633)에 «정본 크기» 를 주는 표. 정본이 rem 으로 못 박은 font-size 를 자리 키 → rem 으로 적고, 도우미 Ui/TextSizeUi.Apply(t, key) 가 종류 Micro 인 글자에 px(rem × PopupKit.Rem)로 건다. 자(TextSizeGateTests)는 «종류의 하한(Micro 18)» 만 보므로 정본 크기 그대로 서고, 하한 36 이 정본이 못박은 모양(<br> 줄 수)을 깨는 자리에만 쓴다 — 새로 쓰려면 정본 CSS 줄을 근거로 대고 §1 예외 목록에 한 줄 적는다. catalog.json 은 T364·T378·T387 lock 이라 곁 표(T65 꼴).",
   "size": {
+    "dgd_pill": {
+      "rem": 0.88,
+      "_": "T468 — style.css **5331** `.dgd-reward-pill { … padding: .3rem .9rem; font-size: **.88rem**; font-weight: 900; color: #fff }` = 32.0px — 던전 상세 «보상: 🔨N 🪙N» 알약의 라벨·숫자. 종전엔 하한 `Sub`(36 = .989rem · +12.4%)로 찍고 그 수에 `.ico` 1.45em 을 곱해 알약이 41.5px(정본 셈 37.3 · T433 등재문의 수)이었다. `Micro` 칸 + 이 값(T383·T450·T461·T464 길) · 알약 줄 상자·아이콘(1.29em)·숫자 폭도 이 크기로 센다. 열쇠 줄 1.5rem 은 하한 위라 `DungeonUi.json` `dgd_keys_font_rem`(Head 칸 + 크기). §1 예외 열두째 자리."
+    },
     "asc_guide": {
       "rem": 0.78,
       "_": "T464 — style.css **657** `.muted { color: #78909c; font-size: **.78rem**; font-weight: 400 }` ← ui.js 5865 `<p class=\"muted\">라인마다 조건을 채우면 …</p>`(승천 카드 안내 문단 · `.modal-card .muted` 3521 은 색만 덮는다). 하한 `Sub`(36 = .989rem)로 찍으면 +27%(런 1143 · 같은 카드 안 제목 `<small class=muted>` .78 과의 비 1.20 ↔ 원작 1.05). `AscendPopup.cs` 안내 문단이 `Micro` 칸 + 이 값으로 서고 상자 높이는 «크기 × 1.25 × 두 줄» 로 센다. §1 예외 아홉째 자리."

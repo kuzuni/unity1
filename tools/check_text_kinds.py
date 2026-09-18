@@ -44,7 +44,7 @@ TABLE = {
     '.float-dmg.dmg-kill': ['Battle/DamageNumbers.cs$dmg-kill'],          # 524 1.3rem 47.3 ↔ Button 44(−7%)
     '.profile-title': ['Ui/ProfilePopup.cs#title'],                       # 2991 1.5rem 54.6 ↔ Title 60(+10%)
     '.af-start': ['Ui/ForgeAutoPopup.cs#af-start'],                       # 4816 1.3rem 47.3 ↔ Button 44(−7%)
-    '.dgd-keys': ['Ui/DungeonDetailPopup.cs#keys'],                       # 5341 1.5rem 54.6 ↔ Title 60(+10%)
+    '.dgd-keys': ['Ui/DungeonDetailPopup.cs#keys|res:DungeonUi:dgd_keys_font_rem'],   # 5341 1.5rem 54.6 — T468: Head 칸(48 · −12%)에 표 dgd_keys_font_rem 1.5 로 크기를 준다(종전 Title 60 · +10%)
     '.rw-amt': ['Ui/RewardBurst.cs#rw-amt|res:RewardBurstUi:amt_font_rem'],   # 7494 1.32rem — 표 amt_font_rem 1.32 그대로
     # T391 2회차 — ⓐ Head 48 이 서서 ⓑ 로 옮긴 일곱(산 lock 밖 파일)
     '.tb-title': ['Ui/TechPanel.cs#title'],                               # 2242 1.25rem 45.5 ↔ Button 44(−3%)

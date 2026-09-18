@@ -108,8 +108,13 @@ namespace Forge.Game.Ui
             float stageRowH = stageLabelH + stageNumH;   // 난이도 수 = 정본 5310 `.dgd-stage b { 1.15rem }`(T404)
             // T433 — 정본 `.ico` 는 1.45em(863·1763·2597) 이라 **아이콘이 줄 상자를 민다**: 아이콘이 든 줄의 높이를 글자 줄로 잡으면 짧다(정본 2597 이 그 예외를 따로 적어 둔 까닭).
             //   알약 안엔 망치·코인 아이콘(정본 ui.js 4675) · 열쇠 줄은 아이콘 + 숫자(4676) — 둘 다 «글자 줄 상자 vs 아이콘 줄 상자» 중 큰 쪽(IconLineH · 표 DungeonUi.json ico_em).
-            float pillH = IconLineH(TextKind.Sub) + DungeonPopups.RemL("dgd_pill_pad_rem") * 2f;
-            float keysH = IconLineH(TextKind.Title);
+            // T468 — 두 줄의 글자 크기는 «가장 가까운 종류 칸» 이 아니라 정본 그대로: 5331 `.dgd-reward-pill { font-size: .88rem }`(하한 36 아래 → `Micro` + 표 TextSizeUi `dgd_pill` · §1 예외 열두째 자리)
+            //   · 5342 `.dgd-keys { font-size: 1.5rem }`(하한 위 → `Head` 칸에 크기만 · 곁 표 DungeonUi `dgd_keys_font_rem`). IconLineH 는 그 px 에 1.45 를 곱하므로
+            //   종류 칸(0.989 · 1.648rem)을 넣으면 줄 상자가 +12%·+10% 커졌다(T433 등재문의 셈 2.052 · 2.475rem 이 바로 이 두 수다).
+            float pillPx = TextSizeUi.Px("dgd_pill");
+            float keysPx = DungeonPopups.Rem(DungeonStyle.L("dgd_keys_font_rem"));
+            float pillH = IconLineH(pillPx) + DungeonPopups.RemL("dgd_pill_pad_rem") * 2f;
+            float keysH = IconLineH(keysPx);
             float btnH = DungeonPopups.RemL("dgd_btn_h_rem");
             float ch = Mathf.Max(H * UiKit.L("dgd_card_minh") - DungeonPopups.Line3 * 2f,   // T465 — 표의 min-height 는 border-box · 카드 rect 는 패딩 상자
                 heroH + DungeonPopups.RemL("dgd_hero_mb_rem") + stageMt + stageRowH + stageMb + pillH + DungeonPopups.RemL("dgd_pill_mb_rem")
@@ -161,7 +166,7 @@ namespace Forge.Game.Ui
             RectTransform pill = UiKit.Box(card, "reward-pill");
             UiKit.Place(pill, (cw - pw) * 0.5f, y, pw, pillH);
             UiKit.Rounded(pill, "bg", "dgd_pill", DungeonPopups.RemL("dgd_pill_r_rem"));
-            RewardText = BuildRewardRow(pill, dg.Rewards(curId, curStage), pw, pillH);
+            RewardText = BuildRewardRow(pill, dg.Rewards(curId, curStage), pw, pillH, pillPx);
             y += pillH + DungeonPopups.RemL("dgd_pill_mb_rem");
 
             // 버튼 둘은 바닥에서 잡는다(정본 .dgd-btns margin-bottom 2.45rem) — 열쇠 줄이 그 위 남는 공간을 나눠 가져야 하므로 먼저 셈한다.
@@ -175,7 +180,8 @@ namespace Forge.Game.Ui
             KeysText = NumFmt.Fmt(keys) + "/" + DungeonRules.MaxKeys;
             float kIco = keysH * 0.8f;
             float kw = keysH * 2.6f;
-            TextMeshProUGUI kt = DungeonPopups.Bold(card, "keys", TextKind.Title, KeysText, "white", TextAlignmentOptions.Left);
+            TextMeshProUGUI kt = DungeonPopups.Bold(card, "keys", TextKind.Head, KeysText, "white", TextAlignmentOptions.Left);
+            kt.fontSize = keysPx;   // T468 — 정본 5342 1.5rem(54.6px · Head 하한 48 위 · Title 60 은 +10%)
             UiKit.OutlinePx(kt, "pp_line", KeylineUi.Stroke("dgd_keys", kt.fontSize));   // 정본 .dgd-keys 4px
             UiKit.Place(kt.rectTransform, cx - kw * 0.5f + kIco * 1.1f, ky, kw, keysH);
             Image key = UiKit.Icon(card, "key", "key");
@@ -203,12 +209,11 @@ namespace Forge.Game.Ui
 
         /// <summary>T433 — 인라인 아이콘이 든 줄의 상자 높이. 정본 `.ico` 기본 1.45em(표 `ico_em`)이 기준선 위에 서서 줄 상자를 밀므로
         /// 줄 상자 = max(글자 줄 상자 `LineH(k)`, 글자 x ico_em + 기준선 아래로 삐져나오는 몫). 아래 몫은 글꼴 자산의 descender(pointSize 비율)로 낸다 — 수를 코드에 안 박는다.</summary>
-        public static float IconLineH(TextKind k)
+        public static float IconLineH(float fs)
         {
-            float fs = DungeonPopups.Kind(k);
             var f = UiFont.Primary.faceInfo;
             float below = Mathf.Abs(f.descentLine) / f.pointSize * fs;
-            return Mathf.Max(DungeonPopups.LineH(k), fs * DungeonStyle.L("ico_em") + below);
+            return Mathf.Max(fs * 1.25f, fs * DungeonStyle.L("ico_em") + below);   // T468 — 글자 줄 상자 = 크기 × 1.25(DungeonPopups.LineH 와 같은 규약) · 종류 칸이 아니라 px 를 받는다
         }
 
         /// <summary>알약 버튼의 라벨(`DungeonPopups.Pill` 이 «label» 로 세운다)에 정본 줄 간격을 건다 — 없으면 조용히 지나간다.</summary>
@@ -221,10 +226,10 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>«보상: 🔨302 🪙27.1k» — 원작 Dungeons.rewardText 의 이모지를 아이콘으로(iconizeHTML). 글자 판(그림 없이)도 돌려준다.</summary>
-        static string BuildRewardRow(RectTransform pill, DungeonRewards r, float pw, float ph)
+        static string BuildRewardRow(RectTransform pill, DungeonRewards r, float pw, float ph, float fs)
         {
-            float lh = DungeonPopups.LineH(TextKind.Sub);
-            float ico = lh * 1.29f / 1.25f;
+            float lh = fs * 1.25f;   // T468 — 정본 5331 .88rem(표 TextSizeUi `dgd_pill`) 기준 · 종전 LineH(Sub) 36px
+            float ico = fs * 1.29f;
             float padX = DungeonPopups.Rem(0.9f);
             float y = (ph - lh) * 0.5f;
             string[] keys = { "hammers", "coins", "tickets", "eggCurrency", "potions" };
@@ -235,7 +240,8 @@ namespace Forge.Game.Ui
             var parts = new System.Collections.Generic.List<int>();
             for (int i = 0; i < vals.Length; i++) if (Math.Floor(vals[i]) > 0) { parts.Add(i); total += ico + NumFmt.Fmt(vals[i]).Length * lh * 0.5f + lh * 0.3f; }
             float x = Mathf.Max(padX, (pw - total) * 0.5f);
-            TextMeshProUGUI label = DungeonPopups.Bold(pill, "label", TextKind.Sub, "보상:", "white", TextAlignmentOptions.Left);
+            TextMeshProUGUI label = DungeonPopups.Bold(pill, "label", TextKind.Micro, "보상:", "white", TextAlignmentOptions.Left);
+            TextSizeUi.Apply(label, "dgd_pill");   // T468 — 정본 5331 .88rem(§1 예외 열두째 자리)
             UiKit.OutlinePx(label, "pp_line", KeylineUi.Stroke("dgd_reward", label.fontSize));   // 정본 .dgd-reward-pill 2px(상속)
             UiKit.Place(label.rectTransform, x, y, lh * 2.2f, lh);
             x += lh * 2.2f;
@@ -248,7 +254,8 @@ namespace Forge.Game.Ui
                 x += ico;
                 string v = NumFmt.Fmt(vals[i]);
                 float vw = v.Length * lh * 0.5f + lh * 0.3f;
-                TextMeshProUGUI t = DungeonPopups.Bold(pill, "val-" + keys[i], TextKind.Sub, v, "white", TextAlignmentOptions.Left);
+                TextMeshProUGUI t = DungeonPopups.Bold(pill, "val-" + keys[i], TextKind.Micro, v, "white", TextAlignmentOptions.Left);
+                TextSizeUi.Apply(t, "dgd_pill");
                 UiKit.OutlinePx(t, "pp_line", KeylineUi.Stroke("dgd_reward", t.fontSize));
                 UiKit.Place(t.rectTransform, x, y, vw, lh);
                 x += vw;
