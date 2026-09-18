@@ -22,6 +22,9 @@ T365 — 정본 상자 테(`border` · `border-top/-bottom/-left/-right`) ↔ �
 
 사용:  python3 tools/check_box_borders.py [--css <style.css>] [--game <Assets/Scripts/Game>] [--list] [--self-test]
 rc:    0 = 표의 선택자가 전부 정본에 있고 · 표의 자리 전부가 (테 호출이 있거나 KNOWN) · 1 = 아니다 · 2 = 정본 CSS 를 못 읽었다
+
+테 **스타일**(T472): 정본 `border-style:` 과 단축 `border:` 안의 낱말(dashed/dotted/double/solid/none)을 선택자별로 읽어(뒤 규칙이 덮는다)
+  DASHED 표의 선택자가 정본에서 정말 `dashed` 인지 · 그 자리에 점선 호출(`SurfaceArt.DashedFrame`)이 있는지 본다. 정본이 dashed 로 적었는데 표에 없는 선택자는 «점선 미정» 으로 세기만 한다.
 """
 import os
 import re
@@ -39,6 +42,7 @@ TABLE = {
     '.sr-dup': ['Ui/SkillSummonResult.cs#sr-dup'],
     '.sr-hint': ['Ui/SkillSummonResult.cs#sr-hint'],
     '.sr-new': ['Ui/SkillSummonResult.cs#sr-new'],
+    '.cmp-card': ['Ui/ForgeUi.cs@ItemCard'],   # T472 — 1826 ol3 --pp-line: 실물은 빈 슬롯 갈래의 점선 테(DashedFrame · Line3) — 장착·새 장비 갈래는 1812·1815 가 `border: none` 으로 덮는다(그 둘은 미정 그대로 · 같은 메서드라 «테 호출 0» 으로 못 가른다)
     # 한 줄 테 — UiKit.Line(p, "line", …)
     '#topbar|bottom': ['Ui/Hud.cs@Build'],
     '#tabbar|top': ['Ui/TabBar.cs@Build'],
@@ -176,9 +180,9 @@ KNOWN = {
     # T365 14회차 — 오프라인 요율 원판 둘은 T417 1회차(`42083bc`)가 정본 7268 대로 색 원·테를 걷어 이제 «정본대로 테 없음» ok 다 → KNOWN 에서 걷었다(경고 줄 2 → 0 · 표 자리 초록 84 그대로).
 }
 
-HELPERS = ('PopupKit.Outlined', 'RadiusUi.Outlined', 'ForgeUi.Tile', 'UiKit.Line', 'PetSkillKit.Framed', 'PetSkillKit.Orb', 'DungeonPopups.Bordered', 'DungeonPopups.BorderedCircle', 'UiKit.Rounded', 'UiKit.Circle', 'Bordered', 'BorderedCircle')   # 맨 이름 둘은 DungeonPopups 제 안의 호출(10회차 · CurPill)
+HELPERS = ('PopupKit.Outlined', 'RadiusUi.Outlined', 'ForgeUi.Tile', 'UiKit.Line', 'PetSkillKit.Framed', 'PetSkillKit.Orb', 'DungeonPopups.Bordered', 'DungeonPopups.BorderedCircle', 'UiKit.Rounded', 'UiKit.Circle', 'Bordered', 'BorderedCircle', 'SurfaceArt.DashedFrame')   # 맨 이름 둘은 DungeonPopups 제 안의 호출(10회차 · CurPill)
 # 도우미별 폭 인자 자리(0부터 · 이름 인자는 1) — Rounded 는 짝(안쪽 면의 «r - 폭»)에서 읽는다
-WIDTH_ARG = {'PopupKit.Outlined': 4, 'RadiusUi.Outlined': 4, 'ForgeUi.Tile': 5, 'UiKit.Line': 3, 'PetSkillKit.Framed': 4, 'PetSkillKit.Orb': 3, 'DungeonPopups.Bordered': 4, 'DungeonPopups.BorderedCircle': 3, 'Bordered': 4, 'BorderedCircle': 3}
+WIDTH_ARG = {'PopupKit.Outlined': 4, 'RadiusUi.Outlined': 4, 'ForgeUi.Tile': 5, 'UiKit.Line': 3, 'PetSkillKit.Framed': 4, 'PetSkillKit.Orb': 3, 'DungeonPopups.Bordered': 4, 'DungeonPopups.BorderedCircle': 3, 'Bordered': 4, 'BorderedCircle': 3, 'SurfaceArt.DashedFrame': 6}   # T472 — 점선 테(parent, name, colorKey, w, h, radius, **line**, dash, gap)
 CALL_RE = re.compile(r'\b(' + '|'.join(re.escape(h) for h in HELPERS) + r')\s*\(')
 TIER_PATTERNS = [
     ('ol4', re.compile(r'line4_px')),
@@ -192,6 +196,14 @@ DECL = re.compile(r'(?<![-\w])border(-top|-bottom|-left|-right)?\s*:\s*([^;}]+)'
 #   단축보다 **앞**에 오면 단축이 다시 굵기를 정하므로 무시한다. 단축 없이 `border-width` 만 있는 블록(장식 삼각형 2908 · 키프레임 6131)은 테 선언이 아니라 안 센다.
 WIDTH_DECL = re.compile(r'(?<![-\w])border(-top|-bottom|-left|-right)?-width\s*:\s*([^;}]+)')
 SIDES = ('top', 'bottom', 'left', 'right')
+# T472 — 테 스타일: `border-style:` 과 단축 안의 낱말. 변별 스타일(`border-top-style`)은 정본에 없어 안 읽는다.
+STYLE_DECL = re.compile(r'(?<![-\w])border-style\s*:\s*([^;}]+)')
+STYLE_WORDS = ('dashed', 'dotted', 'double', 'solid', 'none')
+DASH_CALL = re.compile(r'SurfaceArt\.DashedFrame\s*\(')
+# 정본이 점선으로 적은 선택자 → 점선 호출이 있어야 하는 클론 자리(꼴은 TABLE 과 같다 · «—» 는 대조 안 함)
+DASHED = {
+    '.cmp-card.empty': ['Ui/ForgeUi.cs@ItemCard'],   # 1830 — 제작 비교·장비 상세의 빈 슬롯 카드(면 없음 + 점선 ol3 · T472 1회차)
+}
 
 
 def _override_width(val, width):
@@ -230,6 +242,39 @@ def color_of(value):
         return '--' + m.group(1)
     m = re.search(r'(#[0-9a-fA-F]{3,8}|rgba?\([^)]*\))', v)
     return m.group(1) if m else ''
+
+
+def _style_word(val):
+    for tok in val.replace('!important', ' ').split():
+        if tok in STYLE_WORDS:
+            return tok
+    return None
+
+
+def parse_styles(css_text):
+    """{선택자: (줄, 스타일)} — `border-style:` 과 변 없는 단축 `border:` 안의 스타일 낱말 · 정본 순서로 뒤 규칙이 앞을 덮는다(T472)."""
+    css = _blank_comments(css_text)
+    rows = []
+    for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', css):
+        body = m.group(2)
+        sels = [' '.join(s.split()) for s in m.group(1).split(',')]
+        for d in DECL.finditer(body):
+            if d.group(1):
+                continue
+            w = _style_word(d.group(2))
+            if w:
+                rows.append((m.start(2) + d.start(), sels, w))
+        for d in STYLE_DECL.finditer(body):
+            w = _style_word(d.group(1))
+            if w:
+                rows.append((m.start(2) + d.start(), sels, w))
+    out = {}
+    for pos, sels, w in sorted(rows, key=lambda r: r[0]):
+        line = css.count('\n', 0, pos) + 1
+        for s in sels:
+            if s:
+                out[s] = (line, w)
+    return out
 
 
 def parse_rules(css_text):
@@ -505,8 +550,37 @@ def check_target(game_dir, target, want_tier=None):
     return 'ok', where + ' · 단 ' + ('/'.join(sorted(tiers)) if tiers else '못 읽음')
 
 
+def check_dashed(game_dir, target):
+    """(상태, 설명) — 'ok' | 'missing'(자리는 있는데 점선 호출 없음) | 'absent' | 'skip'. 점선 호출 = `SurfaceArt.DashedFrame(` (T472)."""
+    if target.startswith('—'):
+        return 'skip', target[1:]
+    file_part, sep, tail = re.match(r'([^#@]+)([#@]?)(.*)', target).groups()
+    path = os.path.join(game_dir, file_part)
+    if not os.path.isfile(path):
+        return 'absent', '파일 없음 ' + file_part
+    src = _read(path)
+    if sep == '@':
+        body = _method_body(src, tail)
+        if body is None:
+            return 'absent', '메서드 없음 ' + tail + '('
+        where = '메서드 ' + tail + '( 본문'
+    elif sep == '#':
+        body = ''
+        for m in DASH_CALL.finditer(src):
+            args, _ = _args(src, m.end() - 1)
+            if len(args) > 1 and args[1].strip('"') == tail:
+                body = m.group(0)
+                break
+        where = '"%s" 자리' % tail
+    else:
+        body, where = src, '파일 전체'
+    if DASH_CALL.search(body):
+        return 'ok', where + ' · 점선 호출 있음'
+    return 'missing', where + '에 점선 호출(SurfaceArt.DashedFrame)이 없다'
+
+
 # ── 대조 ─────────────────────────────────────────────────────────────
-def run(css_text, game_dir, table, known, out=print, list_pending=False):
+def run(css_text, game_dir, table, known, out=print, list_pending=False, dashed=None):
     rows = parse_rules(css_text)
     final, overridden = collapse(rows)
     tiers = {}
@@ -542,12 +616,34 @@ def run(css_text, game_dir, table, known, out=print, list_pending=False):
                 problems += 1
     for t in known_now_ok:
         out('  · KNOWN 인데 이제 테가 있다: %s → KNOWN 에서 지워라' % t)
+    # T472 — 테 스타일: 점선 표의 선택자는 정본에서 dashed 여야 하고 그 자리엔 점선 호출이 있어야 한다
+    styles = parse_styles(css_text)
+    dashed = dashed or {}
+    n_dash = 0
+    for sel, targets in dashed.items():
+        st = styles.get(sel)
+        if not st or st[1] != 'dashed':
+            out('  ✗ 점선 표의 선택자가 정본에서 dashed 가 아니다: %s(%s)' % (sel, st[1] if st else '선언 없음'))
+            problems += 1
+            continue
+        for t in targets:
+            state, why = check_dashed(game_dir, t)
+            if state in ('ok', 'skip'):
+                n_dash += 1
+            elif (sel + ' → ' + t) in known or t in known:
+                n_known += 1
+            else:
+                out('  ✗ %s → %s: 점선 아님(%s)' % (sel, t, why))
+                problems += 1
+    dash_pending = sorted((l, s) for s, (l, w) in styles.items() if w == 'dashed' and s not in dashed)
     if list_pending:
         for sel, side, line, val in pending:
             out('· 미정  style.css %5d  %-52s %-6s  %-8s %s' % (line, sel[:52], side or 'all', width_tier(val), color_of(val)))
+        for line, sel in dash_pending:
+            out('· 점선 미정  style.css %5d  %s' % (line, sel))
     tier_txt = ' · '.join('%s %d' % (k, tiers[k]) for k in ('ol3', 'ol2', 'none', 'ol1', 'cellb', 'ol4', 'ol15', 'direct') if k in tiers)
-    out('%s check_box_borders: 정본 테 선언 %d → 선택자×변 %d(덮인 %d) · 단 %s · 표 자리 초록 %d · KNOWN %d · 건너뜀 %d · 미정 %d(--list) · 문제 %d'
-        % ('✓' if problems == 0 else '✗', len(rows), len(final), overridden, tier_txt, n_ok, n_known, n_skip, len(pending), problems))
+    out('%s check_box_borders: 정본 테 선언 %d → 선택자×변 %d(덮인 %d) · 단 %s · 표 자리 초록 %d · KNOWN %d · 건너뜀 %d · 미정 %d(--list) · 점선 %d(미정 %d) · 문제 %d'
+        % ('✓' if problems == 0 else '✗', len(rows), len(final), overridden, tier_txt, n_ok, n_known, n_skip, len(pending), n_dash, len(dash_pending), problems))
     return 1 if problems else 0
 
 
@@ -563,6 +659,7 @@ def self_test():
 .g { border: var(--ol2) solid #000; color: #fff; border-width: var(--ol1); box-shadow: inset 0 -5px 0 #4e0507; }
 .h { border-width: var(--ol1); border: var(--ol3) solid #000; }
 .i { border-width: .95rem .85rem .95rem 0; border-color: transparent #a86a00 transparent transparent; }
+.j { border-style: dashed; opacity: .7; }
 """
     cs = """
 namespace X {
@@ -666,6 +763,27 @@ namespace X {
     # 같은 도우미(@Toast)를 두 선택자가 쓰는데 하나만 KNOWN — 맞는 쪽(.b ol1) 때문에 «이제 있다» 가 울면 안 된다(4회차 수리)
     run(css, tmp, {'.a': ['Ui/Face.cs@Toast'], '.b': ['Ui/Face.cs@Toast']}, {'.a → Ui/Face.cs@Toast': '단 어긋남 임자 있음'}, logs3.append)
     checks.append(('쌍 열쇠는 다른 선택자의 초록에 «이제 있다» 로 안 운다', not any('이제 테가 있다' in l for l in logs3) and any('문제 0' in l for l in logs3)))
+    # T472 — 테 스타일(border-style · 단축 안 낱말) · 점선 표 · 점선 호출
+    st = parse_styles(css)
+    checks.append(('border-style: dashed 를 읽는다(.j) · border-style 뿐인 블록은 테 선언으로 안 센다', st.get('.j', (0, ''))[1] == 'dashed' and ('.j', '') not in tiers))
+    st2 = parse_styles('.k { border: var(--ol1) dashed #000; } .k { border-style: solid; } .l, .m { border: 2px solid #000; } .n { border-top: 1px dashed #000; }')
+    checks.append(('단축 안 스타일 낱말도 읽고 뒤 border-style 이 덮는다(.k solid) · 쉼표 목록은 선택자마다(.l·.m) · 변 있는 단축은 안 읽는다(.n)',
+                   st2['.k'][1] == 'solid' and st2['.l'][1] == 'solid' and st2['.m'][1] == 'solid' and '.n' not in st2))
+    with open(os.path.join(ui, 'Dash.cs'), 'w', encoding='utf-8') as f:
+        f.write('class Q {\n'
+                '    void Empty(Transform p, float w, float h) { SurfaceArt.DashedFrame(p, "line", "pp_line", w, h, 3f, PopupKit.Line3, PopupKit.Line3 * 3f, PopupKit.Line3 * 3f); }\n'
+                '    void Solid(Transform p) { PopupKit.Outlined(p, "face", "pp_paper", 4f, PopupKit.Line3); }\n'
+                '}\n')
+    checks.append(('점선 자리에 DashedFrame 이 있으면 ok · 실선 도우미뿐이면 «점선 아님»', check_dashed(tmp, 'Ui/Dash.cs@Empty')[0] == 'ok' and check_dashed(tmp, 'Ui/Dash.cs@Solid')[0] == 'missing'))
+    checks.append(('이름(#line)으로도 점선 호출을 찾는다', check_dashed(tmp, 'Ui/Dash.cs#line')[0] == 'ok' and check_dashed(tmp, 'Ui/Dash.cs#face')[0] == 'missing'))
+    checks.append(('DashedFrame 은 테 호출이고 단은 일곱째 인자에서 읽는다(ol3)', check_target(tmp, 'Ui/Dash.cs@Empty', 'ol3')[0] == 'ok' and check_target(tmp, 'Ui/Dash.cs@Empty', 'ol1')[0] == 'tier'))
+    logs6 = []
+    checks.append(('점선 표가 맞으면 rc 0 · 요약에 «점선 1»', run(css, tmp, good, {}, logs6.append, dashed={'.j': ['Ui/Dash.cs@Empty']}) == 0 and any('점선 1(' in l for l in logs6)))
+    checks.append(('점선 자리가 실선이면 rc 1', run(css, tmp, good, {}, [].append, dashed={'.j': ['Ui/Dash.cs@Solid']}) == 1))
+    checks.append(('정본이 dashed 가 아닌 선택자를 점선 표에 적으면 rc 1', run(css, tmp, good, {}, [].append, dashed={'.a': ['Ui/Dash.cs@Empty']}) == 1))
+    logs7 = []
+    run(css, tmp, good, {}, logs7.append, list_pending=True)
+    checks.append(('정본이 dashed 로 적었는데 점선 표에 없으면 «점선 미정» 으로 세기만 한다(막지 않는다)', any('점선 0(미정 1)' in l for l in logs7) and any('점선 미정' in l and '.j' in l for l in logs7)))
     failed = [n for n, ok in checks if not ok]
     for n, ok in checks:
         print(('  ✓ ' if ok else '  ✗ ') + n)
@@ -687,7 +805,7 @@ def main(argv):
     if not os.path.isfile(css_path):
         print('✗ 정본 CSS 를 못 읽었다: %s (git clone --depth 1 https://github.com/kuzuni/wwwww .wwwww-src)' % css_path)
         return 2
-    return run(_read(css_path), game_dir, TABLE, KNOWN, list_pending=list_pending)
+    return run(_read(css_path), game_dir, TABLE, KNOWN, list_pending=list_pending, dashed=DASHED)
 
 
 if __name__ == '__main__':

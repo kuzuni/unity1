@@ -11,10 +11,14 @@
     "cmp_lower_pull_rem": 0.85,
     "cmp_row_pad_bottom_rem": 1.44,
     "cmp_row_btn_h_rem": 4.2,
+    "cmp_empty_dash_ratio": 3,
+    "cmp_empty_gap_ratio": 3,
     "sellwarn_btn_min_h_rem": 2.9,
     "sellwarn_btn_pad_y_rem": 0.55
   },
   "_src": {
+    "cmp_empty_dash_ratio": "T472 — style.css 1830 `.cmp-card.empty { border-style: dashed }` 의 **대시 길이 ÷ 테 굵기**(1826 `border: var(--ol3) …` = ol3). CSS 는 대시 길이를 안 정하고 브라우저가 정한다 — Blink 는 굵기의 3배(틈도 3배)로 잡고 둘레에 정수 개가 들어가게 주기를 조금 맞춘다(Core DashedFrameRules.FitPeriod). 정본 캡처 shot-043224 는 두 슬롯이 다 장착이라 빈 카드가 안 찍혀 **실측이 아니라 브라우저 기본**이다 — 빈 슬롯이 찍힌 원작 캡처가 생기면 그 수로 바꾼다.",
+    "cmp_empty_gap_ratio": "T472 — 위 대시의 짝, **틈 길이 ÷ 테 굵기**(Blink 기본 3).",
     "sellwarn_btn_min_h_rem": "T378 12회차 — style.css 3565 `.modal-card > .row .btn:not(.sm):not(.xs) { min-height: 2.9rem; font-size: 1rem }` (border-box). 판매 경고 [판매][취소]의 하한 — 실제 높이는 글(판매 + small 두 줄)이 더 크면 글이 정한다(PopupKit.TwoLineBtnH 가 둘 중 큰 쪽).",
     "sellwarn_btn_pad_y_rem": "T378 12회차 — style.css 663 `.btn { padding: .55rem .8rem }`. 판매 경고 버튼의 세로 패딩(사이트 규칙이 안 덮는다) — 높이 = 이 값 x 2 + Sub 두 줄의 글꼴 줄높이(line-height 미선언 = normal)를 3565 하한과 견준다. 전엔 btn_h x 1.5 가 코드에 박혀 있었다(T378 임시 목록).",
     "card_w": "style.css 1748 `#craft-modal .modal-card.wide { width: 68.8%; }` — 공용 .modal-card.wide 74% 가 아니다(원본 흰 본체 67.33%W + 테두리·AA 1.46%p)",

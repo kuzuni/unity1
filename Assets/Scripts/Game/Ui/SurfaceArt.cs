@@ -525,6 +525,50 @@ namespace Forge.Game.Ui
             return img;
         }
 
+        /// <summary>
+        /// T472 — 둥근 사각 **점선 테** 한 장(정본 `border-style: dashed`). 카드 크기 그대로 캔버스 px 1:1 로 굽고(되풀이가 아니라 타일이 없다) 2×2 초표본으로 가장자리를 부드럽게 한다.
+        /// 셈(띠·둘레 자리·정수 개 맞춤)은 Core <see cref="DashedFrameRules"/> 가 쥔다. 판은 이름으로 캐시된다.
+        /// </summary>
+        public static Sprite BakeDashedFrame(float wCanvasPx, float hCanvasPx, float radius, float thick, float dash, float gap, Color ink)
+        {
+            int w = Mathf.Max(2, Mathf.RoundToInt(wCanvasPx)), h = Mathf.Max(2, Mathf.RoundToInt(hCanvasPx));
+            string name = "dashed-" + w + "x" + h + "-" + Mathf.RoundToInt(radius * 10f) + "-" + Mathf.RoundToInt(thick * 10f) + "-" + Mathf.RoundToInt(dash * 10f) + "-" + Mathf.RoundToInt(gap * 10f) + "-" + ColorUtility.ToHtmlStringRGBA(ink);
+            Sprite hit;
+            if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            Color32[] px = new Color32[w * h];
+            Color32 clear = new Color32(0, 0, 0, 0);
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    int n = 0;
+                    for (int s = 0; s < 4; s++)
+                    {
+                        // ⚠ 유니티 텍스처의 y 는 아래가 0 · CSS 는 위가 0 — 뒤집어 잰다(BakeStripe 와 같은 까닭). 화소 안 네 점(¼·¾)을 본다.
+                        double cx = x + ((s & 1) == 0 ? 0.25 : 0.75), cy = (h - 1 - y) + ((s & 2) == 0 ? 0.25 : 0.75);
+                        if (DashedFrameRules.IsInk(cx, cy, w, h, radius, thick, dash, gap)) n++;
+                    }
+                    if (n == 0) { px[y * w + x] = clear; continue; }
+                    Color c = ink; c.a *= n / 4f;
+                    px[y * w + x] = c;
+                }
+            }
+            return Finish(name, w, h, px);
+        }
+
+        /// <summary>T472 — 부모를 꽉 채우는 점선 테 겹(이름은 테 자리 규약대로 `line`). <paramref name="w"/>·<paramref name="h"/> 는 부모 카드의 캔버스 px 크기.</summary>
+        public static Image DashedFrame(RectTransform parent, string name, string colorKey, float w, float h, float radius, float line, float dash, float gap)
+        {
+            RectTransform rt = UiKit.Box(parent, name);
+            UiKit.Fill(rt);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.type = Image.Type.Simple;
+            img.sprite = BakeDashedFrame(w, h, radius, line, dash, gap, UiKit.C(colorKey));
+            img.color = Color.white;
+            return img;
+        }
+
         static Sprite Finish(string name, int w, int h, Color32[] px)
         {
             Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false);

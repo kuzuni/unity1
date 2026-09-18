@@ -267,12 +267,14 @@ namespace Forge.Game.Ui
             RectTransform card = PopupKit.Item(parent, name, w, h);
             if (item == null)
             {
-                Image face = PopupKit.Outlined(card, "face", "pp_paper", rem * 0.8f, PopupKit.Line3);
-                face.color = Color.white;
+                // T472 — 정본 1826~1830: `.cmp-card` 엔 `background` 선언이 없고(면 없음) 빈 카드는 `border-style: dashed` 다 — 종이 면(`Outlined` face)을 걷고 **점선 테 한 겹**만 둔다.
+                //   반지름 .8rem(1827) · 굵기 ol3(1826 · `Line3`) · 대시·틈은 브라우저(Blink) 기본 «굵기 ×3» 을 표(`cmp_empty_dash_ratio`·`cmp_empty_gap_ratio`)가 쥔다 —
+                //   정본 캡처 043224 는 두 슬롯이 다 장착이라 빈 카드 실측 자리가 없다. 둘레에 정수 개가 맞게 주기를 맞추는 것까지 Core `DashedFrameRules` 몫.
+                SurfaceArt.DashedFrame(card, "line", "pp_line", w, h, rem * 0.8f, PopupKit.Line3, PopupKit.Line3 * CraftStyle.L("cmp_empty_dash_ratio"), PopupKit.Line3 * CraftStyle.L("cmp_empty_gap_ratio"));
                 TextMeshProUGUI empty = UiKit.Text(card, "empty", TextKind.Sub, "빈 슬롯 — 장착 중인 장비 없음", "pp_muted");
                 // T359 4회차 — 정본 `style.css` **1830** `.cmp-card.empty { opacity: .7 }` 는 **카드 한 겹 전체**에 걸린다(테·글자까지).
                 //   클론은 그 .7 을 얼굴 이미지의 알파에 숫자로 박아 두어(§1 위반) 글자는 안 흐려졌다 — 표(`OpacityUi` `cmp_card_empty`)에서 읽어 카드에 건다.
-                //   ⚠ 이 자리에 남은 두 가지는 **다른 축**이라 안 건드렸다: 정본 `.cmp-card` 는 배경이 아예 없고(면 축) 테가 `border-style: dashed` 다(T365 테 축).
+                //   (그때 «다른 축» 으로 남긴 둘 — 배경 없음 · `border-style: dashed` — 은 T472 가 위에서 닫았다.)
                 OpacityUi.Apply(card.gameObject, "cmp_card_empty");
                 return card;
             }
