@@ -166,7 +166,8 @@ namespace Forge.Tests.PlayMode
             TextMeshProUGUI t = eff.GetComponent<TextMeshProUGUI>();
             int n = Lines(t);
             // 런 688 은 **4줄**이었다(하한 Sub 36 이 셋째 항목을 접었다) — 5회차가 종류 Micro + 표 크기(정본 .76rem · TextSizeUi)로 고쳐 정본 세 줄로 돌아온다.
-            string[] logical = t.text.Split('\n');
+            // T396 20회차 3차 — 가운데 줄은 `LineInk` 의 <color> 태그로 감싼다(정본 5637 .asc-wipe-warn): 태그는 글자로 안 그려지므로 `textInfo` 색인은 벗긴 글로 센다.
+            string[] logical = LineInk.Strip(t.text).Split('\n');
             Assert.AreEqual(3, logical.Length, "정본 5848·5849 = <br> 둘 = 논리 줄 셋 — 실제 «" + t.text.Replace("\n", "⏎") + "»");
             // T396 20회차 2차(§0-6 · 결정 796) — T473 이 카드 폭을 정본대로 좁힌 뒤 **둘째 항목만** 글꼴 폭 차로 접힐 수 있다: NotoSansKR hmtx 실측 둘째 줄 24.49em × 13.8px = 338.7px
             //   ↔ 상자 334.8px(정본 패딩 .5rem 으로 되돌린 값 · 3.9px 부족). 정본 글꼴(맑은 고딕)은 좁아 한 줄이다. 그래서 «셋» 또는 «넷(둘째 항목 안에서 한 번 접힘)» 만 허용하고,
