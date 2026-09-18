@@ -815,5 +815,83 @@ namespace Forge.Tests.PlayMode
             h.ResolveCraft("equip");
             yield return null;
         }
+
+        /// <summary>T354 24회차 — 소환 바의 네 글자 자리(정본 5212 `.summon-btn` 1.2 · 5221 `.info-dot` 1 · 5217 `.summon-info` 1 · 4230 `.panel .btn.xs` 1.1 = x5 토글).</summary>
+        [UnityTest]
+        public IEnumerator 소환_바의_소환_버튼_정보_점_레벨_글_x5_토글은_표의_줄높이를_읽는다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && UiRoot.Instance != null && UiRoot.Instance.TabBar != null); i++) yield return null;
+            UiRoot.Instance.TabBar.OnTab("summon");
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            // T414 — `summon-btn`·`x5-toggle` 은 스킬·펫·탈것 셋이 쓰는 이름이라 **스킬 패널 뿌리**에서만 찾는다.
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트");
+            Transform skills = SkillPetSheet.Instance.Skills.transform;
+            Transform btn = Find(skills, "summon-btn");
+            Assert.IsNotNull(btn, "소환 버튼(.summon-btn)");
+            Transform lab = btn.Find("label"); Assert.IsNotNull(lab, "소환 버튼 라벨");
+            Assert.AreEqual(1.2, LineHeight.Table.Get("summon_btn_lh"), 1e-9, "정본 5212");
+            AssertSpacing(lab.GetComponent<TextMeshProUGUI>(), "summon_btn_lh", "소환 버튼 라벨");
+            Transform sub = btn.Find("sub");
+            if (sub != null) AssertSpacing(sub.GetComponent<TextMeshProUGUI>(), "summon_btn_lh", "소환 버튼 small");
+            Transform dot = Find(skills, "info-dot"); Assert.IsNotNull(dot, "정보 점(.info-dot)");
+            Assert.AreEqual(1.0, LineHeight.Table.Get("info_dot_lh"), 1e-9, "정본 5221");
+            AssertSpacing(dot.Find("t").GetComponent<TextMeshProUGUI>(), "info_dot_lh", "정보 점 i");
+            Transform info = Find(skills, "summon-info"); Assert.IsNotNull(info, "소환 정보 칸(.summon-info)");
+            Assert.AreEqual(1.0, LineHeight.Table.Get("summon_info_lh"), 1e-9, "정본 5217");
+            AssertSpacing(info.Find("lv").GetComponent<TextMeshProUGUI>(), "summon_info_lh", "소환 레벨 글");
+            Transform x5 = Find(skills, "x5-toggle"); Assert.IsNotNull(x5, "x5 토글(.btn.xs)");
+            Assert.AreEqual(1.1, LineHeight.Table.Get("panel_btn_xs_lh"), 1e-9, "정본 4230");
+            AssertSpacing(x5.Find("t").GetComponent<TextMeshProUGUI>(), "panel_btn_xs_lh", "x5 토글 글");
+        }
+
+        /// <summary>T354 24회차 — 리그 시트 제목(정본 2298 `.league-title` 1)과 수집 알약(2523 `.league-collect-pill` 1.3 · 보상이 있을 때만 선다).</summary>
+        [UnityTest]
+        public IEnumerator 리그_시트_제목과_수집_알약은_표의_줄높이를_읽는다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(MetaHost.Ready && UiRoot.Instance != null); i++) yield return null;
+            LeagueSheet.Open(MetaHost.Instance);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup league = PopupLayer.Instance.Find(LeagueSheet.Name);
+            Assert.IsNotNull(league, "리그 시트가 안 열렸다");
+            TextMeshProUGUI title = null;
+            foreach (TextMeshProUGUI t in league.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
+                if (t.name == "title" && t.text == "플래티넘 리그") { title = t; break; }
+            Assert.IsNotNull(title, "리그 제목(.league-title)");
+            Assert.AreEqual(1.0, LineHeight.Table.Get("league_title_lh"), 1e-9, "정본 2298");
+            AssertSpacing(title, "league_title_lh", "리그 제목");
+            Assert.AreEqual(1.3, LineHeight.Table.Get("league_collect_pill_lh"), 1e-9, "정본 2523");
+            Transform collect = Find(league.Root, "collect");   // T414 — `collect` 는 오프라인 팝업도 쓰는 이름이라 리그 뿌리에서만
+            if (collect != null && collect.Find("label") != null)
+            {
+                AssertSpacing(collect.Find("label").GetComponent<TextMeshProUGUI>(), "league_collect_pill_lh", "수집 알약 글");
+                AssertSpacing(collect.Find("time").GetComponent<TextMeshProUGUI>(), "league_collect_pill_lh", "수집 알약 시간");
+            }
+        }
+
+        /// <summary>T354 24회차 — 제작 정보의 i 원판(정본 5062 `.fi-info-btn` 1)만 걸고, 모루 줄의 같은 공장 원판(971 `.info-btn` · 줄높이 선언 없음)은 안 건다 — 이름으로 가른다.</summary>
+        [UnityTest]
+        public IEnumerator 제작_정보의_i_원판은_정본_1_배수이고_모루_줄의_i_원판은_안_건다()
+        {
+            yield return Boot();
+            float t0 = 0f;
+            while (!(ForgeHost.Ready && MetaHost.Ready) && t0 < 20f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost");
+            ForgeHost h = ForgeHost.Instance;
+            ForgeInfoPopup.Open(h);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup info = h.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(info, "제작 정보 팝업");
+            Transform fi = Find(info.Root, "fi-info-btn"); Assert.IsNotNull(fi, "i 원판(.fi-info-btn)");
+            Assert.AreEqual(1.0, LineHeight.Table.Get("fi_info_btn_lh"), 1e-9, "정본 5062");
+            AssertSpacing(fi.Find("glyph").GetComponent<TextMeshProUGUI>(), "fi_info_btn_lh", "제작 정보 i");
+            Transform anvilRow = Find(UiRoot.Instance.App, "anvil-row");   // T414 — `info-btn` 은 던전 팝업도 쓰는 이름이라 모루 줄 아래서만
+            Transform anvil = anvilRow != null ? anvilRow.Find("info-btn") : null;
+            if (anvil != null) Assert.AreEqual(0f, anvil.Find("glyph").GetComponent<TextMeshProUGUI>().lineSpacing, 1e-4f, "모루 줄의 i(.info-btn 971)는 줄높이 선언이 없어 손대지 않는다");
+        }
     }
 }

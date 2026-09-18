@@ -64,7 +64,8 @@ namespace Forge.Game.Ui
 
             float titleH = PopupKit.FontSize(TextKind.Head) * 1.3f;
             float titleY = UiKit.H("league_emblem_top") + emblem * 0.8f;
-            TextMeshProUGUI title = UiKit.Text(sheet, "title", TextKind.Head, "플래티넘 리그", "stage_ink");   // T391 ⓑ — 정본 3805 `.sheet-title { font-size: 1.35rem }` = 49.1px → Head 48(전엔 Title 60)
+            TextMeshProUGUI title = UiKit.Text(sheet, "title", TextKind.Head, "플래티넘 리그", "stage_ink");
+            LineHeight.Apply(title, "league_title_lh");   // T354 24회차 — 정본 2298 `.league-title { line-height: 1 }`   // T391 ⓑ — 정본 3805 `.sheet-title { font-size: 1.35rem }` = 49.1px → Head 48(전엔 Title 60)
             title.fontStyle = FontStyles.Bold;
             UiKit.Place(title.rectTransform, 0f, titleY, w, titleH);
             PopupKit.Ring(title);
@@ -238,9 +239,11 @@ namespace Forge.Game.Ui
             Image collectFace = PopupKit.Outlined(collect, "face", "lgr_collect", rem * 0.5f, PopupKit.Line3);
             SurfaceArt.FillMasked(collectFace, "collect-grad", "lgr_collect_pill", collectW, collectH);   // 정본 .league-collect-pill linear-gradient(180deg, #e3e3e3, #c2c2c2) · T178 3회차
             TextMeshProUGUI c1 = UiKit.Text(collect, "label", TextKind.Sub, "수집까지:", "pp_ink");
+            LineHeight.Apply(c1, "league_collect_pill_lh");   // T354 24회차 — 정본 2523 `.league-collect-pill { line-height: 1.3 }`
             c1.fontStyle = FontStyles.Bold;
             UiKit.Place(c1.rectTransform, 0f, rem * 0.2f, collectW, collectH * 0.45f);
             TextMeshProUGUI c2 = UiKit.Text(collect, "time", TextKind.Sub, PopupKit.FmtTime(remain), "pp_green_dk");
+            LineHeight.Apply(c2, "league_collect_pill_lh");   // T354 24회차 — 같은 알약(2523)
             c2.color = PinnedColorUi.C("league_collect_time_ink");   // T396 10회차 — 정본 2528 `.league-collect-pill b { color: #1d8f3c }`(전엔 토큰 pp_green_dk #1f8c34 근사)
             c2.fontStyle = FontStyles.Bold;
             UiKit.Place(c2.rectTransform, 0f, collectH * 0.5f, collectW, collectH * 0.45f);
@@ -419,6 +422,7 @@ namespace Forge.Game.Ui
                 RectTransform br = b.GetComponent<RectTransform>();
                 UiKit.Place(br, sideX, sideY + starH + sideGap, btnW, btnH);
                 RectTransform lab = b.transform.Find("label").GetComponent<RectTransform>();
+                LineHeight.Apply(lab.GetComponent<TextMeshProUGUI>(), "modal_card_league_challenge_side_btn_lh");   // T354 24회차 — 정본 2642 `.modal-card .league-challenge-side .btn { line-height: 1.25 }`
                 float lip = UiKit.H("btn_lip");
                 lab.offsetMin = new Vector2(0f, lip + (btnH - lip) * 0.42f);
                 float tkH = (btnH - lip) * 0.42f, tkIco = tkH * 0.85f;

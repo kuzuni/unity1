@@ -136,6 +136,7 @@ namespace Forge.Game.Ui
             bool ascend = H.AscendReady("skill");
             if (ascend)
                 SummonButton = PetSkillKit.PaperButton(bar, "summon-btn", PetSkillKit.BtnKind.Ascend, PetSkillStyle.T("ascend_ready"), PetSkillStyle.T("ascend_sub"), false, OnAscend);
+            if (ascend) SummonBtnLh(SummonButton);   // T354 24회차 — 승천 갈래도 `.summon-btn`(5212 1.2)
             else
                 SummonButton = SummonBtn(bar, PetSkillStyle.T("summon_x", mult), "ticket", JsNum.ToString(Sk.TicketCost(mult)), !Sk.CanSummon(false, mult), () => OnSummon(false));
             UiKit.Place(SummonButton.GetComponent<RectTransform>(), (W - sw) * 0.5f, 0f, sw, barH);
@@ -250,6 +251,7 @@ namespace Forge.Game.Ui
             UiKit.Place(row, 0f, yTop, w, h);
             Image star = UiKit.Icon(row, "ico", "star");
             TextMeshProUGUI n = PetSkillKit.Text(row, "n", TextKind.Sub, stars.ToString(), PetSkillStyle.C("ink"), TextAlignmentOptions.Left);
+            LineHeight.Apply(n, "sk_star_lh");   // T354 24회차 — 정본 4102 `.sk-star { line-height: 1 }`
             float tw = PetSkillKit.TextWidth(TextKind.Sub, stars.ToString());
             float total = h + tw;
             UiKit.Place(star.rectTransform, (w - total) * 0.5f, 0f, h, h);
@@ -375,13 +377,25 @@ namespace Forge.Game.Ui
             ((Image)skin.Find("line").GetComponent<Image>()).color = PetSkillStyle.C(on ? "pp_line" : "pp_blue");
             TextMeshProUGUI t = PetSkillKit.Text(br, "t", TextKind.Sub, "x" + mult, PetSkillStyle.C(on ? "white" : "pp_blue"));
             UiKit.Fill(t.rectTransform);
+            LineHeight.Apply(t, "panel_btn_xs_lh");   // T354 24회차 — 정본 4230 `.panel .btn.xs { line-height: 1.1 }`(x5 토글 3979·4313 은 `.btn.xs` · 5198 은 줄높이를 안 준다)
             return b;
+        }
+
+        /// <summary>T354 24회차 — 정본 5212 `.summon-btn { line-height: 1.2 }` 를 라벨과 `small`(sub) 둘에 건다(둘 다 그 선언을 물려받는다 · 3546 `.btn small` 은 줄높이를 안 준다).
+        /// 승천 갈래(`BtnKind.Ascend`)도 같은 `.summon-btn` 이라 부르는 쪽이 이것을 부른다.</summary>
+        public static void SummonBtnLh(Button b)
+        {
+            if (b == null) return;
+            Transform l = b.transform.Find("label"), s = b.transform.Find("sub");
+            if (l != null) LineHeight.Apply(l.GetComponent<TextMeshProUGUI>(), "summon_btn_lh");
+            if (s != null) LineHeight.Apply(s.GetComponent<TextMeshProUGUI>(), "summon_btn_lh");
         }
 
         public static Button SummonBtn(RectTransform bar, string label, string costIcon, string cost, bool disabled, UnityEngine.Events.UnityAction onClick)
         {
             Button b = PetSkillKit.PaperButton(bar, "summon-btn", PetSkillKit.BtnKind.Silver, label, " ", disabled, onClick);
             RectTransform br = b.GetComponent<RectTransform>();
+            SummonBtnLh(b);   // T354 24회차 — 정본 5212 `.summon-btn { line-height: 1.2 }`(라벨·small 둘 다 물려받는다)
             ((RectTransform)br.Find("skin/line")).GetComponent<Image>().color = PetSkillStyle.C("pp_line");
             TextMeshProUGUI sub = br.Find("sub").GetComponent<TextMeshProUGUI>();
             sub.text = cost;
@@ -418,7 +432,9 @@ namespace Forge.Game.Ui
             UiKit.Fill(disc.rectTransform);
             TextMeshProUGUI it = PetSkillKit.Text(br, "t", TextKind.Sub, PetSkillStyle.T("info_i"), PetSkillStyle.C("white"));
             UiKit.Fill(it.rectTransform);
+            LineHeight.Apply(it, "info_dot_lh");   // T354 24회차 — 정본 5221 `.info-dot { line-height: 1 }`
             TextMeshProUGUI lt = PetSkillKit.Text(info, "lv", TextKind.Sub, PetSkillStyle.T("lv", lvl), PetSkillStyle.C("ink"));
+            LineHeight.Apply(lt, "summon_info_lh");   // T354 24회차 — 정본 5217 `.summon-info { line-height: 1 }`(자식 글줄이 물려받는다)
             UiKit.Place(lt.rectTransform, -gw, dot + gap, w + gw * 2f, lvH);
             RectTransform g = PetSkillKit.Gauge(info, "summon-gauge", gw, gh, ratio, gaugeText, PetSkillStyle.C("gauge_bg"), PetSkillStyle.Px("gauge_r_rem"), PetSkillKit.Line2, TextKind.Sub);
             UiKit.Place(g, (w - gw) * 0.5f, dot + gap + lvH + gap, gw, gh);

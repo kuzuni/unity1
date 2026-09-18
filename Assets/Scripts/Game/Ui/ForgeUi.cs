@@ -465,6 +465,8 @@ namespace Forge.Game.Ui
             UiKit.Circle(rt, "face", InfoButtonUi.FaceKey(name));   // 테 없음 — 홀로 선 원판이다(고리 짝 아님)
             TextMeshProUGUI t = UiKit.Text(rt, "glyph", TextKind.Sub, "i", InfoButtonUi.InkKey(name));
             t.fontStyle = FontStyles.Bold;                          // 정본 3634·5062 `font-weight: 900`
+            // T354 24회차 — 정본 5062 `.fi-info-btn { line-height: 1 }` 는 **그 이름의 원판에만** 있다(971 `.info-btn` 은 줄높이를 안 준다 · 표에도 없다) → 이름으로 가른다.
+            if (name == "fi-info-btn") LineHeight.Apply(t, "fi_info_btn_lh");
             return b;
         }
     }

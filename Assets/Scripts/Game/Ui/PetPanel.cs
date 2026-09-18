@@ -120,6 +120,7 @@ namespace Forge.Game.Ui
             bool full = P.State.Eggs.Count >= P.Rules.EggCap;
             if (ascend)
                 SummonButton = PetSkillKit.PaperButton(bar, "summon-btn", PetSkillKit.BtnKind.Ascend, PetSkillStyle.T("ascend_ready"), PetSkillStyle.T("ascend_sub"), false, () => PetSkillHost.Say(PetSkillStyle.T("ascend_ready")));
+            if (ascend) SkillPanel.SummonBtnLh(SummonButton);   // T354 24회차 — 승천 갈래도 `.summon-btn`(5212 1.2 · 나머지 갈래는 SkillPanel.SummonBtn 안에서)
             else if (full)
                 SummonButton = SkillPanel.SummonBtn(bar, PetSkillStyle.T("summon_full"), "eggCracked", PetSkillStyle.T("gauge", P.State.Eggs.Count, P.Rules.EggCap), true, OnSummon);
             else
@@ -146,6 +147,7 @@ namespace Forge.Game.Ui
             ((Image)skin.Find("line").GetComponent<Image>()).color = PetSkillStyle.C(on ? "pp_line" : "pp_blue");
             TextMeshProUGUI t = PetSkillKit.Text(br, "t", TextKind.Sub, "x" + mult, PetSkillStyle.C(on ? "white" : "pp_blue"));
             UiKit.Fill(t.rectTransform);
+            LineHeight.Apply(t, "panel_btn_xs_lh");   // T354 24회차 — 정본 4230 `.panel .btn.xs { line-height: 1.1 }`(x5 토글 3979·4313 은 `.btn.xs` · 5198 은 줄높이를 안 준다)
             return b;
         }
 
@@ -198,6 +200,7 @@ namespace Forge.Game.Ui
                 {
                     string r = mergeable[k];
                     Button b = PetSkillKit.PaperButton(content, "merge-" + r, PetSkillKit.BtnKind.Gray, MergeLabel(r), null, false, () => OnMerge(r), PetSkillStyle.Rem(0.55f));
+                    LineHeight.Apply(b.transform.Find("label").GetComponent<TextMeshProUGUI>(), "panel_btn_xs_lh");   // T354 24회차 — 정본 4230(합성 버튼 ui.js 3961 `.btn.xs`)
                     UiKit.Place(b.GetComponent<RectTransform>(), bx, y, widths[k], bh);
                     bx += widths[k] + PetSkillStyle.Rem(0.45f);
                 }
@@ -372,7 +375,8 @@ namespace Forge.Game.Ui
                 float total = labH + gapY + lh;
                 float by = rowY + (cellH - total) * 0.5f + PetSkillStyle.Px("slot_buy_top_w");
                 TextMeshProUGUI lab = PetSkillKit.Stroked(hatch, "slot-buy-label", TextKind.Sub, PetSkillStyle.T("slot_plus"), PetSkillStyle.C("white"), "slot_buy_label");   // 정본 .slot-buy-label var(--ol3)
-                WrapUi.Apply(lab, "slot_buy_label");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 4558 `.slot-buy-label { nowrap }`
+                WrapUi.Apply(lab, "slot_buy_label");
+                LineHeight.Apply(lab, "slot_buy_label_lh");   // T354 24회차 — 정본 4558 `.slot-buy-label { line-height: 1 }`   // T361 4회차 — 정본 white-space 표(WrapUi.json) 4558 `.slot-buy-label { nowrap }`
                 UiKit.Place(lab.rectTransform, bx - lw * 0.5f, by, lw * 2f, labH);
                 SlotBuyButton = PetSkillKit.PaperButton(hatch, "slot-buy", PetSkillKit.BtnKind.Gray, string.Empty, null, false, OnBuySlot, PetSkillStyle.Px("slot_buy_r_rem"));   // T415 9회차 — 정본 4565 `.hatchery .slot-buy { border-radius: .55rem }` · 표 PetSkillUi.json(종전 코드에 박힌 0.55)
                 RectTransform br = SlotBuyButton.GetComponent<RectTransform>();
@@ -389,6 +393,7 @@ namespace Forge.Game.Ui
                 // T396 13회차 — 정본 4566 `.hatchery .slot-buy b { color: #e8112d }`. 종전엔 `cost_red`(#f2191d)를 썼는데
                 //   그 값은 소환 버튼 값(8668 `.summon-btn .summon-cost b`)의 빨강이다 — 정본이 두 자리를 **다른 리터럴**로 못박았다.
                 TextMeshProUGUI ct = PetSkillKit.Text(br, "cost", TextKind.Sub, cost, PetSkillStyle.C("slot_buy_cost_ink"), TextAlignmentOptions.Left);
+                LineHeight.Apply(ct, "hatchery_slot_buy_lh");   // T354 24회차 — 정본 4565 `.hatchery .slot-buy { line-height: 1 }`(4230 `.panel .btn.xs` 1.1 을 뒤 선언이 덮는다)
                 UiKit.Place(ct.rectTransform, cx + ico + g, 0f, tw + ico, lh);
             }
         }
@@ -449,6 +454,7 @@ namespace Forge.Game.Ui
             Image gi = UiKit.Icon(sr, "ico", "gem");
             UiKit.Place(gi.rectTransform, PetSkillStyle.Rem(0.2f), (bh - ico) * 0.5f, ico, ico);
             TextMeshProUGUI ct = PetSkillKit.Text(sr, "cost", TextKind.Sub, cost, PetSkillStyle.C("ink"), TextAlignmentOptions.Left);
+            LineHeight.Apply(ct, "hatch_cell_btn_xs_lh");   // T354 24회차 — 정본 4535 `.hatch-cell > .btn.xs { line-height: 1.1 }`(4230 과 같은 값 · 뒤 선언이 이긴다)
             UiKit.Place(ct.rectTransform, PetSkillStyle.Rem(0.2f) + ico + PetSkillStyle.Rem(0.08f), 0f, tw + ico, bh);
             skipButtons.Add(skip);
             skipCosts.Add(ct);
