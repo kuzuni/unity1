@@ -1368,6 +1368,22 @@ namespace Forge.Tests
             s.At(96, 320, 1, out f2, out sc, out a);
             Assert.AreEqual(f1, f2, 1e-9, "같은 30% 면 길이가 달라도 같은 자리(--pop 은 등급마다 다르다)");
         }
+
+        [Test]
+        public void 넘침_계단은_정본_over_여섯_그대로고_범위_밖은_끝_값이다()
+        {
+            // 정본 style.css 6327~6332 — `--over: .7 / .8 / 1 / 1.3 / 1.6 / 1.9`(일반→신화).
+            SummonPopSpec s = S();
+            double[] want = { 0.7, 0.8, 1.0, 1.3, 1.6, 1.9 };
+            Assert.AreEqual(want.Length, s.TierOver.Length);
+            for (int i = 0; i < want.Length; i++) Assert.AreEqual(want[i], s.Over(i), 1e-9, "tier " + i);
+            Assert.AreEqual(0.7, s.Over(-1), 1e-9); Assert.AreEqual(1.9, s.Over(99), 1e-9);
+            double f, sc, a;
+            s.At(320 * 0.76, 320, s.Over(5), out f, out sc, out a);
+            Assert.AreEqual(1.19, sc, 1e-9, "신화 착지 76% = 1 + .1 × 1.9");
+            s.At(320 * 0.76, 320, s.Over(0), out f, out sc, out a);
+            Assert.AreEqual(1.07, sc, 1e-9, "일반 착지 76% = 1 + .1 × .7");
+        }
     }
 
 }

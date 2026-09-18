@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Forge.Game;
 using Forge.Game.Ui;
+using Forge.Core.Ui;
 
 namespace Forge.Tests.PlayMode
 {
@@ -814,6 +815,64 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(aMax, a * 0.5f, "한 주기 안에 띠가 켜진다(정본 .62 · 실측 최대 " + aMax.ToString("0.00") + ")");
             Assert.Less(aMin, a * 0.5f, "꺼진 때도 있다(실측 최소 " + aMin.ToString("0.00") + ")");
             Assert.Greater(xMax - xMin, sw.rectTransform.parent.GetComponent<RectTransform>().rect.width, "띠가 구슬 폭보다 멀리 움직인다(−80% → 180%)");
+        }
+
+        /// <summary>T458 2회차 — 셀은 켜진 프레임에 표의 0% 그대로(배율 .3 · 알파 .34 · 광원 자리)이고, 팝 길이 뒤 제자리·배율 1·알파 1 로 선다.</summary>
+        [UnityTest]
+        public IEnumerator 셀은_광원_자리에서_작게_켜져_팝_길이_뒤_슬롯에_배율_1_로_선다()
+        {
+            yield return Boot();
+            SkillSummonResultView v = OpenHoldback();
+            float t = 0f;
+            while (!v.CellOn(0) && t < 6f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.CellOn(0), "0번 셀이 6초 안에 켜진다");
+            // 켜진 그 Update 에서 AnimateCells 가 ms = 0 으로 돈다 — 프레임 길이와 무관하게 표의 0% 값 그대로다.
+            RectTransform root = v.CellRootOf(0);
+            SummonPopSpec pp = SummonFxStyle.Pop;
+            double f0, sc0, a0; pp.At(0, 320, pp.Over(0), out f0, out sc0, out a0);
+            Assert.AreEqual((float)sc0, root.localScale.x, 1e-4f, "켜진 프레임 배율 = 표 0% scale(.3 · 옛 .35 EaseOutBack 이 아니다)");
+            Assert.AreEqual((float)a0, root.GetComponent<CanvasGroup>().alpha, 1e-4f, "켜진 프레임 알파 = 표 0% opacity(.34)");
+            Vector2 home = v.HomeOf(0), eject = v.EjectOf(0);
+            Vector2 want0 = eject == Vector2.zero ? home + new Vector2(0f, -(float)pp.Dy0Rem * PetSkillStyle.RemPx) : home + eject;
+            Assert.AreEqual(want0.x, root.anchoredPosition.x, 0.5f, "켜진 프레임 자리 = 슬롯 + 사출 벡터(광원 자리)");
+            Assert.AreEqual(want0.y, root.anchoredPosition.y, 0.5f, "켜진 프레임 자리 = 슬롯 + 사출 벡터(광원 자리)");
+            Assert.Greater((want0 - home).magnitude, 1f, "광원 자리는 슬롯이 아니다");
+            float t0 = Time.unscaledTime; bool settled = false;
+            while (Time.unscaledTime - t0 < 2.5f && !v.Done)
+            {
+                yield return null;
+                if (Mathf.Abs(root.localScale.x - 1f) < 1e-3f && (root.anchoredPosition - home).magnitude < 0.5f) { settled = true; break; }
+            }
+            Assert.IsTrue(settled, "팝 길이 뒤 슬롯 · 배율 1 · (실측 배율 " + root.localScale.x.ToString("0.000") + " · 거리 " + (root.anchoredPosition - home).magnitude.ToString("0.0") + ")");
+            Assert.AreEqual(1f, root.GetComponent<CanvasGroup>().alpha, 1e-3f, "정착 알파 1");
+        }
+
+        /// <summary>T458 2회차 — [확인] 버튼은 done 프레임에 같은 srpop 0%(배율 .3 · 아래 .5rem) 로 켜져 .32s 뒤 제자리·배율 1 로 선다.</summary>
+        [UnityTest]
+        public IEnumerator 확인_버튼은_done_에_아래서_작게_켜져_팝_뒤_제자리에_선다()
+        {
+            yield return Boot();
+            SkillSummonResultView v = OpenHoldback();
+            float t = 0f;
+            while (!v.Done && t < 12f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done, "소환이 12초 안에 끝난다");
+            RectTransform okr = v.OkButton.GetComponent<RectTransform>();
+            Assert.IsTrue(okr.gameObject.activeSelf, "done 에 [확인] 이 보인다");
+            SummonPopSpec pp = SummonFxStyle.Pop;
+            double f0, sc0, a0; pp.At(0, pp.OkMs, 1, out f0, out sc0, out a0);
+            Assert.AreEqual((float)sc0, okr.localScale.x, 1e-4f, "done 프레임 배율 = 표 0% scale");
+            Assert.AreEqual(-(float)pp.Dy0Rem * PetSkillStyle.RemPx, okr.anchoredPosition.y, 0.5f, "done 프레임 자리 = 아래 .5rem(정본 var(--dy, .5rem))");
+            CanvasGroup g = okr.GetComponent<CanvasGroup>();
+            Assert.IsNotNull(g, "알파는 CanvasGroup 으로 건다");
+            Assert.AreEqual((float)a0, g.alpha, 1e-4f, "done 프레임 알파 .34");
+            float t0 = Time.unscaledTime; bool settled = false;
+            while (Time.unscaledTime - t0 < 2f)
+            {
+                yield return null;
+                if (Mathf.Abs(okr.localScale.x - 1f) < 1e-3f && Mathf.Abs(okr.anchoredPosition.y) < 0.5f) { settled = true; break; }
+            }
+            Assert.IsTrue(settled, ".32s 뒤 제자리 · 배율 1(실측 배율 " + okr.localScale.x.ToString("0.000") + " · y " + okr.anchoredPosition.y.ToString("0.0") + ")");
+            Assert.AreEqual(1f, g.alpha, 1e-3f, "정착 알파 1");
         }
 
     }

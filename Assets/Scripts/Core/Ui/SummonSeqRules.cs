@@ -1806,15 +1806,21 @@ namespace Forge.Core.Ui
         public double OkMs;
         /// <summary>키프레임(at · opacity · fly_f · scale · over_f · 구간 이징).</summary>
         public RewardBurstSpec.Track Pop;
+        /// <summary>등급 계단 `--over`(정본 style.css 6327~6332 · `tier.over` · 일반→신화).</summary>
+        public double[] TierOver;
 
         public static SummonPopSpec From(JsonObject root)
         {
+            double[] ov = J.NumArr(J.Require(J.Obj(J.Require(root, "tier")), "over"));
+            if (ov == null || ov.Length < 2) throw new FormatException("SummonFxUi tier: over 는 등급 계단(둘 이상)이다");
+            for (int i = 0; i < ov.Length; i++) if (ov[i] < 0) throw new FormatException("SummonFxUi tier: over 는 음수가 아니다");
             JsonObject o = J.Obj(J.Require(root, "pop"));
             var s = new SummonPopSpec
             {
                 Dy0Rem = J.Num(J.Require(o, "dy0_rem")),
                 ScaleOverAdd = J.Num(J.Require(o, "scale_over_add")),
                 OkMs = J.Num(J.Require(o, "ok_ms")),
+                TierOver = ov,
             };
             if (s.OkMs <= 0) throw new FormatException("SummonFxUi pop: ok_ms 는 0보다 커야 한다");
             var list = J.List(J.Require(o, "srpop"), x => J.Obj(x));
@@ -1845,6 +1851,9 @@ namespace Forge.Core.Ui
             s.Pop = new RewardBurstSpec.Track { Keys = keys };
             return s;
         }
+
+        /// <summary>등급 <paramref name="tier"/>(0 일반 … 5 신화 · 범위 밖은 끝 값)의 `--over`.</summary>
+        public double Over(int tier) { return TierOver[tier < 0 ? 0 : tier >= TierOver.Length ? TierOver.Length - 1 : tier]; }
 
         /// <summary>
         /// 켜진 뒤 <paramref name="ms"/> 에서의 셀 상태 — <paramref name="popMs"/> 는 그 등급의 `--pop`(PetSkillUi `sr_pop_<tier>`) ·

@@ -191,6 +191,8 @@ namespace Forge.Game.Ui
         float chargeAt = -1f;
         RectTransform foot;
         GameObject hint, ok, chips, solo;
+        /// <summary>T458 2회차 — [확인] 버튼 팝(정본 7188 `.done .sr-ok { animation: srpop .32s … both }`) — 켜진 시각 · 제자리 · 알파 그룹.</summary>
+        RectTransform okRect; CanvasGroup okGroup; Vector2 okHome; float okAt = -1f;
         string kind;
 
         public bool Done { get { return done; } }
@@ -1201,6 +1203,8 @@ namespace Forge.Game.Ui
             LetterSpacing.Apply(okt, "sr_ok_ls_em");   // T168 3회차 — 정본 7139 `.sr-ok`
             UiKit.Fill(okt.rectTransform);
             ok = okr.gameObject;
+            okRect = okr; okHome = okr.anchoredPosition;
+            okGroup = okr.GetComponent<CanvasGroup>() ?? okr.gameObject.AddComponent<CanvasGroup>();
             ok.SetActive(false);
             // x1 요약(원작 summonSoloInfo · done 에서만)
             if (entries.Count == 1)
@@ -1285,6 +1289,7 @@ namespace Forge.Game.Ui
             AnimateKick();
             AnimateHiPulses();
             AnimateOrbSweeps();
+            AnimateOk();
             AnimateHeroRing();
             AnimatePeerRings();
             AnimateBeam();
@@ -1306,24 +1311,47 @@ namespace Forge.Game.Ui
             c.OnAt = Time.unscaledTime;
         }
 
-        static float EaseOutBack(float t)
+        /// <summary>
+        /// T458 2회차 — [확인] 버튼은 done 에 셀과 **같은 `srpop`** 을 탄다(정본 7188 · .32s `both`). 셀과 달리 `--dx/--dy`·`--over` 가 없어
+        /// 정본 기본값 그대로다 — 아래 `.5rem` 에서 올라오고 넘침은 `× 1`. 끝나면 마지막 키에 그대로 선다(`both`).
+        /// </summary>
+        void AnimateOk()
         {
-            const float c1 = 1.70158f, c3 = c1 + 1f;
-            t = Mathf.Clamp01(t);
-            return 1f + c3 * Mathf.Pow(t - 1f, 3f) + c1 * Mathf.Pow(t - 1f, 2f);
+            if (okAt < 0f || okRect == null) return;
+            SummonPopSpec pp = SummonFxStyle.Pop;
+            float ms = (Time.unscaledTime - okAt) * 1000f;
+            double flyF, sc, a;
+            pp.At(ms, pp.OkMs, 1, out flyF, out sc, out a);
+            okRect.localScale = Vector3.one * (float)sc;
+            okRect.anchoredPosition = okHome + new Vector2(0f, -(float)(pp.Dy0Rem * flyF) * PetSkillStyle.RemPx);
+            if (okGroup != null) okGroup.alpha = (float)a;
+            if (ms >= pp.OkMs) okAt = -1f;   // 정착 — 다음 프레임부터 손대지 않는다
         }
 
-        /// <summary>셀 팝(원작 srpop · 스케일 .35→1 오버슛) · 끝난 뒤에는 숨쉬기(srbreath).</summary>
+        /// <summary>
+        /// 셀 팝(정본 `srpop` · style.css 6286 · 6296~6321) · 끝난 뒤에는 숨쉬기(srbreath).
+        /// T458 2회차 — 종전엔 «.35 → 1 EaseOutBack 한 곡선» 이었다. 정본은 **광원에서 날아와**(0% 는 `--dx/--dy` 자리 · 클론은
+        ///   T455 의 `ToLight`) 30% 까지 가속 · 56% 까지 등속 비행 · 76% 까지 감속 · 76% 에서 `1 + .1 × --over`(등급 계단) 만큼
+        ///   넘쳤다가 100% 에 1 로 선다 — 구간마다 이징이 다르고 첫 프레임 알파가 .34 다. 수치·곡선은 전부 표(`pop` 절 + `tier.over`)가 쥔다.
+        /// </summary>
         void AnimateCells()
         {
             float tt = Time.unscaledTime;
+            SummonPopSpec pp = cells.Count > 0 ? SummonFxStyle.Pop : null;
             for (int i = 0; i < cells.Count; i++)
             {
                 Cell c = cells[i];
                 if (!c.On) continue;
-                float t = (tt - c.OnAt) / c.Pop;
-                float s = t >= 1f ? 1f : Mathf.Lerp(0.35f, 1f, EaseOutBack(t));
-                c.Group.alpha = Mathf.Clamp01(t * 3f);
+                float popMs = c.Pop * 1000f;
+                float ms = (tt - c.OnAt) * 1000f;
+                float t = popMs > 0f ? ms / popMs : 1f;
+                double flyF, popScale, popAlpha;
+                pp.At(ms, popMs, pp.Over(RarityIdx(c.Entry.Rarity)), out flyF, out popScale, out popAlpha);
+                float s = (float)popScale;
+                c.Group.alpha = (float)popAlpha;
+                // 0% 는 광원 자리 — 벡터가 아직 없으면(정본 `var(--dy, .5rem)`) 아래서 .5rem 올라온다.
+                Vector2 fly = c.ToLight * (float)flyF;
+                if (fly == Vector2.zero && flyF > 0) fly = new Vector2(0f, -(float)pp.Dy0Rem * PetSkillStyle.RemPx);
                 // T334 5회차 — 아이들 호흡은 **등급에 가중**된다(정본 `--idle` 계단 · style.css 6327~6332).
                 //   정본 주석: «예전엔 전 등급이 똑같이 −.16rem / ×1.055 였고 실측상 등급 간 차이는 광채에서만 나왔다 —
                 //   즉 위계가 구조가 아니라 부산물이었다». 수치는 표(`SummonFxUi.json` 의 `idle` 절)가 쥔다.
@@ -1354,7 +1382,11 @@ namespace Forge.Game.Ui
                     if (back == Vector2.zero && backF > 0f) back = new Vector2(0f, -(float)hp.HeroPopDy0Rem * PetSkillStyle.RemPx);
                     c.Root.anchoredPosition = c.Home + back + new Vector2(0f, -(float)tyRem * PetSkillStyle.RemPx);
                 }
-                else c.Root.localScale = Vector3.one * s * rs;
+                else
+                {
+                    c.Root.localScale = Vector3.one * s * rs;
+                    c.Root.anchoredPosition = c.Home + fly;   // 흡기(AnimateCharge · 뒤에 돈다)는 이 위에 제 자리를 덮어쓴다
+                }
                 // ⚠ 정본 6729 주석이 실측으로 못 박았다: «정착 스케일을 1보다 크게 두면 셀 폭을 넘는 이름판이 옆 셀
                 //   이름과 겹친다 … 주역의 «큰 몸집» 은 등급 계단이 이미 맡는다». 그래서 여기 배수(옛 1.18)를 뺐다.
                 c.OrbWrap.localScale = Vector3.one * c.BaseScale * b;
@@ -2024,6 +2056,10 @@ namespace Forge.Game.Ui
                     }
 
         public Vector2 EjectOf(int i) { return i >= 0 && i < cells.Count ? cells[i].ToLight : Vector2.zero; }
+        /// <summary>T458 — i 번째 셀의 뿌리 · 제자리(슬롯) · 켜졌는가(자가 본다).</summary>
+        public RectTransform CellRootOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Root : null; }
+        public Vector2 HomeOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Home : Vector2.zero; }
+        public bool CellOn(int i) { return i >= 0 && i < cells.Count && cells[i].On; }
         /// <summary>T459 ⓨ — i 번째 셀의 광채 원판(고등급이 아니면 null).</summary>
         public Image GlowOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Glow : null; }
         /// <summary>T459 ⓩ — i 번째 구슬의 스페큘러 띠(done 뒤 첫 프레임에 선다 · 그 전엔 null).</summary>
@@ -2124,7 +2160,7 @@ namespace Forge.Game.Ui
                 }
             }
             if (hint != null) hint.SetActive(false);
-            if (ok != null) ok.SetActive(true);
+            if (ok != null) { ok.SetActive(true); okAt = doneAt; }
             if (chips != null && rolls > 1) chips.SetActive(true);
             if (solo != null) solo.SetActive(true);
         }

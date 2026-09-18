@@ -1230,13 +1230,14 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; enter = null; hipulse = null; orbsweep = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; streaks = null; particles = null; heroRingEase = null; }
+        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; enter = null; hipulse = null; orbsweep = null; pop = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; streaks = null; particles = null; heroRingEase = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
         static SummonEnterSpec enter;
         static SummonHiPulseSpec hipulse;
         static SummonOrbSweepSpec orbsweep;
+        static SummonPopSpec pop;
         static SummonHeroSpec hero;
         static SummonRelightSpec relight;
         static SummonSparkSpec spark;
@@ -1276,6 +1277,8 @@ namespace Forge.Game.Ui
         public static SummonHiPulseSpec HiPulse { get { Load(); if (hipulse == null) hipulse = SummonHiPulseSpec.From(root); return hipulse; } }
         /// <summary>T459 ⓩ — done 뒤 구슬 스페큘러 스윕(표의 `orbsweep` 절 · 정본 `srsweep`).</summary>
         public static SummonOrbSweepSpec OrbSweep { get { Load(); if (orbsweep == null) orbsweep = SummonOrbSweepSpec.From(root); return orbsweep; } }
+        /// <summary>T458 — 셀 팝(표의 `pop` 절 + `tier.over` · 정본 `srpop`) · [확인] 버튼도 같은 꼴을 탄다.</summary>
+        public static SummonPopSpec Pop { get { Load(); if (pop == null) pop = SummonPopSpec.From(root); return pop; } }
         /// <summary>T334 3회차 ⓑ — 충전 구간 키프레임 넷(Core 가 쥔 셈 · 표의 `charge` 절).</summary>
         public static SummonChargeSpec Charge { get { Load(); if (charge == null) charge = SummonChargeSpec.From(root); return charge; } }
 
