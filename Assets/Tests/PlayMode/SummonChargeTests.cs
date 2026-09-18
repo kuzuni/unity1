@@ -296,7 +296,13 @@ namespace Forge.Tests.PlayMode
             Transform cell = FindDeep(v.transform, "sr-cell-0");
             Assert.IsNotNull(halo, "광원(halo)이 없다");
             Assert.IsNotNull(cell, "0번 셀이 없다");
-            Vector2 full = (Vector2)cell.parent.InverseTransformPoint(halo.position) - (Vector2)cell.localPosition;
+            // 런 1181(T458 보탬 3) — `full` 은 셀의 **지금** 자리가 아니라 **슬롯**(Home)에서 잰다. T458 2회차 뒤 셀은 팝 동안 광원 쪽
+            //   (`Home + ToLight × fly_f`)에 가 있고, 보탬 2 가 벡터 재기를 첫 틱 앞으로 옮기자 «첫 틱 = 첫 공개» 인 러너에서 이 단언이
+            //   그 순간의 셀 자리로 `full` 을 재 0.62/0.38 = 1.632 로 빨갰다(실측 그대로). 슬롯 기준이면 되짚는 비는 표대로 .62 다.
+            //   anchoredPosition 과 localPosition 은 상수만큼 어긋나므로(앵커·피벗) 그 차이로 슬롯의 local 자리를 되돌린다.
+            RectTransform crt = (RectTransform)cell;
+            Vector2 homeLocal = (Vector2)crt.localPosition - (crt.anchoredPosition - v.HomeOf(0));
+            Vector2 full = (Vector2)cell.parent.InverseTransformPoint(halo.position) - homeLocal;
             Assert.Greater(full.magnitude, 1f, "광원과 셀이 같은 자리다 — 잴 것이 없다");
 
             // ⓐ 이 단이 결함을 잡는 단이다 — 100% 되짚으면 여기서 빨개진다.
