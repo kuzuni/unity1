@@ -45,7 +45,10 @@ namespace Forge.Tests.PlayMode
             return null;
         }
 
-        /// <summary>카드 위끝 → 첫 글줄(이름) 상자 위끝 · 마지막 글줄 아래끝 → 카드 아래끝을 카드 제 자리에서 잰다.</summary>
+        /// <summary>카드 위끝 → 첫 글줄(이름) 상자 위끝 · **내용의 맨 아래끝** → 카드 아래끝을 카드 제 자리에서 잰다.
+        /// T476 2차 — 정본 `.cmp-card` 는 flex 행(1826 `align-items: flex-start`)이라 카드 높이 = 패딩 + **두 자식(아이콘 묶음 · 글 블록) 중 큰 쪽**이다.
+        /// 옵션이 두 줄이면 글 블록이 크지만, 한 줄이면 아이콘 묶음(타일 + «새로운!» 줄 · 정본 `.cmp-icon-wrap` 5.04rem)이 크다 — 런 1194 가 그 갈래에 걸려
+        /// «마지막 글줄 → 카드 아래» 가 1.5rem 이 아니라 2.67rem 으로 났다(글 블록만 보던 자의 가정이 틀렸지 카드가 틀린 게 아니다). 내용 아래끝 = 글줄·타일·«새로운!» 중 가장 아래.</summary>
         private static void AssertPad(RectTransform card, float pt, float pb, string what)
         {
             RectTransform nm = (RectTransform)card.Find("name");
@@ -57,15 +60,23 @@ namespace Forge.Tests.PlayMode
                 if (s == null) break;
                 last = (RectTransform)s;
             }
-            Assert.IsNotNull(last, what + ": 부 옵션 줄(글 블록이 카드 높이를 정하는 갈래여야 잰다)");
+            Assert.IsNotNull(last, what + ": 부 옵션 줄(글 블록이 있는 갈래여야 잰다)");
 
             Vector3[] cc = new Vector3[4], nc = new Vector3[4], lc = new Vector3[4];
             card.GetWorldCorners(cc); nm.GetWorldCorners(nc); last.GetWorldCorners(lc);
             float cardTop = card.InverseTransformPoint(cc[1]).y, cardBot = card.InverseTransformPoint(cc[0]).y;
             float nameTop = card.InverseTransformPoint(nc[1]).y, lastBot = card.InverseTransformPoint(lc[0]).y;
+            float contentBot = lastBot;
+            foreach (string child in new[] { "tile", "newtag" })
+            {
+                RectTransform c = (RectTransform)card.Find(child);
+                if (c == null) continue;
+                c.GetWorldCorners(lc);
+                contentBot = Mathf.Min(contentBot, card.InverseTransformPoint(lc[0]).y);
+            }
 
             Assert.AreEqual(pt, cardTop - nameTop, 0.6f, what + ": 위 패딩 = 정본 .9rem(1825 · 세 갈래 공통) — 종전 클론은 0.6rem 이었다");
-            Assert.AreEqual(pb, lastBot - cardBot, 0.6f, what + ": 아래 패딩 = 정본 값 — 종전 클론은 0.8rem(cur)·2.0rem(new) 이었다");
+            Assert.AreEqual(pb, contentBot - cardBot, 0.6f, what + ": 아래 패딩 = 정본 값(내용의 맨 아래 자식 → 카드 아래) — 종전 클론은 0.8rem(cur)·2.0rem(new) 이었다");
         }
 
         /// <summary>T476 — 이 카드의 세 글줄은 691 `.item-stat`(T474 오등재)이 아니라 마크업(ui.js 3224·3236~3237)이 직접 쓰는 `.cmp-name` 1.05(1889) · `.cmp-stat` .95(1890) ·
