@@ -341,17 +341,21 @@ namespace Forge.Game.Ui
             float rowH = UiKit.L("lc_row_h") * w;
             float pillH = UiKit.L("lc_pill_h") * w;   // T378 10회차 — 정본 2594 `.league-ticket-pill { height: .0411W }`(전엔 ×1.4)
             List<LeagueChallengeOption> list = h.League.ChallengeList(h.LeagueState);
-            float cardH = rem * 1.1f + PopupKit.FontSize(TextKind.Title) * 1.3f + rem * 0.2f + PopupKit.FontSize(TextKind.Sub) * 1.5f + rem * 1.05f + pillH + rem * 1.9f + list.Count * (rowH + rem * 0.5f) + rem * 1.15f + rem * 1.1f;
+            // T463 — 정본 1752 `.modal-card { display: flex; flex-direction: column; gap: .45rem }`: 카드의 네 자식(제목·안내문·알약·목록) **사이마다** .45rem 이 든다.
+            //   클론은 각 자식의 아래 마진(.2 · 1.05 · 1.9rem)을 Spacer 자식으로 세우므로 gap 을 Column 에 걸면 Spacer 앞뒤로 두 번 든다(결정 기록) —
+            //   그래서 gap 은 그 마진 Spacer 셋과 카드 높이 셈에 **한 번씩** 더한다(거리 = margin + gap · 정본과 같다). 값은 표 catalog layout `card_gap_rem`(.45).
+            float gap = UiKit.L("card_gap_rem") * rem;
+            float cardH = rem * 1.1f + PopupKit.FontSize(TextKind.Title) * 1.3f + rem * 0.2f + gap + PopupKit.FontSize(TextKind.Sub) * 1.5f + rem * 1.05f + gap + pillH + rem * 1.9f + gap + list.Count * (rowH + rem * 0.5f) + rem * 1.15f + rem * 1.1f;
             RectTransform card = PopupKit.Card(root, "card", cardW, cardH, "pp_paper", rem);
-            PopupKit.Column(card, UiKit.H("card_pad"), 0f);
+            PopupKit.Column(card, UiKit.H("card_pad"), 0f);   // T463 — 틈 0 은 «gap 없음» 이 아니라 «gap 을 아래 마진 Spacer 에 접었다» 다(위 주석)
             // T462 — 이 제목은 정본 ui.js 4868 `.profile-title`(style.css 2991 `font-size: 1.5rem; margin: 0 0 .2rem`)이지 2298 `.league-title`(1.15rem · 시트 제목)이 아니다.
             //   1.5rem = 54.6px 은 `ProfilePopup` 이 같은 선택자에 쓰는 `Title`(60 · +10% · check_text_kinds ±12% 안) 단으로 — 새 단을 더하지 않는다(T391 창 규약 · T404 Title2 는 1.15rem 단이라 그대로).
             //   아래 마진 .2rem 은 카드 높이 셈(위 cardH)과 아래 Spacer 둘 다에 넣는다(전엔 둘 다 없었다 · 제목이 −23% 라 카드가 짧아 위끝 +2.93%p · T28 119회차).
             TextMeshProUGUI title = PopupKit.Label(card, "title", TextKind.Title, "상대 선택", "pp_ink");   // T456 — 정본 ui.js 4868 `.profile-title` → style.css 2992 `color: var(--pp-ink)`: 흰 카드 위 진한 잉크(전엔 stage_ink #fff 라 흰 위 흰 · 런 1102 실측 가장 어두운 화소 189). T404 ⓑ — 정본 2298 `.league-title { 1.15rem }` = 41.9px → Title2 42(전엔 Title 60)
             PopupKit.Ring(title);
-            PopupKit.Spacer(card, rem * 0.2f);   // T462 — 정본 2991 `.profile-title { margin: 0 0 .2rem }`
+            PopupKit.Spacer(card, rem * 0.2f + gap);   // T462 — 정본 2991 `.profile-title { margin: 0 0 .2rem }` + T463 카드 gap .45
             PopupKit.Label(card, "desc", TextKind.Sub, "도전 티켓은 매일 09:00에 보충됩니다!", "pp_ink", TextAlignmentOptions.Center, false, true, PopupKit.FontSize(TextKind.Sub) * 1.5f);
-            PopupKit.Spacer(card, rem * 1.05f);
+            PopupKit.Spacer(card, rem * 1.05f + gap);   // 정본 2587 `.league-challenge-desc { margin: 0 0 1.05rem }` + T463 카드 gap
             RectTransform pillRow = PopupKit.Item(card, "ticket-row", -1f, pillH);
             float pillW = UiKit.L("lc_pill_w") * w;   // T378 10회차 — 정본 2594 `.league-ticket-pill { width: .1392W }`(전엔 ×1.3)
             RectTransform pill = UiKit.Box(pillRow, "pill");
@@ -362,7 +366,7 @@ namespace Forge.Game.Ui
             TextMeshProUGUI tkT = UiKit.Text(pill, "text", TextKind.Sub, h.LeagueState.Tickets + "/" + h.Meta.League.TicketMax, "stage_ink");
             tkT.fontStyle = FontStyles.Bold;
             tkT.rectTransform.offsetMin = new Vector2(pillH * 0.9f, 0f);
-            PopupKit.Spacer(card, rem * 1.9f);
+            PopupKit.Spacer(card, rem * 1.9f + gap);   // 정본 2593 `.league-ticket-pill { margin: 0 auto 1.9rem }` + T463 카드 gap
 
             float av = UiKit.H("lc_avatar");
             float btnW = UiKit.L("lc_btn_w") * w, btnH = UiKit.L("lc_btn_h_rem") * rem;   // 정본 2626 .league-challenge-row .btn.sm min-height 2.9rem (T402 · 표)
