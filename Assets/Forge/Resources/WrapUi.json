@@ -93,5 +93,16 @@
   },
   "clone_nowrap": {
     "league_challenge_name": "nowrap"
+  },
+  "_keep_all": "T466 — 정본 style.css 의 `word-break: keep-all` 선언 셋. keep-all = 한글을 어절(띄어쓰기)에서만 꺾는다. 클론 TMP 는 음절마다 꺾는 것(m_UseModernHangulLineBreakingRules 0 = 브라우저 normal)이 기본이라 다른 자리는 전부 맞고, 이 셋만 Game KeepAll.Apply(t, key) 가 어절마다 <nobr> 를 씌운다. 값은 정본 낱말 그대로(keep-all) · Core WrapTable.KeepsAll(key) 가 읽는다 · check_wrap 의 sites(41) 와는 따로 센다.",
+  "_정본_keep_all": {
+    "swc_name": "style.css:2236  .swc-name  → keep-all",
+    "sheet_sub": "style.css:3856  .sheet-sub  → keep-all",
+    "sr_name": "style.css:7040  .sr-name  → keep-all"
+  },
+  "keep_all": {
+    "swc_name": "keep-all",
+    "sheet_sub": "keep-all",
+    "sr_name": "keep-all"
   }
 }

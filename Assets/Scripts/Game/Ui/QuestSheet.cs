@@ -40,6 +40,7 @@ namespace Forge.Game.Ui
             PopupKit.Ring(title, "pp_line", 0.2f);
             TextMeshProUGUI sub = PopupKit.Label(content, "sub", TextKind.Sub, "모든 퀘스트는 수령해도 같은 내용으로 반복됩니다", "pp_ink", TextAlignmentOptions.Center, true);
             sub.color = PinnedColorUi.C("sheet_sub_ink");   // T396 14회차 — 정본 3853 `.sheet-sub { color: #4a4a4a }` 한 선택자 한 키(던전 시트와 같은 자리 · 전엔 카탈로그 quest_sub 로 갈려 있었다)
+            KeepAll.Apply(sub, "sheet_sub");   // T466 — 정본 3856 `.sheet-sub { word-break: keep-all }`
             LineHeight.Apply(sub, "sheet_sub_lh");   // T354 17회차 — 정본 3854 `.sheet-sub { line-height: 1.4 }`(던전 시트 5회차와 같은 선택자 · T178 반납으로 파일이 열렸다 · 한 줄로 서면 눈엔 안 보이고 꺾이면 산다)
             PopupKit.Spacer(content, rem * 0.45f);
 

@@ -13,6 +13,9 @@ namespace Forge.Core.Ui
     /// </summary>
     public static class WrapRules
     {
+        /// <summary>T466 — 정본 `word-break` 낱말(keep-all). 표 `keep_all` 의 값은 이것뿐이다.</summary>
+        public const string KeepAllWord = "keep-all";
+
         public const string NoWrap = "nowrap";
         public const string Normal = "normal";
 
@@ -52,6 +55,8 @@ namespace Forge.Core.Ui
     {
         readonly Dictionary<string, string> map = new Dictionary<string, string>(StringComparer.Ordinal);
         readonly Dictionary<string, string> clone = new Dictionary<string, string>(StringComparer.Ordinal);
+        /// <summary>T466 — 정본 `word-break: keep-all` 자리(`keep_all`) · 값은 낱말 그대로(keep-all).</summary>
+        readonly Dictionary<string, string> keep = new Dictionary<string, string>(StringComparer.Ordinal);
 
         public int Count { get { return map.Count; } }
         /// <summary>클론 쪽 예외 자리 수(`clone_nowrap`).</summary>
@@ -59,6 +64,10 @@ namespace Forge.Core.Ui
         public IEnumerable<string> Keys { get { return map.Keys; } }
         public bool Has(string key) { return map.ContainsKey(key) || clone.ContainsKey(key); }
         public bool IsCloneException(string key) { return clone.ContainsKey(key); }
+        /// <summary>T466 — 그 자리가 정본 `word-break: keep-all` 인가(어절에서만 꺾는다). 표에 없으면 false(= 정본 기본 normal · 음절마다 꺾는다).</summary>
+        public bool KeepsAll(string key) { string v; return keep.TryGetValue(key, out v) && v == WrapRules.KeepAllWord; }
+        /// <summary>`keep_all` 자리 수.</summary>
+        public int KeepAllCount { get { return keep.Count; } }
 
         /// <summary>표 낱말 그대로(nowrap|normal).</summary>
         public string Mode(string key)
@@ -103,6 +112,21 @@ namespace Forge.Core.Ui
                 t.map[k] = v;
             }
             if (t.map.Count == 0) throw new FormatException("WrapUi 에 자리가 하나도 없다");
+            object ko;
+            if (root.TryGet("keep_all", out ko))
+            {
+                JsonObject ka = J.Obj(ko);
+                if (ka == null) throw new FormatException("WrapUi 의 keep_all 이 «상자» 가 아니다");
+                foreach (var kv in ka)
+                {
+                    string k = kv.Key;
+                    if (k.Length > 0 && k[0] == '_') continue;
+                    string v = J.Str(kv.Value);
+                    if (v != WrapRules.KeepAllWord) throw new FormatException("WrapUi keep_all «" + k + "» 의 낱말이 keep-all 이 아니다: " + v);
+                    if (k != WrapRules.KeyOf(k)) throw new FormatException("WrapUi keep_all 키가 규칙 밖이다: " + k);
+                    t.keep[k] = v;
+                }
+            }
             object co;
             if (root.TryGet("clone_nowrap", out co))
             {

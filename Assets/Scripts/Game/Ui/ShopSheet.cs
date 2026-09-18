@@ -55,6 +55,7 @@ namespace Forge.Game.Ui
             Banner(content, "오늘의 특가");
             TextMeshProUGUI sub = PopupKit.Label(content, "sub", TextKind.Sub, "일일 특가 3개 모두 구매하면 새로운 3개가 나와요!", "stage_ink");
             sub.fontStyle = FontStyles.Bold;
+            KeepAll.Apply(sub, "sheet_sub");   // T466 — 정본 3856 `.sheet-sub { word-break: keep-all }`
             LineHeight.Apply(sub, "sheet_sub_lh");   // T354 20회차 — 정본 3854 `.sheet-sub { line-height: 1.4 }`(던전·퀘스트 시트와 같은 선택자 · ui.js 4543·4587·4960)
             // 정본 `.shop-sub` 는 아래 여백이 1.42rem 이다 — 목록이 넣는 칸 간격(0.5rem)만으로는 카드가 2.7%H 위에서 시작한다.
             PopupKit.Spacer(content, UiKit.H("shop_sub_gap") - rem * 0.5f);

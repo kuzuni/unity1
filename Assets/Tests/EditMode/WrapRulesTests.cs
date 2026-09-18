@@ -108,5 +108,21 @@ namespace Forge.Tests.EditMode
             object co; Assert.IsTrue(root.TryGet("clone_nowrap", out co));
             foreach (var kv in J.Obj(co)) if (!kv.Key.StartsWith("_")) Assert.IsTrue(J.Obj(root["_클론_자리"]).Has(kv.Key), "예외 자리마다 «_클론_자리» 에 정본 줄·까닭이 있다: " + kv.Key);
         }
+
+        [Test]
+        public void keep_all_표는_정본_word_break_세_자리를_쥐고_다른_자리는_false_다()
+        {
+            // T466 — style.css 2236 .swc-name · 3856 .sheet-sub · 7040 .sr-name { word-break: keep-all }
+            var t = Table_();
+            Assert.AreEqual(3, t.KeepAllCount, "정본 keep-all 선언 셋");
+            Assert.IsTrue(t.KeepsAll("swc_name")); Assert.IsTrue(t.KeepsAll("sheet_sub")); Assert.IsTrue(t.KeepsAll("sr_name"));
+            Assert.IsFalse(t.KeepsAll("waypoint_time"), "white-space 자리라도 keep-all 이 아니면 false(정본 기본 normal = 음절마다 꺾는다)");
+            Assert.IsFalse(t.KeepsAll("no_such_site"), "표에 없는 자리는 false(던지지 않는다)");
+            Assert.AreEqual(41, t.Count, "white-space 자리 41 은 그대로(keep_all 은 따로 센다)");
+            var root = Root_();
+            var ka = J.Obj(J.Require(root, "keep_all"));
+            ka["sheet_sub"] = "normal";
+            Assert.Throws<System.FormatException>(() => WrapTable.From(root), "keep_all 의 낱말은 keep-all 뿐");
+        }
     }
 }

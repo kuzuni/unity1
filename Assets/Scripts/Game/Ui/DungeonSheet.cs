@@ -160,6 +160,7 @@ namespace Forge.Game.Ui
             //   같은 선택자를 쓰는 퀘스트 시트(ui.js 4587)는 이미 그 값이었다(한 문장이 시트마다 다른 진하기로 찍히고 있었다).
             sub.color = PinnedColorUi.C("sheet_sub_ink");
             sub.fontStyle = FontStyles.Bold;
+            KeepAll.Apply(sub, "sheet_sub");   // T466 — 정본 3856 `.sheet-sub { word-break: keep-all }`: 안내문을 어절에서만 꺾는다
             LineHeight.Apply(sub, "sheet_sub_lh");   // T354 5회차 — 정본 3854 `.sheet-sub { line-height: 1.4 }`(퀘스트·상점의 같은 자리는 T331·T333 lock 뒤)
             UiKit.Place(sub.rectTransform, (W - subW) * 0.5f, y, subW, subH);
             y += subH + DungeonPopups.RemL("sheet_sub_mb_rem");

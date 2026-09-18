@@ -1076,6 +1076,7 @@ namespace Forge.Game.Ui
                 //   여태 TMP 기본(줄바꿈 + 넘침)이라 긴 이름이 이름판 **밖으로 흘러** 아래 등급 칩·옆 셀을 덮었다.
                 //   `Ellipsis` 는 상자에 든 마지막 줄 끝에 …(U+2026)을 달고 나머지를 버린다 — 줄 수는 곧 상자 높이다.
                 TextClamp.Apply(nt2, "sr_name");
+                KeepAll.Apply(nt2, "sr_name");   // T466 — 정본 7040 `.sr-name { word-break: keep-all }`: 이름을 어절에서만 꺾는다(두 줄 클램프는 그대로)
                 UiKit.Fill(nt2.rectTransform);
                 float sy = ny + nameH + PetSkillStyle.Px("sr_sub_mt_rem");
                 float rkW = PetSkillKit.TextWidth(TextKind.Sub, e.Sub) + PetSkillStyle.Px("sr_rk_pad_x_rem") * 2f;

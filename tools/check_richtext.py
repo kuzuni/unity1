@@ -26,6 +26,10 @@ ALLOW = {
     #   플레이어 글이 안 지나는 근거: `TabularText.Apply` 는 숫자 구간만 감싸고(Core `TabularNums.Wrap` · 숫자가 없으면 그대로),
     #   부르는 곳은 `PassPopup.cs` 보상 수(`NumFmt` 가 만든 수 문자열) 하나다. §0-6 급 수리(런 541~545 dotnet 잡이 여기서 막혀 유니티가 안 돌았다 · 결정 578 · 워커 B).
     os.path.join('Assets', 'Scripts', 'Game', 'Ui', 'TabularText.cs'): 'T352 등폭 숫자 <mspace> — 숫자 구간만 · 플레이어 글 없음',
+    # T466(word-break: keep-all) — 정본이 어절에서만 꺾는 세 자리(2236 .swc-name · 3856 .sheet-sub · 7040 .sr-name)를 TMP 는 `<nobr>` 태그로만 낼 수 있어 그 글자에서만 richText 를 켠다.
+    #   플레이어 글이 안 지나는 근거: 부르는 곳은 판매 경고의 카탈로그 장비 이름 · 퀘스트·상점·던전 시트의 붙박이 안내문 · 소환 결과의 데이터 이름(스킬·펫·탈것)뿐이고,
+    #   `KeepAll.Apply` 는 꺾쇠(`<` `>`)가 든 글은 손대지 않는다(켜지도 않는다) — TabularText 와 같은 규약.
+    os.path.join('Assets', 'Scripts', 'Game', 'Ui', 'KeepAll.cs'): 'T466 어절 감싸기 <nobr> — 표 keep_all 자리만 · 꺾쇠 든 글은 안 건드림 · 플레이어 글 없음',
 }
 RE_NEW = re.compile(r'AddComponent<\s*(TextMeshProUGUI|TextMeshPro)\s*>')
 RE_ON = re.compile(r'richText\s*=\s*true')

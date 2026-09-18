@@ -195,6 +195,7 @@ namespace Forge.Game.Ui
             ct.color = (0.2126f * ac.r + 0.7152f * ac.g + 0.0722f * ac.b) > 0.5f ? Color.black : Color.white;
             TextMeshProUGUI nm = UiKit.Text(col, "name", TextKind.Sub, it.Name, "pp_ink");
             LineHeight.Apply(nm, "swc_name_lh");   // T354 10회차 — 정본 2236 `.swc-name { line-height: 1.15; word-break: keep-all }`(긴 이름이 꺾이는 칸)
+            KeepAll.Apply(nm, "swc_name");   // T466 — 같은 선언의 `word-break: keep-all`: 이름을 어절에서만 꺾는다(표 WrapUi keep_all)
             UiKit.Place(nm.rectTransform, 0f, rem * 0.3f + lh * 2f + rem * 0.3f, w, lh);
         }
 
