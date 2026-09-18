@@ -193,12 +193,31 @@ TABLE = {
     #   정본 주석 8770 이 그 관계를 스스로 적어 뒀다: «`.fi-card .fi-skip`(0-2-0)의 **나머지** 선언은 그대로 산다» — 곧 배경만 진다.
     #   그래서 #c9c9c9 는 그려지지 않는다(정본이 census 로 버린 바로 그 값이기도 하다 · 결정 778).
     '.fi-card .fi-skip': ['—죽음: 8771 `.modal-card .btn.btn.fi-skip.fi-skip`(0-5-0)이 배경을 덮는다 — 정본 주석 8770 이 «나머지 선언은 그대로 산다» 로 그 관계를 적어 뒀다'],
+    # ── T377 22회차 — 남은 미정 17 을 «자리 있음 / 덮인다 / 죽음 / 자리 없음(KNOWN)» 으로 갈랐다(결정 798).
+    '#equip-sheet': ['Ui/UiRoot.cs#bg|catalog:sheet_bg'],                            # 3628 #e7e7e7 — 클론 시트 바탕(UiRoot Sheet · 이미 같은 값 · 자가 지킨다)
+    '.dgc-cell': ['Ui/DungeonClearPopup.cs#bg|catalog:dgclear_cell'],                # 5384 #242b33 — 던전 클리어 보상 칸(카탈로그가 `_: .dgc-cell` 로 이미 짝지음)
+    '.offline-top': ['Ui/OfflinePopup.cs#bg|res:PinnedColorUi:offline_top_face'],    # 256 #0e111b — 오프라인 머리 판(전엔 pp_ink #17181a 로 찍었다 → 자리 전용 키)
+    '#app': ['—덮인다: 정본도 `#game3d` 캔버스가 앱 면을 덮고 위·아래는 상단바·탭바가 덮는다 — 클론은 World 카메라 클리어색(레벨 데이터 `Background`)이 그 자리를 그린다 · 카탈로그 `app_bg`(#161b22 · 같은 값)는 DungeonSheet 틀이 쓴다'],
+    '.pinfo-preview.scene': ['—덮인다: 정본 주석 5561 스스로 «캔버스가 전부 덮으므로 비쳐 보일 일은 없다» — 클론도 BattlePreview 가 그 상자를 채우고 못 서면 정본 폴백(🛡️ 판)으로 간다'],
+    '.btn.gem': ['—죽음: 정본 js·html 에 `btn gem` 조합이 0 — 1302 `.pill gem` 은 알약이고 gem 버튼은 `.btn.xs`(3931·3997) 다 · 그려지지 않는 리터럴'],
+    '.pet-card.active': ['—죽음: 정본이 `pet-card` 클래스를 한 번도 안 붙인다(js·html 0 · 펫 목록은 `.pet-cell` 격자로 갈아엎힌 잔재)'],
+    '.pet-card .icon-circle': ['—죽음: 같은 까닭(1673 #161b22) — `icon-circle` 은 다른 자리에 살지만 `.pet-card` 조상이 없다'],
+    '.summon-prog div': ['—죽음: 정본이 `summon-prog` 를 한 번도 안 붙인다(js·html 0 · 소환 바 진행은 `.summon-bar` 갈래) — 그려지지 않는 리터럴'],
 
            # 8807 #81e884 ↔ 카탈로그 quest_bar_done 같은 값(짝만)
 
 }
 # 임자가 정해진 빈자리(파일 lock 뒤) — 붙이면 여기서 지운다
 KNOWN = {
+    # T377 22회차 — 자리 없음(클론에 그 실물이 없다 · 결정 798). 실물이 서는 회차에 면도 같이.
+    'html': '13 #0d1117 은 `@media (prefers-color-scheme: dark)` 안의 html/body 배경 — 클론은 단일 스킴이고 앱 면(#app · 3D 캔버스)이 뷰포트를 다 덮어 html/body 는 안 보인다',
+    'body': '같은 까닭(13 #0d1117 · dark 미디어 갈래 · 앱 면이 덮는다)',
+    '#panel-debug input[type=number]': '디버그 판의 장·스테이지 숫자 입력칸(ui.js 5983·5985) — 클론 DebugPanel.cs 에 InputField 가 0 이다 · 입력칸이 서는 회차(T169 갈래)에 면(677 #22272e)도 같이(잉크 KNOWN 과 같은 자리)',
+    '.prob-chip': '정본 두 자리 — 탈것 판 등급 확률 띠(ui.js 5637 `.prob-box`)와 디버그 판 던전 열쇠 띠(5976) — 둘 다 클론에 없다(탈것 확률은 소환 바 ⓘ → SkillRatesPopup 으로 보이고 디버그 판은 열쇠 띠가 없다) · 띠가 서는 회차에 면(685 #22272e = 카탈로그 card_bg)·테(--c)도 같이',
+    '.panel::-webkit-scrollbar-thumb': '스크롤바 그림(1944 #444c56) — 클론 ScrollRect 에 스크롤바가 0 이다(Game 에 Scrollbar 0) · 스크롤바를 세우는 회차에 색도 같이',
+    '.af-dd-list::-webkit-scrollbar-track': '같은 까닭(4806 #0f1013 · 자동 제련 드롭다운 스크롤바 트랙)',
+    '.af-dd-list::-webkit-scrollbar-thumb': '같은 까닭(4806 #5a6068)',
+    '.af-dd-list button:active': '눌림 상태 면 색(4801 #2c313a) — 클론 드롭다운 항목(ForgeAutoPopup.cs 199 PopupKit.Btn pp_blue/pp_gray)에 눌림 색 갈래가 없다 · T355 PressFx 는 이동·밝기만 · 눌림 색 갈래가 생기면 이 자리부터',
 }
 
 # ── T396 — «못박은 **잉크** 색»(`color`)의 선택자 ↔ 클론 자리. 자리 꼴은 위 TABLE 과 **같다**.

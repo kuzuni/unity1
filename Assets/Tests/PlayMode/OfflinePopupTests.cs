@@ -97,8 +97,11 @@ namespace Forge.Tests.PlayMode
             Rect rc = World(card), rtop = World(top);
             Assert.AreEqual(OfflinePopup.TopFrac, rtop.height / rc.height, 0.03f, "머리 판 높이 = 카드 높이 × 42.8%");
             Assert.AreEqual(rc.yMax, rtop.yMax, rc.height * 0.02f, "머리 판은 카드 위 끝에 붙는다");
-            AssertColor(FindUnder(top, "bg").GetComponent<Image>().color, OfflinePopup.TopFaceKey, "머리 판");
-            Color dark = UiKit.C(OfflinePopup.TopFaceKey);
+            // T377 22회차 — 머리 판은 정본 256 `.offline-top #0e111b` 의 자리 전용 키(PinnedColorUi)다 · 전엔 전역 pp_ink 였다.
+            Color dark = PinnedColorUi.C(OfflinePopup.TopFaceKey);
+            Assert.AreEqual("#0E111B", "#" + ColorUtility.ToHtmlStringRGB(dark), "정본 256 .offline-top #0e111b");
+            Color gotTop = FindUnder(top, "bg").GetComponent<Image>().color;
+            Assert.Less(Mathf.Abs(gotTop.r - dark.r) + Mathf.Abs(gotTop.g - dark.g) + Mathf.Abs(gotTop.b - dark.b), 0.02f, "머리 판 색이 표 offline_top_face 가 아니다: " + gotTop);
             Assert.Less(dark.r + dark.g + dark.b, 0.5f, "머리 판은 어두운 색이어야 한다(정본 #0e111b)");
 
             // 글자 색 — 제목 흰 · «수집 시간:» 회색 · 시간 초록

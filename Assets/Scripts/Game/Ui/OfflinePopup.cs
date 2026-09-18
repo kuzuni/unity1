@@ -31,7 +31,7 @@ namespace Forge.Game.Ui
             float topH = outerH * TopFrac;
             RectTransform top = UiKit.Box(card, "top");
             UiKit.Place(top, 0f, 0f, inner, topH);
-            UiKit.Panel(top, "bg", TopFaceKey);
+            UiKit.Panel(top, "bg", "pp_ink").color = PinnedColorUi.C(TopFaceKey);   // T377 22회차 — 정본 256 .offline-top #0e111b(자리 전용 키 · 카탈로그 pp_ink 가 아니다)
             float y = rem * 1.3f;
             TextMeshProUGUI title = UiKit.Text(top, "title", TextKind.Title2, "오프라인 보상", "stage_ink");   // T404 ⓑ — 정본 267 `.offline-title { font-size: 1.2rem }` = 43.7px → Title2 42(전엔 Title 60 · +37%)
             title.fontStyle = FontStyles.Bold;
@@ -108,7 +108,7 @@ namespace Forge.Game.Ui
 
         /// <summary>정본 `.offline-top` — 카드 높이의 42.80%(원본 헤더 23.27%H / 카드 콘텐츠 54.37%H). 어두운 판 `#0e111b` 은 카탈로그에 가장 가까운 `pp_ink`(T62 lock 뒤 키 추가).</summary>
         public const float TopFrac = 0.4280f;
-        public const string TopFaceKey = "pp_ink";
+        public const string TopFaceKey = "offline_top_face";   // T377 22회차 — 정본 256 `.offline-top { background: #0e111b }`(PinnedColorUi) · 전엔 전역 pp_ink #17181a
         /// <summary>정본 `.offline-sub` 글자 — 종류·하한을 위해 남겨 둔 **카탈로그 폴백** 키(값은 아래 못박은 잉크가 덮는다).</summary>
         public const string SubInkKey = "pp_gray";
         /// <summary>T396 3회차 — 정본 267 `.offline-sub { color: #ccc }` 를 그대로 쥔 표 키(`PinnedColorUi.json`). 전엔 `pp_gray`(#c4c4c4)로 근사했다.</summary>
