@@ -4298,6 +4298,8 @@
 - 고침: ⓐ 표에 `item_stat_rem` **.74** 를 두고(곁 표 · `catalog.json` 이 lock 이면 T65 꼴) **307·319** 를 **종류 `Micro` + `TextSizeUi.Apply`** 로(`.74rem` = 26.9px 은 §1 하한 36 **아래**라 그 길이다 — T383·T450·T461·T468 이 낸 길 · §1 예외 목록에 한 줄) ⓑ `lineH`(**254**)도 새 크기로 셈한다 ⓒ 그래도 접히는 글이 있으면 그릇을 **두 줄**로 여는 것은 T351 몫이라 **이 절은 크기까지만** 한다.
 - 판정(다음 런): ⓐ `craft-compare` 의 옵션 줄이 **한 줄**이고 아래 회색 판을 **안 침범한다** ⓑ 스탯 줄 글자 한 칸 보냄이 원작 대비 **±10%** 안(지금 +34%) ⓒ 카드 종이 높이·위끝이 **안 움직인다**(런 1181 값에서 ±0.3) ⓓ `gear-detail` 의 같은 줄도 같이 작아진다(같은 공장이다).
 - 범위: `Assets/Scripts/Game/Ui/ForgeUi.cs` · `Assets/Forge/Resources/TextSizeUi.json`(또는 곁 표) · `Assets/Tests/PlayMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 **1회차 선점 2026-09-18 12:4x 워커 O(sess-2140-18689)** — `ForgeUi.cs`·`TextSizeUi.json` 은 산 lock(T28·T354·T396) 범위 밖(T472·T473 이 닫혀 `ForgeUi.cs` 가 열렸다). 등재문대로 ⓐ `TextSizeUi.json` `item_stat` .74(정본 691) + 307·319 를 `Micro` + `TextSizeUi.Apply`(§1 예외 열셋째 자리) ⓑ `lineH`(254)를 새 크기로 — **한 커밋** · PlayMode 자.
+
 
 ### T466 ✅ — **정본이 `word-break: keep-all` 을 준 한글 세 자리(`.swc-name`·`.sheet-sub`·`.sr-name`)를 클론 TMP 가 음절마다 꺾는다** (Game·UI · T351(줄 클램프)·T361(white-space)·T354(줄높이) 갈래 · **T33 47회차 등재**)
 - **정본이 못 박은 것**: `css/style.css` **2236** `.swc-name { … line-height: 1.15; word-break: keep-all }`(판매 경고의 긴 장비 이름) · **3856** `.sheet-sub { … word-break: keep-all }`(3862 `max-width: 74%` 라 두 줄이 된다) · **7040** `.sr-name { white-space: normal; word-break: keep-all }`(소환 결과 이름판 · T361 5286 이 «두 줄 허용 + keep-all» 로 적어 둔 자리). `keep-all` = 한글을 **어절(띄어쓰기)에서만** 꺾는다. 그 밖의 한글 자리는 `normal` 이라 브라우저가 음절마다 꺾는다.
