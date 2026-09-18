@@ -578,12 +578,25 @@ namespace Forge.Tests.PlayMode
             float streakCoreStart = streakWinStart + (ssp.DelayModMs - 1), streakCoreEnd = streakWinStart + (float)ssp.Ms;
             int seenStreakCore = 0;
             float streakWorstGap = 0f;
+            // §0-6 보탬(런 1173) — 빛 모임(`.sr-charge`)의 **봉우리 창**(표 알파 > .5 인 구간 · 열린 뒤 ms)도 같은 길로 표에서 잰다.
+            //   런 1173: 1.01초 동안 프레임이 드물어 그 창에 표본이 0 → «빛 모임이 정점까지 안 갔다(0.0)» 로 빨갰다 — 못 잰 것이지 안 간 것이 아니다.
+            var cbsp = SummonFxStyle.ChargeBurst;
+            float burstCoreStart = -1f, burstCoreEnd = -1f;
+            for (int ms = 0; ms < 10000; ms++)
+            {
+                double ba, bs;
+                cbsp.At(ms, v.PreK, v.SrEnergy, out ba, out bs);
+                if (ba > 0.5) { if (burstCoreStart < 0f) burstCoreStart = ms; burstCoreEnd = ms; }
+            }
+            Assert.GreaterOrEqual(burstCoreStart, 0f, "표의 빛 모임이 어느 순간에도 .5 를 안 넘는다 — 표(charge_burst)가 이상하다");
+            int seenBurstCore = 0;
             float t = 0f;
             while (!v.Done && t < 12f)
             {
                 if (Time.unscaledDeltaTime > streakWorstGap) streakWorstGap = Time.unscaledDeltaTime;
                 if (v.ElapsedMs >= streakWinStart && v.ElapsedMs <= streakWinEnd) seenStreakWin++;
                 if (v.ElapsedMs >= streakCoreStart && v.ElapsedMs <= streakCoreEnd) seenStreakCore++;
+                if (v.ElapsedMs >= burstCoreStart && v.ElapsedMs <= burstCoreEnd) seenBurstCore++;
                 Image mi = v.ShockMain, ei = v.ShockEcho;
                 if (mi != null && mi.color.a > 0f)
                 {
@@ -676,9 +689,12 @@ namespace Forge.Tests.PlayMode
             for (int i = 0; i < v.StreakCount; i++)
                 Assert.AreEqual(0f, v.StreakOf(i).color.a, 1e-3f, "빛줄기가 안 꺼졌다 — 아이콘 줄 위에 흰 막대가 남는다(" + i + "번)");
 
-            Assert.Greater(chargePeak, 0.5f, "빛 모임이 정점까지 안 갔다(경과 " + t.ToString("0.00") + "초)");
-            Assert.Greater(chargePeakScale, 0f);
-            Assert.Less(chargePeakAt, echoPeakAt, "빛 모임의 정점이 잔파보다 늦다 — 정본은 그 정점에 충격파가 나간다");
+            if (seenBurstCore > 0)   // §0-6 보탬 — 봉우리 창에 표본이 들었을 때만 «정점까지 갔나» 를 묻는다(T443 의 속창과 같은 길)
+            {
+                Assert.Greater(chargePeak, 0.5f, "빛 모임이 정점까지 안 갔다(경과 " + t.ToString("0.00") + "초 · 봉우리 창 " + burstCoreStart.ToString("0") + "~" + burstCoreEnd.ToString("0") + "ms 안 프레임 " + seenBurstCore + "번)");
+                Assert.Greater(chargePeakScale, 0f);
+                Assert.Less(chargePeakAt, echoPeakAt, "빛 모임의 정점이 잔파보다 늦다 — 정본은 그 정점에 충격파가 나간다");
+            }
             Assert.AreEqual(0f, v.ChargeBurst.color.a, 1e-3f, "빛 모임이 안 꺼졌다 — 화면에 흰 원이 남는다");
             Assert.AreEqual(0f, v.ShockMain.color.a, 1e-3f, "본파가 안 사라졌다");
             Assert.AreEqual(0f, v.ShockEcho.color.a, 1e-3f, "잔파가 안 사라졌다");
@@ -705,6 +721,10 @@ namespace Forge.Tests.PlayMode
             float e2 = v2.SrEnergy;
             Assert.AreEqual(0f, e1, 1e-4f, "×1 의 에너지는 0 이다");
             Assert.Greater(e2, e1, "같은 한 셀이어도 ×20 은 ×1 보다 세야 한다 — 셀 수로 재면 둘이 같아진다(정본이 이름으로 경고한 자리)");
+            if (seenBurstCore == 0)
+                Assert.Ignore("환경 — 빛 모임 **봉우리 창**(" + burstCoreStart.ToString("0") + "~" + burstCoreEnd.ToString("0")
+                    + "ms · 표 알파 > .5 인 구간)에 프레임이 한 번도 안 들어왔다(가장 긴 프레임 " + (streakWorstGap * 1000f).ToString("0")
+                    + "ms) — 잴 기회가 없었다(나머지 단언은 전부 지났다)");
             if (seenStreakCore == 0)
                 Assert.Ignore("환경 — 빛줄기 **속창**(" + streakCoreStart.ToString("0") + "~" + streakCoreEnd.ToString("0")
                     + "ms · 모든 스포크가 함께 켜진 구간 · 창 전체는 " + streakWinStart.ToString("0") + "~" + streakWinEnd.ToString("0")

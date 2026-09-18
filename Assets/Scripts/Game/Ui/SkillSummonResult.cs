@@ -1312,6 +1312,11 @@ namespace Forge.Game.Ui
                 if (seq.Hero && !heroFired) FireHero();
                 if (seq.Done) Finish();
             }
+            // §0-6 보탬(런 1173 · 결정 792) — «슬롯 → 광원» 벡터는 **셀을 움직이기 전에** 잰다. T455 가 «창이 아니라 첫 틱에» 로 옮겼지만 그 자리가
+            //   `AnimateCharge`(AnimateCells **뒤**)라, 느린 러너에서 첫 틱과 첫 공개가 한 틱에 몰리면 켜진 셀의 0% 자리가 벡터 0 의 대체값
+            //   (`--dy` .5rem)으로 한 프레임 찍히고 같은 틱 끝에야 벡터가 선다(자 `셀은_광원_자리에서…` 런 1173: x 134 ↔ 361). 화면으론 한 프레임의
+            //   «아래서» ↔ «광원에서» 차이다. 정본은 `setSummonEjectPaths` 가 **셀 등장 전**에 심는다 — 그 차례를 여기서 지킨다.
+            if (!ejectSet && haloImg != null && cells.Count > 0) { ejectSet = true; MeasureEject(); }
             AnimateCells();
             AnimateTicks();
             AnimateCharge();
