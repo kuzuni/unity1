@@ -79,7 +79,7 @@ namespace Forge.Game.Ui
             Image gift = PopupKit.IconOr(brt, "gift", "gift");
             UiKit.Anchor(gift.rectTransform, new Vector2(0f, 0f), new Vector2(0.5f, 0f), new Vector2(-w * 0.0362f + barH * 0.5f, 0f), barH * 1.5f, barH * 1.5f);
             double remain = (h.LeagueState.SeasonEndsAt - h.NowMs) / 1000;
-            TextMeshProUGUI barT = UiKit.Text(brt, "text", TextKind.Sub, "시즌 종료: " + PopupKit.FmtTime(remain), "stage_ink");
+            TextMeshProUGUI barT = UiKit.Text(brt, "season-left", TextKind.Sub, "시즌 종료: " + PopupKit.FmtTime(remain), "stage_ink");
             barT.fontStyle = FontStyles.Bold;
 
             // 랭킹 8행 창(내 순위 주변)
@@ -166,7 +166,7 @@ namespace Forge.Game.Ui
             UiKit.Rounded(score, "bg", "league_score", RadiusUi.Px("league_score_r_rem"));
             // T89 — 정본 `ui.js` 4741: `<span class="league-score">${IconGen.img('star')} ${U.fmt(e.score)}</span>`.
             // 클론은 «★»(U+2605) 글자로 찍어 글꼴에 없어 □ 였다 — 표의 ⭐ 를 써서 같은 `star` 아이콘 + 수로 세운다.
-            RectTransform scRow = UiKit.IconTextRow(score, "text", TextKind.Sub, "⭐ " + PopupKit.Fmt(e.Score), "stage_ink");
+            RectTransform scRow = UiKit.IconTextRow(score, "score-text", TextKind.Sub, "⭐ " + PopupKit.Fmt(e.Score), "stage_ink");
             // T333 3회차 — 정본 8392 는 `.league-score` 도 같은 한 겹을 받는다(알약 판 위 점수).
             // T352 3회차 — 정본 8635 `.league-score { font-variant-numeric: tabular-nums }`(주석: «세로로 열을 이루는 숫자만 등폭으로 — 행마다 좌우로 흔들리던 자리»).
             //             점수는 봇 20~200 · 내 점수라 두세 자리가 창 8행 + 발 밴드에서 세로 열을 이룬다 — 숫자 구간만 <mspace> 로(결정 570 · 칸 폭은 글꼴에서).
@@ -238,7 +238,7 @@ namespace Forge.Game.Ui
             UiKit.Place(collect, (cardW - collectW) * 0.5f, y, collectW, collectH);
             Image collectFace = PopupKit.Outlined(collect, "face", "lgr_collect", RadiusUi.Px("league_collect_pill_r_rem"), PopupKit.Line3);   // T415 12회차 — 정본 2522 .league-collect-pill .5rem
             SurfaceArt.FillMasked(collectFace, "collect-grad", "lgr_collect_pill", collectW, collectH);   // 정본 .league-collect-pill linear-gradient(180deg, #e3e3e3, #c2c2c2) · T178 3회차
-            TextMeshProUGUI c1 = UiKit.Text(collect, "label", TextKind.Sub, "수집까지:", "pp_ink");
+            TextMeshProUGUI c1 = UiKit.Text(collect, "collect-label", TextKind.Sub, "수집까지:", "pp_ink");
             LineHeight.Apply(c1, "league_collect_pill_lh");   // T354 24회차 — 정본 2523 `.league-collect-pill { line-height: 1.3 }`
             c1.fontStyle = FontStyles.Bold;
             UiKit.Place(c1.rectTransform, 0f, rem * 0.2f, collectW, collectH * 0.45f);
@@ -367,7 +367,7 @@ namespace Forge.Game.Ui
             UiKit.Rounded(pill, "bg", "pp_ink", RadiusUi.Px("league_ticket_pill_r_rem"));
             Image tk = PopupKit.IconOr(pill, "ico", "ticket");
             UiKit.Place(tk.rectTransform, rem * 0.4f, pillH * 0.15f, pillH * 0.7f, pillH * 0.7f);
-            TextMeshProUGUI tkT = UiKit.Text(pill, "text", TextKind.Sub, h.LeagueState.Tickets + "/" + h.Meta.League.TicketMax, "stage_ink");
+            TextMeshProUGUI tkT = UiKit.Text(pill, "tickets", TextKind.Sub, h.LeagueState.Tickets + "/" + h.Meta.League.TicketMax, "stage_ink");
             tkT.fontStyle = FontStyles.Bold;
             tkT.rectTransform.offsetMin = new Vector2(pillH * 0.9f, 0f);
             PopupKit.Spacer(card, rem * 1.9f + gap);   // 정본 2593 `.league-ticket-pill { margin: 0 auto 1.9rem }` + T463 카드 gap

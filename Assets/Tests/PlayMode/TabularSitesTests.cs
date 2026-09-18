@@ -173,7 +173,7 @@ namespace Forge.Tests.PlayMode
             foreach (TextMeshProUGUI t in p.Root.GetComponentsInChildren<TextMeshProUGUI>(true))
             {
                 Transform tp = t.transform.parent;
-                if (tp == null || tp.name != "text" || tp.parent == null || tp.parent.name != "score") continue;   // 상자 «score» → IconTextRow «text» → 글자 조각
+                if (tp == null || tp.name != "score-text" || tp.parent == null || tp.parent.name != "score") continue;   // 상자 «score» → IconTextRow «score-text» → 글자 조각
                 if (!TabularNums.IsWrapped(t.text)) continue;         // 아이콘 조각 옆의 빈 글자 등은 도우미가 안 건드린다
                 scores++;
                 Assert.IsTrue(t.richText, "점수 «" + t.text + "» — <mspace> 를 쓰려면 richText");

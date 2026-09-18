@@ -868,9 +868,9 @@ namespace Forge.Tests.PlayMode
             AssertSpacing(title, "league_title_lh", "리그 제목");
             Assert.AreEqual(1.3, LineHeight.Table.Get("league_collect_pill_lh"), 1e-9, "정본 2523");
             Transform collect = Find(league.Root, "collect");   // T414 — `collect` 는 오프라인 팝업도 쓰는 이름이라 리그 뿌리에서만
-            if (collect != null && collect.Find("label") != null)
+            if (collect != null && collect.Find("collect-label") != null)
             {
-                AssertSpacing(collect.Find("label").GetComponent<TextMeshProUGUI>(), "league_collect_pill_lh", "수집 알약 글");
+                AssertSpacing(collect.Find("collect-label").GetComponent<TextMeshProUGUI>(), "league_collect_pill_lh", "수집 알약 글");
                 AssertSpacing(collect.Find("time").GetComponent<TextMeshProUGUI>(), "league_collect_pill_lh", "수집 알약 시간");
             }
         }

@@ -230,7 +230,7 @@ namespace Forge.Game.Ui
             float rem = PopupKit.Rem;
             RectTransform card = PopupKit.Card(p.Root, "card", UiKit.L("modal_card_w") * UiKit.RefW - PopupKit.Line3 * 2f, -1f, "pp_paper", rem);   // T473 — 표값은 정본 CSS width
             PopupKit.Column(card, UiKit.H("card_pad"), rem * 0.5f);
-            PopupKit.Label(card, "title", TextKind.Body, "새 이름을 입력하세요 (최대 12자)", "pp_ink", TextAlignmentOptions.Center, true);
+            PopupKit.Label(card, "rename-hint", TextKind.Body, "새 이름을 입력하세요 (최대 12자)", "pp_ink", TextAlignmentOptions.Center, true);
             float ih = PopupKit.FontSize(TextKind.Body) * 1.6f;
             RectTransform ibox = PopupKit.Item(card, "input", -1f, ih);
             UiKit.Rounded(ibox, "line", "pp_line", RadiusUi.Px("profile_field_r_rem"));

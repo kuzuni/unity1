@@ -101,7 +101,7 @@ namespace Forge.Game.Ui
             RectTransform viewport = UiKit.Box(ibox, "viewport");
             PopupKit.Inset(viewport, rem * 0.4f);
             viewport.gameObject.AddComponent<RectMask2D>();
-            TextMeshProUGUI txt = UiKit.Text(viewport, "text", TextKind.Sub, string.Empty, "pp_ink", TextAlignmentOptions.Left);
+            TextMeshProUGUI txt = UiKit.Text(viewport, "compose", TextKind.Sub, string.Empty, "pp_ink", TextAlignmentOptions.Left);
             TextMeshProUGUI ph = UiKit.Text(viewport, "placeholder", TextKind.Sub, "메시지 보내기...", "pp_muted", TextAlignmentOptions.Left);
             // T396 6회차 — 정본 3452 `.chat-input-bar input::placeholder { color: #6b6b6b }` 는 «브라우저 기본 #8e8e93 이 흐려서» 일부러 진하게 못박은 리터럴이다.
             //   전역 pp_muted(#8a8a8a)는 그보다 옅다 — 자리 전용 키(PinnedColorUi · check_pinned_colors 가 정본과 같은지 지킨다).

@@ -61,7 +61,7 @@ namespace Forge.Tests.PlayMode
             // ⓒ 티켓 알약 글자 — 어두운 알약(pp_ink 바탕) 위라 흰색 그대로.
             Transform pill = Find(card, "pill");
             Assert.IsNotNull(pill, "티켓 알약");
-            TextMeshProUGUI tk = pill.Find("text").GetComponent<TextMeshProUGUI>();
+            TextMeshProUGUI tk = pill.Find("tickets").GetComponent<TextMeshProUGUI>();
             Assert.AreEqual(UiKit.C("stage_ink"), tk.color, "티켓 알약 글자는 흰색 그대로(어두운 알약 위) — 이 고침은 제목 한 자리만 바꿨다");
             Debug.Log("[T456] 제목 색 " + title.color + " · 알약 글자 " + tk.color);
             PopupLayer.Instance.Hide(LeagueSheet.ChallengeName);
