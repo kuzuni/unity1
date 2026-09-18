@@ -826,6 +826,9 @@ namespace Forge.Tests.PlayMode
             float t = 0f;
             while (!v.CellOn(0) && t < 6f) { t += Time.unscaledDeltaTime; yield return null; }
             Assert.IsTrue(v.CellOn(0), "0번 셀이 6초 안에 켜진다");
+            // 런 1164: 느린 러너가 공개와 충전을 **한 틱**에 몰면 켜진 프레임이 이미 충전 창 안이다 — 그때는 정본대로(6864 `.charging .sr-cell.on:not(.heroic)`
+            //   이 `srinhale` 로 애니메이션을 통째로 갈아 끼운다) `AnimateCharge` 의 흡기가 팝의 자리·배율을 덮는다. 잴 기회가 없었던 것이지 팝이 틀린 게 아니다.
+            if (v.Charging) Assert.Ignore("환경 — 0번 셀이 켜진 프레임이 이미 충전 창 안이다(공개와 충전이 한 틱에 몰렸다) — 흡기가 팝을 덮어 잴 기회가 없었다");
             // 켜진 그 Update 에서 AnimateCells 가 ms = 0 으로 돈다 — 프레임 길이와 무관하게 표의 0% 값 그대로다.
             RectTransform root = v.CellRootOf(0);
             SummonPopSpec pp = SummonFxStyle.Pop;
@@ -841,6 +844,7 @@ namespace Forge.Tests.PlayMode
             while (Time.unscaledTime - t0 < 2.5f && !v.Done)
             {
                 yield return null;
+                if (v.Charging && !settled) Assert.Ignore("환경 — 정착을 보기 전에 충전 창이 열렸다(흡기가 자리를 덮는다) — 잴 기회가 없었다");
                 if (Mathf.Abs(root.localScale.x - 1f) < 1e-3f && (root.anchoredPosition - home).magnitude < 0.5f) { settled = true; break; }
             }
             Assert.IsTrue(settled, "팝 길이 뒤 슬롯 · 배율 1 · (실측 배율 " + root.localScale.x.ToString("0.000") + " · 거리 " + (root.anchoredPosition - home).magnitude.ToString("0.0") + ")");
