@@ -4245,6 +4245,7 @@
 - **무엇을 한다**: ⓐ `ChatScreen.cs` 그 테를 `line1_px`(ol1)로 ⓑ `check_box_borders.py` 가 같은 규칙 블록 안의 `border-width:` 를 읽어 단축의 굵기를 **덮어쓰게** 한다(정본 전수에서 이 꼴이 또 있으면 그 자가 잡는다 — 48회차 실측으로는 3289 하나) ⓒ 자: 그 도구의 자기 검사에 «단축 뒤 border-width» 칸 + PlayMode `BoxBorderSitesTests` 의 채팅 뒤로 버튼 칸을 ol1 로.
 - 판정: 자 초록 · `screen_chat*.png` 화소(버튼 테 1px).
 - 범위: `Assets/Scripts/Game/Ui/ChatScreen.cs` · `tools/check_box_borders.py` · `Assets/Tests/PlayMode/BoxBorderSitesTests.cs` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 **1회차 2026-09-18 06:3x 워커 S(sess-0029-41207) — ⓐⓑⓒ 한 커밋 · 판정은 다음 런**: `ChatScreen.cs` 뒤로 버튼 고리 `backLine = L("line_px")`(ol1) · `check_box_borders.py` `parse_rules` 가 같은 블록 안 단축 뒤의 `border-width` 로 굵기를 덮는다(앞의 것·단축 없는 블록은 무시 · 정본 전수에서 움직인 선택자 3284 하나 · ol2 44→43 · ol1 19→20) · 자기 검사 37칸 · `BoxBorderSitesTests` 채팅 칸 둥근 버튼 ol1. 게이트 rc 0.
 
 ### T470 — **상점 금색 배너(`.shop-banner`)의 좌우 꼬리가 정본은 ◀ ▶ 삼각형(border 트릭)인데 클론은 직사각형이다** (Game·UI · T159(패스 배너 V 홈)와 같은 갈래 · **T33 48회차 등재**)
 - **정본이 못 박은 것**: `css/style.css` **2906~2909** `.shop-banner::before, ::after { content: ''; position: absolute; top: .45rem; border-style: solid }` · `::before { left: -.85rem; border-width: .95rem .85rem .95rem 0; border-color: transparent #a86a00 transparent transparent }` · `::after { right: -.85rem; border-width: .95rem 0 .95rem .85rem; border-color: transparent transparent transparent #a86a00 }` — 위·아래 투명 .95rem + 안쪽 색 .85rem 의 CSS 삼각형: 폭 .85rem · 높이 1.9rem 의 **◀ ▶ 꼬리**(어두운 금 #a86a00)가 배너 좌우 바깥에 .45rem 내려 붙는다. ui.js 4992·4995 «오늘의 특가»·«보석» 배너 둘.

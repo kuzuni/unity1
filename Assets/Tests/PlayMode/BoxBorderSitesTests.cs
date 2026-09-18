@@ -13,7 +13,7 @@ namespace Forge.Tests.PlayMode
     /// <summary>
     /// T365 4회차 — 정본 `border` 폭 단이 ol2 인 자리 여섯이 클론에서 `line2_px`(4) 로 선다(전엔 ol1 = `line_px` 2 · 둥근 버튼은 ol3 = 6).
     /// 클론의 테는 «바깥 고리 + 안쪽 면 r − 폭» 두 장이고 안쪽 면은 <c>PopupKit.Inset(face, 폭)</c> 으로 앉으므로 **안쪽 면의 offset** 이 곧 폭이다.
-    /// 프로필 팝업: 칸(`.profile-field` 3047) · 아바타 고르기(`.avatar-pick-btn` 3061) · 설정 행 버튼(`.settings-act` 3121) — 채팅 화면: 입력줄 위 테(3444) · 입력칸(3450) · 둥근 버튼(3284).
+    /// 프로필 팝업: 칸(`.profile-field` 3047) · 아바타 고르기(`.avatar-pick-btn` 3061) · 설정 행 버튼(`.settings-act` 3121) — 채팅 화면: 입력줄 위 테(3444) · 입력칸(3450) · 둥근 버튼(3284 ol2 를 3289 `border-width` 가 ol1 로 덮는다 · T469).
     /// 6회차: 리그 행(`.league-row` 2328) · 리그 보상 표(`.league-reward-table` 2537) · 플레이어 정보 폴백 미리보기(`.pinfo-preview` 3185).
     /// </summary>
     public class BoxBorderSitesTests
@@ -223,10 +223,12 @@ namespace Forge.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator 채팅_입력줄의_위_테_입력칸_둥근_버튼_테는_정본_ol2_다()
+        public IEnumerator 채팅_입력줄의_위_테_입력칸은_정본_ol2_고_둥근_버튼은_border_width_가_덮은_ol1_다()
         {
             yield return Boot();
             float ol2 = UiKit.L("line2_px");
+            float ol1 = UiKit.L("line_px");   // T469 — 정본 3284 `border: var(--ol2)` 를 같은 블록 3289 `border-width: var(--ol1)` 이 덮는다(주석 «테두리도 2px 이 아니라 1px»)
+            Assert.Less(ol1, ol2, "ol1 < ol2");
             Hud.Instance.ChatButton.onClick.Invoke();
             yield return null;
             Assert.IsTrue(PopupLayer.Instance.IsOpen(ChatScreen.Name), "채팅 줄 → 전체화면 채팅");
@@ -243,7 +245,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(close, "둥근 버튼(close)을 못 찾았다");
             Assert.IsNotNull(input, "입력칸(input)을 못 찾았다");
             Assert.AreEqual(ol2, ((RectTransform)bar).rect.height, 0.01f, "입력줄 위 테 = ol2(정본 3444)");
-            Assert.AreEqual(ol2, RingWidth(close, "둥근 버튼"), 0.01f);
+            Assert.AreEqual(ol1, RingWidth(close, "둥근 버튼"), 0.01f, "둥근 뒤로 버튼 = ol1(정본 3289 border-width 가 3284 의 ol2 를 덮는다 · T469)");
             Assert.AreEqual(ol2, RingWidth(input, "입력칸"), 0.01f);
             yield return null;
         }

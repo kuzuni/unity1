@@ -71,11 +71,13 @@ namespace Forge.Game.Ui
             float backR = RadiusUi.Px("chat_round_btn_r_rem");
             UiKit.Rounded(brt, "line", "pp_line", backR);
             // T365 4회차 — 정본 3284 `.chat-input-bar .btn.danger.round { border: var(--ol2) … }` = ol2(전엔 Line3 = ol3)
-            Image bface = UiKit.Rounded(brt, "face", "pp_red", Mathf.Max(1f, backR - barLine));
+            // T469 — 그런데 같은 블록 3289 `border-width: var(--ol1)` 이 그 단축의 굵기를 **덮는다**(정본 주석 «테두리도 2px 이 아니라 1px 이다» · 실측 y749 검정 1px). 곧 ol1.
+            float backLine = UiKit.L("line_px");
+            Image bface = UiKit.Rounded(brt, "face", "pp_red", Mathf.Max(1f, backR - backLine));
             // T377 — 정본 3283 `.chat-input-bar .btn.danger.round { background: #ff1017 }` 는 전역 --pp-red(#e8362f)가 아니라 **못박은 리터럴**이다
             // (8692 «토큰을 옮기지 말 것 · 버튼 규칙에만 리터럴»). 자리 전용 키로 받는다 — 값은 PinnedColorUi.json · check_pinned_colors 가 지킨다.
             bface.color = PinnedColorUi.C("chat_back_face");
-            PopupKit.Inset(bface.rectTransform, barLine);
+            PopupKit.Inset(bface.rectTransform, backLine);
             Image tri = PopupKit.Tri(brt, "tri", "stage_ink");
             float tw = UiKit.RefH * 0.0179f;
             UiKit.Anchor(tri.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, tw, tw);

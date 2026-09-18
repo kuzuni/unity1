@@ -80,7 +80,7 @@ TABLE = {
     '.chat-preview-badge': ['Ui/Hud.cs@BuildChat'],
     '.chat-input-bar|top': ['Ui/ChatScreen.cs@Open'],
     '.chat-input-bar input': ['Ui/ChatScreen.cs@Open'],
-    '.chat-input-bar .btn.danger.round': ['Ui/ChatScreen.cs@Open'],
+    '.chat-input-bar .btn.danger.round': ['Ui/ChatScreen.cs@Open'],   # T469 — 3284 `border: var(--ol2)` 를 3289 `border-width: var(--ol1)` 이 덮는다 → ol1(같은 메서드의 위 테·입력칸 ol2 와 섞여 «@» 판정은 단만 못 가른다 · PlayMode BoxBorderSitesTests 가 직접 잰다)
     # 카드 면 — PopupKit.Outlined(p, "face", …)
     '.league-row': ['Ui/LeagueSheet.cs@Row'],
     '.league-collect-pill': ['Ui/LeagueSheet.cs@RenderRewards'],
@@ -188,7 +188,16 @@ TIER_PATTERNS = [
 ]
 PARAM_RE = re.compile(r'^\s*(?:line|linePx|lineW|borderPx|width|w)\s*$')
 DECL = re.compile(r'(?<![-\w])border(-top|-bottom|-left|-right)?\s*:\s*([^;}]+)')
+# T469 — 같은 규칙 블록 안에서 단축 **뒤**에 오는 `border-width:`(변 있는 꼴 포함)는 단축의 굵기를 덮어쓴다(CSS 캐스케이드 · 정본 3284 ol2 → 3289 ol1).
+#   단축보다 **앞**에 오면 단축이 다시 굵기를 정하므로 무시한다. 단축 없이 `border-width` 만 있는 블록(장식 삼각형 2908 · 키프레임 6131)은 테 선언이 아니라 안 센다.
+WIDTH_DECL = re.compile(r'(?<![-\w])border(-top|-bottom|-left|-right)?-width\s*:\s*([^;}]+)')
 SIDES = ('top', 'bottom', 'left', 'right')
+
+
+def _override_width(val, width):
+    """단축 값의 첫 토막(굵기)을 `border-width` 값으로 바꾼다 — 나머지(style · 색)는 그대로."""
+    rest = val.strip().split(None, 1)
+    return width.strip() + (' ' + rest[1] if len(rest) > 1 else '')
 
 
 def _blank_comments(css):
@@ -234,11 +243,20 @@ def parse_rules(css_text):
             continue
         sels = [' '.join(s.split()) for s in m.group(1).split(',')]
         sels = [s for s in sels if s]
+        # T469 — 단축 뒤에 온 `border-width` 가 그 블록 안 단축의 굵기를 덮는다(변이 없는 width 는 모든 단축에 · 변이 있는 width 는 같은 변의 단축에만)
+        widths = list(WIDTH_DECL.finditer(body))
         for d in decls:
             line = css.count('\n', 0, m.start(2) + d.start()) + 1
             side = (d.group(1) or '').lstrip('-')
+            val = d.group(2).strip()
+            for wd in widths:
+                if wd.start() < d.start():
+                    continue
+                wside = (wd.group(1) or '').lstrip('-')
+                if wside == '' or wside == side:
+                    val = _override_width(val, wd.group(2))
             for s in sels:
-                out.append((line, s, side, d.group(2).strip()))
+                out.append((line, s, side, val))
     return out
 
 
@@ -542,6 +560,9 @@ def self_test():
 .d { border: none; }
 .e { border: var(--cellb) solid color-mix(in srgb, var(--rc, #6b3538) 80%, #000); }
 .f { border: .34rem solid rgba(255,255,255,.34); }
+.g { border: var(--ol2) solid #000; color: #fff; border-width: var(--ol1); box-shadow: inset 0 -5px 0 #4e0507; }
+.h { border-width: var(--ol1); border: var(--ol3) solid #000; }
+.i { border-width: .95rem .85rem .95rem 0; border-color: transparent #a86a00 transparent transparent; }
 """
     cs = """
 namespace X {
@@ -560,8 +581,8 @@ namespace X {
     rows = parse_rules(css)
     final, overridden = collapse(rows)
     checks = []
-    checks.append(('선언 8(쉼표 목록은 선택자마다 · .c 는 변 둘) · 주석 속 선언은 안 센다', len(rows) == 8))
-    checks.append(('같은 (선택자, 변)의 뒤 규칙이 앞을 덮는다 → 7 · 덮인 1', len(final) == 7 and overridden == 1))
+    checks.append(('선언 10(쉼표 목록은 선택자마다 · .c 는 변 둘 · 단축 없는 border-width 뿐인 .i 는 안 센다) · 주석 속 선언은 안 센다', len(rows) == 10))
+    checks.append(('같은 (선택자, 변)의 뒤 규칙이 앞을 덮는다 → 9 · 덮인 1', len(final) == 9 and overridden == 1))
     tiers = {(s, d): width_tier(v) for s, d, _, v in final}
     checks.append(('폭 단: 덮인 .a 는 ol3 · .b 는 ol1', tiers[('.a', '')] == 'ol3' and tiers[('.b', '')] == 'ol1'))
     checks.append(('변: .c 는 top(ol2) · left(직접값 2px)', tiers[('.c', 'top')] == 'ol2' and tiers[('.c', 'left')] == 'px:2px'))
@@ -569,6 +590,10 @@ namespace X {
     vals = {(s, d): v for s, d, _, v in final}
     checks.append(('색: --pp-line · #30363d · color-mix · rgba', color_of(vals[('.a', '')]) == '--pp-line' and color_of(vals[('.c', 'top')]) == '#30363d'
                    and color_of(vals[('.e', '')]) == 'color-mix' and color_of(vals[('.f', '')]).startswith('rgba(')))
+    # T469 — 같은 블록 안 단축 뒤의 `border-width` 는 굵기를 덮고(색은 남는다) · 단축 앞의 것은 무시 · 단축 없는 것은 선언이 아니다
+    checks.append(('단축 뒤 border-width 가 굵기를 덮는다(.g ol2 → ol1 · 색 #000 그대로)', tiers[('.g', '')] == 'ol1' and color_of(vals[('.g', '')]) == '#000'))
+    checks.append(('단축 앞의 border-width 는 단축이 되덮는다(.h ol3)', tiers[('.h', '')] == 'ol3'))
+    checks.append(('단축 없는 border-width 뿐인 블록은 테 선언이 아니다(.i 없음)', ('.i', '') not in tiers))
     tmp = tempfile.mkdtemp()
     ui = os.path.join(tmp, 'Ui'); os.makedirs(ui)
     with open(os.path.join(ui, 'Face.cs'), 'w', encoding='utf-8') as f:
@@ -576,7 +601,7 @@ namespace X {
     logs = []
     good = {'.a': ['Ui/Face.cs#line'], '.b': ['Ui/Face.cs@Toast'], '.c|top': ['Ui/Face.cs#tile-face'], '.c|left': ['—직접값 자리 · 클론에 없음'], '.d': ['—정본이 끄는 규칙(none)'], '.f': ['Ui/Face.cs']}
     checks.append(('맞는 표는 rc 0', run(css, tmp, good, {}, logs.append) == 0))
-    checks.append(('미정은 막지 않는다(.e 가 표에 없다)', any('미정 1' in l for l in logs)))
+    checks.append(('미정은 막지 않는다(.e·.g·.h 가 표에 없다)', any('미정 3' in l for l in logs)))
     bad = dict(good); bad['.e'] = ['Ui/Face.cs#nothing']
     checks.append(('자리 없음은 rc 1', run(css, tmp, bad, {}, logs.append) == 1))
     checks.append(('KNOWN 이면 rc 0', run(css, tmp, bad, {'Ui/Face.cs#nothing': '임자 있음'}, logs.append) == 0))
