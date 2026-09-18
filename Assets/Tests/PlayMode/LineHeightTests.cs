@@ -919,8 +919,8 @@ namespace Forge.Tests.PlayMode
             Transform sub = Find(v.transform, "sr-sub");
             Assert.IsNotNull(sub, "등급 배지(sr-sub)");
             AssertSpacing(sub.Find("t").GetComponent<TextMeshProUGUI>(), "sr_sub_lh", "등급 배지 글");
-            Transform chip = Find(v.transform, "sr-chip");
-            Assert.IsNotNull(chip, "등급 칩(sr-chip)");
+            Transform chip = Find(v.transform, "sr-chip-common");   // 칩 이름은 "sr-chip-<등급>"(BuildFoot) — 런 1173 이 "sr-chip" 으로 찾다 null 이었다
+            Assert.IsNotNull(chip, "등급 칩(sr-chip-common)");
             AssertSpacing(chip.Find("t").GetComponent<TextMeshProUGUI>(), "sr_chip_lh", "등급 칩 글");
             for (int k = 0; k < 4 && SkillSummonResultView.Current != null; k++) { SkillSummonResultView.Current.OnTap(); yield return null; }
 
