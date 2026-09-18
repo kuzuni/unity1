@@ -2058,3 +2058,31 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 
 - `stroke` **✅ 3** · `border-style` **✅ 1 · —죽음 1 · ⛔ 1 → T472** · `grid-row` **—죽음 3** · `scrollbar-width` **✅ 4** · `padding-top/right` **✅ 1 · △ 18**(표 키 없음 — T378 갈래 목록).
 - **남은 축**(35 − 6 = **29**): `display` 310 · `margin-left` 32 · `margin-right` 15 · 그 밖 2 이하 26. `margin-*` 도 위 패딩과 같은 «표 키가 있는가» 로 갈라야 한다.
+
+
+# T33 51회차 — 남은 축 29 중 선언 2 이하인 19 종(22 선언)을 한 회차에 (2026-09-18 · 워커 U · sess-1159-77189)
+
+> 세는 법은 47회차 그대로. 나머지 큰 셋(`display` 310 · `margin-left` 32 · `margin-right` 15)은 50회차 규칙(«표 키가 있는가»)으로 다음 회차.
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 2 `*` `-webkit-tap-highlight-color` | `transparent` | 모바일 브라우저의 탭 하이라이트 — 유니티엔 없다 | ✅(해당 없음) |
+| 2 | 946 `.equip-cell .cell-lv` `-webkit-font-smoothing` | `antialiased` | 브라우저 글자 래스터 힌트 — TMP SDF 는 제 방식 | ✅(해당 없음) |
+| 3~4 | 1429 `.af-ring` `stroke-width` 2.6 · 1430 `vector-effect` `non-scaling-stroke` | 링 굵기 2.6 · 퍼져도 굵기 고정 | `AnvilFx.cs:413` 주석 — 스프라이트를 키우므로 같이 굵어진다(**결정 231** 로 접은 편차 · 그 구간은 8ms+200ms) | △(결정 231 · 새 번호 없음) |
+| 5~6 | 2176 `.tt-link` `stroke-width` `var(--tt-line)` · `stroke-linecap` `butt` | 2px(499px 폭) · 끝 평평 | `catalog.json tt_line_px` 4(1080 기준) · `UiKit.Line` 사각은 끝이 평평하다 | ✅ |
+| 7 | 2741 `.pass-price` `justify-self` | `center`(2등분 격자의 오른쪽 칸 가운데) | `PassPopup.cs:104` `inner × .75 − priceW/2` = 오른쪽 반 가운데 | ✅ |
+| 8 | 2764 `.pass-header-row span:first-child` `border-right` | `ol3 solid var(--pp-line)`([무료]·[프리미엄] 사이 세로선) | `PassPopup.cs:121~129` 헤더 뒤판 `line`(pp_line) 위에 두 탭이 `Line3 × .5` 씩 물러나 그 틈으로 뒤판이 비친다 = 세로선 ol3 | ✅(동치) |
+| 9 | 2780 `.pass-track` `background-attachment` | `local` | 스크롤 배경 고정 방식 — 클론 트랙은 스프라이트 자식이라 같이 움직인다 | ✅(해당 없음) |
+| 10~11 | 3215 `.pinfo-subs-list` · 3937 `.grid-scroll` `-webkit-overflow-scrolling` | `touch` | iOS 관성 스크롤 힌트 — `ScrollRect` 는 제 관성 | ✅(해당 없음) |
+| 12~13 | 3218 · 3939 같은 둘 `scrollbar-color` | `rgba(0,0,0,.35) transparent` | 50회차 — 클론 스크롤바 0 | ✅(해당 없음) |
+| 14~15 | 4122 `.sk-shard em` `-webkit-background-clip`/`background-clip` | `text`(글자에 `#17181a 0~r% · #fff r%~` 두 색을 **클립** — 조각 진행률이 글자 안에서 갈린다) | `SkillPanel.cs:200` 이 `ratio` 를 셈하나 «한 글 안 부분 색» 은 T396 이 KNOWN 으로 세어 온 갈래(19·20회차가 둘씩 조각으로 옮기는 중) — 이 자리가 그 넷에 드는지는 T396 절이 가른다 | △(T396 갈래) |
+| 16 | 4429 `#panel-pets .summon-bar .btn.big` `flex-basis` | `app-w × .2837` | `PetSkillUi.json summon_btn_w` .2837 | ✅ |
+| 17~19 | 4927 `@property --gp-q` `syntax`·`inherits`·`initial-value` | `<length>` · false · 0px(게이지 줄무늬 위상) | `@keyframes` 안에 `--gp-q` 가 있다 — 4937: @keyframes gp-quantum { from { --gp-q: 0rem; } to { --gp-q: .84rem; } }   /* 링 간격 한 주기 = 파문 하나 */ → 게이지 반짝 줄무늬가 **흐른다**(클론 `PetSkillKit.Gauge` 에 그 키·겹이 없다) | ⛔ 후보 — 다음 회차가 정본 `@keyframes` 줄을 읽고 등재한다 |
+| 20 | 5873 `.sr-canopy::after` `-webkit-mask-composite` | `source-in`(고리 마스크 ∩ 세로 페이드) | 48회차 △ 8 과 같은 자리 — 캐노피 `arch` 굽기(`SummonFx.cs:125`)가 두 마스크를 곱하는지는 그 회차 몫 | △ |
+| 21 | 7048 `.sr-name > span` `-webkit-box-orient` | `vertical`(+ `-webkit-line-clamp: 2`) | T351 ✅ 가 `.sr-name > span { line-clamp 2 }` 를 쥔다 | ✅ |
+| 22 | 8637 `.forge-item-cell small, .pass-cell span` `font-variant-numeric` | `tabular-nums` | 21회차 `tabular-nums` 6 자리 전수 | ✅ |
+
+## 이 회차의 판정
+
+- **✅ 15 · △ 4**(결정 231 링 굵기 · T396 갈래 · 캐노피 마스크 교집합 · 게이지 위상 ⛔ 후보 1) · 새 번호 0.
+- **남은 축**(29 − 19 = **10 종**): `display` 310 · `margin-left` 32 · `margin-right` 15 · 그 밖 7(`-webkit-text-stroke-width` 2 · `color-scheme` 2 · `forced-color-adjust` 2 · `outline` 2 · `outline-offset` 2 · `order` 2 · `user-select` 1 — 이름이 대조표에 있는지 재확인 뒤 다음 회차). 47회차부터 다섯 회차로 «안 센 축 47» 이 **10** 으로 줄었다.
