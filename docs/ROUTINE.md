@@ -4367,6 +4367,16 @@
 
 - 🔄 **1회차 push 2026-09-18 21:1x 워커 U(sess-2059-2733) — 이름 여섯을 갈랐다 · 판정은 다음 런**: `LeagueSheet.cs` 82 `text`→`season-left` · 169 `IconTextRow` `text`→`score-text` · 241 `label`→`collect-label` · 370 `text`→`tickets` · `ChatScreen.cs` 104 `text`→`compose` · `ProfilePopup.cs` 233 `title`→`rename-hint`(키라인 자리 220·275·278·85·269 는 이름 그대로 — 85·269 는 `PopupKit.Ring(title, "sheet_title")` 89·273 이 이미 있다). 자·호출부: `LeagueChallengeTitleInkTests` `pill.Find("tickets")` · `LineHeightTests` `collect.Find("collect-label")` · `TabularSitesTests` 점수 조각 부모 `score-text`(리그 425 `b.transform.Find("label")` 은 버튼 라벨이라 그대로). `check_keyline.py` = **자리 초록 60 → 64 · KNOWN 빈자리 4 → 0** · «KNOWN 인데 이제 키라인이 있다» 넷(rc 0). ⚠ **KNOWN 네 줄은 안 지웠다 — `tools/check_keyline.py` 가 T478(워커 O · 산 lock) 범위다**(결정 802) · T478 이 반납하면 누구든 네 줄을 지운다(코드 0줄). 게이트 rc 0(dotnet 초록). 판정 = 다음 런 빨강 0 + 세 자(`LeagueChallengeTitleInkTests`·`LineHeightTests` 리그 칸·`TabularSitesTests` 리그 점수) PASS + `screen_league*`·`screen_chat*`·`screen_profile*` 그림 불변.
 - ✅ **1회차 판정 2026-09-18 21:5x 워커 U(sess-2059-2733) — 런 1216(`806ba68` = 내 커밋 그 자체) 전체 초록(PlayMode 597 = 초록 594 · 빨강 0 · 건너뜀 3 환경 · EditMode 876) · 세 자 PASS(`LeagueChallengeTitleInkTests` 티켓 알약 · `LineHeightTests` 리그 칸 · `TabularSitesTests` 점수 조각) · 그림은 이름만 바뀌어 달라질 길이 없다(PNG 눈 확인은 안 했다) · **2회차 = KNOWN 네 줄 삭제**: T478 이 21:4x 반납해 `check_keyline.py` 가 열렸다 — `check_keyline` 자리 초록 64 · KNOWN 빈자리 0 · «KNOWN 인데 이제 있다» 알림 0 · `--self-test` 17칸 통과. **완결 ✅ · lock 반납 · 행 ✅ · §7 ✅.**
+- ⚠ **등재자 스스로 바로잡는다 — 이 등재문의 «가로 +25% · 세로 +20%» 는 틀린 수였다(T28 144회차 · 워커 M · 런 1216)**: 나는 «제목 줄의 **첫 어두운 덩어리**» 를 «승» 글자로 삼았는데, 원작 쪽 별은 `#fdd835`(순노랑)이라 어둡기 문턱에서 빠지고 **클론 쪽 별은 테에 `#080808` 이 있어 안 빠진다.** 곧 **원작의 «승» 글자 ↔ 클론의 ⭐ 아이콘**을 나란히 놓고 잰 수다. 창 안 색을 세어(`ink_census`) 글자 색(`#16161c`)만 골라 다시 재니:
+  | 잰 것(«승천» 잉크 · 앱 상자 기준) | 원작 | 고치기 전(1209) | **T478 뒤(1216)** |
+  |---|---|---|---|
+  | 가로 | **6.977%W** | 7.037(+0.9%) | **6.852**(−1.8%) |
+  | 세로 | **1.832%H** | 1.979(**+8.0%**) | **1.875**(+2.3%) |
+  ⇒ **고침은 옳았고 값도 들었다** — 세로 오차가 **+8.0% → +2.3%** 로 줄었고 남은 +2.3% 는 아는 글자 단 근사(정본 1761 `.modal-card h3 { 1.15rem }` ↔ 클론 `Button` 1.209rem = +5.1%)다. **틀린 것은 결론이 아니라 내 자였다**(결론 «키라인이 잘못 걸렸다» 는 정본 3846 선택자 목록에서 나온 것이라 수와 무관하게 선다). 고친 사람의 판정(런 1215 «승» 3.33%W × 1.88%H ↔ 원작 3.26 / 1.83)도 그대로 유효하다 — 그쪽은 글자를 제대로 짚었다.
+  ⓑ 카드 상자는 **불변**이다(런 1209 ↔ 1216 이 한 화소도 안 다르다 — 폭 73.70%W · 위끝 28.75 · 높이 39.27%H). 런 1216 PlayMode 597 중 초록 594 · **빨강 0** · EditMode 876 초록.
+  🔧 **자에 박았다**: `ink_census(img, …)`(창 안 색 세기)와 `glyph_box(img, …, ink=…)`(글자 색을 **줘서** 재기 · 기본 `tol` 12) + self-test 넷. 규약은 둘이다 — **ⓐ 먼저 색을 세고 ⓑ 글자 색을 골라 준다.** «무채색만 거르기» 로는 못 막는다(그 별 테가 `#080808` 이다).
+
+
 ### T477 ✅ — **기술 노드 상세 카드(`.item-detail[data-tech-node]`)가 CSS % 의 밑변을 다섯 자리에서 한꺼번에 틀리게 잡는다**: 카드 제 `padding` 은 **앱 폭**, 카드 안 자식의 `width`·`gap`·`margin` 은 **카드 콘텐츠 폭** 이 밑변인데 클론은 다섯 개 모두 **패딩 상자 폭(`cw`)** 에 곱한다 — 진행바가 **+3.8%p** 넓고 청동 원이 **+1.3%p** 크다 (UI · **T405(펫 업그레이드 `padding: 1.78%`)와 같은 병** · T28 141회차 등재 · 런 1205 실측)
 
 - **정본이 못 박은 것**(전부 `css/style.css`):
