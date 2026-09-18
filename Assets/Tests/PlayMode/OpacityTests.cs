@@ -222,12 +222,14 @@ namespace Forge.Tests.PlayMode
             Transform label = empty.Find("empty");
             Assert.IsNotNull(label, "«빈 슬롯» 글자");
             Assert.AreSame(cg, label.GetComponentInParent<CanvasGroup>(), "글자가 그 한 겹 안에 든다");
-            // `PopupKit.Outlined` 은 «상자 face / 안에 line + face(Image)» 로 두 겹이다 — 바깥 `face` 는 민 Box 라 Image 가 없다(런 701 이 여기서 빨갰다).
-            Transform faceBox = empty.Find("face");
-            Assert.IsNotNull(faceBox, "얼굴 상자");
-            Image face = faceBox.Find("face") != null ? faceBox.Find("face").GetComponent<Image>() : null;
-            Assert.IsNotNull(face, "얼굴 이미지(PopupKit.Outlined 의 안쪽 face)");
-            Assert.AreEqual(1f, face.color.a, 1e-4f, "얼굴 알파에 숫자를 다시 박지 않는다(한 겹은 CanvasGroup 이 쥔다)");
+            // T472 — 종이 면(`PopupKit.Outlined` 의 face · 런 701 이 여기서 빨갰던 두 겹)은 걷혔다: 정본 `.cmp-card` 엔 background 가 없다.
+            //   남은 겹은 점선 테 `line`(Image · `SurfaceArt.DashedFrame`) 하나 — 그 이미지에도 알파를 다시 박지 않는다(한 겹은 CanvasGroup 이 쥔다). 런 1178 이 옛 `face` 를 찾다 빨갰다.
+            Assert.IsNull(empty.Find("face"), "종이 면(face)이 없다(정본 1826 background 없음 · T472)");
+            Transform lineT = empty.Find("line");
+            Assert.IsNotNull(lineT, "점선 테 겹(line)");
+            Image line = lineT.GetComponent<Image>();
+            Assert.IsNotNull(line, "점선 테 이미지(SurfaceArt.DashedFrame)");
+            Assert.AreEqual(1f, line.color.a, 1e-4f, "테 이미지 알파에 숫자를 다시 박지 않는다(한 겹은 CanvasGroup 이 쥔다)");
 
             // 채워진 카드에는 안 건다(정본은 `.empty` 에만). 아이템은 **엔진이 굴린 진짜**를 쓴다 —
             //   손으로 지은 레코드는 `Name`·`Main`·`Subs` 가 비어 채워진 갈래가 그리다 넘어진다(4회차 런 701 이 그렇게 빨갰다).
