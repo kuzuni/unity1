@@ -278,6 +278,30 @@ TABLE = {
     '.sk-mini': ['Ui/SkillPanel.cs#orb'],   # 장착 아이콘 원 = `BuildEquippedRow` 의 `PetSkillKit.Orb(br, "orb", …)`(288) — `#이름` 은 그 이름 곁 6줄 안의 원 공장만 본다
     '.sk-mini small': u'✓정본 4162 .5rem ↔ 배지 높이 .52rem × 1.25 + ol1 두 겹(≈1px) ≈ .65rem+2px → 반 ≈ .33rem+1px < .5 라 정본도 알약(결정 543) · 클론 `SkillPanel.MiniLv` 가 `Framed(…, lh * 0.5f, line1_px)` 알약',
     '.summon-prog': u'—죽은 CSS: `.summon-prog`(4232 · 자식 4236~4237 · 겹 8813·8820)를 `index.html`·`js/*.js` 어디서도 안 그린다(렌더 줄 0 · 소환 바의 진행 게이지는 `.summon-gauge` 가 따로 있고 위 줄이 그것을 짝지었다)',
+    # ── T415 16회차(2026-09-18 · 워커 O) — 14회차의 둘째 묶음 «소환 결과 50% 스물»(`.sr-*` · 자 파일만) ──
+    #    대부분이 **구운 판**이다(`SummonFx.Bake*` 가 원·링·방사를 판에 굽고 상자는 정사각 `UiKit.Box`) — `.rw-glow` 갈래(둥긂이 판 안에 있어 코드에 반지름 증거가 없다).
+    #    원 공장(`PetSkillKit.Disc`)이 직접 서는 자리 둘만 `#이름` 으로 건다. 클론에 아직 없는 조각 둘은 T480 에 등재했다.
+    '.sr-floor::before': ['Ui/SkillSummonResult.cs#sr-floor'],   # 소환진 바닥 타원(테 + 바탕) = `Disc(body, "sr-floor")` 517(preserveAspect false 라 타원)
+    '.sr-floor::after': u'✓정본 5822 소환진 위 룬 눈금(repeating-conic · inset 0 · 50%) ↔ 클론 `sr-floor-ticks`(527) 가 같은 상자에 `SummonFx.BakeFloorTicks` 로 **타원 눈금을 구워** 얹는다 — 둥긂이 판 안',
+    '.sr-canopy::before': u'✓정본 5855 천개 아치(테 .08rem + 방사 · 50%) ↔ 클론 `SummonFx.cs` 125 `arch` 가 `BakeArch` 로 **아치 판을 굽는다** — 둥긂이 판 안',
+    '.sr-canopy::after': u'✓정본 5865 천개 눈금(repeating-conic · 50%) ↔ 같은 `BakeArch` 판 안(아치 한 장에 테·눈금이 같이 구워진다)',
+    '.sr-canopy i': u'✓정본 5880 빛발 셋(.92×10.8rem 세로 막대 · 50% = 끝이 둥근 알약) ↔ 클론 `SummonFx.cs` 158~161 `ray-1..3` 이 `BakeRayBar("sr-ray")` 한 장을 나눠 쓴다 — 둥긂이 판 안',
+    '.sr-stars i': u'✓정본 5970 별 광점(방사 · 50%) ↔ 클론 `SummonFx.cs` 108 `BakeStar` 판 — 둥긂이 판 안',
+    '.sr-motes i': u'✓정본 5993 배경 광점(방사 · 50%) ↔ 클론 `SkillSummonResult.MoteLayer`(1984) 가 `BakeParticle("sr-mote", …)` 판을 개체마다 얹는다 — 둥긂이 판 안',
+    '.sr-dust i': u'✓정본 6015 중간 먼지(단색 원 · 50%) ↔ 같은 `MoteLayer` · `BakeParticle("sr-dust", …, flat: true)` 판',
+    '.sr-near i': u'✓정본 6029 근평면 보케(blur · 50%) ↔ 같은 `MoteLayer` · `BakeParticle("sr-near", …)` 판(테 없이 가장자리까지 죽는 방사)',
+    '.sr-shock': u'✓정본 6119 주역 충격파(9rem 링 · 테 .34rem · 50%) ↔ 클론 `ShockPlate(c, "sr-shock", …)`(646 · 1906) 가 `ShockStep` 로 단계별 **링 판**을 갈아 끼운다 — 둥긂이 판 안',
+    '.sr-orbwrap': u'✓정본 6342 래퍼의 50% 는 제 칠이 아니라 **box-shadow 광채·outline 의 꼴**을 원으로 만드는 값 ↔ 클론 래퍼(956)는 정사각 상자이고 그 둘을 `Disc(wrap, "glow", rc)`(983 · 원)와 `BakeOutlineRing`(1000 · 링 판)이 **직접 원으로** 그린다',
+    '.sr-orbwrap::before': ['Ui/SkillSummonResult.cs#shadow'],   # 구슬 아래 납작 그림자(left/right 13% · height 13% · 50%) = `Disc(wrap, "shadow", black)` 1006 을 cw×.74 × cw×.13 으로 눌러 타원
+    '.sr-orbwrap::after': u'—클론에 아직 없는 조각: 정본 6358·6363 일반 셀 **착지 링**(`srring .55s` · 62~92% 방사 링 · screen) — 동급 착지 링(6710 `.peer.on::after` · T448)과 주역 링만 있다 → **T480** 등재(그 조각이 서면 여기서 `#이름` 으로)',
+    '.sr-relight': u'✓정본 6377 셀별 광원 재점화(방사 · 50%) ↔ 클론 595 `sr-relight` 상자에 `BakeRelight` 판(가산) — 둥긂이 판 안',
+    '.sr-tierflash': u'✓정본 6414 챕터 링(11rem · 테 .34rem · 50%) ↔ 클론 882 `sr-tierflash` 에 `TierStep`(1874 · `BakeTierRing`) 단계 판 — 둥긂이 판 안',
+    '.sr-tierflash::after': u'✓정본 6428 링 심지(inset 18% 방사 · 50%) ↔ 클론 910 `BakeTierWick` 판 — 둥긂이 판 안',
+    '.sr-ghost': u'✓정본 6451 잔상(inset 0 방사 · blur · 50%) ↔ 클론 1122 `sr-ghost`(래퍼와 같은 칸) 에 `BakeGhost` 판 — 둥긂이 판 안',
+    '.sr-spark': u'✓정본 6473 착지 스파크(.22rem 점 + box-shadow 8방향 · 50%) ↔ 클론 1143 `sr-spark` 에 `BakeSpark`(심 + 복제 여덟을 한 장) 판 — 둥긂이 판 안',
+    '.sr-ray': u'—클론에 아직 없는 조각: 정본 6680~6686 고등급 셀의 **회전 광선**(inset −16% · 방사 마스크 · `.hi` conic 살 · `srrayspin 3.6s`) — `SummonFx.cs` 37 주석도 «`.sr-ray` 는 클론에 없다» → **T480** 등재',
+    '#summon-result-modal.done .sr-cell.on .sr-orb::after': u'✓정본 6914 done 뒤 구슬 광택 스윕(inset 0 · 50% · 112deg 띠) ↔ 클론 1638 `BakeOrbSweep` 판(T459 ⓩ · 구슬 원 안에 띠를 구워 훑는다) — 둥긂이 판 안',
+    '.sr-idle i': u'✓정본 6936 끝난 뒤 잔잔한 고리(11rem · 테 .12rem · 50%) ↔ 클론 730~734 `sr-idle-k` 에 `BakeTierRing("sr-idlering", …)` 한 장을 배율로 날린다 — 둥긂이 판 안',
     # 죽은 CSS(정본 ui.js·index.html 에 자취 0 · 20회차 ⓡ)
     '.stat-grid': '—죽은 CSS(정본 렌더 줄 0)',
     '.hatch-slot': '—죽은 CSS(정본 렌더 줄 0)',
