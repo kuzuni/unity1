@@ -3,8 +3,12 @@
   "layout": {
     "tn_lv_margin_left_rem": 0.15,
     "tn_lead_mt_f": 0.126,
-    "tn_researching_pad_b_app_f": 0.106
+    "tn_researching_pad_b_app_f": 0.106,
+    "idet_prog_mx_f": 0.0133,
+    "idet_head_ml_f": -0.032
   },
+  "_idet_prog_mx": "T477 — style.css **4643** `.item-detail[data-tech-node] .tech-prog { margin-left: 1.33%; margin-right: 1.33% }` — 연구 중·수령 대기 카드의 진행바 좌우 들여쓰기. **밑변 = 카드 콘텐츠 폭**(`inner` · 정본 3654 주석 «width/margin=카드 안쪽 폭»). 정본 4642 주석이 셈을 적어 뒀다 — «진행바 폭 원본 323px(65.78%W) · 클론은 안쪽 폭을 꽉 채워 331.8px(67.58%W) — 좌우 4.4px 들여쓴다»: 491×881 원작에서 331.8 × (1 − 2×.0133) = 323.0. 클론은 이 마진이 아예 없었다(런 1205 진행바 69.63%W · +3.8%p).",
+  "_idet_head_ml": "T477 — style.css **4642** `.item-detail[data-tech-node] .idet-head { margin-left: -3.2% }` — 머리(아이콘 + 제목 블록)만 본문보다 왼쪽에서 시작한다(4640 주석 «원본은 머리만 본문보다 왼쪽 — 아이콘 인셋 14px 인데 진행바는 28px»). **밑변 = 카드 콘텐츠 폭** · 음수 마진은 왼쪽만 늘리고 오른변은 그대로. `catalog.json` 은 T345 산 lock 이라 곁 표(T413 과 같은 까닭).",
   "_tn_lv_margin_left": "style.css **3695** `.tn-lv { color: var(--pp-muted); font-weight: 700; font-size: .72rem; margin-left: .15rem }` — 노드 상세 머리의 «N단계 · Lv.x/y». 정본 마크업(ui.js **5603**)이 이것을 이름 뒤 `<small>` 로 두어 **같은 줄**에 붙이고, 그 `margin-left` 가 이름과의 틈이다. 클론은 이 조각을 제 줄 하나로 빼서 머리가 두 줄이 아니라 **세 줄**이었다.",
   "_tn_lead_mt": "style.css **4633** `.item-detail.tn-researching > .idet-lead { margin-top: 12.6% }` — 연구 중·수령 대기 카드에서만 걸리는 «연구 진행 중» 줄 위 여백. 정본 4629~4632 가 까닭을 적어 둔다 — «패널을 지우면 카드가 짧아지므로 지운 만큼을 (가) '연구 진행 중' 위 여백과 (나) 카드 아래 여백으로 되돌려 원본의 세로 리듬을 만든다 · 원본 실측: 제목 아래~'연구 진행 중' 48px». **밑변 = 카드 안쪽 폭(inner)**: CSS 에서 자식의 `margin` % 는 제 컨테이닝 블록의 **콘텐츠 폭**이다(등재문의 ⚠ 줄 · T177·T405 축). 재본 셈: 정본 앱 491 · 카드 381 · 안쪽 ≈ 346 → 0.126×346 = 43.6 · 여기에 `.modal-card` 의 flex 텀 .45rem(7.2)을 더하면 **50.8** — 위 주석의 48px 과 ≈2.8px 차다(카드 폭 밑변이면 48.0+7.2 = 55.2 로 더 멀다).",
   "_tn_researching_pad_b_app": "style.css **4635** `.item-detail.tn-researching { padding-bottom: 10.6% }` — 같은 주석의 «버튼 아래~카드 끝 44px». **밑변 = 앱 폭(W)**: 이것은 `.item-detail` **자신의** padding 이므로 % 가 그 카드의 컨테이닝 블록(= 모달 ≈ 앱 폭)을 밑변으로 재다 — 앞 칸과 밑변이 다르다(등재문 ⚠ · 그래서 키 이름에 `_app_` 을 박았다). 재본 셈: 0.106×491 = **52.0** · 위 주석 44px 과 +8.0 차다(카드 폭 밑변이면 40.4로 −3.6). 샷 판정이 어긋나면 고칠 것은 **이 숫자 하나**다 — 밑변을 바꾸지 말고(기준을 섞으면 T405 가 잡은 병이 난다) 값을 고친다.",

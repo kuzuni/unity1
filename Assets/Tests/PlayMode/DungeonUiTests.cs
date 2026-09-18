@@ -337,7 +337,9 @@ namespace Forge.Tests.PlayMode
                 "안내줄 아래끝이 카드 안이다 · 실측 여백 " + over.ToString("0.0") + "px(음수 = 카드 밖으로 튀어나왔다)");
             // 고침 전에는 재는 수가 1.6rem 작아 이 여백이 음수였다. 또 반대로 너무 많이 남아도 안 된다 —
             // 카드는 아래 패딩 한 칸만 남기므로(ch = … + pad * 2) 그 값에 서야 «재는 수 = 그리는 수» 가 증명된다.
-            float pad = rc.width * UiKit.L("idet_pad");
+            // T477 — 카드 제 padding 4.4% 의 밑변은 **앱 폭**(정본 3654) · 세계 단위로는 카드 폭 비례로 되돌린다
+            float cwRefPad = UiKit.RefW * UiKit.L("idet_card_w") - DungeonPopups.Line3 * 2f;
+            float pad = rc.width * (UiKit.RefW * UiKit.L("idet_pad")) / cwRefPad;
             Assert.AreEqual(pad, over, Mathf.Max(1.5f, pad * 0.12f),
                 "남는 여백 = 카드 아래 패딩(idet_pad) · 실측 " + over.ToString("0.0") + "px · 표 " + pad.ToString("0.0") + "px");
             Debug.Log("[T428] 잠긴 카드 여백 " + over.ToString("0.0") + "px · 패딩 " + pad.ToString("0.0") + "px · 카드 높이 " + rc.height.ToString("0.0"));
@@ -352,6 +354,54 @@ namespace Forge.Tests.PlayMode
         /// 재는 곳은 둘이다: (가) 머리 아래끕 → «연구 진행 중» 위끕 = 열 텀(`card_gap_rem`) **+** 카드 **안쪽** 폭×.126 · (나) 버튼 아래끕 → 카드 아래끕 = **앱 폭**×.106(밑변이 다르다 · 등재문 ⚠).
         /// 두 값 모두 **기준 px 로 되돌려** 재다(결정 729) · 안·밖 부호는 `안쪽.yMin − 바깥.yMin`(결정 734).
         /// </summary>
+        /// <summary>T477 — 기술 노드 상세 카드의 CSS % 밑변 다섯 자리(정본 3654 «padding=래퍼 폭 · width/margin=카드 안쪽 폭»): 패딩 4.4% 는 **앱 폭**,
+        /// 아이콘 15.1%(4638)·머리 gap 4.2%(3682)·진행바 좌우 1.33%(4643)·머리 −3.2%(4642)는 **카드 콘텐츠 폭**. 종전엔 다섯 다 패딩 상자 폭이라 진행바가 +3.8%p 넓었다(런 1205).</summary>
+        [UnityTest]
+        public IEnumerator 기술_노드_카드의_퍼센트_밑변은_패딩만_앱_폭이고_아이콘_틈_진행바_머리는_카드_안쪽_폭이다()
+        {
+            Assert.AreEqual(0.0133f, TechStyle.L("idet_prog_mx_f"), 1e-6f, "정본 4643 1.33%");
+            Assert.AreEqual(-0.032f, TechStyle.L("idet_head_ml_f"), 1e-6f, "정본 4642 −3.2%");
+            yield return Boot();
+            TechTree tree = H.Tech;
+            string open = null;
+            foreach (string id in tree.NodesOf("power")) if (tree.IsUnlocked(id)) { open = id; break; }
+            Assert.IsNotNull(open, "열린 노드가 하나는 있다(1단계)");
+            tree.State.Research = new TechResearch(open, SaveIo.NowMs() + 60.0 * 60e3);
+            TechPopups.OpenNode(open);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            yield return null;
+            Assert.AreEqual(TechPopups.NodeState.Researching, TechPopups.State, "연구 중 카드");
+            RectTransform card = (RectTransform)DungeonPopups.Root(TechPopups.ActionButton).parent;
+            RectTransform icon = (RectTransform)card.Find("icon"), prog = (RectTransform)card.Find("prog"), name = (RectTransform)card.Find("name");
+            Assert.IsNotNull(icon, "icon"); Assert.IsNotNull(prog, "prog"); Assert.IsNotNull(name, "name");
+
+            float W = UiKit.RefW;
+            float cw = W * UiKit.L("idet_card_w") - DungeonPopups.Line3 * 2f;
+            float pad = W * UiKit.L("idet_pad");
+            float inner = cw - pad * 2f;
+            Assert.AreEqual(cw, card.rect.width, 0.5f, "카드 rect(패딩 상자) 폭은 그대로(판정 ⓔ)");
+            // ⓐ 아이콘 = 카드 콘텐츠 폭 × 15.1%(종전 패딩 상자 폭 × 15.1% 보다 작다)
+            Assert.AreEqual(inner * UiKit.L("idet_icon"), icon.rect.width, 0.5f, "아이콘 지름 = inner × 15.1% · 실측 " + icon.rect.width.ToString("0.0") + " ↔ 옛 " + (cw * UiKit.L("idet_icon")).ToString("0.0"));
+            Assert.Less(icon.rect.width, cw * UiKit.L("idet_icon") - 1f, "옛 값(cw × 15.1%)보다 작다");
+            // ⓑ 머리는 안쪽 왼변보다 3.2% 왼쪽에서 시작(음수 마진)
+            float headX = pad + inner * TechStyle.L("idet_head_ml_f");
+            Assert.AreEqual(headX, icon.anchoredPosition.x, 0.5f, "머리 시작 = pad + inner × (−3.2%)");
+            Assert.Less(icon.anchoredPosition.x, pad, "머리가 본문보다 왼쪽");
+            // ⓒ 제목 블록은 아이콘 + gap 뒤에서 시작해 안쪽 오른변까지
+            float gap = inner * UiKit.L("idet_gap");
+            Assert.AreEqual(headX + icon.rect.width + gap, name.anchoredPosition.x, 0.5f, "제목 시작 = 머리 + 아이콘 + gap(inner × 4.2%)");
+            Assert.AreEqual(pad + inner, name.anchoredPosition.x + name.rect.width, 0.5f, "제목 오른변 = 안쪽 오른변");
+            // ⓓ 진행바는 좌우 1.33% 들여쓴다
+            float pmx = inner * TechStyle.L("idet_prog_mx_f");
+            Assert.AreEqual(pad + pmx, prog.anchoredPosition.x, 0.5f, "진행바 왼변 = pad + inner × 1.33%");
+            Assert.AreEqual(inner - pmx * 2f, prog.rect.width, 0.5f, "진행바 폭 = inner × (1 − 2 × 1.33%) · 실측 " + prog.rect.width.ToString("0.0") + " ↔ 옛 " + inner.ToString("0.0"));
+            Assert.AreEqual(inner - pmx * 2f - DungeonPopups.Line3 * 2f, TechPopups.ProgWidthForTest, 0.5f, "채움 폭도 들여쓴 진행바에서 센다");
+            Debug.Log("[T477] pad " + pad.ToString("0.0") + " · inner " + inner.ToString("0.0") + " · icon " + icon.rect.width.ToString("0.0") + " · prog " + prog.rect.width.ToString("0.0") + " = " + (prog.rect.width / W * 100f).ToString("0.00") + "%W");
+            TechPopups.Close();
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator 연구_중_노드_카드는_지운_판_자리를_여백_둘로_돌려준다()
         {
@@ -377,7 +427,7 @@ namespace Forge.Tests.PlayMode
 
             Rect rc = World(card), rl = World(lead), ri = World(icon), rb = World(btn);
             float cwRef = UiKit.RefW * UiKit.L("idet_card_w");
-            float innerRef = cwRef - cwRef * UiKit.L("idet_pad") * 2f;
+            float innerRef = (cwRef - DungeonPopups.Line3 * 2f) - UiKit.RefW * UiKit.L("idet_pad") * 2f;   // T477 — 패딩 밑변 = 앱 폭 · 카드 rect = 패딩 상자(T473)
             float toRef = cwRef / rc.width;   // 세계 단위 → 기준 px (결정 729)
 
             // (가) 머리 아래끕 → lead 위끕. 정본 `.modal-card` 는 `gap: .45rem` 인 flex 열이므로 4633 의 여백은 **그 텀 위에 더해진다**.
@@ -391,7 +441,7 @@ namespace Forge.Tests.PlayMode
             float wantPadB = UiKit.RefW * TechStyle.L("tn_researching_pad_b_app_f");
             Assert.AreEqual(wantPadB, padB, 2f,
                 "버튼 아래 ↔ 카드 끝 = **앱 폭**×.106(정본 4635 · 카드 자신의 padding 이라 밑변이 앞 칸과 다르다) · 실측 " + padB.ToString("0.0") + "px · 표 " + wantPadB.ToString("0.0") + "px");
-            Assert.Greater(wantPadB, cwRef * UiKit.L("idet_pad"),
+            Assert.Greater(wantPadB, UiKit.RefW * UiKit.L("idet_pad"),
                 "연구 중 아래 여백은 보통 패딩보다 크다 — 그것이 «지운 만큼을 돌려준다» 의 뜻이다");
             Debug.Log("[T430] 머리↔lead " + leadGap.ToString("0.0") + "px(표 " + wantLead.ToString("0.0") + ") · 카드 아래 여백 " + padB.ToString("0.0") + "px(표 " + wantPadB.ToString("0.0") + ") · 카드 높이 " + (rc.height * toRef).ToString("0.0"));
             TechPopups.Close();

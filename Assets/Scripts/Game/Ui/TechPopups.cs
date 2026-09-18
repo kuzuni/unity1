@@ -23,6 +23,8 @@ namespace Forge.Game.Ui
         static RectTransform progFill;
         static TextMeshProUGUI progTime;
         static float progW;
+        /// <summary>T477 — 진행바 채움의 폭(테 두 겹 안 · 좌우 1.33% 들여쓴 뒤) · 자가 본다.</summary>
+        public static float ProgWidthForTest { get { return progW; } }
 
         public static bool IsNodeOpen { get { return overlay != null && curId != null; } }
         public static bool IsBonusesOpen { get { return overlay != null && curId == null; } }
@@ -117,13 +119,17 @@ namespace Forge.Game.Ui
             float W = UiKit.RefW;
             overlay = DungeonPopups.Overlay("modal-tech-node");
             float cw = W * UiKit.L("idet_card_w") - DungeonPopups.Line3 * 2f;   // T473 — 표값은 정본 CSS width(border-box) · Card 의 w 는 패딩 상자
-            float pad = cw * UiKit.L("idet_pad");
+            // T477 — CSS % 의 밑변을 자리마다 가른다(정본 3654 주석 «백분율 기준은 padding=래퍼 폭, width/margin=카드 안쪽 폭»):
+            //   카드 제 `padding: 4.4%`(3646)는 **앱 폭**(컨테이닝 블록 = 모달 ≈ 앱 · 아래 130 의 `padB` 와 같은 밑변),
+            //   카드 안 자식의 `width`(4638 아이콘 15.1%)·`gap`(3682 4.2%)·`margin`·`padding`(3703 subs 7%/4% · 4643 진행바 1.33% · 4642 머리 −3.2%)은 **카드 콘텐츠 폭**(`inner`).
+            //   종전엔 다섯 자리를 다 패딩 상자 폭 `cw` 에 곱해 패딩이 작고(−1.04%p/변) 아이콘이 크고(+1.33%p) 진행바가 +3.8%p 넓었다(런 1205).
+            float pad = W * UiKit.L("idet_pad");
             float inner = cw - pad * 2f;
-            float icoD = cw * UiKit.L("idet_icon");
-            float gap = cw * UiKit.L("idet_gap");
+            float icoD = inner * UiKit.L("idet_icon");
+            float gap = inner * UiKit.L("idet_gap");
             float bodyH = DungeonPopups.LineH(TextKind.Body), subH = DungeonPopups.LineH(TextKind.Sub);
             float headH = Mathf.Max(icoD, bodyH + subH);   // T413 — 정본 머리는 «이름+레벨 / 총합» 두 줄이다(전엔 subH * 2 로 세 줄을 셌다)
-            float descH = researching ? 0f : cw * UiKit.L("idet_subs_mt") + cw * UiKit.L("idet_subs_pad") * 2f + subH * 2f;
+            float descH = researching ? 0f : inner * UiKit.L("idet_subs_mt") + inner * UiKit.L("idet_subs_pad") * 2f + subH * 2f;
             // T430 — 정본 4629~4635 가 까닭까지 적었다: «패널을 지우면 카드가 짧아지므로 지운 만큼을 ⓐ «연구 진행 중» 위 여백과
             //   ⓑ 카드 아래 여백으로 되돌려 원본의 세로 리듬을 만든다». 클론은 **지우는 쪽(`descH`)만** 옮겨 카드가 −22% 짧았다(T28 93회차 실측).
             //   ⓑ = 4635 `.item-detail.tn-researching { padding-bottom: 10.6% }` — 아래 패딩만 바뀜다(위는 그대로 `pad`).
@@ -134,8 +140,11 @@ namespace Forge.Game.Ui
 
             // 머리: 청동 원 아이콘(lv/5 배지) + 이름 · 단계 · 총합 · (레벨당 · 이 노드)
             float y = pad;
+            // T477 — 정본 4642 `.item-detail[data-tech-node] .idet-head { margin-left: -3.2% }`(카드 콘텐츠 폭 기준 · 4640 «머리만 본문보다 왼쪽 — 아이콘 인셋 14px ↔ 진행바 28px»):
+            //   머리(아이콘 + 제목 블록)는 안쪽 왼변보다 그만큼 왼쪽에서 시작하고 그만큼 넓다. 표 TechUi `idet_head_ml_f`(음수).
+            float headX = pad + inner * TechStyle.L("idet_head_ml_f");
             RectTransform ic = UiKit.Box(card, "icon");
-            UiKit.Place(ic, pad, y, icoD, icoD);
+            UiKit.Place(ic, headX, y, icoD, icoD);
             RectTransform circleFace = DungeonPopups.BorderedCircle(ic, "circle", "tn_bronze", DungeonPopups.Line2, "tn_bronze_border");
             // T178 19회차 — 정본 3689 `.idet-icon.tn-bronze { background: linear-gradient(160deg, #d9a066, #a5642f) }`: 청동 원은 단색이 아니라 비스듬한 겹이다.
             //   원 면(UiKit.Circle 스프라이트)에 마스크를 걸고 그 안에 표 `tn_bronze` 겹 한 장(SurfaceArt.FillMasked) — 테(#7a4a22)는 그대로.
@@ -153,8 +162,8 @@ namespace Forge.Game.Ui
             TextMeshProUGUI star = DungeonPopups.Bold(ic, "star", TextKind.Sub, lv + "/" + Tree.Table.MaxLevel, "pp_ink", TextAlignmentOptions.Left);
             UiKit.Place(star.rectTransform, icoD * 0.06f, icoD - subH * 0.4f, icoD * 1.5f, subH);
 
-            float tx = pad + icoD + gap;
-            float tw = inner - icoD - gap;
+            float tx = headX + icoD + gap;
+            float tw = (pad + inner) - tx;   // T477 — 머리 상자의 오른변은 안쪽 오른변 그대로(음수 마진은 왼쪽만 늘린다)
             NameText = def.Name;
             TextMeshProUGUI name = DungeonPopups.Bold(card, "name", TextKind.Body, def.Name, "pp_ink", TextAlignmentOptions.Left);
             // T333 19회차 — 정본 8381 묶음 `.modal-card .idet-name` 은 이 조각에도 닿는다: 5601 이 이 카드를 `<div class="modal-card paper item-detail">` 로 세우고
@@ -185,8 +194,8 @@ namespace Forge.Game.Ui
 
             if (!researching)
             {
-                y += cw * UiKit.L("idet_subs_mt");
-                float spad = cw * UiKit.L("idet_subs_pad");
+                y += inner * UiKit.L("idet_subs_mt");   // T477 — 3703 `.idet-subs { margin-top: 7%; padding: 4% }` 의 밑변 = 카드 콘텐츠 폭
+                float spad = inner * UiKit.L("idet_subs_pad");
                 float sh = spad * 2f + subH * 2f;
                 RectTransform subs = UiKit.Box(card, "subs");
                 UiKit.Place(subs, pad, y, inner, sh);
@@ -269,10 +278,13 @@ namespace Forge.Game.Ui
                 y += subH + gap;
                 float ph = DungeonPopups.RemL("tech_prog_h_rem");
                 float pr = DungeonPopups.RemL("tech_prog_r_rem");
+                // T477 — 정본 4643 `.item-detail[data-tech-node] .tech-prog { margin-left: 1.33%; margin-right: 1.33% }`(카드 콘텐츠 폭 기준 ·
+                //   4642 주석 «진행바 폭 원본 323px(65.78%W) · 클론은 카드 안쪽 폭을 꽉 채워 331.8px 였다 — 좌우 4.4px 들여쓴다»). 표 TechUi `idet_prog_mx_f`.
+                float pmx = inner * TechStyle.L("idet_prog_mx_f");
                 RectTransform prog = UiKit.Box(card, "prog");
-                UiKit.Place(prog, pad, y, inner, ph);
+                UiKit.Place(prog, pad + pmx, y, inner - pmx * 2f, ph);
                 RectTransform track = DungeonPopups.Bordered(prog, "bg", "tech_prog_bg", pr, DungeonPopups.Line3);
-                progW = inner - DungeonPopups.Line3 * 2f;
+                progW = inner - pmx * 2f - DungeonPopups.Line3 * 2f;
                 double remain = ready ? 0 : (Tree.State.Research.EndsAt - Host.Now()) / 1000;
                 double total = Tree.Time(id, lv + 1) ?? 1;
                 float frac = ready ? 1f : Mathf.Clamp01((float)(1 - remain / total));
