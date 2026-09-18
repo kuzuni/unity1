@@ -289,6 +289,8 @@ namespace Forge.Game.Ui
             if (ridden != null)
             {
                 Sprite face = PetFaces.Get(ridden.Name, GalleryKind.Mounts);
+                // T331 39회차 — 정본 8081 `.equip-cell.egg-cell` 의 드리운 그림자 `0 .12rem .26rem rgba(0,0,0,.24)`(표 mountcell_drop) — 탄 갈래만(빈 칸은 8548 `.empty` 가 inset 뿐으로 덮는다) · 틀 안 맨 뒤(Tile 은 face 를 돌려준다).
+                UiShadow.Drop((RectTransform)f.transform.parent, "mountcell_drop", hgt * 0.16f, w, hgt);
                 PopupKit.IconOr(rt, "img", "horse");                                     // 자리를 먼저 세우고(못 구웠으면 이 아이콘이 남는다 · 정본 mountFace 도 그림 전엔 글리프다)
                 // T381 3회차 — **상자는 셀이 아니라 «셀 바깥 사각형»** 이다. 정본 `style.css` 1869~1877 `.equip-cell .cell-img` 는
                 //   `left/top: -cellb · width/height: calc(100% + 2*cellb)`(cellb = `round(down, var(--ol3), 1px)` = 셀 테 두께)로

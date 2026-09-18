@@ -55,6 +55,7 @@ SPOTS = [
     ('eqswfly_drop',  '.eqsw-fly-box',                 None, 'blur'),
     ('equipcell_drop', '.equip-cell:not(.egg-cell)',   8539, 'blur'),   # 36회차 — 같은 선언의 첫 바깥 겹(0 0 .46rem -.1rem color-mix 62%)은 빛 갈래(T419) · T371 KNOWN 의 «T331 뒤» 는 그 겹을 뜻한다(7738 의 앞 선언은 8539 가 덮는다)
     ('pettile_drop',   '.pet-tile .tile-face',           8131, 'blur'),   # 38회차 — 첫 바깥 겹(0 0 .5rem -.08rem color-mix 60%)은 빛 갈래(T419) · 4262·4288 의 앞 선언은 8124 가 덮는다
+    ('mountcell_drop', '.equip-cell.egg-cell',           8081, 'blur'),   # 39회차 — 탄 탈것 갈래만(빈 칸은 8548 .equip-cell.empty 가 inset 뿐으로 덮는다)
     # 26회차 — 자동 제련 팝업 한 파일에 몰린 둘(손잡이 `.af-toggle .knob` 은 공장이 `Popups.cs` 라 남의 lock 뒤다)
     ('afspinner_lip', '.af-spinner',                   5007, 'hard'),
     ('afsubrow_drop', '.af-sub-row',                   4999, 'blur'),
@@ -81,6 +82,7 @@ NEED = {
     'infobtn_drop': 2,   # `ForgeUi.InfoButton`(대장간·장비 시트) + `DungeonPopups.InfoButton`(던전 팝업)
     'equipcell_drop': 3,   # 36·37회차 — 셋째(목록 타일)는 ForgeUi.ItemTile(T415 lock)을 안 열고 부르는 쪽 ForgeInfoPopup.Cell 에서 건다(37회차) · — `ForgeSheet.EquipCell`(장비 시트) + `PlayerInfoPopup.EquipCell`(플레이어 정보 격자) + `ForgeUi.ItemTile`(목록 타일 `.fl-face.equip-cell` · ui.js 2090 «타일은 .equip-cell CSS 를 그대로 입는다»)
     'pettile_drop': 3,   # 38회차 — 정본 `.pet-tile` 격자 셋(ui.js 3938 펫 · 4152 업그레이드 재료 · 5646 탈것) = 클론 `PetPanel.PetTileAt`·`PetUpgradePopup` 재료 격자·`MountSheet` 격자(공장 TileFace 는 상세 타일도 만들어 부르는 쪽에서 건다)
+    'mountcell_drop': 2,   # 39회차 — `ForgeSheet.MountCell`(장비 시트) + `PlayerInfoPopup.MountWide`(플레이어 정보 와이드 칸 · 같은 egg-cell 마크업)
 }
 
 KNOWN = {

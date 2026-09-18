@@ -2,6 +2,11 @@
   "_": "T331 — 정본 `box-shadow` **바깥 그림자**의 수치표. 자(`tools/check_box_shadows.py`)가 세는 자리와 키가 같다. 길이 단위 `_rem` = 정본 rem · 색은 rgba 0~1. CSS 는 아래(+y)가 양수고 UGUI 는 위(+y)가 양수라 **거는 쪽이 부호를 뒤집는다**(도우미 UiShadow 가 한 자리에서 한다).",
   "_hard": "딱딱한 턱(`blur 0 · spread 0`) 다섯 — 원작 UI 의 «종이 카드가 한 겹 떠 있다» 를 만드는 것이 이것이다. 흐림이 없으니 같은 모양을 한 겹 뒤에 깔고 내리기만 하면 화면이 정본과 같아진다(구울 것이 없다). 흐린 일곱은 3회차(굽는 길이 먼저 있어야 한다).",
   "spots": {
+    "mountcell_drop": {
+      "dx_rem": 0.0, "dy_rem": 0.12, "blur_rem": 0.26, "spread_rem": 0.0,
+      "rgba": [0.0, 0.0, 0.0, 0.24],
+      "_": ".equip-cell.egg-cell(8081) `0 .12rem .26rem rgba(0,0,0,.24)` — 탄 탈것이 있는 탈것 칸(장비 시트 · 플레이어 정보 와이드 칸). 빈 칸(`.equip-cell.egg-cell.empty` · ui.js 1535)은 8548 `.equip-cell.empty` 가 뒤에서 inset 뿐으로 덮어 바깥 그늘이 없다(T331 39회차)"
+    },
     "pettile_drop": {
       "dx_rem": 0.0, "dy_rem": 0.16, "blur_rem": 0.3, "spread_rem": 0.0,
       "rgba": [0.0, 0.0, 0.0, 0.22],

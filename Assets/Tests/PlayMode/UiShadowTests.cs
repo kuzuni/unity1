@@ -296,6 +296,43 @@ namespace Forge.Tests.PlayMode
             }
         }
 
+        /// <summary>T331 39회차 — 정본 8081 `.equip-cell.egg-cell` 드리운 그림자(표 mountcell_drop · `0 .12rem .26rem rgba(0,0,0,.24)`) — 탄 탈것이 있는 탈것 칸의 틀 안 맨 뒤.
+        /// 빈 칸(`.equip-cell.egg-cell.empty`)은 8548 `.equip-cell.empty` 가 inset 뿐으로 덮어 바깥 그늘이 없다(MountCellTests 의 두 갈래 그대로).</summary>
+        [UnityTest]
+        public IEnumerator 탄_탈것_칸에는_흐린_그늘이_틀_안_맨_뒤에_깔리고_빈_탈것_칸에는_없다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(PetSkillHost.Ready && PetSkillHost.Instance != null && PetSkillHost.Instance.Mounts != null); i++) yield return null;
+            Forge.Core.Mounts.MountSystem ms = PetSkillHost.Instance.Mounts;
+            if (ms.State.Mounts.Count == 0)
+                ms.State.Mounts.Add(new Forge.Core.Mounts.Mount { Name = "horse", Rarity = "common", Level = 7, Stars = 0 });
+            ms.SetRidden(0);
+            Assert.IsNotNull(ms.RiddenInst(), "탄 탈것이 서야 한다");
+            ForgeSheet.Render(ForgeHost.Instance);
+            yield return null; yield return null;
+            Transform cell = null;
+            foreach (Transform t in UiRoot.Instance.Sheet.GetComponentsInChildren<Transform>(true)) if (t.name == "egg-cell") { cell = t; break; }
+            Assert.IsNotNull(cell, "탈것 칸(egg-cell)");
+            RectTransform frame = (RectTransform)cell.Find("frame");
+            Assert.IsNotNull(frame, "탈것 칸의 틀(frame)");
+            Transform sh = UiShadow.Find(frame, "mountcell_drop");
+            Assert.IsNotNull(sh, "탄 탈것 칸 틀 안에 그늘이 없다");
+            Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 틀 안 맨 뒤(면·테 뒤)");
+            Assert.IsFalse(UiShadow.Table.Get("mountcell_drop").IsHard, "흐림 .26rem 이라 굽는다");
+            Assert.IsNotNull(sh.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
+            Assert.AreEqual(0.24, UiShadow.Table.Get("mountcell_drop").A, 1e-6, "표의 알파(.24)가 아니다");
+            Assert.Greater(((RectTransform)sh).rect.width, 1f, "0 크기로 구웠다(칸의 폭·높이를 줘야 한다)");
+
+            ms.State.ActiveMounts.Clear();
+            ForgeSheet.Render(ForgeHost.Instance);
+            yield return null;
+            cell = null;
+            foreach (Transform t in UiRoot.Instance.Sheet.GetComponentsInChildren<Transform>(true)) if (t.name == "egg-cell") { cell = t; break; }
+            Assert.IsNotNull(cell, "빈 탈것 칸(egg-cell)");
+            Assert.IsNotNull(cell.Find("mount-sil"), "빈 갈래(실루엣)");
+            Assert.IsNull(UiShadow.Find((RectTransform)cell.Find("frame"), "mountcell_drop"), "빈 탈것 칸(8548 .empty = inset 뿐)엔 그늘이 없다");
+        }
+
         [UnityTest]
         public IEnumerator 자동_제련_카드는_턱과_앰비언트_두_겹을_쥔다()
         {
@@ -539,7 +576,7 @@ namespace Forge.Tests.PlayMode
             int hard = 0, soft = 0;
             foreach (string k in UiShadow.Table.Keys) { if (UiShadow.Table.Get(k).IsHard) hard++; else soft++; }
             Assert.AreEqual(7, hard);
-            Assert.AreEqual(22, soft, "36회차 equipcell_drop 21 · 38회차 pettile_drop 22");
+            Assert.AreEqual(23, soft, "36회차 equipcell_drop 21 · 38회차 pettile_drop 22 · 39회차 mountcell_drop 23");
         }
     }
 }

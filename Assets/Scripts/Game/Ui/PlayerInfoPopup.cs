@@ -368,6 +368,7 @@ namespace Forge.Game.Ui
             if (am != null && d != null)
             {
                 float fs = w * PlayerInfoStyle.L("mount_face_f");
+                UiShadow.Drop((RectTransform)f.transform.parent, "mountcell_drop", hgt * PlayerInfoStyle.L("cell_radius_f"), w, hgt);   // T331 39회차 — 정본 8081 `.equip-cell.egg-cell` 드리운 그림자(같은 egg-cell 마크업 · 탄 갈래만 · 틀 안 맨 뒤)
                 RectTransform face = PetSkillKit.PetFace(rt, d, am.Name, fs, GalleryKind.Mounts);
                 UiKit.Anchor(face, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, hgt * PlayerInfoStyle.L("mount_sil_lift_f")), fs, fs);
                 ForgeUi.LvBadge(rt, am.Level, hgt);
