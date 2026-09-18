@@ -349,6 +349,16 @@ TABLE_INK = {
     '.sr-dup': ['Ui/SkillSummonResult.cs|res:PetSkillUi:sr_dup_ink'],               # 7009 #dfeaff ↔ 전엔 white
     '.sr-ok': ['Ui/SkillSummonResult.cs|res:PetSkillUi:sr_ok_ink'],                 # 7138 #2a1c04 ↔ PetSkillUi sr_ok_ink 같은 값(짝만)
     '.btn.btn.sr-ok.sr-ok': ['Ui/SkillSummonResult.cs|res:PetSkillUi:sr_ok_ink'],   # 8730 #2a1c04 — 같은 값을 같은 선택자 꼬리로 한 번 더(면 행의 8730 과 짝)
+    # ── T396 18회차 — 전역 기본 잉크 `html`(13 · @media dark 안)·`body`(36) `color: #eceff1`. «물려받는 자리 전수»:
+    #   종이 그릇(.modal-card 3512 · .panel 3573 · #equip-sheet 3629)은 var(--pp-ink) 로 덮고, 정본 모달 33 자리는 전부 modal-card 라(16회차 전수)
+    #   body 색이 닿는 글자는 #app 의 판·모달 **밖** 뿐이다. index.html 정적 + ui.js 렌더러(topbar 1292 · loot 1362 · toast 1449 · 오프라인 5889 ·
+    #   소환 결과 380~720 · 컷인 3759 · 부팅 index.html 21~60)의 글자 요소를 클래스마다 «color 를 주는 규칙이 있는가» 로 갈랐다 —
+    #   제 색이 있는 것: 스테이지 라벨 #fff · 탭바 · 채팅 미리보기 · 통화 알약 · 전투력 · 경고 마퀴·부제 · 컷인(인라인 def.color) · 사망 배너(인라인) ·
+    #   오프라인(modal-card) · 소환 결과 글자 전부(.sr-title/name/qty/new/hint/solo-*/again/ok/dup/rk) · 졸음 z(#eaf6ff) · 부팅 글(#f2e8d8·#9aa7c0) · 데미지 숫자.
+    #   **물려받는 글자는 셋**: 상단바 닉네임(1296 .nickname) · 토스트 글(1449 .toast) · 루트 피드 줄(1362~). 클론은 셋 다 카탈로그 `ink`(#eceff1 · 같은 값) — 짝만.
+    #   (같은 자리 셋을 html·body 두 선택자에 다 적는다 — 둘은 같은 선언이다.)
+    'html': ['Ui/Hud.cs#nickname|catalog:ink', 'Ui/Popups.cs#msg-row|catalog:ink', 'Ui/LootFeed.cs#row|catalog:ink'],
+    'body': ['Ui/Hud.cs#nickname|catalog:ink', 'Ui/Popups.cs#msg-row|catalog:ink', 'Ui/LootFeed.cs#row|catalog:ink'],
 }
 KNOWN_INK = {
     # T396 10회차 — 한 글자 안의 **부분 색**(<small>·<span> 조각): 클론은 그 글을 한 TMP 로 찍고 richText 를 안 켜므로(check_richtext)
