@@ -115,7 +115,15 @@ namespace Forge.Game.Ui
             float keysPx = DungeonPopups.Rem(DungeonStyle.L("dgd_keys_font_rem"));
             float pillH = IconLineH(pillPx) + DungeonPopups.RemL("dgd_pill_pad_rem") * 2f;
             float keysH = IconLineH(keysPx);
-            float btnH = DungeonPopups.RemL("dgd_btn_h_rem");
+            // T481 — 정본 5355 `.dgd-btns .btn { min-height: 3.4rem }`(표 `dgd_btn_h_rem`)은 **최솟값**이고 5356 `.dgd-btn { font-size: .92rem; padding: .6rem .2rem; line-height: 1.25 }` 이 높이를 정한다:
+            //   두 줄 «이전 스테이지 / 소탕» = 2 × .92 × 1.25 + .6 × 2 = 3.50rem(+ 키라인 둘)이라 정본 자신의 셈으로도 3.4 를 넘는다. 종전엔 3.4 를 **고정 높이**로 쓰고 글자는 종류 칸 `Button`(1.209rem · +31%)이라
+            //   «글자는 크고 상자는 작은» 상쇄였다(런 1219 · 원작 상자 7.80%H ↔ 클론 6.35). 글자는 `Micro` + 표 TextSizeUi `dgd_btn` .92(§1 예외 열넷째 자리) · 높이는 `PopupKit.ModalBtnH`(T447) 꼴로 표에서 센다 ·
+            //   `flex: 1 1 0` 이라 두 버튼은 큰 쪽(줄 수 max)에 맞춘다 · 키라인은 `Bordered` 가 뿌리 상자 안에 두므로(border-box) 두 겹을 더한다.
+            float btnFont = TextSizeUi.Px("dgd_btn");
+            float btnPadY = DungeonPopups.Rem(DungeonStyle.L("dgd_btn_pad_y_rem"));
+            int btnLines = Mathf.Max(SweepLabel.Split('\n').Length, EnterLabel.Split('\n').Length);
+            float btnH = Mathf.Max(DungeonPopups.RemL("dgd_btn_h_rem"),
+                btnLines * btnFont * (float)LineHeight.Ratio(btnFont, "dgd_btn_lh") + btnPadY * 2f + DungeonPopups.Line3 * 2f);
             float ch = Mathf.Max(H * UiKit.L("dgd_card_minh") - DungeonPopups.Line3 * 2f,   // T465 — 표의 min-height 는 border-box · 카드 rect 는 패딩 상자
                 heroH + DungeonPopups.RemL("dgd_hero_mb_rem") + stageMt + stageRowH + stageMb + pillH + DungeonPopups.RemL("dgd_pill_mb_rem")
                 + keysH + DungeonPopups.RemL("dgd_keys_mb_rem") + btnH + DungeonPopups.RemL("dgd_btn_mb_rem"));
@@ -194,15 +202,15 @@ namespace Forge.Game.Ui
             float br = DungeonPopups.RemL("dgd_btn_r_rem");
             bool canSweep = keys > 0 && best >= 1;
             bool canEnter = keys > 0;
-            SweepButton = DungeonPopups.Pill(card, "sweep", "이전 스테이지\n소탕", canSweep ? DungeonPopups.Skin.DgdSilver : DungeonPopups.Skin.Gray, TextKind.Button, Sweep, br, canSweep);
+            SweepButton = DungeonPopups.Pill(card, "sweep", SweepLabel, canSweep ? DungeonPopups.Skin.DgdSilver : DungeonPopups.Skin.Gray, TextKind.Micro, Sweep, br, canSweep);   // T481 — 글자 .92rem 은 하한 아래 → Micro + 표(아래 ApplyBtnText)
             UiKit.Place(DungeonPopups.Root(SweepButton), mx, by, bw, btnH);
-            EnterButton = DungeonPopups.Pill(card, "enter", "입장", canEnter ? DungeonPopups.Skin.DgdSilver : DungeonPopups.Skin.Gray, TextKind.Button, Enter, br, canEnter);
+            EnterButton = DungeonPopups.Pill(card, "enter", EnterLabel, canEnter ? DungeonPopups.Skin.DgdSilver : DungeonPopups.Skin.Gray, TextKind.Micro, Enter, br, canEnter);
             UiKit.Place(DungeonPopups.Root(EnterButton), mx + bw + bgap, by, bw, btnH);
             // T354 14회차 — 정본 5356 `.dgd-btn { line-height: 1.25 }`. 왼쪽 버튼 라벨은 «이전 스테이지 / 소탕» **두 줄**이라
             // 줄 간격이 눈에 보이는 자리다(오른쪽 «입장» 은 한 줄이라 안 보이지만, 정본은 클래스에 걸었으므로 둘 다 건다).
             // 라벨을 만드는 `DungeonPopups.Pill` 은 남의 산 lock(T345)이라 **여기서 그 자식을 집어** 건다 — 그 파일은 안 건드린다.
-            ApplyBtnLineHeight(SweepButton);
-            ApplyBtnLineHeight(EnterButton);
+            ApplyBtnText(SweepButton);
+            ApplyBtnText(EnterButton);
 
             DungeonPopups.XButton(card, Close);
         }
@@ -216,13 +224,18 @@ namespace Forge.Game.Ui
             return Mathf.Max(fs * 1.25f, fs * DungeonStyle.L("ico_em") + below);   // T468 — 글자 줄 상자 = 크기 × 1.25(DungeonPopups.LineH 와 같은 규약) · 종류 칸이 아니라 px 를 받는다
         }
 
-        /// <summary>알약 버튼의 라벨(`DungeonPopups.Pill` 이 «label» 로 세운다)에 정본 줄 간격을 건다 — 없으면 조용히 지나간다.</summary>
-        static void ApplyBtnLineHeight(Button b)
+        /// <summary>정본 ui.js 4678~4679 의 두 라벨 — 줄 수(`\n`)가 버튼 높이를 정하므로 높이 셈과 같은 문자열을 쓴다(T481).</summary>
+        public const string SweepLabel = "이전 스테이지\n소탕", EnterLabel = "입장";
+
+        /// <summary>알약 버튼의 라벨(`DungeonPopups.Pill` 이 «label» 로 세운다)에 정본 글자 크기(T481 · TextSizeUi `dgd_btn` .92rem · 크기를 **먼저**)와 줄 간격(T354 14회차 · `dgd_btn_lh` 1.25)을 건다 — 없으면 조용히 지나간다.</summary>
+        static void ApplyBtnText(Button b)
         {
             if (b == null) return;
             Transform t = DungeonPopups.Root(b).Find("label");
             TextMeshProUGUI tm = t != null ? t.GetComponent<TextMeshProUGUI>() : null;
-            if (tm != null) LineHeight.Apply(tm, "dgd_btn_lh");
+            if (tm == null) return;
+            TextSizeUi.Apply(tm, "dgd_btn");
+            LineHeight.Apply(tm, "dgd_btn_lh");
         }
 
         /// <summary>«보상: 🔨302 🪙27.1k» — 원작 Dungeons.rewardText 의 이모지를 아이콘으로(iconizeHTML). 글자 판(그림 없이)도 돌려준다.</summary>
