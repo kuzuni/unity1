@@ -56,6 +56,9 @@ SPOTS = [
     ('equipcell_drop', '.equip-cell:not(.egg-cell)',   8539, 'blur'),   # 36회차 — 같은 선언의 첫 바깥 겹(0 0 .46rem -.1rem color-mix 62%)은 빛 갈래(T419) · T371 KNOWN 의 «T331 뒤» 는 그 겹을 뜻한다(7738 의 앞 선언은 8539 가 덮는다)
     ('pettile_drop',   '.pet-tile .tile-face',           8131, 'blur'),   # 38회차 — 첫 바깥 겹(0 0 .5rem -.08rem color-mix 60%)은 빛 갈래(T419) · 4262·4288 의 앞 선언은 8124 가 덮는다
     ('mountcell_drop', '.equip-cell.egg-cell',           8081, 'blur'),   # 39회차 — 탄 탈것 갈래만(빈 칸은 8548 .equip-cell.empty 가 inset 뿐으로 덮는다)
+    ('afstart_drop',   '.af-start',                     5019, 'blur'),   # 40회차 — 남색 rgba(20,60,140,.4) · inset 둘은 턱·림라이트(PopupKit.Btn lip · T178 면)
+    ('afagebar_lip',   '.af-age-bar',                   4828, 'hard'),   # 40회차 — 같은 선언의 바깥 두 겹 중 첫(딱딱한 턱) · 둘째는 afagebar_drop
+    ('afagebar_drop',  '.af-age-bar',                   4828, 'blur'),   # 40회차 — 둘째 겹(앰비언트) · 막대 뿌리의 형제(무늬 층 = 1)를 안 흔들려고 둘 다 첫 자식 «bar» 틀 안에
     # 26회차 — 자동 제련 팝업 한 파일에 몰린 둘(손잡이 `.af-toggle .knob` 은 공장이 `Popups.cs` 라 남의 lock 뒤다)
     ('afspinner_lip', '.af-spinner',                   5007, 'hard'),
     ('afsubrow_drop', '.af-sub-row',                   4999, 'blur'),

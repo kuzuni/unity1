@@ -75,7 +75,12 @@ namespace Forge.Game.Ui
                 string age = d.Ages[i];
                 if (probs.Get(age, 0) <= 0) continue;
                 string a = age;
-                ForgeUi.AgeBar(content, "af-age-" + age, inner, barH, d, age, NumFmt.PctTrim(probs.Get(age, 0)), null, stars, () => h.ToggleKeepAge(a), cfg.KeepAges.Contains(age), autoForge: true);   // T124 — 자동 제련 막대는 정본 마스크(왼쪽 30→50%)
+                RectTransform ageBar =                 ForgeUi.AgeBar(content, "af-age-" + age, inner, barH, d, age, NumFmt.PctTrim(probs.Get(age, 0)), null, stars, () => h.ToggleKeepAge(a), cfg.KeepAges.Contains(age), autoForge: true);   // T124 — 자동 제련 막대는 정본 마스크(왼쪽 30→50%)
+                // T331 40회차 — 정본 4828 `.af-age-bar` 의 바깥 두 겹: 딱딱한 턱 `0 .12rem 0 rgba(0,0,0,.3)`(afagebar_lip) 위에 앰비언트 `0 .2rem .4rem rgba(0,0,0,.24)`(afagebar_drop).
+                //   공장 `ForgeUi.AgeBar`(T415 lock)를 안 열고 부르는 쪽에서 · 막대 뿌리의 형제(무늬 층 = 형제 1 · AgePatternTests)를 안 흔들려고 첫 자식 «bar» 틀 안 맨 뒤에 둘 다 — CSS 는 앞 겹이 위라 턱을 먼저(뒤에 깐 앰비언트가 형제 0 이 된다).
+                RectTransform ageBarBox = (RectTransform)ageBar.Find("bar");
+                UiShadow.Drop(ageBarBox, "afagebar_lip", RadiusUi.Px("af_age_bar_r_rem"), inner, barH);
+                UiShadow.Drop(ageBarBox, "afagebar_drop", RadiusUi.Px("af_age_bar_r_rem"), inner, barH);
             }
             RectTransform filterRow = PopupKit.Item(content, "af-filter-row", -1f, UiKit.H("settings_toggle_h") + rem * 0.3f);
             TextMeshProUGUI fl = UiKit.Text(filterRow, "label", TextKind.Sub, "필터", "pp_ink", TextAlignmentOptions.Right);
@@ -173,6 +178,8 @@ namespace Forge.Game.Ui
             SurfaceArt.FillMasked(start.transform.Find("face").GetComponent<Image>(), "bg-grad", "af_start",
                 bw - PopupKit.Line3 * 2f, bh - PopupKit.Line3 * 2f - startLip);
             UiKit.Place(start.GetComponent<RectTransform>(), (inner - bw) * 0.5f, rowH * 2f + rem * 0.5f, bw, bh);
+            // T331 40회차 — 정본 5019 `.af-start` 의 드리운 그림자 `0 .22rem .5rem rgba(20,60,140,.4)`(표 afstart_drop · 남색). 반지름은 버튼이 실제로 쓰는 «line» 의 것을 되읽는다.
+            UiShadow.Drop(start.GetComponent<RectTransform>(), "afstart_drop", UiShadow.RadiusOf((RectTransform)start.transform.Find("line")), bw, bh);
 
             if (ddOpen)
             {

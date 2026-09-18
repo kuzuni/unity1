@@ -333,6 +333,48 @@ namespace Forge.Tests.PlayMode
             Assert.IsNull(UiShadow.Find((RectTransform)cell.Find("frame"), "mountcell_drop"), "빈 탈것 칸(8548 .empty = inset 뿐)엔 그늘이 없다");
         }
 
+        /// <summary>T331 40회차 — 정본 5019 `.af-start`(남색 앰비언트 · 표 afstart_drop) · 4828 `.af-age-bar`(딱딱한 턱 afagebar_lip 위에 앰비언트 afagebar_drop).
+        /// 시대 막대는 뿌리의 형제(무늬 층 = 1)를 안 흔들려고 첫 자식 «bar» 틀 안에 둘 다 깐다 — 턱이 앞 겹이라 위(형제 1), 앰비언트가 맨 뒤(형제 0).</summary>
+        [UnityTest]
+        public IEnumerator 자동_제련_시작_버튼과_시대_막대에_정본_그늘이_깔린다()
+        {
+            yield return Boot();
+            ForgeHost fh = ForgeHost.Instance;
+            fh.S.BestChapter = 3; fh.S.BestStage = 1; fh.Pull();   // 2-10 해금 뒤라야 팝업이 연다(다른 자들과 같은 길)
+            ForgeAutoPopup.Open(fh);
+            yield return null;
+            yield return null;
+            RectTransform start = null, bar = null;
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+            {
+                if (start == null && rt.name == "af-start") start = rt;
+                if (bar == null && rt.name.StartsWith("af-age-") && rt.Find("bar") != null) bar = rt;
+            }
+            Assert.IsNotNull(start, "[시작] 버튼(af-start)");
+            Transform sd = UiShadow.Find(start, "afstart_drop");
+            Assert.IsNotNull(sd, "[시작] 버튼의 남색 그늘이 없다");
+            Assert.AreEqual(0, sd.GetSiblingIndex(), "그늘은 버튼 맨 뒤(테 뒤)");
+            Assert.IsNotNull(sd.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
+            ShadowSpec ss = UiShadow.Table.Get("afstart_drop");
+            Assert.AreEqual(0.4, ss.A, 1e-6, "표의 알파(.4)");
+            Assert.Less(ss.R, ss.B, "남색(rgba(20,60,140)) — 검정이 아니다");
+
+            Assert.IsNotNull(bar, "자동 제련 시대 막대(af-age-*)");
+            RectTransform box = (RectTransform)bar.Find("bar");
+            Transform lip = UiShadow.Find(box, "afagebar_lip"), drop = UiShadow.Find(box, "afagebar_drop");
+            Assert.IsNotNull(lip, "시대 막대의 턱이 없다");
+            Assert.IsNotNull(drop, "시대 막대의 앰비언트가 없다");
+            Assert.IsTrue(UiShadow.Table.Get("afagebar_lip").IsHard, "턱은 흐림 0");
+            Assert.IsFalse(UiShadow.Table.Get("afagebar_drop").IsHard, "앰비언트는 흐리다");
+            Assert.AreEqual(0, drop.GetSiblingIndex(), "앰비언트가 맨 뒤(CSS 뒤 겹)");
+            Assert.AreEqual(1, lip.GetSiblingIndex(), "턱은 앰비언트 위(CSS 앞 겹) · 면·테 뒤");
+            Assert.IsNull(UiShadow.Find(bar, "afagebar_lip"), "막대 뿌리에는 안 깐다(무늬 층의 형제 번호를 지킨다)");
+            Transform pattern = bar.Find("age-pattern");
+            if (pattern != null) Assert.AreEqual(1, pattern.GetSiblingIndex(), "무늬 층은 그대로 형제 1");
+            ForgeAutoPopup.Close(fh);
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator 자동_제련_카드는_턱과_앰비언트_두_겹을_쥔다()
         {
@@ -575,8 +617,8 @@ namespace Forge.Tests.PlayMode
             // 수는 회차마다 자란다(29회차에 남은 열하나의 값을 미리 재 담아 7+19) — EditMode 쪽과 같은 수를 본다.
             int hard = 0, soft = 0;
             foreach (string k in UiShadow.Table.Keys) { if (UiShadow.Table.Get(k).IsHard) hard++; else soft++; }
-            Assert.AreEqual(7, hard);
-            Assert.AreEqual(23, soft, "36회차 equipcell_drop 21 · 38회차 pettile_drop 22 · 39회차 mountcell_drop 23");
+            Assert.AreEqual(8, hard, "40회차 자동 제련 시대 막대 턱(afagebar_lip)으로 8");
+            Assert.AreEqual(25, soft, "36회차 21 · 38회차 22 · 39회차 23 · 40회차 afstart_drop·afagebar_drop 25");
         }
     }
 }
