@@ -11,7 +11,6 @@
 | 파일 | 키 | 곱 | 갈래 | 왜 / 임자 |
 |---|---|---|---|---|
 | `Ui/LeagueSheet.cs` | `card_pad` | ×2 | 기하 | 양쪽 패딩(334) |
-| `Ui/GearDetailPopup.cs` | `card_pad` | ×2 | 기하 | 양쪽 패딩(82) |
 | `Ui/TechPopups.cs` | `idet_subs_pad` | ×2 | 기하 | 양쪽 패딩(125) |
 | `Ui/Hud.cs` | `line_px` | ×2 | 기하 | 테 두 겹(261) |
 | `Ui/Popups.cs` | `xbtn` | ×0.5 | 기하 | 반겹 — ✕ 버튼이 카드 모서리에 반쯤 걸친다(214) |
