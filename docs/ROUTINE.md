@@ -4137,6 +4137,7 @@
 - 고침(한 덩어리로): ⓐ `TextSizeUi.json` 에 `asc_guide`(.78) · `asc_row`(.82) · `asc_row_arrow`(.7) 세 키를 더하고 108·129·133·141·145 를 **종류 `Micro` + `TextSizeUi.Apply`** 로(T383·T450·T461 이 낸 길 그대로 · §1 예외 목록에 자리 세 줄) ⓑ 109 의 상자 높이와 59·60·63·67 의 셈을 새 크기로 ⓒ 152·190·202 와 67 에 `card_gap_rem` 네 번을 더한다. **셋을 한 커밋에** — 위 상쇄 표대로 나눠 넣으면 화면이 더 어긋난다.
 - 판정(다음 런 `screen_ascend.png`): ⓐ 안내 한 줄 잉크 **1.31%H ±0.2**(지금 1.67) ⓑ 안내 두 줄 피치 **1.97%H ±0.25**(지금 2.71) ⓒ 행 잉크 피치 **5.04%H ±0.3**(지금 4.63) ⓓ 카드 높이가 **37.60 → 38.0%H 이상**(원작 38.74) ⓔ 안내 문단이 여전히 **두 줄**(세 줄로 접히면 실패) ⓕ `--score` 의 «팝업 카드 위끝» 에서 **다른 화면이 안 움직인다**.
 - 범위: `Assets/Scripts/Game/Ui/AscendPopup.cs` · `Assets/Forge/Resources/TextSizeUi.json` · `Assets/Tests/PlayMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 🔄 **1회차 선점 2026-09-18 01:4x 워커 O(sess-2140-18689)** — `AscendPopup.cs` 는 산 lock 밖(T377·T457 반납). 등재문대로 ⓐ(세 키 · `Micro` + `TextSizeUi.Apply`) ⓑ(높이 셈) ⓒ(`card_gap_rem` 네 번)를 **한 커밋**에 · §1 예외 자리 셋 · PlayMode 자.
 
 ### T438 ✅ — PlayMode 통째 실종이 **되풀이되는데 아무도 «그 런이 어떤 환경이었나» 를 안 적는다**: 장부에 `sha·run·tests·missing_modes` 넷뿐이라 간헐의 짝을 맞출 자료가 0이다 (도구·CI·게이트 · T171·T180·T392·T435 의 **다섯 번째 재발** · 런 1007 실측 · §0-6 임자 없는 빨강)
 
