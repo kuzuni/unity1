@@ -68,6 +68,51 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(pb, lastBot - cardBot, 0.6f, what + ": 아래 패딩 = 정본 값 — 종전 클론은 0.8rem(cur)·2.0rem(new) 이었다");
         }
 
+        /// <summary>T474 — 정본 691 `.item-stat { font-size: .74rem }`: 주 스탯 줄·옵션 줄(·화살)은 종류 `Micro` + 표 `item_stat` 26.9px 이고(종전 `Sub` 36 · +34%),
+        /// 옵션 줄은 T473 이 정본대로 좁힌 폭에서도 **한 줄**이다. 줄 피치 `lineH`(Sub × 1.35)는 그대로(카드 높이가 이미 원작과 맞다 · 결정 795).</summary>
+        [UnityTest]
+        public IEnumerator 장비_카드_스탯_줄은_정본_74rem_이고_옵션_줄은_한_줄이며_줄_피치는_그대로다()
+        {
+            Assert.AreEqual(0.74f, TextSizeUi.Rem("item_stat"), 1e-6f, "정본 691 .item-stat .74rem");
+            Assert.Less(TextSizeUi.Px("item_stat"), UiCatalog.Instance.Kind(TextKind.Sub).min, "표값이 하한 Sub 아래라 예외 칸이 필요한 자리다");
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            h.S.Hammers = 10; h.Pull();
+            h.OnCraft();
+            float t = 0f;
+            while (!h.Meta.Popups.IsOpen(ForgeCraftPopup.Name) && t < 8f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "제작 뒤 비교 팝업이 열린다");
+            Canvas.ForceUpdateCanvases();
+            Transform root = h.Meta.Popups.Find(ForgeCraftPopup.Name).Root;
+            RectTransform newCard = (RectTransform)FindIn(root, "new");
+            Assert.IsNotNull(newCard, "새 장비 카드");
+            float px = TextSizeUi.Px("item_stat");
+            TextMeshProUGUI st = newCard.Find("stat").GetComponent<TextMeshProUGUI>();
+            Assert.AreEqual(TextKind.Micro, st.GetComponent<UiTextKindTag>().Kind, "주 스탯 줄 = 예외 칸 Micro(§1 열셋째 자리)");
+            Assert.AreEqual(px, st.fontSize, 0.01f, "주 스탯 글자 = .74rem");
+            Transform arrow = newCard.Find("arrow");
+            if (arrow != null) Assert.AreEqual(px, arrow.GetComponent<TextMeshProUGUI>().fontSize, 0.01f, "화살도 같은 크기(.item-stat 글 안의 토막)");
+            RectTransform nm = (RectTransform)newCard.Find("name");
+            float lineH = PopupKit.FontSize(TextKind.Sub) * 1.35f;
+            Assert.AreEqual(lineH, nm.anchoredPosition.y - st.rectTransform.anchoredPosition.y, 0.5f, "이름 → 스탯 줄 피치는 그대로(Sub × 1.35 · 카드 높이 불변)");
+            int subs = 0;
+            for (int i = 0; ; i++)
+            {
+                Transform s = newCard.Find("sub-" + i);
+                if (s == null) break;
+                subs++;
+                TextMeshProUGUI tm = s.GetComponent<TextMeshProUGUI>();
+                Assert.AreEqual(TextKind.Micro, tm.GetComponent<UiTextKindTag>().Kind, "옵션 줄 " + i + " = Micro");
+                Assert.AreEqual(px, tm.fontSize, 0.01f, "옵션 줄 " + i + " 글자 = .74rem");
+                tm.ForceMeshUpdate();
+                Assert.AreEqual(1, tm.textInfo.lineCount, "옵션 줄 " + i + " 은 한 줄이다(«" + tm.text + "» · 상자 폭 " + tm.rectTransform.rect.width.ToString("0") + " · 글 폭 " + tm.preferredWidth.ToString("0") + ")");
+                Assert.AreEqual(lineH, st.rectTransform.anchoredPosition.y - tm.rectTransform.anchoredPosition.y - lineH * i, 0.5f, "옵션 줄 " + i + " 피치도 그대로");
+            }
+            Debug.Log("[T474] 스탯 " + st.fontSize.ToString("0.0") + "px · 옵션 줄 " + subs + " · 피치 " + lineH.ToString("0.0"));
+            h.ResolveCraft("sell"); yield return null;
+            if (h.Meta.Popups.IsOpen(ForgeCraftPopup.SellName)) { h.OnSellConfirm(); yield return null; }
+        }
+
         [UnityTest]
         public IEnumerator 장비_카드_안쪽_패딩은_정본_세_갈래대로고_위는_셋이_같다()
         {

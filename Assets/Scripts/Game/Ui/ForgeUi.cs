@@ -251,7 +251,7 @@ namespace Forge.Game.Ui
         public static RectTransform ItemCard(Transform parent, string name, float w, ForgeItem item, string tag, string arrowDir, bool isNew, GameDefs d, Func<ForgeItem, Big> value)
         {
             float rem = PopupKit.Rem;
-            float lineH = PopupKit.FontSize(TextKind.Sub) * 1.35f;
+            float lineH = PopupKit.FontSize(TextKind.Sub) * 1.35f;   // T474 — 줄 피치는 그대로(카드 높이가 이미 원작과 맞다 · 결정 795) · 스탯 줄의 **글자**만 정본 .74rem(아래)
             float tile = rem * 3.6f;
             int subs = item != null && item.Subs != null ? item.Subs.Count : 0;
             float textH = lineH * (2 + subs);
@@ -304,19 +304,24 @@ namespace Forge.Game.Ui
             nm.color = InkOf(ac);
             UiKit.Place(nm.rectTransform, tx, pt, tw, lineH);
             string arrow = arrowDir == "up" ? " ▲" : arrowDir == "down" ? " ▼" : string.Empty;
-            TextMeshProUGUI st = UiKit.Text(card, "stat", TextKind.Sub, NumFmt.Fmt(value(item)) + " " + StatLabel(item.Main), "pp_ink", TextAlignmentOptions.Left);
+            // T474 — 정본 691 `.item-stat { font-size: .74rem }`(26.9px · §1 하한 36 아래 → 예외 칸 `Micro` + 표 TextSizeUi `item_stat` · §1 예외 열셋째 자리).
+            //   하한 `Sub`(+34%)로 찍으면 T473 이 정본대로 좁힌 안쪽 폭에서 긴 옵션 이름이 두 줄로 접혀 아래 판을 침범한다(런 1181 · 원작은 한 줄).
+            TextMeshProUGUI st = UiKit.Text(card, "stat", TextKind.Micro, NumFmt.Fmt(value(item)) + " " + StatLabel(item.Main), "pp_ink", TextAlignmentOptions.Left);
+            TextSizeUi.Apply(st, "item_stat");
             st.fontStyle = FontStyles.Bold;
             UiKit.Place(st.rectTransform, tx, pt + lineH, tw, lineH);
             if (arrow.Length > 0)
             {
-                TextMeshProUGUI ar = UiKit.Text(card, "arrow", TextKind.Sub, arrow.Trim(), arrowDir == "up" ? "pp_green" : "pp_red", TextAlignmentOptions.Left);
+                TextMeshProUGUI ar = UiKit.Text(card, "arrow", TextKind.Micro, arrow.Trim(), arrowDir == "up" ? "pp_green" : "pp_red", TextAlignmentOptions.Left);
+                TextSizeUi.Apply(ar, "item_stat");   // T474 — 화살은 정본 `.item-stat` 글 안의 토막(ui.js itemCardHTML)이라 같은 크기
                 ar.fontStyle = FontStyles.Bold;
                 float sw = st.preferredWidth;
                 UiKit.Place(ar.rectTransform, tx + sw + rem * 0.2f, pt + lineH, rem * 2f, lineH);
             }
             for (int i = 0; i < subs; i++)
             {
-                TextMeshProUGUI s = UiKit.Text(card, "sub-" + i, TextKind.Sub, SubText(item.Subs[i]), "pp_ink", TextAlignmentOptions.Left);
+                TextMeshProUGUI s = UiKit.Text(card, "sub-" + i, TextKind.Micro, SubText(item.Subs[i]), "pp_ink", TextAlignmentOptions.Left);
+                TextSizeUi.Apply(s, "item_stat");   // T474 — 옵션 줄도 정본 691 .74rem
                 LineHeight.Apply(s, "cmp_sub_lh");   // T354 26회차 — 정본 1894 `.cmp-sub { line-height: 1.5 }` 를 표에서(한 줄 글이라 화면은 그대로 · 줄 피치 `lineH` 는 T434 몫 그대로)
                 UiKit.Place(s.rectTransform, tx, pt + lineH * (2 + i), tw, lineH);
             }

@@ -1,6 +1,10 @@
 {
   "_": "T383 — §1 글자 하한의 예외 칸(Micro · 결정 633)에 «정본 크기» 를 주는 표. 정본이 rem 으로 못 박은 font-size 를 자리 키 → rem 으로 적고, 도우미 Ui/TextSizeUi.Apply(t, key) 가 종류 Micro 인 글자에 px(rem × PopupKit.Rem)로 건다. 자(TextSizeGateTests)는 «종류의 하한(Micro 18)» 만 보므로 정본 크기 그대로 서고, 하한 36 이 정본이 못박은 모양(<br> 줄 수)을 깨는 자리에만 쓴다 — 새로 쓰려면 정본 CSS 줄을 근거로 대고 §1 예외 목록에 한 줄 적는다. catalog.json 은 T364·T378·T387 lock 이라 곁 표(T65 꼴).",
   "size": {
+    "item_stat": {
+      "rem": 0.74,
+      "_": "T474 — style.css **691** `.item-stat { font-size: **.74rem**; color: #ffd54f }` = 26.9px — 제작 비교·장비 상세 카드(`ForgeUi.ItemCard`)의 주 스탯 줄·옵션 줄(`.modal-card .item-stat` 3521 은 색만 덮는다). 종전엔 하한 `Sub`(36 = .989rem · **+34%**)라 T473 이 카드 안쪽 폭을 정본대로 2×line3 좁히자 긴 옵션 이름이 두 줄로 접혀 아래 회색 판을 침범했다(런 1181 · 원작 shot-043224 는 한 줄). `Micro` 칸 + 이 값(T383·T450·T461·T464·T468 길) — 줄 피치 `lineH`(Sub × 1.35)는 그대로 둔다(카드 높이가 이미 원작과 맞다 · 결정 795). §1 예외 열셋째 자리."
+    },
     "dgd_pill": {
       "rem": 0.88,
       "_": "T468 — style.css **5331** `.dgd-reward-pill { … padding: .3rem .9rem; font-size: **.88rem**; font-weight: 900; color: #fff }` = 32.0px — 던전 상세 «보상: 🔨N 🪙N» 알약의 라벨·숫자. 종전엔 하한 `Sub`(36 = .989rem · +12.4%)로 찍고 그 수에 `.ico` 1.45em 을 곱해 알약이 41.5px(정본 셈 37.3 · T433 등재문의 수)이었다. `Micro` 칸 + 이 값(T383·T450·T461·T464 길) · 알약 줄 상자·아이콘(1.29em)·숫자 폭도 이 크기로 센다. 열쇠 줄 1.5rem 은 하한 위라 `DungeonUi.json` `dgd_keys_font_rem`(Head 칸 + 크기). §1 예외 열두째 자리."
