@@ -2124,3 +2124,31 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 
 - `-webkit-text-stroke-width` **✅ 2**(T109 자가 센다) · `color-scheme`·`forced-color-adjust`·`user-select` **✅ 5(해당 없음 · 브라우저 신호)** · `order` **✅ 2** · `outline`·`outline-offset` **⛔ 4 → T475**(신화·동급 구슬 래퍼의 흰 반투명 아웃라인). 새 번호 **1**.
 - **남은 축**(10 − 7 = **3 종**): `display` 310 · `margin-left` 32 · `margin-right` 15 — `margin-*` 는 50회차 패딩과 같은 «표 키가 있는가» 자로, `display` 는 «flex/grid/none 이 클론의 어떤 그릇에 대응하는가» 로 갈라야 한다(한 회차에 하나씩).
+
+
+# T33 53회차 — 남은 축 3 종 중 `margin-right` 15 를 «표 키가 있는가» 자로 (2026-09-18 · 워커 O · sess-2140-18689)
+
+50회차 `padding-top/right` 와 같은 자다: 값이 **길이**면 클론 표 키가 있는가를 묻고, `auto`(flex 정렬·가운데)면 클론이 같은 자리를 **구조**(앵커·가운데 셈)로 내는가를 본다. `@keyframes`·`@media` 안 선언은 없다(15 전부 정적).
+
+## `margin-right` 15
+
+| # | 정본 | 값 | 클론 | 판정 |
+|---|---|---|---|---|
+| 1 | 113 `.currency-pills` | `calc(app-w × .0381 − .6rem)` | `Hud.cs` 상단 알약 줄 — 오른쪽 여백을 `offsetMax.x = −px` 한 값으로(키 없음 · 정본 식의 두 항이 안 보인다) | △ |
+| 2 | 549 `.float-dmg.dmg-hero::before` | `.14em`(▼ 표식과 숫자 사이) | `DamageUi.json` `hero_mark_gap_em` 0.14(em · `DamageNumbers.HeroMark`) | ✅ |
+| 3 | 1629 `.forge-actions` | `calc(app-w × .092)` | 클론 `ForgeSheet` 에 `forge-actions` 이름의 줄 상자가 없다 — 버튼 둘이 제 자리로 선다(오른쪽 여백을 쥐는 키 없음) | △(자리 미확인) |
+| 4 | 1992 `.dg-rw` | `.40em`(보상 칩 사이) | `DungeonSheet.cs` 배너 보상 줄 `x += ico * 0.6f` — 값이 코드에 박혔고 .6 ↔ .4em(em 기준도 아이콘) | △(코드 박힘 · T378 갈래) |
+| 5 | 3074 `.profile-tabs` | `auto`(`margin: 0 auto` 가운데) | `ProfilePopup.cs` `UiKit.Anchor(tabs, (0.5,0) …)` 가운데 앵커 | ✅(구조) |
+| 6 | 3316 `.chat-bubble-wrap` | `auto`(말풍선을 왼쪽에 붙인다) | `ChatScreen.cs` 말풍선은 왼쪽 정렬 한 갈래(정본도 `.mine` 은 이름 색뿐 · 275 주석) | ✅(구조) |
+| 7 | 3339 `.chat-name-line .ico` | `0` | `PersonIconsUi.json` `chat_ico_mr_em` 0 | ✅ |
+| 8 | 3862 `.modal-card.sheet .sheet-sub` | `auto`(`max-width 74%` 가운데) | `DungeonSheet.cs` `subW = W × sheet_sub_maxw` · `(W − subW) / 2` | ✅ |
+| 9 | 3933 `#panel-summon > .summon-sub` | `−.8rem`(패널 패딩을 되물리는 풀블리드 · 안쪽 패딩으로 되돌린다) | `SkillPetSheet.cs` 본문을 `pad` 만큼 안쪽에 두고 풀블리드가 필요한 자리(소환 바 위 대시)는 T368 ⓑ 가 따로 앱 폭으로 깐다 — 결과 같음 | ✅(구조) |
+| 10~11 | 4425 `#panel-skills .summon-bar > .summon-btn` · 4432 `#panel-pets …` | `auto`(flex 줄에서 뒤 항목을 오른쪽으로 민다) | `SkillPanel.cs`·`PetPanel.cs` 소환 바는 뒤로·×N·소환 버튼을 표 키(`back_left_w`·`x5_left_*` …)의 절대 자리로 놓는다 — 미는 마진이 설 자리가 없다 | ✅(구조 · 해당 없음) |
+| 12 | 4644 `.item-detail[data-tech-node] .tech-prog` | `1.33%` | `TechPopups.cs` `Place(prog, pad, y, inner, ph)` — 좌우 카드 패딩만, 1.33% 오른쪽 여백 키 없음 | △ |
+| 13 | 5336 `.dgd-reward-label` | `.3rem`(«보상:» 뒤) | `DungeonDetailPopup.BuildRewardRow` 라벨 상자 `lh × 2.2` 안에 간격이 녹아 있다(키 없음) | △ |
+| 14~15 | 7042 `.sr-name` · 7086 `.sr-grid.one .sr-name` | `auto`(이름판 가운데) | `SkillSummonResult.cs` `Place(nameBox, (cw − nw2) / 2, …)` | ✅(구조) |
+
+## 이 회차의 판정
+
+- `margin-right` 15 = **✅ 10**(표 키 2 · 구조 8) · **△ 5**(113 알약 줄 · 1629 forge-actions · 1992 보상 칩 간격 · 4644 tech-prog · 5336 보상 라벨 — 50회차의 «표 키 없음» 목록에 이어 붙인다 · T378 갈래) · 새 번호 0.
+- **남은 축**(3 − 1 = **2 종**): `display` 310 · `margin-left` 32(이 회차와 같은 자로 · 한 회차).
