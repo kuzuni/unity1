@@ -166,7 +166,18 @@ namespace Forge.Tests.PlayMode
             TextMeshProUGUI t = eff.GetComponent<TextMeshProUGUI>();
             int n = Lines(t);
             // 런 688 은 **4줄**이었다(하한 Sub 36 이 셋째 항목을 접었다) — 5회차가 종류 Micro + 표 크기(정본 .76rem · TextSizeUi)로 고쳐 정본 세 줄로 돌아온다.
-            Assert.AreEqual(3, n, "정본 5848·5849 = 세 줄 — 실제 «" + t.text.Replace("\n", "⏎") + "»");
+            string[] logical = t.text.Split('\n');
+            Assert.AreEqual(3, logical.Length, "정본 5848·5849 = <br> 둘 = 논리 줄 셋 — 실제 «" + t.text.Replace("\n", "⏎") + "»");
+            // T396 20회차 2차(§0-6 · 결정 796) — T473 이 카드 폭을 정본대로 좁힌 뒤 **둘째 항목만** 글꼴 폭 차로 접힐 수 있다: NotoSansKR hmtx 실측 둘째 줄 24.49em × 13.8px = 338.7px
+            //   ↔ 상자 334.8px(정본 패딩 .5rem 으로 되돌린 값 · 3.9px 부족). 정본 글꼴(맑은 고딕)은 좁아 한 줄이다. 그래서 «셋» 또는 «넷(둘째 항목 안에서 한 번 접힘)» 만 허용하고,
+            //   하한 36 이 셋째 항목을 접던 런 688 꼴(다른 줄이 접힘·두 번 접힘)은 그대로 빨강이다.
+            if (n == 4)
+            {
+                int s1 = logical[0].Length + 1, e1 = s1 + logical[1].Length;
+                int brk = t.textInfo.lineInfo[2].firstCharacterIndex;
+                Assert.IsTrue(brk > s1 && brk < e1, "넷이면 접힌 자리는 둘째 항목(가장 긴 줄) 안이어야 한다 — 그려진 셋째 줄 첫 글자 " + brk + " · 둘째 항목 " + s1 + "~" + e1);
+            }
+            else Assert.AreEqual(3, n, "정본 5848·5849 = 세 줄 — 실제 «" + t.text.Replace("\n", "⏎") + "»");
             Assert.AreEqual(TextSizeUi.Px("asc_focus_eff"), t.fontSize, 0.5f, "크기는 표(정본 .76rem)에서 — 하한 36 이 아니다");
             AscendPopup.Close();
             yield return null;

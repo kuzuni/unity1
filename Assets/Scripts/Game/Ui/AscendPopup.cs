@@ -194,7 +194,10 @@ namespace Forge.Game.Ui
                 // 결정 633 대로 새 종류 없이 예외 칸 `Micro` 를 쓰되 크기는 표(TextSizeUi · 정본 .76rem)에서 — §1 예외 넷째 자리.
                 TextMeshProUGUI fe = DungeonPopups.Para(focus, "eff", TextKind.Micro, eff, "pp_ink", TextAlignmentOptions.Left);
                 TextSizeUi.Apply(fe, "asc_focus_eff");
-                UiKit.Place(fe.rectTransform, focusPad, fy, inner - focusPad * 2f, subH * 4f);
+                // T396 20회차 2차(§0-6 · 런 1180·1186 BrLinesTests «세 줄» 빨강) — 정본 5630 `.asc-focus { padding: .6rem .5rem }`: 가로는 .5rem 인데 세로 .6 을 가로에도 쓰고 있었다(상자 .2rem 좁음).
+                //   T473 이 카드를 정본대로 2×line3 좁히자 둘째 항목이 4.5px 여유에서 7.5px 넘침으로 넘어갔다(hmtx 실측 · 결정 796). 가로 패딩을 정본으로 되돌린다 — 남는 3.9px 은 글꼴 폭 차(NotoSansKR).
+                float focusPadX = DungeonPopups.RemL("asc_focus_pad_x_rem");
+                UiKit.Place(fe.rectTransform, focusPadX, fy, inner - focusPadX * 2f, subH * 4f);
                 OpacityUi.Apply(fe.gameObject, "asc_focus_eff");   // T359 — 정본 5635 .asc-focus-eff { opacity: .9 }
                 LineHeight.Apply(fe, "asc_focus_eff_lh");   // T354 — 정본 5635 .asc-focus-eff { line-height: 1.5 }
                 // T396 20회차 — 정본 5637 `.asc-wipe-warn { color: #ff6b5e }`(가운데 줄만)은 **아직 안 건다**: `LineInk.Apply(fe, 1, "asc_wipe_warn_ink")` 로 richText 를 켜자
