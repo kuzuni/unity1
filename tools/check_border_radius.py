@@ -257,6 +257,15 @@ TABLE = {
     #   ui.js 의 `tech-node` 는 `data-tech-node` 속성과 `#tech-node-fill`·`#tech-node-time` id 뿐 · 나머지는 `web/tools/probe-*.js` 진단 도구).
     '.tech-node': '—죽은 CSS(정본 렌더 줄 0 · 8회차에 전수로 확인)',
     '.tech-node-bar': '—죽은 CSS(정본 렌더 줄 0 · 8회차)',
+    # ── T415 13회차(2026-09-18 · 워커 R) — 자동 제련 팝업 넷(`ForgeAutoPopup.cs`) + 장비 정보 팝업 넷(`ForgeInfoPopup.cs`) ──
+    '.af-check': ['Ui/ForgeAutoPopup.cs$af_check_r_rem'],
+    '.af-toggle': u'✓정본 4759 `.af-toggle { height: 1.269rem; border-radius: 1rem }` ↔ 클론 `Popups.Toggle` 의 `h * 0.5f` — 정본도 반높이(.63rem) < 1rem 이라 알약(결정 543) · `AutoForgeRadiusTests` 가 IsPill 로 못박는다',
+    '.af-toggle .knob': u'✓정본 4763 `.af-toggle .knob { border-radius: 50% }` — 손잡이는 한 변 k 의 정사각이고 클론 `Popups.Toggle` 이 `k * 0.5f` 를 주니 원과 같은 그림(`.settings-toggle::after` 와 같은 꼴 · 결정 543)',
+    '.af-sub-row': u'✓정본 4772 `.af-sub-row { border-radius: 1rem }` ↔ 클론 `ForgeAutoPopup.SubRow` 의 `hgt * 0.5f`(행 1.75rem · 반높이 .875rem < 1rem) — 알약 동치(결정 543) · `AutoForgeRadiusTests`',
+    '.fi-info-btn': ['Ui/ForgeUi.cs@InfoButton'],   # 정본 5059 50% — `UiKit.Circle(rt, "face", …)` 홀로 선 원판(T365 13회차)
+    '.fi-pill': u'✓정본 5065 `.fi-pill { border-radius: 1rem }` ↔ 클론 `ForgeUi.Pill` 의 `h * 0.5f`(`ForgeInfoPopup` ph 1.7rem · 반높이 .85rem < 1rem) — 알약 동치(결정 543) · `AutoForgeRadiusTests`',
+    '.fi-pill-ico': u'—클론 `ForgeUi.Pill` 은 아이콘(`IconOr`)만 놓고 그 뒤 색 원판(정본 5071·5072 `#f59e0b`/`#ef4444`)이 아직 없다 — 원판이 서는 회차에 50% 가 같이 선다(13회차 확인)',
+    '.fi-card .fi-skip': ['Ui/ForgeInfoPopup.cs$fi_skip_r_rem'],
     # 죽은 CSS(정본 ui.js·index.html 에 자취 0 · 20회차 ⓡ)
     '.stat-grid': '—죽은 CSS(정본 렌더 줄 0)',
     '.hatch-slot': '—죽은 CSS(정본 렌더 줄 0)',

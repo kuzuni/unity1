@@ -224,7 +224,7 @@ namespace Forge.Game.Ui
             float cb = hgt * 0.62f;
             RectTransform box = UiKit.Box(row, "check");
             UiKit.Place(box, rem * 0.5f, (hgt - cb) * 0.5f, cb, cb);
-            ForgeUi.Tile(box, "box", PinnedColorUi.C("af_check_face"), Color.black, cb * 0.2f, PopupKit.Line);   // T396 10회차 — 정본 4727·4730: 켜짐도 상자는 #17181a(초록 상자는 «종전 구현»)
+            ForgeUi.Tile(box, "box", PinnedColorUi.C("af_check_face"), Color.black, RadiusUi.Px("af_check_r_rem"), PopupKit.Line);   // T415 13회차 — 정본 4724 `.af-check { border-radius: .35rem }` 을 표에서(전엔 `cb * 0.2f` ≈ .22rem 이 박혀 있었다)   // T396 10회차 — 정본 4727·4730: 켜짐도 상자는 #17181a(초록 상자는 «종전 구현»)
             if (on)
             {
                 Image mk = PopupKit.IconOr(box, "mark", "check");

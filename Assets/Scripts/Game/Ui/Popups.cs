@@ -478,12 +478,12 @@ namespace Forge.Game.Ui
         /// 라벨 키라인(T109 7회차 · 정본 `style.css` 8719 `.btn.btn.primary/on/equip/danger/sell { -webkit-text-stroke: var(--ol2) var(--pp-line) }`):
         /// <paramref name="keylineKey"/> 가 null 이면 면 색 키 표(<see cref="KeylineUi.BtnFace"/> · `KeylineUi.json` btn_face)가 정한다 · "" 는 끈다 ·
         /// 그 밖은 폭표 키(`.af-start`·`.fi-skip` 4px 처럼 제 규칙이 있는 버튼) · 비활성은 정본 8725 `.disabled { -webkit-text-stroke: 0 }` 대로 민글자.</summary>
-        public static Button Btn(Transform parent, string name, string label, string faceKey, string lipKey, UnityAction onClick, float w, float h, string inkKey = "stage_ink", TextKind kind = TextKind.Button, bool disabled = false, string keylineKey = null)
+        public static Button Btn(Transform parent, string name, string label, string faceKey, string lipKey, UnityAction onClick, float w, float h, string inkKey = "stage_ink", TextKind kind = TextKind.Button, bool disabled = false, string keylineKey = null, float radius = -1f)
         {
             Button b = UiKit.Button(parent, name, onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
             Size(rt, w, h);
-            float r = UiKit.H("btn_r");
+            float r = radius > 0f ? radius : UiKit.H("btn_r");   // T415 13회차 — 정본이 선택자에 따로 못박은 반지름(`.fi-card .fi-skip` .6rem)은 부르는 쪽이 표값을 넘긴다 · 안 넘기면 공용 `btn_r`
             float lip = UiKit.H("btn_lip");
             UiKit.Rounded(rt, "line", "pp_line", r);
             Image lipImg = UiKit.Rounded(rt, "lip", lipKey, Mathf.Max(1f, r - Line3));

@@ -81,5 +81,9 @@
   "_pass_cell": "style.css 2822 `.pass-cell` — 패스 트랙 보상 칸(정본 .6 · 클론은 catalog `pass_cell_r` 0.0114H 로 값은 맞았지만 키 꼬리가 규약 밖이라 자가 못 봤다 · 그 catalog 키는 이제 부르는 데가 0 — T377 lock 뒤 지운다 · T415 7회차)",
   "pass_cell_r_rem": 0.6,
   "_tech_node_time": "style.css 2209 .tech-tree-label .tech-tree-node-time — 연구 중 남은 시간·«완료!» 배지(pp-ink 위 초록 글자 · 정본 .6 · 클론엔 면이 아예 없었다 · T345 4회차)",
-  "tech_node_time_r_rem": 0.6
+  "tech_node_time_r_rem": 0.6,
+  "_af_check_r_rem": "T415 13회차 — 정본 style.css 4724 `.af-check { width: 1.32rem; border-radius: .35rem }`(자동 제련 필터 행의 체크 상자) · 종전 `ForgeAutoPopup.SubRow` 는 `cb * 0.2f`(상자 한 변의 20% ≈ .22rem)가 코드에 박혀 있었다.",
+  "af_check_r_rem": 0.35,
+  "_fi_skip_r_rem": "T415 13회차 — 정본 5150 `.fi-card .fi-skip { border-radius: .6rem }`(대장간 정보 카드의 [건너뛰기] 버튼) · 종전 공용 `PopupKit.Btn` 의 `btn_r`(.7) 한 값 — Btn 에 반지름 인수를 열어 이 자리만 표값을 넘긴다.",
+  "fi_skip_r_rem": 0.6
 }

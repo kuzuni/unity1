@@ -140,7 +140,7 @@ namespace Forge.Game.Ui
                 // T377 20회차 — 정본 8771 `.modal-card .btn.btn.fi-skip.fi-skip { background: #afafaf; box-shadow: inset 0 -.25rem 0 #353535 }`.
                 //   정본이 회색 버튼 전수 census 로 이 하나만 «한 단 밝은 변형» 으로 못박았고, 그 주석이 **버린 옛 값**까지 적어 뒀다(면 #c9c9c9 · 턱 #9c9c9c).
                 //   클론이 쓰던 `pp_gray`(#c4c4c4)·`pp_gray_dk`(#9a9a9a)가 바로 그 버려진 쪽이라 아래턱 명도차가 거의 0 이었다(정본 실측 113.6).
-                Button skip = PopupKit.Btn(card, "fi-skip", "", "fi_skip_face", "fi_skip_lip", () => h.OnGemSkipForge(), inner * 0.6f, ForgeInfoStyle.TwoLineBtnH(TextKind.Sub, "fi_skip_pad_y_rem", "fi_card_fi_skip_lh"), "stage_ink", TextKind.Sub, false, "fi_skip");
+                Button skip = PopupKit.Btn(card, "fi-skip", "", "fi_skip_face", "fi_skip_lip", () => h.OnGemSkipForge(), inner * 0.6f, ForgeInfoStyle.TwoLineBtnH(TextKind.Sub, "fi_skip_pad_y_rem", "fi_card_fi_skip_lh"), "stage_ink", TextKind.Sub, false, "fi_skip", RadiusUi.Px("fi_skip_r_rem"));   // T415 13회차 — 정본 5150 `.fi-card .fi-skip { border-radius: .6rem }`(공용 btn_r .7 이 아니다)
                 // T396 19회차 — 정본 5160 `.fi-skip-gem { color: #e11d48 }`: 아랫줄 «💎 N» 의 글자만 그 리터럴(표 `fi_skip_gem_ink`) · 윗줄은 stage_ink 그대로.
                 IconTextStack.ReplaceLabel(skip, TextKind.Sub, "건너뛰기\n💎 " + NumFmt.Fmt(h.Engine.GemSkipCost()), "stage_ink", "fi_skip_face", "fi_skip", "fi_skip_gem_ink");
             }
