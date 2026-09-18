@@ -13,6 +13,9 @@ using Forge.Core.Data;
 using Forge.Core.Skills;
 using Forge.Game;
 using Forge.Game.Ui;
+using Forge.Core.Pets;
+using CoreRng = Forge.Core.Data.Rng;
+using Forge.Core.Forging;
 
 namespace Forge.Tests.PlayMode
 {
@@ -951,6 +954,37 @@ namespace Forge.Tests.PlayMode
                 seen++;
             }
             Assert.AreEqual(3, seen, "1·2·3위 셋");
+        }
+
+        /// <summary>T354 26회차 — 제작 비교·장비 상세 카드의 부 옵션 줄(정본 1894 `.cmp-sub { line-height: 1.5 }` · `ForgeUi.ItemCard` 의 `sub-i`):
+        /// 안 읽는 키 중 **자리가 있는 마지막 하나**(T471 이 닫혀 `ForgeUi.cs` 가 열렸다). 한 줄 글이라 화면은 안 변한다 — «표를 읽는 자리» 가 서는지 본다(9회차의 길).</summary>
+        [UnityTest]
+        public IEnumerator 비교_카드의_부_옵션_줄은_표의_1_5_줄높이를_읽는다()
+        {
+            yield return Boot();
+            for (int i = 0; i < 600 && !(ForgeHost.Ready && MetaHost.Ready && PopupLayer.Instance != null); i++) yield return null;
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h, "ForgeHost");
+            ForgeItem it = h.Engine.RollItem();
+            it.Subs = SubstatRoll.Roll(h.Defs, CoreRng.Mulberry(43224), 2);   // 촬영 자(craft-compare)와 같은 두 줄 고정
+            ForgeCraftPopup.Show(h, it);
+            yield return null;
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Assert.IsTrue(h.Meta.Popups.IsOpen(ForgeCraftPopup.Name), "비교 팝업");
+            Transform card = Find(h.Meta.Popups.Find(ForgeCraftPopup.Name).Root, "new");
+            Assert.IsNotNull(card, "새 장비 카드(new)");
+            Assert.AreEqual(1.5, LineHeight.Table.Get("cmp_sub_lh"), 1e-9, "정본 1894");
+            int n = 0;
+            for (int i = 0; ; i++)
+            {
+                Transform s = card.Find("sub-" + i);
+                if (s == null) break;
+                AssertSpacing(s.GetComponent<TextMeshProUGUI>(), "cmp_sub_lh", "부 옵션 줄 " + i);
+                n++;
+            }
+            Assert.AreEqual(2, n, "부 옵션 줄 둘");
+            ForgeCraftPopup.Hide(h);
         }
     }
 }

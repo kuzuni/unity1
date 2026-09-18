@@ -317,6 +317,7 @@ namespace Forge.Game.Ui
             for (int i = 0; i < subs; i++)
             {
                 TextMeshProUGUI s = UiKit.Text(card, "sub-" + i, TextKind.Sub, SubText(item.Subs[i]), "pp_ink", TextAlignmentOptions.Left);
+                LineHeight.Apply(s, "cmp_sub_lh");   // T354 26회차 — 정본 1894 `.cmp-sub { line-height: 1.5 }` 를 표에서(한 줄 글이라 화면은 그대로 · 줄 피치 `lineH` 는 T434 몫 그대로)
                 UiKit.Place(s.rectTransform, tx, pt + lineH * (2 + i), tw, lineH);
             }
             return card;
