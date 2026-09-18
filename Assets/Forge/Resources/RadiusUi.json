@@ -1,7 +1,6 @@
 {
   "_": "T345 — 정본 border-radius 표(값이 코드에 박혀 정본과 어긋난 자리). 키 꼬리가 단위다: `…_r_rem` = 정본 Nrem(1rem = catalog rem_h × 앱 높이) · `…_r_w` = 정본 calc(var(--app-w) * k) 의 k(앱 폭 비율) · `…_r_px` = 정본이 절대 CSS px 로 적은 값(환산은 KeylineUi.CssPx). 읽는 곳은 `RadiusUi.Px` 한 군데(Core `RadiusRules.Px`). 정본 50% 자리는 여기 없다 — `UiKit.Circle` 이 원이다.",
   "_자": "`tools/check_border_radius.py` 가 정본 style.css 의 선언 ↔ 이 표의 값 ↔ 그 자리의 호출(`\"키\"`)을 세 겹으로 견준다. 값을 바꿀 때는 정본 줄을 먼저 본다(아래 `_…` 칸이 그 줄이다).",
-
   "_chat_bubble": "style.css 3371 .chat-bubble — 클론 ChatScreen 말풍선(정본 .42 · 클론은 .6 이었다)",
   "league_avatar_r_rem": 0.4,
   "_league_avatar_r_rem": "T415 11회차 — 정본 style.css 2331 `.league-avatar { border-radius: .4rem }`(랭킹 행 아바타) · 종전 `LeagueSheet.cs` 142 가 `rem * 0.4f` 로 박아 둔 값",
@@ -85,5 +84,9 @@
   "_af_check_r_rem": "T415 13회차 — 정본 style.css 4724 `.af-check { width: 1.32rem; border-radius: .35rem }`(자동 제련 필터 행의 체크 상자) · 종전 `ForgeAutoPopup.SubRow` 는 `cb * 0.2f`(상자 한 변의 20% ≈ .22rem)가 코드에 박혀 있었다.",
   "af_check_r_rem": 0.35,
   "_fi_skip_r_rem": "T415 13회차 — 정본 5150 `.fi-card .fi-skip { border-radius: .6rem }`(대장간 정보 카드의 [건너뛰기] 버튼) · 종전 공용 `PopupKit.Btn` 의 `btn_r`(.7) 한 값 — Btn 에 반지름 인수를 열어 이 자리만 표값을 넘긴다.",
+  "af_age_bar_r_rem": 0.6,
+  "_af_age_bar_r_rem": "T415 14회차 — 정본 style.css 4701 `.af-age-bar { … background: var(--ac, #999); border-radius: .6rem }`(자동 제련 팝업의 시대 막대) · 종전 `ForgeUi.AgeBar` 는 `h * 0.25f`(막대 1.75rem 의 .4375rem)가 코드에 박혀 있었다 — 정보 팝업 막대(.55)와 한 값이라 둘 다 정본과 어긋났다.",
+  "fi_age_bar_r_rem": 0.55,
+  "_fi_age_bar_r_rem": "T415 14회차 — 정본 style.css 5083 `.fi-age-bar { … background: var(--ac, #999); border-radius: .55rem }`(확률 정보 팝업의 시대 막대 · 목록 머리 `fi-age-bar fl-head` 도 같은 규칙 · 5116·5125 의 `::before`·`::after` 는 `inherit`) · 종전 `ForgeUi.AgeBar` 의 `h * 0.25f` 리터럴 — `autoForge` 갈래로 `af_age_bar_r_rem` 과 가른다.",
   "fi_skip_r_rem": 0.6
 }

@@ -266,6 +266,10 @@ TABLE = {
     '.fi-pill': u'✓정본 5065 `.fi-pill { border-radius: 1rem }` ↔ 클론 `ForgeUi.Pill` 의 `h * 0.5f`(`ForgeInfoPopup` ph 1.7rem · 반높이 .85rem < 1rem) — 알약 동치(결정 543) · `AutoForgeRadiusTests`',
     '.fi-pill-ico': u'—클론 `ForgeUi.Pill` 은 아이콘(`IconOr`)만 놓고 그 뒤 색 원판(정본 5071·5072 `#f59e0b`/`#ef4444`)이 아직 없다 — 원판이 서는 회차에 50% 가 같이 선다(13회차 확인)',
     '.fi-card .fi-skip': ['Ui/ForgeInfoPopup.cs$fi_skip_r_rem'],
+    # ── T415 14회차(2026-09-18 · 워커 S) — 나이 막대 셋(`ForgeUi.AgeBar` 한 공장 · 종전 «막대 높이 × .25» 리터럴) ──
+    '.age-bar-wrap': u'—죽은 CSS: `.age-bar-wrap`·`.age-row`·`.age-pct`·`.age-tag`(703~708)를 `ui.js`·`index.html` 어디서도 안 그린다(렌더 줄 0 · 14회차 grep) — 클론에 자리 없음',
+    '.af-age-bar': ['Ui/ForgeUi.cs$af_age_bar_r_rem'],
+    '.fi-age-bar': ['Ui/ForgeUi.cs$fi_age_bar_r_rem'],
     # 죽은 CSS(정본 ui.js·index.html 에 자취 0 · 20회차 ⓡ)
     '.stat-grid': '—죽은 CSS(정본 렌더 줄 0)',
     '.hatch-slot': '—죽은 CSS(정본 렌더 줄 0)',

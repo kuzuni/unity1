@@ -375,7 +375,10 @@ namespace Forge.Game.Ui
         {
             Color ac = AgeColor(d, age);
             RectTransform bar = PopupKit.Item(parent, name, w, h);
-            Image f = Tile(bar, "bar", ac, Color.black, h * 0.25f, PopupKit.Line);
+            // T415 14회차 — 막대 모서리는 정본이 두 규칙으로 못 박았다: 4701 `.af-age-bar { border-radius: .6rem }` · 5083 `.fi-age-bar { border-radius: .55rem }`(목록 머리 `fl-head` 도 같은 규칙 ·
+            //   5116·5125 `::before`·`::after` 는 inherit). 종전 «막대 높이 × .25»(1.75rem 의 .4375rem)는 한 리터럴로 둘 다 어긋났다 — 표 `RadiusUi.json` 키를 `autoForge` 갈래로 고른다.
+            float radius = RadiusUi.Px(autoForge ? "af_age_bar_r_rem" : "fi_age_bar_r_rem");
+            Image f = Tile(bar, "bar", ac, Color.black, radius, PopupKit.Line);
             // T124 — 시대 무늬 층(정본 `.af-age-bar::before`·`.fi-age-bar::before` · 항성간 이상 다섯만 · 바탕 채움 바로 위 · 글자·체크 뒤).
             // T380 2회차 — **두 막대의 마스크 값이 다르다**: 정본 4841 `.af-age-bar::before` 는 30→50%, 5116~5123 `.fi-age-bar::before` 는 **24→46%** 다.
             //   여태 클론은 자동 제련 막대에만 마스크를 걸어 정보 팝업·목록 머리 막대는 무늬가 **왼쪽 아이콘·이름 뒤까지** 갔다.
@@ -431,7 +434,7 @@ namespace Forge.Game.Ui
             {
                 RectTransform seg = UiKit.Box(bar, "next");
                 UiKit.Place(seg, w - segW, 0f, segW, h);
-                Image sf = UiKit.Rounded(seg, "face", "pp_paper", h * 0.25f);
+                Image sf = UiKit.Rounded(seg, "face", "pp_paper", radius);   // T415 14회차 — 정본 `.fi-age-next` 엔 제 반지름이 없고 막대(overflow:hidden)의 모서리에 잘린다 — 막대와 같은 표값
                 sf.color = Darker(ac);
                 PopupKit.Inset(sf.rectTransform, PopupKit.Line);
                 TextMeshProUGUI nt = UiKit.Text(seg, "pct", TextKind.Sub, next, "pp_ink", TextAlignmentOptions.Right);
