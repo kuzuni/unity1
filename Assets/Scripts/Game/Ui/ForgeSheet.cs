@@ -248,6 +248,9 @@ namespace Forge.Game.Ui
             }
             Color ac = ForgeUi.AgeColor(d, it.Age);
             Image f = ForgeUi.Tile(rt, "frame", ForgeUi.CellFace(ac), ForgeUi.CellLine(ac), size * 0.16f, PopupKit.Line3);
+            // T331 36회차 — 정본 8539 `.equip-cell:not(.egg-cell)` 의 드리운 그림자 `0 .14rem .3rem rgba(0,0,0,.30)`(표 equipcell_drop · 8548 `.empty` 는 inset 뿐이라 빈 칸엔 없다).
+            //   셀의 형제 순서(무늬 층 = 형제 1 · AgePatternTests)를 안 흔들려고 틀(frame) **안** 맨 뒤에 깐다 · rect 는 아직 0 이라 크기를 준다(27회차 런 921 의 교훈).
+            UiShadow.Drop(f.rectTransform, "equipcell_drop", size * 0.16f, size, size);
             // T178 16회차 — 정본 828 `.equip-cell` 교차 해칭(7730 이 non-egg 셀의 background-image 를 다섯 겹으로 덮어써도 해칭 둘은 그 목록의 맨 아래 두 겹으로 남는다).
             // T178 18회차 — 나머지 세 겹(방사 둘 + 선형 명암)까지 **면 통째 한 판**으로(위 빈 칸과 같은 길 · 바탕 = color-mix 면 색).
             SurfaceArt.FillFace(f, "face-bake", "cell_hatch", CellFaceLayers, ForgeUi.CellFace(ac), size - PopupKit.Line3 * 2f, size - PopupKit.Line3 * 2f);

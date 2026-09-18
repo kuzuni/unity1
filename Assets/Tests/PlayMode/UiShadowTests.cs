@@ -172,6 +172,42 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T331 36회차 — 정본 8539 `.equip-cell:not(.egg-cell)` 드리운 그림자(표 equipcell_drop · `0 .14rem .3rem rgba(0,0,0,.30)`).
+        /// 8548 `.equip-cell.empty` 는 inset 뿐이라 빈 칸엔 없다. 셀의 형제 순서(무늬 층 = 형제 1)를 안 흔들려고 틀(frame) 안 맨 뒤에 깐다.</summary>
+        [UnityTest]
+        public IEnumerator 장착_장비_칸에는_흐린_그늘이_틀_안_맨_뒤에_깔리고_빈_칸에는_없다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            Forge.Core.Forging.ForgeItem it = h.Engine.RollItem();
+            h.Gear.Set(it.Slot, it);
+            ForgeSheet.Render(h);
+            yield return null;
+            Transform full = null, empty = null;
+            foreach (Transform t in UiRoot.Instance.Sheet.GetComponentsInChildren<Transform>(true))
+            {
+                if (t.name == "cell-" + it.Slot) full = t;
+                else if (empty == null && t.name.StartsWith("cell-") && t.Find("slot-name") != null) empty = t;
+            }
+            Assert.IsNotNull(full, "장착 칸 cell-" + it.Slot);
+            RectTransform frame = (RectTransform)full.Find("frame");
+            Assert.IsNotNull(frame, "장착 칸의 틀(frame)");
+            Transform sh = UiShadow.Find(frame, "equipcell_drop");
+            Assert.IsNotNull(sh, "장착 칸 틀 안에 그늘이 없다");
+            Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 틀 안 맨 뒤(면·테 뒤)");
+            Assert.IsFalse(UiShadow.Table.Get("equipcell_drop").IsHard, "흐림 .3rem 이라 굽는다");
+            Assert.IsNotNull(sh.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
+            Assert.AreEqual(0.3, UiShadow.Table.Get("equipcell_drop").A, 1e-6, "표의 알파(.30)가 아니다");
+            Assert.Greater(((RectTransform)sh).rect.width, 1f, "0 크기로 구웠다(틀의 rect 가 아직 0 이라 크기를 줘야 한다)");
+            Transform pattern = full.Find("age-pattern");
+            if (pattern != null) Assert.AreEqual(1, pattern.GetSiblingIndex(), "무늬 층은 그대로 형제 1(그늘이 셀의 형제를 안 밀었다)");
+            if (empty != null)
+            {
+                RectTransform ef = (RectTransform)empty.Find("frame");
+                Assert.IsNull(UiShadow.Find(ef, "equipcell_drop"), "빈 칸(8548 `.empty` 는 inset 뿐)엔 그늘이 없다");
+            }
+        }
+
         [UnityTest]
         public IEnumerator 자동_제련_카드는_턱과_앰비언트_두_겹을_쥔다()
         {

@@ -53,6 +53,7 @@ SPOTS = [
     ('passcard_drop', '.modal-card.pass-card',         8602, 'blur'),
     ('leaguefoot_up', '.league-foot',                  2376, 'blur'),
     ('eqswfly_drop',  '.eqsw-fly-box',                 None, 'blur'),
+    ('equipcell_drop', '.equip-cell:not(.egg-cell)',   8539, 'blur'),   # 36회차 — 같은 선언의 첫 바깥 겹(0 0 .46rem -.1rem color-mix 62%)은 빛 갈래(T419) · T371 KNOWN 의 «T331 뒤» 는 그 겹을 뜻한다(7738 의 앞 선언은 8539 가 덮는다)
     # 26회차 — 자동 제련 팝업 한 파일에 몰린 둘(손잡이 `.af-toggle .knob` 은 공장이 `Popups.cs` 라 남의 lock 뒤다)
     ('afspinner_lip', '.af-spinner',                   5007, 'hard'),
     ('afsubrow_drop', '.af-sub-row',                   4999, 'blur'),
@@ -77,6 +78,7 @@ SPOTS = [
 # «호출이 있다» 가 된다(그러면 화면의 절반은 그늘이 없는데 자가 조용하다). 걸려야 하는 곳 수를 적어 둔다.
 NEED = {
     'infobtn_drop': 2,   # `ForgeUi.InfoButton`(대장간·장비 시트) + `DungeonPopups.InfoButton`(던전 팝업)
+    'equipcell_drop': 3,   # 36회차 — `ForgeSheet.EquipCell`(장비 시트) + `PlayerInfoPopup.EquipCell`(플레이어 정보 격자) + `ForgeUi.ItemTile`(목록 타일 `.fl-face.equip-cell` · ui.js 2090 «타일은 .equip-cell CSS 를 그대로 입는다»)
 }
 
 KNOWN = {
@@ -84,6 +86,7 @@ KNOWN = {
     # 그 lock 이 풀리는 회차가 `UiShadow.Drop(<상자>, "<키>", <반지름>)` 한 줄을 걸고 여기서 그 줄을 지운다.
     'fiagebar_lip':    'T331 29회차 — 값 잼 · 배선은 ForgeUi.cs(대장간 나이 막대)가 열리는 회차',
     'afknob_drop':     'T331 29회차 — 값 잼 · 배선은 Popups.cs(공용 토글 공장)가 열리는 회차',
+    'equipcell_drop':  'T331 36회차 — **2/3 섰다**(ForgeSheet.EquipCell · PlayerInfoPopup.EquipCell · 틀 안 맨 뒤에 깐다) · 나머지 목록 타일 `.fl-face.equip-cell`(ForgeInfoPopup.cs 285 → ForgeUi.ItemTile)은 다음 회차(NEED 3)',
     'infobtn_drop':    'T331 30회차 — **절반 섰다**(DungeonPopups.InfoButton) · 나머지는 ForgeUi.InfoButton 이 열리는 회차(대장간·장비 시트 · NEED 2)',
 }
 
