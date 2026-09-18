@@ -754,18 +754,21 @@ namespace Forge.Tests.PlayMode
             SkillSummonResultView v = OpenHoldback();
             RectTransform w = v.Wrap;   // 정본 `.sr-wrap` = 클론 `handle.Content`(이름이 다르다 — 런 1137 에서 이름으로 찾다 빨갰다)
             Assert.IsNotNull(w, "판(정본 .sr-wrap · 클론 handle.Content)");
-            yield return null;
+            // §0-6 보탬(런 1149·1183) — 창은 **뷰의 시계**(`ElapsedMs` · 열린 순간 = `enterAt`)로 잰다. 종전엔 «열고 한 프레임 뒤» 의 t0 로 쟀는데
+            //   느린 러너에선 그 한 프레임이 수백 ms 라 자의 창(215~455ms)이 실제 셰이크(열림 뒤 210~460ms)보다 늦게 앉아 «창 안 프레임 6 · 움직인 0» 로 빨갰다.
             Vector2 home = w.anchoredPosition;
+            if (v.ElapsedMs >= SummonFxStyle.Enter.DelayMs)
+                Assert.Ignore("환경 — 열고 첫 프레임까지 " + v.ElapsedMs.ToString("0") + "ms 라 셰이크 창(" + SummonFxStyle.Enter.DelayMs.ToString("0") + "ms 뒤)이 벌써 열렸다 — 제자리를 못 잡아 잴 기회가 없었다");
             float t0 = Time.unscaledTime;
             int inWin = 0, moved = 0;
             float worst = 0f, last = Time.unscaledTime;
             bool sawHome = false;
-            while (Time.unscaledTime - t0 < 0.62f)
+            while (v.ElapsedMs < 620f && Time.unscaledTime - t0 < 2f)
             {
                 yield return null;
                 float now = Time.unscaledTime;
                 worst = Mathf.Max(worst, now - last); last = now;
-                float ms = (now - t0) * 1000f;
+                float ms = v.ElapsedMs;
                 if (ms >= 215f && ms <= 455f)
                 {
                     inWin++;
