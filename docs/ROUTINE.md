@@ -4247,6 +4247,9 @@
 - 판정(다음 런): ⓐ 카드 종이 **위끝** 원작 59.84%H **±0.5**(지금 58.33) ⓑ 카드 종이 **높이** 17.65%H **±0.5**(지금 18.96) ⓒ 카드 종이 **아래끝**이 앱 바닥에서 **22.4%H ±0.3**(지금 22.60 — **안 움직여야 한다**) ⓓ `--score` «팝업 카드 위끝» 에서 `gear-detail` 이 **±1.5%p 안**(지금 −1.51) ⓔ «팝업 카드 가로» 벗어난 화면 **0 그대로**.
 - 범위: `Assets/Scripts/Game/Ui/GearDetailPopup.cs` · `Ui/ForgeUi.cs`(ItemCard 높이 · 잡는 회차에 산 lock 을 보고) · `Assets/Tests/PlayMode/` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
 
+- 🔄 **1회차 2026-09-18 07:3x 워커 S(sess-0029-41207) — 판정은 다음 런**: 81~82 의 `+ rem*0.6f`·`− rem*1.2f` 를 걷고 층의 **위** 패딩에만 표 `cmp_wrap_mt_rem`(.5 · `CraftUi.json` 새 키 · 정본 1783)을 더했다. ⚠ 등재의 «`ItemCard` 안쪽 −0.96%H» 는 그 카드가 아니라 **`.cmp-wrap { margin-top: .5rem }`(0.95%H)이 클론에 없던 것**(결정 791) — `ItemCard` 는 안 건드렸다. 셈 −1.33%H(등재 초과 +1.31). 자 `GearDetailPadTests` 1 · 허용 목록 한 줄 삭제 · 게이트 rc 0.
+- ✅ **판정 = 닫음(2026-09-18 08:2x · 워커 S · sess-0029-41207 · lock 반납 · 행 ✅)**: 런 **1169**(`5eadd2eb` · 내 커밋 그 자체) 전체 초록(`GearDetailPadTests` 포함). `screen_gear-detail.png`(1169 그림 · 1171 은 PlayMode 실종이라 이어받음) 같은 자로 전·후: 위끝 58.44 → **59.79%H**(원작 59.84) · 높이 18.85 → **17.50**(17.65) · 아래끝 22.71 → **22.71**(안 움직임) · `ui_score` 카드 위끝 벗어남 2 → **1**(gear-detail 빠짐 · forge-list 낡은 샷만) · 가로 0. 남은 몫: `ForgeCraftPopup` 의 `rem * 0.5f` 리터럴 → `cmp_wrap_mt_rem`(그 파일 임자 회차).
+
 ### T473 — **T465 의 «좌우 남은 몫»**: 카드 rect 는 세로로만 패딩 상자가 됐고 **가로는 아직 테 바깥에서 잰다** — 카드 안쪽이 사방 `line3` 만큼 넓어 내용이 좌우 테에 붙는다 (UI · T465 ✅ 가 제 주석에 «남은 몫» 으로 적어 둔 자리 · 승천 닫기 버튼에서 **0.01%W 까지 맞는 실측** · T28 132회차 등재 · 런 1176)
 
 - **정본이 못 박은 것**: `css/style.css` **1752~1756** `.modal-card { padding: 1.1rem; … }` + 카드에 두르는 `border: var(--ol3) solid` — CSS 의 `padding` 은 **테 안쪽**부터라 카드 안쪽 폭은 «카드 몸 − 테 두 겹 − 패딩 두 겹» 이다.
@@ -4263,8 +4266,6 @@
 - ⚠ **한 자리가 카드를 쓰는 모든 화면을 움직인다**(결정 712 · T465 가 세로에서 겪은 그대로) — 판정은 여러 화면으로.
 - 판정(다음 런): ⓐ 승천 **닫기 버튼 왼쪽 여백**이 **3.71%W ±0.2**(지금 3.15) ⓑ 그 **폭**이 **66.3%W ±0.3**(지금 67.41) ⓒ `--score` 의 «팝업 카드 **가로** 상자» 벗어난 화면 **0 그대로**(카드 바깥 폭은 안 움직여야 한다) ⓓ «팝업 카드 **위끝**» 벗어난 화면이 **안 는다**(지금 1개 — 낡은 샷 `forge-list` 하나) ⓔ 어느 카드도 내용이 좌우로 **안 넘친다**.
 - 범위: `Assets/Scripts/Game/Ui/Popups.cs` · `Ui/DungeonPopups.cs` · `inner = w − 2·Line3` 를 쓰는 호출부(잡는 회차에 **산 lock 을 보고 열 파일만 적는다**) · `Assets/Tests/PlayMode/CardBorderBoxTests.cs`(T465 가 만든 자에 가로 칸을 더한다) · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
-- 🔄 **1회차 2026-09-18 07:3x 워커 S(sess-0029-41207) — 판정은 다음 런**: 81~82 의 `+ rem*0.6f`·`− rem*1.2f` 를 걷고 층의 **위** 패딩에만 표 `cmp_wrap_mt_rem`(.5 · `CraftUi.json` 새 키 · 정본 1783)을 더했다. ⚠ 등재의 «`ItemCard` 안쪽 −0.96%H» 는 그 카드가 아니라 **`.cmp-wrap { margin-top: .5rem }`(0.95%H)이 클론에 없던 것**(결정 791) — `ItemCard` 는 안 건드렸다. 셈 −1.33%H(등재 초과 +1.31). 자 `GearDetailPadTests` 1 · 허용 목록 한 줄 삭제 · 게이트 rc 0.
-- ✅ **판정 = 닫음(2026-09-18 08:2x · 워커 S · sess-0029-41207 · lock 반납 · 행 ✅)**: 런 **1169**(`5eadd2eb` · 내 커밋 그 자체) 전체 초록(`GearDetailPadTests` 포함). `screen_gear-detail.png`(1169 그림 · 1171 은 PlayMode 실종이라 이어받음) 같은 자로 전·후: 위끝 58.44 → **59.79%H**(원작 59.84) · 높이 18.85 → **17.50**(17.65) · 아래끝 22.71 → **22.71**(안 움직임) · `ui_score` 카드 위끝 벗어남 2 → **1**(gear-detail 빠짐 · forge-list 낡은 샷만) · 가로 0. 남은 몫: `ForgeCraftPopup` 의 `rem * 0.5f` 리터럴 → `cmp_wrap_mt_rem`(그 파일 임자 회차).
 
 ### T466 ✅ — **정본이 `word-break: keep-all` 을 준 한글 세 자리(`.swc-name`·`.sheet-sub`·`.sr-name`)를 클론 TMP 가 음절마다 꺾는다** (Game·UI · T351(줄 클램프)·T361(white-space)·T354(줄높이) 갈래 · **T33 47회차 등재**)
 - **정본이 못 박은 것**: `css/style.css` **2236** `.swc-name { … line-height: 1.15; word-break: keep-all }`(판매 경고의 긴 장비 이름) · **3856** `.sheet-sub { … word-break: keep-all }`(3862 `max-width: 74%` 라 두 줄이 된다) · **7040** `.sr-name { white-space: normal; word-break: keep-all }`(소환 결과 이름판 · T361 5286 이 «두 줄 허용 + keep-all» 로 적어 둔 자리). `keep-all` = 한글을 **어절(띄어쓰기)에서만** 꺾는다. 그 밖의 한글 자리는 `normal` 이라 브라우저가 음절마다 꺾는다.
