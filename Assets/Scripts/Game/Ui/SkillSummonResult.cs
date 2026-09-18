@@ -1204,7 +1204,10 @@ namespace Forge.Game.Ui
             UiKit.Fill(okt.rectTransform);
             ok = okr.gameObject;
             okRect = okr; okHome = okr.anchoredPosition;
-            okGroup = okr.GetComponent<CanvasGroup>() ?? okr.gameObject.AddComponent<CanvasGroup>();
+            // ⚠ `??` 금지 — 에디터의 GetComponent 는 빠진 컴포넌트에 «가짜 null»(네이티브 0 의 관리 객체)을 돌려줘 `??` 가 그것을
+            //   산 것으로 보고 AddComponent 를 건너뛴다(런 1143 실측 — 유니티가 겹쳐 쓴 `==` 로만 가른다).
+            okGroup = okr.GetComponent<CanvasGroup>();
+            if (okGroup == null) okGroup = okr.gameObject.AddComponent<CanvasGroup>();
             ok.SetActive(false);
             // x1 요약(원작 summonSoloInfo · done 에서만)
             if (entries.Count == 1)
