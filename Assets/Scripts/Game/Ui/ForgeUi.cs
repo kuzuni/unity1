@@ -251,10 +251,21 @@ namespace Forge.Game.Ui
         public static RectTransform ItemCard(Transform parent, string name, float w, ForgeItem item, string tag, string arrowDir, bool isNew, GameDefs d, Func<ForgeItem, Big> value)
         {
             float rem = PopupKit.Rem;
-            float lineH = PopupKit.FontSize(TextKind.Sub) * 1.35f;   // T474 — 줄 피치는 그대로(카드 높이가 이미 원작과 맞다 · 결정 795) · 스탯 줄의 **글자**만 정본 .74rem(아래)
             float tile = rem * 3.6f;
             int subs = item != null && item.Subs != null ? item.Subs.Count : 0;
-            float textH = lineH * (2 + subs);
+            // T476 — 정본 글 블록 `.cmp-info`(1888)는 세로 flex(gap .15rem)이고 **줄마다 제 높이**다(마크업 ui.js 3224·3236~3237 이 클래스를 직접 쓴다):
+            //   이름 `.cmp-name` 1.05rem(1889) · 주 스탯 `.cmp-stat` .95rem(1890) 은 line-height 를 안 줬으니 normal = 글꼴 자산 비율(`PopupKit.BtnH`·`ModalBtnH` 와 한 셈) ·
+            //   옵션 `.cmp-sub` .78rem × 1.5(1894 · 표 `cmp_sub_lh`). 종전 «줄마다 Sub × 1.35 한 값»(T434)은 T474 가 691 `.item-stat` 을 이 카드로 잘못 짚은 채 남긴 셈이었다(T476 등재문).
+            //   글자: 이름 38.2px 는 하한 위라 `Sub` 칸에 크기만(T468 `dgd_keys` 길) · 주 스탯 34.6px 는 하한 36 이 모양을 안 깨니 `Sub` 그대로(줄 상자만 .95 로 센다 · 결정 기록) ·
+            //   화살 .82 · 옵션 .78 은 하한 아래라 `Micro` + 표 `TextSizeUi`(§1 예외 열셋째 자리 · 바로잡음).
+            var face = UiFont.Primary.faceInfo;
+            float normal = face.lineHeight / face.pointSize;
+            float namePx = CraftStyle.Px("cmp_name_font_rem"), statPx = CraftStyle.Px("cmp_stat_font_rem"), subPx = TextSizeUi.Px("cmp_sub");
+            float gap = CraftStyle.Px("cmp_info_gap_rem");
+            float nameH = namePx * normal, statH = statPx * normal, subH = subPx * (float)LineHeight.Ratio(subPx, "cmp_sub_lh");
+            float textH = nameH + gap + statH + subs * (gap + subH);
+            float newtagH = PopupKit.FontSize(TextKind.Sub) * normal;   // «새로운!» 줄(정본 `.cmp-newtag` 1823 은 display:block 이라 아이콘 묶음 높이에 든다 · 글자 단은 T476 밖)
+            float tileBlock = tile + (isNew ? rem * 0.5f + newtagH : 0f);
             // T434 3회차 — 카드 **안쪽** 패딩은 정본이 세 갈래로 적어 뒀고 **위는 셋 다 같다**:
             //   바탕 `.cmp-card { padding: .9rem .7rem .7rem }`(1825) · 장착 `.cur { padding: .9rem .4rem .4rem }`(1812) · 새 장비 `.new { padding-bottom: 1.5rem }`(1815 · 위·좌우는 바탕 그대로).
             //   클론은 글 블록을 `rem*0.6f` 에서 시작하고 높이를 `textH + rem*1.4f`(+ isNew 면 1.2)로 잡아 **위가 0.3rem 짧고 아래가 0.4~0.5rem 많았다**.
@@ -263,7 +274,7 @@ namespace Forge.Game.Ui
             //   고칠 자리는 여기(카드 **안쪽**)고, 하는 일은 더하기가 아니라 **재분배**다: 위 +0.3rem · 아래 −0.4rem(cur) / −0.5rem(new).
             float pt = CraftStyle.Px("cmp_card_pt_rem");
             float pb = CraftStyle.Px(isNew ? "cmp_card_pb_new_rem" : "cmp_card_pb_cur_rem");
-            float h = Mathf.Max(tile + pt + pb, textH + pt + pb);
+            float h = Mathf.Max(tileBlock + pt + pb, textH + pt + pb);
             RectTransform card = PopupKit.Item(parent, name, w, h);
             if (item == null)
             {
@@ -295,35 +306,37 @@ namespace Forge.Game.Ui
             {
                 TextMeshProUGUI nt = UiKit.Text(card, "newtag", TextKind.Sub, tag, "pp_red");
                 nt.fontStyle = FontStyles.Bold;
-                UiKit.Place(nt.rectTransform, rem * 0.7f, pt + tile + rem * 0.5f, tile, lineH);
+                UiKit.Place(nt.rectTransform, rem * 0.7f, pt + tile + rem * 0.5f, tile, newtagH);
             }
             float tx = rem * 0.7f + tile + rem * 0.7f;
             float tw = w - tx - rem * 0.5f;
-            TextMeshProUGUI nm = UiKit.Text(card, "name", TextKind.Body, "[" + AgeKr(d, item.Age) + "] " + item.Name, "pp_ink", TextAlignmentOptions.Left);
+            TextMeshProUGUI nm = UiKit.Text(card, "name", TextKind.Sub, "[" + AgeKr(d, item.Age) + "] " + item.Name, "pp_ink", TextAlignmentOptions.Left);
+            nm.fontSize = namePx;   // T476 — 정본 1889 `.cmp-name` 1.05rem(하한 위 · `Sub` 칸에 크기만 · 종전 `Body` 40 은 +4.7%)
             nm.fontStyle = FontStyles.Bold;
             nm.color = InkOf(ac);
-            UiKit.Place(nm.rectTransform, tx, pt, tw, lineH);
+            UiKit.Place(nm.rectTransform, tx, pt, tw, nameH);
             string arrow = arrowDir == "up" ? " ▲" : arrowDir == "down" ? " ▼" : string.Empty;
-            // T474 — 정본 691 `.item-stat { font-size: .74rem }`(26.9px · §1 하한 36 아래 → 예외 칸 `Micro` + 표 TextSizeUi `item_stat` · §1 예외 열셋째 자리).
-            //   하한 `Sub`(+34%)로 찍으면 T473 이 정본대로 좁힌 안쪽 폭에서 긴 옵션 이름이 두 줄로 접혀 아래 판을 침범한다(런 1181 · 원작은 한 줄).
-            TextMeshProUGUI st = UiKit.Text(card, "stat", TextKind.Micro, NumFmt.Fmt(value(item)) + " " + StatLabel(item.Main), "pp_ink", TextAlignmentOptions.Left);
-            TextSizeUi.Apply(st, "item_stat");
+            float statY = pt + nameH + gap;
+            // T476 — 정본 1890 `.cmp-stat` .95rem(34.6px)은 하한 36 아래지만 1.04배라 모양을 안 깬다 → `Sub` 하한 그대로(§1 은 «모양을 깨는 자리에만 Micro») · 줄 상자는 .95 × normal.
+            //   T474 가 여기에 691 `.item-stat` .74 를 걸어 주 스탯이 옵션 줄과 같은 키(−22%)로 찍혔다 — 원작 shot-043224 는 주 스탯이 옵션 줄보다 뚜렷이 크다.
+            TextMeshProUGUI st = UiKit.Text(card, "stat", TextKind.Sub, NumFmt.Fmt(value(item)) + " " + StatLabel(item.Main), "pp_ink", TextAlignmentOptions.Left);
             st.fontStyle = FontStyles.Bold;
-            UiKit.Place(st.rectTransform, tx, pt + lineH, tw, lineH);
+            UiKit.Place(st.rectTransform, tx, statY, tw, statH);
             if (arrow.Length > 0)
             {
                 TextMeshProUGUI ar = UiKit.Text(card, "arrow", TextKind.Micro, arrow.Trim(), arrowDir == "up" ? "pp_green" : "pp_red", TextAlignmentOptions.Left);
-                TextSizeUi.Apply(ar, "item_stat");   // T474 — 화살은 정본 `.item-stat` 글 안의 토막(ui.js itemCardHTML)이라 같은 크기
+                TextSizeUi.Apply(ar, "cmp_arrow");   // T476 — 정본 1891 `.cmp-stat .arrow` .82rem(하한 아래 → Micro + 표) · 여백 margin-left .25rem 도 표
                 ar.fontStyle = FontStyles.Bold;
                 float sw = st.preferredWidth;
-                UiKit.Place(ar.rectTransform, tx + sw + rem * 0.2f, pt + lineH, rem * 2f, lineH);
+                UiKit.Place(ar.rectTransform, tx + sw + CraftStyle.Px("cmp_arrow_ml_rem"), statY, rem * 2f, statH);
             }
+            float subY = statY + statH + gap;
             for (int i = 0; i < subs; i++)
             {
                 TextMeshProUGUI s = UiKit.Text(card, "sub-" + i, TextKind.Micro, SubText(item.Subs[i]), "pp_ink", TextAlignmentOptions.Left);
-                TextSizeUi.Apply(s, "item_stat");   // T474 — 옵션 줄도 정본 691 .74rem
-                LineHeight.Apply(s, "cmp_sub_lh");   // T354 26회차 — 정본 1894 `.cmp-sub { line-height: 1.5 }` 를 표에서(한 줄 글이라 화면은 그대로 · 줄 피치 `lineH` 는 T434 몫 그대로)
-                UiKit.Place(s.rectTransform, tx, pt + lineH * (2 + i), tw, lineH);
+                TextSizeUi.Apply(s, "cmp_sub");   // T476 — 정본 1894 `.cmp-sub` .78rem(하한 아래 → Micro + 표 · T474 의 .74 는 691 `.item-stat` 오등재)
+                LineHeight.Apply(s, "cmp_sub_lh");   // T354 26회차 — 정본 1894 `.cmp-sub { line-height: 1.5 }` 를 표에서 · T476 — 줄 상자 `subH` 도 같은 배수로 센다(피치 = subH + gap = 1.32rem)
+                UiKit.Place(s.rectTransform, tx, subY + (subH + gap) * i, tw, subH);
             }
             return card;
         }

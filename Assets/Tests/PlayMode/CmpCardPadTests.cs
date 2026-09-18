@@ -68,13 +68,28 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(pb, lastBot - cardBot, 0.6f, what + ": 아래 패딩 = 정본 값 — 종전 클론은 0.8rem(cur)·2.0rem(new) 이었다");
         }
 
-        /// <summary>T474 — 정본 691 `.item-stat { font-size: .74rem }`: 주 스탯 줄·옵션 줄(·화살)은 종류 `Micro` + 표 `item_stat` 26.9px 이고(종전 `Sub` 36 · +34%),
-        /// 옵션 줄은 T473 이 정본대로 좁힌 폭에서도 **한 줄**이다. 줄 피치 `lineH`(Sub × 1.35)는 그대로(카드 높이가 이미 원작과 맞다 · 결정 795).</summary>
+        /// <summary>T476 — 이 카드의 세 글줄은 691 `.item-stat`(T474 오등재)이 아니라 마크업(ui.js 3224·3236~3237)이 직접 쓰는 `.cmp-name` 1.05(1889) · `.cmp-stat` .95(1890) ·
+        /// `.cmp-stat .arrow` .82(1891) · `.cmp-sub` .78rem + line-height 1.5(1894)이고, 글 블록 `.cmp-info` 는 gap .15rem(1888)의 세로 flex 다.
+        /// 글자: 이름 = 표값(하한 위 · `Sub` 칸에 크기만) · 주 스탯 = `Sub` 하한(정본 34.6 ↔ 36 · 모양을 안 깨니 예외 칸이 아니다) · 화살·옵션 = `Micro` + 표.
+        /// 피치: 이름→스탯 = 1.05 × normal + gap · 스탯→옵션 = .95 × normal + gap · 옵션 사이 = .78 × 1.5 + gap(= 1.32rem · 정본 web 실측 1.321).
+        /// 옵션 줄은 T473 이 정본대로 좁힌 폭에서도 **한 줄**(T474 가 연 자리를 안 되돌린다) · 카드 높이 = 위 패딩 + 글 블록 + 아래 패딩(글 블록이 타일보다 클 때).</summary>
         [UnityTest]
-        public IEnumerator 장비_카드_스탯_줄은_정본_74rem_이고_옵션_줄은_한_줄이며_줄_피치는_그대로다()
+        public IEnumerator 장비_카드_세_글줄은_정본_cmp_클래스_크기고_글_블록은_gap_15_의_세로_flex_다()
         {
-            Assert.AreEqual(0.74f, TextSizeUi.Rem("item_stat"), 1e-6f, "정본 691 .item-stat .74rem");
-            Assert.Less(TextSizeUi.Px("item_stat"), UiCatalog.Instance.Kind(TextKind.Sub).min, "표값이 하한 Sub 아래라 예외 칸이 필요한 자리다");
+            float rem = PopupKit.Rem;
+            Assert.AreEqual(0.78f, TextSizeUi.Rem("cmp_sub"), 1e-6f, "정본 1894 .cmp-sub .78rem");
+            Assert.AreEqual(0.82f, TextSizeUi.Rem("cmp_arrow"), 1e-6f, "정본 1891 .cmp-stat .arrow .82rem");
+            Assert.AreEqual(1.05f, CraftStyle.L("cmp_name_font_rem"), 1e-6f, "정본 1889 .cmp-name 1.05rem");
+            Assert.AreEqual(0.95f, CraftStyle.L("cmp_stat_font_rem"), 1e-6f, "정본 1890 .cmp-stat .95rem");
+            Assert.AreEqual(0.15f, CraftStyle.L("cmp_info_gap_rem"), 1e-6f, "정본 1888 .cmp-info gap .15rem");
+            Assert.AreEqual(0.25f, CraftStyle.L("cmp_arrow_ml_rem"), 1e-6f, "정본 1891 .arrow margin-left .25rem");
+            Assert.IsFalse(TextSizeUi.Has("item_stat"), "T474 의 `item_stat`(691 · 이 카드의 클래스가 아니다)은 표에서 빠진다");
+            float subMin = UiCatalog.Instance.Kind(TextKind.Sub).min;
+            Assert.Less(TextSizeUi.Px("cmp_sub"), subMin, "옵션 줄 표값은 하한 Sub 아래라 예외 칸이 필요한 자리다");
+            Assert.Less(TextSizeUi.Px("cmp_arrow"), subMin, "화살 표값도 하한 아래");
+            Assert.GreaterOrEqual(CraftStyle.Px("cmp_name_font_rem"), subMin, "이름 표값은 하한 위 — 예외 칸이 아니라 Sub 칸에 크기만");
+            Assert.Less(CraftStyle.Px("cmp_stat_font_rem"), subMin, "주 스탯 표값은 하한 바로 아래(34.6) — 글자는 하한이 이기고 줄 상자만 표값으로 센다");
+
             yield return Boot();
             ForgeHost h = ForgeHost.Instance;
             h.S.Hammers = 10; h.Pull();
@@ -86,16 +101,34 @@ namespace Forge.Tests.PlayMode
             Transform root = h.Meta.Popups.Find(ForgeCraftPopup.Name).Root;
             RectTransform newCard = (RectTransform)FindIn(root, "new");
             Assert.IsNotNull(newCard, "새 장비 카드");
-            float px = TextSizeUi.Px("item_stat");
+
+            var face = UiFont.Primary.faceInfo;
+            float normal = face.lineHeight / face.pointSize;
+            float namePx = CraftStyle.Px("cmp_name_font_rem"), statPx = CraftStyle.Px("cmp_stat_font_rem"), subPx = TextSizeUi.Px("cmp_sub");
+            float gap = CraftStyle.Px("cmp_info_gap_rem");
+            float nameH = namePx * normal, statH = statPx * normal, subH = subPx * (float)LineHeight.Ratio(subPx, "cmp_sub_lh");
+            Assert.AreEqual(1.32f * rem, subH + gap, 0.5f, "옵션 줄 피치 = .78 × 1.5 + .15 = 1.32rem(정본 web 실측 1.321)");
+
+            TextMeshProUGUI nm = newCard.Find("name").GetComponent<TextMeshProUGUI>();
             TextMeshProUGUI st = newCard.Find("stat").GetComponent<TextMeshProUGUI>();
-            Assert.AreEqual(TextKind.Micro, st.GetComponent<UiTextKindTag>().Kind, "주 스탯 줄 = 예외 칸 Micro(§1 열셋째 자리)");
-            Assert.AreEqual(px, st.fontSize, 0.01f, "주 스탯 글자 = .74rem");
+            Assert.AreEqual(TextKind.Sub, nm.GetComponent<UiTextKindTag>().Kind, "이름 = Sub 칸(하한 위 · 크기만 표)");
+            Assert.AreEqual(namePx, nm.fontSize, 0.01f, "이름 글자 = 1.05rem");
+            Assert.AreEqual(TextKind.Sub, st.GetComponent<UiTextKindTag>().Kind, "주 스탯 = Sub 칸");
+            Assert.AreEqual(UiCatalog.Instance.Kind(TextKind.Sub).size, st.fontSize, 0.01f, "주 스탯 글자 = Sub 하한(정본 .95 = 34.6 ↔ 36 · 예외 칸이 아니다)");
+            Assert.AreEqual(nameH, nm.rectTransform.rect.height, 0.5f, "이름 줄 상자 = 1.05rem × normal");
+            Assert.AreEqual(statH, st.rectTransform.rect.height, 0.5f, "주 스탯 줄 상자 = .95rem × normal(글자 하한과 무관하게 정본 피치)");
+            Assert.AreEqual(nameH + gap, nm.rectTransform.anchoredPosition.y - st.rectTransform.anchoredPosition.y, 0.5f, "이름 → 스탯 피치 = 이름 줄 + gap");
             Transform arrow = newCard.Find("arrow");
-            if (arrow != null) Assert.AreEqual(px, arrow.GetComponent<TextMeshProUGUI>().fontSize, 0.01f, "화살도 같은 크기(.item-stat 글 안의 토막)");
-            RectTransform nm = (RectTransform)newCard.Find("name");
-            float lineH = PopupKit.FontSize(TextKind.Sub) * 1.35f;
-            Assert.AreEqual(lineH, nm.anchoredPosition.y - st.rectTransform.anchoredPosition.y, 0.5f, "이름 → 스탯 줄 피치는 그대로(Sub × 1.35 · 카드 높이 불변)");
+            if (arrow != null)
+            {
+                TextMeshProUGUI ar = arrow.GetComponent<TextMeshProUGUI>();
+                Assert.AreEqual(TextKind.Micro, ar.GetComponent<UiTextKindTag>().Kind, "화살 = Micro 칸");
+                Assert.AreEqual(TextSizeUi.Px("cmp_arrow"), ar.fontSize, 0.01f, "화살 글자 = .82rem");
+                Assert.Less(ar.fontSize, st.fontSize, "화살은 주 스탯보다 작다(정본 .82 < .95)");
+                Assert.AreEqual(st.rectTransform.anchoredPosition.x + st.preferredWidth + CraftStyle.Px("cmp_arrow_ml_rem"), ar.rectTransform.anchoredPosition.x, 0.5f, "화살 왼쪽 여백 = margin-left .25rem");
+            }
             int subs = 0;
+            TextMeshProUGUI prev = st;
             for (int i = 0; ; i++)
             {
                 Transform s = newCard.Find("sub-" + i);
@@ -103,12 +136,20 @@ namespace Forge.Tests.PlayMode
                 subs++;
                 TextMeshProUGUI tm = s.GetComponent<TextMeshProUGUI>();
                 Assert.AreEqual(TextKind.Micro, tm.GetComponent<UiTextKindTag>().Kind, "옵션 줄 " + i + " = Micro");
-                Assert.AreEqual(px, tm.fontSize, 0.01f, "옵션 줄 " + i + " 글자 = .74rem");
+                Assert.AreEqual(subPx, tm.fontSize, 0.01f, "옵션 줄 " + i + " 글자 = .78rem");
+                Assert.Less(tm.fontSize, st.fontSize, "옵션 줄은 주 스탯보다 작다(원작 shot-043224 · 등재 판정 ⓐ)");
                 tm.ForceMeshUpdate();
                 Assert.AreEqual(1, tm.textInfo.lineCount, "옵션 줄 " + i + " 은 한 줄이다(«" + tm.text + "» · 상자 폭 " + tm.rectTransform.rect.width.ToString("0") + " · 글 폭 " + tm.preferredWidth.ToString("0") + ")");
-                Assert.AreEqual(lineH, st.rectTransform.anchoredPosition.y - tm.rectTransform.anchoredPosition.y - lineH * i, 0.5f, "옵션 줄 " + i + " 피치도 그대로");
+                Assert.AreEqual(subH, tm.rectTransform.rect.height, 0.5f, "옵션 줄 " + i + " 상자 = .78 × 1.5");
+                float want = (i == 0 ? statH : subH) + gap;
+                Assert.AreEqual(want, prev.rectTransform.anchoredPosition.y - tm.rectTransform.anchoredPosition.y, 0.5f, "옵션 줄 " + i + " 피치 = 앞 줄 상자 + gap");
+                prev = tm;
             }
-            Debug.Log("[T474] 스탯 " + st.fontSize.ToString("0.0") + "px · 옵션 줄 " + subs + " · 피치 " + lineH.ToString("0.0"));
+            float textH = nameH + gap + statH + subs * (gap + subH);
+            float pt = CraftStyle.Px("cmp_card_pt_rem"), pb = CraftStyle.Px("cmp_card_pb_new_rem");
+            if (textH > rem * 3.6f + rem * 0.5f + PopupKit.FontSize(TextKind.Sub) * normal)
+                Assert.AreEqual(pt + textH + pb, newCard.rect.height, 1f, "카드 높이 = 위 패딩 + 글 블록(줄 상자 + gap) + 아래 패딩");
+            Debug.Log("[T476] 이름 " + nm.fontSize.ToString("0.0") + " · 스탯 " + st.fontSize.ToString("0.0") + " · 옵션 " + subPx.ToString("0.0") + "px · 옵션 줄 " + subs + " · 옵션 피치 " + ((subH + gap) / rem).ToString("0.00") + "rem · 카드 " + newCard.rect.height.ToString("0.0"));
             h.ResolveCraft("sell"); yield return null;
             if (h.Meta.Popups.IsOpen(ForgeCraftPopup.SellName)) { h.OnSellConfirm(); yield return null; }
         }

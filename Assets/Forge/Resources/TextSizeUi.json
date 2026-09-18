@@ -1,9 +1,13 @@
 {
   "_": "T383 — §1 글자 하한의 예외 칸(Micro · 결정 633)에 «정본 크기» 를 주는 표. 정본이 rem 으로 못 박은 font-size 를 자리 키 → rem 으로 적고, 도우미 Ui/TextSizeUi.Apply(t, key) 가 종류 Micro 인 글자에 px(rem × PopupKit.Rem)로 건다. 자(TextSizeGateTests)는 «종류의 하한(Micro 18)» 만 보므로 정본 크기 그대로 서고, 하한 36 이 정본이 못박은 모양(<br> 줄 수)을 깨는 자리에만 쓴다 — 새로 쓰려면 정본 CSS 줄을 근거로 대고 §1 예외 목록에 한 줄 적는다. catalog.json 은 T364·T378·T387 lock 이라 곁 표(T65 꼴).",
   "size": {
-    "item_stat": {
-      "rem": 0.74,
-      "_": "T474 — style.css **691** `.item-stat { font-size: **.74rem**; color: #ffd54f }` = 26.9px — 제작 비교·장비 상세 카드(`ForgeUi.ItemCard`)의 주 스탯 줄·옵션 줄(`.modal-card .item-stat` 3521 은 색만 덮는다). 종전엔 하한 `Sub`(36 = .989rem · **+34%**)라 T473 이 카드 안쪽 폭을 정본대로 2×line3 좁히자 긴 옵션 이름이 두 줄로 접혀 아래 회색 판을 침범했다(런 1181 · 원작 shot-043224 는 한 줄). `Micro` 칸 + 이 값(T383·T450·T461·T464·T468 길) — 줄 피치 `lineH`(Sub × 1.35)는 그대로 둔다(카드 높이가 이미 원작과 맞다 · 결정 795). §1 예외 열셋째 자리."
+    "cmp_sub": {
+      "rem": 0.78,
+      "_": "T476 — style.css **1894** `.cmp-sub { font-size: **.78rem**; font-weight: 700; line-height: 1.5 }` = 28.4px — 제작 비교·장비 상세 카드(`ForgeUi.ItemCard` · 정본 ui.js 3224 가 이 클래스를 직접 쓴다)의 옵션 줄. 하한 `Sub`(36 · +27%)로 찍으면 T473 이 정본대로 좁힌 안쪽 폭에서 긴 옵션 이름이 두 줄로 접혀 아래 판을 침범한다(런 1181 · T474 가 연 자리). T474 는 이 자리를 691 `.item-stat`(.74)로 잘못 짚었다(T476 등재문) — 그 키 `item_stat` 을 이 키가 대신한다. 줄 피치 = .78 × `cmp_sub_lh` 1.5 + `.cmp-info` gap .15(CraftUi) = 1.32rem. §1 예외 열셋째 자리(바로잡음)."
+    },
+    "cmp_arrow": {
+      "rem": 0.82,
+      "_": "T476 — style.css **1891** `.cmp-stat .arrow { font-size: **.82rem**; font-weight: 900; margin-left: .25rem }` = 29.8px — 주 스탯 줄 끝의 비교 화살 ▲▼(ui.js 3226 `<span class=\"arrow up|down\">`). 주 스탯(.95 → 하한 Sub 36)보다 작은 글자라 하한을 주면 화살이 스탯과 같은 키가 되어 정본 비 .86 이 1 로 뭉개진다 — `Micro` 칸 + 이 값(열셋째 자리와 한 벌). 여백은 CraftUi `cmp_arrow_ml_rem`."
     },
     "dgd_pill": {
       "rem": 0.88,
