@@ -124,5 +124,72 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(1f, ((RectTransform)b5.transform.Find("knob")).anchorMin.x, 1e-4f);
             Object.Destroy(row.gameObject);
         }
+
+        static IEnumerator BootSummon()
+        {
+            PetSkillHost.SuppressSave = true;
+            PetSkillHost.Seed = 20260918;
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+            Scene active = SceneManager.GetActiveScene();
+            for (int i = 0; i < 600 && !(SkillPetSheet.Instance != null && SkillPetSheet.Instance.gameObject.scene == active && PetSkillHost.Ready); i++) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            yield return null;
+        }
+
+        static SkillSummonResultView OpenBest(string best)
+        {
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = best, Name = "나" },
+            };
+            return SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, best, null);
+        }
+
+        [UnityTest]
+        public IEnumerator 소환_결과_배경은_예고값으로_열리고_done_뒤_승격값으로_간다()
+        {
+            yield return BootSummon();
+            TransitionSpec s = TransitionUi.Table.Get("sr_bg_done");
+            Assert.AreEqual(500, s.Ms, "정본 7150 .5s");
+            // 일반 판 — pk 0 이라 예고값 = 기본색 그대로(ui.js 536 «저등급 기준선 불변»)
+            SkillSummonResultView v0 = OpenBest("common");
+            Assert.IsNotNull(v0);
+            Assert.AreEqual(0, v0.Pk, 1e-9, "common = pk 0");
+            Color baseA = PetSkillStyle.C("sr_bg_a");
+            Assert.AreEqual(baseA.r, v0.BgAPre.r, 1e-3f); Assert.AreEqual(baseA.g, v0.BgAPre.g, 1e-3f); Assert.AreEqual(baseA.b, v0.BgAPre.b, 1e-3f);
+            Assert.AreEqual(v0.BgAPre, v0.BgAColor, "첫 프레임 = 예고값");
+            v0.Close();
+            yield return null;
+            // 최고 등급 판 — 예고값은 승격값보다 기본색에 가깝고(45% · pk) · done 뒤 승격
+            SkillSummonResultView v = OpenBest("ultimate");
+            Assert.IsNotNull(v);
+            Assert.Greater(v.Pk, 0.5, "ultimate 는 위쪽 등급");
+            float mix = PetSkillStyle.L("sr_bg_a_mix_f"), pre = PetSkillStyle.L("sr_bg_pre_f");
+            Color best = PetSkillStyle.Rarity(PetSkillHost.Instance.Data.Defs, "ultimate");
+            Color expPre = Color.Lerp(baseA, best, (float)(mix * pre * v.Pk)), expDone = Color.Lerp(baseA, best, mix);
+            Assert.AreEqual(expPre.r, v.BgAPre.r, 1e-3f, "예고값 = .24 × PRE_BG × pk"); Assert.AreEqual(expPre.g, v.BgAPre.g, 1e-3f); Assert.AreEqual(expPre.b, v.BgAPre.b, 1e-3f);
+            Assert.AreEqual(expDone.r, v.BgADone.r, 1e-3f, "승격값 = .24"); Assert.AreEqual(expDone.g, v.BgADone.g, 1e-3f); Assert.AreEqual(expDone.b, v.BgADone.b, 1e-3f);
+            Assert.AreEqual(v.BgAPre, v.BgAColor, "첫 프레임 = 예고값(전엔 처음부터 승격값)");
+            Assert.IsFalse(v.BgPromoting, "done 전엔 승격 전이가 없다");
+            v.OnTap();   // 연출 스킵 → Finish(정본 .done)
+            Assert.IsTrue(v.BgPromoting, "done 순간 승격 전이가 선다");
+            Assert.AreEqual(v.BgAPre, v.BgAColor, "done 첫 프레임은 아직 예고값(전이 0ms)");
+            v.SettleBg();
+            Assert.IsFalse(v.BgPromoting);
+            Assert.AreEqual(v.BgADone, v.BgAColor, "SettleBg 뒤 승격값");
+            v.Close();
+            yield return null;
+            // 시간으로도 끝난다(상한 8×ms)
+            SkillSummonResultView v2 = OpenBest("ultimate");
+            v2.OnTap();
+            float t2 = 0f;
+            while (v2.BgPromoting && t2 * 1000f < s.Ms * 8) { t2 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsFalse(v2.BgPromoting, "ms 가 지나면 끝(상한 8×ms 안에)");
+            Assert.AreEqual(v2.BgADone, v2.BgAColor);
+            v2.Close();
+        }
     }
 }

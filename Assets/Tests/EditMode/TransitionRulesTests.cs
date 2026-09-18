@@ -35,6 +35,26 @@ namespace Forge.Tests
         }
 
         [Test]
+        public void 소환_결과_배경은_열_때_예고값_done_뒤_5s_ease_out_으로_승격값이다()
+        {
+            // T454 ⓒ — ui.js 507 `--bg-a` .24 · 536~538 PRE_BG .45 · `--bg-pre-a` = .24 × PRE_BG × pk · style.css 7150 `.done { transition: background .5s ease-out }`
+            var tr = T().Get("sr_bg_done");
+            Assert.AreEqual(500, tr.Ms); Assert.AreEqual(0, tr.DyRem, 1e-9);
+            Assert.AreEqual(new CssEase(0, 0, 0.58, 1).Ease(0.5), tr.Ease.Ease(0.5), 1e-9, "ease-out");
+            string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+            var L = J.Obj(J.Require(MiniJson.ParseObject(File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "PetSkillUi.json"))), "layout"));
+            double mix = J.Num(J.Require(L, "sr_bg_a_mix_f")), pre = J.Num(J.Require(L, "sr_bg_pre_f"));
+            Assert.AreEqual(0.24, mix, 1e-9, "ui.js 507"); Assert.AreEqual(0.45, pre, 1e-9, "ui.js 536 PRE_BG");
+            Assert.AreEqual(0.18, J.Num(J.Require(L, "sr_halo_a")), 1e-9, "박혀 있던 광원 알파를 표로(값 그대로)");
+            // pk = 차례/(수−1) · 일반 0 · 최상 1 · 등급 하나뿐이면 0
+            Assert.AreEqual(0, SummonBgRules.Pk(0, 6), 1e-9); Assert.AreEqual(1, SummonBgRules.Pk(5, 6), 1e-9);
+            Assert.AreEqual(0.4, SummonBgRules.Pk(2, 6), 1e-9); Assert.AreEqual(0, SummonBgRules.Pk(0, 1), 1e-9);
+            Assert.AreEqual(0, SummonBgRules.PreMixF(mix, pre, 0), 1e-9, "일반 판은 기본색 그대로");
+            Assert.AreEqual(0.108, SummonBgRules.PreMixF(mix, pre, 1), 1e-9, "최상 = .24 × .45");
+            Assert.Less(SummonBgRules.PreMixF(mix, pre, 1), mix, "예고는 승격의 45%");
+        }
+
+        [Test]
         public void 진행도는_0에서_1로_단조롭고_길이를_지나면_끝이다()
         {
             var t = T();

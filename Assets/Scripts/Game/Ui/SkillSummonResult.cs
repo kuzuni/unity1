@@ -137,6 +137,18 @@ namespace Forge.Game.Ui
         float flashAt = -1f;
         /// <summary>T334 3회차 ⓑ — 충전 구간이 움직이는 것들: 소환진·중앙 광원·비네트(정본 `.sr-floor`·`.sr-halo`·`.sr-wrap::before`).</summary>
         Image floorImg, haloImg, vigImg;
+        /// <summary>T454 ⓒ — 배경 `bg-a`(정본 `--bg-pre-a` → `.done` 의 `--bg-a`): 예고값에서 승격값으로 .5s ease-out(표 TransitionUi `sr_bg_done`).</summary>
+        Image bgAImg;
+        Color bgAPre, bgADone;
+        double bgPromoteMs = -1;
+        /// <summary>등급 위치 0~1(정본 pk · 자가 본다).</summary>
+        public double Pk { get; private set; }
+        /// <summary>배경 `bg-a` 의 예고값·승격값·지금 색(자가 본다).</summary>
+        public Color BgAPre { get { return bgAPre; } }
+        public Color BgADone { get { return bgADone; } }
+        public Color BgAColor { get { return bgAImg != null ? bgAImg.color : Color.clear; } }
+        /// <summary>done 뒤 승격 전이가 도는 중인가.</summary>
+        public bool BgPromoting { get { return bgPromoteMs >= 0; } }
         /// <summary>
         /// T385 2회차 ⑶ — 구체 스페큘러를 **아이콘 위에** 한 겹 더(정본 `.sr-ico::after` 6539~6547 · 표 <c>OrbIconUi.json</c>).
         ///
@@ -382,11 +394,19 @@ namespace Forge.Game.Ui
             Image glowB = PetSkillKit.Disc(c, "bg-b", PetSkillStyle.C("sr_bg_c"));
             glowB.preserveAspect = false;
             UiKit.Anchor(glowB.rectTransform, new Vector2(0.5f, 0.56f), new Vector2(0.5f, 0.5f), Vector2.zero, W * 2.4f, Hh * 1.5f);
-            Image glowA = PetSkillKit.Disc(c, "bg-a", Color.Lerp(PetSkillStyle.C("sr_bg_a"), PetSkillStyle.Rarity(Defs, best), 0.24f));
+            // T454 ⓒ — 정본은 열 때 `--bg-pre-a` = 등급색을 `.24 × PRE_BG × pk` 만 섞은 **예고값**(ui.js 536~538 · 일반 판은 0 = 기본색)이고,
+            //   `.done` 에서 `--bg-a` = `.24`(507) 로 **승격**한다(7150 `.5s ease-out`). 전엔 처음부터 승격값이라 «색으로 미리 알려주기» 가 0 이었다. 값은 표 · 셈은 Core.
+            Pk = SummonBgRules.Pk(RarityIdx(best), Defs.Rarities.Length);
+            float mixF = PetSkillStyle.L("sr_bg_a_mix_f");
+            Color bgABase = PetSkillStyle.C("sr_bg_a"), bestCol = PetSkillStyle.Rarity(Defs, best);
+            bgAPre = Color.Lerp(bgABase, bestCol, (float)SummonBgRules.PreMixF(mixF, PetSkillStyle.L("sr_bg_pre_f"), Pk));
+            bgADone = Color.Lerp(bgABase, bestCol, mixF);
+            Image glowA = PetSkillKit.Disc(c, "bg-a", bgAPre);
+            bgAImg = glowA;
             glowA.preserveAspect = false;
             UiKit.Anchor(glowA.rectTransform, new Vector2(0.5f, 0.56f), new Vector2(0.5f, 0.5f), Vector2.zero, W * 1.5f, Hh * 0.9f);
             Image halo = PetSkillKit.Disc(c, "halo", PetSkillStyle.Rarity(Defs, best));
-            halo.color = new Color(halo.color.r, halo.color.g, halo.color.b, 0.18f);
+            halo.color = new Color(halo.color.r, halo.color.g, halo.color.b, PetSkillStyle.L("sr_halo_a"));   // T454 4회차 — 박힌 .18 을 표로(값 그대로 · 정본 맞춤은 이 축 밖)
             halo.preserveAspect = false;
             UiKit.Anchor(halo.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, PetSkillStyle.Rem(26f), PetSkillStyle.Rem(16f));
             haloImg = halo; haloBase = halo.color;
@@ -1268,6 +1288,12 @@ namespace Forge.Game.Ui
         // ===== 시계(원작 tickSummonResult · rAF) =====
         void Update()
         {
+            if (bgPromoteMs >= 0)
+            {
+                bgPromoteMs += Time.unscaledDeltaTime * 1000.0;
+                ApplyBgPromote();
+                if (TransitionRules.Done(TransitionUi.Table.Get("sr_bg_done"), bgPromoteMs)) SettleBg();
+            }
             if (!done && seq != null)
             {
                 float elapsed = (Time.unscaledTime - start) * 1000f;
@@ -2145,6 +2171,7 @@ namespace Forge.Game.Ui
         void Finish()
         {
             done = true;
+            if (bgAImg != null) { bgPromoteMs = 0; ApplyBgPromote(); }   // T454 ⓒ — 정본 `.done` 의 배경 승격(.5s ease-out)
             doneAt = Time.unscaledTime;
             if (fx != null) fx.SetDone();   // T179 — 정본 #summon-result-modal.done: 별 켜기 · 광선 done 마스크
             // 소환진이 등급색으로 물드는 것은 **이 순간뿐**이다(정본 ui.js 551~552 · style.css 7182~7185) — 알파도 .2 → .26.
@@ -2167,6 +2194,24 @@ namespace Forge.Game.Ui
             if (chips != null && rolls > 1) chips.SetActive(true);
             if (solo != null) solo.SetActive(true);
         }
+
+        void ApplyBgPromote()
+        {
+            if (bgAImg == null || bgPromoteMs < 0) return;
+            double p = TransitionRules.Progress(TransitionUi.Table.Get("sr_bg_done"), bgPromoteMs);
+            bgAImg.color = Color.Lerp(bgAPre, bgADone, (float)p);
+        }
+
+        /// <summary>T454 ⓒ — 배경 승격을 지금 끝낸다(정지 촬영·자). done 전이면 아무것도 안 한다.</summary>
+        public void SettleBg()
+        {
+            if (bgPromoteMs < 0) return;
+            bgPromoteMs = -1;
+            if (bgAImg != null) bgAImg.color = bgADone;
+        }
+
+        /// <summary>열려 있는 소환 결과의 배경 승격을 끝낸다 — 촬영 직전(`UiShotsTests`)에 부른다.</summary>
+        public static void SettleBgAll() { if (Current != null) Current.SettleBg(); }
 
         /// <summary>오버레이 탭(원작 onSummonResultTap): 연출 중이면 스킵(전부 즉시) · 끝났으면 닫기.</summary>
         public void OnTap()

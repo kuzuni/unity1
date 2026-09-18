@@ -3,6 +3,7 @@
   "transitions": {
     "toast_in":  { "ms": 250, "ease": "ease",     "dy_rem": -0.5, "_": "style.css 1936 .toast { opacity: 0; transform: translateY(-.5rem); transition: all .25s } · 1938 .toast.show { opacity: 1; transform: none } — 위 .5rem 에서 내려오며 켜진다 · 길이만 있고 timing 이 없어 CSS 기본 ease" },
     "toggle":    { "ms": 150, "ease": "ease",     "dy_rem": 0,    "_": "style.css 3113 .settings-toggle::after { transition: left .15s } — 설정 토글 손잡이(ProfilePopup 의 이름 `toggle`) · 기본 ease" },
+    "sr_bg_done": { "ms": 500, "ease": "ease-out", "dy_rem": 0,    "_": "style.css 7150 #summon-result-modal.done { transition: background .5s ease-out } — 소환 결과 배경이 예고값에서 승격값으로(7168 .sr-halo 도 같은 .5s · 5655 열 때의 .4s 는 display:none 에서 나오는 첫 그림이라 전이가 안 보인다)" },
     "af-toggle": { "ms": 150, "ease": "ease-out", "dy_rem": 0,    "_": "style.css 4992 .af-toggle .knob { transition: left .15s ease-out } — 자동 제련 필터 토글 손잡이(ForgeAutoPopup 의 이름 `af-toggle` · 4766 의 .15s 를 4992 가 ease-out 으로 덮는다)" }
   }
 }
