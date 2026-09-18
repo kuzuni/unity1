@@ -1,5 +1,6 @@
 using System.Collections;
 using NUnit.Framework;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
@@ -827,6 +828,60 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(again, FindDeep(againB, "t").GetComponent<TMPro.TextMeshProUGUI>().color, "[다시 소환] 글자 = sr_again_ink");
 
             for (int k = 0; k < 4 && SkillSummonResultView.Current != null; k++) { SkillSummonResultView.Current.OnTap(); yield return null; }
+        }
+    
+        /// <summary>T396 19회차 — 한 글 안 **부분 색** 둘을 조각으로 뗐다: ⓐ 대장간 정보 [건너뛰기] 아랫줄 «💎 N»(정본 2043 `<span class="fi-skip-gem">` · 5160 #e11d48)은
+        /// `IconTextStack.ReplaceLabel` 의 둘째 줄 잉크(표 `fi_skip_gem_ink`)이고 윗줄은 stage_ink 그대로 · ⓑ 기술 노드 주 수치 옆 괄호(ui.js 5604 `<small class="tn-gain">` · 3693 #1fa64a)는
+        /// 제 TMP("gain")로 카탈로그 `tb_val`(같은 값 · `_` 칸에 «.tb-val · .tn-gain»)이고 주 수치("main")는 pp_ink 그대로.</summary>
+        [UnityTest]
+        public IEnumerator 건너뛰기_아랫줄과_기술_노드_괄호_조각은_제_잉크로_갈린다()
+        {
+            yield return Boot();
+            ForgeHost fh = ForgeHost.Instance;
+            Assert.IsNotNull(fh.UpgradeInfo(), "새 세이브(Lv.1)는 다음 업그레이드가 있다");
+            fh.Forge.UpgradeEndsAt = SaveIo.NowMs() + 60 * 60e3;   // 진행 중 → [건너뛰기] 버튼(BrLinesTests 와 같은 길)
+            Assert.IsTrue(fh.Upgrading, "업그레이드 진행 중 상태");
+            ForgeInfoPopup.Open(fh);
+            yield return null;
+            Popup p = PopupLayer.Instance.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(p, "대장간 정보 팝업");
+            Transform skip = FindDeep(p.Root, "fi-skip");
+            Assert.IsNotNull(skip, "건너뛰기 버튼(fi-skip)");
+            Transform l1 = FindDeep(skip, "line-1"), l2 = FindDeep(skip, "line-2");
+            Assert.IsNotNull(l1, "윗줄(line-1)"); Assert.IsNotNull(l2, "아랫줄(line-2)");
+            Color gem = PinnedColorUi.C("fi_skip_gem_ink"), top = UiKit.C("stage_ink");
+            Assert.AreEqual(new Color(0xe1 / 255f, 0x1d / 255f, 0x48 / 255f, 1f), gem, "표 fi_skip_gem_ink = 정본 5160 #e11d48");
+            int n1 = 0, n2 = 0;
+            foreach (TextMeshProUGUI t in l1.GetComponentsInChildren<TextMeshProUGUI>(true)) { n1++; Assert.AreEqual(top, t.color, "윗줄 «건너뛰기» 는 공용 stage_ink 그대로"); }
+            foreach (TextMeshProUGUI t in l2.GetComponentsInChildren<TextMeshProUGUI>(true)) { n2++; Assert.AreEqual(gem, t.color, "아랫줄 «N» 은 못박은 #e11d48"); Assert.AreNotEqual(top, t.color, "아랫줄이 윗줄 잉크가 아니다"); }
+            Assert.Greater(n1, 0, "윗줄 글자"); Assert.Greater(n2, 0, "아랫줄 글자");
+            PopupLayer.Instance.Hide(ForgeInfoPopup.Name);
+            fh.Forge.UpgradeEndsAt = null;
+            yield return null;
+
+            TechPanel tp = TechPanel.OpenTechTree();
+            yield return null;
+            Assert.IsNotNull(tp, "기술 트리");
+            tp.ShowBranch("power");
+            yield return null;
+            string id = tp.NodeIds[0];
+            TechPopups.OpenNode(id);
+            yield return null;
+            Assert.IsTrue(TechPopups.IsNodeOpen, "노드 팝업");
+            Assert.IsNotNull(TechPopups.ActionButton, "노드 팝업의 버튼");
+            Transform card = DungeonPopups.Root(TechPopups.ActionButton).parent;
+            Assert.IsNotNull(card, "노드 카드");
+            TextMeshProUGUI main = card.Find("main") != null ? card.Find("main").GetComponent<TextMeshProUGUI>() : null;
+            TextMeshProUGUI gain = card.Find("gain") != null ? card.Find("gain").GetComponent<TextMeshProUGUI>() : null;
+            Assert.IsNotNull(main, "주 수치(main)"); Assert.IsNotNull(gain, "괄호 조각(gain) — 한 TMP 에 섞여 있으면 색을 못 가른다");
+            Assert.AreEqual(TechPopups.MainText, main.text, "주 수치는 괄호 없이 제 글만");
+            Assert.IsTrue(gain.text.TrimStart().StartsWith("("), "괄호 조각은 «(» 로 시작 · 실제 «" + gain.text + "»");
+            Assert.AreEqual(UiKit.C("pp_ink"), main.color, "주 수치는 pp_ink");
+            Assert.AreEqual(UiKit.C("tb_val"), gain.color, "괄호 조각은 tb_val(정본 3693 #1fa64a)");
+            Assert.AreNotEqual(main.color, gain.color, "둘의 잉크가 다르다");
+            Assert.Greater(gain.rectTransform.anchoredPosition.x, main.rectTransform.anchoredPosition.x, "괄호 조각은 주 수치 오른쪽");
+            TechPopups.Close();
+            yield return null;
         }
     }
 }

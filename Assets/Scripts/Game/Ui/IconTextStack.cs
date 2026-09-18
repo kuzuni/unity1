@@ -84,7 +84,8 @@ namespace Forge.Game.Ui
         /// 굵게·키라인(<see cref="KeylineUi.BtnFace"/>)은 Btn 의 라벨과 같이 걸고 마지막에 <see cref="Fit"/>. T108 <c>ForgeSheet.AutoBtn</c> 과 같은 꼴.
         /// </summary>
         /// <param name="keylineKey">면 표(<see cref="KeylineUi.BtnFace"/>) 대신 쓸 폭 키 — 정본이 그 버튼만 따로 적은 자리(예 `.fi-card .fi-skip 4px` · T109 14회차). null 이면 면 표.</param>
-        public static RectTransform ReplaceLabel(Button b, TextKind kind, string msg, string inkKey, string faceKey, string keylineKey = null)
+        /// <param name="restInkPinned">T396 19회차 — 둘째 줄부터의 글자 잉크를 표 `PinnedColorUi.json` 의 키로(정본이 `<small>`/`<span>` 조각에만 리터럴로 못박은 색 · 예 2043 `.fi-skip-gem` #e11d48). null 이면 모든 줄이 <paramref name="inkKey"/>.</param>
+        public static RectTransform ReplaceLabel(Button b, TextKind kind, string msg, string inkKey, string faceKey, string keylineKey = null, string restInkPinned = null)
         {
             RectTransform rt = b.GetComponent<RectTransform>();
             Transform plain = rt.Find("label");
@@ -116,6 +117,7 @@ namespace Forge.Game.Ui
                     t.fontStyle = FontStyles.Bold;
                     if (li > 0) TextWeightUi.Regular(t, "btn_small");   // 둘째 줄부터 = 정본 `<small>` = 400
                     if (li > 0) t.fontSize = Mathf.Max(smallMin, firstFs * smallRatio);   // T461 — 둘째 줄부터 = 정본 `.btn small` .7rem(첫 줄 비율)
+                    if (li > 0 && restInkPinned != null) t.color = PinnedColorUi.C(restInkPinned);   // T396 19회차 — 조각 잉크(정본 `<span class=…>` 의 리터럴)
                     if (!string.IsNullOrEmpty(kl)) PopupKit.Ring(t, kl, "pp_line");
                 }
                 li++;

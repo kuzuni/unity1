@@ -1,6 +1,10 @@
 {
   "_": "ROUTINE T377 — 정본 style.css 가 «토큰으로 뭉개지 말라» 고 선택자에만 리터럴로 못박은 면 색(8692 의 까닭: 전역 --pp-red 는 안 건드린다). catalog.json 이 T365·T375·T378 lock 이라 T65 꼴로 여기 둔다(T33 또는 다음 회차가 catalog 로 합칠 수 있다). 값은 정본 리터럴 그대로 · tools/check_pinned_colors.py 가 정본과 같은지 지킨다. 코드에 숫자를 박지 않는다(§1).",
   "colors": {
+    "fi_skip_gem_ink": {
+      "hex": "#e11d48",
+      "_": "style.css **5160** `.fi-skip-gem { color: **#e11d48** }` — 대장간 정보 팝업 [건너뛰기] 버튼 아랫줄 «💎 N» 의 글자(ui.js 2043 `<span class=\"fi-skip-gem\">`). 윗줄 «건너뛰기» 는 공용 stage_ink. T396 19회차 — `IconTextStack.ReplaceLabel` 의 `restInkPinned` 로 둘째 줄부터 이 키."
+    },
     "fi_age_star_ink": {
       "hex": "#ffb300",
       "_": "style.css **5138** `.fi-age-star { color: **#ffb300** }` — 시대 막대 승천 별의 호박색. 전역 토큰이 아니라 **그 선택자에만 준 리터럴**이라 자리 전용 키로 받는다(T377 갈래). 클론은 별이 이름 문자열에 섞여 있어 이름과 같은 `pp_ink` 로 찍히고 있었다(T333 18회차)."

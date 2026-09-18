@@ -172,8 +172,15 @@ namespace Forge.Game.Ui
             float lvx = tx + name.preferredWidth + PopupKit.Rem * TechStyle.L("tn_lv_margin_left_rem");
             UiKit.Place(lvl.rectTransform, lvx, y, Mathf.Max(0f, tx + tw - lvx), bodyH);
             MainText = "+" + NumFmt.Fmt(Tree.TotalOf(id)) + unit;
-            TextMeshProUGUI main = DungeonPopups.Bold(card, "main", TextKind.Sub, MainText + "  (" + Tree.GainNote() + " +" + NumFmt.Fmt(def.Per) + unit + " · 이 노드 +" + NumFmt.Fmt(Tree.NodeTotal(id)) + unit + ")", "pp_ink", TextAlignmentOptions.Left);
+            TextMeshProUGUI main = DungeonPopups.Bold(card, "main", TextKind.Sub, MainText, "pp_ink", TextAlignmentOptions.Left);
             UiKit.Place(main.rectTransform, tx, y + bodyH, tw, subH);   // T413 — 레벨이 이름 줄로 붙어 한 줄 올라온다
+            // T396 19회차 — 정본 ui.js 5604 `<div class="idet-main">+N% <small class="tn-gain">(…)</small></div>` · style.css 3693 `.tn-gain { color: #1fa64a }`:
+            //   괄호 조각은 제 잉크(카탈로그 `tb_val` = 같은 #1fa64a · `_` 칸에 «.tb-val · .tn-gain»)라 한 TMP 로 찍으면 색이 못 갈린다 — 조각을 떼어
+            //   주 수치 오른쪽에 잇는다(같은 줄의 레벨 배지가 이름 `preferredWidth` 로 붙는 것과 같은 길 · 172행). 앞 두 칸은 정본의 띄어쓰기.
+            //   ⚠ `<small>` 의 크기(한 단 작음)는 글자 종류 축(T391·T461) 몫이라 여기선 잉크만 가른다.
+            TextMeshProUGUI gain = DungeonPopups.Bold(card, "gain", TextKind.Sub, "  (" + Tree.GainNote() + " +" + NumFmt.Fmt(def.Per) + unit + " · 이 노드 +" + NumFmt.Fmt(Tree.NodeTotal(id)) + unit + ")", "tb_val", TextAlignmentOptions.Left);
+            float gx = tx + main.preferredWidth;
+            UiKit.Place(gain.rectTransform, gx, y + bodyH, Mathf.Max(0f, tx + tw - gx), subH);
             y += headH;
 
             if (!researching)

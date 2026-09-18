@@ -242,6 +242,9 @@ TABLE_INK = {
     '.fl-face[data-asc]:not([data-asc=""])::after': ['Ui/ForgeInfoPopup.cs|res:PinnedColorUi:list_asc_star_ink'],
     # T396 7회차 — 산 lock 밖 파일 셋. 둘은 **이미 제 값**(자리만 적으면 닫힌다)이고 하나는 근사였다.
     '.tb-val': ['Ui/TechPopups.cs|catalog:tb_val'],                     # 정본 2252 #1fa64a ↔ 카탈로그 tb_val 같은 값(`_` 칸에 «.tb-val · .tn-gain» 이라 적혀 있다)
+    # T396 19회차 — 한 글 안 부분 색 넷 중 둘을 조각으로 뗐다(나머지 둘 `.tn-skip small`·`.asc-wipe-warn` 은 KNOWN 에 까닭).
+    '.tn-gain': ['Ui/TechPopups.cs#gain|catalog:tb_val'],               # 정본 3693 #1fa64a — 주 수치 옆 괄호 조각을 제 TMP("gain")로 떼어 tb_val
+    '.fi-skip-gem': ['Ui/ForgeInfoPopup.cs|res:PinnedColorUi:fi_skip_gem_ink'],   # 정본 5160 #e11d48 — [건너뛰기] 아랫줄 «💎 N» 글자(IconTextStack.ReplaceLabel restInkPinned)
     '.shop-sheet .shop-title': ['Ui/ShopSheet.cs|catalog:shop_title'],  # 정본 2884 #ffb300 ↔ 카탈로그 shop_title 같은 값
     # 빈 장비 칸 슬롯 이름 — 정본 865 주석이 «판독 확보 대상 … #b9a8a8→#d8caca 반 단계» 로 **일부러 올린** 값임을 적어 뒀다.
     # 클론은 전역 pp_muted(#8a8a8a)라 어두운 마룬 칸 위에서 그 판독 확보가 통째로 빠져 있었다.
@@ -363,10 +366,11 @@ TABLE_INK = {
 KNOWN_INK = {
     # T396 10회차 — 한 글자 안의 **부분 색**(<small>·<span> 조각): 클론은 그 글을 한 TMP 로 찍고 richText 를 안 켜므로(check_richtext)
     #   둘째 줄·조각을 따로 세워야 색이 갈린다(IconTextStack 둘째 줄 잉크 키 같은 것) — 조각 분리 몫 · 다음 회차.
-    '.fi-skip-gem': '한 버튼 글 «건너뛰기\\n💎 N» 의 아랫줄(ForgeInfoPopup.cs 141 IconTextStack.ReplaceLabel 한 잉크) — 5160 #e11d48 · 조각 분리 뒤',
-    '.tn-skip small': '한 알약 글 «건너뛰기\\n◆ N» 의 아랫줄(TechPopups.cs 270 DungeonPopups.Pill 한 잉크) — 4613 #c62828 · 조각 분리 뒤',
-    '.tn-gain': '한 줄 «+N% (…)» 안의 <small>(TechPopups 주 수치 글 한 TMP) — 3693 #1fa64a · 조각 분리 뒤',
-    '.asc-wipe-warn': '승천 안내 여러 줄 글 안의 한 줄 <span>(AscendPopup.cs 166 eff 한 TMP) — 5637 #ff6b5e · 줄 분리 뒤',
+    # T396 19회차 — 넷 중 `.fi-skip-gem`·`.tn-gain` 은 조각을 떼어 TABLE_INK 로 갔다. 남은 둘은 **T354 산 lock 의 자(`LineHeightTests`)가 그 글을 한 TMP 로 잰다**:
+    #   `.tn-skip small` 은 `TechPopups.BtnLh` + LineHeightTests «기술_노드_팝업의_버튼_라벨…» 이 Pill 의 "label" 한 TMP 를 잡고,
+    #   `.asc-wipe-warn` 은 LineHeightTests·BrLinesTests·OpacityTests 셋이 "eff" 한 TMP(세 줄)를 잰다 — 줄을 가르려면 그 자들을 같이 옮겨야 한다(T354 반납 뒤).
+    '.tn-skip small': '한 알약 글 «건너뛰기\\n◆ N» 의 아랫줄(TechPopups.cs DungeonPopups.Pill 한 잉크 · BtnLh 가 "label" 을 잡는다) — 4613 #c62828 · 조각 분리는 T354(LineHeightTests) 반납 뒤',
+    '.asc-wipe-warn': '승천 안내 여러 줄 글 안의 한 줄 <span>(AscendPopup.cs eff 한 TMP · BrLines·LineHeight·Opacity 자 셋이 한 TMP 로 잰다) — 5637 #ff6b5e · 줄 분리는 T354 반납 뒤(자 셋 같이)',
     # T396 15회차 — 자리 자체가 클론에 아직 없다(입력칸이 서는 회차 뒤 · T169 디버그 판 갈래).
     '#panel-debug input[type=number]': '디버그 판의 장·스테이지 숫자 입력칸(ui.js 5983 dbg-chapter · 5985 dbg-stage) — 클론 DebugPanel.cs 에 InputField 가 0 이다 · 입력칸이 서는 회차에 잉크도 같이(677 #eceff1)',
 }
