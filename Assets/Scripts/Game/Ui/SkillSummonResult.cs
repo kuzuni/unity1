@@ -1290,6 +1290,7 @@ namespace Forge.Game.Ui
             UiKit.Anchor(okr, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, okW, okH);
             RectTransform okSkin = PetSkillKit.Framed(okr, "skin", PetSkillStyle.C("sr_ok_ink"), PetSkillStyle.Px("sr_ok_r_rem"), PetSkillKit.Line2);
             UiKit.Fill(okSkin);
+            UiShadow.Drop(okr, "srok_drop", PetSkillStyle.Px("sr_ok_r_rem"), okW, okH);   // T331 43회차 — 정본 7144 `.sr-ok` 드리운 그림자 `0 .35rem .8rem rgba(0,0,0,.6)`(표 srok_drop · 버튼 뿌리 맨 뒤 · 스킨 뒤)
             Image okFace = PetSkillKit.Fill(okSkin, "top", PetSkillStyle.C("sr_ok"), PetSkillStyle.Px("sr_ok_r_rem") - PetSkillKit.Line2);
             okFace.rectTransform.offsetMin = new Vector2(PetSkillKit.Line2, PetSkillKit.Line2 + PetSkillStyle.Px("sr_ok_inset_rem"));
             okFace.rectTransform.offsetMax = new Vector2(-PetSkillKit.Line2, -PetSkillKit.Line2);

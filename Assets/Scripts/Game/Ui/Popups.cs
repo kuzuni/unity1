@@ -600,6 +600,9 @@ namespace Forge.Game.Ui
             UiKit.Anchor(knob.rectTransform, new Vector2(on ? 1f : 0f, 0.5f), new Vector2(on ? 1f : 0f, 0.5f), new Vector2(on ? -Line2 * 2f : Line2 * 2f, 0f), k, k);
             Image knobFace = UiKit.Rounded(knob.transform, "face", knobKey, k * 0.5f - Line);
             Inset(knobFace.rectTransform, Line);
+            // T331 43회차 — 정본 4991 `.af-toggle .knob` 의 둘째 겹 `0 .1rem .18rem rgba(0,0,0,.4)`(표 afknob_drop) — 자동 제련 토글에만(설정 토글 3113 엔 그늘이 없다).
+            //   손잡이는 Image 자신(검정 고리)이라 그늘을 그 **안** 맨 뒤에 깐다: 고리(pp_line 검정) 위에 얹힌 .4 검정은 눈에 0 이고 흰 면(face)은 자식이라 그 위다 · 손잡이가 미끄러질 때 같이 간다(결정 801).
+            if (name == "af-toggle") UiShadow.Drop(knob.rectTransform, "afknob_drop", k * 0.5f, k, k);
             if (before.HasValue && before.Value != on)
                 ToggleSlide.Begin(knob.rectTransform, TransitionUi.Table.Has(name) ? name : "toggle", before.Value ? 1f : 0f, before.Value ? -Line2 * 2f : Line2 * 2f);
             return b;

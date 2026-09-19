@@ -61,6 +61,7 @@ SPOTS = [
     ('afagebar_drop',  '.af-age-bar',                   4828, 'blur'),   # 40회차 — 둘째 겹(앰비언트) · 막대 뿌리의 형제(무늬 층 = 1)를 안 흔들려고 둘 다 첫 자식 «bar» 틀 안에
     ('ratebar_drop',   '.rate-bar',                     8584, 'blur'),   # 41회차 — 확률 팝업 등급 막대(SkillRatesPopup · Framed 상자 맨 뒤)
     ('shopcard_drop',  '.shop-deal-card, .shop-gem-card', 8230, 'blur'),   # 41회차 — 특가 카드 + 보석 카드(ShopSheet 두 공장 · NEED 2)
+    ('srok_drop',      '.sr-ok',                        7144, 'blur'),   # 43회차 — 소환 결과 [확인] 버튼(SkillSummonResult · 뿌리 맨 뒤)
     # 26회차 — 자동 제련 팝업 한 파일에 몰린 둘(손잡이 `.af-toggle .knob` 은 공장이 `Popups.cs` 라 남의 lock 뒤다)
     ('afspinner_lip', '.af-spinner',                   5007, 'hard'),
     ('afsubrow_drop', '.af-sub-row',                   4999, 'blur'),
@@ -95,7 +96,6 @@ NEED = {
 KNOWN = {
     # 29회차 — **값은 재 뒀고 배선만 남은** 자리들. 까닭은 전부 같다: 그 파일을 «범위» 로 쥔 **산 lock** 이 있다.
     # 그 lock 이 풀리는 회차가 `UiShadow.Drop(<상자>, "<키>", <반지름>)` 한 줄을 걸고 여기서 그 줄을 지운다.
-    'afknob_drop':     'T331 42회차 — 공장(Popups.cs Toggle)은 열렸지만 손잡이 `knob` 이 **Image 자신**이라(UiKit.Rounded · 자식 face) 그 안에 깐 그늘은 손잡이 위에 그려진다 · 손잡이를 상자로 감싸거나 UiShadow 에 «형제 앞에 깔기» 갈래가 있어야 한다(ToggleSlide·PressFx·자들이 knob 을 잡는다) — 다음 회차',
 }
 
 # 표 밖 자리의 **장부**(26회차) — «이 축이 볼 자리가 아니다» 거나 «다른 길로 이미 섰다» 는 것을
@@ -136,6 +136,11 @@ ELSEWHERE = {
     # 41회차 — 그림자가 아닌 것 둘.
     '.sr-spark': '소환 결과 스파클 — 흐림 0 · 번짐 음수 · 흰/등급색 점을 여덟 방향 오프셋으로 찍은 **점 무리 그림**(6477 · mix-blend-mode: screen)이지 그늘이 아니다 · T334 소환 연출 갈래',
     '.modal-card:not(.sheet):not(.pass-card):not(.lgr-card)': '7783 의 `0 .5rem 0 rgba(0,0,0,.25)` 는 3518 `.modal-card` 의 턱을 같은 값으로 다시 적은 것(나머지는 inset) — 그늘은 card_lip 이 쥔다 · 8596 과 같은 갈래(결정 719)',
+    # 43회차 — 소환 결과의 나머지 넷.
+    '.sr-orb': '구슬 아래 드리운 그림자 `0 .5rem .8rem -.15rem rgba(0,0,0,.7)` 는 클론이 **구운 타원**(`sr-orbwrap/shadow` · PetSkillKit.Disc 검정 .5 · 폭 74%·높이 13%)으로 이미 그린다 — 다른 길로 선 자리 · 그 타원의 수(.74·.13·.02)가 코드에 박혀 있는 것은 §1 몫(표로 옮기는 회차가 따로)',
+    '.sr-cell[data-mat="metal"] .sr-orb': '같은 그늘 값(6559) — `.sr-orb` 와 같은 타원이 쥔다',
+    '.sr-cell[data-mat="glass"] .sr-orb': '같은 그늘 값(6597) — `.sr-orb` 와 같은 타원이 쥔다',
+    '.sr-floor::before': '소환진 아래 스필 `0 1.2rem 6rem 2rem var(--floor-fill, rgba(96,146,255,.2))` — 치우침은 있지만 색이 검정이 아니라 **바닥 채움색**(밝은 파랑 .2 · 6rem 번짐 · 2rem 퍼짐)이라 빛·스필 갈래(T419 · `.sr-canopy::before` 와 같은 자리)',
     '.sr-chip[data-tier="4"]': '`.sr-chip` 과 같은 두 겹 + 등급 발광 `0 0 .5rem var(--cb)` — 그늘은 srchip_drop 이 쥔다',
     '.sr-chip[data-tier="5"]': '`.sr-chip` 과 같은 두 겹 + 등급 발광 `0 0 .7rem var(--cb)` — 그늘은 srchip_drop 이 쥔다',
 }

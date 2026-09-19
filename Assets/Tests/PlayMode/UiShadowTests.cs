@@ -476,6 +476,54 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(sh.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
         }
 
+        /// <summary>T331 43회차 — 정본 4991 `.af-toggle .knob` 둘째 겹(표 afknob_drop · 손잡이 안 맨 뒤 · 결정 801) · 7144 `.sr-ok`(표 srok_drop · [확인] 버튼 뿌리 맨 뒤).</summary>
+        [UnityTest]
+        public IEnumerator 자동_제련_토글_손잡이와_소환_결과_확인_버튼에_정본_그늘이_깔린다()
+        {
+            yield return Boot();
+            ForgeHost fh = ForgeHost.Instance;
+            fh.S.BestChapter = 3; fh.S.BestStage = 1; fh.Pull();
+            ForgeAutoPopup.Open(fh);
+            yield return null; yield return null;
+            RectTransform toggle = null;
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true)) if (rt.name == "af-toggle") { toggle = rt; break; }
+            Assert.IsNotNull(toggle, "자동 제련 필터 토글(af-toggle)");
+            RectTransform knob = (RectTransform)toggle.Find("knob");
+            Assert.IsNotNull(knob, "손잡이(knob)");
+            Transform ks = UiShadow.Find(knob, "afknob_drop");
+            Assert.IsNotNull(ks, "손잡이 그늘이 없다");
+            Assert.AreEqual(0, ks.GetSiblingIndex(), "그늘은 손잡이 안 맨 뒤(흰 면 뒤)");
+            Assert.IsNotNull(knob.Find("face"), "손잡이 면(face)은 이름 그대로");
+            Assert.IsNotNull(ks.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
+            Assert.AreEqual(0.4, UiShadow.Table.Get("afknob_drop").A, 1e-6, "표의 알파(.4)");
+            ForgeAutoPopup.Close(fh);
+            yield return null;
+
+            for (int i = 0; i < 600 && !(PetSkillHost.Ready && SkillPetSheet.Instance != null && SkillBar.Instance != null); i++) yield return null;
+            PetSkillHost host = PetSkillHost.Instance;
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            yield return null;
+            sheet.Switch(SkillPetSheet.SubPets);
+            yield return null;
+            while (host.SummonMult("pet") != 1) host.CycleSummonMult("pet");
+            host.EggCurrency = 100000; host.Gems = 100000; host.Sync();
+            yield return null;
+            sheet.Pets.SummonButton.onClick.Invoke();
+            yield return null;
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v, "소환 결과 창");
+            Assert.IsNotNull(v.OkButton, "[확인] 버튼");
+            RectTransform okr = v.OkButton.GetComponent<RectTransform>();
+            Transform os = UiShadow.Find(okr, "srok_drop");
+            Assert.IsNotNull(os, "[확인] 버튼의 그늘이 없다");
+            Assert.AreEqual(0, os.GetSiblingIndex(), "그늘은 버튼 뿌리 맨 뒤(스킨 뒤)");
+            Assert.IsNotNull(os.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
+            Assert.AreEqual(0.6, UiShadow.Table.Get("srok_drop").A, 1e-6, "표의 알파(.6)");
+            for (int k = 0; k < 4 && SkillSummonResultView.Current != null; k++) { SkillSummonResultView.Current.OnTap(); yield return null; }
+        }
+
         [UnityTest]
         public IEnumerator 자동_제련_카드는_턱과_앰비언트_두_겹을_쥔다()
         {
@@ -719,7 +767,7 @@ namespace Forge.Tests.PlayMode
             int hard = 0, soft = 0;
             foreach (string k in UiShadow.Table.Keys) { if (UiShadow.Table.Get(k).IsHard) hard++; else soft++; }
             Assert.AreEqual(8, hard, "40회차 자동 제련 시대 막대 턱(afagebar_lip)으로 8");
-            Assert.AreEqual(27, soft, "36회차 21 · 38회차 22 · 39회차 23 · 40회차 25 · 41회차 ratebar_drop·shopcard_drop 27");
+            Assert.AreEqual(28, soft, "36회차 21 · 38회차 22 · 39회차 23 · 40회차 25 · 41회차 27 · 43회차 srok_drop 28");
         }
     }
 }
