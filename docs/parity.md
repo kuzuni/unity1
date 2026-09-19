@@ -2452,3 +2452,39 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - 이 회차 새로 찾은 둘: **확률 정보 알약 줄** 5064 `.fi-pills { gap: .8rem }` ↔ `ForgeInfoPopup.cs:92` 1rem(주석이 «T364 축» 으로 미뤘고 T364 는 닫혔다) → **자리 ③** · **시대 막대 공장** `ForgeUi.AgeBar:403·408` `.4`/`.35rem` ↔ 정본 4701 `.af-age-bar { gap: .45rem }`(5083 `.fi-age-bar` 는 gap 없음 · 같은 공장이 두 화면을 만든다) → **자리 ④(후보 · 1회차가 PNG 로 잰다)**.
 - 57회차 △ 13 중 나머지 12 는 그대로다(자리를 못 짚은 것 · 결함 아님) — 59회차 이후 «△ 몰아 닫기» 한 회차 몫(PNG 8배 눈 + 호출부 읽기).
 - ⚠ **`.fi-level-row`(5075) 는 구조가 다르다**: 정본은 span 셋(`레벨 N` · `▶` · `레벨 N+1`)의 flex 줄(gap .55rem · 오른쪽 정렬)인데 클론은 **한 글자열**(공백 셋으로 잇는다). 글 폭이 같은지 눈으로 봐야 한다 — △ 로 남긴다(등재는 실측 뒤).
+
+# T33 59회차 — △ 23 몰아 닫기 1차: 호출부 읽기로 닫히는 것부터 (2026-09-19 01:4x~01:5x · 워커 O · sess-2140-18689)
+
+57·58회차가 «자리를 못 짚은 것(결함 아님)» 으로 남긴 △ 23 을 호출부를 읽어 가른다. PNG 8배가 있어야 가려지는 것(구조·규칙이 다른 자리)은 60회차 몫으로 남긴다.
+
+## ✅ 닫음 11
+
+| 행 | 정본 | 값 | 클론(호출부) | 판정 |
+|---|---|---|---|---|
+| 9 | 270 `.offline-rates` | gap 2.4rem · center | `OfflinePopup.cs:58·62~64` `gap = rem*2.4f` · 가운데 되셈 | ✅ ⓐ(박힘 · 값 맞음 — `.cmp-card` 와 같은 갈래 · 표로 옮기는 것은 §1 몫이지 결함 아님) |
+| 36 | 2020 `.qst-allbar` | jc flex-end | `QuestSheet.cs:67` `Anchor(anchor .5 · pivot (1, .5) · x = rowW×.5)` — 버튼 오른변이 줄 오른끝 | ✅(구조 · 오른끝 정렬) |
+| 54 | 2483 `.league-reward-banner` | gap .3rem · center | 정본 `ui.js` 4811 자식이 글 하나(«플래티넘 리그 보상»)뿐 → gap 이 닿을 형제가 없다 · 클론 `LeagueSheet.cs:220` 글 하나 | ✅(구조 · gap 무의미) |
+| 63 | 2938 `.shop-reward-pill` | ai center | 정본 4965 `${icon} ${fmt}` — 아이콘·수 사이는 **공백 한 칸**(gap 선언 없음) · 클론 `ShopSheet.cs:107~111` 아이콘 `rem*.3` 뒤 수 `rem*.3 + pillH*.9`(틈 pillH×.1 ≈ 공백 한 칸) · 세로 가운데 | ✅(구조 · 공백 한 칸 근사) |
+| 71 | 3098 `.settings-row` | space-between | `ProfilePopup.cs:313~326` 라벨 `offsetMin 1.1rem`(왼) · 토글 `Anchor(1, .5) −1.95rem`(오른) | ✅(구조 · 양끝) |
+| 82 | 3319 `.chat-name-line` | gap .3rem | `ChatScreen.cs:228~235` 성별·클랜 x 는 표 `PersonIconsUi`(`chat_ico_mr_em`·`chat_clan_ml_w` = 정본 3336~3341 의 마진 · 그 마진이 gap 을 덮는다) · 시각은 오른 정렬 | ✅ ⓐ(표 키) |
+| 98 | 4125 `.equipped-row` | gap .5rem | 정본 4150 `.equipped-icons { margin-left: auto }` 라 라벨↔아이콘 틈은 **잔여**(gap 은 아이콘 사이 .35 가 따로) · 클론 `SkillPanel.cs:279` 아이콘을 오른끝에서 되셈(`mini_gap_skill_w` 표) | ✅(구조 · auto 마진) |
+| 100 | 4217 `.summon-bar` | gap .5rem · center | `SkillPanel.cs:129~140` 뒤로 `back_left_w` · x5 `x5_left_skill_w` · 소환 `summon_btn_w` 가운데 — 전부 표(정본도 실측 좌표를 준다) | ✅ ⓐ(표 키) |
+| 110 | 4441 `.hatchery` | gap .5rem | `PetPanel.cs:373` 구매 버튼 x = `rowX + rowW + slot_buy_left_w`(표) | ✅ ⓐ(표 키) |
+| 120 | 4772 `.af-sub-row` | gap .5rem | `ForgeAutoPopup.cs:244` 라벨 x = `rem*.5 + cb + rem*.5` — 상자↔라벨 .5rem | ✅ ⓐ(박힘 · 값 맞음) |
+| 130 | 5353 `.dgd-btns` | gap 7.5% · center | `DungeonDetailPopup.cs:200` `bgap = cw × dgd_btn_gap`(표) · T481 완결 | ✅ ⓐ(표 키) |
+
+## ⚠ 결함 6 — 가로 틈이 코드에 박혀 정본 값과 다르다 → **T484 등재**(T482 «박힌 가로 틈 넷» 의 둘째 묶음)
+
+| 행 | 정본 | 값 | 클론 | 차 |
+|---|---|---|---|---|
+| 35 | 1949 `.dg-banner` | gap .6rem | `DungeonSheet.cs:221~223` 아이콘 뒤 `ico*0.6f` | 틈이 아이콘 배율(rem 아님) · 값은 아이콘 크기에 따라 다르다 |
+| 40 | 2056 `.qst-reward` | gap .2rem | `QuestSheet.cs:141~145` 아이콘 `icon*.6` 뒤 수 `offsetMin icon*.65` → 틈 **icon×.05** | .2rem 에 한참 못 미친다(아이콘·수가 붙는다) |
+| 45 | 2221 `.sellwarn-cmp` | gap .45rem · center | `ForgeCraftPopup.cs:150~154` 두 열 사이에 **화살 상자 2rem**(`colW = (w − 1.8rem − 2rem)/2`) — 틈 대신 상자 폭이 박혔다 | 정본은 열·화살·열 사이 .45 씩(화살은 글자 폭) |
+| 48 | 2300 `.league-season-bar` | gap .4rem · center | `LeagueSheet.cs:80` 선물 아이콘 x = `−.0362W + barH×.5`(박힘) · 글은 막대 가운데 | 정본은 아이콘+글 묶음을 가운데(gap .4) — 규칙이 다르다 |
+| 57 | 2591 `.league-ticket-pill` | gap .3rem · center | `LeagueSheet.cs:368~372` 아이콘 `rem*.4` + `pillH*.7` · 수 `offsetMin pillH*.9` → 틈 **pillH×.2 − .4rem** | 알약 높이에 따라 0 근처(겹칠 수도) · .3rem 아님 |
+| 135 | 5620 `.asc-row` | gap .4rem | `AscendPopup.cs:139` 이름 x = `px + ico*1.2f` → 틈 **ico×.2**(= .82rem×1.45×.2 ≈ .24rem) | −.16rem |
+
+## △ 남김 12 — 60회차 몫(PNG 8배 또는 깊은 읽기)
+
+- 세로/기타 축: 2 `.profile-info`(Hud 카드 안 글줄) · 24 토스트 쌓임 · 31~32 기술 트리 열 · 35 `.tb-list` · 56 `.dg-right`.
+- flex row: 17 `.row` 넷(3973·4307·5777·5980~6003) · 51 `.league-actions`(규칙 다름 · PNG) · 69 `.profile-rank-row`(PNG) · 93 `.sheet-head`(알약 x 는 `PetSkillKit.Pill` 안 · 공장 읽기) · 115 `.rate-bar`(퍼센트 오른 칸 되셈 · 141 뒤) · 116 `.tech-btns`(Ready/Researching 갈래의 두 버튼 · 280 뒤) · 123 `.fi-level-row`(구조 다름 · 글 폭 눈 판정).
