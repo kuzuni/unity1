@@ -135,6 +135,11 @@ TABLE = {
     '.sr-wipe': ['Ui/SummonFx.cs@BakeWipe'],
     '.sr-relight': ['Ui/SummonFx.cs@BakeRadial'],
     '.sr-tierpulse': ['Ui/SummonFx.cs@BakeTierPulse'],
+    # T178 28회차 — T480 이 세운 소환 결과 겹 셋 + T459 ⓩ 의 스윕(넷 다 이미 굽는 길인데 표에만 없었다 · 27회차 뒤 미정 61 → 57).
+    '.sr-orbwrap::after': ['Ui/SummonFx.cs@BakeLandRing'],   # 6358 착지 링 방사(closest-side 62/78/92%) — 등급색마다 한 장
+    '.sr-ray': ['Ui/SummonFx.cs@BakeRaySpokes'],             # 6680 방사 마스크(farthest-corner 18/40/62%)
+    '.sr-cell.hi .sr-ray': ['Ui/SummonFx.cs@BakeRaySpokes'],  # 6685 conic 살(26°마다 4°) — 마스크와 한 장에 굽는다
+    '#summon-result-modal.done .sr-cell.on .sr-orb::after': ['Ui/SummonFx.cs@BakeOrbSweep'],   # 6914 done 뒤 구슬 스페큘러 띠(112deg · T459 ⓩ)
     '.sr-tierflash::after': ['Ui/SummonFx.cs@BakeRadial'],
     '.sr-ghost': ['Ui/SummonFx.cs@BakeRadial'],
     '.sr-cell.heroic .sr-beam': ['Ui/SummonFx.cs@BakeBeam'],
