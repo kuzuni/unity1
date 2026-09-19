@@ -2390,3 +2390,65 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 ## 이 회차의 △ 13
 
 자리를 못 짚은 것이지 결함이 아니다 — `.row` 나머지 다섯 자리 · 던전 배너 틈(아이콘 배율 박힘) · 퀘스트 일괄수령 정렬·보상 틈 · 판매 경고 두 열 틈 · 리그 시즌 막대·행동 줄(규칙 다름 · PNG) · 보상 리본·티켓 알약 · 상점 보상 알약 · 프로필 랭킹 줄 · 설정 행 · 오프라인 요율 틈(값 맞음 · 표 키 없음). 58회차가 뒤 66 과 함께 같은 파일에서 닫는다.
+
+# T33 58회차 — `display: flex` 가로 흐름 143 중 뒤 66(3227~7115) · 57회차 △ 13 과 결함 후보 2 의 재판정 · **T482 등재** (2026-09-19 · 워커 R · sess-2015-28206)
+
+57회차 자 그대로. **뒤 66 = ✅ 26 · △ 11 · ⚠ T482 자리 3 · 가운데 놓기 26.** 이로써 `display` 310 은 전부 셌다(55회차 `flex` 밖 89 · 56회차 column 78 · 57·58회차 row 143).
+
+## 흐름 40
+
+| # | 정본 | 축 | 클론 | 판정 |
+|---|---|---|---|---|
+| 78 | 3227 `#chat-preview` | gap .4rem · space-between | `Hud.cs:208` 아바타 뒤 `tx = padX + av + rem*0.4f`(값 맞음 · 박힘) · 글은 나머지 폭 | ✅ ⓐ(박힘) |
+| 80 | 3307 `.chat-row` | gap .008W · flex-start | `ChatScreen.cs:213~215` `x = av + ChatUi.W("chat_row_gap_w")`(T364 6회차) | ✅ ⓐ(표 키) |
+| 82 | 3319 `.chat-name-line` | gap .3rem | `ChatScreen.cs:217~236` 이름 · 성별 · 클랜 · 시각(Right) 한 줄 — 아이콘 사이 틈 값을 못 짚었다 | △(미확인) |
+| 85 | 3442 `.chat-input-bar` | gap .022W | `ChatScreen.cs:88~89` `ix = pad_l + bw + ChatUi.W("chat_bar_gap_w")`(T364 6회차) | ✅ ⓐ(표 키) |
+| 86 | 3593 `#summon-subtabs.subtab-strip` | gap 0 · center | `SkillPetSheet.cs:86·92` `bw = pillW/3` · `i × bw`(틈 0 = 정본 이 줄이 649 를 덮는다) | ✅ ⓐ |
+| 89 | 3682 `.idet-head` | gap 4.2% · flex-start | `TechPopups.cs:129·165` `gap = inner × UiKit.L("idet_gap")` · `tx = headX + icoD + gap` · 장비 상세 `ForgeInfoPopup.cs:376` 같은 이름 머리(틈은 같은 표 키인지 못 짚었다) | ✅ ⓐ(표 키 · 기술 노드 자리) |
+| 93 | 3947 `.sheet-head` | gap .5rem | `SkillPanel.cs:64`·`PetPanel.cs:84` 시트 머리(제목 + 재화 알약) — 알약 x 를 못 짚었다 | △(미확인) |
+| 98 | 4125 `.equipped-row` | gap .5rem | `SkillPanel.cs:264~269` 라벨 뒤 아이콘 열 — 라벨↔아이콘 틈 값을 못 짚었다 | △(미확인) |
+| 99 | 4149 `.equipped-icons` | gap .35rem | `SkillPanel.cs:269` `g = PetSkillStyle.Px("mini_gap_skill_w")` 로 x 이어 놓기 | ✅ ⓐ(표 키) |
+| 100 | 4217 `.summon-bar` | gap .5rem · center | `SkillPanel.cs:125·418~440` `SummonInfo(bar, x, …)` 게이지·버튼 — 줄 안 x 배분을 못 짚었다 | △(미확인) |
+| 102 | 4249 `.mount-pill-row` | jc center | `MountSheet.cs:89~92` 알약 하나를 `(W − pill.w)/2` 가운데 | ✅(구조) |
+| 104 | 4340 `.petup-head` | gap 4.2% · flex-start | `PetUpgradePopup.cs:144` `tx = ppad + icon + inner × L("petup_head_gap_f")` | ✅ ⓐ(표 키) |
+| 107 | 4360 `.petup-selrow` | gap .5rem · space-between | `PetUpgradePopup.cs:134~165` 라벨 왼 · «업그레이드» 버튼 오른(주석이 정본 행·높이 계약을 명시) | ✅(구조) |
+| 108 | 4366 `.petup-bulkrow` | gap .35rem · wrap | `PetUpgradePopup.cs:182~185` `bulkGap = Px("petup_bulk_gap_rem")` · `bx`/`rowRight` | ✅ ⓐ(표 키) |
+| 110 | 4441 `.hatchery` | gap .5rem | `PetPanel.cs:348~` 부화장 = 칸 줄 + 구매 버튼 — 둘 사이 틈 값을 못 짚었다 | △(미확인) |
+| 111 | 4451 `.hatch-row` | gap 0 | `PetPanel.cs:366` `rowX + i × cellW`(틈 0 그대로) | ✅ ⓐ |
+| 112 | 4561 `.hatchery .slot-buy` | gap .0143W · center | `PetPanel.cs:391` `g = Px("slot_buy_ico_gap_w")` 아이콘↔글 | ✅ ⓐ(표 키) |
+| 113 | 4579 `.rates-head` | gap .5rem · space-between | `SkillRatesPopup.cs:81~104` `rates_gap_rem` · ◀ `padX` … ▶ — 머리 셋(◀ 제목 ▶)의 x 는 양끝 되셈으로 읽힌다 | ✅ ⓐ(표 키) |
+| 115 | 4594 `.rate-bar` | space-between | `SkillRatesPopup.cs:132` `rate-bar-*` 라벨 왼 · 퍼센트 오른 — 오른 칸 되셈을 못 짚었다 | △(미확인) |
+| 116 | 4611 `.tech-btns` | gap .8rem · center | `TechPopups.cs:215·246` 버튼 줄 `card_gap_rem`(.45) 로 세운다면 정본 .8rem 과 다르다 — 어느 키가 가로 틈인지 못 짚었다 | △(미확인 · 틈 키 확인 필요) |
+| 118 | 4701 `.af-age-bar` | gap .45rem | `ForgeUi.AgeBar:403·408` `x += cb + rem*0.4f` · `x += ico + rem*0.35f` — **.45 ↔ .35/.4 박힘**(정본 5083 `.fi-age-bar` 는 gap 없음 · 같은 공장) → T482 넷째 자리 후보 | ⚠ T482 |
+| 119 | 4732 `.af-filter-row` | gap 1.209rem · flex-end | `ForgeAutoPopup.cs:85~97` 라벨 Right + 토글 `inner − tw`(오른쪽 끝 되셈) | ✅ ⓐ |
+| 120 | 4772 `.af-sub-row` | gap .5rem | `ForgeAutoPopup.SubRow:233` 체크 상자 `rem*0.5f` 뒤 라벨 — 상자↔라벨 틈 값을 못 짚었다 | △(미확인) |
+| 121 | 4778 `.af-row` | space-between | `ForgeAutoPopup.cs` 행(라벨 왼 · 토글 오른 `inner − tw` 꼴) — 필터 행과 같은 되셈 | ✅ ⓐ |
+| 122 | 5064 `.fi-pills` | gap .8rem · center | `ForgeInfoPopup.cs:83~92` 줄 전체 가운데 ✓ · **틈 1rem ↔ .8rem**(T388 4회차 주석이 «T364 축이라 안 건드렸다» 로 남겼고 T364 는 닫혔다) → T482 셋째 자리 | ⚠ T482 |
+| 123 | 5075 `.fi-level-row` | gap .55rem · flex-end | `ForgeInfoPopup.cs:97~98` 한 글 «레벨 N ▶ 레벨 N+1» — 정본은 span 셋의 flex 줄 · 클론은 공백으로 잇는다(틈 .55rem 아님) | △(구조 다름 · 글 폭 눈 판정 필요) |
+| 124 | 5083 `.fi-age-bar` | ai center(gap 없음) | `ForgeUi.AgeBar` 같은 공장(4701 참조) | ⚠ T482 |
+| 125 | 5098 `.fi-age-next` | flex-end | `ForgeUi.AgeBar:432~440` `next` 칸 폭 w×.25 · 글 Right | ✅(구조) |
+| 127 | 5241 `.skd-head` | gap .8rem · flex-start | `SkillPanel.cs` `skd_head_gap_rem` | ✅ ⓐ(표 키) |
+| 128 | 5258 `.skd-btns` | gap 1.32rem | `SkillPanel.cs` `skd_btn_gap_rem` | ✅ ⓐ(표 키) |
+| 129 | 5304 `.dgd-stage-row` | gap .1237W · center | `DungeonDetailPopup.cs:147~167` `gap = W × L("dgd_tri_gap")` · ◀ `cx − stageW/2 − gap − triW` · ▶ `cx + stageW/2 + gap`(T364 12회차) | ✅ ⓐ(표 키) |
+| 130 | 5353 `.dgd-btns` | gap 7.5% · center | `DungeonDetailPopup.cs:198·200` 두 버튼(T481 1회차 진행 중 · 산 lock) — 틈 키를 못 짚었다 | △(미확인 · T481 뒤) |
+| 131 | 5381 `.dgclear-rewards` | gap .6rem · wrap · center | `DungeonClearPopup.cs:41·84~100` `dgc_gap_rem` · `dgc_cell_minw_rem` 칸 이어 놓기 | ✅ ⓐ(표 키) |
+| 132 | 5534 `.petd-head` | gap .9rem · flex-start | `PetPanel.cs:571~572` `bx = padX + tile + Px("petd_head_gap_rem")` | ✅ ⓐ(표 키) |
+| 134 | 5552 `.petd-btns` | gap .8rem | `PetPanel.cs:596` `bgap = Px("petd_btn_gap_rem")` | ✅ ⓐ(표 키) |
+| 135 | 5620 `.asc-row` | gap .4rem | `AscendPopup.cs:94~98` 제목 줄 `HorizontalLayoutGroup`(spacing 0 · 원작에 가운뎃점 없음) · 승천 줄은 아이콘 둘 + 글(T446) — 줄 안 틈 키를 못 짚었다 | △(미확인) |
+| 136 | 5638 `.asc-btns` | gap .5rem | `AscendPopup.cs:212` `bgap = RemL("asc_btns_gap_rem")` | ✅ ⓐ(표 키) |
+| 137 | 5750 `.sr-body` | center | `SkillSummonResult.cs:398~507` 격자를 몸 가운데(열 수 `Cols(n)` · 셀 폭 되셈) | ✅(구조) |
+| 138 | 6230 `.sr-grid` | gap 1.1rem .8rem · wrap · center | `SkillSummonResult.cs:487~493` `sr_grid_gap_x_rem`·`_y_rem` · `(gw − (cols−1)×gapX)/cols` | ✅ ⓐ(표 키) |
+| 143 | 7115 `.sr-sum` | gap .32rem · wrap · center | `SkillSummonResult.cs:1193` 칩 줄 `sr_chip_gap_rem` | ✅ ⓐ(표 키) |
+
+## 가운데 놓기 26(흐름 축 없음)
+
+3232 `.chat-preview-avatar` · 3311 `.chat-avatar` · 3414 `.chat-share-avatar` · 3433 `.chat-share-cam` · 3600 `.subtab-pill` · 3605 `#summon-subtabs.subtab-strip button` · 3683 `.idet-icon` · 3739 `.x-btn` · 3758 `.tab-x-mark` · 3999 `.passive-banner` · 4033 `.sk-orb` · 4092 `.sk-eqplate` · 4119 `.sk-shard em` · 4237 `.summon-prog span` · 4262 `.pet-tile .tile-face` · 4341 `.petup-icon` · 4356 `.petup-xpbar span` · 4378 `.pet-tile .tile-check` · 4582 `.tri-btn` · 4660 `.rates-prog span` · 5228 `.summon-gauge em` · 5536 `.petd-tile` · 6495 `.sr-orb` · 6534 `.sr-ico > .mt-face` · 7032 `.sr-name` · 7059 `.sr-sub`
+
+## 57회차 후보 2 · △ 13 의 재판정
+
+- **후보 ⓑ `.cmp-card` 는 철회** — 내가 짚은 `ForgeCraftPopup.cs:171` 의 `bw + rem*0.8f` 는 제작 비교 카드가 아니라 **판매 경고 카드의 버튼 줄**(ui.js 3864 `<div class="row">`)이다. 카드 자체는 `ForgeUi.ItemCard:302·311` 이 `rem*0.7f`(패딩) · `rem*0.7f + tile + rem*0.7f`(틈) 로 정본 1826 `padding: .9rem .7rem .7rem; gap: .7rem` 그대로다 → **✅ ⓐ(박힘 · 값 맞음)**.
+- 그 대신 **판매 경고 버튼 줄**이 새 자리다: 정본 659 `.row { gap: .45rem }`(2218~2221 의 sellwarn 규칙은 `.row` 틈을 안 덮는다) ↔ 클론 .8rem(+.35rem = 12.6px) → **T482 자리 ②**. 57회차 `.row` 여섯 자리 중 3864 가 이렇게 닫혔고(△ → ⚠) 나머지 넷(3973·4307·5777·5980~6003)은 그대로 △.
+- **후보 ⓐ `.forge-actions` 는 확정** — 정본 1629~1633 은 «자동 버튼 **고정 폭** `.0922W + 6.4px`(원작 실측 채움 46px) · 대장간 버튼 `flex: 1` · gap .3rem · 마진 −.0222W/+.092W» 를 픽셀 주석과 함께 못 박았는데, 클론 `ForgeSheet.cs:129~137` 은 «남은 폭을 반으로 나눠 1.15 : 0.85 로 배분 · gap .35rem» 이다 — 규칙이 다르다 → **T482 자리 ①**.
+- 이 회차 새로 찾은 둘: **확률 정보 알약 줄** 5064 `.fi-pills { gap: .8rem }` ↔ `ForgeInfoPopup.cs:92` 1rem(주석이 «T364 축» 으로 미뤘고 T364 는 닫혔다) → **자리 ③** · **시대 막대 공장** `ForgeUi.AgeBar:403·408` `.4`/`.35rem` ↔ 정본 4701 `.af-age-bar { gap: .45rem }`(5083 `.fi-age-bar` 는 gap 없음 · 같은 공장이 두 화면을 만든다) → **자리 ④(후보 · 1회차가 PNG 로 잰다)**.
+- 57회차 △ 13 중 나머지 12 는 그대로다(자리를 못 짚은 것 · 결함 아님) — 59회차 이후 «△ 몰아 닫기» 한 회차 몫(PNG 8배 눈 + 호출부 읽기).
+- ⚠ **`.fi-level-row`(5075) 는 구조가 다르다**: 정본은 span 셋(`레벨 N` · `▶` · `레벨 N+1`)의 flex 줄(gap .55rem · 오른쪽 정렬)인데 클론은 **한 글자열**(공백 셋으로 잇는다). 글 폭이 같은지 눈으로 봐야 한다 — △ 로 남긴다(등재는 실측 뒤).
