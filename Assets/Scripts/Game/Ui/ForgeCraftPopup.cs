@@ -161,14 +161,17 @@ namespace Forge.Game.Ui
             //   → 곁 표 `sellwarn_btn_pad_y_rem` x 2 + Sub 두 줄의 글꼴 줄높이 와 `sellwarn_btn_min_h_rem` 중 큰 쪽(PopupKit.TwoLineBtnH). 전엔 `btn_h * 1.5f` 가 박혀 있었다(T378 임시 목록의 그 자리).
             float bh = PopupKit.TwoLineBtnH(TextKind.Sub, CraftStyle.Px("sellwarn_btn_pad_y_rem"), null, CraftStyle.Px("sellwarn_btn_min_h_rem"));
             RectTransform row = PopupKit.Item(card, "row", -1f, bh);
-            float bw = (w - rem * 1.8f - rem * 0.8f) * 0.5f;
+            // T482 1회차 — 정본 659 `.row { gap: .45rem }`(ui.js 3864 판매·취소 줄)의 버튼 사이 틈은 표 `sellwarn_row_gap_rem` 이 쥔다(전엔 `rem*0.8f` 박힘 · +12.6px).
+            //   줄 폭 = 카드 몸 − 좌우 패딩 .9rem×2(2218) · 두 버튼은 flex 균등(`.btn` 663 에 flex 없음 → 같은 폭으로 나눈다).
+            float rowGap = CraftStyle.Px("sellwarn_row_gap_rem");
+            float bw = (w - rem * 1.8f - rowGap) * 0.5f;
             // T110 — 정본 ui.js 3865 도 `판매<small>coin +N</small>` 두 줄이다(클론은 한 줄 글자였다).
             Button s = PopupKit.Btn(row, "sell", "", "pp_red", "pp_red_dk", () => h.OnSellConfirm(), bw, bh, "stage_ink", TextKind.Sub);
             PinSell(s);
             IconTextStack.ReplaceLabel(s, TextKind.Sub, "판매\n🪙 +" + NumFmt.Fmt(h.GearSys.SellPrice(sold)), "stage_ink", "pp_red");
             UiKit.Place(s.GetComponent<RectTransform>(), 0f, 0f, bw, bh);
             Button c = PopupKit.Btn(row, "cancel", "취소", "pp_gray", "pp_gray_dk", () => h.OnSellCancel(), bw, bh, "stage_ink", TextKind.Sub);
-            UiKit.Place(c.GetComponent<RectTransform>(), bw + rem * 0.8f, 0f, bw, bh);
+            UiKit.Place(c.GetComponent<RectTransform>(), bw + rowGap, 0f, bw, bh);
         }
 
         static void Col(RectTransform parent, string name, float x, float w, string tagText, bool red, ForgeItem it, GameDefs d)
