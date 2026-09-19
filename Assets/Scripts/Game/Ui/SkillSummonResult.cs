@@ -1188,6 +1188,25 @@ namespace Forge.Game.Ui
                 spk.localScale = Vector3.one * (float)(ssp.Scale.Sample(0, "base", null) + ssp.Glow(tier) * ssp.Scale.Sample(0, "glow", null));
                 c.Spark = si;
             }
+            // T480 (a) — 정본 6358~6363 `.sr-orbwrap::after`(inset 0 · 50% · screen · 방사 링 62/78/92%) + `.sr-cell.on … { animation: srring .55s ease-out forwards }`:
+            //   **모든** 셀이 자기 착지에 구슬 둘레에 등급색 링을 한 번 번진다. `::after` 라 래퍼 자식 중 **맨 위**(구슬·하이라이트·아이콘 위 · 가산이라 덮지 않고 밝힌다).
+            //   동급 링(셀 뒤 · peerring)·주역 링(heroring)과 따로 도는 셋째 링 — 알파 `.32 + .62 × --glow` → 0 · 배율 `.65` → `1.5 + .8 × --glow`.
+            //   ⚠ 1회차는 이 블록의 삽입 자리 문자열이 안 맞아 **빠진 채** 밀렸다(런 1224 `셀 0 착지 링 null`) — 2차에 여기(BuildCell 끝)로 넣었다.
+            {
+                RectTransform lr = UiKit.Box(wrap, "sr-landring");
+                UiKit.Fill(lr);
+                lr.pivot = new Vector2(0.5f, 0.5f);   // 배율은 래퍼 가운데에서
+                lr.SetAsLastSibling();
+                Image li = lr.gameObject.AddComponent<Image>();
+                li.raycastTarget = false;
+                li.preserveAspect = false;
+                li.sprite = SummonFx.BakeLandRing("sr-landring-" + ColorUtility.ToHtmlStringRGB(rc), rc);
+                Material lm = CraftFxPoly.Screen();
+                if (lm != null) li.material = lm;
+                li.color = new Color(1f, 1f, 1f, 0f);
+                lr.localScale = Vector3.one * (float)SummonFxStyle.LandRing.Scale0;
+                c.LandRing = li;
+            }
             cell.localScale = Vector3.one * 0.35f;
             return c;
         }
