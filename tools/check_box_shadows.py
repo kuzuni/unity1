@@ -417,15 +417,22 @@ def self_test():
     chk('여러 줄의 갈래를 다 센다', _many[3].count('inset') == 1 and 'hard' in _many[3] and 'drop' in _many[3])
 
     # ⓔ-3 공장이 여럿인 자리(30회차) — 한 곳만 걸리면 «절반» 이고, 적어 두지 않았으면 빨강이다
-    saved_need = dict(NEED)
+    #   ⚠ §0-6 보탬(2026-09-19 · 워커 O · 런 1232·1233 datasync 빨강): 이 칸은 «실물 `infobtn_drop` 이 절반 상태» 를 전제로 했는데
+    #   42회차가 나머지 절반(ForgeUi.InfoButton)을 걸어 2/2 가 되자 전제가 깨졌다 — 실물에 기대지 말고 **절반을 주입**한다
+    #   (NEED 를 실제보다 크게 · KNOWN 에 까닭을 적어) — 그러면 «절반만 선 자리» 줄이 언제나 난다.
+    saved_need, saved_known = dict(NEED), dict(KNOWN)
     try:
+        NEED['infobtn_drop'] = 99                 # 다 걸린 자리를 «99곳 필요 · 적어 둠» 으로 속여 «절반» 을 만든다
+        KNOWN['infobtn_drop'] = '(자기 검사 ⓔ-3 · 절반 주입)'
         out = _out()
         chk('절반만 선 자리를 찍는다', '절반만 선 자리' in out and 'infobtn_drop' in out)
         chk('절반이면 KNOWN 에 남는다(rc 0)', run() == 0)
-        NEED['card_lip'] = 99                     # 다 걸린 자리를 «99곳 필요» 로 속여 본다
+        KNOWN.pop('infobtn_drop')
+        NEED['card_lip'] = 99                     # 다 걸린 자리를 «99곳 필요» 로 속여 본다(KNOWN 엔 없다)
         chk('모자라고 KNOWN 에도 없으면 빨강', run() == 1)
     finally:
         NEED.clear(); NEED.update(saved_need)
+        KNOWN.clear(); KNOWN.update(saved_known)
     chk('되돌리면 다시 초록', run() == 0)
 
     # ⓕ 판정 갈래 — 고장 주입
