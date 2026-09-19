@@ -2488,3 +2488,27 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 
 - 세로/기타 축: 2 `.profile-info`(Hud 카드 안 글줄) · 24 토스트 쌓임 · 31~32 기술 트리 열 · 35 `.tb-list` · 56 `.dg-right`.
 - flex row: 17 `.row` 넷(3973·4307·5777·5980~6003) · 51 `.league-actions`(규칙 다름 · PNG) · 69 `.profile-rank-row`(PNG) · 93 `.sheet-head`(알약 x 는 `PetSkillKit.Pill` 안 · 공장 읽기) · 115 `.rate-bar`(퍼센트 오른 칸 되셈 · 141 뒤) · 116 `.tech-btns`(Ready/Researching 갈래의 두 버튼 · 280 뒤) · 123 `.fi-level-row`(구조 다름 · 글 폭 눈 판정).
+
+# T33 60회차 — △ 12 몰아 닫기 2차: 깊은 읽기(공장·호출부) + screens PNG (2026-09-19 · 워커 U · sess-0359-2432)
+
+59회차가 «PNG 8배 또는 깊은 읽기» 로 남긴 △ 12 를 닫는다. PNG 는 런 1240 의 `screen_league`·`screen_profile` 두 장을 눈으로(8배 화소 자는 이 컨테이너에 PIL 이 없어 못 돌렸다 — 두 자리는 «가운데·왼쪽» 같은 구조 판정이라 눈으로 충분하다). 나머지는 공장과 호출부를 읽었다.
+
+| # | 정본 | 클론(읽은 것) | 판정 |
+|---|---|---|---|
+| 2 | 105 `.profile-info`(column · 닉네임 / 전투력 줄) | `Hud.cs` 프로필 카드 — `nickname` `Place(tx, 0, tw, cardH/2)` · `cp` 줄 `Place(tx, cardH/2, …)` 두 줄 y 로 쌓기 | ✅(구조) |
+| 24 | 1921 `#toasts`(column · gap .3rem · 여러 장 쌓임) | `Popups.cs` `PopupLayer.Toast` — 부를 때마다 새 상자를 세우고 `toastStack` 으로 자리를 내린다(2.6s 뒤 파괴) · 전투 레인 따로(T138). 던전 전용 `DungeonToast` 만 한 장 재사용인데 정본 던전 문구도 `toast()` 한 길이라 그 상자는 «던전 전용 한 장» 이 맞다 | ✅(쌓임 있음) |
+| 31~32 | 2126 `.tech-tree-col` · 2179 `.tech-tree-node-col`(column · 열) | `TechPanel.cs:230~300` 노드 자리를 표(`tt_node`·`tt_shift`·피치)에서 절대 좌표로 센다(`cx ± span/2` · 행 피치) — 정본 CSS 주석도 «골격 치수는 원본 실측 비율» | ✅(구조 · 절대 자리 · 표) ×2 |
+| 35 | 2242 `.tb-list`(column · max-height .46H · 스크롤) | `TechPopups.cs:337~350` 행 `rowH × 줄 수` 를 `tbn_list_maxh`(.46H) 로 자르고 `list` 상자에 쌓는다 | ✅(y 누적 · 상한 표) |
+| 56 | 3914 `.dg-right`(absolute right · column · gap .3rem · 열쇠 / 버튼) | `DungeonSheet.cs:246~262` `keys` 글 위 · 버튼 아래 · 사이 `dg_right_gap_rem` .3 | ✅(표 키) |
+| 17 | 659 `.row`(gap .45rem) — 남은 다섯 자리 | 3973 펫 합성 버튼 줄 `PetPanel.cs:194~205` `bx += w + Rem(0.45f)` · 가운데 되셈(값은 정본 .45 · 리터럴 → T378 갈래) ✅ · 4307 [모두 업그레이드][빠른 장착] `SkillPanel.cs:111~120` `action_gap_w` 표 + 가운데 되셈 ✅ · 5777 탈것 업그레이드 얼굴+글 `MountUpgradePopup.cs:103·130` `mtup_row_gap_rem` 표 ✅ · 5980~6003 **디버그 패널**(정본도 디버그 · `DebugPanel.cs` 는 다른 그릇) — 대조 밖 | ✅ 3 · 디버그 1(대조 밖) |
+| 51 | 2379 `.league-actions`(gap .5rem · center · 정본 주석 «도전 중앙 · ◀ 좌하단») | `LeagueSheet.cs:121~126` 도전 `(w − btnW)/2` · 뒤로 `w × .0161` — `screen_league.png`(런 1240) 눈: 도전이 화면 가운데 · ◀ 왼쪽 끝 · 정본 주석과 같다(◀ 는 흐름 밖) | ✅(구조 · PNG) |
+| 69 | 3057 `.profile-rank-row`(gap .5rem · center · 버튼 .2177W+6.6px) | `ProfilePopup.cs:152~158` `bx = (inner − 2bw − .5rem)/2` · 둘째 `bx + bw + .5rem` — `screen_profile.png` 눈: [파워 랭킹][클랜 랭킹] 가운데 묶음 · 틈 고름(T432 가 폭을 PNG 로 맞췄다 · .5rem 리터럴 → T378 갈래) | ✅(이어 놓기 · PNG) |
+| 93 | 3947 `.sheet-head`(gap .5rem · 제목 flex 1) | 정본 3951~3958 주석: **재화 알약을 흐름에서 뺐다**(absolute · «제목을 헤더 전폭으로») → gap 이 닿는 흐름 자식은 제목 하나. 클론 `SkillPanel.cs:64`·`PetPanel.cs:84` 제목 `Fill` + 알약 좌·우 앵커(`PetSkillKit.Pill` `rightAnchor`) — 같은 구조 | ✅(구조 · 해당 없음) |
+| 115 | 4594 `.rate-bar`(space-between · 이름 왼 · 퍼센트 오른) | `SkillRatesPopup.cs:144~163` 이름 `Place(barPad, …)` · 퍼센트 `Place(inner/2, 0, inner/2 − barPad, …)` + `Right` 정렬 = 오른 패딩 안쪽에 오른끝 | ✅(되셈) |
+| 116 | 4611 `.tech-btns`(gap .8rem · center · `.btn` flex 0 1 44%) | 정본 4615 주석 «[취소] 를 걷어내 이 줄에 버튼이 하나만 남는다» → gap 이 닿는 형제 없음. `TechPopups.cs:258~262` 버튼 하나 `cx − bw/2` 가운데 · 폭 `tech_btn_w` 표 | ✅(구조 · 해당 없음 · 표 폭) |
+
+## 이 회차의 판정
+
+- △ 12 = **✅ 11**(구조 6 · 표 키·되셈·이어 놓기 5) · **디버그 1**(대조 밖) · 결함 0 · 새 번호 0. 57~59회차의 △ 는 **0** 이 됐다.
+- 리터럴 둘(3973 `.45rem` · 3057 `.5rem`)은 값이 정본과 같아 이 축(흐름)에선 ✅ 이고, «표 키가 없다» 는 T378 갈래로만 적는다.
+- **이 자(T33)의 상태**: 47회차가 센 «안 본 축» 은 display(55~58회차)까지 전부 셌고, 그 △ 도 이 회차로 0 이다. 남은 것은 새 회차가 새 축을 잡을 때가 아니라 **새 등재(T482·T484 꼴)를 낸 곳을 되짚는 일**뿐 — 다음 회차는 §7 열린 칸 재검(31회차 꼴)이 맞다.
