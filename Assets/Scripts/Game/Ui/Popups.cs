@@ -483,7 +483,8 @@ namespace Forge.Game.Ui
             Button b = UiKit.Button(parent, name, onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
             Size(rt, w, h);
-            float r = radius > 0f ? radius : UiKit.H("btn_r");   // T415 13회차 — 정본이 선택자에 따로 못박은 반지름(`.fi-card .fi-skip` .6rem)은 부르는 쪽이 표값을 넘긴다 · 안 넘기면 공용 `btn_r`
+            // T415 18회차 — 정본 3542 `.modal-card .btn, .panel .btn, #equip-sheet .btn { border-radius: .7rem }`: 이 공장을 부르는 자리는 전부 그 셋 안이라 기본은 표 `modal_btn_r_rem`(.7rem)이다(663 의 맨 `.btn` .55rem = catalog `btn_r` 은 이제 부르는 자리가 없다).
+            float r = radius > 0f ? radius : RadiusUi.Px("modal_btn_r_rem");   // T415 13회차 — 정본이 선택자에 따로 못박은 반지름(`.fi-card .fi-skip` .6rem)은 부르는 쪽이 표값을 넘긴다 · 안 넘기면 공용 `btn_r`
             float lip = UiKit.H("btn_lip");
             UiKit.Rounded(rt, "line", "pp_line", r);
             Image lipImg = UiKit.Rounded(rt, "lip", lipKey, Mathf.Max(1f, r - Line3));

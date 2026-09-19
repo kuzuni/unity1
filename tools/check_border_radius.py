@@ -286,6 +286,19 @@ TABLE = {
     '.fi-age-bar::before': u'—inherit(막대 무늬 겹 · T380) — 클론은 막대 마스크 안 · 5083 의 막대 값은 fi_age_bar_r_rem(14회차)',
     '.fi-age-bar::after': u'—inherit(막대 마스크 겹 · T380) — 같은 까닭',
     '.ico.av-ico': u'—inherit(인라인 아바타 아이콘이 부모 상자의 모서리를 물려받는다 · 제 값 없음 · 부모 자리들이 각자 표 키)',
+    # ── T415 18회차(2026-09-19 · 워커 R) — 제작 팝업 넷 · 공용 팝업 버튼 · 펫 업그레이드 아이콘 · 상점 알약 둘 · 자리 없음 셋 ──
+    '.cmp-lower': ['Ui/ForgeCraftPopup.cs$cmp_lower_r_rem'],                          # 1819 .7rem — 하부 회색 패널(값은 맞았고 박혀 있었다)
+    '.swc-col': ['Ui/ForgeCraftPopup.cs$swc_col_r_rem'],                              # 2222 .55rem — 판매 경고 두 열 판
+    '.swc-age': ['Ui/ForgeCraftPopup.cs$swc_age_r_rem'],                              # 2230 .45rem — 시대 칩(전엔 lh*0.4 ≈ .43rem 박힘)
+    '#craft-modal .row .btn': ['Ui/ForgeCraftPopup.cs$craft_row_btn_r_rem'],         # 3566 .85rem — [판매]·[장착] 큰 버튼(Btn radius: 인수)
+    '.modal-card .btn, .panel .btn, #equip-sheet .btn': ['Ui/Popups.cs$modal_btn_r_rem'],   # 3542 .7rem — PopupKit.Btn 기본(전엔 catalog btn_r .55)
+    '.btn': u'—정본 663 의 .55rem 은 모달·패널·장비 시트 **밖**의 맨 버튼 몫인데 클론의 `PopupKit.Btn` 자리(11 파일)는 전부 3542 의 셋 안이라 .7rem 이 덮는다 — 맨 `.btn` 자리 없음(디버그 판도 `.panel`)',
+    '.petup-icon': ['Ui/PetUpgradePopup.cs$petup_icon_r_rem@PetSkillUi.json'],       # 4341 .6rem — 머리 얼굴 타일(전엔 격자 tile_r_rem .5)
+    '.shop-reward-pill': u'✓알약 동치(결정 543) — 클론 `ShopSheet.cs:102` `UiKit.Rounded(pill, "bg", …, pillH * 0.5f)` · 알약 높이 shop_pill_h 2.51%H ≈ 1.34rem 이라 반 높이 .67rem ≤ 정본 1rem = 같은 알약',
+    '.shop-sheet .sheet-head .cur-pill': u'✓알약 동치(결정 543) — 클론 `ShopSheet.CurBar` `UiKit.Rounded(bar, "bg", …, h * 0.5f)` · 높이 shop_cur_h 2.39%H ≈ 1.27rem → 반 높이 .64rem ≤ 1rem',
+    '.pass-price': u'—가격 페넌트는 클론이 `ClipShape.Face(prt, "price-line", "pass_pennant", …)` 로 도형째 굽는다(T159) — 정본의 윗모서리 .3rem 은 그 도형 안의 값이라 여기서 대조하지 않는다',
+    '.pass-price::before': u'—같은 페넌트의 속 겹(.2rem) — 도형 자(T159) 몫',
+    '.dg-rw .dg-rw-ico + .dg-rw-ico': u'—정본 1999 의 50% 는 부 재화 아이콘 img 상자를 원으로 자르는 값인데 IconGen 재화 아이콘은 투명 배경 위 그림이라 잘리는 화소가 없다 — 클론 `DungeonSheet.cs` 도 같은 아틀라스 스프라이트(UiKit.Icon)를 그대로 놓는다',
     # ── T415 14회차(2026-09-18 · 워커 S) — 나이 막대 셋(`ForgeUi.AgeBar` 한 공장 · 종전 «막대 높이 × .25» 리터럴) ──
     '.age-bar-wrap': u'—죽은 CSS: `.age-bar-wrap`·`.age-row`·`.age-pct`·`.age-tag`(703~708)를 `ui.js`·`index.html` 어디서도 안 그린다(렌더 줄 0 · 14회차 grep) — 클론에 자리 없음',
     '.af-age-bar': ['Ui/ForgeUi.cs$af_age_bar_r_rem'],

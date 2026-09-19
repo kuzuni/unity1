@@ -553,5 +553,7 @@
     "toast_no_upgrade_mount": "업그레이드할 탈것이 없습니다",
     "toast_mount_lv": "✨ {0} Lv.{1}!"
   },
+  "petup_icon_r_rem": 0.6,
+  "_petup_icon_r_rem": "T415 18회차 — 정본 style.css 4341 `.petup-icon { border-radius: .6rem }`(펫 업그레이드 머리의 얼굴 타일). 클론 `PetUpgradePopup.cs` 는 `PetPanel.TileFace` 기본 `tile_r_rem`(.5 · 격자 타일 4262)을 그대로 썼다 — 값이 어긋났다. 상세 타일이 `petd_tile_r_rem` 을 넘기듯 여기도 `faceRadiusKey` 로 넘긴다.",
   "_skd_btn": "T483 — style.css **5259** `.skd-btn { flex: 1; font-size: **1.02rem**; font-weight: 900; padding: **.68rem** 0; border-radius: .7rem }` · **5260** `.skd-btn.silver { border: var(--ol3) … ; box-shadow: inset 0 -.28rem 0 #9c9c9c }`(아래턱은 패딩 상자 안). 높이 선언이 **없다** — 내용이 정한다: 줄 수 × 글자 1.02rem × normal(글꼴 자산 비율 · `PopupKit.ModalBtnH` T447 과 한 셈) + .68rem × 2 + 키라인(ol3) 둘 ≈ 3.17rem. 종전 키 `skd_btn_h_rem` 2.75 는 정본 어디에도 없는 한 수라 걷었다(T447 이 `btn_h` 2.4 에서 걷은 그 종). 만렙이면 [업그레이드] 가 `<small>` 두 줄이라 그쪽이 높이를 정하고 둘은 같은 높이(`.skd-btns` flex 행). 5237 `.skd-card { width: 74.95% }` 는 «원본 흰 면 371/495» 를 잰 수라 `skd_w_f` 는 **흰 면**이고 상자는 테(ol3) 둘을 더한다(T410 소환 확률 카드의 길) · `min-height: 20rem`(`skd_min_h_rem`)은 **최솟값**이다."
 }

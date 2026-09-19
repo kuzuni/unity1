@@ -139,7 +139,8 @@ namespace Forge.Game.Ui
             RectTransform panel = PetSkillKit.Framed(c, "petup-panel", PetSkillStyle.C("petup_panel"), PetSkillStyle.Px("petup_panel_r_rem"), PetSkillKit.Line3);
             UiKit.Place(panel, pad, y, inner, panelH);
             float py = ppad;
-            RectTransform face = sheet.Pets.TileFace(panel, t.Name, t.Rarity, icon, active, t.Level, true);
+            // T415 18회차 — 정본 4341 `.petup-icon { border-radius: .6rem }`: 머리 얼굴 타일은 격자 타일(.5)과 값이 달라 곁 표 `petup_icon_r_rem` 을 `faceRadiusKey` 로 넘긴다(상세 타일의 petd_tile_r_rem 과 같은 길).
+            RectTransform face = sheet.Pets.TileFace(panel, t.Name, t.Rarity, icon, active, t.Level, true, null, Forge.Game.Gallery.GalleryKind.Pets, null, "petup_icon_r_rem");
             UiKit.Place(face, ppad, py, icon, icon);
             float tx = ppad + icon + inner * PetSkillStyle.L("petup_head_gap_f");
             float tw = inner - tx - ppad;

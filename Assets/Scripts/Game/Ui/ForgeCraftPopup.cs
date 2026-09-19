@@ -80,7 +80,7 @@ namespace Forge.Game.Ui
             ForgeUi.Ribbon(curCard, "장착됨", false);
 
             RectTransform lower = PopupKit.Item(card, "lower", panelW, -1f);   // T429 — 정본 1819 좌우 −.85rem: 내용 폭보다 당김×2 넓고 카드 층이 가운데 맞춰 양쪽 패딩을 반씩 파고든다
-            Image lf = UiKit.Rounded(lower, "face", "pp_gray", rem * 0.7f);
+            Image lf = UiKit.Rounded(lower, "face", "pp_gray", RadiusUi.Px("cmp_lower_r_rem"));   // T415 18회차 — 정본 1819 `.cmp-lower { border-radius: .7rem }` 표에서
             // T377 14회차 — 정본 `style.css` **1819** `.cmp-lower { background: **#bebebe** }`(바로 위 주석이 «원본 shot-043224 실측: 색 #bebebe(190,190,190)» 라고 적어 뒀다).
             //   값은 맞았는데 **코드에 박혀 있었다**(§1 «수치는 코드에 박지 않는다») — 자리 전용 키로 받는다. 키 인수 `pp_gray` 는 그대로 둔다:
             //   테·반지름·그림자 축(T365·T345·T331)이 «종이/회색» 을 그 키로 가르기 때문이다(10·12·13회차와 같은 길).
@@ -95,12 +95,12 @@ namespace Forge.Game.Ui
             RectTransform row = PopupKit.Item(lower, "row", -1f, bh + CraftStyle.Px("cmp_row_pad_bottom_rem"));
             float bw = (panelW - rem * 0.8f - rem * 1.3f - rem * 1.9f) * 0.5f;   // T429 — 정본 1821 `.cmp-lower .row { margin: … .96rem; gap: 1.3rem }` · `.btn { flex: 1 }` — 줄(=패널 안폭)에서 좌우 .96rem·틈 1.3rem 을 뺀 나머지를 둘이 나눈다
             // T110 — 정본 ui.js 3266 `판매<small>${IconGen.img('coin')} +N</small>`: 아랫줄은 코인 **아이콘** + 수(글자 🪙 가 아니다 · 세로 갈래 IconTextStack).
-            Button sell = PopupKit.Btn(row, "sell", "", "pp_red", "pp_red_dk", () => h.ResolveCraft("sell"), bw, bh, "stage_ink", TextKind.Button);   // T391 ⓑ — 정본 3566 `#craft-modal .row .btn { 1.22rem }` = 44.4px → Button 44(전엔 Sub 36)
+            Button sell = PopupKit.Btn(row, "sell", "", "pp_red", "pp_red_dk", () => h.ResolveCraft("sell"), bw, bh, "stage_ink", TextKind.Button, radius: RadiusUi.Px("craft_row_btn_r_rem"));   // T415 18회차 — 정본 3566 `#craft-modal .row .btn { border-radius: .85rem }` · T391 ⓑ — 정본 3566 `#craft-modal .row .btn { 1.22rem }` = 44.4px → Button 44(전엔 Sub 36)
             PinSell(sell);
             IconTextStack.ReplaceLabel(sell, TextKind.Button, "판매\n🪙 +" + NumFmt.Fmt(h.GearSys.SellPrice(item)), "stage_ink", "pp_red");
             UiKit.Place(sell.GetComponent<RectTransform>(), rem * 0.96f, 0f, bw, bh);
             string equipLabel = "장착" + (cur != null ? "\n" + (swapped ? "다시 장착" : "기존 교체") : string.Empty);
-            Button equip = PopupKit.Btn(row, "equip", equipLabel, "pp_blue", "pp_blue_dk", () => h.ResolveCraft("equip"), bw, bh, "stage_ink", TextKind.Button);   // T391 ⓑ — 정본 3566 → Button 44
+            Button equip = PopupKit.Btn(row, "equip", equipLabel, "pp_blue", "pp_blue_dk", () => h.ResolveCraft("equip"), bw, bh, "stage_ink", TextKind.Button, radius: RadiusUi.Px("craft_row_btn_r_rem"));   // T415 18회차 — 정본 3566 `#craft-modal .row .btn { border-radius: .85rem }` · T391 ⓑ — 정본 3566 → Button 44
             TwoLine(equip);
             UiKit.Place(equip.GetComponent<RectTransform>(), rem * 0.96f + bw + rem * 1.3f, 0f, bw, bh);
             if (isMatch)
@@ -183,7 +183,7 @@ namespace Forge.Game.Ui
             float rem = PopupKit.Rem;
             RectTransform col = UiKit.Box(parent, name);
             UiKit.Place(col, x, 0f, w, rem * 4.6f);
-            Image bg = UiKit.Rounded(col, "bg", "pp_panel", rem * 0.55f);
+            Image bg = UiKit.Rounded(col, "bg", "pp_panel", RadiusUi.Px("swc_col_r_rem"));   // T415 18회차 — 정본 2222 `.swc-col { border-radius: .55rem }` 표에서
             bg.color = new Color(23 / 255f, 24 / 255f, 26 / 255f, 0.05f);
             float lh = PopupKit.FontSize(TextKind.Sub) * 1.3f;
             TextMeshProUGUI tag = UiKit.Text(col, "tag", TextKind.Sub, tagText, red ? "pp_red" : "pp_muted");
@@ -193,7 +193,7 @@ namespace Forge.Game.Ui
             RectTransform chip = UiKit.Box(col, "age");
             float cw = w * 0.8f;
             UiKit.Place(chip, (w - cw) * 0.5f, rem * 0.3f + lh + rem * 0.15f, cw, lh);
-            Image cf = UiKit.Rounded(chip, "bg", "pp_paper", lh * 0.4f);
+            Image cf = UiKit.Rounded(chip, "bg", "pp_paper", RadiusUi.Px("swc_age_r_rem"));   // T415 18회차 — 정본 2230 `.swc-age { border-radius: .45rem }`(전엔 lh*0.4f ≈ .43rem 박힘)
             cf.color = ac;
             TextMeshProUGUI ct = UiKit.Text(chip, "label", TextKind.Sub, ForgeUi.AgeKr(d, it.Age), "pp_ink");
             ct.fontStyle = FontStyles.Bold;

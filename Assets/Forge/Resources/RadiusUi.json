@@ -92,5 +92,16 @@
   "dgd_hero_r_rem": 0.6,
   "_dgd_hero_r_rem": "T415 17회차 — 정본 style.css 2060 `.dg-detail-hero { height: 5rem; border-radius: .6rem; background: linear-gradient(…) }`(던전 상세 영웅 판). 클론 `DungeonDetailPopup.cs` 는 상자(hero)를 직각으로 두고 바탕 겹·일러스트·제목을 얹었다 — CSS 배경은 border-box 모서리로 잘리므로 상자 자신을 이 반지름의 마스크로 세운다(자식 순서·이름은 그대로).",
   "skd_shard_r_rem": 0.5,
-  "_skd_shard_r_rem": "T415 17회차 — 정본 style.css 5244 `.skd-orbcol .sk-shard { height: .85rem; border-radius: .5rem }`(스킬 상세 카드의 조각 게이지). 클론 `SkillPanel.cs` 상세 카드는 격자 칸의 `sk_shard_r_rem`(.45 · PetSkillUi.json · 정본 4119 격자 게이지)을 그대로 썼다 — 상세는 .5 다."
+  "_skd_shard_r_rem": "T415 17회차 — 정본 style.css 5244 `.skd-orbcol .sk-shard { height: .85rem; border-radius: .5rem }`(스킬 상세 카드의 조각 게이지). 클론 `SkillPanel.cs` 상세 카드는 격자 칸의 `sk_shard_r_rem`(.45 · PetSkillUi.json · 정본 4119 격자 게이지)을 그대로 썼다 — 상세는 .5 다.",
+  "cmp_lower_r_rem": 0.7,
+  "_cmp_lower_r_rem": "T415 18회차 — 정본 style.css 1819 `.cmp-lower { background: #bebebe; border-radius: .7rem }`(제작 비교 하부 회색 패널). 클론 `ForgeCraftPopup.cs` 는 `rem*0.7f` 로 박혀 있었다(값은 맞았다).",
+  "swc_col_r_rem": 0.55,
+  "_swc_col_r_rem": "T415 18회차 — 정본 2222 `.swc-col { border-radius: .55rem }`(판매 경고 카드의 두 열 판). 클론 `rem*0.55f` 박힘(값은 맞았다).",
+  "swc_age_r_rem": 0.45,
+  "_swc_age_r_rem": "T415 18회차 — 정본 2230 `.swc-age { border-radius: .45rem }`(그 열 안의 시대 칩). 클론은 `lh*0.4f`(글 줄높이의 .4배 ≈ .43rem)로 박혀 있었다 — 값이 어긋났다.",
+  "craft_row_btn_r_rem": 0.85,
+  "_craft_row_btn_r_rem": "T415 18회차 — 정본 3566 `#craft-modal .row .btn { min-height: 4.2rem; font-size: 1.22rem; border-radius: .85rem }`(제작 비교의 [판매]·[장착] 큰 버튼). 클론은 공용 기본(.55rem)이었다 — 부르는 쪽이 이 키를 `PopupKit.Btn(radius:)` 로 넘긴다.",
+  "modal_btn_r_rem": 0.7,
+  "_modal_btn_r_rem": "T415 18회차 — 정본 3542 `.modal-card .btn, .panel .btn, #equip-sheet .btn { border-radius: .7rem }` — 팝업·패널·장비 시트 안의 모든 `.btn` 은 663 의 기본 .55rem 이 아니라 .7rem 이다. 클론 `PopupKit.Btn` 의 기본 반지름은 catalog `btn_r`(.55rem)이었는데 그 공장을 부르는 자리는 전부 3542 의 셋 안이라(맨 `.btn` 자리 없음) 기본을 이 키로 바꿨다. 선택자가 따로 못 박은 버튼(.fi-skip .6 · 제작 비교 .85)은 인수로 넘긴다."
+
 }
