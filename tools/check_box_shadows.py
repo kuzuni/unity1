@@ -89,14 +89,13 @@ NEED = {
     'pettile_drop': 3,   # 38회차 — 정본 `.pet-tile` 격자 셋(ui.js 3938 펫 · 4152 업그레이드 재료 · 5646 탈것) = 클론 `PetPanel.PetTileAt`·`PetUpgradePopup` 재료 격자·`MountSheet` 격자(공장 TileFace 는 상세 타일도 만들어 부르는 쪽에서 건다)
     'mountcell_drop': 2,   # 39회차 — `ForgeSheet.MountCell`(장비 시트) + `PlayerInfoPopup.MountWide`(플레이어 정보 와이드 칸 · 같은 egg-cell 마크업)
     'shopcard_drop': 2,   # 41회차 — `ShopSheet` 특가 카드(deal-*/card) + 보석 카드(gem-*) — 정본이 한 선언에 두 선택자를 적었다
+    'fiagebar_lip': 2,   # 42회차 — `ForgeInfoPopup` 확률 정보 행(age-*) + 목록 머리(head · fl-head) — 공장 ForgeUi.AgeBar 밖 부르는 쪽 둘
 }
 
 KNOWN = {
     # 29회차 — **값은 재 뒀고 배선만 남은** 자리들. 까닭은 전부 같다: 그 파일을 «범위» 로 쥔 **산 lock** 이 있다.
     # 그 lock 이 풀리는 회차가 `UiShadow.Drop(<상자>, "<키>", <반지름>)` 한 줄을 걸고 여기서 그 줄을 지운다.
-    'fiagebar_lip':    'T331 29회차 — 값 잼 · 배선은 ForgeUi.cs(대장간 나이 막대)가 열리는 회차',
-    'afknob_drop':     'T331 29회차 — 값 잼 · 배선은 Popups.cs(공용 토글 공장)가 열리는 회차',
-    'infobtn_drop':    'T331 30회차 — **절반 섰다**(DungeonPopups.InfoButton) · 나머지는 ForgeUi.InfoButton 이 열리는 회차(대장간·장비 시트 · NEED 2)',
+    'afknob_drop':     'T331 42회차 — 공장(Popups.cs Toggle)은 열렸지만 손잡이 `knob` 이 **Image 자신**이라(UiKit.Rounded · 자식 face) 그 안에 깐 그늘은 손잡이 위에 그려진다 · 손잡이를 상자로 감싸거나 UiShadow 에 «형제 앞에 깔기» 갈래가 있어야 한다(ToggleSlide·PressFx·자들이 knob 을 잡는다) — 다음 회차',
 }
 
 # 표 밖 자리의 **장부**(26회차) — «이 축이 볼 자리가 아니다» 거나 «다른 길로 이미 섰다» 는 것을

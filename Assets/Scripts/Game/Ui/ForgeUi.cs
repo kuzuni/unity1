@@ -491,6 +491,8 @@ namespace Forge.Game.Ui
             t.fontStyle = FontStyles.Bold;                          // 정본 3634·5062 `font-weight: 900`
             // T354 24회차 — 정본 5062 `.fi-info-btn { line-height: 1 }` 는 **그 이름의 원판에만** 있다(971 `.info-btn` 은 줄높이를 안 준다 · 표에도 없다) → 이름으로 가른다.
             if (name == "fi-info-btn") LineHeight.Apply(t, "fi_info_btn_lh");
+            // T331 42회차 — 정본 8174 `.info-btn`(`#equip-sheet .anvil-side .info-btn` 도 같은 줄)의 둘째 겹 `0 .1rem .16rem rgba(0,0,0,.38)`(표 infobtn_drop) — 30회차가 던전 공장에 건 그 나머지 절반(NEED 2). 원판 뒤 · 크기는 sizeDelta 를 그대로 준다.
+            UiShadow.Drop(rt, "infobtn_drop", size * 0.5f, size, size);
             return b;
         }
     }

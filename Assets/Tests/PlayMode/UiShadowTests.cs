@@ -422,6 +422,60 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0.22, UiShadow.Table.Get("ratebar_drop").A, 1e-6, "표의 알파(.22)가 아니다");
         }
 
+        /// <summary>T331 42회차 — 정본 5132 `.fi-age-bar` 셋째 겹(딱딱한 턱 · 표 fiagebar_lip)이 확률 정보 행과 목록 머리 둘 다의 «bar» 틀 안에 · 8174 `.info-btn` 둘째 겹(infobtn_drop)이 대장간 시트·정보 팝업의 ForgeUi.InfoButton 에도(던전 공장은 30회차).</summary>
+        [UnityTest]
+        public IEnumerator 정보_팝업_시대_막대_턱과_대장간_정보_버튼_그늘이_선다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            ForgeInfoPopup.Open(h);
+            yield return null; yield return null;
+            Popup p = h.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(p, "확률 정보 팝업");
+            int bars = 0;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (!rt.name.StartsWith("age-") || rt.Find("bar") == null) continue;
+                RectTransform box = (RectTransform)rt.Find("bar");
+                Transform lip = UiShadow.Find(box, "fiagebar_lip");
+                Assert.IsNotNull(lip, rt.name + " 막대의 턱이 없다");
+                Assert.AreEqual(0, lip.GetSiblingIndex(), rt.name + " — 턱은 틀 안 맨 뒤");
+                Assert.IsTrue(UiShadow.Table.Get("fiagebar_lip").IsHard, "턱은 흐림 0");
+                Assert.Less(lip.GetComponent<Image>().rectTransform.anchoredPosition.y, 0f, "턱이 아래로 안 내려갔다");
+                Transform pattern = rt.Find("age-pattern");
+                if (pattern != null) Assert.AreEqual(1, pattern.GetSiblingIndex(), "무늬 층은 그대로 형제 1");
+                bars++;
+            }
+            Assert.Greater(bars, 0, "확률 정보 행(age-*)이 0 이다");
+            RectTransform fiBtn = null;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == "fi-info-btn") { fiBtn = rt; break; }
+            Assert.IsNotNull(fiBtn, "정보 팝업의 i 버튼(fi-info-btn)");
+            Assert.IsNotNull(UiShadow.Find(fiBtn, "infobtn_drop"), "정보 팝업 i 버튼의 그늘이 없다(ForgeUi.InfoButton)");
+
+            ForgeInfoPopup.OpenList(h);
+            yield return null; yield return null;
+            int heads = 0;
+            foreach (RectTransform rt in p.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name != "head" || rt.Find("bar") == null) continue;
+                Assert.IsNotNull(UiShadow.Find((RectTransform)rt.Find("bar"), "fiagebar_lip"), "목록 머리 막대의 턱이 없다");
+                heads++;
+            }
+            Assert.Greater(heads, 0, "목록 머리(head)가 0 이다");
+            ForgeInfoPopup.Close(h);
+            yield return null;
+
+            ForgeSheet.Render(h);
+            yield return null;
+            RectTransform sheetBtn = null;
+            foreach (RectTransform rt in UiRoot.Instance.Sheet.GetComponentsInChildren<RectTransform>(true)) if (rt.name == "info-btn") { sheetBtn = rt; break; }
+            Assert.IsNotNull(sheetBtn, "장비 시트의 i 버튼(info-btn)");
+            Transform sh = UiShadow.Find(sheetBtn, "infobtn_drop");
+            Assert.IsNotNull(sh, "장비 시트 i 버튼의 그늘이 없다");
+            Assert.AreEqual(0, sh.GetSiblingIndex(), "그늘은 원판보다 뒤");
+            Assert.IsNotNull(sh.GetComponent<Image>().sprite, "흐린 겹은 구운 판이다");
+        }
+
         [UnityTest]
         public IEnumerator 자동_제련_카드는_턱과_앰비언트_두_겹을_쥔다()
         {

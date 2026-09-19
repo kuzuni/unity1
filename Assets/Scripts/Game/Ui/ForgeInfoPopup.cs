@@ -104,7 +104,9 @@ namespace Forge.Game.Ui
             for (int i = 0; i < d.Ages.Length; i++)
             {
                 string age = d.Ages[i];
-                ForgeUi.AgeBar(rowsBox, "age-" + age, inner, barH, d, age, Pct(curP.Get(age, 0)), info != null ? Pct(nextP.Get(age, 0)) : "—", stars);
+                RectTransform fiBar = ForgeUi.AgeBar(rowsBox, "age-" + age, inner, barH, d, age, Pct(curP.Get(age, 0)), info != null ? Pct(nextP.Get(age, 0)) : "—", stars);
+                // T331 42회차 — 정본 5132 `.fi-age-bar` 의 셋째 겹 `0 .1rem 0 rgba(0,0,0,.22)`(표 fiagebar_lip · 딱딱한 턱 · 앞 둘은 안쪽 띠). 막대 뿌리의 형제(무늬 층 = 1)를 안 흔들려고 첫 자식 «bar» 틀 안에(자동 제련 막대와 같은 길).
+                UiShadow.Drop((RectTransform)fiBar.Find("bar"), "fiagebar_lip", RadiusUi.Px("fi_age_bar_r_rem"), inner, barH);
             }
             PopupKit.Spacer(card, rem * 0.8f);
             // T378 11회차 — 정본 5161 `.fi-upgrade { padding: .65rem 1.5rem; font-size: 1.05rem }` 은 높이를 안 준다: 두 줄 글(제목<br><small>)이 높이를 정한다
@@ -245,6 +247,7 @@ namespace Forge.Game.Ui
                 RectTransform section = PopupKit.Item(content, "section-" + age, -1f, barH + rem * 0.3f + gridH);
                 RectTransform bar = ForgeUi.AgeBar(section, "head", inner, barH, d, age, Pct(ageP), null, stars);
                 UiKit.Place(bar, 0f, 0f, inner, barH);
+                UiShadow.Drop((RectTransform)bar.Find("bar"), "fiagebar_lip", RadiusUi.Px("fi_age_bar_r_rem"), inner, barH);   // T331 42회차 — 목록 머리(`fi-age-bar fl-head` · 5610 은 턱을 안 덮는다)도 같은 턱
                 RectTransform grid = UiKit.Box(section, "forge-item-grid");
                 UiKit.Place(grid, 0f, barH + rem * 0.3f, inner, gridH);
                 // T377 21회차 — 정본 **731** `.forge-item-grid { background: #d6d6d6 }`. 값은 맞았지만 **코드에 박혀** 있었다
