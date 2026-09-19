@@ -415,12 +415,12 @@ namespace Forge.Game.Ui
                     ck.color = PinnedColorUi.C("af_check_on_ink");   // ✓ 만 #23c552(ui.js 2289 tint)
                     UiKit.Anchor(ck.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, cb * 0.8f, cb * 0.8f);
                 }
-                x += cb + rem * 0.4f;
+                x += cb + rem * UiKit.L("af_age_bar_gap_rem");   // T482 4회차 — 정본 4701 `.af-age-bar { gap: .45rem }`(체크 ↔ 이름) · 전엔 .4rem 박힘
             }
             float ico = h * 0.7f;
             Image ai = PopupKit.IconOr(bar, "ico", AgeIconKey(age));
             UiKit.Place(ai.rectTransform, x, (h - ico) * 0.5f, ico, ico);
-            x += ico + rem * 0.35f;
+            x += ico + rem * UiKit.L("age_bar_ico_mr_rem");   // T482 4회차 — 정본 4717 `.af-age-name .ico, .fi-age-name .ico { margin-right: .14rem }`(아이콘은 이름 안 인라인 조각 · 두 막대 공통) · 전엔 .35rem 박힘(결정 803)
             // T333 18회차 — 정본 **5138** `.fi-age-star { margin-left: .22rem; color: #ffb300; font-size: .88rem; text-shadow: -1px -1px 0 #000 ×4 }`:
             //   별은 이름과 **다른 조각**이다(색·크기·링이 다 따로다). 클론은 «이름 ★★» 로 **한 문자열에 이어 붙여** 두어 셋 다 못 걸고 있었다.
             //   그래서 여기서 이름과 별을 떼어 각자 세운다 — 자리는 같은 파일의 «주 수치 뒤 화살표»(`ItemCard`)가 쓰는 `preferredWidth` 길 그대로.
