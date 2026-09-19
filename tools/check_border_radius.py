@@ -266,6 +266,26 @@ TABLE = {
     '.fi-pill': u'✓정본 5065 `.fi-pill { border-radius: 1rem }` ↔ 클론 `ForgeUi.Pill` 의 `h * 0.5f`(`ForgeInfoPopup` ph 1.7rem · 반높이 .85rem < 1rem) — 알약 동치(결정 543) · `AutoForgeRadiusTests`',
     '.fi-pill-ico': u'—클론 `ForgeUi.Pill` 은 아이콘(`IconOr`)만 놓고 그 뒤 색 원판(정본 5071·5072 `#f59e0b`/`#ef4444`)이 아직 없다 — 원판이 서는 회차에 50% 가 같이 선다(13회차 확인)',
     '.fi-card .fi-skip': ['Ui/ForgeInfoPopup.cs$fi_skip_r_rem'],
+    # ── T415 17회차(2026-09-19 · 워커 R) — 미정 44 중 **산 lock 밖 파일**의 자리 + «자리 없음» 판정 ──
+    '.dg-detail-hero': ['Ui/DungeonDetailPopup.cs$dgd_hero_r_rem'],           # 2060 .6rem — 상자 자신을 둥근 마스크로(바탕 겹·일러스트·제목이 그 안)
+    '.skd-orbcol .sk-shard': ['Ui/SkillPanel.cs$skd_shard_r_rem'],             # 5244 .5rem — 격자 칸(sk_shard_r_rem .45)과 다른 값
+    '.skd-btn': ['Ui/PetSkillKit.cs$btn_r_rem@PetSkillUi.json'],               # 5259 .7rem — PaperButton 기본 반지름(곁 표 .7) · SkillPanel 상세 버튼 둘이 그 기본을 쓴다
+    '.summon-btn': ['Ui/PetSkillKit.cs$btn_r_rem@PetSkillUi.json'],            # 5209 .7rem — 같은 PaperButton(소환·승천 갈래 둘 다)
+    '.idet-icon.tn-bronze': ['Ui/TechPopups.cs#circle'],                       # 3689 50% — `DungeonPopups.BorderedCircle(ic, "circle", …)` 청동 원(파일에 "circle" 이 이 한 줄뿐)
+    '.sk-orb.equipped::after': u'✓클론 `SkillPanel.cs:220` `PetSkillKit.Disc(orbRt, "equipped", …)` = `UiKit.Circle`(원판 스프라이트) — `#` 창은 이웃 원 공장(225 `Disc(plate, "bg")`) 때문에 고장 주입이 안 잡혀(위 주석) PlayMode `SkillRadiusTests` 가 Disc 의 스프라이트 = `UiShapes.Circle` 을 대신 지킨다',
+    '.cur-pill': u'✓알약 동치(결정 543) — 클론 `PetSkillKit.Pill` 은 `h * 0.5`(pill_h_rem 1.32 → .66rem) · 정본 1rem ≥ 반 높이라 같은 알약(스킬·펫 시트 머리 재화 알약)',
+    '.icon-circle.sm': u'—정본 2274 의 50% 는 실물 자리(채팅 공유 카드 아바타 둘 · ui.js 5262·5267)에서 3401 `.icon-circle.sm { border-radius: .28rem }` 이 덮는다 — 그 자리는 `chat_share_avatar_r_rem`(3401) 이 짝(ChatScreen.cs 309)',
+    '.btn.round': u'—정본 실물 0(ui.js·index.html 에 `btn round` 없음)',
+    '.pet-card': u'—정본 실물 0(T33 47회차 `.pet-card` 죽음)',
+    '.pet-card .icon-circle': u'—정본 실물 0(`.pet-card` 죽음)',
+    '#panel-debug input[type=number]': u'—클론 `DebugPanel.cs` 에 숫자 입력 상자가 없다(InputField 0) — 디버그 판은 버튼뿐',
+    '.grid-scroll::-webkit-scrollbar-thumb': u'—스크롤바 없음(클론 ScrollRect 는 Scrollbar 를 안 단다 · Game/Ui 에 Scrollbar 0)',
+    '.af-dd-list::-webkit-scrollbar-track': u'—스크롤바 없음(같은 까닭)',
+    '.af-dd-list::-webkit-scrollbar-thumb': u'—스크롤바 없음(같은 까닭)',
+    '.equip-cell[data-age]::before': u'—inherit(부모 `.equip-cell` .7rem 을 물려받는 시대 무늬 겹) — 클론 무늬 층(T124 AgePattern)은 셀 마스크 안이라 제 반지름이 없다 · 828 의 셀 값은 ForgeUi(T331 lock) 뒤',
+    '.fi-age-bar::before': u'—inherit(막대 무늬 겹 · T380) — 클론은 막대 마스크 안 · 5083 의 막대 값은 fi_age_bar_r_rem(14회차)',
+    '.fi-age-bar::after': u'—inherit(막대 마스크 겹 · T380) — 같은 까닭',
+    '.ico.av-ico': u'—inherit(인라인 아바타 아이콘이 부모 상자의 모서리를 물려받는다 · 제 값 없음 · 부모 자리들이 각자 표 키)',
     # ── T415 14회차(2026-09-18 · 워커 S) — 나이 막대 셋(`ForgeUi.AgeBar` 한 공장 · 종전 «막대 높이 × .25» 리터럴) ──
     '.age-bar-wrap': u'—죽은 CSS: `.age-bar-wrap`·`.age-row`·`.age-pct`·`.age-tag`(703~708)를 `ui.js`·`index.html` 어디서도 안 그린다(렌더 줄 0 · 14회차 grep) — 클론에 자리 없음',
     '.af-age-bar': ['Ui/ForgeUi.cs$af_age_bar_r_rem'],

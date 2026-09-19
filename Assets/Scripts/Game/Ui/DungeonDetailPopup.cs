@@ -132,6 +132,13 @@ namespace Forge.Game.Ui
             // 배너(그림 + 제목 오버레이) — 모서리는 카드 위쪽 둥근 반지름을 따른다.
             RectTransform hero = UiKit.Box(card, "hero");
             UiKit.Place(hero, 0f, 0f, cw, heroH);   // T465·T473 — 카드 rect 가 곧 테 안쪽이다(옛 Line3 보정을 세로·가로 다 걷었다)
+            // T415 17회차 — 정본 2060 `.dg-detail-hero { border-radius: .6rem }`: CSS 배경(그라디언트·일러스트)은 border-box 모서리로 잘리므로 바탕 겹·일러스트·제목이 다 둥근 상자 안이다.
+            //   상자 자신을 표 `dgd_hero_r_rem` 의 둥근 마스크로 세운다(그림은 안 그린다 · 자식 순서·이름은 그대로 — SurfaceArtTests 가 `hero/bg-grad` 첫 자식을 본다).
+            Image heroMask = hero.gameObject.AddComponent<Image>();
+            heroMask.sprite = UiShapes.Rounded; heroMask.type = Image.Type.Sliced;
+            heroMask.pixelsPerUnitMultiplier = UiShapes.RoundedMultiplier(RadiusUi.Px("dgd_hero_r_rem"));
+            heroMask.raycastTarget = false;
+            hero.gameObject.AddComponent<Mask>().showMaskGraphic = false;
             // T178 19회차 — 정본 2060 `.dg-detail-hero { background: linear-gradient(120deg, var(--bg,#444c56), #161b22) }` = 목록 배너 1952 와 같은 겹(표 dg_banner).
             //   일러스트 **뒤**의 바탕이다(정본 주석 «목록 배너와 같은 dg_* 일러스트를 얹는다» · 그림이 없는 던전은 이것만 보인다). 여태 카드색이 비쳤다.
             SurfaceArt.Fill(hero, "bg-grad", "dg_banner", cw, heroH);

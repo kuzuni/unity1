@@ -88,5 +88,9 @@
   "_af_age_bar_r_rem": "T415 14회차 — 정본 style.css 4701 `.af-age-bar { … background: var(--ac, #999); border-radius: .6rem }`(자동 제련 팝업의 시대 막대) · 종전 `ForgeUi.AgeBar` 는 `h * 0.25f`(막대 1.75rem 의 .4375rem)가 코드에 박혀 있었다 — 정보 팝업 막대(.55)와 한 값이라 둘 다 정본과 어긋났다.",
   "fi_age_bar_r_rem": 0.55,
   "_fi_age_bar_r_rem": "T415 14회차 — 정본 style.css 5083 `.fi-age-bar { … background: var(--ac, #999); border-radius: .55rem }`(확률 정보 팝업의 시대 막대 · 목록 머리 `fi-age-bar fl-head` 도 같은 규칙 · 5116·5125 의 `::before`·`::after` 는 `inherit`) · 종전 `ForgeUi.AgeBar` 의 `h * 0.25f` 리터럴 — `autoForge` 갈래로 `af_age_bar_r_rem` 과 가른다.",
-  "fi_skip_r_rem": 0.6
+  "fi_skip_r_rem": 0.6,
+  "dgd_hero_r_rem": 0.6,
+  "_dgd_hero_r_rem": "T415 17회차 — 정본 style.css 2060 `.dg-detail-hero { height: 5rem; border-radius: .6rem; background: linear-gradient(…) }`(던전 상세 영웅 판). 클론 `DungeonDetailPopup.cs` 는 상자(hero)를 직각으로 두고 바탕 겹·일러스트·제목을 얹었다 — CSS 배경은 border-box 모서리로 잘리므로 상자 자신을 이 반지름의 마스크로 세운다(자식 순서·이름은 그대로).",
+  "skd_shard_r_rem": 0.5,
+  "_skd_shard_r_rem": "T415 17회차 — 정본 style.css 5244 `.skd-orbcol .sk-shard { height: .85rem; border-radius: .5rem }`(스킬 상세 카드의 조각 게이지). 클론 `SkillPanel.cs` 상세 카드는 격자 칸의 `sk_shard_r_rem`(.45 · PetSkillUi.json · 정본 4119 격자 게이지)을 그대로 썼다 — 상세는 .5 다."
 }

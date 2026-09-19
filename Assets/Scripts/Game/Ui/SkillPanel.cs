@@ -548,7 +548,8 @@ namespace Forge.Game.Ui
             UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0f, PetSkillStyle.Rem(0.15f)), lv.sizeDelta.x, lvH);
             float cy = orbW + PetSkillStyle.Rem(0.22f);
             if (sk.Stars > 0) { StarRow(orbcol, sk.Stars, orbW, cy, starH); cy += starH + PetSkillStyle.Rem(0.22f); }
-            RectTransform shard = PetSkillKit.Gauge(orbcol, "sk-shard", orbW, shardH, ratio, PetSkillStyle.T("gauge", sk.Dupes, need), PetSkillStyle.C("shard_bg"), PetSkillStyle.Px("sk_shard_r_rem"), PetSkillKit.Line2, TextKind.Sub);
+            // T415 17회차 — 정본 5244 `.skd-orbcol .sk-shard { border-radius: .5rem }` — 상세 카드의 조각 게이지는 격자 칸(4119 · `sk_shard_r_rem` .45)과 값이 다르다 → 표 `RadiusUi.json` `skd_shard_r_rem`.
+            RectTransform shard = PetSkillKit.Gauge(orbcol, "sk-shard", orbW, shardH, ratio, PetSkillStyle.T("gauge", sk.Dupes, need), PetSkillStyle.C("shard_bg"), RadiusUi.Px("skd_shard_r_rem"), PetSkillKit.Line2, TextKind.Sub);
             ((Image)shard.Find("face/fill").GetComponent<Image>()).color = PetSkillStyle.C("white");
             UiKit.Place(shard, 0f, cy, orbW, shardH);
 
