@@ -147,12 +147,16 @@ namespace Forge.Game.Ui
             // 폭은 `KeylineUi.Em`(표 · em → px)이 낸다 — `ForgeAutoPopup` 의 af-title 과 같은 길이다.
             UiKit.OutlinePx(title, "pp_line", KeylineUi.Em("sheet_title", title.fontSize));
             RectTransform cmp = PopupKit.Item(card, "cmp", -1f, rem * 4.6f);
-            float colW = (w - rem * 1.8f - rem * 2f) * 0.5f;
+            // T484 — 정본 2221 `.sellwarn-cmp { display: flex; justify-content: center; gap: .45rem }` + 2238 `.swc-gt { flex: 0 0 auto }`:
+            //   열 둘(flex 1 1 0)이 남는 폭을 반씩, 화살은 글자 폭만큼, 사이는 gap 둘. 전엔 화살 상자 2rem 이 박혀 열이 그만큼 좁았다.
+            float cmpGap = CraftStyle.Px("sellwarn_cmp_gap_rem");
+            float gtW = PetSkillKit.TextWidth(TextKind.Body, ">");
+            float colW = (w - rem * 1.8f - gtW - cmpGap * 2f) * 0.5f;
             Col(cmp, "sold", 0f, colW, "파는 것", true, sold, d);
             TextMeshProUGUI gt = UiKit.Text(cmp, "gt", TextKind.Body, ">", "pp_red");
             gt.fontStyle = FontStyles.Bold;
-            UiKit.Place(gt.rectTransform, colW, 0f, rem * 2f, rem * 4.6f);
-            Col(cmp, "kept", colW + rem * 2f, colW, "남는 것", false, kept, d);
+            UiKit.Place(gt.rectTransform, colW + cmpGap, 0f, gtW, rem * 4.6f);
+            Col(cmp, "kept", colW + cmpGap + gtW + cmpGap, colW, "남는 것", false, kept, d);
             int gap = Array.IndexOf(d.Ages, sold.Age) - Array.IndexOf(d.Ages, kept.Age);
             TextMeshProUGUI note = PopupKit.Label(card, "note", TextKind.Sub, "파는 쪽이 " + gap + "시대 더 최신입니다.\n같거나 이전 시대면 이 창은 뜨지 않습니다.", "pp_muted", TextAlignmentOptions.Center, true, false, PopupKit.FontSize(TextKind.Sub) * 2.8f);
             // T354 10회차 — 정본 2239 `.sellwarn-note { line-height: 1.35 }`. 이 글은 줄바꿈이 박혀 **두 줄**이라 줄 간격이 눈에 보이는 자리다.

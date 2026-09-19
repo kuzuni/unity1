@@ -137,12 +137,16 @@ namespace Forge.Game.Ui
                 float nameW = DungeonPopups.RemL("asc_name_w_rem");
                 TextMeshProUGUI name = DungeonPopups.Bold(row, "name", TextKind.Micro, asc.Table.LineKr[l], ink, TextAlignmentOptions.Left);
                 TextSizeUi.Apply(name, "asc_row");   // T464 — 정본 5620 `.asc-row` .82rem(§1 예외 열째 자리 · 줄 안 셋이 다 물려받는다)
-                UiKit.Place(name.rectTransform, px + ico * 1.2f, 0f, nameW, rowH);
+                // T484 — 정본 5620 `.asc-row { gap: .4rem }` + 5627 `.asc-name { flex: 0 0 5.2rem }`(아이콘 + 공백 + 이름이 **그 5.2rem 안**):
+                //   이름 글 상자는 칸 안(아이콘 뒤)에 두고, 진행 글은 칸 오른변 + gap 에서 시작한다. 전엔 이름 상자가 `px + ico×1.2` 에서 5.2rem 을 통째로
+                //   차지해 진행 글이 그만큼(≈1.74em − .4rem) 오른쪽으로 밀려 있었다.
+                float rowGap = DungeonPopups.RemL("asc_row_gap_rem");
+                UiKit.Place(name.rectTransform, px + ico * 1.2f, 0f, nameW - ico * 1.2f, rowH);
                 string label = l == "forge" ? "대장간 Lv." + p.Cur + "/" + p.Max : "소환 Lv." + p.Cur + "/" + p.Max;
                 float cntW = DungeonPopups.RemL("asc_cnt_w_rem");
                 TextMeshProUGUI prog = UiKit.Text(row, "prog", TextKind.Micro, label, ink, TextAlignmentOptions.Left);
                 TextSizeUi.Apply(prog, "asc_row");
-                UiKit.Place(prog.rectTransform, px + ico * 1.2f + nameW, 0f, inner - px * 2f - ico * 1.2f - nameW - cntW, rowH);
+                UiKit.Place(prog.rectTransform, px + nameW + rowGap, 0f, inner - px * 2f - nameW - cntW - rowGap * 2f, rowH);
                 OpacityUi.Apply(prog.gameObject, "asc_prog");   // T359 — 정본 5628 .asc-prog { opacity: .85 }
                 // T359 — 정본 5624 `.asc-row.ready::after { content: '▶'; font-size: .7rem; opacity: .8; margin-left: .1rem }`: 화살은 cnt 칸 뒤의 제 상자(알파 .8) —
                 //   cnt 글자에 붙이면 같은 알파가 되어 정본과 다르다. 준비 안 된 행엔 없다(::after 가 .ready 에만 있다).

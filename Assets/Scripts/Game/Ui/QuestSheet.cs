@@ -142,7 +142,7 @@ namespace Forge.Game.Ui
                 TextMeshProUGUI rwT = UiKit.Text(rw, "amt", TextKind.Sub, PopupKit.Fmt(q.Rw.Amt), "pp_ink", TextAlignmentOptions.Left);
                 rwT.fontStyle = FontStyles.Bold;
                 TabularText.Apply(rwT);   // T352 ⓒ 6회차 — 정본 8635 `.qst-reward { font-variant-numeric: tabular-nums }`: 행마다 세로 열을 이루는 보상 수 — 숫자 구간만 <mspace>(결정 570 · 칸 폭은 글꼴에서)
-                rwT.rectTransform.offsetMin = new Vector2(icon * 0.65f, 0f);
+                rwT.rectTransform.offsetMin = new Vector2(icon * 0.6f + DungeonPopups.RemL("qst_reward_gap_rem"), 0f);   // T484 — 정본 2056 `.qst-reward { gap: .2rem }`(전엔 icon×.05 = 붙어 있었다)
                 int idx = i;
                 Button claim = null;
                 claim = PopupKit.Btn(right, "claim", "수령", done ? "pp_green" : "pp_gray", done ? "pp_green_dk" : "pp_gray_dk", () => OnClaim(h, idx, claim ? claim.GetComponent<RectTransform>() : null), btnW, btnH, "stage_ink", TextKind.Sub, !done);

@@ -365,11 +365,17 @@ namespace Forge.Game.Ui
             RectTransform pill = UiKit.Box(pillRow, "pill");
             UiKit.Anchor(pill, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, pillW, pillH);
             UiKit.Rounded(pill, "bg", "pp_ink", RadiusUi.Px("league_ticket_pill_r_rem"));
+            // T484 — 정본 2591 `.league-ticket-pill { display: flex; justify-content: center; gap: .3rem }` + 2598 `.ico { 1.15rem }`:
+            //   아이콘 + gap + 글을 **한 묶음**으로 알약 가운데. 전엔 아이콘이 왼쪽 .4rem 에 박히고 글은 `pillH×.9` 뒤에서 따로 가운데였다.
+            float tpGap = DungeonPopups.RemL("league_ticket_gap_rem"), tpIco = DungeonPopups.RemL("league_ticket_ico_rem");
+            string tpStr = h.LeagueState.Tickets + "/" + h.Meta.League.TicketMax;
+            float tpTw = PetSkillKit.TextWidth(TextKind.Sub, tpStr);
+            float tpX0 = (pillW - (tpIco + tpGap + tpTw)) * 0.5f;
             Image tk = PopupKit.IconOr(pill, "ico", "ticket");
-            UiKit.Place(tk.rectTransform, rem * 0.4f, pillH * 0.15f, pillH * 0.7f, pillH * 0.7f);
-            TextMeshProUGUI tkT = UiKit.Text(pill, "tickets", TextKind.Sub, h.LeagueState.Tickets + "/" + h.Meta.League.TicketMax, "stage_ink");
+            UiKit.Place(tk.rectTransform, tpX0, (pillH - tpIco) * 0.5f, tpIco, tpIco);
+            TextMeshProUGUI tkT = UiKit.Text(pill, "tickets", TextKind.Sub, tpStr, "stage_ink", TextAlignmentOptions.Left);
             tkT.fontStyle = FontStyles.Bold;
-            tkT.rectTransform.offsetMin = new Vector2(pillH * 0.9f, 0f);
+            UiKit.Place(tkT.rectTransform, tpX0 + tpIco + tpGap, 0f, tpTw, pillH);
             PopupKit.Spacer(card, rem * 1.9f + gap);   // 정본 2593 `.league-ticket-pill { margin: 0 auto 1.9rem }` + T463 카드 gap
 
             float av = UiKit.H("lc_avatar");

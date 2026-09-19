@@ -218,9 +218,11 @@ namespace Forge.Game.Ui
                     //   정본 주석(1988~1991)이 구실을 적어 뒀다: 흰 원형 판을 걷고 아이콘을 슬롯 가득 키운 대신 «판독은 아이콘 키라인 + 드롭섀도가 보증한다».
                     //   길이가 `em` 이라 표는 **상자 비율**(`_f`)로 적는다 — 슬롯 `.dg-rw` 가 1.62em 이고 아이콘이 그 100% 라 1em = 상자/1.62 다.
                     DropShadow.Apply(img, "dg_rw_ico");
-                    x += ico * 0.62f;
+                    // T484 — 정본 1992 `.dg-rw { width: 1.62em; margin-right: .40em }`(inline-block · 이름 글자 em): 슬롯 하나가 «아이콘 폭 + .40em» 을 차지하고
+                    //   다음 슬롯·이름이 그 뒤에 선다. 전엔 `ico×.62` + 뒤 `ico×.6` 이 박혀 슬롯 둘이 38% 겹쳤다. 1949 `.dg-banner { gap: .6rem }` 은
+                    //   흐름 자식이 `.dg-info` 하나(`.dg-right` 는 absolute)라 그림에 안 닿는다 — 이 줄의 틈은 이 마진이다.
+                    x += ico + nameH / 1.25f * UiKit.L("dg_rw_mr_em");
                 }
-            x += ico * 0.6f;
             TextMeshProUGUI name = DungeonPopups.Bold(rt, "name", TextKind.Body, d.Kr, "white", TextAlignmentOptions.Left);
             UiKit.OutlinePx(name, "pp_line", TextShadowUi.RingPx("dg_banner_name"));   // T333 14회차 — 정본 3890 8방 1px 순검정 링(표 rings · 전엔 카탈로그 dg_name_outline SDF 폭 .15)
             UiKit.Place(name.rectTransform, x, padY, bw * 0.55f, nameH);
