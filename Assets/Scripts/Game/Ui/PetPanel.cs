@@ -260,6 +260,12 @@ namespace Forge.Game.Ui
             RectTransform face = PetSkillKit.Framed(parent, "tile-face", faceC, PetSkillStyle.Px(faceRadiusKey ?? "tile_r_rem"), PetSkillKit.Line3);
             if (petd) face.Find("line").GetComponent<Image>().color = ColorMixUi.Mix("petd_line", faceC);
             face.sizeDelta = new Vector2(size, size);
+            // T371 13회차 — 정본 8124 `.pet-tile .tile-face` 의 **첫 바깥 겹** `0 0 .5rem -.08rem color-mix(in srgb, var(--rc) 60%, transparent)`:
+            //   등급색 60% 광(치우침 0). 색은 표 `pet_tile_shadow_2`, 흐림·번짐은 카탈로그. 격자·업그레이드 재료·탈것 격자가 이 공장을 쓰고,
+            //   부르는 쪽이 뒤에 드리운 그림자(`pettile_drop`)를 맨 뒤에 깔아 그림자 0 · 광 1(CSS 앞 겹이 위). 펫 상세 타일(petd)은 `.pet-tile` 이 아니다.
+            if (!petd)
+                UiShadow.Glow(face, "pettile_glow", PetSkillStyle.Px(faceRadiusKey ?? "tile_r_rem"), size, size,
+                    UiKit.L("pettile_glow_blur_rem"), UiKit.L("pettile_glow_spread_rem"), ColorMixUi.Mix("pet_tile_shadow_2", rc));
             RectTransform pf = PetSkillKit.PetFace(face, Defs, name, size * 0.86f, kind);
             UiKit.Anchor(pf, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, size * 0.86f, size * 0.86f);
             float lvH = UiCatalog.Instance.Kind(TextKind.Sub).size * 1.15f;

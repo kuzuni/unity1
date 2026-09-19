@@ -164,6 +164,48 @@ namespace Forge.Game.Ui
             return img;
         }
 
+
+        /// <summary>
+        /// T371 13회차 — **색을 부르는 쪽이 주는** 광(치우침 0 · 흐림·번짐만 · 정본 `0 0 <blur> <spread> color-mix(…)` 꼴).
+        /// 표 `ShadowUi.json` 은 색을 rgba 로 쥐므로 등급색 × 비율(ColorMixUi)로 나오는 겹은 이 길로 건다 —
+        /// 모양(흐림·번짐)은 <see cref="Blur"/> 와 같은 굽기(누적 정규분포)이되 **판은 흰 알파 마스크**로 굽고 색은 `img.color` 가 쥔다
+        /// (그래서 알파는 «판의 덮임 × 색 알파» 한 번만 곱해진다 · 8539 62% / 8124 60% 의 그 알파). 겹 이름은 `shadow-<name>`(자가 <see cref="Find"/> 로 찾는다).
+        /// </summary>
+        /// <param name="blurRem">흐림(rem · 정본 셋째 값).</param>
+        /// <param name="spreadRem">번짐(rem · 정본 넷째 값 · 음수면 안쪽).</param>
+        /// <param name="color">겹 색(알파 포함 · `ColorMixUi.Mix(…, transparent)` 가 낸 것).</param>
+        public static Image Glow(RectTransform box, string name, float radiusPx, float w, float h, float blurRem, float spreadRem, Color color)
+        {
+            if (box == null) throw new ArgumentNullException("box");
+            if (blurRem <= 0f) throw new ArgumentOutOfRangeException("blurRem", "광은 흐림이 있어야 한다(0 이면 딱딱한 턱 — Drop 을 써라)");
+            var s = new ShadowSpec { DxRem = 0, DyRem = 0, BlurRem = blurRem, SpreadRem = spreadRem, R = 1, G = 1, B = 1, A = 1 };
+            float rem = PetSkillStyle.RemPx;
+            if (w <= 1f || h <= 1f)
+            {
+                Debug.LogWarning("UiShadow: 광 " + name + " 을 못 구웠다 — 상자(" + box.name + ")의 크기가 0이다.");
+                return null;
+            }
+            float blur = blurRem * rem, spread = spreadRem * rem;
+            float pad = Mathf.Ceil(blur * 2f + Mathf.Max(0f, spread)) + 2f;
+            Transform had = box.Find(Layer(name));
+            Image img = had != null ? had.GetComponent<Image>() : null;
+            if (img == null)
+            {
+                RectTransform rt = UiKit.Box(box, Layer(name));
+                img = rt.gameObject.AddComponent<Image>();
+            }
+            img.rectTransform.SetAsFirstSibling();
+            img.raycastTarget = false;
+            img.preserveAspect = false;
+            img.color = color;                                // 판은 흰 마스크 · 색(알파 포함)은 여기서
+            img.sprite = Bake("glow:" + name, s, w, h, radiusPx, pad);
+            RectTransform r = img.rectTransform;
+            r.anchorMin = Vector2.zero; r.anchorMax = Vector2.one;
+            r.offsetMin = new Vector2(-pad, -pad);
+            r.offsetMax = new Vector2(pad, pad);
+            return img;
+        }
+
         static readonly Dictionary<string, Sprite> baked = new Dictionary<string, Sprite>(StringComparer.Ordinal);
 
         /// <summary>구운 판 하나(같은 자리·같은 크기면 한 번만 굽는다).</summary>

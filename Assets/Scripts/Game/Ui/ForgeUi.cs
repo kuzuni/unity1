@@ -117,6 +117,19 @@ namespace Forge.Game.Ui
             return f;
         }
 
+
+        /// <summary>
+        /// T371 13회차 — 정본 8539 `.equip-cell:not(.egg-cell)` 의 **첫 바깥 겹** `0 0 .46rem -.1rem color-mix(in srgb, var(--rc) 62%, transparent)`:
+        /// 시대색을 62% 로 투명과 섞은 광(치우침 0)이 셀 둘레에 번진다. 색은 표 `ColorMixUi` `cell_shadow_2`, 흐림·번짐은 카탈로그 두 키.
+        /// 틀(frame) 상자 안 맨 뒤에 깐다 — 뒤에 부르는 쪽이 드리운 그림자(`equipcell_drop` · 같은 선언의 둘째 겹)를 `SetAsFirstSibling` 으로 깔면
+        /// 그림자 0 · 광 1 이 되어 CSS 순서(앞 겹이 위)와 같다.
+        /// </summary>
+        public static Image CellGlow(RectTransform frame, Color ac, float radiusPx, float size)
+        {
+            return UiShadow.Glow(frame, "equipcell_glow", radiusPx, size, size,
+                UiKit.L("equipcell_glow_blur_rem"), UiKit.L("equipcell_glow_spread_rem"), ColorMixUi.Mix("cell_shadow_2", ac));
+        }
+
         /// <summary>
         /// T382 — 잉크 비율을 «안 주면 표에서» 받는 표식. C# 기본 인수는 **상수만** 되므로 숫자를 못 넣는다(§1 «수치는 코드에 박지 않는다»).
         /// 그래서 기본은 음수 표식이고, 실제 값은 <see cref="InkFrac"/> 가 `ItemFacesUi.json` `thumb_ink_f`(정본 `ui.js` 3145 `THUMB_INK: 0.76`)에서 읽는다.
@@ -132,9 +145,11 @@ namespace Forge.Game.Ui
             Color ac = AgeColor(d, age);
             RectTransform rt = UiKit.Box(parent, name);
             rt.sizeDelta = new Vector2(size, size);
-            Tile(rt, "frame", CellFace(ac), CellLine(ac), size * 0.16f, PopupKit.Line3);
+            Image tf = Tile(rt, "frame", CellFace(ac), CellLine(ac), size * 0.16f, PopupKit.Line3);
             // T124 — 정본 `.fl-face.equip-cell[data-age]` 만 시대 무늬를 입는다(제작 카드·상세 머리 아이콘은 equip-cell 이 아니다) → 호출자가 켠다
             if (agePattern) AgePattern.Attach(rt, age, cell: true, mask: (string)null, siblingIndex: 1);   // 목록 타일은 셀이라 마스크가 없다(T380 키 갈래)
+            // T371 13회차 — 같은 조건(equip-cell)이면 8539 의 시대색 광도 든다(목록 타일 `.fl-face.equip-cell` · ForgeInfoPopup.Cell 이 그 뒤 드리운 그림자를 건다).
+            if (agePattern) CellGlow((RectTransform)tf.transform.parent, ac, size * 0.16f, size);
             Image ico = PopupKit.IconOr(rt, "img", iconKey);
             float k = size * InkFrac(inkFrac);
             UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, k, k);

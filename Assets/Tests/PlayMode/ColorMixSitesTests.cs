@@ -319,5 +319,61 @@ namespace Forge.Tests.PlayMode
             h.Meta.Popups.Hide(ForgeInfoPopup.ItemName);
             yield return null;
         }
+    
+        /// <summary>T371 13회차 — 정본 8539 `.equip-cell:not(.egg-cell)` 의 **첫 바깥 겹** `0 0 .46rem -.1rem color-mix(in srgb, var(--rc) 62%, transparent)`:
+        /// 장비 칸 틀(frame) 안에 시대색 광(`shadow-equipcell_glow`)이 서고, 그 색은 표 `cell_shadow_2`(시대색 RGB · 알파 .62)다. 드리운 그림자(둘째 겹)보다 **위**(CSS 앞 겹이 위).</summary>
+        [UnityTest]
+        public IEnumerator 장비_칸_시대색_광이_표_비율_62_알파로_그림자_위에_선다()
+        {
+            yield return Boot();
+            ForgeHost h = ForgeHost.Instance;
+            Forge.Core.Forging.ForgeItem it = h.Engine.RollItem();
+            h.Gear.Set(it.Slot, it);
+            ForgeSheet.Render(h);
+            yield return null;
+            Color ac = ForgeUi.AgeColor(h.Defs, it.Age);
+            Transform cell = null;
+            foreach (Transform t in UiRoot.Instance.Sheet.GetComponentsInChildren<Transform>(true)) if (t.name == "cell-" + it.Slot) { cell = t; break; }
+            Assert.IsNotNull(cell, "장비 칸 cell-" + it.Slot);
+            RectTransform frame = (RectTransform)cell.Find("frame");
+            Transform glowT = UiShadow.Find(frame, "equipcell_glow");
+            Assert.IsNotNull(glowT, "틀 안 시대색 광(shadow-equipcell_glow)");
+            Image glow = glowT.GetComponent<Image>();
+            Color want = ColorMixUi.Mix("cell_shadow_2", ac);
+            Assert.AreEqual(0.62f, want.a, 1e-4f, "표 cell_shadow_2 = 62% · transparent 와 섞으면 알파가 .62");
+            Assert.AreEqual(want.r, glow.color.r, 1.0f / 255f, "광 R = 시대색"); Assert.AreEqual(want.g, glow.color.g, 1.0f / 255f, "G"); Assert.AreEqual(want.b, glow.color.b, 1.0f / 255f, "B");
+            Assert.AreEqual(want.a, glow.color.a, 1.0f / 255f, "광 알파 .62");
+            Assert.IsNotNull(glow.sprite, "흐림 .46rem · 번짐 −.1rem 을 구운 판");
+            Transform drop = UiShadow.Find(frame, "equipcell_drop");
+            Assert.IsNotNull(drop, "같은 선언의 둘째 겹(드리운 그림자)");
+            Assert.Less(drop.GetSiblingIndex(), glowT.GetSiblingIndex(), "광은 그림자 위(CSS 앞 겹이 위)");
+            Assert.Less(glowT.GetSiblingIndex(), frame.Find("line").GetSiblingIndex(), "광은 테·면 아래(바깥 광)");
+        }
+
+        /// <summary>T371 13회차 — 정본 8124 `.pet-tile .tile-face` 의 **첫 바깥 겹** `0 0 .5rem -.08rem color-mix(in srgb, var(--rc) 60%, transparent)`:
+        /// 펫 타일 공장(`PetPanel.TileFace`)이 면 상자에 등급색 광(`shadow-pettile_glow`)을 세우고, 색은 표 `pet_tile_shadow_2`(등급색 · 알파 .60)다.</summary>
+        [UnityTest]
+        public IEnumerator 펫_타일_등급색_광이_표_비율_60_알파로_선다()
+        {
+            yield return Boot();
+            float t0 = 0f;
+            while (!(PetSkillHost.Ready && SkillPetSheet.Instance != null) && t0 < 20f) { t0 += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(PetSkillHost.Ready, "PetSkillHost");
+            RectTransform probe = UiKit.Box(SkillPetSheet.Instance.Pets.transform, "glow-probe");
+            float size = PetSkillStyle.Rem(3f);
+            RectTransform face = SkillPetSheet.Instance.Pets.TileFace(probe, "슬라임", "ultimate", size, false, 1, true);
+            yield return null;
+            Color rc = PetSkillStyle.Rarity(PetSkillHost.Instance.Data.Defs, "ultimate");
+            Transform glowT = UiShadow.Find(face, "pettile_glow");
+            Assert.IsNotNull(glowT, "면 상자 안 등급색 광(shadow-pettile_glow)");
+            Image glow = glowT.GetComponent<Image>();
+            Color want = ColorMixUi.Mix("pet_tile_shadow_2", rc);
+            Assert.AreEqual(0.6f, want.a, 1e-4f, "표 pet_tile_shadow_2 = 60% · transparent");
+            Assert.AreEqual(want.r, glow.color.r, 1.0f / 255f, "광 R = 등급색"); Assert.AreEqual(want.g, glow.color.g, 1.0f / 255f, "G"); Assert.AreEqual(want.b, glow.color.b, 1.0f / 255f, "B");
+            Assert.AreEqual(want.a, glow.color.a, 1.0f / 255f, "광 알파 .60");
+            Assert.AreEqual(0, glowT.GetSiblingIndex(), "공장 안에서는 맨 뒤(부르는 쪽이 그 뒤에 드리운 그림자를 깐다)");
+            Object.Destroy(probe.gameObject);
+            yield return null;
+        }
     }
 }
