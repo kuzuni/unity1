@@ -256,7 +256,8 @@
     "skd_passive_r_rem": 1.0,
     "skd_btn_gap_rem": 1.32,
     "skd_btn_pad_x_rem": 0.99,
-    "skd_btn_h_rem": 2.75,
+    "skd_btn_font_rem": 1.02,
+    "skd_btn_pad_y_rem": 0.68,
     "rates_w_f": 0.7435,
     "rates_top_rem": 0.74,
     "rates_pad_x_f": 0.0341,
@@ -551,5 +552,6 @@
     "toast_winders_short": "⚙️ 태엽이 부족합니다 (스테이지 클리어로 획득)",
     "toast_no_upgrade_mount": "업그레이드할 탈것이 없습니다",
     "toast_mount_lv": "✨ {0} Lv.{1}!"
-  }
+  },
+  "_skd_btn": "T483 — style.css **5259** `.skd-btn { flex: 1; font-size: **1.02rem**; font-weight: 900; padding: **.68rem** 0; border-radius: .7rem }` · **5260** `.skd-btn.silver { border: var(--ol3) … ; box-shadow: inset 0 -.28rem 0 #9c9c9c }`(아래턱은 패딩 상자 안). 높이 선언이 **없다** — 내용이 정한다: 줄 수 × 글자 1.02rem × normal(글꼴 자산 비율 · `PopupKit.ModalBtnH` T447 과 한 셈) + .68rem × 2 + 키라인(ol3) 둘 ≈ 3.17rem. 종전 키 `skd_btn_h_rem` 2.75 는 정본 어디에도 없는 한 수라 걷었다(T447 이 `btn_h` 2.4 에서 걷은 그 종). 만렙이면 [업그레이드] 가 `<small>` 두 줄이라 그쪽이 높이를 정하고 둘은 같은 높이(`.skd-btns` flex 행). 5237 `.skd-card { width: 74.95% }` 는 «원본 흰 면 371/495» 를 잰 수라 `skd_w_f` 는 **흰 면**이고 상자는 테(ol3) 둘을 더한다(T410 소환 확률 카드의 길) · `min-height: 20rem`(`skd_min_h_rem`)은 **최솟값**이다."
 }

@@ -506,20 +506,36 @@ namespace Forge.Game.Ui
                 : PetSkillStyle.T("skd_single", PetSkillStyle.Fmt(Sk.Dmg(id)));
             float ratio = Mathf.Clamp01(sk.Dupes / (float)need);
 
-            float w = PetSkillStyle.L("skd_w_f") * UiKit.RefW;
-            float h = PetSkillStyle.Px("skd_min_h_rem");
-            PetSkillModal.Handle m = sheet.Modal.Open(DetailModal, PetSkillStyle.L("skd_w_f"), h, PetSkillStyle.L("skd_top_rem"));
-            RectTransform c = m.Content;
+            // T483 — 정본 5237 `.skd-card { width: 74.95% }` 는 정본 주석대로 «원본 흰 면 371/495» 를 잰 수다 — 테(ol3)를 품은 상자가 아니다. `Framed` 는 키라인을 상자 안에 두므로
+            //   상자 = 흰 면(`skd_w_f`) + 테 둘(T410 소환 확률 카드의 길). 종전엔 상자를 그 값으로 잡아 흰 면이 73.70%W(−1.25%p)였다(런 1224).
+            float w = PetSkillStyle.L("skd_w_f") * UiKit.RefW + PetSkillKit.Line3 * 2f;
             float padX = PetSkillStyle.Px("skd_pad_x_rem"), padT = PetSkillStyle.Px("skd_pad_top_rem"), padB = PetSkillStyle.Px("skd_pad_bottom_rem");
             float inner = w - padX * 2f;
-            float y = padT;
-            // head: orbcol + body
             float orbW = inner * PetSkillStyle.L("skd_orb_w_f");
             float gap = PetSkillStyle.Px("skd_head_gap_rem");
             float starH = UiCatalog.Instance.Kind(TextKind.Sub).size;
             float shardH = PetSkillStyle.Px("skd_shard_h_rem");
-            RectTransform orbcol = UiKit.Box(c, "skd-orbcol");
+            // T483 — 정본 5259 `.skd-btn { font-size: 1.02rem; padding: .68rem 0 }` 엔 높이 선언이 없다 — 내용이 정한다(T447 `PopupKit.ModalBtnH` 와 같은 종 · normal = 글꼴 자산 비율):
+            //   줄 수 × 글자 × normal + 세로 패딩 둘 + 키라인(ol3) 둘. 표의 옛 `skd_btn_h_rem` 2.75 는 정본에 없는 한 수라 걷었다(런 1224: 상자 5.10%H ↔ 정본 계약 ≈5.9 · 원작 7.95).
+            //   만렙이면 [업그레이드] 가 `<small>` 두 줄(정본 ui.js 4426)이라 그쪽이 높이를 정하고 둘은 같은 높이(`.skd-btns` flex 행 stretch).
+            var face = UiFont.Primary.faceInfo;
+            float btnFont = PetSkillStyle.Px("skd_btn_font_rem"), btnPadY = PetSkillStyle.Px("skd_btn_pad_y_rem");
+            int btnLines = maxed ? 2 : 1;
+            float btnH = btnLines * btnFont * (face.lineHeight / face.pointSize) + btnPadY * 2f + PetSkillKit.Line3 * 2f;
+            // T483 — 정본 5237 `min-height: 20rem` 은 **최솟값**이다(종전 고정 높이): 내용 = 위 패딩 + 머리(오브 열 ↔ 이름·설명·재사용 중 큰 쪽) + 패시브 라벨·알약 + 버튼 줄 + 아래 패딩 —
+            //   `.skd-passive-label { margin-top: auto }` 가 남는 공간을 먹으므로(gap 0) 내용이 20rem 을 넘을 때만 카드가 자란다. 아래 배치가 쓰는 치수를 여기서 한 번 세고 그대로 쓴다.
             float colH = orbW + PetSkillStyle.Rem(0.22f) * 2f + (sk.Stars > 0 ? starH : 0f) + shardH + UiCatalog.Instance.Kind(TextKind.Body).size * 0.4f;
+            float nameH = UiCatalog.Instance.Kind(TextKind.Body).size * 1.3f;
+            float descH = UiCatalog.Instance.Kind(TextKind.Body).size * 1.45f * 3f;
+            float bodyH = PetSkillStyle.Rem(0.15f) + nameH + PetSkillStyle.Rem(0.3f) + descH + starH * 1.2f;
+            float pillH = UiCatalog.Instance.Kind(TextKind.Sub).size * 1.3f;
+            float contentH = padT + Mathf.Max(colH, bodyH) + starH * 1.2f + PetSkillStyle.Rem(0.25f) + pillH + PetSkillStyle.Rem(0.9f) + btnH + padB;
+            float h = Mathf.Max(PetSkillStyle.Px("skd_min_h_rem"), contentH);
+            PetSkillModal.Handle m = sheet.Modal.Open(DetailModal, w / UiKit.RefW, h, PetSkillStyle.L("skd_top_rem"));
+            RectTransform c = m.Content;
+            float y = padT;
+            // head: orbcol + body
+            RectTransform orbcol = UiKit.Box(c, "skd-orbcol");
             UiKit.Place(orbcol, padX, y, orbW, colH);
             RectTransform orbRt = PetSkillKit.Orb(orbcol, "sk-orb", PetSkillStyle.Rarity(Defs, d.Rarity), PetSkillKit.Line3);
             UiKit.Place(orbRt, 0f, 0f, orbW, orbW);
@@ -538,19 +554,16 @@ namespace Forge.Game.Ui
 
             float bx = padX + orbW + gap;
             float bw = inner - orbW - gap;
-            float nameH = UiCatalog.Instance.Kind(TextKind.Body).size * 1.3f;
             TextMeshProUGUI name = PetSkillKit.Text(c, "skd-name", TextKind.Body, PetSkillStyle.T("skd_name", Defs.RarityKr.Get(d.Rarity, d.Rarity), d.Name), PetSkillStyle.C("ink"), TextAlignmentOptions.Left);
             UiKit.Place(name.rectTransform, bx, y + PetSkillStyle.Rem(0.15f), bw, nameH);
             TextMeshProUGUI dt = PetSkillKit.Text(c, "skd-desc", TextKind.Body, desc, PetSkillStyle.C("ink"), TextAlignmentOptions.TopLeft);
             LineHeight.Apply(dt, "skd_desc_lh");   // T354 12회차 — 정본 5248 `.skd-desc { line-height: 1.45 }`(스킬 설명은 상자에서 여러 줄로 접힌다)
             dt.textWrappingMode = TextWrappingModes.Normal;
-            float descH = UiCatalog.Instance.Kind(TextKind.Body).size * 1.45f * 3f;
             UiKit.Place(dt.rectTransform, bx, y + PetSkillStyle.Rem(0.15f) + nameH + PetSkillStyle.Rem(0.3f), bw, descH);
             TextMeshProUGUI cd = PetSkillKit.Text(c, "skd-cd", TextKind.Sub, PetSkillStyle.T("skd_cd", JsNum.ToString(d.Cd)), PetSkillStyle.C("muted"), TextAlignmentOptions.Left, false);
             UiKit.Place(cd.rectTransform, bx, y + PetSkillStyle.Rem(0.15f) + nameH + PetSkillStyle.Rem(0.3f) + descH, bw, starH * 1.2f);
 
-            // 버튼 행(아래에서) · 패시브(그 위)
-            float btnH = PetSkillStyle.Px("skd_btn_h_rem");
+            // 버튼 행(아래에서) · 패시브(그 위) — btnH 는 위에서 표로 셌다(T483)
             float btnY = h - padB - btnH;
             float bgap = PetSkillStyle.Px("skd_btn_gap_rem"), bpad = PetSkillStyle.Px("skd_btn_pad_x_rem");
             float ew = (w - bpad * 2f - bgap) * 0.5f;
@@ -561,7 +574,6 @@ namespace Forge.Game.Ui
             Button eq = PetSkillKit.PaperButton(c, "btn-equip", PetSkillKit.BtnKind.Primary, PetSkillStyle.T(equipped ? "unequip" : "equip"), null, false, () => { OnToggle(id); OpenSkillDetail(id); });
             UiKit.Place(eq.GetComponent<RectTransform>(), bpad + ew + bgap, btnY, ew, btnH);
 
-            float pillH = UiCatalog.Instance.Kind(TextKind.Sub).size * 1.3f;
             float pmx = PetSkillStyle.Px("skd_passive_mx_rem");
             float pillY = btnY - PetSkillStyle.Rem(0.9f) - pillH;
             RectTransform pill = UiKit.Box(c, "skd-passive");
