@@ -126,15 +126,23 @@ namespace Forge.Game.Ui
             RectTransform right = UiKit.Box(anvilRow, "anvil-side-right");
             float rx = sideW + rem * 0.8f + anvilW;
             UiKit.Place(right, rx, UiKit.RefH * 0.0352f, W - padX * 2f - rx, rowH);
-            float btnH = UiKit.RefH * 0.05f * 1.35f, gap = rem * 0.35f;
-            float btnW = (W - padX * 2f - rx - gap) * 0.5f;
+            float btnH = UiKit.RefH * 0.05f * 1.35f;
+            // T482 3회차 — 정본 1629~1633 `.forge-actions { display: flex; gap: .3rem; margin-left: −.0222W; margin-right: .092W }` ·
+            //   `.btn:last-child { flex: none; width: .0922W + 6.4px }`(자동 = **고정 폭**) · 대장간 = flex: 1(나머지). 전엔 «틈 .35rem · 균등 반분 × 1.15/.85» 가 박혀
+            //   배분 규칙이 정본과 달랐다(T33 57·58회차 실측 · 자동 +6.4%p · 우단이 시트 끝까지). 다섯 수는 카탈로그 `forge_actions_*`·`forge_auto_btn_w_*`(6.4px 은 499 → 1080 환산 · 결정 802).
+            float rowW = W - padX * 2f - rx;
+            float gap = rem * UiKit.L("forge_actions_gap_rem");
+            float actX = UiKit.W("forge_actions_ml_f");                                   // 음수 = 열 시작보다 왼쪽
+            float actW = rowW - actX - UiKit.W("forge_actions_mr_f");
+            float autoW = UiKit.W("forge_auto_btn_w_f") + UiKit.L("forge_auto_btn_w_px");
+            float forgeW = actW - gap - autoW;
             ForgeUpgrade up = h.UpgradeInfo();
             string forgeLabel = up == null ? (h.AscendReady ? "★ 승천\n가능" : "대장간\n최고 레벨") : "대장간\n레벨 " + h.Forge.ForgeLevel;
-            Button fb = TwoLineBtn(right, "forge-btn", forgeLabel, "pp_blue", "pp_blue_dk", () => ForgeInfoPopup.Open(h), btnW * 1.15f, btnH);
-            UiKit.Place(fb.GetComponent<RectTransform>(), 0f, 0f, btnW * 1.15f, btnH);
+            Button fb = TwoLineBtn(right, "forge-btn", forgeLabel, "pp_blue", "pp_blue_dk", () => ForgeInfoPopup.Open(h), forgeW, btnH);
+            UiKit.Place(fb.GetComponent<RectTransform>(), actX, 0f, forgeW, btnH);
             bool unlocked = h.AutoForgeUnlocked;
-            Button ab = AutoBtn(right, h, unlocked, unlocked ? (h.AutoOn ? "pp_green" : "pp_blue") : "pp_gray", unlocked ? (h.AutoOn ? "pp_green_dk" : "pp_blue_dk") : "pp_gray_dk", btnW * 0.85f - gap, btnH);
-            UiKit.Place(ab.GetComponent<RectTransform>(), btnW * 1.15f + gap, 0f, btnW * 0.85f - gap, btnH);
+            Button ab = AutoBtn(right, h, unlocked, unlocked ? (h.AutoOn ? "pp_green" : "pp_blue") : "pp_gray", unlocked ? (h.AutoOn ? "pp_green_dk" : "pp_blue_dk") : "pp_gray_dk", autoW, btnH);
+            UiKit.Place(ab.GetComponent<RectTransform>(), actX + forgeW + gap, 0f, autoW, btnH);
             if (h.Upgrading)
             {
                 upgText = UiKit.Text(right, "equip-upg-time", TextKind.Sub, RemainText(h), "ink");
