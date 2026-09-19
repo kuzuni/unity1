@@ -1,0 +1,12 @@
+# T27 PlaythroughTests 자취 — 한 판을 어디까지 몰았는지
+boot 시작 · 배치=True · 화면=640x480
+boot 호스트 · meta=True forge=True petskill=True dungeon=True sheet=True battle=True · 0.9초
+→ 전투
+  전투 · 스폰 22 · 처치 15 · ctx.kills 15 · 세이브 kills 15
+→ 제작
+→ 장착
+→ 펫
+→ 스킬
+→ 던전
+→ 복귀 전투
+done · 스폰 26 · 처치 18 · 펫 1 · 스킬 2 · 빨강 0

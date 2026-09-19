@@ -1,0 +1,480 @@
+# T151 — 런 #1242 (4d6c02dcbc4f77b3bdfa0ea1902336c8e3590bc7) · playmode 의 결과 XML 이 없다 · 에디터 로그 unity-test-results/playmode.log
+# 줄 수 1264 · 마지막 수정 2026-09-19T04:53:49Z
+## 원인 문구 줄(최대 60 · error|Exception|crash|Abort|Fatal|Killed|signal|license|seat|compiler errors|Shader error)
+117:[Licensing::Client] Successfully updated license, isAsync: True, time: 0.02
+138:GLX Extensions: GLX_ARB_context_flush_control GLX_ARB_create_context GLX_ARB_create_context_no_error GLX_ARB_create_context_profile GLX_ARB_fbconfig_float GLX_ARB_framebuffer_sRGB GLX_ARB_get_proc_address GLX_ARB_multisample GLX_EXT_create_context_es2_profile GLX_EXT_create_context_es_profile GLX_EXT_fbconfig_packed_float GLX_EXT_framebuffer_sRGB GLX_EXT_no_config_context GLX_EXT_texture_from_pixmap GLX_EXT_visual_info GLX_EXT_visual_rating GLX_MESA_copy_sub_buffer GLX_MESA_query_renderer GLX_OML_swap_method GLX_SGIS_multisample GLX_SGIX_fbconfig GLX_SGIX_pbuffer GLX_SGIX_visual_select_group GLX_SGI_make_current_read 
+148:rm GL_EXT_texture_swizzle GL_EXT_timer_query GL_EXT_transform_feedback GL_EXT_vertex_array_bgra GL_EXT_vertex_attrib_64bit GL_IBM_multimode_draw_arrays GL_INTEL_shader_atomic_float_minmax GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent GL_KHR_context_flush_control GL_KHR_debug GL_KHR_no_error GL_KHR_parallel_shader_compile GL_KHR_robust_buffer_access_behavior GL_KHR_robustness GL_KHR_texture_compression_astc_ldr GL_KHR_texture_compression_astc_sliced_3d GL_MESA_framebuffer_flip_y GL_MESA_pack_invert GL_MESA_shader_integer_functions GL_MESA_texture_signed_rgba GL_MESA_ycbcr_texture GL_NVX_gpu_memory_info GL_NV_conditional_render GL_NV_copy_image GL_NV_depth_clamp GL_NV_packed_depth_stencil GL_NV_shader_atomic_float GL_NV_texture_barrier GL_OES_EGL_image GL_S3_s3tc
+693:GLX Extensions: GLX_ARB_context_flush_control GLX_ARB_create_context GLX_ARB_create_context_no_error GLX_ARB_create_context_profile GLX_ARB_fbconfig_float GLX_ARB_framebuffer_sRGB GLX_ARB_get_proc_address GLX_ARB_multisample GLX_EXT_create_context_es2_profile GLX_EXT_create_context_es_profile GLX_EXT_fbconfig_packed_float GLX_EXT_framebuffer_sRGB GLX_EXT_no_config_context GLX_EXT_texture_from_pixmap GLX_EXT_visual_info GLX_EXT_visual_rating GLX_MESA_copy_sub_buffer GLX_MESA_query_renderer GLX_OML_swap_method GLX_SGIS_multisample GLX_SGIX_fbconfig GLX_SGIX_pbuffer GLX_SGIX_visual_select_group GLX_SGI_make_current_read 
+907:Unable to find method SetExceptionFromNative in [UnityEngine.CoreModule.dll]UnityEngine.Awaitable
+910:Unable to find method SetPendingException in [UnityEngine.CoreModule.dll]UnityEngine.Bindings.ExceptionMarshaller
+1196:Unable to find method ExtractStringFromExceptionInternal in [UnityEngine.CoreModule.dll]UnityEngine.StackTraceUtility
+1202:Unable to find method RegisterUECatcher in [UnityEngine.CoreModule.dll]UnityEngine.UnhandledExceptionHandler
+1203:Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.UnityException
+1230:Caught fatal signal - signo:11 code:1 errno:0 addr:(nil)
+1232:#0  0x005563b0e8f8ed in burst_signal_handler(int, siginfo_t*, void*)
+1237:#5  0x005563b1322f13 in scripting_method_invoke(ScriptingMethodPtr, ScriptingObjectPtr, ScriptingArguments&, ScriptingExceptionPtr*, bool)
+1238:#6  0x005563b12fb92c in ScriptingInvocation::Invoke(ScriptingExceptionPtr*, bool)
+1239:#7  0x005563b12fb6e9 in bool ScriptingInvocation::Invoke<bool>(ScriptingExceptionPtr*, bool)
+1240:#8  0x005563b145a64e in Scripting::UnityEngine::ScriptingUtilityProxy::IsManagedCodeWorking(ScriptingExceptionPtr*)
+## 머리 60줄
+[UnityConnectServicesConfig] Local config successfully read: "/usr/share/unity3d/config/services-config.json"
+[UnityConnectServicesConfig] "clientConnectTimeoutSec" was overridden with "5"
+[UnityConnectServicesConfig] "clientHandshakeTimeoutSec" was overridden with "10"
+[UnityConnectServicesConfig] Service configuration:
+    "servicesConfigBaseUrl": "",
+    "disableServicesWindow": false,
+    "disableUserLogin": false,
+    "entitlementCacheTimeoutInSeconds": 60,
+    "clientConnectTimeoutSec": 5,
+    "clientHandshakeTimeoutSec": 10,
+    "clientResolveEntitlementsTimeoutSec": 30,
+    "clientUpdateLicenseTimeoutSec": 30,
+    "licensingServiceBaseUrl": "",
+    "enableProxyAutoconfig": "false"
+
+Unity Editor version:    6000.3.8f1 (1c7db571dde0)
+Branch:                  6000.3/staging
+Build type:              Release
+Batch mode:              YES
+System name:             Linux
+Distro version:          #22-Ubuntu SMP Mon Jul 27 17:24:03 UTC 2026
+Kernel version:          6.17.0-1022-azure
+Architecture:            x86_64
+Available memory:        15989 MB
+Date:                    2026-09-19T04:52:06Z
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Channel LicenseClient-root doesn't exist
+[Licensing::Module] Successfully launched the LicensingClient (PId: 83)
+Selected window backend: (null) 
+Desktop is 1280 x 1024 @ 60 Hz
+Initialize udev device monitor.
+CreateDirectory '/root/.cache/unity3d' failed:  (current dir: /github/workspace)
+
+COMMAND LINE ARGUMENTS:
+/opt/unity/Editor/Unity
+-batchmode
+-batchmode
+-logFile
+/github/workspace/unity-test-results/playmode.log
+-projectPath
+/github/workspace/.
+-runTests
+-testPlatform
+playmode
+-testResults
+/github/workspace/unity-test-results/playmode-results.xml
+-coverageResultsPath
+/github/workspace/CodeCoverage
+-enableCodeCoverage
+-debugCodeOptimization
+-coverageOptions
+generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;dontClear
+Successfully changed project path to: /github/workspace/.
+/github/workspace
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+## 꼬리 400줄
+Unable to find type [UnityEngine.CoreModule.dll]Unity.Profiling.IgnoredByDeepProfilerAttribute
+Unable to find method PrepareMetadata in [UnityEngine.CoreModule.dll]Unity.Profiling.Memory.MemoryProfiler
+Unable to find method FinalizeSnapshot in [UnityEngine.CoreModule.dll]Unity.Profiling.Memory.MemoryProfiler
+Unable to find method SaveScreenshotToDisk in [UnityEngine.CoreModule.dll]Unity.Profiling.Memory.MemoryProfiler
+Unable to find method GetMovedFromAttributeDataForType in [UnityEngine.CoreModule.dll]UnityEngine._Scripting.APIUpdating.APIUpdaterRuntimeHelpers
+Unable to find method GetObsoleteTypeRedirection in [UnityEngine.CoreModule.dll]UnityEngine._Scripting.APIUpdating.APIUpdaterRuntimeHelpers
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Analytics.AnalyticsEventBase
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Analytics.BatchRenderGroupUsageAnalytic
+Unable to find method CreateBatchRenderGroupUsageAnalytic in [UnityEngine.CoreModule.dll]UnityEngine.Analytics.BatchRenderGroupUsageAnalytic
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Analytics.ShaderRuntimeInfoAnalytic
+Unable to find method CreateShaderRuntimeInfoAnalytic in [UnityEngine.CoreModule.dll]UnityEngine.Analytics.ShaderRuntimeInfoAnalytic
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Analytics.UaaLApplicationLaunchAnalytic
+Unable to find method CreateUaaLApplicationLaunchAnalytic in [UnityEngine.CoreModule.dll]UnityEngine.Analytics.UaaLApplicationLaunchAnalytic
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.AnimationCurve
+Unable to find method HasLogCallback in [UnityEngine.CoreModule.dll]UnityEngine.Application
+Unable to find method Internal_ApplicationWantsToQuit in [UnityEngine.CoreModule.dll]UnityEngine.Application
+Unable to find method CallLogCallback in [UnityEngine.CoreModule.dll]UnityEngine.Application
+Unable to find method CallLowMemory in [UnityEngine.CoreModule.dll]UnityEngine.Application
+Unable to find method Internal_ApplicationQuit in [UnityEngine.CoreModule.dll]UnityEngine.Application
+Unable to find method Internal_ApplicationUnload in [UnityEngine.CoreModule.dll]UnityEngine.Application
+Unable to find method Internal_InitializeExitCancellationToken in [UnityEngine.CoreModule.dll]UnityEngine.Application
+Unable to find method Internal_RaiseExitCancellationToken in [UnityEngine.CoreModule.dll]UnityEngine.Application
+Unable to find method InvokeDeepLinkActivated in [UnityEngine.CoreModule.dll]UnityEngine.Application
+Unable to find method InvokeFocusChanged in [UnityEngine.CoreModule.dll]UnityEngine.Application
+Unable to find method InvokeOnBeforeRender in [UnityEngine.CoreModule.dll]UnityEngine.Application
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.AssemblyFullName
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.AssemblyIsEditorAssembly
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.AssemblyVersion
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.AsyncInstantiateOperation
+Unable to find method IsCancellationRequested in [UnityEngine.CoreModule.dll]UnityEngine.AsyncInstantiateOperation
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.AsyncInstantiateOperationHelper
+Unable to find method CreateAsyncInstantiateOperationResultArray in [UnityEngine.CoreModule.dll]UnityEngine.AsyncInstantiateOperationHelper
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.AsyncOperation
+Unable to find method InvokeCompletionEvent in [UnityEngine.CoreModule.dll]UnityEngine.AsyncOperation
+Unable to find method CheckIsEditorScript in [UnityEngine.CoreModule.dll]UnityEngine.AttributeHelperEngine
+Unable to find method GetDefaultExecutionOrderFor in [UnityEngine.CoreModule.dll]UnityEngine.AttributeHelperEngine
+Unable to find method GetParentTypeDisallowingMultipleInclusion in [UnityEngine.CoreModule.dll]UnityEngine.AttributeHelperEngine
+Unable to find method GetRequiredComponents in [UnityEngine.CoreModule.dll]UnityEngine.AttributeHelperEngine
+Unable to find method OnDelayedCallManagerCleared in [UnityEngine.CoreModule.dll]UnityEngine.Awaitable
+Unable to find method OnEndOfFrame in [UnityEngine.CoreModule.dll]UnityEngine.Awaitable
+Unable to find method OnUpdate in [UnityEngine.CoreModule.dll]UnityEngine.Awaitable
+Unable to find method RunContinuation in [UnityEngine.CoreModule.dll]UnityEngine.Awaitable
+Unable to find method SetExceptionFromNative in [UnityEngine.CoreModule.dll]UnityEngine.Awaitable
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.BatchRendererGroupRuntimeAnalytic
+Unable to find method CreateBatchRendererGroupRuntimeAnalytic in [UnityEngine.CoreModule.dll]UnityEngine.BatchRendererGroupRuntimeAnalytic
+Unable to find method SetPendingException in [UnityEngine.CoreModule.dll]UnityEngine.Bindings.ExceptionMarshaller
+Unable to find method WrapBootConfigData in [UnityEngine.CoreModule.dll]UnityEngine.BootConfigData
+Unable to find method BumpNonSerializedVersion in [UnityEngine.CoreModule.dll]UnityEngine.Camera
+Unable to find method FireOnPostRender in [UnityEngine.CoreModule.dll]UnityEngine.Camera
+Unable to find method FireOnPreCull in [UnityEngine.CoreModule.dll]UnityEngine.Camera
+Unable to find method FireOnPreRender in [UnityEngine.CoreModule.dll]UnityEngine.Camera
+Unable to find method Init in [UnityEngine.CoreModule.dll]UnityEngine.ClassLibraryInitializer
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Component
+Unable to find method FindKernel in [UnityEngine.CoreModule.dll]UnityEngine.ComputeShader
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.ContextMenu
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Coroutine
+Unable to find method SendEvents in [UnityEngine.CoreModule.dll]UnityEngine.CullingGroup
+Unable to find method InvokeOnTextureLoaded_Internal in [UnityEngine.CoreModule.dll]UnityEngine.CustomRenderTextureManager
+Unable to find method InvokeOnTextureUnloaded_Internal in [UnityEngine.CoreModule.dll]UnityEngine.CustomRenderTextureManager
+Unable to find method CallOverridenDebugHandler in [UnityEngine.CoreModule.dll]UnityEngine.Debug
+Unable to find method IsLoggingEnabled in [UnityEngine.CoreModule.dll]UnityEngine.Debug
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.DiagnosticSwitch
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.DisallowMultipleComponent
+Unable to find method FireDisplaysUpdated in [UnityEngine.CoreModule.dll]UnityEngine.Display
+Unable to find method RecreateDisplayList in [UnityEngine.CoreModule.dll]UnityEngine.Display
+Unable to find method RequestLights in [UnityEngine.CoreModule.dll]UnityEngine.Experimental.GlobalIllumination.Lightmapping
+Unable to find method ResetDelegate in [UnityEngine.CoreModule.dll]UnityEngine.Experimental.GlobalIllumination.Lightmapping
+Unable to find method SetDelegate in [UnityEngine.CoreModule.dll]UnityEngine.Experimental.GlobalIllumination.Lightmapping
+Unable to find method GetDelegate in [UnityEngine.CoreModule.dll]UnityEngine.Experimental.GlobalIllumination.Lightmapping
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Experimental.Playables.CameraPlayable
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Experimental.Playables.MaterialEffectPlayable
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Experimental.Playables.TextureMixerPlayable
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Experimental.Playables.TexturePlayableOutput
+Unable to find method Internal_BuiltinRuntimeReflectionSystem_New in [UnityEngine.CoreModule.dll]UnityEngine.Experimental.Rendering.BuiltinRuntimeReflectionSystem
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Experimental.Rendering.ScriptableRuntimeReflectionSystemSettings
+Unable to find method set_Internal_ScriptableRuntimeReflectionSystemSettings_system in [UnityEngine.CoreModule.dll]UnityEngine.Experimental.Rendering.ScriptableRuntimeReflectionSystemSettings
+Unable to find method get_Internal_ScriptableRuntimeReflectionSystemSettings_instance in [UnityEngine.CoreModule.dll]UnityEngine.Experimental.Rendering.ScriptableRuntimeReflectionSystemSettings
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Experimental.Rendering.ScriptableRuntimeReflectionSystemWrapper
+Unable to find method Internal_ScriptableRuntimeReflectionSystemWrapper_TickRealtimeProbes in [UnityEngine.CoreModule.dll]UnityEngine.Experimental.Rendering.ScriptableRuntimeReflectionSystemWrapper
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Experimental.U2D.SpriteIntermediateRendererInfo
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Experimental.U2D.SpriteRendererGroup
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.ExtensionOfNativeClassAttribute
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.FailedToLoadScriptObject
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Gradient
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.ISerializationCallbackReceiver
+Unable to find method OnAfterDeserialize in [UnityEngine.CoreModule.dll]UnityEngine.ISerializationCallbackReceiver
+Unable to find method OnBeforeSerialize in [UnityEngine.CoreModule.dll]UnityEngine.ISerializationCallbackReceiver
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Keyframe
+Unable to find method LightingSettingsDontStripMe in [UnityEngine.CoreModule.dll]UnityEngine.LightingSettings
+Unable to find method Internal_CallLightProbesUpdatedFunction in [UnityEngine.CoreModule.dll]UnityEngine.LightProbes
+Unable to find method Internal_CallNeedsRetetrahedralizationFunction in [UnityEngine.CoreModule.dll]UnityEngine.LightProbes
+Unable to find method Internal_CallTetrahedralizationCompletedFunction in [UnityEngine.CoreModule.dll]UnityEngine.LightProbes
+Unable to find method LowerResBlitTextureDontStripMe in [UnityEngine.CoreModule.dll]UnityEngine.LowerResBlitTexture
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.LowLevel.PlayerLoopSystemInternal
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.MakeSerializableAttribute
+Unable to find method GetSerializableType in [UnityEngine.CoreModule.dll]UnityEngine.MakeSerializableAttribute
+Unable to find method ManagedStreamLength in [UnityEngine.CoreModule.dll]UnityEngine.ManagedStreamHelpers
+Unable to find method ManagedStreamRead in [UnityEngine.CoreModule.dll]UnityEngine.ManagedStreamHelpers
+Unable to find method ManagedStreamSeek in [UnityEngine.CoreModule.dll]UnityEngine.ManagedStreamHelpers
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Mesh
+Unable to find method DontStripMeshFilter in [UnityEngine.CoreModule.dll]UnityEngine.MeshFilter
+Unable to find method DontStripMeshRenderer in [UnityEngine.CoreModule.dll]UnityEngine.MeshRenderer
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.MonoBehaviour
+Unable to find method RaiseCancellation in [UnityEngine.CoreModule.dll]UnityEngine.MonoBehaviour
+Unable to find method ConnectedCallbackInternal in [UnityEngine.CoreModule.dll]UnityEngine.Networking.PlayerConnection.PlayerConnection
+Unable to find method DisconnectedCallback in [UnityEngine.CoreModule.dll]UnityEngine.Networking.PlayerConnection.PlayerConnection
+Unable to find method MessageCallbackInternal in [UnityEngine.CoreModule.dll]UnityEngine.Networking.PlayerConnection.PlayerConnection
+Unable to find method PrepareListForNativeFill in [UnityEngine.CoreModule.dll]UnityEngine.NoAllocHelpers
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Object
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.ObjectDispatcher
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Playables.INotificationReceiver
+Unable to find method OnNotify in [UnityEngine.CoreModule.dll]UnityEngine.Playables.INotificationReceiver
+Unable to find method OnBehaviourPause in [UnityEngine.CoreModule.dll]UnityEngine.Playables.IPlayableBehaviour
+Unable to find method OnBehaviourPlay in [UnityEngine.CoreModule.dll]UnityEngine.Playables.IPlayableBehaviour
+Unable to find method OnGraphStart in [UnityEngine.CoreModule.dll]UnityEngine.Playables.IPlayableBehaviour
+Unable to find method OnGraphStop in [UnityEngine.CoreModule.dll]UnityEngine.Playables.IPlayableBehaviour
+Unable to find method OnPlayableCreate in [UnityEngine.CoreModule.dll]UnityEngine.Playables.IPlayableBehaviour
+Unable to find method OnPlayableDestroy in [UnityEngine.CoreModule.dll]UnityEngine.Playables.IPlayableBehaviour
+Unable to find method PrepareFrame in [UnityEngine.CoreModule.dll]UnityEngine.Playables.IPlayableBehaviour
+Unable to find method ProcessFrame in [UnityEngine.CoreModule.dll]UnityEngine.Playables.IPlayableBehaviour
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Playables.Playable
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Playables.PlayableAsset
+Unable to find method Internal_CreatePlayable in [UnityEngine.CoreModule.dll]UnityEngine.Playables.PlayableAsset
+Unable to find method Internal_GetPlayableAssetDuration in [UnityEngine.CoreModule.dll]UnityEngine.Playables.PlayableAsset
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Playables.PlayableBehaviour
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Playables.PlayableOutput
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Playables.ScriptPlayableOutput
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/AnalyticsCoreStatsUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/ARCoreUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/ClearIntermediateRenderers
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/ClearLines
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/DeliverIosPlatformEvents
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/DispatchEventQueueEvents
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/ExecuteMainThreadJobs
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/GpuTimestamp
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/InsightsUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/PerformanceAnalyticsUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/Physics2DEarlyUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/PhysicsResetInterpolatedTransformPosition
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/PlayerCleanupCachedData
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/PollHtcsPlayerConnection
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/PollPlayerConnection
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/PresentBeforeUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/ProcessMouseInWindow
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/ProcessRemoteInput
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/RendererNotifyInvisible
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/ResetFrameStatsAfterPresent
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/ScriptRunDelayedStartupFrame
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/SpriteAtlasManagerUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/TangoUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/TilemapRendererEarlyUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/UnityWebRequestUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/UpdateAsyncInstantiate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/UpdateAsyncReadbackManager
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/UpdateCanvasRectTransform
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/UpdateContentLoading
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/UpdateInputManager
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/UpdateKinect
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/UpdateMainGameViewRect
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/UpdatePreloading
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/UpdateStreamingManager
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/UpdateTextureStreamingManager
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.EarlyUpdate/XRUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate/AudioFixedUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate/ClearLines
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate/DirectorFixedSampleTime
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate/DirectorFixedUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate/DirectorFixedUpdatePostPhysics
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate/LegacyFixedAnimationUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate/NewInputFixedUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate/Physics2DFixedUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate/PhysicsClothFixedUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate/PhysicsFixedUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate/ScriptRunBehaviourFixedUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate/ScriptRunDelayedFixedFrameRate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.FixedUpdate/XRFixedUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.Initialization
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.Initialization/AsyncUploadTimeSlicedUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.Initialization/DirectorSampleTime
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.Initialization/ProfilerStartFrame
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.Initialization/SynchronizeInputs
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.Initialization/SynchronizeState
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.Initialization/UpdateCameraMotionVectors
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.Initialization/XREarlyUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/AccessibilityLateUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/BatchModeUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/ClearImmediateRenderers
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/DirectorLateUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/DirectorRenderImage
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/EndGraphicsJobsAfterScriptLateUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/EnlightenRuntimeUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/ExecuteGameCenterCallbacks
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/FinishFrameRendering
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/GraphicsWarmupPreloadedShaders
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/GUIClearEvents
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/InputEndFrame
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/MemoryFrameMaintenance
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/ObjectDispatcherPostLateUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/ParticleSystemEndUpdateAll
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/PhysicsSkinnedClothBeginUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/PhysicsSkinnedClothFinishUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/PlayerEmitCanvasGeometry
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/PlayerSendFrameComplete
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/PlayerSendFramePostPresent
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/PlayerSendFrameStarted
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/PlayerUpdateCanvases
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/PresentAfterDraw
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/ProcessWebSendMessages
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/ProfilerEndFrame
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/ProfilerSynchronizeStats
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/RenderAs2DUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/ResetInputAxis
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/ScriptRunDelayedDynamicFrameRate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/ShaderHandleErrors
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/SortingGroupsUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/ThreadedLoadingDebug
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/TriggerEndOfFrameCallbacks
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UIElementsRenderBatchModeOffscreen
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UIElementsRepaintPanels
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UpdateAllRenderers
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UpdateAllSkinnedMeshes
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UpdateAudio
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UpdateCanvasRectTransform
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UpdateCaptureScreenshot
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UpdateCustomRenderTextures
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UpdateLightProbeProxyVolumes
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UpdateRectTransform
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UpdateResolution
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UpdateSubstance
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UpdateVideo
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/UpdateVideoTextures
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/VFXUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/XRPostLateUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/XRPostPresent
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PostLateUpdate/XRPreEndFrame
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/AccessibilityUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/AIUpdatePostScript
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/ConstraintManagerUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/DirectorDeferredEvaluate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/DirectorUpdateAnimationBegin
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/DirectorUpdateAnimationEnd
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/EndGraphicsJobsAfterScriptUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/LegacyAnimationUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/ParticleSystemBeginUpdateAll
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/Physics2DLateUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/PhysicsLateUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/ScriptRunBehaviourLateUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/UIElementsUpdatePanels
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/UpdateMasterServerInterface
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreLateUpdate/UpdateNetworkManager
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreUpdate/AIUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreUpdate/CheckTexFieldInput
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreUpdate/IMGUISendQueuedEvents
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreUpdate/InputForUIUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreUpdate/NewInputUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreUpdate/Physics2DUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreUpdate/PhysicsClothUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreUpdate/PhysicsUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreUpdate/SendMouseEvents
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreUpdate/UpdateVideo
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.PreUpdate/WindUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.TimeUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.TimeUpdate/WaitForLastPresentationAndUpdateTime
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.Update
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.Update/DirectorUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.Update/ScriptRunBehaviourUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.Update/ScriptRunDelayedDynamicFrameRate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PlayerLoop.Update/ScriptRunDelayedTasks
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.PreferBinarySerialization
+Unable to find method PreloadDataDontStripMe in [UnityEngine.CoreModule.dll]UnityEngine.PreloadData
+Unable to find method OnActiveQualityLevelChanged in [UnityEngine.CoreModule.dll]UnityEngine.QualitySettings
+Unable to find method SendReapplyDrivenProperties in [UnityEngine.CoreModule.dll]UnityEngine.RectTransform
+Unable to find method CallReflectionProbeEvent in [UnityEngine.CoreModule.dll]UnityEngine.ReflectionProbe
+Unable to find method CallSetDefaultReflection in [UnityEngine.CoreModule.dll]UnityEngine.ReflectionProbe
+Unable to find method InvokeCallback in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.AsyncGPUReadbackRequest
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Rendering.BatchRendererGroup
+Unable to find method InvokeOnFinishedCulling in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.BatchRendererGroup
+Unable to find method InvokeOnPerformCulling in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.BatchRendererGroup
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Rendering.GPUDrivenCallbacks
+Unable to find method InvokeGPUDrivenLODGroupDataNativeCallback in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.GPUDrivenCallbacks
+Unable to find method InvokeGPUDrivenRendererDataNativeCallback in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.GPUDrivenCallbacks
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Rendering.GPUDrivenProcessor
+Unable to find method GetCurrentRenderPipelineTypeFullName in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.GraphicsSettings
+Unable to find method GetDefaultMaterial in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.GraphicsSettings
+Unable to find method GetDefaultShader in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.GraphicsSettings
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Rendering.OnDemandRendering
+Unable to find method GetRenderFrameInterval in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.OnDemandRendering
+Unable to find method CleanupRenderPipeline in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.RenderPipelineManager
+Unable to find method DoRenderLoop_Internal in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.RenderPipelineManager
+Unable to find method HandleRenderPipelineChange in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.RenderPipelineManager
+Unable to find method OnActiveRenderPipelineAssetChanged in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.RenderPipelineManager
+Unable to find method RecreateCurrentPipeline in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.RenderPipelineManager
+Unable to find method FallbackLightmapperByRef in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.SupportedRenderingFeatures
+Unable to find method FallbackMixedLightingModeByRef in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.SupportedRenderingFeatures
+Unable to find method IsAmbientProbeBakingSupported in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.SupportedRenderingFeatures
+Unable to find method IsDefaultReflectionProbeBakingSupported in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.SupportedRenderingFeatures
+Unable to find method IsLightmapBakeTypeSupportedByRef in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.SupportedRenderingFeatures
+Unable to find method IsLightmapperSupportedByRef in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.SupportedRenderingFeatures
+Unable to find method IsLightmapsModeSupportedByRef in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.SupportedRenderingFeatures
+Unable to find method IsMixedLightingModeSupportedByRef in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.SupportedRenderingFeatures
+Unable to find method IsRotatingReflectionProbesSupported in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.SupportedRenderingFeatures
+Unable to find method IsUIOverlayRenderedBySRP in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.SupportedRenderingFeatures
+Unable to find method OverridesLightProbeSystem in [UnityEngine.CoreModule.dll]UnityEngine.Rendering.SupportedRenderingFeatures
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.RequireComponent
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Resolution
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.ResourceRequest
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.RuntimeInitializeOnLoadMethodAttribute
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.SceneManagement.SceneManager
+Unable to find method Internal_ActiveSceneChanged in [UnityEngine.CoreModule.dll]UnityEngine.SceneManagement.SceneManager
+Unable to find method Internal_SceneLoaded in [UnityEngine.CoreModule.dll]UnityEngine.SceneManagement.SceneManager
+Unable to find method Internal_SceneUnloaded in [UnityEngine.CoreModule.dll]UnityEngine.SceneManagement.SceneManager
+Unable to find method LoadFirstScene_Internal in [UnityEngine.CoreModule.dll]UnityEngine.SceneManagement.SceneManager
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.ScriptableObject
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Scripting.PreserveAttribute
+Unable to find method IsManagedCodeWorking in [UnityEngine.CoreModule.dll]UnityEngine.ScriptingUtility
+Unable to find method SetupCallbacks in [UnityEngine.CoreModule.dll]UnityEngine.ScriptingUtility
+Unable to find method VerifySignature in [UnityEngine.CoreModule.dll]UnityEngine.Security
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Serialization.FormerlySerializedAsAttribute
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.SerializeField
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.SerializeReference
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.SetupCoroutine
+Unable to find method InvokeMember in [UnityEngine.CoreModule.dll]UnityEngine.SetupCoroutine
+Unable to find method InvokeMoveNext in [UnityEngine.CoreModule.dll]UnityEngine.SetupCoroutine
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.SkinnedMeshRenderer
+Unable to find method InvokeSpriteChanged in [UnityEngine.CoreModule.dll]UnityEngine.SpriteRenderer
+Unable to find method ExtractStackTrace in [UnityEngine.CoreModule.dll]UnityEngine.StackTraceUtility
+Unable to find method ExtractStringFromExceptionInternal in [UnityEngine.CoreModule.dll]UnityEngine.StackTraceUtility
+Unable to find method SetProjectFolder in [UnityEngine.CoreModule.dll]UnityEngine.StackTraceUtility
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.Transform
+Unable to find method RequestAtlas in [UnityEngine.CoreModule.dll]UnityEngine.U2D.SpriteAtlasManager
+Unable to find method PostRegisteredAtlas in [UnityEngine.CoreModule.dll]UnityEngine.U2D.SpriteAtlasManager
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.U2D.SpriteBone
+Unable to find method RegisterUECatcher in [UnityEngine.CoreModule.dll]UnityEngine.UnhandledExceptionHandler
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.UnityException
+Unable to find method ExecutePendingTasks in [UnityEngine.CoreModule.dll]UnityEngine.UnitySynchronizationContext
+Unable to find method ExecuteTasks in [UnityEngine.CoreModule.dll]UnityEngine.UnitySynchronizationContext
+Unable to find method InitializeSynchronizationContext in [UnityEngine.CoreModule.dll]UnityEngine.UnitySynchronizationContext
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.WaitForEndOfFrame
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.WaitForFixedUpdate
+Unable to find type [UnityEngine.CoreModule.dll]UnityEngine.WaitForSeconds
+Unable to find method DictationRecognizer_InvokeCompletedEvent in [UnityEngine.CoreModule.dll]UnityEngine.Windows.Speech.DictationRecognizer
+Unable to find method DictationRecognizer_InvokeErrorEvent in [UnityEngine.CoreModule.dll]UnityEngine.Windows.Speech.DictationRecognizer
+Unable to find method DictationRecognizer_InvokeHypothesisGeneratedEvent in [UnityEngine.CoreModule.dll]UnityEngine.Windows.Speech.DictationRecognizer
+Unable to find method DictationRecognizer_InvokeResultGeneratedEvent in [UnityEngine.CoreModule.dll]UnityEngine.Windows.Speech.DictationRecognizer
+Unable to find method PhraseRecognitionSystem_InvokeErrorEvent in [UnityEngine.CoreModule.dll]UnityEngine.Windows.Speech.PhraseRecognitionSystem
+Unable to find method PhraseRecognitionSystem_InvokeStatusChangedEvent in [UnityEngine.CoreModule.dll]UnityEngine.Windows.Speech.PhraseRecognitionSystem
+Unable to find method InvokePhraseRecognizedEvent in [UnityEngine.CoreModule.dll]UnityEngine.Windows.Speech.PhraseRecognizer
+Unable to find method MarshalSemanticMeaning in [UnityEngine.CoreModule.dll]UnityEngine.Windows.Speech.PhraseRecognizer
+Unable to find method InvokeOnCapturedPhotoToDiskDelegate in [UnityEngine.CoreModule.dll]UnityEngine.Windows.WebCam.PhotoCapture
+Unable to find method InvokeOnCapturedPhotoToMemoryDelegate in [UnityEngine.CoreModule.dll]UnityEngine.Windows.WebCam.PhotoCapture
+Unable to find method InvokeOnCreatedResourceDelegate in [UnityEngine.CoreModule.dll]UnityEngine.Windows.WebCam.PhotoCapture
+Unable to find method InvokeOnPhotoModeStartedDelegate in [UnityEngine.CoreModule.dll]UnityEngine.Windows.WebCam.PhotoCapture
+Unable to find method InvokeOnPhotoModeStoppedDelegate in [UnityEngine.CoreModule.dll]UnityEngine.Windows.WebCam.PhotoCapture
+Unable to find method InvokeOnCreatedVideoCaptureResourceDelegate in [UnityEngine.CoreModule.dll]UnityEngine.Windows.WebCam.VideoCapture
+Unable to find method InvokeOnStartedRecordingVideoToDiskDelegate in [UnityEngine.CoreModule.dll]UnityEngine.Windows.WebCam.VideoCapture
+Unable to find method InvokeOnStoppedRecordingVideoToDiskDelegate in [UnityEngine.CoreModule.dll]UnityEngine.Windows.WebCam.VideoCapture
+Unable to find method InvokeOnVideoModeStartedDelegate in [UnityEngine.CoreModule.dll]UnityEngine.Windows.WebCam.VideoCapture
+Unable to find method InvokeOnVideoModeStoppedDelegate in [UnityEngine.CoreModule.dll]UnityEngine.Windows.WebCam.VideoCapture
+Unable to find method InvokeWindowActivatedEvent in [UnityEngine.CoreModule.dll]UnityEngine.WSA.Application
+Unable to find method InvokeWindowSizeChangedEvent in [UnityEngine.CoreModule.dll]UnityEngine.WSA.Application
+Caught fatal signal - signo:11 code:1 errno:0 addr:(nil)
+Obtained 29 stack frames.
+#0  0x005563b0e8f8ed in burst_signal_handler(int, siginfo_t*, void*)
+#1  0x007f269dcb2520 in (Unknown)
+#2  0x007f2690445ea1 in (Unknown)
+#3  0x007f26905e3d91 in (Unknown)
+#4  0x007f26905e3cf5 in mono_runtime_invoke
+#5  0x005563b1322f13 in scripting_method_invoke(ScriptingMethodPtr, ScriptingObjectPtr, ScriptingArguments&, ScriptingExceptionPtr*, bool)
+#6  0x005563b12fb92c in ScriptingInvocation::Invoke(ScriptingExceptionPtr*, bool)
+#7  0x005563b12fb6e9 in bool ScriptingInvocation::Invoke<bool>(ScriptingExceptionPtr*, bool)
+#8  0x005563b145a64e in Scripting::UnityEngine::ScriptingUtilityProxy::IsManagedCodeWorking(ScriptingExceptionPtr*)
+#9  0x005563b12c6871 in MonoManager::LoadAssemblies(dynamic_bitset)
+#10 0x005563b12c8983 in MonoManager::BeginReloadAssembly(DomainReloadingData&)
+#11 0x005563b12c7e89 in MonoManager::ReloadAssembly(AssemblyLoadReason)
+#12 0x005563b272f363 in Internal_ADB_Only_ReloadAllUsedAssemblies(AssemblyLoadReason)
+#13 0x005563b2c93143 in (Unknown)
+#14 0x005563b2cb9f33 in RefreshInternalV2(AssetDatabase::UpdateAssetOptions, ScanFilter const&, InternalRefreshFlagsV2)
+#15 0x005563b2c940fa in StopAssetImportingV2Internal(AssetDatabase::UpdateAssetOptions, InternalRefreshFlagsV2, ScanFilter const*, char const*)
+#16 0x005563b26e32a9 in EditorSceneManager::RestoreSceneBackups(core::vector<EditorSceneBackup, core::allocator<EditorSceneBackup, 0ul> >&, EditorSceneManager::PlayModeChange)
+#17 0x005563b21f188e in PlayerLoopController::EnterPlayMode()
+#18 0x005563b21f01a3 in PlayerLoopController::SetIsPlaying(bool)
+#19 0x005563b21e57fb in Application::TickTimer()
+#20 0x005563b28f7605 in MainMessageIteration(void*)
+#21 0x007f269e516c44 in g_main_context_dispatch
+#22 0x007f269e56c488 in (Unknown)
+#23 0x007f269e5162b3 in g_main_loop_run
+#24 0x007f269ea1fd2d in gtk_main
+#25 0x005563b28f678c in main
+#26 0x007f269dc99d90 in (Unknown)
+#27 0x007f269dc99e40 in __libc_start_main
+#28 0x005563b06e0021 in _start
+[40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      ALC ILPP context 1 is unloading

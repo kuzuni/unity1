@@ -1,0 +1,116 @@
+# T27 UiShotsTests 자취 — 어디까지 갔는지 한 줄씩(런이 죽어도 남는다)
+boot 시작 · 유니티=6000.3.8f1 · 배치=True · 그래픽=True · 화면=640x480
+boot 호스트 · meta=True forge=True petskill=True dungeon=True sheet=True popups=True · 0.9초
+boot ok · 촬영=540x960
+seed 장비 · weapon=underworld/mythic/28 helmet=multiverse/legendary/26 armor=interstellar/common/25 gloves=multiverse/common/26 necklace=underworld/rare/28 ring=multiverse/common/26 shoes=multiverse/legendary/26 belt=quantum/rare/27
+seed 판 · cp=94m ch=4-1 gear=29 pets=8/21/3 skills=15/3 coins=27100000 kills=48210
+seed ok
+목록 35줄
+→ main
+  열림=True
+촬영 카메라 URP: 포스트=True · 게임 카메라 포스트=True · 같은가=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ offline
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ league
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ ascend
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ league-rewards
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ league-challenge
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ dungeons
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ dungeon-detail
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ skills
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ pets
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ pets-2
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ tech-overview
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ skill-detail
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ pet-detail
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ pet-upgrade
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ summon-rates
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ tech-branch
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ tech-node
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ shop
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ pass
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ profile
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ settings
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ forge-info
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ forge-list
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ forge-detail
+  열림=True
+  보스 경고 대기 31프레임
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ autoforge
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ autoforge-filter
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ craft-compare
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ gear-detail
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ player-info
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ chat
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ mounts
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ mount-detail
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ mount-upgrade
+  열림=True
+  그림=ok · 픽셀 상단 100% · 바닥 100% · 채움 100%
+→ main-notch
+  열림=True
+  그림=ok
+done · 필수 31장 · 어긋남 0 · PNG 35 · 빨강 0
