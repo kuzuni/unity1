@@ -89,8 +89,8 @@ namespace Forge.Game.Ui
             RectTransform gp = ForgeUi.Pill(pills, "gem", "gem", NumFmt.Fmt(h.Wallet.Gems), pillMin, ph);
             float cw = PillWidth(cp, pillMin, ph), gw = PillWidth(gp, pillMin, ph);
             // 정본 `.fi-pills` 는 가운데 정렬이라 **줄 전체**를 가운데에 둔다(폭이 서로 달라질 수 있다).
-            //   ⚠ 틈은 정본 5064 `gap: .8rem` 인데 클론은 1rem 이다 — 틈은 **T364 축**이라 이 회차에서 안 건드렸다(표 `_fi_pill_gap` 에 적었다).
-            float gap = rem * 1f;
+            //   T482 2회차 — 틈은 정본 5064 `gap: .8rem` = 표 `fi_pills_gap_rem`(전엔 `rem * 1f` 가 박혀 +7.2px · T388 4회차가 T364 축이라 미룬 자리).
+            float gap = rem * ForgeInfoStyle.L("fi_pills_gap_rem");
             float rowX = (inner - (cw + gap + gw)) * 0.5f;
             UiKit.Place(cp, rowX, 0f, cw, ph);
             UiKit.Place(gp, rowX + cw + gap, 0f, gw, ph);
