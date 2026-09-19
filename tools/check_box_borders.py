@@ -66,6 +66,13 @@ TABLE = {
     '.profile-avatar-big': ['—Popups.Avatar 의 폭은 호출부 인수(ProfilePopup 이 PopupKit.Line3 를 준다 · 10회차) — 자는 인수 이름만 봐서 못 읽고 PlayMode BoxBorderSitesTests 가 ol3 를 지킨다'],
     # 12회차 — 둥근 테 짝(Circle+Inset)을 읽게 된 뒤 열린 자리들 · 오프라인/정보 버튼/웨이브
     '.offline-collect-dot': ['Ui/OfflinePopup.cs@CollectDot'],
+    # ── T365 21회차 — 정본 js·html 에 클래스가 0 인 **잔재 선언 여섯**(T377 23회차·T396 이 같은 잣대로 가른 자리 · 그려지지 않는 리터럴이라 클론에 짝이 없다).
+    '.age-tag|left': ['—죽음: 정본 js·html 에 `age-tag` 0(708 · 왼쪽 ol3 #444c56) — 그려지지 않는 잔재'],
+    '.hatch-slot': ['—죽음: 정본이 `hatch-slot` 을 한 번도 안 붙인다(ui.js 3926 `.hatch-cell` 로 갈아엎었다 · 1650 ol1 dashed --rc)'],
+    '.egg-chip': ['—죽음: 정본 js·html 에 `egg-chip` 0(1658 ol1 --rc)'],
+    '.pet-card': ['—죽음: 정본 js·html 에 `pet-card` 0(1665 ol1 #444c56 · 펫 목록은 `.pet-tile` 격자)'],
+    '.pet-card .icon-circle': ['—죽음: 같은 까닭(1676 ol2 --rc) — `icon-circle` 은 다른 자리(채팅 공유 카드)에 살지만 `.pet-card` 조상이 없다'],
+    '.summon-prog': ['—죽음: 정본 js·html 에 `summon-prog` 0(4233 ol3 --pp-line · 소환 바 진행은 `.summon-bar`·`.summon-gauge` 갈래)'],
     '.offline-rate-icon': ['—덮인다: 실물은 언제나 `.coin`/`.hammer`(ui.js 5896~5897)이고 7268 이 그 둘에 `border: none` 을 준다 — 274 의 ol2 #000 은 실물에 안 선다(7268 쪽 두 줄이 이 자리의 임자다)'],
     '.offline-rate-icon.coin': ['Ui/OfflinePopup.cs@Rate'],
     '.offline-rate-icon.hammer': ['Ui/OfflinePopup.cs@Rate'],
@@ -203,6 +210,7 @@ DASH_CALL = re.compile(r'SurfaceArt\.DashedFrame\s*\(')
 # 정본이 점선으로 적은 선택자 → 점선 호출이 있어야 하는 클론 자리(꼴은 TABLE 과 같다 · «—» 는 대조 안 함)
 DASHED = {
     '.cmp-card.empty': ['Ui/ForgeUi.cs@ItemCard'],   # 1830 — 제작 비교·장비 상세의 빈 슬롯 카드(면 없음 + 점선 ol3 · T472 1회차)
+    '.hatch-slot': ['—죽음: 정본이 `hatch-slot` 을 한 번도 안 붙인다(ui.js 3926 `.hatch-cell`) — 1650 의 점선 ol1 --rc 도 그려지지 않는 잔재(T365 21회차)'],
 }
 
 
