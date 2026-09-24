@@ -553,7 +553,7 @@ namespace Forge.Game.Ui
                     //   (closest-side · inset 0 · 50% = 소환진 타원 그대로 · 두 겹). 종전엔 `Disc` 단색(알파 .2 평판) 한 장이었다.
                     //   판은 **흰색 + 정본 알파 단면**으로 굽고(표 SurfaceUi.json `sr_floor_fill`·`sr_floor_ring`) 색은 종전대로 **Image 틴트**가 쥔다 —
                     //   `--floor-fill`/`--floor-line` 이 런타임 변수(ui.js 551~552 · `.done` 에서 등급 파생색으로 승격)이고, 6815 `srfloorcharge` 의
-                    //   brightness(1→2.2)·saturate 램프를 이 틴트로 흔들기 때문(`Brighten` · `SummonChargeTests` 가 `FloorColor` 를 읽는다 · 결정 815816).
+                    //   brightness(1→2.2)·saturate 램프를 이 틴트로 흔들기 때문(`Brighten` · `SummonChargeTests` 가 `FloorColor` 를 읽는다 · 결정 816).
                     BuildFloorPlates(floor, fw, fh);
                     floorImg = floor; floorBase = floor.color; floorHome = floor.rectTransform.localScale;
                     // 룬 눈금 띠 — 소환진 위에 같은 상자로 얹는다(정본은 `::after` 라 같은 자리·같은 크기다).
