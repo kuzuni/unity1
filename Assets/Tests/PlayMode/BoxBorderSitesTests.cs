@@ -560,5 +560,89 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(ol15, brt.offsetMin.x, 0.01f, "배지 고리 폭 = line15_px(1.5 CSS px · 3249)");
             Assert.AreEqual(-ol15, brt.offsetMax.x, 0.01f);
         }
+
+        /// <summary>
+        /// T365 28회차 — 22회차가 KNOWN 으로 적어 둔 마지막 다섯(T178 lock 뒤였다): ⓐ 자동 제련 팝업 제 체크 둘(계속하기 `af-check-continue/box` · 옵션 줄 `check/box`) 4726 **ol3**
+        /// ⓑ 하단 블록 위 키라인 4777 `.af-bottom { border-top: var(--ol3) }` — `af-bottom-line`(높이 ol3 · 위에 붙고 카드 패딩만큼 양옆으로 넘친다)
+        /// ⓒ 필터 토글 4759~4769 — 트랙 **ol3** · 손잡이 **ol3** · 손잡이 1.631rem 정원이 트랙(1.269rem)보다 크고 닻은 왼쪽(0)에 오프셋(꺼짐 −.846 / 켜짐 1.027rem + 반지름)
+        /// ⓓ 장비 상세 머리 3685 `.idet-icon { border: var(--ol2) }` — `idet-icon/frame` 고리 ol2(전엔 ItemTile 기본 ol3).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 자동_제련_체크_둘과_하단_키라인_필터_토글_장비_상세_머리의_테는_정본_단이다()
+        {
+            yield return Boot();
+            float ol1 = UiKit.L("line_px"), ol2 = UiKit.L("line2_px"), ol3 = UiKit.L("line3_px");
+            float rem = PopupKit.Rem;
+            ForgeHost fh = ForgeHost.Instance;
+            fh.S.BestChapter = 3; fh.S.BestStage = 1; fh.S.ForgeLevel = 29;
+            fh.Pull();
+            Assert.IsTrue(fh.AutoForgeUnlocked, "2-10 뒤 해금");
+            ForgeAutoPopup.Open(fh);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup auto = fh.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(auto, "자동 제련 팝업");
+            // ⓐ 체크 둘
+            RectTransform cont = FindDeep(auto.Root, "af-check-continue");
+            Assert.IsNotNull(cont, "계속하기 체크(af-check-continue)");
+            Assert.AreEqual(ol3, RingWidth(cont.Find("box"), "계속하기 체크(.af-check 4726)"), 0.01f);
+            int subChecks = 0;
+            foreach (RectTransform rt in auto.Root.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "check" && rt.Find("box") != null && rt.parent != null && rt.parent.name.StartsWith("af-sub-", System.StringComparison.Ordinal))
+                { subChecks++; Assert.AreEqual(ol3, RingWidth(rt.Find("box"), "옵션 줄 체크 " + rt.parent.name + "(.af-check 4726)"), 0.01f); }
+            Assert.Greater(ol3, ol1, "ol3 > ol1 — 전엔 Line(ol1) 이었다");
+            // ⓑ 하단 키라인
+            RectTransform bottom = FindDeep(auto.Root, "af-bottom");
+            Assert.IsNotNull(bottom, "하단 블록(af-bottom)");
+            RectTransform bl = (RectTransform)bottom.Find("af-bottom-line");
+            Assert.IsNotNull(bl, "하단 블록 위 키라인(af-bottom-line · 4777)");
+            Assert.AreEqual(ol3, bl.sizeDelta.y, 0.01f, "키라인 높이 = ol3");
+            Assert.AreEqual(1f, bl.anchorMin.y, 1e-4f, "위에 붙는다(border-top)");
+            Assert.AreEqual(1f, bl.anchorMax.y, 1e-4f);
+            Assert.Greater(bl.sizeDelta.x, 0f, "정본 margin -.8rem — 카드 패딩만큼 양옆으로 넘친다");
+            Color lineC = bl.GetComponent<Image>().color, wantC = UiKit.C("pp_line");
+            Assert.AreEqual(wantC.r, lineC.r, 0.01f, "키라인 색 = pp_line"); Assert.AreEqual(wantC.g, lineC.g, 0.01f); Assert.AreEqual(wantC.b, lineC.b, 0.01f);
+            // ⓒ 필터 토글
+            RectTransform tg = FindDeep(auto.Root, "af-toggle");
+            Assert.IsNotNull(tg, "필터 토글(af-toggle)");
+            Assert.AreEqual(ol3, RingWidth(tg, "필터 토글 트랙(.af-toggle 4761)"), 0.01f);
+            RectTransform knob = (RectTransform)tg.Find("knob");
+            Assert.IsNotNull(knob, "손잡이(knob)");
+            // 손잡이는 제 Image 가 곧 검정 고리이고 안에 «face» 만 있다(설정 토글과 같은 꼴) — 그 면의 offset 이 고리 폭이다
+            RectTransform knobFace = (RectTransform)knob.Find("face");
+            Assert.IsNotNull(knobFace, "손잡이 면(face)");
+            Assert.AreEqual(ol3, knobFace.offsetMin.x, 0.01f, "필터 토글 손잡이 고리 폭(.af-toggle .knob 4765) = ol3");
+            Assert.AreEqual(-ol3, knobFace.offsetMax.x, 0.01f);
+            float tw = ForgeAutoStyle.L("af_toggle_w_rem") * rem, th = ForgeAutoStyle.L("af_toggle_h_rem") * rem, kd = ForgeAutoStyle.L("af_knob_rem") * rem;
+            Assert.AreEqual(tw, tg.sizeDelta.x, 0.01f, "트랙 폭 1.873rem(4760)");
+            Assert.AreEqual(th, tg.sizeDelta.y, 0.01f, "트랙 높이 1.269rem(4760)");
+            Assert.AreEqual(kd, knob.sizeDelta.x, 0.01f, "손잡이 지름 1.631rem(4764)");
+            Assert.AreEqual(kd, knob.sizeDelta.y, 0.01f, "손잡이는 정원");
+            Assert.Greater(kd, th, "손잡이가 트랙보다 커서 위아래로 넘친다(정본 주석 4749 «트랙 위아래로 3px 씩»)");
+            Assert.AreEqual(0f, knob.anchorMin.x, 1e-4f, "닻은 늘 왼쪽(0) — 자리는 오프셋이 정한다");
+            float offX = ForgeAutoStyle.L("af_knob_off_rem") * rem + kd * 0.5f, onX = ForgeAutoStyle.L("af_knob_on_rem") * rem + kd * 0.5f;
+            bool atOff = Mathf.Abs(knob.anchoredPosition.x - offX) < 0.01f, atOn = Mathf.Abs(knob.anchoredPosition.x - onX) < 0.01f;
+            Assert.IsTrue(atOff || atOn, "손잡이 가운데 = 꺼짐 −.846rem / 켜짐 1.027rem + 반지름(4765·4769 · 바깥면 기준) — 실측 " + knob.anchoredPosition.x.ToString("0.0") + " ↔ " + offX.ToString("0.0") + " / " + onX.ToString("0.0"));
+            Assert.Less(offX - kd * 0.5f, 0f, "꺼짐 손잡이는 트랙 왼쪽 밖으로 나간다(정본 주석 4750 «OFF 트랙 왼쪽 밖 −14px»)");
+            Assert.Greater(onX + kd * 0.5f, tw, "켜짐 손잡이는 트랙 오른쪽 밖으로 나간다(«ON … 오른쪽 밖 13px»)");
+            fh.Meta.Popups.Hide(ForgeAutoPopup.Name);
+            yield return null;
+            // ⓓ 장비 상세 머리
+            string age = fh.Defs.Ages[0];
+            string wt = fh.Engine.WeaponsOfAge(age)[0];
+            ForgeInfoPopup.OpenDetail(fh, age, "weapon", 0, wt);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup det = fh.Meta.Popups.Find(ForgeInfoPopup.ItemName);
+            Assert.IsNotNull(det, "장비 상세 팝업");
+            RectTransform idet = FindDeep(det.Root, "idet-icon");
+            Assert.IsNotNull(idet, "상세 머리 타일(idet-icon)");
+            Transform frame = idet.Find("frame");
+            Assert.IsNotNull(frame, "타일 틀(frame)");
+            Assert.AreEqual(ol2, RingWidth(frame, "상세 머리 타일(.idet-icon 3685)"), 0.01f);
+            Assert.Less(ol2, ol3, "ol2 < ol3 — 전엔 ItemTile 기본 Line3 였다");
+            fh.Meta.Popups.Hide(ForgeInfoPopup.ItemName);
+            yield return null;
+        }
     }
 }

@@ -82,19 +82,25 @@ namespace Forge.Game.Ui
                 UiShadow.Drop(ageBarBox, "afagebar_lip", RadiusUi.Px("af_age_bar_r_rem"), inner, barH);
                 UiShadow.Drop(ageBarBox, "afagebar_drop", RadiusUi.Px("af_age_bar_r_rem"), inner, barH);
             }
-            RectTransform filterRow = PopupKit.Item(content, "af-filter-row", -1f, UiKit.H("settings_toggle_h") + rem * 0.3f);
+            // T365 28회차 — 정본 4759~4769 의 **제 치수**(표 ForgeAutoUi.json): 트랙 1.873×1.269rem · 손잡이 1.631rem · 꺼짐 −.846 / 켜짐 1.027rem(바깥면 기준).
+            //   전엔 설정 토글 치수(settings_toggle_w/h = 2.5×1.35rem)에 손잡이가 트랙 안에 든 «평범한 스위치» 였다(정본 주석 4758 이 그 인상을 꼬집는다).
+            //   정본 4736~4746: 라벨 ↔ 트랙 gap 1.209rem(= 밖으로 나간 손잡이 .846 + 글자 틈 .363) · 행 오른쪽 padding .786rem(= 켜짐에 오른쪽으로 튀는 손잡이 몫 · 스크롤이 가로도 자른다).
+            float tw = ForgeAutoStyle.L("af_toggle_w_rem") * rem, tgH = ForgeAutoStyle.L("af_toggle_h_rem") * rem;
+            float knobD = ForgeAutoStyle.L("af_knob_rem") * rem, knobOffX = ForgeAutoStyle.L("af_knob_off_rem") * rem, knobOnX = ForgeAutoStyle.L("af_knob_on_rem") * rem;
+            float spill = ForgeAutoStyle.L("af_filter_pad_r_rem") * rem, lblGap = ForgeAutoStyle.L("af_filter_gap_rem") * rem;
+            float filterH = tgH + rem * 0.3f;
+            RectTransform filterRow = PopupKit.Item(content, "af-filter-row", -1f, filterH);
             TextMeshProUGUI fl = UiKit.Text(filterRow, "label", TextKind.Sub, "필터", "pp_ink", TextAlignmentOptions.Right);
             fl.fontStyle = FontStyles.Bold;
-            float tw = UiKit.H("settings_toggle_w");
-            UiKit.Place(fl.rectTransform, 0f, 0f, inner - tw - rem * 0.5f, UiKit.H("settings_toggle_h") + rem * 0.3f);
+            UiKit.Place(fl.rectTransform, 0f, 0f, inner - spill - tw - lblGap, filterH);
             // T377 12회차 — 정본은 이 토글을 **설정 토글과 따로** 못박아 뒀다: 4761 `.af-toggle { background: #1e2a4a }` ·
             //   4768 `.af-toggle.on { background: #35d435 }` · 4766 `.af-toggle .knob { background: var(--pp-blue) }`.
             //   클론은 공용 `PopupKit.Toggle` 기본값(= 설정 토글 3107 의 `pp_gray`/`pp_blue`/흰 손잡이)으로 그려,
             //   켜짐이 **초록이 아니라 파랑**이라 설정 토글과 구별이 안 됐다. 자리 전용 키로 받는다(값은 카탈로그 · `check_pinned_colors` 가 지킨다).
-            Button tg = PopupKit.Toggle(filterRow, "af-toggle", cfg.FilterOn, () => h.ToggleAutoFilterOn(),
-                "af_toggle_on", "af_toggle", "af_toggle_knob");
-            float tgH = UiKit.H("settings_toggle_h");
-            UiKit.Place(tg.GetComponent<RectTransform>(), inner - tw, rem * 0.15f, tw, tgH);
+            //   T365 28회차 — 테 단(ol3)·기하는 제 갈래 `PopupKit.AutoToggle`(정본 4761·4765) — 설정 토글은 그대로 `Toggle` 이다.
+            Button tg = PopupKit.AutoToggle(filterRow, "af-toggle", cfg.FilterOn, () => h.ToggleAutoFilterOn(),
+                "af_toggle_on", "af_toggle", "af_toggle_knob", tw, tgH, knobD, knobOffX, knobOnX);
+            UiKit.Place(tg.GetComponent<RectTransform>(), inner - spill - tw, (filterH - tgH) * 0.5f, tw, tgH);
             // T178 22회차 — 정본 4986 `.af-toggle { background-image: linear-gradient(180deg, rgba(0,0,0,.34) 0, rgba(0,0,0,0) 55%, rgba(255,255,255,.14) 100%) }`
             //   + 4990 `.af-toggle .knob { background-image: radial-gradient(circle at 34% 26%, …) }`. 정본 주석 4984 가 둘을 한 줄로 적었다 —
             //   «트랙은 **파인 홈**, 노브는 **광택 구슬**». 클론은 둘 다 민무늬 단색이라 토글이 평평한 스티커였다.
@@ -103,11 +109,10 @@ namespace Forge.Game.Ui
             RectTransform tgRt = tg.GetComponent<RectTransform>();
             Image tgFace = tgRt.Find("face").GetComponent<Image>();
             SurfaceArt.FillMasked(tgFace, "bg-grad", "af_toggle_track",
-                tw - PopupKit.Line2 * 2f, tgH - PopupKit.Line2 * 2f, tgFace.color);
-            float knobK = tgH - PopupKit.Line2 * 4f;
+                tw - PopupKit.Line3 * 2f, tgH - PopupKit.Line3 * 2f, tgFace.color);   // T365 28회차 — 판은 ol3 테 안쪽 면 크기
             Image knobFace = tgRt.Find("knob/face").GetComponent<Image>();
             SurfaceArt.FillMasked(knobFace, "bg-grad", "af_knob_gloss",
-                knobK - PopupKit.Line * 2f, knobK - PopupKit.Line * 2f, knobFace.color);
+                knobD - PopupKit.Line3 * 2f, knobD - PopupKit.Line3 * 2f, knobFace.color);   // T365 28회차 — 손잡이 1.631rem · ol3 고리 안
             if (cfg.FilterOn)
             {
                 for (int i = 0; i < d.Substats.Count; i++)
@@ -121,6 +126,10 @@ namespace Forge.Game.Ui
             // ---- 하단: 망치 수 · 계속하기 · 시작 ----
             RectTransform bottom = UiKit.Box(card, "af-bottom");
             UiKit.Place(bottom, pad, cardH - bottomH - pad, inner, bottomH);   // T465 — 옛 테 보정을 걷었다
+            // T365 28회차 — 정본 4777 `.af-bottom { border-top: var(--ol3) solid var(--pp-line); margin: .55rem -.8rem 0 }`: 하단 블록 위에 **ol3 검정 키라인**이 있고
+            //   음수 좌우 마진(-.8rem = 카드 패딩)으로 카드 안쪽 테까지 닿는다. 클론엔 이 선이 통째로 없었다(22회차 KNOWN) — 카드 패딩(pad)만큼 양옆으로 늘린다.
+            Image bottomLine = UiKit.Line(bottom, "af-bottom-line", "pp_line", PopupKit.Line3, true);
+            bottomLine.rectTransform.sizeDelta = new Vector2(pad * 2f, PopupKit.Line3);
             float rowH = rem * 1.9f;
             TextMeshProUGUI hl = UiKit.Text(bottom, "hammers-label", TextKind.Sub, "한 번에 사용된 망치 수", "pp_ink", TextAlignmentOptions.Left);
             hl.fontStyle = FontStyles.Bold;
@@ -156,10 +165,10 @@ namespace Forge.Game.Ui
             // T396 10회차 — 정본 4722~4730 `.af-check { background: #17181a } .af-check.on { background: #17181a; color: #23c552 }`(주석 «켜진 상태도 배경은 검정 그대로 두고 ✓ 글리프만 초록 —
             //   상자를 통째로 초록으로 채우던 종전 구현은 원본과 다른 물건»). 클론이 바로 그 종전 구현(켜짐 상자 초록 + 흰 ✓)이었다 → 상자는 두 상태 다 af_check_face · ✓ 만 af_check_on_ink.
             Color ckFace = PinnedColorUi.C("af_check_face");
-            Image ckf = ForgeUi.Tile(ckRt, "box", ckFace, Color.black, cb * 0.2f, PopupKit.Line);
+            Image ckf = ForgeUi.Tile(ckRt, "box", ckFace, Color.black, cb * 0.2f, PopupKit.Line3);   // T365 28회차 — 정본 4726 `.af-check { border: var(--ol3) }`(전엔 Line = ol1 · 22회차 KNOWN)
             // T178 20회차 — 정본 4971 `.af-check { background-image: linear-gradient(180deg, rgba(255,255,255,.14) 0, rgba(255,255,255,0) 46%, rgba(0,0,0,.3) 100%) }`.
             //   바탕이 **런타임 색**(켜짐 검정 · 꺼짐 초록)이라 색을 넘겨 sRGB 로 미리 섞는다(T178 17회차 갈래 · 표에 over_color 를 안 적은 까닭).
-            SurfaceArt.FillMasked(ckf, "bg-grad", "af_check", cb - PopupKit.Line * 2f, cb - PopupKit.Line * 2f, ckFace);
+            SurfaceArt.FillMasked(ckf, "bg-grad", "af_check", cb - PopupKit.Line3 * 2f, cb - PopupKit.Line3 * 2f, ckFace);   // T365 28회차 — 판은 ol3 안쪽 면 크기
             PressFx.Attach(ck.gameObject, ckRt, "af_check", ckf);   // T355 ⓒ — 정본 4974·4982 .af-check:active { translateY(.06rem); brightness(1.12) · .07s }(계속하기 체크 = ui.js 2318)
             if (!cfg.StopOnTarget)
             {
@@ -231,7 +240,7 @@ namespace Forge.Game.Ui
             float cb = hgt * 0.62f;
             RectTransform box = UiKit.Box(row, "check");
             UiKit.Place(box, rem * 0.5f, (hgt - cb) * 0.5f, cb, cb);
-            ForgeUi.Tile(box, "box", PinnedColorUi.C("af_check_face"), Color.black, RadiusUi.Px("af_check_r_rem"), PopupKit.Line);   // T415 13회차 — 정본 4724 `.af-check { border-radius: .35rem }` 을 표에서(전엔 `cb * 0.2f` ≈ .22rem 이 박혀 있었다)   // T396 10회차 — 정본 4727·4730: 켜짐도 상자는 #17181a(초록 상자는 «종전 구현»)
+            ForgeUi.Tile(box, "box", PinnedColorUi.C("af_check_face"), Color.black, RadiusUi.Px("af_check_r_rem"), PopupKit.Line3);   // T365 28회차 — 정본 4726 ol3(전엔 Line = ol1)   // T415 13회차 — 정본 4724 `.af-check { border-radius: .35rem }` 을 표에서(전엔 `cb * 0.2f` ≈ .22rem 이 박혀 있었다)   // T396 10회차 — 정본 4727·4730: 켜짐도 상자는 #17181a(초록 상자는 «종전 구현»)
             if (on)
             {
                 Image mk = PopupKit.IconOr(box, "mark", "check");

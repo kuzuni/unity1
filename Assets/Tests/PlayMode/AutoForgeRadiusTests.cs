@@ -27,7 +27,8 @@ namespace Forge.Tests.PlayMode
         public void 토글_필터_행_재화_알약은_정본_1rem_이_알약으로_줄어든_자리다()
         {
             float canon = 1f * Rem;
-            float tgH = UiKit.H("settings_toggle_h");
+            float tgH = ForgeAutoStyle.L("af_toggle_h_rem") * Rem;   // T365 28회차 — 트랙은 이제 제 표(1.269rem · 전엔 설정 토글 settings_toggle_h 를 빌렸다)
+            Assert.AreEqual(1.269f * Rem, tgH, 1e-3f, "정본 4760 `.af-toggle { height: 1.269rem }` — 표 af_toggle_h_rem");
             Assert.IsTrue(RadiusRules.IsPill(canon, tgH), "정본 4759 `.af-toggle { height: 1.269rem; border-radius: 1rem }` ↔ 클론 트랙 " + tgH.ToString("0.0") + "px 의 반 < 1rem(" + canon.ToString("0.0") + "px) — 알약(결정 543)");
             Assert.IsTrue(RadiusRules.IsPill(canon, 1.269f * Rem), "정본 쪽 셈으로도 알약(반높이 .63rem < 1rem)");
             Assert.IsTrue(RadiusRules.IsPill(canon, 1.75f * Rem), "정본 4772 `.af-sub-row { 1rem }` ↔ 클론 행 1.75rem(반높이 .875rem) — 알약");

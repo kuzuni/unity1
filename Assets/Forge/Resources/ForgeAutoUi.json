@@ -6,8 +6,17 @@
     "card_h_f": 0.8452,
     "card_top_f": 0.0701, "af_dd_min_w_rem": 5.4,
     "af_start_min_h_rem": 4.45,
-    "af_start_pad_y_rem": 0.6
+    "af_start_pad_y_rem": 0.6,
+    "af_toggle_w_rem": 1.873,
+    "af_toggle_h_rem": 1.269,
+    "af_knob_rem": 1.631,
+    "af_knob_off_rem": -0.846,
+    "af_knob_on_rem": 1.027,
+    "af_filter_gap_rem": 1.209,
+    "af_filter_pad_r_rem": 0.786
   },
+  "_af_toggle": "T365 28회차 — style.css **4759~4769** `.af-toggle { width: 1.873rem; height: 1.269rem; border: var(--ol3) … }` · `.af-toggle .knob { left: calc(-.846rem - var(--ol3)); width: 1.631rem; height: 1.631rem; border: var(--ol3) … }` · `.af-toggle.on .knob { left: calc(1.027rem - var(--ol3)) }`. 정본 주석 4747~4757 의 실측: «트랙 31×21px · 노브 27px 정원(트랙 위아래로 3px 씩 넘친다) · OFF 트랙 왼쪽 밖 −14px · ON +17px → 좌우 대칭». `left` 는 트랙 **패딩 상자** 기준이라 `- var(--ol3)` 를 빼 바깥면 기준으로 만든 것 — 클론 `PopupKit.AutoToggle` 은 바깥면 기준값(−.846 / 1.027rem)을 그대로 받는다. 전엔 설정 토글 치수(catalog `settings_toggle_w/h` = 2.5×1.35rem · 손잡이가 트랙 안)를 빌려 썼다.",
+  "_af_filter_row": "T365 28회차 — style.css **4736~4746** `.af-filter-row { gap: 1.209rem; padding-right: .786rem }`. 정본 주석: gap 은 «라벨 글자 오른쪽 ↔ **노브** 왼쪽» 이 원본(6px = .363rem)과 같도록 «밖으로 나간 노브 .846 + .363» · padding-right 는 «노브가 트랙 오른쪽으로 .786rem(= ON 1.027 + 노브 1.631 − 트랙 1.873) 튀어나오는데 .af-scroll 이 가로도 자르니 그만큼 들인다». 클론도 트랙을 `inner − .786rem` 안에 세우고 라벨 폭을 그 gap 만큼 뺀다.",
   "_af_start_h": "T378 13회차 — style.css **4816** `.af-start { … margin: 1.5rem auto 2.09rem; font-size: 1.3rem; padding: .6rem 0; min-height: 4.45rem }`. 정본은 버튼 높이를 «하한 4.45rem ↔ 패딩 .6rem×2 + 글줄» 중 **큰 쪽**으로 두고(`min-height` + `padding`), 클론은 그것을 표값 `btn_h`(2.4rem)에 **×1.9 를 얹어** 흉내 내고 있었다(= 4.56rem · +2.5%). 표에는 정본값이 있는데 코드가 곱을 태운 바로 그 축이다(§1 · T378). 값 둘은 정본 그대로 — 셈은 `PopupKit.BtnH`(한 줄 갈래 · 12회차가 두 줄용으로 세운 것과 같은 식).",
   "_af_dd_min_w": "T388 6회차 — style.css **4791~4795** `.af-dd-list { position: absolute; right: 0; … min-width: 5.4rem; display: flex; flex-direction: column }`. 정본 드롭다운은 **내용만큼**(세로 flex 의 가장 넓은 단추) 넓되 **5.4rem 밑으로는 안 내려간다** — 항목이 숫자 한둘이라 사실상 이 하한이 곧 폭이다(= 기준 캔버스 **196.5px**). 클론은 그 폭을 **스피너 폭**(`inner * 0.36` ≈ 263.5px = 7.24rem)에 묶어 정본보다 **34% 넓었다** — 하한을 안 쥔 것이 아니라 **엉뚱한 것에 묶여** 있었다.", 
   "_card_top": "T400 — style.css 4675 정본 주석의 원본 실측 «카드 y7.01%H · 하단 91.75%H»(= 높이 84.52%H). 정본은 이 카드만 공용 상한(--popup-h-max)을 벗기고(4673~4682 경고 주석) 닫기 버튼은 z 31 로 탭바 위에 올린다 — 클론은 T346 이 이미 탭바 위 층에 띄우므로 ForgeAutoPopup.cs 48 의 FitBetweenBars(T78) 깎기를 걷고 위끝을 이 키로 놓으면 된다(배선은 그 파일 lock 뒤 2회차). 런 769 실측: 클론 카드 76.25%H · 위끝 8.65%H ↔ 원작 84.3~85.0%H · 7.3~7.9%H.",

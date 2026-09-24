@@ -609,6 +609,41 @@ namespace Forge.Game.Ui
             return b;
         }
 
+        /// <summary>
+        /// T365 28회차 — 자동 제련 **필터 토글**(정본 4759~4769 `.af-toggle` · `.af-toggle .knob`)의 제 갈래. 설정 토글(<see cref="Toggle"/>)과는
+        /// 색만이 아니라 **기하와 테 단이 다르다**: 트랙 1.873×1.269rem 에 **ol3** 테 · 손잡이 1.631rem 정원에 **ol3** 테 ·
+        /// 손잡이가 트랙보다 **커서 위아래로 넘치고** 꺼짐엔 트랙 왼쪽 **밖**(`left: calc(-.846rem - var(--ol3))` = 바깥면 기준 −.846rem) ·
+        /// 켜짐엔 `calc(1.027rem - var(--ol3))`(= 바깥면 기준 +1.027rem)에 선다(정본 주석 4747~4757 «트랙 31×21 · 노브 27 정원 · OFF −14px / ON +17px — 좌우 대칭»).
+        /// 치수는 부르는 쪽이 표(ForgeAutoUi.json)에서 준다 — 도우미는 값을 안 박는다(§1). 손잡이 피벗은 가운데라 `left` 는 반지름만큼 옮겨 받는다.
+        /// 미끄러짐(T454)·그늘(T331 43회차 · 결정 801)은 설정 토글과 같은 길 — 닻은 늘 왼쪽(0)이고 오프셋만 갈린다.
+        /// </summary>
+        /// <param name="knobD">손잡이 지름(px · 정본 1.631rem).</param>
+        /// <param name="knobOffX">꺼짐 손잡이 왼끝(트랙 바깥면 기준 · px · 정본 −.846rem).</param>
+        /// <param name="knobOnX">켜짐 손잡이 왼끝(트랙 바깥면 기준 · px · 정본 1.027rem).</param>
+        public static Button AutoToggle(Transform parent, string name, bool on, UnityAction onClick,
+            string onKey, string offKey, string knobKey, float w, float h, float knobD, float knobOffX, float knobOnX)
+        {
+            string slideKey = parent.name + "/" + name;
+            bool? before = ToggleSlide.Take(slideKey);
+            Button b = UiKit.Button(parent, name, () => { ToggleSlide.Expect(slideKey, on); if (onClick != null) onClick(); });
+            RectTransform rt = b.GetComponent<RectTransform>();
+            Size(rt, w, h);
+            // 정본 4761 `.af-toggle { border: var(--ol3) solid var(--pp-line); border-radius: 1rem }` — 반높이(.63rem) < 1rem 이라 알약(결정 543)
+            UiKit.Rounded(rt, "line", "pp_line", h * 0.5f);
+            Image face = UiKit.Rounded(rt, "face", on ? onKey : offKey, h * 0.5f - Line3);
+            Inset(face.rectTransform, Line3);
+            // 정본 4765 `.af-toggle .knob { border: var(--ol3) solid var(--pp-line); border-radius: 50% }` — 검정 고리(ol3) + 파란 면
+            Image knob = UiKit.Rounded(rt, "knob", "pp_line", knobD * 0.5f);
+            float kx = (on ? knobOnX : knobOffX) + knobD * 0.5f;
+            UiKit.Anchor(knob.rectTransform, new Vector2(0f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(kx, 0f), knobD, knobD);
+            Image knobFace = UiKit.Rounded(knob.transform, "face", knobKey, knobD * 0.5f - Line3);
+            Inset(knobFace.rectTransform, Line3);
+            UiShadow.Drop(knob.rectTransform, "afknob_drop", knobD * 0.5f, knobD, knobD);   // T331 43회차 — 정본 4991 둘째 겹 · 손잡이 안 맨 뒤(결정 801)
+            if (before.HasValue && before.Value != on)
+                ToggleSlide.Begin(knob.rectTransform, TransitionUi.Table.Has(name) ? name : "toggle", 0f, (before.Value ? knobOnX : knobOffX) + knobD * 0.5f);
+            return b;
+        }
+
         // ---- 아이콘 ----
 
         /// <summary>아이콘 — T31 아틀라스(원작 IconGen 키) → 카탈로그 스프라이트(GUI PRO Kit) → 없으면 회색 원 자리표.</summary>

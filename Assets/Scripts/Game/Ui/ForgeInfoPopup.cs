@@ -379,7 +379,9 @@ namespace Forge.Game.Ui
             float tile = rem * 3.6f;
             RectTransform head = PopupKit.Item(card, "idet-head", -1f, tile + rem * 0.4f);
             // T415 19회차 — 정본 3683 `.idet-icon { border-radius: .55rem }`(표 `idet_icon_r_rem` · 종전 «크기 × .16» = .576rem).
-            RectTransform t = ForgeUi.ItemTile(head, "idet-icon", tile, d, age, icon, radiusKey: "idet_icon_r_rem");
+            // T365 28회차 — 정본 3685 `.idet-icon { border: var(--ol2) solid #d5d5d5 }`: 3661 은 **색만** 덮는다(border-color) — 폭은 ol2 그대로.
+            //   ItemTile 기본은 장착 칸의 ol3 라 한 단 굵었다(22회차 KNOWN · `ItemCard` 의 `.cmp-img` 와 같은 길 · 23회차가 연 `lineW`).
+            RectTransform t = ForgeUi.ItemTile(head, "idet-icon", tile, d, age, icon, radiusKey: "idet_icon_r_rem", lineW: PopupKit.Line2);
             // T371 10회차 — 정본 3661 `#forge-item-modal .idet-icon { background: color-mix(in srgb, var(--rc) 58%, #17181a); border-color: color-mix(… 80%, #000) }`:
             //   ItemTile 은 장비 칸 키(cell_face/cell_line)로 칠하고 값은 같지만, 정본이 이 팝업에만 가둔 선택자라 표 키(idet_icon_*)를 따로 쥔다 —
             //   부르는 쪽이 덮는다(ForgeCraftPopup.MixFrame 과 같은 길 · check_color_mix 가 이 줄로 자리를 센다).
