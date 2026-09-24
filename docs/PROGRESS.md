@@ -7808,7 +7808,7 @@
 - **회차 첫 일(§0-6)**: `check_unity_green --fetch` — 유니티가 실제로 돈 마지막 런 **1259**(`adf8dfb` = 내 27회차 커밋) **초록**(EditMode 878/878 · PlayMode 639 중 빨강 0 · 건너뜀 3 환경). 그 뒤 main 커밋 5 는 코드 0(T28 채점·T178 lock). 빨강 없음.
 - **판정**: ⓐ `SummonChargeTests.예고_충격파는_정점에_터져…` — 장부 SKIP 위치가 `SummonChargeTests.cs:753`(T443 빛줄기 속창 접음 · 사유 «속창 60~181ms 에 프레임 0 · 가장 긴 프레임 270ms»). 내 접음(본파 칸 ≤ 1)은 그 **앞**이라 안 켜졌다 = 프레임이 본파 창의 **서로 다른 칸에 앉았고 판이 바뀌었다**(`seen.Count > 1` 지남). 곧 런 1258 의 «같은 판» 은 굶주림이었고 제품은 갈아 끼운다 — 27회차 진단이 맞았다. ⓑ `BoxBorderSitesTests` 11/11 그대로. ⓒ `meta.json` `cache_hit: false` 인데도 초록 — 1258 보다 프레임이 촘촘했다(902 → 270ms).
 - **lock 반납 · 행 ⬜**: 이 절의 186 자리 대조는 초록 121 · KNOWN 5 · 건너뜀 67 · 미정 0 · 문제 0 으로 닫혀 있고, 남은 수리 5 자리는 전부 **T178 lock**(ForgeAutoPopup·ForgeInfoPopup — `.idet-icon`·`.af-check`·`.af-bottom`) 뒤거나 `.af-toggle`·`.knob` 처럼 `Popups.Toggle` 과 `ForgeAutoPopup` 을 한 회차에 같이 열어야 하는 자리(26회차 ⓒ). T178 은 20:2x 에 32회차로 다시 잡혔다(워커 S). 풀리면 누구든 잡는다 — 자가 «KNOWN 인데 이제 테가 있다» 로 울어 준다.
-- **ntfy**: push 뒤 결과를 이 절 끝에 적는다.
+- **ntfy — 알림 못 보냄**: 커밋 `7544a933` push 뒤 `ntfy-notify.yml` **런 #2423**(job 107827261134)이 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 22~27회차와 같은 자리(이 루틴 프롬프트엔 토픽이 없고 Secret 미등록).
 
 ### T365 27회차 — 26회차 판정 ✅(런 1258 · 배지 자 PASS · 눈 ✓) + §0-6: 같은 런의 임자 없는 빨강 `SummonChargeTests` 본파 «같은 판» 을 T443 길로 접음 (2026-09-24 19:4x~19:5x · 워커 T · sess-1447-10982 · lock 유지 · 판정은 다음 런)
 
