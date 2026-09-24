@@ -596,6 +596,13 @@ namespace Forge.Tests.PlayMode
             }
             Assert.GreaterOrEqual(burstCoreStart, 0f, "표의 빛 모임이 어느 순간에도 .5 를 안 넘는다 — 표(charge_burst)가 이상하다");
             int seenBurstCore = 0;
+            // T365 27회차 §0-6 보탬(런 1258) — 본파의 **판 갈아 끼움**도 같은 길로 표에서 잰다: 본파는 `shock_delay_ms` 부터 `shock_ms` 동안
+            //   `steps` 칸으로 나뉘어 **칸 경계에서만** 판을 갈아 끼운다(제품 `AnimateShock` → `MainStepOf`). 런 1258 은 가장 긴 프레임이 ≈900ms 라
+            //   그 창(230~690ms)에 앉은 프레임이 전부 **한 칸**이었고 «본파가 처음부터 끝까지 같은 판이었다» 로 빨갰다 — 못 잰 것이지 안 줄어든 것이 아니다.
+            //   프레임 시각이 **서로 다른 칸 둘 이상**에 앉았을 때만 «판이 바뀌었나» 를 묻고, 아니면 나머지를 다 본 뒤 맨 끝에서 «환경» 으로 접는다.
+            var shsp = SummonFxStyle.Shock;
+            var shockStepsHit = new HashSet<int>();
+            int seenShockWin = 0;
             float t = 0f;
             while (!v.Done && t < 12f)
             {
@@ -604,6 +611,11 @@ namespace Forge.Tests.PlayMode
                 if (v.ElapsedMs >= streakCoreStart && v.ElapsedMs <= streakCoreEnd) seenStreakCore++;
                 if (v.ElapsedMs >= burstCoreStart && v.ElapsedMs <= burstCoreEnd) seenBurstCore++;
                 Image mi = v.ShockMain, ei = v.ShockEcho;
+                if (v.ElapsedMs >= shsp.DelayMs && v.ElapsedMs < shsp.DelayMs + shsp.Ms)
+                {
+                    seenShockWin++;
+                    shockStepsHit.Add(shsp.MainStepOf(v.ElapsedMs));
+                }
                 if (mi != null && mi.color.a > 0f)
                 {
                     if (mi.color.a > mainPeak) { mainPeak = mi.color.a; mainPeakAt = t; }
@@ -655,7 +667,9 @@ namespace Forge.Tests.PlayMode
                     + "ms 보다 길다: 차례는 규칙(EchoDelayMs > DelayMs)으로 판정한다");
             else
                 Assert.Less(mainPeakAt, echoPeakAt, "잔파가 본파보다 먼저 정점을 찍었다 — 차례가 뒤집혔다");
-            Assert.Greater(seen.Count, 1, "본파가 처음부터 끝까지 같은 판이었다 — 테 굵기가 안 줄었다는 뜻이다");
+            if (shockStepsHit.Count > 1)   // T365 27회차 §0-6 보탬 — 프레임이 서로 다른 칸에 앉았을 때만 «판이 바뀌었나» 를 묻는다
+                Assert.Greater(seen.Count, 1, "본파가 처음부터 끝까지 같은 판이었다 — 테 굵기가 안 줄었다는 뜻이다(프레임이 앉은 칸 "
+                    + shockStepsHit.Count + "/" + shsp.Steps + " · 창 안 프레임 " + seenShockWin + "번)");
             // ⚑ 23회차 — 깊이 평면 셋(빛가루 18 · 먼지 48 · 보케 14 = 80)은 **끊임없이** 떠오른다.
             Assert.AreEqual(18 + 48 + 14, v.MoteCount, "정본 개수(18+48+14)와 다르다");
             // 울 때 내민 숫자 — 본 것과 **표가 이러야 한다는 값**을 나란히 둔다.
@@ -731,6 +745,10 @@ namespace Forge.Tests.PlayMode
                 Assert.Ignore("환경 — 빛 모임 **봉우리 창**(" + burstCoreStart.ToString("0") + "~" + burstCoreEnd.ToString("0")
                     + "ms · 표 알파 > .5 인 구간)에 프레임이 한 번도 안 들어왔다(가장 긴 프레임 " + (streakWorstGap * 1000f).ToString("0")
                     + "ms) — 잴 기회가 없었다(나머지 단언은 전부 지났다)");
+            if (shockStepsHit.Count <= 1)
+                Assert.Ignore("환경 — 본파 창(" + shsp.DelayMs.ToString("0") + "~" + (shsp.DelayMs + shsp.Ms).ToString("0") + "ms · " + shsp.Steps
+                    + " 칸)에 프레임이 " + seenShockWin + "번 · 칸 " + shockStepsHit.Count + " 에만 앉았다(가장 긴 프레임 "
+                    + (streakWorstGap * 1000f).ToString("0") + "ms) — 판 갈아 끼움을 잴 기회가 없었다(T365 27회차 · 나머지 단언은 전부 지났다)");
             if (seenStreakCore == 0)
                 Assert.Ignore("환경 — 빛줄기 **속창**(" + streakCoreStart.ToString("0") + "~" + streakCoreEnd.ToString("0")
                     + "ms · 모든 스포크가 함께 켜진 구간 · 창 전체는 " + streakWinStart.ToString("0") + "~" + streakWinEnd.ToString("0")
