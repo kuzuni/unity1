@@ -1107,5 +1107,61 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T178 30회차 — 소환 결과 구슬의 **접지 그림자**(정본 **6350** `.sr-orbwrap::before { left: 13%; right: 13%; bottom: -6%; height: 13%;
+        /// border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.62), rgba(0,0,0,0) 76%) }` · 정본 주석 6349
+        /// «구체 내부 그라디언트로는 읽히지 않아 구 밖에 눌린 타원으로 깐다»). 클론엔 통째로 없었다.
+        /// 자는 ⓐ 구운 화소 — 가운데 검정 .62 · 76% 밖 알파 0 ⓑ 실물 — 래퍼 안에 `sr-ground` 가 표의 자리에 서고 구슬 **앞 순서**(구슬 뒤)다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 소환_결과_구슬_접지_그림자는_구슬_뒤_바닥에_눌린_검정_방사_타원이다()
+        {
+            // ⓐ 구운 화소
+            float side = PetSkillStyle.L("sr_ground_side_f"), gh0 = PetSkillStyle.L("sr_ground_h_f");
+            Sprite sp = SurfaceArt.Bake("sr_ground", (1f - side * 2f) / gh0);
+            Assert.IsNotNull(sp, "접지 그림자를 굽는다");
+            Texture2D tx = sp.texture;
+            Color mid = tx.GetPixel(tx.width / 2, tx.height / 2);
+            Color edge = tx.GetPixel((int)(tx.width * 0.97f), tx.height / 2);
+            Assert.AreEqual(0.62f, mid.a, 0.03f, "가운데 알파 = 정본 .62");
+            Assert.Less(mid.r + mid.g + mid.b, 0.02f, "검정이다");
+            Assert.Less(edge.a, 0.03f, "76% 밖은 사라진다(알파 0) — 투명을 품은 채 얹는 겹");
+            Color q = tx.GetPixel((int)(tx.width * 0.69f), tx.height / 2);   // u = .38 → 알파 = .62 × (1 − .38/.76) = .31
+            Assert.AreEqual(0.31f, q.a, 0.04f, "반지름 절반 자리(u .38)는 .31 — 정지점 사이 선형");
+
+            // ⓑ 실물
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "common", null);
+            Assert.IsNotNull(v, "결과 연출 팝업이 서지 않았다");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform wrap = FindDeep(v.transform, "sr-orbwrap");
+            Assert.IsNotNull(wrap, "구슬 래퍼(sr-orbwrap)");
+            Transform g = wrap.Find("sr-ground");
+            Assert.IsNotNull(g, "접지 그림자(sr-ground)가 래퍼 안에 선다(정본 6350)");
+            Transform orb = wrap.Find("sr-orb"), deep = wrap.Find("sr-orb-deep");
+            Assert.IsNotNull(orb, "구슬 본체(sr-orb)");
+            Assert.Less(g.GetSiblingIndex(), orb.GetSiblingIndex(), "그림자는 구슬 본체 앞 순서(= 구슬 뒤)다 — `::before`");
+            if (deep != null) Assert.Less(g.GetSiblingIndex(), deep.GetSiblingIndex(), "깊은 판 앞 순서이기도 하다");
+            Assert.Greater(g.GetSiblingIndex(), 0, "첫 자식은 잔상 계약(결정 804) — 그림자가 그 자리를 뺏지 않는다");
+            RectTransform gr = (RectTransform)g;
+            Assert.AreEqual(side, gr.anchorMin.x, 1e-3f, "left 13%");
+            Assert.AreEqual(1f - side, gr.anchorMax.x, 1e-3f, "right 13%");
+            Assert.AreEqual(-PetSkillStyle.L("sr_ground_bottom_f"), gr.anchorMin.y, 1e-3f, "bottom −6%");
+            Assert.AreEqual(gh0 - PetSkillStyle.L("sr_ground_bottom_f"), gr.anchorMax.y, 1e-3f, "height 13%");
+            Image gi = g.GetComponent<Image>();
+            Assert.IsNotNull(gi, "그림자: Image");
+            Assert.IsNotNull(gi.sprite, "구운 그림이다 — 색 한 칸짜리가 아니다");
+            Assert.AreEqual(1f, gi.color.r, 1e-3f, "그림 위 색은 흰색");
+            yield return null;
+        }
+
     }
 }

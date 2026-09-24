@@ -97,6 +97,8 @@ TABLE = {
     # T178 29회차 — x1 요약의 [다시 소환] 버튼(5791)의 세로 명암 겹. 알파 .9 는 바탕이 모달 방사형이라 표에 `over_color` 를 못 적고
     #   **부르는 쪽이 색을 준다**(`sr_bg_c` · af_check 갈래 · 결정 808) — SurfaceUi.json `sr_again` 의 `_2` 가 셈을 쥔다.
     '.sr-again': ['Ui/SkillSummonResult.cs@BuildFoot'],
+    # T178 30회차 — 구슬 접지 그림자(6350 `::before`) · 검정 방사 타원(76% 밖 알파 0 · 투명을 품은 채) · 자리는 PetSkillUi.json sr_ground_*.
+    '.sr-orbwrap::before': ['Ui/SkillSummonResult.cs@BuildCell'],
     # T178 23회차 — 단(tier) 행 위끝 대시 줄(2548 `repeating-linear-gradient`). **코드는 이미 서 있다** — T368 5회차가
     #   `LeagueSheet.TierDash`(`SurfaceArt.BakeStripe` · 표 `stripes.league_tier_dash`)로 세웠는데 이 자 표에만 안 올라
     #   «미정» 으로 세어지고 있었다(`#panel-skills .summon-bar::before` → `SkillPanel.cs@SummonDash` 와 같은 꼴).

@@ -1043,6 +1043,21 @@ namespace Forge.Game.Ui
             // T342 7회차 ⓔ — 정본 6656~6665 `.sr-cell[data-tier="N"] .sr-orb { filter: saturate(·) brightness(·) }`(표 FilterUi `summon_orb_N`):
             //   구체 **본체**(림·면·하이라이트 = 정본 `.sr-orb` 의 배경 세 겹)의 색에 건다. 래퍼의 광채(`.sr-orbwrap` box-shadow)·그림자는 밖이다.
             //   종전 «tier ≤ 1 이면 검정 30% 섞기» 는 이 filter 의 근사였다 — 걷는다(정본 주석 6641~6655: 휘도 역전 억제 · tier 0 만 한 단 더).
+            // T178 30회차 — 정본 6350 `.sr-orbwrap::before`(접지 그림자 · 정본 주석 6349 «구체 내부 그라디언트로는 읽히지 않아 구 밖에 눌린 타원으로 깐다»):
+            //   래퍼 안 left 13% · right 13% · bottom −6% · height 13% 의 타원(border-radius 50%)에 `radial-gradient(closest-side, rgba(0,0,0,.62), rgba(0,0,0,0) 76%)`.
+            //   closest-side 는 타원 상자의 반지름 그대로(rx = ry = .5 · 표 SurfaceUi.json `sr_ground`) · 76% 밖은 알파 0 이라 «투명을 품은 채» 얹는다(over_color 없음).
+            //   `::before` 라 구슬(깊은 판·본체) **앞 순서** = 구슬 뒤 — 잔상이 첫 자식인 계약(결정 804)은 그대로 두고 구슬 바로 앞에 세운다. 자리 값은 PetSkillUi.json `sr_ground_*`.
+            {
+                RectTransform gs = UiKit.Box(wrap, "sr-ground");
+                float side = PetSkillStyle.L("sr_ground_side_f"), bot = PetSkillStyle.L("sr_ground_bottom_f"), gh0 = PetSkillStyle.L("sr_ground_h_f");
+                gs.anchorMin = new Vector2(side, -bot); gs.anchorMax = new Vector2(1f - side, gh0 - bot);
+                gs.offsetMin = Vector2.zero; gs.offsetMax = Vector2.zero;
+                Image gi = gs.gameObject.AddComponent<Image>();
+                gi.raycastTarget = false;
+                gi.preserveAspect = false;
+                gi.sprite = SurfaceArt.Bake("sr_ground", (1f - side * 2f) / gh0);
+                gi.color = Color.white;
+            }
             Image deep = PetSkillKit.Disc(wrap, "sr-orb-deep", OrbFilter(Color.Lerp(rc, PetSkillStyle.C("sr_orb_deep"), 0.62f), tier));
             UiKit.Fill(deep.rectTransform);
             Image orb = PetSkillKit.Disc(wrap, "sr-orb", OrbFilter(rc, tier));
