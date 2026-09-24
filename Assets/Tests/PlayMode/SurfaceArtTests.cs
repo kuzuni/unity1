@@ -1241,7 +1241,7 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0.2f, ft.GetPixel(ft.width / 2, ft.height / 2).a, 0.03f, "바닥 면 가운데 알파 = 정본 .2");
             Assert.AreEqual(0.07f, ft.GetPixel((int)(ft.width * (0.5f + 0.29f)), ft.height / 2).a, 0.03f, "58% 자리 알파 = 정본 .07");
             Assert.Less(ft.GetPixel(ft.width - 1, ft.height / 2).a, 0.03f, "끝은 사라진다");
-            Assert.Greater(ft.GetPixel(ft.width / 2, ft.height / 2).r, 0.97f, "판은 흰색 — 색은 틴트가 쥔다(결정 816)");
+            Assert.Greater(ft.GetPixel(ft.width / 2, ft.height / 2).r, 0.97f, "판은 흰색 — 색은 틴트가 쥔다(결정 817)");
             Sprite ring = SurfaceArt.Bake("sr_floor_ring", 2.5f);
             Texture2D rt = ring.texture;
             Assert.AreEqual(0.5f, rt.GetPixel((int)(rt.width * (0.5f + 0.3175f)), rt.height / 2).a, 0.06f, "링 63.5% 자리 알파 = 정본 .5");
