@@ -463,10 +463,13 @@ namespace Forge.Game.Ui
         }
 
         // ================= 굽기 =================
-        static Sprite Finish(string name, Texture2D tex, Color32[] px)
+        /// <summary><paramref name="border"/>(left·bottom·right·top · 텍스처 px)가 0 이 아니면 9-슬라이스 판이다(`Image.Type.Sliced` 로 붙여 그 띠는 늘어나지 않는다 · T415 20회차 빛줄기 끝).</summary>
+        static Sprite Finish(string name, Texture2D tex, Color32[] px, Vector4 border = default(Vector4))
         {
             tex.SetPixels32(px); tex.Apply(false, true);
-            Sprite sp = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+            Sprite sp = border == Vector4.zero
+                ? Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f)
+                : Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, border);
             sp.name = name;
             cache[name] = sp;
             return sp;
@@ -1019,6 +1022,11 @@ namespace Forge.Game.Ui
         /// 9~24 스포크가 이 한 장을 나눠 쓴다(결정 691 — 굽는 장 수를 먼저 센다). 굵기·길이는 상자 크기가,
         /// 각·거리는 자리가 쥔다. 판의 **위쪽이 바깥 끝**(원점)이고 아래로 갈수록 안쪽이라, 흰 끝이 위에 온다.
         /// 좌우로는 둘레 번짐을 한 판에 같이 굽는다(따로 한 겹을 두면 가산이 두 번 얹힌다).
+        ///
+        /// T415 20회차 — 정본 5715 `border-radius: .1rem`(막대 폭 .15rem · 예고 ×1.5 에 .1 이라 **양 끝이 반원**이다). 양 끝을 심 반폭의 반원으로 굽고
+        /// 그 높이를 9-슬라이스 띠(`Sprite.border` 위·아래)로 두어, 스포크마다 다른 길이·굵기로 늘여 붙여도 끝이 안 찌그러진다(`Image.Type.Sliced` · 붙이는 쪽이
+        /// `pixelsPerUnitMultiplier` 로 띠의 화면 높이를 정본 반지름(표 `sr_streak_r_rem` · 반폭 상한)에 맞춘다). 끝 줄에서는 심·번짐의 가로 단면을 반원 폭만큼 줄인다 —
+        /// 둘레 번짐(box-shadow)도 둥근 상자를 따라 굽는 CSS 와 같은 뜻이다.
         /// </summary>
         public static Sprite BakeStreak(string name, Color line, Color glow, float glowF)
         {
@@ -1028,6 +1036,7 @@ namespace Forge.Game.Ui
             int H = Mathf.Max(16, Mathf.RoundToInt(L("bake_px")));
             float mid = (float)sp.GradMid;
             float core = Mathf.Clamp01(1f - glowF);          // 심의 폭(나머지가 번짐)
+            int cap = Mathf.Clamp(Mathf.RoundToInt(core * W * 0.5f), 1, H / 2 - 1);   // 끝 반원의 반지름(텍스처 px) = 심 반폭
             var px = new Color32[W * H];
             for (int y = 0; y < H; y++)
             {
@@ -1037,15 +1046,20 @@ namespace Forge.Game.Ui
                 // 아래 절반은 색을 그대로 둔 채 알파만 오른다(CSS 가 투명을 미리 곱한 알파로 잇는다).
                 if (v <= mid) { c = line; a = v / Mathf.Max(1e-4f, mid); }
                 else { c = Color.Lerp(line, Color.white, (v - mid) / Mathf.Max(1e-4f, 1f - mid)); a = 1f; }
+                // 양 끝 `cap` 줄 안에서는 가로 단면이 반원을 따라 좁아진다(끝 줄 한가운데는 그대로 심이라 흰 끝이 남는다).
+                float edge = Mathf.Min(y + 0.5f, H - (y + 0.5f));
+                float scale = 1f;
+                if (edge < cap) { float dy = cap - edge; scale = Mathf.Sqrt(Mathf.Max(0f, cap * cap - dy * dy)) / cap; }
                 for (int x = 0; x < W; x++)
                 {
                     float u = Mathf.Abs((x + 0.5f) / W * 2f - 1f);   // 0 = 한가운데 · 1 = 가장자리
-                    float w = u <= core ? 1f : Ramp(u, core, 1f, 1f, 0f);
-                    Color cc = u <= core ? c : Color.Lerp(c, glow, (u - core) / Mathf.Max(1e-4f, 1f - core));
+                    float u2 = scale > 1e-4f ? u / scale : 2f;
+                    float w = u2 <= core ? 1f : u2 >= 1f ? 0f : Ramp(u2, core, 1f, 1f, 0f);
+                    Color cc = u2 <= core ? c : Color.Lerp(c, glow, Mathf.Clamp01((u2 - core) / Mathf.Max(1e-4f, 1f - core)));
                     px[y * W + x] = new Color(cc.r, cc.g, cc.b, Mathf.Clamp01(a * w));
                 }
             }
-            return Finish(name, NewTex(name, W, H), px);
+            return Finish(name, NewTex(name, W, H), px, new Vector4(0f, cap, 0f, cap));
         }
 
         /// <summary>

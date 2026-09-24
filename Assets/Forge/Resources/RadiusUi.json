@@ -120,5 +120,7 @@
   "cmp_img_r_rem": 0.55,
   "_cmp_img_r_rem": "T415 19회차 — 정본 1852 `.cmp-img { width: 3.6rem; height: 3.6rem; border-radius: .55rem }`(비교 카드의 장비 그림 타일). 종전 «크기 × .16» = .576rem.",
   "idet_icon_r_rem": 0.55,
-  "_idet_icon_r_rem": "T415 19회차 — 정본 3683 `.idet-icon { width: 18%; aspect-ratio: 1; border-radius: .55rem }`(장비 상세 머리의 아이콘 타일). 종전 «크기 × .16» = 3.6rem 타일의 .576rem."
+  "_idet_icon_r_rem": "T415 19회차 — 정본 3683 `.idet-icon { width: 18%; aspect-ratio: 1; border-radius: .55rem }`(장비 상세 머리의 아이콘 타일). 종전 «크기 × .16» = 3.6rem 타일의 .576rem.",
+  "sr_streak_r_rem": 0.1,
+  "_sr_streak_r_rem": "T415 20회차 — 정본 style.css 5715 `.sr-streaks i { width: calc(.15rem * (1 + .5 * var(--pre-k))); border-radius: .1rem }`(소환 결과 수렴 빛줄기 막대). 반지름이 반폭(.075~.1125rem)에 닿아 양 끝이 반원이다 — 클론은 `SummonFx.BakeStreak` 판이 양 끝을 반원으로 굽고(띠 = 심 반폭) `SkillSummonResult.cs` 가 9-슬라이스 배율로 띠의 화면 높이를 min(이 값, 막대 반폭)에 맞춘다. 종전 판은 끝이 각졌다."
 }

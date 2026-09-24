@@ -709,6 +709,12 @@ namespace Forge.Game.Ui
                     bi.raycastTarget = false;
                     bi.preserveAspect = false;
                     bi.sprite = bar;
+                    // T415 20회차 — 정본 5715 `.sr-streaks i { border-radius: .1rem }`: 판이 양 끝을 반원으로 굽고 그 높이를 띠(`border`)로 뒀다(BakeStreak) →
+                    //   9-슬라이스로 붙여 스포크마다 다른 길이로 늘여도 끝이 안 찌그러지고, 띠의 화면 높이 = min(표 `sr_streak_r_rem`, 막대 반폭)
+                    //   (CSS 가 반지름을 반폭으로 줄이는 셈 · 알약 동치 결정 543 과 같은 뜻) 이 되게 배율을 준다(UiShapes.RoundedMultiplier 와 같은 길).
+                    bi.type = Image.Type.Sliced;
+                    float capPx = Mathf.Min(RadiusUi.Px("sr_streak_r_rem"), barW * 0.5f);
+                    bi.pixelsPerUnitMultiplier = bar.border.y > 0f && capPx > 0.01f ? bar.border.y / capPx : 1f;
                     Material bm = CraftFxPoly.Screen();
                     if (bm != null) bi.material = bm;
                     bi.color = new Color(1f, 1f, 1f, 0f);
@@ -1130,9 +1136,13 @@ namespace Forge.Game.Ui
                 // 이름판 · 등급 칩
                 float ny = cw + PetSkillStyle.Px("sr_name_mt_rem");
                 float nw2 = cw * PetSkillStyle.L("sr_name_w_f");
+                // T415 20회차 — 정본 7084~7088 `.sr-grid.one .sr-name { width: fit-content; max-width: 100%; padding: .2rem .5rem; border-radius: .5rem }`
+                //   (7046 의 폭 92%·.3rem 을 x1 에서 덮는다 · 정본 주석 7078~7083 «풀폭 판을 되살리면 안 된다 — 글자 폭에만 붙는 좁은 판»):
+                //   x1 은 글자 폭 + 좌우 .5rem(표 `sr_name_one_pad_x_rem`) · 셀 폭 상한 · 반지름 .5rem(표 `sr_name_one_r_rem`). 여럿 격자는 종전 그대로.
+                if (one) nw2 = Mathf.Min(cw, PetSkillKit.TextWidth(TextKind.Button, e.Name) + PetSkillStyle.Px("sr_name_one_pad_x_rem") * 2f);
                 RectTransform nameBox = UiKit.Box(cell, "sr-name");
                 UiKit.Place(nameBox, (cw - nw2) * 0.5f, ny, nw2, nameH);
-                PetSkillKit.Fill(nameBox, "bg", PetSkillStyle.C("sr_name_bg"), PetSkillStyle.Px("sr_name_r_rem"));
+                PetSkillKit.Fill(nameBox, "bg", PetSkillStyle.C("sr_name_bg"), PetSkillStyle.Px(one ? "sr_name_one_r_rem" : "sr_name_r_rem"));
                 TextMeshProUGUI nt2 = PetSkillKit.Text(nameBox, "t", one ? TextKind.Button : TextKind.Sub, e.Name, PetSkillStyle.C("white"));   // T391 5회차 — 정본 7084 x1 소환만 1.25rem(45.5) → Button 44
                 UiKit.TextShadow(nt2, one ? "sr_name_one" : "sr_name");   // T333 15회차 — 정본 7032 `.sr-name`(0 .1rem .3rem .95) · 7084 `.sr-grid.one .sr-name`(0 .12rem .4rem .95) — 같은 글에 x1 이면 뒤 규칙
                 WrapUi.Apply(nt2, "sr_name");   // 정본 `.sr-name` 은 **접는다**(두 줄까지 · style.css 7032~7036)
