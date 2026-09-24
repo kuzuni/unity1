@@ -101,6 +101,9 @@ TABLE = {
     '.sr-orbwrap::before': ['Ui/SkillSummonResult.cs@BuildCell'],
     # T178 31회차 — 중앙 광원(5955 · 0% 정지점이 런타임 등급색) · done 판(7166 · 정지점 둘 · 이산 전환) — SurfaceArt.Bake(key, aspect, stopIndex, color) 길.
     '.sr-halo': ['Ui/SkillSummonResult.cs@Build'],
+    # T178 32회차 — 소환진 바닥 두 겹(5806~5813 · SurfaceUi.json sr_floor_fill·sr_floor_ring · 흰 알파 단면 + 틴트 · 결정 815816) · 홀드백 착지 섬광(6156 · sr_flash · 26% 런타임 등급색 · farthest-corner 정사각 + 클립)
+    '.sr-floor::before': ['Ui/SkillSummonResult.cs@BuildFloorPlates'],
+    '.sr-flash': ['Ui/SkillSummonResult.cs@PlaceFlash'],
     '#summon-result-modal.done .sr-halo': ['Ui/SkillSummonResult.cs@SwapHaloDone'],
     # T178 23회차 — 단(tier) 행 위끝 대시 줄(2548 `repeating-linear-gradient`). **코드는 이미 서 있다** — T368 5회차가
     #   `LeagueSheet.TierDash`(`SurfaceArt.BakeStripe` · 표 `stripes.league_tier_dash`)로 세웠는데 이 자 표에만 안 올라

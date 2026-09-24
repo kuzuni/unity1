@@ -144,6 +144,8 @@ namespace Forge.Game.Ui
         float flashAt = -1f;
         /// <summary>T334 3회차 ⓑ — 충전 구간이 움직이는 것들: 소환진·중앙 광원·비네트(정본 `.sr-floor`·`.sr-halo`·`.sr-wrap::before`).</summary>
         Image floorImg, haloImg, vigImg;
+        Image floorRingImg;      // T178 32회차 — 소환진 링 겹(정본 5810~5811 · `.sr-floor::before` 첫 방사)
+        float floorAspect = 1f;
         /// <summary>T454 ⓒ — 배경 `bg-a`(정본 `--bg-pre-a` → `.done` 의 `--bg-a`): 예고값에서 승격값으로 .5s ease-out(표 TransitionUi `sr_bg_done`).</summary>
         Image bgAImg;
         Color bgAPre, bgADone;
@@ -206,6 +208,7 @@ namespace Forge.Game.Ui
         Image tickImg;
         Color tickBase;
         Color floorBase, haloBase;
+        Color floorRingBase;
         /// <summary>T178 31회차 — 광원의 등급색·판 비율·done 판으로 갈아탔는가(정본 7166 · 이산 전환).</summary>
         Color haloTint; float haloAspect = 26f / 16f; bool haloDone;
         Vector3 floorHome;
@@ -546,6 +549,12 @@ namespace Forge.Game.Ui
                     float fw = gw * SummonFxStyle.L(fk + "w_f"), fh = fw / SummonFxStyle.L(fk + "aspect");
                     UiKit.Anchor(floor.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -totalH * 0.5f + PetSkillStyle.Rem(1.4f)), fw, fh);
                     floor.transform.SetAsFirstSibling();
+                    // T178 32회차 — 정본 5806~5813 `.sr-floor::before { background: radial(0 61% · --floor-line 63.5% · 0 66.5%), radial(--floor-fill 0% · rgba(96,146,255,.07) 58% · 0 100%) }`
+                    //   (closest-side · inset 0 · 50% = 소환진 타원 그대로 · 두 겹). 종전엔 `Disc` 단색(알파 .2 평판) 한 장이었다.
+                    //   판은 **흰색 + 정본 알파 단면**으로 굽고(표 SurfaceUi.json `sr_floor_fill`·`sr_floor_ring`) 색은 종전대로 **Image 틴트**가 쥔다 —
+                    //   `--floor-fill`/`--floor-line` 이 런타임 변수(ui.js 551~552 · `.done` 에서 등급 파생색으로 승격)이고, 6815 `srfloorcharge` 의
+                    //   brightness(1→2.2)·saturate 램프를 이 틴트로 흔들기 때문(`Brighten` · `SummonChargeTests` 가 `FloorColor` 를 읽는다 · 결정 815816).
+                    BuildFloorPlates(floor, fw, fh);
                     floorImg = floor; floorBase = floor.color; floorHome = floor.rectTransform.localScale;
                     // 룬 눈금 띠 — 소환진 위에 같은 상자로 얹는다(정본은 `::after` 라 같은 자리·같은 크기다).
                     RectTransform tickRt = UiKit.Box(floor.rectTransform, "sr-floor-ticks");
@@ -778,7 +787,14 @@ namespace Forge.Game.Ui
             }
 
             // ---- 섬광 ----
-            flash = UiKit.Panel(c, "sr-flash", "pp_line");
+            // T178 32회차 — 정본 6156 `.sr-flash { background: radial-gradient(circle at var(--fx) var(--fy), #fff 0%, var(--rc) 26%, rgba(255,255,255,0) 72%) }`:
+            //   종전엔 색 한 칸 판이었다. 판은 표 SurfaceUi.json `sr_flash`(26% 정지점 = 런타임 등급색 · `PlaceFlash` 가 준다)를 정사각으로 굽고
+            //   `circle` 의 farthest-corner 반지름만큼 착지 셀 가운데(--fx/--fy)에 놓는다 — 상자 밖은 이 클립이 자른다(정본은 `.sr-wrap` 안).
+            RectTransform flashClip = UiKit.Box(c, "sr-flash-clip");
+            UiKit.Fill(flashClip);
+            flashClip.gameObject.AddComponent<RectMask2D>();
+            flash = UiKit.Panel(flashClip, "sr-flash", "pp_line");
+            flash.type = Image.Type.Simple;
             // T419 ⓐ — 정본 6148 `.sr-flash { mix-blend-mode: screen }`: 이 판은 덮는 것이 아니라 **밝힌다**.
             //   흰색일 때는 screen ≡ 보통 알파라 안 드러나지만, 홀드백 착지에서 `flash.color` 에 **등급색**을 칠하는 순간
             //   갈린다(정본은 그 색으로 화면을 밝히고 클론은 그 색 막을 덮었다 — 이웃 셀이 탁해진다).
@@ -1582,6 +1598,7 @@ namespace Forge.Game.Ui
                 if (chargeAt < 0f) return;
                 chargeAt = -1f;
                 if (floorImg != null) { floorImg.color = floorBase; floorImg.rectTransform.localScale = floorHome; }
+                if (floorRingImg != null) floorRingImg.color = floorRingBase;
                 if (haloImg != null) haloImg.color = haloBase;
                 if (vigImg != null) { vigImg.color = new Color(1f, 1f, 1f, 0f); vigImg.rectTransform.localScale = Vector3.one; }
                 for (int i = 0; i < cells.Count; i++) cells[i].Root.anchoredPosition = cells[i].Home;
@@ -1602,6 +1619,7 @@ namespace Forge.Game.Ui
                 //    민 원판 한 장이고 룬 눈금은 천개 아치에 구워져 있다(`BakeArch`). 없는 겹에 얹으면 «소환진이 통째로
                 //    짙어진다» 가 되어 정본과 다른 그림이 된다 — 수치(`TickAlpha`)는 표·Core 에 세워 두고 겹은 다음 회차에 낸다.
                 floorImg.color = Brighten(floorBase, br, sa, floorBase.a);
+                if (floorRingImg != null) floorRingImg.color = Brighten(floorRingBase, br, sa, floorRingBase.a);   // T178 32회차 — 6815 의 램프는 `.sr-floor` 통째(::before 링 포함)
             }
             if (haloImg != null)
             {
@@ -2274,7 +2292,8 @@ namespace Forge.Game.Ui
             // 못 박은 자리다(x75 는 위쪽 20셀이 같이 하얗게 뜬다).
             if (holdback || wipe == null)
             {
-                flash.color = PetSkillStyle.Rarity(Defs, best);
+                PlaceFlash(PetSkillStyle.Rarity(Defs, best));
+                flash.color = Color.white;   // T178 32회차 — 등급색은 판의 26% 정지점에 있다(AnimateFlash 는 알파만 흔든다)
                 flashAt = Time.unscaledTime;
             }
             else
@@ -2290,6 +2309,50 @@ namespace Forge.Game.Ui
             heroAtWall = kickAt;
             var g = PetSkillHost.SfxGacha;
             if (g != null) g(best);
+        }
+
+        /// <summary>T178 32회차 — 소환진 두 판(정본 5806~5813 `.sr-floor::before` 링 + 빛 고인 면)을 굽고 틴트를 준다 — 자 `check_surface_gradients` 가 이 본문을 본다.</summary>
+        void BuildFloorPlates(Image floor, float fw, float fh)
+        {
+            floorAspect = fw / Mathf.Max(1f, fh);
+            floor.sprite = SurfaceArt.Bake("sr_floor_fill", floorAspect);
+            floor.type = Image.Type.Simple;
+            Color ffill = SummonFxStyle.C("floor_fill");
+            floor.color = new Color(ffill.r, ffill.g, ffill.b, 1f);   // 알파 .2 는 판의 0% 정지점이 쥔다
+            Image ring = UiKit.Panel(floor.rectTransform, "sr-floor-ring", "pp_paper");
+            UiKit.Fill(ring.rectTransform);
+            ring.sprite = SurfaceArt.Bake("sr_floor_ring", floorAspect);
+            ring.type = Image.Type.Simple;
+            ring.preserveAspect = false;
+            Color fline = SummonFxStyle.C("floor_line");
+            ring.color = new Color(fline.r, fline.g, fline.b, 1f);   // 알파 .5 는 판의 63.5% 정지점이 쥔다
+            floorRingImg = ring; floorRingBase = ring.color;
+        }
+
+        /// <summary>
+        /// T178 32회차 — 섬광 판을 착지 셀 가운데(정본 6156 `circle at var(--fx) var(--fy)`)에 놓고 등급색 정지점으로 굽는다.
+        /// `circle` 은 farthest-corner 가 기본이라 반지름 = 그 점에서 상자 네 귀 중 가장 먼 거리 · 판은 그 지름의 정사각(밖은 `sr-flash-clip` 이 자른다).
+        /// </summary>
+        void PlaceFlash(Color rc)
+        {
+            if (flash == null) return;
+            RectTransform box = (RectTransform)flash.transform.parent;
+            Vector2 pv = new Vector2(0.5f, 0.5f);
+            if (heroIdx >= 0 && heroIdx < cells.Count && cells[heroIdx].Root != null) pv = HeroPivot(box, cells[heroIdx].Root);
+            Rect r = box.rect;
+            RectTransform ft = flash.rectTransform;
+            flash.sprite = SurfaceArt.Bake("sr_flash", 1f, 1, new Color(rc.r, rc.g, rc.b, 1f));
+            flash.preserveAspect = false;
+            if (r.width <= 0f || r.height <= 0f) { UiKit.Fill(ft); return; }
+            Vector2 at = new Vector2(r.xMin + r.width * pv.x, r.yMin + r.height * pv.y);
+            float R = Vector2.Distance(at, new Vector2(r.xMin, r.yMin));
+            R = Mathf.Max(R, Vector2.Distance(at, new Vector2(r.xMax, r.yMin)));
+            R = Mathf.Max(R, Vector2.Distance(at, new Vector2(r.xMin, r.yMax)));
+            R = Mathf.Max(R, Vector2.Distance(at, new Vector2(r.xMax, r.yMax)));
+            ft.anchorMin = ft.anchorMax = pv;
+            ft.pivot = new Vector2(0.5f, 0.5f);
+            ft.anchoredPosition = Vector2.zero;
+            ft.sizeDelta = new Vector2(R * 2f, R * 2f);
         }
 
         /// <summary>주역 셀의 가운데를 와이프 상자 안의 피벗(0~1)으로 — 정본 `transform-origin: var(--fx) var(--fy)`.</summary>
@@ -2340,8 +2403,19 @@ namespace Forge.Game.Ui
             if (floorImg != null)
             {
                 Color rc = PetSkillStyle.Rarity(Defs, best);
-                floorImg.color = new Color(rc.r, rc.g, rc.b, SummonFxStyle.L("floor_done_a"));
+                // T178 32회차 — 7182~7185 `.done .sr-floor { --floor-fill: var(--floor-fill-hi) }`(ui.js 552 · 등급 rgb · .26): 판의 0% 정지점 알파를
+                //   .26(표 floor_done_a)으로 다시 굽고(58% 의 .07 은 그대로) 틴트는 등급색. `.sr-floor` 엔 transition 이 없어 즉시 갈아탄다.
+                floorImg.sprite = SurfaceArt.Bake("sr_floor_fill", floorAspect, 0, new Color(1f, 1f, 1f, SummonFxStyle.L("floor_done_a")));
+                floorImg.color = new Color(rc.r, rc.g, rc.b, 1f);
                 floorBase = floorImg.color;
+                if (floorRingImg != null)
+                {
+                    // 7184 `--floor-line: var(--floor-line-hi)`(ui.js 551 · 등급색을 .55 띄운 파생색 · 알파 .85) — 링 정지점 알파 .85(표 floor_line_hi_a) · 틴트는 파생색.
+                    Color lr2 = Shade(rc, SummonFxStyle.L("floor_line_hi_shade_f"));
+                    floorRingImg.sprite = SurfaceArt.Bake("sr_floor_ring", floorAspect, 2, new Color(1f, 1f, 1f, SummonFxStyle.L("floor_line_hi_a")));
+                    floorRingImg.color = new Color(lr2.r, lr2.g, lr2.b, 1f);
+                    floorRingBase = floorRingImg.color;
+                }
                 if (tickImg != null)
                 {
                     // 정본 ui.js 548~551: 선은 **등급색 원본이 아니라 밝게 띄운 파생색**이다 —

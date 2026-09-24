@@ -1226,5 +1226,88 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T178 32회차 — 소환진 바닥 두 겹(정본 5806~5813 `.sr-floor::before` · 링 61/63.5/66.5 + 빛 고인 면 0/58/100)과 홀드백 착지 섬광(6156 `.sr-flash` · circle at --fx --fy · #fff 0% · --rc 26% · 0 72%).
+        /// ⓐ 판: 흰색 + 정본 알파 단면(fill 가운데 .2 · 58% 자리 .07 · 끝 0 / ring 63.5% 자리 .5 · 그 안팎 0 / flash 가운데 흰 1 · 26% 자리 = 준 등급색 · 72% 뒤 0)
+        /// ⓑ 실물: 소환진 Image 가 구운 판이고 틴트는 종전 `floor_fill` rgb(알파 1 · 알파는 판이 쥔다) · 링 자식 `sr-floor-ring` 이 구운 판 + `floor_line` 틴트
+        /// ⓒ done: 두 판이 .26 / .85 로 다시 구워지고 틴트는 등급색 / 파생색 · 섬광은 정사각 판을 클립 안에 두고 26% 정지점이 등급색이다 — 종전엔 색 한 칸 판이었다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 소환진_바닥은_알파_단면_두_판이고_섬광은_등급색_정지점의_farthest_corner_원판이다()
+        {
+            // ⓐ 판
+            Sprite fill = SurfaceArt.Bake("sr_floor_fill", 2.5f);
+            Texture2D ft = fill.texture;
+            Assert.AreEqual(0.2f, ft.GetPixel(ft.width / 2, ft.height / 2).a, 0.03f, "바닥 면 가운데 알파 = 정본 .2");
+            Assert.AreEqual(0.07f, ft.GetPixel((int)(ft.width * (0.5f + 0.29f)), ft.height / 2).a, 0.03f, "58% 자리 알파 = 정본 .07");
+            Assert.Less(ft.GetPixel(ft.width - 1, ft.height / 2).a, 0.03f, "끝은 사라진다");
+            Assert.Greater(ft.GetPixel(ft.width / 2, ft.height / 2).r, 0.97f, "판은 흰색 — 색은 틴트가 쥔다(결정 815816)");
+            Sprite ring = SurfaceArt.Bake("sr_floor_ring", 2.5f);
+            Texture2D rt = ring.texture;
+            Assert.AreEqual(0.5f, rt.GetPixel((int)(rt.width * (0.5f + 0.3175f)), rt.height / 2).a, 0.06f, "링 63.5% 자리 알파 = 정본 .5");
+            Assert.Less(rt.GetPixel((int)(rt.width * (0.5f + 0.25f)), rt.height / 2).a, 0.03f, "링 안쪽(50%)은 비어 있다");
+            Assert.Less(rt.GetPixel((int)(rt.width * (0.5f + 0.36f)), rt.height / 2).a, 0.03f, "링 바깥(72%)은 비어 있다");
+            Sprite fl = SurfaceArt.Bake("sr_flash", 1f, 1, new Color(1f, 0f, 0f, 1f));
+            Texture2D lt = fl.texture;
+            Color lc = lt.GetPixel(lt.width / 2, lt.height / 2), l26 = lt.GetPixel((int)(lt.width * (0.5f + 0.13f)), lt.height / 2);
+            Assert.Greater(lc.g, 0.9f, "섬광 가운데는 흰색");
+            Assert.AreEqual(1f, lc.a, 0.03f, "섬광 가운데 알파 1");
+            Assert.Greater(l26.r, 0.9f); Assert.Less(l26.g, 0.15f, "26% 자리는 준 등급색(빨강)");
+            Assert.Less(lt.GetPixel((int)(lt.width * (0.5f + 0.4f)), lt.height / 2).a, 0.03f, "72% 뒤는 사라진다");
+
+            // ⓑ 실물 — 홀드백 한 판(조연 셋 + 최고 하나)이라 착지 섬광이 뜬다
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "common", Name = "나" },
+                new SkillSummonResultView.Entry { Key = "sk:c", IconKey = "sk_fireball", Rarity = "rare", Name = "다" },
+                new SkillSummonResultView.Entry { Key = "sk:d", IconKey = "sk_fireball", Rarity = "ultimate", Name = "라" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "ultimate", null);
+            Assert.IsNotNull(v, "결과 연출 팝업이 서지 않았다");
+            yield return null;
+            Transform floor = FindDeep(v.transform, "sr-floor");
+            Assert.IsNotNull(floor, "소환진(sr-floor)");
+            Image fi = floor.GetComponent<Image>();
+            Assert.IsNotNull(fi.sprite, "소환진은 구운 판이다");
+            Assert.IsTrue(fi.sprite.texture.name.StartsWith("sf-sr_floor_fill", System.StringComparison.Ordinal), "바닥 면 판 sr_floor_fill: " + fi.sprite.texture.name);
+            Color ffill = SummonFxStyle.C("floor_fill");
+            Assert.AreEqual(ffill.b, fi.color.b, 0.01f, "틴트는 종전 floor_fill 의 rgb");
+            Assert.AreEqual(1f, fi.color.a, 0.01f, "틴트 알파 1 — 알파 .2 는 판이 쥔다");
+            Transform ringT = floor.Find("sr-floor-ring");
+            Assert.IsNotNull(ringT, "링 겹(sr-floor-ring)");
+            Image ri = ringT.GetComponent<Image>();
+            Assert.IsTrue(ri.sprite != null && ri.sprite.texture.name.StartsWith("sf-sr_floor_ring", System.StringComparison.Ordinal), "링 판 sr_floor_ring");
+            Assert.Less(ringT.GetSiblingIndex(), floor.Find("sr-floor-ticks").GetSiblingIndex(), "링(::before)은 눈금(::after) 아래");
+            Sprite preFill = fi.sprite, preRing = ri.sprite;
+
+            // ⓒ done
+            float t = 0f;
+            while (!v.Done && t < 15f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done, "done");
+            Color rc = PetSkillStyle.Rarity(PetSkillHost.Instance.Data.Defs, "ultimate");
+            Assert.AreNotEqual(preFill, fi.sprite, "done 뒤 바닥 면 판이 .26 짜리로 갈아탔다");
+            Assert.AreEqual(SummonFxStyle.L("floor_done_a"), fi.sprite.texture.GetPixel(fi.sprite.texture.width / 2, fi.sprite.texture.height / 2).a, 0.03f, "done 판 가운데 알파 = floor_done_a");
+            Assert.AreEqual(rc.r, fi.color.r, 0.02f, "done 틴트는 등급색");
+            Assert.AreNotEqual(preRing, ri.sprite, "done 뒤 링 판이 .85 짜리로 갈아탔다");
+            Assert.AreNotEqual(ffill.b, ri.color.b, "done 링 틴트는 등급 파생색");
+            Transform flashT = FindDeep(v.transform, "sr-flash");
+            Assert.IsNotNull(flashT, "섬광 판");
+            Image fim = flashT.GetComponent<Image>();
+            Assert.IsNotNull(fim.sprite, "섬광은 구운 판이다(종전 색 한 칸)");
+            Assert.IsTrue(fim.sprite.texture.name.StartsWith("sf-sr_flash", System.StringComparison.Ordinal), "섬광 판 sr_flash");
+            Assert.IsNotNull(flashT.parent.GetComponent<RectMask2D>(), "상자 밖은 클립이 자른다");
+            RectTransform frt = (RectTransform)flashT;
+            Assert.AreEqual(frt.rect.width, frt.rect.height, 1f, "farthest-corner 원 = 정사각 판");
+            Assert.GreaterOrEqual(frt.rect.width, ((RectTransform)flashT.parent).rect.width - 1f, "지름 ≥ 상자 폭(가장 먼 귀까지)");
+            Assert.AreEqual(1f, fim.color.r, 1e-3f, "섬광 틴트는 흰색 — 등급색은 26% 정지점");
+            v.Close();
+            yield return null;
+        }
+
     }
 }
