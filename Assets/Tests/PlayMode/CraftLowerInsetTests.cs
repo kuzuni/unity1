@@ -71,7 +71,11 @@ namespace Forge.Tests.PlayMode
             float pull = CraftStyle.Px("cmp_lower_pull_rem");
             VerticalLayoutGroup cardLg = card.GetComponent<VerticalLayoutGroup>();
             // 코드가 `cur`·`lower` 에 건네는 폭의 셈 그대로(float) — 층 패딩이 RectOffset(int) 라 아래 `contentW` 와 반올림 몫만큼 갈린다(2·3회차가 좇던 그 몫).
-            float inner = CraftStyle.Px("card_w") - PopupKit.Line3 * 2f - (UiKit.H("card_pad") + rem * 0.5f) * 2f;   // T473 — 카드 rect = 몸 − 테 두 겹
+            float mt = CraftStyle.Px("cmp_wrap_mt_rem"), mx = CraftStyle.Px("cmp_row_mx_rem"), gap = CraftStyle.Px("cmp_row_gap_rem");
+            float inner = CraftStyle.Px("card_w") - PopupKit.Line3 * 2f - UiKit.H("card_pad") * 2f;   // T473 — 카드 rect = 몸 − 테 두 겹 · T485 — 좌우는 card_pad 만(.cmp-wrap 의 .5rem 은 위 마진뿐)
+            Assert.AreEqual(Mathf.RoundToInt(UiKit.H("card_pad")), cardLg.padding.left, "카드 층 왼 패딩 = card_pad(1.1rem · 정본 1783 .cmp-wrap 은 좌우 패딩 없음 · T485)");
+            Assert.AreEqual(cardLg.padding.left, cardLg.padding.right, "카드 층 좌우 패딩이 같다");
+            Assert.AreEqual(Mathf.RoundToInt(UiKit.H("card_pad") + mt), cardLg.padding.top, "카드 층 위 패딩 = card_pad + .cmp-wrap margin-top .5rem");
             // 층이 실제로 아이를 눕히는 폭 — 패딩이 RectOffset(int) 라 위 float 셈과 반올림 몫만큼 갈린다(런 999 실측 0.653px = 한쪽 0.327).
             float contentW = card.rect.width - cardLg.padding.left - cardLg.padding.right;
             Assert.AreEqual(contentW, inner, 1.0f, "층 패딩(int)으로 센 내용 폭과 반올림 몫 안에서 같다");
@@ -93,14 +97,19 @@ namespace Forge.Tests.PlayMode
             VerticalLayoutGroup lg = lower.GetComponent<VerticalLayoutGroup>();
             float rowW = row.rect.width;
             Assert.AreEqual(lower.rect.width - lg.padding.left - lg.padding.right, rowW, 0.6f, "줄 폭 = 패널 폭 − 패널 안 패딩(int)");
-            Assert.AreEqual(rem * 0.8f, lg.padding.left + lg.padding.right, 1.0f, "패널 안 패딩 = .4rem×2(반올림 안)");
-            float wantBw = (inner + pull * 2f - rem * 0.8f - rem * 1.3f - rem * 1.9f) * 0.5f;
-            Assert.AreEqual(wantBw, sell.rect.width, 0.6f, "판매 폭 = (패널 − .8 − 1.3 − 1.9rem)/2");
+            Assert.AreEqual(0, lg.padding.left + lg.padding.right + lg.padding.top + lg.padding.bottom, "패널 안 패딩 0 — 정본 1819 .cmp-lower 에 padding 규칙이 없다(T390 아래 · T485 좌우·위)");
+            RectTransform newCard = (RectTransform)lower.Find("new");
+            Assert.IsNotNull(newCard, "새 장비 카드");
+            Assert.AreEqual(lower.rect.width, newCard.rect.width, 0.6f, "새 장비 카드 폭 = 패널 폭(안쪽 .7rem 은 카드 제 패딩 · 정본 1825)");
+            Assert.AreEqual(CraftStyle.Px("cmp_row_mt_rem"), lg.spacing, 1e-3f, "새 카드 → 줄 틈 = 정본 1821 .row margin-top .45rem(표 cmp_row_mt_rem)");
+            float wantBw = (inner + pull * 2f - mx * 2f - gap) * 0.5f;
+            Assert.AreEqual(wantBw, sell.rect.width, 0.6f, "판매 폭 = (패널 − .96rem×2 − 1.3rem)/2 (T485 · 정본 1821 · 전엔 −.8rem 이 더 빠졌다)");
+            Assert.AreEqual(0.273f, sell.rect.width / UiKit.RefW, 0.006f, "판매 버튼 폭 ≈ 27.3%W(원작 shot-043224 실측 27.9 · 런 1243 클론 24.6)");
             Assert.AreEqual(wantBw, equip.rect.width, 0.6f, "장착 폭 = 판매 폭");
             float sellL = X(sell, row, 0) - X(row, row, 0), gap13 = X(equip, row, 0) - X(sell, row, 3), equipR = X(row, row, 3) - X(equip, row, 3);
-            Assert.AreEqual(rem * 0.96f, sellL, 0.6f, "판매 왼끝은 줄 왼끝에서 .96rem");
-            Assert.AreEqual(rem * 1.3f, gap13, 0.6f, "판매 오른끝 → 장착 왼끝 = 정본 gap 1.3rem");
-            Assert.AreEqual(rem * 0.96f, equipR, 2.0f, "장착 오른 여백도 .96rem 언저리(코드의 1.9 ↔ .96×2 = .02rem + 패딩 반올림 몫 안)");
+            Assert.AreEqual(mx, sellL, 0.6f, "판매 왼끝은 줄 왼끝에서 .96rem(표 cmp_row_mx_rem)");
+            Assert.AreEqual(gap, gap13, 0.6f, "판매 오른끝 → 장착 왼끝 = 정본 gap 1.3rem(표 cmp_row_gap_rem)");
+            Assert.AreEqual(mx, equipR, 0.6f, "장착 오른끝 → 줄 오른끝도 .96rem(T485 — 전엔 1.9 리터럴 + 패딩 반올림)");
             Assert.Greater(sell.rect.width, (inner - rem * 4.0f) * 0.5f + pull * 0.5f, "버튼이 옛 폭((inner − 4rem)/2)보다 당김의 절반 이상 넓다 — 줄이 패널 폭을 따랐다");
             ForgeCraftPopup.Hide(F);
             yield return null;

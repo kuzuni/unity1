@@ -16,6 +16,9 @@
     "cmp_lower_pull_rem": 0.85,
     "cmp_row_pad_bottom_rem": 1.44,
     "cmp_row_btn_h_rem": 4.2,
+    "cmp_row_mt_rem": 0.45,
+    "cmp_row_mx_rem": 0.96,
+    "cmp_row_gap_rem": 1.3,
     "cmp_empty_dash_ratio": 3,
     "cmp_empty_gap_ratio": 3,
     "sellwarn_btn_min_h_rem": 2.9,
@@ -24,6 +27,9 @@
     "sellwarn_cmp_gap_rem": 0.45
   },
   "_src": {
+    "cmp_row_mt_rem": "T485 — style.css **1821** `.cmp-lower .row { margin: **.45rem** .96rem 0; … }` — 새 장비 카드 아래끝 → [판매][장착] 줄 위끝(회색 패널 `Column` 의 spacing · 전엔 `rem * 0.45f` 리터럴). 패널 자신의 패딩은 정본에 없다(0).",
+    "cmp_row_mx_rem": "T485 — style.css **1821** `.cmp-lower .row { margin: .45rem **.96rem** 0; … }` — 버튼 줄의 좌우 마진(패널 왼끝 → [판매] 왼끝 · [장착] 오른끝 → 패널 오른끝 · 전엔 `rem * 0.96f`/`1.9f` 리터럴). 정본 1816~1818 주석의 «패널은 카드 좌우에서 7px 인셋» 과 함께 버튼 바깥 폭 = (패널 − 2×이것 − gap)/2 ≈ 27.3%W(원작 shot-043224 실측 27.9).",
+    "cmp_row_gap_rem": "T485 — style.css **1821** `.cmp-lower .row { … gap: **1.3rem** }` — [판매] 오른끝 → [장착] 왼끝(주석 «틈 = gap + 버튼 테두리 2×3px ≈ 원본 채움 간 28px» · 전엔 `rem * 1.3f` 리터럴).",
     "sellwarn_cmp_gap_rem": "T484 — style.css **2221** `.sellwarn-cmp { display: flex; align-items: center; justify-content: center; gap: .45rem }` — 판매 경고의 «파는 것 › 남는 것» 줄: 열(flex 1 1 0) · 화살(2238 `.swc-gt` auto 폭 = 글자) · 열 사이 틈. 전엔 화살 상자 2rem 이 박혀 열 폭을 먹었다.",
     "sellwarn_row_gap_rem": "T482 1회차 — style.css **659** `.row { display: flex; gap: .45rem; align-items: stretch }` — 판매 경고 카드의 버튼 줄(ui.js 3864 «div class=row» · 판매 · 취소)의 **버튼 사이 틈**. 2218~2221 의 sellwarn 규칙은 이 틈을 안 덮는다. 전엔 `rem*0.8f` 가 코드에 박혀 있었다(+12.6px · T33 58회차 실측).",
     "cmp_empty_dash_ratio": "T472 — style.css 1830 `.cmp-card.empty { border-style: dashed }` 의 **대시 길이 ÷ 테 굵기**(1826 `border: var(--ol3) …` = ol3). CSS 는 대시 길이를 안 정하고 브라우저가 정한다 — Blink 는 굵기의 3배(틈도 3배)로 잡고 둘레에 정수 개가 들어가게 주기를 조금 맞춘다(Core DashedFrameRules.FitPeriod). 정본 캡처 shot-043224 는 두 슬롯이 다 장착이라 빈 카드가 안 찍혀 **실측이 아니라 브라우저 기본**이다 — 빈 슬롯이 찍힌 원작 캡처가 생기면 그 수로 바꾼다.",
