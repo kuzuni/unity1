@@ -7796,7 +7796,7 @@
   - 4726 `.af-check` ol3 → 시대 막대의 체크(`ForgeUi.AgeBar` · ui.js 2289)만 `Line` → `Line3`. 자동 제련 팝업 제 체크 둘(계속하기 · 옵션 줄)은 `ForgeAutoPopup.cs` 가 T178 lock 이라 KNOWN 그대로.
 - **자**: `check_box_borders` 표 행 넷을 닫힌 꼴로 고쳐 적고 KNOWN 넷을 걷었다(초록 117 → **120** · KNOWN 11 → **7** · 건너뜀 66 · 문제 0). 이 다섯은 자가 못 읽거나(인자 폭 · 직접값 · Panel 기하) 같은 몸통의 다른 테에 가려 «ok» 로 보는 자리라 **PlayMode `BoxBorderSitesTests` 에 한 칸**(패스 배지·라벨 ol2 · 탭 띠 셋 Line3 · 상세 카드 틀 ol2+검정 · 펫 상세 타일 line1_px · 시대 막대 체크 ol3)을 더해 직접 잰다. `dotnet` 하니스가 그 자를 컴파일했다(gate 46/46 rc 0 · 건너뜀 0).
 - **판정 = 다음 런** `BoxBorderSitesTests` 새 칸 PASS + 같은 자리의 자들(TileRadiusTests · ItemFacesTests · PetUiTests · ProfilePopup 자들) 그대로 + 눈: `screen_gear-detail`(카드 그림 고리가 검정 ol2) · `screen_pass`(체크 배지) · `screen_profile`(탭 사이 선) · `screen_pet-detail`(타일 테 얇음). 남는 수리 자리 **9**: KNOWN 7(`.idet-icon` · `.af-check` 자동 제련 둘 · `.af-bottom` 선 · `.af-toggle`·`.knob` · `.btn` 바닥 · `.chat-preview-badge` — T178·T331·T401 갈래) + «—결함» 1(`.af-dd-list button` · T178) + `.af-toggle` 기하.
-- **ntfy**: 아래 커밋 push 뒤 GitHub MCP 로 부른 결과를 이 절 끝에 적는다.
+- **ntfy — 알림 못 보냄**: 커밋 `2077e0f2` push 뒤 GitHub MCP 로 `ntfy-notify.yml` **런 #2407**(job 107713737902)을 세웠지만 잡 로그 `TOPIC:` 이 비어 마지막 줄이 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» 다 — 22회차와 같은 자리(이 루틴 프롬프트엔 토픽이 없고 Secret 도 미등록).
 
 ### T365 22회차 — 미정 71 을 전부 짝지었다(0): 실물 24 · 끄는 자리·구운 판 42 · 결함 11(자로 찍는 8 은 KNOWN · 못 찍는 3 은 «—» 행에 결함으로) (2026-09-24 14:4x~15:2x · 워커 T · sess-1447-10982 · 죽은 lock 인수 · lock 유지 · 판정은 다음 런 gate 잡)
 
