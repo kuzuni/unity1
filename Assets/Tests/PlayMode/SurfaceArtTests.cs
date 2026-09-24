@@ -1048,5 +1048,64 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T178 29회차 — 소환 결과 x1 요약의 **[다시 소환]** 버튼(정본 **5791** `.sr-again { background: linear-gradient(rgba(52,66,120,.9), rgba(30,40,82,.9)) }`).
+        /// 27회차가 «알파 .9 라 무엇 위에 섞나부터 정하라» 고 남긴 자리다 — 바탕은 모달의 방사형(5653)이라 표에 `over_color` 를 못 적고
+        /// **부르는 쪽이 색을 준다**(팔레트 `sr_bg_c` · 결정 808). 그래서 이 자는 «겹이 섰다» 만 보지 않고 **구운 화소가 불투명하고(sRGB 미리 합성)
+        /// 위가 밝고 아래가 어두우며 그 값이 정본 셈(.9×정본 + .1×바탕)과 맞는가** 를 본다 — 종전엔 `sr_again` 단색 .9 를 선형 공간에서 섞었다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 소환_결과_다시_소환_버튼은_바탕을_받아_불투명하게_구운_세로_명암_겹이다()
+        {
+            // ⓐ 구운 화소 — 바탕 sr_bg_c(#070b20) 위 sRGB 합성: 위 = .9×(52,66,120)+.1×바탕 · 아래 = .9×(30,40,82)+.1×바탕 · 알파 1
+            Color under = PetSkillStyle.C("sr_bg_c");
+            float ur = Mathf.Round(under.r * 255f), ug = Mathf.Round(under.g * 255f), ub = Mathf.Round(under.b * 255f);
+            Sprite sp = SurfaceArt.Bake("sr_again", 8.6f / 2.3f, 100f, under);
+            Assert.IsNotNull(sp, "[다시 소환] 겹을 굽는다");
+            Texture2D tx = sp.texture;
+            Color top = tx.GetPixel(tx.width / 2, tx.height - 1), bot = tx.GetPixel(tx.width / 2, 0);
+            Assert.AreEqual(1f, top.a, 1e-3f, "바탕을 미리 섞어 불투명하다(T357 — 선형 공간에서 알파를 남기면 어두운 바탕에서 밝게 뜬다)");
+            Assert.AreEqual(1f, bot.a, 1e-3f, "아래도 불투명");
+            float tol = 2.5f / 255f;
+            Assert.AreEqual((0.9f * 52f + 0.1f * ur) / 255f, top.r, tol, "위 R = .9×52 + .1×바탕");
+            Assert.AreEqual((0.9f * 66f + 0.1f * ug) / 255f, top.g, tol, "위 G = .9×66 + .1×바탕");
+            Assert.AreEqual((0.9f * 120f + 0.1f * ub) / 255f, top.b, tol, "위 B = .9×120 + .1×바탕");
+            Assert.AreEqual((0.9f * 30f + 0.1f * ur) / 255f, bot.r, tol, "아래 R = .9×30 + .1×바탕");
+            Assert.AreEqual((0.9f * 40f + 0.1f * ug) / 255f, bot.g, tol, "아래 G = .9×40 + .1×바탕");
+            Assert.AreEqual((0.9f * 82f + 0.1f * ub) / 255f, bot.b, tol, "아래 B = .9×82 + .1×바탕");
+            Assert.Greater(top.r + top.g + top.b, bot.r + bot.g + bot.b + 0.15f, "위가 밝고 아래가 어둡다(정본 첫 정지점 → 둘째)");
+
+            // ⓑ 실물 — x1 요약의 버튼 면에 Mask + 구운 겹(bg-grad)이 서고, 그 그림이 같은 바탕으로 구워졌다
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "common", null);
+            Assert.IsNotNull(v, "결과 연출 팝업이 서지 않았다");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform again = FindDeep(v.transform, "sr-again");
+            Assert.IsNotNull(again, "[다시 소환] 버튼(sr-again · x1 요약에서만 선다)");
+            Transform face = again.Find("skin/face");
+            Assert.IsNotNull(face, "버튼의 둥근 면(skin/face)");
+            Assert.IsNotNull(face.GetComponent<Mask>(), "면에 Mask — 겹이 모서리 밖으로 안 샌다");
+            Transform g = face.Find("bg-grad");
+            Assert.IsNotNull(g, "겹(bg-grad)이 면 위에 선다(정본 5791)");
+            Image gi = g.GetComponent<Image>();
+            Assert.IsNotNull(gi, "겹: Image");
+            Assert.IsNotNull(gi.sprite, "구운 그림이다 — 색 한 칸짜리가 아니다(종전엔 `sr_again` 단색 .9)");
+            Assert.AreEqual(1f, gi.color.r, 1e-3f, "그림 위 색은 흰색 — 표 색을 두 번 곱하지 않는다");
+            Texture2D rt = gi.sprite.texture;
+            Color rtop = rt.GetPixel(rt.width / 2, rt.height - 1), rbot = rt.GetPixel(rt.width / 2, 0);
+            Assert.AreEqual(1f, rtop.a, 1e-3f, "실물 겹도 불투명하다(바탕을 받았다)");
+            Assert.AreEqual(top.r, rtop.r, tol, "실물 위 R = 자가 구운 것과 같은 바탕(sr_bg_c)");
+            Assert.AreEqual(bot.b, rbot.b, tol, "실물 아래 B = 자가 구운 것과 같은 바탕(sr_bg_c)");
+            yield return null;
+        }
+
     }
 }

@@ -1352,6 +1352,16 @@ namespace Forge.Game.Ui
                 RectTransform askin = PetSkillKit.Framed(ar, "skin", PetSkillStyle.C("sr_again"), PetSkillStyle.Px("sr_again_r_rem"), PetSkillStyle.L("line1_px"));
                 UiKit.Fill(askin);
                 ((Image)askin.Find("line").GetComponent<Image>()).color = new Color(0.59f, 0.67f, 0.92f, 0.55f);
+                // T178 29회차 — 정본 5791 `.sr-again { background: linear-gradient(rgba(52,66,120,.9), rgba(30,40,82,.9)) }` — 어두운 판의
+                //   **세로 명암 겹**(각도 없음 = 180deg · 위 밝고 아래 어둡다 · 표 SurfaceUi.json `sr_again`). 종전엔 `sr_again` 단색(.9)을
+                //   선형 공간에서 섞어 어두운 바탕에서 밝게 떴다(T357 갈래).
+                //   알파 .9 라 «무엇 위에 섞나» 를 정해야 한다(27회차 경고): 바탕은 모달의 방사형(5653 · `.done` 에서 앞 두 정지점이 등급색으로
+                //   승격)이라 표에 `over_color` 를 못 적고 **부르는 쪽이 색을 준다**(af_check 갈래). 버튼 높이(~80%H · t≈.47)의 바탕은 38% stop 과
+                //   68% stop(#070b20) 사이인데 겹이 .9 를 덮어 바탕 몫은 10% — 어느 쪽을 골라도 화소 차 ≤ (1,1,3) 이라 **등급과 무관한 68% stop
+                //   `sr_bg_c`** 를 준다(결정 808). 둥근 면이라 FillMasked(면에 Mask) — 모서리 밖으로 안 샌다.
+                float aln = PetSkillStyle.L("line1_px");
+                Image aface = (Image)askin.Find("face").GetComponent<Image>();
+                SurfaceArt.FillMasked(aface, "bg-grad", "sr_again", aw - aln * 2f, ah - aln * 2f, PetSkillStyle.C("sr_bg_c"));
                 TextMeshProUGUI at = PetSkillKit.Text(ar, "t", TextKind.Sub, PetSkillStyle.T("sr_again"), PetSkillStyle.C("sr_again_ink"));
                 LetterSpacing.Apply(at, "sr_again_ls_em");   // T168 3회차 — 정본 5791 `.sr-again`
                 UiKit.Fill(at.rectTransform);
