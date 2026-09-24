@@ -184,6 +184,25 @@ namespace Forge.Game.Ui
             return Finish(name, w, h, px);
         }
 
+        /// <summary>
+        /// T178 31회차 — 정지점 하나가 **런타임 색**인 겹(소환 결과 중앙 광원 5955 `var(--pre-halo)` = 등급색 · 알파 .3 + .16 × pk).
+        /// 표는 그 정지점의 기본값(정본의 `var(…, 기본)`)을 적고, 부르는 쪽이 <paramref name="stopIndex"/> 번째 정지점을 <paramref name="stopColor"/>(알파 포함)로 준다 —
+        /// 10회차 «바탕을 부르는 쪽이 준다» 와 같은 꼴이고 캐시 이름에 색을 붙인다(`SummonFx.BakeRaySpokes` 꼴). 바탕(over_*)은 안 섞는다 — 이 길은 «투명을 품은 채» 얹는 겹용이다.
+        /// </summary>
+        public static Sprite Bake(string key, float aspect, int stopIndex, Color stopColor)
+        {
+            if (aspect <= 0f || float.IsNaN(aspect)) aspect = 1f;
+            if (aspect > 8f) aspect = 8f;
+            Color32 c = new Color32((byte)Mathf.RoundToInt(Mathf.Clamp01(stopColor.r) * 255f), (byte)Mathf.RoundToInt(Mathf.Clamp01(stopColor.g) * 255f),
+                                    (byte)Mathf.RoundToInt(Mathf.Clamp01(stopColor.b) * 255f), (byte)Mathf.RoundToInt(Mathf.Clamp01(stopColor.a) * 255f));
+            string name = key + "-" + aspect.ToString("0.00") + "-S" + stopIndex + "_" + c.r + "_" + c.g + "_" + c.b + "_" + c.a;
+            Sprite hit;
+            if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            int shortSide = Mathf.Max(8, (int)J.Num(Table()["bake_px"], 96));
+            int w = Mathf.Max(8, Mathf.RoundToInt(shortSide * aspect)), h = shortSide;
+            return Finish(name, w, h, Pixels(key, w, h, 0f, 0, null, null, stopIndex, stopColor));
+        }
+
         static Color32 To32(Color c)
         {
             return new Color32((byte)Mathf.RoundToInt(Mathf.Clamp01(c.r) * 255f),
@@ -228,9 +247,16 @@ namespace Forge.Game.Ui
 
         static Color32[] Pixels(string key, int w, int h, float lineLenCanvasPx, int depth, string overBaseLayer, Color32? overBaseColor)
         {
+            return Pixels(key, w, h, lineLenCanvasPx, depth, overBaseLayer, overBaseColor, -1, Color.clear);
+        }
+
+        /// <summary>T178 31회차 — <paramref name="stopIndex"/> ≥ 0 이면 그 정지점의 색·알파를 <paramref name="stopColor"/> 로 바꿔 굽는다(런타임 정지점).</summary>
+        static Color32[] Pixels(string key, int w, int h, float lineLenCanvasPx, int depth, string overBaseLayer, Color32? overBaseColor, int stopIndex, Color stopColor)
+        {
             if (depth > 4) throw new KeyNotFoundException(ResourcePath + ".json 의 «" + key + "» 바탕(over_layer)이 서로를 물고 돈다");
             Color[] col; float[] pos;
             Stops(key, out col, out pos);
+            if (stopIndex >= 0 && stopIndex < col.Length) col[stopIndex] = stopColor;   // T178 31회차 — 부르는 쪽이 준 정지점
             Color32[] px = IsRadial(key) ? RadialPixels(key, w, h, col, pos) : LinearPixels(key, w, h, col, pos, lineLenCanvasPx);
 
             // 부르는 쪽이 준 바탕이 먼저다(T178 10회차) — 표의 `over_layer` 는 «한 값» 이라 상태로 갈리는 자리를 못 적는다.

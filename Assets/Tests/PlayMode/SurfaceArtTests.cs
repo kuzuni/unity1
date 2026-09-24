@@ -1163,5 +1163,68 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T178 31회차 — 소환 결과 **중앙 광원**(정본 **5955** `.sr-halo { radial-gradient(closest-side, var(--pre-halo) 0%, rgba(90,130,255,.1) 48%, rgba(0,0,0,0) 100%) }`)
+        /// 과 공개 뒤 판(**7166** `.done .sr-halo` · 정지점 둘 · `--halo` .4). 0% 정지점이 **런타임 등급색**이라 «부르는 쪽이 정지점을 준다» 길
+        /// (`SurfaceArt.Bake(key, aspect, stopIndex, color)`)로 굽는다. 자는 ⓐ 준 정지점이 화소에 그대로 앉고 색마다 다른 판이 나오는가
+        /// ⓑ 실물 광원이 구운 그림(흰 색)이고 가운데 알파가 .3 + .16 × pk(일반 = .3) 인가 ⓒ done 뒤 판이 .4 짜리로 갈아타는가 — 종전엔 `Disc` 단색 .18 이었다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 소환_결과_중앙_광원은_등급색_정지점을_받아_구운_방사_겹이고_done_뒤_판으로_갈아탄다()
+        {
+            // ⓐ 정지점을 부르는 쪽이 준다 — 빨강 .3 을 0% 에 주면 가운데가 빨강 .3 · 48% 자리는 표의 (90,130,255,.1) · 끝은 0
+            Sprite red = SurfaceArt.Bake("sr_halo", 26f / 16f, 0, new Color(1f, 0f, 0f, 0.3f));
+            Assert.IsNotNull(red, "광원을 굽는다");
+            Texture2D rt = red.texture;
+            Color mid = rt.GetPixel(rt.width / 2, rt.height / 2);
+            Assert.AreEqual(0.3f, mid.a, 0.03f, "가운데 알파 = 준 정지점 .3");
+            Assert.Greater(mid.r, 0.9f, "가운데는 준 색(빨강)이다");
+            Assert.Less(mid.b, 0.1f, "가운데는 준 색(빨강)이다 — 표의 기본 파랑이 아니다");
+            Color q = rt.GetPixel((int)(rt.width * 0.74f), rt.height / 2);   // u = .48 → 둘째 정지점
+            Assert.AreEqual(0.1f, q.a, 0.03f, "48% 자리 알파 = 정본 .1");
+            Assert.Greater(q.b, q.r + 0.3f, "48% 자리는 표의 파랑(90,130,255)");
+            Color edge = rt.GetPixel(rt.width - 1, rt.height / 2);
+            Assert.Less(edge.a, 0.03f, "끝은 사라진다(알파 0)");
+            Sprite green = SurfaceArt.Bake("sr_halo", 26f / 16f, 0, new Color(0f, 1f, 0f, 0.3f));
+            Assert.AreNotEqual(red, green, "정지점 색이 다르면 다른 판(캐시 이름에 색이 붙는다)");
+            Assert.AreEqual(red, SurfaceArt.Bake("sr_halo", 26f / 16f, 0, new Color(1f, 0f, 0f, 0.3f)), "같은 색은 같은 판(캐시)");
+
+            // ⓑ 실물
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "common", null);
+            Assert.IsNotNull(v, "결과 연출 팝업이 서지 않았다");
+            yield return null;
+            Transform halo = FindDeep(v.transform, "halo");
+            Assert.IsNotNull(halo, "광원(halo)");
+            Image hi = halo.GetComponent<Image>();
+            Assert.IsNotNull(hi.sprite, "광원은 구운 그림이다 — 색 한 칸짜리 Disc 가 아니다");
+            Assert.AreEqual(1f, hi.color.r, 1e-3f, "그림 위 색은 흰색(등급색은 정지점에 있다)");
+            Texture2D ht = hi.sprite.texture;
+            Color hm = ht.GetPixel(ht.width / 2, ht.height / 2);
+            Assert.AreEqual(PetSkillStyle.L("sr_halo_pre_a0"), hm.a, 0.03f, "일반(pk 0)의 가운데 알파 = .3 + .16 × 0");
+            Assert.Less(ht.GetPixel(ht.width - 1, ht.height / 2).a, 0.03f, "실물도 끝이 사라진다");
+            Sprite pre = hi.sprite;
+
+            // ⓒ done 뒤 — 정지점 둘짜리 .4 판으로 갈아탄다(정본 7166 · 이산 전환 · 진행 .5)
+            float t = 0f;
+            while (!v.Done && t < 15f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done, "done");
+            t = 0f;
+            while (hi.sprite == pre && t < 2f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.AreNotEqual(pre, hi.sprite, "done 뒤 광원 판이 갈아탔다(정본 7166)");
+            Texture2D dt = hi.sprite.texture;
+            Assert.AreEqual(PetSkillStyle.L("sr_halo_done_a"), dt.GetPixel(dt.width / 2, dt.height / 2).a, 0.03f, "done 판 가운데 알파 = .4");
+            Assert.Less(dt.GetPixel(dt.width - 1, dt.height / 2).a, 0.03f, "done 판도 끝이 사라진다");
+            v.Close();
+            yield return null;
+        }
+
     }
 }

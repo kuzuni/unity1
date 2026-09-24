@@ -1322,5 +1322,66 @@
     ],
     "_": "style.css **6350** `.sr-orbwrap::before { left: 13%; right: 13%; bottom: -6%; height: 13%; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.62), rgba(0,0,0,0) 76%) }` — 소환 결과 구슬의 **접지 그림자**(정본 주석 6349 «구체 내부 그라디언트로는 읽히지 않아 구 밖에 눌린 타원으로 깐다»). 클론엔 통째로 없었다(T178 28회차 «평판 넷» 중 하나). `closest-side` 는 그 타원 상자의 반지름 그대로라 rx = ry = .5 · 상자 자리(13%·6%·13%)는 PetSkillUi.json `sr_ground_*`. T178 30회차",
     "_2": "바탕을 미리 섞지 않는다(`over_color` 없음) — 76% 밖이 알파 0 이라 이 겹은 **투명을 품은 채** 구슬 뒤 바닥에 얹힌다(제목 띠·헤어라인과 같은 갈래). 정지점이 검정 하나라 프리멀티플라이드 보간(결정 750)과 그냥 보간이 같다."
+  },
+  "sr_halo": {
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": 0.5,
+    "rx": 0.5,
+    "ry": 0.5,
+    "stops": [
+      [
+        120,
+        165,
+        255,
+        0.3
+      ],
+      [
+        90,
+        130,
+        255,
+        0.1
+      ],
+      [
+        0,
+        0,
+        0,
+        0.0
+      ]
+    ],
+    "offsets": [
+      0,
+      0.48,
+      1
+    ],
+    "_": "style.css **5955** `.sr-halo { width: 26rem; height: 16rem; background: radial-gradient(closest-side, var(--pre-halo, rgba(120,165,255,.3)) 0%, rgba(90,130,255,.1) 48%, rgba(0,0,0,0) 100%) }` — 소환 결과 **중앙 광원**(아이콘 줄 뒤를 밝혀 대비를 만든다 · 공개 전에도 최고 등급색으로 물든다). `closest-side` 는 26×16 상자의 반지름 그대로(rx = ry = .5). **0% 정지점은 런타임**(ui.js 529 `--pre-halo` = 최고 등급 rgb · 알파 .3 + .16 × pk · pk = 등급 차례/(등급 수−1)) — 여기 적힌 [120,165,255,.3] 은 정본의 기본값이고 부르는 쪽(`SkillSummonResult.Build`)이 `SurfaceArt.Bake(key, aspect, 0, color)` 로 그 정지점을 준다(알파는 PetSkillUi.json `sr_halo_pre_a0`·`sr_halo_pre_a_k`). 종전엔 `Disc` 단색 + `sr_halo_a` .18 이었다. T178 31회차",
+    "_2": "바탕을 미리 섞지 않는다(`over_color` 없음) — 100% 가 알파 0 이라 «투명을 품은 채» 얹는 겹. 정본 6834 `charging` 키프레임의 opacity·scale 은 Image 색 알파·배율로 그대로(`AnimateCharge`) · `filter: brightness()` 는 흰 바탕 곱이라 못 올린다(종전과 같은 한계)."
+  },
+  "sr_halo_done": {
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": 0.5,
+    "rx": 0.5,
+    "ry": 0.5,
+    "stops": [
+      [
+        120,
+        165,
+        255,
+        0.4
+      ],
+      [
+        0,
+        0,
+        0,
+        0.0
+      ]
+    ],
+    "offsets": [
+      0,
+      1
+    ],
+    "_": "style.css **7166** `#summon-result-modal.done .sr-halo { background: radial-gradient(closest-side, var(--halo, rgba(120,165,255,.4)) 0%, rgba(0,0,0,0) 100%); transition: background .5s ease-out }` — 공개 뒤의 광원(정지점 둘 · 48% 중간 정지점이 없다). 0% 는 런타임(ui.js 509 `--halo` = 등급 rgb · 알파 .4 · PetSkillUi.json `sr_halo_done_a`). T178 31회차",
+    "_2": "정지점 수가 앞 판(sr_halo · 셋)과 달라 CSS 는 `background` 를 보간하지 못하고 **이산**으로 간다 — 전환의 진행이 50% 를 넘는 순간 갈아탄다(CSS Transitions «discrete» 규칙). 클론도 `ApplyBgPromote` 의 같은 진행(표 TransitionUi `sr_bg_done` · .5s ease-out)이 .5 를 넘는 프레임에 이 판으로 갈아탄다(결정 815)."
   }
 }

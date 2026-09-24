@@ -206,6 +206,8 @@ namespace Forge.Game.Ui
         Image tickImg;
         Color tickBase;
         Color floorBase, haloBase;
+        /// <summary>T178 31회차 — 광원의 등급색·판 비율·done 판으로 갈아탔는가(정본 7166 · 이산 전환).</summary>
+        Color haloTint; float haloAspect = 26f / 16f; bool haloDone;
         Vector3 floorHome;
         float chargeAt = -1f;
         RectTransform foot;
@@ -420,8 +422,17 @@ namespace Forge.Game.Ui
             bgAImg = glowA;
             glowA.preserveAspect = false;
             UiKit.Anchor(glowA.rectTransform, new Vector2(0.5f, 0.56f), new Vector2(0.5f, 0.5f), Vector2.zero, W * 1.5f, Hh * 0.9f);
-            Image halo = PetSkillKit.Disc(c, "halo", PetSkillStyle.Rarity(Defs, best));
-            halo.color = new Color(halo.color.r, halo.color.g, halo.color.b, PetSkillStyle.L("sr_halo_a"));   // T454 4회차 — 박힌 .18 을 표로(값 그대로 · 정본 맞춤은 이 축 밖)
+            // T178 31회차 — 정본 5955 `.sr-halo { width: 26rem; height: 16rem; background: radial-gradient(closest-side, var(--pre-halo) 0%,
+            //   rgba(90,130,255,.1) 48%, rgba(0,0,0,0) 100%) }`(표 SurfaceUi.json `sr_halo`). 0% 정지점은 **런타임 색**(ui.js 529 `--pre-halo` = 최고 등급 rgb ·
+            //   알파 .3 + .16 × pk · 표 `sr_halo_pre_a0`·`sr_halo_pre_a_k`)이라 부르는 쪽이 준다(`SurfaceArt.Bake(key, aspect, 0, color)` · 10회차 «바탕을 부르는 쪽이 준다» 와 같은 꼴).
+            //   `.done`(7166)은 정지점 둘짜리(`--halo` = rgb · .4)로 바뀌며 `transition .5s ease-out` 인데 정지점 수가 달라 CSS 는 **이산**으로 간다 — ApplyBgPromote 가 진행 .5 에서 갈아탄다.
+            //   종전엔 `Disc` 단색(등급색 · 표 `sr_halo_a` .18)이었다 — Image 색은 흰색(알파·배율은 AnimateCharge 가 그대로 흔든다).
+            Image halo = PetSkillKit.Disc(c, "halo", Color.white);
+            haloTint = PetSkillStyle.Rarity(Defs, best);
+            haloAspect = PetSkillStyle.Rem(26f) / PetSkillStyle.Rem(16f);
+            halo.sprite = SurfaceArt.Bake("sr_halo", haloAspect, 0,
+                new Color(haloTint.r, haloTint.g, haloTint.b, PetSkillStyle.L("sr_halo_pre_a0") + PetSkillStyle.L("sr_halo_pre_a_k") * (float)Pk));
+            halo.color = Color.white;
             halo.preserveAspect = false;
             UiKit.Anchor(halo.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, PetSkillStyle.Rem(26f), PetSkillStyle.Rem(16f));
             haloImg = halo; haloBase = halo.color;
@@ -2351,6 +2362,17 @@ namespace Forge.Game.Ui
             if (bgAImg == null || bgPromoteMs < 0) return;
             double p = TransitionRules.Progress(TransitionUi.Table.Get("sr_bg_done"), bgPromoteMs);
             bgAImg.color = Color.Lerp(bgAPre, bgADone, (float)p);
+            // T178 31회차 — 정본 7166 `.done .sr-halo` 는 정지점 둘짜리(`--halo` = 등급 rgb · .4 · 표 `sr_halo_done_a`)로 바뀌고 `transition: background .5s ease-out`
+            //   인데 앞 판과 정지점 수가 달라 CSS 는 보간 못 하고 **이산**으로 간다(진행 50% 에서 갈아탄다) — 같은 진행(p)이 .5 를 넘는 프레임에 done 판으로(결정 815).
+            if (p >= 0.5) SwapHaloDone();
+        }
+
+        /// <summary>T178 31회차 — 광원을 done 판(표 SurfaceUi.json `sr_halo_done`)으로 한 번 갈아탄다.</summary>
+        void SwapHaloDone()
+        {
+            if (haloDone || haloImg == null) return;
+            haloDone = true;
+            haloImg.sprite = SurfaceArt.Bake("sr_halo_done", haloAspect, 0, new Color(haloTint.r, haloTint.g, haloTint.b, PetSkillStyle.L("sr_halo_done_a")));
         }
 
         /// <summary>T454 ⓒ — 배경 승격을 지금 끝낸다(정지 촬영·자). done 전이면 아무것도 안 한다.</summary>
@@ -2359,6 +2381,7 @@ namespace Forge.Game.Ui
             if (bgPromoteMs < 0) return;
             bgPromoteMs = -1;
             if (bgAImg != null) bgAImg.color = bgADone;
+            SwapHaloDone();   // T178 31회차 — 광원 done 판도 지금 끝낸다
         }
 
         /// <summary>열려 있는 소환 결과의 배경 승격을 끝낸다 — 촬영 직전(`UiShotsTests`)에 부른다.</summary>

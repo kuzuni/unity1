@@ -99,6 +99,9 @@ TABLE = {
     '.sr-again': ['Ui/SkillSummonResult.cs@BuildFoot'],
     # T178 30회차 — 구슬 접지 그림자(6350 `::before`) · 검정 방사 타원(76% 밖 알파 0 · 투명을 품은 채) · 자리는 PetSkillUi.json sr_ground_*.
     '.sr-orbwrap::before': ['Ui/SkillSummonResult.cs@BuildCell'],
+    # T178 31회차 — 중앙 광원(5955 · 0% 정지점이 런타임 등급색) · done 판(7166 · 정지점 둘 · 이산 전환) — SurfaceArt.Bake(key, aspect, stopIndex, color) 길.
+    '.sr-halo': ['Ui/SkillSummonResult.cs@Build'],
+    '#summon-result-modal.done .sr-halo': ['Ui/SkillSummonResult.cs@SwapHaloDone'],
     # T178 23회차 — 단(tier) 행 위끝 대시 줄(2548 `repeating-linear-gradient`). **코드는 이미 서 있다** — T368 5회차가
     #   `LeagueSheet.TierDash`(`SurfaceArt.BakeStripe` · 표 `stripes.league_tier_dash`)로 세웠는데 이 자 표에만 안 올라
     #   «미정» 으로 세어지고 있었다(`#panel-skills .summon-bar::before` → `SkillPanel.cs@SummonDash` 와 같은 꼴).
