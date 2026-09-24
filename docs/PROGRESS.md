@@ -7793,6 +7793,7 @@
 - **닫힌 것(22~24회차 합)**: 미정 71 → 0 · 표 자리 초록 91 → 120 · 자가 못 읽는 자리 다섯을 PlayMode 자가 직접 잼 · 결함 다섯 코드로(비교 카드 그림 · 패스 배지·라벨 · 펫 상세 타일 · 프로필 탭 · 시대 막대 체크).
 - **남은 몫(행 ⬜ · 누구든 · 자 KNOWN 줄과 «—» 행이 자리·정본 줄·바꿀 키를 댄다)**: ⓐ KNOWN 7 — `.idet-icon`(ForgeInfoPopup · T178) · `.af-check` 자동 제련 제 체크 둘 + `.af-bottom` 위 키라인(ForgeAutoPopup · T178) · `.af-toggle`·`.knob`(Popups.Toggle · 손잡이 기하까지 한 회차) · `.btn` 바닥 ol1(Popups.Btn · T331 갈래) · `.chat-preview-badge` ol15(catalog `line15_px` · T401) ⓑ «—결함» 1 — `.af-dd-list button`(ForgeAutoPopup · T178 · 면 축 T377 과 같이).
 - **lock 반납**(런 1252 가 내 커밋을 돌았다 · §1).
+- **ntfy — 알림 못 보냄**: 커밋 `2d3b635d` push 뒤 `ntfy-notify.yml` **런 #2413**(job 107758870904)이 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 22~24회차와 같은 자리(이 루틴 프롬프트엔 토픽이 없고 Secret 미등록).
 
 ### T365 24회차 — 23회차 런 1250 의 빨강 둘은 둘 다 내 자였다(이름 하나 · 옛 폭 하나) → 자만 수리 · 코드는 맞다 (2026-09-24 16:4x~16:5x · 워커 T · sess-1447-10982 · lock 유지 · 판정은 다음 런)
 
