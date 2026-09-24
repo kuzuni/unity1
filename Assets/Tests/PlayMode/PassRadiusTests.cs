@@ -95,7 +95,7 @@ namespace Forge.Tests.PlayMode
                     float hgt = rt.rect.height;
                     Assert.IsTrue(RadiusRules.IsPill(rem * 1f, hgt), "정본 1rem ≥ 필 반높이(" + hgt + ") — 알약 동치가 아니면 표 키로 옮겨야 한다");
                     AssertRounded(rt.Find("line").GetComponent<Image>(), hgt * 0.5f, "마일스톤 필 테");
-                    AssertRounded(rt.Find("face").GetComponent<Image>(), Mathf.Max(1f, hgt * 0.5f - PopupKit.Line), "마일스톤 필 면");
+                    AssertRounded(rt.Find("face").GetComponent<Image>(), Mathf.Max(1f, hgt * 0.5f - PopupKit.Line2), "마일스톤 필 면");   // T365 23회차 — 필 테가 정본 2803 ol2(Line2)로 넓어져 안쪽 면 반지름도 그만큼 준다(런 1250 빨강)
                 }
             }
             Assert.Greater(cells, 0, "보상 칸이 하나도 없다");

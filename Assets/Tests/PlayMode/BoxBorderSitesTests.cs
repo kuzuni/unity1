@@ -532,7 +532,7 @@ namespace Forge.Tests.PlayMode
             int ageChecks = 0;
             foreach (string age in fh.Defs.Ages)
             {
-                RectTransform bar = FindDeep(auto.Root, "age-" + age);
+                RectTransform bar = FindDeep(auto.Root, "af-age-" + age);   // 런 1250 빨강: 자동 제련 막대는 `af-age-<age>`(ForgeAutoPopup 78 · 정보 팝업의 `age-<age>` 와 다르다)
                 if (bar == null) continue;
                 Transform box = bar.Find("check/box");
                 if (box == null) continue;
