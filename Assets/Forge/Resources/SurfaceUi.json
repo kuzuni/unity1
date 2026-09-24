@@ -1385,21 +1385,175 @@
     "_2": "정지점 수가 앞 판(sr_halo · 셋)과 달라 CSS 는 `background` 를 보간하지 못하고 **이산**으로 간다 — 전환의 진행이 50% 를 넘는 순간 갈아탄다(CSS Transitions «discrete» 규칙). 클론도 `ApplyBgPromote` 의 같은 진행(표 TransitionUi `sr_bg_done` · .5s ease-out)이 .5 를 넘는 프레임에 이 판으로 갈아탄다(결정 815)."
   },
   "sr_floor_fill": {
-    "shape": "radial", "cx": 0.5, "cy": 0.5, "rx": 0.5, "ry": 0.5,
-    "stops": [[255, 255, 255, 0.2], [255, 255, 255, 0.07], [255, 255, 255, 0.0]],
-    "offsets": [0, 0.58, 1],
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": 0.5,
+    "rx": 0.5,
+    "ry": 0.5,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.2
+      ],
+      [
+        255,
+        255,
+        255,
+        0.07
+      ],
+      [
+        255,
+        255,
+        255,
+        0.0
+      ]
+    ],
+    "offsets": [
+      0,
+      0.58,
+      1
+    ],
     "_": "style.css **5812~5813** `.sr-floor::before` 둘째 방사 `radial-gradient(closest-side, var(--floor-fill, rgba(96,146,255,.2)) 0%, rgba(96,146,255,.07) 58%, rgba(0,0,0,0) 100%)` — 소환진 바닥의 «빛이 고인» 면(inset 0 · 50% 라 타원 그대로 · rx = ry = .5). **판은 흰색 + 정본 알파 단면**이고 색(96,146,255 → `.done` 에선 등급 rgb · ui.js 552 `--floor-fill-hi` .26)은 `SkillSummonResult.cs` 의 Image 틴트가 쥔다(SummonFxUi `floor_fill` · 정본이 6815 `srfloorcharge` 로 `.sr-floor` 통째를 brightness 1→2.2 · saturate 로 흔들어 그 램프가 틴트에 실리는 자리 · T178 32회차 · 결정 817). `.done` 은 0% 정지점 알파를 .26(SummonFxUi `floor_done_a`)으로 다시 굽는다(58% 의 .07 은 정본도 고정)."
   },
   "sr_floor_ring": {
-    "shape": "radial", "cx": 0.5, "cy": 0.5, "rx": 0.5, "ry": 0.5,
-    "stops": [[255, 255, 255, 0.0], [255, 255, 255, 0.0], [255, 255, 255, 0.5], [255, 255, 255, 0.0], [255, 255, 255, 0.0]],
-    "offsets": [0, 0.61, 0.635, 0.665, 1],
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": 0.5,
+    "rx": 0.5,
+    "ry": 0.5,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        0.0
+      ],
+      [
+        255,
+        255,
+        255,
+        0.0
+      ],
+      [
+        255,
+        255,
+        255,
+        0.5
+      ],
+      [
+        255,
+        255,
+        255,
+        0.0
+      ],
+      [
+        255,
+        255,
+        255,
+        0.0
+      ]
+    ],
+    "offsets": [
+      0,
+      0.61,
+      0.635,
+      0.665,
+      1
+    ],
     "_": "style.css **5810~5811** `.sr-floor::before` 첫 방사 `radial-gradient(closest-side, rgba(0,0,0,0) 61%, var(--floor-line, rgba(150,195,255,.5)) 63.5%, rgba(0,0,0,0) 66.5%)` — 소환진 안쪽의 얇은 동심 링. 판은 흰색 + 알파 단면 · 색(150,195,255 → `.done` 에선 등급색을 .55 띄운 파생색 · ui.js 551 `--floor-line-hi` .85)은 Image 틴트(SummonFxUi `floor_line` · `floor_line_hi_shade_f`·`floor_line_hi_a`). `.done` 은 63.5% 정지점(index 2) 알파를 .85 로 다시 굽는다. 5808 의 `border: .16rem` 테는 T365 축."
   },
   "sr_flash": {
-    "shape": "radial", "cx": 0.5, "cy": 0.5, "rx": 0.5, "ry": 0.5,
-    "stops": [[255, 255, 255, 1.0], [255, 255, 255, 1.0], [255, 255, 255, 0.0], [255, 255, 255, 0.0]],
-    "offsets": [0, 0.26, 0.72, 1],
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": 0.5,
+    "rx": 0.5,
+    "ry": 0.5,
+    "stops": [
+      [
+        255,
+        255,
+        255,
+        1.0
+      ],
+      [
+        255,
+        255,
+        255,
+        1.0
+      ],
+      [
+        255,
+        255,
+        255,
+        0.0
+      ],
+      [
+        255,
+        255,
+        255,
+        0.0
+      ]
+    ],
+    "offsets": [
+      0,
+      0.26,
+      0.72,
+      1
+    ],
     "_": "style.css **6156** `.sr-flash { background: radial-gradient(circle at var(--fx) var(--fy), #fff 0%, var(--rc, #fff) 26%, rgba(255,255,255,0) 72%) }` — 홀드백 착지 섬광(screen 합성 · 6158 `srflash .55s` 로 .9 → 0 은 Image 알파). 26% 정지점(index 1)은 **런타임 등급색**(정본 `--rc`) — `SkillSummonResult.PlaceFlash` 가 준다. `circle` 은 farthest-corner 가 기본이라 판은 «착지 셀 가운데에서 상자 네 귀 중 가장 먼 거리» 를 반지름으로 한 정사각이고 상자 밖은 RectMask2D 클립이 자른다(정본 `.sr-wrap`)."
+  },
+  "sr_ok": {
+    "angle_deg": 180,
+    "stops": [
+      [
+        255,
+        232,
+        154,
+        1.0
+      ],
+      [
+        255,
+        201,
+        60,
+        1.0
+      ],
+      [
+        232,
+        160,
+        21,
+        1.0
+      ]
+    ],
+    "offsets": [
+      0,
+      0.46,
+      1
+    ],
+    "_": "style.css **7139** `.sr-ok { background: linear-gradient(#ffe89a 0%, #ffc93c 46%, #e8a015 100%) }` = **8748** `.btn.btn.sr-ok.sr-ok { background-image: 같은 셋; background-color: #ffc93c }`(특이도 0-4-0 으로 7871 의 파란 CTA 겹을 이기려고 문서 맨 뒤에 다시 적은 쌍둥이 — 값이 같아 표 키 하나) — 소환 결과 [확인] 금색 버튼의 면. 세 정지점이 전부 불투명이라 바탕을 안 섞는다(over_color 없음). 종전엔 팔레트 `sr_ok`(#ffc93c = 46% 정지점) 단색이었다. T178 33회차",
+    "_2": "아래턱(`inset 0 -.22rem rgba(120,72,4,.5)`)·안쪽 림(`inset 0 .16rem 0 rgba(255,255,255,.55)`)·드리운 그림자는 T331 몫(skin 색 `sr_ok_ink` + `sr_ok_inset_rem` + srok_drop) — 여기는 면 겹만."
+  },
+  "sr_new": {
+    "angle_deg": 180,
+    "stops": [
+      [
+        255,
+        106,
+        94,
+        1.0
+      ],
+      [
+        224,
+        33,
+        20,
+        1.0
+      ]
+    ],
+    "offsets": [
+      0,
+      1
+    ],
+    "_": "style.css **6980** `.sr-new { background: linear-gradient(#ff6a5e, #e02114) }` — 소환 결과 구슬 림의 **NEW 배지** 면(위 산호 → 아래 진홍 · 각도 없음 = 180deg). 둘 다 불투명이라 바탕을 안 섞는다. 종전엔 팔레트 `sr_new`(#e02114 = 아래 정지점) 단색이었다. T178 33회차"
   }
 }

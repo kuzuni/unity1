@@ -105,6 +105,10 @@ TABLE = {
     '.sr-floor::before': ['Ui/SkillSummonResult.cs@BuildFloorPlates'],
     '.sr-flash': ['Ui/SkillSummonResult.cs@PlaceFlash'],
     '#summon-result-modal.done .sr-halo': ['Ui/SkillSummonResult.cs@SwapHaloDone'],
+    # T178 33회차 — [확인] 금색 버튼 면(7139 = 8748 쌍둥이 · 불투명 셋) · NEW 배지 면(6980 · 불투명 둘) — 바탕 없이 FillMasked.
+    '.sr-ok': ['Ui/SkillSummonResult.cs@BuildFoot'],
+    '.btn.btn.sr-ok.sr-ok': ['Ui/SkillSummonResult.cs@BuildFoot'],
+    '.sr-new': ['Ui/SkillSummonResult.cs@BuildCell'],
     # T178 23회차 — 단(tier) 행 위끝 대시 줄(2548 `repeating-linear-gradient`). **코드는 이미 서 있다** — T368 5회차가
     #   `LeagueSheet.TierDash`(`SurfaceArt.BakeStripe` · 표 `stripes.league_tier_dash`)로 세웠는데 이 자 표에만 안 올라
     #   «미정» 으로 세어지고 있었다(`#panel-skills .summon-bar::before` → `SkillPanel.cs@SummonDash` 와 같은 꼴).

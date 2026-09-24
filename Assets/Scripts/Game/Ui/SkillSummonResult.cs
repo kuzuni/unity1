@@ -1153,6 +1153,9 @@ namespace Forge.Game.Ui
                     float bw = PetSkillKit.TextWidth(TextKind.Sub, nw) + PetSkillStyle.Rem(0.52f);
                     RectTransform nb = PetSkillKit.Framed(wrap, "sr-new", PetSkillStyle.C("sr_new"), PetSkillStyle.Px("sr_new_r_rem"), PetSkillKit.Line2);
                     UiKit.Anchor(nb, new Vector2(0.93f, 0.92f), new Vector2(1f, 1f), Vector2.zero, bw, bh);
+                    // T178 33회차 — 정본 6980 `.sr-new { background: linear-gradient(#ff6a5e, #e02114) }`(표 SurfaceUi.json `sr_new` · 둘 다 불투명이라 바탕 없음).
+                    //   둥근 면이라 FillMasked(면에 Mask). 면 색(`sr_new` 단색)은 겹 아래 남는다. 폭은 Shrink 뒤 바뀌지만 겹은 부모를 꽉 채우므로 따라간다(각도 180 = 선 길이가 높이).
+                    SurfaceArt.FillMasked((Image)nb.Find("face").GetComponent<Image>(), "bg-grad", "sr_new", bw - PetSkillKit.Line2 * 2f, bh - PetSkillKit.Line2 * 2f);
                     TextMeshProUGUI nt = PetSkillKit.Text(nb, "t", TextKind.Sub, nw, PetSkillStyle.C("white"));
                     LetterSpacing.Apply(nt, "sr_new_ls_em");   // T168 3회차 — 정본 6980 `.sr-new`
                     Shrink(nb, nt, PetSkillStyle.Rem(0.52f), bh);   // 자간까지 먹인 **뒤** 잰다
@@ -1346,6 +1349,9 @@ namespace Forge.Game.Ui
             Image okFace = PetSkillKit.Fill(okSkin, "top", PetSkillStyle.C("sr_ok"), PetSkillStyle.Px("sr_ok_r_rem") - PetSkillKit.Line2);
             okFace.rectTransform.offsetMin = new Vector2(PetSkillKit.Line2, PetSkillKit.Line2 + PetSkillStyle.Px("sr_ok_inset_rem"));
             okFace.rectTransform.offsetMax = new Vector2(-PetSkillKit.Line2, -PetSkillKit.Line2);
+            // T178 33회차 — 정본 7139 `.sr-ok { background: linear-gradient(#ffe89a 0%, #ffc93c 46%, #e8a015 100%) }`(= 8748 `.btn.btn.sr-ok.sr-ok` 쌍둥이 · 표 SurfaceUi.json `sr_ok`).
+            //   세 정지점이 전부 불투명이라 바탕 없음 · 둥근 면(top)이라 FillMasked. 아래턱·안쪽 림·그림자는 T331 몫 그대로(skin 색 + inset + srok_drop).
+            SurfaceArt.FillMasked(okFace, "bg-grad", "sr_ok", okW - PetSkillKit.Line2 * 2f, okH - PetSkillKit.Line2 * 2f - PetSkillStyle.Px("sr_ok_inset_rem"));
             TextMeshProUGUI okt = PetSkillKit.Text(okr, "t", TextKind.Button, PetSkillStyle.T("sr_ok"), PetSkillStyle.C("sr_ok_ink"));
             LetterSpacing.Apply(okt, "sr_ok_ls_em");   // T168 3회차 — 정본 7139 `.sr-ok`
             UiKit.Fill(okt.rectTransform);

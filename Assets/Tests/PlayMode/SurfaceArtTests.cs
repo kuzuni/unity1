@@ -1309,5 +1309,73 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T178 33회차 — 소환 결과 **[확인] 금색 버튼**(정본 **7139** `.sr-ok { linear-gradient(#ffe89a 0%, #ffc93c 46%, #e8a015 100%) }` = 8748 쌍둥이)과
+        /// **NEW 배지**(**6980** `.sr-new { linear-gradient(#ff6a5e, #e02114) }`). 둘 다 정지점이 전부 불투명이라 바탕 없이 굽는다.
+        /// 자는 ⓐ 구운 화소의 위·가운데·아래가 정본 세 색(배지는 두 색)이고 불투명한가 ⓑ 실물 두 면에 Mask + 구운 겹이 서는가 — 종전엔 팔레트 단색이었다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 소환_결과_확인_버튼과_NEW_배지는_정본_세_색_두_색의_불투명_세로_겹이다()
+        {
+            // ⓐ [확인] — 위 #ffe89a · 46% #ffc93c · 아래 #e8a015
+            Sprite ok = SurfaceArt.Bake("sr_ok", 11f / 3f, 100f);
+            Assert.IsNotNull(ok, "[확인] 면을 굽는다");
+            Texture2D ot = ok.texture;
+            Color top = ot.GetPixel(ot.width / 2, ot.height - 1), bot = ot.GetPixel(ot.width / 2, 0);
+            Color mid = ot.GetPixel(ot.width / 2, ot.height - 1 - Mathf.RoundToInt(0.46f * (ot.height - 1)));
+            float tol = 3f / 255f;
+            Assert.AreEqual(1f, top.a, 1e-3f, "불투명(정지점 셋 다 알파 1)");
+            Assert.AreEqual(232f / 255f, top.g, tol, "위 G = #ffe89a");
+            Assert.AreEqual(154f / 255f, top.b, tol, "위 B = #ffe89a");
+            Assert.AreEqual(201f / 255f, mid.g, 6f / 255f, "46% 자리 G ≈ #ffc93c");
+            Assert.AreEqual(232f / 255f, bot.r, tol, "아래 R = #e8a015");
+            Assert.AreEqual(160f / 255f, bot.g, tol, "아래 G = #e8a015");
+            Assert.AreEqual(21f / 255f, bot.b, tol, "아래 B = #e8a015");
+            // ⓐ NEW — 위 #ff6a5e · 아래 #e02114
+            Sprite nw = SurfaceArt.Bake("sr_new", 2f, 30f);
+            Assert.IsNotNull(nw, "NEW 배지 면을 굽는다");
+            Texture2D nt = nw.texture;
+            Color ntop = nt.GetPixel(nt.width / 2, nt.height - 1), nbot = nt.GetPixel(nt.width / 2, 0);
+            Assert.AreEqual(1f, ntop.a, 1e-3f, "배지도 불투명");
+            Assert.AreEqual(106f / 255f, ntop.g, tol, "위 G = #ff6a5e");
+            Assert.AreEqual(94f / 255f, ntop.b, tol, "위 B = #ff6a5e");
+            Assert.AreEqual(224f / 255f, nbot.r, tol, "아래 R = #e02114");
+            Assert.AreEqual(33f / 255f, nbot.g, tol, "아래 G = #e02114");
+
+            // ⓑ 실물
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가", IsNew = true },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "common", null);
+            Assert.IsNotNull(v, "결과 연출 팝업이 서지 않았다");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform okb = FindDeep(v.transform, "sr-ok");
+            Assert.IsNotNull(okb, "[확인] 버튼(sr-ok)");
+            Transform okTop = okb.Find("skin/top");
+            Assert.IsNotNull(okTop, "[확인] 둥근 면(skin/top)");
+            Assert.IsNotNull(okTop.GetComponent<Mask>(), "[확인] 면에 Mask");
+            Transform og = okTop.Find("bg-grad");
+            Assert.IsNotNull(og, "[확인] 겹(bg-grad)이 선다(정본 7139)");
+            Image ogi = og.GetComponent<Image>();
+            Assert.IsNotNull(ogi.sprite, "[확인] 겹은 구운 그림이다 — 팔레트 단색이 아니다");
+            Assert.AreEqual(1f, ogi.color.r, 1e-3f, "그림 위 색은 흰색");
+            Transform nb = FindDeep(v.transform, "sr-new");
+            Assert.IsNotNull(nb, "NEW 배지(sr-new · IsNew 셀)");
+            Transform nface = nb.Find("face");
+            Assert.IsNotNull(nface, "배지 둥근 면(face)");
+            Assert.IsNotNull(nface.GetComponent<Mask>(), "배지 면에 Mask");
+            Transform ng = nface.Find("bg-grad");
+            Assert.IsNotNull(ng, "배지 겹(bg-grad)이 선다(정본 6980)");
+            Assert.IsNotNull(ng.GetComponent<Image>().sprite, "배지 겹은 구운 그림이다");
+            v.Close();
+            yield return null;
+        }
+
     }
 }
