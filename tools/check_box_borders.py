@@ -183,7 +183,7 @@ TABLE = {
     '.equip-cell': ['Ui/ForgeUi.cs@ItemTile', 'Ui/ForgeSheet.cs@EquipCell', 'Ui/PlayerInfoPopup.cs@EquipCell'],   # 838 cellb(= ol3 내림) — 세 공장 다 `Tile(… "frame" … Line3)` · 색은 CellLine(섞은 시대색 · 면 축)
     '.auto-drop-card': ['Ui/ForgeUi.cs@ItemTile'],   # 1071 cellb — `ForgeCraftPopup.CraftCard` → ItemTile 틀(Line3) · `MixFrame` 이 색만 표 키로 덮는다(T371 5회차)
     '.craft-batch .cb-card': ['Ui/ForgeUi.cs@ItemTile'],   # 1138 cellb — 같은 CraftCard 길
-    '.cmp-img': ['Ui/ForgeUi.cs@ItemTile'],   # 1856 **ol2 --pp-line** ↔ ItemTile 틀은 ol3 + CellLine(섞은 시대색) — KNOWN(ForgeUi T415 lock · ItemCard 주석이 «테 축 T365 몫» 으로 남긴 자리)
+    '.cmp-img': ['—정본 1856 ol2 --pp-line: 23회차가 `ItemTile` 에 `lineW` 인자를 열고 `ItemCard` 가 `PopupKit.Line2` 와 고리색 pp_line 을 준다 — 틀 폭이 인자라 자가 못 읽는다(`lineW > 0f ? lineW : Line3`) · PlayMode `BoxBorderSitesTests` 가 비교·상세 카드의 틀 폭·고리색을 잰다'],
     '.idet-icon': ['Ui/ForgeInfoPopup.cs@RenderDetail'],   # 3685 **ol2 #d5d5d5 · 면 #e9e9e9** ↔ 클론 상세 머리는 ItemTile(ol3 · 시대색) — KNOWN(ForgeInfoPopup T178·T415 lock) · ⚠ 5601 기술 노드 머리도 같은 클래스(`idet-icon tn-bronze`)라 그 자리(TechPopups)도 같은 테를 물려받는지 다음 사람이 본다
     '.chat-share-side .icon-circle.sm': ['Ui/Popups.cs@Avatar'],   # 3402 ol2 #000 — `ChatScreen.Side` 가 `PopupKit.Avatar` 기본 폭(Line2 · 10회차)으로 세운다
     '.x-btn': ['Ui/Popups.cs@XButton'],   # 3741 ol3 — 고리 Circle(ring) + 면 Circle(face) + 제 `Inset(face, Line3)`(BARE_INSET 갈래)
@@ -195,8 +195,8 @@ TABLE = {
     '.petup-xpbar': ['Ui/PetUpgradePopup.cs#petup-xpbar'],   # 4352 ol3 — `Gauge(… Line3 …)`
     '.sk-mini': ['Ui/SkillPanel.cs@BuildEquippedRow', 'Ui/PetPanel.cs@BuildEquippedRow'],   # 4156 ol2 — 스킬 줄은 `Orb(br, "orb", … Line2)` · 펫 줄(3957 `sk-mini square`)은 `Framed(br, "sq", … Line2)`
     '.petup-icon': ['Ui/PetPanel.cs@TileFace'],   # 4343 ol3 — 업그레이드 머리 얼굴 = TileFace(Line3 · 반지름만 제 키)
-    '.pass-badge.check': ['Ui/PassPopup.cs@Render'],   # 2849 **ol2** ↔ 클론 체크 배지 `Circle(line)+Circle(face)+Inset(cf, Line)` = ol1 — KNOWN(PassPopup T415 lock)
-    '.af-check': ['Ui/ForgeAutoPopup.cs#box', 'Ui/ForgeUi.cs#box'],   # 4726 **ol3** ↔ 세 자리(계속하기 체크 · 옵션 줄 체크 · 시대 막대 체크 = AgeBar) 전부 `Tile(…, "box", …, PopupKit.Line)` = ol1 — KNOWN(ForgeAutoPopup T178·T415 · ForgeUi T415 lock)
+    '.pass-badge.check': ['Ui/PassPopup.cs@Render'],   # 2849 ol2 — 체크 배지 `Circle(line)+Circle(face)+PopupKit.Inset(cf, Line2)`(23회차 · 전엔 Line)
+    '.af-check': ['Ui/ForgeAutoPopup.cs#box', 'Ui/ForgeUi.cs#box'],   # 4726 **ol3** — 시대 막대 체크(AgeBar)는 23회차가 Line3 로 · 자동 제련 팝업 제 체크 둘(계속하기 · 옵션 줄)은 아직 `PopupKit.Line` = ol1 — KNOWN(ForgeAutoPopup T178 lock)
     '.af-bottom|top': ['Ui/ForgeAutoPopup.cs#af-bottom-line'],   # 4777 **ol3 위 키라인** ↔ 클론 `Render` 의 `af-bottom` 상자엔 `UiKit.Line` 이 0 — 선 자체가 없다 · KNOWN(같은 lock) · 풀리면 `UiKit.Line(bottom, "af-bottom-line", "pp_line", Line3, true)` 한 줄(이 이름이라야 이 행이 초록이 된다)
     '.af-toggle': ['Ui/Popups.cs@Toggle'],   # 4761 **ol3** ↔ `Popups.Toggle` 은 설정 토글 값 한 벌(몸통 Line2) — KNOWN(아래)
     '.af-toggle .knob': ['Ui/Popups.cs@Toggle'],   # 4765 **ol3** ↔ 손잡이 Line(ol1) — KNOWN(아래)
@@ -236,7 +236,7 @@ TABLE = {
     '.af-dd-list button': ['—테 없음(4798 `background: none; border: none` · 흰 굵은 글자 · `.on` 만 강조) ↔ **결함**: 클론 `Render` 의 드롭다운 항목은 `PopupKit.Btn`(파랑/회색 면 + ol3 테 + 아래턱)이라 정본에 없는 테와 면을 진다 — 공용 Btn 은 도우미 목록 밖이라 자가 못 가른다 · ForgeAutoPopup T178·T415 lock 뒤 «글자만(면·테 없음) + 선택 항목 강조» 로(면은 T377 축과 같이)'],
     '.dg-banner': ['—덮인다: 정본 마크업의 유일한 자리(ui.js 4528)는 던전 시트 안이라 2001 `.modal-card.sheet .dg-banner`(표 행)가 이긴다 — 1960 의 ol1 #30363d 는 실물에 안 선다'],
     '.petd-tile': ['—덮인다: 정본 마크업의 `.petd-tile` 둘(ui.js 4019 펫 · 4074 알)은 모두 `.petd-wrap`(4014) 안이라 5464 `.petd-wrap .petd-tile`(특이도 0,2,0 · 1px color-mix)이 5538 의 ol3 pp-line 을 이긴다 — 아래 행이 임자'],
-    '.petd-wrap .petd-tile': ['—**1px**(직접값 · ≈ ol1) color-mix ↔ 클론 `PetPanel.TileFace` petd 갈래는 격자 얼굴과 같은 **Line3**(색만 `petd_line` 섞기 · T371 7회차 주석 «테 폭 1px 은 T365 축») — 직접값이라 자의 단 대조 밖 · **결함**: PetPanel T415 lock 뒤 petd 갈래에 `PopupKit.Line` 을 주고 PlayMode 자로 잰다'],
+    '.petd-wrap .petd-tile': ['—**1px**(직접값 · = 1 CSS px · ol1) color-mix: 23회차가 `PetPanel.TileFace` petd 갈래에 `line1_px` 를 줬다(격자 얼굴은 Line3 그대로 · 색은 `petd_line` 섞기) — 직접값이라 자의 단 대조 밖 · PlayMode `BoxBorderSitesTests` 가 상세 타일 폭을 잰다'],
     '.prob-chip': ['—클론에 그 자리가 없다: 정본은 두 자리(탈것 시트 확률 띠 ui.js 5637 · 디버그 판 열쇠 수 5976)에 쓴다 — 클론 탈것 시트는 확률을 `SkillRatesPopup` 색 막대로만 보이고(띠 0) 디버그 판은 T169 갈래 · T377 도 같은 두 자리를 «자리 없음 KNOWN» 으로 뒀다(면 축) · T415 19회차가 반지름 축에서 같은 자리를 잡고 있다(그 결론을 따른다)'],
     # ⓒ 구운 판·판 겹 — 테가 도우미 호출이 아닌 꼴로 서 있어 자가 못 읽는다(값은 표에 · 시간 축 값은 그 자가 잰다)
     '.cmp-ribbon': ['—구운 다각형: `RibbonArt.Build`(ForgeUi.Ribbon)가 면을 `--ol2` 의 절반만큼 부풀린 사본으로 테를 굽는다(RibbonArt 68·115 · 폭은 `KeylineUi.CssPx` 로 ol2 환산) — `RibbonArtTests` 가 잰다'],
@@ -260,13 +260,9 @@ KNOWN = {
     # 열쇠는 «선택자[|변] → 자리» 쌍이다(2회차·3회차는 자리만 열쇠로 써서, 같은 도우미가 다른 선택자에서 맞으면 «이제 있다» 로 잘못 알렸다 · 4회차 수리). 자리만 적은 옛 열쇠도 읽는다(빈자리 판정에만 · «이제 있다» 알림은 쌍 열쇠만).
     '.btn → Ui/Popups.cs@Btn': 'T365 2회차 — 바닥 버튼(`.btn` 664 ol1 #444c56 · HUD·오프라인·리그 뒤로)만 얇은 회색인데 공용 Btn 은 Line3 하나다(모달·패널·시트 안 `.btn` 3543 ol3 는 맞다) · Popups.cs T331·T333 lock — 바닥 버튼에 keyline 폭 인자를 주는 길',
     '.chat-preview-badge → Ui/Hud.cs@BuildChat': 'T365 2회차 — `.chat-preview-badge` 3249 ol15(1.5px ≈ 캔버스 3px) ↔ 클론 line_px(2) · ol15 단 키가 카탈로그에 없다(line15_px 3) · Hud.cs T331 lock',
-    '.pass-milestone-label → Ui/PassPopup.cs@Render': 'T365 3회차 — `.pass-milestone-label` 2803 ol2 ↔ 클론 라벨 고리는 `- PopupKit.Line`(ol1)(배너 Line3 는 맞다) · PassPopup.cs T332 lock',
     # T365 22회차 — 미정 71 을 짝짓다 나온 결함 여섯(전부 남의 산 lock 안 · 자리·정본 줄·바꿀 키를 적어 둔다 · 풀리는 파일부터 누구든)
-    '.cmp-img → Ui/ForgeUi.cs@ItemTile': 'T365 22회차 — 정본 1856 `.cmp-img { border: var(--ol2) solid var(--pp-line) }`(섞기 아님) ↔ 비교·상세 카드 그림은 ItemTile 틀(ol3 + CellLine 섞은 시대색) — ForgeUi T415 lock · ItemCard 가 넘길 폭·고리색 인자(또는 `tile/frame/line` 을 pp_line·Line 으로 되깎기) · ItemCard 주석이 «테 축 T365 몫» 으로 남긴 자리',
     '.idet-icon → Ui/ForgeInfoPopup.cs@RenderDetail': 'T365 22회차 — 정본 3685 `.idet-icon { border: var(--ol2) solid #d5d5d5; background: #e9e9e9 }` ↔ 클론 상세 머리 타일은 ItemTile(ol3 · 시대색 면·고리) — ForgeInfoPopup T178·T415 lock · 부르는 쪽에서 `frame/line`·`frame/face` 를 표 키(밝은 회색 둘)로 덮고 폭은 Line 으로',
-    '.pass-badge.check → Ui/PassPopup.cs@Render': 'T365 22회차 — 정본 2849 `.pass-badge.check { border: var(--ol2) solid var(--pp-line) }` ↔ 클론 `Inset(cf.rectTransform, PopupKit.Line)` = ol1 — PassPopup T415 lock · `Line` → `Line2` 한 칸',
-    '.af-check → Ui/ForgeAutoPopup.cs#box': 'T365 22회차 — 정본 4726 `.af-check { border: var(--ol3) }` ↔ 계속하기 체크(Render 159)·옵션 줄 체크(SubRow 234) 둘 다 `ForgeUi.Tile(…, "box", …, PopupKit.Line)` = ol1 — ForgeAutoPopup T178·T415 lock · 마지막 인자 `Line` → `Line3`(안의 ✓ 여백도 그만큼)',
-    '.af-check → Ui/ForgeUi.cs#box': 'T365 22회차 — 같은 정본 줄 · 시대 막대의 체크(ui.js 2289 · `ForgeUi.AgeBar` 의 `Tile(box, "box", …, PopupKit.Line)`) = ol1 — ForgeUi T415 lock · 같은 한 칸',
+    '.af-check → Ui/ForgeAutoPopup.cs#box': 'T365 22회차 — 정본 4726 `.af-check { border: var(--ol3) }` ↔ 계속하기 체크(Render 159)·옵션 줄 체크(SubRow 234) 둘 다 `ForgeUi.Tile(…, "box", …, PopupKit.Line)` = ol1 — ForgeAutoPopup T178 lock · 마지막 인자 `Line` → `Line3`(안의 ✓ 여백도 그만큼 · 시대 막대의 셋째 체크는 23회차가 ForgeUi.AgeBar 에서 닫았다)',
     '.af-bottom|top → Ui/ForgeAutoPopup.cs#af-bottom-line': 'T365 22회차 — 정본 4777 `.af-bottom { border-top: var(--ol3) solid var(--pp-line) }` ↔ 클론 `Render` 의 `af-bottom` 상자엔 `UiKit.Line` 호출이 0 — **선 자체가 없다** · ForgeAutoPopup T178·T415 lock · 풀리면 `UiKit.Line(bottom, "af-bottom-line", "pp_line", PopupKit.Line3, true)` 한 줄(이 이름이라야 이 행이 초록이 된다)',
     '.af-toggle → Ui/Popups.cs@Toggle': 'T365 22회차 — 정본 4761 `.af-toggle { border: var(--ol3) }` ↔ `Popups.Toggle` 은 설정 토글(3108 ol2) 값 한 벌 — Popups.cs 는 산 lock 밖이지만 폭만 고치면 반쪽이다: 정본 4765 손잡이(1.631rem)가 트랙(1.269rem)보다 **커서 밖으로 나오고** `left: calc(-.846rem - var(--ol3))` 로 걸린다 · 클론 손잡이는 트랙 안(`k = h − Line2·4`) — `ToggleSlide`·`PressFx`·자들이 `knob` 을 잡고 있어 제 회차로(af 갈래는 이름 `af-toggle` 로 가른다 · T331 43회차 그늘 갈래와 같은 길)',
     '.af-toggle .knob → Ui/Popups.cs@Toggle': 'T365 22회차 — 정본 4765 `.af-toggle .knob { border: var(--ol3) }` ↔ 손잡이 `Inset(knobFace, Line)` = ol1 — 위 행과 한 회차에',

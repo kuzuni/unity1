@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using Forge.Core.Forging;
 using Forge.Game;
 using Forge.Game.Ui;
 
@@ -422,6 +423,125 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(fiFace.g + fiFace.b, sheetFace.g + sheetFace.b + 0.02f,
                            "대장간 정보 버튼 면(#17181a)은 장비 시트 정보 버튼 면(#000)보다 살짝 밝다 — 표를 한 키로 뭉뚝그리면 여기서 넘어진다");
             h.Meta.Popups.Hide(ForgeInfoPopup.Name);
+            yield return null;
+        }
+    
+        /// <summary>
+        /// T365 23회차 — 22회차가 KNOWN·«—결함» 으로 적어 둔 자리 중 T415 반납으로 열린 다섯을 고쳤다. 전부 자(`check_box_borders`)가 못 읽거나
+        /// 같은 몸통의 다른 테에 가려 «ok» 로 보는 꼴이라 여기서 직접 잰다:
+        /// ⓐ 패스 체크 배지 2849 ol2 · 마일스톤 라벨 2803 ol2(3회차 KNOWN) ⓑ 프로필 탭 3077 `border-left: ol3` — 띠 고리가 두 면 사이로 비치는 틈이 Line3 · 오른쪽 고리도 Line3
+        /// ⓒ 비교·상세 카드 그림 1856 `.cmp-img` ol2 + 검정 고리(시대색 섞기 아님) ⓓ 펫 상세 타일 5464 1px(= line1_px) ⓔ 시대 막대 체크 4726 ol3(`ForgeUi.AgeBar` · 자동 제련 팝업 제 체크 둘은 T178 lock 뒤).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 패스_배지와_라벨_프로필_탭_틈_비교_카드_그림_펫_상세_타일_시대_막대_체크의_테는_정본_단이다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            float ol1 = UiKit.L("line_px"), ol2 = UiKit.L("line2_px"), ol3 = UiKit.L("line3_px");
+            // ⓐ 패스 — 첫 마일스톤을 수령한 상태로 열어 체크 배지를 세운다
+            if (h.PassState.Claimed == null) h.PassState.Claimed = new HashSet<string>();
+            h.PassState.Claimed.Add(h.Meta.Pass.Milestones[0].Stage);
+            PassPopup.Open(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup pass = PopupLayer.Instance.Find(PassPopup.Name);
+            Assert.IsNotNull(pass, "패스 팝업");
+            int checks = 0, labels = 0;
+            foreach (RectTransform rt in pass.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name == "check" && rt.Find("line") != null && rt.Find("face") != null) { checks++; Assert.AreEqual(ol2, RingWidth(rt, "패스 체크 배지(.pass-badge.check 2849)"), 0.01f); }
+                if (rt.name == "label" && rt.Find("line") != null && rt.Find("face") != null && rt.Find("text") != null) { labels++; Assert.AreEqual(ol2, RingWidth(rt, "마일스톤 라벨(.pass-milestone-label 2803)"), 0.01f); }
+            }
+            Assert.Greater(checks, 0, "수령 체크 배지를 못 찾았다");
+            Assert.Greater(labels, 0, "마일스톤 라벨을 못 찾았다");
+            PassPopup.Close(h);
+            yield return null;
+            // ⓑ 프로필 탭 — 두 면(tab-profile · tab-settings)이 띠 안에서 왼쪽 Line3 · 사이 Line3 · 오른쪽 Line3 를 남긴다
+            ProfilePopup.Open(h);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup prof = PopupLayer.Instance.Find(ProfilePopup.Name);
+            Assert.IsNotNull(prof, "프로필 팝업");
+            RectTransform tabs = FindDeep(prof.Root, "tabs");
+            Assert.IsNotNull(tabs, "탭 띠(.profile-tabs)");
+            RectTransform t1 = (RectTransform)tabs.Find("tab-profile"), t2 = (RectTransform)tabs.Find("tab-settings");
+            Assert.IsNotNull(t1); Assert.IsNotNull(t2);
+            float W = tabs.sizeDelta.x;
+            Assert.AreEqual(ol3, t1.anchoredPosition.x, 0.01f, "첫 칸 왼쪽의 띠 고리 = ol3");
+            Assert.AreEqual(ol3, t2.anchoredPosition.x - (t1.anchoredPosition.x + t1.sizeDelta.x), 0.01f, "두 칸 사이 선(3077 border-left ol3) = ol3 — 22회차 셈 1.5·Line3 였던 자리");
+            Assert.AreEqual(ol3, W - (t2.anchoredPosition.x + t2.sizeDelta.x), 0.01f, "오른쪽 끝의 띠 고리 = ol3 — 22회차 셈 .5·Line3 였던 자리");
+            ProfilePopup.Close(h);
+            yield return null;
+            // ⓒ 비교·상세 카드 — 장비 하나를 장착하고 상세 팝업(같은 ItemCard 조각)을 연다
+            ForgeHost fh = ForgeHost.Instance;
+            Assert.IsNotNull(fh, "ForgeHost");
+            ForgeItem cur = fh.Engine.RollItem();
+            fh.GearSys.Equip(cur);
+            yield return null;
+            GearDetailPopup.Open(fh, cur.Slot);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup gd = fh.Meta.Popups.Find(GearDetailPopup.Name);
+            Assert.IsNotNull(gd, "장비 상세 팝업");
+            int tiles = 0;
+            foreach (RectTransform rt in gd.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name != "tile" || rt.Find("frame") == null) continue;
+                RectTransform frame = (RectTransform)rt.Find("frame");
+                tiles++;
+                Assert.AreEqual(ol2, RingWidth(frame, "비교 카드 그림(.cmp-img 1856)"), 0.01f);
+                Color lc = frame.Find("line").GetComponent<Image>().color;
+                Assert.AreEqual(UiKit.C("pp_line"), lc, "비교 카드 그림의 고리는 검정 pp-line(1856) — 시대색 섞기가 아니다");
+            }
+            Assert.Greater(tiles, 0, "카드 그림 타일(tile/frame)을 못 찾았다");
+            fh.Meta.Popups.Hide(GearDetailPopup.Name);
+            yield return null;
+            // ⓓ 펫 상세 타일 — 펫 하나를 넣고 소환 탭 → 상세를 연다
+            for (int i = 0; i < 600 && !(PetSkillHost.Ready && SkillPetSheet.Instance != null); i++) yield return null;
+            Assert.IsTrue(PetSkillHost.Ready, "PetSkillHost");
+            PetSkillHost ph = PetSkillHost.Instance;
+            ph.Pets.State.Pets.Add(new Forge.Core.Pets.Pet { Name = "Cat", Rarity = "common", Stars = 1 });
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            yield return null;
+            SkillPetSheet sheet = SkillPetSheet.Instance;
+            sheet.Switch(SkillPetSheet.SubPets);
+            yield return null;
+            sheet.Pets.OpenPetDetail(ph.Pets.State.Pets.Count - 1);
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform detail = sheet.Modal.Find(PetPanel.DetailModal).Content;
+            Assert.IsNotNull(detail, "펫 상세");
+            RectTransform petd = FindDeep(detail, "tile-face");
+            Assert.IsNotNull(petd, "펫 상세 타일(.petd-tile)");
+            Assert.AreEqual(PetSkillStyle.L("line1_px"), RingWidth(petd, "펫 상세 타일(5464 1px)"), 0.01f);
+            Assert.Less(PetSkillStyle.L("line1_px"), PetSkillKit.Line3, "1px 은 격자 타일의 ol3 보다 얇다");
+            sheet.Modal.Close(PetPanel.DetailModal);
+            yield return null;
+            ph.Pets.State.Pets.RemoveAll(p => p.Name == "Cat" && p.Stars == 1);
+            tb.Switch(null);
+            yield return null;
+            // ⓔ 시대 막대 체크(자동 제련 팝업의 열 시대 행 · ForgeUi.AgeBar)
+            fh.S.BestChapter = 3; fh.S.BestStage = 1; fh.S.ForgeLevel = 29;
+            fh.Pull();
+            Assert.IsTrue(fh.AutoForgeUnlocked, "2-10 뒤 해금");
+            ForgeAutoPopup.Open(fh);
+            yield return null; yield return null;
+            Popup auto = fh.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(auto, "자동 제련 팝업");
+            int ageChecks = 0;
+            foreach (string age in fh.Defs.Ages)
+            {
+                RectTransform bar = FindDeep(auto.Root, "age-" + age);
+                if (bar == null) continue;
+                Transform box = bar.Find("check/box");
+                if (box == null) continue;
+                ageChecks++;
+                Assert.AreEqual(ol3, RingWidth(box, "시대 막대 체크 " + age + "(.af-check 4726)"), 0.01f);
+            }
+            Assert.Greater(ageChecks, 0, "시대 막대의 체크(af-check)를 못 찾았다");
+            Assert.Greater(ol3, ol1, "ol3 > ol1 — 전엔 Line(ol1) 이었다");
+            fh.Meta.Popups.Hide(ForgeAutoPopup.Name);
             yield return null;
         }
     }

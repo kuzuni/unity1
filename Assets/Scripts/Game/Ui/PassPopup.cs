@@ -174,8 +174,8 @@ namespace Forge.Game.Ui
                 RectTransform lab = UiKit.Box(seg, "label");
                 UiKit.Anchor(lab, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -rem * 0.63f), labelW, labelH);
                 UiKit.Rounded(lab, "line", "pp_line", labelH * 0.5f);
-                Image labFace = UiKit.Rounded(lab, "face", reached ? "pass_label_lit" : "pass_label", labelH * 0.5f - PopupKit.Line);
-                PopupKit.Inset(labFace.rectTransform, PopupKit.Line);
+                Image labFace = UiKit.Rounded(lab, "face", reached ? "pass_label_lit" : "pass_label", labelH * 0.5f - PopupKit.Line2);   // T365 23회차 — 정본 2803 `.pass-milestone-label { border: var(--ol2) }`(전엔 Line = ol1 · 3회차 KNOWN)
+                PopupKit.Inset(labFace.rectTransform, PopupKit.Line2);
                 TextMeshProUGUI labT = UiKit.Text(lab, "text", TextKind.Sub, SaveIo.Defs.StageDifficultyLabel(c, 0) + " " + m.Stage, "stage_ink");
                 labT.fontStyle = FontStyles.Bold;
                 PopupKit.Ring(labT, "pass_card", "pp_line");
@@ -193,7 +193,7 @@ namespace Forge.Game.Ui
                     UiKit.Anchor(chk, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-rem * 0.4f, 0f), badge, badge);
                     UiKit.Circle(chk, "line", "pp_line");
                     Image cf = UiKit.Circle(chk, "face", "pp_green");
-                    PopupKit.Inset(cf.rectTransform, PopupKit.Line);
+                    PopupKit.Inset(cf.rectTransform, PopupKit.Line2);   // T365 23회차 — 정본 2849 `.pass-badge.check { border: var(--ol2) solid var(--pp-line) }`(전엔 Line = ol1)
                     // T89 — 정본 `ui.js` 4905 는 `<span class="pass-badge check">${IconGen.img('check')}</span>` 다.
                     // «✓»(U+2713)는 글꼴에 없어 □ 로 찍혔다 — T31 아이콘으로.
                     Image ck = UiKit.Icon(chk, "mark", "check");

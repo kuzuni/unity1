@@ -63,7 +63,7 @@ namespace Forge.Game.Ui
         {
             Button b = UiKit.Button(tabs, "tab-" + name, onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
-            UiKit.Place(rt, x + PopupKit.Line3, 0f, w - PopupKit.Line3 * 1.5f, h - PopupKit.Line3 * 2f);   // T465 — 카드 rect 위끝이 곧 테 안쪽(옛 세로 Line3 보정을 걷었다)
+            UiKit.Place(rt, x + (x > 0f ? PopupKit.Line3 * 0.5f : PopupKit.Line3), 0f, w - PopupKit.Line3 * 1.5f, h - PopupKit.Line3 * 2f);   // T365 23회차 — 둘째 칸은 반 겹만 물러서야 칸 사이 선(3077 `border-left: var(--ol3)`)과 오른쪽 고리가 다 Line3 다(전엔 틈 1.5·Line3 · 오른쪽 .5·Line3)   // T465 — 카드 rect 위끝이 곧 테 안쪽(옛 세로 Line3 보정을 걷었다)
             UiKit.Panel(rt, "face", on ? "pp_blue" : "pp_ink");
             TextMeshProUGUI t = UiKit.Text(rt, "label", TextKind.Sub, label, "stage_ink");
             t.fontStyle = FontStyles.Bold;

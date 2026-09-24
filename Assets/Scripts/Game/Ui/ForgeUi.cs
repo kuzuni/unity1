@@ -145,13 +145,15 @@ namespace Forge.Game.Ui
         /// 장비 칸·목록 타일 828 `.equip-cell` .7rem(기본 <paramref name="radiusKey"/> — 1063·1131 주석 «.equip-cell 의 라운드를 그대로 옮겼다») ·
         /// 비교 카드 그림 1852 `.cmp-img` .55 · 상세 머리 3683 `.idet-icon` .55 · 결과·묶음 카드 1063·1131 .7. 값은 `RadiusUi.json` 이 쥔다(§1).
         /// </summary>
-        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, string age, string iconKey, float inkFrac = InkFromTable, bool agePattern = false, string radiusKey = "equip_cell_r_rem")
+        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, string age, string iconKey, float inkFrac = InkFromTable, bool agePattern = false, string radiusKey = "equip_cell_r_rem", float lineW = 0f)
         {
             Color ac = AgeColor(d, age);
             RectTransform rt = UiKit.Box(parent, name);
             rt.sizeDelta = new Vector2(size, size);
+            // T365 23회차 — 테 폭도 자리마다 정본 단이 다르다: 장비 칸·목록·결과 카드는 838·1063·1131 `--cellb`(= ol3 내림) · 비교 카드 그림 1856 `.cmp-img` 는 **ol2**.
+            //   기본은 Line3(cellb) · 비교 카드가 `lineW` 로 Line2 를 준다(고리 색도 그 자리는 pp-line 이라 부르는 쪽이 덮는다).
             float radius = RadiusUi.Px(radiusKey);
-            Image tf = Tile(rt, "frame", CellFace(ac), CellLine(ac), radius, PopupKit.Line3);
+            Image tf = Tile(rt, "frame", CellFace(ac), CellLine(ac), radius, lineW > 0f ? lineW : PopupKit.Line3);
             // T124 — 정본 `.fl-face.equip-cell[data-age]` 만 시대 무늬를 입는다(제작 카드·상세 머리 아이콘은 equip-cell 이 아니다) → 호출자가 켠다
             if (agePattern) AgePattern.Attach(rt, age, cell: true, mask: (string)null, siblingIndex: 1);   // 목록 타일은 셀이라 마스크가 없다(T380 키 갈래)
             // T371 13회차 — 같은 조건(equip-cell)이면 8539 의 시대색 광도 든다(목록 타일 `.fl-face.equip-cell` · ForgeInfoPopup.Cell 이 그 뒤 드리운 그림자를 건다).
@@ -166,9 +168,9 @@ namespace Forge.Game.Ui
         /// T122 — 정본 `itemImgHTML(item)`: `Scene3D.itemThumb(item)` 이 있으면 3D 썸네일 <img>(타일 100% · object-fit contain), 없으면 슬롯 플레이스홀더.
         /// 동기 호출도 정본 그대로(비교·상세 카드는 한두 장 · 키 단위 캐시). 목록처럼 많은 칸은 <see cref="ItemFaces.Request"/> 로 프레임마다 받아 <see cref="ApplyThumb"/> 로 갈아 끼운다.
         /// </summary>
-        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, ForgeItem it, float inkFrac = InkFromTable, bool agePattern = false, string radiusKey = "equip_cell_r_rem")
+        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, ForgeItem it, float inkFrac = InkFromTable, bool agePattern = false, string radiusKey = "equip_cell_r_rem", float lineW = 0f)
         {
-            RectTransform rt = ItemTile(parent, name, size, d, it.Age, ItemIconKey(d, it), inkFrac, agePattern, radiusKey);
+            RectTransform rt = ItemTile(parent, name, size, d, it.Age, ItemIconKey(d, it), inkFrac, agePattern, radiusKey, lineW);
             ApplyThumb(rt, ItemFaces.Get(d, it), size);
             return rt;
         }
@@ -317,11 +319,11 @@ namespace Forge.Game.Ui
             // 팝업 카드(cur)와 회색 하부 패널(new)이 쥔다. (T57: 여기서 흰 테를 한 겹 더 그려
             // 원작에 없는 상자가 생기고, 반대로 새 장비 카드는 판 없이 3D 배경 위에 떠 보였다.)
             // T415 19회차 — 정본 1852 `.cmp-img { border-radius: .55rem }`(표 `cmp_img_r_rem` · 종전 «크기 × .16» = .576rem).
-            RectTransform tileRt = ItemTile(card, "tile", tile, d, item, radiusKey: "cmp_img_r_rem");   // T122 — 정본 itemImgHTML: 3D 썸네일이 있으면 그것, 없으면 실루엣
+            RectTransform tileRt = ItemTile(card, "tile", tile, d, item, radiusKey: "cmp_img_r_rem", lineW: PopupKit.Line2);   // T365 23회차 — 정본 1856 `.cmp-img { border: var(--ol2) solid var(--pp-line) }`: 폭 ol2 · 고리 색은 아래서 pp_line 으로   // T122 — 정본 itemImgHTML: 3D 썸네일이 있으면 그것, 없으면 실루엣
             // T371 6회차 — 정본 1852 `.cmp-img { background: color-mix(in srgb, var(--rc) 58%, #17181a) }`(«아이콘 배경도 시대색 통일»): 비교 카드의 그림 바탕은 제 키 `cmp_img_face` 로 받는다
             //   (값은 장비 칸 `cell_face` 와 같지만 정본이 따로 적은 자리라 자가 따로 센다). ⚠ 정본 `.cmp-img` 의 테는 `var(--ol2) solid var(--pp-line)`(섞기 아님 · 테 축 T365 몫) — 여기서 안 건드린다.
             Transform cmpFrame = tileRt.Find("frame");
-            if (cmpFrame != null) { Transform cf = cmpFrame.Find("face"); if (cf != null) cf.GetComponent<Image>().color = ColorMixUi.Mix("cmp_img_face", ac); }
+            if (cmpFrame != null) { Transform cf = cmpFrame.Find("face"); if (cf != null) cf.GetComponent<Image>().color = ColorMixUi.Mix("cmp_img_face", ac); Transform cl = cmpFrame.Find("line"); if (cl != null) cl.GetComponent<Image>().color = UiKit.C("pp_line"); }   // T365 23회차 — 고리는 시대색 섞기가 아니라 검정(1856)
             UiKit.Place(tileRt, rem * 0.7f, pt, tile, tile);
             LvBadge(tileRt, item.Level, tile);
             StarBadge(tileRt, item.Stars, tile, "cmp_star");   // T332 ⓒ — 정본 `.cmp-star`(1860)만 딱딱한 그림자 한 겹을 더 진다
@@ -416,7 +418,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(box, x, (h - cb) * 0.5f, cb, cb);
                 // T396 11회차 — 정본 4722~4730 `.af-check { background: #17181a } .af-check.on { background: #17181a; color: #23c552 }`(주석 «켜진 상태도 배경은 검정 그대로 두고
                 //   체크 글리프만 초록 · 상자를 통째로 초록으로 채우던 종전 구현은 원본과 다른 물건»). 시대 막대의 체크도 같은 `.af-check`(ui.js 2289) — 전엔 켜짐 상자를 초록으로 칠했다.
-                Tile(box, "box", PinnedColorUi.C("af_check_face"), Color.black, cb * 0.2f, PopupKit.Line);
+                Tile(box, "box", PinnedColorUi.C("af_check_face"), Color.black, cb * 0.2f, PopupKit.Line3);   // T365 23회차 — 정본 4726 `.af-check { border: var(--ol3) }`(전엔 Line = ol1 · 자동 제련 팝업 제 체크 둘은 T178 lock 뒤)
                 if (check.Value)
                 {
                     Image ck = PopupKit.IconOr(box, "mark", "check");

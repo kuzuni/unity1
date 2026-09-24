@@ -257,7 +257,8 @@ namespace Forge.Game.Ui
             //   `border: color-mix(var(--petd-face) 40%, #000)` — 테 색이 등급색이 아니라 **바로 위에서 만든 면 색**에서 잇는 사슬이다(테 폭 1px 은 T365 축 · 여기선 색만).
             bool petd = lvKeyline != null;
             Color faceC = petd ? ColorMixUi.Mix("petd_face", rc) : ColorMixUi.Mix("pet_tile_face", rc);
-            RectTransform face = PetSkillKit.Framed(parent, "tile-face", faceC, PetSkillStyle.Px(faceRadiusKey ?? "tile_r_rem"), PetSkillKit.Line3);
+            // T365 23회차 — 펫 상세 타일(petd)의 테는 정본 5464 `.petd-wrap .petd-tile { border: 1px solid … }` = 1 CSS px(ol1 · `line1_px`) · 격자·알·탈것·업그레이드 타일은 4262 ol3.
+            RectTransform face = PetSkillKit.Framed(parent, "tile-face", faceC, PetSkillStyle.Px(faceRadiusKey ?? "tile_r_rem"), petd ? PetSkillStyle.L("line1_px") : PetSkillKit.Line3);
             if (petd) face.Find("line").GetComponent<Image>().color = ColorMixUi.Mix("petd_line", faceC);
             face.sizeDelta = new Vector2(size, size);
             // T371 13회차 — 정본 8124 `.pet-tile .tile-face` 의 **첫 바깥 겹** `0 0 .5rem -.08rem color-mix(in srgb, var(--rc) 60%, transparent)`:
