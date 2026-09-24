@@ -4810,9 +4810,10 @@
 ### T486 🔄 — **`SummonFxTests` 착지 링 자의 «켜지기 전» 창이 CI 한 프레임보다 좁다**: `Open` 뒤 첫 프레임에 «알파 0» 을 묻는데, 배치 러너의 첫 프레임(150~200ms · T441)이 첫 셀의 착지를 지나면 링이 이미 `.32` 로 켜져 있다 — 런 1251 빨강(임자 없음 · 같은 코드가 런 1248 에선 PASS) (자 · T480 ✅ 가 남긴 창 · §0-6 등재 · T178 26회차·T455·결정 775 와 같은 병)
 
 - **실측(런 1251 장부 982행)**: `SummonFxTests.모든_셀은_자기_착지에_등급색_착지_링을_한_번_번지고_끝_배율은_glow_계단이다` — «켜지기 전엔 알파 0 · Expected 0 · But was **0.32**»(`SummonFxTests.cs:583`). `.32` 는 정본 6358 `srring` 의 시작 알파(`.32 + .62 × --glow` · glow 0)다 — 곧 **첫 셀이 이미 착지해 링이 켜진 뒤** 자가 «아직 안 켜졌지?» 를 물은 것. 그 런 사이 코드 커밋(T485 `ForgeCraftPopup` · T365 테 넷)은 소환 연출을 안 만지고, 같은 `SkillSummonResult.cs`(T178 30회차 `4ae64a85`)가 런 1248 에선 이 칸 PASS 였다 — 프레임 길이의 문제다.
-- **고침(결정 775 의 약 — 창은 프레임이 아니라 게임의 상태로)**: 뷰에 `CellOn(i)`(셀의 `On` · 착지했는가)를 열고, 자는 «착지 전이면 알파 0» 만 묻는다 — 이미 착지한 셀은 그 줄을 건너뛴다(그 셀의 «한 번 번지고 사라진다 · 끝 배율» 은 뒤의 `Done + LandRing.Ms` 블록이 그대로 잰다). 기다림·잣대를 조이지 않는다(T455 의 교훈 «왜 오래 걸렸나를 다음 사람이 다시 못 본다»).
+- **고침(결정 775 의 약 — 창은 프레임이 아니라 게임의 상태로)**: 뷰의 `CellOn(i)`(셀의 `On` · 착지했는가 — **T458 이 이미 열어 둔 접근자**라 게임 코드 0줄)로 자는 «착지 전이면 알파 0» 만 묻는다 — 이미 착지한 셀은 그 줄을 건너뛴다(그 셀의 «한 번 번지고 사라진다 · 끝 배율» 은 뒤의 `Done + LandRing.Ms` 블록이 그대로 잰다). 기다림·잣대를 조이지 않는다(T455 의 교훈 «왜 오래 걸렸나를 다음 사람이 다시 못 본다»).
 - 판정: 다음 런 그 칸 PASS(런 1251 의 나머지 빨강 셋은 남의 몫 — `BoxBorderSitesTests`·`PassRadiusTests` = T365 24회차가 이미 고침 · `CraftComparePopupTests` = T485 1회차 커밋 `6e21cbc` 의 몫 · 산 lock).
-- 범위: `Assets/Scripts/Game/Ui/SkillSummonResult.cs`(접근자 한 줄) · `Assets/Tests/PlayMode/SummonFxTests.cs` · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
+- 범위: `Assets/Tests/PlayMode/SummonFxTests.cs` · `docs/ROUTINE.md` · `docs/PROGRESS.md`(게임 코드 0줄 — 접근자는 T458 것).
+- 🔄 **1회차 2026-09-24 17:1x~17:2x 워커 U(sess-0559-19058 · 선점 · 판정은 다음 런)**: 자 한 줄 — «켜지기 전엔 알파 0» 을 `if (!v.CellOn(i))` 로 감쌌다(이미 착지한 셀은 건너뛴다 · 뒤의 `Done + LandRing.Ms` 블록이 그 셀의 «사라짐·끝 배율» 을 그대로 잰다). 처음엔 `CellOn` 을 새로 냈다가 `dotnet build` CS0111(같은 이름의 T458 접근자 2232행)로 알고 걷었다 — 하니스가 잡아 줬다. 게이트: `gate.sh` 막는 자 전부 rc 0 · `dotnet build` 0 오류 · `dotnet test` 878/878. 판정 = 다음 런 그 칸 PASS.
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 

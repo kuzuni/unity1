@@ -580,7 +580,10 @@ namespace Forge.Tests.PlayMode
                 Assert.IsNotNull(r.sprite, "구운 링 한 장");
                 Assert.IsNotNull(r.material, "가산 재질");
                 Assert.AreEqual(CraftFxPoly.ScreenShaderName, r.material.shader.name, "정본 6360 mix-blend-mode: screen");
-                Assert.AreEqual(0f, r.color.a, 1e-3f, "켜지기 전엔 알파 0");
+                // T486 — «켜지기 전» 은 프레임이 아니라 **상태**(셀의 On)로 가른다(결정 775 의 약): 배치 러너의 첫 프레임이 150~200ms 면
+                //   이 줄에 오기 전에 첫 셀이 이미 착지해 링이 .32(정본 6358 시작 알파)로 켜져 있다(런 1251 실측 · 같은 코드가 런 1248 에선 PASS).
+                //   착지 전인 셀만 «알파 0» 을 묻고, 이미 착지한 셀의 «한 번 번지고 사라짐 · 끝 배율» 은 아래 Done + LandRing.Ms 블록이 그대로 잰다.
+                if (!v.CellOn(i)) Assert.AreEqual(0f, r.color.a, 1e-3f, "켜지기 전엔 알파 0(셀 " + i + " 착지 전)");
             }
             Assert.AreNotEqual(rings[0].sprite, v.HeroRing.sprite, "주역 링과 다른 판(정지점 62/78/92)");
             Assert.AreEqual(1.5f, v.LandRingScaleEnd(0), 1e-4f, "일반: 1.5 + .8 × 0");
