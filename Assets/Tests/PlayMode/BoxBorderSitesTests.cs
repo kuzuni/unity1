@@ -544,5 +544,21 @@ namespace Forge.Tests.PlayMode
             fh.Meta.Popups.Hide(ForgeAutoPopup.Name);
             yield return null;
         }
+    
+        /// <summary>T365 26회차 — 정본 3249 `.chat-preview-badge { border: var(--ol15) }` = 1.5 CSS px. 정본에 이 단은 이 한 자리뿐이라 카탈로그에 `line15_px`(3) 를 더해 그 값으로 그린다(전엔 ol1 · 2회차 KNOWN).</summary>
+        [UnityTest]
+        public IEnumerator 채팅_미리보기_배지의_테는_정본_ol15_다()
+        {
+            yield return Boot();
+            float ol1 = UiKit.L("line_px"), ol15 = UiKit.L("line15_px"), ol2 = UiKit.L("line2_px");
+            Assert.Greater(ol15, ol1); Assert.Less(ol15, ol2);
+            RectTransform badge = FindDeep(UiRoot.Instance.transform, "chat-preview-badge");
+            Assert.IsNotNull(badge, "채팅줄 «99» 배지");
+            Transform bg = badge.Find("bg");
+            Assert.IsNotNull(bg, "배지 안쪽 면(bg)");
+            RectTransform brt = (RectTransform)bg;
+            Assert.AreEqual(ol15, brt.offsetMin.x, 0.01f, "배지 고리 폭 = line15_px(1.5 CSS px · 3249)");
+            Assert.AreEqual(-ol15, brt.offsetMax.x, 0.01f);
+        }
     }
 }

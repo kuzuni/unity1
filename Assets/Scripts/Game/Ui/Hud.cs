@@ -197,8 +197,9 @@ namespace Forge.Game.Ui
             UiKit.Place(badgeLine.rectTransform,
                 padX + av + rem * 0.42f - badgeW,
                 (bandH - av) * 0.5f - rem * 0.42f, badgeW, badgeH);
-            Image badgeBg = UiKit.Rounded(badgeLine.transform, "bg", "pp_red", badgeH * 0.5f - UiKit.L("line_px"));
-            Inset(badgeBg.rectTransform, UiKit.L("line_px"));
+            // T365 26회차 — 정본 3249 `.chat-preview-badge { border: var(--ol15) solid var(--pp-line) }` = 1.5 CSS px(정본에 이 단은 이 한 자리뿐) → 카탈로그 `line15_px`(전엔 `line_px` = ol1 · 2회차 KNOWN).
+            Image badgeBg = UiKit.Rounded(badgeLine.transform, "bg", "pp_red", badgeH * 0.5f - UiKit.L("line15_px"));
+            Inset(badgeBg.rectTransform, UiKit.L("line15_px"));
             TextMeshProUGUI badge = UiKit.Text(badgeLine.transform, "n", TextKind.Sub, ChatBadgeText, "white", TextAlignmentOptions.Center);
             badge.fontStyle = FontStyles.Bold;
             LineHeight.Apply(badge, "chat_preview_badge_lh");   // T354 22회차 — 정본 3248 `.chat-preview-badge { line-height: 1 }`

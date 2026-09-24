@@ -486,6 +486,7 @@
     { "key": "card_gap_rem",        "value": 0.45 },
     { "key": "card_w",              "value": 0.75, "_": ".modal-card width 75%" },
     { "key": "line2_px",            "value": 4, "_": "--ol2 · 기준 px" },
+    { "key": "line15_px",           "value": 3, "_": "--ol15 = 1.5 CSS px(정본 style.css 32 `--ol15: min(1.5px, calc(.09375rem + .49px))`) → 기준 1080px 캔버스 ×2.16 ≈ 3 — 정본에 한 자리뿐(3249 `.chat-preview-badge`) · T365 26회차" },
     { "key": "dgd_card_w",          "value": 0.71, "_": ".dgd-card" },
     { "key": "dgd_card_minh",       "value": 0.496, "_": "min-height 49.6%H" },
     { "key": "dgd_hero_h",          "value": 0.154, "_": ".dg-detail-hero 15.4%H" },

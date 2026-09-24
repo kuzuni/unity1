@@ -58,7 +58,7 @@ TABLE = {
     '.modal-card .btn': ['Ui/Popups.cs@Btn'],
     '.panel .btn': ['Ui/Popups.cs@Btn'],
     '#equip-sheet .btn': ['Ui/Popups.cs@Btn'],
-    '.btn': ['Ui/Popups.cs@Btn'],
+    '.btn': ['—덮인다: 정본 마크업의 `.btn` 은 전부 `.modal-card`·`.panel`·`#equip-sheet` 안(3543 ol3 pp-line 이 덮는다)이거나 제 규칙이 있는 것(60 `.summon-btn` · 501 `.sr-ok` · 674 `.sr-again` · 5902 offline-card 안) — 26회차에 ui.js 의 `class="btn` 78 곳·index.html 0 곳을 전수(가장 바깥이 되는 것은 HUD 에 없다). 664 의 ol1 #444c56 은 실물에 한 번도 안 선다 — 2회차 KNOWN «바닥 버튼(HUD·오프라인·리그 뒤로)» 은 오인(offline-btn 207 none · league-back-btn 은 제 행)'],
     '.btn.silver': ['Ui/Popups.cs@Btn'],
     '.league-back-btn': ['Ui/Popups.cs@BackButton'],
     '.toast': ['Ui/Popups.cs@Toast'],
@@ -258,13 +258,11 @@ TABLE = {
 # ── 임자가 정해진 빈자리(자리 → 이유) — 닫을 때마다 지운다 ───────────────────────────────
 KNOWN = {
     # 열쇠는 «선택자[|변] → 자리» 쌍이다(2회차·3회차는 자리만 열쇠로 써서, 같은 도우미가 다른 선택자에서 맞으면 «이제 있다» 로 잘못 알렸다 · 4회차 수리). 자리만 적은 옛 열쇠도 읽는다(빈자리 판정에만 · «이제 있다» 알림은 쌍 열쇠만).
-    '.btn → Ui/Popups.cs@Btn': 'T365 2회차 — 바닥 버튼(`.btn` 664 ol1 #444c56 · HUD·오프라인·리그 뒤로)만 얇은 회색인데 공용 Btn 은 Line3 하나다(모달·패널·시트 안 `.btn` 3543 ol3 는 맞다) · Popups.cs T331·T333 lock — 바닥 버튼에 keyline 폭 인자를 주는 길',
-    '.chat-preview-badge → Ui/Hud.cs@BuildChat': 'T365 2회차 — `.chat-preview-badge` 3249 ol15(1.5px ≈ 캔버스 3px) ↔ 클론 line_px(2) · ol15 단 키가 카탈로그에 없다(line15_px 3) · Hud.cs T331 lock',
     # T365 22회차 — 미정 71 을 짝짓다 나온 결함 여섯(전부 남의 산 lock 안 · 자리·정본 줄·바꿀 키를 적어 둔다 · 풀리는 파일부터 누구든)
     '.idet-icon → Ui/ForgeInfoPopup.cs@RenderDetail': 'T365 22회차 — 정본 3685 `.idet-icon { border: var(--ol2) solid #d5d5d5; background: #e9e9e9 }` ↔ 클론 상세 머리 타일은 ItemTile(ol3 · 시대색 면·고리) — ForgeInfoPopup T178·T415 lock · 부르는 쪽에서 `frame/line`·`frame/face` 를 표 키(밝은 회색 둘)로 덮고 폭은 Line 으로',
     '.af-check → Ui/ForgeAutoPopup.cs#box': 'T365 22회차 — 정본 4726 `.af-check { border: var(--ol3) }` ↔ 계속하기 체크(Render 159)·옵션 줄 체크(SubRow 234) 둘 다 `ForgeUi.Tile(…, "box", …, PopupKit.Line)` = ol1 — ForgeAutoPopup T178 lock · 마지막 인자 `Line` → `Line3`(안의 ✓ 여백도 그만큼 · 시대 막대의 셋째 체크는 23회차가 ForgeUi.AgeBar 에서 닫았다)',
     '.af-bottom|top → Ui/ForgeAutoPopup.cs#af-bottom-line': 'T365 22회차 — 정본 4777 `.af-bottom { border-top: var(--ol3) solid var(--pp-line) }` ↔ 클론 `Render` 의 `af-bottom` 상자엔 `UiKit.Line` 호출이 0 — **선 자체가 없다** · ForgeAutoPopup T178·T415 lock · 풀리면 `UiKit.Line(bottom, "af-bottom-line", "pp_line", PopupKit.Line3, true)` 한 줄(이 이름이라야 이 행이 초록이 된다)',
-    '.af-toggle → Ui/Popups.cs@Toggle': 'T365 22회차 — 정본 4761 `.af-toggle { border: var(--ol3) }` ↔ `Popups.Toggle` 은 설정 토글(3108 ol2) 값 한 벌 — Popups.cs 는 산 lock 밖이지만 폭만 고치면 반쪽이다: 정본 4765 손잡이(1.631rem)가 트랙(1.269rem)보다 **커서 밖으로 나오고** `left: calc(-.846rem - var(--ol3))` 로 걸린다 · 클론 손잡이는 트랙 안(`k = h − Line2·4`) — `ToggleSlide`·`PressFx`·자들이 `knob` 을 잡고 있어 제 회차로(af 갈래는 이름 `af-toggle` 로 가른다 · T331 43회차 그늘 갈래와 같은 길)',
+    '.af-toggle → Ui/Popups.cs@Toggle': 'T365 22회차 · 26회차 보탬: 부르는 쪽 ForgeAutoPopup(T178 lock)이 `settings_toggle_h`·`tw − Line2·2`·`tgH − Line2·4` 로 그라디언트 판을 굽어(T178 22회차) 도우미만 정본 치수로 바꾸면 그 판이 어긋난다 — 두 파일을 한 회차에 · 정본 4761 `.af-toggle { border: var(--ol3) }` ↔ `Popups.Toggle` 은 설정 토글(3108 ol2) 값 한 벌 — Popups.cs 는 산 lock 밖이지만 폭만 고치면 반쪽이다: 정본 4765 손잡이(1.631rem)가 트랙(1.269rem)보다 **커서 밖으로 나오고** `left: calc(-.846rem - var(--ol3))` 로 걸린다 · 클론 손잡이는 트랙 안(`k = h − Line2·4`) — `ToggleSlide`·`PressFx`·자들이 `knob` 을 잡고 있어 제 회차로(af 갈래는 이름 `af-toggle` 로 가른다 · T331 43회차 그늘 갈래와 같은 길)',
     '.af-toggle .knob → Ui/Popups.cs@Toggle': 'T365 22회차 — 정본 4765 `.af-toggle .knob { border: var(--ol3) }` ↔ 손잡이 `Inset(knobFace, Line)` = ol1 — 위 행과 한 회차에',
     # T365 14회차 — 오프라인 요율 원판 둘은 T417 1회차(`42083bc`)가 정본 7268 대로 색 원·테를 걷어 이제 «정본대로 테 없음» ok 다 → KNOWN 에서 걷었다(경고 줄 2 → 0 · 표 자리 초록 84 그대로).
 }
@@ -274,6 +272,7 @@ HELPERS = ('PopupKit.Outlined', 'RadiusUi.Outlined', 'ForgeUi.Tile', 'UiKit.Line
 WIDTH_ARG = {'PopupKit.Outlined': 4, 'RadiusUi.Outlined': 4, 'ForgeUi.Tile': 5, 'Tile': 5, 'UiKit.Line': 3, 'PetSkillKit.Framed': 4, 'PetSkillKit.Orb': 3, 'PetSkillKit.Gauge': 8, 'DungeonPopups.Bordered': 4, 'DungeonPopups.BorderedCircle': 3, 'Bordered': 4, 'BorderedCircle': 3, 'Framed': 4, 'SurfaceArt.DashedFrame': 6}   # T472 — 점선 테(parent, name, colorKey, w, h, radius, **line**, dash, gap)
 CALL_RE = re.compile(r'\b(' + '|'.join(re.escape(h) for h in HELPERS) + r')\s*\(')
 TIER_PATTERNS = [
+    ('ol15', re.compile(r'line15_px')),   # T365 26회차 — 정본 --ol15(1.5 CSS px) 한 자리(3249 채팅 배지) · `line1_px`·`\bline\b` 보다 먼저(둘 다 이 이름엔 안 맞지만 순서로 못 박는다)
     ('ol4', re.compile(r'line4_px')),
     ('ol3', re.compile(r'\bLine3\b|line3_px|\bline3\b')),
     ('ol2', re.compile(r'\bLine2\b|line2_px|\bline2\b')),
