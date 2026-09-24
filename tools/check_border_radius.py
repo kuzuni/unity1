@@ -299,6 +299,22 @@ TABLE = {
     '.pass-price': u'—가격 페넌트는 클론이 `ClipShape.Face(prt, "price-line", "pass_pennant", …)` 로 도형째 굽는다(T159) — 정본의 윗모서리 .3rem 은 그 도형 안의 값이라 여기서 대조하지 않는다',
     '.pass-price::before': u'—같은 페넌트의 속 겹(.2rem) — 도형 자(T159) 몫',
     '.dg-rw .dg-rw-ico + .dg-rw-ico': u'—정본 1999 의 50% 는 부 재화 아이콘 img 상자를 원으로 자르는 값인데 IconGen 재화 아이콘은 투명 배경 위 그림이라 잘리는 화소가 없다 — 클론 `DungeonSheet.cs` 도 같은 아틀라스 스프라이트(UiKit.Icon)를 그대로 놓는다',
+    # ── T415 19회차(2026-09-24 · 워커 S) — 장비 타일 공장 `ForgeUi.ItemTile`(종전 «크기 × .16» 한 리터럴이 네 자리를 다 어긋나게 했다) + 장비 시트·목록·보류 카드 ──
+    #    정본은 타일마다 **절대 rem** 이다: 828 .7 · 1852 .55 · 3683 .55 · 1063·1131 .7 — 공장이 `radiusKey` 인수를 받고 부르는 쪽이 제 줄의 키를 준다(기본 = `.equip-cell`).
+    #    ⓒ 값 어긋남 다섯(828 셀 .58→.7 · 1063·1131 .59→.7 · 1852·3683 .576→.55) · ⓐ 박힌 값 넷(728 · 990 · 1026 · 1825) · 알약 동치 하나 · 자리 없음 하나 · KNOWN 둘(T178 가 쥔 `SkillSummonResult.cs`).
+    '.equip-cell': ['Ui/ForgeSheet.cs$equip_cell_r_rem'],                            # 828 .7rem — 장비 시트 다섯 칸(틀·광·그늘) · 목록 타일 `fl-face equip-cell`(ForgeInfoPopup 이 같은 키를 ItemTile 에 준다)
+    '.forge-item-grid': ['Ui/ForgeInfoPopup.cs$forge_item_grid_r_rem'],              # 728 .7rem — 목록 회색 판(전엔 rem*0.7f 박힘)
+    '.anvil-btn.held-slot': ['Ui/ForgeSheet.cs$held_slot_r_rem'],                    # 990 .7rem — 보류 카드 앞면(전엔 rem*0.7f 박힘)
+    '.anvil-btn.held-slot.deck::before': ['Ui/ForgeSheet.cs$held_deck_r_rem'],       # 1026 .7rem — 더미 뒤 장(틈·단면 두 장 · 전엔 rem*0.7f 박힘)
+    '.anvil-btn.held-slot .held-tag': u'✓알약 동치(결정 543) — 정본 997 .5rem ↔ 배지 높이 = .6rem 글자 × 줄높이(≈1.2~1.45) + ol2 두 겹(≈.11rem) ≈ .83~.98rem → 반 .41~.49 < .5 라 정본도 알약 · 클론 `ForgeSheet.cs` «보류» 배지 `UiKit.Rounded(tagBox, "bg", …, th * 0.5f)`(테 ring 도 같은 반높이)',
+    '.auto-drop-card': ['Ui/ForgeCraftPopup.cs$adc_card_r_rem'],                     # 1063 .7rem — 결과 리빌·탈락 카드(CraftCard radiusKey · 링 cr-ring · CraftCardFx.ringRadius 도 같은 키)
+    '.craft-batch .cb-card': ['Ui/ForgeCraftPopup.cs$cb_card_r_rem'],                # 1131 .7rem — 묶음 카드(CraftCard radiusKey)
+    '.cmp-card': ['Ui/ForgeUi.cs$cmp_card_r_rem'],                                   # 1825 .8rem — 빈 슬롯 점선 테(DashedFrame · 전엔 rem*0.8f 박힘) · 장착 카드는 1812 border:none
+    '.cmp-img': ['Ui/ForgeUi.cs$cmp_img_r_rem'],                                     # 1852 .55rem — 비교 카드 그림 타일(ItemTile radiusKey)
+    '.idet-icon': ['Ui/ForgeInfoPopup.cs$idet_icon_r_rem'],                          # 3683 .55rem — 상세 머리 아이콘 타일(ItemTile radiusKey)
+    '.prob-chip': u'—정본 685 `.prob-chip` 1rem 이 서는 자리는 **디버그 판의 던전 열쇠 칩**(ui.js 6002 `keysHtml`)뿐이다 — 탈것 시트의 `ratesHtml`(5636)은 만들고 안 쓰는 죽은 변수(삽입 0 · index.html 0). 클론 `DebugPanel.cs` 는 열쇠 줄에 [모든 열쇠 리필] 버튼만 있고 던전별 칩이 없다(679 디버그 숫자 입력과 같은 갈래 · 17회차) — 자리 없음',
+    '.sr-streaks i': ['Ui/SummonFx.cs$sr_streak_r_rem'],                             # 5710 .1rem — 수렴 빛줄기 막대의 둥근 끝 · KNOWN(아래): 판 한 장을 스포크 길이마다 늘여 쓰는 자리라 끝을 굽려면 9-슬라이스(`Image.Type.Sliced`)가 들고 그 줄은 `SkillSummonResult.cs`(T178 산 lock)에 있다
+    '.sr-grid.one .sr-name': ['Ui/SkillSummonResult.cs$sr_name_one_r_rem@PetSkillUi.json'],   # 7084 .5rem — x1 소환 이름판(fit-content 판 · `.sr-name` 7046 의 .3rem 을 덮는다) · 클론은 `sr_name_r_rem` .3 한 값 · KNOWN(아래)
     # ── T415 14회차(2026-09-18 · 워커 S) — 나이 막대 셋(`ForgeUi.AgeBar` 한 공장 · 종전 «막대 높이 × .25» 리터럴) ──
     '.age-bar-wrap': u'—죽은 CSS: `.age-bar-wrap`·`.age-row`·`.age-pct`·`.age-tag`(703~708)를 `ui.js`·`index.html` 어디서도 안 그린다(렌더 줄 0 · 14회차 grep) — 클론에 자리 없음',
     '.af-age-bar': ['Ui/ForgeUi.cs$af_age_bar_r_rem'],
@@ -344,6 +360,10 @@ TABLE = {
 # ── 임자가 정해진 빈자리(자리 → 이유) — T345 ⓑ 가 붙일 때마다 지운다 ──────────────────────────
 KNOWN = {
     # T415 8회차 — 값은 맞는 리터럴(`PetSkillStyle.Rem(0.55f)` · PetPanel.cs:377) · 키를 내고 부르게 하는 일은 PetPanel.cs 의 산 lock 뒤
+    # T415 19회차 — 소환 결과 둘: `SkillSummonResult.cs` 를 T178 이 29회차(2026-09-24 14:0x · sess-0559-19058)에 열고 있다(범위 칸엔 없지만 그 회차 커밋 37b3837e 가 그 파일을 만졌다 · 뒤 번호가 기다린다).
+    #   표 키는 **그 자리를 여는 회차에** 낸다 — 키만 먼저 내면 «표 키를 아무 데서도 안 부른다» 가 문제로 선다(자 19 · KNOWN 은 «키 없음» 만 덮는다).
+    'Ui/SummonFx.cs$sr_streak_r_rem': u'T178 뒤 — 정본 5710 `.sr-streaks i { width: .15rem(×1.5 예고); border-radius: .1rem }` 은 막대 끝이 반원(반지름 ≥ 반폭)인데 클론 `SummonFx.BakeStreak` 판은 끝이 각지다(위 끝 알파 1 · 사각). 판 한 장을 스포크마다 다른 길이(2.2~5.4rem)·굵기로 늘여 쓰므로 끝을 판 안에 구우면 늘어난 만큼 찌그러진다 → 판에 반원 끝을 굽고 `Image.Type.Sliced`(border = 끝 높이)로 붙여야 하며 그 `bi.type` 줄은 `SkillSummonResult.cs` 700 대(T178 산 lock)다. 키 `sr_streak_r_rem` .1 은 그 회차에 RadiusUi.json 에 낸다',
+    'Ui/SkillSummonResult.cs$sr_name_one_r_rem@PetSkillUi.json': u'T178 뒤 — 정본 7084 `.sr-grid.one .sr-name { width: fit-content; border-radius: .5rem; padding: .2rem .5rem }` 이 7046 의 .3rem 을 x1 소환에서 덮는데 클론 1120 `PetSkillKit.Fill(nameBox, "bg", …, Px("sr_name_r_rem"))` 은 `one` 갈래 없이 .3 한 값이다(폭도 `sr_name_w_f` .92 고정 · fit-content 가 아니다 — 같은 회차에 같이). `one ? "sr_name_one_r_rem" : "sr_name_r_rem"` 한 줄 + PetSkillUi.json 키 .5',
 }
 
 RADIUS_DECL = re.compile(r'(?<![\w-])border-radius\s*:\s*([^;}]+)')

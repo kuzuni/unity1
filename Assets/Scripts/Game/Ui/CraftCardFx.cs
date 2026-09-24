@@ -77,7 +77,7 @@ namespace Forge.Game.Ui
             fx.anchor = anchorDown;
             fx.cardSize = size;
             fx.ringBase = size;
-            fx.ringRadius = size * 0.16f;   // ItemTile 의 라운드와 같게
+            fx.ringRadius = RadiusUi.Px("adc_card_r_rem");   // ItemTile 의 라운드와 같게 — T415 19회차: 정본 1063 .7rem 표값(종전 «크기 × .16»)
             cardRt.anchorMin = cardRt.anchorMax = new Vector2(0f, 1f);
             cardRt.pivot = new Vector2(0.5f, 0.5f);
             cardRt.sizeDelta = new Vector2(size, size);

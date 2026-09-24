@@ -102,6 +102,23 @@
   "craft_row_btn_r_rem": 0.85,
   "_craft_row_btn_r_rem": "T415 18회차 — 정본 3566 `#craft-modal .row .btn { min-height: 4.2rem; font-size: 1.22rem; border-radius: .85rem }`(제작 비교의 [판매]·[장착] 큰 버튼). 클론은 공용 기본(.55rem)이었다 — 부르는 쪽이 이 키를 `PopupKit.Btn(radius:)` 로 넘긴다.",
   "modal_btn_r_rem": 0.7,
-  "_modal_btn_r_rem": "T415 18회차 — 정본 3542 `.modal-card .btn, .panel .btn, #equip-sheet .btn { border-radius: .7rem }` — 팝업·패널·장비 시트 안의 모든 `.btn` 은 663 의 기본 .55rem 이 아니라 .7rem 이다. 클론 `PopupKit.Btn` 의 기본 반지름은 catalog `btn_r`(.55rem)이었는데 그 공장을 부르는 자리는 전부 3542 의 셋 안이라(맨 `.btn` 자리 없음) 기본을 이 키로 바꿨다. 선택자가 따로 못 박은 버튼(.fi-skip .6 · 제작 비교 .85)은 인수로 넘긴다."
-
+  "_modal_btn_r_rem": "T415 18회차 — 정본 3542 `.modal-card .btn, .panel .btn, #equip-sheet .btn { border-radius: .7rem }` — 팝업·패널·장비 시트 안의 모든 `.btn` 은 663 의 기본 .55rem 이 아니라 .7rem 이다. 클론 `PopupKit.Btn` 의 기본 반지름은 catalog `btn_r`(.55rem)이었는데 그 공장을 부르는 자리는 전부 3542 의 셋 안이라(맨 `.btn` 자리 없음) 기본을 이 키로 바꿨다. 선택자가 따로 못 박은 버튼(.fi-skip .6 · 제작 비교 .85)은 인수로 넘긴다.",
+  "equip_cell_r_rem": 0.7,
+  "_equip_cell_r_rem": "T415 19회차 — 정본 style.css 828 `.equip-cell { border-radius: .7rem }`(장비 시트 다섯 칸 · 목록 타일 `fl-face equip-cell`(ui.js 2090)도 같은 CSS). 종전 `ForgeSheet.cs`·`ForgeUi.ItemTile` 이 «셀 크기 × .16» 리터럴이라 셀(13.2%W)에서 .58rem 꼴로 덜 둥글었다. 틀·시대색 광(CellGlow)·드리운 그늘(equipcell_drop)이 같은 반지름을 쓴다.",
+  "forge_item_grid_r_rem": 0.7,
+  "_forge_item_grid_r_rem": "T415 19회차 — 정본 728 `.forge-item-grid { border-radius: .7rem }`(«모든 장비의 목록» 회색 판). 종전 `ForgeInfoPopup.cs` `rem * 0.7f` 리터럴(값은 맞았다).",
+  "held_slot_r_rem": 0.7,
+  "_held_slot_r_rem": "T415 19회차 — 정본 990 `.anvil-btn.held-slot { border-radius: .7rem }`(모루 자리의 보류 카드 앞면). 종전 `ForgeSheet.cs` `rem * 0.7f` 리터럴(값은 맞았다).",
+  "held_deck_r_rem": 0.7,
+  "_held_deck_r_rem": "T415 19회차 — 정본 1026 `.anvil-btn.held-slot.deck::before { border-radius: .7rem }`(보류 더미의 뒤 장 · 클론은 겹마다 틈·단면 두 장). 종전 `rem * 0.7f` 리터럴(값은 맞았다).",
+  "adc_card_r_rem": 0.7,
+  "_adc_card_r_rem": "T415 19회차 — 정본 1063 `.auto-drop-card { border-radius: .7rem }`(제작 결과 리빌 `craft-reveal` · 필터 탈락 카드 · 그 뒤 링 `cr-ring`·`CraftCardFx.ringRadius` 도 같은 값). 종전 «크기 × .16»(3.7rem 카드의 .59rem)이라 덜 둥글었다.",
+  "cb_card_r_rem": 0.7,
+  "_cb_card_r_rem": "T415 19회차 — 정본 1131 `.craft-batch .cb-card { border-radius: .7rem }`(묶음 제작 카드판). 종전 «크기 × .16» = .59rem.",
+  "cmp_card_r_rem": 0.8,
+  "_cmp_card_r_rem": "T415 19회차 — 정본 1825~1827 `.cmp-card { border: var(--ol3) solid var(--pp-line); border-radius: .8rem }`. 클론에서 반지름이 서는 자리는 **빈 슬롯의 점선 테**(1826 dashed · T472) 뿐 — 장착 카드는 1812 `border:none` · 새 장비는 흰 판 없이 하부 패널이 쥔다. 종전 `rem * 0.8f` 리터럴(값은 맞았다).",
+  "cmp_img_r_rem": 0.55,
+  "_cmp_img_r_rem": "T415 19회차 — 정본 1852 `.cmp-img { width: 3.6rem; height: 3.6rem; border-radius: .55rem }`(비교 카드의 장비 그림 타일). 종전 «크기 × .16» = .576rem.",
+  "idet_icon_r_rem": 0.55,
+  "_idet_icon_r_rem": "T415 19회차 — 정본 3683 `.idet-icon { width: 18%; aspect-ratio: 1; border-radius: .55rem }`(장비 상세 머리의 아이콘 타일). 종전 «크기 × .16» = 3.6rem 타일의 .576rem."
 }

@@ -139,17 +139,23 @@ namespace Forge.Game.Ui
         /// <summary>잉크 비율을 풀어 준다 — 음수(<see cref="InkFromTable"/>)면 표값, 아니면 호출자가 준 값(정본이 그 자리만 달리 주는 곳: 목록 `.fl-face` .8).</summary>
         public static float InkFrac(float inkFrac) { return inkFrac < 0f ? ItemFacesStyle.L("thumb_ink_f") : inkFrac; }
 
-        /// <summary>장비 아이콘 타일(시대색 프레임 + 아이콘 · 잉크 비율은 표 `thumb_ink_f`). 반환 = 타일 루트.</summary>
-        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, string age, string iconKey, float inkFrac = InkFromTable, bool agePattern = false)
+        /// <summary>
+        /// 장비 아이콘 타일(시대색 프레임 + 아이콘 · 잉크 비율은 표 `thumb_ink_f`). 반환 = 타일 루트.
+        /// T415 19회차 — 둥근 모서리는 **크기 비례가 아니라 자리별 정본 rem** 이다(종전 «크기 × .16» 한 리터럴이 네 자리를 다 어긋나게 했다):
+        /// 장비 칸·목록 타일 828 `.equip-cell` .7rem(기본 <paramref name="radiusKey"/> — 1063·1131 주석 «.equip-cell 의 라운드를 그대로 옮겼다») ·
+        /// 비교 카드 그림 1852 `.cmp-img` .55 · 상세 머리 3683 `.idet-icon` .55 · 결과·묶음 카드 1063·1131 .7. 값은 `RadiusUi.json` 이 쥔다(§1).
+        /// </summary>
+        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, string age, string iconKey, float inkFrac = InkFromTable, bool agePattern = false, string radiusKey = "equip_cell_r_rem")
         {
             Color ac = AgeColor(d, age);
             RectTransform rt = UiKit.Box(parent, name);
             rt.sizeDelta = new Vector2(size, size);
-            Image tf = Tile(rt, "frame", CellFace(ac), CellLine(ac), size * 0.16f, PopupKit.Line3);
+            float radius = RadiusUi.Px(radiusKey);
+            Image tf = Tile(rt, "frame", CellFace(ac), CellLine(ac), radius, PopupKit.Line3);
             // T124 — 정본 `.fl-face.equip-cell[data-age]` 만 시대 무늬를 입는다(제작 카드·상세 머리 아이콘은 equip-cell 이 아니다) → 호출자가 켠다
             if (agePattern) AgePattern.Attach(rt, age, cell: true, mask: (string)null, siblingIndex: 1);   // 목록 타일은 셀이라 마스크가 없다(T380 키 갈래)
             // T371 13회차 — 같은 조건(equip-cell)이면 8539 의 시대색 광도 든다(목록 타일 `.fl-face.equip-cell` · ForgeInfoPopup.Cell 이 그 뒤 드리운 그림자를 건다).
-            if (agePattern) CellGlow((RectTransform)tf.transform.parent, ac, size * 0.16f, size);
+            if (agePattern) CellGlow((RectTransform)tf.transform.parent, ac, radius, size);
             Image ico = PopupKit.IconOr(rt, "img", iconKey);
             float k = size * InkFrac(inkFrac);
             UiKit.Anchor(ico.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, k, k);
@@ -160,9 +166,9 @@ namespace Forge.Game.Ui
         /// T122 — 정본 `itemImgHTML(item)`: `Scene3D.itemThumb(item)` 이 있으면 3D 썸네일 <img>(타일 100% · object-fit contain), 없으면 슬롯 플레이스홀더.
         /// 동기 호출도 정본 그대로(비교·상세 카드는 한두 장 · 키 단위 캐시). 목록처럼 많은 칸은 <see cref="ItemFaces.Request"/> 로 프레임마다 받아 <see cref="ApplyThumb"/> 로 갈아 끼운다.
         /// </summary>
-        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, ForgeItem it, float inkFrac = InkFromTable, bool agePattern = false)
+        public static RectTransform ItemTile(Transform parent, string name, float size, GameDefs d, ForgeItem it, float inkFrac = InkFromTable, bool agePattern = false, string radiusKey = "equip_cell_r_rem")
         {
-            RectTransform rt = ItemTile(parent, name, size, d, it.Age, ItemIconKey(d, it), inkFrac, agePattern);
+            RectTransform rt = ItemTile(parent, name, size, d, it.Age, ItemIconKey(d, it), inkFrac, agePattern, radiusKey);
             ApplyThumb(rt, ItemFaces.Get(d, it), size);
             return rt;
         }
@@ -296,7 +302,8 @@ namespace Forge.Game.Ui
                 // T472 — 정본 1826~1830: `.cmp-card` 엔 `background` 선언이 없고(면 없음) 빈 카드는 `border-style: dashed` 다 — 종이 면(`Outlined` face)을 걷고 **점선 테 한 겹**만 둔다.
                 //   반지름 .8rem(1827) · 굵기 ol3(1826 · `Line3`) · 대시·틈은 브라우저(Blink) 기본 «굵기 ×3» 을 표(`cmp_empty_dash_ratio`·`cmp_empty_gap_ratio`)가 쥔다 —
                 //   정본 캡처 043224 는 두 슬롯이 다 장착이라 빈 카드 실측 자리가 없다. 둘레에 정수 개가 맞게 주기를 맞추는 것까지 Core `DashedFrameRules` 몫.
-                SurfaceArt.DashedFrame(card, "line", "pp_line", w, h, rem * 0.8f, PopupKit.Line3, PopupKit.Line3 * CraftStyle.L("cmp_empty_dash_ratio"), PopupKit.Line3 * CraftStyle.L("cmp_empty_gap_ratio"));
+                //   T415 19회차 — 반지름 .8rem 은 표 `cmp_card_r_rem`(1827 · 종전 `rem * 0.8f` 리터럴 · 값은 맞았다).
+                SurfaceArt.DashedFrame(card, "line", "pp_line", w, h, RadiusUi.Px("cmp_card_r_rem"), PopupKit.Line3, PopupKit.Line3 * CraftStyle.L("cmp_empty_dash_ratio"), PopupKit.Line3 * CraftStyle.L("cmp_empty_gap_ratio"));
                 TextMeshProUGUI empty = UiKit.Text(card, "empty", TextKind.Sub, "빈 슬롯 — 장착 중인 장비 없음", "pp_muted");
                 // T359 4회차 — 정본 `style.css` **1830** `.cmp-card.empty { opacity: .7 }` 는 **카드 한 겹 전체**에 걸린다(테·글자까지).
                 //   클론은 그 .7 을 얼굴 이미지의 알파에 숫자로 박아 두어(§1 위반) 글자는 안 흐려졌다 — 표(`OpacityUi` `cmp_card_empty`)에서 읽어 카드에 건다.
@@ -309,7 +316,8 @@ namespace Forge.Game.Ui
             // `.cmp-lower .cmp-card-wrap.new .cmp-card{background:transparent}`. 흰 판은 이것을 품은
             // 팝업 카드(cur)와 회색 하부 패널(new)이 쥔다. (T57: 여기서 흰 테를 한 겹 더 그려
             // 원작에 없는 상자가 생기고, 반대로 새 장비 카드는 판 없이 3D 배경 위에 떠 보였다.)
-            RectTransform tileRt = ItemTile(card, "tile", tile, d, item);   // T122 — 정본 itemImgHTML: 3D 썸네일이 있으면 그것, 없으면 실루엣
+            // T415 19회차 — 정본 1852 `.cmp-img { border-radius: .55rem }`(표 `cmp_img_r_rem` · 종전 «크기 × .16» = .576rem).
+            RectTransform tileRt = ItemTile(card, "tile", tile, d, item, radiusKey: "cmp_img_r_rem");   // T122 — 정본 itemImgHTML: 3D 썸네일이 있으면 그것, 없으면 실루엣
             // T371 6회차 — 정본 1852 `.cmp-img { background: color-mix(in srgb, var(--rc) 58%, #17181a) }`(«아이콘 배경도 시대색 통일»): 비교 카드의 그림 바탕은 제 키 `cmp_img_face` 로 받는다
             //   (값은 장비 칸 `cell_face` 와 같지만 정본이 따로 적은 자리라 자가 따로 센다). ⚠ 정본 `.cmp-img` 의 테는 `var(--ol2) solid var(--pp-line)`(섞기 아님 · 테 축 T365 몫) — 여기서 안 건드린다.
             Transform cmpFrame = tileRt.Find("frame");

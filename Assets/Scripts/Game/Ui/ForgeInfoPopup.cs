@@ -254,7 +254,8 @@ namespace Forge.Game.Ui
                 //   (`pp_gray`(#c4c4c4)로 세운 뒤 바로 `new Color(0xd6…)` 로 덮어쓰는 두 줄) — §1 «수치는 코드에 박지 않는다».
                 //   같은 #d6d6d6 이 이미 표에 있다: `idet_panel`(T146 이 정본 3724 `#forge-item-modal .idet-subs` 로 세운 키 ·
                 //   정본이 두 자리에 같은 리터럴을 적었고 클론도 한 키로 모은다). 공용 `pp_panel`(#efefef)이 아닌 까닭은 그 주석에 있다.
-                Image gbg = UiKit.Rounded(grid, "bg", "idet_panel", rem * 0.7f);
+                // T415 19회차 — 정본 728 `.forge-item-grid { border-radius: .7rem }`(표 `forge_item_grid_r_rem` · 종전 `rem * 0.7f` 리터럴 · 값은 맞았다).
+                Image gbg = UiKit.Rounded(grid, "bg", "idet_panel", RadiusUi.Px("forge_item_grid_r_rem"));
                 for (int i = 0; i < cells.Count; i++)
                 {
                     RectTransform c = UiKit.Box(grid, "cell-" + i);
@@ -285,11 +286,11 @@ namespace Forge.Game.Ui
 
         static void Cell(RectTransform rt, ForgeHost h, string age, int ageIdx, string slot, int variant, string wtype, string icon, double pct, int stars, float size, float labelH, int thumbJob)
         {
-            RectTransform tile = ForgeUi.ItemTile(rt, "fl-face", size, h.Defs, age, icon, 0.8f, agePattern: true);   // T124 3회차 — 정본 ui.js 2090 `fl-face equip-cell[data-age]`: 목록 타일도 시대 무늬 층(.55)을 입는다
+            RectTransform tile = ForgeUi.ItemTile(rt, "fl-face", size, h.Defs, age, icon, 0.8f, agePattern: true, radiusKey: "equip_cell_r_rem");   // T124 3회차 — 정본 ui.js 2090 `fl-face equip-cell[data-age]`: 목록 타일도 시대 무늬 층(.55)을 입는다
             UiKit.Place(tile, 0f, 0f, size, size);
             // T331 37회차 — 정본 8539 `.equip-cell:not(.egg-cell)` 의 드리운 그림자는 이 목록 타일(«.equip-cell CSS 를 그대로 입는다» · 2090)에도 든다 — 셋째 공장.
             //   ForgeUi.ItemTile(T415 lock)을 안 열고 부르는 쪽에서 틀 상자(frame)에 건다 · 비교 카드·상세 머리의 ItemTile 은 정본이 equip-cell 이 아니라 안 건다.
-            UiShadow.Drop((RectTransform)tile.Find("frame"), "equipcell_drop", size * 0.16f, size, size);
+            UiShadow.Drop((RectTransform)tile.Find("frame"), "equipcell_drop", RadiusUi.Px("equip_cell_r_rem"), size, size);   // T415 19회차 — 828 .7rem(타일과 같은 반지름)
             // T332 4회차 — 접지 그림자는 **플레이스홀더에도** 건다. 정본 선택자가 `.fl-face img, **.fl-face .ico**`(style.css 761)이고
             // 그 주석이 까닭을 댄다: «플레이스홀더 `.ico`(IconGen) 도 같이 걸어야 **하이드레이션 전후로 그림이 안 튄다**».
             // (윗줄 754 주석은 «img 에만 건다» 라고 적었지만 그 블록엔 `filter` 가 없다 — 렌더 결과는 아래 블록이 쥔다 · §1 «정본대로 = 렌더 결과» · 결정 520 ⓒ 와 같은 갈래.)
@@ -377,7 +378,8 @@ namespace Forge.Game.Ui
             cg.padding = new RectOffset(Mathf.RoundToInt(pad), Mathf.RoundToInt(pad), Mathf.RoundToInt(padV), Mathf.RoundToInt(padV));
             float tile = rem * 3.6f;
             RectTransform head = PopupKit.Item(card, "idet-head", -1f, tile + rem * 0.4f);
-            RectTransform t = ForgeUi.ItemTile(head, "idet-icon", tile, d, age, icon);
+            // T415 19회차 — 정본 3683 `.idet-icon { border-radius: .55rem }`(표 `idet_icon_r_rem` · 종전 «크기 × .16» = .576rem).
+            RectTransform t = ForgeUi.ItemTile(head, "idet-icon", tile, d, age, icon, radiusKey: "idet_icon_r_rem");
             // T371 10회차 — 정본 3661 `#forge-item-modal .idet-icon { background: color-mix(in srgb, var(--rc) 58%, #17181a); border-color: color-mix(… 80%, #000) }`:
             //   ItemTile 은 장비 칸 키(cell_face/cell_line)로 칠하고 값은 같지만, 정본이 이 팝업에만 가둔 선택자라 표 키(idet_icon_*)를 따로 쥔다 —
             //   부르는 쪽이 덮는다(ForgeCraftPopup.MixFrame 과 같은 길 · check_color_mix 가 이 줄로 자리를 센다).

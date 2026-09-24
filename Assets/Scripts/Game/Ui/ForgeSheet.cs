@@ -232,7 +232,8 @@ namespace Forge.Game.Ui
             if (it == null)
             {
                 Color face = ForgeUi.CellFace(new Color(0x6b / 255f, 0x35 / 255f, 0x38 / 255f));
-                Image ef = ForgeUi.Tile(rt, "frame", face, ForgeUi.CellLine(new Color(0x6b / 255f, 0x35 / 255f, 0x38 / 255f)), size * 0.16f, PopupKit.Line3);
+                // T415 19회차 — 정본 828 `.equip-cell { border-radius: .7rem }`(표 `equip_cell_r_rem` · 종전 «크기 × .16» = 셀 13.2%W 의 .58rem 꼴).
+                Image ef = ForgeUi.Tile(rt, "frame", face, ForgeUi.CellLine(new Color(0x6b / 255f, 0x35 / 255f, 0x38 / 255f)), RadiusUi.Px("equip_cell_r_rem"), PopupKit.Line3);
                 // T178 16회차 — 정본 828 `.equip-cell` 의 45°/−45° 교차 해칭(빈 칸도 같다 — 7746 은 box-shadow 만 바꾼다) · 표 stripes.cell_hatch · 면 색 위 sRGB 미리 합성.
                 // T178 18회차 — 7730 `.equip-cell:not(.egg-cell)` 의 나머지 세 겹(좌상단 광택 · 백플레이트 · 위→아래 명암)은 해칭 **위**에 알파로 얹는 자리라
                 //   타일이 아니라 **면 통째 한 판**(바탕색 → 해칭 → 세 겹 · sRGB 차례 합성)으로 굽는다. 면은 테(Line3)만큼 안쪽이다.
@@ -255,12 +256,13 @@ namespace Forge.Game.Ui
                 return rt;
             }
             Color ac = ForgeUi.AgeColor(d, it.Age);
-            Image f = ForgeUi.Tile(rt, "frame", ForgeUi.CellFace(ac), ForgeUi.CellLine(ac), size * 0.16f, PopupKit.Line3);
+            float cellR = RadiusUi.Px("equip_cell_r_rem");   // T415 19회차 — 정본 828 .7rem(틀·광·그늘이 같은 반지름)
+            Image f = ForgeUi.Tile(rt, "frame", ForgeUi.CellFace(ac), ForgeUi.CellLine(ac), cellR, PopupKit.Line3);
             // T331 36회차 — 정본 8539 `.equip-cell:not(.egg-cell)` 의 드리운 그림자 `0 .14rem .3rem rgba(0,0,0,.30)`(표 equipcell_drop · 8548 `.empty` 는 inset 뿐이라 빈 칸엔 없다).
             //   셀의 형제 순서(무늬 층 = 형제 1 · AgePatternTests)를 안 흔들려고 틀(frame) **안** 맨 뒤에 깐다 · rect 는 아직 0 이라 크기를 준다(27회차 런 921 의 교훈).
             //   ⚠ `ForgeUi.Tile` 이 돌려주는 것은 **면(face)** 이지 틀 상자가 아니다 — 1차(런 1205)는 face 안에 깔아 그늘이 면 **위**에 그려졌다(자 빨강). 틀 = face 의 부모.
-            ForgeUi.CellGlow((RectTransform)f.transform.parent, ac, size * 0.16f, size);   // T371 13회차 — 8539 첫 겹(시대색 62% 광 · 표 cell_shadow_2) · 아래 그림자가 뒤에 깔려 광이 위
-            UiShadow.Drop((RectTransform)f.transform.parent, "equipcell_drop", size * 0.16f, size, size);
+            ForgeUi.CellGlow((RectTransform)f.transform.parent, ac, cellR, size);   // T371 13회차 — 8539 첫 겹(시대색 62% 광 · 표 cell_shadow_2) · 아래 그림자가 뒤에 깔려 광이 위
+            UiShadow.Drop((RectTransform)f.transform.parent, "equipcell_drop", cellR, size, size);
             // T178 16회차 — 정본 828 `.equip-cell` 교차 해칭(7730 이 non-egg 셀의 background-image 를 다섯 겹으로 덮어써도 해칭 둘은 그 목록의 맨 아래 두 겹으로 남는다).
             // T178 18회차 — 나머지 세 겹(방사 둘 + 선형 명암)까지 **면 통째 한 판**으로(위 빈 칸과 같은 길 · 바탕 = color-mix 면 색).
             SurfaceArt.FillFace(f, "face-bake", "cell_hatch", CellFaceLayers, ForgeUi.CellFace(ac), size - PopupKit.Line3 * 2f, size - PopupKit.Line3 * 2f);
@@ -393,10 +395,11 @@ namespace Forge.Game.Ui
                 float line1 = UiKit.L("line_px");
                 for (int i = depth; i >= 1; i--)
                 {
-                    Image gap = UiKit.Rounded(rt, "deck-gap-" + i, "pp_paper", rem * 0.7f);
+                    // T415 19회차 — 정본 1026 `.anvil-btn.held-slot.deck::before { border-radius: .7rem }`(표 `held_deck_r_rem` · 종전 `rem * 0.7f` 리터럴 · 값은 맞았다).
+                    Image gap = UiKit.Rounded(rt, "deck-gap-" + i, "pp_paper", RadiusUi.Px("held_deck_r_rem"));
                     gap.color = ColorMixUi.Mix("held_deck_gap", ac);
                     UiKit.Place(gap.rectTransform, dg * i, 0f, w - dg * depth, bodyH);
-                    Image edge = UiKit.Rounded(rt, "deck-" + i, "pp_paper", rem * 0.7f);
+                    Image edge = UiKit.Rounded(rt, "deck-" + i, "pp_paper", RadiusUi.Px("held_deck_r_rem"));
                     // T371 2회차 — 정본 1013 `--dedge: color-mix(in srgb, var(--rc) 55%, #dfe4ec)`(비율·상대색이 코드에 박혀 있었다).
                     edge.color = ColorMixUi.Mix("held_deck_edge", ac);
                     UiKit.Place(edge.rectTransform, dg * i - line1, 0f, w - dg * depth, bodyH);
@@ -405,7 +408,8 @@ namespace Forge.Game.Ui
                 UiKit.Place(card, 0f, 0f, w - dg * depth, bodyH);
                 // T371 2회차 — 정본 990 `.anvil-btn.held-slot { background: color-mix(… 30%, #17181a); border: color-mix(… 80%, #000) }`.
                 //   값은 맞았지만 비율·상대색이 코드에 박혀 있었다(§1) — 표 `ColorMixUi.json` 의 held_face·held_line 로.
-                ForgeUi.Tile(card, "frame", ColorMixUi.Mix("held_face", ac), ColorMixUi.Mix("held_line", ac), rem * 0.7f, PopupKit.Line3);
+                // T415 19회차 — 정본 990 `.anvil-btn.held-slot { border-radius: .7rem }`(표 `held_slot_r_rem` · 종전 `rem * 0.7f` 리터럴 · 값은 맞았다).
+                ForgeUi.Tile(card, "frame", ColorMixUi.Mix("held_face", ac), ColorMixUi.Mix("held_line", ac), RadiusUi.Px("held_slot_r_rem"), PopupKit.Line3);
                 float ico = rem * 2.1f;
                 Image img = PopupKit.IconOr(card, "held-img", ForgeUi.ItemIconKey(h.Defs, held));
                 UiKit.Anchor(img.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, rem * 0.35f), ico, ico);
