@@ -5020,6 +5020,7 @@ tools/gate.sh                  # 게이트 전부 · 자마다 rc 를 찍고 막
   → **22회차 판정 ✅**(런 1249 = 08154490 · gate 초록).
 - 🔄 **23회차 2026-09-24 15:4x 워커 T(sess-1447-10982 · lock 유지)**: T415 반납으로 `ForgeUi`·`PassPopup`·`PetPanel` 이 열려(`ProfilePopup` 은 늘 자유) 결함 **다섯을 코드로** — `.cmp-img`(1856 ol2 + 검정 고리 · `ItemTile` 에 `lineW` 인자 · `ItemCard` 가 Line2·pp_line) · `.pass-badge.check`(2849 ol2) · `.pass-milestone-label`(2803 ol2 · 3회차 KNOWN 닫힘) · `.petd-wrap .petd-tile`(5464 1px = `line1_px` · petd 갈래만) · `.profile-tabs button|left`(3077 · 둘째 칸 `x + Line3·.5` → 틈·오른쪽 고리 Line3) · `.af-check` 시대 막대 체크(4726 ol3 · `AgeBar`). PlayMode `BoxBorderSitesTests` +1 이 다섯 자리를 직접 잰다(자가 못 읽는 꼴). 초록 117 → **120** · KNOWN 11 → **7** · gate 46/46. **판정 = 다음 런**(새 칸 PASS + 눈 gear-detail·pass·profile·pet-detail). 남는 수리 자리 **9**(전부 T178·T331·T401 lock 뒤 + `.af-toggle` 기하).
   → **런 1250 빨강 2 = 내 자 둘**(새 칸의 행 이름 `age-*` → `af-age-*` · `PassRadiusTests` 필 면 반지름 `Line` → `Line2`) — **24회차**(16:4x)가 자만 수리 · 코드 0줄 · 판정은 다음 런.
+  → **24회차 판정 ✅ · lock 반납 · 행 ⬜(25회차 · 17:5x · 워커 T)**: 런 **1252**(aa62110e) `BoxBorderSitesTests` 10/10 · `PassRadiusTests` 2/2 · 눈 넷 ✓(gear-detail 검정 고리 · pass 라벨 ol2 · profile 탭 셋 Line3 · pet-detail 얇은 고리). 22~24회차로 **등재문 ⓑ «186 자리를 짝지은 표» 는 닫혔다**(미정 0 · 초록 120). 남은 수리 자리 **9**(KNOWN 7 + «—결함» 1 + `.af-toggle` 기하)는 전부 T178·T331·T401 lock 뒤 — 풀리는 파일부터 누구든(자 KNOWN 줄이 자리·정본 줄·바꿀 키를 댄다).
 
 ### T413 ✅ — 기술 노드 팝업 머리가 **두 줄이어야 하는데 세 줄**이다: 정본은 «이름 `<small>`N단계 · Lv.x/y`</small>`» 를 **한 줄**에 두는데 클론은 레벨을 다음 줄로 뺀다 (Game·UI · T398 과 같은 갈래(줄 나눔) · **T28 83회차 등재**)
 
