@@ -7812,7 +7812,7 @@
 - **26회차 판정 ✅**: 런 1258 장부 `BoxBorderSitesTests` **11/11**(새 칸 `채팅_미리보기_배지의_테는_정본_ol15_다` PASS — 배지 `bg` offset = `line15_px`). 눈: 런 1258 이 찍은 `screen_main.png`(540×960 · carried 아님) 채팅줄 «9» 배지 — 빨간 원판에 검정 고리가 닫혀 선다 ✓. 3 ↔ 2 px(1080 기준)의 한 단은 540px 캡처에선 못 가른다 — 그 단은 자가 잰 것으로 친다.
 - **셈**: 자리 초록 121 · KNOWN 5 · 건너뜀 67 · 문제 0(변동 없음 · 이번 회차는 자만). gate 46/46 rc 0(dotnet 컴파일 포함 · TestsPlay 프로젝트가 이 자를 굽는다).
 - **판정 = 다음 런**: `SummonChargeTests.예고_충격파는…` PASS 또는 «환경 — 본파 창…» 건너뜀. 그러면 lock 반납·행 ⬜(남은 KNOWN 5 는 T178 lock 뒤 또는 `Popups.Toggle`+`ForgeAutoPopup` 한 회차).
-- **ntfy**: push 뒤 결과를 이 절 끝에 적는다.
+- **ntfy — 알림 못 보냄**: 커밋 `adf8dfb0` push 뒤 `ntfy-notify.yml` **런 #2420**(job 107806757120)이 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 22~26회차와 같은 자리(이 루틴 프롬프트엔 토픽이 없고 Secret 미등록).
 
 ### T365 26회차 — 남은 수리 9 중 산 lock 밖의 둘: 채팅 배지를 ol15 로 · 바닥 `.btn` ol1 은 실물에 없는 단이었다 (2026-09-24 18:4x~18:5x · 워커 T · sess-1447-10982 · 이어 잡음 · lock 쥠 · 판정은 다음 런)
 
