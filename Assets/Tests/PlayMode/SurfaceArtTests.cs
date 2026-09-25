@@ -1623,7 +1623,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(sb, "스킬 소환 버튼(소환 탭 · 스킬 하위판)");
             Transform top = sb.transform.Find("skin/top");
             Assert.IsNotNull(top, "둥근 면(skin/top)");
-            Assert.IsNotNull(top.GetComponent<Mask>(), "면에 Mask — 램프가 모서리 밖으로 안 샌다");
+            // 런 1289: 소환 버튼은 42회차부터 겹이 없다(8661 단색) — Mask 는 겹이 있을 때만 요구한다(아래 승천 갈래).
             // T178 42회차 — 정본 **8661** `.btn.btn.summon-btn.summon-btn:not(.ascend-ready) { background: #a3a3a3 }` 이 5209 램프를 단색으로 끈다(0-4-0 · 문서 뒤).
             //   37회차가 여기 세운 램프는 걷었다 — 소환 버튼(은색 갈래)엔 bg-grad 가 없고 면은 #a3a3a3 한 칸. 승천 갈래(ascend-ready)만 5641 초록 램프.
             Transform sg = top.Find("bg-grad");
@@ -1631,6 +1631,7 @@ namespace Forge.Tests.PlayMode
             {
                 Image sgi = sg.GetComponent<Image>();
                 Assert.IsTrue(sgi.sprite != null && sgi.sprite.texture.name.StartsWith("sf-btn_ascend", System.StringComparison.Ordinal), "소환 버튼에 남은 겹은 승천 램프(btn_ascend)뿐이어야 한다: " + (sgi.sprite == null ? "null" : sgi.sprite.texture.name));
+                Assert.IsNotNull(top.GetComponent<Mask>(), "겹이 있으면 면에 Mask — 램프가 모서리 밖으로 안 샌다");
             }
             else
             {
