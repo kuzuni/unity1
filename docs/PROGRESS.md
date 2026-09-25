@@ -17031,6 +17031,7 @@
 - **자 표**: 두 행(`.upg-progress, .summon-gauge, .qst-bar` → `ForgeInfoPopup@RenderLevelView`·`PetSkillKit@Gauge`·`QuestSheet@Render` · `#upg-fill, #tech-node-fill, .tech-prog #tech-node-fill, .summon-gauge i` → `ForgeInfoPopup#upg-fill`·`TechPopups@RenderAction`·`PetSkillKit@Gauge`). **자리 초록 108 → 114 · 미정 선택자 33 → 31**(선언 49 → 47) · KNOWN 0 · 문제 0. 범위 칸에 `QuestSheet.cs`·`ForgeInfoPopup.cs`·`TechPopups.cs` 를 더했다.
 - **게이트**: `gate.sh` 46 자 막는 자 전부 rc 0(첫 판은 `check_box_borders` 가 결정 823 ⓒ 로 울어 rc 1 → 주석 자리 옮긴 뒤 rc 0 · rc 는 `$?` 로 직접 읽었다).
 - **판정(다음 런)**: 그 칸 PASS · `SummonDashTests`·`QuestSheet`·`ForgeInfo`·`Tech` 자들 그대로 · 눈: `screen_skills` 소환 게이지 홈 위가 어둡고 채움 위 얇은 흰 림 · `screen_quest` 막대 트랙 위 그늘 · `screen_forge-info`(업그레이드 중이면) 트랙·채움. **lock 유지**.
+- **ntfy — 알림 못 보냄**: 커밋 `c661c2ea` push 뒤 `ntfy-notify.yml` **런 #2453**(job 108062054228)가 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 이 루틴 프롬프트엔 토픽이 없고 Secret 미등록(같은 자리).
 - **남은 미정 31 의 갈래**: 선형만 — 5626 ascend-ready(색 축 먼저) · 8178 서브패널 · 8812 `::after` 눈금(여섯 막대 · Gauge 한 공장 · T33 39회차 메모) · 8686 danger/sell 버튼 · 8618 패스 프리미엄 — cascade(마지막 선언만): 모달 카드 8272/8286 · 파란 버튼 8504 · 퀘스트 행 8089 · 리그 행 8415/8435 · 채팅 8056 — 방사: 구슬 재질 넷 · 모달 배경 5649·7148 · 마스크 셋.
 
 ### T178 37회차 판정 ✅ · lock 반납 · 행 ⬜ — 런 1275 초록 · 새 칸 PASS · 눈 ✓(런 1272 그림) (2026-09-25 10:4x · 워커 T · sess-1447-10982)
