@@ -248,6 +248,8 @@ namespace Forge.Game.Ui
             //   180deg 순수 세로 램프에 정지점이 분수라 판은 상자 크기와 무관하다 — 정사각 한 장을 늘린다(버튼 크기는 부르는 쪽이 뒤에 준다).
             string surface = plainFace ? null : kind == BtnKind.Silver ? (disabled ? "btn_silver_disabled" : "btn_silver") : kind == BtnKind.Ascend ? "btn_ascend" : null;
             if (surface != null) SurfaceArt.FillMasked(face, "bg-grad", surface, 1f, 1f);
+            // T178 41회차 — 정본 8686 `.btn.btn.danger.danger` 세 겹(펫 상세 [해제] · 8699 `.petd-wrap .btn.danger` 는 색·턱만 덮는다) — 1px 림·키라인이라 크기가 잡히는 프레임에 굽는다.
+            else if (!plainFace && kind == BtnKind.Danger) SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnDangerLayers, bg);
             bool two = !string.IsNullOrEmpty(sub);
             TextMeshProUGUI lt = disabled || kind == BtnKind.Gray
                 ? Text(rt, "label", labelKind, label, ink)

@@ -129,6 +129,8 @@ namespace Forge.Game.Ui
             // T178 37회차 — 정본 5274 `.btn.silver { background: linear-gradient(180deg, #e3e3e3, #c2c2c2) }`(던전 상세 [이전 스테이지 소탕] · ui.js 4678 `btn silver dgd-btn`):
             //   은색 면은 세로 램프다 — 아래턱(BottomShade) **앞에** 얹어 턱이 그 위에 남게 한다. 다른 스킨(파랑·빨강·잠김)은 cascade 갈래라 다음 회차.
             if (skin == Skin.Silver) SurfaceArt.FillMasked(face.GetComponent<Image>(), "bg-grad", "btn_silver", 1f, 1f);
+            // T178 41회차 — 정본 8686 `.btn.btn.danger.danger` 세 겹(표 btn_danger_*) · 크기는 부르는 쪽이 뒤에 주니 잡히는 프레임에 굽는다 · 아래턱(BottomShade)은 그 위.
+            if (skin == Skin.Red) SurfaceArt.FillFaceWhenSized(face.GetComponent<Image>(), "bg-grad", SurfaceArt.BtnDangerLayers, UiKit.C(bg));
             BottomShade(face, dk, RemL("btn_shadow_rem"), Mathf.Max(0f, radiusPx - Line3));
             TextMeshProUGUI t = Bold(rt, "label", kind, label, ink);
             t.rectTransform.offsetMax = new Vector2(0f, -RemL("btn_shadow_rem") * 0.5f);
@@ -170,6 +172,7 @@ namespace Forge.Game.Ui
             UiKit.Anchor(rt, Vector2.zero, Vector2.zero, new Vector2(RemL("back_left_rem"), RemL("back_bottom_rem")), w, h);
             float r = radiusKey != null ? RadiusUi.Px(radiusKey) : RemL("back_radius_rem");
             RectTransform face = Bordered(rt, "bg", "pp_red", r, Line3);
+            SurfaceArt.FillFaceWhenSized(face.GetComponent<Image>(), "bg-grad", SurfaceArt.BtnDangerLayers, UiKit.C("pp_red"));   // T178 41회차 — 8686 `.btn.danger.round` 세 겹
             BottomShade(face, "pp_red_dk", RemL("back_shadow_rem"), Mathf.Max(0f, r - Line3));
             Image ico = UiKit.Icon(rt, "ico", "tri_left");
             float d = UiKit.L("back_icon") * UiKit.RefH;

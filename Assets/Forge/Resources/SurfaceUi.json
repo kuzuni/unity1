@@ -925,6 +925,26 @@
     ],
     "_": "style.css 8078 맨 아래 겹 `linear-gradient(180deg, #6cc6f7 0%, #4fb2ee 55%, #3ea0e0 100%)` — 하늘색 바탕 자체가 그라디언트다(불투명 · 그래서 탈것 칸은 면 색이 아니라 이 겹이 바탕이다)."
   },
+  "btn_danger_rim": {
+    "angle_deg": 180,
+    "stops": [[255, 238, 232, 0.62], [255, 238, 232, 0.62], [255, 255, 255, 0.0]],
+    "offsets": [0, 1, 1],
+    "units": ["px", "px", "px"],
+    "_": "style.css 8686 `.btn.btn.danger.danger, .btn.btn.sell.sell` 첫 겹 — `linear-gradient(180deg, rgba(255,238,232,.62) 0 1px, 투명 1px)`: 위 1 CSS px 분홍빛 흰 림. 빨간 버튼(판매·뒤로·해제·던전 빨강 알약)의 세 겹 중 맨 위 · 바탕(면 색 · pp_red 또는 자리 전용 리터럴)은 부르는 쪽이 준다(BakeFace 로 셋을 한 판에 합성). T178 41회차."
+  },
+  "btn_danger_side": {
+    "angle_deg": 90,
+    "stops": [[255, 255, 255, 0.24], [255, 255, 255, 0.24], [255, 255, 255, 0.0], [255, 255, 255, 0.0], [0, 0, 0, 0.22], [0, 0, 0, 0.22]],
+    "offsets": [0, 1, 1, 1, 1, 0],
+    "units": ["px", "px", "px", "-px", "-px", "-px"],
+    "_": "style.css 8686 둘째 겹 — `linear-gradient(90deg, 흰 .24 0 1px, 투명 1px calc(100% − 1px), 검 .22 calc(100% − 1px))`: 왼쪽 1px 흰 키라인 + 오른쪽 1px 검 키라인. `-px` 단위 = **끝에서 잰 CSS px**(calc(100% − Npx) · 41회차가 연 단위 · LinearPixels 가 1 − N·k 로 돈다)."
+  },
+  "btn_danger_body": {
+    "angle_deg": 180,
+    "stops": [[255, 206, 196, 0.34], [255, 176, 166, 0.14], [255, 255, 255, 0.0], [58, 6, 8, 0.07], [44, 4, 6, 0.16]],
+    "offsets": [0, 0.46, 0.47, 0.70, 1],
+    "_": "style.css 8686 셋째 겹 — `linear-gradient(180deg, (255,206,196,.34) 0, (255,176,166,.14) 46%, 투명 47%, (58,6,8,.07) 70%, (44,4,6,.16) 100%)`: 위 반은 분홍빛 밴드(46% 엣지) · 아래는 검붉은 그늘. 파란 버튼(8504)과 같은 문법의 빨강 벌 — 정본 주석 «두 버튼이 한 언어로 읽힌다». 아래턱(inset −.22rem #4e0507)은 BottomShade/lip 축."
+  },
   "stripes": {
     "cell_hatch": {
       "angle_deg": 45,
@@ -973,6 +993,14 @@
       "ink": "#00000094",
       "gap": null,
       "_": "style.css 8812 `.upg-progress::after, .summon-gauge::after, .qst-bar::after, .summon-prog::after, .petup-xpbar::after, .rates-prog::after` — aaa-skin (g)(2026-08-19 · 화풍 (3) «게이지 = 분절/블록 채움») 의 **하드 세로 구분선**: `repeating-linear-gradient(90deg, 투명 0 (seg−gap), rgba(0,0,0,.58) (seg−gap) seg)` · `--seg` .62rem 피치(정본이 rem 으로 못 박은 자리 — «분절 격자는 게이지마다 따로 정하지 않고 한 벌로 공유») · 틈 `--seg-gap` = ol2(line2_px · 부르는 쪽이 넘긴다) · 색 #000 .58(0x94) · 블러 금지. 눈금은 주기의 **끝**에 있어 phase = period − gap 으로 굽는다(SurfaceArt.SegTicks). 채움 위에 오고(z 2) 글자는 그 위(z 3). `.summon-prog` 는 정본 마크업(ui.js)에 없다 · `sk-shard` 는 목록에 없다(눈금 없음). T178 40회차."
+    },
+    "pass_premium_hatch": {
+      "angle_deg": 135,
+      "period_css_px": 10,
+      "dash_css_px": 5,
+      "ink": "#0000003d",
+      "gap": null,
+      "_": "style.css 8618 `.pass-cell.premium { background-image: repeating-linear-gradient(135deg, 투명 0 5px, rgba(0,0,0,.24) 5px 10px) }` — 프리미엄 보상 칸의 «비활성 면» 사선 해칭(정본 주석: 두 비평가가 함께 요구한 해칭 · 밝기로만 밀면 카드 실루엣이 죽는다). 잉크는 주기의 뒤 5px 라 phase = dash 로 굽는다(SurfaceArt.StripeMasked). `filter: saturate(.45) brightness(.88)` 은 필터 축(겹 아님). T178 41회차."
     }
   },
   "keylines": {

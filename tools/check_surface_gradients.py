@@ -146,6 +146,10 @@ TABLE = {
     #   `.summon-prog` 는 정본 마크업(ui.js)에 없다 — 클론 자리 없음. 8798 키라인(inset box-shadow)은 겹이 아니라 자가 안 본다(SurfaceArt.Keyline · PlayMode 자가 잰다).
     '.upg-progress::after, .summon-gauge::after, .qst-bar::after, .summon-prog::after, .petup-xpbar::after, .rates-prog::after': ['Ui/PetSkillKit.cs@Gauge', 'Ui/QuestSheet.cs@Render', 'Ui/ForgeInfoPopup.cs@RenderLevelView'],
     '.af-age-bar': '—정본 4825 `.af-age-bar { background-image: none }`(시대별 무늬로 갈아탄 블록 · «공용 45° 줄무늬 해제») 가 4701 의 공용 줄무늬를 끈다 — 무늬는 `::before` 가 시대별로(AgePattern · 표 행 따로) · 40회차',
+    # T178 41회차 — 8686 빨간 버튼 세 겹(위 1px 림 · 좌우 1px 키라인(-px 단위) · 46% 밴드) → 빨간 면을 세우는 공장 여섯(BakeFace 한 판 · FillFaceWhenSized) · 8618 프리미엄 칸 해칭(StripeMasked).
+    '.btn.btn.danger.danger, .btn.btn.sell.sell': ['Ui/Popups.cs@Btn', 'Ui/Popups.cs@BackButton', 'Ui/DungeonPopups.cs@Pill', 'Ui/DungeonPopups.cs@BackButton', 'Ui/ChatScreen.cs@Open', 'Ui/PetSkillKit.cs@PaperButton'],
+    '.pass-cell.premium': ['Ui/PassPopup.cs@Cell'],
+    '.modal-card .substat-list, .modal-card .prob-box, .modal-card .age-bar-wrap': '—정본 마크업(index.html·ui.js)에 없는 선택자 셋(684·705·792 의 클래스가 어디서도 안 쓰인다 · `.summon-prog` 와 같은 꼴) — 클론 자리 없음 · 41회차',
     '.qst-bar i': '—정본 8806 `.qst-bar i { background: #4fc3f7 }`(aaa-skin ⓖ) 이 2044 의 두 겹을 단색으로 끈다 — 6·10회차의 qst-fill-grad·rim 을 39회차가 걷었다 · 채움 = catalog quest_bar 한 칸',
     '.qst-row.done .qst-bar i': '—정본 8807 `… { background: #81e884 }`(aaa-skin ⓖ) 이 2047 의 두 겹을 단색으로 끈다 — 39회차가 걷었다 · 채움 = catalog quest_bar_done 한 칸',
     # T178 9회차 — 기술 트리 분기 원판(카테고리색 면) 위의 겹 둘: 왼쪽 위 방사형 광택 + 세로 명암.

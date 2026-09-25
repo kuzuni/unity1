@@ -1757,5 +1757,88 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(bars, 0, "퀘스트 막대가 하나는 섰다");
         }
 
+        /// <summary>T178 41회차 — 정본 **8686** `.btn.btn.danger.danger, .btn.btn.sell.sell` 세 겹(위 1px 분홍 림 · 좌우 1px 키라인 `calc(100% − 1px)` = `-px` 단위 · 46% 밴드 + 검붉은 그늘)을
+        /// 빨간 면(판매·뒤로 ◀·해제·던전 빨강 알약·채팅 ◀) 위에 한 판(BakeFace)으로 · **8618** `.pass-cell.premium` 135deg 사선 해칭(5/10 CSS px 검 .24 · 타일 + Tiled).
+        /// 표 + 실물(퀘스트 시트 뒤로 ◀ 면 · 패스 팝업 프리미엄 칸).</summary>
+        [UnityTest]
+        public IEnumerator 빨간_버튼_면에_세_겹이_한_판으로_서고_패스_프리미엄_칸에_사선_해칭이_선다()
+        {
+            yield return Boot();
+            // ⓐ 표 — 옆 키라인 겹의 단위: 앞 셋 px · 뒤 셋 -px(끝에서 잰다)
+            Color[] sc; float[] so;
+            SurfaceArt.Stops("btn_danger_side", out sc, out so);
+            Assert.AreEqual(6, sc.Length); Assert.AreEqual(90f, SurfaceArt.Angle("btn_danger_side"), 1e-4f, "좌우 키라인 = 90deg");
+            bool[] px = SurfaceArt.PxMask("btn_danger_side", 6), ex = SurfaceArt.EndPxMask("btn_danger_side", 6);
+            Assert.IsTrue(px[0] && px[1] && px[2] && !px[3] && !px[4] && !px[5], "앞 셋이 px");
+            Assert.IsTrue(!ex[0] && !ex[1] && !ex[2] && ex[3] && ex[4] && ex[5], "뒤 셋이 -px(calc(100% − 1px))");
+            Assert.AreEqual(0.24f, sc[0].a, 1e-4f, "왼쪽 흰 .24"); Assert.AreEqual(0.22f, sc[5].a, 1e-4f, "오른쪽 검 .22"); Assert.AreEqual(0f, sc[5].r, 1e-4f);
+            SurfaceArt.Stops("btn_danger_body", out sc, out so);
+            Assert.AreEqual(5, sc.Length); Assert.AreEqual(0.46f, so[1], 1e-4f, "46% 밴드 엣지"); Assert.AreEqual(0f, sc[2].a, 1e-4f, "47% 투명"); Assert.AreEqual(0.16f, sc[4].a, 1e-4f, "아래 검붉음 .16");
+            SurfaceArt.Stops("btn_danger_rim", out sc, out so);
+            Assert.AreEqual(0.62f, sc[0].a, 1e-4f, "위 림 .62"); Assert.IsTrue(SurfaceArt.PxMask("btn_danger_rim", 3)[1], "1px");
+            Assert.AreEqual(135f, SurfaceArt.StripeNum("pass_premium_hatch", "angle_deg", 0f), 1e-4f);
+            Assert.AreEqual(10f, SurfaceArt.StripeNum("pass_premium_hatch", "period_css_px", 0f), 1e-4f); Assert.AreEqual(5f, SurfaceArt.StripeNum("pass_premium_hatch", "dash_css_px", 0f), 1e-4f);
+
+            // ⓑ 실물 — 퀘스트 시트 뒤로 ◀(PopupKit.SheetBack → BackButton · face pp_red)
+            float t0 = Time.realtimeSinceStartup;
+            while (!(MetaHost.Ready && PopupLayer.Instance != null) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
+            MetaHost h = MetaHost.Instance;
+            QuestSheet.Open(h);
+            yield return null; yield return null; yield return null;   // FillFaceWhenSized — 크기가 잡히는 프레임에 굽는다
+            Popup qp = h.Popups.Find(QuestSheet.Name);
+            Assert.IsNotNull(qp, "퀘스트 시트가 열려 있다");
+            Transform back = null;
+            foreach (RectTransform rt in qp.Root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == "back-btn") { back = rt; break; }
+            Assert.IsNotNull(back, "뒤로 ◀(back-btn)");
+            Transform bf = back.Find("face");
+            Assert.IsNotNull(bf, "◀ 면(face)");
+            Assert.IsNotNull(bf.GetComponent<Mask>(), "면에 Mask");
+            Transform bg = bf.Find("bg-grad");
+            Assert.IsNotNull(bg, "8686 세 겹 한 판(face/bg-grad)");
+            Image bgi = bg.GetComponent<Image>();
+            Assert.IsTrue(bgi.sprite != null && bgi.sprite.texture.name.StartsWith("sf-face-", System.StringComparison.Ordinal), "BakeFace 판: " + (bgi.sprite == null ? "null" : bgi.sprite.texture.name));
+            Assert.IsTrue(bgi.sprite.texture.name.Contains("btn_danger_body+btn_danger_side+btn_danger_rim"), "겹 셋 순서(아래→위)");
+            Color32[] bp = bgi.sprite.texture.GetPixels32(); int BW = bgi.sprite.texture.width, BH = bgi.sprite.texture.height;
+            Assert.AreEqual(255, bp[(BH / 2) * BW + BW / 2].a, "바탕(pp_red)을 미리 합성 — 불투명");
+            float Lum(Color32 c) { return c.r * 0.2126f + c.g * 0.7152f + c.b * 0.0722f; }
+            Assert.Greater(Lum(bp[(BH - 1) * BW + BW / 2]), Lum(bp[(BH / 2) * BW + BW / 2]) + 8f, "위 1px 분홍 림이 가운데보다 밝다");
+            Assert.Greater(Lum(bp[(BH / 2) * BW]), Lum(bp[(BH / 2) * BW + BW - 1]) + 8f, "왼쪽 흰 키라인이 오른쪽 검 키라인보다 밝다");
+            Assert.Greater(Lum(bp[(BH / 2) * BW + BW / 2]), Lum(bp[BW / 2]) + 4f, "아래(검붉음 .16)가 가운데보다 어둡다");
+            Assert.Greater(Lum(bp[(BH * 3 / 4) * BW + BW / 2]), Lum(bp[(BH / 2 - 2) * BW + BW / 2]) + 2f, "46% 위 밴드가 47% 아래보다 밝다");
+            QuestSheet.Close(h);
+            yield return null;
+
+            // ⓒ 실물 — 패스 팝업 프리미엄 칸
+            PassPopup.Open(h);
+            yield return null; yield return null;
+            Popup pass = PopupLayer.Instance.Find(PassPopup.Name);
+            Assert.IsNotNull(pass, "패스 팝업");
+            int prem = 0, free = 0;
+            foreach (RectTransform rt in pass.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name == "premium" && rt.Find("face/face") != null)
+                {
+                    prem++;
+                    Transform hatch = rt.Find("face/face/hatch");
+                    Assert.IsNotNull(hatch, "프리미엄 칸 해칭(face/face/hatch · 8618)");
+                    Image hi = hatch.GetComponent<Image>();
+                    Assert.AreEqual(Image.Type.Tiled, hi.type, "한 타일 + Tiled");
+                    Assert.IsTrue(hi.sprite != null && hi.sprite.texture.name.StartsWith("sf-stripe-pass_premium_hatch", System.StringComparison.Ordinal), "타일 pass_premium_hatch");
+                    if (prem == 1)
+                    {
+                        Color32[] hp = hi.sprite.texture.GetPixels32(); int seen0 = 0, seenInk = 0;
+                        foreach (Color32 c in hp) { if (c.a == 0) seen0++; else if (c.a == 0x3d && c.r == 0) seenInk++; }
+                        Assert.Greater(seen0, 0, "투명 자리"); Assert.Greater(seenInk, 0, "검 .24(0x3d) 자리");
+                        Assert.AreEqual(hp.Length, seen0 + seenInk, "두 값뿐(하드 엣지 · 블러 없음)");
+                    }
+                }
+                else if (rt.name == "free" && rt.Find("face/face") != null) { free++; Assert.IsNull(rt.Find("face/face/hatch"), "무료 칸엔 해칭이 없다"); }
+            }
+            Assert.Greater(prem, 0, "프리미엄 칸이 하나는 섰다"); Assert.Greater(free, 0, "무료 칸이 하나는 섰다");
+            h.Popups.Hide(PassPopup.Name);
+            yield return null;
+        }
+
     }
 }

@@ -220,10 +220,13 @@ namespace Forge.Game.Ui
             UiKit.Place(cell, x, y, w, h);
             // T415 7회차 — 정본 2822 `.pass-cell { border-radius: .6rem }`: 종전 catalog `pass_cell_r`(0.0114H = .6rem/H)는 값은 맞았지만
             //   키 꼬리가 반지름 규약(`_r_rem`) 밖이라 자(check_border_radius)가 못 봤다 → RadiusUi.json `pass_cell_r_rem` 으로.
-            RadiusUi.Outlined(cell, "face", faceKey, "pass_cell_r_rem", PopupKit.Line3);
+            Image faceImg = RadiusUi.Outlined(cell, "face", faceKey, "pass_cell_r_rem", PopupKit.Line3);
+            bool free = name == "free";
+            // T178 41회차 — 정본 8618 `.pass-cell.premium { background-image: repeating-linear-gradient(135deg, 투명 0 5px, 검 .24 5px 10px) }`(표 stripes.pass_premium_hatch):
+            //   프리미엄 칸의 «비활성 면» 사선 해칭 · 면 안(Mask) · 알약(pill)은 뒤 형제라 그 위. `filter: saturate/brightness` 는 필터 축.
+            if (!free) SurfaceArt.StripeMasked(faceImg, "hatch", "pass_premium_hatch", h - PopupKit.Line3 * 2f);
             // T159 3회차 — 정본 2864~2874: 칸 **아래**(top:100%)에 꼬리 삼각형이 붙는다(검정 층 + 칸 색 면 층 · `background: inherit`).
             // 무료 칸은 수직변이 오른쪽 · 프리미엄은 거울상. 클론엔 이 꼬리가 아예 없었다.
-            bool free = name == "free";
             string tail = free ? "pass_cell_tail_free" : "pass_cell_tail_prem";
             float rem0 = PopupKit.Rem, ol3 = PopupKit.Line3;
             float tw = ClipShape.Num(tail, "w_rem") * rem0, th = ClipShape.Num(tail, "h_rem") * rem0;

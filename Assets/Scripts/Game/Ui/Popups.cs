@@ -492,6 +492,9 @@ namespace Forge.Game.Ui
             Image face = UiKit.Rounded(rt, "face", faceKey, Mathf.Max(1f, r - Line3));
             face.rectTransform.offsetMin = new Vector2(Line3, Line3 + lip);
             face.rectTransform.offsetMax = new Vector2(-Line3, -Line3);
+            // T178 41회차 — 정본 8686 `.btn.btn.danger.danger, .btn.btn.sell.sell` 세 겹(위 1px 분홍 림 · 좌우 1px 키라인 · 46% 밴드 + 검붉은 그늘 · 표 btn_danger_*):
+            //   빨간 면(pp_red = 판매 버튼)에만 · 크기는 레이아웃이 줄 수 있어 잡히는 프레임에 굽는다. 파랑(8504)은 cascade 갈래라 따로.
+            if (faceKey == "pp_red") SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnDangerLayers, UiKit.C(faceKey));
             TextMeshProUGUI t = UiKit.Text(rt, "label", kind, label, inkKey);
             t.fontStyle = FontStyles.Bold;
             t.rectTransform.offsetMin = new Vector2(0f, lip);
@@ -553,6 +556,7 @@ namespace Forge.Game.Ui
             Image face = UiKit.Rounded(rt, "face", "pp_red", Mathf.Max(1f, r - Line3));
             face.rectTransform.offsetMin = new Vector2(Line3, Line3 + Rem * 0.36f);
             face.rectTransform.offsetMax = new Vector2(-Line3, -Line3);
+            SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnDangerLayers, UiKit.C("pp_red"));   // T178 41회차 — 8686 `.btn.danger` 세 겹(뒤로 ◀ 도 .btn.danger.round)
             Image tri = Tri(rt, "tri", "stage_ink");
             float tw = UiKit.RefH * 0.0179f;
             UiKit.Anchor(tri.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, Rem * 0.18f), tw, tw);

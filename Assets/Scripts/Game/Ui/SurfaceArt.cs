@@ -75,6 +75,17 @@ namespace Forge.Game.Ui
             return one != null && J.Str(one["unit"]) == "px";
         }
 
+        /// <summary>T178 41회차 — 정지점이 **끝에서 잰 CSS px** 인가(`units` 의 `"-px"` · 정본 `calc(100% − 1px)` 꼴 · 8686 좌우 키라인). 그 정지점은 1 − N·k 자리에 선다.</summary>
+        public static bool[] EndPxMask(string key, int n)
+        {
+            bool[] m = new bool[n];
+            JsonObject one = J.Obj(Table()[key]);
+            List<object> u = one == null ? null : J.Arr(one["units"]);
+            if (u == null || u.Count != n) return m;
+            for (int i = 0; i < n; i++) m[i] = J.Str(u[i]) == "-px";
+            return m;
+        }
+
         /// <summary>
         /// 정지점마다 단위가 갈리는 겹(`units: ["px","px","f","f","f"]`) — CSS 는 한 그라디언트 안에서 길이와 %를 섞어 쓴다
         /// (정본 2361 `.league-foot` 이 `… .16) 0 1px, … .05) 8%, …` 꼴이다). `unit: "px"` 은 «전부 px» 의 줄임이라 그대로 둔다(T178 4회차 자리들).
@@ -307,16 +318,21 @@ namespace Forge.Game.Ui
         {
             float rad = Angle(key) * Mathf.Deg2Rad;
             float dx = Mathf.Sin(rad), dy = -Mathf.Cos(rad);   // CSS: 0deg 는 위로 · y 는 아래가 +
-            bool[] pxAt = PxMask(key, pos.Length);
+            bool[] pxAt = PxMask(key, pos.Length), endAt = EndPxMask(key, pos.Length);
             bool anyPx = false;
-            for (int i = 0; i < pxAt.Length; i++) if (pxAt[i]) { anyPx = true; break; }
+            for (int i = 0; i < pxAt.Length; i++) if (pxAt[i] || endAt[i]) { anyPx = true; break; }
             if (anyPx)
             {
                 // CSS px → 선 길이의 분수. 자리 길이를 모르면(0) 굽는 판의 길이를 쓴다(림이 굵게 나오지만 안 사라진다).
                 // T178 23회차 — **정지점마다** 판다: 한 그라디언트가 px 와 % 를 섞어 쓰는 자리가 있다(정본 2361 `.league-foot`).
+                // T178 41회차 — `-px` 는 **끝에서 잰** px(정본 `calc(100% − 1px)` · 8686 오른쪽 키라인): 1 − N·k.
                 float realLen = lineLenCanvasPx > 0f ? lineLenCanvasPx : Mathf.Abs(w * dx) + Mathf.Abs(h * dy);
                 float k = CssPx / Mathf.Max(1f, realLen);
-                for (int i = 0; i < pos.Length; i++) if (pxAt[i]) pos[i] = Mathf.Clamp01(pos[i] * k);
+                for (int i = 0; i < pos.Length; i++)
+                {
+                    if (pxAt[i]) pos[i] = Mathf.Clamp01(pos[i] * k);
+                    else if (endAt[i]) pos[i] = Mathf.Clamp01(1f - pos[i] * k);
+                }
             }
             float len = Mathf.Abs(w * dx) + Mathf.Abs(h * dy);
             if (len <= 0f) len = 1f;
@@ -561,6 +577,42 @@ namespace Forge.Game.Ui
             return img;
         }
 
+        /// <summary>정본 8686 `.btn.btn.danger.danger, .btn.btn.sell.sell` 의 세 겹(아래부터 위 순 · BakeFace 순서) — 빨간 버튼 면 위에 한 판으로 합성한다. T178 41회차.</summary>
+        public static readonly string[] BtnDangerLayers = { "btn_danger_body", "btn_danger_side", "btn_danger_rim" };
+
+        /// <summary>
+        /// T178 41회차 — <see cref="FillFace"/> 인데 **면의 크기가 아직 0** 인 자리(배치를 부르는 쪽이 뒤에 하는 버튼 · 레이아웃이 폭을 주는 버튼)는
+        /// 크기가 잡히는 첫 프레임에 굽는다(<see cref="UiShadow.DropWhenSized"/> 와 같은 길 · 1px 림·키라인은 자리 길이를 알아야 굵기가 맞는다). 이미 크기가 있으면 바로 굽는다.
+        /// </summary>
+        public static void FillFaceWhenSized(Image face, string name, string[] layers, Color baseColor)
+        {
+            if (face == null) throw new System.ArgumentNullException("face");
+            Rect r = face.rectTransform.rect;
+            if (r.width > 1f && r.height > 1f) { FillFace(face, name, null, layers, baseColor, r.width, r.height); return; }
+            SurfaceLate late = face.gameObject.AddComponent<SurfaceLate>();
+            late.Arm(name, layers, baseColor);
+        }
+
+        /// <summary>
+        /// T178 41회차 — 둥근 면 위 **되풀이 줄무늬 한 겹**(정본 8618 `.pass-cell.premium` 의 135deg 사선 해칭 · `repeating-linear-gradient(θ, 투명 0 d, 잉크 d p)`).
+        /// 표 `stripes.<paramref name="key"/>` 의 `period_css_px`·`dash_css_px`(CSS px → css_px 배)로 한 타일을 굽고(잉크가 주기의 **뒤** d 라 phase = dash) `Tiled` 로 되풀이 · 면에 Mask.
+        /// </summary>
+        public static Image StripeMasked(Image face, string name, string key, float hCanvasPx)
+        {
+            JsonObject one = Stripe(key);
+            float period = (float)(J.Num(one["period_css_px"], 0) * CssPx), dash = (float)(J.Num(one["dash_css_px"], 0) * CssPx);
+            if (period <= 0f || dash <= 0f) throw new KeyNotFoundException(ResourcePath + ".json stripes." + key + " 에 period_css_px·dash_css_px 가 없다");
+            if (face.GetComponent<Mask>() == null) face.gameObject.AddComponent<Mask>().showMaskGraphic = true;
+            RectTransform rt = UiKit.Box(face.rectTransform, name);
+            UiKit.Fill(rt);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.type = Image.Type.Tiled;
+            img.sprite = BakeStripe(key, period, dash, dash, Mathf.Max(1f, hCanvasPx));
+            img.color = Color.white;
+            return img;
+        }
+
         /// <summary>
         /// T472 — 둥근 사각 **점선 테** 한 장(정본 `border-style: dashed`). 카드 크기 그대로 캔버스 px 1:1 로 굽고(되풀이가 아니라 타일이 없다) 2×2 초표본으로 가장자리를 부드럽게 한다.
         /// 셈(띠·둘레 자리·정수 개 맞춤)은 Core <see cref="DashedFrameRules"/> 가 쥔다. 판은 이름으로 캐시된다.
@@ -740,6 +792,28 @@ namespace Forge.Game.Ui
         {
             if (face.GetComponent<Mask>() == null) face.gameObject.AddComponent<Mask>().showMaskGraphic = true;
             return Fill(face.rectTransform, name, key, w, h, overBaseColor);
+        }
+    }
+
+    /// <summary>
+    /// <see cref="SurfaceArt.FillFaceWhenSized"/> 가 다는 한 회용 부품 — 면 크기가 잡히는 **첫 프레임**에 세 겹을 한 판으로 굽고 죽는다(UiShadowLate 와 같은 꼴). T178 41회차.
+    /// </summary>
+    public sealed class SurfaceLate : MonoBehaviour
+    {
+        string layerName; string[] layers; Color baseColor; int waited;
+        internal void Arm(string name, string[] ls, Color c) { layerName = name; layers = ls; baseColor = c; }
+        void LateUpdate()
+        {
+            Image face = GetComponent<Image>();
+            RectTransform rt = transform as RectTransform;
+            if (face == null || rt == null) { Destroy(this); return; }
+            if (rt.rect.width <= 1f || rt.rect.height <= 1f)
+            {
+                if (++waited > 60) { Debug.LogWarning("SurfaceArt: " + layerName + " 를 못 구웠다 — 면(" + name + ")의 크기가 1초가 지나도 0이다."); Destroy(this); }
+                return;
+            }
+            SurfaceArt.FillFace(face, layerName, null, layers, baseColor, rt.rect.width, rt.rect.height);
+            Destroy(this);
         }
     }
 }
