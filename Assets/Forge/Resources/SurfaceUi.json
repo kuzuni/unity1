@@ -277,6 +277,19 @@
     "offsets": [0, 0.46, 1],
     "_": "style.css **7881** `.league-score { background-image: linear-gradient(180deg, rgba(255,255,255,.16) 0, rgba(255,255,255,0) 46%, rgba(0,0,0,.30) 100%) }` — 정본 주석 «점수 pill(#020203)도 같은 처방 — 폭·높이는 원본 실측 고정값이라 칠만 얹는다». 바탕 catalog `league_score`(#020203) 위에 미리 합성 · 둥근 알약이라 FillMasked(LeagueSheet 의 `score/bg`). T178 37회차."
   },
+  "gauge_track": {
+    "angle_deg": 180,
+    "stops": [[0, 0, 0, 0.62], [0, 0, 0, 0.18], [0, 0, 0, 0.0], [255, 255, 255, 0.10], [255, 255, 255, 0.16]],
+    "offsets": [0, 0.34, 0.58, 0.88, 1],
+    "_": "style.css **7992~7995** `.upg-progress, .summon-gauge, .qst-bar { background-image: linear-gradient(180deg, rgba(0,0,0,.62) 0, rgba(0,0,0,.18) 34%, rgba(0,0,0,0) 58%, rgba(255,255,255,.10) 88%, rgba(255,255,255,.16) 100%) }` — 게이지 **트랙**의 파인 홈(정본 주석 «트랙 홈을 깊게 파고» · 위 어둡고 아래 가장자리가 밝다). 바탕은 자리마다 다르다(7990 upg #2d333c · 7991 summon/qst #262c34 · 클론은 그 자리의 트랙 색)라 부르는 쪽이 트랙 Image 의 색을 넘겨 미리 합성한다(age_bar_ramp 갈래). 둥근 트랙 면 안 FillMasked · 채움(i)은 그 위 형제. T178 38회차."
+  },
+  "gauge_fill": {
+    "angle_deg": 180,
+    "stops": [[255, 255, 255, 0.55], [255, 255, 255, 0.55], [255, 255, 255, 0.32], [255, 255, 255, 0.12], [255, 255, 255, 0.0], [0, 0, 0, 0.08], [0, 0, 0, 0.24]],
+    "offsets": [0, 1, 1, 0.40, 0.46, 0.74, 1],
+    "units": ["px", "px", "px", "f", "f", "f", "f"],
+    "_": "style.css **7953~7956** `#upg-fill, #tech-node-fill, .tech-prog #tech-node-fill, .summon-gauge i { background-image: linear-gradient(180deg, rgba(255,255,255,.55) 0 1px, rgba(255,255,255,.32) 1px, rgba(255,255,255,.12) 40%, rgba(255,255,255,0) 46%, rgba(0,0,0,.08) 74%, rgba(0,0,0,.24) 100%) }` — 게이지 **채움**의 광택(정본 주석 «채움엔 광택 밴드 엣지(46%)를 만든다 — 버튼 9차와 같은 문법»). 첫 정지점 `0 1px` 은 길이(위 1 CSS px 흰 림 .55)고 그 뒤 1px 에서 .32 로 꺾여 백분율 램프 — `units` 로 정지점마다 갈랐다(league_foot 갈래 · T178 23회차). 바탕은 채움 색(클론 pp_blue · 런타임)이라 부르는 쪽이 색을 넘긴다. ⚠ 정본 7941 주석대로 **퀘스트 바 채움(`.qst-bar i`)은 이 선택자에 없다**(상태 신호 두 벌이라 안 얹는다 · 그 채움은 2044 의 제 겹 qst_bar_ramp/rim). T178 38회차."
+  },
   "tabbar_rim": {
     "over_layer": "tabbar_shade",
     "unit": "px",

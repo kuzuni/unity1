@@ -311,11 +311,17 @@ namespace Forge.Game.Ui
             RectTransform box = Framed(parent, name, bg, radiusPx, linePx);
             box.sizeDelta = new Vector2(w, h);
             RectTransform face = (RectTransform)box.Find("face");
+            // T178 38회차 — 정본 **7992** `.upg-progress, .summon-gauge, .qst-bar { background-image: … }` 트랙의 파인 홈(표 `gauge_track` · 바탕 = 이 트랙 색)은
+            //   **소환 게이지에만**(`.rates-prog`·`.petup-xpbar` 는 그 선택자에 없다 · 이름으로 가른다). 채움(fill)은 그 위 형제라 뒤에 세운다.
+            bool summonGauge = name == "summon-gauge";
+            if (summonGauge) SurfaceArt.FillMasked(face.GetComponent<Image>(), "bg-grad", "gauge_track", Mathf.Max(1f, w - linePx * 2f), Mathf.Max(1f, h - linePx * 2f), bg);
             Image fill = Fill(face, "fill", PetSkillStyle.C("pp_blue"), Mathf.Max(1f, radiusPx - linePx));
             fill.rectTransform.anchorMin = Vector2.zero;
             fill.rectTransform.anchorMax = new Vector2(Mathf.Clamp01(ratio), 1f);
             fill.rectTransform.offsetMin = fill.rectTransform.offsetMax = Vector2.zero;
             fill.type = Image.Type.Sliced;
+            // 정본 **7953** `… .summon-gauge i { background-image: … }` 채움의 광택(표 `gauge_fill` · 위 1 CSS px 흰 림 + 46% 밴드 엣지 · 바탕 = 채움 색).
+            if (summonGauge) SurfaceArt.FillMasked(fill, "bg-grad", "gauge_fill", Mathf.Max(1f, (w - linePx * 2f) * Mathf.Clamp01(ratio)), Mathf.Max(1f, h - linePx * 2f), fill.color);
             TextMeshProUGUI t = Stroked(box, "t", kind, label, PetSkillStyle.C("white"), "gauge_span");   // 정본 .rates-prog span · .petup-xpbar span 2.5px
             UiKit.Fill(t.rectTransform);
             return box;

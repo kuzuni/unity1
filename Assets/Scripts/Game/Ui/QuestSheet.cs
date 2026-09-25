@@ -114,7 +114,10 @@ namespace Forge.Game.Ui
                 UiKit.Rounded(bar, "line", "pp_line", barH * 0.5f);
                 RectTransform barFace = UiKit.Box(bar, "face");
                 PopupKit.Inset(barFace, barLine);
-                UiKit.Rounded(barFace, "bg", "quest_bar_bg", barH * 0.5f - UiKit.L("line2_px"));   // 자가 단을 읽게 키를 그대로
+                Image barBg = UiKit.Rounded(barFace, "bg", "quest_bar_bg", barH * 0.5f - UiKit.L("line2_px"));   // 자가 단을 읽게 키를 그대로
+                // T178 38회차 — 정본 **7992** `.upg-progress, .summon-gauge, .qst-bar { background-image: linear-gradient(180deg, 검 .62 → .18 34% → 0 58% → 흰 .10 88% → .16) }`
+                //   트랙의 파인 홈(표 `gauge_track` · 바탕 quest_bar_bg 를 넘겨 미리 합성) — 채움(fill)은 그 위 형제 · 채움 자체의 겹(7941 주석 «제 그라디언트가 있는 채움은 안 건드린다»)은 6회차 그대로.
+                SurfaceArt.FillMasked(barBg, "bg-grad", "gauge_track", bodyW - barLine * 2f, barH - barLine * 2f, barBg.color);
                 Image fill = UiKit.Rounded(barFace, "fill", done ? "quest_bar_done" : "quest_bar", barH * 0.5f - barLine);
                 fill.rectTransform.anchorMin = Vector2.zero;
                 fill.rectTransform.anchorMax = new Vector2((float)pct, 1f);

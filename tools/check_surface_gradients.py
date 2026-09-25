@@ -124,6 +124,9 @@ TABLE = {
     #   «미정» 으로 세어지고 있었다(`#panel-skills .summon-bar::before` → `SkillPanel.cs@SummonDash` 와 같은 꼴).
     '.league-reward-tier': ['Ui/LeagueSheet.cs@TierDash'],
     '.pinfo-preview': ['Ui/PlayerInfoPopup.cs#preview-grad'],
+    # T178 38회차 — 게이지: 트랙 홈 7992(셋 · 표 gauge_track · 바탕은 그 자리의 트랙 색) · 채움 광택 7953(넷 · 표 gauge_fill · units px+f · 바탕은 채움 색). 8812 `::after` 눈금(--seg 변수 · 되풀이 띠)은 다음.
+    '.upg-progress, .summon-gauge, .qst-bar': ['Ui/ForgeInfoPopup.cs@RenderLevelView', 'Ui/PetSkillKit.cs@Gauge', 'Ui/QuestSheet.cs@Render'],
+    '#upg-fill, #tech-node-fill, .tech-prog #tech-node-fill, .summon-gauge i': ['Ui/ForgeInfoPopup.cs#upg-fill', 'Ui/TechPopups.cs@RenderAction', 'Ui/PetSkillKit.cs@Gauge'],
     # T178 37회차 — 은색 버튼 가족(5209 `.summon-btn` · 5260/5268 `.skd-btn.silver(.disabled)` · 5274 `.btn.silver` — #e3e3e3 → #c2c2c2 · 비활성 #d9d9d9 → #bdbdbd)과 승천 소환 버튼(5641 · #4caf50 → #2e7d32):
     #   `PetSkillKit.PaperButton`(Silver/Ascend · 둥근 면에 FillMasked · `.petup-selrow .btn.silver` 5487 단색은 plainFace) · 던전 상세 은색은 `DungeonPopups.Pill`. 리그 점수 알약(7881)은 `LeagueSheet` 의 `score/bg`.
     #   5626 `.btn.sm.ascend-ready`(대장간 만렙 버튼)는 클론 ForgeSheet 의 버튼이 파랑 한 벌이라 아직 미정(색 축 T377 과 함께 열 자리).
