@@ -587,8 +587,9 @@ namespace Forge.Game.Ui
         public static void FillFaceWhenSized(Image face, string name, string[] layers, Color baseColor)
         {
             if (face == null) throw new System.ArgumentNullException("face");
-            Rect r = face.rectTransform.rect;
-            if (r.width > 1f && r.height > 1f) { FillFace(face, name, null, layers, baseColor, r.width, r.height); return; }
+            // 런 1285 실측(41회차 판정): «지금 rect 가 1 보다 크다» 는 «크기가 잡혔다» 가 아니다 — 새 RectTransform 은 레이아웃이 돌기 전 **기본 100×100** 을 돌려주고
+            //   (시트 뒤로 ◀ · 레이아웃 그룹 안 버튼), 그 크기로 구우면 1px 림·키라인이 실제 폭에 늘려져 사라진다(채팅 ◀ 처럼 Place 로 먼저 놓인 자리만 맞았다).
+            //   그래서 바로 굽지 않고 **두 프레임 연속 같은 크기**(캔버스 레이아웃이 지나간 뒤)일 때 굽는다.
             SurfaceLate late = face.gameObject.AddComponent<SurfaceLate>();
             late.Arm(name, layers, baseColor);
         }
@@ -800,19 +801,23 @@ namespace Forge.Game.Ui
     /// </summary>
     public sealed class SurfaceLate : MonoBehaviour
     {
-        string layerName; string[] layers; Color baseColor; int waited;
+        string layerName; string[] layers; Color baseColor; int waited; float lastW = -1f, lastH = -1f;
         internal void Arm(string name, string[] ls, Color c) { layerName = name; layers = ls; baseColor = c; }
         void LateUpdate()
         {
             Image face = GetComponent<Image>();
             RectTransform rt = transform as RectTransform;
             if (face == null || rt == null) { Destroy(this); return; }
-            if (rt.rect.width <= 1f || rt.rect.height <= 1f)
+            float w = rt.rect.width, h = rt.rect.height;
+            // 크기가 0 이거나 지난 프레임과 다르면 아직 레이아웃이 안 끝난 것 — 기본 100×100(새 RectTransform)도 여기서 걸러진다(런 1285 · 시트 뒤로 ◀).
+            bool settled = w > 1f && h > 1f && Mathf.Abs(w - lastW) < 0.5f && Mathf.Abs(h - lastH) < 0.5f;
+            lastW = w; lastH = h;
+            if (!settled)
             {
-                if (++waited > 60) { Debug.LogWarning("SurfaceArt: " + layerName + " 를 못 구웠다 — 면(" + name + ")의 크기가 1초가 지나도 0이다."); Destroy(this); }
+                if (++waited > 120) { Debug.LogWarning("SurfaceArt: " + layerName + " 를 못 구웠다 — 면(" + name + ")의 크기가 2초가 지나도 안 잡힌다(" + w + "×" + h + ")."); Destroy(this); }
                 return;
             }
-            SurfaceArt.FillFace(face, layerName, null, layers, baseColor, rt.rect.width, rt.rect.height);
+            SurfaceArt.FillFace(face, layerName, null, layers, baseColor, w, h);
             Destroy(this);
         }
     }

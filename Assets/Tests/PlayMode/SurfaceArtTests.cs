@@ -1785,7 +1785,8 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
             MetaHost h = MetaHost.Instance;
             QuestSheet.Open(h);
-            yield return null; yield return null; yield return null;   // FillFaceWhenSized — 크기가 잡히는 프레임에 굽는다
+            yield return null; yield return null; yield return null; yield return null;   // FillFaceWhenSized — 두 프레임 연속 같은 크기일 때 굽는다
+            Canvas.ForceUpdateCanvases();
             Popup qp = h.Popups.Find(QuestSheet.Name);
             Assert.IsNotNull(qp, "퀘스트 시트가 열려 있다");
             Transform back = null;
@@ -1800,6 +1801,9 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(bgi.sprite != null && bgi.sprite.texture.name.StartsWith("sf-face-", System.StringComparison.Ordinal), "BakeFace 판: " + (bgi.sprite == null ? "null" : bgi.sprite.texture.name));
             Assert.IsTrue(bgi.sprite.texture.name.Contains("btn_danger_body+btn_danger_side+btn_danger_rim"), "겹 셋 순서(아래→위)");
             Color32[] bp = bgi.sprite.texture.GetPixels32(); int BW = bgi.sprite.texture.width, BH = bgi.sprite.texture.height;
+            // 런 1285 실측 — 판은 **면의 실제 크기**로 구워야 1px 림·키라인이 화면에서 1px 로 선다(기본 100×100 rect 로 구우면 늘려져 사라진다 · 채팅 ◀ 만 맞았었다).
+            Assert.AreEqual(Mathf.RoundToInt(((RectTransform)bf).rect.width), BW, 1, "판 가로 = 면 rect 가로(레이아웃이 끝난 크기)");
+            Assert.AreEqual(Mathf.RoundToInt(((RectTransform)bf).rect.height), BH, 1, "판 세로 = 면 rect 세로");
             Assert.AreEqual(255, bp[(BH / 2) * BW + BW / 2].a, "바탕(pp_red)을 미리 합성 — 불투명");
             float Lum(Color32 c) { return c.r * 0.2126f + c.g * 0.7152f + c.b * 0.0722f; }
             Assert.Greater(Lum(bp[(BH - 1) * BW + BW / 2]), Lum(bp[(BH / 2) * BW + BW / 2]) + 8f, "위 1px 분홍 림이 가운데보다 밝다");
