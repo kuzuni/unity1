@@ -1643,8 +1643,10 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(mh, "MetaHost");
             LeagueSheet.Open(mh);
             yield return null;
+            Popup leaguePop = PopupLayer.Instance.Find(LeagueSheet.Name);   // 런 1274: 리그 시트는 팝업 층(PopupLayer)에 선다 — 아래 시트(UiRoot.Sheet)가 아니다(BoxBorderSitesTests 와 같은 길)
+            Assert.IsNotNull(leaguePop, "리그 시트(팝업 층)");
             Transform scoreBg = null;
-            foreach (RectTransform rt in UiRoot.Instance.Sheet.GetComponentsInChildren<RectTransform>(true))
+            foreach (RectTransform rt in leaguePop.Root.GetComponentsInChildren<RectTransform>(true))
                 if (rt.name == "score" && rt.parent != null && rt.parent.name.StartsWith("row-", System.StringComparison.Ordinal) && rt.Find("bg") != null) { scoreBg = rt.Find("bg"); break; }
             Assert.IsNotNull(scoreBg, "리그 행 점수 알약(score/bg)");
             Assert.IsNotNull(scoreBg.GetComponent<Mask>(), "알약 면에 Mask");
