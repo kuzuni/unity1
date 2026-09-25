@@ -404,6 +404,10 @@ namespace Forge.Game.Ui
             //   5116·5125 `::before`·`::after` 는 inherit). 종전 «막대 높이 × .25»(1.75rem 의 .4375rem)는 한 리터럴로 둘 다 어긋났다 — 표 `RadiusUi.json` 키를 `autoForge` 갈래로 고른다.
             float radius = RadiusUi.Px(autoForge ? "af_age_bar_r_rem" : "fi_age_bar_r_rem");
             Image f = Tile(bar, "bar", ac, Color.black, radius, PopupKit.Line);
+            // T178 36회차 — 정본 **8526** `.fi-age-bar[data-age], .af-age-bar[data-age] { background-image: linear-gradient(180deg, 흰 .42 → .14 44% → .03 48% → 검 .10 52% → .30 100%) }`
+            //   면 위의 톤 램프(«위 흰 → 가운데 원색 → 아래 검정 · 색상은 안 돌린다» · 8250 은 이 마지막 선언이 덮는다). 바탕이 시대색(런타임)이라 색을 넘겨 미리 합성 ·
+            //   둥근 면 안(FillMasked) = 무늬(`::before` · 형제 1)·광택(`::after` · 맨 끝) **아래**.
+            SurfaceArt.FillMasked(f, "bg-grad", "age_bar_ramp", w - PopupKit.Line * 2f, h - PopupKit.Line * 2f, f.color);
             // T124 — 시대 무늬 층(정본 `.af-age-bar::before`·`.fi-age-bar::before` · 항성간 이상 다섯만 · 바탕 채움 바로 위 · 글자·체크 뒤).
             // T380 2회차 — **두 막대의 마스크 값이 다르다**: 정본 4841 `.af-age-bar::before` 는 30→50%, 5116~5123 `.fi-age-bar::before` 는 **24→46%** 다.
             //   여태 클론은 자동 제련 막대에만 마스크를 걸어 정보 팝업·목록 머리 막대는 무늬가 **왼쪽 아이콘·이름 뒤까지** 갔다.
@@ -479,6 +483,9 @@ namespace Forge.Game.Ui
                 b.targetGraphic = f;
                 b.onClick.AddListener(() => onClick());
             }
+            // T178 36회차 — 정본 4845 `.af-age-bar::after` / 5125 `.fi-age-bar::after` 광택 층(위 하이라이트 → 아래 그늘 · 표 af_age_bar_gloss · fi_age_bar_gloss).
+            //   `::after`(inset 0 · 위치 지정)는 흐름 안 글자·아이콘·체크 **위**에 칠해진다 — 막대의 맨 마지막 형제로 세운다(투명 겹 · 클릭 안 먹음).
+            SurfaceArt.Fill(bar, "gloss", autoForge ? "af_age_bar_gloss" : "fi_age_bar_gloss", w, h);
             return bar;
         }
 

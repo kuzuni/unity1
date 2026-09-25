@@ -45,6 +45,13 @@ TABLE = {
     # T135 — 피격 붉은 비네트(정본 #dmg-flash 의 radial + mask) → VigSprite.
     '#dmg-flash': ['Ui/BattleOverlay.cs@VigSprite'],
     '.rw-glow': ['Ui/RewardBurst.cs@GlowFx'],   # T178 14회차 — 수령 임팩트 글로우(방사형 · SurfaceUi.json rw_glow · 박동은 RewardBurstUi.json glow)
+    # T178 36회차 — 시대 막대의 겹 셋: 면 위 톤 램프(8526 · 8250 은 덮인다 · 시대색 위에 FillMasked) · 광택 `::after` 둘(4845 자동 제련 · 5125 확률 정보 · 막대 맨 끝 형제) — `ForgeUi.AgeBar`.
+    #   무늬 층의 마스크(4841 `.af-age-bar::before` 30→50% · 5116 `.fi-age-bar::before` 24→46% · T380 키 AfBar/FiBar)는 AgePattern 이 굽는다.
+    '.fi-age-bar[data-age], .af-age-bar[data-age]': ['Ui/ForgeUi.cs@AgeBar'],
+    '.af-age-bar::after': ['Ui/ForgeUi.cs@AgeBar'],
+    '.fi-age-bar::after': ['Ui/ForgeUi.cs@AgeBar'],
+    '.af-age-bar::before': ['Ui/AgePattern.cs'],
+    '.fi-age-bar::before': ['Ui/AgePattern.cs'],
     # T124 — 시대 무늬 셋(--af-pat 사용자 속성)은 AgePattern.Tile 이 굽는다.
     '.af-age-bar[data-age="interstellar"], .fi-age-bar[data-age="interstellar"], .equip-cell[data-age="interstellar"]': ['Ui/AgePattern.cs@Tile'],
     '.af-age-bar[data-age="multiverse"], .fi-age-bar[data-age="multiverse"], .equip-cell[data-age="multiverse"]': ['Ui/AgePattern.cs@Tile'],

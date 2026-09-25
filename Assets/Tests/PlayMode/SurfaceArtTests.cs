@@ -1509,5 +1509,87 @@ namespace Forge.Tests.PlayMode
             Assert.Less(pbg.GetSiblingIndex(), pill.Find("ico").GetSiblingIndex(), "면(홈 포함)은 아이콘 아래");
         }
 
+        /// <summary>
+        /// T178 36회차 — 시대 막대의 겹 셋. ⓐ 정본 **8526** `.fi-age-bar[data-age], .af-age-bar[data-age]` 면 위 톤 램프(흰 .42 → .14 44% → .03 48% → 검 .10 52% → .30 100% · 8250 은 덮인다 · 시대색 위)
+        /// ⓑ **4845** `.af-age-bar::after` 광택(흰 .3 → 검 .26) ⓒ **5125** `.fi-age-bar::after` 광택(흰 .13 → 검 .15 · 한 단 옅다).
+        /// 실물: 램프는 둥근 면(bar/face) 안 Mask 로 무늬(형제 1)·글자 **아래** · 광택은 막대의 **맨 마지막** 형제(글자·체크 위 · 정본 `::after` 가 위치 지정이라 흐름 안 내용 위에 칠해진다).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 시대_막대에_톤_램프와_광택_겹이_선다()
+        {
+            yield return Boot();
+            // ⓐ 표
+            Color[] sc; float[] so;
+            SurfaceArt.Stops("age_bar_ramp", out sc, out so);
+            Assert.AreEqual(5, sc.Length, "8526 정지점 다섯"); Assert.AreEqual(180f, SurfaceArt.Angle("age_bar_ramp"), 1e-4f);
+            Assert.AreEqual(0.44f, so[1], 1e-4f); Assert.AreEqual(0.48f, so[2], 1e-4f); Assert.AreEqual(0.52f, so[3], 1e-4f, "«위 48% 를 밝히고 52% 에서 어두운 반쪽으로»");
+            Assert.AreEqual(0.42f, sc[0].a, 1e-4f, "위 흰 .42(8250 의 .34 가 아니다 — 마지막 선언)"); Assert.AreEqual(0.3f, sc[4].a, 1e-4f, "아래 검 .30");
+            SurfaceArt.Stops("af_age_bar_gloss", out sc, out so);
+            Assert.AreEqual(0.3f, sc[0].a, 1e-4f, "4846 흰 .3"); Assert.AreEqual(0.44f, so[1], 1e-4f); Assert.AreEqual(0.26f, sc[3].a, 1e-4f, "4847 검 .26");
+            SurfaceArt.Stops("fi_age_bar_gloss", out sc, out so);
+            Assert.AreEqual(0.13f, sc[0].a, 1e-4f, "5127 흰 .13"); Assert.AreEqual(0.42f, so[1], 1e-4f); Assert.AreEqual(0.15f, sc[3].a, 1e-4f, "5128 검 .15");
+            Assert.Less(0.13f, 0.3f, "확률 정보 막대 광택은 자동 제련보다 옅다(«원본은 평면 색면»)");
+
+            // ⓑ 실물 — 자동 제련 막대(2-10 뒤 해금)
+            float t0 = Time.realtimeSinceStartup;
+            while (!ForgeHost.Ready && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h, "ForgeHost");
+            h.S.BestChapter = 3; h.S.BestStage = 1; h.Pull();
+            Assert.IsTrue(h.AutoForgeUnlocked, "2-10 을 넘겨 자동 제련이 해금됐다");
+            ForgeAutoPopup.Open(h);
+            yield return null;
+            Popup auto = h.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(auto, "자동 제련 팝업");
+            int afBars = 0;
+            foreach (string age in h.Defs.Ages)
+            {
+                Transform bar = FindDeep(auto.Root, "af-age-" + age);
+                if (bar == null) continue;
+                afBars++;
+                Transform face = bar.Find("bar/face");
+                Assert.IsNotNull(face, age + ": 둥근 면(bar/face)");
+                Assert.IsNotNull(face.GetComponent<Mask>(), age + ": 면에 Mask — 램프가 모서리 밖으로 안 샌다");
+                Transform ramp = face.Find("bg-grad");
+                Assert.IsNotNull(ramp, age + ": 톤 램프(bg-grad · 8526)");
+                Image ri = ramp.GetComponent<Image>();
+                Assert.IsTrue(ri.sprite != null && ri.sprite.texture.name.StartsWith("sf-age_bar_ramp", System.StringComparison.Ordinal), age + ": 램프 판 age_bar_ramp");
+                Color32[] rp = ri.sprite.texture.GetPixels32(); int RW = ri.sprite.texture.width, RH = ri.sprite.texture.height;
+                Assert.AreEqual(255, rp[RW / 2].a, age + ": 바탕(시대색)을 미리 합성했다 — 불투명");
+                Assert.Greater(rp[(RH - 1) * RW + RW / 2].r + rp[(RH - 1) * RW + RW / 2].g + rp[(RH - 1) * RW + RW / 2].b, rp[RW / 2].r + rp[RW / 2].g + rp[RW / 2].b, age + ": 위(흰 .42)가 아래(검 .30)보다 밝다");
+                Transform gloss = bar.Find("gloss");
+                Assert.IsNotNull(gloss, age + ": 광택(gloss · 4845)");
+                Assert.AreEqual(bar.childCount - 1, gloss.GetSiblingIndex(), age + ": 광택은 막대의 맨 마지막 형제(글자·체크 위)");
+                Image gi = gloss.GetComponent<Image>();
+                Assert.IsTrue(gi.sprite != null && gi.sprite.texture.name.StartsWith("sf-af_age_bar_gloss", System.StringComparison.Ordinal), age + ": 광택 판 af_age_bar_gloss");
+                Assert.IsFalse(gi.raycastTarget, "클릭 안 먹음");
+                Assert.Less(gi.sprite.texture.GetPixels32()[gi.sprite.texture.width / 2].a, 255, age + ": 광택은 투명 겹(바탕 없음)");
+                Assert.AreEqual(0, bar.Find("bar").GetSiblingIndex(), age + ": 틀은 형제 0 그대로(무늬 층 형제 1 · AgePatternTests)");
+            }
+            Assert.Greater(afBars, 0, "자동 제련 막대를 못 찾았다");
+            h.Meta.Popups.Hide(ForgeAutoPopup.Name);
+            yield return null;
+            // ⓒ 실물 — 확률 정보 막대(fi)
+            ForgeInfoPopup.Open(h);
+            yield return null;
+            Popup info = h.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(info, "대장간 정보 팝업");
+            int fiBars = 0;
+            foreach (string age in h.Defs.Ages)
+            {
+                Transform bar = FindDeep(info.Root, "age-" + age);
+                if (bar == null) continue;
+                fiBars++;
+                Transform gloss = bar.Find("gloss");
+                Assert.IsNotNull(gloss, age + ": 광택(gloss · 5125)");
+                Image gi = gloss.GetComponent<Image>();
+                Assert.IsTrue(gi.sprite != null && gi.sprite.texture.name.StartsWith("sf-fi_age_bar_gloss", System.StringComparison.Ordinal), age + ": 광택 판 fi_age_bar_gloss(자동 제련과 다른 판)");
+                Assert.IsNotNull(bar.Find("bar/face/bg-grad"), age + ": 램프도 같은 8526");
+            }
+            Assert.Greater(fiBars, 0, "확률 정보 막대를 못 찾았다");
+            h.Meta.Popups.Hide(ForgeInfoPopup.Name);
+            yield return null;
+        }
+
     }
 }
