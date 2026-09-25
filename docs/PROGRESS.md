@@ -17031,6 +17031,7 @@
 - **자 표**: 8686 → 여섯 `@Btn`·`@BackButton`·`@Pill`·`@BackButton`·`@Open`·`@PaperButton` · 8618 → `@Cell` · 8178 → «—». **자리 초록 107 → 114 · 끄는 규칙 5 → 6 · 미정 29 → 26**(선언 45 → 42) · 문제 0. 범위 칸에 `Popups.cs`·`ChatScreen.cs`·`PassPopup.cs` 를 더했다.
 - **게이트**: `gate.sh` 46 자 막는 자 전부 rc 0(`$?` 직접).
 - **판정(다음 런)**: 새 칸 PASS · BackBtnRadius·BoxBorderSites(패스 칸·뒤로 버튼)·PinnedColorSites(채팅 ◀ 색)·DungeonUi 그대로 · 눈: `screen_quest`/`screen_shop`/`screen_league` 뒤로 ◀ 위 분홍 림 + 좌우 키라인 · `screen_pass` 프리미엄 칸 사선 해칭 · `screen_craft-*` [판매] 버튼. **lock 유지**.
+- **ntfy — 알림 못 보냄**: 커밋 `364ebdd1` push 뒤 `ntfy-notify.yml` **런 #2468**(job 108208018241)가 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 이 루틴 프롬프트엔 토픽이 없고 Secret 미등록(같은 자리).
 - **남은 미정 26 의 갈래**: 선형 — 5626 ascend-ready(색 축 먼저) · 4072 `.sk-ribbon` · 4119 `.sk-shard em` · 1834 `.cmp-card.new::after` — cascade(마지막 선언만): 파란 버튼 8504(8686 과 같은 문법 · `-px` 그대로) · 모달 카드 8272/8286 · 퀘스트 행 8089 · 리그 행 8415/8435 · 채팅 8056 · 펫 타일 8124 · 상점 카드 8225 — 방사: 구슬 재질 넷(6495~6637) · 모달 배경 5649·7148 · `.sk-mini` 4150 · `.hatch-cell` 8026 · 마스크 셋(6235·6334·6637).
 
 ### T178 40회차 판정 ✅ · lock 반납 · 행 ⬜ — 런 1283 초록 · 새 칸 PASS · 눈 ✓(런 1281 그림) (2026-09-25 17:4x · 워커 T · sess-1447-10982)
