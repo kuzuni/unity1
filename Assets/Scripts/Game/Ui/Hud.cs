@@ -68,6 +68,10 @@ namespace Forge.Game.Ui
             // 자리를 잡은 **뒤**에 부른다(굽는 판이 상자 크기를 읽는다).
             UiShadow.Drop(bar, "topbar_drop", 0f);
             UiKit.Panel(bar, "bg", "topbar_bg");
+            // T178 35회차 — 정본 **7900~7903** `#topbar { background-image: … }` 겹 둘: 위 1px 림라이트(180deg · `topbar_rim`) + 아래로 가는 그늘(`topbar_shade`).
+            //   탭바(TabBar.Build · 4회차)와 같은 길이고 방향만 뒤집혔다(정본 주석 «상단바는 아래로, 탭바는 위로 광이 오게»). 바탕(bg)·그림자 위 · 테(line)·카드·알약 아래.
+            SurfaceArt.Fill(bar, "topbar-grad", "topbar_shade", w, barH);
+            SurfaceArt.Fill(bar, "topbar-rim", "topbar_rim", w, barH);
             UiKit.Line(bar, "line", "topbar_line", line, false);
             float padX = UiKit.W("topbar_pad_x");
 
@@ -144,7 +148,10 @@ namespace Forge.Game.Ui
         {
             RectTransform pill = UiKit.Box(parent, name);
             UiKit.Place(pill, x, y, pw, ph);
-            RadiusUi.Rounded(pill, "bg", "card_bg", "currency_pill_r_rem");   // 정본 115 `.currency-pills .pill { border-radius: 1rem }` — 값은 맞았지만 코드에 박혀 있었다(T345 18회차)
+            Image pillBg = RadiusUi.Rounded(pill, "bg", "card_bg", "currency_pill_r_rem");   // 정본 115 `.currency-pills .pill { border-radius: 1rem }` — 값은 맞았지만 코드에 박혀 있었다(T345 18회차)
+            // T178 35회차 — 정본 **7924** `.currency-pills .pill { background-image: linear-gradient(180deg, rgba(0,0,0,.30) 0, rgba(0,0,0,0) 46%, rgba(255,255,255,.10) 100%) }`
+            //   «안쪽으로 파인 홈» — 둥근 면 위라 FillMasked(면에 Mask). 바탕 card_bg 를 미리 합성한다. 아이콘·숫자·«+» 는 그 위 형제 그대로.
+            SurfaceArt.FillMasked(pillBg, "bg-grad", "pill_groove", pw, ph);
             float ico = UiKit.H("pill_icon");
             float padL = UiKit.W("pill_pad_l");
             float padR = UiKit.W("pill_pad_r");

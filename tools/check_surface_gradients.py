@@ -117,6 +117,9 @@ TABLE = {
     #   «미정» 으로 세어지고 있었다(`#panel-skills .summon-bar::before` → `SkillPanel.cs@SummonDash` 와 같은 꼴).
     '.league-reward-tier': ['Ui/LeagueSheet.cs@TierDash'],
     '.pinfo-preview': ['Ui/PlayerInfoPopup.cs#preview-grad'],
+    # T178 35회차 — 상단바 밴드(7900 · 겹 둘 · 위 1px 림 · 탭바를 뒤집은 짝 · `Hud.Build` 의 `bar`) · 재화 알약 홈(7924 · 둥근 면이라 FillMasked · `Hud.Pill`).
+    '#topbar': ['Ui/Hud.cs#topbar'],
+    '.currency-pills .pill': ['Ui/Hud.cs@Pill'],
     # T178 4회차 — 하단 탭바 밴드(겹 둘 · 아래 1px 림은 표의 `unit: "px"`) · 스킬 확률 막대(에나멜 하이라이트 + 위 1px 림 · 둥근 면이라 FillMasked).
     # T178 6회차 — 퀘스트 진행 막대 채움의 두 겹(세로 띠 + 위 1px 광택). 상태는 띠 키로만 가른다(정본 주석).
     '.qst-bar i': ['Ui/QuestSheet.cs#qst-fill-grad', 'Ui/QuestSheet.cs#qst-fill-rim'],

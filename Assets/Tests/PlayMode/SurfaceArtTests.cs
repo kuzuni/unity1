@@ -1450,5 +1450,64 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T178 35회차 — 상단바 밴드(정본 **7900** `#topbar` 겹 둘: 위 1px 림라이트 + 아래로 가는 그늘 · 탭바 4회차의 뒤집은 짝)와
+        /// 재화 알약 홈(정본 **7924** `.currency-pills .pill` · 위 검정 .30 → 46% 투명 → 아래 흰 .10 · 둥근 면이라 Mask).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 상단바_밴드와_재화_알약에_겹이_선다()
+        {
+            yield return Boot();
+            // ⓐ 표
+            Assert.AreEqual(180f, SurfaceArt.Angle("topbar_shade"), 1e-4f, "7902 180deg(위에서 아래로)");
+            Assert.AreEqual(180f, SurfaceArt.Angle("topbar_rim"), 1e-4f, "7901 180deg — 탭바 림(0deg)을 뒤집었다");
+            Assert.IsTrue(SurfaceArt.PxOffsets("topbar_rim"), "림은 1 CSS px 단위");
+            Color[] sc; float[] so;
+            SurfaceArt.Stops("topbar_shade", out sc, out so);
+            Assert.AreEqual(4, sc.Length); Assert.AreEqual(0.4f, so[1], 1e-4f, "40%"); Assert.AreEqual(0.68f, so[2], 1e-4f, "68%");
+            Assert.AreEqual(0.09f, sc[0].a, 1e-4f, "위 흰 .09"); Assert.AreEqual(0.26f, sc[3].a, 1e-4f, "아래 검 .26");
+            SurfaceArt.Stops("pill_groove", out sc, out so);
+            Assert.AreEqual(3, sc.Length); Assert.AreEqual(0.46f, so[1], 1e-4f, "46%");
+            Assert.AreEqual(0.3f, sc[0].a, 1e-4f, "위 검정 .30"); Assert.AreEqual(0f, sc[1].a, 1e-4f, "가운데 투명"); Assert.AreEqual(0.1f, sc[2].a, 1e-4f, "아래 흰 .10");
+            Assert.AreEqual(180f, SurfaceArt.Angle("pill_groove"), 1e-4f);
+
+            // ⓑ 실물 — 상단바: bg 다음 · 겹 → 림 순 · 테(line) 아래 · 꽉 채움 · 불투명(바탕을 미리 합성)
+            Transform bar = null;
+            foreach (RectTransform rt in UiRoot.Instance.App.GetComponentsInChildren<RectTransform>(true)) if (rt.name == "topbar") { bar = rt; break; }
+            Assert.IsNotNull(bar, "상단바(topbar)");
+            Transform grad = bar.Find("topbar-grad"), rim = bar.Find("topbar-rim"), bg = bar.Find("bg"), line = bar.Find("line");
+            Assert.IsNotNull(grad, "상단바 밴드 겹(topbar-grad)"); Assert.IsNotNull(rim, "상단바 위 림(topbar-rim)");
+            Assert.Less(bg.GetSiblingIndex(), grad.GetSiblingIndex(), "바탕 위");
+            Assert.Less(grad.GetSiblingIndex(), rim.GetSiblingIndex(), "밴드 → 림 순");
+            Assert.Less(rim.GetSiblingIndex(), line.GetSiblingIndex(), "테(border-bottom) 아래");
+            Image gi = grad.GetComponent<Image>();
+            Assert.IsNotNull(gi.sprite, "구운 그림"); Assert.IsFalse(gi.raycastTarget, "클릭 안 먹음");
+            Assert.AreEqual(Vector2.zero, gi.rectTransform.offsetMin); Assert.AreEqual(Vector2.zero, gi.rectTransform.offsetMax);
+            Color32[] px = gi.sprite.texture.GetPixels32(); int W = gi.sprite.texture.width, H = gi.sprite.texture.height;
+            Color32 top = px[(H - 1) * W + W / 2], bot = px[W / 2];
+            Assert.Greater(top.r, bot.r, "위는 흰 기 · 아래는 검(아래로 가는 그늘)");
+            Assert.AreEqual(255, top.a, "바탕(topbar_bg)을 알아 미리 합성했다"); Assert.AreEqual(255, bot.a);
+            Image ri = rim.GetComponent<Image>();
+            Assert.IsNotNull(ri.sprite, "림도 구운 그림");
+            Color32[] rp = ri.sprite.texture.GetPixels32(); int RW = ri.sprite.texture.width, RH = ri.sprite.texture.height;
+            Assert.Greater(rp[(RH - 1) * RW + RW / 2].r, rp[(RH / 2) * RW + RW / 2].r, "림은 **위** 줄이 밝다(180deg · 탭바는 아래 줄)");
+
+            // 재화 알약: 둥근 면(bg)에 Mask + bg-grad · 아이콘·숫자는 형제 그대로
+            Transform pill = bar.Find("pill-coin");   // T414 — 상단바 안에서만 찾는다(오프라인 카드도 같은 이름을 짓는다)
+            Assert.IsNotNull(pill, "코인 알약(pill-coin · 상단바 자식)");
+            Transform pbg = pill.Find("bg");
+            Assert.IsNotNull(pbg, "알약 면(bg)");
+            Assert.IsNotNull(pbg.GetComponent<Mask>(), "면에 Mask — 겹이 알약 밖으로 안 샌다");
+            Transform groove = pbg.Find("bg-grad");
+            Assert.IsNotNull(groove, "알약 홈 겹(bg-grad · 7924)");
+            Image gr = groove.GetComponent<Image>();
+            Assert.IsNotNull(gr.sprite, "구운 그림");
+            Color32[] gp = gr.sprite.texture.GetPixels32(); int GW = gr.sprite.texture.width, GH = gr.sprite.texture.height;
+            Assert.Less(gp[(GH - 1) * GW + GW / 2].r, gp[GW / 2].r, "홈: 위(검 .30)가 아래(흰 .10)보다 어둡다");
+            Assert.AreEqual(255, gp[GW / 2].a, "바탕(card_bg)을 미리 합성했다");
+            Assert.IsNotNull(pill.Find("ico"), "아이콘 그대로"); Assert.IsNotNull(pill.Find("value"), "숫자 그대로");
+            Assert.Less(pbg.GetSiblingIndex(), pill.Find("ico").GetSiblingIndex(), "면(홈 포함)은 아이콘 아래");
+        }
+
     }
 }
