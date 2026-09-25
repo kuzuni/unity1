@@ -1683,7 +1683,14 @@ namespace Forge.Tests.PlayMode
             Assert.IsNull(fill.Find("bg-grad"), "채움 광택(7953 gauge_fill)은 8803 이 끈다 — 걷었다");
             Assert.AreEqual(0, fill.childCount, "채움은 자식 겹이 없는 색 한 칸");
             Assert.AreEqual(PetSkillStyle.C("pp_blue"), fill.GetComponent<Image>().color, "채움 = pp_blue 한 칸");
-            Assert.AreEqual(0, face.GetComponentsInChildren<Image>(true).Length - 2, "면 아래 Image 는 면·채움 둘뿐(굽은 겹 없음)");
+            // 런 1281(40회차): 같은 면에 8798 키라인·8812 눈금이 섰다 — «둘뿐» 은 39회차의 전제였다. 이 칸이 묻는 것은 «정본이 끈 겹(그라디언트 판)이 없다» 다:
+            //   면 아래 Image 는 face·keyline·fill·seg-ticks 넷 중 하나뿐이고 `bg-grad`(구운 그라디언트) 는 없다.
+            foreach (Image im in face.GetComponentsInChildren<Image>(true))
+            {
+                string n = im.name;
+                Assert.IsTrue(n == "face" || n == "fill" || n == "keyline" || n == "seg-ticks", "면 아래 낯선 Image(정본이 끈 겹?): " + n);
+                Assert.IsFalse(im.sprite != null && im.sprite.texture != null && im.sprite.texture.name.StartsWith("sf-gauge_", System.StringComparison.Ordinal), "걷은 판 gauge_track/gauge_fill 이 남아 있다: " + n);
+            }
         }
 
         /// <summary>T178 40회차 — 정본 **8812** `.upg-progress::after, .summon-gauge::after, .qst-bar::after, .summon-prog::after, .petup-xpbar::after, .rates-prog::after`
