@@ -1377,5 +1377,78 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T178 34회차 — 소환 결과의 «투명 품는 방사» 둘. ⓐ 정본 **5728** `.sr-wrap::after { radial-gradient(122% 84% at 50% 44%, rgba(0,0,0,0) 40%, rgba(0,0,0,.58) 100%) }`
+        /// 상시 비네트(표 `sr_wrap_vig`) — 가운데는 비고 귀퉁이가 검게 눌린다. ⓑ 정본 **5755** `.sr-body::before { width: 124%; height: calc(100% + 2rem);
+        /// radial-gradient(58% 48% at 50% 50%, rgba(4,7,20,.58) 0%, rgba(4,7,20,.26) 56%, rgba(4,7,20,0) 100%) }` 그리드 뒤 받침(표 `sr_body_plate`) —
+        /// 가운데 .58 · 56% 자리 .26 · 끝은 사라진다. 실물: 비네트는 wrap 에서 충전 비네트(`sr-vig`) 바로 뒤 · 받침은 몸의 광선(`sr-rays`) 바로 다음 형제로 몸보다 큰 상자.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 소환_결과_상시_비네트와_그리드_뒤_받침은_투명을_품은_방사_두_판이다()
+        {
+            // ⓐ 판 — 비네트(상자 비율 9:16)
+            Sprite vg = SurfaceArt.Bake("sr_wrap_vig", 9f / 16f);
+            Texture2D vt = vg.texture;
+            Assert.Less(vt.GetPixel(vt.width / 2, (int)(vt.height * 0.56f)).a, 0.02f, "비네트 가운데(44% 자리)는 비어 있다(40% 안)");
+            Color corner = vt.GetPixel(0, vt.height - 1);   // CSS 위-왼 귀퉁이(텍스처는 아래가 0행)
+            Assert.Greater(corner.a, 0.15f, "귀퉁이는 눌린다(타원 밖 40%→100% 사이 · 실측 " + corner.a.ToString("0.00") + ")");
+            Assert.Less(corner.a, 0.45f, "귀퉁이는 100% 정지점(.58) 안쪽이다 — 타원이 상자보다 크다(122%×84%)");
+            Assert.Less(corner.r + corner.g + corner.b, 0.05f, "판은 검정");
+            // 받침(상자 비율 124% : (100%+2rem) ≈ 넓적)
+            float wf = SurfaceArt.Num("sr_body_plate", "box_w_f"), hx = SurfaceArt.Num("sr_body_plate", "box_h_extra_rem");
+            Assert.AreEqual(1.24f, wf, 1e-4f, "정본 5757 width 124%"); Assert.AreEqual(2f, hx, 1e-4f, "정본 5757 height +2rem");
+            Sprite pl = SurfaceArt.Bake("sr_body_plate", 1.6f);
+            Texture2D pt = pl.texture;
+            Color pc = pt.GetPixel(pt.width / 2, pt.height / 2);
+            Assert.AreEqual(0.58f, pc.a, 0.03f, "받침 가운데 알파 = 정본 .58");
+            Assert.Less(pc.r, 0.05f, "받침 색은 (4,7,20) 남색");
+            Assert.AreEqual(0.26f, pt.GetPixel((int)(pt.width * (0.5f + 0.56f * 0.58f)), pt.height / 2).a, 0.04f, "56% 자리(rx .58 의 56%) 알파 = 정본 .26");
+            Color edge = pt.GetPixel(pt.width - 1, pt.height / 2);
+            Assert.Less(edge.a, 0.13f, "상자 오른끝(반지름의 86%)은 거의 사라진다");
+            Assert.Greater(edge.a, 0.02f, "그러나 0 은 100% 정지점(상자 밖)에서다");
+
+            // ⓑ 실물
+            yield return Boot();
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsNotNull(SkillPetSheet.Instance, "소환 시트가 서지 않았다");
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "common", Name = "나" },
+                new SkillSummonResultView.Entry { Key = "sk:c", IconKey = "sk_fireball", Rarity = "rare", Name = "다" },
+                new SkillSummonResultView.Entry { Key = "sk:d", IconKey = "sk_fireball", Rarity = "ultimate", Name = "라" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "ultimate", null);
+            Assert.IsNotNull(v, "결과 연출 팝업이 서지 않았다");
+            yield return null;
+            Transform vig = FindDeep(v.transform, "sr-vig"), vigS = FindDeep(v.transform, "sr-vig-static");
+            Assert.IsNotNull(vig, "충전 비네트(sr-vig)"); Assert.IsNotNull(vigS, "상시 비네트(sr-vig-static · 5728)");
+            Assert.AreSame(vig.parent, vigS.parent, "둘은 wrap 의 형제");
+            Assert.AreEqual(vig.GetSiblingIndex() + 1, vigS.GetSiblingIndex(), "::after 는 ::before 바로 뒤(위)");
+            Image vsi = vigS.GetComponent<Image>();
+            Assert.IsTrue(vsi.sprite != null && vsi.sprite.texture.name.StartsWith("sf-sr_wrap_vig", System.StringComparison.Ordinal), "상시 비네트 판 sr_wrap_vig: " + (vsi.sprite == null ? "null" : vsi.sprite.texture.name));
+            RectTransform vsr = (RectTransform)vigS;
+            Assert.AreEqual(0f, vsr.anchorMin.x, 1e-4f); Assert.AreEqual(1f, vsr.anchorMax.y, 1e-4f, "wrap 을 꽉 채운다(inset 0)");
+            Assert.AreEqual(1f, vsi.color.a, 1e-3f, "상시 — 알파를 흔들지 않는다(충전 비네트와 다른 판)");
+            Transform body = FindDeep(v.transform, "sr-body");
+            Assert.IsNotNull(body, "몸(sr-body)");
+            Transform plate = body.Find("sr-body-plate");
+            Assert.IsNotNull(plate, "그리드 뒤 받침(sr-body-plate · 5755)");
+            Image pli = plate.GetComponent<Image>();
+            Assert.IsTrue(pli.sprite != null && pli.sprite.texture.name.StartsWith("sf-sr_body_plate", System.StringComparison.Ordinal), "받침 판 sr_body_plate");
+            Transform rays = body.Find("sr-rays"), grid = body.Find("sr-grid");
+            Assert.IsNotNull(grid, "그리드");
+            if (rays != null) Assert.AreEqual(rays.GetSiblingIndex() + 1, plate.GetSiblingIndex(), "받침(z 5)은 광선(z 0) 바로 다음");
+            else Assert.AreEqual(0, plate.GetSiblingIndex(), "광선이 없으면 받침이 첫 형제");
+            Assert.Less(plate.GetSiblingIndex(), grid.GetSiblingIndex(), "받침(5) < 그리드(40)");
+            RectTransform br = (RectTransform)body, pr = (RectTransform)plate;
+            Assert.AreEqual(br.rect.width * wf, pr.sizeDelta.x, 0.5f, "받침 폭 = 몸 × 124%");
+            Assert.AreEqual(br.rect.height + PetSkillStyle.Rem(hx), pr.sizeDelta.y, 0.5f, "받침 높이 = 몸 + 2rem");
+            Assert.AreEqual(0.5f, pr.anchorMin.x, 1e-4f); Assert.AreEqual(0.5f, pr.pivot.y, 1e-4f, "가운데 정렬(translate −50%)");
+            v.Close();
+            yield return null;
+        }
+
     }
 }

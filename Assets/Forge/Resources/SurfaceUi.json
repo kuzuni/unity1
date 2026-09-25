@@ -1464,6 +1464,21 @@
     ],
     "_": "style.css **5810~5811** `.sr-floor::before` 첫 방사 `radial-gradient(closest-side, rgba(0,0,0,0) 61%, var(--floor-line, rgba(150,195,255,.5)) 63.5%, rgba(0,0,0,0) 66.5%)` — 소환진 안쪽의 얇은 동심 링. 판은 흰색 + 알파 단면 · 색(150,195,255 → `.done` 에선 등급색을 .55 띄운 파생색 · ui.js 551 `--floor-line-hi` .85)은 Image 틴트(SummonFxUi `floor_line` · `floor_line_hi_shade_f`·`floor_line_hi_a`). `.done` 은 63.5% 정지점(index 2) 알파를 .85 로 다시 굽는다. 5808 의 `border: .16rem` 테는 T365 축."
   },
+  "sr_wrap_vig": {
+    "shape": "radial",
+    "cx": 0.5, "cy": 0.44, "rx": 1.22, "ry": 0.84,
+    "stops": [[0, 0, 0, 0.0], [0, 0, 0, 0.58]],
+    "offsets": [0.4, 1],
+    "_": "style.css **5728** `.sr-wrap::after { background: radial-gradient(122% 84% at 50% 44%, rgba(0,0,0,0) 40%, rgba(0,0,0,.58) 100%) }` — 정본 주석 «스포크가 프레임 끝까지 직선으로 뻗는 것을 막는 비네트». **상시** 겹(z 2)이고 충전 비네트(5744 `::before` · `SummonFx.BakeVig` · 알파 0→1 로 흔든다)와는 다른 판이다 — 그것은 흡기 때만 올라오고 이것은 늘 켜져 있다. 타원은 상자 비율(122%×84%)이라 판을 상자 비율로 굽는다(`SurfaceArt.Fill`). 정본 5740 의 주석이 못 박은 대로 이 판의 그라디언트는 고정이다. T178 34회차."
+  },
+  "sr_body_plate": {
+    "shape": "radial",
+    "cx": 0.5, "cy": 0.5, "rx": 0.58, "ry": 0.48,
+    "box_w_f": 1.24, "box_h_extra_rem": 2,
+    "stops": [[4, 7, 20, 0.58], [4, 7, 20, 0.26], [4, 7, 20, 0.0]],
+    "offsets": [0, 0.56, 1],
+    "_": "style.css **5755** `.sr-body::before { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 124%; height: calc(100% + 2rem); z-index: 5; background: radial-gradient(58% 48% at 50% 50%, rgba(4,7,20,.58) 0%, rgba(4,7,20,.26) 56%, rgba(4,7,20,0) 100%) }` — 정본 주석 «그리드 뒤 어두운 받침 — 피사체를 배경 광선에서 분리한다». 상자는 몸(`.sr-body`)보다 **가로 124% · 세로 +2rem** 크고 가운데 정렬(`box_w_f`·`box_h_extra_rem` 이 그 둘 · `SkillSummonResult.Build` 가 읽는다) · 층은 광선(z 0) 위·소환진(10)·별(15)·천개(20)·그리드(40) 아래 = 광선 바로 다음 형제. 밖으로 나가는 몫은 `.sr-wrap` 의 RectMask2D 가 자른다(정본도 wrap 의 overflow 가 자른다). 정지점 셋 다 같은 남색(4,7,20)에 알파만 다르다. T178 34회차."
+  },
   "sr_flash": {
     "shape": "radial",
     "cx": 0.5,

@@ -109,6 +109,9 @@ TABLE = {
     '.sr-ok': ['Ui/SkillSummonResult.cs@BuildFoot'],
     '.btn.btn.sr-ok.sr-ok': ['Ui/SkillSummonResult.cs@BuildFoot'],
     '.sr-new': ['Ui/SkillSummonResult.cs@BuildCell'],
+    # T178 34회차 — 소환 결과의 «투명 품는 방사» 둘: 5728 상시 비네트(`::after` · 충전 비네트 5744 `::before` 는 BakeVig 로 따로) · 5755 그리드 뒤 받침(124% × +2rem · 광선 다음 형제). 둘 다 SurfaceArt.Fill(표 sr_wrap_vig · sr_body_plate).
+    '.sr-wrap::after': ['Ui/SkillSummonResult.cs#sr-vig-static'],
+    '.sr-body::before': ['Ui/SkillSummonResult.cs#sr-body-plate'],
     # T178 23회차 — 단(tier) 행 위끝 대시 줄(2548 `repeating-linear-gradient`). **코드는 이미 서 있다** — T368 5회차가
     #   `LeagueSheet.TierDash`(`SurfaceArt.BakeStripe` · 표 `stripes.league_tier_dash`)로 세웠는데 이 자 표에만 안 올라
     #   «미정» 으로 세어지고 있었다(`#panel-skills .summon-bar::before` → `SkillPanel.cs@SummonDash` 와 같은 꼴).

@@ -447,6 +447,10 @@ namespace Forge.Game.Ui
             vigImg.preserveAspect = false;
             vigImg.raycastTarget = false;
             vigImg.color = new Color(1f, 1f, 1f, 0f);
+            // T178 34회차 — 정본 **5728** `.sr-wrap::after`(z 2 · **상시**): `radial-gradient(122% 84% at 50% 44%, rgba(0,0,0,0) 40%, rgba(0,0,0,.58) 100%)` —
+            //   정본 주석 «스포크가 프레임 끝까지 직선으로 뻗는 것을 막는 비네트». 위의 충전 비네트(`::before` · BakeVig · 알파 0→1)와 달리 늘 켜진 한 장이라
+            //   표(SurfaceUi `sr_wrap_vig`)에서 상자 비율로 굽는다 · `::after` 라 `::before` 뒤(위)에 선다. 클론엔 이 판이 없어 흡기 전·후엔 프레임 가장자리가 그대로였다.
+            SurfaceArt.Fill(c, "sr-vig-static", "sr_wrap_vig", W, Hh);
 
             // ---- 머리 ----
             float padT = PetSkillStyle.Px("sr_pad_top_rem"), padX = PetSkillStyle.Px("sr_pad_x_rem"), padB = PetSkillStyle.Px("sr_pad_bottom_rem");
@@ -568,6 +572,18 @@ namespace Forge.Game.Ui
                     // T179 — 연출 겹(정본 sr-canopy 아치+빛발+스필 · sr-rays · sr-stars · ui.js 491~494: canopy = stage · compact = herorow) — 그리드 위 밴드·배경·별
                     fx = SummonFx.Build(body, floor.rectTransform, (bodyH - totalH) * 0.5f, gw, one, heroRow);
                 }
+            }
+            // T178 34회차 — 정본 **5755** `.sr-body::before`(z 5): 그리드 뒤 **어두운 받침** — 가운데 정렬 124% × (100% + 2rem) 상자에
+            //   `radial-gradient(58% 48% at 50% 50%, rgba(4,7,20,.58) 0%, rgba(4,7,20,.26) 56%, rgba(4,7,20,0) 100%)`(정본 주석 «피사체를 배경 광선에서 분리한다»).
+            //   층은 광선(sr-rays · z 0) 바로 위, 소환진(10)·별(15)·천개(20)·그리드(40) 아래 — 광선 다음 형제로 둔다(광선이 없는 판이면 첫 형제).
+            //   상자 치수 둘은 표(SurfaceUi `sr_body_plate` 의 box_w_f·box_h_extra_rem)가 쥔다. 밖으로 나가는 몫은 `.sr-wrap` 의 RectMask2D 가 자른다.
+            {
+                float plateW = gw * SurfaceArt.Num("sr_body_plate", "box_w_f");
+                float plateH = bodyH + PetSkillStyle.Rem(SurfaceArt.Num("sr_body_plate", "box_h_extra_rem"));
+                Image plate = SurfaceArt.Fill(body, "sr-body-plate", "sr_body_plate", plateW, plateH);
+                UiKit.Anchor(plate.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, plateW, plateH);
+                Transform rays = body.Find("sr-rays");
+                plate.transform.SetSiblingIndex(rays != null ? rays.GetSiblingIndex() + 1 : 0);
             }
             for (int i = 0; i < n; i++)
             {

@@ -378,6 +378,16 @@ namespace Forge.Game.Ui
             return (float)J.Num(one[field], dflt);        // 없는 키는 null → 기본값(각도 등 다른 칸과 같은 길)
         }
 
+        /// <summary>겹 항목에 같이 적어 둔 **상자 치수**(정본이 그 겹의 요소에 준 크기 — 5755 `.sr-body::before` 의 `width: 124%; height: calc(100% + 2rem)` 같은 것).
+        /// 값이 없으면 던진다 — 수치는 코드에 안 박는다(§1). T178 34회차.</summary>
+        public static float Num(string key, string field)
+        {
+            JsonObject one = J.Obj(Table()[key]);
+            object v = one == null ? null : one[field];
+            if (!J.IsNum(v)) throw new KeyNotFoundException(ResourcePath + ".json 의 «" + key + "» 에 " + field + " 가 없다");
+            return (float)J.Num(v);
+        }
+
         /// <summary>정본이 «가로축으로 환산한 한 주기»(`.bw-hazard` 의 background-size)라고 적어 둔 그 폭 — 캔버스 px. 셈은 Core <see cref="StripeRules.TileWidth"/>.</summary>
         public static float StripeTileWidth(string key, float periodCanvasPx)
         {
