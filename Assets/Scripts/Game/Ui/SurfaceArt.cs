@@ -592,6 +592,46 @@ namespace Forge.Game.Ui
             return Finish(name, w, h, px);
         }
 
+        /// <summary>
+        /// T178 40회차 — 게이지 **분절 눈금**(정본 8812 `::after` · `repeating-linear-gradient(90deg, 투명 0 (seg−gap), 검 .58 (seg−gap) seg)`).
+        /// 표 `stripes.<paramref name="key"/>` 의 `period_rem`(정본 `--seg` · rem 으로 못 박은 자리) × rem 이 주기, <paramref name="gapPx"/>(정본 `--seg-gap` = ol2 · 부르는 쪽의 토큰)가 눈금 두께.
+        /// 눈금은 주기의 **끝**에 있으므로 당김(phase) = 주기 − 틈 으로 굽는다(<see cref="Forge.Core.Ui.StripeRules.IsInk"/> 는 주기 앞 d 만큼이 잉크). 한 타일을 굽고 `Tiled` 로 되풀이 · 부모를 꽉 채운다(`inset: 0` · pointer-events none).
+        /// </summary>
+        public static Image SegTicks(RectTransform parent, string name, string key, float gapPx, float hCanvasPx)
+        {
+            float period = StripeNum(key, "period_rem", 0f) * UiKit.H("rem_h");
+            if (period <= 0f) throw new KeyNotFoundException(ResourcePath + ".json 의 «stripes." + key + "» 에 period_rem 이 없다");
+            float dash = Mathf.Max(1f, gapPx);
+            RectTransform rt = UiKit.Box(parent, name);
+            UiKit.Fill(rt);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.type = Image.Type.Tiled;
+            img.sprite = BakeStripe(key, period, dash, period - dash, Mathf.Max(1f, hCanvasPx));
+            img.color = Color.white;
+            return img;
+        }
+
+        /// <summary>
+        /// T178 40회차 — **하드 키라인**(정본 8798 `box-shadow: inset 0 0 0 var(--ol1) rgba(0,0,0,.55)` · 블러 0 한 겹): 둥근 사각 안쪽 테 한 장을 굽는다
+        /// (<see cref="BakeDashedFrame"/> 의 틈 0 = 끊김 없는 테). 색은 표 `keylines.<paramref name="key"/>.ink`, 두께는 부르는 쪽의 토큰(ol1). 부모를 꽉 채운다.
+        /// inset 그림자는 자식 아래에 깔리므로 채움(fill)보다 **먼저** 세운다.
+        /// </summary>
+        public static Image Keyline(RectTransform parent, string name, string key, float wCanvasPx, float hCanvasPx, float radiusPx, float thickPx)
+        {
+            JsonObject ks = J.Obj(Table()["keylines"]);
+            JsonObject one = ks == null ? null : J.Obj(ks[key]);
+            if (one == null) throw new KeyNotFoundException(ResourcePath + ".json 의 «keylines» 에 «" + key + "» 이 없다");
+            RectTransform rt = UiKit.Box(parent, name);
+            UiKit.Fill(rt);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.type = Image.Type.Simple;
+            img.sprite = BakeDashedFrame(wCanvasPx, hCanvasPx, radiusPx, Mathf.Max(1f, thickPx), wCanvasPx + hCanvasPx, 0f, StripeColor(one["ink"]));
+            img.color = Color.white;
+            return img;
+        }
+
         /// <summary>T472 — 부모를 꽉 채우는 점선 테 겹(이름은 테 자리 규약대로 `line`). <paramref name="w"/>·<paramref name="h"/> 는 부모 카드의 캔버스 px 크기.</summary>
         public static Image DashedFrame(RectTransform parent, string name, string colorKey, float w, float h, float radius, float line, float dash, float gap)
         {

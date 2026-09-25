@@ -966,6 +966,19 @@
       "tile_w_rem": 1.556,
       "scroll_sec": 0.62,
       "_": "style.css 395 `.bw-hazard` — 보스 경고 띠의 -45° 사선 줄무늬. 정본이 `background-size: 1.556rem`(= 1.1 × √2)로 «가로축 환산 주기» 를 적어 뒀다(StripeRules.TileWidth 가 같은 수를 낸다) · @keyframes bwhazard 가 .62s linear infinite 로 한 타일만큼 흐른다 · 이 자리만 세로(rem) 치수다 — 정본이 rem 으로 못 박았다."
+    },
+    "gauge_seg": {
+      "angle_deg": 90,
+      "period_rem": 0.62,
+      "ink": "#00000094",
+      "gap": null,
+      "_": "style.css 8812 `.upg-progress::after, .summon-gauge::after, .qst-bar::after, .summon-prog::after, .petup-xpbar::after, .rates-prog::after` — aaa-skin (g)(2026-08-19 · 화풍 (3) «게이지 = 분절/블록 채움») 의 **하드 세로 구분선**: `repeating-linear-gradient(90deg, 투명 0 (seg−gap), rgba(0,0,0,.58) (seg−gap) seg)` · `--seg` .62rem 피치(정본이 rem 으로 못 박은 자리 — «분절 격자는 게이지마다 따로 정하지 않고 한 벌로 공유») · 틈 `--seg-gap` = ol2(line2_px · 부르는 쪽이 넘긴다) · 색 #000 .58(0x94) · 블러 금지. 눈금은 주기의 **끝**에 있어 phase = period − gap 으로 굽는다(SurfaceArt.SegTicks). 채움 위에 오고(z 2) 글자는 그 위(z 3). `.summon-prog` 는 정본 마크업(ui.js)에 없다 · `sk-shard` 는 목록에 없다(눈금 없음). T178 40회차."
+    }
+  },
+  "keylines": {
+    "gauge": {
+      "ink": "#0000008c",
+      "_": "style.css 8798 `.upg-progress, .summon-gauge, .qst-bar { box-shadow: inset 0 0 0 var(--ol1) rgba(0,0,0,.55) }` — aaa-skin (g) (1) «플랫 매트 + 하드 키라인»(블러 0 · 한 겹). 두께 ol1 은 부르는 쪽이 line_px 토큰으로 넘긴다 · 색 #000 .55(0x8c). inset 그림자는 자식(채움) 아래에 깔리므로 채움 **앞**에 세운다 — 빈 트랙에서만 보인다. 트랙 셋 = summon-gauge(Gauge) · qst-bar(QuestSheet) · upg-progress(ForgeInfoPopup) — petup-xpbar·rates-prog 는 이 선택자에 없다. T178 40회차."
     }
   },
   "af_toggle_track": {

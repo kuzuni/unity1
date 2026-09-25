@@ -141,6 +141,11 @@ TABLE = {
     '.currency-pills .pill': ['Ui/Hud.cs@Pill'],
     # T178 4회차 — 하단 탭바 밴드(겹 둘 · 아래 1px 림은 표의 `unit: "px"`) · 스킬 확률 막대(에나멜 하이라이트 + 위 1px 림 · 둥근 면이라 FillMasked).
     # T178 6회차 — 퀘스트 진행 막대 채움의 두 겹(세로 띠 + 위 1px 광택). 상태는 띠 키로만 가른다(정본 주석).
+    # T178 40회차 — 8812 분절 눈금 `::after` 여섯(aaa-skin ⓖ ㉳ · `repeating-linear-gradient(90deg, …)` · 표 stripes.gauge_seg · SurfaceArt.SegTicks 한 타일 + Tiled):
+    #   summon-gauge·petup-xpbar·rates-prog 는 `PetSkillKit.Gauge` 한 공장(sk-shard 는 목록에 없다) · qst-bar 는 `QuestSheet.Render` · upg-progress 는 `ForgeInfoPopup.RenderLevelView` ·
+    #   `.summon-prog` 는 정본 마크업(ui.js)에 없다 — 클론 자리 없음. 8798 키라인(inset box-shadow)은 겹이 아니라 자가 안 본다(SurfaceArt.Keyline · PlayMode 자가 잰다).
+    '.upg-progress::after, .summon-gauge::after, .qst-bar::after, .summon-prog::after, .petup-xpbar::after, .rates-prog::after': ['Ui/PetSkillKit.cs@Gauge', 'Ui/QuestSheet.cs@Render', 'Ui/ForgeInfoPopup.cs@RenderLevelView'],
+    '.af-age-bar': '—정본 4825 `.af-age-bar { background-image: none }`(시대별 무늬로 갈아탄 블록 · «공용 45° 줄무늬 해제») 가 4701 의 공용 줄무늬를 끈다 — 무늬는 `::before` 가 시대별로(AgePattern · 표 행 따로) · 40회차',
     '.qst-bar i': '—정본 8806 `.qst-bar i { background: #4fc3f7 }`(aaa-skin ⓖ) 이 2044 의 두 겹을 단색으로 끈다 — 6·10회차의 qst-fill-grad·rim 을 39회차가 걷었다 · 채움 = catalog quest_bar 한 칸',
     '.qst-row.done .qst-bar i': '—정본 8807 `… { background: #81e884 }`(aaa-skin ⓖ) 이 2047 의 두 겹을 단색으로 끈다 — 39회차가 걷었다 · 채움 = catalog quest_bar_done 한 칸',
     # T178 9회차 — 기술 트리 분기 원판(카테고리색 면) 위의 겹 둘: 왼쪽 위 방사형 광택 + 세로 명암.

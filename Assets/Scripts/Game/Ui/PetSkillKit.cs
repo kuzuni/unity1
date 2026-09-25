@@ -313,12 +313,17 @@ namespace Forge.Game.Ui
             RectTransform face = (RectTransform)box.Find("face");
             // T178 39회차 — 정본 **8776~8820 «aaa-skin ⓖ 게이지 축»**(사용자 확정 화풍 ㉯ 플랫/매트 · ㉳ 분절 블록)이 7992 트랙 홈·7953 채움 광택을
             //   `background-image: none` 으로 **끈다**(마지막 선언이 이긴다) — 38회차가 세운 두 겹을 걷었다. 트랙·채움은 색 한 칸(플랫 매트)이 정본이다.
-            //   ㉳ 분절 눈금(8812 `::after` · `--seg` .62rem 피치 · 틈 ol2 · rgba(0,0,0,.58))은 다음 회차 몫.
+            // T178 40회차 — 같은 블록 ⑴ **8798** 하드 키라인(`inset 0 0 0 ol1 검 .55` · 표 keylines.gauge)은 `.summon-gauge` 에만(petup-xpbar·rates-prog 는 그 선택자에 없다) ·
+            //   inset 그림자는 자식(채움) 아래라 채움보다 먼저 세운다. ⑶ **8812** 분절 눈금(표 stripes.gauge_seg · 피치 .62rem · 틈 ol2 · 검 .58)은
+            //   summon-gauge·petup-xpbar·rates-prog 셋(sk-shard 는 목록에 없다) · 채움 위(z 2) · 글자(t · box 의 뒤 형제)는 그 위(z 3).
+            float faceW = Mathf.Max(1f, w - linePx * 2f), faceH = Mathf.Max(1f, h - linePx * 2f);
+            if (name == "summon-gauge") SurfaceArt.Keyline(face, "keyline", "gauge", faceW, faceH, Mathf.Max(1f, radiusPx - linePx), UiKit.L("line_px"));   // ol1 은 catalog 토큰(PetSkillUi 엔 line2·line3 만 있다)
             Image fill = Fill(face, "fill", PetSkillStyle.C("pp_blue"), Mathf.Max(1f, radiusPx - linePx));
             fill.rectTransform.anchorMin = Vector2.zero;
             fill.rectTransform.anchorMax = new Vector2(Mathf.Clamp01(ratio), 1f);
             fill.rectTransform.offsetMin = fill.rectTransform.offsetMax = Vector2.zero;
             fill.type = Image.Type.Sliced;
+            if (name == "summon-gauge" || name == "petup-xpbar" || name == "rates-prog") SurfaceArt.SegTicks(face, "seg-ticks", "gauge_seg", Line2, faceH);
             TextMeshProUGUI t = Stroked(box, "t", kind, label, PetSkillStyle.C("white"), "gauge_span");   // 정본 .rates-prog span · .petup-xpbar span 2.5px
             UiKit.Fill(t.rectTransform);
             return box;

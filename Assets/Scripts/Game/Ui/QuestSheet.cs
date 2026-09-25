@@ -115,10 +115,13 @@ namespace Forge.Game.Ui
                 RectTransform barFace = UiKit.Box(bar, "face");
                 PopupKit.Inset(barFace, barLine);
                 UiKit.Rounded(barFace, "bg", "quest_bar_bg", barH * 0.5f - UiKit.L("line2_px"));   // 자가 단을 읽게 키를 그대로
+                // T178 40회차 — 정본 8798 하드 키라인(inset ol1 검 .55 · 채움 아래) + 8812 분절 눈금(피치 .62rem · 틈 ol2 · 채움 위 · 글자 prog 는 bar 의 뒤 형제라 그 위).
+                SurfaceArt.Keyline(barFace, "keyline", "gauge", bodyW - barLine * 2f, barH - barLine * 2f, barH * 0.5f - barLine, UiKit.L("line_px"));
                 Image fill = UiKit.Rounded(barFace, "fill", done ? "quest_bar_done" : "quest_bar", barH * 0.5f - barLine);
                 fill.rectTransform.anchorMin = Vector2.zero;
                 fill.rectTransform.anchorMax = new Vector2((float)pct, 1f);
                 fill.rectTransform.offsetMin = fill.rectTransform.offsetMax = Vector2.zero;
+                SurfaceArt.SegTicks(barFace, "seg-ticks", "gauge_seg", barLine, barH - barLine * 2f);
                 // T178 39회차 — 정본 **8805/8806** `.qst-bar i { background: #4fc3f7 }` · `.qst-row.done .qst-bar i { background: #81e884 }`(aaa-skin ⓖ · 2026-08-19)가
                 //   2044/2047 의 두 겹(세로 띠 + 위 1px 광택)을 **단색으로 끈다**(«종전 3정지 그라디언트의 중간색(38%)을 그대로 단색으로 · 신호는 그대로, 광택만 사라진다»).
                 //   6·10회차의 `qst-fill-grad`·`qst-fill-rim` 을 걷었다 — 채움은 표 `quest_bar`/`quest_bar_done`(catalog · 바로 그 두 값) 한 칸. 7998 트랙 홈도 같은 블록이 끈다(38회차 겹 걷음).

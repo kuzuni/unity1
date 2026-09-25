@@ -1686,5 +1686,69 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0, face.GetComponentsInChildren<Image>(true).Length - 2, "면 아래 Image 는 면·채움 둘뿐(굽은 겹 없음)");
         }
 
+        /// <summary>T178 40회차 — 정본 **8812** `.upg-progress::after, .summon-gauge::after, .qst-bar::after, .summon-prog::after, .petup-xpbar::after, .rates-prog::after`
+        /// 분절 눈금(`repeating-linear-gradient(90deg, 투명 0 (seg−gap), 검 .58 (seg−gap) seg)` · `--seg` .62rem · 틈 ol2)과 **8798** 하드 키라인(`inset 0 0 0 ol1 검 .55` · 트랙 셋).
+        /// 표 두 칸 + 구운 타일의 화소(주기 끝만 잉크) + 실물: 소환 게이지(face 에 keyline → fill → seg-ticks 순) · 스킬 파편(sk-shard)엔 없음 · 퀘스트 막대(keyline + seg-ticks).</summary>
+        [UnityTest]
+        public IEnumerator 게이지_여섯에_분절_눈금이_서고_트랙_셋에_하드_키라인이_선다()
+        {
+            yield return Boot();
+            // ⓐ 표
+            Assert.AreEqual(0.62f, SurfaceArt.StripeNum("gauge_seg", "period_rem", 0f), 1e-4f, "8790 --seg .62rem");
+            Assert.AreEqual(90f, SurfaceArt.StripeNum("gauge_seg", "angle_deg", 0f), 1e-4f, "세로 구분선 = 90deg 축");
+            // ⓑ 구운 타일 — 주기의 끝 gap 만큼만 잉크(검 .58) · 앞은 투명
+            float rem = PopupKit.Rem, period = 0.62f * rem, gap = PopupKit.Line2;
+            Sprite tile = SurfaceArt.BakeStripe("gauge_seg", period, gap, period - gap, 20f);
+            Texture2D tt = tile.texture; int TW = tt.width, TH = tt.height;
+            Color32 first = tt.GetPixels32()[(TH / 2) * TW], last = tt.GetPixels32()[(TH / 2) * TW + TW - 1];
+            Assert.AreEqual(0, first.a, "타일 앞(0 ~ seg−gap)은 투명");
+            Assert.AreEqual(0x94, last.a, "타일 끝(seg−gap ~ seg)은 검 .58(0x94)");
+            Assert.AreEqual(0, last.r, "잉크는 검정");
+            // ⓒ 실물 — 소환 게이지(37회차와 같은 길)
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(PetSkillHost.Ready, "소환 호스트가 20초 안에 안 섰다");
+            TabBar tb0 = UiRoot.Instance.TabBar;
+            if (tb0.ActiveTab != "summon") tb0.OnTab("summon");
+            SkillPetSheet.Instance.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            Transform gauge = FindDeep(SkillPetSheet.Instance.Skills.transform, "summon-gauge");
+            Assert.IsNotNull(gauge, "소환 게이지(summon-gauge · 스킬 하위판)");
+            Transform face = gauge.Find("face");
+            Transform kl = face.Find("keyline"), fill = face.Find("fill"), ticks = face.Find("seg-ticks");
+            Assert.IsNotNull(kl, "8798 하드 키라인(face/keyline)");
+            Assert.IsNotNull(ticks, "8812 분절 눈금(face/seg-ticks)");
+            Assert.Less(kl.GetSiblingIndex(), fill.GetSiblingIndex(), "키라인은 채움 아래(inset 그림자는 자식 아래에 깔린다)");
+            Assert.Greater(ticks.GetSiblingIndex(), fill.GetSiblingIndex(), "눈금은 채움 위(::after z 2)");
+            Image ti = ticks.GetComponent<Image>();
+            Assert.AreEqual(Image.Type.Tiled, ti.type, "한 타일을 굽고 Tiled 로 되풀이");
+            Assert.IsTrue(ti.sprite != null && ti.sprite.texture.name.StartsWith("sf-stripe-gauge_seg", System.StringComparison.Ordinal), "눈금 타일 gauge_seg: " + (ti.sprite == null ? "null" : ti.sprite.texture.name));
+            Assert.IsFalse(ti.raycastTarget, "pointer-events: none");
+            Image ki = kl.GetComponent<Image>();
+            Assert.IsTrue(ki.sprite != null && ki.sprite.texture.name.StartsWith("sf-dashed-", System.StringComparison.Ordinal), "키라인은 틈 0 의 둥근 테 한 장");
+            Color32[] kp = ki.sprite.texture.GetPixels32(); int KW = ki.sprite.texture.width, KH = ki.sprite.texture.height;
+            Assert.AreEqual(0, kp[(KH / 2) * KW + KW / 2].a, "테 안쪽 가운데는 투명");
+            Assert.Greater(kp[(KH / 2) * KW].a, 0x60, "왼쪽 가장자리는 검 .55 테");
+            Transform shard = FindDeep(SkillPetSheet.Instance.Skills.transform, "sk-shard");
+            if (shard != null) { Assert.IsNull(shard.Find("face/seg-ticks"), "sk-shard 는 8812 목록에 없다"); Assert.IsNull(shard.Find("face/keyline"), "sk-shard 는 8798 목록에도 없다"); }
+            // ⓓ 실물 — 퀘스트 막대
+            t0 = Time.realtimeSinceStartup;
+            while (!(MetaHost.Ready && PopupLayer.Instance != null) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
+            UiRoot.Instance.TabBar.OnTab("quest");
+            yield return null; yield return null;
+            int bars = 0;
+            foreach (Transform bar in UiRoot.Instance.App.GetComponentsInChildren<Transform>(true))
+            {
+                if (bar.name != "bar" || bar.Find("face/bg") == null || bar.Find("face/fill") == null) continue;
+                bars++;
+                Transform qk = bar.Find("face/keyline"), qf = bar.Find("face/fill"), qt = bar.Find("face/seg-ticks");
+                Assert.IsNotNull(qk, "퀘스트 막대 키라인(8798)"); Assert.IsNotNull(qt, "퀘스트 막대 눈금(8812)");
+                Assert.Less(qk.GetSiblingIndex(), qf.GetSiblingIndex(), "키라인은 채움 아래"); Assert.Greater(qt.GetSiblingIndex(), qf.GetSiblingIndex(), "눈금은 채움 위");
+                Assert.AreEqual(Image.Type.Tiled, qt.GetComponent<Image>().type);
+            }
+            Assert.Greater(bars, 0, "퀘스트 막대가 하나는 섰다");
+        }
+
     }
 }

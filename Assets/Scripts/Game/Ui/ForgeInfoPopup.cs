@@ -127,13 +127,18 @@ namespace Forge.Game.Ui
                 // 정본 694 `.upg-progress { border-radius: .55rem }` — 클론은 .5 였다(T345 21회차 · 표 upg_progress_r_rem)
                 float progR = RadiusUi.Px("upg_progress_r_rem");
                 // T178 39회차 — 정본 8798/8803(aaa-skin ⓖ)이 7992 트랙 홈·7953 채움 광택을 `none` 으로 끈다 — 38회차 겹 둘을 걷었다(트랙·채움 = 색 한 칸 · 플랫 매트).
+                //   40회차 — 8798 하드 키라인(테 안쪽 · 채움 아래) + 8812 분절 눈금(채움 위 · 글자 upg-time 아래) · ⚠ 테 자는 track↔upg-fill 두 Rounded 를 420자 창에서 짝짓는다.
                 Image track = UiKit.Rounded(prog, "track", "pp_line", progR);
+                RectTransform kl = UiKit.Box(prog, "keyline-box"); PopupKit.Inset(kl, PopupKit.Line);
+                SurfaceArt.Keyline(kl, "keyline", "gauge", rem * 1.6f, rem * 1.6f, progR - PopupKit.Line, PopupKit.Line);
                 double frac = Math.Min(1, Math.Max(0, 1 - remain / h.Engine.UpgradeTime(info)));
                 Image fill = UiKit.Rounded(prog, "upg-fill", "pp_blue", progR - PopupKit.Line);
                 fill.rectTransform.anchorMin = new Vector2(0f, 0f);
                 fill.rectTransform.anchorMax = new Vector2((float)frac, 1f);
                 fill.rectTransform.offsetMin = new Vector2(PopupKit.Line, PopupKit.Line);
                 fill.rectTransform.offsetMax = new Vector2(-PopupKit.Line, -PopupKit.Line);
+                RectTransform tk = UiKit.Box(prog, "seg-box"); PopupKit.Inset(tk, PopupKit.Line);
+                SurfaceArt.SegTicks(tk, "seg-ticks", "gauge_seg", PopupKit.Line2, rem * 1.6f - PopupKit.Line * 2f);
                 TextMeshProUGUI tt = UiKit.Text(prog, "upg-time", TextKind.Sub, NumFmt.FmtTime(remain), "stage_ink");
                 tt.fontStyle = FontStyles.Bold;
                 PopupKit.Spacer(card, rem * 0.5f);
