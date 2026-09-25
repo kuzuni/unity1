@@ -17031,7 +17031,7 @@
 - **게이트**: `gate.sh` 46 자 막는 자 전부 rc 0(dotnet 컴파일 포함).
 - **판정(다음 런)**: 그 칸 PASS · `AgePatternTests`(층 형제 1)·`AgeBarGapTests`·`AgeBarRadiusTests`·`BoxBorderSitesTests`(막대 체크 ol3) 그대로 · 눈: `screen_autoforge.png`·`screen_forge-info.png` 막대 위가 밝고 아래가 어두운 «광택 있는 캔디». **lock 유지**.
 - **남은 미정 39 의 갈래**: 선형만 — 5209 `.summon-btn` · 5260~5274 은색 버튼 셋 · 5626·5641 ascend-ready · 7881 `.league-score` · 7953 채움 막대 넷 · 7992 트랙 셋 · 8178 서브패널 · 8812 `::after` — 그리고 33회차 줄의 방사·cascade 갈래(모달 카드 7718/7778 류는 마지막 선언 8272/8286 만).
-- **ntfy**: push 뒤 결과를 이 절 끝에 적는다.
+- **ntfy — 알림 못 보냄**: 커밋 `6b7177fa` push 뒤 `ntfy-notify.yml` **런 #2440**(job 107961233344)이 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 이 루틴 프롬프트엔 토픽이 없고 Secret 미등록(같은 자리).
 
 ### T178 35회차 판정 ✅ · lock 반납 · 행 ⬜ — 런 1268 재실행 2차 초록 · 새 칸 PASS · 눈 ✓ (2026-09-25 04:4x · 워커 T · sess-1447-10982)
 
