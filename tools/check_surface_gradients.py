@@ -125,8 +125,8 @@ TABLE = {
     '.league-reward-tier': ['Ui/LeagueSheet.cs@TierDash'],
     '.pinfo-preview': ['Ui/PlayerInfoPopup.cs#preview-grad'],
     # T178 38회차 — 게이지: 트랙 홈 7992(셋 · 표 gauge_track · 바탕은 그 자리의 트랙 색) · 채움 광택 7953(넷 · 표 gauge_fill · units px+f · 바탕은 채움 색). 8812 `::after` 눈금(--seg 변수 · 되풀이 띠)은 다음.
-    '.upg-progress, .summon-gauge, .qst-bar': ['Ui/ForgeInfoPopup.cs@RenderLevelView', 'Ui/PetSkillKit.cs@Gauge', 'Ui/QuestSheet.cs@Render'],
-    '#upg-fill, #tech-node-fill, .tech-prog #tech-node-fill, .summon-gauge i': ['Ui/ForgeInfoPopup.cs#upg-fill', 'Ui/TechPopups.cs@RenderAction', 'Ui/PetSkillKit.cs@Gauge'],
+    '.upg-progress, .summon-gauge, .qst-bar': '—정본 8798(aaa-skin ⓖ · 2026-08-19 «플랫/매트 + 분절») 이 `background-image: none` 으로 끈다 — 38회차가 세운 홈(gauge_track)을 39회차가 걷었다 · 트랙 = 색 한 칸(+ 하드 키라인 inset ol1 은 box-shadow 축)',
+    '#upg-fill, #tech-node-fill, .tech-prog #tech-node-fill, .summon-gauge i': '—정본 8803(aaa-skin ⓖ) 이 `background-image: none` 으로 끈다 — 38회차의 광택(gauge_fill)을 39회차가 걷었다 · 채움 = 색 한 칸',
     # T178 37회차 — 은색 버튼 가족(5209 `.summon-btn` · 5260/5268 `.skd-btn.silver(.disabled)` · 5274 `.btn.silver` — #e3e3e3 → #c2c2c2 · 비활성 #d9d9d9 → #bdbdbd)과 승천 소환 버튼(5641 · #4caf50 → #2e7d32):
     #   `PetSkillKit.PaperButton`(Silver/Ascend · 둥근 면에 FillMasked · `.petup-selrow .btn.silver` 5487 단색은 plainFace) · 던전 상세 은색은 `DungeonPopups.Pill`. 리그 점수 알약(7881)은 `LeagueSheet` 의 `score/bg`.
     #   5626 `.btn.sm.ascend-ready`(대장간 만렙 버튼)는 클론 ForgeSheet 의 버튼이 파랑 한 벌이라 아직 미정(색 축 T377 과 함께 열 자리).
@@ -141,8 +141,8 @@ TABLE = {
     '.currency-pills .pill': ['Ui/Hud.cs@Pill'],
     # T178 4회차 — 하단 탭바 밴드(겹 둘 · 아래 1px 림은 표의 `unit: "px"`) · 스킬 확률 막대(에나멜 하이라이트 + 위 1px 림 · 둥근 면이라 FillMasked).
     # T178 6회차 — 퀘스트 진행 막대 채움의 두 겹(세로 띠 + 위 1px 광택). 상태는 띠 키로만 가른다(정본 주석).
-    '.qst-bar i': ['Ui/QuestSheet.cs#qst-fill-grad', 'Ui/QuestSheet.cs#qst-fill-rim'],
-    '.qst-row.done .qst-bar i': ['Ui/QuestSheet.cs#qst-fill-grad', 'Ui/QuestSheet.cs#qst-fill-rim'],
+    '.qst-bar i': '—정본 8806 `.qst-bar i { background: #4fc3f7 }`(aaa-skin ⓖ) 이 2044 의 두 겹을 단색으로 끈다 — 6·10회차의 qst-fill-grad·rim 을 39회차가 걷었다 · 채움 = catalog quest_bar 한 칸',
+    '.qst-row.done .qst-bar i': '—정본 8807 `… { background: #81e884 }`(aaa-skin ⓖ) 이 2047 의 두 겹을 단색으로 끈다 — 39회차가 걷었다 · 채움 = catalog quest_bar_done 한 칸',
     # T178 9회차 — 기술 트리 분기 원판(카테고리색 면) 위의 겹 둘: 왼쪽 위 방사형 광택 + 세로 명암.
     '.tech-branch-icon::before': ['Ui/TechPanel.cs#tb-icon-gloss', 'Ui/TechPanel.cs#tb-icon-shade'],
     '#panel-skills .summon-bar::before': ['Ui/SkillPanel.cs@SummonDash'],   # T368 3회차 — 되풀이 대시 한 타일(SurfaceArt.BakeStripe · 표 stripes.skills_summon_dash)
@@ -240,21 +240,33 @@ def _blank_comments(css):
     return re.sub(r'/\*.*?\*/', rep, css, flags=re.S)
 
 
-def parse_rules(css_text):
+def parse_rules(css_text, offs=None):
     """[(줄, 선택자, 속성, 겹 코드)] — 값에 `…gradient(` 가 든 선언 전부(background · background-image · mask-image · 사용자 속성).
-    겹 코드 = 겹마다 한 글자(L 선형 · R 방사 · rL/rR 반복 · C 원뿔) 를 이어 붙인 것 — «몇 겹인가» 가 한눈에 보인다."""
+    겹 코드 = 겹마다 한 글자(L 선형 · R 방사 · rL/rR 반복 · C 원뿔) 를 이어 붙인 것 — «몇 겹인가» 가 한눈에 보인다.
+    `offs`(dict) 를 주면 **같은 선택자에 뒤에 와서 그 겹을 끄는 선언**을 모아 준다 — `background-image: none` · `background: <단색>`(줄임은 image 를 되돌린다)
+    · `mask-image: none` — {선택자: (끄는 줄, 속성, 값 머리)}. cascade 는 마지막 선언이 이긴다(T178 39회차 · 정본 8776~8820 «aaa-skin ⓖ» 가
+    7992·7953·2044·2047 을 none/단색으로 끄는데 자가 못 봐 정본이 끈 겹을 세웠다)."""
     css = _blank_comments(css_text)
     out = []
+    last_grad = {}        # (선택자, 속성군) → 마지막 겹 선언 줄
     for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', css):
         sel = ' '.join(m.group(1).split())
         lead = len(m.group(1)) - len(m.group(1).lstrip())
         line = css[:m.start(1) + lead].count('\n') + 1
         for d in GRAD_PROP.finditer(m.group(2)):
-            val = d.group(2)
-            if 'gradient(' not in val:
+            prop, val = d.group(1), d.group(2)
+            fam = 'mask' if 'mask' in prop else ('bg' if prop.startswith('background') else prop)
+            if 'gradient(' in val:
+                kinds = ''.join(KIND_CODE[k] for k in GRAD_KIND.findall(val))
+                out.append((line, sel, prop, kinds))
+                last_grad[(sel, fam)] = line
+                if offs is not None:
+                    offs.pop(sel, None)       # 뒤에 다시 겹을 켰다
                 continue
-            kinds = ''.join(KIND_CODE[k] for k in GRAD_KIND.findall(val))
-            out.append((line, sel, d.group(1), kinds))
+            if offs is None or (sel, fam) not in last_grad or prop.startswith('--'):
+                continue
+            if line > last_grad[(sel, fam)]:
+                offs[sel] = (line, prop, val.strip()[:24])
     return out
 
 
@@ -320,10 +332,17 @@ def run(css_path, game_dir, table, known, out=print, list_pending=False):
     if not os.path.isfile(css_path):
         out('✗ 정본 CSS 를 못 읽었다: %s (git clone --depth 1 https://github.com/kuzuni/wwwww .wwwww-src)' % css_path)
         return 2
-    rules = parse_rules(_read(css_path))
+    offs = {}
+    rules = parse_rules(_read(css_path), offs)
     problems = 0
     seen = set()
     n_off = n_ok = n_known = n_stripe = 0
+    # ⓛ 정본이 **나중 선언으로 끈** 선택자(cascade)에 표가 굽는 자리를 적어 두면 «정본이 끈 겹을 세운 것» 이다 — 막는다(T178 39회차).
+    for sel in sorted(offs):
+        if sel in table and not isinstance(table[sel], str):
+            problems += 1
+            oline, oprop, oval = offs[sel]
+            out('✗ 정본이 나중에 끈다  %s  ← style.css %d { %s: %s }  — 마지막 선언이 이긴다 · 클론 겹을 걷고 표는 «—» 로 적어라' % (sel, oline, oprop, oval))
     pending = []          # (줄, 선택자, 속성, 겹) — 표에 없는 정본 선언
     known_now_ok = []
     checked = set()       # (선택자, 자리) — 같은 선택자의 선언이 여럿이어도 자리는 한 번만 센다
@@ -369,9 +388,9 @@ def run(css_path, game_dir, table, known, out=print, list_pending=False):
     pend_sel = sorted(set(p[1] for p in pending))
     if list_pending:
         for line, sel, prop, kinds in pending:
-            out('· 미정  style.css %5d  %-64s %-18s %s' % (line, sel[:64], prop, kinds))
-    out('%s check_surface_gradients: 정본 겹 선언 %d(선택자 %d) · 끄는 규칙 %d · 띠(조각으로 그린다) %d · 자리 초록 %d · KNOWN 빈자리 %d · 미정 선택자 %d(선언 %d · --list 로 본다) · 문제 %d'
-        % ('✓' if problems == 0 else '✗', len(rules), len(set(r[1] for r in rules)), n_off, n_stripe, n_ok, n_known, len(pend_sel), len(pending), problems))
+            out('· 미정  style.css %5d  %-64s %-18s %s%s' % (line, sel[:64], prop, kinds, ('  ⟵ 정본이 %d 에서 끈다(%s: %s)' % offs[sel]) if sel in offs else ''))
+    out('%s check_surface_gradients: 정본 겹 선언 %d(선택자 %d) · 정본이 나중에 끈 선택자 %d · 끄는 규칙 %d · 띠(조각으로 그린다) %d · 자리 초록 %d · KNOWN 빈자리 %d · 미정 선택자 %d(선언 %d · --list 로 본다) · 문제 %d'
+        % ('✓' if problems == 0 else '✗', len(rules), len(set(r[1] for r in rules)), len(offs), n_off, n_stripe, n_ok, n_known, len(pend_sel), len(pending), problems))
     return 0 if problems == 0 else 1
 
 
@@ -465,6 +484,25 @@ def self_test():
     rc, out = go({'.g-a': ['Ui/Face.cs#g-a'], '.g-c::before': '—띠 조각으로 그린다'}, {}, base_css)
     expect('ⓙ 띠 따로 셈', rc == 0 and '끄는 규칙 0 · 띠(조각으로 그린다) 1' in out, out)
     expect('ⓙ 띠 자리 초록 1', '자리 초록 1' in out, out)
+
+    # ⓛ «정본이 나중에 끈다»(cascade · T178 39회차) — 같은 선택자에 뒤에 온 `background-image: none` / `background: <단색>` / `mask-image: none` 이
+    #   앞의 겹을 끈다. 표가 그 선택자에 굽는 자리를 적어 두면 «정본이 끈 겹을 세운 것» 이라 rc 1 · «—» 로 적으면 끄는 규칙으로 센다 ·
+    #   뒤에 다시 겹을 켜면 끈 것이 아니다 · 미정 목록(--list)엔 «⟵ 정본이 N 에서 끈다» 가 붙는다.
+    off_css = (base_css +
+               '.g-a { background-image: none; }\n'
+               '.g-b { background: #123; }\n'
+               '.g-c::before { mask-image: none; }\n'
+               '.g-f, .g-g { background: #fff; }\n'
+               '.g-f, .g-g { background: linear-gradient(#000, #fff); }\n')
+    cs('class Face { static void B(Transform p){ Image a = Radial(p, "g-a", "k", null); Image b = Radial(p, "g-b", "k", null); } }')
+    rc, out = go({'.g-a': ['Ui/Face.cs#g-a'], '.g-b': ['Ui/Face.cs#g-b'], '.g-f, .g-g': ['Ui/Face.cs#g-a']}, {}, off_css)
+    expect('ⓛ 끈 선택자 rc 1', rc == 1 and out.count('정본이 나중에 끈다') == 2, out)
+    expect('ⓛ 끈 선택자 셈 3(a·b·c — f,g 는 다시 켰다)', '정본이 나중에 끈 선택자 3' in out, out)
+    rc, out = go({'.g-a': '—정본이 끈다', '.g-b': '—정본이 끈다', '.g-f, .g-g': ['Ui/Face.cs#g-a']}, {}, off_css, list_pending=True)
+    expect('ⓛ «—» 로 적으면 rc 0', rc == 0 and '끄는 규칙 2' in out and '자리 초록 1' in out, out)
+    expect('ⓛ 미정 목록에 끈 자리 표식', '⟵ 정본이' in out and '.g-c::before' in out, out)
+    cs('class Face { static void B(Transform p){ Image a = Radial(p, "g-a", "k", null); } }')
+    w(css, base_css)
 
     # ⓚ «@메서드» — 같은 이름의 **호출문**(`return M(`)이 정의보다 먼저 나와도 정의의 몸을 읽는다(T178 25회차 · BakeRing/BakeRadial 갈래)
     cs('class Face { static Sprite W(){ return M(); }\n static Sprite M(){ return Sprite.Create(t, r, v); } }')

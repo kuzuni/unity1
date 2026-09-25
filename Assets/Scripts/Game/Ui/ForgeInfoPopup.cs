@@ -126,18 +126,14 @@ namespace Forge.Game.Ui
                 RectTransform prog = PopupKit.Item(card, "fi-prog", -1f, rem * 1.6f);
                 // 정본 694 `.upg-progress { border-radius: .55rem }` — 클론은 .5 였다(T345 21회차 · 표 upg_progress_r_rem)
                 float progR = RadiusUi.Px("upg_progress_r_rem");
-                // T178 38회차 — 정본 **7992** `.upg-progress { background-image: … }` 트랙의 파인 홈(표 `gauge_track`). 클론 트랙은 `pp_line` 한 장(정본 694/7990 의 면 #22272e→#2d333c · 테 #444c56 은 색 축 T377 몫)이라
-                //   그 색 위에 미리 합성한다 — 아래 가장자리의 흰 .16 만 보인다. 채움(upg-fill)은 그 위 형제. ⚠ 테 자(check_box_borders)는 track↔upg-fill 두 Rounded 를 420자 창 안에서 짝짓는다 — 사이에 긴 주석을 두지 말 것.
+                // T178 39회차 — 정본 8798/8803(aaa-skin ⓖ)이 7992 트랙 홈·7953 채움 광택을 `none` 으로 끈다 — 38회차 겹 둘을 걷었다(트랙·채움 = 색 한 칸 · 플랫 매트).
                 Image track = UiKit.Rounded(prog, "track", "pp_line", progR);
-                SurfaceArt.FillMasked(track, "bg-grad", "gauge_track", rem * 1.6f, rem * 1.6f, track.color);
                 double frac = Math.Min(1, Math.Max(0, 1 - remain / h.Engine.UpgradeTime(info)));
                 Image fill = UiKit.Rounded(prog, "upg-fill", "pp_blue", progR - PopupKit.Line);
                 fill.rectTransform.anchorMin = new Vector2(0f, 0f);
                 fill.rectTransform.anchorMax = new Vector2((float)frac, 1f);
                 fill.rectTransform.offsetMin = new Vector2(PopupKit.Line, PopupKit.Line);
                 fill.rectTransform.offsetMax = new Vector2(-PopupKit.Line, -PopupKit.Line);
-                // 정본 **7953** `#upg-fill { background-image: … }` 채움의 광택(표 `gauge_fill` · 위 1 CSS px 흰 림 + 46% 밴드 엣지 · 바탕 = 채움 색). 180deg 라 선 길이는 높이뿐 — 폭은 상자에 늘린다.
-                SurfaceArt.FillMasked(fill, "bg-grad", "gauge_fill", rem * 1.6f - PopupKit.Line * 2f, rem * 1.6f - PopupKit.Line * 2f, fill.color);
                 TextMeshProUGUI tt = UiKit.Text(prog, "upg-time", TextKind.Sub, NumFmt.FmtTime(remain), "stage_ink");
                 tt.fontStyle = FontStyles.Bold;
                 PopupKit.Spacer(card, rem * 0.5f);

@@ -401,48 +401,46 @@ namespace Forge.Tests.PlayMode
             Assert.IsFalse(glow.gameObject.activeSelf, "닫으면 다시 꺼진다");
         }
 
-        /// <summary>T178 6회차 — 퀘스트 진행 막대 채움은 **두 겹**이다(정본 2044·2047: 세로 색 띠 + 위 1 CSS px 흰 광택).
-        /// 상태(수령 전 파랑 / 수령 대기 초록)는 **띠 키로만** 갈리고 광택은 같다 — 정본 주석이 못 박은 자리다.</summary>
+        /// <summary>T178 39회차 — 퀘스트 진행 막대 채움은 **색 한 칸**이다. 6회차가 정본 2044·2047(세로 띠 + 위 1px 광택 두 겹)을 세웠는데,
+        /// 정본 **8776~8820 «aaa-skin ⓖ 게이지 축»**(2026-08-19 · 사용자 확정 화풍 ㉯ 플랫/매트)이 뒤에서 `.qst-bar i { background: #4fc3f7 }` ·
+        /// `.qst-row.done .qst-bar i { background: #81e884 }` 로 **단색으로 끈다**(«종전 3정지의 중간색(38%)을 단색으로 · 신호는 그대로, 광택만 사라진다»).
+        /// 트랙 홈(7992)도 같은 블록이 `none` 으로 끈다. cascade 는 마지막 선언이 이긴다 — 자(check_surface_gradients)가 이제 그것을 센다.</summary>
         [UnityTest]
-        public IEnumerator 퀘스트_막대_채움은_띠와_광택_두_겹이다()
+        public IEnumerator 퀘스트_막대_채움은_정본_최종_규칙대로_색_한_칸이다()
         {
             yield return Boot();
+            // ⓐ catalog 의 두 채움 색이 정본 8806/8807 의 단색 그 값이다
+            Color32 qb = UiKit.C("quest_bar"), qd = UiKit.C("quest_bar_done");
+            Assert.IsTrue(qb.r == 0x4f && qb.g == 0xc3 && qb.b == 0xf7, "quest_bar = #4fc3f7(8806): " + qb);
+            Assert.IsTrue(qd.r == 0x81 && qd.g == 0xe8 && qd.b == 0x84, "quest_bar_done = #81e884(8807): " + qd);
+            // ⓑ 걷은 표 키(qst_bar_ramp·qst_bar_done_ramp·qst_bar_rim·gauge_track·gauge_fill)는 표에 없다
+            foreach (string gone in new[] { "qst_bar_ramp", "qst_bar_done_ramp", "qst_bar_rim", "gauge_track", "gauge_fill" })
+            {
+                bool has = true;
+                try { SurfaceArt.Angle(gone); } catch (KeyNotFoundException) { has = false; }
+                Assert.IsFalse(has, "정본이 끈 겹의 표 키가 남아 있다: " + gone);
+            }
+            // ⓒ 실물
             float t = 0f;
             while (!(MetaHost.Ready && PopupLayer.Instance != null) && t < 20f) { t += Time.unscaledDeltaTime; yield return null; }
             Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
             UiRoot.Instance.TabBar.OnTab("quest");
             yield return null;
             yield return null;
-            Transform grad = FindDeep(UiRoot.Instance.App, "qst-fill-grad");
-            Assert.IsNotNull(grad, "채움 띠(qst-fill-grad)가 섰다");
-            Transform rim = FindDeep(UiRoot.Instance.App, "qst-fill-rim");
-            Assert.IsNotNull(rim, "채움 광택(qst-fill-rim)이 섰다");
-            Assert.AreEqual("fill", grad.parent.name, "겹은 채움(fill)의 자식이다");
-            UnityEngine.UI.Image gi = grad.GetComponent<UnityEngine.UI.Image>();
-            Assert.IsNotNull(gi.sprite, "띠는 구운 그림이다(색 한 칸이 아니다)");
-            Assert.IsFalse(gi.raycastTarget);
-            UnityEngine.UI.Mask mask = grad.parent.GetComponent<UnityEngine.UI.Mask>();
-            Assert.IsNotNull(mask, "채움에 Mask — 둥근 끝 밖으로 안 샌다");
-
-            // 정본 띠는 위가 밝고 아래가 어둡다(#8fd9ff → #0288d1 · done 이면 #aef2b0 → #2e9e31).
-            Texture2D tex = gi.sprite.texture;
-            Color top = tex.GetPixel(tex.width / 2, tex.height - 2), bottom = tex.GetPixel(tex.width / 2, 1);
-            float lt = top.r + top.g + top.b, lb = bottom.r + bottom.g + bottom.b;
-            Assert.Greater(lt, lb + 0.3f, "위가 아래보다 밝다(정본 180deg 밝은 색 → 어두운 색)");
-
-            // T178 10회차 — 림의 바탕은 **상태로 갈린다**(파랑 ↔ 초록)라 표의 `over_layer` 로는 못 적는다.
-            //   부르는 쪽(QuestSheet)이 그때의 바탕 겹을 주면 굽는 쪽이 정본이 섞는 길(sRGB 바이트)로 미리 합성한다 — 그러면
-            //   구운 판이 **불투명**해지고(섞을 자리가 없다) 값은 «띠 색 위에 흰 .5» 가 된다. 알파로 남아 있으면 유니티가
-            //   선형에서 섞어 정본보다 밝아진다(T357 · 탭바 98 ↔ 42 가 그 자리였다).
-            UnityEngine.UI.Image ri = rim.GetComponent<UnityEngine.UI.Image>();
-            Assert.IsNotNull(ri.sprite, "광택도 구운 그림이다");
-            Texture2D rtex = ri.sprite.texture;
-            Color rimTop = rtex.GetPixel(rtex.width / 2, rtex.height - 2);
-            Assert.AreEqual(1f, rimTop.a, 1e-3f, "바탕을 받은 겹은 불투명하게 구워진다(섞는 공간이 끼어들 자리가 없다)");
-            Color bandTop = tex.GetPixel(tex.width / 2, tex.height - 2);
-            float rimL = rimTop.r + rimTop.g + rimTop.b, bandL = bandTop.r + bandTop.g + bandTop.b;
-            Assert.Greater(rimL, bandL, "흰 .5 를 얹었으니 띠보다 밝다");
-            Assert.Less(rimL, 3f - 1e-3f, "그래도 순백은 아니다 — 알파 .5 를 바이트 위에서 섞은 값이다");
+            Assert.IsNull(FindDeep(UiRoot.Instance.App, "qst-fill-grad"), "채움 띠(qst-fill-grad)는 걷었다 — 정본 8806 이 끈다");
+            Assert.IsNull(FindDeep(UiRoot.Instance.App, "qst-fill-rim"), "채움 광택(qst-fill-rim)도 걷었다");
+            int bars = 0;
+            foreach (Transform bar in UiRoot.Instance.App.GetComponentsInChildren<Transform>(true))
+            {
+                if (bar.name != "bar" || bar.Find("face/bg") == null || bar.Find("face/fill") == null) continue;
+                bars++;
+                Transform bg = bar.Find("face/bg"), fill = bar.Find("face/fill");
+                Assert.IsNull(bg.Find("bg-grad"), "트랙 홈(7992)은 8798 이 none 으로 끈다 — bg 아래 겹 없음");
+                Assert.AreEqual(0, fill.childCount, "채움은 자식 겹이 없는 색 한 칸");
+                Color fc = fill.GetComponent<Image>().color;
+                Assert.IsTrue(fc == UiKit.C("quest_bar") || fc == UiKit.C("quest_bar_done"), "채움 색은 quest_bar / quest_bar_done 둘 중 하나: " + fc);
+            }
+            Assert.Greater(bars, 0, "퀘스트 막대가 하나는 섰다");
         }
 
         /// <summary>
@@ -1661,33 +1659,13 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
-        /// <summary>T178 38회차 — 정본 **7992** `.upg-progress, .summon-gauge, .qst-bar { background-image: linear-gradient(180deg, 검 .62 → .18 34% → 0 58% → 흰 .10 88% → .16) }` 트랙의 파인 홈과
-        /// **7953** `#upg-fill, #tech-node-fill, .tech-prog #tech-node-fill, .summon-gauge i { … }` 채움 광택(위 1 CSS px 흰 림 + 46% 밴드 엣지) — 표 두 키(`gauge_track`·`gauge_fill`)와
-        /// 실물 둘(소환 게이지 face/bg-grad + fill/bg-grad · 퀘스트 막대 bg/bg-grad). 퀘스트 채움은 7941 주석대로 6회차 겹 그대로.</summary>
+        /// <summary>T178 39회차 — 소환 게이지(`PetSkillKit.Gauge`)의 트랙·채움은 **색 한 칸**이다. 38회차가 정본 7992(트랙 홈)·7953(채움 광택)을 세웠는데
+        /// 정본 8798/8803(aaa-skin ⓖ)이 둘 다 `background-image: none` 으로 끈다 — 마지막 선언이 이긴다. 업그레이드 막대(`upg-fill`)·기술 노드 채움도 같은 줄이라
+        /// 같은 회차에 걷었다(그 둘은 자 표의 «—» 행과 코드 검색이 본다). ㉳ 분절 눈금(8812)은 다음 회차.</summary>
         [UnityTest]
-        public IEnumerator 게이지_트랙_홈과_소환_채움_광택에_겹이_선다()
+        public IEnumerator 소환_게이지_트랙과_채움은_정본_최종_규칙대로_색_한_칸이다()
         {
             yield return Boot();
-            // ⓐ 표
-            Color[] tc; float[] to;
-            SurfaceArt.Stops("gauge_track", out tc, out to);
-            Assert.AreEqual(5, tc.Length, "7992 정지점 다섯");
-            Assert.AreEqual(0.62f, tc[0].a, 1e-4f, "위 검 .62"); Assert.AreEqual(0.34f, to[1], 1e-4f, "34%"); Assert.AreEqual(0f, tc[2].a, 1e-4f, "58% 투명"); Assert.AreEqual(0.10f, tc[3].a, 1e-4f, "88% 흰 .10"); Assert.AreEqual(1f, tc[3].r, 1e-4f, "흰"); Assert.AreEqual(0.16f, tc[4].a, 1e-4f, "아래 흰 .16");
-            Assert.AreEqual(180f, SurfaceArt.Angle("gauge_track"), 1e-4f);
-            bool[] tm = SurfaceArt.PxMask("gauge_track", tc.Length);
-            foreach (bool b in tm) Assert.IsFalse(b, "트랙은 전부 분수 정지점");
-            Color[] fc; float[] fo;
-            SurfaceArt.Stops("gauge_fill", out fc, out fo);
-            Assert.AreEqual(7, fc.Length, "7953 정지점 일곱");
-            bool[] fm = SurfaceArt.PxMask("gauge_fill", fc.Length);
-            Assert.IsTrue(fm[0] && fm[1] && fm[2], "0 · 1px · 1px 은 CSS px 단위");
-            Assert.IsFalse(fm[3] || fm[4] || fm[5] || fm[6], "40% · 46% · 74% · 100% 은 분수");
-            Assert.AreEqual(0.55f, fc[0].a, 1e-4f, "위 림 흰 .55"); Assert.AreEqual(1f, fo[1], 1e-4f, "1px"); Assert.AreEqual(0.32f, fc[2].a, 1e-4f, "1px 뒤 흰 .32");
-            Assert.AreEqual(0.40f, fo[3], 1e-4f); Assert.AreEqual(0.12f, fc[3].a, 1e-4f); Assert.AreEqual(0.46f, fo[4], 1e-4f); Assert.AreEqual(0f, fc[4].a, 1e-4f, "46% 투명 — 밴드 엣지");
-            Assert.AreEqual(0.08f, fc[5].a, 1e-4f, "74% 검 .08"); Assert.AreEqual(0f, fc[5].r, 1e-4f, "검"); Assert.AreEqual(0.24f, fc[6].a, 1e-4f, "아래 검 .24");
-            Assert.AreEqual(180f, SurfaceArt.Angle("gauge_fill"), 1e-4f);
-
-            // ⓑ 실물 — 소환 게이지(소환 탭 · 스킬 하위판 · 37회차와 같은 길로 연다)
             float t0 = Time.realtimeSinceStartup;
             while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
             Assert.IsTrue(PetSkillHost.Ready, "소환 호스트가 20초 안에 안 섰다");
@@ -1698,49 +1676,14 @@ namespace Forge.Tests.PlayMode
             Transform gauge = FindDeep(SkillPetSheet.Instance.Skills.transform, "summon-gauge");
             Assert.IsNotNull(gauge, "소환 게이지(summon-gauge · 스킬 하위판)");
             Transform face = gauge.Find("face");
-            Assert.IsNotNull(face, "게이지 홈 면(face)");
-            Assert.IsNotNull(face.GetComponent<Mask>(), "면에 Mask — 홈이 둥근 끝 밖으로 안 샌다");
-            Transform tg = face.Find("bg-grad");
-            Assert.IsNotNull(tg, "트랙 홈 겹(face/bg-grad · 7992)");
-            Image tgi = tg.GetComponent<Image>();
-            Assert.IsTrue(tgi.sprite != null && tgi.sprite.texture.name.StartsWith("sf-gauge_track", System.StringComparison.Ordinal), "홈 판 gauge_track: " + (tgi.sprite == null ? "null" : tgi.sprite.texture.name));
-            Color32[] tp = tgi.sprite.texture.GetPixels32(); int TW = tgi.sprite.texture.width, TH = tgi.sprite.texture.height;
-            Assert.AreEqual(255, tp[TW / 2].a, "바탕(gauge_bg)을 미리 합성했다 — 불투명");
-            Assert.Less(tp[(TH - 1) * TW + TW / 2].r, tp[TW / 2].r, "위(검 .62)가 아래(흰 .16)보다 어둡다 — 파인 홈");
+            Assert.IsNotNull(face, "게이지 면(face)");
+            Assert.IsNull(face.Find("bg-grad"), "트랙 홈(7992 gauge_track)은 8798 이 끈다 — 걷었다");
             Transform fill = face.Find("fill");
             Assert.IsNotNull(fill, "채움(face/fill)");
-            Assert.AreEqual(fill.GetSiblingIndex(), tg.GetSiblingIndex() + 1, "홈은 채움 바로 아래 형제(먼저 세운다)");
-            Assert.IsNotNull(fill.GetComponent<Mask>(), "채움에 Mask");
-            Transform fg = fill.Find("bg-grad");
-            Assert.IsNotNull(fg, "채움 광택 겹(fill/bg-grad · 7953)");
-            Image fgi = fg.GetComponent<Image>();
-            Assert.IsTrue(fgi.sprite != null && fgi.sprite.texture.name.StartsWith("sf-gauge_fill", System.StringComparison.Ordinal), "광택 판 gauge_fill: " + (fgi.sprite == null ? "null" : fgi.sprite.texture.name));
-            Color32[] fp = fgi.sprite.texture.GetPixels32(); int FW = fgi.sprite.texture.width, FH = fgi.sprite.texture.height;
-            Assert.AreEqual(255, fp[FW / 2].a, "바탕(pp_blue)을 미리 합성했다 — 불투명");
-            Assert.Greater(fp[(FH - 1) * FW + FW / 2].r, fp[FW / 2].r, "위 림(흰 .55)이 아래(검 .24)보다 밝다");
-            // 다른 게이지(스킬 파편 sk-shard)는 7992 선택자에 없다 — 홈이 안 선다.
-            Transform shard = FindDeep(SkillPetSheet.Instance.Skills.transform, "sk-shard");
-            if (shard != null) Assert.IsNull(shard.Find("face/bg-grad"), "sk-shard(.rates-prog 갈래)에는 홈이 없다");
-
-            // ⓒ 실물 — 퀘스트 막대 트랙(6회차 시험과 같은 길)
-            t0 = Time.realtimeSinceStartup;
-            while (!(MetaHost.Ready && PopupLayer.Instance != null) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
-            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
-            UiRoot.Instance.TabBar.OnTab("quest");
-            yield return null;
-            yield return null;
-            Transform qgrad = FindDeep(UiRoot.Instance.App, "qst-fill-grad");
-            Assert.IsNotNull(qgrad, "퀘스트 채움 띠(qst-fill-grad)가 섰다");
-            Transform barFace = qgrad.parent.parent;   // fill 의 부모 = 막대 면(face)
-            Transform qbg = barFace.Find("bg");
-            Assert.IsNotNull(qbg, "퀘스트 막대 바탕(bg · quest_bar_bg)");
-            Assert.IsNotNull(qbg.GetComponent<Mask>(), "바탕에 Mask");
-            Transform qg = qbg.Find("bg-grad");
-            Assert.IsNotNull(qg, "퀘스트 막대 트랙 홈(bg/bg-grad · 7992)");
-            Image qgi = qg.GetComponent<Image>();
-            Assert.IsTrue(qgi.sprite != null && qgi.sprite.texture.name.StartsWith("sf-gauge_track", System.StringComparison.Ordinal), "홈 판 gauge_track(같은 키 · 바탕만 quest_bar_bg)");
-            Assert.AreEqual(255, qgi.sprite.texture.GetPixels32()[qgi.sprite.texture.width / 2].a, "바탕 미리 합성 — 불투명");
-            Assert.IsNull(qgrad.parent.Find("bg-grad"), "퀘스트 채움은 7941 주석대로 제 겹(qst-fill-grad·rim) 그대로 — gauge_fill 을 겹치지 않는다");
+            Assert.IsNull(fill.Find("bg-grad"), "채움 광택(7953 gauge_fill)은 8803 이 끈다 — 걷었다");
+            Assert.AreEqual(0, fill.childCount, "채움은 자식 겹이 없는 색 한 칸");
+            Assert.AreEqual(PetSkillStyle.C("pp_blue"), fill.GetComponent<Image>().color, "채움 = pp_blue 한 칸");
+            Assert.AreEqual(0, face.GetComponentsInChildren<Image>(true).Length - 2, "면 아래 Image 는 면·채움 둘뿐(굽은 겹 없음)");
         }
 
     }

@@ -114,21 +114,14 @@ namespace Forge.Game.Ui
                 UiKit.Rounded(bar, "line", "pp_line", barH * 0.5f);
                 RectTransform barFace = UiKit.Box(bar, "face");
                 PopupKit.Inset(barFace, barLine);
-                Image barBg = UiKit.Rounded(barFace, "bg", "quest_bar_bg", barH * 0.5f - UiKit.L("line2_px"));   // 자가 단을 읽게 키를 그대로
-                // T178 38회차 — 정본 **7992** `.upg-progress, .summon-gauge, .qst-bar { background-image: linear-gradient(180deg, 검 .62 → .18 34% → 0 58% → 흰 .10 88% → .16) }`
-                //   트랙의 파인 홈(표 `gauge_track` · 바탕 quest_bar_bg 를 넘겨 미리 합성) — 채움(fill)은 그 위 형제 · 채움 자체의 겹(7941 주석 «제 그라디언트가 있는 채움은 안 건드린다»)은 6회차 그대로.
-                SurfaceArt.FillMasked(barBg, "bg-grad", "gauge_track", bodyW - barLine * 2f, barH - barLine * 2f, barBg.color);
+                UiKit.Rounded(barFace, "bg", "quest_bar_bg", barH * 0.5f - UiKit.L("line2_px"));   // 자가 단을 읽게 키를 그대로
                 Image fill = UiKit.Rounded(barFace, "fill", done ? "quest_bar_done" : "quest_bar", barH * 0.5f - barLine);
                 fill.rectTransform.anchorMin = Vector2.zero;
                 fill.rectTransform.anchorMax = new Vector2((float)pct, 1f);
                 fill.rectTransform.offsetMin = fill.rectTransform.offsetMax = Vector2.zero;
-                // T178 6회차 — 정본 `.qst-bar i`(2044)·`.qst-row.done .qst-bar i`(2047)는 **두 겹**이다: 세로 색 띠 + 위 1 CSS px 흰 광택.
-                //   색 한 칸으로는 «채움이 평평해» 보인다. 상태(파랑/초록)는 정본 주석대로 **띠 키**로만 가른다 — 광택은 두 상태가 같다.
-                float fillW = (bodyW - barLine * 2f) * (float)pct;
-                SurfaceArt.FillMasked(fill, "qst-fill-grad", done ? "qst_bar_done_ramp" : "qst_bar_ramp", fillW, barH);
-                // T178 10회차 — 림의 바탕은 **상태로 갈린다**(파랑 `qst_bar_ramp` ↔ 초록 `qst_bar_done_ramp`)라 표의 `over_layer` 한 칸으로는 못 적는다.
-                //   그래서 부르는 쪽이 그때의 바탕 겹을 알려 준다 — 그러면 굽는 쪽이 정본이 섞는 길(sRGB)로 미리 합성한다(T357 · 8회차의 사슬과 같은 값).
-                SurfaceArt.Fill(fill.rectTransform, "qst-fill-rim", "qst_bar_rim", fillW, barH - barLine * 2f, done ? "qst_bar_done_ramp" : "qst_bar_ramp");
+                // T178 39회차 — 정본 **8805/8806** `.qst-bar i { background: #4fc3f7 }` · `.qst-row.done .qst-bar i { background: #81e884 }`(aaa-skin ⓖ · 2026-08-19)가
+                //   2044/2047 의 두 겹(세로 띠 + 위 1px 광택)을 **단색으로 끈다**(«종전 3정지 그라디언트의 중간색(38%)을 그대로 단색으로 · 신호는 그대로, 광택만 사라진다»).
+                //   6·10회차의 `qst-fill-grad`·`qst-fill-rim` 을 걷었다 — 채움은 표 `quest_bar`/`quest_bar_done`(catalog · 바로 그 두 값) 한 칸. 7998 트랙 홈도 같은 블록이 끈다(38회차 겹 걷음).
                 // T377 18회차 — 정본 2052 `.qst-bar em { color: #fff }` + 2053 의 어두운 글자 그림자. 이것은 **어두운 트랙**(7991 #262c34)을
                 //   전제로 한 짝이다. 클론은 트랙을 #dddddd(밝은 쪽)로 두고 글자를 `pp_ink`(어두운 쪽)로 맞춰 **짝은 맞지만 정본과 반대**였다 —
                 //   트랙을 정본값으로 되돌리는 같은 회차에 글자도 흰쪽으로 돌린다(한쪽만 고치면 어두운 글자가 어두운 트랙에 묻는다).

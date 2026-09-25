@@ -290,8 +290,7 @@ namespace Forge.Game.Ui
                 float frac = ready ? 1f : Mathf.Clamp01((float)(1 - remain / total));
                 Image fill = UiKit.Rounded(track, "fill", "pp_blue", Mathf.Max(0f, pr - DungeonPopups.Line3));
                 UiKit.Place(fill.rectTransform, 0f, 0f, progW * frac, ph - DungeonPopups.Line3 * 2f);
-                // T178 38회차 — 정본 **7953** `#tech-node-fill, .tech-prog #tech-node-fill { background-image: … }` 채움의 광택(표 `gauge_fill` · 바탕 = 채움 색 pp_blue). 트랙(7992)엔 `.tech-prog` 가 없다.
-                SurfaceArt.FillMasked(fill, "bg-grad", "gauge_fill", Mathf.Max(1f, progW * frac), Mathf.Max(1f, ph - DungeonPopups.Line3 * 2f), fill.color);
+                // T178 39회차 — 정본 8803(aaa-skin ⓖ)이 7953 `#tech-node-fill` 채움 광택을 `none` 으로 끈다 — 38회차 겹을 걷었다(채움 = pp_blue 한 칸).
                 progFill = fill.rectTransform;
                 progTime = DungeonPopups.Bold(prog, "time", TextKind.Sub, ready ? "완료" : NumFmt.FmtTime(remain), "white");
                 UiKit.Fill(progTime.rectTransform);
