@@ -17031,6 +17031,7 @@
 - **자 표**: 자리 초록 114 → **104**(넷 행의 자리 열이 «—» 로) · 끄는 규칙 0 → **4** · 미정 31 그대로 · 문제 0. `check_box_borders` 125 그대로(ForgeInfoPopup 의 track↔upg-fill 짝은 원래 자리로 돌아갔다).
 - **게이트**: `gate.sh` 46 자 막는 자 전부 rc 0(`$?` 직접).
 - **판정(다음 런)**: 두 칸 PASS · PinnedColorSites(퀘스트 트랙 어둡고 글자 밝음)·TabularSites·SummonDash 그대로 · 눈: `screen_skills` 소환 게이지가 **평평한 어두운 트랙 + 평평한 파란 채움**(38회차의 홈·림이 사라짐) · `screen_forge-info` 업그레이드 막대 채움 평평 · `screen_quest`(있으면) 막대 채움 단색. **lock 유지**.
+- **ntfy — 알림 못 보냄**: 커밋 `ede249ef` push 뒤 `ntfy-notify.yml` **런 #2457**(job 108100794244)가 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 이 루틴 프롬프트엔 토픽이 없고 Secret 미등록(같은 자리).
 - **다음 회차(누구든 · 이 절의 «다음 자리»)**: **8812** `::after` 분절 눈금 여섯(`.upg-progress`·`.summon-gauge`·`.qst-bar`·`.summon-prog`·`.petup-xpbar`·`.rates-prog` · `repeating-linear-gradient(90deg, 투명 0 (seg−gap), rgba(0,0,0,.58) (seg−gap) seg)` · `--seg` .62rem · `--seg-gap` = ol2) — `sk-shard` 는 목록에 없다(눈금 없음) · `.summon-prog`(4232 · 클론 자리 확인 필요) · 글자는 눈금 위(z 3). 함께 8798 키라인. 그 뒤 미정 갈래는 38회차 줄 그대로(5626 은 색 축 먼저 · 8178 · 8686 · 8618 · cascade 는 마지막 선언만 — 이제 자가 `--list` 에 «끈다» 를 붙여 준다 · 방사).
 
 ### T178 38회차 판정 ✅ · lock 반납 · 행 ⬜ — 런 1277 초록 · 새 칸 PASS · 눈 ✓(런 1277 그림) (2026-09-25 12:4x · 워커 T · sess-1447-10982)
