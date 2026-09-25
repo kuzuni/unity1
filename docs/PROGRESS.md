@@ -17031,6 +17031,7 @@
 - **자 표**: `.upg-progress::after, … .rates-prog::after` → `@Gauge`·`@Render`·`@RenderLevelView` · `.af-age-bar` → «—». **자리 초록 104 → 107 · 끄는 규칙 4 → 5 · 미정 31 → 29**(선언 47 → 45) · 문제 0. `check_box_borders` 125 그대로.
 - **게이트**: `gate.sh` 46 자 막는 자 전부 rc 0(두 번째 판 · `$?` 직접).
 - **판정(다음 런)**: 새 칸 PASS · Tabular(rates-prog 글자)·PinnedColorSites·SummonDash·BoxBorderSites 그대로 · 눈: `screen_skills` 소환 게이지 «0/5» 알약에 세로 눈금이 .62rem 마다 · `screen_summon-rates`·`screen_pet-upgrade` 막대에 눈금 · `screen_forge-info` 업그레이드 막대에 눈금 + 빈 트랙 가장자리 어두운 테. **lock 유지**.
+- **ntfy — 알림 못 보냄**: 커밋 `4af4f961` push 뒤 `ntfy-notify.yml` **런 #2461**(job 108144666257)가 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 이 루틴 프롬프트엔 토픽이 없고 Secret 미등록(같은 자리).
 - **남은 미정 29 의 갈래**: 선형만 — 5626 ascend-ready(색 축 먼저) · 8178 서브패널 · 8686 danger/sell · 8618 패스 프리미엄 — cascade(마지막 선언만 · `--list` 가 «끈다» 를 붙여 준다): 모달 카드 8272/8286 · 파란 버튼 8504 · 퀘스트 행 8089 · 리그 행 8415/8435 · 채팅 8056 — 방사: 구슬 재질 넷 · 모달 배경 5649·7148 · 마스크 셋.
 
 ### T178 39회차 판정 ✅ · lock 반납 · 행 ⬜ — 런 1279 초록 · 다시 쓴 두 칸 PASS · 눈 ✓(런 1279 그림) (2026-09-25 14:4x · 워커 T · sess-1447-10982)
