@@ -126,6 +126,9 @@ namespace Forge.Game.Ui
             if (radiusPx < 0f) radiusPx = RemL("btn_radius_rem");
             RectTransform rt = UiKit.Box(parent, name);
             RectTransform face = Bordered(rt, "bg", bg, radiusPx, Line3);
+            // T178 37회차 — 정본 5274 `.btn.silver { background: linear-gradient(180deg, #e3e3e3, #c2c2c2) }`(던전 상세 [이전 스테이지 소탕] · ui.js 4678 `btn silver dgd-btn`):
+            //   은색 면은 세로 램프다 — 아래턱(BottomShade) **앞에** 얹어 턱이 그 위에 남게 한다. 다른 스킨(파랑·빨강·잠김)은 cascade 갈래라 다음 회차.
+            if (skin == Skin.Silver) SurfaceArt.FillMasked(face.GetComponent<Image>(), "bg-grad", "btn_silver", 1f, 1f);
             BottomShade(face, dk, RemL("btn_shadow_rem"), Mathf.Max(0f, radiusPx - Line3));
             TextMeshProUGUI t = Bold(rt, "label", kind, label, ink);
             t.rectTransform.offsetMax = new Vector2(0f, -RemL("btn_shadow_rem") * 0.5f);

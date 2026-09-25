@@ -163,7 +163,10 @@ namespace Forge.Game.Ui
             UiKit.Place(cp, x, rowH * 0.5f, nameW, rowH * 0.45f);
             RectTransform score = UiKit.Box(row, "score");
             UiKit.Place(score, rowW - rem * 0.5f - scoreW, rowH * 0.12f, scoreW, scoreH);
-            UiKit.Rounded(score, "bg", "league_score", RadiusUi.Px("league_score_r_rem"));
+            Image scoreBg = UiKit.Rounded(score, "bg", "league_score", RadiusUi.Px("league_score_r_rem"));
+            // T178 37회차 — 정본 **7881** `.league-score { background-image: linear-gradient(180deg, rgba(255,255,255,.16) 0, rgba(255,255,255,0) 46%, rgba(0,0,0,.30) 100%) }`
+            //   («점수 pill(#020203)도 같은 처방 — 칠만 얹는다») · 둥근 알약이라 FillMasked · 바탕 league_score 를 미리 합성.
+            SurfaceArt.FillMasked(scoreBg, "bg-grad", "league_score_skin", scoreW, scoreH);
             // T89 — 정본 `ui.js` 4741: `<span class="league-score">${IconGen.img('star')} ${U.fmt(e.score)}</span>`.
             // 클론은 «★»(U+2605) 글자로 찍어 글꼴에 없어 □ 였다 — 표의 ⭐ 를 써서 같은 `star` 아이콘 + 수로 세운다.
             RectTransform scRow = UiKit.IconTextRow(score, "score-text", TextKind.Sub, "⭐ " + PopupKit.Fmt(e.Score), "stage_ink");

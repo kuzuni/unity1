@@ -252,6 +252,31 @@
     "offsets": [0, 0.42, 0.58, 1],
     "_": "style.css **5125~5129** `.fi-age-bar::after { border-radius: inherit; background-image: linear-gradient(180deg, rgba(255,255,255,.13) 0, rgba(255,255,255,.03) 42%, rgba(0,0,0,.02) 58%, rgba(0,0,0,.15) 100%) }` — 주석 «광택 층 — 평면 색면에 두께를 준다 · 원본은 평면 색면이라 광택이 세면 채도가 빠져 다른 색이 된다»(자동 제련 4845 보다 한 단 옅다). 확률 정보·목록 머리 막대의 `::after`. `border-radius: inherit` 는 모서리 밖 몇 화소의 일이라 클론은 막대 상자(사각)에 얹는다(무늬 층과 같은 근사). T178 36회차."
   },
+  "btn_silver": {
+    "angle_deg": 180,
+    "stops": [[227, 227, 227, 1.0], [194, 194, 194, 1.0]],
+    "offsets": [0, 1],
+    "_": "style.css **5209** `.summon-btn` · **5260** `.skd-btn.silver` · **5274** `.btn.silver` `{ background: linear-gradient(180deg, #e3e3e3, #c2c2c2) }` — 은색 버튼 면은 단색이 아니라 위 밝고 아래 짙은 세로 램프다(불투명 두 정지점 · 바탕 없이 굽는다 · 아래턱 `inset 0 -.28rem 0 #9c9c9c` 은 T331 축). 클론은 `PetSkillKit.PaperButton`(Silver) · `DungeonPopups.Pill`(Silver)의 둥근 면에 FillMasked. `.petup-selrow .btn.silver`(5487)는 **단색 #a3a3a3** 로 이 겹을 덮으니 그 자리는 plainFace 로 뺀다. T178 37회차."
+  },
+  "btn_silver_disabled": {
+    "angle_deg": 180,
+    "stops": [[217, 217, 217, 1.0], [189, 189, 189, 1.0]],
+    "offsets": [0, 1],
+    "_": "style.css **5268** `.skd-btn.silver.disabled { opacity: 1; background: linear-gradient(180deg, #d9d9d9, #bdbdbd); color: #6f6f6f }` — 정본 주석 «공용 .btn.disabled 의 opacity .75 가 검정 키라인까지 흐리게 만들어 … 불투명도를 되돌리고 몸통을 한 톤 밝게, 글자만 회색으로». 비활성 은색 버튼(PaperButton Silver + disabled). T178 37회차."
+  },
+  "btn_ascend": {
+    "angle_deg": 180,
+    "stops": [[76, 175, 80, 1.0], [46, 125, 50, 1.0]],
+    "offsets": [0, 1],
+    "_": "style.css **5641** `.summon-bar .btn.big.ascend-ready { background: linear-gradient(#4caf50, #2e7d32); color: #fff }` — 승천 가능 상태의 소환 버튼(초록 강조 · 각도 없는 linear-gradient 는 180deg). 5626 `.btn.sm.ascend-ready`(대장간 만렙 버튼)도 같은 값이지만 클론 ForgeSheet 의 그 버튼은 파랑 한 벌이라 아직 미정. PaperButton(Ascend). T178 37회차."
+  },
+  "league_score_skin": {
+    "over_color": "league_score",
+    "angle_deg": 180,
+    "stops": [[255, 255, 255, 0.16], [255, 255, 255, 0.0], [0, 0, 0, 0.30]],
+    "offsets": [0, 0.46, 1],
+    "_": "style.css **7881** `.league-score { background-image: linear-gradient(180deg, rgba(255,255,255,.16) 0, rgba(255,255,255,0) 46%, rgba(0,0,0,.30) 100%) }` — 정본 주석 «점수 pill(#020203)도 같은 처방 — 폭·높이는 원본 실측 고정값이라 칠만 얹는다». 바탕 catalog `league_score`(#020203) 위에 미리 합성 · 둥근 알약이라 FillMasked(LeagueSheet 의 `score/bg`). T178 37회차."
+  },
   "tabbar_rim": {
     "over_layer": "tabbar_shade",
     "unit": "px",

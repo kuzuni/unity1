@@ -214,7 +214,7 @@ namespace Forge.Game.Ui
         /// 우리 하한(§1 버튼 44)에 안 들어가므로 **한 단계 작은 종류**(Sub 36)를 준다 — 그래도 정본보다 크므로 폭은 부르는 쪽이 늘린다.</param>
         /// <param name="letterSpacingEm">정본 `letter-spacing`(em) — TMP `characterSpacing` 은 1/100 em 단위다.</param>
         public static Button PaperButton(Transform parent, string name, BtnKind kind, string label, string sub, bool disabled, UnityAction onClick, float radiusPx = -1f,
-                                         TextKind labelKind = TextKind.Button, float letterSpacingEm = 0f, string keylineKey = null)
+                                         TextKind labelKind = TextKind.Button, float letterSpacingEm = 0f, string keylineKey = null, bool plainFace = false)
         {
             float r = radiusPx > 0f ? radiusPx : PetSkillStyle.Px("btn_r_rem");
             float inset = PetSkillStyle.Px("btn_inset_rem");
@@ -242,6 +242,12 @@ namespace Forge.Game.Ui
             face.rectTransform.offsetMin = new Vector2(Line3, Line3 + inset);
             face.rectTransform.offsetMax = new Vector2(-Line3, -Line3);
             face.raycastTarget = false;
+            // T178 37회차 — 정본 5209 `.summon-btn` · 5260 `.skd-btn.silver` · 5274 `.btn.silver` `background: linear-gradient(180deg, #e3e3e3, #c2c2c2)` · 5268 `.skd-btn.silver.disabled`(#d9d9d9 → #bdbdbd) ·
+            //   5641 `.summon-bar .btn.big.ascend-ready`(#4caf50 → #2e7d32): 면은 단색이 아니라 **위 밝고 아래 짙은 세로 램프**다(불투명 두 정지점 · 바탕 없이 FillMasked · 아래턱은 face 밖의 skin 띠라 그대로).
+            //   `.petup-selrow .btn.silver`(5487)는 단색 #a3a3a3 로 이 겹을 덮으니 그 자리(PetUpgradePopup)는 `plainFace` 로 뺀다 · 파랑·빨강(Primary/Danger)은 7833~8504 cascade 갈래라 다음 회차.
+            //   180deg 순수 세로 램프에 정지점이 분수라 판은 상자 크기와 무관하다 — 정사각 한 장을 늘린다(버튼 크기는 부르는 쪽이 뒤에 준다).
+            string surface = plainFace ? null : kind == BtnKind.Silver ? (disabled ? "btn_silver_disabled" : "btn_silver") : kind == BtnKind.Ascend ? "btn_ascend" : null;
+            if (surface != null) SurfaceArt.FillMasked(face, "bg-grad", surface, 1f, 1f);
             bool two = !string.IsNullOrEmpty(sub);
             TextMeshProUGUI lt = disabled || kind == BtnKind.Gray
                 ? Text(rt, "label", labelKind, label, ink)

@@ -124,6 +124,15 @@ TABLE = {
     #   «미정» 으로 세어지고 있었다(`#panel-skills .summon-bar::before` → `SkillPanel.cs@SummonDash` 와 같은 꼴).
     '.league-reward-tier': ['Ui/LeagueSheet.cs@TierDash'],
     '.pinfo-preview': ['Ui/PlayerInfoPopup.cs#preview-grad'],
+    # T178 37회차 — 은색 버튼 가족(5209 `.summon-btn` · 5260/5268 `.skd-btn.silver(.disabled)` · 5274 `.btn.silver` — #e3e3e3 → #c2c2c2 · 비활성 #d9d9d9 → #bdbdbd)과 승천 소환 버튼(5641 · #4caf50 → #2e7d32):
+    #   `PetSkillKit.PaperButton`(Silver/Ascend · 둥근 면에 FillMasked · `.petup-selrow .btn.silver` 5487 단색은 plainFace) · 던전 상세 은색은 `DungeonPopups.Pill`. 리그 점수 알약(7881)은 `LeagueSheet` 의 `score/bg`.
+    #   5626 `.btn.sm.ascend-ready`(대장간 만렙 버튼)는 클론 ForgeSheet 의 버튼이 파랑 한 벌이라 아직 미정(색 축 T377 과 함께 열 자리).
+    '.summon-btn': ['Ui/PetSkillKit.cs@PaperButton'],
+    '.skd-btn.silver': ['Ui/PetSkillKit.cs@PaperButton'],
+    '.skd-btn.silver.disabled': ['Ui/PetSkillKit.cs@PaperButton'],
+    '.btn.silver': ['Ui/PetSkillKit.cs@PaperButton', 'Ui/DungeonPopups.cs@Pill'],
+    '.summon-bar .btn.big.ascend-ready': ['Ui/PetSkillKit.cs@PaperButton'],
+    '.league-score': ['Ui/LeagueSheet.cs@Row'],
     # T178 35회차 — 상단바 밴드(7900 · 겹 둘 · 위 1px 림 · 탭바를 뒤집은 짝 · `Hud.Build` 의 `bar`) · 재화 알약 홈(7924 · 둥근 면이라 FillMasked · `Hud.Pill`).
     '#topbar': ['Ui/Hud.cs#topbar'],
     '.currency-pills .pill': ['Ui/Hud.cs@Pill'],

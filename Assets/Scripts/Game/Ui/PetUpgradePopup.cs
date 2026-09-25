@@ -167,7 +167,7 @@ namespace Forge.Game.Ui
             // 우리 하한(§1 버튼 44 · 보조 36)은 그보다 커서 그 폭에 «업그레이드» 다섯 자가 안 들어간다(44 → 220 · 36 → 180 ↔ 폭 164.7 · 런 224 실측으로 글자가 테두리 밖).
             // 그래서 ⓐ 한 단계 작은 종류(Sub)와 정본 자간을 주고 ⓑ **그래도 모자라면 버튼을 라벨만큼만 넓힌다**(짧은 라벨이면 정본 폭 그대로).
             ConfirmButton = PetSkillKit.PaperButton(panel, "btn-confirm", PetSkillKit.BtnKind.Silver, PetSkillStyle.T("upgrade"), null, !canConfirm, Confirm, PetSkillStyle.Px("petup_sel_btn_r_rem"),
-                                                    TextKind.Sub, PetSkillStyle.Px("petup_sel_btn_ls_em"));
+                                                    TextKind.Sub, PetSkillStyle.Px("petup_sel_btn_ls_em"), plainFace: true);   // T178 37회차 — 정본 5487 `.petup-selrow .btn.silver { background: #a3a3a3 }` 단색이 5274 의 램프를 덮는다
             float cbwFit = cbw;
             TextMeshProUGUI cbl = ConfirmButton.GetComponentInChildren<TextMeshProUGUI>();
             if (cbl != null)

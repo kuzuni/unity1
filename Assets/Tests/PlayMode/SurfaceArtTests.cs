@@ -1591,5 +1591,68 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T178 37회차 — 은색 버튼 면의 세로 램프(정본 **5209** `.summon-btn` · 5260 `.skd-btn.silver` · 5274 `.btn.silver` = #e3e3e3 → #c2c2c2 · 5268 비활성 #d9d9d9 → #bdbdbd ·
+        /// 5641 승천 소환 #4caf50 → #2e7d32)와 리그 점수 알약 겹(정본 **7881** · 흰 .16 → 46% 투명 → 검 .30 · 바탕 #020203).
+        /// 실물: 소환 버튼 `skin/top`(둥근 면)에 Mask + `bg-grad`(불투명 · 위가 아래보다 밝다 · 아래턱 skin 띠는 그대로) · 리그 행 `score/bg` 에 Mask + `bg-grad`(불투명 · 위 밝고 아래 검).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 은색_버튼_면과_리그_점수_알약에_겹이_선다()
+        {
+            yield return Boot();
+            // ⓐ 표
+            Color[] sc; float[] so;
+            SurfaceArt.Stops("btn_silver", out sc, out so);
+            Assert.AreEqual(2, sc.Length); Assert.AreEqual(227f / 255f, sc[0].r, 1e-3f, "위 #e3e3e3"); Assert.AreEqual(194f / 255f, sc[1].r, 1e-3f, "아래 #c2c2c2"); Assert.AreEqual(1f, sc[0].a, 1e-4f, "불투명");
+            SurfaceArt.Stops("btn_silver_disabled", out sc, out so);
+            Assert.AreEqual(217f / 255f, sc[0].r, 1e-3f, "5268 위 #d9d9d9"); Assert.AreEqual(189f / 255f, sc[1].r, 1e-3f, "아래 #bdbdbd");
+            SurfaceArt.Stops("btn_ascend", out sc, out so);
+            Assert.AreEqual(76f / 255f, sc[0].r, 1e-3f, "5641 위 #4caf50"); Assert.AreEqual(125f / 255f, sc[1].g, 1e-3f, "아래 #2e7d32");
+            SurfaceArt.Stops("league_score_skin", out sc, out so);
+            Assert.AreEqual(3, sc.Length); Assert.AreEqual(0.16f, sc[0].a, 1e-4f, "7881 흰 .16"); Assert.AreEqual(0.46f, so[1], 1e-4f, "46%"); Assert.AreEqual(0.3f, sc[2].a, 1e-4f, "검 .30");
+            Assert.AreEqual(180f, SurfaceArt.Angle("btn_silver"), 1e-4f); Assert.AreEqual(180f, SurfaceArt.Angle("league_score_skin"), 1e-4f);
+
+            // ⓑ 실물 — 펫 패널의 소환 버튼(승천 아님 · 알 가득 아님 = SkillPanel.SummonBtn 의 PaperButton Silver)
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(PetSkillHost.Ready, "소환 호스트가 20초 안에 안 섰다");
+            Button sb = SkillPetSheet.Instance.Pets.SummonButton;
+            Assert.IsNotNull(sb, "펫 소환 버튼");
+            Transform top = sb.transform.Find("skin/top");
+            Assert.IsNotNull(top, "둥근 면(skin/top)");
+            Assert.IsNotNull(top.GetComponent<Mask>(), "면에 Mask — 램프가 모서리 밖으로 안 샌다");
+            Transform sg = top.Find("bg-grad");
+            Assert.IsNotNull(sg, "소환 버튼 램프(bg-grad · 5209)");
+            Image sgi = sg.GetComponent<Image>();
+            Assert.IsTrue(sgi.sprite != null && sgi.sprite.texture.name.StartsWith("sf-btn_silver", System.StringComparison.Ordinal), "램프 판 btn_silver(비활성이면 btn_silver_disabled): " + (sgi.sprite == null ? "null" : sgi.sprite.texture.name));
+            Color32[] sp = sgi.sprite.texture.GetPixels32(); int SW = sgi.sprite.texture.width, SH = sgi.sprite.texture.height;
+            Assert.Greater(sp[(SH - 1) * SW + SW / 2].r, sp[SW / 2].r, "위(#e3)가 아래(#c2)보다 밝다");
+            Assert.AreEqual(255, sp[SW / 2].a, "불투명 두 정지점");
+            Assert.IsNotNull(sb.transform.Find("skin/line"), "검정 테 그대로");
+            Assert.IsNull(sb.transform.Find("skin/bg-grad"), "램프는 face 안 — 아래턱(skin 띠)을 덮지 않는다");
+
+            // ⓒ 실물 — 리그 행 점수 알약
+            t0 = Time.realtimeSinceStartup;
+            while (!MetaHost.Ready && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            MetaHost mh = MetaHost.Instance;
+            Assert.IsNotNull(mh, "MetaHost");
+            LeagueSheet.Open(mh);
+            yield return null;
+            Transform scoreBg = null;
+            foreach (RectTransform rt in UiRoot.Instance.Sheet.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "score" && rt.parent != null && rt.parent.name.StartsWith("row-", System.StringComparison.Ordinal) && rt.Find("bg") != null) { scoreBg = rt.Find("bg"); break; }
+            Assert.IsNotNull(scoreBg, "리그 행 점수 알약(score/bg)");
+            Assert.IsNotNull(scoreBg.GetComponent<Mask>(), "알약 면에 Mask");
+            Transform lg = scoreBg.Find("bg-grad");
+            Assert.IsNotNull(lg, "점수 알약 겹(bg-grad · 7881)");
+            Image lgi = lg.GetComponent<Image>();
+            Assert.IsTrue(lgi.sprite != null && lgi.sprite.texture.name.StartsWith("sf-league_score_skin", System.StringComparison.Ordinal), "겹 판 league_score_skin");
+            Color32[] lp = lgi.sprite.texture.GetPixels32(); int LW = lgi.sprite.texture.width, LH = lgi.sprite.texture.height;
+            Assert.AreEqual(255, lp[LW / 2].a, "바탕(league_score)을 미리 합성했다 — 불투명");
+            Assert.Greater(lp[(LH - 1) * LW + LW / 2].r, lp[LW / 2].r, "위(흰 .16)가 아래(검 .30)보다 밝다");
+            LeagueSheet.Close(mh);
+            yield return null;
+        }
+
     }
 }
