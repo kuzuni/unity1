@@ -579,6 +579,8 @@ namespace Forge.Game.Ui
 
         /// <summary>정본 8686 `.btn.btn.danger.danger, .btn.btn.sell.sell` 의 세 겹(아래부터 위 순 · BakeFace 순서) — 빨간 버튼 면 위에 한 판으로 합성한다. T178 41회차.</summary>
         public static readonly string[] BtnDangerLayers = { "btn_danger_body", "btn_danger_side", "btn_danger_rim" };
+        /// <summary>정본 8504(7833 → 8204 → 8336 → 8504 마지막 선언) `.btn.btn:not(.silver):not(.ascend-ready)` 의 유리 겹 셋 — 빨강·은색·승천 아닌 모든 .btn 면. 옆 키라인은 8686 과 같은 수. T178 42회차.</summary>
+        public static readonly string[] BtnGlassLayers = { "btn_glass_body", "btn_danger_side", "btn_glass_rim" };
 
         /// <summary>
         /// T178 41회차 — <see cref="FillFace"/> 인데 **면의 크기가 아직 0** 인 자리(배치를 부르는 쪽이 뒤에 하는 버튼 · 레이아웃이 폭을 주는 버튼)는

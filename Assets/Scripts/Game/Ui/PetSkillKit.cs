@@ -246,8 +246,15 @@ namespace Forge.Game.Ui
             //   5641 `.summon-bar .btn.big.ascend-ready`(#4caf50 → #2e7d32): 면은 단색이 아니라 **위 밝고 아래 짙은 세로 램프**다(불투명 두 정지점 · 바탕 없이 FillMasked · 아래턱은 face 밖의 skin 띠라 그대로).
             //   `.petup-selrow .btn.silver`(5487)는 단색 #a3a3a3 로 이 겹을 덮으니 그 자리(PetUpgradePopup)는 `plainFace` 로 뺀다 · 파랑·빨강(Primary/Danger)은 7833~8504 cascade 갈래라 다음 회차.
             //   180deg 순수 세로 램프에 정지점이 분수라 판은 상자 크기와 무관하다 — 정사각 한 장을 늘린다(버튼 크기는 부르는 쪽이 뒤에 준다).
-            string surface = plainFace ? null : kind == BtnKind.Silver ? (disabled ? "btn_silver_disabled" : "btn_silver") : kind == BtnKind.Ascend ? "btn_ascend" : null;
+            // T178 42회차 — 정본 **8661** `.btn.btn.summon-btn.summon-btn:not(.ascend-ready) { background: #a3a3a3 }`(0-4-0 · 문서 뒤)이 5209 의 은색 램프를 **단색으로 끈다**
+            //   (정본 주석 «원본 30장 census: 회색 버튼 면 163,163,163 · 턱 50,49,50 — 소환 버튼과 같은 언어»). 37회차가 세운 소환 버튼 램프는 걷는다 — 승천(ascend-ready)은 그대로.
+            //   선택자 글자가 달라(`.summon-btn` ↔ `.btn.btn.summon-btn.summon-btn:not(…)`) 자(check_surface_gradients)의 cascade-off 검출이 못 본 자리다.
+            bool summonGray = name == "summon-btn" && kind == BtnKind.Silver;
+            string surface = plainFace || summonGray ? null : kind == BtnKind.Silver ? (disabled ? "btn_silver_disabled" : "btn_silver") : kind == BtnKind.Ascend ? "btn_ascend" : null;
             if (surface != null) SurfaceArt.FillMasked(face, "bg-grad", surface, 1f, 1f);
+            // T178 42회차 — 정본 **8504**(7833→8204→8336→8504 마지막 선언) `.btn.btn:not(.silver):not(.ascend-ready)` 유리 겹 셋(위 1px 하늘색 림 · 좌우 1px 키라인 · 46% 하드 스톱 밴드 + 남색 그늘):
+            //   파랑(Primary)·회색(Gray) 종이 버튼 — 은색·승천은 :not() 으로 빠지고 빨강은 8686, 소환 회색은 8661 이 덮는다. 1px 겹이라 크기가 잡힌 뒤 굽는다.
+            else if (!plainFace && !summonGray && (kind == BtnKind.Primary || kind == BtnKind.Gray)) SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnGlassLayers, bg);
             // T178 41회차 — 정본 8686 `.btn.btn.danger.danger` 세 겹(펫 상세 [해제] · 8699 `.petd-wrap .btn.danger` 는 색·턱만 덮는다) — 1px 림·키라인이라 크기가 잡히는 프레임에 굽는다.
             else if (!plainFace && kind == BtnKind.Danger) SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnDangerLayers, bg);
             bool two = !string.IsNullOrEmpty(sub);

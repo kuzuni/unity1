@@ -131,6 +131,8 @@ namespace Forge.Game.Ui
             if (skin == Skin.Silver) SurfaceArt.FillMasked(face.GetComponent<Image>(), "bg-grad", "btn_silver", 1f, 1f);
             // T178 41회차 — 정본 8686 `.btn.btn.danger.danger` 세 겹(표 btn_danger_*) · 크기는 부르는 쪽이 뒤에 주니 잡히는 프레임에 굽는다 · 아래턱(BottomShade)은 그 위.
             if (skin == Skin.Red) SurfaceArt.FillFaceWhenSized(face.GetComponent<Image>(), "bg-grad", SurfaceArt.BtnDangerLayers, UiKit.C(bg));
+            // T178 42회차 — 정본 8504 유리 겹 셋: 파랑·회색·잠김(8151 `.dg-banner .btn.disabled` 는 0-3-0 이라 0-5-0 유리막이 이긴다) · 은색 둘(.silver / .dgd-btn.silver)은 :not(.silver).
+            else if (skin == Skin.Blue || skin == Skin.Gray || skin == Skin.DgLocked) SurfaceArt.FillFaceWhenSized(face.GetComponent<Image>(), "bg-grad", SurfaceArt.BtnGlassLayers, UiKit.C(bg));
             BottomShade(face, dk, RemL("btn_shadow_rem"), Mathf.Max(0f, radiusPx - Line3));
             TextMeshProUGUI t = Bold(rt, "label", kind, label, ink);
             t.rectTransform.offsetMax = new Vector2(0f, -RemL("btn_shadow_rem") * 0.5f);

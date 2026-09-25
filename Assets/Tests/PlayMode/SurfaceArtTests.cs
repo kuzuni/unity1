@@ -1624,13 +1624,19 @@ namespace Forge.Tests.PlayMode
             Transform top = sb.transform.Find("skin/top");
             Assert.IsNotNull(top, "둥근 면(skin/top)");
             Assert.IsNotNull(top.GetComponent<Mask>(), "면에 Mask — 램프가 모서리 밖으로 안 샌다");
+            // T178 42회차 — 정본 **8661** `.btn.btn.summon-btn.summon-btn:not(.ascend-ready) { background: #a3a3a3 }` 이 5209 램프를 단색으로 끈다(0-4-0 · 문서 뒤).
+            //   37회차가 여기 세운 램프는 걷었다 — 소환 버튼(은색 갈래)엔 bg-grad 가 없고 면은 #a3a3a3 한 칸. 승천 갈래(ascend-ready)만 5641 초록 램프.
             Transform sg = top.Find("bg-grad");
-            Assert.IsNotNull(sg, "소환 버튼 램프(bg-grad · 5209)");
-            Image sgi = sg.GetComponent<Image>();
-            Assert.IsTrue(sgi.sprite != null && sgi.sprite.texture.name.StartsWith("sf-btn_silver", System.StringComparison.Ordinal), "램프 판 btn_silver(비활성이면 btn_silver_disabled): " + (sgi.sprite == null ? "null" : sgi.sprite.texture.name));
-            Color32[] sp = sgi.sprite.texture.GetPixels32(); int SW = sgi.sprite.texture.width, SH = sgi.sprite.texture.height;
-            Assert.Greater(sp[(SH - 1) * SW + SW / 2].r, sp[SW / 2].r, "위(#e3)가 아래(#c2)보다 밝다");
-            Assert.AreEqual(255, sp[SW / 2].a, "불투명 두 정지점");
+            if (sg != null)
+            {
+                Image sgi = sg.GetComponent<Image>();
+                Assert.IsTrue(sgi.sprite != null && sgi.sprite.texture.name.StartsWith("sf-btn_ascend", System.StringComparison.Ordinal), "소환 버튼에 남은 겹은 승천 램프(btn_ascend)뿐이어야 한다: " + (sgi.sprite == null ? "null" : sgi.sprite.texture.name));
+            }
+            else
+            {
+                Color32 fc = top.GetComponent<Image>().color;
+                Assert.IsTrue(fc.r == 0xa3 && fc.g == 0xa3 && fc.b == 0xa3, "소환 버튼 면 = 8661 #a3a3a3 한 칸: " + fc);
+            }
             Assert.IsNotNull(sb.transform.Find("skin/line"), "검정 테 그대로");
             Assert.IsNull(sb.transform.Find("skin/bg-grad"), "램프는 face 안 — 아래턱(skin 띠)을 덮지 않는다");
 
@@ -1842,6 +1848,49 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(prem, 0, "프리미엄 칸이 하나는 섰다"); Assert.Greater(free, 0, "무료 칸이 하나는 섰다");
             h.Popups.Hide(PassPopup.Name);
             yield return null;
+        }
+
+        /// <summary>T178 42회차 — 정본 **8504**(같은 선택자 7833 → 8204 → 8336 → 8504 의 마지막 선언) `.btn.btn:not(.silver):not(.ascend-ready)` 유리 겹 셋(위 1px 하늘색 림 ·
+        /// 좌우 1px 키라인 · 46%↔47% 하드 스톱 밴드 + 남색 그늘)이 파란 종이 버튼(스킬 패널 [모두 업그레이드] · PaperButton Primary)에 한 판으로 선다 · 소환 버튼(8661 단색)엔 안 선다.</summary>
+        [UnityTest]
+        public IEnumerator 파란_버튼_면에_유리_겹_셋이_한_판으로_선다()
+        {
+            yield return Boot();
+            // ⓐ 표
+            Color[] gc; float[] go;
+            SurfaceArt.Stops("btn_glass_rim", out gc, out go);
+            Assert.AreEqual(0.88f, gc[0].a, 1e-4f, "위 림 .88"); Assert.AreEqual(228f / 255f, gc[0].r, 1e-3f, "하늘색 (228,244,255)"); Assert.IsTrue(SurfaceArt.PxMask("btn_glass_rim", 3)[1], "1px");
+            SurfaceArt.Stops("btn_glass_body", out gc, out go);
+            Assert.AreEqual(5, gc.Length); Assert.AreEqual(0.46f, gc[0].a, 1e-4f, "위 하늘색 .46"); Assert.AreEqual(0.46f, go[1], 1e-4f); Assert.AreEqual(0.47f, go[2], 1e-4f, "하드 스톱 46↔47"); Assert.AreEqual(0f, gc[2].a, 1e-4f);
+            Assert.AreEqual(0.16f, gc[4].a, 1e-4f, "아래 남색 .16"); Assert.AreEqual(44f / 255f, gc[4].b, 1e-3f, "(4,14,44)");
+            Assert.AreEqual("btn_danger_side", SurfaceArt.BtnGlassLayers[1], "옆 키라인은 8686 과 같은 수 — 한 키를 같이 쓴다");
+            // ⓑ 실물 — 스킬 패널 [모두 업그레이드](PaperButton Primary · pp_blue)
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(PetSkillHost.Ready, "소환 호스트가 20초 안에 안 섰다");
+            TabBar tb0 = UiRoot.Instance.TabBar;
+            if (tb0.ActiveTab != "summon") tb0.OnTab("summon");
+            SkillPetSheet.Instance.Switch(SkillPetSheet.SubSkills);
+            yield return null; yield return null; yield return null; yield return null;   // FillFaceWhenSized — 두 프레임 안정
+            Canvas.ForceUpdateCanvases();
+            Button ua = SkillPetSheet.Instance.Skills.UpgradeAllButton;
+            Assert.IsNotNull(ua, "[모두 업그레이드](btn-upgrade-all)");
+            Transform top = ua.transform.Find("skin/top");
+            Assert.IsNotNull(top, "둥근 면(skin/top)");
+            Transform g = top.Find("bg-grad");
+            Assert.IsNotNull(g, "8504 유리 겹 한 판(skin/top/bg-grad)");
+            Image gi = g.GetComponent<Image>();
+            Assert.IsTrue(gi.sprite != null && gi.sprite.texture.name.Contains("btn_glass_body+btn_danger_side+btn_glass_rim"), "BakeFace 판(아래→위): " + (gi.sprite == null ? "null" : gi.sprite.texture.name));
+            Color32[] bp = gi.sprite.texture.GetPixels32(); int BW = gi.sprite.texture.width, BH = gi.sprite.texture.height;
+            Assert.AreEqual(Mathf.RoundToInt(((RectTransform)top).rect.width), BW, 1, "판 가로 = 면 rect 가로");
+            Assert.AreEqual(Mathf.RoundToInt(((RectTransform)top).rect.height), BH, 1, "판 세로 = 면 rect 세로");
+            float Lum(Color32 c) { return c.r * 0.2126f + c.g * 0.7152f + c.b * 0.0722f; }
+            Color32 topPx = bp[(BH - 1) * BW + BW / 2], mid = bp[(BH / 2) * BW + BW / 2], bot = bp[BW / 2];
+            Assert.AreEqual(255, mid.a, "바탕(pp_blue)을 미리 합성 — 불투명");
+            Assert.Greater(Lum(topPx), Lum(mid) + 20f, "위 1px 하늘색 림이 가운데보다 훨씬 밝다");
+            Assert.Greater(Lum(bp[(BH / 2) * BW]), Lum(bp[(BH / 2) * BW + BW - 1]) + 8f, "왼쪽 흰 키라인 > 오른쪽 검 키라인");
+            Assert.Greater(Lum(mid), Lum(bot) + 4f, "아래 남색 그늘이 가운데보다 어둡다");
+            Assert.Greater(Lum(bp[(BH * 3 / 4) * BW + BW / 2]), Lum(bp[(BH / 2 - 2) * BW + BW / 2]) + 6f, "46% 위 광택 밴드가 47% 아래보다 밝다(하드 스톱)");
         }
 
     }

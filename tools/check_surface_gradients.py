@@ -130,7 +130,9 @@ TABLE = {
     # T178 37회차 — 은색 버튼 가족(5209 `.summon-btn` · 5260/5268 `.skd-btn.silver(.disabled)` · 5274 `.btn.silver` — #e3e3e3 → #c2c2c2 · 비활성 #d9d9d9 → #bdbdbd)과 승천 소환 버튼(5641 · #4caf50 → #2e7d32):
     #   `PetSkillKit.PaperButton`(Silver/Ascend · 둥근 면에 FillMasked · `.petup-selrow .btn.silver` 5487 단색은 plainFace) · 던전 상세 은색은 `DungeonPopups.Pill`. 리그 점수 알약(7881)은 `LeagueSheet` 의 `score/bg`.
     #   5626 `.btn.sm.ascend-ready`(대장간 만렙 버튼)는 클론 ForgeSheet 의 버튼이 파랑 한 벌이라 아직 미정(색 축 T377 과 함께 열 자리).
-    '.summon-btn': ['Ui/PetSkillKit.cs@PaperButton'],
+    '.summon-btn': '—정본 8661 `.btn.btn.summon-btn.summon-btn:not(.ascend-ready) { background: #a3a3a3 }`(0-4-0 · 문서 뒤)이 5209 의 은색 램프를 단색으로 끈다 — 선택자 글자가 달라 cascade-off 검출이 못 보는 자리 · 42회차가 걷었다(승천 갈래는 5641 그대로)',
+    # T178 42회차 — 파란 CTA 유리 겹: 같은 선택자 넷 문맥이 7833 → 8204 → 8336 → 8504 로 값을 갈아 끼웠다(마지막이 정본 · 자는 선택자당 한 번 센다) → 빨강·은색·승천 아닌 모든 .btn 면 공장 셋.
+    '.btn.btn:not(.silver):not(.ascend-ready), .modal-card .btn.btn:not(.silver):not(.ascend-ready), .panel .btn.btn:not(.silver):not(.ascend-ready), #equip-sheet .btn.btn:not(.silver):not(.ascend-ready)': ['Ui/Popups.cs@Btn', 'Ui/DungeonPopups.cs@Pill', 'Ui/PetSkillKit.cs@PaperButton'],
     '.skd-btn.silver': ['Ui/PetSkillKit.cs@PaperButton'],
     '.skd-btn.silver.disabled': ['Ui/PetSkillKit.cs@PaperButton'],
     '.btn.silver': ['Ui/PetSkillKit.cs@PaperButton', 'Ui/DungeonPopups.cs@Pill'],

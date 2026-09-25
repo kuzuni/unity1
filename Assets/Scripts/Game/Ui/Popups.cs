@@ -495,6 +495,9 @@ namespace Forge.Game.Ui
             // T178 41회차 — 정본 8686 `.btn.btn.danger.danger, .btn.btn.sell.sell` 세 겹(위 1px 분홍 림 · 좌우 1px 키라인 · 46% 밴드 + 검붉은 그늘 · 표 btn_danger_*):
             //   빨간 면(pp_red = 판매 버튼)에만 · 크기는 레이아웃이 줄 수 있어 잡히는 프레임에 굽는다. 파랑(8504)은 cascade 갈래라 따로.
             if (faceKey == "pp_red") SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnDangerLayers, UiKit.C(faceKey));
+            // T178 42회차 — 정본 8504(마지막 선언) `.btn.btn:not(.silver):not(.ascend-ready)` 유리 겹 셋은 **그 밖의 모든 면**(파랑·초록·회색·종이·[도전])에 얹힌다 —
+            //   8770 `.modal-card .btn.btn.fi-skip.fi-skip { background: #afafaf }`(단축 · 문서 뒤)만 되돌린다(fi_skip_face).
+            else if (faceKey != "fi_skip_face") SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnGlassLayers, UiKit.C(faceKey));
             TextMeshProUGUI t = UiKit.Text(rt, "label", kind, label, inkKey);
             t.fontStyle = FontStyles.Bold;
             t.rectTransform.offsetMin = new Vector2(0f, lip);
