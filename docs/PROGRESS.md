@@ -17032,6 +17032,7 @@
 - **게이트**: `gate.sh` 46 자 막는 자 전부 rc 0(dotnet 컴파일 포함).
 - **판정(다음 런)**: 그 칸 PASS · `PinnedColorSitesTests`·`SummonDashTests`·`DungeonUiTests`·`LeagueSheet` 자들 그대로 · 눈: `screen_summon-*`/`screen_pets` 의 소환 버튼이 위 밝은 은색 · `screen_league` 점수 알약 위 옅은 흰 기 · `screen_dungeon-detail` 소탕 버튼. **lock 유지**.
 - **남은 미정 33 의 갈래**: 선형만 — 5626 ascend-ready(색 축 먼저) · 7953 채움 막대 넷 · 7992 트랙 셋 · 8178 서브패널 · 8812 `::after` 눈금 · 8686 danger/sell 버튼 · 8618 패스 프리미엄 — cascade(마지막 선언만): 모달 카드 8272/8286 · 파란 버튼 8504 · 퀘스트 행 8089 · 리그 행 8415/8435 · 채팅 8056 — 방사: 구슬 재질 넷 · 모달 배경 5649·7148 · 마스크 셋.
+- **판정 보류 · 내 빨강 하나(08:4x · §0-6)**: 런 **1272**(`b8747e5` = 내 37회차 커밋) PlayMode 646 중 **빨강 1 = 내 새 칸**(`은색_버튼_면과_리그_점수_알약에_겹이_선다` · «펫 소환 버튼 · Expected not null · But was null» · 1620행) — 펫 패널은 소환 탭을 열기 전엔 안 서서 `Pets.SummonButton` 이 null 이다(탭바 자가 먼저 `OnTab("summon")` + `Switch(SubSkills)` 를 하는 까닭). 제품은 그대로고 자의 전제만 틀렸다 → 스킬 하위판의 `Skills.SummonButton`(같은 `SummonBtn` = PaperButton Silver)으로 고쳤다. 나머지 645 는 초록(DungeonUi·League·SummonDash·PinnedColorSites 그대로) · T28 158회차가 «은색 면이 서는 skills·league 만 지문 이동 · 회귀 0» 으로 채점(결정 822). **lock 유지** · 판정은 다음 런.
 - **ntfy — 알림 못 보냄**: 커밋 `b8747e5d` push 뒤 `ntfy-notify.yml` **런 #2444**(job 107991375358)가 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 이 루틴 프롬프트엔 토픽이 없고 Secret 미등록(같은 자리).
 
 ### T178 36회차 판정 ✅ · lock 반납 · 행 ⬜ — 런 1270 초록 · 새 칸 PASS · 눈 ✓ (2026-09-25 06:4x · 워커 T · sess-1447-10982)

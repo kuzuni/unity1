@@ -1612,12 +1612,17 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(3, sc.Length); Assert.AreEqual(0.16f, sc[0].a, 1e-4f, "7881 흰 .16"); Assert.AreEqual(0.46f, so[1], 1e-4f, "46%"); Assert.AreEqual(0.3f, sc[2].a, 1e-4f, "검 .30");
             Assert.AreEqual(180f, SurfaceArt.Angle("btn_silver"), 1e-4f); Assert.AreEqual(180f, SurfaceArt.Angle("league_score_skin"), 1e-4f);
 
-            // ⓑ 실물 — 펫 패널의 소환 버튼(승천 아님 · 알 가득 아님 = SkillPanel.SummonBtn 의 PaperButton Silver)
+            // ⓑ 실물 — 스킬 패널의 소환 버튼(승천 아님 = SkillPanel.SummonBtn 의 PaperButton Silver). 런 1272: 펫 패널은 탭을 열기 전엔 안 서서 null 이었다 —
+            //   탭바 자와 같은 길로 소환 탭·스킬 하위판을 먼저 연다.
             float t0 = Time.realtimeSinceStartup;
             while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
             Assert.IsTrue(PetSkillHost.Ready, "소환 호스트가 20초 안에 안 섰다");
-            Button sb = SkillPetSheet.Instance.Pets.SummonButton;
-            Assert.IsNotNull(sb, "펫 소환 버튼");
+            TabBar tb0 = UiRoot.Instance.TabBar;
+            if (tb0.ActiveTab != "summon") tb0.OnTab("summon");
+            SkillPetSheet.Instance.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            Button sb = SkillPetSheet.Instance.Skills.SummonButton;
+            Assert.IsNotNull(sb, "스킬 소환 버튼(소환 탭 · 스킬 하위판)");
             Transform top = sb.transform.Find("skin/top");
             Assert.IsNotNull(top, "둥근 면(skin/top)");
             Assert.IsNotNull(top.GetComponent<Mask>(), "면에 Mask — 램프가 모서리 밖으로 안 샌다");
