@@ -129,7 +129,7 @@ TABLE = {
     '#upg-fill, #tech-node-fill, .tech-prog #tech-node-fill, .summon-gauge i': '—정본 8803(aaa-skin ⓖ) 이 `background-image: none` 으로 끈다 — 38회차의 광택(gauge_fill)을 39회차가 걷었다 · 채움 = 색 한 칸',
     # T178 37회차 — 은색 버튼 가족(5209 `.summon-btn` · 5260/5268 `.skd-btn.silver(.disabled)` · 5274 `.btn.silver` — #e3e3e3 → #c2c2c2 · 비활성 #d9d9d9 → #bdbdbd)과 승천 소환 버튼(5641 · #4caf50 → #2e7d32):
     #   `PetSkillKit.PaperButton`(Silver/Ascend · 둥근 면에 FillMasked · `.petup-selrow .btn.silver` 5487 단색은 plainFace) · 던전 상세 은색은 `DungeonPopups.Pill`. 리그 점수 알약(7881)은 `LeagueSheet` 의 `score/bg`.
-    #   5626 `.btn.sm.ascend-ready`(대장간 만렙 버튼)는 클론 ForgeSheet 의 버튼이 파랑 한 벌이라 아직 미정(색 축 T377 과 함께 열 자리).
+    #   5626 `.btn.sm.ascend-ready`(대장간 만렙 버튼)는 45회차가 열었다 — ForgeSheet 가 PopupKit.Btn 에 surfaceKey=btn_ascend 를 넘기고 면·턱은 PinnedColorUi ascend_ready_face/lip(T377 꼴).
     '.summon-btn': '—정본 8661 `.btn.btn.summon-btn.summon-btn:not(.ascend-ready) { background: #a3a3a3 }`(0-4-0 · 문서 뒤)이 5209 의 은색 램프를 단색으로 끈다 — 선택자 글자가 달라 cascade-off 검출이 못 보는 자리 · 42회차가 걷었다(승천 갈래는 5641 그대로)',
     # T178 42회차 — 파란 CTA 유리 겹: 같은 선택자 넷 문맥이 7833 → 8204 → 8336 → 8504 로 값을 갈아 끼웠다(마지막이 정본 · 자는 선택자당 한 번 센다) → 빨강·은색·승천 아닌 모든 .btn 면 공장 셋.
     '.btn.btn:not(.silver):not(.ascend-ready), .modal-card .btn.btn:not(.silver):not(.ascend-ready), .panel .btn.btn:not(.silver):not(.ascend-ready), #equip-sheet .btn.btn:not(.silver):not(.ascend-ready)': ['Ui/Popups.cs@Btn', 'Ui/DungeonPopups.cs@Pill', 'Ui/PetSkillKit.cs@PaperButton'],
@@ -161,6 +161,14 @@ TABLE = {
     '.league-row.me': ['Ui/LeagueSheet.cs@Row'],
     '.league-row': '—정본 7861 은 뒤의 더 특이한 두 갈래(7870/8415 `:not(.me)` · 7976/8435 `.me`)가 모든 행을 덮어 실제로 서는 값이 없다 — 44회차',
     '.league-row:not(.me)': '—정본 7870 은 같은 특이도의 8415 `.league-row:not(.me), .equipped-row` 가 뒤에서 덮는다(선택자 글자가 달라 cascade-off 검출 밖 · 결정 828 ⓑ) — 44회차',
+    # T178 45회차 — 채팅 띠 다크 글래스(3639 #8a8a8a 위 · 같은 선택자 8002 → 8056 마지막 선언 · 1px 림 + (16,19,26) .62→.74 램프 · UiRoot.Build 의 chat-preview/bg) · 상점 카드 종이 판(8225 · 2px 림 + 방사 위 광 + 램프 · ShopSheet.Render 두 카드) ·
+    #   대장간 만렙 승천 버튼(5626 · ui.js 1506 `btn sm primary ascend-ready` · ForgeSheet → PopupKit.Btn surfaceKey=btn_ascend) · 펫 타일 장착 리본(4072 · 위 광 → 아래 그늘 · PetPanel.EquippedRibbon(TileFace 에서 뺀 공장) · FillMasked over ink).
+    '#chat-preview': ['Ui/UiRoot.cs@Build'],
+    '.shop-deal-card, .shop-gem-card': ['Ui/ShopSheet.cs@Render'],
+    '.btn.sm.ascend-ready': ['Ui/Popups.cs@Btn'],
+    '.sk-ribbon': ['Ui/PetPanel.cs@EquippedRibbon'],
+    '.sk-shard em': '—정본 4119 는 `background-clip: text` 글자 칠(채움 경계에서 개수 글자 색을 검/흰으로 가른다 · 주석 sk-shard-count-illegible)이라 표면 겹이 아니다 — 글자 축 · 클론 sk-shard 글자는 PetSkillKit.Gauge 의 t 한 색 — 45회차',
+    '.cmp-card.new::after': '—정본 1834 는 `shinesweep` 키프레임으로 45% 폭의 광 띠가 지나가는 연출(움직이는 겹 · T135 ⓒ 갈래)이라 정적 표면 겹이 아니다 — 45회차',
     '.qst-bar i': '—정본 8806 `.qst-bar i { background: #4fc3f7 }`(aaa-skin ⓖ) 이 2044 의 두 겹을 단색으로 끈다 — 6·10회차의 qst-fill-grad·rim 을 39회차가 걷었다 · 채움 = catalog quest_bar 한 칸',
     '.qst-row.done .qst-bar i': '—정본 8807 `… { background: #81e884 }`(aaa-skin ⓖ) 이 2047 의 두 겹을 단색으로 끈다 — 39회차가 걷었다 · 채움 = catalog quest_bar_done 한 칸',
     # T178 9회차 — 기술 트리 분기 원판(카테고리색 면) 위의 겹 둘: 왼쪽 위 방사형 광택 + 세로 명암.

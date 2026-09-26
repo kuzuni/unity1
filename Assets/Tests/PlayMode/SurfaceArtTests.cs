@@ -2058,5 +2058,105 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(eg.GetComponent<Image>().sprite.texture.name.Contains("league_row_ramp+stripe:league_row_grain"), "리그 행과 같은 처방");
         }
 
+        /// <summary>
+        /// T178 45회차 — 정본 8056 채팅 띠 다크 글래스(8002 를 덮는 마지막 선언) · 8225 상점 카드 종이 판(림+방사 광+램프) · 5626 대장간 만렙 승천 버튼(surfaceKey 램프 · 유리 겹 없음) ·
+        /// 4072 펫 타일 장착 리본(위 광 → 아래 그늘). 표 → 판 이름 → 화소 순.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 채팅_띠와_상점_카드와_승천_버튼과_펫_리본에_겹이_선다()
+        {
+            yield return Boot();
+            // ⓐ 표
+            Color[] c; float[] o;
+            SurfaceArt.Stops("chat_glass_ramp", out c, out o); Assert.AreEqual(2, c.Length); Assert.AreEqual(0.62f, c[0].a, 1e-4f, "위 .62"); Assert.AreEqual(0.74f, c[1].a, 1e-4f, "아래 .74"); Assert.AreEqual(16f / 255f, c[0].r, 1e-3f, "(16,19,26)");
+            SurfaceArt.Stops("chat_glass_rim", out c, out o); Assert.AreEqual(0.14f, c[0].a, 1e-4f, "림 .14(8002 의 .20 이 아니다 — 8056 이 덮는다)");
+            SurfaceArt.Stops("shop_card_ramp", out c, out o); Assert.AreEqual(3, c.Length); Assert.AreEqual(0.54f, o[1], 1e-4f, "54%"); Assert.AreEqual(239f / 255f, c[2].r, 1e-3f, "#efece4");
+            Assert.IsTrue(SurfaceArt.IsRadial("shop_card_top_light"), "위 광은 방사형");
+            SurfaceArt.Stops("shop_card_rim", out c, out o); Assert.AreEqual(0.95f, c[0].a, 1e-4f); Assert.AreEqual(2f, o[1], 1e-4f, "2px 림");
+            SurfaceArt.Stops("sk_ribbon", out c, out o); Assert.AreEqual(3, c.Length); Assert.AreEqual(0.22f, c[0].a, 1e-4f); Assert.AreEqual(0.48f, o[1], 1e-4f); Assert.AreEqual(0.28f, c[2].a, 1e-4f, "아래 검 .28");
+            float Lum(Color32 k) { return k.r * 0.2126f + k.g * 0.7152f + k.b * 0.0722f; }
+            float t0 = Time.realtimeSinceStartup;
+            while (!(MetaHost.Ready && PopupLayer.Instance != null && UiRoot.Instance != null && UiRoot.Instance.Chat != null) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
+            yield return null; yield return null; yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            // ⓑ 채팅 띠 — 판 = 띠 폭 · 위 1px 림이 아래보다 밝고 · 가운데는 #8a8a8a 위 어두운 유리
+            Transform cg = UiRoot.Instance.Chat.Find("bg/bg-grad");
+            Assert.IsNotNull(cg, "채팅 띠 bg 위 bg-grad");
+            Sprite cs = cg.GetComponent<Image>().sprite;
+            Assert.IsNotNull(cs, "채팅 띠 판(SurfaceLate 가 굽는다)");
+            Assert.IsTrue(cs.texture.name.Contains("chat_glass_ramp+chat_glass_rim"), "채팅 띠 판 이름: " + cs.texture.name);
+            Rect chatRect = UiRoot.Instance.Chat.Find("bg").GetComponent<RectTransform>().rect;
+            Assert.AreEqual(Mathf.Round(chatRect.width), cs.texture.width, 1f, "판 가로 = 띠 폭");
+            {
+                Texture2D tx = cs.texture; Color32[] px = tx.GetPixels32(); int W = tx.width, H = tx.height;
+                float top = Lum(px[(H - 1) * W + W / 2]), under = Lum(px[(H - 4) * W + W / 2]), mid = Lum(px[(H / 2) * W + W / 2]);
+                Assert.Greater(top, under + 6f, "위 1px 림(.14 흰)이 바로 아래보다 밝다");
+                Assert.Less(mid, 90f, "가운데는 다크 글래스(#8a8a8a 위 (16,19,26) .6x) — 밝은 회색이 아니다");
+                Assert.Greater(mid, 30f, "그래도 바탕 회색이 비친다(불투명 검정이 아니다)");
+            }
+            // ⓒ 상점 카드 — 딜 카드·보석 카드 둘 다 같은 판 · 위 2px 림이 아래 종이보다 밝다
+            MetaHost h = MetaHost.Instance;
+            ShopSheet.Open(h);
+            yield return null; yield return null; yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup sp = h.Popups.Find(ShopSheet.Name);
+            Assert.IsNotNull(sp, "상점 시트");
+            int deals = 0, gems = 0;
+            foreach (RectTransform rt in sp.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name != "face" || rt.parent == null) continue;
+                bool deal = rt.parent.name == "card", gem = rt.parent.name.StartsWith("gem-", System.StringComparison.Ordinal);
+                if (!deal && !gem) continue;
+                Transform g = rt.Find("bg-grad"); Assert.IsNotNull(g, "상점 카드 면에 종이 판(bg-grad) · " + rt.parent.name);
+                Sprite gs = g.GetComponent<Image>().sprite; Assert.IsNotNull(gs, "카드 판이 구워졌다 · " + rt.parent.name);
+                Assert.IsTrue(gs.texture.name.Contains("shop_card_ramp+shop_card_top_light+shop_card_rim"), "카드 판 이름: " + gs.texture.name);
+                if (deals + gems == 0)
+                {
+                    Texture2D tx = gs.texture; Color32[] px = tx.GetPixels32(); int W = tx.width, H = tx.height;
+                    Assert.Greater(Lum(px[(H - 1) * W + W / 2]), Lum(px[1 * W + W / 2]) + 8f, "위 2px 림(.95 흰)이 아래 종이(#efece4)보다 밝다");
+                    Assert.Greater(px[1 * W + W / 2].r, px[1 * W + W / 2].b, "아래는 따뜻한 종이(R > B)");
+                }
+                if (deal) deals++; else gems++;
+            }
+            Assert.Greater(deals, 0, "딜 카드가 하나는 섰다"); Assert.Greater(gems, 0, "보석 카드가 하나는 섰다");
+            ShopSheet.Close(h);
+            yield return null;
+            // ⓓ 승천 버튼 — PopupKit.Btn 에 surfaceKey 를 주면 btn_ascend 램프 한 겹 · 유리 겹(SurfaceLate)은 안 붙는다 · 글자 그림자 없음
+            Button asc = PopupKit.Btn(PopupLayer.Instance.transform, "t-ascend", "★ 승천\n가능", "pp_green", "pp_green_dk", null, 320f, 130f, "stage_ink", TextKind.Sub, surfaceKey: "btn_ascend");
+            yield return null;
+            Transform af = asc.transform.Find("face");
+            Assert.IsNotNull(af, "면");
+            Assert.IsNull(af.GetComponent<SurfaceLate>(), "승천 버튼엔 유리 겹(8504 :not(.ascend-ready))이 붙지 않는다");
+            Transform ag = af.Find("bg-grad"); Assert.IsNotNull(ag, "승천 램프");
+            Assert.IsTrue(ag.GetComponent<Image>().sprite.texture.name.StartsWith("sf-btn_ascend", System.StringComparison.Ordinal), "램프 = 표 btn_ascend: " + ag.GetComponent<Image>().sprite.texture.name);
+            Assert.AreEqual(PinnedColorUi.C("ascend_ready_face"), new Color(0x4c / 255f, 0xaf / 255f, 0x50 / 255f, 1f), "면 전용 키 = #4caf50(5626 램프 위 색)");
+            Assert.AreEqual(PinnedColorUi.C("ascend_ready_lip"), new Color(0x2e / 255f, 0x7d / 255f, 0x32 / 255f, 1f), "턱 전용 키 = #2e7d32(램프 아래 색)");
+            Object.Destroy(asc.gameObject);
+            yield return null;
+            // ⓔ 펫 타일 «장착» 리본 — 활성 펫 하나를 세우고 리본 알약 위에 sk_ribbon 램프
+            t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(PetSkillHost.Ready, "소환 호스트가 20초 안에 안 섰다");
+            PetSkillHost ph = PetSkillHost.Instance;
+            ph.Pets.State.Pets.Add(new Forge.Core.Pets.Pet { Name = "Cat", Rarity = "common", Stars = 1 });
+            int idx = ph.Pets.State.Pets.Count - 1;
+            if (!ph.Pets.State.ActivePets.Contains(idx)) ph.Pets.ToggleActive(idx);
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            SkillPetSheet.Instance.Switch(SkillPetSheet.SubPets);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform rib = FindDeep(SkillPetSheet.Instance.Pets.transform, "sk-ribbon");
+            Assert.IsNotNull(rib, "장착 리본(sk-ribbon)이 하나는 섰다");
+            Transform rg = rib.Find("bg/bg-grad"); Assert.IsNotNull(rg, "리본 알약 위 램프(bg-grad)");
+            Sprite rs = rg.GetComponent<Image>().sprite; Assert.IsNotNull(rs, "리본 램프 판");
+            Assert.IsTrue(rs.texture.name.StartsWith("sf-sk_ribbon", System.StringComparison.Ordinal), "리본 램프 = 표 sk_ribbon: " + rs.texture.name);
+            {
+                Texture2D tx = rs.texture; Color32[] px = tx.GetPixels32(); int W = tx.width, H = tx.height;
+                Assert.Greater(Lum(px[(H - 1) * W + W / 2]), Lum(px[0 * W + W / 2]) + 10f, "리본 위 광(.22 흰)이 아래 그늘(.28 검)보다 밝다");
+            }
+        }
+
     }
 }

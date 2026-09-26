@@ -270,7 +270,7 @@
     "angle_deg": 180,
     "stops": [[76, 175, 80, 1.0], [46, 125, 50, 1.0]],
     "offsets": [0, 1],
-    "_": "style.css **5641** `.summon-bar .btn.big.ascend-ready { background: linear-gradient(#4caf50, #2e7d32); color: #fff }` — 승천 가능 상태의 소환 버튼(초록 강조 · 각도 없는 linear-gradient 는 180deg). 5626 `.btn.sm.ascend-ready`(대장간 만렙 버튼)도 같은 값이지만 클론 ForgeSheet 의 그 버튼은 파랑 한 벌이라 아직 미정. PaperButton(Ascend). T178 37회차."
+    "_": "style.css **5641** `.summon-bar .btn.big.ascend-ready { background: linear-gradient(#4caf50, #2e7d32); color: #fff }` — 승천 가능 상태의 소환 버튼(초록 강조 · 각도 없는 linear-gradient 는 180deg). 5626 `.btn.sm.ascend-ready`(대장간 만렙 [★ 승천 가능] · ui.js 1506 `btn sm primary ascend-ready`)도 같은 값 — 45회차부터 ForgeSheet 가 PopupKit.Btn 에 surfaceKey 로 이 키를 넘겨 같은 판을 얹는다(면·턱은 PinnedColorUi ascend_ready_face/lip). PaperButton(Ascend). T178 37회차."
   },
   "league_score_skin": {
     "over_color": "league_score",
@@ -1026,6 +1026,48 @@
     "stops": [[255, 206, 196, 0.34], [255, 176, 166, 0.14], [255, 255, 255, 0.0], [58, 6, 8, 0.07], [44, 4, 6, 0.16]],
     "offsets": [0, 0.46, 0.47, 0.70, 1],
     "_": "style.css 8686 셋째 겹 — `linear-gradient(180deg, (255,206,196,.34) 0, (255,176,166,.14) 46%, 투명 47%, (58,6,8,.07) 70%, (44,4,6,.16) 100%)`: 위 반은 분홍빛 밴드(46% 엣지) · 아래는 검붉은 그늘. 파란 버튼(8504)과 같은 문법의 빨강 벌 — 정본 주석 «두 버튼이 한 언어로 읽힌다». 아래턱(inset −.22rem #4e0507)은 BottomShade/lip 축."
+  },
+  "chat_glass_rim": {
+    "angle_deg": 180,
+    "stops": [[255, 255, 255, 0.14], [255, 255, 255, 0.14], [255, 255, 255, 0.0]],
+    "offsets": [0, 1, 1],
+    "units": ["px", "px", "px"],
+    "_": "style.css **8056** `#chat-preview` 첫 겹 — `linear-gradient(180deg, rgba(255,255,255,.14) 0 1px, rgba(255,255,255,0) 1px)`: 채팅 띠 위 1 CSS px 헤어라인 림. 같은 선택자 8002(림 .20)를 8056 이 덮는다(마지막 선언 · 정본 주석 «채팅 바 — 다크 글래스로 전환 · 바탕 선언은 그대로, 층으로 덮는다»). 바탕은 3639 `#8a8a8a`(catalog chat_bg). UiRoot.Build 의 chat-preview/bg · BakeFace 한 판. T178 45회차."
+  },
+  "chat_glass_ramp": {
+    "angle_deg": 180,
+    "stops": [[16, 19, 26, 0.62], [16, 19, 26, 0.74]],
+    "offsets": [0, 1],
+    "_": "style.css **8056** `#chat-preview` 둘째 겹 — `linear-gradient(180deg, rgba(16,19,26,.62) 0, rgba(16,19,26,.74) 100%)`: 원본 실측색 #8a8a8a 위에 얹는 어두운 반투명 층(«원신급 다크 글래스» · 위 .62 → 아래 .74 로 아래가 조금 더 짙다). 글자색은 8069/8070 이 뒤집는다(PinnedColorUi chat_preview_*_ink · T396). T178 45회차."
+  },
+  "shop_card_rim": {
+    "angle_deg": 180,
+    "stops": [[255, 255, 255, 0.95], [255, 255, 255, 0.95], [255, 255, 255, 0.0]],
+    "offsets": [0, 2, 2],
+    "units": ["px", "px", "px"],
+    "_": "style.css **8225** `.shop-deal-card, .shop-gem-card` 첫 겹 — `linear-gradient(180deg, rgba(255,255,255,.95) 0 2px, rgba(255,255,255,0) 2px)`: 상점 카드 위 2 CSS px 엣지 림(정본 주석 «흰 종이 사각형에 '떠 있는 판'의 세 단서 — 위 림 → 아래 그늘 램프 · 바깥 캐스트 그림자(T331 shopcard_drop) · 안쪽 아래 그늘»). T178 45회차."
+  },
+  "shop_card_top_light": {
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": -0.06,
+    "rx": 1.18,
+    "ry": 0.62,
+    "stops": [[255, 255, 255, 0.9], [255, 255, 255, 0.0]],
+    "offsets": [0, 0.7],
+    "_": "style.css **8225** 둘째 겹 — `radial-gradient(118% 62% at 50% -6%, rgba(255,255,255,.9) 0, rgba(255,255,255,0) 70%)`: 카드 위 가장자리 바로 위에 중심을 둔 넓은 타원 광(위쪽이 밝게 떠오른다). T178 45회차."
+  },
+  "shop_card_ramp": {
+    "angle_deg": 180,
+    "stops": [[255, 254, 251, 1.0], [248, 246, 241, 1.0], [239, 236, 228, 1.0]],
+    "offsets": [0, 0.54, 1],
+    "_": "style.css **8225** 맨 아래 겹 — `linear-gradient(180deg, #fffefb 0, #f8f6f1 54%, #efece4 100%)`: 상점 카드의 따뜻한 종이 램프(모달 카드 8286 과 같은 어법 · 정본 주석 «`background: var(--pp-paper)` 는 단축이라 image 를 none 으로 되돌린다 — 이 블록이 소스 뒤라 이긴다»). 불투명이라 면 색(pp_paper #fff)은 덮인다 — 그래도 바탕으로 넘긴다. T178 45회차."
+  },
+  "sk_ribbon": {
+    "angle_deg": 180,
+    "stops": [[255, 255, 255, 0.22], [255, 255, 255, 0.0], [0, 0, 0, 0.28]],
+    "offsets": [0, 0.48, 1],
+    "_": "style.css **4072** `.sk-ribbon { background: #17181a; background-image: linear-gradient(180deg, rgba(255,255,255,.22) 0, rgba(255,255,255,0) 48%, rgba(0,0,0,.28) 100%) }` — 펫 타일 위 «장착» 리본(정본 주석 «9차(비평가 B 결함[7]): 민짜 검정 스티커 → 위 광·림 + 아래 그늘 + 낙하 그림자 한 겹 · 색·크기·위치는 그대로(칠 속성만)»). 바탕 #17181a = PetSkillUi ink · 낙하 그림자는 T331 skribbon_drop. 정지점이 분수라 크기 무관 — FillMasked(over ink). 5546 `.petd-tile .sk-ribbon` 은 글자·패딩만. T178 45회차."
   },
   "stripes": {
     "cell_hatch": {

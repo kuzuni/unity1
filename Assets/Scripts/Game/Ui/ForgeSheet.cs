@@ -138,7 +138,15 @@ namespace Forge.Game.Ui
             float forgeW = actW - gap - autoW;
             ForgeUpgrade up = h.UpgradeInfo();
             string forgeLabel = up == null ? (h.AscendReady ? "★ 승천\n가능" : "대장간\n최고 레벨") : "대장간\n레벨 " + h.Forge.ForgeLevel;
-            Button fb = TwoLineBtn(right, "forge-btn", forgeLabel, "pp_blue", "pp_blue_dk", () => ForgeInfoPopup.Open(h), forgeW, btnH);
+            // T178 45회차 — 정본 **5626** `.btn.sm.ascend-ready { background: linear-gradient(#4caf50, #2e7d32); color: #fff }` · ui.js 1506 은 만렙+승천 가능일 때 `btn sm primary ascend-ready` 를 낸다(키라인 2px 은 `.primary` 몫 그대로 · 8504 유리 겹·8336 글자 그림자는 `:not(.ascend-ready)` 로 빠진다). 램프는 표 btn_ascend(5641 소환 버튼과 같은 판) ·
+            //   면·턱은 램프의 위·아래 색(정본엔 턱 선언이 없어 PetSkillKit Ascend 의 dk 와 같은 값) — 전역 pp_green(#35c04f)이 아니라 T377 꼴의 전용 키(PinnedColorUi ascend_ready_face/lip).
+            bool ascendReady = up == null && h.AscendReady;
+            Button fb = TwoLineBtn(right, "forge-btn", forgeLabel, ascendReady ? "pp_green" : "pp_blue", ascendReady ? "pp_green_dk" : "pp_blue_dk", () => ForgeInfoPopup.Open(h), forgeW, btnH, ascendReady ? "btn_ascend" : null);
+            if (ascendReady)
+            {
+                fb.transform.Find("face").GetComponent<Image>().color = PinnedColorUi.C("ascend_ready_face");
+                fb.transform.Find("lip").GetComponent<Image>().color = PinnedColorUi.C("ascend_ready_lip");
+            }
             UiKit.Place(fb.GetComponent<RectTransform>(), actX, 0f, forgeW, btnH);
             bool unlocked = h.AutoForgeUnlocked;
             Button ab = AutoBtn(right, h, unlocked, unlocked ? (h.AutoOn ? "pp_green" : "pp_blue") : "pp_gray", unlocked ? (h.AutoOn ? "pp_green_dk" : "pp_blue_dk") : "pp_gray_dk", autoW, btnH);
@@ -183,9 +191,9 @@ namespace Forge.Game.Ui
             else fx.Stop();
         }
 
-        static Button TwoLineBtn(Transform parent, string name, string label, string face, string lip, UnityEngine.Events.UnityAction onClick, float w, float h)
+        static Button TwoLineBtn(Transform parent, string name, string label, string face, string lip, UnityEngine.Events.UnityAction onClick, float w, float h, string surfaceKey = null)
         {
-            Button b = PopupKit.Btn(parent, name, label, face, lip, onClick, w, h, "stage_ink", TextKind.Sub);
+            Button b = PopupKit.Btn(parent, name, label, face, lip, onClick, w, h, "stage_ink", TextKind.Sub, surfaceKey: surfaceKey);
             TextMeshProUGUI t = b.GetComponentInChildren<TextMeshProUGUI>();
             if (t != null) { WrapUi.Apply(t, "forge_actions_btn"); LineHeight.Apply(t, "forge_actions_btn_lh"); }   // T354 22회차 — 정본 1637 `.forge-actions .btn { line-height: 1.15 }` 를 표에서(전엔 -20f 가 코드에 박혀 있었다 · §1)   // T361 7회차 — 정본 white-space 표(WrapUi.json) 1637 `.forge-actions .btn { nowrap }` — 두 줄은 라벨의 \n 이 만든다(NoWrap 도 \n 은 지킨다 · 전엔 Normal 박힘)
             return b;

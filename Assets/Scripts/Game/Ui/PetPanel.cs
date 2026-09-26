@@ -270,21 +270,8 @@ namespace Forge.Game.Ui
             RectTransform pf = PetSkillKit.PetFace(face, Defs, name, size * 0.86f, kind);
             UiKit.Anchor(pf, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, size * 0.86f, size * 0.86f);
             float lvH = UiCatalog.Instance.Kind(TextKind.Sub).size * 1.15f;
-            if (active)
-            {
-                string rb = ribbonText ?? PetSkillStyle.T("equipped");
-                float rw = PetSkillKit.TextWidth(TextKind.Sub, rb) + PetSkillStyle.Rem(0.5f);
-                RectTransform ribbon = PetSkillKit.LvBadge(face, rb, rw, lvH);
-                ribbon.name = "sk-ribbon";
-                TextMeshProUGUI rbT = ribbon.GetComponentInChildren<TextMeshProUGUI>(true);
-                if (rbT != null) WrapUi.Apply(rbT, "sk_ribbon");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 4075 `.sk-ribbon { nowrap }`
-                // 정본 `.sk-ribbon{top:-.2rem}` = 리본 **윗변**이 면 위 .2rem — pivot 을 윗변에 둔다(가운데를 두면 반이 면 밖으로 나가 첫 행이 grid-scroll 마스크에 잘린다 · T102)
-                UiKit.Anchor(ribbon, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, PetSkillStyle.Rem(0.2f)), rw, lvH);
-                // T331 33회차 — 정본 4079 `.sk-ribbon` 의 **둘째 겹** `0 .1rem .18rem rgba(0,0,0,.35)`
-                //   (첫 겹 `inset 0 1px 0 rgba(255,255,255,.25)` 은 안쪽 림라이트다 · 정본이 여기서 1px 을 썼다).
-                //   반지름은 리본이 실제로 쓰는 것을 그림에서 되읽는다(그 공장을 안 열어도 된다 · T331 5회차).
-                UiShadow.Drop(ribbon, "skribbon_drop", UiShadow.RadiusOf(ribbon), rw, lvH);
-            }
+            // T178 45회차 — 리본은 한 공장(EquippedRibbon)으로 뺐다: check_surface_gradients 가 `@메서드` 로 겹을 찾는데 TileFace 는 앞 두 오버로드가 한 줄 위임이라 첫 몸이 잡힌다.
+            if (active) EquippedRibbon(face, ribbonText ?? PetSkillStyle.T("equipped"), lvH);
             string lt = PetSkillStyle.T("lv_short", level);
             float lw = PetSkillKit.TextWidth(TextKind.Sub, lt) + PetSkillStyle.Rem(0.5f);
             // T109 10회차 — 정본 `.petd-wrap .petd-tile .sk-lv`(style.css 5467): 알약은 그대로 두고 글자에 2.5px 검정 링
@@ -292,6 +279,28 @@ namespace Forge.Game.Ui
             RectTransform lv = PetSkillKit.LvBadge(face, lt, lw, lvH, lvKeyline);
             UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0f, PetSkillStyle.Rem(0.15f)), lw, lvH);
             return face;
+        }
+
+        /// <summary>
+        /// 펫 타일 위 «장착» 리본(정본 `.sk-ribbon` 4072 — 검정 알약 + 위 광·아래 그늘 램프 + 낙하 그림자 · 윗변이 면 위 .2rem). T178 45회차에 TileFace 에서 뺐다(내용 그대로).
+        /// </summary>
+        static RectTransform EquippedRibbon(RectTransform face, string rb, float lvH)
+        {
+            float rw = PetSkillKit.TextWidth(TextKind.Sub, rb) + PetSkillStyle.Rem(0.5f);
+            RectTransform ribbon = PetSkillKit.LvBadge(face, rb, rw, lvH);
+            ribbon.name = "sk-ribbon";
+            TextMeshProUGUI rbT = ribbon.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (rbT != null) WrapUi.Apply(rbT, "sk_ribbon");   // T361 4회차 — 정본 white-space 표(WrapUi.json) 4075 `.sk-ribbon { nowrap }`
+            // 정본 `.sk-ribbon{top:-.2rem}` = 리본 **윗변**이 면 위 .2rem — pivot 을 윗변에 둔다(가운데를 두면 반이 면 밖으로 나가 첫 행이 grid-scroll 마스크에 잘린다 · T102)
+            UiKit.Anchor(ribbon, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, PetSkillStyle.Rem(0.2f)), rw, lvH);
+            // T331 33회차 — 정본 4079 `.sk-ribbon` 의 **둘째 겹** `0 .1rem .18rem rgba(0,0,0,.35)`
+            //   (첫 겹 `inset 0 1px 0 rgba(255,255,255,.25)` 은 안쪽 림라이트다 · 정본이 여기서 1px 을 썼다).
+            //   반지름은 리본이 실제로 쓰는 것을 그림에서 되읽는다(그 공장을 안 열어도 된다 · T331 5회차).
+            UiShadow.Drop(ribbon, "skribbon_drop", UiShadow.RadiusOf(ribbon), rw, lvH);
+            // T178 45회차 — 정본 **4072** `.sk-ribbon { background-image: linear-gradient(180deg, 흰 .22 0, 투명 48%, 검 .28 100%) }`(정본 주석 «민짜 검정 스티커 → 위 광·림 + 아래 그늘 · 칠 속성만»):
+            //   바탕 #17181a(PetSkillUi ink) 위에 표 sk_ribbon 을 얹는다 — 정지점이 분수라 크기 무관 · 둥근 알약이라 FillMasked(면 색 위 합성). 5546 `.petd-tile .sk-ribbon` 은 글자·패딩만 바꾼다.
+            SurfaceArt.FillMasked(ribbon.Find("bg").GetComponent<Image>(), "bg-grad", "sk_ribbon", rw, lvH, PetSkillStyle.C("ink"));
+            return ribbon;
         }
 
         /// <summary>원작 `.pet-tile.egg`: 테 없이 등급색 알 그림(119%) + «알» 라벨.</summary>

@@ -77,7 +77,10 @@ namespace Forge.Game.Ui
                 RectTransform rowBox = PopupKit.Item(dealsBox, "deal-" + d.Key, -1f, cardH);
                 RectTransform card = UiKit.Box(rowBox, "card");
                 UiKit.Place(card, cardX, 0f, cardW, cardH);
-                PopupKit.Outlined(card, "face", "pp_paper", RadiusUi.Px("shop_deal_card_r_rem"), PopupKit.Line3);   // T345 13회차 — 정본 2916 `.shop-deal-card` .9rem
+                Image dealFace = PopupKit.Outlined(card, "face", "pp_paper", RadiusUi.Px("shop_deal_card_r_rem"), PopupKit.Line3);   // T345 13회차 — 정본 2916 `.shop-deal-card` .9rem
+                // T178 45회차 — 정본 **8225** `.shop-deal-card, .shop-gem-card` 세 겹(위 2px 흰 림 · 위 가장자리 타원 광 · #fffefb → #f8f6f1 → #efece4 종이 램프 · 정본 주석 «흰 종이 사각형에 '떠 있는 판'의 세 단서») —
+                //   2px 림·방사 광은 크기에 매이니 카드 rect 가 잡히는 프레임에 BakeFace 한 판(표 shop_card_*). 캐스트 그림자(8230)는 아래 T331 줄.
+                SurfaceArt.FillFaceWhenSized(dealFace, "bg-grad", SurfaceArt.ShopCardLayers, UiKit.C("pp_paper"));
                 UiShadow.Drop(card, "shopcard_drop", RadiusUi.Px("shop_deal_card_r_rem"), cardW, cardH);   // T331 41회차 — 정본 8230 `.shop-deal-card, .shop-gem-card` 캐스트 그림자(표 shopcard_drop · 카드 맨 뒤)
 
                 // 빨간 깃발 태그(카드 바깥선보다 왼쪽에서 시작 · 폭 고정)
@@ -142,7 +145,8 @@ namespace Forge.Game.Ui
                 GemPack gp = packs[i];
                 RectTransform card = UiKit.Box(grid, "gem-" + i);
                 UiKit.Place(card, UiKit.L("shop_gems_x") * w + (i % cols) * (gemW + gemGap), gemsTop + (i / cols) * (gemH + gemGap), gemW, gemH);
-                PopupKit.Outlined(card, "face", "pp_paper", RadiusUi.Px("shop_gem_card_r_rem"), PopupKit.Line3);   // T345 13회차 — 정본 2971 `.shop-gem-card` .8rem
+                Image gemFace = PopupKit.Outlined(card, "face", "pp_paper", RadiusUi.Px("shop_gem_card_r_rem"), PopupKit.Line3);   // T345 13회차 — 정본 2971 `.shop-gem-card` .8rem
+                SurfaceArt.FillFaceWhenSized(gemFace, "bg-grad", SurfaceArt.ShopCardLayers, UiKit.C("pp_paper"));   // T178 45회차 — 같은 선언(8225)의 둘째 선택자 · 보석 카드도 같은 종이 판
                 UiShadow.Drop(card, "shopcard_drop", RadiusUi.Px("shop_gem_card_r_rem"), gemW, gemH);   // T331 41회차 — 같은 선언(8230)의 둘째 선택자 · 보석 카드도 같은 캐스트
                 // 카드 «안쪽» 세로 배분은 정본 `.shop-gem-card` 주석의 실측 그대로다(카드 상단 기준 · 894px 캡처 기준을 %H 로):
                 // 수량 줄 +8~36px · 그림 +38~98px · 가격 버튼 +101~124px. rem 눈대중으로 두면 자가 밴드8 의 블록을 못 가른다(T75).

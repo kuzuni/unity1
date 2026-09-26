@@ -484,7 +484,7 @@ namespace Forge.Game.Ui
         /// 라벨 키라인(T109 7회차 · 정본 `style.css` 8719 `.btn.btn.primary/on/equip/danger/sell { -webkit-text-stroke: var(--ol2) var(--pp-line) }`):
         /// <paramref name="keylineKey"/> 가 null 이면 면 색 키 표(<see cref="KeylineUi.BtnFace"/> · `KeylineUi.json` btn_face)가 정한다 · "" 는 끈다 ·
         /// 그 밖은 폭표 키(`.af-start`·`.fi-skip` 4px 처럼 제 규칙이 있는 버튼) · 비활성은 정본 8725 `.disabled { -webkit-text-stroke: 0 }` 대로 민글자.</summary>
-        public static Button Btn(Transform parent, string name, string label, string faceKey, string lipKey, UnityAction onClick, float w, float h, string inkKey = "stage_ink", TextKind kind = TextKind.Button, bool disabled = false, string keylineKey = null, float radius = -1f)
+        public static Button Btn(Transform parent, string name, string label, string faceKey, string lipKey, UnityAction onClick, float w, float h, string inkKey = "stage_ink", TextKind kind = TextKind.Button, bool disabled = false, string keylineKey = null, float radius = -1f, string surfaceKey = null)
         {
             Button b = UiKit.Button(parent, name, onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
@@ -500,7 +500,10 @@ namespace Forge.Game.Ui
             face.rectTransform.offsetMax = new Vector2(-Line3, -Line3);
             // T178 41회차 — 정본 8686 `.btn.btn.danger.danger, .btn.btn.sell.sell` 세 겹(위 1px 분홍 림 · 좌우 1px 키라인 · 46% 밴드 + 검붉은 그늘 · 표 btn_danger_*):
             //   빨간 면(pp_red = 판매 버튼)에만 · 크기는 레이아웃이 줄 수 있어 잡히는 프레임에 굽는다. 파랑(8504)은 cascade 갈래라 따로.
-            if (faceKey == "pp_red") SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnDangerLayers, UiKit.C(faceKey));
+            // T178 45회차 — 정본 **5626** `.btn.sm.ascend-ready { background: linear-gradient(#4caf50, #2e7d32); color: #fff }`(대장간 만렙 [★ 승천 가능] · ui.js 1506 `btn sm primary ascend-ready`):
+            //   8504 유리 겹·8336 글자 그림자는 `:not(.ascend-ready)` 로 이 버튼을 뺀다 — 부르는 쪽이 <paramref name="surfaceKey"/>(표 btn_ascend)를 주면 그 램프 한 겹만(불투명 두 정지점 · 크기 무관 · PaperButton(Ascend) 과 같은 판).
+            if (surfaceKey != null) SurfaceArt.FillMasked(face, "bg-grad", surfaceKey, 1f, 1f);
+            else if (faceKey == "pp_red") SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnDangerLayers, UiKit.C(faceKey));
             // T178 42회차 — 정본 8504(마지막 선언) `.btn.btn:not(.silver):not(.ascend-ready)` 유리 겹 셋은 **그 밖의 모든 면**(파랑·초록·회색·종이·[도전])에 얹힌다 —
             //   8770 `.modal-card .btn.btn.fi-skip.fi-skip { background: #afafaf }`(단축 · 문서 뒤)만 되돌린다(fi_skip_face).
             else if (faceKey != "fi_skip_face") SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnGlassLayers, UiKit.C(faceKey));
@@ -515,7 +518,7 @@ namespace Forge.Game.Ui
             bool noneRule = !string.IsNullOrEmpty(keylineKey) && TextShadowUi.IsNoneKeyline(keylineKey);
             if (noneRule) { }
             else if (disabled && !colored) UiKit.TextShadow(t, "btn_label_disabled");
-            else if (!disabled && colored) UiKit.TextShadow(t, "btn_label");
+            else if (!disabled && colored && surfaceKey == null) UiKit.TextShadow(t, "btn_label");   // 8336 `:not(.ascend-ready)` — 제 램프를 가진 승천 버튼엔 글자 그림자가 없다(T178 45회차)
             if (disabled)
             {
                 b.interactable = false;

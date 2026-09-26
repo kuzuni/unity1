@@ -12,6 +12,14 @@
     "chat_back_face": "#ff1017",
     "sell_btn_face": "#ff1017",
     "sell_btn_lip": "#4e0507",
+    "ascend_ready_face": {
+      "hex": "#4caf50",
+      "_": "style.css **5626** `.btn.sm.ascend-ready { background: linear-gradient(**#4caf50**, #2e7d32) }` — 대장간 만렙 [★ 승천 가능] 버튼(ui.js 1506 `btn sm primary ascend-ready`)의 면 = 램프 위 색. 전역 pp_green(#35c04f)이 아니라 그 선택자에만 준 리터럴이라 전용 키(T377 꼴). 램프 자체는 SurfaceUi btn_ascend 가 얹는다(T178 45회차)."
+    },
+    "ascend_ready_lip": {
+      "hex": "#2e7d32",
+      "_": "같은 5626 의 램프 아래 색 **#2e7d32** — 정본엔 이 버튼의 턱(box-shadow) 선언이 없어 클론 PaperButton(Ascend) 의 dk(PetSkillUi ascend_b)와 같은 값을 턱으로 쓴다(T178 45회차)."
+    },
     "dmg_crit_ink": "#ff8a1e",
     "dmg_kill_ink": "#fff3c4",
     "dmg_skill_ink": "#82b1ff",

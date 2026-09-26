@@ -115,7 +115,10 @@ namespace Forge.Game.Ui
 
             Chat = UiKit.Box(App, "chat-preview");
             UiKit.Band(Chat, chatTop, tabTop);
-            UiKit.Panel(Chat, "bg", "chat_bg");
+            Image chatBg = UiKit.Panel(Chat, "bg", "chat_bg");
+            // T178 45회차 — 정본 **8056** `#chat-preview { background-image: 흰 .14 0 1px 림, (16,19,26) .62 → .74 램프 }`(같은 선택자 8002 를 덮는 마지막 선언 · 정본 주석 «① 채팅 바 —
+            //   다크 글래스로 전환(바탕 선언은 그대로, 층으로 덮는다)» · 3639 의 #8a8a8a 는 그대로 바탕). 1px 림이라 띠 크기가 잡히는 프레임에 BakeFace 한 판(표 chat_glass_*).
+            SurfaceArt.FillFaceWhenSized(chatBg, "bg-grad", SurfaceArt.ChatGlassLayers, UiKit.C("chat_bg"));
             // 정본 3639 `#chat-preview { border-top: var(--ol2) solid var(--pp-line) }` 가 3229 의 ol1 을 덮는다(뒤 규칙이 이긴다 · T365 15회차).
             UiKit.Line(Chat, "line", "pp_line", UiKit.L("line2_px"), true);
 

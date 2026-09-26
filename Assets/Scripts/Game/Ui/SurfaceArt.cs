@@ -640,6 +640,10 @@ namespace Forge.Game.Ui
         public static readonly string[] LeagueRowLayers = { "league_row_ramp", "stripe:league_row_grain" };
         /// <summary>정본 8435(7976 → 8435 마지막) `.league-row.me` 겹 둘: 위 광만 · 옅은 흰 결. T178 44회차.</summary>
         public static readonly string[] LeagueMeLayers = { "league_me_ramp", "stripe:league_me_grain" };
+        /// <summary>정본 8056 `#chat-preview` 다크 글래스 두 겹(아래→위 · 8002 를 덮는 마지막 선언) — (16,19,26) .62→.74 램프 + 위 1px 흰 .14 림. 바탕 catalog chat_bg(#8a8a8a). T178 45회차.</summary>
+        public static readonly string[] ChatGlassLayers = { "chat_glass_ramp", "chat_glass_rim" };
+        /// <summary>정본 8225 `.shop-deal-card, .shop-gem-card` 종이 판 세 겹(아래→위) — 따뜻한 종이 램프 + 위 가장자리 타원 광(방사) + 위 2px 흰 림. 바탕 pp_paper. T178 45회차.</summary>
+        public static readonly string[] ShopCardLayers = { "shop_card_ramp", "shop_card_top_light", "shop_card_rim" };
 
         /// <summary>
         /// T178 41회차 — <see cref="FillFace"/> 인데 **면의 크기가 아직 0** 인 자리(배치를 부르는 쪽이 뒤에 하는 버튼 · 레이아웃이 폭을 주는 버튼)는
