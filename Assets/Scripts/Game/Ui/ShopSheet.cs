@@ -79,8 +79,9 @@ namespace Forge.Game.Ui
                 UiKit.Place(card, cardX, 0f, cardW, cardH);
                 Image dealFace = PopupKit.Outlined(card, "face", "pp_paper", RadiusUi.Px("shop_deal_card_r_rem"), PopupKit.Line3);   // T345 13회차 — 정본 2916 `.shop-deal-card` .9rem
                 // T178 45회차 — 정본 **8225** `.shop-deal-card, .shop-gem-card` 세 겹(위 2px 흰 림 · 위 가장자리 타원 광 · #fffefb → #f8f6f1 → #efece4 종이 램프 · 정본 주석 «흰 종이 사각형에 '떠 있는 판'의 세 단서») —
-                //   2px 림·방사 광은 크기에 매이니 카드 rect 가 잡히는 프레임에 BakeFace 한 판(표 shop_card_*). 캐스트 그림자(8230)는 아래 T331 줄.
-                SurfaceArt.FillFaceWhenSized(dealFace, "bg-grad", SurfaceArt.ShopCardLayers, UiKit.C("pp_paper"));
+                //   2px 림·방사 광은 크기에 매인다 — 카드 크기는 이 자리가 이미 안다(cardW×cardH · 면은 테 Line3 안쪽)라 **바로** BakeFace 한 판(표 shop_card_*). 캐스트 그림자(8230)는 아래 T331 줄.
+                //   런 1305 실측(45회차 수리 3 · 결정 833): 이 시트는 `host.Changed`(Touch · 전투 코인·처치마다) 마다 `Render` 로 통째로 다시 서서 두 프레임 지연 굽기(FillFaceWhenSized)가 다시 그리기 사이에 못 끝날 수 있다.
+                SurfaceArt.FillFace(dealFace, "bg-grad", null, SurfaceArt.ShopCardLayers, UiKit.C("pp_paper"), cardW - PopupKit.Line3 * 2f, cardH - PopupKit.Line3 * 2f);
                 UiShadow.Drop(card, "shopcard_drop", RadiusUi.Px("shop_deal_card_r_rem"), cardW, cardH);   // T331 41회차 — 정본 8230 `.shop-deal-card, .shop-gem-card` 캐스트 그림자(표 shopcard_drop · 카드 맨 뒤)
 
                 // 빨간 깃발 태그(카드 바깥선보다 왼쪽에서 시작 · 폭 고정)
@@ -146,7 +147,7 @@ namespace Forge.Game.Ui
                 RectTransform card = UiKit.Box(grid, "gem-" + i);
                 UiKit.Place(card, UiKit.L("shop_gems_x") * w + (i % cols) * (gemW + gemGap), gemsTop + (i / cols) * (gemH + gemGap), gemW, gemH);
                 Image gemFace = PopupKit.Outlined(card, "face", "pp_paper", RadiusUi.Px("shop_gem_card_r_rem"), PopupKit.Line3);   // T345 13회차 — 정본 2971 `.shop-gem-card` .8rem
-                SurfaceArt.FillFaceWhenSized(gemFace, "bg-grad", SurfaceArt.ShopCardLayers, UiKit.C("pp_paper"));   // T178 45회차 — 같은 선언(8225)의 둘째 선택자 · 보석 카드도 같은 종이 판
+                SurfaceArt.FillFace(gemFace, "bg-grad", null, SurfaceArt.ShopCardLayers, UiKit.C("pp_paper"), gemW - PopupKit.Line3 * 2f, gemH - PopupKit.Line3 * 2f);   // T178 45회차 — 같은 선언(8225)의 둘째 선택자 · 보석 카드도 같은 종이 판 · 크기를 아는 자리라 바로 굽는다(결정 833)
                 UiShadow.Drop(card, "shopcard_drop", RadiusUi.Px("shop_gem_card_r_rem"), gemW, gemH);   // T331 41회차 — 같은 선언(8230)의 둘째 선택자 · 보석 카드도 같은 캐스트
                 // 카드 «안쪽» 세로 배분은 정본 `.shop-gem-card` 주석의 실측 그대로다(카드 상단 기준 · 894px 캡처 기준을 %H 로):
                 // 수량 줄 +8~36px · 그림 +38~98px · 가격 버튼 +101~124px. rem 눈대중으로 두면 자가 밴드8 의 블록을 못 가른다(T75).
