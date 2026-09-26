@@ -2087,7 +2087,9 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(cs, "채팅 띠 판(SurfaceLate 가 굽는다)");
             Assert.IsTrue(cs.texture.name.Contains("chat_glass_ramp+chat_glass_rim"), "채팅 띠 판 이름: " + cs.texture.name);
             Rect chatRect = UiRoot.Instance.Chat.Find("bg").GetComponent<RectTransform>().rect;
-            Assert.AreEqual(Mathf.Round(chatRect.width), cs.texture.width, 1f, "판 가로 = 띠 폭");
+            // 45회차 자 수리(런 1302) — 띠는 1080 캔버스 px 라 face_px_max 1024 의 긴 변 배율(43회차 규칙)로 줄어 굽힌다: 기대 = rect × min(1, 1024/max(w,h)). «판 = 띠 폭» 으로 못 박은 자 전제가 틀렸다(시트 칸과 같은 자리).
+            float chatScale = Mathf.Min(1f, 1024f / Mathf.Max(1f, Mathf.Max(chatRect.width, chatRect.height)));
+            Assert.AreEqual(Mathf.Round(chatRect.width * chatScale), cs.texture.width, 1f, "판 가로 = 띠 폭 × 상한 배율");
             {
                 Texture2D tx = cs.texture; Color32[] px = tx.GetPixels32(); int W = tx.width, H = tx.height;
                 float top = Lum(px[(H - 1) * W + W / 2]), under = Lum(px[(H - 4) * W + W / 2]), mid = Lum(px[(H / 2) * W + W / 2]);
