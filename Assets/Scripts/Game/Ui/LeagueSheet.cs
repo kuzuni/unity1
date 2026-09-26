@@ -131,7 +131,9 @@ namespace Forge.Game.Ui
         {
             float rem = PopupKit.Rem, w = UiKit.RefW;
             RectTransform row = PopupKit.Item(parent, "row-" + rank, -1f, rowH);
-            PopupKit.Outlined(row, "face", e.IsMe ? "pp_blue" : "league_row", RadiusUi.Px("league_row_r_rem"), UiKit.L("line2_px"));   // T415 12회차 — 정본 2326 .6rem 을 표에서   // T365 6회차 — 정본 2328 `.league-row` ol2(전엔 ol1)
+            Image lface = PopupKit.Outlined(row, "face", e.IsMe ? "pp_blue" : "league_row", RadiusUi.Px("league_row_r_rem"), UiKit.L("line2_px"));
+            // T178 44회차 — 정본 8415 `.league-row:not(.me), .equipped-row`(어두운 판: 옅은 흰 결 + 위 광 → 아래 검 그늘) · 8435 `.league-row.me`(파란 고정 행: 위 광만 · 정본 주석 «아래 그늘 금지») — 7861/7870/7976 은 뒤 선언이 덮는다.
+            SurfaceArt.FillFaceWhenSized(lface, "bg-grad", e.IsMe ? SurfaceArt.LeagueMeLayers : SurfaceArt.LeagueRowLayers, UiKit.C(e.IsMe ? "pp_blue" : "league_row"));   // T415 12회차 — 정본 2326 .6rem 을 표에서   // T365 6회차 — 정본 2328 `.league-row` ol2(전엔 ol1)
             float x = rem * 0.5f;
             TextMeshProUGUI rk = UiKit.Text(row, "rank", TextKind.Body, rank.ToString(), "stage_ink");
             rk.fontStyle = FontStyles.Bold;

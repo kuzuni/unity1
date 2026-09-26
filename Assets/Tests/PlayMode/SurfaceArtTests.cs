@@ -1972,5 +1972,89 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T178 44회차 — 행 플레이트: 정본 **8089** `.qst-row`(결 + 광택 밴드 램프) · **8415** `.league-row:not(.me), .equipped-row`(어두운 판 결 + 위 광 → 아래 그늘) · **8435** `.league-row.me`(위 광만)
+        /// 가 각 행 면 위 한 판(BakeFace)으로 선다 — 표 + 퀘스트 시트 행 · 리그 행(나/남) · 스킬 장착됨 바.</summary>
+        [UnityTest]
+        public IEnumerator 퀘스트_행과_리그_행과_장착됨_바에_행_플레이트_겹이_선다()
+        {
+            yield return Boot();
+            // ⓐ 표
+            Color[] c; float[] o;
+            SurfaceArt.Stops("qst_row_ramp", out c, out o); Assert.AreEqual(5, c.Length); Assert.AreEqual(0.95f, c[0].a, 1e-4f, "위 흰 .95"); Assert.AreEqual(0.32f, o[2], 1e-4f, "32% 밴드 엣지"); Assert.AreEqual(0.14f, c[4].a, 1e-4f, "아래 (23,24,26,.14)");
+            SurfaceArt.Stops("league_row_ramp", out c, out o); Assert.AreEqual(4, c.Length); Assert.AreEqual(0.22f, c[0].a, 1e-4f); Assert.AreEqual(0.36f, c[3].a, 1e-4f, "아래 검 .36"); Assert.AreEqual(0f, c[3].r, 1e-4f);
+            SurfaceArt.Stops("league_me_ramp", out c, out o); Assert.AreEqual(3, c.Length); Assert.AreEqual(0.38f, c[0].a, 1e-4f); Assert.AreEqual(0f, c[2].a, 1e-4f, "58% 에서 끝 — 아래 그늘 없음(8422 주석)");
+            Assert.AreEqual(9f, SurfaceArt.StripeNum("qst_row_grain", "period_css_px", 0f), 1e-4f); Assert.AreEqual(2f, SurfaceArt.StripeNum("league_me_grain", "dash_css_px", 0f), 1e-4f);
+            float Lum(Color32 k) { return k.r * 0.2126f + k.g * 0.7152f + k.b * 0.0722f; }
+            Color32 Ground(Color32[] px, int W, int H, int cx, int y0, int span) { Color32 g = px[y0 * W + cx]; for (int y = Mathf.Max(0, y0 - span); y <= Mathf.Min(H - 1, y0 + span); y++) for (int x = Mathf.Max(0, cx - span); x <= Mathf.Min(W - 1, cx + span); x++) { Color32 c2 = px[y * W + x]; if (Lum(c2) < Lum(g)) g = c2; } return g; }
+            // ⓑ 퀘스트 시트 행
+            float t0 = Time.realtimeSinceStartup;
+            while (!(MetaHost.Ready && PopupLayer.Instance != null) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
+            MetaHost h = MetaHost.Instance;
+            QuestSheet.Open(h);
+            yield return null; yield return null; yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup qp = h.Popups.Find(QuestSheet.Name);
+            Assert.IsNotNull(qp, "퀘스트 시트");
+            int qrows = 0;
+            foreach (RectTransform rt in qp.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name != "face" || rt.parent == null || rt.parent.name != "face" || rt.parent.parent == null || rt.parent.parent.name != "row") continue;
+                Transform g = rt.Find("bg-grad"); Assert.IsNotNull(g, "퀘스트 행 면(row/face/face)에 플레이트 한 판(bg-grad)");
+                Image gi = g.GetComponent<Image>();
+                Assert.IsTrue(gi.sprite != null && gi.sprite.texture.name.Contains("qst_row_ramp+stripe:qst_row_grain"), "8089 겹 둘: " + (gi.sprite == null ? "null" : gi.sprite.texture.name));
+                if (qrows == 0)
+                {
+                    Assert.AreEqual(Mathf.RoundToInt(rt.rect.width), gi.sprite.texture.width, 1, "판 가로 = 행 면 rect 가로");
+                    Color32[] px = gi.sprite.texture.GetPixels32(); int W = gi.sprite.texture.width, H = gi.sprite.texture.height;
+                    Assert.Greater(Lum(px[(H - 2) * W + W / 2]), Lum(Ground(px, W, H, W / 2, 3, 4)) + 8f, "위 광택(흰 .95)이 아래 그늘(.14)보다 밝다");
+                }
+                qrows++;
+            }
+            Assert.Greater(qrows, 0, "퀘스트 행이 하나는 섰다");
+            QuestSheet.Close(h);
+            yield return null;
+            // ⓒ 리그 행(나 = 위 광만 · 남 = 아래 그늘)
+            LeagueSheet.Open(h);
+            yield return null; yield return null; yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup lp = PopupLayer.Instance.Find(LeagueSheet.Name);
+            Assert.IsNotNull(lp, "리그 시트(팝업 층)");
+            int others = 0, mine = 0;
+            foreach (RectTransform rt in lp.Root.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name != "face" || rt.parent == null || rt.parent.name != "face" || rt.parent.parent == null || !rt.parent.parent.name.StartsWith("row-", System.StringComparison.Ordinal)) continue;
+                Transform g = rt.Find("bg-grad"); Assert.IsNotNull(g, "리그 행 면에 플레이트(bg-grad)");
+                string tn = g.GetComponent<Image>().sprite.texture.name;
+                if (tn.Contains("league_me_ramp+stripe:league_me_grain")) mine++;
+                else if (tn.Contains("league_row_ramp+stripe:league_row_grain"))
+                {
+                    others++;
+                    if (others == 1)
+                    {
+                        Texture2D tx = g.GetComponent<Image>().sprite.texture; Color32[] px = tx.GetPixels32(); int W = tx.width, H = tx.height;
+                        Assert.Greater(Lum(px[(H - 2) * W + W / 2]), Lum(px[1 * W + W / 2]) + 10f, "어두운 행: 위 광(.22)이 아래 그늘(검 .36)보다 밝다");
+                    }
+                }
+                else Assert.Fail("리그 행 플레이트가 둘 중 하나가 아니다: " + tn);
+            }
+            Assert.Greater(others, 0, "남의 행이 하나는 섰다"); Assert.AreEqual(1, mine, "내 행(.me)은 하나 · 위 광만 판");
+            LeagueSheet.Close(h);
+            yield return null;
+            // ⓓ 스킬 패널 장착됨 바
+            t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(PetSkillHost.Ready, "소환 호스트가 20초 안에 안 섰다");
+            TabBar tb0 = UiRoot.Instance.TabBar;
+            if (tb0.ActiveTab != "summon") tb0.OnTab("summon");
+            SkillPetSheet.Instance.Switch(SkillPetSheet.SubSkills);
+            yield return null; yield return null; yield return null; yield return null;
+            Transform eq = FindDeep(SkillPetSheet.Instance.Skills.transform, "equipped-row");
+            Assert.IsNotNull(eq, "장착됨 바(equipped-row)");
+            Transform eg = eq.Find("face/bg-grad");
+            Assert.IsNotNull(eg, "장착됨 바 면에 플레이트(8415 편입)");
+            Assert.IsTrue(eg.GetComponent<Image>().sprite.texture.name.Contains("league_row_ramp+stripe:league_row_grain"), "리그 행과 같은 처방");
+        }
+
     }
 }

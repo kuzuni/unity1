@@ -262,6 +262,8 @@ namespace Forge.Game.Ui
         {
             float w = W * PetSkillStyle.L("equipped_w_f");
             RectTransform row = PetSkillKit.Framed(parent, "equipped-row", PetSkillStyle.C("equipped_bg"), PetSkillStyle.Px("equipped_r_rem"), PetSkillKit.Line3);
+            // T178 44회차 — 정본 8415 `.league-row:not(.me), .equipped-row`: 장착됨 바를 리그 행과 같은 어두운 판 처방(옅은 흰 결 + 위 광 → 아래 검 그늘)에 편입 — 면 위 한 판(하드 그림자는 T331 축).
+            SurfaceArt.FillFaceWhenSized(row.Find("face").GetComponent<Image>(), "bg-grad", SurfaceArt.LeagueRowLayers, PetSkillStyle.C("equipped_bg"));
             UiShadow.Drop(row, "equipped_lip", PetSkillStyle.Px("equipped_r_rem"));   // 정본 .equipped-row(4128) `0 .22rem 0 rgba(0,0,0,.35)`
             UiKit.Place(row, (W - w) * 0.5f, yTop, w, eqH);
             EquippedLabel(row, eqH);

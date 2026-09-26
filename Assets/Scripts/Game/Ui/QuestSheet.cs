@@ -86,7 +86,9 @@ namespace Forge.Game.Ui
                 UiKit.Anchor(row, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, rowW, rowH);
                 // 정본 2023 `.qst-row { border-radius: .8rem }` — 값은 맞았지만 코드에 박혀 있었다(T345 19회차 · 표 qst_row_r_rem)
                 float rowR = RadiusUi.Px("qst_row_r_rem");
-                PopupKit.Outlined(row, "face", done ? "quest_done_bg" : "pp_paper", rowR, PopupKit.Line3, done ? "pp_green" : "pp_line");
+                Image qface = PopupKit.Outlined(row, "face", done ? "quest_done_bg" : "pp_paper", rowR, PopupKit.Line3, done ? "pp_green" : "pp_line");
+                // T178 44회차 — 정본 8089(7795 → 8089 마지막 선언) `.qst-row` 겹 둘(45° 종이 결 + 광택 밴드 램프 · «카드에 광택 밴드 엣지(버튼 문법)») — 행 면 위 한 판 · 수령 대기(초록 면)도 같은 선택자.
+                SurfaceArt.FillFaceWhenSized(qface, "bg-grad", SurfaceArt.QuestRowLayers, UiKit.C(done ? "quest_done_bg" : "pp_paper"));
                 UiShadow.Drop(row, "qstrow_lip", rowR);   // 정본 .qst-row(2026) `0 .25rem 0 rgba(0,0,0,.3)` — 종이 카드가 한 겹 떠 있다
 
                 float padX = rem * 0.7f, padY = rem * 0.55f;

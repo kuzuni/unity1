@@ -155,6 +155,12 @@ TABLE = {
     # T178 43회차 — 모달 카드 종이 면: 같은 선택자가 셋씩(7718/8096/8272 · 7778/8116/8286) 값을 갈아 끼웠다 → 마지막 선언을 BakeFace 한 판(rem 단위 · plus_px · stripe: 결 겹 · 방사)으로.
     '.modal-card.sheet:not(.league-sheet):not(.shop-sheet)': ['Ui/Popups.cs@Sheet'],
     '.modal-card:not(.sheet):not(.pass-card):not(.lgr-card)': ['Ui/Popups.cs@Card'],
+    # T178 44회차 — 행 플레이트: 퀘스트 행 7795 → 8089 · 리그 행 7861 → 7870 → 8415(+ 장착됨 바) · 7976 → 8435 — 마지막 선언을 BakeFace 한 판(램프 + stripe: 결)으로.
+    '.qst-row': ['Ui/QuestSheet.cs@Render'],
+    '.league-row:not(.me), .equipped-row': ['Ui/LeagueSheet.cs@Row', 'Ui/SkillPanel.cs@BuildEquippedRow', 'Ui/PetPanel.cs@BuildEquippedRow'],
+    '.league-row.me': ['Ui/LeagueSheet.cs@Row'],
+    '.league-row': '—정본 7861 은 뒤의 더 특이한 두 갈래(7870/8415 `:not(.me)` · 7976/8435 `.me`)가 모든 행을 덮어 실제로 서는 값이 없다 — 44회차',
+    '.league-row:not(.me)': '—정본 7870 은 같은 특이도의 8415 `.league-row:not(.me), .equipped-row` 가 뒤에서 덮는다(선택자 글자가 달라 cascade-off 검출 밖 · 결정 828 ⓑ) — 44회차',
     '.qst-bar i': '—정본 8806 `.qst-bar i { background: #4fc3f7 }`(aaa-skin ⓖ) 이 2044 의 두 겹을 단색으로 끈다 — 6·10회차의 qst-fill-grad·rim 을 39회차가 걷었다 · 채움 = catalog quest_bar 한 칸',
     '.qst-row.done .qst-bar i': '—정본 8807 `… { background: #81e884 }`(aaa-skin ⓖ) 이 2047 의 두 겹을 단색으로 끈다 — 39회차가 걷었다 · 채움 = catalog quest_bar_done 한 칸',
     # T178 9회차 — 기술 트리 분기 원판(카테고리색 면) 위의 겹 둘: 왼쪽 위 방사형 광택 + 세로 명암.

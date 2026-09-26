@@ -976,6 +976,24 @@
     "units": ["px", "px", "px"],
     "_": "style.css 8272 첫 겹 — `linear-gradient(180deg, 흰 .9 0 2px, 투명 2px)`: 시트 위 2 CSS px 엣지 림."
   },
+  "qst_row_ramp": {
+    "angle_deg": 180,
+    "stops": [[255, 255, 255, 0.95], [255, 255, 255, 0.35], [255, 255, 255, 0.0], [23, 24, 26, 0.06], [23, 24, 26, 0.14]],
+    "offsets": [0, 0.26, 0.32, 0.70, 1],
+    "_": "style.css 8089 `.qst-row` 둘째 겹(7795 → 8089 마지막 선언 · 13차 «카드에 광택 밴드 엣지(버튼 문법)») — `linear-gradient(180deg, 흰 .95 0, 흰 .35 26%, 투명 32%, (23,24,26,.06) 70%, .14 100%)`: 퀘스트 카드 위 광택 밴드 + 아래 그늘. 바탕 = 행 면(pp_paper / 수령 대기 quest_done_bg) · 결(stripe:qst_row_grain)이 위. T178 44회차."
+  },
+  "league_row_ramp": {
+    "angle_deg": 180,
+    "stops": [[255, 255, 255, 0.22], [255, 255, 255, 0.05], [0, 0, 0, 0.14], [0, 0, 0, 0.36]],
+    "offsets": [0, 0.26, 0.72, 1],
+    "_": "style.css 8415 `.league-row:not(.me), .equipped-row` 둘째 겹(7861 → 7870 → 8415 마지막 · 14차 «어두운 행 플레이트 — 저알파를 올리고 장착됨 바를 편입») — `linear-gradient(180deg, 흰 .22 0, 흰 .05 26%, 검 .14 72%, 검 .36 100%)`. 바탕 = 행 면(league_row / equipped_bg). inset 링 넷은 box-shadow 축. T178 44회차."
+  },
+  "league_me_ramp": {
+    "angle_deg": 180,
+    "stops": [[255, 255, 255, 0.38], [255, 255, 255, 0.12], [255, 255, 255, 0.0]],
+    "offsets": [0, 0.34, 0.58],
+    "_": "style.css 8435 `.league-row.me` 둘째 겹(7976 → 8435 마지막) — `linear-gradient(180deg, 흰 .38 0, 흰 .12 34%, 투명 58%)`: 파란 고정 행은 **위 광만**(정본 주석 «아래 그늘도 바깥 광도 금지 — probe 가 파란 bbox 로 잰다»). 바탕 = pp_blue."
+  },
   "btn_glass_rim": {
     "angle_deg": 180,
     "stops": [[228, 244, 255, 0.88], [228, 244, 255, 0.88], [255, 255, 255, 0.0]],
@@ -1089,6 +1107,30 @@
       "ink": "#ffffff8c",
       "gap": null,
       "_": "style.css 8272 넷째 겹 — `repeating-linear-gradient(-45deg, 흰 .55 0 1px, 투명 1px 6px)`: 다른 주기의 반대 방향 올(«한 벌만이면 프린트 줄무늬로 읽힌다»)."
+    },
+    "qst_row_grain": {
+      "angle_deg": 45,
+      "period_css_px": 9,
+      "dash_css_px": 2,
+      "ink": "#17181a08",
+      "gap": null,
+      "_": "style.css 8089 `.qst-row` 첫 겹 — `repeating-linear-gradient(45deg, (23,24,26,.030) 0 2px, 투명 2px 9px)`: 퀘스트 카드 종이 결(.030 ≈ 0x08). T178 44회차."
+    },
+    "league_row_grain": {
+      "angle_deg": 45,
+      "period_css_px": 9,
+      "dash_css_px": 2,
+      "ink": "#ffffff05",
+      "gap": null,
+      "_": "style.css 8415 `.league-row:not(.me), .equipped-row` 첫 겹 — `repeating-linear-gradient(45deg, 흰 .018 0 2px, 투명 2px 9px)`: 어두운 행의 아주 옅은 흰 결(.018 ≈ 0x05)."
+    },
+    "league_me_grain": {
+      "angle_deg": 45,
+      "period_css_px": 9,
+      "dash_css_px": 2,
+      "ink": "#ffffff05",
+      "gap": null,
+      "_": "style.css 8435 `.league-row.me` 첫 겹 — `repeating-linear-gradient(45deg, 흰 .020 0 2px, 투명 2px 9px)`(.020 ≈ 0x05 · 8415 의 .018 과 한 바이트 안이라 값은 같다 · 정본이 따로 적어 키도 따로)."
     }
   },
   "keylines": {

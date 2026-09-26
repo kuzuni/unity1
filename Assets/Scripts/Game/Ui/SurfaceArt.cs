@@ -634,6 +634,12 @@ namespace Forge.Game.Ui
         public static readonly string[] CardPaperLayers = { "card_paper_ramp", "card_top_light", "stripe:card_grain", "card_head_band" };
         /// <summary>정본 8272(7718 → 8096 → 8272 마지막) `.modal-card.sheet:not(.league-sheet):not(.shop-sheet)` 종이 면 겹 여섯(아래→위): 아이보리 램프 · 위 광원 · −45° 결 · 45° 결 · 머리 밴드(3.1rem + 1px) · 위 2px 림. T178 43회차.</summary>
         public static readonly string[] SheetPaperLayers = { "sheet_paper_ramp", "sheet_top_light", "stripe:sheet_grain_b", "stripe:sheet_grain_a", "sheet_head_band", "sheet_top_rim" };
+        /// <summary>정본 8089(7795 → 8089 마지막) `.qst-row` 겹 둘(아래→위): 광택 밴드 램프 · 45° 결. T178 44회차.</summary>
+        public static readonly string[] QuestRowLayers = { "qst_row_ramp", "stripe:qst_row_grain" };
+        /// <summary>정본 8415(7861/7870 → 8415 마지막) `.league-row:not(.me), .equipped-row` 겹 둘: 어두운 판 램프 · 옅은 흰 결. T178 44회차.</summary>
+        public static readonly string[] LeagueRowLayers = { "league_row_ramp", "stripe:league_row_grain" };
+        /// <summary>정본 8435(7976 → 8435 마지막) `.league-row.me` 겹 둘: 위 광만 · 옅은 흰 결. T178 44회차.</summary>
+        public static readonly string[] LeagueMeLayers = { "league_me_ramp", "stripe:league_me_grain" };
 
         /// <summary>
         /// T178 41회차 — <see cref="FillFace"/> 인데 **면의 크기가 아직 0** 인 자리(배치를 부르는 쪽이 뒤에 하는 버튼 · 레이아웃이 폭을 주는 버튼)는
