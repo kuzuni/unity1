@@ -17031,6 +17031,7 @@
 - **자**(`SurfaceArtTests.퀘스트_행과_리그_행과_장착됨_바에_행_플레이트_겹이_선다`): ⓐ 표 셋 + 결 ⓑ 퀘스트 행마다 `row/face/face/bg-grad` = `qst_row_ramp+stripe:qst_row_grain` · 판 가로 = 면 rect · 위 광 > 아래 그늘(창 안 최저) ⓒ 리그 행 — 남의 행 판(위 광 > 아래 검 .36) · 내 행(.me) 하나 = 위 광만 판 ⓓ 스킬 장착됨 바 `equipped-row/face/bg-grad` = 리그 행 처방.
 - **게이트**: `gate.sh` 46 자 막는 자 전부 rc 0(`$?` 직접).
 - **판정(다음 런)**: 새 칸 PASS · Quest/League/BoxBorderSites/PinnedColorSites/SummonDash 그대로 · 눈: `screen_league` 남의 행 위 밝고 아래 어두운 판 + 내 행(파랑) 위 광만 · `screen_skills`·`screen_pets` 장착됨 바 위 밝고 아래 어두움 · 퀘스트 시트는 채점 화면에 없다(자로). ⚠ T28 league 지문(파란 행 bbox)은 그대로여야 한다. **lock 유지**.
+- **ntfy — 알림 못 보냄**: 커밋 `8cb31d6d` push 뒤 `ntfy-notify.yml` **런 #2491**(job 108340609612)가 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 이 루틴 프롬프트엔 토픽이 없고 Secret 미등록(같은 자리).
 - **남은 미정 18 의 갈래**: 선형 — 5626 ascend-ready(색 축 먼저) · 4072 `.sk-ribbon` · 4119 `.sk-shard em` · 1834 `.cmp-card.new::after` — cascade: 채팅 8002/8056 · 펫 타일 4288/8124 · 상점 카드 8225 — 방사: 구슬 재질 넷(6495~6637) · 모달 배경 5649·7148 · `.sk-mini` 4150 · `.hatch-cell` 8026 · 마스크 셋(6235·6334·6637).
 
 ### T178 43회차 판정 ✅ · lock 반납 · 행 ⬜ — 런 1295 초록 · 새 칸 PASS · 눈 ✓(런 1294 그림) (2026-09-26 03:4x · 워커 T · sess-1447-10982)
