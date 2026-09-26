@@ -1,0 +1,5 @@
+# T121 램프 진단 — UiFont.AlphaTexels 19.6 (실측) · 표 alpha_texels 20 · 옛 갈래 배율 0.306
+# 애셋 NotoSansKR-Forge (runtime) · 샘플링 54pt · atlasPadding 9 · renderMode SDFAA · 아틀라스 1024×1024 · 장 수 2
+«I» glyphRect x 10 y 10 w 6 h 40 · atlasIndex 0
+행 y=30 x 0~28 알파: 0 13 26 39 52 64 77 90 103 115 128 141 154 152 139 127 114 101 88 76 63 50 37 25 12 0 0 0 0 
+꼭대기 154 · 오르막 12 텍셀 · 기울기 중앙값 13 /텍셀 → 알파 0→1 = 19.6 텍셀
