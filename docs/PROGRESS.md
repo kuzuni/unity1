@@ -17030,6 +17030,7 @@
 - **자 표**: 두 선택자 → `@Sheet`·`@Card`. **자리 초록 116 → 118 · 미정 25 → 23**(선언 38 → 32) · 문제 0.
 - **게이트**: `gate.sh` 46 자 막는 자 전부 rc 0(두 번째 판 · `$?` 직접).
 - **판정(다음 런)**: 새 칸 PASS · Card/Sheet 를 쓰는 자들(BoxBorderSites·BackBtnRadius·PinnedColorSites·UiShadow·Quest/League/Shop) 그대로 · 눈: `screen_quest`·`screen_skills`·`screen_pets` 시트가 **아이보리**(흰 #fff 아님) + 위 흰 림 + 3.1rem 아래 옅은 선 + 대각선 올 · `screen_forge-info`·`screen_player-info`·`screen_dungeon-detail` 카드 종이 톤 + 2.6rem 선 · 리그·상점·패스는 그대로(어두운 배경). ⚠ T28 채점: 시트 바탕이 흰 → 아이보리로 바뀌니 «카드 위끝» 판독은 그대로여야 한다(238 바닥 규약이 그 판독을 지키려는 것). **lock 유지**.
+- **ntfy — 알림 못 보냄**: 커밋 `9f356e46` push 뒤 `ntfy-notify.yml` **런 #2482**(job 108303948314)가 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 이 루틴 프롬프트엔 토픽이 없고 Secret 미등록(같은 자리).
 - **남은 미정 23 의 갈래**: 선형 — 5626 ascend-ready(색 축 먼저) · 4072 `.sk-ribbon` · 4119 `.sk-shard em` · 1834 `.cmp-card.new::after` — cascade(마지막 선언만 · 뒤 블록은 손으로 훑는다): 퀘스트 행 7795/8089 · 리그 행 7861/7870/7976/8415/8435 · 채팅 8002/8056 · 펫 타일 4288/8124 · 상점 카드 8225 — 방사: 구슬 재질 넷(6495~6637) · 모달 배경 5649·7148 · `.sk-mini` 4150 · `.hatch-cell` 8026 · 마스크 셋(6235·6334·6637).
 
 ### T178 42회차 판정 ✅ · lock 반납 · 행 ⬜ — 런 1290 초록 · 새 칸 PASS · 눈 ✓(런 1289 그림) (2026-09-25 23:4x · 워커 T · sess-1447-10982)
