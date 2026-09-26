@@ -1894,5 +1894,72 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(Lum(bp[(BH * 3 / 4) * BW + BW / 2]), Lum(bp[(BH / 2 - 2) * BW + BW / 2]) + 6f, "46% 위 광택 밴드가 47% 아래보다 밝다(하드 스톱)");
         }
 
+        /// <summary>T178 43회차 — 정본 **8272** 시트(`.modal-card.sheet:not(.league-sheet):not(.shop-sheet)` · 겹 6)와 **8286** 팝업 카드(`.modal-card:not(.sheet):not(.pass-card):not(.lgr-card)` · 겹 4)의
+        /// 종이 면이 한 판(BakeFace)으로 선다 — 표(rem 단위 + plus_px · 결 겹 · 방사) + 실물(퀘스트 시트 bg · 확률 정보 팝업 카드 face) · 판 크기 = 면 rect · 위 림 · 머리 밴드 선 · 아래 아이보리.</summary>
+        [UnityTest]
+        public IEnumerator 모달_카드와_시트의_종이_면이_한_판으로_선다()
+        {
+            yield return Boot();
+            // ⓐ 표
+            bool[] rm = SurfaceArt.RemMask("card_head_band", 5); float[] pp = SurfaceArt.PlusPx("card_head_band", 5);
+            Assert.IsTrue(rm[1] && rm[2] && rm[3] && rm[4], "머리 밴드 정지점은 rem"); Assert.IsNotNull(pp); Assert.AreEqual(1f, pp[3], 1e-4f, "calc(2.6rem + 1px)"); Assert.AreEqual(0f, pp[2], 1e-4f);
+            Color[] c; float[] o;
+            SurfaceArt.Stops("card_paper_ramp", out c, out o); Assert.AreEqual(3, c.Length); Assert.AreEqual(1f, c[0].a, 1e-4f, "램프는 불투명"); Assert.AreEqual(231f / 255f, c[2].b, 1e-3f, "#f3efe7");
+            SurfaceArt.Stops("sheet_paper_ramp", out c, out o); Assert.AreEqual(238f / 255f, c[2].b, 1e-3f, "#f8f4ee — 파랑 채널 238 바닥");
+            Assert.IsTrue(SurfaceArt.IsRadial("sheet_top_light") && SurfaceArt.IsRadial("card_top_light"), "위 광원은 방사");
+            Assert.AreEqual(8f, SurfaceArt.StripeNum("sheet_grain_a", "period_css_px", 0f), 1e-4f); Assert.AreEqual(-45f, SurfaceArt.StripeNum("sheet_grain_b", "angle_deg", 0f), 1e-4f);
+            Assert.AreEqual(6, SurfaceArt.SheetPaperLayers.Length); Assert.AreEqual(4, SurfaceArt.CardPaperLayers.Length);
+            // ⓑ 실물 — 퀘스트 시트(PopupKit.Sheet · pp_paper)
+            float t0 = Time.realtimeSinceStartup;
+            while (!(MetaHost.Ready && PopupLayer.Instance != null) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
+            MetaHost h = MetaHost.Instance;
+            QuestSheet.Open(h);
+            yield return null; yield return null; yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup qp = h.Popups.Find(QuestSheet.Name);
+            Assert.IsNotNull(qp, "퀘스트 시트");
+            Transform sbg = null;
+            foreach (RectTransform rt in qp.Root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == "bg" && rt.Find("bg-grad") != null && rt.parent != null && rt.parent.name == "sheet") { sbg = rt; break; }
+            Assert.IsNotNull(sbg, "시트 면(sheet/bg)에 종이 한 판(bg-grad)");
+            Image sgi = sbg.Find("bg-grad").GetComponent<Image>();
+            Assert.IsTrue(sgi.sprite != null && sgi.sprite.texture.name.Contains("sheet_paper_ramp+sheet_top_light+stripe:sheet_grain_b+stripe:sheet_grain_a+sheet_head_band+sheet_top_rim"), "겹 여섯 순서(아래→위): " + (sgi.sprite == null ? "null" : sgi.sprite.texture.name));
+            Color32[] sp = sgi.sprite.texture.GetPixels32(); int SW = sgi.sprite.texture.width, SH = sgi.sprite.texture.height;
+            Assert.AreEqual(Mathf.RoundToInt(((RectTransform)sbg).rect.width), SW, 1, "판 가로 = 시트 면 rect 가로(face_px_max 1024 안)");
+            Assert.AreEqual(Mathf.RoundToInt(((RectTransform)sbg).rect.height), SH, 1, "판 세로 = 시트 면 rect 세로");
+            float Lum(Color32 k) { return k.r * 0.2126f + k.g * 0.7152f + k.b * 0.0722f; }
+            Assert.AreEqual(255, sp[SW / 2].a, "불투명(램프가 바닥)");
+            Assert.Greater(Lum(sp[(SH - 1) * SW + SW / 2]), 252f, "위 2px 흰 림(.9)");
+            int bandY = SH - 1 - Mathf.RoundToInt(3.1f * PopupKit.Rem);          // 머리 밴드 아래 1px 선 자리(위에서 3.1rem)
+            Assert.Less(Lum(sp[bandY * SW + SW / 2]), Lum(sp[(bandY - 4) * SW + SW / 2]) - 6f, "3.1rem 자리의 1px 선(.11)이 그 아래보다 어둡다");
+            Assert.Less(sp[SW / 2].b, 245, "아래는 아이보리(#f8f4ee 파랑 238 근처 · 결·광원이 얹혀 조금 흔들린다)");
+            Assert.Greater(sp[SW / 2].r, sp[SW / 2].b, "따뜻한 종이 — 빨강 > 파랑");
+            QuestSheet.Close(h);
+            yield return null;
+            // ⓒ 실물 — 확률 정보 팝업 카드(PopupKit.Card · pp_paper · 높이는 내용으로)
+            t0 = Time.realtimeSinceStartup;
+            while (!ForgeHost.Ready && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(ForgeHost.Ready, "ForgeHost 가 20초 안에 안 섰다");
+            ForgeHost fh = ForgeHost.Instance;
+            ForgeInfoPopup.Open(fh);
+            yield return null; yield return null; yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Popup fp = fh.Meta.Popups.Find(ForgeInfoPopup.Name);
+            Assert.IsNotNull(fp, "확률 정보 팝업");
+            Transform cface = null;
+            foreach (RectTransform rt in fp.Root.GetComponentsInChildren<RectTransform>(true)) if (rt.name == "face" && rt.parent != null && rt.parent.name == "card" && rt.Find("bg-grad") != null) { cface = rt; break; }
+            Assert.IsNotNull(cface, "카드 면(card/face)에 종이 한 판(bg-grad)");
+            Image cgi = cface.Find("bg-grad").GetComponent<Image>();
+            Assert.IsTrue(cgi.sprite != null && cgi.sprite.texture.name.Contains("card_paper_ramp+card_top_light+stripe:card_grain+card_head_band"), "겹 넷 순서: " + (cgi.sprite == null ? "null" : cgi.sprite.texture.name));
+            Assert.AreEqual(Mathf.RoundToInt(((RectTransform)cface).rect.width), cgi.sprite.texture.width, 1, "판 가로 = 카드 면 rect 가로");
+            Assert.AreEqual(Mathf.RoundToInt(((RectTransform)cface).rect.height), cgi.sprite.texture.height, 1, "판 세로 = 카드 면 rect 세로(내용이 정한 높이 뒤에 구웠다)");
+            Color32[] cp = cgi.sprite.texture.GetPixels32(); int CW = cgi.sprite.texture.width, CH = cgi.sprite.texture.height;
+            int cband = CH - 1 - Mathf.RoundToInt(2.6f * PopupKit.Rem);
+            Assert.Less(Lum(cp[cband * CW + CW / 2]), Lum(cp[(cband - 4) * CW + CW / 2]) - 6f, "2.6rem 자리의 1px 선(.10)");
+            Assert.Greater(cp[CW / 2].r, cp[CW / 2].b, "아래 #f3efe7 — 따뜻한 종이");
+            fh.Meta.Popups.Hide(ForgeInfoPopup.Name);
+            yield return null;
+        }
+
     }
 }

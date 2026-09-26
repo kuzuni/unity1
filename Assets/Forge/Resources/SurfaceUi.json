@@ -4,6 +4,8 @@
   "_정지점": "offset 0~1 · 색은 [r, g, b, a](rgb 0~255 · a 0~1). CSS 가 `rgba(0,0,0,.22) 0%` 처럼 적은 것을 그대로 옮긴다.",
   "_바탕": "over_color(카탈로그 색 키) · over_layer(이 표의 다른 겹 키) = 그 겹이 얹히는 바탕. 적혀 있으면 굽는 쪽이 정본이 섞는 길(sRGB 바이트 위 dst*(1-a)+src*a)로 미리 합성해 불투명하게 굽는다 — 이 프로젝트는 Linear 색공간이라 알파를 그대로 두면 유니티가 선형 값 위에서 섞어 어두운 바탕에서 훨씬 밝게 나온다(T357 실측 · T178 8회차). 겹이 여러 장 쌓인 자리는 over_layer 로 사슬을 잇는다 — 위 겹이 불투명해지며 아래 겹을 덮기 때문이다.",
   "bake_px": 96,
+  "face_px_max": 1024,
+  "_face_px_max": "BakeFace(칸 크기 그대로 한 판)의 한 변 상한. 종전 기본 512 는 전체화면 시트(≈540×870)를 두 변 따로 눌러 결·림이 늘어졌다 — 모달 카드 종이 면(T178 43회차)부터 1024. 같은 크기는 한 번만 굽는다(캐시).",
   "_bake_px": "굽는 짧은 변. 그라디언트는 매끈해서 이 해상도로 늘려도 띠가 안 보인다. 긴 변은 그 자리의 실제 비율로 잡는다(각도가 비율을 타기 때문이다 — 정사각에 구워 늘리면 120° 가 다른 각이 된다).",
   "dg_banner": {
     "angle_deg": 120,
@@ -925,6 +927,55 @@
     ],
     "_": "style.css 8078 맨 아래 겹 `linear-gradient(180deg, #6cc6f7 0%, #4fb2ee 55%, #3ea0e0 100%)` — 하늘색 바탕 자체가 그라디언트다(불투명 · 그래서 탈것 칸은 면 색이 아니라 이 겹이 바탕이다)."
   },
+  "card_paper_ramp": {
+    "angle_deg": 180,
+    "stops": [[255, 254, 250, 1.0], [251, 248, 242, 1.0], [243, 239, 231, 1.0]],
+    "offsets": [0, 0.46, 1],
+    "_": "style.css 8286 `.modal-card:not(.sheet):not(.pass-card):not(.lgr-card)` 맨 아래 겹 — `linear-gradient(180deg, #fffefa 0, #fbf8f2 46%, #f3efe7 100%)`: 팝업 카드의 **따뜻한 종이** 램프(13차 «차가운 흰색 → 따뜻한 종이 · 파랑 채널 238 바닥 규약»). 같은 선택자 7778 → 8116 → 8286 의 마지막 선언. 불투명이라 면 색(pp_paper #fff)은 덮인다 — 그래도 바탕으로 넘긴다. T178 43회차."
+  },
+  "card_top_light": {
+    "shape": "radial",
+    "cx": 0.5, "cy": -0.08, "rx": 1.2, "ry": 0.55,
+    "stops": [[255, 255, 255, 0.95], [255, 255, 255, 0.0]],
+    "offsets": [0, 0.74],
+    "_": "style.css 8286 셋째 겹 — `radial-gradient(120% 55% at 50% -8%, 흰 .95 0, 투명 74%)`: 카드 위쪽 광원(중심이 카드 위 밖 −8%)."
+  },
+  "card_head_band": {
+    "angle_deg": 180,
+    "stops": [[23, 24, 26, 0.04], [23, 24, 26, 0.04], [23, 24, 26, 0.10], [23, 24, 26, 0.10], [23, 24, 26, 0.0]],
+    "offsets": [0, 2.6, 2.6, 2.6, 2.6],
+    "units": ["rem", "rem", "rem", "rem", "rem"],
+    "plus_px": [0, 0, 0, 1, 1],
+    "_": "style.css 8286 첫 겹 — `linear-gradient(180deg, (23,24,26,.04) 0 2.6rem, (23,24,26,.10) 2.6rem calc(2.6rem + 1px), 투명 calc(2.6rem + 1px))`: 제목 머리 밴드(위 2.6rem 옅게 어둡고 아래 1px 선). `rem` 단위 + `plus_px`(정지점에 더하는 CSS px)는 43회차가 연 길."
+  },
+  "sheet_paper_ramp": {
+    "angle_deg": 180,
+    "stops": [[255, 253, 247, 1.0], [252, 248, 242, 1.0], [248, 244, 238, 1.0]],
+    "offsets": [0, 0.52, 1],
+    "_": "style.css 8272 `.modal-card.sheet:not(.league-sheet):not(.shop-sheet)` 맨 아래 겹 — `linear-gradient(180deg, #fffdf7 0, #fcf8f2 52%, #f8f4ee 100%)`: 시트의 아이보리(파랑 채널 238 바닥 = probe 규약 안 최대치). 같은 선택자 7718 → 8096 → 8272 의 마지막 선언. T178 43회차."
+  },
+  "sheet_top_light": {
+    "shape": "radial",
+    "cx": 0.5, "cy": -0.04, "rx": 1.24, "ry": 0.42,
+    "stops": [[255, 255, 255, 0.92], [255, 255, 255, 0.0]],
+    "offsets": [0, 0.72],
+    "_": "style.css 8272 다섯째 겹 — `radial-gradient(124% 42% at 50% -4%, 흰 .92 0, 투명 72%)`: 시트 위쪽 광원."
+  },
+  "sheet_head_band": {
+    "angle_deg": 180,
+    "stops": [[23, 24, 26, 0.045], [23, 24, 26, 0.045], [23, 24, 26, 0.11], [23, 24, 26, 0.11], [23, 24, 26, 0.0]],
+    "offsets": [0, 3.1, 3.1, 3.1, 3.1],
+    "units": ["rem", "rem", "rem", "rem", "rem"],
+    "plus_px": [0, 0, 0, 1, 1],
+    "_": "style.css 8272 둘째 겹 — `linear-gradient(180deg, (23,24,26,.045) 0 3.1rem, (23,24,26,.11) 3.1rem calc(3.1rem + 1px), 투명 calc(3.1rem + 1px))`: 시트 머리 밴드(3.1rem) + 1px 선."
+  },
+  "sheet_top_rim": {
+    "angle_deg": 180,
+    "stops": [[255, 255, 255, 0.9], [255, 255, 255, 0.9], [255, 255, 255, 0.0]],
+    "offsets": [0, 2, 2],
+    "units": ["px", "px", "px"],
+    "_": "style.css 8272 첫 겹 — `linear-gradient(180deg, 흰 .9 0 2px, 투명 2px)`: 시트 위 2 CSS px 엣지 림."
+  },
   "btn_glass_rim": {
     "angle_deg": 180,
     "stops": [[228, 244, 255, 0.88], [228, 244, 255, 0.88], [255, 255, 255, 0.0]],
@@ -1014,6 +1065,30 @@
       "ink": "#0000003d",
       "gap": null,
       "_": "style.css 8618 `.pass-cell.premium { background-image: repeating-linear-gradient(135deg, 투명 0 5px, rgba(0,0,0,.24) 5px 10px) }` — 프리미엄 보상 칸의 «비활성 면» 사선 해칭(정본 주석: 두 비평가가 함께 요구한 해칭 · 밝기로만 밀면 카드 실루엣이 죽는다). 잉크는 주기의 뒤 5px 라 phase = dash 로 굽는다(SurfaceArt.StripeMasked). `filter: saturate(.45) brightness(.88)` 은 필터 축(겹 아님). T178 41회차."
+    },
+    "card_grain": {
+      "angle_deg": 45,
+      "period_css_px": 9,
+      "dash_css_px": 2,
+      "ink": "#17181a07",
+      "gap": null,
+      "_": "style.css 8286 둘째 겹 — `repeating-linear-gradient(45deg, (23,24,26,.028) 0 2px, 투명 2px 9px)`: 팝업 카드 종이 결(어두운 결 · .028 ≈ 0x07). BakeFace 의 `stripe:` 겹(한 방향 · 판 위에 잉크). T178 43회차."
+    },
+    "sheet_grain_a": {
+      "angle_deg": 45,
+      "period_css_px": 8,
+      "dash_css_px": 2,
+      "ink": "#fffffff2",
+      "gap": null,
+      "_": "style.css 8272 셋째 겹 — `repeating-linear-gradient(45deg, 흰 .95 0 2px, 투명 2px 8px)`: 시트 종이 올(밝히는 방향 · 정본 주석 «어두운 결은 카드 bbox 오염»)."
+    },
+    "sheet_grain_b": {
+      "angle_deg": -45,
+      "period_css_px": 6,
+      "dash_css_px": 1,
+      "ink": "#ffffff8c",
+      "gap": null,
+      "_": "style.css 8272 넷째 겹 — `repeating-linear-gradient(-45deg, 흰 .55 0 1px, 투명 1px 6px)`: 다른 주기의 반대 방향 올(«한 벌만이면 프린트 줄무늬로 읽힌다»)."
     }
   },
   "keylines": {

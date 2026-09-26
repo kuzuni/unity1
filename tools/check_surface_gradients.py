@@ -152,6 +152,9 @@ TABLE = {
     '.btn.btn.danger.danger, .btn.btn.sell.sell': ['Ui/Popups.cs@Btn', 'Ui/Popups.cs@BackButton', 'Ui/DungeonPopups.cs@Pill', 'Ui/DungeonPopups.cs@BackButton', 'Ui/ChatScreen.cs@Open', 'Ui/PetSkillKit.cs@PaperButton'],
     '.pass-cell.premium': ['Ui/PassPopup.cs@Cell'],
     '.modal-card .substat-list, .modal-card .prob-box, .modal-card .age-bar-wrap': '—정본 마크업(index.html·ui.js)에 없는 선택자 셋(684·705·792 의 클래스가 어디서도 안 쓰인다 · `.summon-prog` 와 같은 꼴) — 클론 자리 없음 · 41회차',
+    # T178 43회차 — 모달 카드 종이 면: 같은 선택자가 셋씩(7718/8096/8272 · 7778/8116/8286) 값을 갈아 끼웠다 → 마지막 선언을 BakeFace 한 판(rem 단위 · plus_px · stripe: 결 겹 · 방사)으로.
+    '.modal-card.sheet:not(.league-sheet):not(.shop-sheet)': ['Ui/Popups.cs@Sheet'],
+    '.modal-card:not(.sheet):not(.pass-card):not(.lgr-card)': ['Ui/Popups.cs@Card'],
     '.qst-bar i': '—정본 8806 `.qst-bar i { background: #4fc3f7 }`(aaa-skin ⓖ) 이 2044 의 두 겹을 단색으로 끈다 — 6·10회차의 qst-fill-grad·rim 을 39회차가 걷었다 · 채움 = catalog quest_bar 한 칸',
     '.qst-row.done .qst-bar i': '—정본 8807 `… { background: #81e884 }`(aaa-skin ⓖ) 이 2047 의 두 겹을 단색으로 끈다 — 39회차가 걷었다 · 채움 = catalog quest_bar_done 한 칸',
     # T178 9회차 — 기술 트리 분기 원판(카테고리색 면) 위의 겹 둘: 왼쪽 위 방사형 광택 + 세로 명암.

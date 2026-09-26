@@ -319,6 +319,9 @@ namespace Forge.Game.Ui
             Image line = UiKit.Rounded(rt, "line", lineKey, radius);
             Grow(line.rectTransform, Line3);                                    // T465·T473 — 테는 패딩 상자 밖(사방)
             Image face = UiKit.Rounded(rt, "face", faceKey, Mathf.Max(1f, radius - Line3));   // 면 = 테 안쪽 = rect 그대로(T473 — 가로도)
+            // T178 43회차 — 정본 8286(7778 → 8116 → 8286 마지막 선언) `.modal-card:not(.sheet):not(.pass-card):not(.lgr-card)` 종이 면 겹 넷(아이보리 램프 · 위 광원 · 45° 결 · 머리 밴드 2.6rem + 1px):
+            //   종이 면(pp_paper)에만 — 어두운 카드(패스 · 리그 보상 = 8837 `background-image: none`)는 제 색 키라 빠진다. 높이가 내용으로 정해지는 카드라 크기가 잡힌 뒤(두 프레임 안정) 굽는다.
+            if (faceKey == "pp_paper") SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.CardPaperLayers, UiKit.C(faceKey));
             if (h <= 0)
             {
                 ContentSizeFitter f = rt.gameObject.AddComponent<ContentSizeFitter>();
@@ -333,6 +336,9 @@ namespace Forge.Game.Ui
             RectTransform rt = UiKit.Box(parent, name);
             Image bg = UiKit.Panel(rt, "bg", faceKey);
             bg.raycastTarget = true;
+            // T178 43회차 — 정본 8272(7718 → 8096 → 8272 마지막 선언) `.modal-card.sheet:not(.league-sheet):not(.shop-sheet)` 종이 면 겹 여섯(아이보리 램프 · 위 광원 · −45°/45° 흰 결 둘 · 머리 밴드 3.1rem + 1px · 위 2px 림):
+            //   종이 시트(pp_paper)에만 — 리그·상점(제 어두운 배경 키)은 :not() 그대로 빠진다. 시트는 앱 상자를 꽉 채워 크기가 잡힌 뒤 굽는다.
+            if (faceKey == "pp_paper") SurfaceArt.FillFaceWhenSized(bg, "bg-grad", SurfaceArt.SheetPaperLayers, UiKit.C(faceKey));
             return rt;
         }
 

@@ -86,6 +86,29 @@ namespace Forge.Game.Ui
             return m;
         }
 
+        /// <summary>T178 43회차 — 정지점이 **rem** 단위인가(`units` 의 `"rem"` · 정본 8286 `2.6rem` 머리 밴드 · 8272 `3.1rem`). 그 정지점은 N × rem(캔버스 px) ÷ 선 길이 자리에 선다.</summary>
+        public static bool[] RemMask(string key, int n)
+        {
+            bool[] m = new bool[n];
+            JsonObject one = J.Obj(Table()[key]);
+            List<object> u = one == null ? null : J.Arr(one["units"]);
+            if (u == null || u.Count != n) return m;
+            for (int i = 0; i < n; i++) m[i] = J.Str(u[i]) == "rem";
+            return m;
+        }
+
+        /// <summary>T178 43회차 — 정지점마다 **더하는 CSS px**(`plus_px: [0,0,0,1,1]` · 정본 `calc(2.6rem + 1px)` 꼴). 없으면 null.</summary>
+        public static float[] PlusPx(string key, int n)
+        {
+            JsonObject one = J.Obj(Table()[key]);
+            List<object> pl = one == null ? null : J.Arr(one["plus_px"]);
+            if (pl == null) return null;
+            if (pl.Count != n) throw new KeyNotFoundException(ResourcePath + ".json 의 «" + key + "» plus_px 길이가 stops 와 다르다(" + pl.Count + " ↔ " + n + ")");
+            float[] m = new float[n];
+            for (int i = 0; i < n; i++) m[i] = (float)J.Num(pl[i], 0);
+            return m;
+        }
+
         /// <summary>
         /// 정지점마다 단위가 갈리는 겹(`units: ["px","px","f","f","f"]`) — CSS 는 한 그라디언트 안에서 길이와 %를 섞어 쓴다
         /// (정본 2361 `.league-foot` 이 `… .16) 0 1px, … .05) 8%, …` 꼴이다). `unit: "px"` 은 «전부 px» 의 줄임이라 그대로 둔다(T178 4회차 자리들).
@@ -318,20 +341,23 @@ namespace Forge.Game.Ui
         {
             float rad = Angle(key) * Mathf.Deg2Rad;
             float dx = Mathf.Sin(rad), dy = -Mathf.Cos(rad);   // CSS: 0deg 는 위로 · y 는 아래가 +
-            bool[] pxAt = PxMask(key, pos.Length), endAt = EndPxMask(key, pos.Length);
-            bool anyPx = false;
-            for (int i = 0; i < pxAt.Length; i++) if (pxAt[i] || endAt[i]) { anyPx = true; break; }
+            bool[] pxAt = PxMask(key, pos.Length), endAt = EndPxMask(key, pos.Length), remAt = RemMask(key, pos.Length);
+            float[] plus = PlusPx(key, pos.Length);
+            bool anyPx = plus != null;
+            for (int i = 0; i < pxAt.Length; i++) if (pxAt[i] || endAt[i] || remAt[i]) { anyPx = true; break; }
             if (anyPx)
             {
                 // CSS px → 선 길이의 분수. 자리 길이를 모르면(0) 굽는 판의 길이를 쓴다(림이 굵게 나오지만 안 사라진다).
                 // T178 23회차 — **정지점마다** 판다: 한 그라디언트가 px 와 % 를 섞어 쓰는 자리가 있다(정본 2361 `.league-foot`).
                 // T178 41회차 — `-px` 는 **끝에서 잰** px(정본 `calc(100% − 1px)` · 8686 오른쪽 키라인): 1 − N·k.
+                // T178 43회차 — `rem` 은 rem 단위 정지점(정본 8286 `2.6rem` 머리 밴드) · `plus_px` 는 정지점에 더하는 CSS px(정본 `calc(2.6rem + 1px)`).
                 float realLen = lineLenCanvasPx > 0f ? lineLenCanvasPx : Mathf.Abs(w * dx) + Mathf.Abs(h * dy);
-                float k = CssPx / Mathf.Max(1f, realLen);
+                float k = CssPx / Mathf.Max(1f, realLen), kr = UiKit.H("rem_h") / Mathf.Max(1f, realLen);
                 for (int i = 0; i < pos.Length; i++)
                 {
-                    if (pxAt[i]) pos[i] = Mathf.Clamp01(pos[i] * k);
-                    else if (endAt[i]) pos[i] = Mathf.Clamp01(1f - pos[i] * k);
+                    float v = pxAt[i] ? pos[i] * k : endAt[i] ? 1f - pos[i] * k : remAt[i] ? pos[i] * kr : pos[i];
+                    if (plus != null) v += plus[i] * k;
+                    pos[i] = Mathf.Clamp01(v);
                 }
             }
             float len = Mathf.Abs(w * dx) + Mathf.Abs(h * dy);
@@ -546,6 +572,26 @@ namespace Forge.Game.Ui
 
             foreach (string key in layers)
             {
+                // T178 43회차 — `stripe:<키>` 는 되풀이 결 겹(정본 `repeating-linear-gradient(θ, 잉크 0 d, 투명 d p)` · 표 stripes.<키> 의 angle_deg·period_css_px·dash_css_px·ink):
+                //   모달 카드 종이 결(8286 45deg 2/9 · 8272 45deg 2/8 + −45deg 1/6)처럼 그라디언트 겹 사이에 끼는 결이라 판 위에서 바로 잉크를 얹는다(BakeHatch 의 교차 두 겹과 달리 한 방향).
+                if (key.StartsWith("stripe:", System.StringComparison.Ordinal))
+                {
+                    JsonObject st = Stripe(key.Substring(7));
+                    double sang = J.Num(st["angle_deg"], 45), sp = J.Num(st["period_css_px"], 0) * CssPx, sd = J.Num(st["dash_css_px"], 0) * CssPx;
+                    if (sp <= 0 || sd <= 0) throw new KeyNotFoundException(ResourcePath + ".json stripes." + key.Substring(7) + " 에 period_css_px·dash_css_px 가 없다");
+                    Color sInk = StripeColor(st["ink"]); double sa = J.Num(st["ink_alpha"], sInk.a);
+                    Color32 sk = Byte4(sInk);
+                    double ssx = wCanvasPx / w, ssy = hCanvasPx / h;
+                    for (int y = 0; y < h; y++)
+                        for (int x = 0; x < w; x++)
+                        {
+                            double cx = (x + 0.5) * ssx, cy = (h - 1 - y + 0.5) * ssy;
+                            if (!StripeRules.IsInk(cx, cy, sang, sp, sd, 0)) continue;
+                            Color32 u = px[y * w + x];
+                            px[y * w + x] = new Color32(SurfaceBlendRules.OverSrgb(u.r, sk.r, sa), SurfaceBlendRules.OverSrgb(u.g, sk.g, sa), SurfaceBlendRules.OverSrgb(u.b, sk.b, sa), 255);
+                        }
+                    continue;
+                }
                 float lineLen = 0f;
                 if (!IsRadial(key))
                 {
@@ -581,6 +627,10 @@ namespace Forge.Game.Ui
         public static readonly string[] BtnDangerLayers = { "btn_danger_body", "btn_danger_side", "btn_danger_rim" };
         /// <summary>정본 8504(7833 → 8204 → 8336 → 8504 마지막 선언) `.btn.btn:not(.silver):not(.ascend-ready)` 의 유리 겹 셋 — 빨강·은색·승천 아닌 모든 .btn 면. 옆 키라인은 8686 과 같은 수. T178 42회차.</summary>
         public static readonly string[] BtnGlassLayers = { "btn_glass_body", "btn_danger_side", "btn_glass_rim" };
+        /// <summary>정본 8286(7778 → 8116 → 8286 마지막) `.modal-card:not(.sheet):not(.pass-card):not(.lgr-card)` 종이 면 겹 넷(아래→위): 아이보리 램프 · 위 광원 · 45° 결 · 머리 밴드(2.6rem + 1px 선). T178 43회차.</summary>
+        public static readonly string[] CardPaperLayers = { "card_paper_ramp", "card_top_light", "stripe:card_grain", "card_head_band" };
+        /// <summary>정본 8272(7718 → 8096 → 8272 마지막) `.modal-card.sheet:not(.league-sheet):not(.shop-sheet)` 종이 면 겹 여섯(아래→위): 아이보리 램프 · 위 광원 · −45° 결 · 45° 결 · 머리 밴드(3.1rem + 1px) · 위 2px 림. T178 43회차.</summary>
+        public static readonly string[] SheetPaperLayers = { "sheet_paper_ramp", "sheet_top_light", "stripe:sheet_grain_b", "stripe:sheet_grain_a", "sheet_head_band", "sheet_top_rim" };
 
         /// <summary>
         /// T178 41회차 — <see cref="FillFace"/> 인데 **면의 크기가 아직 0** 인 자리(배치를 부르는 쪽이 뒤에 하는 버튼 · 레이아웃이 폭을 주는 버튼)는
