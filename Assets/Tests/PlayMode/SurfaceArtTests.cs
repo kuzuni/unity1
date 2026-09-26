@@ -2316,7 +2316,8 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(PetSkillStyle.L("sr_glow_col_a0"), gci.color.a, 1e-4f, "common(tier 0) 은 glow 0 → 불투명도 .1");
             {
                 Texture2D tx = gci.sprite.texture; Color32[] px = tx.GetPixels32(); int W = tx.width, H = tx.height;
-                Assert.AreEqual(255, px[0 * W + W / 2].a, "아래는 불투명(등급색)"); Assert.AreEqual(0, px[(H - 1) * W + W / 2].a, "위는 투명");
+                // 47회차 자 수리(런 1315) — 맨 아래 행의 화소 가운데는 t = 1 − 0.5/H 라 알파가 255 가 아니라 254 로 굽힌다(정지점 사이 보간 · 위 행도 같은 이치로 0~1). 극값을 ±5 로 본다.
+                Assert.GreaterOrEqual(px[0 * W + W / 2].a, 250, "아래는 불투명(등급색)"); Assert.LessOrEqual(px[(H - 1) * W + W / 2].a, 5, "위는 투명");
                 Color rc = PetSkillStyle.Rarity(PetSkillHost.Instance.Data.Defs, "common");
                 Assert.AreEqual(Mathf.RoundToInt(rc.r * 255f), px[0 * W + W / 2].r, 1, "rgb = 등급색");
             }
