@@ -17033,7 +17033,7 @@
 - **자**(`SurfaceArtTests.소환_결과_배경_방사와_셀_뒤_등급_광주가_선다`): ⓐ 표(방사 · 38% · #03040c · 광주 알파 0/.18/.72/1) ⓑ `SkillSummonResultView.Open`(TransitionTests 의 길 · ultimate 최고) → `bg-pre`·`bg-a` 판 이름 `sf-sr_modal_bg…` · 둘의 이름이 다르다(정지점 색) · 승격 판 알파 0 · `BgAColor == BgAPre` · 예고 판 가운데(44%) 남색 > 모서리 ⓒ `sr-cell-0` 첫 자식 `sr-glow-col` · `sf-sr_cell_glow…` · 불투명도 .1(common glow 0) · 아래 불투명 등급색 · 위 투명 ⓓ `OnTap` → `SettleBg` → 승격 판 알파 1 · `BgAColor == BgADone`.
 - **게이트**: `gate.sh` 46 자 막는 자 전부 rc 0(`$?` 직접) · dotnet 초록(새 길 둘 · 부르는 자리 셋).
 - **판정(다음 런)**: 새 칸 PASS · `TransitionTests.소환_결과_배경은_예고값으로_열리고_done_뒤_승격값으로_간다` 그대로(BgAColor 계산값) · `SummonChargeTests`·`UiShots`(SettleBgAll) 그대로 · 눈: `screen_summon-result*` 배경이 가운데 남색 → 가장자리 검정 방사 한 장(전엔 원판 둘의 단) · 셀 뒤 세로 광주(등급색 · 위로 옅어짐) · 격자 위아래 페이드(mid/dense 판에서). ⚠ T28 summon-result 지문은 배경이 바뀌었으니 «배경 방사 교체» 로 읽힌다(회귀가 아니다). **lock 유지**.
-- **ntfy**: 아래 «알림» 줄에(이 커밋 push 뒤 적는다).
+- **ntfy — 알림 못 보냄**: 커밋 `f7d715dd` push 뒤 `ntfy-notify.yml` **런 #2520**(job 108446443003)가 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 이 루틴 프롬프트엔 토픽이 없고 Secret 미등록(같은 자리).
 - **남은 미정 4 의 갈래**(전부 소환 결과 구슬): 재질 셋 6552 `metal`(R+L+R) · 6574 `glass`(R 다섯) · 6611 `gem`(R·R·R·**conic**·R — conic 은 굽는 길이 없다 · 패싯 원점이 구 밖) · 6637 `gem .sr-orb::before`(십자 글린트 LL + 방사 마스크). 셋 다 `--rc-lite`(ui.js srHilite · 등급별 목표 휘도)·`--rc`·`--rc-deep`(srShade −.62) 런타임 셋 → `BakeFace` 에 정지점 갈아 끼우기(835 ⓐ 의 겹판)와 conic 한 길이 필요하다 · 클론의 지금 구슬은 원판 셋(deep·orb·hilite · T385 조명 겹)이라 그 위에 얹거나 갈아 끼운다.
 
 ### T178 46회차 판정 ✅ · lock 반납 · 행 ⬜ — 런 1313 초록 · 새 칸 PASS · 눈 부분(런 1313 제 그림 · 타일은 자로) (2026-09-26 15:4x · 워커 T · sess-1447-10982)
