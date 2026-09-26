@@ -1141,6 +1141,82 @@
     "offsets": [0, 0.36, 0.72, 1],
     "_": "style.css **6334** `.sr-cell::before { background: linear-gradient(rgba(255,255,255,0), var(--rc)); mask-image: linear-gradient(rgba(0,0,0,0), #000 72%) }` — 셀 뒤 등급 광주(2.6rem × 15rem · 정본 주석 «아이콘 줄 위아래의 빈 남색 밴드를 구조로 채우고, 등급이 세로 길이로도 읽힌다»). 배경 램프(위 투명 → 아래 rc · 알파 t)와 마스크 페이드(위 투명 → 72% 부터 불투명 · min(1, t/.72))를 **곱한 알파 단면** 하나로 접었다: t = 0/.36/.72/1 에서 0/.18/.72/1. 색은 흰 자리표 — 부르는 쪽이 `BakeTinted(key, aspect, rc)` 로 rgb 를 갈아 끼운다(알파는 표 그대로). 불투명도 .1 + .34 × glow 는 Image 색 · blur 7px 은 filter 축(T342). T178 47회차."
   },
+  "sr_orb_metal_base": {
+    "shape": "radial",
+    "cx": 0.28,
+    "cy": 0.16,
+    "rx": 1.22,
+    "ry": 1.22,
+    "stops": [[255, 255, 255, 1.0], [204, 204, 204, 1.0], [0, 0, 0, 1.0], [5, 7, 15, 1.0]],
+    "offsets": [0, 0.36, 0.72, 1],
+    "_": "style.css **6552** `.sr-cell[data-mat=metal] .sr-orb` 맨 아래 겹 — `radial-gradient(122% 122% at 28% 16%, var(--rc-lite, #fff) 0%, var(--rc) 36%, var(--rc-deep, #000) 72%, #05070f 100%)`: 구체 본체(왼쪽 위 광원). 0%·36%·72% 는 런타임 색 셋(SummonOrbRules · SummonFxUi tier.hilite_luma/orb_deep_shade)이라 SkillSummonResult.OrbPlate 가 갈아 끼운다(표는 정본 기본값). T178 48회차."
+  },
+  "sr_orb_metal_band": {
+    "angle_deg": 180,
+    "stops": [[255, 255, 255, 0.0], [255, 255, 255, 0.42], [255, 255, 255, 0.05], [255, 255, 255, 0.22], [255, 255, 255, 0.0]],
+    "offsets": [0.33, 0.42, 0.48, 0.55, 0.64],
+    "_": "style.css **6552** 둘째 겹 — `linear-gradient(흰 0 33%, 흰 .42 42%, 흰 .05 48%, 흰 .22 55%, 흰 0 64%)`: 금속의 **이방성 가로 밴드** 하이라이트(정본 주석 «이방성(가로 밴드) 하이라이트, 낮은 채도, 반사가 좁고 단단하다»). T178 48회차."
+  },
+  "sr_orb_metal_spec": {
+    "shape": "radial",
+    "cx": 0.35,
+    "cy": 0.18,
+    "rx": 0.14,
+    "ry": 0.11,
+    "stops": [[255, 255, 255, 1.0], [255, 255, 255, 0.0]],
+    "offsets": [0, 0.74],
+    "_": "style.css **6552** 첫(맨 위) 겹 — `radial-gradient(14% 11% at 35% 18%, #fff, 투명 74%)`: 좁고 단단한 스페큘러. T178 48회차."
+  },
+  "sr_orb_glass_base": {
+    "shape": "radial",
+    "cx": 0.3,
+    "cy": 0.2,
+    "rx": 1.25,
+    "ry": 1.25,
+    "stops": [[255, 255, 255, 1.0], [204, 204, 204, 1.0], [0, 0, 0, 1.0], [5, 7, 15, 1.0]],
+    "offsets": [0, 0.44, 0.78, 1],
+    "_": "style.css **6574** `.sr-cell[data-mat=glass] .sr-orb` 맨 아래 겹 — `radial-gradient(125% 125% at 30% 20%, var(--rc-lite) 0%, var(--rc) 44%, var(--rc-deep) 78%, #05070f 100%)`. 0%·44%·78% 런타임(OrbPlate). T178 48회차."
+  },
+  "sr_orb_glass_core": {
+    "shape": "radial",
+    "cx": 0.52,
+    "cy": 0.54,
+    "rx": 0.46,
+    "ry": 0.46,
+    "stops": [[2, 5, 14, 0.42], [2, 5, 14, 0.09], [0, 0, 0, 0.0]],
+    "offsets": [0, 0.46, 0.66],
+    "_": "style.css **6574** 넷째 겹(속 빈 코어) — `radial-gradient(closest-side at 52% 54%, rgba(2,5,14,.42) 0%, rgba(2,5,14,.09) 46%, 투명 66%)`: «유리의 정체성(속이 비었다) · 감쇠가 r 0.35 안에서 끝나야 도넛이 안 된다». closest-side = 중심에서 가장 가까운 변 = min(.52,.48,.54,.46) = .46(결정 834 의 짝). T178 48회차."
+  },
+  "sr_orb_glass_caustic": {
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": 0.74,
+    "rx": 0.3,
+    "ry": 0.2,
+    "stops": [[255, 255, 255, 1.0], [255, 255, 255, 0.0]],
+    "offsets": [0, 0.78],
+    "_": "style.css **6574** 셋째 겹(코스틱) — `radial-gradient(30% 20% at 50% 74%, var(--rc-lite) 0%, 투명 78%)`: «아래에 고이되 림까지 닿지 않게 · 광축에서 왼쪽으로 비껴 빛이 통과한다는 단서만». 0% 는 런타임 --rc-lite(OrbPlate). T178 48회차."
+  },
+  "sr_orb_glass_term": {
+    "shape": "radial",
+    "cx": 0.24,
+    "cy": 0.14,
+    "rx": 0.96,
+    "ry": 0.96,
+    "stops": [[0, 0, 0, 0.0], [2, 4, 12, 0.46], [1, 2, 8, 0.88]],
+    "offsets": [0.44, 0.76, 1],
+    "_": "style.css **6574** 둘째 겹(터미네이터) — `radial-gradient(96% 96% at 24% 14%, 투명 44%, rgba(2,4,12,.46) 76%, rgba(1,2,8,.88) 100%)`: «광원 반대편 림을 말아 넣는다(M1·M2 를 되살리는 핵심 층)». T178 48회차."
+  },
+  "sr_orb_glass_spec": {
+    "shape": "radial",
+    "cx": 0.33,
+    "cy": 0.16,
+    "rx": 0.12,
+    "ry": 0.09,
+    "stops": [[255, 255, 255, 1.0], [255, 255, 255, 0.0]],
+    "offsets": [0, 0.7],
+    "_": "style.css **6574** 첫(맨 위) 겹 — `radial-gradient(12% 9% at 33% 16%, #fff, 투명 70%)`: «유리는 금속보다 좁고 날카롭다». T178 48회차."
+  },
   "stripes": {
     "pet_tile_grain": { "angle_deg": 45, "period_css_px": 7, "dash_css_px": 2, "ink": "#ffffff0e", "gap": null, "_": "style.css **8124** `.pet-tile .tile-face` 넷째 겹(4288 셋째) — `repeating-linear-gradient(45deg, 흰 .055 0 2px, 투명 2px 7px)`: 타일 면의 미세 빗금(.055 ≈ 0x0e). BakeFace 의 `stripe:` 겹. T178 46회차." },
     "cell_hatch": {

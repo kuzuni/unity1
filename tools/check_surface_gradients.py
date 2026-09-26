@@ -180,6 +180,9 @@ TABLE = {
     '#summon-result-modal.done': ['Ui/SkillSummonResult.cs@Build'],
     '.sr-cell::before': ['Ui/SkillSummonResult.cs@BuildCell'],
     '.sr-grid.mid, .sr-grid.dense': '—정본 6235 는 스크롤 격자 위아래 5% 의 `mask-image` 페이드 — 굽는 겹이 아니라 클론은 RectMask2D.softness(표 sr_grid_fade_f · SkillSummonResult.Build)로 세운다 — 47회차',
+    # T178 48회차 — 구슬 재질 둘(6552 metal R+L+R · 6574 glass R 다섯 · 런타임 색 셋은 SummonOrbRules 로 셈해 BakeFace stopOverride 로 끼운다 · SkillSummonResult.OrbPlate) · gem(6611 conic)·글린트(6637)는 다음.
+    '.sr-cell[data-mat="metal"] .sr-orb': ['Ui/SkillSummonResult.cs@OrbPlate'],
+    '.sr-cell[data-mat="glass"] .sr-orb': ['Ui/SkillSummonResult.cs@OrbPlate'],
     '.sr-orb': '—정본 6495 기본 구슬 스택은 ui.js 428 `data-mat=srMaterial(rarity)`(SR_MATERIAL 표 · 빠지면 metal)이 **모든 셀**에 재질을 주어 6552/6574/6611 이 늘 덮는다 — 실제로 서는 값이 없다 · 재질 셋은 다음 회차 — 47회차',
     '.qst-bar i': '—정본 8806 `.qst-bar i { background: #4fc3f7 }`(aaa-skin ⓖ) 이 2044 의 두 겹을 단색으로 끈다 — 6·10회차의 qst-fill-grad·rim 을 39회차가 걷었다 · 채움 = catalog quest_bar 한 칸',
     '.qst-row.done .qst-bar i': '—정본 8807 `… { background: #81e884 }`(aaa-skin ⓖ) 이 2047 의 두 겹을 단색으로 끈다 — 39회차가 걷었다 · 채움 = catalog quest_bar_done 한 칸',

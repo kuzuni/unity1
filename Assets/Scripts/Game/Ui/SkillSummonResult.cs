@@ -1135,6 +1135,8 @@ namespace Forge.Game.Ui
             orb.rectTransform.offsetMax = new Vector2(-cw * 0.09f, -cw * 0.04f);
             Image hi = PetSkillKit.Disc(wrap, "sr-hilite", OrbFilter(PetSkillStyle.C("sr_hilite"), tier));
             UiKit.Anchor(hi.rectTransform, new Vector2(0.36f, 0.81f), new Vector2(0.5f, 0.5f), Vector2.zero, cw * 0.28f, cw * 0.2f);
+            // T178 48회차 — 정본 재질 스택(6552 metal · 6574 glass)을 구슬 본체 면 위에 한 판으로 굽는다 · 판이 선 재질은 근사 원판 하이라이트(sr-hilite)를 끈다(자리는 남긴다 · OrbIconTests 가 rect 를 읽는다).
+            if (OrbPlate(orb, tier, rc)) hi.enabled = false;
             // 아이콘(슬롯의 그림)
             float isz = cw * (one ? 0.62f : 0.6f);
             if (!string.IsNullOrEmpty(e.FaceName))
@@ -2471,6 +2473,36 @@ namespace Forge.Game.Ui
             if (ok != null) { ok.SetActive(true); okAt = doneAt; }
             if (chips != null && rolls > 1) chips.SetActive(true);
             if (solo != null) solo.SetActive(true);
+        }
+
+        /// <summary>
+        /// T178 48회차 — 소환 구슬 **재질 스택**(정본 6552 `[data-mat=metal]` · 6574 `[data-mat=glass]` · ui.js 292 SR_MATERIAL 등급 → 재질). 정지점 셋이 런타임 색이다:
+        /// `--rc` 등급색 · `--rc-lite` = srHilite(rc, tier)(SummonFxUi tier.hilite_luma 목표 휘도로 흰색 쪽 · SummonOrbRules) · `--rc-deep` = srShade(rc, −.62)(tier.orb_deep_shade).
+        /// 셋 다 T342 의 등급 filter(OrbFilter · saturate·brightness 는 채널 선형이라 정지점에 걸어도 같은 그림)를 거쳐 겹판(BakeFace + stopOverride)에 끼운다 · 면 = 구슬 본체 rect · 바탕은 본체 색.
+        /// gem(6611)은 conic 겹이라 굽는 길이 아직 없다 — false 를 돌려주고 종전 원판 셋을 그대로 둔다(다음 회차).
+        /// </summary>
+        static bool OrbPlate(Image orb, int tier, Color rc)
+        {
+            JsonObject tierTab = J.Obj(SummonFxStyle.Root["tier"]);
+            List<object> mats = J.Arr(J.Require(tierTab, "material"));
+            string mat = J.Str(mats[Mathf.Clamp(tier, 0, mats.Count - 1)]) ?? "metal";
+            string[] layers = mat == "metal" ? SurfaceArt.SrOrbMetalLayers : mat == "glass" ? SurfaceArt.SrOrbGlassLayers : null;
+            if (layers == null) return false;
+            double[] luma = J.NumArr(J.Require(tierTab, "hilite_luma"));
+            double want = luma[Mathf.Clamp(tier, 0, luma.Length - 1)];
+            double amt = SummonOrbRules.HiliteAmt(SummonOrbRules.Luma255(rc.r * 255.0, rc.g * 255.0, rc.b * 255.0), want);
+            double deepF = J.Num(J.Require(tierTab, "orb_deep_shade"));
+            Color lite = new Color((float)(SummonOrbRules.Shade255(rc.r * 255.0, amt) / 255.0), (float)(SummonOrbRules.Shade255(rc.g * 255.0, amt) / 255.0), (float)(SummonOrbRules.Shade255(rc.b * 255.0, amt) / 255.0), 1f);
+            Color deep = new Color((float)(SummonOrbRules.Shade255(rc.r * 255.0, deepF) / 255.0), (float)(SummonOrbRules.Shade255(rc.g * 255.0, deepF) / 255.0), (float)(SummonOrbRules.Shade255(rc.b * 255.0, deepF) / 255.0), 1f);
+            Color fl = OrbFilter(lite, tier), fr = OrbFilter(rc, tier), fd = OrbFilter(deep, tier);
+            var ov = new Dictionary<string, Color?[]>();
+            ov[layers[0]] = new Color?[] { fl, fr, fd, null };
+            if (mat == "glass") ov["sr_orb_glass_caustic"] = new Color?[] { fl, null };
+            RectTransform ort = orb.rectTransform;
+            RectTransform prt = ort.parent as RectTransform;
+            float side = prt != null ? prt.sizeDelta.x - ort.offsetMin.x + ort.offsetMax.x : ort.rect.width;   // 래퍼 한 변 − 본체 인셋(좌하 +4% · 우상 −9%)
+            SurfaceArt.FillFace(orb, "bg-grad", null, layers, fr, side, side, ov);
+            return true;
         }
 
         /// <summary>T178 47회차 — 부모를 꽉 채우는 구운 판 한 장(클릭 안 먹음 · 비율 안 지킴 · 흰 틴트).</summary>

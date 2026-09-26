@@ -2330,5 +2330,60 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T178 48회차 — 소환 구슬 재질 스택: 정본 6552 metal(등급 0·1) · 6574 glass(등급 2·3) 를 구슬 본체 면 위에 한 판으로 · 런타임 색 셋(rc-lite 목표 휘도 · rc · rc-deep −.62)은 SummonOrbRules.
+        /// gem(등급 4·5 · conic)은 아직 판이 없다 — 원판 셋 그대로.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 소환_구슬_금속과_유리_재질_스택이_한_판으로_선다()
+        {
+            PetSkillHost.SuppressSave = true;
+            PetSkillHost.Seed = 20260918;
+            yield return Boot();
+            Assert.AreEqual(222.0 / 255.0, Forge.Core.Ui.SummonOrbRules.HiliteAmt(0, 222), 1e-9, "검정에서 목표 222 까지 = 222/255");
+            Assert.AreEqual(0.0, Forge.Core.Ui.SummonOrbRules.HiliteAmt(250, 222), 1e-9, "이미 목표보다 밝으면 0");
+            Assert.AreEqual(38.0, Forge.Core.Ui.SummonOrbRules.Shade255(100, -0.62), 1e-9, "srShade(−.62) = × .38");
+            Assert.AreEqual(177.5, Forge.Core.Ui.SummonOrbRules.Shade255(100, 0.5), 1e-9, "srShade(+.5) = 흰색 쪽 절반");
+            Color[] c; float[] o;
+            Assert.IsTrue(SurfaceArt.IsRadial("sr_orb_metal_base") && SurfaceArt.IsRadial("sr_orb_glass_core") && SurfaceArt.IsRadial("sr_orb_glass_term"), "방사");
+            SurfaceArt.Stops("sr_orb_metal_band", out c, out o); Assert.AreEqual(5, c.Length); Assert.AreEqual(0.42f, c[1].a, 1e-4f, "밴드 .42 @42%"); Assert.AreEqual(0.42f, o[1], 1e-4f);
+            SurfaceArt.Stops("sr_orb_glass_base", out c, out o); Assert.AreEqual(0.44f, o[1], 1e-4f, "유리 본체 rc 44%"); Assert.AreEqual(0.78f, o[2], 1e-4f);
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(PetSkillHost.Ready, "소환 호스트가 20초 안에 안 섰다");
+            var defs = PetSkillHost.Instance.Data.Defs;
+            Assert.GreaterOrEqual(defs.Rarities.Length, 4, "등급 넷 이상");
+            string rMetal = defs.Rarities[0], rGlass = defs.Rarities[2];
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = rMetal, Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = rGlass, Name = "나" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, rGlass, null);
+            Assert.IsNotNull(v, "소환 결과 뷰");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            float Lum(Color32 k) { return k.r * 0.2126f + k.g * 0.7152f + k.b * 0.0722f; }
+            int metal = 0, glass = 0;
+            foreach (RectTransform rt in v.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name != "sr-orb" || rt.parent == null || rt.parent.name != "sr-orbwrap") continue;
+                Transform g = rt.Find("bg-grad"); Assert.IsNotNull(g, "구슬 본체 면 위 재질 판(bg-grad)");
+                Sprite gs = g.GetComponent<Image>().sprite; Assert.IsNotNull(gs, "재질 판");
+                string tn = gs.texture.name;
+                bool isMetal = tn.Contains("sr_orb_metal_base+sr_orb_metal_band+sr_orb_metal_spec"), isGlass = tn.Contains("sr_orb_glass_base+sr_orb_glass_core+sr_orb_glass_caustic+sr_orb_glass_term+sr_orb_glass_spec");
+                Assert.IsTrue(isMetal || isGlass, "재질 판 이름: " + tn);
+                Assert.IsTrue(tn.Contains("-V"), "런타임 색 셋이 이름에 붙는다(stopOverride): " + tn);
+                Transform hi = rt.parent.Find("sr-hilite"); Assert.IsNotNull(hi, "근사 하이라이트 자리는 남는다"); Assert.IsFalse(hi.GetComponent<Image>().enabled, "판이 선 재질은 원판 하이라이트를 끈다");
+                Texture2D tx = gs.texture; Color32[] px = tx.GetPixels32(); int W = tx.width, H = tx.height;
+                Assert.Greater(Lum(px[(int)(H * 0.82f) * W + (int)(W * 0.30f)]), Lum(px[(int)(H * 0.12f) * W + (int)(W * 0.86f)]) + 40f, "광원 쪽(왼쪽 위)이 반대편(오른쪽 아래 · rc-deep → #05070f)보다 훨씬 밝다");
+                Assert.AreEqual(255, px[(int)(H * 0.5f) * W + W / 2].a, "본체는 불투명");
+                if (isMetal) metal++; else glass++;
+            }
+            Assert.AreEqual(1, metal, "등급 0 = metal 하나"); Assert.AreEqual(1, glass, "등급 2 = glass 하나");
+            v.Close();
+            yield return null;
+        }
+
     }
 }

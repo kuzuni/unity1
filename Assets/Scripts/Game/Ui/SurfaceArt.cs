@@ -589,7 +589,13 @@ namespace Forge.Game.Ui
         /// 정본이 섞는 길(<see cref="SurfaceBlendRules.OverSrgb"/> · 겹마다 한 번)로 차례로 합성해 불투명하게 굽는다. 칸은 크기가 같아 색·크기별로 한 번만 굽는다(캐시).
         /// 판 해상도 = 칸의 캔버스 px(해칭 주기가 늘어나지 않게 · 상한은 표 `face_px_max`).
         /// </summary>
-        public static Sprite BakeFace(string hatchKey, string[] layers, Color baseColor, float wCanvasPx, float hCanvasPx)
+        public static Sprite BakeFace(string hatchKey, string[] layers, Color baseColor, float wCanvasPx, float hCanvasPx) { return BakeFace(hatchKey, layers, baseColor, wCanvasPx, hCanvasPx, null); }
+
+        /// <summary>
+        /// T178 48회차 — 겹판인데 어느 겹의 정지점이 **런타임 색**인 자리(소환 구슬 재질 6552/6574 의 `--rc-lite`·`--rc`·`--rc-deep`): <paramref name="stopOverride"/>[겹 키] 의 i 번째가 값이면
+        /// 그 겹의 i 번째 정지점을 갈아 끼운다(47회차 `Bake(key, aspect, Color?[])` 의 겹판 꼴 · null 은 표값). 캐시 이름에 갈아 끼운 색을 붙인다.
+        /// </summary>
+        public static Sprite BakeFace(string hatchKey, string[] layers, Color baseColor, float wCanvasPx, float hCanvasPx, System.Collections.Generic.Dictionary<string, Color?[]> stopOverride)
         {
             int cap = Mathf.Max(16, (int)J.Num(Table()["face_px_max"], 512));
             // T178 43회차(런 1293) — 상한은 **긴 변 기준 한 배율**로 건다(두 변을 따로 자르면 비율이 틀어져 결이 한쪽으로 눌린다 · 시트 1080×1780 이 1024×1024 로).
@@ -598,6 +604,13 @@ namespace Forge.Game.Ui
             int w = Mathf.Clamp(Mathf.RoundToInt(wCanvasPx * scale), 8, cap), h = Mathf.Clamp(Mathf.RoundToInt(hCanvasPx * scale), 8, cap);
             Color32 b = To32(baseColor);
             string name = "face-" + (hatchKey ?? "-") + "-" + string.Join("+", layers) + "-" + w + "x" + h + "-" + b.r + "." + b.g + "." + b.b;
+            if (stopOverride != null)
+                foreach (var kv in stopOverride)
+                {
+                    var sb = new System.Text.StringBuilder("-V").Append(kv.Key);
+                    for (int i = 0; i < kv.Value.Length; i++) { if (!kv.Value[i].HasValue) { sb.Append("_-"); continue; } Color32 oc = To32A(kv.Value[i].Value); sb.Append("_").Append(oc.r).Append(".").Append(oc.g).Append(".").Append(oc.b).Append(".").Append(oc.a); }
+                    name += sb.ToString();
+                }
             Sprite hit;
             if (cache.TryGetValue(name, out hit) && hit != null) return hit;
 
@@ -653,7 +666,17 @@ namespace Forge.Game.Ui
                     float rad = Angle(key) * Mathf.Deg2Rad;
                     lineLen = Mathf.Abs(wCanvasPx * Mathf.Sin(rad)) + Mathf.Abs(hCanvasPx * Mathf.Cos(rad));
                 }
-                Color32[] top = Pixels(key, w, h, lineLen, 0, null, null);        // 표에 바탕이 없는 겹 = 알파 그대로
+                Color32[] top;
+                Color?[] ov;
+                if (stopOverride != null && stopOverride.TryGetValue(key, out ov) && ov != null)
+                {
+                    // T178 48회차 — 이 겹의 정지점을 부르는 쪽 색으로(표의 over_* 는 겹판 겹에서 안 쓴다 — 아래 Pixels 길과 같은 «알파 그대로»)
+                    Color[] oc; float[] op;
+                    Stops(key, out oc, out op);
+                    for (int i = 0; i < oc.Length && i < ov.Length; i++) if (ov[i].HasValue) oc[i] = ov[i].Value;
+                    top = IsRadial(key) ? RadialPixels(key, w, h, oc, op) : LinearPixels(key, w, h, oc, op, lineLen);
+                }
+                else top = Pixels(key, w, h, lineLen, 0, null, null);        // 표에 바탕이 없는 겹 = 알파 그대로
                 for (int i = 0; i < px.Length; i++)
                 {
                     Color32 t = top[i], u = px[i];
@@ -665,7 +688,10 @@ namespace Forge.Game.Ui
         }
 
         /// <summary>둥근 면 위에 <see cref="BakeFace"/> 한 판을 얹는다(면에 <see cref="Mask"/> · `Simple` · 클릭 안 먹음). <paramref name="w"/>·<paramref name="h"/> = 면의 캔버스 px. T178 18회차.</summary>
-        public static Image FillFace(Image face, string name, string hatchKey, string[] layers, Color baseColor, float w, float h)
+        public static Image FillFace(Image face, string name, string hatchKey, string[] layers, Color baseColor, float w, float h) { return FillFace(face, name, hatchKey, layers, baseColor, w, h, null); }
+
+        /// <summary>T178 48회차 — <see cref="FillFace(Image, string, string, string[], Color, float, float)"/> 인데 어느 겹의 정지점을 부르는 쪽 색으로 갈아 끼운다(<see cref="BakeFace(string, string[], Color, float, float, System.Collections.Generic.Dictionary{string, Color?[]})"/>).</summary>
+        public static Image FillFace(Image face, string name, string hatchKey, string[] layers, Color baseColor, float w, float h, System.Collections.Generic.Dictionary<string, Color?[]> stopOverride)
         {
             if (face.GetComponent<Mask>() == null) face.gameObject.AddComponent<Mask>().showMaskGraphic = true;
             RectTransform rt = UiKit.Box(face.rectTransform, name);
@@ -673,7 +699,7 @@ namespace Forge.Game.Ui
             Image img = rt.gameObject.AddComponent<Image>();
             img.raycastTarget = false;
             img.type = Image.Type.Simple;
-            img.sprite = BakeFace(hatchKey, layers, baseColor, w, h);
+            img.sprite = BakeFace(hatchKey, layers, baseColor, w, h, stopOverride);
             img.color = Color.white;
             return img;
         }
@@ -700,6 +726,10 @@ namespace Forge.Game.Ui
         public static readonly string[] PetTileLayers = { "stripe:pet_tile_grain", "pet_tile_ground", "pet_tile_ramp", "pet_tile_light" };
         /// <summary>정본 4150 `.sk-mini` 두 겹(아래→위) — 아래에서 올라오는 그늘 + 왼쪽 위 광(둘 다 farthest-corner 원). 바탕 등급색. T178 46회차.</summary>
         public static readonly string[] SkMiniLayers = { "sk_mini_shade", "sk_mini_light" };
+        /// <summary>정본 6552 `.sr-cell[data-mat=metal] .sr-orb` 세 겹(아래→위) — 구체 본체(런타임 색 셋) + 이방성 가로 밴드 + 좁은 스페큘러. T178 48회차.</summary>
+        public static readonly string[] SrOrbMetalLayers = { "sr_orb_metal_base", "sr_orb_metal_band", "sr_orb_metal_spec" };
+        /// <summary>정본 6574 `.sr-cell[data-mat=glass] .sr-orb` 다섯 겹(아래→위) — 구체 본체 + 속 빈 코어 + 코스틱(런타임 --rc-lite) + 터미네이터 + 날카로운 스페큘러. T178 48회차.</summary>
+        public static readonly string[] SrOrbGlassLayers = { "sr_orb_glass_base", "sr_orb_glass_core", "sr_orb_glass_caustic", "sr_orb_glass_term", "sr_orb_glass_spec" };
 
         /// <summary>
         /// T178 41회차 — <see cref="FillFace"/> 인데 **면의 크기가 아직 0** 인 자리(배치를 부르는 쪽이 뒤에 하는 버튼 · 레이아웃이 폭을 주는 버튼)는
