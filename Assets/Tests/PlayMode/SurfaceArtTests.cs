@@ -2104,13 +2104,28 @@ namespace Forge.Tests.PlayMode
             Canvas.ForceUpdateCanvases();
             Popup sp = h.Popups.Find(ShopSheet.Name);
             Assert.IsNotNull(sp, "상점 시트");
-            int deals = 0, gems = 0;
-            foreach (RectTransform rt in sp.Root.GetComponentsInChildren<RectTransform>(true))
+            // 45회차 자 수리 2(런 1303) — bg-grad 는 SurfaceLate 가 «두 프레임 같은 크기» 를 본 뒤에야 생긴다(FillFace 가 그때 자식을 단다). 딜 카드는 Column 레이아웃 안이라
+            //   4 프레임으로 모자랄 수 있고, «card» 라는 이름만으로 고르면 다른 카드도 걸린다 — 딜 카드는 `deal-<key>/card/face`, 보석 카드는 `gem-<i>/face` 로 좁히고 살아 있는 면만 · 판이 다 서길 60 프레임까지 기다린다.
+            System.Func<RectTransform, int> kindOf = rt =>
             {
-                if (rt.name != "face" || rt.parent == null) continue;
-                bool deal = rt.parent.name == "card", gem = rt.parent.name.StartsWith("gem-", System.StringComparison.Ordinal);
-                if (!deal && !gem) continue;
-                Transform g = rt.Find("bg-grad"); Assert.IsNotNull(g, "상점 카드 면에 종이 판(bg-grad) · " + rt.parent.name);
+                if (rt.name != "face" || rt.parent == null || !rt.gameObject.activeInHierarchy) return 0;
+                if (rt.parent.name == "card" && rt.parent.parent != null && rt.parent.parent.name.StartsWith("deal-", System.StringComparison.Ordinal)) return 1;
+                if (rt.parent.name.StartsWith("gem-", System.StringComparison.Ordinal)) return 2;
+                return 0;
+            };
+            for (int f = 0; f < 60; f++)
+            {
+                bool allBaked = true;
+                foreach (RectTransform rt in sp.Root.GetComponentsInChildren<RectTransform>(false)) if (kindOf(rt) != 0 && rt.Find("bg-grad") == null) { allBaked = false; break; }
+                if (allBaked) break;
+                yield return null;
+            }
+            int deals = 0, gems = 0;
+            foreach (RectTransform rt in sp.Root.GetComponentsInChildren<RectTransform>(false))
+            {
+                int k = kindOf(rt); if (k == 0) continue;
+                bool deal = k == 1;
+                Transform g = rt.Find("bg-grad"); Assert.IsNotNull(g, "상점 카드 면에 종이 판(bg-grad) · " + rt.parent.parent.name + "/" + rt.parent.name);
                 Sprite gs = g.GetComponent<Image>().sprite; Assert.IsNotNull(gs, "카드 판이 구워졌다 · " + rt.parent.name);
                 Assert.IsTrue(gs.texture.name.Contains("shop_card_ramp+shop_card_top_light+shop_card_rim"), "카드 판 이름: " + gs.texture.name);
                 if (deals + gems == 0)
