@@ -2038,7 +2038,9 @@ namespace Forge.Tests.PlayMode
                 }
                 else Assert.Fail("리그 행 플레이트가 둘 중 하나가 아니다: " + tn);
             }
-            Assert.Greater(others, 0, "남의 행이 하나는 섰다"); Assert.AreEqual(1, mine, "내 행(.me)은 하나 · 위 광만 판");
+            Assert.Greater(others, 0, "남의 행이 하나는 섰다");
+            // 44회차 자 수리(런 1298) — 내 행(.me)은 정본 2361 발판(.league-foot)에 고정 하나 + 내 등수가 보이는 쪽이면 목록 안에 하나 더 = 1~2(LeagueSheet 120·101). «하나» 로 못 박은 자 전제가 틀렸다.
+            Assert.That(mine, Is.InRange(1, 2), "내 행(.me)은 발판 고정 1 + 목록 안 0~1 · 위 광만 판");
             LeagueSheet.Close(h);
             yield return null;
             // ⓓ 스킬 패널 장착됨 바
