@@ -644,6 +644,10 @@ namespace Forge.Game.Ui
         public static readonly string[] ChatGlassLayers = { "chat_glass_ramp", "chat_glass_rim" };
         /// <summary>정본 8225 `.shop-deal-card, .shop-gem-card` 종이 판 세 겹(아래→위) — 따뜻한 종이 램프 + 위 가장자리 타원 광(방사) + 위 2px 흰 림. 바탕 pp_paper. T178 45회차.</summary>
         public static readonly string[] ShopCardLayers = { "shop_card_ramp", "shop_card_top_light", "shop_card_rim" };
+        /// <summary>정본 8124 `.pet-tile .tile-face` 네 겹(아래→위 · 4288 을 덮는 마지막 선언) — 45° 미세 빗금 + 발밑 접지 타원 그늘 + 세로 명암 + 왼쪽 위 방사 광. 바탕 ColorMixUi pet_tile_face. T178 46회차.</summary>
+        public static readonly string[] PetTileLayers = { "stripe:pet_tile_grain", "pet_tile_ground", "pet_tile_ramp", "pet_tile_light" };
+        /// <summary>정본 4150 `.sk-mini` 두 겹(아래→위) — 아래에서 올라오는 그늘 + 왼쪽 위 광(둘 다 farthest-corner 원). 바탕 등급색. T178 46회차.</summary>
+        public static readonly string[] SkMiniLayers = { "sk_mini_shade", "sk_mini_light" };
 
         /// <summary>
         /// T178 41회차 — <see cref="FillFace"/> 인데 **면의 크기가 아직 0** 인 자리(배치를 부르는 쪽이 뒤에 하는 버튼 · 레이아웃이 폭을 주는 버튼)는

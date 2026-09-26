@@ -267,6 +267,7 @@ namespace Forge.Game.Ui
             if (!petd)
                 UiShadow.Glow(face, "pettile_glow", PetSkillStyle.Px(faceRadiusKey ?? "tile_r_rem"), size, size,
                     UiKit.L("pettile_glow_blur_rem"), UiKit.L("pettile_glow_spread_rem"), ColorMixUi.Mix("pet_tile_shadow_2", rc));
+            if (!petd) TilePlate(face, faceC, size, PetSkillKit.Line3);   // T178 46회차 — 정본 8124 `.pet-tile .tile-face` 네 겹(펫 상세 `.petd-tile` 은 `.pet-tile` 이 아니다)
             RectTransform pf = PetSkillKit.PetFace(face, Defs, name, size * 0.86f, kind);
             UiKit.Anchor(pf, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, size * 0.86f, size * 0.86f);
             float lvH = UiCatalog.Instance.Kind(TextKind.Sub).size * 1.15f;
@@ -279,6 +280,17 @@ namespace Forge.Game.Ui
             RectTransform lv = PetSkillKit.LvBadge(face, lt, lw, lvH, lvKeyline);
             UiKit.Anchor(lv, new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f), new Vector2(0f, PetSkillStyle.Rem(0.15f)), lw, lvH);
             return face;
+        }
+
+        /// <summary>
+        /// 펫 타일 면의 네 겹(정본 **8124** `.pet-tile .tile-face` — 4288 을 덮는 마지막 선언 · 14차 «(5) 타일 — 내부 벽 + 썸네일 접지 타원 그림자»):
+        /// 왼쪽 위 방사 광(120% 88% at 26% 14%) · 세로 명암(흰 .28 → 검 .20) · 발밑 접지 타원(44% 13% at 50% 84%) · 45° 미세 빗금(.055 · 2/7). 면 크기는 이 자리가 안다(타일 − 테)라
+        /// 바로 굽는다(결정 833). 바탕은 면 색(ColorMixUi pet_tile_face). inset 링·아래턱은 box-shadow 축(T331·T365). 격자·알·탈것·업그레이드 재료 타일이 다 이 공장을 지난다. T178 46회차.
+        /// </summary>
+        static void TilePlate(RectTransform tileFace, Color faceC, float size, float line)
+        {
+            Image inner = tileFace.Find("face").GetComponent<Image>();
+            SurfaceArt.FillFace(inner, "bg-grad", null, SurfaceArt.PetTileLayers, faceC, size - line * 2f, size - line * 2f);
         }
 
         /// <summary>
@@ -354,6 +366,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(br, x + k * (mini + g), (eqH - mini) * 0.5f, mini, mini);
                 RectTransform sq = PetSkillKit.Framed(br, "sq", PetSkillStyle.Rarity(Defs, pet.Rarity), PetSkillStyle.Px("mini_r_rem"), PetSkillKit.Line2);
                 UiKit.Fill(sq);
+                PetSkillKit.MiniPlate(sq, PetSkillStyle.Rarity(Defs, pet.Rarity), mini, PetSkillKit.Line2);   // T178 46회차 — 정본 4150 `.sk-mini` 방사 둘(광·그늘)
                 RectTransform pf = PetSkillKit.PetFace(sq, Defs, pet.Name, mini * 0.86f);
                 UiKit.Anchor(pf, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, mini * 0.86f, mini * 0.86f);
                 SkillPanel.MiniLv(br, PetSkillStyle.T("lv_short", pet.Level), mini);
@@ -423,6 +436,9 @@ namespace Forge.Game.Ui
             // 램프(원작 .hatch-lamp): 기둥 + 갓 + 전구
             // ⚠ 갓·전구 높이는 정본이 **앱 폭** 기준(`calc(var(--app-w) * .0367)`)이라 `_w` 접미다 — `_h` 로 두면 앱 높이를 곱해 1.78배 길어진다(T102 · T95 `sk_eqplate_h` 와 같은 함정)
             float lw = PetSkillStyle.Px("lamp_w"), lh = PetSkillStyle.Px("lamp_h_w");
+            // T178 46회차 — 정본 **8026** `.hatch-cell { background-image: radial-gradient(46% 10% at 50% 86%, rgba(255,235,80,.28) 0, 투명 100%) }`(14차 «(6) 스포트라이트 — 바닥 착지점 라디얼 글로우»):
+            //   빛기둥이 닿는 바닥의 노란 타원 · 바탕 없는 알파 겹이라 칸 크기로 굽고(표 hatch_cell_glow) CSS 배경답게 **첫 자식**으로 둔다(램프·원뿔·알·글자 뒤).
+            SurfaceArt.Fill(cell, "bg-grad", "hatch_cell_glow", w, cellH).transform.SetAsFirstSibling();
             RectTransform lamp = UiKit.Box(cell, "hatch-lamp");
             UiKit.Anchor(lamp, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, lw, lh);
             Image stem = UiKit.Panel(lamp, "stem", "pp_paper");

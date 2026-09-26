@@ -169,6 +169,11 @@ TABLE = {
     '.sk-ribbon': ['Ui/PetPanel.cs@EquippedRibbon'],
     '.sk-shard em': '—정본 4119 는 `background-clip: text` 글자 칠(채움 경계에서 개수 글자 색을 검/흰으로 가른다 · 주석 sk-shard-count-illegible)이라 표면 겹이 아니다 — 글자 축 · 클론 sk-shard 글자는 PetSkillKit.Gauge 의 t 한 색 — 45회차',
     '.cmp-card.new::after': '—정본 1834 는 `shinesweep` 키프레임으로 45% 폭의 광 띠가 지나가는 연출(움직이는 겹 · T135 ⓒ 갈래)이라 정적 표면 겹이 아니다 — 45회차',
+    # T178 46회차 — 펫 타일 면(같은 선택자 4288 → 8124 마지막 선언 · 방사 광 + 램프 + 접지 타원 + 결 넷 · PetPanel.TilePlate(TileFace 에서 뺀 공장 · 오버로드 셋이라 @TileFace 는 못 쓴다)) ·
+    #   장착 아이콘 원판(4150 · farthest-corner 원 둘 · PetSkillKit.MiniPlate — 펫 Framed·스킬 Orb 둘이 부른다) · 부화 칸 바닥 글로우(8026 · 알파 한 겹 · SurfaceArt.Fill 첫 자식).
+    '.pet-tile .tile-face': ['Ui/PetPanel.cs@TilePlate'],
+    '.sk-mini': ['Ui/PetSkillKit.cs@MiniPlate'],
+    '.hatch-cell': ['Ui/PetPanel.cs@BuildHatchCell'],
     '.qst-bar i': '—정본 8806 `.qst-bar i { background: #4fc3f7 }`(aaa-skin ⓖ) 이 2044 의 두 겹을 단색으로 끈다 — 6·10회차의 qst-fill-grad·rim 을 39회차가 걷었다 · 채움 = catalog quest_bar 한 칸',
     '.qst-row.done .qst-bar i': '—정본 8807 `… { background: #81e884 }`(aaa-skin ⓖ) 이 2047 의 두 겹을 단색으로 끈다 — 39회차가 걷었다 · 채움 = catalog quest_bar_done 한 칸',
     # T178 9회차 — 기술 트리 분기 원판(카테고리색 면) 위의 겹 둘: 왼쪽 위 방사형 광택 + 세로 명암.

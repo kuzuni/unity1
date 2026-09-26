@@ -289,6 +289,7 @@ namespace Forge.Game.Ui
                 UiKit.Place(br, x + i * (mini + g), (eqH - mini) * 0.5f, mini, mini);
                 RectTransform orbRt = PetSkillKit.Orb(br, "orb", PetSkillStyle.Rarity(Defs, d.Rarity), PetSkillKit.Line2);
                 UiKit.Fill(orbRt);
+                PetSkillKit.MiniPlate(orbRt, PetSkillStyle.Rarity(Defs, d.Rarity), mini, PetSkillKit.Line2);   // T178 46회차 — 정본 4150 `.sk-mini` 방사 둘(광·그늘) · 원판이라 Mask 가 원으로 자른다
                 Image ico = UiKit.Icon(orbRt, "ico", "sk_" + id);
                 float ip = mini * 0.06f;
                 ico.rectTransform.offsetMin = new Vector2(ip, ip);

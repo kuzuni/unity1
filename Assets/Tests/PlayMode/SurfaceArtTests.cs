@@ -2178,5 +2178,92 @@ namespace Forge.Tests.PlayMode
             }
         }
 
+        /// <summary>
+        /// T178 46회차 — 정본 8124 펫 타일 면 네 겹(4288 을 덮는 마지막 선언) · 4150 장착 아이콘 원판 방사 둘 · 8026 부화 칸 바닥 글로우. 표 → 판 이름 → 화소 순.
+        /// 고르기 식은 45회차 넷째 보류 줄대로 — `Framed`/`Orb` 는 상자 안에 면 «face» 를 세우니 안쪽 면(`…/face/bg-grad`)을 본다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 펫_타일_면과_장착_아이콘과_부화_칸에_방사_겹이_선다()
+        {
+            yield return Boot();
+            // ⓐ 표
+            Color[] c; float[] o;
+            Assert.IsTrue(SurfaceArt.IsRadial("pet_tile_light") && SurfaceArt.IsRadial("pet_tile_ground") && SurfaceArt.IsRadial("sk_mini_light") && SurfaceArt.IsRadial("sk_mini_shade") && SurfaceArt.IsRadial("hatch_cell_glow"), "방사 다섯");
+            SurfaceArt.Stops("pet_tile_ramp", out c, out o); Assert.AreEqual(4, c.Length); Assert.AreEqual(0.28f, c[0].a, 1e-4f, "위 흰 .28"); Assert.AreEqual(0.34f, o[1], 1e-4f); Assert.AreEqual(0.20f, c[3].a, 1e-4f, "아래 검 .20");
+            SurfaceArt.Stops("pet_tile_light", out c, out o); Assert.AreEqual(0.40f, c[0].a, 1e-4f); Assert.AreEqual(0.58f, o[1], 1e-4f, "58% 에서 끝");
+            SurfaceArt.Stops("sk_mini_light", out c, out o); Assert.AreEqual(0.55f, c[0].a, 1e-4f); Assert.AreEqual(0.46f, o[1], 1e-4f);
+            SurfaceArt.Stops("sk_mini_shade", out c, out o); Assert.AreEqual(0.42f, c[0].a, 1e-4f); Assert.AreEqual(0.62f, o[1], 1e-4f);
+            SurfaceArt.Stops("hatch_cell_glow", out c, out o); Assert.AreEqual(0.28f, c[0].a, 1e-4f); Assert.AreEqual(235f / 255f, c[0].g, 1e-3f, "(255,235,80)");
+            Assert.AreEqual(7f, SurfaceArt.StripeNum("pet_tile_grain", "period_css_px", 0f), 1e-4f); Assert.AreEqual(2f, SurfaceArt.StripeNum("pet_tile_grain", "dash_css_px", 0f), 1e-4f);
+            float Lum(Color32 k) { return k.r * 0.2126f + k.g * 0.7152f + k.b * 0.0722f; }
+            // ⓑ 펫 하나 + 활성 → 펫 탭
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready && UiRoot.Instance != null) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(PetSkillHost.Ready, "소환 호스트가 20초 안에 안 섰다");
+            PetSkillHost ph = PetSkillHost.Instance;
+            ph.Pets.State.Pets.Add(new Forge.Core.Pets.Pet { Name = "Cat", Rarity = "common", Stars = 1 });
+            int idx = ph.Pets.State.Pets.Count - 1;
+            if (!ph.Pets.State.ActivePets.Contains(idx)) ph.Pets.ToggleActive(idx);
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            SkillPetSheet.Instance.Switch(SkillPetSheet.SubPets);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            Transform pets = SkillPetSheet.Instance.Pets.transform;
+            // 격자 타일 면 — 상자 tile-face 안의 면 face 위 판
+            int tiles = 0;
+            foreach (RectTransform rt in pets.GetComponentsInChildren<RectTransform>(false))
+            {
+                if (rt.name != "face" || rt.parent == null || rt.parent.name != "tile-face") continue;
+                Transform g = rt.Find("bg-grad"); Assert.IsNotNull(g, "타일 면 위 판(bg-grad) · " + rt.parent.parent.name);
+                Sprite gs = g.GetComponent<Image>().sprite; Assert.IsNotNull(gs, "타일 판");
+                Assert.IsTrue(gs.texture.name.Contains("stripe:pet_tile_grain+pet_tile_ground+pet_tile_ramp+pet_tile_light"), "타일 판 이름: " + gs.texture.name);
+                if (tiles == 0)
+                {
+                    Texture2D tx = gs.texture; Color32[] px = tx.GetPixels32(); int W = tx.width, H = tx.height;
+                    Assert.Greater(Lum(px[(H - H / 8) * W + W / 4]), Lum(px[(H / 8) * W + W * 3 / 4]) + 12f, "왼쪽 위(방사 광 + 흰 .28)가 오른쪽 아래(검 .20)보다 밝다");
+                    Assert.Less(Lum(px[(int)(H * 0.16f) * W + W / 2]), Lum(px[(H / 2) * W + W / 2]) - 4f, "발밑(84%) 접지 타원이 가운데보다 어둡다");
+                }
+                tiles++;
+            }
+            Assert.Greater(tiles, 0, "격자 타일이 하나는 섰다");
+            // ⓒ 장착 줄 펫 아이콘 원판(Framed sq 의 안쪽 면) — 왼쪽 위 광 > 아래 그늘
+            Transform mini = FindDeep(pets, "sk-mini-" + idx);
+            Assert.IsNotNull(mini, "장착 줄 펫 아이콘(sk-mini-" + idx + ")");
+            Transform mg = mini.Find("sq/face/bg-grad"); Assert.IsNotNull(mg, "아이콘 원판 위 판(sq/face/bg-grad)");
+            Sprite ms = mg.GetComponent<Image>().sprite; Assert.IsNotNull(ms, "아이콘 판");
+            Assert.IsTrue(ms.texture.name.Contains("sk_mini_shade+sk_mini_light"), "아이콘 판 이름: " + ms.texture.name);
+            {
+                Texture2D tx = ms.texture; Color32[] px = tx.GetPixels32(); int W = tx.width, H = tx.height;
+                Assert.Greater(Lum(px[(H - H / 4) * W + W / 3]), Lum(px[(H / 10) * W + W / 2]) + 20f, "왼쪽 위 광(.55 흰)이 아래 그늘(.42 검)보다 밝다");
+            }
+            // ⓓ 부화 칸 바닥 글로우 — 칸의 첫 자식 · 노란 알파 겹
+            Transform cell = FindDeep(pets, "hatch-cell-0");
+            Assert.IsNotNull(cell, "부화 칸(hatch-cell-0)");
+            Transform hg = cell.Find("bg-grad"); Assert.IsNotNull(hg, "부화 칸 글로우(bg-grad)");
+            Assert.AreEqual(0, hg.GetSiblingIndex(), "글로우는 CSS 배경답게 첫 자식(램프·원뿔 뒤)");
+            Sprite hs = hg.GetComponent<Image>().sprite; Assert.IsNotNull(hs, "글로우 판");
+            Assert.IsTrue(hs.texture.name.StartsWith("sf-hatch_cell_glow", System.StringComparison.Ordinal), "글로우 = 표 hatch_cell_glow: " + hs.texture.name);
+            {
+                Texture2D tx = hs.texture; Color32[] px = tx.GetPixels32(); int W = tx.width, H = tx.height;
+                Color32 foot = px[(int)(H * 0.14f) * W + W / 2], top = px[(H - 2) * W + W / 2];
+                Assert.Greater(foot.a, 40, "발밑(86%) 가운데는 노랗게 켜진다(알파 .28)");
+                Assert.AreEqual(0, top.a, "위쪽은 투명");
+            }
+            // ⓔ 스킬 장착 줄 아이콘(Orb 의 안쪽 원 면) — 장착된 스킬이 있으면 같은 판
+            SkillPetSheet.Instance.Switch(SkillPetSheet.SubSkills);
+            yield return null; yield return null;
+            Canvas.ForceUpdateCanvases();
+            int skm = 0;
+            foreach (RectTransform rt in SkillPetSheet.Instance.Skills.transform.GetComponentsInChildren<RectTransform>(false))
+            {
+                if (!rt.name.StartsWith("sk-mini-", System.StringComparison.Ordinal)) continue;
+                Transform g = rt.Find("orb/face/bg-grad"); Assert.IsNotNull(g, "스킬 아이콘 원판 위 판 · " + rt.name);
+                Assert.IsTrue(g.GetComponent<Image>().sprite.texture.name.Contains("sk_mini_shade+sk_mini_light"), "스킬 아이콘 판 이름");
+                skm++;
+            }
+            Debug.Log("T178 46회차 자 — 스킬 장착 줄 아이콘 " + skm + "개(0 이면 장착 스킬이 없는 상태 · 펫 쪽이 같은 공장을 잰다)");
+        }
+
     }
 }

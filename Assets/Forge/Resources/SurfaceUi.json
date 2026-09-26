@@ -1069,7 +1069,64 @@
     "offsets": [0, 0.48, 1],
     "_": "style.css **4072** `.sk-ribbon { background: #17181a; background-image: linear-gradient(180deg, rgba(255,255,255,.22) 0, rgba(255,255,255,0) 48%, rgba(0,0,0,.28) 100%) }` — 펫 타일 위 «장착» 리본(정본 주석 «9차(비평가 B 결함[7]): 민짜 검정 스티커 → 위 광·림 + 아래 그늘 + 낙하 그림자 한 겹 · 색·크기·위치는 그대로(칠 속성만)»). 바탕 #17181a = PetSkillUi ink · 낙하 그림자는 T331 skribbon_drop. 정지점이 분수라 크기 무관 — FillMasked(over ink). 5546 `.petd-tile .sk-ribbon` 은 글자·패딩만. T178 45회차."
   },
+  "pet_tile_light": {
+    "shape": "radial",
+    "cx": 0.26,
+    "cy": 0.14,
+    "rx": 1.2,
+    "ry": 0.88,
+    "stops": [[255, 255, 255, 0.4], [255, 255, 255, 0.0]],
+    "offsets": [0, 0.58],
+    "_": "style.css **8124** `.pet-tile .tile-face` 첫 겹(4288 → 8124 마지막 선언 · 같은 값) — `radial-gradient(120% 88% at 26% 14%, 흰 .40 0, 투명 58%)`: 타일 왼쪽 위에서 비추는 광. 바탕은 ColorMixUi pet_tile_face(등급색 60% + 흰). PetPanel.TilePlate · BakeFace 한 판(면 = 타일 − 테). T178 46회차."
+  },
+  "pet_tile_ramp": {
+    "angle_deg": 180,
+    "stops": [[255, 255, 255, 0.28], [255, 255, 255, 0.0], [0, 0, 0, 0.05], [0, 0, 0, 0.2]],
+    "offsets": [0, 0.34, 0.62, 1],
+    "_": "style.css **8124** 둘째 겹 — `linear-gradient(180deg, 흰 .28 0, 투명 34%, 검 .05 62%, 검 .20 100%)`: 세로 명암(정본 주석 «바탕 색값(color-mix 60%)은 유지 — 위에 얹는 그라디언트는 그 색을 가운데 톤으로 두고 위아래로만 벌려서 평균색이 안 밀리게»). T178 46회차."
+  },
+  "pet_tile_ground": {
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": 0.84,
+    "rx": 0.44,
+    "ry": 0.13,
+    "stops": [[0, 0, 0, 0.2], [0, 0, 0, 0.0]],
+    "offsets": [0, 1],
+    "_": "style.css **8124** 셋째 겹(4288 에는 없다 — 14차 «(5) 타일 — 썸네일 접지 타원 그림자») — `radial-gradient(44% 13% at 50% 84%, 검 .20 0, 투명 100%)`: 펫 그림 발밑의 납작한 접지 타원. T178 46회차."
+  },
+  "sk_mini_light": {
+    "shape": "radial",
+    "cx": 0.34,
+    "cy": 0.26,
+    "rx": 0.9916,
+    "ry": 0.9916,
+    "stops": [[255, 255, 255, 0.55], [255, 255, 255, 0.0]],
+    "offsets": [0, 0.46],
+    "_": "style.css **4150** `.sk-mini { background: radial-gradient(circle at 34% 26%, 흰 .55, 투명 46%), radial-gradient(circle at 50% 120%, 검 .42, 투명 62%), var(--rc) }` 첫 겹 — 장착 아이콘 원판의 왼쪽 위 광. CSS `circle` 의 기본 크기는 **farthest-corner** 라 반지름 = 중심(.34,.26)에서 먼 모서리(1,1)까지 = √(.66²+.74²) = .9916(정사각 원판 · 결정 834). 바탕 = 등급색(rc). PetSkillKit.MiniPlate(펫·스킬 장착 줄 둘). T178 46회차."
+  },
+  "sk_mini_shade": {
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": 1.2,
+    "rx": 1.3,
+    "ry": 1.3,
+    "stops": [[0, 0, 0, 0.42], [0, 0, 0, 0.0]],
+    "offsets": [0, 0.62],
+    "_": "style.css **4150** 둘째 겹 — `radial-gradient(circle at 50% 120%, 검 .42, 투명 62%)`: 원판 아래에서 올라오는 그늘. farthest-corner = 중심(.5,1.2)에서 (0,0) 까지 √(.5²+1.2²) = 1.30(결정 834). T178 46회차."
+  },
+  "hatch_cell_glow": {
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": 0.86,
+    "rx": 0.46,
+    "ry": 0.1,
+    "stops": [[255, 235, 80, 0.28], [255, 235, 80, 0.0]],
+    "offsets": [0, 1],
+    "_": "style.css **8026** `.hatch-cell { background-image: radial-gradient(46% 10% at 50% 86%, rgba(255,235,80,.28) 0, rgba(255,235,80,0) 100%) }` — 14차 «(6) 스포트라이트 — 바닥 착지점 라디얼 글로우(원뿔·셀 배치 불변)»: 빛기둥이 닿는 바닥의 노란 타원. 바탕 없는 알파 겹(SurfaceArt.Fill · 칸의 첫 자식). PetPanel.BuildHatchCell. T178 46회차."
+  },
   "stripes": {
+    "pet_tile_grain": { "angle_deg": 45, "period_css_px": 7, "dash_css_px": 2, "ink": "#ffffff0e", "gap": null, "_": "style.css **8124** `.pet-tile .tile-face` 넷째 겹(4288 셋째) — `repeating-linear-gradient(45deg, 흰 .055 0 2px, 투명 2px 7px)`: 타일 면의 미세 빗금(.055 ≈ 0x0e). BakeFace 의 `stripe:` 겹. T178 46회차." },
     "cell_hatch": {
       "angle_deg": 45,
       "period_css_px": 12,

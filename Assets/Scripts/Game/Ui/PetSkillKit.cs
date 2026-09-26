@@ -151,6 +151,16 @@ namespace Forge.Game.Ui
             return img;
         }
 
+        /// <summary>
+        /// 장착 줄 작은 아이콘 원판(정본 **4150** `.sk-mini { background: radial-gradient(circle at 34% 26%, 흰 .55, 투명 46%), radial-gradient(circle at 50% 120%, 검 .42, 투명 62%), var(--rc) }`)의
+        /// 두 겹을 <see cref="Framed"/>(펫 · 둥근 네모) 또는 <see cref="Orb"/>(스킬 · 원)의 안쪽 면 위에 한 판으로 굽는다 — 면 = 아이콘 − 테, 바탕 = 등급색. CSS `circle` 의 기본 크기(farthest-corner)는 표가 반지름으로 미리 셈해 뒀다(결정 834). T178 46회차.
+        /// </summary>
+        public static void MiniPlate(RectTransform box, Color rc, float mini, float linePx)
+        {
+            Image inner = box.Find("face").GetComponent<Image>();
+            SurfaceArt.FillFace(inner, "bg-grad", null, SurfaceArt.SkMiniLayers, rc, mini - linePx * 2f, mini - linePx * 2f);
+        }
+
         /// <summary>검정 테 원판(sk-orb): 바깥 검정 원 + 안쪽 등급색 원.</summary>
         public static RectTransform Orb(Transform parent, string name, Color fill, float linePx)
         {
