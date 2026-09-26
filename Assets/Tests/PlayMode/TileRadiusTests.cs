@@ -119,10 +119,12 @@ namespace Forge.Tests.PlayMode
             ForgeCraftPopup.Hide(h);
             yield return null;
 
+            // T487 — 겹·카드·둥근 테는 `ShowReveal` 이 **그 자리에서 동기로** 세우고, 같은 자리에서 0.56초(unscaled) 뒤 스스로 걷는
+            //   타이머(`RevealCardSec`)를 건다. 프레임을 넘기고 찾으면 CI 의 긴 프레임(런 1306)에 타이머가 먼저 돌아 겹이 없다 —
+            //   만든 프레임에 찾아 잰다(T486·결정 775 꼴 · 기다림·잣대는 안 조인다).
             ForgeCraftPopup.ShowReveal(h, it, () => { });
-            yield return null; yield return null;
             Transform reveal = UiRoot.Instance.App.Find("craft-reveal");
-            Assert.IsNotNull(reveal, "결과 겹(craft-reveal)");
+            Assert.IsNotNull(reveal, "결과 겹(craft-reveal) — ShowReveal 이 만든 프레임");
             Transform card = FindIn(reveal, "card");
             Assert.IsNotNull(card, "결과 카드(card)");
             AssertRadius(card.Find("frame/line"), "adc_card_r_rem", "결과 카드 테(.auto-drop-card)");
@@ -131,8 +133,7 @@ namespace Forge.Tests.PlayMode
 
             var items = new List<ForgeItem> { h.Engine.RollItem(), h.Engine.RollItem() };
             ForgeCraftPopup.ShowBatch(h, items, () => { });
-            yield return null; yield return null;
-            Transform batch = UiRoot.Instance.App.Find("craft-batch");
+            Transform batch = UiRoot.Instance.App.Find("craft-batch");   // T487 — 같은 까닭(CraftBatchSec 1.6초 타이머)으로 만든 프레임에
             Assert.IsNotNull(batch, "묶음 겹(craft-batch)");
             Transform cb = FindIn(batch, "cb-card-0");
             Assert.IsNotNull(cb, "묶음 카드(cb-card-0)");
