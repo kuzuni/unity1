@@ -540,7 +540,10 @@ namespace Forge.Game.Ui
         public static Sprite BakeFace(string hatchKey, string[] layers, Color baseColor, float wCanvasPx, float hCanvasPx)
         {
             int cap = Mathf.Max(16, (int)J.Num(Table()["face_px_max"], 512));
-            int w = Mathf.Clamp(Mathf.RoundToInt(wCanvasPx), 8, cap), h = Mathf.Clamp(Mathf.RoundToInt(hCanvasPx), 8, cap);
+            // T178 43회차(런 1293) — 상한은 **긴 변 기준 한 배율**로 건다(두 변을 따로 자르면 비율이 틀어져 결이 한쪽으로 눌린다 · 시트 1080×1780 이 1024×1024 로).
+            //   물리 길이(림·rem·결 주기)는 아래에서 전부 캔버스 px 로 재므로 판이 작아져도 그림은 같고 해상도만 준다.
+            float scale = Mathf.Min(1f, cap / Mathf.Max(1f, Mathf.Max(wCanvasPx, hCanvasPx)));
+            int w = Mathf.Clamp(Mathf.RoundToInt(wCanvasPx * scale), 8, cap), h = Mathf.Clamp(Mathf.RoundToInt(hCanvasPx * scale), 8, cap);
             Color32 b = To32(baseColor);
             string name = "face-" + (hatchKey ?? "-") + "-" + string.Join("+", layers) + "-" + w + "x" + h + "-" + b.r + "." + b.g + "." + b.b;
             Sprite hit;

@@ -1925,13 +1925,17 @@ namespace Forge.Tests.PlayMode
             Image sgi = sbg.Find("bg-grad").GetComponent<Image>();
             Assert.IsTrue(sgi.sprite != null && sgi.sprite.texture.name.Contains("sheet_paper_ramp+sheet_top_light+stripe:sheet_grain_b+stripe:sheet_grain_a+sheet_head_band+sheet_top_rim"), "겹 여섯 순서(아래→위): " + (sgi.sprite == null ? "null" : sgi.sprite.texture.name));
             Color32[] sp = sgi.sprite.texture.GetPixels32(); int SW = sgi.sprite.texture.width, SH = sgi.sprite.texture.height;
-            Assert.AreEqual(Mathf.RoundToInt(((RectTransform)sbg).rect.width), SW, 1, "판 가로 = 시트 면 rect 가로(face_px_max 1024 안)");
-            Assert.AreEqual(Mathf.RoundToInt(((RectTransform)sbg).rect.height), SH, 1, "판 세로 = 시트 면 rect 세로");
+            // 런 1293: 시트 면은 1080×1780 캔버스 px 라 상한(face_px_max 1024)에 걸린다 — 판은 **긴 변 기준 한 배율**로 줄고(비율 유지) 림·rem·결은 캔버스 px 로 재서 그림은 같다.
+            float srw = ((RectTransform)sbg).rect.width, srh = ((RectTransform)sbg).rect.height;
+            float ssc = Mathf.Min(1f, 1024f / Mathf.Max(srw, srh));
+            Assert.AreEqual(Mathf.RoundToInt(srw * ssc), SW, 1, "판 가로 = 시트 면 rect 가로 × 배율(긴 변 1024 상한)");
+            Assert.AreEqual(Mathf.RoundToInt(srh * ssc), SH, 1, "판 세로 = 시트 면 rect 세로 × 같은 배율(비율 유지)");
             float Lum(Color32 k) { return k.r * 0.2126f + k.g * 0.7152f + k.b * 0.0722f; }
+            float DarkestNear(Color32[] px, int W, int y0, int span) { float m = 999f; for (int y = y0 - span; y <= y0 + span; y++) if (y >= 0 && y < px.Length / W) m = Mathf.Min(m, Lum(px[y * W + W / 2])); return m; }
             Assert.AreEqual(255, sp[SW / 2].a, "불투명(램프가 바닥)");
-            Assert.Greater(Lum(sp[(SH - 1) * SW + SW / 2]), 252f, "위 2px 흰 림(.9)");
-            int bandY = SH - 1 - Mathf.RoundToInt(3.1f * PopupKit.Rem);          // 머리 밴드 아래 1px 선 자리(위에서 3.1rem)
-            Assert.Less(Lum(sp[bandY * SW + SW / 2]), Lum(sp[(bandY - 4) * SW + SW / 2]) - 6f, "3.1rem 자리의 1px 선(.11)이 그 아래보다 어둡다");
+            Assert.Greater(Lum(sp[(SH - 1) * SW + SW / 2]), 250f, "위 2px 흰 림(.9)");
+            int bandY = SH - 1 - Mathf.RoundToInt(3.1f * PopupKit.Rem * ssc);          // 머리 밴드 아래 1px 선 자리(위에서 3.1rem · 판 배율)
+            Assert.Less(DarkestNear(sp, SW, bandY, 2), Lum(sp[(bandY - 8) * SW + SW / 2]) - 4f, "3.1rem 자리의 1px 선(.11)이 그 아래보다 어둡다");
             Assert.Less(sp[SW / 2].b, 245, "아래는 아이보리(#f8f4ee 파랑 238 근처 · 결·광원이 얹혀 조금 흔들린다)");
             Assert.Greater(sp[SW / 2].r, sp[SW / 2].b, "따뜻한 종이 — 빨강 > 파랑");
             QuestSheet.Close(h);
@@ -1951,11 +1955,13 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(cface, "카드 면(card/face)에 종이 한 판(bg-grad)");
             Image cgi = cface.Find("bg-grad").GetComponent<Image>();
             Assert.IsTrue(cgi.sprite != null && cgi.sprite.texture.name.Contains("card_paper_ramp+card_top_light+stripe:card_grain+card_head_band"), "겹 넷 순서: " + (cgi.sprite == null ? "null" : cgi.sprite.texture.name));
-            Assert.AreEqual(Mathf.RoundToInt(((RectTransform)cface).rect.width), cgi.sprite.texture.width, 1, "판 가로 = 카드 면 rect 가로");
-            Assert.AreEqual(Mathf.RoundToInt(((RectTransform)cface).rect.height), cgi.sprite.texture.height, 1, "판 세로 = 카드 면 rect 세로(내용이 정한 높이 뒤에 구웠다)");
+            float crw = ((RectTransform)cface).rect.width, crh = ((RectTransform)cface).rect.height;
+            float csc = Mathf.Min(1f, 1024f / Mathf.Max(crw, crh));
+            Assert.AreEqual(Mathf.RoundToInt(crw * csc), cgi.sprite.texture.width, 1, "판 가로 = 카드 면 rect 가로 × 배율");
+            Assert.AreEqual(Mathf.RoundToInt(crh * csc), cgi.sprite.texture.height, 1, "판 세로 = 카드 면 rect 세로 × 같은 배율(내용이 정한 높이 뒤에 구웠다)");
             Color32[] cp = cgi.sprite.texture.GetPixels32(); int CW = cgi.sprite.texture.width, CH = cgi.sprite.texture.height;
-            int cband = CH - 1 - Mathf.RoundToInt(2.6f * PopupKit.Rem);
-            Assert.Less(Lum(cp[cband * CW + CW / 2]), Lum(cp[(cband - 4) * CW + CW / 2]) - 6f, "2.6rem 자리의 1px 선(.10)");
+            int cband = CH - 1 - Mathf.RoundToInt(2.6f * PopupKit.Rem * csc);
+            Assert.Less(DarkestNear(cp, CW, cband, 2), Lum(cp[(cband - 8) * CW + CW / 2]) - 4f, "2.6rem 자리의 1px 선(.10)");
             Assert.Greater(cp[CW / 2].r, cp[CW / 2].b, "아래 #f3efe7 — 따뜻한 종이");
             fh.Meta.Popups.Hide(ForgeInfoPopup.Name);
             yield return null;
