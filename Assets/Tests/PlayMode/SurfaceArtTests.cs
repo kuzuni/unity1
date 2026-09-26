@@ -2210,12 +2210,14 @@ namespace Forge.Tests.PlayMode
             yield return null; yield return null;
             Canvas.ForceUpdateCanvases();
             Transform pets = SkillPetSheet.Instance.Pets.transform;
-            // 격자 타일 면 — 상자 tile-face 안의 면 face 위 판
+            // 격자 타일 면 — 상자 tile-face 안의 면 face 위 판. 46회차 자 수리(런 1311): 타일 상자 안에는 «face» 가 둘이다 — Framed 의 면(첫째)과 PetSkillKit.PetFace 의 썸네일 상자(뒤).
+            //   «이름이 face 고 부모가 tile-face» 로 고르면 썸네일 상자도 걸려 «판 없음» 으로 읽힌다 → tile-face 상자를 고르고 그 **첫 자식 face**(Find 는 첫째를 돌려준다)를 본다.
             int tiles = 0;
-            foreach (RectTransform rt in pets.GetComponentsInChildren<RectTransform>(false))
+            foreach (RectTransform tf in pets.GetComponentsInChildren<RectTransform>(false))
             {
-                if (rt.name != "face" || rt.parent == null || rt.parent.name != "tile-face") continue;
-                Transform g = rt.Find("bg-grad"); Assert.IsNotNull(g, "타일 면 위 판(bg-grad) · " + rt.parent.parent.name);
+                if (tf.name != "tile-face" || tf.parent == null) continue;
+                Transform rt = tf.Find("face"); Assert.IsNotNull(rt, "타일 상자 안 면(face) · " + tf.parent.name);
+                Transform g = rt.Find("bg-grad"); Assert.IsNotNull(g, "타일 면 위 판(bg-grad) · " + tf.parent.name);
                 Sprite gs = g.GetComponent<Image>().sprite; Assert.IsNotNull(gs, "타일 판");
                 Assert.IsTrue(gs.texture.name.Contains("stripe:pet_tile_grain+pet_tile_ground+pet_tile_ramp+pet_tile_light"), "타일 판 이름: " + gs.texture.name);
                 if (tiles == 0)
