@@ -17031,7 +17031,7 @@
 - **자**(`SurfaceArtTests.채팅_띠와_상점_카드와_승천_버튼과_펫_리본에_겹이_선다`): ⓐ 표 여섯(정지점·px·방사) ⓑ 채팅 띠 `chat-preview/bg/bg-grad` = `chat_glass_ramp+chat_glass_rim` · 판 가로 = 띠 폭 · 위 1px 림 > 바로 아래 · 가운데 30 < lum < 90(다크 글래스 · 바탕 비침) ⓒ 상점 딜·보석 카드 `face/bg-grad` = `shop_card_ramp+shop_card_top_light+shop_card_rim` · 위 2px 림 > 아래 종이 · 아래 R > B ⓓ `PopupKit.Btn(surfaceKey: btn_ascend)` → face 에 SurfaceLate 없음 · `bg-grad` = `sf-btn_ascend…` · 전용 키 둘 = #4caf50/#2e7d32 ⓔ 펫 하나 활성(`ToggleActive`) → `sk-ribbon/bg/bg-grad` = `sf-sk_ribbon…` · 위 광 > 아래 그늘.
 - **게이트**: `gate.sh` 46 자 막는 자 전부 rc 0(`$?` 직접) · dotnet 초록(Popups.Btn 인자 추가는 선택 인자라 부르는 자리 바꿈 0).
 - **판정(다음 런)**: 새 칸 PASS · BoxBorderSites(채팅 띠 테 · 상점 카드 테)·PinnedColorSites(새 키 둘 로더)·Shop/Chat 자 그대로 · 눈: `screen_main`(전투 화면) 채팅 띠가 밝은 회색이 아니라 **어두운 유리**(위 헤어라인) · `screen_shop` 카드 위 흰 림 + 따뜻한 종이 · `screen_pets` 장착 펫 리본 위 광 · 대장간 승천 버튼은 채점 화면 상태(만렙 아님)에 안 나온다(자로). ⚠ T28 지문 — 채팅 띠는 어두워지는 것이 정본이다(회귀가 아니다 · 채점기가 «띠 어두워짐» 을 읽으면 그 줄을 적는다). **lock 유지**.
-- **ntfy**: 아래 «알림» 줄에(이 커밋 push 뒤 적는다).
+- **ntfy — 알림 못 보냄**: 커밋 `fb707a87` push 뒤 `ntfy-notify.yml` **런 #2498**(job 108367447377)가 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 이 루틴 프롬프트엔 토픽이 없고 Secret 미등록(같은 자리).
 - **남은 미정 12 의 갈래**: cascade — 펫 타일 4288/8124 `.pet-tile .tile-face`(RLRrL · 방사+선형+되풀이 다섯 겹 · 마지막 8124) — 방사: 구슬 재질 넷(6495~6637) · 소환 결과 모달 배경 5649·7148 · `.sk-mini` 4150 · `.hatch-cell` 8026 · 마스크 셋(6235·6334·6637 · `mask-image` 는 굽는 길이 아니라 «—» 후보).
 
 ### T178 44회차 판정 ✅ · lock 반납 · 행 ⬜ — 런 1299 초록 · 새 칸 PASS · 눈 ✓(런 1299 제 그림) (2026-09-26 06:4x · 워커 T · sess-1447-10982)
