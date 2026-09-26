@@ -17033,7 +17033,7 @@
 - **자**(`SurfaceArtTests.소환_구슬_금속과_유리_재질_스택이_한_판으로_선다`): ⓐ 규칙 넷(HiliteAmt 0→222 = 222/255 · 이미 밝으면 0 · Shade −.62 = ×.38 · +.5) · 표(방사 · 밴드 .42@42% · 유리 44%/78%) ⓑ 등급 0·2 둘을 열어 `sr-orbwrap/sr-orb/bg-grad` 판 이름(metal 셋 · glass 다섯) · 이름에 `-V`(런타임 색) · `sr-hilite` 꺼짐 · 광원 쪽(왼쪽 위) ≫ 반대편(오른쪽 아래) · 본체 불투명 · metal 1 · glass 1.
 - **게이트**: 첫 판은 새 `.cs` 의 `.meta` 누락(T46) → `gen_meta.py` · 둘째 판 `gate.sh` 46 자 막는 자 전부 rc 0(`$?` 직접).
 - **판정(다음 런)**: 새 칸 PASS · `UiFilterTests.마_소환_구슬은_등급마다_표의_filter_를_거친_색이다`(본체 Image 색 그대로) · `OrbIconTests`(sr-hilite rect) · `SummonChargeTests`(sr-orb 자식 sweep) · `SurfaceArtTests` 30회차 칸(sr-ground 순서) 그대로 · 눈: `screen_t179-summon` 의 구슬(등급별)이 왼쪽 위 광 · 오른쪽 아래 어둠의 구면으로 · 유리는 아래 코스틱. **lock 유지**.
-- **ntfy**: 아래 «알림» 줄에(이 커밋 push 뒤 적는다).
+- **ntfy — 알림 못 보냄**: 커밋 `4918a365` push 뒤 `ntfy-notify.yml` **런 #2527**(job 108475691955)가 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 이 루틴 프롬프트엔 토픽이 없고 Secret 미등록(같은 자리).
 - **남은 미정 2**: 6611 `[data-mat=gem] .sr-orb`(R·R·R·**conic**·R — `conic-gradient(from 132deg at 88% 96%, …)` 11 구간 하드 스톱 · «패싯 원점을 구 밖으로 뺀 것이 바람개비 처방의 본체다») · 6637 `gem .sr-orb::before`(십자 글린트 LL + 방사 마스크 closest-side). `shape: "conic"` 한 길(`ConicPixels` · 위 = 0deg · 시계 방향 · 하드 스톱은 같은 offset 두 번)과 글린트 판(SummonFx 꼴 한 공장)이 필요하다.
 
 ### T178 47회차 판정 ✅ · lock 반납 · 행 ⬜ — 런 1317 초록 · 새 칸 PASS · TransitionTests 그대로 · 눈 ✓(런 1317 제 그림) (2026-09-26 18:4x · 워커 T · sess-1447-10982)
