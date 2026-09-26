@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- 원작 web/index.html 그대로: 폰 브라우저의 강제 다크(크롬 Auto Dark · WebView FORCE_DARK)가 색을 뒤집지 않도록 `only light`. -->
+<meta name="color-scheme" content="only light">
+<title>포지 클론</title>
+<style>
+/* 원작 css/style.css 의 바깥 껍데기만 옮겼다 — 앱 상자(#app) 는 9:16 레터박스 · 바깥은 #0d1117 · 상자는 #161b22.
+   안쪽 UI 는 유니티 캔버스가 그린다(T18 UiRoot 가 같은 9:16 상자를 캔버스 안에서 다시 잡는다). */
+:root { color-scheme: only light; }
+html, body { height: 100%; margin: 0; overflow: hidden; background: #0d1117; }
+body {
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Segoe UI', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    color: #eceff1; user-select: none; -webkit-user-select: none; touch-action: none;
+}
+#app {
+    position: relative; display: flex; flex-direction: column;
+    background: #161b22; overflow: hidden;
+    box-shadow: 0 0 3rem rgba(0,0,0,.7);
+}
+#unity-canvas { display: block; width: 100%; height: 100%; background: #161b22; outline: none; }
+/* 부팅 로딩 오버레이 — 원작 #boot-loading(모루 + 두드리는 망치 + 불꽃 · 전부 CSS · 에셋 0) 을 그대로.
+   원작은 boot() 단계마다 진행률을 올렸고, 여기서는 유니티 로더의 onProgress(0~1) 가 그 자리를 맡는다. */
+#boot-loading { position: absolute; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(120% 90% at 50% 30%, #2a3550 0%, #171e30 55%, #0d1220 100%);
+    transition: opacity .4s ease; }
+#boot-loading.bl-done { opacity: 0; pointer-events: none; }
+#boot-loading .bl-box { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+#boot-loading .bl-forge { position: relative; width: 96px; height: 84px; }
+#boot-loading .bl-anvil { position: absolute; left: 50%; bottom: 8px; width: 64px; height: 22px; transform: translateX(-50%);
+    background: linear-gradient(#5d6a80, #3a4356); border-radius: 4px 10px 3px 3px;
+    clip-path: polygon(0 0, 100% 0, 82% 45%, 70% 100%, 30% 100%, 18% 45%); }
+#boot-loading .bl-anvil::after { content: ''; position: absolute; left: 50%; top: 100%; width: 30px; height: 10px;
+    transform: translateX(-50%); background: #2c3344; border-radius: 0 0 4px 4px; }
+#boot-loading .bl-hammer { position: absolute; left: 58%; bottom: 30px; width: 44px; height: 44px;
+    transform-origin: 88% 88%; animation: bl-swing 1s cubic-bezier(.55, 0, .3, 1) infinite; }
+#boot-loading .bl-hammer::before { content: ''; position: absolute; left: 0; top: 2px; width: 22px; height: 14px;
+    background: linear-gradient(#8b97ab, #55617a); border-radius: 3px; }
+#boot-loading .bl-hammer::after { content: ''; position: absolute; left: 9px; top: 12px; width: 5px; height: 32px;
+    background: linear-gradient(#a8794a, #7a5430); border-radius: 2px; transform: rotate(24deg); }
+@keyframes bl-swing { 0%, 12% { transform: rotate(-52deg); } 38%, 55% { transform: rotate(6deg); } 100% { transform: rotate(-52deg); } }
+#boot-loading .bl-spark { position: absolute; left: 46%; bottom: 26px; width: 5px; height: 5px; border-radius: 50%;
+    background: #ffd873; opacity: 0; animation: bl-spark 1s ease-out infinite; }
+#boot-loading .bl-spark.s2 { animation-delay: .05s; --dx: -16px; --dy: -20px; }
+#boot-loading .bl-spark.s3 { animation-delay: .1s; --dx: 18px; --dy: -14px; }
+@keyframes bl-spark { 0%, 36% { opacity: 0; transform: none; } 44% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--dx, 8px), var(--dy, -26px)) scale(.4); } }
+#boot-loading .bl-title { color: #f2e8d8; font-size: 22px; font-weight: 800; letter-spacing: .12em; text-shadow: 0 2px 8px rgba(0,0,0,.5); }
+#boot-loading .bl-track { width: 216px; height: 8px; border-radius: 5px; background: rgba(255,255,255,.12);
+    overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,.4); }
+#boot-loading .bl-fill { width: 0%; height: 100%; border-radius: 5px; transition: width .25s ease;
+    background: linear-gradient(90deg, #e8a33d, #ffd873); box-shadow: 0 0 8px rgba(255,216,115,.7); }
+#boot-loading .bl-stage { color: #9aa7c0; font-size: 12px; min-height: 1.2em; text-align: center; padding: 0 12px; }
+#boot-loading.bl-error .bl-stage { color: #ff8a80; }
+#boot-loading.bl-error .bl-hammer, #boot-loading.bl-error .bl-spark { animation-play-state: paused; }
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="unity-canvas" tabindex="-1"></canvas>
+  <div id="boot-loading">
+    <div class="bl-box">
+      <div class="bl-forge"><div class="bl-anvil"></div><div class="bl-hammer"></div><i class="bl-spark"></i><i class="bl-spark s2"></i><i class="bl-spark s3"></i></div>
+      <div class="bl-title">포지 클론</div>
+      <div class="bl-track"><div class="bl-fill" id="bl-fill"></div></div>
+      <div class="bl-stage" id="bl-stage">불 지피는 중…</div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  // ---- 신호 계약 (tools/webgl_smoke.js 가 읽는다) ----
+  // 게임 쪽(.jslib → forgeSignal('battle') 등)이 «어디까지 왔는지» 를 여기 쌓는다.
+  //   · window.__forgeSignals : 도착한 신호 이름 배열(순서대로)
+  //   · <html data-forge-ready="1"> : createUnityInstance 가 풀린 뒤(로딩 완료 표식)
+  //   · <html data-forge-error="…"> : 로더가 실패했을 때
+  // T8(전투 씬)이 전투에 들어간 프레임에 forgeSignal('battle') 을 부르면 스모크가 «전투 진입» 을 그것으로 본다.
+  var signals = [];
+  window.__forgeSignals = signals;
+  window.forgeSignal = function (name) {
+    name = String(name);
+    signals.push(name);
+    document.documentElement.setAttribute('data-forge-signals', signals.join(' '));
+  };
+
+  var app = document.getElementById('app');
+  var canvas = document.getElementById('unity-canvas');
+  var unity = null;
+
+  // 원작 main.js fitLayout() — 9:16 레터박스: 높이를 다 쓰고 폭이 넘치면 폭 기준.
+  function fitLayout() {
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var h = vh, w = h * 9 / 16;
+    if (w > vw) { w = vw; h = w * 16 / 9; }
+    app.style.width = w + 'px';
+    app.style.height = h + 'px';
+    // 캔버스 픽셀 크기(CSS 크기 × DPR)는 유니티 로더 기본(matchWebGLToCanvasSize)이 프레임마다 맞춘다 — 여기서 손대지 않는다.
+  }
+  fitLayout();
+  window.addEventListener('resize', fitLayout);
+
+  var fill = document.getElementById('bl-fill'), stage = document.getElementById('bl-stage'), overlay = document.getElementById('boot-loading');
+  function blSet(pct, label) {
+    if (fill) fill.style.width = pct + '%';
+    if (stage && label) stage.textContent = label;
+  }
+  function blDone() {
+    if (!overlay) return;
+    overlay.classList.add('bl-done');
+    setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 450);
+  }
+  function blFail(msg) {
+    if (overlay) overlay.classList.add('bl-error');
+    blSet(100, msg);
+    document.documentElement.setAttribute('data-forge-error', msg);
+  }
+
+  // 로더 진행률(0~1) → 원작 단계 문구. 원작은 세이브·UI·전장 순으로 8→24→42→… 를 찍었다.
+  function onProgress(p) {
+    var pct = Math.round(p * 100);
+    var label = p < 0.25 ? '불 지피는 중…' : p < 0.6 ? '세이브 불러오는 중…' : p < 0.9 ? '인터페이스 조립 중…' : '전장 짓는 중…';
+    blSet(pct, label);
+  }
+
+  var buildUrl = 'Build';
+  var loaderUrl = buildUrl + '/web.loader.js';
+  var config = {
+    arguments: [],
+    dataUrl: buildUrl + '/web.data.unityweb',
+    frameworkUrl: buildUrl + '/web.framework.js.unityweb',
+    codeUrl: buildUrl + '/web.wasm.unityweb',
+    streamingAssetsUrl: 'StreamingAssets',
+    companyName: "DefaultCompany",
+    productName: "포지 클론",
+    productVersion: "0.0.3139",
+    // 유니티 기본 배너(경고·오류 띠)는 안 쓴다 — 오류는 오버레이 문구 + console.error 로만(스모크가 콘솔을 본다).
+    showBanner: function (msg, type) {
+      if (type === 'error') { console.error('[unity] ' + msg); blFail(msg); }
+      else if (type === 'warning') console.warn('[unity] ' + msg);
+    }
+  };
+
+  var script = document.createElement('script');
+  script.src = loaderUrl;
+  script.onload = function () {
+    if (typeof createUnityInstance !== 'function') { blFail('로더를 못 읽었다: createUnityInstance 없음'); return; }
+    createUnityInstance(canvas, config, onProgress).then(function (instance) {
+      unity = instance;
+      window.__forgeUnity = instance;
+      blSet(100, '');
+      blDone();
+      document.documentElement.setAttribute('data-forge-ready', '1');
+      window.forgeSignal('unity-ready');
+    }).catch(function (err) {
+      var msg = (err && err.message) ? err.message : String(err);
+      console.error('[unity] 인스턴스 생성 실패: ' + msg);
+      blFail('불이 안 붙는다 — ' + msg);
+    });
+  };
+  script.onerror = function () {
+    console.error('[unity] 로더 스크립트를 못 받았다: ' + loaderUrl);
+    blFail('로더를 못 받았다');
+  };
+  document.body.appendChild(script);
+})();
+</script>
+</body>
+</html>
