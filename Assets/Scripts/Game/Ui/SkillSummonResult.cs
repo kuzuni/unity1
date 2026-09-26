@@ -149,13 +149,14 @@ namespace Forge.Game.Ui
         /// <summary>T454 ⓒ — 배경 `bg-a`(정본 `--bg-pre-a` → `.done` 의 `--bg-a`): 예고값에서 승격값으로 .5s ease-out(표 TransitionUi `sr_bg_done`).</summary>
         Image bgAImg;
         Color bgAPre, bgADone;
+        float bgP;   // T178 47회차 — 승격 진행(0 = 예고 판만 · 1 = 승격 판이 다 덮음) · 위 판(bg-a)의 알파
         double bgPromoteMs = -1;
         /// <summary>등급 위치 0~1(정본 pk · 자가 본다).</summary>
         public double Pk { get; private set; }
         /// <summary>배경 `bg-a` 의 예고값·승격값·지금 색(자가 본다).</summary>
         public Color BgAPre { get { return bgAPre; } }
         public Color BgADone { get { return bgADone; } }
-        public Color BgAColor { get { return bgAImg != null ? bgAImg.color : Color.clear; } }
+        public Color BgAColor { get { return bgAImg != null ? Color.Lerp(bgAPre, bgADone, bgP) : Color.clear; } }   // T178 47회차 — 판 둘의 알파 보간 = 정지점 색의 보간(같은 값)
         /// <summary>done 뒤 승격 전이가 도는 중인가.</summary>
         public bool BgPromoting { get { return bgPromoteMs >= 0; } }
         /// <summary>
@@ -408,23 +409,25 @@ namespace Forge.Game.Ui
             UiKit.Fill(c);
             wrap = c; wrapHome = c.anchoredPosition;   // 정본 `.sr-wrap` — 주역 착지에 이 판이 흔들린다
 
-            // ---- 배경(남색 방사 → 검정) ----
+            // ---- 배경 — 정본 **5649** `#summon-result-modal { background: radial-gradient(118% 76% at 50% 44%, var(--bg-pre-a) 0%, var(--bg-pre-b) 38%, #070b20 68%, #03040c 100%) }` ·
+            //   **7148** `.done` 은 같은 꼴에 `--bg-a`/`--bg-b`(표 SurfaceUi `sr_modal_bg` · 0%·38% 가 런타임 색). T178 47회차 전엔 판 셋(단색 Panel + 원판 bg-b·bg-a)으로 근사했다.
             Image bg = UiKit.Panel(c, "bg", "pp_line");
-            bg.color = PetSkillStyle.C("sr_bg_d");
-            Image glowB = PetSkillKit.Disc(c, "bg-b", PetSkillStyle.C("sr_bg_c"));
-            glowB.preserveAspect = false;
-            UiKit.Anchor(glowB.rectTransform, new Vector2(0.5f, 0.56f), new Vector2(0.5f, 0.5f), Vector2.zero, W * 2.4f, Hh * 1.5f);
+            bg.color = PetSkillStyle.C("sr_bg_d");   // 100% 정지점 색 — 방사 판이 상자를 다 덮으니 뒤에 깔린 안전판이다
             // T454 ⓒ — 정본은 열 때 `--bg-pre-a` = 등급색을 `.24 × PRE_BG × pk` 만 섞은 **예고값**(ui.js 536~538 · 일반 판은 0 = 기본색)이고,
             //   `.done` 에서 `--bg-a` = `.24`(507) 로 **승격**한다(7150 `.5s ease-out`). 전엔 처음부터 승격값이라 «색으로 미리 알려주기» 가 0 이었다. 값은 표 · 셈은 Core.
             Pk = SummonBgRules.Pk(RarityIdx(best), Defs.Rarities.Length);
-            float mixF = PetSkillStyle.L("sr_bg_a_mix_f");
-            Color bgABase = PetSkillStyle.C("sr_bg_a"), bestCol = PetSkillStyle.Rarity(Defs, best);
-            bgAPre = Color.Lerp(bgABase, bestCol, (float)SummonBgRules.PreMixF(mixF, PetSkillStyle.L("sr_bg_pre_f"), Pk));
+            float mixF = PetSkillStyle.L("sr_bg_a_mix_f"), mixB = PetSkillStyle.L("sr_bg_b_mix_f"), preF = PetSkillStyle.L("sr_bg_pre_f");
+            Color bgABase = PetSkillStyle.C("sr_bg_a"), bgBBase = PetSkillStyle.C("sr_bg_b"), bestCol = PetSkillStyle.Rarity(Defs, best);
+            bgAPre = Color.Lerp(bgABase, bestCol, (float)SummonBgRules.PreMixF(mixF, preF, Pk));
             bgADone = Color.Lerp(bgABase, bestCol, mixF);
-            Image glowA = PetSkillKit.Disc(c, "bg-a", bgAPre);
-            bgAImg = glowA;
-            glowA.preserveAspect = false;
-            UiKit.Anchor(glowA.rectTransform, new Vector2(0.5f, 0.56f), new Vector2(0.5f, 0.5f), Vector2.zero, W * 1.5f, Hh * 0.9f);
+            Color bgBPre = Color.Lerp(bgBBase, bestCol, (float)SummonBgRules.PreMixF(mixB, preF, Pk)), bgBDone = Color.Lerp(bgBBase, bestCol, mixB);
+            // T178 47회차 — 방사 한 장을 **예고 판(bg-pre)** 과 **승격 판(bg-a)** 둘로 굽고(0%·38% 정지점만 다르다) 위 판의 알파를 전이(TransitionUi `sr_bg_done`)로 0 → 1 올린다:
+            //   정지점 수가 같은 두 방사의 보간 = 정지점 색의 보간이라 T454 ⓒ 의 `Lerp(bgAPre, bgADone, p)` 와 같은 값이다(`BgAColor` 는 그 보간값을 돌려준다). 원판 둘은 걷었다.
+            float bgAspect = W / Hh;
+            FullSprite(c, "bg-pre", SurfaceArt.Bake("sr_modal_bg", bgAspect, new Color?[] { bgAPre, bgBPre, null, null }));
+            Image glowA = FullSprite(c, "bg-a", SurfaceArt.Bake("sr_modal_bg", bgAspect, new Color?[] { bgADone, bgBDone, null, null }));
+            glowA.color = new Color(1f, 1f, 1f, 0f);
+            bgAImg = glowA; bgP = 0f;
             // T178 31회차 — 정본 5955 `.sr-halo { width: 26rem; height: 16rem; background: radial-gradient(closest-side, var(--pre-halo) 0%,
             //   rgba(90,130,255,.1) 48%, rgba(0,0,0,0) 100%) }`(표 SurfaceUi.json `sr_halo`). 0% 정지점은 **런타임 색**(ui.js 529 `--pre-halo` = 최고 등급 rgb ·
             //   알파 .3 + .16 × pk · 표 `sr_halo_pre_a0`·`sr_halo_pre_a_k`)이라 부르는 쪽이 준다(`SurfaceArt.Bake(key, aspect, 0, color)` · 10회차 «바탕을 부르는 쪽이 준다» 와 같은 꼴).
@@ -532,6 +535,10 @@ namespace Forge.Game.Ui
             {
                 grid = PetSkillKit.Scroll(body, "sr-grid", out scroll);
                 UiKit.Fill((RectTransform)grid.parent);
+                // T178 47회차 — 정본 **6235** `.sr-grid.mid, .sr-grid.dense { mask-image: linear-gradient(transparent 0, #000 5%, #000 95%, transparent 100%) }`: 스크롤 격자의 위아래 5% 페이드.
+                //   굽는 겹이 아니라(마스크) RectMask2D 의 softness(표 PetSkillUi sr_grid_fade_f × 보이는 높이)로 세운다 — Scroll 공장이 RectMask2D 를 단다.
+                RectMask2D rm = grid.parent.GetComponent<RectMask2D>();
+                if (rm != null) rm.softness = new Vector2Int(0, Mathf.RoundToInt(bodyH * PetSkillStyle.L("sr_grid_fade_f")));
                 grid.sizeDelta = new Vector2(0f, totalH + PetSkillStyle.Rem(1f));
             }
             else
@@ -1014,6 +1021,19 @@ namespace Forge.Game.Ui
             var c = new Cell { Root = cell, Group = cg, Entry = e, Heroic = heroic, Home = cell.anchoredPosition };
             c.BaseScale = heroic ? 1f : PetSkillStyle.L("sr_sz_" + Mathf.Clamp(tier, 0, 5)) * (peer ? PetSkillStyle.L("sr_peer_sz") : 1f);
             c.Pop = PetSkillStyle.L("sr_pop_" + Mathf.Clamp(tier, 0, 5));
+            // T178 47회차 — 정본 **6334** `.sr-cell::before { left: 50%; bottom: 34%; width: 2.6rem; height: 15rem; z-index: -1; filter: blur(7px); background: linear-gradient(transparent, var(--rc));
+            //   opacity: calc(.1 + .34 * var(--glow)); mask-image: linear-gradient(transparent, #000 72%) }`(«셀 뒤 등급 광주 — 아이콘 줄 위아래의 빈 남색 밴드를 구조로 채우고, 등급이 세로 길이로도 읽힌다»).
+            //   배경 램프 × 마스크 페이드를 한 알파 단면으로 접은 표 `sr_cell_glow` 에 등급색을 끼워 굽고(BakeTinted) · 불투명도 .1 + .34 × glow(SummonFxUi tier.glow) 는 Image 색 · 셀의 **첫 자식**(z -1).
+            //   blur 7px 은 filter 축(T342)이라 안 굽는다 — 가장자리가 정본보다 딱딱하다(등재).
+            {
+                RectTransform gc = UiKit.Box(cell, "sr-glow-col");
+                float gcw = PetSkillStyle.Px("sr_glow_col_w_rem"), gch = PetSkillStyle.Px("sr_glow_col_h_rem"), gcb = PetSkillStyle.L("sr_glow_col_bottom_f");
+                gc.anchorMin = gc.anchorMax = new Vector2(0.5f, gcb); gc.pivot = new Vector2(0.5f, 0f); gc.anchoredPosition = Vector2.zero; gc.sizeDelta = new Vector2(gcw, gch);
+                Image gci = gc.gameObject.AddComponent<Image>(); gci.raycastTarget = false; gci.preserveAspect = false;
+                gci.sprite = SurfaceArt.BakeTinted("sr_cell_glow", gcw / gch, rc);
+                gci.color = new Color(1f, 1f, 1f, PetSkillStyle.L("sr_glow_col_a0") + PetSkillStyle.L("sr_glow_col_a_k") * (float)SummonFxStyle.LandRing.Glow(tier));
+                gc.SetAsFirstSibling();
+            }
             // orbwrap
             RectTransform wrap = UiKit.Box(cell, "sr-orbwrap");
             UiKit.Place(wrap, 0f, 0f, cw, cw);
@@ -2453,11 +2473,21 @@ namespace Forge.Game.Ui
             if (solo != null) solo.SetActive(true);
         }
 
+        /// <summary>T178 47회차 — 부모를 꽉 채우는 구운 판 한 장(클릭 안 먹음 · 비율 안 지킴 · 흰 틴트).</summary>
+        static Image FullSprite(RectTransform parent, string name, Sprite sp)
+        {
+            RectTransform rt = UiKit.Box(parent, name);
+            UiKit.Fill(rt);
+            Image im = rt.gameObject.AddComponent<Image>();
+            im.sprite = sp; im.preserveAspect = false; im.raycastTarget = false; im.color = Color.white;
+            return im;
+        }
+
         void ApplyBgPromote()
         {
             if (bgAImg == null || bgPromoteMs < 0) return;
             double p = TransitionRules.Progress(TransitionUi.Table.Get("sr_bg_done"), bgPromoteMs);
-            bgAImg.color = Color.Lerp(bgAPre, bgADone, (float)p);
+            bgP = (float)p; bgAImg.color = new Color(1f, 1f, 1f, bgP);   // T178 47회차 — 승격 판의 알파(색 보간과 같은 값 · BgAColor)
             // T178 31회차 — 정본 7166 `.done .sr-halo` 는 정지점 둘짜리(`--halo` = 등급 rgb · .4 · 표 `sr_halo_done_a`)로 바뀌고 `transition: background .5s ease-out`
             //   인데 앞 판과 정지점 수가 달라 CSS 는 보간 못 하고 **이산**으로 간다(진행 50% 에서 갈아탄다) — 같은 진행(p)이 .5 를 넘는 프레임에 done 판으로(결정 815).
             if (p >= 0.5) SwapHaloDone();
@@ -2476,7 +2506,7 @@ namespace Forge.Game.Ui
         {
             if (bgPromoteMs < 0) return;
             bgPromoteMs = -1;
-            if (bgAImg != null) bgAImg.color = bgADone;
+            bgP = 1f; if (bgAImg != null) bgAImg.color = Color.white;   // T178 47회차 — 승격 판을 다 덮는다
             SwapHaloDone();   // T178 31회차 — 광원 done 판도 지금 끝낸다
         }
 

@@ -2267,5 +2267,67 @@ namespace Forge.Tests.PlayMode
             Debug.Log("T178 46회차 자 — 스킬 장착 줄 아이콘 " + skm + "개(0 이면 장착 스킬이 없는 상태 · 펫 쪽이 같은 공장을 잰다)");
         }
 
+        /// <summary>
+        /// T178 47회차 — 소환 결과 화면: 정본 5649/7148 모달 배경 방사(예고 판 + 승격 판 · 알파 전이 · BgAColor = 보간값) · 6334 셀 뒤 등급 광주(램프 × 마스크 한 단면 · 등급색 · 첫 자식).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 소환_결과_배경_방사와_셀_뒤_등급_광주가_선다()
+        {
+            PetSkillHost.SuppressSave = true;
+            PetSkillHost.Seed = 20260918;
+            yield return Boot();
+            // ⓐ 표
+            Color[] c; float[] o;
+            Assert.IsTrue(SurfaceArt.IsRadial("sr_modal_bg"), "배경은 방사");
+            SurfaceArt.Stops("sr_modal_bg", out c, out o); Assert.AreEqual(4, c.Length); Assert.AreEqual(0.38f, o[1], 1e-4f, "38%"); Assert.AreEqual(3f / 255f, c[3].r, 1e-3f, "#03040c");
+            SurfaceArt.Stops("sr_cell_glow", out c, out o); Assert.AreEqual(4, c.Length); Assert.AreEqual(0f, c[0].a, 1e-4f); Assert.AreEqual(0.18f, c[1].a, 1e-4f, "t=.36: .36 × .5"); Assert.AreEqual(0.72f, c[2].a, 1e-4f, "t=.72: 마스크 1"); Assert.AreEqual(1f, c[3].a, 1e-4f);
+            // ⓑ 소환 결과 열기(TransitionTests 와 같은 길)
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(PetSkillHost.Ready, "소환 호스트가 20초 안에 안 섰다");
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "ultimate", Name = "나" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "ultimate", null);
+            Assert.IsNotNull(v, "소환 결과 뷰");
+            yield return null;
+            Transform pre = FindDeep(v.transform, "bg-pre"), done = FindDeep(v.transform, "bg-a");
+            Assert.IsNotNull(pre, "예고 판(bg-pre)"); Assert.IsNotNull(done, "승격 판(bg-a)");
+            Sprite ps = pre.GetComponent<Image>().sprite, ds = done.GetComponent<Image>().sprite;
+            Assert.IsTrue(ps.texture.name.StartsWith("sf-sr_modal_bg", System.StringComparison.Ordinal), "예고 판 = 표 sr_modal_bg: " + ps.texture.name);
+            Assert.IsTrue(ds.texture.name.StartsWith("sf-sr_modal_bg", System.StringComparison.Ordinal), "승격 판 = 표 sr_modal_bg: " + ds.texture.name);
+            Assert.AreNotEqual(ps.texture.name, ds.texture.name, "예고·승격 판의 정지점 색이 다르다(ultimate · pk > 0)");
+            Assert.AreEqual(0f, done.GetComponent<Image>().color.a, 1e-4f, "열 때 승격 판은 알파 0");
+            Assert.AreEqual(v.BgAPre, v.BgAColor, "첫 프레임 = 예고값");
+            {
+                Texture2D tx = ps.texture; Color32[] px = tx.GetPixels32(); int W = tx.width, H = tx.height;
+                Color32 mid = px[(int)(H * 0.56f) * W + W / 2], corner = px[0];
+                Assert.Greater(mid.b, corner.b + 30, "가운데(44% 위) 남색이 모서리(#03040c)보다 밝다");
+            }
+            // ⓒ 셀 뒤 등급 광주 — 첫 자식 · 등급색 · 아래 불투명 위 투명
+            Transform cell0 = FindDeep(v.transform, "sr-cell-0");
+            Assert.IsNotNull(cell0, "첫 셀");
+            Transform gc = cell0.GetChild(0);
+            Assert.AreEqual("sr-glow-col", gc.name, "광주는 셀의 첫 자식(z -1)");
+            Image gci = gc.GetComponent<Image>();
+            Assert.IsTrue(gci.sprite.texture.name.StartsWith("sf-sr_cell_glow", System.StringComparison.Ordinal), "광주 = 표 sr_cell_glow: " + gci.sprite.texture.name);
+            Assert.AreEqual(PetSkillStyle.L("sr_glow_col_a0"), gci.color.a, 1e-4f, "common(tier 0) 은 glow 0 → 불투명도 .1");
+            {
+                Texture2D tx = gci.sprite.texture; Color32[] px = tx.GetPixels32(); int W = tx.width, H = tx.height;
+                Assert.AreEqual(255, px[0 * W + W / 2].a, "아래는 불투명(등급색)"); Assert.AreEqual(0, px[(H - 1) * W + W / 2].a, "위는 투명");
+                Color rc = PetSkillStyle.Rarity(PetSkillHost.Instance.Data.Defs, "common");
+                Assert.AreEqual(Mathf.RoundToInt(rc.r * 255f), px[0 * W + W / 2].r, 1, "rgb = 등급색");
+            }
+            // ⓓ 승격 — done 뒤 SettleBg 로 승격 판이 다 덮고 BgAColor = 승격값
+            v.OnTap();
+            v.SettleBg();
+            Assert.AreEqual(1f, done.GetComponent<Image>().color.a, 1e-4f, "SettleBg 뒤 승격 판 알파 1");
+            Assert.AreEqual(v.BgADone, v.BgAColor, "SettleBg 뒤 승격값");
+            v.Close();
+            yield return null;
+        }
+
     }
 }

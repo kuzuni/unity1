@@ -237,6 +237,58 @@ namespace Forge.Game.Ui
             return Finish(name, w, h, Pixels(key, w, h, 0f, 0, null, null, stopIndex, stopColor));
         }
 
+        /// <summary>
+        /// T178 47회차 — 정지점 **여럿**이 런타임 색인 겹(소환 결과 배경 5649 `--bg-pre-a` 0% · `--bg-pre-b` 38%). <paramref name="stopOverride"/> 의 i 번째가 값이면 그 정지점을 갈아 끼우고
+        /// null 이면 표값 그대로(위 <see cref="Bake(string, float, int, Color)"/> 의 여럿 판). 캐시 이름에 색을 다 붙인다. 바탕(over_*)은 안 섞는다.
+        /// </summary>
+        public static Sprite Bake(string key, float aspect, Color?[] stopOverride)
+        {
+            if (aspect <= 0f || float.IsNaN(aspect)) aspect = 1f;
+            if (aspect > 8f) aspect = 8f;
+            var sb = new System.Text.StringBuilder(key).Append("-").Append(aspect.ToString("0.00")).Append("-V");
+            for (int i = 0; i < stopOverride.Length; i++)
+            {
+                if (!stopOverride[i].HasValue) { sb.Append("_-"); continue; }
+                Color32 c = To32A(stopOverride[i].Value);
+                sb.Append("_").Append(c.r).Append(".").Append(c.g).Append(".").Append(c.b).Append(".").Append(c.a);
+            }
+            string name = sb.ToString();
+            Sprite hit;
+            if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            int shortSide = Mathf.Max(8, (int)J.Num(Table()["bake_px"], 96));
+            int w = Mathf.Max(8, Mathf.RoundToInt(shortSide * aspect)), h = shortSide;
+            Color[] col; float[] pos;
+            Stops(key, out col, out pos);
+            for (int i = 0; i < col.Length && i < stopOverride.Length; i++) if (stopOverride[i].HasValue) col[i] = stopOverride[i].Value;
+            return Finish(name, w, h, IsRadial(key) ? RadialPixels(key, w, h, col, pos) : LinearPixels(key, w, h, col, pos, 0f));
+        }
+
+        /// <summary>
+        /// T178 47회차 — 정지점 **전부**의 rgb 가 한 런타임 색이고 알파 단면만 표가 쥐는 겹(소환 셀 뒤 등급 광주 6334 `linear-gradient(transparent, var(--rc))` × 마스크). 표의 정지점은 흰 자리표,
+        /// <paramref name="rgb"/> 의 rgb 만 갈아 끼우고 알파는 표 그대로다. 캐시 이름에 rgb 를 붙인다.
+        /// </summary>
+        public static Sprite BakeTinted(string key, float aspect, Color rgb)
+        {
+            if (aspect <= 0f || float.IsNaN(aspect)) aspect = 1f;
+            if (aspect > 8f) aspect = 8f;
+            Color32 t = To32(rgb);
+            string name = key + "-" + aspect.ToString("0.00") + "-T" + t.r + "_" + t.g + "_" + t.b;
+            Sprite hit;
+            if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            int shortSide = Mathf.Max(8, (int)J.Num(Table()["bake_px"], 96));
+            int w = Mathf.Max(8, Mathf.RoundToInt(shortSide * aspect)), h = shortSide;
+            Color[] col; float[] pos;
+            Stops(key, out col, out pos);
+            for (int i = 0; i < col.Length; i++) col[i] = new Color(rgb.r, rgb.g, rgb.b, col[i].a);
+            return Finish(name, w, h, IsRadial(key) ? RadialPixels(key, w, h, col, pos) : LinearPixels(key, w, h, col, pos, 0f));
+        }
+
+        static Color32 To32A(Color c)
+        {
+            return new Color32((byte)Mathf.RoundToInt(Mathf.Clamp01(c.r) * 255f), (byte)Mathf.RoundToInt(Mathf.Clamp01(c.g) * 255f),
+                               (byte)Mathf.RoundToInt(Mathf.Clamp01(c.b) * 255f), (byte)Mathf.RoundToInt(Mathf.Clamp01(c.a) * 255f));
+        }
+
         static Color32 To32(Color c)
         {
             return new Color32((byte)Mathf.RoundToInt(Mathf.Clamp01(c.r) * 255f),

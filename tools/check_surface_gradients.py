@@ -174,6 +174,13 @@ TABLE = {
     '.pet-tile .tile-face': ['Ui/PetPanel.cs@TilePlate'],
     '.sk-mini': ['Ui/PetSkillKit.cs@MiniPlate'],
     '.hatch-cell': ['Ui/PetPanel.cs@BuildHatchCell'],
+    # T178 47회차 — 소환 결과 화면: 모달 배경(5649 · 7148 .done · 방사 한 장 · 0%·38% 런타임 색 → Bake(key, aspect, Color?[]) · 예고 판 + 승격 판 알파 전이) · 셀 뒤 등급 광주(6334 · 램프 × 마스크를 한 알파 단면으로 · BakeTinted) ·
+    #   격자 마스크(6235)는 RectMask2D softness(굽는 길 아님) · 기본 구슬(6495)은 ui.js 428 이 모든 셀에 data-mat 을 주어 재질 셋(6552/6574/6611)이 늘 덮는다 — 재질 셋·보석 글린트(6637)는 다음 회차.
+    '#summon-result-modal': ['Ui/SkillSummonResult.cs@Build'],
+    '#summon-result-modal.done': ['Ui/SkillSummonResult.cs@Build'],
+    '.sr-cell::before': ['Ui/SkillSummonResult.cs@BuildCell'],
+    '.sr-grid.mid, .sr-grid.dense': '—정본 6235 는 스크롤 격자 위아래 5% 의 `mask-image` 페이드 — 굽는 겹이 아니라 클론은 RectMask2D.softness(표 sr_grid_fade_f · SkillSummonResult.Build)로 세운다 — 47회차',
+    '.sr-orb': '—정본 6495 기본 구슬 스택은 ui.js 428 `data-mat=srMaterial(rarity)`(SR_MATERIAL 표 · 빠지면 metal)이 **모든 셀**에 재질을 주어 6552/6574/6611 이 늘 덮는다 — 실제로 서는 값이 없다 · 재질 셋은 다음 회차 — 47회차',
     '.qst-bar i': '—정본 8806 `.qst-bar i { background: #4fc3f7 }`(aaa-skin ⓖ) 이 2044 의 두 겹을 단색으로 끈다 — 6·10회차의 qst-fill-grad·rim 을 39회차가 걷었다 · 채움 = catalog quest_bar 한 칸',
     '.qst-row.done .qst-bar i': '—정본 8807 `… { background: #81e884 }`(aaa-skin ⓖ) 이 2047 의 두 겹을 단색으로 끈다 — 39회차가 걷었다 · 채움 = catalog quest_bar_done 한 칸',
     # T178 9회차 — 기술 트리 분기 원판(카테고리색 면) 위의 겹 둘: 왼쪽 위 방사형 광택 + 세로 명암.

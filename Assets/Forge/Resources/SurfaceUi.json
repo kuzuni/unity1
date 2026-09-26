@@ -1125,6 +1125,22 @@
     "offsets": [0, 1],
     "_": "style.css **8026** `.hatch-cell { background-image: radial-gradient(46% 10% at 50% 86%, rgba(255,235,80,.28) 0, rgba(255,235,80,0) 100%) }` — 14차 «(6) 스포트라이트 — 바닥 착지점 라디얼 글로우(원뿔·셀 배치 불변)»: 빛기둥이 닿는 바닥의 노란 타원. 바탕 없는 알파 겹(SurfaceArt.Fill · 칸의 첫 자식). PetPanel.BuildHatchCell. T178 46회차."
   },
+  "sr_modal_bg": {
+    "shape": "radial",
+    "cx": 0.5,
+    "cy": 0.44,
+    "rx": 1.18,
+    "ry": 0.76,
+    "stops": [[36, 48, 106, 1.0], [16, 23, 64, 1.0], [7, 11, 32, 1.0], [3, 4, 12, 1.0]],
+    "offsets": [0, 0.38, 0.68, 1],
+    "_": "style.css **5649** `#summon-result-modal { background: radial-gradient(118% 76% at 50% 44%, var(--bg-pre-a, #24306a) 0%, var(--bg-pre-b, #101740) 38%, #070b20 68%, #03040c 100%) }` · **7148** `.done` 은 같은 꼴에 `--bg-a`/`--bg-b`. 0%·38% 정지점은 **런타임 색**(ui.js 507~509 · 536~539: 기본색 #24306a/#101740 에 최고 등급색을 .24/.16 × (예고: PRE_BG .45 × pk) 로 섞은 값 · 표 PetSkillUi sr_bg_a_mix_f·sr_bg_b_mix_f·sr_bg_pre_f) — 부르는 쪽이 `Bake(key, aspect, Color?[])` 로 준다(표엔 기본값). SkillSummonResult.Build 가 예고 판·승격 판 둘을 굽고 위 판의 알파를 전이(TransitionUi sr_bg_done)로 올린다. 전엔 원판 둘(bg-b·bg-a)로 근사했다. T178 47회차."
+  },
+  "sr_cell_glow": {
+    "angle_deg": 180,
+    "stops": [[255, 255, 255, 0.0], [255, 255, 255, 0.18], [255, 255, 255, 0.72], [255, 255, 255, 1.0]],
+    "offsets": [0, 0.36, 0.72, 1],
+    "_": "style.css **6334** `.sr-cell::before { background: linear-gradient(rgba(255,255,255,0), var(--rc)); mask-image: linear-gradient(rgba(0,0,0,0), #000 72%) }` — 셀 뒤 등급 광주(2.6rem × 15rem · 정본 주석 «아이콘 줄 위아래의 빈 남색 밴드를 구조로 채우고, 등급이 세로 길이로도 읽힌다»). 배경 램프(위 투명 → 아래 rc · 알파 t)와 마스크 페이드(위 투명 → 72% 부터 불투명 · min(1, t/.72))를 **곱한 알파 단면** 하나로 접었다: t = 0/.36/.72/1 에서 0/.18/.72/1. 색은 흰 자리표 — 부르는 쪽이 `BakeTinted(key, aspect, rc)` 로 rgb 를 갈아 끼운다(알파는 표 그대로). 불투명도 .1 + .34 × glow 는 Image 색 · blur 7px 은 filter 축(T342). T178 47회차."
+  },
   "stripes": {
     "pet_tile_grain": { "angle_deg": 45, "period_css_px": 7, "dash_css_px": 2, "ink": "#ffffff0e", "gap": null, "_": "style.css **8124** `.pet-tile .tile-face` 넷째 겹(4288 셋째) — `repeating-linear-gradient(45deg, 흰 .055 0 2px, 투명 2px 7px)`: 타일 면의 미세 빗금(.055 ≈ 0x0e). BakeFace 의 `stripe:` 겹. T178 46회차." },
     "cell_hatch": {
