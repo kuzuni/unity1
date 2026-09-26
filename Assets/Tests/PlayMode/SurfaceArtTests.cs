@@ -1936,8 +1936,11 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(Lum(sp[(SH - 1) * SW + SW / 2]), 250f, "위 2px 흰 림(.9)");
             int bandY = SH - 1 - Mathf.RoundToInt(3.1f * PopupKit.Rem * ssc);          // 머리 밴드 아래 1px 선 자리(위에서 3.1rem · 판 배율)
             Assert.Less(DarkestNear(sp, SW, bandY, 2), Lum(sp[(bandY - 8) * SW + SW / 2]) - 4f, "3.1rem 자리의 1px 선(.11)이 그 아래보다 어둡다");
-            Assert.Less(sp[SW / 2].b, 245, "아래는 아이보리(#f8f4ee 파랑 238 근처 · 결·광원이 얹혀 조금 흔들린다)");
-            Assert.Greater(sp[SW / 2].r, sp[SW / 2].b, "따뜻한 종이 — 빨강 > 파랑");
+            // 런 1294: 한 화소는 흰 결 줄(45°/−45° · .95/.55) 위에 앉을 수 있다(238 + 17×.55 = 247) — 아래 가운데 작은 창에서 **파랑이 가장 낮은 화소**(결 사이 바탕)를 본다.
+            Color32 Ground(Color32[] px, int W, int H, int cx, int y0, int span) { Color32 g = px[y0 * W + cx]; for (int y = Mathf.Max(0, y0 - span); y <= Mathf.Min(H - 1, y0 + span); y++) for (int x = Mathf.Max(0, cx - span); x <= Mathf.Min(W - 1, cx + span); x++) { Color32 c2 = px[y * W + x]; if (c2.b < g.b) g = c2; } return g; }
+            Color32 sground = Ground(sp, SW, SH, SW / 2, 4, 8);
+            Assert.Less(sground.b, 245, "아래는 아이보리(#f8f4ee 파랑 238 근처 · 결 사이 바탕): " + sground);
+            Assert.Greater(sground.r, sground.b, "따뜻한 종이 — 빨강 > 파랑: " + sground);
             QuestSheet.Close(h);
             yield return null;
             // ⓒ 실물 — 확률 정보 팝업 카드(PopupKit.Card · pp_paper · 높이는 내용으로)
@@ -1962,7 +1965,9 @@ namespace Forge.Tests.PlayMode
             Color32[] cp = cgi.sprite.texture.GetPixels32(); int CW = cgi.sprite.texture.width, CH = cgi.sprite.texture.height;
             int cband = CH - 1 - Mathf.RoundToInt(2.6f * PopupKit.Rem * csc);
             Assert.Less(DarkestNear(cp, CW, cband, 2), Lum(cp[(cband - 8) * CW + CW / 2]) - 4f, "2.6rem 자리의 1px 선(.10)");
-            Assert.Greater(cp[CW / 2].r, cp[CW / 2].b, "아래 #f3efe7 — 따뜻한 종이");
+            Color32 cground = Ground(cp, CW, CH, CW / 2, 4, 8);
+            Assert.Greater(cground.r, cground.b, "아래 #f3efe7 — 따뜻한 종이: " + cground);
+            Assert.Less(cground.b, 240, "아래 #f3efe7 파랑 231 근처(결 .028 이 얹혀 조금 어둡다): " + cground);
             fh.Meta.Popups.Hide(ForgeInfoPopup.Name);
             yield return null;
         }
