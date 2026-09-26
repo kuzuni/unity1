@@ -17033,7 +17033,7 @@
 - **자**(`SurfaceArtTests.펫_타일_면과_장착_아이콘과_부화_칸에_방사_겹이_선다`): ⓐ 표(방사 다섯 · 램프 4 정지점 · 결 2/7) ⓑ 펫 하나 활성 → 펫 탭 · 격자 타일 `tile-face/face/bg-grad` = `stripe:pet_tile_grain+pet_tile_ground+pet_tile_ramp+pet_tile_light` · 왼쪽 위 > 오른쪽 아래 · 발밑(84%) < 가운데 ⓒ 장착 줄 `sk-mini-<i>/sq/face/bg-grad` = `sk_mini_shade+sk_mini_light` · 왼쪽 위 > 아래 ⓓ `hatch-cell-0/bg-grad` 첫 자식 · `sf-hatch_cell_glow…` · 발밑 알파 > 40 · 위 투명 ⓔ 스킬 탭 `sk-mini-*/orb/face/bg-grad`(장착 스킬이 있을 때 · 개수는 로그). 고르기 식은 45회차 넷째 보류 줄대로(상자 안 «face»).
 - **게이트**: `gate.sh` 46 자 막는 자 전부 rc 0(`$?` 직접) · 첫 판은 `check_text_glyphs` 가 표 `_` 에 옮겨 적은 정본 주석의 «⑤·⑥» 을 잡아 «(5)·(6)» 으로(43회차와 같은 자리).
 - **판정(다음 런)**: 새 칸 PASS · PetSkill·BoxBorderSites·UiShadow(pettile_glow) 자 그대로 · 눈: `screen_pets`·`screen_pets-2` 격자 타일 왼쪽 위 밝고 아래 어두움 + 발밑 접지 타원 · 장착 줄 아이콘 위 광 · 부화장 원뿔 아래 노란 착지 글로우 · `screen_skills` 장착 아이콘 원판 광. ⚠ T28 pets 지문(타일 격자 bbox)은 그대로여야 한다(칠만 바뀐다 · 정본 주석 «76개 박스 이동 0px»). **lock 유지**.
-- **ntfy**: 아래 «알림» 줄에(이 커밋 push 뒤 적는다).
+- **ntfy — 알림 못 보냄**: 커밋 `fc8ed570` push 뒤 `ntfy-notify.yml` **런 #2513**(job 108417173940)가 섰지만 `TOPIC:` 이 비어 «NTFY_TOPIC 이 없다 — 알림을 건너뛴다» — 이 루틴 프롬프트엔 토픽이 없고 Secret 미등록(같은 자리).
 - **남은 미정 9 의 갈래**: 전부 소환 결과 화면(`SkillSummonResult`) — 모달 배경 5649·7148 `#summon-result-modal(.done)`(방사 · `--bg-pre-*`/`--bg-*` 등급색 변수 · `ApplyBgPromote` 가 색을 쥔다) · 구슬 재질 넷 6495/6552/6574/6611 `.sr-orb`(방사 3~5 겹 · `data-mat`) · 6637 `.sr-orb::before`(LL + 마스크) · 마스크 셋 6235·6334·6637(`mask-image` 는 굽는 길이 아니라 «—» 후보).
 
 ### T178 45회차 판정 ✅ · lock 반납 · 행 ⬜ — 런 1309 초록 · 새 칸 PASS · 눈 ✓(런 1309 제 그림) (2026-09-26 12:4x · 워커 T · sess-1447-10982)
