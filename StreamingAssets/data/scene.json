@@ -1,0 +1,463 @@
+{
+  "SIMPLE_BG": true,
+  "VALUE": { "groundK": 0.4, "groundMax": 0.22, "foliageK": 0.22, "foliageMax": 0.12, "satK": 0.35, "farDesat": 0.26, "leafFloor": 0.13, "leafCool": 0.06 },
+  "SUN_DAY": [2.63, 2.2, 7.24],
+  "SUN_NIGHT": [2.94, 2.4, 8.08],
+  "CAM_POS": [0.15, 3.7, 8.2],
+  "CAM_LOOK_Y": 2.2,
+  "CAM_FOV": 62,
+  "RIDGE_MIX": { "day": [0.05, 0.34, 0.68], "night": [0.05, 0.4, 0.74] },
+  "RIDGE_LAYERS": [
+    { "w": 70, "h": 4.6, "peaks": 8, "z": -12 },
+    { "w": 95, "h": 5.4, "peaks": 11, "z": -19 },
+    { "w": 120, "h": 6, "peaks": 14, "z": -25 }
+  ],
+  "VOXG": { "cell": 0.75, "step": 0.375 },
+  "SHADE": { "strength": 0.26 },
+  "TERRAIN": { "macro": 0.3, "lod": 0.45, "lodNear": 14, "lodFar": 34, "snow": 0 },
+  "SOIL": { "yK": 0.78, "satK": 0.9, "satMax": 0.42 },
+  "LEAF_OFF": {
+    "foliage": [
+      [-0.02, 0.08, -0.16],
+      [-0.025, 0.09, -0.23],
+      [-0.015, 0.07, -0.09]
+    ],
+    "bush": [-0.01, 0.05, -0.1]
+  },
+  "VOX_AMBIENT": { "leaf": 0.62, "prop": 0.34 },
+  "CRACK_W": [1, 0.52, 0.28],
+  "CRACK_A": [1, 0.52, 0.24],
+  "BIOMES": {
+    "marsh": {
+      "kin": "forest",
+      "tint": [-0.04, -0.18, -0.06],
+      "ridge": "ridge",
+      "props": {
+        "p": [
+          ["makeDeadTree", 0.85],
+          ["makeMushroom", 1.15]
+        ],
+        "r": [
+          ["makeMushroom", 0.8],
+          ["makeBoulder", 0.7, false, true]
+        ]
+      },
+      "scatter": { "geo": "octa", "r": 0.06, "color": 5919040, "n": 210, "flat": true, "tint": 0.16 },
+      "accent": { "geo": "octa", "r": 0.032, "color": 10275941, "n": 40, "basic": true, "wind": true },
+      "stone": 7304544,
+      "fog": [10, 27]
+    },
+    "bamboo": {
+      "kin": "forest",
+      "tint": [0.02, 0.06, 0.02],
+      "ridge": "ridge",
+      "props": {
+        "p": [
+          ["makeBamboo", 1.1]
+        ],
+        "r": [
+          ["makeBamboo", 0.75],
+          ["makeRoundTree", 0.8]
+        ]
+      },
+      "scatter": { "geo": "slabchip", "r": 0.055, "color": 11048287, "n": 240, "flat": true, "tint": 0.18 },
+      "accent": { "geo": "cone", "r": 0.034, "color": 15266984, "n": 44, "basic": true, "wind": true },
+      "stone": 9278594
+    },
+    "autumn": {
+      "kin": "forest",
+      "tint": [0.03, 0.1, 0],
+      "ridge": "ridge",
+      "props": {
+        "p": [
+          ["makeRoundTree", 1.05]
+        ],
+        "r": [
+          ["makeRoundTree", 0.8],
+          ["makeBoulder", 0.7, false, true]
+        ]
+      },
+      "scatter": { "geo": "slabchip", "r": 0.06, "color": 11035436, "n": 220, "flat": true, "tint": 0.22 },
+      "accent": { "geo": "octa", "r": 0.036, "color": 16758605, "n": 56, "basic": true, "wind": true },
+      "stone": 9273457
+    },
+    "salt": {
+      "kin": "desert",
+      "tint": [0, -0.62, 0.08],
+      "ridge": "mesa",
+      "props": {
+        "p": [
+          ["makeSlab", 1.15],
+          ["makeStrata", 1]
+        ],
+        "r": [
+          ["makeSlab", 0.7],
+          ["makeBoulder", 0.6]
+        ]
+      },
+      "mid": [
+        ["makeStrata", 2.2],
+        ["makeStrata", 1.9],
+        ["makeBones", 1.1],
+        ["makeSlab", 1.6]
+      ],
+      "scatter": { "geo": "slabchip", "r": 0.06, "color": 14672870, "n": 200, "flat": true, "tint": 0.07 },
+      "accent": { "geo": "cone", "r": 0.03, "color": 13163756, "n": 46, "basic": true },
+      "stone": 14080474
+    },
+    "canyon": {
+      "kin": "desert",
+      "tint": [-0.05, 0.24, -0.08],
+      "ridge": "mesa",
+      "props": {
+        "p": [
+          ["makeRockSpire", 1.15],
+          ["makeStrata", 1.1]
+        ],
+        "r": [
+          ["makeSlab", 0.8],
+          ["makeStrata", 0.7]
+        ]
+      },
+      "mid": [
+        ["makeStrata", 2.4],
+        ["makeRockSpire", 2],
+        ["makeStrata", 2.1],
+        ["makeDryShrub", 1.2]
+      ],
+      "scatter": { "geo": "dodeca", "r": 0.055, "color": 10243884, "n": 190, "flat": true, "tint": 0.16 },
+      "accent": { "geo": "dodeca", "r": 0.04, "color": 6106908, "n": 50 },
+      "stone": 9654586
+    },
+    "badland": {
+      "kin": "rock",
+      "tint": [0.04, 0.1, 0.02],
+      "ridge": "ridge",
+      "props": {
+        "p": [
+          ["makeDryShrub", 1.5],
+          ["makeSlab", 0.95]
+        ],
+        "r": [
+          ["makeBoulder", 0.7],
+          ["makeDryShrub", 1.1]
+        ]
+      },
+      "mid": [
+        ["makeDryShrub", 1.6],
+        ["makeStrata", 2],
+        ["makeBones", 1.2],
+        ["makeDryShrub", 1.3]
+      ],
+      "scatter": { "geo": "dodeca", "r": 0.055, "color": 9075292, "n": 200, "flat": true, "tint": 0.17 },
+      "accent": { "geo": "octa", "r": 0.034, "color": 13214247, "n": 40, "basic": true, "wind": true },
+      "stone": 8220501
+    },
+    "ash": {
+      "kin": "rock",
+      "tint": [0, -0.55, -0.04],
+      "ridge": "jagged",
+      "props": {
+        "p": [
+          ["makeDeadTree", 1]
+        ],
+        "r": [
+          ["makeBoulder", 0.7],
+          ["makeSlab", 0.7]
+        ]
+      },
+      "scatter": { "geo": "dodeca", "r": 0.05, "color": 6973284, "n": 190, "flat": true, "tint": 0.1 },
+      "accent": { "geo": "dodeca", "r": 0.03, "color": 12596492, "n": 40 },
+      "stone": 6249561,
+      "fog": [12, 30]
+    },
+    "glacier": {
+      "kin": "snow",
+      "tint": [0.02, 0.16, -0.02],
+      "ridge": "jagged",
+      "props": {
+        "p": [
+          ["makeCrystal", 1.05]
+        ],
+        "r": [
+          ["makeBoulder", 0.7, true],
+          ["makeCrystal", 0.7]
+        ]
+      },
+      "scatter": { "geo": "cone", "r": 0.055, "color": 12576511, "n": 180, "flat": true, "tint": 0.08, "basic": true },
+      "accent": { "geo": "octa", "r": 0.036, "color": 16777215, "n": 44, "basic": true },
+      "stone": 12374754,
+      "crystal": { "color": 2781070, "emissive": 6543093, "intensity": 0.26 },
+      "aurora": true
+    },
+    "tundra": {
+      "kin": "snow",
+      "tint": [0.06, 0.1, -0.12],
+      "ridge": "ridge",
+      "props": {
+        "p": [
+          ["makePine", 1, true],
+          ["makeDryShrub", 1.4]
+        ],
+        "r": [
+          ["makeBoulder", 0.66, true],
+          ["makeDryShrub", 1]
+        ]
+      },
+      "scatter": { "geo": "octa", "r": 0.055, "color": 9075798, "n": 200, "flat": true, "tint": 0.18 },
+      "accent": { "geo": "cone", "r": 0.03, "color": 14674160, "n": 38, "basic": true },
+      "stone": 10134184,
+      "veg": true
+    },
+    "amethyst": {
+      "kin": "magic",
+      "tint": [0.05, 0.14, -0.02],
+      "ridge": "jagged",
+      "props": {
+        "p": [
+          ["makeCrystal", 1.1]
+        ],
+        "r": [
+          ["makeCrystal", 0.72],
+          ["makeBoulder", 0.7]
+        ]
+      },
+      "scatter": { "geo": "octa", "r": 0.05, "color": 11766015, "n": 130, "flat": true, "tint": 0.22, "basic": true },
+      "accent": { "geo": "dodeca", "r": 0.045, "color": 4860538, "n": 60 },
+      "stone": 6969994,
+      "crystal": { "color": 5449835, "emissive": 12083711, "intensity": 0.34 },
+      "emissive": { "light": 12083711 }
+    },
+    "abyss": {
+      "kin": "magic",
+      "tint": [-0.02, -0.1, -0.2],
+      "ridge": "ridge",
+      "props": {
+        "p": [
+          ["makeMushroom", 1.15],
+          ["makeCrystal", 0.9]
+        ],
+        "r": [
+          ["makeMushroom", 0.75],
+          ["makeBoulder", 0.7]
+        ]
+      },
+      "scatter": { "geo": "octa", "r": 0.045, "color": 3073736, "n": 120, "flat": true, "tint": 0.2, "basic": true },
+      "accent": { "geo": "dodeca", "r": 0.042, "color": 862788, "n": 58 },
+      "stone": 2902624,
+      "crystal": { "color": 1067100, "emissive": 3073736, "intensity": 0.36 },
+      "emissive": { "light": 3073736 },
+      "fog": [9, 25],
+      "veg": false,
+      "foliage": { "color": 936530, "intensity": 0.3 }
+    },
+    "sanctum": {
+      "kin": "magic",
+      "tint": [0.03, -0.25, 0.2],
+      "ridge": "ridge",
+      "props": {
+        "p": [
+          ["makeCrystal", 1.05],
+          ["makeRoundTree", 0.95]
+        ],
+        "r": [
+          ["makeSlab", 0.75],
+          ["makeRoundTree", 0.8]
+        ]
+      },
+      "scatter": { "geo": "slabchip", "r": 0.058, "color": 14272650, "n": 200, "flat": true, "tint": 0.16 },
+      "accent": { "geo": "octa", "r": 0.036, "color": 16774064, "n": 56, "basic": true, "wind": true },
+      "stone": 13615258,
+      "crystal": { "color": 9071134, "emissive": 16766287, "intensity": 0.3 },
+      "foliage": { "color": 9071134, "intensity": 0.26 },
+      "emissive": { "light": 16766287 },
+      "veg": true
+    },
+    "sulfur": {
+      "kin": "lava",
+      "tint": [0.09, 0.34, 0.14],
+      "ridge": "jagged",
+      "props": {
+        "p": [
+          ["makeVolcanicRock", 1],
+          ["makeRockSpire", 0.95]
+        ],
+        "r": [
+          ["makeBoulder", 0.7],
+          ["makeSlab", 0.7]
+        ]
+      },
+      "scatter": { "geo": "dodeca", "r": 0.05, "color": 7232536, "n": 160, "flat": true, "tint": 0.16 },
+      "accent": { "geo": "dodeca", "r": 0.04, "color": 15258698, "n": 48 },
+      "stone": 8219170,
+      "emissive": { "crack": 16766287, "intensity": 0.95, "glow": 16761095, "light": 16766287 }
+    },
+    "obsidian": {
+      "kin": "lava",
+      "tint": [-0.02, -0.5, -0.16],
+      "ridge": "jagged",
+      "props": {
+        "p": [
+          ["makeRockSpire", 1.05],
+          ["makeVolcanicRock", 0.9]
+        ],
+        "r": [
+          ["makeSlab", 0.75],
+          ["makeBoulder", 0.66]
+        ]
+      },
+      "scatter": { "geo": "octa", "r": 0.05, "color": 2764088, "n": 170, "flat": true, "tint": 0.12 },
+      "accent": { "geo": "octa", "r": 0.042, "color": 11846896, "n": 46, "basic": true },
+      "stone": 5133412,
+      "emissive": null,
+      "fog": [11, 28]
+    },
+    "doomland": {
+      "kin": "lava",
+      "tint": [-0.02, 0.1, -0.06],
+      "ridge": "jagged",
+      "props": {
+        "p": [
+          ["makeDeadTree", 1.05],
+          ["makeRockSpire", 0.95]
+        ],
+        "r": [
+          ["makeVolcanicRock", 0.7],
+          ["makeBones", 1.2]
+        ]
+      },
+      "mid": [
+        ["makeBones", 1.6],
+        ["makeDeadTree", 2],
+        ["makeBones", 1.3],
+        ["makeRockSpire", 1.9]
+      ],
+      "scatter": { "geo": "dodeca", "r": 0.05, "color": 3808284, "n": 160, "flat": true, "tint": 0.14 },
+      "accent": { "geo": "dodeca", "r": 0.04, "color": 8003346, "n": 50 },
+      "stone": 4862512,
+      "emissive": { "crack": 13959168, "intensity": 1.25, "glow": 16717636, "light": 16732754 }
+    }
+  },
+  "CREATURE_YAW": 0.55,
+  "PET_ROW0": {
+    "mounted": [
+      [-1.05, 1.15],
+      [-1.9, 0.55],
+      [-2.12, 1.3]
+    ],
+    "unmounted": [
+      [-1.05, 1.15],
+      [-1.9, 0.55],
+      [-2.12, 1.3]
+    ]
+  },
+  "PET_ARC": { "rear": true, "rx0": 2.72, "rxStep": 0.9, "rz0": 0.35, "rzStep": 0.62, "cols": 4, "mountedRx": 0.25, "mountedRz": 0.06 },
+  "MOUNT_ARC": { "rx0": 2.5, "rxStep": 1.5, "rz0": 1.7, "rzStep": 0.85, "zBase": -0.35, "hmin": 0.32, "hmax": 1.2, "gap": 1.4 },
+  "MOUNT_FORMS": {
+    "flat": {
+      "saddle": 0.193,
+      "hover": 0.1,
+      "stand": true,
+      "pose": {
+        "hipL": { "rx": 0.5, "ry": 1.34, "rz": -0.1 },
+        "hipR": { "rx": -0.5, "ry": 1.34, "rz": 0.1 },
+        "kneeL": { "rx": -0.34 },
+        "kneeR": { "rx": -0.34 },
+        "spine": { "rx": 0.1, "ry": -0.62 }
+      }
+    },
+    "wheeled": {
+      "saddle": 0.36,
+      "hover": 0,
+      "seatByLeg": true,
+      "barReach": { "shoulder": -1.2, "shoulderZ": 0.1, "elbow": -0.2 },
+      "pose": {
+        "hipL": { "rx": 1.02, "rz": -0.26 },
+        "hipR": { "rx": 0.64, "rz": 0.24 },
+        "kneeL": { "rx": -1.72 },
+        "kneeR": { "rx": -0.86 },
+        "spine": { "rx": 0.2 }
+      }
+    },
+    "fly": {
+      "saddle": 0.38,
+      "hover": 0.04,
+      "bulk": 1.28,
+      "reinReach": { "shoulder": -0.92, "shoulderZ": 0.14, "elbow": -0.62 },
+      "pose": {
+        "hipL": { "rx": 0.86, "ry": -0.14, "rz": -0.66 },
+        "hipR": { "rx": 0.86, "ry": 0.14, "rz": 0.66 },
+        "kneeL": { "rx": -1.78, "rz": -0.42 },
+        "kneeR": { "rx": -1.78, "rz": 0.42 },
+        "spine": { "rx": 0.12 }
+      }
+    },
+    "quad": {
+      "saddle": 0.44,
+      "hover": 0,
+      "reinReach": { "shoulder": -0.92, "shoulderZ": 0.14, "elbow": -0.62 },
+      "pose": {
+        "hipL": { "rx": 0.8, "ry": -0.15, "rz": -0.74 },
+        "hipR": { "rx": 0.8, "ry": 0.15, "rz": 0.74 },
+        "kneeL": { "rx": -1.76, "rz": -0.3 },
+        "kneeR": { "rx": -1.76, "rz": 0.3 },
+        "spine": { "rx": 0.1 }
+      }
+    },
+    "biped": {
+      "saddle": 0.72,
+      "hover": 0,
+      "noNarrow": true,
+      "barReach": { "shoulder": -1, "shoulderZ": 0.12, "elbow": -0.34 },
+      "pose": {
+        "hipL": { "rx": 0.86, "ry": -0.14, "rz": -0.66 },
+        "hipR": { "rx": 0.86, "ry": 0.14, "rz": 0.66 },
+        "kneeL": { "rx": -1.78, "rz": -0.42 },
+        "kneeR": { "rx": -1.78, "rz": 0.42 },
+        "spine": { "rx": 0.12 }
+      }
+    }
+  },
+  "MOUNT_FORM_OF": {
+    "Hover Board": "flat",
+    "Hover Disk": "flat",
+    "Bike": "wheeled",
+    "One-Wheel Droid": "wheeled",
+    "Dump Truck": "wheeled",
+    "Cleaning Robot": "wheeled",
+    "Pterosaur": "fly",
+    "Bipedal Mech": "biped",
+    "Giant Bee": "fly",
+    "Mini Dragon": "fly",
+    "Star Whale": "fly"
+  },
+  "MOUNT_SADDLE_OF": {
+    "Pig": 0.4,
+    "Clockwork Beetle": 0.41,
+    "Armored Rhino": 0.415,
+    "Clockwork Mouse": 0.42,
+    "Pony": 0.425,
+    "Panther": 0.425,
+    "Boar": 0.435,
+    "Donkey": 0.44,
+    "Sheep": 0.445,
+    "Goat": 0.455,
+    "Dino": 0.475,
+    "Alpaca": 0.485,
+    "Brown Horse": 0.495,
+    "Camel": 0.515
+  },
+  "RIDE_STAND_POSE": {
+    "hipL": { "rx": 0.04, "rz": -0.1 },
+    "hipR": { "rx": 0.04, "rz": 0.1 },
+    "kneeL": { "rx": -0.16 },
+    "kneeR": { "rx": -0.16 },
+    "spine": { "rx": 0.04 }
+  },
+  "RIDE_STAND_BULK": 1.45,
+  "RIDE_SEAT_RATIO": 1.45,
+  "RIDE_WIDTH_RATIO": 0.74,
+  "MOUNT_GAIT": 5.4,
+  "MOUNT_IDLE_GAIT": 1.7,
+  "PREVIEW_CAM": { "fov": 42, "near": 0.1, "far": 120, "pos": [0.1, 1.95, 4.3], "look": [0.05, 0.92, 0], "hero": [0, 0, 0.4] }
+}
