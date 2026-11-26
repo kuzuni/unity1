@@ -2477,21 +2477,37 @@ namespace Forge.Tests.PlayMode
             //    51회차는 `Fx` 겹만 껐는데 **아직 묻혔다**(런 1327): 중앙 광원(`halo` · `SkillSummonResult.cs:436`)과 바탕 판은
             //    `SummonFx` 가 아니라 **뷰 자신**이 깐다. 이름으로 하나씩 끄면 그 이름이 바뀔 때마다 이 자가 조용히 늙는다 →
             //    **구슬 래퍼 안의 그림만 남기고 나머지 `Graphic` 을 전부 끈다**(찍고 되돌린다). 이름에 안 매인다.
+            //    53회차(T493 을 같이 걷는다 · 검수 Q 45회차 눈 대조가 처방 셋을 적어 줬다) — 52회차의 «래퍼 안만 남긴다» 는 **방향은 맞고 뿌리가 틀렸다**:
+            //    걷는 뿌리가 `v2`(소환 결과 뷰)라 **뷰 밖은 한 장도 안 꺼져** 오프라인 보상 팝업·«조각 +1» 칩·«85» 배지·탭바가 그대로 남고
+            //    그 둘이 구슬 **위에** 얹혔다(칩은 자가 «광원 쪽» 이라 부르는 왼쪽 위 바로 그 자리였다). 게다가 **가운데는 제 스킬 아이콘(`sr-ico`)**이
+            //    래퍼 «안» 이라 안 꺼져, 자가 보라는 «가운데에서 쐐기가 갈라지는지» 를 **구조상 영영 못 봤다**.
+            //    ⇒ 뿌리를 **캔버스**로 올리고, 남길 것을 래퍼가 아니라 **구슬 본체(`sr-orb`) 한 그루**로 좁힌다 — 재질 판은 본체 **면 위에** 굽히므로(48회차)
+            //       본체 subtree 만 남기면 재질 겹은 다 남고 장식·아이콘·뷰 밖은 **규칙 하나로** 전부 꺼진다(이름 목록을 안 늘린다).
+            //    ⚑ 판정 장치 둘을 **적어 둔다**(찍고 되돌린다 · 실제 화면이 이렇게 보인다는 말이 아니다):
+            //       ⑴ 바탕이 검게 비므로 정본의 얕은 «빨강 위 빨강» 패싯 대비가 비로소 읽힌다(검수 Q 의 ⓒ «셋을 못 센다» 가 여기서 걸렸다).
+            //       ⑵ 구슬이 640×480 에서 지름 ≈100px 뿐이라 래퍼를 **×3** 로 키워 찍는다 — 하드 스톱 경계는 확대에도 경계로 남는다.
             Transform orbWrap = null;
             foreach (RectTransform rt in v2.GetComponentsInChildren<RectTransform>(true))
                 if (rt.name == "sr-orbwrap") { orbWrap = rt; break; }
             Assert.IsNotNull(orbWrap, "구슬 래퍼");
+            Transform orbBody = null;
+            foreach (RectTransform rt in orbWrap.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "sr-orb") { orbBody = rt; break; }
+            Assert.IsNotNull(orbBody, "구슬 본체(재질 판이 선 면)");
             var off = new System.Collections.Generic.List<Graphic>();
-            foreach (Graphic gr in v2.GetComponentsInChildren<Graphic>(true))
+            foreach (Graphic gr in UiRoot.Instance.Canvas.GetComponentsInChildren<Graphic>(true))
             {
                 if (!gr.enabled) continue;
                 bool inside = false;
-                for (Transform t2 = gr.transform; t2 != null; t2 = t2.parent) if (t2 == orbWrap) { inside = true; break; }
+                for (Transform t2 = gr.transform; t2 != null; t2 = t2.parent) if (t2 == orbBody) { inside = true; break; }
                 if (!inside) { gr.enabled = false; off.Add(gr); }
             }
+            Vector3 wrapScale = orbWrap.localScale;
+            orbWrap.localScale = wrapScale * 3f;
             yield return null;
             Canvas.ForceUpdateCanvases();
             Capture("screen_t178-gem-orb");
+            orbWrap.localScale = wrapScale;
             foreach (Graphic gr in off) gr.enabled = true;
             v2.Close();
             yield return null;
