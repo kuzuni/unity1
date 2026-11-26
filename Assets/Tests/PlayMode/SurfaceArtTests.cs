@@ -2474,11 +2474,25 @@ namespace Forge.Tests.PlayMode
             //    구슬이 통째로 발광에 묻혀 경계조차 안 잡혔다(화소로 재도 고리마다 바닥이 0 — 레터박스까지 먹었다).
             //    금속 컷(`screen_t179-summon`)이 읽혔던 것은 일반 등급이라 회청색 구슬 ↔ 회청색 연출이 **대비가 있었기 때문**이다.
             //    ⇒ 이 컷은 **재질 판정 컷**이라 연출 겹을 잠깐 끄고 찍는다. 연출 자체는 T179 의 컷이 쥔다(자리를 나눈다).
-            SummonFx fxOff = v2.Fx;
-            bool hadFx = fxOff != null && fxOff.gameObject.activeSelf;
-            if (hadFx) fxOff.gameObject.SetActive(false);
+            //    51회차는 `Fx` 겹만 껐는데 **아직 묻혔다**(런 1327): 중앙 광원(`halo` · `SkillSummonResult.cs:436`)과 바탕 판은
+            //    `SummonFx` 가 아니라 **뷰 자신**이 깐다. 이름으로 하나씩 끄면 그 이름이 바뀔 때마다 이 자가 조용히 늙는다 →
+            //    **구슬 래퍼 안의 그림만 남기고 나머지 `Graphic` 을 전부 끈다**(찍고 되돌린다). 이름에 안 매인다.
+            Transform orbWrap = null;
+            foreach (RectTransform rt in v2.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "sr-orbwrap") { orbWrap = rt; break; }
+            Assert.IsNotNull(orbWrap, "구슬 래퍼");
+            var off = new System.Collections.Generic.List<Graphic>();
+            foreach (Graphic gr in v2.GetComponentsInChildren<Graphic>(true))
+            {
+                if (!gr.enabled) continue;
+                bool inside = false;
+                for (Transform t2 = gr.transform; t2 != null; t2 = t2.parent) if (t2 == orbWrap) { inside = true; break; }
+                if (!inside) { gr.enabled = false; off.Add(gr); }
+            }
+            yield return null;
+            Canvas.ForceUpdateCanvases();
             Capture("screen_t178-gem-orb");
-            if (hadFx) fxOff.gameObject.SetActive(true);
+            foreach (Graphic gr in off) gr.enabled = true;
             v2.Close();
             yield return null;
         }
