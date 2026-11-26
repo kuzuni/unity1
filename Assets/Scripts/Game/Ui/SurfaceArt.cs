@@ -58,6 +58,28 @@ namespace Forge.Game.Ui
             return one != null && J.Str(one["shape"]) == "radial";
         }
 
+        /// <summary>
+        /// 그 겹이 **원뿔형**인가(`shape: "conic"` · 정본 `conic-gradient(from Ndeg at CX% CY%, …)`) — 각도도 반지름도 아니라
+        /// **원점에서 본 방위각**으로 샘플한다. T178 49회차(정본 6612 보석 패싯이 이 레포의 첫 conic 이다).
+        /// </summary>
+        public static bool IsConic(string key)
+        {
+            JsonObject one = J.Obj(Table()[key]);
+            return one != null && J.Str(one["shape"]) == "conic";
+        }
+
+        /// <summary>선형 겹처럼 **각도(`angle_deg`)와 선 길이**를 쓰는 겹인가 — 방사형·원뿔형은 아니다(둘 다 각도 칸이 없다).</summary>
+        public static bool HasAngle(string key) { return !IsRadial(key) && !IsConic(key); }
+
+        /// <summary>원뿔형 겹의 원점(상자 비율)과 시작각(도 · CSS `from` 그대로 · 12시에서 시계방향).</summary>
+        public static void Conic(string key, out float cx, out float cy, out float fromDeg)
+        {
+            JsonObject one = J.Obj(Table()[key]);
+            if (one == null) throw new KeyNotFoundException(ResourcePath + ".json 에 «" + key + "» 이 없다");
+            cx = (float)J.Num(one["cx"], 0.5); cy = (float)J.Num(one["cy"], 0.5);
+            fromDeg = (float)J.Num(one["from_deg"], 0);
+        }
+
         /// <summary>방사형 겹의 중심·반지름(상자 비율 · CSS `radial-gradient(ellipse RX% RY% at CX% CY%, …)` 그대로).</summary>
         public static void Ellipse(string key, out float cx, out float cy, out float rx, out float ry)
         {
@@ -260,7 +282,7 @@ namespace Forge.Game.Ui
             Color[] col; float[] pos;
             Stops(key, out col, out pos);
             for (int i = 0; i < col.Length && i < stopOverride.Length; i++) if (stopOverride[i].HasValue) col[i] = stopOverride[i].Value;
-            return Finish(name, w, h, IsRadial(key) ? RadialPixels(key, w, h, col, pos) : LinearPixels(key, w, h, col, pos, 0f));
+            return Finish(name, w, h, ShapePixels(key, w, h, col, pos, 0f));
         }
 
         /// <summary>
@@ -280,7 +302,7 @@ namespace Forge.Game.Ui
             Color[] col; float[] pos;
             Stops(key, out col, out pos);
             for (int i = 0; i < col.Length; i++) col[i] = new Color(rgb.r, rgb.g, rgb.b, col[i].a);
-            return Finish(name, w, h, IsRadial(key) ? RadialPixels(key, w, h, col, pos) : LinearPixels(key, w, h, col, pos, 0f));
+            return Finish(name, w, h, ShapePixels(key, w, h, col, pos, 0f));
         }
 
         static Color32 To32A(Color c)
@@ -343,7 +365,7 @@ namespace Forge.Game.Ui
             Color[] col; float[] pos;
             Stops(key, out col, out pos);
             if (stopIndex >= 0 && stopIndex < col.Length) col[stopIndex] = stopColor;   // T178 31회차 — 부르는 쪽이 준 정지점
-            Color32[] px = IsRadial(key) ? RadialPixels(key, w, h, col, pos) : LinearPixels(key, w, h, col, pos, lineLenCanvasPx);
+            Color32[] px = ShapePixels(key, w, h, col, pos, lineLenCanvasPx);
 
             // 부르는 쪽이 준 바탕이 먼저다(T178 10회차) — 표의 `over_layer` 는 «한 값» 이라 상태로 갈리는 자리를 못 적는다.
             if (overBaseColor.HasValue)
@@ -661,7 +683,7 @@ namespace Forge.Game.Ui
                     continue;
                 }
                 float lineLen = 0f;
-                if (!IsRadial(key))
+                if (HasAngle(key))
                 {
                     float rad = Angle(key) * Mathf.Deg2Rad;
                     lineLen = Mathf.Abs(wCanvasPx * Mathf.Sin(rad)) + Mathf.Abs(hCanvasPx * Mathf.Cos(rad));
@@ -674,7 +696,7 @@ namespace Forge.Game.Ui
                     Color[] oc; float[] op;
                     Stops(key, out oc, out op);
                     for (int i = 0; i < oc.Length && i < ov.Length; i++) if (ov[i].HasValue) oc[i] = ov[i].Value;
-                    top = IsRadial(key) ? RadialPixels(key, w, h, oc, op) : LinearPixels(key, w, h, oc, op, lineLen);
+                    top = ShapePixels(key, w, h, oc, op, lineLen);
                 }
                 else top = Pixels(key, w, h, lineLen, 0, null, null);        // 표에 바탕이 없는 겹 = 알파 그대로
                 for (int i = 0; i < px.Length; i++)
@@ -730,6 +752,12 @@ namespace Forge.Game.Ui
         public static readonly string[] SrOrbMetalLayers = { "sr_orb_metal_base", "sr_orb_metal_band", "sr_orb_metal_spec" };
         /// <summary>정본 6574 `.sr-cell[data-mat=glass] .sr-orb` 다섯 겹(아래→위) — 구체 본체 + 속 빈 코어 + 코스틱(런타임 --rc-lite) + 터미네이터 + 날카로운 스페큘러. T178 48회차.</summary>
         public static readonly string[] SrOrbGlassLayers = { "sr_orb_glass_base", "sr_orb_glass_core", "sr_orb_glass_caustic", "sr_orb_glass_term", "sr_orb_glass_spec" };
+        /// <summary>
+        /// 정본 6612 `.sr-cell[data-mat=gem] .sr-orb` 다섯 겹(**아래→위**) — 구체 본체 + **패싯(conic)** + 터미네이터 + 돔 하이라이트 + 좁은 스페큘러.
+        /// 정본 주석이 «배경 레이어는 먼저 적은 것이 위라 순서가 곧 처방이다» 라고 못 박았다: 패싯 **위**에 터미네이터·돔이 와야
+        /// 가운데가 매끄러운 구로 돌아오고 수렴 흔적이 어둠에 덮인다. T178 49회차.
+        /// </summary>
+        public static readonly string[] SrOrbGemLayers = { "sr_orb_gem_base", "sr_orb_gem_facet", "sr_orb_gem_term", "sr_orb_gem_dome", "sr_orb_gem_spec" };
 
         /// <summary>
         /// T178 41회차 — <see cref="FillFace"/> 인데 **면의 크기가 아직 0** 인 자리(배치를 부르는 쪽이 뒤에 하는 버튼 · 레이아웃이 폭을 주는 버튼)는
@@ -867,6 +895,14 @@ namespace Forge.Game.Ui
         /// 방사형 한 장(정본 `radial-gradient(ellipse RX% RY% at CX% CY%, …)`). 타원 좌표에서 잰 거리(0 = 중심 · 1 = 반지름 끝)를
         /// 그대로 정지점 t 로 쓴다 — CSS 도 «반지름 = 100%» 로 잰다. 상자 밖으로 나가는 부분은 마지막 정지점 색(대개 투명)이다.
         /// </summary>
+        /// <summary>겹 꼴에 따라 화소를 굽는다 — `radial` · `conic` · 그 밖(선형). 갈래를 **한 자리**에 모아 둔 것이다(T178 49회차 · 전엔 넷에 흩어져 있었다).</summary>
+        static Color32[] ShapePixels(string key, int w, int h, Color[] col, float[] pos, float lineLenCanvasPx)
+        {
+            if (IsRadial(key)) return RadialPixels(key, w, h, col, pos);
+            if (IsConic(key)) return ConicPixels(key, w, h, col, pos);
+            return LinearPixels(key, w, h, col, pos, lineLenCanvasPx);
+        }
+
         static Color32[] RadialPixels(string key, int w, int h, Color[] col, float[] pos)
         {
             float cx, cy, rx, ry;
@@ -886,6 +922,35 @@ namespace Forge.Game.Ui
             return px;
         }
 
+        /// <summary>
+        /// 원뿔형 겹의 화소 — 원점에서 본 **방위각**을 0~1 로 돌려 <see cref="Sample"/> 에 먹인다.
+        /// CSS `conic-gradient` 는 **12시에서 시계방향**이고 `from` 이 그 시작을 돌린다(정본 6612 는 `from 132deg at 88% 96%`).
+        /// 정지점은 `offsets` 에 **도÷360** 으로 적는다 — 하드 스톱(`c A B`)은 같은 색을 A·B 두 칸에 적어 평평한 띠가 된다.
+        /// ⚠ 원점이 상자 **밖**일 수 있다(정본이 바람개비를 없애려 88% 96% 로 뺀 것이 처방의 본체다) — 그래서 반지름을 안 쓴다.
+        /// T178 49회차.
+        /// </summary>
+        static Color32[] ConicPixels(string key, int w, int h, Color[] col, float[] pos)
+        {
+            float cx, cy, fromDeg;
+            Conic(key, out cx, out cy, out fromDeg);
+            Color32[] px = new Color32[w * h];
+            for (int y = 0; y < h; y++)
+            {
+                float py = h - 0.5f - y;                        // 텍스처는 아래가 0행 · CSS 는 위가 0
+                for (int x = 0; x < w; x++)
+                {
+                    float dx = (x + 0.5f) / w - cx;
+                    float dy = py / h - cy;                     // CSS 좌표(아래로 +)
+                    // 12시에서 시계방향 = atan2(dx, -dy) · `from` 만큼 되돌린다
+                    float deg = Mathf.Atan2(dx, -dy) * Mathf.Rad2Deg - fromDeg;
+                    deg -= 360f * Mathf.Floor(deg / 360f);      // [0, 360)
+                    Color c = Sample(col, pos, deg / 360f);
+                    px[y * w + x] = Byte4(c);
+                }
+            }
+            return px;
+        }
+
         /// <summary>그 겹을 <paramref name="parent"/> 를 꽉 채우게 얹는다(자리·크기는 부모가 쥔다 — 겹은 layout 을 안 바꾼다).</summary>
         public static Image Fill(RectTransform parent, string name, string key, float w, float h) { return Fill(parent, name, key, w, h, null); }
 
@@ -899,7 +964,7 @@ namespace Forge.Game.Ui
             //   `shape: "radial"` 겹(각도가 없다)을 «런타임 색» 길로 얹으면 `KeyNotFoundException` 이 터졌다 — 아래 `string` 오버로드(560행)는
             //   처음부터 갈래를 갈라 뒀는데 이쪽만 안 갈라져 있었다. 방사형 + 런타임 색이 처음 만난 자리가 `af_knob_gloss` 다(런 1042 · 빨강 17).
             float lineLen = 0f;
-            if (!IsRadial(key))
+            if (HasAngle(key))
             {
                 float rad2 = Angle(key) * Mathf.Deg2Rad;
                 lineLen = Mathf.Abs(w * Mathf.Sin(rad2)) + Mathf.Abs(h * Mathf.Cos(rad2));
@@ -916,7 +981,7 @@ namespace Forge.Game.Ui
             img.raycastTarget = false;
             img.type = Image.Type.Simple;
             float aspect = h > 0f ? w / h : 1f;
-            if (IsRadial(key)) img.sprite = Bake(key, aspect, 0f, overBaseLayer);       // 방사형은 각도·선 길이가 없다(T178 5회차)
+            if (!HasAngle(key)) img.sprite = Bake(key, aspect, 0f, overBaseLayer);      // 방사형·원뿔형은 각도·선 길이가 없다(T178 5·49회차)
             else
             {
                 float rad = Angle(key) * Mathf.Deg2Rad;

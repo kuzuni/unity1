@@ -2332,7 +2332,7 @@ namespace Forge.Tests.PlayMode
 
         /// <summary>
         /// T178 48회차 — 소환 구슬 재질 스택: 정본 6552 metal(등급 0·1) · 6574 glass(등급 2·3) 를 구슬 본체 면 위에 한 판으로 · 런타임 색 셋(rc-lite 목표 휘도 · rc · rc-deep −.62)은 SummonOrbRules.
-        /// gem(등급 4·5 · conic)은 아직 판이 없다 — 원판 셋 그대로.
+        /// gem(등급 4·5 · conic)은 49회차가 이었다 — 아래 «보석» 칸이 그것을 쥔다.
         /// </summary>
         [UnityTest]
         public IEnumerator 소환_구슬_금속과_유리_재질_스택이_한_판으로_선다()
@@ -2382,6 +2382,92 @@ namespace Forge.Tests.PlayMode
             }
             Assert.AreEqual(1, metal, "등급 0 = metal 하나"); Assert.AreEqual(1, glass, "등급 2 = glass 하나");
             v.Close();
+            yield return null;
+        }
+
+        /// <summary>
+        /// T178 49회차 — 보석 재질(정본 6612 `[data-mat=gem]` · 등급 4·5). 48회차가 못 굽던 까닭은 넷째 겹이 **conic** 이어서다:
+        /// `SurfaceArt` 에 `shape: "conic"`(원점에서 본 방위각 · `from_deg` · 하드 스톱) 길을 내고 다섯 겹을 이었다.
+        /// 재는 것: ⓐ 패싯이 conic 이고 원점·시작각이 정본 수다 ⓑ 열한 구간이 **하드 스톱**(같은 색 두 칸)이다
+        /// ⓒ **원점이 구 밖**이다 — 정본 주석이 «원점을 구 안으로 되돌리지 말 것, 지수가 즉시 되돌아간다» 로 못 박은 바람개비 처방의 본체
+        /// ⓓ 보석 구슬에 다섯 겹 판이 서고 런타임 색 셋이 붙는다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 소환_구슬_보석_재질은_구_밖_원점의_conic_패싯을_쓴다()
+        {
+            PetSkillHost.SuppressSave = true;
+            PetSkillHost.Seed = 20261126;
+            yield return Boot();
+
+            // ⓐ 꼴과 수
+            Assert.IsTrue(SurfaceArt.IsConic("sr_orb_gem_facet"), "패싯은 conic");
+            Assert.IsFalse(SurfaceArt.HasAngle("sr_orb_gem_facet"), "conic 은 angle_deg 를 안 쓴다(선형 길로 가면 안 된다)");
+            Assert.IsTrue(SurfaceArt.IsRadial("sr_orb_gem_base") && SurfaceArt.IsRadial("sr_orb_gem_term")
+                          && SurfaceArt.IsRadial("sr_orb_gem_dome") && SurfaceArt.IsRadial("sr_orb_gem_spec"), "나머지 넷은 방사");
+            float cx, cy, from;
+            SurfaceArt.Conic("sr_orb_gem_facet", out cx, out cy, out from);
+            Assert.AreEqual(0.88f, cx, 1e-4f, "원점 x 88%"); Assert.AreEqual(0.96f, cy, 1e-4f, "원점 y 96%");
+            Assert.AreEqual(132f, from, 1e-4f, "from 132deg");
+
+            // ⓑ 열한 구간 하드 스톱 — 22칸이고 두 칸씩 같은 색이며 띠 경계가 정본 도수다
+            Color[] c; float[] o;
+            SurfaceArt.Stops("sr_orb_gem_facet", out c, out o);
+            Assert.AreEqual(22, c.Length, "열한 구간 × 시작·끝");
+            Assert.AreEqual(22, o.Length);
+            for (int i = 0; i < 22; i += 2)
+            {
+                Assert.AreEqual(c[i].a, c[i + 1].a, 1e-6f, "같은 띠는 알파가 같다 #" + (i / 2));
+                Assert.AreEqual(c[i].r, c[i + 1].r, 1e-6f, "같은 띠는 색이 같다 #" + (i / 2));
+                Assert.Less(o[i], o[i + 1] + 1e-6f, "띠는 시작 ≤ 끝 #" + (i / 2));
+            }
+            Assert.AreEqual(0f, o[0], 1e-6f, "첫 띠 0deg");
+            Assert.AreEqual(26f / 360f, o[1], 1e-5f, "첫 띠 끝 26deg");
+            Assert.AreEqual(1f, o[21], 1e-6f, "마지막 띠 끝 360deg");
+            Assert.AreEqual(0.15f, c[0].a, 1e-4f, "첫 띠 흰 .15");
+            Assert.AreEqual(0.08f, c[20].a, 1e-4f, "마지막 띠 흰 .08");
+
+            // ⓒ 원점이 **구 밖** — 구슬은 상자에 내접하는 원이라 반지름 .5 다
+            float d = Mathf.Sqrt((cx - 0.5f) * (cx - 0.5f) + (cy - 0.5f) * (cy - 0.5f));
+            Assert.Greater(d, 0.5f, "수렴 원점이 구 안에 있으면 쐐기가 한 점에서 갈라져 «바람개비» 가 된다(정본 주석 · 지수 0.175) — 원점 거리 " + d.ToString("0.000"));
+
+            // ⓓ 보석 구슬에 다섯 겹 판이 선다
+            float t0 = Time.realtimeSinceStartup;
+            while (!(SkillPetSheet.Instance != null && PetSkillHost.Ready) && Time.realtimeSinceStartup - t0 < 20f) yield return null;
+            Assert.IsTrue(PetSkillHost.Ready, "소환 호스트가 20초 안에 안 섰다");
+            var defs = PetSkillHost.Instance.Data.Defs;
+            Assert.GreaterOrEqual(defs.Rarities.Length, 5, "보석 등급(4)이 있다");
+            string rGem = defs.Rarities[4];
+            var list = new System.Collections.Generic.List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:g", IconKey = "sk_fireball", Rarity = rGem, Name = "보석" },
+            };
+            SkillSummonResultView v2 = SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, rGem, null);
+            Assert.IsNotNull(v2, "소환 결과 뷰");
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            int gem = 0;
+            foreach (RectTransform rt in v2.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name != "sr-orb" || rt.parent == null || rt.parent.name != "sr-orbwrap") continue;
+                Transform g = rt.Find("bg-grad"); Assert.IsNotNull(g, "보석 구슬에도 재질 판이 선다(48회차엔 없었다)");
+                Sprite gs = g.GetComponent<Image>().sprite; Assert.IsNotNull(gs, "재질 판");
+                string tn = gs.texture.name;
+                Assert.IsTrue(tn.Contains("sr_orb_gem_base+sr_orb_gem_facet+sr_orb_gem_term+sr_orb_gem_dome+sr_orb_gem_spec"),
+                              "다섯 겹 아래→위 순서(패싯 위에 터미네이터·돔): " + tn);
+                Assert.IsTrue(tn.Contains("-V"), "런타임 색 셋이 이름에 붙는다(stopOverride): " + tn);
+                Transform hi = rt.parent.Find("sr-hilite");
+                Assert.IsNotNull(hi, "근사 하이라이트 자리는 남는다");
+                Assert.IsFalse(hi.GetComponent<Image>().enabled, "판이 선 재질은 원판 하이라이트를 끈다");
+                Texture2D tx = gs.texture; Color32[] px = tx.GetPixels32(); int W = tx.width, H = tx.height;
+                float Lum2(Color32 k) { return k.r * 0.2126f + k.g * 0.7152f + k.b * 0.0722f; }
+                Assert.Greater(Lum2(px[(int)(H * 0.82f) * W + (int)(W * 0.30f)]),
+                               Lum2(px[(int)(H * 0.12f) * W + (int)(W * 0.86f)]) + 40f,
+                               "광원 쪽(왼쪽 위)이 터미네이터 쪽(오른쪽 아래)보다 훨씬 밝다 — 패싯이 구면 음영을 덮어 버리면 이 줄이 먼저 떨어진다");
+                Assert.AreEqual(255, px[(int)(H * 0.5f) * W + W / 2].a, "본체는 불투명");
+                gem++;
+            }
+            Assert.AreEqual(1, gem, "등급 4 = gem 하나");
+            v2.Close();
             yield return null;
         }
 

@@ -2479,14 +2479,15 @@ namespace Forge.Game.Ui
         /// T178 48회차 — 소환 구슬 **재질 스택**(정본 6552 `[data-mat=metal]` · 6574 `[data-mat=glass]` · ui.js 292 SR_MATERIAL 등급 → 재질). 정지점 셋이 런타임 색이다:
         /// `--rc` 등급색 · `--rc-lite` = srHilite(rc, tier)(SummonFxUi tier.hilite_luma 목표 휘도로 흰색 쪽 · SummonOrbRules) · `--rc-deep` = srShade(rc, −.62)(tier.orb_deep_shade).
         /// 셋 다 T342 의 등급 filter(OrbFilter · saturate·brightness 는 채널 선형이라 정지점에 걸어도 같은 그림)를 거쳐 겹판(BakeFace + stopOverride)에 끼운다 · 면 = 구슬 본체 rect · 바탕은 본체 색.
-        /// gem(6611)은 conic 겹이라 굽는 길이 아직 없다 — false 를 돌려주고 종전 원판 셋을 그대로 둔다(다음 회차).
+        /// gem(6612)은 **conic 패싯** 겹이라 48회차엔 굽는 길이 없어 false 를 돌려줬다 — 49회차가 `SurfaceArt` 에 `shape: "conic"`(원점에서 본 방위각 · `from_deg`) 길을 내고 이었다.
         /// </summary>
         static bool OrbPlate(Image orb, int tier, Color rc)
         {
             JsonObject tierTab = J.Obj(SummonFxStyle.Root["tier"]);
             List<object> mats = J.Arr(J.Require(tierTab, "material"));
             string mat = J.Str(mats[Mathf.Clamp(tier, 0, mats.Count - 1)]) ?? "metal";
-            string[] layers = mat == "metal" ? SurfaceArt.SrOrbMetalLayers : mat == "glass" ? SurfaceArt.SrOrbGlassLayers : null;
+            string[] layers = mat == "metal" ? SurfaceArt.SrOrbMetalLayers : mat == "glass" ? SurfaceArt.SrOrbGlassLayers
+                            : mat == "gem" ? SurfaceArt.SrOrbGemLayers : null;   // T178 49회차 — gem(6612)은 conic 패싯 겹이라 `SurfaceArt.IsConic` 길이 서야 굽혔다
             if (layers == null) return false;
             double[] luma = J.NumArr(J.Require(tierTab, "hilite_luma"));
             double want = luma[Mathf.Clamp(tier, 0, luma.Length - 1)];
