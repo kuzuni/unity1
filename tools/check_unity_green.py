@@ -65,6 +65,54 @@ def _git(args, cwd=ROOT):
         return 127, str(e)
 
 
+def tracks_screens(remote='origin', branch='screens'):
+    """`remote.origin.fetch` 가 그 가지를 **추적**하는가 (T489 · 순수 git 조회).
+
+    `git clone --depth 1` 은 **단일 가지 clone** 이라 그 값이 `+refs/heads/main:refs/remotes/origin/main`
+    하나뿐이다. 그 상태에서는 `git fetch origin screens` 를 **해도** `refs/remotes/origin/screens` 가 안 생긴다
+    (`FETCH_HEAD` 만 갱신된다) — 그래서 `git show origin/screens:meta.json` 이 계속 «invalid object name» 이다.
+    """
+    rc, out = _git(['config', '--get-all', 'remote.%s.fetch' % remote])
+    return rc == 0 and fetch_tracks(out, branch)
+
+
+def fetch_tracks(config_out, branch='screens'):
+    """`remote.<x>.fetch` 값들(여러 줄)이 그 가지를 **추적**하는가 — 순수 함수 (T489).
+
+    `+refs/heads/*:refs/remotes/origin/*`(온전한 clone)이면 전부 추적하고,
+    `+refs/heads/main:refs/remotes/origin/main` 하나뿐이면(`--depth 1`) `screens` 는 **안** 추적한다.
+    """
+    for line in (config_out or '').split('\n'):
+        line = line.strip()
+        if not line:
+            continue
+        if line.endswith('/*') or ('refs/heads/%s:' % branch) in line:
+            return True
+    return False
+
+
+def fetch_screens(remote='origin', branch='screens'):
+    """`--fetch` 의 알맹이 — **못 읽으면 스스로 추적 설정을 고치고 다시 받는다** (T489).
+
+    종전엔 `git fetch origin screens` 한 줄이었고, 얕은 clone 에서는 그것이 **아무 효과가 없는데도**
+    자는 «먼저 `git fetch origin screens` · 그래도 없으면 유니티 잡이 한 번도 안 돈 것이다» 라고 말했다 —
+    곧 **사람에게 효과 없는 명령을 시키고, 그 뒤 틀린 결론을 권했다**(실측 2026-11-26: 런 #1320 이 32분 전에
+    초록이었는데 «한 번도 안 돈 것» 으로 읽혔다). 이제 그 한 줄을 자가 가져간다.
+    (True, 무엇을 했는지) 를 준다 — 고친 적이 있으면 둘째 값이 비지 않는다.
+    """
+    _git(['fetch', remote, branch])
+    if read_meta() is not None:
+        return True, ''
+    if tracks_screens(remote, branch):
+        return False, ''        # 추적은 하는데 못 읽는다 = 진짜로 가지가 없거나 비었다
+    # T489 ⓐ — 추적 설정에 그 가지가 없다: **한 번만** 더해 주고 다시 받는다(사람을 안 시킨다).
+    _git(['config', '--add', 'remote.%s.fetch' % remote,
+          '+refs/heads/%s:refs/remotes/%s/%s' % (branch, remote, branch)])
+    _git(['fetch', remote, branch, '--depth=1'])
+    ok = read_meta() is not None
+    return ok, ('remote.%s.fetch 에 %s 추적을 더하고 다시 받았다' % (remote, branch))
+
+
 def read_meta(ref=REF):
     """screens 브랜치의 meta.json 을 읽어 dict 를 준다. 없으면 None."""
     rc, out = _git(['show', ref + ':meta.json'])
@@ -1465,8 +1513,15 @@ def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None, blocke
     """순수 판정 — (rc, 줄 목록). 네트워크·git 없이 자기 검사할 수 있게 갈라 둔다."""
     out = []
     if meta is None:
-        return 1, ['✗ check_unity_green: `%s:meta.json` 을 못 읽었다 — 유니티 판정의 근거가 없다'
-                   '(먼저 `git fetch origin screens` · 그래도 없으면 유니티 잡이 한 번도 안 돈 것이다)' % REF]
+        return 1, ['✗ check_unity_green: `%s:meta.json` 을 못 읽었다 — 유니티 판정의 근거가 없다' % REF,
+                   '  까닭은 **둘 중 하나**다(T489 — 하나로 단정하지 않는다):',
+                   '    ⓐ 이 clone 이 `screens` 를 **추적하지 않는다** — `git clone --depth 1` 은 단일 가지라'
+                   ' `git fetch origin screens` 를 **해도** `refs/remotes/origin/screens` 가 안 생긴다.'
+                   ' 고침: `git config --add remote.origin.fetch \'+refs/heads/screens:refs/remotes/origin/screens\''
+                   ' && git fetch origin screens --depth=1` (`--fetch` 로 부르면 자가 **스스로** 한다).',
+                   '    ⓑ 유니티 잡이 **한 번도 안 돌았다**(갓 만든 레포·시크릿 없음).',
+                   '  ⚠ ⓐ 를 ⓑ 로 읽으면 멀쩡한 CI 를 «죽었다» 로 등재하거나 판정을 건너뛴다(2026-11-26 실측:'
+                   ' 런 #1320 이 32분 전 초록이었는데 그렇게 읽혔다).']
 
     tests = str(meta.get('tests', '?'))
     run = meta.get('run', '?')
@@ -1549,6 +1604,22 @@ def self_test():
         cells[0] += 1
         if got != want:
             fails.append('%s: 얻은 값 %r ≠ 바란 값 %r' % (name, got, want))
+
+    # T489 — 얕은 clone 이 `screens` 를 추적조차 안 하는 것을 가린다(순수 셈이라 git 없이 잰다).
+    eq('T489 ⓐ 온전한 clone 은 추적한다',
+       fetch_tracks('+refs/heads/*:refs/remotes/origin/*'), True)
+    eq('T489 ⓑ `--depth 1` 단일 가지는 screens 를 **안** 추적한다',
+       fetch_tracks('+refs/heads/main:refs/remotes/origin/main'), False)
+    eq('T489 ⓒ 줄을 더해 두면 추적한다',
+       fetch_tracks('+refs/heads/main:refs/remotes/origin/main\n'
+                    '+refs/heads/screens:refs/remotes/origin/screens'), True)
+    eq('T489 ⓓ 빈 설정은 추적이 아니다', fetch_tracks(''), False)
+    # T489 ⓔ — 못 읽었을 때 **두 갈래를 다 말한다**(«한 번도 안 돌았다» 로 단정하지 않는다).
+    _rc, _out = judge(None)
+    _txt = '\n'.join(_out)
+    eq('T489 ⓔ rc 1', _rc, 1)
+    eq('T489 ⓕ 추적 갈래를 말한다', 'remote.origin.fetch' in _txt, True)
+    eq('T489 ⓖ 안 돈 갈래도 같이 말한다', '한 번도 안 돌았다' in _txt, True)
 
     # ⓐ 초록
     rc, out = judge({'sha': 'a' * 40, 'run': 100, 'tests': 'success', 'missing_modes': ''}, True, 0)
@@ -2307,8 +2378,11 @@ def main(argv):
             return 2
         i += 1
 
+    healed = ''
     if do_fetch:
-        _git(['fetch', 'origin', 'screens'])
+        _ok, healed = fetch_screens()      # T489 — 못 읽으면 추적 설정을 스스로 고치고 다시 받는다
+        if healed:
+            print('  ⚑ T489 — `origin/screens` 를 못 읽어 **%s**(얕은 clone 은 그 가지를 추적조차 안 한다).' % healed)
 
     meta = read_meta(ref)
     anc, n_after = behind(meta.get('sha') if meta else None)
