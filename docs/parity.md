@@ -2807,3 +2807,24 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - **닫힌 번호 2**: T488 ✅ · **T489 ✅**(19:0x 등재 → 한 시간 만에 닫힘).
 - **새 번호 0 · 결함 0**(막는 자 빨강 하나는 표 글자라 결함이 아니라 **수리**다).
 - **§0-6 기록**: 런 1323 초록 · 코드 커밋 1(T490 ⓐ)의 판정 런은 아직 없다.
+
+## 73회차 — 축 = 정본 `transition` 19 + `animation-duration` 3 (2026-11-26 21:3x~21:5x · 워커 K · sess-2133-40981)
+
+39회차가 «남은 축» 으로 적어 둔 둘이다. 세는 법은 39회차 규칙 그대로 — 주석을 **길이 보존**으로 지우고 속성 경계 `(?<![-\w])transition\s*:` 로 센다(`transition-duration` 은 0건 · `grep -c "transition"` 으로 세면 `transition-delay`·주석까지 든다).
+
+**결과: 19 중 ✓ 16 · ⛔ 1 · 결함 2 · 새 번호 1(T492)** · `animation-duration` 3 은 **전부 ✓**.
+
+| 갈래 | 정본 자리(줄) | 클론 자리 | 판정 |
+|---|---|---|---|
+| 누름 피드백 6 | 213 `.ob-chest` .1s · 4301 `.pet-tile .tile-face` .08s · 7743 `.equip-cell:not(.egg-cell)` .08s · 4974 `.af-check` .07s · 5000 `.af-sub-row` .07s · 5009 `.af-spinner` .07s | `PressFxUi.json` `offline_chest`·`pet_tile`·`equip_cell`·`af_check`·`af_sub_row`·`af_spinner`(`ms` 100·80·80·70·70·70) | ✓ 6 (T355) |
+| 패널 슬라이드 1 | 642 `.panel` transform .22s ease-out | `PressFxUi.json` `panel_slide { ms: 220 · dy_pct: 105 }` | ✓ 1 |
+| 토글 손잡이 3 | 3113 `.settings-toggle::after` left .15s · 4766·4992 `.af-toggle .knob` left .15s(4766 은 4992 가 덮는다) | `TransitionUi.json` `toggle` 150 · `af-toggle` 150 ease-out | ✓ 3 (T454) |
+| 페이드 5 | 1936 `.toast` all .25s · 7563 `#toasts` opacity .25s · 7558 `.rw-tick` opacity .25s · **7542 `.rw-anchor` opacity .32s** · **5968 `.sr-stars` opacity .6s** | `TransitionUi.toast_in` 250 ✓ · `OpacityUi.toasts_rw_dim.fade_ms` 250 ✓ · `RewardBurstUi.tick_fade_ms` 250 + `tick_fade_ease` ✓ · **없다 → T492 ⓐ** · `SummonFxUi.stars_fade_ms` 600(길이 ✓) **이징 없다 → T492 ⓑ** | ✓ 3 · ✗ 2 |
+| 배경 4 | 5398 `.modal.dgclear-out` background .55s · 7150 `.done` + 7168 `.done .sr-halo` background .5s · **5655 `#summon-result-modal` background .4s** | `DungeonFxUi.dim_out_ms` 550 ✓ · `TransitionUi.sr_bg_done` 500 ✓(두 자리 한 키) · **⛔ 덮여 안 닿는다** | ✓ 3 · ⛔ 1 |
+| `animation-duration` 3 | 5924 `.sr-canopy i:nth-child(1)` 3.8s · 5925 `:nth-child(3)` 4.6s · 7532 `.rw-pop-sm` .28s | `SummonFxUi.ray_side1_period_s` 3.8 · `ray_side3_period_s` 4.6 · `RewardBurstUi.pop_sm_anim_ms` 280 | ✓ 3 |
+
+- **결함 ⓐ `.rw-anchor`**: 정본은 **두 수**다 — CSS 가 **320ms** 동안 지우고 `ui.js` 3657 이 **340ms** 에 노드를 뗀다. 클론은 `anchor_out_ms` **340 하나**로 합쳐 **제거에만** 썼다(`RewardBurst.cs:514` `endMs = outAtMs + s.AnchorOutMs` → `Destroy`). 알파는 입장 트랙(`rwAnchorIn`)만 따르고 `Run` 의 `pct` 가 100 에서 멎으므로 **알파 1 인 채 한 프레임에 사라진다**.
+- **결함 ⓑ `.sr-stars`**: 길이는 표에 있다(`stars_fade_ms` 600). 틀린 것은 **이징** — `SummonFx.cs:259` 가 `Clamp01(dt / .6)` 로 선형이라 정본 ease-out 이 **앞쪽에 몰아 켜는** 켜짐이 고르게 퍼진다(0.3s 알파 ≈.84 ↔ .50).
+- **⛔ `#summon-result-modal` .4s**: `ui.js` **473** 이 `className = 'modal'`(hidden 해제)을 하고 **같은 틱** 537~538 이 `--bg-pre-a/b` 를 넣으므로 첫 페인트에 전이가 없고, 보이는 동안 배경이 바뀌는 자리는 `.done` 하나인데 거기선 더 구체적인 **7150** 의 .5s 가 이긴다. **35·37·38회차의 «덮는 규칙·죽은 선언» 함정 네 번째 자리**.
+- **이 회차가 남긴 규칙**: **같은 연출의 두 수를 합치지 마라** — CSS 전이 길이와 JS 타이머가 다를 수 있고(320 ↔ 340), 하나로 합치면 **긴 쪽이 이기고 눈에 보이는 짧은 쪽이 사라진다**.
+- **남은 축**: `background-position` 21 + `background-size` 11(30회차가 무늬·덮기 위주로 한 번 봤다) · `animation-timing-function` 23 · `will-change` 3 · `backdrop-filter` 1 — CSS 속성 축의 **잔돈만** 남았다.
