@@ -1266,6 +1266,25 @@
     "offsets": [0, 0.72],
     "_": "style.css **6612** 첫(맨 위) 겹 — `radial-gradient(11% 8% at 35% 18%, #fff, 투명 72%)`: 보석의 스페큘러(금속 14% 11% · 유리 12% 9% 보다 더 좁다). T178 49회차."
   },
+  "sr_orb_gem_glint_bar_v": {
+    "angle_deg": 180,
+    "stops": [[255, 255, 255, 0], [255, 255, 255, 1], [255, 255, 255, 0]],
+    "offsets": [0.43, 0.5, 0.57],
+    "_": "style.css 6637 `.sr-cell[data-mat=\"gem\"] .sr-orb::before` 의 흰 막대 세로로 번지는 가로 띠(각도 없음 = CSS 기본 to bottom = 180도) — `linear-gradient(rgba(255,255,255,0) 43%, #fff 50%, rgba(255,255,255,0) 57%)`. 상자(본체의 left 20% / top 8% / 42% × 32%) 가운데를 가로지르는 한 줄이고, 이것 둘이 십자로 겹친 뒤 `sr_orb_gem_glint_mask` 가 네 끝을 지운다. 정본 background 목록은 먼저 적은 것이 위라 여기 배열(SrOrbGemGlintLayers)은 뒤집혀 있다. T178 54회차"
+  },
+  "sr_orb_gem_glint_bar_h": {
+    "angle_deg": 90,
+    "stops": [[255, 255, 255, 0], [255, 255, 255, 1], [255, 255, 255, 0]],
+    "offsets": [0.43, 0.5, 0.57],
+    "_": "style.css 6637 `.sr-cell[data-mat=\"gem\"] .sr-orb::before` 의 흰 막대 가로로 번지는 세로 띠 — `linear-gradient(90deg, rgba(255,255,255,0) 43%, #fff 50%, rgba(255,255,255,0) 57%)`. 상자(본체의 left 20% / top 8% / 42% × 32%) 가운데를 가로지르는 한 줄이고, 이것 둘이 십자로 겹친 뒤 `sr_orb_gem_glint_mask` 가 네 끝을 지운다. 정본 background 목록은 먼저 적은 것이 위라 여기 배열(SrOrbGemGlintLayers)은 뒤집혀 있다. T178 54회차"
+  },
+  "sr_orb_gem_glint_mask": {
+    "shape": "radial",
+    "cx": 0.5, "cy": 0.5, "rx": 0.5, "ry": 0.5,
+    "stops": [[0, 0, 0, 1], [0, 0, 0, 0.45], [0, 0, 0, 0]],
+    "offsets": [0, 0.38, 0.72],
+    "_": "style.css 6637 의 `mask-image: radial-gradient(closest-side, #000 0%, rgba(0,0,0,.45) 38%, rgba(0,0,0,0) 72%)` — **색은 뜻이 없고 알파만 쓰인다**(CSS mask-mode 기본이 alpha). `closest-side` 는 상자에 **내접하는 타원**이라 rx·ry 가 둘 다 0.5 다(상자가 42% × 32% 로 납작해도 정규 좌표에서는 반지름이 반반이다). 이 표에서 마스크를 쓰는 **첫 자리**다 — 그래서 `SurfaceArt.BakeMasked` 한 길을 새로 냈다(49회차의 conic 과 같은 꼴로 빠져 있던 길이다). 유니티 `Mask`(스텐실)로는 못 흉낸다: 38% 자리의 중간 알파 0.45 가 켜짐·꺼짐 둘로는 안 나온다. T178 54회차"
+  },
   "stripes": {
     "pet_tile_grain": { "angle_deg": 45, "period_css_px": 7, "dash_css_px": 2, "ink": "#ffffff0e", "gap": null, "_": "style.css **8124** `.pet-tile .tile-face` 넷째 겹(4288 셋째) — `repeating-linear-gradient(45deg, 흰 .055 0 2px, 투명 2px 7px)`: 타일 면의 미세 빗금(.055 ≈ 0x0e). BakeFace 의 `stripe:` 겹. T178 46회차." },
     "cell_hatch": {

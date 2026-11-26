@@ -75,6 +75,30 @@ namespace Forge.Core.Ui
             a = rgba[i][3] + (rgba[i + 1][3] - rgba[i][3]) * f;
         }
 
+        /// <summary>
+        /// T178 54회차 — **바탕이 투명한 채로** 겹을 얹는 길(straight alpha source-over · 정본이 `::before` 상자 안에서 겹 둘을 쌓는 꼴).
+        /// 위의 <see cref="OverSrgb"/> 는 «아는 불투명 바탕» 전용이라 알파를 품은 겹끼리는 못 쌓는다 — 그 자리가 이것이다.
+        /// 알파는 CSS 그대로 `aOut = aSrc + aDst(1 − aSrc)` 이고 색은 그 알파로 가중한 sRGB 바이트 평균이다(정본은 sRGB 에서 섞는다 · T357).
+        /// 알파가 0 이면 색은 뜻이 없으므로 바탕색을 그대로 남긴다(판정 자가 색을 읽을 때 쓰레기가 안 섞이게).
+        /// </summary>
+        public static void OverStraight(byte dstC, byte dstA, byte srcC, byte srcA, out byte outC, out byte outA)
+        {
+            double sa = srcA / 255.0, da = dstA / 255.0;
+            double oa = sa + da * (1.0 - sa);
+            outA = Clamp(oa * 255.0);
+            if (oa <= 0.0) { outC = dstC; return; }
+            outC = Clamp((srcC * sa + dstC * da * (1.0 - sa)) / oa);
+        }
+
+        /// <summary>
+        /// T178 54회차 — CSS `mask-image` 한 겹(정본은 마스크의 **알파**만 쓴다 · `mask-mode: alpha` 가 기본).
+        /// 그림의 알파에 마스크 알파를 곱한다 — 색은 안 건드린다.
+        /// </summary>
+        public static byte MaskAlpha(byte a, byte maskA)
+        {
+            return Clamp(a * (maskA / 255.0));
+        }
+
         /// <summary>정본이 그리는 최종 바이트 — 바탕색 위에 그 겹을 **sRGB 로** 얹은 값. 아는 바탕 위라면 이 값을 «불투명하게» 구워 얹으면 정본과 같아진다.</summary>
         public static void CompositeSrgb(byte[] baseRgb, double[] pos, double[][] rgba, double t, byte[] outRgb)
         {

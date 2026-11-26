@@ -183,6 +183,13 @@ TABLE = {
     # T178 48회차 — 구슬 재질 둘(6552 metal R+L+R · 6574 glass R 다섯 · 런타임 색 셋은 SummonOrbRules 로 셈해 BakeFace stopOverride 로 끼운다 · SkillSummonResult.OrbPlate) · gem(6611 conic)·글린트(6637)는 다음.
     '.sr-cell[data-mat="metal"] .sr-orb': ['Ui/SkillSummonResult.cs@OrbPlate'],
     '.sr-cell[data-mat="glass"] .sr-orb': ['Ui/SkillSummonResult.cs@OrbPlate'],
+    # T178 49회차 — gem(6611)은 conic 패싯 겹이라 `SurfaceArt.IsConic`·`ConicPixels` 한 길이 서야 굽혔다(표 sr_orb_gem_* 다섯 · 수렴 원점은 **구 밖** 0.88/0.96 · 하드 스톱 열한 띠).
+    #   ⚠ 49회차가 짝을 여기 안 적어 미정으로 남아 있었다 — 54회차가 걷었다(코드는 49회차 것이고 이 줄만 늦었다).
+    '.sr-cell[data-mat="gem"] .sr-orb': ['Ui/SkillSummonResult.cs@OrbPlate'],
+    # T178 54회차 — 보석 반짝임(6637): 흰 막대 둘(L L)이 십자로 겹치고 `mask-image` 방사 램프(R)가 네 끝을 지운다.
+    #   이 표에서 **마스크를 쓰는 첫 자리**라 `SurfaceArt.BakeMasked`(알파를 품은 채 쌓고 마스크 알파를 곱한다) 한 길이 새로 섰다 —
+    #   UGUI `Mask`(스텐실)로는 38% 자리의 중간 알파 .45 를 못 낸다. `-webkit-` 접두 갈래는 같은 선언이다.
+    '.sr-cell[data-mat="gem"] .sr-orb::before': ['Ui/SkillSummonResult.cs@OrbPlate'],
     '.sr-orb': '—정본 6495 기본 구슬 스택은 ui.js 428 `data-mat=srMaterial(rarity)`(SR_MATERIAL 표 · 빠지면 metal)이 **모든 셀**에 재질을 주어 6552/6574/6611 이 늘 덮는다 — 실제로 서는 값이 없다 · 재질 셋은 다음 회차 — 47회차',
     '.qst-bar i': '—정본 8806 `.qst-bar i { background: #4fc3f7 }`(aaa-skin ⓖ) 이 2044 의 두 겹을 단색으로 끈다 — 6·10회차의 qst-fill-grad·rim 을 39회차가 걷었다 · 채움 = catalog quest_bar 한 칸',
     '.qst-row.done .qst-bar i': '—정본 8807 `… { background: #81e884 }`(aaa-skin ⓖ) 이 2047 의 두 겹을 단색으로 끈다 — 39회차가 걷었다 · 채움 = catalog quest_bar_done 한 칸',

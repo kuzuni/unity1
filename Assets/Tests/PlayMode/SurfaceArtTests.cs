@@ -2393,6 +2393,75 @@ namespace Forge.Tests.PlayMode
         /// ⓒ **원점이 구 밖**이다 — 정본 주석이 «원점을 구 안으로 되돌리지 말 것, 지수가 즉시 되돌아간다» 로 못 박은 바람개비 처방의 본체
         /// ⓓ 보석 구슬에 다섯 겹 판이 서고 런타임 색 셋이 붙는다.
         /// </summary>
+        /// <summary>
+        /// T178 54회차 — 정본 6637 `.sr-cell[data-mat="gem"] .sr-orb::before`: 흰 막대 둘이 **십자**로 겹치고
+        /// `mask-image: radial-gradient(closest-side, #000 0%, rgba(0,0,0,.45) 38%, rgba(0,0,0,0) 72%)` 가 네 끝을 지운다.
+        /// 이 자가 보는 것은 **표의 값**과 **구운 화소**다 — 실물 배선(본체 자식 · 42% × 32% 자리)은 위 보석 자의 ⓔ 가 본다.
+        /// ⚠ 이 표에서 마스크를 쓰는 첫 자리라 `SurfaceArt.BakeMasked` 가 새로 섰다(스텐실 `Mask` 로는 중간 알파 .45 를 못 낸다).
+        /// </summary>
+        [Test]
+        public void 소환_구슬_보석_반짝임은_흰_십자를_타원_알파_마스크로_지운다()
+        {
+            // ⓐ 표 — 막대 둘과 마스크 하나
+            Assert.AreEqual(2, SurfaceArt.SrOrbGemGlintLayers.Length, "막대 둘");
+            Assert.AreEqual(180f, SurfaceArt.Angle("sr_orb_gem_glint_bar_v"), 1e-4f, "각도 없는 CSS 기본 = to bottom = 180도");
+            Assert.AreEqual(90f, SurfaceArt.Angle("sr_orb_gem_glint_bar_h"), 1e-4f, "90deg");
+            foreach (string bar in SurfaceArt.SrOrbGemGlintLayers)
+            {
+                Color[] bc; float[] bo;
+                SurfaceArt.Stops(bar, out bc, out bo);
+                Assert.AreEqual(3, bo.Length, bar + " 정지점 셋");
+                Assert.AreEqual(0.43f, bo[0], 1e-4f, bar + " 43%");
+                Assert.AreEqual(0.5f, bo[1], 1e-4f, bar + " 50%");
+                Assert.AreEqual(0.57f, bo[2], 1e-4f, bar + " 57%");
+                Assert.AreEqual(0f, bc[0].a, 1e-4f, bar + " 양끝은 투명");
+                Assert.AreEqual(0f, bc[2].a, 1e-4f, bar + " 양끝은 투명");
+                Assert.AreEqual(1f, bc[1].a, 1e-4f, bar + " 가운데는 흰 불투명");
+                Assert.AreEqual(1f, bc[1].r, 1e-4f, bar + " #fff");
+            }
+            Assert.IsTrue(SurfaceArt.IsRadial(SurfaceArt.SrOrbGemGlintMask), "closest-side 타원 = 방사형");
+            Assert.IsFalse(SurfaceArt.HasAngle(SurfaceArt.SrOrbGemGlintMask), "마스크엔 각도가 없다");
+            Color[] mc; float[] mo;
+            SurfaceArt.Stops(SurfaceArt.SrOrbGemGlintMask, out mc, out mo);
+            Assert.AreEqual(3, mo.Length, "마스크 정지점 셋");
+            Assert.AreEqual(0f, mo[0], 1e-4f, "0%");
+            Assert.AreEqual(0.38f, mo[1], 1e-4f, "38%");
+            Assert.AreEqual(0.72f, mo[2], 1e-4f, "72%");
+            Assert.AreEqual(1f, mc[0].a, 1e-4f, "가운데는 다 보인다");
+            Assert.AreEqual(0.45f, mc[1].a, 1e-4f, "38% 에서 .45 — **중간 알파**라 스텐실로는 못 낸다");
+            Assert.AreEqual(0f, mc[2].a, 1e-4f, "72% 밖은 지워진다");
+
+            // ⓑ 구운 화소 — 상자는 정본 비율 그대로 42 × 32
+            Sprite sp = SurfaceArt.BakeMasked(SurfaceArt.SrOrbGemGlintLayers, SurfaceArt.SrOrbGemGlintMask, 42f, 32f);
+            Assert.IsNotNull(sp, "구운 판");
+            Texture2D tx = sp.texture;
+            int W = tx.width, H = tx.height;
+            Color32[] px = tx.GetPixels32();
+            System.Func<float, float, Color32> at = (fx, fy) =>
+                px[Mathf.Clamp((int)((1f - fy) * H), 0, H - 1) * W + Mathf.Clamp((int)(fx * W), 0, W - 1)];   // fy = CSS 기준 «위에서»
+            Color32 mid = at(0.5f, 0.5f);
+            Assert.Greater(mid.a, 250, "십자 가운데 = 막대 둘 + 마스크 1.0 이라 거의 불투명");
+            Assert.AreEqual(255, mid.r, "흰색이다");
+            Assert.AreEqual(255, mid.g, "흰색이다");
+            Assert.AreEqual(255, mid.b, "흰색이다");
+            Color32 arm = at(0.30f, 0.5f), offArm = at(0.30f, 0.30f);
+            Assert.Greater(arm.a, 0, "가로 팔은 남는다");
+            Assert.AreEqual(0, offArm.a, "팔 밖은 비어 있다 — 이것이 «십자»(얼룩이 아니다)라는 증거다");
+            Assert.Greater(mid.a, arm.a, "가운데가 팔보다 진하다(마스크가 밖으로 갈수록 지운다)");
+            Assert.AreEqual(0, at(0.02f, 0.02f).a, "왼위 모서리는 72% 밖 — 지워진다");
+            Assert.AreEqual(0, at(0.98f, 0.98f).a, "오른아래 모서리도");
+            Assert.AreEqual(0, at(0.01f, 0.5f).a, "상자 왼쪽 가장자리는 마스크 반지름 끝(r ≈ 1)이라 막대 위라도 0 이다");
+            // 팔을 따라 바깥으로 갈수록 옅어진다(마스크 램프) — 같아도 되지만 올라가면 안 된다
+            int prev = 256;
+            for (float f = 0.5f; f <= 0.86f; f += 0.06f)
+            {
+                int a2 = at(f, 0.5f).a;
+                Assert.LessOrEqual(a2, prev, "팔은 바깥으로 갈수록 옅어진다 (x=" + f.ToString("0.00") + ")");
+                prev = a2;
+            }
+            Assert.AreEqual(0, prev, "팔 끝은 다 지워졌다");
+        }
+
         [UnityTest]
         public IEnumerator 소환_구슬_보석_재질은_구_밖_원점의_conic_패싯을_쓴다()
         {
@@ -2465,6 +2534,19 @@ namespace Forge.Tests.PlayMode
                                Lum2(px[(int)(H * 0.12f) * W + (int)(W * 0.86f)]) + 40f,
                                "광원 쪽(왼쪽 위)이 터미네이터 쪽(오른쪽 아래)보다 훨씬 밝다 — 패싯이 구면 음영을 덮어 버리면 이 줄이 먼저 떨어진다");
                 Assert.AreEqual(255, px[(int)(H * 0.5f) * W + W / 2].a, "본체는 불투명");
+                // ⓔ T178 54회차 — 정본 6637 `::before` 반짝임이 본체 **자식**으로 선다(자리는 CSS 그대로 left 20% · top 8% · 42% × 32%).
+                Transform glt = rt.Find("sr-glint");
+                Assert.IsNotNull(glt, "보석 구슬에 반짝임 상자가 선다");
+                RectTransform grt = (RectTransform)glt;
+                float bodyW = rt.rect.width, bodyH = rt.rect.height;
+                Assert.AreEqual(0.42f, grt.rect.width / bodyW, 0.02f, "너비 42%");
+                Assert.AreEqual(0.32f, grt.rect.height / bodyH, 0.02f, "높이 32%");
+                Assert.AreEqual(0.41f, grt.anchorMin.x, 0.005f, "가운데 x = left 20% + 42%/2");
+                Assert.AreEqual(0.76f, grt.anchorMin.y, 0.005f, "가운데 y = 위에서 8% + 32%/2 를 아래 기준으로");
+                Sprite gsp = glt.GetComponent<Image>().sprite;
+                Assert.IsNotNull(gsp, "반짝임 판");
+                Assert.IsTrue(gsp.texture.name.Contains("@sr_orb_gem_glint_mask"),
+                              "알파 마스크로 구운 판이다(UGUI 스텐실 Mask 가 아니다): " + gsp.texture.name);
                 gem++;
             }
             Assert.AreEqual(1, gem, "등급 4 = gem 하나");

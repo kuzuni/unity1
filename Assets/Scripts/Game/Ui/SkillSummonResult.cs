@@ -2503,6 +2503,15 @@ namespace Forge.Game.Ui
             RectTransform prt = ort.parent as RectTransform;
             float side = prt != null ? prt.sizeDelta.x - ort.offsetMin.x + ort.offsetMax.x : ort.rect.width;   // 래퍼 한 변 − 본체 인셋(좌하 +4% · 우상 −9%)
             SurfaceArt.FillFace(orb, "bg-grad", null, layers, fr, side, side, ov);
+            // T178 54회차 — 정본 6637 `.sr-cell[data-mat="gem"] .sr-orb::before`: 보석에만 흰 막대 둘이 **십자**로 겹치고 타원 알파 마스크가 네 끝을 지운다.
+            //   자리는 CSS 그대로 — 본체 상자의 `left 20% · top 8% · 42% × 32%` ⇒ 가운데가 (41%, 위에서 24%) 라 UGUI 앵커는 (0.41, 0.76).
+            //   ⚑ 위 `FillFace` 가 본체에 `Mask` 를 붙이므로 이 상자의 왼위 모서리(원 밖 r ≈ 0.516)는 **잘린다** — 마스크 램프가 72% 밖을 이미 0 으로 지워
+            //     정본과 눈으로 같다(정본은 `.sr-orb` 에 overflow 가 없어 안 자른다 · 차이는 알파 0 인 자리뿐이다).
+            if (mat == "gem")
+            {
+                Image gl = SurfaceArt.FillAlphaMasked(ort, "sr-glint", SurfaceArt.SrOrbGemGlintLayers, SurfaceArt.SrOrbGemGlintMask, side * 0.42f, side * 0.32f);
+                UiKit.Anchor(gl.rectTransform, new Vector2(0.41f, 0.76f), new Vector2(0.5f, 0.5f), Vector2.zero, side * 0.42f, side * 0.32f);
+            }
             return true;
         }
 

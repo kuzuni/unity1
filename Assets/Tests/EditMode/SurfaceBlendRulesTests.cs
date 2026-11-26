@@ -148,5 +148,47 @@ namespace Forge.Tests
                 Assert.AreEqual(srgb[2], baked[2]);
             }
         }
+
+        /// <summary>
+        /// T178 54회차 — **투명 바탕 위에 알파 겹을 쌓는 길**(정본 `::before` 상자 안에서 흰 막대 둘이 겹치는 꼴 · `OverStraight`).
+        /// 위의 `OverSrgb` 는 «아는 불투명 바탕» 전용이라 이 자리를 못 맡는다.
+        /// </summary>
+        [Test]
+        public void 투명_바탕_위의_알파_겹은_알파가_합쳐지고_색은_알파로_가중된다()
+        {
+            byte c, a;
+            // 투명 위에 무엇을 얹어도 그 겹 그대로다
+            SurfaceBlendRules.OverStraight(0, 0, 255, 128, out c, out a);
+            Assert.AreEqual(255, c, "흰 겹은 흰색으로 남는다");
+            Assert.AreEqual(128, a, "알파도 그대로");
+            // 같은 알파를 두 번 얹으면 a + a(1−a) — 반투명 둘이 겹쳐 더 진해진다(정본 십자 가운데가 이 자리다)
+            SurfaceBlendRules.OverStraight(255, 128, 255, 128, out c, out a);
+            Assert.AreEqual(255, c, "흰 위에 흰");
+            Assert.AreEqual(191, a, 1, "0.502 + 0.502 × 0.498 ≈ 0.752");
+            // 불투명을 얹으면 아래가 사라진다
+            SurfaceBlendRules.OverStraight(0, 255, 255, 255, out c, out a);
+            Assert.AreEqual(255, c, "불투명한 위가 이긴다");
+            Assert.AreEqual(255, a, "불투명");
+            // 알파 0 끼리면 색은 뜻이 없으니 바탕을 남긴다(판정 자가 쓰레기 색을 읽지 않게)
+            SurfaceBlendRules.OverStraight(77, 0, 255, 0, out c, out a);
+            Assert.AreEqual(0, a, "둘 다 투명이면 투명");
+            Assert.AreEqual(77, c, "색은 바탕을 그대로 남긴다");
+            // 색이 다른 둘 — 알파로 가중된 sRGB 평균이다
+            SurfaceBlendRules.OverStraight(0, 255, 255, 128, out c, out a);
+            Assert.AreEqual(255, a, "바탕이 불투명하면 결과도 불투명");
+            Assert.AreEqual(128, c, 1, "0.502 × 255 + 1 × 0 × 0.498 = 128");
+        }
+
+        /// <summary>T178 54회차 — CSS `mask-image` 는 마스크의 **알파만** 곱한다(`mask-mode: alpha` 기본 · `MaskAlpha`).</summary>
+        [Test]
+        public void 마스크는_알파만_곱한다()
+        {
+            Assert.AreEqual(255, SurfaceBlendRules.MaskAlpha(255, 255), "다 보이는 자리");
+            Assert.AreEqual(0, SurfaceBlendRules.MaskAlpha(255, 0), "지워진 자리");
+            Assert.AreEqual(115, SurfaceBlendRules.MaskAlpha(255, 115), 1, "정본 38% 자리의 .45");
+            Assert.AreEqual(0, SurfaceBlendRules.MaskAlpha(0, 255), "그림이 투명하면 마스크가 뚫려도 투명");
+            // 곱이니 어느 쪽을 먼저 곱해도 같다
+            Assert.AreEqual(SurfaceBlendRules.MaskAlpha(128, 64), SurfaceBlendRules.MaskAlpha(64, 128), "곱은 자리를 안 가린다");
+        }
     }
 }

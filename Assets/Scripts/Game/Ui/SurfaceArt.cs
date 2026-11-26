@@ -611,6 +611,66 @@ namespace Forge.Game.Ui
         /// 정본이 섞는 길(<see cref="SurfaceBlendRules.OverSrgb"/> · 겹마다 한 번)로 차례로 합성해 불투명하게 굽는다. 칸은 크기가 같아 색·크기별로 한 번만 굽는다(캐시).
         /// 판 해상도 = 칸의 캔버스 px(해칭 주기가 늘어나지 않게 · 상한은 표 `face_px_max`).
         /// </summary>
+        /// <summary>
+        /// T178 54회차 — **알파를 품은 채 겹을 쌓고 그 위에 알파 마스크를 곱해** 한 장으로 굽는다(정본 `mask-image` 한 길).
+        /// ⚠ 이름이 닮은 <see cref="FillMasked"/> 와 **다른 것**이다: 그쪽은 둥근 면에 UGUI <see cref="Mask"/>(스텐실)를 붙여 **모서리 밖을 자르는** 길이고,
+        /// 이쪽은 **부드러운 알파 램프**를 화소마다 곱하는 길이다 — 정본 `radial-gradient(closest-side, #000 0%, rgba(0,0,0,.45) 38%, rgba(0,0,0,0) 72%)`
+        /// 처럼 «중간 알파» 가 있는 마스크는 스텐실로는 흉내도 못 낸다(스텐실은 켜짐·꺼짐 둘뿐이다). 49회차가 conic 을 새로 낸 것과 같은 꼴의 빠진 길이었다.
+        /// <paramref name="layers"/> 는 **바닥부터** 차례로 위에 얹고(<see cref="BakeFace"/> 와 같은 방향 · 정본 `background` 목록과는 반대),
+        /// <paramref name="maskKey"/> 는 그 겹의 **알파만** 쓴다(CSS `mask-mode: alpha` 기본).
+        /// </summary>
+        public static Sprite BakeMasked(string[] layers, string maskKey, float wCanvasPx, float hCanvasPx)
+        {
+            if (layers == null || layers.Length == 0) throw new System.ArgumentException("겹이 없다 (T178 54회차)");
+            int cap = Mathf.Max(16, (int)J.Num(Table()["face_px_max"], 512));
+            float scale = Mathf.Min(1f, cap / Mathf.Max(1f, Mathf.Max(wCanvasPx, hCanvasPx)));
+            int w = Mathf.Clamp(Mathf.RoundToInt(wCanvasPx * scale), 8, cap), h = Mathf.Clamp(Mathf.RoundToInt(hCanvasPx * scale), 8, cap);
+            string name = "masked-" + string.Join("+", layers) + "@" + maskKey + "-" + w + "x" + h;
+            Sprite hit;
+            if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+
+            Color32[] px = new Color32[w * h];                               // 바탕은 **투명**이다 — BakeFace 와 갈리는 자리
+            foreach (string key in layers)
+            {
+                float lineLen = 0f;
+                if (HasAngle(key))
+                {
+                    float rad = Angle(key) * Mathf.Deg2Rad;
+                    lineLen = Mathf.Abs(wCanvasPx * Mathf.Sin(rad)) + Mathf.Abs(hCanvasPx * Mathf.Cos(rad));
+                }
+                Color32[] top = Pixels(key, w, h, lineLen, 0, null, null);   // 표에 바탕이 없는 겹 = 알파 그대로
+                for (int i = 0; i < px.Length; i++)
+                {
+                    Color32 u = px[i], t = top[i];
+                    byte r, g, b, oa, _a;
+                    SurfaceBlendRules.OverStraight(u.r, u.a, t.r, t.a, out r, out oa);
+                    SurfaceBlendRules.OverStraight(u.g, u.a, t.g, t.a, out g, out _a);
+                    SurfaceBlendRules.OverStraight(u.b, u.a, t.b, t.a, out b, out _a);
+                    px[i] = new Color32(r, g, b, oa);
+                }
+            }
+            Color32[] mask = Pixels(maskKey, w, h, 0f, 0, null, null);
+            for (int i = 0; i < px.Length; i++)
+            {
+                Color32 p = px[i];
+                px[i] = new Color32(p.r, p.g, p.b, SurfaceBlendRules.MaskAlpha(p.a, mask[i].a));
+            }
+            return Finish(name, w, h, px);
+        }
+
+        /// <summary>T178 54회차 — <see cref="BakeMasked"/> 한 장을 부모 안의 상자 하나에 얹는다(클릭 안 먹음 · 비율 안 지킴 · 자리는 부르는 쪽이 잡는다).</summary>
+        public static Image FillAlphaMasked(RectTransform parent, string name, string[] layers, string maskKey, float wCanvasPx, float hCanvasPx)
+        {
+            RectTransform rt = UiKit.Box(parent, name);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.type = Image.Type.Simple;
+            img.preserveAspect = false;
+            img.color = Color.white;
+            img.sprite = BakeMasked(layers, maskKey, wCanvasPx, hCanvasPx);
+            return img;
+        }
+
         public static Sprite BakeFace(string hatchKey, string[] layers, Color baseColor, float wCanvasPx, float hCanvasPx) { return BakeFace(hatchKey, layers, baseColor, wCanvasPx, hCanvasPx, null); }
 
         /// <summary>
@@ -758,6 +818,16 @@ namespace Forge.Game.Ui
         /// 가운데가 매끄러운 구로 돌아오고 수렴 흔적이 어둠에 덮인다. T178 49회차.
         /// </summary>
         public static readonly string[] SrOrbGemLayers = { "sr_orb_gem_base", "sr_orb_gem_facet", "sr_orb_gem_term", "sr_orb_gem_dome", "sr_orb_gem_spec" };
+
+        /// <summary>
+        /// T178 54회차 — 보석 구슬의 **반짝임**(정본 6637 `.sr-cell[data-mat="gem"] .sr-orb::before`): 흰 막대 둘이 가운데서 **십자**로 겹치고
+        /// 그 위에 **타원 알파 마스크**가 걸려 네 끝으로 번져 사라진다. 배열 순서는 **바닥부터**(`BakeMasked` 가 차례로 위에 얹는다) —
+        /// 정본 `background` 는 **먼저 적은 것이 위**라 뒤집은 것이다(둘 다 흰색이라 그림은 같지만 규칙을 지킨다).
+        /// </summary>
+        public static readonly string[] SrOrbGemGlintLayers = { "sr_orb_gem_glint_bar_h", "sr_orb_gem_glint_bar_v" };
+
+        /// <summary>T178 54회차 — 그 반짝임에 걸리는 알파 마스크 겹(정본 `mask-image: radial-gradient(closest-side, …)`).</summary>
+        public const string SrOrbGemGlintMask = "sr_orb_gem_glint_mask";
 
         /// <summary>
         /// T178 41회차 — <see cref="FillFace"/> 인데 **면의 크기가 아직 0** 인 자리(배치를 부르는 쪽이 뒤에 하는 버튼 · 레이아웃이 폭을 주는 버튼)는
