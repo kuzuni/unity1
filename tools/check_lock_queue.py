@@ -21,6 +21,9 @@ T82 가 산 교훈(«남의 선점 몇 분 동안 모두가 빨개진다»)을 �
 import io, os, re, subprocess, sys, time, fnmatch
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import git_depth          # T491 — 얕은 clone 에서 이력을 한 번 벌리고, 못 봤으면 «못 봤다» 고 말하는 공용 자리
+
 CLAIMS = 'docs/claims'
 PROGRESS = 'docs/PROGRESS.md'
 DEAD_MIN = 90            # 규약: 90분 지난 lock 은 죽은 것
@@ -222,6 +225,27 @@ def split_line(tid, lock_sid, commit_sid, commit_age_min, sessions=1):
 
 
 
+def blind_line(tid, found, limited):
+    """그 번호의 커밋을 **한 줄도 못 찾았을 때** 덧붙일 줄 (T491 ⓔ · 순수 함수) · 덧붙일 것이 없으면 None.
+
+    T418·T425 의 «세션 갈림» 줄은 `git log --grep='^T<번호>'` 가 **이력을 볼 수 있다**는 전제에 서 있다.
+    얕은 clone(커밋 하나)에서는 그 grep 이 한 줄도 못 찾고, 자는 그것을 «안 움직였다» 로 **단정해**
+    «⚠ 죽은 lock — 뺏을 수 있다» 만 찍는다 — 그 말대로 뺏으면 **산 임자와 부딪친다**
+    (실측 2026-11-26 20:0x: T178 lock 은 102분째 죽음인데 그 번호는 41분 전 다른 SID 로 움직이고 있었다).
+    그래서 «못 찾았다» 와 «안 움직였다» 를 **가른다**.
+    """
+    if found or not limited:
+        return None
+    return ('    ↳ ⚠ **이 clone 은 그 번호의 이력을 못 봤다**(얕은 clone — 커밋이 거의 없다) — «안 움직였다» 가 **아니다**.'
+            ' 뺏기 전에 손으로 확인해라: `git fetch --deepen=200 origin main && git log --oneline -E --grep=\'^%s([^0-9]|$)\' -5`'
+            ' (T491 · 90분 죽은 lock 뒤에 **다른 세션의 산 임자**가 있을 수 있다 · T418·T425).' % tid)
+
+
+def history_limited(root=ROOT):
+    """이 clone 의 이력이 «그 번호의 마지막 커밋» 을 담을 만큼인가 — 아니면 True(못 본다)."""
+    return git_depth.needs_deepen(git_depth.is_shallow(root), git_depth.count_commits(root))
+
+
 def tracked_files():
     try:
         out = subprocess.check_output(['git', 'ls-files'], cwd=ROOT, stderr=subprocess.DEVNULL).decode()
@@ -239,6 +263,10 @@ def main(argv):
     if '--hours' in argv:
         stale = float(argv[argv.index('--hours') + 1])
     now = time.time()
+    # T491 ⓐ — 얕은 clone 이면 이력을 **한 번** 벌린다(아래 `--grep` 이력 조회가 통째로 눈이 머는 자리).
+    _did, _note = git_depth.deepen()
+    if _did:
+        print('⚑ T491 — %s' % _note)
     locks = {}
     d = os.path.join(ROOT, CLAIMS)
     for f in sorted(os.listdir(d)) if os.path.isdir(d) else []:
@@ -283,6 +311,9 @@ def main(argv):
         hint = split_line(tid, locks[tid][1], csid, None if ct is None else (now - ct) / 60.0, nsid)
         if hint:
             print(hint)
+        blind = blind_line(tid, ct is not None, history_limited())
+        if blind:
+            print(blind)
     print('· (보고 전용 — rc 는 늘 0이다. 범위를 줄일지는 그 lock 임자가 정한다.)')
     return 0
 
@@ -379,6 +410,17 @@ def self_test():
     same = split_line('T415', 'sess-0618-6688', 'sess-0618-6688', 44.0, 1)
     if same is None or '네가 `' in same or '갱신' not in same:
         print('✗ 같은 SID 면 임자 몫 줄 대신 «네 lock 을 갱신해라» 하나다 — %r' % same); ok = False
+
+    # T491 ⓔ — «못 찾았다» 와 «안 움직였다» 를 가른다
+    b = blind_line('T178', False, True)
+    if b is None or '이력을 못 봤다' not in b or '안 움직였다» 가 **아니다**' not in b:
+        print('✗ T491 ⓔ 이력을 못 본 자리: %r' % b); ok = False
+    if b is None or 'T178([^0-9]|$)' not in b:
+        print('✗ T491 ⓔ 손으로 확인하는 명령에 그 번호가 들어야 한다: %r' % b); ok = False
+    if blind_line('T178', True, True) is not None:
+        print('✗ T491 ⓔ 커밋을 찾았으면 그 줄은 없다'); ok = False
+    if blind_line('T178', False, False) is not None:
+        print('✗ T491 ⓔ 이력이 깊으면 «안 움직였다» 가 참이다 — 그 줄을 내지 않는다'); ok = False
 
     print('· 지금 레포:'); main([])
     print('✓ check_lock_queue 자기 검사 통과' if ok else '✗ check_lock_queue 자기 검사 실패')

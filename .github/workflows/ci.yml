@@ -113,6 +113,10 @@ jobs:
       - name: 원작 대조 자 자기 검사 (T28 `ui_score.py` · 15칸)
         run: python3 tools/ui_score.py --self-test
 
+      # T491 — 얕은 clone(§0-1 의 `--depth 1`)에서 «로컬 git 이력» 에 기대는 자들이 조용히 거짓을 내던 자리.
+      - name: 얕은 clone 이력 자 자기 검사 (T491 `git_depth.py` · 21칸)
+        run: python3 tools/git_depth.py --self-test
+
       - name: 글자 자 자기 검사 (T89 `check_text_glyphs.py`)
         run: python3 tools/check_text_glyphs.py --self-test
 

@@ -71,6 +71,7 @@ block|wwwww|정본 white-space 41 ↔ 표(T361 · 접는다가 기본 · nowrap 
 block|wwwww|정본 <br> 22 자리 ↔ 클론이 그 줄 수를 아는가 (T383 · «한 상자» 는 \n · «상자 여럿» 은 split · 화면 줄 수는 PlayMode BrLinesTests 몫)|python3 tools/check_br_lines.py --ui .wwwww-src/web/js/ui.js
 block|wwwww|정본 color-mix 23 ↔ 표 ColorMixUi.json ↔ 그 자리가 표 키를 부르는가 (T371 · 임자 있는 빈자리는 KNOWN · 표에 없는 선언은 «미정» 으로 세기만 한다)|python3 tools/check_color_mix.py --css .wwwww-src/web/css/style.css
 block|wwwww|정본 line-height 81 ↔ 표 LineHeightUi.json ↔ 값·줄·선택자·단위가 한 자리씩 맞는가 (T354 · 읽는 곳 수는 알리기만 · 자리 배선은 각 파일 lock 뒤)|python3 tools/check_line_height.py --css .wwwww-src/web/css/style.css
+block|-|얕은 clone 에서 이력을 벌리는 공용 자 자기 검사 (T491 `git_depth.py --self-test` · 21칸 · 조상·나이·이력을 «모른다» 로 가르는 자리)|python3 tools/git_depth.py --self-test
 block|-|표값 × 박힌 상수 자 자기 검사 (T378 `check_table_scale.py --self-test`)|python3 tools/check_table_scale.py --self-test
 block|-|표값 × 박힌 상수 — `UiKit.L/H("키") * 1.x f` 가 허용 목록(docs/table-scale-allow.md) 밖에 있나 (T378 · 기하는 영구 · 임시는 알리기만 · 고친 자리는 목록에서 사라져야 한다)|python3 tools/check_table_scale.py
 block|node|추출기 자기 검사 (T2)|node tools/export_data.js --self-test

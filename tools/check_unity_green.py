@@ -54,6 +54,9 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 REF = 'origin/screens'
 MAIN = 'origin/main'
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import git_depth            # T491 — 얕은 clone 에서 이력을 한 번 벌리고, 못 가리면 «모른다» 를 돌려주는 공용 자리
+
 
 def _git(args, cwd=ROOT):
     """git 을 돌려 (rc, stdout) 을 준다 — 실패해도 예외를 안 던진다(자는 판정을 내야 한다)."""
@@ -282,13 +285,20 @@ def path_owners(path, progress_text):
 
 
 def behind(sha, main=MAIN):
-    """그 sha 뒤에 main 커밋이 몇 개 쌓였는가. (조상 여부, 개수) — 못 세면 (None, None)."""
+    """그 sha 뒤에 main 커밋이 몇 개 쌓였는가. (조상 여부, 개수) — 못 세면 (None, None).
+
+    🚨 T491 — 조상 여부는 **셋**이다: True · False · **None(모름)**. `--is-ancestor` 의 rc 가 0·1 밖이면
+    (없는 객체 128 · git 없음 127) «아니다» 가 아니라 «모른다» 다. 얕은 clone 에선 그 sha 가 아예 없는 객체라
+    git 이 128 을 내는데, 종전엔 그것을 rc 1(진짜 남의 갈래)과 **구별 없이** False 로 읽어
+    멀쩡한 초록을 «force push 가 있었다 · 판정을 믿지 말고» 로 **부정했다**(실측: 런 #1323 `053dd02` 는
+    main 의 직계 조상인데 — API `compare/053dd02...main` = ahead 8 · behind 0 — 그 문장이 났다).
+    """
     if not sha:
         return None, None
     rc, _ = _git(['merge-base', '--is-ancestor', sha, main])
-    if rc == 127:
+    anc = git_depth.ancestor_from_rc(rc)
+    if anc is None:
         return None, None
-    anc = (rc == 0)
     if not anc:
         return False, None
     rc2, out = _git(['rev-list', '--count', sha + '..' + main])
@@ -1183,6 +1193,44 @@ def _api_json(url):
         return json.loads(r.read().decode('utf-8'))
 
 
+def fetch_compare(sha, main='main'):
+    """T491 ⓒ — `GET /compare/<sha>...main` 응답(못 부르면 None · 조용히 건너뛴다)."""
+    if not sha:
+        return None
+    try:
+        return _api_json('https://api.github.com/repos/%s/compare/%s...%s' % (API_REPO, sha, main))
+    except Exception:
+        return None
+
+
+def ancestry(sha, do_fetch=False, no_api=False):
+    """T491 — «그 sha 가 main 의 조상인가 · 뒤에 몇 개 쌓였나» 를 **세 단계로** 묻는다 → (조상, 개수, 못 가린 까닭).
+
+    ① 로컬 git(`behind`) → 가리면 거기서 끝.
+    ② 못 가렸고 `--fetch` 면 **이력을 한 번 벌려**(`git_depth.deepen`) 다시 묻는다.
+    ③ 그래도 못 가렸고 API 를 쓸 수 있으면 `compare` 로 가른다(얕은 clone 에서 깊이를 못 벌리는 자리의 길).
+    끝까지 못 가리면 (None, None, 까닭) — 부르는 쪽이 그 까닭을 **그대로 적는다**(«아니다» 로 읽지 않는다).
+    """
+    anc, n_after = behind(sha)
+    if anc is not None or not sha:
+        return anc, n_after, ''
+    why = '이 clone 에 그 커밋 객체가 없다(얕은 clone)'
+    if do_fetch:
+        did, note = git_depth.deepen()
+        if did:
+            anc, n_after = behind(sha)
+            if anc is not None:
+                return anc, n_after, ''
+            why = '이력을 벌려도(%s) 그 커밋이 안 보인다' % note.split('(')[0].strip('` ')
+    if not no_api:
+        api = git_depth.ancestor_from_compare(fetch_compare(sha))
+        if api is not None:
+            # API 가 가렸다 — 개수는 로컬로 못 세니 그대로 둔다(부풀려 말하지 않는다).
+            return api, n_after, ''
+        why += ' · API `compare` 로도 못 가렸다'
+    return None, None, why
+
+
 def parse_jobs(payload):
     """`/actions/runs/<id>/jobs` 응답 → [{name, short, conclusion, red_steps}] (순수 · 자기 검사용)."""
     out = []
@@ -1427,20 +1475,38 @@ def starve_lines(runs, cur_sha, green_age_min, n_after=None, n_code=None, api_co
                     % (api_counts['n'], api_counts['success'], api_counts['failure'], api_counts['cancelled'], api_counts['other']))
     ln = head + ' — ' + ' · '.join(tail) + '.'
     out = [ln]
+    if green_age_min is None:
+        # T491 증상 ②③ — 나이를 못 세면 아래 «오래 굶었다» 갈래가 **구조상 한 번도 안 들어간다**.
+        #                 조용히 건너뛰면 «굶주림을 보려고 세운 눈» 이 가장 의심스러운 자리(새 컨테이너)에서 감긴다.
+        out.append('    ⚠ **나이를 못 셌다** — 그 커밋 객체가 이 clone 에 없다(얕은 clone). 그래서 아래 «초록이 오래'
+                   ' 굶었다»(T424) 경고는 **이 회차에 꺼져 있다** — 굶었는지 안 굶었는지를 말한 것이 아니다.'
+                   ' 고침: `git fetch --depth=1 origin <그 sha>`(나이는 그 커밋 하나로 센다) · `--fetch` 로 부르면'
+                   ' 자가 **스스로** 한다(T491 ⓓ).')
     if green_age_min is not None and green_age_min >= 120:
         out.append('    → 초록이 오래 굶었다: «내 뒤 런이 초록이면 내 확인» 을 기다리지 말고, **내 커밋을 포함한 런**(`git merge-base --is-ancestor <내 커밋> <런 sha>`)의 장부에서 **내 자가 PASS** 인지로 확인한다(T338·T340 · §0). 잡을 언제 어떻게 돌릴지는 `ci.yml` 임자의 축이다.')
     return out
 
 
-def commit_age_min(sha, now=None):
-    """그 sha 의 커밋 시각이 몇 분 전인가(git · 못 읽으면 None)."""
-    rc, out = _git(['log', '-1', '--format=%ct', sha])
-    if rc != 0:
-        return None
-    try:
-        return max(0, int(((now or time.time()) - int(out.strip())) / 60))
-    except ValueError:
-        return None
+def commit_age_min(sha, now=None, fetch=False):
+    """그 sha 의 커밋 시각이 몇 분 전인가(git · 못 읽으면 None).
+
+    T491 ⓓ — 얕은 clone 에선 그 객체가 없어 `None` 이 되고, 그러면 T424 의 «오래 굶었다» 갈래가
+    **구조상 한 번도 안 들어간다**. 나이는 **그 커밋 하나**만 받으면 고쳐지므로(조상 판정과 달리)
+    `fetch=True` 로 부르면 한 번 받아 보고 다시 읽는다(실측: 받은 뒤 같은 줄이 «45분 전» 으로 났다).
+    """
+    def read():
+        rc, out = _git(['log', '-1', '--format=%ct', sha])
+        if rc != 0:
+            return None
+        try:
+            return max(0, int(((now or time.time()) - int(out.strip())) / 60))
+        except ValueError:
+            return None
+    age = read()
+    if age is None and fetch and sha:
+        if git_depth.fetch_one(sha):
+            age = read()
+    return age
 
 
 def fetch_run_counts(limit=60):
@@ -1509,7 +1575,7 @@ def job_lines(jobs, sha, unity_red=True):
 
 
 def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None, blocked=None, blocks_now=True,
-          newer=None, skipped=None):
+          newer=None, skipped=None, undecided=''):
     """순수 판정 — (rc, 줄 목록). 네트워크·git 없이 자기 검사할 수 있게 갈라 둔다."""
     out = []
     if meta is None:
@@ -1589,6 +1655,15 @@ def judge(meta, anc=None, n_after=None, fails=(), own=None, between=None, blocke
     if anc is False:
         out.append('  ⚠ 그 sha 가 %s 의 조상이 아니다 — 다른 갈래이거나 force push 가 있었다.'
                    ' 판정을 믿지 말고 다음 유니티 런을 기다린다.' % MAIN)
+    elif undecided:
+        # T491 ⓑ — **못 가리면 «못 가린다» 고 말한다.** «force push 가 있었다 · 판정을 믿지 말고» 는
+        #          이력이 충분할 때만 낸다 — 얕은 clone 에서 그 문장을 내면 **멀쩡한 초록을 부정한다**.
+        out.append('  ⚠ 그 sha 가 %s 의 조상인지 **여기서 못 가렸다** — %s. 판정(초록/빨강)은 그대로 쓰되'
+                   ' «다른 갈래·force push» 로 **읽지 마라**(T491).' % (MAIN, undecided))
+        out.append('    → 가리는 길 둘: ⓐ `git fetch --deepen=200 origin main` 으로 이력을 벌린 뒤 다시 보기'
+                   '(`--fetch` 로 부르면 자가 **스스로** 한다) ⓑ API `GET /repos/%s/compare/<sha>...main` 의'
+                   ' `status` 가 `identical`·`ahead`(behind 0)면 조상이다. ⚠ 그 sha 만 `--depth=1` 로 받는 것은'
+                   ' **처방이 아니다** — rc 가 128 → 1 로 바뀔 뿐 답은 그대로 틀리다(얕은 graft · T491 실측).' % API_REPO)
     elif n_after:
         out.append('  ⚠ 그 뒤로 main 커밋 %d개가 쌓였다 — 유니티가 **아직 안 본** 코드가 그만큼이다'
                    '(초록이어도 «지금 main» 의 초록은 아니다).' % n_after)
@@ -1620,6 +1695,27 @@ def self_test():
     eq('T489 ⓔ rc 1', _rc, 1)
     eq('T489 ⓕ 추적 갈래를 말한다', 'remote.origin.fetch' in _txt, True)
     eq('T489 ⓖ 안 돈 갈래도 같이 말한다', '한 번도 안 돌았다' in _txt, True)
+
+    # T491 — 얕은 clone 에서 «조상인지 못 가린다» 와 «나이를 못 셌다» 를 **말로 낸다**(순수 셈).
+    eq('T491 ⓐ rc 128(없는 객체)은 «모른다»', git_depth.ancestor_from_rc(128), None)
+    _rc, _out = judge({'sha': 'b' * 40, 'run': 1323, 'tests': 'success', 'missing_modes': ''},
+                      None, None, undecided='이 clone 에 그 커밋 객체가 없다(얕은 clone)')
+    _txt = '\n'.join(_out)
+    eq('T491 ⓑ 판정은 그대로 초록', _rc, 0)
+    eq('T491 ⓒ «여기서 못 가렸다» 를 말한다', '여기서 못 가렸다' in _txt, True)
+    eq('T491 ⓓ «force push» 로 단정하지 않는다', 'force push 가 있었다' in _txt, False)
+    eq('T491 ⓔ 가리는 길 둘을 댄다(깊이·API)', ('--deepen=200' in _txt and 'compare' in _txt), True)
+    eq('T491 ⓕ «그 sha 만 받는 것은 처방이 아니다» 를 적는다', '처방이 아니다' in _txt, True)
+    # 같은 자리에 **진짜** 남의 갈래(rc 1)면 종전 문장이 그대로 나야 한다 — 판정을 무르지 않았다는 증거
+    _rc2, _out2 = judge({'sha': 'c' * 40, 'run': 9, 'tests': 'success', 'missing_modes': ''}, False, None)
+    eq('T491 ⓖ 진짜 다른 갈래면 종전 경고 그대로', 'force push 가 있었다' in '\n'.join(_out2), True)
+    _st = starve_lines([{'sha': 'd' * 40, 'run': 1326, 'tests': 'success'}], 'd' * 40, None)
+    eq('T491 ⓗ 나이를 못 세면 그렇게 말한다', any('나이를 못 셌다' in l for l in _st), True)
+    eq('T491 ⓘ 그때 «굶었다» 로도 «안 굶었다» 로도 단정하지 않는다',
+       any('초록이 오래 굶었다: «내 뒤 런이' in l for l in _st), False)
+    _st2 = starve_lines([{'sha': 'd' * 40, 'run': 1326, 'tests': 'success'}], 'd' * 40, 130)
+    eq('T491 ⓙ 나이를 세면 굶주림 갈래는 그대로 든다',
+       any('초록이 오래 굶었다' in l for l in _st2), True)
 
     # ⓐ 초록
     rc, out = judge({'sha': 'a' * 40, 'run': 100, 'tests': 'success', 'missing_modes': ''}, True, 0)
@@ -2385,7 +2481,7 @@ def main(argv):
             print('  ⚑ T489 — `origin/screens` 를 못 읽어 **%s**(얕은 clone 은 그 가지를 추적조차 안 한다).' % healed)
 
     meta = read_meta(ref)
-    anc, n_after = behind(meta.get('sha') if meta else None)
+    anc, n_after, undecided = ancestry(meta.get('sha') if meta else None, do_fetch, no_api)
 
     # T356 — «유니티가 실제로 돈 마지막 런» 뒤가 **막혀 있는가**(앞 잡 빨강 → unity skipped).
     #        API 를 못 부르면 조용히 건너뛴다(지금까지의 출력 그대로).
@@ -2401,9 +2497,11 @@ def main(argv):
             nv = newer_verdict(after)
             if nv and _run_gt(nv.get('run'), meta.get('run')):
                 # 쌓인 커밋 셈도 **그 런** 기준으로 다시 잰다 — 낡은 장부 기준이면 부풀려 말한다.
-                a2, n2 = behind(nv.get('full'))
+                a2, n2, u2 = ancestry(nv.get('full'), do_fetch, no_api)
                 if a2 is not None:
-                    anc, n_after = a2, n2
+                    anc, n_after, undecided = a2, n2, ''
+                else:
+                    undecided = u2 or undecided
 
     red = bool(meta) and str(meta.get('tests')) != 'success'
     fails = red_lines(ref) if red else []
@@ -2431,15 +2529,16 @@ def main(argv):
         between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None))
     # T386 — 장부 머리의 «건너뜀» 줄은 빨간 런이 아니어도 읽는다(초록 런에도 «남은 일» 이 있을 수 있다).
     sk = skip_note(skips(red_text(ref)), row_status(read_progress()))
-    rc, out = judge(meta, anc, n_after, fails, own, between, blocked, blocks_now, newer=nv, skipped=sk)
+    rc, out = judge(meta, anc, n_after, fails, own, between, blocked, blocks_now, newer=nv, skipped=sk,
+                    undecided=undecided)
     for ln in out:
         print(ln)
     # T424 — 굶주림 줄(보고 전용 · rc 그대로): 마지막 초록 런의 나이 · 그 뒤 커밋 · API 로 본 최근 런 결말.
     if meta:
         ledger = read_runs(ref) or []
         g_sha, _ = last_green_any(ledger)
-        g_age = commit_age_min(g_sha) if g_sha else None
-        _, g_after = behind(g_sha) if g_sha else (None, None)
+        g_age = commit_age_min(g_sha, fetch=do_fetch) if g_sha else None
+        _, g_after, _gu = ancestry(g_sha, do_fetch, no_api) if g_sha else (None, None, '')
         g_code = len(code_commits(g_sha, MAIN)) if (g_sha and g_after) else (0 if g_sha else None)
         for ln in starve_lines(ledger, str(meta.get('sha', '')), g_age, g_after, g_code,
                                None if no_api else fetch_run_counts()):
