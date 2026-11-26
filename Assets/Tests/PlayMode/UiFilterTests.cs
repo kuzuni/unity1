@@ -34,55 +34,10 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>T134·T135 와 같은 촬영 길(캔버스를 임시 카메라로 한 판 찍는다).</summary>
-        static void Capture(string saveAs)
-        {
-            UiRoot uiRoot = UiRoot.Instance;
-            Canvas canvas = uiRoot.Canvas;
-            RenderMode prevMode = canvas.renderMode;
-            Camera prevCam = canvas.worldCamera;
-            float prevPlane = canvas.planeDistance;
-            RenderTexture prevActive = RenderTexture.active;
-            int w = Mathf.Max(64, Screen.width), h = Mathf.Max(64, Screen.height);
-            RenderTexture rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
-            GameObject camGo = new GameObject("t342-pixel-cam");
-            Camera cam = camGo.AddComponent<Camera>();
-            try
-            {
-                if (Camera.main != null) cam.CopyFrom(Camera.main);
-                // T349 4회차 — 이 카메라는 `cullingMask` 가 **UI 층 하나**다(3D 를 한 화소도 안 그린다).
-                //        여기에 URP 포스트를 켜면 **UI 가 톤맵·색 보정에 물든다** — 정본은 `filter` 를 `#game3d` 에만 걸고
-                //        HUD·패널·팝업에는 안 건다(T357). 3회차에 켰다가 순백 코어가 rgb 215 로 내려가 이 자가 빨갰다.
-                cam.rect = new Rect(0f, 0f, 1f, 1f);
-                cam.targetTexture = rt;
-                cam.ResetProjectionMatrix();
-                cam.cullingMask = 1 << canvas.gameObject.layer;
-                cam.clearFlags = CameraClearFlags.SolidColor;
-                cam.backgroundColor = Color.black;
-                canvas.renderMode = RenderMode.ScreenSpaceCamera;
-                canvas.worldCamera = cam;
-                canvas.planeDistance = 1f;
-                uiRoot.Layout();
-                Canvas.ForceUpdateCanvases();
-                cam.Render();
-                RenderTexture.active = rt;
-                Texture2D tex = new Texture2D(w, h, TextureFormat.RGB24, false);
-                tex.ReadPixels(new Rect(0f, 0f, w, h), 0, 0);
-                tex.Apply(false);
-                try { GallerySheet.Save(tex, saveAs); } catch (Exception e) { Debug.Log("[T342] PNG 저장 생략: " + e.Message); }
-                UnityEngine.Object.Destroy(tex);
-            }
-            finally
-            {
-                RenderTexture.active = prevActive;
-                canvas.renderMode = prevMode;
-                canvas.worldCamera = prevCam;
-                canvas.planeDistance = prevPlane;
-                uiRoot.Layout();
-                cam.targetTexture = null;
-                UnityEngine.Object.Destroy(camGo);
-                UnityEngine.Object.Destroy(rt);
-            }
-        }
+        /// <summary>T490 2회차 — 50줄 복사본을 걷고 공용 자리로(UI 층만 찍는 꼴). 함정 셋(T135 ⓑ 카드 팝 정착 ·
+        /// T349 URP 포스트 · T124 저장 실패 삼킴)은 <see cref="PlayShot"/> 에 **한 번만** 적혀 있다 — 고칠 것이 생기면 거기서 고친다.
+        /// ⚑ 이 복사본엔 <c>CardPop.SettleAll()</c>(T135 ⓑ)이 **없었다** — 옮기면서 저절로 든다(T490 1회차가 «일곱이 뒤처져 있었다» 로 센 자리).</summary>
+        static void Capture(string saveAs) { PlayShot.Capture(saveAs); }
 
         /// <summary>
         /// §1 «실제 화면을 본다» — 빈 장비 칸은 **촬영된 어느 화면에도 안 나온다**(촬영 세이브가 모든 칸을 채우고 있다).

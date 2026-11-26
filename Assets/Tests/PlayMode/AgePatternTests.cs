@@ -428,8 +428,7 @@ namespace Forge.Tests.PlayMode
             }
         }
 
-        /// <summary>UI 를 한 장 그린다(T135 `DamageVignetteTests.Capture` 와 같은 길) — 눈 확인용 · 실패해도 판정을 안 흔든다.</summary>
-        /// <summary>T490 — 50줄 복사본을 걷고 공용 자리로. 함정 셋(T135 ⓑ 카드 팝 정착 · T349 URP 포스트 · T124 저장 실패 삼킴)은
+        /// <summary>UI 를 한 장 그린다 — 눈 확인용 · 실패해도 판정을 안 흔든다. T490 — 50줄 복사본을 걷고 공용 자리로. 함정 셋(T135 ⓑ 카드 팝 정착 · T349 URP 포스트 · T124 저장 실패 삼킴)은
         /// <see cref="PlayShot"/> 에 **한 번만** 적혀 있다 — 여기서 고칠 것이 생기면 거기서 고친다.</summary>
         static void Capture(string saveAs) { PlayShot.Capture(saveAs); }
 
