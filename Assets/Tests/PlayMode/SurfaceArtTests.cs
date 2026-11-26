@@ -2590,7 +2590,11 @@ namespace Forge.Tests.PlayMode
             Canvas.ForceUpdateCanvases();
             Capture("screen_t178-gem-orb");
             orbWrap.localScale = wrapScale;
-            foreach (Graphic gr in off) gr.enabled = true;
+            // 55회차 수리 — 되돌릴 때 **파괴된 것을 건너뛴다**. 뿌리를 캔버스로 올린 뒤 생긴 빨강이다(런 1333):
+            //   `Capture` 가 맨 앞에서 `CardPop.SettleAll()` 을 부르는데 그때 **정착을 마친 카드 팝이 파괴된다** —
+            //   뷰(`v2`) 밑만 걷던 52회차까지는 그 팝이 목록에 안 들어와 안 보이던 갈래다.
+            //   유니티 `Object` 는 `==` 를 덮어써 파괴된 것이 null 과 같으므로 이 한 줄이면 된다.
+            foreach (Graphic gr in off) if (gr != null) gr.enabled = true;
             v2.Close();
             yield return null;
         }
