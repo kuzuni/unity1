@@ -103,16 +103,6 @@ namespace Forge.Tests.PlayMode
             while (!v.Done && t < 5f) { t += Time.unscaledDeltaTime; yield return null; }
             Assert.IsTrue(v.Done, "탭 뒤 done");
             Assert.IsTrue(fx.Done, "연출 겹도 done 을 받는다");
-            // T492 ⓑ — 정본 5968 `.sr-stars { transition: opacity .6s **ease-out** }`: 길이는 맞았는데 이징이 **선형**이었다.
-            //   페이드 한가운데서 재면 갈린다 — ease-out 은 앞쪽에 몰아 켜므로 선형보다 뚜렷이 밝다.
-            float fade = SummonFxStyle.L("stars_fade_ms") / 1000f;
-            t = 0f;
-            while (t < fade * 0.5f) { t += Time.unscaledDeltaTime; yield return null; }
-            float midA = fx.StarsAlpha, lin = Mathf.Clamp01(t / fade);
-            float want = (float)SummonFxStyle.Ease("stars_fade_ease").Ease(lin);
-            Assert.AreEqual(want, midA, 0.08f, "별 α 는 표 이징(ease-out)을 따른다 — 잰 진행 " + lin.ToString("0.000") + " · 기다린 값 " + want.ToString("0.000") + " · 실측 " + midA.ToString("0.000"));
-            Assert.Greater(midA - lin, 0.10f, "선형(" + lin.ToString("0.000") + ")보다 뚜렷이 밝아야 한다 — 선형으로 되돌아가면 여기서 운다");
-
             t = 0f;
             while (t < 0.8f) { t += Time.unscaledDeltaTime; yield return null; }
             Assert.AreEqual(1f, fx.StarsAlpha, 0.05f, "done .6s 뒤 별 α 1");
@@ -661,6 +651,65 @@ namespace Forge.Tests.PlayMode
             Assert.AreNotEqual(z0, z1, "srrayspin infinite — 각이 계속 바뀐다");
             Assert.AreEqual(0.6f, ray.color.a, 1e-3f, "돌아도 알파는 그대로");
             v.Close();
+            yield return null;
+        }
+
+        /// <summary>
+        /// T492 둘째 결함 — 정본 `style.css` 5968 `.sr-stars { opacity: 0; transition: opacity .6s **ease-out** }`.
+        /// 길이(600ms)는 맞았는데 이징이 **선형**이라, 정본이 앞쪽에 몰아 켜는 켜짐이 클론에선 끝까지 고르게 밝아졌다.
+        ///
+        /// ⚠ **자가 제 벽시계로 페이드를 세지 않는다** — 런 1332 에서 그렇게 깨졌다(앞 칸의 긴 단언들 뒤에 붙다 보니
+        /// 자의 `t=0` 시점에 이미 페이드가 0.5s 지나 있었고, 「기다린 값 .715 ↔ 실측 .970」 로 빨갰다).
+        /// 여기서는 연출이 제 시계로 내는 진행(<see cref="SummonFx.StarsFadeT"/>)을 **같은 프레임에** 읽어 견준다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 별가루_페이드는_선형이_아니라_표의_ease_out_을_따른다()
+        {
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            while (Host.SummonMult("skill") != 1) Host.CycleSummonMult("skill");
+            Host.Tickets = 10000;
+            Host.Sync();
+            yield return null;
+            Sheet.Skills.SummonButton.onClick.Invoke();
+            yield return null;
+            Assert.IsTrue(Sheet.Modal.IsOpen(SkillSummonResultView.ModalName), "결과 연출 팝업");
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v, "소환 결과 창");
+            SummonFx fx = v.Fx;
+            Assert.IsNotNull(fx, "연출 겹");
+
+            // done 으로 보낸다(이미 done 이면 그대로 — 아래는 진행을 보고 고른다).
+            float t = 0f;
+            while (!v.Done && t < 5f) { if (t <= 0f) v.OnTap(); t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done, "탭 뒤 done");
+
+            // 진행이 창(0.15~0.85) 안에 드는 프레임을 잡아 **그 프레임의** 알파와 견준다.
+            var ease = SummonFxStyle.Ease("stars_fade_ease");
+            int sampled = 0;
+            float worstGap = 0f;
+            t = 0f;
+            while (t < 2f)
+            {
+                float k = fx.StarsFadeT;
+                if (k >= 0.15f && k <= 0.85f)
+                {
+                    float a = fx.StarsAlpha, want = (float)ease.Ease(k);
+                    Assert.AreEqual(want, a, 0.02f, "별 α 는 표 이징을 따른다 — 진행 " + k.ToString("0.000") + " · 기다린 값 " + want.ToString("0.000") + " · 실측 " + a.ToString("0.000"));
+                    if (a - k > worstGap) worstGap = a - k;
+                    sampled++;
+                }
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.Greater(sampled, 0, "페이드 한가운데를 한 프레임도 못 잡았다 — 창을 넓히거나 자리를 앞으로");
+            Assert.Greater(worstGap, 0.10f, "ease-out 은 선형보다 뚜렷이 밝다(가장 벌어진 자리 " + worstGap.ToString("0.000") + ") — 선형으로 되돌아가면 여기서 운다");
+            Assert.AreEqual(1f, fx.StarsAlpha, 0.02f, "끝나면 α 1");
+
+            if (SkillSummonResultView.Current != null) SkillSummonResultView.Current.OnTap();
             yield return null;
         }
     }

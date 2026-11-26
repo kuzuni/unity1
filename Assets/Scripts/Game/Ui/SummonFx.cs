@@ -57,6 +57,9 @@ namespace Forge.Game.Ui
         public int RayBarCount { get { return rayBars.Count; } }
         public bool Done { get { return done; } }
         public float StarsAlpha { get { return starsGroup != null ? starsGroup.alpha : 0f; } }
+        /// <summary>T492 — 별 페이드의 **지금 진행**(0~1 · done 전엔 −1). 자가 제 벽시계로 따로 세면 늦게 붙어 틀린다 —
+        /// 런 1332 에서 그렇게 깨졌다(자가 t=0 을 잡기 전에 이미 페이드가 0.5s 지나 있었다). 같은 프레임의 같은 시계를 쓰라고 연다.</summary>
+        public float StarsFadeT { get { return done ? Mathf.Clamp01((Time.unscaledTime - doneAt) / (L("stars_fade_ms") / 1000f)) : -1f; } }
         /// <summary>스프라이트를 다 구웠는가 — Build 직후엔 false · 첫 Update 뒤 true.</summary>
         public bool Baked { get { return baked; } }
         /// <summary>바닥 반사(`.sr-reflect`) — done 다음 프레임 전엔 null.</summary>
