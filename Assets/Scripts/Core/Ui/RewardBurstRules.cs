@@ -23,6 +23,9 @@ namespace Forge.Core.Ui
         public double TickFadeMs;
         public CssEase TickFadeEase = CssEase.Linear;
         public double AnchorExtraMs, AnchorOutMs, AnchorInMs;
+        /// <summary>T492 ⓐ — 앵커 배지가 물러날 때의 **페이드 길이**(정본 .32s). 제거 시각 <see cref="AnchorOutMs"/>(340) 와 다른 수다.</summary>
+        public double AnchorFadeMs;
+        public CssEase AnchorFadeEase = CssEase.Linear;
         public double AmtMs, AmtStepMs, AmtRemoveMs, AmtDxPx, AmtMarginPx, AmtDyPx, AmtDyNoSrcPx, AmtRowPx;
         public double CardTopPx, CardMinYPx, CardInsetXPx;
         public double GlowRem, RingRem, RingBorderRem, FlyIcoRem, AmtFontRem, AmtIcoRem, AmtGapRem, AmtStrokePx;
@@ -99,6 +102,7 @@ namespace Forge.Core.Ui
                 PopSmMs = n("pop_sm_ms"), PopSmAnimMs = n("pop_sm_anim_ms"), PopMs = n("pop_ms"), PopAnimMs = n("pop_anim_ms"), PopAfterMs = n("pop_after_ms"), PopJitterXPx = n("pop_jitter_x_px"), PopJitterYPx = n("pop_jitter_y_px"),
                 TickOutMs = n("tick_out_ms"), TickFadeMs = n("tick_fade_ms"), TickFadeEase = EaseOf(J.Require(L, "tick_fade_ease")), TickBumpMs = n("tick_bump_ms"), TickDyPx = n("tick_dy_px"), TickMinYPx = n("tick_min_y_px"), TickUpPx = n("tick_up_px"), TickUpMinYPx = n("tick_up_min_y_px"),
                 AnchorExtraMs = n("anchor_extra_ms"), AnchorOutMs = n("anchor_out_ms"), AnchorInMs = n("anchor_in_ms"),
+                AnchorFadeMs = n("anchor_fade_ms"), AnchorFadeEase = EaseOf(J.Require(L, "anchor_fade_ease")),
                 AmtMs = n("amt_ms"), AmtStepMs = n("amt_step_ms"), AmtRemoveMs = n("amt_remove_ms"), AmtDxPx = n("amt_dx_px"), AmtMarginPx = n("amt_margin_px"), AmtDyPx = n("amt_dy_px"), AmtDyNoSrcPx = n("amt_dy_nosrc_px"), AmtRowPx = n("amt_row_px"),
                 CardTopPx = n("card_top_px"), CardMinYPx = n("card_min_y_px"), CardInsetXPx = n("card_inset_x_px"),
                 GlowRem = n("glow_rem"), RingRem = n("ring_rem"), RingBorderRem = n("ring_border_rem"), FlyIcoRem = n("fly_ico_rem"), AmtFontRem = n("amt_font_rem"), AmtIcoRem = n("amt_ico_rem"), AmtGapRem = n("amt_gap_rem"), AmtStrokePx = n("amt_stroke_px"),
@@ -281,6 +285,15 @@ namespace Forge.Core.Ui
             if (s.TickFadeMs <= 0 || outMs >= s.TickFadeMs) return 0;
             return 1 - s.TickFadeEase.Ease(outMs / s.TickFadeMs);
         }
+        /// <summary>T492 ⓐ — 앵커 배지가 «물러나기» 를 받은 지 <paramref name="outMs"/> 에서의 불투명도: 정본 7542 `transition: opacity .32s ease-out` + 7546 `.rw-anchor.out { opacity: 0 }` 이 1 → 0 으로 간다.
+        /// 상자는 그 뒤에도 <see cref="RewardBurstSpec.AnchorOutMs"/>(340) 까지 산다 — 정본 `ui.js` 3657 이 340ms 뒤에 지우므로 320~340 은 «투명한 채 살아 있는» 창이다(<see cref="TickOutAlpha"/> 와 같은 꼴).</summary>
+        public static double AnchorOutAlpha(RewardBurstSpec s, double outMs)
+        {
+            if (outMs <= 0) return 1;
+            if (s.AnchorFadeMs <= 0 || outMs >= s.AnchorFadeMs) return 0;
+            return 1 - s.AnchorFadeEase.Ease(outMs / s.AnchorFadeMs);
+        }
+
         /// <summary>`.out` 을 받은 지 <paramref name="outMs"/> 에 상자를 지우는가(정본 ui.js 3727 `setTimeout(() => tick.remove(), 300)`).</summary>
         public static bool TickGone(RewardBurstSpec s, double outMs) { return outMs >= s.TickOutMs; }
 

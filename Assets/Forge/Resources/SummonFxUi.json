@@ -190,6 +190,8 @@
     "star_s_lo": 0.97,
     "star_s_hi": 1.2,
     "stars_fade_ms": 600,
+    "_stars_fade_ease": "T492 둘째 결함 — 정본 style.css 5968 `.sr-stars { transition: opacity .6s ease-out }`. CSS 의 ease-out 은 cubic-bezier(0, 0, .58, 1) 이다. 길이(600)는 맞았는데 이징이 선형이라 정본이 앞쪽에 몰아 켜는 켜짐이 클론에선 끝까지 고르게 밝아졌다(0.3s 지점 알파 정본 ≈ .84 ↔ 클론 .50).",
+    "stars_fade_ease": [0, 0, 0.58, 1],
     "reflect_top_px": 8,
     "reflect_sy": 1.22,
     "reflect_a": 0.88,

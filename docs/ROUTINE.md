@@ -5024,6 +5024,14 @@
 - 판정: ⓐ **PlayMode** 한 칸 — 보상 수령 연출에서 `rw-anchor` 가 «물러나기 시각 + 160ms»(페이드 중간)에 알파가 **0.3~0.7 사이**이고 «+320ms» 에 **≤0.02**, 그리고 **+340ms 뒤에 노드가 없다**. ⓑ **EditMode/PlayMode** 한 칸 — `stars_fade_ms` 의 절반 시점 알파가 **ease-out 값(≈.75±.05)** 이고 선형값 .50 이 **아니다**. 둘 다 수는 표에서 읽는다(코드 박기 금지 · `gate.sh` rc 0).
 - 범위: `Assets/Forge/Resources/RewardBurstUi.json`(`anchor_fade_ms`·`anchor_fade_ease`) · `Assets/Scripts/Core/Ui/RewardBurstRules.cs`(앵커 알파 셈 — `TickOut` 꼴) · `Assets/Scripts/Game/Ui/RewardBurst.cs`(`AnchorFx`) · `Assets/Forge/Resources/SummonFxUi.json`(`stars_fade_ease`) · `Assets/Scripts/Game/Ui/SummonFx.cs`(별 알파) · 자 `Assets/Tests/…`(두 칸) · `docs/ROUTINE.md`(§2 이 절 · §7 한 칸) · `docs/PROGRESS.md`.
 
+- 🔄 **1회차(2026-11-26 21:5x~22:2x · 워커 L · sess-2147-18106 · lock 유지)**: **ⓐⓑ 둘 다 세웠다.**
+  - **ⓐ** 표에 `anchor_fade_ms` **320** · `anchor_fade_ease` **ease-out** 을 더하고, Core 에 `RewardBurstRules.AnchorOutAlpha`(= `TickOutAlpha`(T454 ⓓ)와 **글자 그대로 같은 꼴**)를 세웠다. 배선은 `RewardBurst.AnchorFx` 한 줄 — 입장 알파에 «물러난 지 ms» 의 페이드를 곱한다. **제거는 그대로 340** 이라 320~340 은 «투명한 채 사는 창» 이다.
+    - ⚑ **`Run` 이 `pct` 만 주고 있었다** — 입장 트랙은 100 에서 멎으므로 그 하나로는 물러나기를 그릴 수가 없다(그래서 배지가 알파 1 인 채 툭 없어졌다). `Run` 에 **«지난 ms» 도 주는 겹**을 하나 더 뒀다(옛 꼴은 그 겹을 부르는 한 줄로 남겨 다른 일곱 자리는 한 글자도 안 바꿨다).
+  - **ⓑ** 표에 `stars_fade_ease` **[0, 0, 0.58, 1]** 을 더하고 `SummonFxStyle.Ease(key)` 를 세워(`OpacityUi.Ease` 꼴) `SummonFx` 의 별 알파를 `Ease(t)` 로 바꿨다.
+  - ⚑ **등재문의 어림수 둘이 실제 CSS ease-out 과 다르다**(고친 것은 코드가 아니라 **기다리는 값**이다): 등재문은 «0.3s 지점 알파 정본 ≈ **.84**» · «절반 시점 ≈ **.75±.05**» 라 적었는데, `cubic-bezier(0, 0, .58, 1)` 의 t=.5 는 **0.685** 다(t=.25 → 0.378 · t=.9 → 0.983). 선형 .50 과는 여전히 뚜렷이 갈리므로 **결함 판정은 그대로 참**이고, 자가 기다리는 값만 실제 값으로 적었다. 앵커 쪽 어림(«+160ms 에 0.3~0.7»)은 실측 **0.315** 로 그 안이다.
+  - 자 둘: **EditMode** `RewardBurstRulesTests` +1(페이드 320 < 제거 340 · 0ms=1 · 160ms 가 선형보다 더 투명 · 320ms=0 · 339ms 도 0 · 이징이 ease-out 키워드) · **PlayMode** `SummonFxTests` 의 별 칸에 가운데 표본 +2(표 이징을 따르는가 · **선형보다 0.10 이상 밝은가** — 선형으로 되돌아가면 운다).
+  - ⚠ **표 주석에 ⓐⓑⓓ 를 쓰지 마라** — `check_text_glyphs` 는 **JSON 문자열도 화면 문구로 센다**(쓰자마자 «새 두부 3 종» 으로 막혔다). 평범한 한국어로 적었다.
+  - `dotnet build` 0 오류 · `dotnet test` **879/879** · `tools/gate.sh` **막는 자 47 전부 rc 0 · 건너뛴 자 없다**. 판정은 다음 유니티 런(`SummonFxTests` 별 칸 · `screen_t179-summon` 눈 확인).
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. 이 규칙은 **말로만 있던 동안 샜다**: 런 435·436 이 둘 다 `dotnet build` 에서 빨갰고 임자가 `45c03d5` 제목에 적었다 — «내 빌드 확인 줄이 오류를 삼켰다». 그래서 스무 줄을 손으로 옮겨 붙이지 않는다(T184).

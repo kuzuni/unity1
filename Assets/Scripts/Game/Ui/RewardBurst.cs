@@ -298,6 +298,13 @@ namespace Forge.Game.Ui
         /// <summary>벽시계 진행 — delay 동안 감췄다가(WAAPI fill:both 는 첫 키 값이지만 정본 요소는 지연 중 보이지 않는 값이다) dur 동안 0~100% · 그 뒤 마지막 값으로 붙박이(forwards) · endMs 에 걷는다.</summary>
         IEnumerator Run(double delayMs, double durMs, double endMs, GameObject go, Action<double> step)
         {
+            Action<double, double> f = (pct, ms) => step(pct);
+            yield return Run(delayMs, durMs, endMs, go, f);
+        }
+
+        /// <summary>T492 ⓐ — 같은 돌림인데 **지난 벽시계 ms** 도 같이 준다. 입장 트랙(`pct`)이 100 에서 멎은 뒤에도 움직이는 겹(앵커 페이드)이 쓴다.</summary>
+        IEnumerator Run(double delayMs, double durMs, double endMs, GameObject go, Action<double, double> step)
+        {
             double ms = 0;
             if (delayMs > 0) go.SetActive(false);
             while (ms < endMs)
@@ -306,7 +313,7 @@ namespace Forge.Game.Ui
                 {
                     if (!go.activeSelf) go.SetActive(true);
                     double pct = durMs <= 0 ? 100 : Math.Min(100.0, (ms - delayMs) / durMs * 100.0);
-                    step(pct);
+                    step(pct, ms);
                 }
                 yield return null;
                 ms += Time.unscaledDeltaTime * 1000.0;
@@ -512,11 +519,15 @@ namespace Forge.Game.Ui
             Center(img.rectTransform, size * 0.5, size * 0.5, ico, ico);
             CanvasGroup cg = an.gameObject.AddComponent<CanvasGroup>();
             double endMs = outAtMs + s.AnchorOutMs;
-            yield return Run(delayMs, s.AnchorInMs, endMs, an.gameObject, pct =>
+            // T492 ⓐ — 정본은 **페이드 .32s · 제거 340ms** 으로 두 수가 다르다(7542 `transition: opacity .32s ease-out` +
+            //   7546 `.out { opacity: 0 }` · ui.js 3657 `setTimeout(… , 340)`). 여태 클론은 340 을 제거 시각으로만 써서
+            //   배지가 **알파 1 인 채 한 프레임에 툭** 없어졌다 — 입장 트랙(`pct`)은 100 에서 멎기 때문이다.
+            //   그래서 입장 알파에 «물러난 지 ms» 의 페이드를 곱한다(셈은 Core `AnchorOutAlpha` · 수는 표).
+            yield return Run(delayMs, s.AnchorInMs, endMs, an.gameObject, (pct, ms) =>
             {
                 double sc, a; RewardBurstRules.AnchorIn(s, pct, out sc, out a);
                 an.localScale = new Vector3((float)sc, (float)sc, 1f);
-                cg.alpha = (float)a;
+                cg.alpha = (float)(a * RewardBurstRules.AnchorOutAlpha(s, ms - outAtMs));
             });
             Destroy(an.gameObject);
             Anchors--;

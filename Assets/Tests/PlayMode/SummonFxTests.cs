@@ -103,6 +103,16 @@ namespace Forge.Tests.PlayMode
             while (!v.Done && t < 5f) { t += Time.unscaledDeltaTime; yield return null; }
             Assert.IsTrue(v.Done, "탭 뒤 done");
             Assert.IsTrue(fx.Done, "연출 겹도 done 을 받는다");
+            // T492 ⓑ — 정본 5968 `.sr-stars { transition: opacity .6s **ease-out** }`: 길이는 맞았는데 이징이 **선형**이었다.
+            //   페이드 한가운데서 재면 갈린다 — ease-out 은 앞쪽에 몰아 켜므로 선형보다 뚜렷이 밝다.
+            float fade = SummonFxStyle.L("stars_fade_ms") / 1000f;
+            t = 0f;
+            while (t < fade * 0.5f) { t += Time.unscaledDeltaTime; yield return null; }
+            float midA = fx.StarsAlpha, lin = Mathf.Clamp01(t / fade);
+            float want = (float)SummonFxStyle.Ease("stars_fade_ease").Ease(lin);
+            Assert.AreEqual(want, midA, 0.08f, "별 α 는 표 이징(ease-out)을 따른다 — 잰 진행 " + lin.ToString("0.000") + " · 기다린 값 " + want.ToString("0.000") + " · 실측 " + midA.ToString("0.000"));
+            Assert.Greater(midA - lin, 0.10f, "선형(" + lin.ToString("0.000") + ")보다 뚜렷이 밝아야 한다 — 선형으로 되돌아가면 여기서 운다");
+
             t = 0f;
             while (t < 0.8f) { t += Time.unscaledDeltaTime; yield return null; }
             Assert.AreEqual(1f, fx.StarsAlpha, 0.05f, "done .6s 뒤 별 α 1");

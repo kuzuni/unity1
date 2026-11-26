@@ -55,6 +55,25 @@ namespace Forge.Tests
             Assert.AreEqual(1 - new CssEase(0, 0, 0.58, 1).Ease(0.5), mid, 1e-9, "표 이징 = ease-out 키워드");
         }
 
+        /// <summary>T492 ⓐ — 앵커 배지도 카운터와 같은 꼴이다: **페이드 320 · 제거 340** 으로 두 수가 다르고 그 사이는 «투명한 채 사는 창» 이다.
+        /// 여태 클론엔 340 하나뿐이라 배지가 알파 1 인 채 한 프레임에 툭 없어졌다(정본 7542·7546 · ui.js 3657).</summary>
+        [Test]
+        public void 앵커_배지는_320ms_동안_ease_out_으로_사라지고_340ms_에_지워진다()
+        {
+            var s = S();
+            Assert.AreEqual(320, s.AnchorFadeMs, "표 anchor_fade_ms = 정본 .32s");
+            Assert.AreEqual(340, s.AnchorOutMs, "제거는 그대로 340ms(ui.js 3657)");
+            Assert.Less(s.AnchorFadeMs, s.AnchorOutMs, "페이드가 제거보다 먼저 끝난다 — 320~340 은 투명한 채 사는 창");
+            Assert.AreEqual(1, RewardBurstRules.AnchorOutAlpha(s, 0), 1e-9, "물러나기 직후 = 1");
+            double mid = RewardBurstRules.AnchorOutAlpha(s, 160);
+            Assert.Less(mid, 0.5, "ease-out 은 앞이 빨라 절반 시각엔 선형(.5)보다 더 투명하다 — " + mid);
+            Assert.Greater(mid, 0.0);
+            Assert.Greater(RewardBurstRules.AnchorOutAlpha(s, 80), mid, "단조 감소");
+            Assert.AreEqual(0, RewardBurstRules.AnchorOutAlpha(s, 320), 1e-9, "320ms 에 0");
+            Assert.AreEqual(0, RewardBurstRules.AnchorOutAlpha(s, 339), 1e-9, "그 뒤도 0(아직 살아 있지만 투명하다)");
+            Assert.AreEqual(1 - new CssEase(0, 0, 0.58, 1).Ease(0.5), mid, 1e-9, "표 이징 = ease-out 키워드");
+        }
+
         [Test]
         public void 수령_목록은_floor_뒤_0_초과만_순서대로()
         {

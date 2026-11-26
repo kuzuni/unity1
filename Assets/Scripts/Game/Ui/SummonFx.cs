@@ -256,7 +256,10 @@ namespace Forge.Game.Ui
             if (starsGroup != null && done)
             {
                 float dt = Time.unscaledTime - doneAt;
-                starsGroup.alpha = Mathf.Clamp01(dt / (L("stars_fade_ms") / 1000f));
+                // T492 ⓑ — 정본 5968 `.sr-stars { transition: opacity .6s **ease-out** }`. 길이는 맞았는데 이징이 선형이었다
+                //   (0.3s 지점 알파 정본 ≈ .84 ↔ 클론 .50) — 수는 표(`stars_fade_ease`)가 쥔다.
+                float starsT = Mathf.Clamp01(dt / (L("stars_fade_ms") / 1000f));
+                starsGroup.alpha = (float)SummonFxStyle.Ease("stars_fade_ease").Ease(starsT);
                 for (int i = 0; i < stars.Count; i++)
                 {
                     float sc = Veil(dt, starDur[i], starDelay[i], L("star_s_lo"), L("star_s_hi"));
@@ -1417,6 +1420,18 @@ namespace Forge.Game.Ui
             object v = layout[key];
             if (!J.IsNum(v)) throw new KeyNotFoundException("SummonFxUi.json 의 «layout» 에 «" + key + "» 이 없다");
             return (float)J.Num(v);
+        }
+
+        /// <summary>
+        /// T492 — 표의 타이밍 함수(`cubic-bezier` 넷). 정본 `transition` 이 `ease-out` 이라 적은 자리는
+        /// CSS 규격대로 <c>cubic-bezier(0, 0, .58, 1)</c> 이고, 그 수를 표가 쥔다(§1 «수치는 코드에 안 박는다»).
+        /// `OpacityUi.Ease`·`TransitionUi` 와 같은 길이다.
+        /// </summary>
+        public static Forge.Core.CraftFx.CssEase Ease(string key)
+        {
+            float[] e = Arr(key);
+            if (e.Length < 4) throw new FormatException("SummonFxUi.json 의 «" + key + "» 는 cubic-bezier 넷이어야 한다 (T492)");
+            return new Forge.Core.CraftFx.CssEase(e[0], e[1], e[2], e[3]);
         }
 
         public static float[] Arr(string key)
