@@ -2440,7 +2440,15 @@ namespace Forge.Tests.PlayMode
             System.Func<float, float, Color32> at = (fx, fy) =>
                 px[Mathf.Clamp((int)((1f - fy) * H), 0, H - 1) * W + Mathf.Clamp((int)(fx * W), 0, W - 1)];   // fy = CSS 기준 «위에서»
             Color32 mid = at(0.5f, 0.5f);
-            Assert.Greater(mid.a, 250, "십자 가운데 = 막대 둘 + 마스크 1.0 이라 거의 불투명");
+            // 55회차 수리 — 처음엔 «> 250» 으로 적었는데 런 1334 가 **232** 로 넘어뜨렸다. 구현이 아니라 **내 기대가 틀렸다**:
+            //   42 × 32 짜리 판에서는 **화소 중심이 상자 한가운데에 안 떨어진다**. 가장 가까운 화소는 (0.512, 위에서 0.484) 라
+            //   막대 둘이 각각 0.83 · 0.78 로 이미 정점에서 비켜 있고(합성 0.962) 마스크도 r = 0.039 라 0.944 로 살짝 누른다
+            //   ⇒ 0.962 × 0.944 = 0.908 → **232**. 곧 232 는 이 판이 낼 수 있는 **최댓값**이다.
+            //   그래서 잣대를 «절대 문턱» 에서 **«가운데가 이 판에서 가장 진한 자리인가»** 로 옮긴다 — 판 크기가 바뀌어도 안 늙는다.
+            int maxA = 0;
+            foreach (Color32 q in px) if (q.a > maxA) maxA = q.a;
+            Assert.AreEqual(maxA, (int)mid.a, "십자 가운데가 이 판에서 가장 진한 자리다(막대 둘이 겹치고 마스크가 안 누르는 유일한 곳)");
+            Assert.Greater(mid.a, 220, "그 가장 진한 자리는 거의 불투명하다 — 실측 232");
             Assert.AreEqual(255, mid.r, "흰색이다");
             Assert.AreEqual(255, mid.g, "흰색이다");
             Assert.AreEqual(255, mid.b, "흰색이다");
