@@ -2469,8 +2469,16 @@ namespace Forge.Tests.PlayMode
             }
             Assert.AreEqual(1, gem, "등급 4 = gem 하나");
             // §1 «실제 화면을 본다» — 보석 등급은 촬영 시드에 안 떠서(런 1320 `screen_t179-summon` 은 일반 = metal) 눈 확인 자리가 없었다.
-            //   T393 이 승천에 한 길 그대로, 이 자가 **보석 구슬 한 장**을 굽는다. 다음 회차가 그 PNG 를 열어 본다.
+            //   T393 이 승천에 한 길 그대로, 이 자가 **보석 구슬 한 장**을 굽는다.
+            // ⚠ 50회차의 첫 컷(런 1323)은 **못 쓴다**: 보석 등급색이 빨강이고 소환 연출의 광륜·광선이 **같은 등급색**이라
+            //    구슬이 통째로 발광에 묻혀 경계조차 안 잡혔다(화소로 재도 고리마다 바닥이 0 — 레터박스까지 먹었다).
+            //    금속 컷(`screen_t179-summon`)이 읽혔던 것은 일반 등급이라 회청색 구슬 ↔ 회청색 연출이 **대비가 있었기 때문**이다.
+            //    ⇒ 이 컷은 **재질 판정 컷**이라 연출 겹을 잠깐 끄고 찍는다. 연출 자체는 T179 의 컷이 쥔다(자리를 나눈다).
+            SummonFx fxOff = v2.Fx;
+            bool hadFx = fxOff != null && fxOff.gameObject.activeSelf;
+            if (hadFx) fxOff.gameObject.SetActive(false);
             Capture("screen_t178-gem-orb");
+            if (hadFx) fxOff.gameObject.SetActive(true);
             v2.Close();
             yield return null;
         }
