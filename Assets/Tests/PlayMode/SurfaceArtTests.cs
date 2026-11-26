@@ -2575,7 +2575,9 @@ namespace Forge.Tests.PlayMode
             //       본체 subtree 만 남기면 재질 겹은 다 남고 장식·아이콘·뷰 밖은 **규칙 하나로** 전부 꺼진다(이름 목록을 안 늘린다).
             //    ⚑ 판정 장치 둘을 **적어 둔다**(찍고 되돌린다 · 실제 화면이 이렇게 보인다는 말이 아니다):
             //       ⑴ 바탕이 검게 비므로 정본의 얕은 «빨강 위 빨강» 패싯 대비가 비로소 읽힌다(검수 Q 의 ⓒ «셋을 못 센다» 가 여기서 걸렸다).
-            //       ⑵ 구슬이 640×480 에서 지름 ≈100px 뿐이라 래퍼를 **×3** 로 키워 찍는다 — 하드 스톱 경계는 확대에도 경계로 남는다.
+            //       ⑵ ~~래퍼를 ×3 으로 키운다~~ — **57회차에 걷어냈다. 안 먹는다**: `SummonFx.cs` **442** 가 착지 연출 동안 `sr-orbwrap` 의
+            //          `localScale` 을 **매 프레임 덮어쓴다**(실측 — 런 1337 컷의 구슬 지름 92px 이 52회차의 91px 과 같다). 그리고 **필요도 없다**:
+            //          판정은 수로 났고(55회차), 눈으로 볼 때는 **PNG 를 최근접 이웃으로 키우는 편**이 엔진 확대(쌍선형)보다 진실하다 — 구운 하드 스톱이 안 뭉개진다.
             Transform orbWrap = null;
             foreach (RectTransform rt in v2.GetComponentsInChildren<RectTransform>(true))
                 if (rt.name == "sr-orbwrap") { orbWrap = rt; break; }
@@ -2585,19 +2587,24 @@ namespace Forge.Tests.PlayMode
                 if (rt.name == "sr-orb") { orbBody = rt; break; }
             Assert.IsNotNull(orbBody, "구슬 본체(재질 판이 선 면)");
             var off = new System.Collections.Generic.List<Graphic>();
-            foreach (Graphic gr in UiRoot.Instance.Canvas.GetComponentsInChildren<Graphic>(true))
+            System.Action sweep = () =>
             {
-                if (!gr.enabled) continue;
-                bool inside = false;
-                for (Transform t2 = gr.transform; t2 != null; t2 = t2.parent) if (t2 == orbBody) { inside = true; break; }
-                if (!inside) { gr.enabled = false; off.Add(gr); }
-            }
-            Vector3 wrapScale = orbWrap.localScale;
-            orbWrap.localScale = wrapScale * 3f;
+                foreach (Graphic gr in UiRoot.Instance.Canvas.GetComponentsInChildren<Graphic>(true))
+                {
+                    if (gr == null || !gr.enabled) continue;
+                    bool inside = false;
+                    for (Transform t2 = gr.transform; t2 != null; t2 = t2.parent) if (t2 == orbBody) { inside = true; break; }
+                    if (!inside) { gr.enabled = false; off.Add(gr); }
+                }
+            };
+            // 57회차 — **두 번 걷는다.** 한 번 걷고 한 프레임을 흘리면 그 사이에 **켜지는 것**이 있다(걷기는 «이미 꺼진 것» 을 건너뛰므로
+            //   그때 꺼져 있다가 다음 프레임에 켜지는 조각은 안 걸린다). 런 1337 컷에 구슬 아래 파란·회색 조각 둘(x 351~391 · y 371~398)이
+            //   그렇게 남았다 — 구슬(x 273~364 · y 169~261)과 떨어져 있어 판정은 섰지만, 한 줄로 막을 수 있는 구멍이다.
+            sweep();
             yield return null;
+            sweep();
             Canvas.ForceUpdateCanvases();
             Capture("screen_t178-gem-orb");
-            orbWrap.localScale = wrapScale;
             // 55회차 수리 — 되돌릴 때 **파괴된 것을 건너뛴다**. 뿌리를 캔버스로 올린 뒤 생긴 빨강이다(런 1333):
             //   `Capture` 가 맨 앞에서 `CardPop.SettleAll()` 을 부르는데 그때 **정착을 마친 카드 팝이 파괴된다** —
             //   뷰(`v2`) 밑만 걷던 52회차까지는 그 팝이 목록에 안 들어와 안 보이던 갈래다.
