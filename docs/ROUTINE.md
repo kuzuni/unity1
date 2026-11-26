@@ -19,7 +19,7 @@
 
 1. `git fetch && git checkout -B main origin/main` (pull --rebase 금지 · 로컬 잔재 위에서 작업 금지). detached HEAD 환경이면 이어서 `git branch --set-upstream-to=origin/main main`.
    - ⚑ **컨테이너가 새로 서서 레포가 통째로 없으면**(두 달 멈춤 뒤 실측 2026-11-26) 먼저 `git clone https://github.com/kuzuni/unity1` 로 받는다. `--depth 1` 로 받았다면 **단일 가지 clone** 이라 `screens` 를 추적조차 안 해서 §0-6 의 눈이 먼다 — `git fetch origin screens` 를 **해도** `refs/remotes/origin/screens` 가 안 생긴다(T489). `check_unity_green.py --fetch` 는 이제 그 자리를 **스스로 고치므로**(추적 설정을 더하고 다시 받는다) 그냥 부르면 된다. 손으로 고치려면 `git config --add remote.origin.fetch '+refs/heads/screens:refs/remotes/origin/screens' && git fetch origin screens --depth=1`.
-   - 새 컨테이너엔 **`dotnet` 도 없다** — 커밋할 회차면 §3 대로 `apt-get install -y dotnet-sdk-8.0` 을 먼저 돌린다(약 2분). 정본 대조 자들은 `.wwwww-src` clone 이 있어야 돈다(§0-3).
+   - 새 컨테이너엔 **`dotnet` 도 없다** — 커밋할 회차면 §3 대로 **`apt-get update && apt-get install -y dotnet-sdk-8.0`** 을 먼저 돌린다(약 2분). ⚠ **`update` 를 빠뜨리면 «Unable to locate package dotnet-sdk-8.0» 로 막힌다** — 없는 것이 아니라 목록이 낡은 것이다(2026-11-26 워커 L 이 그렇게 헛짚고 그 회차 게이트를 «건너뛴 자 2» 로 끝냈다 · §3 4963행은 처음부터 `update` 를 적어 뒀다). 정본 대조 자들은 `.wwwww-src` clone 이 있어야 돈다(§0-3).
 2. SID 발급: `sess-HHMM-$RANDOM` (예: `sess-0512-23481`). 커밋 제목 끝에 `(sess-… · 워커 X)` 를 붙인다.
 3. 읽는 순서: 이 문서(⚑ 머리 → §1 → §2) → `docs/PROGRESS.md`(표 + «주인 콘솔 에러 보고함» + «워커 결정 기록» 꼬리 20개) → `docs/claims/`. 정본은 `git clone --depth 1 https://github.com/kuzuni/wwwww .wwwww-src` 로 옆에 둔다(**커밋 금지 폴더** · `.gitignore` 에 있다). 작업이 만지는 원작 파일(§2 각 절의 «정본» 줄)을 **먼저 Read 로 읽는다** — 이식은 «비슷하게 새로 만들기» 가 아니라 «그대로 옮기기» 다.
 4. §2 에서 **선점 가능한 가장 앞 작업**을 lock 으로 선점한다(규약 `docs/claims/README.md`). 선점 «직전» 에 반드시:
@@ -4946,6 +4946,14 @@
 - 판정: 공용 자리 하나 + 바꾼 자리마다 그 자의 PNG 가 그대로 나온다(`screens` 장수가 안 줄어든다) · `tools/gate.sh` rc 0.
 - 범위: `Assets/Tests/PlayMode/`(공용 자리 + 바꾸는 자 파일) · `docs/ROUTINE.md` · `docs/PROGRESS.md`.
 
+- 🔄 **1회차(2026-11-26 19:5x~20:1x · 워커 L · sess-1947-9647 · lock 유지)**: **ⓐ 공용 자리를 세웠다** — `Assets/Tests/PlayMode/PlayShot.cs`(`PlayShot.Capture` · `PlayShot.CaptureWithWorld`) · 함정 셋(T135 ⓑ 카드 팝 정착 · T349 URP 포스트 · T124 저장 실패 삼킴)을 **그 한 자리에만** 적었다. ⓑ 는 등재문대로 **한 파일만**(`AgePatternTests` 50줄 → 한 줄) — 나머지 아홉은 그 파일이 열리는 회차 몫이다.
+  - ⚑ **열 벌을 전수해 보니 «거의 같다» 가 아니었다 — 두 꼴이고 둘 다 뜻이 있다**(합치면 여덟 자의 그림이 조용히 바뀐다):
+    - **UI 만 찍는 꼴 아홉** — `cullingMask` 를 UI 한 층으로 **덮어쓰고** `ShotCam.CopyUrp` 를 **안 부른다**(T349 4회차: UI 에 URP 포스트를 켜면 순백 코어가 rgb 215 로 내려간다).
+    - **3D 띠까지 찍는 꼴 하나**(`BossWarnArtTests`) — `cullingMask` 에 UI 층을 **더하고** `CopyUrp` 를 **부른다**(런 503: `CopyFrom` 은 URP 추가 데이터를 안 옮긴다). 무대 위 연출이라 그것이 맞다.
+    - 그래서 공용 자리를 **둘**로 뒀다. 옮기는 사람은 제 자가 어느 꼴인지부터 보라 — `CaptureWithWorld` 는 보스 경고 꼴만이다.
+  - ⚑ **등재문이 걱정한 «한 벌만 고치면 아홉이 뒤처진다» 가 이미 일어나 있었다**: UI 꼴 아홉 중 `CardPop.SettleAll()`(T135 ⓑ)을 가진 것은 **둘뿐**(`SurfaceArtTests`·`AgePatternTests`)이고 **일곱이 뒤처져 있었다**. `BossWarnArtTests`·`SummonFxTests` 의 T349 주석도 **4회차가 뒤집기 전 문장**이 그대로 남아 있다. 공용 자리가 서면 저절로 맞춰지지만 **옮기기 전까지는 그 일곱의 PNG 가 카드 팝 도중일 수 있다** — 그 자들을 읽는 사람은 알고 봐라.
+  - 범위 겹침: `SurfaceArtTests.cs` 는 **T178 산 lock** 이라 안 열었다(그 자의 복사본이 공용 자리와 글자까지 같은 바로 그 한 벌이다 — 임자가 한 줄로 바꾸면 된다).
+  - 게이트: `dotnet` 을 깔아(**`apt-get update` 를 먼저** — §0 22행에 그 한 줄을 보탰다) `dotnet build` 0 오류 · `tools/gate.sh` **막는 자 46 전부 rc 0 · 건너뛴 자 없다**. 판정은 다음 유니티 런에서 `screen_t124-cell.png` 가 그대로 나오는지(장수가 안 줄어든다).
 ## 3. 게이트 (커밋 전 · 세션 종료 전)
 
 > ⚑ **꼬리로 읽지 마라 — `rc` 를 보라.** 자들의 출력은 «고치는 법» 으로 끝나는 것이 많아 마지막 줄만 보면 빨강과 초록이 같아 보인다. 이 규칙은 **말로만 있던 동안 샜다**: 런 435·436 이 둘 다 `dotnet build` 에서 빨갰고 임자가 `45c03d5` 제목에 적었다 — «내 빌드 확인 줄이 오류를 삼켰다». 그래서 스무 줄을 손으로 옮겨 붙이지 않는다(T184).
