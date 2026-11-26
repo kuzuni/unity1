@@ -622,8 +622,17 @@ def resume_verdict(pmark, lk, age):
     회차를 나눠 하는 작업(T109·T128·T159·T168·T178 …)은 임자가 lock 을 반납하고 떠난 뒤 **아무도 규약(지시서 3 · rc 0)대로는
     못 잇는** 자리가 됐다(2026-09-14 실측: 열린 작업 다섯이 전부 그 꼴). 잣대는 T329 의 것을 그대로 쓴다 — **그 번호의 마지막
     커밋이 90분(STALE_MIN) 넘게 조용하면 임자는 떠난 것**이다. 산 lock · ✅ · 90분 안의 커밋 · 얕은 클론(나이 None)은 그대로
-    «먼저 읽어라 / 뺏지 마라» 다(T447·T465 의 인수 규약을 좁힌 것이 아니라, 그 규약이 «임자가 없는데도» 막던 자리만 연다)."""
-    if pmark not in ("⬜", "🔄") or lk or age is None or age <= STALE_MIN:
+    «먼저 읽어라 / 뺏지 마라» 다(T447·T465 의 인수 규약을 좁힌 것이 아니라, 그 규약이 «임자가 없는데도» 막던 자리만 연다).
+
+    ⚑ **T488 — «죽은 lock 파일이 남아 있다» 는 막을 까닭이 못 된다.** 종전엔 `lk` 가 있기만 하면(죽었어도) 이 갈래가
+    통째로 비켜서서, 그 번호는 아래 «이미 손댄 흔적» 으로 **rc 1** 이 됐다. 그러면 **임자가 lock 을 치우고 떠난 자리는
+    이어 잡을 수 있는데, 치우지 않고 떠난 자리는 영영 못 잡는** 꼴이다 — 뒷정리를 덜 한 쪽이 더 단단히 잠긴다.
+    실측 2026-11-26(두 달 멈춤 뒤 첫 회차): 열린 작업 넷 중 유일하게 잡을 수 있던 **T28** 이 lock 87698분(61일) ·
+    그 번호의 마지막 커밋도 61일인데 «이미 손댄 흔적» 으로 막혀, 지시서 3(«선점 직전 rc 0»)을 지키면 **그 회차에
+    아무도 일을 못 잡는다**. 그래서 **살아 있는 lock 만** 비켜선다 — 죽은 lock 은 위 `stale_but_alive` 가 «임자가
+    아직 움직인다» 를 이미 걸러 냈으므로(T329·T465), 여기 닿은 죽은 lock 은 **임자도 조용한 자리**다.
+    ⚠ 뺏을 때는 `docs/claims/README.md` 대로 그 lock 파일을 **자기 SID·지금 시각으로 덮어** 커밋·push 한다."""
+    if pmark not in ("⬜", "🔄") or (lk and lk[1] <= STALE_MIN) or age is None or age <= STALE_MIN:
         return None, None
     return True, ("이어 잡아도 된다 — 그 번호의 마지막 커밋이 %d분 전(90분 초과 · 임자가 떠났다 · T187) · "
                   "먼저 읽어라: 그 절의 마지막 회차 기록과 «남은 몫»" % age)
@@ -1541,6 +1550,21 @@ def self_test():
                 _g, line_same = verdict("T999999", {}, {})
                 if "다만 그 커밋은" in line_same:
                     print("⛔ 자기 검사 실패 — 같은 절인데 «딴 절» 이라 말한다: %s" % line_same)
+                    return 1
+                # ⓜ **T488 — 죽은 lock 파일이 «이어 잡기»(T187) 를 막으면 안 된다.**
+                #   같은 자리를 셋으로 재 본다: lock 을 **치우고** 떠난 절과 **안 치우고** 떠난 절이 같은 답이어야 한다
+                #   (안 치운 쪽이 더 단단히 잠기면 뀄정리를 덜 한 쪽이 이기는 꺼다) · 그리고 **산** lock 은 그대로 막는다.
+                for _lk, _want, _why in [
+                    (None, True, "lock 을 치우고 떠난 자리 = 이어 잡는다(T187)"),
+                    (("sess-test-0000", STALE_MIN + 30), True, "lock 을 안 치우고 떠난 자리도 같다(T488)"),
+                    (("sess-test-0000", 10), False, "**산** lock 은 그대로 막는다"),
+                ]:
+                    _grab, _ = resume_verdict("\u2b1c", _lk, STALE_MIN + 500)
+                    if bool(_grab) != _want:
+                        print("\u26d4 자기 검사 실패 — resume_verdict: %s (%r)" % (_why, _grab))
+                        return 1
+                if resume_verdict("\u2b1c", ("sess-test-0000", STALE_MIN + 30), STALE_MIN - 1)[0]:
+                    print("\u26d4 자기 검사 실패 — 그 번호가 90분 안에 움직였으면 죽은 lock 이어도 안 열린다")
                     return 1
             finally:
                 globals()["lock_of"], globals()["footprint"], globals()["sid_commit_age"], globals()["sid_last_task"] = _keep
