@@ -63,6 +63,7 @@
     "anchor_fade_ms": 320,
     "anchor_fade_ease": "ease-out",
     "anchor_in_ms": 320,
+    "_amt_ms": "정본 style.css 7502 `animation: rwAmt .66s ease-out both` — 그 라벨이 뜨는 길이(T520 1회차 · 84회차 확인 칸).",
     "amt_ms": 660,
     "amt_step_ms": 110,
     "amt_remove_ms": 720,
@@ -126,6 +127,7 @@
     { "at": 60, "scale": 1.14, "opacity": 1, "ease": [0.3, 1.5, 0.5, 1] },
     { "at": 100, "scale": 1, "opacity": 1 }
   ],
+  "_amt": "정본 style.css 7502 `animation: rwAmt .66s ease-out both` — «+획득량» 라벨(길이는 layout.amt_ms 660 · 이징은 이 키프레임의 ease-out · T520 1회차 · T33 84회차 확인 칸).",
   "amt": [
     { "at": 0, "opacity": 0, "ty_rem": 0.6, "scale": 0.4, "ease": "ease-out" },
     { "at": 12, "opacity": 1, "ty_rem": -0.3, "scale": 1.35, "ease": "ease-out" },

@@ -249,8 +249,13 @@ namespace Forge.Tests.PlayMode
             yield return null;
             Assert.IsTrue(ForgeAutoPopup.DropdownOpen, "드롭다운이 열리지 않았다");
 
+            // ⚠ 팝업 안의 칸은 `UiRoot.App` 아래에 없다 — 런 **#1390** 에서 이 자가 그 길로 훑어
+            //   «항목이 서지 않았다» 로 **건너뛰었다**(그래서 5회차 판정이 비었다). 팝업 뿌리에서 찾는다
+            //   (`PressFxSitesTests.FindPressed` 가 `scope` 를 받는 까닭이 이것이고 6회차 자도 `p.Root` 를 쓴다).
+            Popup pop = h.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(pop, "자동 제련 팝업이 열린다");
             int seen = 0;
-            foreach (PressFx fx in UiRoot.Instance.App.GetComponentsInChildren<PressFx>(true))
+            foreach (PressFx fx in pop.Root.GetComponentsInChildren<PressFx>(true))
             {
                 if (fx.Spec == null || fx.Spec.Key != "af_dd_item") continue;
                 Transform ft = fx.transform.Find("face");

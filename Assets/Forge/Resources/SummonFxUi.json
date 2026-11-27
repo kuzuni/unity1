@@ -292,6 +292,7 @@
       { "at": 68.0,  "tx_pct": 0.22,  "ty_pct": -0.22, "scale": 1.0 },
       { "at": 100.0, "tx_pct": 0.0,   "ty_pct": 0.0,   "scale": 1.0 }
     ],
+    "_beam_ms": "정본 style.css 6747 `#summon-result-modal.hero .sr-cell.heroic .sr-beam { animation: srbeam .52s cubic-bezier(.1,.8,.3,1) forwards }` — 주역 광창 길이(T520 1회차가 기계가 읽게 적었다 · T33 84회차가 손으로 확인한 칸).",
     "beam_ms": 520.0,
     "beam_ease": [0.1, 0.8, 0.3, 1.0],
     "srbeam": [
@@ -308,6 +309,7 @@
     "beam_mask2": 0.76,
     "hilite_luma": [222.0, 246.0, 248.0, 250.0, 252.0, 254.0],
     "_beam": "정본 `.sr-cell.heroic .sr-beam`(style.css 6740~6752) — 십자 광창. 가로는 흰 선, 세로는 `--rc-lite`(등급 하이라이트) 선이고 둘 다 47%→50%→53% 로 좁다. 거기에 `radial-gradient(closest-side, 검정 0%, rgba(0,0,0,.5) 42%, 투명 76%)` 마스크를 씌워 가운데만 남긴다. `srbeam .52s`: 알파 0 → .95(24%) → 0 · 배율 .16 → 1.05 → 2.1 · 회전 −9° → 0° → 9°. `--rc-lite` 는 `srHilite(rc, tier)`(ui.js 194~210) — **등급이 오를수록 하이라이트가 밝아지게 목표 휘도로 역산**한다(`hilite_luma` 계단 · 정본 주석: «색상(hue)은 몸통 40% 스톱이 지킨다»).",
+    "_heroring_ms": "정본 style.css 6759 `animation: srheroring .62s cubic-bezier(.08,.72,.3,1) forwards` — 주역 셀의 링(T520 1회차 · 84회차 확인 칸).",
     "heroring_ms": 620.0,
     "heroring_ease": [0.08, 0.72, 0.3, 1.0],
     "heroring_a0": 0.95,
@@ -320,6 +322,7 @@
     "ringmax_default": 3.2,
     "ringmax_stage": 1.8,
     "ringmax_herorow": 2.4,
+    "_peerring_ms": "정본 style.css 6714 `animation: srheroring .58s cubic-bezier(.08,.72,.3,1) forwards` — 주역이 아닌 셀의 같은 링(같은 키프레임을 **다른 길이**로 쓴다 · T520 1회차 · 84회차 확인 칸).",
     "peerring_ms": 580.0,
     "peerring_stop0": 0.60,
     "peerring_stop1": 0.76,
@@ -800,7 +803,7 @@
       { "at": 20.0,  "f": 1.0 },
       { "at": 100.0, "f": 0.0 }
     ],
-    "_": "정본 `.sr-tierpulse`(style.css 6402~6416) + `@keyframes srtierpulse` + `UI.fillSummonTierBreaks`(ui.js 690~700) + 시각표(569~586). 대량 판(>10셀)의 **등급 경계 정지**(`SR_TIER_PAUSE_MS` 200)를 채우는 예고다 — 정본 주석: «다음 등급색 링이 광원에서 화면으로 퍼지며 «챕터가 바뀐다» 를 알린다». ⚠ 정본이 링 말고 **전화면 펄스**를 따로 둔 까닭을 주석이 실측으로 적었다: «링만으로는 화면 평균 휘도가 안 움직인다 — 면적이 작은 층은 아무리 밝아도 중반 진폭 계측에 안 잡힌다. 챕터가 바뀌는 순간 화면 전체가 그 등급색으로 한 번 달아올랐다 식는다». 그래서 이 겹이 «재는 눈» 에 잡히는 쪽이다. ⚠ 중심을 `--rc-lite`(등급별 목표 휘도로 역산한 밝은 색 · `hero.hilite_luma`)로 쓰는 까닭도 주석에 있다: «궁극(빨강)·신화(보라)는 고유 휘도가 낮아 등급색만으로는 screen 블렌드가 화면 휘도를 못 움직인다(실측: 신화 챕터 펄스가 루마 차 1.4%로 최약체였다). 색상 정체성은 중대역 --rc 가 지킨다». 바탕 `radial-gradient(120% 90% at 50% 42%, var(--rc-lite) 0%, var(--rc) 30%, rgba(0,0,0,0) 64%)` · `inset: -2%` · `mix-blend-mode: screen` · `srtierpulse .54s ease-out both`(0% 0 → 20% `--pk` → 100% 0). 세기 `--pk` 는 fillSummonTierBreaks 가 심는 `0.15 + tier × 0.04` 다(CSS 등급 계단도, 재점화의 계단도 아닌 **셋째** 수다). 시각은 경계 셀의 등장 시각에서 `break_lead_ms`(정본 160) 앞이되 충전 끝(`sr_charge_ms`)보다 앞서지 않는다 — 정본 주석 «플래시는 첫 셀보다 반 박자 앞 — «예고 → 그 등급 등장» 의 인과가 서게»."
+    "_": "정본 `.sr-tierpulse`(style.css 6402~6416) + `@keyframes srtierpulse` + `UI.fillSummonTierBreaks`(ui.js 690~700) + 시각표(569~586). 대량 판(>10셀)의 **등급 경계 정지**(`SR_TIER_PAUSE_MS` 200)를 채우는 예고다 — 정본 주석: «다음 등급색 링이 광원에서 화면으로 퍼지며 «챕터가 바뀐다» 를 알린다». ⚠ 정본이 링 말고 **전화면 펄스**를 따로 둔 까닭을 주석이 실측으로 적었다: «링만으로는 화면 평균 휘도가 안 움직인다 — 면적이 작은 층은 아무리 밝아도 중반 진폭 계측에 안 잡힌다. 챕터가 바뀌는 순간 화면 전체가 그 등급색으로 한 번 달아올랐다 식는다». 그래서 이 겹이 «재는 눈» 에 잡히는 쪽이다. ⚠ 중심을 `--rc-lite`(등급별 목표 휘도로 역산한 밝은 색 · `hero.hilite_luma`)로 쓰는 까닭도 주석에 있다: «궁극(빨강)·신화(보라)는 고유 휘도가 낮아 등급색만으로는 screen 블렌드가 화면 휘도를 못 움직인다(실측: 신화 챕터 펄스가 루마 차 1.4%로 최약체였다). 색상 정체성은 중대역 --rc 가 지킨다». 바탕 `radial-gradient(120% 90% at 50% 42%, var(--rc-lite) 0%, var(--rc) 30%, rgba(0,0,0,0) 64%)` · `inset: -2%` · `mix-blend-mode: screen` · `srtierpulse .54s ease-out both`(0% 0 → 20% `--pk` → 100% 0). 세기 `--pk` 는 fillSummonTierBreaks 가 심는 `0.15 + tier × 0.04` 다(CSS 등급 계단도, 재점화의 계단도 아닌 **셋째** 수다). 시각은 경계 셀의 등장 시각에서 `break_lead_ms`(정본 **ui.js 584** `{ t: Math.max(this.SR_CHARGE_MS, d - 160), … }` — T520 1회차가 파일·줄을 적었다: 종전엔 «정본 160» 뿐이어서 기계가 그 160 을 **style.css 160 줄**로 읽었다) 앞이되 충전 끝(`sr_charge_ms`)보다 앞서지 않는다 — 정본 주석 «플래시는 첫 셀보다 반 박자 앞 — «예고 → 그 등급 등장» 의 인과가 서게»."
   },
   "charge": {
     "charge_ms": 280.0,
@@ -952,7 +955,7 @@
     "_charge": "정본 `style.css` 6815~6879 그대로 — 홀드백 대기창(마지막 셀 간격 + 홀드백 = 275ms)을 덮는 .28s 램프 넷. 소환진 `srfloorcharge`(부풀다 **마지막 12%에 수축** — «안쪽으로 조인 뒤 폭발» 이라 주역 등장이 사건으로 읽힌다 · 밝기는 끝까지 오르므로 «꺼진다» 가 아니다) · 눈금 `srtickup` opacity .45 → 1 `steps(9)` · 중앙 광원 `srhalocharge`(맥동 간격 132→110→99→88→77ms 로 좁아지는 다섯 산 · 진폭을 낮추지 말 것 — 10차 비평가 A 3·B 5 가 둘 다 이 구간을 짚었다) · 비네트 `srvig` opacity 0→1 · scale 1.10→1(그라디언트 자체는 `.sr-wrap::before` 5744 의 `radial-gradient(82% 51% at 50% 44%, rgba(0,0,0,0) 12%, rgba(0,0,0,.90) 100%)` 고정 — 배경을 키프레임으로 만들면 화면에서 계단이 된다) · 정착한 조연 셀 `srinhale`(슬롯→광원 벡터 `--dx/--dy` 의 `back_f` 만큼 되돌린다 = 사출의 역재생 · scale 1→.958 · 채도·밝기도 떨어진다). 보간은 전부 linear — `ease-in` 은 앞 절반이 정지 프레임이 된다(정본이 세 번 못 박았다). 가속감은 키프레임 간격으로만 만든다."
   },
   "enter": {
-    "_": "T459 — 정본 style.css 5657 `.sr-wrap { animation: srshake .25s cubic-bezier(.22,.85,.32,1) both }` + 6148 `.sr-wrap { animation-delay: .21s }`(같은 구체성 · 뒤 규칙이 이긴다): 모든 소환이 열릴 때 판이 한 번 흔들린다(정본 주석 «연출 프리미티브가 팝/플래시뿐이면 충격이 화면에 전달되지 않는다»). 주역 킥 srshakehit(5676 · 구체성 (1,2,0))은 그 단축이 지연을 0s 로 되돌리므로 킥 지연 0 은 그대로다(T33 38회차 규칙). 치우침은 판 크기의 % · 키프레임 5666~5673 그대로.",
+    "_": "T459 — 정본 style.css 5657 `.sr-wrap { animation: srshake .25s cubic-bezier(.22,.85,.32,1) both }` + **style.css 6148** `.sr-wrap { animation-delay: .21s }`(같은 구체성 · 뒤 규칙이 이긴다): 모든 소환이 열릴 때 판이 한 번 흔들린다(정본 주석 «연출 프리미티브가 팝/플래시뿐이면 충격이 화면에 전달되지 않는다»). 주역 킥 srshakehit(5676 · 구체성 (1,2,0))은 그 단축이 지연을 0s 로 되돌리므로 킥 지연 0 은 그대로다(T33 38회차 규칙). 치우침은 판 크기의 % · 키프레임 5666~5673 그대로.",
     "shake_ms": 250.0,
     "shake_delay_ms": 210.0,
     "shake_ease": [0.22, 0.85, 0.32, 1.0],

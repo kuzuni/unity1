@@ -273,6 +273,16 @@ jobs:
       # T378 — «표값 × 박힌 상수»: 표(catalog.json)에는 정본값이 맞게 들어 있는데 코드가 `UiKit.L/H("키") * 1.1f` 처럼 곱을 얹어 화면만 어긋나던 축
       #        (런 644 리그 행 피치 8.13%H ↔ 표값 7.48%H). 자는 1회차(런 652)부터 있었고 13회차가 마지막 곱을 걷어 전수 7 이 전부 기하다 —
       #        등록만 «gate.sh·ci.yml 이 T331·T377 lock» 으로 열두 회차 미뤄졌다 — 14회차가 gate.sh·CI 에 같이 등록(결정 599 · T371 9회차와 같은 길).
+      # T520 — 연출 표(`Assets/Forge/Resources/*.json`)의 `ms`·`ease` 칸이 **기계가 읽는 근거**를 들고 있는가.
+      #        T33 84회차가 결정 887 의 ⓑ 방향(클론 표 칸 → 정본 선언)을 손으로 걸었을 때 «안 맞는다» 12칸이
+      #        전부 오탐이었다 — 자가 파일 머리 주석·이웃 칸 주석을 그 칸의 근거로 물었다. 이 자는 «근거인가» 를
+      #        **그 주석이 그 칸의 수를 인용하는가** 로 가른다. 근거는 글이라 한꺼번에 못 채워 본 검사는 report 다.
+      - name: 연출 표 근거 자 자기 검사 (T520 `check_fx_evidence.py` · 18칸 · 고장 주입)
+        run: python3 tools/check_fx_evidence.py --self-test
+      - name: 연출 표 `ms`·`ease` 근거를 정본에서 검산 (T520 · 알리기만)
+        run: python3 tools/check_fx_evidence.py
+        continue-on-error: true
+
       - name: 표값 × 박힌 상수 자 자기 검사 (T378 `check_table_scale.py` · 고장 주입)
         run: python3 tools/check_table_scale.py --self-test
       - name: 표값 × 박힌 상수 — 허용 목록 밖 곱이 있나 — 막는다 (T378 · 기하는 영구 · 임시는 알리기만 · 고친 자리는 목록에서 사라져야 한다)

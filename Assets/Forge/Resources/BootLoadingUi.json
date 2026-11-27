@@ -35,6 +35,7 @@
 
   "times": {
     "_": "swing·spark 는 CSS animation 주기(무한 반복) · fill 은 transition · done 은 .4s 페이드 뒤 450ms 에 제거(main.js blDone 주석 «인라인 CSS transition .4s 와 맞춤»).",
+    "_spark_ms": "정본 index.html 43 `#boot-loading .bl-spark { … animation: bl-spark 1s ease-out infinite }` — 부팅 화면 CSS 는 index.html 인라인이다(T520 1회차 · T33 84회차 확인 칸).",
     "swing_ms": 1000, "spark_ms": 1000,
     "spark_delay2_ms": 50, "spark_delay3_ms": 100,
     "fill_ms": 250, "fade_ms": 400, "remove_ms": 450
