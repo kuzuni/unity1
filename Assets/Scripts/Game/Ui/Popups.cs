@@ -526,6 +526,11 @@ namespace Forge.Game.Ui
                 //   정본 `opacity` 는 **그 상자 한 겹 전체**(글자·테까지)라 CanvasGroup 한 장이 같은 뜻이다 — 값만 표로 옮긴다.
                 OpacityUi.Apply(rt.gameObject, "btn_disabled");
             }
+            // T515 1회차 — 정본 **3563** `.modal-card .btn:active, .panel .btn:active, #equip-sheet .btn:active { transform: translateY(.1rem); box-shadow: none }`:
+            //   그 선택자 셋이 **팝업·패널·장비시트의 모든 버튼**이고 이 공장이 그 셋을 통째로 만든다(T415 18회차가 반지름에서 같은 것을 확인했다).
+            //   클론 버튼은 `Selectable.Transition.None` 이라 **아무 반응이 없었다** — 누르면 `.1rem` 가라앉고 아래턱이 걷힌다(표 `modal_btn` · ms 0 = 즉시).
+            //   ⚠ 비활성 버튼엔 걸지 않는다 — 정본 `:active` 는 `pointer-events` 가 사는 버튼에만 든다(비활성은 눌리지 않는다).
+            if (!disabled) PressFx.AttachLip(b.gameObject, rt, "modal_btn", lipImg, lip, face.rectTransform, t.rectTransform);
             return b;
         }
 

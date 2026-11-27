@@ -16,10 +16,11 @@ namespace Forge.Tests
         }
 
         [Test]
-        public void 표가_정본_일곱_자리를_정본_값으로_쥔다()
+        public void 표가_정본_여덟_자리를_정본_값으로_쥔다()
         {
             PressTable t = T();
-            Assert.AreEqual(7, t.Keys.Count, "정본 :active 자리 일곱(213·4304·7750·8087·4982·5002·5011)");
+            // T515 1회차 — 일곱(T355) + **`modal_btn`**(정본 3563 `.modal-card .btn:active, .panel .btn:active, #equip-sheet .btn:active`).
+            Assert.AreEqual(8, t.Keys.Count, "정본 :active 자리 여덟(213·4304·7750·8087·4982·5002·5011 + 3563)");
             PressSpec c = t.Get("offline_chest");
             Assert.AreEqual(0.08, c.DyRem, 1e-9); Assert.AreEqual(0.94, c.Scale, 1e-9); Assert.AreEqual(1.0, c.Brightness, 1e-9); Assert.AreEqual(100, c.Ms, 1e-9);
             PressSpec p = t.Get("pet_tile");
@@ -28,6 +29,14 @@ namespace Forge.Tests
             Assert.AreEqual(0.97, t.Get("af_sub_row").Brightness, 1e-9);
             Assert.AreEqual(0.10, t.Get("af_spinner").DyRem, 1e-9);
             Assert.IsTrue(t.Has("equip_cell") && t.Has("egg_cell"));
+            // T515 — 턱 걷기 갈래: `.1rem` 가라앉고 턱이 걷히며 정본엔 `transition` 이 **없다**(ms 0 = 즉시).
+            PressSpec mb = t.Get("modal_btn");
+            Assert.AreEqual(0.10, mb.DyRem, 1e-9, "3563 translateY(.1rem)");
+            Assert.AreEqual(0.0, mb.Ms, 1e-9, "정본에 transition 이 없다 — 즉시");
+            Assert.IsTrue(mb.LipOff, "3563 box-shadow: none — 아래턱을 걷는다");
+            Assert.AreEqual(1.0, mb.Scale, 1e-9); Assert.AreEqual(1.0, mb.Brightness, 1e-9);
+            foreach (string k in t.Keys)
+                if (k != "modal_btn") Assert.IsFalse(t.Get(k).LipOff, k + ": T355 의 일곱은 턱을 걷지 않는다(정본 선언에 box-shadow 가 없다)");
             Assert.Throws<System.Collections.Generic.KeyNotFoundException>(() => t.Get("없는_자리"));
         }
 
@@ -68,7 +77,12 @@ namespace Forge.Tests
         [Test]
         public void 깨진_표는_거부한다()
         {
-            Assert.Throws<FormatException>(() => PressTable.From(MiniJson.ParseObject("{\"press\":{\"a\":{\"dy_rem\":0.1,\"scale\":1,\"brightness\":1,\"ms\":0}}}")), "ms 0");
+            // T515 — `ms: 0` 은 이제 **옳은 값**이다(정본에 `transition` 이 없는 자리 = 즉시). 막는 것은 **음수**다.
+            Assert.Throws<FormatException>(() => PressTable.From(MiniJson.ParseObject("{\"press\":{\"a\":{\"dy_rem\":0.1,\"scale\":1,\"brightness\":1,\"ms\":-1}}}")), "ms 음수");
+            PressTable zero = PressTable.From(MiniJson.ParseObject("{\"press\":{\"a\":{\"dy_rem\":0.1,\"scale\":1,\"brightness\":1,\"ms\":0}}}"));
+            Assert.AreEqual(0.0, zero.Get("a").Ms, 1e-9, "ms 0 은 받는다(즉시)");
+            Assert.AreEqual(1.0, PressRules.Phase(zero.Get("a"), 0, 0, true), 1e-9, "ms 0 이면 **첫 프레임에** 목표다(한 프레임도 안 늦는다)");
+            Assert.AreEqual(0.0, PressRules.Phase(zero.Get("a"), 1, 0, false), 1e-9, "떼면 그 자리에서 바로 0");
             Assert.Throws<FormatException>(() => PressTable.From(MiniJson.ParseObject("{\"press\":{\"a\":{\"dy_rem\":0.1,\"scale\":0,\"brightness\":1,\"ms\":80}}}")), "scale 0");
             Assert.Throws<FormatException>(() => PressTable.From(MiniJson.ParseObject("{\"press\":{\"a\":{\"dy_rem\":-0.1,\"scale\":1,\"brightness\":1,\"ms\":80}}}")), "dy 음수");
             Assert.Throws<FormatException>(() => PressTable.From(MiniJson.ParseObject("{\"press\":{}}")), "빈 표");

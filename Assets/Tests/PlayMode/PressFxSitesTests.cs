@@ -396,5 +396,63 @@ namespace Forge.Tests.PlayMode
             Assert.Greater(measured, 0, "펫 타일이나 알 타일 하나는 잰다(pet-tile-0 / egg-tile-0)");
             yield return null;
         }
+
+        /// <summary>
+        /// T515 1회차 — 정본 **3563** `.modal-card .btn:active, .panel .btn:active, #equip-sheet .btn:active
+        /// { transform: translateY(.1rem); box-shadow: none }`: 팝업·패널·장비시트의 **모든 버튼**이 누르면 `.1rem` 가라앉고
+        /// **아래턱이 걷힌다**(정본의 턱은 `box-shadow: inset 0 -.22rem 0` 그늘이라 걷히면 면이 그 자리를 채운다).
+        /// 종전 클론 버튼은 `Selectable.Transition.None` 이라 **아무 반응이 없었다**.
+        /// ⚠ 정본엔 이 자리에 `transition` 이 **없다** → 표 `ms: 0`(즉시 · 이산). 그래서 «ms 안에 1 로» 를 재는 위 자들과 달리
+        /// 이 자는 **한 프레임 뒤의 상태**를 본다(기다릴 램프가 없다).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 팝업_버튼은_누르면_표대로_가라앉고_아래턱이_걷힌다()
+        {
+            yield return Boot();
+            PressSpec s = PressFx.Table.Get("modal_btn");
+            Assert.AreEqual(0.0, s.Ms, 1e-9, "정본 3563 엔 transition 이 없다 — 즉시");
+            Assert.IsTrue(s.LipOff, "3563 box-shadow: none");
+
+            // 공용 공장(`Popups.Btn`)이 만든 버튼을 아무거나 하나 — 턱(lip)·면(face)·글자(label)를 다 가진 꼴이다.
+            UnityEngine.UI.Button btn = null;
+            PressFx fx = null;
+            foreach (PressFx p in UiRoot.Instance.App.GetComponentsInChildren<PressFx>(true))
+            {
+                if (p.Spec == null || p.Spec.Key != "modal_btn") continue;
+                UnityEngine.UI.Button b = p.GetComponent<UnityEngine.UI.Button>();
+                if (b == null || !b.interactable) continue;
+                Transform lipT = p.transform.Find("lip"), faceT = p.transform.Find("face"), labelT = p.transform.Find("label");
+                if (lipT == null || faceT == null || labelT == null) continue;
+                btn = b; fx = p; break;
+            }
+            if (fx == null) Assert.Ignore("환경 — 이 부팅에서 `Popups.Btn` 버튼이 하나도 안 떠 있다(팝업이 닫힌 상태다 · 다른 자가 그 공장을 연다)");
+            UnityEngine.UI.Image lip = fx.transform.Find("lip").GetComponent<UnityEngine.UI.Image>();
+            RectTransform face = (RectTransform)fx.transform.Find("face");
+            RectTransform label = (RectTransform)fx.transform.Find("label");
+            RectTransform rt = (RectTransform)fx.transform;
+            float rem = PopupKit.Rem;
+
+            float baseY = rt.anchoredPosition.y, faceY = face.offsetMin.y, labelY = label.offsetMin.y;
+            Assert.IsTrue(lip.enabled, btn.name + ": 놓인 상태에선 아래턱이 보인다");
+            Assert.IsFalse(fx.Active, btn.name + ": 놓인 상태에서 시작");
+
+            fx.Press(true);
+            yield return null;   // ms 0 — 다음 프레임에 이미 끝 모습이다(기다릴 램프가 없다)
+            Assert.AreEqual(1.0, fx.Phase, 1e-9, btn.name + ": ms 0 이면 한 프레임에 위상 1 — 잰 위상 " + fx.Phase);
+            Assert.AreEqual(baseY - (float)s.DyRem * rem, rt.anchoredPosition.y, 0.5f, btn.name + ": 정본 translateY(.1rem)");
+            Assert.IsFalse(lip.enabled, btn.name + ": 누르면 아래턱이 걷힌다(3563 box-shadow: none)");
+            float lipPx = UiKit.H("btn_lip");
+            Assert.AreEqual(faceY - lipPx, face.offsetMin.y, 0.5f, btn.name + ": 면이 턱 몫만큼 아래로 자란다(정본은 그늘이 걷혀 바탕이 그 자리를 채운다)");
+            Assert.AreEqual(labelY - lipPx, label.offsetMin.y, 0.5f, btn.name + ": 글자도 그 몫만큼 내려온다");
+
+            fx.Press(false);
+            yield return null;
+            Assert.AreEqual(0.0, fx.Phase, 1e-9, btn.name + ": 떼면 바로 0");
+            Assert.AreEqual(baseY, rt.anchoredPosition.y, 0.5f, btn.name + ": 제자리로");
+            Assert.IsTrue(lip.enabled, btn.name + ": 턱이 돌아온다");
+            Assert.AreEqual(faceY, face.offsetMin.y, 0.5f, btn.name + ": 면도 제자리");
+            Assert.AreEqual(labelY, label.offsetMin.y, 0.5f, btn.name + ": 글자도 제자리");
+            yield return null;
+        }
     }
 }

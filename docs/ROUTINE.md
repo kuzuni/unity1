@@ -5711,7 +5711,7 @@
   - **결정 870** — 잣대를 세울 때 «이 수가 **실제로 0 이 아닌 값을 낼 수 있는가**» 를 한 회차 안에 실물로 확인한다. 못 내는 잣대는 지우지 말고(다른 자리에서는 참이다) 그 자리에 «이 칸으로 가르지 마라 · 그 자는 저것이다» 를 찍고, 같은 뜻을 낼 수 있는 잣대를 **그 줄 바로 뒤에** 둔다. «0 이 나왔다» 를 «없다» 로 읽는 것은 자가 아니라 **읽는 사람**이 하는 실수이므로 고칠 곳도 자의 **문구**다.
   - `gate.sh` **막는 자 42 전부 rc 0 · 건너뛴 자 없다**.
 
-### T515 — **공용 버튼·칸의 «눌림» 열두 자리가 클론에 0**: 정본은 누르면 **가라앉고 턱이 걷히는데**(`:active { transform: translateY(.1rem); box-shadow: none }`) 클론 버튼은 **아무 반응이 없다**(`Selectable.Transition.None` · 눌림 자리는 T355 가 센 일곱뿐) (Game·UI · **T355 의 나머지** · T33 81회차 `transition` 자리 전수에서 나왔다 2026-11-27 13:5x · 워커 L)
+### T515 🔄 — **공용 버튼·칸의 «눌림» 열두 자리가 클론에 0**: 정본은 누르면 **가라앉고 턱이 걷히는데**(`:active { transform: translateY(.1rem); box-shadow: none }`) 클론 버튼은 **아무 반응이 없다**(`Selectable.Transition.None` · 눌림 자리는 T355 가 센 일곱뿐) (Game·UI · **T355 의 나머지** · T33 81회차 `transition` 자리 전수에서 나왔다 2026-11-27 13:5x · 워커 L)
 
 - **무엇이 없나**: 정본 `style.css` 의 `:active` 규칙은 **19 자리**고 T355 가 그중 **일곱**(216 `#offline-btn .ob-chest` · 4304 `.pet-tile .tile-face` · 4982 `.af-check` · 5002 `.af-sub-row` · 5011 `.af-spinner`(이동만) · 7750 `.equip-cell` · 8087 `.egg-cell`)을 `PressFxUi.json` 으로 옮겼다. **남은 열둘이 통째로 없다**:
   - **턱을 걷는 갈래 여덟**(`box-shadow: none` — 버튼의 아래턱 `inset 0 -.22~-.28rem` 이 사라져 «판이 눌려 들어간다» 가 된다): **3563** `.modal-card .btn` · `.panel .btn` · `#equip-sheet .btn`(선택자 셋 = 팝업·패널·장비시트의 **모든 버튼**) · **3750** `.x-btn`(닫기 ✕ · `.12rem`) · **5159** `.fi-skip` · **5214** `.summon-btn` · **5264** `.skd-btn.silver` · **5278** `.btn.silver` · **5369** `.dgd-btn.silver`(턱만) · **5495** `.petup-selrow .btn.silver`(턱만) · **8668** `.btn.btn.summon-btn.summon-btn:not(.ascend-ready)`(턱만 · 0-4-0 덮어쓰기)
@@ -5724,6 +5724,20 @@
   - ⓐ `PressFxUi.json` 에 **턱 걷기 갈래**를 둔다 — 칸에 `lip_off: true`(아래턱을 끈다) · `dy_rem` · `ms: 0`(즉시) 을 두고 `PressRules` 는 `ms <= 0` 이면 위상을 바로 목표로 둔다(지금은 `ms <= 0` 을 `FormatException` 으로 막는다 — 그 자리를 함께 고친다).
   - ⓑ `Popups.Btn`·`UiKit.Button` 이 아니라 **공장 쪽**에서 건다 — 턱 Image(`"lip"`)와 면 Image 를 이미 쥐고 있는 곳이 `Popups.Btn` 이다. `.x-btn`·`.anvil-btn`·`.tri-btn`·`.summon-btn`·드롭다운 항목은 각자 공장에서.
   - ⓒ `.silver`·`.dgd-btn`·`.petup-selrow` 처럼 **턱만** 걷는 자리와 **가라앉기만** 하는 자리를 칸으로 가른다(정본 선언 그대로 · 섞지 마라).
+- 🔄 **1회차 = 기제 + 가장 큰 자리 하나 · 2026-11-27 14:3x~15:1x 워커 K(sess-1432-55820) · 선점 14:33**
+  - **왜 한 회차에 다 안 걸었나**: 열둘은 공장이 여섯 파일에 흩어져 있고(각각 턱·면·글자를 다르게 쥔다) 그 여섯은 다른 절의 lock 이 자주 잡는 파일이다. 그래서 **기제를 먼저 세우고**, 그중 **가장 넓은 한 자리**(3563 = 팝업·패널·장비시트의 **모든 버튼** · 클론에선 공장 `Popups.Btn` **하나**)를 걸어 **기제가 실물에서 도는 것까지** 확인했다. 남은 열한 자리는 그 기제를 그대로 부르는 일이다.
+  - **ⓐ 기제** — `PressSpec.LipOff`(표 `lip_off`) · `PressRules` 에서 **`ms <= 0` 막음을 걷었다**(정본이 센 `:active` 열두 자리엔 `transition` 이 **없다** — «즉시» 가 표에 적을 수 있는 값이어야 한다 · **음수만** 막는다) · `Phase` 가 `Ms <= 0` 이면 **첫 프레임에** 목표를 준다(종전 셈으로는 `elapsedMs == 0` 에 `from` 을 돌려줘 한 프레임 늦었다).
+  - **ⓑ 거는 쪽** — `PressFx.AttachLip(source, target, key, lip, lipPx, grow...)`: 턱 그림을 끄고 **그 몫만큼 아래로 자라는 상자들**(면·글자)을 함께 내린다.
+    - ⚑ **까닭을 적어 둔다**: 정본의 턱은 `box-shadow: inset 0 -.22rem 0` **그늘**이라 «걷힌다» 가 곧 «바탕이 그 자리를 채운다» 다. 클론은 턱이 **그림 한 장**(`UiKit.Rounded(rt, "lip", …)`)이라 **끄기만 하면 그 아래 검정 테(`line`)가 드러나** 정본과 다른 그림이 된다 — 그래서 면·글자를 같이 내려야 한다.
+    - 턱 걷기는 **이산**이다(그 선언에 `transition` 이 없다) — 위상이 0 보다 크면 걷힌 모습 · 0 이면 제 모습. 그래서 `Apply` 에서 **상태가 바뀔 때만** 쓴다(매 프레임 offsetMin 을 다시 쓰지 않는다).
+  - **ⓒ 배선** — `Popups.Btn` 끝에 한 줄. **비활성 버튼엔 안 건다** — 정본 `:active` 는 눌리는 버튼에만 들고, 클론도 `b.interactable = false` 면 포인터가 안 온다(걸면 죽은 부품이 버튼마다 하나씩 붙는다).
+  - **판정** — EditMode 둘을 **계약대로 갱신**했다(자가 지키던 계약이 바뀌었으니 자도 바꾼다 · 숨기지 않는다):
+    - 자리 수 **7 → 8**: `modal_btn` 의 네 값 + `LipOff` + «**T355 의 일곱은 턱을 안 걷는다**» 전수(정본 선언에 `box-shadow` 가 없다).
+    - «깨진 표» 자: 이제 **음수 ms** 를 막고 **`ms: 0` 은 받고** 그때 위상이 **첫 프레임에 1**(떼면 바로 0)임을 함께 잰다.
+    - PlayMode 자 하나(`PressFxSitesTests` — T355 가 «눌림 자리 배선» 을 재는 집이고 그 셋은 ✅ 로 닫혀 산 lock 이 없다 · **새 파일을 안 냈다**): 턱·면·글자를 다 가진 `modal_btn` 버튼을 찾아 누름 전/후/뗌의 **자리 · 턱 `enabled` · 면 `offsetMin` · 글자 `offsetMin`** 을 잰다. ms 0 이라 «한 프레임 뒤의 상태» 를 본다 — **기다릴 램프가 없다**(위 자들의 `Settle` 꼴을 쓰면 그 자리에서 영영 기다린다). 떠 있는 버튼이 하나도 없으면 «환경» 으로 접는다(결정 865 의 꼴 — 접는 조건을 관측으로 적는다).
+  - `dotnet test` **890칸 초록** · **고장 주입**: 표의 `lip_off` 를 끄면 자가 빨개진다 · `gate.sh` **막는 자 42 전부 rc 0 · 건너뛴 자 없다**.
+  - **결정 876** — `box-shadow` 같은 «상자를 안 늘리는 그림» 을 클론이 **상자로** 옮긴 자리에서 그것을 끌 때는 ⓐ 그 겹을 끄고 ⓑ **그 몫만큼 위 겹을 자라게** 한다. 그 한 쌍을 같이 안 옮기면 **끄는 쪽만 맞고 그림은 틀린다**(T331·T365·T465 와 같은 축). 내가 처음 적은 875 는 워커 I 가 먼저 밀어 규약대로 늦게 민 내가 옮겼다.
+  - **남은 것(다음 회차)**: 턱 걷기 일곱(**3750** `.x-btn` · **5159** `.fi-skip` · **5214** `.summon-btn` · **5264** `.skd-btn.silver` · **5278** `.btn.silver` · **5369** `.dgd-btn.silver` · **5495** `.petup-selrow .btn.silver` · **8668** `.summon-btn:not(.ascend-ready)`) · 가라앉기만 둘(**987** `.anvil-btn` · **4591** `.tri-btn`) · 누름 배경 하나(**4802** `.af-dd-list button`) · **5011 의 둘째 채널**(안쪽 그늘이 **생기는** 유일한 자리 — 그것만 `box-shadow` 축이라 표에 새 칸이 필요하다). 기제(`AttachLip` · `ms 0`)는 그대로 쓰면 된다.
 - 판정: PlayMode 에서 버튼 하나를 눌러 ⓐ 아래로 `dy_rem` 만큼 내려가고 ⓑ 턱 Image 의 알파가 0(또는 꺼짐)이 되고 ⓒ 떼면 둘 다 되돌아온다 · 정본에 `transition` 이 없는 자리는 **한 프레임 안에** 바뀐다 · `gate.sh` rc 0.
 - 범위(임자가 쥘 것): `Assets/Forge/Resources/PressFxUi.json` · `Assets/Scripts/Core/Ui/PressRules.cs` · `Assets/Scripts/Game/Ui/PressFx.cs` · 버튼 공장들(`Popups.cs` · `ForgeSheet.cs` · `SkillPanel.cs` · `PetUpgradePopup.cs` · `DungeonPopups.cs` · `ForgeAutoPopup.cs`) · 새 PlayMode 자.
 - ⚑ **왜 이것이 `transition` 축에서 나왔나**: 축을 «선언 19개» 가 아니라 **«채널 25개»** 로 세니 `transform` 쪽 일곱은 T355 가 쥐었는데 **`box-shadow`·`filter`·`background` 쪽**이 비어 있었고, 그 비어 있는 채널을 좇아가니 전환이 걸릴 **상태 자체가 없는** 열두 자리가 나왔다(결정 860 이 «같은 선언의 다른 채널은 다른 자리» 라 한 것의 셋째 사례).

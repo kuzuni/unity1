@@ -38,6 +38,12 @@ namespace Forge.Game.Ui
         Vector2 basePos;
         Vector3 baseScale;
         Color baseColor;
+        // T515 — 아래턱을 걷는 갈래(정본 `:active { box-shadow: none }`): 턱 그림과 그 몫만큼 자라는 상자들.
+        Graphic lip;
+        RectTransform[] grow;
+        float[] growMinY;
+        float lipPx;
+        bool lipShown = true;
         double phase, from, elapsedMs;
         bool pressed, dirty;
 
@@ -61,6 +67,24 @@ namespace Forge.Game.Ui
             p.basePos = target.anchoredPosition;
             p.baseScale = target.localScale;
             if (tint != null) p.baseColor = tint.color;
+            return p;
+        }
+
+        /// <summary>
+        /// T515 — 아래턱을 걷는 자리를 붙인다(정본 3563 `.modal-card .btn:active` 꼴). <paramref name="lip"/> 은 끌 턱 그림 ·
+        /// <paramref name="grow"/> 는 그 턱 몫(<paramref name="lipPx"/>)만큼 **아래로 자라는** 상자들(면·글자)이다.
+        /// 정본의 턱은 그늘이라 «걷힌다» 가 곧 «면이 그 자리를 채운다» 다 — 클론은 턱이 그림 한 장이라 끄고 면을 내려야 같은 그림이 된다.
+        /// ⚠ 이 갈래엔 `transition` 이 없어 **이산**이다(표 `ms: 0`).
+        /// </summary>
+        public static PressFx AttachLip(GameObject source, RectTransform target, string key, Graphic lip, float lipPx, params RectTransform[] grow)
+        {
+            PressFx p = Attach(source, target, key);
+            p.lip = lip;
+            p.lipPx = lipPx;
+            p.grow = grow;
+            p.growMinY = new float[grow == null ? 0 : grow.Length];
+            for (int i = 0; i < p.growMinY.Length; i++) p.growMinY[i] = grow[i] != null ? grow[i].offsetMin.y : 0f;
+            p.lipShown = true;
             return p;
         }
 
@@ -111,6 +135,22 @@ namespace Forge.Game.Ui
             {
                 float b = (float)PressRules.BrightnessAt(Spec, phase);
                 tint.color = new Color(Mathf.Clamp01(baseColor.r * b), Mathf.Clamp01(baseColor.g * b), Mathf.Clamp01(baseColor.b * b), baseColor.a);
+            }
+            // T515 — 턱 걷기는 **이산**이다(정본 `box-shadow` 에 transition 이 없다): 위상이 0 보다 크면 걷힌 모습 · 0 이면 제 모습.
+            if (Spec.LipOff)
+            {
+                bool show = !(phase > 0.0);
+                if (show != lipShown)
+                {
+                    lipShown = show;
+                    if (lip != null) lip.enabled = show;
+                    for (int i = 0; i < (grow == null ? 0 : grow.Length); i++)
+                    {
+                        if (grow[i] == null) continue;
+                        Vector2 m = grow[i].offsetMin;
+                        grow[i].offsetMin = new Vector2(m.x, show ? growMinY[i] : growMinY[i] - lipPx);
+                    }
+                }
             }
         }
     }

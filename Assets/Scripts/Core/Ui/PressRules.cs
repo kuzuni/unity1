@@ -15,8 +15,17 @@ namespace Forge.Core.Ui
         public double Scale;
         /// <summary>눌렸을 때 밝기 배율(정본 filter: brightness · 없으면 1).</summary>
         public double Brightness;
-        /// <summary>오가는 시간(ms · 정본 transition 길이 · 눌림·뗌 같다).</summary>
+        /// <summary>
+        /// 오가는 시간(ms · 정본 transition 길이 · 눌림·뗌 같다). **0 이면 즉시**다 —
+        /// T515 가 센 열두 자리엔 정본에 `transition` 이 **없다**(CSS 에서 transition 없는 속성 변화는 한 프레임에 끝난다).
+        /// </summary>
         public double Ms;
+        /// <summary>
+        /// T515 — 눌림에 **아래턱을 걷는가**(정본 `:active { box-shadow: none }`). 정본의 턱은 `inset 0 -.22rem 0` 그늘이라
+        /// 그것이 사라지면 **면이 그 몫만큼 아래로 자란다** — 거는 쪽이 턱 그림을 끄고 면·글자를 내린다.
+        /// ⚠ 이 갈래엔 `transition` 이 없어 **이산**이다(위상이 0 보다 크면 걷힌 모습 · 0 이면 제 모습).
+        /// </summary>
+        public bool LipOff;
         public CssEase Ease;
         public string Note;
     }
@@ -54,11 +63,15 @@ namespace Forge.Core.Ui
                     Brightness = J.Num(J.Require(o, "brightness")),
                     Ms = J.Num(J.Require(o, "ms")),
                 };
+                object lo;
+                s.LipOff = o.TryGet("lip_off", out lo) && lo is bool && (bool)lo;
                 object e;
                 s.Ease = o.TryGet("ease", out e) ? RewardBurstSpec.EaseOf(e) : CssEase.Linear;
                 object n;
                 s.Note = o.TryGet("_", out n) ? n as string : null;
-                if (s.Ms <= 0) throw new FormatException("PressFxUi: «" + kv.Key + "» ms 는 0보다 커야 한다");
+                // T515 — 종전엔 `ms <= 0` 을 막았다. 그런데 정본이 센 `:active` 열두 자리엔 `transition` 이 **없다** —
+                //   그 자리를 표에 적으려면 «즉시»(ms 0)가 적을 수 있는 값이어야 한다. 음수만 막는다.
+                if (s.Ms < 0) throw new FormatException("PressFxUi: «" + kv.Key + "» ms 는 0 이상이어야 한다(0 = 즉시 · 정본에 transition 이 없는 자리)");
                 if (s.Scale <= 0) throw new FormatException("PressFxUi: «" + kv.Key + "» scale 은 0보다 커야 한다");
                 if (s.Brightness <= 0) throw new FormatException("PressFxUi: «" + kv.Key + "» brightness 는 0보다 커야 한다");
                 if (s.DyRem < 0) throw new FormatException("PressFxUi: «" + kv.Key + "» dy_rem 은 0 이상(아래가 +)이어야 한다");
@@ -105,6 +118,9 @@ namespace Forge.Core.Ui
         public static double Phase(PressSpec s, double from, double elapsedMs, bool pressed)
         {
             double target = pressed ? 1.0 : 0.0;
+            // T515 — `ms` 0 은 «정본에 transition 이 없다» 는 뜻이다: 한 프레임도 머물지 않고 목표로 간다
+            //   (종전엔 첫 프레임에 `from` 을 돌려줘 눌림이 한 프레임 늦었다 · 지금은 그 자리가 아예 없다).
+            if (s.Ms <= 0) return target;
             if (elapsedMs <= 0) return Clamp01(from);
             double t = elapsedMs / s.Ms;
             if (t >= 1) return target;
