@@ -936,6 +936,86 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T511 2회차 — 소환진 **번진 빛**(정본 6929 `#summon-result-modal.done .sr-floor::before { animation: srfloorglow 3.2s ease-in-out infinite }`)이
+        /// 실물 화면에서 **두 판 교차섞기**로 숨쉰다. 정본이 숨쉬게 하는 것은 알파도 배율도 아니라 **번짐 폭**이라
+        /// 두 틀(0%/100% 와 50%)을 구워 두고 섞는 비율만 왕복시킨다 — 그 길을 실측으로 골랐다(등재문 ⓑ · 결정 863).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 소환진_번진_빛은_두_틀을_섞어_숨쉰다()
+        {
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            while (Host.SummonMult("skill") != 1) Host.CycleSummonMult("skill");
+            Host.Tickets = 10000;
+            Host.Sync();
+            yield return null;
+            Sheet.Skills.SummonButton.onClick.Invoke();
+            yield return null;
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+            SummonFx fx = v.Fx;
+            Assert.IsNotNull(fx, "무대판(stage)이면 연출 겹이 선다");
+
+            // ⓐ 겹 둘이 소환진 **뒤**에 선다(바깥 번짐은 소환진 밖으로 나가는 겹이라 판이 상자보다 크다).
+            RectTransform body = (RectTransform)fx.transform;
+            Transform floor = body.Find("sr-floor");
+            Assert.IsNotNull(floor, "소환진");
+            Transform lo = floor.Find("sr-floor-glow-lo"), hi = floor.Find("sr-floor-glow-hi");
+            Assert.IsNotNull(lo, "0%/100% 틀 판");
+            Assert.IsNotNull(hi, "50% 틀 판");
+            Transform ring = floor.Find("sr-floor-ring");
+            Assert.IsNotNull(ring, "링 겹");
+            Assert.Less(lo.GetSiblingIndex(), ring.GetSiblingIndex(), "번진 빛은 링보다 뒤");
+            Assert.Less(hi.GetSiblingIndex(), ring.GetSiblingIndex(), "번진 빛은 링보다 뒤");
+            RectTransform lort = (RectTransform)lo;
+            Assert.Greater(lort.rect.width, ((RectTransform)floor).rect.width, "판이 소환진 상자보다 넓다(번짐이 밖으로 나간다)");
+            Assert.AreEqual(((RectTransform)hi).rect.width, lort.rect.width, 0.5f, "두 판은 **같은 넓힘**으로 구워야 겹친다");
+            Assert.AreEqual(((RectTransform)hi).rect.height, lort.rect.height, 0.5f, "높이도 같다");
+
+            // ⓑ `done` 전에는 꺼져 있다 — 정본은 이 겹을 `.done` 에만 돌린다.
+            if (!v.Done)
+            {
+                Vector2 off = v.FloorGlowAlphas;
+                Assert.AreEqual(0f, off.x, 1e-6f, "done 전 0%/100% 틀 α 0");
+                Assert.AreEqual(0f, off.y, 1e-6f, "done 전 50% 틀 α 0");
+                v.OnTap();
+            }
+            float t = 0f;
+            while (!v.Done && t < 5f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done, "탭 뒤 done");
+
+            // ⓒ 한 주기(+여유) 동안 지켜본다 — 섞는 비율이 **두 끝을 다 지나야** 한다.
+            //    ⚠ «딱 ms» 로 재지 않는다(러너 프레임이 들쭉날쭉하다 · 결정 875) — 한 주기 넘게 돌며 최솟값·최댓값을 모은다.
+            float per = SummonFxStyle.L("floor_glow_s");
+            float want = SummonFxStyle.L("floor_done_a");
+            Assert.AreEqual(3.2f, per, 1e-4f, "정본 6929 의 3.2s");
+            float kMin = 2f, kMax = -1f, sumMin = 9f, sumMax = -1f;
+            float watched = 0f;
+            while (watched < per * 1.3f)
+            {
+                watched += Time.unscaledDeltaTime;
+                yield return null;
+                Vector2 g = v.FloorGlowAlphas;
+                if (g.x < 0f) break;
+                float sum = g.x + g.y;
+                float k = sum > 1e-6f ? g.y / sum : 0f;
+                if (k < kMin) kMin = k;
+                if (k > kMax) kMax = k;
+                if (sum < sumMin) sumMin = sum;
+                if (sum > sumMax) sumMax = sum;
+            }
+            Assert.Less(kMin, 0.08f, "한 주기 안에 0%/100% 틀 쪽 끝을 지난다");
+            Assert.Greater(kMax, 0.92f, "한 주기 안에 50% 틀 쪽 끝을 지난다");
+            // 두 판 알파의 합은 겹 색 알파(.26)여야 한다 — 교차항 보정만큼(최대 +1.7%) 위로 벗어난다.
+            Assert.GreaterOrEqual(sumMin, want - 1e-3f, "합이 겹 알파 아래로 내려가지 않는다");
+            Assert.LessOrEqual(sumMax, want * 1.08f, "합이 겹 알파보다 크게 넘지 않는다(교차항 보정 폭)");
+            yield return null;
+        }
+
         /// <summary>자 쪽에서 같은 왕복을 다시 푼다 — 제품 코드의 `Wave` 와 같은 뜻(정본 `0%,100% ↔ 50%` · 구간마다 ease-in-out).</summary>
         static float Breath(float since, float period, float lo, float hi)
         {

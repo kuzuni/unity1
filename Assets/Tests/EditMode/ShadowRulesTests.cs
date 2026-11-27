@@ -118,6 +118,91 @@ namespace Forge.Tests
                 + q + "rgba" + q + ":" + rgba + "}}}";
         }
 
+        // ───────── T511 2회차 — 타원 번짐 셈(정본 `.sr-floor::before` 의 box-shadow 두 겹) ─────────
+        //  이 칸들의 참값은 **짐작이 아니라 같은 식을 1024칸으로 돌려 뽑은 것**이다(세션 쪽지 `twin.py`).
+        //  소환진 실치수: 반너비 11rem · 반높이 4.4rem · 흐림 3.6rem ⇒ σ 1.8rem.
+        const double A = 11.0, B = 4.4, SIG = 1.8;
+
+        [Test]
+        public void 타원_번짐은_곧은_턱에서_정규분포_누적과_같아진다()
+        {
+            // 반높이를 1만 rem 으로 늘리면 턱이 곧아진다 — 그때 이 셈은 `EdgeCoverage` 와 같아야 한다.
+            // 이 줄이 적분·가중·정규화 중 하나만 틀려도 바로 넘어진다(참값이 딴 데서 온다).
+            foreach (double d in new[] { -2.0, 0.0, 2.0 })
+            {
+                double got = ShadowTable.EllipseCoverage(50.0 + d, 0.0, 50.0, 1e4, 2.0);
+                double want = ShadowTable.EdgeCoverage(d, 2.0);
+                Assert.That(got, Is.EqualTo(want).Within(1e-3), "곧은 턱 d=" + d);
+            }
+        }
+
+        [Test]
+        public void 타원_번짐은_거리_erfc_가_못_내는_값을_낸다_장축_끝()
+        {
+            // **이 번호가 있는 까닭**: 「부호 거리 → 정규분포 누적」은 곧은 턱에만 정확하다. 타원의 장축 끝은
+            // 곡률 반지름이 b²/a = 1.76rem 로 σ 1.8rem 보다 **작아** 빛이 양옆으로 달아난다 — 참값 0.3425 인데
+            // 거리 셈은 0.5 를 낸다(0.157 차 = 봉우리의 16%). 단축 끝은 거의 곧아서(a²/b = 27.5rem) 0.010 뿐이다.
+            double tip = ShadowTable.EllipseCoverage(A, 0.0, A, B, SIG);
+            double side = ShadowTable.EllipseCoverage(0.0, B, A, B, SIG);
+            Assert.That(tip, Is.EqualTo(0.342498).Within(3e-3), "장축 끝");
+            Assert.That(side, Is.EqualTo(0.489658).Within(3e-3), "단축 끝");
+            Assert.That(System.Math.Abs(tip - ShadowTable.EdgeCoverage(0.0, SIG)), Is.GreaterThan(0.1),
+                "장축 끝은 거리 셈과 0.1 이상 달라야 한다 — 같아지면 누군가 EdgeCoverage 로 되돌린 것이다");
+            Assert.That(System.Math.Abs(side - ShadowTable.EdgeCoverage(0.0, SIG)), Is.LessThan(0.03),
+                "단축 끝은 거의 곧아 거리 셈과 비슷하다(곡률이 뿌리라는 증거)");
+        }
+
+        [Test]
+        public void 타원_번짐은_가운데가_차고_밖으로_단조롭게_준다()
+        {
+            Assert.That(ShadowTable.EllipseCoverage(0.0, 0.0, A, B, SIG), Is.EqualTo(0.984510).Within(3e-3));
+            double prev = 1.0;
+            for (int i = 0; i <= 4; i++)
+            {
+                double v = ShadowTable.EllipseCoverage(A + i, 0.0, A, B, SIG);
+                Assert.That(v, Is.LessThan(prev), "장축 밖 " + i + "rem 에서 더 줄어야 한다");
+                prev = v;
+            }
+            Assert.That(prev, Is.LessThan(0.01), "4rem 밖(= 2.2σ)이면 거의 0 이다");
+            Assert.That(ShadowTable.EllipseCoverage(0.0, 0.0, 0.0, B, SIG), Is.EqualTo(0.0), "크기가 0 이면 0");
+        }
+
+        [Test]
+        public void 적분_칸은_실측으로_정한_수다()
+        {
+            // 적분 구간을 |y| < b 로 **자른** 덕에 32칸이 참값과 3e-3 안이다. 8칸은 1e-2 로 **눈에 보이게** 나쁘다 —
+            // 이 두 줄이 같이 있어야 «32» 가 짐작이 아니라 잰 수임이 남는다(칸을 줄이면 둘째 줄이 넘어간다).
+            double truth = ShadowTable.EllipseCoverage(0.0, B + 0.4, A, B, SIG, 1024);
+            double n32 = ShadowTable.EllipseCoverage(0.0, B + 0.4, A, B, SIG, ShadowTable.GlowSamples);
+            double n8 = ShadowTable.EllipseCoverage(0.0, B + 0.4, A, B, SIG, 8);
+            Assert.That(System.Math.Abs(n32 - truth), Is.LessThan(5e-3), "32칸은 참값 가까이");
+            Assert.That(System.Math.Abs(n8 - truth), Is.GreaterThan(5e-3), "8칸은 재서 나쁘다");
+            Assert.That(ShadowTable.GlowSamples, Is.EqualTo(32));
+        }
+
+        [Test]
+        public void 소환진_그림자_겹은_안은_고인_빛_밖은_번진_빛이고_dy_만큼_아래로_치우친다()
+        {
+            // 정본 6949 `@keyframes srfloorglow` 의 두 틀 — 0%/100%(안 3.2 · 밖 3.6 · 번짐 .4) ↔ 50%(안 4.4 · 밖 5 · 번짐 .7).
+            // 바깥 겹의 dy 는 .6rem(아래) 이고 `py` 는 CSS 부호라 **+가 아래**다.
+            double inLo = ShadowTable.EllipseShadowAlpha(0, 0, A, B, 1.6, 1.8, 0.4, 0.6);
+            double inHi = ShadowTable.EllipseShadowAlpha(0, 0, A, B, 2.2, 2.5, 0.7, 0.6);
+            Assert.That(inLo, Is.EqualTo(0.006271).Within(3e-3), "가운데 0% 틀");
+            Assert.That(inHi, Is.EqualTo(0.049565).Within(3e-3), "가운데 50% 틀");
+            Assert.That(inHi, Is.GreaterThan(inLo), "안쪽 고인 빛은 50% 틀에서 더 차야 한다(흐림 3.2 → 4.4)");
+
+            double up = ShadowTable.EllipseShadowAlpha(0, -(B + 1.0), A, B, 1.6, 1.8, 0.4, 0.6);
+            double down = ShadowTable.EllipseShadowAlpha(0, B + 1.0, A, B, 1.6, 1.8, 0.4, 0.6);
+            Assert.That(down, Is.GreaterThan(up + 0.1), "dy .6 이 아래를 더 밝힌다 — 부호가 뒤집히면 이 줄이 넘어진다");
+            Assert.That(down, Is.EqualTo(0.489459).Within(3e-3));
+            Assert.That(up, Is.EqualTo(0.243713).Within(3e-3));
+
+            double side = ShadowTable.EllipseShadowAlpha(A + 0.5, 0, A, B, 1.6, 1.8, 0.4, 0.6);
+            Assert.That(side, Is.EqualTo(0.327658).Within(3e-3), "장축 밖 .5rem");
+            Assert.That(ShadowTable.EllipseShadowAlpha(A + 0.5, 0, A, B, 2.2, 2.5, 0.7, 0.6),
+                        Is.GreaterThan(side), "바깥 번진 빛도 50% 틀에서 더 멀리 간다");
+        }
+
         [Test]
         public void 망가진_표는_거부한다()
         {

@@ -792,6 +792,53 @@ namespace Forge.Game.Ui
 
 
         /// <summary>
+        /// T511 2회차 — 소환진의 **번진 빛 한 판**(정본 5819~5820 `.sr-floor::before` 의 `box-shadow` 두 겹 ·
+        /// `.done` 에서는 6949 `@keyframes srfloorglow` 의 두 틀).
+        ///
+        /// 안쪽 고인 빛(`inset 0 0 &lt;안&gt;`)과 바깥 번진 빛(`0 &lt;dy&gt; &lt;흐림&gt; &lt;번짐&gt;`)을 **한 판**에 같이 굽는다 —
+        /// CSS 규격상 둘은 테를 경계로 겹치지 않는다. 알파 단면은 <see cref="Forge.Core.Ui.ShadowTable.EllipseShadowAlpha"/>
+        /// 가 쥐고(수는 Core · 자가 EditMode 에서 본다) 색은 거는 쪽 틴트가 쥔다.
+        ///
+        /// ⚑ **격자는 거칠어도 된다 — 실측으로 정했다**: 이 겹은 σ 가 1.8~2.5rem(화소로 33~46)이라 그림이 아주 완만하다.
+        /// 굽는 칸을 **0.5rem** 으로 두고 이중선형으로 늘리면 0.125rem 격자 참값과 최대 **1.6~1.9%** 다(0.25rem 으로 잘게 구워도
+        /// 1.6~1.8% 라 나아지지 않는다 · 1.5rem 까지 거칠게 하면 3.7%). 그래서 판이 70×50 칸쯤으로 작다.
+        ///
+        /// ⚠ 세로 부호: 정본 `dy` 는 **아래가 양수**고 구운 판의 y 는 **위에서 아래로** 자란다 — 둘이 같은 방향이라
+        ///    여기서는 뒤집지 않는다(UGUI 로 올라가는 자리는 판을 그대로 깔기만 한다).
+        /// </summary>
+        /// <param name="name">판 이름(캐시 열쇠 — 틀마다 다르게 준다).</param>
+        /// <param name="w">소환진 상자 너비(화소) · <paramref name="h"/> 높이.</param>
+        /// <param name="rem">1rem 의 화소.</param>
+        /// <param name="insetRem">안쪽 겹 흐림(rem) · <paramref name="blurRem"/> 바깥 겹 흐림 · <paramref name="spreadRem"/> 번짐 · <paramref name="dyRem"/> 치우침.</param>
+        /// <param name="padRem">판을 상자 밖으로 넓힐 폭(rem) — 거는 쪽이 같은 수로 내밀어야 자리가 맞는다.</param>
+        public static Sprite BakeFloorGlow(string name, float w, float h, float rem,
+                                           float insetRem, float blurRem, float spreadRem, float dyRem, float padRem)
+        {
+            Sprite hit; if (cache.TryGetValue(name, out hit) && hit != null) return hit;
+            float cell = L("floor_glow_cell_rem") * rem;                  // 굽는 칸(화소)
+            if (cell <= 0f) throw new FormatException("SummonFxUi layout.floor_glow_cell_rem 이 0 이하다");
+            float pad = padRem * rem;
+            float bw = w + pad * 2f, bh = h + pad * 2f;
+            int W = Mathf.Max(8, Mathf.RoundToInt(bw / cell));
+            int H = Mathf.Max(8, Mathf.RoundToInt(bh / cell));
+            double a = w * 0.5 / rem, b = h * 0.5 / rem;                  // 타원 반지름(rem · 셈은 rem 으로 한다)
+            double si = Forge.Core.Ui.ShadowTable.SigmaOf(insetRem);
+            double so = Forge.Core.Ui.ShadowTable.SigmaOf(blurRem);
+            var px = new Color32[W * H];
+            for (int y = 0; y < H; y++)
+            {
+                double py = ((y + 0.5) / H * 2.0 - 1.0) * (bh * 0.5 / rem);   // 판 가운데가 원점 · 아래가 양수
+                for (int x = 0; x < W; x++)
+                {
+                    double pxx = ((x + 0.5) / W * 2.0 - 1.0) * (bw * 0.5 / rem);
+                    double al = Forge.Core.Ui.ShadowTable.EllipseShadowAlpha(pxx, py, a, b, si, so, spreadRem, dyRem);
+                    px[y * W + x] = new Color(1f, 1f, 1f, Mathf.Clamp01((float)al));
+                }
+            }
+            return Finish(name, NewTex(name, W, H), px);
+        }
+
+        /// <summary>
         /// 주역 충격파 링(정본 `#summon-result-modal.hero .sr-cell.heroic::after` · style.css 6754~6760).
         /// `radial-gradient(closest-side, 투명 58%, 등급색 74%, 흰 .85 82%, 투명 94%)` — 가운데가 빈 **고리**다.
         /// 정본은 `mix-blend-mode: screen`(가산)이라 거는 쪽이 가산 재질을 준다(와이프와 같은 길).

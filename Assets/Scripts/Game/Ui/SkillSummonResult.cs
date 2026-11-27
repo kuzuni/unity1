@@ -240,6 +240,9 @@ namespace Forge.Game.Ui
         Color tickBase;
         Color floorBase, haloBase;
         Color floorRingBase;
+        /// <summary>T511 2회차 — 소환진 **번진 빛**의 두 틀(정본 6949 `srfloorglow` 의 0%/100% 와 50%).
+        /// 번짐 폭은 구운 판이 프레임마다 못 바꾸니 **두 장을 구워 교차섞기** 한다(실측 — 배율·알파 흉내는 최대 46% 틀리고 이 길은 1.2%).</summary>
+        Image floorGlowLo, floorGlowHi;
         /// <summary>T178 31회차 — 광원의 등급색·판 비율·done 판으로 갈아탔는가(정본 7166 · 이산 전환).</summary>
         Color haloTint; float haloAspect = 26f / 16f; bool haloDone;
         Vector3 floorHome;
@@ -282,6 +285,16 @@ namespace Forge.Game.Ui
         public float LandRingScaleEnd(int i) { SummonLandRingSpec sp = SummonFxStyle.LandRing; return (float)sp.Scale1(sp.Glow(cells[i].Tier)); }
         /// <summary>i 번째 셀 광선의 끝 알파(정본 `--ray`).</summary>
         public float RayAlphaEnd(int i) { SummonRaySpec sp = SummonFxStyle.Ray; return (float)sp.Ray(cells[i].Tier); }
+
+        /// <summary>T511 2회차 — 소환진 번진 빛 두 판의 지금 알파 `(0%/100% 틀, 50% 틀)` — 겹이 없으면 둘 다 −1.</summary>
+        public Vector2 FloorGlowAlphas
+        {
+            get
+            {
+                if (floorGlowLo == null || floorGlowHi == null) return new Vector2(-1f, -1f);
+                return new Vector2(floorGlowLo.color.a, floorGlowHi.color.a);
+            }
+        }
 
         /// <summary>룬 눈금 띠(정본 `.sr-floor::after`)의 지금 불투명도 — 없으면 −1.</summary>
         public float TickAlpha { get { return tickImg != null ? tickImg.color.a : -1f; } }
@@ -1888,6 +1901,20 @@ namespace Forge.Game.Ui
                     stagePlate.rectTransform.localScale = stagePlateHome * Mathf.Lerp(1f, SummonFxStyle.L("stage_scale_hi"), k);
                 }
             }
+            if (floorGlowLo != null && floorGlowHi != null)
+            {
+                // T511 2회차 ⓑ — 정본 6929 `.done .sr-floor::before` 는 **번짐 폭**이 3.2s 로 왕복한다.
+                // 두 틀을 구워 두고 섞는 비율만 왕복시킨다 — 0 이면 0%/100% 틀, 1 이면 50% 틀이다.
+                float a = done ? SummonFxStyle.L("floor_done_a") : 0f;
+                float k = done ? Wave(t - doneAt, SummonFxStyle.L("floor_glow_s")) : 0f;
+                // ⚑ 두 판은 **알파 합성**으로 겹치니 단순히 `a(1-k)` 와 `ak` 를 주면 실효 알파가 교차항만큼 모자란다
+                //   (`aA + aB - aA·aB`). 그 교차항을 되돌린다 — 실측(정본 틀을 비율대로 구운 참값과 견준 것):
+                //   보정 없으면 최대 **2.9%**(겹 봉우리 기준) · 넣으면 **1.7%**. 끝점(k 0·1)에서는 1 이라 아무것도 안 바꾼다.
+                float f = 1f / (1f - a * k * (1f - k));
+                Color c = floorGlowLo.color;
+                floorGlowLo.color = new Color(c.r, c.g, c.b, Mathf.Clamp01(a * (1f - k) * f));
+                floorGlowHi.color = new Color(c.r, c.g, c.b, Mathf.Clamp01(a * k * f));
+            }
         }
 
         /// <summary>T511 — `0%,100% ↔ 50%` 왕복을 **정본 `ease-in-out` 으로 구간마다** 보간한다(0 → 1 → 0).</summary>
@@ -2625,6 +2652,51 @@ namespace Forge.Game.Ui
             Color fline = SummonFxStyle.C("floor_line");
             ring.color = new Color(fline.r, fline.g, fline.b, 1f);   // 알파 .5 는 판의 63.5% 정지점이 쥔다
             floorRingImg = ring; floorRingBase = ring.color;
+            BuildFloorGlow(floor, fw, fh);
+        }
+
+        /// <summary>
+        /// T511 2회차 — 소환진의 **번진 빛** 두 판(정본 6929·6949 `#summon-result-modal.done .sr-floor::before { animation: srfloorglow 3.2s ease-in-out infinite }`).
+        ///
+        /// 정본이 숨쉬게 하는 것은 알파도 배율도 아니라 **`box-shadow` 의 번짐 폭**이다(안 3.2→4.4rem · 바깥 3.6/.4 → 5/.7rem).
+        /// 구운 판은 폭을 프레임마다 못 바꾸므로 **두 틀을 각각 굽고 교차섞기** 한다 — 1회차가 미룬 «맞바꿈의 충실도» 를 재서 고른 길이다(결정 863):
+        /// 한 판을 **배율+알파로 흉내내면 최대 46%**(알파만 22%) 어긋나는데, 두 판 교차섞기는 **끝점 둘이 정확**하고 가운데가 최대 **1.2%** 다.
+        /// 판은 상자 밖으로 `번짐 + dy + 2.5 표준편차` 만큼 넓혀 굽고 그만큼 내민다(바깥 번짐이 소환진 밖으로 나가는 겹이다).
+        /// 두 판은 **같은 넓힘**으로 구워 서로 겹친다 — 다르게 구우면 섞는 동안 자리가 어긋난다.
+        /// </summary>
+        void BuildFloorGlow(Image floor, float fw, float fh)
+        {
+            float rem = PetSkillStyle.Rem(1f);
+            float dy = SummonFxStyle.L("floor_glow_dy_rem");
+            float padF = SummonFxStyle.L("floor_glow_pad_sigma_f");
+            float pad = SummonFxStyle.L("floor_glow_hi_spread_rem") + dy
+                      + padF * (float)ShadowTable.SigmaOf(SummonFxStyle.L("floor_glow_hi_blur_rem"));
+            Color ffill = SummonFxStyle.C("floor_fill");
+            Color tint = new Color(ffill.r, ffill.g, ffill.b, SummonFxStyle.L("floor_done_a"));
+            floorGlowLo = GlowPlate(floor, "sr-floor-glow-lo", "sr_floor_glow_lo", fw, fh, rem, pad, tint, "lo", dy);
+            floorGlowHi = GlowPlate(floor, "sr-floor-glow-hi", "sr_floor_glow_hi", fw, fh, rem, pad, tint, "hi", dy);
+        }
+
+        Image GlowPlate(Image floor, string node, string bake, float fw, float fh, float rem, float pad, Color tint, string which, float dy)
+        {
+            RectTransform rt = UiKit.Box(floor.rectTransform, node);
+            Image img = rt.gameObject.AddComponent<Image>();
+            img.raycastTarget = false;
+            img.preserveAspect = false;
+            img.type = Image.Type.Simple;
+            img.sprite = SummonFx.BakeFloorGlow(bake + "|" + Mathf.RoundToInt(fw) + "x" + Mathf.RoundToInt(fh),
+                fw, fh, rem,
+                SummonFxStyle.L("floor_glow_" + which + "_inset_rem"),
+                SummonFxStyle.L("floor_glow_" + which + "_blur_rem"),
+                SummonFxStyle.L("floor_glow_" + which + "_spread_rem"),
+                dy, pad);
+            img.color = new Color(tint.r, tint.g, tint.b, 0f);     // `.done` 전에는 안 보인다(정본은 `.done` 에만 이 겹을 돌린다)
+            float px = pad * rem;
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = new Vector2(-px, -px);
+            rt.offsetMax = new Vector2(px, px);
+            rt.SetAsFirstSibling();                                 // 링·고인 면 **뒤**에 깐다
+            return img;
         }
 
         /// <summary>
