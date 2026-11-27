@@ -378,6 +378,13 @@ namespace Forge.Game.Ui
             float rem = PopupKit.Rem;
             Button b = UiKit.Button(parent, held == null ? "anvil-btn" : "held-slot", held == null ? (UnityEngine.Events.UnityAction)(() => h.OnCraft()) : () => h.OnOpenHeld());
             RectTransform rt = b.GetComponent<RectTransform>();
+            // T515 3회차 — 정본 **987** `.anvil-btn:active { transform: translateY(.1rem) }`: 가라앉기**만**이다(턱 걷기가 없다).
+            //   `class` 에 `btn` 이 없어 3563 이 안 걸리니 표에 제 칸(`anvil_btn`)을 뒀다. 들고 있는 장비 칸(`held-slot`)도
+            //   정본 마크업이 `class="anvil-btn held-slot …"`(ui.js 1575)이라 **같이** 걸린다.
+            // 두들기는 동안은 `.anvil-btn.striking` 의 `anvilbump` 가 transform 을 쥔다 — 그때는 비켜 준다
+            //   (T355 가 `#offline-btn.ready` 들썩임에서 세운 `Suppressed` 와 같은 자리).
+            PressFx anvilPress = PressFx.Attach(b.gameObject, rt, "anvil_btn");
+            anvilPress.Suppressed = h.Striking;
             float counterH = PopupKit.FontSize(TextKind.Sub) * 1.3f;
             RectTransform counter;
             if (held == null)

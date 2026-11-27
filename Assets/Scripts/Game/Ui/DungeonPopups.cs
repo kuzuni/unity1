@@ -133,13 +133,20 @@ namespace Forge.Game.Ui
             if (skin == Skin.Red) SurfaceArt.FillFaceWhenSized(face.GetComponent<Image>(), "bg-grad", SurfaceArt.BtnDangerLayers, UiKit.C(bg));
             // T178 42회차 — 정본 8504 유리 겹 셋: 파랑·회색·잠김(8151 `.dg-banner .btn.disabled` 는 0-3-0 이라 0-5-0 유리막이 이긴다) · 은색 둘(.silver / .dgd-btn.silver)은 :not(.silver).
             else if (skin == Skin.Blue || skin == Skin.Gray || skin == Skin.DgLocked) SurfaceArt.FillFaceWhenSized(face.GetComponent<Image>(), "bg-grad", SurfaceArt.BtnGlassLayers, UiKit.C(bg));
-            BottomShade(face, dk, RemL("btn_shadow_rem"), Mathf.Max(0f, radiusPx - Line3));
+            Image shade = BottomShade(face, dk, RemL("btn_shadow_rem"), Mathf.Max(0f, radiusPx - Line3));
             TextMeshProUGUI t = Bold(rt, "label", kind, label, ink);
             t.rectTransform.offsetMax = new Vector2(0f, -RemL("btn_shadow_rem") * 0.5f);
             // T109 11회차 — 정본 style.css 5363 `.dgd-btn.silver { -webkit-text-stroke: 2px var(--pp-line) }`(흰 칠 + 검정 링 · 회색 잠김 알약은 규칙 없음).
             if (skin == Skin.DgdSilver) PopupKit.Ring(t, "dgd_btn_silver", "pp_line");
             Button b = UiKit.Button(rt, "hit", onClick == null ? null : (UnityAction)(() => onClick()));
             b.interactable = interactable;
+            // T515 3회차 — 정본 **3563** `.modal-card .btn:active, .panel .btn:active, #equip-sheet .btn:active`
+            //   `{ transform: translateY(.1rem); box-shadow: none }` 이 이 공장(원작 `.modal-card .btn` · 알약)이 내는 버튼 전부에 걸린다.
+            //   **5369** `.dgd-btn.silver:active { box-shadow: none }` 은 그 재선언이다(마크업 ui.js 4678 `class="btn silver dgd-btn …"` · 결정 880).
+            // ⚑ 이 공장의 턱은 **면 안의 띠**다(`BottomShade` = `bg` 의 자식 `shade` · 정본 `box-shadow: inset`): 끄면 그 자리가 면 색으로 메워지니
+            //   `Popups.Btn`·`PaperButton` 과 달리 **자라게 할 상자가 없다**(lipPx 0 · grow 0). 세 공장의 턱 꼴이 다 다르다 — 섞지 않는다.
+            // 비활성 버튼엔 안 건다(1·2회차와 같은 잣대).
+            if (interactable) PressFx.AttachLip(b.gameObject, rt, "modal_btn", shade, 0f);
             return b;
         }
 
@@ -203,7 +210,12 @@ namespace Forge.Game.Ui
             string key = left ? "tri_left" : "tri_right";
             Image ico = UiKit.Icon(rt, "ico", key, TintOf(key));
             UiKit.Anchor(ico.rectTransform, Center, Center, Vector2.zero, d, d);
-            return UiKit.Button(rt, "hit", () => onClick());
+            Button tb = UiKit.Button(rt, "hit", () => onClick());
+            // T515 3회차 — 정본 **4591** `.tri-btn:active { transform: translateY(.1rem) }`: 가라앉기**만**이다(턱이 없는 아이콘 버튼).
+            //   `class` 에 `btn` 이 없어 3563 이 안 걸리니 표에 제 칸(`tri_btn`)을 뒀다. 두 자리가 이 공장을 쓴다 —
+            //   소환 확률 단 이동(ui.js 4380·4382)과 던전 상세 스테이지 이동(4671·4673).
+            PressFx.Attach(tb.gameObject, rt, "tri_btn");
+            return tb;
         }
 
         /// <summary>아틀라스에 «이름|틴트» 변형이 있으면 그 틴트(원작 TRI_BLUE 처럼 UI 가 실제로 부르는 색) — 없으면 null(원색).</summary>

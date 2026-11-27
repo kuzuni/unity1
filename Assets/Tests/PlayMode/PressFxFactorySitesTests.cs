@@ -11,7 +11,11 @@ using Forge.Game.Ui;
 namespace Forge.Tests.PlayMode
 {
     /// <summary>
-    /// T515 2회차 — 눌림 피드백의 **둘째 공장**: `PetSkillKit.PaperButton`(펫·스킬·탈것 시트와 업그레이드 팝업의 종이 버튼).
+    /// T515 2·3회차 — 눌림 피드백을 **공장마다** 센다(1회차의 집 `PressFxSitesTests` 는 T516 의 산 lock 범위라 따로 둔 집).
+    /// 2회차에 `PaperButton` 하나로 났고(그때 이름은 `PressFxPaperButtonTests`) 3회차에 모루 자리가 들어와 **이름을 고쳤다** —
+    /// 파일 이름이 안 하는 일을 말하지 않게 한다.
+    ///
+    /// 둘째 공장: `PetSkillKit.PaperButton`(펫·스킬·탈것 시트와 업그레이드 팝업의 종이 버튼).
     ///
     /// 정본 **3563** `.modal-card .btn:active, .panel .btn:active, #equip-sheet .btn:active
     /// { transform: translateY(.1rem); box-shadow: none }` 이 이 공장이 내는 버튼 **전부**에 걸린다 —
@@ -23,7 +27,7 @@ namespace Forge.Tests.PlayMode
     /// 자기 파일인 까닭: 1회차의 집(`PressFxSitesTests`)은 지금 **T516 의 산 lock 범위**다(그 절이 같은 파일에
     /// 비활성 버튼 자를 쓴다) — 남의 lock 안에 칸을 끼우지 않는다(ROUTINE §1).
     /// </summary>
-    public class PressFxPaperButtonTests
+    public class PressFxFactorySitesTests
     {
         private static void DeleteSave()
         {
@@ -116,6 +120,36 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0.0, fx.Phase, 1e-9, fx.name + ": 떼면 한 프레임에 위상 0");
             Assert.AreEqual(baseY, rt.anchoredPosition.y, 0.5f, fx.name + ": 떼면 제자리");
             Assert.AreEqual(faceY, face.offsetMin.y, 0.5f, fx.name + ": 떼면 턱이 다시 보인다");
+        }
+
+        /// <summary>
+        /// T515 3회차 — 정본 **987** `.anvil-btn:active { transform: translateY(.1rem) }`: 메인 화면 모루 버튼은
+        /// **가라앉기만** 한다(그 선언에 `box-shadow: none` 이 없다 · `class` 에 `btn` 이 없어 3563 이 안 걸린다 · 표 `anvil_btn`).
+        /// 두들기는 동안은 `anvilbump` 가 transform 을 쥐므로 `Suppressed` 다 — 이 자는 **안 두들기는** 상태에서 잰다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 모루_버튼은_누르면_가라앉기만_한다()
+        {
+            yield return Boot();
+            PressSpec s = PressFx.Table.Get("anvil_btn");
+            Assert.AreEqual(0.0, s.Ms, 1e-9, "정본 987 엔 transition 이 없다 — 즉시");
+            Assert.IsFalse(s.LipOff, "정본 987 엔 box-shadow: none 이 없다 — 걷을 턱이 없다");
+
+            PressFx fx = null;
+            foreach (PressFx p in UiRoot.Instance.App.GetComponentsInChildren<PressFx>(true))
+                if (p.Spec != null && p.Spec.Key == "anvil_btn" && !p.Suppressed) { fx = p; break; }
+            if (fx == null) Assert.Ignore("환경 — 이 부팅에서 모루 버튼이 안 떠 있다(대장간 시트가 닫혔거나 두들기는 중이다)");
+
+            RectTransform rt = (RectTransform)fx.transform;
+            float rem = PopupKit.Rem, baseY = rt.anchoredPosition.y;
+            Vector3 baseScale = rt.localScale;
+            fx.Press(true);
+            yield return null;
+            Assert.AreEqual(baseY - (float)s.DyRem * rem, rt.anchoredPosition.y, 0.5f, "정본 translateY(.1rem)");
+            Assert.AreEqual(baseScale.x, rt.localScale.x, 1e-4f, "정본 987 엔 scale 이 없다");
+            fx.Press(false);
+            yield return null;
+            Assert.AreEqual(baseY, rt.anchoredPosition.y, 0.5f, "떼면 제자리");
         }
 
         /// <summary>

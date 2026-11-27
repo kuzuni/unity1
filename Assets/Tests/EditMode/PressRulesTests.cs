@@ -16,11 +16,13 @@ namespace Forge.Tests
         }
 
         [Test]
-        public void 표가_정본_여덟_자리를_정본_값으로_쥔다()
+        public void 표가_정본_열_자리를_정본_값으로_쥔다()
         {
             PressTable t = T();
             // T515 1회차 — 일곱(T355) + **`modal_btn`**(정본 3563 `.modal-card .btn:active, .panel .btn:active, #equip-sheet .btn:active`).
-            Assert.AreEqual(8, t.Keys.Count, "정본 :active 자리 여덟(213·4304·7750·8087·4982·5002·5011 + 3563)");
+            // T515 3회차 — + `anvil_btn`(987) · `tri_btn`(4591): `class` 에 `btn` 이 **없어** 3563 이 안 걸리는 두 자리다(결정 880).
+            //   ⚑ 칸 수는 «정본 `:active` 선언 수» 가 아니다 — 열아홉 선언 중 여섯은 3563 의 **재선언**이라 제 칸이 없다(같은 수가 여러 칸에 복사되면 하나를 고칠 때 나머지가 조용히 어긋난다).
+            Assert.AreEqual(10, t.Keys.Count, "정본 :active 자리 열(213·4304·7750·8087·4982·5002·5011 + 3563 + 987 + 4591)");
             PressSpec c = t.Get("offline_chest");
             Assert.AreEqual(0.08, c.DyRem, 1e-9); Assert.AreEqual(0.94, c.Scale, 1e-9); Assert.AreEqual(1.0, c.Brightness, 1e-9); Assert.AreEqual(100, c.Ms, 1e-9);
             PressSpec p = t.Get("pet_tile");
@@ -35,8 +37,18 @@ namespace Forge.Tests
             Assert.AreEqual(0.0, mb.Ms, 1e-9, "정본에 transition 이 없다 — 즉시");
             Assert.IsTrue(mb.LipOff, "3563 box-shadow: none — 아래턱을 걷는다");
             Assert.AreEqual(1.0, mb.Scale, 1e-9); Assert.AreEqual(1.0, mb.Brightness, 1e-9);
+            // T515 3회차 — 가라앉기**만** 하는 두 자리(정본 987·4591 은 `transform` 한 줄뿐이다 · 턱도 이징도 없다).
+            foreach (string k in new[] { "anvil_btn", "tri_btn" })
+            {
+                PressSpec q = t.Get(k);
+                Assert.AreEqual(0.10, q.DyRem, 1e-9, k + ": 정본 translateY(.1rem)");
+                Assert.AreEqual(0.0, q.Ms, 1e-9, k + ": 그 선언에 transition 이 없다 — 즉시");
+                Assert.AreEqual(1.0, q.Scale, 1e-9, k + ": scale 은 정본에 없다");
+                Assert.AreEqual(1.0, q.Brightness, 1e-9, k + ": filter 는 정본에 없다");
+                Assert.IsFalse(q.LipOff, k + ": 그 선언엔 box-shadow: none 이 없다 — 걷을 턱이 없다");
+            }
             foreach (string k in t.Keys)
-                if (k != "modal_btn") Assert.IsFalse(t.Get(k).LipOff, k + ": T355 의 일곱은 턱을 걷지 않는다(정본 선언에 box-shadow 가 없다)");
+                if (k != "modal_btn") Assert.IsFalse(t.Get(k).LipOff, k + ": 턱을 걷는 자리는 `modal_btn` 하나다(나머지 선언엔 box-shadow 가 없다)");
             Assert.Throws<System.Collections.Generic.KeyNotFoundException>(() => t.Get("없는_자리"));
         }
 
