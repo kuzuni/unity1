@@ -279,11 +279,37 @@ def main(argv):
         locks[f[:-5]] = (ts, sid)
     dead = [(t, (now - ts) / 60.0) for t, (ts, _s) in locks.items() if (now - ts) / 60.0 > DEAD_MIN]
     rows = progress_rows(io.open(os.path.join(ROOT, PROGRESS), encoding='utf-8').read())
+    # T524 — **행이 닫혔으면(✅·⛔·✂) 나이를 볼 것도 없다.** 이 자는 lock 을 «90분» 하나로만 죽었다고 봤고
+    #   그래서 끝난 번호의 lock 파일 하나가 **90분 동안** 판을 «누가 잡고 있다» 로 만든다(검수 Q 57회차 실측 ·
+    #   `T523.lock` 이 완결 커밋에서 안 지워졌다 · T488 이 이미 같은 값을 치렀다).
+    #   ⚠ «치워라» 로 단정하지 않는다 — «✅ 완결» 뒤에도 판정이 빨가면 임자가 이어 고치는 것이 §1 규약이라,
+    #     **임자가 아직 미는 중이면 그 말을 같이 적는다**(치우는 손이 그 커밋을 먼저 보게).
+    closed_locks = []
+    for t, (ts, sid) in sorted(locks.items()):
+        mark = rows.get(t, ('', ''))[0]
+        if mark not in ('✅', '⛔', '✂'):
+            continue
+        age = (now - ts) / 60.0
+        cts, _csid = task_last_commit(t)          # (시각 epoch, SID) — 없으면 (None, None)
+        cage = None if cts is None else (now - cts) / 60.0
+        closed_locks.append((t, age, mark, sid, cage))
     files = tracked_files()
     q = queue(set(locks), rows, files)
 
-    if not q and not dead:
-        print('✓ check_lock_queue: 산 lock %d개 · 그 뒤에 선 열린 작업 0 · 죽은 lock 0' % len(locks))
+    for t, age, mark, sid, cage in closed_locks:
+        alive = cage is not None and cage < DEAD_MIN
+        print('· ⚠ **%s 는 행이 «%s» 로 닫혔는데 lock 파일이 남았다**(%s · %.0f분 전) — 나이와 무관하게 '
+              '**죽은 lock 으로 센다**(T524). 다른 자들이 이것을 «산 lock» 으로 세어 판이 거짓이 된다.'
+              % (t, mark, sid, age))
+        if alive:
+            print('    ⚠ 다만 **임자가 아직 밀고 있다 — 그 번호의 마지막 커밋 %.0f분 전**이다. «✅ 완결» 뒤에도 '
+                  '판정이 빨가면 임자가 이어 고치는 것이 §1 규약이다 — **치우기 전에 그 커밋을 먼저 봐라**.' % cage)
+        else:
+            print('    → 치워도 된다: `rm docs/claims/%s.lock`%s'
+                  % (t, ('' if cage is None else ' (그 번호의 마지막 커밋이 %.0f분 전이다)' % cage)))
+
+    if not q and not dead and not closed_locks:
+        print('✓ check_lock_queue: 산 lock %d개 · 그 뒤에 선 열린 작업 0 · 죽은 lock 0 · 닫힌 행의 lock 0' % len(locks))
         return 0
     for tid, waiting in q:
         ts = locks[tid][0]
@@ -318,8 +344,35 @@ def main(argv):
     return 0
 
 
+def closed_lock_lines(tid, mark, lock_age_min, commit_age_min):
+    """T524 — «행이 닫혔는데 lock 이 남았다» 한 자리의 말(들) · 아니면 빈 목록 (순수 함수).
+
+    나이(`DEAD_MIN`)를 **안 본다** — 행이 ✅·⛔·✂ 면 그것으로 끝이다. 다만 임자가 아직 미는 중이면
+    «치우기 전에 그 커밋을 먼저 봐라» 를 덧붙인다(§1: «✅ 완결» 뒤에도 판정이 빨가면 임자가 이어 고친다)."""
+    if mark not in ('✅', '⛔', '✂'):
+        return []
+    out = ['%s 닫힌 행(%s)인데 lock 이 %.0f분째 남았다 — 죽은 lock 으로 센다' % (tid, mark, lock_age_min)]
+    if commit_age_min is not None and commit_age_min < DEAD_MIN:
+        out.append('임자가 아직 밀고 있다(%.0f분 전) — 치우기 전에 그 커밋을 먼저 봐라' % commit_age_min)
+    else:
+        out.append('치워도 된다')
+    return out
+
+
 def self_test():
     ok = True
+    # T524 ⓓ — 닫힌 행의 lock 은 **나이 0분에도** 이름이 서고, 열린 행은 종전대로 조용하다.
+    if not closed_lock_lines('T523', '✅', 0.0, None):
+        print('✗ T524: 나이 0분이어도 닫힌 행의 lock 은 이름을 대야 한다'); ok = False
+    if closed_lock_lines('T515', '🔄', 200.0, None):
+        print('✗ T524: 열린 행(🔄)은 이 갈래가 아니다 — 90분 갈래가 본다'); ok = False
+    _alive = closed_lock_lines('T523', '✅', 76.0, 24.0)
+    if len(_alive) != 2 or '아직 밀고 있다' not in _alive[1]:
+        print('✗ T524: 임자가 미는 중이면 «치우기 전에 커밋을 봐라» 가 붙어야 한다 — %r' % (_alive,)); ok = False
+    _cold = closed_lock_lines('T523', '✅', 76.0, 300.0)
+    if len(_cold) != 2 or '치워도 된다' not in _cold[1]:
+        print('✗ T524: 임자가 조용하면 «치워도 된다» 여야 한다 — %r' % (_cold,)); ok = False
+
     ts, sid = parse_lock('2026-09-13T21:59:00Z sess-2157-32053\n')
     if sid != 'sess-2157-32053' or ts is None:
         print('✗ lock 읽기: %r %r' % (ts, sid)); ok = False

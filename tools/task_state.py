@@ -671,10 +671,32 @@ def verdict(tid, heads, rows, all_ids=None):
     자기 검사가 가짜 문서로 «반만 접힌 번호»(T494)를 재려고 뚫어 둔 구멍이다.
     """
     lk = lock_of(tid)
-    if lk and lk[1] < STALE_MIN:
-        return False, "남의 lock 이 살아 있다 — %s · %d분 전(90분 규약)" % (lk[0], lk[1])
     hn, hdone, htext = heads.get(tid, (0, False, ""))
     pn, pmark, ptext = rows.get(tid, (0, "", ""))
+
+    # T524 — **닫힌 번호의 lock 은 나이를 볼 것도 없다.** 종전엔 lock 을 **행 상태보다 먼저** 읽어서,
+    #   제가 바로 위에 «PROGRESS 상태: ✅ 완료» 를 찍고도 결론은 «남의 lock 이 살아 있다 — 잡지 마라» 였다
+    #   (검수 Q 57회차 실측 2026-11-27 22:1x · `T523.lock` 이 완결 커밋에서 안 지워졌다 · 같은 화면의 두 줄이 싸웠다).
+    #   ⚠ **«치워라» 로 단정하지 않는다** — 이 저장소는 «✅ 완결» 뒤에도 **판정이 빨가면 임자가 이어서 고친다**
+    #     (§1 «lock 은 CI 가 그 커밋을 한 번은 돈 뒤 반납한다»). 실제로 T523 이 그 꼴이었다: 22:1x 에 행이 ✅ 인데
+    #     같은 SID 가 22:26 에 수리를 밀었다. 그래서 **임자가 아직 미는 중이면 «치우지 말고 그 커밋을 먼저 봐라»** 로 갈라 말한다.
+    if lk and (hdone or pmark == "✅" or pmark == "⛔" or _lead(htext or "").startswith("✂")):
+        mark = "ROUTINE 제목 ✅" if hdone else ("PROGRESS ✅" if pmark == "✅"
+                                               else ("PROGRESS ⛔" if pmark == "⛔" else "ROUTINE 제목 ✂"))
+        sage = sid_commit_age(lk[0])
+        if sage is not None and sage < STALE_MIN:
+            tail = ("임자(%s)가 **아직 밀고 있다 — 마지막 커밋 %d분 전**이다. «✅ 완결» 뒤에도 판정이 빨가면"
+                    " 임자가 이어서 고치는 것이 이 저장소의 규약이다(§1) — **치우지 말고 그 커밋을 먼저 봐라**."
+                    % (lk[0], sage))
+        else:
+            tail = ("임자(%s)의 마지막 커밋이 %s — **치워도 된다**(`rm docs/claims/%s.lock`)."
+                    % (lk[0], ("%d분 전이다" % sage) if sage is not None else "안 보인다", tid))
+        return False, ("**끝난/접힌 번호인데 lock 파일이 남았다**(%s · lock %d분 전) — 그 번호를 잡지 마라(끝난 일이다)."
+                       "  ⚠ 그리고 **이 lock 은 판을 거짓으로 만든다**: 다른 자들이 그것을 «산 lock» 으로 세어"
+                       " 남의 회차에 «누가 잡고 있다» 로 보인다(T488·T524). %s" % (mark, lk[1], tail))
+
+    if lk and lk[1] < STALE_MIN:
+        return False, "남의 lock 이 살아 있다 — %s · %d분 전(90분 규약)" % (lk[0], lk[1])
     if hdone or pmark == "✅":
         where = "ROUTINE 제목이" if hdone else "PROGRESS 상태가"
         why = "**끝난 일이다**(%s ✅) — 잡지 마라" % where
@@ -1268,6 +1290,31 @@ def cmd_one(tid, heads, rows):
     ok, why = verdict(tid, heads, rows)
     print("  → %s: %s" % ("잡아도 된다" if ok else "잡지 마라", why))
     return 0 if ok else 1
+
+
+def _t524_check(chk):
+    """T524 ⓓ — «행이 닫혔는데 lock 이 남았다» 가 `verdict()` 에서 새 말로 서는가(순수 재료로 잰다)."""
+    heads_done = {"T900": (1, True, "✅ — 끝난 절")}
+    rows_done = {"T900": (1, "✅", "✅ 완료 · lock 반납")}
+    heads_open = {"T901": (1, False, "— 열린 절")}
+    rows_open = {"T901": (1, "🔄", "🔄 진행")}
+    import tempfile, shutil
+    d = tempfile.mkdtemp()
+    keep = globals()["CLAIMS"]
+    try:
+        globals()["CLAIMS"] = d
+        stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        for tid in ("T900", "T901"):
+            io.open(os.path.join(d, tid + ".lock"), "w", encoding="utf-8").write(stamp + " sess-0000-1\n")
+        ok1, why1 = verdict("T900", heads_done, rows_done, all_ids=set())
+        ok2, why2 = verdict("T901", heads_open, rows_open, all_ids=set())
+    finally:
+        globals()["CLAIMS"] = keep
+        shutil.rmtree(d, ignore_errors=True)
+    chk((not ok1) and "lock 파일이 남았다" in why1,
+        "T524 — 닫힌 행 + lock 은 «끝난 번호인데 lock 이 남았다» 로 말한다(나이 0분에도)")
+    chk((not ok2) and "남의 lock 이 살아 있다" in why2,
+        "T524 — 열린 행 + 산 lock 은 **종전대로** «남의 lock 이 살아 있다» 다")
 
 
 def self_test():
@@ -2089,6 +2136,15 @@ def self_test():
             print("⛔ 자기 검사 실패(T504) — 인수 없는 호출이 rc %s 다(gate.sh 가 그 꼴로 부른다 · 0 이어야 한다)" % _rc_none)
             return 1
 
+        # T524 ⓓ — «행이 닫혔는데 lock 이 남았다» 가 `verdict()` 에서 새 말로 서고, 열린 행은 종전대로다.
+        _t524 = []
+        _t524_check(lambda c, l: _t524.append((c, l)))
+        if not all(c for c, _l in _t524):
+            for c, l in _t524:
+                if not c:
+                    print("⛔ 자기 검사 실패(T524) — " + l)
+            return 1
+
         print("✓ task_state --self-test: 어긋난 짝을 잡고(T161) · **등재만 된 ⬜ 는 잡아도 되고 코드 커밋·🔄·lock 이 있으면 아니고(T160)** · **«🔄 인데 lock 없음·마지막 커밋 90분 초과» 를 참고로 찍되 산 lock·방금 커밋·✅ 는 안 찍고(T164)** · **반납한 ⬜/🔄 행은 마지막 커밋이 90분 넘게 조용하면 «이어 잡아도 된다» 고 90분 안·산 lock·✅·나이 None 은 아니고(T187)** · ✅ 를 달면 조용하고 · 빈 번호는 통과하고 ·"
               " 같은 번호 두 제목을 잡고 · «행 없음 ↔ 접힌 행만» 을 가르고 · ⛔ 와 `\\|` 도 읽고 ·"
               " 참고 줄이 마지막 요약에도 실리고(T231) · «⬜ + 살아 있는 lock» 을 잡되 죽은 lock 은 안 잡고(T238) · **미래로 적힌 lock 을 잡되 1분 차에는 안 울고**(T294) · **본문에 ✂ 를 인용한 살아 있는 줄을 접힘으로 안 센다**(T249) · **«낡은 lock 인데 임자는 살아 있다» 를 잡되 «둘 다 낡음»·«아직 살아 있음»·«판단 못 함» 셋에는 안 울고**(T329)"
@@ -2098,7 +2154,7 @@ def self_test():
               " · **«표에 열린 행은 있는데 §2 에 제목이 없다» 를 잡되 닫힌 행·제목이 있는 행에는 안 울고, 그 참고가 끝줄에도 실리고 rc 는 0 이다**(T466)"
               " · **제목이 그 번호로 시작해도 SID 로 «임자가 아니다» 를 가렸으면 놓고 간 진단으로 세고, 임자 것·임자를 모를 때·제목에 SID 가 없을 때 셋에는 종전대로 안 센다**(T468)"
               " · **«임자가 살아 있다» 를 그 SID 가 **민** 커밋(제목)으로만 재고, 남의 커밋 몸통에 적힌 그 SID·빈 SID·빈 로그에는 안 속는다**(T481) · **⚠ 참고만이면 --check rc 0 · ⛔ 선점 덫이면 rc 1 — gate.sh 가 이 자를 막는 자로 올렸다(T403)** · **제목이 «쓴» 번호와 «인용» 을 가르고(T0 파수꾼 포함) T415 사고 막이는 그대로 서고(T337)** · **제목은 닫혔는데(✅·⛔) 행은 열린(⬜·🔄) 짝을 잡되 양쪽이 맞으면·제목이 아예 없으면 안 울고, 종전 방향과 안 겹치고, `verdict()` 의 «끝난 일이다» 에 그 말을 덧붙이되 판정은 안 바꾼다**(T376) · **그 «제목 닫힘 ↔ 행 열림» 에 나이를 달아 90분을 넘기면 ⛔ rc 1 로 올리고, 90분 안·나이 모름 둘에는 안 올린다**(T407) · **«코드 자취» 는 코드 식별자·파일명·폴더명만 세고 주석(`//` `///` `/* */` `#` 삼중따옴표)·문자열 리터럴·문서 내용은 안 센다**(T29)"
-              " · **`main()` 이 맨 수(`35`)를 `T35` 와 **같은 rc** 로 읽고, ID 로 못 읽은 인수엔 rc 2 로 울고, 인수 없는 호출은 여태처럼 `cmd_check` 다**(T504)")
+              " · **닫힌 행(✅·⛔·✂)에 lock 파일이 남으면 «끝난 번호인데 lock 이 남았다» 로 말하고(나이 0분에도) 열린 행 + 산 lock 은 종전 말 그대로다**(T524) · **`main()` 이 맨 수(`35`)를 `T35` 와 **같은 rc** 로 읽고, ID 로 못 읽은 인수엔 rc 2 로 울고, 인수 없는 호출은 여태처럼 `cmd_check` 다**(T504)")
         return 0
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
