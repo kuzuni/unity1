@@ -3092,3 +3092,23 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - **⛔ 3 → T515** — 빈 채널(`filter`·`box-shadow`·`background`)을 좇아가니 **전환이 걸릴 상태 자체가 없는 열두 자리**가 나왔다: 정본 `:active` **19** 중 T355 가 쥔 일곱을 뺀 **열둘**(턱 걷기 여덟 — **3563 이 팝업·패널·장비시트의 모든 버튼**이다 · 가라앉기만 둘 987·4591 · 누름 배경 4802 · 5011 의 «그늘이 생기는» 둘째 채널). 클론 `UiKit.Button:362` 가 `Selectable.Transition.None` 이고 `Popups.Btn:487` 은 턱을 **그리기만** 한다. 정본엔 이 열둘에 `transition` 이 **없다**(즉시 전환).
 - **다음 축 후보**: `:active`·`:hover`·`:disabled`·`:checked` **상태 규칙 전수** — 이 회차가 `:active` 19 중 **12 가 빈 것**을 봤으니 다른 상태도 같은 꼴일 수 있다(T515 가 닫히면 그 자리에서 이어 센다).
 
+
+## 82회차 — 상태 규칙 전수: `:active` 를 뺀 셋은 **빈 축**이고 `.disabled` 클래스가 그 자리를 쥔다 (2026-11-27 · 워커 K · sess-1532-29140 · 런 1375 초록)
+
+- **81회차의 «다음 축 후보» 를 먼저 쟀다 — 그 셋은 없다**: 정본 `web/css/style.css` 를 (주석을 길이 보존으로 지운 뒤) 세니
+  `:disabled` **0** · `:checked` **0** · `:hover` **0** · `:focus` **0** 이다(`:active` 는 21). 곧 81회차가 «다른 상태도 같은 꼴일 수 있다» 고 적어 둔 그 축은
+  **열 것이 없다** — 정본은 상태를 **`.disabled` 클래스**로 쓴다(그 자리 16). ⚑ 축을 열기 전에 «그 축에 자리가 몇인가» 를 먼저 세면 한 회차를 아낀다.
+- **그래서 이 회차의 축을 `.disabled` 로 옮겼다 — 전수 아홉 자리**(선택자 묶음까지 풀면 열넷):
+  **673** `.btn.disabled { opacity: .45 }` · **3556** `.modal-card .btn.disabled, .panel .btn.disabled, #equip-sheet .btn.disabled { background: var(--pp-gray); color: #7b7b7b; box-shadow: inset 0 -.22rem 0 var(--pp-gray-dk); **opacity: 1** }` ·
+  **5268** `.skd-btn.silver.disabled`(흰 램프 면 · #6f6f6f · 턱 #9c9c9c · opacity 1) · **5503** `.petup-selrow .btn.silver.disabled`(#b4b4b4 · 스트로크 0 · 턱 #3b3b3b · 흰 네 겹 글자 그림자 · opacity 1) ·
+  **8151** `.modal-card.sheet .dg-banner .btn.disabled`(#878e96 · #3d434a · 턱 두 겹) · **8356** `.btn.btn.disabled`(+ 셋) `{ text-shadow: 0 1px 0 rgba(255,255,255,.55) }` ·
+  **8727** `.btn.btn.primary.primary.disabled`(+ 넷) `{ color: #7b7b7b; -webkit-text-stroke: 0; text-shadow: none }`.
+- **클론을 자리마다 짚었다 — ✅ 셋 · ⛔ 하나(묶음) → T516 등재**
+  - ✅ **8356·8727 의 글자 축**: `Popups.Btn` 이 «비활성 + 색 아닌 버튼 → 흰 엠보스(`btn_label_disabled`)» · «비활성 → 키라인 링 안 두름» 으로 이미 맞다(T333·T109 가 세웠다).
+  - ✅ **8151**: `DungeonPopups` 가 제 자리에서 `pp_gray`·`pp_gray_dk`·`btn_disabled_ink` 를 준다(T377 13회차).
+  - ⛔ **673 ↔ 3556 의 cascade 를 거꾸로 잡았다**: 클론 `Popups.Btn:527` 이 **673 의 `opacity: .45`** 를 건다(`OpacityUi.Apply(… "btn_disabled")`). 그런데 그 공장이 만드는 버튼은 **전부** `.modal-card`/`.panel`/`#equip-sheet` 안이고(T415 18회차가 반지름에서 같은 것을 확인했다) **3556 이 `opacity: 1` 로 되돌린다**. 정본 주석이 까닭까지 적어 뒀다 — «"렌더링 덜 된 버튼"으로 채점됐다(비평가 A 결함[3]) · 비활성은 이미 회색 면 + 죽인 글자색(#7b7b7b)이 말하고 있으므로 투명도는 걷는다».
+  - ⛔ **그 되돌림과 한 쌍인 셋(회색 면 · `#7b7b7b` 잉크 · 회색 턱)을 공장이 강제하지 않는다** — `faceKey`·`lipKey`·`inkKey` 가 부르는 쪽 값 그대로다. 실례: `LeagueSheet:433` 이 리그 «도전» 을 `!can` 으로 비활성으로 만들면서 면·턱은 `challenge_btn`·`challenge_btn_dk`(색) 그대로다 → 정본은 그 자리에서 **회색 면 + #7b7b7b**, 클론은 **제 색을 .45 로 흐린다**.
+  - ⚑ 그 잉크 키는 **표에 이미 있다** — `catalog.json:158` `btn_disabled_ink` `#7b7b7b` 이고 제 주석이 «`.modal-card .btn.disabled` 글자» 라고 적어 뒀는데 **부르는 곳이 `DungeonPopups` 하나**다(공용 공장은 안 부른다). T499 의 «죽은 키» 와 같은 꼴 — 값은 옮겼고 **배선이 빠졌다**.
+- **곁에서 문서 덫 하나를 걷었다**: T515 를 등재한 81회차가 그 번호의 §7 표시를 **T514 의 §2 제목 뒤에** 붙여(`### T514 ✅ · T515 ⬜ — …`) T515 에 §2 제목이 **둘**이 되고 그 둘의 표시가 달랐다(⬜ ↔ 🔄 · T376·T407·T494 가 메워 온 그 덫이다). `task_state` 는 하나만 읽어 조용했지만 다음 사람이 그 제목을 보면 «T515 는 아직 안 시작» 으로 읽는다. 그 조각을 걷고 **§7 표의 그 칸**(그 번호가 실제로 적혀야 하는 자리)을 PROGRESS 와 맞췄다(🔄). 글자는 한 자도 안 바꿨다.
+- **이 회차는 문서만** — 게임 코드 0줄 · `tools/gate.sh` 막는 자 42 전부 rc 0 · `check_final_table` «표시 384개가 PROGRESS 와 같다».
+- **다음 축 후보**: ⓐ `:active` 상태 전수는 **T515 가 쥐고 있다**(1회차가 기제 + 3563 하나 · 남은 열한 자리는 그 절의 «남은 것»). ⓑ `.disabled` 축의 나머지 — **5268**·**5503** 두 자리는 `PetSkillKit.PaperButton`(실버) 갈래라 그 공장을 보는 회차가 따로 있어야 한다(이 회차는 공용 공장만 짚었다). ⓒ 정본 `!important` 전수(아직 한 번도 안 센 축).
