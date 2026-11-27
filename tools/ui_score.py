@@ -1410,20 +1410,50 @@ def _note_needles():
     return out
 
 
-def _note_hit(sels, needles=None):
-    """못박은 선택자 중 하나가 `--notes` 근거 바늘 안에 들어 있으면 그 줄 번호 · 없으면 None.
+def _screen_tokens(screen):
+    """화면 이름의 토막 — `pet-upgrade` → ['pet', 'upgrade'] (세 글자 미만은 버린다)."""
+    return [t for t in re.split(r"[^a-z0-9]+", (screen or u"").lower()) if len(t) >= 3]
 
-    T519 ⓑ — 이미 적어 둔 자리는 **매 회차 같은 칸을 먹지 않게** 뒤로 민다. 바늘은 정본 원문
-    조각(`.settings-toggle.on { background: var(--pp-blue); }`)이라 선택자가 그 안에 든다."""
+
+def _note_hit(sels, needles=None, screen=None):
+    """`--notes` 에 이미 적힌 자리인가 — `(줄 번호 또는 None, 그 자리라고 **단정해도 되는가**)`.
+
+    T519 ⓑ 는 «못박은 선택자 중 **하나라도** 근거 바늘에 들면 그 자리다» 로 보고 뒤로 밀었다.
+    **그 잣대가 색을 자리로 착각한다**(T522) — 자가 제 입으로 적어 둔 결정 **873**(«색이 그
+    선택자만 쓰는 색이 아니면 **자리를 못 가린다**»)을 여기서만 어겼다. 실측: `#005dff` 는 정본이
+    **선택자 스물다섯**에 못박았는데 그중 하나(`.settings-toggle.on`)가 notes 25 에 들어 있어,
+    `profile`·`pet-detail`·`autoforge`·`autoforge-filter` 의 **차 255 짜리 네 자리**까지 한꺼번에
+    «다시 파지 마라» 로 덮이고 고르는 칸에서 밀렸다(전수 19자리 중 **13**이 그 꼴이었다).
+
+    그래서 **자리로 가른다** — 단정은 둘 중 하나일 때만:
+      ⓐ **색이 곧 그 자리다** — 그 색을 못박은 선택자가 **전부** 같은 쪽지에 든다(선택자가 하나인
+         색이 보통 여기 든다 · `.btn` `#2d333b` · `.idet-icon` `#e9e9e9` · `.league-challenge-row` `#cacaca`).
+      ⓑ **맞은 선택자의 이름이 그 화면의 이름을 품는다** — `settings` 화면의 `.settings-toggle.on`.
+         보수적인 잣대다: 이름이 안 맞으면 **단정하지 않을** 뿐 꼬리표를 떼지는 않는다.
+    둘 다 아니면 `(줄 번호, False)` — 부르는 쪽은 «…**일 수 있다**» 로 찍고 **밀지 않는다**.
+    """
     needles = _note_needles() if needles is None else needles
-    for sel in sels:
-        key = (sel or u"").strip().lower()
-        if len(key) < 3:
-            continue
+    keys = [(sel or u"").strip().lower() for sel in sels]
+    keys = [k for k in keys if len(k) >= 3]
+    hits = []
+    for key in keys:
+        got = None
         for i, needle in needles:
             if key in needle:
-                return i
-    return None
+                got = i
+                break
+        hits.append((key, got))
+    seen = [g for _k, g in hits if g is not None]
+    if not seen:
+        return (None, False)
+    first = seen[0]
+    if len(seen) == len(hits) and len(set(seen)) == 1:
+        return (first, True)                               # ⓐ 색이 곧 그 자리다
+    toks = _screen_tokens(screen)
+    for key, got in hits:
+        if got is not None and any(t in key for t in toks):
+            return (got, True)                             # ⓑ 이름이 그 화면을 품는다
+    return (first, False)
 
 
 def _scan_pick(rows, table, limit=10):
@@ -1437,9 +1467,11 @@ def _scan_pick(rows, table, limit=10):
 
     돌려주는 것: [(row, 뽑힌 까닭, --notes 줄 번호 또는 None)] · 그리고 못 찍은 수(fresh/noted)."""
     needles = _note_needles()
-    marked = [(r, _note_hit([s for s, _l in table.get(r[3], [])], needles)) for r in rows]
-    fresh = [t for t in marked if t[1] is None]
-    noted = [t for t in marked if t[1] is not None]
+    # T522 — 뒤로 미는 것은 «**그 자리**라고 단정할 수 있는» 것뿐이다. 색만 겹치는 자리는
+    #   꼬리표를 달되(«…일 수 있다») **아직 안 적힌 자리와 같은 줄에서 겨룬다**.
+    marked = [(r, _note_hit([s for s, _l in table.get(r[3], [])], needles, r[0])) for r in rows]
+    fresh = [t for t in marked if not (t[1][0] is not None and t[1][1])]
+    noted = [t for t in marked if t[1][0] is not None and t[1][1]]
     half = max(1, limit // 2)
     chosen, why = [], {}
 
@@ -1480,8 +1512,13 @@ def _scan_rows(rows, table, limit=10):
         # T517 — «어느 바이트로 맞았는지» 를 같이 찍는다: 딱맞음 0 이면 **종전 자는 이 자리를 아예 못 봤다**.
         how = (u"딱맞음 %d" % exact) if exact else (u"**딱맞음 0** · ≤%d 로만 찍혔다(T517 앞에는 안 보였다)" % off)
         tail = u"%s · 뽑힘 %s" % (how, why)
-        if note is not None:
-            tail += u" · **이미 적힌 자리**(`--notes` %d번째 — 다시 파지 마라)" % note
+        if note[0] is not None:
+            if note[1]:
+                tail += u" · **이미 적힌 자리**(`--notes` %d번째 — 다시 파지 마라)" % note[0]
+            else:
+                # T522 — 모르는 것을 아는 것처럼 찍지 않는다(결정 873).
+                tail += (u" · 이미 적힌 자리**일 수 있다**(`--notes` %d번째 · 그 색은 **선택자 %d개**가 "
+                         u"같이 쓴다 — 자리는 못 가린다 · 결정 873)" % (note[0], len(sels)))
         print(u"    %-16s #%02x%02x%02x ↔ 원작 (%d,%d,%d) · 차 %3d · %5d화소 · x %.1f~%.1f%%W y %.1f~%.1f%%H · %s"
               % ((screen,) + rgb + med + (d, n, box[0], box[1], box[2], box[3], tail)))
         print(u"        그 색을 못박은 정본 선택자 %d개: %s"
@@ -1493,9 +1530,13 @@ def _scan_rows(rows, table, limit=10):
     needles = _note_needles()
     def brief(r, note):
         screen, d, n, rgb, med = r[0], r[1], r[2], r[3], r[4]
-        return u"%s #%02x%02x%02x↔(%d,%d,%d) 차 %d · %d화소%s" % (
-            (screen,) + rgb + med + (d, n, u" [`--notes` %d]" % note if note else u""))
-    hit = dict((id(r), _note_hit([x for x, _l in table.get(r[3], [])], needles)) for r in rows)
+        mark = u""
+        if note and note[0]:
+            mark = u" [`--notes` %d%s]" % (note[0], u"" if note[1] else u"?")   # T522 — `?` = 색만 겹친다
+        return u"%s #%02x%02x%02x↔(%d,%d,%d) 차 %d · %d화소%s" % ((screen,) + rgb + med + (d, n, mark))
+    full = dict((id(r), _note_hit([x for x, _l in table.get(r[3], [])], needles, r[0])) for r in rows)
+    # T522 — «적힌 자리» 로 **접는** 것은 단정할 수 있는 것뿐이다(색만 겹치는 자리는 위 목록에서 겨룬다).
+    hit = dict((k, (v[0] if v[1] else None)) for k, v in full.items())
     # 아직 안 적힌 자리만 여기 싣는다 — 적힌 자리는 바로 아래 제 줄에 선다(한 자리가 두 줄에 겹치지 않게).
     loud = [r for r in rows if id(r) not in shown and not hit[id(r)] and r[1] >= SCAN_LOUD_DIFF]
     loud.sort(key=lambda t: (-t[1], -t[2]))
@@ -1508,7 +1549,7 @@ def _scan_rows(rows, table, limit=10):
     if noted_rest:
         print(u"    · 이미 적힌 자리 %d개(칸을 안 먹지만 **사라지지도 않는다** · 다시 파지 마라): %s"
               % (len(noted_rest),
-                 u" | ".join(brief(r, hit[id(r)]) for r in noted_rest[:8])
+                 u" | ".join(brief(r, full[id(r)]) for r in noted_rest[:8])
                  + (u" …" if len(noted_rest) > 8 else u"")))
     if rest_fresh or rest_noted:
         print(u"    · … %d자리 더(그중 %d 은 `--notes` 에 이미 적힌 자리다)" % (rest_fresh + rest_noted, rest_noted))
@@ -3986,6 +4027,32 @@ def self_test():
     _head10 = _o10.split(u"· 이미 적힌 자리")[0]
     chk(u"넓은자리" in _head10 and u"적힌자리" not in _head10 and u"적힌자리" in _o10,
         u"한 줄만 찍을 때 **아직 안 적힌** 자리가 먼저 서고, 적힌 자리는 꼬리 한 줄로 **남는다**(T519 ⓑ)")
+
+    # T522 ⓒ — 꼬리표는 «색» 이 아니라 «자리» 에 단다. 같은 색·같은 바늘인데 **선택자 수**와
+    #   **화면 이름**만 다른 두 줄을 나란히 돌려 갈래가 실제로 갈리는지 본다.
+    #   🚫 `_note_hit` 를 «하나라도 맞으면 그 자리» 로 되돌리면 첫 칸이 바로 빨강이 된다(결정 855 의 자리).
+    _tbl22 = {(0, 93, 255): [(u".settings-toggle.on", 3115), (u".btn.equip", 1), (u".league-row", 2)]}
+    _row22 = lambda scr: (scr, 255, 300, (0, 93, 255), (255, 255, 255), (1.0, 2.0, 3.0, 4.0), 9, 0)
+    _b22 = _io.StringIO()
+    with _cl.redirect_stdout(_b22):
+        _scan_rows([_row22(u"profile")], _tbl22, limit=3)
+    _o22 = _b22.getvalue()
+    chk(u"일 수 있다" in _o22 and u"선택자 3개" in _o22 and u"자리는 못 가린다" in _o22,
+        u"색을 여럿이 나눠 쓰면 «이미 적힌 자리**일 수 있다** · 자리는 못 가린다» 로 찍는다(T522 · 결정 873)")
+    chk(u"다시 파지 마라" not in _o22 and u"profile" in _o22.split(u"· 이미 적힌 자리")[0],
+        u"그 자리는 **안 밀린다** — 아직 안 적힌 자리와 같은 줄에서 겨룬다(T522 ⓑ)")
+    _b23 = _io.StringIO()
+    with _cl.redirect_stdout(_b23):
+        _scan_rows([_row22(u"settings")], _tbl22, limit=3)
+    _o23 = _b23.getvalue()
+    chk(u"다시 파지 마라" in _o23 and u"일 수 있다" not in _o23,
+        u"맞은 선택자 이름이 그 화면을 품으면(`settings` ↔ `.settings-toggle.on`) **그 자리로 단정**한다(T522)")
+    # 그리고 «색이 곧 그 자리» 갈래(선택자가 전부 한 쪽지)는 화면 이름과 무관하게 단정한다.
+    _b24 = _io.StringIO()
+    with _cl.redirect_stdout(_b24):
+        _scan_rows([_row22(u"profile")], {(0, 93, 255): [(u".settings-toggle.on", 3115)]}, limit=3)
+    chk(u"다시 파지 마라" in _b24.getvalue(),
+        u"그 색을 못박은 선택자가 **하나**뿐이면 색이 곧 자리라 화면이 달라도 단정한다(T522 ⓐ)")
 
     # T517 ⓑ — **빈 폴더는 «깨끗하다» 가 아니다.** 훑은 화면이 0 이면 ⛔ 와 함께 rc 1 로 떨어진다
     #   (종전엔 «0자리» 를 찍고 rc 0 으로 끝나서, `--shots` 를 빼먹은 발사가 **초록으로 보였다**).
