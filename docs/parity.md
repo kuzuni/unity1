@@ -3164,6 +3164,40 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
   ⓑ `pointer-events` 68(누를 수 있나 — `raycastTarget` 과 짝) · ⓒ `overflow` 59(`Mask`·`RectMask2D` 와 짝) · ⓓ `background-position/size` 32(29·39회차가 두 번 미뤘다).
   ⚑ 세 축 다 **이 회차의 잣대**를 쓴다 — 값이 아니라 «그 값이 만드는 것»(층 차례 · 누름 · 자르기)으로 견준다.
 
+
+## 86회차 — §0-6 로 내 85회차 자를 고치고, 29·39회차가 두 번 미룬 `background-position`+`background-size` 32 를 닫았다 (2026-11-27 · 워커 I · sess-2203-19470 · 런 1398)
+
+- **§0-6 — 빨강이 내 것이었다**: 런 **1398** 에서 85회차의 새 자 `빛줄기의_축은_아래끝이라_가까운_끝이_제자리에_남는다` 가
+  «빛줄기 2: 늘어나도 아래끝은 제자리다 — 기대 237.11 ± 0.5 · 실측 233.65» 로 빨갰다. 빛줄기 **0·1 은 통과**했다.
+  - **뿌리(결정 902)**: 막대는 **회전**해 있다. `GetWorldCorners` 의 «가장 낮은 꼭지» 는 각이 90°를 넘으면 **위끝 꼭지**가 되고
+    (스포크 2 = 2·360/9 + 14 = **94°**) 그것은 늘이면 당연히 움직인다. 곧 그 잣대는 «각이 작을 때만 맞는» 잣대였다 —
+    각 0°·47° 에서 통과하고 94° 에서만 깨진 것이 그 증거다.
+  - **고침**: 불변량을 **`RectTransform.position`(= 피벗 점)** 으로 바꿨다(제 `localScale` 과 무관하고 각과도 무관하다) ·
+    늘어남의 **방향**은 «축↔먼끝 거리가 배율 그대로 2배» 로 잰다. **제품 코드 0줄** — 85회차의 피벗 고침은 그대로다.
+  - 무대판이 아닐 때(n>10 · 빛줄기 겹이 없다)는 `Assert.Ignore` 로 가른다(이 집의 관례).
+- **곁들여 — 내 5회차 자도 남이 고쳤다**: 런 1393 에서 `드롭다운_항목은…` 이 «자동 제련 팝업이 열린다 — Expected: not null» 로 빨갰고
+  워커 J 가 8회차에 고쳤다(`ForgeAutoPopup.Open` 은 **해금 전이면 아무것도 안 세운다** · 새 세이브는 `BestChapter`·`BestStage` → `Pull` 로 해금부터).
+  ⚑ **팝업을 여는 자는 «그 팝업이 해금됐나» 를 먼저 세워야 한다** — 이 집의 다른 자들은 이미 그 길을 쓰고 있었다.
+- **축 = `background-position` 21 + `background-size` 11 = 32 전수**(29회차가 «남은 축» 으로, 39회차가 다시 «남은 축» 으로 적어 두 번 미룬 자리)
+- **결함 0 — 자리마다 임자가 있다**
+  | 정본 | 자리 | 값 | 클론 |
+  | --- | --- | --- | --- |
+  | 397·420 | `.bw-hazard` + `@keyframes bwhazard` | `1.556rem 100%` · 0 → `1.556rem` | `SurfaceUi.stripes.bw_hazard`(`tile_w_rem` 1.556 · `scroll_sec` .62) + `BattleOverlay:348` 가 한 타일만큼 흘린다(T368 2·4회차) |
+  | 930·931 · 4837·4838 · 5119·5120 | `--af-pat-size`·`--af-pat-pos` 세 자리 | `var(…, auto)`·`var(…, 0 0)` | `AgePattern.cs:151` 이 CSS 자리를 **uv 치우침**으로 옮긴다(+x 는 uv 반대 · y 는 텍스처가 위가 1) · 표 `AgePatternUi.json` |
+  | 4930~4939 | `gp-interstellar`·`gp-multiverse`·`gp-underworld`·`gp-divine` 키프레임 | 무늬 한 주기씩 | 같은 기제(위) — 정본도 «같은 `--af-pat` 변수·같은 keyframes 를 쓴다(정의를 복제하지 않는다)» 고 적어 뒀다 |
+  | 1956 · 2068 | `.dg-banner` · `.dg-detail-hero` | `center`/`cover` | 배경 일러스트를 채우는 자리 — 클론은 구운 판을 상자에 맞춘다(T178 갈래) |
+  | 1996 | `.dg-rw .dg-rw-ico` | `center`/`100%` | 아이콘 한 장 = `UiKit` 의 `preserveAspect` |
+  | 7197 | `.ico` | `center`/`contain` | 같은 자리(`UiKit:129·204` `preserveAspect = true`) — `contain` 의 뜻 그대로 |
+  | 2553 | `.league-reward-tier` | `100% 2px` · `0 0` | `LeagueSheet:295 TierDash`(T368 5회차) · 표 `SurfaceUi` 1305 |
+  | 4211·4212 | `#panel-skills .summon-bar::before` | `calc(app-w × .1993) 100%` · `calc(app-w × −.0499) 0` | 표 `SurfaceUi` 1318(«반 대시만큼 당겨 x=0 에 대시 중심» 까지) |
+  | 6917·6922·6924 | `.sr-orb::after` + `@keyframes srsweep` | `260% 100%` · −80% → 180% | 표 `SummonFxUi.orbsweep`(`size_f` **2.6** · `pos_from_pct` **−80** · `pos_to_pct` **180** · 각 112° · 정지점 40/50/60) + `SkillSummonResult:2028`(원판에 `Mask` 를 걸고 띠를 민다) |
+- ⚑ **이 축이 왜 두 번 미뤄졌는데 결함 0 인가**: `background-position/size` 는 **제 혼자 뜻이 없다** — 그 값은 언제나 «어떤 그림을 어떻게 깔까» 의 **한 조각**이라,
+  그림을 옮긴 절(T178 표면 겹 · T368 빗금·대시 · T459 스윕 · 나이 무늬)이 **그 값까지 같이** 옮겼다. 곧 이 축은 **다른 축의 그림자**다.
+  ⇒ 다음 사람에게: 축 목록에서 «크기만» 보고 고르면 이런 축에 한 회차를 쓴다. 고르기 전에 **그 값이 혼자 서는 축인가**를 묻는 것이 싸다.
+- **게이트**: `dotnet build` 0 오류(TestsPlay 까지) · `dotnet test` 895/895 · `gate.sh` 막는 자 전부 rc 0 · 건너뜀 0. 게임 코드 **0줄**(자 한 칸 + 문서).
+- **다음 축 후보**(85회차 목록에서 «혼자 서는 축» 만 남겼다): ⓐ **`z-index` 112** — 층 차례는 클론에서 **형제 순서**가 쥐므로 자리마다 견줄 수 있고 혼자 선다 ·
+  ⓑ `pointer-events` 68(↔ `raycastTarget`) ⓒ `overflow` 59(↔ `Mask`·`RectMask2D`). ⚠ `animation-timing-function` 23·`animation-delay` 38 은 77~80·84회차가 이미 그 축을 훑었다.
+
 ## 82회차 — 상태 규칙 전수: `:active` 를 뺀 셋은 **빈 축**이고 `.disabled` 클래스가 그 자리를 쥔다 (2026-11-27 · 워커 K · sess-1532-29140 · 런 1375 초록)
 
 - **81회차의 «다음 축 후보» 를 먼저 쟀다 — 그 셋은 없다**: 정본 `web/css/style.css` 를 (주석을 길이 보존으로 지운 뒤) 세니
