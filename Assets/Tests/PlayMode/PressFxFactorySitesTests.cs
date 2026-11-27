@@ -179,12 +179,20 @@ namespace Forge.Tests.PlayMode
             foreach (PressFx q in p.Root.GetComponentsInChildren<PressFx>(true))
                 if (q.Spec != null && q.Spec.Key == "af_spinner") { fx = q; break; }
             Assert.IsNotNull(fx, "스피너의 눌림 부품");
-            Transform face = fx.transform.Find("face");
-            Assert.IsNotNull(face, "스피너 면");
-            UnityEngine.UI.Graphic ins = null;
-            Transform insT = face.Find("inset-af_spinner");
-            if (insT != null) ins = insT.GetComponent<UnityEngine.UI.Graphic>();
-            Assert.IsNotNull(ins, "안쪽 그늘 겹이 면의 자식으로 깔린다(CSS inset = 면 위·내용 아래)");
+            // ⚑ 7회차 수리 — **경로를 구조에 박지 않는다**: `RadiusUi.Outlined(parent, "face", …)` 는 «테 + 면» 두 겹을
+            //   **면이라는 이름의 상자** 안에 세우고 **안쪽 면**(테 두께만큼 인셋된 것)을 돌려준다 — 그래서 실제 자리는
+            //   `af-spinner/face/face/inset-af_spinner` 다. 6회차의 이 자는 `face/inset-…` 한 칸으로 찾아 «없다» 로 빨갰다
+            //   (런 1390 · 제품 코드는 맞았다 — 정본 inset 그늘은 **테 안쪽 패딩 상자**에 그려지고 그 상자가 곧 안쪽 면이다).
+            //   그래서 **이름으로** 찾는다(결정 896).
+            Transform insT = null;
+            foreach (Transform t2 in fx.GetComponentsInChildren<Transform>(true))
+                if (t2.name == "inset-af_spinner") { insT = t2; break; }
+            Assert.IsNotNull(insT, "안쪽 그늘 겹이 스피너 안에 깔린다");
+            UnityEngine.UI.Graphic ins = insT.GetComponent<UnityEngine.UI.Graphic>();
+            Assert.IsNotNull(ins, "그 겹은 그림이다");
+            Assert.IsNotNull(insT.parent.GetComponent<UnityEngine.UI.Image>(),
+                "그 겹의 부모는 **면**이다(CSS inset = 면 위·내용 아래 · 글자는 스피너 뿌리의 자식이라 위에 남는다)");
+            Assert.AreEqual("face", insT.parent.name, "부모 이름이 면이다");
             Assert.IsNotNull(ins.GetComponent<UnityEngine.UI.Image>().sprite, "구운 판이 있다(단색 판이 아니다)");
 
             Assert.AreEqual(0f, ins.color.a, 1e-4f, "놓였을 때는 그늘이 없다(정본 5005 엔 inset 선언이 없다)");
