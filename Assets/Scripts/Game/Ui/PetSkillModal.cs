@@ -114,6 +114,10 @@ namespace Forge.Game.Ui
                 mark.color = PetSkillStyle.C("white");
                 float mk = x * PetSkillStyle.L("x_btn_icon_f");
                 UiKit.Anchor(mark.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, mk, mk);
+                // T515 4회차 — 정본 **3750** `.x-btn:active { transform: translateY(.12rem); box-shadow: none }`(표 `x_btn`).
+                //   ✕ 공장 셋 중 **턱을 가진 하나**다: `inset`(pp_red_dk) 위에 `face` 가 `x_btn_inset_rem` 만큼 떠 있어
+                //   그 몫이 곧 정본 3742 의 `inset 0 -.28rem 0` 턱이다 → `PaperButton` 과 같은 손질(면만 그 몫 자라게 · 결정 884).
+                PressFx.AttachLip(h.XButton.gameObject, xr, "x_btn", null, ins, face.rectTransform);
             }
             stack.Add(h);
             return h;

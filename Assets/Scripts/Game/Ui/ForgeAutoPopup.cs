@@ -212,7 +212,11 @@ namespace Forge.Game.Ui
                 for (int n = 1; n <= max; n++)
                 {
                     int pick = n;
-                    Button ib = PopupKit.Btn(ddc, "n-" + n, n.ToString(), cfg.HammersPerBatch == n ? "pp_blue" : "pp_gray", cfg.HammersPerBatch == n ? "pp_blue_dk" : "pp_gray_dk", () => { ddOpen = false; h.PickHammers(pick); }, -1f, itemH, "stage_ink", TextKind.Sub);
+                    // T515 4회차 — 정본 **4802** `.af-dd-list button:active { background: #2c313a }`: 이 항목은 `class` 에 `btn` 이
+                    //   없어 3563 이 **안 걸린다** — 가라앉지도 턱이 걷히지도 않고 **배경만** 바뀐다. 공용 공장이 걸어 주는
+                    //   `modal_btn` 을 여기서 끈다(`pressKey: null`) — 정본에 없는 움직임을 지운다(결정 888).
+                    //   그 «누름 배경» 채널은 표에 아직 없다(T515 에 남은 갈래 · 절에 적어 뒀다).
+                    Button ib = PopupKit.Btn(ddc, "n-" + n, n.ToString(), cfg.HammersPerBatch == n ? "pp_blue" : "pp_gray", cfg.HammersPerBatch == n ? "pp_blue_dk" : "pp_gray_dk", () => { ddOpen = false; h.PickHammers(pick); }, -1f, itemH, "stage_ink", TextKind.Sub, pressKey: null);
                 }
                 ScrollRect sr = dd.GetComponent<ScrollRect>();
                 int cur = (int)cfg.HammersPerBatch;

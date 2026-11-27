@@ -200,7 +200,11 @@ namespace Forge.Game.Ui
             mark.color = UiKit.C("white");
             float mk = d * UiKit.L("x_icon");
             UiKit.Anchor(mark.rectTransform, Center, Center, Vector2.zero, mk, mk);
-            return UiKit.Button(rt, "hit", () => onClick());
+            Button xb = UiKit.Button(rt, "hit", () => onClick());
+            // T515 4회차 — 정본 **3750** `.x-btn:active`(표 `x_btn` · dy .12rem). 이 공장도 정본 3742 의 안쪽 턱을
+            //   안 그리므로(`BorderedCircle` 뿐) **가라앉기만** 건다 — `PopupKit.XButton` 과 같은 사정이다.
+            PressFx.AttachLip(xb.gameObject, rt, "x_btn", null, 0f);
+            return xb;
         }
 
         /// <summary>원작 .tri-btn — 파란 ◀ ▶ (아이콘만 · 히트는 조금 넓게).</summary>
