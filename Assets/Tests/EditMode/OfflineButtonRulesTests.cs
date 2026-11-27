@@ -1,5 +1,6 @@
 using System;
 using NUnit.Framework;
+using Forge.Core.CraftFx;
 using Forge.Core.Data;
 using Forge.Core.Ui;
 
@@ -114,6 +115,51 @@ namespace Forge.Tests.EditMode
                 ""zzz_ms"":2700,""zzz_gap_ms"":900,""zzz_count"":3,""zzz_end_dx_rem"":0.75,""zzz_end_dy_rem"":-1.7,
                 ""zzz_from_scale"":0.55,""zzz_to_scale"":1.25,""zzz_from_rot"":-10,""zzz_to_rot"":12,
                 ""zzz_in_f"":0.8,""zzz_out_f"":0.7,""tick_ms"":1000}}")), "in_f 가 out_f 보다 크면 막는다");
+        }
+
+        /// <summary>
+        /// T507 — 두 이징이 **손으로 쓴 근사가 아니라 정본 CSS 키워드의 베지어**인가.
+        /// 정본 232 <c>.ob-zzz i { animation: ob-zzz 2.7s ease-out infinite }</c> 의 `ease-out` = <c>cubic-bezier(0, 0, .58, 1)</c> ·
+        /// 205 <c>ob-bob</c> 의 기본 `ease-in-out` = <c>cubic-bezier(.42, 0, .58, 1)</c>.
+        /// 이징은 `private` 이라 **공개 길**(<c>Zzz</c> 의 자리 · <c>Bob</c> 의 배율)로 되읽어 잰다.
+        /// ⚑ 되돌림 막이: 옛 근사(`1 − (1−t)²` · smoothstep)와 가장 벌어지는 자리의 차를 **실측값으로** 못 박는다 —
+        ///   그래야 누가 «그게 그거다» 로 되돌리면 이 칸이 운다.
+        /// ⚠ 등재문은 둘 다 «0.05 이상» 이라 적었는데 **`ease-in-out` 은 0.029 뿐이다**(재 봤다):
+        ///   `ease-out` ↔ `1 − (1−t)²` 는 **0.069**(t = .40)이고 `ease-in-out` ↔ smoothstep 은 **0.029**(t = .70)다.
+        ///   곧 smoothstep 은 `ease-in-out` 의 **꽤 좋은 근사**였다 — 그래도 정본이 말하는 곡선은 베지어 쪽이고,
+        ///   문턱은 «등재문이 바란 수» 가 아니라 **실제로 잰 수** 밑에 건다(안 그러면 이 칸이 거짓으로 빨개진다).
+        /// </summary>
+        [Test]
+        public void 졸음과_흔들림의_이징이_정본_CSS_키워드_베지어다()
+        {
+            OfflineButtonSpec s = S();
+            CssEase easeOut = new CssEase(0.0, 0.0, 0.58, 1.0);
+            CssEase easeInOut = new CssEase(0.42, 0.0, 0.58, 1.0);
+
+            for (int i = 1; i < 20; i++)
+            {
+                double p = i / 20.0;
+                // ⓐ ease-out — Zzz 의 자리는 `end_dx_rem × e` 다. 지연 0 인 0번 글자로 p 를 그대로 먹인다.
+                ZzzFrame f = OfflineButtonRules.Zzz(s, p * s.ZzzMs, 0);
+                Assert.AreEqual(s.ZzzEndDxRem * easeOut.Ease(p), f.DxRem, 1e-6,
+                                "ease-out = cubic-bezier(0, 0, .58, 1) · p=" + p.ToString("0.00"));
+                // ⓑ ease-in-out — Bob 은 삼각파를 먹이므로 앞 반 바퀴(p ≤ .5)에서 tri = 2p 다.
+                double dy, sc;
+                OfflineButtonRules.Bob(s, p * 0.5 * s.BobMs, out dy, out sc);
+                Assert.AreEqual(-s.BobDyRem * easeInOut.Ease(p), dy, 1e-6,
+                                "ease-in-out = cubic-bezier(.42, 0, .58, 1) · tri=" + p.ToString("0.00"));
+            }
+
+            // ⓒ 되돌림 막이 — 옛 근사와 가장 벌어지는 자리
+            double gapOut = 0.0, gapInOut = 0.0;
+            for (int i = 1; i < 1000; i++)
+            {
+                double t = i / 1000.0;
+                gapOut = Math.Max(gapOut, Math.Abs(easeOut.Ease(t) - (1.0 - (1.0 - t) * (1.0 - t))));
+                gapInOut = Math.Max(gapInOut, Math.Abs(easeInOut.Ease(t) - t * t * (3.0 - 2.0 * t)));
+            }
+            Assert.Greater(gapOut, 0.06, "ease-out 은 옛 근사 `1 − (1−t)²` 와 0.06 넘게 다르다(실측 0.069 · t = .40 · 지금 " + gapOut.ToString("0.000") + ")");
+            Assert.Greater(gapInOut, 0.02, "ease-in-out 은 옛 smoothstep 과 0.02 넘게 다르다(실측 0.029 · t = .70 · 지금 " + gapInOut.ToString("0.000") + ")");
         }
     }
 }

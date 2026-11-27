@@ -1,4 +1,5 @@
 using System;
+using Forge.Core.CraftFx;
 using Forge.Core.Data;
 
 namespace Forge.Core.Ui
@@ -65,7 +66,7 @@ namespace Forge.Core.Ui
 
         /// <summary>
         /// <c>@keyframes ob-bob</c>: <c>0%,100% translateY(0) scale(1)</c> · <c>50% translateY(−.14rem) scale(1.04)</c> ·
-        /// <c>ease-in-out</c> 무한. 0↔1 을 오가는 삼각파에 ease-in-out(정본 CSS 기본 <c>ease-in-out</c> = smoothstep 근사)을 먹인다.
+        /// <c>ease-in-out</c> 무한. 0↔1 을 오가는 삼각파에 ease-in-out(정본 CSS 기본 <c>ease-in-out</c> = <c>cubic-bezier(.42, 0, .58, 1)</c>)을 먹인다.
         /// </summary>
         public static void Bob(OfflineButtonSpec s, double tMs, out double dyRem, out double scale)
         {
@@ -111,10 +112,17 @@ namespace Forge.Core.Ui
 
         static double Clamp01(double v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
 
-        /// <summary>CSS <c>ease-in-out</c> 근사(smoothstep) — 양 끝이 느리고 가운데가 빠르다.</summary>
-        static double EaseInOut(double t) { t = Clamp01(t); return t * t * (3.0 - 2.0 * t); }
+        // T507 — 종전엔 둘 다 **손으로 쓴 근사**였고 주석이 스스로 «근사» 라 적어 뒀다(smoothstep · `1 − (1−t)²`).
+        //   정본은 CSS **키워드 이징**이고 키워드는 규격이 정한 베지어다 — 근사할 까닭이 없다(`CssEase` 가 같은 어셈블리에 있다).
+        //   `ease-in-out` = `cubic-bezier(.42, 0, .58, 1)`(정본 205 `.ob-chest { animation: ob-bob … }` 의 기본 이징) ·
+        //   `ease-out` = `cubic-bezier(0, 0, .58, 1)`(정본 **232** `.ob-zzz i { animation: ob-zzz 2.7s ease-out infinite }`).
+        static readonly CssEase EaseInOutCurve = new CssEase(0.42, 0.0, 0.58, 1.0);
+        static readonly CssEase EaseOutCurve = new CssEase(0.0, 0.0, 0.58, 1.0);
 
-        /// <summary>CSS <c>ease-out</c> 근사 — 처음이 빠르고 끝이 느리다.</summary>
-        static double EaseOut(double t) { t = Clamp01(t); return 1.0 - (1.0 - t) * (1.0 - t); }
+        /// <summary>CSS <c>ease-in-out</c>(= <c>cubic-bezier(.42, 0, .58, 1)</c>) — 양 끝이 느리고 가운데가 빠르다. 정본 205 <c>ob-bob</c> 의 기본 이징.</summary>
+        static double EaseInOut(double t) { return EaseInOutCurve.Ease(Clamp01(t)); }
+
+        /// <summary>CSS <c>ease-out</c>(= <c>cubic-bezier(0, 0, .58, 1)</c>) — 처음이 빠르고 끝이 느리다. 정본 232 <c>.ob-zzz i</c>.</summary>
+        static double EaseOut(double t) { return EaseOutCurve.Ease(Clamp01(t)); }
     }
 }
