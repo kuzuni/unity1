@@ -151,6 +151,53 @@ def touched(task_id):
     return files
 
 
+def released_in_commit(window=None):
+    """ⓔ T521 — **lock 을 같은 커밋에 반납한 회차**가 만진 파일(테스트 포함).
+
+    ⓐ~ⓓ 는 **살아 있는 lock** 만 본다. 그런데 이 저장소의 회차 다수는 «코드 + `docs/claims/T<n>.lock`
+    삭제» 를 **한 커밋**에 담는다(§1 «lock 은 CI 가 한 번 돈 뒤 반납» 의 반대쪽 길 · T338 이 연 길).
+    그 커밋이 제 범위 밖 파일을 새로 냈어도, 다음 회차에는 lock 이 이미 없으니 이 자가 **영영 못 본다** —
+    2026-11-27 런 #1390 이 그 꼴이었다: T515 가 3회차에 **제 손으로 낸** `PressFxFactorySitesTests.cs` 가
+    세 회차(3·4·5·6) 동안 범위 칸에 안 적혔고, 그 자가 빨개지자 `check_unity_green` 이 «그 파일을 범위로
+    적은 살아 있는 작업이 없다 → **네가 고쳐라**» 로 끝냈다(임자는 멀쩡히 있었다).
+
+    돌려주는 것: [(커밋 7자리, 작업ID, 제목, [그 커밋이 만진 코드·테스트 파일])] · 이력이 없으면 None.
+    ⚠ 여기서는 **`/Tests/` 를 뺀 것이 아니라 함께** 센다 — 그 자리가 바로 이 갈래를 낳은 자리다."""
+    try:
+        out = subprocess.run(
+            ["git", "log", "--since=" + (window or WINDOW), "--name-status", "--format=%x00%h %s"],
+            cwd=ROOT, capture_output=True, text=True, timeout=60).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if not out.strip():
+        return None
+    got = []
+    for blk in out.split("\x00")[1:]:
+        lines = blk.strip().split("\n")
+        if not lines:
+            continue
+        head = lines[0].split(" ", 1)
+        if len(head) < 2:
+            continue
+        sha, title = head[0], head[1].lstrip("❗ ")
+        m = re.match(r"(T\d+)(?![0-9])", title)
+        if not m:
+            continue
+        tid, freed, files = m.group(1), False, []
+        for ln in lines[1:]:
+            part = ln.split("\t")
+            if len(part) < 2:
+                continue
+            st, path = part[0].strip(), part[-1].strip()
+            if st.startswith("D") and path == "docs/claims/" + tid + ".lock":
+                freed = True
+            elif path.endswith(".cs") and path.startswith("Assets/"):
+                files.append(path)
+        if freed and files:
+            got.append((sha, tid, title, sorted(set(files))))
+    return got
+
+
 def scope_of(task_id, scope):
     """그 lock 의 범위 칸 — **쪼갠 lock 은 제 부모 행의 범위를 쓴다**.
 
@@ -289,15 +336,44 @@ def waiters(path_stem, scope, head, holder):
     return sorted(out)
 
 
+def report_released(scope):
+    """ⓔ T521 — lock 을 같은 커밋에 반납한 회차가 **제 범위 밖 파일**을 만졌으면 이름을 댄다(알리기만).
+
+    산 lock 이 하나도 없어도 돌린다 — 그 자리가 바로 이 갈래가 생긴 까닭이다."""
+    rel = released_in_commit()
+    if rel is None:
+        print("· ⓔ 못 봤다 — 이력이 없다(얕은 클론). 같은 커밋에 반납한 회차는 이 환경에서 못 센다.")
+        return
+    bad = []
+    for sha, tid, title, files in rel:
+        cell = scope_of(tid, scope)
+        miss = [f for f in files if not covered_by_prefix(f, scope_prefixes(cell))
+                and os.path.basename(f) not in cell and os.path.basename(f)[:-3] not in cell]
+        if miss:
+            bad.append((sha, tid, title, miss))
+    if not bad:
+        print("· ⓔ lock 을 같은 커밋에 반납한 회차 %d개 — 범위 밖 파일 0 (T521)" % len(rel))
+        return
+    for sha, tid, title, miss in bad[:8]:
+        print("· ⚠ (참고 · 실패 아님) **%s 가 반납 커밋에서 범위 밖 파일**을 만졌다 — %s «%s»"
+              % (tid, sha, title[:70]))
+        print("    안 적힌 파일: " + " ".join(miss))
+        print("    ⇒ 그 행의 «범위» 칸에 더해라. 안 적으면 그 파일이 빨개질 때 `check_unity_green` 이")
+        print("      «그 파일을 범위로 적은 살아 있는 작업이 없다 → 네가 고쳐라» 로 끝낸다(T521 · 런 #1390).")
+
+
 def main():
     scope, head = rows(DOC)
     locks = live_locks()
     if not locks:
-        print("✓ check_claim_scope: 살아 있는 lock 0개 — 볼 것이 없다")
+        print("✓ check_claim_scope: 살아 있는 lock 0개 — ⓐ~ⓓ 는 볼 것이 없다")
+        report_released(scope)
         return 0
 
     # ⓓ — 살아 있는 lock 둘이 같은 파일을 제 «범위» 로 적었는가(T509 · README 27행).
     #     이력을 안 본다: 범위 칸끼리만 맞대므로 얕은 클론에서도 이 갈래는 산다.
+    report_released(scope)
+
     clashes = scope_clashes(locks, scope)
     named = sum(len(scope_files(scope_of(t, scope))) for t, _, _ in locks)
     if len(locks) >= 2 and named == 0:
@@ -377,6 +453,20 @@ def main():
 def selftest():
     """자기 검사 — 이 자가 «본다» 고 적은 것을 실제로 보는가(T198 규약)."""
     ok = True
+
+    # ⓔ T521 — 반납 커밋이 만진 **테스트 파일**도 범위 칸과 견준다(그 자리가 이 갈래를 낳았다).
+    #   `undeclared` 는 `/Tests/` 를 빼므로 ⓔ 는 제 셈을 쓴다 — 그 셈이 실제로 테스트를 보는지 본다.
+    _cell = u"`Assets/Scripts/Game/Ui/PressFx.cs`"
+    _f = "Assets/Tests/PlayMode/PressFxFactorySitesTests.cs"
+    _miss = [x for x in [_f, "Assets/Scripts/Game/Ui/PressFx.cs"]
+             if not covered_by_prefix(x, scope_prefixes(_cell))
+             and os.path.basename(x) not in _cell and os.path.basename(x)[:-3] not in _cell]
+    if _miss != [_f]:
+        print("✗ 자기검사 ⓔ: 반납 커밋의 테스트 파일을 못 가린다 — " + repr(_miss)); ok = False
+    _cell2 = _cell + u" · `Assets/Tests/PlayMode/PressFxFactorySitesTests.cs`"
+    if [x for x in [_f] if not covered_by_prefix(x, scope_prefixes(_cell2))
+            and os.path.basename(x) not in _cell2]:
+        print("✗ 자기검사 ⓔ²: 범위에 적으면 조용해야 한다"); ok = False
 
     # ⓐ 범위 칸이 파일을 «글자로» 덮으면 조용하다 · 안 덮으면 잡는다.
     got = undeclared({"Assets/Scripts/Game/LobbyPopups.cs", "Assets/Scripts/Game/Overlay.cs"},
