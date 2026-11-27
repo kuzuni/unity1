@@ -148,6 +148,17 @@ namespace Forge.Game.Ui
         RectTransform wrap;
         Vector2 wrapHome;
         float flashAt = -1f;
+        /// <summary>
+        /// T506 ⓑ — `srgridlift`(정본 6162 `.flash .sr-grid` `.5s ease-out`)이 돌기 시작한 시각. 섬광과 **따로** 센다 —
+        /// 길이가 다르고(.5s ↔ .55s) 정본에서도 선택자가 둘이다. 끝나면 −1 로 돌아가고 셀 틴트는 제 색으로 복구된다(채움 없음).
+        /// </summary>
+        float gridLiftAt = -1f;
+        /// <summary>T506 ⓐ — `srtitle` 세 자리(제목 · solo · 집계)의 그룹·제자리·시작 시각. 정본은 셋 다 같은 키프레임을 길이만 바꿔 탄다.</summary>
+        CanvasGroup titleCg, soloCg, sumCg;
+        Vector2 titleHome, soloHome, sumHome;
+        float titleAt = -1f, soloAt = -1f, sumAt = -1f;
+        /// <summary>T506 ⓔ — 중앙 광원의 도입(정본 5958 `srintro .24s ease-in both`) — 클론엔 **통째로 없었다**.</summary>
+        float haloIntroAt = -1f;
         /// <summary>T334 3회차 ⓑ — 충전 구간이 움직이는 것들: 소환진·중앙 광원·비네트(정본 `.sr-floor`·`.sr-halo`·`.sr-wrap::before`).</summary>
         Image floorImg, haloImg, vigImg;
         Image floorRingImg;      // T178 32회차 — 소환진 링 겹(정본 5810~5811 · `.sr-floor::before` 첫 방사)
@@ -497,6 +508,12 @@ namespace Forge.Game.Ui
                 hi.sprite = SurfaceArt.Bake("sr_title_hair", hair > 0f ? tw / hair : 1f, tw);
                 hi.color = Color.white;
             }
+            // T506 ⓐ — 정본 6213 `.sr-title { animation: srtitle .45s ease-out both }`: 제목 띠는 **모달이 열릴 때** 위에서 내려오며 켜진다.
+            //   클론은 처음부터 제 알파·제 자리에 있었다. 라벨(T503)과 같은 꼴로 제 `CanvasGroup` 에 묶고 0% 상태를 세운다.
+            titleCg = band.gameObject.AddComponent<CanvasGroup>();
+            titleCg.blocksRaycasts = false;
+            titleHome = band.anchoredPosition;
+            titleCg.alpha = 0f;
             Image tico = UiKit.Icon(band, "ico", kind == "pet" ? "egg" : kind == "mount" ? "winder" : "ticket");
             UiKit.Place(tico.rectTransform, PetSkillStyle.Px("sr_title_pad_x_rem"), (headH - title * 1.05f) * 0.5f, title * 1.05f, title * 1.05f);
             TextMeshProUGUI tx = PetSkillKit.Text(band, "t", TextKind.Title, tt, PetSkillStyle.C("white"), TextAlignmentOptions.Left);
@@ -1006,6 +1023,8 @@ namespace Forge.Game.Ui
             var sc = PetSkillHost.SfxSummonCharge;
             if (sc != null) sc(best);
             start = Time.unscaledTime;
+            titleAt = start;      // T506 ⓐ — 제목 띠는 **모달 열림**에서 탄다(정본 6213 은 `.done` 밖이다)
+            haloIntroAt = start;  // T506 ⓔ — 중앙 광원 도입(정본 5958 `srintro .24s ease-in both`)
             floorInDone = false;   // T499 ⓒ — 도입의 기준 시각도 열림(start)이다
             enterAt = start;   // T459 ⓧ — 정본 `.sr-wrap srshake` 는 열림에서 .21s 뒤 .25s 흔든다
             idx = 0;
@@ -1395,6 +1414,11 @@ namespace Forge.Game.Ui
                 UiKit.Fill(t.rectTransform);
                 x += widths[i] + PetSkillStyle.Px("sr_chip_gap_rem");
             }
+            // T506 ⓐ — 정본 7116 `#summon-result-modal.done .sr-sum { animation: srtitle .3s ease-out both }`.
+            sumCg = chips.AddComponent<CanvasGroup>();
+            sumCg.blocksRaycasts = false;
+            sumCg.alpha = 0f;
+            sumHome = ((RectTransform)chips.transform).anchoredPosition;
             chips.SetActive(false);
             // 힌트
             string ht = PetSkillStyle.T("sr_hint");
@@ -1491,6 +1515,11 @@ namespace Forge.Game.Ui
                 LetterSpacing.Apply(at, "sr_again_ls_em");   // T168 3회차 — 정본 5791 `.sr-again`
                 UiKit.Fill(at.rectTransform);
                 solo = sb.gameObject;
+                // T506 ⓐ — 정본 5783 `#summon-result-modal.done .sr-solo { animation: srtitle .3s ease-out both }`.
+                soloCg = solo.AddComponent<CanvasGroup>();
+                soloCg.blocksRaycasts = false;
+                soloCg.alpha = 0f;
+                soloHome = sb.anchoredPosition;
                 solo.SetActive(false);
             }
         }
@@ -1526,6 +1555,8 @@ namespace Forge.Game.Ui
             if (!ejectSet && haloImg != null && cells.Count > 0) { ejectSet = true; MeasureEject(); }
             AnimateCells();
             AnimateTicks();
+            AnimateTitleIn();
+            AnimateHaloIntro();
             AnimateFloorIn();
             AnimateCharge();
             AnimateFlash();
@@ -1585,6 +1616,15 @@ namespace Forge.Game.Ui
         {
             float tt = Time.unscaledTime;
             SummonPopSpec pp = cells.Count > 0 ? SummonFxStyle.Pop : null;
+            // T506 ⓑ — `srgridlift`(정본 6162): 섬광이 도는 .5s 동안 **그리드 전체**가 `brightness(1.42) saturate(1.1)` 에서 none 으로 돌아온다.
+            //   채움(fill-mode)이 없으니 끝나는 프레임에 1·1 로 한 번 써 **제 색으로 복구**하고 시계를 끈다.
+            double glBr = 1.0, glSat = 1.0;
+            bool lifting = false, liftRestore = false;
+            if (gridLiftAt >= 0f)
+            {
+                lifting = SummonFxStyle.Reveal.GridLiftAt((tt - gridLiftAt) * 1000f, out glBr, out glSat);
+                if (!lifting) { gridLiftAt = -1f; liftRestore = true; }   // 이 프레임만 1·1 로 복구하고 끝낸다
+            }
             for (int i = 0; i < cells.Count; i++)
             {
                 Cell c = cells[i];
@@ -1623,7 +1663,10 @@ namespace Forge.Game.Ui
                 // T334 7회차 — 주역이 착지하면 **조연은 물러난다**(정본 `srrecede` · 절 머리 주석: «나머지를 물리고(후퇴)
                 //   광창 → 충격파 → 화면 킥을 몰아 «다른 사건» 으로 만든다»). 배율은 셀에, 채도·밝기는 그 그림들에 건다.
                 float rs = 1f;
-                if (heroFired && heroAtWall >= 0f && !c.Heroic) rs = Recede(c, (tt - heroAtWall) * 1000f);
+                if (heroFired && heroAtWall >= 0f && !c.Heroic) rs = Recede(c, (tt - heroAtWall) * 1000f, glBr, glSat);
+                // ⚠ 창 **밖에서는 손대지 않는다** — `Tint` 는 제 색(`TintHome`)에서 다시 세므로 매 프레임 부르면
+                //   같은 셀 안에서 제 알파를 흔드는 조각들(스파크·잔상·재점화·광선)의 그 프레임 값을 덮는다.
+                else if (lifting || liftRestore) Tint(c, glBr, glSat);
                 if (c.Heroic && heroFired && heroAtWall >= 0f)
                 {
                     // T334 8회차 — 주역은 착지에서 제 등장(정본 `srheropop`)을 새로 탄다: 정본이 `animation` 단축 속성을
@@ -1661,6 +1704,46 @@ namespace Forge.Game.Ui
         /// 값·곡선은 전부 <see cref="SummonChargeSpec"/>(Core · 표 `charge` 절)이 쥔다 — 여기는 그것을 화면에 거는 손일 뿐이다.
         /// 구간이 끝나면(주역 착지) 정본이 클래스를 떼는 것과 같게 **제자리로 되돌린다** — 그 순간은 섬광/와이프가 덮는다.
         /// </summary>
+        /// <summary>
+        /// T506 ⓐ — `srtitle` 세 자리(정본 6226 `from { opacity: 0; translateY(-.6rem) } to { opacity: 1; none }` · `ease-out` `both`):
+        /// 제목 띠 `.45s`(모달 열림 · 6213) · `.sr-solo` `.3s`(5783) · `.sr-sum` `.3s`(7116). 종전엔 셋 다 `SetActive(true)` 로 **즉시** 나타났다.
+        /// ⚠ CSS 의 `translateY(-.6rem)` 은 음수가 **위**라 유니티 `anchoredPosition` 에서는 **+0.6rem 에서 0 으로 내려온다**(T499 ⓑ 와 같은 자리).
+        /// </summary>
+        void AnimateTitleIn()
+        {
+            SummonRevealSpec sp = SummonFxStyle.Reveal;
+            float rem = PetSkillStyle.RemPx, tt = Time.unscaledTime;
+            Lift(titleCg, titleHome, titleAt, sp.TitleMs, sp, rem, tt);
+            Lift(soloCg, soloHome, soloAt, sp.SoloMs, sp, rem, tt);
+            Lift(sumCg, sumHome, sumAt, sp.SumMs, sp, rem, tt);
+        }
+
+        static void Lift(CanvasGroup cg, Vector2 home, float at, double durMs, SummonRevealSpec sp, float rem, float now)
+        {
+            if (cg == null || at < 0f) return;
+            double a, dy;
+            sp.TitleAt((now - at) * 1000f, durMs, out a, out dy);
+            cg.alpha = (float)a;
+            ((RectTransform)cg.transform).anchoredPosition = home + new Vector2(0f, (float)dy * rem);
+        }
+
+        /// <summary>
+        /// T506 ⓔ — 중앙 광원 도입(정본 5958 `.sr-halo { animation: srintro .24s ease-in both }` · `scale 1.3 → 1` · opacity 0 →).
+        /// ⚑ 등재문은 광선과 함께 «근사다» 로 적었지만 실측은 다르다 — **클론엔 이 겹이 통째로 없었다**(광원은 세운 그 값으로 처음부터 다 보였다).
+        /// 배율 자리는 그 뒤 충전 램프(<see cref="AnimateCharge"/>)가 이어 받으므로 그 자보다 **먼저** 돈다.
+        /// </summary>
+        void AnimateHaloIntro()
+        {
+            if (haloImg == null || haloIntroAt < 0f) return;
+            SummonRevealSpec sp = SummonFxStyle.Reveal;
+            double sc, k;
+            double ms = (Time.unscaledTime - haloIntroAt) * 1000f;
+            sp.IntroAt(ms, sp.HaloIntroMs, sp.HaloIntroScale, sp.HaloIntroEase, out sc, out k);
+            haloImg.rectTransform.localScale = Vector3.one * (float)sc;
+            haloImg.color = new Color(haloBase.r, haloBase.g, haloBase.b, haloBase.a * (float)k);
+            if (ms >= sp.HaloIntroMs) haloIntroAt = -1f;   // `both` — 끝 상태로 남는다(충전 램프가 이어 받는다)
+        }
+
         /// <summary>
         /// T499 ⓒ — 소환진 도입. 정본 5767~5770 `.sr-floor { opacity: 0; animation: srfloor .43s cubic-bezier(.2,.9,.3,1) .08s forwards }`
         /// + 5801~5804 `@keyframes srfloor { 0% { opacity: 0; transform: scale(.74) } 100% { opacity: 1; scale(1) } }`.
@@ -1893,11 +1976,13 @@ namespace Forge.Game.Ui
         /// 조연 셀 하나의 물러남(정본 `srrecede`) — 배율을 돌려주고 채도·밝기는 그 셀의 그림들에 건다.
         /// 제 색은 **처음 한 번만** 담는다(매 프레임 담으면 어두워진 색이 새 «제 색» 이 되어 회차마다 더 어두워진다).
         /// </summary>
-        float Recede(Cell c, double ms)
+        /// <summary>
+        /// 셀의 그림 전부에 `filter: brightness(b) saturate(s)` 한 겹을 먹인다 — **늘 제 색(`TintHome`)에서** 다시 센다(프레임마다 곱이 쌓이지 않게).
+        /// T506 ⓑ — 정본은 셀의 `srrecede` 필터와 그리드의 `srgridlift` 필터를 **중첩**해서 건다. CSS 에서 중첩 필터는 곱해지므로
+        /// 부르는 쪽이 두 램프의 **곱**을 넘긴다(한 자리에서 한 번만 쓴다 — 두 번 쓰면 제 색을 잃는다).
+        /// </summary>
+        void Tint(Cell c, double bright, double sat)
         {
-            SummonHeroSpec sp = SummonFxStyle.Hero;
-            double sc, sat, br;
-            sp.RecedeAt(ms, out sc, out sat, out br);
             if (c.Tint == null)
             {
                 c.Tint = c.Root.GetComponentsInChildren<Graphic>(true);
@@ -1908,8 +1993,16 @@ namespace Forge.Game.Ui
             {
                 if (c.Tint[i] == null) continue;
                 Color h = c.TintHome[i];
-                c.Tint[i].color = Brighten(h, (float)br, (float)sat, h.a);
+                c.Tint[i].color = Brighten(h, (float)bright, (float)sat, h.a);
             }
+        }
+
+        float Recede(Cell c, double ms, double liftBright, double liftSat)
+        {
+            SummonHeroSpec sp = SummonFxStyle.Hero;
+            double sc, sat, br;
+            sp.RecedeAt(ms, out sc, out sat, out br);
+            Tint(c, br * liftBright, sat * liftSat);   // T506 ⓑ — 중첩 필터는 곱해진다
             return (float)sc;
         }
 
@@ -2368,6 +2461,24 @@ namespace Forge.Game.Ui
         public RectTransform CellRootOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Root : null; }
         public Vector2 HomeOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Home : Vector2.zero; }
         public bool CellOn(int i) { return i >= 0 && i < cells.Count && cells[i].On; }
+        /// <summary>T506 ⓐ — `srtitle` 세 자리의 그룹(없으면 null) — 자가 알파·자리를 본다.</summary>
+        public CanvasGroup TitleGroup { get { return titleCg; } }
+        public CanvasGroup SoloGroup { get { return soloCg; } }
+        public CanvasGroup SumGroup { get { return sumCg; } }
+        /// <summary>T506 ⓑ — `srgridlift` 가 지금 도는가(정본 `.flash .sr-grid`).</summary>
+        public bool GridLifting { get { return gridLiftAt >= 0f; } }
+        /// <summary>T506 ⓑ — i 번째 셀 첫 그림의 지금 색 ÷ 제 색(밝기 배수 · 틴트를 안 잡았으면 −1).</summary>
+        public float CellLiftOf(int i)
+        {
+            if (i < 0 || i >= cells.Count) return -1f;
+            Cell c = cells[i];
+            if (c.Tint == null || c.Tint.Length == 0 || c.Tint[0] == null) return -1f;
+            Color h = c.TintHome[0], g = c.Tint[0].color;
+            float hs = h.r + h.g + h.b;
+            return hs <= 1e-4f ? -1f : (g.r + g.g + g.b) / hs;
+        }
+        /// <summary>T506 ⓒ — 전 화면 섬광의 지금 알파(없으면 −1).</summary>
+        public float FlashAlpha { get { return flash != null ? flash.color.a : -1f; } }
         /// <summary>T503 — i 번째 셀의 라벨 그룹 둘(이름판 · 등급칩 · dense 판엔 라벨이 없어 null) · 지금 알파(둘은 늘 같다 · 없으면 −1).</summary>
         public CanvasGroup[] LabelGroupsOf(int i) { return i >= 0 && i < cells.Count ? cells[i].LabelGroups : null; }
         public float LabelAlphaOf(int i)
@@ -2411,6 +2522,9 @@ namespace Forge.Game.Ui
                 PlaceFlash(PetSkillStyle.Rarity(Defs, best));
                 flash.color = Color.white;   // T178 32회차 — 등급색은 판의 26% 정지점에 있다(AnimateFlash 는 알파만 흔든다)
                 flashAt = Time.unscaledTime;
+                // T506 ⓑ — 정본 6162 `#summon-result-modal.flash .sr-grid { animation: srgridlift .5s ease-out }`:
+                //   «섬광이 **실제로 셀을 밝히는** 부분»(정본 주석 6160). 섬광과 길이가 달라(.5s ↔ .55s) 시계를 따로 센다.
+                gridLiftAt = flashAt;
             }
             else
             {
@@ -2502,14 +2616,21 @@ namespace Forge.Game.Ui
             wipe.transform.localScale = new Vector3(sc, sc, 1f);
         }
 
+        /// <summary>
+        /// T506 ⓒ — `srflash`(정본 6158 `.55s **ease-out** forwards` · 6159 `0% { opacity: .9 } 100% { opacity: 0 }`).
+        /// 종전엔 ⓐ 선형(`1 − t`)이고 ⓑ 0% 알파가 **코드에 박힌 0.85**(§1)였다 — 둘 다 표로 옮겼다(`flash_a0` 0.9 · `flash_out_ease`).
+        /// 와이프 겹이 없을 때의 대체 갈래(`flash_a0_nowipe`)는 정본에 없는 자리라 값을 그대로 두고 자리만 표로 옮겼다.
+        /// </summary>
         void AnimateFlash()
         {
             if (flashAt < 0f || flash == null) return;
-            float t = (Time.unscaledTime - flashAt) / PetSkillStyle.L("sr_flash_sec");
-            float a = holdback ? Mathf.Clamp01(1f - t) * 0.85f : Mathf.Clamp01(1f - t) * 0.45f;
+            SummonRevealSpec sp = SummonFxStyle.Reveal;
+            float durMs = PetSkillStyle.L("sr_flash_sec") * 1000f;
+            float ms = (Time.unscaledTime - flashAt) * 1000f;
+            float a = (float)sp.FlashAt(ms, durMs, holdback ? sp.FlashA0 : sp.FlashA0NoWipe);
             Color c = flash.color;
             flash.color = new Color(c.r, c.g, c.b, a);
-            if (t >= 1f) flashAt = -1f;
+            if (ms >= durMs) flashAt = -1f;
         }
 
         float doneAt = -1f;
@@ -2548,8 +2669,10 @@ namespace Forge.Game.Ui
             }
             if (hint != null) hint.SetActive(false);
             if (ok != null) { ok.SetActive(true); okAt = doneAt; }
-            if (chips != null && rolls > 1) chips.SetActive(true);
-            if (solo != null) solo.SetActive(true);
+            // T506 ⓐ — 종전엔 `SetActive(true)` 로 **즉시** 나타났다. 정본은 `.done` 에서 `srtitle .3s ease-out both` 를 탄다 —
+            //   켜는 것은 그대로 두고 **시계만 심는다**(알파·자리는 `AnimateTitleIn` 이 먹인다 · 0% 상태는 생성 자리에서 세워 뒀다).
+            if (chips != null && rolls > 1) { chips.SetActive(true); sumAt = doneAt; }
+            if (solo != null) { solo.SetActive(true); soloAt = doneAt; }
         }
 
         /// <summary>

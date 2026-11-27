@@ -773,5 +773,72 @@ namespace Forge.Tests.PlayMode
             if (SkillSummonResultView.Current != null) SkillSummonResultView.Current.OnTap();
             yield return null;
         }
+
+        /// <summary>
+        /// T506 — 드러나는 조각들이 **팝 없이 즉시** 나타나던 것과 선형·손 근사 램프들. 정본 줄: `srtitle`(6226 · 6213 제목 .45s · 5783 solo .3s · 7116 집계 .3s) ·
+        /// `srgridlift`(6162) · `srflash`(6158) · `srreflect`(6973) · `srintro`(5951 광선 · 5958 광원).
+        /// ⚑ 잣대를 **프레임이 아니라 규칙·상태**에 건다(T422·T501·T503 의 길) — 램프 한가운데를 잡으러 가면 러너 프레임 간격에 걸려 펄럭인다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 드러나는_조각들이_제_그룹에서_위에서_내려오며_켜지고_램프가_정본_이징을_탄다()
+        {
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            while (Host.SummonMult("skill") != 5) Host.CycleSummonMult("skill");
+            Host.Tickets = 10000;
+            Host.Sync();
+            yield return null;
+            Sheet.Skills.SummonButton.onClick.Invoke();
+            yield return null;
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+            var sp = SummonFxStyle.Reveal;
+
+            // ⓐ **구조** — 제목·집계가 제 `CanvasGroup` 에 묶였다(종전엔 그룹이 없어 `SetActive` 가 전부였다).
+            Assert.IsNotNull(v.TitleGroup, "제목 띠 그룹(정본 6213)");
+            Assert.IsNotNull(v.SumGroup, "집계 그룹(정본 7116)");
+            // ⓑ 제목은 **열림**에서 탄다 — 이 프레임엔 아직 덜 켜져 있거나 막 켜졌다. 끝나면 1 이고 제자리다.
+            Vector2 titleMid = ((RectTransform)v.TitleGroup.transform).anchoredPosition;
+            float tw = 0f;
+            while (tw < (float)sp.TitleMs / 1000f + 0.15f) { tw += Time.unscaledDeltaTime; yield return null; }
+            Assert.AreEqual(1f, v.TitleGroup.alpha, 1e-3f, "제목 띠는 .45s 뒤 알파 1(`both`)");
+            Vector2 titleEnd = ((RectTransform)v.TitleGroup.transform).anchoredPosition;
+            Assert.GreaterOrEqual(titleMid.y, titleEnd.y - 0.5f,
+                "제목은 **위에서 내려온다** — 도중 y 가 끝 y 보다 높거나 같다(정본 translateY(-.6rem) → 0)");
+
+            // ⓒ **집계·solo 는 `.done` 에서** — 그 전엔 알파 0 이고, `.3s` 뒤 1 이며 제자리다.
+            if (!v.Done)
+            {
+                Assert.AreEqual(0f, v.SumGroup.alpha, 1e-3f, "done 전엔 집계가 안 보인다(정본 `visibility: hidden` + `.done` 애니)");
+                v.OnTap();
+            }
+            float dw = 0f;
+            while (!v.Done && dw < 5f) { dw += Time.unscaledDeltaTime; yield return null; }
+            Assert.IsTrue(v.Done);
+            Vector2 sumHomeSeen = ((RectTransform)v.SumGroup.transform).anchoredPosition;
+            dw = 0f;
+            while (dw < (float)sp.SumMs / 1000f + 0.2f) { dw += Time.unscaledDeltaTime; yield return null; }
+            Assert.AreEqual(1f, v.SumGroup.alpha, 1e-3f, "집계는 .3s 뒤 알파 1");
+            Vector2 sumEnd = ((RectTransform)v.SumGroup.transform).anchoredPosition;
+            Assert.GreaterOrEqual(sumHomeSeen.y, sumEnd.y - 0.5f, "집계도 위에서 내려온다");
+            if (v.SoloGroup != null) Assert.AreEqual(1f, v.SoloGroup.alpha, 1e-3f, "x1 판의 solo 도 같은 꼴");
+
+            // ⓓ **규칙** — 표가 쥔 램프 넷이 손 근사·선형과 실제로 갈린다(뷰가 읽는 그 표로 잰다).
+            double br, sat;
+            Assert.IsTrue(sp.GridLiftAt(0, out br, out sat) && br > 1f && sat > 1f, "srgridlift 는 1 보다 밝고 진하게 시작한다");
+            Assert.IsFalse(sp.GridLiftAt(sp.GridLiftMs, out br, out sat), "채움이 없다 — 끝나면 none");
+            Assert.Less(sp.FlashAt(275, 550, sp.FlashA0), sp.FlashA0 * 0.5,
+                "srflash 는 ease-out 이라 한가운데가 선형(.45)보다 **낮다**");
+            Assert.AreEqual(0.88 * 0.6846, sp.ReflectAt(250, 500, 0.88), 5e-4, "srreflect ease-out — `1−(1−k)²`(.75) 근사와 갈린다");
+            double sc, k;
+            sp.IntroAt(120, 240, 1.3, sp.RaysIntroEase, out sc, out k);
+            Assert.AreEqual(0.3154, k, 5e-4, "srintro ease-in — `k²`(.25) 근사와 갈린다");
+
+            if (SkillSummonResultView.Current != null) SkillSummonResultView.Current.OnTap();
+            yield return null;
+        }
     }
 }

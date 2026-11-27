@@ -1905,6 +1905,118 @@ namespace Forge.Core.Ui
 
 
     /// <summary>
+    /// T506 — 소환 결과에서 **드러나는 조각들**의 램프 여섯. 전부 `SummonFxUi.json` 의 `layout` 절에서 읽고 수는 코드에 안 박는다(§1).
+    /// ⓐ `srtitle`(정본 6226) — 알파 0 → 1 · CSS `translateY(-.6rem)` → 0 · `ease-out` `both` · 세 자리가 길이만 다르다(제목 .45s · solo·sum .3s).
+    /// ⓑ `srgridlift`(6162) — `brightness(1.42) saturate(1.1)` → none · `.5s ease-out` · **채움 없음**(끝나면 none 으로 돌아간다).
+    /// ⓒ `srflash`(6158) — opacity `.9` → 0 · `.55s ease-out forwards`. ⓓ `srreflect`(6973) — 0 → `.88` · `.5s ease-out both`.
+    /// ⓔ `srintro`(5951 광선 · 5958 광원) — `scale 1.3 → 1` · opacity 0 → · `.24s ease-in both`.
+    /// ⚠ CSS 키워드는 규격 그대로다 — `ease-out` = `cubic-bezier(0, 0, .58, 1)` · `ease-in` = `cubic-bezier(.42, 0, 1, 1)`.
+    /// </summary>
+    public sealed class SummonRevealSpec
+    {
+        /// <summary>`srtitle` 세 자리의 길이(ms) — 제목(모달 열림) · solo · 집계(둘은 `.done`).</summary>
+        public double TitleMs, SoloMs, SumMs;
+        /// <summary>그 키프레임의 `translateY` 몫(rem · CSS 부호 그대로 **양수**로 적는다 — 위에서 내려온다).</summary>
+        public double TitleDyRem;
+        public CssEase TitleEase;
+        /// <summary>`srgridlift` — 길이(ms)와 0% 의 밝기·채도(100% 는 1·1).</summary>
+        public double GridLiftMs, GridLiftBright, GridLiftSat;
+        public CssEase GridLiftEase;
+        /// <summary>`srflash` 의 0% 알파(정본 .9)와 와이프 겹이 없는 대체 갈래의 알파 · 꺼지는 이징.</summary>
+        public double FlashA0, FlashA0NoWipe;
+        public CssEase FlashEase;
+        /// <summary>`srreflect`·`srintro` 의 이징과 광원 도입의 길이·시작 배율.</summary>
+        public CssEase ReflectEase, RaysIntroEase, HaloIntroEase;
+        public double HaloIntroMs, HaloIntroScale;
+
+        static CssEase Ease(JsonObject o, string key)
+        {
+            double[] e = J.NumArr(J.Require(o, key));
+            if (e == null || e.Length != 4) throw new FormatException("SummonFxUi layout: " + key + " 는 cubic-bezier 넷이다");
+            return new CssEase(e[0], e[1], e[2], e[3]);
+        }
+
+        public static SummonRevealSpec From(JsonObject root)
+        {
+            JsonObject o = J.Obj(J.Require(root, "layout"));
+            var s = new SummonRevealSpec
+            {
+                TitleMs = J.Num(J.Require(o, "title_ms")),
+                SoloMs = J.Num(J.Require(o, "solo_ms")),
+                SumMs = J.Num(J.Require(o, "sum_ms")),
+                TitleDyRem = J.Num(J.Require(o, "title_dy_rem")),
+                TitleEase = Ease(o, "title_ease"),
+                GridLiftMs = J.Num(J.Require(o, "gridlift_ms")),
+                GridLiftBright = J.Num(J.Require(o, "gridlift_bright")),
+                GridLiftSat = J.Num(J.Require(o, "gridlift_sat")),
+                GridLiftEase = Ease(o, "gridlift_ease"),
+                FlashA0 = J.Num(J.Require(o, "flash_a0")),
+                FlashA0NoWipe = J.Num(J.Require(o, "flash_a0_nowipe")),
+                FlashEase = Ease(o, "flash_out_ease"),
+                ReflectEase = Ease(o, "reflect_in_ease"),
+                RaysIntroEase = Ease(o, "rays_intro_ease"),
+                HaloIntroEase = Ease(o, "halo_intro_ease"),
+                HaloIntroMs = J.Num(J.Require(o, "halo_intro_ms")),
+                HaloIntroScale = J.Num(J.Require(o, "halo_intro_scale")),
+            };
+            if (s.TitleMs <= 0 || s.SoloMs <= 0 || s.SumMs <= 0) throw new FormatException("SummonFxUi layout: srtitle 세 길이는 0보다 커야 한다");
+            if (s.TitleDyRem <= 0) throw new FormatException("SummonFxUi layout: title_dy_rem 은 0보다 커야 한다(정본 .6rem · 위에서 내려온다)");
+            if (s.GridLiftMs <= 0 || s.GridLiftBright <= 1 || s.GridLiftSat <= 1)
+                throw new FormatException("SummonFxUi layout: srgridlift 는 «1 보다 밝고 진하게» 시작해 1 로 돌아간다(정본 1.42·1.1)");
+            if (s.FlashA0 <= 0 || s.FlashA0 > 1) throw new FormatException("SummonFxUi layout: flash_a0 은 0~1 이다(정본 .9)");
+            if (s.HaloIntroMs <= 0 || s.HaloIntroScale <= 1) throw new FormatException("SummonFxUi layout: srintro 는 1 보다 큰 배율에서 1 로 수축한다(정본 1.3)");
+            return s;
+        }
+
+        /// <summary>`srtitle` 의 진행 — 켜진 뒤 <paramref name="ms"/> · <paramref name="durMs"/> 가 그 자리의 길이. `both` 라 0 앞·1 뒤로 머문다.</summary>
+        public void TitleAt(double ms, double durMs, out double alpha, out double dyRem)
+        {
+            double u = durMs <= 0 ? 1 : ms <= 0 ? 0 : ms >= durMs ? 1 : ms / durMs;
+            double e = TitleEase.Ease(u);
+            alpha = e;
+            dyRem = TitleDyRem * (1 - e);   // +dy(위) → 0
+        }
+
+        /// <summary>`srgridlift` 의 밝기·채도. 끝났으면 <c>false</c> 를 돌려주고 둘 다 1 이다(**채움이 없다** — none 으로 돌아간다).</summary>
+        public bool GridLiftAt(double ms, out double bright, out double sat)
+        {
+            if (ms < 0 || ms >= GridLiftMs)
+            {
+                bright = 1; sat = 1;
+                return false;
+            }
+            double e = GridLiftEase.Ease(GridLiftMs <= 0 ? 1 : ms / GridLiftMs);
+            bright = GridLiftBright + (1 - GridLiftBright) * e;
+            sat = GridLiftSat + (1 - GridLiftSat) * e;
+            return true;
+        }
+
+        /// <summary>`srflash` 의 알파 — <paramref name="a0"/> → 0 · `forwards`.</summary>
+        public double FlashAt(double ms, double durMs, double a0)
+        {
+            if (durMs <= 0 || ms >= durMs) return 0;
+            if (ms <= 0) return a0;
+            return a0 * (1 - FlashEase.Ease(ms / durMs));
+        }
+
+        /// <summary>`srreflect` 의 알파 — 0 → <paramref name="a1"/> · `both`.</summary>
+        public double ReflectAt(double ms, double durMs, double a1)
+        {
+            double u = durMs <= 0 ? 1 : ms <= 0 ? 0 : ms >= durMs ? 1 : ms / durMs;
+            return a1 * ReflectEase.Ease(u);
+        }
+
+        /// <summary>`srintro` 의 (배율, 알파 몫) — 시작 배율에서 1 로 수축하고 알파는 0 → 1 · `both`. 광선·광원이 같은 꼴이다.</summary>
+        public void IntroAt(double ms, double durMs, double scale0, CssEase ez, out double scale, out double k)
+        {
+            double u = durMs <= 0 ? 1 : ms <= 0 ? 0 : ms >= durMs ? 1 : ms / durMs;
+            k = ez.Ease(u);
+            scale = scale0 + (1 - scale0) * k;
+        }
+    }
+
+
+    /// <summary>
     /// T480 ⓐ — 일반 셀 착지 링(정본 6358~6363 `.sr-orbwrap::after` · `srring` .55s ease-out forwards).
     /// 알파 `a0_base + a0_glow × glow` → 0 · 배율 `scale0` → `scale1_base + scale1_glow × glow`(glow = 등급 계단 `tier.glow`).
     /// </summary>

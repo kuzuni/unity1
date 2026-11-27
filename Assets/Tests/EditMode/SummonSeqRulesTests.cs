@@ -1438,6 +1438,80 @@ namespace Forge.Tests
                 raw.Replace("\"label_ease\": [0.0, 0.0, 1.0, 1.0]", "\"label_ease\": [0.0, 0.0]"))), "cubic-bezier 넷이 아니다");
         }
     
+        /// <summary>T506 — 드러나는 조각들의 램프 여섯이 표에 정본 값으로 있고, 셈이 CSS 키워드 베지어를 탄다.</summary>
+        [Test]
+        public void 드러나는_램프_여섯은_정본_srtitle_srgridlift_srflash_srreflect_srintro_그대로다()
+        {
+            string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+            SummonRevealSpec s = SummonRevealSpec.From(MiniJson.ParseObject(
+                File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"))));
+            // ⓐ srtitle — 세 길이와 translateY 몫(정본 6213 .45s · 5783·7116 .3s · 6226 -.6rem)
+            Assert.AreEqual(450.0, s.TitleMs, 1e-9); Assert.AreEqual(300.0, s.SoloMs, 1e-9); Assert.AreEqual(300.0, s.SumMs, 1e-9);
+            Assert.AreEqual(0.6, s.TitleDyRem, 1e-9, "정본 6226 translateY(-.6rem) — 부호는 읽는 쪽이 뒤집는다");
+            double a, dy;
+            s.TitleAt(0, 300, out a, out dy);
+            Assert.AreEqual(0.0, a, 1e-12, "0% 알파 0"); Assert.AreEqual(0.6, dy, 1e-9, "0% 는 .6rem **위**");
+            s.TitleAt(300, 300, out a, out dy);
+            Assert.AreEqual(1.0, a, 1e-9); Assert.AreEqual(0.0, dy, 1e-12, "100% 는 제자리");
+            s.TitleAt(900, 300, out a, out dy);
+            Assert.AreEqual(1.0, a, 1e-9, "`both` 라 끝 상태로 남는다");
+            s.TitleAt(-5, 300, out a, out dy);
+            Assert.AreEqual(0.0, a, 1e-12, "`both` 라 시작 앞에서도 0% 다");
+            // ease-out 은 앞이 빠르다 — 절반에서 선형보다 높다(선형이면 .5)
+            s.TitleAt(150, 300, out a, out dy);
+            Assert.AreEqual(0.6846, a, 5e-4, "ease-out 절반은 선형(.5)보다 뚜렷이 높다 — cubic-bezier(0,0,.58,1) 의 실측 .6846");
+            // ⓑ srgridlift — 1.42·1.1 에서 1 로 · 채움 없음
+            Assert.AreEqual(500.0, s.GridLiftMs, 1e-9);
+            double br, sat;
+            Assert.IsTrue(s.GridLiftAt(0, out br, out sat));
+            Assert.AreEqual(1.42, br, 1e-9); Assert.AreEqual(1.1, sat, 1e-9);
+            Assert.IsFalse(s.GridLiftAt(500, out br, out sat), "끝나면 false");
+            Assert.AreEqual(1.0, br, 1e-12); Assert.AreEqual(1.0, sat, 1e-12, "채움이 없다 — none 으로 돌아간다");
+            Assert.IsFalse(s.GridLiftAt(-1, out br, out sat), "창 앞에서도 1·1");
+            Assert.IsTrue(s.GridLiftAt(250, out br, out sat) && br < 1.42 && br > 1.0, "한가운데는 그 사이");
+            // ⓒ srflash — .9 → 0 · ease-out(꺼지는 램프라 한가운데가 선형보다 **낮다**)
+            Assert.AreEqual(0.9, s.FlashA0, 1e-9, "정본 6159 opacity .9");
+            Assert.AreEqual(0.9, s.FlashAt(0, 550, s.FlashA0), 1e-9);
+            Assert.AreEqual(0.0, s.FlashAt(550, 550, s.FlashA0), 1e-12);
+            Assert.Less(s.FlashAt(275, 550, s.FlashA0), 0.9 * 0.5, "ease-out 은 앞에서 빨리 꺼진다(선형이면 .45)");
+            // ⓓ srreflect — 0 → .88 · ease-out
+            Assert.AreEqual(0.0, s.ReflectAt(0, 500, 0.88), 1e-12);
+            Assert.AreEqual(0.88, s.ReflectAt(500, 500, 0.88), 1e-9);
+            Assert.AreEqual(0.88 * 0.6846, s.ReflectAt(250, 500, 0.88), 5e-4, "ease-out 절반 — 선형(.44)보다 높다");
+            // ⓔ srintro — 1.3 → 1 · ease-in(앞이 느리다 — 한가운데가 선형보다 **덜** 줄었다)
+            Assert.AreEqual(240.0, s.HaloIntroMs, 1e-9); Assert.AreEqual(1.3, s.HaloIntroScale, 1e-9);
+            double sc, k;
+            s.IntroAt(0, 240, 1.3, s.HaloIntroEase, out sc, out k);
+            Assert.AreEqual(1.3, sc, 1e-9); Assert.AreEqual(0.0, k, 1e-12);
+            s.IntroAt(240, 240, 1.3, s.HaloIntroEase, out sc, out k);
+            Assert.AreEqual(1.0, sc, 1e-9); Assert.AreEqual(1.0, k, 1e-9);
+            s.IntroAt(120, 240, 1.3, s.HaloIntroEase, out sc, out k);
+            Assert.Greater(sc, 1.3 + (1.0 - 1.3) * 0.5, "ease-in 한가운데는 선형(1.15)보다 **덜** 줄었다");
+            Assert.Less(k, 0.5, "같은 자리 알파도 선형보다 낮다");
+            // 종전 클론이 쓰던 손 근사 둘과 실제로 갈린다
+            s.IntroAt(120, 240, 1.3, s.RaysIntroEase, out sc, out k);
+            Assert.Greater(System.Math.Abs(k - 0.25), 0.02, "`k²`(0.25) 근사와 갈린다 — 광선 도입");
+            Assert.Greater(System.Math.Abs(s.ReflectAt(250, 500, 0.88) / 0.88 - 0.75), 0.02, "`1−(1−k)²`(0.75) 근사와 갈린다 — 반사");
+        }
+
+        /// <summary>T506 — 표가 그 램프를 잃거나 뒤집히면 **읽는 자리에서** 막는다.</summary>
+        [Test]
+        public void 드러나는_램프의_칸이_범위_밖이면_표를_읽다_막는다()
+        {
+            string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+            string raw = File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"));
+            Assert.Throws<System.FormatException>(() => SummonRevealSpec.From(MiniJson.ParseObject(
+                raw.Replace("\"gridlift_bright\": 1.42", "\"gridlift_bright\": 1.0"))), "1 이면 밝히지 않는다(겹이 없는 것과 같다)");
+            Assert.Throws<System.FormatException>(() => SummonRevealSpec.From(MiniJson.ParseObject(
+                raw.Replace("\"title_dy_rem\": 0.6", "\"title_dy_rem\": 0.0"))), "0 이면 내려오지 않는다");
+            Assert.Throws<System.FormatException>(() => SummonRevealSpec.From(MiniJson.ParseObject(
+                raw.Replace("\"flash_a0\": 0.9", "\"flash_a0\": 0.0"))), "0 이면 섬광이 안 보인다");
+            Assert.Throws<System.FormatException>(() => SummonRevealSpec.From(MiniJson.ParseObject(
+                raw.Replace("\"halo_intro_scale\": 1.3", "\"halo_intro_scale\": 1.0"))), "1 이면 수축이 없다");
+            Assert.Throws<System.FormatException>(() => SummonRevealSpec.From(MiniJson.ParseObject(
+                raw.Replace("\"title_ease\": [0.0, 0.0, 0.58, 1.0]", "\"title_ease\": [0.0, 0.0]"))), "cubic-bezier 넷이 아니다");
+        }
+
         // ---- T480 — 착지 링(landring · 정본 srring) · 회전 광선(ray · 정본 srrayfade/srrayspin) ----
         static JsonObject FxRoot()
         {

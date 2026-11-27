@@ -259,20 +259,23 @@ namespace Forge.Game.Ui
             // 광선 — 도입 수축(srintro .24s 1.3→1 · α 0→) + 회전(20s · done 26s) + done 호흡
             if (rays != null)
             {
-                float ik = Mathf.Clamp01(t / (L("rays_intro_ms") / 1000f));
-                float ie = ik * ik;   // ease-in
+                // T506 ⓔ — 정본 5951 `srintro .24s **ease-in** both`. 종전엔 `ik * ik` 손 근사였다(`ease-in` = `cubic-bezier(.42,0,1,1)` · 표 `rays_intro_ease`).
+                double _isc, _ik2;
+                SummonFxStyle.Reveal.IntroAt((t * 1000f), L("rays_intro_ms"), L("rays_intro_scale"), SummonFxStyle.Reveal.RaysIntroEase, out _isc, out _ik2);
+                float ie = (float)_ik2;
                 float spin = done ? L("rays_done_spin_s") : L("rays_spin_s");
                 rays.localRotation = Quaternion.Euler(0f, 0f, -360f * Mathf.Repeat(t / spin, 1f));
-                rays.localScale = Vector3.one * Mathf.Lerp(L("rays_intro_scale"), 1f, ie);
+                rays.localScale = Vector3.one * (float)_isc;
                 float a = done ? Veil(Time.unscaledTime - doneAt, L("rays_done_breath_s"), 0f, L("rays_done_a_lo"), L("rays_done_a_hi")) : L("rays_a") * ie;
                 raysImg.color = new Color(1f, 1f, 1f, a);
             }
             // 반사 — srreflect .5s ease-out 로 α 0 → .88
             if (reflectImg != null && reflectImg.sprite != null)
             {
-                float k = Mathf.Clamp01((Time.unscaledTime - reflectAt) / (L("reflect_in_ms") / 1000f));
-                float e = 1f - (1f - k) * (1f - k);
-                reflectImg.color = new Color(1f, 1f, 1f, L("reflect_a") * e);
+                // T506 ⓓ — 정본 6973 `srreflect .5s **ease-out** both`. 종전엔 `1 − (1−k)²` 근사였다(바로 윗줄 주석이 «ease-out» 이라 적어 뒀다 · 표 `reflect_in_ease`).
+                float _rms = (Time.unscaledTime - reflectAt) * 1000f;
+                reflectImg.color = new Color(1f, 1f, 1f,
+                    (float)SummonFxStyle.Reveal.ReflectAt(_rms, L("reflect_in_ms"), L("reflect_a")));
             }
             // 별 — done 뒤 .6s 로 켜고 각자 호흡(srstar α .9↔1 · scale .97↔1.2 · dur·delay 는 표 수열)
             if (starsGroup != null && done)
@@ -1337,7 +1340,7 @@ namespace Forge.Game.Ui
             layout = J.Obj(root["layout"]);
         }
 
-        public static void Reset() { root = null; colorCache.Clear(); charge = null; idle = null; enter = null; hipulse = null; orbsweep = null; pop = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; streaks = null; particles = null; heroRingEase = null; landRing = null; ray = null; }
+        public static void Reset() { root = null; colorCache.Clear(); reveal = null; charge = null; idle = null; enter = null; hipulse = null; orbsweep = null; pop = null; hero = null; relight = null; spark = null; ghost = null; tierBreak = null; idleRing = null; prelude = null; shock = null; chargeBurst = null; streaks = null; particles = null; heroRingEase = null; landRing = null; ray = null; }
 
         static SummonChargeSpec charge;
         static SummonIdleSpec idle;
@@ -1361,6 +1364,10 @@ namespace Forge.Game.Ui
         /// <summary>T334 6회차 — 주역 착지의 화면 킥(표의 `hero` 절).</summary>
         /// <summary>표의 `hero` 절 수치 하나(그 절은 `layout` 밖이다).</summary>
         public static float H(string key) { Load(); return (float)J.Num(J.Require(J.Obj(root["hero"]), key)); }
+
+        static SummonRevealSpec reveal;
+        /// <summary>T506 — 드러나는 조각들의 램프 여섯(표의 `layout` 절 · 정본 `srtitle`·`srgridlift`·`srflash`·`srreflect`·`srintro`).</summary>
+        public static SummonRevealSpec Reveal { get { Load(); if (reveal == null) reveal = SummonRevealSpec.From(root); return reveal; } }
 
         static CssEase heroRingEase;
         /// <summary>충격파의 이징(정본 `cubic-bezier(.08,.72,.3,1)`).</summary>
