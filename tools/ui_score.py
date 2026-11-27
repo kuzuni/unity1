@@ -960,6 +960,7 @@ VS_TOL = 6                                 # 화소 맞추기 허용 오차(채�
 VS_MIN_BLOB = 24                           # 이보다 작은 덩어리는 글자 테·압축 잡음이라 안 센다
 VS_MAX_ROWS = 8                            # 찍는 덩어리 줄 수 상한(**다른 것부터** 찍는다)
 VS_BLOB_NOISE = 12                         # 덩어리가 이보다 많으면 «그 색은 화면에 널려 있다» — 자리 가리기가 안 된다
+CHROMA_HUE = 40                            # 채널 최대−최소가 이 이상이면 «유채색» — 색 갈래와 어둠·판 갈래를 가르는 금
 
 
 def css_decls_for(css_text, selector):
@@ -1196,6 +1197,158 @@ def _vs_color_line(rgb, clone_img, clone_name, ref_img, ref_name):
     print(u"        \u21d2 덩어리 %d개 중 원작과 **다른 것 %d개** \u00b7 같은 것 %d개 (정본 #%02x%02x%02x)"
           % ((len(rows), len(rows) - same, same) + rgb))
 
+
+
+def face_color_table(css_text):
+    """정본이 **면**(`background`)에 못박은 색 → [(선택자, 줄)] (토큰도 풀어서 센다 · T512 걸음 ⓒ).
+
+    `check_pinned_colors.pinned_decls` 는 «토큰과 **다른** 리터럴» 만 걷는다(그 자의 본업이 그것이다).
+    여기는 반대로 **색이면 다 걷는다** — 판정의 그 자리(`.settings-toggle.on { background: var(--pp-blue) }`)가
+    바로 토큰 갈래라, 토큰을 빼면 찾으려는 것을 못 찾는다.
+    """
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import check_pinned_colors as cpc
+        decls, props = cpc.all_decls, cpc.FACE_PROPS
+    except Exception:
+        return {}
+    tokens = css_tokens(css_text)
+    out = {}
+    for sel, line, raw in decls(css_text, props):
+        rgb = css_color_rgb(resolve_css_value(raw, tokens))
+        if rgb is not None:
+            out.setdefault(rgb, []).append((sel, line))
+    return out
+
+
+def _chroma(rgb):
+    return max(rgb) - min(rgb)
+
+
+def scan_ref(shots_dir, ref_dir=None, css_path=None, only=None, per_screen=3):
+    """정본이 못박은 **면 색**을 화면마다 훑어 «정본 ≠ 원작» 자리를 **기계가 먼저** 목록에 올린다(T512 걸음 ⓒ).
+
+    사람이 하던 일의 순서를 뒤집는 것이 이 명령의 전부다 — 지금까지는 **사람이 눈으로 결함을 찾고**
+    정본 CSS 를 열어서야 «클론이 맞았다» 를 알았다(검수 Q 47·51·52회차 · 다섯 자리 **전부** 그랬다).
+    여기서는 **기계가 먼저** «원작과 다른 면 색» 을 세어 내고 사람은 그 목록을 **검산만** 한다.
+
+    한계는 걸음 ⓑ 와 같다(결정 873) — 색이 그 선택자만 쓰는 색이 아니면 자리를 못 가린다.
+    그래서 이 자는 «그 색이 어느 선택자의 자리인가» 를 **주장하지 않고**, 색과 자리만 찍고
+    그 색을 못박은 선택자 후보를 같이 적는다. 고르는 것은 사람이다.
+    """
+    ref_dir = REF_DIR if ref_dir is None else ref_dir
+    css_path = os.path.join(REPO, ".wwwww-src", "web", "css", "style.css") if css_path is None else css_path
+    if not os.path.exists(css_path):
+        print(u"✗ 정본 CSS 를 못 읽었다: %s" % css_path)
+        return 1
+    css = open(css_path, encoding="utf-8").read()
+    table = face_color_table(css)
+    if not table:
+        print(u"✗ 정본 면 색 표를 못 세웠다(`tools/check_pinned_colors.py` 가 옆에 있어야 한다)")
+        return 1
+    print(u"· 정본이 면에 못박은 색 %d개(선언 %d개 · 토큰 푼 것 포함)를 화면마다 훑는다"
+          % (len(table), sum(len(v) for v in table.values())))
+    hot, cold, flat, seen = [], [], [], 0
+    for screen, ref_rel_path in pairs():
+        if only and screen not in only:
+            continue
+        cp = os.path.join(shots_dir, "screen_%s.png" % screen)
+        if not (ref_rel_path and os.path.exists(cp)):
+            continue
+        rp = os.path.join(ref_dir, ref_rel_path)
+        if not os.path.exists(rp):
+            continue
+        clone, ref = png_read(cp), png_read(rp)
+        seen += 1
+        ax, ay, aw, ah = app_box(clone)
+        buckets = {}
+        for y in range(ay, ay + ah):
+            row = y * clone.w * 3
+            for x in range(ax, ax + aw):
+                i = row + x * 3
+                key = (clone.px[i], clone.px[i + 1], clone.px[i + 2])
+                if key in table:
+                    buckets.setdefault(key, []).append((x, y))
+        rax, ray, raw_, rah = app_box(ref)
+        rows, spread = [], []
+        for rgb, hit in buckets.items():
+            if len(hit) < VS_MIN_BLOB:
+                continue
+            comps = [c for c in _clusters(hit) if len(c) >= VS_MIN_BLOB]
+            # ⚑ 3회차 실측 — 이 금이 없으면 목록이 `#000000` 으로 덮인다(정본이 그 색을 **14 선택자**에
+            #   못박았고 테·글자 외곽·딤이 전부 그 색이다 · `settings` 한 화면에 덩어리 수십 개).
+            #   그 색은 «어느 선택자의 자리» 를 못 가리므로(결정 873) 세기만 하고 목록에서 내린다.
+            if len(comps) > VS_BLOB_NOISE:
+                spread.append((rgb, len(comps), len(hit)))
+                continue
+            for comp in comps:
+                step = max(1, len(comp) // 120)
+                vals = []
+                for x, y in comp[::step]:
+                    px, py = app_rel(clone, x, y)
+                    rx, ry = int(round(rax + px / 100.0 * raw_)), int(round(ray + py / 100.0 * rah))
+                    if 0 <= rx < ref.w and 0 <= ry < ref.h:
+                        vals.append(_px_at(ref, rx, ry))
+                med = _median_rgb(vals)
+                if med is None:
+                    continue
+                d = max(abs(med[c] - rgb[c]) for c in range(3))
+                if d <= VS_TOL:
+                    continue
+                xs, ys = [q[0] for q in comp], [q[1] for q in comp]
+                x0p, y0p = app_rel(clone, min(xs), min(ys))
+                x1p, y1p = app_rel(clone, max(xs), max(ys))
+                rows.append((d, len(comp), rgb, med, (x0p, x1p, y0p, y1p)))
+        # 갈래를 **먼저** 가르고 갈래마다 상한을 둔다 — 안 그러면 넓은 어둠 자리가 색 갈래를 밀어낸다
+        # (3회차에 실제로 그랬다: 판정의 토글 자리는 482화소라 `#000000` 수천 화소에 가려 안 보였다).
+        h = [r for r in rows if _chroma(r[2]) >= CHROMA_HUE or _chroma(r[3]) >= CHROMA_HUE]
+        c = [r for r in rows if r not in h]
+        h.sort(key=lambda t: (-t[1], -t[0]))
+        c.sort(key=lambda t: (-t[1], -t[0]))
+        hot.extend((screen,) + r for r in h[:per_screen])
+        cold.extend((screen,) + r for r in c[:per_screen])
+        if spread:
+            spread.sort(key=lambda t: -t[2])
+            flat.append((screen, spread))
+    print(u"· 훑은 화면 %d개 · **색 갈래**(둘 중 하나가 유채색) %d자리 · 어둠·판 갈래 %d자리"
+          % (seen, len(hot), len(cold)))
+    print(u"")
+    print(u"  ── 색 갈래 — 먼저 봐라(원작과 **색이 다른** 면) ──")
+    _scan_rows(hot, table)
+    print(u"")
+    print(u"  ── 어둠·판 갈래 — 대부분 **딤 .988 ↔ .5**(`--notes` 다섯째 줄)이 뿌리다 ──")
+    _scan_rows(cold, table)
+    print(u"")
+    print(u"  ── 화면에 널린 색 — 자리를 못 가린다(결정 873 · 세기만 한다) ──")
+    if not flat:
+        print(u"    (없다)")
+    for screen, spread in flat[:6]:
+        print(u"    %-16s %s" % (screen, u" · ".join(
+            u"#%02x%02x%02x 덩어리 %d" % (r[0][0], r[0][1], r[0][2], r[1]) for r in spread[:4])))
+    print(u"")
+    print(u"  ⚑ 이 목록은 **후보**다 — 자리 하나하나는 `--vs <화면> <선택자>` 로 다시 보고,"
+          u" «정본 ≠ 원작» 이 확인되면 `--notes` 에 한 줄(근거 칸까지)을 더해라(걸음 ⓐ).")
+    print(u"  ⚑ **후보의 많은 수는 «색이 다르다» 가 아니라 «자리가 밀렸다» 다**(3회차 실측 · 결정 877):"
+          u" 그 겹이 원작에도 있는데 클론에서 조금 옮겨 서면, 내가 옮긴 상자가 원작의 **옆 것**을 짚는다"
+          u"(예: `profile` 의 `#005dff` ↔ 원작 흰색 = T432 가 이미 아는 랭킹 버튼 폭). 가르는 길 둘 —"
+          u" ⓐ 원작 샷을 **눈으로** 그 %W/%H 자리에서 보고 ⓑ 그 색이 원작 **어딘가에는** 있는지 본다"
+          u"(아예 없으면 «색이 다르다» 가 거의 확실하다).")
+    return 0
+
+
+def _scan_rows(rows, table, limit=10):
+    rows = sorted(rows, key=lambda t: (-t[2], -t[1]))
+    if not rows:
+        print(u"    (없다)")
+        return
+    for screen, d, n, rgb, med, box in rows[:limit]:
+        sels = [s for s, _l in table.get(rgb, [])]
+        print(u"    %-16s #%02x%02x%02x ↔ 원작 (%d,%d,%d) · 차 %3d · %5d화소 · x %.1f~%.1f%%W y %.1f~%.1f%%H"
+              % ((screen,) + rgb + med + (d, n, box[0], box[1], box[2], box[3])))
+        print(u"        그 색을 못박은 정본 선택자 %d개: %s"
+              % (len(sels), u" · ".join(sels[:4]) + (u" …" if len(sels) > 4 else u"")))
+    if len(rows) > limit:
+        print(u"    · … %d자리 더" % (len(rows) - limit))
 
 
 def verify_stale_notes(web_dir=None):
@@ -3090,6 +3243,21 @@ def self_test():
         and _median_rgb([]) is None,
         u"_median_rgb 는 채널마다 중앙값을 내고 빈 표본엔 None 을 낸다")
 
+    # ── T512 3회차 — `--scan-ref` 의 조각들(걸음 ⓒ) ────────────────────────────────
+    _fc = face_color_table(u"\n".join([
+        u":root { --pp-blue: #005dff; }",
+        u".settings-toggle.on { background: var(--pp-blue); }",
+        u".btn.equip { background: var(--pp-blue); }",
+        u".x { color: #005dff; }",                      # 잉크는 면이 아니다
+        u".y { background: linear-gradient(#fff, #000); }",   # 겹은 색 한 값이 아니다
+    ]))
+    chk(sorted(s for s, _l in _fc.get((0, 93, 255), [])) == [u".btn.equip", u".settings-toggle.on"],
+        u"face_color_table 은 **토큰도 풀어** 면 색을 모은다(판정의 그 자리가 토큰 갈래다)")
+    chk((0, 0, 0) not in _fc and (255, 255, 255) not in _fc,
+        u"face_color_table 은 `color:`(잉크)와 `linear-gradient`(겹)를 면 색으로 안 센다")
+    chk(_chroma((0, 93, 255)) == 255 and _chroma((4, 238, 0)) == 238 and _chroma((35, 35, 35)) == 0,
+        u"_chroma 는 유채색을 가른다(색 갈래 ↔ 어둠·판 갈래의 금 = CHROMA_HUE %d)" % CHROMA_HUE)
+
     _lb = _WH(430, 860)
     _bx, _by, _bw, _bh = app_box(_lb)
     chk((_bx, _by, _bw, _bh) == (0, 48, 430, 764),
@@ -3674,6 +3842,8 @@ def main():
     ap.add_argument("--notes", action="store_true", help="«낡은 원작 샷» 항목을 근거까지 펼쳐 찍는다")
     ap.add_argument("--verify-notes", action="store_true",
                     help="그 항목들이 댄 정본 근거가 아직 정본에 있는지 검산한다(T512 ⓐ)")
+    ap.add_argument("--scan-ref", action="store_true",
+                    help="정본이 못박은 면 색을 화면마다 훑어 «정본 ≠ 원작» 자리를 기계가 먼저 올린다(T512 ⓒ)")
     ap.add_argument("--vs", nargs=2, metavar=("화면", "정본선택자"),
                     help="원작 샷의 그 자리와 정본이 못박은 값을 나란히 찍는다(T512 ⓑ · 예: `--vs settings .settings-toggle.on`)")
     ap.add_argument("--rows", metavar="화면", help="원작 ↔ 클론의 구분선 줄 자리를 견준다(딤과 무관)")
@@ -3695,6 +3865,8 @@ def main():
         return 0
     if a.verify_notes:
         return verify_stale_notes()
+    if a.scan_ref:
+        return scan_ref(a.shots, a.ref_dir, only=a.only)
     if a.vs:
         return vs_report(a.vs[0], a.vs[1], a.shots, a.ref_dir)
     if a.notes and not a.score:
