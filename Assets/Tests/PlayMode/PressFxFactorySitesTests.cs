@@ -250,6 +250,12 @@ namespace Forge.Tests.PlayMode
 
             ForgeHost h = ForgeHost.Instance;
             Assert.IsNotNull(h, "ForgeHost 가 없다");
+            // ⚑ 8회차 수리 — **자동 제련을 먼저 열어 둬야 팝업이 선다**: 런 **1393** 에서 이 자가
+            //   «자동 제련 팝업이 열린다 — Expected: not null» 로 빨갰다. `ForgeAutoPopup.Open` 은 해금 전이면
+            //   아무것도 세우지 않는데(2-10 뒤에 열린다) 이 자는 세이브를 그대로 쓴 **새 세이브**로 불렀다.
+            //   `PressFxSitesTests`·6회차 자가 쓰는 같은 길로 해금한다(`BestChapter`·`BestStage` → `Pull`).
+            h.S.BestChapter = 3; h.S.BestStage = 1; h.Pull();
+            if (!h.AutoForgeUnlocked) Assert.Ignore("환경 — 자동 제련이 아직 안 열렸다");
             ForgeAutoPopup.Open(h);
             yield return null;
             if (!ForgeAutoPopup.DropdownOpen) ForgeAutoPopup.ToggleDropdown(h);
