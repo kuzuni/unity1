@@ -1266,6 +1266,27 @@ def sha_split(old_sha, new_sha, names):
     return same, diff, unknown
 
 
+def fp_quiet_moved(base, cur, old_fp, new_fp, mark=None, same=None):
+    """T514 — «**지각 지문**은 그대로인데 점수가 움직인 화면» [(이름, 전, 후, 안, 뒤)] — 점수 변화 큰 것부터.
+
+    T502 의 바이트 장부로는 이 증거가 **안 잡힌다**(채점 화면은 실측 0/31 로 런마다 바이트가 다르다 — 3D 하늘·연출·글자 AA).
+    그래서 같은 뜻을 **쓸 수 있는** 잣대로 센다: 지문 차가 안·뒤 **둘 다** `FP_SAME` 아래면 «그 자리는 안 달라졌다» 이고,
+    그때 점수가 `DROP_MARK` 넘게 움직였으면 범인은 클론이 아니라 **자**다(T437·T444 가 찾던 자리).
+    """
+    mark = DROP_MARK if mark is None else mark
+    same = FP_SAME if same is None else same
+    out = []
+    names = set(cur) & set(n for n in (base or {}) if not n.startswith("_"))
+    for n in sorted(names):
+        din, dout = fp_diff((old_fp or {}).get(n), (new_fp or {}).get(n))
+        if din is None or dout is None or din >= same or dout >= same:
+            continue
+        if abs(cur[n] - base[n]) >= mark:
+            out.append((n, base[n], cur[n], din, dout))
+    out.sort(key=lambda t: -abs(t[2] - t[1]))
+    return out
+
+
 def fp_pack(fp):
     """지문(0~255 칸)을 한 줄 base64 로 — 회차마다 3,840줄짜리 숫자 덩어리가 diff 를 덮지 않게."""
     import base64
@@ -2257,10 +2278,16 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                   u"**모든 화면을 한꺼번에 바꾸는 값**이 움직였는지 먼저 본다(T28 85·86회차 · 결정 712)."
                   % (len(moved), len(scores)))
 
-        # ── 바이트가 달라졌나 (T502) ─────────────────────────────────────────
+        # ── 바이트가 달라졌나 (T502 · T514 가 읽는 법을 고쳤다) ──────────────
         # 183회차는 이 갈림을 «잴 수 없었다» 로 적고, 184회차는 **앞 런 PNG 를 덮히기 전에 내려** 운 좋게 쟀다.
-        # 이제 CI 가 지문을 같이 올리므로 매 회차 공짜로 난다. 아래 «판독기가 다르게 읽었다»(지각 지문)보다
-        # **먼저** 찍는다 — 바이트가 같으면 그림은 한 픽셀도 안 바뀐 것이고, 그때 점수가 움직였다면 범인은 **자**다.
+        # T502 가 CI 에 지문 장부를 세워 그 수가 매 회차 공짜로 나게 했다 — 그런데 **T502 가 약속한 갈래는 안 켜진다**:
+        #   T28 187회차 실측(기준선 런 1356 `shot_sha` 58칸 ↔ 런 1363 장부 58칸) — 바이트가 같은 화면은 **여섯**이고
+        #   그 여섯은 **전부 자 모의 샷**(`t147-edge-*`·`t330-id-*` = 코드로 그린 작은 판)이다. **게임 화면 52장은 하나도 안 같고**
+        #   채점에 드는 31장은 **0/31** 이다. 그 52 에는 그 사이 어느 커밋도 안 건드린 화면(`tech-node`·`profile`·`chat`·`boot-loading`)이
+        #   다 들어 있다 — 곧 **PNG 는 런마다 바이트가 다르다**(3D 하늘·시간 축 연출·글자 AA).
+        # ⇒ ⓐ «같은 화면 0» 은 **흔한 일**이고 «31장이 다 달라졌다» 가 **아니다** — 그 말을 그 자리에서 해 준다.
+        #   ⓑ «그림이 그대로인데 점수가 움직였다» 의 **쓸 수 있는** 잣대는 바이트가 아니라 **지각 지문**(`FP_SAME`)이다.
+        #   바이트 장부의 값은 남는다 — 그림이 **진짜** 안 바뀐 자리(자 모의 샷·이어받은 샷)를 공짜로 가린다.
         osha = base.get("_sha") or {}
         if new_sha or osha:
             same, diff, unk = sha_split(osha, new_sha, set(cur) | set(n for n in base if not n.startswith("_")))
@@ -2271,13 +2298,27 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             elif not new_sha:
                 print(u"    (이 `--shots` 자리에 `%s` 가 없다 — 낡은 `screens` 이거나 긁개 폴더다. "
                       u"«안 달라졌다» 가 **아니다**.)" % SHA_LIST)
+            # T514 — «같은 화면 0» 을 본 사람이 «클론이 통째로 움직였다» 로 읽지 않게 **까닭을 같이 찍는다**.
+            elif not same and diff:
+                print(u"    (같은 화면이 0인 것은 **흔한 일이다** — 런마다 3D 하늘·시간 축 연출·글자 AA 가 바이트를 바꾼다. "
+                      u"실측 1356↔1363: 게임 화면 **52/52 가 달랐고** 같은 여섯은 **전부 자 모의 샷**이었다. "
+                      u"이 칸으로 «그림이 달라졌나» 를 가르지 마라 — 아래 **지문** 수(안/뒤)가 그 자다 · T514)")
             # 값: «그림이 그대로인데 점수가 움직인 화면» — 그것이 자 결함(T437·T444)의 **증거**다.
+            # ⚠ T514 — **바이트로는 그 증거가 안 잡힌다**(채점 31 화면은 실측 0/31 로 늘 다르다). 이 줄은 사실상
+            #   **자 모의 샷에만** 걸리는 자리다 — 그래서 남겨 두되(거기선 참이다) 같은 뜻의 쓸 수 있는 잣대를 **그 자리에 함께** 찍는다.
             quiet_moved = [(n, base[n], cur[n]) for n in same
                            if n in base and n in cur and abs(cur[n] - base[n]) >= DROP_MARK]
             if quiet_moved:
                 print(u"    ⚠ **바이트가 같은데 점수가 움직인 화면 %d개 — 범인은 클론이 아니라 자다**(T437·T444): %s"
                       % (len(quiet_moved),
                          u" · ".join(u"%s %.1f→%.1f" % t for t in sorted(quiet_moved, key=lambda t: -abs(t[2] - t[1])))))
+            # T514 — **쓸 수 있는 갈래**: 지각 지문 차가 `FP_SAME` 아래(안·뒤 둘 다)인데 점수가 `DROP_MARK` 넘게 움직인 화면.
+            #   바이트와 달리 이 수는 채점 화면에서 실제로 난다(187회차: `main` 안 0.8 · 뒤 0.1 에 −0.6). 그것이 T437·T444 가 찾던 증거다.
+            fp_moved = fp_quiet_moved(base, cur, obase, fps)
+            if fp_moved:
+                print(u"    ⚠ **지문은 그대로인데 점수가 움직인 화면 %d개 — 범인은 클론이 아니라 자다**(T437·T444 · 바이트가 아니라 이 수로 본다 · T514):"
+                      % len(fp_moved))
+                print(u"        %s" % u" · ".join(u"%s %.1f→%.1f(지문 안 %.1f · 뒤 %.1f)" % t for t in fp_moved))
             loud = [n for n in diff if n in base and n in cur and abs(cur[n] - base[n]) >= DROP_MARK]
             if loud:
                 print(u"    · 바이트가 다르고 점수도 움직인 화면 %d개 — **런 흔들림이거나 진짜 고침**이다(코드가 그 사이에 바뀌었는지 먼저 본다): %s"
@@ -2879,6 +2920,29 @@ def self_test():
     save_baseline_file(_b2, [("main", 4.6)], 4.6, run=1353)
     chk((load_baseline(_b2).get("_sha") or {}) == {},
         u"지문을 안 넘기면 칸을 안 만든다 — 낡은 기준선과 섞여도 «모른다» 로 떨어진다")
+
+    # ── T514 — «지문은 그대로인데 점수가 움직였다» ──────────────────────
+    # 바이트로는 이 증거가 안 잡힌다(채점 화면은 실측 0/31 로 런마다 다르다) — 그래서 지각 지문으로 센다.
+    _b = {"main": 5.0, "shop": 4.0, "chat": 3.0, "pass": 2.0, "_avg": 3.5}
+    _c = {"main": 4.0, "shop": 4.0, "chat": 1.0, "pass": 2.0}
+    _same_fp = [10] * (FP_ROWS * FP_COLS)    # 안·뒤 둘 다 차 0 이 되게 같은 지문을 쓴다(길이가 다르면 fp_diff 가 None 이다)
+    _far_fp = [200] * (FP_ROWS * FP_COLS)
+    _of = {"main": _same_fp, "shop": _same_fp, "chat": _same_fp, "pass": _same_fp}
+    _nf = {"main": _same_fp, "shop": _same_fp, "chat": _far_fp, "pass": _same_fp}
+    _q = fp_quiet_moved(_b, _c, _of, _nf)
+    chk([t[0] for t in _q] == ["main"],
+        u"지문이 같고 점수가 %.1f 넘게 움직인 화면만 센다 — `shop`(안 움직임)·`chat`(지문이 달라졌다)·`pass`(둘 다 아님)는 빼고(%s)"
+        % (DROP_MARK, [t[0] for t in _q]))
+    chk(len(_q) == 1 and _q[0][1] == 5.0 and _q[0][2] == 4.0 and _q[0][3] < FP_SAME and _q[0][4] < FP_SAME,
+        u"칸은 (이름, 전, 후, 안, 뒤)이고 지문 차 둘이 %s 아래다(%s)" % (FP_SAME, _q[0] if _q else None))
+    chk(fp_quiet_moved(_b, _c, {}, _nf) == [],
+        u"앞 회차 지문이 없으면 아무것도 안 센다 — «모른다» 를 «같다» 로 읽지 않는다")
+    chk(fp_quiet_moved({}, _c, _of, _nf) == [] and fp_quiet_moved(_b, {}, _of, _nf) == [],
+        u"한쪽 점수가 비면 조용하다")
+    _q2 = fp_quiet_moved(_b, _c, _of, _nf, mark=0.0)
+    chk([t[0] for t in _q2] == ["main", "pass", "shop"],
+        u"문턱을 0 으로 내리면 지문이 같은 화면 전부가 든다 — 차가 큰 것부터이고 **차가 같으면 이름 차례**다"
+        u"(0 인 `pass`·`shop` 은 이름 순 · %s)" % [t[0] for t in _q2])
 
     # ── drop_note 의 차례 (T28 90회차) ─────────────────────────────────
     # 실측 자리: `profile` 은 지문 0.15/0.10(서른한 장 중 가장 작다)인데 중앙값도 걸려서
