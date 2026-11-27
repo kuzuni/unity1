@@ -31,11 +31,15 @@ import sys
 import tempfile
 
 CARRIED = 'carried.txt'
+# T502 — PNG 한 장씩의 sha256 장부. **이어받지 않는다**: 이 파일은 «지금 screens 에 있는 그림» 을 적은 것이라
+#   낡은 장부가 새 그림 옆에 남으면 다음 채점 회차가 «바이트가 달라졌다» 를 **거짓으로** 읽는다.
+#   배포 스텝이 이어받기 **뒤에** 늘 새로 뜨므로(ci.yml) 받을 까닭도 없다.
+SHOTS_SHA = 'shots-sha256.txt'
 KEEP_EXT = ('.png', '.txt')
 
 
-def wanted(names, have, skip=(CARRIED,)):
-    """[이어받을 이름] — 확장자로 거르고 · 이 런이 쓴 것을 빼고 · 목록 자신을 빼고 · 들어온 순서 그대로(중복 제거)."""
+def wanted(names, have, skip=(CARRIED, SHOTS_SHA)):
+    """[이어받을 이름] — 확장자로 거르고 · 이 런이 쓴 것을 빼고 · 목록 자신과 PNG 지문 장부를 빼고 · 들어온 순서 그대로(중복 제거)."""
     out, seen = [], set()
     for n in names:
         n = (n or '').strip()
@@ -132,6 +136,11 @@ def self_test():
     expect('ⓒ 빈 목록을 안 만든다', not os.path.exists(os.path.join(d, CARRIED)))
     # ⓓ 지난 런의 carried.txt 는 절대 안 받는다(거짓말이 된다)
     expect('ⓓ 목록 자신 제외', CARRIED not in wanted([CARRIED, 'a.png'], set()))
+    # ⓓ2 T502 — PNG 지문 장부도 안 받는다(낡은 장부가 새 그림 옆에 남으면 «바이트가 달라졌다» 가 거짓이 된다)
+    expect('ⓓ2 지문 장부 제외', SHOTS_SHA not in wanted([SHOTS_SHA, 'a.png'], set()),
+           str(wanted([SHOTS_SHA, 'a.png'], set())))
+    expect('ⓓ2 다른 txt 는 그대로 받는다', wanted([SHOTS_SHA, 'perf-x.txt'], set()) == ['perf-x.txt'],
+           str(wanted([SHOTS_SHA, 'perf-x.txt'], set())))
     # ⓔ meta.json 을 못 읽어도 멎지 않는다 — 머리 줄에 «?»
     d2 = os.path.join(tmp, 'b')
     os.makedirs(d2)
@@ -160,7 +169,7 @@ def self_test():
         for f in fails:
             print('  · ' + f[:300])
         return 1
-    print('✓ screens_carry --self-test 15칸 통과')
+    print('✓ screens_carry --self-test 17칸 통과')
     return 0
 
 

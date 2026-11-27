@@ -650,6 +650,18 @@ jobs:
             cand=$(sed -n 's/^candidates=//p' carry-stats.txt 2>/dev/null || true)
             rm -f prev-meta.json carry-stats.txt
           fi
+          # T502 — PNG **한 장씩의 sha256 장부** `shots-sha256.txt`(`<sha256>  <파일>` · 이름 오름차순 · 73장이면 3KB).
+          #   까닭: 채점 회차가 «그림이 달라졌나(런 흔들림) ↔ 자가 달리 읽었나(판독기 결함)» 를 가르려면 **앞 런 그림과 바이트를 대야** 하는데,
+          #   screens 는 런마다 고아 커밋 하나로 force push 돼 앞 런 PNG 가 사라진다. 183회차는 그래서 «잴 수 없었다» 로 적고,
+          #   184회차는 **앞 런 PNG 를 덮히기 전에 내려** 운 좋게 쟀다(31화면 31/31 바이트 다름). 지문을 같이 올려 그 수가 매 회차 나게 한다.
+          #   ⚠ **이어받기 뒤에** 뜬다 — screens 에 실제로 올라가는 PNG(이 런 것 + 이어받은 것) 전부를 적어야 다음 회차가 그것과 댈 수 있다.
+          #   ⚠ 이 파일 자신은 **이어받지 않는다**(`screens_carry.py` 의 skip) — 낡은 장부가 새 그림 옆에 남으면 «다르다» 가 거짓이 된다.
+          if ls ui-screens/*.png >/dev/null 2>&1; then
+            ( cd ui-screens && sha256sum $(ls *.png | LC_ALL=C sort) > .sha.tmp && mv .sha.tmp shots-sha256.txt ) \
+              || { rm -f ui-screens/.sha.tmp ui-screens/shots-sha256.txt; echo "::warning::T502 — PNG 지문(shots-sha256.txt)을 못 떴다 · 이 런은 그 칸 없이 간다"; }
+          else
+            rm -f ui-screens/shots-sha256.txt
+          fi
           # T347 2회차 — `carried: 0` 한 수로는 «받을 것이 없었다»(정상)와 «지난 screens 를 아예 못 받았다»(이어받기가 죽음)가
           #        똑같아 보인다(런 535 실물 `shots 69 · carried 0`). 지난 screens 가 내놓은 **후보 수**를 같이 적어 둘을 가른다.
           case "$cand" in ''|*[!0-9]*) cand=0 ;; esac   # meta.json 은 JSON 이다 — 숫자가 아니면 0

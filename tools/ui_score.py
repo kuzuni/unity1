@@ -1014,6 +1014,12 @@ def load_baseline(path):
         except (TypeError, ValueError):
             pass
     out["_elems"] = el
+    # T502 — 앞 런 PNG 의 **바이트** 지문. 없으면 빈 dict(낡은 기준선과 섞여도 안 깨진다).
+    sh = {}
+    for k, v in (d.get("shot_sha") or {}).items():
+        if isinstance(v, str) and len(v) == 64:
+            sh[k] = v.lower()
+    out["_sha"] = sh
     return out
 
 
@@ -1058,6 +1064,48 @@ def fingerprint(img):
                     n += 1
             out.append(int(round(tot / float(n or 1))))
     return out
+
+
+# ── PNG **바이트** 지문 (T502) ────────────────────────────────────────────
+# ⚠ 아래 `fingerprints`(fp_pack)와 **다른 것**이다. 그쪽은 이 자가 그림을 눌러 만든 **지각 지문**이고,
+#   지금 의심받는 자(T437·T444: «판독기가 같은 그림을 회차마다 다르게 쪼갠다»)의 눈금이다.
+#   이쪽은 CI 가 `sha256sum` 으로 뜬 **파일 바이트**라 자가 끼어들 자리가 없다 — 그래서 «그림이 달라졌나» 를
+#   가르는 자리에서는 이쪽이 판결이고 지각 지문은 참고다.
+SHA_LIST = "shots-sha256.txt"
+
+
+def parse_sha_list(text):
+    """`<sha256>  screen_<이름>.png` 줄들 → {화면 이름: sha}. 꼴이 틀린 줄·PNG 아닌 줄은 조용히 넘긴다."""
+    out = {}
+    for ln in (text or "").splitlines():
+        ln = ln.strip()
+        if not ln or ln.startswith("#"):
+            continue
+        parts = ln.split()
+        if len(parts) < 2:
+            continue
+        sha, fn = parts[0], parts[-1]
+        if len(sha) != 64 or not all(c in "0123456789abcdefABCDEF" for c in sha):
+            continue
+        fn = os.path.basename(fn.lstrip("*"))          # `sha256sum -b` 는 이름 앞에 `*` 를 붙인다
+        if not fn.lower().endswith(".png") or not fn.startswith("screen_"):
+            continue
+        out[fn[len("screen_"):-len(".png")]] = sha.lower()
+    return out
+
+
+def sha_split(old_sha, new_sha, names):
+    """(바이트 같은 화면, 다른 화면, 한쪽이라도 모르는 화면) — 이름 오름차순. 어느 쪽이 비면 전부 «모른다»."""
+    same, diff, unknown = [], [], []
+    for n in sorted(names):
+        a, b = (old_sha or {}).get(n), (new_sha or {}).get(n)
+        if not a or not b:
+            unknown.append(n)
+        elif a == b:
+            same.append(n)
+        else:
+            diff.append(n)
+    return same, diff, unknown
 
 
 def fp_pack(fp):
@@ -1143,7 +1191,7 @@ def drop_note(din, dout, med, hist_n, cur_v, prev_v, bw=None, bg=0.0):
     return None
 
 
-def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None, carried=False, ceilings=None, elems=None):
+def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None, carried=False, ceilings=None, elems=None, shot_sha=None):
     import json
     cur = dict((n, round(v, 1)) for n, v in scores)
     hist = []
@@ -1183,6 +1231,10 @@ def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None, carrie
         # T28 98회차 — 짝짓기에 들어간 **요소 수**. 회차 사이에 이 수가 달라진 화면만 점수가 움직인다
         #   (아래 «판독기 흔들림» 알림의 근거 · 968 ↔ 1005 전수에서 예외 0).
         d["elems"] = dict((k, int(v)) for k, v in elems.items())
+    if shot_sha:
+        # T502 — CI 가 `shots-sha256.txt` 로 올린 **파일 바이트** 지문. 다음 회차가 이것과 대면
+        #   «그림이 달라졌나(런 흔들림) ↔ 자가 달리 읽었나(판독기 결함)» 가 **운이 아니라 늘** 갈린다.
+        d["shot_sha"] = dict((k, v) for k, v in shot_sha.items() if isinstance(v, str) and len(v) == 64)
     with open(path, "w", encoding="utf-8") as f:
         f.write(json.dumps(d, ensure_ascii=False, indent=1, sort_keys=True) + "\n")
 
@@ -1828,6 +1880,15 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
               u"(meta.json 이 어느 런 것인지 안 적는다)."
               % (meta.get("run", "?"), meta.get("carried")))
         print(u"    점수는 멀쩡하다(그림은 진짜다) — 다만 **런 번호를 이 그림에 붙이지 마라**.")
+    # T502 — CI 가 PNG 옆에 올린 **바이트** 지문 장부. 없으면 빈 dict — 낡은 `screens` 나 긁개 폴더로 재도 조용히 넘어간다.
+    new_sha = {}
+    _sp = os.path.join(shots_dir, SHA_LIST)
+    if os.path.exists(_sp):
+        try:
+            with open(_sp, encoding="utf-8") as _f:
+                new_sha = parse_sha_list(_f.read())
+        except OSError:
+            new_sha = {}
     fps, bands, ceilings, elems = {}, {}, {}, {}
     suspect = [False]
     for name in [n for n, _ in pairs()]:
@@ -2038,6 +2099,32 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                   u"**모든 화면을 한꺼번에 바꾸는 값**이 움직였는지 먼저 본다(T28 85·86회차 · 결정 712)."
                   % (len(moved), len(scores)))
 
+        # ── 바이트가 달라졌나 (T502) ─────────────────────────────────────────
+        # 183회차는 이 갈림을 «잴 수 없었다» 로 적고, 184회차는 **앞 런 PNG 를 덮히기 전에 내려** 운 좋게 쟀다.
+        # 이제 CI 가 지문을 같이 올리므로 매 회차 공짜로 난다. 아래 «판독기가 다르게 읽었다»(지각 지문)보다
+        # **먼저** 찍는다 — 바이트가 같으면 그림은 한 픽셀도 안 바뀐 것이고, 그때 점수가 움직였다면 범인은 **자**다.
+        osha = base.get("_sha") or {}
+        if new_sha or osha:
+            same, diff, unk = sha_split(osha, new_sha, set(cur) | set(n for n in base if not n.startswith("_")))
+            print(u"· **바이트 지문**(T502) — 같은 화면 %d · 다른 화면 %d · 모르는 화면 %d"
+                  % (len(same), len(diff), len(unk)))
+            if not osha:
+                print(u"    (지난 회차 기준선에 지문 칸이 없다 — 이 회차가 처음 적는다. 다음 회차부터 갈린다.)")
+            elif not new_sha:
+                print(u"    (이 `--shots` 자리에 `%s` 가 없다 — 낡은 `screens` 이거나 긁개 폴더다. "
+                      u"«안 달라졌다» 가 **아니다**.)" % SHA_LIST)
+            # 값: «그림이 그대로인데 점수가 움직인 화면» — 그것이 자 결함(T437·T444)의 **증거**다.
+            quiet_moved = [(n, base[n], cur[n]) for n in same
+                           if n in base and n in cur and abs(cur[n] - base[n]) >= DROP_MARK]
+            if quiet_moved:
+                print(u"    ⚠ **바이트가 같은데 점수가 움직인 화면 %d개 — 범인은 클론이 아니라 자다**(T437·T444): %s"
+                      % (len(quiet_moved),
+                         u" · ".join(u"%s %.1f→%.1f" % t for t in sorted(quiet_moved, key=lambda t: -abs(t[2] - t[1])))))
+            loud = [n for n in diff if n in base and n in cur and abs(cur[n] - base[n]) >= DROP_MARK]
+            if loud:
+                print(u"    · 바이트가 다르고 점수도 움직인 화면 %d개 — **런 흔들림이거나 진짜 고침**이다(코드가 그 사이에 바뀌었는지 먼저 본다): %s"
+                      % (len(loud), u" ".join(sorted(loud))))
+
         # ── 판독기 흔들림 (T28 98회차 · 결정 746) ────────────────────────────
         # 90·97회차가 «점수가 그림과 어긋난다» 를 두 얼굴로 봤는데, 98회차가 그 **한 뿌리**를 찾았다:
         # 점수를 흔드는 것은 짝짓기도 점수식도 아니고 **`read_layout` 이 화면을 몇 조각으로 읽었나**다.
@@ -2164,7 +2251,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
               u" `screens` 를 받아 다시 재거나 `--run <번호>` 로 대라(T500).")
         save_baseline = False
     if save_baseline:
-        save_baseline_file(baseline_path, scores, avg, run, fps, bands, carried, ceilings, elems)
+        save_baseline_file(baseline_path, scores, avg, run, fps, bands, carried, ceilings, elems, new_sha)
         print(u"· 기준선을 %s 에 적었다(다음 회차가 이것과 견준다)" % os.path.relpath(baseline_path, REPO))
     if bad:
         # T28 16회차(워커 M): 29개를 줄줄이 찍으면 아무도 안 읽는다 — **다섯**만 준다.
@@ -2549,6 +2636,39 @@ def self_test():
     chk(rows_hit("/없는/자리", "league-challenge") is None,
         u"샷이 없으면 조용히 None 이다(목록을 넘어뜨리지 않는다)")
     chk(rows_hit(".", "없는화면이름") is None, u"모르는 화면 이름도 None 이다")
+
+    # ── PNG 바이트 지문 (T502) ──────────────────────────────────────────
+    # 등재문 ⓓ: «지문이 같은데 점수가 달라졌다 → 자 결함 / 지문이 다르면 런 흔들림» 을 **자가** 가른다.
+    _sl = (u"%s  screen_main.png\n"
+           u"%s  screen_shop.png\n"
+           u"# 주석 줄\n"
+           u"짧은줄\n"
+           u"deadbeef  screen_bad.png\n"
+           u"%s  notes.txt\n"
+           u"%s *screen_forge.png\n" % ("a" * 64, "b" * 64, "c" * 64, "d" * 64))
+    _p = parse_sha_list(_sl)
+    chk(_p == {"main": "a" * 64, "shop": "b" * 64, "forge": "d" * 64},
+        u"`sha256sum` 장부를 화면 이름으로 읽는다 — 주석·짧은 줄·짧은 sha·PNG 아닌 줄은 넘기고 `-b` 의 `*` 도 떼낸다(%s)" % sorted(_p))
+    chk(parse_sha_list(u"") == {} and parse_sha_list(None) == {},
+        u"장부가 없거나 비어도 조용히 빈 dict 다(낡은 screens·긁개 폴더)")
+    _old = {"main": "a" * 64, "shop": "b" * 64, "chat": "e" * 64}
+    _new = {"main": "a" * 64, "shop": "f" * 64}
+    _sm, _df, _un = sha_split(_old, _new, {"main", "shop", "chat", "pass"})
+    chk(_sm == ["main"] and _df == ["shop"] and _un == ["chat", "pass"],
+        u"같다/다르다/모른다 셋으로 가른다 — 한쪽에만 있는 화면은 «다르다» 가 아니라 **모른다** 다(%s / %s / %s)"
+        % (_sm, _df, _un))
+    chk(sha_split({}, _new, {"main"}) == ([], [], ["main"]),
+        u"앞 런 지문이 아예 없으면 전부 «모른다» — «안 달라졌다» 로 읽지 않는다")
+    _b2 = os.path.join(tempfile.mkdtemp(prefix="uiscore_sha_"), "b.json")
+    save_baseline_file(_b2, [("main", 4.6)], 4.6, run=1352, shot_sha={"main": "a" * 64, "bad": "zz"})
+    _l2 = load_baseline(_b2)
+    chk((_l2.get("_sha") or {}) == {"main": "a" * 64},
+        u"기준선 왕복 — 64자 sha 만 적고 읽는다(꼴이 틀린 칸은 버린다 · %s)" % (_l2.get("_sha"),))
+    chk(load_baseline(os.path.join(os.path.dirname(_b2), u"없는파일.json")) == {},
+        u"기준선 파일이 없으면 빈 dict 다(지문 칸을 찾다가 멎지 않는다)")
+    save_baseline_file(_b2, [("main", 4.6)], 4.6, run=1353)
+    chk((load_baseline(_b2).get("_sha") or {}) == {},
+        u"지문을 안 넘기면 칸을 안 만든다 — 낡은 기준선과 섞여도 «모른다» 로 떨어진다")
 
     # ── drop_note 의 차례 (T28 90회차) ─────────────────────────────────
     # 실측 자리: `profile` 은 지문 0.15/0.10(서른한 장 중 가장 작다)인데 중앙값도 걸려서
