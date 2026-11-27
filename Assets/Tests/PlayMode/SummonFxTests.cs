@@ -921,11 +921,18 @@ namespace Forge.Tests.PlayMode
             // 왕복 셈: 0 에서 바닥 · 반주기에서 정점 · 한 주기에서 다시 바닥.
             // ⚑ 그리고 **선형이 아니다** — ease-in-out 은 1/4 지점에서 선형(0.5)보다 **아래**다(양 끝이 느리다).
             float lo = SummonFxStyle.L("hint_a_lo"), hi = SummonFxStyle.L("hint_a_hi"), per = SummonFxStyle.L("hint_breath_s");
-            float a0 = Breath(0f, per, lo, hi), aMid = Breath(per * 0.5f, per, lo, hi), aQ = Breath(per * 0.25f, per, lo, hi), a1 = Breath(per, per, lo, hi);
+            float a0 = Breath(0f, per, lo, hi), aMid = Breath(per * 0.5f, per, lo, hi), a1 = Breath(per, per, lo, hi);
             Assert.AreEqual(lo, a0, 1e-3f, "0 에서 바닥");
             Assert.AreEqual(hi, aMid, 1e-3f, "반주기에서 정점");
             Assert.AreEqual(lo, a1, 1e-3f, "한 주기에서 다시 바닥");
-            Assert.Less(aQ, lo + (hi - lo) * 0.5f, "1/4 지점이 선형보다 아래다 — ease-in-out 은 양 끝이 느리다(선형으로 되돌림 방지)");
+            // ⚠ **1/4 지점에서 재지 마라 — 거기서는 선형과 같다**(런 1368 이 그렇게 빨갰다).
+            //   `cubic-bezier(.42,0,.58,1)` 은 (0.5, 0.5) 에 대해 **대칭**이고, 왕복의 1/4 지점은 올라가는 구간의 **한가운데**(s = .5)라
+            //   값이 정확히 0.5 다. 곡선과 선형이 갈리는 곳은 **구간의 1/4·3/4**(s = .25 → .129 ↔ 선형 .25 · s = .75 → .871 ↔ .75)다.
+            float aUp = Breath(per * 0.125f, per, lo, hi);     // 올라가는 구간의 1/4 — 선형보다 **아래**
+            float aUp3 = Breath(per * 0.375f, per, lo, hi);    // 그 구간의 3/4 — 선형보다 **위**
+            Assert.Less(aUp, lo + (hi - lo) * 0.25f, "구간 1/4 은 선형보다 아래다(ease-in 쪽이 느리다) — 선형·코사인으로 되돌림 방지");
+            Assert.Greater(aUp3, lo + (hi - lo) * 0.75f, "구간 3/4 은 선형보다 위다(ease-out 쪽으로 붙는다)");
+            Assert.AreEqual(lo + (hi - lo) * 0.5f, Breath(per * 0.25f, per, lo, hi), 1e-3f, "왕복의 1/4 지점은 대칭이라 선형과 **같다** — 이 줄이 위 둘의 자리를 지킨다");
             yield return null;
         }
 
