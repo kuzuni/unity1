@@ -243,6 +243,10 @@ namespace Forge.Game.Ui
         /// <summary>T511 2회차 — 소환진 **번진 빛**의 두 틀(정본 6949 `srfloorglow` 의 0%/100% 와 50%).
         /// 번짐 폭은 구운 판이 프레임마다 못 바꾸니 **두 장을 구워 교차섞기** 한다(실측 — 배율·알파 흉내는 최대 46% 틀리고 이 길은 1.2%).</summary>
         Image floorGlowLo, floorGlowHi;
+        /// <summary>T518 — 소환진의 **상시** 번진 빛(정본 5819~5820 `.sr-floor::before` 의 `box-shadow` 두 겹). `.done` 에서는 꺼지고 위 두 틀이 들어선다(정본은 그 자리에서 목록을 **갈아 끼운다**).</summary>
+        Image floorGlowBase;
+        /// <summary>T518 — 충전 램프(`srfloorcharge` 의 brightness·saturate)를 번진 빛에도 **같은 프레임에** 전하는 칸 — 임자는 하나다(두 자리에서 같은 `color` 를 쓰면 한쪽이 조용히 지운다 · 결정 861).</summary>
+        float floorLampBright = 1f, floorLampSat = 1f;
         /// <summary>T178 31회차 — 광원의 등급색·판 비율·done 판으로 갈아탔는가(정본 7166 · 이산 전환).</summary>
         Color haloTint; float haloAspect = 26f / 16f; bool haloDone;
         Vector3 floorHome;
@@ -285,6 +289,9 @@ namespace Forge.Game.Ui
         public float LandRingScaleEnd(int i) { SummonLandRingSpec sp = SummonFxStyle.LandRing; return (float)sp.Scale1(sp.Glow(cells[i].Tier)); }
         /// <summary>i 번째 셀 광선의 끝 알파(정본 `--ray`).</summary>
         public float RayAlphaEnd(int i) { SummonRaySpec sp = SummonFxStyle.Ray; return (float)sp.Ray(cells[i].Tier); }
+
+        /// <summary>T518 — 소환진 **상시** 번진 빛의 지금 알파 — 겹이 없으면 −1.</summary>
+        public float FloorGlowBaseAlpha { get { return floorGlowBase != null ? floorGlowBase.color.a : -1f; } }
 
         /// <summary>T511 2회차 — 소환진 번진 빛 두 판의 지금 알파 `(0%/100% 틀, 50% 틀)` — 겹이 없으면 둘 다 −1.</summary>
         public Vector2 FloorGlowAlphas
@@ -1581,11 +1588,14 @@ namespace Forge.Game.Ui
             if (!ejectSet && haloImg != null && cells.Count > 0) { ejectSet = true; MeasureEject(); }
             AnimateCells();
             AnimateTicks();
-            AnimateBreath();   // T511 — 힌트 칩(상시) · 무대 받침(done 뒤) · 소환진 번진 빛(done 뒤 · 두 틀 교차섞기)
             AnimateTitleIn();
             AnimateHaloIntro();
             AnimateFloorIn();
             AnimateCharge();
+            // T518 — **차례를 옮겼다**(종전엔 `AnimateTicks` 바로 뒤): 번진 빛 세 판이 `AnimateCharge` 가 낸 충전 램프
+            //   (`floorLampBright`/`Sat`)를 **같은 프레임에** 받아야 한다. 앞에 두면 한 프레임 늦은 램프를 쓴다.
+            //   힌트 칩·무대 받침은 충전과 무관하니 이 이동으로 달라지는 것이 없다.
+            AnimateBreath();   // T511 — 힌트 칩(상시) · 무대 받침(done 뒤) · 소환진 번진 빛(상시 한 판 ↔ done 두 틀 교차섞기)
             AnimateFlash();
             AnimateWipe();
             AnimateEnterShake();
@@ -1819,6 +1829,7 @@ namespace Forge.Game.Ui
                 chargeAt = -1f;
                 if (floorImg != null) { floorImg.color = floorBase; floorImg.rectTransform.localScale = floorHome; }
                 if (floorRingImg != null) floorRingImg.color = floorRingBase;
+                floorLampBright = 1f; floorLampSat = 1f;          // T518 — 번진 빛도 램프를 받는다(임자는 AnimateBreath 하나)
                 if (haloImg != null) haloImg.color = haloBase;
                 if (vigImg != null) { vigImg.color = new Color(1f, 1f, 1f, 0f); vigImg.rectTransform.localScale = Vector3.one; }
                 for (int i = 0; i < cells.Count; i++) cells[i].Root.anchoredPosition = cells[i].Home;
@@ -1840,6 +1851,7 @@ namespace Forge.Game.Ui
                 //    짙어진다» 가 되어 정본과 다른 그림이 된다 — 수치(`TickAlpha`)는 표·Core 에 세워 두고 겹은 다음 회차에 낸다.
                 floorImg.color = Brighten(floorBase, br, sa, floorBase.a);
                 if (floorRingImg != null) floorRingImg.color = Brighten(floorRingBase, br, sa, floorRingBase.a);   // T178 32회차 — 6815 의 램프는 `.sr-floor` 통째(::before 링 포함)
+                floorLampBright = br; floorLampSat = sa;          // T518 — 같은 램프를 번진 빛 세 판에도(쓰는 곳은 AnimateBreath)
             }
             if (haloImg != null)
             {
@@ -1901,6 +1913,15 @@ namespace Forge.Game.Ui
                     stagePlate.rectTransform.localScale = stagePlateHome * Mathf.Lerp(1f, SummonFxStyle.L("stage_scale_hi"), k);
                 }
             }
+            if (floorGlowBase != null)
+            {
+                // T518 — 상시 번진 빛: `.done` 전에만 보인다(정본은 `.done` 에서 이 `box-shadow` 목록을 갈아 끼운다).
+                //   충전 램프는 `.sr-floor` 통째에 걸리는 `filter` 라 이 겹도 받는다(링과 같은 까닭 · T178 32회차 주석).
+                Color bc = SummonFxStyle.C("floor_fill");
+                floorGlowBase.color = done
+                    ? new Color(bc.r, bc.g, bc.b, 0f)
+                    : Brighten(bc, floorLampBright, floorLampSat, bc.a);
+            }
             if (floorGlowLo != null && floorGlowHi != null)
             {
                 // T511 2회차 ⓑ — 정본 6929 `.done .sr-floor::before` 는 **번짐 폭**이 3.2s 로 왕복한다.
@@ -1911,7 +1932,8 @@ namespace Forge.Game.Ui
                 //   (`aA + aB - aA·aB`). 그 교차항을 되돌린다 — 실측(정본 틀을 비율대로 구운 참값과 견준 것):
                 //   보정 없으면 최대 **2.9%**(겹 봉우리 기준) · 넣으면 **1.7%**. 끝점(k 0·1)에서는 1 이라 아무것도 안 바꾼다.
                 float f = 1f / (1f - a * k * (1f - k));
-                Color c = floorGlowLo.color;
+                // T518 — 색은 매 프레임 표에서 다시 낸다(충전 램프를 같이 받으려면 쥐고 있던 색을 되쓰면 안 된다).
+                Color c = Brighten(SummonFxStyle.C("floor_fill"), floorLampBright, floorLampSat, 1f);
                 floorGlowLo.color = new Color(c.r, c.g, c.b, Mathf.Clamp01(a * (1f - k) * f));
                 floorGlowHi.color = new Color(c.r, c.g, c.b, Mathf.Clamp01(a * k * f));
             }
@@ -2675,6 +2697,14 @@ namespace Forge.Game.Ui
             Color tint = new Color(ffill.r, ffill.g, ffill.b, SummonFxStyle.L("floor_done_a"));
             floorGlowLo = GlowPlate(floor, "sr-floor-glow-lo", "sr_floor_glow_lo", fw, fh, rem, pad, tint, "lo", dy);
             floorGlowHi = GlowPlate(floor, "sr-floor-glow-hi", "sr_floor_glow_hi", fw, fh, rem, pad, tint, "hi", dy);
+            // T518 — **상시** 번진 빛(정본 5819~5820). `.done` 의 호흡과 **맞교대**다 — 정본에서 `srfloorglow` 는
+            //   `box-shadow` 목록을 통째로 갈아 끼우므로 애니메이션이 도는 동안 이 값은 안 보인다. 같이 켜면 정본보다 밝아진다.
+            //   흐림이 더 커서(6rem ↔ 5rem) 넓힘도 더 크다 — 판마다 제 넓힘을 쓴다(위 두 장만 서로 같아야 한다).
+            float baseDy = SummonFxStyle.L("floor_glow_base_dy_rem");
+            float basePad = SummonFxStyle.L("floor_glow_base_spread_rem") + baseDy
+                          + padF * (float)ShadowTable.SigmaOf(SummonFxStyle.L("floor_glow_base_blur_rem"));
+            Color baseTint = new Color(ffill.r, ffill.g, ffill.b, ffill.a);   // 상시 값은 `--floor-fill` 그대로(알파 .2)
+            floorGlowBase = GlowPlate(floor, "sr-floor-glow-base", "sr_floor_glow_base", fw, fh, rem, basePad, baseTint, "base", baseDy);
         }
 
         Image GlowPlate(Image floor, string node, string bake, float fw, float fh, float rem, float pad, Color tint, string which, float dy)
@@ -2695,7 +2725,12 @@ namespace Forge.Game.Ui
             rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
             rt.offsetMin = new Vector2(-px, -px);
             rt.offsetMax = new Vector2(px, px);
-            rt.SetAsFirstSibling();                                 // 링·고인 면 **뒤**에 깐다
+            // T518 에서 **바로잡았다**(T511 2회차는 `SetAsFirstSibling()` 으로 링 **뒤**에 깔았다 — 틀렸다):
+            //   CSS 한 상자의 페인트 차례는 «**바깥** 그림자 → 바탕색 → 바탕 그림 → **안쪽** 그림자 → 테» 다.
+            //   이 판은 안쪽·바깥 겹을 한 장에 같이 구웠고, 그중 **안쪽** 겹은 두 방사(고인 면·링) **위**에 와야 한다.
+            //   바깥 겹은 바탕 그림 아래여야 하지만 — 두 방사는 타원 밖에서 알파가 **0** 이라(`closest-side` 100% 정지점)
+            //   그 자리에 가릴 것이 없다. 그래서 «판 통째를 링 위, 룬 눈금(`::after`) 아래» 가 정본과 같은 그림이다.
+            //   차례는 붙이는 순서가 정한다 — `BuildFloorPlates`(링 다음) 가 `sr-floor-ticks` 보다 먼저 불린다.
             return img;
         }
 

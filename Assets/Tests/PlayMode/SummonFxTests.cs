@@ -969,19 +969,35 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(hi, "50% 틀 판");
             Transform ring = floor.Find("sr-floor-ring");
             Assert.IsNotNull(ring, "링 겹");
-            Assert.Less(lo.GetSiblingIndex(), ring.GetSiblingIndex(), "번진 빛은 링보다 뒤");
-            Assert.Less(hi.GetSiblingIndex(), ring.GetSiblingIndex(), "번진 빛은 링보다 뒤");
+            // ⚑ **T518 에서 바로잡은 자리** — T511 2회차는 «번진 빛은 링보다 뒤» 로 깔고 이 자에도 그렇게 박았는데 틀렸다.
+            //    CSS 페인트 차례는 «바깥 그림자 → 바탕색 → 바탕 그림 → **안쪽 그림자** → 테» 라, 이 판이 같이 쥔
+            //    **안쪽** 겹은 두 방사(고인 면·링) **위**에 와야 한다. 바깥 겹은 아래여야 하지만 두 방사는 타원 밖 알파가
+            //    0 이라 가릴 것이 없다 ⇒ 판 통째가 «링 **위** · 룬 눈금(`::after`) **아래**» 가 정본과 같은 그림이다.
+            Transform ticks = floor.Find("sr-floor-ticks");
+            Assert.IsNotNull(ticks, "룬 눈금 띠");
+            Assert.Greater(lo.GetSiblingIndex(), ring.GetSiblingIndex(), "번진 빛은 링 **위**(안쪽 그림자는 바탕 그림 위)");
+            Assert.Greater(hi.GetSiblingIndex(), ring.GetSiblingIndex(), "번진 빛은 링 **위**");
+            Assert.Less(lo.GetSiblingIndex(), ticks.GetSiblingIndex(), "룬 눈금(`::after`)보다는 아래");
+            Assert.Less(hi.GetSiblingIndex(), ticks.GetSiblingIndex(), "룬 눈금보다는 아래");
             RectTransform lort = (RectTransform)lo;
             Assert.Greater(lort.rect.width, ((RectTransform)floor).rect.width, "판이 소환진 상자보다 넓다(번짐이 밖으로 나간다)");
             Assert.AreEqual(((RectTransform)hi).rect.width, lort.rect.width, 0.5f, "두 판은 **같은 넓힘**으로 구워야 겹친다");
             Assert.AreEqual(((RectTransform)hi).rect.height, lort.rect.height, 0.5f, "높이도 같다");
 
-            // ⓑ `done` 전에는 꺼져 있다 — 정본은 이 겹을 `.done` 에만 돌린다.
+            // ⓑ `done` 전에는 두 틀이 꺼져 있고 **상시 판이 켜져 있다** — 정본은 `.done` 에서 `box-shadow` 목록을
+            //    통째로 갈아 끼우므로 둘은 **맞교대**다(T518). 같이 켜지면 정본보다 밝아진다.
+            Transform bs = floor.Find("sr-floor-glow-base");
+            Assert.IsNotNull(bs, "상시 번진 빛 판(T518)");
+            Assert.Greater(bs.GetSiblingIndex(), ring.GetSiblingIndex(), "상시 번진 빛도 링 **위**");
+            Assert.Less(bs.GetSiblingIndex(), ticks.GetSiblingIndex(), "상시 번진 빛도 룬 눈금보다 아래");
+            Assert.Greater(((RectTransform)bs).rect.width, ((RectTransform)lo).rect.width,
+                "상시 판은 흐림이 더 커서(6rem ↔ 5rem) 더 넓게 굽는다");
             if (!v.Done)
             {
                 Vector2 off = v.FloorGlowAlphas;
                 Assert.AreEqual(0f, off.x, 1e-6f, "done 전 0%/100% 틀 α 0");
                 Assert.AreEqual(0f, off.y, 1e-6f, "done 전 50% 틀 α 0");
+                Assert.Greater(v.FloorGlowBaseAlpha, 0f, "done 전에는 상시 번진 빛이 켜져 있다(T518)");
                 v.OnTap();
             }
             float t = 0f;
@@ -1001,6 +1017,7 @@ namespace Forge.Tests.PlayMode
                 yield return null;
                 Vector2 g = v.FloorGlowAlphas;
                 if (g.x < 0f) break;
+                Assert.AreEqual(0f, v.FloorGlowBaseAlpha, 1e-6f, "done 뒤에는 상시 판이 꺼진다 — 두 겹은 맞교대다(T518)");
                 float sum = g.x + g.y;
                 float k = sum > 1e-6f ? g.y / sum : 0f;
                 if (k < kMin) kMin = k;
