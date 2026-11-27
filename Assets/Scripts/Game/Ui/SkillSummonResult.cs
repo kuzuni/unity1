@@ -145,6 +145,11 @@ namespace Forge.Game.Ui
         /// <summary>T334 3회차 ⓑ — 충전 구간이 움직이는 것들: 소환진·중앙 광원·비네트(정본 `.sr-floor`·`.sr-halo`·`.sr-wrap::before`).</summary>
         Image floorImg, haloImg, vigImg;
         Image floorRingImg;      // T178 32회차 — 소환진 링 겹(정본 5810~5811 · `.sr-floor::before` 첫 방사)
+        /// <summary>T499 ⓒ — 소환진 도입(정본 5767~5770 `srfloor .43s cubic-bezier(.2,.9,.3,1) .08s forwards`)의 불투명도를 쥐는 자리.
+        /// CSS `opacity` 는 `::before` 링·`::after` 룬 눈금까지 함께 먹으므로 겹마다가 아니라 <c>CanvasGroup</c> 한 자리에 건다.</summary>
+        CanvasGroup floorGroup;
+        /// <summary>그 도입이 끝났는가 — `forwards` 라 끝 상태(알파 1·배율 1)로 남기고 다시 안 건드린다.</summary>
+        bool floorInDone;
         float floorAspect = 1f;
         /// <summary>T454 ⓒ — 배경 `bg-a`(정본 `--bg-pre-a` → `.done` 의 `--bg-a`): 예고값에서 승격값으로 .5s ease-out(표 TransitionUi `sr_bg_done`).</summary>
         Image bgAImg;
@@ -567,6 +572,12 @@ namespace Forge.Game.Ui
                     //   brightness(1→2.2)·saturate 램프를 이 틴트로 흔들기 때문(`Brighten` · `SummonChargeTests` 가 `FloorColor` 를 읽는다 · 결정 817).
                     BuildFloorPlates(floor, fw, fh);
                     floorImg = floor; floorBase = floor.color; floorHome = floor.rectTransform.localScale;
+                    // T499 ⓒ — 정본 5769 `.sr-floor { opacity: 0 }` 에서 시작해 `srfloor` 가 깨운다. 첫 프레임이 제 알파로 찍히지 않게 여기서 0% 상태를 세운다.
+                    floorGroup = floor.gameObject.AddComponent<CanvasGroup>();
+                    floorGroup.alpha = SummonFxStyle.L("floor_in_a0");
+                    floorGroup.blocksRaycasts = false;
+                    floor.rectTransform.localScale = floorHome * SummonFxStyle.L("floor_in_scale");
+                    floorInDone = false;
                     // 룬 눈금 띠 — 소환진 위에 같은 상자로 얹는다(정본은 `::after` 라 같은 자리·같은 크기다).
                     RectTransform tickRt = UiKit.Box(floor.rectTransform, "sr-floor-ticks");
                     UiKit.Fill(tickRt);
@@ -989,6 +1000,7 @@ namespace Forge.Game.Ui
             var sc = PetSkillHost.SfxSummonCharge;
             if (sc != null) sc(best);
             start = Time.unscaledTime;
+            floorInDone = false;   // T499 ⓒ — 도입의 기준 시각도 열림(start)이다
             enterAt = start;   // T459 ⓧ — 정본 `.sr-wrap srshake` 는 열림에서 .21s 뒤 .25s 흔든다
             idx = 0;
             done = false;
@@ -1497,6 +1509,7 @@ namespace Forge.Game.Ui
             if (!ejectSet && haloImg != null && cells.Count > 0) { ejectSet = true; MeasureEject(); }
             AnimateCells();
             AnimateTicks();
+            AnimateFloorIn();
             AnimateCharge();
             AnimateFlash();
             AnimateWipe();
@@ -1622,6 +1635,24 @@ namespace Forge.Game.Ui
         /// 값·곡선은 전부 <see cref="SummonChargeSpec"/>(Core · 표 `charge` 절)이 쥔다 — 여기는 그것을 화면에 거는 손일 뿐이다.
         /// 구간이 끝나면(주역 착지) 정본이 클래스를 떼는 것과 같게 **제자리로 되돌린다** — 그 순간은 섬광/와이프가 덮는다.
         /// </summary>
+        /// <summary>
+        /// T499 ⓒ — 소환진 도입. 정본 5767~5770 `.sr-floor { opacity: 0; animation: srfloor .43s cubic-bezier(.2,.9,.3,1) .08s forwards }`
+        /// + 5801~5804 `@keyframes srfloor { 0% { opacity: 0; transform: scale(.74) } 100% { opacity: 1; scale(1) } }`.
+        /// 종전 클론엔 이 겹이 **통째로 없었다**(있던 것은 충전 `srfloorcharge` 와 호흡 `srfloorbreath` 둘뿐) — 소환진이 첫 프레임부터 제 알파·제 크기로 서 있었다.
+        /// `forwards` 라 끝 상태로 남고, 배율 자리는 그 뒤 충전 램프(<see cref="AnimateCharge"/>)가 이어 받는다(그래서 Update 에서 이 자가 **먼저** 돈다).
+        /// </summary>
+        void AnimateFloorIn()
+        {
+            if (floorInDone || floorImg == null) return;
+            float dur = SummonFxStyle.L("floor_in_ms");
+            float ms = (Time.unscaledTime - start) * 1000f - SummonFxStyle.L("floor_in_delay_ms");
+            float k = dur <= 0f ? 1f : Mathf.Clamp01(ms / dur);
+            float e = (float)SummonFxStyle.Ease("floor_in_ease").Ease(k);
+            if (floorGroup != null) floorGroup.alpha = Mathf.Lerp(SummonFxStyle.L("floor_in_a0"), SummonFxStyle.L("floor_in_a1"), e);
+            floorImg.rectTransform.localScale = floorHome * Mathf.Lerp(SummonFxStyle.L("floor_in_scale"), 1f, e);
+            if (k >= 1f) floorInDone = true;
+        }
+
         void AnimateCharge()
         {
             bool on = seq != null && seq.Charging;
@@ -2408,7 +2439,11 @@ namespace Forge.Game.Ui
             return new Vector2(Mathf.Clamp01((c.x - r.xMin) / r.width), Mathf.Clamp01((c.y - r.yMin) / r.height));
         }
 
-        /// <summary>정본 `@keyframes srwipe`(6194~6198): 불투명도 0 → .98(15%% ≈ 70ms 정점) → 0 · 배율 .55 → 1.12 → 2.2.</summary>
+        /// <summary>
+        /// 정본 `@keyframes srwipe`(6194~6198): 불투명도 0 → .98(15%% ≈ 70ms 정점) → 0 · 배율 .55 → 1.12 → 2.2.
+        /// T499 ⓐ — 그 애니는 `cubic-bezier(.2,.7,.35,1)`(6193)을 타는데 종전엔 구간 안 비율을 **생값**으로 `Mathf.Lerp` 해 선형이었다.
+        /// CSS 의 `animation-timing-function` 은 **키프레임 구간마다** 걸리므로 두 구간이 각기 이 곡선을 한 번 탄다(표 `wipe_ease`).
+        /// </summary>
         void AnimateWipe()
         {
             if (wipe == null) return;
@@ -2417,9 +2452,10 @@ namespace Forge.Game.Ui
             float t = ms <= 0f ? 1f : (Time.unscaledTime - wipeAt) * 1000f / ms;
             float pk = SummonFxStyle.L("wipe_peak_f"), pa = SummonFxStyle.L("wipe_peak_a");
             float s0 = SummonFxStyle.L("wipe_scale0_f"), sp = SummonFxStyle.L("wipe_scale_peak_f"), s1 = SummonFxStyle.L("wipe_scale1_f");
+            Forge.Core.CraftFx.CssEase ez = SummonFxStyle.Ease("wipe_ease");
             float a, sc;
-            if (t <= pk) { float k = pk <= 0f ? 1f : t / pk; a = Mathf.Lerp(0f, pa, k); sc = Mathf.Lerp(s0, sp, k); }
-            else { float k = Mathf.Clamp01((t - pk) / Mathf.Max(1e-4f, 1f - pk)); a = Mathf.Lerp(pa, 0f, k); sc = Mathf.Lerp(sp, s1, k); }
+            if (t <= pk) { float k = (float)ez.Ease(pk <= 0f ? 1f : t / pk); a = Mathf.Lerp(0f, pa, k); sc = Mathf.Lerp(s0, sp, k); }
+            else { float k = (float)ez.Ease(Mathf.Clamp01((t - pk) / Mathf.Max(1e-4f, 1f - pk))); a = Mathf.Lerp(pa, 0f, k); sc = Mathf.Lerp(sp, s1, k); }
             if (t >= 1f) { a = 0f; sc = s1; wipeAt = -1f; }
             Color c = wipe.color; wipe.color = new Color(c.r, c.g, c.b, a);
             wipe.transform.localScale = new Vector3(sc, sc, 1f);

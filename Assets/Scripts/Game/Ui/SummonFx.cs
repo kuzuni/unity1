@@ -47,6 +47,8 @@ namespace Forge.Game.Ui
         readonly List<CanvasGroup> starGroups = new List<CanvasGroup>();
         readonly List<float> starDur = new List<float>(), starDelay = new List<float>();
         float t0, doneAt = -1f;
+        /// <summary>T499 ⓑ — 천개의 제자리(정본 `translateY(0)` 자리). 도입은 여기서 `canopy_in_ty_rem` 만큼 **위**에서 내려온다.</summary>
+        Vector2 canopyHome;
         bool done, baked;
         readonly List<Action> pending = new List<Action>();
         readonly List<Image> pendingImgs = new List<Image>();
@@ -122,6 +124,7 @@ namespace Forge.Game.Ui
             float cw = gridW * L(k + "w_f"), ch = cw / L(k + "aspect"), mb = L(k + "mb_rem") * rem;
             fx.canopy = UiKit.Box(body, "sr-canopy");
             UiKit.Place(fx.canopy, (W - cw) * 0.5f, gridTop + mb - ch, cw, ch);
+            fx.canopyHome = fx.canopy.anchoredPosition;   // T499 ⓑ — 도입의 `translateY` 가 되돌아올 자리
             fx.canopyGroup = fx.canopy.gameObject.AddComponent<CanvasGroup>();
             fx.canopyGroup.alpha = 0f;
             fx.canopyGroup.blocksRaycasts = false;
@@ -214,12 +217,17 @@ namespace Forge.Game.Ui
             if (done && reflect == null && grid != null && Time.frameCount > doneFrame) BakeReflection();
             float t = Time.unscaledTime - t0;
             // 천개 도입 — srcanopy .45s(.05s 뒤) scale(.8)·translateY(-.5rem) → 1
+            // T499 ⓑ — 정본 5839 의 이징은 `cubic-bezier(.2,.9,.3,1)` 인데 종전엔 손으로 쓴 `1 − (1−k)³` 였고(최대 어긋남 +0.19)
+            //   `translateY(-.5rem)` 몫은 표에 키(`canopy_in_ty_rem`)만 있고 **부르는 곳이 없었다**. 둘 다 표에서 읽어 건다.
             if (canopyGroup != null)
             {
                 float k = Mathf.Clamp01((t - L("canopy_in_delay_ms") / 1000f) / (L("canopy_in_ms") / 1000f));
-                float e = 1f - Mathf.Pow(1f - k, 3f);
+                float e = (float)SummonFxStyle.Ease("canopy_in_ease").Ease(k);
                 canopyGroup.alpha = e;
                 canopy.localScale = Vector3.one * Mathf.Lerp(L("canopy_in_scale"), 1f, e);
+                // CSS 의 translateY 는 음수가 **위**다 — 유니티 anchoredPosition 에서는 +rem 에서 0 으로 내려온다.
+                float ty = Mathf.Lerp(L("canopy_in_ty_rem") * PetSkillStyle.RemPx, 0f, e);
+                canopy.anchoredPosition = canopyHome + new Vector2(0f, ty);
             }
             // 빛발·스필 호흡 — srveil α .42↔.85 · scaleY .84↔1.12
             for (int i = 0; i < rayBars.Count; i++)
