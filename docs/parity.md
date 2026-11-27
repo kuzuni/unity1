@@ -2886,3 +2886,60 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - **어긋남 0** · **새 번호 0 · 결함 0**.
 - **이 두 시간에 닫힌 번호 셋**: T494 ✅ · T495 ✅(내 1회차 + 워커 L 의 2회차 수리 · 런 1348 초록으로 판정) · T496 ✅.
 - **§0-6 기록**: 런 **#1348**(`e52781b`) 초록 — `BossWarnArtTests.보스_경고_배너_팝은…` **PASS**(`playmode-red.txt` 124행). 그 뒤 main 커밋 3(코드 0).
+
+## 77회차 — `animation:` 단축 `cubic-bezier` 38 자리의 **자리 단위** 대조 (2026-11-27 06:0x~06:2x · 워커 I · sess-0603-28122 · T33)
+
+> 75회차(워커 K)가 같은 38 을 **값으로** 세고 스스로 적어 뒀다 — «**값이 있다 ≠ 그 자리가 그 값을 쓴다**: `srwipe` 의 `(.2,.7,.35,1)` 은 모루 FX 스펙의 같은 값과 우연히 겹쳐 «있음» 으로 셌다. 자리 단위 대조는 다음 회차 몫». 이 회차가 그 몫이다.
+> 판정은 «값이 클론에 있는가» 가 아니라 «**그 값을 쥔 집의 이름이 정본 애니 이름과 같은가** · 그 집을 그 자리가 부르는가» 다.
+
+| 정본 줄 | 애니 | 이징 | 클론의 집 | 판정 |
+|---|---|---|---|---|
+| 392 | `bwbanner` | `.16,1.5,.4,1` | Core `FxRules.WarnBannerEase`(T495 가 이 축에서 낳은 열매) | ✅ |
+| 507 | `dmgrise` | `.16,.86,.35,1` | `DmgArcUi.json: ease` | ✅ |
+| 1095 | `crpop` | `.18,.9,.28,1.06` | Core `CraftCardSpec.Bounce` | ✅ |
+| 1129 | `cbpop` | `.18,.9,.28,1.06` | Core `CraftCardSpec.Bounce`(정본도 둘이 같은 값) | ✅ |
+| 1328 | `afexit` | `.2,.62,.5,1` | Core `AutoForgeFxSpec.ExitEase` | ✅ |
+| 1432 | `afring` | `.1,.82,.28,1` | Core `AutoForgeFxSpec.RingEase` | ✅ |
+| 1505 | `afshadow` | `.2,.7,.35,1` | Core `AutoForgeFxSpec.ShadowEase` | ✅ |
+| 1528 | `afstar` | `.1,.75,.3,1` | Core `AutoForgeFxSpec`(별) | ✅ |
+| 1584 | `afspark` | `0,.88,.24,1` | Core `AutoForgeFxSpec`(불꽃) | ✅ |
+| 1600 | `afscale` | `0,.7,.35,1` | Core `AutoForgeFxSpec`(배율) | ✅ |
+| 5386 | `dgc-pop` | `.34,1.56,.64,1` | `DungeonFxUi.json: dgcpop[0].ease` | ✅ |
+| 5664 | `srshake` | `.22,.85,.32,1` | `SummonFxUi: enter.shake_ease` | ✅ |
+| 5676 | `srshakehit` | `.2,.9,.3,1` | `SummonFxUi: hero.shake_ease`(같은 절에 `srshakehit` 트랙) | ✅ |
+| 5719 | `srstreak` | `.4,.02,.22,1` | `SummonFxUi: streaks.streak_ease` | ✅ |
+| 5769 | `srfloor` | `.2,.9,.3,1` | **없다 — 도입 자체가 없다**(`srfloorcharge`·`srfloorbreath` 만) | ⛔ T499 ⓒ |
+| 5839 | `srcanopy` | `.2,.9,.3,1` | **근사** `SummonFx.Update: e = 1 − (1−k)³` | ⛔ T499 ⓑ |
+| 6092 | `srcharge` | `.7,0,.9,.2` | `SummonFxUi: chargeburst.in_ease` | ✅ |
+| 6124 | `srshock` | `.1,.72,.22,1` | `SummonFxUi: shock.shock_ease` | ✅ |
+| 6141 | `srshockecho` | `.12,.7,.22,1` | `SummonFxUi: shock.echo_ease` | ✅ |
+| 6193 | `srwipe` | `.2,.7,.35,1` | **없다 — `AnimateWipe` 가 생 비율 `Mathf.Lerp`**(값만 모루 `ShadowEase` 와 겹친다 = 75회차의 거짓 «있음») | ⛔ T499 ⓐ |
+| 6286 | `srpop` | `.18,1.6,.4,1` | `SummonFxUi: pop.srpop[3].ease` | ✅ |
+| 6383 | `srrelight` | `.1,.9,.3,1` | `SummonFxUi: relight.relight_ease` | ✅ |
+| 6421 | `srtierflash` | `.12,.7,.22,1` | `SummonFxUi: tierbreak.flash_ease` | ✅ |
+| 6433 | `srtierwick` | `.12,.7,.22,1` | 같은 `flash_ease`(`SummonSeqRules:1219` 가 넘긴다) — 정본도 같은 값이라 옳다 | ✅ |
+| 6483 | `srspark` | `.14,.82,.3,1` | `SummonFxUi: spark.spark_ease` | ✅ |
+| 6714 | `srheroring` | `.08,.72,.3,1` | `SummonFxUi: hero.heroring_ease` | ✅ |
+| 6720 | `srrecede` | `.3,.85,.35,1` | `SummonFxUi: hero.recede_ease` | ✅ |
+| 6727 | `srheropop` | `.16,1.5,.36,1` | `SummonFxUi: hero.heropop_ease` | ✅ |
+| 6747 | `srbeam` | `.1,.8,.3,1` | `SummonFxUi: hero.beam_ease` | ✅ |
+| 6759 | `srheroring` | `.08,.72,.3,1` | 같은 `hero.heroring_ease`(정본도 같은 애니 두 자리) | ✅ |
+| 7188 | `srpop` | `.18,1.6,.4,1` | 같은 `pop.srpop`(정본도 같은 애니) | ✅ |
+| 7467 | `rwGlow` | `.2,.8,.4,1` | `RewardBurstUi: glow[*].ease` | ✅ |
+| 7480 | `rwRing` | `.15,.7,.3,1` | `RewardBurstUi: ring[*].ease` | ✅ |
+| 7523 | `rwPop` | `.2,.8,.4,1` | `RewardBurstUi: pop[*].ease`(정본도 glow 와 같은 값) | ✅ |
+| 7541 | `rwAnchorIn` | `.3,1.5,.5,1` | `RewardBurstUi: anchor_in[*].ease` | ✅ |
+| 7565 | `rwTickBump` | `.3,1.5,.5,1` | `RewardBurstUi: tick_bump[*].ease` | ✅ |
+| 7574 | `rwPulse` | `.3,1.4,.5,1` | `RewardBurstUi: pulse[*].ease` | ✅ |
+| 7582 | `rwPulseBand` | `.3,1.4,.5,1` | 같은 `pulse`(정본 `rwPulseBand` = `rwPulse` − 배율) — 옳다 | ✅ |
+
+### 이 회차가 확인한 것
+
+- **38 자리 → ✅ 35 · ⛔ 3.** ✅ 는 표 19(`SummonFxUi` 열넷 · `RewardBurstUi` 넷 · `DmgArcUi` · `DungeonFxUi`) · Core 스펙 9(모루 여섯 · 제작 카드 둘이 한 상수 · 보스 배너 하나) · **같이 쓰는 것이 옳은 짝 7**(정본이 같은 값을 두 자리에 쓴 것).
+- ⛔ **셋이 모두 `#summon-result-modal` 의 «들어오는 세 겹»** 이다 — 와이프 · 천개 · 소환진. 한 연출의 도입이 통째로 이징을 잃은 꼴이라 **한 번호(T499)로 묶고 ⓐⓑⓒ 로 갈랐다**(결정 847 — 셋이 같은 두 파일·같은 표를 만진다).
+- **어긋남을 수로 재었다**(정본 베지어를 2진 탐색으로 풀어 60자리):
+  - `srwipe` 선형 ↔ 정본: k=.1 **0.100 ↔ 0.322** · k=.3 **0.300 ↔ 0.725**(+0.42 · 이 축에서 가장 큰 어긋남) · k=.5 0.500 ↔ 0.898 · k=.7 0.700 ↔ 0.972.
+  - `srcanopy` `1−(1−k)³` ↔ 정본: k=.1 0.271 ↔ 0.404 · k=.2 **0.488 ↔ 0.675**(+0.19) · k=.5 0.875 ↔ 0.950 · k=.9 0.999 ↔ 0.999(끝에서만 만난다 — 그래서 «비슷해 보인다»).
+- ⚑ **«같이 쓴다» 를 결함으로 세지 마라 — 정본이 같이 쓰는지를 본다.** `srtierwick`(6433)은 제 `ease` 키 없이 `flash_ease` 를 쓰고 `rwPulseBand`(7582)는 `pulse` 를 쓰는데, 정본이 **같은 값**(6421·6433)이거나 **배율만 뺀 같은 키프레임**(`rwPulseBand` = `rwPulse` − scale)이라 둘 다 옳다. 이 둘을 중복으로 세면 거짓 결함 둘이 선다.
+- ⚑ **정규식이 네 자리를 흘린다** — `animation: … var(--dur, .21s) cubic-bezier(…)` 처럼 **괄호 안 쉼표**가 있는 자리(`bwbanner`·`afspark`·`afscale`·`srpop`)는 «쉼표로 가른다» 로는 안 잡힌다. 괄호를 먼저 가린 뒤 최상위 쉼표로만 갈라 **38 을 다 세웠다**. 축의 셈이 틀리면 결함이 아니라 **빠진 자리**가 남는다.
+- **남은 축**: `animation:` 단축 127 의 **키워드 갈래**(`linear` 29 · `ease-out` 26 · `ease-in-out` 17 · `ease-in` 2 · 기본 `ease` 14) — 그것도 «그 자리가 그 이징을 쓰는가» 로만 셀 수 있으니 이 회차와 같은 자리 대조다. ⚠ 다만 이번 셋이 보여 준 대로 **«키워드 = 대충 맞다» 가 아니다**: `srwipe` 는 키워드조차 없는 선형이었다.
