@@ -535,6 +535,42 @@ namespace Forge.Tests
             Assert.AreEqual(0.16, sc0, 1e-9, "정본 0% 배율");
         }
 
+        /// <summary>
+        /// T523 — **봉우리가 아니라 끝점이고, 그 끝점의 알파는 0 이다.** PlayMode 자가 «알파 > 0 일 때의 배율» 로
+        /// 재다가 런 1393 에서 넘어졌는데, 그 까닭이 이 세 줄에 다 들어 있다 — 배율은 0% 0.16 에서 100%
+        /// `1.05 + .55×glow` 로 **단조 상승**하고, 바로 그 100% 에서 알파가 **0** 이다. 곧 «가장 멀리 간 순간» 은
+        /// **화면에 안 보인다**. 등급 비교는 그래서 **여기**(규칙)서 하고, 화면 쪽은 «끝까지 보고 나서» 견준다.
+        /// </summary>
+        [Test]
+        public void 배율은_끝점이_가장_크고_그_끝점에서_꺼져_있다()
+        {
+            SummonSparkSpec s = S();
+            double aPrev = -1, scPrev = -1;
+            for (int i = 0; i <= 20; i++)                      // 0 → Ms 를 스무 칸으로 훑는다(프레임이 아니라 규칙)
+            {
+                double a, sc;
+                s.At(s.Ms * i / 20.0, 3, out a, out sc);
+                if (scPrev >= 0) Assert.Greater(sc, scPrev - 1e-12, "배율은 줄지 않는다(단조 상승)");
+                scPrev = sc; aPrev = a;
+            }
+            double aEnd, scEnd;
+            s.At(s.Ms, 3, out aEnd, out scEnd);
+            Assert.AreEqual(scPrev, scEnd, 1e-12, "가장 큰 배율이 곧 끝점이다");
+            Assert.AreEqual(0.0, aEnd, 1e-9, "그 끝점에서 알파는 0 — 화면으로는 못 읽는다");
+            Assert.AreEqual(1.05 + 0.55 * s.Glow(3), scEnd, 1e-9, "정본 calc(1.05 + .55 * --glow)");
+            // 등급 비교는 끝점에서도, 화면이 읽을 수 있는 중간에서도 같은 방향이어야 한다.
+            double a0e, s0e, a0m, s0m, a3m, s3m;
+            s.At(s.Ms, 0, out a0e, out s0e);
+            s.At(s.Ms * 0.5, 0, out a0m, out s0m);
+            s.At(s.Ms * 0.5, 3, out a3m, out s3m);
+            Assert.Greater(scEnd, s0e, "끝점: 등급3 이 더 멀다");
+            Assert.Greater(s3m, s0m, "반쯤 갔을 때도 등급3 이 더 멀다(화면이 읽을 수 있는 자리)");
+            Assert.Greater(a3m, a0m, "그 자리의 알파도 등급3 이 세다");
+            // 🚫 **이 줄이 T523 의 고장 주입 자리다** — 표의 `glow` 칸을 0 으로 만들면(= 등급이 배율에 안 실리면)
+            //    위 두 줄이 바로 빨강이 된다. 종전 PlayMode 단언은 같은 고장을 **프레임 운에 따라** 놓쳤다.
+            Assert.Greater(s.Glow(3), s.Glow(0), "등급 계단이 실제로 오른다");
+        }
+
         [Test]
         public void 등급이_오를수록_세고_멀리_간다()
         {

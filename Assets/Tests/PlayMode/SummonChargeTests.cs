@@ -195,27 +195,61 @@ namespace Forge.Tests.PlayMode
             RectTransform rt = s0.rectTransform;
             Assert.AreEqual(rt.rect.width, rt.rect.height, 0.01f, "정사각 판");
 
+            // ───────── T523 — 잣대를 **프레임이 아니라 규칙**에 건다(T422·T431 이 세운 길) ─────────
+            // ⚑ **등재문의 진단을 한 칸 고쳤다**: 배율은 «한 순간의 봉우리» 가 아니라 **끝점**이다
+            //    (`srspark_s` 는 0% 0.16 → 100% `1.05 + .55×glow` 로 **단조 상승**). 그리고 **그 끝점의 알파는 0** 이다
+            //    (`srspark_a` 의 마지막 키 — 스파크는 꺼지면서 가장 멀리 간다). 그래서 «알파 > 0 일 때의 배율» 로 재면
+            //    값이 **마지막으로 보인 프레임이 어디 떨어졌나**로 정해진다.
+            // ⚑ 그런데 런 1393 이 넘어진 진짜 까닭은 그 흔들림이 아니라 **재기를 너무 일찍 멈춘 것**이다:
+            //    종전 고리는 `while (!v.Done …)` 이라 **연출이 끝나면 즉시** 멈추는데, **마지막 셀의 스파크는 그보다 오래 산다**.
+            //    실측 역산 — 등급0 은 p≈**99.9%**(1.04913 / 끝점 1.05)까지 봤고 등급3 은 p≈**19.5%**(배율 0.96965 ·
+            //    그때 알파가 아직 **0.611**)에서 잘렸다 = 끝나기 **338ms 전**. 느린 런일수록 마지막 셀이 더 많이 잘린다.
+            // ⇒ ⓐ 비교의 주장은 **규칙**으로 하고 ⓑ 화면 쪽은 **네 스파크가 다 꺼질 때까지** 본다(상한을 둔 채).
+            SummonSparkSpec spark = SummonFxStyle.Spark;
+            double ruleA0, ruleS0, ruleA3, ruleS3;
+            spark.At(spark.Ms, 0, out ruleA0, out ruleS0);
+            spark.At(spark.Ms, 3, out ruleA3, out ruleS3);
+            Assert.Greater(ruleS3, ruleS0,
+                "규칙: 등급이 오를수록 멀리 날아간다(정본 calc(1.05 + .55 * --glow)) — 프레임과 무관하다");
+            Assert.AreEqual(0.0, ruleA3, 1e-9,
+                "그 끝점에서 스파크는 **꺼져 있다** — 화면으로 끝점을 읽을 수 없는 까닭이 이것이다");
+            double midA0, midS0, midA3, midS3;
+            spark.At(spark.Ms * 0.5, 0, out midA0, out midS0);
+            spark.At(spark.Ms * 0.5, 3, out midA3, out midS3);
+            Assert.Greater(midS3, midS0, "반쯤 갔을 때도 등급3 이 더 멀리 있다(화면이 읽을 수 있는 자리)");
+            Assert.Greater(midA3, midA0, "규칙: 등급이 오를수록 세게 터진다(정본 calc(.45 + .55 * --glow))");
+
             var peakA = new float[4];
             var peakS = new float[4];
+            var seen = new bool[4];
             float t = 0f;
-            while (!v.Done && t < 12f)
+            while (t < 14f)
             {
+                bool allOff = true;
                 for (int i = 0; i < 4; i++)
                 {
                     Image si = v.SparkOf(i);
-                    if (si == null) continue;
-                    if (si.color.a > peakA[i]) peakA[i] = si.color.a;
+                    if (si == null) { allOff = false; continue; }
+                    float a = si.color.a;
+                    if (a > peakA[i]) peakA[i] = a;
                     float sc = si.rectTransform.localScale.x;
-                    if (si.color.a > 0f && sc > peakS[i]) peakS[i] = sc;
+                    if (a > 0f) { seen[i] = true; if (sc > peakS[i]) peakS[i] = sc; }
+                    if (!seen[i] || a > 1e-3f) allOff = false;      // 아직 안 터졌거나 아직 타고 있다
                 }
+                if (v.Done && allOff) break;                        // **연출이 끝나도 스파크가 꺼질 때까지 더 본다**
                 t += Time.unscaledDeltaTime;
                 yield return null;
             }
             Assert.IsTrue(v.Done, "연출이 안 끝났다(경과 " + t.ToString("0.00") + "초)");
+            for (int i = 0; i < 4; i++) Assert.IsTrue(seen[i], i + "번 셀의 스파크가 한 번도 안 터졌다");
             Assert.Greater(peakA[0], 0f, "첫 셀이 내려앉았는데 스파크가 안 터졌다");
             Assert.Greater(peakA[3], peakA[0], "등급이 오를수록 세게 터진다(정본 calc(.45 + .55 * --glow))");
-            Assert.Greater(peakS[3], peakS[0], "등급이 오를수록 멀리 날아간다(정본 calc(1.05 + .55 * --glow))");
             Assert.Greater(peakS[0], 0.16f, "제자리에서 안 움직였다 — 배율이 안 붙었다");
+            // 화면이 **끝까지 본 뒤**라야 이 줄이 뜻을 가진다 — 위 고리가 네 스파크를 다 꺼뜨리고 나왔다.
+            Assert.Greater(peakS[3], peakS[0], "등급이 오를수록 멀리 날아간다 — 화면에서도(끝까지 본 값)");
+            // 그리고 화면은 규칙을 **넘지 않는다**(한쪽만 보는 단언이라 프레임이 어디 떨어져도 참이다).
+            Assert.LessOrEqual(peakS[3], (float)ruleS3 + 1e-3f, "화면 값이 규칙의 끝점을 넘었다 — 구동부가 표 밖으로 갔다");
+            Assert.LessOrEqual(peakS[0], (float)ruleS0 + 1e-3f, "같은 것(등급0)");
 
             float t2 = 0f;
             while (t2 < 1.2f) { t2 += Time.unscaledDeltaTime; yield return null; }
