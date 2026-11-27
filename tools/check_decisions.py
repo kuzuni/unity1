@@ -51,6 +51,50 @@ def entries(path=DOC):
 
 
 
+def outside(path=DOC):
+    """«워커 결정 기록» 절 **밖**의 «N. **…» 줄 — (번호, 줄번호) 목록 (T498).
+
+    왜 있나(검수 Q 48회차 실측 2026-11-27): 절의 끝은 **다음 `## ` 헤더**다. 그런데 회차 기록 열한 개가
+    `###` 가 아니라 **`##`** 로 들어가 절을 **중간에서 끊었고**, 자의 창이 6974~15671 로 줄었다.
+    창 밖(835~844 열 개)은 **구조상 안 보여** ⓐ «다음 번호 835» 로 **겹쳐 발급**하고 ⓑ 그 열 개 사이의
+    겹침을 못 보고 ⓒ 그래도 `✓` rc 0 으로 지나갔다 — **반쯤 읽은 것이 조용했다**.
+    그래서 «밖에 있는 줄» 을 세어 **운다**(이 자는 `block` 이다 — 번호 겹침은 되돌리기 어렵다).
+    """
+    out = []
+    inside = False
+    with open(path, encoding="utf-8") as f:
+        for i, line in enumerate(f, 1):
+            if line.startswith("## "):
+                inside = line.startswith(HEAD)
+                continue
+            if inside:
+                continue
+            m = NUM.match(line)
+            if m:
+                out.append((int(m.group(1)), i))
+    return out
+
+
+def cut_line(out):
+    """창 밖 결정 줄 목록 → 한 줄 경고(없으면 None · 순수 함수 · T498)."""
+    if not out:
+        return None
+    ns = sorted(n for n, _ in out)
+    return ("결정 장부가 **잘렸다** — «%s» 절 **밖**에 결정 줄 %d개(번호 %d~%d · 첫 줄 %d행)."
+            " 절의 끝은 **다음 `## ` 헤더**다 — 회차 기록을 `##` 로 쓰면 창이 거기서 끊기고"
+            " 그 뒤 번호는 **겹침 검사에도, «다음 번호» 셈에도 안 든다**(T498)."
+            % (HEAD, len(out), ns[0], ns[-1], min(i for _, i in out)))
+
+
+def next_num(doc_max, hist_max):
+    """다음에 쓸 번호 (순수 함수 · T498) — **문서와 이력 중 큰 쪽 + 1**.
+
+    종전 기본 갈래는 `max(문서) + 1` 이라 문서가 잘렸거나 줄었을 때 **이미 쓴 번호**를 내줬다
+    (`--next` 갈래만 이력으로 되받치고 있었다 — 한 자가 두 답을 내고 **사람이 보는 쪽이 틀린 답**이었다).
+    """
+    return max(doc_max, hist_max) + 1
+
+
 def issued_in_history(limit=4000):
     """커밋 **제목·본문**에 «결정 N» 으로 실린 번호 중 가장 큰 것 — 문서가 아니라 <b>이력</b>에서 읽는다.
 
@@ -116,6 +160,32 @@ def self_test():
     want("더 긴 수도 안 읽는다", max_issued("결정 123456 은 번호가 아니다"), 0)
     want("아무것도 없으면 0", max_issued("결정을 적지 않은 커밋"), 0)
 
+    # ── T498 — «창이 잘렸는가» 를 **실물 파일로** 재는 칸 넷(일부러 `##` 를 끼운다)
+    want("다음 번호는 문서·이력 중 큰 쪽 + 1", next_num(834, 844), 845)
+    want("이력이 뒤처져 있으면 문서를 따른다", next_num(844, 800), 845)
+    want("창 밖이 없으면 말이 없다", cut_line([]), None)
+    cut = cut_line([(835, 100), (844, 180)])
+    if cut is None or "835~844" not in cut or "잘렸다" not in cut:
+        ok = False
+        print("✗ 잘림 한 줄 — %r" % cut)
+
+    import tempfile, os
+    body = (HEAD + "\n\n1. **첫 결정**\n2. **둘째 결정**\n\n"
+            "## T1 1회차 — 회차 기록이 `##` 로 들어갔다\n\n3. **창 밖으로 밀린 결정**\n")
+    d = tempfile.mkdtemp()
+    f = os.path.join(d, "cut.md")
+    with open(f, "w", encoding="utf-8") as fh:
+        fh.write(body)
+    want("잘린 문서: 창 안은 둘뿐", len(entries(f)), 2)
+    want("잘린 문서: 창 밖 하나를 찾는다", [n for n, _ in outside(f)], [3])
+    # 같은 글을 `###` 로 내리면 창이 끝까지 간다 — ⓒ 의 고침이 실제로 듣는지
+    f2 = os.path.join(d, "fixed.md")
+    with open(f2, "w", encoding="utf-8") as fh:
+        fh.write(body.replace("\n## T1 1회차", "\n### T1 1회차"))
+    want("### 로 내리면 창 안이 셋", len(entries(f2)), 3)
+    want("### 로 내리면 창 밖 0", outside(f2), [])
+    import shutil; shutil.rmtree(d, ignore_errors=True)
+
     print("✓ check_decisions 자기 검사 통과" if ok else "✗ check_decisions 자기 검사 실패")
     return 0 if ok else 1
 
@@ -146,7 +216,20 @@ def main(argv):
     dup = {n: v for n, v in seen.items() if len(v) > 1}
     old = sorted(n for n in dup if n < FROZEN_BELOW)
     new = sorted(n for n in dup if n >= FROZEN_BELOW)
-    nxt = max(seen) + 1
+    # T498 ⓐ — 기본 갈래도 **이력으로 되받친다**(`--next` 와 같은 셈).
+    doc_max = max(seen)
+    hist_max = issued_in_history()
+    nxt = next_num(doc_max, hist_max)
+    if hist_max > doc_max:
+        print("  ⚠ 문서 최대 %d < 이력 최대 %d — 지워졌거나 아직 안 실린 번호가 있다(이력을 따랐다 · T498)"
+              % (doc_max, hist_max))
+    # T498 ⓑ — 창이 **잘렸으면** 운다(그 뒤 번호는 겹침 검사에 안 든다).
+    cut = cut_line(outside())
+    if cut:
+        print("✗ check_decisions: " + cut)
+        print("  고침: 그 결정 줄들을 절 안으로 되돌리거나, 절을 끊은 **회차 기록 `##` 를 `###` 로 내린다**"
+              "(제목 글자는 그대로 · ROUTINE §4). 그 뒤 이 자가 센 수가 늘어야 맞다.")
+        return 1
     if old:
         print("· 옛 겹침 %d쌍(%d 미만 · 동결 · 맥락으로 읽는다): %s"
               % (len(old), FROZEN_BELOW, ", ".join(str(n) for n in old)))

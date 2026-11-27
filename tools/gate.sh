@@ -36,7 +36,7 @@ block|-|.meta 누락/고아 (T46)|python3 tools/gen_meta.py --check
 block|-|catalog.json ↔ UiCatalog.asset · 키 중복 (T41)|python3 tools/gen_ui_catalog.py --check
 block|-|Resources 표가 전부 읽히는가 + .meta 짝 (T182)|python3 tools/check_resources_json.py
 block|-|문서가 통째로 깨졌는가 (T47)|python3 tools/check_docs_intact.py
-report|-|결정 번호 겹침 (T42)|python3 tools/check_decisions.py
+block|-|결정 번호 겹침 · 장부가 잘렸는가 (T42 · T498 — 창 밖 결정이 있으면 rc 1 · 번호 겹침은 되돌리기 어렵다)|python3 tools/check_decisions.py
 report|-|PROGRESS 표 행 어긋남 (T70)|python3 tools/check_task_rows.py
 block|-|ROUTINE §2 제목 ↔ PROGRESS 상태 · 번호 중복 (T29 · ⛔ 선점 덫은 rc 1 이라 막는다 · ⚠ 참고는 rc 0 · T403)|python3 tools/task_state.py --check
 report|-|산 lock 이 «범위» 밖 파일을 쥐고 있는가 (T71)|python3 tools/check_claim_scope.py
