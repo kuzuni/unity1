@@ -2943,3 +2943,52 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - ⚑ **«같이 쓴다» 를 결함으로 세지 마라 — 정본이 같이 쓰는지를 본다.** `srtierwick`(6433)은 제 `ease` 키 없이 `flash_ease` 를 쓰고 `rwPulseBand`(7582)는 `pulse` 를 쓰는데, 정본이 **같은 값**(6421·6433)이거나 **배율만 뺀 같은 키프레임**(`rwPulseBand` = `rwPulse` − scale)이라 둘 다 옳다. 이 둘을 중복으로 세면 거짓 결함 둘이 선다.
 - ⚑ **정규식이 네 자리를 흘린다** — `animation: … var(--dur, .21s) cubic-bezier(…)` 처럼 **괄호 안 쉼표**가 있는 자리(`bwbanner`·`afspark`·`afscale`·`srpop`)는 «쉼표로 가른다» 로는 안 잡힌다. 괄호를 먼저 가린 뒤 최상위 쉼표로만 갈라 **38 을 다 세웠다**. 축의 셈이 틀리면 결함이 아니라 **빠진 자리**가 남는다.
 - **남은 축**: `animation:` 단축 127 의 **키워드 갈래**(`linear` 29 · `ease-out` 26 · `ease-in-out` 17 · `ease-in` 2 · 기본 `ease` 14) — 그것도 «그 자리가 그 이징을 쓰는가» 로만 셀 수 있으니 이 회차와 같은 자리 대조다. ⚠ 다만 이번 셋이 보여 준 대로 **«키워드 = 대충 맞다» 가 아니다**: `srwipe` 는 키워드조차 없는 선형이었다.
+
+## 78회차 — `animation:` 단축 키워드 이징의 첫 갈래: «매끄러움 자체가 규격인» 32 자리(`linear` 30 + `steps` 2) (2026-11-27 08:0x~08:4x · 워커 I · sess-0803-25649 · T33)
+
+> 77회차가 `cubic-bezier` 38 자리를 자리마다 짚고 «남은 축 = 키워드 갈래» 를 적으며 **경고도 같이** 적었다 — «**«키워드 = 대충 맞다» 가 아니다**: `srwipe` 는 키워드조차 없는 선형이었다».
+> 이 회차는 그 갈래에서 **판정이 가장 날카로운 쪽**을 먼저 잡았다: `linear` 와 `steps()` 는 «그 자리가 매끄럽게 도나 · 계단으로 도나» 가 곧 규격이라 «대충 비슷» 이 없다.
+
+| 정본 줄 | 애니 | 규격 | 클론의 집 | 판정 |
+|---|---|---|---|---|
+| 398 | `bwhazard` | linear .62s | `FxRules.WarnHazardPeriod` .62 → `BattleOverlay:344` `% 1.0`(선형 되풀이) + `SurfaceUi stripes.bw_hazard` | ✅ |
+| 401 | `bwscroll` | linear 2.6s | `FxRules.WarnScrollPeriod` 2.6 → `BattleOverlay:341` `% 1.0` | ✅ |
+| 1171 | `anvilbump` | linear var(--afdur) | Core `AnvilFxSpec`(모루 · 세 연출 같은 마스터 클럭) | ✅ |
+| 1271 | `anvilbillet` | linear | Core `AnvilFxSpec`(빌릿) | ✅ |
+| 1272 | `anvilbillethot` | linear | Core `AnvilFxSpec`(빌릿 열) | ✅ |
+| 1273 | `anvilbilletglow` | linear | Core `AnvilFxSpec`(빌릿 광) | ✅ |
+| 1280 | `anvilbilletcool` | linear | Core `AnvilFxSpec`(빌릿 식음) | ✅ |
+| 1299 | `sheetshake` | linear | Core `AnvilFxSpec:140`(시트 흔들림 · translateX 채널) | ✅ |
+| 1328 | `afswing` | linear | Core `AutoForgeFxSpec`(스윙 · 같은 선언의 `afexit` 는 77회차 ✅) | ✅ |
+| 1451 | `afbloom` | linear .12s | `AutoForgeFxSpec:212` `SampleBurst(Bloom, CssEase.Linear, …)` | ✅ |
+| 1464 | `afflash` | linear .1s | `AnvilFx:305` `ApplyBurst(flashes, Flash, CssEase.Linear, …)` | ✅ |
+| 1484 | `afheat` | linear .26s | `AnvilFx:306` `ApplyBurst(heats, Heat, CssEase.Linear, …)` | ✅ |
+| 1552 | `afcore` | linear .07s | `AutoForgeFxSpec:186` `CoreEase = CssEase.Linear` | ✅ |
+| 4945 | `gp-interstellar` | linear 12s | `AgePatternUi` `move_rem`·`move_s` → 선형 이동(76회차가 Δ 3.1·−2.3 까지 쟀다) | ✅ |
+| 4949 | `gp-multiverse` | **steps(7, end)** 3.5s | `AgePatternUi` `steps_n: 7` → `AgePatternRules:159` `Progress(tMs, MoveS, StepsN)` | ✅ |
+| 4954 | `gp-quantum` | linear 2.8s | 같은 길 | ✅ |
+| 4958 | `gp-underworld` | linear 7s | 같은 길 | ✅ |
+| 4962 | `gp-divine` | linear 16s | 같은 길 | ✅ |
+| 5917 | `srsweep` | linear 2.2s | `SummonFx.Update` 의 `Mathf.Repeat(t / sweep_period_s)` | ✅ |
+| 5951 | `srrayspin` | linear **20s** | `SummonFxUi layout.rays_spin_s` 20 → `rays.localRotation = −360 × Repeat(t / spin)` | ✅ |
+| 6018 | `srdust` | linear var(--dur) | `SummonFxUi particles.dust`(n 48 · 제 주기) → `AnimateMotes` | ✅ |
+| 6035 | `srnear` | linear var(--dur) | `SummonFxUi particles.near`(n 14 · 보케) | ✅ |
+| 6256 | `srlabel` | linear var(--pop) | **없다 — 라벨이 셀 `CanvasGroup` 알파를 그대로 먹는다**(68% 묶음 0 · 표에 `label_*` 키 0) | ⛔ T503 |
+| 6686 | `srrayspin` | linear **3.6s** | `SummonFxUi ray.spin_ms` **3600**(셀 광선 — 5951 과 **다른 원소**다) | ✅ |
+| 6815 | `srfloorcharge` | linear .28s | `charge.srfloorcharge` 정지점 → `Stops()` 가 **`ease` 키를 거부한다**(«정본이 linear 다») | ✅ |
+| 6828 | `srtickup` | **steps(9)** .28s | `charge.tick_steps: 9` → `AnimateTicks` 가 충전 구간에 `TickAlpha` 를 먹인다(EditMode 가 계단을 단언) | ✅ |
+| 6834 | `srhalocharge` | linear .28s | `charge.srhalocharge`(맥동 다섯 산) | ✅ |
+| 6850 | `srvig` | linear .28s | `charge.srvig`(비네트 0→1) | ✅ |
+| 6865 | `srinhale` | linear .28s | `charge.srinhale`(조연 셀 흡기) | ✅ |
+| 7158 | `srrayspin` | linear **26s** | `layout.rays_done_spin_s` 26(done 광선막) | ✅ |
+| 7389 | `coinFlyX` | linear var | `CoinBurstUi` + `CoinBurstRules:75` 키 이징 기본 `CssEase.Linear` | ✅ |
+| 7393 | `coinSpin` | linear .42s | 같은 길(무한 회전) | ✅ |
+
+### 이 회차가 확인한 것
+
+- **32 자리 → ✅ 31 · ⛔ 1.** ⛔ 하나는 `srlabel`(6256) → **T503 등재**: 정본은 이름칩·등급칩을 팝의 **68% 까지 알파 0** 으로 묶고 마지막 32% 에 선형으로 켜는데, 클론은 라벨이 셀의 자식이고 알파가 `c.Group.alpha` 하나라 **`srpop` 의 30% 부터 비행 내내 보인다**. 정본이 주석에 까닭과 실측(«이웃 이름칩이 x265~347 **연속 덩어리**»)을 적고 **고친** 자리라, 이것은 더하는 일이 아니라 **되돌리는** 일이다.
+- ⚑ **같은 애니 이름이 여러 자리에 다른 길이로 걸린다** — `srrayspin` 은 **셋**이다(5951 20s 광선막 · 6686 **3.6s 셀 광선** · 7158 26s done). 클론도 셋을 따로 쥔다(`rays_spin_s` · `ray.spin_ms` · `rays_done_spin_s`). 「이름이 같으니 한 자리」로 세면 **두 자리가 조용히 빠진다**.
+- ⚑ **낡은 주석을 근거로 «빠졌다» 를 적을 뻔했다** — `SkillSummonResult` 의 옛 주석은 «눈금(`srtickup`)은 **아직 안 건다** · 겹은 다음 회차에 낸다» 인데 **지금은 건다**(`tickImg` + `AnimateTicks` + EditMode 의 9칸 계단 단언). §0-4 의 «⬜ 를 믿기 전에 그 자리 코드를 읽는다» 가 **주석에도 그대로** 적용된다 — 주석은 코드보다 늦다.
+- ⚑ **`Stops()` 가 스스로 지킨다** — 충전 넷(`srfloorcharge`·`srhalocharge`·`srvig`·`srinhale`)의 표에 누가 `ease` 를 끼우면 **읽는 쪽이 예외를 던진다**(«정본이 linear 다»). 축 대조가 끝난 뒤 그 자리를 지키는 가장 싼 길이다 — 다른 축도 이 꼴을 쓸 수 있다.
+- **셈 바로잡음(75·77회차)**: 인용돼 온 키워드 셈 **88**(`linear` 29 · `ease-out` 26 · `ease-in-out` 17 · `ease-in` 2 · 기본 `ease` 14)은 ⓐ **한 선언에 애니가 둘 이상인 자리**(5951 `srrayspin 20s linear, srintro .24s ease-in both`)를 한 자리로 세고 ⓑ **`steps` 둘**을 빼먹었다. 자리로 세면 `linear` **30** · `ease-out` **27** · `ease-in-out` **22** · 기본 `ease` **16** · `ease-in` **3** · `steps` **2** = **100** (+ `cubic` 38 = **138**).
+- **남은 축**: **곡선 키워드 68 자리**(`ease-out` 27 · `ease-in-out` 22 · 기본 `ease` 16 · `ease-in` 3). 그 회차는 이번 ⛔ 가 가르쳐 준 눈으로 본다 — **부모·자식에 각각 걸린 쌍**(셀 ↔ 라벨 꼴)을 한 자리로 세지 않는다(결정 854).
