@@ -82,6 +82,29 @@ namespace Forge.Tests.PlayMode
             float tin = 0f;
             while (tin < (SummonFxStyle.L("canopy_in_delay_ms") + SummonFxStyle.L("canopy_in_ms")) / 1000f + 0.1f) { tin += Time.unscaledDeltaTime; yield return null; }
             Assert.AreEqual(1f, cp.localScale.x, 1e-3f, "도입이 끝나면 천개 배율 1");
+            // T501 — 도입의 **배율 원점**이 가운데인가. 정본 5839 `srcanopy` 엔 `transform-origin` 선언이 없어 CSS 기본 `50% 50%` 다.
+            //   ⚑ 잣대를 **프레임이 아니라 규칙**에 건다(T422 의 길) — 도입 한가운데 프레임을 잡으러 가면 러너 프레임 간격에 걸려 펄럭인다.
+            //   ⓐ 피벗이 가운데다 ⓑ 손으로 도입 배율을 먹여도 **가운데가 안 움직인다** ⓒ 배율 1 의 자리는 그대로다(정적 회귀 막이).
+            Assert.AreEqual(0.5f, cp.pivot.x, 1e-4f, "천개 피벗 x 가 가운데(정본엔 transform-origin 이 없다 = 50% 50%)");
+            Assert.AreEqual(0.5f, cp.pivot.y, 1e-4f, "천개 피벗 y 가 가운데");
+            Vector3[] c1 = new Vector3[4], c2 = new Vector3[4];
+            cp.GetWorldCorners(c1);
+            float midX1 = (c1[0].x + c1[2].x) * 0.5f, midY1 = (c1[0].y + c1[2].y) * 0.5f;
+            Vector3 keepScale = cp.localScale;
+            cp.localScale = Vector3.one * SummonFxStyle.L("canopy_in_scale");
+            Canvas.ForceUpdateCanvases();
+            cp.GetWorldCorners(c2);
+            float midX2 = (c2[0].x + c2[2].x) * 0.5f, midY2 = (c2[0].y + c2[2].y) * 0.5f;
+            cp.localScale = keepScale;
+            Canvas.ForceUpdateCanvases();
+            float appS = UiRoot.Instance.App.lossyScale.y;
+            Assert.AreEqual(midX1, midX2, 1f * appS + 0.5f,
+                            "도입 배율에서도 천개 **가운데 x** 가 제자리다(좌상 피벗이면 상자 폭의 10% 왼쪽으로 밀린다 · T501)");
+            Assert.AreEqual(midY1, midY2, 1f * appS + 0.5f, "가운데 y 도 제자리다");
+            // 정적 자리 회귀 막이 — 배율 1 의 천개 가운데 x 는 그리드 가운데 x 와 같다(둘 다 몸 가운데 정렬)
+            Vector3[] gc2 = new Vector3[4];
+            ((RectTransform)grid).GetWorldCorners(gc2);
+            Assert.AreEqual((gc2[0].x + gc2[2].x) * 0.5f, midX1, 1f * appS + 0.5f, "배율 1 에서 천개 가운데 = 그리드 가운데");
             Assert.IsTrue(fx.Baked, "굽기는 Build 가 아니라 첫 Update 에서(연 프레임을 가볍게 · 결정 516) — 도입이 끝났으면 다 구워져 있다");
             float mb = SummonFxStyle.L("canopy_one_mb_rem") * PetSkillStyle.RemPx;
             Vector3[] gc = new Vector3[4], cc = new Vector3[4];

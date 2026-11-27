@@ -124,6 +124,17 @@ namespace Forge.Game.Ui
             float cw = gridW * L(k + "w_f"), ch = cw / L(k + "aspect"), mb = L(k + "mb_rem") * rem;
             fx.canopy = UiKit.Box(body, "sr-canopy");
             UiKit.Place(fx.canopy, (W - cw) * 0.5f, gridTop + mb - ch, cw, ch);
+            // T501 — 정본 5839 `srcanopy` 규칙에는 **`transform-origin` 선언이 없다** ⇒ CSS 기본값 `50% 50%`(가운데)다.
+            //   곧 정본 천개는 **제자리에서 부풀기만** 한다. 그런데 `UiKit.Place` 는 피벗을 **좌상**(0, 1)으로 두고
+            //   `RectTransform.localScale` 은 **피벗을 고정점으로** 늘린다 — 배율 s 에서 가운데가 `((1−s)·w/2, −(1−s)·h/2)` 만큼 밀린다.
+            //   도입이 `canopy_in_scale` 0.8 에서 시작하니 450ms 동안 **상자 폭·높이의 10%**(그리드 폭으로는 8.4%)다:
+            //   가운데 정렬된 아치가 «왼쪽에서 들어와 오른쪽으로 미끄러지며 커지는» 꼴이 됐다.
+            //   ⇒ **피벗만 가운데로 옮기고 `anchoredPosition` 을 그만큼 되계산한다.** 앵커가 (0, 1)이라 피벗 점이
+            //      «상자 좌상» 에서 «상자 가운데» 로 옮겨지므로 (+w/2, −h/2) 를 더하면 **배율 1 의 자리는 한 픽셀도 안 바뀐다**
+            //      (`canopy_mb_rem` 음수 마진 셈은 위 `Place` 가 이미 `yTop` 에 물려 뒀고 여기선 그 결과만 옮긴다).
+            //   ⚠ 소환진(`.sr-floor`)은 안 건드린다 — 그쪽은 `UiKit.Anchor(… pivot (0.5, 0.5) …)` 로 서서 이미 가운데가 고정이다.
+            fx.canopy.pivot = new Vector2(0.5f, 0.5f);
+            fx.canopy.anchoredPosition += new Vector2(cw * 0.5f, -ch * 0.5f);
             fx.canopyHome = fx.canopy.anchoredPosition;   // T499 ⓑ — 도입의 `translateY` 가 되돌아올 자리
             fx.canopyGroup = fx.canopy.gameObject.AddComponent<CanvasGroup>();
             fx.canopyGroup.alpha = 0f;
