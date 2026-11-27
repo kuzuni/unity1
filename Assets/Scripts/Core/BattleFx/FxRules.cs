@@ -207,7 +207,7 @@ namespace Forge.Core.BattleFx
         public static double SceneCutAlpha(double k) { return 1 - SmoothStep01(k < 0 ? 0 : k > 1 ? 1 : k); }
 
         // ── 보스 워닝 배너(css #boss-warning) ──
-        public const double WarnTop = 0.28, WarnDimIn = 0.08, WarnDimHold = 0.76, WarnFlashPeak = 0.12, WarnBannerK = 0.62, WarnHazardPeriod = 0.62, WarnScrollPeriod = 2.6, WarnSubDelay = 0.25;
+        public const double WarnTop = 0.28, WarnDimIn = 0.08, WarnDimHold = 0.76, WarnFlashPeak = 0.12, WarnHazardPeriod = 0.62, WarnScrollPeriod = 2.6, WarnSubDelay = 0.25;   // T495 — `WarnBannerK = 0.62` 는 걷힌 근사의 잔재였다(부르는 곳 0).
         public const string WarnText = "WARNING ◆ WARNING ◆ WARNING ◆ WARNING ◆ ";
         public const string WarnSub = "보스 출현";
         public static double WarnDim(double u) { return u < WarnDimIn ? u / WarnDimIn : u < WarnDimHold ? 1 : 1 - (u - WarnDimHold) / (1 - WarnDimHold); }
@@ -218,12 +218,34 @@ namespace Forge.Core.BattleFx
             double u = (t % BossBeat) / BossBeat;
             return u < WarnFlashPeak ? u / WarnFlashPeak : 1 - (u - WarnFlashPeak) / (1 - WarnFlashPeak);
         }
-        /// <summary>배너 scaleY — cubic-bezier(.16,1.5,.4,1) 오버슈트 근사(첫 12% 에 1.12 까지 튀고 1 로).</summary>
+        /// <summary>T495 — 배너 scaleY. 정본 **423~429** `@keyframes bwbanner` 를 **그대로** 담는다:
+        /// 0% 0 · 7% **1.35** · 13% 1 · 82% 1 · 92% **1.18** · 100% 0. 92% 의 부풂은 정본 주석이 뜻을 못 박아 둔 자리다 —
+        /// «보스 착지 임팩트에 배너가 한 번 부푼 뒤 닫힌다».
+        /// ⚠ 종전은 **손으로 쓴 근사**였다(«첫 12% 에 1.12 까지 튀고 1 로»): 정점이 1.35 ↔ 1.12 로 **17% 낮고**
+        /// 7% ↔ 12% 로 **2초 연출에서 100ms 늦었으며**, 92% 임팩트 부풂이 **통째로 없었다**(`u >= 0.92` 에서 바로 닫기만).</summary>
+        public static readonly CssTrack WarnBannerTrack = new CssTrack(
+            new double[] { 0, 7, 13, 82, 92, 100 },
+            new double[][] { new double[] { 0 }, new double[] { 1.35 }, new double[] { 1 }, new double[] { 1 }, new double[] { 1.18 }, new double[] { 0 } });
+
+        /// <summary>정본 **392** `animation: bwbanner var(--bw-dur, 2s) cubic-bezier(.16,1.5,.4,1) forwards`.
+        /// 단축 이징은 키프레임 **구간마다** 걸리는 곡선이다(T467 `bwsub` 와 같은 규약) — `y1 = 1.5` 라 구간 안에서 **넘어갔다 돌아온다**(스프링).</summary>
+        static readonly CssEase WarnBannerEase = new CssEase(0.16, 1.5, 0.4, 1);
+
+        /// <summary>배너 scaleY — 위 트랙을 구간 이징으로 보간한다(브라우저가 하던 일).</summary>
         public static double WarnBanner(double u)
         {
-            if (u >= 0.92) return Math.Max(0, 1 - (u - 0.92) / 0.08);
-            double k = Math.Min(1, u / 0.12);
-            return k < 1 ? 1.12 * Math.Sin(k * Math.PI / 2) : 1 + 0.12 * Math.Max(0, 1 - (u - 0.12) / 0.2);
+            double p = u * 100;
+            CssTrack k = WarnBannerTrack;
+            int n = k.Count;
+            if (p <= k.StopAt(0)) return k.ValueAt(0)[0];
+            if (p >= k.StopAt(n - 1)) return k.ValueAt(n - 1)[0];
+            int hi = 1;
+            while (hi < n && k.StopAt(hi) < p) hi++;
+            int lo = hi - 1;
+            double span = k.StopAt(hi) - k.StopAt(lo);
+            double e = WarnBannerEase.Ease(span <= 0 ? 1 : (p - k.StopAt(lo)) / span);
+            double a = k.ValueAt(lo)[0], b = k.ValueAt(hi)[0];
+            return a + (b - a) * e;
         }
         /// <summary>T467 — 부제 자간·들여쓰기(em)의 등장 조임. 정본 431~436 `@keyframes bwsub`: 0% <paramref name="fromEm"/> → 16%(<paramref name="tightenAt"/>) <paramref name="toEm"/>, 그 뒤 정착.
         /// 416 의 `ease-out` 은 키프레임 **구간마다** 걸리는 곡선이라 0→16% 안에서 `cubic-bezier(0,0,.58,1)` 로 보간한다. 값은 표(`LetterSpacingUi.json`)가 쥐고 여기는 셈뿐이다.</summary>

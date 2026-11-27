@@ -212,6 +212,52 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>T495 — 배너 «팝» 이 정본 키프레임 그대로인가. 정본 **423~429** `@keyframes bwbanner`
+        /// (0% 0 · 7% **1.35** · 13% 1 · 82% 1 · 92% **1.18** · 100% 0)와 **392** 의 단축 이징
+        /// `cubic-bezier(.16,1.5,.4,1)`(구간마다 걸린다 · T467 과 같은 규약). 종전은 손으로 쓴 근사라
+        /// 정점이 1.12 로 **17% 낮고** 12% 로 **100ms 늦었으며** 92% 임팩트 부풂이 **통째로 없었다**.</summary>
+        [UnityTest]
+        public IEnumerator 보스_경고_배너_팝은_정본_키프레임_네_정지점을_지난다()
+        {
+            yield return Boot();
+            // 수는 트랙이 쥔다(§1) — 자는 «그 트랙의 정지점을 지나는가» 만 본다.
+            Assert.AreEqual(6, FxRules.WarnBannerTrack.Count, "정본 bwbanner 는 정지점 여섯이다");
+            Assert.AreEqual(7, FxRules.WarnBannerTrack.StopAt(1), 1e-9, "정점 시각 = 정본 7%(종전 근사는 12%)");
+            Assert.AreEqual(1.35, FxRules.WarnBannerTrack.ValueAt(1)[0], 1e-9, "정점 = 정본 1.35(종전 근사는 1.12)");
+            Assert.AreEqual(92, FxRules.WarnBannerTrack.StopAt(4), 1e-9, "임팩트 부풂 시각 = 정본 92%");
+            Assert.AreEqual(1.18, FxRules.WarnBannerTrack.ValueAt(4)[0], 1e-9, "임팩트 부풂 = 정본 1.18(종전엔 아예 없었다)");
+
+            // ① 정점 ② 가라앉음 ③ 임팩트 부풂 ④ 닫힘 — 등재문의 판정 넷 그대로.
+            Assert.That(FxRules.WarnBanner(0.07), Is.InRange(1.30, 1.40), "7% 에 정점 1.35 를 지난다");
+            Assert.That(FxRules.WarnBanner(0.13), Is.InRange(0.98, 1.05), "13% 에 1 로 가라앉는다");
+            Assert.That(FxRules.WarnBanner(0.92), Is.InRange(1.12, 1.24), "92% 에 한 번 부푼다 — 이 줄이 «근사로 되돌림» 을 막는다");
+            Assert.AreEqual(0, FxRules.WarnBanner(1), 1e-9, "100% 에 닫힌다");
+            Assert.AreEqual(0, FxRules.WarnBanner(0), 1e-9, "0% 에서 시작한다");
+
+            // ⚑ 스프링(y1 = 1.5)이라 **정지점이 곧 극값이 아니다** — 구간 안에서 넘어갔다 돌아온다.
+            //   이것이 근사와 가장 크게 갈리는 자리라 수로 못 박아 둔다(근사는 사인 곡선이라 1.12 를 절대 안 넘었다).
+            double peak = 0, floor = 1;
+            for (int i = 0; i <= 2000; i++)
+            {
+                double v = FxRules.WarnBanner(i / 2000.0);
+                if (v > peak) peak = v;
+                if (v < floor) floor = v;
+            }
+            Assert.Greater(peak, 1.40, "구간 이징이 정지점 1.35 를 넘어선다(스프링) — 선형 보간이면 1.35 에서 멈춘다");
+            Assert.Less(floor, 0, "닫히는 구간도 0 을 지나쳤다 돌아온다 — 정본 곡선 그대로다");
+
+            // 실물: 배너가 그 셈을 그대로 쓴다(BattleOverlay 는 한 줄도 안 바꿨다).
+            BattleOverlay o = BattleOverlay.Ensure();
+            o.BossWarning(FxRules.BossWarnDur);
+            yield return null;
+            o.Tick((float)(FxRules.BossWarnDur * 0.07));
+            RectTransform bn = null;
+            foreach (RectTransform rt in o.Layer.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "bw-banner") { bn = rt; break; }
+            Assert.IsNotNull(bn, "배너 상자(bw-banner)");
+            Assert.That(bn.localScale.y, Is.InRange(1.30f, 1.40f), "화면의 배너도 7% 에 정점 1.35 로 선다");
+        }
+
         private static bool Same(Color a, Color b)
         {
             return Mathf.Abs(a.r - b.r) < 0.02f && Mathf.Abs(a.g - b.g) < 0.02f && Mathf.Abs(a.b - b.b) < 0.02f && Mathf.Abs(a.a - b.a) < 0.02f;
