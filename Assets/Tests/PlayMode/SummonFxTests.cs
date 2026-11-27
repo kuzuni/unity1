@@ -409,7 +409,57 @@ namespace Forge.Tests.PlayMode
             }
         }
     
-        /// <summary>T448 — 동급(peer) 셀의 착지 링(정본 6710~6716 `.sr-cell.peer.on::after`): 동급 셀마다 셀 뒤(z −1) 폭 100% 정사각 링이 서고,
+        /// <summary>
+        /// T33 85회차 — 빛줄기(정본 5716 `.sr-streaks i { transform-origin: 50% 100% }`)의 **축이 아래끝**인가.
+        /// 정본은 상자의 밑변을 축으로 `scaleY`(.55→1.5) 한다 — 그 밑변이 회전 뒤 **광원에 가까운 끝**이라
+        /// 늘어난 몫은 **광원에서 먼 쪽으로** 자라고 가까운 끝은 제자리에 남는다.
+        /// 종전 클론은 축을 위끝에 둬서 막대가 **len·(1−s)** 만큼 밀려 있었다(시작 0.99rem 바깥 · 끝 1.1rem 안쪽 ·
+        /// 회차 중간에 방향이 뒤집힌다 · 결정 899). 이 자는 **프레임 창에 안 매인 구조 단언**이다 —
+        /// 빛줄기는 180ms 만 살아 알파로 재면 펄럭인다(T422·T431·T443 가 그 자리에서 세 번 넘어졌다).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 빛줄기의_축은_아래끝이라_가까운_끝이_제자리에_남는다()
+        {
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            Host.Tickets = 10000;
+            Sheet.Skills.SummonButton.onClick.Invoke();
+            yield return null;
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+            Assert.Greater(v.StreakCount, 0, "빛줄기가 섰다");
+
+            for (int i = 0; i < v.StreakCount; i++)
+            {
+                Image si = v.StreakOf(i);
+                Assert.IsNotNull(si, "빛줄기 " + i);
+                RectTransform bar = si.rectTransform;
+                Assert.AreEqual(0.5f, bar.pivot.x, 1e-4f, "빛줄기 " + i + ": 축은 가로 가운데(정본 50%)");
+                Assert.AreEqual(0f, bar.pivot.y, 1e-4f,
+                    "빛줄기 " + i + ": 축은 **아래끝**이다(정본 `50% 100%` · 유니티는 y 가 위로 커서 0 이 아래다)");
+                // 늘어남이 축을 안 움직인다 — 배율을 손으로 바꿔 아래끝의 월드 자리를 견준다(시간과 무관하다).
+                Vector3 keep = bar.localScale;
+                Vector3[] corners = new Vector3[4];
+                bar.GetWorldCorners(corners);
+                float bottom0 = Mathf.Min(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+                float top0 = Mathf.Max(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+                bar.localScale = new Vector3(keep.x, keep.y * 2f, keep.z);
+                bar.GetWorldCorners(corners);
+                float bottom1 = Mathf.Min(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+                float top1 = Mathf.Max(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+                bar.localScale = keep;
+                Assert.AreEqual(bottom0, bottom1, 0.5f, "빛줄기 " + i + ": 늘어나도 **아래끝은 제자리**다");
+                Assert.Greater(top1, top0 + 0.5f, "빛줄기 " + i + ": 늘어난 몫은 **위로**(= 축의 반대쪽 · 광원에서 먼 쪽으로) 자란다");
+                if (i >= 2) break;      // 셋만 본다(스포크는 아홉 이상이고 단언은 구조라 같다)
+            }
+            v.Close();
+            yield return null;
+        }
+
+        /// <summary>T448 — 동급(peer) 셀의 착지 링        /// <summary>T448 — 동급(peer) 셀의 착지 링(정본 6710~6716 `.sr-cell.peer.on::after`): 동급 셀마다 셀 뒤(z −1) 폭 100% 정사각 링이 서고,
         /// 가산(screen) 재질이며, 주역 링과 **다른 스프라이트**(정지점 60/76/84/95 · 흰 .7)다. 자기 착지 뒤 .58s 가 지나면 알파 0 · 배율 `--ringmax` 1.5.
         /// 동급 = «주역이 아닌데 최고 등급» 이라 판을 직접 짠다(SummonChargeTests 와 같은 길) — 조연 둘 + 동급 둘 + 주역(마지막) 하나.</summary>
         [UnityTest]

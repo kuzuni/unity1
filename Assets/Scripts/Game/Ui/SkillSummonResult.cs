@@ -809,7 +809,13 @@ namespace Forge.Game.Ui
                     spk.localRotation = Quaternion.Euler(0f, 0f, -(float)ang);   // CSS 의 +각은 시계 방향
                     RectTransform bx = UiKit.Box(spk, "bar");
                     bx.anchorMin = bx.anchorMax = new Vector2(0.5f, 0.5f);
-                    bx.pivot = new Vector2(0.5f, 1f);                              // 위끝 = 바깥 끝 = 정본 원점
+                    // T33 85회차 — 피벗을 **아래끝**으로 옮겼다(정본 5716 `transform-origin: 50% 100%`).
+                    //   정본은 상자의 **밑변**을 축으로 `scaleY` 한다 — 그 밑변이 회전 뒤 **광원에 가까운 끝**이라
+                    //   가까운 끝은 제자리에 남고 늘어난 몫은 **바깥으로** 자란다.
+                    //   종전 피벗(위끝)은 바깥 끝을 고정해 막대가 **len·(1−s)** 만큼 밀려 있었다 — 시작(s .55 · len 2.2rem)
+                    //   0.99rem 바깥 · 끝(s 1.5) 1.1rem 안쪽으로, **회차 중간에 방향이 뒤집히는** 어긋남이다(결정 899).
+                    //   표값은 하나도 안 고쳤다 — 어긋난 것은 수가 아니라 **축**이었다.
+                    bx.pivot = new Vector2(0.5f, 0f);
                     bx.sizeDelta = new Vector2(barW, PetSkillStyle.Rem((float)len));
                     Image bi = bx.gameObject.AddComponent<Image>();
                     bi.raycastTarget = false;
@@ -2429,7 +2435,9 @@ namespace Forge.Game.Ui
                 double a, dist, sy;
                 sp.At(ms, st.DelayMs, st.RRem, out a, out dist, out sy);
                 st.Img.color = new Color(1f, 1f, 1f, (float)a);
-                st.Bar.anchoredPosition = new Vector2(0f, PetSkillStyle.Rem((float)dist));
+                // T33 85회차 — 축이 아래끝이라 «그 축의 자리» 는 `r − len` 이다(정본 셈: 밑변이 원점이고
+                //   `translateY(-r)` 가 그 원점을 올린다 · 늘어남 s 는 그 점을 안 움직인다 · len 은 **배율 전** 길이).
+                st.Bar.anchoredPosition = new Vector2(0f, PetSkillStyle.Rem((float)dist) - st.LenPx);
                 st.Bar.localScale = new Vector3(1f, (float)sy, 1f);
             }
         }
@@ -2498,6 +2506,7 @@ namespace Forge.Game.Ui
         public int StreakCount { get { return streaks.Count; } }
         public Image StreakOf(int i) { return i >= 0 && i < streaks.Count ? streaks[i].Img : null; }
         /// <summary>그 빛줄기의 바깥 끝이 광원에서 떨어진 거리(px) — 자가 본다.</summary>
+        /// <summary>그 빛줄기 축(= 아래끝 · 정본 `50% 100%`)의 자리 — 85회차 뒤 `r − len` 이다(종전엔 `r`).</summary>
         public float StreakDist(int i) { return i >= 0 && i < streaks.Count ? streaks[i].Bar.anchoredPosition.y : -1f; }
 
         /// <summary>빛 모임 판 · 등급 예고 세기 — 자가 본다.</summary>

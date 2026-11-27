@@ -3122,6 +3122,48 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - **다음 축 후보**: ⓐ 82회차가 남긴 `.disabled` 의 나머지 둘(5268·5503 = `PetSkillKit.PaperButton` 실버 갈래) · ⓑ 정본 `!important` 전수(아직 한 번도 안 센 축) ·
   ⓒ **이 회차의 걸음을 다른 축에도**: `animation`(77~80회차 ✅)·`box-shadow`(T331)·표면 겹(T178)은 전부 **정본 → 클론** 방향으로만 닫혔다 — 클론 표를 거꾸로 걸어 «정본에 없는 수» 를 찾는 회차가 축마다 한 번 있어야 한다.
 
+
+## 85회차 — `transform-origin` 19 자리 + `!important` 7: 값이 아니라 **고정점**으로 견뤘고 어긋남 하나를 고쳤다 (2026-11-27 · 워커 I · sess-2103-44907 · 런 1390 빨강은 T515 7회차가 이미 고쳤다)
+
+- **축을 고르기 전에 크기를 먼저 쟀다(82회차 규칙)**: 83회차가 다음 후보로 남긴 `!important` 는 **7** 뿐이라 한 회차를 못 채운다 →
+  아직 안 센 축들을 같이 재고(`background-position` 21 · `background-size` 11 · `aspect-ratio` 21 · `animation-timing-function` 23 · `animation-delay` 38 ·
+  `z-index` 112 · `overflow` 59 · `pointer-events` 68 · `paint-order` 44 · `mask-image` 15 · `filter` 100 · `transform-origin` 19 · `gap` 175)
+  **`transform-origin` 19** 를 골랐다 — 앵커·피벗이라 클론 `RectTransform` 에서 바로 견줄 수 있고 `scale`·`rotate` 연출의 **모습**을 정한다.
+- **`transform-origin` 19 = 기본값 7 + 기본 아닌 것 12**. 기본값(`center`·`50% 50%`)은 옮길 것이 없다(389 `.bw-banner` · 1431·1450·1463·1483·1504·1551 모루 FX 여섯).
+- **기본 아닌 12 를 자리마다 짚었다 — ✅ 11 · ⛔ 1(고쳤다)**
+  | 정본 | 선택자 | origin | 클론 | 판정 |
+  | --- | --- | --- | --- | --- |
+  | 1172 | `.anvil-btn.striking .anvil-svg` | `50% 92%` | `ForgeSheet:918` 피벗 = `AnvilFxSpec.BumpOriginFrac` | ✅ |
+  | 1271 | `.anv-billet` | `55px 21.5px` | `ForgeSheet:507`(«빌릿 밑면 — 상판을 파고들지 않게») | ✅ |
+  | 1325 | `.af-hammer` | `55px 11px` | `ForgeSheet:574` | ✅ |
+  | 1531·1532 | `.af-star.sl`·`.sr` | `100% 55%`·`0% 55%` | `ForgeSheet:815` `(leftSide ? 1 : 0, 1−.55)` | ✅ |
+  | 1582 | `.af-spark` | `0% 50%` | `ForgeSheet:733` 꼬리 끝 = 타격점 | ✅ |
+  | 1598 | `.af-scale` | `0% 50%` | `ForgeSheet:764` `(0, .5)` | ✅ |
+  | 1612 | `.af-smoke` | `50% 100%` | `ForgeSheet:639` `(0.5, 0)` | ✅ |
+  | 5885 | `.sr-canopy i` | `50% 100%` | `SummonFx:176` `UiKit.Anchor(… pivot (0.5, 0) …)` | ✅ |
+  | 6187 | `.sr-wipe` | `var(--fx) var(--fy)` | `SkillSummonResult:2651` `HeroPivot(…)` | ✅ |
+  | 6967 | `.sr-reflect` | `50% 55%` | `SummonFx:321` 피벗 **아래끝**(= 이음선) | ✅ **값이 다른데 맞다** |
+  | **5716** | **`.sr-streaks i`** | **`50% 100%`** | `SkillSummonResult:812` 피벗 **위끝** | **⛔ → 고쳤다** |
+- ⚑ **그래서 이 회차의 잣대가 «값 대조» 가 아니라 «고정점 대조» 다(결정 899)**: `.sr-reflect` 는 정본이 제 주석에 셈을 적어 뒀다 —
+  «뒤집기+스케일에서 **위 변이 제자리에 남는** origin 은 `o = s/(s+1)` · s=1.22 면 55%». 곧 그 값의 **뜻**은 «이음선을 고정한다» 이고,
+  클론은 같은 것을 **피벗을 이음선에 두는 것**으로 얻었다(`(0.5, 0)` + `localScale.y = −1.22`). 값만 보면 ⛔ 로 적었을 자리다.
+- **⛔ 하나 — `.sr-streaks i` 의 축이 반대 끝이었다**: 정본은 `rotate(--a) translateY(-r) scaleY(s)` **전부를 상자 밑변 축으로** 걸고,
+  그 밑변은 회전 뒤 **광원에 가까운 끝**이다. 클론은 회전을 홀더에 주고 막대 피벗을 **위끝**(먼 끝)에 뒀다.
+  - **실측(정본 i=0 · `--a` 0° · `--r` 7.5rem · `--len` 2.2rem · 표값은 클론과 **같다**)**: 정본 막대는 시작 `[-6.51, -5.3]`rem · 끝 `[-2.2, +1.1]`rem,
+    클론은 `[-7.5, -6.29]` · `[-1.1, +2.2]` — **차 = len·(1−s)**: 시작 **0.99rem 바깥** · 끝 **1.1rem 안쪽**. 길이·방향·수렴은 같고 **자리만** 밀린다.
+  - **고침**(게임 코드 **세 줄**): 피벗을 `(0.5, 0)`(아래끝)으로 · 자리를 `r − len` 으로(정본 셈: 밑변이 원점이고 `translateY(-r)` 가 그 원점을 올린다 · `len` 은 **배율 전** 길이) ·
+    `StreakDist` 주석을 그 뜻으로. **표값 0줄** — 어긋난 것은 수가 아니라 축이다.
+  - **자**: PlayMode `SummonFxTests` 에 **프레임 창에 안 매인 구조 단언**을 더했다 — 피벗이 `(0.5, 0)` 이고 **배율을 손으로 2배** 해도 아래끝의 월드 자리가 그대로이며 늘어남은 위로만 간다.
+    ⚑ 알파로 재면 펄럭인다(빛줄기는 180ms 만 산다 — T422·T431·T443 가 그 자리에서 세 번 넘어졌고 런 1390 에서도 `SummonChargeTests` 가 «속창에 프레임이 한 번도 안 들어왔다» 로 건너뛰었다).
+- **`!important` 7 — 결함 0**: `@media` 안 셋은 **해당없음**(19 `forced-color-adjust`(forced-colors) · 4967·7371 `animation: none`(prefers-reduced-motion) — 유니티에 그 질의가 없다) ·
+  152 `#game3d { width/height: 100% }` 은 클론이 카메라·캔버스로 그렇게 선다 · 1724 `.hidden { display: none }` 은 GameObject 끄기 ·
+  **6977 `.sr-reflect * { animation: none }`** 은 뜻이 있는 자리다(정본 주석 «복제본은 연출을 다시 재생하면 안 된다 — 원본과 위상이 어긋나 두 겹으로 떨린다») —
+  클론은 반사를 **구운 판 한 장**(`BakeReflectSprite`)으로 두므로 재생할 연출이 애초에 없다 ✅. **축 닫힘**.
+- **게이트**: `dotnet build` 0 오류(TestsPlay 까지) · `dotnet test` 895/895 · `gate.sh` 막는 자 전부 rc 0 · 건너뜀 0.
+- **다음 축 후보**: ⓐ **`z-index` 112**(층 차례 — 클론은 형제 순서로 세우므로 자리마다 견줄 수 있다 · 덩어리가 가장 크다) ·
+  ⓑ `pointer-events` 68(누를 수 있나 — `raycastTarget` 과 짝) · ⓒ `overflow` 59(`Mask`·`RectMask2D` 와 짝) · ⓓ `background-position/size` 32(29·39회차가 두 번 미뤘다).
+  ⚑ 세 축 다 **이 회차의 잣대**를 쓴다 — 값이 아니라 «그 값이 만드는 것»(층 차례 · 누름 · 자르기)으로 견준다.
+
 ## 82회차 — 상태 규칙 전수: `:active` 를 뺀 셋은 **빈 축**이고 `.disabled` 클래스가 그 자리를 쥔다 (2026-11-27 · 워커 K · sess-1532-29140 · 런 1375 초록)
 
 - **81회차의 «다음 축 후보» 를 먼저 쟀다 — 그 셋은 없다**: 정본 `web/css/style.css` 를 (주석을 길이 보존으로 지운 뒤) 세니
