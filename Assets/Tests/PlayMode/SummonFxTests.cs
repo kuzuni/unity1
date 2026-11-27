@@ -191,52 +191,7 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>UI 를 한 장 그린다(T135 `DamageVignetteTests.Capture` 와 같은 길) — 눈 확인용 · 실패해도 판정을 안 흔든다.</summary>
-        static void Capture(string saveAs)
-        {
-            UiRoot root = UiRoot.Instance;
-            Canvas canvas = root.Canvas;
-            RenderMode prevMode = canvas.renderMode;
-            Camera prevCam = canvas.worldCamera;
-            float prevPlane = canvas.planeDistance;
-            RenderTexture prevActive = RenderTexture.active;
-            int w = Mathf.Max(64, Screen.width), h = Mathf.Max(64, Screen.height);
-            RenderTexture rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
-            GameObject camGo = new GameObject("t179-pixel-cam");
-            Camera cam = camGo.AddComponent<Camera>();
-            try
-            {
-                if (Camera.main != null) cam.CopyFrom(Camera.main);
-                cam.rect = new Rect(0f, 0f, 1f, 1f);
-                cam.targetTexture = rt;
-                cam.ResetProjectionMatrix();
-                cam.cullingMask = 1 << canvas.gameObject.layer;
-                cam.clearFlags = CameraClearFlags.SolidColor;
-                cam.backgroundColor = Color.black;
-                canvas.renderMode = RenderMode.ScreenSpaceCamera;
-                canvas.worldCamera = cam;
-                canvas.planeDistance = 1f;
-                root.Layout();
-                Canvas.ForceUpdateCanvases();
-                cam.Render();
-                RenderTexture.active = rt;
-                Texture2D tex = new Texture2D(w, h, TextureFormat.RGB24, false);
-                tex.ReadPixels(new Rect(0f, 0f, w, h), 0, 0);
-                tex.Apply(false);
-                try { Forge.Game.Gallery.GallerySheet.Save(tex, saveAs); } catch (System.Exception e) { Debug.Log("[T179] PNG 저장 생략: " + e.Message); }
-                Object.Destroy(tex);
-            }
-            finally
-            {
-                RenderTexture.active = prevActive;
-                canvas.renderMode = prevMode;
-                canvas.worldCamera = prevCam;
-                canvas.planeDistance = prevPlane;
-                root.Layout();
-                cam.targetTexture = null;
-                Object.Destroy(camGo);
-                Object.Destroy(rt);
-            }
-        }
+        static void Capture(string saveAs) { PlayShot.Capture(saveAs); }
     
         /// <summary>T334 3회차 — 주역 와이프. 정본 `fireSummonHero` 748~757 이 못 박은 갈래다:
         /// 홀드백이면 전 화면 `.flash`, **아니면 `.wipe`**(주역 셀 중심 가산 원형). 전 화면 섬광을 쓰면
