@@ -67,6 +67,12 @@ namespace Forge.Game.Ui
             public Image LandRing;
             /// <summary>T480 ⓑ — 고등급 회전 광선(정본 `.sr-ray`) — 래퍼 첫 자식(구슬 뒤) · 폭 (1 + 2 × .16) · 착지 뒤 .5s 에 `--ray` 로 밝아지고 3.6s 에 한 바퀴 돈다.</summary>
             public Image Ray;
+            /// <summary>
+            /// T503 — 라벨(이름판 `.sr-name` · 등급칩 `.sr-sub`)의 알파를 쥐는 자리. 정본 6256 은 셀(`srpop`)과 **다른 애니**(`srlabel`)를
+            /// 라벨에만 걸어 팝의 68% 까지 안 보이게 한다 — 셀 `CanvasGroup` 하나로는 그것이 안 된다(그것이 바로 정본이 «예전 꼴» 로 적어 둔 결함이다).
+            /// 둘뿐이다(구슬·광채는 셀 알파 그대로) · 셀 그룹 아래라 알파가 **곱해진다**(CSS 와 같다).
+            /// </summary>
+            public CanvasGroup[] LabelGroups;
             public int Tier;
         }
 
@@ -1222,6 +1228,12 @@ namespace Forge.Game.Ui
                 if (one) nw2 = Mathf.Min(cw, PetSkillKit.TextWidth(TextKind.Button, e.Name) + PetSkillStyle.Px("sr_name_one_pad_x_rem") * 2f);
                 RectTransform nameBox = UiKit.Box(cell, "sr-name");
                 UiKit.Place(nameBox, (cw - nw2) * 0.5f, ny, nw2, nameH);
+                // T503 — 정본 6256 `srlabel` 은 셀(`srpop`)과 **다른 애니**를 라벨에만 건다(팝의 68% 까지 알파 0).
+                //   셀 `CanvasGroup` 하나로는 그것이 안 되므로 라벨마다 제 그룹을 둔다(셀 그룹 아래라 알파가 곱해진다 — CSS 와 같다).
+                //   첫 프레임이 제 알파로 찍히지 않게 여기서 0% 상태(`label_a0`)를 세운다.
+                CanvasGroup nameCg = nameBox.gameObject.AddComponent<CanvasGroup>();
+                nameCg.alpha = (float)SummonFxStyle.Pop.LabelA0;
+                nameCg.blocksRaycasts = false;
                 PetSkillKit.Fill(nameBox, "bg", PetSkillStyle.C("sr_name_bg"), PetSkillStyle.Px(one ? "sr_name_one_r_rem" : "sr_name_r_rem"));
                 TextMeshProUGUI nt2 = PetSkillKit.Text(nameBox, "t", one ? TextKind.Button : TextKind.Sub, e.Name, PetSkillStyle.C("white"));   // T391 5회차 — 정본 7084 x1 소환만 1.25rem(45.5) → Button 44
                 UiKit.TextShadow(nt2, one ? "sr_name_one" : "sr_name");   // T333 15회차 — 정본 7032 `.sr-name`(0 .1rem .3rem .95) · 7084 `.sr-grid.one .sr-name`(0 .12rem .4rem .95) — 같은 글에 x1 이면 뒤 규칙
@@ -1239,6 +1251,11 @@ namespace Forge.Game.Ui
                 float rkW = PetSkillKit.TextWidth(TextKind.Sub, e.Sub) + PetSkillStyle.Px("sr_rk_pad_x_rem") * 2f;
                 RectTransform rk = UiKit.Box(cell, "sr-sub");
                 UiKit.Place(rk, (cw - rkW) * 0.5f, sy, rkW, subH);
+                // T503 — 정본 6256 은 `.sr-name` 과 `.sr-sub` **둘**을 같은 선택자에 묶었다(등급칩도 비행 중엔 안 보인다).
+                CanvasGroup rkCg = rk.gameObject.AddComponent<CanvasGroup>();
+                rkCg.alpha = (float)SummonFxStyle.Pop.LabelA0;
+                rkCg.blocksRaycasts = false;
+                c.LabelGroups = new[] { nameCg, rkCg };
                 // T331 32회차 — 정본 7075 `.sr-sub .sr-rk` 의 **둘째 겹** `0 .08rem .22rem rgba(0,0,0,.5)`
                 //   (첫 겹 `0 0 0 1px` 은 번짐만 있는 테두리라 T109 축이 본다).
                 UiShadow.Drop(rk, "srrk_drop", PetSkillStyle.Px("sr_rk_r_rem"), rkW, subH);
@@ -1579,6 +1596,15 @@ namespace Forge.Game.Ui
                 pp.At(ms, popMs, pp.Over(RarityIdx(c.Entry.Rarity)), out flyF, out popScale, out popAlpha);
                 float s = (float)popScale;
                 c.Group.alpha = (float)popAlpha;
+                // T503 — 라벨은 셀과 **다른 애니**(정본 6256 `srlabel`)를 탄다: 팝의 68% 까지 알파 0 · 마지막 32% 에 선형으로 켜진다.
+                //   시계는 셀과 같은 `.on`(`c.OnAt`)·같은 길이(`--pop`)이고, 주역이 착지에서 `srheropop` 으로 갈아타도 **다시 시작하지 않는다**
+                //   (갈아 끼우는 쪽은 셀의 단축 속성이다) — 그래서 아래 주역 갈래보다 **앞**에서, 갈래와 무관하게 한 번 먹인다.
+                if (c.LabelGroups != null)
+                {
+                    float la = (float)pp.LabelAlpha(ms, popMs);
+                    for (int li = 0; li < c.LabelGroups.Length; li++)
+                        if (c.LabelGroups[li] != null) c.LabelGroups[li].alpha = la;
+                }
                 // 0% 는 광원 자리 — 벡터가 아직 없으면(정본 `var(--dy, .5rem)`) 아래서 .5rem 올라온다.
                 Vector2 fly = c.ToLight * (float)flyF;
                 if (fly == Vector2.zero && flyF > 0) fly = new Vector2(0f, -(float)pp.Dy0Rem * PetSkillStyle.RemPx);
@@ -2342,6 +2368,21 @@ namespace Forge.Game.Ui
         public RectTransform CellRootOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Root : null; }
         public Vector2 HomeOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Home : Vector2.zero; }
         public bool CellOn(int i) { return i >= 0 && i < cells.Count && cells[i].On; }
+        /// <summary>T503 — i 번째 셀의 라벨 그룹 둘(이름판 · 등급칩 · dense 판엔 라벨이 없어 null) · 지금 알파(둘은 늘 같다 · 없으면 −1).</summary>
+        public CanvasGroup[] LabelGroupsOf(int i) { return i >= 0 && i < cells.Count ? cells[i].LabelGroups : null; }
+        public float LabelAlphaOf(int i)
+        {
+            CanvasGroup[] g = LabelGroupsOf(i);
+            return g == null || g.Length == 0 || g[0] == null ? -1f : g[0].alpha;
+        }
+        /// <summary>T503 — i 번째 셀의 팝 진행률(0~1 · 아직 안 켜졌으면 −1). 라벨 알파가 그 진행률을 따라야 한다.</summary>
+        public float PopProgressOf(int i)
+        {
+            if (i < 0 || i >= cells.Count || !cells[i].On) return -1f;
+            float popMs = cells[i].Pop * 1000f;
+            if (popMs <= 0f) return 1f;
+            return Mathf.Clamp01((Time.unscaledTime - cells[i].OnAt) * 1000f / popMs);
+        }
         /// <summary>T459 ⓨ — i 번째 셀의 광채 원판(고등급이 아니면 null).</summary>
         public Image GlowOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Glow : null; }
         /// <summary>T459 ⓩ — i 번째 구슬의 스페큘러 띠(done 뒤 첫 프레임에 선다 · 그 전엔 null).</summary>

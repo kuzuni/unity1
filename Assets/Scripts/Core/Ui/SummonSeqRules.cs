@@ -1808,6 +1808,14 @@ namespace Forge.Core.Ui
         public RewardBurstSpec.Track Pop;
         /// <summary>등급 계단 `--over`(정본 style.css 6327~6332 · `tier.over` · 일반→신화).</summary>
         public double[] TierOver;
+        /// <summary>
+        /// T503 — 라벨(이름판·등급칩)이 켜지기 **시작하는** 팝 진행률(정본 6258 `@keyframes srlabel { 0%, 68% { opacity: 0 } }` 의 68%).
+        /// 그 앞은 통째로 알파 0 이다 — 정본이 «비행 중에는 띄우지 않는다 · 예전엔 셀 opacity 하나로 같이 날아서 이웃 라벨이 한 덩어리로 융합했다» 고 적은 자리.
+        /// </summary>
+        public double LabelAtF;
+        /// <summary>그 구간의 시작·끝 알파(정본 0 → 1)와 이징(정본이 적은 `linear` = cubic-bezier(0,0,1,1)).</summary>
+        public double LabelA0, LabelA1;
+        public CssEase LabelEase;
 
         public static SummonPopSpec From(JsonObject root)
         {
@@ -1821,8 +1829,17 @@ namespace Forge.Core.Ui
                 ScaleOverAdd = J.Num(J.Require(o, "scale_over_add")),
                 OkMs = J.Num(J.Require(o, "ok_ms")),
                 TierOver = ov,
+                LabelAtF = J.Num(J.Require(o, "label_at_f")),
+                LabelA0 = J.Num(J.Require(o, "label_a0")),
+                LabelA1 = J.Num(J.Require(o, "label_a1")),
             };
             if (s.OkMs <= 0) throw new FormatException("SummonFxUi pop: ok_ms 는 0보다 커야 한다");
+            // T503 — 68% 가 0~1 밖이면 라벨이 영영 안 보이거나(≥1) 비행 중 내내 보인다(≤0) — 바로 그 결함으로 돌아간다.
+            if (s.LabelAtF <= 0 || s.LabelAtF >= 1) throw new FormatException("SummonFxUi pop: label_at_f 는 0 과 1 사이여야 한다(정본 6258 의 68%)");
+            if (s.LabelA1 <= s.LabelA0) throw new FormatException("SummonFxUi pop: label_a0 → label_a1 은 켜지는 방향이어야 한다(정본 0 → 1)");
+            double[] le = J.NumArr(J.Require(o, "label_ease"));
+            if (le == null || le.Length != 4) throw new FormatException("SummonFxUi pop: label_ease 는 cubic-bezier 넷이다(정본 6256 의 `linear` = 0,0,1,1)");
+            s.LabelEase = new CssEase(le[0], le[1], le[2], le[3]);
             var list = J.List(J.Require(o, "srpop"), x => J.Obj(x));
             if (list.Count < 2) throw new FormatException("SummonFxUi pop: srpop 키프레임이 둘 미만이다");
             var keys = new RewardBurstSpec.KeyStop[list.Count];
@@ -1869,6 +1886,21 @@ namespace Forge.Core.Ui
 
         /// <summary>아직 팝 중인가(정본 `forwards` — 끝나면 마지막 키에 머문다).</summary>
         public bool Popping(double ms, double popMs) { return ms >= 0 && ms < popMs; }
+
+        /// <summary>
+        /// T503 — 켜진 뒤 <paramref name="ms"/> 에서 라벨(이름판·등급칩)의 알파. 정본 6256 `srlabel var(--pop) linear forwards` ·
+        /// 6257~6260 `0%, 68% { opacity: 0 } 100% { opacity: 1 }`. 셀 알파와 **따로** 도는 둘째 애니라 이 수는 셀 알파에 **곱해진다**
+        /// (CSS 도 그렇다 — 자식의 `opacity` 는 부모 것과 곱해진다). <paramref name="popMs"/> 는 셀과 같은 `--pop` 이고,
+        /// 주역이 착지에서 `srheropop` 으로 갈아타도 이 시계는 **다시 시작하지 않는다**(갈아 끼우는 쪽은 셀의 단축 속성이다).
+        /// </summary>
+        public double LabelAlpha(double ms, double popMs)
+        {
+            if (popMs <= 0) return LabelA1;                 // 길이를 모르면 정착 상태(정본 `forwards` 의 끝)
+            double u = ms <= 0 ? 0 : ms >= popMs ? 1 : ms / popMs;
+            if (u <= LabelAtF) return LabelA0;
+            double k = (u - LabelAtF) / (1 - LabelAtF);
+            return LabelA0 + (LabelA1 - LabelA0) * LabelEase.Ease(k);
+        }
     }
 
 

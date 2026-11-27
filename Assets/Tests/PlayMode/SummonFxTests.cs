@@ -690,5 +690,88 @@ namespace Forge.Tests.PlayMode
             if (SkillSummonResultView.Current != null) SkillSummonResultView.Current.OnTap();
             yield return null;
         }
+
+        /// <summary>
+        /// T503 — 라벨(이름판 `.sr-name` · 등급칩 `.sr-sub`)은 셀과 **다른 애니**를 탄다: 정본 6256
+        /// `.sr-cell.on .sr-name, .sr-cell.on .sr-sub { animation: srlabel var(--pop, .32s) linear forwards }` ·
+        /// 6257~6260 `@keyframes srlabel { 0%, 68% { opacity: 0 } 100% { opacity: 1 } }`.
+        /// 정본이 까닭을 실측으로 적어 뒀다(6250~6255): «비행 중에는 띄우지 않는다 — **예전엔 셀 opacity 하나로 같이 날아서**
+        /// 이웃 라벨과 겹쳐 **한 덩어리로 융합**했다». 클론이 바로 그 «예전» 꼴이었다.
+        /// ⚑ 잣대를 **프레임이 아니라 규칙**에 건다(T422·T501 의 길) — 비행 한가운데 프레임을 잡으러 가면 러너 프레임 간격에 걸려 펄럭인다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 라벨은_제_그룹에_묶여_비행_중엔_안_보이고_팝_68_퍼센트_뒤에_켜진다()
+        {
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            // x5 — 이웃 라벨이 생겨야 정본이 적어 둔 «융합» 상황이 선다(x1 은 라벨이 하나다).
+            while (Host.SummonMult("skill") != 5) Host.CycleSummonMult("skill");
+            Host.Tickets = 10000;
+            Host.Sync();
+            yield return null;
+            Sheet.Skills.SummonButton.onClick.Invoke();
+            yield return null;
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+            Assert.AreEqual(5, v.CellCount, "x5");
+
+            // ⓐ **구조** — 라벨마다 제 `CanvasGroup` 이 있고 그것이 셀 그룹과 다른 물건이다(셀 알파 하나로는 정본이 안 된다).
+            CanvasGroup cellG = v.CellRootOf(0).GetComponent<CanvasGroup>();
+            Assert.IsNotNull(cellG, "셀 그룹");
+            CanvasGroup[] lg = v.LabelGroupsOf(0);
+            Assert.IsNotNull(lg, "라벨 그룹(이름판 · 등급칩)");
+            Assert.AreEqual(2, lg.Length, "정본 6256 은 `.sr-name` 과 `.sr-sub` **둘**을 묶는다");
+            for (int i = 0; i < lg.Length; i++)
+            {
+                Assert.IsNotNull(lg[i]);
+                Assert.AreNotSame(cellG, lg[i], "라벨 알파는 셀 알파와 **따로** 돈다");
+                Assert.IsTrue(lg[i].transform.IsChildOf(v.CellRootOf(0)), "라벨은 셀 안에 산다(알파가 곱해진다 — CSS 와 같다)");
+            }
+            Assert.AreEqual("sr-name", lg[0].name); Assert.AreEqual("sr-sub", lg[1].name);
+
+            // ⓑ **규칙** — 뷰가 읽는 그 표로 세 자리를 잰다(정본 6258 의 68% · 선형).
+            Forge.Core.Ui.SummonPopSpec pp = SummonFxStyle.Pop;
+            const double pop = 320;
+            Assert.AreEqual(0f, (float)pp.LabelAlpha(pop * 0.50, pop), 1e-6f, "팝 50%(비행 중) 라벨 0");
+            float a84 = (float)pp.LabelAlpha(pop * 0.84, pop);
+            Assert.Greater(a84, 0f); Assert.Less(a84, 1f);
+            Assert.AreEqual(0.5f, a84, 0.02f, "84% = 구간의 절반(정본이 적은 `linear`)");
+            Assert.AreEqual(1f, (float)pp.LabelAlpha(pop, pop), 1e-6f, "100% 에 다 켜진다");
+
+            // ⓒ **살아 있는 프레임** — 팝이 도는 동안 모아 본다. 진행률 ≤ 68% 인 프레임은 **하나도** 알파가 0 이 아니어서는 안 된다.
+            //   (한 프레임도 못 잡으면 단언하지 않는다 — 느린 러너에서 펄럭이지 않게. 잡았는지는 끝에서 센다.)
+            int low = 0, high = 0;
+            float waited = 0f;
+            while (waited < 3f && !v.Done)
+            {
+                for (int i = 0; i < v.CellCount; i++)
+                {
+                    float u = v.PopProgressOf(i), la = v.LabelAlphaOf(i);
+                    if (u < 0f || la < 0f) continue;
+                    if (u <= (float)pp.LabelAtF - 0.02f)
+                    {
+                        low++;
+                        Assert.AreEqual(0f, la, 1e-4f, "셀 " + i + " 는 팝 " + u.ToString("0.000") + "(≤68%) 인데 라벨이 보인다 — 비행 중 융합(정본 6250 주석)");
+                    }
+                    else if (u >= 0.999f) { high++; Assert.AreEqual(1f, la, 1e-4f, "팝이 끝난 셀의 라벨은 알파 1(forwards)"); }
+                }
+                waited += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.Greater(low + high, 0, "팝이 도는 프레임을 하나도 못 잡았다 — 창을 넓히거나 자리를 앞으로");
+
+            // ⓓ **정착** — 전부 공개하고 팝 길이를 지나면 라벨은 다 켜져 있다(촬영이 찍는 모습이 이것이다).
+            if (!v.Done) v.OnTap();
+            float t2 = 0f;
+            while (t2 < 0.8f) { t2 += Time.unscaledDeltaTime; yield return null; }
+            for (int i = 0; i < v.CellCount; i++)
+                Assert.AreEqual(1f, v.LabelAlphaOf(i), 1e-3f, "정착한 셀 " + i + " 의 라벨 알파 1");
+
+            if (SkillSummonResultView.Current != null) SkillSummonResultView.Current.OnTap();
+            yield return null;
+        }
     }
 }

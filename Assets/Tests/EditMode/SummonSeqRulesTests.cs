@@ -1384,6 +1384,59 @@ namespace Forge.Tests
             s.At(320 * 0.76, 320, s.Over(0), out f, out sc, out a);
             Assert.AreEqual(1.07, sc, 1e-9, "일반 착지 76% = 1 + .1 × .7");
         }
+
+        /// <summary>
+        /// T503 — 라벨(이름판·등급칩)은 셀과 **다른 애니**를 탄다. 정본 6256 `srlabel var(--pop) linear forwards` ·
+        /// 6257~6260 `0%, 68% { opacity: 0 } 100% { opacity: 1 }`. 종전 클론은 셀 알파 하나로 같이 날려
+        /// `srpop` 의 30%(알파 1)부터 비행 중 내내 보였다 — 정본이 주석에 «그렇게 해서 이웃 라벨이 한 덩어리로 융합했다» 고 적은 꼴이다.
+        /// </summary>
+        [Test]
+        public void 라벨은_팝의_68_퍼센트까지_안_보이고_마지막_32_퍼센트에_선형으로_켜진다()
+        {
+            SummonPopSpec s = S();
+            Assert.AreEqual(0.68, s.LabelAtF, 1e-9, "정본 6258 의 68%");
+            Assert.AreEqual(0.0, s.LabelA0, 1e-9); Assert.AreEqual(1.0, s.LabelA1, 1e-9);
+            const double pop = 320;
+            // ⓐ 비행 구간은 통째로 0 — 셀은 이미 알파 1 인데(srpop 30%) 라벨은 안 보인다. 그것이 이 작업의 전부다.
+            double f, sc, cellA;
+            s.At(pop * 0.40, pop, s.Over(2), out f, out sc, out cellA);
+            Assert.AreEqual(1.0, cellA, 1e-9, "셀은 팝 40% 에 이미 알파 1(srpop 30%)");
+            Assert.AreEqual(0.0, s.LabelAlpha(pop * 0.40, pop), 1e-12, "그런데 라벨은 0 이다(비행 중)");
+            foreach (double u in new[] { 0.0, 0.1, 0.3, 0.5, 0.67, 0.68 })
+                Assert.AreEqual(0.0, s.LabelAlpha(pop * u, pop), 1e-12, "팝 " + u + " 에서 라벨 0");
+            // ⓑ 68% 뒤는 선형 — 84% 는 그 구간의 딱 절반이다(정본이 적은 `linear`).
+            Assert.AreEqual(0.5, s.LabelAlpha(pop * 0.84, pop), 1e-6, "84% = (84−68)/32 = 0.5 · linear");
+            Assert.AreEqual(0.25, s.LabelAlpha(pop * 0.76, pop), 1e-6, "76%(착지 = 스프링 시작점)에 막 꺼내는 중");
+            Assert.AreEqual(1.0, s.LabelAlpha(pop, pop), 1e-9, "100% 에 다 켜진다");
+            // ⓒ `forwards` — 끝난 뒤에도 1 로 남고, 음수 시각·길이 0 에서도 안 깨진다.
+            Assert.AreEqual(1.0, s.LabelAlpha(pop * 3, pop), 1e-9, "forwards 라 끝 상태로 남는다");
+            Assert.AreEqual(0.0, s.LabelAlpha(-5, pop), 1e-12);
+            Assert.AreEqual(1.0, s.LabelAlpha(10, 0), 1e-9, "길이를 모르면 정착 상태(끝 키)");
+            // ⓓ 단조 — 중간에 내려가는 구간이 없다(선형이 아닌 곡선을 표에 넣어도 켜지는 방향이어야 한다).
+            double prev = -1;
+            for (int i = 0; i <= 50; i++)
+            {
+                double v = s.LabelAlpha(pop * i / 50.0, pop);
+                Assert.GreaterOrEqual(v, prev - 1e-12, "단조");
+                prev = v;
+            }
+        }
+
+        /// <summary>T503 — 표가 그 셋을 잃거나 뒤집히면 **읽는 자리에서** 막는다(라벨이 영영 안 보이거나 비행 중 내내 보이는 두 꼴).</summary>
+        [Test]
+        public void 라벨_칸이_범위_밖이면_표를_읽다_막는다()
+        {
+            string root = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(DataDir.Path)));
+            string raw = File.ReadAllText(Path.Combine(root, "Assets", "Forge", "Resources", "SummonFxUi.json"));
+            Assert.Throws<System.FormatException>(() => SummonPopSpec.From(MiniJson.ParseObject(
+                raw.Replace("\"label_at_f\": 0.68", "\"label_at_f\": 1.0"))), "68% 가 1 이면 라벨이 영영 안 보인다");
+            Assert.Throws<System.FormatException>(() => SummonPopSpec.From(MiniJson.ParseObject(
+                raw.Replace("\"label_at_f\": 0.68", "\"label_at_f\": 0.0"))), "0 이면 비행 중 내내 보인다(종전 결함)");
+            Assert.Throws<System.FormatException>(() => SummonPopSpec.From(MiniJson.ParseObject(
+                raw.Replace("\"label_a1\": 1.0", "\"label_a1\": 0.0"))), "a0 → a1 이 켜지는 방향이 아니다");
+            Assert.Throws<System.FormatException>(() => SummonPopSpec.From(MiniJson.ParseObject(
+                raw.Replace("\"label_ease\": [0.0, 0.0, 1.0, 1.0]", "\"label_ease\": [0.0, 0.0]"))), "cubic-bezier 넷이 아니다");
+        }
     
         // ---- T480 — 착지 링(landring · 정본 srring) · 회전 광선(ray · 정본 srrayfade/srrayspin) ----
         static JsonObject FxRoot()
