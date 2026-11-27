@@ -961,6 +961,12 @@ VS_TOL = 6                                 # 화소 맞추기 허용 오차(채�
 VS_MIN_BLOB = 24                           # 이보다 작은 덩어리는 글자 테·압축 잡음이라 안 센다
 VS_MAX_ROWS = 8                            # 찍는 덩어리 줄 수 상한(**다른 것부터** 찍는다)
 VS_BLOB_NOISE = 12                         # 덩어리가 이보다 많으면 «그 색은 화면에 널려 있다» — 자리 가리기가 안 된다
+# T517 — **클론 쪽**도 ±N 으로 본다. `scan_ref` 는 원작 쪽을 `VS_TOL` 6 으로 보면서 클론 화소는 «바이트가 딱 맞을 때만»
+#   표에 맞췄다 — 유니티는 못박은 색을 1~2 어긋나게 그린다(`#00897b` → (0,137,**124**) · `#c62828` → (198,**38**,**38**)).
+#   검수 Q 54회차 실측(런 1375 · 31화면 전수): 못박은 색 **109개 중 17개**가 «≤2 로만 찍히고 딱 맞게는 한 화소도 없다» —
+#   `pets` 한 장에서 `.cur-pill.egg`(딱맞음 629)는 올라오고 바로 옆 `.cur-pill.gem`(딱맞음 **0** · ≤2 577)은 안 올라왔다.
+#   ⚠ 넓히는 것은 «클론 화소 → 표» 열쇠 **하나**다 — `VS_TOL`·`VS_MIN_BLOB`·`VS_BLOB_NOISE` 는 그대로다.
+VS_CLONE_TOL = 2                           # 클론 화소를 표 색으로 읽을 때의 채널당 허용 오차(T517 · 실측 ±2 면 17개가 다 들어온다)
 CHROMA_HUE = 40                            # 채널 최대−최소가 이 이상이면 «유채색» — 색 갈래와 어둠·판 갈래를 가르는 금
 
 
@@ -1226,6 +1232,40 @@ def _chroma(rgb):
     return max(rgb) - min(rgb)
 
 
+def clone_lut(table, tol=None):
+    """T517 — 표 색마다 ±<paramref name="tol"/> 안의 모든 바이트 열쇠를 미리 펼친 조회표: 열쇠 → (표 색, 어긋남).
+
+    한 화소마다 109개 색과 거리를 재면 100만 화소에서 못 돈다 — 그래서 표 쪽을 펼친다(109 × 5³ ≈ 1만 3천 칸).
+    두 표 색이 같은 열쇠를 다투면 **가까운 쪽**이 가져가고 거리가 같으면 먼저 온 쪽이 쥔다(그 다툼 수는 부르는 쪽이 찍는다).
+    """
+    tol = VS_CLONE_TOL if tol is None else tol
+    lut, clash = {}, 0
+    rng = range(-tol, tol + 1)
+    for rgb in table:
+        for dr in rng:
+            r = rgb[0] + dr
+            if r < 0 or r > 255:
+                continue
+            for dg in rng:
+                g = rgb[1] + dg
+                if g < 0 or g > 255:
+                    continue
+                for db in rng:
+                    b = rgb[2] + db
+                    if b < 0 or b > 255:
+                        continue
+                    d = max(abs(dr), abs(dg), abs(db))
+                    cur = lut.get((r, g, b))
+                    if cur is None:
+                        lut[(r, g, b)] = (rgb, d)
+                    elif d < cur[1]:
+                        lut[(r, g, b)] = (rgb, d)
+                        clash += 1
+                    elif cur[0] != rgb:
+                        clash += 1
+    return lut, clash
+
+
 def scan_ref(shots_dir, ref_dir=None, css_path=None, only=None, per_screen=3):
     """정본이 못박은 **면 색**을 화면마다 훑어 «정본 ≠ 원작» 자리를 **기계가 먼저** 목록에 올린다(T512 걸음 ⓒ).
 
@@ -1249,6 +1289,10 @@ def scan_ref(shots_dir, ref_dir=None, css_path=None, only=None, per_screen=3):
         return 1
     print(u"· 정본이 면에 못박은 색 %d개(선언 %d개 · 토큰 푼 것 포함)를 화면마다 훑는다"
           % (len(table), sum(len(v) for v in table.values())))
+    # T517 — 클론 화소를 **±VS_CLONE_TOL** 로 읽는다(종전엔 «바이트가 딱 맞을 때만» 이라 17개가 통째로 안 보였다).
+    lut, clash = clone_lut(table)
+    print(u"  · 클론 화소는 **±%d** 로 읽는다(T517 — 유니티가 못박은 색을 1~2 어긋나게 그린다) · 펼친 열쇠 %d칸%s"
+          % (VS_CLONE_TOL, len(lut), u"" if not clash else u" · 두 색이 다툰 열쇠 %d칸(가까운 쪽이 쥔다)" % clash))
     hot, cold, flat, seen = [], [], [], 0
     for screen, ref_rel_path in pairs():
         if only and screen not in only:
@@ -1262,14 +1306,19 @@ def scan_ref(shots_dir, ref_dir=None, css_path=None, only=None, per_screen=3):
         clone, ref = png_read(cp), png_read(rp)
         seen += 1
         ax, ay, aw, ah = app_box(clone)
-        buckets = {}
+        buckets, offs = {}, {}
         for y in range(ay, ay + ah):
             row = y * clone.w * 3
             for x in range(ax, ax + aw):
                 i = row + x * 3
-                key = (clone.px[i], clone.px[i + 1], clone.px[i + 2])
-                if key in table:
-                    buckets.setdefault(key, []).append((x, y))
+                got = lut.get((clone.px[i], clone.px[i + 1], clone.px[i + 2]))
+                if got is not None:
+                    buckets.setdefault(got[0], []).append((x, y))
+                    # T517 — «어느 바이트로 맞았는가» 를 같이 쥔다(0 = 딱맞음 · 그 수가 0 이면 종전 자는 이 색을 **못 봤다**).
+                    o = offs.setdefault(got[0], [0, 0])
+                    o[0] += 1 if got[1] == 0 else 0
+                    if got[1] > o[1]:
+                        o[1] = got[1]
         rax, ray, raw_, rah = app_box(ref)
         rows, spread = [], []
         for rgb, hit in buckets.items():
@@ -1299,7 +1348,8 @@ def scan_ref(shots_dir, ref_dir=None, css_path=None, only=None, per_screen=3):
                 xs, ys = [q[0] for q in comp], [q[1] for q in comp]
                 x0p, y0p = app_rel(clone, min(xs), min(ys))
                 x1p, y1p = app_rel(clone, max(xs), max(ys))
-                rows.append((d, len(comp), rgb, med, (x0p, x1p, y0p, y1p)))
+                ex = offs.get(rgb) or [0, 0]
+                rows.append((d, len(comp), rgb, med, (x0p, x1p, y0p, y1p), ex[0], ex[1]))
         # 갈래를 **먼저** 가르고 갈래마다 상한을 둔다 — 안 그러면 넓은 어둠 자리가 색 갈래를 밀어낸다
         # (3회차에 실제로 그랬다: 판정의 토글 자리는 482화소라 `#000000` 수천 화소에 가려 안 보였다).
         h = [r for r in rows if _chroma(r[2]) >= CHROMA_HUE or _chroma(r[3]) >= CHROMA_HUE]
@@ -1313,6 +1363,16 @@ def scan_ref(shots_dir, ref_dir=None, css_path=None, only=None, per_screen=3):
             flat.append((screen, spread))
     print(u"· 훑은 화면 %d개 · **색 갈래**(둘 중 하나가 유채색) %d자리 · 어둠·판 갈래 %d자리"
           % (seen, len(hot), len(cold)))
+    # T517 ⓑ — **훑은 화면이 0 이면 운다.** 종전엔 «훑은 화면 0개 · (없다)» 를 **rc 0** 으로 내서
+    #   `--shots` 를 안 준 회차(기본값 `ui-screens/` 는 저장소에 없다)가 «깨끗하다» 로 읽혔다 — 전수가 0 인 것과 깨끗한 것은 다른 말이다.
+    if seen == 0:
+        print(u"")
+        print(u"⛔ **훑은 화면이 0 개다 — 이것은 «깨끗하다» 가 아니라 «아무것도 안 봤다» 다**(T517).")
+        print(u"   까닭 후보: ⓐ `--shots <자리>` 를 안 줬다(기본값 `%s` 는 저장소에 없다 — `origin/screens` 를 내려 쓴다)"
+              % os.path.relpath(shots_dir, REPO))
+        print(u"   ⓑ 그 자리에 `screen_*.png` 가 없다 ⓒ `--only` 가 짝 없는 이름이다 ⓓ 원작 샷(`%s`)이 없다."
+              % os.path.relpath(ref_dir, REPO))
+        return 1
     print(u"")
     print(u"  ── 색 갈래 — 먼저 봐라(원작과 **색이 다른** 면) ──")
     _scan_rows(hot, table)
@@ -1342,10 +1402,12 @@ def _scan_rows(rows, table, limit=10):
     if not rows:
         print(u"    (없다)")
         return
-    for screen, d, n, rgb, med, box in rows[:limit]:
+    for screen, d, n, rgb, med, box, exact, off in rows[:limit]:
         sels = [s for s, _l in table.get(rgb, [])]
-        print(u"    %-16s #%02x%02x%02x ↔ 원작 (%d,%d,%d) · 차 %3d · %5d화소 · x %.1f~%.1f%%W y %.1f~%.1f%%H"
-              % ((screen,) + rgb + med + (d, n, box[0], box[1], box[2], box[3])))
+        # T517 — «어느 바이트로 맞았는지» 를 같이 찍는다: 딱맞음 0 이면 **종전 자는 이 자리를 아예 못 봤다**.
+        how = (u"딱맞음 %d" % exact) if exact else (u"**딱맞음 0** · ≤%d 로만 찍혔다(T517 앞에는 안 보였다)" % off)
+        print(u"    %-16s #%02x%02x%02x ↔ 원작 (%d,%d,%d) · 차 %3d · %5d화소 · x %.1f~%.1f%%W y %.1f~%.1f%%H · %s"
+              % ((screen,) + rgb + med + (d, n, box[0], box[1], box[2], box[3], how)))
         print(u"        그 색을 못박은 정본 선택자 %d개: %s"
               % (len(sels), u" · ".join(sels[:4]) + (u" …" if len(sels) > 4 else u"")))
     if len(rows) > limit:
@@ -3756,6 +3818,57 @@ def self_test():
         _h2 = _js.loads(_f.read())["history"]
     chk([x.get("run") for x in _h2] == [None, None, 1],
         u"번호가 있으면 같은 번호의 옛 칸은 그대로 갈아탄다(T500 · 이력 %s)" % ([x.get("run") for x in _h2],))
+
+    # T517 ⓐ — **±2 로 어긋난 가짜 샷**에서 자리가 올라오고 «딱맞음 0» 꼬리표가 붙는다.
+    #   🚫 `clone_lut` 의 펼치기를 지우면(또는 tol 을 0 으로 박으면) 이 칸이 바로 빨강이 된다 —
+    #   고장 주입이 **답을 바꾸는 자리**에 있다(결정 855). 아래 ±0 대조군이 그 증거다.
+    import contextlib as _cl
+    import io as _io
+    _d7 = _tf.mkdtemp(prefix="ui_score_t517_")
+    _sd, _rd = os.path.join(_d7, "s"), os.path.join(_d7, "r")
+    os.makedirs(_sd)
+    _name7, _rel7 = next(((s, r) for s, r in pairs() if r), (None, None))
+    _css7 = os.path.join(_d7, "fake.css")
+    with open(_css7, "w", encoding="utf-8") as _f:
+        _f.write(u".t517-fake { background: #00897b; }\n")
+    if _name7:
+        os.makedirs(os.path.join(_rd, os.path.dirname(_rel7)) or _rd, exist_ok=True)
+        _c7 = _canvas(90, 160, (13, 17, 23))
+        _fill(_c7, 10, 10, 60, 60, (2, 139, 121))      # 못박은 #00897b 에서 ±2 어긋난 화소
+        with open(os.path.join(_sd, "screen_%s.png" % _name7), "wb") as _f:
+            _f.write(png_write(None, _c7))
+        with open(os.path.join(_rd, _rel7), "wb") as _f:
+            _f.write(png_write(None, _canvas(90, 160, (35, 35, 35))))
+
+        def _scan7(tol):
+            _keep = VS_CLONE_TOL
+            globals()["VS_CLONE_TOL"] = tol
+            _b = _io.StringIO()
+            try:
+                with _cl.redirect_stdout(_b):
+                    _rc = scan_ref(_sd, ref_dir=_rd, css_path=_css7, only=[_name7])
+            finally:
+                globals()["VS_CLONE_TOL"] = _keep
+            return _rc, _b.getvalue()
+
+        _rc2, _o2 = _scan7(2)
+        _rc0, _o0 = _scan7(0)
+        chk(_rc2 == 0 and ".t517-fake" in _o2,
+            u"±2 어긋난 가짜 샷에서 그 자리가 목록에 오른다(T517 · rc %s)" % _rc2)
+        chk(u"딱맞음 0" in _o2 and u"T517 앞에는 안 보였다" in _o2,
+            u"그 줄에 «딱맞음 0 · ≤2 로만 찍혔다» 꼬리표가 붙는다(T517)")
+        chk(".t517-fake" not in _o0,
+            u"±0 대조군에서는 그 자리가 **안** 보인다(고장 주입이 답을 바꾼다 · 결정 855)")
+    else:
+        chk(False, u"화면 표가 비어 ±2 가짜 샷 칸을 못 돌렸다(`pairs()` 가 0줄)")
+
+    # T517 ⓑ — **빈 폴더는 «깨끗하다» 가 아니다.** 훑은 화면이 0 이면 ⛔ 와 함께 rc 1 로 떨어진다
+    #   (종전엔 «0자리» 를 찍고 rc 0 으로 끝나서, `--shots` 를 빼먹은 발사가 **초록으로 보였다**).
+    _b8 = _io.StringIO()
+    with _cl.redirect_stdout(_b8):
+        _rc8 = scan_ref(os.path.join(_d7, "empty-nope"), ref_dir=_rd, css_path=_css7)
+    chk(_rc8 == 1 and u"아무것도 안 봤다" in _b8.getvalue(),
+        u"샷이 0장이면 ⛔ 와 함께 rc 1 이다(T517 · rc %s)" % _rc8)
 
     print(u"")
     if fail:
