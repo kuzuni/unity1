@@ -19,7 +19,7 @@
     },
     "btn_disabled": {
       "a": 0.45,
-      "_": "style.css 673 `.btn.disabled { opacity: .45 }` — 5회차에 배선했다(공용 버튼 공장 `PopupKit.Btn` · 종전엔 그 자리에 0.45f 가 박혀 있었다). 정본 opacity 는 버튼 한 겹 전체(글자·테까지)라 CanvasGroup 으로 건다. 그 파일은 T331 12회차(결정 664)가 범위를 줄이며 놓아 열렸다."
+      "_": "style.css 673 `.btn.disabled { opacity: .45 }` — 5회차에 배선했다(공용 버튼 공장 `PopupKit.Btn` · 종전엔 그 자리에 0.45f 가 박혀 있었다). 정본 opacity 는 버튼 한 겹 전체(글자·테까지)라 CanvasGroup 으로 건다. 그 파일은 T331 12회차(결정 664)가 범위를 줄이며 놓아 열렸다. — ⚠ **T516 바로잡음(2026-11-27)**: 이 선언은 참이지만 **문서 뒤 3556 이 `opacity: 1` 로 되돌린다** — `.modal-card .btn.disabled, .panel .btn.disabled, #equip-sheet .btn.disabled` 가 회색 면·#7b7b7b 글자·회색 턱과 함께 투명도를 걷어낸다(그 규칙 주석이 까닭까지 적었다 — «렌더링 덜 된 버튼» 으로 채점됐다). 그래서 **공용 버튼 공장은 이 칸을 더 이상 부르지 않는다**. 칸을 지우지 않는 까닭은 673 이 정본에 실제로 있기 때문이다 — 다른 자리가 그 선언을 찾으면 여기서 이 주석을 먼저 읽게 한다."
     },
     "cmp_card_empty": {
       "a": 0.7,

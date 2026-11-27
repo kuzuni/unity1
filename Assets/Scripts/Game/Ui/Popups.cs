@@ -489,6 +489,19 @@ namespace Forge.Game.Ui
             Button b = UiKit.Button(parent, name, onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
             Size(rt, w, h);
+            // T516 — 비활성은 **제 색을 흐리는 것이 아니라 회색 세 겹으로 갈아입는 것**이다.
+            //   정본 **3556** `.modal-card .btn.disabled, .panel .btn.disabled, #equip-sheet .btn.disabled {
+            //     background: var(--pp-gray); color: #7b7b7b; box-shadow: inset 0 -.22rem 0 var(--pp-gray-dk); **opacity: 1** }`
+            //   — 그 규칙의 주석이 까닭까지 적어 뒀다: «`opacity .75 → 1`(9차) … 반투명해 배경 일러스트가 비쳐
+            //   «**렌더링 덜 된 버튼**» 으로 채점됐다 … 비활성은 이미 **회색 면 + 죽인 글자색(#7b7b7b)** 이 말하고 있으므로 투명도는 걷는다».
+            //   673 `.btn.disabled { opacity: .45 }` 는 **문서 뒤 3556 이 1 로 되돌린다** — 클론은 그 되돌림을 안 옮겨 cascade 를 거꾸로 잡고 있었다.
+            if (disabled)
+            {
+                faceKey = "pp_gray";
+                lipKey = "pp_gray_dk";
+                inkKey = "btn_disabled_ink";   // 표 `catalog.json:158` #7b7b7b — 키는 있었는데 이 자리가 안 불렀다
+                surfaceKey = null;             // 제 램프(승천 등)는 비활성에서 안 쓴다 — 회색 면이 말한다
+            }
             // T415 18회차 — 정본 3542 `.modal-card .btn, .panel .btn, #equip-sheet .btn { border-radius: .7rem }`: 이 공장을 부르는 자리는 전부 그 셋 안이라 기본은 표 `modal_btn_r_rem`(.7rem)이다(663 의 맨 `.btn` .55rem = catalog `btn_r` 은 이제 부르는 자리가 없다).
             float r = radius > 0f ? radius : RadiusUi.Px("modal_btn_r_rem");   // T415 13회차 — 정본이 선택자에 따로 못박은 반지름(`.fi-card .fi-skip` .6rem)은 부르는 쪽이 표값을 넘긴다 · 안 넘기면 공용 `btn_r`
             float lip = UiKit.H("btn_lip");
@@ -522,9 +535,10 @@ namespace Forge.Game.Ui
             if (disabled)
             {
                 b.interactable = false;
-                // T359 5회차 — 정본 `style.css` **673** `.btn.disabled { … opacity: .45 … }`. 여기 숫자로 박혀 있었다(§1).
+                // T516 — **`opacity` 를 걸지 않는다**(위 머리의 회색 세 겹이 정본 3556 그대로다).
+                //   종전 줄(아래 주석)은 673 만 보고 3556 의 되돌림을 못 봤다 — 표의 `btn_disabled` 칸은 **지우지 않는다**(정본에 그 선언이 있다는 사실은 참이다).
+                // (종전) T359 5회차 — 정본 `style.css` **673** `.btn.disabled { … opacity: .45 … }`. 여기 숫자로 박혀 있었다(§1).
                 //   정본 `opacity` 는 **그 상자 한 겹 전체**(글자·테까지)라 CanvasGroup 한 장이 같은 뜻이다 — 값만 표로 옮긴다.
-                OpacityUi.Apply(rt.gameObject, "btn_disabled");
             }
             // T515 1회차 — 정본 **3563** `.modal-card .btn:active, .panel .btn:active, #equip-sheet .btn:active { transform: translateY(.1rem); box-shadow: none }`:
             //   그 선택자 셋이 **팝업·패널·장비시트의 모든 버튼**이고 이 공장이 그 셋을 통째로 만든다(T415 18회차가 반지름에서 같은 것을 확인했다).
