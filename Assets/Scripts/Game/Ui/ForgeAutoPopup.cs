@@ -214,9 +214,11 @@ namespace Forge.Game.Ui
                     int pick = n;
                     // T515 4회차 — 정본 **4802** `.af-dd-list button:active { background: #2c313a }`: 이 항목은 `class` 에 `btn` 이
                     //   없어 3563 이 **안 걸린다** — 가라앉지도 턱이 걷히지도 않고 **배경만** 바뀐다. 공용 공장이 걸어 주는
-                    //   `modal_btn` 을 여기서 끈다(`pressKey: null`) — 정본에 없는 움직임을 지운다(결정 888).
-                    //   그 «누름 배경» 채널은 표에 아직 없다(T515 에 남은 갈래 · 절에 적어 뒀다).
-                    Button ib = PopupKit.Btn(ddc, "n-" + n, n.ToString(), cfg.HammersPerBatch == n ? "pp_blue" : "pp_gray", cfg.HammersPerBatch == n ? "pp_blue_dk" : "pp_gray_dk", () => { ddOpen = false; h.PickHammers(pick); }, -1f, itemH, "stage_ink", TextKind.Sub, pressKey: null);
+                    //   `modal_btn` 을 여기서 끈다 — 정본에 없는 움직임을 지운다(4회차 · 결정 888).
+                    // T515 5회차 — 그 자리의 **제 채널**을 세웠다: 표 `af_dd_item`(dy 0 · ms 0 · `face_swap: true`) +
+                    //   누르는 동안의 면 색 `af_dd_press_face`(#2c313a · `PinnedColorUi`). 곧 **배경만** 납작하게 갈아입는다.
+                    //   ⚠ 표시된 항목(정본 4801 `.on` 파랑)도 특이도가 같고 4802 가 뒤라 **같은 색으로** 갈아입는다 — 그래서 두 상태에 똑같이 건다.
+                    Button ib = PopupKit.Btn(ddc, "n-" + n, n.ToString(), cfg.HammersPerBatch == n ? "pp_blue" : "pp_gray", cfg.HammersPerBatch == n ? "pp_blue_dk" : "pp_gray_dk", () => { ddOpen = false; h.PickHammers(pick); }, -1f, itemH, "stage_ink", TextKind.Sub, pressKey: "af_dd_item", pressSwapKey: "af_dd_press_face");
                 }
                 ScrollRect sr = dd.GetComponent<ScrollRect>();
                 int cur = (int)cfg.HammersPerBatch;

@@ -23,7 +23,8 @@ namespace Forge.Tests
             // T515 3회차 — + `anvil_btn`(987) · `tri_btn`(4591): `class` 에 `btn` 이 **없어** 3563 이 안 걸리는 두 자리다(결정 880).
             //   ⚑ 칸 수는 «정본 `:active` 선언 수» 가 아니다 — 열아홉 선언 중 여섯은 3563 의 **재선언**이라 제 칸이 없다(같은 수가 여러 칸에 복사되면 하나를 고칠 때 나머지가 조용히 어긋난다).
             // T515 4회차 — + `x_btn`(3750 · dy 가 **.12rem** 이라 3563 과 다른 칸이다).
-            Assert.AreEqual(11, t.Keys.Count, "정본 :active 자리 열하나(213·4304·7750·8087·4982·5002·5011 + 3563 + 987 + 4591 + 3750)");
+            // T515 5회차 — + `af_dd_item`(4802 · 움직임이 **없고** 배경만 갈아입는 유일한 칸).
+            Assert.AreEqual(12, t.Keys.Count, "정본 :active 자리 열둘(213·4304·7750·8087·4982·5002·5011 + 3563 + 987 + 4591 + 3750 + 4802)");
             PressSpec c = t.Get("offline_chest");
             Assert.AreEqual(0.08, c.DyRem, 1e-9); Assert.AreEqual(0.94, c.Scale, 1e-9); Assert.AreEqual(1.0, c.Brightness, 1e-9); Assert.AreEqual(100, c.Ms, 1e-9);
             PressSpec p = t.Get("pet_tile");
@@ -68,6 +69,22 @@ namespace Forge.Tests
             foreach (string k in t.Keys)
                 if (k != "modal_btn" && k != "x_btn")
                     Assert.IsFalse(t.Get(k).LipOff, k + ": 턱을 걷는 자리는 `modal_btn`·`x_btn` 둘뿐이다(나머지 선언엔 box-shadow 가 없다)");
+            // T515 5회차 — 드롭다운 항목(정본 4802)은 **배경만** 바뀐다: 가라앉기도 배율도 밝기도 없고 교체 채널만 참이다.
+            PressSpec dd = t.Get("af_dd_item");
+            Assert.AreEqual(0.0, dd.DyRem, 1e-9, "4802 엔 transform 이 없다 — 가라앉지 않는다");
+            Assert.AreEqual(1.0, dd.Scale, 1e-9); Assert.AreEqual(1.0, dd.Brightness, 1e-9, "4802 엔 filter 가 없다 — 밝기 곱하기가 아니다");
+            Assert.AreEqual(0.0, dd.Ms, 1e-9, "4802 엔 transition 이 없다 — 즉시");
+            Assert.IsFalse(dd.LipOff, "4802 엔 box-shadow 가 없다 — 걷을 턱이 없다");
+            Assert.IsTrue(dd.FaceSwap, "4802 background: #2c313a — 면 색을 갈아입는다");
+            foreach (string k in t.Keys)
+                if (k != "af_dd_item")
+                    Assert.IsFalse(t.Get(k).FaceSwap, k + ": 면 색을 갈아입는 자리는 `af_dd_item` 하나다(나머지 선언엔 background 가 없다)");
+            // 이산이다 — 위상이 0 을 넘는 순간 갈아입고 0 이면 제 색이다(`ms: 0` 이라 그 넘김이 첫 프레임에 든다).
+            Assert.IsFalse(PressRules.FaceSwapped(dd, 0.0), "놓인 상태는 제 색");
+            Assert.IsTrue(PressRules.FaceSwapped(dd, 1e-9), "위상이 0 을 넘으면 갈아입은 색");
+            Assert.IsTrue(PressRules.FaceSwapped(dd, 1.0));
+            Assert.AreEqual(1.0, PressRules.Phase(dd, 0, 0, true), 1e-9, "ms 0 — 첫 프레임에 눌린다");
+            Assert.IsFalse(PressRules.FaceSwapped(t.Get("modal_btn"), 1.0), "교체 채널이 거짓인 칸은 위상이 1이어도 안 갈아입는다");
             Assert.Throws<System.Collections.Generic.KeyNotFoundException>(() => t.Get("없는_자리"));
         }
 

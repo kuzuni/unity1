@@ -98,6 +98,7 @@ TABLE = {
     #   그대로 써서 정본이 이미 고친 그 회백을 다시 밟고 있었다(턱 `pp_gray_dk` #9a9a9a 는 면보다 **밝아** 뒤집혀 있었다).
     #   ⚠ 같은 규칙의 글자 `#3d434a` 는 **T396(잉크 축) 몫**이라 그 표엔 안 올렸다 — 값·배선은 이 회차가 해 뒀다(반만 옮기면 #878e96 위 #7b7b7b 라 안 읽힌다).
     '.modal-card.sheet .dg-banner .btn.disabled': ['Ui/DungeonPopups.cs@Pill|catalog:dg_lock_open'],   # 8151 #878e96
+    '.af-dd-list button:active': ['Ui/ForgeAutoPopup.cs@Render|res:PinnedColorUi:af_dd_press_face'],   # 4802 #2c313a — 누르는 동안의 면 색(T515 5회차 · 표 PressFxUi af_dd_item `face_swap: true` · 밝기 곱하기가 아니라 교체다)
     '.af-toggle': ['Ui/ForgeAutoPopup.cs#af-toggle|catalog:af_toggle'],          # 4761 #1e2a4a(꺼진 트랙)
     '.af-toggle.on': ['Ui/ForgeAutoPopup.cs#af-toggle|catalog:af_toggle_on'],    # 4768 #35d435(켜진 트랙 · 4994 글로우도 같은 rgb)
     # T377 12회차 ⓑ — 패스 묶음 열둘(8회차가 «패스 11» 로 적어 둔 것 · `PassPopup.cs` 가 열렸다). **열둘 다 이미 제 값**이라 자가 지키기만 한다.
@@ -250,7 +251,6 @@ KNOWN = {
     '.panel::-webkit-scrollbar-thumb': '스크롤바 그림(1944 #444c56) — 클론 ScrollRect 에 스크롤바가 0 이다(Game 에 Scrollbar 0) · 스크롤바를 세우는 회차에 색도 같이',
     '.af-dd-list::-webkit-scrollbar-track': '같은 까닭(4806 #0f1013 · 자동 제련 드롭다운 스크롤바 트랙)',
     '.af-dd-list::-webkit-scrollbar-thumb': '같은 까닭(4806 #5a6068)',
-    '.af-dd-list button:active': '눌림 상태 면 색(4801 #2c313a) — 클론 드롭다운 항목(ForgeAutoPopup.cs 199 PopupKit.Btn pp_blue/pp_gray)에 눌림 색 갈래가 없다 · T355 PressFx 는 이동·밝기만 · 눌림 색 갈래가 생기면 이 자리부터',
 }
 
 # ── T396 — «못박은 **잉크** 색»(`color`)의 선택자 ↔ 클론 자리. 자리 꼴은 위 TABLE 과 **같다**.

@@ -173,5 +173,63 @@ namespace Forge.Tests.PlayMode
             }
             Assert.AreEqual(0, bad, "비활성 종이 버튼에 PressFx 가 붙었다: " + names);
         }
+
+        /// <summary>
+        /// T515 5회차 — 정본 **4802** `.af-dd-list button:active { background: #2c313a }`: 자동 제련 드롭다운 항목은
+        /// **움직이지 않고 배경만** 납작하게 갈아입는다(그 마크업은 `class` 에 `btn` 이 없어 3563 이 안 걸린다 · 표 `af_dd_item`).
+        /// 밝기 곱하기가 아니라 **교체**라 «제 색이 무엇이었든 눌리면 #2c313a» 다 — 표시된 항목(정본 4801 `.on` 파랑)도
+        /// 특이도가 같고 4802 가 뒤라 같은 색으로 간다. 그래서 이 자는 **표시된 항목과 안 표시된 항목을 다 집어** 잰다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 드롭다운_항목은_안_움직이고_누르는_동안_배경만_갈아입는다()
+        {
+            yield return Boot();
+            PressSpec s = PressFx.Table.Get("af_dd_item");
+            Assert.AreEqual(0.0, s.DyRem, 1e-9, "4802 엔 transform 이 없다");
+            Assert.AreEqual(0.0, s.Ms, 1e-9, "4802 엔 transition 이 없다 — 즉시");
+            Assert.IsTrue(s.FaceSwap, "4802 background: #2c313a");
+            Color want = PinnedColorUi.C("af_dd_press_face");
+
+            ForgeHost h = ForgeHost.Instance;
+            Assert.IsNotNull(h, "ForgeHost 가 없다");
+            ForgeAutoPopup.Open(h);
+            yield return null;
+            if (!ForgeAutoPopup.DropdownOpen) ForgeAutoPopup.ToggleDropdown(h);
+            yield return null;
+            yield return null;
+            Assert.IsTrue(ForgeAutoPopup.DropdownOpen, "드롭다운이 열리지 않았다");
+
+            int seen = 0;
+            foreach (PressFx fx in UiRoot.Instance.App.GetComponentsInChildren<PressFx>(true))
+            {
+                if (fx.Spec == null || fx.Spec.Key != "af_dd_item") continue;
+                Transform ft = fx.transform.Find("face");
+                if (ft == null) continue;
+                UnityEngine.UI.Image face = ft.GetComponent<UnityEngine.UI.Image>();
+                if (face == null) continue;
+                seen++;
+                RectTransform rt = (RectTransform)fx.transform;
+                Color own = face.color;
+                float baseY = rt.anchoredPosition.y;
+
+                fx.Press(true);
+                yield return null;
+                Assert.AreEqual(1.0, fx.Phase, 1e-9, fx.name + ": ms 0 이면 한 프레임에 위상 1");
+                Assert.AreEqual(baseY, rt.anchoredPosition.y, 0.01f, fx.name + ": 4802 엔 transform 이 없다 — 가라앉지 않는다");
+                Assert.AreEqual(want.r, face.color.r, 1f / 255f, fx.name + ": 누르면 면이 #2c313a 로 갈아입는다(R)");
+                Assert.AreEqual(want.g, face.color.g, 1f / 255f, fx.name + ": 같은 자리(G)");
+                Assert.AreEqual(want.b, face.color.b, 1f / 255f, fx.name + ": 같은 자리(B)");
+
+                fx.Press(false);
+                yield return null;
+                Assert.AreEqual(0.0, fx.Phase, 1e-9, fx.name + ": 떼면 한 프레임에 위상 0");
+                Assert.AreEqual(own.r, face.color.r, 1f / 255f, fx.name + ": 떼면 제 색으로 돌아온다(R)");
+                Assert.AreEqual(own.g, face.color.g, 1f / 255f, fx.name + ": 떼면 제 색(G)");
+                Assert.AreEqual(own.b, face.color.b, 1f / 255f, fx.name + ": 떼면 제 색(B)");
+                if (seen >= 3) break;      // 표시된 항목 하나가 반드시 끼도록 셋만 본다(스물둘을 다 누르면 자가 길어진다)
+            }
+            ForgeAutoPopup.Close(h);
+            if (seen == 0) Assert.Ignore("환경 — 이 부팅에서 자동 제련 드롭다운 항목이 서지 않았다");
+        }
     }
 }

@@ -5815,6 +5815,26 @@
     - 게이트: `dotnet build` **0 오류** · `gate.sh` **막는 자 47 전부 rc 0 · 건너뜀 0**. ⚠ 또 글꼴에 걸렸다 — 표 주석에 쓴 **`✕`(U+2715)** 가 «새 두부» 다(3회차의 `⚑` 와 같은 자리) → 글로 풀어 썼다. **자원 JSON 주석에 쓰면 안 되는 글자가 둘 확인됐다: `⚑`·`✕`.**
     - **남은 갈래 둘**: ⓐ **`.af-dd-list button`** 의 **누름 배경**(#2c313a) — 표에 «면 색을 바꾸는 채널» 이 **아직 없다**(지금 표의 색 채널은 `brightness` 곱하기 하나뿐이고 정본은 **납작한 교체**다 · Core `PressSpec` 에 칸 하나 + `PressFx` 가 면 그림의 색을 위상으로 가르는 일) ⓑ **`af_spinner` 둘째 채널**(`:active { box-shadow: inset 0 .12rem .3rem rgba(0,0,0,.55) }` — 눌림에 그늘이 **생기는** 유일한 자리 · T355 가 «안쪽 그늘은 T331 갈래» 로 미뤘고 T331 은 `:active` 를 안 셌다). 둘 다 **표에 새 채널**이 필요해 한 회차씩 든다.
     - PlayMode 칸은 2회차의 집(`PressFxFactorySitesTests`)에 **다음 회차**에 더한다 — `x_btn`·`tri_btn`·Pill 셋 다 **팝업을 열어야** 자리가 서고, 그 «여는 길» 을 자에서 재 본 적이 없다(열는 API 를 먼저 읽어야 한다). 이번 회차는 **표 계약 + 배선**까지다(기제는 1회차가 실물에서 이미 증명했다).
+  - ✅ **5회차 2026-11-27 19:0x~19:5x 워커 I(sess-1903-27514 · 선점 19:04 · lock 반납) — 남은 갈래 ⓐ 를 닫았다(둘 → 하나)**
+    - **세운 것 = 표의 새 채널 «면 색 교체»**. 정본 **4802** `.af-dd-list button:active { background: #2c313a }` 는 지금까지 옮길 자리가 없었다 —
+      표의 색 채널은 `brightness` **곱하기** 하나뿐이고 정본은 **딴 색으로 교체**다. 그래서 Core `PressSpec` 에 `FaceSwap` 한 칸 + `PressRules.FaceSwapped(spec, phase)`
+      (턱 걷기와 같은 잣대 · **이산** — 그 선언엔 `transition` 이 없다) · `PressFx.SetFaceSwap(face, to)` · 표 칸 `af_dd_item`
+      (**dy 0 · scale 1 · brightness 1 · ms 0 · `face_swap: true`** — 이 자리는 정본에서 **움직이지 않는다**).
+    - **색은 부르는 쪽이 준다** — `faceKey`·`lipKey` 와 같은 길이다(자리마다 다른 색이라 표에 한 수로 박을 수 없다). `Popups.Btn` 에 `pressSwapKey` 하나를 더해
+      (4회차가 `pressKey` 를 더한 그 자리) 드롭다운 항목이 `pressKey: "af_dd_item", pressSwapKey: "af_dd_press_face"` 로 받는다. 값 **#2c313a** 는 `PinnedColorUi.json`
+      (T377 의 «정본이 선택자에만 리터럴로 못박은 면 색» 표)에 넣고 **`check_pinned_colors` 의 KNOWN 에서 꺼내 TABLE 로 옮겼다** — 자리 초록 **141 → 142** · KNOWN **8 → 7**.
+    - ⚑ **표시된 항목도 같은 색으로 간다**: 정본 4801 `.af-dd-list button.on { background: var(--pp-blue) }` 와 4802 는 **특이도가 같고**(`:active` 는 클래스 급) 4802 가 **뒤다** —
+      곧 파랑 항목을 눌러도 #2c313a 다. 교체 채널이라 «제 색이 무엇이었든 눌리면 그 색» 이 저절로 맞는다(곱하기였으면 파랑·회색이 서로 다른 색으로 갈라졌다 · **결정 891**).
+    - **자 둘**: EditMode `PressRulesTests` 표 계약 **11 → 12칸** + `af_dd_item` 의 다섯 값과 «교체 채널이 참인 칸은 `af_dd_item` **하나뿐**» 을 남은 열한 칸에 전수로 걸었다(턱 걷기 단언과 같은 꼴) ·
+      `FaceSwapped` 가 위상 0 에서 거짓 · 0 을 넘는 순간 참임을 쟀다. PlayMode `PressFxFactorySitesTests` 에 **드롭다운 자리**를 더했다 — 4회차가 «여는 길을 자에서 재 본 적이 없다» 로 미룬 것을
+      `ForgeAutoPopup.Open(h)` + `ToggleDropdown(h)` 두 줄로 열어(공개 static 둘이 이미 있었다) 항목 셋을 눌러 ⓐ **자리가 0.01px 도 안 움직이고** ⓑ 면이 #2c313a 로 가고 ⓒ 떼면 제 색으로 돌아오는 것을 본다.
+      항목이 안 서는 부팅은 `Assert.Ignore`(이 집의 관례).
+    - 게이트: `dotnet build` **0 오류**(TestsPlay 까지) · `dotnet test` **895/895** · `gate.sh` **막는 자 47 전부 rc 0 · 건너뜀 0**.
+    - **곁에서 찾은 것(내 갈래가 아니다 · 번호 안 만들었다)**: 정본 `.af-dd-list button`(4797)은 `background: none; border: none` 이라 **면도 테도 없다**(목록 바탕이 그대로 비친다). 클론 항목은
+      `pp_gray` 면 + `pp_gray_dk` 턱을 그린다 — 면 색 축(T377)·테 축(T365)의 자리고 눌림 축이 아니다. 그 둘을 보는 회차가 4797 을 같이 보면 된다.
+    - **남은 갈래 하나**: **`af_spinner` 둘째 채널**(5009 `box-shadow .07s` + 5011 `:active { box-shadow: inset 0 .12rem .3rem rgba(0,0,0,.55) }`) — 눌림에 그늘이 **생기는** 유일한 자리다.
+      ⚠ 클론엔 **안쪽 그늘(inset)을 그리는 도우미가 아직 없다**(T331 ✅ 가 센 것은 바깥 겹 · 자도 «안쪽 inset 은 안 본다» 고 적혀 있다) — 그 회차는 **기구부터** 만들어야 한다. T33 83회차가 같은 것을 적었다.
+    - 판정 = 다음 런에서 새 자 둘 PASS + `screen_autoforge.png` 가 그대로(드롭다운은 닫힌 채 찍힌다 — 이 회차는 **누르는 동안**만 바꾼다).
 - 판정: PlayMode 에서 버튼 하나를 눌러 ⓐ 아래로 `dy_rem` 만큼 내려가고 ⓑ 턱 Image 의 알파가 0(또는 꺼짐)이 되고 ⓒ 떼면 둘 다 되돌아온다 · 정본에 `transition` 이 없는 자리는 **한 프레임 안에** 바뀐다 · `gate.sh` rc 0.
 - 범위(임자가 쥘 것): `Assets/Forge/Resources/PressFxUi.json` · `Assets/Scripts/Core/Ui/PressRules.cs` · `Assets/Scripts/Game/Ui/PressFx.cs` · 버튼 공장들(`Popups.cs` · `ForgeSheet.cs` · `SkillPanel.cs` · `PetUpgradePopup.cs` · `DungeonPopups.cs` · `ForgeAutoPopup.cs`) · 새 PlayMode 자.
 - ⚑ **왜 이것이 `transition` 축에서 나왔나**: 축을 «선언 19개» 가 아니라 **«채널 25개»** 로 세니 `transform` 쪽 일곱은 T355 가 쥐었는데 **`box-shadow`·`filter`·`background` 쪽**이 비어 있었고, 그 비어 있는 채널을 좇아가니 전환이 걸릴 **상태 자체가 없는** 열두 자리가 나왔다(결정 860 이 «같은 선언의 다른 채널은 다른 자리» 라 한 것의 셋째 사례).

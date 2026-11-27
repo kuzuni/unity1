@@ -44,6 +44,10 @@ namespace Forge.Game.Ui
         float[] growMinY;
         float lipPx;
         bool lipShown = true;
+        // T515 5회차 — 면 색을 갈아입는 갈래(정본 4802 `:active { background: #2c313a }`): 갈아입을 그림·색과 제 색.
+        Graphic swapFace;
+        Color swapTo, swapFrom;
+        bool hasSwap, swapOn;
         double phase, from, elapsedMs;
         bool pressed, dirty;
 
@@ -88,6 +92,22 @@ namespace Forge.Game.Ui
             return p;
         }
 
+        /// <summary>
+        /// T515 5회차 — **누르면 면 색을 갈아입는** 자리를 더한다(정본 4802 `.af-dd-list button:active { background: #2c313a }`).
+        /// 표 칸이 `face_swap: true` 일 때만 든다 · <paramref name="to"/> 는 **부르는 쪽**이 주는 색이다(자리마다 다르다 ·
+        /// 값은 `Resources/PinnedColorUi.json` · T377 의 «정본이 선택자에만 못박은 면 색» 표). 제 색은 지금 그림 색에서 읽는다.
+        /// ⚠ 밝기 채널과 섞지 않는다 — 갈아입는 동안은 **교체 색 그대로**다(정본도 그 자리에 `filter` 를 안 쓴다).
+        /// </summary>
+        public PressFx SetFaceSwap(Graphic face, Color to)
+        {
+            swapFace = face;
+            swapTo = to;
+            swapFrom = face != null ? face.color : Color.white;
+            hasSwap = face != null;
+            swapOn = false;
+            return this;
+        }
+
         /// <summary>기준(놓였을 때의 자리·배율)을 다시 잡는다 — 밖에서 target 의 자리를 옮긴 뒤 부른다.</summary>
         public void SetBase(Vector2 pos, Vector3 scale) { basePos = pos; baseScale = scale; }
 
@@ -108,6 +128,9 @@ namespace Forge.Game.Ui
                 basePos = Target.anchoredPosition;
                 baseScale = Target.localScale;
                 if (tint != null) baseColor = tint.color;
+                // T515 5회차 — 갈아입을 «제 색» 도 누르는 순간 다시 읽는다(다시 그려진 뒤의 색이 정본의 바탕이다 ·
+                //   갈아입은 채로 다시 눌리는 일은 없으니 켜져 있을 때는 안 읽는다).
+                if (hasSwap && !swapOn && swapFace != null) swapFrom = swapFace.color;
             }
             pressed = down;
             from = phase;
@@ -135,6 +158,16 @@ namespace Forge.Game.Ui
             {
                 float b = (float)PressRules.BrightnessAt(Spec, phase);
                 tint.color = new Color(Mathf.Clamp01(baseColor.r * b), Mathf.Clamp01(baseColor.g * b), Mathf.Clamp01(baseColor.b * b), baseColor.a);
+            }
+            // T515 5회차 — 면 색 갈아입기도 **이산**이다(정본 4802 에 `transition` 이 없다 · 표 `ms: 0`).
+            if (Spec.FaceSwap && hasSwap && swapFace != null)
+            {
+                bool on = PressRules.FaceSwapped(Spec, phase);
+                if (on != swapOn)
+                {
+                    swapOn = on;
+                    swapFace.color = on ? swapTo : swapFrom;
+                }
             }
             // T515 — 턱 걷기는 **이산**이다(정본 `box-shadow` 에 transition 이 없다): 위상이 0 보다 크면 걷힌 모습 · 0 이면 제 모습.
             if (Spec.LipOff)

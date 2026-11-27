@@ -26,6 +26,15 @@ namespace Forge.Core.Ui
         /// ⚠ 이 갈래엔 `transition` 이 없어 **이산**이다(위상이 0 보다 크면 걷힌 모습 · 0 이면 제 모습).
         /// </summary>
         public bool LipOff;
+        /// <summary>
+        /// T515 5회차 — 눌림에 **면 색을 납작하게 갈아입는가**(정본 4802 `.af-dd-list button:active { background: #2c313a }`).
+        /// 밝기 채널(<see cref="Brightness"/>)과 **다른 물건**이다: 그쪽은 제 색에 곱하기고 이쪽은 **딴 색으로 교체**다 —
+        /// 정본이 `filter: brightness()` 와 `background:` 를 따로 쓰는 것과 같다. 갈아입을 색은 자리마다 달라
+        /// **부르는 쪽**이 준다(`faceKey`·`lipKey` 와 같은 길 · 값은 `Resources/PinnedColorUi.json` 이 쥐고
+        /// `tools/check_pinned_colors.py` 가 정본 리터럴과 같은지 지킨다) — 이 칸은 «그 자리가 갈아입는가» 만 쥔다.
+        /// ⚠ 그 선언엔 `transition` 이 없어 **이산**이다(표 `ms: 0`).
+        /// </summary>
+        public bool FaceSwap;
         public CssEase Ease;
         public string Note;
     }
@@ -65,6 +74,8 @@ namespace Forge.Core.Ui
                 };
                 object lo;
                 s.LipOff = o.TryGet("lip_off", out lo) && lo is bool && (bool)lo;
+                object fsw;
+                s.FaceSwap = o.TryGet("face_swap", out fsw) && fsw is bool && (bool)fsw;
                 object e;
                 s.Ease = o.TryGet("ease", out e) ? RewardBurstSpec.EaseOf(e) : CssEase.Linear;
                 object n;
@@ -132,6 +143,13 @@ namespace Forge.Core.Ui
         public static double DyRem(PressSpec s, double phase) { return s.DyRem * Clamp01(phase); }
         /// <summary>그 위상에서의 배율(1 ↔ 표 scale).</summary>
         public static double ScaleAt(PressSpec s, double phase) { return 1.0 + (s.Scale - 1.0) * Clamp01(phase); }
+        /// <summary>
+        /// T515 5회차 — 그 위상에서 면 색이 **갈아입은 상태인가**(정본 4802 `:active { background: #2c313a }`).
+        /// 그 선언엔 `transition` 이 없어 **이산**이다 — 위상이 0 을 넘으면 갈아입은 색이고 0 이면 제 색이다
+        /// (턱 걷기 <see cref="PressSpec.LipOff"/> 와 같은 잣대 · 표 `ms: 0` 이면 그 넘김이 첫 프레임에 든다).
+        /// </summary>
+        public static bool FaceSwapped(PressSpec s, double phase) { return s.FaceSwap && phase > 0.0; }
+
         /// <summary>그 위상에서의 밝기 배율(1 ↔ 표 brightness).</summary>
         public static double BrightnessAt(PressSpec s, double phase) { return 1.0 + (s.Brightness - 1.0) * Clamp01(phase); }
 

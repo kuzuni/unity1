@@ -47,6 +47,7 @@
     "pinfo_cp_ink": "#ff880f",
     "af_check_on_ink": "#23c552",
     "af_check_face": "#17181a",
+    "af_dd_press_face": { "hex": "#2c313a", "_": "T515 5회차 — style.css 4802 `.af-dd-list button:active { background: #2c313a }`. 자동 제련 드롭다운 항목을 **누르는 동안**의 면 색 — 전역 토큰이 아니고 그 선택자에만 못박힌 리터럴이다. 누름은 **교체**라 밝기 곱하기가 아니다(표 `PressFxUi.json` `af_dd_item` `face_swap: true`)." },
     "tn_skip_gem_ink": {
       "hex": "#c62828",
       "_": "style.css **4613** `.tn-skip small { color: **#c62828** }` — 기술 노드 팝업 [건너뛰기] 버튼 아랫줄 «◆ N» 의 글자(ui.js 5587 `<small>`). 윗줄은 알약 잉크(pp_ink) 그대로 · T396 20회차 · 한 TMP 의 그 줄만 LineInk 로."

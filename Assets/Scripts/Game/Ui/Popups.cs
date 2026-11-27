@@ -484,7 +484,7 @@ namespace Forge.Game.Ui
         /// 라벨 키라인(T109 7회차 · 정본 `style.css` 8719 `.btn.btn.primary/on/equip/danger/sell { -webkit-text-stroke: var(--ol2) var(--pp-line) }`):
         /// <paramref name="keylineKey"/> 가 null 이면 면 색 키 표(<see cref="KeylineUi.BtnFace"/> · `KeylineUi.json` btn_face)가 정한다 · "" 는 끈다 ·
         /// 그 밖은 폭표 키(`.af-start`·`.fi-skip` 4px 처럼 제 규칙이 있는 버튼) · 비활성은 정본 8725 `.disabled { -webkit-text-stroke: 0 }` 대로 민글자.</summary>
-        public static Button Btn(Transform parent, string name, string label, string faceKey, string lipKey, UnityAction onClick, float w, float h, string inkKey = "stage_ink", TextKind kind = TextKind.Button, bool disabled = false, string keylineKey = null, float radius = -1f, string surfaceKey = null, string pressKey = "modal_btn")
+        public static Button Btn(Transform parent, string name, string label, string faceKey, string lipKey, UnityAction onClick, float w, float h, string inkKey = "stage_ink", TextKind kind = TextKind.Button, bool disabled = false, string keylineKey = null, float radius = -1f, string surfaceKey = null, string pressKey = "modal_btn", string pressSwapKey = null)
         {
             Button b = UiKit.Button(parent, name, onClick);
             RectTransform rt = b.GetComponent<RectTransform>();
@@ -548,7 +548,14 @@ namespace Forge.Game.Ui
             //   `.btn` 이 **아닌** 자리도 만든다 — 자동 제련 드롭다운 항목(`.af-dd-list button` · 4802)이 그렇고,
             //   그 자리는 3563 이 안 걸려 **가라앉지도 턱이 걷히지도 않는다**(정본은 **배경만** #2c313a 로 바뀐다).
             //   종전엔 그 항목까지 `modal_btn` 을 받아 **정본에 없는 움직임**이 붙어 있었다(4회차 실측 · 결정 888).
-            if (!disabled && pressKey != null) PressFx.AttachLip(b.gameObject, rt, pressKey, lipImg, lip, face.rectTransform, t.rectTransform);
+            // T515 5회차 — `pressSwapKey` 가 있으면 «누르는 동안 면 색을 갈아입는» 갈래를 더한다(정본 4802 꼴 ·
+            //   표 칸이 `face_swap: true` 여야 든다). 색은 **자리마다 다르므로** 부르는 쪽이 주는 키로 받는다
+            //   (`faceKey`·`lipKey` 와 같은 길 · 값은 `PinnedColorUi.json` = T377 의 «선택자에만 못박은 면 색» 표).
+            if (!disabled && pressKey != null)
+            {
+                PressFx pfx = PressFx.AttachLip(b.gameObject, rt, pressKey, lipImg, lip, face.rectTransform, t.rectTransform);
+                if (pressSwapKey != null) pfx.SetFaceSwap(face, PinnedColorUi.C(pressSwapKey));
+            }
             return b;
         }
 
