@@ -282,6 +282,20 @@ namespace Forge.Game.Ui
             }
             else UiKit.Band(lt.rectTransform, 0.04f, 0.9f);
             b.interactable = !disabled;
+            // T515 2회차 — 정본 **3563** `.modal-card .btn:active, .panel .btn:active, #equip-sheet .btn:active`
+            //   `{ transform: translateY(.1rem); box-shadow: none }` 은 **이 공장이 내는 버튼 전부**에 걸린다:
+            //   부르는 자리 스물다섯이 모두 `.panel`(펫·스킬·탈것 시트)이나 `.modal-card`(업그레이드 팝업) 안이고
+            //   정본 마크업이 전부 `class="btn …"` 다(ui.js 60 · 3981 · 4204 · 4424 · 4678 …).
+            // ⚑ **2회차 실측 — 등재문의 «남은 열한 자리» 중 다섯은 3563 의 재선언이다**: 5214 `.summon-btn` ·
+            //   5264 `.skd-btn.silver` · 5278 `.btn.silver` · 5495 `.petup-selrow .btn.silver` ·
+            //   8668 `.summon-btn:not(.ascend-ready)` 는 `box-shadow: none` 을 **한 번 더** 적은 것이고
+            //   가라앉기(.1rem)는 3563 이 준다(5369 `.dgd-btn.silver` 도 같은 꼴 · 그 공장은 DungeonPopups 다).
+            //   그래서 표에 새 칸을 만들지 않고 `modal_btn` 을 **그대로** 쓴다 — 새 칸을 만들면 정본에 없는 수가 생긴다.
+            // 클론의 턱은 끌 그림이 따로 없다 — `skin`(검정 테)이 `top`(면) 아래로 `inset` 만큼 드러난 띠다.
+            //   그래서 면을 그 몫만큼 **아래로 자라게** 해 그 띠를 덮는다(결정 876 의 그 한 쌍). 글자는 `rt` 에 묶여
+            //   제자리에 남는다 — 정본에서도 `box-shadow` 는 글자 상자를 안 움직인다.
+            // 비활성 버튼엔 안 건다(1회차와 같은 잣대 — 정본 `:active` 는 눌리는 버튼에만 든다).
+            if (!disabled) PressFx.AttachLip(b.gameObject, rt, "modal_btn", null, inset, face.rectTransform);
             return b;
         }
 
