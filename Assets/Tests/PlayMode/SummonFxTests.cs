@@ -430,6 +430,7 @@ namespace Forge.Tests.PlayMode
             yield return null;
             SkillSummonResultView v = SkillSummonResultView.Current;
             Assert.IsNotNull(v, "결과 연출 팝업");
+            if (v.Fx == null) Assert.Ignore("환경 — 무대판(stage · n<=10) 이 아니면 빛줄기 겹이 없다");
             Assert.Greater(v.StreakCount, 0, "빛줄기가 섰다");
 
             for (int i = 0; i < v.StreakCount; i++)
@@ -440,19 +441,24 @@ namespace Forge.Tests.PlayMode
                 Assert.AreEqual(0.5f, bar.pivot.x, 1e-4f, "빛줄기 " + i + ": 축은 가로 가운데(정본 50%)");
                 Assert.AreEqual(0f, bar.pivot.y, 1e-4f,
                     "빛줄기 " + i + ": 축은 **아래끝**이다(정본 `50% 100%` · 유니티는 y 가 위로 커서 0 이 아래다)");
-                // 늘어남이 축을 안 움직인다 — 배율을 손으로 바꿔 아래끝의 월드 자리를 견준다(시간과 무관하다).
+                // 늘어남이 축을 안 움직인다 — 배율을 손으로 바꿔 **축 점**과 **먼 끝**의 월드 자리를 견준다(시간과 무관하다).
+                // ⚠ 86회차 수리 — 종전엔 `GetWorldCorners` 의 **최저 꼭지**를 축으로 봤다가 런 **1398** 에서 빛줄기 2 가 빨갰다
+                //   (기대 237.11 ↔ 실측 233.65). 막대는 **회전**해 있어 «가장 낮은 꼭지» 가 축이 아니다 — 각이 90°를 넘으면
+                //   (스포크 2 는 2·360/9 + 14 = 94°) **위끝 꼭지**가 최저가 되고 그것은 늘이면 당연히 움직인다.
+                //   축의 월드 자리는 `RectTransform.position`(= 피벗 점) 하나뿐이고 그것은 제 `localScale` 과 무관하다.
                 Vector3 keep = bar.localScale;
-                Vector3[] corners = new Vector3[4];
-                bar.GetWorldCorners(corners);
-                float bottom0 = Mathf.Min(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
-                float top0 = Mathf.Max(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+                Vector3 axis0 = bar.position;
+                Vector3 tip0 = bar.TransformPoint(new Vector3(0f, bar.rect.yMax, 0f));
                 bar.localScale = new Vector3(keep.x, keep.y * 2f, keep.z);
-                bar.GetWorldCorners(corners);
-                float bottom1 = Mathf.Min(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
-                float top1 = Mathf.Max(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+                Vector3 axis1 = bar.position;
+                Vector3 tip1 = bar.TransformPoint(new Vector3(0f, bar.rect.yMax, 0f));
                 bar.localScale = keep;
-                Assert.AreEqual(bottom0, bottom1, 0.5f, "빛줄기 " + i + ": 늘어나도 **아래끝은 제자리**다");
-                Assert.Greater(top1, top0 + 0.5f, "빛줄기 " + i + ": 늘어난 몫은 **위로**(= 축의 반대쪽 · 광원에서 먼 쪽으로) 자란다");
+                Assert.AreEqual(axis0.x, axis1.x, 0.01f, "빛줄기 " + i + ": 늘어나도 **축은 제자리**다(x)");
+                Assert.AreEqual(axis0.y, axis1.y, 0.01f, "빛줄기 " + i + ": 늘어나도 **축은 제자리**다(y)");
+                float d0 = (tip0 - axis0).magnitude, d1 = (tip1 - axis1).magnitude;
+                Assert.Greater(d0, 1f, "빛줄기 " + i + ": 막대에 길이가 있다");
+                Assert.AreEqual(d0 * 2f, d1, Mathf.Max(0.5f, d0 * 0.02f),
+                    "빛줄기 " + i + ": 늘어난 몫은 전부 **축의 반대쪽**(광원에서 먼 쪽)으로 간다 — 축↔먼끝 거리가 배율 그대로 2배");
                 if (i >= 2) break;      // 셋만 본다(스포크는 아홉 이상이고 단언은 구조라 같다)
             }
             v.Close();
