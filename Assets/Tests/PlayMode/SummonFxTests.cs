@@ -840,5 +840,71 @@ namespace Forge.Tests.PlayMode
             if (SkillSummonResultView.Current != null) SkillSummonResultView.Current.OnTap();
             yield return null;
         }
+
+        /// <summary>
+        /// T509 — 셀 **안**의 겹들(착지 링 · 스파크 · 잔상 · 동급 링 · 광선 · 광창)이 «순백 + 제 알파» 를 써서
+        /// 정본이 `.sr-cell`(6720 `srrecede` → `filter: saturate(.35) brightness(.6)`)·`.sr-grid`(6162 `srgridlift`)에
+        /// **통째로 거는 필터**를 덮고 있었다. CSS `filter` 는 그 상자 아래 전부를 먹으므로 그 겹들도 같이 물러나야 한다.
+        /// ⚑ 잣대를 **규칙**에 건다 — «그 프레임의 필터가 1 이 아니면 겹의 색도 그 필터를 곱한 값이어야 한다».
+        /// 필터가 1 아닌 프레임을 한 번도 못 잡으면 단언하지 않고 끝에서 «잡았는지» 를 센다(러너 프레임 간격 · T422 의 길).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 셀_안의_겹들이_그_셀에_걸린_필터를_곱해_쓴다()
+        {
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            while (Host.SummonMult("skill") != 5) Host.CycleSummonMult("skill");
+            Host.Tickets = 10000;
+            Host.Sync();
+            yield return null;
+            Sheet.Skills.SummonButton.onClick.Invoke();
+            yield return null;
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+
+            // 전부 공개 → 주역이 터지고 조연이 물러난다(`srrecede` .68s · `srgridlift` .5s).
+            if (!v.Done) v.OnTap();
+            int dim = 0, checkedFrames = 0, deep = 0;
+            float worst = 0f, t = 0f;
+            while (t < 2.5f)
+            {
+                for (int i = 0; i < v.CellCount; i++)
+                {
+                    Vector2 f = v.FilterOf(i);
+                    Image ring = v.LandRingOf(i);
+                    if (ring == null) continue;
+                    if (f.x < 0.999f || f.y < 0.999f)
+                    {
+                        dim++;
+                        // 기대값 — `saturate()` 는 **흰색에는 아무 일도 안 한다**(휘도 = 1 이라 회색축 위의 점이다).
+                        //   그래서 흰 겹에 남는 것은 `brightness` 뿐이다: want = clamp01(밝기).
+                        float want = Mathf.Clamp01(f.x);
+                        Assert.AreEqual(want, ring.color.r, 0.02f,
+                            "셀 " + i + " 착지 링이 필터(밝기 " + f.x.ToString("0.000") + " · 채도 " + f.y.ToString("0.000") + ")를 안 먹었다");
+                        if (1f - ring.color.r > worst) worst = 1f - ring.color.r;
+                        if (f.x < 0.8f) deep++;
+                    }
+                    else
+                    {
+                        checkedFrames++;
+                        Assert.AreEqual(1f, ring.color.r, 0.02f, "필터가 1 인 프레임에는 흰색이다");
+                    }
+                }
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            Assert.Greater(dim + checkedFrames, 0, "셀을 한 프레임도 못 봤다 — 창을 넓히거나 자리를 앞으로");
+            // ⚠ 램프의 **깊은 자리**(밝기 < .8)를 잡은 프레임이 있을 때만 «눈에 보이게» 를 단언한다 —
+            //   끝자락(밝기 ≈ 1)만 잡힌 회차에 억지로 울리면 그것은 결함이 아니라 프레임 운이다.
+            if (deep > 0)
+                Assert.Greater(worst, 0.1f,
+                    "물러나는 동안 그 겹이 **눈에 보이게** 어두워져야 한다(가장 벌어진 자리 " + worst.ToString("0.000") + ") — 순백으로 돌아가면 여기서 운다");
+
+            if (SkillSummonResultView.Current != null) SkillSummonResultView.Current.OnTap();
+            yield return null;
+        }
     }
 }

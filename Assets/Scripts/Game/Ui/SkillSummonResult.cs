@@ -73,6 +73,12 @@ namespace Forge.Game.Ui
             /// 둘뿐이다(구슬·광채는 셀 알파 그대로) · 셀 그룹 아래라 알파가 **곱해진다**(CSS 와 같다).
             /// </summary>
             public CanvasGroup[] LabelGroups;
+            /// <summary>
+            /// T509 — 이 셀에 지금 걸린 **필터**(정본 `srrecede` 6722~6724 `saturate(.35) brightness(.6)` × `srgridlift` 6163 `brightness(1.42) saturate(1.1)`).
+            /// CSS `filter` 는 그 상자 **아래 전부**를 먹는데, 클론의 겹 여섯(스파크·잔상·재점화·착지 링·동급 링·광선)은 제 색을 «순백 + 제 알파» 로
+            /// `AnimateCells` **뒤에** 다시 써서 그 필터를 덮었다. 그래서 프레임마다 여기 적어 두고 그 여섯이 **곱해 쓴다**.
+            /// </summary>
+            public float FilterBright, FilterSat;
             public int Tier;
         }
 
@@ -1055,7 +1061,7 @@ namespace Forge.Game.Ui
             UiKit.Place(cell, x, y, cw, ch);
             var cg = cell.gameObject.AddComponent<CanvasGroup>();
             cg.alpha = 0f;
-            var c = new Cell { Root = cell, Group = cg, Entry = e, Heroic = heroic, Home = cell.anchoredPosition };
+            var c = new Cell { Root = cell, Group = cg, Entry = e, Heroic = heroic, Home = cell.anchoredPosition, FilterBright = 1f, FilterSat = 1f };
             c.BaseScale = heroic ? 1f : PetSkillStyle.L("sr_sz_" + Mathf.Clamp(tier, 0, 5)) * (peer ? PetSkillStyle.L("sr_peer_sz") : 1f);
             c.Pop = PetSkillStyle.L("sr_pop_" + Mathf.Clamp(tier, 0, 5));
             // T178 47회차 — 정본 **6334** `.sr-cell::before { left: 50%; bottom: 34%; width: 2.6rem; height: 15rem; z-index: -1; filter: blur(7px); background: linear-gradient(transparent, var(--rc));
@@ -1663,7 +1669,16 @@ namespace Forge.Game.Ui
                 // T334 7회차 — 주역이 착지하면 **조연은 물러난다**(정본 `srrecede` · 절 머리 주석: «나머지를 물리고(후퇴)
                 //   광창 → 충격파 → 화면 킥을 몰아 «다른 사건» 으로 만든다»). 배율은 셀에, 채도·밝기는 그 그림들에 건다.
                 float rs = 1f;
-                if (heroFired && heroAtWall >= 0f && !c.Heroic) rs = Recede(c, (tt - heroAtWall) * 1000f, glBr, glSat);
+                // T509 — 이 프레임 이 셀의 필터를 적어 둔다(정본은 `.sr-cell`·`.sr-grid` 에 `filter` 로 걸어 **아래 전부**를 먹인다).
+                //   조연은 `srrecede` × `srgridlift` · 주역과 착지 전 셀은 `srgridlift` 만.
+                c.FilterBright = (float)glBr; c.FilterSat = (float)glSat;
+                if (heroFired && heroAtWall >= 0f && !c.Heroic)
+                {
+                    double rBr, rSat, rSc;
+                    SummonFxStyle.Hero.RecedeAt((tt - heroAtWall) * 1000f, out rSc, out rSat, out rBr);
+                    c.FilterBright = (float)(rBr * glBr); c.FilterSat = (float)(rSat * glSat);
+                    rs = Recede(c, (tt - heroAtWall) * 1000f, glBr, glSat);
+                }
                 // ⚠ 창 **밖에서는 손대지 않는다** — `Tint` 는 제 색(`TintHome`)에서 다시 세므로 매 프레임 부르면
                 //   같은 셀 안에서 제 알파를 흔드는 조각들(스파크·잔상·재점화·광선)의 그 프레임 값을 덮는다.
                 else if (lifting || liftRestore) Tint(c, glBr, glSat);
@@ -2039,7 +2054,7 @@ namespace Forge.Game.Ui
                 double ms = (Time.unscaledTime - c.OnAt) * 1000f;
                 double a, sc;
                 sp.At(ms, sp.Glow(c.Tier), out a, out sc);
-                c.LandRing.color = new Color(1f, 1f, 1f, (float)a);
+                c.LandRing.color = Brighten(Color.white, c.FilterBright, c.FilterSat, (float)a);   // T509
                 c.LandRing.rectTransform.localScale = Vector3.one * (float)sc;
             }
         }
@@ -2054,7 +2069,7 @@ namespace Forge.Game.Ui
                 if (c.Ray == null || !c.On) continue;
                 if (sp == null) sp = SummonFxStyle.Ray;
                 double ms = (Time.unscaledTime - c.OnAt) * 1000f;
-                c.Ray.color = new Color(1f, 1f, 1f, (float)sp.AlphaAt(ms, sp.Ray(c.Tier)));
+                c.Ray.color = Brighten(Color.white, c.FilterBright, c.FilterSat, (float)sp.AlphaAt(ms, sp.Ray(c.Tier)));   // T509
                 c.Ray.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -(float)sp.AngleAt(ms));   // CSS 의 +각은 시계 방향
             }
         }
@@ -2070,7 +2085,7 @@ namespace Forge.Game.Ui
                 float ms = (Time.unscaledTime - c.OnAt) * 1000f;
                 float u = dur <= 0f ? 1f : Mathf.Clamp01(ms / dur);
                 float k = (float)SummonFxStyle.HeroRingEase.Ease(u);
-                c.PeerRing.color = new Color(1f, 1f, 1f, Mathf.Lerp(a0, 0f, k));
+                c.PeerRing.color = Brighten(Color.white, c.FilterBright, c.FilterSat, Mathf.Lerp(a0, 0f, k));   // T509
                 c.PeerRing.rectTransform.localScale = Vector3.one * Mathf.Lerp(s0, smax, k);
             }
         }
@@ -2086,7 +2101,10 @@ namespace Forge.Game.Ui
             SummonHeroSpec sp = SummonFxStyle.Hero;
             double a, sc, rot;
             sp.BeamAt((Time.unscaledTime - heroAtWall) * 1000f, out a, out sc, out rot);
-            heroBeam.color = new Color(1f, 1f, 1f, (float)a);
+            // T509 — 광창은 주역 셀(`.sr-cell.heroic`)의 자식이라 `srrecede` 는 안 걸리지만 `srgridlift`(그리드 필터)는 걸린다.
+            float bBr = 1f, bSat = 1f;
+            if (heroIdx >= 0 && heroIdx < cells.Count) { bBr = cells[heroIdx].FilterBright; bSat = cells[heroIdx].FilterSat; }
+            heroBeam.color = Brighten(Color.white, bBr <= 0f ? 1f : bBr, bSat <= 0f ? 1f : bSat, (float)a);
             heroBeam.rectTransform.localScale = Vector3.one * (float)sc;
             heroBeam.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -(float)rot);   // CSS 의 +각은 시계 방향
         }
@@ -2129,7 +2147,7 @@ namespace Forge.Game.Ui
                 if (sp == null) sp = SummonFxStyle.Spark;
                 double a, sc;
                 sp.At((tt - c.OnAt) * 1000f, RarityIdx(c.Entry.Rarity), out a, out sc);
-                c.Spark.color = new Color(1f, 1f, 1f, (float)a);
+                c.Spark.color = Brighten(Color.white, c.FilterBright, c.FilterSat, (float)a);   // T509 — 셀 필터를 곱한다(정본은 filter 가 아래 전부를 먹는다)
                 c.Spark.rectTransform.localScale = Vector3.one * (float)sc;
             }
         }
@@ -2151,7 +2169,7 @@ namespace Forge.Game.Ui
                 if (sp == null) sp = SummonFxStyle.Ghost;
                 double back, sc, a;
                 sp.At((tt - c.OnAt) * 1000f, c.Pop * 1000f, RarityIdx(c.Entry.Rarity), out back, out sc, out a);
-                c.Ghost.color = new Color(1f, 1f, 1f, (float)a);
+                c.Ghost.color = Brighten(Color.white, c.FilterBright, c.FilterSat, (float)a);   // T509
                 c.Ghost.rectTransform.localScale = Vector3.one * (float)sc;
                 c.Ghost.rectTransform.anchoredPosition = c.ToLight * (float)back;
             }
@@ -2461,6 +2479,14 @@ namespace Forge.Game.Ui
         public RectTransform CellRootOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Root : null; }
         public Vector2 HomeOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Home : Vector2.zero; }
         public bool CellOn(int i) { return i >= 0 && i < cells.Count && cells[i].On; }
+        /// <summary>T509 — i 번째 셀에 지금 걸린 필터(밝기 · 채도) — 셀이 없으면 (1, 1). 겹 여섯이 이 값을 곱해 써야 한다.</summary>
+        public Vector2 FilterOf(int i)
+        {
+            return i < 0 || i >= cells.Count ? Vector2.one : new Vector2(cells[i].FilterBright, cells[i].FilterSat);
+        }
+        /// <summary>T509 — i 번째 셀의 «필터를 곱해 쓰는» 겹들(없는 것은 null) · 주역 칸.</summary>
+        public Image LandRingOf(int i) { return i >= 0 && i < cells.Count ? cells[i].LandRing : null; }
+        public int HeroIndex { get { return heroIdx; } }
         /// <summary>T506 ⓐ — `srtitle` 세 자리의 그룹(없으면 null) — 자가 알파·자리를 본다.</summary>
         public CanvasGroup TitleGroup { get { return titleCg; } }
         public CanvasGroup SoloGroup { get { return soloCg; } }
