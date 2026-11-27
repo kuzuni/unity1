@@ -235,6 +235,8 @@ namespace Forge.Game.Ui
 
         /// <summary>T334 4회차 — 소환진의 룬 눈금 띠(정본 `.sr-floor::after`). 충전 중엔 `steps(9)` 로 점등하고 그 밖에는 느리게 호흡한다.</summary>
         Image tickImg;
+        /// <summary>T511 — 힌트 칩(`srhint` · 상시)과 무대 받침(`srstagebreath` · done 뒤)의 호흡 자리.</summary>
+        CanvasGroup hintGroup; Image stagePlate; Vector3 stagePlateHome = Vector3.one; Color stagePlateBase;
         Color tickBase;
         Color floorBase, haloBase;
         Color floorRingBase;
@@ -628,6 +630,7 @@ namespace Forge.Game.Ui
                 float plateW = gw * SurfaceArt.Num("sr_body_plate", "box_w_f");
                 float plateH = bodyH + PetSkillStyle.Rem(SurfaceArt.Num("sr_body_plate", "box_h_extra_rem"));
                 Image plate = SurfaceArt.Fill(body, "sr-body-plate", "sr_body_plate", plateW, plateH);
+                stagePlate = plate;   // T511 ⓒ — `.done .sr-body::before` 가 2.6s 로 숨쉰다(정본 7174)
                 UiKit.Anchor(plate.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, plateW, plateH);
                 Transform rays = body.Find("sr-rays");
                 plate.transform.SetSiblingIndex(rays != null ? rays.GetSiblingIndex() + 1 : 0);
@@ -1436,6 +1439,10 @@ namespace Forge.Game.Ui
             TextMeshProUGUI hint2 = PetSkillKit.Text(hintBox, "t", TextKind.Sub, ht, PetSkillStyle.C("sr_hint"), TextAlignmentOptions.Center, false);
             UiKit.Fill(hint2.rectTransform);
             hint = hintBox.gameObject;
+            // T511 ⓐ — 정본 7136 `.sr-hint { animation: srhint 1.4s ease-in-out infinite }` · 7137 `@keyframes srhint { 0%,100% .45 · 50% 1 }`.
+            //   `.done` 과 무관한 **상시** 호흡이다(«화면을 탭하면 건너뜁니다» 를 살아 있게 하는 층).
+            hintGroup = hintBox.gameObject.GetComponent<CanvasGroup>();
+            if (hintGroup == null) hintGroup = hintBox.gameObject.AddComponent<CanvasGroup>();
             // 확인(금색 · done 에서만)
             OkButton = UiKit.Button(foot, "sr-ok", () => Close());
             RectTransform okr = OkButton.GetComponent<RectTransform>();
@@ -1561,6 +1568,7 @@ namespace Forge.Game.Ui
             if (!ejectSet && haloImg != null && cells.Count > 0) { ejectSet = true; MeasureEject(); }
             AnimateCells();
             AnimateTicks();
+            AnimateBreath();   // T511 — 힌트 칩(상시) · 무대 받침(done 뒤)
             AnimateTitleIn();
             AnimateHaloIntro();
             AnimateFloorIn();
@@ -1857,6 +1865,40 @@ namespace Forge.Game.Ui
         /// 룬 눈금 띠 — 충전 구간에서는 `srtickup`(steps(9) · .45 → 1), 그 밖에는 `srfloorbreath`(4.2s · .5 ↔ .9).
         /// 정본이 «움직임은 호흡뿐» 이라 못 박은 자리라 돌리지도 넓히지도 않는다.
         /// </summary>
+        /// <summary>T511 — 정본이 «끝난 뒤에도 화면이 죽지 않게» 돌리는 호흡 둘.
+        /// ⓐ `srhint`(7136 · **1.4s** · α **.45 ↔ 1** · 상시) ⓒ `srstagebreath`(7174 · **2.6s** · α **.78 ↔ 1** · 배율 **1 ↔ 1.1** · `.done` 뒤).
+        /// 둘 다 `0%,100% ↔ 50%` 왕복이고 단축 이징이 **구간마다** `ease-in-out` 이다 — 코사인 반파로 쓰지 않는다(정본 곡선과 0.019 어긋난다 · 결정 863).</summary>
+        void AnimateBreath()
+        {
+            float t = Time.unscaledTime;
+            if (hintGroup != null && hint != null && hint.activeSelf)
+            {
+                float k = Wave(t - start, SummonFxStyle.L("hint_breath_s"));
+                hintGroup.alpha = Mathf.Lerp(SummonFxStyle.L("hint_a_lo"), SummonFxStyle.L("hint_a_hi"), k);
+            }
+            if (stagePlate != null)
+            {
+                if (stagePlateBase.a <= 0f) { stagePlateBase = stagePlate.color; stagePlateHome = stagePlate.rectTransform.localScale; }
+                if (!done) { stagePlate.color = stagePlateBase; stagePlate.rectTransform.localScale = stagePlateHome; }
+                else
+                {
+                    float k = Wave(t - doneAt, SummonFxStyle.L("stage_breath_s"));
+                    float a = Mathf.Lerp(SummonFxStyle.L("stage_a_lo"), SummonFxStyle.L("stage_a_hi"), k);
+                    stagePlate.color = new Color(stagePlateBase.r, stagePlateBase.g, stagePlateBase.b, stagePlateBase.a * a);
+                    stagePlate.rectTransform.localScale = stagePlateHome * Mathf.Lerp(1f, SummonFxStyle.L("stage_scale_hi"), k);
+                }
+            }
+        }
+
+        /// <summary>T511 — `0%,100% ↔ 50%` 왕복을 **정본 `ease-in-out` 으로 구간마다** 보간한다(0 → 1 → 0).</summary>
+        static readonly Forge.Core.CraftFx.CssEase BreathEase = new Forge.Core.CraftFx.CssEase(0.42, 0, 0.58, 1);
+        static float Wave(float since, float period)
+        {
+            if (period <= 0f) return 0f;
+            float p = Mathf.Repeat(since, period) / period;
+            return p <= 0.5f ? (float)BreathEase.Ease(p / 0.5f) : 1f - (float)BreathEase.Ease((p - 0.5f) / 0.5f);
+        }
+
         void AnimateTicks()
         {
             if (tickImg == null) return;

@@ -906,5 +906,37 @@ namespace Forge.Tests.PlayMode
             if (SkillSummonResultView.Current != null) SkillSummonResultView.Current.OnTap();
             yield return null;
         }
+
+        /// <summary>T511 ⓐⓒ — 끝난 뒤에도 화면이 죽지 않게 하는 호흡 둘. 수는 표가 쥔다(§1).</summary>
+        [UnityTest]
+        public IEnumerator 힌트_칩과_무대_받침이_정본_주기로_숨쉰다()
+        {
+            // 표: 정본 7136·7174 의 주기와 폭.
+            Assert.AreEqual(1.4f, SummonFxStyle.L("hint_breath_s"), 1e-4f, "힌트 1.4s");
+            Assert.AreEqual(0.45f, SummonFxStyle.L("hint_a_lo"), 1e-4f, "힌트 바닥 .45");
+            Assert.AreEqual(2.6f, SummonFxStyle.L("stage_breath_s"), 1e-4f, "무대 받침 2.6s");
+            Assert.AreEqual(0.78f, SummonFxStyle.L("stage_a_lo"), 1e-4f, "무대 바닥 .78");
+            Assert.AreEqual(1.1f, SummonFxStyle.L("stage_scale_hi"), 1e-4f, "무대 정점 배율 1.1");
+
+            // 왕복 셈: 0 에서 바닥 · 반주기에서 정점 · 한 주기에서 다시 바닥.
+            // ⚑ 그리고 **선형이 아니다** — ease-in-out 은 1/4 지점에서 선형(0.5)보다 **아래**다(양 끝이 느리다).
+            float lo = SummonFxStyle.L("hint_a_lo"), hi = SummonFxStyle.L("hint_a_hi"), per = SummonFxStyle.L("hint_breath_s");
+            float a0 = Breath(0f, per, lo, hi), aMid = Breath(per * 0.5f, per, lo, hi), aQ = Breath(per * 0.25f, per, lo, hi), a1 = Breath(per, per, lo, hi);
+            Assert.AreEqual(lo, a0, 1e-3f, "0 에서 바닥");
+            Assert.AreEqual(hi, aMid, 1e-3f, "반주기에서 정점");
+            Assert.AreEqual(lo, a1, 1e-3f, "한 주기에서 다시 바닥");
+            Assert.Less(aQ, lo + (hi - lo) * 0.5f, "1/4 지점이 선형보다 아래다 — ease-in-out 은 양 끝이 느리다(선형으로 되돌림 방지)");
+            yield return null;
+        }
+
+        /// <summary>자 쪽에서 같은 왕복을 다시 푼다 — 제품 코드의 `Wave` 와 같은 뜻(정본 `0%,100% ↔ 50%` · 구간마다 ease-in-out).</summary>
+        static float Breath(float since, float period, float lo, float hi)
+        {
+            var e = new Forge.Core.CraftFx.CssEase(0.42, 0, 0.58, 1);
+            float p = Mathf.Repeat(since, period) / period;
+            float k = p <= 0.5f ? (float)e.Ease(p / 0.5f) : 1f - (float)e.Ease((p - 0.5f) / 0.5f);
+            return Mathf.Lerp(lo, hi, k);
+        }
+
     }
 }
