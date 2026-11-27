@@ -206,6 +206,57 @@ namespace Forge.Tests.PlayMode
             return null;
         }
 
+        /// <summary>
+        /// T513 — `SurfaceArt.FillFaceWhenSized` 로 **늦게** 구워지는 판을 «프레임 수» 로 기다리지 않는다.
+        /// 그 자(<c>SurfaceLate</c>)의 계약은 «**두 프레임 연속 같은 크기**(캔버스 레이아웃이 지나간 뒤)일 때 굽는다» 이고,
+        /// 스스로도 **120 프레임(≈2초)** 까지 기다린 뒤 경고하고 포기한다. 그런데 자들은 `yield return null` **네 번**으로 받고 있었다 —
+        /// 느린 런(런 1363: 유니티 잡 40m32s · 같은 런의 환경 건너뜀이 «가장 긴 프레임 1672ms»)에서는 그 안에 못 굽고
+        /// 자가 «면에 Mask 가 없다» 로 **빨개진다**. 코드는 멀쩡한데(같은 코드가 런 1361 에서 초록) **프레임 운**이다.
+        /// ⇒ 잣대를 프레임이 아니라 **계약**(구워졌는가 = 면에 `Mask` + 자식 겹)에 건다. 그래도 못 구우면 부르는 쪽이 «환경» 으로 접는다.
+        /// </summary>
+        static IEnumerator WaitBaked(Transform face, string child, float sec)
+        {
+            float t = 0f;
+            while (t < sec)
+            {
+                Canvas.ForceUpdateCanvases();
+                if (Baked(face, child)) yield break;
+                // 굽는 부품이 이미 떠났으면 더 기다려도 안 구워진다 — 기다림을 끊고 부르는 쪽이 가린다.
+                if (face == null || face.GetComponent<SurfaceLate>() == null) yield break;
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+        }
+
+        /// <summary>그 면이 구워졌는가 — `Mask`(결정 530)와 구운 겹이 둘 다 있고 겹이 색 한 칸이 아니다.</summary>
+        static bool Baked(Transform face, string child)
+        {
+            if (face == null || face.GetComponent<Mask>() == null) return false;
+            if (string.IsNullOrEmpty(child)) return true;
+            Transform g = face.Find(child);
+            if (g == null) return false;
+            Image gi = g.GetComponent<Image>();
+            return gi != null && gi.sprite != null;
+        }
+
+        /// <summary>
+        /// 구워지길 기다렸는데도 안 구워졌을 때 — **«못 쟀다» 와 «틀렸다» 를 가른다**(T513 · T422 의 길).
+        /// ⚑ 무조건 접으면 **진짜 회귀가 숨는다**(누가 `FillFaceWhenSized` 를 걷어도 조용해진다). 그래서 갈래를 둔다:
+        /// 굽는 부품(<c>SurfaceLate</c>)이 **아직 붙어 있으면** 그것은 «이 런이 느려 아직 기다리는 중» 이니 **환경으로 접고**,
+        /// 그 부품이 **없는데 판도 없으면** 아무도 굽지 않은 것이니 **접지 않는다** — 부르는 쪽 단언이 그대로 빨개진다.
+        /// </summary>
+        static void SkipIfNotBaked(Transform face, string child, string where)
+        {
+            if (Baked(face, child)) return;
+            if (face == null || face.GetComponent<SurfaceLate>() == null) return;   // 굽는 자가 없다 — 환경이 아니라 결함이다(접지 않는다)
+            RectTransform rt = (RectTransform)face;
+            Assert.Ignore("환경 — " + where + " 의 면이 기다려도 안 구워졌고 굽는 부품(SurfaceLate)이 **아직 붙어 있다**"
+                          + "(`FillFaceWhenSized` 는 «두 프레임 연속 같은 크기» 를 기다리고 120 프레임에 스스로 포기한다)"
+                          + " · 면 " + rt.rect.width.ToString("0") + "×" + rt.rect.height.ToString("0")
+                          + " · Mask " + (face.GetComponent<Mask>() != null ? "있다" : "없다")
+                          + " · 겹 " + (face.Find(child) != null ? "있다" : "없다") + " (T513)");
+        }
+
         [UnityTest]
         public IEnumerator 탭바와_확률_막대_표가_정본_각도_정지점_px_림을_그대로_쥔다()
         {
@@ -1793,7 +1844,7 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(MetaHost.Ready, "MetaHost 가 20초 안에 안 섰다");
             MetaHost h = MetaHost.Instance;
             QuestSheet.Open(h);
-            yield return null; yield return null; yield return null; yield return null;   // FillFaceWhenSized — 두 프레임 연속 같은 크기일 때 굽는다
+            yield return null;
             Canvas.ForceUpdateCanvases();
             Popup qp = h.Popups.Find(QuestSheet.Name);
             Assert.IsNotNull(qp, "퀘스트 시트가 열려 있다");
@@ -1802,6 +1853,9 @@ namespace Forge.Tests.PlayMode
             Assert.IsNotNull(back, "뒤로 ◀(back-btn)");
             Transform bf = back.Find("face");
             Assert.IsNotNull(bf, "◀ 면(face)");
+            // T513 — 프레임 수가 아니라 **계약**으로 기다린다(`FillFaceWhenSized` 는 «두 프레임 연속 같은 크기» 일 때 굽는다).
+            yield return WaitBaked(bf, "bg-grad", 3f);
+            SkipIfNotBaked(bf, "bg-grad", "퀘스트 시트 뒤로 ◀");
             Assert.IsNotNull(bf.GetComponent<Mask>(), "면에 Mask");
             Transform bg = bf.Find("bg-grad");
             Assert.IsNotNull(bg, "8686 세 겹 한 판(face/bg-grad)");
@@ -1873,12 +1927,15 @@ namespace Forge.Tests.PlayMode
             TabBar tb0 = UiRoot.Instance.TabBar;
             if (tb0.ActiveTab != "summon") tb0.OnTab("summon");
             SkillPetSheet.Instance.Switch(SkillPetSheet.SubSkills);
-            yield return null; yield return null; yield return null; yield return null;   // FillFaceWhenSized — 두 프레임 안정
+            yield return null;
             Canvas.ForceUpdateCanvases();
             Button ua = SkillPetSheet.Instance.Skills.UpgradeAllButton;
             Assert.IsNotNull(ua, "[모두 업그레이드](btn-upgrade-all)");
             Transform top = ua.transform.Find("skin/top");
             Assert.IsNotNull(top, "둥근 면(skin/top)");
+            // T513 — 같은 자리(프레임 수 → 계약).
+            yield return WaitBaked(top, "bg-grad", 3f);
+            SkipIfNotBaked(top, "bg-grad", "[모두 업그레이드] 면");
             Transform g = top.Find("bg-grad");
             Assert.IsNotNull(g, "8504 유리 겹 한 판(skin/top/bg-grad)");
             Image gi = g.GetComponent<Image>();
