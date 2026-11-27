@@ -34,6 +34,46 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0.14f, UiKit.L("age_bar_ico_mr_rem"), 1e-6f, "4717 .ico margin-right .14rem");
         }
 
+        /// <summary>
+        /// T525 — **세로 피치**. 정본 4706~4707 `.af-age-bar { padding: .21rem .5rem; margin-bottom: .48rem }` 이고
+        /// 같은 줄 주석이 원본 실측을 못 박아 뒀다 — «원본 막대 높이 29px(**3.28%H**) · 간격 8px(**피치 37px = 4.18%H**)».
+        /// 클론은 목록 간격을 **코드에 박힌 `rem * 0.25f`**(정본의 절반)로 줘서 피치가 **3.78%H** 였고,
+        /// 다섯 행 끝이 원작보다 **2.28%p** 높이 섰다(그 아래 필터 토글·서브옵션이 통째로 밀렸다).
+        /// 🚫 표값을 .25 로 되돌리면 이 칸이 바로 빨강이 된다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 자동_제련_막대의_세로_피치는_막대_높이_더하기_표의_48rem_이다()
+        {
+            yield return Boot();
+            ForgeHost fh = ForgeHost.Instance;
+            float rem = PopupKit.Rem;
+            Assert.AreEqual(0.48f, ForgeAutoStyle.L("af_age_gap_rem"), 1e-6f,
+                "정본 4707 `.af-age-bar { margin-bottom: .48rem }` — 표 af_age_gap_rem");
+
+            fh.S.BestChapter = 3; fh.S.BestStage = 1; fh.Pull();
+            ForgeAutoPopup.Open(fh);
+            yield return null; yield return null;
+            var bars = new System.Collections.Generic.List<RectTransform>();
+            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+                if (rt.name.StartsWith("af-age-") && rt.Find("ico") != null) bars.Add(rt);
+            Assert.GreaterOrEqual(bars.Count, 2, "시대 막대가 둘은 서야 피치를 잰다");
+            bars.Sort((x, y) => y.position.y.CompareTo(x.position.y));      // 화면 위에서 아래로
+            float want = bars[0].rect.height + rem * ForgeAutoStyle.L("af_age_gap_rem");
+            for (int i = 0; i + 1 < bars.Count; i++)
+            {
+                float pitch = bars[i].position.y - bars[i + 1].position.y;
+                Assert.AreEqual(want, pitch, 1.0f,
+                    "막대 " + i + "→" + (i + 1) + " 피치 = 막대 높이 + 표 간격(.48rem) · 실측 " + pitch.ToString("0.0") + "px");
+            }
+            // 그리고 그 피치는 **앱 높이의 4.18~4.24%** 다(정본 주석 4.18 · 원작 샷 실측 4.24).
+            float appH = UiKit.RefH;
+            float pct = want / appH * 100f;
+            Assert.That(pct, Is.InRange(4.0f, 4.4f),
+                "피치가 정본·원작이 말하는 4.18~4.24%H 자리에 선다 — 실측 " + pct.ToString("0.00") + "%H");
+            ForgeAutoPopup.Close(fh);
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator 자동_제련_막대는_체크_이름_틈이_45rem_이고_두_막대의_아이콘_이름_틈은_14rem_이다()
         {

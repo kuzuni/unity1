@@ -66,7 +66,7 @@ namespace Forge.Game.Ui
             float scrollH = cardH - scrollTop - bottomH - pad;   // T465 — cardH 가 이미 패딩 상자라 옛 테 보정을 걷었다
             RectTransform scrollBox = UiKit.Box(card, "af-scroll");
             UiKit.Place(scrollBox, pad, scrollTop, inner, scrollH);
-            RectTransform content = PopupKit.ScrollList(scrollBox, "list", rem * 0.25f, 0f, rem * 0.1f, TextAnchor.UpperLeft);
+            RectTransform content = PopupKit.ScrollList(scrollBox, "list", ForgeAutoStyle.L("af_age_gap_rem") * rem, 0f, rem * 0.1f, TextAnchor.UpperLeft);   // T525 — 정본 4707 `.af-age-bar { margin-bottom: .48rem }`(종전 코드에 박힌 .25rem 은 그 절반이라 피치가 3.78%H ↔ 정본·원작 4.18~4.24%H)
             PopupKit.Label(content, "af-label", TextKind.Sub, "유지", "pp_ink", TextAlignmentOptions.Left);
             float barH = rem * 1.75f;
             int stars = h.AscendCount;
