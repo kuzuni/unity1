@@ -835,6 +835,144 @@ STALE_REF_NOTES = [
 ]
 
 
+# ── 그 25줄의 «정본 근거» 를 기계가 읽는 칸 (T512 1회차 · 걸음 ⓐ · 워커 J) ─────────
+# 위 목록은 **사람이 적은 글**이고, 그 안의 «정본 1833 `.cmp-card { … }`» 꼴 근거는 정본이 바뀌면
+# **조용히 거짓**이 된다(아무 자도 안 본다 · 검수 Q 52회차가 세 회차째 같은 자리를 다시 판 뿌리).
+# 그래서 **근거를 데이터로** 따로 둔다 — 키는 그 줄의 머리(`' — '` 앞), 값은 `(정본 파일, 줄, 바늘)` 들.
+#   · `정본 파일` = `.wwwww-src/web/` 아래 상대 경로 · `줄` = 그 글이 **인용한** 줄 번호(없으면 0)
+#   · `바늘` = 그 선언에서 **그 자리에서만 나오는 글자**(정본 전체에 한 번만 있어야 한다 — 자기 검사가 센다)
+# 자기 검사는 ⓐ 모든 키가 위 목록의 머리와 1:1 인지 ⓑ 바늘이 **없어지면 잡는지**(일부러 고친 사본으로)
+# ⓒ 정본 사본이 옆에 있으면 **실물에서 바늘 전부가 아직 있는지** 를 본다(사본이 없으면 그 칸만 건너뛴다 —
+# `gate.sh`·CI 의 자기 검사 잡에는 정본 clone 이 없다).
+STALE_REF_EVIDENCE = {
+    u"리그 도전 행 피치": (
+        (u"css/style.css", 2606, u".league-challenge-row {"),
+        (u"css/style.css", 2612, u"height: calc(var(--app-w) * .1568)"),
+        (u"css/style.css", 2609, u"border-radius: .7rem; padding: 0 .6rem; margin-bottom: .5rem;"),
+    ),
+    u"기술 노드 카드 머리 인셋·청동 원 테": (
+        (u"css/style.css", 4642, u".item-detail[data-tech-node] .idet-head { margin-left: -3.2%; }"),
+        (u"css/style.css", 3689, u".idet-icon.tn-bronze {"),
+        (u"css/style.css", 3689, u"border-color: #7a4a22"),
+    ),
+    u"기술 노드 «연구 중» 카드": (
+        (u"css/style.css", 4616, u".tech-btns .btn:only-child { flex: 0 1 60%; }"),
+        (u"js/ui.js", 5582, u"[취소] 는 없앴다"),
+        (u"js/ui.js", 5584, u"(취소 불가)"),
+    ),
+    u"3D 세계": (
+        (u"js/scene3d.js", 0, u"SIMPLE_BG: true,"),
+    ),
+    u"모달 딤": (
+        (u"css/style.css", 0, u"background: rgba(0,0,0,.5); z-index: 20;"),
+    ),
+    u"제작 비교 버튼": (
+        (u"js/ui.js", 3266, u"UI.resolveCraft('sell')"),
+        (u"js/ui.js", 3269, u"'기존 교체'"),
+    ),
+    u"시대 이름": (
+        (u"js/gamedata.js", 18, u"divine: '천상'"),
+    ),
+    u"기술 트리 행": (
+        (u"js/techtree.js", 264, u"'첫 타입 단독 → 나머지 2개씩'"),
+    ),
+    u"아이콘 블록화": (
+        (u"js/icongen.js", 120, u"블록 화법 (slug `ui-icon-blockify`"),
+    ),
+    u"장비 상세 ✕": (
+        (u"css/style.css", 1733, u"geardetail-no-close"),
+    ),
+    u"펫 업그레이드 선택 줄": (
+        (u"css/style.css", 4365, u"개수 제한 철폐"),
+        (u"css/style.css", 4366, u".petup-bulkrow {"),
+    ),
+    u"탭바 금속 밴드": (
+        (u"css/style.css", 8317, u"linear-gradient(0deg, rgba(255,255,255,.12) 0 1px, rgba(255,255,255,0) 1px),"),
+    ),
+    u"하단 네비 칸 수": (
+        (u"js/main.js", 127, u"nav-6th-keep-debug"),
+    ),
+    u"장비 시대 상세 카드": (
+        (u"css/style.css", 3649, u"#forge-item-modal .modal-card.item-detail { width: 68.9%; }"),
+    ),
+    u"리그 상대 이름": (
+        (u"css/style.css", 2635, u".league-challenge-name small { color: #ff880f;"),
+    ),
+    u"상점 머리 부제 틈": (
+        (u"css/style.css", 2898, u".shop-sub { text-align: center;"),
+        (u"css/style.css", 2898, u"margin: .34rem 0 1.42rem;"),
+    ),
+    u"특가 카드 보상 알약 수": (
+        (u"js/shop.js", 7, u"필드 자체를 뺀다"),
+    ),
+    u"설정 토글 색": (
+        (u"css/style.css", 3115, u".settings-toggle.on { background: var(--pp-blue); }"),
+        (u"css/style.css", 3507, u"--pp-blue: #005dff;  --pp-blue-dk: #001c4e;"),
+    ),
+}
+
+#: 인용한 줄 번호와 실제 줄이 이만큼 넘게 벌어지면 «글의 줄 번호가 낡았다» 고 알린다(막지는 않는다 —
+#: 정본이 자라면 아래쪽 줄 번호는 다 밀리고, 그것은 근거가 **사라진 것과 다른 일**이다).
+NOTE_LINE_DRIFT = 40
+
+
+def note_head(short):
+    """그 줄의 머리 — `STALE_REF_EVIDENCE` 의 키다(`' — '` 앞)."""
+    return short.split(u" — ")[0].strip()
+
+
+def evidence_problems(reader, table=None):
+    """근거 바늘이 정본에 아직 있는가 — 문제 줄의 목록을 돌려준다(빈 목록 = 다 있다).
+
+    `reader(상대경로)` 는 그 파일의 글 전체 또는 None(못 읽었다)을 내야 한다 —
+    자기 검사가 **일부러 고친 사본**을 먹이는 자리가 여기다."""
+    table = STALE_REF_EVIDENCE if table is None else table
+    bad = []
+    for head in sorted(table):
+        for path, line, needle in table[head]:
+            text = reader(path)
+            if text is None:
+                bad.append(u"%s · %s 를 못 읽었다" % (head, path))
+                continue
+            lines = text.split(u"\n")
+            at = [i + 1 for i, l in enumerate(lines) if needle in l]
+            if not at:
+                bad.append(u"%s · %s 에서 근거가 **사라졌다** — 바늘 «%s»"
+                           % (head, path, needle))
+            elif line and min(abs(a - line) for a in at) > NOTE_LINE_DRIFT:
+                bad.append(u"⚠ %s · %s 의 줄 번호가 낡았다 — 글은 %d, 실제 %s(근거 자체는 있다)"
+                           % (head, path, line, at[0] if len(at) == 1 else at))
+    return bad
+
+
+def verify_stale_notes(web_dir=None):
+    """정본 실물에서 근거를 검산한다 — 정본 사본이 없으면 **건너뛴다**(rc 0)."""
+    web_dir = os.path.join(REPO, ".wwwww-src", "web") if web_dir is None else web_dir
+    if not os.path.isdir(web_dir):
+        print(u"· 근거 검산: 정본 사본(.wwwww-src)이 없어 건너뛴다"
+              u" — ROUTINE §0 의 `git clone --depth 1 … .wwwww-src` 뒤에 다시 돌려라")
+        return 0
+
+    def reader(path):
+        p = os.path.join(web_dir, path)
+        try:
+            return open(p, encoding="utf-8").read()
+        except Exception:
+            return None
+    bad = evidence_problems(reader)
+    hard = [b for b in bad if not b.startswith(u"⚠")]
+    n = sum(len(v) for v in STALE_REF_EVIDENCE.values())
+    if not bad:
+        print(u"✓ 근거 검산: %d줄 중 %d줄에 기계가 읽는 근거 %d개 · 정본에 **전부 살아 있다**"
+              % (len(STALE_REF_NOTES), len(STALE_REF_EVIDENCE), n))
+        return 0
+    for b in bad:
+        print(u"  %s %s" % (u" " if b.startswith(u"⚠") else u"✗", b))
+    print(u"%s 근거 검산: 근거 %d개 중 사라진 것 %d · 줄 번호만 낡은 것 %d"
+          % (u"✗" if hard else u"·", n, len(hard), len(bad) - len(hard)))
+    return 1 if hard else 0
+
+
 # 자리를 **견줄 수 없는** 화면 — 원작 샷과 정본이 그 화면에서 서로 다른 물건을 그린다(T28 71·81회차 전수 실측).
 # «다음 볼 화면» 에서 **지우지 않고 맨 뒤로 밀며 꼬리표를 달아 둔다** — 지우면 진짜 결함이 생겨도 안 보이고,
 # 그대로 두면 달성률이 낮다는 이유로 회차마다 같은 자리를 다시 파게 된다(78·81회차가 실제로 그러였다).
@@ -899,6 +1037,15 @@ def print_stale_notes(full=False):
         print(u"    – " + short)
         if full:
             print(u"        " + body)
+            # T512 1회차 — 그 줄이 댄 정본 근거를 **기계가 읽는 칸**에서 나란히 찍는다(`--verify-notes` 가 검산하는 그 칸).
+            for path, line, needle in STALE_REF_EVIDENCE.get(note_head(short), ()):
+                print(u"        · 근거: %s%s  `%s`"
+                      % (path, (u":%d" % line) if line else u"", needle))
+    if full:
+        print(u"")
+        print(u"  (근거 칸이 붙은 줄 %d/%d · 바늘 %d개 — `--verify-notes` 가 정본에서 그것이 아직 산지 본다)"
+              % (len(STALE_REF_EVIDENCE), len(STALE_REF_NOTES),
+                 sum(len(v) for v in STALE_REF_EVIDENCE.values())))
 
 
 # ── 회차 사이 점수 기준선 (T28 7회차 · 워커 M) ─────────────────────────────
@@ -2246,6 +2393,7 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         if not drops and not ups:
             print(u"· 지난 회차와 견줘 %.1f점 넘게 움직인 화면 없음" % DROP_MARK)
     print_stale_notes(notes_full)
+    verify_stale_notes()   # T512 1회차 — 위 목록이 댄 정본 근거가 아직 산지 **매 회차** 본다(정본 사본이 없으면 건너뛴다)
     if save_baseline and suspect[0]:
         print(u"· 기준선을 **안 적었다** — 위 «촬영이 어긋났을 수 있다» 경고 때문이다."
               u" 멀쩡한 런에서 다시 `--save-baseline` 하면 된다(결정 195·199 의 규칙 그대로).")
@@ -2554,6 +2702,57 @@ def self_test():
         u"«테에서 6px 한 열» 옛 자는 같은 카드를 **더 짧게** 읽는다(둥근 모서리 몫 — T28 145·146회차가 그 덫에 걸렸다)")
     chk(card_white_box(_canvas(40, 40, (20, 20, 20)), 5, 35) is None,
         u"card_white_box 는 카드가 없으면 None 을 낸다")
+
+    # ── T512 1회차 — «낡은 원작 샷» 25줄의 정본 근거를 기계가 검산한다(걸음 ⓐ) ──────
+    _heads = [note_head(s) for s, _b in STALE_REF_NOTES]
+    chk(len(set(_heads)) == len(_heads),
+        u"«낡은 원작 샷» %d줄의 머리(`' — '` 앞)가 서로 다르다 — 근거 표의 키가 될 수 있다" % len(_heads))
+    chk(set(STALE_REF_EVIDENCE) <= set(_heads),
+        u"근거 표의 키 %d개가 전부 그 목록의 머리다(오타가 있으면 그 근거는 **아무 줄에도 안 붙는다**)"
+        % len(STALE_REF_EVIDENCE))
+    chk(all(isinstance(e, tuple) and len(e) == 3 and e[0] and isinstance(e[1], int) and e[2]
+            for v in STALE_REF_EVIDENCE.values() for e in v)
+        and all(e[0].startswith(u"css/") or e[0].startswith(u"js/")
+                for v in STALE_REF_EVIDENCE.values() for e in v),
+        u"근거 %d개가 (`web/` 아래 경로, 줄, 바늘) 꼴이다"
+        % sum(len(v) for v in STALE_REF_EVIDENCE.values()))
+
+    #   ⓐ 바늘이 있으면 조용하다 · ⓑ **일부러 고친 사본**에서는 «사라졌다» 를 잡는다(판정의 그 칸).
+    _ev1 = {u"자기 검사": ((u"css/style.css", 10, u".settings-toggle.on { background: var(--pp-blue); }"),)}
+    _good = u"\n".join([u"/* 머리 */"] * 9 + [u".settings-toggle.on { background: var(--pp-blue); }"])
+    _bad = _good.replace(u"var(--pp-blue)", u"#00c853")          # 정본이 색을 바꾼 흉내
+    chk(evidence_problems(lambda _p: _good, _ev1) == [],
+        u"근거 검산은 바늘이 그대로면 조용하다")
+    _p = evidence_problems(lambda _p: _bad, _ev1)
+    chk(len(_p) == 1 and u"사라졌다" in _p[0] and u"settings-toggle" in _p[0],
+        u"근거 검산은 **일부러 고친 사본**에서 «사라졌다» 를 잡는다(이 칸이 T512 판정 ⓐ 다)")
+    chk(len(evidence_problems(lambda _p: None, _ev1)) == 1,
+        u"근거 검산은 파일을 못 읽어도 조용히 지나가지 않는다")
+    #   ⓒ 줄 번호만 밀린 것은 **알리기만** 한다 — 근거가 사라진 것과 다른 일이다(NOTE_LINE_DRIFT).
+    _far = u"\n".join([u"/* 머리 */"] * (10 + NOTE_LINE_DRIFT + 5)
+                      + [u".settings-toggle.on { background: var(--pp-blue); }"])
+    _p2 = evidence_problems(lambda _p: _far, _ev1)
+    chk(len(_p2) == 1 and _p2[0].startswith(u"⚠") and u"줄 번호가 낡았다" in _p2[0],
+        u"줄 번호만 %d줄 넘게 밀린 것은 ⚠ 로 알리기만 한다(막지 않는다)" % NOTE_LINE_DRIFT)
+    #   ⓓ 바늘은 그 자리에서만 나와야 한다 — 정본 사본이 옆에 있을 때만 센다(CI 자기 검사 잡엔 없다).
+    _web = os.path.join(REPO, ".wwwww-src", "web")
+    if os.path.isdir(_web):
+        _dup = []
+        for _h in sorted(STALE_REF_EVIDENCE):
+            for _path, _line, _needle in STALE_REF_EVIDENCE[_h]:
+                try:
+                    _t = open(os.path.join(_web, _path), encoding="utf-8").read()
+                except Exception:
+                    continue
+                _n = sum(1 for _l in _t.split(u"\n") if _needle in _l)
+                if _n != 1:
+                    _dup.append(u"%s · %s · %d번" % (_h, _needle[:40], _n))
+        chk(not _dup, u"근거 바늘이 정본에서 **한 번만** 나온다(여러 번이면 인용한 줄이 어느 것인지 모른다): %s"
+            % u" / ".join(_dup[:3]))
+        chk(verify_stale_notes(_web) == 0,
+            u"정본 실물에서 근거 %d개가 전부 살아 있다" % sum(len(v) for v in STALE_REF_EVIDENCE.values()))
+    else:
+        print(u"  · (근거 실물 검산 두 칸은 정본 사본이 없어 건너뛴다 — `--verify-notes` 로 따로 돈다)")
 
     _lb = _WH(430, 860)
     _bx, _by, _bw, _bh = app_box(_lb)
@@ -3114,6 +3313,8 @@ def main():
     ap.add_argument("--jitter", action="store_true",
                     help="같은 그림을 ±1 흔들어 조각 수가 버티는지 본다(T437 판정 자)")
     ap.add_argument("--notes", action="store_true", help="«낡은 원작 샷» 항목을 근거까지 펼쳐 찍는다")
+    ap.add_argument("--verify-notes", action="store_true",
+                    help="그 항목들이 댄 정본 근거가 아직 정본에 있는지 검산한다(T512 ⓐ)")
     ap.add_argument("--rows", metavar="화면", help="원작 ↔ 클론의 구분선 줄 자리를 견준다(딤과 무관)")
     ap.add_argument("--behind", nargs=2, metavar=("앞", "뒤"),
                     help="앞 화면의 가로줄이 뒤 화면을 딤으로 비치는지 밝기비로 가른다(T358 ✂)")
@@ -3131,6 +3332,8 @@ def main():
         for r in read_layout(png_read(a.read)):
             print(u"| %s | %.1f | %.1f | %.1f | %.1f | %s |" % (r.name, r.x, r.y, r.w, r.h, r.grid()))
         return 0
+    if a.verify_notes:
+        return verify_stale_notes()
     if a.notes and not a.score:
         print_stale_notes(full=True)
         return 0
