@@ -153,6 +153,56 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>
+        /// T515 6회차 — 정본 **5011** 의 둘째 채널 `box-shadow: inset 0 .12rem .3rem rgba(0,0,0,.55)`:
+        /// 자동 제련 스피너는 눌리면 **안쪽 그늘이 생긴다**. 열두 자리 중 **그늘이 생기는 유일한 자리**고,
+        /// 5009 가 `box-shadow .07s` 를 쥐어 **램프**다 — 턱 걷기·면 갈아입기(이산)와 달리 **ms 안에** 짙어진다.
+        /// 잣대는 프레임이 아니라 **규칙**에 건다(T422·T431): «놓였을 때 0 · 누르고 ms 지나면 1 · 떼면 다시 0».
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 스피너는_누르면_안쪽_그늘이_램프로_짙어진다()
+        {
+            yield return Boot();
+            PressSpec s = PressFx.Table.Get("af_spinner");
+            Assert.IsTrue(s.HasInset, "표 `af_spinner.inset` — 정본 5011");
+            Assert.Greater(s.Ms, 0.0, "5009 가 box-shadow .07s 를 쥔다 — 이 자리는 이산이 아니다");
+
+            ForgeHost h = ForgeHost.Instance;
+            h.S.BestChapter = 3; h.S.BestStage = 1; h.Pull();      // 2-10 뒤에만 열린다(PressFxSitesTests 가 쓰는 길)
+            if (!h.AutoForgeUnlocked) Assert.Ignore("환경 — 자동 제련이 아직 안 열렸다");
+            ForgeAutoPopup.Open(h);
+            yield return null;
+            yield return null;
+            Popup p = h.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(p, "자동 제련 팝업이 열린다");
+
+            PressFx fx = null;
+            foreach (PressFx q in p.Root.GetComponentsInChildren<PressFx>(true))
+                if (q.Spec != null && q.Spec.Key == "af_spinner") { fx = q; break; }
+            Assert.IsNotNull(fx, "스피너의 눌림 부품");
+            Transform face = fx.transform.Find("face");
+            Assert.IsNotNull(face, "스피너 면");
+            UnityEngine.UI.Graphic ins = null;
+            Transform insT = face.Find("inset-af_spinner");
+            if (insT != null) ins = insT.GetComponent<UnityEngine.UI.Graphic>();
+            Assert.IsNotNull(ins, "안쪽 그늘 겹이 면의 자식으로 깔린다(CSS inset = 면 위·내용 아래)");
+            Assert.IsNotNull(ins.GetComponent<UnityEngine.UI.Image>().sprite, "구운 판이 있다(단색 판이 아니다)");
+
+            Assert.AreEqual(0f, ins.color.a, 1e-4f, "놓였을 때는 그늘이 없다(정본 5005 엔 inset 선언이 없다)");
+            fx.Press(true);
+            float t = 0f;
+            while (fx.Phase < 1.0 && t < 2f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.AreEqual(1.0, fx.Phase, 1e-9, "ms 안에 위상 1 — 잰 위상 " + fx.Phase);
+            Assert.AreEqual(1f, ins.color.a, 1e-3f, "짙어진 뒤에는 구운 알파가 그대로 선다(판이 .55 를 쥔다)");
+            fx.Press(false);
+            t = 0f;
+            while (fx.Phase > 0.0 && t < 2f) { t += Time.unscaledDeltaTime; yield return null; }
+            Assert.AreEqual(0.0, fx.Phase, 1e-9, "떼면 0 으로 돌아온다");
+            Assert.AreEqual(0f, ins.color.a, 1e-4f, "떼면 그늘이 사라진다");
+            ForgeAutoPopup.Close(h);
+            yield return null;
+        }
+
+        /// <summary>
         /// **비활성 버튼엔 안 건다** — 정본 `:active` 는 눌리는 버튼에만 들고, 걸면 죽은 부품이 버튼마다 하나씩 붙는다
         /// (1회차가 `Popups.Btn` 에서 세운 같은 잣대).
         /// </summary>

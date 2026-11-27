@@ -35,6 +35,15 @@ namespace Forge.Core.Ui
         /// ⚠ 그 선언엔 `transition` 이 없어 **이산**이다(표 `ms: 0`).
         /// </summary>
         public bool FaceSwap;
+        /// <summary>
+        /// T515 6회차 — 눌림에 **안쪽 그늘이 생기는** 자리(정본 5011 `.af-spinner:active { box-shadow: inset 0 .12rem .3rem rgba(0,0,0,.55) }`).
+        /// 열두 자리 중 **하나뿐**이고, 그 자리만 `transition: box-shadow .07s`(5009)를 쥐어 **램프로** 짙어진다 —
+        /// 턱 걷기(<see cref="LipOff"/>)·면 갈아입기(<see cref="FaceSwap"/>)가 `transition` 이 없어 **이산**인 것과 반대다.
+        /// 값은 표 `press.&lt;키&gt;.inset`(치우침·흐림은 정본 rem · 색은 rgba 0~1). <see cref="HasInset"/> 가 거짓이면 그 자리엔 없다.
+        /// </summary>
+        public bool HasInset;
+        public double InsetDyRem, InsetBlurRem;
+        public double InsetR, InsetG, InsetB, InsetA;
         public CssEase Ease;
         public string Note;
     }
@@ -80,6 +89,22 @@ namespace Forge.Core.Ui
                 s.Ease = o.TryGet("ease", out e) ? RewardBurstSpec.EaseOf(e) : CssEase.Linear;
                 object n;
                 s.Note = o.TryGet("_", out n) ? n as string : null;
+                // T515 6회차 — 안쪽 그늘(`inset`): 있으면 네 수(치우침·흐림·색)를 **다** 요구한다 — 반쯤 적힌 칸은 조용히 틀린다.
+                object ins;
+                if (o.TryGet("inset", out ins))
+                {
+                    JsonObject io2 = J.Obj(ins);
+                    if (io2 == null) throw new FormatException("PressFxUi: «" + kv.Key + "» inset 은 객체여야 한다");
+                    s.HasInset = true;
+                    s.InsetDyRem = J.Num(J.Require(io2, "dy_rem"));
+                    s.InsetBlurRem = J.Num(J.Require(io2, "blur_rem"));
+                    List<object> rgba = J.Arr(J.Require(io2, "rgba"));
+                    if (rgba == null || rgba.Count != 4)
+                        throw new FormatException("PressFxUi: «" + kv.Key + "» inset.rgba 는 네 수(0~1)여야 한다");
+                    s.InsetR = J.Num(rgba[0]); s.InsetG = J.Num(rgba[1]); s.InsetB = J.Num(rgba[2]); s.InsetA = J.Num(rgba[3]);
+                    if (s.InsetBlurRem < 0) throw new FormatException("PressFxUi: «" + kv.Key + "» inset.blur_rem 은 0 이상이어야 한다");
+                    if (s.InsetA <= 0 || s.InsetA > 1) throw new FormatException("PressFxUi: «" + kv.Key + "» inset.rgba 의 알파는 0 초과 1 이하여야 한다");
+                }
                 // T515 — 종전엔 `ms <= 0` 을 막았다. 그런데 정본이 센 `:active` 열두 자리엔 `transition` 이 **없다** —
                 //   그 자리를 표에 적으려면 «즉시»(ms 0)가 적을 수 있는 값이어야 한다. 음수만 막는다.
                 if (s.Ms < 0) throw new FormatException("PressFxUi: «" + kv.Key + "» ms 는 0 이상이어야 한다(0 = 즉시 · 정본에 transition 이 없는 자리)");

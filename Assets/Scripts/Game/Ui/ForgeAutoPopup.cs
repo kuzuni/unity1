@@ -150,7 +150,19 @@ namespace Forge.Game.Ui
             //   앞의 둘은 안쪽이라 이미 서 있다(위 림라이트·아래 그늘 = `btn_lip` 관용구 갈래).
             //   면을 세운 **뒤**에 부른다 — 그늘의 둥근 모서리를 그 면에서 되읽는다(`RadiusOf`).
             UiShadow.Drop(spRt, "afspinner_lip");
-            PressFx.Attach(sp.gameObject, spRt, "af_spinner", spf);   // T355 ⓔ — 정본 5009·5011 .af-spinner:active { translateY(.1rem) · .07s ease-out }
+            // T515 6회차 — 정본 **5011** 의 둘째 채널 `box-shadow: inset 0 .12rem .3rem rgba(0,0,0,.55)`: 눌림에 **안쪽 그늘이 생긴다**.
+            //   열두 자리 중 **그늘이 생기는 유일한 자리**고, 5009 가 `box-shadow .07s` 를 쥐어 **램프로** 짙어진다.
+            //   T355 는 «안쪽 그늘은 T331 갈래» 로 미뤘지만 **T331 ✅ 는 `:active` 를 안 셌다** — 굽는 길(`UiShadow.Inset`)을 6회차가 세웠다.
+            //   면(`face`)의 **자식**으로 깐다: CSS 에서 inset 그늘은 «면 위·내용 아래» 고, 글자(`value`)는 `spRt` 의 자식이라 위에 남는다.
+            PressFx spPress = PressFx.Attach(sp.gameObject, spRt, "af_spinner", spf);   // T355 ⓔ — 정본 5009·5011 .af-spinner:active { translateY(.1rem) · .07s ease-out }
+            Forge.Core.Ui.PressSpec spSpec = PressFx.Table.Get("af_spinner");
+            if (spSpec.HasInset)
+            {
+                Image spIns = UiShadow.Inset(spf.rectTransform, "inset-af_spinner", RadiusUi.Px("af_spinner_r_rem"),
+                                             spW, rowH - rem * 0.3f, (float)spSpec.InsetDyRem, (float)spSpec.InsetBlurRem,
+                                             new Color((float)spSpec.InsetR, (float)spSpec.InsetG, (float)spSpec.InsetB, (float)spSpec.InsetA));
+                if (spIns != null) spPress.SetInsetLayer(spIns);
+            }
             TextMeshProUGUI spt = UiKit.Text(spRt, "value", TextKind.Sub, NumFmt.Fmt(cfg.HammersPerBatch) + (ddOpen ? "  ▼" : "  ▲"), "stage_ink", TextAlignmentOptions.Right);
             spt.fontStyle = FontStyles.Bold;
             UiKit.TextShadow(spt, "af_spinner");   // T333 14회차 — 정본 5005 `.af-spinner { text-shadow: 0 .07rem 0 rgba(0,0,0,.5) }`

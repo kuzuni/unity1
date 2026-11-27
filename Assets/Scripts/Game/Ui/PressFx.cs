@@ -108,6 +108,19 @@ namespace Forge.Game.Ui
             return this;
         }
 
+        /// <summary>
+        /// T515 6회차 — 눌림에 **생기는** 안쪽 그늘 겹을 매어 둔다(정본 5011 `.af-spinner:active { box-shadow: inset … }`).
+        /// 겹은 <see cref="UiShadow.Inset"/> 이 구운 판이고 알파 프로파일을 화소가 쥐므로, 여기서는 **위상만** 곱한다
+        /// (`ms` 가 있어 램프다 — 턱 걷기·면 갈아입기처럼 이산이 아니다). 놓인 상태에선 알파 0 이라 안 보인다.
+        /// </summary>
+        public void SetInsetLayer(Graphic g)
+        {
+            insetG = g;
+            if (insetG != null) insetG.color = new Color(1f, 1f, 1f, 0f);
+        }
+
+        Graphic insetG;
+
         /// <summary>기준(놓였을 때의 자리·배율)을 다시 잡는다 — 밖에서 target 의 자리를 옮긴 뒤 부른다.</summary>
         public void SetBase(Vector2 pos, Vector3 scale) { basePos = pos; baseScale = scale; }
 
@@ -169,6 +182,8 @@ namespace Forge.Game.Ui
                     swapFace.color = on ? swapTo : swapFrom;
                 }
             }
+            // T515 6회차 — 안쪽 그늘은 **램프**다(정본 5009 `transition: … box-shadow .07s`): 위상이 그대로 알파 배수다.
+            if (Spec.HasInset && insetG != null) insetG.color = new Color(1f, 1f, 1f, (float)phase);
             // T515 — 턱 걷기는 **이산**이다(정본 `box-shadow` 에 transition 이 없다): 위상이 0 보다 크면 걷힌 모습 · 0 이면 제 모습.
             if (Spec.LipOff)
             {

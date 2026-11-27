@@ -209,6 +209,88 @@ namespace Forge.Game.Ui
         static readonly Dictionary<string, Sprite> baked = new Dictionary<string, Sprite>(StringComparer.Ordinal);
 
         /// <summary>구운 판 하나(같은 자리·같은 크기면 한 번만 굽는다).</summary>
+        /// <summary>
+        /// T515 6회차 — **안쪽 그늘**(정본 `box-shadow: inset 0 dy blur color`)을 한 장 구워 상자 안에 깐다.
+        ///
+        /// 바깥 그늘(<see cref="Blur"/>)과 셈이 같다 — 모양의 가장자리를 가우시안으로 번지게 한 것이 곧
+        /// **누적 정규분포**다(<see cref="ShadowTable.EdgeCoverage"/>). 다른 것은 **보는 방향**뿐이다:
+        /// 바깥은 «모양 밖으로 번진 덮임» 이고 안쪽은 «**치우친 모양이 안 덮은 몫**»(1 − 덮임)이다.
+        /// 그래서 CSS 가 아래로(`dy`) 미는 inset 그늘이 **위 안쪽 테**에 짙게 앉는다 — 상자를 아래로 옮기면
+        /// 위쪽이 비기 때문이다(UGUI 는 +y 가 위라 셈에서 `+dy` 로 쓴다).
+        ///
+        /// 판은 상자 **크기 그대로** 굽고(안쪽이라 내밀 것이 없다) 바깥은 상자의 둥근 모서리로 **잘라낸다**
+        /// — 안 자르면 모서리 밖 네 귀가 검게 남는다. 색·알파는 구운 화소가 쥔다(알파를 두 번 곱하지 않는다).
+        /// ⚠ CSS 에서 inset 그늘은 **면 위·내용 아래**에 깔린다 — 그래서 면(`face`)의 **자식**으로 넣는 것이 제자리다.
+        /// </summary>
+        /// <param name="face">그늘을 받을 면(그 상자를 꽉 채운다 · 보통 버튼의 `face`).</param>
+        /// <param name="name">겹 이름(자가 이것으로 찾는다 · 보통 `inset-<자리키>`).</param>
+        /// <param name="radiusPx">면의 둥근 모서리(기준 px) — 그늘도 같은 모양이라야 테에서 안 비어져 나온다.</param>
+        /// <param name="w">면의 폭(px) · <param name="h">면의 높이(px).</param>
+        /// <param name="dyRem">치우침(정본 둘째 값 · 아래가 +).</param>
+        /// <param name="blurRem">흐림(정본 셋째 값).</param>
+        /// <param name="color">그늘 색(알파 포함).</param>
+        /// <returns>깐 겹(같은 면에 두 번 부르면 앞서 깐 것을 고쳐 준다) · 크기가 0 이면 null.</returns>
+        public static Image Inset(RectTransform face, string name, float radiusPx, float w, float h, float dyRem, float blurRem, Color color)
+        {
+            if (face == null) throw new ArgumentNullException("face");
+            if (w <= 1f || h <= 1f)
+            {
+                Debug.LogWarning("UiShadow: 안쪽 그늘 " + name + " 을 못 구웠다 — 면(" + face.name + ")의 크기가 아직 0이다.");
+                return null;
+            }
+            Transform had = face.Find(name);
+            Image img = had != null ? had.GetComponent<Image>() : null;
+            if (img == null)
+            {
+                RectTransform rt = UiKit.Box(face, name);
+                img = rt.gameObject.AddComponent<Image>();
+            }
+            img.raycastTarget = false;
+            img.preserveAspect = false;
+            img.color = Color.white;                         // 색은 구운 화소가 쥔다
+            img.sprite = BakeInset(name, w, h, radiusPx, dyRem * PetSkillStyle.RemPx, blurRem * PetSkillStyle.RemPx, color);
+            UiKit.Fill(img.rectTransform);
+            return img;
+        }
+
+        static Sprite BakeInset(string name, float w, float h, float radiusPx, float dyPx, float blurPx, Color color)
+        {
+            int bw = Mathf.Max(1, Mathf.RoundToInt(w)), bh = Mathf.Max(1, Mathf.RoundToInt(h));
+            string id = "inset|" + name + "|" + bw + "x" + bh + "|" + Mathf.RoundToInt(radiusPx) + "|"
+                        + Mathf.RoundToInt(dyPx * 10f) + "|" + Mathf.RoundToInt(blurPx * 10f) + "|" + ColorUtility.ToHtmlStringRGBA(color);
+            Sprite hit;
+            if (baked.TryGetValue(id, out hit) && hit != null) return hit;
+
+            double sigma = ShadowTable.SigmaOf(blurPx);
+            double halfW = bw * 0.5, halfH = bh * 0.5, radius = Math.Max(0, radiusPx);
+            var px = new Color32[bw * bh];
+            for (int y = 0; y < bh; y++)
+            {
+                double py = y + 0.5 - bh * 0.5;
+                for (int x = 0; x < bw; x++)
+                {
+                    double pxx = x + 0.5 - bw * 0.5;
+                    // 치우친 모양이 **안 덮은 몫** = 안쪽 그늘(아래로 미는 CSS dy → UGUI 는 +y 가 위라 +dy)
+                    double dShift = ShadowTable.RoundRectDistance(pxx, py + dyPx, Math.Max(0.5, halfW), Math.Max(0.5, halfH), radius);
+                    double a = (1.0 - ShadowTable.EdgeCoverage(dShift, sigma)) * color.a;
+                    // 면 밖(둥근 모서리 밖)은 잘라낸다 — 안 자르면 네 귀가 검게 남는다(가장자리는 반화소로 부드럽게)
+                    double dSelf = ShadowTable.RoundRectDistance(pxx, py, Math.Max(0.5, halfW), Math.Max(0.5, halfH), radius);
+                    a *= ShadowTable.EdgeCoverage(dSelf, 0.5);
+                    px[y * bw + x] = new Color(color.r, color.g, color.b, (float)Mathf.Clamp01((float)a));
+                }
+            }
+            var tex = new Texture2D(bw, bh, TextureFormat.RGBA32, false);
+            tex.name = "inset-" + id;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;
+            tex.SetPixels32(px);
+            tex.Apply(false, true);
+            Sprite sp = Sprite.Create(tex, new Rect(0f, 0f, bw, bh), new Vector2(0.5f, 0.5f), 100f);
+            sp.name = "inset-" + id;
+            baked[id] = sp;
+            return sp;
+        }
+
         static Sprite Bake(string key, ShadowSpec s, float w, float h, float radiusPx, float pad)
         {
             int bw = Mathf.RoundToInt(w + pad * 2f), bh = Mathf.RoundToInt(h + pad * 2f);

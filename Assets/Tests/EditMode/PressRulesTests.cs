@@ -66,6 +66,16 @@ namespace Forge.Tests
             Assert.AreEqual(0.0, xb.Ms, 1e-9, "3750 엔 transition 이 없다 — 즉시");
             Assert.IsTrue(xb.LipOff, "3750 box-shadow: none");
             Assert.AreEqual(1.0, xb.Scale, 1e-9); Assert.AreEqual(1.0, xb.Brightness, 1e-9);
+            // T515 6회차 — 안쪽 그늘이 **생기는** 자리는 `af_spinner` 하나다(정본 5011 · 열두 자리 전수).
+            PressSpec sp = t.Get("af_spinner");
+            Assert.IsTrue(sp.HasInset, "5011 box-shadow: inset 0 .12rem .3rem rgba(0,0,0,.55)");
+            Assert.AreEqual(0.12, sp.InsetDyRem, 1e-9, "inset 둘째 값 .12rem");
+            Assert.AreEqual(0.30, sp.InsetBlurRem, 1e-9, "inset 셋째 값 .3rem");
+            Assert.AreEqual(0.0, sp.InsetR, 1e-9); Assert.AreEqual(0.0, sp.InsetG, 1e-9); Assert.AreEqual(0.0, sp.InsetB, 1e-9);
+            Assert.AreEqual(0.55, sp.InsetA, 1e-9, "rgba(0,0,0,.55)");
+            Assert.AreEqual(70, sp.Ms, 1e-9, "5009 가 box-shadow .07s 를 쥔다 — 이 자리만 램프다");
+            foreach (string k in t.Keys)
+                if (k != "af_spinner") Assert.IsFalse(t.Get(k).HasInset, k + ": 눌림에 그늘이 생기는 자리는 `af_spinner` 하나다");
             foreach (string k in t.Keys)
                 if (k != "modal_btn" && k != "x_btn")
                     Assert.IsFalse(t.Get(k).LipOff, k + ": 턱을 걷는 자리는 `modal_btn`·`x_btn` 둘뿐이다(나머지 선언엔 box-shadow 가 없다)");
@@ -135,6 +145,17 @@ namespace Forge.Tests
             Assert.Throws<FormatException>(() => PressTable.From(MiniJson.ParseObject("{\"press\":{\"a\":{\"dy_rem\":-0.1,\"scale\":1,\"brightness\":1,\"ms\":80}}}")), "dy 음수");
             Assert.Throws<FormatException>(() => PressTable.From(MiniJson.ParseObject("{\"press\":{}}")), "빈 표");
             Assert.Throws<FormatException>(() => PressTable.From(MiniJson.ParseObject("{\"press\":{\"a\":{\"dy_rem\":0.1,\"scale\":1,\"brightness\":1,\"ms\":80,\"ease\":\"bouncy\"}}}")), "모르는 ease");
+            // T515 6회차 — 안쪽 그늘은 **반쯤 적으면 조용히 틀린다**(그늘이 없는 것과 구별이 안 된다) → 네 수를 다 요구한다.
+            const string head = "{\"press\":{\"a\":{\"dy_rem\":0.1,\"scale\":1,\"brightness\":1,\"ms\":70,\"ease\":\"ease-out\",\"inset\":{";
+            Assert.Throws<Forge.Core.Data.JsonException>(() => PressTable.From(MiniJson.ParseObject(head + "\"dy_rem\":0.12,\"blur_rem\":0.3}}}}")), "inset.rgba 없음 — 빠진 키는 JsonException(J.Require) 이 막는다");
+            Assert.Throws<FormatException>(() => PressTable.From(MiniJson.ParseObject(head + "\"dy_rem\":0.12,\"blur_rem\":0.3,\"rgba\":[0,0,0]}}}}")), "inset.rgba 가 넷이 아니다");
+            Assert.Throws<FormatException>(() => PressTable.From(MiniJson.ParseObject(head + "\"dy_rem\":0.12,\"blur_rem\":-0.3,\"rgba\":[0,0,0,0.55]}}}}")), "inset.blur 음수");
+            Assert.Throws<FormatException>(() => PressTable.From(MiniJson.ParseObject(head + "\"dy_rem\":0.12,\"blur_rem\":0.3,\"rgba\":[0,0,0,0]}}}}")), "inset 알파 0 — 그늘이 없는 것과 같다");
+            PressTable ins = PressTable.From(MiniJson.ParseObject(head + "\"dy_rem\":0.12,\"blur_rem\":0.3,\"rgba\":[0,0,0,0.55]}}}}"));
+            Assert.IsTrue(ins.Get("a").HasInset, "네 수가 다 있으면 받는다");
+            Assert.AreEqual(0.55, ins.Get("a").InsetA, 1e-9);
+            Assert.IsFalse(PressTable.From(MiniJson.ParseObject("{\"press\":{\"a\":{\"dy_rem\":0.1,\"scale\":1,\"brightness\":1,\"ms\":0}}}")).Get("a").HasInset,
+                "`inset` 칸이 없으면 그 자리엔 안쪽 그늘이 없다");
         }
     }
 }
