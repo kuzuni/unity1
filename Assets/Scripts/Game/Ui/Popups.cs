@@ -495,32 +495,32 @@ namespace Forge.Game.Ui
             //   — 그 규칙의 주석이 까닭까지 적어 뒀다: «`opacity .75 → 1`(9차) … 반투명해 배경 일러스트가 비쳐
             //   «**렌더링 덜 된 버튼**» 으로 채점됐다 … 비활성은 이미 **회색 면 + 죽인 글자색(#7b7b7b)** 이 말하고 있으므로 투명도는 걷는다».
             //   673 `.btn.disabled { opacity: .45 }` 는 **문서 뒤 3556 이 1 로 되돌린다** — 클론은 그 되돌림을 안 옮겨 cascade 를 거꾸로 잡고 있었다.
-            if (disabled)
-            {
-                faceKey = "pp_gray";
-                lipKey = "pp_gray_dk";
-                inkKey = "btn_disabled_ink";   // 표 `catalog.json:158` #7b7b7b — 키는 있었는데 이 자리가 안 불렀다
-                surfaceKey = null;             // 제 램프(승천 등)는 비활성에서 안 쓴다 — 회색 면이 말한다
-            }
+            //   ⚠ **부른 키를 덮어쓰지 마라 — 아래 cascade 갈래들이 그 키로 «이 버튼이 색 버튼인가» 를 가른다**(런 1379 가 그렇게 빨갰다).
+            //   8727(색 버튼 비활성 → 그림자 none)·8356(그 밖 비활성 → 흰 엠보스)은 **원래 면 색**으로 갈리는 규칙이라,
+            //   면 색 키를 회색으로 바꿔 버리면 색 버튼이 «회색 버튼» 으로 보여 **엉뚱한 가지**로 간다. 그래서 **그리는 색만** 따로 쥔다.
+            string drawFace = disabled ? "pp_gray" : faceKey;
+            string drawLip = disabled ? "pp_gray_dk" : lipKey;
+            string drawInk = disabled ? "btn_disabled_ink" : inkKey;   // 표 `catalog.json:158` #7b7b7b — 키는 있었는데 이 자리가 안 불렀다
+            string drawSurface = disabled ? null : surfaceKey;          // 제 램프(승천 등)는 비활성에서 안 쓴다 — 회색 면이 말한다
             // T415 18회차 — 정본 3542 `.modal-card .btn, .panel .btn, #equip-sheet .btn { border-radius: .7rem }`: 이 공장을 부르는 자리는 전부 그 셋 안이라 기본은 표 `modal_btn_r_rem`(.7rem)이다(663 의 맨 `.btn` .55rem = catalog `btn_r` 은 이제 부르는 자리가 없다).
             float r = radius > 0f ? radius : RadiusUi.Px("modal_btn_r_rem");   // T415 13회차 — 정본이 선택자에 따로 못박은 반지름(`.fi-card .fi-skip` .6rem)은 부르는 쪽이 표값을 넘긴다 · 안 넘기면 공용 `btn_r`
             float lip = UiKit.H("btn_lip");
             UiKit.Rounded(rt, "line", "pp_line", r);
-            Image lipImg = UiKit.Rounded(rt, "lip", lipKey, Mathf.Max(1f, r - Line3));
+            Image lipImg = UiKit.Rounded(rt, "lip", drawLip, Mathf.Max(1f, r - Line3));
             Inset(lipImg.rectTransform, Line3);
-            Image face = UiKit.Rounded(rt, "face", faceKey, Mathf.Max(1f, r - Line3));
+            Image face = UiKit.Rounded(rt, "face", drawFace, Mathf.Max(1f, r - Line3));
             face.rectTransform.offsetMin = new Vector2(Line3, Line3 + lip);
             face.rectTransform.offsetMax = new Vector2(-Line3, -Line3);
             // T178 41회차 — 정본 8686 `.btn.btn.danger.danger, .btn.btn.sell.sell` 세 겹(위 1px 분홍 림 · 좌우 1px 키라인 · 46% 밴드 + 검붉은 그늘 · 표 btn_danger_*):
             //   빨간 면(pp_red = 판매 버튼)에만 · 크기는 레이아웃이 줄 수 있어 잡히는 프레임에 굽는다. 파랑(8504)은 cascade 갈래라 따로.
             // T178 45회차 — 정본 **5626** `.btn.sm.ascend-ready { background: linear-gradient(#4caf50, #2e7d32); color: #fff }`(대장간 만렙 [★ 승천 가능] · ui.js 1506 `btn sm primary ascend-ready`):
             //   8504 유리 겹·8336 글자 그림자는 `:not(.ascend-ready)` 로 이 버튼을 뺀다 — 부르는 쪽이 <paramref name="surfaceKey"/>(표 btn_ascend)를 주면 그 램프 한 겹만(불투명 두 정지점 · 크기 무관 · PaperButton(Ascend) 과 같은 판).
-            if (surfaceKey != null) SurfaceArt.FillMasked(face, "bg-grad", surfaceKey, 1f, 1f);
-            else if (faceKey == "pp_red") SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnDangerLayers, UiKit.C(faceKey));
+            if (drawSurface != null) SurfaceArt.FillMasked(face, "bg-grad", drawSurface, 1f, 1f);
+            else if (faceKey == "pp_red") SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnDangerLayers, UiKit.C(drawFace));   // T516 — 겹 모양은 8686 그대로 · 바탕색만 회색(3556)
             // T178 42회차 — 정본 8504(마지막 선언) `.btn.btn:not(.silver):not(.ascend-ready)` 유리 겹 셋은 **그 밖의 모든 면**(파랑·초록·회색·종이·[도전])에 얹힌다 —
             //   8770 `.modal-card .btn.btn.fi-skip.fi-skip { background: #afafaf }`(단축 · 문서 뒤)만 되돌린다(fi_skip_face).
-            else if (faceKey != "fi_skip_face") SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnGlassLayers, UiKit.C(faceKey));
-            TextMeshProUGUI t = UiKit.Text(rt, "label", kind, label, inkKey);
+            else if (faceKey != "fi_skip_face") SurfaceArt.FillFaceWhenSized(face, "bg-grad", SurfaceArt.BtnGlassLayers, UiKit.C(drawFace));   // T516 — 같은 뜻(8504 는 비활성도 덮는다)
+            TextMeshProUGUI t = UiKit.Text(rt, "label", kind, label, drawInk);
             t.fontStyle = FontStyles.Bold;
             t.rectTransform.offsetMin = new Vector2(0f, lip);
             string kl = keylineKey ?? KeylineUi.BtnFace(faceKey);
