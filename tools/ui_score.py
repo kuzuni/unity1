@@ -1156,7 +1156,10 @@ def save_baseline_file(path, scores, avg, run=None, fps=None, bands=None, carrie
                 hist = [{"run": old.get("run"), "avg": old.get("avg"), "screens": old["screens"]}]
         except (OSError, ValueError):
             hist = []
-    hist = [h for h in hist if h.get("run") != run]
+    # T500 — 같은 런을 두 번 적지 않으려는 거르기인데, `run` 이 None 이면 **번호 없는 옛 칸이 통째로 사라진다**.
+    #   번호가 있을 때만 돌린다(번호 없는 칸끼리는 서로 안 지운다).
+    if run is not None:
+        hist = [h for h in hist if h.get("run") != run]
     ent = {"run": run, "avg": round(avg, 2), "screens": cur}
     if ceilings:
         # T28 87회차(결정 722) — 천장도 자취에 남긴다. 회차 사이에 **밴드 쪼개짐이 바뀌면 천장이 통째로 흔들려서**
@@ -1791,7 +1794,7 @@ def next_screens(cand, rate, shaky, take=5):
     return sorted(cand, key=lambda t: (shaky(t[0]), rate(t)))[:take]
 
 
-def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baseline=False, notes_full=False):
+def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baseline=False, notes_full=False, run_override=None):
     table = load_table(table_path)
     if not table:
         print(u"✗ 판독표가 없다(%s) — 먼저 `--gen` 을 돌린다" % os.path.relpath(table_path, REPO))
@@ -2149,9 +2152,18 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         print(u"· 기준선을 **안 적었다** — 위 «촬영이 어긋났을 수 있다» 경고 때문이다."
               u" 멀쩡한 런에서 다시 `--save-baseline` 하면 된다(결정 195·199 의 규칙 그대로).")
         save_baseline = False
+    # 런 번호는 CI 가 screens 에 같이 올린 meta.json 에서 읽는다 · 없으면 `--run` 으로 댄 것을 쓴다(T500).
+    run = meta.get("run")
+    if run is None:
+        run = run_override
+    if save_baseline and run is None:
+        # T500 — **번호를 못 읽으면 적지 않는다.** 바로 위 «촬영이 어긋났을 수 있다» 와 같은 꼴로 접는다.
+        #   번호 없는 칸은 «이름이 빈 칸» 으로 끝나지 않는다 — 다음 저장의 거르기가 그 줄을 **지운다**(1159행).
+        #   이력 여섯 칸이 T28 의 «회귀냐 흔들림이냐» 를 가르는 근거 전부라 한 칸이 빠지면 중앙값이 움직인다.
+        print(u"· 기준선을 **안 적었다** — 이 `--shots` 자리에 `meta.json` 의 `run` 이 없다."
+              u" `screens` 를 받아 다시 재거나 `--run <번호>` 로 대라(T500).")
+        save_baseline = False
     if save_baseline:
-        # 런 번호는 CI 가 screens 에 같이 올린 meta.json 에서 읽는다(없으면 비운다).
-        run = meta.get("run")
         save_baseline_file(baseline_path, scores, avg, run, fps, bands, carried, ceilings, elems)
         print(u"· 기준선을 %s 에 적었다(다음 회차가 이것과 견준다)" % os.path.relpath(baseline_path, REPO))
     if bad:
@@ -2865,6 +2877,28 @@ def self_test():
     chk(u"낡은 샷" in (u"  ⚠ 낡은 샷 — %s" % STALE_SCREENS["forge-list"]),
         u"꼬리표 문구가 «낡은 샷» 으로 시작한다")
 
+    # T500 — **번호 없는 칸끼리는 서로 안 지운다.** 1159행 거르기가 `run is None` 에도 돌면
+    #   이력에 있던 번호 없는 칸이 **통째로 사라진다**(이력 여섯 칸이 T28 판단의 근거 전부다).
+    import json as _js
+    import tempfile as _tf
+    _d = _tf.mkdtemp(prefix="ui_score_t500_")
+    _bl = os.path.join(_d, "bl.json")
+    with open(_bl, "w", encoding="utf-8") as _f:
+        _f.write(_js.dumps({"run": None, "avg": 1.0, "screens": {"a": 1.0},
+                             "history": [{"run": 1, "avg": 1.0, "screens": {"a": 1.0}},
+                                         {"run": None, "avg": 2.0, "screens": {"a": 2.0}}]},
+                            ensure_ascii=False))
+    save_baseline_file(_bl, [("a", 3.0)], 3.0, None, None, None, False, None, None)
+    with open(_bl, encoding="utf-8") as _f:
+        _h = _js.loads(_f.read())["history"]
+    chk(len(_h) == 3 and [x.get("run") for x in _h] == [1, None, None],
+        u"번호 없는 칸끼리 서로 안 지운다(T500 · 이력 %s)" % ([x.get("run") for x in _h],))
+    save_baseline_file(_bl, [("a", 4.0)], 4.0, 1, None, None, False, None, None)
+    with open(_bl, encoding="utf-8") as _f:
+        _h2 = _js.loads(_f.read())["history"]
+    chk([x.get("run") for x in _h2] == [None, None, 1],
+        u"번호가 있으면 같은 번호의 옛 칸은 그대로 갈아탄다(T500 · 이력 %s)" % ([x.get("run") for x in _h2],))
+
     print(u"")
     if fail:
         print(u"✗ ui_score self-test: %d/%d 칸 실패" % (len(fail), ok[0]))
@@ -2942,6 +2976,10 @@ def main():
     ap.add_argument("--only", nargs="*", help="이 화면 이름만")
     ap.add_argument("--baseline", default=BASELINE, help="지난 회차 점수 파일(회귀 대조)")
     ap.add_argument("--save-baseline", action="store_true", help="이번 점수를 기준선으로 적는다")
+    # T500 — `--shots` 가 가리킨 자리에 `meta.json` 이 없으면 런 번호를 못 읽는다(긁개 폴더로 재면 그렇다).
+    #   사람은 번호를 아는데 파일만 모르는 자리라 **대는 길**을 둔다. 번호가 없으면 아래에서 **저장을 접는다**.
+    ap.add_argument("--run", type=int, default=None, metavar="번호",
+                    help="이 채점의 런 번호(meta.json 에 run 이 없을 때 손으로 댄다 · T500)")
     ap.add_argument("--jitter", action="store_true",
                     help="같은 그림을 ±1 흔들어 조각 수가 버티는지 본다(T437 판정 자)")
     ap.add_argument("--notes", action="store_true", help="«낡은 원작 샷» 항목을 근거까지 펼쳐 찍는다")
@@ -2968,7 +3006,7 @@ def main():
     if a.gen:
         return gen(a.ref_dir, a.table, a.only)
     if a.score:
-        return score(a.table, a.shots, a.only, a.baseline, a.save_baseline, a.notes)
+        return score(a.table, a.shots, a.only, a.baseline, a.save_baseline, a.notes, a.run)
     ap.print_help()
     return 0
 
