@@ -945,6 +945,259 @@ def evidence_problems(reader, table=None):
     return bad
 
 
+# ── 원작 샷 ↔ 정본이 못박은 값을 한 줄로 (T512 2회차 · 걸음 ⓑ · 워커 J) ─────────
+# 검수 Q 가 47·51·52회차에 **손으로** 한 일이 이것이다: ⓐ 정본 CSS 를 grep 해 그 선택자의 선언을 찾고
+# ⓑ 클론 샷에서 그 값이 그려진 자리를 찾고 ⓒ **원작 샷의 같은 자리** 화소를 떠서 견준다.
+# 그 셋이 `--vs <화면> <선택자>` 한 줄이다. 자리를 «선택자 → 좌표» 로 아는 길은 없으므로(그러려면
+# 브라우저가 필요하다) **색이 그려진 자리를 클론에서 찾아** 그 자리를 원작으로 옮긴다 — 클론은 정본을
+# 따르는 것이 계약이라(§1) «정본이 못박은 색이 클론에 있는 자리» 가 곧 그 선택자의 자리다.
+#
+# 길이는 자리를 안 찾는다(결정 874) — 값만 **앱 상자 비율**로 환산해 찍는다. 정본 `main.js` 17 이
+# `fontSize = h / 844 * 16` 이라 1rem 은 해상도와 무관하게 앱 높이의 16/844 다.
+REM_PCT_H = 16.0 / 844.0 * 100.0          # 1rem = 1.8957 %H (정본 main.js 17)
+REM_PCT_W = REM_PCT_H * 16.0 / 9.0        # 앱은 늘 9:16 이므로 %W 로는 그 16/9 배다
+VS_TOL = 6                                 # 화소 맞추기 허용 오차(채널당) — 먼저 0 으로 보고, 없으면 이만큼
+VS_MIN_BLOB = 24                           # 이보다 작은 덩어리는 글자 테·압축 잡음이라 안 센다
+VS_MAX_ROWS = 8                            # 찍는 덩어리 줄 수 상한(**다른 것부터** 찍는다)
+VS_BLOB_NOISE = 12                         # 덩어리가 이보다 많으면 «그 색은 화면에 널려 있다» — 자리 가리기가 안 된다
+
+
+def css_decls_for(css_text, selector):
+    """정본에서 **그 선택자 그대로**인 규칙의 선언 전부 → [(줄, 속성, 값)] (뒤 규칙이 뒤에 온다)."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import check_pinned_colors as cpc
+        strip, step_sel = cpc.strip_comments, cpc.STEP_SEL
+    except Exception:
+        strip = lambda t: re.sub(r"/\*.*?\*/", lambda m: "\n" * m.group(0).count("\n"), t, flags=re.S)
+        step_sel = re.compile(r"^(?:\d+(?:\.\d+)?%|from|to)(?:\s*,\s*(?:\d+(?:\.\d+)?%|from|to))*$")
+    css = strip(css_text)
+    out = []
+    for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", css):
+        sel_raw = " ".join(m.group(1).split())
+        if sel_raw.startswith("@") or "keyframes" in sel_raw:
+            continue
+        # `@keyframes` 의 **단계**(`0%`·`from`·`to`)는 선택자가 아니다 — 바깥 블록은 위에서 걸리지만
+        # 이 정규식은 **안쪽 블록**을 따로 물어 `0% { … }` 를 «선택자 0%» 로 센다(T396 3회차가 만난 그 자리).
+        if step_sel.match(sel_raw):
+            continue
+        if selector not in [s.strip() for s in sel_raw.split(",")]:
+            continue
+        # ⚠ `m.start()` 는 **앞 규칙의 `}` 바로 뒤**라 줄이 하나 앞으로 밀린다 — 선택자 글자가 선 자리로 센다.
+        head = m.start(1) + (len(m.group(1)) - len(m.group(1).lstrip()))
+        line = css[:head].count("\n") + 1
+        for d in m.group(2).split(";"):
+            if ":" not in d:
+                continue
+            prop, val = d.split(":", 1)
+            prop, val = prop.strip(), val.strip()
+            if prop and val:
+                out.append((line, prop, val))
+    return out
+
+
+def css_tokens(css_text):
+    """`--pp-blue: #005dff` 꼴 토큰 표 → {이름: 값}."""
+    out = {}
+    for m in re.finditer(r"(--[a-z0-9-]+)\s*:\s*([^;}]+)", css_text):
+        out.setdefault(m.group(1), m.group(2).strip())
+    return out
+
+
+def resolve_css_value(val, tokens, depth=0):
+    """`var(--pp-blue, #fff)` 를 토큰 표로 푼다(없으면 대체값 · 더 없으면 그대로)."""
+    if depth > 4:
+        return val
+    def one(m):
+        name, alt = m.group(1), (m.group(2) or "").strip()
+        got = tokens.get(name)
+        return got if got else (alt if alt else m.group(0))
+    out = re.sub(r"var\(\s*(--[a-z0-9-]+)\s*(?:,([^()]*))?\)", one, val)
+    return resolve_css_value(out, tokens, depth + 1) if out != val else out
+
+
+def css_color_rgb(val):
+    """CSS 색 값 → `(r, g, b)` 또는 None(색이 아니다)."""
+    v = val.strip().lower()
+    m = re.match(r"^#([0-9a-f]{3})$", v)
+    if m:
+        return tuple(int(c * 2, 16) for c in m.group(1))
+    m = re.match(r"^#([0-9a-f]{6})", v)
+    if m:
+        h = m.group(1)
+        return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+    m = re.match(r"^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)", v)
+    if m:
+        return (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+    return None
+
+
+def css_rem_lengths(val):
+    """그 값 안의 `N rem` 전부 → [(글자, 수)] (0 은 길이가 아니라 안 센다)."""
+    return [(m.group(0), float(m.group(1))) for m in re.finditer(r"(-?[\d.]+)rem", val)]
+
+
+def _px_at(img, x, y):
+    i = ((y * img.w) + x) * 3
+    return (img.px[i], img.px[i + 1], img.px[i + 2])
+
+
+def _find_color(img, rgb, tol):
+    """그 색인 화소의 자리들 → [(x, y)] (앱 상자 안만)."""
+    ax, ay, aw, ah = app_box(img)
+    hit = []
+    for y in range(ay, ay + ah):
+        row = (y * img.w) * 3
+        for x in range(ax, ax + aw):
+            i = row + x * 3
+            if (abs(img.px[i] - rgb[0]) <= tol and abs(img.px[i + 1] - rgb[1]) <= tol
+                    and abs(img.px[i + 2] - rgb[2]) <= tol):
+                hit.append((x, y))
+    return hit
+
+
+def _median_rgb(vals):
+    if not vals:
+        return None
+    return tuple(sorted(v[c] for v in vals)[len(vals) // 2] for c in range(3))
+
+
+def vs_report(screen, selector, shots_dir, ref_dir=None, css_path=None):
+    """`--vs <화면> <선택자>` — 원작 샷의 그 자리와 정본이 못박은 값을 **나란히** 찍는다(T512 걸음 ⓑ)."""
+    ref_dir = REF_DIR if ref_dir is None else ref_dir
+    css_path = os.path.join(REPO, ".wwwww-src", "web", "css", "style.css") if css_path is None else css_path
+    if not os.path.exists(css_path):
+        print(u"✗ 정본 CSS 를 못 읽었다: %s" % css_path)
+        print(u"  · ROUTINE §0 의 `git clone --depth 1 https://github.com/kuzuni/wwwww .wwwww-src` 뒤에 다시 돌려라")
+        return 1
+    css = open(css_path, encoding="utf-8").read()
+    decls = css_decls_for(css, selector)
+    if not decls:
+        print(u"✗ 정본에 «%s» 그대로인 규칙이 없다 — 선택자를 정본 글자 그대로 줘라"
+              u"(조상이 붙은 꼴 `.modal-card %s` 은 **다른 선택자**다)" % (selector, selector))
+        return 1
+    tokens = css_tokens(css)
+
+    ref_rel_path = dict(pairs()).get(screen)
+    ref_img = clone_img = None
+    ref_name = clone_name = u"—"
+    cp = os.path.join(shots_dir, "screen_%s.png" % screen)
+    if os.path.exists(cp):
+        clone_img, clone_name = png_read(cp), os.path.basename(cp)
+    if ref_rel_path:
+        rp = os.path.join(ref_dir, ref_rel_path)
+        if os.path.exists(rp):
+            ref_img, ref_name = png_read(rp), os.path.basename(rp)
+
+    print(u"")
+    print(u"· 정본 선언 — %s (`css/style.css` %s) · 선언 %d개"
+          % (selector, u"·".join(str(l) for l in sorted(set(d[0] for d in decls))), len(decls)))
+    print(u"  클론 샷 %s · 원작 샷 %s" % (clone_name, ref_name))
+    for line, prop, raw in decls:
+        got = resolve_css_value(raw, tokens)
+        rgb = css_color_rgb(got)
+        if rgb is not None:
+            tail = u" → #%02x%02x%02x" % rgb if got.strip().lower() != u"#%02x%02x%02x" % rgb else u""
+            print(u"    %s: %s%s%s" % (prop, raw, (u"  →  " + got) if got != raw else u"", tail))
+            _vs_color_line(rgb, clone_img, clone_name, ref_img, ref_name)
+            continue
+        rems = css_rem_lengths(got)
+        if rems:
+            print(u"    %s: %s%s" % (prop, raw, (u"  →  " + got) if got != raw else u""))
+            for txt, n in rems:
+                print(u"        %-8s = %.2f%%H · %.2f%%W (정본 main.js 17 `fontSize = h/844*16`)"
+                      % (txt, n * REM_PCT_H, n * REM_PCT_W))
+            continue
+        print(u"    %s: %s%s   (색도 rem 도 아니다 — 눈으로 봐라)"
+              % (prop, raw, (u"  →  " + got) if got != raw else u""))
+    return 0
+
+
+def _clusters(hit, gap=2):
+    """맞은 화소들 → **덩어리**별 자리 목록. 자리 하나(`gap` 안)로 이어진 것을 한 덩어리로 묶는다.
+
+    ⚑ 왜 덩어리로 가르나(2회차 실측): `--vs settings .settings-toggle.on` 을 **통째 중앙값**으로 재면
+    «같다» 가 나온다 — 정본이 못박은 `#005dff` 가 그 화면에 **여섯 토글의 손잡이까지** 깔려 있고
+    원작도 손잡이가 같은 파랑이라 중앙값이 파랑으로 묻힌다. 검수 Q 51회차가 손으로 본 것은
+    **켜진 줄의 트랙**(원작은 거기만 초록 `(4,255,0)`)이었다 — 곧 **한 선택자의 자리가 여럿**이고
+    그중 몇만 다르다. 덩어리로 갈라야 그 몇이 보인다."""
+    todo = set(hit)
+    out = []
+    while todo:
+        seed = todo.pop()
+        comp = [seed]
+        frontier = [seed]
+        while frontier:
+            cx, cy = frontier.pop()
+            for dx in range(-gap, gap + 1):
+                for dy in range(-gap, gap + 1):
+                    q = (cx + dx, cy + dy)
+                    if q in todo:
+                        todo.discard(q)
+                        comp.append(q)
+                        frontier.append(q)
+        out.append(comp)
+    return out
+
+
+def _vs_color_line(rgb, clone_img, clone_name, ref_img, ref_name):
+    """정본이 못박은 색 하나 — 클론에서 그 색 덩어리를 찾고 원작의 **같은 자리**를 떠서 견준다."""
+    if clone_img is None:
+        print(u"        \u00b7 클론 샷이 없어 자리를 못 찾는다(촬영 뒤에 다시 돌려라)")
+        return
+    tol = 0
+    hit = _find_color(clone_img, rgb, tol)
+    if not hit:
+        tol = VS_TOL
+        hit = _find_color(clone_img, rgb, tol)
+    if not hit:
+        print(u"        \u00b7 클론 %s 에 그 색이 **없다**(\u00b1%d 까지 봤다) — 클론이 정본을 안 따르는 자리일 수 있다"
+              % (clone_name, VS_TOL))
+        return
+    comps = [c for c in _clusters(hit) if len(c) >= VS_MIN_BLOB]
+    print(u"        \u00b7 클론 %s: 그 색 화소 %d개%s \u00b7 덩어리 %d개(%d화소 미만은 뺐다)"
+          % (clone_name, len(hit), u"" if tol == 0 else u"(\u00b1%d)" % tol, len(comps), VS_MIN_BLOB))
+    if ref_img is None:
+        print(u"        \u00b7 원작 짝이 없어 견줄 자리가 없다")
+        return
+    rax, ray, raw_, rah = app_box(ref_img)
+    rows = []
+    for comp in comps:
+        vals = []
+        step = max(1, len(comp) // 200)
+        for x, y in comp[::step]:
+            px, py = app_rel(clone_img, x, y)
+            rx = int(round(rax + px / 100.0 * raw_))
+            ry = int(round(ray + py / 100.0 * rah))
+            if 0 <= rx < ref_img.w and 0 <= ry < ref_img.h:
+                vals.append(_px_at(ref_img, rx, ry))
+        med = _median_rgb(vals)
+        if med is None:
+            continue
+        xs, ys = [q[0] for q in comp], [q[1] for q in comp]
+        x0p, y0p = app_rel(clone_img, min(xs), min(ys))
+        x1p, y1p = app_rel(clone_img, max(xs), max(ys))
+        rows.append((max(abs(med[c] - rgb[c]) for c in range(3)), len(comp), med,
+                     (x0p, x1p, y0p, y1p), len(vals)))
+    rows.sort(key=lambda t: (-t[0], -t[1]))          # **다른 것부터** — 찾는 것이 그것이다
+    same = sum(1 for r in rows if r[0] <= VS_TOL)
+    if len(rows) > VS_BLOB_NOISE:
+        # 2회차 실측 — `.shop-sub { color: #fff }` 는 덩어리 **91개**가 나온다(화면의 흰 글자 전부).
+        # 이 길은 «정본이 못박은 색이 클론에 있는 자리» 로 자리를 찾으므로, 그 색이 **그 선택자만 쓰는 색**이
+        # 아니면 가릴 수가 없다. 조용히 그럴듯한 줄을 찍으면 그게 더 나쁘다(결정 873).
+        print(u"        \u26a0 그 색은 이 화면에 **널려 있다**(덩어리 %d개) — 아래 줄은 그 선택자만의 자리가 아니다."
+              u" 색 갈래는 «그 선택자만 쓰는 색»(면\u00b7트랙 따위)에서만 쓸모가 있다" % len(rows))
+    for d, n, med, box, ns in rows[:VS_MAX_ROWS]:
+        print(u"          %s x %.1f~%.1f%%W \u00b7 y %.1f~%.1f%%H (%d화소) \u2014 원작 (%d,%d,%d) #%02x%02x%02x \u21d2 **%s**(차 %d \u00b7 표본 %d)"
+              % ((u"\u2716" if d > VS_TOL else u"\u2713", box[0], box[1], box[2], box[3], n)
+                 + med + med + (u"다르다" if d > VS_TOL else u"같다", d, ns)))
+    if len(rows) > VS_MAX_ROWS:
+        print(u"          \u00b7 … 덩어리 %d개 더(차가 작은 쪽)" % (len(rows) - VS_MAX_ROWS))
+    print(u"        \u21d2 덩어리 %d개 중 원작과 **다른 것 %d개** \u00b7 같은 것 %d개 (정본 #%02x%02x%02x)"
+          % ((len(rows), len(rows) - same, same) + rgb))
+
+
+
 def verify_stale_notes(web_dir=None):
     """정본 실물에서 근거를 검산한다 — 정본 사본이 없으면 **건너뛴다**(rc 0)."""
     web_dir = os.path.join(REPO, ".wwwww-src", "web") if web_dir is None else web_dir
@@ -2795,6 +3048,48 @@ def self_test():
     else:
         print(u"  · (근거 실물 검산 두 칸은 정본 사본이 없어 건너뛴다 — `--verify-notes` 로 따로 돈다)")
 
+    # ── T512 2회차 — `--vs` 의 조각들(걸음 ⓑ · 그림 없이 재는 것만) ─────────────────
+    _css = u"\n".join([
+        u":root { --pp-blue: #005dff; --pp-gray: #c4c4c4; }",
+        u"/* 주석 줄 — 선택자가 아니다 */",
+        u".settings-toggle { background: var(--pp-gray); }",
+        u".settings-toggle.on { background: var(--pp-blue); }",
+        u".modal-card .settings-toggle.on { background: #111; }",
+        u".shop-sub { text-align: center; font-size: .8rem; margin: .34rem 0 1.42rem; }",
+        u"@keyframes blink { 0% { background: #fff; } }",
+    ])
+    _d = css_decls_for(_css, u".settings-toggle.on")
+    chk(len(_d) == 1 and _d[0][0] == 4 and _d[0][1] == u"background" and _d[0][2] == u"var(--pp-blue)",
+        u"css_decls_for 는 **그 선택자 그대로**인 규칙만 집는다(조상이 붙은 `.modal-card …` 은 다른 선택자다 · 줄 번호는 선택자가 선 줄)")
+    chk(css_decls_for(_css, u"0%") == [] and css_decls_for(_css, u"blink") == [],
+        u"css_decls_for 는 `@keyframes` 와 그 단계를 선택자로 세지 않는다")
+    _tk = css_tokens(_css)
+    chk(_tk.get(u"--pp-blue") == u"#005dff",
+        u"css_tokens 가 `--pp-blue: #005dff` 를 읽는다")
+    chk(resolve_css_value(u"var(--pp-blue)", _tk) == u"#005dff"
+        and resolve_css_value(u"var(--nope, #abcdef)", _tk) == u"#abcdef"
+        and resolve_css_value(u"var(--rc, #ffd54f)", {}) == u"#ffd54f",
+        u"resolve_css_value 가 토큰을 풀고, 없으면 **대체값**을 쓴다(`var(--rc, #ffd54f)` 꼴)")
+    chk(css_color_rgb(u"#005dff") == (0, 93, 255) and css_color_rgb(u"#fff") == (255, 255, 255)
+        and css_color_rgb(u"rgba(4,255,0,.5)") == (4, 255, 0) and css_color_rgb(u".8rem") is None,
+        u"css_color_rgb 는 `#rrggbb`·`#rgb`·`rgba()` 를 풀고 길이에는 None 을 낸다")
+    chk([n for _t, n in css_rem_lengths(u".34rem 0 1.42rem")] == [0.34, 1.42],
+        u"css_rem_lengths 는 `0`(단위 없음)을 길이로 세지 않는다")
+    chk(abs(REM_PCT_H - 1.8957) < 1e-3 and abs(REM_PCT_W - 3.3703) < 1e-3,
+        u"1rem = 1.90%H = 3.37%W (정본 `main.js` 17 `fontSize = h/844*16` · 앱은 늘 9:16)")
+    #   덩어리 가르기 — **이 칸이 2회차의 교훈이다**: 통째 중앙값이면 «같다» 로 묻힌다.
+    _blob = [(x, y) for x in range(10, 20) for y in range(10, 20)] \
+        + [(x, y) for x in range(60, 70) for y in range(60, 70)] \
+        + [(100, 100)]
+    _cs = sorted((len(c) for c in _clusters(_blob)), reverse=True)
+    chk(_cs == [100, 100, 1],
+        u"_clusters 는 떨어진 덩어리를 가른다(붙은 100 + 100 + 외톨이 1)")
+    chk(len(_clusters([(0, 0), (2, 0)])) == 1 and len(_clusters([(0, 0), (5, 0)])) == 1 + 1,
+        u"_clusters 의 이음 거리는 2 자리다(3 이상 벌어지면 다른 덩어리)")
+    chk(_median_rgb([(0, 0, 0), (4, 255, 0), (255, 255, 255)]) == (4, 255, 0)
+        and _median_rgb([]) is None,
+        u"_median_rgb 는 채널마다 중앙값을 내고 빈 표본엔 None 을 낸다")
+
     _lb = _WH(430, 860)
     _bx, _by, _bw, _bh = app_box(_lb)
     chk((_bx, _by, _bw, _bh) == (0, 48, 430, 764),
@@ -3379,6 +3674,8 @@ def main():
     ap.add_argument("--notes", action="store_true", help="«낡은 원작 샷» 항목을 근거까지 펼쳐 찍는다")
     ap.add_argument("--verify-notes", action="store_true",
                     help="그 항목들이 댄 정본 근거가 아직 정본에 있는지 검산한다(T512 ⓐ)")
+    ap.add_argument("--vs", nargs=2, metavar=("화면", "정본선택자"),
+                    help="원작 샷의 그 자리와 정본이 못박은 값을 나란히 찍는다(T512 ⓑ · 예: `--vs settings .settings-toggle.on`)")
     ap.add_argument("--rows", metavar="화면", help="원작 ↔ 클론의 구분선 줄 자리를 견준다(딤과 무관)")
     ap.add_argument("--behind", nargs=2, metavar=("앞", "뒤"),
                     help="앞 화면의 가로줄이 뒤 화면을 딤으로 비치는지 밝기비로 가른다(T358 ✂)")
@@ -3398,6 +3695,8 @@ def main():
         return 0
     if a.verify_notes:
         return verify_stale_notes()
+    if a.vs:
+        return vs_report(a.vs[0], a.vs[1], a.shots, a.ref_dir)
     if a.notes and not a.score:
         print_stale_notes(full=True)
         return 0
