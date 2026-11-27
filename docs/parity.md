@@ -3038,3 +3038,47 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - ⚑ **`ease-in` 의 정본 베지어(`.42,0,1,1`)는 클론 표에 하나도 없다**(정준 네쌍 셈 0). 정본의 `ease-in` 세 자리 중 둘(`srintro`)이 `k²` 근사이고 하나(`dgclear-sink`)만 표로 선다 — 이 키워드는 애초에 길이 안 났다.
 - **등재를 셋으로 가른 까닭**: 13 이 세 파일 짝에 흩어진다(전투 오버레이 넷 · 소환 결과 여덟 · 오프라인 버튼 하나). 결정 847 의 앞쪽(같은 파일은 묶는다)과 뒤쪽(다른 파일은 가른다)을 그대로 적용했다.
 - **남은 축**: `ease-in-out` **22** + 기본 `ease` **16** = **38 자리**(80회차 몫). 그 둘은 «양쪽이 느리다» 라 **선형과의 차가 가운데서 0 에 가깝다** — 이번처럼 «선형이냐» 로는 안 갈리니 **곡선을 점으로 재는 눈**이 필요하다.
+
+## 80회차 — 곡선 키워드의 마지막 갈래: `ease-in-out` 22 + 기본 `ease` 9 = 31 자리 · **`animation:` 단축 축이 닫혔다** (2026-11-27 12:0x~12:4x · 워커 I · sess-1203-20995 · T33)
+
+| 정본 줄 | 애니 | 규격 | 클론의 집 | 판정 |
+|---|---|---|---|---|
+| 218 | `ob-bob` | ease-in-out | `OfflineButtonRules.EaseInOutCurve = CssEase(.42,0,.58,1)` — **T507 1회차가 이 회차 직전에 smoothstep 근사를 걷었다**(79회차 등재) | ✅ |
+| 1833 | `newpulse` | ease-in-out | **없다** — `.cmp-card.new` 갈래가 0(표에 키도 없다) | ⛔ T510 |
+| 1838 | `shinesweep` | ease-in-out | **없다** — 빗금 띠가 0 | ⛔ T510 |
+| 4622 | `tt-ready` | ease-in-out | `DungeonFxUi.ttready` + `TechReadyPulse` | ✅ |
+| 4945 | `gp-twinkle` | ease-in-out | `AgePatternUi ages.interstellar.pulse{.62→1 · 2.8s}` + `layout.ease_in_out` | ✅ |
+| 4958 | `gp-breathe` | ease-in-out | `ages.underworld.pulse{.74→1 · 3.6s}` | ✅ |
+| 4962 | `gp-twinkle` | ease-in-out | `ages.divine.pulse{.62→1 · 2.2s}` | ✅ |
+| 5828 | `srfloorbreath` | ease-in-out | `layout.floor_breath_s`·`_a_lo`·`_a_hi`(코사인 반파 · 0.019 근사) | ✅ |
+| 5874 | `srfloorbreath` | ease-in-out | 같은 자리(둘째 선택자) | ✅ |
+| 5889 | `srveil` | ease-in-out | `SummonFx.Veil` 코사인 반파 | ✅ |
+| 5902 | `srveil` | ease-in-out | 같은 길(다른 주기) | ✅ |
+| 5974 | `srstar` | ease-in-out | `SummonFx` 별 호흡(표 수열) | ✅ |
+| 5997 | `srmote` | ease-in-out | `SkillSummonResult.AnimateMotes` + `particles.motes.ease`(정준 네쌍) | ✅ |
+| 6674 | `srpulse` | ease-in-out | `SummonFxUi hipulse.ease` = `[.42,0,.58,1]` | ✅ |
+| 6886 | `srbreath` | ease-in-out | `SkillSummonResult` 구슬 호흡 | ✅ |
+| 6909 | `srbreath` | ease-in-out | 같은 자리 | ✅ |
+| 6909 | `srpulse` | ease-in-out | 같은 `hipulse.ease` | ✅ |
+| 6918 | `srsweep` | ease-in-out | `SummonFxUi orbsweep.ease` = `[.42,0,.58,1]`(76회차가 퍼센트 자리까지 쟀다) | ✅ |
+| 6929 | `srfloorglow` | ease-in-out | **없다** — `floor_breath_*` 는 `srfloorbreath` 이고 `::before` «고인 빛» 겹은 0 | ⛔ T511 |
+| 7136 | `srhint` | ease-in-out | **없다** — `hint` 오브젝트는 서지만 알파를 움직이는 자리가 0 | ⛔ T511 |
+| 7158 | `srraysbreath` | ease-in-out | `layout.rays_done_breath_s` + `Veil` | ✅ |
+| 7174 | `srstagebreath` | ease-in-out | **없다** — 표에 키 0 | ⛔ T511 |
+| 494 | `lootpop` | 기본 ease | `LootFeedUi` + `LootFeedRules:39` `EaseOf` | ✅ |
+| 7286 | `eqswX` | 기본 ease | `EquipSwapUi x[1].ease`(정준 네쌍) | ✅ |
+| 7287 | `eqswY` | 기본 ease | `EquipSwapUi y[6].ease` | ✅ |
+| 7288 | `eqswR` | 기본 ease | `EquipSwapUi r[1].ease` | ✅ |
+| 7291 | `eqswSquash` | 기본 ease | `EquipSwapUi squash[0~4].ease` 다섯 | ✅ |
+| 7357 | `eqswSnap` | 기본 ease | `EquipSwapUi snap[3].ease` | ✅ |
+| 7391 | `coinFlyY` | 기본 ease | `CoinBurstUi` + `CoinBurstRules` | ✅ |
+| 7436 | `coinAmt` | 기본 ease | 같은 길 | ✅ |
+
+### 이 회차가 확인한 것
+
+- **31 자리 → ✅ 26 · ⛔ 5.** ⛔ 다섯은 전부 **없는 겹**이다 — 제작 비교 카드의 «새 장비» 둘(**T510**) · 소환 결과의 «끝난 뒤 숨쉬는 겹» 셋(**T511**).
+- ⚑ **78회차의 «기본 `ease` 16» 중 일곱이 허수였다**: 여섯이 `animation: **none**`(`prefers-reduced-motion` 되돌림·덮어쓰기), 하나는 **주석 줄**(6199 — 하필 «여기에 `animation: …` 을 얹지 말 것» 이라 적힌 경고문이다), 하나는 여러 줄 선언의 **이어진 줄**(6092). 참 자리 **9** · 축 총계 138 → **130**. **값이 `none` 이면 타이밍 자리가 아니다.**
+- ⚑ **클론의 숨쉬기는 코사인 반파이고 `ease-in-out` 과 최대 0.019 다르다**(실제 알파 폭에서 **0.008**). 눈금에 올리면 **선형 0.121 · smoothstep 0.029 · 코사인 0.019 · 지수 0.0056** 이라 아래쪽이다 — **고치는 값이 아니라 적어 둘 값**으로 보고 ⛔ 에 안 넣었다(결정 863). 대신 T510·T511 등재문이 «새로 세우는 겹은 `CssEase` 로» 를 못 박는다.
+- ⚑ **등재와 수리가 맞물렸다**: 79회차가 «smoothstep 근사» 로 등재한 `ob-bob`(T507)을 워커 J 가 이 회차 **직전에** 닫아, 같은 자리가 이번 표에서 ✅ 로 선다. 축 훑기가 낳은 번호가 다음 훑기의 ✅ 가 되는 고리다.
+- **축이 닫혔다**: `animation:` 단축 **131 자리**(cubic 38 · linear 30 · steps 2 · ease-out 27 · ease-in 3 · ease-in-out 22 · 기본 ease 9)를 **77~80 네 회차**에 걸쳐 자리마다 짚었다. 그 사이 나온 번호 — T499 · T502 · T503 · T505 · T506 · T507 · T510 · T511(곁가지 T501).
+- **다음 축 후보**: `transition` 은 73·44회차가 두 번 훑었지만 **자리 단위(채널까지)** 로는 아직이다 — 결정 860(같은 키프레임의 다른 채널)과 854(부모·자식)를 그 축에 처음 적용해 보는 자리다.
