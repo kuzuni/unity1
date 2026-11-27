@@ -269,10 +269,21 @@ namespace Forge.Tests.PlayMode
             float below = panel.anchoredPosition.y;
             Assert.Less(below, ps.BasePos.y - 1f, "첫 프레임은 아래에 있다(105%)");
             Assert.AreEqual(ps.BasePos.y - panel.rect.height * (float)(s.DyPct / 100.0), below, 1f, "시작 자리 = 높이 × 105%");
+            // ⚠ **«딱 ms» 로 재지 마라 — 아래 Settle 블록이 이미 아는 덫인데 이 윗줄만 안 고쳐져 있었다**(런 1371 실측).
+            //   종전은 `WaitMs(Ms * 0.5)` 뒤 «아직 제자리 전» 을 단언했는데, 에디터 프레임 하나가 220ms 를 넘으면
+            //   그 한 프레임에 슬라이드가 **끝나** y 가 정확히 제자리(0)라 «< 0» 이 거짓이 된다.
+            //   증거: **같은 제품 코드**가 런 1368 에서는 PASS · 1371 에서 FAIL(그 사이 바뀐 것은 다른 자 파일과 문서뿐).
+            // ⓐ 셈은 시간 없이 못 박는다 — 중간 ms 의 오프셋은 **시작과 0 사이**다(이 줄이 «올라오는 중» 의 본뜻).
+            double hpx = panel.rect.height;
+            double offMid = PressRules.SlideOffset(s, s.Ms * 0.5, hpx);
+            double off0 = PressRules.SlideOffset(s, 0, hpx);
+            Assert.Less(offMid, off0, "중간은 시작보다 올라와 있다(셈)");
+            Assert.Greater(offMid, 0.0, "중간은 아직 제자리가 아니다(셈)");
+            // ⓑ 실물은 **두 갈래를 다 받는다** — 프레임이 짧으면 가운데를 지나고, 길면 이미 제자리다.
             yield return WaitMs(s.Ms * 0.5);
             float mid = panel.anchoredPosition.y;
-            Assert.Greater(mid, below, "올라오는 중");
-            Assert.Less(mid, ps.BasePos.y, "아직 제자리 전");
+            if (ps.Sliding) { Assert.Greater(mid, below, "올라오는 중"); Assert.Less(mid, ps.BasePos.y, "아직 제자리 전"); }
+            else Assert.AreEqual(ps.BasePos.y, mid, 0.5f, "프레임 하나가 ms 를 넘어 그 자리에서 끝났다 — 제자리여야 한다");
             // 같은 덫(위 Settle 주석) — «딱 ms» 로 재지 말고 **끝날 때까지** 기다리되 상한을 둔다.
             {
                 float t2 = 0f;
