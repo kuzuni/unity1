@@ -247,9 +247,13 @@ namespace Forge.Tests.PlayMode
             Assert.Less(floor, 0, "닫히는 구간도 0 을 지나쳤다 돌아온다 — 정본 곡선 그대로다");
 
             // 실물: 배너가 그 셈을 그대로 쓴다(BattleOverlay 는 한 줄도 안 바꿨다).
+            // ⚠ **여기서 프레임을 하나도 흘리지 마라**(런 1345 가 그렇게 빨갰다 — 기다린 1.35 ↔ 실측 1.0).
+            //   `BossWarning` 이 `warnT = 0` 으로 되돌리고 **제자리에서** `DriveWarning()` 까지 하므로 한 프레임도 필요 없는데,
+            //   `yield return null` 을 끼우면 그 사이 `BattleScene` 이 제 dt 로 `overlay.Tick` 을 불러 **길이를 모르는 만큼** 먼저 지나간다.
+            //   에디터 첫 프레임이 수백 ms 라 u 가 7% 가 아니라 **평평한 구간(13~82%)** 으로 넘어가 값이 1.0 이 된다.
+            //   연출을 재는 자는 «제 시계» 든 «남의 프레임» 이든 **모르는 시간을 끼우지 않는다**(T492 2회차와 같은 갈래).
             BattleOverlay o = BattleOverlay.Ensure();
             o.BossWarning(FxRules.BossWarnDur);
-            yield return null;
             o.Tick((float)(FxRules.BossWarnDur * 0.07));
             RectTransform bn = null;
             foreach (RectTransform rt in o.Layer.GetComponentsInChildren<RectTransform>(true))
