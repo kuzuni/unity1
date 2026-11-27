@@ -5608,7 +5608,7 @@
 - ⚑ **셋 다 `done` **뒤**의 겹이다** — 결과를 다 보여 준 **뒤** 화면이 죽지 않게 하는 층이라, 없으면 «끝나고 멈춘 그림» 이 된다. T506 이 닫은 «드러나는 조각» 과 짝이다(그쪽은 들어옴 · 이쪽은 머무름).
 - 무엇을 한다: ⓐ `SummonFxUi.json` 에 `hint_breath`·`floor_glow`·`stage_breath` 절(주기·알파 lo/hi·배율)을 두고 ⓑ 세 겹을 `CssEase(.42,0,.58,1)` 구간 왕복으로 돌린다 ⓒ 자 세 칸.
 - 판정: **PlayMode `SummonFxTests`** — 세 겹 각각 한 주기 안에서 알파(또는 배율)가 **lo·hi 를 둘 다 지난다** · `done` 전에는 안 돈다. 수는 표에서(§1) · `tools/gate.sh` rc 0.
-- 범위: `Assets/Forge/Resources/SummonFxUi.json` · `Assets/Scripts/Game/Ui/SummonFx.cs` · `Assets/Scripts/Game/Ui/SkillSummonResult.cs` · `Assets/Tests/PlayMode/SummonFxTests.cs` · `docs/ROUTINE.md`(§2 이 절 · §7 한 칸) · `docs/PROGRESS.md`.
+- 범위: `Assets/Forge/Resources/SummonFxUi.json` · `Assets/Scripts/Game/Ui/SummonFx.cs` · `Assets/Scripts/Game/Ui/SkillSummonResult.cs` · `Assets/Tests/PlayMode/SummonFxTests.cs` · `docs/ROUTINE.md`(§2 이 절 · §7 한 칸) · `docs/PROGRESS.md` · **2회차에 둘 늘었다** — `Assets/Scripts/Core/Ui/ShadowRules.cs`(타원 번짐 적분 · 수는 Core) · `Assets/Tests/EditMode/ShadowRulesTests.cs`.
 
 
 - 🔄 **1회차(2026-11-27 13:0x~13:5x · 워커 I · sess-1303-25131) — 셋 중 둘을 닫았다(힌트 칩 · 무대 받침) · 소환진 고인 빛은 2회차 몫**:

@@ -1581,7 +1581,7 @@ namespace Forge.Game.Ui
             if (!ejectSet && haloImg != null && cells.Count > 0) { ejectSet = true; MeasureEject(); }
             AnimateCells();
             AnimateTicks();
-            AnimateBreath();   // T511 — 힌트 칩(상시) · 무대 받침(done 뒤)
+            AnimateBreath();   // T511 — 힌트 칩(상시) · 무대 받침(done 뒤) · 소환진 번진 빛(done 뒤 · 두 틀 교차섞기)
             AnimateTitleIn();
             AnimateHaloIntro();
             AnimateFloorIn();
