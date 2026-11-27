@@ -1397,21 +1397,121 @@ def scan_ref(shots_dir, ref_dir=None, css_path=None, only=None, per_screen=3):
     return 0
 
 
+#: T519 — «차가 이만큼 크면 열 줄에 못 들어도 한 줄로는 반드시 찍는다»(검수 Q 55회차: 차 255 가 아홉 · 200~249 가 열둘).
+SCAN_LOUD_DIFF = 200
+
+
+def _note_needles():
+    """`--notes` 근거 칸의 바늘 — [(줄 번호(1부터), 바늘 소문자)] (T519 ⓑ)."""
+    out = []
+    for i, (short, _body) in enumerate(STALE_REF_NOTES, 1):
+        for _path, _line, needle in STALE_REF_EVIDENCE.get(note_head(short), ()):
+            out.append((i, (needle or u"").lower()))
+    return out
+
+
+def _note_hit(sels, needles=None):
+    """못박은 선택자 중 하나가 `--notes` 근거 바늘 안에 들어 있으면 그 줄 번호 · 없으면 None.
+
+    T519 ⓑ — 이미 적어 둔 자리는 **매 회차 같은 칸을 먹지 않게** 뒤로 민다. 바늘은 정본 원문
+    조각(`.settings-toggle.on { background: var(--pp-blue); }`)이라 선택자가 그 안에 든다."""
+    needles = _note_needles() if needles is None else needles
+    for sel in sels:
+        key = (sel or u"").strip().lower()
+        if len(key) < 3:
+            continue
+        for i, needle in needles:
+            if key in needle:
+                return i
+    return None
+
+
+def _scan_pick(rows, table, limit=10):
+    """찍을 줄을 고른다 — **한 잣대가 아니라 둘**(T519 ⓐ).
+
+    종전엔 `sorted(key=(-화소, -차))[:10]` 이라 «얼마나 넓은가» 하나로 잘랐고, 그래서 **차 255 짜리
+    아홉이 한 줄도 안 찍히는** 일이 났다(검수 Q 55회차 실측 · 런 1382 · `settings` 토글은 화소순 33위
+    ↔ 차순 2위). 넓이순 절반 · 차순 절반을 뽑아 합치고(겹치면 한 번), 어느 잣대로 뽑혔는지 적는다.
+    ⚠ 차순으로 **갈아타지** 않는다 — 차 255 중에도 아는 «자리가 밀렸다»(결정 877)가 있어서,
+    한 잣대로 바꾸면 반대쪽이 똑같이 잘린다.
+
+    돌려주는 것: [(row, 뽑힌 까닭, --notes 줄 번호 또는 None)] · 그리고 못 찍은 수(fresh/noted)."""
+    needles = _note_needles()
+    marked = [(r, _note_hit([s for s, _l in table.get(r[3], [])], needles)) for r in rows]
+    fresh = [t for t in marked if t[1] is None]
+    noted = [t for t in marked if t[1] is not None]
+    half = max(1, limit // 2)
+    chosen, why = [], {}
+
+    def take(pool, key, label, want):
+        got = 0
+        for t in sorted(pool, key=key):
+            if got >= want:
+                break
+            k = id(t[0])
+            if k in why:
+                why[k] = why[k] + u"·" + label        # 두 잣대 다 뽑았다
+                continue
+            why[k] = label
+            chosen.append(t)
+            got += 1
+
+    by_px = lambda t: (-t[0][2], -t[0][1])
+    by_diff = lambda t: (-t[0][1], -t[0][2])
+    take(fresh, by_px, u"넓이", half)
+    take(fresh, by_diff, u"차", half)
+    if len(chosen) < limit:                              # 남으면 아직 안 적힌 자리부터
+        take([t for t in fresh if id(t[0]) not in why], by_px, u"남은자리", limit - len(chosen))
+    if len(chosen) < limit:                              # 그래도 남으면 이미 적힌 자리
+        take(noted, by_px, u"남은자리", limit - len(chosen))
+    chosen.sort(key=lambda t: (t[1] is not None, -t[0][1]))
+    rest_fresh = len([t for t in fresh if id(t[0]) not in why])
+    rest_noted = len([t for t in noted if id(t[0]) not in why])
+    return [(t[0], why[id(t[0])], t[1]) for t in chosen], rest_fresh, rest_noted
+
+
 def _scan_rows(rows, table, limit=10):
-    rows = sorted(rows, key=lambda t: (-t[2], -t[1]))
     if not rows:
         print(u"    (없다)")
         return
-    for screen, d, n, rgb, med, box, exact, off in rows[:limit]:
+    picked, rest_fresh, rest_noted = _scan_pick(rows, table, limit)
+    for (screen, d, n, rgb, med, box, exact, off), why, note in picked:
         sels = [s for s, _l in table.get(rgb, [])]
         # T517 — «어느 바이트로 맞았는지» 를 같이 찍는다: 딱맞음 0 이면 **종전 자는 이 자리를 아예 못 봤다**.
         how = (u"딱맞음 %d" % exact) if exact else (u"**딱맞음 0** · ≤%d 로만 찍혔다(T517 앞에는 안 보였다)" % off)
+        tail = u"%s · 뽑힘 %s" % (how, why)
+        if note is not None:
+            tail += u" · **이미 적힌 자리**(`--notes` %d번째 — 다시 파지 마라)" % note
         print(u"    %-16s #%02x%02x%02x ↔ 원작 (%d,%d,%d) · 차 %3d · %5d화소 · x %.1f~%.1f%%W y %.1f~%.1f%%H · %s"
-              % ((screen,) + rgb + med + (d, n, box[0], box[1], box[2], box[3], how)))
+              % ((screen,) + rgb + med + (d, n, box[0], box[1], box[2], box[3], tail)))
         print(u"        그 색을 못박은 정본 선택자 %d개: %s"
               % (len(sels), u" · ".join(sels[:4]) + (u" …" if len(sels) > 4 else u"")))
-    if len(rows) > limit:
-        print(u"    · … %d자리 더" % (len(rows) - limit))
+    # T519 — **접은 자리를 통째로 묻지 않는다.** 열 줄은 «아직 안 적힌» 자리에 주되,
+    #   ⓐ 차가 큰데 못 든 자리와 ⓑ 이미 적힌 자리는 **한 줄짜리 꼴**로 반드시 선다
+    #   (등재문 판정: «차 255 짜리 아홉이 한 줄도 안 빠지고 어딘가에 선다» · «`settings` 토글 자리가 다시 찍힌다»).
+    shown = set(id(r) for r, _w, _n in picked)
+    needles = _note_needles()
+    def brief(r, note):
+        screen, d, n, rgb, med = r[0], r[1], r[2], r[3], r[4]
+        return u"%s #%02x%02x%02x↔(%d,%d,%d) 차 %d · %d화소%s" % (
+            (screen,) + rgb + med + (d, n, u" [`--notes` %d]" % note if note else u""))
+    hit = dict((id(r), _note_hit([x for x, _l in table.get(r[3], [])], needles)) for r in rows)
+    # 아직 안 적힌 자리만 여기 싣는다 — 적힌 자리는 바로 아래 제 줄에 선다(한 자리가 두 줄에 겹치지 않게).
+    loud = [r for r in rows if id(r) not in shown and not hit[id(r)] and r[1] >= SCAN_LOUD_DIFF]
+    loud.sort(key=lambda t: (-t[1], -t[2]))
+    if loud:
+        print(u"    · **차 %d 이상인데 위 열 줄에 못 든 자리 %d개**(한 줄도 묻지 않는다 · T519): %s"
+              % (SCAN_LOUD_DIFF, len(loud),
+                 u" | ".join(brief(r, None) for r in loud[:12]) + (u" …" if len(loud) > 12 else u"")))
+    noted_rest = [r for r in rows if id(r) not in shown and hit[id(r)]]
+    noted_rest.sort(key=lambda t: (-t[1], -t[2]))
+    if noted_rest:
+        print(u"    · 이미 적힌 자리 %d개(칸을 안 먹지만 **사라지지도 않는다** · 다시 파지 마라): %s"
+              % (len(noted_rest),
+                 u" | ".join(brief(r, hit[id(r)]) for r in noted_rest[:8])
+                 + (u" …" if len(noted_rest) > 8 else u"")))
+    if rest_fresh or rest_noted:
+        print(u"    · … %d자리 더(그중 %d 은 `--notes` 에 이미 적힌 자리다)" % (rest_fresh + rest_noted, rest_noted))
 
 
 def verify_stale_notes(web_dir=None):
@@ -3861,6 +3961,31 @@ def self_test():
             u"±0 대조군에서는 그 자리가 **안** 보인다(고장 주입이 답을 바꾼다 · 결정 855)")
     else:
         chk(False, u"화면 표가 비어 ±2 가짜 샷 칸을 못 돌렸다(`pairs()` 가 0줄)")
+
+    # T519 ⓒ — 열 줄을 **한 잣대로** 고르지 않는다: 차가 큰 **작은** 자리가 넓은 자리에 안 밀린다 ·
+    #   `--notes` 에 이미 적힌 자리는 꼬리표가 붙고 **뒤로 밀린다**(그 자리가 매 회차 칸을 먹던 것).
+    #   줄 꼴: (화면, 차, 화소, rgb, 원작색, 상자, 딱맞음, off)
+    _row_small = (u"작은자리", 255, 100, (9, 9, 9), (4, 238, 0), (1.0, 2.0, 3.0, 4.0), 5, 0)
+    _row_noted = (u"적힌자리", 254, 90, (0, 93, 255), (4, 238, 0), (1.0, 2.0, 3.0, 4.0), 5, 0)
+    _row_wide = (u"넓은자리", 10, 90000, (1, 2, 3), (4, 5, 6), (1.0, 2.0, 3.0, 4.0), 7, 0)
+    _tbl9 = {(0, 93, 255): [(u".settings-toggle.on", 3115)], (1, 2, 3): [(u".whatever-wide", 1)],
+             (9, 9, 9): [(u".fresh-small-nowhere", 1)]}
+    _b9 = _io.StringIO()
+    with _cl.redirect_stdout(_b9):
+        _scan_rows([_row_wide, _row_small, _row_noted], _tbl9, limit=3)
+    _o9 = _b9.getvalue()
+    chk(u"작은자리" in _o9 and u"뽑힘 차" in _o9,
+        u"차가 큰 작은 자리가 넓은 자리에 안 밀린다(T519 ⓐ · 종전 잣대로는 화소순에서 잘렸다)")
+    chk(u"이미 적힌 자리" in _o9 and u"--notes" not in _o9.split(u"작은자리")[0],
+        u"`--notes` 바늘(`.settings-toggle.on`)과 겹치는 후보에 «이미 적힌 자리» 가 붙는다(T519 ⓑ)")
+    # 그리고 **뒤로 민다** — 이미 적힌 자리는 아직 안 적힌 자리가 남아 있으면 그 뒤에 선다.
+    _b10 = _io.StringIO()
+    with _cl.redirect_stdout(_b10):
+        _scan_rows([_row_noted, _row_wide], _tbl9, limit=1)
+    _o10 = _b10.getvalue()
+    _head10 = _o10.split(u"· 이미 적힌 자리")[0]
+    chk(u"넓은자리" in _head10 and u"적힌자리" not in _head10 and u"적힌자리" in _o10,
+        u"한 줄만 찍을 때 **아직 안 적힌** 자리가 먼저 서고, 적힌 자리는 꼬리 한 줄로 **남는다**(T519 ⓑ)")
 
     # T517 ⓑ — **빈 폴더는 «깨끗하다» 가 아니다.** 훑은 화면이 0 이면 ⛔ 와 함께 rc 1 로 떨어진다
     #   (종전엔 «0자리» 를 찍고 rc 0 으로 끝나서, `--shots` 를 빼먹은 발사가 **초록으로 보였다**).
