@@ -2848,3 +2848,41 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - **`backdrop-filter: blur(4px)` 1**(`.panel` 639): **이미 닫힌 자리다** — 40회차가 T419 ⓒ 로 등재했고 **T419 3회차(워커 F)가 «없는 자리» 로 결론**지었다(같은 선택자가 뒤에 다시 나와 패널 배경이 불투명해져 흐려질 뒤가 없다). ⚠ **73회차(내 회차)가 «남은 축» 목록에 이것을 그대로 올려 둔 것은 틀렸다** — 이 줄로 바로잡는다.
 - **남은 축은 둘이다**: ① `background-position` **21** + `background-size` **11**(30회차가 무늬·덮기 위주로 한 번 봤다 — 전수는 아니다) ② **`animation:` 단축의 이징 127 자리**(이징을 적은 것 113 · 안 적어 기본 `ease` 인 것 14 · `linear` 29 · `ease-out` 26 · `ease-in-out` 17 · cubic-bezier 나머지) — **이 축은 아무도 센 적이 없다.** 74회차가 본 23 은 그 127 **안쪽의 정지점별 이징**이라 서로 다른 축이다.
 - **이 회차가 남긴 규칙**: **«이징 축» 은 세 겹이다** — ⓐ `animation:` 단축의 이징 ⓑ `animation-timing-function`(정지점별) ⓒ `transition` 의 이징(73회차). 한 겹만 세고 «이징은 다 봤다» 로 적으면 나머지 두 겹이 영영 안 보인다.
+
+## 76회차 — 축 = 정본 `background-position` 21 + `background-size` 11 **재전수**(30회차가 «무늬·덮기 위주» 로만 본 자리) (2026-11-27 04:0x~04:5x · 워커 I · sess-0403-23051)
+
+**결함 0 · 새 번호 0.** 30회차(09-15)가 같은 축을 세고 **T368**(줄무늬 셋)을 등재했는데, 그때 기록 스스로 «전수는 아니다» 로 남겼고 그 뒤 **T368 이 ✅ 로 닫혔다**. 이번에 **선언 32 를 하나씩 선택자까지 되짚어** 짝을 확인했다.
+
+### 셈(주석 걷고 줄 번호 보존 · `@keyframes` 안까지)
+
+| 묶음 | 정본 자리 | 클론 짝 | 판정 |
+|---|---|---|---|
+| 보스 경고 띠 | 397 `background-size: 1.556rem 100%` · 420 `@keyframes bwhazard`(0 → 1.556rem) | `SurfaceUi.stripes.bw_hazard` — `tile_w_rem` **1.556** · `scroll_sec` **0.62** · `period_rem` 1.1 · `dash_rem` .55 · `height_rem` .5 (`BattleOverlay` 가 `BakeStripe`) | ✓ 2 |
+| 시대 무늬 자리·크기 | 930·931 `.equip-cell[data-age]::before` · 4837·4838 `.af-age-bar::before` · 5119·5120 `.fi-age-bar::before`(전부 `var(--af-pat-size/pos)`) | `AgePatternUi.ages[].layers[].tile_rem`·`pos_rem` (T124) | ✓ 6 |
+| 시대 무늬 흐름 | 4930·4931 `gp-interstellar` · 4934·4935 `gp-multiverse` · 4938 `gp-underworld` · 4939 `gp-divine` | 같은 표의 `move_rem` — **실측 대조**: interstellar 1겹 `.9 → 4rem`(Δ **3.1**) ↔ `move_rem [3.1, 0]` · 2겹 `.2 → -2.1rem`(Δ **−2.3**) ↔ `[-2.3, 0]` · 시작 자리도 `pos_rem [0.9,0.2]`·`[0.2,0.8]` 로 **글자 그대로** | ✓ 8 |
+| 덮기·가운데 | 1956 `.dg-banner`(cover/center) · 1996 `.dg-rw-ico`(100%/center) · 2068 `.dg-detail-hero`(cover/center) · 7197 `.ico`(contain/center) | 클론은 상자 크기를 **계산해** 비율을 낸다(22회차가 `aspect-ratio`·`object-fit` 축에서 같은 결론) — 배경 속성이 아니라 자리·크기 셈이다 | ✓ 7(뜻 없음) |
+| 리그 단 대시 | 2553 `.league-reward-tier`(`100% 2px` · `0 0`) | `LeagueSheet.TierDash` + `stripes.league_tier_dash`(`period_w` .0625 · `dash_w` .0323 · `band_css_px` 2) · 코드 주석이 «position 0 0 · size 100% 2px» 로 그 두 줄을 그대로 적어 뒀다 | ✓ 2 |
+| 스킬 소환 바 대시 | 4211·4212 `#panel-skills .summon-bar::before` | `SkillPanel` + `stripes.skills_summon_dash` — `period_w` **.1993** · `phase_w` **−.0499** · `left_w` −.027 · `top_h` −.0242 · `height_h` .00225 **전부 정본 수 그대로**(정본 주석의 «반 대시만큼 당겨 x=0 에 대시 중심» 까지 표에 적혀 있다) | ✓ 2 |
+| 소환 구슬 스윕 | 6917 `background-size: 260% 100%` · 6922·6924 `@keyframes srsweep`(−80% → 180%) | `SummonFxUi` T459 스윕 — 그 표의 `_` 가 **CSS 퍼센트 자리의 함정까지 풀어 적었다**: «`background-position` p% 의 실제 이동 = p × (구슬 폭 − 띠 폭) = (1 − size_f) × p × 구슬 폭». 곧 260% 와 −80→180% 를 **퍼센트 그대로 옮기지 않고** 제 뜻으로 옮겼다 | ✓ 3 |
+
+### 이 회차가 확인한 것
+
+- **30회차가 «전수는 아니다» 로 남긴 자리는 그 뒤 전부 닫혔다** — T368 의 줄무늬 셋이 세 표(`bw_hazard`·`league_tier_dash`·`skills_summon_dash`)로 서 있고, 수가 **정본 소수점까지** 같다.
+- **CSS 속성 축은 이것으로 정말 다 닫혔다**(30회차의 «마지막 둘» 이 맞았다) — 이 축에서 더 셀 것이 없다.
+- ⚑ **퍼센트 `background-position` 은 «상자 대비» 가 아니다** — `(container − image)` 대비다. 클론이 그것을 알고 옮긴 자리가 소환 스윕 하나뿐이라, **다음에 비슷한 자리가 생기면 그 표의 `_` 를 본보기로 삼아라**(정본 수를 글자 그대로 옮기면 띠가 엉뚱한 데서 지나간다).
+
+## 열린 칸 4
+
+| 번호 | §7 | PROGRESS | lock | task_state | 남은 것 · 갈래 |
+|---|---|---|---|---|---|
+| T28 | 🔄 | 🔄 진행 | 없음(182회차 03:41 반납 · 워커 K) | «먼저 읽어라»(05:1x 뒤 rc 0) | 기준선 1340 · 다음 코드 push 의 유니티 런이 서면 채점 |
+| T33 | 🔄 | 🔄 진행 | 이 회차(나) | — | 이 회차 뒤 반납. **축 훑기가 이로써 또 하나 닫혔다** — 남은 것은 §7 열린 칸 재검뿐이다 |
+| T35 | ⬜ | ⬜ 대기 | 없음 | **«주인 결정 대기다 — 잡지 마라»**(자가 직접 막는다 — 절을 읽어야만 알던 것이 이제 `task_state` 에 들어갔다) | `SIMPLE_BG` · 두 달째 그대로 |
+| T490 | 🔄 | 🔄 진행 | 2026-11-27T03:18 sess-0317-11420(산 lock · 45분) | 남의 lock | 판정 PNG 공용 자리 `PlayShot` — 4회차 진행 중 |
+
+### 갈래
+
+- **주인 대기 1**: T35. · **산 lock 진행 1**: T490. · **반납 뒤 대기 1**: T28(K · 03:41). · **나 1**: T33.
+- **어긋남 0** · **새 번호 0 · 결함 0**.
+- **이 두 시간에 닫힌 번호 셋**: T494 ✅ · T495 ✅(내 1회차 + 워커 L 의 2회차 수리 · 런 1348 초록으로 판정) · T496 ✅.
+- **§0-6 기록**: 런 **#1348**(`e52781b`) 초록 — `BossWarnArtTests.보스_경고_배너_팝은…` **PASS**(`playmode-red.txt` 124행). 그 뒤 main 커밋 3(코드 0).
