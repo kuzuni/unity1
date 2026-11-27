@@ -2618,56 +2618,10 @@ namespace Forge.Tests.PlayMode
         /// 판정 PNG 한 장(§1 «실제 화면을 본다»). ⚠ 이 도우미는 이 레포에 **열 벌째 복사본**이다 —
         /// 공용 자리가 없어 자 파일마다 똑같은 40줄이 들어 있다(T490 으로 등재했다). 원본은 `AgePatternTests.Capture`.
         /// </summary>
-        static void Capture(string saveAs)
-        {
-            CardPop.SettleAll();   // T135 ⓑ — 판정 PNG 는 카드 팝이 끝난 모습이어야 한다(T128 ⓒ 와 같은 갈래)
-            UiRoot root = UiRoot.Instance;
-            Canvas canvas = root.Canvas;
-            RenderMode prevMode = canvas.renderMode;
-            Camera prevCam = canvas.worldCamera;
-            float prevPlane = canvas.planeDistance;
-            RenderTexture prevActive = RenderTexture.active;
-            int w = Mathf.Max(64, Screen.width), hh = Mathf.Max(64, Screen.height);
-            RenderTexture rt = new RenderTexture(w, hh, 24, RenderTextureFormat.ARGB32);
-            GameObject camGo = new GameObject("t178-pixel-cam");
-            Camera cam = camGo.AddComponent<Camera>();
-            try
-            {
-                if (Camera.main != null) cam.CopyFrom(Camera.main);
-                // T349 4회차 — 이 카메라는 `cullingMask` 가 **UI 층 하나**다(3D 를 한 화소도 안 그린다).
-                //        여기에 URP 포스트를 켜면 **UI 가 톤맵·색 보정에 물든다** — 정본은 `filter` 를 `#game3d` 에만 걸고
-                //        HUD·패널·팝업에는 안 건다(T357). 3회차에 켰다가 순백 코어가 rgb 215 로 내려가 이 자가 빨갰다.
-                cam.rect = new Rect(0f, 0f, 1f, 1f);
-                cam.targetTexture = rt;
-                cam.ResetProjectionMatrix();
-                cam.cullingMask = 1 << canvas.gameObject.layer;
-                cam.clearFlags = CameraClearFlags.SolidColor;
-                cam.backgroundColor = Color.black;
-                canvas.renderMode = RenderMode.ScreenSpaceCamera;
-                canvas.worldCamera = cam;
-                canvas.planeDistance = 1f;
-                root.Layout();
-                Canvas.ForceUpdateCanvases();
-                cam.Render();
-                RenderTexture.active = rt;
-                Texture2D tex = new Texture2D(w, hh, TextureFormat.RGB24, false);
-                tex.ReadPixels(new Rect(0f, 0f, w, hh), 0, 0);
-                tex.Apply(false);
-                try { GallerySheet.Save(tex, saveAs); } catch (System.Exception e) { Debug.Log("[T178] PNG 저장 생략: " + e.Message); }
-                Object.Destroy(tex);
-            }
-            finally
-            {
-                RenderTexture.active = prevActive;
-                canvas.renderMode = prevMode;
-                canvas.worldCamera = prevCam;
-                canvas.planeDistance = prevPlane;
-                root.Layout();
-                cam.targetTexture = null;
-                Object.Destroy(camGo);
-                Object.Destroy(rt);
-            }
-        }
+        /// <summary>T490 3회차 — 50줄 복사본을 걷고 공용 자리로(UI 층만 찍는 꼴). 함정 셋(T135 ⓑ 카드 팝 정착 ·
+        /// T349 URP 포스트 · T124 저장 실패 삼킴)은 <see cref="PlayShot"/> 에 **한 번만** 적혀 있다 — 고칠 것이 생기면 거기서 고친다.
+        /// ⚑ 이 한 벌은 공용 자리와 **글자까지 같았다**(1회차가 그렇게 적어 뒀다) — T178 완주로 lock 이 풀려 이제 옮긴다.</summary>
+        static void Capture(string saveAs) { PlayShot.Capture(saveAs); }
 
     }
 }
