@@ -2547,6 +2547,14 @@ namespace Forge.Game.Ui
         /// <summary>그 셀의 착지 스파크 — 자가 본다.</summary>
         public Image SparkOf(int i) { return i >= 0 && i < cells.Count ? cells[i].Spark : null; }
 
+        /// <summary>T523 — 그 셀의 **등급 계단 번호**(정본 `--glow` 가 그 수로 정해진다) — 자가 본다 · 없는 칸은 −1.
+        /// ⚠ **셀 번호가 곧 등급이 아니다** — 스파크·잔상·재점화의 세기는 그 셀의 **희귀도**에서 온다.
+        /// 자가 «셀 3 = 등급 3» 으로 짐작하다 런 1399 에서 넘어졌다(실측 배율 1.489 = `1.05 + .55 × 0.8` = 등급 **4**).</summary>
+        public int RarityIdxOf(int i)
+        {
+            return i >= 0 && i < cells.Count && cells[i].Entry != null ? RarityIdx(cells[i].Entry.Rarity) : -1;
+        }
+
         /// <summary>그 셀의 «슬롯 → 광원» 사출 벡터(정본 `--dx/--dy` · 전체 벡터의 `SR_EJECT` 만큼) — 자가 본다.</summary>
         /// <summary>
         /// T455 — «슬롯 → 광원» 벡터를 한 번 잰다(정본 `--dx/--dy` 는 `setSummonEjectPaths` 가 심어 둔다 — 클론엔 없어 여기서 잰다).

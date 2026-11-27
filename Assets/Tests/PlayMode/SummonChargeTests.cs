@@ -206,17 +206,23 @@ namespace Forge.Tests.PlayMode
             //    그때 알파가 아직 **0.611**)에서 잘렸다 = 끝나기 **338ms 전**. 느린 런일수록 마지막 셀이 더 많이 잘린다.
             // ⇒ ⓐ 비교의 주장은 **규칙**으로 하고 ⓑ 화면 쪽은 **네 스파크가 다 꺼질 때까지** 본다(상한을 둔 채).
             SummonSparkSpec spark = SummonFxStyle.Spark;
+            // ⚠ **셀 번호는 등급이 아니다**(런 1399 가 그것으로 넘어졌다 — 내 한쪽 단언이 잡았다):
+            //    세기는 그 셀의 **희귀도**에서 온다. 홀드백 흐름은 주역을 **마지막에** 내려놓으므로
+            //    «0번보다 3번이 높은 등급» 이 이 자의 전제다 — 숨기지 않고 **먼저 단언**한다.
+            int tier0 = v.RarityIdxOf(0), tier3 = v.RarityIdxOf(3);
+            Assert.GreaterOrEqual(tier0, 0, "0번 셀의 등급을 못 읽었다");
+            Assert.Greater(tier3, tier0, "홀드백은 주역(가장 높은 등급)을 마지막에 내려놓는다 — 이 자의 전제다");
             double ruleA0, ruleS0, ruleA3, ruleS3;
-            spark.At(spark.Ms, 0, out ruleA0, out ruleS0);
-            spark.At(spark.Ms, 3, out ruleA3, out ruleS3);
+            spark.At(spark.Ms, tier0, out ruleA0, out ruleS0);
+            spark.At(spark.Ms, tier3, out ruleA3, out ruleS3);
             Assert.Greater(ruleS3, ruleS0,
                 "규칙: 등급이 오를수록 멀리 날아간다(정본 calc(1.05 + .55 * --glow)) — 프레임과 무관하다");
             Assert.AreEqual(0.0, ruleA3, 1e-9,
                 "그 끝점에서 스파크는 **꺼져 있다** — 화면으로 끝점을 읽을 수 없는 까닭이 이것이다");
             double midA0, midS0, midA3, midS3;
-            spark.At(spark.Ms * 0.5, 0, out midA0, out midS0);
-            spark.At(spark.Ms * 0.5, 3, out midA3, out midS3);
-            Assert.Greater(midS3, midS0, "반쯤 갔을 때도 등급3 이 더 멀리 있다(화면이 읽을 수 있는 자리)");
+            spark.At(spark.Ms * 0.5, tier0, out midA0, out midS0);
+            spark.At(spark.Ms * 0.5, tier3, out midA3, out midS3);
+            Assert.Greater(midS3, midS0, "반쯤 갔을 때도 높은 등급이 더 멀리 있다(화면이 읽을 수 있는 자리)");
             Assert.Greater(midA3, midA0, "규칙: 등급이 오를수록 세게 터진다(정본 calc(.45 + .55 * --glow))");
 
             var peakA = new float[4];
