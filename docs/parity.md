@@ -2992,3 +2992,49 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - ⚑ **`Stops()` 가 스스로 지킨다** — 충전 넷(`srfloorcharge`·`srhalocharge`·`srvig`·`srinhale`)의 표에 누가 `ease` 를 끼우면 **읽는 쪽이 예외를 던진다**(«정본이 linear 다»). 축 대조가 끝난 뒤 그 자리를 지키는 가장 싼 길이다 — 다른 축도 이 꼴을 쓸 수 있다.
 - **셈 바로잡음(75·77회차)**: 인용돼 온 키워드 셈 **88**(`linear` 29 · `ease-out` 26 · `ease-in-out` 17 · `ease-in` 2 · 기본 `ease` 14)은 ⓐ **한 선언에 애니가 둘 이상인 자리**(5951 `srrayspin 20s linear, srintro .24s ease-in both`)를 한 자리로 세고 ⓑ **`steps` 둘**을 빼먹었다. 자리로 세면 `linear` **30** · `ease-out` **27** · `ease-in-out` **22** · 기본 `ease` **16** · `ease-in` **3** · `steps` **2** = **100** (+ `cubic` 38 = **138**).
 - **남은 축**: **곡선 키워드 68 자리**(`ease-out` 27 · `ease-in-out` 22 · 기본 `ease` 16 · `ease-in` 3). 그 회차는 이번 ⛔ 가 가르쳐 준 눈으로 본다 — **부모·자식에 각각 걸린 쌍**(셀 ↔ 라벨 꼴)을 한 자리로 세지 않는다(결정 854).
+
+## 79회차 — 곡선 키워드의 한쪽 갈래: `ease-out` 27 + `ease-in` 3 = 30 자리 (2026-11-27 10:0x~10:4x · 워커 I · sess-1003-41154 · T33)
+
+> 78회차가 키워드 셈을 자리로 바로잡고 남긴 «곡선 키워드 68» 중, **한쪽으로 치우친 둘**을 먼저 짚었다 — 양쪽 이징보다 «선형이냐 아니냐» 가 또렷하게 갈린다.
+
+| 정본 줄 | 애니 | 규격 | 클론의 집 | 판정 |
+|---|---|---|---|---|
+| 232 | `ob-zzz` | ease-out | `OfflineButtonRules.EaseOut` = **`1−(1−t)²`**(주석이 스스로 «근사» 라 적었다) | ⛔ T507 |
+| 369 | `bwdim` | ease-out | `FxRules.WarnDim` = **생 비율**(정지점 8%·76% 는 맞다) | ⛔ T505 ⓐ |
+| 375 | `bwflash` | ease-out | `FxRules.WarnFlash` = **생 비율** — 그 함수 주석은 «.42s **ease-out**» 이다 | ⛔ T505 ⓑ |
+| 400 | `bwblink` | ease-out ×3 | **없다** — `bw-marquee` 상자는 서는데 알파를 움직이는 자리가 0 | ⛔ T505 ⓒ |
+| 416 | `bwsub` | ease-out | `FxRules.WarnSubEase = CssEase(0,0,.58,1)`(T467) | ✅ |
+| 469 | `dmgvignette` | ease-out | `FxRules.EaseOut01` = **`1−(1−k)^1.68`** 근사 | ⛔ T505 ⓓ |
+| 1075 | `adcpop` | ease-out | Core `CraftCardSpec.EaseOut = CssEase(0,0,.58,1)` | ✅ |
+| 1095 | `crring` | ease-out | 같은 `CraftCardSpec.EaseOut`(`CraftCardFx:147` 이 모드로 고른다) | ✅ |
+| 1100 | `crsheen` | ease-out | 같은 길 | ✅ |
+| 1124 | `cbfade` | ease-out | 같은 길 | ✅ |
+| 1613 | `afsmoke` | ease-out | Core `AutoForgeFxSpec.SmokeEase = CssEase(0,0,.58,1)` | ✅ |
+| 1758 | `cardpop` | ease-out | `CardPopUi` + `CardPopRules:52` `EaseOf(e)` | ✅ |
+| 1903 | `cutin` | ease-out | `SkillCutinUi` + `SkillCutinRules.Ease` | ✅ |
+| 1920 | `skflash` | ease-out | `DungeonFxUi.skflash` + `DungeonFxRules` | ✅ |
+| 5783 | `srtitle` | ease-out both | **없다** — `Finish()` 가 `solo.SetActive(true)` 로 즉시 켠다 | ⛔ T506 ⓐ |
+| 5951 | `srintro` | **ease-in** | `SummonFx.Update` `ie = ik * ik` 근사(표에 `ease-in` 베지어 0개) | ⛔ T506 ⓔ |
+| 5958 | `srintro` | **ease-in** | 같은 자리(둘째 광선막) | ⛔ T506 ⓔ |
+| 6158 | `srflash` | ease-out | `AnimateFlash` = `Clamp01(1−t) × 0.85` **선형** | ⛔ T506 ⓒ |
+| 6162 | `srgridlift` | ease-out | **없다**(brightness 1.42·sat 1.1 → 없음 · `Brighten()` 길은 이미 있다) | ⛔ T506 ⓑ |
+| 6213 | `srtitle` | ease-out both | **없다**(제목 .45s) | ⛔ T506 ⓐ |
+| 6363 | `srring` | ease-out | `SummonFxUi landring.ease` = `[0,0,.58,1]` | ✅ |
+| 6407 | `srtierpulse` | ease-out | `SummonFxUi tierbreak.pulse_ease` | ✅ |
+| 6459 | `srghost` | ease-out | `SummonFxUi ghost.ghost_ease` | ✅ |
+| 6686 | `srrayfade` | ease-out | `SummonFxUi ray.fade_ease` | ✅ |
+| 6941 | `sridlering` | ease-out | `SummonFxUi idlering.ring_ease` | ✅ |
+| 6973 | `srreflect` | ease-out | `SummonFx.Update` `e = 1 − (1−k)²` 근사 — 윗줄 주석은 «**ease-out** 로 α 0 → .88» | ⛔ T506 ⓓ |
+| 7116 | `srtitle` | ease-out both | **없다** — `chips.SetActive(true)` | ⛔ T506 ⓐ |
+| 7340 | `eqswDust` | ease-out | `EquipSwapUi dust[0]·[1].ease` = `[0,0,.58,1]` | ✅ |
+| 7502 | `rwAmt` | ease-out | `RewardBurstUi amt[*].ease` = **문자열 `"ease-out"`** → `RewardBurstRules:135` 가 푼다 | ✅ |
+| 5396 | `dgclear-sink` | **ease-in** | `DungeonFxUi.dgsink` | ✅ |
+
+### 이 회차가 확인한 것
+
+- **30 자리 → ✅ 17 · ⛔ 13.** ⛔ 의 꼴은 셋뿐이다 — **선형** 셋(`bwdim`·`bwflash`·`srflash`) · **손으로 쓴 근사** 여섯 자리(`dmgvignette`·`srreflect`·`srintro`×2·`ob-zzz`) · **없음** 다섯(`bwblink`·`srtitle`×3·`srgridlift`).
+- ⚑ **이 축의 결함은 숨어 있지 않다 — 주석에 적혀 있는데 아무도 그 줄을 축으로 세어 보지 않았다.** `WarnFlash` 주석은 «.42s **ease-out**» 인데 본문이 생 비율이고, `srreflect` 주석은 «**ease-out** 로 α 0 → .88» 인데 다음 줄이 제곱이고, `OfflineButtonRules` 는 아예 «CSS `ease-out` **근사**» 라 적었다. **T495 가 `bwbanner` 하나를 그렇게 찾아 닫았는데 그 형제 넷이 같은 파일에 그대로 있었다** — 처방을 결정 858 에 적었다.
+- ⚑ **표가 키워드를 «문자열로» 쥘 수도 있다**: `RewardBurstUi amt` 의 `ease` 는 네쌍이 아니라 `"ease-out"` 이고 `RewardBurstRules:135` 가 그 낱말을 푼다. **정준 네쌍만 찾는 셈은 그 넷을 «없다» 로 센다** — 첫 셈이 그렇게 틀렸고 `EaseOf` 를 읽고 바로잡았다.
+- ⚑ **`ease-in` 의 정본 베지어(`.42,0,1,1`)는 클론 표에 하나도 없다**(정준 네쌍 셈 0). 정본의 `ease-in` 세 자리 중 둘(`srintro`)이 `k²` 근사이고 하나(`dgclear-sink`)만 표로 선다 — 이 키워드는 애초에 길이 안 났다.
+- **등재를 셋으로 가른 까닭**: 13 이 세 파일 짝에 흩어진다(전투 오버레이 넷 · 소환 결과 여덟 · 오프라인 버튼 하나). 결정 847 의 앞쪽(같은 파일은 묶는다)과 뒤쪽(다른 파일은 가른다)을 그대로 적용했다.
+- **남은 축**: `ease-in-out` **22** + 기본 `ease` **16** = **38 자리**(80회차 몫). 그 둘은 «양쪽이 느리다» 라 **선형과의 차가 가운데서 0 에 가깝다** — 이번처럼 «선형이냐» 로는 안 갈리니 **곡선을 점으로 재는 눈**이 필요하다.
