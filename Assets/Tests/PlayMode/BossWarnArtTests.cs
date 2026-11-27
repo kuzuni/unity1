@@ -262,6 +262,61 @@ namespace Forge.Tests.PlayMode
             Assert.That(bn.localScale.y, Is.InRange(1.30f, 1.40f), "화면의 배너도 7% 에 정점 1.35 로 선다");
         }
 
+        [UnityTest]
+        public IEnumerator 보스_경고_네_겹의_이징이_정본_ease_out_이고_마퀴는_세_번_깜빡인다()
+        {
+            yield return Boot();
+            // ⚑ 이 자의 알맹이는 «선형이 아니다» 다 — 선형과 ease-out 은 가운데서 최대 **0.187** 벌어진다(T33 79회차 실측).
+            //   그래서 «중간점이 선형보다 위에 있다» 를 못 박으면 생 비율로 되돌리는 일을 막는다.
+
+            // ⓐ 딤 — 정본 417 `bwdim { 0% 0 · 8% 1 · 76% 1 · 100% 0 }`.
+            Assert.AreEqual(4, FxRules.WarnDimTrack.Count, "정지점 넷");
+            Assert.AreEqual(8, FxRules.WarnDimTrack.StopAt(1), 1e-9, "8% 에 다 보인다");
+            Assert.AreEqual(76, FxRules.WarnDimTrack.StopAt(2), 1e-9, "76% 까지 머문다");
+            Assert.Greater(FxRules.WarnDim(0.04), 0.5, "구간 한가운데가 선형(0.5)보다 위다 — ease-out 은 앞이 빠르다");
+            Assert.AreEqual(1, FxRules.WarnDim(0.08), 1e-6, "8% 에 1");
+            Assert.AreEqual(1, FxRules.WarnDim(0.5), 1e-9, "평평한 구간");
+            Assert.AreEqual(0, FxRules.WarnDim(1), 1e-6, "100% 에 닫힌다");
+
+            // ⓑ 붉은 점멸 — 정본 418 `bwflash { 0% 0 · 12% 1 · 100% 0 }` · .42s × 3.
+            Assert.AreEqual(12, FxRules.WarnFlashTrack.StopAt(1), 1e-9, "정점 12%");
+            Assert.Greater(FxRules.WarnFlash(FxRules.BossBeat * 0.06), 0.5, "정점 전 한가운데가 선형보다 위다");
+            Assert.AreEqual(0, FxRules.WarnFlash(FxRules.BossBeat * FxRules.BossBeats), 1e-9, "세 번 뒤엔 0(바탕값)");
+
+            // ⓒ 마퀴 점멸 — 정본 419 `bwblink { 0% .25 · 18% 1 · 100% .55 }` · 세 번 뒤엔 바탕값 1.
+            Assert.AreEqual(0.25, FxRules.WarnBlink(0), 1e-9, "0% 에 .25");
+            Assert.AreEqual(1, FxRules.WarnBlink(FxRules.BossBeat * 0.18), 1e-6, "18% 에 1");
+            Assert.AreEqual(0.55, FxRules.WarnBlink(FxRules.BossBeat * 0.999), 1e-2, "한 주기 끝이 .55");
+            Assert.AreEqual(1, FxRules.WarnBlink(FxRules.BossBeat * FxRules.BossBeats), 1e-9, "세 번 뒤엔 바탕값 1 — 정본에 forwards 가 없다");
+            int peaks = 0;
+            double prev = FxRules.WarnBlink(0);
+            for (int i = 1; i <= 600; i++)
+            {
+                double t = FxRules.BossBeat * FxRules.BossBeats * i / 600.0;
+                double v = FxRules.WarnBlink(t);
+                if (prev < 0.999 && v >= 0.999 && t < FxRules.BossBeat * FxRules.BossBeats) peaks++;
+                prev = v;
+            }
+            Assert.AreEqual(3, peaks, "세 번 깜빡인다(정본 `bwblink … 3`)");
+
+            // ⓓ 부제 알파 — 정본 431~436 의 opacity 채널(0 · **16%** 1 · **80%** 1 · 0). 종전은 25%·76% 였다.
+            double tighten = 0.16;
+            Assert.Greater(FxRules.WarnSubAlpha(0.16, tighten), 0.999, "16% 에 다 보인다 — 종전은 그 자리에서 0.64 였다");
+            Assert.AreEqual(1, FxRules.WarnSubAlpha(0.80, tighten), 1e-6, "80% 까지 머문다");
+            Assert.Less(FxRules.WarnSubAlpha(0.95, tighten), 0.6, "80% 뒤로 꺼진다");
+            Assert.AreEqual(0, FxRules.WarnSubAlpha(1, tighten), 1e-6, "100% 에 0");
+
+            // ⓔ 비네트 — 근사(1−(1−k)^1.68)를 걷고 정본 곡선 그대로. 두 점에서 정본 값과 맞는다.
+            Assert.AreEqual(0.5, FxRules.EaseOut01(0.3425), 1e-3, "정본 ease-out 은 x=.3425 에서 y=.5");
+            Assert.AreEqual(0.896, FxRules.EaseOut01(0.7347), 2e-3, "x=.7347 에서 y=.896");
+
+            // 실물: 마퀴가 그 셈을 그대로 쓴다. ⚠ 프레임을 끼우지 마라(T495 2회차의 그 자리).
+            BattleOverlay o = BattleOverlay.Ensure();
+            o.BossWarning(FxRules.BossWarnDur);
+            o.Tick((float)(FxRules.BossBeat * 0.18));
+            Assert.That(o.WarnMarqueeAlpha, Is.InRange(0.95f, 1.0f), "화면의 마퀴도 18% 에 1 로 선다");
+        }
+
         private static bool Same(Color a, Color b)
         {
             return Mathf.Abs(a.r - b.r) < 0.02f && Mathf.Abs(a.g - b.g) < 0.02f && Mathf.Abs(a.b - b.b) < 0.02f && Mathf.Abs(a.a - b.a) < 0.02f;

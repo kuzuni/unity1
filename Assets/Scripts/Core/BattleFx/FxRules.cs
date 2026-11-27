@@ -210,13 +210,35 @@ namespace Forge.Core.BattleFx
         public const double WarnTop = 0.28, WarnDimIn = 0.08, WarnDimHold = 0.76, WarnFlashPeak = 0.12, WarnHazardPeriod = 0.62, WarnScrollPeriod = 2.6, WarnSubDelay = 0.25;   // T495 — `WarnBannerK = 0.62` 는 걷힌 근사의 잔재였다(부르는 곳 0).
         public const string WarnText = "WARNING ◆ WARNING ◆ WARNING ◆ WARNING ◆ ";
         public const string WarnSub = "보스 출현";
-        public static double WarnDim(double u) { return u < WarnDimIn ? u / WarnDimIn : u < WarnDimHold ? 1 : 1 - (u - WarnDimHold) / (1 - WarnDimHold); }
-        /// <summary>붉은 점멸 3회(.42s ease-out).</summary>
+        /// <summary>T505 — 딤 알파. 정본 **417** `@keyframes bwdim { 0% 0 · 8% 1 · 76% 1 · 100% 0 }` + **369** `animation: bwdim var(--bw-dur) **ease-out** forwards`.
+        /// 단축 이징은 키프레임 **구간마다** 걸린다(T467·T495 와 같은 규약) — 종전은 정지점만 맞고 **구간이 생 비율**이었다(선형 ↔ ease-out 은 최대 **0.187** 벌어진다).</summary>
+        public static readonly CssTrack WarnDimTrack = new CssTrack(
+            new double[] { 0, WarnDimIn * 100, WarnDimHold * 100, 100 },
+            new double[][] { new double[] { 0 }, new double[] { 1 }, new double[] { 1 }, new double[] { 0 } });
+        public static double WarnDim(double u) { return Sample(WarnDimTrack, CssEaseOut, u); }
+        /// <summary>T505 — 붉은 점멸 3회. 정본 **418** `@keyframes bwflash { 0% 0 · 12% 1 · 100% 0 }` + **375** `animation: bwflash .42s **ease-out** 3`.
+        /// `.bw-flash` 는 제 바탕이 `opacity: 0` 이라 세 번 뒤엔 0 으로 남는다(`forwards` 가 없어도 같은 자리다).
+        /// ⚠ 종전은 이 요약 주석이 «.42s **ease-out**» 이라 적고 본문은 **생 비율**이었다 — 79회차가 그 어긋남을 축으로 세어 찾았다.</summary>
+        public static readonly CssTrack WarnFlashTrack = new CssTrack(
+            new double[] { 0, WarnFlashPeak * 100, 100 },
+            new double[][] { new double[] { 0 }, new double[] { 1 }, new double[] { 0 } });
         public static double WarnFlash(double t)
         {
             if (t >= BossBeat * BossBeats) return 0;
-            double u = (t % BossBeat) / BossBeat;
-            return u < WarnFlashPeak ? u / WarnFlashPeak : 1 - (u - WarnFlashPeak) / (1 - WarnFlashPeak);
+            return Sample(WarnFlashTrack, CssEaseOut, (t % BossBeat) / BossBeat);
+        }
+
+        /// <summary>T505 — 마퀴(`.bw-marquee`) 점멸 3회. 정본 **419** `@keyframes bwblink { 0% .25 · 18% 1 · 100% .55 }` + **400** `animation: bwblink .42s **ease-out** 3`.
+        /// ⚑ `forwards` 가 **없고** `.bw-marquee` 는 `opacity` 를 선언하지 않으므로, 세 번이 끝나면 알파는 바탕값 **1** 로 돌아간다(CSS 채움 규칙).
+        /// 종전 클론엔 이 겹이 **통째로 없었다** — 마퀴 상자는 섰지만 알파를 움직이는 자리가 0 이었다(T33 79회차 실측).</summary>
+        public static readonly CssTrack WarnBlinkTrack = new CssTrack(
+            new double[] { 0, 18, 100 },
+            new double[][] { new double[] { 0.25 }, new double[] { 1 }, new double[] { 0.55 } });
+        public static double WarnBlink(double t)
+        {
+            if (t < 0) return WarnBlinkTrack.ValueAt(0)[0];
+            if (t >= BossBeat * BossBeats) return 1;   // 바탕값 — 정본에 `forwards` 가 없다
+            return Sample(WarnBlinkTrack, CssEaseOut, (t % BossBeat) / BossBeat);
         }
         /// <summary>T495 — 배너 scaleY. 정본 **423~429** `@keyframes bwbanner` 를 **그대로** 담는다:
         /// 0% 0 · 7% **1.35** · 13% 1 · 82% 1 · 92% **1.18** · 100% 0. 92% 의 부풂은 정본 주석이 뜻을 못 박아 둔 자리다 —
@@ -232,10 +254,13 @@ namespace Forge.Core.BattleFx
         static readonly CssEase WarnBannerEase = new CssEase(0.16, 1.5, 0.4, 1);
 
         /// <summary>배너 scaleY — 위 트랙을 구간 이징으로 보간한다(브라우저가 하던 일).</summary>
-        public static double WarnBanner(double u)
+        public static double WarnBanner(double u) { return Sample(WarnBannerTrack, WarnBannerEase, u); }
+
+        /// <summary>T505 — CSS 단축 이징의 뜻 그대로: 트랙의 **구간마다** 같은 곡선을 걸어 보간한다.
+        /// T495 가 `WarnBanner` 안에 손으로 쓴 그 셈을 이 한 자리로 모았다 — 같은 파일에 같은 고리를 다섯 벌 두지 않는다.</summary>
+        static double Sample(CssTrack k, CssEase e, double u)
         {
             double p = u * 100;
-            CssTrack k = WarnBannerTrack;
             int n = k.Count;
             if (p <= k.StopAt(0)) return k.ValueAt(0)[0];
             if (p >= k.StopAt(n - 1)) return k.ValueAt(n - 1)[0];
@@ -243,10 +268,11 @@ namespace Forge.Core.BattleFx
             while (hi < n && k.StopAt(hi) < p) hi++;
             int lo = hi - 1;
             double span = k.StopAt(hi) - k.StopAt(lo);
-            double e = WarnBannerEase.Ease(span <= 0 ? 1 : (p - k.StopAt(lo)) / span);
+            double t = e.Ease(span <= 0 ? 1 : (p - k.StopAt(lo)) / span);
             double a = k.ValueAt(lo)[0], b = k.ValueAt(hi)[0];
-            return a + (b - a) * e;
+            return a + (b - a) * t;
         }
+
         /// <summary>T467 — 부제 자간·들여쓰기(em)의 등장 조임. 정본 431~436 `@keyframes bwsub`: 0% <paramref name="fromEm"/> → 16%(<paramref name="tightenAt"/>) <paramref name="toEm"/>, 그 뒤 정착.
         /// 416 의 `ease-out` 은 키프레임 **구간마다** 걸리는 곡선이라 0→16% 안에서 `cubic-bezier(0,0,.58,1)` 로 보간한다. 값은 표(`LetterSpacingUi.json`)가 쥐고 여기는 셈뿐이다.</summary>
         public static double WarnSubSpacing(double u, double fromEm, double toEm, double tightenAt)
@@ -256,8 +282,22 @@ namespace Forge.Core.BattleFx
             return fromEm + (toEm - fromEm) * WarnSubEase.Ease(k);
         }
         /// <summary>CSS `ease-out` = `cubic-bezier(0, 0, .58, 1)`.</summary>
-        static readonly CssEase WarnSubEase = new CssEase(0, 0, 0.58, 1);
-        public static double WarnSubAlpha(double u) { return u < WarnSubDelay ? u / WarnSubDelay : u < WarnDimHold ? 1 : Math.Max(0, 1 - (u - WarnDimHold) / (1 - WarnDimHold)); }
+        /// <summary>CSS `ease-out` = `cubic-bezier(0, 0, .58, 1)` — 정본이 이 배너 무리에 **다섯 자리**(369·375·400·416·469)에서 거는 같은 곡선이다.</summary>
+        public static readonly CssEase CssEaseOut = new CssEase(0, 0, 0.58, 1);
+        static readonly CssEase WarnSubEase = CssEaseOut;
+        /// <summary>T505 — 부제 알파. 정본 **431~436** `@keyframes bwsub` 의 **opacity 네 정지점**(0% 0 · **16%** 1 · **80%** 1 · 100% 0) + 416 `ease-out`.
+        /// ⚠ 종전은 같은 키프레임의 **다른 채널**(자간·되밀기)만 정본대로였고(T467 이 `bw_sub_tighten_f` 0.16 을 표에 뒀다) **알파는 25% ↔ 76%** 로 서 있었다 —
+        /// 2초 연출에서 **180ms 늦게** 다 보이고 **80ms 일찍** 꺼지기 시작했으며 구간도 생 비율이었다(T33 79회차 뒤 실측 · 결정 860).
+        /// 16% 는 표가 쥔 수라 부르는 쪽이 넘긴다(§1) — Core 에 박는 것은 정본이 적은 **80%** 하나뿐이다.</summary>
+        public const double WarnSubOut = 0.80;
+        public static double WarnSubAlpha(double u, double tightenAt)
+        {
+            double inAt = tightenAt > 0 ? tightenAt : WarnSubDelay;
+            CssTrack k = new CssTrack(
+                new double[] { 0, inAt * 100, WarnSubOut * 100, 100 },
+                new double[][] { new double[] { 0 }, new double[] { 1 }, new double[] { 1 }, new double[] { 0 } });
+            return Sample(k, CssEaseOut, u);
+        }
 
         // ── 피격 붉은 비네트(T135 ⓐ · `ui.js` 1360 `flashDamage` · `style.css` 438 `#dmg-flash` · 481 `@keyframes dmgvignette`) ──
         // 정본은 세기만 JS 가 `--vig` 로 주고 지속·감쇠는 CSS 키프레임이 쥔다("JS 타이머+트랜지션 조합은 연타 시 서로 잘라먹는다").
@@ -276,12 +316,10 @@ namespace Forge.Core.BattleFx
         /// <summary>`mask-image: linear-gradient(to bottom, #000 82%, transparent 100%)` — 아래 18% 를 빼 씬 경계에서 잘리는 대신 사라지게 한다.</summary>
         public const double DmgVigMaskKeep = 0.82;
 
-        /// <summary>CSS `ease-out` = cubic-bezier(0,0,.58,1) 근사. 검산: 그 곡선은 x=.3425 에서 y=.5 · x=.7347 에서 y=.896 이고 이 식은 .500·.897 을 준다.</summary>
-        public static double EaseOut01(double k)
-        {
-            k = k < 0 ? 0 : k > 1 ? 1 : k;
-            return 1 - Math.Pow(1 - k, 1.68);
-        }
+        /// <summary>T505 — CSS `ease-out` = `cubic-bezier(0,0,.58,1)` **그대로**(정본 469 `animation: dmgvignette .44s ease-out forwards`).
+        /// ⚠ 종전은 `1 − (1−k)^1.68` 근사였다. 두 점(x=.3425·.7347)에 맞춰 둔 **좋은** 근사라 최대 어긋남이 **0.0056** 뿐이었으니
+        /// 눈에 보이던 결함은 아니다 — 그래도 같은 어셈블리에 `CssEase` 가 있어 **정확한 쪽이 더 싸다**(T33 79회차 등재 T505 ⓓ · 결정 860).</summary>
+        public static double EaseOut01(double k) { return CssEaseOut.Ease(k); }
 
         /// <summary>`flashDamage(sev)` 가 `--vig` 에 넣는 값.</summary>
         public static double DmgVigPeak(double sev)

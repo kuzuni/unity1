@@ -47,6 +47,8 @@ namespace Forge.Game.Ui
         Image skf; double skfT = -1;
 
         public bool WarningActive { get { return warnT >= 0; } }
+        /// <summary>T505 — 마퀴(`.bw-marquee`) 알파. 정본 `bwblink` 가 세 번 깜빡이는 그 값이다.</summary>
+        public float WarnMarqueeAlpha { get { return marquee != null ? marquee.color.a : -1f; } }
         public double WarningT { get { return warnT; } }
         public bool DeathActive { get { return deathT >= 0; } }
         public double DeathMs { get { return deathT * 1000; } }
@@ -332,7 +334,9 @@ namespace Forge.Game.Ui
             // 세기(0~1)만 여기서 준다 — 정본 rgba 의 .62·.34 는 구운 그림이 이미 쥐고 있다(예전의 `* 0.62` 는 그 값을 코드에 박은 것이었다).
             Alpha(flash, FxRules.WarnFlash(warnT));
             banner.localScale = new Vector3(1, (float)FxRules.WarnBanner(u), 1);
-            Alpha(sub, FxRules.WarnSubAlpha(u));
+            Alpha(sub, FxRules.WarnSubAlpha(u, subTightenAt));   // T505 — 정지점 16%·80% 는 정본 bwsub 의 opacity 채널이다(16% 는 표가 쥔다)
+            // T505 — 마퀴 점멸(정본 400 `bwblink .42s ease-out 3`): 종전엔 이 겹이 통째로 없었다. 세 번 뒤엔 바탕값 1 이다.
+            if (marquee != null) { Color mc = marquee.color; marquee.color = new Color(mc.r, mc.g, mc.b, (float)FxRules.WarnBlink(warnT)); }
             LetterSpacing.ApplyEm(sub,
                 (float)FxRules.WarnSubSpacing(u, subLsFrom, subLsTo, subTightenAt),
                 (float)FxRules.WarnSubSpacing(u, subIndentFrom, subIndentTo, subTightenAt), subMargin0);   // T467 — 자간·되밀기 둘 다 같은 곡선
