@@ -3093,6 +3093,35 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - **다음 축 후보**: `:active`·`:hover`·`:disabled`·`:checked` **상태 규칙 전수** — 이 회차가 `:active` 19 중 **12 가 빈 것**을 봤으니 다른 상태도 같은 꼴일 수 있다(T515 가 닫히면 그 자리에서 이어 센다).
 
 
+
+## 83회차 — `transition` 축을 **거꾸로** 걸었다: 정본에 없는 전이를 클론이 하나 지어냈다 (2026-11-27 · 워커 I · sess-1803-38368 · 런 1381 초록)
+
+- **81회차와 같은 축을 다시 열었지만 걷는 방향이 반대다.** 81회차는 정본 선언 19(채널 25)마다 «클론에 짝이 있나» 를 물었다 — 그 걸음으로는
+  **클론이 정본에 없는 전이를 지어낸 자리**가 보이지 않는다. 그래서 이 회차는 **클론의 시간표 칸을 전부 세고(19) 칸마다 정본 선언을 찾았다**.
+  칸 목록: `PressFxUi.json` `press` 열 + `panel_slide` 하나 · `TransitionUi.json` 넷 · `DungeonFxUi.json` `dim_out_ms` · `SummonFxUi.json` `stars_fade` ·
+  `RewardBurstUi.json` `anchor_fade`·`tick_fade` · `OpacityUi.json` `toasts_rw_dim.fade_ms`.
+- **열여덟은 짝이 있었고 하나가 **없었다** → ⛔ 1(고쳤다 · 새 번호 아님 · 결정 887)**
+  - ⛔ **`egg_cell`(탈것 알 칸)에 80ms ease-out 이 붙어 있는데 정본엔 그 자리에 `transition` 이 없다.** 까닭은 선택자 한 조각이다 —
+    정본 **7743** 이 `.equip-cell**:not(.egg-cell)** { transition: transform .08s ease-out, filter .08s }` 로 **알 칸을 명시적으로 뺀다**.
+    `.equip-cell` 을 건드리는 `transition` 은 정본 전수로 그 한 줄뿐이고(규칙 본문까지 풀어 확인), 알 칸의 누름은 **8087**
+    `.equip-cell.egg-cell:active { transform: translateY(.08rem); filter: brightness(1.07) }` **한 줄뿐**이다. 곧 정본 알 칸은
+    **누른 즉시 내려가고 뗀 즉시 돌아온다**(마크업은 `ui.js` 1530·5162 가 `equip-cell egg-cell` 두 클래스를 함께 둔다 — 결정 867 확인).
+    클론은 이웃 `equip_cell` 의 수를 그대로 베껴 **알 칸만 부드럽게** 가라앉고 있었다. → 표 `PressFxUi.json` `egg_cell` `ms: 80 · ease: ease-out` → **`ms: 0`**(`ease` 칸을 **지웠다**).
+    결정 **863**(«정본에 `transition` 이 없는 자리 = `ms: 0` 즉시·이산 · 새 이징을 만들 일이 아니다»)이 이미 세워 둔 갈래라 기제는 그대로 썼다 — `PressRules.Phase` 가 `Ms <= 0` 을 첫 프레임에 목표로 보낸다.
+  - 자 `PressRulesTests` 의 자리값 칸에 **갈림 단언**을 넣었다: 두 칸의 깊이(.08rem)·밝기(1.07)는 **같고** 길이만 갈린다(80 ↔ 0) ·
+    알 칸은 `Phase(…, 0, 0, true) == 1`·`Phase(…, 1, 0, false) == 0` · 장비 칸은 절반에서 **0 과 1 사이**. 마지막 줄이 있어야 «둘을 같은 수로 되돌리는» 수정이 자를 깨운다.
+- **남은 빈 채널은 하나고 임자가 있다** — 5009 `.af-spinner { transition: transform .07s ease-out, **box-shadow .07s** }`: 누르면 바깥 턱
+  `0 .12rem 0 rgba(0,0,0,.28)` 이 걷히고 **안쪽 그늘** `inset 0 .12rem .3rem rgba(0,0,0,.55)` 이 생긴다(8087 과 달리 **이 자리엔 전이가 있다**).
+  클론은 이동만 한다. **T515 등재문이 이 자리를 이미 «`af_spinner` 의 둘째 채널» 로 들고 있다** → **새 번호를 만들지 않았다**(T510 ✂ 의 교훈).
+  ⚑ 클론엔 **안쪽 그늘(inset box-shadow)을 그리는 도우미가 아직 없다**(T331 ✅ 가 센 것은 바깥 겹이다) — 그 자리를 세우는 회차는 기구부터 만들어야 한다.
+- **축 크기 재확인(39회차 규칙)**: `transition` 단축 **19** · longhand(`transition-property`/`-duration`/`-timing-function`/`-delay`/`-behavior`·`-webkit-`) **전부 0** ·
+  `@media (prefers-reduced-motion: reduce)` 블록 넷은 `animation`·`display`·`visibility`·`box-shadow`·`filter` 만 건드리고 **`transition` 은 0** 이다. 곧 81회차의 19는 전수가 맞다.
+  죽은 채널 **둘**도 다시 짚었다 — **4766** `.af-toggle .knob { transition: left .15s }` 는 같은 선택자 **4992** 가 특이도 동점·후순위로 덮는다 ·
+  **5655** 의 `.4s` 는 `.charging` 이 이 상자의 `background` 를 **안 건드리고**(자손만 건든다) 닫을 때 `className` 이 `modal hidden` 으로 한 번에 바뀌므로 영영 안 보인다(81회차의 «해당없음 1» 과 같은 답).
+- **이 회차의 손댄 것**: 표 한 칸 + 자 한 칸. 게임 코드 **0줄** · 하니스 `dotnet test` **890/890** · `tools/gate.sh` 막는 자 전부 rc 0.
+- **다음 축 후보**: ⓐ 82회차가 남긴 `.disabled` 의 나머지 둘(5268·5503 = `PetSkillKit.PaperButton` 실버 갈래) · ⓑ 정본 `!important` 전수(아직 한 번도 안 센 축) ·
+  ⓒ **이 회차의 걸음을 다른 축에도**: `animation`(77~80회차 ✅)·`box-shadow`(T331)·표면 겹(T178)은 전부 **정본 → 클론** 방향으로만 닫혔다 — 클론 표를 거꾸로 걸어 «정본에 없는 수» 를 찾는 회차가 축마다 한 번 있어야 한다.
+
 ## 82회차 — 상태 규칙 전수: `:active` 를 뺀 셋은 **빈 축**이고 `.disabled` 클래스가 그 자리를 쥔다 (2026-11-27 · 워커 K · sess-1532-29140 · 런 1375 초록)
 
 - **81회차의 «다음 축 후보» 를 먼저 쟀다 — 그 셋은 없다**: 정본 `web/css/style.css` 를 (주석을 길이 보존으로 지운 뒤) 세니

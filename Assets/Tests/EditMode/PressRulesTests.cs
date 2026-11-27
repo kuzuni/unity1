@@ -30,7 +30,18 @@ namespace Forge.Tests
             Assert.AreEqual(0.06, t.Get("af_check").DyRem, 1e-9); Assert.AreEqual(1.12, t.Get("af_check").Brightness, 1e-9); Assert.AreEqual(70, t.Get("af_check").Ms, 1e-9);
             Assert.AreEqual(0.97, t.Get("af_sub_row").Brightness, 1e-9);
             Assert.AreEqual(0.10, t.Get("af_spinner").DyRem, 1e-9);
-            Assert.IsTrue(t.Has("equip_cell") && t.Has("egg_cell"));
+            // T33 83회차 — 장비 칸과 **알 칸은 전이가 갈린다**(결정 887): 정본 7743 이 `.equip-cell:not(.egg-cell)` 로
+            //   알 칸을 **명시적으로 뺀다** → 장비 칸은 .08s ease-out 으로 가라앉고 알 칸(8087)은 전이가 없어 **즉시**다.
+            //   `.equip-cell` 을 건드리는 `transition` 은 정본 전수로 7743 그 한 줄뿐이다.
+            PressSpec ec = t.Get("equip_cell"), eg = t.Get("egg_cell");
+            Assert.AreEqual(80, ec.Ms, 1e-9, "7743 transform .08s");
+            Assert.AreEqual(0.0, eg.Ms, 1e-9, "8087 에는 transition 이 없다 — 즉시(7743 이 :not(.egg-cell) 로 뺀다)");
+            Assert.AreEqual(eg.DyRem, ec.DyRem, 1e-9, "두 칸의 가라앉는 깊이는 같다(.08rem)");
+            Assert.AreEqual(eg.Brightness, ec.Brightness, 1e-9, "밝기도 같다(1.07)");
+            Assert.AreEqual(1.0, PressRules.Phase(eg, 0, 0, true), 1e-9, "알 칸은 첫 프레임에 다 내려간다");
+            Assert.AreEqual(0.0, PressRules.Phase(eg, 1, 0, false), 1e-9, "떼는 것도 즉시다");
+            double mid = PressRules.Phase(ec, 0, ec.Ms * 0.5, true);
+            Assert.That(mid, Is.GreaterThan(0.0).And.LessThan(1.0), "장비 칸은 그 사이를 지난다 — 둘이 같은 수였으면 이 줄이 안 갈린다");
             // T515 — 턱 걷기 갈래: `.1rem` 가라앉고 턱이 걷히며 정본엔 `transition` 이 **없다**(ms 0 = 즉시).
             PressSpec mb = t.Get("modal_btn");
             Assert.AreEqual(0.10, mb.DyRem, 1e-9, "3563 translateY(.1rem)");
