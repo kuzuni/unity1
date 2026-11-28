@@ -842,11 +842,21 @@ STALE_REF_NOTES = [
     u"펫 머리(**3968**·3970)와 기술 머리(**5390**·5392)는 `IconGen.img(...)` **맨 아이콘**이다 — 곧 **✚ 가 없는 것이 정본 계약**이고 클론도 그 두 화면에 안 그린다(상단바 쪽 ✚ 는 **T60 이 이미 달았다** · `Hud.cs` `PlusBadge`). "
     u"ⓒ **제목 줄**: 원작은 «펫» 한 글자인데 정본 **3969** 가 `<h2 class=\"sheet-title\">펫 ${S.pets.length}/${Pets.INV_CAP}</h2>` 로 수를 붙인다 — 클론의 «펫 3/250»(표 `pets_title` «펫 {0}/{1}»)이 **맞다**. "
     u"⚑ **점수로 쫓지 마라** — 원작 머리가 ✚ 와 어두운 면으로 더 두꺼워 `tech-overview` 밴드 1 이 **5.8%p** 어긋난다(검수 Q 53회차 실측). 없는 결함이다. "
-    u"⚑ 이 자리는 53회차에 사람이 손으로 찾았고 55·56·57회차 보고가 세 번 연속 «`--notes` 는 아직 25줄» 을 적었다 — 자(`--scan-ref`)는 이미 제대로 올리고 있었다(`pets-2` 의 `#b26a00` 이 «차 **255** · 618화소 · 뽑힘 차»). **기계가 올린 것을 사람이 네 회차째 안 받아 적은 것**이 이 줄이 생긴 까닭이다(T527)."),
+    u"⚑ 이 자리는 53회차에 사람이 손으로 찾았고 55·56·57회차 보고가 세 번 연속 «`--notes` 는 아직 25줄» 을 적었다 — 자(`--scan-ref`)는 이미 제대로 올리고 있었다(`pets-2` 의 `#b26a00` 이 «차 **255** · 618화소 · 뽑힘 차»). **기계가 올린 것을 사람이 네 회차째 안 받아 적은 것**이 이 줄이 생긴 까닭이다(T527)."),    (u"펫 상세 공유 단추 — 원작은 작고 안 네모인데(19×15) 정본은 `1.7rem` **정사각형**을 못박았다 · 클론이 정본대로 27×27 이라 맞다 · «자리가 밀렸다» 로 접지 말고 그 겹의 **상자를 재라**",
+    u"펫 상세 공유 단추: 원작 `shot-042449` 의 우상단 파란 단추는 **19×15**(작고 안 네모)인데, 정본은 **5529~5532** `.petd-share { position: absolute; top: .55rem; right: .55rem; "
+    u"**width: 1.7rem; height: 1.7rem**; border: var(--ol2) solid var(--pp-line); border-radius: .4rem; background: var(--pp-blue) }` 로 **정사각형**을 못박았다. "
+    u"셈에 드는 두 칸도 정본이 쥔다 — **2** `* { … box-sizing: border-box … }`(1.7rem 은 **테를 품은 바깥 상자**다)와 **33** `--ol2: min(2px, calc(.125rem + .49px))`(두 rem 에서 다 **2px**) "
+    u"⇒ 파란 면 = 1.7rem − 4px. 재면 양쪽이 갈린다(검수 Q 59회차 · 런 **1414** ↔ 원작 `shot-042449`): 클론 1rem **18.20** → 셈 **26.9** · 잰 값 **27×27**(정사각형 · 맞다) ↔ "
+    u"원작 1rem **16.51** → 셈이면 **24.1** 정사각형이어야 하는데 잰 값이 **19×15** 다. 곧 **원작 샷이 `.petd-share` 가 지금 꼴을 갖추기 전**이고 §1 대로 **클론 결함이 아니다** "
+    u"(클론 표도 정본 값 그대로다 — `PetSkillUi.json` `petd_share_rem` **1.7** · `petd_share_r_rem` **0.4** · `petd_share_off_rem` **0.55** · `PetPanel.cs` 588~592). "
+    u"⚑ **이 줄의 교훈은 «무엇이 다른가» 가 아니라 «어떻게 접었나» 다**: 검수 Q 57회차는 «원작에도 같은 파란 단추가 있다 → 자리가 밀렸다» 로 접고 **버튼 제 상자를 안 쟀다**. "
+    u"58·59회차에 같은 자리가 또 올라왔고, 그 사이 워커 K 가 «색이 아니라 **크기와 위끝**이다» 까지 재어 두고도 «정본이 어느 편인가» 를 못 찾아 **번호 없는 참고**(`9476ed5`)로 남겼다. "
+    u"⇒ «자리가 밀렸다» 로 접기 전에 **그 겹의 상자를 한 번 재고** 접는다 · 그리고 **치수가 다르면 정본 선택자를 열어 «rem 두 개로 각각 셈» 을 돌린다**(원작 rem ≠ 클론 rem 이라 «같은 px» 로는 못 가른다). "
+    u"⚑ **점수로 쫓지 마라** — `pet-detail` 의 그 파란 자리는 색이 맞아 차가 안 뜨고, 다른 것은 **크기**라 밴드 점수로는 거의 안 움직인다."),
 ]
 
 
-# ── 그 26줄의 «정본 근거» 를 기계가 읽는 칸 (T512 1회차 · 걸음 ⓐ · 워커 J) ─────────
+# ── 그 27줄의 «정본 근거» 를 기계가 읽는 칸 (T512 1회차 · 걸음 ⓐ · 워커 J) ─────────
 # 위 목록은 **사람이 적은 글**이고, 그 안의 «정본 1833 `.cmp-card { … }`» 꼴 근거는 정본이 바뀌면
 # **조용히 거짓**이 된다(아무 자도 안 본다 · 검수 Q 52회차가 세 회차째 같은 자리를 다시 판 뿌리).
 # 그래서 **근거를 데이터로** 따로 둔다 — 키는 그 줄의 머리(`' — '` 앞), 값은 `(정본 파일, 줄, 바늘)` 들.
@@ -856,6 +866,14 @@ STALE_REF_NOTES = [
 # ⓒ 정본 사본이 옆에 있으면 **실물에서 바늘 전부가 아직 있는지** 를 본다(사본이 없으면 그 칸만 건너뛴다 —
 # `gate.sh`·CI 의 자기 검사 잡에는 정본 clone 이 없다).
 STALE_REF_EVIDENCE = {
+    u"펫 상세 공유 단추": (
+        (u"css/style.css", 5529, u".petd-share {"),
+        (u"css/style.css", 5531, u"width: 1.7rem; height: 1.7rem; border: var(--ol2) solid var(--pp-line); border-radius: .4rem;"),
+        (u"css/style.css", 5532, u"background: var(--pp-blue); font-size: .85rem; line-height: 1; padding: 0;"),
+        (u"css/style.css", 2, u"* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }"),
+        (u"css/style.css", 33, u"--ol2: min(2px, calc(.125rem + .49px));"),
+        (u"js/ui.js", 4016, u'<button class="petd-share"'),
+    ),
     u"펫·기술 머리 화폐 알약 셋": (
         (u"css/style.css", 4245, u".cur-pill.egg { background: #b26a00; }"),
         (u"css/style.css", 4259, u".cur-pill.gem { background: #c62828; }"),
@@ -3373,7 +3391,7 @@ def self_test():
     chk(card_white_box(_canvas(40, 40, (20, 20, 20)), 5, 35) is None,
         u"card_white_box 는 카드가 없으면 None 을 낸다")
 
-    # ── T512 1회차 — «낡은 원작 샷» 26줄의 정본 근거를 기계가 검산한다(걸음 ⓐ) ──────
+    # ── T512 1회차 — «낡은 원작 샷» 27줄의 정본 근거를 기계가 검산한다(걸음 ⓐ) ──────
     _heads = [note_head(s) for s, _b in STALE_REF_NOTES]
     chk(len(set(_heads)) == len(_heads),
         u"«낡은 원작 샷» %d줄의 머리(`' — '` 앞)가 서로 다르다 — 근거 표의 키가 될 수 있다" % len(_heads))
@@ -3436,6 +3454,16 @@ def self_test():
         and any(u"curIcoPlus" in _n for _p, _l, _n in _pill_ev)
         and any(u"sheet-title" in _n for _p, _l, _n in _pill_ev),
         u"바늘 넷이 세 갈래를 **각각** 겨눈다(`#b26a00`·`#00897b` = 못박은 면 색 · `curIcoPlus` = ✚ 가 사는 자리 · `sheet-title` = 수 붙은 제목)")
+
+    # ── T529 1회차 — 펫 상세 공유 단추: «치수 주장» 은 **셈에 드는 칸까지** 바늘로 잡아야 한다(결정 908) ──
+    _shr_head = u"펫 상세 공유 단추"
+    chk(_shr_head in _heads, u"«펫 상세 공유 단추» 줄이 목록에 있다 — 57회차가 «자리가 밀렸다» 로 접었던 그 자리다(T529)")
+    _shr_ev = STALE_REF_EVIDENCE.get(_shr_head, ())
+    chk(any(u"1.7rem; height: 1.7rem" in _n for _p, _l, _n in _shr_ev)
+        and any(u"box-sizing: border-box" in _n for _p, _l, _n in _shr_ev)
+        and any(u"--ol2: min(2px" in _n for _p, _l, _n in _shr_ev),
+        u"그 줄의 바늘이 **셈 전체**를 겨눈다 — 치수(`1.7rem` 정사각) · `box-sizing`(테가 바깥 상자에 든다) · `--ol2`(테 2px) "
+        u"셋이 다 있어야 «파란 면 = 1.7rem − 4px» 가 정본 근거로 선다")
 
     # ── T512 2회차 — `--vs` 의 조각들(걸음 ⓑ · 그림 없이 재는 것만) ─────────────────
     _css = u"\n".join([
