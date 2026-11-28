@@ -254,7 +254,7 @@ EDGE_STEP = 2      # 건너뜀을 재는 화소 간격(체커판 ±1 을 안 타
 EDGE_T = 24        # 이만큼 넘게 다르면 «건너뜀»(0~255 · 글자·테두리 모서리는 100 안팎 · 그라디언트 한 칸은 0~3)
 FLOOR_RUN = 3      # «그릇 수준» 은 이 행 수 이상 이어져야 그릇이다
 ROW_EXTRA = 2      # 그릇보다 이만큼 많은 행이 내용이다(테두리 한 쌍 = 2)
-FLOOR_Q = 0.10     # T532 — «그릇 수준» 을 무리 최댓값들의 **최솟값**(0.0)이 아니라 이 분위로 (실측으로 고른 수 · 결정 920)
+FLOOR_Q = 0.10     # T532 — «그릇 수준» 을 무리 최댓값들의 **최솟값**(0.0)이 아니라 이 분위로 (실측으로 고른 수 · 결정 **922** — T28 199회차가 바로잡았다: 내 번호가 920 → 922 로 옮겨졌는데 코드 참조를 안 고쳤다)
 COL_EXTRA = 2      # 열도 같다
 BAND_MAX = 18      # 이보다 높은(%) 밴드는 그릇 수준으로 더 가른다
 
@@ -304,8 +304,18 @@ def _floor(seg, run=FLOOR_RUN):
     뜨던 자리다. 아래에서 한 칸만 들어와도(`FLOOR_Q` 0.10) 그 하나에 매달리지 않는다.
     ⚠ **분위를 더 올리면 안 된다** — 실측으로 폭은 더 줄지만(0.20 에서 5개 · 0.5 에서 0개) 그것은
     자가 **덜 읽어서** 잠잠해지는 것이다(0.20 에서 `chat` 45 → 5 · `tech-node` 17 → 3 · 열 화면 합 79%).
-    고른 0.10 은 폭을 **14 → 10** 으로 줄이면서 읽는 양은 **113%** 로 오히려 는다(결정 920).
+    고른 0.10 은 폭을 **14 → 10** 으로 줄이면서 읽는 양은 **113%** 로 오히려 는다(결정 **922**).
     """
+    tops = _floor_tops(seg, run)
+    if not tops:
+        return min(seg) if seg else 0
+    return tops[int(round(FLOOR_Q * (len(tops) - 1)))]
+
+
+def _floor_tops(seg, run=FLOOR_RUN):
+    """`_floor` 가 분위를 재는 그 **무리 최댓값 목록**(오름차순) — 자국(`STAMP_FUNCS`) 밖의 곁자가 아니라
+    `_floor` 가 **실제로 쓰는** 목록이다(갈라 두면 둘이 어긋난다 · 결정 919 의 결).
+    T28 199회차 — `--band-trace` 가 «무리 수 · 분위 색인» 을 찍으려면 이 목록이 필요하다."""
     tops = []
     i, n = 0, len(seg)
     while i < n:
@@ -315,10 +325,8 @@ def _floor(seg, run=FLOOR_RUN):
         if j - i >= run:
             tops.append(max(seg[i:j]))
         i = j
-    if not tops:
-        return min(seg) if seg else 0
     tops.sort()
-    return tops[int(round(FLOOR_Q * (len(tops) - 1)))]
+    return tops
 
 
 def _flags(flags, min_len, gap):
@@ -348,7 +356,7 @@ def _split_rows(t, y0, y1, H, depth=0, dfloor=0):
 #    같은 자를 쓴다» 고 적어 둔 것이 조용히 깨진다. T437 2·3회차가 실제로 그랬다(101·102회차 두 회차 ·
 #    T28 103회차 실측: 다시 구우니 표가 1,366 → 1,452줄로 바뀌었다). 그래서 자국을 표 머리에 박고
 #    자기 검사가 **막는다**.
-STAMP_FUNCS = ("app_box", "_runs", "_merge", "_row_edges", "_col_edges", "_floor", "_flags",
+STAMP_FUNCS = ("app_box", "_runs", "_merge", "_row_edges", "_col_edges", "_floor", "_floor_tops", "_flags",
                "_split_rows", "read_layout")
 STAMP_CONSTS = ("EDGE_STEP", "EDGE_T", "FLOOR_RUN", "FLOOR_Q", "ROW_EXTRA", "COL_EXTRA", "BAND_MAX", "GRID")
 _DOC_Q = ('"""', "'''")
@@ -4074,6 +4082,29 @@ def self_test():
         u"판정에서 흔들폭을 재는 화면 수 상한이 다섯 이상이다")
     chk(band_trace(os.path.join(REPO, "tools"), u"없는화면") == 1,
         u"샷이 없는 화면의 밴드 펼치기는 rc 1 이다(T28 198회차)")
+
+    # T28 199회차 — **분위가 실제로 움직였나**. `_floor` 는 «무리 최댓값들의 FLOOR_Q 분위» 인데
+    #   무리가 적으면 `round(FLOOR_Q * (n-1))` 이 **0** 이라 종전의 «최솟값» 과 같은 수다 — 곧
+    #   T532 의 수선이 그 밴드엔 **안 닿는다**(런 1442 전수: 47밴드 중 **26개**가 색인 0 · T538).
+    #   ⓐ 두 자가 **한 몸**임을 못박고(갈라 두면 조용히 어긋난다) ⓑ 무리가 열 미만이면 색인이 0 임을 못박는다.
+    #   🚫 `_floor` 를 `_floor_tops` 와 다른 목록으로 재면 첫 칸이 바로 빨강이 된다.
+    for _seg in ([5] * 7 + [40] * 5 + [9] * 9 + [80] * 4 + [3] * 3,
+                 [1, 1, 1, 9, 9, 9, 2, 2, 2, 50, 50, 50],
+                 [7] * 30,
+                 []):
+        _tp = _floor_tops(_seg)
+        _want = (_tp[int(round(FLOOR_Q * (len(_tp) - 1)))] if _tp
+                 else (min(_seg) if _seg else 0))
+        chk(_floor(_seg) == _want,
+            u"`_floor` 는 `_floor_tops` 목록의 FLOOR_Q 분위 그대로다(무리 %d개 · 그릇 %s)"
+            % (len(_tp), _floor(_seg)))
+    chk(int(round(FLOOR_Q * (10 - 1))) == 1 and int(round(FLOOR_Q * (9 - 1))) == 1
+        and int(round(FLOOR_Q * (4 - 1))) == 0,
+        u"무리가 **넷이면 분위 색인이 0** 이다 — 그 밴드에서 FLOOR_Q 는 «최솟값» 과 같은 수다(T538 의 과녁)")
+    chk(int(round(FLOOR_Q * (6 - 1))) == 0 and int(round(FLOOR_Q * (7 - 1))) == 1,
+        u"무리 **여섯까지** 색인 0 이다 — 0.5 가 파이썬의 짝수 쪽 반올림으로 **0** 이 되기 때문이다(경계가 5가 아니라 6이다)")
+    chk("_floor_tops" in STAMP_FUNCS,
+        u"`_floor_tops` 도 판독기 자국에 든다 — 판독기의 한 부분이라 고치면 표를 다시 구워야 한다")
     chk(floor_match(_fs, None) is None, u"지난 회차 수를 모르면 «재현 눈금» 은 None 이다")
     chk(floor_match(_fs, _sw[0]) is None,
         u"지난 수가 **지금 수와 같으면** 0 아닌 눈금은 안 찾는다(0 은 셈에서 뺀다)")
@@ -4513,8 +4544,16 @@ def band_trace(shots_dir, name):
         b = _floor(seg)
         subs = _flags([v >= b + ROW_EXTRA for v in seg], max(3, H // 100), 0)
         halt = len(subs) < 2
-        print(u"   %s[%4d~%4d] %4d행(%4.1f%%H) · 그릇 %3d · 문 %3d · 쪼갠 수 %d%s"
+        # T28 199회차 — **분위가 실제로 움직였는지** 같이 찍는다. `_floor` 는 «무리 최댓값들의 FLOOR_Q 분위»
+        #   인데 무리가 몇 개뿐이면 `round(FLOOR_Q * (n-1))` 이 **0** 이라 종전의 «최솟값» 과 **같은 수**다 —
+        #   곧 T532 의 수선이 그 밴드엔 **안 닿는다**. 전수 실측(런 1442 · 47밴드): 색인 0 이 **26개(55%)**.
+        #   이 칸이 없으면 다음 사람이 «분위로 고쳤다» 를 그 자리에서도 믿는다(T538).
+        tops = _floor_tops(seg)
+        k = int(round(FLOOR_Q * (len(tops) - 1))) if tops else -1
+        print(u"   %s[%4d~%4d] %4d행(%4.1f%%H) · 그릇 %3d · 문 %3d · 쪼갠 수 %d · 무리 %d · 분위 색인 %d%s%s"
               % (u"  " * depth, y0, y1, y1 - y0, 100.0 * (y1 - y0) / H, b, b + ROW_EXTRA, len(subs),
+                 len(tops), k,
+                 u"(**최솟값 그대로 — 분위가 안 움직였다**)" if k == 0 else u"",
                  u"   ← **쪼개지다 말았다**(2 미만이라 통째로 둔다)" if halt else u""))
         if halt:
             stuck.append((y0, y1))
