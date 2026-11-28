@@ -123,10 +123,20 @@ namespace Forge.Tests.PlayMode
 
         /// <summary>
         /// T534 — `craft-compare` 가 굴린 **비교 품목**의 «슬롯=시대/등급/레벨» 서명. 위 <see cref="GearSignature"/> 와 같은 뜻이다 —
-        /// 런마다 같아야 그 화면의 두 런을 견줄 수 있다. ⚑ 기대값 상수(`GearSignatureExpected` 꼴)는 **첫 런의 자취를 보고** 다음 회차가 못박는다
-        /// (여기서는 굴림 결과를 미리 알 수 없다 — 정본 표가 정한다).
+        /// 런마다 같아야 그 화면의 두 런을 견줄 수 있다.
         /// </summary>
         private static string CompareSignature;
+
+        /// <summary>
+        /// T534 2회차 — 위 서명의 기대값. **시드를 고정한 첫 런(#1436 · `f73f0f7` · 초록)의 자취**가 적은 수다
+        /// (`uishots.txt` 92행 «seed 비교 품목 · weapon=multiverse/epic/40»). 그 전에는 매 런 달랐다 —
+        /// 실측으로 `craft-compare` 점수가 1.5·2.3·2.1·2.8·1.4 로 흔들렸고 채점 자가 회차마다 «안쪽이 달라졌다» 를 올렸다.
+        /// 이 단언이 빨개지는 경우는 <see cref="GearSignatureExpected"/> 와 똑같이 둘뿐이다: ⓐ 촬영 난수가 다시 흔들린다(고쳐야 한다)
+        /// ⓑ 정본 표(balance·gamedata)가 바뀌어 굴림 결과가 바뀐다 — 그때는 **원작 샷과의 대조 기준이 함께 바뀐 것**이라
+        /// 새 서명을 여기 적고 그 회차 기록에 이유를 남긴다.
+        /// ⚑ 장비 서명과 달리 이 값은 **촬영이 그 화면을 연 뒤에야** 정해지므로 단언도 촬영 고리 **뒤**에 선다.
+        /// </summary>
+        private const string CompareSignatureExpected = "weapon=multiverse/epic/40";
 
         /// <summary>
         /// T128 — 위 서명의 기대값. 촬영 난수를 고정한 뒤 **런 260·271 두 런이 글자 하나까지 같았다**(그 전에는 매 런 달랐다).
@@ -1230,6 +1240,11 @@ namespace Forge.Tests.PlayMode
             // T166 — 펫 넷이 «원작과 같은 보유 상태» 에서 찍혔는가. 이 줄이 비면 주입 자체가 안 불린 것이다.
             Assert.AreEqual(PetShotSignatureExpected, PetShotSignature,
                             "펫 넷의 촬영 상태가 정본 shot-pets.js 의 원본 상태와 다르다 — 서로 다른 화면을 견주게 된다(T166)");
+
+            // T534 2회차 — `craft-compare` 가 굴린 비교 품목이 런마다 같은가(장비 8부위의 `GearSignature` 와 같은 뜻 · T128).
+            //   이 줄이 비면 그 화면이 아예 안 열린 것이고, 다르면 촬영 난수가 다시 흔들린 것이다.
+            Assert.AreEqual(CompareSignatureExpected, CompareSignature,
+                            "craft-compare 비교 품목이 기준과 다르다 — 촬영 난수가 다시 흔들렸거나 정본 표가 바뀌었다(T534 · 기록을 보고 서명을 갱신하라)");
 
             if (failed.Count > 0) Assert.Fail("원작 화면 " + required + "장 중 " + failed.Count + "건이 어긋났다:\n  · " + string.Join("\n  · ", failed.ToArray()) + "\n자취 꼬리: " + TraceTail(10));
             log.AssertNoRed();
