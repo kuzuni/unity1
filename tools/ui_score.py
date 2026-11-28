@@ -3262,6 +3262,13 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             print(u"    → PNG 를 한 장 열어 보고, 어긋난 런이면 **기준선을 갱신하지 마라**.")
         if not drops and not ups:
             print(u"· 지난 회차와 견줘 %.1f점 넘게 움직인 화면 없음" % DROP_MARK)
+        # T28 200회차 — 그 한 줄은 «아무것도 안 움직였다» 가 **아니다**(결정 912 · T525 의 +0.47 이 이 아래였다).
+        #   문턱 아래 움직임도 이름과 수로 찍는다 — 자는 숨기지 않고, 판단은 사람이 한다.
+        small = under_mark_movers(base, cur)
+        if small:
+            print(u"· 문턱(%.1f) **아래로** 움직인 화면 %d개 — «움직인 화면 없음» 을 «내 고침이 안 들어갔다» 로 읽지 마라(결정 912):"
+                  % (DROP_MARK, len(small)))
+            print(u"    " + u" · ".join(u"%s %.1f → %.1f (%+.2f)" % (n, b, c, c - b) for n, b, c in small))
     print_stale_notes(notes_full)
     verify_stale_notes()   # T512 1회차 — 위 목록이 댄 정본 근거가 아직 산지 **매 회차** 본다(정본 사본이 없으면 건너뛴다)
     if save_baseline and suspect[0]:
@@ -3367,6 +3374,26 @@ def _stripes(img, x0, y0, x1, y1):
             img.px[d:d + 3] = bytes((v, v, v))
 
 
+def under_mark_movers(base, cur, limit=6):
+    """T28 200회차 — **문턱(`DROP_MARK`) 아래로** 움직인 화면 [(이름, 전, 후)] · 움직인 폭 큰 것부터.
+
+    «%s점 넘게 움직인 화면 없음» 한 줄만 보고 «아무것도 안 움직였다 = 내 고침이 안 들어갔다» 로 읽으면
+    **실제로 든 고침을 놓친다**(결정 912): T525 의 자동 제련 행 간격 수리가 `autoforge-filter` 를
+    **+0.47** 움직였는데 그 줄은 이름을 하나도 대지 않아, 다음 회차가 «그 커밋은 이 런에 없다» 로 읽었다.
+    그래서 문턱 아래 움직임도 **이름과 수**로 찍는다 — 판단(«고침인가 흔들림인가»)은 사람이 하고,
+    자는 **숨기지 않는다**.
+    """ % DROP_MARK
+    out = []
+    for n in sorted(cur):
+        if n not in base:
+            continue
+        d = cur[n] - base[n]
+        if d == 0.0 or abs(d) >= DROP_MARK:
+            continue
+        out.append((n, base[n], cur[n]))
+    out.sort(key=lambda t: (-abs(t[2] - t[1]), t[0]))
+    return out[:limit]
+
 def self_test():
     ok = [0]
     fail = []
@@ -3388,6 +3415,17 @@ def self_test():
     os.remove(tmp)
     same = (back.w, back.h) == (40, 30) and bytes(back.px) == bytes(img.px)
     chk(same, u"PNG 부호화 → 해독 왕복이 픽셀까지 같다")
+
+    # T28 200회차 — 문턱 아래 움직임 줄(결정 912 가 가리킨 구멍)
+    _umb = under_mark_movers({"a": 4.0, "b": 2.0, "c": 7.0, "d": 1.0},
+                             {"a": 4.47, "b": 2.0, "c": 7.9, "d": 0.8})
+    chk([t[0] for t in _umb] == ["a", "d"],
+        u"문턱 아래 움직임만 찍는다 — 0.47·−0.20 은 들고 ±0.00(b)·+0.90(c)은 뺀다 (찍은 것 %s)"
+        % ([t[0] for t in _umb] or u"없음"))
+    chk(under_mark_movers({"a": 4.0}, {"a": 4.0}) == [],
+        u"안 움직인 화면만 있으면 그 줄은 아예 안 뜬다")
+    chk([t[0] for t in under_mark_movers({"a": 1.0, "b": 1.0}, {"a": 1.1, "b": 1.4})] == ["b", "a"],
+        u"움직인 폭이 큰 것부터 — +0.4 가 +0.1 앞에 선다")
 
     # ② 판독: 만든 자리의 밴드를 그 자리에서 찾는다
     # 캔버스는 **9:16**(112x199)이다 — 69회차에 `read_layout` 이 앱 상자 기준으로 바뀌어,
