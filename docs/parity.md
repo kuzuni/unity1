@@ -3198,6 +3198,31 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - **다음 축 후보**(85회차 목록에서 «혼자 서는 축» 만 남겼다): ⓐ **`z-index` 112** — 층 차례는 클론에서 **형제 순서**가 쥐므로 자리마다 견줄 수 있고 혼자 선다 ·
   ⓑ `pointer-events` 68(↔ `raycastTarget`) ⓒ `overflow` 59(↔ `Mask`·`RectMask2D`). ⚠ `animation-timing-function` 23·`animation-delay` 38 은 77~80·84회차가 이미 그 축을 훑었다.
 
+
+## 88회차 — `z-index` 112 를 **쌓임 문맥별로** 모아 클론 형제 차례와 견뤘다: 뒤집힘 하나(토스트가 모달 위로 떠올랐다) (2026-11-28 · 워커 I · sess-0103-62859 · 런 1410 빨강은 T525 산 lock)
+
+- **§0-6**: 런 1410 의 빨강(`AgeBarGapTests` 피치)은 **T525 의 자**고 그 번호는 산 lock 이며 임자가 00:46 에 2차 수리를 이미 밀었다(런 1410 커밋 뒤 5 커밋) — 내 몫이 아니다.
+- **축 셈**: 정본 `z-index` 선언 **112**(주석 걷고 속성 경계로) · 콤마 선택자를 풀면 **118 줄**. 값 분포는 `1` 25 · `2` 19 · `0` 10 · `3` 6 · `-1` 5 · 그 밖 40 과 50·60·70 대의 큰 수들.
+- ⚑ **모으는 법이 이 축의 절반이다**: 선택자 **머리**로 모으면 **91 묶음이 1~2개씩**으로 흩어져 아무것도 안 보인다. 쌓임 문맥은 **부모**가 만들므로 «마지막 조각을 뗀 부모» 로 모아야 한다 →
+  그러면 **루트 묶음 118 중 약 100** + 작은 묶음 아홉(`.equip-cell` 3 · `.dg-banner` 2 · `.hatch-cell` 2 · `#wave-pips` 1 …)으로 **정리된다**. 루트 안에 또 두 무리가 있다 —
+  앱 오버레이(`#topbar` 5 · `.panel` 8 · `#tabbar` 10→**30** · `#dmg-flash` 12 · `#boss-warning` 16 · `.modal` 20 · `#equip-swap-fx` 21 · `.auto-drop-card` 25 · `.craft-batch` 26 · `#toasts` 30 · `#autoforge-modal` 31 · **열 모달 40** · `#summon-result-modal` 60 · `#reward-burst` 70)와
+  소환 연출 겹 서른(`.sr-rays` 0 … `.sr-floor` 10 · `.sr-reflect` 12 · `.sr-stars` 15 · `.sr-canopy` 20 · `.sr-flash`·`.sr-wipe` 25 · `.sr-relights` 26 · `.sr-tierbreaks` 27 · `.sr-shock` 30 · `.sr-dust` 35 · `.sr-solo`·`.sr-grid` 40 · `.sr-near` 42 · `.sr-head`·`.sr-foot` 45 · `.sr-streaks`·`.sr-charge` 60).
+- ⚑ **그리고 걸음이 하나 더 있다 — «겹치는가»(결정 909)**: 뒤집힌 짝이 여럿 나오지만 **대부분 보이지 않는다**. 실례로 정본 `#chat-preview` 는 `z-index` 가 **없고**(auto)
+  클론은 그것을 `equip-sheet` **위** 형제로 두는데, 두 띠는 `sheetTop..chatTop` ↔ `chatTop..tabTop` 로 **안 겹친다** — CSS 도 겹치지 않는 상자에는 z 를 쓰지 않으니 화소가 한 점도 안 바뀐다.
+  ⇒ 이 축의 걸음 셋: ⓐ 문맥별로 모은다 ⓑ 차례가 뒤집힌 짝을 찾는다 ⓒ **그 짝이 겹치는가**를 묻는다.
+- **이미 쥔 자리**: 팝업 열 자리는 **T346 이 표로 옮겼다**(`PopupZUi.json` — `tabbar` z 30 + 모달 14칸 · `PopupZUi.AboveTabBar(name)` 가 «탭바 위 층(`modals-over`)이냐» 를 그 수로 정한다).
+  클론 층은 둘뿐이라(탭바 아래 `modals` · 위 `modals-over`) 정본의 20 ↔ 40 두 단이 그 둘에 맞는다. 보상 분출은 `SetAsLastSibling`(정본 70 = 최댓값)이고 전투 토스트 레인은 T138 이 1932 의 **19** 를 옮겼다.
+- **⛔ 하나 — 토스트 레인(정본 1925 `#toasts { z-index: 30 }`)이 클론에서 맨 위 형제였다**
+  - 정본 차례: `.modal` **20** < `#toasts` **30** < 탭바 위 모달 열 **40**. 곧 프로필·패스·오프라인·자동 제련 같은 팝업이 열려 있으면 토스트는 **그 아래**다.
+  - 클론은 `PopupLayer.Create` 가 `toasts` 를 `modals-over` **뒤**에 만들어 맨 위 형제였다 — **전면 모달 위로 토스트가 떠올랐다**(전면 딤이라 반드시 겹친다 · 안 보이는 뒤집힘이 아니다).
+  - **고침**: 표에 `toasts { z: 30 }` 칸을 더하고(1925 근거·전투 레인 19 와의 갈림까지 주석에) `PopupZUi.ToastsAboveOverLayer` 가 **표의 수로** 자리를 정한다 —
+    «탭바보다 큰 팝업들 중 **가장 작은 z**»(정본 40)와 견줘 작으면 `modals-over` **아래**로 끼운다(`Popups.cs` 한 줄). 새 팝업이 들어와도 그 수로 저절로 맞는다 · **코드에 수 0개**(§1).
+  - **자**: PlayMode `PopupZTests` 에 칸 하나 — 표(`ToastsZ` 30 · `ToastsAboveOverLayer` 거짓)와 **형제 차례**(`modals` < `toasts` < `modals-over` · 전투 레인 < `modals`)를 같이 잰다.
+    접근자 둘(`UnderLayer`·`ToastLane`)을 T138 관례대로 더했다.
+- **게이트**: `dotnet build` 0 오류(TestsPlay 까지) · `dotnet test` **896/896** · `gate.sh` 막는 자 전부 rc 0 · 건너뜀 0.
+- **남은 축 후보**: ⓐ **`.sr-*` 서른 겹의 차례 전수** — 이 회차가 수를 다 뽑아 뒀고(위 목록) 클론은 `SetSiblingIndex`·`SetAsFirstSibling` 를 **열두 자리**에서 쓰므로 **실물에서 읽어야** 견줄 수 있다(PlayMode 한 칸이 그 서른을 한 번에 잰다) ·
+  ⓑ `overflow` 59(↔ `Mask`/`RectMask2D`) ⓒ 작은 묶음 아홉(`.equip-cell` 안 세 겹 등 — 겹치는 자리라 값이 산다).
+
 ## 82회차 — 상태 규칙 전수: `:active` 를 뺀 셋은 **빈 축**이고 `.disabled` 클래스가 그 자리를 쥔다 (2026-11-27 · 워커 K · sess-1532-29140 · 런 1375 초록)
 
 - **81회차의 «다음 축 후보» 를 먼저 쟀다 — 그 셋은 없다**: 정본 `web/css/style.css` 를 (주석을 길이 보존으로 지운 뒤) 세니

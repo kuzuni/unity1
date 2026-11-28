@@ -54,6 +54,33 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(wantAbove, p.AboveTabBar, name + ": Popup.AboveTabBar 표시가 층과 다르다");
         }
 
+        /// <summary>
+        /// T33 88회차 — 토스트 레인은 **모든 모달 위가 아니다**: 정본 1925 `#toasts { z-index: 30 }` 이고
+        /// 탭바 위 층의 모달들은 **40**(3783)이라 그 모달이 열려 있으면 토스트가 그 **아래**다.
+        /// 클론 층은 둘(`modals` 탭바 아래 · `modals-over` 위)이라 토스트는 **그 사이**에 서야 한다 —
+        /// 곧 형제 차례로 `modals` &lt; `toasts` &lt; `modals-over` 다. 표가 그 자리를 정한다(수는 `PopupZUi.json`).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 토스트_레인은_탭바_위_모달_아래_정본_z_30_자리에_선다()
+        {
+            yield return Boot();
+            // 표 — 정본 토스트 z(30)는 탭바(30)와 같고 탭바 위 층(40)보다 작다
+            Assert.AreEqual(30, PopupZUi.ToastsZ, "표: #toasts 는 z 30(정본 1925)");
+            Assert.IsFalse(PopupZUi.ToastsAboveOverLayer, "표: 토스트는 탭바 위 층(40)보다 아래다");
+            Assert.IsTrue(PopupZUi.ToastsZ >= PopupZUi.TabbarZ, "표: 토스트는 탭바와 같거나 위다(정본 둘 다 30)");
+
+            PopupLayer L = PopupLayer.Instance;
+            Assert.IsNotNull(L, "팝업 층");
+            int under = L.UnderLayer.GetSiblingIndex();
+            int toasts = L.ToastLane.GetSiblingIndex();
+            int over = L.OverLayer.GetSiblingIndex();
+            Assert.Greater(toasts, under, "토스트는 탭바 아래 모달 층(.modal 20)보다 위다 — 정본 30 > 20");
+            Assert.Less(toasts, over, "토스트는 탭바 위 모달 층(40)보다 **아래**다 — 정본 30 < 40");
+            // 전투 레인은 따로다(정본 1932 가 모달이 열린 동안 19 로 내린다 · T138) — 모달 층보다 아래
+            Assert.Less(L.CombatLane.GetSiblingIndex(), under, "전투 레인은 모달 층 아래(정본 19 < 20)");
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator 오프라인_프로필_팝업은_정본_z_표대로_탭바_위_층에_선다()
         {

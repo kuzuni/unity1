@@ -1,5 +1,6 @@
 {
   "_": "T346 — 정본 style.css 의 팝업 겹 순서(z-index · 같은 특이도라 뒤 규칙이 이긴 최종값). 클론 PopupLayer 는 탭바 아래 형제(modals)와 위(modals-over) 두 층뿐이라, 팝업마다 «정본 z 가 탭바 z 보다 큰가» 만 읽어 층을 고른다(PopupZUi.AboveTabBar). 키 = 클론 팝업 이름(Popups.Show 의 name). 수치는 코드에 안 박는다(§1).",
+  "toasts": { "z": 30, "_": "style.css 1925 `#toasts, #toasts-combat { … z-index: 30 }` — 토스트 레인. 정본에서 이 수는 **탭바(30)와 같고 열 모달(40)보다 작다** → 그 모달들이 열려 있으면 토스트는 그 **아래**다(T33 88회차). ⚠ 전투 레인은 따로다 — 1932 `#app:has(> .modal:not(.hidden)) #toasts-combat { z-index: 19 }` 가 모달이 열린 동안 **19**(= .modal 20 아래)로 내린다(T138 이 이미 옮겼다)." },
   "tabbar": { "z": 30, "_": "style.css 3766 #tabbar { z-index: 30 } (1693 의 10 을 뒤 규칙이 덮는다)" },
   "modals": {
     "offline":          { "z": 40, "_": "style.css 3781~3783 #offline-modal … { z-index: 40 }" },

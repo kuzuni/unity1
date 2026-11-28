@@ -43,6 +43,10 @@ namespace Forge.Game.Ui
 
         /// <summary>탭바 위 층(`aboveTabBar` 팝업이 사는 곳) — 테스트가 층 순서를 본다(T78).</summary>
         public RectTransform OverLayer { get { return over; } }
+        /// <summary>탭바 **아래** 모달 층(정본 `.modal` z 20) — 자가 층 차례를 본다(T138 꼴 · T33 88회차).</summary>
+        public RectTransform UnderLayer { get { return under; } }
+        /// <summary>토스트 레인 상자(정본 `#toasts` z 30) — 모달 층 둘 **사이**에 서야 한다(T33 88회차).</summary>
+        public RectTransform ToastLane { get { return toasts; } }
         public IReadOnlyList<Popup> Open { get { return open; } }
         /// <summary>전투 토스트 레인 상자(테스트가 층 순서·자식을 본다 · T138).</summary>
         public RectTransform CombatLane { get { return toastsCombat; } }
@@ -55,6 +59,11 @@ namespace Forge.Game.Ui
             under.SetSiblingIndex(root.TabBand.GetSiblingIndex());
             RectTransform over = UiKit.Box(app, "modals-over");
             RectTransform toasts = UiKit.Box(app, "toasts");
+            // T33 88회차 — 토스트 레인은 **모든 모달 위**가 아니다. 정본 1925 `#toasts { z-index: 30 }` 이고
+            //   탭바 위 층의 모달들은 **40**(3783 열 선택자)이라 그 모달이 열려 있으면 토스트는 그 **아래**로 간다.
+            //   종전엔 `over` 뒤에 만들어 맨 위 형제였다 — 프로필·패스·오프라인 같은 팝업 위로 토스트가 떠올랐다.
+            //   자리는 **표가 정한다**(`PopupZUi.ToastsAboveOverLayer` · 수는 PopupZUi.json 에만 있다 · §1).
+            if (!PopupZUi.ToastsAboveOverLayer) toasts.SetSiblingIndex(over.GetSiblingIndex());
             RectTransform toastsCombat = UiKit.Box(app, Forge.Core.Ui.LootFeedRules.CombatBoxName(LootFeed.Spec));
             toastsCombat.SetSiblingIndex(under.GetSiblingIndex());   // 모달 바로 아래(정본 z 19 < .modal 20)
             PopupLayer layer = under.gameObject.AddComponent<PopupLayer>();
