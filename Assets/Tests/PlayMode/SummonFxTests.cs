@@ -410,6 +410,62 @@ namespace Forge.Tests.PlayMode
         }
     
         /// <summary>
+        /// T33 92회차 — **셀 안**(구슬 래퍼 `.sr-orbwrap`) 겹의 층 차례. 90회차가 «셀 한 장이 제 문맥이라 이 표가
+        /// 아니다» 로 빼 둔 자리고, 91회차가 ⓑ 로 넘긴 그 몫이다. 래퍼는 정본에서 `z-index: 2` 라 **스택 문맥을
+        /// 만들므로** 그 안의 겹은 바깥 사다리와 못 겨룬다 — 그래서 표(`z_order_cell`)와 묻는 자(`ZOrderOfCell`)가 따로다.
+        /// 층은 둘뿐이다: «z 를 안 적은 것들의 **0 층**»(광선·빛줄·잔상·구슬·하이라이트·아이콘·착지 링 — 정본에서
+        /// `position` 만 있고 `z-index` 가 없다) → «배지·스파크 **2**»(정본 6476·6980·6997·7025).
+        /// ⚑ 이 자가 런 143x 에서 잡아낸 것: 클론이 착지 링을 `SetAsLastSibling()` 으로 **배지 위**에 얹고 있었다 —
+        ///   정본에선 배지(z 2)가 그 링(auto) **위**다. 링은 가산(screen)이라 «×N»·«NEW» 글자를 쓸고 지나갔다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 셀_안_겹의_형제_차례가_정본_셀_z_의_비감소다()
+        {
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            Host.Tickets = 10000;
+            Sheet.Skills.SummonButton.onClick.Invoke();
+            yield return null;
+            yield return null;
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+
+            int wraps = 0, checkedPairs = 0;
+            foreach (RectTransform w in v.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (w.name != "sr-orbwrap") continue;
+                wraps++;
+                var kids = new List<KeyValuePair<int, string>>();
+                for (int i = 0; i < w.childCount; i++)
+                {
+                    Transform t = w.GetChild(i);
+                    if (SummonFxStyle.ZOrderOfCell(t.name) < 0) continue;   // 표에 없는 상자(구운 광채·테·그림자·바닥)
+                    kids.Add(new KeyValuePair<int, string>(t.GetSiblingIndex(), t.name));
+                }
+                kids.Sort((x, y) => x.Key.CompareTo(y.Key));
+                for (int i = 1; i < kids.Count; i++)
+                {
+                    int zPrev = SummonFxStyle.ZOrderOfCell(kids[i - 1].Value);
+                    int zCur = SummonFxStyle.ZOrderOfCell(kids[i].Value);
+                    checkedPairs++;
+                    Assert.LessOrEqual(zPrev, zCur,
+                        "래퍼 안에서 «" + kids[i - 1].Value + "»(정본 셀 z " + zPrev + ") 가 «" + kids[i].Value
+                        + "»(z " + zCur + ") 보다 **앞** 형제다 — 앞 형제가 아래에 그려지므로 층이 높은 쪽이 아래로 깔렸다");
+                }
+                // 세우는 자가 실제로 돌았나 — 다시 불러 움직일 것이 없어야 한다(91회차와 같은 자)
+                Assert.AreEqual(0, SummonFxStyle.OrderLadder(w, true),
+                    "래퍼의 형제 차례가 셀 표의 사다리와 다르다 — 다시 세우니 상자가 움직였다");
+            }
+            Assert.Greater(wraps, 0, "구슬 래퍼가 하나도 안 섰다 — 상자 이름이 바뀌었나");
+            Assert.Greater(checkedPairs, 4, "견준 이웃 짝 — 잰 수 " + checkedPairs);
+            v.Close();
+            yield return null;
+        }
+
+        /// <summary>
         /// T33 90회차 — 소환 연출 겹의 **층 차례**(정본 `z-index`). 정본은 그 겹을 전부 `.sr-wrap` **형제**로 두고
         /// `z-index` 로 세우는데(`.sr-rays` 0 … `.sr-floor` 10 · `.sr-stars` 15 · `.sr-canopy` 20 · `.sr-shock` 30 ·
         /// `.sr-grid` 40 · `.sr-head`·`.sr-foot` 45 · `.sr-streaks`·`.sr-charge` 60) 클론은 **형제 순서**로 세운다.

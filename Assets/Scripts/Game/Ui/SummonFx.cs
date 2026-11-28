@@ -1382,11 +1382,19 @@ namespace Forge.Game.Ui
         /// 값은 정본 `z-index` 그대로다. 정본은 그 겹을 `.sr-wrap` **형제**로 두고 z 로 세우는데 클론은 **형제 순서**로
         /// 세우므로 «같은 상자 안에서 차례가 비감소인가» 만 견준다(결정 909). 표에 없는 이름은 −1 — 자가 그것을 건너뛴다.
         /// </summary>
-        public static int ZOrderOf(string boxName)
+        public static int ZOrderOf(string boxName) { return ZOrderIn("z_order", boxName); }
+
+        /// <summary>
+        /// T33 92회차 — **셀 안**(구슬 래퍼 `.sr-orbwrap` 문맥)의 층. 래퍼가 `z-index: 2` 로 스택 문맥을
+        /// 만들므로 그 안의 겹은 바깥 사다리와 **겨룰 수 없다** — 그래서 표가 둘이고 묻는 자도 둘이다.
+        /// </summary>
+        public static int ZOrderOfCell(string boxName) { return ZOrderIn("z_order_cell", boxName); }
+
+        static int ZOrderIn(string tableKey, string boxName)
         {
             Load();
-            JsonObject z = J.Obj(root["z_order"]);
-            if (z == null) throw new System.InvalidOperationException("SummonFxUi.json 에 z_order 가 없다 (T33 90회차)");
+            JsonObject z = J.Obj(root[tableKey]);
+            if (z == null) throw new System.InvalidOperationException("SummonFxUi.json 에 " + tableKey + " 가 없다 (T33 90·92회차)");
             object v = z[boxName];
             if (J.IsNum(v)) return J.Int(v);
             // T33 91회차 — 클론은 한 겹을 번호로 갈라 세우는 자리가 있다(`sr-streak-0`... · `sr-idle-1`...).
@@ -1417,7 +1425,10 @@ namespace Forge.Game.Ui
         /// ⚑ 같은 z 가 여럿이면 **지금 차례를 지킨다**(정본도 같은 z 는 문서 순서로 갈린다 · 안정 정렬).
         /// </summary>
         /// <returns>자리가 바뀐 상자 수(0 이면 이미 사다리대로였다).</returns>
-        public static int OrderLadder(RectTransform host)
+        public static int OrderLadder(RectTransform host) { return OrderLadder(host, false); }
+
+        /// <summary>T33 92회차 — `cell` 이 참이면 **셀 안 표**(`z_order_cell`)로 세운다.</summary>
+        public static int OrderLadder(RectTransform host, bool cell)
         {
             if (host == null) return 0;
             List<Transform> kids = new List<Transform>();
@@ -1426,7 +1437,7 @@ namespace Forge.Game.Ui
             for (int i = 0; i < host.childCount; i++)
             {
                 Transform t = host.GetChild(i);
-                int z = ZOrderOf(t.name);
+                int z = cell ? ZOrderOfCell(t.name) : ZOrderOf(t.name);
                 if (z < 0) continue;                 // 표에 없는 상자 — 이 자리는 건드리지 않는다
                 kids.Add(t); slots.Add(i); zs.Add(z);
             }

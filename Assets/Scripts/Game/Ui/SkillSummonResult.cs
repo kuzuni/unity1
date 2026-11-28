@@ -1382,14 +1382,18 @@ namespace Forge.Game.Ui
                 c.Spark = si;
             }
             // T480 (a) — 정본 6358~6363 `.sr-orbwrap::after`(inset 0 · 50% · screen · 방사 링 62/78/92%) + `.sr-cell.on … { animation: srring .55s ease-out forwards }`:
-            //   **모든** 셀이 자기 착지에 구슬 둘레에 등급색 링을 한 번 번진다. `::after` 라 래퍼 자식 중 **맨 위**(구슬·하이라이트·아이콘 위 · 가산이라 덮지 않고 밝힌다).
+            //   **모든** 셀이 자기 착지에 구슬 둘레에 등급색 링을 한 번 번진다. `::after` 라 래퍼 자식 중 **맨 위**(구슬·하이라이트·아이콘 위 · 가산이
+            //   ⚠ **T33 92회차 — 위 «맨 위» 는 틀렸다**: `::after` 가 마지막 자식인 것은 맞지만 그것은 **z 를 안 적은(auto) 상자들의 0 층에서 맨 위**일 뿐이고,
+            //     같은 래퍼의 배지·스파크는 `z-index: 2`(정본 6476 `.sr-spark` · 6980·6997·7025 `.sr-new`·`.sr-qty`·`.sr-dup`)라 **그것들이 이 링 위**다.
+            //     클론은 `SetAsLastSibling()` 으로 배지 **위**에 얹고 있었다 — 가산 링이 «×N»·«NEW»·중복 수 글자를 쓸고 지나간다(배지는 래퍼 모서리에 있어
+            //     링 띠(방사 62~92%)와 **겹친다** · 결정 909 의 둘째 걸음). 그래서 이 자리를 손으로 끼우지 않고 **셀 안 표가 세운다**(아래 `OrderLadder(wrap, true)`).라 덮지 않고 밝힌다).
             //   동급 링(셀 뒤 · peerring)·주역 링(heroring)과 따로 도는 셋째 링 — 알파 `.32 + .62 × --glow` → 0 · 배율 `.65` → `1.5 + .8 × --glow`.
             //   ⚠ 1회차는 이 블록의 삽입 자리 문자열이 안 맞아 **빠진 채** 밀렸다(런 1224 `셀 0 착지 링 null`) — 2차에 여기(BuildCell 끝)로 넣었다.
             {
                 RectTransform lr = UiKit.Box(wrap, "sr-landring");
                 UiKit.Fill(lr);
                 lr.pivot = new Vector2(0.5f, 0.5f);   // 배율은 래퍼 가운데에서
-                lr.SetAsLastSibling();
+                lr.SetAsLastSibling();                // 0 층 안에서는 맨 뒤가 맞다 — 그 위 배지는 아래 사다리가 올린다
                 Image li = lr.gameObject.AddComponent<Image>();
                 li.raycastTarget = false;
                 li.preserveAspect = false;
@@ -1400,6 +1404,12 @@ namespace Forge.Game.Ui
                 lr.localScale = Vector3.one * (float)SummonFxStyle.LandRing.Scale0;
                 c.LandRing = li;
             }
+            // T33 92회차 — 래퍼(`.sr-orbwrap`) 안의 겹도 **표가 세운다**(`z_order_cell` · 91회차가 판에 쓴 것과 같은 자).
+            //   래퍼는 정본에서 `z-index: 2` 라 **스택 문맥을 만들고**, 그 안은 «z 안 적은 것들의 0 층 → 배지·스파크 2» 두 층이다.
+            //   클론은 잔상을 `SetAsFirstSibling`, 착지 링을 `SetAsLastSibling` 으로 손으로 끼우고 배지는 만든 차례에 두고 있었다 —
+            //   합친 차례가 정본과 달랐던 자리가 **착지 링**이다(위 주석). 표에 없는 상자(구운 광채·테·그림자·바닥)는 제 자리를 지킨다.
+            SummonFxStyle.OrderLadder(wrap, true);
+
             cell.localScale = Vector3.one * 0.35f;
             return c;
         }
