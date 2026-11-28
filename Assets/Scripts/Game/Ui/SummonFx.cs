@@ -1390,13 +1390,29 @@ namespace Forge.Game.Ui
         /// </summary>
         public static int ZOrderOfCell(string boxName) { return ZOrderIn("z_order_cell", boxName); }
 
+        /// <summary>
+        /// T33 93회차 — **셀 자신(`.sr-cell`) 문맥**의 층(`z_order_cell_own`). 셀은 `position: relative` +
+        /// `z-index: calc(1 + var(--i))`(정본 6250)라 제 스택 문맥을 만들고, 그 안의 겹이 그 표다.
+        /// ⚠ 그 표에는 **음수 층이 있다**(`.sr-cell::before` · 동급 링 · 주역 링이 다 z −1) — 그래서 위 두 자처럼
+        ///   «없다» 를 −1 로 돌려주면 «표에 없다» 와 «−1 층» 이 **구별이 안 된다**. 찾았는지를 따로 돌려준다.
+        /// </summary>
+        public static bool TryZOrderOfCellOwn(string boxName, out int z) { return TryZOrderIn("z_order_cell_own", boxName, out z); }
+
         static int ZOrderIn(string tableKey, string boxName)
         {
+            int z;
+            return TryZOrderIn(tableKey, boxName, out z) ? z : -1;
+        }
+
+        /// <summary>표에서 그 상자의 층을 찾는다 — 돌려주는 bool 이 «표에 있나» 다(T33 93회차 · 음수 층 때문).</summary>
+        static bool TryZOrderIn(string tableKey, string boxName, out int z)
+        {
+            z = -1;
             Load();
-            JsonObject z = J.Obj(root[tableKey]);
-            if (z == null) throw new System.InvalidOperationException("SummonFxUi.json 에 " + tableKey + " 가 없다 (T33 90·92회차)");
-            object v = z[boxName];
-            if (J.IsNum(v)) return J.Int(v);
+            JsonObject zt = J.Obj(root[tableKey]);
+            if (zt == null) throw new System.InvalidOperationException("SummonFxUi.json 에 " + tableKey + " 가 없다 (T33 90·92·93회차)");
+            object v = zt[boxName];
+            if (J.IsNum(v)) { z = J.Int(v); return true; }
             // T33 91회차 — 클론은 한 겹을 번호로 갈라 세우는 자리가 있다(`sr-streak-0`... · `sr-idle-1`...).
             //   정본은 그것이 **한 상자 안의 살**이라 층이 하나다 — 꼬리 번호를 떼고 다시 묻는다.
             int cut = boxName == null ? -1 : boxName.LastIndexOf('-');
@@ -1407,11 +1423,11 @@ namespace Forge.Game.Ui
                     if (boxName[i] < '0' || boxName[i] > '9') { digits = false; break; }
                 if (digits)
                 {
-                    v = z[boxName.Substring(0, cut)];
-                    if (J.IsNum(v)) return J.Int(v);
+                    v = zt[boxName.Substring(0, cut)];
+                    if (J.IsNum(v)) { z = J.Int(v); return true; }
                 }
             }
-            return -1;
+            return false;
         }
 
         /// <summary>
@@ -1425,10 +1441,17 @@ namespace Forge.Game.Ui
         /// ⚑ 같은 z 가 여럿이면 **지금 차례를 지킨다**(정본도 같은 z 는 문서 순서로 갈린다 · 안정 정렬).
         /// </summary>
         /// <returns>자리가 바뀐 상자 수(0 이면 이미 사다리대로였다).</returns>
-        public static int OrderLadder(RectTransform host) { return OrderLadder(host, false); }
+        public static int OrderLadder(RectTransform host) { return OrderLadder(host, "z_order"); }
 
-        /// <summary>T33 92회차 — `cell` 이 참이면 **셀 안 표**(`z_order_cell`)로 세운다.</summary>
-        public static int OrderLadder(RectTransform host, bool cell)
+        /// <summary>T33 92회차 — `cell` 이 참이면 **구슬 래퍼 안 표**(`z_order_cell`)로 세운다.</summary>
+        public static int OrderLadder(RectTransform host, bool cell) { return OrderLadder(host, cell ? "z_order_cell" : "z_order"); }
+
+        /// <summary>
+        /// T33 93회차 — 어느 표로 세울지 **이름으로** 받는다(문맥이 셋이 되어 참·거짓으로는 못 가른다).
+        /// ⚠ «표에 없다» 를 `TryZOrderIn` 의 bool 로 가른다 — 종전엔 `z &lt; 0` 으로 걸러서 **음수 층을 가진 표**
+        ///   (셀 문맥 · −1 셋)를 통째로 못 세웠다. 옛 두 표엔 음수가 없어 그림은 그대로다.
+        /// </summary>
+        public static int OrderLadder(RectTransform host, string tableKey)
         {
             if (host == null) return 0;
             List<Transform> kids = new List<Transform>();
@@ -1437,8 +1460,8 @@ namespace Forge.Game.Ui
             for (int i = 0; i < host.childCount; i++)
             {
                 Transform t = host.GetChild(i);
-                int z = cell ? ZOrderOfCell(t.name) : ZOrderOf(t.name);
-                if (z < 0) continue;                 // 표에 없는 상자 — 이 자리는 건드리지 않는다
+                int z;
+                if (!TryZOrderIn(tableKey, t.name, out z)) continue;   // 표에 없는 상자 — 이 자리는 건드리지 않는다
                 kids.Add(t); slots.Add(i); zs.Add(z);
             }
             for (int a = 1; a < kids.Count; a++)     // 삽입 정렬 = 안정 정렬

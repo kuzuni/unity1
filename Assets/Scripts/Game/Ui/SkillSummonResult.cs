@@ -915,7 +915,7 @@ namespace Forge.Game.Ui
                 rr.pivot = new Vector2(0.5f, 1f);
                 rr.sizeDelta = new Vector2(cw, cw);
                 rr.anchoredPosition = Vector2.zero;
-                rr.SetAsFirstSibling();
+                // T33 93회차 — 자리는 셀 문맥 표가 정한다(z −1 · 이 블록 끝의 `OrderLadder`).
                 heroRing = rr.gameObject.AddComponent<Image>();
                 heroRing.raycastTarget = false;
                 Color rcr = PetSkillStyle.Rarity(Defs, best);
@@ -941,6 +941,10 @@ namespace Forge.Game.Ui
 
                 ringMax = heroRow ? SummonFxStyle.H("ringmax_herorow")
                     : (!mid && !dense ? SummonFxStyle.H("ringmax_stage") : SummonFxStyle.H("ringmax_default"));
+                // T33 93회차 — 이 둘은 `BuildCell` 이 끝난 **뒤** 주역 셀에 붙으므로 그 안의 사다리를
+                //   **다시 세운다**(안 하면 주역 링이 만든 차례대로 이름판·칩 위에 선다 · z −1 이어야 한다).
+                //   `sr-beam` 은 표에 없어 제 자리를 지킨다 — 그 자리가 정본과 다른 것이 T536 이다.
+                SummonFxStyle.OrderLadder(hc, "z_order_cell_own");
             }
 
             // ---- 주역 와이프(정본 `.sr-wipe` 6184~6198) ----
@@ -1121,7 +1125,9 @@ namespace Forge.Game.Ui
                 Image gci = gc.gameObject.AddComponent<Image>(); gci.raycastTarget = false; gci.preserveAspect = false;
                 gci.sprite = SurfaceArt.BakeTinted("sr_cell_glow", gcw / gch, rc);
                 gci.color = new Color(1f, 1f, 1f, PetSkillStyle.L("sr_glow_col_a0") + PetSkillStyle.L("sr_glow_col_a_k") * (float)SummonFxStyle.LandRing.Glow(tier));
-                gc.SetAsFirstSibling();
+                // T33 93회차 — 손으로 `SetAsFirstSibling()` 하지 않는다: 셀 문맥도 **표가 한 번에** 세운다
+                //   (`z_order_cell_own` · 아래 `OrderLadder(cell, ...)`). 손으로 끼우면 뒤에 오는 겹이 또 끼어들어
+                //   정본 트리 순서(`::before` 광주 → `::after` 링)가 뒤집힌다 — 실제로 그랬다(동급 링이 광주 아래였다).
             }
             // orbwrap
             RectTransform wrap = UiKit.Box(cell, "sr-orbwrap");
@@ -1159,7 +1165,7 @@ namespace Forge.Game.Ui
                 pr.pivot = new Vector2(0.5f, 1f);
                 pr.sizeDelta = new Vector2(cw, cw);
                 pr.anchoredPosition = Vector2.zero;
-                pr.SetAsFirstSibling();
+                // T33 93회차 — 자리는 표가 정한다(z −1 · 광주와 같은 층이라 **만든 차례**가 정본 트리 순서를 낸다).
                 Image ring = pr.gameObject.AddComponent<Image>();
                 ring.raycastTarget = false;
                 ring.sprite = SummonFx.BakePeerRing("sr-peerring-" + ColorUtility.ToHtmlStringRGB(rc), rc);
@@ -1409,6 +1415,12 @@ namespace Forge.Game.Ui
             //   클론은 잔상을 `SetAsFirstSibling`, 착지 링을 `SetAsLastSibling` 으로 손으로 끼우고 배지는 만든 차례에 두고 있었다 —
             //   합친 차례가 정본과 달랐던 자리가 **착지 링**이다(위 주석). 표에 없는 상자(구운 광채·테·그림자·바닥)는 제 자리를 지킨다.
             SummonFxStyle.OrderLadder(wrap, true);
+            // T33 93회차 — **셀 자신**의 문맥도 표가 세운다(`z_order_cell_own`): 정본 `.sr-cell` 은
+            //   `position: relative` + `z-index: calc(1 + var(--i))`(6250)라 제 스택 문맥이고, 그 안은
+            //   «광주·동급 링·주역 링 −1 → 구슬 래퍼 2 → 이름판·등급 칩 3» 세 층이다(`.sr-name` 은
+            //   흐름 안 블록이 아니다 — 정본 7043 에 `position: relative; z-index: 3` 이 있다).
+            //   ⚠ `sr-beam` 은 이 표에 없다(정본은 **래퍼의 자식** z 0 인데 클론은 셀 맨 끝 형제다 — T536).
+            SummonFxStyle.OrderLadder(cell, "z_order_cell_own");
 
             cell.localScale = Vector3.one * 0.35f;
             return c;

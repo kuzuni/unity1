@@ -410,6 +410,82 @@ namespace Forge.Tests.PlayMode
         }
     
         /// <summary>
+        /// T33 93회차 — **셀 자신(`.sr-cell`) 문맥**의 층 차례. 92회차가 «흐름 안 블록이 섞여 정수 한 칸으로
+        /// 못 적는다» 로 넘긴 자리인데 **그 전제가 틀렸다**: 까닭으로 든 «`.sr-name` 은 position 도 z 도 없다» 가
+        /// 사실이 아니다 — 정본 `.sr-name` 블록은 열두 줄이고 **7043** 에 `position: relative; z-index: 3` 이 있다.
+        /// 그래서 셀 문맥도 정수 사다리고 층은 셋이다: «광주 `::before` · 동급 링 · 주역 링 **−1**»(6334·6709·6754)
+        /// → «구슬 래퍼 **2**»(6342) → «이름판·등급 칩 **3**»(7043·7060).
+        /// ⚑ 이 표에 **음수 층**이 있어서 묻는 자도 새로 났다(`TryZOrderOfCellOwn`) — 옛 자는 «표에 없다» 를
+        ///   −1 로 돌려줘서 −1 층과 구별이 안 되고, 그래서 사다리가 그 셋을 통째로 **안 세우고 지나갔다**.
+        /// ⚑ 같은 −1 층 안의 차례는 정본도 **문서 순서**로 갈린다(`::before` 광주 → `::after` 링) — 손으로
+        ///   `SetAsFirstSibling()` 하던 둘을 걷어 **만든 차례**가 그 순서를 내게 했다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 셀_제_문맥의_형제_차례가_정본_z_의_비감소다()
+        {
+            // 먼저 표의 전제 — 이 셋이 흔들리면 위 글이 거짓이 된다(92회차가 틀린 자리가 여기다).
+            int zName, zWrap, zCol;
+            Assert.IsTrue(SummonFxStyle.TryZOrderOfCellOwn("sr-name", out zName), "표에 `sr-name` 이 있다");
+            Assert.AreEqual(3, zName, "정본 7043 `.sr-name { position: relative; z-index: 3 }` — 흐름 안 블록이 아니다");
+            Assert.IsTrue(SummonFxStyle.TryZOrderOfCellOwn("sr-orbwrap", out zWrap), "표에 `sr-orbwrap` 이 있다");
+            Assert.AreEqual(2, zWrap, "정본 6342 `.sr-orbwrap { z-index: 2 }`");
+            Assert.IsTrue(SummonFxStyle.TryZOrderOfCellOwn("sr-glow-col", out zCol),
+                "표에 `sr-glow-col` 이 **있다** — 옛 자는 이 −1 을 «표에 없다» 와 구별 못 했다");
+            Assert.AreEqual(-1, zCol, "정본 6334 `.sr-cell::before { z-index: -1 }`");
+
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            Host.Tickets = 10000;
+            Sheet.Skills.SummonButton.onClick.Invoke();
+            yield return null;
+            yield return null;
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+
+            int cells = 0, checkedPairs = 0, sawWrapThenName = 0;
+            foreach (RectTransform cell in v.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (!cell.name.StartsWith("sr-cell-")) continue;
+                cells++;
+                var kids = new List<KeyValuePair<int, string>>();
+                for (int i = 0; i < cell.childCount; i++)
+                {
+                    Transform t = cell.GetChild(i);
+                    int z;
+                    if (!SummonFxStyle.TryZOrderOfCellOwn(t.name, out z)) continue;   // 표에 없는 상자(T536 의 광창 등)
+                    kids.Add(new KeyValuePair<int, string>(t.GetSiblingIndex(), t.name));
+                }
+                kids.Sort((x, y) => x.Key.CompareTo(y.Key));
+                for (int i = 1; i < kids.Count; i++)
+                {
+                    int zPrev, zCur;
+                    SummonFxStyle.TryZOrderOfCellOwn(kids[i - 1].Value, out zPrev);
+                    SummonFxStyle.TryZOrderOfCellOwn(kids[i].Value, out zCur);
+                    checkedPairs++;
+                    Assert.LessOrEqual(zPrev, zCur,
+                        "셀 «" + cell.name + "» 안에서 «" + kids[i - 1].Value + "»(정본 z " + zPrev + ") 가 «"
+                        + kids[i].Value + "»(z " + zCur + ") 보다 **앞** 형제다 — 앞 형제가 아래에 그려지므로 층이 높은 쪽이 아래로 깔렸다");
+                    // 이 짝이 이 회차의 과녁이다 — 구슬 래퍼(2) 바로 뒤에 이름판(3)이 와야 «래퍼가 이름판 아래» 다.
+                    if (kids[i - 1].Value == "sr-orbwrap" && kids[i].Value == "sr-name") sawWrapThenName++;
+                }
+                // 세우는 자가 실제로 돌았나 — 다시 불러 움직일 것이 없어야 한다(91·92회차와 같은 자)
+                Assert.AreEqual(0, SummonFxStyle.OrderLadder(cell, "z_order_cell_own"),
+                    "셀 «" + cell.name + "» 의 형제 차례가 셀 문맥 표의 사다리와 다르다 — 다시 세우니 상자가 움직였다");
+            }
+            Assert.Greater(cells, 0, "셀이 하나도 안 섰다 — 상자 이름이 바뀌었나");
+            Assert.Greater(checkedPairs, 0, "견준 이웃 짝 — 잰 수 " + checkedPairs);
+            // ⚠ 빽빽한 판(`dense`)은 정본이 이름판·칩을 숨기므로 그 짝이 없을 수 있다 — 그래서 «하나라도 있으면
+            //   맞아야 한다» 로 못박는다(없으면 이 자가 과녁을 못 본 것이니 그것도 적어 둔다).
+            Assert.Greater(sawWrapThenName, 0,
+                "구슬 래퍼 바로 뒤에 이름판이 선 셀이 하나도 없다 — 이름판이 안 섰거나(빽빽한 판) 차례가 바뀌었다");
+            v.Close();
+            yield return null;
+        }
+
+        /// <summary>
         /// T33 92회차 — **셀 안**(구슬 래퍼 `.sr-orbwrap`) 겹의 층 차례. 90회차가 «셀 한 장이 제 문맥이라 이 표가
         /// 아니다» 로 빼 둔 자리고, 91회차가 ⓑ 로 넘긴 그 몫이다. 래퍼는 정본에서 `z-index: 2` 라 **스택 문맥을
         /// 만들므로** 그 안의 겹은 바깥 사다리와 못 겨룬다 — 그래서 표(`z_order_cell`)와 묻는 자(`ZOrderOfCell`)가 따로다.
