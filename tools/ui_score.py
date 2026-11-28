@@ -665,6 +665,20 @@ def ceil_median(past, cur):
     return vs[len(vs) // 2]
 
 
+def ceil_med_of(hceil, ceilings, name):
+    """그 화면의 **천장 중앙값**(자취 셋 이상이면) — 머리줄과 «다음 볼 화면» 이 **한 길**로 읽는다.
+
+    T28 201회차 — `ceil_median`(결정 722)은 «다음 볼 화면» 고르는 자리에만 쓰이고 **머리줄
+    («자의 천장 평균 N · 달성률 M%»)은 이 회차 천장만** 쓰고 있었다. 그래서 사람이 읽고 회차
+    기록에 베끼는 수가 **보호받지 않는 쪽**이었다 — 실측(기준선 자취 7칸): 31 화면 중 **28**이
+    폭 0.5 이상 흔들리고 최악은 `summon-rates` **2.57 → 7.08**(폭 4.51)·`forge-detail` 1.69 → 5.10·
+    `player-info` 7.69 → 4.42 다. 그 탓에 **평균 점수가 내려간 회차에 달성률이 올라간다**
+    (201회차: 평균 4.14 → 4.07 인데 날 천장으로 재면 72% → 75%).
+    """
+    past = [c[name] for _run, c in (hceil or []) if c.get(name)]
+    return ceil_median(past, (ceilings or {}).get(name, 0.0))
+
+
 def score_ceiling(ref_rects, got_rects):
     """이 화면에서 **닿을 수 있는 최고점**(T28 79회차 · 결정 686).
 
@@ -1971,6 +1985,19 @@ def load_baseline(path):
         except (TypeError, ValueError):
             pass
     out["_hist"] = hist
+    # T28 201회차 — **천장 자취도 들고 온다.** 위 `hist` 는 `(런, {화면: 점수})` 2짝이라 **천장이 아예 없고**,
+    #   그래서 `ceil_median`(결정 722 · T28 87회차)이 받던 `past` 가 **언제나 빈 목록**이었다 —
+    #   곧 그 보호는 심어 둔 뒤로 **한 번도 안 돌았다**(«다음 볼 화면» 도 머리줄도 이 회차 천장만 썼다).
+    #   `median_of` 가 2짝을 그대로 풀므로 그 꼴은 **건드리지 않고** 천장만 따로 싣는다.
+    hceil = []
+    for h in (d.get("history") or []):
+        try:
+            c = dict((k, float(v)) for k, v in (h.get("ceilings") or {}).items())
+        except (TypeError, ValueError):
+            continue
+        if c:
+            hceil.append((h.get("run"), c))
+    out["_hceil"] = hceil
     fps = {}
     for k, v in (d.get("fingerprints") or {}).items():
         u_ = fp_unpack(v)
@@ -2010,6 +2037,29 @@ def median_of(hist, name):
 
 
 HIST_KEEP = 6     # 기준선 파일이 들고 있는 회차 수(중앙값용 · 파일이 커지지 않게)
+
+#: T28 201회차 — 천장이 이 수 아래인 화면은 «다음 볼 화면» 에서 **맨 뒤로 민다**(지우지는 않는다).
+#  달성률은 «몇 점이 비어 있나» 를 재려고 쓰는 자인데(결정 686), 천장이 1점도 안 되는 화면은
+#  **달성률 0% 여도 비어 있는 것이 0.7점**이라 그 줄의 뜻이 뒤집힌다 — `chat`(천장 0.69 · 점수 0.0)이 그 꼴이다.
+#  낡은 샷(81회차)·흔드는 화면(108회차)과 같은 규칙으로 뒤로만 민다.
+CEIL_MIN = 1.0
+
+
+def rate_of(score, ceil, screen=None, stale=None):
+    """«다음 볼 화면» 의 고르는 잣대 — **작을수록 먼저**(T28 79회차 결정 686 · 81·108·201회차의 뒤로 밀기).
+
+    ⓐ 바탕은 **달성률**(점수 / 천장 중앙값) — 절대 점수로 고르면 천장이 3점대인 화면만 계속 집는다.
+    ⓑ 천장이 0 이면 잴 수 없으니 1.0(= 맨 뒤 쪽).
+    ⓒ **천장이 `CEIL_MIN` 아래면 +10** — 달성률 0% 여도 비어 있는 것이 1점 미만이라 그 줄의 뜻이 뒤집힌다.
+    ⓓ **낡은 샷 화면은 +10**(T28 81회차 · 지우지는 않는다).
+    한 자리에 모아 둔 까닭: 이 셈이 세 군데로 흩어지면 «왜 그 화면이 맨 위인가» 를 아무도 못 짚는다.
+    """
+    r = (score / ceil) if ceil else 1.0
+    if ceil and ceil < CEIL_MIN:
+        r += 10.0
+    if stale and screen in stale:
+        r += 10.0
+    return r
 
 # ── 그림 지문 (T28 23회차 · 워커 M) ────────────────────────────────────────
 # `screens` 는 force_orphan 이라 **지난 런 PNG 가 안 남는다**. 그래서 화면마다 굵은 격자
@@ -3032,16 +3082,25 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
             print(u"    **기준선은 그대로 둔다** — 이 회차는 «점수가 내려갔다» 가 아니라 «촬영이 섰다» 이다.")
         return 2
     avg = sum(s for _, s in scores) / len(scores)
+    # ── 지난 회차와 대조(T28 7회차 · 워커 M): «평균이 4.23 → 1.72» 같은 회귀를 회차마다 손으로 세지 않는다.
+    #    T28 201회차 — 머리줄이 **천장 중앙값**을 쓰려면 자취가 먼저 있어야 해서 이 줄을 위로 올렸다.
+    base = load_baseline(baseline_path)
     print(u"─" * 60)
     print(u"평균 %.2f / 10 · 화면 %d개 · %s점 미만 %d개" % (avg, len(scores), PASS_MARK, len(bad)))
     if ceilings:
-        cav = sum(ceilings.get(n, 0.0) for n, _v in scores) / len(scores)
-        rate = 100.0 * sum((v / ceilings[n]) for n, v in scores if ceilings.get(n)) / len(scores)
+        _hc = (base or {}).get("_hceil") or []
+        _med = dict((n, ceil_med_of(_hc, ceilings, n)) for n, _v in scores)
+        cav = sum(_med.get(n, 0.0) for n, _v in scores) / len(scores)
+        rate = 100.0 * sum((v / _med[n]) for n, v in scores if _med.get(n)) / len(scores)
+        raw = sum(ceilings.get(n, 0.0) for n, _v in scores) / len(scores)
+        rawr = 100.0 * sum((v / ceilings[n]) for n, v in scores if ceilings.get(n)) / len(scores)
         print(u"· **자의 천장 평균 %.2f / 10 · 달성률 %.0f%%** — 10 점은 닿을 수 없는 수다"
               u"(짝 없음·군더더기 실점은 원작 샷의 딤 α .988 탓이라 클론 배치로 안 줄어든다 · 결정 686)."
               % (cav, rate))
-    # ── 지난 회차와 대조(T28 7회차 · 워커 M): «평균이 4.23 → 1.72» 같은 회귀를 회차마다 손으로 세지 않는다.
-    base = load_baseline(baseline_path)
+        print(u"    ⓘ 이 둘은 **천장 중앙값**으로 잰 수다(결정 722 · «다음 볼 화면» 과 같은 길)."
+              u" 이 회차 천장만으로 재면 **%.2f · %.0f%%** 다 — 천장은 밴드 쪼개짐이 바뀌면 통째로 흔들리므로"
+              u" **회차 기록에는 중앙값 쪽을 적는다**(T28 201회차 실측: 자취 7칸에서 31 화면 중 **28**이 폭 0.5 이상)."
+              % (raw, rawr))
     if base:
         cur = dict(scores)
         drops = sorted(((n, base[n], cur[n]) for n in cur if n in base and cur[n] - base[n] <= -DROP_MARK),
@@ -3310,16 +3369,13 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
         # T28 79회차: 고르는 자를 **절대 점수 → 달성률(점수/천장)** 로 바꿨다(결정 686).
         #   절대 점수 순서는 천장이 3점대인 화면만 계속 집어 줄다 — 그것은 자의 딸이지 클론의 딸이 아니다.
         def _ceil_med(n):
-            """이 화면의 **천장 중앙값**(자취 3회차 이상이면) — 한 회차의 천장은 밴드 쪼개짐이 바뀌면 통째로 흔들린다(결정 722)."""
-            past = [h["ceilings"][n] for h in (base.get("_hist") or [])
-                    if isinstance(h, dict) and h.get("ceilings", {}).get(n)]
-            return ceil_median(past, ceilings.get(n, 0.0))
+            """이 화면의 **천장 중앙값**(자취 3회차 이상이면) — 한 회차의 천장은 밴드 쪼개짐이 바뀌면 통째로 흔들린다(결정 722).
+            T28 201회차 — 셈은 `ceil_med_of` 하나다(머리줄과 **같은 길** · 갈라 두면 조용히 어긋난다)."""
+            return ceil_med_of(base.get("_hceil") or [], ceilings, n)
 
         def _rate(t):
-            c = _ceil_med(t[0])
-            # 낡은 샷 화면은 **맨 뒤로** 밀린다(지우지는 않는다 · T28 81회차).
-            base = (t[1] / c) if c else 1.0
-            return (base + 10.0) if t[0] in STALE_SCREENS else base
+            # T28 201회차 — 셈은 `rate_of` 하나다(자기 검사가 그 자를 직접 잰다 · 흩어 두면 못 짚는다).
+            return rate_of(t[1], _ceil_med(t[0]), t[0], STALE_SCREENS)
         cand = sorted(((n, v) for n, v in scores if v < PASS_MARK), key=_rate)[:8]
         # T28 108회차 — **자가 흔드는 화면은 뒤로 민다(지우지는 않는다)**. 런 1058 에서는 달성률 낮은
         #   다섯이 **전부** ±1 에 흔들려, 줄이 «먼저 볼 곳» 노릇을 못 했다. 그렇다고 지우면 진짜 결함이
@@ -4470,6 +4526,40 @@ def self_test():
         u"화면 칸은 **글에서 바로 나온다** — 손으로 적은 표가 아니라 갈라질 수 없다(결정 919)")
     chk(13 in _ns33 and u"main" in _ns33[13],
         u"본문으로만 짚는 쪽지도 든다(13번 «하단 네비» 가 `main` 을 짚는다 · T533 ⓐ)")
+
+    # T28 201회차 — **천장 중앙값 보호가 심어 둔 뒤로 한 번도 안 돌았다.** `ceil_median`(결정 722)에
+    #   들어가던 `past` 는 `load_baseline` 의 자취에서 왔는데, 그 자취는 `(런, {화면: 점수})` **2짝**이라
+    #   **천장이 아예 없었다** — 그래서 «다음 볼 화면» 도 머리줄도 **이 회차 천장만** 쓰고 있었다.
+    #   🚫 `_hceil` 을 다시 비우거나 `ceil_med_of` 가 `cur` 만 내면 아래 칸들이 바로 빨강이 된다.
+    _bp = os.path.join(REPO, "tools", ".ui_score_ceil_test.json")
+    try:
+        save_baseline_file(_bp, [(u"a", 1.0)], 1.0, 301, None, None, False, {u"a": 2.0}, None, None)
+        save_baseline_file(_bp, [(u"a", 1.0)], 1.0, 302, None, None, False, {u"a": 2.1}, None, None)
+        save_baseline_file(_bp, [(u"a", 1.0)], 1.0, 303, None, None, False, {u"a": 2.2}, None, None)
+        _bc = load_baseline(_bp)
+    finally:
+        if os.path.exists(_bp):
+            os.remove(_bp)
+    chk(len(_bc.get("_hceil") or []) >= 2,
+        u"기준선 자취가 **천장도** 들고 온다(칸 %d — 종전엔 점수만 실려 0 이었다 · T28 201회차)"
+        % len(_bc.get("_hceil") or []))
+    _cm = ceil_med_of(_bc.get("_hceil"), {u"a": 9.0}, u"a")
+    chk(_cm != 9.0 and _cm < 3.0,
+        u"천장 중앙값이 **이번 회차 값(9.0)이 아니라 자취 쪽(%.2f)**이다 — 보호가 실제로 돈다"
+        u"(종전엔 자취에 천장이 안 실려 언제나 이번 값이었다)" % _cm)
+    chk(ceil_med_of([], {u"a": 2.5}, u"a") == 2.5 and ceil_med_of(None, {u"a": 2.5}, u"a") == 2.5,
+        u"자취가 없으면 이번 값을 그대로 쓴다(첫 회차·새 화면)")
+    chk(abs(ceil_med_of([(1, {u"a": 2.75}), (2, {u"a": 2.86}), (3, {u"a": 2.83})], {u"a": 4.89}, u"a") - 2.86) < 1e-9,
+        u"결정 722 의 실례가 그대로 나온다(`offline` 2.75·2.86·2.83 ↔ 이번 4.89 → **2.86**)")
+    # 고르는 잣대 — 천장이 1점도 안 되는 화면은 뒤로 민다(`chat` 천장 0.69 · 점수 0.0 이 맨 위에 서던 자리)
+    chk(rate_of(1.9, 4.2) < rate_of(0.0, 0.69),
+        u"천장이 **1점 미만**인 화면은 달성률 0%%여도 뒤로 민다 — 비어 있는 것이 1점도 안 된다(T28 201회차 · CEIL_MIN %.1f)" % CEIL_MIN)
+    chk(rate_of(3.7, 7.2) < rate_of(3.9, 6.7) and rate_of(1.9, 4.2) < rate_of(3.7, 7.2),
+        u"그 밖에는 **달성률 낮은 쪽이 먼저**다(결정 686 · 절대 점수가 아니다)")
+    chk(rate_of(1.0, 4.0, u"zz", {u"zz": u"낡은 샷"}) > rate_of(0.0, 0.69),
+        u"낡은 샷 화면은 천장 1 미만보다도 **더 뒤**다(T28 81회차 의 금이 안 뒤집힌다)")
+    chk(rate_of(1.0, 0.0) == 1.0,
+        u"천장이 0 이면 잴 수 없으니 1.0 이다(맨 뒤 쪽 · 나누기 사고가 안 난다)")
     # T539 — «그 색이 원작 어딘가에 있나» 를 자가 제 손으로 한다.
     #   전수 머리의 ⚑ 둘째가 사람에게 시키던 셈인데, 그 잣대로 뽑히는 자리가 **한 줄도 안 찍히고 있었다**.
     #   🚫 셋째 잣대를 빼거나 셈을 뒤집으면 아래 칸들이 바로 빨강이 된다.
