@@ -1063,6 +1063,15 @@ namespace Forge.Game.Ui
                 }
             }
 
+            // T33 91회차 — 겹을 다 세운 **뒤** 표가 사다리를 한 번에 세운다(결정 918 · `SummonFxStyle.OrderLadder`).
+            //   정본은 이 겹을 전부 `.sr-wrap` 형제로 두고 `z-index` 로 세우는데(0 광선 ... 45 머리·발 · 60 빛 모임)
+            //   클론은 **형제 순서**가 곧 층이다. 그런데 세우는 자리가 흩어져 있었다 — 충격파·빛 모임·깊이 평면은
+            //   만든 차례 그대로 뒤에 붙고, 와이프는 `SetAsLastSibling`, 챕터 링은 손으로 끼웠다. 그래서
+            //   90회차 자가 «`sr-foot`(45) 가 `sr-shock`(30) 보다 앞 형제다» 를 잡아냈다(런 1423). 머리·발을 앞에
+            //   만들고 겹을 뒤에 붙인 것이 까닭이고, 그 자리를 하나하나 끼우는 대신 **표 하나**가 세우게 한다.
+            //   ⚑ 892행 주석이 적어 둔 «배경(맨 뒤) · 근평면은 머리·발 뒤» 도 이 한 줄로 비로소 지켜진다.
+            SummonFxStyle.OrderLadder(c);
+
             var sc = PetSkillHost.SfxSummonCharge;
             if (sc != null) sc(best);
             start = Time.unscaledTime;

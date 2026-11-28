@@ -48,7 +48,9 @@
     "sr-shock": 30, "sr-dust": 35,
     "sr-solo": 40, "sr-grid": 40, "sr-near": 42,
     "sr-head": 45, "sr-foot": 45,
-    "sr-streaks": 60, "sr-charge": 60
+    "sr-streaks": 60, "sr-charge": 60,
+    "_clone": "T33 91회차 — 아래 여덟은 **클론이 달리 이름 지은 같은 겹**이다(정본 클래스가 그 짝이다). `halo` = `.sr-halo`(정본 5955 z 0) · `sr-vig` = `.sr-wrap::before`(5744 z 2) · `sr-vig-static` = `.sr-wrap::after`(5728 z 2) · `sr-flash-clip` = `.sr-flash`(6148 z 25 — 클론은 그 겹을 자르는 상자로 세운다) · `sr-shock-echo` = `.sr-shock.echo`(6138 — 같은 클래스라 z 30 그대로다) · `sr-streak` = `.sr-streaks`(z 60 — 클론은 살을 `sr-streak-0`... 으로 갈라 판 직속에 둔다 · 꼬리 번호는 자가 뗀다) · `sr-body-plate` = `.sr-body::before`(5755 z 5) · `sr-body` = `.sr-body`(5750 — **z 선언이 없다** = auto 라 스택 컨텍스트를 안 만들고 그 안의 겹이 래퍼 사다리에서 형제들과 겨룬다. 클론은 그것을 **한 상자**로 묶었으니 그 상자의 층은 **그 안 맨 위 겹** = 그리드 40 이다 · 결정 917)",
+    "halo": 0, "sr-vig": 2, "sr-body-plate": 5, "sr-vig-static": 2, "sr-flash-clip": 25, "sr-shock-echo": 30, "sr-body": 40, "sr-streak": 60
   },
   "layout": {
     "css_px": 2.164,

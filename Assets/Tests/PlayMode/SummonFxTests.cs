@@ -415,7 +415,12 @@ namespace Forge.Tests.PlayMode
         /// `.sr-grid` 40 · `.sr-head`·`.sr-foot` 45 · `.sr-streaks`·`.sr-charge` 60) 클론은 **형제 순서**로 세운다.
         /// 그래서 견줄 수 있는 것은 «**같은 상자 안**에서 차례가 정본 z 의 비감소인가» 하나다(결정 909 의 둘째 걸음) —
         /// 클론이 그 겹을 두 상자(무대판 · 래퍼)로 갈라 두므로 **상자마다** 본다. 같은 z 가 여럿이라 **엄격 증가가 아니다**.
-        /// ⚑ 이 한 칸이 표의 스물넷을 한 번에 잰다 — 88회차가 «실물에서 읽어야 한다» 고 적어 둔 그 자리다.
+        /// ⚑ 이 한 칸이 표의 겹을 한 번에 잰다 — 88회차가 «실물에서 읽어야 한다» 고 적어 둔 그 자리다.
+        /// T33 91회차 — 이 자가 런 1423 에서 **빨갛게 지목한 것을 고쳤다**: 판 안에서 `sr-foot`(45) 가
+        /// `sr-shock`(30) 보다 앞 형제였다(= 충격파 링이 제목·버튼 **위**를 가로질렀다 — 정본이 5687~5690 에서
+        /// «예전엔 z 가 3 이라 링이 이름판을 가로질렀다» 고 적어 둔 바로 그 흠이다). 세우는 자리가 겹마다
+        /// 흩어져 있던 것이 까닭이라, 겹을 다 만든 뒤 **표가 한 번에** 세우게 했다(`SummonFxStyle.OrderLadder`).
+        /// 표에도 클론이 달리 이름 지은 여덟을 등재해 census 가 판의 겹을 빠짐없이 센다.
         /// </summary>
         [UnityTest]
         public IEnumerator 연출_겹의_형제_차례가_정본_z_의_비감소다()
@@ -434,6 +439,7 @@ namespace Forge.Tests.PlayMode
 
             // 표에 든 이름의 상자를 전부 모아 **부모별**로 차례를 본다(클론이 어느 상자에 두든 맞다).
             var groups = new Dictionary<Transform, List<KeyValuePair<int, string>>>();
+            RectTransform content = null;
             int seen = 0;
             foreach (RectTransform t in v.GetComponentsInChildren<RectTransform>(true))
             {
@@ -441,6 +447,7 @@ namespace Forge.Tests.PlayMode
                 if (z < 0) continue;                       // 표에 없는 상자는 건너뛴다
                 Transform par = t.parent;
                 if (par == null) continue;
+                if (par.name == "content") content = par as RectTransform;
                 if (!groups.ContainsKey(par)) groups[par] = new List<KeyValuePair<int, string>>();
                 groups[par].Add(new KeyValuePair<int, string>(t.GetSiblingIndex(), t.name));
                 seen++;
@@ -457,12 +464,19 @@ namespace Forge.Tests.PlayMode
                     int zPrev = SummonFxStyle.ZOrderOf(kids[i - 1].Value);
                     int zCur = SummonFxStyle.ZOrderOf(kids[i].Value);
                     checkedPairs++;
+                    // T33 91회차 — 90회차의 이 문구는 앞뒤를 거꾸로 적었다: `kids[i-1]` 은 **앞** 형제다(= 아래에 그려진다).
                     Assert.LessOrEqual(zPrev, zCur,
                         g.Key.name + " 안에서 «" + kids[i - 1].Value + "»(정본 z " + zPrev + ") 가 «" + kids[i].Value
-                        + "»(z " + zCur + ") 보다 뒤 형제다 — 정본 층 차례가 뒤집혔다(형제가 뒤일수록 위에 그려진다)");
+                        + "»(z " + zCur + ") 보다 **앞** 형제다 — 앞 형제가 아래에 그려지므로 층이 높은 쪽이 아래로 깔렸다(정본 사다리가 뒤집혔다)");
                 }
             }
             Assert.Greater(checkedPairs, 4, "견준 이웃 짝 — 잰 수 " + checkedPairs);
+
+            // T33 91회차 — 사다리를 세우는 자가 **실제로 돌았는지**도 본다: 한 번 더 부르면 움직일 것이 없어야 한다.
+            //   («비감소» 는 표에 없는 상자가 끼어들면 느슨해진다 — 이 한 줄이 그 틈을 막는다 · 결정 918)
+            Assert.IsNotNull(content, "판(content) 을 못 찾았다 — 겹을 담은 상자 이름이 바뀌었나");
+            Assert.AreEqual(0, SummonFxStyle.OrderLadder(content),
+                "판의 형제 차례가 표의 사다리와 다르다 — 다시 세우니 " + "상자가 움직였다(`OrderLadder` 가 안 돌았거나 뒤에 끼어든 겹이 있다)");
             v.Close();
             yield return null;
         }

@@ -1388,7 +1388,61 @@ namespace Forge.Game.Ui
             JsonObject z = J.Obj(root["z_order"]);
             if (z == null) throw new System.InvalidOperationException("SummonFxUi.json 에 z_order 가 없다 (T33 90회차)");
             object v = z[boxName];
-            return J.IsNum(v) ? J.Int(v) : -1;
+            if (J.IsNum(v)) return J.Int(v);
+            // T33 91회차 — 클론은 한 겹을 번호로 갈라 세우는 자리가 있다(`sr-streak-0`... · `sr-idle-1`...).
+            //   정본은 그것이 **한 상자 안의 살**이라 층이 하나다 — 꼬리 번호를 떼고 다시 묻는다.
+            int cut = boxName == null ? -1 : boxName.LastIndexOf('-');
+            if (cut > 0 && cut < boxName.Length - 1)
+            {
+                bool digits = true;
+                for (int i = cut + 1; i < boxName.Length; i++)
+                    if (boxName[i] < '0' || boxName[i] > '9') { digits = false; break; }
+                if (digits)
+                {
+                    v = z[boxName.Substring(0, cut)];
+                    if (J.IsNum(v)) return J.Int(v);
+                }
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// T33 91회차 — 표의 사다리대로 `host` 의 **형제 차례**를 세운다. 90회차 자가 지목한 뒤집힘
+        /// («content 안에서 `sr-foot`(45) 가 `sr-shock`(30) 보다 **앞** 형제다» · 런 1423)의 수리다.
+        /// 정본은 이 겹을 전부 한 래퍼의 형제로 두고 `z-index` 로 세우는데 클론은 **형제 순서**로 세우므로,
+        /// 세우는 곳이 겹마다 흩어져 있으면(만든 차례 그대로 붙는 겹 · 손으로 끼운 겹 · 맨 끝으로 보낸 겹)
+        /// 사다리가 어긋난다 — 그래서 **다 세운 뒤 표가 한 번에** 세운다(결정 918).
+        /// ⚑ 표에 든 상자만 서로 자리를 바꾼다. **표에 없는 상자는 제 색인을 그대로 지킨다** —
+        ///   정본 사다리에 짝이 없는 것(팝업 틀의 상자 · 판 배경)을 끌고 다니면 안 된다.
+        /// ⚑ 같은 z 가 여럿이면 **지금 차례를 지킨다**(정본도 같은 z 는 문서 순서로 갈린다 · 안정 정렬).
+        /// </summary>
+        /// <returns>자리가 바뀐 상자 수(0 이면 이미 사다리대로였다).</returns>
+        public static int OrderLadder(RectTransform host)
+        {
+            if (host == null) return 0;
+            List<Transform> kids = new List<Transform>();
+            List<int> slots = new List<int>();
+            List<int> zs = new List<int>();
+            for (int i = 0; i < host.childCount; i++)
+            {
+                Transform t = host.GetChild(i);
+                int z = ZOrderOf(t.name);
+                if (z < 0) continue;                 // 표에 없는 상자 — 이 자리는 건드리지 않는다
+                kids.Add(t); slots.Add(i); zs.Add(z);
+            }
+            for (int a = 1; a < kids.Count; a++)     // 삽입 정렬 = 안정 정렬
+                for (int b = a; b > 0 && zs[b] < zs[b - 1]; b--)
+                {
+                    int z0 = zs[b]; zs[b] = zs[b - 1]; zs[b - 1] = z0;
+                    Transform t0 = kids[b]; kids[b] = kids[b - 1]; kids[b - 1] = t0;
+                }
+            int moved = 0;
+            for (int k = 0; k < kids.Count; k++)
+            {
+                if (kids[k].GetSiblingIndex() != slots[k]) moved++;
+                kids[k].SetSiblingIndex(slots[k]);   // 낮은 자리부터 채우므로 앞서 놓은 것은 안 밀린다
+            }
+            return moved;
         }
 
         static void Load()
