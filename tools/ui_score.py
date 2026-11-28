@@ -1166,6 +1166,32 @@ def _find_color(img, rgb, tol):
     return hit
 
 
+def _ref_color_hits(ref, rgbs, tol=VS_TOL):
+    """T539 — 그 색들이 **원작 샷 앱 상자 안에 몇 화소** 있나 → {rgb: 화소 수}.
+
+    전수 머리의 ⚑ 둘째가 사람에게 시키던 셈이 이것이다 — «그 색이 원작 **어딘가에는** 있는지 보고,
+    아예 없으면 «색이 다르다» 가 거의 확실하다»(결정 877). 기계가 1초에 하는 일이라 자가 직접 한다.
+    ⚠ **한쪽으로만 쓴다**: «없다 ⇒ 거의 확실하다» 는 적고 «있다 ⇒ 자리가 밀렸다» 는 **절대 안 적는다** —
+      반례를 쟀다(`settings` 의 `#005dff` 는 원작에 5,438화소 있는데 그 자리는 **진짜 갈림**이다 · 쪽지 25 · T508).
+    ⚠ 문턱은 `VS_TOL` 하나를 그대로 쓴다(이 절은 `VS_MIN_BLOB`·`VS_BLOB_NOISE` 를 건드리지 않는다).
+    화면 하나를 **한 번만** 훑는다 — 색마다 다시 훑으면 같은 그림을 후보 수만큼 읽는다.
+    """
+    want = list(dict.fromkeys(rgbs))
+    out = dict((rgb, 0) for rgb in want)
+    if not want:
+        return out
+    ax, ay, aw, ah = app_box(ref)
+    for y in range(ay, ay + ah):
+        row = (y * ref.w) * 3
+        for x in range(ax, ax + aw):
+            i = row + x * 3
+            r, g, b = ref.px[i], ref.px[i + 1], ref.px[i + 2]
+            for rgb in want:
+                if abs(r - rgb[0]) <= tol and abs(g - rgb[1]) <= tol and abs(b - rgb[2]) <= tol:
+                    out[rgb] += 1
+    return out
+
+
 def _median_rgb(vals):
     if not vals:
         return None
@@ -1396,6 +1422,7 @@ def scan_ref(shots_dir, ref_dir=None, css_path=None, only=None, per_screen=3):
     print(u"  · 클론 화소는 **±%d** 로 읽는다(T517 — 유니티가 못박은 색을 1~2 어긋나게 그린다) · 펼친 열쇠 %d칸%s"
           % (VS_CLONE_TOL, len(lut), u"" if not clash else u" · 두 색이 다툰 열쇠 %d칸(가까운 쪽이 쥔다)" % clash))
     hot, cold, flat, seen = [], [], [], 0
+    refhits = {}            # T539 — {(화면, 색): 원작 샷 앱 상자 안 화소 수} · 화면마다 한 번만 센다
     for screen, ref_rel_path in pairs():
         if only and screen not in only:
             continue
@@ -1460,6 +1487,9 @@ def scan_ref(shots_dir, ref_dir=None, css_path=None, only=None, per_screen=3):
         c.sort(key=lambda t: (-t[1], -t[0]))
         hot.extend((screen,) + r for r in h[:per_screen])
         cold.extend((screen,) + r for r in c[:per_screen])
+        # T539 ⓒ — 이 화면의 후보 색을 **한 번 훑어** 다 센다(색마다 다시 훑으면 같은 그림을 여러 번 읽는다).
+        for rgb, cnt in _ref_color_hits(ref, [r[2] for r in rows]).items():
+            refhits[(screen, rgb)] = cnt
         if spread:
             spread.sort(key=lambda t: -t[2])
             flat.append((screen, spread))
@@ -1476,11 +1506,19 @@ def scan_ref(shots_dir, ref_dir=None, css_path=None, only=None, per_screen=3):
               % os.path.relpath(ref_dir, REPO))
         return 1
     print(u"")
+    # T539 — 전수에서 «원작 샷 어디에도 없는 색» 이 몇 자리인가. 그 수를 머리에 먼저 적는다
+    #   (실측 런 1444: 색 갈래 후보 78 중 **19자리**가 그랬고 그 열아홉 중 찍히는 것이 **0개**였다).
+    _sure_h = len([r for r in hot if refhits.get((r[0], r[3])) == 0])
+    _sure_c = len([r for r in cold if refhits.get((r[0], r[3])) == 0])
+    print(u"· 그중 **원작 샷 어디에도 그 색이 없는** 자리 — 색 갈래 **%d**(78 중) · 어둠·판 갈래 **%d**: "
+          u"«색이 다르다» 가 거의 확실한 쪽이고, 셋째 잣대(«원작에없는색»)가 그 몫을 **먼저** 뗀다(T539)"
+          % (_sure_h, _sure_c))
+    print(u"")
     print(u"  ── 색 갈래 — 먼저 봐라(원작과 **색이 다른** 면) ──")
-    _scan_rows(hot, table)
+    _scan_rows(hot, table, refhits=refhits)
     print(u"")
     print(u"  ── 어둠·판 갈래 — 대부분 **딤 .988 ↔ .5**(`--notes` 다섯째 줄)이 뿌리다 ──")
-    _scan_rows(cold, table)
+    _scan_rows(cold, table, refhits=refhits)
     print(u"")
     print(u"  ── 화면에 널린 색 — 자리를 못 가린다(결정 873 · 세기만 한다) ──")
     if not flat:
@@ -1496,6 +1534,10 @@ def scan_ref(shots_dir, ref_dir=None, css_path=None, only=None, per_screen=3):
           u"(예: `profile` 의 `#005dff` ↔ 원작 흰색 = T432 가 이미 아는 랭킹 버튼 폭). 가르는 길 둘 —"
           u" ⓐ 원작 샷을 **눈으로** 그 %W/%H 자리에서 보고 ⓑ 그 색이 원작 **어딘가에는** 있는지 본다"
           u"(아예 없으면 «색이 다르다» 가 거의 확실하다).")
+    print(u"  ⚑ **그중 ⓑ 는 이제 자가 제 손으로 한다**(T539) — 줄마다 «원작 샷 어디에도 그 색이 없다» 또는"
+          u" «원작에 N화소 있다» 가 붙고, **없는** 자리는 셋째 잣대(«원작에없는색»)가 몫을 먼저 떼어 올린다."
+          u" ⚠ 그 반대는 **안 적는다**: «원작에 있다» 는 «자리가 밀렸다» 를 **뜻하지 않는다**"
+          u"(`settings` 의 #005dff 는 원작에 5,438화소 있는데 그 자리는 진짜 갈림이다 · 쪽지 25 · T508).")
     return 0
 
 
@@ -1585,7 +1627,7 @@ def _note_hit(sels, needles=None, screen=None):
     return (None, False, u"")
 
 
-def _scan_pick(rows, table, limit=10):
+def _scan_pick(rows, table, limit=10, refhits=None):
     """찍을 줄을 고른다 — **한 잣대가 아니라 둘**(T519 ⓐ).
 
     종전엔 `sorted(key=(-화소, -차))[:10]` 이라 «얼마나 넓은가» 하나로 잘랐고, 그래서 **차 255 짜리
@@ -1594,6 +1636,12 @@ def _scan_pick(rows, table, limit=10):
     ⚠ 차순으로 **갈아타지** 않는다 — 차 255 중에도 아는 «자리가 밀렸다»(결정 877)가 있어서,
     한 잣대로 바꾸면 반대쪽이 똑같이 잘린다.
 
+    T539 — **세 번째 잣대**가 붙었다: «그 색이 원작 샷 어디에도 없다» 는 자리(`refhits` 0)는 **작고
+    차도 가운데라 넓이·차 두 잣대에 둘 다 안 걸리면서** 가장 확실한 후보다(전수 실측 런 1444: 그런 자리
+    **19개 중 찍히는 것이 0개**였다 · 열 줄은 전부 «원작에 그 색이 있는» 약한 쪽이 가져갔다). 그 몫을
+    **먼저** 떼므로 다른 두 잣대에 밀려 통째로 접히지 않는다.
+    ⚠ 그 잣대는 **한쪽으로만** 쓴다 — «없다» 만 끌어올리고 «있다» 로는 아무것도 밀지 않는다(T508 의 반례).
+
     돌려주는 것: [(row, 뽑힌 까닭, --notes 줄 번호 또는 None)] · 그리고 못 찍은 수(fresh/noted)."""
     needles = _note_needles()
     # T522 — 뒤로 미는 것은 «**그 자리**라고 단정할 수 있는» 것뿐이다. 색만 겹치는 자리는
@@ -1601,7 +1649,9 @@ def _scan_pick(rows, table, limit=10):
     marked = [(r, _note_hit([s for s, _l in table.get(r[3], [])], needles, r[0])) for r in rows]
     fresh = [t for t in marked if not (t[1][0] is not None and t[1][1])]
     noted = [t for t in marked if t[1][0] is not None and t[1][1]]
-    half = max(1, limit // 2)
+    # T539 — «원작에 그 색이 아예 없다» 는 몫을 **먼저** 뗀다(없으면 0 이라 종전과 같다).
+    third = max(1, limit // 5) if refhits else 0
+    half = max(1, (limit - third) // 2)
     chosen, why = [], {}
 
     def take(pool, key, label, want):
@@ -1619,6 +1669,9 @@ def _scan_pick(rows, table, limit=10):
 
     by_px = lambda t: (-t[0][2], -t[0][1])
     by_diff = lambda t: (-t[0][1], -t[0][2])
+    if third:
+        sure = [t for t in fresh if refhits.get((t[0][0], t[0][3])) == 0]
+        take(sure, by_diff, u"원작에없는색", third)
     take(fresh, by_px, u"넓이", half)
     take(fresh, by_diff, u"차", half)
     if len(chosen) < limit:                              # 남으면 아직 안 적힌 자리부터
@@ -1631,16 +1684,23 @@ def _scan_pick(rows, table, limit=10):
     return [(t[0], why[id(t[0])], t[1]) for t in chosen], rest_fresh, rest_noted
 
 
-def _scan_rows(rows, table, limit=10):
+def _scan_rows(rows, table, limit=10, refhits=None):
     if not rows:
         print(u"    (없다)")
         return
-    picked, rest_fresh, rest_noted = _scan_pick(rows, table, limit)
+    picked, rest_fresh, rest_noted = _scan_pick(rows, table, limit, refhits)
     for (screen, d, n, rgb, med, box, exact, off), why, note in picked:
         sels = [s for s, _l in table.get(rgb, [])]
         # T517 — «어느 바이트로 맞았는지» 를 같이 찍는다: 딱맞음 0 이면 **종전 자는 이 자리를 아예 못 봤다**.
         how = (u"딱맞음 %d" % exact) if exact else (u"**딱맞음 0** · ≤%d 로만 찍혔다(T517 앞에는 안 보였다)" % off)
         tail = u"%s · 뽑힘 %s" % (how, why)
+        # T539 — ⓐ 그 셈을 줄마다 적는다. **없다** 쪽만 단정하고 **있다** 쪽은 수만 적는다(T508 의 반례).
+        if refhits is not None:
+            rh = refhits.get((screen, rgb))
+            if rh == 0:
+                tail += u" · **원작 샷 어디에도 그 색이 없다 — «색이 다르다» 가 거의 확실하다**"
+            elif rh:
+                tail += u" · 원작에 그 색이 %d화소 있다(자리는 이것으로 못 가린다)" % rh
         if note[0] is not None:
             if note[1]:
                 tail += u" · **이미 적힌 자리**(`--notes` %d번째 — 다시 파지 마라)" % note[0]
@@ -4098,39 +4158,6 @@ def self_test():
     chk(band_trace(os.path.join(REPO, "tools"), u"없는화면") == 1,
         u"샷이 없는 화면의 밴드 펼치기는 rc 1 이다(T28 198회차)")
 
-    # T28 199회차 — **분위가 실제로 움직였나**. `_floor` 는 «무리 최댓값들의 FLOOR_Q 분위» 인데
-    #   무리가 적으면 `round(FLOOR_Q * (n-1))` 이 **0** 이라 종전의 «최솟값» 과 같은 수다 — 곧
-    #   T532 의 수선이 그 밴드엔 **안 닿는다**(런 1442 전수: 47밴드 중 **26개**가 색인 0 · T538).
-    #   ⓐ 두 자가 **한 몸**임을 못박고(갈라 두면 조용히 어긋난다) ⓑ 무리가 열 미만이면 색인이 0 임을 못박는다.
-    #   🚫 `_floor` 를 `_floor_tops` 와 다른 목록으로 재면 첫 칸이 바로 빨강이 된다.
-    for _seg in ([5] * 7 + [40] * 5 + [9] * 9 + [80] * 4 + [3] * 3,
-                 [1, 1, 1, 9, 9, 9, 2, 2, 2, 50, 50, 50],
-                 [7] * 30,
-                 []):
-        _tp = _floor_tops(_seg)
-        if _tp:
-            _pos = FLOOR_Q * (len(_tp) - 1)
-            _lo = int(_pos)
-            _hi = _lo + 1 if _lo + 1 < len(_tp) else _lo
-            _want = _tp[_lo] + (_tp[_hi] - _tp[_lo]) * (_pos - _lo)
-        else:
-            _want = min(_seg) if _seg else 0
-        chk(abs(_floor(_seg) - _want) < 1e-9,
-            u"`_floor` 는 `_floor_tops` 목록의 FLOOR_Q **보간** 분위 그대로다(무리 %d개 · 그릇 %.1f)"
-            % (len(_tp), _floor(_seg)))
-    # T538 2회차 — **과녁을 닫았다.** 위 두 칸은 «계단 색인이 무리 여섯까지 0 이다» 를 못박던 자리였다.
-    #   이제 색인이 실수라 그런 자리가 없다 — 그 사실을 **반대 방향으로** 못박는다.
-    #   🚫 누가 `_floor` 를 `tops[int(round(...))]` 로 되돌리면 이 세 칸이 바로 빨강이 된다.
-    chk(_floor([1] * 3 + [9] * 3 + [20] * 3 + [40] * 3) > 1,
-        u"무리가 **넷**이어도 그릇이 최솟값(1)에 안 매달린다 — 종전 계단 색인은 여기서 0 이었다(T538 의 과녁)")
-    for _n in (3, 4, 5, 6):
-        _mk = [v for i in range(_n) for v in [10 * (i + 1)] * 3]
-        chk(_floor(_mk) > min(10 * (i + 1) for i in range(_n)) - 1e-9 and _floor(_mk) != 10,
-            u"무리 %d개에서도 그릇이 **가장 조용한 한 무리 그대로가 아니다**(%.1f)" % (_n, _floor(_mk)))
-    chk(abs(_floor([1] * 3 + [11] * 3) - 2.0) < 1e-9,
-        u"무리 둘이면 그릇은 두 수 **사이**다(1 + .1×10 = 2.0) — 통째로 건너뛰지도, 통째로 매달리지도 않는다")
-    chk("_floor_tops" in STAMP_FUNCS,
-        u"`_floor_tops` 도 판독기 자국에 든다 — 판독기의 한 부분이라 고치면 표를 다시 구워야 한다")
     chk(floor_match(_fs, None) is None, u"지난 회차 수를 모르면 «재현 눈금» 은 None 이다")
     chk(floor_match(_fs, _sw[0]) is None,
         u"지난 수가 **지금 수와 같으면** 0 아닌 눈금은 안 찾는다(0 은 셈에서 뺀다)")
@@ -4375,6 +4402,68 @@ def self_test():
         u"화면 칸은 **글에서 바로 나온다** — 손으로 적은 표가 아니라 갈라질 수 없다(결정 919)")
     chk(13 in _ns33 and u"main" in _ns33[13],
         u"본문으로만 짚는 쪽지도 든다(13번 «하단 네비» 가 `main` 을 짚는다 · T533 ⓐ)")
+    # T539 — «그 색이 원작 어딘가에 있나» 를 자가 제 손으로 한다.
+    #   전수 머리의 ⚑ 둘째가 사람에게 시키던 셈인데, 그 잣대로 뽑히는 자리가 **한 줄도 안 찍히고 있었다**.
+    #   🚫 셋째 잣대를 빼거나 셈을 뒤집으면 아래 칸들이 바로 빨강이 된다.
+    _rimg = _canvas(60, 100, (9, 9, 9))
+    _fill(_rimg, 10, 10, 30, 30, (200, 40, 40))        # 원작에 **있는** 색
+    _rh = _ref_color_hits(_rimg, [(200, 40, 40), (10, 200, 90), (203, 43, 37)])
+    chk(_rh[(200, 40, 40)] == 400, u"원작에 있는 색은 화소 수로 센다(20×20 = %d)" % _rh[(200, 40, 40)])
+    chk(_rh[(10, 200, 90)] == 0, u"원작에 **없는** 색은 0 이다 — 그것이 «거의 확실하다» 의 근거다")
+    chk(_rh[(203, 43, 37)] == 400,
+        u"문턱 ±%d 안이면 같은 색으로 센다 — **느슨한 쪽이 «없다» 를 덜 주장한다**(한쪽으로만 쓰는 잣대라 그 편이 맞다)" % VS_TOL)
+    # 작고 차도 가운데라 넓이·차 두 잣대에 둘 다 밀리는 자리 — 셋째 잣대가 있어야 찍힌다.
+    _tblS = {(10, 200, 90): [(u".nowhere-sure", 1)], (7, 7, 7): [(u".nowhere-big", 2)]}
+    _rowS = (u"profile", 120, 50, (10, 200, 90), (76, 95, 13), (24.4, 25.7, 28.0, 28.6), 64, 0)
+    _big = [(u"profile", 200 + i, 9000 + i, (7, 7, 7), (1, 1, 1), (0.0, 9.0, 0.0, 9.0), 1, 0) for i in range(6)]
+    _hitsS = {(u"profile", (10, 200, 90)): 0, (u"profile", (7, 7, 7)): 5555}
+    _bS = _io.StringIO()
+    with _cl.redirect_stdout(_bS):
+        _scan_rows(_big + [_rowS], _tblS, limit=5, refhits=_hitsS)
+    _oS = _bS.getvalue()
+    chk(u"원작에없는색" in _oS and u"원작 샷 어디에도 그 색이 없다" in _oS,
+        u"작고 차도 가운데인 «원작에 없는 색» 자리가 **셋째 잣대로 찍힌다**(T539 · 넓이·차로는 둘 다 밀린다)")
+    _bN = _io.StringIO()
+    with _cl.redirect_stdout(_bN):
+        _scan_rows(_big + [_rowS], _tblS, limit=5)
+    chk(u"원작에없는색" not in _bN.getvalue(),
+        u"셈을 안 주면 셋째 잣대는 **안 돈다** — 그 자리는 종전처럼 밀린다(이 칸이 그 차이가 이 절의 값임을 못박는다)")
+    chk(u"원작에 그 색이 5555화소 있다" in _oS and u"거의 확실" not in _oS.split(u"원작에 그 색이 5555화소")[1][:160],
+        u"«원작에 **있다**» 쪽은 **수만 적고 아무것도 단정하지 않는다** — «있다 ⇒ 자리가 밀렸다» 는 반례가 있다(T508 · 쪽지 25)")
+
+    # T28 199회차 — **분위가 실제로 움직였나**. `_floor` 는 «무리 최댓값들의 FLOOR_Q 분위» 인데
+    #   무리가 적으면 `round(FLOOR_Q * (n-1))` 이 **0** 이라 종전의 «최솟값» 과 같은 수다 — 곧
+    #   T532 의 수선이 그 밴드엔 **안 닿는다**(런 1442 전수: 47밴드 중 **26개**가 색인 0 · T538).
+    #   ⓐ 두 자가 **한 몸**임을 못박고(갈라 두면 조용히 어긋난다) ⓑ 무리가 열 미만이면 색인이 0 임을 못박는다.
+    #   🚫 `_floor` 를 `_floor_tops` 와 다른 목록으로 재면 첫 칸이 바로 빨강이 된다.
+    for _seg in ([5] * 7 + [40] * 5 + [9] * 9 + [80] * 4 + [3] * 3,
+                 [1, 1, 1, 9, 9, 9, 2, 2, 2, 50, 50, 50],
+                 [7] * 30,
+                 []):
+        _tp = _floor_tops(_seg)
+        if _tp:
+            _pos = FLOOR_Q * (len(_tp) - 1)
+            _lo = int(_pos)
+            _hi = _lo + 1 if _lo + 1 < len(_tp) else _lo
+            _want = _tp[_lo] + (_tp[_hi] - _tp[_lo]) * (_pos - _lo)
+        else:
+            _want = min(_seg) if _seg else 0
+        chk(abs(_floor(_seg) - _want) < 1e-9,
+            u"`_floor` 는 `_floor_tops` 목록의 FLOOR_Q **보간** 분위 그대로다(무리 %d개 · 그릇 %.1f)"
+            % (len(_tp), _floor(_seg)))
+    # T538 2회차 — **과녁을 닫았다.** 위 두 칸은 «계단 색인이 무리 여섯까지 0 이다» 를 못박던 자리였다.
+    #   이제 색인이 실수라 그런 자리가 없다 — 그 사실을 **반대 방향으로** 못박는다.
+    #   🚫 누가 `_floor` 를 `tops[int(round(...))]` 로 되돌리면 이 세 칸이 바로 빨강이 된다.
+    chk(_floor([1] * 3 + [9] * 3 + [20] * 3 + [40] * 3) > 1,
+        u"무리가 **넷**이어도 그릇이 최솟값(1)에 안 매달린다 — 종전 계단 색인은 여기서 0 이었다(T538 의 과녁)")
+    for _n in (3, 4, 5, 6):
+        _mk = [v for i in range(_n) for v in [10 * (i + 1)] * 3]
+        chk(_floor(_mk) > min(10 * (i + 1) for i in range(_n)) - 1e-9 and _floor(_mk) != 10,
+            u"무리 %d개에서도 그릇이 **가장 조용한 한 무리 그대로가 아니다**(%.1f)" % (_n, _floor(_mk)))
+    chk(abs(_floor([1] * 3 + [11] * 3) - 2.0) < 1e-9,
+        u"무리 둘이면 그릇은 두 수 **사이**다(1 + .1×10 = 2.0) — 통째로 건너뛰지도, 통째로 매달리지도 않는다")
+    chk("_floor_tops" in STAMP_FUNCS,
+        u"`_floor_tops` 도 판독기 자국에 든다 — 판독기의 한 부분이라 고치면 표를 다시 구워야 한다")
     # T535 — 승천 줄의 «초록 ↔ 흰». 그 쪽지의 주장은 «서로 다른 두 색» 이 아니라 **한 색의 두 상태**라,
     #   근거가 **바탕(5621)과 채운 줄(5623) 둘 다** 를 쥐어야 선다 — 한쪽만 남으면 그 줄은 조용히
     #   «색이 다르다» 로 되돌아간다(그것이 이 자리를 세 회차째 다시 깐 까닭이다).
