@@ -165,6 +165,49 @@ namespace Forge.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>
+        /// T33 94회차 — 정본 전체에서 **음수 층(`z-index: -1`)은 다섯 자리뿐**이고(선언 119 중) 그중 셋은
+        /// 소환 셀 몫으로 93회차가 닫았다. 남은 **둘이 여기**다 — `.pass-banner::before`/`::after`(2720 · 꼬리 두 쪽)과
+        /// `.pass-price::before`(2754 · 주황 안쪽 면). 이 칸이 그 둘을 못박아 축을 닫는다.
+        /// ⚠ **미끄러운 자리라 자를 둔다**: CSS 는 한 상자 안을 «제 배경·테 → **음수 층** → 흐름 안 내용» 차례로 그린다.
+        ///   곧 `z-index: -1` 인 가상요소는 제 부모의 **배경 위**이고 글자 **아래**다 — «−1 이니 부모 뒤» 로 읽으면
+        ///   정본 2741 `.pass-price { background: var(--pp-line) }`(검정 전체) 위에 2754 의 주황(inset 3px)이 얹힌 그림이
+        ///   «주황이 검정 뒤라 안 보인다» 로 뒤집혀 읽힌다. 클론은 그 차례를 **형제 순서**로 세우므로
+        ///   `price-line`(검정 전체) → `price-face`(주황 안쪽) → 글자 여야 한다(결정 931).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 패스_판의_음수_층_둘이_정본_차례대로_선다()
+        {
+            yield return Boot();
+            MetaHost h = MetaHost.Instance;
+            PassPopup.Open(h);
+            yield return null;
+            Popup p = h.Popups.Find(PassPopup.Name);
+            Assert.IsNotNull(p, "패스 팝업이 열렸다");
+
+            // ⓐ 가격 페넌트 — 정본 2741(검정 전체) 위에 2754(주황 inset 3px) · 그 위가 글자다.
+            Transform line = Find(p.Root, "price-line"), face = Find(p.Root, "price-face");
+            Assert.IsNotNull(line, "검정 바깥 층 price-line");
+            Assert.IsNotNull(face, "주황 안쪽 면 price-face");
+            Assert.AreSame(line.parent, face.parent, "두 층은 같은 상자(페넌트) 안이다");
+            Assert.Less(line.GetSiblingIndex(), face.GetSiblingIndex(),
+                "정본 2754 `::before`(주황)는 제 부모의 **배경 위**다 — 검정 전체 층이 **앞** 형제여야 주황이 그 위에 얹힌다");
+            Transform label = line.parent.Find("label");
+            Assert.IsNotNull(label, "페넌트 글자");
+            Assert.Less(face.GetSiblingIndex(), label.GetSiblingIndex(),
+                "음수 층은 흐름 안 내용(글자) **아래**다 — 주황 면이 글자보다 앞 형제여야 한다");
+
+            // ⓑ 리본 꼬리 둘 — 정본 2720 은 `.pass-banner` 의 −1 이라 리본 띠 **아래**에 깔린다.
+            Transform tl = Find(p.Root, "tail-l"), tr = Find(p.Root, "tail-r"), band = Find(p.Root, "band");
+            Assert.IsNotNull(tl, "꼬리 왼쪽"); Assert.IsNotNull(tr, "꼬리 오른쪽"); Assert.IsNotNull(band, "리본 띠");
+            Assert.AreSame(tl.parent, band.parent, "꼬리와 띠는 같은 리본 상자 안이다");
+            Assert.Less(tl.GetSiblingIndex(), band.GetSiblingIndex(), "왼 꼬리는 띠 **아래**(앞 형제)다 — 정본 2720 z −1");
+            Assert.Less(tr.GetSiblingIndex(), band.GetSiblingIndex(), "오른 꼬리도 띠 **아래**다");
+
+            h.Popups.Hide(PassPopup.Name);
+            yield return null;
+        }
+
         private static void AssertBaked(MetaHost h, string popup, string name)
         {
             Popup p = h.Popups.Find(popup);
