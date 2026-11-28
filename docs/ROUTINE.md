@@ -6085,7 +6085,7 @@
   - **판정**: `--notes` **26줄** · `--verify-notes` «26줄 중 **19줄**에 기계가 읽는 근거 **35개** · 정본에 **전부 살아 있다**» · `--self-test` **186칸 통과** · `gate.sh` **막는 자 49개 전부 rc 0 · 건너뛴 자 없다**(보고 전용 `check_unity_green` 만 rc 1 — **T525 의 빨강**이고 그 임자가 `95b9b24a` 로 이미 수리했다 · 내 변경은 파이썬 한 파일이라 유니티·dotnet 몫이 없다).
   - **곁눈 둘(등재 안 한다)**: ⓐ 상단바 ✚ 는 **T60 ✅ 가 이미 달았다**(`Hud.cs` `PlusBadge`) — ⓑ 를 «클론에 ✚ 가 아예 없다» 로 읽지 않게 목록 본문에 그 사실을 같이 적었다. ⓑ 상점 머리는 클론이 `.cur-pill` 이 아니라 **근흑 재화 바**(`ShopSheet.cs` `CurBar` · 원작 042632 실측)로 세운 자리라 ✚ 가 없는데, 그것은 이 절(목록)이 아니라 **그 화면 절의 몫**이고 원작 쪽이 근거라 «정본 ↔ 원작» 갈래도 아니다.
 
-### T528 — **소환 결과 격자를 «자를지» 를 정본은 셀 수로 가르는데 클론은 잰 높이로 가른다 — 셀 9 + 주역 판에서 클론만 광채를 자른다**
+### T528 🔄 — **소환 결과 격자를 «자를지» 를 정본은 셀 수로 가르는데 클론은 잰 높이로 가른다 — 셀 9 + 주역 판에서 클론만 광채를 자른다**
 
 - **정본이 그 갈림을 제 주석에 적어 뒀다**: `css/style.css` **6228** «셀이 적을 때는 overflow 를 열어 **광채가 잘리지 않게** 하고(스크롤 불필요), **많을 때만** 스크롤+페이드 마스크를 켠다 — `overflow-y:auto` 는 가로도 함께 잘라낸다.» 그래서 **6233** `.sr-grid { overflow: visible }` 이고 **6235** `.sr-grid.mid, .sr-grid.dense { max-height: 100%; overflow-y: auto; mask-image: linear-gradient(transparent 0, #000 5%, #000 95%, transparent 100%) }` 다.
 - **문은 «셀 수» 다** — `js/ui.js` **445** `const size = entries.length === 1 ? ' one' : entries.length > 24 ? ' dense' : entries.length > 10 ? ' mid' : '';` 곧 **n ≥ 11 에서만** 자르고 페이드를 켠다. n 이 2~10 이면 class 가 비어 **안 자른다**(셀이 풀사이즈라 광채 기둥 `.sr-cell::before` 15rem 이 격자 밖으로 뻗는 것이 정본의 뜻이다).
@@ -6100,6 +6100,11 @@
 - **판정**: ⓐ 셀 9 + 주역 판에서 **마스크가 안 붙는다**(PlayMode — `sr-grid` 부모에 `RectMask2D` 가 없다) ⓑ 셀 11 이상에서는 **붙고 `softness` 가 보이는 높이의 5%** 다 ⓒ **실제 화면 PNG**(§1)로 그 판을 보고 광채가 안 잘리고 격자가 머리·발을 안 덮는 것을 눈으로 확인한다 ⓓ `dotnet test` 초록.
 - **범위**: `Assets/Scripts/Game/Ui/SkillSummonResult.cs`(문 한 자리) · `Assets/Forge/Resources/PetSkillUi.json`(셀 폭 상한을 건드리면) · `Assets/Tests/PlayMode/SummonFxTests.cs` 또는 `PetUiTests.cs`(칸 둘) · `docs/PROGRESS.md` · `docs/ROUTINE.md`.
 - ⚠ **점수로 쫓지 마라** — 어긋나는 것은 **판 하나**(셀 9 + 주역)고 채점 샷이 그 판을 찍고 있지 않으면 점수는 한 치도 안 움직인다.
+- ✅ **1회차 = 완결(2026-11-28 01:4x~02:1x · 워커 L · sess-0148-?? · 판정 대기 — lock 은 CI 가 이 커밋을 한 번 돈 뒤 반납)**: 문을 정본과 같은 잣대로 옮겼다 — `SkillSummonResult.cs` 590 `if (totalH > bodyH)` → **`bool clip = mid || dense; if (clip)`**(그 둘은 455행이 이미 정본 `ui.js` 445 그대로 셈한다 · `n > 24` dense · `n > 10` mid). 페이드(`RectMask2D.softness`)는 **자르는 가지 안에** 그대로 있어 정본처럼 class 에 달린다.
+  - **n ≤ 10 인데 높이가 넘치는 판**(셀 9 + 주역 · 1811 > 1506)은 이제 **안 자르는 가지**로 간다 — 그 가지는 `UiKit.Place(grid, 0, (bodyH − totalH)/2, …)` 라 격자가 가운데를 잡고 위아래로 **넘쳐 흐른다**(정본 6233 `overflow: visible` 과 같은 그림).
+  - **자 새로 하나**(`Assets/Tests/PlayMode/SummonGridClipTests.cs` · 칸 둘): ⓐ **셀 9 + 주역**에서 `sr-grid` 부모에 `RectMask2D` 도 `ScrollRect` 도 **없다** · ⓑ **셀 11**(mid)에서는 마스크가 붙고 `softness.y` 가 보이는 높이 × `sr_grid_fade_f` 다. 전설을 **마지막 한 칸**에만 둬 `heroIdx = n − 1 > 0` 을 만든다(정본 `Hi`).
+  - **판정 ⓒ(PNG)는 다음 회차 몫**: 채점 샷 31장에 **셀 9 + 주역 판이 없다**(그 판은 x9 굴림에 전설이 마지막 칸으로 떨어져야 난다) — 등재문도 «점수는 한 치도 안 움직인다» 고 적었다. 그래서 눈 확인은 **CI 가 이 커밋을 돌린 뒤** `screen_summon*.png` 로 한다(그때까지 lock 을 쥔다).
+  - `dotnet build` 0 Error · `dotnet test` 초록 · `tools/gate.sh` **막는 자 49 전부 rc 0 · 건너뛴 자 0**.
 - **T33 89회차 실측 등재**(2026-11-28 01:3x · sess-0117-12631 · 워커 J · `docs/parity.md` 89회차 ⓑ).
 
 ## 3. 게이트 (커밋 전 · 세션 종료 전)

@@ -587,7 +587,15 @@ namespace Forge.Game.Ui
             float totalH = gridH + heroH;
             ScrollRect scroll = null;
             RectTransform grid;
-            if (totalH > bodyH)
+            // T528 — **자를지는 «잰 높이» 가 아니라 «셀 수» 가 정한다.** 정본 `css/style.css` 6228 주석이 그 뜻을 적어 뒀다:
+            //   «셀이 적을 때는 overflow 를 열어 **광채가 잘리지 않게** 하고(스크롤 불필요), 많을 때만 스크롤+페이드 마스크를
+            //   켠다 — `overflow-y: auto` 는 **가로도 함께** 잘라낸다.» 그래서 6233 `.sr-grid { overflow: visible }` 이고
+            //   6235 가 `.sr-grid.mid, .sr-grid.dense` 에만 `overflow-y: auto` + 페이드를 건다. 문은 `js/ui.js` 445 의
+            //   class 한 줄(`n > 24` → dense · `n > 10` → mid · 그 아래는 빈 class)이라 **n ≤ 10 이면 높이가 넘쳐도 안 자른다**.
+            //   클론은 `totalH > bodyH` 로 갈라서 **셀 9 + 주역** 판 하나에서만 정본과 어긋났다(그 판이 n ≤ 10 중 유일하게
+            //   «주역 행 + 3행» 이 겹친다 · totalH 1811 > bodyH 1506 · T33 89회차 실측). 페이드도 정본처럼 **class 에** 달린다.
+            bool clip = mid || dense;
+            if (clip)
             {
                 grid = PetSkillKit.Scroll(body, "sr-grid", out scroll);
                 UiKit.Fill((RectTransform)grid.parent);
