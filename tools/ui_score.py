@@ -3934,6 +3934,24 @@ def self_test():
     chk(bytes(_jitter(j, 1, True).px) != bytes(_one.px),
         u"체커판 흔들기는 전체 흔들기와 다른 그림이다")
 
+    #   T28 195회차 — **기하** 흔들기(`_shift`): 자리만 한 눈금 민다. 진폭 자가 못 보는 쪽이다.
+    _sq = _canvas(12, 12, (20, 20, 20))
+    for _y in range(3, 9):
+        for _x in range(3, 9):
+            _d = (_y * 12 + _x) * 3
+            _sq.px[_d] = _sq.px[_d + 1] = _sq.px[_d + 2] = 200
+    chk(_shift(_sq, 0, 0).px == _sq.px, u"0 만큼 밀면 같은 그림이다")
+    _r1 = _shift(_sq, 1, 0)
+    chk(_r1.w == _sq.w and _r1.h == _sq.h, u"밀어도 그림 크기는 그대로다")
+    chk(sorted(set(_r1.px)) == sorted(set(_sq.px)),
+        u"밀기는 **새 색을 만들지 않는다**(가장자리를 제 색으로 늘린다 — 진폭 흔들기와 다른 점이다)")
+    chk(bytes(_shift(_sq, 1, 0).px) != bytes(_sq.px) and bytes(_shift(_sq, 0, 1).px) != bytes(_sq.px),
+        u"가로로 민 것과 세로로 민 것이 둘 다 원래와 다르다")
+    chk(bytes(_shift(_shift(_sq, 1, 0), -1, 0).px) == bytes(_sq.px),
+        u"오른쪽으로 민 뒤 왼쪽으로 되밀면 제자리다(안쪽 네모가 가장자리에 안 닿는 그림)")
+    chk(len(SHIFT_CASES) == 4 and all(abs(_dx) + abs(_dy) == 1 for _dx, _dy in SHIFT_CASES),
+        u"밀기 갈래 넷이 **한 눈금씩 네 방향**이다(진폭 갈래 %d 의 기하 짝)" % len(JITTER_CASES))
+
     # ㉔ «다음 볼 화면» 의 흔들림 폭 (T28 106회차)
     chk(jitter_span(os.path.join(REPO, "tools"), u"없는화면", []) is None,
         u"샷이 없는 화면의 흔들림 폭은 None 이다")
@@ -4158,11 +4176,38 @@ def _jitter(img, amp, checker=False):
 JITTER_CASES = ((1, False), (-1, False), (1, True), (-1, True))
 
 
+def _shift(img, dx, dy):
+    """그림을 dx·dy 화소만큼 **민** 그림 — 값은 그대로, **자리만** 한 눈금(T28 195회차).
+
+    `_jitter` 는 **진폭**만 흔든다(모든 화소 ±1 · 체커판 ±1). 그런데 회차 사이에 실제로 생기는
+    차이에는 «**자리가 1화소 밀렸다**»(배치 반올림 · 글자 AA · 3D 하늘)도 있어서, 진폭 자만으로는
+    «자가 흔들렸나 ↔ 그림이 움직였나» 의 **한쪽만** 본다. 가장자리는 제 색으로 늘린다(새 색을 안 만든다).
+    """
+    w, h = img.w, img.h
+    px = bytearray(len(img.px))
+    for y in range(h):
+        sy = h - 1 if y - dy > h - 1 else (0 if y - dy < 0 else y - dy)
+        base_d = y * w * 3
+        base_s = sy * w * 3
+        for x in range(w):
+            sx = w - 1 if x - dx > w - 1 else (0 if x - dx < 0 else x - dx)
+            d = base_d + x * 3
+            t = base_s + sx * 3
+            px[d:d + 3] = img.px[t:t + 3]
+    return Img(w, h, px)
+
+
+#: 1화소 **밀기** 네 갈래 — (dx, dy) · `JITTER_CASES`(진폭)의 기하 짝이다(T28 195회차).
+SHIFT_CASES = ((1, 0), (-1, 0), (0, 1), (0, -1))
+
+
 def jitter_report(shots_dir, only=None):
     """화면마다 ±1 흔들어 조각 수가 버티는지 찍는다 — T437 의 판정 자."""
     names = [n for (n, _r) in pairs()]
-    print(u"%-18s %6s %8s %8s %8s %8s" % (u"화면", u"원래", u"전체+1", u"전체-1", u"체커+1", u"체커-1"))
+    print(u"%-18s %6s %8s %8s %8s %8s %6s %6s %6s %6s"
+          % (u"화면", u"원래", u"전체+1", u"전체-1", u"체커+1", u"체커-1", u"→+1", u"←-1", u"↓+1", u"↑-1"))
     bad = tot = 0
+    sbad = 0
     worst = []
     for n in names:
         if only and n not in only:
@@ -4173,13 +4218,24 @@ def jitter_report(shots_dir, only=None):
         img = png_read(f)
         base = len(read_layout(img, n))
         got = [len(read_layout(_jitter(img, a, c), n)) for a, c in JITTER_CASES]
+        sgot = [len(read_layout(_shift(img, dx, dy), n)) for dx, dy in SHIFT_CASES]
         tot += 1
         if any(g != base for g in got):
             bad += 1
             worst.append((max(abs(g - base) for g in got), n, base, got))
-        print(u"%-18s %6d %8d %8d %8d %8d" % (n, base, got[0], got[1], got[2], got[3]))
-    print(u"\n— 화소를 ±1 건드렸을 때 조각 수가 달라진 화면 **%d/%d**(T437 실측 기준선 %s)"
+        if any(g != base for g in sgot):
+            sbad += 1
+        print(u"%-18s %6d %8d %8d %8d %8d %6d %6d %6d %6d"
+              % (n, base, got[0], got[1], got[2], got[3], sgot[0], sgot[1], sgot[2], sgot[3]))
+    print(u"\n— 화소를 ±1 건드렸을 때(**진폭**) 조각 수가 달라진 화면 **%d/%d**(T437 실측 기준선 %s)"
           % (bad, tot, JITTER_BASE))
+    print(u"— 자리를 1화소 **민** 때(**기하** · T28 195회차) 달라진 화면 **%d/%d**" % (sbad, tot))
+    if bad == 0 and sbad == 0 and tot:
+        print(u"  ⇒ 이 화면들에서 판독기는 **진폭과 자리 둘 다에 버틴다**. 그러니 회차 사이에 조각 수가"
+              u" 달라졌다면 그것은 «자가 흔들렸다» 가 **아니고** 그림이 **1화소보다 크게** 달라진 것이다"
+              u" — 굵은 격자 지문(`fingerprint`)은 칸 **평균 밝기**라 «같은 평균으로 내용만 움직인 차이»"
+              u"(목록이 한 줄 굴렀다 · 손잡이가 옮겨졌다 · 하늘이 달라졌다)를 **0.1 쯤으로** 적는다."
+              u" 그 둘을 가르려면 **두 런의 PNG 를 나란히** 봐야 하는데 `screens` 는 런마다 힘으로 덮인다(T502·T514).")
     for d, n, base, got in sorted(worst, reverse=True)[:5]:
         print(u"    가장 크게 흔들린 곳: %-18s %d → %s (±%d)" % (n, base, "·".join(str(g) for g in got), d))
     return 0
