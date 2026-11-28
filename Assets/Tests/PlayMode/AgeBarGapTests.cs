@@ -50,7 +50,10 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(0.48f, ForgeAutoStyle.L("af_age_gap_rem"), 1e-6f,
                 "정본 4707 `.af-age-bar { margin-bottom: .48rem }` — 표 af_age_gap_rem");
 
-            fh.S.BestChapter = 3; fh.S.BestStage = 1; fh.Pull();
+            // ⚠ **레벨 1 은 뒤 시대 확률이 0 이라 막대가 한 줄뿐이다**(정본 `AGES.filter(age => probs[age] > 0)`) —
+            //    런 1408 이 «시대 막대가 둘은 서야 피치를 잰다 · 실측 1» 로 그렇게 빨갰다. 촬영과 같은 레벨 29 로 올려 여러 줄을 세운다
+            //    (이웃 자 `AgeBarRadiusTests` 가 같은 까닭으로 같은 줄을 쓴다).
+            fh.S.BestChapter = 3; fh.S.BestStage = 1; fh.S.ForgeLevel = 29; fh.Pull(); fh.Push();
             ForgeAutoPopup.Open(fh);
             yield return null; yield return null;
             var bars = new System.Collections.Generic.List<RectTransform>();
