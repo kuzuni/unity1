@@ -122,6 +122,13 @@ namespace Forge.Tests.PlayMode
         private static string GearSignature;
 
         /// <summary>
+        /// T534 — `craft-compare` 가 굴린 **비교 품목**의 «슬롯=시대/등급/레벨» 서명. 위 <see cref="GearSignature"/> 와 같은 뜻이다 —
+        /// 런마다 같아야 그 화면의 두 런을 견줄 수 있다. ⚑ 기대값 상수(`GearSignatureExpected` 꼴)는 **첫 런의 자취를 보고** 다음 회차가 못박는다
+        /// (여기서는 굴림 결과를 미리 알 수 없다 — 정본 표가 정한다).
+        /// </summary>
+        private static string CompareSignature;
+
+        /// <summary>
         /// T128 — 위 서명의 기대값. 촬영 난수를 고정한 뒤 **런 260·271 두 런이 글자 하나까지 같았다**(그 전에는 매 런 달랐다).
         /// 이 단언이 빨개지는 경우는 둘뿐이다: ⓐ 촬영 난수가 다시 흔들린다(고쳐야 한다) ⓑ 정본 표(balance·gamedata)가 바뀌어
         /// 굴림 결과가 바뀐다 — 그때는 **원작 샷과의 대조 기준이 함께 바뀐 것**이라 새 서명을 여기 적고 그 회차 기록에 이유를 남긴다.
@@ -541,13 +548,25 @@ namespace Forge.Tests.PlayMode
                 Opened = delegate { return Popups.IsOpen(ForgeAutoPopup.Name); }
             });
             // 새 장비도 원작처럼 서브옵션 2줄로 고정(랜덤 1~4줄이면 카드 높이가 매 런 달라진다).
+            // T534 — **품목도 시드 고정 엔진으로 굴린다.** 종전엔 `F.Engine.RollItem()` 이라 게임 엔진의 난수를 썼는데
+            //   그 난수는 `ForgeHost.cs` 172 가 **벽시계**로 씨 뿌린다 — 런마다 등급(이름 색)·이름 길이(카드 높이)·
+            //   수 자릿수·슬롯 아이콘이 통째로 달라져 이 화면 점수가 1.5~2.8 사이를 오갔고(T28 197회차 실측 2.8 → 1.4),
+            //   채점 자가 회차마다 «안쪽이 달라졌다» 를 올려 다음 사람을 «깬 사람» 찾기로 보냈다.
+            //   ⚑ 규칙은 이미 위 163~169(T128)에 있었다 — 장비 8부위는 고정 시드 엔진으로 굴린다. 이 한 자리만 안 닿았다.
+            //   ⚑ 서브옵션 **줄 수**만 못박혀 있던 것이 «고정했다» 로 읽혀 오래 살아남았다. 씨앗은 그 줄이 이미 쓰던 43224 를 그대로 쓴다.
             list.Add(new Shot
             {
                 Name = "craft-compare", Ref = "043224",
                 Open = delegate
                 {
-                    ForgeItem it = F.Engine.RollItem();
+                    ForgeEngine craftRoll = new ForgeEngine(F.Data, F.Forge, F.Wallet,
+                        CoreRng.Mulberry(43224), () => SaveIo.NowMs(), F.Mods);
+                    ForgeItem it = null;
+                    for (int i = 0; i < 60 && it == null; i++) it = craftRoll.RollItem();
                     it.Subs = SubstatRoll.Roll(F.Defs, CoreRng.Mulberry(43224), 2);
+                    // 이 줄이 런마다 같아야 «상태가 같은 두 런» 이다(장비 8부위의 `GearSignature` 와 같은 꼴 · T128).
+                    CompareSignature = it.Slot + "=" + it.Age + "/" + it.Rarity + "/" + it.Level.ToString("0");
+                    Trace("seed 비교 품목 · " + CompareSignature);
                     ForgeCraftPopup.Show(F, it);
                 },
                 Opened = delegate { return Popups.IsOpen(ForgeCraftPopup.Name); }
