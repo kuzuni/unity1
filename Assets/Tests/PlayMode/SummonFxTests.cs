@@ -542,6 +542,69 @@ namespace Forge.Tests.PlayMode
         }
 
         /// <summary>
+        /// T536 — 주역 광창(정본 `.sr-beam`)의 **부모·층·기준 크기**. 정본 ui.js **432** DOM 은 그것을 셀의 겹이 아니라
+        /// `.sr-orbwrap` **안**에 `sr-ray` → **`sr-beam`** → `sr-ghost` → `sr-orb` → `sr-spark` → 배지 차례로 두고,
+        /// style.css **6738** 이 `width/height **320%** · **z-index: 0**` 을 준다. 클론은 그것을 셀 뿌리의 맨 끝 형제로
+        /// 만들어 이름판·등급 칩(z 3) **위**를 가산 십자로 쓸고 지나갔고 기준 크기도 **셀 폭 1배**라 3.2배 작게 떴다.
+        /// 세 가지를 한 자가 못박는다: ⓐ 부모가 구슬 래퍼다 ⓑ 래퍼 표(`z_order_cell`)가 그 칸을 **실제로 센다**
+        /// (종전엔 그 상자가 래퍼에 없어 0번 셌다) ⓒ 상자 폭 = **래퍼 폭 × 표의 `beam_boxf`** 이고 그 수가 정본의 320% 다.
+        /// 판을 직접 짠다(주역은 «최고 등급이 hi» 일 때만 서므로 무작위 소환에 맡기지 않는다 — 동급 링 자와 같은 길).
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 주역_광창은_구슬_래퍼의_자식이고_기준_폭이_래퍼의_표_배수다()
+        {
+            yield return Boot();
+            var list = new List<SkillSummonResultView.Entry>
+            {
+                new SkillSummonResultView.Entry { Key = "sk:a", IconKey = "sk_fireball", Rarity = "common", Name = "가" },
+                new SkillSummonResultView.Entry { Key = "sk:b", IconKey = "sk_fireball", Rarity = "rare", Name = "나" },
+                new SkillSummonResultView.Entry { Key = "sk:c", IconKey = "sk_fireball", Rarity = "ultimate", Name = "다" },
+            };
+            SkillSummonResultView v = SkillSummonResultView.Open(Sheet, "skill", list, "ultimate", null);
+            yield return null;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+            Image beam = v.HeroBeam;
+            Assert.IsNotNull(beam, "주역 광창이 안 섰다");
+            RectTransform bt = beam.rectTransform;
+
+            // ⓐ 부모 — 정본 ui.js 432: 셀이 아니라 구슬 래퍼 안이다.
+            Assert.IsNotNull(bt.parent, "광창의 부모");
+            Assert.AreEqual("sr-orbwrap", bt.parent.name,
+                "광창이 구슬 래퍼의 자식이 아니다 — 부모가 «" + bt.parent.name + "» 다(정본 ui.js 432 는 래퍼 안에 둔다)");
+            RectTransform wrap = bt.parent as RectTransform;
+            Assert.IsNotNull(wrap, "래퍼 RectTransform");
+
+            // ⓑ 래퍼 표가 그 칸을 실제로 센다 — 92회차 자와 같은 걸음으로 센다(종전엔 0번 셌다).
+            Assert.AreEqual(0, SummonFxStyle.ZOrderOfCell("sr-beam"), "정본 style.css 6738 `.sr-beam { z-index: 0 }`");
+            int seen = 0, beamAt = -1, orbAt = -1;
+            for (int i = 0; i < wrap.childCount; i++)
+            {
+                Transform t = wrap.GetChild(i);
+                if (SummonFxStyle.ZOrderOfCell(t.name) < 0) continue;   // 표에 없는 상자
+                seen++;
+                if (t.name == "sr-beam") beamAt = t.GetSiblingIndex();
+                if (t.name == "sr-orb") orbAt = t.GetSiblingIndex();
+            }
+            Assert.Greater(beamAt, -1, "래퍼 표가 센 상자 " + seen + "개 중에 광창이 없다 — 표의 `sr-beam: 0` 칸이 또 죽어 있다");
+            // 같은 0 층 안에서는 정본도 문서 순서가 가른다 — 정본 DOM 은 광창을 구슬 **앞**에 둔다(= 구슬 아래에 깔린다).
+            if (orbAt >= 0) Assert.Less(beamAt, orbAt,
+                "광창이 구슬보다 **뒤** 형제다 — 정본 ui.js 432 는 `sr-beam` → `sr-ghost` → `sr-orb` 차례다(뒤 형제가 위에 그려진다)");
+            // 사다리가 서 있나 — 다시 불러 움직일 것이 없어야 한다(91·92회차와 같은 자).
+            Assert.AreEqual(0, SummonFxStyle.OrderLadder(wrap, true),
+                "광창을 끼운 뒤 래퍼의 형제 차례가 표의 사다리와 다르다 — 다시 세우니 상자가 움직였다");
+
+            // ⓒ 기준 크기 — 래퍼 폭 × 표의 배수(정본 320%). 수는 표에 있고 코드엔 없다.
+            float boxf = SummonFxStyle.H("beam_boxf");
+            Assert.AreEqual(3.2f, boxf, 1e-6f, "정본 style.css 6738 `width: 320%` — 표의 `hero.beam_boxf`");
+            Assert.Greater(wrap.rect.width, 0f, "래퍼 폭");
+            Assert.AreEqual(wrap.rect.width * boxf, bt.rect.width, 0.05f,
+                "광창 상자 폭이 래퍼 폭의 " + boxf + "배가 아니다 — 래퍼 " + wrap.rect.width + " · 광창 " + bt.rect.width);
+            Assert.AreEqual(bt.rect.width, bt.rect.height, 0.05f, "정본은 width·height 가 같은 정사각이다");
+            v.Close();
+            yield return null;
+        }
+
+        /// <summary>
         /// T33 90회차 — 소환 연출 겹의 **층 차례**(정본 `z-index`). 정본은 그 겹을 전부 `.sr-wrap` **형제**로 두고
         /// `z-index` 로 세우는데(`.sr-rays` 0 … `.sr-floor` 10 · `.sr-stars` 15 · `.sr-canopy` 20 · `.sr-shock` 30 ·
         /// `.sr-grid` 40 · `.sr-head`·`.sr-foot` 45 · `.sr-streaks`·`.sr-charge` 60) 클론은 **형제 순서**로 세운다.

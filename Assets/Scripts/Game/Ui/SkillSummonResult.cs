@@ -923,12 +923,29 @@ namespace Forge.Game.Ui
                 Material rm = CraftFxPoly.Screen();
                 if (rm != null) heroRing.material = rm;
                 heroRing.color = new Color(1f, 1f, 1f, 0f);
-                // 광창(정본 `.sr-beam`) — 셀 가운데에 폭 100% 정사각. 링과 달리 셀 **앞**에 뜬다(정본은 `::after` 가 아니라 제 요소다).
-                RectTransform bm = UiKit.Box(hc, "sr-beam");
+                // T536 — 광창(정본 `.sr-beam`)은 **셀의 겹이 아니다**: 정본 ui.js **432** DOM 이 그것을 `.sr-orbwrap` **안**에
+                //   `sr-ray` → **`sr-beam`** → `sr-ghost` → `sr-orb` → `sr-spark` → 배지 차례로 두고, style.css **6738** 이
+                //   `width/height **320%** · **z-index: 0** · screen` 을 준다. 종전 클론은 그것을 셀 뿌리의 맨 끝 형제로 만들어
+                //   («정본은 `::after` 가 아니라 제 요소다 → 셀 앞에 뜬다» 는 틀린 까닭이었다 — 겹의 앞뒤를 정하는 것은
+                //   «가짜 요소인가» 가 아니라 **제 z 와 제 부모**다) 이름판·등급 칩(z 3) 위를 가산 십자로 쓸고 지나갔고,
+                //   기준 크기도 래퍼 폭의 320% 가 아니라 **셀 폭 1배**라 3.2배 작게 떴다(`BakeBeam` 이 선 띠·마스크를
+                //   상자에 상대로 굽기 때문에 선 두께·번짐 반경까지 같이 줄었다). 이제 래퍼의 자식이므로
+                //   래퍼의 `transform: scale(--sz × --peersz)`도 정본처럼 광창에 곱해지고, `z_order_cell` 의 `sr-beam: 0` 칸이 산다.
+                RectTransform hw = cells[heroIdx].OrbWrap;
+                RectTransform bm = UiKit.Box(hw != null ? hw : hc, "sr-beam");
+                float bw = (hw != null ? hw.rect.width : cw) * SummonFxStyle.H("beam_boxf");
                 bm.anchorMin = bm.anchorMax = new Vector2(0.5f, 0.5f);
                 bm.pivot = new Vector2(0.5f, 0.5f);
-                bm.sizeDelta = new Vector2(cw, cw);
+                bm.sizeDelta = new Vector2(bw, bw);
                 bm.anchoredPosition = Vector2.zero;
+                // T536 — 같은 0 층 안에서는 정본도 **문서 순서**가 가른다(표는 층만 쥔다). 정본 DOM 이 광창을 구슬 **앞**에
+                //   두므로(= 구슬 아래에 깔린다) 구슬 바로 앞 형제로 끼운다 — `sr-ray`·`sr-ghost` 가 손으로 자리를 잡은 것과 같은 길(결정 804).
+                if (hw != null)
+                {
+                    int oi = -1;
+                    for (int i = 0; i < hw.childCount; i++) if (hw.GetChild(i).name == "sr-orb") { oi = i; break; }
+                    if (oi >= 0) bm.SetSiblingIndex(oi);
+                }
                 heroBeam = bm.gameObject.AddComponent<Image>();
                 heroBeam.raycastTarget = false;
                 int tier = RarityIdx(best);
@@ -943,8 +960,10 @@ namespace Forge.Game.Ui
                     : (!mid && !dense ? SummonFxStyle.H("ringmax_stage") : SummonFxStyle.H("ringmax_default"));
                 // T33 93회차 — 이 둘은 `BuildCell` 이 끝난 **뒤** 주역 셀에 붙으므로 그 안의 사다리를
                 //   **다시 세운다**(안 하면 주역 링이 만든 차례대로 이름판·칩 위에 선다 · z −1 이어야 한다).
-                //   `sr-beam` 은 표에 없어 제 자리를 지킨다 — 그 자리가 정본과 다른 것이 T536 이다.
+                // T536 — 광창은 이제 **래퍼 안**이라 래퍼 사다리(`z_order_cell`)도 다시 세운다: 끼운 자리가 배지(2) 뒤로
+                //   밀리는 판이 있으면 표가 되돌린다(이 자리에서 0 이 나와야 테스트가 «사다리대로였다» 로 본다).
                 SummonFxStyle.OrderLadder(hc, "z_order_cell_own");
+                if (hw != null) SummonFxStyle.OrderLadder(hw, true);
             }
 
             // ---- 주역 와이프(정본 `.sr-wipe` 6184~6198) ----
@@ -1419,7 +1438,8 @@ namespace Forge.Game.Ui
             //   `position: relative` + `z-index: calc(1 + var(--i))`(6250)라 제 스택 문맥이고, 그 안은
             //   «광주·동급 링·주역 링 −1 → 구슬 래퍼 2 → 이름판·등급 칩 3» 세 층이다(`.sr-name` 은
             //   흐름 안 블록이 아니다 — 정본 7043 에 `position: relative; z-index: 3` 이 있다).
-            //   ⚠ `sr-beam` 은 이 표에 없다(정본은 **래퍼의 자식** z 0 인데 클론은 셀 맨 끝 형제다 — T536).
+            //   ⚑ T536 — `sr-beam` 이 이 표에 없는 것은 **맞다**: 정본에서 그것은 셀의 겹이 아니라 **래퍼의 자식**(z 0)이고,
+            //   클론도 이제 거기 둔다(위 주역 블록) — 그래서 래퍼 표(`z_order_cell`)가 그 칸을 쥔다.
             SummonFxStyle.OrderLadder(cell, "z_order_cell_own");
 
             cell.localScale = Vector3.one * 0.35f;
