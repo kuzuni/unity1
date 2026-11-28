@@ -742,7 +742,7 @@ STALE_REF_NOTES = [
      u"T28 53·54회차에 내가 이 램프를 «포스트가 물들였다» 로 두 번 짚었는데 뿌리는 포스트가 아니라 "
      u"**CSS 알파 겹을 선형 공간에서 섞던 것**이었다(워커 G 가 수로 부정 · T357).",
      ),
-    (u"하단 네비 칸 수 — 원작 샷은 **다섯 칸**, 정본은 **여섯 칸**(6번째 🐞 디버그 · 주인 지시 «되돌리지 말 것»). 클론의 여섯 칸이 맞다",
+    (u'하단 네비 칸 수**와 글자 라벨** — 원작 샷은 **다섯 칸**이고 **칸에 글자가 없다**, 정본은 **여섯 칸**(6번째 🐞 디버그 · 주인 지시 «되돌리지 말 것»)에 **아이콘 + 글자 라벨**이다(`index.html` 160~165 — 칸마다 `<span>` 라벨이 있다). 클론의 여섯 칸·글자 라벨이 맞다',
      u"T169(워커 H · 런 459~463)가 정본 `index.html` 165 + `main.js` 127~131 의 🚨 «디버그 탭은 기본 노출이다 · "
      u"**되돌리지 말 것** — 다시 숨기려면 사용자 지시가 한 번 더 있어야 한다» 대로 여섯째 칸을 되살렸다. "
      u"원작 샷 30장은 그 지시(2026-08-18) 전에 찍혀 **다섯 칸**이라, 칸이 여섯이 되면 가로 중심이 통째로 옮겨 간다 — "
@@ -938,8 +938,9 @@ STALE_REF_EVIDENCE = {
     u"탭바 금속 밴드": (
         (u"css/style.css", 8317, u"linear-gradient(0deg, rgba(255,255,255,.12) 0 1px, rgba(255,255,255,0) 1px),"),
     ),
-    u"하단 네비 칸 수": (
+    u"하단 네비 칸 수**와 글자 라벨**": (
         (u"js/main.js", 127, u"nav-6th-keep-debug"),
+        (u"index.html", 160, u"<button data-tab=\"pvp\" data-ico=\"tab_pvp\">"),
     ),
     u"장비 시대 상세 카드": (
         (u"css/style.css", 3649, u"#forge-item-modal .modal-card.item-detail { width: 68.9%; }"),
@@ -1473,8 +1474,12 @@ def _note_screens():
     """
     names = set(s for s, _r in pairs())
     out = {}
-    for i, (short, _body) in enumerate(STALE_REF_NOTES, 1):
-        hit = set(re.findall(r"`([a-z0-9][a-z0-9\-]*)`", short or u"")) & names
+    for i, (short, body) in enumerate(STALE_REF_NOTES, 1):
+        # T533 — **본문까지 읽는다.** T531 은 짧은 글만 봤고 그래서 칸이 **4/27** 에 그쳤다 —
+        #   나머지 쪽지들은 화면 이름을 **본문**에 적어 두고 있었다(쪽지 5 가 여섯 화면 · 13 이 셋 …).
+        #   본문까지 읽으면 **16줄**이 되고, 늘어난 **열둘**은 61회차가 손으로 센 그 열둘과 **정확히 같다**
+        #   (2 · 5 · 11 · 13 · 14 · 20 · 21 · 22 · 23 · 25 · 26 · 27) — 손 표를 또 만들지 않는다(결정 919).
+        hit = set(re.findall(r"`([a-z0-9][a-z0-9\-]*)`", (short or u"") + u" " + (body or u""))) & names
         if hit:
             out[i] = hit
     return out
@@ -3458,8 +3463,8 @@ def self_test():
         % len(STALE_REF_EVIDENCE))
     chk(all(isinstance(e, tuple) and len(e) == 3 and e[0] and isinstance(e[1], int) and e[2]
             for v in STALE_REF_EVIDENCE.values() for e in v)
-        and all(e[0].startswith(u"css/") or e[0].startswith(u"js/")
-                for v in STALE_REF_EVIDENCE.values() for e in v),
+        and all(e[0].startswith(u"css/") or e[0].startswith(u"js/") or e[0] == u"index.html"
+                for v in STALE_REF_EVIDENCE.values() for e in v),   # T533 — `web/index.html` 도 정본이다(그 금의 뜻은 «`web/` 아래»)
         u"근거 %d개가 (`web/` 아래 경로, 줄, 바늘) 꼴이다"
         % sum(len(v) for v in STALE_REF_EVIDENCE.values()))
 
@@ -4240,6 +4245,27 @@ def self_test():
         _scan_rows([_row31(u"chat")], _tbl31, limit=3)       # 어느 쪽지도 이름으로 안 짚는 화면
     chk(u"이미 적힌 자리" not in _b32.getvalue(),
         u"이름이 안 적힌 화면의 같은 색 후보엔 **아무 꼬리표도 안 붙는다**(T531)")
+
+    # T533 ⓒ — **쪽지가 제 글에 화면 이름을 적었으면 화면 칸이 비면 안 된다.** T531 은 짧은 글만 읽어
+    #   칸이 4/27 였고, 그래서 «이미 적힌 자리» 가 나머지 스물셋에서 새 후보 행세를 했다.
+    #   이제 칸은 **글에서 바로 나온다** — 둘이 갈라질 수 없다. 이 칸은 그 사실을 못 박고,
+    #   🚫 누가 `_note_screens()` 를 다시 «짧은 글만» 으로 좁히면 바로 빨강이 된다.
+    _ns33 = _note_screens()
+    _known = set(x for x, _r in pairs())
+    _txt_named = {}
+    for _i, (_sh, _bd) in enumerate(STALE_REF_NOTES, 1):
+        _n = set(re.findall(r"`([a-z0-9][a-z0-9\-]*)`", (_sh or u"") + u" " + (_bd or u""))) & _known
+        if _n:
+            _txt_named[_i] = _n
+    chk(len(_ns33) >= 16,
+        u"화면 칸이 붙은 쪽지가 **16줄 이상**이다(T533 · 지금 %d줄 · T531 뒤엔 4줄이었다)" % len(_ns33))
+    _gap = sorted(i for i in _txt_named if i not in _ns33)
+    chk(not _gap,
+        u"제 글에 화면 이름을 적은 쪽지는 **하나도** 화면 칸이 비지 않았다(T533 · 빈 줄 %s)" % (_gap or u"없다"))
+    chk(all(_ns33[i] == _txt_named[i] for i in _ns33),
+        u"화면 칸은 **글에서 바로 나온다** — 손으로 적은 표가 아니라 갈라질 수 없다(결정 919)")
+    chk(13 in _ns33 and u"main" in _ns33[13],
+        u"본문으로만 짚는 쪽지도 든다(13번 «하단 네비» 가 `main` 을 짚는다 · T533 ⓐ)")
 
     # T517 ⓑ — **빈 폴더는 «깨끗하다» 가 아니다.** 훑은 화면이 0 이면 ⛔ 와 함께 rc 1 로 떨어진다
     #   (종전엔 «0자리» 를 찍고 rc 0 으로 끝나서, `--shots` 를 빼먹은 발사가 **초록으로 보였다**).
