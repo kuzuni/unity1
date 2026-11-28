@@ -3018,6 +3018,26 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                   u"**고칠 곳을 찾기 전에 이 줄부터 봐라**:" % (len(churn), len(quiet)))
             print(u"    %s" % u" · ".join(u"%s %d→%d%s" % (n, a, b, u"" if d is None else u"(지문 %.1f)" % d)
                                           for n, a, b, d in sorted(churn, key=lambda t: -abs(t[2] - t[1]))))
+            # T28 196회차 — 그 줄을 읽는 사람이 다음에 묻는 것은 하나다: «그래서 자가 흔들린 거냐,
+            #   그림이 달라진 거냐». 조각 수는 **정수 하나**(`_floor`)에 매달려 있어서 그 수가 한 눈금만
+            #   움직이면 문에 걸린 행이 한꺼번에 뒤집힌다 — 그 **폭**을 이 자리에서 바로 재어 붙인다.
+            #   폭이 요소 수 변화만큼 크면 «자의 한계 안» 이고, 폭이 0 인데 요소가 움직였으면 **그림이 달라진 것**이다.
+            swings = []
+            for n, a, b, d in sorted(churn, key=lambda t: -abs(t[2] - t[1]))[:CHURN_SWING_MAX]:
+                f_ = os.path.join(shots_dir, "screen_%s.png" % n)
+                if not os.path.exists(f_):
+                    continue
+                _n0, _lo, _hi, sw = floor_swing(png_read(f_))
+                swings.append((n, sw, abs(b - a)))
+            if swings:
+                inside = [t for t in swings if t[1] >= t[2]]
+                print(u"    ↳ **그릇 수준 ±1 의 흔들폭**(T28 196회차 · `--floor-swing`): %s"
+                      % u" · ".join(u"%s ±%d(요소가 움직인 폭 %d)" % (n, sw, ch) for n, sw, ch in swings))
+                print(u"      ⇒ 폭이 요소 변화만큼 큰 화면 **%d/%d** — 그 움직임은 **자의 민감도만으로도 날 수 있는 크기**다. "
+                      u"⚠ 다만 «그래서 그렇게 된 것» 은 **아니다**: 196회차가 눈금을 **±3 까지** 밀어 봤는데 "
+                      u"지난 회차의 요소 수가 **하나도 재현되지 않았다**(여섯 화면 전수) — 곧 그림의 **건너뜀 결 자체**가 달라진 것이고, "
+                      u"그릇 민감도는 그 작은 차이를 ±1 점으로 **키우는 증폭기**다. 어느 쪽인지 끝까지 가르려면 `--floor-swing --baseline <파일>` 로 "
+                      u"«지난 수를 재현하는 눈금» 칸을 봐라." % (len(inside), len(swings)))
 
         # ── 자와 그림이 어긋난 회차 (T28 90회차 · 결정 729) ──────────────────
         # 위 «전역 손질» 은 **여러 화면이 한꺼번에 움직였을 때**를 짚는다. 그런데 그 반대꼴이 있다 —
@@ -3979,6 +3999,33 @@ def self_test():
     chk(len(SHIFT_CASES) == 4 and all(abs(_dx) + abs(_dy) == 1 for _dx, _dy in SHIFT_CASES),
         u"밀기 갈래 넷이 **한 눈금씩 네 방향**이다(진폭 갈래 %d 의 기하 짝)" % len(JITTER_CASES))
 
+    #   T28 196회차 — **그릇 수준 거울**(`_floor_shifted_elems`): 판독기 본체는 자국에 묶여 한 글자도
+    #   못 고치므로 같은 걸음을 다시 걷는 자를 뒀다. 그 둘이 어긋나면 흔들폭이 거짓이 되니 **여기서 막는다**.
+    _fs = _canvas(112, 199, (20, 20, 20))
+    for _y0 in (20, 60, 100, 140):
+        _fill(_fs, 10, _y0, 100, _y0 + 24, (230, 230, 230))
+        _fill(_fs, 14, _y0 + 6, 50, _y0 + 14, (40, 40, 40))
+    chk(_floor_shifted_elems(_fs, 0) == len(read_layout(_fs)),
+        u"거울이 «그릇 +0» 에서 판독기 본체와 **요소 수가 같다**(T28 196회차 · 어긋나면 흔들폭이 거짓이다)")
+    _k_on, _k_near = floor_knife(_fs)
+    chk(_k_on >= 0 and _k_near >= 0, u"칼날 셈은 음수가 아니다")
+    _sw = floor_swing(_fs)
+    chk(len(_sw) == 4 and _sw[0] == len(read_layout(_fs)),
+        u"흔들폭의 «지금» 칸이 판독기 본체의 요소 수다")
+    chk(_sw[3] == max(abs(_sw[0] - _sw[1]), abs(_sw[0] - _sw[2])),
+        u"흔들폭은 ±1 두 쪽 중 **큰 쪽**이다")
+    chk(_floor_shifted_elems(_canvas(40, 40, (20, 20, 20)), 0) == 0,
+        u"아무 건너뜀도 없는 그림의 요소 수는 0 이다(거울도 그렇다)")
+    chk(isinstance(CHURN_SWING_MAX, int) and CHURN_SWING_MAX >= 5,
+        u"판정에서 흔들폭을 재는 화면 수 상한이 다섯 이상이다")
+    chk(floor_match(_fs, None) is None, u"지난 회차 수를 모르면 «재현 눈금» 은 None 이다")
+    chk(floor_match(_fs, _sw[0]) is None,
+        u"지난 수가 **지금 수와 같으면** 0 아닌 눈금은 안 찾는다(0 은 셈에서 뺀다)")
+    chk(floor_match(_fs, -1) is None, u"어느 눈금으로도 안 나오는 수면 None 이다")
+    _reach = _floor_shifted_elems(_fs, 1)
+    chk((floor_match(_fs, _reach) is not None) if _reach != _sw[0] else True,
+        u"한 눈금 밀어 나오는 수는 **그 눈금**으로 재현된다")
+
     # ㉔ «다음 볼 화면» 의 흔들림 폭 (T28 106회차)
     chk(jitter_span(os.path.join(REPO, "tools"), u"없는화면", []) is None,
         u"샷이 없는 화면의 흔들림 폭은 None 이다")
@@ -4252,6 +4299,155 @@ def _shift(img, dx, dy):
 SHIFT_CASES = ((1, 0), (-1, 0), (0, 1), (0, -1))
 
 
+# ─────────────────────── 그릇 수준이 한 눈금 움직이면 (T28 196회차) ───────────────────────
+# 🚨 **이 아래 두 자는 판독기의 «거울» 이다 — 자국(`STAMP_FUNCS`)에 든 함수를 고치면 판독표가
+#    통째로 무효가 되므로(그 머리 주석) 본체는 **한 글자도** 건드리지 않고, 같은 걸음을
+#    `dfloor` 만 보태 다시 걷는다. 거울이 본체와 어긋나면 자기 검사가 막는다(`dfloor=0` 일 때
+#    요소 수가 `read_layout` 과 같아야 한다).
+
+
+#: 점수 판정에서 흔들폭을 재는 화면 수 상한 — 판독기는 파이썬이라 화면마다 한 번 더 걷는 값이 든다.
+CHURN_SWING_MAX = 12
+
+
+def _floor_shifted_elems(img, dfloor=0, dcol=0):
+    """`read_layout` 과 **같은 걸음**인데 «그릇 수준» 에만 dfloor·dcol 을 보태 **요소 수**를 센다."""
+    ax, ay, W, H = app_box(img)
+    t = _row_edges(img, ay, ay + H, ax, ax + W)
+    G = max(2, H // 100)
+
+    def split(y0, y1, depth=0):
+        if y1 - y0 <= max(4, H * BAND_MAX // 100) or depth >= 3:
+            return [(y0, y1)]
+        seg = t[y0:y1]
+        b = _floor(seg) + dfloor
+        subs = _flags([v >= b + ROW_EXTRA for v in seg], max(3, H // 100), 0)
+        if len(subs) < 2:
+            return [(y0, y1)]
+        out = []
+        for a, c in subs:
+            out += split(y0 + a, y0 + c, depth + 1)
+        return out
+
+    bands = []
+    for a, b in _flags([v >= 1 for v in t], G, G):
+        bands += split(a, b)
+    n = len(bands)
+    for (y0, y1) in bands:
+        ce = _col_edges(img, ay + y0, ay + y1, ax, ax + W)
+        blocks = _flags([v >= _floor(ce) + dcol + COL_EXTRA for v in ce],
+                        max(2, W // 100), max(3, W // 50))
+        if len(blocks) >= 2:
+            n += len(blocks)
+    return n
+
+
+def floor_knife(img):
+    """«칼날에 걸린 행» 셈 — 가르는 문(`그릇 + ROW_EXTRA`)에 **딱 걸린** 행과 **한 눈금 밑** 행.
+
+    문이 한 눈금 움직이면 이 행들이 한꺼번에 «내용 ↔ 그릇» 으로 뒤집힌다.
+    """
+    ax, ay, W, H = app_box(img)
+    t = _row_edges(img, ay, ay + H, ax, ax + W)
+    G = max(2, H // 100)
+    on = near = 0
+    for a, b in _flags([v >= 1 for v in t], G, G):
+        if b - a <= max(4, H * BAND_MAX // 100):
+            continue                      # 재귀로 안 가르는 밴드는 문이 없다
+        seg = t[a:b]
+        fl = _floor(seg)
+        for v in seg:
+            if v == fl + ROW_EXTRA:
+                on += 1
+            elif v == fl + ROW_EXTRA - 1:
+                near += 1
+    return on, near
+
+
+def floor_swing(img):
+    """그릇 수준을 ±1 움직였을 때 **요소 수가 뛰는 폭** — (지금, −1, +1, 폭)."""
+    n0 = _floor_shifted_elems(img, 0)
+    lo = _floor_shifted_elems(img, -1)
+    hi = _floor_shifted_elems(img, +1)
+    return n0, lo, hi, max(abs(n0 - lo), abs(n0 - hi))
+
+
+def floor_match(img, prev_elems, span=3):
+    """지난 회차의 요소 수를 **그릇 눈금 하나로** 재현할 수 있나 — 되는 눈금(0 아님) 또는 None.
+
+    T28 196회차 실측: 런 1418 ↔ 1426 에서 요소 수가 움직인 여섯 화면을 ±3 까지 밀어 봤는데
+    **하나도 재현되지 않았다**. 곧 «판독기가 다르게 읽었다» 는 **자가 고정 입력에서 흔들린 것**이
+    아니라 그림의 건너뜀 결이 달라진 것이고, 그릇 민감도는 그 작은 차이를 키우는 쪽이다.
+    """
+    if prev_elems is None or prev_elems == _floor_shifted_elems(img, 0):
+        return None                      # 안 움직인 화면은 재현할 것이 없다(0 눈금은 셈에서 뺀다)
+    for d in range(-span, span + 1):
+        if d == 0:
+            continue
+        if _floor_shifted_elems(img, d) == prev_elems:
+            return d
+    return None
+
+
+def floor_swing_report(shots_dir, only=None, baseline_path=None):
+    """화면마다 «그릇 수준 ±1» 의 흔들폭을 찍는다 — T28 196회차의 판정 자.
+
+    까닭: 회차마다 «판독기가 화면을 다르게 읽었다» 가 뜨는데 195회차가 그 흔한 설명 둘을
+    실측으로 지웠다(진폭 흔들기 0/5 · 자리 1화소 밀기 0/5 · 결정 916). 남은 자리가 여기다 —
+    조각 수는 **정수 하나**(`_floor` = «가장 조용한 3행 이상 무리의 최댓값 중 최솟값»)에 매달려
+    있고, 그 수가 한 눈금만 움직이면 문(`그릇 + ROW_EXTRA`)에 걸린 행이 한꺼번에 뒤집힌다.
+    """
+    names = [n for (n, _r) in pairs()]
+    prev = {}
+    if baseline_path and os.path.exists(baseline_path):
+        prev = (load_baseline(baseline_path) or {}).get("_elems") or {}
+    rows = []
+    for n in names:
+        if only and n not in only:
+            continue
+        f = os.path.join(shots_dir, "screen_%s.png" % n)
+        if not os.path.exists(f):
+            continue
+        img = png_read(f)
+        n0, lo, hi, sw = floor_swing(img)
+        on, near = floor_knife(img)
+        pe = prev.get(n)
+        mt = None if pe is None or pe == n0 else floor_match(img, pe)
+        rows.append((sw, n, n0, lo, hi, on, near, pe, mt))
+    if not rows:
+        print(u"✗ floor-swing: 샷이 없다 (%s)" % shots_dir)
+        return 1
+    rows.sort(key=lambda r: (-r[0], r[1]))
+    print(u"%-20s %6s %6s %6s %7s %7s %7s %7s %10s"
+          % (u"화면", u"지금", u"그릇-1", u"그릇+1", u"흔들폭", u"칼날위", u"칼날밑", u"지난회차", u"재현눈금"))
+    for sw, n, n0, lo, hi, on, near, pe, mt in rows:
+        print(u"%-20s %6d %6d %6d %7d %7d %7d %7s %10s"
+              % (n, n0, lo, hi, sw, on, near,
+                 u"—" if pe is None else u"%d" % pe,
+                 u"—" if pe is None or pe == n0 else (u"%+d" % mt if mt is not None else u"없다")))
+    moved = [r for r in rows if r[7] is not None and r[7] != r[2]]
+    if moved:
+        hit = [r for r in moved if r[8] is not None]
+        print(u"\n— 지난 회차와 요소 수가 다른 화면 **%d개** 중 «그릇 눈금 하나(±3 안)로 그 수가 재현되는» 화면 **%d개**"
+              % (len(moved), len(hit)))
+        if not hit:
+            print(u"  ⇒ **하나도 재현되지 않는다** — 그러면 그 화면들은 «자가 고정 입력에서 흔들린 것» 이 **아니다**. "
+                  u"건너뜀 결 자체가 달라진 것이고(목록이 한 줄 굴렀다 · 하늘이 달라졌다 · 글자가 다시 그려졌다), "
+                  u"아래 흔들폭은 그 작은 차이를 ±1 점으로 **키우는 증폭기**다 — 둘은 다른 말이다.")
+    big = [r for r in rows if r[0] >= 5]
+    print(u"\n— 그릇 수준이 **한 눈금** 움직이면 조각 수가 뛰는 화면 **%d/%d** · 폭 5 이상 **%d개**"
+          % (len([r for r in rows if r[0] > 0]), len(rows), len(big)))
+    if big:
+        print(u"    %s" % u" · ".join(u"%s ±%d" % (r[1], r[0]) for r in big))
+    print(u"  ⇒ 이 폭은 **자의 민감도**다: 가장 조용한 행 하나가 건너뜀 하나만 더(덜) 가져도 문이 한 눈금 움직이고,"
+          u" 그러면 그 문에 걸린 행들이 **한꺼번에** 뒤집힌다(위 «칼날위·칼날밑» 이 그 행 수다)."
+          u" ⚠ 이것은 «자가 고정 입력에서 흔들린다» 는 말이 **아니다** — 같은 PNG 를 두 번 읽으면 언제나 같은 수가 난다."
+          u" 뜻은 이렇다: 런마다 그림은 **조금** 달라지는데(목록이 한 줄 굴렀다 · 하늘이 달라졌다 · 글자가 다시 그려졌다)"
+          u" 폭이 큰 화면은 그 **작은** 차이를 요소 수 열댓 개로, 다시 점수 ±1 로 **키운다**. 그러니 폭이 큰 화면의"
+          u" ±1 점은 **클론에서 고칠 곳이 아니다** — 쫓지 말고 이 표를 먼저 보라는 뜻이다.")
+    return 0
+
+
 def jitter_report(shots_dir, only=None):
     """화면마다 ±1 흔들어 조각 수가 버티는지 찍는다 — T437 의 판정 자."""
     names = [n for (n, _r) in pairs()]
@@ -4310,6 +4506,8 @@ def main():
     #   사람은 번호를 아는데 파일만 모르는 자리라 **대는 길**을 둔다. 번호가 없으면 아래에서 **저장을 접는다**.
     ap.add_argument("--run", type=int, default=None, metavar="번호",
                     help="이 채점의 런 번호(meta.json 에 run 이 없을 때 손으로 댄다 · T500)")
+    ap.add_argument("--floor-swing", action="store_true",
+                    help="그릇 수준을 ±1 움직였을 때 조각 수가 뛰는 폭(T28 196회차 · 자의 흔들림 한계)")
     ap.add_argument("--jitter", action="store_true",
                     help="같은 그림을 ±1 흔들어 조각 수가 버티는지 본다(T437 판정 자)")
     ap.add_argument("--notes", action="store_true", help="«낡은 원작 샷» 항목을 근거까지 펼쳐 찍는다")
@@ -4326,6 +4524,8 @@ def main():
 
     if a.self_test:
         return self_test()
+    if a.floor_swing:
+        return floor_swing_report(a.shots, a.only, a.baseline)
     if a.jitter:
         return jitter_report(a.shots, a.only)
     if a.behind:
