@@ -112,7 +112,15 @@ namespace Forge.Tests.PlayMode
             Assert.IsTrue(v.Done);
             // T334 9회차 — 주역 충격파 링(정본 `.sr-cell.heroic::after`)은 셀 **뒤**에 폭 100% 정사각으로 깔린다.
             Assert.IsNotNull(v.HeroRing, "주역 충격파 링이 없다");
-            Assert.AreEqual(0, v.HeroRing.transform.GetSiblingIndex(), "링은 셀 뒤(z −1)에 그려진다");
+            // ⚠ T33 93회차 — «맨 앞 형제(0)» 는 틀린 잣대다: 같은 셀의 등급 광주(`.sr-cell::before` 6334)도 z −1 이고
+            //   정본 트리 순서로 `::before` 가 `::after` 앞이다 — 링의 옳은 자리는 «광주 다음, 구슬 래퍼 앞» 이다.
+            int zHero;
+            Assert.IsTrue(SummonFxStyle.TryZOrderOfCellOwn(v.HeroRing.name, out zHero), "셀 문맥 표에 든 겹이다");
+            Assert.AreEqual(-1, zHero, "정본 6754 `#summon-result-modal.hero .sr-cell.heroic::after { z-index: -1 }`");
+            Transform heroWrap = v.HeroRing.transform.parent.Find("sr-orbwrap");
+            Assert.IsNotNull(heroWrap, "주역 셀의 구슬 래퍼");
+            Assert.Less(v.HeroRing.transform.GetSiblingIndex(), heroWrap.GetSiblingIndex(),
+                "링은 셀 뒤(z −1) — 구슬 래퍼보다 앞 형제다");
             Assert.IsNotNull(v.HeroRing.sprite, "구운 고리 한 장");
             var rr = (RectTransform)v.HeroRing.transform;
             Assert.AreEqual(rr.rect.width, rr.rect.height, 0.01f, "정사각(aspect-ratio: 1)");

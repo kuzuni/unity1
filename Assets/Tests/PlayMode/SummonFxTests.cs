@@ -699,7 +699,16 @@ namespace Forge.Tests.PlayMode
             {
                 RectTransform rt = r.rectTransform;
                 Assert.AreEqual("sr-peerring", rt.name);
-                Assert.AreEqual(0, rt.GetSiblingIndex(), "링은 셀 뒤(z −1)");
+                // ⚠ T33 93회차 — 종전엔 «맨 앞 형제(0)» 로 쟀는데 그 잣대가 **틀렸다**: 같은 셀의 등급 광주
+                //   (`.sr-cell::before` 6334)도 z **−1** 이고 정본 트리 순서로 `::before` 가 `::after` **앞**이다
+                //   — 곧 링의 옳은 자리는 0 이 아니라 «광주 다음, 구슬 래퍼 앞» 이다(92회차의 착지 링과 같은 가족의
+                //   잘못: «z 가 맨 아래/맨 위면 형제도 맨 끝» 이 아니다). 자리는 표로 묻고 앞뒤만 견준다.
+                int zr;
+                Assert.IsTrue(SummonFxStyle.TryZOrderOfCellOwn(rt.name, out zr), "셀 문맥 표에 든 겹이다");
+                Assert.AreEqual(-1, zr, "정본 6709 `.sr-cell.peer.on::after { z-index: -1 }`");
+                Transform wrapOf = rt.parent.Find("sr-orbwrap");
+                Assert.IsNotNull(wrapOf, "같은 셀의 구슬 래퍼");
+                Assert.Less(rt.GetSiblingIndex(), wrapOf.GetSiblingIndex(), "링은 셀 뒤 — 구슬 래퍼보다 앞 형제다");
                 Assert.AreEqual(rt.rect.width, rt.rect.height, 0.01f, "정사각(aspect-ratio: 1)");
                 Assert.AreEqual(((RectTransform)rt.parent).rect.width, rt.rect.width, 0.5f, "폭 100%");
                 Assert.IsNotNull(r.sprite, "구운 링 한 장");
