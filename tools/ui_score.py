@@ -254,6 +254,7 @@ EDGE_STEP = 2      # 건너뜀을 재는 화소 간격(체커판 ±1 을 안 타
 EDGE_T = 24        # 이만큼 넘게 다르면 «건너뜀»(0~255 · 글자·테두리 모서리는 100 안팎 · 그라디언트 한 칸은 0~3)
 FLOOR_RUN = 3      # «그릇 수준» 은 이 행 수 이상 이어져야 그릇이다
 ROW_EXTRA = 2      # 그릇보다 이만큼 많은 행이 내용이다(테두리 한 쌍 = 2)
+FLOOR_Q = 0.10     # T532 — «그릇 수준» 을 무리 최댓값들의 **최솟값**(0.0)이 아니라 이 분위로 (실측으로 고른 수 · 결정 920)
 COL_EXTRA = 2      # 열도 같다
 BAND_MAX = 18      # 이보다 높은(%) 밴드는 그릇 수준으로 더 가른다
 
@@ -295,19 +296,29 @@ def _col_edges(img, y0, y1, x0, x1):
 
 
 def _floor(seg, run=FLOOR_RUN):
-    """«그릇 수준» — run 칸 이상 이어지는 값 무리 중 가장 낮은 것(무리의 최댓값). 그런 무리가 없으면 최솟값."""
-    best = None
+    """«그릇 수준» — run 칸 이상 이어지는 값 무리들의 최댓값 중 **아래에서 FLOOR_Q 분위**. 그런 무리가 없으면 최솟값.
+
+    T532 — 종전엔 그 최댓값들의 **최솟값**이었다(= 가장 조용한 한 무리가 문을 혼자 정한다). 그것이
+    **잡음에 가장 약한 통계**라, 그 한 무리가 건너뜀 하나만 더(덜) 가져도 문(`그릇 + ROW_EXTRA`)이
+    한 눈금 움직이고 문에 걸린 행들이 **한꺼번에** 뒤집혔다 — 회차마다 «판독기가 다르게 읽었다» 가
+    뜨던 자리다. 아래에서 한 칸만 들어와도(`FLOOR_Q` 0.10) 그 하나에 매달리지 않는다.
+    ⚠ **분위를 더 올리면 안 된다** — 실측으로 폭은 더 줄지만(0.20 에서 5개 · 0.5 에서 0개) 그것은
+    자가 **덜 읽어서** 잠잠해지는 것이다(0.20 에서 `chat` 45 → 5 · `tech-node` 17 → 3 · 열 화면 합 79%).
+    고른 0.10 은 폭을 **14 → 10** 으로 줄이면서 읽는 양은 **113%** 로 오히려 는다(결정 920).
+    """
+    tops = []
     i, n = 0, len(seg)
     while i < n:
         j = i
         while j < n and seg[j] <= seg[i]:
             j += 1
         if j - i >= run:
-            v = max(seg[i:j])
-            if best is None or v < best:
-                best = v
+            tops.append(max(seg[i:j]))
         i = j
-    return best if best is not None else (min(seg) if seg else 0)
+    if not tops:
+        return min(seg) if seg else 0
+    tops.sort()
+    return tops[int(round(FLOOR_Q * (len(tops) - 1)))]
 
 
 def _flags(flags, min_len, gap):
@@ -316,18 +327,18 @@ def _flags(flags, min_len, gap):
     return [(a, b) for a, b in runs if b - a >= min_len]
 
 
-def _split_rows(t, y0, y1, H, depth=0):
+def _split_rows(t, y0, y1, H, depth=0, dfloor=0):
     """BAND_MAX%%H 를 넘는 밴드를 «그릇 + ROW_EXTRA» 넘는 행의 구간으로 가른다(틈은 잇지 않는다 — 1행 구분선에서도 갈린다)."""
     if y1 - y0 <= max(4, H * BAND_MAX // 100) or depth >= 3:
         return [(y0, y1)]
     seg = t[y0:y1]
-    b = _floor(seg)
+    b = _floor(seg) + dfloor
     subs = _flags([v >= b + ROW_EXTRA for v in seg], max(3, H // 100), 0)
     if len(subs) < 2:
         return [(y0, y1)]
     out = []
     for a, c in subs:
-        out += _split_rows(t, y0 + a, y0 + c, H, depth + 1)
+        out += _split_rows(t, y0 + a, y0 + c, H, depth + 1, dfloor)
     return out
 
 
@@ -339,7 +350,7 @@ def _split_rows(t, y0, y1, H, depth=0):
 #    자기 검사가 **막는다**.
 STAMP_FUNCS = ("app_box", "_runs", "_merge", "_row_edges", "_col_edges", "_floor", "_flags",
                "_split_rows", "read_layout")
-STAMP_CONSTS = ("EDGE_STEP", "EDGE_T", "FLOOR_RUN", "ROW_EXTRA", "COL_EXTRA", "BAND_MAX", "GRID")
+STAMP_CONSTS = ("EDGE_STEP", "EDGE_T", "FLOOR_RUN", "FLOOR_Q", "ROW_EXTRA", "COL_EXTRA", "BAND_MAX", "GRID")
 _DOC_Q = ('"""', "'''")
 
 
@@ -4316,22 +4327,11 @@ def _floor_shifted_elems(img, dfloor=0, dcol=0):
     t = _row_edges(img, ay, ay + H, ax, ax + W)
     G = max(2, H // 100)
 
-    def split(y0, y1, depth=0):
-        if y1 - y0 <= max(4, H * BAND_MAX // 100) or depth >= 3:
-            return [(y0, y1)]
-        seg = t[y0:y1]
-        b = _floor(seg) + dfloor
-        subs = _flags([v >= b + ROW_EXTRA for v in seg], max(3, H // 100), 0)
-        if len(subs) < 2:
-            return [(y0, y1)]
-        out = []
-        for a, c in subs:
-            out += split(y0 + a, y0 + c, depth + 1)
-        return out
-
+    # T532 — **사본을 걷었다**: 종전엔 이 안에 `_split_rows` 와 같은 걸음이 한 벌 더 있어서
+    #   진짜 판독기를 고쳐도 민감도를 재는 이 자는 **못 봤다**(T490 의 «열 벌째 복사» 와 같은 병).
     bands = []
     for a, b in _flags([v >= 1 for v in t], G, G):
-        bands += split(a, b)
+        bands += _split_rows(t, a, b, H, 0, dfloor)
     n = len(bands)
     for (y0, y1) in bands:
         ce = _col_edges(img, ay + y0, ay + y1, ax, ax + W)
