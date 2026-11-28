@@ -410,6 +410,65 @@ namespace Forge.Tests.PlayMode
         }
     
         /// <summary>
+        /// T33 90회차 — 소환 연출 겹의 **층 차례**(정본 `z-index`). 정본은 그 겹을 전부 `.sr-wrap` **형제**로 두고
+        /// `z-index` 로 세우는데(`.sr-rays` 0 … `.sr-floor` 10 · `.sr-stars` 15 · `.sr-canopy` 20 · `.sr-shock` 30 ·
+        /// `.sr-grid` 40 · `.sr-head`·`.sr-foot` 45 · `.sr-streaks`·`.sr-charge` 60) 클론은 **형제 순서**로 세운다.
+        /// 그래서 견줄 수 있는 것은 «**같은 상자 안**에서 차례가 정본 z 의 비감소인가» 하나다(결정 909 의 둘째 걸음) —
+        /// 클론이 그 겹을 두 상자(무대판 · 래퍼)로 갈라 두므로 **상자마다** 본다. 같은 z 가 여럿이라 **엄격 증가가 아니다**.
+        /// ⚑ 이 한 칸이 표의 스물넷을 한 번에 잰다 — 88회차가 «실물에서 읽어야 한다» 고 적어 둔 그 자리다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator 연출_겹의_형제_차례가_정본_z_의_비감소다()
+        {
+            yield return Boot();
+            TabBar tb = UiRoot.Instance.TabBar;
+            if (tb.ActiveTab != "summon") tb.OnTab("summon");
+            Sheet.Switch(SkillPetSheet.SubSkills);
+            yield return null;
+            Host.Tickets = 10000;
+            Sheet.Skills.SummonButton.onClick.Invoke();
+            yield return null;
+            yield return null;
+            SkillSummonResultView v = SkillSummonResultView.Current;
+            Assert.IsNotNull(v, "결과 연출 팝업");
+
+            // 표에 든 이름의 상자를 전부 모아 **부모별**로 차례를 본다(클론이 어느 상자에 두든 맞다).
+            var groups = new Dictionary<Transform, List<KeyValuePair<int, string>>>();
+            int seen = 0;
+            foreach (RectTransform t in v.GetComponentsInChildren<RectTransform>(true))
+            {
+                int z = SummonFxStyle.ZOrderOf(t.name);
+                if (z < 0) continue;                       // 표에 없는 상자는 건너뛴다
+                Transform par = t.parent;
+                if (par == null) continue;
+                if (!groups.ContainsKey(par)) groups[par] = new List<KeyValuePair<int, string>>();
+                groups[par].Add(new KeyValuePair<int, string>(t.GetSiblingIndex(), t.name));
+                seen++;
+            }
+            Assert.Greater(seen, 6, "표에 든 겹이 실물에 여럿 서 있다 — 잰 수 " + seen);
+
+            int checkedPairs = 0;
+            foreach (KeyValuePair<Transform, List<KeyValuePair<int, string>>> g in groups)
+            {
+                List<KeyValuePair<int, string>> kids = g.Value;
+                kids.Sort((x, y) => x.Key.CompareTo(y.Key));          // 형제 차례대로
+                for (int i = 1; i < kids.Count; i++)
+                {
+                    int zPrev = SummonFxStyle.ZOrderOf(kids[i - 1].Value);
+                    int zCur = SummonFxStyle.ZOrderOf(kids[i].Value);
+                    checkedPairs++;
+                    Assert.LessOrEqual(zPrev, zCur,
+                        g.Key.name + " 안에서 «" + kids[i - 1].Value + "»(정본 z " + zPrev + ") 가 «" + kids[i].Value
+                        + "»(z " + zCur + ") 보다 뒤 형제다 — 정본 층 차례가 뒤집혔다(형제가 뒤일수록 위에 그려진다)");
+                }
+            }
+            Assert.Greater(checkedPairs, 4, "견준 이웃 짝 — 잰 수 " + checkedPairs);
+            v.Close();
+            yield return null;
+        }
+
+        /// <summary>
+        /// T33 85회차 — 빛줄기(정본 5716        /// <summary>
         /// T33 85회차 — 빛줄기(정본 5716 `.sr-streaks i { transform-origin: 50% 100% }`)의 **축이 아래끝**인가.
         /// 정본은 상자의 밑변을 축으로 `scaleY`(.55→1.5) 한다 — 그 밑변이 회전 뒤 **광원에 가까운 끝**이라
         /// 늘어난 몫은 **광원에서 먼 쪽으로** 자라고 가까운 끝은 제자리에 남는다.

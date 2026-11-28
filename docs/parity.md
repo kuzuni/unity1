@@ -3246,6 +3246,27 @@ CSS 속성 축의 마지막 둘(29회차가 남긴 것). 주석을 걷고 `;` �
 - **남은 축 후보**: ⓐ **`.sr-*` 서른 겹의 차례 전수** — 이 회차가 수를 다 뽑아 뒀고(위 목록) 클론은 `SetSiblingIndex`·`SetAsFirstSibling` 를 **열두 자리**에서 쓰므로 **실물에서 읽어야** 견줄 수 있다(PlayMode 한 칸이 그 서른을 한 번에 잰다) ·
   ⓑ `overflow` 59(↔ `Mask`/`RectMask2D`) ⓒ 작은 묶음 아홉(`.equip-cell` 안 세 겹 등 — 겹치는 자리라 값이 산다).
 
+
+## 90회차 — 소환 연출 겹 서른의 **층 차례**를 표로 옮기고 PlayMode 한 칸이 전수를 재게 했다 (2026-11-28 · 워커 I · sess-0303-71504 · 런 1418 빨강은 T528 산 lock)
+
+- **§0-6**: 런 1418 의 빨강(`SummonGridClipTests`)은 **T528 의 자**고 그 번호는 산 lock(79분)이며 임자가 1차 판정 수리를 이미 밀었다(`e8bfc4cf`) — 자도 «그의 몫» 으로 가른다.
+- **왜 이 축인가**: 88회차(내 것)가 `z-index` 112 를 쌓임 문맥별로 모았을 때 루트 다음으로 큰 무리가 **소환 연출 겹**이었고, 그 수를 그 회차가 다 뽑아 뒀다.
+  남은 일은 하나였다 — **클론은 그 차례를 `SetSiblingIndex`·`SetAsFirstSibling`·`SetAsLastSibling` 로 **열두 자리**에서 정하므로 «실물에서 읽어야» 견줄 수 있다**.
+- **셈**: `.sr-*`·`#summon-result-modal` 의 `z-index` 선언 **39**. 그중 **셀 안**의 겹(`.sr-orbwrap` 2 · `.sr-new`/`.sr-qty`/`.sr-dup` 2 · `.sr-name`/`.sr-sub` 3 · `.sr-cell::before` −1 · `.sr-cell.peer.on::after` −1 · `.sr-beam` 0 ·
+  `.hero .sr-cell.heroic::after` −1 · `.sr-cell` `calc(1 + var(--i))`)는 **셀 한 장이 제 문맥**이라 이 축이 아니다 → **wrap 형제 스물넷**이 본체다.
+- **표**(`SummonFxUi.json` `z_order` · 열쇠는 **클론 상자 이름** = 정본 클래스와 같다): `sr-rays`·`sr-halo`·`sr-ghost` **0** · `sr-motes`·`sr-title`·`sr-idle` **1** · `sr-spark` **2** ·
+  `sr-floor` **10** · `sr-reflect` **12** · `sr-stars` **15** · `sr-canopy` **20** · `sr-flash`·`sr-wipe` **25** · `sr-relights` **26** · `sr-tierbreaks` **27** · `sr-shock` **30** · `sr-dust` **35** ·
+  `sr-solo`·`sr-grid` **40** · `sr-near` **42** · `sr-head`·`sr-foot` **45** · `sr-streaks`·`sr-charge` **60**. 읽는 길은 `SummonFxStyle.ZOrderOf(name)`(표에 없는 이름은 −1 — 자가 건너뛴다).
+- **자 한 칸이 스물넷을 한 번에 잰다**(PlayMode `SummonFxTests.연출_겹의_형제_차례가_정본_z_의_비감소다`): 결과 연출을 열고 **표에 든 이름의 상자를 전부 모아 부모별로 묶은 뒤**
+  형제 차례대로 이웃 짝의 정본 z 가 **비감소인지** 본다. 클론이 그 겹을 **두 상자**(무대판 · 래퍼)로 갈라 두므로 «상자마다» 보는 것이 맞고, 같은 z 가 여섯 쌍이라(0 셋 · 1 셋 · 25·40·45·60 둘씩)
+  **엄격 증가가 아니다**(정본도 그 자리는 문서 순서로 갈린다). 빨강 문구에 **두 겹 이름과 각자의 정본 z** 를 넣어 어디가 뒤집혔는지 한 줄로 읽히게 했다.
+- ⚑ **판정을 정적으로 못 점쳤다 — 솔직히 적는다**: 생성 차례만 읽으면 `sr-rays`(0)·`sr-stars`(15)·`sr-canopy`(20)·`sr-reflect`(12)·`sr-grid`(40)·`sr-floor`(10)이 **서로 끼어들어**
+  최종 차례가 코드만으로는 안 나온다 — `SummonFx:120`·`325` 가 `floor.GetSiblingIndex() + 1` 로 자리를 잡고, `SkillSummonResult:618` 이 `floor` 를 `SetAsFirstSibling` 한다.
+  **그 불확실함이 이 자를 만든 까닭**이다(88회차가 «실물에서 읽어야 한다» 고 적은 그 뜻). 다음 런이 초록이면 스물넷이 선 것이고, 빨강이면 **그 문구가 범인을 지목한다**.
+- **곁들여 걸린 것**: `check_text_glyphs`(T89)가 내 새 주석의 **「ⓑ」**를 «새 두부» 로 잡았다 — 이 가족의 **여섯째**다(동그라미 글자는 주인 글꼴에 없다). 「둘째 걸음」으로 바꿨다. ⚑ **주석에 동그라미 글자를 쓰지 마라**.
+- **게이트**: `dotnet build` 0 오류(TestsPlay 까지) · `dotnet test` **896/896** · `gate.sh` 막는 자 전부 rc 0 · 건너뜀 0(48번 `check_unity_green` 은 report 고 그 빨강은 T528 임자 몫).
+- **남은 축 후보**: ⓐ 89회차가 갈라 둔 **`overflow: hidden` 46 의 일곱 묶음**(그 회차가 묶음째로 짚게 적어 뒀다) ⓑ **셀 안 겹의 차례**(이 회차가 뺀 여덟 — 셀 한 장이 제 문맥이라 자를 따로 써야 한다) ⓒ 작은 묶음 아홉(88회차 목록).
+
 ## 82회차 — 상태 규칙 전수: `:active` 를 뺀 셋은 **빈 축**이고 `.disabled` 클래스가 그 자리를 쥔다 (2026-11-27 · 워커 K · sess-1532-29140 · 런 1375 초록)
 
 - **81회차의 «다음 축 후보» 를 먼저 쟀다 — 그 셋은 없다**: 정본 `web/css/style.css` 를 (주석을 길이 보존으로 지운 뒤) 세니

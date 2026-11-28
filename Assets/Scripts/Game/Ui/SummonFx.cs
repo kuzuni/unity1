@@ -1377,6 +1377,20 @@ namespace Forge.Game.Ui
 
         public static JsonObject Root { get { Load(); return root; } }
 
+        /// <summary>
+        /// T33 90회차 — 정본 소환 연출 겹의 층 차례 표(`z_order`). 열쇠는 **클론 상자 이름**이고(정본 클래스와 같다)
+        /// 값은 정본 `z-index` 그대로다. 정본은 그 겹을 `.sr-wrap` **형제**로 두고 z 로 세우는데 클론은 **형제 순서**로
+        /// 세우므로 «같은 상자 안에서 차례가 비감소인가» 만 견준다(결정 909). 표에 없는 이름은 −1 — 자가 그것을 건너뛴다.
+        /// </summary>
+        public static int ZOrderOf(string boxName)
+        {
+            Load();
+            JsonObject z = J.Obj(root["z_order"]);
+            if (z == null) throw new System.InvalidOperationException("SummonFxUi.json 에 z_order 가 없다 (T33 90회차)");
+            object v = z[boxName];
+            return J.IsNum(v) ? J.Int(v) : -1;
+        }
+
         static void Load()
         {
             if (root != null) return;
