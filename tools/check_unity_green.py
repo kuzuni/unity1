@@ -782,7 +782,8 @@ def open_window_owners(commits, progress_text, lock=None, now=None):
     return out
 
 
-def between_lines(commits, fails_fixtures, green, lock=None, now=None, no_ledger=False, commit_age=None):
+def between_lines(commits, fails_fixtures, green, lock=None, now=None, no_ledger=False, commit_age=None,
+                  open_row=None):
     """순수 — «런 사이» 문구(T148). commits = [(sha, 제목, 파일)] 새 것부터 · green = (sha, run) 또는 (None, None).
 
     갈래 셋: 초록 런을 못 찾았다 / 사이에 코드 커밋이 없다 / 하나·여럿(산 lock 이 있는 것을 먼저 · 제 자가 초록인 갈래는 아니라고)."""
@@ -801,6 +802,7 @@ def between_lines(commits, fails_fixtures, green, lock=None, now=None, no_ledger
     rows = []
     cands = []        # 산 lock 을 쥔 코드 커밋 전부 — «제 자가 초록» 이라도 뺀다(아래 ⚠)
     hot = []          # 그중 제 자도 빨간 것 — 먼저 말한다
+    opens = []        # T530 — 산 lock 은 없지만 **행이 열린** 번호(약한 근거 · 산 lock 다음이다)
     for sha, title, files in commits:
         m = re.match(r'^T(\d+)\b', title)
         tid = ('T' + m.group(1)) if m else None
@@ -824,6 +826,13 @@ def between_lines(commits, fails_fixtures, green, lock=None, now=None, no_ledger
             cands.append(tid)
             if own_red:
                 hot.append(tid)
+        elif tid and open_row is not None and open_row(tid) and tid not in opens:
+            # T530 — 산 lock 은 없지만 **그 번호의 행이 아직 열려 있다**. 이 저장소의 회차는
+            #   «코드 + lock 반납» 을 한 커밋에 담는 일이 잦아서(T338 이 연 길) 이 꼴이 흔하다 —
+            #   그때도 **임자는 있다**. 1171행(T521 ⓓ)이 이미 그렇게 말하는데 이 꼬리줄만
+            #   «임자가 안 나온다 · 네 일일 수 있다» 로 끝내서, **앞에서 댄 이름이 뒤에서 지워졌다**
+            #   (검수 Q 60회차 실측 · 런 #1423 의 T33 · 빨강이 세 커밋 동안 서 있었다).
+            opens.append(tid)
     out = [head + ':'] + rows
     if len(cands) == 1:
         out.append('    → 범위 열로 못 가린 빨강은 **먼저 %s 의 것으로 본다**(사이 코드 커밋 중 산 lock 은 그 하나). '
@@ -832,6 +841,12 @@ def between_lines(commits, fails_fixtures, green, lock=None, now=None, no_ledger
         order = hot + [c for c in cands if c not in hot]
         out.append('    → 산 lock 을 쥔 후보 %s 를 **나란히** 둔다%s — 빨간 자가 무엇을 세우는지(부팅·오버레이·글자 하한·카드 배율…)로 눈으로 가른다.'
                    % (' · '.join(order), '(제 자도 빨간 %s 가 앞)' % ' · '.join(hot) if hot else ''))
+    elif opens:
+        # T530 ⓑⓘⓘ — 산 lock 은 없어도 **행이 열렸으면 임자다**. «네 일일 수 있다» 를 **안 찍는다**.
+        out.append('    → 산 lock 을 쥔 코드 커밋은 없지만 **그 번호의 행이 아직 열려 있다 — 임자는 %s 다**'
+                   '(행 🔄·⬜ · lock 은 같은 커밋에 반납했을 뿐이다 · T338 이 연 길). '
+                   '그 절로 **이어 잡아** 고친다(T521 · T187) — 그래야 범위 칸·회차 기록이 한자리에 남는다. '
+                   '그 절이 이미 고쳐 밀었는지부터 본다.' % ' · '.join(opens[:4]))
     else:
         out.append('    → 산 lock 을 쥔 코드 커밋이 없다 — 이 칸으로도 임자가 안 나온다(§0-6 대로 네 일일 수 있다).')
     return out
@@ -1967,6 +1982,20 @@ def self_test():
     # 산 lock 이 하나도 없으면 «네 일일 수 있다»
     lines = between_lines(C2, F331, ('c' * 40, 329), lock=lambda tid, now=None: (False, 130))
     eq('ⓣ 죽은 lock 뿐이면 네 일일 수 있다', any('네 일일 수 있다' in l for l in lines), True)
+    # T530 ⓒ — 산 lock 이 없어도 **그 번호의 행이 열려 있으면 임자는 있다**: 꼬리줄이 이름을 대고
+    #   «네 일일 수 있다» 를 **안 찍는다**(1171행 T521 ⓓ 가 앞에서 댄 이름을 뒤에서 지우던 자리).
+    _dead = lambda tid, now=None: (False, 130)
+    lines = between_lines(C2, F331, ('c' * 40, 329), lock=_dead, open_row=lambda t: t == 'T142')
+    eq('T530 — 행이 열린 번호를 꼬리줄이 임자로 댄다',
+       any('임자는 T142 다**' in l for l in lines), True)
+    eq('T530 — 그때는 «네 일일 수 있다» 가 안 나온다',
+       any('네 일일 수 있다' in l for l in lines), False)
+    lines = between_lines(C2, F331, ('c' * 40, 329), lock=_dead, open_row=lambda t: False)
+    eq('T530 — 열린 행도 없으면 종전대로 «네 일일 수 있다»',
+       any('네 일일 수 있다' in l for l in lines), True)
+    lines = between_lines(C2, F331, ('c' * 40, 329), lock=both_live, open_row=lambda t: True)
+    eq('T530 — 산 lock 이 있으면 그 갈래가 먼저다(열린 행 줄은 안 쓴다)',
+       any('임자는 T142 다**' in l for l in lines), False)
     # ⓤ 초록 런을 못 찾았다 — 장부 없음 / 장부에 초록 없음 을 가른다 · 참고 후보는 보인다
     lines = between_lines(C2, F331, (None, None), lock=both_live, no_ledger=True)
     eq('ⓤ 장부가 없다고 말한다', any('장부가 아직 없다' in l for l in lines), True)
@@ -2572,7 +2601,9 @@ def main(argv):
                         window_open=open_window_owners(commits, read_progress()),
                         touched=prod_touch(commits), missing=miss_str, runs=runs,
                         mode_logs=mode_logs, meta_run=meta.get('run'))
-        between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None))
+        _st = row_status(read_progress())
+        between = between_lines(commits, fixtures(fails), (gsha, grun), no_ledger=(runs is None),
+                                open_row=lambda t: ('🔄' in _st.get(t, '') or '⬜' in _st.get(t, '')))
     # T386 — 장부 머리의 «건너뜀» 줄은 빨간 런이 아니어도 읽는다(초록 런에도 «남은 일» 이 있을 수 있다).
     sk = skip_note(skips(red_text(ref)), row_status(read_progress()))
     rc, out = judge(meta, anc, n_after, fails, own, between, blocked, blocks_now, newer=nv, skipped=sk,
