@@ -3079,6 +3079,12 @@ def score(table_path, shots_dir, only=None, baseline_path=BASELINE, save_baselin
                       u"지난 회차의 요소 수가 **하나도 재현되지 않았다**(여섯 화면 전수) — 곧 그림의 **건너뜀 결 자체**가 달라진 것이고, "
                       u"그릇 민감도는 그 작은 차이를 ±1 점으로 **키우는 증폭기**다. 어느 쪽인지 끝까지 가르려면 `--floor-swing --baseline <파일>` 로 "
                       u"«지난 수를 재현하는 눈금» 칸을 봐라." % (len(inside), len(swings)))
+                # T28 198회차 — 폭이 가장 큰 화면은 **어느 밴드가** 걸렸는지까지 짚을 수 있다.
+                top = max(swings, key=lambda t: t[1])
+                if top[1] >= 10:
+                    print(u"      ↳ 폭이 가장 큰 **%s**(±%d) 는 `--band-trace %s` 로 **걸린 밴드**를 바로 볼 수 있다 — "
+                          u"198회차 실측: `forge-detail` 의 **501행(52%%H)** 한 밴드가 «쪼갠 수 1» 이라 통째로 남아 있었다."
+                          % (top[0], top[1], top[0]))
 
         # ── 자와 그림이 어긋난 회차 (T28 90회차 · 결정 729) ──────────────────
         # 위 «전역 손질» 은 **여러 화면이 한꺼번에 움직였을 때**를 짚는다. 그런데 그 반대꼴이 있다 —
@@ -4059,6 +4065,8 @@ def self_test():
         u"아무 건너뜀도 없는 그림의 요소 수는 0 이다(거울도 그렇다)")
     chk(isinstance(CHURN_SWING_MAX, int) and CHURN_SWING_MAX >= 5,
         u"판정에서 흔들폭을 재는 화면 수 상한이 다섯 이상이다")
+    chk(band_trace(os.path.join(REPO, "tools"), u"없는화면") == 1,
+        u"샷이 없는 화면의 밴드 펼치기는 rc 1 이다(T28 198회차)")
     chk(floor_match(_fs, None) is None, u"지난 회차 수를 모르면 «재현 눈금» 은 None 이다")
     chk(floor_match(_fs, _sw[0]) is None,
         u"지난 수가 **지금 수와 같으면** 0 아닌 눈금은 안 찾는다(0 은 셈에서 뺀다)")
@@ -4455,6 +4463,61 @@ def floor_match(img, prev_elems, span=3):
     return None
 
 
+def band_trace(shots_dir, name):
+    """T28 198회차 — 한 화면의 **밴드 재귀**를 그대로 펼친다: 밴드마다 «그릇 · 문 · 쪼갠 수» 와
+    «**쪼개지다 말았다**»(`len(subs) < 2` 라 통째로 남은 자리)를 찍는다.
+
+    까닭: 196회차가 «그릇 수준 ±1» 의 **흔들폭**을 재 놨는데(결정 921) 그 수가 큰 화면에서
+    실제로 **무엇이** 뒤집히는지는 안 보였다. 198회차 실측 — `forge-detail` 이 3.5 → **0.8**(−2.7)로
+    떨어졌고 그림은 거의 같은데(지문 안 0.1 · 뒤 0.1) 밴드가 **23 → 8** 이었다. 이 자가 그 자리를
+    한 줄로 짚는다: **501행(52%H) 한 밴드**가 그릇 12 · 문 14 에서 **쪼갠 수 1** 이라 통째로 남는다.
+    곧 화면 절반의 운명이 **정수 하나**와 `len(subs) < 2` **한 줄**에 걸려 있다(T532 의 과녁).
+    """
+    f = os.path.join(shots_dir, "screen_%s.png" % name)
+    if not os.path.exists(f):
+        print(u"✗ band-trace: 샷이 없다 (%s)" % f)
+        return 1
+    img = png_read(f)
+    ax, ay, W, H = app_box(img)
+    t = _row_edges(img, ay, ay + H, ax, ax + W)
+    G = max(2, H // 100)
+    gate = max(4, H * BAND_MAX // 100)
+    print(u"== %s · 앱 %dx%d · 재귀 문턱 %d행(BAND_MAX %d%%H) · 밴드 잇기 %d행" % (name, W, H, gate, BAND_MAX, G))
+    stuck = []
+    leaves = []
+
+    def walk(y0, y1, depth=0):
+        seg = t[y0:y1]
+        if y1 - y0 <= gate or depth >= 3:
+            leaves.append((y0, y1))
+            return
+        b = _floor(seg)
+        subs = _flags([v >= b + ROW_EXTRA for v in seg], max(3, H // 100), 0)
+        halt = len(subs) < 2
+        print(u"   %s[%4d~%4d] %4d행(%4.1f%%H) · 그릇 %3d · 문 %3d · 쪼갠 수 %d%s"
+              % (u"  " * depth, y0, y1, y1 - y0, 100.0 * (y1 - y0) / H, b, b + ROW_EXTRA, len(subs),
+                 u"   ← **쪼개지다 말았다**(2 미만이라 통째로 둔다)" if halt else u""))
+        if halt:
+            stuck.append((y0, y1))
+            leaves.append((y0, y1))
+            return
+        for a, c in subs:
+            walk(y0 + a, y0 + c, depth + 1)
+
+    for a, b in _flags([v >= 1 for v in t], G, G):
+        print(u"밴드 [%4d~%4d] %4d행(%4.1f%%H)" % (a, b, b - a, 100.0 * (b - a) / H))
+        walk(a, b)
+    print(u"\n— 최종 밴드 **%d개** · 그중 «쪼개지다 말았다» **%d개**" % (len(leaves), len(stuck)))
+    if stuck:
+        big = max(stuck, key=lambda r: r[1] - r[0])
+        print(u"  ⚠ 가장 큰 자리: [%d~%d] = **%d행(%.1f%%H)** 이 한 밴드로 남았다 — 그 높이만큼의 내용이"
+              u" **조각 하나**로 세어진다. 다음 회차에 그릇이 한 눈금만 달라지면 그 자리가 **열리거나 닫혀**"
+              u" 조각 수가 수십 개 뛴다(`--floor-swing` 의 흔들폭이 그 수다)." % (big[0], big[1], big[1] - big[0], 100.0 * (big[1] - big[0]) / H))
+        print(u"  ⇒ **T532 의 과녁이 여기다**: `_split_rows` 의 `len(subs) < 2` 는 «못 가르면 통째로» 인데,"
+              u" 그 갈림이 **정수 하나**(`_floor`)에 걸려 있어 화면 절반이 한 조각 ↔ 수십 조각을 오간다.")
+    return 0
+
+
 def floor_swing_report(shots_dir, only=None, baseline_path=None):
     """화면마다 «그릇 수준 ±1» 의 흔들폭을 찍는다 — T28 196회차의 판정 자.
 
@@ -4572,6 +4635,8 @@ def main():
     #   사람은 번호를 아는데 파일만 모르는 자리라 **대는 길**을 둔다. 번호가 없으면 아래에서 **저장을 접는다**.
     ap.add_argument("--run", type=int, default=None, metavar="번호",
                     help="이 채점의 런 번호(meta.json 에 run 이 없을 때 손으로 댄다 · T500)")
+    ap.add_argument("--band-trace", metavar="화면",
+                    help="한 화면의 밴드 재귀를 펼친다(그릇·문·쪼갠 수 · «쪼개지다 말았다» · T28 198회차)")
     ap.add_argument("--floor-swing", action="store_true",
                     help="그릇 수준을 ±1 움직였을 때 조각 수가 뛰는 폭(T28 196회차 · 자의 흔들림 한계)")
     ap.add_argument("--jitter", action="store_true",
@@ -4590,6 +4655,8 @@ def main():
 
     if a.self_test:
         return self_test()
+    if a.band_trace:
+        return band_trace(a.shots, a.band_trace)
     if a.floor_swing:
         return floor_swing_report(a.shots, a.only, a.baseline)
     if a.jitter:
