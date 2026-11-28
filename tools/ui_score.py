@@ -1452,6 +1452,23 @@ def _screen_tokens(screen):
     return [t for t in re.split(r"[^a-z0-9]+", (screen or u"").lower()) if len(t) >= 3]
 
 
+def _note_screens():
+    """T531 — 쪽지가 **제 머리에서 이름으로 짚는 화면** → {쪽지 줄 번호: {화면 이름}}.
+
+    손으로 표를 더하지 않는다 — 쪽지 머리에 이미 백틱으로 적혀 있다(4번째 줄의
+    «`main`·`offline`·`gear-detail` 세계 밴드»). 백틱 토막을 뽑아 **실제 화면 이름과 겹치는 것만** 남기므로
+    새 쪽지가 같은 꼴로 적히면 **저절로** 걸리고, 화면 아닌 토막(`SIMPLE_BG`·`boldSpacing` …)은 저절로 빠진다.
+    실측(26줄 전수): 이렇게 짚히는 쪽지는 **넷**(4 · 16 · 18 · 19)이고 헛맞음은 **0** 이다.
+    """
+    names = set(s for s, _r in pairs())
+    out = {}
+    for i, (short, _body) in enumerate(STALE_REF_NOTES, 1):
+        hit = set(re.findall(r"`([a-z0-9][a-z0-9\-]*)`", short or u"")) & names
+        if hit:
+            out[i] = hit
+    return out
+
+
 def _note_hit(sels, needles=None, screen=None):
     """`--notes` 에 이미 적힌 자리인가 — `(줄 번호 또는 None, 그 자리라고 **단정해도 되는가**)`.
 
@@ -1481,16 +1498,22 @@ def _note_hit(sels, needles=None, screen=None):
                 break
         hits.append((key, got))
     seen = [g for _k, g in hits if g is not None]
-    if not seen:
-        return (None, False)
-    first = seen[0]
-    if len(seen) == len(hits) and len(set(seen)) == 1:
-        return (first, True)                               # ⓐ 색이 곧 그 자리다
-    toks = _screen_tokens(screen)
-    for key, got in hits:
-        if got is not None and any(t in key for t in toks):
-            return (got, True)                             # ⓑ 이름이 그 화면을 품는다
-    return (first, False)
+    if seen:
+        first = seen[0]
+        if len(seen) == len(hits) and len(set(seen)) == 1:
+            return (first, True, u"sel")                   # ⓐ 색이 곧 그 자리다
+        toks = _screen_tokens(screen)
+        for key, got in hits:
+            if got is not None and any(t in key for t in toks):
+                return (got, True, u"sel")                 # ⓑ 이름이 그 화면을 품는다
+        return (first, False, u"selmany")                  # ⓒ 색을 여럿이 나눠 쓴다
+    # T531 — 선택자로는 안 걸려도 **쪽지가 이 화면을 이름으로 짚을** 수 있다(3D 세계 밴드가 그렇다).
+    #   그 짚음은 «색이 그 자리다» 보다 약하므로 **단정하지 않고 밀지도 않는다**(T522 가 세운 조심스러운 쪽 그대로).
+    if screen:
+        for i, names in sorted(_note_screens().items()):
+            if screen in names:
+                return (i, False, u"screen")
+    return (None, False, u"")
 
 
 def _scan_pick(rows, table, limit=10):
@@ -1552,6 +1575,10 @@ def _scan_rows(rows, table, limit=10):
         if note[0] is not None:
             if note[1]:
                 tail += u" · **이미 적힌 자리**(`--notes` %d번째 — 다시 파지 마라)" % note[0]
+            elif note[2] == u"screen":
+                # T531 — 쪽지가 이 **화면**을 이름으로 짚는다(색은 안 겹친다). 짚음이 약하니 밀지 않는다.
+                tail += (u" · 이미 적힌 자리**일 수 있다**(`--notes` %d번째 · **그 줄이 이 화면을 "
+                         u"이름으로 짚는다**)" % note[0])
             else:
                 # T522 — 모르는 것을 아는 것처럼 찍지 않는다(결정 873).
                 tail += (u" · 이미 적힌 자리**일 수 있다**(`--notes` %d번째 · 그 색은 **선택자 %d개**가 "
@@ -4131,6 +4158,30 @@ def self_test():
         _scan_rows([_row22(u"profile")], {(0, 93, 255): [(u".settings-toggle.on", 3115)]}, limit=3)
     chk(u"다시 파지 마라" in _b24.getvalue(),
         u"그 색을 못박은 선택자가 **하나**뿐이면 색이 곧 자리라 화면이 달라도 단정한다(T522 ⓐ)")
+
+    # T531 ⓒ — 쪽지가 **화면을 이름으로 짚는** 갈래. 색으로는 한 줄도 안 걸리는 후보라도
+    #   그 화면을 머리에서 짚는 쪽지가 있으면 **조심스러운 꼬리표**가 붙고 **밀리지는 않는다**.
+    #   🚫 `_note_screens()` 를 빈 표로 만들면 첫 칸이 바로 빨강이 된다.
+    _ns = _note_screens()
+    chk(any(u"main" in v for v in _ns.values()),
+        u"쪽지 머리의 백틱에서 화면 이름을 읽는다(`main` 을 짚는 쪽지가 있다 · T531)")
+    chk(all(all(n in set(x for x, _r in pairs()) for n in v) for v in _ns.values()),
+        u"읽은 이름은 **전부 실제 화면**이다(`SIMPLE_BG` 같은 토막은 저절로 빠진다)")
+    _tbl31 = {(9, 9, 9): [(u".nowhere-at-all", 1)]}          # 어느 쪽지 바늘에도 없는 선택자
+    _row31 = lambda scr: (scr, 179, 9000, (9, 9, 9), (11, 181, 93), (0.0, 80.0, 44.0, 46.0), 0, 2)
+    _b31 = _io.StringIO()
+    with _cl.redirect_stdout(_b31):
+        _scan_rows([_row31(u"main")], _tbl31, limit=3)
+    _o31 = _b31.getvalue()
+    chk(u"이 화면을 이름으로 짚는다" in _o31 and u"다시 파지 마라" not in _o31,
+        u"쪽지가 이름으로 짚는 화면의 후보엔 **화면 꼬리표**가 붙고 단정하지 않는다(T531)")
+    chk(u"main" in _o31.split(u"· 이미 적힌 자리")[0],
+        u"그 후보는 **안 밀린다** — 아직 안 적힌 자리와 같은 줄에서 겨룬다(T522 의 말투 그대로)")
+    _b32 = _io.StringIO()
+    with _cl.redirect_stdout(_b32):
+        _scan_rows([_row31(u"chat")], _tbl31, limit=3)       # 어느 쪽지도 이름으로 안 짚는 화면
+    chk(u"이미 적힌 자리" not in _b32.getvalue(),
+        u"이름이 안 적힌 화면의 같은 색 후보엔 **아무 꼬리표도 안 붙는다**(T531)")
 
     # T517 ⓑ — **빈 폴더는 «깨끗하다» 가 아니다.** 훑은 화면이 0 이면 ⛔ 와 함께 rc 1 로 떨어진다
     #   (종전엔 «0자리» 를 찍고 rc 0 으로 끝나서, `--shots` 를 빼먹은 발사가 **초록으로 보였다**).
