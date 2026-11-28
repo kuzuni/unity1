@@ -711,7 +711,7 @@ namespace Forge.Tests.PlayMode
             Assert.AreEqual(wrap.rect.width + 2f * (off + w), ol.rectTransform.rect.width, 0.5f, "지름 = 래퍼 + 2 × (.12 + .12)rem");
         }
     
-        /// <summary>T480 ⓐ — 일반 셀 착지 링(정본 6358~6363 `.sr-orbwrap::after` + `srring` .55s): **모든** 셀의 래퍼 안 맨 위에 inset 0 정사각 링이 서고,
+        /// <summary>T480 ⓐ — 일반 셀 착지 링(정본 6358~6363 `.sr-orbwrap::after` + `srring` .55s): **모든** 셀의 래퍼 안 **0 층 맨 위**(T33 92회차가 «자식 중 맨 위» 를 그렇게 바로잡았다 — 배지·스파크는 z 2 라 그 위다)에 inset 0 정사각 링이 서고,
         /// 가산(screen) 재질이며 동급·주역 링과 다른 판이다. 자기 착지 뒤 .55s 가 지나면 알파 0 · 배율 `1.5 + .8 × --glow`(등급마다 다르다).</summary>
         [UnityTest]
         public IEnumerator 모든_셀은_자기_착지에_등급색_착지_링을_한_번_번지고_끝_배율은_glow_계단이다()
@@ -737,7 +737,24 @@ namespace Forge.Tests.PlayMode
                 Assert.AreEqual("sr-landring", rt.name);
                 RectTransform wrap = (RectTransform)rt.parent;
                 Assert.AreEqual("sr-orbwrap", wrap.name, "래퍼 안(정본 ::after)");
-                Assert.AreEqual(wrap.childCount - 1, rt.GetSiblingIndex(), "래퍼 자식 중 맨 위(::after)");
+                // T33 92회차 — 이 자는 «래퍼 자식 중 **맨 위**» 를 단언했는데 그것이 **틀린 주장**이었다(런 1431 이 그래서 빨갰다):
+                //   `::after` 가 마지막 자식인 것은 맞지만 그것은 **z 를 안 적은(auto) 상자들의 0 층 안에서** 맨 위일 뿐이고,
+                //   같은 래퍼의 배지·스파크는 `z-index: 2`(정본 6476 `.sr-spark` · 6980 `.sr-new` · 6997 `.sr-qty` · 7025 `.sr-dup`)라
+                //   **그것들이 이 링 위**다. 그래서 묻는 것을 바꾼다 — «0 층 상자 전부보다 뒤 · z 2 상자 전부보다 앞».
+                int zRing = SummonFxStyle.ZOrderOfCell(rt.name);
+                Assert.AreEqual(0, zRing, "정본 6358 `.sr-orbwrap::after` 는 z 선언이 없다 = 0 층");
+                for (int k = 0; k < wrap.childCount; k++)
+                {
+                    Transform sib = wrap.GetChild(k);
+                    int zs = SummonFxStyle.ZOrderOfCell(sib.name);
+                    if (zs < 0 || sib == rt.transform) continue;      // 표에 없는 상자(구운 광채·테·그림자·바닥)는 제 자리다
+                    if (zs > zRing)
+                        Assert.Less(rt.GetSiblingIndex(), sib.GetSiblingIndex(),
+                            "«" + sib.name + "»(셀 z " + zs + ")가 착지 링(0 층) **위**여야 한다 — 가산 링이 배지 글자를 쓸고 지나간다");
+                    else
+                        Assert.Greater(rt.GetSiblingIndex(), sib.GetSiblingIndex(),
+                            "착지 링은 같은 0 층 안에서 **맨 뒤**다(정본 ::after 는 그 층의 마지막 자식) — «" + sib.name + "» 보다 뒤여야 한다");
+                }
                 Assert.AreEqual(wrap.rect.width, rt.rect.width, 0.5f, "inset 0 — 폭 100%");
                 Assert.AreEqual(rt.rect.width, rt.rect.height, 0.01f, "정사각");
                 Assert.IsNotNull(r.sprite, "구운 링 한 장");
