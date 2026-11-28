@@ -56,15 +56,28 @@ namespace Forge.Tests.PlayMode
             fh.S.BestChapter = 3; fh.S.BestStage = 1; fh.S.ForgeLevel = 29; fh.Pull(); fh.Push();
             ForgeAutoPopup.Open(fh);
             yield return null; yield return null;
+            // ⚠ `FindObjectsOfType(true)` 로 찾지 마라 — **앞 칸이 띄워 둔 다른 팝업의 막대**까지 줍는다
+            //    (런 1410 이 `rect.height` 를 72.4px = 3.98rem 로 읽은 까닭 · 자동 제련 막대는 1.75rem 이다).
+            //    이 팝업의 **뿌리 안**에서만, 그리고 **한 부모의 형제**만 모은다.
+            Popup auto = fh.Meta.Popups.Find(ForgeAutoPopup.Name);
+            Assert.IsNotNull(auto, "자동 제련 팝업");
             var bars = new System.Collections.Generic.List<RectTransform>();
-            foreach (RectTransform rt in Object.FindObjectsOfType<RectTransform>(true))
+            foreach (RectTransform rt in auto.Root.GetComponentsInChildren<RectTransform>(true))
                 if (rt.name.StartsWith("af-age-") && rt.Find("ico") != null) bars.Add(rt);
             Assert.GreaterOrEqual(bars.Count, 2, "시대 막대가 둘은 서야 피치를 잰다");
-            bars.Sort((x, y) => y.position.y.CompareTo(x.position.y));      // 화면 위에서 아래로
+            Transform par = bars[0].parent;
+            bars.RemoveAll(b => b.parent != par);
+            Assert.GreaterOrEqual(bars.Count, 2, "한 목록 안의 형제 막대가 둘은 있어야 한다");
+            for (int i = 1; i < bars.Count; i++)
+                Assert.AreEqual(bars[0].rect.height, bars[i].rect.height, 0.5f, "막대 높이는 다 같다");
+            // ⚠ **`position` 은 월드 단위다 — 섞지 마라.** 런 1410 이 «기다린 81.2 · 실측 17.3px» 로 빨갰는데
+            //    그 둘의 비가 곧 캔버스 배율(0.213)이다. `rect.height`·`rem` 과 같은 자(캔버스 px)로 재려면
+            //    **`anchoredPosition`** 이어야 한다 — 이웃 칸이 가로 틈을 그렇게 잰다.
+            bars.Sort((x, y) => y.anchoredPosition.y.CompareTo(x.anchoredPosition.y));   // 화면 위에서 아래로
             float want = bars[0].rect.height + rem * ForgeAutoStyle.L("af_age_gap_rem");
             for (int i = 0; i + 1 < bars.Count; i++)
             {
-                float pitch = bars[i].position.y - bars[i + 1].position.y;
+                float pitch = bars[i].anchoredPosition.y - bars[i + 1].anchoredPosition.y;
                 Assert.AreEqual(want, pitch, 1.0f,
                     "막대 " + i + "→" + (i + 1) + " 피치 = 막대 높이 + 표 간격(.48rem) · 실측 " + pitch.ToString("0.0") + "px");
             }
