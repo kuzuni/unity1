@@ -1,0 +1,4 @@
+T147 진단 — 렌더러에 실제로 실린 값
+injectionPoint=AfterRenderingPostProcessing · fetchColorBuffer=False · requirements=Depth · passIndex=0 · bindDepthStencilAttachment=False · passMaterial=EdgeOutline
+셰이더는 색을 안 읽고 얹는다(Blend SrcAlpha OneMinusSrcAlpha) — fetchColorBuffer 는 안 쓴다.
+화면 256px · 팽창 0

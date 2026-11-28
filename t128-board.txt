@@ -1,0 +1,3 @@
+T128 — 촬영 판 서명(런마다 같아야 «상태가 같은 두 런» 이다)
+cp=94m ch=4-1 gear=29 pets=8/21/3 skills=15/3 coins=27100000 kills=48210
+장비: weapon=underworld/mythic/28 helmet=multiverse/legendary/26 armor=interstellar/common/25 gloves=multiverse/common/26 necklace=underworld/rare/28 ring=multiverse/common/26 shoes=multiverse/legendary/26 belt=quantum/rare/27
