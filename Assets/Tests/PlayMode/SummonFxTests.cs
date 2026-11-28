@@ -958,7 +958,16 @@ namespace Forge.Tests.PlayMode
                         low++;
                         Assert.AreEqual(0f, la, 1e-4f, "셀 " + i + " 는 팝 " + u.ToString("0.000") + "(≤68%) 인데 라벨이 보인다 — 비행 중 융합(정본 6250 주석)");
                     }
-                    else if (u >= 0.999f) { high++; Assert.AreEqual(1f, la, 1e-4f, "팝이 끝난 셀의 라벨은 알파 1(forwards)"); }
+                    else if (u >= 0.999f)
+                    {
+                        high++;
+                        // T33 92회차 — «u ≥ 0.999 면 알파 **1**» 은 **틀린 문턱**이었다. 라벨은 68%~100% 구간에서 켜지므로
+                        //   u = 0.99926 의 참값은 **0.9977** 이고 ±1e-4 를 벗어난다 — 런 1433 이 정확히 그 수(0.99768728)로 넘어졌다.
+                        //   같은 코드로 런 1431 은 **통과**했다(프레임이 u = 1 에 떨어졌을 뿐이다) — 곧 클론이 아니라 **문턱이 범인**이다.
+                        //   그래서 1 이 아니라 **그 진행률에서 표가 내는 값**과 견준다. 구간 전체를 보는 쪽이라 자가 더 세진다.
+                        Assert.AreEqual((float)pp.LabelAlpha(u * pop, pop), la, 1e-3f,
+                            "팝 " + u.ToString("0.0000") + " 의 라벨 알파는 표가 내는 값이다(forwards)");
+                    }
                 }
                 waited += Time.unscaledDeltaTime;
                 yield return null;
