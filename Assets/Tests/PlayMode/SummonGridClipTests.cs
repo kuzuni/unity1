@@ -56,11 +56,26 @@ namespace Forge.Tests.PlayMode
             return SkillSummonResultView.Open(SkillPetSheet.Instance, "skill", list, "legendary", null);
         }
 
-        static RectTransform Grid(SkillSummonResultView v)
+        /// <summary>
+        /// 이름이 `sr-grid` 인 상자. ⚠ **그 이름이 가리키는 것이 두 가지다**(1차 판정이 여기서 빨갰다 · 런 1418):
+        /// 안 자르는 가지는 `UiKit.Box(body, "sr-grid")` 라 **격자 자신**이고, 자르는 가지는
+        /// `PetSkillKit.Scroll(body, "sr-grid", …)` 이라 그 이름이 **뷰(마스크를 단 상자)** 에 붙고
+        /// 격자는 그 아래 `content` 다(`PetSkillKit.cs` 366~387 — `RectMask2D` 는 **뷰**에 달린다).
+        /// 그래서 마스크는 «이름이 sr-grid 인 상자 **또는 그 부모**» 에서 찾는다.
+        /// </summary>
+        static RectTransform Named(SkillSummonResultView v)
         {
             foreach (Transform x in v.GetComponentsInChildren<Transform>(true))
                 if (x.name == "sr-grid") return (RectTransform)x;
             return null;
+        }
+
+        static RectMask2D MaskOf(RectTransform named)
+        {
+            if (named == null) return null;
+            RectMask2D self = named.GetComponent<RectMask2D>();
+            if (self != null) return self;
+            return named.parent == null ? null : named.parent.GetComponent<RectMask2D>();
         }
 
         [UnityTest]
@@ -70,11 +85,11 @@ namespace Forge.Tests.PlayMode
             SkillSummonResultView v = Open(9);
             Assert.IsNotNull(v, "소환 결과 창이 안 열렸다");
             yield return null;
-            RectTransform grid = Grid(v);
+            RectTransform grid = Named(v);
             Assert.IsNotNull(grid, "격자 sr-grid");
             // ⓐ 정본 6233 `.sr-grid { overflow: visible }` — n = 9 는 class 가 비어 **안 자른다**.
             //    클론에서 «자른다» 는 곧 `PetSkillKit.Scroll` 공장이 부모에 단 `RectMask2D` 다.
-            Assert.IsNull(grid.parent.GetComponent<RectMask2D>(),
+            Assert.IsNull(MaskOf(grid),
                 "셀 9 + 주역 판에서 마스크가 붙었다 — 정본은 n ≤ 10 이면 높이가 넘쳐도 안 자른다(T528)");
             Assert.IsNull(grid.GetComponentInParent<ScrollRect>(),
                 "셀 9 판에 스크롤이 붙었다 — 정본 6235 는 .mid/.dense 에만 건다");
@@ -88,13 +103,15 @@ namespace Forge.Tests.PlayMode
             SkillSummonResultView v = Open(11);
             Assert.IsNotNull(v);
             yield return null;
-            RectTransform grid = Grid(v);
+            RectTransform grid = Named(v);
             Assert.IsNotNull(grid, "격자 sr-grid");
             // ⓑ 정본 6235 `.sr-grid.mid` — n = 11 은 mid 라 자르고 페이드를 건다.
-            RectMask2D rm = grid.parent.GetComponent<RectMask2D>();
+            RectMask2D rm = MaskOf(grid);
             Assert.IsNotNull(rm, "셀 11(mid)에서는 마스크가 붙어야 한다(T528)");
+            // 제품 코드가 재는 것과 **같은 몸통**을 재야 한다 — `bodyH` 는 마스크를 단 상자의 **부모**(몸통)다.
+            RectTransform maskBox = (RectTransform)rm.transform;
+            float bodyH = ((RectTransform)maskBox.parent).rect.height;
             float fade = PetSkillStyle.L("sr_grid_fade_f");
-            float bodyH = ((RectTransform)grid.parent.parent).rect.height;
             Assert.Greater(rm.softness.y, 0, "페이드가 0 이다");
             Assert.AreEqual(bodyH * fade, rm.softness.y, Mathf.Max(2f, bodyH * fade * 0.25f),
                 "페이드는 보이는 높이의 표값(sr_grid_fade_f) 몫이다 — T178 47회차");
